@@ -506,7 +506,6 @@ void Phobos::ExeRun()
 {
 	Phobos::Otamaa::ExeTerminated = false;
 
-//#ifdef COMPILE_PORTED_DP_FEATURES
 //	if (Patch::GetModuleBaseAddress("PatcherLoader.dll"))
 //	{
 //		MessageBoxW(NULL,
@@ -517,7 +516,6 @@ void Phobos::ExeRun()
 //		Phobos::ExeTerminate();
 //		exit(0);
 //	}
-//#endif
 
 	if (!AresData::Init())
 	{

@@ -1,5 +1,4 @@
 #pragma once
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <GeneralStructures.h>
 
 class JJFacingToTarget
@@ -33,4 +32,3 @@ public:
 			;
 	}
 };
-#endif

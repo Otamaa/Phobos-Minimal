@@ -8,7 +8,7 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WarheadType/Body.h>
-#ifdef COMPILE_PORTED_DP_FEATURES
+#ifdef COMPILE_PORTED_DP_FEATURES_
 #include <Misc/DynamicPatcher/Others/DamageText.h>
 #endif
 
@@ -81,14 +81,10 @@ DEFINE_HOOK(0x449B04, TechnoClass_MI_Construct_Facing_Jugger, 0x6)
  		auto const nDisableEmp = pThis->EMPLockRemaining && TypeExt->FacingRotation_DisalbeOnEMP.Get();
  		auto const nDisableDeactivated = pThis->IsDeactivated() && TypeExt->FacingRotation_DisalbeOnDeactivated.Get() && !pThis->EMPLockRemaining;
 
- #ifdef COMPILE_PORTED_DP_FEATURES
  		auto const bDriverKilled = (*(bool*)((char*)pThis->align_154 + 0x9C));
  		auto const nDisableDriverKilled = bDriverKilled && TypeExt->FacingRotation_DisableOnDriverKilled.Get();
 
  		if ((nDisableEmp || nDisableDeactivated || nDisableDriverKilled || TypeExt->FacingRotation_Disable.Get()))
- #else
- 		if ((nDisableEmp || nDisableDeactivated || TypeExt->FacingRotation_Disable.Get()))
- #endif
  			return 0x7365ED;
  	}
 

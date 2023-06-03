@@ -1,5 +1,4 @@
 #include "SpawnSupportData.h"
-#ifdef COMPILE_PORTED_DP_FEATURES
 void SpawnSupportFLHData::Read(INI_EX& nParser, const char* pSection)
 {
 	SpawnSupportFLH.Read(nParser, pSection, "SupportWeaponFLH");
@@ -34,4 +33,3 @@ void SpawnSupportData::Read(INI_EX& nParser, const char* pSection)
 	FireOnce.Read(nParser, pSection, "SpawnFireOnce");
 	Delay.Read(nParser, pSection, "SpawnFireOnceDelay");
 }
-#endif

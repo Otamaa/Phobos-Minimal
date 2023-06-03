@@ -35,10 +35,9 @@
 #include <Utilities/LocomotionCast.h>
 #include <Phobos_ECS.h>
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
-#endif
+
 
 #include <memory>
 
@@ -1130,41 +1129,28 @@ const Nullable<CoordStruct>* TechnoExt::GetInfrantyCrawlFLH(InfantryClass* pThis
 			if (weaponIndex == 0)
 			{
 				return pThis->Veterancy.IsElite() ?
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 					pTechnoType->E_PronePrimaryFireFLH.isset() ?
 					&pTechnoType->E_PronePrimaryFireFLH :
 					&pTechnoType->Elite_PrimaryCrawlFLH
-#else
-					& pTechnoType->E_PronePrimaryFireFLH
-#endif
 					:
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 				pTechnoType->PronePrimaryFireFLH.isset() ?
 					&pTechnoType->PronePrimaryFireFLH :
 					&pTechnoType->PrimaryCrawlFLH
-#else
-				& pTechnoType->PronePrimaryFireFLH
-#endif
 					;
 			}
 			else if (weaponIndex == 1)
 			{
 				return pThis->Veterancy.IsElite() ?
-#ifdef COMPILE_PORTED_DP_FEATURES
 					pTechnoType->E_ProneSecondaryFireFLH.isset() ?
 					&pTechnoType->E_ProneSecondaryFireFLH :
 					&pTechnoType->E_ProneSecondaryFireFLH
-#else
-					& pTechnoType->E_ProneSecondaryFireFLH
-#endif
 					:
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 				pTechnoType->ProneSecondaryFireFLH.isset() ?
 					&pTechnoType->ProneSecondaryFireFLH :
 					&pTechnoType->SecondaryCrawlFLH
-#else
-				& pTechnoType->ProneSecondaryFireFLH
-#endif
 					;
 			}
 		}
@@ -2810,9 +2796,7 @@ void TechnoExt::ExtData::UpdateOnTunnelEnter()
 			pos->LastLocation.clear();
 		}
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsManager::Hide(Get());
-#endif
 
 		this->IsInTunnel = true;
 	}
@@ -2890,7 +2874,6 @@ void TechnoExt::ExtData::UpdateType(TechnoTypeClass* currentType)
 		&& pTypeExtData->PassengerDeletionType->Rate <= 0)
 		this->PassengerDeletionTimer.Stop();
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 	TrailsManager::Construct(static_cast<TechnoClass*>(pThis), true);
 
 	if (!pTypeExtData->MyFighterData.Enable && this->MyFighterData)
@@ -2911,7 +2894,6 @@ void TechnoExt::ExtData::UpdateType(TechnoTypeClass* currentType)
 	else if (!this->MyGiftBox)
 		GiftBoxFunctional::Init(this, pTypeExtData);
 
-#endif
 }
 
 void TechnoExt::ExtData::UpdateBuildingLightning()
@@ -3507,7 +3489,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->WarpedOutDelay)
 		.Process(this->AltOccupation)
 		.Process(this->MyOriginalTemporal)
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 		.Process(this->aircraftPutOffsetFlag)
 		.Process(this->aircraftPutOffset)
 		.Process(this->VirtualUnit)
@@ -3528,17 +3510,14 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 #ifdef ENABLE_HOMING_MISSILE
 		.Process(this->MissileTargetTracker)
 #endif
-#endif;
 		;
 	//should put this inside techo ext , ffs
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 	this->MyWeaponManager.Serialize(Stm);
 	this->MyDriveData.Serialize(Stm);
 	this->MyDiveData.Serialize(Stm);
 	//this->MyJJData.Serialize(Stm);
 	this->MySpawnSuport.Serialize(Stm);
-
-#endif;
 }
 
 bool TechnoExt::ExtData::InvalidateIgnorable(void* ptr) const
@@ -3559,9 +3538,9 @@ bool TechnoExt::ExtData::InvalidateIgnorable(void* ptr) const
 
 void TechnoExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 	MyWeaponManager.InvalidatePointer(ptr, bRemoved);
-#endif
+
 	AnnounceInvalidPointer(OriginalPassengerOwner, ptr);
 	AnnounceInvalidPointer(LastAttacker, ptr);
 #ifdef ENABLE_HOMING_MISSILE

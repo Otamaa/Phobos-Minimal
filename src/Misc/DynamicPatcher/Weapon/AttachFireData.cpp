@@ -1,5 +1,4 @@
 #include "AttachFireData.h"
-#ifdef COMPILE_PORTED_DP_FEATURES
 void AttachFireData::Read(INI_EX& parser, const char* pSection)
 {
 	UseROF.Read(parser, pSection, "AttachFire.UseROF");
@@ -12,4 +11,3 @@ void AttachFireData::Read(INI_EX& parser, const char* pSection)
 	OnlyFireInTransport.Read(parser, pSection, "AttachFire.OnlyFireInTransport");
 	UseAlternateFLH.Read(parser, pSection, "AttachFire.UseAlternateFLH");
 }
-#endif

@@ -1,5 +1,4 @@
 #pragma once
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
 
@@ -11,4 +10,3 @@ struct AircraftPutDataFunctional
 	static bool IsForceOffset(AircraftPutData& nData);
 	static bool RemoveIfNoDock(AircraftPutData& nData);
 };
-#endif

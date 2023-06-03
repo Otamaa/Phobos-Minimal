@@ -1,4 +1,3 @@
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include "PaintBall.h"
 
 #include <Ext/Techno/Body.h>
@@ -234,5 +233,3 @@ void PaintBall::DrawVXL_Paintball(TechnoClass* pTech, REGISTERS* R, bool isBuild
 		}
 	}
 }
-
-#endif

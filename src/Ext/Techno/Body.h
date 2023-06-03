@@ -12,7 +12,6 @@
 #include <New/Entity/LaserTrailClass.h>
 #include <New/Entity/HomingMissileTargetTracker.h>
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/Trails.h>
 #include <Misc/DynamicPatcher/CustomWeapon/CustomWeapon.h>
 #include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDive.h>
@@ -23,7 +22,6 @@
 #include <Misc/DynamicPatcher/Techno/SpawnSupport/SpawnSupport.h>
 #include <Misc/DynamicPatcher/Techno/FighterGuardArea/FighterAreaGuard.h>
 #include <Misc/DynamicPatcher/AttachedAffects/Effects/PaintBall/PaintBall.h>
-#endif
 
 class BulletClass;
 class TechnoTypeClass;
@@ -80,7 +78,7 @@ public:
 		int Attempt;
 		OptionalStruct<double , true> ReceiveDamageMultiplier;
 		bool SkipLowDamageCheck;
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 		bool aircraftPutOffsetFlag;
 		bool aircraftPutOffset;
 		bool VirtualUnit;
@@ -105,7 +103,6 @@ public:
 		SpawnSupport MySpawnSuport;
 		std::unique_ptr<FighterAreaGuard> MyFighterData;
 
-#endif;
 	#pragma endregion
 
 		UniqueGamePtr<AnimClass> AttachedAnim;
@@ -153,7 +150,6 @@ public:
 			, Attempt { 5 }
 			, ReceiveDamageMultiplier { }
 			, SkipLowDamageCheck { false }
-#ifdef COMPILE_PORTED_DP_FEATURES
 			, aircraftPutOffsetFlag { false }
 			, aircraftPutOffset { false }
 			, VirtualUnit { false }
@@ -185,7 +181,6 @@ public:
 			, SupressEVALost { false }
 			, SelfHealing_CombatDelay { }
 			, PayloadCreated { false }
-#endif;
 		{
 			//MyWeaponManager.CWeaponManager = std::make_unique<CustomWeaponManager>();
 		}

@@ -14,11 +14,8 @@
 #include <TechnoClass.h>
 #include <TacticalClass.h>
 
-
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
-#endif
 
 #include <Ext/Bullet/Trajectories/StraightTrajectory.h>
 
@@ -94,9 +91,7 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 		}
 	}
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 	TrailsManager::AI(pThis);
-#endif
 
 	//if (!pThis->Type->Inviso && pBulletExt->InitialBulletDir.has_value())
 	//	pBulletExt->InitialBulletDir = DirStruct((-1) * std::atan2(pThis->Velocity.Y, pThis->Velocity.X));

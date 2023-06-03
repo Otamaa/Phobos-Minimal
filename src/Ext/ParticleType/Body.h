@@ -6,9 +6,7 @@
 #include <Utilities/TemplateDef.h>
 #include <New/Type/LaserTrailTypeClass.h>
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-#endif
 
 class ParticleTypeExt
 {
@@ -22,9 +20,7 @@ public:
 	public:
 
 		ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types;
-#ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsReader Trails;
-#endif
 		Valueable<bool> ReadjustZ;
 		Valueable<PaletteManager*> Palette; //CustomPalette::PaletteMode::Temperate
 		Valueable<double> DamageRange;
@@ -32,9 +28,7 @@ public:
 
 		ExtData(ParticleTypeClass* OwnerObject) : Extension<ParticleTypeClass>(OwnerObject)
 			, LaserTrail_Types()
-#ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
-#endif
 			, ReadjustZ { true }
 			, Palette {}
 			, DamageRange { 0.0 }

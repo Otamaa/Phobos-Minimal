@@ -1,4 +1,3 @@
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include "TrailsManager.h"
 
 #include <Ext/TechnoType/Body.h>
@@ -508,4 +507,3 @@ void TrailsManager::CleanUp(ParticleClass* pOwner)
 	}
 }
 #pragma endregion
-#endif

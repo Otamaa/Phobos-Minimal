@@ -1,5 +1,4 @@
 #include "GiftBoxData.h"
-#ifdef COMPILE_PORTED_DP_FEATURES
 void GiftBoxData::Read(INI_EX& parser, const char* pSection)
 {
 	Gifts.Read(parser, pSection, "GiftBox.Types");
@@ -56,4 +55,3 @@ void GiftBoxData::Read(INI_EX& parser, const char* pSection)
 		CheckPathfind.Read(parser, pSection, "GiftBox.ConsiderPathFinding");
 	}
 }
-#endif

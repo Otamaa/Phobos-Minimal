@@ -1,5 +1,5 @@
 #pragma once
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 #include <Quaternion.h>
 #include <GeneralStructures.h>
 
@@ -80,4 +80,3 @@ namespace Helpers_DP_Vec
 	}
 
 }
-#endif

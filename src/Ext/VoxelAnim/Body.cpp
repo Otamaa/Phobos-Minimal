@@ -63,9 +63,7 @@ void VoxelAnimExt::ExtData::Serialize(T& Stm)
 		.Process(this->Initialized)
 		.Process(Invoker)
 		.Process(LaserTrails)
-#ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(Trails)
-#endif
 		;
 }
 
@@ -92,9 +90,7 @@ DEFINE_HOOK(0x7494CE , VoxelAnimClass_CTOR, 0x6)
 				pExt->LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
 
 			pExt->InitializeLaserTrails(pTypeExt);
-#ifdef COMPILE_PORTED_DP_FEATURES
 			TrailsManager::Construct(pItem);
-#endif
 		}
 	}
 

@@ -18,9 +18,73 @@ uintptr_t AresData::AresBaseAddress = 0x0;
 HMODULE AresData::AresDllHmodule = nullptr;
 DWORD AresData::AresMemDelAddrFinal = 0x0;
 DWORD AresData::AresMemAllocAddrFinal = 0x0;
-AresData::Version AresData::AresVersionId = AresData::Version::Unknown;
-bool AresData::CanUseAres = false;
-DWORD AresData::AresFunctionOffsetsFinal[AresData::AresFunctionCount];
+
+enum FunctionIndices : int
+{
+	ConvertTypeToID = 0,
+	SpawnSurvivorsID = 1,
+	RecalculateStatID = 2,
+	ReverseEngineerID = 3,
+	GetInfActionOverObjectID = 4,
+	SetMouseCursorActionID = 5,
+	HouseCanBuildID = 6,
+	SWActivateID = 7,
+	DepositTiberiumID = 8,
+	ApplyAcademyID = 9,
+	GetTurretVXLDataID = 10,
+	TechnoTransferAffectsID = 11,
+	IsGenericPrerequisiteID = 12,
+	GetSelfHealAmountID = 13,
+	ExtMapFindID = 14,
+	BulletTypeExtGetConvertID = 15,
+	ApplyKillDriverID = 16,
+	MouseCursorTypeLoadDefaultID = 17,
+	HouseExtHasFactoryID = 18,
+	HouseExtGetBuildLimitRemainingID = 19,
+
+	CustomPaletteReadFronINIID = 20,
+	GetBarrelsVoxelID = 21,
+	IsOperatedID = 22,
+	GetTunnelArrayID = 23,
+	UpdateAEDataID = 24,
+	JammerclassUnjamAllID = 25,
+	CPrismRemoveFromNetworkID = 26,
+
+
+	//WHextfunc 
+	applyIonCannonID = 27, //52790 , pWHExt , CoordStruct*
+	applyPermaMCID = 28, //53980 , pWHExt , AbstractClass*
+	applyICID = 29, // 53540 , pWHExt , HouseClass* , int
+	applyEMPID = 30, // 53520 , pWHExt , CoordStruct* , TechnoClass*
+	applyAEID = 31, // 533B0 , pWHExt , CoordStruct* , TechnoClass*
+	applyOccupantDamageID = 32, // 53940 , BulletClass* 
+
+	EvalRaidStatusID = 33,
+	IsActiveFirestormWallID = 34, //BuildingExt  IsActiveFirestormWall BuildingClass* HouseClass*
+	ImmolateVictimID = 35, //BuildingExt  ImmolateVictim BuildingClassExt* FootClass* bool
+
+	DisableEMPAffectID = 36,
+	CloakDisallowedID = 37,
+	CloadAllowedID = 38,
+	RemoveAEID = 39,
+
+	FlyingStringsAddID = 40,
+	CalculateBountyID = 41,
+	SetSpotlightID = 42,
+
+	IsPoweredID = 43,
+	IsDriverKillableID = 44,
+	KillDriverCoreID = 45,
+
+	FireIronCurtainID = 46,
+
+	RespondToFirewallID = 47,
+	count
+};
+
+// storage for absolute addresses of functions (module base + offset)
+static DWORD AresFunctionOffsetsFinal[FunctionIndices::count];
+
 DWORD AresData::AresCustomPaletteReadFuncFinal[AresData::AresCustomPaletteReadCount];
 DWORD AresData::AresStaticInstanceFinal[AresData::AresStaticInstanceCount];
 
@@ -37,15 +101,101 @@ bool EMPulse::IsDeactivationAdvisable(TechnoClass* Target)
 	return true;
 }
 
-uintptr_t AresData::GetModuleBaseAddress(const char* modName)
+
+#pragma region Caller
+template<int idx, typename Tret, typename... TArgs>
+struct AresStdcall
 {
-	return Patch::GetModuleBaseAddress(modName);
-}
+	static_assert(idx < FunctionIndices::count, "Index Out Of Bound !");
+	using fp_type = Tret(__stdcall*)(TArgs...);
+	decltype(auto) operator()(TArgs... args) const
+	{
+		return reinterpret_cast<fp_type>(AresFunctionOffsetsFinal[idx])(args...);
+	}
+};
+
+template<int idx, typename... TArgs>
+struct AresStdcall<idx, void, TArgs...>
+{
+	static_assert(idx < FunctionIndices::count, "Index Out Of Bound !");
+	using fp_type = void(__stdcall*)(TArgs...);
+	decltype(auto) operator()(TArgs... args) const
+	{
+		reinterpret_cast<fp_type>(AresFunctionOffsetsFinal[idx])(args...);
+	}
+};
+
+template<int idx, typename Tret, typename... TArgs>
+struct AresCdecl
+{
+	static_assert(idx < FunctionIndices::count, "Index Out Of Bound !");
+	using fp_type = Tret(__cdecl*)(TArgs...);
+	decltype(auto) operator()(TArgs... args) const
+	{
+		return reinterpret_cast<fp_type>(AresFunctionOffsetsFinal[idx])(args...);
+	}
+};
+
+template<int idx, typename... TArgs>
+struct AresCdecl<idx, void, TArgs...>
+{
+	static_assert(idx < FunctionIndices::count, "Index Out Of Bound !");
+	using fp_type = void(__cdecl*)(TArgs...);
+	decltype(auto) operator()(TArgs... args) const
+	{
+		reinterpret_cast<fp_type>(AresFunctionOffsetsFinal[idx])(args...);
+	}
+};
+
+template<int idx, typename Tret, typename... TArgs>
+struct AresFastcall
+{
+	static_assert(idx < FunctionIndices::count, "Index Out Of Bound !");
+	using fp_type = Tret(__fastcall*)(TArgs...);
+	decltype(auto) operator()(TArgs... args) const
+	{
+		return reinterpret_cast<fp_type>(AresFunctionOffsetsFinal[idx])(args...);
+	}
+};
+
+template<int idx, typename... TArgs>
+struct AresFastcall<idx, void, TArgs...>
+{
+	static_assert(idx < FunctionIndices::count, "Index Out Of Bound !");
+	using fp_type = void(__fastcall*)(TArgs...);
+	decltype(auto) operator()(TArgs... args) const
+	{
+		reinterpret_cast<fp_type>(AresFunctionOffsetsFinal[idx])(args...);
+	}
+};
+
+template<int idx, typename Tret, typename TThis, typename... TArgs>
+struct AresThiscall
+{
+	static_assert(idx < FunctionIndices::count, "Index Out Of Bound !");
+	using fp_type = Tret(__fastcall*)(TThis, void*, TArgs...);
+	decltype(auto) operator()(TThis pThis, TArgs... args) const
+	{
+		return reinterpret_cast<fp_type>(AresFunctionOffsetsFinal[idx])(pThis, nullptr, args...);
+	}
+};
+
+template<int idx, typename TThis, typename... TArgs>
+struct AresThiscall<idx, void, TThis, TArgs...>
+{
+	static_assert(idx < FunctionIndices::count, "Index Out Of Bound !");
+	using fp_type = void(__fastcall*)(TThis, void*, TArgs...);
+	void operator()(TThis pThis, TArgs... args) const
+	{
+		reinterpret_cast<fp_type>(AresFunctionOffsetsFinal[idx])(pThis, nullptr, args...);
+	}
+};
+#pragma endregion
 
 bool AresData::Init()
 {
-	AresBaseAddress = GetModuleBaseAddress(ARES_DLL_S);
-	PhobosBaseAddress = GetModuleBaseAddress(PHOBOS_DLL_S);
+	AresBaseAddress = Patch::GetModuleBaseAddress(ARES_DLL_S);
+	PhobosBaseAddress = Patch::GetModuleBaseAddress(PHOBOS_DLL_S);
 	Debug::LogDeferred("[Phobos] Phobos base address: 0x%X.\n", PhobosBaseAddress);
 
 	if (!AresBaseAddress)
@@ -66,32 +216,109 @@ bool AresData::Init()
 	// read the timedatestamp at 0x8 offset
 	switch ((*(PEHeaderPtr + 2)))
 	{
-	case AresTimestampBytes[Version::Ares30p]:
-		AresVersionId = Version::Ares30p;
-		CanUseAres = true;
+	case 0x61daa114:
 		Debug::LogDeferred("[Phobos] Detected Ares 3.0p1.\n");
 		break;
 	default:
-		Debug::LogDeferred("[Phobos] Detected a version of Ares that is not supported by this version of Phobos.\n");
-		break;
+		Debug::LogDeferred("[Phobos] Detected a AresVersion of Ares that is not supported by this AresVersion of Phobos.\n");
+		return false;
 	}
 
-	if (CanUseAres && GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, ARES_DLL, &AresDllHmodule))
+	// offsets of function addresses for each AresVersion
+	static constexpr DWORD AresFunctionOffsets[FunctionIndices::count] =
 	{
-		for (int a = 0; a < AresData::AresFunctionCount; a++)
-			AresData::AresFunctionOffsetsFinal[a] = AresData::AresBaseAddress + AresData::AresFunctionOffsets[a * AresData::AresVersionCount + AresVersionId];
+		0x044130,	// ConvertTypeTo
+		0x047030, // TechnoExt::SpawnSurvivors
+		0x046C10, //TechnoExt::ExtData::RecalculateStat
+		0x013390, // static BuildingExt::ReverseEngineer 
+		0x025DF0, // static  GetInfActionOverObject
+		0x058AB0, // static MouseCursor::SetAction
+		0x022580, // static HouseExt::canBuild
+		0x032A00, // static SWTypeExt::Activate
+		0x044D10, // TechnoExt::ExtData::DepositTiberium
+		0x0211D0, // HouseExt::ExtData::ApplyAcademy
+		0x03E7C0, // TechnoTypeExt::ExtData::GetTurretsVoxel
+		0x0465F0, // TechnoExt::ExtData::TechnoTransferAffects
+		0x03E950, // TechnoTypeExt::ExtData::IsGenericPrerequisite
+		0x0459F0, // TechnoExt::ExtData::GetSelfHealAmount
+		0x058900, // ExtMap.Find
+		0x019A50, // BulletTypeExtGetConvert
+		0x0537F0, // WhExt::ApplyKillDriver
+		0x007100, // MouseCursorTypeLoadDefault
+		0x0217C0, // HouseExtHasFactory
+		0x0212F0, // HouseExtGetBuildLimitRemaining
+		0x077210, // CustomPaletteReadFronINI
+		0x03E510, // GetBarrelsVoxel
+		0x045FB0, // IsOperated
+		0x00DA30, // GetTunnelArray
+		0x059650, // UpdateAEData
+		0x0693D0, // JammerClassUnjamAll
+		0x0192A0, // CPrismRemoveFromNetwork
+
+		0x052790, // applyIonCannon , pWHExt , CoordStruct*
+		0x053980, // applyPermaMC , pWHExt , AbstractClass*
+		0x053540, // applyIC ,  pWHExt , HouseClass* , int
+		0x053520, // applyEMP , pWHExt , CoordStruct* , TechnoClass*
+		0x0533B0, // applyAE , pWHExt , CoordStruct* , TechnoClass*
+		0x053940, // applyOccupantDamage , BulletClass* 
+
+		0x013C50, //BuildingExt  EvalRaidStatus
+		0x012D00, //BuildingExt  IsActiveFirestormWall BuildingClass* HouseClass*
+		0x0124C0, //BuildingExt  ImmolateVictim BuildingClassExt* FootClass* bool
+
+		0x063550, //EMPulse_DisableEmpaffect
+		0x044520, //TechnoExt CloakDisallowed
+
+		0x044470, //TechnoExt CloadAllowed
+
+		0x059580, //TechnoExt::RemoveAE
+		0x044F70, //TechnoExt::FlyingStringsAdd
+		0x043D10, //TechnoExt::CalculateBounty
+		0x046F90, //TechnoExt::SetSpotlight
+
+		0x046060, //IsPowered
+		0x043FA0, //IsDriverKillable
+		0x046240, //TechnoExt::KillDriverCore
+
+		0x03A970, //TeamExt_FireIC
+		0x023010, //HouseExt::RespondToFirewall
+	};
+
+	static constexpr DWORD AAresCustomPaletteReadTable[AresCustomPaletteReadCount] = {
+		0x005B59, //Ares UI
+		0x00A544, //AnimTypeExt
+		0x029CF1, //ParticleTypeExt
+		0x03456B, //SWTypeExt
+		0x03F0AB, //TechnoTypeExt
+	};
+
+	static constexpr DWORD AresStaticInstanceTable[AresStaticInstanceCount] = {
+		0x0C2B84, //ParticleSystemExt
+		0x0C2DD0, //WeaponTypeExt
+
+		0x0C2A00, //Debug::bTrackParserErrors
+
+		0x0C2A54, //HouseExt::FSW
+
+		0x0C3100, //std::vector<const char*>
+	};
+
+	if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, ARES_DLL, &AresDllHmodule))
+	{
+		for (int a = 0; a < FunctionIndices::count; a++)
+			AresFunctionOffsetsFinal[a] = AresData::AresBaseAddress + AresFunctionOffsets[a];
 
 		for (int b = 0; b < AresData::AresStaticInstanceCount; b++)
-			AresData::AresStaticInstanceFinal[b] = AresData::AresBaseAddress + AresData::AresStaticInstanceTable[b * AresData::AresVersionCount + AresVersionId];
+			AresData::AresStaticInstanceFinal[b] = AresData::AresBaseAddress + AresStaticInstanceTable[b];
 
 		for (int c = 0; c < AresData::AresCustomPaletteReadCount; c++)
-			AresData::AresCustomPaletteReadFuncFinal[c] = AresData::AresBaseAddress + AresData::AAresCustomPaletteReadTable[c * AresData::AresVersionCount + AresVersionId];
+			AresData::AresCustomPaletteReadFuncFinal[c] = AresData::AresBaseAddress + AAresCustomPaletteReadTable[c];
 
 		AresData::AresMemDelAddrFinal = AresData::AresBaseAddress + 0x0077FCA;
 		AresData::AresMemAllocAddrFinal = AresData::AresBaseAddress + 0x077F9A;
 	}
 
-	return CanUseAres;
+	return true;
 }
 
 void AresData::UnInit()

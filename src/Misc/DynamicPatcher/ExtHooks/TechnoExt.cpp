@@ -1,4 +1,3 @@
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <TechnoClass.h>
 
 #include <Utilities/Macro.h>
@@ -127,10 +126,10 @@ namespace CalculatePinch
 
 // 	bool Slectable = true;
 
-// 	#ifdef COMPILE_PORTED_DP_FEATURES
+
 // 	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 // 		Slectable = !pExt->VirtualUnit.Get();
-// 	#endif
+
 
 // 	return Slectable || !bNotSlectable ? 0x0 : 0x5F45A9;
 
@@ -327,4 +326,3 @@ DEFINE_HOOK(0x730EEB, ObjectClass_StopCommand, 6)
 
 	return 0;
 }
-#endif

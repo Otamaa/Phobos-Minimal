@@ -21,9 +21,9 @@
 #include <Ext/BulletType/Body.h>
 
 #include <Utilities/Macro.h>
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 #include <Misc/DynamicPatcher/Trails/TrailType.h>
-#endif
+
 
 std::unique_ptr<RulesExt::ExtData>  RulesExt::Data = nullptr;
 IStream* RulesExt::g_pStm = nullptr;
@@ -79,9 +79,7 @@ void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	ImmunityTypeClass::LoadFromINIList(pINI);
 	ArmorTypeClass::EvaluateDefault();
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 	TrailType::LoadFromINIList(&CCINIClass::INI_Art.get());
-#endif
 
 	if (!Phobos::Otamaa::DisableCustomRadSite) {
 
@@ -215,9 +213,8 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AutoRepelPlayer.Read(exINI, COMBATDAMAGE_SECTION, "PlayerAutoRepel");
 	this->AIFriendlyDistance.Read(exINI, GENERAL_SECTION, "AIFriendlyDistance");
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 	this->MyPutData.Read(exINI, GENERAL_SECTION);
-#endif
+
 #pragma endregion
 	this->Storage_TiberiumIndex.Read(exINI, GENERAL_SECTION, "Storage.TiberiumIndex");
 
@@ -606,9 +603,9 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->EnemyWrench)
 		.Process(this->DefaultParaPlane)
 		;
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 	MyPutData.Serialize(Stm);
-#endif
+
 }
 
 // =============================

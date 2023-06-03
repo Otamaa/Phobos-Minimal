@@ -12,10 +12,8 @@
 
 #include <New/Entity/ElectricBoltClass.h>
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Others/DamageText.h>
 #include <Misc/DynamicPatcher/Weapon/AttachFireData.h>
-#endif
 
 class WeaponTypeExt
 {
@@ -84,10 +82,8 @@ public:
 		Nullable<double> Targeting_Health_Percent;
 		Valueable<bool> Targeting_Health_Percent_Below;
 
-		#ifdef  COMPILE_PORTED_DP_FEATURES
 		Valueable<float> RockerPitch;
 		AttachFireData MyAttachFireDatas;
-		#endif
 
 #pragma endregion
 
@@ -181,10 +177,8 @@ public:
 			, DiskLaser_FiringOffset { }
 			, Targeting_Health_Percent { }
 			, Targeting_Health_Percent_Below { true }
-			 #ifdef COMPILE_PORTED_DP_FEATURES
 			, RockerPitch { 0.0f }
 			, MyAttachFireDatas { }
-			 #endif
 			, Ammo { 1 }
 			, IsDetachedRailgun { false }
 

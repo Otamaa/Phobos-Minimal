@@ -255,9 +255,7 @@ DEFINE_OVERRIDE_HOOK(0x517FC1, InfantryClass_ReceiveDamage_DeployedDamage, 0x6)
 	return 0x518016u;
 }
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
-#endif
 
 DEFINE_OVERRIDE_HOOK(0x702050, TechnoClass_ReceiveDamage_ResultDestroyed , 6)
 {
@@ -272,10 +270,7 @@ DEFINE_OVERRIDE_HOOK(0x702050, TechnoClass_ReceiveDamage_ResultDestroyed , 6)
 	if (pWarheadExt->Supress_LostEva.Get())
 		pTechExt->SupressEVALost = true;
 
-#ifdef COMPILE_PORTED_DP_FEATURES
-
 	GiftBoxFunctional::Destroy(pTechExt, pTypeExt);
-#endif
 
 	return 0x0;
 }

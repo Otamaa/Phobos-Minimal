@@ -1,7 +1,5 @@
 #include "DelayFireWeapon.h"
 
-#ifdef COMPILE_PORTED_DP_FEATURES
-
 bool DelayFireWeapon::TimesUp() const { return Timer.Expired(); }
 
 void DelayFireWeapon::ReduceOnce()
@@ -29,5 +27,3 @@ bool DelayFireWeapon::Serialize(T& Stm)
 		&& Stm.RegisterChange(this);
 		;
 }
-
-#endif

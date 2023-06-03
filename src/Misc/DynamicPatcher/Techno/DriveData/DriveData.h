@@ -1,5 +1,4 @@
 #pragma once
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Utilities/TemplateDef.h>
 
 enum class DrivingState : int
@@ -42,4 +41,3 @@ public:
 			;
 	}
 };
-#endif

@@ -1,5 +1,4 @@
 #pragma once
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Utilities/TemplateDef.h>
 
 class JJFacingData
@@ -30,4 +29,3 @@ public:
 	}
 
 };
-#endif

@@ -11,7 +11,6 @@
 #include <MapClass.h>
 #include <Kamikaze.h>
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
 
 #include <Misc/DynamicPatcher/Techno/DriveData/DriveDataFunctional.h>
@@ -23,8 +22,6 @@
 #include <Misc/DynamicPatcher/Techno/SpawnSupport/SpawnSupportFunctional.h>
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
 #include <Misc/DynamicPatcher/Techno/FighterGuardArea/FighterAreaGuardFunctional.h>
-
-#endif
 
 #include <New/Entity/FlyingStrings.h>
 #include <New/Entity/VerticalLaserClass.h>
@@ -154,7 +151,6 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 	PassengersFunctional::AI(pThis);
 	SpawnSupportFunctional::AI(pThis);
 
@@ -170,7 +166,6 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 			pDSState->TechnoClass_Update_DamageSelf(pThis);
 		}
 	}
-#endif
 
 	return pThis->IsAlive ? 0x6F9EBB : 0x6FAFFD;
 
@@ -184,11 +179,9 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
 
 	pExt->UpdateAircraftOpentopped();
-#ifdef COMPILE_PORTED_DP_FEATURES
 	AircraftPutDataFunctional::AI(pExt, pTypeExt);
 	AircraftDiveFunctional::AI(pExt, pTypeExt);
 	FighterAreaGuardFunctional::AI(pExt, pTypeExt);
-#endif
 
 	pThis->FootClass::Update();
 	return 0x414DA8;
@@ -198,12 +191,11 @@ DEFINE_HOOK(0x736479, UnitClass_AI_FootClass_AI, 0x7)
 {
 	GET(UnitClass*, pThis, ESI);
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 	//const auto pExt = TechnoExt::ExtMap.Find(pThis);
 	//const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	//JJFacingFunctional::AI(pExt, pTypeExt);
-#endif
+
 	pThis->FootClass::Update();
 
 	return 0x736480;
@@ -227,9 +219,7 @@ DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 			//fix this , so reset immedietely if target is not on map
 			if (!MapClass::Instance->IsValid(pTargetTech->Location)
 				|| pTargetTech->TemporalTargetingMe
-#ifdef COMPILE_PORTED_DP_FEATURES
 				|| (pSpawnTechnoTypeExt->MySpawnSupportDatas.Enable && pThis->SpawnOwner->GetCurrentMission() != Mission::Attack && pThis->GetCurrentMission() == Mission::Attack)
-#endif
 				)
 			{
 				if (pThis->SpawnOwner->Target == pThis->Target)
@@ -239,7 +229,6 @@ DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 			}
 
 		}
-#ifdef COMPILE_PORTED_DP_FEATURES
 		else if (pSpawnTechnoTypeExt->MySpawnSupportDatas.Enable && pThis->SpawnOwner->GetCurrentMission() != Mission::Attack && pThis->GetCurrentMission() == Mission::Attack)
 		{
 			if (pThis->SpawnOwner->Target == pThis->Target)
@@ -247,7 +236,6 @@ DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 
 			pThis->SpawnOwner->SpawnManager->ResetTarget();
 		}
-#endif
 	}
 
 	//return pThis->IsLocked ? 0x4DA677 : 0x4DA643;
@@ -261,9 +249,7 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 
 	auto pExt = TechnoExt::ExtMap.Find(pThis);
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 	 DriveDataFunctional::AI(pExt);
-#endif
 
 	if (IsMovingNow)
 	{
@@ -271,9 +257,8 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 		// doesn't run when the object is off-screen which leads to visual bugs - Kerbiter
 		pExt->UpdateLaserTrails();
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsManager::AI(static_cast<TechnoClass*>(pThis));
-#endif
+
 		return 0x4DA6A0;
 	}
 

@@ -11,10 +11,8 @@
 
 #include <ScriptTypeClass.h>
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Techno/AircraftPut/AircraftPutDataRules.h>
 
-#endif
 
 class AnimTypeClass;
 class MouseCursor;
@@ -178,9 +176,8 @@ public:
 
 		Valueable<AircraftTypeClass*> DefaultParaPlane;
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 		AircraftPutDataRules MyPutData;
-#endif
+
 #pragma endregion	
 
 		ExtData(RulesClass* OwnerObject) : Extension<RulesClass>(OwnerObject)
@@ -313,9 +310,7 @@ public:
 
 			, EnemyWrench { true }
 			, DefaultParaPlane { nullptr }
-#ifdef COMPILE_PORTED_DP_FEATURES
 			, MyPutData { }
-#endif
 		{ }
 
 		virtual ~ExtData() = default;

@@ -3,9 +3,7 @@
 #include "../ParticleType/Body.h"
 #include <Utilities/Macro.h>
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-#endif
 
 // =============================
 // load / save
@@ -18,9 +16,7 @@ void ParticleExt::ExtData::Serialize(T& Stm)
 	Stm
 		.Process(this->Initialized)
 		.Process(this->LaserTrails)
-#ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->Trails)
-#endif
 		;
 }
 
@@ -55,9 +51,7 @@ DEFINE_HOOK(0x62BB13, ParticleClass_CTOR, 0x5)
 			}
 		}
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsManager::Construct(pItem);
-#endif
 	}
 
 	return 0;

@@ -154,17 +154,13 @@ bool ArtilleryTrajectory::OnAI()
 		const auto pExt = BulletExt::ExtMap.Find(pBullet);
 
 		pExt->LaserTrails.clear();
-#ifdef COMPILE_PORTED_DP_FEATURES
 		pExt->Trails.clear();
-#endif
 		pBullet->Limbo();
 		pBullet->Unlimbo(pBullet->SourceCoords, static_cast<DirType>(0));
 
 		pExt->InitializeLaserTrails();
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsManager::Construct(pBullet);
-#endif
 
 		this->Init = true;
 	}
@@ -186,10 +182,10 @@ bool ArtilleryTrajectory::OnAI()
 
 		if (!pBulletExt->LaserTrails.empty())
 			pBulletExt->LaserTrails.clear();
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 		if (pBulletExt->Trails.size())
 			pBulletExt->Trails.clear();
-#endif
+
 		return true;
 	}
 

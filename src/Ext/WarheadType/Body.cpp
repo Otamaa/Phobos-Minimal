@@ -316,10 +316,8 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 
 #endif
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 	this->PaintBallDuration.Read(exINI, pSection, "PaintBall.Duration");
 	this->PaintBallData.Read(exINI, pSection);
-#endif
 #pragma endregion
 
 	this->AttachedEffect.Read(exINI);
@@ -1057,14 +1055,10 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(DamageTextPerArmor)
 
 #endif
-#ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(PaintBallDuration)
-#endif
 		;
-#ifdef COMPILE_PORTED_DP_FEATURES
-	PaintBallData.Serialize(Stm);
-#endif
 
+	PaintBallData.Serialize(Stm);
 }
 
 bool WarheadTypeExt::ExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim)

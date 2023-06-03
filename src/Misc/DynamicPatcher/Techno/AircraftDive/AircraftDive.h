@@ -1,5 +1,4 @@
 #pragma once
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Utilities/SavegameDef.h>
 
 class AircraftDive
@@ -64,4 +63,3 @@ public:
 			;
 	}
 };
-#endif

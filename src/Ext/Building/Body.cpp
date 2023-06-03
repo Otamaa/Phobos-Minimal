@@ -585,15 +585,13 @@ void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int
 		pBuildingExt->TechnoExt->Shield.release();
 		pBuildingExt->TechnoExt->Trails.clear();
 		pBuildingExt->TechnoExt->RevengeWeapons.clear();
-
-#ifdef COMPILE_PORTED_DP_FEATURES
 		pBuildingExt->TechnoExt->DamageSelfState.release();
 		pBuildingExt->TechnoExt->MyGiftBox.release();
 		pBuildingExt->TechnoExt->PaintBallState.release();
 		pBuildingExt->TechnoExt->ExtraWeaponTimers.clear();
 		pBuildingExt->TechnoExt->MyWeaponManager.Clear();
 		pBuildingExt->TechnoExt->MyWeaponManager.CWeaponManager.Clear();
-#endif
+
 		if (!pOwnerExt->AutoDeathObjects.contains(pBuilding))
 		{
 			KillMethod nMethod = pBuildingExt->Type->Type->Death_Method.Get();

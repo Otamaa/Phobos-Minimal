@@ -1,5 +1,4 @@
 #pragma once
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <GeneralStructures.h>
 #include <Utilities/SavegameDef.h>
 
@@ -87,5 +86,3 @@ struct Savegame::ObjectFactory<GiftBox> {
 		return std::make_unique<GiftBox>();
 	}
 };
-
-#endif

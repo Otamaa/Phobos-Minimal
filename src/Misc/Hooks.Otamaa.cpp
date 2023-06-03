@@ -1108,7 +1108,6 @@ DEFINE_HOOK(0x71ADE0, TemporalClass_LetGo_Replace, 0x6)
 
 }
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 DEFINE_HOOK(0x73DDC0, UnitClass_Mi_Unload_DeployIntoSpeed, 0x6)
 {
 	GET(UnitClass* const, pThis, ESI);
@@ -1149,7 +1148,6 @@ DEFINE_HOOK(0x73DDC0, UnitClass_Mi_Unload_DeployIntoSpeed, 0x6)
 //	R->AL(CurPlayer);
 //	return 0x7397E9;
 //}
-#endif
 
 DEFINE_HOOK(0x4DA64D, FootClass_Update_IsInPlayField, 0x6)
 {
@@ -2761,7 +2759,6 @@ DEFINE_HOOK(0x6A8E25, SidebarClass_StripClass_AI_Building_EVA_ConstructionComple
 
 DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
 {
-#ifdef COMPILE_PORTED_DP_FEATURES
 
 	GET(BuildingClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const, pWeapon, EBP);
@@ -2783,7 +2780,7 @@ DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
 		// Draw weapon anim
 		Helpers_DP::DrawWeaponAnim(pWeapon, src, dest, pThis, pTarget);
 	}
-#endif
+
 	return 0;
 }
 

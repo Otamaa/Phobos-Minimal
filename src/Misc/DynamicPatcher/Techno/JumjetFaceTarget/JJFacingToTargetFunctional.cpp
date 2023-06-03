@@ -1,4 +1,3 @@
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include "JJFacingToTargetFunctional.h"
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
@@ -139,4 +138,3 @@ DEFINE_HOOK(0x736E40, UnitClass_FiringAI_JumpjetTurning, 0x6)
 
 	return  (nFireError == FireError::OK) ? 0x736E4B : 0x736E46;
 }*/
-#endif

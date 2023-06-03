@@ -1,4 +1,3 @@
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include "DamageSelfType.h"
 
 #include <WarheadTypeClass.h>
@@ -155,4 +154,3 @@ void DamageSelfState::TechnoClass_Update_DamageSelf(TechnoClass* pTechno)
 		}
 	}
 }
-#endif

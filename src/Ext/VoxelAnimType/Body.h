@@ -10,9 +10,7 @@
 
 #include <New/Type/LaserTrailTypeClass.h>
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-#endif
 
 class VoxelAnimTypeExt
 {
@@ -35,9 +33,8 @@ public:
 		Valueable<bool> Damage_DealtByOwner;
 		Nullable<WeaponTypeClass*> Weapon;
 		Valueable<bool> ExpireDamage_ConsiderInvokerVet;
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 		TrailsReader Trails;
-#endif
 #pragma endregion
 
 		ExtData(VoxelAnimTypeClass* OwnerObject) : Extension<VoxelAnimTypeClass>(OwnerObject)
@@ -50,9 +47,7 @@ public:
 			, Damage_DealtByOwner { false }
 			, Weapon { }
 			, ExpireDamage_ConsiderInvokerVet { false }
-#ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
-#endif
 		{ }
 
 		virtual ~ExtData() override = default;

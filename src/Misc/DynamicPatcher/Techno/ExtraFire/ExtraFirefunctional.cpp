@@ -1,4 +1,3 @@
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include "ExtraFirefunctional.h"
 #include "ExtraFire.h"
 
@@ -148,4 +147,3 @@ void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, 
 
 	}
 }
-#endif

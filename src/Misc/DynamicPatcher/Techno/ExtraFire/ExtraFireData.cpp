@@ -1,4 +1,3 @@
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include "ExtraFireData.h"
 
 void ExtraFireData::ReadRules(INI_EX& parserRules, const char* pSection_rules)
@@ -95,4 +94,3 @@ void ExtraFireData::ReadArt(INI_EX& parserArt, const char* pSection_Art)
 		}
 	}
 }
-#endif

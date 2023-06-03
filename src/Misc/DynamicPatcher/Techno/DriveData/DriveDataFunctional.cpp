@@ -1,4 +1,3 @@
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include "DriveDataFunctional.h"
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
 
@@ -39,4 +38,3 @@ void DriveDataFunctional::AI(TechnoExt::ExtData* pThis)
 
 	nDriveData.LastMission = mission;
 }
-#endif

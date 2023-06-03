@@ -15,9 +15,9 @@
 #include <Ext/VoxelAnimType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Utilities/AnimHelpers.h>
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-#endif
+
 
 DEFINE_HOOK(0x74A70E, VoxelAnimClass_AI_Additional, 0x6) // C
 {
@@ -43,9 +43,8 @@ DEFINE_HOOK(0x74A70E, VoxelAnimClass_AI_Additional, 0x6) // C
 		}
 	}
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 	TrailsManager::AI(pThis);
-#endif
+
 	return 0;
 }
 

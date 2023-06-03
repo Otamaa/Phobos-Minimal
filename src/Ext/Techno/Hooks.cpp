@@ -22,10 +22,8 @@
 #include <Utilities/Debug.h>
 #include <Utilities/Macro.h>
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
-#endif
 
 #include <Misc/AresData.h>
 
@@ -46,9 +44,7 @@ DEFINE_HOOK(0x73DE90, UnitClass_SimpleDeployer_TransferLaserTrails, 0x6)
 	GET(UnitClass*, pUnit, ESI);
 
 	TechnoExt::InitializeLaserTrail(pUnit, true);
-#ifdef COMPILE_PORTED_DP_FEATURES
 	TrailsManager::Construct(static_cast<TechnoClass*>(pUnit), true);
-#endif
 	//LineTrailExt::DeallocateLineTrail(pUnit);
 	//LineTrailExt::ConstructLineTrails(pUnit);
 
@@ -145,9 +141,7 @@ DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_LaserTrails, 0x7)
 		}
 	}
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 	TrailsManager::Hide(pTechno);
-#endif
 
 	return 0;
 }
@@ -166,9 +160,8 @@ DEFINE_HOOK(0x6F6CFE, TechnoClass_Unlimbo_LaserTrails, 0x6)
 		}
 	}
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 	TrailsManager::Hide(pTechno);
-#endif
+
 	return 0;
 }
 
@@ -470,12 +463,9 @@ DEFINE_HOOK(0x701DFF, TechnoClass_ReceiveDamage_AfterObjectClassCall, 0x7)
 	if (Phobos::Debug_DisplayDamageNumbers && *pDamage)
 		TechnoExt::DisplayDamageNumberString(pThis, *pDamage, false , pWH);
 
-#ifdef COMPILE_PORTED_DP_FEATURES
-
 	GET(DamageState, damageState, EDI);
 
 	GiftBoxFunctional::TakeDamage(TechnoExt::ExtMap.Find(pThis), TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()), pWH, damageState);
-#endif
 
 	return 0;
 }

@@ -1,5 +1,4 @@
 #include "TrailType.h"
-#ifdef COMPILE_PORTED_DP_FEATURES
 Enumerable<TrailType>::container_t Enumerable<TrailType>::Array;
 
 const char* Enumerable<TrailType>::GetMainSection()
@@ -86,5 +85,3 @@ void TrailType::LoadFromINI(CCINIClass* pINI)
 
 void TrailType::LoadFromStream(PhobosStreamReader& Stm) { Debug::Log("Loading Element From TrailType ! \n"); this->Serialize(Stm); }
 void TrailType::SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-#endif

@@ -1,5 +1,4 @@
 #include "AircraftDiveData.h"
-#ifdef COMPILE_PORTED_DP_FEATURES
 void AircraftDiveData::Read(INI_EX& parser, const char* pSection, bool Allocate)
 {
 	Enable.Read(parser, pSection, "Dive");
@@ -9,4 +8,3 @@ void AircraftDiveData::Read(INI_EX& parser, const char* pSection, bool Allocate)
 	FlightLevel.Read(parser, pSection, "Dive.FlightLevel");
 	PullUpAfterFire.Read(parser, pSection, "Dive.PullUpAfterFire");
 }
-#endif

@@ -8,9 +8,7 @@
 #include <Ext/LineTrail/Body.h>
 
 #include <New/Type/LaserTrailTypeClass.h>
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-#endif
 
 #include <Ext/Bullet/Trajectories/PhobosTrajectory.h>
 
@@ -98,9 +96,8 @@ public:
 		// cache for the image animation's palette convert
 		OptionalStruct<const ConvertClass*> ImageConvert;
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsReader Trails;
-#endif
+
 		#pragma endregion
 
 		std::unique_ptr<PhobosTrajectoryType> TrajectoryType;
@@ -158,9 +155,7 @@ public:
 			, BallisticScatterMin { }
 			, BallisticScatterMax { }
 			, ImageConvert { }
-#ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
-#endif
 			, TrajectoryType { }
 		{ }
 

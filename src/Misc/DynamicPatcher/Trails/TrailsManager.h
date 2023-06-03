@@ -1,5 +1,4 @@
 #pragma once
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include "Trails.h"
 #include <IsometricTileTypeClass.h>
 #include <memory>
@@ -143,4 +142,3 @@ struct TrailsReader
 	}
 
 };
-#endif

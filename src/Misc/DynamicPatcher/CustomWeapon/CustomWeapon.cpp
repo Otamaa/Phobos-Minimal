@@ -1,4 +1,3 @@
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include "CustomWeapon.h"
 
 
@@ -247,4 +246,3 @@ void FireWeaponManager::TechnoClass_Update_CustomWeapon(TechnoClass* pAttacker)
 
 	CWeaponManager.Update(pAttacker);
 }
-#endif

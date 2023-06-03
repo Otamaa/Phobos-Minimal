@@ -1,5 +1,4 @@
 #pragma once
-#ifdef COMPILE_PORTED_DP_FEATURES
 
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
 #include <queue>
@@ -95,4 +94,3 @@ struct FireWeaponManager
 			;
 	}
 };
-#endif

@@ -1,5 +1,5 @@
 #pragma once
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 #include <TechnoClass.h>
 #include <BulletClass.h>
 #include <Utilities/Constructs.h>
@@ -287,4 +287,3 @@ public:
 	static VelocityClass RecalculateVelocityClass(BulletClass* pBullet, CoordStruct const& targetPos);
 	static VelocityClass RecalculateVelocityClass(BulletClass* pBullet, CoordStruct const& sourcePos, CoordStruct const& targetPos);
 };
-#endif

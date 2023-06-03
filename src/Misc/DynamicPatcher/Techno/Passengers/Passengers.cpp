@@ -1,5 +1,5 @@
 #include "Passengers.h"
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 void PassengersData::Read(INI_EX& parser, const char* pSection, bool Allocate)
 {
 	PassiveAcquire.Read(parser, pSection, "Passengers.PassiveAcquire");
@@ -7,4 +7,3 @@ void PassengersData::Read(INI_EX& parser, const char* pSection, bool Allocate)
 	MobileFire.Read(parser, pSection, "Passengers.MobileFire");
 	SameFire.Read(parser, pSection, "Passengers.SameFire");
 }
-#endif

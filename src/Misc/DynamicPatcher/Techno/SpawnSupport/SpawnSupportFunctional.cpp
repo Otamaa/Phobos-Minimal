@@ -1,4 +1,3 @@
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include "SpawnSupportFunctional.h"
 #include "SpawnSupportData.h"
 
@@ -169,4 +168,3 @@ void SpawnSupportFunctional::OnFire(TechnoClass* pThis, AbstractClass* pTarget)
 {
 	SpawnSupportFunctional::FireSupportWeaponToSpawn(pThis, pTarget,true);
 }
-#endif

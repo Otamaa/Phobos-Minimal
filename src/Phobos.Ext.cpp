@@ -73,9 +73,7 @@
 #include <Ext/Tactical/Body.h>
 
 //#include <New/Entity/FoggedObject.h>
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailType.h>
-#endif
 #pragma endregion
 
 

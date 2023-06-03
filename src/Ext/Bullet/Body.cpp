@@ -9,10 +9,8 @@
 #include <Ext/House/Body.h>
 #include <Ext/WarheadType/Body.h>
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
-#endif
 
 #include "Trajectories/PhobosTrajectory.h"
 
@@ -175,7 +173,6 @@ DWORD BulletExt::ApplyAirburst(BulletClass* pThis)
 					pBullet->MoveTo(pThis->Location,
 						{ cos_rad * flatSpeed,sin_rad * flatSpeed, static_cast<double>(-pBullet->Speed) });
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 					auto sourcePos = pThis->Location;
 					auto targetPos = pTarget->GetCoords();
 
@@ -187,7 +184,6 @@ DWORD BulletExt::ApplyAirburst(BulletClass* pThis)
 					Helpers_DP::PlayReportSound(pWeapon, sourcePos , pThis->Owner);
 					// Draw weapon anim
 					Helpers_DP::DrawWeaponAnim(pWeapon, sourcePos, targetPos, pBulletOwner, pTarget);
-#endif
 				}
 			}
 		}
@@ -389,8 +385,6 @@ void BulletExt::ApplyShrapnel(BulletClass* pThis)
 		 {
 			 pBullet->MoveTo(pThis->Location, BulletExt::GenerateVelocity(pThis, pTarget, pShrapWeapon->Speed));
 
-
-#ifdef COMPILE_PORTED_DP_FEATURES
 			 auto sourcePos = pThis->Location;
 			 auto targetPos = pTarget->GetCoords();
 
@@ -404,7 +398,7 @@ void BulletExt::ApplyShrapnel(BulletClass* pThis)
 			 Helpers_DP::PlayReportSound(pShrapWeapon, sourcePos, pThis->Owner);
 			 // Draw weapon anim
 			 Helpers_DP::DrawWeaponAnim(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pTarget);
-#endif
+
 		 }
 
 		 //escapes
@@ -435,20 +429,17 @@ void BulletExt::ApplyShrapnel(BulletClass* pThis)
 						{
 							pBullet->MoveTo(pThis->Location, BulletExt::GenerateVelocity(pThis, pCellTarget, pShrapWeapon->Speed, true));
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 							auto sourcePos = pThis->Location;
 							auto targetPos = pCellTarget->GetCoords();
 
 							// Draw bullet effect
 							Helpers_DP::DrawBulletEffect(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pCellTarget);
-							
 							// Draw particle system
 							Helpers_DP::AttachedParticleSystem(pShrapWeapon, sourcePos, pCellTarget, pThis->Owner, targetPos);
 							// Play report sound
 							Helpers_DP::PlayReportSound(pShrapWeapon, sourcePos , pThis->Owner);
 							// Draw weapon anim
 							Helpers_DP::DrawWeaponAnim(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pCellTarget);
-#endif
 						}
 					}
 				}
@@ -718,10 +709,8 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 						pExt->InitializeLaserTrails();
 					}
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 					TrailsManager::CleanUp(pExt->Get());
 					TrailsManager::Construct(pExt->Get());
-#endif
 
 					//LineTrailExt::DeallocateLineTrail(pThis);
 					//LineTrailExt::ConstructLineTrails(pThis);
@@ -824,9 +813,7 @@ void BulletExt::ExtData::Serialize(T& Stm)
 		.Process(this->LastObject)
 		.Process(this->BounceAmount)
 		.Process(this->InitialBulletDir)
-#ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->Trails)
-#endif
 		;
 
 	PhobosTrajectory::ProcessFromStream(Stm, this->Trajectory);

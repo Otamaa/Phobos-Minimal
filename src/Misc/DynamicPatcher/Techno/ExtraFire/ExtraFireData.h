@@ -1,5 +1,4 @@
 #pragma once
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <CoordStruct.h>
 #include <Utilities/TemplateDef.h>
 
@@ -70,4 +69,3 @@ struct ExtraFireData
 	}
 
 };
-#endif

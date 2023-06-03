@@ -14,9 +14,7 @@
 #include <Ext/VoxelAnimType/Body.h>
 #include <New/Entity/LaserTrailClass.h>
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/Trails.h>
-#endif
 
 class VoxelAnimExt
 {
@@ -32,15 +30,13 @@ public:
 
 		TechnoClass* Invoker;
 		std::vector<LaserTrailClass> LaserTrails;
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 		std::vector<UniversalTrail> Trails;
-#endif
+
 		ExtData(VoxelAnimClass* OwnerObject) : Extension<VoxelAnimClass>(OwnerObject)
 			, Invoker { nullptr }
 			, LaserTrails { }
-#ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
-#endif
 		{ }
 
 		virtual ~ExtData() override = default;

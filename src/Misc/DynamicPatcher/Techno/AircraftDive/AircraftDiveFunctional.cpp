@@ -1,4 +1,3 @@
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include "AircraftDiveFunctional.h"
 
 void AircraftDiveFunctional::Init(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
@@ -54,4 +53,3 @@ void AircraftDiveFunctional::OnFire(TechnoExt::ExtData* pExt, TechnoTypeExt::Ext
 	// 	pExt->MyDiveData.CanDive = false;
 
 }
-#endif

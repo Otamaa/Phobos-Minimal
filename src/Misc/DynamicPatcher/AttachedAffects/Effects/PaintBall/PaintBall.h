@@ -1,7 +1,5 @@
 #pragma once
 
-#ifdef COMPILE_PORTED_DP_FEATURES
-
 #include <Utilities/TemplateDef.h>
 
 #include <ColorStruct.h>
@@ -174,5 +172,3 @@ struct Savegame::ObjectFactory<PaintBall>
 		return std::make_unique<PaintBall>();
 	}
 };
-
-#endif

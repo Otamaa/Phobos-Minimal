@@ -611,20 +611,20 @@ namespace TEventExt_dummy
 	}
 }
 
-DEFINE_OVERRIDE_HOOK(0x71E949, TEventClass_HasOccured, 7)
-{
-
-	GET(TEventClass*, pThis, EBP);
-	GET_BASE(EventArgs const, args, STACK_OFFSET(0x2C, 0x4));
-	enum { return_true = 0x71F1B1, return_false = 0x71F163 };
-	bool result = false;
-	if (TEventExt_dummy::HasOccured(pThis, args, result))
-	{
-		return result ? return_true : return_false;
-	}
-
-	return 0;
-}
+//DEFINE_OVERRIDE_HOOK(0x71E949, TEventClass_HasOccured, 7)
+//{
+//
+//	GET(TEventClass*, pThis, EBP);
+//	GET_BASE(EventArgs const, args, STACK_OFFSET(0x2C, 0x4));
+//	enum { return_true = 0x71F1B1, return_false = 0x71F163 };
+//	bool result = false;
+//	if (TEventExt_dummy::HasOccured(pThis, args, result))
+//	{
+//		return result ? return_true : return_false;
+//	}
+//
+//	return 0;
+//}
 
 namespace TActionExt_dummy
 {
@@ -751,29 +751,29 @@ namespace TActionExt_dummy
 	}
 }
 
-DEFINE_OVERRIDE_HOOK(0x6DD8D7, TActionClass_Execute, 0xA)
-{
-	GET(TActionClass* const, pAction, ESI);
-	GET(ObjectClass* const, pObject, ECX);
-
-	GET_STACK(HouseClass* const, pHouse, 0x254);
-	GET_STACK(TriggerClass* const, pTrigger, 0x25C);
-	GET_STACK(CellStruct const*, pLocation, 0x260);
-
-	enum { Handled = 0x6DFDDD, Default = 0x6DD8E7u };
-
-	// check for actions handled in Ares.
-	auto ret = false;
-	if (TActionExt_dummy::Execute(
-		pAction, pHouse, pObject, pTrigger, *pLocation, ret))
-	{
-		// returns true or false
-		R->AL(ret);
-		return Handled;
-	}
-
-	// replicate the original instructions, using underflow
-	auto const value = static_cast<unsigned int>(pAction->ActionKind) - 1;
-	R->EDX(value);
-	return (value > 144u) ? Handled : Default;
-}
+//DEFINE_OVERRIDE_HOOK(0x6DD8D7, TActionClass_Execute, 0xA)
+//{
+//	GET(TActionClass* const, pAction, ESI);
+//	GET(ObjectClass* const, pObject, ECX);
+//
+//	GET_STACK(HouseClass* const, pHouse, 0x254);
+//	GET_STACK(TriggerClass* const, pTrigger, 0x25C);
+//	GET_STACK(CellStruct const*, pLocation, 0x260);
+//
+//	enum { Handled = 0x6DFDDD, Default = 0x6DD8E7u };
+//
+//	// check for actions handled in Ares.
+//	auto ret = false;
+//	if (TActionExt_dummy::Execute(
+//		pAction, pHouse, pObject, pTrigger, *pLocation, ret))
+//	{
+//		// returns true or false
+//		R->AL(ret);
+//		return Handled;
+//	}
+//
+//	// replicate the original instructions, using underflow
+//	auto const value = static_cast<unsigned int>(pAction->ActionKind) - 1;
+//	R->EDX(value);
+//	return (value > 144u) ? Handled : Default;
+//}

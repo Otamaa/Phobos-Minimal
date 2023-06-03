@@ -2165,7 +2165,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 
 						// Aircraft hack. I hate how this game auto-manages the aircraft missions.
 						if (nWhat == AircraftClass::vtable
-							&& pUnit->Ammo > 0 && pUnit->GetHeight() <= 0)
+							&& pUnit->Ammo > 0 && !pUnit->IsInAir())
 						{
 							pUnit->SetDestination(selectedTarget, false);
 							pUnit->QueueMission(Mission::Attack, true);
@@ -2179,11 +2179,9 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 						}
 						else
 						{
-							// Aircraft hack. I hate how this game auto-manages the aircraft missions.
 							if (nWhat != AircraftClass::vtable)
 							{
 								pUnit->QueueMission(Mission::Attack, true);
-								pUnit->ObjectClickedAction(Action::Attack, selectedTarget, false);
 
 								if (pUnit->GetCurrentMission() != Mission::Attack)
 									pUnit->Mission_Attack();
@@ -2201,7 +2199,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 							if (pInfantryType->Infiltrate && pInfantryType->Agent)
 							{
 								// Check if target is an structure and see if spiable
-								if (pUnit->GetCurrentMission() != Mission::Enter)
+								if (pUnit->GetCurrentMission() != Mission::Enter && pUnit->Destination)
 									pUnit->Mission_Enter();
 							}
 						}
@@ -2209,17 +2207,15 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 						// Tanya / Commando C4 case
 						if ((nWhat == InfantryClass::vtable
 							&& (static_cast<InfantryTypeClass*>(pUnitType)->C4 || pUnit->HasAbility(AbilityType::C4)))
-							&& pUnit->GetCurrentMission() != Mission::Sabotage)
+							&& pUnit->GetCurrentMission() != Mission::Sabotage && pUnit->Destination)
 						{
-							pUnit->Mission_Attack();
 							pUnit->QueueMission(Mission::Sabotage, true);
 						}
 					}
 					else
 					{
+						pUnit->SetTarget(selectedTarget);
 						pUnit->QueueMission(Mission::Attack, true);
-						pUnit->ObjectClickedAction(Action::Attack, selectedTarget, false);
-						pUnit->Mission_Attack();
 					}
 				}
 			}
@@ -3728,7 +3724,7 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, int calcThreatMode = 0, bool pick
 						auto const pWhat = GetVtableAddr(pUnit);
 
 						// Aircraft hack. I hate how this game auto-manages the aircraft missions.
-						if (pWhat == AircraftClass::vtable && pUnit->Ammo > 0 && pUnit->GetHeight() <= 0)
+						if (pWhat == AircraftClass::vtable && pUnit->Ammo > 0 && !pUnit->IsInAir())
 							pUnit->QueueMission(Mission::Move, false);
 
 						// Aircraft hack. I hate how this game auto-manages the aircraft missions.

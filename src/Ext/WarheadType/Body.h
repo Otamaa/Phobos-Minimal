@@ -11,10 +11,8 @@
 #include <New/Type/ArmorTypeClass.h>
 #include <New/Type/ImmunityTypeClass.h>
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Others/DamageText.h>
 #include <Misc/DynamicPatcher/AttachedAffects/Effects/PaintBall/PaintBall.h>
-#endif
 
 #include <New/AnonymousType/AresAttachEffectTypeClass.h>
 #include <Utilities/VersesData.h>
@@ -275,10 +273,9 @@ public:
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		PhobosMap<int, DamageTextTypeData> DamageTextPerArmor;
 #endif
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 		Valueable<int> PaintBallDuration;
 		PaintballType PaintBallData;
-#endif
 #pragma endregion
 
 		ExtData(WarheadTypeClass* OwnerObject) : Extension<WarheadTypeClass>(OwnerObject)
@@ -500,10 +497,8 @@ public:
 			,DamageTextPerArmor { }
 
 #endif
-#ifdef COMPILE_PORTED_DP_FEATURES
 			, PaintBallDuration { -1 }
 			, PaintBallData { }
-#endif
 
 		{	
 			this->EvaluateArmor(OwnerObject);

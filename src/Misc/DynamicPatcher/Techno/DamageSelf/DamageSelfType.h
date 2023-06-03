@@ -1,5 +1,4 @@
 #pragma once
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Utilities/TemplateDef.h>
 
 class WarheadTypeClass;
@@ -174,5 +173,3 @@ struct Savegame::ObjectFactory<DamageSelfType>
 		return std::make_unique<DamageSelfType>();
 	}
 };
-
-#endif

@@ -1,5 +1,4 @@
 #pragma once
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Utilities/TemplateDef.h>
 
 struct AttachFireData
@@ -34,4 +33,3 @@ struct AttachFireData
 			;
 	}
 };
-#endif

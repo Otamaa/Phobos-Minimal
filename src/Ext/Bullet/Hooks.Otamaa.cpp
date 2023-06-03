@@ -16,10 +16,8 @@
 
 #include <Fundamentals.h>
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
-#endif
 
 DEFINE_HOOK(0x46B1D6, BulletClass_DrawVXL_Palette, 0x6)
 {

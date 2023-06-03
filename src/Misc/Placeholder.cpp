@@ -469,45 +469,6 @@ DEFINE_HOOK(0x5206F9, InfantryClass_UpdateFiringState_AIDeploy, 0x8)
 	return Ret;
 }
 
-
-#ifdef Ares_ExperimentalHooks
-#include "ViniferaStyle_Hooks.h"
-
-DECLARE_PATCH(Ares_RecalculateStats_intercept_Armor)
-{
-	GET_REGISTER_STATIC_TYPE(TechnoClass*, pThis, edi);
-	GET_REGISTER_STATIC_TYPE(DWORD, pTechnoExt, ecx);
-	static double cur = *reinterpret_cast<double*>(pTechnoExt + 0x88);
-	Debug::Log("Ares_CellClass_CrateBeingCollected_Armor2 GetCurrentMult for [%s] [%fl] \n", pThis->get_ID(), cur);
-	static uintptr_t Ares_RecalculateStats_intercept_ret = ((Phobos::AresBaseAddress + (uintptr_t)0x46C10));
-	_asm {mov ecx, pTechnoExt}//thiscall !
-	JMP_REG(eax, Ares_RecalculateStats_intercept_ret);
-}
-
-DECLARE_PATCH(Ares_RecalculateStats_intercept_FP)
-{
-	GET_REGISTER_STATIC_TYPE(TechnoClass*, pThis, edi);
-	GET_REGISTER_STATIC_TYPE(DWORD, pTechnoExt, ecx);
-	static double cur = *reinterpret_cast<double*>(pTechnoExt + 0x80);
-	Debug::Log("Ares_CellClass_CrateBeingCollected_FirePower2 GetCurrentMult for [%s] [%fl] \n", pThis->get_ID(), cur);
-	static uintptr_t Ares_RecalculateStats_intercept_ret = ((Phobos::AresBaseAddress + (uintptr_t)0x46C10));
-	_asm {mov ecx, pTechnoExt}//thiscall !
-	JMP_REG(eax, Ares_RecalculateStats_intercept_ret);
-}
-
-DECLARE_PATCH(Ares_RecalculateStats_intercept_Speed)
-{
-	GET_REGISTER_STATIC_TYPE(TechnoClass*, pThis, esi);
-	GET_REGISTER_STATIC_TYPE(DWORD, pTechnoExt, ecx);
-	static double cur = *reinterpret_cast<double*>(pTechnoExt + 0x90);
-	Debug::Log("CellClass_CrateBeingCollected_Speed2 GetCurrentMult for [%s] [%fl] \n", pThis->get_ID(), cur);
-	static uintptr_t Ares_RecalculateStats_intercept_ret = ((Phobos::AresBaseAddress + (uintptr_t)0x46C10));
-	_asm {mov ecx, pTechnoExt}//thiscall !
-	JMP_REG(eax, Ares_RecalculateStats_intercept_ret);
-}
-#endif
-
-
 #ifdef ENABLE_CLR
 DEFINE_HOOK(0x6BB9D2, PatcherLoader_Action, 0x6)
 {

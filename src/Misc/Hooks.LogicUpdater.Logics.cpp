@@ -9,7 +9,6 @@
 #include <MapClass.h>
 #include <Kamikaze.h>
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
 
 #include <Misc/DynamicPatcher/Techno/DriveData/DriveDataFunctional.h>
@@ -22,7 +21,6 @@
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
 #include <Misc/DynamicPatcher/Techno/FighterGuardArea/FighterAreaGuardFunctional.h>
 
-#endif
 
 #include <New/Entity/FlyingStrings.h>
 #include <New/Entity/VerticalLaserClass.h>
@@ -41,10 +39,8 @@ void TechnoExt::ExtData::InitFunctionEvents()
 	GenericFuctions += TechnoExt::ApplySpawn_LimitRange;
 	GenericFuctions += TechnoExt::CheckDeathConditions;
 	GenericFuctions += TechnoExt::EatPassengers;
-#ifdef COMPILE_PORTED_DP_FEATURES
 	GenericFuctions += PassengersFunctional::AI;
 	GenericFuctions += SpawnSupportFunctional::AI;
-#endif
 	GenericFuctions += TechnoClass_AI_GattlingDamage;
 	*/
 }
@@ -65,9 +61,9 @@ void TechnoExt::InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType)
 	 pExt->Type == RulesClass::Instance->DMisl.Type || pExt->Type == RulesClass::Instance->CMisl.Type
 	 || pTypeExt->IsCustomMissile);
 
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 	pExt->PaintBallState = std::make_unique<PaintBall>();
-#endif
+
 	if (!Is_Building(pThis))
 	{
 		if (!pTypeExt->LaserTrailData.empty() && !pExt->Type->Invisible)
@@ -75,8 +71,8 @@ void TechnoExt::InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType)
 
 		TechnoExt::InitializeLaserTrail(pThis, false);
 
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 		TrailsManager::Construct(pThis);
-#endif
+
 	}
 }

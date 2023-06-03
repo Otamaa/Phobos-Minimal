@@ -1,5 +1,4 @@
 #include "FighterAreaGuardFunctional.h"
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
 
 #include <Ext/Building/Body.h>
@@ -23,4 +22,3 @@ void FighterAreaGuardFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::Ext
 
 	pExt->MyFighterData->OnUpdate();
 }
-#endif

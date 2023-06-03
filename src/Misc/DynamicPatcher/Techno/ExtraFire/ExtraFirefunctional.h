@@ -1,5 +1,4 @@
 #pragma once
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Base/Always.h>
 
 class AbstractClass;
@@ -8,4 +7,3 @@ struct ExtraFirefunctional
 {
 	static void GetWeapon(TechnoClass* pThis, AbstractClass* pTarget , int nWeaponIdx);
 };
-#endif

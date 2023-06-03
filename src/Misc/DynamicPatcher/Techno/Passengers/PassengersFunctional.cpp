@@ -1,4 +1,3 @@
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include "PassengersFunctional.h"
 
 #include <Ext/Techno/Body.h>
@@ -47,4 +46,3 @@ bool PassengersFunctional::CanFire(TechnoClass* pThis)
 
 	return false;
 }
-#endif

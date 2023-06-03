@@ -1,5 +1,4 @@
 #pragma once
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Utilities/TemplateDef.h>
 
 struct DelayFireWeapon
@@ -68,6 +67,3 @@ struct Savegame::ObjectFactory<DelayFireWeapon>
 		return std::make_unique<DelayFireWeapon>();
 	}
 };
-
-
-#endif

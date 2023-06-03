@@ -88,7 +88,7 @@ void WarheadTypeExt::ExtData::ApplyAttachTag(TechnoClass* pTarget)
 
 void WarheadTypeExt::ExtData::ApplyUpgrade(HouseClass* pHouse, TechnoClass* pTarget)
 {
-	if (!AresData::CanUseAres || this->Converts_From.empty() || this->Converts_To.empty())
+	if (this->Converts_From.empty() || this->Converts_To.empty())
 		return;
 
 	const auto pCurType = pTarget->GetTechnoType();
@@ -403,9 +403,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 		this->ReloadAmmo != 0 ||
 		(this->RevengeWeapon.isset() && this->RevengeWeapon_GrantDuration > 0) ||
 		!this->LimboKill_IDs.empty()
-#ifdef COMPILE_PORTED_DP_FEATURES
 		|| (this->PaintBallData.Color != ColorStruct::Empty)
-#endif
 		;
 
 	if (isCellSpreadWarhead)
@@ -501,12 +499,10 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 	if (this->Crit_Chance && (!this->Crit_SuppressOnIntercept || !bulletWasIntercepted))
 		this->ApplyCrit(pHouse, pTarget, pOwner);
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 	auto pExt = TechnoExt::ExtMap.Find(pTarget);
 
 	if (pExt->PaintBallState.get())
 		pExt->PaintBallState->Enable(this->PaintBallDuration.Get(), PaintBallData, this->Get());
-#endif
 
 	if (this->GattlingStage > 0)
 	{

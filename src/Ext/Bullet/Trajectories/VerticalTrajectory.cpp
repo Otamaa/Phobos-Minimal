@@ -83,9 +83,8 @@ void VerticalTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPos
 			auto type = this->GetTrajectoryType();
 
 			pExt->LaserTrails.clear();
-#ifdef COMPILE_PORTED_DP_FEATURES
 			pExt->Trails.clear();
-#endif
+
 			this->IsFalling = true;
 			pSpeed->X = 0.0;
 			pSpeed->Y = 0.0;
@@ -101,9 +100,7 @@ void VerticalTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPos
 
 			pExt->InitializeLaserTrails();
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 			TrailsManager::Construct(pBullet);
-#endif
 
 		}
 	}

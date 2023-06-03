@@ -1,5 +1,4 @@
 #include "FighterGuardAreaData.h"
-#ifdef COMPILE_PORTED_DP_FEATURES
 void FighterAreaGuardData::Read(INI_EX& parser, const char* pSection, TechnoTypeClass* pType)
 {
 	this->AreaGuard.Read(parser, pSection ,"Fighter.AreaGuard");
@@ -18,4 +17,3 @@ void FighterAreaGuardData::Read(INI_EX& parser, const char* pSection, TechnoType
 	this->Clockwise.Read(parser, pSection ,"Fighter.Clockwise");
 	this->Randomwise.Read(parser, pSection ,"Fighter.Randomwise");
 }
-#endif

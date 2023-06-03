@@ -1,4 +1,3 @@
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include "AircraftPutDataFunctional.h"
 #include <Ext/Rules/Body.h>
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
@@ -100,4 +99,3 @@ bool AircraftPutDataFunctional::RemoveIfNoDock(AircraftPutData& nData)
 {
 	return nData.RemoveIfNoDocks.Get(RulesExt::Global()->MyPutData.RemoveIfNoDocks.Get());
 }
-#endif

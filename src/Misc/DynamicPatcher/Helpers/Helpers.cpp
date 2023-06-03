@@ -1,4 +1,3 @@
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include "Helpers.h"
 
 #include <Ext/Anim/Body.h>
@@ -1115,5 +1114,3 @@ void Helpers_DP::DrawWeaponAnim(WeaponTypeClass* pWeapon, CoordStruct& sourcePos
 		}
 	}
 }
-
-#endif

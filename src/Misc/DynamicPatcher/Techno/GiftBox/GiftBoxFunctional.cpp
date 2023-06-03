@@ -1,4 +1,3 @@
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include "GiftBoxFunctional.h"
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
 #include "GiftBox.h"
@@ -315,4 +314,3 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 		}
 	}
 }
-#endif

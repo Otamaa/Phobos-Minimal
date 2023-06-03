@@ -8,9 +8,7 @@
 
 #include <New/Entity/LaserTrailClass.h>
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/Trails.h>
-#endif
 
 #include "Trajectories/PhobosTrajectory.h"
 
@@ -43,9 +41,8 @@ public:
 		std::vector<LineTrail*> BulletTrails;
 		OptionalStruct<DirStruct ,true> InitialBulletDir;
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 		std::vector<UniversalTrail> Trails;
-#endif
+
 #pragma region
 		std::unique_ptr<PhobosTrajectory> Trajectory;
 
@@ -66,9 +63,7 @@ public:
 			//
 			, BulletTrails { }
 			, InitialBulletDir { }
-#ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
-#endif
 			, Trajectory {}
 
 		{ }

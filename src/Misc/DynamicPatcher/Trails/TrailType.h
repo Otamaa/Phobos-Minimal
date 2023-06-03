@@ -1,5 +1,4 @@
 #pragma once
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Utilities/Enumerable.h>
 #include <Utilities/Template.h>
 #include <Utilities/TemplateDef.h>
@@ -130,4 +129,3 @@ private:
 
 	}
 };
-#endif

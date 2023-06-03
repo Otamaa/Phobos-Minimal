@@ -1,5 +1,4 @@
 #pragma once
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <CoordStruct.h>
 #include <GeneralStructures.h>
 #include <CellClass.h>
@@ -252,5 +251,3 @@ struct Savegame::ObjectFactory<UniversalTrail>
 		return std::make_unique<UniversalTrail>();
 	}
 };
-
-#endif

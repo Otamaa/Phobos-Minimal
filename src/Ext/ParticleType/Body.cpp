@@ -38,9 +38,7 @@ void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 
 	this->LaserTrail_Types.Read(exINI, pID, "LaserTrail.Types");
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 	this->Trails.Read(exINI, pID, false);
-#endif
 
 	this->Palette.Read(exINI, pID, "CustomPalette");
 	this->DamageRange.Read(exINI, pID, "DamageRange");
@@ -60,9 +58,7 @@ void ParticleTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DeleteWhenReachWater)
 		;
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 	this->Trails.Serialize(Stm);
-#endif
 }
 
 // =============================

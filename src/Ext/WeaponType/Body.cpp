@@ -123,7 +123,6 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 	this->Targeting_Health_Percent.Read(exINI, pSection, "Targeting.TargetHealthPercent");
 	this->Targeting_Health_Percent_Below.Read(exINI, pSection, "Targeting.TargetHealthPercentCheckBelowPercent");
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 	this->RockerPitch.Read(exINI, pSection, "RockerPitch");
 
 	if (this->RockerPitch > 0.0f)
@@ -133,7 +132,7 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 	}
 
 	this->MyAttachFireDatas.Read(exINI, pSection);
-#endif
+
 #pragma endregion
 
 	this->Ammo.Read(exINI, pSection, "Ammo");
@@ -236,9 +235,7 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DiskLaser_FiringOffset)
 		.Process(this->Targeting_Health_Percent)
 		.Process(this->Targeting_Health_Percent_Below)
-#ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->RockerPitch)
-#endif
 		.Process(this->Ammo)
 		.Process(this->IsDetachedRailgun)
 
@@ -272,9 +269,7 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Laser_Thickness)
 		;
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 	MyAttachFireDatas.Serialize(Stm);
-#endif
 };
 
 int WeaponTypeExt::GetBurstDelay(WeaponTypeClass* pThis, int burstIndex)

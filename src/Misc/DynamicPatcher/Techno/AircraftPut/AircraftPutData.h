@@ -1,5 +1,4 @@
 #pragma once
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Utilities/TemplateDef.h>
 
 class AircraftPutData
@@ -24,4 +23,3 @@ public:
 			;
 	}
 };
-#endif

@@ -1,5 +1,4 @@
 #include "JJFacingData.h"
-#ifdef COMPILE_PORTED_DP_FEATURES
 void JJFacingData::Read(INI_EX& parser, const char* pSection)
 {
 	//Enable.Read(parser, pSection, "JumpjetFacingToTarget");
@@ -28,4 +27,3 @@ void JJFacingData::Read(INI_EX& parser, const char* pSection)
 
 	//}
 }
-#endif

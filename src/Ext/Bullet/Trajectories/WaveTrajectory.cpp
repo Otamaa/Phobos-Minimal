@@ -103,10 +103,7 @@ bool WaveTrajectory::OnAI()
 		auto pBulletExt = BulletExt::ExtMap.Find(pBullet);
 
 		pBulletExt->LaserTrails.clear();
-
-#ifdef COMPILE_PORTED_DP_FEATURES
 		pBulletExt->Trails.clear();
-#endif
 
 		return true;
 	}

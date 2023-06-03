@@ -1,5 +1,4 @@
 #pragma once
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Utilities/TemplateDef.h>
 
 class TechnoTypeClass;
@@ -54,4 +53,3 @@ public:
 			;
 	}
 };
-#endif

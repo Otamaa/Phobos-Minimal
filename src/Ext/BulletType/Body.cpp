@@ -179,9 +179,7 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 #pragma region Otamaa
 
 		this->Parachute.Read(exArtINI, pArtSection, GameStrings::Parachute());
-#ifdef COMPILE_PORTED_DP_FEATURES
 		this->Trails.Read(exArtINI, pArtSection, false);
-#endif
 #pragma endregion
 	}
 }
@@ -244,9 +242,9 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->BallisticScatterMax)
 		.Process(this->ImageConvert)
 		;
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 	this->Trails.Serialize(Stm);
-#endif
+
 	PhobosTrajectoryType::ProcessFromStream(Stm, this->TrajectoryType);
 }
 

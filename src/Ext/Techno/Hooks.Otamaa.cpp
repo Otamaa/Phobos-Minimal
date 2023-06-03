@@ -18,10 +18,7 @@
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/GeneralUtils.h>
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-#endif
-
 
 #pragma region Otamaa
 /* Dont Enable ! , broke targeting !
@@ -433,13 +430,10 @@ DEFINE_HOOK(0x4B05EE, DriveLocoClass_InfCheck_Extend , 0x5)
 	return pDest->WhatAmI() == AbstractType::Infantry || pDest->WhatAmI() == AbstractType::Aircraft ? 0x4B05F8 : 0x4B063D;
 }*/
 
-
-#ifdef COMPILE_PORTED_DP_FEATURES
-
 #include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDiveFunctional.h>
 #include <Misc/DynamicPatcher/Techno/DriveData/DriveDataFunctional.h>
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
-#endif
+
 // init inside type check 
 // should be no problem here
 
@@ -565,7 +559,7 @@ DEFINE_HOOK(0x6F42ED, TechnoClass_Init_Early, 0xA)
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
 
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 	//if (pTypeExt->VirtualUnit.Get())
 	//	pExt->VirtualUnit = true;
 
@@ -589,7 +583,6 @@ DEFINE_HOOK(0x6F42ED, TechnoClass_Init_Early, 0xA)
 		}
 	}
 
-#endif
 	TechnoExt::InitializeItems(pThis, pType);
 
 	return 0x0;

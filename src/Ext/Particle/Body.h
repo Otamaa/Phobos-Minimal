@@ -7,9 +7,7 @@
 #include <New/Entity/LaserTrailClass.h>
 #include <Ext/ParticleType/Body.h>
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/Trails.h>
-#endif
 
 class ParticleExt
 {
@@ -25,14 +23,12 @@ public:
 	public:
 
 		std::vector<LaserTrailClass> LaserTrails;
-#ifdef COMPILE_PORTED_DP_FEATURES
 		std::vector<UniversalTrail> Trails;
-#endif
+
 		ExtData(ParticleClass* OwnerObject) : Extension<ParticleClass>(OwnerObject)
 			,  LaserTrails { }
-#ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
-#endif
+
 		{ }
 
 		virtual ~ExtData() override = default;

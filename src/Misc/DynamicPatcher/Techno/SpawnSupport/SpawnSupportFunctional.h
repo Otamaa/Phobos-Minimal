@@ -1,5 +1,4 @@
 #pragma once
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Base/Always.h>
 
 class TechnoClass;
@@ -11,4 +10,3 @@ struct SpawnSupportFunctional
 	static void OnFire(TechnoClass* pThis, AbstractClass* pTarget);
 	static void FireSupportWeaponToSpawn(TechnoClass* pThis, AbstractClass* pTarget , bool useROF = false);
 };
-#endif

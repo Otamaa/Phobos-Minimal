@@ -17,7 +17,6 @@
 
 #include <FileSystem.h>
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Techno/ExtraFire/ExtraFireData.h>
 #include <Misc/DynamicPatcher/Techno/DamageSelf/DamageSelfType.h>
 #include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDiveData.h>
@@ -28,7 +27,6 @@
 #include <Misc/DynamicPatcher/Techno/SpawnSupport/SpawnSupportData.h>
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #include <Misc/DynamicPatcher/Techno/FighterGuardArea/FighterGuardAreaData.h>
-#endif
 
 #include <New/AnonymousType/AresAttachEffectTypeClass.h>
 #include <Utilities/MultiBoolFixedArray.h>
@@ -587,7 +585,6 @@ public:
 		//PhobosPCXFile CameoPCX;
 		//PhobosPCXFile AltCameoPCX;
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
 		Nullable<CoordStruct> PrimaryCrawlFLH;
@@ -609,7 +606,6 @@ public:
 		FighterAreaGuardData MyFighterData;
 		DamageSelfType DamageSelfData;
 
-#endif
 		AresAttachEffectTypeClass AttachedEffect;
 #pragma endregion
 
@@ -1131,7 +1127,7 @@ public:
 			, TiberiumSpill { false }
 			, TiberiumRemains {}
 			, TiberiumTransmogrify {}
-		
+
 			, SensorArray_Warn { true }
 			, IronCurtain_Modifier { 1.0 }
 			, ForceShield_Modifier { 1.0 }
@@ -1139,7 +1135,7 @@ public:
 			// berserk
 			, BerserkROFMultiplier {  }
 			, Refinery_UseStorage { false }
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 			, VirtualUnit { false }
 
 			, PrimaryCrawlFLH { }
@@ -1160,7 +1156,6 @@ public:
 			, MyFighterData { }
 			, DamageSelfData { }
 
-#endif
 			, AttachedEffect { OwnerObject }
 #pragma endregion
 			, NoAmmoEffectAnim { nullptr }

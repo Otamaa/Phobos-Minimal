@@ -1,8 +1,7 @@
 #include "Body.h"
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-#endif
+
 /*
 static CoordStruct GetFLHAbsoluteCoords(CoordStruct nFLH, CoordStruct nCurLoc)
 {
@@ -15,7 +14,8 @@ static CoordStruct GetFLHAbsoluteCoords(CoordStruct nFLH, CoordStruct nCurLoc)
 	return nCurLoc;
 }
 */
-//#ifdef COMPILE_PORTED_DP_FEATURES
+
+
 DEFINE_HOOK(0x62CE86, ParticleClass_AI, 0x7) // F , this is the end, here's the beginning: 0x62CE49 0x6
 {
 	GET(ParticleClass*, pThis, ESI);
@@ -41,9 +41,9 @@ DEFINE_HOOK(0x62CE86, ParticleClass_AI, 0x7) // F , this is the end, here's the 
 			trail.Visible = pThis->IsOnMyView();
 		}
 	}
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 	TrailsManager::AI(pThis);
-#endif
+
 	return 0;
 }
 //#endif

@@ -1,5 +1,5 @@
 #pragma once
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 #include <CoordStruct.h>
 #include <LaserDrawClass.h>
 #include <AbstractClass.h>
@@ -67,4 +67,3 @@ struct DebugUtilities
 		}
 	}*/
 };
-#endif

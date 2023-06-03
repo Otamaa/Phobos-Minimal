@@ -500,7 +500,6 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		this->AllowFire_IroncurtainedTarget.Read(exINI, pSection, "Firing.AllowICedTargetForAI");
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 		this->VirtualUnit.Read(exINI, pSection, "VirtualUnit");
 		this->MyExtraFireData.ReadRules(exINI, pSection);
 		this->MyGiftBoxData.Read(exINI, pSection);
@@ -508,7 +507,6 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->MyPassangersData.Read(exINI, pSection);
 		this->MySpawnSupportDatas.Read(exINI, pSection);
 		this->DamageSelfData.Read(exINI, pSection);
-#endif
 
 		this->IronCurtain_SyncDeploysInto.Read(exINI, pSection, "IronCurtain.KeptOnDeploy");
 		this->IronCurtain_Effect.Read(exINI, pSection, "IronCurtain.Flag");
@@ -881,12 +879,10 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 			this->UseROFAsBurstDelays.Read(exINI, pSection, "UseROFAsBurstDelays");
 			this->Chronoshift_Crushable.Read(exINI, pSection, "Chronoshift.Crushable");
 
-#ifdef COMPILE_PORTED_DP_FEATURES
 			this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
 			this->MyDiveData.Read(exINI, pSection);
 			this->MyPutData.Read(exINI, pSection);
 			this->MyFighterData.Read(exINI, pSection, pThis);
-#endif
 		}
 	}
 
@@ -970,15 +966,13 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		TechnoTypeExt::GetFLH(exArtINI, pArtSection, DeployedPrimaryFireFLH, E_DeployedPrimaryFireFLH, "DeployedPrimaryFire");
 		TechnoTypeExt::GetFLH(exArtINI, pArtSection, DeployedSecondaryFireFLH, E_DeployedSecondaryFireFLH, "DeployedSecondaryFire");
 
-#ifdef COMPILE_PORTED_DP_FEATURES
-
 		TechnoTypeExt::GetFLH(exArtINI, pArtSection, PrimaryCrawlFLH, Elite_PrimaryCrawlFLH, "PrimaryCrawling");
 		TechnoTypeExt::GetFLH(exArtINI, pArtSection, SecondaryCrawlFLH, Elite_SecondaryCrawlFLH, "SecondaryCrawling");
 
 		this->MyExtraFireData.ReadArt(exArtINI, pArtSection);
 		this->MySpawnSupportFLH.Read(exArtINI, pArtSection);
 		this->Trails.Read(exArtINI, pArtSection, true);
-#endif
+
 	}
 }
 
@@ -1467,7 +1461,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->ConsideredNaval)
 		.Process(this->ConsideredVehicle)
 
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 		.Process(this->VirtualUnit)
 
 		.Process(this->PrimaryCrawlFLH)
@@ -1476,7 +1470,6 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Elite_SecondaryCrawlFLH)
 		.Process(this->MissileHoming)
 
-#endif
 		.Process(this->Riparius_FrameIDx)
 		.Process(this->Cruentus_FrameIDx)
 		.Process(this->Vinifera_FrameIDx)
@@ -1637,7 +1630,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SuperGapRadiusInCells)
 #pragma endregion
 		;
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 	this->MyExtraFireData.Serialize(Stm);
 	this->MyDiveData.Serialize(Stm);
 	this->MyPutData.Serialize(Stm);
@@ -1649,7 +1642,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 	this->Trails.Serialize(Stm);
 	this->MyFighterData.Serialize(Stm);
 	this->DamageSelfData.Serialize(Stm);
-#endif
+
 
 	Stm.Process(this->AttachedEffect)
 		.Process(this->NoAmmoEffectAnim)
