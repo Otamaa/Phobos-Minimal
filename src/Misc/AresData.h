@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <CoordStruct.h>
+#include <ScriptActionNode.h>
 
 class AbstractClass;
 class TechnoClass;
@@ -24,6 +25,8 @@ class ConvertClass;
 class BulletTypeClass;
 class WarheadTypeClass;
 class BuildingLightClass;
+class BSurface;
+class TeamClass;
 typedef int (__cdecl *CallHook)(REGISTERS* R);
 
 class PoweredUnitClass
@@ -114,6 +117,7 @@ struct EMPulse
 
 #define GetAEData(techno) (*(AEData*)(((char*)GetAresTechnoExt(techno)) + 0x20))
 
+#define TakeVehicleMode(techno) (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0xB0))
 // HouseExt
 #define Is_NavalYardSpied(var) (*(bool*)((char*)GetAresHouseExt(var) + 0x48))
 #define Is_AirfieldSpied(var) (*(bool*)((char*)GetAresHouseExt(var) + 0x49))
@@ -121,7 +125,9 @@ struct EMPulse
 #define RadarPresist(var) (*(IndexBitfield<HouseClass*>*)((char*)GetAresHouseExt(var) + 0x44))
 #define ReverseEngineeredTechnoType(var) (*(std::vector<TechnoTypeClass*>*)((char*)GetAresHouseExt(var) + 0x34))
 #define StolenTechnoType(var) (*(std::bitset<32>*)((char*)GetAresHouseExt(var) + 0x40))
-
+#define AuxPower(var) (*(int*)((char*)GetAresHouseExt(var) + 0xC))
+#define KeepAlivesCount(var) (*(int*)((char*)GetAresHouseExt(var) + 0x18))
+#define KeepAlivesBuildingCount(var) (*(int*)((char*)GetAresHouseExt(var) + 0x1C))
 
 // BldTypeExt
 #define Is_FirestromWall(techno) (*(bool*)((char*)GetAresBuildingTypeExt(techno) + 0x5D))
@@ -130,7 +136,7 @@ struct EMPulse
 
 //
 #define Ares_AboutToChronoshift(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0xD))
-
+#define ToggalePowerHasPower(var) (*(bool*)(((char*)GetAresBuildingExt(var)) +0x51))
 //
 #define GetSelfHealingDleayAmount(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x4A8))
 #define GetGunnerName(var) (*(std::vector<CSFText>*)(((char*)GetAresTechnoTypeExt(var)) + 0xC8))
@@ -142,6 +148,8 @@ struct EMPulse
 #define GetCursorNoMove(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x5A4))
 #define GetCursorEnter(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x598))
 #define GetCursorNoEnter(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x59C))
+#define GetCameoPCXSurface(var) (*(BSurface**)(((char*)GetAresTechnoTypeExt(var)) + 0x228))
+#define GetCameoSHPConvert(var) (*(ConvertClass**)(((char*)GetAresTechnoTypeExt(var)) + 0x120))
 //
 #define Is_MaliciousWH(wh) (*(bool*)((((char*)GetAresAresWarheadTypeExt(wh)) + 0x75)))
 #define GetSonarDur(wh) (*(int*)(((char*)GetAresAresWarheadTypeExt(wh)) + 0xF8))
@@ -209,15 +217,22 @@ struct AresData
 		IsActiveFirestormWallID = 34, //BuildingExt  IsActiveFirestormWall BuildingClass* HouseClass*
 		ImmolateVictimID = 35, //BuildingExt  ImmolateVictim BuildingClassExt* FootClass* bool
 
-		DisableEMPAffectID = 36 ,
-		CloakDisallowedID = 37 ,
-		CloadAllowedID = 38 ,
+		DisableEMPAffectID = 36,
+		CloakDisallowedID = 37,
+		CloadAllowedID = 38,
 		RemoveAEID = 39,
 
 		FlyingStringsAddID = 40,
 		CalculateBountyID = 41,
 		SetSpotlightID = 42,
 
+		IsPoweredID = 43,
+		IsDriverKillableID = 44,
+		KillDriverCoreID = 45,
+
+		FireIronCurtainID = 46,
+
+		RespondToFirewallID = 47,
 		count
 	};
 
@@ -240,7 +255,7 @@ struct AresData
 	// number of Ares versions we support
 	static constexpr int AresVersionCount = Version::vcount;
 	//number of static instance
-	static constexpr int AresStaticInstanceCount = 4;
+	static constexpr int AresStaticInstanceCount = 5;
 	//number of call for `CustomPalette::ReadFromINI`
 	static constexpr int AresCustomPaletteReadCount = 5;
 
@@ -258,6 +273,8 @@ struct AresData
 		0x0C2A00, //Debug::bTrackParserErrors
 
 		0x0C2A54, //HouseExt::FSW
+
+		0x0C3100, //std::vector<const char*>
 	};
 
 	// offsets of function addresses for each version
@@ -311,6 +328,13 @@ struct AresData
 		0x044F70, //TechnoExt::FlyingStringsAdd
 		0x043D10, //TechnoExt::CalculateBounty
 		0x046F90, //TechnoExt::SetSpotlight
+
+		0x046060, //IsPowered
+		0x043FA0, //IsDriverKillable
+		0x046240, //TechnoExt::KillDriverCore
+
+		0x03A970, //TeamExt_FireIC
+		0x023010, //HouseExt::RespondToFirewall
 	};
 
 	static constexpr DWORD AAresCustomPaletteReadTable[AresCustomPaletteReadCount] = {
@@ -474,7 +498,11 @@ struct AresData
 	static void FlyingStringsAdd(TechnoClass* pTech, bool bSomething);
 	static void CalculateBounty(TechnoClass* pThis, TechnoClass* pKiller);
 	static void SetSpotlight(TechnoClass* pThis , BuildingLightClass* pSpotlight);
-
+	static bool IsPowered(TechnoClass* pThis);
+	static bool IsDriverKillable(TechnoClass* pThis, double tresh);
+	static bool KillDriverCore(TechnoClass* pThis, HouseClass* pToHouse, TechnoClass* pKiller, bool removeVet);
+	static void FireIronCurtain(TeamClass* pTeam, ScriptActionNode* pNode , bool ntrhd);
+	static void RespondToFirewall(HouseClass* pHouse, bool Active);
 };
 
 namespace AresMemory
@@ -589,6 +617,8 @@ struct AresDTORCaller
 
 #define Debug_bTrackParseErrors (*(reinterpret_cast<bool*>(AresData::AresStaticInstanceFinal[2])))
 #define ActiveSFW (*(reinterpret_cast<SuperClass**>(AresData::AresStaticInstanceFinal[3])))
+//just for lookup no modify
+#define EvaTypes (*(reinterpret_cast<const std::vector<const char*>*>(AresData::AresStaticInstanceFinal[4])))
 #define PoweredUnitUptr(techno) (*(PoweredUnitClass**)(((char*)GetAresTechnoExt(techno)) + 0x1C))
 #define RadarJammerUptr(techno) (*(JammerClass**)(((char*)GetAresTechnoExt(techno)) + 0x18))
 #define RegisteredJammers(techno) (*(PhobosMap<TechnoClass*, bool>*)(((char*)GetAresBuildingExt(techno)) + 0x40))

@@ -427,7 +427,7 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args , bool& ret
 		switch (pThis->ActionKind)
 		{
 		case TriggerAction::PlaySoundEffectRandom:
-		{ 
+		{
 			ret = TActionExt::PlayAudioAtRandomWP(pThis, pHouse, pObject, pTrigger, args.plocation);
 			return true;
 		}
@@ -463,24 +463,22 @@ bool TActionExt::DrawLaserBetweenWaypoints(TActionClass* pThis, HouseClass* pHou
 	return true;
 }
 
+// #1004906: support more than 100 waypoints
 bool TActionExt::PlayAudioAtRandomWP(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	std::vector<int> waypoints;
+	std::vector<CellStruct> waypoints;
 	waypoints.reserve(ScenarioExt::Global()->Waypoints.size());
 
 	auto const pScen = ScenarioClass::Instance();
 
-	for (auto const& pair : ScenarioExt::Global()->Waypoints)
-		if (pScen->IsDefinedWaypoint(pair.first))
-			waypoints.push_back(pair.first);
+	for (auto const&[idx , cell] : ScenarioExt::Global()->Waypoints){
+		if (pScen->IsDefinedWaypoint(idx))
+			waypoints.push_back(cell);
+	}
 
-	if (!waypoints.empty())
-	{
-		auto const index = pScen->Random.RandomFromMax(waypoints.size() - 1);
-		auto const luckyWP = waypoints[index];
-		auto const cell = pScen->GetWaypointCoords(luckyWP);
-		auto const coords = CellClass::Cell2Coord(cell);
-		VocClass::PlayIndexAtPos(pThis->Value, coords);
+	if (!waypoints.empty()) {
+		VocClass::PlayIndexAtPos(pThis->Value,
+		CellClass::Cell2Coord(waypoints[pScen->Random.RandomFromMax(waypoints.size() - 1)]));
 	}
 
 	return true;

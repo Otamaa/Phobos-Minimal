@@ -174,10 +174,14 @@ public:
 
 		Valueable<bool> ChronoInfantryCrush;
 
+		Valueable<bool> EnemyWrench;
+
+		Valueable<AircraftTypeClass*> DefaultParaPlane;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		AircraftPutDataRules MyPutData;
 #endif
-#pragma endregion
+#pragma endregion	
 
 		ExtData(RulesClass* OwnerObject) : Extension<RulesClass>(OwnerObject)
 			, Pips_Shield { { -1,-1,-1 } }
@@ -306,6 +310,9 @@ public:
 			, ChainReact_MinDelay { 15 }
 			, ChainReact_MaxDelay { 120 }
 			, ChronoInfantryCrush { true }
+
+			, EnemyWrench { true }
+			, DefaultParaPlane { nullptr }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, MyPutData { }
 #endif

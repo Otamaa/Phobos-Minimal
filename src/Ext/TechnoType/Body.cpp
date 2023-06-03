@@ -728,6 +728,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		this->Passengers_BySize.Read(exINI, pSection, "Passengers.BySize");
 		this->Convert_Deploy.Read(exINI, pSection, "Convert.Deploy");
+		this->Convert_Script.Read(exINI, pSection, "Convert.Script");
 		this->Harvester_LongScan.Read(exINI, pSection, "Harvester.LongScan");
 		this->Harvester_ShortScan.Read(exINI, pSection, "Harvester.ShortScan");
 		this->Harvester_ScanCorrection.Read(exINI, pSection, "Harvester.ScanCorrection");
@@ -817,7 +818,11 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->HasSpotlight.Read(exINI, pSection, "HasSpotlight");
 		this->Crew_TechnicianChance.Read(exINI, pSection, "Crew.TechnicianChance");
 		this->Crew_EngineerChance.Read(exINI, pSection, "Crew.EngineerChance");
+		this->Saboteur.Read(exINI, pSection, "Saboteur");
 
+		this->RadialIndicatorRadius.Read(exINI, pSection, "RadialIndicatorRadius");
+		this->GapRadiusInCells.Read(exINI, pSection, "GapRadiusInCells");
+		this->SuperGapRadiusInCells.Read(exINI, pSection, "SuperGapRadiusInCells");
 		if (Is_AircraftType(pThis))
 		{
 			this->CrashSpinLevelRate.Read(exINI, pSection, "CrashSpin.LevelRate");
@@ -1527,7 +1532,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Passengers_BySize)
 		.Process(this->Crashable)
 		.Process(this->Convert_Deploy)
-
+		.Process(this->Convert_Script)
 		.Process(this->Harvester_LongScan)
 		.Process(this->Harvester_ShortScan)
 		.Process(this->Harvester_ScanCorrection)
@@ -1614,6 +1619,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Crew_TechnicianChance)
 		.Process(this->Crew_EngineerChance)
 
+		.Process(this->Saboteur)
+
 		.Process(this->Cursor_Deploy)
 		.Process(this->Cursor_NoDeploy)
 		.Process(this->Cursor_Enter)
@@ -1624,6 +1631,10 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->ImmuneToAbduction)
 		.Process(this->UseROFAsBurstDelays)
 		.Process(this->Chronoshift_Crushable)
+
+		.Process(this->RadialIndicatorRadius)
+		.Process(this->GapRadiusInCells)
+		.Process(this->SuperGapRadiusInCells)
 #pragma endregion
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES

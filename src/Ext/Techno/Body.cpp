@@ -1034,7 +1034,7 @@ void TechnoExt::PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker)
 
 double TechnoExt::GetDamageMult(TechnoClass* pSouce, bool ForceDisable)
 {
-	if (!pSouce || ForceDisable)
+	if (!pSouce || !pSouce->IsAlive || ForceDisable)
 		return 1.0;
 
 	const auto pType = pSouce->GetTechnoType();
@@ -1044,11 +1044,9 @@ double TechnoExt::GetDamageMult(TechnoClass* pSouce, bool ForceDisable)
 
 	const bool firepower = pSouce->HasAbility(AbilityType::Firepower);
 
-	return (!firepower ? 1.0 : RulesClass::Instance->VeteranCombat)
-		*pSouce->FirepowerMultiplier* 
-		((!pSouce->Owner || !pSouce->Owner->Type) ? 1.0 : 
-		pSouce->Owner->Type->FirepowerMult)
-	;
+	const auto nFirstMult = !firepower ? 1.0 : RulesClass::Instance->VeteranCombat;
+	const auto nSecondMult = (!pSouce->Owner || !pSouce->Owner->Type) ? 1.0 : pSouce->Owner->Type->FirepowerMult;
+	return nFirstMult * pSouce->FirepowerMultiplier * nSecondMult; ;
 }
 
 const std::vector<std::vector<CoordStruct>>* TechnoExt::PickFLHs(TechnoClass* pThis)

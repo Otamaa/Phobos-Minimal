@@ -180,6 +180,7 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 	this->Cursor_AttackOutOfRange.Read(exINI, pSection, "Cursor.AttackOutOfRange");
 
 	this->Bolt_ParticleSys.Read(exINI, pSection, "Bolt.ParticleSystem");
+	this->Laser_Thickness.Read(exINI, pSection, "LaserThickness");
 }
 
 template <typename T>
@@ -268,6 +269,7 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Bolt_Color2)
 		.Process(this->Bolt_Color3)
 		.Process(this->Bolt_ParticleSys)
+		.Process(this->Laser_Thickness)
 		;
 
 #ifdef COMPILE_PORTED_DP_FEATURES

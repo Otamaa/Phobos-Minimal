@@ -194,20 +194,12 @@ DEFINE_OVERRIDE_HOOK(0x702185, TechnoClass_ReceiveDamage_OverrideVoiceDie, 0x6)
 	return 0x0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x702CFE, TechnoClass_ReceiveDamage_PreventScatter, 0x6)
+DEFINE_HOOK(0x702B75, TechnoClass_ReceiveDamage_PreventScatter, 0x6)
 {
-	GET(FootClass*, pThis, ESI);
+	//GET(FootClass*, pThis, ESI);
 	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0xC4, -0xC));
 
-	const auto pExt = WarheadTypeExt::ExtMap.Find(pWarhead);
-
-	// only allow to scatter if not prevented
-	if (!pExt->PreventScatter)
-	{
-		pThis->Scatter(CoordStruct::Empty, true, false);
-	}
-
-	return 0x702D11;
+	return WarheadTypeExt::ExtMap.Find(pWarhead)->PreventScatter ? 0x702D11 : 0x0;
 }
 
 // #1283653: fix for jammed buildings and attackers in open topped transports
@@ -288,7 +280,6 @@ DEFINE_OVERRIDE_HOOK(0x702050, TechnoClass_ReceiveDamage_ResultDestroyed , 6)
 	return 0x0;
 }
 
-// not this
 /*
  * Fixing issue #722
  */
@@ -684,7 +675,6 @@ DEFINE_OVERRIDE_HOOK(0x702216, TechnoClass_ReceiveDamage_TiberiumHeal_SpillTiber
 }
 
 // smoke particle systems created when a techno is damaged
-//#pragma optimize("", off )
 DEFINE_OVERRIDE_HOOK(0x702894, TechnoClass_ReceiveDamage_SmokeParticles, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);
@@ -706,7 +696,6 @@ DEFINE_OVERRIDE_HOOK(0x702894, TechnoClass_ReceiveDamage_SmokeParticles, 6)
 
 	return 0x702938;
 }
-//#pragma optimize("", on)
 
 constexpr unsigned int Neighbours[] = {
 	9, 0, 2, 0, 0,
@@ -737,10 +726,13 @@ DEFINE_OVERRIDE_HOOK(0x702200, TechnoClass_ReceiveDamage_SpillTiberium, 6)
 				max = pType->Storage;
 			}
 
+			int nIdx = 0;
+			for (int p = 0; p < 4; p++)
+				nIdx += (pThis->Tiberium.Tiberiums[nIdx] < pThis->Tiberium.Tiberiums[p]) * (p - nIdx);
+
 			// assume about half full, recalc if possible
 			int value = static_cast<int>(max / 2);
-			if (pType->Storage > 0)
-			{
+			if (pType->Storage > 0) {
 				value = int(stored / pType->Storage * max);
 			}
 
@@ -753,7 +745,7 @@ DEFINE_OVERRIDE_HOOK(0x702200, TechnoClass_ReceiveDamage_SpillTiberium, 6)
 				// spill random amount
 				int amount = ScenarioClass::Instance->Random.RandomFromMax(2);
 				CellClass* pCell = pCenter->GetNeighbourCell(neighbour);
-				pCell->IncreaseTiberium(0, amount);
+				pCell->IncreaseTiberium(nIdx, amount);
 				value -= amount;
 
 				// stop if value is reached
@@ -891,8 +883,7 @@ DEFINE_OVERRIDE_HOOK(0x518CB3, InfantryClass_ReceiveDamage_Doggie, 0x6)
 	GET(InfantryClass*, pThis, ESI);
 
 	// hurt doggie gets more panic
-	if (pThis->Type->Doggie && pThis->IsRedHP())
-	{
+	if (pThis->Type->Doggie && pThis->IsRedHP()) {
 		R->EDI(RulesExt::Global()->DoggiePanicMax);
 	}
 

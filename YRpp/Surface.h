@@ -361,6 +361,9 @@ static void __fastcall Draw_Radial_Indicator(bool draw_line, bool adjust_color, 
 	JMP_STD(0x456980);
 }
 
+static bool __fastcall Buffer_To_Surface_wrapper(Surface *tosurface, RectangleStruct *torect, Surface *fromsurface, RectangleStruct *fromrect) {
+	JMP_STD(0x7BC1F0);
+}
 static bool __fastcall Buffer_To_Surface_wrapper(Surface *tosurface, RectangleStruct *torect, Surface *fromsurface, RectangleStruct *fromrect, DWORD *blitter, int z_val, int somearrayindex, int alpha_val, int Blit_Move_2_arg) {
   JMP_STD(0x437350);
 }

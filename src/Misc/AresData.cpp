@@ -323,3 +323,28 @@ void AresData::SetSpotlight(TechnoClass* pThis, BuildingLightClass* pSpotlight)
 {
 	AresThiscall<SetSpotlightID, void, void*, BuildingLightClass*>()(GetAresTechnoExt(pThis), pSpotlight);
 }
+
+bool AresData::IsPowered(TechnoClass* pThis)
+{
+	return AresThiscall<IsPoweredID, bool, void*>()(GetAresTechnoExt(pThis));
+}
+
+bool AresData::IsDriverKillable(TechnoClass* pThis, double tresh)
+{
+	return AresThiscall<IsDriverKillableID, bool, void* , double>()(GetAresTechnoExt(pThis), tresh);
+}
+
+bool AresData::KillDriverCore(TechnoClass* pThis, HouseClass* pToHouse, TechnoClass* pKiller, bool removeVet)
+{
+	return AresThiscall<KillDriverCoreID, bool, void* ,HouseClass*, TechnoClass* , bool>()(GetAresTechnoExt(pThis), pToHouse , pKiller , removeVet);
+}
+
+void AresData::FireIronCurtain(TeamClass* pTeam, ScriptActionNode* pNode, bool ntrhd)
+{
+	AresStdcall<KillDriverCoreID, void, TeamClass*, ScriptActionNode* , bool>()(pTeam , pNode , ntrhd);
+}
+
+void AresData::RespondToFirewall(HouseClass* pHouse, bool Active)
+{
+	AresThiscall<RespondToFirewallID, void, void*, bool>()(GetAresHouseExt(pHouse), Active);
+}

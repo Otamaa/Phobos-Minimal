@@ -63,6 +63,7 @@ void RulesExt::LoadFromINIFile(RulesClass* pThis, CCINIClass* pINI)
 void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
 	TunnelTypeClass::LoadFromINIList(pINI);
+	ArmorTypeClass::LoadFromINIList_New(pINI);
 
 	// we override it , so it loaded before any type read happen , so all the properties will correcly readed
 	pThis->Read_CrateRules(pINI);
@@ -73,7 +74,6 @@ void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pThis->Read_AudioVisual(pINI);
 	pThis->Read_SpecialWeapons(pINI);
 
-	ArmorTypeClass:: LoadFromINIList_New(pINI);
 	ColorTypeClass::LoadFromINIList_New(pINI);
 	CursorTypeClass::LoadFromINIList_New(pINI);
 	ImmunityTypeClass::LoadFromINIList(pINI);
@@ -149,12 +149,16 @@ void RulesExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
 	//Allocate Default bullet
-	if (!BulletTypeClass::Find(DEFAULT_STR2))
-		GameCreate<BulletTypeClass>(DEFAULT_STR2);
+	BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
 
 	INI_EX exINI(pINI);
 
 #pragma region Otamaa
+
+	this->DefaultParaPlane.Read(exINI, GENERAL_SECTION, "ParadropPlane" , true);
+	
+	if (!this->DefaultParaPlane)
+		this->DefaultParaPlane = AircraftTypeClass::FindOrAllocate(GameStrings::PDPLANE());
 
 	this->VeinholeParticle.Read(exINI, AUDIOVISUAL_SECTION, "VeinholeSpawnParticleType", true);
 	this->DefaultVeinParticle = ParticleTypeClass::FindOrAllocate(GameStrings::GASCLUDM1());
@@ -297,6 +301,9 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->NewTeamsSelector_AirCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.AirCategoryPercentage");
 	this->NewTeamsSelector_NavalCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.NavalCategoryPercentage");
 	//
+
+
+	this->EnemyWrench.Read(exINI, GENERAL_SECTION, "EnemyWrench");
 
 	// Section Generic Prerequisites
 	FillDefaultPrerequisites(pINI);
@@ -595,6 +602,9 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->ChainReact_MinDelay)
 		.Process(this->ChainReact_MaxDelay)
 		.Process(this->ChronoInfantryCrush)
+
+		.Process(this->EnemyWrench)
+		.Process(this->DefaultParaPlane)
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
 	MyPutData.Serialize(Stm);

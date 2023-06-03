@@ -10,6 +10,7 @@ void HouseTypeExt::ExtData::InheritSettings(HouseTypeClass* pThis)
 			this->Crew = ParentData->Crew;
 			this->Engineer = ParentData->Engineer;
 			this->Technician = ParentData->Technician;
+			this->ParaDropPlane = ParentData->ParaDropPlane;
 		}
 	}
 
@@ -36,7 +37,7 @@ void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr
 	this->Crew.Read(exINI, pSection, "Crew", true);
 	this->Engineer.Read(exINI, pSection, "Engineer", true);
 	this->Technician.Read(exINI, pSection, "Technician", true);
-
+	this->ParaDropPlane.Read(exINI, pSection, "ParaDrop.Aircraft");
 
 	// Disabled atm
 	this->NewTeamsSelector_MergeUnclassifiedCategoryWith.Read(exINI, pSection, "NewTeamsSelector.MergeUnclassifiedCategoryWith");
@@ -58,6 +59,7 @@ void  HouseTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Crew)
 		.Process(this->Engineer)
 		.Process(this->Technician)
+		.Process(this->ParaDropPlane)
 
 		.Process(this->NewTeamsSelector_MergeUnclassifiedCategoryWith)
 		.Process(this->NewTeamsSelector_UnclassifiedCategoryPercentage)

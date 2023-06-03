@@ -41,6 +41,32 @@ namespace std {
 	//struct and_with { bool operator()(int a, int b) { return a & b; } };
 }
 
+// Gets the TechnoType pointed to by the event's TechnoName field.
+/*!
+	Resolves the TechnoName to a TechnoTypeClass and caches it. This function
+	is an O(n) operation for the first call, every subsequent call is O(1).
+
+	\returns The TechnoTypeClass TechnoName points to, nullptr if not set or invalid.
+
+	\date 2012-05-09, 2013-02-09
+*/
+TechnoTypeClass* TEventExt::ExtData::GetTechnoType()
+{
+	if (this->TechnoType.empty())
+	{
+		const char* eventTechno = this->OwnerObject()->String;
+		TechnoTypeClass* pType = TechnoTypeClass::Find(eventTechno);
+
+		if (!pType) {
+			Debug::Log("Event references non-existing techno type \"%s\".", eventTechno);
+		}
+
+		this->TechnoType = pType;
+	}
+
+	return this->TechnoType;
+}
+
 bool TEventExt::Occured(TEventClass* pThis, EventArgs const& args , bool& bReturn)
 {
 	//int iEvent = args.EventType;

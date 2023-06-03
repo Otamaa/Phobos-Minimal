@@ -498,6 +498,7 @@ public:
 		Nullable<bool> Crashable;
 
 		Valueable<TechnoTypeClass*> Convert_Deploy;
+		Valueable<TechnoTypeClass*> Convert_Script;
 
 		Nullable<Leptons> Harvester_LongScan;
 		Nullable<Leptons> Harvester_ShortScan;
@@ -685,6 +686,11 @@ public:
 
 		Nullable<int> Crew_TechnicianChance;
 		Nullable<int> Crew_EngineerChance;
+		Valueable<bool> Saboteur;
+
+		Nullable<int> RadialIndicatorRadius;
+		Valueable<int> GapRadiusInCells;
+		Valueable<int> SuperGapRadiusInCells;
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 
@@ -1064,6 +1070,7 @@ public:
 			, Crashable { }
 
 			, Convert_Deploy { nullptr }
+			, Convert_Script { nullptr }
 			, Harvester_LongScan { }
 			, Harvester_ShortScan { }
 			, Harvester_ScanCorrection { }
@@ -1195,6 +1202,11 @@ public:
 
 			, Crew_TechnicianChance { }
 			, Crew_EngineerChance { }
+			, Saboteur { false }
+
+			, RadialIndicatorRadius { }
+			, GapRadiusInCells { 0 }
+			, SuperGapRadiusInCells { 0 }
 		{ }
 
 		virtual ~ExtData() override = default;

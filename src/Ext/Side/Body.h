@@ -42,6 +42,7 @@ public:
 		Nullable<InfantryTypeClass*> Crew;
 		Nullable<InfantryTypeClass*> Engineer;
 		Nullable<InfantryTypeClass*> Technician;
+		ValueableIdx<AircraftTypeClass> ParaDropPlane;
 
 		ExtData(SideClass* OwnerObject) : Extension<SideClass>(OwnerObject)
 			, ArrayIndex { -1 }
@@ -71,6 +72,7 @@ public:
 			, Crew { }
 			, Engineer { }
 			, Technician{ }
+			, ParaDropPlane { -1 }
 		{ }
 
 		virtual ~ExtData() override = default;

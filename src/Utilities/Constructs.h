@@ -406,25 +406,31 @@ private:
 class PhobosPCXFile {
 	static constexpr const size_t Capacity = 0x20;
 public:
-	explicit PhobosPCXFile(bool autoResolve = true) : filename(), resolve(autoResolve), checked(false), exists(false) {
-	}
+	explicit PhobosPCXFile() : Surface(nullptr) , filename() {}
 
-	PhobosPCXFile(const char* pFilename, bool autoResolve = true) : PhobosPCXFile(autoResolve) {
-		*this = pFilename;
+	PhobosPCXFile(const char* pFilename) : PhobosPCXFile() {
+			*this = pFilename;
 	}
 
 	~PhobosPCXFile() = default;
 
 	PhobosPCXFile& operator = (const char* pFilename) {
-		this->filename = pFilename;
-		auto& data = this->filename.data();
-		_strlwr_s(data);
 
-		this->checked = false;
-		this->exists = false;
+		if(strlen(pFilename) && pFilename[0]) {
+			this->filename = pFilename;
+			auto& data = this->filename.data();
+			_strlwr_s(data);
+			BSurface* pSource = nullptr;
 
-		if (this->resolve) {
-			this->Exists();
+			if(PCX::Instance->GetSurface(this->filename) || PCX::Instance->LoadFile(this->filename))
+				pSource = PCX::Instance->GetSurface(this->filename, nullptr);
+
+			if (pSource) {
+				if (!this->Surface)
+					this->Surface.reset(GameCreate<BSurface>());
+
+				std::memcpy(this->Surface.get(), pSource, sizeof(BSurface));
+			}
 		}
 
 		return *this;
@@ -434,19 +440,12 @@ public:
 		return this->filename.data();
 	}
 
-	BSurface* GetSurface(BytePalette* pPalette = nullptr) const {
-		return this->Exists() ? PCX::Instance->GetSurface(this->filename, pPalette) : nullptr;
+	BSurface* GetSurface() const {
+		return this->Surface.get();
 	}
 
 	bool Exists() const {
-		if (!this->checked) {
-			this->checked = true;
-			if (this->filename) {
-				auto pPCX = &PCX::Instance();
-				this->exists = (pPCX->GetSurface(this->filename) || pPCX->LoadFile(this->filename));
-			}
-		}
-		return this->exists;
+		return this->Surface.get();
 	}
 
 	bool Read(INIClass* pINI, const char* pSection, const char* pKey, const char* pDefault = "") {
@@ -454,7 +453,7 @@ public:
 		if (pINI->ReadString(pSection, pKey, pDefault, buffer)) {
 			*this = buffer;
 
-			if (this->checked && !this->exists) {
+			if (!this->Surface) {
 				Debug::INIParseFailed(pSection, pKey, this->filename, "PCX file not found.");
 			}
 		}
@@ -462,29 +461,50 @@ public:
 	}
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange) {
-		this->filename = nullptr;
-		if (Stm.Load(*this)) {
-			if (this->checked && this->exists) {
-				this->checked = false;
-				if (!this->Exists()) {
-					Debug::Log("PCX file '%s' was not found.\n", this->filename.data());
-				}
+
+		this->Clear();
+		void* oldPtr;
+		const auto ret = Stm.Load(oldPtr) && Stm.Load(this->filename);
+
+		if (!ret)
+			return false;
+
+		if (oldPtr) {
+			BSurface* pSource = nullptr;
+
+			if(PCX::Instance->GetSurface(this->filename) || PCX::Instance->LoadFile(this->filename))
+				pSource = PCX::Instance->GetSurface(this->filename, nullptr);
+			else
+				Debug::Log("PCX file '%s' not found.\n", this->filename.data());
+
+			if (pSource) {
+				if (!this->Surface)
+					this->Surface.reset(GameCreate<BSurface>());
+
+				std::memcpy(this->Surface.get(), pSource, sizeof(BSurface));
 			}
-			return true;
+
+			SwizzleManagerClass::Instance().Here_I_Am((long)oldPtr, this->Surface.get());
 		}
-		return false;
+
+		return true;
 	}
 
 	bool Save(PhobosStreamWriter& Stm) const {
-		Stm.Save(*this);
+		Stm.Save(this->Surface.get());
+		Stm.Save(this->filename);
 		return true;
 	}
 
 private:
+
+	void Clear() {
+		this->Surface = nullptr;
+		this->filename = nullptr;
+	}
+
+	mutable UniqueGamePtrB<BSurface> Surface;
 	FixedString<Capacity> filename;
-	bool resolve;
-	mutable bool checked;
-	mutable bool exists;
 
 protected:
 	PhobosPCXFile(const PhobosPCXFile& other) = delete;
@@ -500,7 +520,7 @@ public:
 	explicit CSFText(const char* label) noexcept {
 		*this = label;
 	}
-	
+
 	~CSFText() noexcept = default;
 
 	CSFText& operator = (CSFText const& rhs) = default;

@@ -196,20 +196,17 @@ DEFINE_OVERRIDE_HOOK(0x4753F0, ArmorType_FindIndex, 0xA)
 	GET_STACK(const char*, Key, 0x8);
 	GET_STACK(int, fallback, 0xC);
 
-	int nResult = 0;
+	int nResult = fallback;
 	char buf[0x64];
+
 	if (pINI->ReadString(Section, Key, Phobos::readDefval, buf)) {
-		const int nIdx = ArmorTypeClass::FindIndexById(buf);
 
-		if (nIdx < 0) {
+		nResult = ArmorTypeClass::FindIndexById(buf);
 
-			if(fallback >= 0)
-				nResult = fallback; //always
-
+		if (nResult < 0) {
+			nResult = 0;
 			Debug::INIParseFailed(Section, Key, buf , "Expect Valid ArmorType !");
 		}
-		else
-			nResult = nIdx;
 	}
 
 	R->EAX(nResult);

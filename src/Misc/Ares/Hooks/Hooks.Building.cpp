@@ -484,10 +484,17 @@ DEFINE_OVERRIDE_HOOK(0x5198AD, InfantryClass_UpdatePosition_EnteredGrinder, 0x6)
 	return 0;
 }
 
-// TODO : bring all here , the real code already complete and tested , for now these should do the trick
-// Func arguments is actualli reverse
-/*
-Action GetiInfiltrateActionResult(BuildingClass* pBuilding, InfantryClass* pInf)
+bool NOINLINE IsSabotagable(BuildingClass const* const pThis)
+{
+	auto const pType = pThis->Type;
+	auto const pExt = BuildingTypeExt::ExtMap.Find(pType);
+	auto const civ_occupiable = pType->CanBeOccupied && pType->TechLevel == -1;
+	auto const default_sabotabable = pType->CanC4 && !civ_occupiable;
+
+	return !pExt->ImmuneToSaboteurs.Get(!default_sabotabable);
+}
+
+Action NOINLINE GetiInfiltrateActionResult(InfantryClass* pInf , BuildingClass* pBuilding)
 {
 	auto const pInfType = pInf->Type;
 	auto const pBldType = pBuilding->Type;
@@ -507,11 +514,11 @@ Action GetiInfiltrateActionResult(BuildingClass* pBuilding, InfantryClass* pInf)
 
 	auto const bIsSaboteur = TechnoTypeExt::ExtMap.Find(pInfType)->Saboteur.Get();
 
-	if (bIsSaboteur && BuildingTypeExt::IsSabotagable(pBldType))
+	if (bIsSaboteur && IsSabotagable(pBuilding))
 		return Action::NoMove;
 
 	return IsAgent || bIsSaboteur || !pBldType->Capturable ? Action::None : Action::Enter;
-}*/
+}
 
 DEFINE_OVERRIDE_HOOK(0x7004AD, TechnoClass_GetActionOnObject_Saboteur, 0x6)
 {
@@ -522,14 +529,13 @@ DEFINE_OVERRIDE_HOOK(0x7004AD, TechnoClass_GetActionOnObject_Saboteur, 0x6)
 	bool infiltratable = false;
 	if (const auto pBldObject = specific_cast<BuildingClass*>(pObject))
 	{
-		infiltratable = AresData::GetInfActionOverObject(pThis, pBldObject) != Action::None;
+		infiltratable = GetiInfiltrateActionResult(pThis, pBldObject) != Action::None;
 	}
 
 	return infiltratable ? 0x700531u : 0x700536u;
 }
 
-/* TODO : require MouseCursorType Set Here
-DEFINE_HOOK(51EE6B, InfantryClass_GetActionOnObject_Saboteur, 6)
+DEFINE_OVERRIDE_HOOK(0x51EE6B, InfantryClass_GetActionOnObject_Saboteur, 6)
 {
 	enum
 	{
@@ -544,13 +550,17 @@ DEFINE_HOOK(51EE6B, InfantryClass_GetActionOnObject_Saboteur, 6)
 	{
 		if (!pThis->Owner->IsAlliedWith(pBldObject))
 		{
-			switch (GetiInfiltrateActionResult(pBldObject, pThis))
+			const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBldObject->Type);
+
+			switch (GetiInfiltrateActionResult(pThis , pBldObject))
 			{
 			case Action::Move:
-				//MouseCursor::SetAction(*(*(pInf[328] + 3620) + 576), 9, 0);
+			{
+				AresData::SetMouseCursorAction(pTypeExt->Cursor_Spy, Action::Capture, 0);
 				break;
+			}
 			case Action::NoMove:
-				//MouseCursor::SetAction(93, 9, 0);
+				AresData::SetMouseCursorAction(pTypeExt->Cursor_Sabotage, Action::Capture, 0);
 				break;
 			case Action::None:
 				return Notinfiltratable;
@@ -561,7 +571,7 @@ DEFINE_HOOK(51EE6B, InfantryClass_GetActionOnObject_Saboteur, 6)
 	}
 
 	return Notinfiltratable;
-}*/
+}
 
 DEFINE_OVERRIDE_HOOK(0x51E635, InfantryClass_GetActionOnObject_EngineerOverFriendlyBuilding, 5)
 {
@@ -626,7 +636,7 @@ DEFINE_OVERRIDE_HOOK(0x51B2CB, InfantryClass_SetTarget_Saboteur, 0x6)
 
 	if (const auto pBldObject = specific_cast<BuildingClass*>(pTarget))
 	{
-		const auto nResult = AresData::GetInfActionOverObject(pThis, pBldObject);
+		const auto nResult = GetiInfiltrateActionResult(pThis, pBldObject);
 
 		if (nResult == Action::Move || nResult == Action::NoMove || nResult == Action::Enter)
 			pThis->SetDestination(pTarget, true);
@@ -1343,7 +1353,7 @@ DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
 	GET(InfantryClass* const, pThis, ESI);
 	GET(BuildingClass* const, pBuilding, EDI);
 
-	const auto nResult = AresData::GetInfActionOverObject(pThis, pBuilding);
+	const auto nResult = GetiInfiltrateActionResult(pThis, pBuilding);
 
 	if (nResult == Action::Move) // this one will Infiltrate instead
 	{
@@ -1522,32 +1532,6 @@ DEFINE_OVERRIDE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
 	return 0x4F8361;
 }
 
-//// make temporal weapons play nice with power toggle.
-//// previously, power state was set to true unconditionally.
-//DEFINE_OVERRIDE_HOOK(0x452287, BuildingClass_GoOnline_TogglePower, 6)
-//{
-//	GET(BuildingClass* const, pThis, ESI);
-//	auto const pExt = BuildingExt::ExtMap.Find(pThis);
-//	pExt->TogglePower_HasPower = true;
-//	return 0;
-//}
-//
-//DEFINE_OVERRIDE_HOOK(0x452393, BuildingClass_GoOffline_TogglePower, 7)
-//{
-//	GET(BuildingClass* const, pThis, ESI);
-//	auto const pExt = BuildingExt::ExtMap.Find(pThis);
-//	pExt->TogglePower_HasPower = false;
-//	return 0;
-//}
-//
-//DEFINE_OVERRIDE_HOOK(0x452210, BuildingClass_Enable_TogglePower, 7)
-//{
-//	GET(BuildingClass* const, pThis, ECX);
-//	auto const pExt = BuildingExt::ExtMap.Find(pThis);
-//	pThis->HasPower = pExt->TogglePower_HasPower;
-//	return 0x452217;
-//}
-//
 //// TODO : add more stuffs for spy and migrate some tag from house type
 //bool CameoIsElite(TechnoTypeClass* pType , HouseClass const* const pHouse)
 //{
@@ -1733,90 +1717,6 @@ DEFINE_OVERRIDE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
 //	return 0x70AD4C;
 //}
 //
-//// issue #1324: enemy repair wrench visible when it shouldn't
-//DEFINE_OVERRIDE_HOOK(0x6F525B, TechnoClass_DrawExtras_PowerOff, 5)
-//{
-//	GET(TechnoClass*, pTechno, EBP);
-//	GET_STACK(RectangleStruct*, pRect, 0xA0);
-//
-//	if (auto pBld = abstract_cast<BuildingClass*>(pTechno))
-//	{
-//		auto const pExt = BuildingExt::ExtMap.Find(pBld);
-//
-//		// allies and observers can always see by default
-//		bool canSeeRepair = HouseClass::CurrentPlayer->IsAlliedWith(pBld->Owner)
-//			|| HouseClass::IsCurrentPlayerObserver();
-//
-//		bool showRepair = FileSystem::WRENCH_SHP
-//			&& pBld->IsBeingRepaired
-//			// fixes the wrench playing over a temporally challenged building
-//			&& !pBld->IsBeingWarpedOut()
-//			&& !pBld->WarpingOut
-//			// never show to enemies when cloaked, and only if allowed
-//			&& (canSeeRepair || (pBld->CloakState == CloakState::Uncloaked
-//				&& RulesExt::Global()->EnemyWrench));
-//
-//		// display power off marker only for current player's buildings
-//		bool showPower = FileSystem::POWEROFF_SHP
-//			&& !pExt->TogglePower_HasPower
-//			// only for owned buildings, but observers got magic eyes
-//			&& (pBld->Owner->ControlledByPlayer() || HouseClass::IsCurrentPlayerObserver());
-//
-//		// display any?
-//		if (showPower || showRepair)
-//		{
-//			auto cell = pBld->GetMapCoords();
-//
-//			if (!MapClass::Instance->GetCellAt(cell)->IsShrouded())
-//			{
-//				CoordStruct crd = pBld->GetCenterCoords();
-//
-//				Point2D point {};
-//				TacticalClass::Instance->CoordsToClient(&crd, &point);
-//
-//				// offset the markers
-//				Point2D ptRepair = point;
-//				if (showPower)
-//				{
-//					ptRepair.X -= 7;
-//					ptRepair.Y -= 7;
-//				}
-//
-//				Point2D ptPower = point;
-//				if (showRepair)
-//				{
-//					ptPower.X += 18;
-//					ptPower.Y += 18;
-//				}
-//
-//				// animation display speed
-//				// original frame calculation: ((currentframe%speed)*6)/(speed-1)
-//				int speed = GameOptionsClass::Instance->GetAnimSpeed(14) / 4;
-//				if (speed < 2)
-//				{
-//					speed = 2;
-//				}
-//
-//				// draw the markers
-//				if (showRepair)
-//				{
-//					int frame = (FileSystem::WRENCH_SHP->Frames * (Unsorted::CurrentFrame % speed)) / speed;
-//					DSurface::Hidden_2->DrawSHP(FileSystem::MOUSE_PAL, FileSystem::WRENCH_SHP,
-//						frame, &ptRepair, pRect, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, 0, 0, 0, 0);
-//				}
-//
-//				if (showPower)
-//				{
-//					int frame = (FileSystem::POWEROFF_SHP->Frames * (Unsorted::CurrentFrame % speed)) / speed;
-//					DSurface::Hidden_2->DrawSHP(FileSystem::MOUSE_PAL, FileSystem::POWEROFF_SHP,
-//						frame, &ptPower, pRect, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, 0, 0, 0, 0);
-//				}
-//			}
-//		}
-//	}
-//
-//	return 0x6F5347;
-//}
 
 DEFINE_OVERRIDE_HOOK(0x6F64CB, TechnoClass_DrawHealthBar_FirestormWall, 6)
 {

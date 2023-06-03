@@ -180,6 +180,7 @@ public:
 	static InfantryTypeClass* GetCrew(HouseClass* pHouse);
 	static InfantryTypeClass* GetEngineer(HouseClass* pHouse);
 	static InfantryTypeClass* GetTechnician(HouseClass* pHouse);
+	static AircraftTypeClass* GetParadropPlane(HouseClass* pHouse);
 
 	//
 	static void ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode);

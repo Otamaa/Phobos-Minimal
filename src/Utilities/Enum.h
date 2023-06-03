@@ -280,7 +280,9 @@ enum class SuperWeaponAITargetingMode
 	LowPower = 17,
 	LowPowerAttack = 18,
 	Droppod = 19,
-	LighningRandom = 20
+	LighningRandom = 20 ,
+
+	count
 };
 
 enum class AffectedTarget : unsigned char {

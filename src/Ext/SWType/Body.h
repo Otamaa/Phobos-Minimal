@@ -22,6 +22,8 @@ public:
 		using base_type = SuperWeaponTypeClass;
 
 	public:
+		// some of the stuffs were initiated depend on custom type it handle
+		// some value may not accurate because it loaded internally instead of ini
 
 		Valueable<int> Money_Amount;
 		Valueable<CSFText> UIDescription;
@@ -74,6 +76,8 @@ public:
 		ValueableIdx<CursorTypeClass*> NoCursorType;
 		Valueable<SWRange> SW_Range;
 		ValueableIdx<ColorScheme> Message_ColorScheme;
+		Valueable<SuperWeaponAITargetingMode> SW_AITargetingMode;
+		Valueable<int> SW_Group;
 
 		ExtData(SuperWeaponTypeClass* OwnerObject) : Extension<SuperWeaponTypeClass>(OwnerObject)
 			, Money_Amount { 0 }
@@ -123,6 +127,9 @@ public:
 			, NoCursorType { -1 }
 			, SW_Range {}
 			, Message_ColorScheme { -1 }
+
+			, SW_AITargetingMode { SuperWeaponAITargetingMode::None }
+			, SW_Group { 0 }
 		{ }
 
 

@@ -29,6 +29,8 @@ void SWTypeExt::ExtData::Initialize()
 	SW_NegBuildings.reserve(10);
 }
 
+// hmm not sure the new arrangement ?
+
 void SWTypeExt::ExtData::LoadFromRulesFile(CCINIClass* pINI)
 { 
 	INI_EX exINI(pINI);
@@ -109,6 +111,8 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->NoCursorType.Read(exINI, pSection, "NoCursor");
 	this->SW_Range.Read(exINI, pSection, "SW.Range");
 	this->Message_ColorScheme.Read(exINI, pSection, "Message.ColorScheme");
+	this->SW_AITargetingMode.Read(exINI, pSection, "SW.AITargetingMode");
+	this->SW_Group.Read(exINI ,pSection , "SW.Group");
 
 }
 // =============================
@@ -535,6 +539,8 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->NoCursorType)
 		.Process(this->SW_Range)
 		.Process(this->Message_ColorScheme)
+		.Process(this->SW_AITargetingMode)
+		.Process(this->SW_Group)
 		;
 
 }

@@ -1022,21 +1022,6 @@ DEFINE_HOOK(0x6FA232, TechnoClass_AI_LimboSkipRocking, 0xA)
 //	return R->Origin() + 5;
 //}
 
-DEFINE_HOOK_AGAIN(0x70FC90, TechnoClass_Deactivate, 0x6)
-DEFINE_HOOK(0x70FBE0, TechnoClass_Deactivate, 0x6)
-{
-	GET(TechnoClass*, pThis, ECX);
-
-	const auto pType = pThis->GetTechnoType();
-
-	if (pType->PoweredUnit && pThis->Owner)
-	{
-		pThis->Owner->RecheckPower = true;
-	}
-
-	return 0x0;
-}
-
 DEFINE_HOOK(0x701AAD, TechnoClass_ReceiveDamage_WarpedOutBy_Add, 0xA)
 {
 	enum { NullifyDamage = 0x701AC6, ContinueCheck = 0x701ADB };
@@ -5498,55 +5483,55 @@ DEFINE_HOOK(0x457DAD, InfantryClass_CanBeOccupied_Assaulter, 0x6)
 }
 #pragma endregion
 
-DEFINE_HOOK(0x474964, CCINIClass_ReadPipScale_add, 0x6)
-{
-	enum { seteax = 0x47499C, retzero = 0x47498B, seteaxwithEdi = 0x474995 };
-
-	LEA_STACK(char*, buffer, 0x8);
-	GET_STACK(const char* const, pSection, STACK_OFFSET(0x28, 0x4));
-	GET_STACK(const char* const, pKey, STACK_OFFSET(0x28, 0x8));
-
-	static const auto AdditionalPip =
-	{
-		GameStrings::Ammo() ,
-		GameStrings::Tiberium() ,
-		GameStrings::Passengers() ,
-		GameStrings::Power() ,
-		GameStrings::MindControl() ,
-		"Spawner"
-	};
-
-	auto it = AdditionalPip.begin();
-
-	for (size_t i = 0; i < AdditionalPip.size(); ++i)
-	{
-		if (CRT::strcmpi(buffer, *it++) == 0)
-		{
-			R->EAX(PipScale(i + 1));
-			return seteax;
-		}
-	}
-
-	if (!GameStrings::IsBlank(buffer))
-		Debug::INIParseFailed(pSection, pKey, buffer, "Expect Valid PipScaleType !");
-
-	return retzero;
-}
+//DEFINE_HOOK(0x474964, CCINIClass_ReadPipScale_add, 0x6)
+//{
+//	enum { seteax = 0x47499C, retzero = 0x47498B, seteaxwithEdi = 0x474995 };
+//
+//	LEA_STACK(char*, buffer, 0x8);
+//	GET_STACK(const char* const, pSection, STACK_OFFSET(0x28, 0x4));
+//	GET_STACK(const char* const, pKey, STACK_OFFSET(0x28, 0x8));
+//
+//	static const auto AdditionalPip =
+//	{
+//		GameStrings::Ammo() ,
+//		GameStrings::Tiberium() ,
+//		GameStrings::Passengers() ,
+//		GameStrings::Power() ,
+//		GameStrings::MindControl() ,
+//		"Spawner"
+//	};
+//
+//	auto it = AdditionalPip.begin();
+//
+//	for (size_t i = 0; i < AdditionalPip.size(); ++i)
+//	{
+//		if (CRT::strcmpi(buffer, *it++) == 0)
+//		{
+//			R->EAX(PipScale(i + 1));
+//			return seteax;
+//		}
+//	}
+//
+//	if (!GameStrings::IsBlank(buffer))
+//		Debug::INIParseFailed(pSection, pKey, buffer, "Expect Valid PipScaleType !");
+//
+//	return retzero;
+//}
 
 // TODO : complete replacement !
-DEFINE_HOOK(0x709B79, TechnoClass_DrawPip_Spawner, 0x6)
-{
-	//GET(TechnoClass*, pThis, EBP);
-	GET(TechnoTypeClass*, pType, EAX);
-
-	if ((int)pType->PipScale != 6)
-	{
-		R->EBX(0);
-		return 0x709B7F;
-	}
-
-	return 0x0;
-}
+//DEFINE_HOOK(0x709B79, TechnoClass_DrawPip_Spawner, 0x6)
+//{
+//	//GET(TechnoClass*, pThis, EBP);
+//	GET(TechnoTypeClass*, pType, EAX);
+//
+//	if ((int)pType->PipScale != 6)
+//	{
+//		R->EBX(0);
+//		return 0x709B7F;
+//	}
+//
+//	return 0x0;
+//}
 
 DEFINE_HOOK(0x481180, CellClass_GetInfantrySubPos_InvalidCellPointer, 0x5)
 {

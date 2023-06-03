@@ -40,3 +40,9 @@ DEFINE_HOOK(717890, TechnoTypeClass_SetWeaponTurretIndex, 8)
 	return 0x71789F;
 }
 */
+
+//TacticalClass_Draw_TimerVisibility  , the default value sometime initialized at NewSuper init function , and not readed from ini
+	// if i want to replace this , i need to figure out the current NewSuper index doing 
+	// it is mostlikely change since there is new super were added !
+
+// DEFINE_HOOK(6D4E79, TacticalClass_DrawOverlay_GraphicalText, 6) , hmm not now

@@ -132,6 +132,7 @@ public:
 		Valueable<bool> Bolt_Disable3;
 
 		Nullable<ParticleSystemTypeClass*> Bolt_ParticleSys;
+		Valueable<int> Laser_Thickness;
 
 		ExtData(WeaponTypeClass* OwnerObject) : Extension<WeaponTypeClass>(OwnerObject)
 			, DiskLaser_Radius { 38.2 }
@@ -217,6 +218,8 @@ public:
 			, Bolt_Disable2 { false }
 			, Bolt_Disable3 { false }
 			, Bolt_ParticleSys { }
+
+			, Laser_Thickness { -1 }
 		{ }
 
 		virtual ~ExtData() override  = default;

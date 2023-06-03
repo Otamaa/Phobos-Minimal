@@ -1544,7 +1544,7 @@ DEFINE_OVERRIDE_HOOK(0x703A79, TechnoClass_VisualCharacter_CloakingStages, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);
 	int stages = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->CloakStages.Get(RulesClass::Instance->CloakingStages);
-	R->EAX(int(256.0 * pThis->CloakProgress.Value / stages));
+	R->EAX(int(pThis->CloakProgress.Value * 256.0 / stages));
 	return 0x703A94;
 }
 
@@ -3090,27 +3090,19 @@ DEFINE_OVERRIDE_HOOK(0x707D20, TechnoClass_GetCrew, 5)
 	InfantryTypeClass* pCrewType = nullptr;
 
 	// YR defaults to 15 for armed objects,
-	int TechnicianChance = pThis->IsArmed() ? 15 : 0;
-
 	// Ares < 0.5 defaulted to 0 for non-buildings.
-	if (abstract_cast<FootClass*>(pThis)) {
-		TechnicianChance = 0;
-	}
-	TechnicianChance = pExt->Crew_TechnicianChance.Get(TechnicianChance);
+	const int TechnicianChance = pExt->Crew_TechnicianChance.Get(
+		abstract_cast<FootClass*>(pThis) ? 
+		0 : 
+		pThis->IsArmed() ? 15 : 0
+	);
 
 	if (pType->Crewed)
 	{
 		// for civilian houses always technicians. random for others
-		bool isTechnician = false;
-		if (pHouse->Type->SideIndex == -1)
-		{
-			isTechnician = true;
-		}
-		else if (TechnicianChance > 0 && 
-			ScenarioClass::Instance->Random.RandomRanged(0, 99) < TechnicianChance)
-		{
-			isTechnician = true;
-		}
+		const bool isTechnician = pHouse->Type->SideIndex == -1 ? true : 
+			TechnicianChance > 0 && ScenarioClass::Instance->Random.RandomFromMax(99) < TechnicianChance
+			? true : false;
 
 		// chose the appropriate type
 		if (!isTechnician)
@@ -3148,7 +3140,7 @@ NOINLINE InfantryTypeClass* GetBuildingCrew(BuildingClass* pThis, int nChance)
 	// with some luck, and if the building has not been captured, spawn an engineer
 	if (!pThis->HasBeenCaptured
 		&& nChance > 0
-		&& ScenarioClass::Instance->Random.RandomRanged(0, 99) < nChance)
+		&& ScenarioClass::Instance->Random.RandomFromMax(99) < nChance)
 	{
 		return HouseExt::GetEngineer(pThis->Owner);
 	}
@@ -3165,4 +3157,590 @@ DEFINE_OVERRIDE_HOOK(0x44EB10, BuildingClass_GetCrew, 9)
 		Crew_EngineerChance.Get((pThis->Type->Factory == BuildingTypeClass::AbsID) ? 25 : 0)));
 
 	return 0x44EB5B;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6FD438, TechnoClass_FireLaser, 6)
+{
+	GET(WeaponTypeClass*, pWeapon, ECX);
+	GET(LaserDrawClass*, pBeam, EAX);
+
+	auto const pData = WeaponTypeExt::ExtMap.Find(pWeapon);
+
+	if (pData->Laser_Thickness > 1) {
+		pBeam->Thickness = pData->Laser_Thickness;
+	}
+
+	return 0;
+}
+
+//// issue #1324: enemy repair wrench visible when it shouldn't
+DEFINE_OVERRIDE_HOOK(0x6F525B, TechnoClass_DrawExtras_PowerOff, 5)
+{
+	GET(TechnoClass*, pTechno, EBP);
+	GET_STACK(RectangleStruct*, pRect, 0xA0);
+
+	if (auto pBld = abstract_cast<BuildingClass*>(pTechno))
+	{
+		// allies and observers can always see by default
+		bool canSeeRepair = HouseClass::CurrentPlayer->IsAlliedWith(pBld->Owner)
+			|| HouseClass::IsCurrentPlayerObserver();
+
+		bool showRepair = FileSystem::WRENCH_SHP
+			&& pBld->IsBeingRepaired
+			// fixes the wrench playing over a temporally challenged building
+			&& !pBld->IsBeingWarpedOut()
+			&& !pBld->WarpingOut
+			// never show to enemies when cloaked, and only if allowed
+			&& (canSeeRepair || (pBld->CloakState == CloakState::Uncloaked
+				&& RulesExt::Global()->EnemyWrench));
+
+		// display power off marker only for current player's buildings
+		bool showPower = FileSystem::POWEROFF_SHP
+			&& !ToggalePowerHasPower(pBld)
+			// only for owned buildings, but observers got magic eyes
+			&& (pBld->Owner->ControlledByPlayer() || HouseClass::IsCurrentPlayerObserver());
+
+		// display any?
+		if (showPower || showRepair)
+		{
+			auto cell = pBld->GetMapCoords();
+
+			if (!MapClass::Instance->GetCellAt(cell)->IsShrouded())
+			{
+				CoordStruct crd = pBld->GetCenterCoords();
+
+				Point2D point {};
+				TacticalClass::Instance->CoordsToClient(&crd, &point);
+
+				// offset the markers
+				Point2D ptRepair = point;
+				if (showPower)
+				{
+					ptRepair.X -= 7;
+					ptRepair.Y -= 7;
+				}
+
+				Point2D ptPower = point;
+				if (showRepair)
+				{
+					ptPower.X += 18;
+					ptPower.Y += 18;
+				}
+
+				// animation display speed
+				// original frame calculation: ((currentframe%speed)*6)/(speed-1)
+				int speed = GameOptionsClass::Instance->GetAnimSpeed(14) / 4;
+				if (speed < 2)
+				{
+					speed = 2;
+				}
+
+				// draw the markers
+				if (showRepair)
+				{
+					int frame = (FileSystem::WRENCH_SHP->Frames * (Unsorted::CurrentFrame % speed)) / speed;
+					DSurface::Temp->DrawSHP(FileSystem::MOUSE_PAL, FileSystem::WRENCH_SHP,
+						frame, &ptRepair, pRect, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, 0, 0, 0, 0);
+				}
+
+				if (showPower)
+				{
+					int frame = (FileSystem::POWEROFF_SHP->Frames * (Unsorted::CurrentFrame % speed)) / speed;
+					DSurface::Temp->DrawSHP(FileSystem::MOUSE_PAL, FileSystem::POWEROFF_SHP,
+						frame, &ptPower, pRect, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, 0, 0, 0, 0);
+				}
+			}
+		}
+	}
+
+	return 0x6F5347;
+}
+
+/// make temporal weapons play nice with power toggle.
+//// previously, power state was set to true unconditionally.
+DEFINE_OVERRIDE_HOOK(0x452287, BuildingClass_GoOnline_TogglePower, 6)
+{
+	GET(BuildingClass* const, pThis, ESI);
+	ToggalePowerHasPower(pThis) = true;
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x452393, BuildingClass_GoOffline_TogglePower, 7)
+{
+	GET(BuildingClass* const, pThis, ESI);
+	ToggalePowerHasPower(pThis) = false;
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x452210, BuildingClass_Enable_TogglePower, 7)
+{
+	GET(BuildingClass* const, pThis, ECX);
+	pThis->HasPower = ToggalePowerHasPower(pThis);
+	return 0x452217;
+}
+
+DEFINE_OVERRIDE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
+{
+	GET(TechnoClass*, pThis, ECX);
+	GET_STACK(Point2D*, pPoint, 0x4);
+	//GET_STACK(Point2D*, pOriginalPoint, 0x8);
+	//	GET_STACK(unsigned int , nFrame, 0x4);
+	GET_STACK(RectangleStruct*, pRect, 0xC);
+
+	if (auto pBuilding = specific_cast<BuildingClass*>(pThis))
+	{
+		auto const pType = pBuilding->Type;
+		auto const pOwner = pBuilding->Owner;
+		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+		if (!pType || !pOwner)
+			return 0x70AD4C;
+
+		auto DrawTheStuff = [&](const wchar_t* pFormat)
+		{
+			auto nPoint = *pPoint;
+			//DrawingPart
+			RectangleStruct nTextDimension;
+			Drawing::GetTextDimensions(&nTextDimension, pFormat, nPoint, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, 4, 2);
+			auto nIntersect = Drawing::Intersect(nTextDimension, *pRect);
+			auto nColorInt = pOwner->Color.ToInit();//0x63DAD0
+
+			DSurface::Temp->Fill_Rect(nIntersect, (COLORREF)0);
+			DSurface::Temp->Draw_Rect(nIntersect, (COLORREF)nColorInt);
+			Point2D nRet;
+			Simple_Text_Print_Wide(&nRet, pFormat, DSurface::Temp.get(), pRect, &nPoint, (COLORREF)nColorInt, (COLORREF)0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, true);
+			pPoint->Y += (nTextDimension.Height);
+		};
+
+		const bool IsAlly = pOwner->IsAlliedWith(HouseClass::CurrentPlayer);;
+		const bool IsObserver = HouseClass::Observer || HouseClass::IsCurrentPlayerObserver();
+		const bool isFake = pTypeExt->Fake_Of.Get();
+		const bool bReveal = pThis->DisplayProductionTo.Contains(HouseClass::CurrentPlayer);
+
+		if (IsAlly || IsObserver || bReveal)
+		{
+			if (isFake)
+				DrawTheStuff(StringTable::LoadString("TXT_FAKE"));
+
+			if (pType->PowerBonus > 0)
+			{
+				auto pDrainFormat = StringTable::LoadString(GameStrings::TXT_POWER_DRAIN2());
+				wchar_t pOutDraimFormat[0x80];
+				auto pDrain = (int)pOwner->Power_Drain();
+				auto pOutput = (int)pOwner->Power_Output();
+				swprintf_s(pOutDraimFormat, pDrainFormat, pOutput, pDrain);
+
+				DrawTheStuff(pOutDraimFormat);
+			}
+
+			if (pType->Storage > 0)
+			{	
+				auto pMoneyFormat = StringTable::LoadString(GameStrings::TXT_MONEY_FORMAT_1());
+				wchar_t pOutMoneyFormat[0x80];
+				auto nMoney = pOwner->Available_Money();
+				swprintf_s(pOutMoneyFormat, pMoneyFormat, nMoney);
+				DrawTheStuff(pOutMoneyFormat);
+			}
+
+			if (pThis->IsPrimaryFactory){
+				DrawTheStuff(StringTable::LoadString((pType->GetFoundationWidth() != 1) ? 
+					GameStrings::TXT_PRIMARY() : GameStrings::TXT_PRI()));		
+			}
+		}
+	}
+
+	return 0x70AD4C;
+}
+
+DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
+{
+	GET(BuildingClass*, pThis, ECX);
+	GET_STACK(Point2D*, pLocation, 0x4);
+	GET_STACK(RectangleStruct*, pBounds, 0x8);
+
+	auto pType = pThis->Type;
+	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pType);
+
+	// helpers (with support for the new spy effect)
+	const bool bAllied = pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer);
+	const bool bReveal = HouseClass::Observer() || (pTypeExt->SpyEffect_RevealProduction && pThis->DisplayProductionTo.Contains(HouseClass::CurrentPlayer));
+	
+	if(!pThis->IsSelected)
+		return 0x43E8F2;
+
+	//Point2D loc = { pLocation->X , pLocation->Y };
+	
+	// show building or house state
+	if (bAllied || bReveal) {
+
+		Point2D DrawExtraLoc = { pLocation->X , pLocation->Y };
+		pThis->DrawExtraInfo(DrawExtraLoc, pLocation, pBounds);
+
+		// display production cameo
+		if (bReveal)
+		{
+			auto pFactory = pThis->Factory;
+			if (pThis->Owner->ControlledByPlayer())
+			{
+				pFactory = pThis->Owner->GetPrimaryFactory(pType->Factory, pType->Naval, BuildCat::DontCare);
+			}
+
+			if (pFactory && pFactory->Object)
+			{
+				auto pProdType = pFactory->Object->GetTechnoType();
+				//const int nTotal = pFactory->CountTotal(pProdType);
+
+				// support for pcx cameos
+				if (auto pPCX = GetCameoPCXSurface(pProdType))
+				{
+					const int cameoWidth = 60;
+					const int cameoHeight = 48;
+
+					RectangleStruct cameoBounds = { 0, 0, pPCX->Width, pPCX->Height };
+					RectangleStruct DefcameoBounds = { 0, 0, cameoWidth, cameoHeight };
+					RectangleStruct destRect = { DrawExtraLoc.X - cameoWidth / 2, DrawExtraLoc.Y - cameoHeight / 2, cameoWidth , cameoHeight };
+
+					if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds))
+					{
+						Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds);
+					}
+				}
+				else
+				{
+					// old shp cameos, fixed palette
+					auto pCameo = pProdType->GetCameo();
+
+					if (!pCameo)
+						return 0x43E8F2;
+
+					const auto pCustomConvert = GetCameoSHPConvert(pProdType);;
+					DSurface::Temp->DrawSHP(pCustomConvert ? pCustomConvert : FileSystem::CAMEO_PAL(), pCameo, 0, &DrawExtraLoc, pBounds, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, nullptr, 0, 0, 0);
+				}
+
+				//auto nPoint = loc;
+				////DrawingPart
+				//RectangleStruct nTextDimension;
+				//wchar_t pOutFormat[0x80];
+				//swprintf_s(pOutFormat, L"x%d", nTotal);
+				//Drawing::GetTextDimensions(&nTextDimension, pOutFormat, nPoint, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, 4, 2);
+				//auto nIntersect = Drawing::Intersect(nTextDimension, *pBounds);
+				//auto nColorInt = pFactory->Owner->Color.ToInit();//0x63DAD0
+
+				//DSurface::Temp->Fill_Rect(nIntersect, (COLORREF)0);
+				//DSurface::Temp->Draw_Rect(nIntersect, (COLORREF)nColorInt);
+				//Point2D nRet;
+				//Simple_Text_Print_Wide(&nRet, pOutFormat, DSurface::Temp.get(), pBounds, &nPoint, (COLORREF)nColorInt, (COLORREF)0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, true);
+			}
+		}
+
+	}
+	
+	return 0x43E8F2;
+}
+
+DEFINE_OVERRIDE_HOOK(0x70FD9A, TechnoClass_Drain_PrismForward, 6)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	GET(TechnoClass* const, pDrainee, EDI);
+	if (pDrainee->DrainingMe != pThis)
+	{ // else we're already being drained, nothing to do
+		if (auto const pBld = specific_cast<BuildingClass*>(pDrainee))
+		{
+			AresData::CPrismRemoveFromNetwork(&PrimsForwardingPtr(pBld), true);
+		}
+	}
+	return 0;
+}
+
+void UpdateFactoryQueues(BuildingClass const* const pBuilding)
+{
+	auto const pType = pBuilding->Type;
+	if (pType->Factory != AbstractType::None)
+	{
+		pBuilding->Owner->Update_FactoriesQueues(
+			pType->Factory, pType->Naval, BuildCat::DontCare);
+	}
+}
+
+DEFINE_OVERRIDE_HOOK(0x452218, BuildingClass_Enable_Temporal_Factories, 6)
+{
+	GET(BuildingClass*, pThis, ECX);
+	UpdateFactoryQueues(pThis);
+	return 0;
+}
+
+// complete replacement
+DEFINE_OVERRIDE_HOOK(0x70FBE0, TechnoClass_Activate_AresReplace, 6)
+{
+	GET(TechnoClass* const, pThis, ECX);
+
+	const auto pType = pThis->GetTechnoType();
+
+	if (pType->PoweredUnit && pThis->Owner) {
+		pThis->Owner->RecheckPower = true;
+	}
+
+	/* Check abort conditions:
+		- Is the object currently EMP'd?
+		- Does the object need an operator, but doesn't have one?
+		- Does the object need a powering structure that is offline?
+		If any of the above conditions, bail out and don't activate the object.
+	*/
+
+	if (pThis->IsUnderEMP() || !AresData::IsPowered(pThis)) {
+		return 0x70FC85;
+	}
+
+	const bool IsOperatored = Is_Operated(pThis) || AresData::IsOperated(pThis);
+	if(!IsOperatored) {
+		return 0x70FC85;
+	}
+
+	pThis->Guard();
+
+	if (auto const pFoot = abstract_cast<FootClass*>(pThis)) {
+		pFoot->Locomotor.get()->Power_On();
+	}
+
+	if (auto const wasDeactivated = std::exchange(pThis->Deactivated, false))
+	{
+		// change: don't play sound when mutex active
+		if (!Unsorted::IKnowWhatImDoing && pType->ActivateSound != -1) {
+			VocClass::PlayAt(pType->ActivateSound, pThis->Location, nullptr);
+		}
+
+		// change: add spotlight
+		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		if (pTypeExt->HasSpotlight)
+		{
+			++Unsorted::IKnowWhatImDoing;
+			AresData::SetSpotlight(pThis , GameCreate<BuildingLightClass>(pThis));
+			--Unsorted::IKnowWhatImDoing;
+		}
+
+		// change: update factories
+		if (auto const pBld = specific_cast<BuildingClass*>(pThis)) {
+			UpdateFactoryQueues(pBld);
+		}
+	}
+
+	return 0x70FC85;
+}
+
+// complete replacement
+DEFINE_OVERRIDE_HOOK(0x70FC90, TechnoClass_Deactivate_AresReplace, 6)
+{
+	GET(TechnoClass* const, pThis, ECX);
+
+	const auto pType = pThis->GetTechnoType();
+
+	if (pType->PoweredUnit && pThis->Owner) {
+		pThis->Owner->RecheckPower = true;
+	}
+
+	// don't deactivate when inside/on the linked building
+	if (pThis->IsTethered) {
+		auto const pLink = pThis->GetNthLink(0);
+
+		if (pLink && pThis->GetCell()->GetBuilding() == pLink) {
+			return 0x70FD6E;
+		}
+	}
+
+	pThis->Guard();
+	pThis->Deselect();
+
+	if (auto const pFoot = abstract_cast<FootClass*>(pThis)) {
+		pFoot->Locomotor.get()->Power_Off();
+	}
+
+	auto const wasDeactivated = std::exchange(pThis->Deactivated, true);
+
+	if (!wasDeactivated)
+	{
+		// change: don't play sound when mutex active
+		if (!Unsorted::IKnowWhatImDoing && pType->DeactivateSound != -1) {
+			VocClass::PlayAt(pType->DeactivateSound, pThis->Location, nullptr);
+		}
+
+		// change: remove spotlight
+		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		if (pTypeExt->HasSpotlight) {
+			AresData::SetSpotlight(pThis,nullptr);
+		}
+
+		// change: update factories
+		if (auto const pBld = specific_cast<BuildingClass*>(pThis)) {
+			UpdateFactoryQueues(pBld);
+		}
+	}
+
+	return 0x70FD6E;
+}
+
+DEFINE_OVERRIDE_HOOK_AGAIN(0x6FB4A3 , TechnoClass_CreateGap_LargeGap, 7)
+DEFINE_OVERRIDE_HOOK(0x6FB1B5, TechnoClass_CreateGap_LargeGap, 7)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoTypeClass*, pType, EAX);
+
+	pThis->GapRadius = TechnoTypeExt::ExtMap.Find(pType)->GapRadiusInCells;
+	return R->Origin() + 0xD;
+}
+
+// Radar Jammers (#305) unjam all on owner change
+DEFINE_OVERRIDE_HOOK(0x7014D5, TechnoClass_ChangeOwnership_Additional , 6)
+{
+	GET(TechnoClass* const, pThis, ESI);
+
+	if (auto pJammer = RadarJammerUptr(pThis)) {
+		AresData::JammerClassUnjamAll(pJammer);
+	}
+
+	if(TechnoValueAmount(pThis) != 0)
+		AresData::FlyingStringsAdd(pThis , true);
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x65DBB3 ,TeamTypeClass_CreateInstance_Plane, 5)
+{
+	GET(FootClass*, pFoot, EBP);
+	R->ECX(HouseExt::GetParadropPlane(pFoot->Owner));
+	++Unsorted::IKnowWhatImDoing();
+	return 0x65DBD0;
+}
+
+enum AresScripts : int
+{
+	AuxilarryPower = 65,
+	KillDrivers = 66 ,
+	TakeVehicles = 67,
+	ConvertType = 68,
+	SonarReveal = 69,
+	DisableWeapons = 70,
+};
+
+bool ScriptExt_Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bThirdArd)
+{
+	switch ((AresScripts)pTeamMission->Action)
+	{
+	case AuxilarryPower:
+	{
+		AuxPower(pTeam->Owner) += pTeamMission->Argument;
+		pTeam->Owner->RecheckPower = 1;
+		pTeam->StepCompleted = 1;
+		return true;
+	}
+	case KillDrivers:
+	{
+		const auto pToHouse = HouseExt::FindSpecial();
+
+		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember) {
+			if (pUnit->Health > 0 && pUnit->IsAlive && pUnit->IsOnMap && !pUnit->InLimbo) {
+				if (!Is_DriverKilled(pUnit) && AresData::IsDriverKillable(pUnit , 1.0)) {
+					AresData::KillDriverCore(pUnit, pToHouse, nullptr, false);
+				}
+			}
+		}
+
+		pTeam->StepCompleted = 1;
+		return true;
+	}
+	case TakeVehicles:
+	{
+		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
+		{
+			TakeVehicleMode(pUnit) = true;
+
+			if (pUnit->GarrisonStructure())
+				pUnit->Team->RemoveMember(pUnit, -1, 1);
+		}
+
+		pTeam->StepCompleted = 1;
+		return true;
+	}
+	case ConvertType:
+	{ 
+		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember) {
+			const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pUnit->GetTechnoType());
+			if (pTypeExt->Convert_Script) {
+				AresData::ConvertTypeTo(pUnit, pTypeExt->Convert_Script);
+			}
+		}
+
+		pTeam->StepCompleted = 1;
+		return true;
+	}
+	case SonarReveal:
+	{
+		const auto nDur = pTeamMission->Argument;
+		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember) {
+			auto& nSonarTime = GetSonarTimer(pUnit);
+			if (nDur > nSonarTime.GetTimeLeft()) {
+					nSonarTime.Start(nDur);
+			} else if (nDur <= 0) {
+				if (nDur == 0) {
+					nSonarTime.Stop();
+				}
+			}
+		}
+
+		pTeam->StepCompleted = 1;
+		return true;
+	}
+	case DisableWeapons:
+	{
+		const auto nDur = pTeamMission->Argument;
+		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember) {
+			const auto pExt = TechnoExt::ExtMap.Find(pUnit);
+			auto& nTimer = pExt->DisableWeaponTimer;
+			if (nDur > nTimer.GetTimeLeft()) {
+				nTimer.Start(nDur);
+			} else if (nDur <= 0) {
+				if (nDur == 0) {
+					nTimer.Stop();
+				}
+			}
+		}
+
+
+		pTeam->StepCompleted = 1;
+		return true;
+	}
+	default:
+
+		if (pTeamMission->Action == 64) {
+			for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember) { 
+				TakeVehicleMode(pUnit) = false;
+
+				if (pUnit->GarrisonStructure())
+					pUnit->Team->RemoveMember(pUnit, -1, 1);
+			}
+
+			pTeam->StepCompleted = 1;
+			return true;
+		}
+
+		return false;
+	}
+}
+
+//DEFINE_OVERRIDE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
+//{
+//	enum { ReturnFunc = 0x6E95AB, Continue = 0x0 };
+//	GET(TeamClass*, pThis, ESI);
+//	GET(ScriptActionNode*, pTeamMission, EAX);
+//	GET_STACK(bool, bThirdArg, 0x10);
+//	return ScriptExt_Handle(pThis, pTeamMission, bThirdArg)
+//		? ReturnFunc : Continue;
+//}
+
+DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
+{
+	GET(TeamClass*, pThis, ECX);
+	GET_STACK(ScriptActionNode*, pTeamMission, 0x4);
+	GET_STACK(bool, barg3, 0x8);
+	AresData::FireIronCurtain(pThis, pTeamMission , barg3);
+	return 0x6EFE4F;
 }

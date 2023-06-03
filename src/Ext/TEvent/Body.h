@@ -7,6 +7,8 @@
 
 #include <TEventClass.h>
 
+#include <Utilities/Constructs.h>
+
 class HouseClass;
 
 enum PhobosTriggerEvent
@@ -55,6 +57,7 @@ enum PhobosTriggerEvent
 	count
 };
 
+class TechnoTypeClass;
 class TEventExt
 {
 public:
@@ -65,12 +68,18 @@ public:
 		using base_type = TEventClass;
 
 	public:
+		OptionalStruct<TechnoTypeClass* , false> TechnoType;
+
 		ExtData(TEventClass* const OwnerObject) : Extension<TEventClass>(OwnerObject)
+			, TechnoType {}
 		{ }
 
 		virtual ~ExtData() override = default;
 		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+
+		// support
+		TechnoTypeClass* GetTechnoType();
 
 	private:
 		template <typename T>

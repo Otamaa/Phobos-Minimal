@@ -12,6 +12,7 @@
 #include <Ext/TechnoType/Body.h>
 
 #include <New/Type/TunnelTypeClass.h>
+#include <New/Type/CursorTypeClass.h>
 
 enum class BunkerSoundMode : int
 {
@@ -276,6 +277,10 @@ public:
 		Valueable<double> UCFatalRate; 					//!< Chance of an occupant getting killed instantly when a bullet passes through. 0.0 = 0%, 1.0 = 100%; Defaults to 0.0.
 		Valueable<double> UCDamageMultiplier; 				//!< How many percent of normal damage are applied if an occupant is hit when a bullet passes through. 0.0 = 0%, 1.0 = 100%; Defaults to 1.0.
 
+		ValueableIdx<CursorTypeClass> Cursor_Spy;
+		ValueableIdx<CursorTypeClass> Cursor_Sabotage;
+		Nullable<bool> ImmuneToSaboteurs;
+
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject)
 			, Type { nullptr }
 			, PowersUp_Owner { AffectedHouse::Owner }
@@ -401,6 +406,9 @@ public:
 			, UCPassThrough { 0.0 }
 			, UCFatalRate { 0.0 }
 			, UCDamageMultiplier { 1.0 }
+			, Cursor_Spy { (int)MouseCursorType::Enter }
+			, Cursor_Sabotage { 93 }
+			, ImmuneToSaboteurs { }
 		{ }
 
 		virtual ~ExtData() override = default;

@@ -88,6 +88,29 @@ InfantryTypeClass* HouseExt::GetTechnician(HouseClass* pHouse)
 	return RulesClass::Instance->Technician;
 }
 
+AircraftTypeClass* HouseExt::GetParadropPlane(HouseClass* pHouse)
+{
+	// tries to get the house's default plane and falls back to
+	// the sides default plane.
+	const auto pTypeExt = HouseTypeExt::ExtMap.TryFind(pHouse->Type);
+
+	if (pTypeExt && pTypeExt->ParaDropPlane >= 0) {
+		return AircraftTypeClass::Array->GetItem(pTypeExt->ParaDropPlane);
+	}
+
+	int iPlane = -1;
+	if (const auto pSide = HouseExt::GetSide(pHouse)) {
+		iPlane = SideExt::ExtMap.Find(pSide)->ParaDropPlane;
+	}
+
+	// didn't help. default to the PDPlane like the game does.
+	if (iPlane < 0) {
+		return RulesExt::Global()->DefaultParaPlane;
+	}
+
+	return AircraftTypeClass::Array->GetItemOrDefault(iPlane);
+}
+
 bool HouseExt::ExtData::InvalidateIgnorable(void* ptr) const
 {
 	switch (VTable::Get(ptr))
