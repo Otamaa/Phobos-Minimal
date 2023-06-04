@@ -156,7 +156,9 @@ DEFINE_HOOK(0x6DA412, Tactical_Select_At_Observer, 0x6)
 }
 
 //Fix crash 6F9DB6
-DEFINE_SKIP_HOOK(0x5F58CB, ObjectClass_Mark_SkipThis, 0x7, 5F58D2);
+DEFINE_HOOK(0x5F5893, ObjectClass_Mark_SkipDiscardedVtableCalls, 0xA) {
+	return 0x5F58E1;
+}
 
 #include <TriggerTypeClass.h>
 
@@ -176,10 +178,14 @@ DEFINE_HOOK(0x70F820, TechnoClass_GetOriginalOwner_ValidateCaptureManager, 0x6)
 	  return 0x70F82A;
   }
 
+  if(pThis->MindControlledByAUnit) {
+	  return 0x70F841;
+  }
+
   return 0x70F837;
 }
 
-DEFINE_HOOK(0x6F49D2, TechnoClass_Reveal_ValidateHouse, 0x6)
+DEFINE_HOOK(0x6F49CA, TechnoClass_Reveal_ValidateHouse, 0x6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	return pThis->Owner ? 0x0 : 0x6F4A31;
@@ -191,7 +197,7 @@ DEFINE_HOOK(0x70AF66, TechnoClass_70AF50_Sight_ValidateHouse, 0x6)
 	return pThis->Owner ? 0x0 : 0x70B1C7;
 }
 
-DEFINE_HOOK(0x65DC17, Do_Reinforcement_ValidateHouse, 0x6)
+DEFINE_HOOK(0x65DC11, Do_Reinforcement_ValidateHouse, 0x6)
 {
 	GET(FootClass* const, pReinforcee, EBP);
 
@@ -200,7 +206,13 @@ DEFINE_HOOK(0x65DC17, Do_Reinforcement_ValidateHouse, 0x6)
 		return 0x65DC2B;
 	}
 
-	return 0x0;
+	const Edge nEdge = pReinforcee->Owner->GetStartingEdge();
+	const Edge nresult =
+	nEdge < Edge::North || nEdge > Edge::West
+		? pReinforcee->Owner->GetHouseEdge() : nEdge;
+
+	R->EAX(nresult);
+	return 0x65DC2B ;
 }
 
 DEFINE_HOOK(0x447563, BuildingClass_WhatAction_SellExploitFix , 0x6)

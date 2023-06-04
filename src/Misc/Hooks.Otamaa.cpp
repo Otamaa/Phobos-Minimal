@@ -5644,15 +5644,15 @@ DEFINE_HOOK(0x4249EC, AnimClass_CreateMakeInf_WeirdAssCode, 0x6)
 	return 0x424B0A;
 }
 
-DEFINE_HOOK(0x70F837, TechnoClass_GetOriginalOwner_PermaMCed, 0x6)
-{
-	GET(TechnoClass*, pThis, ECX);
+// DEFINE_HOOK(0x70F837, TechnoClass_GetOriginalOwner_PermaMCed, 0x6)
+// {
+// 	GET(TechnoClass*, pThis, ECX);
 
-	if (pThis->MindControlledByAUnit)
-		return 0x70F841;
+// 	if (pThis->MindControlledByAUnit)
+// 		return 0x70F841;
 
-	return 0x0;
-}
+// 	return 0x0;
+// }
 
 // do some pre-validation evenbefore function going to be executed 
 // save some cpu cycle
