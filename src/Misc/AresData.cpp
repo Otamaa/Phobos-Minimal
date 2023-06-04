@@ -101,7 +101,6 @@ bool EMPulse::IsDeactivationAdvisable(TechnoClass* Target)
 	return true;
 }
 
-
 #pragma region Caller
 template<int idx, typename Tret, typename... TArgs>
 struct AresStdcall
@@ -220,7 +219,7 @@ bool AresData::Init()
 		Debug::LogDeferred("[Phobos] Detected Ares 3.0p1.\n");
 		break;
 	default:
-		Debug::LogDeferred("[Phobos] Detected a AresVersion of Ares that is not supported by this AresVersion of Phobos.\n");
+		Debug::LogDeferred("[Phobos] Detected Version of Ares that is not supported.\n");
 		return false;
 	}
 

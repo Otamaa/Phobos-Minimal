@@ -154,11 +154,9 @@ DEFINE_OVERRIDE_HOOK(0x701A5C, TechnoClass_ReceiveDamage_IronCurtainFlash, 0x7)
 	return (pThis->ForceShielded == 1) ? 0x701A65 : 0x701A69;
 }
 
-bool IsDamaging;
 DEFINE_OVERRIDE_HOOK(0x701914, TechnoClass_ReceiveDamage_Damaging, 0x7)
 {
-	//R->Stack(0xE, R->EAX() > 0);
-	IsDamaging = R->EAX() > 0;
+	R->Stack(0xE, R->EAX() > 0);
 	return 0;
 }
 
@@ -293,31 +291,29 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 	GET_STACK(int* const, pDamamge, 0xC8);
 	GET_STACK(bool const, bIgnoreDamage, 0xD8);
 	GET_STACK(HouseClass* const, pAttacker_House, STACK_OFFSET(0xC4, 0x18));
-	//GET_STACK(void*, bSomething, 0x12); //
+	GET_STACK(bool, IsDamaging, 0x12);
 
 	bool bAffected = false;
 	const auto pType = pThis->GetTechnoType();
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 
-	if ((int)nDamageResult || bIgnoreDamage || !IsDamaging || *pDamamge)
-	{
-		if ((int)nDamageResult && IsDamaging)
-		{
+	if ((int)nDamageResult || bIgnoreDamage || !IsDamaging || *pDamamge) {
+		if ((int)nDamageResult && IsDamaging) {
+
 			const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 			const auto amount = pTypeExt->SelfHealing_CombatDelay.Get(pThis);
 
+			//the timer will always restart 
+			//not accumulated
 			if (amount > 0) {
 				pExt->SelfHealing_CombatDelay.Start(amount);
 			}
 		}
-	}
-	else
-	{
-		bAffected = true;
-	}
 
-	if (pWarhead)
-	{
+	} else { bAffected = true; }
+
+	if (pWarhead) {
+
 		const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
 		const auto pHouse = pAttacker ? pAttacker->Owner : pAttacker_House;
 
@@ -327,35 +323,30 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 		const auto bCond1 = (!bAffected || !pWHExt->EffectsRequireDamage);
 		const auto bCond2 = (!pWHExt->EffectsRequireVerses || (pWHExt->GetVerses(TechnoExt::GetTechnoArmor(pThis, pWarhead)).Verses >= 0.0001));
 		
-		if ( bCond1 && bCond2)
-		{
+		if ( bCond1 && bCond2) {
+
 			AresData::WarheadTypeExt_ExtData_ApplyKillDriver(pWarhead, pAttacker, pThis);
 
-			if (pWHExt->Sonar_Duration > 0)
-			{
+			if (pWHExt->Sonar_Duration > 0) {
 				auto& nSonarTime = GetSonarTimer(pThis);
-				if (pWHExt->Sonar_Duration > nSonarTime.GetTimeLeft())
-				{
+				if (pWHExt->Sonar_Duration > nSonarTime.GetTimeLeft()) {
 					nSonarTime.Start(pWHExt->Sonar_Duration);
 				}
 			}
 
-			if (pWHExt->DisableWeapons_Duration > 0)
-			{
+			if (pWHExt->DisableWeapons_Duration > 0) {
 				auto& nTimer = GetDisableWeaponTimer(pThis);
-				if (pWHExt->DisableWeapons_Duration > nTimer.GetTimeLeft())
-				{
+				if (pWHExt->DisableWeapons_Duration > nTimer.GetTimeLeft()) {
 					nTimer.Start(pWHExt->DisableWeapons_Duration);
 				}
 			}
 
-			if (pWHExt->Flash_Duration > 0 && pWHExt->Flash_Duration > pThis->Flashing.DurationRemaining)
-			{
+			if (pWHExt->Flash_Duration > 0 
+				&& pWHExt->Flash_Duration > pThis->Flashing.DurationRemaining) {
 				pThis->Flash(pWHExt->Flash_Duration);
 			}
 
-			if (pWHExt->RemoveDisguise)
-			{
+			if (pWHExt->RemoveDisguise) {
 				pWHExt->ApplyRemoveDisguise(pHouse, pThis);
 			}
 
@@ -389,7 +380,7 @@ DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 	const auto nRank = pThis->Veterancy.GetRemainingLevel();
 
 	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH);
-	if(pWHExt->ImmunityType.isset() && TechnoExt::HasImmunity(nRank, pThis , pWHExt->ImmunityType.Get()))
+	if(pWHExt->ImmunityType.isset() && TechnoExt::HasImmunity(nRank, pThis , pWHExt->ImmunityType))
 		return RetNullify;
 
 	if (pWH->Radiation && TechnoExt::IsRadImmune(nRank, pThis))
@@ -427,6 +418,7 @@ DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 	else
 	{
 		// restoring TS berzerk cyborg
+		//this will happen regardless the immunity i guess
 		if (auto pInf = specific_cast<InfantryClass*>(pThis)) {
 			if (RulesClass::Instance->BerzerkAllowed && pInf->Type->Cyborg && pThis->IsYellowHP()) {
 				if (!pInf->Berzerk) { 
