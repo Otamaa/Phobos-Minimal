@@ -423,8 +423,12 @@ bool FighterAreaGuard::CheckTarget(TechnoClass* pTarget)
 	//TODO : there is some manual check for `CivilianEnemy` stuffs , idk how that really work
 	//		 so remove it atm
 	//auto pThis = OwnerObject;
-	if (!pTarget
-				|| pTarget->InLimbo
+	//TODO : using TechnoClass::GetFireError instead ,..
+
+	if (!pTarget)
+		return false;
+
+	if (pTarget->InLimbo
 				|| !pTarget->IsAlive
 				|| !pTarget->Health
 				|| pTarget->IsSinking
@@ -432,16 +436,21 @@ bool FighterAreaGuard::CheckTarget(TechnoClass* pTarget)
 				|| pTarget->TemporalTargetingMe
 				|| pTarget->BeingWarpedOut
 		)
-
-		false;
-
-	const auto IsBuilding = !Is_Building(pTarget);
-	if (!IsBuilding && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTarget)))
-		return false;
-	else if (IsBuilding)
 	{
-		auto const pBldExt = BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pTarget));
-		if (pBldExt->LimboID != -1)
+		return false;
+	}
+
+	if(pTarget->Owner && this->OwnerObject->Owner){
+		if (this->OwnerObject->Owner->IsAlliedWith_(pTarget))
+			return false;
+	}
+
+	if (const auto pBuildingTarget = specific_cast<BuildingClass*>(pTarget)) {
+		if (BuildingExt::ExtMap.Find(pBuildingTarget)->LimboID != -1)
+			return false;
+	}
+	else if (pTarget->AbstractFlags & AbstractFlags::Foot) {
+		if(TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTarget)))
 			return false;
 	}
 
