@@ -267,13 +267,14 @@ namespace DrawHeathData
 		const int nYDelta = nBracketDelta - (bIsInfantry ? 24 : 25);
 		const int nDraw = pThis->IsAlive ? std::clamp((int)(std::round(pThis->GetHealthPercentage() * nLength)), 1, nLength) : 0;
 		Point3D const nHealthFrame = pTypeExt->HealthBarSHP_HealthFrame.Get();
-		int nHealthFrameResult = nHealthFrame.Y; //Green
+		int nHealthFrameResult = 0;
 
 		if (pThis->IsYellowHP())
 			nHealthFrameResult = nHealthFrame.Z; //Yellow
-
-		if (pThis->IsRedHP() || pThis->Health <= 0 || !pThis->IsAlive)
+		else if (pThis->IsRedHP() || pThis->Health <= 0 || !pThis->IsAlive)
 			nHealthFrameResult = nHealthFrame.X;//Red
+		else
+			nHealthFrameResult = nHealthFrame.Y; //Green
 
 		for (int i = 0; i < nDraw; ++i)
 		{

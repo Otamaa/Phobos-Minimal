@@ -185,7 +185,6 @@
     <ClCompile Include="src\Misc\Hooks.Blowfish.cpp" />
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
-    <ClCompile Include="src\Misc\Hooks.YRPatches.cpp" />
     <ClCompile Include="src\New\Type\TunnelTypeClass.cpp" />
     <ClCompile Include="src\New\Type\ImmunityTypeClass.cpp" />
     <ClCompile Include="src\New\Type\PaletteManager.cpp" />

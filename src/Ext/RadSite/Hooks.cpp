@@ -311,7 +311,6 @@ DEFINE_HOOK(0x4DA554, FootClass_AI_Radiation, 0x5)
 
 	if (pThis->GetTechnoType()->Immune ||
 		pThis->IsIronCurtained() ||
-		!pThis->IsInPlayfield ||
 		pThis->TemporalTargetingMe || (pUnit && pUnit->DeathFrameCounter > 0))
 	{
 		return CheckOtherState;

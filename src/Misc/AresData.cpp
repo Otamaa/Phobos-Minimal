@@ -9,6 +9,8 @@
 #include <Utilities/Constructs.h>
 #include <Utilities/Macro.h>
 
+#include <Lib/nameof/nameof.h>
+
 class TechnoClass;
 class TechnoTypeClass;
 class BuildingLightClass;
@@ -84,22 +86,6 @@ enum FunctionIndices : int
 
 // storage for absolute addresses of functions (module base + offset)
 static DWORD AresFunctionOffsetsFinal[FunctionIndices::count];
-
-DWORD AresData::AresCustomPaletteReadFuncFinal[AresData::AresCustomPaletteReadCount];
-DWORD AresData::AresStaticInstanceFinal[AresData::AresStaticInstanceCount];
-
-bool EMPulse::IsDeactivationAdvisable(TechnoClass* Target)
-{
-	switch (Target->CurrentMission)
-	{
-	case Mission::Selling:
-	case Mission::Construction:
-	case Mission::Unload:
-		return false;
-	}
-
-	return true;
-}
 
 #pragma region Caller
 template<int idx, typename Tret, typename... TArgs>
@@ -190,6 +176,22 @@ struct AresThiscall<idx, void, TThis, TArgs...>
 	}
 };
 #pragma endregion
+
+DWORD AresData::AresCustomPaletteReadFuncFinal[AresData::AresCustomPaletteReadCount];
+DWORD AresData::AresStaticInstanceFinal[AresData::AresStaticInstanceCount];
+
+bool EMPulse::IsDeactivationAdvisable(TechnoClass* Target)
+{
+	switch (Target->CurrentMission)
+	{
+	case Mission::Selling:
+	case Mission::Construction:
+	case Mission::Unload:
+		return false;
+	}
+
+	return true;
+}
 
 bool AresData::Init()
 {

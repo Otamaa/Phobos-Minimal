@@ -149,7 +149,7 @@ const double RadSiteExt::ExtData::GetRadLevelAt(double distance)
 const bool RadSiteExt::ExtData::ApplyRadiationDamage(TechnoClass* pTarget, int damage, int distance)
 {
 	const auto pWarhead = this->Type->GetWarhead();
-	if (pTarget->InLimbo || !pTarget->Health || pTarget->IsSinking || pTarget->IsCrashing)
+	if (!pTarget->IsAlive || pTarget->InLimbo || !pTarget->Health || pTarget->IsSinking || pTarget->IsCrashing)
 		return false; 
 
 	if (!this->Type->GetWarheadDetonate())

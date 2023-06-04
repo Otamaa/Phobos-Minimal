@@ -622,9 +622,12 @@ DEFINE_HOOK(0x4758D4, CCINIClass_PutTheater_replace, 0x6)
 #pragma endregion
 
 //RMG not fully supported YET !
-DEFINE_HOOK(0x5997C0, RMGClass_TheaterType_initRandomMap, 0x6)
+DEFINE_HOOK(0x5997B4, RMGClass_TheaterType_initRandomMap, 0x7)
 {
 	GET(TheaterType, nIndex, EAX);
+	if((size_t)nIndex == TheaterTypeClass::Array.size())
+		nIndex = (TheaterType)0;
+
 	R->ECX(TheaterTypeClass::FindFromTheaterType_NoCheck(nIndex)->Name.data());
 	return 0x5997C6;
 }

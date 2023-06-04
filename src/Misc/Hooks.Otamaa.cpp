@@ -4259,10 +4259,16 @@ DEFINE_HOOK(0x6EE17E, MoveCrameraToWaypoint_CancelFollowTarget, 0x8)
 // 	return 0x0;
 // }
 
-// DEFINE_HOOK(0x55B582, LogicClass_Update_AfterTeamClass, 0x6)
-// {
-// 	return 0x0;
-// }
+DEFINE_HOOK(0x55B582, LogicClass_Update_AfterTeamClass, 0x6)
+{
+	// Uninited techno still playing `EMPulseSparkle` anim ,..
+	for(auto pAnim: *AnimClass::Array) {
+		if (pAnim->IsAlive && pAnim->OwnerObject && !pAnim->OwnerObject->IsAlive)
+			pAnim->TimeToDie = true;
+	}
+
+	return 0x0;
+}
 
 #include <Ext/TerrainType/Body.h>
 

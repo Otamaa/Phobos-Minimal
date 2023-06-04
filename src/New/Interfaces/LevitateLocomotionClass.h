@@ -77,7 +77,18 @@ public:
 		HRESULT hr = LocomotionClass::Internal_Load(this,pStm);
 		if (SUCCEEDED(hr))
 		{
+			GameDebugLog::Log("LevitateLoco Load !\n");
+			GameDebugLog::Log("Drag is %fl\n", this->Characteristic.Drag);
 			// Insert any data to be loaded here.
+
+			ILocomotion** piggy = &this->PiggyTO;
+			if (*piggy) {
+				(*piggy)->Release();
+			}
+			
+			*piggy = nullptr; // clean up old one 
+
+			hr = OleLoadFromStream(pStm, __uuidof(ILocomotion), (LPVOID*)piggy);
 		}
 
 		return hr;
@@ -85,9 +96,11 @@ public:
 
 	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty)  {
 
+		this->Characteristic.Drag = 1.00;
 		HRESULT hr = LocomotionClass::Internal_Save(this, pStm , fClearDirty);
 		if (SUCCEEDED(hr))
 		{
+			GameDebugLog::Log("LevitateLoco Save !\n");
 			// Insert any data to be loaded here.
 		}
 
