@@ -154,9 +154,11 @@ DEFINE_OVERRIDE_HOOK(0x701A5C, TechnoClass_ReceiveDamage_IronCurtainFlash, 0x7)
 	return (pThis->ForceShielded == 1) ? 0x701A65 : 0x701A69;
 }
 
+bool IsDamaging;
 DEFINE_OVERRIDE_HOOK(0x701914, TechnoClass_ReceiveDamage_Damaging, 0x7)
 {
-	R->Stack(0xE, R->EAX() > 0);
+	//R->Stack(0xE, R->EAX() > 0);
+	IsDamaging = R->EAX() > 0;
 	return 0;
 }
 
@@ -291,7 +293,7 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 	GET_STACK(int* const, pDamamge, 0xC8);
 	GET_STACK(bool const, bIgnoreDamage, 0xD8);
 	GET_STACK(HouseClass* const, pAttacker_House, STACK_OFFSET(0xC4, 0x18));
-	GET_STACK(bool, IsDamaging, 0x12);
+	//GET_STACK(bool, IsDamaging, 0x12);
 
 	bool bAffected = false;
 	const auto pType = pThis->GetTechnoType();

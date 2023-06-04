@@ -179,12 +179,12 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 #pragma endregion
 
-	detail::ParseVector(pINI, this->AITargetTypesLists, "AITargetTypes");
-	detail::ParseVector<ScriptTypeClass*, true>(pINI, this->AIScriptsLists, "AIScriptsList");
-	detail::ParseVector<HouseTypeClass* , true>(pINI, this->AIHateHousesLists, "AIHateHousesList");
-	detail::ParseVector<HouseTypeClass*, true>(pINI, this->AIHousesLists, "AIHousesList");
-	detail::ParseVector(pINI, this->AIConditionsLists, "AIConditionsList", true, false, "/");
-	detail::ParseVector<AITriggerTypeClass*, true>(pINI, this->AITriggersLists, "AITriggersList");
+	detail::ParseVector(exINI, this->AITargetTypesLists, "AITargetTypes");
+	detail::ParseVector<ScriptTypeClass*, true>(exINI, this->AIScriptsLists, "AIScriptsList");
+	detail::ParseVector<HouseTypeClass* , true>(exINI, this->AIHateHousesLists, "AIHateHousesList");
+	detail::ParseVector<HouseTypeClass*, true>(exINI, this->AIHousesLists, "AIHousesList");
+	detail::ParseVector(exINI, this->AIConditionsLists, "AIConditionsList", true, false, "/");
+	detail::ParseVector<AITriggerTypeClass*, true>(exINI, this->AITriggersLists, "AITriggersList");
 
 	this->StealthSpeakDelay.Read(exINI, AUDIOVISUAL_SECTION, "StealthSpeakDelay");
 	this->SubterraneanSpeakDelay.Read(exINI, AUDIOVISUAL_SECTION, "SubterraneanSpeakDelay");

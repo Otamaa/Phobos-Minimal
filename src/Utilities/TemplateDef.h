@@ -952,7 +952,7 @@ namespace detail
 					++result;
 				}
 
-				if (!found || result == size_t(AffectedTarget::None))
+				if (!found)
 				{
 					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a affected target");
 					return false;

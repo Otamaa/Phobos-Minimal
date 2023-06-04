@@ -39,7 +39,7 @@ std::array<const char* const, (size_t)DefaultColorList::count> EnumFunctions::De
 {
 {
 	{ GameStrings::Grey() } , { GameStrings::Red() } , { GameStrings::Green() } ,
-	{ "Blue" } , {  GameStrings::Yellow() } , { "White" }
+	{ "Blue" }, { GameStrings::Yellow() }, { "White" }
 }
 };
 

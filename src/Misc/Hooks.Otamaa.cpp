@@ -64,7 +64,7 @@ DEFINE_HOOK(0x6FA2C7, TechnoClass_AI_DrawBehindAnim, 0x8) //was 4
 //}
 
 //Lunar limitation
-DEFINE_JUMP(LJMP, 0x546C8B, 0x546CBF);
+// DEFINE_JUMP(LJMP, 0x546C8B, 0x546CBF);
 
 DEFINE_HOOK(0x74C8FB, VeinholeMonsterClass_CTOR_SetArmor, 0x6)
 {

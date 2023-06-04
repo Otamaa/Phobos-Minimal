@@ -21,7 +21,7 @@ public:
 		Nullable<InfantryTypeClass*> Crew;
 		Nullable<InfantryTypeClass*> Engineer;
 		Nullable<InfantryTypeClass*> Technician;
-		ValueableIdx<AircraftTypeClass> ParaDropPlane;
+		Valueable<AircraftTypeClass*> ParaDropPlane;
 
 		Nullable<int> NewTeamsSelector_MergeUnclassifiedCategoryWith;
 		Nullable<double> NewTeamsSelector_UnclassifiedCategoryPercentage;
@@ -36,7 +36,7 @@ public:
 			, Crew { }
 			, Engineer { }
 			, Technician { }
-			, ParaDropPlane { -1 }
+			, ParaDropPlane { nullptr }
 
 			, NewTeamsSelector_MergeUnclassifiedCategoryWith { }
 			, NewTeamsSelector_UnclassifiedCategoryPercentage { }

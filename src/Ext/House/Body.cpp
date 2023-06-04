@@ -94,8 +94,8 @@ AircraftTypeClass* HouseExt::GetParadropPlane(HouseClass* pHouse)
 	// the sides default plane.
 	const auto pTypeExt = HouseTypeExt::ExtMap.TryFind(pHouse->Type);
 
-	if (pTypeExt && pTypeExt->ParaDropPlane >= 0) {
-		return AircraftTypeClass::Array->GetItem(pTypeExt->ParaDropPlane);
+	if (pTypeExt && pTypeExt->ParaDropPlane) {
+		return pTypeExt->ParaDropPlane;
 	}
 
 	int iPlane = -1;

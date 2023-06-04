@@ -227,29 +227,38 @@ DEFINE_OVERRIDE_HOOK(0x4748A0, INIClass_GetPipIdx, 0x7)
 	GET_STACK(const char*, pKey, 0x8);
 	GET_STACK(int, fallback, 0xC);
 
-	int ret = fallback;
 	if (pINI->ReadString(pSection, pKey, Phobos::readDefval, Phobos::readBuffer))
 	{
-		// find the pip value with the name specified
-		const auto it = std::find_if(TechnoTypeClass::PipsTypeName.begin(), TechnoTypeClass::PipsTypeName.end(),
-			[](NamedValue<int>const& Data)
- {
-	 return IS_SAME_STR_(Data.Name, Phobos::readBuffer);
-		});
+		if(!isdigit(Phobos::readBuffer[0])) {
+			// find the pip value with the name specified
+			const auto it = std::find_if(TechnoTypeClass::PipsTypeName.begin(), TechnoTypeClass::PipsTypeName.end(),
+				[](NamedValue<int>const& Data) {
+	 			return Data == Phobos::readBuffer;
+			});
 
-		if (it != TechnoTypeClass::PipsTypeName.end())
+			if (it != TechnoTypeClass::PipsTypeName.end()) {
+				R->EAX(it->Value);
+				return 0x474907;
+		  	}
+		}
+		else
 		{
-			ret = it->Value;
+			// find the pip value with the number
+			const auto it = std::find_if(TechnoTypeClass::PipsTypeName.begin(), TechnoTypeClass::PipsTypeName.end(),
+				[](NamedValue<int>const& Data) {
+	 			return Data == std::atoi(Phobos::readBuffer);
+			});
 
+			if (it != TechnoTypeClass::PipsTypeName.end()) {
+				R->EAX(it->Value);
+				return 0x474907;
+		  	}
 		}
-		else if (!Parser<int>::TryParse(Phobos::readBuffer, &ret))
-		{
-			Debug::INIParseFailed(pSection, pKey, Phobos::readBuffer);
-			ret = fallback;
-		}
+
+		Debug::INIParseFailed(pSection, pKey, Phobos::readBuffer, "Expect valid pip");
 	}
 
-	R->EAX(ret);
+	R->EAX(fallback);
 	return 0x474907;
 }
 

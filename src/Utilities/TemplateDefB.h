@@ -261,16 +261,16 @@ namespace detail
 	}
 
 	template<typename T, bool Alloc = false>
-	inline void ParseVector(CCINIClass* pINI, std::vector<std::vector<T>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false, const char* Delims = Phobos::readDelims)
+	inline void ParseVector(INI_EX& IniEx, std::vector<std::vector<T>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false, const char* Delims = Phobos::readDelims, const char* message = nullptr)
 	{
 		static_assert(std::is_pointer<T>::value, "Pointer Required !");
 		using baseType = std::remove_pointer_t<T>;
 		nVecDest.clear();
 
-		if (!pINI->GetSection(pSection))
+		if (!IniEx->GetSection(pSection))
 			return;
 
-		const auto nKeyCount = pINI->GetKeyCount(pSection);
+		const auto nKeyCount = IniEx->GetKeyCount(pSection);
 
 		if (!nKeyCount)
 			return;
@@ -280,10 +280,10 @@ namespace detail
 		for (int i = 0; i < nKeyCount; ++i)
 		{
 			char* context = nullptr;
-			if (!pINI->ReadString(pSection, pINI->GetKeyName(pSection, i), Phobos::readDefval, Phobos::readBuffer))
+			if (!IniEx.ReadString(pSection, IniEx->GetKeyName(pSection, i)))
 				continue;
 
-			for (char* cur = strtok_s(Phobos::readBuffer, Delims, &context);
+			for (char* cur = strtok_s(IniEx.value(), Delims, &context);
 				cur; cur = strtok_s(nullptr, Delims, &context))
 			{
 				const auto res = CRT::strtrim(cur);
@@ -297,7 +297,7 @@ namespace detail
 				if (buffer)
 				{
 					nVecDest[i].push_back(buffer);
-					
+
 					if (bVerbose)
 						Debug::Log("ParseVector DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, nVecDest.size(), res);
 
@@ -311,14 +311,14 @@ namespace detail
 		}
 	}
 
-	inline void ParseVector(CCINIClass* pINI, std::vector<std::vector<std::string>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false, const char* Delims = Phobos::readDelims)
+	inline void ParseVector(INI_EX& IniEx, std::vector<std::vector<std::string>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false, const char* Delims = Phobos::readDelims, const char* message = nullptr)
 	{
 		nVecDest.clear();
 
-		if (!pINI->GetSection(pSection))
+		if (!IniEx->GetSection(pSection))
 			return;
 
-		const auto nKeyCount = pINI->GetKeyCount(pSection);
+		const auto nKeyCount = IniEx->GetKeyCount(pSection);
 		if (!nKeyCount)
 			return;
 
@@ -327,10 +327,10 @@ namespace detail
 		for (int i = 0; i < nKeyCount; ++i)
 		{
 			char* context = nullptr;
-			if (!pINI->ReadString(pSection, pINI->GetKeyName(pSection, i), Phobos::readDefval, Phobos::readBuffer))
+			if (!IniEx.ReadString(pSection, IniEx->GetKeyName(pSection, i)))
 				continue;
 
-			for (char* cur = strtok_s(Phobos::readBuffer, Delims, &context);
+			for (char* cur = strtok_s(IniEx.value(), Delims, &context);
 				cur;
 				cur = strtok_s(nullptr, Delims, &context))
 			{
@@ -346,9 +346,9 @@ namespace detail
 	}
 
 	template<typename T, bool Allocate = false, bool Unique = false>
-	inline void ParseVector(DynamicVectorClass<T>& List, CCINIClass* pINI, const char* section, const char* key)
+	inline void ParseVector(DynamicVectorClass<T>& List, INI_EX& IniEx , const char* section, const char* key , const char* message = nullptr)
 	{
-		if (pINI->ReadString(section, key, Phobos::readDefval, Phobos::readBuffer))
+		if (IniEx.ReadString(section,key))
 		{
 			List.Clear();
 			char* context = nullptr;
@@ -357,7 +357,7 @@ namespace detail
 			{
 				using BaseType = std::remove_pointer_t<T>;
 
-				for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur;
+				for (char* cur = strtok_s(IniEx.value(), Phobos::readDelims, &context); cur;
 					 cur = strtok_s(nullptr, Phobos::readDelims, &context))
 				{
 					BaseType* buffer = nullptr;
@@ -383,13 +383,13 @@ namespace detail
 					}
 					else if(!GameStrings::IsBlank(cur))
 					{
-						Debug::INIParseFailed(section, key, cur);
+						Debug::INIParseFailed(section, key, cur, message);
 					}
 				}
 			}
 			else
 			{
-				for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur;
+				for (char* cur = strtok_s(IniEx.value(), Phobos::readDelims, &context); cur;
 					 cur = strtok_s(nullptr, Phobos::readDelims, &context))
 				{
 					T buffer = T();
@@ -406,11 +406,10 @@ namespace detail
 					}
 					else if (!GameStrings::IsBlank(cur))
 					{
-						Debug::INIParseFailed(section, key, cur);
+						Debug::INIParseFailed(section, key, cur, message);
 					}
 				}
 			}
 		}
 	};
-
 }

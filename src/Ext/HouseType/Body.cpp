@@ -37,7 +37,7 @@ void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr
 	this->Crew.Read(exINI, pSection, "Crew", true);
 	this->Engineer.Read(exINI, pSection, "Engineer", true);
 	this->Technician.Read(exINI, pSection, "Technician", true);
-	this->ParaDropPlane.Read(exINI, pSection, "ParaDrop.Aircraft");
+	this->ParaDropPlane.Read(exINI, pSection, "ParaDrop.Aircraft" , true);
 
 	// Disabled atm
 	this->NewTeamsSelector_MergeUnclassifiedCategoryWith.Read(exINI, pSection, "NewTeamsSelector.MergeUnclassifiedCategoryWith");

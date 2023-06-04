@@ -70,7 +70,8 @@ DEFINE_OVERRIDE_HOOK(0x772462, WeaponTypeClass_LoadFromINI_ListLength, 0x9)
 	GET(const char*, pSection, EBX);
 	GET(CCINIClass*, pINI, EDI);
 
-	detail::ParseVector<AnimTypeClass*>(pThis->Anim, pINI, pSection, GameStrings::Anim());
+	INI_EX exINI(pINI);
+	detail::ParseVector<AnimTypeClass*>(pThis->Anim, exINI, pSection, GameStrings::Anim(), "Expect valid AnimType");
 
 	return 0x77255F;
 }
@@ -82,9 +83,10 @@ DEFINE_OVERRIDE_HOOK(0x75D660, WarheadTypeClass_LoadFromINI_ListLength, 9)
 	GET(const char*, pSection, EBP);
 	GET(CCINIClass*, pINI, EDI);
 
-	detail::ParseVector<AnimTypeClass*>(pThis->AnimList, pINI, pSection, GameStrings::AnimList);
-	detail::ParseVector(pThis->DebrisMaximums, pINI, pSection, GameStrings::DebrisMaximums);
-	detail::ParseVector<VoxelAnimTypeClass*>(pThis->DebrisTypes, pINI, pSection, GameStrings::DebrisTypes);
+	INI_EX exINI(pINI);
+	detail::ParseVector<AnimTypeClass*>(pThis->AnimList, exINI, pSection, GameStrings::AnimList, "Expect valid AnimType");
+	detail::ParseVector(pThis->DebrisMaximums, exINI, pSection, GameStrings::DebrisMaximums, "Expect valid number");
+	detail::ParseVector<VoxelAnimTypeClass*>(pThis->DebrisTypes, exINI, pSection, GameStrings::DebrisTypes, "Expect valid VoxelAnimType");
 
 	return 0x75D75D;
 }
@@ -138,14 +140,16 @@ DEFINE_OVERRIDE_HOOK(0x7125DF, TechnoTypeClass_LoadFromINI_ListLength, 7)
 	GET(const char*, pSection, EBX);
 	GET(CCINIClass*, pINI, ESI);
 
-	detail::ParseVector<ParticleSystemTypeClass*>(pThis->DamageParticleSystems, pINI, pSection, GameStrings::DamageParticleSystems);
-	detail::ParseVector<ParticleSystemTypeClass*>(pThis->DestroyParticleSystems, pINI, pSection, GameStrings::DestroyParticleSystems);
+	INI_EX exINI(pINI);
 
-	detail::ParseVector<BuildingTypeClass*>(pThis->Dock, pINI, pSection, GameStrings::Dock);
+	detail::ParseVector<ParticleSystemTypeClass*>(pThis->DamageParticleSystems, exINI, pSection, GameStrings::DamageParticleSystems, "Expect valid ParticleSystemType");
+	detail::ParseVector<ParticleSystemTypeClass*>(pThis->DestroyParticleSystems, exINI, pSection, GameStrings::DestroyParticleSystems, "Expect valid ParticleSystemType");
 
-	detail::ParseVector(pThis->DebrisMaximums, pINI, pSection, GameStrings::DebrisMaximums);
-	detail::ParseVector<VoxelAnimTypeClass*>(pThis->DebrisTypes, pINI, pSection, GameStrings::DebrisTypes);
-	detail::ParseVector<AnimTypeClass*,true>(pThis->DebrisAnims, pINI, pSection, GameStrings::DebrisAnims);
+	detail::ParseVector<BuildingTypeClass*>(pThis->Dock, exINI, pSection, GameStrings::Dock , "Expect valid BuildingType");
+
+	detail::ParseVector(pThis->DebrisMaximums, exINI, pSection, GameStrings::DebrisMaximums, "Expect valid number");
+	detail::ParseVector<VoxelAnimTypeClass*>(pThis->DebrisTypes, exINI, pSection, GameStrings::DebrisTypes, "Expect valid VoxelAnimType");
+	detail::ParseVector<AnimTypeClass*>(pThis->DebrisAnims, exINI, pSection, GameStrings::DebrisAnims, "Expect valid AnimType");
 
 	return 0x712830;
 }
@@ -157,29 +161,30 @@ DEFINE_OVERRIDE_HOOK(0x672B0E, Buf_AI, 6)
 	GET(RulesClass*, pRules, ESI);
 	GET(CCINIClass*, pINI, EDI);
 
+	INI_EX exINI(pINI);
 	const char* section = GameStrings::AI;
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildConst, pINI, section, GameStrings::BuildConst);
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildPower, pINI, section, GameStrings::BuildPower);
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildRefinery, pINI, section, GameStrings::BuildRefinery);
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildBarracks, pINI, section, GameStrings::BuildBarracks);
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildTech, pINI, section, GameStrings::BuildTech);
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildWeapons, pINI, section, GameStrings::BuildWeapons);
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->AlliedBaseDefenses, pINI, section, GameStrings::AlliedBaseDefenses);
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->SovietBaseDefenses, pINI, section, GameStrings::SovietBaseDefenses);
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->ThirdBaseDefenses, pINI, section, GameStrings::ThirdBaseDefenses);
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildDefense, pINI, section, GameStrings::BuildDefense);
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildPDefense, pINI, section, GameStrings::BuildPDefense);
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildAA, pINI, section, GameStrings::BuildAA);
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildHelipad, pINI, section, GameStrings::BuildHelipad);
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildRadar, pINI, section, GameStrings::BuildRadar);
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->ConcreteWalls, pINI, section, GameStrings::ConcreteWalls);
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->NSGates, pINI, section, GameStrings::NSGates);
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->EWGates, pINI, section, GameStrings::EWGates);
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildNavalYard, pINI, section, GameStrings::BuildNavalYard);
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildDummy, pINI, section, GameStrings::BuildDummy);
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->NeutralTechBuildings, pINI, section, GameStrings::NeutralTechBuildings);
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildConst, exINI, section, GameStrings::BuildConst, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildPower, exINI, section, GameStrings::BuildPower, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildRefinery, exINI, section, GameStrings::BuildRefinery, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildBarracks, exINI, section, GameStrings::BuildBarracks, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildTech, exINI, section, GameStrings::BuildTech, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildWeapons, exINI, section, GameStrings::BuildWeapons, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->AlliedBaseDefenses, exINI, section, GameStrings::AlliedBaseDefenses, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->SovietBaseDefenses, exINI, section, GameStrings::SovietBaseDefenses, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->ThirdBaseDefenses, exINI, section, GameStrings::ThirdBaseDefenses, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildDefense, exINI, section, GameStrings::BuildDefense, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildPDefense, exINI, section, GameStrings::BuildPDefense, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildAA, exINI, section, GameStrings::BuildAA, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildHelipad, exINI, section, GameStrings::BuildHelipad, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildRadar, exINI, section, GameStrings::BuildRadar, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->ConcreteWalls, exINI, section, GameStrings::ConcreteWalls, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->NSGates, exINI, section, GameStrings::NSGates, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->EWGates, exINI, section, GameStrings::EWGates, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildNavalYard, exINI, section, GameStrings::BuildNavalYard, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->BuildDummy, exINI, section, GameStrings::BuildDummy, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->NeutralTechBuildings, exINI, section, GameStrings::NeutralTechBuildings, "Expect valid BuildingType");
 
-	detail::ParseVector(pRules->AIForcePredictionFudge, pINI, section, GameStrings::AIForcePredictionFudge);
+	detail::ParseVector(pRules->AIForcePredictionFudge, exINI, section, GameStrings::AIForcePredictionFudge, "Expect valid number");
 
 	return 0x673950;
 }
@@ -192,13 +197,14 @@ DEFINE_OVERRIDE_HOOK(0x66BC71, Buf_CombatDamage, 9)
 
 	pRules->TiberiumStrength = R->EAX<int>();
 
-	detail::ParseVector<SmudgeTypeClass*, true>(pRules->Scorches, pINI, COMBATDAMAGE_SECTION, GameStrings::Scorches);
-	detail::ParseVector<SmudgeTypeClass*, true>(pRules->Scorches1, pINI, COMBATDAMAGE_SECTION, GameStrings::Scorches1);
-	detail::ParseVector<SmudgeTypeClass*, true>(pRules->Scorches2, pINI, COMBATDAMAGE_SECTION, GameStrings::Scorches2);
-	detail::ParseVector<SmudgeTypeClass*, true>(pRules->Scorches3, pINI, COMBATDAMAGE_SECTION, GameStrings::Scorches3);
-	detail::ParseVector<SmudgeTypeClass*, true>(pRules->Scorches4, pINI, COMBATDAMAGE_SECTION, GameStrings::Scorches4);
+	INI_EX exINI(pINI);
+	detail::ParseVector<SmudgeTypeClass*, true>(pRules->Scorches, exINI, COMBATDAMAGE_SECTION, GameStrings::Scorches, "Expect valid SmudgeType");
+	detail::ParseVector<SmudgeTypeClass*, true>(pRules->Scorches1, exINI, COMBATDAMAGE_SECTION, GameStrings::Scorches1, "Expect valid SmudgeType");
+	detail::ParseVector<SmudgeTypeClass*, true>(pRules->Scorches2, exINI, COMBATDAMAGE_SECTION, GameStrings::Scorches2, "Expect valid SmudgeType");
+	detail::ParseVector<SmudgeTypeClass*, true>(pRules->Scorches3, exINI, COMBATDAMAGE_SECTION, GameStrings::Scorches3, "Expect valid SmudgeType");
+	detail::ParseVector<SmudgeTypeClass*, true>(pRules->Scorches4, exINI, COMBATDAMAGE_SECTION, GameStrings::Scorches4, "Expect valid SmudgeType");
 
-	detail::ParseVector<AnimTypeClass*, true>(pRules->SplashList, pINI, COMBATDAMAGE_SECTION, GameStrings::SplashList);
+	detail::ParseVector<AnimTypeClass*, true>(pRules->SplashList, exINI, COMBATDAMAGE_SECTION, GameStrings::SplashList, "Expect valid AnimType");
 	return 0x66C287;
 }
 
@@ -208,39 +214,40 @@ DEFINE_OVERRIDE_HOOK(0x66D55E, Buf_General, 6)
 	GET(RulesClass*, pRules, ESI);
 	GET(CCINIClass*, pINI, EDI);
 
+	INI_EX exINI(pINI);
 	const char* section = GENERAL_SECTION;
-	detail::ParseVector<InfantryTypeClass*, true>(pRules->AmerParaDropInf, pINI, section, GameStrings::AmerParaDropInf);
-	detail::ParseVector<InfantryTypeClass*, true>(pRules->AllyParaDropInf, pINI, section, GameStrings::AllyParaDropInf);
-	detail::ParseVector<InfantryTypeClass*, true>(pRules->SovParaDropInf, pINI, section, GameStrings::SovParaDropInf);
-	detail::ParseVector<InfantryTypeClass*, true>(pRules->YuriParaDropInf, pINI, section, GameStrings::YuriParaDropInf);
+	detail::ParseVector<InfantryTypeClass*, true>(pRules->AmerParaDropInf, exINI, section, GameStrings::AmerParaDropInf, "Expect valid InfantryType");
+	detail::ParseVector<InfantryTypeClass*, true>(pRules->AllyParaDropInf, exINI, section, GameStrings::AllyParaDropInf, "Expect valid InfantryType");
+	detail::ParseVector<InfantryTypeClass*, true>(pRules->SovParaDropInf, exINI, section, GameStrings::SovParaDropInf, "Expect valid InfantryType");
+	detail::ParseVector<InfantryTypeClass*, true>(pRules->YuriParaDropInf, exINI, section, GameStrings::YuriParaDropInf, "Expect valid InfantryType");
 
-	detail::ParseVector(pRules->AmerParaDropNum, pINI, section, GameStrings::AmerParaDropNum);
-	detail::ParseVector(pRules->AllyParaDropNum, pINI, section, GameStrings::AllyParaDropNum);
-	detail::ParseVector(pRules->SovParaDropNum, pINI, section, GameStrings::SovParaDropNum);
-	detail::ParseVector(pRules->YuriParaDropNum, pINI, section, GameStrings::YuriParaDropNum);
+	detail::ParseVector(pRules->AmerParaDropNum, exINI, section, GameStrings::AmerParaDropNum, "Expect valid number");
+	detail::ParseVector(pRules->AllyParaDropNum, exINI, section, GameStrings::AllyParaDropNum, "Expect valid number");
+	detail::ParseVector(pRules->SovParaDropNum, exINI, section, GameStrings::SovParaDropNum, "Expect valid number");
+	detail::ParseVector(pRules->YuriParaDropNum, exINI, section, GameStrings::YuriParaDropNum, "Expect valid number");
 
-	detail::ParseVector<InfantryTypeClass*, true>(pRules->AnimToInfantry, pINI, section, GameStrings::AnimToInfantry);
+	detail::ParseVector<InfantryTypeClass*, true>(pRules->AnimToInfantry, exINI, section, GameStrings::AnimToInfantry, "Expect valid InfantryType");
 
-	detail::ParseVector<InfantryTypeClass*, true>(pRules->SecretInfantry, pINI, section, GameStrings::SecretInfantry);
-	detail::ParseVector<UnitTypeClass*, true>(pRules->SecretUnits, pINI, section, GameStrings::SecretUnits);
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->SecretBuildings, pINI, section, GameStrings::SecretBuildings);
+	detail::ParseVector<InfantryTypeClass*, true>(pRules->SecretInfantry, exINI, section, GameStrings::SecretInfantry, "Expect valid InfantryType");
+	detail::ParseVector<UnitTypeClass*, true>(pRules->SecretUnits, exINI, section, GameStrings::SecretUnits, "Expect valid UnitType");
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->SecretBuildings, exINI, section, GameStrings::SecretBuildings, "Expect valid BuildingType");
 
 	pRules->SecretSum = pRules->SecretInfantry.Count
 		+ pRules->SecretUnits.Count
 		+ pRules->SecretBuildings.Count;
 
-	detail::ParseVector<UnitTypeClass*, true>(pRules->HarvesterUnit, pINI, section, GameStrings::HarvesterUnit);
-	detail::ParseVector<UnitTypeClass*, true>(pRules->BaseUnit, pINI, section, GameStrings::BaseUnit);
-	detail::ParseVector<AircraftTypeClass*, true>(pRules->PadAircraft, pINI, section, GameStrings::PadAircraft);
+	detail::ParseVector<UnitTypeClass*, true>(pRules->HarvesterUnit, exINI, section, GameStrings::HarvesterUnit, "Expect valid UnitType");
+	detail::ParseVector<UnitTypeClass*, true>(pRules->BaseUnit, exINI, section, GameStrings::BaseUnit, "Expect valid UnitType");
+	detail::ParseVector<AircraftTypeClass*, true>(pRules->PadAircraft, exINI, section, GameStrings::PadAircraft, "Expect valid AircraftType");
 
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->Shipyard, pINI, section, GameStrings::Shipyard);
-	detail::ParseVector<BuildingTypeClass*, true>(pRules->RepairBay, pINI, section, GameStrings::RepairBay);
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->Shipyard, exINI, section, GameStrings::Shipyard, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*, true>(pRules->RepairBay, exINI, section, GameStrings::RepairBay, "Expect valid BuildingType");
 
-	detail::ParseVector<AnimTypeClass*, true>(pRules->WeatherConClouds, pINI, section, GameStrings::WeatherConClouds);
-	detail::ParseVector<AnimTypeClass*, true>(pRules->WeatherConBolts, pINI, section, GameStrings::WeatherConBolts);
-	detail::ParseVector<AnimTypeClass*, true>(pRules->BridgeExplosions, pINI, section, GameStrings::BridgeExplosions);
+	detail::ParseVector<AnimTypeClass*, true>(pRules->WeatherConClouds, exINI, section, GameStrings::WeatherConClouds, "Expect valid AnimType");
+	detail::ParseVector<AnimTypeClass*, true>(pRules->WeatherConBolts, exINI, section, GameStrings::WeatherConBolts, "Expect valid AnimType");
+	detail::ParseVector<AnimTypeClass*, true>(pRules->BridgeExplosions, exINI, section, GameStrings::BridgeExplosions, "Expect valid AnimType");
 
-	detail::ParseVector<TerrainTypeClass*, true>(pRules->DefaultMirageDisguises, pINI, section, GameStrings::DefaultMirageDisguises);
+	detail::ParseVector<TerrainTypeClass*, true>(pRules->DefaultMirageDisguises, exINI, section, GameStrings::DefaultMirageDisguises, "Expect valid TerrainType");
 
 	if (pINI->ReadString(section, GameStrings::WallTower, nullptr, Phobos::readBuffer))
 	{
@@ -286,9 +293,10 @@ DEFINE_OVERRIDE_HOOK(0x511D16, HouseTypeClass_LoadFromINI_Buffer_CountryVeteran,
 	GET(HouseTypeClass*, pHouseType, EBX);
 	GET(CCINIClass*, pINI, ESI);
 
-	detail::ParseVector<InfantryTypeClass*,true>(pHouseType->VeteranInfantry, pINI, pHouseType->ID, GameStrings::VeteranInfantry);
-	detail::ParseVector<UnitTypeClass*,true>(pHouseType->VeteranUnits, pINI, pHouseType->ID, GameStrings::VeteranUnits);
-	detail::ParseVector<AircraftTypeClass*,true>(pHouseType->VeteranAircraft, pINI, pHouseType->ID, GameStrings::VeteranAircraft);
+	INI_EX exINI(pINI);
+	detail::ParseVector<InfantryTypeClass*,true>(pHouseType->VeteranInfantry, exINI, pHouseType->ID, GameStrings::VeteranInfantry, "Expect valid InfantryType");
+	detail::ParseVector<UnitTypeClass*,true>(pHouseType->VeteranUnits, exINI, pHouseType->ID, GameStrings::VeteranUnits, "Expect valid UnitType");
+	detail::ParseVector<AircraftTypeClass*,true>(pHouseType->VeteranAircraft, exINI, pHouseType->ID, GameStrings::VeteranAircraft, "Expect valid AircraftType");
 
 	return 0x51208C;
 }

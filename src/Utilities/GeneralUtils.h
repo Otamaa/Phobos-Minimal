@@ -33,6 +33,12 @@ public:
 	static void AdjacentCellsInRange(std::vector<CellStruct>& nCells , size_t range);
 	static const bool ProduceBuilding(HouseClass* pOwner, int idxBuilding);
 
+	static bool is_number(const std::string& s)
+	{
+		return !s.empty() && std::find_if(s.begin(),
+			s.end(), [](unsigned char c) { return !std::isdigit(c); }) == s.end();
+	}
+
 	// Gets integer representation of color from ColorAdd corresponding to given index, or 0 if there's no color found.
 	// Code is pulled straight from game's draw functions that deal with the tint colors.
 	static inline int GetColorFromColorAdd(int colorIndex)
