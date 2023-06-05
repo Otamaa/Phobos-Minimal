@@ -280,6 +280,7 @@ public:
 		ValueableIdx<CursorTypeClass> Cursor_Spy;
 		ValueableIdx<CursorTypeClass> Cursor_Sabotage;
 		Nullable<bool> ImmuneToSaboteurs;
+		Valueable<bool> ReverseEngineersVictims;
 
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject)
 			, Type { nullptr }
@@ -409,6 +410,7 @@ public:
 			, Cursor_Spy { (int)MouseCursorType::Enter }
 			, Cursor_Sabotage { 93 }
 			, ImmuneToSaboteurs { }
+			, ReverseEngineersVictims { false }
 		{ }
 
 		virtual ~ExtData() override = default;

@@ -246,10 +246,10 @@ protected:
 };
 
 // a poor man's map with contiguous storage
-template <typename TKey, typename TValue>
+template <typename TKey, typename TValue , class customMem = std::allocator<std::pair<TKey , TValue>>>
 class PhobosMap {
 	using pair_t = std::pair<TKey, TValue>;
-	using container_t = std::vector<pair_t>;
+	using container_t = std::vector<pair_t , customMem>;
 public:
 
 	TValue& operator[] (const TKey& key) {

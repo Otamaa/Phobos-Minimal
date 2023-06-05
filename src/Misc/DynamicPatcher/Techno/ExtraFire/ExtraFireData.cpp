@@ -2,11 +2,11 @@
 
 void ExtraFireData::ReadRules(INI_EX& parserRules, const char* pSection_rules)
 {
-	detail::parse_values(AttachedWeapon.PrimaryWeapons, parserRules, pSection_rules, "ExtraFire.Primary");
-	detail::parse_values(AttachedWeapon.SecondaryWeapons, parserRules, pSection_rules, "ExtraFire.Secondary");
+	detail::ReadVectors(AttachedWeapon.PrimaryWeapons, parserRules, pSection_rules, "ExtraFire.Primary");
+	detail::ReadVectors(AttachedWeapon.SecondaryWeapons, parserRules, pSection_rules, "ExtraFire.Secondary");
 
-	detail::parse_values(AttachedWeapon.ElitePrimaryWeapons, parserRules, pSection_rules, "ExtraFire.ElitePrimary");
-	detail::parse_values(AttachedWeapon.EliteSecondaryWeapons, parserRules, pSection_rules, "ExtraFire.EliteSecondary");
+	detail::ReadVectors(AttachedWeapon.ElitePrimaryWeapons, parserRules, pSection_rules, "ExtraFire.ElitePrimary");
+	detail::ReadVectors(AttachedWeapon.EliteSecondaryWeapons, parserRules, pSection_rules, "ExtraFire.EliteSecondary");
 
 	char nBuff[0x200];
 	int nSize = 0;

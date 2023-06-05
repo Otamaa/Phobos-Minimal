@@ -879,6 +879,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 			this->UseROFAsBurstDelays.Read(exINI, pSection, "UseROFAsBurstDelays");
 			this->Chronoshift_Crushable.Read(exINI, pSection, "Chronoshift.Crushable");
 
+			this->CanBeReversed.Read(exINI, pSection, "CanBeReversed");
+			this->ReversedAs.Read(exINI, pSection, "ReversedAs");
+
 			this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
 			this->MyDiveData.Read(exINI, pSection);
 			this->MyPutData.Read(exINI, pSection);
@@ -1624,6 +1627,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->ImmuneToAbduction)
 		.Process(this->UseROFAsBurstDelays)
 		.Process(this->Chronoshift_Crushable)
+		.Process(this->CanBeReversed)
+		.Process(this->ReversedAs)
 
 		.Process(this->RadialIndicatorRadius)
 		.Process(this->GapRadiusInCells)

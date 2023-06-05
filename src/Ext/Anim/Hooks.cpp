@@ -37,6 +37,9 @@ DEFINE_HOOK(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x6)
 	GET(AnimClass* const, pThis, ESI);
 	GET(AnimTypeClass* const, pType, EDX);
 
+	if (IS_SAME_STR_(pThis->Type->ID, "URANIUMSPAWNER1"))
+		Debug::Log("HereIam\n");
+
 	if (pType && pType->HideIfNoOre)
 	{
 		int nThreshold = abs(AnimTypeExt::ExtMap.Find(pType)->HideIfNoOre_Threshold.Get());

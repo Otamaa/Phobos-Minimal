@@ -123,7 +123,6 @@ struct EMPulse
 #define Is_AirfieldSpied(var) (*(bool*)((char*)GetAresHouseExt(var) + 0x49))
 #define Is_BuildingProductionSpied(var) (*(bool*)((char*)GetAresHouseExt(var) + 0x4A))
 #define RadarPresist(var) (*(IndexBitfield<HouseClass*>*)((char*)GetAresHouseExt(var) + 0x44))
-#define ReverseEngineeredTechnoType(var) (*(std::vector<TechnoTypeClass*>*)((char*)GetAresHouseExt(var) + 0x34))
 #define StolenTechnoType(var) (*(std::bitset<32>*)((char*)GetAresHouseExt(var) + 0x40))
 #define AuxPower(var) (*(int*)((char*)GetAresHouseExt(var) + 0xC))
 #define KeepAlivesCount(var) (*(int*)((char*)GetAresHouseExt(var) + 0x18))
@@ -139,8 +138,6 @@ struct EMPulse
 #define ToggalePowerHasPower(var) (*(bool*)(((char*)GetAresBuildingExt(var)) +0x51))
 //
 #define GetSelfHealingDleayAmount(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x4A8))
-#define GetGunnerName(var) (*(std::vector<CSFText>*)(((char*)GetAresTechnoTypeExt(var)) + 0xC8))
-#define GetPilotTypeVec(var) (*(std::vector<InfantryTypeClass*>*)(((char*)GetAresTechnoTypeExt(var)) + 0x8))
 #define GetNoSpawnAlt(var) (*(VoxelStruct**)(((char*)GetAresTechnoTypeExt(var)) + 0x1E0))
 #define GetCursorDeploy(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x590))
 #define GetCursorNoDeploy(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x594))
@@ -246,6 +243,7 @@ struct AresData
 	static bool KillDriverCore(TechnoClass* pThis, HouseClass* pToHouse, TechnoClass* pKiller, bool removeVet);
 	static void FireIronCurtain(TeamClass* pTeam, ScriptActionNode* pNode , bool ntrhd);
 	static void RespondToFirewall(HouseClass* pHouse, bool Active);
+	static int RequirementsMet(HouseClass* pHouse , TechnoTypeClass* pTech);
 };
 
 namespace AresMemory
@@ -280,17 +278,23 @@ namespace AresMemory
 		constexpr bool operator == (const AresAllocator&) const noexcept { return true; }
 		constexpr bool operator != (const AresAllocator&) const noexcept { return false; }
 
-		T* allocate(const size_t count) const noexcept
-		{
-			return static_cast<T*>(AresAllocateChecked(count * sizeof(T)));
-		}
+		[[nodiscard]] T* allocate(size_t n) {
+        	if (n > std::numeric_limits<size_t>::max() / sizeof(T))
+            	throw std::bad_array_new_length();
+
+        		if (auto p = static_cast<T*>(AresAllocate(n * sizeof(T)))) {
+            		return p;
+       	 		}
+
+       	 	throw std::bad_alloc();
+   		}
 
 		void destroy(T* const ptr) const noexcept
 		{
 			std::destroy_at(ptr);
 		}
 
-		void deallocate(T* const ptr, size_t count) const noexcept
+		void deallocate(T* const ptr, size_t count) noexcept
 		{
 			AresDeallocate(ptr);
 		}
@@ -360,10 +364,12 @@ struct AresDTORCaller
 
 #define Debug_bTrackParseErrors (*((bool*)(AresData::AresStaticInstanceFinal[2])))
 #define ActiveSFW (*((SuperClass**)(AresData::AresStaticInstanceFinal[3])))
-//just for lookup no modify
-#define EvaTypes (*((const std::vector<const char*>*)(AresData::AresStaticInstanceFinal[4])))
+#define EvaTypes (*((std::vector<const char*, AresMemory::AresAllocator<const char*>>*)(AresData::AresStaticInstanceFinal[4])))
 #define PoweredUnitUptr(techno) (*(PoweredUnitClass**)(((char*)GetAresTechnoExt(techno)) + 0x1C))
 #define RadarJammerUptr(techno) (*(JammerClass**)(((char*)GetAresTechnoExt(techno)) + 0x18))
-#define RegisteredJammers(techno) (*(PhobosMap<TechnoClass*, bool>*)(((char*)GetAresBuildingExt(techno)) + 0x40))
+#define RegisteredJammers(techno) (*(PhobosMap<TechnoClass*, bool, AresMemory::AresAllocator<std::pair<TechnoClass*,bool>>>*)(((char*)GetAresBuildingExt(techno)) + 0x40))
 #define PrimsForwardingPtr(techno) (*(cPrismForwarding*)(((char*)GetAresBuildingExt(techno)) + 0x10))
+#define GetGunnerName(var) (*(std::vector<CSFText,AresMemory::AresAllocator<CSFText>>*)(((char*)GetAresTechnoTypeExt(var)) + 0xC8))
+#define GetPilotTypeVec(var) (*(std::vector<InfantryTypeClass*,AresMemory::AresAllocator<InfantryTypeClass*>>*)(((char*)GetAresTechnoTypeExt(var)) + 0x8))
+#define ReverseEngineeredTechnoType(var) (*(std::vector<TechnoTypeClass*,AresMemory::AresAllocator<TechnoTypeClass*>>*)((char*)GetAresHouseExt(var) + 0x34))
 

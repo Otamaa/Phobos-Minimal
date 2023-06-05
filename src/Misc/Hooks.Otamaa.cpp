@@ -5726,8 +5726,35 @@ DEFINE_HOOK(0x489671, MapClass_DamageArea_Veinhole, 0x6)
 	return 0x0;
 }
 
+DEFINE_HOOK(0x444159, BuildingClass_KickoutUnit_WeaponFactory_Rubble, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(TechnoClass*, pObj, EDI);
+
+	if (!pThis->Type->WeaponsFactory)
+		return 0x4445FB; //not a weapon factory
+
+	const auto pExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+
+	if (pExt->RubbleDestroyed)
+	{
+		if(pThis->Factory && pThis->Factory->Object == pObj)
+			return 0x444167; //continue check
+
+		if(const auto pIf = specific_cast<InfantryClass*>(pObj))
+			return 0x4445FB; // just eject
+	}
+
+	return 0x444167; //continue check
+}
+
+DEFINE_HOOK(0x423FF6, AnimClass_AI_SpawnTib_Probe, 0x6)
+{
+	Debug::Log("HEreIam ! \n");
+	return 0x0;
+}
 // TODO :
-//  - Weeder 
+//  - Weeder
 //  - Ice stuffs using WW pointer heap logic
 //  - proper damaging function for veins
 // 

@@ -1463,14 +1463,25 @@ namespace detail
 		vector.clear();
 		char* context = nullptr;
 		for (auto pCur = strtok_s(parser.value(), Phobos::readDelims, &context);
-			pCur;
-			pCur = strtok_s(nullptr, Phobos::readDelims, &context))
+				pCur;
+				pCur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
 			auto buffer = T();
 			if (Parser<T>::Parse(pCur, &buffer))
 				vector.push_back(buffer);
 			else if (!GameStrings::IsBlank(pCur))
 				Debug::INIParseFailed(pSection, pKey, pCur, nullptr);
+		}
+	}
+
+	template <typename T>
+	inline void ReadVectors(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate = false)
+	{
+		static_assert(std::is_pointer<T>::value, "Pointer Required !");
+
+		if (parser.ReadString(pSection, pKey))
+		{
+			detail::parse_values(vector, parser, pSection, pKey, bAllocate);
 		}
 	}
 
@@ -1762,7 +1773,6 @@ void NOINLINE ValueableVector<T>::Read(INI_EX& parser, const char* pSection, con
 {
 	if (parser.ReadString(pSection, pKey))
 	{
-		this->clear();
 		detail::parse_values<T>(*this, parser, pSection, pKey, bAllocate);
 	}
 }
@@ -1820,8 +1830,6 @@ void NOINLINE NullableVector<T>::Read(INI_EX& parser, const char* pSection, cons
 {
 	if (parser.ReadString(pSection, pKey))
 	{
-		this->clear();
-
 		auto const non_default = !IS_SAME_STR_(parser.value(), DEFAULT_STR2);
 		this->hasValue = non_default;
 

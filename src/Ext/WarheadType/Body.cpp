@@ -832,6 +832,12 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, AbstractClass* pTarget,
 		damage, pThis, 0, 0, pThis->Bright, true))
 	{
 		pBullet->MoveTo(coords, { 0 ,0, 0 });
+
+		//something like 0x6FF08B
+		const auto pCellCoord = MapClass::Instance->GetCellAt(coords);
+		if (pCellCoord->ContainsBridge())
+			pBullet->OnBridge = true;
+
 		BulletExt::DetonateAt(pBullet, pTarget, pOwner, coords);
 	}
 }

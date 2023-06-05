@@ -416,16 +416,111 @@ DEFINE_OVERRIDE_HOOK(0x4456E5, BuildingClass_UpdateConstructionOptions_ExcludeDi
 	return (pBld->InLimbo || pBld->IsUnderEMP()) ?
 		0x44583E : 0x4456F3;
 }
+void AddPassengers(std::vector<TechnoClass*>& colle , TechnoClass* Vic)
+{
+	for(auto nPass = Vic->Passengers.GetFirstPassenger();
+		nPass;
+		nPass = (FootClass*)nPass->NextObject)
+	{
+		if (TechnoTypeExt::ExtMap.Find(nPass->GetTechnoType())->CanBeReversed) {
+			colle.push_back(nPass);
+		}
+
+		AddPassengers(colle, nPass);
+	}
+}
+
+// https://bugs.launchpad.net/ares/+bug/1925359
+bool ReverseEngineer(BuildingClass* pBuilding , TechnoClass* Victim) {
+	auto pReverseData = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+
+	if (!pReverseData->ReverseEngineersVictims || !pBuilding->Owner) {
+		return false;
+	}
+
+	std::vector<TechnoClass*> Victims;
+
+	if(TechnoTypeExt::ExtMap.Find(Victim->GetTechnoType())->CanBeReversed)
+		Victims.push_back(Victim);
+
+	AddPassengers(Victims,Victim);
+	HouseClass* Owner = pBuilding->Owner;
+	auto& nVec = ReverseEngineeredTechnoType(Owner);
+
+	for(auto nColle : Victims) {
+
+		const auto VictimType = nColle->GetTechnoType();
+		const auto pVictimTypeExt = TechnoTypeExt::ExtMap.Find(VictimType);
+		const auto pVictimAs = pVictimTypeExt->ReversedAs.Get(VictimType);
+
+		if(std::find_if(std::begin(nVec), std::end(nVec), [&](TechnoTypeClass* pTech) { return pTech == pVictimAs; }) == std::end(nVec)) {
+			if (!(AresData::PrereqValidate(Owner, pVictimAs, false, true) == CanBuildResult::Buildable)) {
+
+				nVec.push_back(pVictimAs);
+
+				if (AresData::RequirementsMet(Owner, pVictimAs) >= 2) {
+
+					Owner->RecheckTechTree = true;
+
+					if (nColle->Owner && nColle->Owner->ControlledByPlayer()) {
+						VoxClass::Play(nColle->WhatAmI() == InfantryClass::AbsID ? "EVA_ReverseEngineeredInfantry" : "EVA_ReverseEngineeredVehicle");
+						VoxClass::Play(GameStrings::EVA_NewTechAcquired());
+					}
+
+					if (auto FirstTag = pBuilding->AttachedTag) {
+						FirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerType, pBuilding, CellStruct::Empty, false, nColle);
+
+						if (auto pSecondTag = pBuilding->AttachedTag)
+							FirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerAnything, pBuilding, CellStruct::Empty, false, nullptr);
+					}
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
+void AddPassengers(BuildingClass* const Grinder, TechnoClass* Vic)
+{
+	for (auto nPass = Vic->Passengers.GetFirstPassenger();
+		nPass;
+		nPass = (FootClass*)nPass->NextObject)
+	{
+		const auto pType = nPass->GetTechnoType();
+
+		if (AresData::ReverseEngineer(Grinder, pType)) {
+			if (nPass->Owner && nPass->Owner->ControlledByPlayer()) {
+				VoxClass::Play(nPass->WhatAmI() == InfantryClass::AbsID ? "EVA_ReverseEngineeredInfantry" : "EVA_ReverseEngineeredVehicle");
+				VoxClass::Play(GameStrings::EVA_NewTechAcquired());
+			}
+		}
+
+		if (const auto FirstTag = Grinder->AttachedTag)
+		{
+			FirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerType, Grinder, CellStruct::Empty, false, nPass);
+
+			if (auto pSecondTag = Grinder->AttachedTag)
+			{
+				pSecondTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerAnything, Grinder, CellStruct::Empty, false, nullptr);
+			}
+		}
+
+		AddPassengers(Grinder, nPass);
+	}
+}
 
 DEFINE_OVERRIDE_HOOK(0x73A1BC, UnitClass_UpdatePosition_EnteredGrinder, 0x7)
 {
 	GET(UnitClass* const, Vehicle, EBP);
 	GET(BuildingClass* const, Grinder, EBX);
 
+	//ReverseEngineer(Grinder, Vehicle);
+
 	// TODO : bring  ReverseEngineer in later
 	if (AresData::ReverseEngineer(Grinder, Vehicle->Type))
 	{
-		if (Vehicle->Owner->ControlledByPlayer())
+		if (Vehicle->Owner && Vehicle->Owner->ControlledByPlayer())
 		{
 			VoxClass::Play("EVA_ReverseEngineeredVehicle");
 			VoxClass::Play(GameStrings::EVA_NewTechAcquired());
@@ -441,6 +536,9 @@ DEFINE_OVERRIDE_HOOK(0x73A1BC, UnitClass_UpdatePosition_EnteredGrinder, 0x7)
 			pSecondTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerAnything, Grinder, CellStruct::Empty, false, nullptr);
 		}
 	}
+
+	// https://bugs.launchpad.net/ares/+bug/1925359
+	AddPassengers(Grinder, Vehicle);
 
 	// #368: refund hijackers
 	if (Vehicle->HijackerInfantryType != -1)
@@ -459,6 +557,8 @@ DEFINE_OVERRIDE_HOOK(0x5198AD, InfantryClass_UpdatePosition_EnteredGrinder, 0x6)
 {
 	GET(InfantryClass* const, Infantry, ESI);
 	GET(BuildingClass* const, Grinder, EBX);
+
+	//ReverseEngineer(Grinder, Infantry);
 
 	// TODO : bring  ReverseEngineer in later
 	if (AresData::ReverseEngineer(Grinder, Infantry->Type))

@@ -211,9 +211,11 @@ bool FireWeaponManager::FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAt
 
 void FireWeaponManager::InvalidatePointer(void* ptr, bool bRemoved)
 {	
-	for (auto nPos = DelayFires.begin(); nPos != DelayFires.end(); ++nPos) {
-		if(nPos->Target == ptr)
-			DelayFires.erase(nPos); //because it queue , we need to remove it instead
+	for (size_t i = 0; i < DelayFires.size(); ++i) {
+		auto& nQueue = DelayFires[i];
+		if (nQueue.Target == ptr) {
+			DelayFires.erase(DelayFires.begin() + i); //because it queue , we need to remove it instead
+		}
 	}
 
 	CWeaponManager.InvalidatePointer(ptr, bRemoved);

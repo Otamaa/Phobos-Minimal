@@ -671,6 +671,8 @@ public:
 		Valueable<bool> UseROFAsBurstDelays;
 
 		Valueable<bool> Chronoshift_Crushable;
+		Valueable<bool> CanBeReversed;
+		Nullable<TechnoTypeClass*> ReversedAs;
 
 		Nullable<double> SelfHealing_Rate;
 		Promotable<int> SelfHealing_Amount;
@@ -1188,6 +1190,8 @@ public:
 			, ImmuneToAbduction { false }
 			, UseROFAsBurstDelays { false }
 			, Chronoshift_Crushable{ true }
+			, CanBeReversed { false }
+			, ReversedAs { }
 			, SelfHealing_Rate { }
 			, SelfHealing_Amount { 1 }
 			, SelfHealing_Max { 1.0 }

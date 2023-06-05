@@ -646,8 +646,9 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->UCDamageMultiplier.Read(exINI, pSection, "UC.DamageMultiplier");
 
 		this->Cursor_Spy.Read(exINI, pSection, "Cursor.Spy");
-		this->Cursor_Sabotage.Read(exINI, pSection, "Cursor.Sabotage");
 		this->ImmuneToSaboteurs.Read(exINI, pSection, "ImmuneToSaboteurs");
+		this->ReverseEngineersVictims.Read(exINI, pSection, "ReverseEngineersVictims");
+		this->Cursor_Sabotage.Read(exINI, pSection, "Cursor.Sabotage");
 	}
 #pragma endregion
 
@@ -842,6 +843,7 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->UCDamageMultiplier)
 		.Process(this->Cursor_Spy)
 		.Process(this->ImmuneToSaboteurs)
+		.Process(this->ReverseEngineersVictims)
 		.Process(this->Cursor_Sabotage)
 		;
 }
