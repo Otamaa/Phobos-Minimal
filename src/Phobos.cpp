@@ -664,6 +664,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 	case DLL_PROCESS_ATTACH:
 	{
 		Phobos::hInstance = hInstance;
+
 		/**
 		*  Set the FPU mode to match the game (rounding towards zero [chop mode]).
 		*/

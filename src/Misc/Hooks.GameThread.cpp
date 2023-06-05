@@ -76,7 +76,3 @@ void FC Phobos_HandleMouseThread()
 }
 
 DEFINE_JUMP(CALL,0x6BD849, GET_OFFSET(Phobos_HandleMouseThread));
-
-#ifdef SYNC_DISPATCH_RESOURCE
-
-#endif

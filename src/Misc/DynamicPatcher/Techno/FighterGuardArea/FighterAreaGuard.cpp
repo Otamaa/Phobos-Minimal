@@ -272,6 +272,38 @@ bool FighterAreaGuard::SetupDestination()
 	return SetupDestination(nDest);
 }
 
+std::vector<CoordStruct> PopulateDestList(double sourceRad , CoordStruct flh, CoordStruct dest, bool clockwise)
+{
+	std::vector<CoordStruct> destList;
+
+	for (int i = 0; i < 16; i++)
+	{
+		DirStruct targetDir = Helpers_DP::DirNormalized(i, 16);
+		double targetRad = targetDir.GetRadian();
+		float angle = (float)(sourceRad - targetRad);
+		targetDir = Helpers_DP::Radians2Dir(angle);
+		CoordStruct newDest = Helpers_DP::GetFLHAbsoluteCoords(dest, flh, targetDir);
+
+		if (i == 0)
+		{
+			destList.push_back(newDest);
+		}
+		else
+		{
+			if (clockwise)
+			{
+				destList.insert(destList.begin(), newDest);
+			}
+			else
+			{
+				destList.push_back(newDest);
+			}
+		}
+	}
+
+	return destList;
+}
+
 bool FighterAreaGuard::SetupDestination(CoordStruct& dest)
 {
 	FootClass* pTechno = OwnerObject;
@@ -295,32 +327,7 @@ bool FighterAreaGuard::SetupDestination(CoordStruct& dest)
 		}
 
 		Clockwise = clockwise;
-
-		for (int i = 0; i < 16; i++)
-		{
-			DirStruct targetDir = Helpers_DP::DirNormalized(i, 16);
-			double targetRad = targetDir.GetRadian();
-			float angle = (float)(sourceRad - targetRad);
-			targetDir = Helpers_DP::Radians2Dir(angle);
-			CoordStruct newDest = Helpers_DP::GetFLHAbsoluteCoords(dest, flh, targetDir);
-
-			if (i == 0)
-			{
-				destList.push_back(newDest);
-			}
-			else
-			{
-				if (clockwise)
-				{
-					destList.insert(destList.begin(), newDest);
-				}
-				else
-				{
-					destList.push_back(newDest);
-				}
-			}
-		}
-
+		destList = PopulateDestList(sourceRad, flh, dest, clockwise);
 		destIndex = 0;
 		return true;
 	}
