@@ -708,6 +708,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->Promote_Vet_Type.Read(exINI, pSection, "Promote.VeteranType");
 		this->Promote_Elite_Type.Read(exINI, pSection, "Promote.EliteType");
 
+		this->Promote_Vet_Anim.Read(exINI, pSection, "Promote.VeteranAnim");
+		this->Promote_Elite_Anim.Read(exINI, pSection, "Promote.EliteAnim");
+
 		this->Promote_Vet_Exp.Read(exINI, pSection, "Promote.VeteranExperience");
 		this->Promote_Elite_Exp.Read(exINI, pSection, "Promote.EliteExperience");
 
@@ -881,6 +884,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 			this->CanBeReversed.Read(exINI, pSection, "CanBeReversed");
 			this->ReversedAs.Read(exINI, pSection, "ReversedAs");
+			this->AssaulterLevel.Read(exINI, pSection, "Assaulter.Level");
 
 			this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
 			this->MyDiveData.Read(exINI, pSection);
@@ -1515,6 +1519,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->Promote_Vet_Type)
 		.Process(this->Promote_Elite_Type)
+		.Process(this->Promote_Vet_Anim)
+		.Process(this->Promote_Elite_Anim)
 		.Process(this->Promote_Vet_Exp)
 		.Process(this->Promote_Elite_Exp)
 		.Process(this->DeployDir)
@@ -1629,7 +1635,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Chronoshift_Crushable)
 		.Process(this->CanBeReversed)
 		.Process(this->ReversedAs)
-
+		.Process(this->AssaulterLevel)
 		.Process(this->RadialIndicatorRadius)
 		.Process(this->GapRadiusInCells)
 		.Process(this->SuperGapRadiusInCells)

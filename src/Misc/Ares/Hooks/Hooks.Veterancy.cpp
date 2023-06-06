@@ -179,6 +179,7 @@ struct TechnoExperienceData
 				TechnoTypeClass* pNewType = nullptr;
 				double promoteExp = 0.0;
 				auto const pRules = RulesClass::Instance.get();
+				AnimTypeClass* Promoted_PlayAnim = nullptr;
 
 				if (newRank == Rank::Veteran)
 				{
@@ -187,6 +188,7 @@ struct TechnoExperienceData
 					eva = pTypeExt->Promote_Vet_Eva;
 					pNewType = pTypeExt->Promote_Vet_Type;
 					promoteExp = pTypeExt->Promote_Vet_Exp;
+					Promoted_PlayAnim = pTypeExt->Promote_Vet_Anim;
 				}
 				else if (newRank == Rank::Elite)
 				{
@@ -195,6 +197,7 @@ struct TechnoExperienceData
 					eva = pTypeExt->Promote_Elite_Eva;
 					pNewType = pTypeExt->Promote_Elite_Type;
 					promoteExp = pTypeExt->Promote_Elite_Exp;
+					Promoted_PlayAnim = pTypeExt->Promote_Elite_Anim;
 				}
 
 				if (pNewType && AresData::ConvertTypeTo(pExpReceiver, pNewType) && promoteExp != 0.0)
@@ -211,6 +214,15 @@ struct TechnoExperienceData
 				if (Flash && flash > 0)
 				{
 					pExpReceiver->Flashing.DurationRemaining += flash;
+				}
+
+				if (Promoted_PlayAnim && !pExpReceiver->InLimbo) {
+					if (auto pAnim = GameCreate<AnimClass>(Promoted_PlayAnim, pExpReceiver->Location, 0, 1, 0x600u, 0, 0)){
+						pAnim->SetOwnerObject(pExpReceiver);
+						
+						if (Is_Building(pExpReceiver))
+							pAnim->ZAdjust = -1024;
+					}	
 				}
 
 				AresData::RecalculateStat(pExpReceiver);

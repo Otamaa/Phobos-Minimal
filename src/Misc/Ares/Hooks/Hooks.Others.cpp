@@ -3368,25 +3368,25 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 	GET_STACK(RectangleStruct*, pBounds, 0x8);
 
 	auto pType = pThis->Type;
-	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pType);
 
-	// helpers (with support for the new spy effect)
-	const bool bAllied = pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer);
-	const bool bReveal = HouseClass::Observer() || (pTypeExt->SpyEffect_RevealProduction && pThis->DisplayProductionTo.Contains(HouseClass::CurrentPlayer));
-	
+
 	if(!pThis->IsSelected)
 		return 0x43E8F2;
 
+	// helpers (with support for the new spy effect)
+	const bool bAllied = pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer);
+	const bool IsObserver = HouseClass::Observer();
 	//Point2D loc = { pLocation->X , pLocation->Y };
 	
 	// show building or house state
-	if (bAllied || bReveal) {
+	if (bAllied || IsObserver) {
 
 		Point2D DrawExtraLoc = { pLocation->X , pLocation->Y };
 		pThis->DrawExtraInfo(DrawExtraLoc, pLocation, pBounds);
+		const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pType);
 
 		// display production cameo
-		if (bReveal)
+		if (IsObserver || (pTypeExt->SpyEffect_RevealProduction && pThis->DisplayProductionTo.Contains(HouseClass::CurrentPlayer)))
 		{
 			auto pFactory = pThis->Factory;
 			if (pThis->Owner->ControlledByPlayer())

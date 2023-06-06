@@ -479,6 +479,9 @@ public:
 		Valueable<TechnoTypeClass*> Promote_Vet_Type;
 		Valueable<TechnoTypeClass*> Promote_Elite_Type;
 
+		Valueable<AnimTypeClass*> Promote_Vet_Anim;
+		Valueable<AnimTypeClass*> Promote_Elite_Anim;
+
 		Valueable<double> Promote_Vet_Exp;
 		Valueable<double> Promote_Elite_Exp;
 		Nullable<DirType8> DeployDir;
@@ -673,6 +676,7 @@ public:
 		Valueable<bool> Chronoshift_Crushable;
 		Valueable<bool> CanBeReversed;
 		Nullable<TechnoTypeClass*> ReversedAs;
+		Valueable<int> AssaulterLevel;
 
 		Nullable<double> SelfHealing_Rate;
 		Promotable<int> SelfHealing_Amount;
@@ -1052,6 +1056,9 @@ public:
 			, Promote_Vet_Type { nullptr }
 			, Promote_Elite_Type { nullptr }
 
+			, Promote_Vet_Anim { nullptr }
+			, Promote_Elite_Anim { nullptr }
+
 			, Promote_Vet_Exp { 0.0 }
 			, Promote_Elite_Exp { 0.0 }
 			, DeployDir { }
@@ -1192,6 +1199,7 @@ public:
 			, Chronoshift_Crushable{ true }
 			, CanBeReversed { false }
 			, ReversedAs { }
+			, AssaulterLevel { 0 }
 			, SelfHealing_Rate { }
 			, SelfHealing_Amount { 1 }
 			, SelfHealing_Max { 1.0 }

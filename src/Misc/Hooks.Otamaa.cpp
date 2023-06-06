@@ -4263,8 +4263,13 @@ DEFINE_HOOK(0x55B582, LogicClass_Update_AfterTeamClass, 0x6)
 {
 	// Uninited techno still playing `EMPulseSparkle` anim ,..
 	for(auto pAnim: *AnimClass::Array) {
-		if (pAnim->IsAlive && pAnim->OwnerObject && !pAnim->OwnerObject->IsAlive)
-			pAnim->TimeToDie = true;
+
+		if(pAnim->IsAlive){
+			if (pAnim->OwnerObject && !pAnim->OwnerObject->IsAlive)
+				pAnim->TimeToDie = true;
+			else if (pAnim->InLimbo)
+				pAnim->TimeToDie = true;
+		}
 	}
 
 	return 0x0;
@@ -5478,11 +5483,27 @@ DEFINE_HOOK(0x4D4BA0, InfantryClass_MissionCapture_Assaulter, 0x6)
 //457DAD , TODO : port ares one , so it become only one hook
 DEFINE_HOOK(0x457DAD, InfantryClass_CanBeOccupied_Assaulter, 0x6)
 {
-	enum { retTrue = 0x457DB7, retFalse = 0x457DA3 };
+	enum { retTrue = 0x457DD5, retFalse = 0x457DA3 };
 
-	GET(InfantryClass*, pThis, ESI);
+	GET(BuildingClass* const, pThis, ESI);
+	GET(InfantryClass* const, pInfantry, EDI);
 
-	return TechnoExt::IsAssaulter(pThis) ? retTrue : retFalse;
+	if(TechnoExt::IsAssaulter(pInfantry))
+	{
+		if(!pThis->Owner->IsAlliedWith(pInfantry) && pThis->GetOccupantCount() > 0) {
+			const auto pBldExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+
+		// buildings with negative level are not assaultable
+		if(pBldExt->AssaulterLevel >= 0) {
+			// assaultable if infantry has same level or more
+				if(pBldExt->AssaulterLevel <= TechnoTypeExt::ExtMap.Find(pInfantry->Type)->AssaulterLevel) {
+					return retTrue;
+				}
+			}
+		}
+	}
+
+	return retFalse;
 }
 #pragma endregion
 
@@ -5748,11 +5769,12 @@ DEFINE_HOOK(0x444159, BuildingClass_KickoutUnit_WeaponFactory_Rubble, 0x6)
 	return 0x444167; //continue check
 }
 
-DEFINE_HOOK(0x423FF6, AnimClass_AI_SpawnTib_Probe, 0x6)
-{
-	Debug::Log("HEreIam ! \n");
-	return 0x0;
-}
+//DEFINE_HOOK(0x423FF6, AnimClass_AI_SpawnTib_Probe, 0x6)
+//{
+//	Debug::Log("HEreIam ! \n");
+//	return 0x0;
+//}
+
 // TODO :
 //  - Weeder
 //  - Ice stuffs using WW pointer heap logic

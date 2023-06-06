@@ -26,8 +26,8 @@ static bool GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat)
 		return true;
 
 	 //InfantryClass doesnt support this ,..
-	 if (Is_InfantryType(pThis))
-	 	return false;
+	// if (Is_InfantryType(pThis))
+	 //	return false;
 
 	auto pThatTechExt = TechnoTypeExt::ExtMap.Find(pThat);
 	auto pThisTechExt = TechnoTypeExt::ExtMap.Find(pThis);
@@ -60,14 +60,17 @@ DEFINE_HOOK(0x6EA6A5, TeamClass_CanAdd_ReplaceLoop, 0x6)
 	GET(int*, pMissMatchCount, EBX);
 
 	*pMissMatchCount = 0;
+	int Entry = 0;
+
 	if (pThis->Type->TaskForce->CountEntries > 0) {
 		do {
+			Entry = *pMissMatchCount;
 			if (GroupAllowed(pThis->Type->TaskForce->Entries[*pMissMatchCount].Type, pThat->GetTechnoType())) {
 				break;
 			}
-			++(*pMissMatchCount);
+			*pMissMatchCount = Entry + 1;
 		}
-		while (*pMissMatchCount < pThis->Type->TaskForce->CountEntries);
+		while ((Entry + 1) < pThis->Type->TaskForce->CountEntries);
 	}
 
 	R->EBX(pMissMatchCount);

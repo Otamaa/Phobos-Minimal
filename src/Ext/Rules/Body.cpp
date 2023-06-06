@@ -337,7 +337,7 @@ void RulesExt::FillDefaultPrerequisites(CCINIClass* pRules)
 			if (bTypeidx >= 0)
 				typelist.push_back(bTypeidx);
 			else
-				Debug::Log("%s Failed To Find BuildingTypeIndex for %s !  \n", pKey, cur);
+				Debug::Log("[Phobos] %s Failed To Find BuildingTypeIndex for %s !  \n", pKey, cur);
 		}
 	};
 
@@ -402,10 +402,6 @@ void RulesExt::LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI)
 // this runs between the before and after type data loading methods for rules ini
 void RulesExt::ExtData::InitializeAfterTypeData(RulesClass* const pThis)
 { }
-
-namespace ObjectTypeParser
-{
-};
 
 // this should load everything that TypeData is not dependant on
 // i.e. InfantryElectrocuted= can go here since nothing refers to it
@@ -769,6 +765,7 @@ DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 {
 	if (SessionClass::Instance->GameMode == GameMode::Skirmish)
 	{
+		Debug::Log("Scenario Name [%s] , Map Name [%s] \n", ScenarioClass::Instance->FileName, SessionClass::Instance->ScenarioFilename);
 		for (auto const& it : *HouseClass::Array)
 		{
 			Debug::Log("Player Name: %s IsCurrentPlayer: %u; ColorScheme: %s; ID: %d; HouseType: %s; Edge: %d; StartingAllies: %u; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d\n",
