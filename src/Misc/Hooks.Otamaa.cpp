@@ -1271,7 +1271,7 @@ DEFINE_HOOK(0x508FCE, HouseClass_SpySat_LimboDeliver, 0x6)
 {
 	GET(BuildingClass*, pBld, ECX);
 
-	return (!pBld->DiscoveredByCurrentPlayer &&  BuildingExt::ExtMap.Find(pBld)->LimboID != -1) ?
+	return (!pBld->DiscoveredByCurrentPlayer && BuildingExt::ExtMap.Find(pBld)->LimboID != -1) ?
 		0x508FE1 : 0x0;
 }
 
@@ -4138,14 +4138,17 @@ struct TechnoTypeExt_Gscript
 		auto const pTypeExt = pThis->GetTechnoType();
 		auto const pExt = TechnoTypeExt_Gscript::Get(pTypeExt);
 
-		if (pExt->Promoted_PalaySpotlight.Get(pThis)) {
-			if (auto pSpot = GameCreate<SpotlightClass>(pThis->Location, 50)) {
+		if (pExt->Promoted_PalaySpotlight.Get(pThis))
+		{
+			if (auto pSpot = GameCreate<SpotlightClass>(pThis->Location, 50))
+			{
 				pSpot->DisableFlags = pExt->Promoted_PalaySpotlight_bit.Get(pThis);
 			}
 		}
 
 
-		if (auto pAnimType = pExt->Promoted_PlayAnim.Get(pThis)) {
+		if (auto pAnimType = pExt->Promoted_PlayAnim.Get(pThis))
+		{
 			GameCreate<AnimClass>(pAnimType, pThis->Location, 0, 1, 0x600u, 0, 0);
 		}
 	}
@@ -4258,22 +4261,62 @@ DEFINE_HOOK(0x6EE17E, MoveCrameraToWaypoint_CancelFollowTarget, 0x8)
 // {
 // 	return 0x0;
 // }
-
-DEFINE_HOOK(0x55B582, LogicClass_Update_AfterTeamClass, 0x6)
-{
-	// Uninited techno still playing `EMPulseSparkle` anim ,..
-	for(auto pAnim: *AnimClass::Array) {
-
-		if(pAnim->IsAlive){
-			if (pAnim->OwnerObject && !pAnim->OwnerObject->IsAlive)
-				pAnim->TimeToDie = true;
-			else if (pAnim->InLimbo)
-				pAnim->TimeToDie = true;
-		}
-	}
-
-	return 0x0;
-}
+//bool CheckDone = false;
+//
+//DEFINE_HOOK(0x55B582, LogicClass_Update_AfterTeamClass, 0x6)
+//{
+//	// Uninited techno still playing `EMPulseSparkle` anim ,..
+//
+//	//if (!CheckDone)
+//	//{
+//	//	if (SessionClass::Instance->GameMode != GameMode::Campaign && SessionClass::Instance->GameMode != GameMode::Skirmish)
+//	//	{
+//	//		HouseExt::ExtMap.Find(HouseClass::CurrentPlayer)->Seed = Random2Class::Seed();
+//	//
+//	//		Debug::Log("Scenario Name [%s] , Map Name [%s] \n", ScenarioClass::Instance->FileName, SessionClass::Instance->ScenarioFilename);
+//	//		for (auto const& it : *HouseClass::Array)
+//	//		{
+//	//			auto pExt = HouseExt::ExtMap.TryFind(it);
+//	//
+//	//			Debug::Log("Player Name: %s IsCurrentPlayer: %u; ColorScheme: %s; ID: %d; HouseType: %s; Edge: %d; StartingAllies: %u; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d Seed: %d\n",
+//	//			it->PlainName ? it->PlainName : NONE_STR,
+//	//			it->IsHumanPlayer,
+//	//			ColorScheme::Array->GetItem(it->ColorSchemeIndex)->ID,
+//	//			it->ArrayIndex,
+//	//			HouseTypeClass::Array->GetItem(it->Type->ArrayIndex)->Name,
+//	//			it->Edge,
+//	//			it->StartingAllies.data,
+//	//			it->StartingCell.X,
+//	//			it->StartingCell.Y,
+//	//			it->Visionary,
+//	//			it->MapIsClear,
+//	//			it->Available_Money(),
+//	//			pExt->Seed
+//	//			);
+//	//
+//	//			if (it != HouseClass::CurrentPlayer && pExt->Seed != -1 && pExt->Seed != Random2Class::Seed())
+//	//			{
+//	//				Debug::FatalError("Player %s with currentPlayer , have different random2 seeds ! \n", it->PlainName, HouseClass::CurrentPlayer->PlainName);
+//	//			}
+//	//		}
+//	//
+//	//		CheckDone = true;
+//	//	}
+//	//}
+//
+//	for (auto pAnim : *AnimClass::Array)
+//	{
+//		if (pAnim->IsAlive)
+//		{
+//			if (pAnim->OwnerObject && !pAnim->OwnerObject->IsAlive)
+//				pAnim->TimeToDie = true;
+//			else if (pAnim->InLimbo)
+//				pAnim->TimeToDie = true;
+//		}
+//	}
+//
+//	return 0x0;
+//}
 
 #include <Ext/TerrainType/Body.h>
 
@@ -4612,69 +4655,69 @@ DEFINE_HOOK(0x73D909, UnitClass_Mi_Unload_LastPassengerOut, 8)
 //}
 
 //TechnoClass_GetWeaponState
-DEFINE_OVERRIDE_HOOK(0x6FCA30, TechnoClass_GetFireError_DecloakToFire, 6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(WeaponTypeClass* const, pWeapon, EBX);
+//DEFINE_OVERRIDE_HOOK(0x6FCA30, TechnoClass_GetFireError_DecloakToFire, 6)
+//{
+//	GET(TechnoClass* const, pThis, ESI);
+//	GET(WeaponTypeClass* const, pWeapon, EBX);
+//
+//	const auto pTransporter = pThis->Transporter;
+//
+//	if (pTransporter && pTransporter->CloakState != CloakState::Uncloaked)
+//		return 0x6FCA4F;
+//
+//	if (pThis->CloakState == CloakState::Uncloaked)
+//		return 0x6FCA5E;
+//
+//	if (!pWeapon->DecloakToFire && Is_Aircraft(pThis))
+//		return 0x6FCA4F;
+//
+//	return pThis->CloakState == CloakState::Cloaked ? 0x6FCA4F : 0x6FCA5E;
+//	//return 0x0;
+//}
 
-	const auto pTransporter = pThis->Transporter;
-
-	if (pTransporter && pTransporter->CloakState != CloakState::Uncloaked)
-		return 0x6FCA4F;
-
-	if (pThis->CloakState == CloakState::Uncloaked)
-		return 0x6FCA5E;
-
-	if (!pWeapon->DecloakToFire && Is_Aircraft(pThis))
-		return 0x6FCA4F;
-
-	return pThis->CloakState == CloakState::Cloaked ? 0x6FCA4F : 0x6FCA5E;
-	//return 0x0;
-}
-
-DEFINE_HOOK(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(TechnoTypeClass* const, pType, EAX);
-	GET(WeaponTypeClass* const, pWeapon, EBP);
-
-	if (!pType->AttackFriendlies)
-		return 0x70039B;
-
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-
-	if (pTypeExt->AttackFriendlies_WeaponIdx != -1)
-	{
-		const auto pWeapons = pThis->GetWeapon(pTypeExt->AttackFriendlies_WeaponIdx);
-		if (!pWeapons || pWeapon != pWeapons->WeaponType)
-		{
-			return 0x70039B;
-		}
-	}
-
-	return 0x7003BB;
-}
+//DEFINE_HOOK(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
+//{
+//	GET(TechnoClass* const, pThis, ESI);
+//	GET(TechnoTypeClass* const, pType, EAX);
+//	GET(WeaponTypeClass* const, pWeapon, EBP);
+//
+//	if (!pType->AttackFriendlies)
+//		return 0x70039B;
+//
+//	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+//
+//	if (pTypeExt->AttackFriendlies_WeaponIdx != -1)
+//	{
+//		const auto pWeapons = pThis->GetWeapon(pTypeExt->AttackFriendlies_WeaponIdx);
+//		if (!pWeapons || pWeapon != pWeapons->WeaponType)
+//		{
+//			return 0x70039B;
+//		}
+//	}
+//
+//	return 0x7003BB;
+//}
 
 // //EvalObject
-DEFINE_HOOK(0x6F7EFE, TechnoClass_CanAutoTargetObject_SelectWeapon, 6)
-{
-	enum { AllowAttack = 0x6F7FE9, ContinueCheck = 0x6F7F0C };
-	GET_STACK(int const, nWeapon, 0x14);
-	GET(TechnoClass* const, pThis, EDI);
-
-	const auto pType = pThis->GetTechnoType();
-
-	if (!pType->AttackFriendlies)
-		return ContinueCheck;
-
-	bool Allow = true;
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-
-	if (pTypeExt->AttackFriendlies_WeaponIdx != -1)
-		Allow = pTypeExt->AttackFriendlies_WeaponIdx == nWeapon;
-
-	return Allow ? AllowAttack : ContinueCheck;
-}
+//DEFINE_HOOK(0x6F7EFE, TechnoClass_CanAutoTargetObject_SelectWeapon, 6)
+//{
+//	enum { AllowAttack = 0x6F7FE9, ContinueCheck = 0x6F7F0C };
+//	GET_STACK(int const, nWeapon, 0x14);
+//	GET(TechnoClass* const, pThis, EDI);
+//
+//	const auto pType = pThis->GetTechnoType();
+//
+//	if (!pType->AttackFriendlies)
+//		return ContinueCheck;
+//
+//	bool Allow = true;
+//	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+//
+//	if (pTypeExt->AttackFriendlies_WeaponIdx != -1)
+//		Allow = pTypeExt->AttackFriendlies_WeaponIdx == nWeapon;
+//
+//	return Allow ? AllowAttack : ContinueCheck;
+//}
 
 DEFINE_HOOK(0x70A3E5, TechnoClass_DrawPipScale_Ammo_Idx, 7)
 {
@@ -4868,8 +4911,8 @@ DEFINE_HOOK(0x711F0F, TechnoTypeClass_GetCost_AICostMult, 0x8)
 	GET(HouseClass* const, pHouse, EDI);
 	GET(TechnoTypeClass* const, pType, ESI);
 
-	const double mult = !pHouse->ControlledByPlayer() ? RulesExt::Global()->AI_CostMult : 1.0;
-	R->EAX(int(pHouse->GetHouseTypeCostMult(pType) * mult * pHouse->GetHouseCostMult(pType) * pType->GetCost()));
+	//const double mult = !pHouse->ControlledByPlayer() ? RulesExt::Global()->AI_CostMult : 1.0;
+	R->EAX(int(pType->GetCost() * pHouse->GetHouseCostMult(pType) * pHouse->GetHouseTypeCostMult(pType) /* mult*/));
 	return 0x711F46;
 }
 
@@ -4925,8 +4968,8 @@ DEFINE_HOOK(0x71AA13, TemporalClass_AI_BunkerLinked_Check, 0x7)
 #include <Ext/InfantryType/Body.h>
 std::array<const char* const, 6u> DamageState_to_srings
 { {
-	"Unaffected", "Unchanged", "NowYellow", "NowRed", "NowDead", "PostMortem"
-} };
+		"Unaffected", "Unchanged", "NowYellow", "NowRed", "NowDead", "PostMortem"
+	} };
 
 //DEFINE_HOOK(0x440333, BuildingClass_AI_C4TimerRanOut_ApplyDamage, 0x6)
 //{
@@ -5309,11 +5352,13 @@ DEFINE_HOOK(0x4A9CA0, MapClass_RevealFogShroud, 0x8)
 
 // Various call of TechnoClass::SetOwningHouse not respecting overloaded 2nd args fix !
 
-bool FC InfantryClass_SetOwningHouse(InfantryClass* const pThis , DWORD , HouseClass* pNewOwner , bool bAnnounce) {
+bool FC InfantryClass_SetOwningHouse(InfantryClass* const pThis, DWORD, HouseClass* pNewOwner, bool bAnnounce)
+{
 	return pThis->FootClass::SetOwningHouse(pNewOwner, bAnnounce);
 }
 
-bool FC AircraftClass_SetOwningHouse(AircraftClass* const pThis, DWORD, HouseClass* pNewOwner, bool bAnnounce) {
+bool FC AircraftClass_SetOwningHouse(AircraftClass* const pThis, DWORD, HouseClass* pNewOwner, bool bAnnounce)
+{
 	return pThis->FootClass::SetOwningHouse(pNewOwner, bAnnounce);
 }
 
@@ -5480,23 +5525,25 @@ DEFINE_HOOK(0x4D4BA0, InfantryClass_MissionCapture_Assaulter, 0x6)
 	return TechnoExt::IsAssaulter(pThis) ? retTrue : retFalse;
 }
 
-//457DAD , TODO : port ares one , so it become only one hook
-DEFINE_HOOK(0x457DAD, InfantryClass_CanBeOccupied_Assaulter, 0x6)
+DEFINE_HOOK(0x457DAD, BuildingClass_CanBeOccupied_Assaulter, 0x6)
 {
 	enum { retTrue = 0x457DD5, retFalse = 0x457DA3 };
 
 	GET(BuildingClass* const, pThis, ESI);
 	GET(InfantryClass* const, pInfantry, EDI);
 
-	if(TechnoExt::IsAssaulter(pInfantry))
+	if (TechnoExt::IsAssaulter(pInfantry))
 	{
-		if(!pThis->Owner->IsAlliedWith(pInfantry) && pThis->GetOccupantCount() > 0) {
+		if (!pThis->Owner->IsAlliedWith(pInfantry) && pThis->GetOccupantCount() > 0)
+		{
 			const auto pBldExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
-		// buildings with negative level are not assaultable
-		if(pBldExt->AssaulterLevel >= 0) {
-			// assaultable if infantry has same level or more
-				if(pBldExt->AssaulterLevel <= TechnoTypeExt::ExtMap.Find(pInfantry->Type)->AssaulterLevel) {
+			// buildings with negative level are not assaultable
+			if (pBldExt->AssaulterLevel >= 0)
+			{
+				// assaultable if infantry has same level or more
+				if (pBldExt->AssaulterLevel <= TechnoTypeExt::ExtMap.Find(pInfantry->Type)->AssaulterLevel)
+				{
 					return retTrue;
 				}
 			}
@@ -5639,12 +5686,13 @@ DEFINE_HOOK(0x746AFF, UnitClass_Disguise_Update_MoveToClear, 0xA)
 //	return 0x0;
 //}
 
-DEFINE_HOOK(0x4D423A , FootClass_MissionMove_SubterraneanResourceGatherer, 0x6)
+DEFINE_HOOK(0x4D423A, FootClass_MissionMove_SubterraneanResourceGatherer, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
 
 	const auto pType = pThis->GetTechnoType();
-	if (Is_Unit(pThis) && pType->IsSubterranean && pType->ResourceGatherer) {
+	if (Is_Unit(pThis) && pType->IsSubterranean && pType->ResourceGatherer)
+	{
 		pThis->QueueMission(Mission::Harvest, false);
 	}
 
@@ -5655,8 +5703,10 @@ DEFINE_HOOK(0x4249EC, AnimClass_CreateMakeInf_WeirdAssCode, 0x6)
 {
 	GET(AnimClass*, pThis, ESI);
 
-	if (auto const pInf = RulesClass::Instance->AnimToInfantry.GetItemOrDefault(pThis->Type->MakeInfantry)) { 
-		if(auto const pCreatedInf = pInf->CreateObject(pThis->Owner)) {
+	if (auto const pInf = RulesClass::Instance->AnimToInfantry.GetItemOrDefault(pThis->Type->MakeInfantry))
+	{
+		if (auto const pCreatedInf = pInf->CreateObject(pThis->Owner))
+		{
 			R->EAX(pCreatedInf);
 			return 0x424A1F;
 		}
@@ -5722,7 +5772,8 @@ DEFINE_HOOK(0x489671, MapClass_DamageArea_Veinhole, 0x6)
 	GET(CellClass*, pCell, EBX);
 	GET(OverlayTypeClass*, pOverlay, EAX);
 
-	if (pOverlay->ArrayIndex == 0xA7) {
+	if (pOverlay->ArrayIndex == 0xA7)
+	{
 
 		GET_STACK(int, nDamage, 0x24);
 		GET(WarheadTypeClass*, pWarhead, ESI);
@@ -5730,14 +5781,15 @@ DEFINE_HOOK(0x489671, MapClass_DamageArea_Veinhole, 0x6)
 		GET_BASE(HouseClass*, pHouse, 0x14);
 		GET(CoordStruct*, pCenter, EDI);
 
-		for (auto pMonster : *VeinholeMonsterClass::Array) {
+		for (auto pMonster : *VeinholeMonsterClass::Array)
+		{
 			if (!pMonster->InLimbo && (pMonster->MonsterCell.DistanceFromI(pCell->MapCoords) <= 0))
-				pMonster->ReceiveDamage(&nDamage, 
-					pCenter->DistanceFromI(CellClass::Cell2Coord(pMonster->MonsterCell)), 
-					pWarhead, 
-					pSource, 
-					false, 
-					false, 
+				pMonster->ReceiveDamage(&nDamage,
+					pCenter->DistanceFromI(CellClass::Cell2Coord(pMonster->MonsterCell)),
+					pWarhead,
+					pSource,
+					false,
+					false,
 					pSource && !pHouse ? pSource->Owner : pHouse
 				);
 
@@ -5759,14 +5811,80 @@ DEFINE_HOOK(0x444159, BuildingClass_KickoutUnit_WeaponFactory_Rubble, 0x6)
 
 	if (pExt->RubbleDestroyed)
 	{
-		if(pThis->Factory && pThis->Factory->Object == pObj)
+		if (pThis->Factory && pThis->Factory->Object == pObj)
 			return 0x444167; //continue check
 
-		if(const auto pIf = specific_cast<InfantryClass*>(pObj))
+		if (const auto pIf = specific_cast<InfantryClass*>(pObj))
 			return 0x4445FB; // just eject
 	}
 
 	return 0x444167; //continue check
+}
+
+//TODO : Droppod WH explosion 4B5D8F ,4B6028
+
+DEFINE_HOOK(0x4B5CF1, DropPodLocomotionClass_Process_DroppodPuff, 0x5)
+{
+	//GET(DropPodLocomotionClass*, pLoco, EDI);
+	GET(FootClass*, pFoot, ESI);
+	LEA_STACK(CoordStruct*, pCoord, 0x40 - 0x18);
+
+	if (!pFoot->Unlimbo(*pCoord, (DirType)ScenarioClass::Instance->Random.RandomFromMax((int)DirType::Max)))
+		return 0x4B5D0A;
+
+	if (auto pAnimType = RulesClass::Instance->DropPodPuff)
+	{
+		if (auto pAnim = GameCreate<AnimClass>(pAnimType, pCoord, 0, 1, AnimFlag(0x600), 0, 0))
+			AnimExt::SetAnimOwnerHouseKind(pAnim, pFoot->Owner, nullptr, pFoot, false);
+	}
+
+	const auto& nDroppod = RulesClass::Instance->DropPod;
+
+	if (!nDroppod.Count)
+		return 0x4B5E4C;
+
+	//TS random it with the lpvtable ? idk
+	if (auto pAnimType = nDroppod[ScenarioClass::Instance->Random.RandomFromMax(nDroppod.Count - 1)])
+	{
+		if (auto pAnim = GameCreate<AnimClass>(pAnimType, pCoord, 0, 1, AnimFlag(0x600), 0, 0))
+			AnimExt::SetAnimOwnerHouseKind(pAnim, pFoot->Owner, nullptr, pFoot, false);
+	}
+
+	//original game code
+	//using static_cast adding some unnessesary check !
+	/*pLoco + 0x18*/
+	//if (reinterpret_cast<void*>((DWORD)pLoco + 0x18)) {
+	//
+	//	if(RulesClass::Instance->DropPod.Count == 1)
+	//		return 0x4B5E4C;
+	//
+	//	if (auto pAnimType = RulesClass::Instance->DropPod[1]) {
+	//		if (auto pAnim = GameCreate<AnimClass>(pAnimType, pCoord, 0, 1, AnimFlag(0x600), 0, 0))
+	//			AnimExt::SetAnimOwnerHouseKind(pAnim, pFoot->Owner, nullptr, pFoot, false);
+	//	}
+	//} else {
+	//
+	//	if (auto pAnimType = RulesClass::Instance->DropPod[0]) {
+	//		if (auto pAnim = GameCreate<AnimClass>(pAnimType, pCoord, 0, 1, AnimFlag(0x600), 0, 0))
+	//			AnimExt::SetAnimOwnerHouseKind(pAnim, pFoot->Owner, nullptr, pFoot, false);
+	//	}
+	//}
+
+	return 0x4B5E4C;
+}
+
+DEFINE_HOOK(0x4B619F, DropPodLocomotionClass_MoveTo_AtmosphereEntry, 0x5)
+{
+	GET(DropPodLocomotionClass*, pLoco, EDI);
+	LEA_STACK(CoordStruct*, pCoord, 0x1C - 0xC);
+
+	if (auto pAnimType = RulesClass::Instance->AtmosphereEntry)
+	{
+		if (auto pAnim = GameCreate<AnimClass>(pAnimType, pCoord, 0, 1, AnimFlag(0x600), 0, 0))
+			AnimExt::SetAnimOwnerHouseKind(pAnim, pLoco->Owner->Owner, nullptr, pLoco->Owner, false);
+	}
+
+	return 0x4B61D6;
 }
 
 //DEFINE_HOOK(0x423FF6, AnimClass_AI_SpawnTib_Probe, 0x6)

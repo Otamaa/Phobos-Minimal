@@ -247,8 +247,9 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 
 			if (success)
 			{
+				//pTechno->UpdatePlacement(PlacementType::Remove);
 				//pTechno->OnBridge = pCell->ContainsBridge();
-				//pTechno->IsOnMap = true;
+				//pTechno->UpdatePlacement(PlacementType::Put);
 
 				if (const auto pCreateUnitAnimType = pTypeExt->CreateUnit_SpawnAnim.Get(nullptr))
 				{

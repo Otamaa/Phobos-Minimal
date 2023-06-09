@@ -620,7 +620,9 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		// relocated the solid tag from artmd to rulesmd
 		this->Solid_Height.Read(exINI, pSection, "SolidHeight");
 		this->Solid_Level.Read(exINI, pSection, "SolidLevel");
-
+		this->AIBaseNormal.Read(exINI, pSection, "AIBaseNormal");
+		this->AIInnerBase.Read(exINI, pSection, "AIInnerBase");
+		this->Cloning_Facility.Read(exINI, pSection, "CloningFacility");
 		this->EngineerRepairable.Read(exINI, pSection, "EngineerRepairable");
 
 		// no code attached
@@ -649,6 +651,10 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->ImmuneToSaboteurs.Read(exINI, pSection, "ImmuneToSaboteurs");
 		this->ReverseEngineersVictims.Read(exINI, pSection, "ReverseEngineersVictims");
 		this->Cursor_Sabotage.Read(exINI, pSection, "Cursor.Sabotage");
+
+		this->GateDownSound.Read(exINI, pSection, "GateDownSound");
+		this->GateUpSound.Read(exINI, pSection, "GateUpSound");
+		this->UnitSell.Read(exINI, pSection, "UnitSell");
 	}
 #pragma endregion
 
@@ -830,7 +836,9 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DockUnload_Facing)
 		.Process(this->Solid_Height)
 		.Process(this->Solid_Level)
-
+		.Process(this->AIBaseNormal)
+		.Process(this->AIInnerBase)
+		.Process(this->Cloning_Facility)
 		.Process(this->RubblePalette)
 		.Process(this->EnterBioReactorSound)
 		.Process(this->LeaveBioReactorSound)
@@ -845,6 +853,9 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->ImmuneToSaboteurs)
 		.Process(this->ReverseEngineersVictims)
 		.Process(this->Cursor_Sabotage)
+		.Process(this->GateDownSound)
+		.Process(this->GateUpSound)
+		.Process(this->UnitSell)
 		;
 }
 

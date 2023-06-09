@@ -156,10 +156,10 @@ DEFINE_HOOK(0x424AEC, AnimClass_AI_SetMission, 0x6)
 	GET(AnimClass*, pThis, ESI);
 	GET(InfantryClass*, pInf, EDI);
 
-	const auto pTypeExt = AnimTypeExt::ExtMap.TryFind(pThis->Type);
+	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 
-	const Mission nMission = pTypeExt && pTypeExt->MakeInfantry_Mission.isset()  ? pTypeExt->MakeInfantry_Mission : (Mission::Hunt);
-	Debug::Log("Anim[%s] with MakeInf , setting Mission[%s] ! \n", pTypeExt ? pTypeExt->Get()->ID  : NONE_STR , MissionClass::MissionToString(nMission));
+	const Mission nMission = pTypeExt->MakeInfantry_Mission.Get(Mission::Hunt);
+	Debug::Log("Anim[%s] with MakeInf , setting Mission[%s] ! \n", pThis->Type->ID , MissionClass::MissionToString(nMission));
 	pInf->QueueMission(nMission, false);
 	return 0x0;
 }

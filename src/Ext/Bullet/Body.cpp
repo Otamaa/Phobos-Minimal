@@ -18,13 +18,10 @@
 
 TechnoClass* BulletExt::InRangeTempFirer;
 
-DWORD BulletExt::ApplyAirburst(BulletClass* pThis)
+void BulletExt::ApplyAirburst(BulletClass* pThis)
 {
 	const auto pType = pThis->Type;
 	const auto pExt = BulletTypeExt::ExtMap.Find(pType);
-
-	if (!pExt->HasSplitBehavior())
-		return 0x46A290;
 
 	auto const GetWeapon = [pExt, pType]()
 	{
@@ -188,8 +185,6 @@ DWORD BulletExt::ApplyAirburst(BulletClass* pThis)
 			}
 		}
 	}
-
-	return 0x46A290;
 }
 
 VelocityClass BulletExt::GenerateVelocity(BulletClass* pThis, AbstractClass* pTarget, const int nSpeed, bool bCalculateSpeedFirst)

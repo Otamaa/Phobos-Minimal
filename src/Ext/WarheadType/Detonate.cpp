@@ -88,25 +88,20 @@ void WarheadTypeExt::ExtData::ApplyAttachTag(TechnoClass* pTarget)
 
 void WarheadTypeExt::ExtData::ApplyUpgrade(HouseClass* pHouse, TechnoClass* pTarget)
 {
-	if (this->Converts_From.empty() || this->Converts_To.empty())
+	if (this->ConvertsPair.empty())
 		return;
 
 	const auto pCurType = pTarget->GetTechnoType();
 
-	// explicitly unsigned because the compiler wants it
-	for (unsigned int i = 0; i < this->Converts_From.size(); i++)
+	for (auto const& [pFrom, pTo] : this->ConvertsPair)
 	{
-		// Check if the target matches upgrade-from TechnoType and it has something to upgrade-to
-		if (this->Converts_To.size() >= i && this->Converts_From[i] == pCurType)
+		if (!pFrom || !pTo || pFrom == pTo)
+			continue;
+
+		if (pFrom == pCurType)
 		{
-			auto const pResultType = this->Converts_To[i];
-
-			if (pCurType != pResultType)
-			{
-				if (!AresData::ConvertTypeTo(pTarget, pResultType))
-					Debug::Log("WarheadTypeExt::ExtData::ApplyUpgrade Failed to ConvertType ! \n");
-
-			}
+			if (!AresData::ConvertTypeTo(pTarget, pTo))
+				Debug::Log("WarheadTypeExt::ExtData::ApplyUpgrade Failed to ConvertType ! \n");
 		}
 	}
 }

@@ -26,10 +26,10 @@ DEFINE_HOOK(0x423F31, AnimClass_Spawns_Override, 0x6)
 	GET_STACK(int, Y, 0x88 - 0x48);
 	GET_STACK(int, Z, 0x88 - 0x44);
 
-	CoordStruct nCoord { X , Y , Z };
-
 	if(!pThis->Type->Spawns  || pThis->Type->SpawnCount <= 0)
 		return 0x423FC6;
+
+	CoordStruct nCoord { X , Y , Z };
 
 	const auto nMax = ScenarioClass::Instance->Random.RandomFromMax((pThis->Type->SpawnCount * 2));
 
@@ -52,6 +52,3 @@ DEFINE_HOOK(0x423F31, AnimClass_Spawns_Override, 0x6)
 	R->Stack(0x88 - 0x44 , nCoord.Z);
 	return 0x423FC6;
 }
-
-// Bruh ,..
-DEFINE_JUMP(VTABLE, 0x7E3390, GET_OFFSET(AnimExt::GetOwningHouse_Wrapper));

@@ -498,6 +498,16 @@ DEFINE_OVERRIDE_HOOK(0x73E4A2, UnitClass_Mi_Unload_Storage, 0x6)
 	return 0;
 }
 
+// sanitize the power output
+DEFINE_OVERRIDE_HOOK(0x508D4A, HouseClass_UpdatePower_LocalDrain2, 6)
+{
+	GET(HouseClass*, pThis, ESI);
+	if(pThis->PowerOutput < 0) {
+		pThis->PowerOutput = 0;
+	}
+	return 0;
+}
+
 DEFINE_OVERRIDE_HOOK(0x522D75, InfantryClass_Slave_UnloadAt_Storage, 6)
 {
 	GET(TechnoClass* const, pBld, EAX);
@@ -673,6 +683,7 @@ DEFINE_OVERRIDE_HOOK(0x74410D, UnitClass_Mi_AreaGuard_KickFrameDelay, 5)
 	return(nFrame < 0 || nFrame + pThis->CurrentMissionStartTime >= Unsorted::CurrentFrame) ?
 		0x74416C : 0x744129;
 }
+
 
 DEFINE_OVERRIDE_HOOK_AGAIN(0x735678, UnitClass_Init_Academy, 6) // inlined in CTOR
 DEFINE_OVERRIDE_HOOK(0x74689B, UnitClass_Init_Academy, 6)
@@ -1381,6 +1392,13 @@ DEFINE_OVERRIDE_HOOK(0x735584, UnitClass_CTOR_TurretROT, 6)
 	return 0x73558A;
 }
 
+DEFINE_OVERRIDE_HOOK(0x413ffa , AircraftClass_Init_TurretROT , 6)
+{
+	GET(AircraftTypeClass*, pType, EDX);
+	R->EAX(TechnoTypeExt::ExtMap.Find(pType)->TurretRot.Get(pType->ROT));
+	return 0x414000;
+}
+
 namespace AresHadleTunnelLocoStuffs
 {
 	void Handle(FootClass* pOwner, bool DugIN = false, bool PlayAnim = false)
@@ -1523,7 +1541,7 @@ DEFINE_OVERRIDE_HOOK(0x7090A8, TechnoClass_SelectFiringVoice, 5)
 		idxVoice = pData->VoiceRepair;
 		if (idxVoice < 0)
 		{
-			if ((IS_SAME_STR_(pType->ID, "FV")))
+			if ((IS_SAME_STR_(pType->ID, GameStrings::FV())))
 			{
 				idxVoice = RulesClass::Instance->VoiceIFVRepair;
 			}

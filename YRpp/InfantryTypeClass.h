@@ -36,6 +36,7 @@ struct DoControls
 {
 	static inline constexpr int MaxCount = 42;
 	static constexpr reference<DoStruct, 0x7EAF7Cu, MaxCount> const MasterArray { };
+	static constexpr reference<const char*, 0x8255C8u, MaxCount> const DoType_toStr { };
 
 	DoInfoStruct GetSequence(DoType sequence) const {
 		return this->Data[(int)sequence];

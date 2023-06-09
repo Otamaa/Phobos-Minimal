@@ -26,6 +26,64 @@
 
 #include <Conversions.h>
 
+DEFINE_OVERRIDE_HOOK(0x420F75, AlphaLightClass_UpdateScreen_ShouldDraw, 5)
+{
+	GET(AlphaShapeClass*, pAlpha, ECX);
+
+	bool shouldDraw = !pAlpha->IsObjectGone;
+
+	if(shouldDraw) {
+		if(auto pTechno = abstract_cast<TechnoClass*>(pAlpha->AttachedTo)) {
+			shouldDraw =
+			pTechno->VisualCharacter(VARIANT_TRUE, pTechno->Owner) == VisualType::Normal
+			&& !pTechno->Disguised;
+		}
+	}
+
+	return shouldDraw ? 0x420F80 : 0x42132A;
+
+}
+
+DEFINE_OVERRIDE_HOOK(0x4210AC, AlphaLightClass_UpdateScreen_Header, 5)
+{
+	GET(AlphaShapeClass*, pAlpha, EDX);
+	GET(SHPStruct *, pImage, ECX);
+
+	if(const auto pTechno = abstract_cast<TechnoClass*>(pAlpha->AttachedTo)) {
+		unsigned int idx = 0;
+		if (pImage->Frames > 0) {
+			const int countFrames = Conversions::Int2Highest(pImage->Frames);
+			const DirStruct PrimaryFacing = pTechno->PrimaryFacing.Current();
+			idx = (PrimaryFacing.Raw >> (16 - countFrames));
+		}
+
+		R->Stack(0x0, idx);
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4211AC, AlphaLightClass_UpdateScreen_Body, 8)
+{
+	GET_STACK(int, AlphaLightIndex, STACK_OFFS(0xDC, 0xB4));
+	GET_STACK(SHPStruct*, pImage, STACK_OFFS(0xDC, 0x6C));
+
+	const auto pAlpha = AlphaShapeClass::Array->Items[AlphaLightIndex];
+
+	if(const auto pTechno = abstract_cast<TechnoClass*>(pAlpha->AttachedTo)) {
+		unsigned int idx = 0;
+		if (pImage->Frames > 0) {
+			const int countFrames = Conversions::Int2Highest(pImage->Frames);
+			const DirStruct PrimaryFacing = pTechno->PrimaryFacing.Current();
+			idx = (PrimaryFacing.Raw >> (16 - countFrames));
+		}
+
+		R->Stack(0x0, idx);
+	}
+
+	return 0;
+}
+
 DEFINE_OVERRIDE_HOOK(0x42146E, TacticalClass_UpdateAlphasInRectangle_Header, 5)
 {
 	GET(int, AlphaLightIndex, EBX);

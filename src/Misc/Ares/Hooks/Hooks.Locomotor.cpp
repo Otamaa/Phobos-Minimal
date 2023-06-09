@@ -118,11 +118,6 @@ DEFINE_OVERRIDE_HOOK(0x513EAA, HoverLocomotionClass_UpdateHover_DeployToLand, 0x
 	return pLoco->LinkedTo->InAir ? 0x513ECD : 0x0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4B619F, DropPodLocomotionClass_ILocomotion_MoveTo_AtmosphereEntry, 0x5)
-{
-	return RulesClass::Instance->AtmosphereEntry ? 0x0 : 0x4B61D6;
-}
-
 DEFINE_OVERRIDE_HOOK(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_UpdateTarget, 0x6)
 {
 	GET(FlyLocomotionClass*, pThis, ESI);

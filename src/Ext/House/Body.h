@@ -75,6 +75,7 @@ public:
 		};
 
 		std::vector<TunnelData> Tunnels;
+		DWORD Seed;
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 			, PowerPlantEnhancerBuildings {}
 			, Building_BuildSpeedBonusCounter {}
@@ -104,6 +105,7 @@ public:
 			, DiscoverEvaDelay {}
 
 			, Tunnels {}
+			, Seed { (DWORD)-1 }
 		{ }
 
 		virtual ~ExtData() override = default;

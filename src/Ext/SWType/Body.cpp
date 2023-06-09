@@ -114,7 +114,10 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_AITargetingMode.Read(exINI, pSection, "SW.AITargetingMode");
 	this->SW_Group.Read(exINI ,pSection , "SW.Group");
 
+	//
+	this->Deliver_Types.Read(exINI, pSection, "Deliver.Types");
 }
+
 // =============================
 // load / save
 
@@ -541,6 +544,7 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Message_ColorScheme)
 		.Process(this->SW_AITargetingMode)
 		.Process(this->SW_Group)
+		.Process(this->Deliver_Types)
 		;
 
 }

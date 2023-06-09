@@ -2,35 +2,36 @@
 
 #include <Ext/TechnoType/Body.h>
 
-static bool GroupAllowed(const std::string& nFirst, const std::string& nSecond)
+bool NOINLINE GroupAllowed(const std::string& nFirst, const std::string& nSecond)
 {
 	if (nFirst.empty() || nSecond.empty())
 		return false;
 
 	auto nNone = NONE_STR;
 	auto nNone2 = NONE_STR2;
-	if (!IS_SAME_STR_(nFirst.c_str(), nNone)
-		|| !IS_SAME_STR_(nSecond.c_str(), nNone)
-		|| !IS_SAME_STR_(nFirst.c_str(), nNone2)
-		|| !IS_SAME_STR_(nSecond.c_str(), nNone2)
-		) {
+	if (IS_SAME_STR_(nFirst.c_str(), nNone)
+		|| IS_SAME_STR_(nSecond.c_str(), nNone)
+		|| IS_SAME_STR_(nFirst.c_str(), nNone2)
+		|| IS_SAME_STR_(nSecond.c_str(), nNone2)
+		)
+	{
 		return false;
 	}
 
-	return !IS_SAME_STR_(nSecond.c_str(), nSecond.c_str());
+	return IS_SAME_STR_(nSecond.c_str(), nSecond.c_str());
 }
 
-static bool GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat)
+bool NOINLINE GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat)
 {
 	if (pThis == pThat)
 		return true;
 
-	 //InfantryClass doesnt support this ,..
-	// if (Is_InfantryType(pThis))
-	 //	return false;
+	//InfantryClass doesnt support this ,..
+   // if (Is_InfantryType(pThis))
+	//	return false;
 
-	auto pThatTechExt = TechnoTypeExt::ExtMap.Find(pThat);
-	auto pThisTechExt = TechnoTypeExt::ExtMap.Find(pThis);
+	const auto pThatTechExt = TechnoTypeExt::ExtMap.Find(pThat);
+	const auto pThisTechExt = TechnoTypeExt::ExtMap.Find(pThis);
 
 	if (!pThatTechExt || !pThisTechExt || pThatTechExt->IsDummy.Get())
 		return false;
@@ -40,17 +41,35 @@ static bool GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat)
 
 DEFINE_HOOK(0x6EAD86, TeamClass_CanAdd_CompareType_Convert_UnitType, 0x7) //6
 {
-	enum { ContinueCheck = 0x6EAD8F ,
-		   ContinueLoop = 0x6EADB3
+	enum
+	{
+		ContinueCheck = 0x6EAD8F,
+		ContinueLoop = 0x6EADB3
 	};
 
 	//GET(UnitClass*, pGoingToBeRecuited, ESI);
 	GET(UnitTypeClass*, pGoingToBeRecuitedType, EAX);
-	GET(TaskForceClass* , pTeam, EDX);
+	GET(TaskForceClass*, pTeam, EDX);
 	GET(int, nMemberIdx, EBP);
 
 	return GroupAllowed(pTeam->Entries[nMemberIdx].Type, pGoingToBeRecuitedType) ?
 		ContinueCheck : ContinueLoop;
+}
+
+void NOINLINE CompareGroup(int* pData, int nMax, TaskForceClass* pTask, TechnoTypeClass* pThat)
+{
+	int temp = 0;
+
+	do
+	{
+		temp = *pData;
+		if (pTask->Entries[temp].Type == pThat)
+			break;
+
+		*pData = temp + 1;
+
+	}
+	while ((temp + 1) < nMax);
 }
 
 DEFINE_HOOK(0x6EA6A5, TeamClass_CanAdd_ReplaceLoop, 0x6)
@@ -60,17 +79,9 @@ DEFINE_HOOK(0x6EA6A5, TeamClass_CanAdd_ReplaceLoop, 0x6)
 	GET(int*, pMissMatchCount, EBX);
 
 	*pMissMatchCount = 0;
-	int Entry = 0;
 
 	if (pThis->Type->TaskForce->CountEntries > 0) {
-		do {
-			Entry = *pMissMatchCount;
-			if (GroupAllowed(pThis->Type->TaskForce->Entries[*pMissMatchCount].Type, pThat->GetTechnoType())) {
-				break;
-			}
-			*pMissMatchCount = Entry + 1;
-		}
-		while ((Entry + 1) < pThis->Type->TaskForce->CountEntries);
+		CompareGroup(pMissMatchCount, pThis->Type->TaskForce->CountEntries, pThis->Type->TaskForce, pThat->GetTechnoType());
 	}
 
 	R->EBX(pMissMatchCount);
@@ -81,7 +92,8 @@ DEFINE_HOOK(0x6EA6A5, TeamClass_CanAdd_ReplaceLoop, 0x6)
 #ifdef BROKE_
 DEFINE_HOOK(0x6EA6CD, TeamClass_Recuits_CompareType_Convert_All, 0x6)
 {
-	enum {
+	enum
+	{
 		Break = 0x6EA6F2,
 		ContinueLoop = 0x6EA6DC
 	};

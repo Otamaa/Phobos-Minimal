@@ -275,15 +275,6 @@ DEFINE_OVERRIDE_HOOK(0x702050, TechnoClass_ReceiveDamage_ResultDestroyed , 6)
 	return 0x0;
 }
 
-/*
- * Fixing issue #722
- */
-DEFINE_OVERRIDE_HOOK(0x7384BD, UnitClass_ReceiveDamage_OreMinerUnderAttack, 6)
-{
-	GET_STACK(WarheadTypeClass*, WH, STACK_OFFS(0x44, -0xC));
-	return WH && !Is_MaliciousWH(WH) ? 0x738535u : 0u;
-}
-
 DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 {
 	GET(TechnoClass* const, pThis, ESI);

@@ -60,6 +60,7 @@ public:
 #endif
 
 	public:
+
 		Valueable<bool> HealthBar_Hide;
 		Valueable<CSFText> UIDescription;
 		Valueable<bool> LowSelectionPriority;
@@ -288,7 +289,7 @@ public:
 		Valueable<bool> FacingRotation_DisalbeOnDeactivated;
 		Valueable<bool> FacingRotation_DisableOnDriverKilled;
 
-		Valueable<bool> Is_Cow;
+
 		Valueable<bool> DontShake;
 		NullableIdx<VocClass>DiskLaserChargeUp;
 
@@ -694,8 +695,32 @@ public:
 		Valueable<int> GapRadiusInCells;
 		Valueable<int> SuperGapRadiusInCells;
 
-		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
+		// smoke when damaged
+		Nullable<int> SmokeChanceRed;
+		Nullable<int> SmokeChanceDead;
+		Valueable<AnimTypeClass*> SmokeAnim;
 
+		Nullable<bool> CarryallAllowed;
+		Nullable<int> CarryallSizeLimit;
+
+		NullableIdx<VocClass> VoiceAirstrikeAttack;
+		NullableIdx<VocClass> VoiceAirstrikeAbort;
+
+		// hunter seeker
+		Nullable<int> HunterSeekerDetonateProximity;
+		Nullable<int> HunterSeekerDescendProximity;
+		Nullable<int> HunterSeekerAscentSpeed;
+		Nullable<int> HunterSeekerDescentSpeed;
+		Nullable<int> HunterSeekerEmergeSpeed;
+
+		Valueable<bool> CanPassiveAcquire_Guard;
+		Valueable<bool> CanPassiveAcquire_Cloak;
+
+		Valueable<bool> CrashSpin;
+		Valueable<int> AirRate;
+		Nullable<bool> Unsellable;
+
+		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, HealthBar_Hide { false }
 			, UIDescription {}
 			, LowSelectionPriority { false }
@@ -868,7 +893,6 @@ public:
 			, FacingRotation_DisalbeOnEMP { false }
 			, FacingRotation_DisalbeOnDeactivated { false }
 			, FacingRotation_DisableOnDriverKilled { true }
-			, Is_Cow { false }
 
 			, DontShake { true }
 
@@ -1214,6 +1238,25 @@ public:
 			, RadialIndicatorRadius { }
 			, GapRadiusInCells { 0 }
 			, SuperGapRadiusInCells { 0 }
+			, SmokeChanceRed { 10 }
+			, SmokeChanceDead { 80 }
+			, SmokeAnim { nullptr }
+			, CarryallAllowed { }
+			, CarryallSizeLimit { }
+			, VoiceAirstrikeAttack { }
+			, VoiceAirstrikeAbort { }
+
+			, HunterSeekerDetonateProximity { }
+			, HunterSeekerDescendProximity { }
+			, HunterSeekerAscentSpeed { }
+			, HunterSeekerDescentSpeed { }
+			, HunterSeekerEmergeSpeed { }
+
+			, CanPassiveAcquire_Guard { true }
+			, CanPassiveAcquire_Cloak { true }
+			, CrashSpin { true }
+			, AirRate { 0 }
+			, Unsellable { }
 		{ }
 
 		virtual ~ExtData() override = default;
@@ -1221,7 +1264,7 @@ public:
 		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 		void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 		void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);
-		void Initialize() ;
+		void Initialize();
 
 		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }

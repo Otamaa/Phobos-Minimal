@@ -101,9 +101,6 @@ namespace detail
 
 			if (const auto nResult = PaletteManager::FindOrAllocate(flag.c_str()))
 			{
-				if (!nResult->Palette)
-					return false;
-
 				value = nResult;
 				return true;
 			}

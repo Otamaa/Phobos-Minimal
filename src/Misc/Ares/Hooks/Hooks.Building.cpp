@@ -134,38 +134,38 @@ DEFINE_OVERRIDE_HOOK(0x4430E8, BuildingClass_Demolish_LogCrash, 0x6)
 // bugfix #231: DestroyAnims don't remap and cause reconnection errors
 DEFINE_OVERRIDE_SKIP_HOOK(0x441D25, BuildingClass_Destroy, 0xA, 441D37);
 
-//DEFINE_OVERRIDE_HOOK(0x451E40, BuildingClass_DestroyNthAnim_Destroy, 0x7)
-//{
-//	GET(BuildingClass*, pThis, ECX);
-//	GET_STACK(int, AnimState, 0x4);
-//
-//	if (AnimState == -2) {
-//		for (auto& pAnim : pThis->Anims) {
-//			if (pAnim) {
-//				pAnim->UnInit();
-//				pAnim = nullptr;
-//			}
-//		}
-//	}
-//	else
-//	{
-//		if (auto& pAnim = pThis->Anims[AnimState]) {
-//			pAnim->UnInit();
-//			pAnim = nullptr;
-//		}
-//	}
-//
-//	return 0x451E93;
-//}
-//
-//DEFINE_OVERRIDE_HOOK(0x451A28, BuildingClass_PlayAnim_Destroy, 0x7)
-//{
-//	GET(BuildingClass* const , pThis , ESI);
-//
-//	GET(AnimClass*, pAnim, ECX);
-//	pAnim->UnInit();
-//	return 0x451A2F;
-//}
+DEFINE_OVERRIDE_HOOK(0x451E40, BuildingClass_DestroyNthAnim_Destroy, 0x7)
+{
+	GET(BuildingClass*, pThis, ECX);
+	GET_STACK(int, AnimState, 0x4);
+
+	if (AnimState == -2) {
+		for (auto& pAnim : pThis->Anims) {
+			if (pAnim) {
+				pAnim->UnInit();
+				pAnim = nullptr;
+			}
+		}
+	}
+	else
+	{
+		if (auto& pAnim = pThis->Anims[AnimState]) {
+			pAnim->UnInit();
+			pAnim = nullptr;
+		}
+	}
+
+	return 0x451E93;
+}
+
+DEFINE_OVERRIDE_HOOK(0x451A28, BuildingClass_PlayAnim_Destroy, 0x7)
+{
+	//GET(BuildingClass* const , pThis , ESI);
+
+	GET(AnimClass*, pAnim, ECX);
+	pAnim->UnInit();
+	return 0x451A2F;
+}
 
 DEFINE_OVERRIDE_HOOK(0x458E1E, BuildingClass_GetOccupyRangeBonus_Demacroize, 0xA)
 {
@@ -184,25 +184,10 @@ DEFINE_OVERRIDE_HOOK(0x44D755, BuildingClass_GetPipFillLevel_Tiberium, 0x6)
 	GET(BuildingTypeClass* const, pType, ESI);
 
 	double amount = 0.0;
-	if (pType->Storage > 0)
-	{
-		float amounttotal = 0.0f;
-		for (auto const& nTib : pThis->Tiberium.Tiberiums)
-		{
-			amounttotal += nTib;
-		}
-
-		amount = amounttotal / pType->Storage;
-	}
-	else
-	{
-		float amounttotal = 0.0f;
-		for (auto const& nTib : pThis->Owner->OwnedTiberium.Tiberiums)
-		{
-			amounttotal += nTib;
-		}
-
-		amount = amounttotal / pThis->Owner->TotalStorage;
+	if (pType->Storage > 0) {
+		amount = pThis->Tiberium.GetStoragePercentage(pType->Storage);
+	} else {
+		amount = pThis->Owner->OwnedTiberium.GetStoragePercentage(pThis->Owner->TotalStorage);
 	}
 
 	R->EAX(static_cast<int>(pType->GetPipMax() * amount));
@@ -331,19 +316,20 @@ DEFINE_OVERRIDE_HOOK(0x449FF8, BuildingClass_Mi_Selling_PutMcv, 7)
 DEFINE_OVERRIDE_HOOK(0x446E9F, BuildingClass_Place_FreeUnit_Mission, 0x6)
 {
 	GET(UnitClass* const, pFreeUnit, EDI);
+	Mission nMissions;
 
-	Mission nMissions = Mission::None;
-	if ((pFreeUnit->Type->Harvester || pFreeUnit->Type->Weeder)
-		&& pFreeUnit->Type->ResourceGatherer)
-	{
-		nMissions = Mission::Harvest;
+	if(!pFreeUnit->Owner){
+		nMissions = Mission::Sleep;
+	}else {
+		if (pFreeUnit->Type->Harvester ||
+			pFreeUnit->Type->Weeder ||
+			pFreeUnit->Type->ResourceGatherer)
+		{ nMissions = Mission::Harvest; }
+		else {
+			nMissions = !pFreeUnit->Owner->IsControlledByHuman()
+				? Mission::Hunt : Mission::Area_Guard;
+		}
 	}
-	else
-	{
-		nMissions = (pFreeUnit->Owner && !pFreeUnit->Owner->IsControlledByHuman())
-			? Mission::Hunt : Mission::Area_Guard;
-	}
-
 	pFreeUnit->QueueMission(nMissions, false);
 
 	return 0x446EAD;
@@ -416,70 +402,71 @@ DEFINE_OVERRIDE_HOOK(0x4456E5, BuildingClass_UpdateConstructionOptions_ExcludeDi
 	return (pBld->InLimbo || pBld->IsUnderEMP()) ?
 		0x44583E : 0x4456F3;
 }
-void AddPassengers(std::vector<TechnoClass*>& colle , TechnoClass* Vic)
-{
-	for(auto nPass = Vic->Passengers.GetFirstPassenger();
-		nPass;
-		nPass = (FootClass*)nPass->NextObject)
-	{
-		if (TechnoTypeExt::ExtMap.Find(nPass->GetTechnoType())->CanBeReversed) {
-			colle.push_back(nPass);
-		}
 
-		AddPassengers(colle, nPass);
-	}
-}
+//void AddPassengers(std::vector<TechnoClass*>& colle , TechnoClass* Vic)
+//{
+//	for(auto nPass = Vic->Passengers.GetFirstPassenger();
+//		nPass;
+//		nPass = (FootClass*)nPass->NextObject)
+//	{
+//		if (TechnoTypeExt::ExtMap.Find(nPass->GetTechnoType())->CanBeReversed) {
+//			colle.push_back(nPass);
+//		}
+//
+//		AddPassengers(colle, nPass);
+//	}
+//}
 
 // https://bugs.launchpad.net/ares/+bug/1925359
-bool ReverseEngineer(BuildingClass* pBuilding , TechnoClass* Victim) {
-	auto pReverseData = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
-
-	if (!pReverseData->ReverseEngineersVictims || !pBuilding->Owner) {
-		return false;
-	}
-
-	std::vector<TechnoClass*> Victims;
-
-	if(TechnoTypeExt::ExtMap.Find(Victim->GetTechnoType())->CanBeReversed)
-		Victims.push_back(Victim);
-
-	AddPassengers(Victims,Victim);
-	HouseClass* Owner = pBuilding->Owner;
-	auto& nVec = ReverseEngineeredTechnoType(Owner);
-
-	for(auto nColle : Victims) {
-
-		const auto VictimType = nColle->GetTechnoType();
-		const auto pVictimTypeExt = TechnoTypeExt::ExtMap.Find(VictimType);
-		const auto pVictimAs = pVictimTypeExt->ReversedAs.Get(VictimType);
-
-		if(std::find_if(std::begin(nVec), std::end(nVec), [&](TechnoTypeClass* pTech) { return pTech == pVictimAs; }) == std::end(nVec)) {
-			if (!(AresData::PrereqValidate(Owner, pVictimAs, false, true) == CanBuildResult::Buildable)) {
-
-				nVec.push_back(pVictimAs);
-
-				if (AresData::RequirementsMet(Owner, pVictimAs) >= 2) {
-
-					Owner->RecheckTechTree = true;
-
-					if (nColle->Owner && nColle->Owner->ControlledByPlayer()) {
-						VoxClass::Play(nColle->WhatAmI() == InfantryClass::AbsID ? "EVA_ReverseEngineeredInfantry" : "EVA_ReverseEngineeredVehicle");
-						VoxClass::Play(GameStrings::EVA_NewTechAcquired());
-					}
-
-					if (auto FirstTag = pBuilding->AttachedTag) {
-						FirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerType, pBuilding, CellStruct::Empty, false, nColle);
-
-						if (auto pSecondTag = pBuilding->AttachedTag)
-							FirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerAnything, pBuilding, CellStruct::Empty, false, nullptr);
-					}
-				}
-			}
-		}
-	}
-
-	return true;
-}
+//bool ReverseEngineer(BuildingClass* pBuilding , TechnoClass* Victim) {
+//	auto pReverseData = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+//
+//	if (!pReverseData->ReverseEngineersVictims || !pBuilding->Owner) {
+//		return false;
+//	}
+//
+//	std::vector<TechnoClass*> Victims;
+//
+//	if(TechnoTypeExt::ExtMap.Find(Victim->GetTechnoType())->CanBeReversed)
+//		Victims.push_back(Victim);
+//
+//	AddPassengers(Victims,Victim);
+//	HouseClass* Owner = pBuilding->Owner;
+//	auto& nVec = ReverseEngineeredTechnoType(Owner);
+//
+//	for(auto nColle : Victims) {
+//
+//		const auto VictimType = nColle->GetTechnoType();
+//		const auto pVictimTypeExt = TechnoTypeExt::ExtMap.Find(VictimType);
+//		const auto pVictimAs = pVictimTypeExt->ReversedAs.Get(VictimType);
+//
+//		if(std::find_if(std::begin(nVec), std::end(nVec), [&](TechnoTypeClass* pTech) { return pTech == pVictimAs; }) == std::end(nVec)) {
+//			if (!(AresData::PrereqValidate(Owner, pVictimAs, false, true) == CanBuildResult::Buildable)) {
+//
+//				nVec.push_back(pVictimAs);
+//
+//				if (AresData::RequirementsMet(Owner, pVictimAs) >= 2) {
+//
+//					Owner->RecheckTechTree = true;
+//
+//					if (nColle->Owner && nColle->Owner->ControlledByPlayer()) {
+//						VoxClass::Play(nColle->WhatAmI() == InfantryClass::AbsID ? "EVA_ReverseEngineeredInfantry" : "EVA_ReverseEngineeredVehicle");
+//						VoxClass::Play(GameStrings::EVA_NewTechAcquired());
+//					}
+//
+//					if (auto FirstTag = pBuilding->AttachedTag) {
+//						FirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerType, pBuilding, CellStruct::Empty, false, nColle);
+//
+//						if (auto pSecondTag = pBuilding->AttachedTag)
+//							FirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerAnything, pBuilding, CellStruct::Empty, false, nullptr);
+//					}
+//				}
+//			}
+//		}
+//	}
+//
+//	return true;
+//}
 
 void AddPassengers(BuildingClass* const Grinder, TechnoClass* Vic)
 {
@@ -1671,11 +1658,8 @@ DEFINE_OVERRIDE_HOOK(0x709B4E, TechnoClass_DrawPipscale_SkipSkipTiberium, 6)
 	GET(TechnoClass* const, pThis, EBP);
 
 	bool showTiberium = true;
-	if (Is_Building(pThis))
-	{
-		const auto pBld = static_cast<BuildingClass* const>(pThis);
-		if ((pBld->Type->Refinery || pBld->Type->ResourceDestination) && pBld->Type->Storage > 0)
-		{
+	if (const auto pBld = specific_cast<BuildingClass*>(pThis)) {
+		if ((pBld->Type->Refinery || pBld->Type->ResourceDestination) && pBld->Type->Storage > 0) {
 			// show only if this refinery uses storage. otherwise, the original
 			// refineries would show an unused tiberium pip scale
 			showTiberium = TechnoTypeExt::ExtMap.Find(pBld->Type)->Refinery_UseStorage;

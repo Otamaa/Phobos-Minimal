@@ -94,7 +94,7 @@ void ArmorTypeClass::EvaluateDefault()
 			const auto nDefault = FindIndexById(pArmor->DefaultString.data());
 			const auto pDefault = Array[nDefault].get();
 
-			if (i < nDefault)
+			if ((int)i < nDefault)
 			{
 				Debug::Log("[Phobos] Armor[%d - %s] Trying to reference Armor[%d - %s] with higher array index from itself !\n",
 				i, pArmor->Name.data(),

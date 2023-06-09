@@ -621,6 +621,7 @@ bool NOINLINE UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel, bool silent =
 		return true;
 	}
 
+	KillFootClass(pFoot, nullptr);
 	return false;
 }
 
@@ -630,8 +631,8 @@ void NOINLINE HandleUnload(std::vector<FootClass*>* pTunnelData, BuildingClass* 
 
 	if (pTunnelData->begin() != nPos)
 	{
-		UnloadOnce(*std::prev(nPos), pTunnel);
-		pTunnelData->pop_back();
+		if(UnloadOnce(*std::prev(nPos), pTunnel))
+			pTunnelData->pop_back();
 	}
 }
 

@@ -17,6 +17,8 @@ public:
 
 	public:
 
+		Valueable<bool> Is_Deso;
+		Valueable<bool> Is_Cow;
 		Nullable<double> C4Delay;
 		Nullable<int> C4ROF;
 		Nullable<int> C4Damage;
@@ -25,7 +27,10 @@ public:
 		Valueable<bool> HideWhenDeployAnimPresent;
 		Valueable<bool> DeathBodies_UseDieSequenceAsIndex;
 		WeaponStruct CrawlingWeaponDatas[4];
+
 		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
+			, Is_Deso { false }
+			, Is_Cow { false }
 			, C4Delay {}
 			, C4ROF {}
 			, C4Damage {}
@@ -40,6 +45,7 @@ public:
 		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr) ;
 		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+		void Initialize();
 
 	private:
 		template <typename T>

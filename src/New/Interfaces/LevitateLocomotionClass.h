@@ -193,12 +193,12 @@ public:
 	//IPiggy
 	virtual HRESULT __stdcall Begin_Piggyback(ILocomotion* pointer) override {
 		if (!pointer) {
-			return 0x80004003;
+			return E_POINTER;
 		}
 
 		//idk ,..
 		if (this->PiggyTO) {
-			return 0x80004005;
+			return E_FAIL;
 		}
 
 		this->PiggyTO = pointer;
@@ -211,14 +211,13 @@ public:
 	virtual HRESULT __stdcall End_Piggyback(ILocomotion** pointer) override {
 
 		if (!pointer) {
-			return 0x80004003;
+			return E_POINTER;
 		}
 
-		const auto v3 = this->PiggyTO;
-		if (!v3) {
+		if (!this->PiggyTO) {
 			//the implementation here can be specific to the locomotor itself 
 			//Jumpjet and Teleport has different stuffs include
-			return 1;
+			return S_FALSE;
 		}
 
 		*pointer = std::exchange(this->PiggyTO , nullptr);
@@ -228,19 +227,61 @@ public:
 	
 	virtual bool __stdcall Is_Ok_To_End() override { 
 		
-		return !SUCCEEDED(this->IsDirty()); // the implementation is different based on each loco
+		return this->PiggyTO && !this->LinkedTo->IsAttackedByLocomotor; // the implementation is different based on each loco
 		// here we check certain state
 	};	//Is it ok to end the piggyback process?
 
 	virtual HRESULT __stdcall Piggyback_CLSID(GUID* classid) override { 
-		CLSID clsId = *classid;
-		// it similar to these , but the error should be returned from function instead of contained
-		this->ChangeLocomotorTo(this->LinkedTo, clsId);
-		return S_OK;
+		HRESULT hr;
+
+		if (classid == nullptr)
+		{
+			return E_POINTER;
+		}
+
+		if (PiggyTO)
+		{
+
+			IPersistStreamPtr pbacker(PiggyTO);
+
+			hr = pbacker->GetClassID(classid);
+
+			if (pbacker)
+			{
+				pbacker->Release();
+				return hr;
+			}
+
+		}
+		else
+		{
+
+			if (reinterpret_cast<IPiggyback*>(this) != nullptr)
+			{
+				return E_FAIL;
+			}
+
+			IPersistStreamPtr this_pbacker(this);
+
+			if (this_pbacker == nullptr)
+			{
+				return E_FAIL;
+			}
+
+			hr = this_pbacker->GetClassID(classid);
+
+			if (this_pbacker)
+			{
+				this_pbacker->Release();
+			}
+
+		}
+
+		return hr;
 	};	//Fetches piggybacked locomotor class ID.
 
 	virtual bool __stdcall Is_Piggybacking() override { 
-		return this->PiggyTO;
+		return this->PiggyTO != nullptr;
 	};	//Is it currently piggy backing another locomotor?
 
 	void ProcessHovering();

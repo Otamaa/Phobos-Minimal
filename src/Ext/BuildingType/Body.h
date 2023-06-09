@@ -198,6 +198,16 @@ public:
 		// solid
 		Valueable<int> Solid_Height;
 		Valueable<int> Solid_Level;
+
+		Nullable<bool> AIBaseNormal;
+		Nullable<bool> AIInnerBase;
+		Valueable<bool> Cloning_Facility;
+
+		// gates
+		NullableIdx<VocClass> GateDownSound;
+		NullableIdx<VocClass> GateUpSound;
+		Nullable<bool> UnitSell;
+
 #pragma region Otamaa
 		NullableVector<AnimTypeClass*> DamageFireTypes;
 		NullableVector<AnimTypeClass*> OnFireTypes;
@@ -348,6 +358,12 @@ public:
 			, DockUnload_Facing {}
 			, Solid_Height { 0 }
 			, Solid_Level { 1 }
+			, AIBaseNormal {}
+			, AIInnerBase {}
+			, Cloning_Facility { false }
+			, GateDownSound {}
+			, GateUpSound {}
+			, UnitSell {}
 			, DamageFireTypes {}
 			, OnFireTypes {}
 			, OnFireIndex {}

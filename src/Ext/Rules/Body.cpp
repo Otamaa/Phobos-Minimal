@@ -154,25 +154,21 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 #pragma region Otamaa
 
 	this->DefaultParaPlane.Read(exINI, GENERAL_SECTION, "ParadropPlane" , true);
-	
-	if (!this->DefaultParaPlane)
-		this->DefaultParaPlane = AircraftTypeClass::FindOrAllocate(GameStrings::PDPLANE());
-
 	this->VeinholeParticle.Read(exINI, AUDIOVISUAL_SECTION, "VeinholeSpawnParticleType", true);
-	this->DefaultVeinParticle = ParticleTypeClass::FindOrAllocate(GameStrings::GASCLUDM1());
-	this->DefaultSquidAnim = AnimTypeClass::FindOrAllocate(GameStrings::SQDG());
 	this->CarryAll_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Carryall", true);
-
-	if (!this->CarryAll_LandAnim)
-		this->CarryAll_LandAnim = AnimTypeClass::FindOrAllocate(GameStrings::CARYLAND());
-
 	this->DropShip_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Dropship", true);
-
-	if (!this->DropShip_LandAnim)
-		this->DropShip_LandAnim = AnimTypeClass::FindOrAllocate(GameStrings::DROPLAND());
-
 	this->Aircraft_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Aircraft", true);
 	this->Aircraft_TakeOffAnim.Read(exINI, AUDIOVISUAL_SECTION, "TakeOffAnim.Aircraft", true);
+
+	this->DropPodTrailer.Read(exINI, GENERAL_SECTION, "DropPodTrailer" , true);
+	this->ElectricDeath.Read(exINI, AUDIOVISUAL_SECTION, "InfantryElectrocuted");
+
+	this->HunterSeekerDetonateProximity.Read(exINI, GENERAL_SECTION, "HunterSeekerDetonateProximity");
+	this->HunterSeekerDescendProximity.Read(exINI, GENERAL_SECTION, "HunterSeekerDescendProximity");
+	this->HunterSeekerAscentSpeed.Read(exINI, GENERAL_SECTION, "HunterSeekerAscentSpeed");
+	this->HunterSeekerDescentSpeed.Read(exINI, GENERAL_SECTION, "HunterSeekerDescentSpeed");
+	this->HunterSeekerEmergeSpeed.Read(exINI, GENERAL_SECTION, "HunterSeekerEmergeSpeed");
+	this->Units_UnSellable.Read(exINI, GENERAL_SECTION, "UnitsUnsellable");
 
 	if (pThis->WallTower)
 		this->WallTowers.push_back(pThis->WallTower);
@@ -189,8 +185,10 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->StealthSpeakDelay.Read(exINI, AUDIOVISUAL_SECTION, "StealthSpeakDelay");
 	this->SubterraneanSpeakDelay.Read(exINI, AUDIOVISUAL_SECTION, "SubterraneanSpeakDelay");
 	this->RandomCrateMoney.Read(exINI, GameStrings::CrateRules, "RandomCrateMoney");
-	this->ChronoSparkleDisplayDelay.Read(exINI, GameStrings::General, "ChronoSparkleDisplayDelay");
-	this->ChronoSparkleBuildingDisplayPositions.Read(exINI, GameStrings::General, "ChronoSparkleBuildingDisplayPositions");
+	this->ChronoSparkleDisplayDelay.Read(exINI, GENERAL_SECTION, "ChronoSparkleDisplayDelay");
+	this->ChronoSparkleBuildingDisplayPositions.Read(exINI, GENERAL_SECTION, "ChronoSparkleBuildingDisplayPositions");
+	this->RepairStopOnInsufficientFunds.Read(exINI, GENERAL_SECTION, "RepairStopOnInsufficientFunds");
+
 	this->BerserkROFMultiplier.Read(exINI, COMBATDAMAGE_SECTION, "BerserkROFMultiplier");
 	this->TeamRetaliate.Read(exINI, GENERAL_SECTION, "TeamRetaliate");
 	this->AI_CostMult.Read(exINI, GENERAL_SECTION, "AICostMult");
@@ -401,7 +399,25 @@ void RulesExt::LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI)
 
 // this runs between the before and after type data loading methods for rules ini
 void RulesExt::ExtData::InitializeAfterTypeData(RulesClass* const pThis)
-{ }
+{
+	if (!Data->ElectricDeath)
+		Data->ElectricDeath = AnimTypeClass::Find("ELECTRO");
+
+	if (!Data->DefaultParaPlane)
+		Data->DefaultParaPlane = AircraftTypeClass::Find(GameStrings::PDPLANE());
+
+	Data->DefaultVeinParticle = ParticleTypeClass::Find(GameStrings::GASCLUDM1());
+	Data->DefaultSquidAnim = AnimTypeClass::Find(GameStrings::SQDG());
+
+	if (!Data->CarryAll_LandAnim)
+		Data->CarryAll_LandAnim = AnimTypeClass::Find(GameStrings::CARYLAND());
+
+	if (!Data->DropShip_LandAnim)
+		Data->DropShip_LandAnim = AnimTypeClass::Find(GameStrings::DROPLAND());
+
+	if (!Data->DropPodTrailer)
+		Data->DropPodTrailer = AnimTypeClass::Find(GameStrings::SMOKEY());
+}
 
 // this should load everything that TypeData is not dependant on
 // i.e. InfantryElectrocuted= can go here since nothing refers to it
@@ -581,6 +597,16 @@ void RulesExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->ChronoSparkleDisplayDelay)
 		.Process(this->ChronoSparkleBuildingDisplayPositions)
+		.Process(this->RepairStopOnInsufficientFunds)
+		.Process(this->DropPodTrailer)
+		.Process(this->ElectricDeath)
+		.Process(this->HunterSeekerDetonateProximity)
+		.Process(this->HunterSeekerDescendProximity)
+		.Process(this->HunterSeekerAscentSpeed)
+		.Process(this->HunterSeekerDescentSpeed)
+		.Process(this->HunterSeekerEmergeSpeed)
+
+		.Process(this->Units_UnSellable)
 
 		.Process(this->BerserkROFMultiplier)
 		.Process(this->TeamRetaliate)
@@ -768,14 +794,14 @@ DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 		Debug::Log("Scenario Name [%s] , Map Name [%s] \n", ScenarioClass::Instance->FileName, SessionClass::Instance->ScenarioFilename);
 		for (auto const& it : *HouseClass::Array)
 		{
-			Debug::Log("Player Name: %s IsCurrentPlayer: %u; ColorScheme: %s; ID: %d; HouseType: %s; Edge: %d; StartingAllies: %u; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d\n",
+			Debug::Log("Player Name: %s IsCurrentPlayer: %u; ColorScheme: %s; ID: %d; HouseType: %s; Edge: %d; StartingAllies: %d; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d\n",
 			it->PlainName ? it->PlainName : NONE_STR,
 			it->IsHumanPlayer,
 			ColorScheme::Array->GetItem(it->ColorSchemeIndex)->ID,
 			it->ArrayIndex,
 			HouseTypeClass::Array->GetItem(it->Type->ArrayIndex)->Name,
 			it->Edge,
-			it->StartingAllies.data,
+			(int)it->StartingAllies.data,
 			it->StartingCell.X,
 			it->StartingCell.Y,
 			it->Visionary,
@@ -784,7 +810,7 @@ DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 			);
 		}
 	}
-
+	
 	return 0x0;
 }
 

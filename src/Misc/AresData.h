@@ -76,6 +76,13 @@ struct EMPulse
 	static bool IsDeactivationAdvisable(TechnoClass* Target);
 };
 
+//struct ALIGN(4) OptionalStructDummy
+//{
+//	bool Value;
+//	bool HasValue;
+//};
+//static_assert(sizeof(OptionalStructDummy) == 2, "Invalid Size !");
+
 // TODO : Allocation and deallocation for Ares vector and pointer stuffs
 // becarefull when doing operation that involve those , it can result on undefine behaviour
 
@@ -83,6 +90,7 @@ struct EMPulse
 #define GetAresTechnoExt(var) (void*)(*(uintptr_t*)((char*)var + 0x154))
 #define GetAresBuildingExt(var)  (void*)(*(uintptr_t*)((char*)var + 0x71C))
 #define GetAresHouseExt(var)  (void*)(*(uintptr_t*)((char*)var + 0x16084))
+#define GetAresHouseTypeExt(var)  (void*)(*(uintptr_t*)((char*)var + 0xC4))
 #define GetAresBuildingTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0xE24))
 #define GetAresTechnoTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0x2FC))
 #define GetAresBulletTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0x2C4))
@@ -118,6 +126,9 @@ struct EMPulse
 #define GetAEData(techno) (*(AEData*)(((char*)GetAresTechnoExt(techno)) + 0x20))
 
 #define TakeVehicleMode(techno) (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0xB0))
+#define AltOccupy_HasValue(techno)  (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0x9A)) 
+#define AltOccupy_Value(techno)  (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0x99)) 
+
 // HouseExt
 #define Is_NavalYardSpied(var) (*(bool*)((char*)GetAresHouseExt(var) + 0x48))
 #define Is_AirfieldSpied(var) (*(bool*)((char*)GetAresHouseExt(var) + 0x49))
@@ -132,9 +143,12 @@ struct EMPulse
 #define Is_FirestromWall(techno) (*(bool*)((char*)GetAresBuildingTypeExt(techno) + 0x5D))
 #define Is_Passable(techno) (*(bool*)((char*)GetAresBuildingTypeExt(techno) + 0x5E))
 #define TunnelIdx(var) (*(int*)(((char*)GetAresBuildingTypeExt(var)) + 0x244))
-
+#define Is_Academy(var) (*(bool*)((char*)GetAresBuildingTypeExt(var) + 0x138))
 //
+#define Is_CurrentlyRaided(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0x8))
+#define FreeUnitDone(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0xC))
 #define Ares_AboutToChronoshift(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0xD))
+#define Is_FromSW(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0xE))
 #define ToggalePowerHasPower(var) (*(bool*)(((char*)GetAresBuildingExt(var)) +0x51))
 //
 #define GetSelfHealingDleayAmount(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x4A8))
@@ -244,6 +258,7 @@ struct AresData
 	static void FireIronCurtain(TeamClass* pTeam, ScriptActionNode* pNode , bool ntrhd);
 	static void RespondToFirewall(HouseClass* pHouse, bool Active);
 	static int RequirementsMet(HouseClass* pHouse , TechnoTypeClass* pTech);
+	static void UpdateAcademy(HouseClass* pThis, TechnoClass* pTechno, bool bAdded);
 };
 
 namespace AresMemory
@@ -372,4 +387,5 @@ struct AresDTORCaller
 #define GetGunnerName(var) (*(std::vector<CSFText,AresMemory::AresAllocator<CSFText>>*)(((char*)GetAresTechnoTypeExt(var)) + 0xC8))
 #define GetPilotTypeVec(var) (*(std::vector<InfantryTypeClass*,AresMemory::AresAllocator<InfantryTypeClass*>>*)(((char*)GetAresTechnoTypeExt(var)) + 0x8))
 #define ReverseEngineeredTechnoType(var) (*(std::vector<TechnoTypeClass*,AresMemory::AresAllocator<TechnoTypeClass*>>*)((char*)GetAresHouseExt(var) + 0x34))
-
+#define VeteranBuildings(var) (*(std::vector<BuildingTypeClass*,AresMemory::AresAllocator<BuildingTypeClass*>>*)((char*)GetAresHouseTypeExt(var) + 0x15C))
+#define OverpoweredBuildingType(var) (*(std::vector<BuildingTypeClass*,AresMemory::AresAllocator<BuildingTypeClass*>>*)((char*)GetAresHouseExt(var) + 0x7C))

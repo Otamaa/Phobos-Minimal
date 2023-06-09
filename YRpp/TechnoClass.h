@@ -878,8 +878,8 @@ public:
 	bool			 IsTickedOff; //HasBeenAttacked //3D1
 	bool			 Cloakable; //3D2
 	bool			 IsPrimaryFactory; //3D3 IsLoaner
-	bool			 IsALoaner; // 3D4
-	bool			 IsLocked; // 3D5
+//	bool			 IsALoaner; // 3D4
+//	bool			 IsLocked; // 3D5
 	bool			 Spawned; // 3D6
 	bool             IsInPlayfield; // 3D7
 	DECLARE_PROPERTY(RecoilData, TurretRecoil);

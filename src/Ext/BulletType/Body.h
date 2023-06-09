@@ -96,6 +96,9 @@ public:
 		// cache for the image animation's palette convert
 		OptionalStruct<const ConvertClass*> ImageConvert;
 
+		Valueable<bool> Parachuted;
+		Valueable<int> AnimLength;
+
 		TrailsReader Trails;
 
 		#pragma endregion
@@ -155,8 +158,11 @@ public:
 			, BallisticScatterMin { }
 			, BallisticScatterMax { }
 			, ImageConvert { }
+			, Parachuted { false }
+			, AnimLength { 0 }
 			, Trails { }
 			, TrajectoryType { }
+
 		{ }
 
 		virtual ~ExtData() override = default;

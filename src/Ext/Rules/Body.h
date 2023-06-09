@@ -127,6 +127,17 @@ public:
 
 		Valueable<int> ChronoSparkleDisplayDelay;
 		Valueable<ChronoSparkleDisplayPosition> ChronoSparkleBuildingDisplayPositions;
+		Valueable<bool> RepairStopOnInsufficientFunds;
+		Valueable<AnimTypeClass*> DropPodTrailer;
+		Valueable<AnimTypeClass*> ElectricDeath;
+
+		Valueable<int> HunterSeekerDetonateProximity;
+		Valueable<int> HunterSeekerDescendProximity;
+		Valueable<int> HunterSeekerAscentSpeed;
+		Valueable<int> HunterSeekerDescentSpeed;
+		Valueable<int> HunterSeekerEmergeSpeed;
+
+		Valueable<bool> Units_UnSellable;
 #pragma region Otamaa
 
 		Nullable<ParticleTypeClass*> VeinholeParticle;
@@ -270,7 +281,16 @@ public:
 
 			, ChronoSparkleDisplayDelay { 24 }
 			, ChronoSparkleBuildingDisplayPositions { ChronoSparkleDisplayPosition::OccupantSlots }
+			, RepairStopOnInsufficientFunds { false }
+			, DropPodTrailer { nullptr }
+			, ElectricDeath { nullptr }
+			, HunterSeekerDetonateProximity { 0 }
+			, HunterSeekerDescendProximity { 0 }
+			, HunterSeekerAscentSpeed { 0 }
+			, HunterSeekerDescentSpeed { 0 }
+			, HunterSeekerEmergeSpeed { 0 }
 
+			, Units_UnSellable { true }
 			, VeinholeParticle { }
 			, DefaultVeinParticle { nullptr }
 			, DefaultSquidAnim { nullptr }

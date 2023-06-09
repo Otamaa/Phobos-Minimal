@@ -169,6 +169,8 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		//
 
 		this->SubjectToTrenches.Read(exINI, pSection, "SubjectToTrenches");
+		this->Parachuted.Read(exINI, pSection, "Parachuted");
+		this->AnimLength.Read(exINI, pThis->ID, "AnimLength");
 	}
 
 	if (pArtInI && pArtInI->GetSection(pArtSection)){
@@ -241,6 +243,8 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->BallisticScatterMin)
 		.Process(this->BallisticScatterMax)
 		.Process(this->ImageConvert)
+		.Process(this->Parachuted)
+		.Process(this->AnimLength)
 		;
 
 	this->Trails.Serialize(Stm);

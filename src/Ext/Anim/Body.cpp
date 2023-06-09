@@ -552,3 +552,5 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 	R->EBX(0);
 	return pThis->OwnerObject == target && target ? 0x425174 : 0x4251A3;
 }
+
+DEFINE_JUMP(VTABLE, 0x7E3390, GET_OFFSET(AnimExt::GetOwningHouse_Wrapper));

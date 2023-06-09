@@ -82,6 +82,8 @@ enum FunctionIndices : int
 
 	RespondToFirewallID = 47,
 	RequirementsMetID = 48,
+
+	UpdateAcademyID = 49,
 	count
 };
 
@@ -284,7 +286,8 @@ bool AresData::Init()
 
 		0x03A970, //TeamExt_FireIC
 		0x023010, //HouseExt::RespondToFirewall
-		0x022A70 ,//RequirementsMet
+		0x022A70, //RequirementsMet
+		0x0231E0, //UpdateAcademy
 	};
 
 	static constexpr DWORD AAresCustomPaletteReadTable[AresCustomPaletteReadCount] = {
@@ -582,4 +585,9 @@ void AresData::RespondToFirewall(HouseClass* pHouse, bool Active)
 int AresData::RequirementsMet(HouseClass* pHouse, TechnoTypeClass* pTech)
 {
 	return AresStdcall<RequirementsMetID, int, HouseClass*, TechnoTypeClass*>()(pHouse, pTech);
+}
+
+void AresData::UpdateAcademy(HouseClass* pThis, TechnoClass* pTechno, bool bAdded)
+{
+	AresThiscall<UpdateAcademyID, void, void*  , TechnoClass*, bool>()(GetAresHouseExt(pThis), pTechno , bAdded);
 }

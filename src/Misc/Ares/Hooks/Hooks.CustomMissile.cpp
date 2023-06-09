@@ -116,11 +116,12 @@ DEFINE_OVERRIDE_HOOK(0x662D85, RocketLocomotionClass_ILocomotion_Process_CustomM
 	GET(ILocomotion* const, pThis, ESI);
 
 	const auto pLocomotor = static_cast<RocketLocomotionClass* const>(pThis);
-	const auto pOwner = static_cast<AircraftClass* const>(pLocomotor->LinkedTo);
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pOwner->Type);
 
 	if (pLocomotor->TrailerTimer.Expired())
 	{
+		const auto pOwner = static_cast<AircraftClass* const>(pLocomotor->LinkedTo);
+		const auto pExt = TechnoTypeExt::ExtMap.Find(pOwner->Type);
+
 		pLocomotor->TrailerTimer.Start(pExt->CustomMissileTrailerSeparation);
 
 		if (AnimTypeClass* pType = pExt->CustomMissileTrailerAnim) {
@@ -278,13 +279,15 @@ DEFINE_HOOK(0x6B750B, SpawnManagerClass_Update_CustomMissilePreLauchAnim, 0x5)
 	GET(AircraftClass*, pSpawned, EDI);
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pSpawned->Type);
-	
+
 	if (pSpawned->Type == RulesClass::Instance->CMisl.Type) {
 		return 0x0;
 	} else if (pTypeExt->IsCustomMissile) {
-		if(AnimTypeClass* pType = pTypeExt->CustomMissilePreLauchAnim)
-			if (auto pAnim = GameCreate<AnimClass>(pType, pSpawned->Location, 2, 1, 0x600, -10, false))
+		if(AnimTypeClass* pType = pTypeExt->CustomMissilePreLauchAnim) { 
+			if (auto pAnim = GameCreate<AnimClass>(pType, pSpawned->Location, 2, 1, 0x600, -10, false)) { 
 				AnimExt::SetAnimOwnerHouseKind(pAnim, pSpawned->Owner, nullptr, pSpawned, true);
+			}
+		}
 	}
 
 	return 0x6B757A;

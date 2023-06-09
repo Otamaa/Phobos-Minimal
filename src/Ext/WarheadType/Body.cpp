@@ -27,8 +27,6 @@ void WarheadTypeExt::ExtData::Initialize()
 	AttachTag_Types.reserve(8);
 	AttachTag_Ignore.reserve(8);
 	DeadBodies.reserve(8);
-	Converts_To.reserve(8);
-	Converts_From.reserve(8);
 	SquidSplash.reserve(RulesClass::Instance->SplashList.Count);
 	DebrisAnimTypes.reserve(RulesClass::Instance->MetallicDebris.Count);
 	DetonateOnAllMapObjects_IgnoreTypes.reserve(8);
@@ -253,8 +251,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	this->Sound.Read(exINI, pSection, GameStrings::Sound());
 
 	this->Converts.Read(exINI, pSection, "Converts");
-	this->Converts_From.Read(exINI, pSection, "Converts.From");
-	this->Converts_To.Read(exINI, pSection, "Converts.To");
+	detail::ParseVectorOfPair(this->ConvertsPair, exINI, pSection, "ConvertsPair");
 
 	this->DeadBodies.Read(exINI, pSection, "DeadBodies");
 	this->AffectEnemies_Damage_Mod.Read(exINI, pSection, "AffectEnemies.DamageModifier");
@@ -339,7 +336,8 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	this->DisableWeapons_Duration.Read(exINI, pSection, "DisableWeapons.Duration");
 	this->Flash_Duration.Read(exINI, pSection, "Flash.Duration");
 	this->ImmunityType.Read(exINI, pSection, "ImmunityType");
-
+	this->Malicious.Read(exINI, pSection, "Malicious");
+	this->PreImpact_Moves.Read(exINI, pSection, "PreImpactAnim.Moves");
 	this->Launchs.clear();
 	for (size_t i = 0; ; ++i)
 	{
@@ -982,8 +980,7 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->PermaMC)
 		.Process(this->Sound)
 		.Process(this->Converts)
-		.Process(this->Converts_From)
-		.Process(this->Converts_To)
+		.Process(this->ConvertsPair)
 		.Process(this->StealMoney)
 		.Process(this->Steal_Display_Houses)
 		.Process(this->Steal_Display)
@@ -1057,6 +1054,8 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DisableWeapons_Duration)
 		.Process(this->Flash_Duration)
 		.Process(this->ImmunityType)
+		.Process(this->Malicious)
+		.Process(this->PreImpact_Moves)
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 

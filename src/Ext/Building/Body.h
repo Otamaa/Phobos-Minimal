@@ -41,6 +41,7 @@ public:
 		HouseClass* C4Owner;
 		WarheadTypeClass* C4Warhead;
 		bool Silent;
+		WarheadTypeClass* ReceiveDamageWarhead;
 
 		ExtData(BuildingClass* OwnerObject) : Extension<BuildingClass>(OwnerObject)
 			, Type { nullptr }
@@ -51,7 +52,7 @@ public:
 			, CurrentAirFactory { nullptr }
 			, AccumulatedGrindingRefund { 0 }
 			, AccumulatedIncome { 0 }
-		, IsCreatedFromMapFile { false }
+			, IsCreatedFromMapFile { false }
 			, DamageFireAnims { }
 			, AutoSellTimer { }
 			, LighningNeedUpdate { false }
@@ -60,6 +61,7 @@ public:
 			, C4Owner { nullptr }
 			, C4Warhead { nullptr }
 			, Silent { false }
+			, ReceiveDamageWarhead { nullptr }
 		{ }
 
 		virtual ~ExtData() override = default;

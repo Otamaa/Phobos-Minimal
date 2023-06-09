@@ -412,4 +412,39 @@ namespace detail
 			}
 		}
 	};
+
+	// designated format = key1 : key2 , ....
+	template<typename Tkey1, typename TKey2>
+	inline void ParseVectorOfPair(std::vector<std::pair<Tkey1, TKey2>>& v_pairs, INI_EX& parser, const char* section, const char* key)
+	{
+		if (parser.ReadString(section, key))
+		{
+			v_pairs.clear();
+			char* context = nullptr;
+			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
+			cur;
+			cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
+				std::string pairs(cur);
+				if (!pairs.empty())
+				{
+					std::erase(pairs, ' ');
+
+					const auto nDelim = pairs.find(":");
+					if (nDelim == std::string::npos)
+						continue;
+
+					auto nFirst = pairs.substr(0, nDelim);
+					auto nSecond = pairs.substr(nDelim + 1);
+
+					std::pair<Tkey1, TKey2 > buffer;
+					Parser<Tkey1>::Parse(nFirst.c_str(), &buffer.first);
+					Parser<TKey2>::Parse(nSecond.c_str(), &buffer.second);
+
+					v_pairs.push_back(buffer);
+				}
+			}
+		}
+	}
+
 }

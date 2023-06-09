@@ -138,5 +138,5 @@ public:
 	static bool AllowShrapnel(BulletClass* pThis, CellClass* pCell);
 	static bool ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pTarget, bool checkOwner = true);
 	static void ApplyShrapnel(BulletClass* pThis);
-	static DWORD ApplyAirburst(BulletClass* pThis);
+	static void ApplyAirburst(BulletClass* pThis);
 };

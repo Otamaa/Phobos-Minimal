@@ -167,11 +167,13 @@ DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
 
 		for (int currentIndex = 0; currentIndex < pType->DebrisTypes.Count; ++currentIndex)
 		{
-			if (currentIndex > pType->DebrisMaximums.Count)
+			if (currentIndex >= pType->DebrisMaximums.Count)
 				break;
 
-			const auto nDebrisMaximum = pType->DebrisMaximums[currentIndex];
-			int amountToSpawn = abs(int(ScenarioClass::Instance->Random.Random())) % nDebrisMaximum;
+			if (!pType->DebrisMaximums[currentIndex])
+				continue;
+
+			int amountToSpawn = abs(int(ScenarioClass::Instance->Random.Random())) % pType->DebrisMaximums[currentIndex];
 			amountToSpawn = LessOrEqualTo(amountToSpawn, totalSpawnAmount);
 			totalSpawnAmount -= amountToSpawn;
 
@@ -874,7 +876,9 @@ DEFINE_HOOK(0x44643E, BuildingClass_Place_SuperAnim, 0x6)
 	GET(BuildingClass*, pThis, EBP);
 	GET(SuperClass*, pSuper, EAX);
 
-	if (pSuper->RechargeTimer.StartTime == 0 && pSuper->RechargeTimer.TimeLeft == 0 && !SWTypeExt::ExtMap.Find(pSuper->Type)->SW_InitialReady)
+	if (pSuper->RechargeTimer.StartTime == 0 &&
+		pSuper->RechargeTimer.TimeLeft == 0 &&
+		!SWTypeExt::ExtMap.Find(pSuper->Type)->SW_InitialReady)
 	{
 		R->ECX(pThis);
 		return UseSuperAnimOne;
@@ -913,24 +917,24 @@ void UpdateAttachedAnimLayers(TechnoClass* pThis)
 	}
 }
 
-DEFINE_HOOK(0x54B188, JumpjetLocomotionClass_Process_LayerUpdate, 0x6)
-{
-	GET(TechnoClass*, pLinkedTo, EAX);
-
-	UpdateAttachedAnimLayers(pLinkedTo);
-
-	return 0;
-}
-
-DEFINE_HOOK(0x4CD4E1, FlyLocomotionClass_Update_LayerUpdate, 0x6)
-{
-	GET(TechnoClass*, pLinkedTo, ECX);
-
-	if (pLinkedTo->LastLayer != pLinkedTo->InWhichLayer())
-		UpdateAttachedAnimLayers(pLinkedTo);
-
-	return 0;
-}
+//DEFINE_HOOK(0x54B188, JumpjetLocomotionClass_Process_LayerUpdate, 0x6)
+//{
+//	GET(TechnoClass*, pLinkedTo, EAX);
+//
+//	UpdateAttachedAnimLayers(pLinkedTo);
+//
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x4CD4E1, FlyLocomotionClass_Update_LayerUpdate, 0x6)
+//{
+//	GET(TechnoClass*, pLinkedTo, ECX);
+//
+//	if (pLinkedTo->LastLayer != pLinkedTo->InWhichLayer())
+//		UpdateAttachedAnimLayers(pLinkedTo);
+//
+//	return 0;
+//}
 
 DEFINE_HOOK(0x688F8C, ScenarioClass_ScanPlaceUnit_CheckMovement, 0x5)
 {
@@ -966,6 +970,25 @@ DEFINE_HOOK(0x68927B, ScenarioClass_ScanPlaceUnit_CheckMovement2, 0x5)
 		Debug::Log("Techno[%s - %s] Not Allowed to exist at cell [%d . %d] !\n", pTechnoType->ID, pTechno->GetThisClassName(), pCell->MapCoords.X, pCell->MapCoords.Y);
 		return 0x689295;
 	}
+
+	return 0;
+
+}
+
+// In vanilla YR, game destroys building animations directly by calling constructor.
+// Ares changed this to call UnInit() which has a consequence of doing pointer invalidation on the AnimClass pointer.
+// This notably causes an issue with Grinder that restores ActiveAnim if the building is sold/destroyed while SpecialAnim is playing even if the building is gone or in limbo.
+// Now it does not do this if the building is in limbo, which covers all cases from being destroyed, sold, to erased by Temporal weapons.
+// There is another potential case for this with ProductionAnim & IdleAnim which is also patched here just in case.
+DEFINE_HOOK_AGAIN(0x44E997, BuildingClass_Detach_RestoreAnims, 0x6)
+DEFINE_HOOK(0x44E9FA, BuildingClass_Detach_RestoreAnims, 0x6)
+{
+	enum { SkipAnimOne = 0x44E9A4, SkipAnimTwo = 0x44EA07 };
+
+	GET(BuildingClass*, pThis, ESI);
+
+	if (pThis->InLimbo)
+		return R->Origin() == 0x44E997 ? SkipAnimOne : SkipAnimTwo;
 
 	return 0;
 }

@@ -45,13 +45,13 @@ DEFINE_HOOK(0x5F5A86, ObjectClass_SpawnParachuted_Animation_Bulet, 0x6)
 
 #pragma region Otamaa
 
-DEFINE_HOOK(0x469D12, BulletClass_Logics_CheckDoAirburst_MaxDebris, 0x8)
-{
-	GET(BulletClass*, pThis, ESI);
-	GET(int, nMaxCount, EAX);
-
-	return (nMaxCount > 0) ? 0x469D1A : BulletExt::ApplyAirburst(pThis);
-}
+//DEFINE_HOOK(0x469D12, BulletClass_Logics_CheckDoAirburst_MaxDebris, 0x8)
+//{
+//	GET(BulletClass*, pThis, ESI);
+//	GET(int, nMaxCount, EAX);
+//
+//	return (nMaxCount > 0) ? 0x469D1A : 0x0;
+//}
 
 DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 {
@@ -63,21 +63,20 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 	HouseClass* const pOWner = pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt->Owner ? pExt->Owner : HouseExt::FindCivilianSide());
 	HouseClass* const Victim = (pThis->Target) ? pThis->Target->GetOwningHouse() : nullptr;
 	CoordStruct nCoords { 0,0,0 };
-	auto const& nDebrisMaximums = pWarhead->DebrisMaximums;
 	auto const& nDebrisTypes = pWarhead->DebrisTypes;
 
-	if (nDebrisTypes.Count > 0 && nDebrisMaximums.Count > 0)
+	if (nDebrisTypes.Count > 0 && pWarhead->DebrisMaximums.Count > 0)
 	{
 		nCoords = pThis->GetCoords();
 		for (int nCurIdx = 0; nCurIdx < nDebrisTypes.Count; ++nCurIdx)
 		{
-			if (nCurIdx > nDebrisMaximums.Count)
+			if (nCurIdx > pWarhead->DebrisMaximums.Count)
 				break;
 
-			auto const nDebrisMaximum = nDebrisMaximums[nCurIdx];
-			if (nDebrisMaximum > 0)
-			{
-				int nAmountToSpawn = abs(int(ScenarioClass::Instance->Random.Random())) % nDebrisMaximum + 1;
+			if (!pWarhead->DebrisMaximums[nCurIdx])
+				continue;
+
+				int nAmountToSpawn = abs(int(ScenarioClass::Instance->Random.Random())) % pWarhead->DebrisMaximums[nCurIdx];
 				nAmountToSpawn = LessOrEqualTo(nAmountToSpawn, nTotalSpawn);
 				nTotalSpawn -= nAmountToSpawn;
 
@@ -90,7 +89,6 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 								pVoxelAnimExt->Invoker = pThis->Owner;
 						}
 				}
-			}
 
 			if (nTotalSpawn <= 0)
 			{
@@ -123,7 +121,7 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 		}
 	}
 
-	return BulletExt::ApplyAirburst(pThis);
+	return 0x469EBA;
 }
 #pragma endregion
 

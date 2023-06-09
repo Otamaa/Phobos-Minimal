@@ -14,6 +14,7 @@
 #include <Ext/Bullet/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/Infantry/Body.h>
+#include <Ext/InfantryType/Body.h>
 
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/GeneralUtils.h>
@@ -354,10 +355,11 @@ DEFINE_HOOK(0x4D42C4, FootClass_Mission_Patrol_IsCow, 0x6) //8
 
 	GET(FootClass* const, pThis, ESI);
 
-	if (TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->Is_Cow.Get())
-	{
-		pThis->UpdateIdleAction();
-		return pThis->Destination ? Skip : SetMissionRate;
+	if(const auto pInf = specific_cast<InfantryClass*>(pThis)) {
+		if (InfantryTypeExt::ExtMap.Find(pInf->Type)->Is_Cow) {
+			pThis->UpdateIdleAction();
+			return pThis->Destination ? Skip : SetMissionRate;
+		}
 	}
 
 	return Continue;
@@ -368,7 +370,7 @@ DEFINE_HOOK(0x51CE9A, InfantryClass_RandomAnim_IsCow, 0x5) //7
 	GET(InfantryClass*, pThis, ESI);
 
 	R->EDI(R->EAX());
-	R->BL(TechnoTypeExt::ExtMap.Find(pThis->Type)->Is_Cow.Get());
+	R->BL(InfantryTypeExt::ExtMap.Find(pThis->Type)->Is_Cow);
 	return 0x51CEAA;
 }
 

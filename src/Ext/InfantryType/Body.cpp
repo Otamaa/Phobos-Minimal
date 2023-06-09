@@ -2,6 +2,13 @@
 
 #include <Ext/Infantry/Body.h>
 
+void InfantryTypeExt::ExtData::Initialize()
+{
+	const auto pID = this->Get()->ID;
+	this->Is_Deso = IS_SAME_STR_(pID, GameStrings::DESO());
+	this->Is_Cow = IS_SAME_STR_(pID, GameStrings::COW());
+}
+
 void InfantryTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	const char* pID = this->Get()->ID;
@@ -11,6 +18,8 @@ void InfantryTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 	if (!pINI->GetSection(pID))
 		return;
 
+	this->Is_Deso.Read(exINI, pID,  "IsDesolator");
+	this->Is_Cow.Read(exINI, pID, "IsCow");
 	this->C4Delay.Read(exINI, pID, "C4Delay");
 	this->C4ROF.Read(exINI, pID, "C4ROF");
 	this->C4Damage.Read(exINI, pID, "C4Damage");
@@ -58,6 +67,8 @@ void InfantryTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
+		.Process(this->Is_Deso)
+		.Process(this->Is_Cow)
 		.Process(this->C4Delay)
 		.Process(this->C4ROF)
 		.Process(this->C4Damage)

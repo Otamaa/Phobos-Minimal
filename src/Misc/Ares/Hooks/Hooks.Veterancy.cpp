@@ -213,7 +213,7 @@ struct TechnoExperienceData
 
 				if (Flash && flash > 0)
 				{
-					pExpReceiver->Flashing.DurationRemaining += flash;
+					pExpReceiver->Flashing.DurationRemaining = flash;
 				}
 
 				if (Promoted_PlayAnim && !pExpReceiver->InLimbo) {

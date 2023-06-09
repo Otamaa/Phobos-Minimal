@@ -2843,14 +2843,26 @@ void TechnoExt::ExtData::UpdateType(TechnoTypeClass* currentType)
 	this->Type = currentType;
 	auto const pTypeExtData = TechnoTypeExt::ExtMap.Find(currentType);
 
-	if (auto pSpawnManager = pThis->SpawnManager) {
-		if (currentType->Spawns && pSpawnManager->SpawnType != currentType->Spawns) {
-			pSpawnManager->SpawnType = currentType->Spawns;
-			pSpawnManager->SpawnCount = currentType->SpawnsNumber;
-			pSpawnManager->RegenRate = currentType->SpawnRegenRate;
-			pSpawnManager->ReloadRate = currentType->SpawnReloadRate;
-		}
-	}
+	//if (auto pSpawnManager = pThis->SpawnManager) {
+	//	if (currentType->Spawns && pSpawnManager->SpawnType != currentType->Spawns) {
+	//		pSpawnManager->SpawnType = currentType->Spawns;
+
+	//		if(currentType->SpawnsNumber > 0)
+	//			pSpawnManager->SpawnCount = currentType->SpawnsNumber;
+
+	//		pSpawnManager->RegenRate = currentType->SpawnRegenRate;
+	//		pSpawnManager->ReloadRate = currentType->SpawnReloadRate;
+	//	}
+	//}
+	//else if(currentType->Spawns && currentType->SpawnsNumber > 0)
+	//{
+	//	pThis->SpawnManager = GameCreate<SpawnManagerClass>(
+	//		pThis,
+	//		currentType->Spawns , 
+	//		currentType->SpawnsNumber , 
+	//		currentType->SpawnRegenRate ,
+	//		currentType->SpawnReloadRate);
+	//}
 
 	TechnoExt::InitializeLaserTrail(pThis, true);
 
@@ -2876,8 +2888,9 @@ void TechnoExt::ExtData::UpdateType(TechnoTypeClass* currentType)
 
 	TrailsManager::Construct(static_cast<TechnoClass*>(pThis), true);
 
-	if (!pTypeExtData->MyFighterData.Enable && this->MyFighterData)
+	/*if (!pTypeExtData->MyFighterData.Enable && this->MyFighterData)
 		this->MyFighterData.reset(nullptr);
+
 	else if (pTypeExtData->MyFighterData.Enable && !this->MyFighterData)
 	{
 		this->MyFighterData = std::make_unique<FighterAreaGuard>();
@@ -2886,13 +2899,13 @@ void TechnoExt::ExtData::UpdateType(TechnoTypeClass* currentType)
 
 	if(!pTypeExtData->DamageSelfData.Enable && this->DamageSelfState)
 		this->DamageSelfState.reset(nullptr);
-	else if (!this->DamageSelfState)
+	else if (pTypeExtData->DamageSelfData.Enable && !this->DamageSelfState)
 		DamageSelfState::OnPut(this->DamageSelfState, pTypeExtData->DamageSelfData);
 
 	if (!pTypeExtData->MyGiftBoxData.Enable && this->MyGiftBox)
 		this->MyGiftBox.reset(nullptr);
-	else if (!this->MyGiftBox)
-		GiftBoxFunctional::Init(this, pTypeExtData);
+	else if (pTypeExtData->MyGiftBoxData.Enable && !this->MyGiftBox)
+		GiftBoxFunctional::Init(this, pTypeExtData);*/
 
 }
 

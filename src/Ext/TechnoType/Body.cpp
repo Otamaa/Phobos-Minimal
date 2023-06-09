@@ -54,12 +54,13 @@ void TechnoTypeExt::ExtData::Initialize()
 	ParticleSystems_DamageSparks.reserve(4);
 
 	this->ShieldType = ShieldTypeClass::Array[0].get();
-	this->Is_Cow = IS_SAME_STR_N(this->Get()->ID, "COW");
+
 
 	if (Is_AircraftType(Get()))
 	{
 		this->CustomMissileTrailerAnim = AnimTypeClass::Find(GameStrings::V3TRAIL());
 		this->CustomMissileTakeoffAnim = AnimTypeClass::Find(GameStrings::V3TAKEOFF());
+		this->SmokeAnim = AnimTypeClass::Find(GameStrings::SGRYSMK1());
 	}
 
 	const auto nPromotedEva = VoxClass::FindIndexById(GameStrings::EVA_UnitPromoted());
@@ -202,6 +203,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 	if (pINI->GetSection(pSection))
 	{
 		INI_EX exINI(pINI);
+
 		this->Survivors_PassengerChance.Read(exINI, pSection, "Survivor.%sPassengerChance");
 		this->HealthBar_Hide.Read(exINI, pSection, "HealthBar.Hide");
 		this->UIDescription.Read(exINI, pSection, "UIDescription");
@@ -422,8 +424,6 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->PipGarrison_FrameIndex.Read(exINI, pSection, "PipShapes.GarrisonFrameIndex");
 		this->PipGarrison_Palette.Read(exINI, pSection, "PipShapes.GarrisonPalette");
 		this->PipShapes01.Read(exINI, pSection, "PipShapes.Building");
-
-		this->Is_Cow.Read(exINI, pSection, "IsCow");
 
 		this->HealthNumber_SHP.Read(exINI, pSection, "HealthNumber.Shape");
 		this->HealthNumber_Show.Read(exINI, pSection, "HealthNumber.Show");
@@ -824,6 +824,47 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->RadialIndicatorRadius.Read(exINI, pSection, "RadialIndicatorRadius");
 		this->GapRadiusInCells.Read(exINI, pSection, "GapRadiusInCells");
 		this->SuperGapRadiusInCells.Read(exINI, pSection, "SuperGapRadiusInCells");
+
+		this->Survivors_PilotChance.Read(exINI, pSection, "Survivor.%sPilotChance");
+		this->HijackerOneTime.Read(exINI, pSection, "VehicleThief.OneTime");
+		this->HijackerKillPilots.Read(exINI, pSection, "VehicleThief.KillPilots");
+		this->HijackerEnterSound.Read(exINI, pSection, "VehicleThief.EnterSound");
+		this->HijackerLeaveSound.Read(exINI, pSection, "VehicleThief.LeaveSound");
+		this->Cursor_Deploy.Read(exINI, pSection, "Cursor.Deploy");
+		this->Cursor_NoDeploy.Read(exINI, pSection, "Cursor.NoDeploy");
+		this->Cursor_Enter.Read(exINI, pSection, "Cursor.Enter");
+		this->Cursor_NoEnter.Read(exINI, pSection, "Cursor.NoEnter");
+		this->Cursor_Move.Read(exINI, pSection, "Cursor.Move");
+		this->Cursor_NoMove.Read(exINI, pSection, "Cursor.NoMove");
+
+		// #680, 1362
+		this->ImmuneToAbduction.Read(exINI, pSection, "ImmuneToAbduction");
+		this->UseROFAsBurstDelays.Read(exINI, pSection, "UseROFAsBurstDelays");
+		this->Chronoshift_Crushable.Read(exINI, pSection, "Chronoshift.Crushable");
+
+		this->CanBeReversed.Read(exINI, pSection, "CanBeReversed");
+		this->ReversedAs.Read(exINI, pSection, "ReversedAs");
+		this->AssaulterLevel.Read(exINI, pSection, "Assaulter.Level");
+
+		// smoke when damaged
+		this->SmokeAnim.Read(exINI, pSection, "Smoke.Anim");
+		this->SmokeChanceRed.Read(exINI, pSection, "Smoke.ChanceRed");
+		this->SmokeChanceDead.Read(exINI, pSection, "Smoke.ChanceDead");
+
+		this->CarryallAllowed.Read(exINI, pSection, "Carryall.Allowed");
+		this->CarryallSizeLimit.Read(exINI, pSection, "Carryall.SizeLimit");
+
+		this->VoiceAirstrikeAttack.Read(exINI, pSection, "VoiceAirstrikeAttack");
+		this->VoiceAirstrikeAbort.Read(exINI, pSection, "VoiceAirstrikeAbort");
+
+		// note the wrong spelling of the tag for consistency
+		this->CanPassiveAcquire_Guard.Read(exINI, pSection, "CanPassiveAquire.Guard");
+		this->CanPassiveAcquire_Cloak.Read(exINI, pSection, "CanPassiveAquire.Cloak");
+
+		this->CrashSpin.Read(exINI, pSection, "CrashSpin");
+		this->AirRate.Read(exINI, pSection, "AirRate");
+		this->Unsellable.Read(exINI, pSection, "Unsellable");
+
 		if (Is_AircraftType(pThis))
 		{
 			this->CrashSpinLevelRate.Read(exINI, pSection, "CrashSpin.LevelRate");
@@ -865,26 +906,12 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 			//No code
 			this->Aircraft_DecreaseAmmo.Read(exINI, pSection, "Firing.ReplaceFiringMode");
 
-			this->Survivors_PilotChance.Read(exINI, pSection, "Survivor.%sPilotChance");
-			this->HijackerOneTime.Read(exINI, pSection, "VehicleThief.OneTime");
-			this->HijackerKillPilots.Read(exINI, pSection, "VehicleThief.KillPilots");
-			this->HijackerEnterSound.Read(exINI, pSection, "VehicleThief.EnterSound");
-			this->HijackerLeaveSound.Read(exINI, pSection, "VehicleThief.LeaveSound");
-			this->Cursor_Deploy.Read(exINI, pSection, "Cursor.Deploy");
-			this->Cursor_NoDeploy.Read(exINI, pSection, "Cursor.NoDeploy");
-			this->Cursor_Enter.Read(exINI, pSection, "Cursor.Enter");
-			this->Cursor_NoEnter.Read(exINI, pSection, "Cursor.NoEnter");
-			this->Cursor_Move.Read(exINI, pSection, "Cursor.Move");
-			this->Cursor_NoMove.Read(exINI, pSection, "Cursor.NoMove");
-
-			// #680, 1362
-			this->ImmuneToAbduction.Read(exINI, pSection, "ImmuneToAbduction");
-			this->UseROFAsBurstDelays.Read(exINI, pSection, "UseROFAsBurstDelays");
-			this->Chronoshift_Crushable.Read(exINI, pSection, "Chronoshift.Crushable");
-
-			this->CanBeReversed.Read(exINI, pSection, "CanBeReversed");
-			this->ReversedAs.Read(exINI, pSection, "ReversedAs");
-			this->AssaulterLevel.Read(exINI, pSection, "Assaulter.Level");
+			// hunter seeker
+			this->HunterSeekerDetonateProximity.Read(exINI, pSection, "HunterSeeker.DetonateProximity");
+			this->HunterSeekerDescendProximity.Read(exINI, pSection, "HunterSeeker.DescendProximity");
+			this->HunterSeekerAscentSpeed.Read(exINI, pSection, "HunterSeeker.AscentSpeed");
+			this->HunterSeekerDescentSpeed.Read(exINI, pSection, "HunterSeeker.DescentSpeed");
+			this->HunterSeekerEmergeSpeed.Read(exINI, pSection, "HunterSeeker.EmergeSpeed");
 
 			this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
 			this->MyDiveData.Read(exINI, pSection);
@@ -1323,7 +1350,6 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->FacingRotation_DisalbeOnEMP)
 		.Process(this->FacingRotation_DisalbeOnDeactivated)
 		.Process(this->FacingRotation_DisableOnDriverKilled)
-		.Process(this->Is_Cow)
 
 		.Process(this->DontShake)
 
@@ -1639,6 +1665,23 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->RadialIndicatorRadius)
 		.Process(this->GapRadiusInCells)
 		.Process(this->SuperGapRadiusInCells)
+		.Process(this->SmokeChanceRed)
+		.Process(this->SmokeChanceDead)
+		.Process(this->SmokeAnim)
+		.Process(this->CarryallAllowed)
+		.Process(this->CarryallSizeLimit)
+		.Process(this->VoiceAirstrikeAttack)
+		.Process(this->VoiceAirstrikeAbort)
+		.Process(this->HunterSeekerDetonateProximity)
+		.Process(this->HunterSeekerDescendProximity)
+		.Process(this->HunterSeekerAscentSpeed)
+		.Process(this->HunterSeekerDescentSpeed)
+		.Process(this->HunterSeekerEmergeSpeed)
+		.Process(this->CanPassiveAcquire_Guard)
+		.Process(this->CanPassiveAcquire_Cloak)
+		.Process(this->CrashSpin)
+		.Process(this->AirRate)
+		.Process(this->Unsellable)
 #pragma endregion
 		;
 

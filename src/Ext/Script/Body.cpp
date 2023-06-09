@@ -1547,12 +1547,12 @@ void ScriptExt::LoadIntoTransports(TeamClass* pTeam)
 	// Now load units into transports
 	for (auto const& pTransport : transports)
 	{
-		if (!TechnoExt::IsActive(pTransport, true, true))
+		if (!TechnoExt::IsActive(pTransport, true, true, false, true))
 			continue;
 
 		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 		{
-			if (!TechnoExt::IsActive(pUnit, true, true))
+			if (!TechnoExt::IsActive(pUnit, true, true, false, true))
 				continue;
 
 			auto const pTransportType = pTransport->GetTechnoType();
@@ -1607,7 +1607,7 @@ void ScriptExt::WaitUntilFullAmmoAction(TeamClass* pTeam)
 
 	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 	{
-		if (!TechnoExt::IsActive(pUnit, true, true))
+		if (!TechnoExt::IsActive(pUnit, true, true, false, true))
 			continue;
 
 		if (!pUnit->Spawned && pUnit->Owner)
@@ -1665,7 +1665,10 @@ void ScriptExt::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown = -
 	const auto pExt = TeamExt::ExtMap.Find(pTeam);
 
 	// This team has no units! END
-	if (!pExt || (IsEmpty(pTeam) && !pExt->TeamLeader))
+	if (//!pExt || (IsEmpty(pTeam) && 
+		!pExt->TeamLeader
+		)
+		//)
 	{
 		// This action finished
 		pTeam->StepCompleted = true;
@@ -1715,7 +1718,7 @@ void ScriptExt::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown = -
 
 		// Find the Leader
 		pLeaderUnit = pExt->TeamLeader;
-		if (!TechnoExt::IsActive(pLeaderUnit, false, true))
+		if (!TechnoExt::IsActive(pLeaderUnit, false, true, false, true))
 		{
 			pLeaderUnit = FindTheTeamLeader(pTeam);
 			pExt->TeamLeader = pLeaderUnit;
@@ -1752,7 +1755,7 @@ void ScriptExt::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown = -
 		// Check if units are around the leader
 		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 		{
-			if (!TechnoExt::IsActive(pUnit, true, true))
+			if (!TechnoExt::IsActive(pUnit, true, true, false, true))
 				continue;
 
 			{
@@ -2047,7 +2050,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 
 	// Find the Leader
 	pLeaderUnit = pTeamData->TeamLeader;
-	if (!TechnoExt::IsActive(pLeaderUnit, false, true))
+	if (!TechnoExt::IsActive(pLeaderUnit, false, true, false, true))
 	{
 		pLeaderUnit = FindTheTeamLeader(pTeam);
 		pTeamData->TeamLeader = pLeaderUnit;
@@ -2139,7 +2142,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 
 			for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 			{
-				if (!TechnoExt::IsActive(pUnit, true, true))
+				if (!TechnoExt::IsActive(pUnit, true, true, false, true))
 					continue;
 				{
 					const auto pUnitType = pUnit->GetTechnoType();
@@ -2280,7 +2283,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 	{
 		// This part of the code is used for updating the "Attack" mission in each team unit
 
-		if (TechnoExt::IsActive(pFocus, false, false)
+		if (TechnoExt::IsActive(pFocus, false, false, false, true)
 			&& !pFocus->GetTechnoType()->Immune
 			&& ((pFocus->IsInAir() && leaderWeaponsHaveAA)
 				|| (!pFocus->IsInAir() && leaderWeaponsHaveAG))
@@ -2297,7 +2300,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 
 			for (auto pUnit = pTeam->FirstUnit; pUnit && !bForceNextAction; pUnit = pUnit->NextTeamMember)
 			{
-				if (!TechnoExt::IsActive(pUnit, true, true))
+				if (!TechnoExt::IsActive(pUnit, true, true, false, true))
 					continue;
 
 				if (auto pUnitType = pUnit->GetTechnoType())
@@ -2448,7 +2451,7 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, int cal
 	{
 		const auto object = TechnoClass::Array->GetItem(i);
 
-		if (!TechnoExt::IsActive(object, false) || !object->Owner)
+		if (!TechnoExt::IsActive(object, false, false, false, true) || !object->Owner)
 			continue;
 
 		if(object->Location == CoordStruct::Empty)
@@ -3624,7 +3627,7 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, int calcThreatMode = 0, bool pick
 
 	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 	{
-		if (TechnoExt::IsActive(pUnit, true, true))
+		if (TechnoExt::IsActive(pUnit, true, true, false, true))
 		{
 			if (auto pUnitType = pUnit->GetTechnoType())
 			{
@@ -3642,7 +3645,7 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, int calcThreatMode = 0, bool pick
 
 	// Find the Leader
 	pLeaderUnit = pTeamData->TeamLeader;
-	if (!TechnoExt::IsActive(pLeaderUnit, false, true))
+	if (!TechnoExt::IsActive(pLeaderUnit, false, true, false, true))
 	{
 		pLeaderUnit = FindTheTeamLeader(pTeam);
 		pTeamData->TeamLeader = pLeaderUnit;
@@ -3700,7 +3703,7 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, int calcThreatMode = 0, bool pick
 
 			for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 			{
-				if (TechnoExt::IsActive(pUnit, true, true))
+				if (TechnoExt::IsActive(pUnit, true, true, false, true))
 				{
 					auto pUnitType = pUnit->GetTechnoType();
 
@@ -4035,7 +4038,7 @@ void ScriptExt::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, 
 			auto const objectFromIter = std::find_if(TechnoClass::Array->begin(),
 				TechnoClass::Array->end(), [objectsListIter, pTeam](TechnoClass* objectFromList)
 					{
-						if (TechnoExt::IsActive(objectFromList, false) && objectsListIter.contains(objectFromList->GetTechnoType()))
+						if (TechnoExt::IsActive(objectFromList, false,false, false, true) && objectsListIter.contains(objectFromList->GetTechnoType()))
 						{
 							if (pTeam->FirstUnit->Owner)
 							{
@@ -4166,7 +4169,7 @@ void ScriptExt::Mission_Move_List1Random(TeamClass* pTeam, int calcThreatMode, b
 			auto const objectFromIter = std::find_if(TechnoClass::Array->begin(), TechnoClass::Array->end(), [objectsListIter, pTeam, pickAllies](TechnoClass* objectFromList)
 			{
 				if (objectFromList && (objectsListIter.contains(objectFromList->GetTechnoType())
-				&& TechnoExt::IsActive(objectFromList, false)))
+				&& TechnoExt::IsActive(objectFromList, false , false, false, true)))
 				{
 					if (pTeam->FirstUnit->Owner)
 					{
@@ -4299,7 +4302,7 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 	// Team already have a focused target
 	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 	{
-		if (TechnoExt::IsActive(pUnit, true, true))
+		if (TechnoExt::IsActive(pUnit, true, true, false, true))
 		{
 			if (TechnoExt::IsInWarfactory(pUnit))
 			{
@@ -4664,8 +4667,7 @@ FootClass* ScriptExt::FindTheTeamLeader(TeamClass* pTeam)
 	// Find the Leader or promote a new one
 	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 	{
-
-		if (!TechnoExt::IsActive(pUnit, true, true))
+		if (!TechnoExt::IsActive(pUnit, true, true, false, true))
 		{
 			pUnit->IsTeamLeader = false;
 			continue;
@@ -4726,8 +4728,9 @@ FootClass* ScriptExt::FindTheTeamLeader(TeamClass* pTeam)
 		}
 	}
 
-	if (pLeaderUnit)
+	if (pLeaderUnit){
 		pLeaderUnit->IsTeamLeader = true;
+	}
 
 	return pLeaderUnit;
 }
@@ -6789,7 +6792,7 @@ void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 	// If there are no engineers end this script action
 	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 	{
-		if (!TechnoExt::IsActive(pUnit))
+		if (!TechnoExt::IsActive(pUnit,true,false ,false ,true))
 			continue;
 
 		if (Is_Infantry(pUnit)) {

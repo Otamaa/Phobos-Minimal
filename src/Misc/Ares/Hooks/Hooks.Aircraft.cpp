@@ -63,13 +63,11 @@ DEFINE_OVERRIDE_HOOK(0x417E16, AircraftClass_GetActionOnObject_Dock, 0x6)
 	return 0x417E7D;
 }
 
-DEFINE_OVERRIDE_HOOK(0x413F98, AircraftClass_Init_Cloakable, 0x6)
+DEFINE_OVERRIDE_HOOK(0x413FA3, AircraftClass_Init_Cloakable, 0x5)
 {
 	GET(AircraftClass*, Item, ESI);
-	GET(AircraftTypeClass*, pType, EDI);
 
-	if (pType->Cloakable)
-	{
+	if (Item->Type->Cloakable) {
 		Item->Cloakable = true;
 	}
 

@@ -164,6 +164,18 @@ public:
 		return TranslateFixedPoint::TemplatedCompileTime<16, Bits>(this->Raw, offset);
 	}
 
+	constexpr size_t Getvalue8() const {
+		return this->GetValue<3>();
+	}
+
+	constexpr size_t Getvalue32() const {
+		return this->GetValue<5>();
+	}
+
+	constexpr size_t Getvalue256() const {
+		return this->GetValue<8>();
+	}
+
 	size_t GetValue(size_t Bits = 16, size_t offset = 0) const {
 		if (Bits <= 16u)
 			return TranslateFixedPoint::Normal(16, Bits, this->Raw, offset);

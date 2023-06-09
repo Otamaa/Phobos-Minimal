@@ -171,7 +171,7 @@ DEFINE_OVERRIDE_HOOK(0x6F661D, TechnoClass_DrawHealthBar_DestroyedBuilding_RedPi
 
 // issues 1002020, 896263, 895954: clear stale mind control pointer to prevent
 // crashes when accessing properties of the destroyed controllers.
-DEFINE_OVERRIDE_HOOK(0x7077EE, TechnoClass_PointerGotInvalid_ResetMindControl, 0x6)
+DEFINE_OVERRIDE_HOOK(0x707b09, TechnoClass_PointerGotInvalid_ResetMindControl, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(void*, ptr, EBP);
@@ -313,10 +313,38 @@ DEFINE_HOOK(0x6FC3FE, TechnoClass_CanFire_Immunities, 0x6)
 	return ContinueCheck;
 }
 
-DEFINE_OVERRIDE_HOOK(0x744216, UnitClass_UnmarkOccupationBits, 0x6)
+// issue #895788: cells' high occupation flags are marked only if they
+// actually contains a bridge while unmarking depends solely on object
+// height above ground. this mismatch causes the cell to become blocked.
+DEFINE_HOOK(0x7441B0, UnitClass_MarkOccupationBits, 0x6)
 {
 	GET(UnitClass*, pThis, ECX);
-	GET(CoordStruct*, pCrd, ESI);
+	GET_STACK(CoordStruct*, pCrd, 0x4);
+
+	CellClass* pCell = MapClass::Instance->GetCellAt(pCrd);
+	int height = MapClass::Instance->GetCellFloorHeight(pCrd) + CellClass::BridgeHeight;
+	bool alt = (pCrd->Z >= height && pCell->ContainsBridge());
+
+	// remember which occupation bit we set
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
+	pExt->AltOccupation = alt;
+
+	if (alt)
+	{
+		pCell->AltOccupationFlags |= 0x20;
+	}
+	else
+	{
+		pCell->OccupationFlags |= 0x20;
+	}
+
+	return 0x74420B;
+}
+
+DEFINE_HOOK(0x744210, UnitClass_UnmarkOccupationBits, 0x5)
+{
+	GET(UnitClass*, pThis, ECX);
+	GET_STACK(CoordStruct*, pCrd, 0x4);
 
 	enum { obNormal = 1, obAlt = 2 };
 
@@ -343,7 +371,7 @@ DEFINE_OVERRIDE_HOOK(0x744216, UnitClass_UnmarkOccupationBits, 0x6)
 		pCell->OccupationFlags &= ~0x20;
 	}
 
-	return 0x74425E;
+	return 0x744260;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6FE31C, TechnoClass_Fire_AllowDamage, 8)
@@ -352,7 +380,7 @@ DEFINE_OVERRIDE_HOOK(0x6FE31C, TechnoClass_Fire_AllowDamage, 8)
 	GET(WeaponTypeClass*, pWeapon, EBX);
 
 	// whether conventional damage should be used
-	const bool applyDamage = 
+	const bool applyDamage =
 		WeaponTypeExt::ExtMap.Find(pWeapon)->ApplyDamage.Get(!pWeapon->IsSonic && !pWeapon->UseFireParticles);
 
 	if (!applyDamage)

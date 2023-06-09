@@ -1018,6 +1018,7 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		.Process(this->DiscoverEvaDelay)
 
 		.Process(this->Tunnels)
+		.Process(this->Seed)
 		;
 }
 

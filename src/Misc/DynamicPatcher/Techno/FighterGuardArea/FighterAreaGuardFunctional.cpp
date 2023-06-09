@@ -17,8 +17,8 @@ static constexpr std::array<CoordStruct, 6> areaGuardCoords
 
 void FighterAreaGuardFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
 {
-	if (!pExt->MyFighterData)
-		return;
+	//if (!pExt->MyFighterData)
+	//	return;
 
-	pExt->MyFighterData->OnUpdate();
+	//pExt->MyFighterData->OnUpdate();
 }

@@ -87,9 +87,10 @@ public:
 
 	static constexpr reference<NamedValue<int>, 0x81B958u, 11u> const PipsTypeName {};
 	static constexpr reference<NamedValue<int>, 0x81B9B0u, 4u> const PipScaleTypeName {};
+	static constexpr reference<const char*, 0x81BA88, 13u> const MovementZonesToString {};
 	static constexpr reference<int, 0x7F4890, 40u> const BodyShapeStage {};
 	static constexpr reference<int, 0x7F4890, 8u> const BodyShapeStage_Force8 {}; //used by ares 
-
+	
 	//These is same with belows , just for confinient
 	static constexpr reference<bool, 0xAC1488u, 4u> const ShapesIsAllocated {};
 

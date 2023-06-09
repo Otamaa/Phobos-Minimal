@@ -79,6 +79,9 @@ public:
 		Valueable<SuperWeaponAITargetingMode> SW_AITargetingMode;
 		Valueable<int> SW_Group;
 
+		//UnitDelivery
+		ValueableVector<TechnoTypeClass*> Deliver_Types;
+
 		ExtData(SuperWeaponTypeClass* OwnerObject) : Extension<SuperWeaponTypeClass>(OwnerObject)
 			, Money_Amount { 0 }
 			, UIDescription {}
@@ -130,6 +133,8 @@ public:
 
 			, SW_AITargetingMode { SuperWeaponAITargetingMode::None }
 			, SW_Group { 0 }
+
+			, Deliver_Types { }
 		{ }
 
 

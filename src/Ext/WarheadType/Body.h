@@ -190,8 +190,7 @@ public:
 		ValueableIdx<VocClass> Sound;
 
 		Valueable<bool> Converts;
-		ValueableVector<TechnoTypeClass*> Converts_From;
-		ValueableVector<TechnoTypeClass*> Converts_To;
+		std::vector<std::pair<TechnoTypeClass*, TechnoTypeClass*>> ConvertsPair;
 		ValueableVector<AnimTypeClass*> DeadBodies;
 
 		Nullable<double> AffectEnemies_Damage_Mod;
@@ -270,6 +269,8 @@ public:
 
 		NullableIdx<ImmunityTypeClass> ImmunityType;
 
+		Valueable<bool> Malicious;
+		Valueable<bool> PreImpact_Moves;
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		PhobosMap<int, DamageTextTypeData> DamageTextPerArmor;
 #endif
@@ -421,8 +422,7 @@ public:
 			, Sound { -1 }
 
 			, Converts { false }
-			, Converts_From {}
-			, Converts_To {}
+			, ConvertsPair {}
 			, DeadBodies {}
 			, AffectEnemies_Damage_Mod {}
 			, AffectOwner_Damage_Mod {}
@@ -493,6 +493,8 @@ public:
 			, DisableWeapons_Duration { 0 }
 			, Flash_Duration { 0 }
 			, ImmunityType {}
+			, Malicious { true }
+			, PreImpact_Moves { false }
 #ifdef COMPILE_PORTED_DP_FEATURES_
 			,DamageTextPerArmor { }
 

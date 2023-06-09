@@ -76,17 +76,52 @@ class CRCEngine;
 
 struct StorageClass final
 {
+	double GetStoragePercentage(int total) const
+	{
+		return (double)this->GetTotalAmount() / (double)total;
+	}
+
 	float GetAmount(int index) const
-		{ JMP_THIS(0x6C9680); }
+	{ //JMP_THIS(0x6C9680);
+		return this->Tiberiums[index];
+	}
 
 	float GetTotalAmount() const
-		{ JMP_THIS(0x6C9650); }
+	{ //JMP_THIS(0x6C9650);
+		float amounttotal = 0.0f;
+		for (auto const& nTib :this->Tiberiums) {
+			amounttotal += nTib;
+		}
+
+		return amounttotal;
+	}
 
 	float AddAmount(float amount, int index)
-		{ JMP_THIS(0x6C9690); }
+	{ //JMP_THIS(0x6C9690);
+	   float result = amount + this->Tiberiums[index];
+   		this->Tiberiums[index] = result;
+    	return result;
+	}
 
 	float RemoveAmount(float amount, int index)
-		{ JMP_THIS(0x6C96B0); }
+	{ //JMP_THIS(0x6C96B0);
+		float result = 0.0f;
+		float v4 = 0.0f;
+
+	    if ( this->Tiberiums[index] >= amount )
+   		{
+        	result = amount;
+        	v4 = this->Tiberiums[index] - amount;
+    	}
+    	else
+    	{
+        	result = this->Tiberiums[index];
+        	v4 = result - result;
+    	}
+
+    	this->Tiberiums[index] = v4;
+    	return result;
+	}
 
 	int GetTotalValue() const
 		{ JMP_THIS(0x6C9600); }
