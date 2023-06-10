@@ -431,7 +431,7 @@ DEFINE_OVERRIDE_HOOK(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
 
 		if (Anim->Type->MakeInfantry > -1)
 		{
-			AnimTypeExt::SetMakeInfOwner(Anim, pInvoker, pVictim);
+			AnimExt::SetAnimOwnerHouseKind(Anim, pInvoker, pVictim);
 		}
 		else
 		{

@@ -55,20 +55,22 @@ void TechnoTypeExt::ExtData::Initialize()
 
 	this->ShieldType = ShieldTypeClass::Array[0].get();
 
-
-	if (Is_AircraftType(Get()))
+	if (!Is_BuildingType(Get()))
 	{
-		this->CustomMissileTrailerAnim = AnimTypeClass::Find(GameStrings::V3TRAIL());
-		this->CustomMissileTakeoffAnim = AnimTypeClass::Find(GameStrings::V3TAKEOFF());
-		this->SmokeAnim = AnimTypeClass::Find(GameStrings::SGRYSMK1());
+
+		if (Is_AircraftType(Get()))
+		{
+			this->CustomMissileTrailerAnim = AnimTypeClass::Find(GameStrings::V3TRAIL());
+			this->CustomMissileTakeoffAnim = AnimTypeClass::Find(GameStrings::V3TAKEOFF());
+			this->SmokeAnim = AnimTypeClass::Find(GameStrings::SGRYSMK1());
+		}
+
+		this->EVA_UnitLost = VoxClass::FindIndexById(GameStrings::EVA_UnitLost());
+		const auto nPromotedEva = VoxClass::FindIndexById(GameStrings::EVA_UnitPromoted());
+		this->Promote_Elite_Eva = nPromotedEva;
+		this->Promote_Vet_Eva = nPromotedEva;
 	}
 
-	const auto nPromotedEva = VoxClass::FindIndexById(GameStrings::EVA_UnitPromoted());
-	this->Promote_Elite_Eva = nPromotedEva;
-	this->Promote_Vet_Eva = nPromotedEva;
-
-	if(!Is_BuildingType(Get()))
-		this->EVA_UnitLost = VoxClass::FindIndexById(GameStrings::EVA_UnitLost());
 }
 
 AnimTypeClass* TechnoTypeExt::GetSinkAnim(TechnoClass* pThis)
@@ -1157,7 +1159,7 @@ bool TechnoTypeExt::PassangersAllowed(TechnoTypeClass* pThis, TechnoTypeClass* p
 {
 	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis);
 
-	if (!pExt->PassengersWhitelist.empty() && !pExt->PassengersWhitelist.Contains(pPassanger))
+	if (!pExt->PassengersWhitelist.Eligible(pPassanger))
 		return false;
 
 	if (!pExt->PassengersBlacklist.empty() && pExt->PassengersBlacklist.Contains(pPassanger))

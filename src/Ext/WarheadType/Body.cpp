@@ -150,6 +150,11 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	this->Shield_MinimumReplaceDelay.Read(exINI, pSection, "Shield.MinimumReplaceDelay");
 	this->Shield_AffectTypes.Read(exINI, pSection, "Shield.AffectTypes");
 
+	this->Shield_Penetrate_Types.Read(exINI, pSection, "Shield.Penetrate.Types");
+	this->Shield_Break_Types.Read(exINI, pSection, "Shield.Break.Types");
+	this->Shield_Respawn_Types.Read(exINI, pSection, "Shield.Respawn.Types");
+	this->Shield_SelfHealing_Types.Read(exINI, pSection, "Shield.SelfHealing.Types");
+
 	this->NotHuman_DeathSequence.Read(exINI, pSection, "NotHuman.DeathSequence");
 
 	// Transact
@@ -356,7 +361,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 		this->Launchs.push_back(std::move(nData));
 	}
 
-
+	this->Conventional_IgnoreUnits.Read(exINI, pSection, "Conventional.IgnoreUnits");
 
 }
 
@@ -915,7 +920,10 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Shield_InheritStateOnReplace)
 		.Process(this->Shield_MinimumReplaceDelay)
 		.Process(this->Shield_AffectTypes)
-
+		.Process(this->Shield_Penetrate_Types)
+		.Process(this->Shield_Break_Types)
+		.Process(this->Shield_Respawn_Types)
+		.Process(this->Shield_SelfHealing_Types)
 		.Process(this->Transact)
 		.Process(this->Transact_SpreadAmongTargets)
 		.Process(this->Transact_Experience_Value)
@@ -1056,6 +1064,7 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->ImmunityType)
 		.Process(this->Malicious)
 		.Process(this->PreImpact_Moves)
+		.Process(this->Conventional_IgnoreUnits)
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 

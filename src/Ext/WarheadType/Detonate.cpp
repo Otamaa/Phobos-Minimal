@@ -539,12 +539,14 @@ void WarheadTypeExt::ExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 {
 	auto pExt = TechnoExt::ExtMap.Find(pTarget);
 
-	{
+
 		int shieldIndex = -1;
 		double oldRatio = 1.0;
 
 		// Remove shield.
-		if (pExt->Shield) {
+		if (pExt->GetShield()) {
+
+
 
 			shieldIndex = this->Shield_RemoveTypes.IndexOf(pExt->Shield->GetType());
 
@@ -565,8 +567,7 @@ void WarheadTypeExt::ExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 			{
 				if (shieldIndex >= 0){
 					const int nMax = (Shield_AttachTypes.size() - 1);
-					shieldType =
-					 Shield_AttachTypes[MinImpl(shieldIndex, nMax) ];
+					shieldType = Shield_AttachTypes[MinImpl(shieldIndex, nMax) ];
 				}
 
 			}
@@ -597,22 +598,23 @@ void WarheadTypeExt::ExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 		// Apply other modifiers.
 		if (pExt->GetShield())
 		{
-			if (!this->Shield_AffectTypes.empty() && !this->Shield_AffectTypes.Contains(pExt->Shield->GetType()))
+			const auto pCurrentType = pExt->Shield->GetType();
+
+			if (!this->Shield_AffectTypes.empty() && !this->Shield_AffectTypes.Contains(pCurrentType))
 				return;
 
-			if (this->Shield_Break && pExt->Shield->IsActive())
+			if (this->Shield_Break && pExt->Shield->IsActive() && this->Shield_Break_Types.Eligible(this->Shield_AffectTypes, pCurrentType))
 				pExt->Shield->BreakShield(this->Shield_BreakAnim.Get(nullptr), this->Shield_BreakWeapon.Get(nullptr));
 
-			if (this->Shield_Respawn_Duration > 0)
+			if (this->Shield_Respawn_Duration > 0 && this->Shield_Respawn_Types.Eligible(this->Shield_AffectTypes, pCurrentType))
 				pExt->Shield->SetRespawn(this->Shield_Respawn_Duration, this->Shield_Respawn_Amount, this->Shield_Respawn_Rate, this->Shield_Respawn_ResetTimer);
 
-			if (this->Shield_SelfHealing_Duration > 0)
+			if (this->Shield_SelfHealing_Duration > 0 && this->Shield_SelfHealing_Types.Eligible(this->Shield_AffectTypes, pCurrentType))
 			{
-				double amount = this->Shield_SelfHealing_Amount.Get(pExt->Shield->GetType()->SelfHealing);
+				double amount = this->Shield_SelfHealing_Amount.Get(pCurrentType->SelfHealing);
 				pExt->Shield->SetSelfHealing(this->Shield_SelfHealing_Duration, amount, this->Shield_SelfHealing_Rate, this->Shield_SelfHealing_ResetTimer);
 			}
 		}
-	}
 }
 
 void WarheadTypeExt::ExtData::ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass* pTarget)

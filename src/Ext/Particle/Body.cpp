@@ -98,8 +98,7 @@ static void FC ParticleClass_Detach(ParticleClass* pThis, void* _, AbstractClass
 {
 	pThis->ObjectClass::PointerExpired(pTarget ,bRemove);
 
-	//if (auto pExt = ParticleExt::ExtMap.Find(pThis))
-	//	pExt->InvalidatePointer(pTarget, bRemove);
+	//ParticleExt::ExtMap.InvalidatePointerFor(pThis, pTarget, bRemove);
 }
 
 DEFINE_JUMP(VTABLE, 0x7EF97C, GET_OFFSET(ParticleClass_Detach))

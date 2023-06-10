@@ -110,15 +110,7 @@ DEFINE_HOOK(0x6E2290, ActionClass_PlayAnimAt, 0x6)
 		if (AnimClass* pAnim = GameCreate<AnimClass>(AnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false))
 		{
 			pAnim->IsPlaying = true;
-
-			if (AnimType->MakeInfantry > -1)
-			{
-				AnimTypeExt::SetMakeInfOwner(pAnim, pOwner, nullptr);
-			}
-			else
-			{
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, false);
-			}
+			AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, false);
 		}
 	}
 

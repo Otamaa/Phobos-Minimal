@@ -1103,8 +1103,7 @@ DEFINE_HOOK(0x4FB9B7, HouseClass_Detach, 0xA)
 	GET_STACK(void*, target, STACK_OFFSET(0xC, 0x4));
 	GET_STACK(bool, all, STACK_OFFSET(0xC, 0x8));
 
-	if (auto pExt = HouseExt::ExtMap.Find(pThis))
-		pExt->InvalidatePointer(target, all);
+	HouseExt::ExtMap.InvalidatePointerFor(pThis, target, all);
 
 	R->ESI(pThis);
 	R->EBX(0);

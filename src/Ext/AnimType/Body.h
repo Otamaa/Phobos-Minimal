@@ -25,7 +25,7 @@ public:
 		Valueable<DirType> CreateUnit_Facing;
 		Valueable<bool> CreateUnit_InheritDeathFacings;
 		Valueable<bool> CreateUnit_InheritTurretFacings;
-		Valueable<bool> CreateUnit_RemapAnim;
+		Nullable<bool> CreateUnit_RemapAnim;
 		Valueable<bool> CreateUnit_RandomFacing;
 		Valueable<Mission> CreateUnit_Mission;
 		Valueable<OwnerHouseKind> CreateUnit_Owner;
@@ -82,6 +82,7 @@ public:
 		Valueable<ParticleSystemTypeClass*> AttachedSystem;
 		bool IsInviso;
 
+		Valueable<bool> RemapAnim;
 		//AnimSpawnerDatas SpawnerDatas;
 		ExtData(AnimTypeClass* OwnerObject) : Extension<AnimTypeClass>(OwnerObject)
 			, Palette { }
@@ -89,7 +90,7 @@ public:
 			, CreateUnit_Facing { DirType::North }
 			, CreateUnit_InheritDeathFacings { false }
 			, CreateUnit_InheritTurretFacings { false }
-			, CreateUnit_RemapAnim { false }
+			, CreateUnit_RemapAnim { }
 			, CreateUnit_RandomFacing { true }
 			, CreateUnit_Mission { Mission::Guard }
 			, CreateUnit_Owner { OwnerHouseKind::Victim }
@@ -139,7 +140,7 @@ public:
 			, MakeInfantryOwner { OwnerHouseKind::Invoker }
 			, AttachedSystem {}
 			, IsInviso { false }
-
+			, RemapAnim { false }
 			//, SpawnerDatas {}
 		{ }
 
@@ -167,7 +168,6 @@ public:
 	static ExtContainer ExtMap;
 
 	static void ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller = nullptr);
-	static OwnerHouseKind SetMakeInfOwner(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim);
 	static void CreateUnit_MarkCell(AnimClass* pThis);
 	static void CreateUnit_Spawn(AnimClass* pThis);
 };

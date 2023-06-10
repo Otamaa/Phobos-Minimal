@@ -275,3 +275,17 @@ DEFINE_HOOK(0x469D1A, BulletClass_Logics_Debris_Checks, 0x6)
 
 	return SetDebrisCount;
 }
+
+DEFINE_HOOK(0x469B44, BulletClass_Logics_LandTypeCheck, 0x6)
+{
+	enum { SkipChecks = 0x469BA2 };
+
+	GET(BulletClass*, pThis, ESI);
+
+	auto const pWHExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+
+	if (pWHExt->Conventional_IgnoreUnits)
+		return SkipChecks;
+
+	return 0;
+}

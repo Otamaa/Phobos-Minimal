@@ -94,13 +94,15 @@ namespace detail
 				return false;
 
 			std::string flag = _strlwr(parser.value());
-			if (flag.find(".pal") == std::string::npos)
-			{
+			if (flag.find(".pal") == std::string::npos) {
 				flag += ".pal";
 			}
 
 			if (const auto nResult = PaletteManager::FindOrAllocate(flag.c_str()))
 			{
+				if (!nResult->Palette)
+					return false;
+
 				value = nResult;
 				return true;
 			}

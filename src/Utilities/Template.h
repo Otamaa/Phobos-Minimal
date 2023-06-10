@@ -415,6 +415,14 @@ public:
 
 	inline void Read(INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate = false);
 
+	bool Eligible(const T& other) const
+	{
+		if (this->empty())
+			return true;
+
+		return this->Contains(other);
+	}
+
 	bool Contains(const T& other) const
 	{
 		if constexpr (direct_comparable<T>) {
@@ -544,6 +552,14 @@ public:
 		}
 
 		return this->GetElements();
+	}
+
+	bool Eligible(const ValueableVector<T>& ndefault , const T& other) const
+	{
+		if (!this->hasValue)
+			return ndefault.Eligible(other);
+
+		return this->Contains(other);
 	}
 
 	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange);

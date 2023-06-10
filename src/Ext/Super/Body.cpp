@@ -63,14 +63,13 @@ DEFINE_HOOK(0x6CDFE8, SuperClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-//DEFINE_HOOK(0x6CE001 , SuperClass_Detach , 0x5)
-//{
-//	GET(SuperClass*, pThis, ESI);
-//	GET(void*, target, EAX);
-//	GET_STACK(bool, all, STACK_OFFS(0x4, -0x8));
-//
-//	if (auto pExt = SuperExt::ExtMap.Find(pThis))
-//		pExt->InvalidatePointer(target, all);
-//
-//	return target == pThis->Type ? 0x6CE006 : 0x6CE009;
-//}
+DEFINE_HOOK(0x6CE001 , SuperClass_Detach , 0x5)
+{
+	GET(SuperClass*, pThis, ESI);
+	GET(void*, target, EAX);
+	GET_STACK(bool, all, STACK_OFFS(0x4, -0x8));
+
+	SuperExt::ExtMap.InvalidatePointerFor(pThis , target , all);
+
+	return target == pThis->Type ? 0x6CE006 : 0x6CE009;
+}

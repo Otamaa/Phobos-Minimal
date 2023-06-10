@@ -141,6 +141,7 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Launchs.push_back(std::move(nData));
 	}
 
+	this->RemapAnim.Read(exINI, pID, "RemapAnim");
 #pragma endregion
 }
 
@@ -284,28 +285,6 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 	}
 }
 
-OwnerHouseKind AnimTypeExt::SetMakeInfOwner(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim)
-{
-	if (!pAnim)
-		return OwnerHouseKind::Neutral;
-
-	auto pAnimData = AnimTypeExt::ExtMap.Find(pAnim->Type);
-
-	auto newOwner = HouseExt::GetHouseKind(pAnimData->MakeInfantryOwner, true,
-		nullptr, pInvoker, pVictim);
-
-	if (newOwner)
-	{
-		pAnim->Owner = newOwner;
-		if (pAnim->Type->MakeInfantry > -1)
-		{
-			pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
-		}
-	}
-
-	return pAnimData->MakeInfantryOwner;
-}
-
 void AnimTypeExt::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller)
 {
 	const auto location = pThis->GetCoords();
@@ -333,8 +312,7 @@ void AnimTypeExt::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller)
 		auto pAnimExt = AnimExt::ExtMap.Find(pAnim);
 		HouseClass* const pInvoker = pKiller ? pKiller->Owner : nullptr;
 
-		if (AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, true))
-			pAnimExt->Invoker = pThis;
+		AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, pThis, true);
 
 		if (pAnimTypeExt->CreateUnit_InheritDeathFacings.Get())
 			pAnimExt->DeathUnitFacing = static_cast<short>(facing);
@@ -424,6 +402,7 @@ void AnimTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->MakeInfantryOwner)
 		.Process(AttachedSystem)
 		.Process(IsInviso)
+		.Process(this->RemapAnim)
 		//.Process(SpawnerDatas)
 		;
 }

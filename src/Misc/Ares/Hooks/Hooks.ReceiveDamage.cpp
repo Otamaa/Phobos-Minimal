@@ -767,7 +767,7 @@ DEFINE_OVERRIDE_HOOK(0x51849A, InfantryClass_ReceiveDamage_DeathAnim, 5)
 		: Arguments->SourceHouse
 		;
 
-	AnimTypeExt::SetMakeInfOwner(Anim, Invoker, I->Owner);
+	AnimExt::SetAnimOwnerHouseKind(Anim, Invoker, I->Owner, Arguments->Attacker);
 
 	R->EAX<AnimClass*>(Anim);
 	return 0x5184F2;
@@ -786,7 +786,7 @@ DEFINE_OVERRIDE_HOOK(0x5183DE, InfantryClass_ReceiveDamage_InfantryVirus1, 6)
 		? Arguments.Attacker->Owner
 		: Arguments.SourceHouse;
 
-	AnimTypeExt::SetMakeInfOwner(pAnim, pInvoker, pThis->Owner);
+	AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker);
 
 	// bonus: don't require SpawnsParticle to be present
 
@@ -815,7 +815,7 @@ DEFINE_OVERRIDE_HOOK(0x518698, InfantryClass_ReceiveDamage_Anims, 5) // Infantry
 		? Arguments.Attacker->Owner
 		: Arguments.SourceHouse;
 
-	AnimTypeExt::SetMakeInfOwner(pAnim, pInvoker, pThis->Owner);
+	AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker);
 
 	return 0x5185F1;
 }
@@ -827,15 +827,17 @@ DEFINE_OVERRIDE_HOOK(0x51887B, InfantryClass_ReceiveDamage_InfantryVirus2, 0xA)
 	REF_STACK(args_ReceiveDamage, Arguments, STACK_OFFS(0xD0, -0x4));
 
 	// Rules->InfantryVirus animation has been created. set the owner, but
-	// reset the color for default (invoker).
+
 
 	auto pInvoker = Arguments.Attacker
 		? Arguments.Attacker->Owner
 		: Arguments.SourceHouse;
 
-	auto res = AnimTypeExt::SetMakeInfOwner(pAnim, pInvoker, pThis->Owner);
-	if (res == OwnerHouseKind::Invoker)
-	{
+	const auto&[bChanged , result] = 
+		AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker);
+
+	 // reset the color for default (invoker).
+	if (bChanged && result != OwnerHouseKind::Default) {
 		pAnim->LightConvert = nullptr;
 	}
 
@@ -854,7 +856,7 @@ DEFINE_OVERRIDE_HOOK(0x518A96, InfantryClass_ReceiveDamage_InfantryMutate, 7)
 		? Arguments.Attacker->Owner
 		: Arguments.SourceHouse;
 
-	AnimTypeExt::SetMakeInfOwner(pAnim, pInvoker, pThis->Owner);
+	AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker);
 
 	return 0x518AFF;
 }

@@ -29,11 +29,7 @@ DEFINE_HOOK(0x467CCA, BulletClass_AI_TargetSnapChecks, 0x6) //was C
 
 	GET(BulletClass*, pThis, EBP);
 
-	auto nRet = [=]()
-	{
-		R->EAX(pThis->Type);
-		return SkipAirburstCheck;
-	};
+	retfunc_fixed nRet(R, SkipAirburstCheck , pThis->Type);
 
 	// Do not require Airburst=no to check target snapping for Inviso / Trajectory=Straight projectiles
 	if (pThis->Type->Inviso)
@@ -58,11 +54,8 @@ DEFINE_HOOK(0x468E61, BulletClass_Explode_TargetSnapChecks1, 0x6) //was C
 	enum { SkipAirburstChecks = 0x468E7B, SkipCoordFunc = 0x468E9F };
 
 	GET(BulletClass*, pThis, ESI);
-	auto nRet = [=]()
-	{
-		R->EAX(pThis->Type);
-		return SkipAirburstChecks;
-	};
+
+	retfunc_fixed nRet(R, SkipAirburstChecks, pThis->Type);
 
 	// Do not require Airburst=no to check target snapping for Inviso / Trajectory=Straight projectiles
 	if (pThis->Type->Inviso)

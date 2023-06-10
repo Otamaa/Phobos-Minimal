@@ -117,6 +117,11 @@ public:
 		Valueable<int> Shield_MinimumReplaceDelay;
 		ValueableVector<ShieldTypeClass*> Shield_AffectTypes;
 
+		NullableVector<ShieldTypeClass*> Shield_Penetrate_Types;
+		NullableVector<ShieldTypeClass*> Shield_Break_Types;
+		NullableVector<ShieldTypeClass*> Shield_Respawn_Types;
+		NullableVector<ShieldTypeClass*> Shield_SelfHealing_Types;
+
 		Valueable<bool> Transact;
 		Valueable<int> Transact_Experience_Value;
 		Valueable<int> Transact_Experience_Source_Flat;
@@ -271,6 +276,7 @@ public:
 
 		Valueable<bool> Malicious;
 		Valueable<bool> PreImpact_Moves;
+		Valueable<bool> Conventional_IgnoreUnits;
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		PhobosMap<int, DamageTextTypeData> DamageTextPerArmor;
 #endif
@@ -354,6 +360,11 @@ public:
 			, Shield_InheritStateOnReplace { false }
 			, Shield_MinimumReplaceDelay { 0 }
 			, Shield_AffectTypes {}
+
+			, Shield_Penetrate_Types {}
+			, Shield_Break_Types {}
+			, Shield_Respawn_Types {}
+			, Shield_SelfHealing_Types {}
 
 			, Transact { false }
 			, Transact_Experience_Value { 1 }
@@ -495,6 +506,7 @@ public:
 			, ImmunityType {}
 			, Malicious { true }
 			, PreImpact_Moves { false }
+			, Conventional_IgnoreUnits { false }
 #ifdef COMPILE_PORTED_DP_FEATURES_
 			,DamageTextPerArmor { }
 

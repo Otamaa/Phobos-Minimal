@@ -353,64 +353,106 @@ void AnimExt::ExtData::CreateAttachedSystem()
 }
 
 //Modified from Ares
-const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner)
+const std::pair<bool, OwnerHouseKind> AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner)
 {
-	if (!pAnim->Type)
-		return false;
+	OwnerHouseKind set = OwnerHouseKind::Default;
+
+	if (!pAnim || !pAnim->Type)
+		return { false ,set };
 
 	auto const pTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type);
 	if (pTypeExt->NoOwner)
 		// no we dont set the owner
 	// this return also will prevent Techno `Invoker` to be set !
-		return false;
+		return { false , set };
 
-	if (pTypeExt->CreateUnit.Get())
+	if (pTypeExt->CreateUnit)
 	{
-		if (const auto newOwner = HouseExt::GetHouseKind(pTypeExt->CreateUnit_Owner.Get(), true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim))
+		if (const auto newOwner = HouseExt::GetHouseKind(pTypeExt->CreateUnit_Owner, true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim))
 		{
 			pAnim->SetHouse(newOwner);
 
-			if (pTypeExt->CreateUnit_RemapAnim.Get() && !newOwner->Defeated)
+			if (pTypeExt->CreateUnit_RemapAnim.Get(pTypeExt->RemapAnim) && !newOwner->Defeated)
 				pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
 
-			return true;//yes
+			return { true , pTypeExt->CreateUnit_Owner };//yes
+		}
+	}
+	else if (pAnim->Type->MakeInfantry > -1)
+	{
+		if (auto newOwner = HouseExt::GetHouseKind(pTypeExt->MakeInfantryOwner, true, nullptr, pInvoker, pVictim))
+		{
+			pAnim->SetHouse(newOwner);
+			if (pTypeExt->RemapAnim && !newOwner->Defeated)
+				pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
+
+			return { true , pTypeExt->MakeInfantryOwner }; //yes return true
 		}
 	}
 
 	if (!pAnim->Owner && pInvoker)
+	{
 		pAnim->SetHouse(pInvoker);
 
-	return true; //yes return true
+		if (pTypeExt->RemapAnim && !pInvoker->Defeated)
+			pAnim->LightConvert = ColorScheme::Array->Items[pInvoker->ColorSchemeIndex]->LightConvert;
+
+		set = OwnerHouseKind::Invoker;
+	}
+
+	return { true , set }; //yes return true
 }
 
-const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, TechnoClass* pTechnoInvoker, bool defaultToVictimOwner)
+const std::pair<bool, OwnerHouseKind> AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, TechnoClass* pTechnoInvoker, bool defaultToVictimOwner)
 {
+	OwnerHouseKind set = OwnerHouseKind::Default;
+
+	if (!pAnim || !pAnim->Type)
+		return { false ,set };
+
 	auto const pTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type);
 	if (pTypeExt->NoOwner)
 		// no we dont set the owner
 		// this return also will prevent Techno `Invoker` to be set !
-		return false;
+		return { false ,set };
 
 	if (auto const pAnimExt = AnimExt::ExtMap.Find(pAnim))
 		pAnimExt->Invoker = pTechnoInvoker;
 
-	if (pTypeExt->CreateUnit.Get())
+	if (pTypeExt->CreateUnit)
 	{
-		if (const auto newOwner = HouseExt::GetHouseKind(pTypeExt->CreateUnit_Owner.Get(), true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim))
+		if (const auto newOwner = HouseExt::GetHouseKind(pTypeExt->CreateUnit_Owner, true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim))
 		{
 			pAnim->SetHouse(newOwner);
 
-			if (pTypeExt->CreateUnit_RemapAnim.Get() && !newOwner->Defeated)
+			if (pTypeExt->CreateUnit_RemapAnim.Get(pTypeExt->RemapAnim) && !newOwner->Defeated)
 				pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
 
-			return true;//yes
+			return { true , pTypeExt->CreateUnit_Owner };//yes
+		}
+	}
+	else if(pAnim->Type->MakeInfantry > -1)
+	{
+		if (auto newOwner = HouseExt::GetHouseKind(pTypeExt->MakeInfantryOwner, true, nullptr, pInvoker, pVictim))
+		{
+			pAnim->SetHouse(newOwner);
+			if (pTypeExt->RemapAnim && !newOwner->Defeated)
+				pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
+
+			return { true , pTypeExt->MakeInfantryOwner }; //yes return true
 		}
 	}
 
-	if (!pAnim->Owner && pInvoker)
+	if (!pAnim->Owner && pInvoker) {
 		pAnim->SetHouse(pInvoker);
 
-	return true; //yes return true
+		if (pTypeExt->RemapAnim && !pInvoker->Defeated)
+			pAnim->LightConvert = ColorScheme::Array->Items[pInvoker->ColorSchemeIndex]->LightConvert;
+
+		set = OwnerHouseKind::Invoker;
+	}
+
+	return { true , set }; //yes return true
 }
 
 TechnoClass* AnimExt::GetTechnoInvoker(AnimClass* pThis, bool DealthByOwner)
