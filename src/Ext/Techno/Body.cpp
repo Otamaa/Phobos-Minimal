@@ -1484,10 +1484,7 @@ void TechnoExt::ForceJumpjetTurnToTarget(TechnoClass* pThis)
 
 void TechnoExt::DisplayDamageNumberString(TechnoClass* pThis, int damage, bool isShieldDamage, WarheadTypeClass* pWH)
 {
-	if (!pThis || damage == 0)
-		return;
-
-	if (!pThis->IsOnMyView())
+	if (!pThis || !pThis->IsAlive || pThis->InLimbo ||  !pThis->IsOnMyView())
 		return;
 
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
@@ -1496,9 +1493,13 @@ void TechnoExt::DisplayDamageNumberString(TechnoClass* pThis, int damage, bool i
 		damage > 0 ? Drawing::DefaultColors[(int)DefaultColorList::Red] : Drawing::DefaultColors[(int)DefaultColorList::Green];
 
 	wchar_t damageStr[0x20];
-	//std::string nWHName = pWH->get_ID();
-	//std::wstring widestr = std::wstring(nWHName.begin(), nWHName.end());
-	swprintf_s(damageStr, L"%d", damage);
+#ifndef ShowWH
+	std::string nWHName = pWH->ID;
+	std::wstring widestr = std::wstring(nWHName.begin(), nWHName.end());
+	swprintf_s(damageStr, L"%ls - %d", widestr.c_str() ,damage);
+#else
+	swprintf_s(damageStr, L"%d",damage);
+#endif
 	auto coords = pThis->GetCenterCoords();
 	int maxOffset = 30;
 	int width = 0, height = 0;

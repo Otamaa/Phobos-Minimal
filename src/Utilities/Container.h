@@ -264,6 +264,9 @@ public:
 	void InvalidatePointerFor(base_type_ptr key, void* const ptr, bool bRemoved)
 	{
 		if constexpr (ThisPointerInvalidationIgnorAble<T> || ThisPointerInvalidationSubscribable<T>){
+			if (Phobos::Otamaa::ExeTerminated)
+				return;
+			
 			extension_type_ptr Extptr = this->TryFind(key);
 
 			if (!Extptr || !bRemoved) // newer ares check for 2nd args 

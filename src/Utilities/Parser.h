@@ -37,8 +37,8 @@ inline bool Parse_vanilla_double(const char* pValue, double* outValue)
 	// Game doesn't use double precision when parsing, using double here would create inconsistency.
 	float buffer = 0.0f;
 	// Use game's sscanf function, the C library one has different precision/rounding.
-	if (CRT::sscanf(pValue, "%f", &buffer) == 1) {
-		if (CRT::strchr(pValue, '%')) {
+	if (sscanf(pValue, "%f", &buffer) == 1) {
+		if (strchr(pValue, '%')) {
 			buffer *= 0.01f;
 		}
 

@@ -76,7 +76,6 @@
 #include <Misc/DynamicPatcher/Trails/TrailType.h>
 #pragma endregion
 
-
 //#include <New/Entity/BannerClass.h>
 
 #include <Commands/Commands.h>
@@ -304,6 +303,9 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 {
 	GET(AbstractClass* const, pInvalid, ECX);
 	GET(bool const, removed, EDX);
+
+	if(Phobos::Otamaa::ExeTerminated)
+		return 0;
 
 	Process_InvalidatePtr<BulletExt>(pInvalid, removed);
 	Process_InvalidatePtr<SWTypeExt>(pInvalid, removed);

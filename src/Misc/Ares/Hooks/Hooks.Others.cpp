@@ -4136,14 +4136,16 @@ DEFINE_OVERRIDE_HOOK(0x442974, BuildingClass_ReceiveDamage_Malicious, 6)
 	return 0x442980;
 }
 
+DEFINE_SKIP_HOOK(0x71B09C , TemporalClass_Logic_BuildingUnderAttack_NullptrShit , 0x5 , 71B0E7);
+
 DEFINE_OVERRIDE_HOOK(0x4F94A5, HouseClass_BuildingUnderAttack, 6)
 {
 	GET(BuildingClass*, pSource, ESI);
 
-	if (auto pWh = std::exchange(BuildingExt::ExtMap.Find(pSource)->ReceiveDamageWarhead, nullptr))
-	{
-		if (!WarheadTypeExt::ExtMap.Find(pWh)->Malicious)
+	if (auto pWh = std::exchange(BuildingExt::ExtMap.Find(pSource)->ReceiveDamageWarhead, nullptr)) {
+		if (!WarheadTypeExt::ExtMap.Find(pWh)->Malicious){
 			return 0x4F95D4;
+		}
 	}
 
 	return 0;

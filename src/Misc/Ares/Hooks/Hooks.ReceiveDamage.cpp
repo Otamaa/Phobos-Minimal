@@ -194,7 +194,8 @@ DEFINE_OVERRIDE_HOOK(0x702185, TechnoClass_ReceiveDamage_OverrideVoiceDie, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x702B75, TechnoClass_ReceiveDamage_PreventScatter, 0x6)
+DEFINE_HOOK_AGAIN(0x702BFE , TechnoClass_ReceiveDamage_PreventScatter,0x8)
+DEFINE_HOOK(0x702B47, TechnoClass_ReceiveDamage_PreventScatter, 0x8)
 {
 	//GET(FootClass*, pThis, ESI);
 	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0xC4, -0xC));

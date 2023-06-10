@@ -11,6 +11,7 @@
 
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
+#include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
@@ -620,4 +621,38 @@ DEFINE_OVERRIDE_HOOK(0x71944E, TeleportLocomotionClass_ILocomotion_Process, 6)
 	}
 
 	return 0x719454;
+}
+
+DEFINE_HOOK(0x71AFD0 , TemporalClass_Logic_Unit_OreMinerUnderAttack, 0x5)
+{
+	GET(TemporalClass* , pThis ,ESI);
+
+	if(auto pTarget = (UnitClass*)pThis->Target) {
+		if(pTarget->Type->Harvester) {
+			const auto nWeaponIDx = Ares_TemporalWeapon(pThis->Owner);
+			auto const pWeapon = pThis->Owner->GetWeapon(nWeaponIDx)->WeaponType;
+			const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
+
+			if(!pWHExt->Malicious && pTarget->Owner == HouseClass::CurrentPlayer) {
+				auto nDest = pTarget->GetDestination();
+				if (RadarEventClass::Create(RadarEventType::HarvesterAttacked, CellClass::Coord2Cell(nDest))) {
+					VoxClass::Play(GameStrings::EVA_OreMinerUnderAttack(), -1, -1);
+				}
+			}
+		}
+	}
+
+	return 0x071B064;
+}
+
+DEFINE_HOOK(0x71B0AE, TemporalClass_Logic_Building_UnderAttack, 0x7)
+{
+	GET(TemporalClass*, pThis, ESI);
+	GET(BuildingClass*, pBld, EDI);
+
+	BuildingExt::ExtMap.Find(pBld)->ReceiveDamageWarhead = 
+		pThis->Owner->GetWeapon(Ares_TemporalWeapon(pThis->Owner))
+			 ->WeaponType->Warhead;
+
+	return 0x0;
 }

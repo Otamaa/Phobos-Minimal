@@ -3018,952 +3018,6 @@ FunctionreturnType KickoutTechnoType(BuildingClass* pProduction, KickOutProducti
 //	}
 //}
 
-#include <Powerups.h>
-
-enum class CrateType : unsigned char
-{
-	MONEY = 0,
-	UNIT = 1,
-	HEAL_BASE = 2,
-	CLOAK = 3,
-	EXPLOSION = 4,
-	NAPALM = 5,
-	SQUAD = 6,
-	DARKNESS = 7,
-	REVEAL = 8,
-	ARMOR = 9,
-	SPEED = 10,
-	FIREPOWER = 11,
-	ICBM = 12,
-	INVULN = 13,
-	VETERAN = 14,
-	ION_STORM = 15,
-	GAS = 16,
-	TIBERIUM = 17,
-	POD = 18,
-	COUNT = 19,
-};
-
-//bool CollectCrate(CellClass* pThis, FootClass* Collector)
-//{
-//	if (!Collector)
-//		return false;
-//
-//	const auto v3 = pThis->OverlayTypeIndex;
-//	if (v3 != -1)
-//	{
-//		if (!OverlayTypeClass::Array->GetItem(v3)->Crate)
-//			return false;
-//
-//		if (SessionClass::Instance->GameMode == GameMode::Campaign || !Collector->Owner->Type->MultiplayPassive)
-//		{
-//			if (OverlayTypeClass::Array->GetItem(v3)->CrateTrigger)
-//			{
-//				if (Collector->AttachedTag)
-//				{
-//					Debug::Log("Springing trigger on crate at [ %d,%d ] \n", pThis->MapCoords.X, pThis->MapCoords.Y);
-//					Collector->AttachedTag->RaiseEvent(TriggerEvent::PickupCrate, Collector, CellStruct::Empty, false, nullptr);
-//					if (!Collector->IsAlive) {
-//						return false;
-//					}
-//				}
-//				ScenarioClass::Instance->PickedUpAnyCrate = true;
-//			}
-//
-//			CrateType v11 = CrateType::MONEY;
-//			if (pThis->OverlayData < static_cast<unsigned char>(CrateType::COUNT))
-//			{
-//				v11 = (CrateType)pThis->OverlayData;
-//			}
-//			else
-//			{
-//				int total_shares = 0;
-//				for (auto& share : Powerups::Weights)
-//				{
-//					total_shares += share;
-//				}
-//
-//				int pick = ScenarioClass::Instance->Random.RandomRanged(1, total_shares);
-//
-//				int share_count = 0;
-//				unsigned int nDummy = 0u;
-//				for (auto& share : Powerups::Weights)
-//				{
-//					share_count += share;
-//					if (pick <= share_count)
-//						break;
-//
-//					++nDummy;
-//				}
-//
-//				v11 = (CrateType)nDummy;
-//			}
-//
-//			auto v121 = v11;
-//			if (SessionClass::Instance->GameMode == GameMode::Campaign)
-//			{
-//				auto v14 = Collector->Owner;
-//				auto arg0 = v14->PickUnitFromTypeList(RulesClass::Instance->BaseUnit);
-//				bool v116 = false;
-//
-//				if (!v14->OwnedBuildings
-//				  && v14->Available_Money() > 1500
-//				  && !v14->OwnedUnitTypes.GetItemCount(arg0->ArrayIndex)
-//				  && GameOptionsType::Instance->Bases)
-//				{
-//					v11 = CrateType::UNIT;
-//					v121 = CrateType::UNIT;
-//					v116 = true;
-//				}
-//
-//				switch (v11)
-//				{
-//				case CrateType::UNIT:
-//					if (Collector->Owner->OwnedUnits <= 50)
-//					{
-//						auto v16 = pThis->LandType;
-//						if (v16 == LandType::Water || v16 == LandType::Beach)
-//						{
-//							v11 = CrateType::MONEY;
-//							v121 = CrateType::MONEY;
-//						}
-//						break;
-//					}
-//					goto LABEL_35;
-//				case CRATE_CLOAK:
-//					v15 = object;
-//					if (object->t.IsCloakable)
-//					{
-//						v11 = 0;
-//						v121 = 0;
-//					}
-//					break;
-//				case CRATE_SQUAD:
-//					v15 = object;
-//					if (object->t.House->CurInfantry > 100)
-//					{
-//					LABEL_35:
-//						v11 = 0;
-//						v121 = 0;
-//					}
-//				LABEL_36:
-//					v16 = this->Land;
-//					if (v16 == LAND_WATER || v16 == LAND_BEACH)
-//					{
-//						v11 = 0;
-//						v121 = 0;
-//					}
-//					break;
-//				case CRATE_ARMOR:
-//					v15 = object;
-//					if (LODWORD(object->t.ArmorBias) || HIDWORD(object->t.ArmorBias) != 1072693248)
-//					{
-//						v11 = 0;
-//						v121 = 0;
-//					}
-//					break;
-//				case CRATE_SPEED:
-//					v15 = object;
-//					if (LODWORD(object->SpeedMultiplier)
-//					  || HIDWORD(object->SpeedMultiplier) != 0x3FF00000
-//					  || object->t.r.m.o.a.vftable->t.r.m.o.a.Kind_Of(object) == RTTI_AIRCRAFT)
-//					{
-//						v11 = CRATE_MONEY;
-//						v121 = CRATE_MONEY;
-//					}
-//					break;
-//				case CRATE_FIREPOWER:
-//					v15 = object;
-//					if (LODWORD(object->t.FirepowerBias)
-//					  || HIDWORD(object->t.FirepowerBias) != 1072693248
-//					  || !object->t.r.m.o.a.vftable->t.Is_Weapon_Equipped(object))
-//					{
-//						v11 = 0;
-//						v121 = 0;
-//					}
-//					break;
-//				case CRATE_VETERAN:
-//					v15 = object;
-//					if ((object->t.r.m.o.a.TargetBitfield[0] & 1) != 0)
-//					{
-//						if (object->t.r.m.o.a.vftable->t.r.m.o.Techno_Type_Class(&object->t)->Trainable)
-//						{
-//							if ((object->t.r.m.o.a.TargetBitfield[0] & 1) != 0 && VeterancyClass::Is_Elite(&object->t.__Veterancy))
-//							{
-//								v11 = 0;
-//								v121 = 0;
-//							}
-//						}
-//						else
-//						{
-//							v11 = 0;
-//							v121 = 0;
-//						}
-//					}
-//					break;
-//				default:
-//					break;
-//				}
-//
-//				if (pThis->LandType == LandType::Water && !Powerups::Naval[(int)v11])
-//				{
-//					v11 = 0;
-//					v121 = 0;
-//				}
-//
-//				if (SessionClass::Instance->GameMode == GameMode::Internet)
-//				{
-//					Collector->Owner->CollectedCrates.IncrementUnitCount((int)v11);
-//				}
-//			}
-//			else if (!pThis->OverlayData)
-//			{
-//				auto v12 = pThis->OverlayTypeIndex;
-//				auto nSoloCrateMoney = RulesClass::Instance->SoloCrateMoney;
-//				auto v13 = OverlayTypeClass::Array->GetItem(v12);
-//
-//				if (v13 == RulesClass::Instance->CrateImg) {
-//					v121 = (CrateType)RulesClass::Instance->SilverCrate;
-//				}
-//
-//				if (v13 == RulesClass::Instance->WoodCrateImg) {
-//					v121 = (CrateType)RulesClass::Instance->WoodCrate;
-//				}
-//
-//				if (v13 == RulesClass::Instance->WaterCrateImg) {
-//					v121 = (CrateType)RulesClass::Instance->WaterCrate;
-//				}
-//			}
-//			
-//			MapClass::Instance->Remove_Crate(&pThis->MapCoords);
-//			if (SessionClass::Instance->GameMode == GameMode::Campaign && GameOptionsType::Instance->Crates)
-//			{
-//				MapClass::Instance->Place_Random_Crate();
-//			}
-//
-//			if (v11 == (CrateType)6)
-//			{
-//				v11 = CrateType::MONEY;
-//				v121 = CrateType::MONEY;
-//			}
-//
-//			bool nPlaySound = 0;
-//
-//			switch (v11)
-//			{
-//			case CrateType::MONEY:
-//				goto LABEL_122;
-//			case CrateType::UNIT:
-//				Debug::Log("Crate at %d,%d contains a unit\n", pThis->MapCoords.X, pThis->MapCoords.Y);
-//				utp = 0;
-//				if (HIBYTE(v116))
-//				{
-//					v35 = &object->t;
-//					utp = HouseClass_Unitstuff(object->t.House, &Rule->BaseUnit);
-//					if (utp)
-//					{
-//						goto LABEL_93;
-//					}
-//				}
-//				else
-//				{
-//					v35 = &object->t;
-//				}
-//
-//				if ((CounterClass::Count_Of(&v35->House->BQuantity, *(*Rule->BuildRefinery.dvc.Vector_Item + 894)) > 0
-//					|| CounterClass::Count_Of(&v35->House->BQuantity, *(*(Rule->BuildRefinery.dvc.Vector_Item + 1) + 3576)) > 0)
-//				  && !CounterClass::Count_Of(&v35->House->UQuantity, *(*Rule->HarvesterUnit.dvc.Vector_Item + 894))
-//				  && !CounterClass::Count_Of(&v35->House->UQuantity, *(*(Rule->HarvesterUnit.dvc.Vector_Item + 1) + 3576)))
-//				{
-//					utp = HouseClass_Unitstuff(v35->House, &Rule->HarvesterUnit);
-//				}
-//			LABEL_93:
-//				if (Rule->UnitCrateType)
-//				{
-//					utp = Rule->UnitCrateType;
-//				}
-//				if (utp)
-//				{
-//					goto LABEL_111;
-//				}
-//				do
-//				{
-//					while (1)
-//					{
-//						do
-//						{
-//							utp = (*(&UnitTypes + 1))[Random2Class::operator()(&Scen->RandomNumber, 0, *(&UnitTypes + 4) - 1)];
-//							v36 = 0;
-//							v37 = Rule->BaseUnit.dvc.ActiveCount;
-//							if (v37 <= 0)
-//							{
-//							LABEL_100:
-//								v39 = 0;
-//							}
-//							else
-//							{
-//								v38 = Rule->BaseUnit.dvc.Vector_Item;
-//								while (*v38 != utp)
-//								{
-//									++v36;
-//									++v38;
-//									if (v36 >= v37)
-//									{
-//										goto LABEL_100;
-//									}
-//								}
-//								v39 = 1;
-//							}
-//							v40 = HouseClass::Is_Player_Control(object->t.House);
-//						}
-//						while (!utp->IsCrateGoodie);
-//						if (GameOptions.Bases)
-//						{
-//							break;
-//						}
-//						if (!v39)
-//						{
-//							goto LABEL_109;
-//						}
-//					}
-//				}
-//				while (v39 && !v40 && !HIBYTE(v116));
-//			LABEL_109:
-//				if (!utp)
-//				{
-//					goto switch_Goodie_Check_DoAnimation;
-//				}
-//				v35 = &object->t;
-//			LABEL_111:
-//				v41 = utp->tt.ot.at.a.vftable->ot.Create_One_Of(utp, v35->House);
-//				if (!v41)
-//				{
-//					goto switch_Goodie_Check_DoAnimation;
-//				}
-//				v125.X = this->Position;
-//				Operator_Negate(&v122, (SLOWORD(v125.X) << 8) + 128, (SHIWORD(v125.X) << 8) + 128, 0);
-//				v123 = 128;
-//				v124 = 128;
-//				v42 = CellClass::Get_Z_Offset(this, &v123);
-//				v133[0] = v122.X;
-//				v122.Z = v42;
-//				v133[1] = v122.Y;
-//				v133[2] = v42;
-//				if (v41->f.t.r.m.o.a.vftable->t.r.m.o.Unlimbo(v41, v133, 0))
-//				{
-//					if (!HouseClass::Player_Has_Control(object->t.House))
-//					{
-//						return 0;
-//					}
-//					v125.X = this->Position;
-//					Operator_Negate(&v122, (SLOWORD(v125.X) << 8) + 128, (SHIWORD(v125.X) << 8) + 128, 0);
-//					v120.X = 128;
-//					v120.Y = 128;
-//					v43 = CellClass::Get_Z_Offset(this, &v120);
-//					v141[1] = v122.Y;
-//					v122.Z = v43;
-//					v141[0] = v122.X;
-//					v141[2] = v43;
-//					HIDWORD(n) = 0;
-//					v44 = v141;
-//				LABEL_119:
-//					VocClass::Play_Ranged(Rule->CrateUnitSound, v44, HIDWORD(n));
-//					return 0;
-//				}
-//				cell2 = this->Position;
-//				arg0 = 0;
-//				v45 = *MapClass::Nearby_Location(
-//						   &Map.sc.t.sb.p.r.d.m,
-//						   &cell1,
-//						   &cell2,
-//						   v41->Class->tt.Speed,
-//						   -1,
-//						   MZONE_NORMAL,
-//						   0,
-//						   1,
-//						   1,
-//						   0,
-//						   0,
-//						   0,
-//						   1,
-//						   &arg0,
-//						   0,
-//						   0);
-//				v125.X = v45;
-//				if (v45 != CellClass_DefaultCell)
-//				{
-//					v140[1] = (SHIWORD(v45) << 8) + 128;
-//					v140[0] = (v45 << 8) + 128;
-//					v140[2] = 0;
-//					if (v41->f.t.r.m.o.a.vftable->t.r.m.o.Unlimbo(v41, v140, 0))
-//					{
-//						if (!HouseClass::Player_Has_Control(object->t.House))
-//						{
-//							return 0;
-//						}
-//						v125.X = this->Position;
-//						v46 = (SLOWORD(v125.X) << 8) + 128;
-//						v47 = (SHIWORD(v125.X) << 8) + 128;
-//						v120.X = 128;
-//						v120.Y = 128;
-//						v48 = CellClass::Get_Z_Offset(this, &v120);
-//						a2a[0] = v46;
-//						a2a[1] = v47;
-//						a2a[2] = v48;
-//						HIDWORD(n) = 0;
-//						v44 = a2a;
-//						goto LABEL_119;
-//					}
-//				}
-//				v41->f.t.r.m.o.a.vftable->t.r.m.o.a.SDTOR(v41, 1);
-//				v121 = 0;
-//			LABEL_122:
-//				Debug::Log("Crate at %d,%d contains money\n", this->Position.X, this->Position.Y);
-//				v50 = cell;
-//				if (!cell)
-//				{
-//					v50 = Random2Class::operator()(&Scen->RandomNumber, *&v120, *&v120 + 900);
-//				}
-//				if (!HouseClass::Player_Has_Control(object->t.House) || Session.Type)
-//				{
-//					HIDWORD(n) = v50;
-//					v51 = object->t.House;
-//				}
-//				else
-//				{
-//					v51 = PlayerPtr;
-//					HIDWORD(n) = v50;
-//				}
-//				HouseClass::Refund_Money(v51, SHIDWORD(n));
-//				if (HouseClass::Player_Has_Control(object->t.House))
-//				{
-//					v125.X = this->Position;
-//					Operator_Negate(&v122, (SLOWORD(v125.X) << 8) + 128, (SHIWORD(v125.X) << 8) + 128, 0);
-//					v120.X = 128;
-//					v120.Y = 128;
-//					v122.Z = CellClass::Get_Z_Offset(this, &v120);
-//					v132 = v122;
-//					HIDWORD(n) = 0;
-//					v32 = Rule->CrateMoneySound;
-//					v33 = &v132;
-//				LABEL_222:
-//					VocClass::Play_Ranged(v32, v33, HIDWORD(n));
-//				}
-//			switch_Goodie_Check_DoAnimation:
-//				if (CrateAnims[v121] != -1)
-//				{
-//					v123 = this->Position;
-//					v109 = (v123 << 8) + 128;
-//					v110 = (SHIWORD(v123) << 8) + 128;
-//					v120.X = 128;
-//					v120.Y = 128;
-//					v111 = CellClass::Get_Z_Offset(this, &v120);
-//					v128.X = v109;
-//					v128.Y = v110;
-//					v128.Z = v111 + 200;
-//					v112 = operator new(0x1C8u);
-//					if (v112)
-//					{
-//						AnimClass::AnimClass(v112, (*(&AnimTypes + 1))[CrateAnims[v121]], &v128, 0, 1, AnimFlag_400 | AnimFlag_200, 0, 0);
-//					}
-//				}
-//				break;
-//			case CrateType::HEAL_BASE:
-//				Debug::Log("Crate at %d,%d contains base healing\n", this->Position.X, this->Position.Y);
-//				if (HouseClass::Player_Has_Control(object->t.House))
-//				{
-//					v123 = this->Position;
-//					v81 = (v123 << 8) + 128;
-//					v82 = (SHIWORD(v123) << 8) + 128;
-//					v120.X = 128;
-//					v120.Y = 128;
-//					coord.Z = CellClass::Get_Z_Offset(this, &v120);
-//					coord.X = v81;
-//					coord.Y = v82;
-//					VocClass::Play_Ranged(Rule->HealCrateSound, &coord, 0);
-//				}
-//				for (i = 0; i < Logic.l.Objects.ActiveCount; ++i)
-//				{
-//					v84 = Logic.l.Objects.Vector_Item[i];
-//					if (v84)
-//					{
-//						HIBYTE(v116) = object->t.r.m.o.a.TargetBitfield[0] & 1;
-//						if (HIBYTE(v116))
-//						{
-//							if (object->t.House == v84->a.vftable->t.r.m.o.a.Owner__Owning_House(v84))
-//							{
-//								v85 = v84->a.vftable->t.r.m.o.Class_Of(v84);
-//								v86 = v84->a.vftable;
-//								v123 = (v84->Strength - v85->ot.MaxStrength);
-//								v86->t.r.m.o.Take_Damage(v84, &v123, 0, Rule->C4Warhead, 0, 1, 1, 0);
-//							}
-//						}
-//					}
-//				}
-//				goto switch_Goodie_Check_DoAnimation;
-//			case CrateType::CLOAK:
-//				Debug::Log("Crate at %d,%d contains cloaking device\n", this->Position.X, this->Position.Y);
-//				for (cell = 0; cell < DisplayClass::Layer[2].ActiveCount; cell = (cell + 1))
-//				{
-//					damage = DisplayClass::Layer[2].Vector_Item[cell];
-//					if (damage)
-//					{
-//						if (damage->t.r.m.o.IsDown)
-//						{
-//							HIBYTE(v116) = damage->t.r.m.o.a.TargetBitfield[0] & 1;
-//							if (HIBYTE(v116))
-//							{
-//								v123 = this->Position;
-//								v71 = (v123 << 8) + 128;
-//								v72 = (SHIWORD(v123) << 8) + 128;
-//								v120.X = 128;
-//								v120.Y = 128;
-//								v126 = CellClass::Get_Z_Offset(this, &v120);
-//								v73 = damage->t.r.m.o.a.vftable->t.r.m.o.a.Center_Coord(damage, &v146);
-//								v74 = v73->Z;
-//								v122.X = v71 - v73->X;
-//								v122.Y = v72 - v73->Y;
-//								v122.Z = *&v126 - v74;
-//								if (FastMath::Sqrt((*&v126 - v74) * (*&v126 - v74) + v122.Y * v122.Y + v122.X * v122.X) < Rule->CrateRadius)
-//								{
-//									damage->t.IsCloakable = 1;
-//								}
-//							}
-//						}
-//					}
-//				}
-//				goto switch_Goodie_Check_DoAnimation;
-//			case CrateType::EXPLOSION:
-//				Debug::Log("Crate at %d,%d contains explosives\n", this->Position.X, this->Position.Y);
-//				v125.X = v120;
-//				v52 = Rule->C4Warhead;
-//				damage = v125.X;
-//				object->t.r.m.o.a.vftable->t.r.m.o.Take_Damage(&object->t.r.m.o, &v125.X, 0, v52, 0, 1, 0, 0);
-//				cell = 5;
-//				do
-//				{
-//					v123 = Random2Class::operator()(&Scen->RandomNumber, 0, 512);
-//					v125.X = this->Position;
-//					v53 = (SLOWORD(v125.X) << 8) + 128;
-//					v54 = (SHIWORD(v125.X) << 8) + 128;
-//					v120.X = 128;
-//					v120.Y = 128;
-//					v55 = CellClass::Get_Z_Offset(this, &v120);
-//					v138.X = v53;
-//					v138.Y = v54;
-//					v138.Z = v55;
-//					v56 = Coord_Scatter(&v149, &v138, v123, 0);
-//					v57 = damage;
-//					v122.X = v56->X;
-//					v122.Y = v56->Y;
-//					*&n = 1i64;
-//					v122.Z = v56->Z;
-//					Explosion_Damage(&v122, damage, 0, Rule->C4Warhead, 1, 0);
-//					v58 = Combat_Anim(v57, Rule->C4Warhead, LAND_CLEAR, &v122);
-//					v59 = operator new(0x1C8u);
-//					if (v59)
-//					{
-//						*&n = v122.Z;
-//						v60 = Combat_ZAdjust(v122.Y, &v113, v122.X, v122.Y, v122.Z);
-//						AnimClass::AnimClass(v59, v58, &v122, 0, 1, AnimFlag_2000 | AnimFlag_400 | AnimFlag_200, v60, SBYTE4(n));
-//					}
-//					n = 0.0;
-//					Do_Flash(damage, Rule->C4Warhead, v122.X, v122.Y, v122.Z, 0, 0);
-//					cell = (cell - 1);
-//				}
-//				while (cell);
-//				goto switch_Goodie_Check_DoAnimation;
-//			case CrateType::NAPALM:
-//				Debug::Log("Crate at %d,%d contains napalm\n", this->Position.X, this->Position.Y);
-//				v61 = this->Position;
-//				v62 = (v61.X << 8) + 128;
-//				v63 = (v61.Y << 8) + 128;
-//				v123 = 128;
-//				v124 = 128;
-//				v122.Z = CellClass::Get_Z_Offset(this, &v123);
-//				v64 = object->t.r.m.o.a.vftable->t.r.m.o.a.Center_Coord(object, &v145);
-//				v65 = v64->X;
-//				HIDWORD(n) = 456;
-//				v66 = v65 + v62;
-//				v67 = v63 + v64->Y;
-//				v68 = (v122.Z + v64->Z) / 2;
-//				ecx0a.X = v66 / 2;
-//				ecx0a.Y = v67 / 2;
-//				ecx0a.Z = v68;
-//				v69 = operator new(0x1C8u);
-//				if (v69)
-//				{
-//					AnimClass::AnimClass(v69, **(&AnimTypes + 1), &ecx0a, 0, 1, AnimFlag_400 | AnimFlag_200, 0, 0);
-//				}
-//				v70 = object->t.r.m.o.a.vftable;
-//				v123 = *&v120;
-//				v70->t.r.m.o.Take_Damage(&object->t.r.m.o, &v123, 0, Rule->FlameDamage, 0, 1, 0, 0);
-//				Explosion_Damage(&ecx0a, *&v120, 0, Rule->FlameDamage, 1, 0);
-//				goto switch_Goodie_Check_DoAnimation;
-//			case CrateType::DARKNESS:
-//				Debug::Log("Crate at %d,%d contains 'shroud'\n", this->Position.X, this->Position.Y);
-//				MapClass::Reset_Shroud(&Map.sc.t.sb.p.r.d.m, object->t.House);
-//				goto switch_Goodie_Check_DoAnimation;
-//			case CrateType::REVEAL:
-//				Debug::Log("Crate at %d,%d contains 'reveal'\n", this->Position.X, this->Position.Y);
-//				MapClass::Clear_Shroud(&Map.sc.t.sb.p.r.d.m, object->t.House);
-//				v125.X = this->Position;
-//				Operator_Negate(&v122, (SLOWORD(v125.X) << 8) + 128, (SHIWORD(v125.X) << 8) + 128, 0);
-//				v120.X = 128;
-//				v120.Y = 128;
-//				v122.Z = CellClass::Get_Z_Offset(this, &v120);
-//				v142 = v122;
-//				HIDWORD(n) = 0;
-//				v32 = Rule->CrateRevealSound;
-//				v33 = &v142;
-//				goto LABEL_222;
-//			case CrateType::ARMOR:
-//				Debug::Log("Crate at %d,%d contains armor\n", this->Position.X, this->Position.Y);
-//				damage = 0;
-//				if (DisplayClass::Layer[2].ActiveCount > 0)
-//				{
-//					do
-//					{
-//						cell = DisplayClass::Layer[2].Vector_Item[damage];
-//						if (cell)
-//						{
-//							HIBYTE(v116) = cell->r.m.o.a.TargetBitfield[0] & 1;
-//							if (HIBYTE(v116))
-//							{
-//								v123 = this->Position;
-//								v125.X = 128;
-//								v125.Y = 128;
-//								v129 = CellClass::Get_Z_Offset(this, &v125);
-//								v92 = cell->r.m.o.a.vftable->t.r.m.o.a.Center_Coord(cell, v150);
-//								v93 = v92->Z;
-//								v122.X = (v123 << 8) + 128 - v92->X;
-//								v122.Y = (SHIWORD(v123) << 8) + 128 - v92->Y;
-//								v122.Z = v129 - v93;
-//								if (FastMath::Sqrt((v129 - v93) * (v129 - v93) + v122.Y * v122.Y + v122.X * v122.X) < Rule->CrateRadius
-//								  && !LODWORD(cell->ArmorBias)
-//								  && HIDWORD(cell->ArmorBias) == 1072693248)
-//								{
-//									v94 = cell->r.m.o.a.vftable;
-//									cell->ArmorBias = *&v120 * cell->ArmorBias;
-//									v95 = (v94->t.r.m.o.a.Owner__Owning_House)();
-//									if (HouseClass::Player_Has_Control(v95))
-//									{
-//										HIBYTE(nPlaySound) = 1;
-//									}
-//								}
-//							}
-//						}
-//						damage = (damage + 1);
-//					}
-//					while (damage < DisplayClass::Layer[2].ActiveCount);
-//					if (HIBYTE(nPlaySound))
-//					{
-//						VoxClass_Speak_From_Name("EVA_UnitArmorUpgraded", -1, -1);
-//					}
-//				}
-//				if (!HouseClass::Player_Has_Control(object->t.House))
-//				{
-//					goto switch_Goodie_Check_DoAnimation;
-//				}
-//				v123 = this->Position;
-//				v96 = (v123 << 8) + 128;
-//				v97 = (SHIWORD(v123) << 8) + 128;
-//				v120.X = 128;
-//				v120.Y = 128;
-//				v137[2] = CellClass::Get_Z_Offset(this, &v120);
-//				v137[0] = v96;
-//				v137[1] = v97;
-//				v32 = Rule->CrateArmourSound;
-//				HIDWORD(n) = 0;
-//				v33 = v137;
-//				goto LABEL_222;
-//			case CrateType::SPEED:
-//				Debug::Log("Crate at %d,%d contains speed\n", this->Position.X, this->Position.Y);
-//				damage = 0;
-//				if (DisplayClass::Layer[2].ActiveCount > 0)
-//				{
-//					do
-//					{
-//						cell = DisplayClass::Layer[2].Vector_Item[damage];
-//						if (cell)
-//						{
-//							HIBYTE(v116) = (cell->r.m.o.a.TargetBitfield[0] & 4) != 0;
-//							if (HIBYTE(v116))
-//							{
-//								v123 = this->Position;
-//								v125.X = 128;
-//								v125.Y = 128;
-//								v129 = CellClass::Get_Z_Offset(this, &v125);
-//								v98 = cell->r.m.o.a.vftable->t.r.m.o.a.Center_Coord(cell, v152);
-//								v99 = v98->Z;
-//								v122.X = (v123 << 8) + 128 - v98->X;
-//								v122.Y = (SHIWORD(v123) << 8) + 128 - v98->Y;
-//								v122.Z = v129 - v99;
-//								if (FastMath::Sqrt((v129 - v99) * (v129 - v99) + v122.Y * v122.Y + v122.X * v122.X) < Rule->CrateRadius
-//								  && !cell[1].r.m.o.__AmbientSoundController2.field_10
-//								  && cell[1].r.m.o.__AttachedSound == 1072693248
-//								  && cell->r.m.o.a.vftable->t.r.m.o.a.Kind_Of(cell) != RTTI_AIRCRAFT)
-//								{
-//									v100 = cell->House;
-//									*&cell[1].r.m.o.__AmbientSoundController2.field_10 = *&v120
-//										* *&cell[1].r.m.o.__AmbientSoundController2.field_10;
-//									if (v100->IsPlayerControl)
-//									{
-//										HIBYTE(nPlaySound) = 1;
-//									}
-//								}
-//							}
-//						}
-//						damage = (damage + 1);
-//					}
-//					while (damage < DisplayClass::Layer[2].ActiveCount);
-//					if (HIBYTE(nPlaySound))
-//					{
-//						VoxClass_Speak_From_Name("EVA_UnitSpeedUpgraded", -1, -1);
-//					}
-//				}
-//				if (!HouseClass::Player_Has_Control(object->t.House))
-//				{
-//					goto switch_Goodie_Check_DoAnimation;
-//				}
-//				v123 = this->Position;
-//				v101 = (v123 << 8) + 128;
-//				v102 = (SHIWORD(v123) << 8) + 128;
-//				v120.X = 128;
-//				v120.Y = 128;
-//				v139[2] = CellClass::Get_Z_Offset(this, &v120);
-//				v139[0] = v101;
-//				v139[1] = v102;
-//				v32 = Rule->CrateSpeedSound;
-//				HIDWORD(n) = 0;
-//				v33 = v139;
-//				goto LABEL_222;
-//			case CrateType::FIREPOWER:
-//				Debug::Log("Crate at %d,%d contains firepower\n", this->Position.X, this->Position.Y);
-//				damage = 0;
-//				if (DisplayClass::Layer[2].ActiveCount > 0)
-//				{
-//					do
-//					{
-//						cell = DisplayClass::Layer[2].Vector_Item[damage];
-//						if (cell)
-//						{
-//							HIBYTE(v116) = cell->r.m.o.a.TargetBitfield[0] & 1;
-//							if (HIBYTE(v116))
-//							{
-//								v123 = this->Position;
-//								v125.X = 128;
-//								v125.Y = 128;
-//								v129 = CellClass::Get_Z_Offset(this, &v125);
-//								v103 = cell->r.m.o.a.vftable->t.r.m.o.a.Center_Coord(cell, v154);
-//								v104 = v103->Z;
-//								v122.X = (v123 << 8) + 128 - v103->X;
-//								v122.Y = (SHIWORD(v123) << 8) + 128 - v103->Y;
-//								v122.Z = v129 - v104;
-//								if (FastMath::Sqrt(v122.X * v122.X + (v129 - v104) * (v129 - v104) + v122.Y * v122.Y) < Rule->CrateRadius
-//								  && !LODWORD(cell->FirepowerBias)
-//								  && HIDWORD(cell->FirepowerBias) == 07774000000)
-//								{
-//									v105 = cell->r.m.o.a.vftable;
-//									cell->FirepowerBias = *&v120 * cell->FirepowerBias;
-//									v106 = (v105->t.r.m.o.a.Owner__Owning_House)();
-//									if (HouseClass::Player_Has_Control(v106))
-//									{
-//										HIBYTE(nPlaySound) = 1;
-//									}
-//								}
-//							}
-//						}
-//						damage = (damage + 1);
-//					}
-//					while (damage < DisplayClass::Layer[2].ActiveCount);
-//					if (HIBYTE(nPlaySound))
-//					{
-//						VoxClass_Speak_From_Name("EVA_UnitFirePowerUpgraded", -1, -1);
-//					}
-//				}
-//				if (!HouseClass::Player_Has_Control(object->t.House))
-//				{
-//					goto switch_Goodie_Check_DoAnimation;
-//				}
-//				v123 = this->Position;
-//				v107 = (v123 << 8) + 128;
-//				v108 = (SHIWORD(v123) << 8) + 128;
-//				v120.X = 128;
-//				v120.Y = 128;
-//				v128.Z = CellClass::Get_Z_Offset(this, &v120);
-//				v128.X = v107;
-//				v128.Y = v108;
-//				v32 = Rule->CrateFireSound;
-//				HIDWORD(n) = 0;
-//				v33 = &v128;
-//				goto LABEL_222;
-//			case CrateType::ICBM:
-//				Debug::Log("Crate at %d,%d contains ICBM\n", this->Position.X, this->Position.Y);
-//				v87 = SuperWeaponTypeClass::From_Action(20);
-//				v88 = 0;
-//				v89 = object->t.House;
-//				v90 = v89->SuperWeapon.ActiveCount;
-//				if (v90 <= 0)
-//				{
-//					goto switch_Goodie_Check_DoAnimation;
-//				}
-//				v123 = v89->SuperWeapon.Vector_Item;
-//				v91 = v123;
-//				while ((*v91)->Class->__ActsLike)
-//				{
-//					++v88;
-//					++v91;
-//					if (v88 >= v90)
-//					{
-//						goto switch_Goodie_Check_DoAnimation;
-//					}
-//				}
-//				if (v88 != -1 && SuperClass::Enable(v123[v87->ID], 1, 0, 0) && object->t.IsOwnedByPlayer)
-//				{
-//					SidebarClass::Add(&Map.sc.t.sb, RTTI_SPECIAL, v87->ID);
-//				}
-//				goto switch_Goodie_Check_DoAnimation;
-//			case CrateType::VETERAN:
-//				Debug::Log("Crate at %d,%d contains veterancy(TM)\n", this->Position.X, this->Position.Y);
-//				for (cell = 0; cell < DisplayClass::Layer[2].ActiveCount; cell = (cell + 1))
-//				{
-//					damage = DisplayClass::Layer[2].Vector_Item[cell];
-//					if (damage)
-//					{
-//						if (damage->t.r.m.o.IsDown)
-//						{
-//							HIBYTE(v116) = damage->t.r.m.o.a.TargetBitfield[0] & 1;
-//							if (HIBYTE(v116))
-//							{
-//								v123 = this->Position;
-//								v125.X = 128;
-//								v125.Y = 128;
-//								v129 = CellClass::Get_Z_Offset(this, &v125);
-//								v75 = damage->t.r.m.o.a.vftable->t.r.m.o.a.Center_Coord(damage, &v148);
-//								v76 = v75->Z;
-//								v122.X = (v123 << 8) + 128 - v75->X;
-//								v122.Y = (SHIWORD(v123) << 8) + 128 - v75->Y;
-//								v122.Z = v129 - v76;
-//								if (FastMath::Sqrt((v129 - v76) * (v129 - v76) + v122.Y * v122.Y + v122.X * v122.X) < Rule->CrateRadius)
-//								{
-//									if (damage->t.r.m.o.a.vftable->t.r.m.o.Techno_Type_Class(&damage->t)->Trainable)
-//									{
-//										v77 = 0;
-//										if (*&v120 > 0.0)
-//										{
-//											v78 = &damage->t.__Veterancy;
-//											do
-//											{
-//												if (VeterancyClass::Is_Veteran(v78))
-//												{
-//													VeterancyClass::Set_Elite(v78, 1);
-//												}
-//												if (VeterancyClass::Is_Rookie(v78))
-//												{
-//													VeterancyClass::Set_Veteran(v78, 1);
-//												}
-//												if (VeterancyClass::Is_Dumbass(v78))
-//												{
-//													VeterancyClass::Set_Rookie(v78, 1);
-//												}
-//												v123 = ++v77;
-//											}
-//											while (v77 < *&v120);
-//										}
-//									}
-//								}
-//							}
-//						}
-//					}
-//				}
-//				if (!HouseClass::Player_Has_Control(object->t.House))
-//				{
-//					goto switch_Goodie_Check_DoAnimation;
-//				}
-//				v123 = this->Position;
-//				v79 = (v123 << 8) + 128;
-//				v80 = (SHIWORD(v123) << 8) + 128;
-//				v120.X = 128;
-//				v120.Y = 128;
-//				v134[2] = CellClass::Get_Z_Offset(this, &v120);
-//				v134[0] = v79;
-//				v134[1] = v80;
-//				v32 = Rule->CratePromoteSound;
-//				HIDWORD(n) = 0;
-//				v33 = v134;
-//				goto LABEL_222;
-//			case CrateType::GAS:
-//				Debug::Log("Crate at %d,%d contains poison gas\n", this->Position.X, this->Position.Y);
-//				v18 = WarheadTypeClass::From_Name("GAS");
-//				v19 = this->a.vftable;
-//				n = 0.0;
-//				v114 = v18;
-//				v113 = 0;
-//				damage = *&v120;
-//				v20 = v19->t.r.m.o.a.Center_Coord(this, &v144);
-//				Explosion_Damage(v20, damage, 0, v18, 0, 0);
-//				v21 = 0;
-//				v22 = 1;
-//				do
-//				{
-//					if (v22)
-//					{
-//						cell = this->Position;
-//						v125.X = *Adjacent_Cell(&v123, &cell, v21);
-//						v23 = MapClass::operator[](&Map.sc.t.sb.p.r.d.m, &v125);
-//					}
-//					else
-//					{
-//						v23 = this;
-//					}
-//					v24 = v23->a.vftable;
-//					n = 0.0;
-//					v114 = v18;
-//					v113 = 0;
-//					v25 = v24->t.r.m.o.a.Center_Coord(v23, &v153);
-//					Explosion_Damage(v25, damage, 0, v18, 0, 0);
-//					v22 = ++v21 < 8;
-//				}
-//				while (v21 < 8);
-//				goto switch_Goodie_Check_DoAnimation;
-//			case CrateType::TIBERIUM:
-//				Debug::Log("Crate at %d,%d contains tiberium\n", this->Position.X, this->Position.Y);
-//				v26 = Random2Class::operator()(&Scen->RandomNumber, 0, *(&Tiberiums + 4) - 1);
-//				if (v26 == 1)
-//				{
-//					v26 = 0;
-//				}
-//				CellClass::Place_Tiberium_At_Cell(this, v26, 1);
-//				v27 = Random2Class::operator()(&Scen->RandomNumber, 10, 20);
-//				if (v27)
-//				{
-//					v28 = v27;
-//					do
-//					{
-//						*&n = Random2Class::operator()(&Scen->RandomNumber, 0, 768) | 0x100000000i64;
-//						v29 = this->a.vftable->t.r.m.o.a.Center_Coord(this, &v147);
-//						v30 = Coord_Scatter(&retval, v29, SLODWORD(n), 1);
-//						v122.X = v30->X;
-//						*&n = v26 | 0x100000000i64;
-//						v122.Y = v30->Y;
-//						v122.Z = v30->Z;
-//						v31 = MapClass::operator[](&Map.sc.t.sb.p.r.d.m, &v122);
-//						CellClass::Place_Tiberium_At_Cell(v31, v26, 1);
-//						--v28;
-//					}
-//					while (v28);
-//				}
-//				goto switch_Goodie_Check_DoAnimation;
-//			default:
-//				goto switch_Goodie_Check_DoAnimation;
-//			}
-//		}
-//	}
-//
-//	return true;
-//}
-
 DEFINE_SKIP_HOOK(0x69A797, Game_DisableNoDigestLog, 0x6, 69A937);
 
 DEFINE_HOOK(0x6F9F42, TechnoClass_AI_Berzerk_SetMissionAfterDone, 0x6)
@@ -4102,57 +3156,57 @@ DEFINE_HOOK(0x40A554, AudioDriverStar_AnnoyingBufferLogDisable_B, 0x6)
 //}
 //#pragma optimize("", on)
 
-struct TechnoExt_Gscript
-{
-	CDTimerClass TargetingDelayTimer {};
+//struct TechnoExt_Gscript
+//{
+//	CDTimerClass TargetingDelayTimer {};
+//
+//	static TechnoExt_Gscript* Get(TechnoClass* pThis)
+//	{
+//		return (TechnoExt_Gscript*)(*(uintptr_t*)((char*)pThis + AbstractExtOffset));
+//	}
+//};
 
-	static TechnoExt_Gscript* Get(TechnoClass* pThis)
-	{
-		return (TechnoExt_Gscript*)(*(uintptr_t*)((char*)pThis + AbstractExtOffset));
-	}
-};
-
-#include <SpotlightClass.h>
-
-struct TechnoTypeExt_Gscript
-{
-	Valueable<bool> TroopCrawler {};
-	Promotable<bool> Promoted_PalaySpotlight { };
-	Promotable<SpotlightFlags> Promoted_PalaySpotlight_bit
-	{ SpotlightFlags::NoGreen | SpotlightFlags::NoRed,
-		SpotlightFlags::NoRed,
-		SpotlightFlags::NoGreen | SpotlightFlags::NoBlue
-	};
-
-	Promotable<AnimTypeClass*> Promoted_PlayAnim {};
-
-	ValueableIdx<VoxClass> DiscoverEVA { -1 };
-
-	static TechnoTypeExt_Gscript* Get(TechnoTypeClass* pThis)
-	{
-		return (TechnoTypeExt_Gscript*)(*(uintptr_t*)((char*)pThis + AbstractExtOffset));
-	}
-
-	static void PlayPromoteAffects(TechnoClass* pThis)
-	{
-		auto const pTypeExt = pThis->GetTechnoType();
-		auto const pExt = TechnoTypeExt_Gscript::Get(pTypeExt);
-
-		if (pExt->Promoted_PalaySpotlight.Get(pThis))
-		{
-			if (auto pSpot = GameCreate<SpotlightClass>(pThis->Location, 50))
-			{
-				pSpot->DisableFlags = pExt->Promoted_PalaySpotlight_bit.Get(pThis);
-			}
-		}
-
-
-		if (auto pAnimType = pExt->Promoted_PlayAnim.Get(pThis))
-		{
-			GameCreate<AnimClass>(pAnimType, pThis->Location, 0, 1, 0x600u, 0, 0);
-		}
-	}
-};
+//#include <SpotlightClass.h>
+//
+//struct TechnoTypeExt_Gscript
+//{
+//	Valueable<bool> TroopCrawler {};
+//	Promotable<bool> Promoted_PalaySpotlight { };
+//	Promotable<SpotlightFlags> Promoted_PalaySpotlight_bit
+//	{ SpotlightFlags::NoGreen | SpotlightFlags::NoRed,
+//		SpotlightFlags::NoRed,
+//		SpotlightFlags::NoGreen | SpotlightFlags::NoBlue
+//	};
+//
+//	Promotable<AnimTypeClass*> Promoted_PlayAnim {};
+//
+//	ValueableIdx<VoxClass> DiscoverEVA { -1 };
+//
+//	static TechnoTypeExt_Gscript* Get(TechnoTypeClass* pThis)
+//	{
+//		return (TechnoTypeExt_Gscript*)(*(uintptr_t*)((char*)pThis + AbstractExtOffset));
+//	}
+//
+//	static void PlayPromoteAffects(TechnoClass* pThis)
+//	{
+//		auto const pTypeExt = pThis->GetTechnoType();
+//		auto const pExt = TechnoTypeExt_Gscript::Get(pTypeExt);
+//
+//		if (pExt->Promoted_PalaySpotlight.Get(pThis))
+//		{
+//			if (auto pSpot = GameCreate<SpotlightClass>(pThis->Location, 50))
+//			{
+//				pSpot->DisableFlags = pExt->Promoted_PalaySpotlight_bit.Get(pThis);
+//			}
+//		}
+//
+//
+//		if (auto pAnimType = pExt->Promoted_PlayAnim.Get(pThis))
+//		{
+//			GameCreate<AnimClass>(pAnimType, pThis->Location, 0, 1, 0x600u, 0, 0);
+//		}
+//	}
+//};
 
 //DEFINE_HOOK_AGAIN(0x736A22,UnitClass_UpdateTurret_ApplyTarget_ClearFlags, 0xA)
 //DEFINE_HOOK(0x736A09, UnitClass_UpdateTurret_ApplyTarget_ClearFlags, 0x5)
@@ -4239,10 +3293,10 @@ DEFINE_HOOK(0x708F77, TechnoClass_ResponseToSelect_BugFixes, 0x5)
 		0x708FAD : 0x0;
 }
 
-DEFINE_HOOK(0x518077, InfantryClass_ReceiveDamage_ResultDestroyed, 0x6)
-{
-	return 0x0;
-}
+//DEFINE_HOOK(0x518077, InfantryClass_ReceiveDamage_ResultDestroyed, 0x6)
+//{
+//	return 0x0;
+//}
 
 DEFINE_HOOK(0x6D7A4F, TacticalClass_DrawPixelEffects_FullFogged, 0x6)
 {
@@ -4425,11 +3479,11 @@ DEFINE_HOOK(0x6EE17E, MoveCrameraToWaypoint_CancelFollowTarget, 0x8)
 //	return bConditionMet ? 0x6FA6AC : 0x6FA6F5;
 //}
 
-void PlayReloadEffects(TechnoClass* pThis, int report, int sound)
-{
-	VocClass::PlayIndexAtPos(report, pThis->Location);
-	VocClass::PlayIndexAtPos(sound, pThis->Location);
-}
+//void PlayReloadEffects(TechnoClass* pThis, int report, int sound)
+//{
+//	VocClass::PlayIndexAtPos(report, pThis->Location);
+//	VocClass::PlayIndexAtPos(sound, pThis->Location);
+//}
 
 DEFINE_HOOK(0x437C29, sub_437A10_Lock_Bound_Fix, 7)
 {
@@ -4604,26 +3658,26 @@ DEFINE_HOOK(0x73D909, UnitClass_Mi_Unload_LastPassengerOut, 8)
 	return 0x0;
 }
 
-//DEFINE_HOOK(0x73DDC0 , UnitClass_Mi_Unload_DeployIntoPlaceAnywhere, 6)
-//{
-//	GET(UnitClass*, pThis, ESI);
-//
-//	if (R->AL())
-//	{
-//		if(pThis->Type->Speed)
-//			return 0x73DE20;
-//		else
-//		{
-//			pThis->StopMoving();
-//			pThis->QueueMission(Mission::Unload, false);
-//			pThis->NextMission();
-//			return 0x73DE3A;
-//		}
-//	}
-//
-//	R->ECX(pThis);
-//	return 0x73DDC6;
-//}
+DEFINE_HOOK(0x73DDC0 , UnitClass_Mi_Unload_DeployIntoPlaceAnywhere, 6)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	if (R->AL())
+	{
+		if(pThis->Type->Speed)
+			return 0x73DE20;
+		else
+		{
+			pThis->StopMoving();
+			pThis->QueueMission(Mission::Unload, false);
+			pThis->NextMission();
+			return 0x73DE3A;
+		}
+	}
+
+	R->ECX(pThis);
+	return 0x73DDC6;
+}
 
 //DEFINE_HOOK(0x714522, TechnoTypeClass_LoadFromINI_RequiredHouses, 9)
 //{
@@ -4655,69 +3709,69 @@ DEFINE_HOOK(0x73D909, UnitClass_Mi_Unload_LastPassengerOut, 8)
 //}
 
 //TechnoClass_GetWeaponState
-//DEFINE_OVERRIDE_HOOK(0x6FCA30, TechnoClass_GetFireError_DecloakToFire, 6)
-//{
-//	GET(TechnoClass* const, pThis, ESI);
-//	GET(WeaponTypeClass* const, pWeapon, EBX);
-//
-//	const auto pTransporter = pThis->Transporter;
-//
-//	if (pTransporter && pTransporter->CloakState != CloakState::Uncloaked)
-//		return 0x6FCA4F;
-//
-//	if (pThis->CloakState == CloakState::Uncloaked)
-//		return 0x6FCA5E;
-//
-//	if (!pWeapon->DecloakToFire && Is_Aircraft(pThis))
-//		return 0x6FCA4F;
-//
-//	return pThis->CloakState == CloakState::Cloaked ? 0x6FCA4F : 0x6FCA5E;
-//	//return 0x0;
-//}
+DEFINE_OVERRIDE_HOOK(0x6FCA30, TechnoClass_GetFireError_DecloakToFire, 6)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	GET(WeaponTypeClass* const, pWeapon, EBX);
 
-//DEFINE_HOOK(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
-//{
-//	GET(TechnoClass* const, pThis, ESI);
-//	GET(TechnoTypeClass* const, pType, EAX);
-//	GET(WeaponTypeClass* const, pWeapon, EBP);
-//
-//	if (!pType->AttackFriendlies)
-//		return 0x70039B;
-//
-//	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-//
-//	if (pTypeExt->AttackFriendlies_WeaponIdx != -1)
-//	{
-//		const auto pWeapons = pThis->GetWeapon(pTypeExt->AttackFriendlies_WeaponIdx);
-//		if (!pWeapons || pWeapon != pWeapons->WeaponType)
-//		{
-//			return 0x70039B;
-//		}
-//	}
-//
-//	return 0x7003BB;
-//}
+	const auto pTransporter = pThis->Transporter;
+
+	if (pTransporter && pTransporter->CloakState != CloakState::Uncloaked)
+		return 0x6FCA4F;
+
+	if (pThis->CloakState == CloakState::Uncloaked)
+		return 0x6FCA5E;
+
+	if (!pWeapon->DecloakToFire && Is_Aircraft(pThis))
+		return 0x6FCA4F;
+
+	return pThis->CloakState == CloakState::Cloaked ? 0x6FCA4F : 0x6FCA5E;
+	//return 0x0;
+}
+
+DEFINE_HOOK(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	GET(TechnoTypeClass* const, pType, EAX);
+	GET(WeaponTypeClass* const, pWeapon, EBP);
+
+	if (!pType->AttackFriendlies)
+		return 0x70039B;
+
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (pTypeExt->AttackFriendlies_WeaponIdx != -1)
+	{
+		const auto pWeapons = pThis->GetWeapon(pTypeExt->AttackFriendlies_WeaponIdx);
+		if (!pWeapons || pWeapon != pWeapons->WeaponType)
+		{
+			return 0x70039B;
+		}
+	}
+
+	return 0x7003BB;
+}
 
 // //EvalObject
-//DEFINE_HOOK(0x6F7EFE, TechnoClass_CanAutoTargetObject_SelectWeapon, 6)
-//{
-//	enum { AllowAttack = 0x6F7FE9, ContinueCheck = 0x6F7F0C };
-//	GET_STACK(int const, nWeapon, 0x14);
-//	GET(TechnoClass* const, pThis, EDI);
-//
-//	const auto pType = pThis->GetTechnoType();
-//
-//	if (!pType->AttackFriendlies)
-//		return ContinueCheck;
-//
-//	bool Allow = true;
-//	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-//
-//	if (pTypeExt->AttackFriendlies_WeaponIdx != -1)
-//		Allow = pTypeExt->AttackFriendlies_WeaponIdx == nWeapon;
-//
-//	return Allow ? AllowAttack : ContinueCheck;
-//}
+DEFINE_HOOK(0x6F7EFE, TechnoClass_CanAutoTargetObject_SelectWeapon, 6)
+{
+	enum { AllowAttack = 0x6F7FE9, ContinueCheck = 0x6F7F0C };
+	GET_STACK(int const, nWeapon, 0x14);
+	GET(TechnoClass* const, pThis, EDI);
+
+	const auto pType = pThis->GetTechnoType();
+
+	if (!pType->AttackFriendlies)
+		return ContinueCheck;
+
+	bool Allow = true;
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (pTypeExt->AttackFriendlies_WeaponIdx != -1)
+		Allow = pTypeExt->AttackFriendlies_WeaponIdx == nWeapon;
+
+	return Allow ? AllowAttack : ContinueCheck;
+}
 
 DEFINE_HOOK(0x70A3E5, TechnoClass_DrawPipScale_Ammo_Idx, 7)
 {
@@ -5554,55 +4608,55 @@ DEFINE_HOOK(0x457DAD, BuildingClass_CanBeOccupied_Assaulter, 0x6)
 }
 #pragma endregion
 
-//DEFINE_HOOK(0x474964, CCINIClass_ReadPipScale_add, 0x6)
-//{
-//	enum { seteax = 0x47499C, retzero = 0x47498B, seteaxwithEdi = 0x474995 };
-//
-//	LEA_STACK(char*, buffer, 0x8);
-//	GET_STACK(const char* const, pSection, STACK_OFFSET(0x28, 0x4));
-//	GET_STACK(const char* const, pKey, STACK_OFFSET(0x28, 0x8));
-//
-//	static const auto AdditionalPip =
-//	{
-//		GameStrings::Ammo() ,
-//		GameStrings::Tiberium() ,
-//		GameStrings::Passengers() ,
-//		GameStrings::Power() ,
-//		GameStrings::MindControl() ,
-//		"Spawner"
-//	};
-//
-//	auto it = AdditionalPip.begin();
-//
-//	for (size_t i = 0; i < AdditionalPip.size(); ++i)
-//	{
-//		if (CRT::strcmpi(buffer, *it++) == 0)
-//		{
-//			R->EAX(PipScale(i + 1));
-//			return seteax;
-//		}
-//	}
-//
-//	if (!GameStrings::IsBlank(buffer))
-//		Debug::INIParseFailed(pSection, pKey, buffer, "Expect Valid PipScaleType !");
-//
-//	return retzero;
-//}
+DEFINE_HOOK(0x474964, CCINIClass_ReadPipScale_add, 0x6)
+{
+	enum { seteax = 0x47499C, retzero = 0x47498B, seteaxwithEdi = 0x474995 };
+
+	LEA_STACK(char*, buffer, 0x8);
+	GET_STACK(const char* const, pSection, STACK_OFFSET(0x28, 0x4));
+	GET_STACK(const char* const, pKey, STACK_OFFSET(0x28, 0x8));
+
+	static const auto AdditionalPip =
+	{
+		GameStrings::Ammo() ,
+		GameStrings::Tiberium() ,
+		GameStrings::Passengers() ,
+		GameStrings::Power() ,
+		GameStrings::MindControl() ,
+		"Spawner"
+	};
+
+	auto it = AdditionalPip.begin();
+
+	for (size_t i = 0; i < AdditionalPip.size(); ++i)
+	{
+		if (CRT::strcmpi(buffer, *it++) == 0)
+		{
+			R->EAX(PipScale(i + 1));
+			return seteax;
+		}
+	}
+
+	if (!GameStrings::IsBlank(buffer))
+		Debug::INIParseFailed(pSection, pKey, buffer, "Expect Valid PipScaleType !");
+
+	return retzero;
+}
 
 // TODO : complete replacement !
-//DEFINE_HOOK(0x709B79, TechnoClass_DrawPip_Spawner, 0x6)
-//{
-//	//GET(TechnoClass*, pThis, EBP);
-//	GET(TechnoTypeClass*, pType, EAX);
-//
-//	if ((int)pType->PipScale != 6)
-//	{
-//		R->EBX(0);
-//		return 0x709B7F;
-//	}
-//
-//	return 0x0;
-//}
+DEFINE_HOOK(0x709B79, TechnoClass_DrawPip_Spawner, 0x6)
+{
+	//GET(TechnoClass*, pThis, EBP);
+	GET(TechnoTypeClass*, pType, EAX);
+
+	if ((int)pType->PipScale != 6)
+	{
+		R->EBX(0);
+		return 0x709B7F;
+	}
+
+	return 0x0;
+}
 
 DEFINE_HOOK(0x481180, CellClass_GetInfantrySubPos_InvalidCellPointer, 0x5)
 {
@@ -5718,10 +4772,10 @@ DEFINE_HOOK(0x4249EC, AnimClass_CreateMakeInf_WeirdAssCode, 0x6)
 // DEFINE_HOOK(0x70F837, TechnoClass_GetOriginalOwner_PermaMCed, 0x6)
 // {
 // 	GET(TechnoClass*, pThis, ECX);
-
+//
 // 	if (pThis->MindControlledByAUnit)
 // 		return 0x70F841;
-
+//
 // 	return 0x0;
 // }
 
