@@ -8,6 +8,7 @@ void SuperExt::ExtData::Serialize(T& Stm) {
 
 	Stm
 		.Process(this->Initialized)
+		.Process(this->Type)
 		.Process(this->Temp_CellStruct)
 		.Process(this->Temp_IsPlayer)
 
@@ -29,7 +30,11 @@ DEFINE_HOOK_AGAIN(0x6CAF32 , SuperClass_CTOR, 0x6)
 DEFINE_HOOK(0x6CB10E, SuperClass_CTOR, 0x7)
 {
 	GET(SuperClass*, pItem, ESI);
-	SuperExt::ExtMap.FindOrAllocate(pItem);
+
+	if (auto pExt = SuperExt::ExtMap.FindOrAllocate(pItem)) {
+		pExt->Type = SWTypeExt::ExtMap.TryFind(pItem->Type);
+	}
+
 	return 0;
 }
 

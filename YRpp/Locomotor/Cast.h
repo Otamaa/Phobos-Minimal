@@ -47,12 +47,12 @@ __forceinline T locomotion_cast(ILocomotion* iLoco)
 }
 
 template<typename T , bool check = false>
-__forceinline T locomotion_cast(YRComPtr<ILocomotion>& comLoco)
+__forceinline T locomotion_cast(ILocomotionPtr& comLoco)
 {
 	static_assert(std::is_pointer<T>::value, "locomotion_cast: Pointer is required.");
 	using Base = std::remove_const_t<std::remove_pointer_t<T>>;
 	static_assert(std::is_base_of<LocomotionClass, Base>::value,
 		"locomotion_cast: T is required to be a sub-class of LocomotionClass.");
 
-	return locomotion_cast<T, check>(comLoco.get());
+	return locomotion_cast<T, check>(comLoco.GetInterfacePtr());
 }

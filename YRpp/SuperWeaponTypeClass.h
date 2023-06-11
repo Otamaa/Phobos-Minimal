@@ -18,6 +18,9 @@ class  DECLSPEC_UUID("0CF2BCE7-36E4-11D2-B8D8-006008C809ED")
 public:
 	static const AbstractType AbsID = AbstractType::SuperWeaponType;
 	static constexpr inline DWORD vtable = 0x7F4090;
+	static constexpr reference<const char* const, 0x8425C0u , (size_t)SuperWeaponType::count> const SuperweaponTypeName {};
+	static constexpr reference<const char* const, 0x7E4C50u, (size_t)Action::count> const ActionTypeName {};
+
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<SuperWeaponTypeClass*>, 0xA8E330u> const Array {};
 
@@ -94,7 +97,7 @@ public:
 	bool    AIDefendAgainst;
 	bool    PreClick;
 	bool    PostClick;
-	int		PreDependent;
+	SuperWeaponType	PreDependent;
 	bool    ShowTimer;
 	bool    ManualControl;
 	float   Range;

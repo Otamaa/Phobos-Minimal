@@ -65,7 +65,7 @@ DEFINE_OVERRIDE_HOOK(0x51F628, InfantryClass_Guard_Doggie, 0x5)
 				pThis->PlayAnim(DoType::Down);
 			} else {
 				// turn to correct facing
-				pThis->Locomotor.get()->Do_Turn(DirStruct{ 3u , DirType::East });
+				pThis->Locomotor.GetInterfacePtr()->Do_Turn(DirStruct{ 3u , DirType::East });
 			}
 		}
 	}
@@ -96,7 +96,7 @@ DEFINE_OVERRIDE_HOOK(0x5200C1, InfantryClass_UpdatePanic_Doggie, 0x6)
 
 	// if panicking badly, lay down on tiberium
 	if (pThis->PanicDurationLeft >= RulesExt::Global()->DoggiePanicMax) {
-		if (!pThis->Destination && !pThis->Locomotor.get()->Is_Moving())		{
+		if (!pThis->Destination && !pThis->Locomotor.GetInterfacePtr()->Is_Moving())		{
 			if (pThis->GetCell()->LandType == LandType::Tiberium) {
 				// is on tiberium. just lay down
 				pThis->PlayAnim(DoType::Down);
@@ -230,7 +230,7 @@ DEFINE_OVERRIDE_HOOK(0x51DF27, InfantryClass_Remove_Teleport, 0x6)
 	GET(InfantryClass* const, pThis, ECX);
 
 	if (pThis->Type->Teleporter) {
-		auto pLoco = pThis->Locomotor.get();
+		auto pLoco = pThis->Locomotor.GetInterfacePtr();
 
 		if (VTable::Get(pLoco) == TeleportLocomotionClass::ILoco_vtable) {
 			static_cast<TeleportLocomotionClass*>(pLoco)->LastCoords = CoordStruct::Empty;

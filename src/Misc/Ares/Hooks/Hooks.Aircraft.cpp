@@ -36,9 +36,9 @@ DEFINE_OVERRIDE_HOOK(0x416C94, AircraftClass_Carryall_Unload_UpdateCargo, 0x6)
 
 	pCargo->UpdatePosition(2);
 
-	if (pCargo->Deactivated && pCargo->Locomotor.get()->Is_Powered())
+	if (pCargo->Deactivated && pCargo->Locomotor.GetInterfacePtr()->Is_Powered())
 	{
-		pCargo->Locomotor.get()->Power_Off();
+		pCargo->Locomotor.GetInterfacePtr()->Power_Off();
 	}
 
 	return 0;

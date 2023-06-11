@@ -37,6 +37,8 @@ DEFINE_DISABLE_HOOK(0x70a990, TechnoClass_DrawVeterancy_ares)
 DEFINE_DISABLE_HOOK(0x71a900, TemporalClass_Update_WarpAway_ares)
 DEFINE_DISABLE_HOOK(0x71B99E, TerrainClass_ReceiveDamage_ForestFire_ares)
 DEFINE_DISABLE_HOOK(0x4B619F, DropPodLocomotionClass_ILocomotion_MoveTo_AtmosphereEntry_ares)
+DEFINE_DISABLE_HOOK(0x744216, UnitClass_UnmarkOccupationBits_ares)
+DEFINE_DISABLE_HOOK(0x7441b6, UnitClass_MarkOccupationBits_ares)
 
 //DEFINE_DISABLE_HOOK(0x42784B, AnimTypeClass_CTOR_ares)
 //DEFINE_DISABLE_HOOK(0x428EA8, AnimTypeClass_SDDTOR_ares)

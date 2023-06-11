@@ -100,15 +100,15 @@ public:
 	static void ChangeLocomotorTo(FootClass *Object, const CLSID &clsid);
 
 	// creates a new instance by class ID. returns a pointer to ILocomotion
-	static YRComPtr<ILocomotion> CreateInstance(const CLSID& rclsid)
+	static ILocomotionPtr CreateInstance(const CLSID& rclsid)
 	{
-		return YRComPtr<ILocomotion>(rclsid, nullptr,
+		return ILocomotionPtr(rclsid, nullptr,
 			CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER);
 	}
 
 	// finds out whether a locomotor is currently piggybacking and restores
 	// the original locomotor. this function ignores Is_Ok_To_End().
-	static bool End_Piggyback(YRComPtr<ILocomotion> &pLoco);
+	static bool End_Piggyback(ILocomotionPtr &pLoco);
 
 	//Constructors
 	LocomotionClass() { JMP_THIS(0x55A6C0); }

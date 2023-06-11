@@ -4,6 +4,7 @@
 #include <Helpers/Macro.h>
 #include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
+#include <Ext/SWType/Body.h>
 
 class SuperExt
 {
@@ -15,9 +16,11 @@ public:
 		using base_type = SuperClass;
 	public:
 
+		SWTypeExt::ExtData* Type;
 		bool Temp_IsPlayer;
 		CellStruct Temp_CellStruct;
 		ExtData(SuperClass* OwnerObject) : Extension<SuperClass>(OwnerObject)
+			, Type { nullptr }
 			, Temp_IsPlayer { false }
 			, Temp_CellStruct { }
 		{ }

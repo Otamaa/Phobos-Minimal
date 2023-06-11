@@ -12,3 +12,5 @@ DECLARE_INTERFACE_IID_(IApplication, IUnknown, "96F02EC3-6FE8-11D1-B6FD-00A024DD
 	virtual LONG __stdcall FrameCount(long* retval) PURE;
 	virtual LONG __stdcall Swizzle_Interface(ISwizzle** pVal) PURE;
 };
+
+_COM_SMARTPTR_TYPEDEF(IApplication, __uuidof(IApplication));

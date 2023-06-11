@@ -1257,7 +1257,9 @@ enum class SuperWeaponType : int {
 	SpyPlane = 8,
 	GeneticMutator = 9,
 	ForceShield = 10,
-	PsychicReveal = 11
+	PsychicReveal = 11,
+
+	count
 };
 
 enum class MouseCursorType : unsigned int {

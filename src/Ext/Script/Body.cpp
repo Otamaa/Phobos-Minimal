@@ -962,7 +962,7 @@ void ScriptExt::DistributedLoadOntoTransport(TeamClass* pTeam, int nArg)
 		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 		{
 			// no blockage, just keep moving
-			if (pUnit->Locomotor.get()->Is_Moving_Now())
+			if (pUnit->Locomotor.GetInterfacePtr()->Is_Moving_Now())
 			{
 				canProceed = false;
 				continue;
@@ -1747,7 +1747,7 @@ void ScriptExt::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown = -
 		// The leader should stay calm & be the group's center
 		const bool AllowToStop = !TechnoExt::IsInWarfactory(pLeaderUnit);
 
-		if (pLeaderUnit->Locomotor.get()->Is_Moving_Now() && AllowToStop)
+		if (pLeaderUnit->Locomotor.GetInterfacePtr()->Is_Moving_Now() && AllowToStop)
 			pLeaderUnit->SetDestination(nullptr, false);
 
 		pLeaderUnit->QueueMission(Mission::Guard, false);
@@ -4312,7 +4312,7 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 
 			auto const pWhat = GetVtableAddr(pUnit);
 
-			if (!pUnit->Locomotor.get()->Is_Moving_Now())
+			if (!pUnit->Locomotor.GetInterfacePtr()->Is_Moving_Now())
 				pUnit->SetDestination(pFocus, false);
 
 			if (mode == 2)

@@ -474,7 +474,7 @@ DEFINE_HOOK(0x736F78, UnitClass_UpdateFiring_FireErrorIsFACING, 0x6)
 				pThis->SecondaryFacing.Set_Desired(tgtDir);
 			}
 		}
-		else if (!pThis->Destination && !pThis->Locomotor.get()->Is_Moving())
+		else if (!pThis->Destination && !pThis->Locomotor.GetInterfacePtr()->Is_Moving())
 		{
 			pThis->PrimaryFacing.Set_Desired(tgtDir);
 			pThis->SecondaryFacing.Set_Desired(tgtDir);
@@ -505,7 +505,7 @@ DEFINE_HOOK(0x736EE9, UnitClass_UpdateFiring_FireErrorIsOK, 0x6)
 	if (pWpn->OmniFire)
 	{
 		const auto pTypeExt = WeaponTypeExt::ExtMap.Find(pWpn);
-		if (pTypeExt->OmniFire_TurnToTarget.Get() && !pThis->Locomotor.get()->Is_Moving_Now())
+		if (pTypeExt->OmniFire_TurnToTarget.Get() && !pThis->Locomotor.GetInterfacePtr()->Is_Moving_Now())
 		{
 			CoordStruct& source = pThis->Location;
 			CoordStruct target = pThis->Target->GetCoords();

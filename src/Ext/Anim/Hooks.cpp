@@ -83,7 +83,7 @@ DEFINE_HOOK(0x424CB0, AnimClass_InWhichLayer_Override, 0x6) //was 5
 					if(pFoot->IsCrashing ||  pFoot->IsSinking)
 						return RetLayerGround;
 
-					if (auto const pLocomotor = pFoot->Locomotor.get())
+					if (auto const pLocomotor = pFoot->Locomotor.GetInterfacePtr())
 						nRes = pLocomotor->In_Which_Layer();
 				}
 				else if (auto const pBullet = specific_cast<BulletClass*>(pThis->OwnerObject)) {

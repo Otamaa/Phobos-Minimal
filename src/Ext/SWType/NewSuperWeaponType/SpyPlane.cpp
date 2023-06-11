@@ -1,0 +1,26 @@
+#include "SpyPlane.h"
+
+const char* SW_SpyPlane::GetTypeString() const
+{
+	return "Airstrike";
+}
+
+bool SW_SpyPlane::HandleThisType(SuperWeaponType type) const
+{
+	return (type == SuperWeaponType::SpyPlane);
+}
+
+bool SW_SpyPlane::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
+{
+	return true;
+}
+
+void SW_SpyPlane::Initialize(SWTypeExt::ExtData* pData)
+{
+
+}
+
+void SW_SpyPlane::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
+{
+
+}

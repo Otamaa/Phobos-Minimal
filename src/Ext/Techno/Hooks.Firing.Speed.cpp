@@ -9,12 +9,12 @@ DEFINE_HOOK(0x415F4D, AircraftClass_FireAt_SpeedModifiers, 0x6)
 	GET(const BulletClass*, pBullet, ESI);
 	GET(AircraftClass*, pThis, EDI);
 
-	if (IsFlyLoco(pThis->Locomotor.get())) {
+	if (IsFlyLoco(pThis->Locomotor.GetInterfacePtr())) {
 
 		if (pBullet->Type->Cluster)
 			return 0x0;
 
-		const auto pLocomotor = static_cast<FlyLocomotionClass*>(pThis->Locomotor.get());
+		const auto pLocomotor = static_cast<FlyLocomotionClass*>(pThis->Locomotor.GetInterfacePtr());
 		const double currentSpeed = pThis->GetTechnoType()->Speed * pLocomotor->CurrentSpeed *
 			TechnoExt::GetCurrentSpeedMultiplier(pThis);
 

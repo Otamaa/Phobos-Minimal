@@ -553,22 +553,20 @@ CellStruct WWMouseClass::GetCellUnderCursor()
 	return nbuffer;
 }
 
-bool LocomotionClass::End_Piggyback(YRComPtr<ILocomotion> &pLoco)
+bool LocomotionClass::End_Piggyback(ILocomotionPtr &pLoco)
 {
 	if (!pLoco)
 	{
 		Game::RaiseError(E_POINTER);
 	}
 
-	if (YRComPtr<IPiggyback> pPiggy = pLoco)
+	if (IPiggybackPtr pPiggy = pLoco)
 	{
 		if (pPiggy->Is_Piggybacking())
 		{
-			// this frees the current locomotor
-			pLoco.reset(nullptr);
-
-			// this restores the old one
-			auto res = pPiggy->End_Piggyback(pLoco.pointer_to());
+			// _com_ptr_t releases the old pointer automatically,
+			// so we just use it without resetting it
+			auto res = pPiggy->End_Piggyback(&pLoco);
 			if (FAILED(res))
 			{
 				Game::RaiseError(res);
@@ -583,15 +581,15 @@ bool LocomotionClass::End_Piggyback(YRComPtr<ILocomotion> &pLoco)
 void LocomotionClass::ChangeLocomotorTo(FootClass *Object, const CLSID &clsid)
 {
 	// remember the current one
-	YRComPtr<ILocomotion> Original(Object->Locomotor);
+	ILocomotionPtr Original(Object->Locomotor);
 
 	// create a new locomotor and link it
 	auto NewLoco = CreateInstance(clsid);
 	NewLoco->Link_To_Object(Object);
 
 	// get piggy interface and piggy original
-	YRComPtr<IPiggyback> Piggy(NewLoco);
-	Piggy->Begin_Piggyback(Original.get());
+	IPiggybackPtr Piggy(NewLoco);
+	Piggy->Begin_Piggyback(Original.GetInterfacePtr());
 
 	// replace the current locomotor
 	Object->Locomotor = std::move(NewLoco);

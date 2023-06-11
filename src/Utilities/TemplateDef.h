@@ -53,7 +53,8 @@
 
 #include <FileFormats/_Loader.h>
 #include <Helpers/Enumerators.h>
-#include <Utilities/EnumFunctions.h>
+
+#include <Utilities/TechnoTypeConvertData.h>
 
 #include <New/Type/PaletteManager.h>
 
@@ -63,6 +64,151 @@
 
 namespace detail
 {
+#pragma region getresult
+	template <typename T>
+	inline bool getresult(T& value, const std::string& parser, const char* pSection, const char* pKey, bool allocate = false) {
+		return true;
+	}
+
+	template <>
+	inline bool getresult<AffectedHouse>(AffectedHouse& value, const std::string& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.empty())
+		{
+			auto resultData = AffectedHouse::None;
+			char* context = nullptr;
+			std::string copy = parser;
+
+			for (auto pCur = strtok_s(copy.data(),
+				Phobos::readDelims, &context);
+				pCur;
+				pCur = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
+				size_t result = 0;
+				bool found = false;
+				for (auto const& pString : EnumFunctions::AffectedHouse_ToStrings)
+				{
+					if (IS_SAME_STR_(pCur, pString))
+					{
+						found = true;
+						break;
+					}
+					++result;
+				}
+
+				if (!found || result == (size_t)AffectedHouse::None)
+				{
+					Debug::INIParseFailed(pSection, pKey, parser.c_str(), "Expected a affected house");
+					return false;
+				}
+				else
+				{
+					switch (result)
+					{
+					case 1:
+					case 2: resultData |= AffectedHouse::Owner; break;
+					case 3:
+					case 4: resultData |= AffectedHouse::Allies; break;
+					case 5:
+					case 6: resultData |= AffectedHouse::Enemies; break;
+					case 7: resultData |= AffectedHouse::Team; break;
+					case 8: resultData |= AffectedHouse::NotOwner; break;
+					case 9: resultData |= AffectedHouse::All; break;
+					case 10: resultData |= AffectedHouse::NotAllies;  break;
+					default:
+						break;
+					}
+				}
+			}
+
+			value = resultData;
+			return true;
+		}
+		return false;
+	}
+
+	template <>
+	inline bool getresult<TechnoTypeConvertData>(TechnoTypeConvertData& value, const std::string& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.empty()) {
+
+			std::string copy = parser;
+			std::erase(copy, ' ');
+
+			const auto nDelim = copy.find(":");
+			if (nDelim == std::string::npos)
+				return false;
+
+			auto nFirst = copy.substr(0, nDelim);
+			//second countais b:c
+			auto nSecondPair = copy.substr(nDelim + 1);
+			const auto nDelim2 = nSecondPair.find(":");
+
+			if (nDelim2 != std::string::npos) {
+				auto nSecondPair_1 = nSecondPair.substr(0, nDelim2);
+				auto nSecondPair_2 = nSecondPair.substr(nDelim2 + 1);
+
+				Parser<TechnoTypeClass*>::Parse(nFirst.c_str(), &value.From);
+				Parser<TechnoTypeClass*>::Parse(nSecondPair_1.c_str(), &value.To);
+				detail::getresult<AffectedHouse>(value.Eligible, nSecondPair_2, pSection, pKey, allocate);
+
+				//Debug::Log("parsing[%s]%s with 3 values [%s - %s - %s]\n", pSection , pKey , nFirst.c_str() , nSecondPair_1.c_str() , nSecondPair_2.c_str());
+			} else {
+				Parser<TechnoTypeClass*>::Parse(nFirst.c_str(), &value.From);
+				Parser<TechnoTypeClass*>::Parse(nSecondPair.c_str(), &value.To);
+			}
+
+			return true;
+		}
+
+		return true;
+	}
+
+	template <>
+	inline bool getresult<TileType>(TileType& value, const std::string& parser, const char* pSection, const char* pKey, bool bAllocate)
+	{
+		if (!parser.empty()) {
+
+			if (GameStrings::IsBlank(parser.c_str())) {
+				value = TileType::ClearToSandLAT;
+				return true;
+			}
+
+			for (size_t i = 0; i < EnumFunctions::TileType_ToStrings.size(); ++i) {
+				if (IS_SAME_STR_(parser.c_str(), EnumFunctions::TileType_ToStrings[i])) {
+					value = TileType(i);
+					return true;
+				}
+			}
+
+			Debug::INIParseFailed(pSection, pKey, parser.c_str(), "Expect valid TileType !");
+		}
+		return false;
+	}
+
+	template <>
+	inline bool getresult<LandType>(LandType& value, const std::string& parser, const char* pSection, const char* pKey, bool bAllocate)
+	{
+		if (!parser.empty()) {
+
+			if (GameStrings::IsBlank(parser.c_str())) {
+				value = LandType::Clear;
+				return true;
+			}
+
+			for (size_t i = 0; i < CellClass::LandTypeToStrings.size(); ++i) { {
+					value = LandType(i);
+					return true;
+				}
+			}
+
+			Debug::INIParseFailed(pSection, pKey, parser.c_str(), "Expect Valind LandType");
+		}
+
+		return false;
+	}
+#pragma endregion
+
 	template <typename T>
 	inline bool read(T& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
 	{
@@ -85,6 +231,7 @@ namespace detail
 	}
 
 #pragma region Pointers
+
 	template <>
 	inline bool read<PaletteManager*>(PaletteManager*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
@@ -186,6 +333,7 @@ namespace detail
 
 		return false;
 	}
+
 #pragma endregion
 
 #pragma region PartialVector
@@ -575,6 +723,13 @@ namespace detail
 
 		return false;
 	}
+
+	template <>
+	inline bool read<TechnoTypeConvertData>(TechnoTypeConvertData& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		return parser.ReadString(pSection, pKey) && getresult<TechnoTypeConvertData>(value, parser.value(), pSection, pKey, allocate);
+	}
+
 #pragma endregion
 
 #pragma region Enumstuffs
@@ -1168,23 +1323,8 @@ namespace detail
 	template <>
 	inline bool read<LandType>(LandType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			for (size_t i = 0; i < CellClass::LandTypeToStrings.size(); ++i) {
-				if (IS_SAME_STR_(parser.value(), CellClass::LandTypeToStrings[i])) {
-					value = LandType(i);
-					return true;
-				}
-			}
-
-			if (GameStrings::IsBlank(parser.value()))
-			{
-				value = LandType::Clear;
-				return true;
-
-			}
-
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect Valind LandType");
+		if (parser.ReadString(pSection, pKey) && getresult<LandType>(value , parser.value(),pSection , pKey , allocate)) {
+			return true;
 		}
 
 		return false;
@@ -1193,55 +1333,10 @@ namespace detail
 	template <>
 	inline bool read<AffectedHouse>(AffectedHouse& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			auto resultData = AffectedHouse::None;
-			char* context = nullptr;
-			for (auto pCur = strtok_s(parser.value(),
-				Phobos::readDelims, &context);
-				pCur;
-				pCur = strtok_s(nullptr, Phobos::readDelims, &context))
-			{
-				size_t result = 0;
-				bool found = false;
-				for (auto const& pString : EnumFunctions::AffectedHouse_ToStrings)
-				{
-					if (IS_SAME_STR_(pCur, pString))
-					{
-						found = true;
-						break;
-					}
-					++result;
-				}
-
-				if (!found || result == (size_t)AffectedHouse::None)
-				{
-					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a affected house");
-					return false;
-				}
-				else
-				{
-					switch (result)
-					{
-					case 1:
-					case 2: resultData |= AffectedHouse::Owner; break;
-					case 3:
-					case 4: resultData |= AffectedHouse::Allies; break;
-					case 5:
-					case 6: resultData |= AffectedHouse::Enemies; break;
-					case 7: resultData |= AffectedHouse::Team; break;
-					case 8: resultData |= AffectedHouse::NotOwner; break;
-					case 9: resultData |= AffectedHouse::All; break;
-					case 10: resultData |= AffectedHouse::NotAllies;  break;
-					default:
-						break;
-					}
-				}
-			}
-
-			value = resultData;
+		if (parser.ReadString(pSection, pKey) && getresult<AffectedHouse>(value, parser.value(), pSection, pKey, allocate)) {
 			return true;
 		}
+
 		return false;
 	}
 
@@ -1405,28 +1500,14 @@ namespace detail
 	}
 
 	template <>
-	inline bool read(TileType& value, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate)
+	inline bool read(TileType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			for (size_t i = 0; i < EnumFunctions::TileType_ToStrings.size(); ++i)
-			{
-				if (IS_SAME_STR_(parser.value(), EnumFunctions::TileType_ToStrings[i]))
-				{
-					value = TileType(i);
-					return true;
-				}
-			}
-
-			if (GameStrings::IsBlank(parser.value())) {
-				value = TileType::ClearToSandLAT;
-				return true;
-			}
-
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid TileType !");
+		if (parser.ReadString(pSection, pKey) && getresult<TileType>(value , parser.value() , pSection , pKey , allocate)) {
+			return true;
 		}
 		return false;
 	}
+
 #pragma endregion
 
 #pragma region Vectorstuffs
@@ -1457,7 +1538,7 @@ namespace detail
 	}
 
 	template <typename T>
-	inline void parse_values(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate = false)
+	inline void parse_values(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
 	{
 		vector.clear();
 		char* context = nullptr;
@@ -1474,29 +1555,29 @@ namespace detail
 	}
 
 	template <typename T>
-	inline void ReadVectors(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate = false)
+	inline void ReadVectors(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
 	{
 		static_assert(std::is_pointer<T>::value, "Pointer Required !");
 
 		if (parser.ReadString(pSection, pKey))
 		{
-			detail::parse_values(vector, parser, pSection, pKey, bAllocate);
+			detail::parse_values(vector, parser, pSection, pKey, allocate);
 		}
 	}
 
 	template <typename T>
-	inline void ReadVectorsAlloc(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate = false)
+	inline void ReadVectorsAlloc(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
 	{
 		static_assert(std::is_pointer<T>::value, "Pointer Required !");
 
 		if (parser.ReadString(pSection, pKey))
 		{	
-			detail::parse_Alloc_values(vector, parser, pSection, pKey, bAllocate);
+			detail::parse_Alloc_values(vector, parser, pSection, pKey, allocate);
 		}
 	}
 
 	template <typename T>
-	inline void parse_Alloc_values(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate = false)
+	inline void parse_Alloc_values(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
 	{
 		static_assert(std::is_pointer<T>::value, "Pointer Required !");
 		using base_type = std::remove_pointer_t<T>;
@@ -1518,7 +1599,7 @@ namespace detail
 	}
 
 	template <>
-	inline void parse_values(std::vector<LandType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate)
+	inline void parse_values(std::vector<LandType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		vector.clear();
 		char* context = nullptr;
@@ -1527,13 +1608,28 @@ namespace detail
 			cur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
 			LandType buffer;
-			if (read<LandType>(buffer, parser, pSection, pKey, bAllocate))
+			if (getresult<LandType>(buffer, cur, pSection, pKey, allocate))
 				vector.push_back(buffer);
 		}
 	}
 
 	template <>
-	inline void parse_values(std::vector<TileType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate)
+	inline void parse_values(std::vector<TechnoTypeConvertData>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		vector.clear();
+		char* context = nullptr;
+		for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
+			cur;
+			cur = strtok_s(nullptr, Phobos::readDelims, &context))
+		{
+			TechnoTypeConvertData buffer;
+			if (getresult<TechnoTypeConvertData>(buffer, cur, pSection, pKey, allocate))
+				vector.push_back(buffer);
+		}
+	}
+
+	template <>
+	inline void parse_values(std::vector<TileType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		vector.clear();
 		char* context = nullptr;
@@ -1543,7 +1639,7 @@ namespace detail
 			cur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
 			TileType buffer;
-			if (read<TileType>(buffer, parser, pSection, pKey, bAllocate))
+			if (getresult<TileType>(buffer, cur, pSection, pKey, allocate))
 				vector.push_back(buffer);
 		}
 	}
@@ -1598,24 +1694,24 @@ void NOINLINE ValueableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection,
 	if (parser.ReadString(pSection, pKey))
 	{
 		const char* val = parser.value();
-		int idx = -1;
 
-		if constexpr (std::is_pointer<Lookuper>::value)
-		{
+		if(GameStrings::IsBlank(val))
+			return;
+
+		int idx = this->Value;
+
+		if constexpr (std::is_pointer<Lookuper>::value) {
 			using base_type = std::remove_pointer_t<Lookuper>;
 			idx = base_type::FindIndexById(val);
-		}
-		else
-			idx = Lookuper::FindIndexById(val);
 
-		if (idx != -1 || GameStrings::IsBlank(val))
-		{
+		} else { idx = Lookuper::FindIndexById(val); }
+
+		if (idx != -1) {
 			this->Value = idx;
+			return;
 		}
-		else
-		{
-			Debug::INIParseFailed(pSection, pKey, val);
-		}
+
+		Debug::INIParseFailed(pSection, pKey, val);
 	}
 }
 
@@ -1659,16 +1755,30 @@ void NOINLINE NullableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection, 
 	if (parser.ReadString(pSection, pKey))
 	{
 		const char* val = parser.value();
-		int idx = Lookuper::FindIndexById(val);
-		if (idx != -1 || GameStrings::IsBlank(val)) //if it is blank , count as read , but return -1
+
+		//if it is blank , count as read , but return -1
+		if(GameStrings::IsBlank(val))
 		{
+			this->Value = -1;
+			this->HasValue = true;
+			return;
+		}
+
+		int idx = -1;
+
+		if constexpr (std::is_pointer<Lookuper>::value) {
+			using base_type = std::remove_pointer_t<Lookuper>;
+			idx = base_type::FindIndexById(val);
+
+		} else { idx = Lookuper::FindIndexById(val); }
+
+		if (idx != -1) {
 			this->Value = idx;
 			this->HasValue = true;
+			return;
 		}
-		else
-		{
-			Debug::INIParseFailed(pSection, pKey, val, nullptr);
-		}
+
+		Debug::INIParseFailed(pSection, pKey, val);
 	}
 }
 

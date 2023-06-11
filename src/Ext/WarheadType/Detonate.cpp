@@ -88,22 +88,7 @@ void WarheadTypeExt::ExtData::ApplyAttachTag(TechnoClass* pTarget)
 
 void WarheadTypeExt::ExtData::ApplyUpgrade(HouseClass* pHouse, TechnoClass* pTarget)
 {
-	if (this->ConvertsPair.empty())
-		return;
-
-	const auto pCurType = pTarget->GetTechnoType();
-
-	for (auto const& [pFrom, pTo] : this->ConvertsPair)
-	{
-		if (!pFrom || !pTo || pFrom == pTo)
-			continue;
-
-		if (pFrom == pCurType)
-		{
-			if (!AresData::ConvertTypeTo(pTarget, pTo))
-				Debug::Log("WarheadTypeExt::ExtData::ApplyUpgrade Failed to ConvertType ! \n");
-		}
-	}
+	TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTarget);
 }
 
 bool WarheadTypeExt::ExtData::applyPermaMC(HouseClass* const Owner, AbstractClass* const Target)

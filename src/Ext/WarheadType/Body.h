@@ -195,7 +195,8 @@ public:
 		ValueableIdx<VocClass> Sound;
 
 		Valueable<bool> Converts;
-		std::vector<std::pair<TechnoTypeClass*, TechnoTypeClass*>> ConvertsPair;
+
+		ValueableVector<TechnoTypeConvertData> ConvertsPair;
 		ValueableVector<AnimTypeClass*> DeadBodies;
 
 		Nullable<double> AffectEnemies_Damage_Mod;

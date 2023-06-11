@@ -12,3 +12,5 @@ DECLARE_INTERFACE_IID_(IPublicHouse, IUnknown, "CAACF210-86E3-11D1-B706-00A024DD
 	virtual CellStruct __stdcall	Apparent_Base_Center() const PURE;
 	virtual bool __stdcall			Is_Powered() const PURE;
 };
+
+_COM_SMARTPTR_TYPEDEF(IPublicHouse, __uuidof(IPublicHouse));

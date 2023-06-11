@@ -216,6 +216,65 @@ DEFINE_OVERRIDE_HOOK(0x71F39B, TEventClass_SaveToINI, 5)
 	return 0x71F3FE;
 }
 
+std::pair<bool, TriggerAttachType> GetTEventAttachFlags(AresTriggerEvents nEvent)
+{
+	switch (nEvent)
+	{
+	case AresTriggerEvents::UnderEMP:
+	case AresTriggerEvents::UnderEMP_ByHouse:
+	case AresTriggerEvents::RemoveEMP:
+	case AresTriggerEvents::RemoveEMP_ByHouse:
+	case AresTriggerEvents::EnemyInSpotlightNow:
+	case AresTriggerEvents::DriverKiller:
+	case AresTriggerEvents::DriverKilled_ByHouse:
+	case AresTriggerEvents::VehicleTaken:
+	case AresTriggerEvents::VehicleTaken_ByHouse:
+	case AresTriggerEvents::Abducted:
+	case AresTriggerEvents::Abducted_ByHouse:
+	case AresTriggerEvents::AbductSomething:
+	case AresTriggerEvents::AbductSomething_OfHouse:
+	case AresTriggerEvents::ReverseEngineerAnything:
+	case AresTriggerEvents::ReverseEngineerType:
+	case AresTriggerEvents::AttackedOrDestroyedByAnybody:
+	case AresTriggerEvents::AttackedOrDestroyedByHouse:
+	{
+		return { true , TriggerAttachType::Object };
+	}
+	case AresTriggerEvents::SuperActivated:
+	case AresTriggerEvents::SuperDeactivated:
+	case AresTriggerEvents::SuperNearWaypoint:
+	case AresTriggerEvents::ReverseEngineered:
+	case AresTriggerEvents::HouseOwnTechnoType:
+	case AresTriggerEvents::HouseDoesntOwnTechnoType:
+	case AresTriggerEvents::DestroyedByHouse:
+	case AresTriggerEvents::AllKeepAlivesDestroyed:
+	case AresTriggerEvents::AllKeppAlivesBuildingDestroyed:
+	{
+		return { true ,TriggerAttachType::House };
+	}
+	case AresTriggerEvents::TechnoTypeDoesntExistMoreThan:
+	{
+		return { true ,TriggerAttachType::Logic };
+	}
+	}
+
+
+	return { false ,TriggerAttachType::None };
+}
+
+DEFINE_OVERRIDE_HOOK(0x71f683 , TEventClass_GetFlags_Ares, 5)
+{
+	GET(AresTriggerEvents, nAction, ECX);
+
+	const auto& [handled , result] = GetTEventAttachFlags(nAction);
+	if (handled) {
+		return 0x71F6F6;
+		R->EAX(result);
+	}
+
+	return (int)nAction > 59 ? 0x71F69C : 0x71F688;
+}
+
 // Resolves a param to a house.
 HouseClass* ResolveHouseParam(int const param, HouseClass* const pOwnerHouse = nullptr)
 {

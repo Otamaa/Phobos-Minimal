@@ -13,3 +13,5 @@ DECLARE_INTERFACE_IID_(IPiggyback, IUnknown, "92FEA800-A184-11D1-B70A-00A024DDAF
 	virtual HRESULT __stdcall Piggyback_CLSID(GUID* classid) PURE;	//Fetches piggybacked locomotor class ID.
 	virtual bool __stdcall Is_Piggybacking() PURE;	//Is it currently piggy backing another locomotor?
 };
+
+_COM_SMARTPTR_TYPEDEF(IPiggyback, __uuidof(IPiggyback));

@@ -447,7 +447,7 @@ CoordStruct Helpers_DP::GetFLHAbsoluteCoords(TechnoClass* pTechno, const CoordSt
 		{
 			CoordStruct nBuffer { 0,0,0 };
 			int speed = 0;
-			if (pFoot->Locomotor.get()->Is_Moving() && (speed = pFoot->GetCurrentSpeed()) > 0)
+			if (pFoot->Locomotor.GetInterfacePtr()->Is_Moving() && (speed = pFoot->GetCurrentSpeed()) > 0)
 			{
 				nBuffer.X = speed;
 				sourceOffset += nBuffer;
@@ -519,7 +519,7 @@ Matrix3D Helpers_DP::GetMatrix3D(TechnoClass* pTechno)
 
 	if (auto const pFoot = abstract_cast<FootClass*>(pTechno))
 	{
-		if (auto const pLoco = pFoot->Locomotor.get())
+		if (auto const pLoco = pFoot->Locomotor.GetInterfacePtr())
 		{
 			pLoco->Draw_Matrix(&matrix3D, nullptr);
 			return matrix3D;
@@ -755,7 +755,7 @@ void Helpers_DP::ForceStopMoving(ILocomotion* loco)
 
 void Helpers_DP::ForceStopMoving(FootClass* pFoot)
 {
-	auto loco = pFoot->Locomotor.get();
+	auto loco = pFoot->Locomotor.GetInterfacePtr();
 
 	loco->Mark_All_Occupation_Bits(0);
 

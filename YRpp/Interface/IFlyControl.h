@@ -11,3 +11,5 @@ DECLARE_INTERFACE_IID_(IFlyControl, IUnknown, "820F501C-4F39-11D2-9B70-00104B972
 	virtual LONG __stdcall Is_Fighter() PURE;
 	virtual LONG __stdcall Is_Locked() PURE;
 };
+
+_COM_SMARTPTR_TYPEDEF(IFlyControl, __uuidof(IFlyControl));

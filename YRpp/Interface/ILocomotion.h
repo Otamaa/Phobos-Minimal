@@ -5,6 +5,7 @@
 #include <CoordStruct.h>
 #include <Matrix3D.h>
 #include <VoxelIndex.h>
+#include <comdef.h>
 
 DECLARE_INTERFACE_IID_(ILocomotion, IUnknown, "070F3290-9841-11D1-B709-00A024DDAFD1")
 {
@@ -56,3 +57,5 @@ DECLARE_INTERFACE_IID_(ILocomotion, IUnknown, "070F3290-9841-11D1-B709-00A024DDA
 	virtual int __stdcall Get_Track_Index() PURE;	//Queries internal variables
 	virtual int __stdcall Get_Speed_Accum() PURE;	//Queries internal variables
 };
+
+_COM_SMARTPTR_TYPEDEF(ILocomotion, __uuidof(ILocomotion));

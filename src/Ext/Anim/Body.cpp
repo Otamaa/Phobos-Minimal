@@ -498,7 +498,7 @@ Layer FC AnimExt::GetLayer_patch(AnimClass* pThis, void* _)
 	{
 		if (auto const pFoot = generic_cast<FootClass*>(pThis->OwnerObject))
 		{
-			if (auto const pLocomotor = pFoot->Locomotor.get())
+			if (auto const pLocomotor = pFoot->Locomotor.GetInterfacePtr())
 				return pLocomotor->In_Which_Layer();
 		}
 		else if (auto const pBullet = specific_cast<BulletClass*>(pThis->OwnerObject))

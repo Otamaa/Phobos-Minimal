@@ -942,7 +942,7 @@ DEFINE_OVERRIDE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6CDE40, SuperClass_Place_FireExt, 0x4)
+DEFINE_HOOK(0x6CDE36, SuperClass_Place_FireNormal, 0xA)
 {
 	if (const auto pSuper = SWTypeExt::LauchData)
 	{
@@ -3536,7 +3536,7 @@ DEFINE_OVERRIDE_HOOK(0x70FBE0, TechnoClass_Activate_AresReplace, 6)
 
 	if (auto const pFoot = abstract_cast<FootClass*>(pThis))
 	{
-		pFoot->Locomotor.get()->Power_On();
+		pFoot->Locomotor.GetInterfacePtr()->Power_On();
 	}
 
 	if (auto const wasDeactivated = std::exchange(pThis->Deactivated, false))
@@ -3594,7 +3594,7 @@ DEFINE_OVERRIDE_HOOK(0x70FC90, TechnoClass_Deactivate_AresReplace, 6)
 
 	if (auto const pFoot = abstract_cast<FootClass*>(pThis))
 	{
-		pFoot->Locomotor.get()->Power_Off();
+		pFoot->Locomotor.GetInterfacePtr()->Power_Off();
 	}
 
 	auto const wasDeactivated = std::exchange(pThis->Deactivated, true);
@@ -4920,7 +4920,7 @@ DEFINE_OVERRIDE_HOOK(0x51BD4C , InfantryClass_Update_BuildingBelow, 6)
 DEFINE_OVERRIDE_HOOK(0x51CE9A, InfantryClass_Idle, 5)
 {
 	GET(InfantryClass*, I, ESI);
-	auto pData = InfantryTypeExt::ExtMap.Find(I->Type);
+	const auto pData = InfantryTypeExt::ExtMap.Find(I->Type);
 
 	// don't play idle when paralyzed
 	if (I->IsUnderEMP())
@@ -5107,6 +5107,51 @@ DEFINE_OVERRIDE_HOOK(0x4F645F, HouseClass_CTOR_FixSideIndices, 5)
 		}
 	}
 	return 0x4F6490;
+}
+
+void KickOutOfRubble(BuildingClass* pBld)
+{
+	std::vector<std::pair<FootClass*, bool>> list;
+
+	// iterate over all cells and remove all infantry
+
+	auto const location = MapClass::Instance->GetCellAt(pBld->Location)->MapCoords;
+	// get the number of non-end-marker cells and a pointer to the cell data
+	for (auto i = pBld->Type->FoundationData; *i != CellStruct{0x7FFF, 0x7FFF}; ++i) {
+		// remove every techno that resides on this cell
+		for (NextObject obj(MapClass::Instance->GetCellAt(location + *i)->
+			 GetContent()); obj; ++obj) {
+			if (auto const pFoot = abstract_cast<FootClass*>(*obj)) {
+				if (pFoot->Limbo()) {
+					list.push_back(std::make_pair(pFoot, pFoot->IsSelected));
+				}
+			}
+		}
+	}
+
+	// this part kicks out all units we found in the rubble
+	for (auto const& [pFoot, bIsSelected] : list)
+	{
+		if (pBld->KickOutUnit(pFoot, location) == KickOutResult::Succeeded) {
+			if (bIsSelected) {
+				pFoot->Select();
+			}
+		} else {
+			pFoot->UnInit();
+		}
+	}
+}
+
+DEFINE_OVERRIDE_HOOK(0x441f2c ,BuildingClass_Destroy_KickOutOfRubble, 5)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+
+	if (pTypeExt->RubbleDestroyed || pTypeExt->RubbleIntact)
+		KickOutOfRubble(pThis);
+
+	return 0x0;
 }
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x6F4103, TechnoClass_Init_ThisPartHandled, 6, 6F41C0)

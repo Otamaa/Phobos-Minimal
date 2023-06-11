@@ -333,7 +333,10 @@ public:
 
 	bool IsOnMyView() const;
 
-	void AdjustStrength(double nMult) const
+	void AdjustStrength(double percentage) const
+		{ JMP_THIS(0x5F5C80); }
+
+	void SetHealthPercentage(double percentage) const
 		{ JMP_THIS(0x5F5C80); }
 
 	//only accept BuildingClass it seems

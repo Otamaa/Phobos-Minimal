@@ -40,7 +40,7 @@ DEFINE_OVERRIDE_HOOK(0x4D9EE1, FootClass_CanBeSold_Dock, 0x6)
 DEFINE_OVERRIDE_HOOK(0x4DBDD4, FootClass_IsCloakable_CloakStop, 0x6)
 {
 	GET(FootClass* const, pThis, ESI);
-	R->AL(pThis->Locomotor.get()->Is_Moving());
+	R->AL(pThis->Locomotor.GetInterfacePtr()->Is_Moving());
 	return 0x4DBDE3;
 }
 

@@ -81,7 +81,7 @@ bool TechnoExt::IsChronoDelayDamageImmune(FootClass* pThis)
 	if (!pThis)
 		return false;
 
-	auto const pLoco = pThis->Locomotor.get();
+	auto const pLoco = pThis->Locomotor.GetInterfacePtr();
 
 	if (!pLoco)
 		return false;
@@ -266,7 +266,7 @@ bool TechnoExt::IsChronoDelayDamageImmune(Rank vet, FootClass* pThis)
 	if (!pThis)
 		return false;
 
-	auto const pLoco = pThis->Locomotor.get();
+	auto const pLoco = pThis->Locomotor.GetInterfacePtr();
 
 	if (!pLoco)
 		return false;
@@ -1853,7 +1853,7 @@ Matrix3D TechnoExt::GetTransform(TechnoClass* pThis, VoxelIndexKey* pKey)
 	// Step 1: get body transform matrix
 	if (pThis && (pThis->AbstractFlags & AbstractFlags::Foot) && ((FootClass*)pThis)->Locomotor)
 	{
-		((FootClass*)pThis)->Locomotor.get()->Draw_Matrix(&Mtx, pKey);
+		((FootClass*)pThis)->Locomotor.GetInterfacePtr()->Draw_Matrix(&Mtx, pKey);
 		return Mtx;
 	}
 
@@ -3454,6 +3454,109 @@ void TechnoExt::ResetDelayFireAnim(TechnoClass* pThis)
 int TechnoExt::GetInitialStrength(TechnoTypeClass* pType, int nHP)
 {
 	return TechnoTypeExt::ExtMap.Find(pType)->InitialStrength.Get(nHP);
+}
+
+// Feature for common usage : TechnoType conversion -- Trsdy
+// BTW, who said it was merely a Type pointer replacement and he could make a better one than Ares?
+bool TechnoExt::ConvertToType(FootClass* pThis, TechnoTypeClass* pToType)
+{
+	// In case not using Ares 3.0. Only update necessary vanilla properties
+	AbstractType rtti;
+	TechnoTypeClass** nowTypePtr;
+
+	// Different types prohibited
+	switch (pThis->WhatAmI())
+	{
+	case AbstractType::Infantry:
+		nowTypePtr = reinterpret_cast<TechnoTypeClass**>(&(static_cast<InfantryClass*>(pThis)->Type));
+		rtti = AbstractType::InfantryType;
+		break;
+	case AbstractType::Unit:
+		nowTypePtr = reinterpret_cast<TechnoTypeClass**>(&(static_cast<UnitClass*>(pThis)->Type));
+		rtti = AbstractType::UnitType;
+		break;
+	case AbstractType::Aircraft:
+		nowTypePtr = reinterpret_cast<TechnoTypeClass**>(&(static_cast<AircraftClass*>(pThis)->Type));
+		rtti = AbstractType::AircraftType;
+		break;
+	default:
+		Debug::Log("%s is not FootClass, conversion not allowed\n", pToType->get_ID());
+		return false;
+	}
+
+	if (pToType->WhatAmI() != rtti)
+	{
+		Debug::Log("Incompatible types between %s and %s\n", pThis->get_ID(), pToType->get_ID());
+		return false;
+	}
+
+	// Detach CLEG targeting
+	auto tempUsing = pThis->TemporalImUsing;
+	if (tempUsing && tempUsing->Target)
+		tempUsing->Detach();
+
+	HouseClass* const pOwner = pThis->Owner;
+
+	// Remove tracking of old techno
+	if (!pThis->InLimbo)
+		pOwner->RegisterLoss(pThis, false);
+	pOwner->RemoveTracking(pThis);
+
+	int oldHealth = pThis->Health;
+
+	// Generic type-conversion
+	TechnoTypeClass* prevType = *nowTypePtr;
+	*nowTypePtr = pToType;
+
+	// Readjust health according to percentage
+	pThis->AdjustStrength((double)(oldHealth) / (double)prevType->Strength);
+	pThis->EstimatedHealth = pThis->Health;
+
+	// Add tracking of new techno
+	pOwner->AddTracking(pThis);
+	if (!pThis->InLimbo)
+		pOwner->RegisterGain(pThis, false);
+	pOwner->RecheckTechTree = true;
+
+	// Update Ares AttachEffects -- skipped
+	// Ares RecalculateStats -- skipped
+
+	// Adjust ammo
+	pThis->Ammo = MinImpl(pThis->Ammo, pToType->Ammo);
+	// Ares ResetSpotlights -- skipped
+
+	// Adjust ROT
+	if (rtti == AbstractType::AircraftType)
+		pThis->SecondaryFacing.Set_ROT(pToType->ROT);
+	else
+		pThis->PrimaryFacing.Set_ROT(pToType->ROT);
+	// Adjust Ares TurretROT -- skipped
+	//  pThis->SecondaryFacing.SetROT(TechnoTypeExt::ExtMap.Find(pToType)->TurretROT.Get(pToType->ROT));
+
+	// Locomotor change, referenced from Ares 0.A's abduction code, not sure if correct, untested
+	CLSID nowLocoID;
+	ILocomotion* iloco = pThis->Locomotor.GetInterfacePtr();
+	const auto& toLoco = pToType->Locomotor;
+	if ((SUCCEEDED(static_cast<LocomotionClass*>(iloco)->GetClassID(&nowLocoID)) && nowLocoID != toLoco))
+	{
+		// because we are throwing away the locomotor in a split second, piggybacking
+		// has to be stopped. otherwise the object might remain in a weird state.
+		while (LocomotionClass::End_Piggyback(pThis->Locomotor));
+		// throw away the current locomotor and instantiate
+		// a new one of the default type for this unit.
+		if (auto newLoco = LocomotionClass::CreateInstance(toLoco))
+		{
+			newLoco->Link_To_Object(pThis);
+			pThis->Locomotor = std::move(newLoco);
+		}
+	}
+
+	// TODO : Jumpjet locomotor special treatement, some brainfart, must be uncorrect, HELP ME!
+	const auto& jjLoco = CLSIDs::Jumpjet();
+	if (pToType->BalloonHover && pToType->DeployToLand && prevType->Locomotor != jjLoco && toLoco == jjLoco)
+		pThis->Locomotor->Move_To(pThis->Location);
+
+	return true;
 }
 
 // =============================

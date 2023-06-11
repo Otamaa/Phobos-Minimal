@@ -1523,7 +1523,7 @@ DEFINE_OVERRIDE_HOOK(0x7376D9, UnitClass_ReceivedRadioCommand_DockUnload_Facing,
 	if (*nCurrentFacing == nDecidedFacing)
 		return 0x73771B;
 
-	pUnit->Locomotor.get()->Do_Turn(nDecidedFacing);
+	pUnit->Locomotor.GetInterfacePtr()->Do_Turn(nDecidedFacing);
 
 	return 0x73770C;
 }
@@ -1538,7 +1538,7 @@ DEFINE_OVERRIDE_HOOK(0x73DF66, UnitClass_Mi_Unload_DockUnload_Facing, 5)
 	if (*nCurrentFacing == nDecidedFacing || pUnit->IsRotating)
 		return 0x73DFBD;
 
-	pUnit->Locomotor.get()->Do_Turn(nDecidedFacing);
+	pUnit->Locomotor.GetInterfacePtr()->Do_Turn(nDecidedFacing);
 
 	return 0x73DFB0;
 }

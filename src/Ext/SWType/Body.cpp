@@ -10,6 +10,8 @@
 #include <SuperWeaponTypeClass.h>
 #include <StringTable.h>
 
+#include "NewSuperWeaponType/NewSWType.h"
+
 bool SWTypeExt::Handled = false;
 SuperClass* SWTypeExt::TempSuper = nullptr;
 SuperClass* SWTypeExt::LauchData = nullptr;
@@ -29,11 +31,87 @@ void SWTypeExt::ExtData::Initialize()
 	SW_NegBuildings.reserve(10);
 }
 
-// hmm not sure the new arrangement ?
+//std::tuple<const char*, int , int> GetData(SuperWeaponType nType)
+//{
+//	if (nType == SuperWeaponType::Invalid)
+//		return { "Invalid_Type" , -1 , -1};
+//
+//	if (nType >= SuperWeaponType::count)
+//	{
+//		const auto nRes = abs((int)nType - (int)SuperWeaponType::count);
+//
+//		if(nRes > (int)AresNewSuperType::count)
+//			return { "Ares_Type" , (int)nType , nRes};
+//		else
+//			return { AresNewSuperType_ToStrings[nRes] , (int)nType  , nRes};
+//	}
+//
+//	return { SuperWeaponTypeClass::SuperweaponTypeName[(int)nType] , (int)nType , -1};
+//}
+
+//std::pair<const char*, int> GetData(Action nType)
+//{
+//	if (nType == Action(-1))
+//		return { "Invalid_Action" , -1 };
+//
+//	if (nType >= Action::count)
+//	{
+//		switch (AresNewActionType(nType))
+//		{
+//		case AresNewActionType::SuperWeaponDisallowed:
+//			return { "AresNewActionType::SuperWeaponDisallowed" , (int)AresNewActionType::SuperWeaponDisallowed };
+//		case AresNewActionType::SuperWeaponAllowed:
+//			return { "AresNewActionType::SuperWeaponAllowed" , (int)AresNewActionType::SuperWeaponAllowed };
+//		default:
+//			return { "Ares_Action" , (int)nType };
+//		}
+//	}
+//
+//	return { SuperWeaponTypeClass::ActionTypeName[(int)nType] , (int)nType };
+//}
 
 void SWTypeExt::ExtData::LoadFromRulesFile(CCINIClass* pINI)
-{ 
+{
+	auto pThis = this->Get();
+	const char* pSection = pThis->ID;
+
 	INI_EX exINI(pINI);
+
+	//if (exINI.ReadString(pSection, "Action") && !_strcmpi(exINI.value(), "Custom")) {
+	//	pThis->Action = (Action)AresNewActionType::SuperWeaponAllowed;
+	//}
+
+	//if (exINI.ReadString(pSection, "Type")) {
+	//	const auto customType = NewSWType::FindFromTypeID(exINI.value());
+	//	if (customType > SuperWeaponType::Invalid) {
+	//		pThis->Type = customType;
+	//	}
+	//}
+
+	//const auto nTypeData = GetData(pThis->Type);
+	////this shit always return -1 because of ares ?
+	////const auto nPreDependentData = GetData(pThis->PreDependent);
+	//const auto nActionData = GetData(pThis->Action);
+
+	//Debug::Log("Reading Data for SuperWeaponType[%s] with [Type : %s - (actuallIdx) %d - (IdxAfterLastOriginalType)%d], [Action : %s - %d]\n",
+	//	pSection,
+	//	std::get<0>(nTypeData),
+	//	std::get<1>(nTypeData),
+	//	std::get<2>(nTypeData),
+	//	nActionData.first,
+	//	nActionData.second
+	//);
+
+	if (NewSWType::IsOriginalType(pThis->Type))
+		this->HandledType = NewSWType::GetHandledType(pThis->Type);
+
+	// if this is handled by a NewSWType, initialize it.
+	if (auto pNewSWType = NewSWType::GetNewSWType(this))
+	{
+		// not atm !
+		//pThis->Action = (Action)AresNewActionType::SuperWeaponAllowed;
+		pNewSWType->Initialize(this);
+	}
 }
 
 void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
@@ -116,6 +194,9 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	//
 	this->Deliver_Types.Read(exINI, pSection, "Deliver.Types");
+	this->Converts.Read(exINI, pSection, "Converts");
+	this->ConvertsPair.Read(exINI, pSection, "ConvertsPair");
+
 }
 
 // =============================
@@ -337,6 +418,11 @@ void SWTypeExt::ExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, co
 
 	if (!this->SW_Next.empty())
 		this->ApplySWNext(pSW, *pCell);
+
+	if(this->Converts) {
+		for (const auto pTargetFoot : *FootClass::Array)
+			TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTargetFoot);
+	}
 }
 
 //Ares 0.A helpers
@@ -545,6 +631,9 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SW_AITargetingMode)
 		.Process(this->SW_Group)
 		.Process(this->Deliver_Types)
+		.Process(this->HandledType)
+		.Process(this->Converts)
+		.Process(this->ConvertsPair)
 		;
 
 }
@@ -552,6 +641,51 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 // =============================
 // container
 SWTypeExt::ExtContainer SWTypeExt::ExtMap;
+
+void SWTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved)
+{
+	AnnounceInvalidPointer(SWTypeExt::TempSuper, ptr);
+	AnnounceInvalidPointer(SWTypeExt::LauchData, ptr);
+}
+
+ bool SWTypeExt::ExtContainer::InvalidateIgnorable(void* ptr)
+{
+	switch (GetVtableAddr(ptr))
+	{
+	case SuperClass::vtable:
+		return false;
+	}
+
+	return true;
+}
+
+bool SWTypeExt::ExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	const bool First =  Stm
+		.Process(SWTypeExt::TempSuper)
+		.Process(SWTypeExt::Handled)
+		.Process(SWTypeExt::LauchData)
+		.Success();
+
+	return First && NewSWType::LoadGlobals(Stm);
+}
+
+bool SWTypeExt::ExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	const bool First = Stm
+		.Process(SWTypeExt::TempSuper)
+		.Process(SWTypeExt::Handled)
+		.Process(SWTypeExt::LauchData)
+		.Success();
+
+	return First && NewSWType::SaveGlobals(Stm);
+}
+
+void SWTypeExt::ExtContainer::Clear()
+{
+	SWTypeExt::LauchData = nullptr;
+	SWTypeExt::TempSuper = nullptr;
+}
 
 SWTypeExt::ExtContainer::ExtContainer() : Container("SuperWeaponTypeClass") {}
 SWTypeExt::ExtContainer::~ExtContainer() = default;
@@ -563,6 +697,7 @@ DEFINE_HOOK(0x6CE6F6, SuperWeaponTypeClass_CTOR, 0x5)
 {
 	GET(SuperWeaponTypeClass*, pItem, EAX);
 	SWTypeExt::ExtMap.Allocate(pItem);
+	NewSWType::Init();
 	return 0;
 }
 

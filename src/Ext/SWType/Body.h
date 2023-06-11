@@ -81,6 +81,10 @@ public:
 
 		//UnitDelivery
 		ValueableVector<TechnoTypeClass*> Deliver_Types;
+		SuperWeaponType HandledType;
+
+		Valueable<bool> Converts;
+		ValueableVector<TechnoTypeConvertData> ConvertsPair;
 
 		ExtData(SuperWeaponTypeClass* OwnerObject) : Extension<SuperWeaponTypeClass>(OwnerObject)
 			, Money_Amount { 0 }
@@ -135,6 +139,10 @@ public:
 			, SW_Group { 0 }
 
 			, Deliver_Types { }
+			, HandledType { SuperWeaponType::Invalid }
+
+			, Converts { false }
+			, ConvertsPair { }
 		{ }
 
 
@@ -179,45 +187,11 @@ public:
 		ExtContainer();
 		~ExtContainer();
 
-		static void InvalidatePointer(void* ptr, bool bRemoved)
-		{
-			AnnounceInvalidPointer(SWTypeExt::TempSuper, ptr);
-			AnnounceInvalidPointer(SWTypeExt::LauchData, ptr);
-		}
-
-		static  bool InvalidateIgnorable(void* ptr) {
-			switch (GetVtableAddr(ptr))
-			{
-			case SuperClass::vtable:
-				return false;
-			}
-
-			return true;
-		}
-
-		static bool LoadGlobals(PhobosStreamReader& Stm)
-		{
-			return Stm
-				.Process(SWTypeExt::TempSuper)
-				.Process(SWTypeExt::Handled)
-				.Process(SWTypeExt::LauchData)
-				.Success();
-		}
-
-		static bool SaveGlobals(PhobosStreamWriter& Stm)
-		{
-			return Stm
-				.Process(SWTypeExt::TempSuper)
-				.Process(SWTypeExt::Handled)
-				.Process(SWTypeExt::LauchData)
-				.Success();
-		}
-
-		static void Clear()
-		{
-			SWTypeExt::LauchData = nullptr;
-			SWTypeExt::TempSuper = nullptr;
-		}
+		static void InvalidatePointer(void* ptr, bool bRemoved);
+		static  bool InvalidateIgnorable(void* ptr);
+		static bool LoadGlobals(PhobosStreamReader& Stm);
+		static bool SaveGlobals(PhobosStreamWriter& Stm);
+		static void Clear();
 	};
 
 	static ExtContainer ExtMap;

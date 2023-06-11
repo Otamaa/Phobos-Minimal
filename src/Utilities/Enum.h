@@ -341,6 +341,8 @@ enum class SuperWeaponFlags : unsigned short {
 	PostClick = 0x100
 };
 
+MAKE_ENUM_FLAGS(SuperWeaponFlags);
+
 enum class AreaFireTarget
 {
 	Base = 0,

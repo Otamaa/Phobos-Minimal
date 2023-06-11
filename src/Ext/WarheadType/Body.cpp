@@ -256,7 +256,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	this->Sound.Read(exINI, pSection, GameStrings::Sound());
 
 	this->Converts.Read(exINI, pSection, "Converts");
-	detail::ParseVectorOfPair(this->ConvertsPair, exINI, pSection, "ConvertsPair");
+	this->ConvertsPair.Read(exINI, pSection, "ConvertsPair");
 
 	this->DeadBodies.Read(exINI, pSection, "DeadBodies");
 	this->AffectEnemies_Damage_Mod.Read(exINI, pSection, "AffectEnemies.DamageModifier");

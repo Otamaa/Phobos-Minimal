@@ -151,7 +151,7 @@ DEFINE_HOOK(0x54DD3D, JumpjetLocomotionClass_DrawMatrix_AxisCenterInAir, 0x5)
 //	GET(ILocomotion*, pILoco, ESI);
 //	auto pLoco = static_cast<JumpjetLocomotionClass*>(pILoco);
 //
-//	if (YRComPtr<IPiggyback> pPiggy = pLoco->Owner->Locomotor)
+//	if (ILocomotionPtr pPiggy = pLoco->Owner->Locomotor)
 //	{
 //
 //	}

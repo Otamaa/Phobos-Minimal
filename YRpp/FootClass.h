@@ -215,7 +215,7 @@ public:
 	DECLARE_PROPERTY(CDTimerClass, unknown_timer_650); //BaseAttackTimer  CDTimerClass
 	DECLARE_PROPERTY(CDTimerClass, SightTimer);
 	DECLARE_PROPERTY(CDTimerClass, BlockagePathTimer);
-	DECLARE_PROPERTY(YRComPtr<ILocomotion>, Locomotor);
+	DECLARE_PROPERTY(ILocomotionPtr, Locomotor);
 	CoordStruct       __HeadTo; //_678
 	signed char       TubeIndex;	//I'm in this tunnel
 	bool              unknown_bool_685;

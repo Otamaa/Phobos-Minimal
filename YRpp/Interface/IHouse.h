@@ -18,3 +18,5 @@ DECLARE_INTERFACE_IID_(IHouse, IUnknown, "941582E0-86DA-11D1-B706-00A024DDAFD1")
 	virtual LONG __stdcall			Fire_Sale() const PURE;
 	virtual LONG __stdcall			All_To_Hunt() PURE;
 };
+
+_COM_SMARTPTR_TYPEDEF(IHouse, __uuidof(IHouse));

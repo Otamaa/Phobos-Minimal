@@ -817,7 +817,7 @@ DEFINE_HOOK(0x4DBDB6, FootClass_IsCloakable_CloakMove, 0x6)
 
 	if (pTypeExt->CloakMove.isset())
 	{
-		return pTypeExt->CloakMove.Get() && !pThis->Locomotor.get()->Is_Moving() ?
+		return pTypeExt->CloakMove.Get() && !pThis->Locomotor.GetInterfacePtr()->Is_Moving() ?
 			ReturnFalse : Continue;
 	}
 

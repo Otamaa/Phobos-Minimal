@@ -27,7 +27,7 @@ void FighterAreaGuard::OnUpdate()
 
 	const auto pType = OwnerObject->Type;
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-	auto locomotion = pTechno->Locomotor.get();
+	auto locomotion = pTechno->Locomotor.GetInterfacePtr();
 
 	switch (State)
 	{

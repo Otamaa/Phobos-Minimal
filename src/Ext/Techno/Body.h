@@ -371,4 +371,6 @@ private:
 	static const std::vector<std::vector<CoordStruct>>* PickFLHs(TechnoClass* pThis);
 	static const Nullable<CoordStruct>* GetInfrantyCrawlFLH(InfantryClass* pThis, int weaponIndex);
 	static const Armor GetTechnoArmor(TechnoClass* pThis, WarheadTypeClass* pWarhead);
+
+	static bool ConvertToType(FootClass* pThis, TechnoTypeClass* toType);
 };

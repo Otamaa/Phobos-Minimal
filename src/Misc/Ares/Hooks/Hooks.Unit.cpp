@@ -170,7 +170,7 @@ DEFINE_OVERRIDE_HOOK(0x739B8A, UnitClass_SimpleDeploy_Facing, 0x6)
 
 		if (nCurrent != (int)nRaw)
 		{
-			if (const auto pLoco = pThis->Locomotor.get())
+			if (const auto pLoco = pThis->Locomotor.GetInterfacePtr())
 			{
 				if (!pLoco->Is_Moving_Now())
 				{
@@ -364,7 +364,7 @@ DEFINE_OVERRIDE_HOOK(0x70DEBA, TechnoClass_UpdateGattling_Cycle, 6)
 DEFINE_OVERRIDE_HOOK(0x71810D, TeleportLocomotionClass_ILocomotion_MoveTo_Deactivated, 6)
 {
 	GET(FootClass*, pFoot, ECX);
-	return (!pFoot->Deactivated && pFoot->Locomotor.get()->Is_Powered() && !Is_DriverKilled(pFoot))
+	return (!pFoot->Deactivated && pFoot->Locomotor.GetInterfacePtr()->Is_Powered() && !Is_DriverKilled(pFoot))
 		? 0 : 0x71820F;
 }
 
@@ -543,7 +543,7 @@ DEFINE_OVERRIDE_HOOK(0x73DE90, UnitClass_Mi_Unload_SimpleDeployer, 0x6)
 		pThis->Deployed = false;
 	}
 
-	return pThis->Locomotor.get()->Is_Moving_Now() ? 0x73E5B1 : 0x0;
+	return pThis->Locomotor.GetInterfacePtr()->Is_Moving_Now() ? 0x73E5B1 : 0x0;
 }
 
 // do not order deactivated units to move
@@ -553,7 +553,7 @@ DEFINE_OVERRIDE_HOOK(0x73DBF9, UnitClass_Mi_Unload_Decactivated, 5)
 	LEA_STACK(CellStruct**, ppCell, 0x0);
 	LEA_STACK(CellStruct*, pPosition, 0x1C);
 
-	const auto pLoco = pUnloadee->Locomotor.get();
+	const auto pLoco = pUnloadee->Locomotor.GetInterfacePtr();
 
 	if (pUnloadee->Deactivated)
 	{
