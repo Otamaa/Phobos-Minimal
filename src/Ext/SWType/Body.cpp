@@ -70,7 +70,7 @@ void SWTypeExt::ExtData::Initialize()
 //	return { SuperWeaponTypeClass::ActionTypeName[(int)nType] , (int)nType };
 //}
 
-void SWTypeExt::ExtData::LoadFromRulesFile(CCINIClass* pINI)
+void NOINLINE SWTypeExt::ExtData::LoadFromRulesFile(CCINIClass* pINI)
 {
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
@@ -101,9 +101,6 @@ void SWTypeExt::ExtData::LoadFromRulesFile(CCINIClass* pINI)
 	//	nActionData.first,
 	//	nActionData.second
 	//);
-
-	if (NewSWType::IsOriginalType(pThis->Type))
-		this->HandledType = NewSWType::GetHandledType(pThis->Type);
 
 	// if this is handled by a NewSWType, initialize it.
 	if (auto pNewSWType = NewSWType::GetNewSWType(this))
@@ -349,7 +346,7 @@ void SWTypeExt::ExtData::ApplyDetonation(HouseClass* pHouse, const CellStruct& c
 		Debug::Log("SW [%s] Lauch Outside Usable Map Area ! \n", this->Get()->ID);
 
 	if (const auto pWeapon = this->Detonate_Weapon.Get())
-		WeaponTypeExt::DetonateAt(pWeapon, nDest, pFirer, this->Detonate_Damage.Get(pWeapon->Damage));
+		WeaponTypeExt::DetonateAt(pWeapon, nDest, pFirer, this->Detonate_Damage.Get(pWeapon->Damage), true);
 	else
 		WarheadTypeExt::DetonateAt(this->Detonate_Warhead.Get(), pTarget, nDest, pFirer, this->Detonate_Damage.Get(this->SW_Damage.Get(0)));
 }
@@ -739,4 +736,52 @@ DEFINE_HOOK(0x6CEE43, SuperWeaponTypeClass_LoadFromINI, 0xA)
 
 	SWTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x6CEE50);
 	return 0;
+}
+
+DEFINE_HOOK(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
+{
+	GET(SuperWeaponTypeClass*, pThis, EBP);
+	GET(CCINIClass*, pINI, EBX);
+
+	INI_EX exINI(pINI);
+	const auto pSection = pThis->ID;
+	const bool IsRules = pINI == CCINIClass::INI_Rules();
+
+	if (exINI.ReadString(pSection, GameStrings::Type())) {
+
+		for (int i = 0; i < (int)SuperWeaponTypeClass::SuperweaponTypeName.c_size(); ++i) {
+			if (!CRT::strcmpi(SuperWeaponTypeClass::SuperweaponTypeName[i], exINI.value())){
+				pThis->Type = (SuperWeaponType)(i);
+
+				if(IsRules) {
+				   SWTypeExt::ExtMap.Find(pThis)->HandledType = NewSWType::GetHandledType((SuperWeaponType)(i));
+				}
+			}
+		}
+
+		if(pThis->Type == SuperWeaponType::Invalid){
+			const auto customType = NewSWType::FindFromTypeID(exINI.value());
+			if (customType > SuperWeaponType::Invalid) {
+				pThis->Type = customType;
+			}
+		}
+	}
+
+	if (exINI.ReadString(pSection, GameStrings::PreDependent())) {
+
+		for (int i = 0; i < (int)SuperWeaponTypeClass::SuperweaponTypeName.c_size(); ++i) {
+			if (!CRT::strcmpi(SuperWeaponTypeClass::SuperweaponTypeName[i], exINI.value())) {
+				pThis->Type = (SuperWeaponType)(i);
+			}
+		}
+
+		if (pThis->Type == SuperWeaponType::Invalid) {
+			const auto customType = NewSWType::FindFromTypeID(exINI.value());
+			if (customType > SuperWeaponType::Invalid) {
+				pThis->Type = customType;
+			}
+		}
+	}
+
+	return 0x6CECEF;
 }

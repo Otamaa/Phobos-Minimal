@@ -29,13 +29,8 @@ struct MultiBoolFixedArray
 
 	// index validation manually done
 	bool Get(int Index) const {
-
-		if (Index > Amount)
-			Index = Amount;
-		else if (Index < 0)
-			return false;
-			
-		return Datas[Index];
+		const size_t compare = size_t(Index);
+		return Datas[compare >= Amount ? Amount - 1 : Index];
 	}
 
 	constexpr Iterator<bool> GetElements() const noexcept

@@ -1,8 +1,8 @@
 #include "Firewall.h"
 
-const char* SW_Firewall::GetTypeString() const
+std::vector<const char*> SW_Firewall::GetTypeString() const
 {
-	return "Firestorm";
+	return { "Firestorm" };
 }
 
 void SW_Firewall::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
@@ -21,4 +21,9 @@ bool SW_Firewall::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 void SW_Firewall::Deactivate(SuperClass* pThis, CellStruct cell, bool isPlayer)
 { 
 
+}
+
+void SW_Firewall::Initialize(SWTypeExt::ExtData* pData)
+{
+	Debug::Log("Firewall[%s] init\n", pData->Get()->ID);
 }

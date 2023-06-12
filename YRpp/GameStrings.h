@@ -77,6 +77,8 @@ struct GameStrings
 	GAMEMD_STR(ShakeXlo, 0x847CA8);
 
 	GAMEMD_STR(SpySat, 0x81AE58);
+	GAMEMD_STR(Type, 0x824314);
+	GAMEMD_STR(PreDependent, 0x842670);
 
 	GAMEMD_STR(Scorches, 0x83B238);
 	GAMEMD_STR(Scorches1, 0x83B22C);

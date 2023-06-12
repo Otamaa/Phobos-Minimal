@@ -1,6 +1,7 @@
 #include "Locomotions.h"
 
 #include <New/Interfaces/LevitateLocomotionClass.h>
+#include <New/Interfaces/TestLocomotionClass.h>
 
 #include <Helpers/Macro.h>
 #include <Utilities/Debug.h>
@@ -28,11 +29,12 @@ void REG_CLASS()
 	Game::ClassFactories->AddItem((ULONG)dwRegister);
 }
 
-//DEFINE_HOOK(0x6BC4AE, WinMain_CoRegisterClassObjects_Locomotions, 0x6)
-//{
-//	Debug::Log("Registering new com objects...\n");
-//	Debug::Log("Registering LevitateLocomotionClass\n");
-//	REG_CLASS<LevitateLocomotionClass>();
-//	Debug::Log("Registering done !\n");
-//	return 0;
-//}
+DEFINE_HOOK(0x6BD71D, WinMain_CoRegisterClassObjects_Locomotions, 0x5)
+{
+	Debug::Log("Registering new com objects...\n");
+	Debug::Log("Registering LevitateLocomotionClass\n");
+	REG_CLASS<LevitateLocomotionClass>();
+	REG_CLASS<TestLocomotionClass>();
+	Debug::Log("Registering done !\n");
+	return 0;
+}

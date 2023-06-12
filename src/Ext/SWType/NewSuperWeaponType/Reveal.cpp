@@ -1,8 +1,8 @@
 #include "Reveal.h"
 
-const char* SW_Reveal::GetTypeString() const
+std::vector<const char*> SW_Reveal::GetTypeString() const
 {
-	return "Reveal";
+	return { "Reveal" };
 }
 
 bool SW_Reveal::HandleThisType(SuperWeaponType type) const
@@ -19,7 +19,7 @@ void SW_Reveal::Deactivate(SuperClass* pThis, CellStruct cell, bool isPlayer) { 
 
 void SW_Reveal::Initialize(SWTypeExt::ExtData* pData)
 {
-
+	Debug::Log("Reveal[%s] Init !\n", pData->Get()->ID);
 }
 
 void SW_Reveal::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)

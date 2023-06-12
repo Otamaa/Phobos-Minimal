@@ -648,8 +648,11 @@ DEFINE_HOOK(0x627699, TheaterTypeClass_ProcessOtherPalettes_Process, 0x6)
 	CRT::strupr(pNameProcessed);
 
 	const auto pFile =  MixFileClass::Retrieve(pNameProcessed, false);
-	const auto nRest = !pFile ? "Failed to" : "Successfully";
-	Debug::Log("%s load [%s] as [%s] !\n", nRest , pOriginalName, pNameProcessed);
+	//const auto nRest = !pFile ? "Failed to" : "Successfully";
+
+	if(!pFile)
+		Debug::Log("Failed to load [%s] as [%s] !\n" , pOriginalName, pNameProcessed);
+
 	// cant use PaletteManager atm , because this will be modified after load done 
 	// so if PaletteManager used , that mean the color enries will get modified 
 	// for second time !

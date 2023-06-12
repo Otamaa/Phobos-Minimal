@@ -1,8 +1,8 @@
 #include "IonCannon.h"
 
-const char* SW_IonCannon::GetTypeString() const
+std::vector<const char*> SW_IonCannon::GetTypeString() const
 {
-	return "IonCannon";
+	return { "IonCannon" };
 }
 
 bool SW_IonCannon::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
@@ -18,7 +18,7 @@ bool SW_IonCannon::Activate(SuperClass* pThis, const CellStruct& Coords, bool Is
 
 void SW_IonCannon::Initialize(SWTypeExt::ExtData* pData)
 {
-
+	Debug::Log("IonCannon[%s] init\n", pData->Get()->ID);
 }
 
 void SW_IonCannon::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)

@@ -1,8 +1,8 @@
 #include "GenericWarhead.h"
 
-const char* SW_GenericWarhead::GetTypeString() const
+std::vector<const char*> SW_GenericWarhead::GetTypeString() const
 {
-	return "GenericWarhead";
+	return { "GenericWarhead" };
 }
 
 bool SW_GenericWarhead::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
@@ -12,5 +12,5 @@ bool SW_GenericWarhead::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 
 void SW_GenericWarhead::Initialize(SWTypeExt::ExtData* pData)
 {
-
+	Debug::Log("GenericWarhead[%s] init\n", pData->Get()->ID);
 }

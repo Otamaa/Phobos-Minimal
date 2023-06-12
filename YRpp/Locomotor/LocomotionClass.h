@@ -110,13 +110,13 @@ public:
 	// the original locomotor. this function ignores Is_Ok_To_End().
 	static bool End_Piggyback(ILocomotionPtr &pLoco);
 
+protected:
+
 	//Constructors
 	LocomotionClass() { JMP_THIS(0x55A6C0); }
 	//LocomotionClass(LocomotionClass* pAnother) { JMP_THIS(0x55A6C0); }
 
-protected:
-	explicit __forceinline LocomotionClass(noinit_t)  noexcept
-	{ }
+	explicit __forceinline LocomotionClass(noinit_t)  noexcept { }
 
 	//Properties
 public:

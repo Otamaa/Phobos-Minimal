@@ -24,6 +24,52 @@
 #include <New/Entity/VerticalLaserClass.h>
 #include <Misc/AresData.h>
 
+void WarheadTypeExt::ExtData::ApplyLocomotorInfliction(TechnoClass* pTarget)
+{
+	auto pTargetFoot = abstract_cast<FootClass*>(pTarget);
+	if (!pTargetFoot)
+		return;
+
+	// same locomotor? no point to change
+	CLSID targetCLSID { };
+	CLSID inflictCLSID = this->OwnerObject()->Locomotor;
+	IPersistPtr pLocoPersist = pTargetFoot->Locomotor;
+	if (SUCCEEDED(pLocoPersist->GetClassID(&targetCLSID)) && targetCLSID == inflictCLSID)
+		return;
+
+	// prevent endless piggyback
+	IPiggybackPtr pTargetPiggy = pTargetFoot->Locomotor;
+	if (pTargetPiggy != nullptr && pTargetPiggy->Is_Piggybacking())
+		return;
+
+	LocomotionClass::ChangeLocomotorTo(pTargetFoot, inflictCLSID);
+}
+
+void WarheadTypeExt::ExtData::ApplyLocomotorInflictionReset(TechnoClass* pTarget)
+{
+	auto pTargetFoot = abstract_cast<FootClass*>(pTarget);
+
+	if (!pTargetFoot)
+		return;
+
+	// remove only specific inflicted locomotor if specified
+	CLSID removeCLSID = this->OwnerObject()->Locomotor;
+	if (removeCLSID != CLSID())
+	{
+		CLSID targetCLSID { };
+		IPersistPtr pLocoPersist = pTargetFoot->Locomotor;
+		if (SUCCEEDED(pLocoPersist->GetClassID(&targetCLSID)) && targetCLSID != removeCLSID)
+			return;
+	}
+
+	// // we don't want to remove non-ok-to-end locos
+	// IPiggybackPtr pTargetPiggy = pTargetFoot->Locomotor;
+	// if (pTargetPiggy != nullptr && (!pTargetPiggy->Is_Ok_To_End()))
+	// 	return;
+
+	LocomotionClass::End_Piggyback(pTargetFoot->Locomotor);
+}
+
 void WarheadTypeExt::ExtData::ApplyDirectional(BulletClass* pBullet, TechnoClass* pTarget)
 {
 	//if (!pBullet || pBullet->IsInAir() != pTarget->IsInAir() || pBullet->GetCell() != pTarget->GetCell() || pTarget->IsIronCurtained())
@@ -370,7 +416,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 		//this->RemoveMindControl ||
 		this->Crit_Chance ||
 		this->Shield_Break ||
-		this->Converts ||
+		(this->Converts && !this->ConvertsPair.empty()) ||
 		this->Shield_Respawn_Duration > 0 ||
 		this->Shield_SelfHealing_Duration > 0 ||
 		this->Shield_AttachTypes.size() > 0 ||
@@ -383,7 +429,9 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 		this->ReloadAmmo != 0 ||
 		(this->RevengeWeapon.isset() && this->RevengeWeapon_GrantDuration > 0) ||
 		!this->LimboKill_IDs.empty()
-		|| (this->PaintBallData.Color != ColorStruct::Empty)
+		|| (this->PaintBallData.Color != ColorStruct::Empty) 
+		|| this->InflictLocomotor 
+		|| this->RemoveInflictedLocomotor
 		;
 
 	if (isCellSpreadWarhead)
@@ -510,6 +558,12 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 
 	if (this->RevengeWeapon.isset() && this->RevengeWeapon_GrantDuration > 0)
 		this->ApplyRevengeWeapon(pTarget);
+
+	if (this->InflictLocomotor)
+		this->ApplyLocomotorInfliction(pTarget);
+
+	if (this->RemoveInflictedLocomotor)
+		this->ApplyLocomotorInflictionReset(pTarget);
 }
 
 //void WarheadTypeExt::ExtData::DetonateOnAllUnits(HouseClass* pHouse, const CoordStruct coords, const float cellSpread, TechnoClass* pOwner)

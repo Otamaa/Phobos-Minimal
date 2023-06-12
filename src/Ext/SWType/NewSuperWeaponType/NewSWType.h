@@ -25,8 +25,10 @@ enum class AresNewSuperType : int
 	DropPod = 15,
 	EMPulse = 16,
 	Battery = 17,
-	EMPField = 18,
-	IonCannon = 19,
+	//EMPField = 18,
+	//IonCannon = 19,
+	//ChemLauncher = 20,
+	//MultiLauncher = 21,
 	count
 };
 
@@ -71,9 +73,9 @@ struct TargetingData
 
 class NewSWType
 {
-	static std::vector<std::unique_ptr<NewSWType>> Array;
+	static std::array<std::unique_ptr<NewSWType>, (size_t)AresNewSuperType::count> Array;
 
-	static void Register(std::unique_ptr<NewSWType> pType);
+	static void Register(std::unique_ptr<NewSWType> pType, AresNewSuperType nType);
 
 	AresNewSuperType TypeIndex { AresNewSuperType(-1) };
 
@@ -81,7 +83,7 @@ public:
 
 	virtual ~NewSWType() = default;
 
-	virtual const char* GetTypeString() const { return nullptr; }
+	virtual std::vector<const char*> GetTypeString() const { return {}; }
 	virtual bool HandleThisType(SuperWeaponType type) const { return false; }
 	virtual SuperWeaponFlags Flags() const { return SuperWeaponFlags::NoEvent; }
 
@@ -102,6 +104,7 @@ public:
 	virtual int GetSound(const SWTypeExt::ExtData* pData) const { return -1; }
 	virtual int GetDamage(const SWTypeExt::ExtData* pData) const { return 0; }
 
+	/*virtual AresNewSuperType GetTypeIndex() const { return this->TypeIndex; }*/
 public:
 	// static methods
 	static void Init();

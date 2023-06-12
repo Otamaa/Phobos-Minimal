@@ -19,7 +19,7 @@ bool SW_ChronoSphere::Activate(SuperClass* const pThis, const CellStruct& Coords
 
 void SW_ChronoSphere::Initialize(SWTypeExt::ExtData* pData)
 {
-
+	Debug::Log("ChronoSphere[%s] init\n", pData->Get()->ID);
 }
 
 void SW_ChronoSphere::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)

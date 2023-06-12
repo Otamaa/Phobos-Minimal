@@ -278,6 +278,10 @@ public:
 		Valueable<bool> Malicious;
 		Valueable<bool> PreImpact_Moves;
 		Valueable<bool> Conventional_IgnoreUnits;
+
+		Valueable<bool> InflictLocomotor;
+		Valueable<bool> RemoveInflictedLocomotor;
+
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		PhobosMap<int, DamageTextTypeData> DamageTextPerArmor;
 #endif
@@ -508,6 +512,9 @@ public:
 			, Malicious { true }
 			, PreImpact_Moves { false }
 			, Conventional_IgnoreUnits { false }
+
+			, InflictLocomotor { false }
+			, RemoveInflictedLocomotor { false }
 #ifdef COMPILE_PORTED_DP_FEATURES_
 			,DamageTextPerArmor { }
 
@@ -523,6 +530,9 @@ public:
 		void ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass* pTarget);
 
 		bool applyPermaMC(HouseClass* const Owner, AbstractClass* const Target);
+
+		void ApplyLocomotorInfliction(TechnoClass* pTarget);
+		void ApplyLocomotorInflictionReset(TechnoClass* pTarget);
 
 	private:
 

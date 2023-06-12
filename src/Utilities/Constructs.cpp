@@ -48,7 +48,7 @@ bool CustomPalette::Read(
 		//dont init anything if it is empty
 		if (GeneralUtils::IsValidString(Phobos::readBuffer))
 		{
-			Debug::Log("Loading Palette[%s] for [%s] ! \n", Phobos::readBuffer , pSection);
+			//Debug::Log("Loading Palette[%s] for [%s] ! \n", Phobos::readBuffer , pSection);
 			GeneralUtils::ApplyTheaterSuffixToString(Phobos::readBuffer);
 			return this->LoadFromName(Phobos::readBuffer);
 		}

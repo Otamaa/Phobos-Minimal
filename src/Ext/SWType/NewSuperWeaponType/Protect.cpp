@@ -1,8 +1,8 @@
 #include "Protect.h"
 
-const char* SW_Protect::GetTypeString() const
+std::vector<const char*> SW_Protect::GetTypeString() const
 {
-	return "Protect";
+	return { "Protect" };
 }
 
 bool SW_Protect::HandleThisType(SuperWeaponType type) const
@@ -23,7 +23,7 @@ bool SW_Protect::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 
 void SW_Protect::Initialize(SWTypeExt::ExtData* pData)
 {
-
+	Debug::Log("Protect[%s] Init !\n", pData->Get()->ID);
 }
 
 void SW_Protect::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)

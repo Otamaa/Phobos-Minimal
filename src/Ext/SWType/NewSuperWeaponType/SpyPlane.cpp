@@ -1,8 +1,8 @@
 #include "SpyPlane.h"
 
-const char* SW_SpyPlane::GetTypeString() const
+std::vector<const char*> SW_SpyPlane::GetTypeString() const
 {
-	return "Airstrike";
+	return { "Airstrike" };
 }
 
 bool SW_SpyPlane::HandleThisType(SuperWeaponType type) const
@@ -17,7 +17,7 @@ bool SW_SpyPlane::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 
 void SW_SpyPlane::Initialize(SWTypeExt::ExtData* pData)
 {
-
+	Debug::Log("SpyPlane[%s] Init !\n", pData->Get()->ID);
 }
 
 void SW_SpyPlane::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)

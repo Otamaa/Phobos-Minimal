@@ -229,7 +229,7 @@ NOINLINE std::vector<int>* PopulatePassangerPIPData(TechnoClass* pThis, TechnoTy
 			{
 				const auto pPassengerType = pPassenger->GetTechnoType();
 
-				auto nSize = pTypeExt->Passengers_BySize.Get(!Absorber) ? (int)pPassengerType->Size : 1;
+				auto nSize = !Absorber || pTypeExt->Passengers_BySize.Get() ? (int)pPassengerType->Size : 1;
 				if (nSize <= 0)
 					nSize = 1;
 
@@ -296,7 +296,7 @@ NOINLINE std::vector<int>* PopulatePassangerPIPData(TechnoClass* pThis, TechnoTy
 		{
 			const auto pPassengerType = pPassenger->GetTechnoType();
 
-			auto nSize = pTypeExt->Passengers_BySize.Get(true) ? (int)pPassengerType->Size : 1;
+			auto nSize = pTypeExt->Passengers_BySize.Get() ? (int)pPassengerType->Size : 1;
 			if (nSize <= 0)
 				nSize = 1;
 

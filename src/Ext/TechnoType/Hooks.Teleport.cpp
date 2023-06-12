@@ -41,7 +41,7 @@ DEFINE_HOOK(0x719742, TeleportLocomotionClass_ILocomotion_Process_WarpInAnim, 0x
 	if (const auto pWeapon = weaponType.Get(pOwner)) {
 		const int damage = pExt->WarpInWeapon_UseDistanceAsDamage.Get(pOwner) ?
 			(pTechnoExt->LastWarpDistance / Unsorted::LeptonsPerCell) : pWeapon->Damage;
-		WeaponTypeExt::DetonateAt(pWeapon, pOwner, pOwner, damage);
+		WeaponTypeExt::DetonateAt(pWeapon, pOwner, pOwner, damage, true);
 	}
 
 	return 0x719796;

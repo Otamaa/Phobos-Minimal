@@ -68,6 +68,7 @@ public:
 
 class HouseClass;
 class CellClass;
+class LocomotionClass;
 class EnumFunctions final
 {
 	NO_CONSTRUCT_CLASS(EnumFunctions)
@@ -82,7 +83,7 @@ public:
 	static std::array<const char* const, 6u> MouseCursorData_ToStrings;
 	static std::array<const char* const, 3u> HealthCondition_ToStrings;
 	static std::array<const char* const, 21u> TileType_ToStrings;
-	static std::array<std::pair<const char* const, const char* const>, 11u> LocomotorPairs_ToStrings;
+	static std::array<std::pair<const char*, const char*>, 11u> LocomotorPairs_ToStrings;
 	static std::array<const char* const, 4u> TextAlign_ToStrings;
 	static std::array<const char* const, 3u> AreaFireTarget_ToStrings;
 	static std::array<const char* const, 5u> AttachedAnimFlag_ToStrings;
@@ -108,4 +109,5 @@ public:
 	static BlitterFlags GetTranslucentLevel(int const& nInt);
 	static TextPrintType CastAlignToFlags(HorizontalPosition const& pos);
 	static IronCurtainFlag GetICFlagResult(IronCurtainFlag const& Input);
+	static std::pair<const char*, const char*>* locomotion_toSring(LocomotionClass* ptr);
 };

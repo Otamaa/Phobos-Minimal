@@ -98,7 +98,6 @@
     <ClCompile Include="src\Ext\Surface\Body.cpp" />
     <ClCompile Include="src\Ext\SWType\Hook.ShortTimer.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\Battery.cpp" />
-    <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\ChemLauncher.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\ChronoSphere.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\ChronoWarp.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\Dominator.cpp" />
@@ -111,7 +110,6 @@
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\HunterSeeker.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\IonCannon.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\LightningStorm.cpp" />
-    <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\MultiLauncher.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\NewSWType.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\NuclearMissile.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\ParaDrop.cpp" />
@@ -119,6 +117,7 @@
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\Reveal.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\SonarPulse.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\SpyPlane.cpp" />
+    <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\SWStateMachine.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\UnitDelivery.cpp" />
     <ClCompile Include="src\Ext\Tactical\Body.cpp" />
     <ClCompile Include="src\Ext\TAction\Body.cpp" />
@@ -209,6 +208,7 @@
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Misc\Hooks.YRPatches.cpp" />
+    <ClCompile Include="src\New\Interfaces\TestLocomotionClass.cpp" />
     <ClCompile Include="src\New\Type\TunnelTypeClass.cpp" />
     <ClCompile Include="src\New\Type\ImmunityTypeClass.cpp" />
     <ClCompile Include="src\New\Type\PaletteManager.cpp" />
@@ -373,7 +373,6 @@
     <ClInclude Include="src\Ext\Super\Body.h" />
     <ClInclude Include="src\Ext\Surface\Body.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\Battery.h" />
-    <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\ChemLauncher.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\ChronoSphere.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\ChronoWarp.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\Dominator.h" />
@@ -386,7 +385,6 @@
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\HunterSeeker.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\IonCannon.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\LightningStorm.h" />
-    <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\MultiLauncher.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\NewSWType.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\NuclearMissile.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\ParaDrop.h" />
@@ -394,6 +392,7 @@
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\Reveal.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\SonarPulse.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\SpyPlane.h" />
+    <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\SWStateMachine.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\UnitDelivery.h" />
     <ClInclude Include="src\Ext\Tactical\Body.h" />
     <ClInclude Include="src\Ext\TAction\Body.h" />
@@ -463,6 +462,7 @@
     <ClInclude Include="src\New\Entity\HomingMissileTargetTracker.h" />
     <ClInclude Include="src\New\Entity\LauchSWData.h" />
     <ClInclude Include="src\New\Entity\ShieldClass.h" />
+    <ClInclude Include="src\New\Interfaces\TestLocomotionClass.h" />
     <ClInclude Include="src\New\Type\TunnelTypeClass.h" />
     <ClInclude Include="src\New\Interfaces\LevitateLocomotionClass.h" />
     <ClInclude Include="src\New\Type\ArmorTypeClass.h" />

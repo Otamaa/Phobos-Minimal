@@ -1,11 +1,12 @@
 #pragma once
 
 #include "NewSWType.h"
+#include "SWStateMachine.h"
 
 class SW_EMPulse : public NewSWType
 {
 public:
-	virtual const char* GetTypeString() const override;
+	virtual std::vector<const char*> GetTypeString() const override;
 
 	virtual bool Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer) override;
 	
@@ -15,4 +16,5 @@ public:
 
 	virtual bool IsLaunchSite(SWTypeExt::ExtData* pSWType, BuildingClass* pBuilding) const override;
 	virtual std::pair<double, double> GetLaunchSiteRange(SWTypeExt::ExtData* pSWType, BuildingClass* pBuilding) const override;
+
 };

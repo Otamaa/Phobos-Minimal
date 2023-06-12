@@ -17,5 +17,5 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 
 void SW_ChronoWarp::Initialize(SWTypeExt::ExtData* pData)
 {
-
+	Debug::Log("ChronoWarp[%s] init\n", pData->Get()->ID);
 }

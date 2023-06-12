@@ -176,6 +176,12 @@ Iterator<T> make_iterator(const std::vector<T>& value) {
 	return Iterator<T>(value);
 }
 
+template <typename T ,size_t count>
+Iterator<T> make_iterator(const std::array<T , count>& value){
+	return Iterator<T>(value.begin() , count);
+}
+
+
 // iterator does not keep temporary alive, thus rvalues are forbidden.
 // use the otherwise wierd const&& to not catch any lvalues
 template <typename T>

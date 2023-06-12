@@ -1,8 +1,8 @@
 #include "EMPField.h"
 
-const char* SW_EMPField::GetTypeString() const
+std::vector<const char*> SW_EMPField::GetTypeString() const
 {
-	return "EMPField";
+	return { "EMPField" };
 }
 
 bool SW_EMPField::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
@@ -24,7 +24,7 @@ bool SW_EMPField::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 
 void SW_EMPField::Initialize(SWTypeExt::ExtData* pData)
 {
-
+	Debug::Log("EMPField[%s] init\n", pData->Get()->ID);
 }
 
 void SW_EMPField::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)

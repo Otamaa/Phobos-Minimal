@@ -5,7 +5,7 @@
 class SW_SpyPlane : public NewSWType
 {
 public:
-	virtual const char* GetTypeString() const override;
+	virtual std::vector<const char*> GetTypeString() const override;
 	virtual bool HandleThisType(SuperWeaponType type) const override;
 
 	virtual bool Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer) override;

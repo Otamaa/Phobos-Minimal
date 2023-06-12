@@ -5,7 +5,7 @@
 class SW_Protect : public NewSWType
 {
 public:
-	virtual const char* GetTypeString() const override;
+	virtual std::vector<const char*> GetTypeString() const override;
 	virtual bool HandleThisType(SuperWeaponType type) const override;
 
 	virtual bool CanFireAt(TargetingData const& data, const CellStruct& cell, bool manual) const override;

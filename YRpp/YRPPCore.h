@@ -82,3 +82,4 @@ struct foo { int a,b; }; \
 SIZEOF_ ## t ## _IS<sizeof(t)> SIZEOF_ ## t ## _IS;
 
 struct noinit_t final {};
+struct noprapere_tag final { };

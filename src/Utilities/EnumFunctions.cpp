@@ -78,7 +78,7 @@ std::array<const char* const, 21u> EnumFunctions::TileType_ToStrings
 }
 };
 
-std::array<std::pair<const char* const, const char* const>, 11u> EnumFunctions::LocomotorPairs_ToStrings
+std::array<std::pair<const char*, const char*>, 11u> EnumFunctions::LocomotorPairs_ToStrings
 {
 {
 	{"Drive","{4A582741-9839-11d1-B709-00A024DDAFD1}"} ,
@@ -209,7 +209,7 @@ std::array<const char* const, 3u> EnumFunctions::TargetingPreference_ToStrings
 std::array<const char* const, 3u> EnumFunctions::SelfHealGainType_ToStrings
 {
 {
-		{GameStrings::NoneStrb()}, { GameStrings::Infantry() }, { GameStrings::Units() }
+	{GameStrings::NoneStrb()}, { GameStrings::Infantry() }, { GameStrings::Units() }
 }
 };
 std::array<const char* const, 5u> EnumFunctions::ChronoSparkleDisplayPosition_ToStrings
@@ -380,4 +380,49 @@ IronCurtainFlag EnumFunctions::GetICFlagResult(IronCurtainFlag const& Input)
 		return (IronCurtainFlag)ScenarioClass::Instance->Random.RandomRanged((int)IronCurtainFlag::Kill, (int)IronCurtainFlag::Ignore);
 
 	return Input;
+}
+
+#include <Locomotor/DriveLocomotionClass.h>
+#include <Locomotor/JumpjetLocomotionClass.h>
+#include <Locomotor/HoverLocomotionClass.h>
+#include <Locomotor/RocketLocomotionClass.h>
+#include <Locomotor/TunnelLocomotionClass.h>
+#include <Locomotor/WalkLocomotionClass.h>
+#include <Locomotor/DropPodLocomotionClass.h>
+#include <Locomotor/FlyLocomotionClass.h>
+#include <Locomotor/TeleportLocomotionClass.h>
+#include <Locomotor/MechLocomotionClass.h>
+#include <Locomotor/ShipLocomotionClass.h>
+
+static std::pair<const char*, const char*> UnkPair = std::make_pair("Unk", "unk");
+
+std::pair<const char*, const char*>* EnumFunctions::locomotion_toSring(LocomotionClass* ptr)
+{
+	switch (VTable::Get(ptr))
+	{
+	case DriveLocomotionClass::vtable:
+		return &LocomotorPairs_ToStrings[0];
+	case JumpjetLocomotionClass::vtable:
+		return &LocomotorPairs_ToStrings[1];
+	case HoverLocomotionClass::vtable:
+		return &LocomotorPairs_ToStrings[2];
+	case RocketLocomotionClass::vtable:
+		return &LocomotorPairs_ToStrings[3];
+	case TunnelLocomotionClass::vtable:
+		return &LocomotorPairs_ToStrings[4];
+	case WalkLocomotionClass::vtable:
+		return &LocomotorPairs_ToStrings[5];
+	case DropPodLocomotionClass::vtable:
+		return &LocomotorPairs_ToStrings[6];
+	case FlyLocomotionClass::vtable:
+		return &LocomotorPairs_ToStrings[7];
+	case TeleportLocomotionClass::vtable:
+		return &LocomotorPairs_ToStrings[8];
+	case MechLocomotionClass::vtable:
+		return &LocomotorPairs_ToStrings[9];
+	case ShipLocomotionClass::vtable:
+		return &LocomotorPairs_ToStrings[10];
+	default:
+		return &UnkPair;
+	}
 }

@@ -363,6 +363,28 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 
 	this->Conventional_IgnoreUnits.Read(exINI, pSection, "Conventional.IgnoreUnits");
 
+	this->InflictLocomotor.Read(exINI, pSection, "InflictLocomotor");
+	this->RemoveInflictedLocomotor.Read(exINI, pSection, "RemoveInflictedLocomotor");
+
+	if (this->InflictLocomotor && pThis->Locomotor == _GUID())
+	{
+		Debug::Log("[Developer warning][%s] InflictLocomotor is specified but Locomotor is not set!", pSection);
+		this->InflictLocomotor = false;
+	}
+
+	if ((this->InflictLocomotor || this->RemoveInflictedLocomotor) && pThis->IsLocomotor)
+	{
+		Debug::Log("[Developer warning][%s] InflictLocomotor=yes/RemoveInflictedLocomotor=yes can't be specified while IsLocomotor is set!", pSection);
+		this->InflictLocomotor = this->RemoveInflictedLocomotor = false;
+	}
+
+	if (this->InflictLocomotor && this->RemoveInflictedLocomotor)
+	{
+		Debug::Log("[Developer warning][%s] InflictLocomotor=yes and RemoveInflictedLocomotor=yes can't be set simultaneously!", pSection);
+		this->InflictLocomotor = this->RemoveInflictedLocomotor = false;
+	}
+
+
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
@@ -1065,6 +1087,9 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Malicious)
 		.Process(this->PreImpact_Moves)
 		.Process(this->Conventional_IgnoreUnits)
+
+		.Process(this->InflictLocomotor)
+		.Process(this->RemoveInflictedLocomotor)
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 

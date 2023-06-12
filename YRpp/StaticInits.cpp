@@ -592,7 +592,7 @@ void LocomotionClass::ChangeLocomotorTo(FootClass *Object, const CLSID &clsid)
 	Piggy->Begin_Piggyback(Original.GetInterfacePtr());
 
 	// replace the current locomotor
-	Object->Locomotor = std::move(NewLoco);
+	Object->Locomotor = NewLoco;
 }
 
 

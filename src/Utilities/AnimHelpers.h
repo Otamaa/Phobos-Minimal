@@ -47,7 +47,7 @@ namespace Helper
 			}
 
 			nDamage = static_cast<int>(nDamage * TechnoExt::GetDamageMult(pInvoker, !DamageConsiderVet));
-			WeaponTypeExt::DetonateAt(pWeapon, Where, pInvoker, nDamage);
+			WeaponTypeExt::DetonateAt(pWeapon, Where, pInvoker, nDamage, false);
 			return { false , 0 };
 		}
 

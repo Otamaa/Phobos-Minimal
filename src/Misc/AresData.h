@@ -129,6 +129,8 @@ struct EMPulse
 #define AltOccupy_HasValue(techno)  (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0x9A)) 
 #define AltOccupy_Value(techno)  (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0x99)) 
 
+#define EMPulseTarget(techno) (*(AbstractClass*)(((char*)GetAresTechnoExt(techno)) + 0xA4))
+
 // HouseExt
 #define Is_NavalYardSpied(var) (*(bool*)((char*)GetAresHouseExt(var) + 0x48))
 #define Is_AirfieldSpied(var) (*(bool*)((char*)GetAresHouseExt(var) + 0x49))

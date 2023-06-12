@@ -23,38 +23,15 @@
 #include "Battery.h"
 #include "EMPField.h"
 #include "IonCannon.h"
-#include "ChemLauncher.h"
-#include "MultiLauncher.h"
+//#include "ChemLauncher.h"
+//#include "MultiLauncher.h"
 
-//std::array<const char* const, size_t(AresNewSuperType::count)> NewSWType::AresNewSuperType_ToStrings
-//{{
-//	{ "SonarPulse" },
-//	{ "UnitDelivery" },
-//	{ "GenericWarhead" },
-//	{ "Firestorm" },
-//	{ "Protect" },
-//	{ "Reveal" },
-//	{ "ParaDrop" },
-//	{ "SpyPlane" },
-//	{ "ChronoSphere" },
-//	{ "ChronoWarp" },
-//	{ "GeneticMutator" },
-//	{ "PsychicDominator" },
-//	{ "LightningStorm" },
-//	{ "NuclearMissile" },
-//	{ "HunterSeeker" },
-//	{ "DropPod" },
-//	{ "EMPulse" },
-//	{ "Battery" }
-//	}
-//};
+std::array<std::unique_ptr<NewSWType>, (size_t)AresNewSuperType::count> NewSWType::Array;
 
-std::vector<std::unique_ptr<NewSWType>> NewSWType::Array;
-
-void NewSWType::Register(std::unique_ptr<NewSWType> pType)
+void NewSWType::Register(std::unique_ptr<NewSWType> pType , AresNewSuperType nType)
 {
-	pType->TypeIndex = (AresNewSuperType)Array.size();
-	Array.emplace_back(std::move(pType));
+	pType->TypeIndex = nType;
+	Array[size_t(nType)] = (std::move(pType));
 }
 
 bool NewSWType::CanFireAt(TargetingData const& data, CellStruct const& cell, bool manual) const
@@ -81,36 +58,38 @@ std::pair<double, double> NewSWType::GetLaunchSiteRange(SWTypeExt::ExtData* pSWT
 {
 	return { pSWType->SW_RangeMinimum.Get(), pSWType->SW_RangeMaximum.Get() };
 }
+static bool NewSWTypeInited = false;
 
 void NewSWType::Init()
 {
-	if (!Array.empty())
+	if (NewSWTypeInited)
 		return;
 
-#define RegSW(name) Register(std::make_unique<name>());
+	NewSWTypeInited = true;
+#define RegSW(name ,type) Register(std::make_unique<name>(), type);
 
-	RegSW(SW_SonarPulse)
-	RegSW(SW_UnitDelivery)
-	RegSW(SW_GenericWarhead)
-	RegSW(SW_Firewall)
-	RegSW(SW_Protect)
-	RegSW(SW_Reveal)
-	RegSW(SW_ParaDrop)
-	RegSW(SW_SpyPlane)
-	RegSW(SW_ChronoSphere)
-	RegSW(SW_ChronoWarp)
-	RegSW(SW_GeneticMutator)
-	RegSW(SW_PsychicDominator)
-	RegSW(SW_LightningStorm)
-	RegSW(SW_NuclearMissile)
-	RegSW(SW_HunterSeeker)
-	RegSW(SW_DropPod)
-	RegSW(SW_EMPulse)
-	RegSW(SW_Battery)
-	RegSW(SW_EMPField)
-	RegSW(SW_IonCannon)
-	RegSW(SW_ChemLauncher)
-	RegSW(SW_MultiLauncher)
+	RegSW(SW_SonarPulse , AresNewSuperType::SonarPulse)
+	RegSW(SW_UnitDelivery, AresNewSuperType::UnitDelivery)
+	RegSW(SW_GenericWarhead, AresNewSuperType::GenericWarhead)
+	RegSW(SW_Firewall, AresNewSuperType::Firestorm)
+	RegSW(SW_Protect, AresNewSuperType::Protect)
+	RegSW(SW_Reveal, AresNewSuperType::Reveal)
+	RegSW(SW_ParaDrop, AresNewSuperType::ParaDrop)
+	RegSW(SW_SpyPlane, AresNewSuperType::SpyPlane)
+	RegSW(SW_ChronoSphere, AresNewSuperType::ChronoSphere)
+	RegSW(SW_ChronoWarp, AresNewSuperType::ChronoWarp)
+	RegSW(SW_GeneticMutator, AresNewSuperType::GeneticMutator)
+	RegSW(SW_PsychicDominator, AresNewSuperType::PsychicDominator)
+	RegSW(SW_LightningStorm, AresNewSuperType::LightningStorm)
+	RegSW(SW_NuclearMissile, AresNewSuperType::NuclearMissile)
+	RegSW(SW_HunterSeeker, AresNewSuperType::HunterSeeker)
+	RegSW(SW_DropPod, AresNewSuperType::DropPod)
+	RegSW(SW_EMPulse, AresNewSuperType::EMPulse)
+	RegSW(SW_Battery, AresNewSuperType::Battery)
+	//RegSW(SW_EMPField, AresNewSuperType::EMPField)
+	//RegSW(SW_IonCannon, AresNewSuperType::IonCannon)
+	//RegSW(SW_ChemLauncher, AresNewSuperType::ChemLauncher)
+	//RegSW(SW_MultiLauncher, AresNewSuperType::MultiLauncher)
 #undef RegSW
 }
 
@@ -149,7 +128,7 @@ SuperWeaponType NewSWType::GetHandledType(SuperWeaponType nType)
 	});
 
 	if (It != Array.end())
-		return SuperWeaponType((int)SuperWeaponType::count + (int)std::distance(Array.begin(), It));
+		return SuperWeaponType((int)SuperWeaponType::count + (int)(*It)->TypeIndex);
 
 	return SuperWeaponType::Invalid;
 }
@@ -162,16 +141,23 @@ NewSWType* NewSWType::GetNewSWType(const SWTypeExt::ExtData* pData)
 
 SuperWeaponType NewSWType::FindFromTypeID(const char* pType)
 {
-	auto it = std::find_if(Array.begin(), Array.end(), [pType](const std::unique_ptr<NewSWType>& item)
-	{
-		const char* pID = item->GetTypeString();
-		return pID && !strcmp(pID, pType);
+	auto It = std::find_if(Array.begin(), Array.end(), [pType](const std::unique_ptr<NewSWType>& item) {
+		const auto& pIDs = item->GetTypeString();
+
+		if (!pIDs.empty()) {
+			for (auto& Id : pIDs) {
+				if (!strcmp(Id, pType)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	});
 
-	if (it != Array.end())
-	{
+	if (It != Array.end()) {
 		return static_cast<SuperWeaponType>(
-			(size_t)SuperWeaponType::count + std::distance(Array.begin(), it));
+			(size_t)SuperWeaponType::count + (size_t)(*It)->TypeIndex);
 	}
 
 	return SuperWeaponType::Invalid;
