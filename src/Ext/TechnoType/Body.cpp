@@ -898,6 +898,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 			this->AttackingAircraftSightRange.Read(exINI, pSection, "AttackingAircraftSightRange");
 			this->CrashWeapon_s.Read(exINI, pSection, "Crash.Weapon", true);
 			this->CrashWeapon.Read(exINI, pSection, "Crash.%sWeapon",nullptr , true);
+			this->DeathWeapon_CheckAmmo.Read(exINI, pSection, "DeathWeapon.CheckAmmo");
 			this->NoAirportBound_DisableRadioContact.Read(exINI, pSection, "NoAirportBound.DisableRadioContact");
 
 			this->TakeOff_Anim.Read(exINI, pSection, "TakeOff.Anim");
@@ -1409,6 +1410,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DeathWeapon)
 		.Process(this->CrashWeapon)
 		.Process(this->CrashWeapon_s)
+		.Process(this->DeathWeapon_CheckAmmo)
 		.Process(this->Disable_C4WarheadExp)
 
 		.Process(this->CrashSpinLevelRate)

@@ -12,11 +12,7 @@ bool SW_UnitDelivery::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 }
 
 void SW_UnitDelivery::Initialize(SWTypeExt::ExtData* pData)
-{
-	Debug::Log("UnitDelivery[%s] Init !\n", pData->Get()->ID);
-}
+{ }
 
 void SW_UnitDelivery::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
-{
-
-}
+{ }

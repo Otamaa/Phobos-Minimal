@@ -11,6 +11,4 @@ bool SW_GenericWarhead::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 }
 
 void SW_GenericWarhead::Initialize(SWTypeExt::ExtData* pData)
-{
-	Debug::Log("GenericWarhead[%s] init\n", pData->Get()->ID);
-}
+{ }

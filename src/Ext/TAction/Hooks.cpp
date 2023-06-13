@@ -29,7 +29,6 @@ DEFINE_HOOK(0x6DD8B0, TActionClass_Execute, 0x6)
 		return return_value;
 	}
 
-
 	return continue_func;
 }
 

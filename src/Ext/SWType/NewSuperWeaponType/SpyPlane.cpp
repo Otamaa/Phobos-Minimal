@@ -16,11 +16,7 @@ bool SW_SpyPlane::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 }
 
 void SW_SpyPlane::Initialize(SWTypeExt::ExtData* pData)
-{
-	Debug::Log("SpyPlane[%s] Init !\n", pData->Get()->ID);
-}
+{ }
 
 void SW_SpyPlane::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
-{
-
-}
+{ }

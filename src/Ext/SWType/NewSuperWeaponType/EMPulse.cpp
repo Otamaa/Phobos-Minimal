@@ -14,14 +14,10 @@ bool SW_EMPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 }
 
 void SW_EMPulse::Initialize(SWTypeExt::ExtData* pData)
-{
-	Debug::Log("EMPulse[%s] init\n", pData->Get()->ID);
-}
+{ }
 
 void SW_EMPulse::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
-{
-
-}
+{ }
 
 bool SW_EMPulse::IsLaunchSite(SWTypeExt::ExtData* pSWType, BuildingClass* pBuilding) const
 {

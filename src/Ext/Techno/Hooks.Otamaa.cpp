@@ -179,7 +179,8 @@ DEFINE_HOOK(0x70D690, TechnoClass_FireDeathWeapon_Replace, 0x5) //4
 
 	// Using Promotable<WeaponTypeClass*>
 	// tags : "%sDeathWeapon (%s replaced with rank level);
-	WeaponTypeClass* pWeaponResult = TechnoTypeExt::ExtMap.Find(pType)->DeathWeapon.GetOrDefault(pThis, pType->DeathWeapon);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	WeaponTypeClass* pWeaponResult = pTypeExt->DeathWeapon.GetOrDefault(pThis, pType->DeathWeapon);
 
 	if (!pWeaponResult)
 	{
@@ -187,6 +188,9 @@ DEFINE_HOOK(0x70D690, TechnoClass_FireDeathWeapon_Replace, 0x5) //4
 
 		if (pPrimary && pPrimary->WeaponType)
 		{
+			if(pTypeExt->DeathWeapon_CheckAmmo && pThis->Ammo <= 0 )
+				return 0x70D796;
+
 			DetonateDeathWeapon(pThis, pType, pPrimary->WeaponType, nMult, false);
 		}
 		else

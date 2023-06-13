@@ -18,17 +18,9 @@ SuperClass* SWTypeExt::LauchData = nullptr;
 
 void SWTypeExt::ExtData::Initialize()
 {
-	LimboDelivery_Types.reserve(5);
-	LimboDelivery_IDs.reserve(5);
-	LimboDelivery_RollChances.reserve(5);
-	LimboKill_IDs.reserve(5);
-	SW_Next.reserve(5);
-	LimboDelivery_RandomWeightsData.reserve(100);
-	SW_Next_RandomWeightsData.reserve(100);
-	SW_Inhibitors.reserve(10);
-	SW_Designators.reserve(10);
-	SW_AuxBuildings.reserve(10);
-	SW_NegBuildings.reserve(10);
+	if (auto pNewSWType = NewSWType::GetNewSWType(this)) {
+		pNewSWType->Initialize(this);
+	}
 }
 
 //std::tuple<const char*, int , int> GetData(SuperWeaponType nType)
@@ -103,12 +95,6 @@ void NOINLINE SWTypeExt::ExtData::LoadFromRulesFile(CCINIClass* pINI)
 	//);
 
 	// if this is handled by a NewSWType, initialize it.
-	if (auto pNewSWType = NewSWType::GetNewSWType(this))
-	{
-		// not atm !
-		//pThis->Action = (Action)AresNewActionType::SuperWeaponAllowed;
-		pNewSWType->Initialize(this);
-	}
 }
 
 void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
@@ -119,8 +105,8 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	if (!pINI->GetSection(pSection))
 		return;
 
-	if (pINI == CCINIClass::INI_Rules)
-		this->LoadFromRulesFile(pINI);
+	//if (pINI == CCINIClass::INI_Rules)
+	//	this->LoadFromRulesFile(pINI);
 
 	INI_EX exINI(pINI);
 	this->Money_Amount.Read(exINI, pSection, "Money.Amount");
@@ -194,6 +180,10 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Converts.Read(exINI, pSection, "Converts");
 	this->ConvertsPair.Read(exINI, pSection, "ConvertsPair");
 
+	// initialize the NewSWType that handles this SWType.
+	if (auto pNewSWType = NewSWType::GetNewSWType(this)) {
+		pNewSWType->LoadFromINI(this, pINI);
+	}
 }
 
 // =============================
@@ -693,8 +683,10 @@ SWTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x6CE6F6, SuperWeaponTypeClass_CTOR, 0x5)
 {
 	GET(SuperWeaponTypeClass*, pItem, EAX);
-	SWTypeExt::ExtMap.Allocate(pItem);
+
 	NewSWType::Init();
+	SWTypeExt::ExtMap.Allocate(pItem);
+
 	return 0;
 }
 
@@ -745,17 +737,13 @@ DEFINE_HOOK(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 
 	INI_EX exINI(pINI);
 	const auto pSection = pThis->ID;
-	const bool IsRules = pINI == CCINIClass::INI_Rules();
 
 	if (exINI.ReadString(pSection, GameStrings::Type())) {
 
 		for (int i = 0; i < (int)SuperWeaponTypeClass::SuperweaponTypeName.c_size(); ++i) {
 			if (!CRT::strcmpi(SuperWeaponTypeClass::SuperweaponTypeName[i], exINI.value())){
 				pThis->Type = (SuperWeaponType)(i);
-
-				if(IsRules) {
-				   SWTypeExt::ExtMap.Find(pThis)->HandledType = NewSWType::GetHandledType((SuperWeaponType)(i));
-				}
+				SWTypeExt::ExtMap.Find(pThis)->HandledType = NewSWType::GetHandledType((SuperWeaponType)(i));
 			}
 		}
 

@@ -340,6 +340,7 @@ public:
 		Promotable<WeaponTypeClass*> DeathWeapon;
 		Valueable<WeaponTypeClass*> CrashWeapon_s;
 		Promotable<WeaponTypeClass*> CrashWeapon;
+		Valueable<bool> DeathWeapon_CheckAmmo;
 		Valueable<bool> Disable_C4WarheadExp;
 		Valueable<double> CrashSpinLevelRate;
 		Valueable<double> CrashSpinVerticalRate;
@@ -948,6 +949,7 @@ public:
 			, DeathWeapon { }
 			, CrashWeapon_s { nullptr }
 			, CrashWeapon { }
+			, DeathWeapon_CheckAmmo { false }
 			, Disable_C4WarheadExp { false }
 
 			, CrashSpinLevelRate { 1.0 }

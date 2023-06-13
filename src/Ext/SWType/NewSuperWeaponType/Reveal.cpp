@@ -15,17 +15,14 @@ bool SW_Reveal::Activate(SuperClass* const pThis, const CellStruct& Coords, bool
 	return true;
 }
 
-void SW_Reveal::Deactivate(SuperClass* pThis, CellStruct cell, bool isPlayer) { }
+void SW_Reveal::Deactivate(SuperClass* pThis, CellStruct cell, bool isPlayer) 
+{ }
 
 void SW_Reveal::Initialize(SWTypeExt::ExtData* pData)
-{
-	Debug::Log("Reveal[%s] Init !\n", pData->Get()->ID);
-}
+{ }
 
 void SW_Reveal::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
-{
-
-}
+{ }
 
 int SW_Reveal::GetSound(const SWTypeExt::ExtData* pData) const
 {

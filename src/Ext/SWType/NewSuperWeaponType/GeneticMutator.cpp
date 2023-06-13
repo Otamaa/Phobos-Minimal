@@ -11,14 +11,10 @@ bool SW_GeneticMutator::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 }
 
 void SW_GeneticMutator::Initialize(SWTypeExt::ExtData* pData)
-{
-	Debug::Log("GenericWarhead[%s] init\n", pData->Get()->ID);
-}
+{ }
 
 void SW_GeneticMutator::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
-{
-
-}
+{ }
 
 WarheadTypeClass* SW_GeneticMutator::GetWarhead(const SWTypeExt::ExtData* pData) const
 {

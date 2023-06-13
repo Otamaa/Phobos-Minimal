@@ -11,11 +11,7 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 }
 
 void SW_HunterSeeker::Initialize(SWTypeExt::ExtData* pData)
-{
-	Debug::Log("HunterSeeker[%s] init\n", pData->Get()->ID);
-}
+{ }
 
 void SW_HunterSeeker::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
-{
-
-}
+{ }

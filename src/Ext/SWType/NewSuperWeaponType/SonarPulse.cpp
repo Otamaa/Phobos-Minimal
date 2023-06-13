@@ -11,14 +11,10 @@ bool SW_SonarPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 }
 
 void SW_SonarPulse::Initialize(SWTypeExt::ExtData* pData)
-{
-	Debug::Log("SonarPulse[%s] Init !\n", pData->Get()->ID);
-}
+{ }
 
 void SW_SonarPulse::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
-{
-
-}
+{ }
 
 SWRange SW_SonarPulse::GetRange(const SWTypeExt::ExtData* pData) const
 {

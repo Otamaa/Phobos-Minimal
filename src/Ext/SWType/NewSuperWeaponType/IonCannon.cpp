@@ -17,14 +17,10 @@ bool SW_IonCannon::Activate(SuperClass* pThis, const CellStruct& Coords, bool Is
 }
 
 void SW_IonCannon::Initialize(SWTypeExt::ExtData* pData)
-{
-	Debug::Log("IonCannon[%s] init\n", pData->Get()->ID);
-}
+{ }
 
 void SW_IonCannon::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
-{
-
-}
+{ }
 
 bool SW_IonCannon::IsLaunchSite(SWTypeExt::ExtData* pSWType, BuildingClass* pBuilding) const
 {

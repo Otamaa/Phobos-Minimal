@@ -28,12 +28,6 @@
 
 std::array<std::unique_ptr<NewSWType>, (size_t)AresNewSuperType::count> NewSWType::Array;
 
-void NewSWType::Register(std::unique_ptr<NewSWType> pType , AresNewSuperType nType)
-{
-	pType->TypeIndex = nType;
-	Array[size_t(nType)] = (std::move(pType));
-}
-
 bool NewSWType::CanFireAt(TargetingData const& data, CellStruct const& cell, bool manual) const
 {
 	//

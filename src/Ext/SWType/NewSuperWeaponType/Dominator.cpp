@@ -21,9 +21,7 @@ bool SW_PsychicDominator::AbortFire(SuperClass* pSW, bool IsPlayer)
 }
 
 void SW_PsychicDominator::Initialize(SWTypeExt::ExtData* pData)
-{
-	Debug::Log("PsychicDominator[%s] init\n", pData->Get()->ID);
-}
+{ }
 
 void SW_PsychicDominator::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 {

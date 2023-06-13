@@ -21,14 +21,10 @@ bool SW_LightningStorm::AbortFire(SuperClass* pSW, bool IsPlayer)
 }
 
 void SW_LightningStorm::Initialize(SWTypeExt::ExtData* pData)
-{
-	Debug::Log("LightningStorm[%s] init\n", pData->Get()->ID);
-}
+{ }
 
 void SW_LightningStorm::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
-{
-
-}
+{ }
 
 WarheadTypeClass* SW_LightningStorm::GetWarhead(const SWTypeExt::ExtData* pData) const
 {

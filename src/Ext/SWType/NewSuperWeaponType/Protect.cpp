@@ -22,14 +22,10 @@ bool SW_Protect::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 }
 
 void SW_Protect::Initialize(SWTypeExt::ExtData* pData)
-{
-	Debug::Log("Protect[%s] Init !\n", pData->Get()->ID);
-}
+{ }
 
 void SW_Protect::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
-{
-
-}
+{ }
 
 AnimTypeClass* SW_Protect::GetAnim(const SWTypeExt::ExtData* pData) const
 {

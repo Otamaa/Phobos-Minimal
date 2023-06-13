@@ -16,14 +16,10 @@ bool SW_NuclearMissile::Activate(SuperClass* const pThis, const CellStruct& Coor
 }
 
 void SW_NuclearMissile::Initialize(SWTypeExt::ExtData* pData)
-{
-	Debug::Log("NuclearMissile[%s] Init !\n" , pData->Get()->ID);
-}
+{ }
 
 void SW_NuclearMissile::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
-{
-
-}
+{ }
 
 bool SW_NuclearMissile::IsLaunchSite(SWTypeExt::ExtData* pSWType, BuildingClass* pBuilding) const
 {
