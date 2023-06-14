@@ -160,7 +160,6 @@ namespace Savegame
 		return true;
 	}
 
-
 	// specializations
 	template <typename T>
 	struct Savegame::PhobosStreamObject<VectorClass<T>>
@@ -239,52 +238,6 @@ namespace Savegame
 		}
 	};
 
-	/*
-	template <typename T>
-	struct Savegame::PhobosStreamObject<ViDynamicVectorClass<T>>
-	{
-		bool ReadFromStream(PhobosStreamReader& Stm, ViDynamicVectorClass<T>& Value, bool RegisterForChange) const
-		{
-			Value.Clear();
-			int Capacity = 0;
-
-			if (!Stm.Load(Capacity))
-				return false;
-
-			Value.Resize(Capacity);
-			int Count = 0;
-			int Growth = 0;
-			if (!Stm.Load(Count) || !Stm.Load(Growth))
-				return false;
-
-			Value.Set_Active(Count);
-			Value.Set_Growth_Step(Growth);
-
-			for (auto ix = 0; ix < Value.Count(); ++ix)
-			{
-				if (!Savegame::ReadPhobosStream(Stm, Value.Vector[ix], RegisterForChange))
-					return false;
-			}
-
-			return true;
-		}
-
-		bool WriteToStream(PhobosStreamWriter& Stm, const ViDynamicVectorClass<T>& Value) const
-		{
-			Stm.Save(Value.Length());
-			Stm.Save(Value.Count());
-			Stm.Save(Value.GrowthStep);
-
-			for (auto ix = 0; ix < Value.Count(); ++ix)
-			{
-				if (!Savegame::WritePhobosStream(Stm, Value.Vector[ix]))
-					return false;
-			}
-
-			return true;
-		}
-	};*/
-
 	template <typename T>
 	struct Savegame::PhobosStreamObject<TypeList<T>>
 	{
@@ -306,15 +259,14 @@ namespace Savegame
 		}
 	};
 
-
 	template <typename T>
 	struct Savegame::PhobosStreamObject<Vector3D<T>>
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, Vector3D<T>& Value, bool RegisterForChange) const
 		{
-			if (!(Savegame::ReadPhobosStream<int>(Stm, Value.X, RegisterForChange)
-				&& Savegame::ReadPhobosStream<int>(Stm, Value.Y, RegisterForChange)
-				&& Savegame::ReadPhobosStream<int>(Stm, Value.Z, RegisterForChange)))
+			if (!(Savegame::ReadPhobosStream(Stm, Value.X, RegisterForChange)
+				&& Savegame::ReadPhobosStream(Stm, Value.Y, RegisterForChange)
+				&& Savegame::ReadPhobosStream(Stm, Value.Z, RegisterForChange)))
 				return false;
 			return true;
 		}
@@ -324,6 +276,56 @@ namespace Savegame
 			if (!(Savegame::WritePhobosStream(Stm, Value.X)
 				&& Savegame::WritePhobosStream(Stm, Value.Y)
 				&& Savegame::WritePhobosStream(Stm, Value.Z)))
+				return false;
+			return true;
+		}
+	};
+
+	template <typename T>
+	struct Savegame::PhobosStreamObject<Vector2D<T>>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, Vector2D<T>& Value, bool RegisterForChange) const
+		{
+			if (!(Savegame::ReadPhobosStream(Stm, Value.X, RegisterForChange)
+				&& Savegame::ReadPhobosStream(Stm, Value.Y, RegisterForChange)
+				))
+				return false;
+
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const Vector2D<T>& Value) const
+		{
+			if (!(Savegame::WritePhobosStream(Stm, Value.X)
+				&& Savegame::WritePhobosStream(Stm, Value.Y)
+				))
+				return false;
+
+			return true;
+		}
+	};
+
+	template <typename T>
+	struct Savegame::PhobosStreamObject<Vector4D<T>>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, Vector4D<T>& Value, bool RegisterForChange) const
+		{
+			if (!(Savegame::ReadPhobosStream(Stm, Value.X, RegisterForChange)
+				&& Savegame::ReadPhobosStream(Stm, Value.Y, RegisterForChange)
+				&& Savegame::ReadPhobosStream(Stm, Value.Z, RegisterForChange)
+				&& Savegame::ReadPhobosStream(Stm, Value.W, RegisterForChange)
+				))
+				return false;
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const Vector4D<T>& Value) const
+		{
+			if (!(Savegame::WritePhobosStream(Stm, Value.X)
+				&& Savegame::WritePhobosStream(Stm, Value.Y)
+				&& Savegame::WritePhobosStream(Stm, Value.Z)
+				&& Savegame::WritePhobosStream(Stm, Value.W)
+				))
 				return false;
 			return true;
 		}
@@ -432,83 +434,6 @@ namespace Savegame
 		};
 	};
 
-	template <typename T>
-	struct Savegame::PhobosStreamObject<std::deque<T>>
-	{
-		bool ReadFromStream(PhobosStreamReader& Stm, std::deque<T>& Value, bool RegisterForChange) const
-		{
-			Value.clear();
-
-			size_t count = 0;
-
-			if (!Stm.Load(count))
-				return false;
-
-			Value.resize(count);
-
-			for (auto ix = 0u; ix < count; ++ix)
-			{
-				if (!Savegame::ReadPhobosStream(Stm, Value[ix], RegisterForChange))
-					return false;
-			}
-
-			return true;
-		}
-
-		bool WriteToStream(PhobosStreamWriter& Stm, const std::deque<T>& Value) const
-		{
-			Stm.Save(Value.size());
-
-			for (auto ix = 0u; ix < Value.size(); ++ix)
-			{
-				if (!Savegame::WritePhobosStream(Stm, Value[ix]))
-					return false;
-			}
-
-			return true;
-		}
-	};
-
-	template <size_t Size>
-	struct Savegame::PhobosStreamObject<std::bitset<Size>>
-	{
-		bool ReadFromStream(PhobosStreamReader& Stm, std::bitset<Size>& Value, bool RegisterForChange) const
-		{
-			unsigned char value = 0;
-			for (auto i = 0u; i < Size; ++i)
-			{
-				auto pos = i % 8;
-
-				if (pos == 0 && !Stm.Load(value))
-					return false;
-
-				Value.set(i, ((value >> pos) & 1) != 0);
-			}
-
-			return true;
-		}
-
-		bool WriteToStream(PhobosStreamWriter& Stm, const std::bitset<Size>& Value) const
-		{
-			unsigned char value = 0;
-			for (auto i = 0u; i < Size; ++i)
-			{
-				auto pos = i % 8;
-
-				if (Value[i])
-					value |= 1 << pos;
-
-				if (pos == 7 || i == Size - 1)
-				{
-					Stm.Save(value);
-					value = 0;
-				}
-			}
-
-			return true;
-		}
-	};
-
 	template <>
 	struct Savegame::PhobosStreamObject<std::string>
 	{
@@ -585,202 +510,6 @@ namespace Savegame
 				for (const auto& color : Value.get()->Entries) {
 					Stm.Save(color);
 				}
-			}
-
-			return true;
-		}
-	};
-
-	template <typename T>
-	struct Savegame::PhobosStreamObject<std::optional<T>>
-	{
-		bool ReadFromStream(PhobosStreamReader& Stm, std::optional<T>& Value, bool RegisterForChange) const
-		{
-			Value.reset();
-			bool HasValue = false;
-			if (Stm.Load(HasValue))
-			{
-				if (!HasValue) {
-					return true;
-				}
-
-
-				T nOld {};
-				if (Savegame::ReadPhobosStream(Stm, nOld, RegisterForChange)) {
-					Value = nOld;
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		bool WriteToStream(PhobosStreamWriter& Stm, const std::optional<T>& Value) const
-		{
-			Stm.Save(Value.has_value());
-			if (Value.has_value())
-				return (Savegame::WritePhobosStream(Stm, Value.value()));
-
-			return true;
-		}
-	};
-
-	template <typename T>
-	struct Savegame::PhobosStreamObject<std::vector<T>>
-	{
-		bool ReadFromStream(PhobosStreamReader& Stm, std::vector<T>& Value, bool RegisterForChange) const
-		{
-			Value.clear();
-
-			size_t Capacity = 0;
-			if (!Stm.Load(Capacity))
-				return false;
-
-			Value.reserve(Capacity);
-
-			size_t Count = 0;
-
-			if (!Stm.Load(Count))
-				return false;
-
-			Value.resize(Count);
-
-			for (auto ix = 0u; ix < Count; ++ix)
-			{
-				if (!Savegame::ReadPhobosStream(Stm, Value[ix], RegisterForChange))
-					return false;
-			}
-
-			return true;
-		}
-
-		bool WriteToStream(PhobosStreamWriter& Stm, const std::vector<T>& Value) const
-		{
-			Stm.Save(Value.capacity());
-			Stm.Save(Value.size());
-
-			for (auto ix = 0u; ix < Value.size(); ++ix)
-			{
-				if (!Savegame::WritePhobosStream(Stm, Value[ix]))
-					return false;
-			}
-
-			return true;
-		}
-	};
-
-	template <>
-	struct Savegame::PhobosStreamObject<std::vector<bool>>
-	{
-		bool ReadFromStream(PhobosStreamReader& Stm, std::vector<bool>& Value, bool RegisterForChange) const
-		{
-			Value.clear();
-
-			size_t Capacity = 0;
-			if (!Stm.Load(Capacity))
-				return false;
-
-			Value.reserve(Capacity);
-
-			size_t Count = 0;
-
-			if (!Stm.Load(Count))
-				return false;
-
-			Value.resize(Count);
-
-			for (auto ix = 0u; ix < Count; ++ix)
-			{
-				bool value = false;
-
-				if (!Savegame::ReadPhobosStream(Stm, value, false))
-					return false;
-
-				Value.emplace_back(value);
-
-			}
-
-			return true;
-		}
-
-		bool WriteToStream(PhobosStreamWriter& Stm, const std::vector<bool>& Value) const
-		{
-			Stm.Save(Value.capacity());
-			Stm.Save(Value.size());
-
-			for (auto ix = 0u; ix < Value.size(); ++ix)
-			{
-				if (!Savegame::WritePhobosStream(Stm, Value[ix]))
-					return false;
-			}
-
-			return true;
-		}
-	};
-
-	template <typename _Ty1, typename _Ty2>
-	struct Savegame::PhobosStreamObject<std::pair<_Ty1, _Ty2>>
-	{
-		bool ReadFromStream(PhobosStreamReader& Stm, std::pair<_Ty1, _Ty2>& Value, bool RegisterForChange) const
-		{
-			if (!Savegame::ReadPhobosStream(Stm, Value.first, RegisterForChange)
-				|| !Savegame::ReadPhobosStream(Stm, Value.second, RegisterForChange))
-			{
-				return false;
-			}
-			return true;
-		}
-
-		bool WriteToStream(PhobosStreamWriter& Stm, const std::pair<_Ty1, _Ty2>& Value) const
-		{
-			if (!Savegame::WritePhobosStream(Stm, Value.first)
-				|| !Savegame::WritePhobosStream(Stm, Value.second))
-			{
-				return false;
-			}
-			return true;
-		}
-	};
-
-	template <typename TKey, typename TValue>
-	struct Savegame::PhobosStreamObject<std::map<TKey, TValue>>
-	{
-		bool ReadFromStream(PhobosStreamReader& Stm, std::map<TKey, TValue>& Value, bool RegisterForChange) const
-		{
-			Value.clear();
-
-			size_t Count = 0;
-			if (!Stm.Load(Count))
-				return false;
-
-			if (Count <= 0)
-				return true;
-
-			for (auto ix = 0u; ix < Count; ++ix) {
-				std::pair<TKey, TValue> buffer;
-				if (!Savegame::ReadPhobosStream(Stm, buffer.first, RegisterForChange)
-					|| !Savegame::ReadPhobosStream(Stm, buffer.second, RegisterForChange)) {
-					return false;
-				}
-
-				Value.insert(buffer);
-			}
-
-			return true;
-		}
-
-		bool WriteToStream(PhobosStreamWriter& Stm, const std::map<TKey, TValue>& Value) const
-		{
-			size_t const nSize = Value.size();
-			Stm.Save(nSize);
-
-			if (nSize <= 0)
-				return true;
-
-			for (const auto& [first, second] : Value) {
-				if (!Savegame::WritePhobosStream(Stm, first) || !
-				Savegame::WritePhobosStream(Stm, second))
-					return false;
 			}
 
 			return true;
@@ -931,6 +660,246 @@ namespace Savegame
 		}
 	};
 
+	template <size_t Size>
+	struct Savegame::PhobosStreamObject<std::bitset<Size>>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, std::bitset<Size>& Value, bool RegisterForChange) const
+		{
+			unsigned char value = 0;
+			for (auto i = 0u; i < Size; ++i)
+			{
+				auto pos = i % 8;
+
+				if (pos == 0 && !Stm.Load(value))
+					return false;
+
+				Value.set(i, ((value >> pos) & 1) != 0);
+			}
+
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const std::bitset<Size>& Value) const
+		{
+			unsigned char value = 0;
+			for (auto i = 0u; i < Size; ++i)
+			{
+				auto pos = i % 8;
+
+				if (Value[i])
+					value |= 1 << pos;
+
+				if (pos == 7 || i == Size - 1)
+				{
+					Stm.Save(value);
+					value = 0;
+				}
+			}
+
+			return true;
+		}
+	};
+
+	template <typename T>
+	struct Savegame::PhobosStreamObject<std::optional<T>>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, std::optional<T>& Value, bool RegisterForChange) const
+		{
+			Value.reset();
+			bool HasValue = false;
+			if (Stm.Load(HasValue))
+			{
+				if (!HasValue)
+				{
+					return true;
+				}
+
+				T nOld {};
+				if (Savegame::ReadPhobosStream(Stm, nOld, RegisterForChange))
+				{
+					Value = nOld;
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const std::optional<T>& Value) const
+		{
+			Stm.Save(Value.has_value());
+			if (Value.has_value())
+				return (Savegame::WritePhobosStream(Stm, Value.value()));
+
+			return true;
+		}
+	};
+
+	template <typename T>
+	struct Savegame::PhobosStreamObject<std::vector<T>>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, std::vector<T>& Value, bool RegisterForChange) const
+		{
+			Value.clear();
+
+			size_t Capacity = 0;
+			if (!Stm.Load(Capacity))
+				return false;
+
+			Value.reserve(Capacity);
+
+			size_t Count = 0;
+
+			if (!Stm.Load(Count))
+				return false;
+
+			Value.resize(Count);
+
+			for (auto ix = 0u; ix < Count; ++ix)
+			{
+				if (!Savegame::ReadPhobosStream(Stm, Value[ix], RegisterForChange))
+					return false;
+			}
+
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const std::vector<T>& Value) const
+		{
+			Stm.Save(Value.capacity());
+			Stm.Save(Value.size());
+
+			for (auto ix = 0u; ix < Value.size(); ++ix)
+			{
+				if (!Savegame::WritePhobosStream(Stm, Value[ix]))
+					return false;
+			}
+
+			return true;
+		}
+	};
+
+	template <>
+	struct Savegame::PhobosStreamObject<std::vector<bool>>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, std::vector<bool>& Value, bool RegisterForChange) const
+		{
+			Value.clear();
+
+			size_t Capacity = 0;
+			if (!Stm.Load(Capacity))
+				return false;
+
+			Value.reserve(Capacity);
+
+			size_t Count = 0;
+
+			if (!Stm.Load(Count))
+				return false;
+
+			Value.resize(Count);
+
+			for (auto ix = 0u; ix < Count; ++ix)
+			{
+				bool value = false;
+
+				if (!Savegame::ReadPhobosStream(Stm, value, false))
+					return false;
+
+				Value.emplace_back(value);
+
+			}
+
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const std::vector<bool>& Value) const
+		{
+			Stm.Save(Value.capacity());
+			Stm.Save(Value.size());
+
+			for (auto ix = 0u; ix < Value.size(); ++ix)
+			{
+				if (!Savegame::WritePhobosStream(Stm, Value[ix]))
+					return false;
+			}
+
+			return true;
+		}
+	};
+
+	template <typename _Ty1, typename _Ty2>
+	struct Savegame::PhobosStreamObject<std::pair<_Ty1, _Ty2>>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, std::pair<_Ty1, _Ty2>& Value, bool RegisterForChange) const
+		{
+			if (!Savegame::ReadPhobosStream(Stm, Value.first, RegisterForChange)
+				|| !Savegame::ReadPhobosStream(Stm, Value.second, RegisterForChange))
+			{
+				return false;
+			}
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const std::pair<_Ty1, _Ty2>& Value) const
+		{
+			if (!Savegame::WritePhobosStream(Stm, Value.first)
+				|| !Savegame::WritePhobosStream(Stm, Value.second))
+			{
+				return false;
+			}
+			return true;
+		}
+	};
+
+	template <typename TKey, typename TValue>
+	struct Savegame::PhobosStreamObject<std::map<TKey, TValue>>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, std::map<TKey, TValue>& Value, bool RegisterForChange) const
+		{
+			Value.clear();
+
+			size_t Count = 0;
+			if (!Stm.Load(Count))
+				return false;
+
+			if (Count <= 0)
+				return true;
+
+			for (auto ix = 0u; ix < Count; ++ix)
+			{
+				std::pair<TKey, TValue> buffer;
+				if (!Savegame::ReadPhobosStream(Stm, buffer.first, RegisterForChange)
+					|| !Savegame::ReadPhobosStream(Stm, buffer.second, RegisterForChange))
+				{
+					return false;
+				}
+
+				Value.insert(buffer);
+			}
+
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const std::map<TKey, TValue>& Value) const
+		{
+			size_t const nSize = Value.size();
+			Stm.Save(nSize);
+
+			if (nSize <= 0)
+				return true;
+
+			for (const auto& [first, second] : Value)
+			{
+				if (!Savegame::WritePhobosStream(Stm, first) || !
+				Savegame::WritePhobosStream(Stm, second))
+					return false;
+			}
+
+			return true;
+		}
+	};
+
 	template <typename T>
 	struct Savegame::PhobosStreamObject<std::set<T>>
 	{
@@ -968,6 +937,79 @@ namespace Savegame
 					return false;
 				}
 			}
+			return true;
+		}
+	};
+
+	template <typename T>
+	struct Savegame::PhobosStreamObject<std::list<T>>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, std::list<T>& Value, bool RegisterForChange) const
+		{
+			Value.clear();
+
+			size_t Count = 0;
+			if (!Stm.Load(Count)) {
+				return false;
+			}
+
+			for (auto ix = 0u; ix < Count; ++ix) {
+				T buffer = T();
+				if (!Savegame::ReadPhobosStream(Stm, buffer, RegisterForChange)) {
+					return false;
+				}
+				Value.push_back(buffer);
+			}
+
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const std::list<T>& Value) const
+		{
+			Stm.Save(Value.size());
+
+			for (const auto& item : Value) {
+				if (!Savegame::WritePhobosStream(Stm, item)) {
+					return false;
+				}
+			}
+			return true;
+		}
+	};
+
+	template <typename T>
+	struct Savegame::PhobosStreamObject<std::deque<T>>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, std::deque<T>& Value, bool RegisterForChange) const
+		{
+			Value.clear();
+
+			size_t count = 0;
+
+			if (!Stm.Load(count))
+				return false;
+
+			Value.resize(count);
+
+			for (auto ix = 0u; ix < count; ++ix)
+			{
+				if (!Savegame::ReadPhobosStream(Stm, Value[ix], RegisterForChange))
+					return false;
+			}
+
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const std::deque<T>& Value) const
+		{
+			Stm.Save(Value.size());
+
+			for (auto ix = 0u; ix < Value.size(); ++ix)
+			{
+				if (!Savegame::WritePhobosStream(Stm, Value[ix]))
+					return false;
+			}
+
 			return true;
 		}
 	};
@@ -1159,17 +1201,4 @@ namespace Savegame
 		}
 	};
 
-	template <>
-	struct Savegame::PhobosStreamObject<TranslucencyLevel>
-	{
-		bool ReadFromStream(PhobosStreamReader& Stm, TranslucencyLevel*& Value, bool RegisterForChange) const
-		{
-			return Value->Load(Stm, RegisterForChange);
-		}
-
-		bool WriteToStream(PhobosStreamWriter& Stm, TranslucencyLevel* const& Value) const
-		{
-			return Value->Save(Stm);
-		}
-	};
 }

@@ -709,27 +709,53 @@ bool TechnoExt::TargetTechnoShieldAllowFiring(TechnoClass* pTarget, WeaponTypeCl
 	return true;
 }
 
-bool TechnoExt::TargetFootAllowFiring(TechnoClass* pTarget, WeaponTypeClass* pWeapon)
+bool TechnoExt::IsAbductable(TechnoClass* pThis, WeaponTypeClass* pWeapon, FootClass* pFoot)
+{
+
+	if (pFoot->InLimbo ||
+	pFoot->IsIronCurtained() ||
+	pFoot->IsSinking ||
+	!pFoot->IsAlive ||
+	Is_DriverKilled(pFoot)) {
+		return false;
+	}
+
+	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+
+		//Don't abduct the target if it has more life then the abducting percent
+	if (pWeaponExt->Abductor_AbductBelowPercent < pFoot->GetHealthPercentage()) {
+		return false;
+	}
+
+	if (pWeaponExt->Abductor_MaxHealth > 0 && pWeaponExt->Abductor_MaxHealth < pFoot->Health) {
+		return false;
+	}
+
+	if (TechnoExt::IsAbductorImmune(pFoot))
+		return false;
+
+	if (!TechnoExt::IsEligibleSize(pThis, pFoot))
+		return false;
+
+	return true;
+}
+
+bool TechnoExt::TargetFootAllowFiring(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon)
 {
 	if ((pTarget->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None)
 	{
 		const auto pFoot = static_cast<FootClass*>(pTarget);
+		const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 
-		if (Is_Unit(pFoot)) {
+		if(pWeaponExt->Abductor.Get() && !TechnoExt::IsAbductable(pThis,pWeapon, pFoot))
+			return false;
 
-			auto const pUnit = static_cast<UnitClass*>(pTarget);
-			const auto bDriverKilled = (*(bool*)((char*)pUnit->align_154 + 0x9C));
-			const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
-
-			if (bDriverKilled && pWeaponExt->Abductor.Get())
-				return false;
-
+		if (auto const pUnit = specific_cast<UnitClass*>(pTarget)) {
 			if (pUnit->DeathFrameCounter > 0)
-
 				return false;
 		}
 
-		if (TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTarget)))
+		if (TechnoExt::IsChronoDelayDamageImmune(pFoot))
 			return false;
 	}
 
@@ -3555,6 +3581,28 @@ bool TechnoExt::ConvertToType(FootClass* pThis, TechnoTypeClass* pToType)
 	const auto& jjLoco = CLSIDs::Jumpjet();
 	if (pToType->BalloonHover && pToType->DeployToLand && prevType->Locomotor != jjLoco && toLoco == jjLoco)
 		pThis->Locomotor->Move_To(pThis->Location);
+
+	return true;
+}
+
+bool TechnoExt::IsEligibleSize(TechnoClass* pThis, TechnoClass* pPassanger)
+{
+	auto pThisType = pThis->GetTechnoType();
+	auto const pThisTypeExt = TechnoTypeExt::ExtMap.Find(pThisType);
+	auto pThatType = pPassanger->GetTechnoType();
+
+	if (pThatType->Size > pThisType->SizeLimit)
+		return false;
+
+	if (pThisTypeExt->Passengers_BySize.Get())
+	{
+		if (pThatType->Size > (pThisType->Passengers - pThis->Passengers.GetTotalSize()))
+			return false;
+	}
+	else if (pThis->Passengers.NumPassengers >= pThisType->Passengers)
+	{
+		return false;
+	}
 
 	return true;
 }

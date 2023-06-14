@@ -102,16 +102,16 @@ struct VeterancyStruct
 		this->Veterancy = 0.0f;
 	}
 
-	void SetRookie(bool notReally = true) noexcept {
-		this->Veterancy = notReally ? -0.25f : 0.0f;
+	void SetRookie() noexcept {
+		this->Veterancy = -0.25f;
 	}
 
-	void SetVeteran(bool yesReally = true) noexcept {
-		this->Veterancy = yesReally ? 1.0f : 0.0f;
+	void SetVeteran() noexcept {
+		this->Veterancy = 1.0f;
 	}
 
-	void SetElite(bool yesReally = true) noexcept {
-		this->Veterancy = yesReally ? 2.0f : 0.0f;
+	void SetElite() noexcept {
+		this->Veterancy = 2.0f;
 	}
 
 	void SetRank(Rank rank)

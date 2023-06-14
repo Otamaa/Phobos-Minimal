@@ -14,7 +14,7 @@ struct BuildType
 	int               ItemIndex { -1 };
 	AbstractType      ItemType { AbstractType::None };
 	bool              IsAlt { false }; // set on buildings that go on tab 2
-	FactoryClass* CurrentFactory { nullptr };
+	FactoryClass*	  CurrentFactory { nullptr };
 	DWORD             unknown_10 { 0 };
 	ProgressTimer     Progress {}; // 0 to 54, how much of this object is constructed (gclock anim level)
 	int               FlashEndFrame { 0 };

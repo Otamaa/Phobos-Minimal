@@ -357,7 +357,7 @@ private:
 	static bool CheckFundsAllowFiring(TechnoClass* pThis, WarheadTypeClass* pWH);
 	static bool InterceptorAllowFiring(TechnoClass* pThis, ObjectClass* pTarget);
 	static bool TargetTechnoShieldAllowFiring(TechnoClass* pTarget, WeaponTypeClass* pWeapon);
-	static bool TargetFootAllowFiring(TechnoClass* pTarget, WeaponTypeClass* pWeapon);
+	static bool TargetFootAllowFiring(TechnoClass* pThis , TechnoClass* pTarget, WeaponTypeClass* pWeapon);
 	static std::pair<TechnoClass*, CellClass*> GetTargets(ObjectClass* pObjTarget, AbstractClass* pTarget);
 	static int GetDeployFireWeapon(UnitClass* pThis);
 
@@ -373,4 +373,6 @@ private:
 	static const Armor GetTechnoArmor(TechnoClass* pThis, WarheadTypeClass* pWarhead);
 
 	static bool ConvertToType(FootClass* pThis, TechnoTypeClass* toType);
+	static bool IsEligibleSize(TechnoClass* pThis, TechnoClass* pPassanger);
+	static bool IsAbductable(TechnoClass* pThis, WeaponTypeClass* pWeapon, FootClass* pFoot);
 };

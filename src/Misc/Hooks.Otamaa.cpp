@@ -3662,13 +3662,13 @@ DEFINE_HOOK(0x73D909, UnitClass_Mi_Unload_LastPassengerOut, 8)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x73DDC0 , UnitClass_Mi_Unload_DeployIntoPlaceAnywhere, 6)
+DEFINE_HOOK(0x73DDC0, UnitClass_Mi_Unload_DeployIntoPlaceAnywhere, 6)
 {
 	GET(UnitClass*, pThis, ESI);
 
 	if (R->AL())
 	{
-		if(pThis->Type->Speed)
+		if (pThis->Type->Speed)
 			return 0x73DE20;
 		else
 		{
@@ -4944,6 +4944,93 @@ DEFINE_HOOK(0x4B619F, DropPodLocomotionClass_MoveTo_AtmosphereEntry, 0x5)
 
 	return 0x4B61D6;
 }
+
+//call this each deferment time stop
+//maybe look at UnitDelivery code for better
+void MeteorShower_Process(CoordStruct Where, HouseClass* pOwner)
+{
+	if (const auto pCell = MapClass::Instance->TryGetCellAt(Where))
+	{
+		const auto nCoord = pCell->GetCoordsWithBridge();
+		const auto _meteor_counts = { 6, 8, 15 };
+		const auto _impact_counts = { 2 , 4 , 5 }; // too much of this , causing game to freeze , lmao
+		const auto Chances = { 30 , 10 , 50 };
+
+		const int count = *(_meteor_counts.begin() + ScenarioClass::Instance->Random.RandomFromMax(_meteor_counts.size() - 1));
+		const int chance = *Chances.begin();
+		const int Shower_addImpactChance = *(Chances.begin() + 1);
+		const int impact_chance = *(Chances.begin() + 2);
+		const int impact_count = *(_impact_counts.begin() + ScenarioClass::Instance->Random.RandomFromMax(_impact_counts.size() - 1));
+
+		AnimTypeClass* large_meteor = AnimTypeClass::Find("METLARGE");
+		AnimTypeClass* small_meteor = AnimTypeClass::Find("METSMALL");
+		VoxelAnimTypeClass* large_Impact = VoxelAnimTypeClass::Find("METEOR01");
+		VoxelAnimTypeClass* small_Impact = VoxelAnimTypeClass::Find("METEOR02");
+		const int nMaxForrand = count * 70;
+
+		for (int i = 0; i < count; ++i)
+		{
+			const int x_adj = ScenarioClass::Instance->Random.Random() % (nMaxForrand);
+			const int y_adj = ScenarioClass::Instance->Random.Random() % (nMaxForrand);
+
+			Coordinate nwhere = nCoord;
+
+			nwhere.X += x_adj;
+			nwhere.Y += y_adj;
+			nwhere.Z = MapClass::Instance->GetCellFloorHeight(nwhere);
+
+			if (AnimTypeClass* anim = ScenarioClass::Instance->Random.PercentChance(chance) ?
+				large_meteor : small_meteor)
+			{
+				if (auto pAnim = GameCreate<AnimClass>(anim, nwhere))
+					pAnim->Owner = pOwner;
+			}
+		}
+
+		if (ScenarioClass::Instance->Random.PercentChance(Shower_addImpactChance))
+		{
+			for (int a = 0; a < impact_count; ++a)
+			{
+				Coordinate im_where = nCoord;
+
+				const int x_adj = ScenarioClass::Instance->Random.Random() % (impact_count);
+				const int y_adj = ScenarioClass::Instance->Random.Random() % (impact_count);
+
+				im_where.X += x_adj;
+				im_where.Y += y_adj;
+				im_where.Z = MapClass::Instance->GetCellFloorHeight(im_where);
+				if (VoxelAnimTypeClass* impact = ScenarioClass::Instance->Random.PercentChance(impact_chance) ?
+					large_Impact : small_Impact)
+				{
+					GameCreate<VoxelAnimClass>(impact, &im_where, pOwner);
+				}
+			}
+		}
+	}
+}
+
+//https://bugs.launchpad.net/ares/+bug/1577493
+DEFINE_HOOK(0x4684F7, BulletClass_InvalidatePointer_CloakOwner, 0x6)
+{
+	GET_STACK(bool, bRemove, 0x8);
+
+	return bRemove ? 0x0 : 0x468509;
+}
+
+//todo : 
+// https://bugs.launchpad.net/ares/+bug/1891753
+// https://bugs.launchpad.net/ares/+bug/1840387
+// https://bugs.launchpad.net/ares/+bug/1777260
+// https://bugs.launchpad.net/ares/+bug/1324156
+// https://bugs.launchpad.net/ares/+bug/1911093
+// https://blueprints.launchpad.net/ares/+spec/set-veterancy-of-paradropped-units
+// https://bugs.launchpad.net/ares/+bug/1525515
+// https://bugs.launchpad.net/ares/+bug/896353
+
+//700E47
+//740031
+//700DA8
+// https://bugs.launchpad.net/ares/+bug/1384794
 
 //DEFINE_HOOK(0x423FF6, AnimClass_AI_SpawnTib_Probe, 0x6)
 //{

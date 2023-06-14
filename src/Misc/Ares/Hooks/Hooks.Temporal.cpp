@@ -29,28 +29,6 @@
 #include <SpawnManagerClass.h>
 #include <SlaveManagerClass.h>
 
-bool IsEligibleSize(TechnoClass* pThis, TechnoClass* pPassanger)
-{
-	auto pThisType = pThis->GetTechnoType();
-	auto const pThisTypeExt = TechnoTypeExt::ExtMap.Find(pThisType);
-	auto pThatType = pPassanger->GetTechnoType();
-
-	if (pThatType->Size > pThisType->SizeLimit)
-		return false;
-
-	if (pThisTypeExt->Passengers_BySize.Get())
-	{
-		if (pThatType->Size > (pThisType->Passengers - pThis->Passengers.GetTotalSize()))
-			return false;
-	}
-	else if (pThis->Passengers.NumPassengers >= pThisType->Passengers)
-	{
-		return false;
-	}
-
-	return true;
-}
-
 void DetachSpecificSpawnee(TechnoClass* Spawnee, HouseClass* NewSpawneeOwner) {
 
 	// setting up the nodes. Funnily, nothing else from the manager is needed
@@ -113,48 +91,17 @@ bool conductAbduction(WeaponTypeExt::ExtData* pData , TechnoClass* pOwner, Abstr
 	const auto TargetType = Target->GetTechnoType();
 	const auto AttackerType = Attacker->GetTechnoType();
 
-	if (Target->InLimbo || 
-		Target->IsIronCurtained() || 
-		Target->IsSinking || 
-		!Target->IsAlive || 
-		Is_DriverKilled(Target)) {
+	if (!pWHExt->CanAffectHouse(Attacker->Owner, Target->GetOwningHouse())) {
 		return false;
 	}
 
-	//issue 1362
-	if (TechnoExt::IsAbductorImmune(Target)) {
+	if (!TechnoExt::IsAbductable(Attacker, pData->OwnerObject() , Target)) {
 		return false;
 	}
 
-	if(pWHExt->CanAffectHouse(Attacker->Owner ,Target->GetOwningHouse())) {
-		return false;
-	}
-
-	//Don't abduct the target if it has more life then the abducting percent
-	if (pData->Abductor_AbductBelowPercent < Target->GetHealthPercentage()) {
-		return false;
-	}
-
-  if (pData->Abductor_MaxHealth > 0 && pData->Abductor_MaxHealth < Target->Health){
-   		return false;
-	}
-
-	if (!TechnoTypeExt::PassangersAllowed(AttackerType, TargetType)) {
-		return false;
-	}
-
-	// Don't abduct the target if it's too fat in general, or if there's not enough room left in the hold // alternatively, NumPassengers
-	if (!IsEligibleSize(Attacker, Target)) {
-		return false;
-	}
-
-	HouseClass* pDesiredOwner = nullptr;
 	//if it's owner meant to be changed, do it here
-	if (pData->Abductor_ChangeOwner && !TechnoExt::IsPsionicsImmune(Target)) {
-		pDesiredOwner = (Attacker->Owner);
-	}else {
-		pDesiredOwner = HouseExt::FindSpecial();
-	}
+	HouseClass* pDesiredOwner = (pData->Abductor_ChangeOwner && !TechnoExt::IsPsionicsImmune(Target)) 
+		? Attacker->Owner : pDesiredOwner = HouseExt::FindSpecial();
 
 	// if we ended up here, the target is of the right type, and the attacker can take it
 	// so we abduct the target...

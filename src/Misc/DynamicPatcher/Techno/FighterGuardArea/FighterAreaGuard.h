@@ -15,9 +15,17 @@ struct FighterAreaGuard
 	AircraftGuardState State { AircraftGuardState::STOP };
 	bool Clockwise { false };
 	CoordStruct destCenter {};
-	std::vector<CoordStruct> destList {};
+	std::list<CoordStruct> destList {};
 	bool onStopCommand { false };
 	int destIndex { 0 };
+
+	//old
+	bool isAreaProtecting { false };
+	CoordStruct areaProtectTo { 0,0,0 };
+	int currentAreaProtectedIndex { 0 };
+	bool isAreaGuardReloading { false };
+	int areaGuardTargetCheckRof { 20 };
+	//
 
 	bool IsAreaGuardRolling();
 	void OnUpdate();
@@ -31,11 +39,16 @@ struct FighterAreaGuard
 	bool CanAttack(TechnoClass* pTarget, bool isPassiveAcquire = false);
 	bool CheckTarget(TechnoClass* pTarget);
 
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{ return Serialize(Stm); }
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<FighterAreaGuard*>(this)->Serialize(Stm); }
+
 	template <typename T>
-	void Serialize(T& Stm)
+	bool Serialize(T& Stm)
 	{
-		Stm
-			.Process(isAreaProtecting)
+		return Stm
 			.Process(OwnerObject)
 			.Process(State)
 			.Process(Clockwise)
@@ -43,6 +56,13 @@ struct FighterAreaGuard
 			.Process(destList)
 			.Process(onStopCommand)
 			.Process(destIndex)
+
+			.Process(isAreaProtecting)
+			.Process(areaProtectTo)
+			.Process(currentAreaProtectedIndex)
+			.Process(isAreaGuardReloading)
+			.Process(areaGuardTargetCheckRof)
+			.Success()
 			;
 	}
 };

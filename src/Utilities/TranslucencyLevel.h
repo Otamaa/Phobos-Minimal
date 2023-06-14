@@ -62,13 +62,13 @@ public:
 		return false;
 	}
 
-	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
 		Stm.Load(this->value);
 		return true;
 	}
 
-	bool Save(PhobosStreamWriter& Stm) const
+	inline bool Save(PhobosStreamWriter& Stm) const
 	{
 		Stm.Save(this->value);
 		return true;

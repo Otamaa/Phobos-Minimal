@@ -14,6 +14,8 @@
 #include <TerrainTypeClass.h>
 #include <OverlayTypeClass.h>
 
+#include <Misc/AresData.h>
+
 #include <Misc/DynamicPatcher/Techno/Passengers/PassengersFunctional.h>
 
 bool DisguiseAllowed(const TechnoTypeExt::ExtData* pThis, ObjectTypeClass* pThat)
@@ -158,7 +160,7 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 		//if (!TechnoExt::TargetTechnoShieldAllowFiring(pTargetTechno, pWeapon))
 		//	return FireIllegal;
 
-		if (!TechnoExt::TargetFootAllowFiring(pTargetTechno, pWeapon))
+		if (!TechnoExt::TargetFootAllowFiring(pThis, pTargetTechno, pWeapon))
 			return FireIllegal;
 	}
 

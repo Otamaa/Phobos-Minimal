@@ -34,7 +34,14 @@
 
 #include <GeneralDefinitions.h>
 
-enum class SpotlightAttachment
+enum class ShowTimerType : int
+{
+	Hour = 0,
+	Minute = 1,
+	Second = 2,
+};
+
+enum class SpotlightAttachment : int
 {
 	Body, Turret, Barrel
 };

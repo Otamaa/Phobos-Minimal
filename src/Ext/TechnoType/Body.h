@@ -654,6 +654,8 @@ public:
 
 		ValueableVector<TechnoTypeClass*> InitialPayload_Types;
 		ValueableVector<int> InitialPayload_Nums;
+		ValueableVector<Rank> InitialPayload_Vet;
+		ValueableVector<bool> InitialPayload_AddToTransportTeam;
 
 		Valueable<bool> AlternateTheaterArt;
 
@@ -693,6 +695,8 @@ public:
 		Valueable<bool> Saboteur;
 
 		Nullable<int> RadialIndicatorRadius;
+		Nullable<ColorStruct> RadialIndicatorColor;
+
 		Valueable<int> GapRadiusInCells;
 		Valueable<int> SuperGapRadiusInCells;
 
@@ -1205,6 +1209,8 @@ public:
 			, CloakAllowed { true }
 			, InitialPayload_Types { }
 			, InitialPayload_Nums { }
+			, InitialPayload_Vet { }
+			, InitialPayload_AddToTransportTeam { }
 
 			, AlternateTheaterArt { false }
 			, HijackerOneTime { false }
@@ -1238,6 +1244,8 @@ public:
 			, Saboteur { false }
 
 			, RadialIndicatorRadius { }
+			, RadialIndicatorColor { }
+
 			, GapRadiusInCells { 0 }
 			, SuperGapRadiusInCells { 0 }
 			, SmokeChanceRed { 10 }

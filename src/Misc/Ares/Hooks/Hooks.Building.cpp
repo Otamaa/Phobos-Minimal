@@ -468,6 +468,7 @@ DEFINE_OVERRIDE_HOOK(0x4456E5, BuildingClass_UpdateConstructionOptions_ExcludeDi
 //	return true;
 //}
 
+//https://bugs.launchpad.net/ares/+bug/1925359
 void AddPassengers(BuildingClass* const Grinder, TechnoClass* Vic)
 {
 	for (auto nPass = Vic->Passengers.GetFirstPassenger();

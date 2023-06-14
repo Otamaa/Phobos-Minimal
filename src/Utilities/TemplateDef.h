@@ -207,6 +207,27 @@ namespace detail
 
 		return false;
 	}
+
+	template <>
+	inline bool getresult<Rank>(Rank& value, const std::string& parser, const char* pSection, const char* pKey, bool bAllocate)
+	{
+		if (!parser.empty())
+		{
+			for (size_t i = 0; i < EnumFunctions::Rank_ToStrings.size(); ++i)
+			{
+				if (IS_SAME_STR_(parser.c_str(), EnumFunctions::Rank_ToStrings[i]))
+				{
+					value = Rank(i);
+					return true;
+				}
+			}
+
+			Debug::INIParseFailed(pSection, pKey, parser.c_str(), "Expected a self Rank type");
+		}
+
+		return false;
+	}
+
 #pragma endregion
 
 	template <typename T>
@@ -737,17 +758,8 @@ namespace detail
 	template <>
 	inline bool read<Rank>(Rank& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		if (parser.ReadString(pSection, pKey)) {
-			for (size_t i = 0; i < EnumFunctions::Rank_ToStrings.size(); ++i) {
-				if (IS_SAME_STR_(parser.value(), EnumFunctions::Rank_ToStrings[i]))
-				{
-					value = Rank(i);
-					return true;
-				}
-			}
-
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a self Rank type");
+		if (parser.ReadString(pSection, pKey) && getresult<Rank>(value, parser.value(), pSection, pKey)) {
+			return true;
 		}
 
 		return false;
@@ -1640,6 +1652,22 @@ namespace detail
 		{
 			TileType buffer;
 			if (getresult<TileType>(buffer, cur, pSection, pKey, allocate))
+				vector.push_back(buffer);
+		}
+	}
+
+	template <>
+	inline void parse_values(std::vector<Rank>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		vector.clear();
+		char* context = nullptr;
+		for (auto cur = strtok_s(parser.value(),
+			Phobos::readDelims, &context);
+			cur;
+			cur = strtok_s(nullptr, Phobos::readDelims, &context))
+		{
+			Rank buffer;
+			if (getresult<Rank>(buffer, cur, pSection, pKey, allocate))
 				vector.push_back(buffer);
 		}
 	}

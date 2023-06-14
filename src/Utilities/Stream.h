@@ -369,7 +369,6 @@ public:
 		return *this;
 	}
 
-
 	template <typename T>
 	PhobosStreamWriter& Process(T& value, bool RegisterForChange = true)
 	{

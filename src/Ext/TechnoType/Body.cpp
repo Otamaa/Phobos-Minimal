@@ -816,6 +816,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		this->InitialPayload_Types.Read(exINI, pSection, "InitialPayload.Types");
 		this->InitialPayload_Nums.Read(exINI, pSection, "InitialPayload.Nums");
+		this->InitialPayload_Vet.Read(exINI, pSection, "InitialPayload.Ranks");
+		this->InitialPayload_AddToTransportTeam.Read(exINI, pSection, "InitialPayload.AddToTransportTeam");
 
 		this->Bounty.Read(exINI, pSection, "Bounty");
 		this->HasSpotlight.Read(exINI, pSection, "HasSpotlight");
@@ -824,6 +826,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->Saboteur.Read(exINI, pSection, "Saboteur");
 
 		this->RadialIndicatorRadius.Read(exINI, pSection, "RadialIndicatorRadius");
+		this->RadialIndicatorColor.Read(exINI, pSection, "RadialIndicatorColor");
+
 		this->GapRadiusInCells.Read(exINI, pSection, "GapRadiusInCells");
 		this->SuperGapRadiusInCells.Read(exINI, pSection, "SuperGapRadiusInCells");
 
@@ -1640,6 +1644,9 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->CloakAllowed)
 		.Process(this->InitialPayload_Types)
 		.Process(this->InitialPayload_Nums)
+		.Process(this->InitialPayload_Vet)
+		.Process(this->InitialPayload_AddToTransportTeam)
+
 		.Process(this->AlternateTheaterArt)
 
 		.Process(this->HijackerOneTime)
@@ -1667,6 +1674,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->ReversedAs)
 		.Process(this->AssaulterLevel)
 		.Process(this->RadialIndicatorRadius)
+		.Process(this->RadialIndicatorColor)
 		.Process(this->GapRadiusInCells)
 		.Process(this->SuperGapRadiusInCells)
 		.Process(this->SmokeChanceRed)

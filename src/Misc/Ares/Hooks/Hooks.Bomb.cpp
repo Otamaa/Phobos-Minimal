@@ -35,6 +35,13 @@ namespace Funcs
 		// ensure target isn't rigged already
 		if (pTarget && !pTarget->AttachedBomb)
 		{
+			const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
+			const auto pTechno = generic_cast<TechnoClass*>(pTarget);
+
+			//https://bugs.launchpad.net/ares/+bug/1591335
+			if (pTechno && !pWHExt->CanDealDamage(pTechno))
+				return;
+
 			BombListClass::Instance->Plant(pSource, pTarget);
 
 			// if target has a bomb, planting was successful

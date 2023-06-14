@@ -1019,8 +1019,7 @@ DEFINE_OVERRIDE_HOOK(0x73FDBD, UnitClass_GetActionOnObject_Heal, 5)
 UnitTypeClass* GetUnitTypeImage(UnitClass* const pThis)
 {
 	const auto pData = TechnoTypeExt::ExtMap.Find(pThis->Type);
-	if (pData->WaterImage && !pThis->OnBridge && pThis->GetCell()->LandType == LandType::Water)
-	{
+	if (pData->WaterImage && !pThis->OnBridge && pThis->GetCell()->LandType == LandType::Water && !pThis->IsAttackedByLocomotor) {
 		return pData->WaterImage;
 	}
 

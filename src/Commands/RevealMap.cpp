@@ -41,4 +41,5 @@ void RevealMapCommandClass::Execute(WWKey eInput) const
 	
 	if(HouseClass::CurrentPlayer())
 		MapClass::Instance->Reveal(HouseClass::CurrentPlayer());
+
 }

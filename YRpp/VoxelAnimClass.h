@@ -41,9 +41,10 @@ public:
 		{ JMP_THIS(0x74AB30); }
 
 	//Constructor
-	VoxelAnimClass(
-		VoxelAnimTypeClass* pVoxelAnimType, CoordStruct* pLocation,
-		HouseClass* pOwnerHouse) : VoxelAnimClass(noinit_t())
+	VoxelAnimClass(VoxelAnimTypeClass* pVoxelAnimType, CoordStruct* pLocation, HouseClass* pOwnerHouse) : VoxelAnimClass(noinit_t())
+	{ JMP_THIS(0x7493B0); }
+
+	VoxelAnimClass(VoxelAnimTypeClass* pVoxelAnimType, const CoordStruct& Location, HouseClass* pOwnerHouse) : VoxelAnimClass(noinit_t())
 	{ JMP_THIS(0x7493B0); }
 
 protected:

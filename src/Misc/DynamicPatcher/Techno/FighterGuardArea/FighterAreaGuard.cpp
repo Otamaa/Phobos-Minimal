@@ -16,6 +16,29 @@ bool FighterAreaGuard::IsAreaGuardRolling()
 
 }
 
+static constexpr std::array<CoordStruct, 6> areaGuardCoords
+{
+	{
+		{-300, -300, 0}
+		, { -300 ,0,0 }
+			, { 0,0,0 }
+			, { 300,0,0 }
+			, { 300,300,0 }
+			, { 0 , 300 ,0 }
+	}
+};
+
+bool contains(std::list<CoordStruct>& List, const CoordStruct& data)
+{
+	for (auto const& coord : List)
+	{
+		if (coord == data)
+			return true;
+	}
+
+	return false;
+}
+
 void FighterAreaGuard::OnUpdate()
 {
 	FootClass* pTechno = OwnerObject;
@@ -27,215 +50,422 @@ void FighterAreaGuard::OnUpdate()
 
 	const auto pType = OwnerObject->Type;
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-	auto locomotion = pTechno->Locomotor.GetInterfacePtr();
 
-	switch (State)
-	{
-	case AircraftGuardState::READY:
+	auto NewUpdate = [&]()
 	{
 
-		if (bool inAir = pTechno->IsInAir())
+		auto locomotion = pTechno->Locomotor.GetInterfacePtr();
+
+		switch (State)
 		{
-			if (pTypeExt->MyFighterData.AutoGuard)
+		case AircraftGuardState::READY:
+		{
+
+			if (bool inAir = pTechno->IsInAir())
 			{
-				switch (pTechno->CurrentMission)
+				if (pTypeExt->MyFighterData.AutoGuard)
 				{
-				case Mission::Attack:
-				case Mission::Enter:
-					CancelAreaGuard();
-					return;
-				case Mission::Guard:
-				case Mission::Area_Guard:
-				case Mission::Move:
+					switch (pTechno->CurrentMission)
+					{
+					case Mission::Attack:
+					case Mission::Enter:
+						CancelAreaGuard();
+						return;
+					case Mission::Guard:
+					case Mission::Area_Guard:
+					case Mission::Move:
+						if (SetupDestination())
+						{
+							if (onStopCommand)
+							{
+								// 按下S，跳过一次目的地更改
+								onStopCommand = false;
+								// Logger.Log($"{Game.CurrentFrame} [{section}]{pTechno} 跳过巡航");
+							}
+							else
+							{
+								// Logger.Log($"{Game.CurrentFrame} [{section}]{pTechno} 开始巡航");
+								this->State = AircraftGuardState::GUARD;
+							}
+						}
+						return;
+					}
+				}
+			}
+			else
+			{
+				onStopCommand = false;
+				CancelAreaGuard();
+
+				if (pTypeExt->MyFighterData.DefaultToGuard &&
+					pTechno->Ammo >= pTypeExt->MyFighterData.MaxAmmo)
+				{
+					CoordStruct sourcePos = pTechno->GetCoords();
+					if (const auto pCell = MapClass::Instance->TryGetCellAt(sourcePos))
+					{
+						auto nPos = pCell->GetCoordsWithBridge();
+						SetupDestination(nPos);
+						this->State = AircraftGuardState::GUARD;
+					}
+				}
+			}
+		}
+		break;
+		case AircraftGuardState::STOP:
+		{
+
+			if (pTechno->GetHeight() <= 0)
+			{
+				State = AircraftGuardState::READY;
+			}
+
+			switch (pTechno->CurrentMission)
+			{
+			case Mission::Attack:
+			case Mission::Enter:
+			case Mission::Move:
+				State = AircraftGuardState::READY;
+				return;
+			}
+		}
+		break;
+		case AircraftGuardState::ATTACK:
+		{
+			const auto pTarget = pTechno->Target;
+
+			if (!pTarget)
+			{
+				if (CoordStruct::Empty != destCenter && pTechno->Ammo > pTypeExt->MyFighterData.MinAmmo)
+				{
+					this->State = AircraftGuardState::GUARD;
+					pTechno->ForceMission(Mission::Area_Guard);
+				}
+				else
+				{
+					BackToAirport();
+					this->State = AircraftGuardState::RELOAD;
+				}
+			}
+			else if (pTypeExt->MyFighterData.ChaseRange > 0)
+			{
+				int dist = pTypeExt->MyFighterData.ChaseRange * 256;
+				CoordStruct targetPos = pTarget->GetCoords();
+				if (targetPos.DistanceFrom(pTechno->GetCoords()) > dist)
+				{
+					pTechno->SetTarget(nullptr);
+				}
+			}
+		}
+		break;
+		case AircraftGuardState::RELOAD:
+		{
+
+			if (!pTechno->IsInAir() && pTechno->Ammo >= pTypeExt->MyFighterData.MaxAmmo)
+			{
+				State = AircraftGuardState::GUARD;
+				locomotion->Move_To(destCenter);
+				pTechno->ForceMission(Mission::Area_Guard);
+			}
+		}
+		break;
+		case AircraftGuardState::GUARD:
+		case AircraftGuardState::ROLLING:
+		{
+			switch (pTechno->CurrentMission)
+			{
+			case Mission::Guard:
+			case Mission::Area_Guard:
+				break;
+			case Mission::Move:
+				if (pTypeExt->MyFighterData.AutoGuard)
+				{
 					if (SetupDestination())
 					{
-						if (onStopCommand)
-						{
-							// 按下S，跳过一次目的地更改
-							onStopCommand = false;
-							// Logger.Log($"{Game.CurrentFrame} [{section}]{pTechno} 跳过巡航");
-						}
-						else
-						{
-							// Logger.Log($"{Game.CurrentFrame} [{section}]{pTechno} 开始巡航");
-							this->State = AircraftGuardState::GUARD;
-						}
+						State = AircraftGuardState::GUARD;
 					}
-					return;
+					break;
 				}
-			}
-		}
-		else
-		{
-			onStopCommand = false;
-			CancelAreaGuard();
 
-			if (pTypeExt->MyFighterData.DefaultToGuard &&
-				pTechno->Ammo >= pTypeExt->MyFighterData.MaxAmmo)
-			{
-				CoordStruct sourcePos = pTechno->GetCoords();
-				if (const auto pCell = MapClass::Instance->TryGetCellAt(sourcePos))
+				CancelAreaGuard();
+				State = AircraftGuardState::STOP;
+				return;
+			case Mission::Enter:
+				if (onStopCommand
+					&& pTypeExt->MyFighterData.DefaultToGuard
+					&& pTechno->Ammo >= pTypeExt->MyFighterData.MaxAmmo)
 				{
-					auto nPos = pCell->GetCoordsWithBridge();
-					SetupDestination(nPos);
-					this->State = AircraftGuardState::GUARD;
+					pTechno->ForceMission(Mission::Area_Guard);
 				}
+				else
+				{
+					State = AircraftGuardState::STOP;
+				}
+				return;
+			default:
+				State = AircraftGuardState::RELOAD;
+				return;
 			}
-		}
-	}
-	break;
-	case AircraftGuardState::STOP:
-	{
 
-		if (pTechno->GetHeight() <= 0)
-		{
-			State = AircraftGuardState::READY;
-		}
-
-		switch (pTechno->CurrentMission)
-		{
-		case Mission::Attack:
-		case Mission::Enter:
-		case Mission::Move:
-			State = AircraftGuardState::READY;
-			return;
-		}
-	}
-	break;
-	case AircraftGuardState::ATTACK:
-	{
-		const auto pTarget = pTechno->Target;
-
-		if (!pTarget)
-		{
-			if (CoordStruct::Empty != destCenter && pTechno->Ammo > pTypeExt->MyFighterData.MinAmmo)
-			{
-				this->State = AircraftGuardState::GUARD;
-				pTechno->ForceMission(Mission::Area_Guard);
-			}
-			else
+			if (pTechno->Ammo == 0)
 			{
 				BackToAirport();
-				this->State = AircraftGuardState::RELOAD;
-			}
-		}
-		else if (pTypeExt->MyFighterData.ChaseRange > 0)
-		{
-			int dist = pTypeExt->MyFighterData.ChaseRange * 256;
-			CoordStruct targetPos = pTarget->GetCoords();
-			if (targetPos.DistanceFrom(pTechno->GetCoords()) > dist)
-			{
-				pTechno->SetTarget(nullptr);
-			}
-		}
-	}
-	break;
-	case AircraftGuardState::RELOAD:
-	{
-
-		if (!pTechno->IsInAir() && pTechno->Ammo >= pTypeExt->MyFighterData.MaxAmmo)
-		{
-			State = AircraftGuardState::GUARD;
-			locomotion->Move_To(destCenter);
-			pTechno->ForceMission(Mission::Area_Guard);
-		}
-	}
-	break;
-	case AircraftGuardState::GUARD:
-	case AircraftGuardState::ROLLING:
-	{
-		switch (pTechno->CurrentMission)
-		{
-		case Mission::Guard:
-		case Mission::Area_Guard:
-			break;
-		case Mission::Move:
-			if (pTypeExt->MyFighterData.AutoGuard)
-			{
-				if (SetupDestination())
-				{
-					State = AircraftGuardState::GUARD;
-				}
-				break;
+				State = AircraftGuardState::RELOAD;
+				return;
 			}
 
-			CancelAreaGuard();
-			State = AircraftGuardState::STOP;
-			return;
-		case Mission::Enter:
-			if (onStopCommand
-				&& pTypeExt->MyFighterData.DefaultToGuard
-				&& pTechno->Ammo >= pTypeExt->MyFighterData.MaxAmmo)
+			CoordStruct destNow = locomotion->Destination();
+			CoordStruct location = pTechno->GetCoords();
+
+			if (FoundAndAttack(location))
 			{
-				pTechno->ForceMission(Mission::Area_Guard);
+				State = AircraftGuardState::ATTACK;
 			}
 			else
 			{
-				State = AircraftGuardState::STOP;
-			}
-			return;
-		default:
-			State = AircraftGuardState::RELOAD;
-			return;
-		}
 
-		if (pTechno->Ammo == 0)
-		{
-			BackToAirport();
-			State = AircraftGuardState::RELOAD;
-			return;
-		}
-
-		CoordStruct destNow = locomotion->Destination();
-		CoordStruct location = pTechno->GetCoords();
-
-		if (FoundAndAttack(location))
-		{
-			State = AircraftGuardState::ATTACK;
-		}
-		else
-		{
-			auto nDestList = Iterator(destList);
-
-			if (destNow != destCenter
-				&& !nDestList.contains(destNow)
-				&& pTechno->CurrentMission != Mission::Area_Guard)
-			{
-				locomotion->Move_To(destList[destIndex]);
-			}
-
-			CoordStruct posA = location;
-			posA.Z = 0;
-			CoordStruct posB = destNow;
-			posB.Z = 0;
-			bool changeDest = posA.DistanceFrom(posB) <= 512;
-			if (changeDest)
-			{
-				if (destIndex > 0)
+				if (destNow != destCenter
+					&& !contains(destList, destNow)
+					&& pTechno->CurrentMission != Mission::Area_Guard)
 				{
-					State = AircraftGuardState::ROLLING;
+					locomotion->Move_To((*std::next(destList.begin(), destIndex)));
 				}
 
-				pTechno->SetDestination(nullptr, false);
-				locomotion->Move_To(destList[destIndex]);
-				if (++destIndex >= (int)destList.size())
+				CoordStruct posA = location;
+				posA.Z = 0;
+				CoordStruct posB = destNow;
+				posB.Z = 0;
+				bool changeDest = posA.DistanceFrom(posB) <= 512;
+				if (changeDest)
 				{
-					destIndex = 0;
+					if (destIndex > 0)
+					{
+						State = AircraftGuardState::ROLLING;
+					}
+
+					pTechno->SetDestination(nullptr, false);
+					locomotion->Move_To((*std::next(destList.begin(), destIndex)));
+					if (++destIndex >= (int)destList.size())
+					{
+						destIndex = 0;
+					}
 				}
 			}
 		}
-	}
-	break;
-	}
+		break;
+		}
+	};
+
+	auto OldUpdate = [&]()
+	{
+		if (OwnerObject->Spawned)
+			return;
+
+		if (!pTypeExt->MyFighterData.AreaGuard)
+			return;
+
+		auto& nDataType = pTypeExt->MyFighterData;
+
+		if (OwnerObject->CurrentMission == Mission::Move)
+		{
+			this->isAreaProtecting = false;
+			this->isAreaGuardReloading = false;
+			return;
+		}
+
+		if (auto pFoot = (FootClass*)(OwnerObject))
+		{
+			if (!this->isAreaProtecting)
+			{
+				if (OwnerObject->CurrentMission == Mission::Area_Guard)
+				{
+					this->isAreaProtecting = true;
+					CoordStruct dest = pFoot->Locomotor.GetInterfacePtr()->Destination();
+					this->areaProtectTo = dest;
+				}
+			}
+
+			if (this->isAreaProtecting)
+			{
+				//没弹药的情况下返回机场
+				if (OwnerObject->Ammo == 0 && !this->isAreaGuardReloading)
+				{
+					OwnerObject->SetTarget(nullptr);
+					OwnerObject->SetDestination(nullptr, false);
+					OwnerObject->ForceMission(Mission::Stop);
+					this->isAreaGuardReloading = true;
+					return;
+				}
+
+				//填弹完毕后继续巡航
+				if (this->isAreaGuardReloading)
+				{
+					if (OwnerObject->Ammo >= nDataType.MaxAmmo)
+					{
+						this->isAreaGuardReloading = false;
+						OwnerObject->ForceMission(Mission::Area_Guard);
+					}
+					else
+					{
+						if (OwnerObject->CurrentMission != Mission::Sleep &&
+							OwnerObject->CurrentMission != Mission::Enter)
+						{
+							if (OwnerObject->CurrentMission == Mission::Guard)
+							{
+								OwnerObject->ForceMission(Mission::Sleep);
+							}
+							else
+							{
+								OwnerObject->ForceMission(Mission::Enter);
+							}
+							return;
+						}
+					}
+				}
+
+				if (OwnerObject->CurrentMission == Mission::Move)
+				{
+					this->isAreaProtecting = false;
+					return;
+				}
+				else if (OwnerObject->CurrentMission == Mission::Attack)
+				{
+					return;
+				}
+				else if (OwnerObject->CurrentMission == Mission::Enter)
+				{
+					if (this->isAreaGuardReloading)
+					{
+						return;
+					}
+					else
+					{
+						OwnerObject->ForceMission(Mission::Stop);
+					}
+				}
+				else if (OwnerObject->CurrentMission == Mission::Sleep)
+				{
+					if (this->isAreaGuardReloading)
+					{
+						return;
+					}
+				}
+
+				if (this->areaProtectTo)
+				{
+					auto dest = this->areaProtectTo;
+					auto house = OwnerObject->Owner;
+
+					if (pTypeExt->MyFighterData.AutoFire)
+					{
+						if (this->areaProtectTo.DistanceFrom(OwnerObject->GetCoords()) <= 2000)
+						{
+							if (this->areaGuardTargetCheckRof-- <= 0)
+							{
+								this->areaGuardTargetCheckRof = 20;
+
+								auto FindOneTechno = [&](HouseClass* pOwner)
+								{
+									TechnoClass* pDummy = nullptr;
+									for (const auto pTech : *TechnoClass::Array())
+									{
+										if (!pTech
+											|| pTech->InLimbo
+											|| !pTech->IsAlive
+											|| !pTech->Health
+											|| pTech->IsSinking
+											|| pTech->IsCrashing
+											|| pTech->TemporalTargetingMe
+											|| pTech->BeingWarpedOut)
+											continue;
+
+										const auto IsBuilding = !Is_Building(pTech);
+										if (!IsBuilding && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTech)))
+											continue;
+										else if (IsBuilding)
+										{
+											auto const pBldExt = BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pTech));
+											if (pBldExt->LimboID != -1)
+												continue;
+										}
+
+										const auto pOwnerHouse = pTech->GetOwningHouse();
+										const auto pTechTypeHere = pTech->GetTechnoType();
+
+										if (!pOwnerHouse ||
+											pOwnerHouse->IsAlliedWith(pOwner) ||
+											pOwnerHouse == pOwner ||
+											pOwnerHouse->IsNeutral() ||
+											pTech == OwnerObject ||
+											pTechTypeHere->Immune ||
+											pTechTypeHere->Invisible
+											)
+											continue;
+
+										auto coords = pTech->GetCoords();
+										auto height = pTech->GetHeight();
+										//auto type = pTech->WhatAmI();
+
+										if (pTech->InLimbo)
+											continue;
+
+										auto bounsRange = 0;
+										if (pTech->GetHeight() > 10)
+											bounsRange = nDataType.GuardRange;
+
+										const auto nDummy = CoordStruct { 0, 0, height };
+										if ((coords - nDummy).DistanceFrom(dest)
+										<= (nDataType.GuardRange * 256 + bounsRange) &&
+											 !IsBuilding)
+										{
+											pDummy = pTech;
+											break;
+										}
+									}
+
+									return pDummy;
+								};
+
+								if (TechnoClass* pTarget = FindOneTechno(house))
+								{
+									OwnerObject->SetTarget(pTarget);
+									OwnerObject->ForceMission(Mission::Stop);
+									OwnerObject->ForceMission(Mission::Attack);
+									return;
+								}
+							}
+						}
+					}
+
+					if (this->areaProtectTo.DistanceFrom(OwnerObject->GetCoords()) <= 2000)
+					{
+						if (this->currentAreaProtectedIndex > (int)(areaGuardCoords.size() - 1))
+						{
+							this->currentAreaProtectedIndex = 0;
+						}
+						dest += areaGuardCoords[this->currentAreaProtectedIndex];
+						this->currentAreaProtectedIndex++;
+					}
+
+					pFoot->Locomotor.GetInterfacePtr()->Move_To(dest);
+					if (auto const pCell = MapClass::Instance->GetCellAt(dest))
+					{
+						OwnerObject->SetDestination(pCell, false);
+					}
+				}
+			}
+		}
+	};
+
+	OldUpdate();
 }
 
 void FighterAreaGuard::OnStopCommand()
 {
-	FootClass* pTechno = OwnerObject;
-	onStopCommand = true;
-	CancelAreaGuard();
-	State = AircraftGuardState::STOP;
-	pTechno->ForceMission(Mission::Enter);
+	//FootClass* pTechno = OwnerObject;
+	//onStopCommand = true;
+	//CancelAreaGuard();
+	//State = AircraftGuardState::STOP;
+	//pTechno->ForceMission(Mission::Enter);
 }
 
 void FighterAreaGuard::StartAreaGuard()
@@ -247,18 +477,10 @@ void FighterAreaGuard::StartAreaGuard()
 	case AircraftGuardState::READY:
 	case AircraftGuardState::GUARD:
 	case AircraftGuardState::ROLLING:
-		CoordStruct dest = CoordStruct::Empty;
-		auto pDest = pTechno->Destination;
-		if (pDest)
-		{
-			dest = pDest->GetCoords();
-		}
-		else
-		{
-			dest = pTechno->Locomotor->Destination();
-		}
+		auto nCoord = pTechno->Destination
+			? pTechno->Destination->GetCoords() : pTechno->Locomotor->Destination();
 
-		if (SetupDestination(dest))
+		if (SetupDestination(nCoord))
 		{
 			State = AircraftGuardState::GUARD;
 		}
@@ -272,10 +494,8 @@ bool FighterAreaGuard::SetupDestination()
 	return SetupDestination(nDest);
 }
 
-std::vector<CoordStruct> PopulateDestList(double sourceRad , CoordStruct flh, CoordStruct dest, bool clockwise)
+void PopulateDestList(std::list<CoordStruct>& destList, double sourceRad, CoordStruct flh, CoordStruct dest, bool clockwise)
 {
-	std::vector<CoordStruct> destList;
-
 	for (int i = 0; i < 16; i++)
 	{
 		DirStruct targetDir = Helpers_DP::DirNormalized(i, 16);
@@ -292,7 +512,7 @@ std::vector<CoordStruct> PopulateDestList(double sourceRad , CoordStruct flh, Co
 		{
 			if (clockwise)
 			{
-				destList.insert(destList.begin(), newDest);
+				destList.push_front(newDest);
 			}
 			else
 			{
@@ -300,8 +520,6 @@ std::vector<CoordStruct> PopulateDestList(double sourceRad , CoordStruct flh, Co
 			}
 		}
 	}
-
-	return destList;
 }
 
 bool FighterAreaGuard::SetupDestination(CoordStruct& dest)
@@ -309,9 +527,8 @@ bool FighterAreaGuard::SetupDestination(CoordStruct& dest)
 	FootClass* pTechno = OwnerObject;
 	const auto pType = OwnerObject->Type;
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-	auto nDestList = Iterator(destList);
 
-	if (CoordStruct::Empty != dest && dest != destCenter && !nDestList.contains(dest))
+	if (CoordStruct::Empty != dest && dest != destCenter && !contains(destList, dest))
 	{
 		destCenter = dest;
 		CoordStruct location = pTechno->GetCoords();
@@ -320,14 +537,11 @@ bool FighterAreaGuard::SetupDestination(CoordStruct& dest)
 		CoordStruct flh = CoordStruct { pTypeExt->MyFighterData.GuardRadius * 256, 0, 0 };
 		destList.clear();
 
-		bool clockwise = pTypeExt->MyFighterData.Clockwise;
-		if (pTypeExt->MyFighterData.Randomwise)
-		{
-			clockwise = ScenarioClass::Instance->Random.RandomFromMax(2) == 0;
-		}
+		const bool clockwise = pTypeExt->MyFighterData.Randomwise
+			? ScenarioClass::Instance->Random.RandomFromMax(2) == 0 : pTypeExt->MyFighterData.Clockwise;
 
 		Clockwise = clockwise;
-		destList = PopulateDestList(sourceRad, flh, dest, clockwise);
+		PopulateDestList(destList, sourceRad, flh, dest, clockwise);
 		destIndex = 0;
 		return true;
 	}
@@ -344,7 +558,7 @@ void FighterAreaGuard::CancelAreaGuard()
 void FighterAreaGuard::BackToAirport()
 {
 	OwnerObject->SetTarget(nullptr);
-	OwnerObject->ForceMission(Mission::Enter);
+	OwnerObject->EnterIdleMode(true, true);
 }
 
 bool FighterAreaGuard::FoundAndAttack(CoordStruct location)
@@ -362,18 +576,11 @@ bool FighterAreaGuard::FoundAndAttack(CoordStruct location)
 
 		if (hasPrimary || hasSecondary)
 		{
-			CoordStruct sourcePos = location;
-			if (!pTypeExt->MyFighterData.FindRangeAroundSelf)
-			{
-				sourcePos = destCenter;
-			}
-
-			int cellSpread = pTypeExt->MyFighterData.GuardRange;
-
+			const CoordStruct sourcePos = !pTypeExt->MyFighterData.FindRangeAroundSelf ? destCenter : location;
 			AbstractClass* pTarget = nullptr;
 			const bool canAA = (hasPrimary && pPrimary->WeaponType->Projectile->AA) || (hasSecondary && pSecondary->WeaponType->Projectile->AA);
 
-			double dist = (cellSpread <= 0 ? 1 : cellSpread) * 255;
+			const double dist = (pTypeExt->MyFighterData.GuardRange <= 0 ? 1 : pTypeExt->MyFighterData.GuardRange) * 255;
 			for (auto const pTargetTechno : Helpers::Alex::getCellSpreadItems(sourcePos, dist, canAA))
 			{
 				if (CheckTarget(pTargetTechno))
@@ -391,6 +598,7 @@ bool FighterAreaGuard::FoundAndAttack(CoordStruct location)
 			}
 		}
 	}
+
 	return false;
 }
 
@@ -405,7 +613,7 @@ bool FighterAreaGuard::CanAttack(TechnoClass* pTarget, bool isPassiveAcquire)
 	{
 		const auto pWH = pWeapon->WeaponType->Warhead;
 		const auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pWH);
-		const auto versus = &pWarheadExt->GetVerses(TechnoExt::GetTechnoArmor(pTarget , pWH));
+		const auto versus = &pWarheadExt->GetVerses(TechnoExt::GetTechnoArmor(pTarget, pWH));
 
 		if (isPassiveAcquire)
 		{
@@ -447,17 +655,20 @@ bool FighterAreaGuard::CheckTarget(TechnoClass* pTarget)
 		return false;
 	}
 
-	if(pTarget->Owner && this->OwnerObject->Owner){
+	if (pTarget->Owner && this->OwnerObject->Owner)
+	{
 		if (this->OwnerObject->Owner->IsAlliedWith_(pTarget))
 			return false;
 	}
 
-	if (const auto pBuildingTarget = specific_cast<BuildingClass*>(pTarget)) {
+	if (const auto pBuildingTarget = specific_cast<BuildingClass*>(pTarget))
+	{
 		if (BuildingExt::ExtMap.Find(pBuildingTarget)->LimboID != -1)
 			return false;
 	}
-	else if (pTarget->AbstractFlags & AbstractFlags::Foot) {
-		if(TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTarget)))
+	else if (pTarget->AbstractFlags & AbstractFlags::Foot)
+	{
+		if (TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTarget)))
 			return false;
 	}
 

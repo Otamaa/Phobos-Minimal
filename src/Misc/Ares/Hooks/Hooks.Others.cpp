@@ -2699,6 +2699,8 @@ void CreateInitialPayload(TechnoClass* const pThis)
 		: pType->Passengers - pThis->Passengers.NumPassengers;
 
 	auto const sizePayloadNum = pTypeExt->InitialPayload_Nums.size();
+	auto const sizePayloadRank = pTypeExt->InitialPayload_Vet.size();
+	auto const sizePyloadAddTeam = pTypeExt->InitialPayload_AddToTransportTeam.size();
 
 	for (auto i = 0u; i < pTypeExt->InitialPayload_Types.size(); ++i)
 	{
@@ -2724,6 +2726,12 @@ void CreateInitialPayload(TechnoClass* const pThis)
 		auto const payloadNum = (idxPayloadNum < sizePayloadNum)
 			? pTypeExt->InitialPayload_Nums[idxPayloadNum] : 1;
 
+		auto const rank = idxPayloadNum < sizePayloadRank ?
+			pTypeExt->InitialPayload_Vet[idxPayloadNum] : Rank::Invalid;
+
+		auto const addtoteam = idxPayloadNum < sizePyloadAddTeam ? 
+			pTypeExt->InitialPayload_AddToTransportTeam[idxPayloadNum] : false;
+
 		// never fill in more than allowed
 		auto const count = std::min(payloadNum, freeSlots);
 		freeSlots -= count;
@@ -2731,6 +2739,14 @@ void CreateInitialPayload(TechnoClass* const pThis)
 		for (auto j = 0; j < count; ++j)
 		{
 			auto const pObject = (TechnoClass*)pPayloadType->CreateObject(pThis->Owner);
+
+			if (!pObject)
+				continue;
+
+			if (rank == Rank::Veteran)
+				pObject->Veterancy.SetVeteran();
+			else if (rank == Rank::Elite)
+				pObject->Veterancy.SetElite();
 
 			if (pBld)
 			{
@@ -2779,8 +2795,7 @@ void CreateInitialPayload(TechnoClass* const pThis)
 				pPayload->SetLocation(pThis->Location);
 				pPayload->Limbo();
 
-				if (pType->OpenTopped)
-				{
+				if (pType->OpenTopped) {
 					pThis->EnteredOpenTopped(pPayload);
 				}
 
@@ -2789,6 +2804,11 @@ void CreateInitialPayload(TechnoClass* const pThis)
 				auto const old = std::exchange(VocClass::VoicesEnabled(), false);
 				pThis->AddPassenger(pPayload);
 				VocClass::VoicesEnabled = old;
+
+				if(addtoteam) {
+					if (auto pTeam = ((FootClass*)pThis)->Team)
+						pTeam->AddMember(pPayload, true);
+				}
 			}
 		}
 	}
@@ -3998,7 +4018,8 @@ DEFINE_OVERRIDE_HOOK(0x41BE80, ObjectClass_DrawRadialIndicator, 3)
 				if (nRadius > 0)
 				{
 					auto nCoord = pTechno->GetCoords();
-					Draw_Radial_Indicator(false, true, nCoord, pOwner->Color, (nRadius * 1.0f), false, true);
+					const auto Color = pTypeExt->RadialIndicatorColor.Get(pOwner->Color);
+					Draw_Radial_Indicator(false, true, nCoord, Color, (nRadius * 1.0f), false, true);
 				}
 			}
 		}

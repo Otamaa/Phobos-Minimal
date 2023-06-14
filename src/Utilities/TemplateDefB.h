@@ -260,6 +260,33 @@ namespace detail
 		return false;
 	}
 
+	template <>
+	inline bool read<ShowTimerType>(ShowTimerType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			if ((_strcmpi(parser.value(), "Hour") == 0))
+			{
+				value = ShowTimerType::Hour;
+			}
+			else if ((_strcmpi(parser.value(), "Minute") == 0))
+			{
+				value = ShowTimerType::Minute;
+			}
+			else if ((_strcmpi(parser.value(), "Second") == 0))
+			{
+				value = ShowTimerType::Second;
+			}
+			else
+			{
+				return false;
+			}
+
+			return true;
+		}
+		return false;
+	}
+
 	template<typename T, bool Alloc = false>
 	inline void ParseVector(INI_EX& IniEx, std::vector<std::vector<T>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false, const char* Delims = Phobos::readDelims, const char* message = nullptr)
 	{
