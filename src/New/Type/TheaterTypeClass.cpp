@@ -432,7 +432,7 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 	LEA_STACK(char*, pRootMixMD, STACK_OFFS(0x6C, 0x40));
 
 	if (!pTheater->RootMixMD)
-		pFunc(pRootMixMD, "%s%s",  pTheater->ControlFileName.data(), GameStrings::_p_MD_INI());
+		pFunc(pRootMixMD, GameStrings::_p_MD_INI(),  pTheater->ControlFileName.data());
 	else
 		CRT::strcpy(pRootMixMD, pTheater->RootMixMD.c_str());
 
@@ -440,7 +440,7 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 	LEA_STACK(char*, pExpansionMixMD, STACK_OFFS(0x6C, 0x20));
 
 	if (!pTheater->ExpansionMDMix)
-		pFunc(pExpansionMixMD, "%s%s", pTheater->PaletteFileName.data(), GameStrings::_p_MD_INI());
+		pFunc(pExpansionMixMD, GameStrings::_p_MD_INI(), pTheater->PaletteFileName.data());
 	else
 		CRT::strcpy(pExpansionMixMD, pTheater->ExpansionMDMix.c_str());
 
