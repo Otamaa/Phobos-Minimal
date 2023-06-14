@@ -113,29 +113,31 @@ void TheaterTypeClass::LoadAllTheatersToArray()
 void TheaterTypeClass::AddDefaults()
 {
 	if (Array.empty())
+	{
 		Array.reserve(Theater::Array.size());
 
-	for (size_t i = 0; i < Theater::Array.size(); ++i)
-	{
-		auto pTheater = Allocate(Theater::Array[i].Identifier);
-		Debug::Log("Allocating Default Theater [%s] ! \n", Theater::Array[i].Identifier);
-		pTheater->UIName = Theater::Array[i].UIName;
-		pTheater->ControlFileName = Theater::Array[i].ControlFileName;
-		pTheater->ArtFileName = Theater::Array[i].ArtFileName;
-		pTheater->Extension = Theater::Array[i].Extension;
-		pTheater->PaletteFileName = Theater::Array[i].PaletteFileName;
-		pTheater->MMExtension = Theater::Array[i].MMExtension;
-		pTheater->Letter = Theater::Array[i].Letter;
-		pTheater->IsArctic = i == (size_t)TheaterType::Snow;
-		const bool bDisallowed = i == (size_t)TheaterType::NewUrban || i == (size_t)TheaterType::Lunar;
-		pTheater->IsAllowedInMapGenerator = !bDisallowed;
-		pTheater->LowRadarBrightness1 = Theater::Array[i].RadarTerrainBrightness;
-		pTheater->HighRadarBrightness = Theater::Array[i].RadarTerrainBrightnessAtMaxLevel;
-		pTheater->unknown_float_60 = Theater::Array[i].unknown_float_60;
-		pTheater->unknown_float_64 = Theater::Array[i].unknown_float_64;
-		pTheater->unknown_int_68 = Theater::Array[i].unknown_int_68;
-		pTheater->unknown_int_6C = Theater::Array[i].unknown_int_6C;
-		pTheater->FallbackTheaterExtension = "TEM";
+		for (size_t i = 0; i < Theater::Array.size(); ++i)
+		{
+			auto pTheater = Allocate(Theater::Array[i].Identifier);
+			Debug::Log("Allocating Default Theater [%s] ! \n", Theater::Array[i].Identifier);
+			pTheater->UIName = Theater::Array[i].UIName;
+			pTheater->ControlFileName = Theater::Array[i].ControlFileName;
+			pTheater->ArtFileName = Theater::Array[i].ArtFileName;
+			pTheater->Extension = Theater::Array[i].Extension;
+			pTheater->PaletteFileName = Theater::Array[i].PaletteFileName;
+			pTheater->MMExtension = Theater::Array[i].MMExtension;
+			pTheater->Letter = Theater::Array[i].Letter;
+			pTheater->IsArctic = i == (size_t)TheaterType::Snow;
+			const bool bDisallowed = i == (size_t)TheaterType::NewUrban || i == (size_t)TheaterType::Lunar;
+			pTheater->IsAllowedInMapGenerator = !bDisallowed;
+			pTheater->LowRadarBrightness1 = Theater::Array[i].RadarTerrainBrightness;
+			pTheater->HighRadarBrightness = Theater::Array[i].RadarTerrainBrightnessAtMaxLevel;
+			pTheater->unknown_float_60 = Theater::Array[i].unknown_float_60;
+			pTheater->unknown_float_64 = Theater::Array[i].unknown_float_64;
+			pTheater->unknown_int_68 = Theater::Array[i].unknown_int_68;
+			pTheater->unknown_int_6C = Theater::Array[i].unknown_int_6C;
+			pTheater->FallbackTheaterExtension = "TEM";
+		}
 	}
 }
 
@@ -162,8 +164,8 @@ DEFINE_HOOK(0x48DBE0, TheaterTypeClass_FindIndex, 0x5)
 {
 	GET(char*, nTheaterName, ECX);
 
-	//if (TheaterTypeClass::Array.empty())
-	//	TheaterTypeClass::LoadAllTheatersToArray();
+	if (TheaterTypeClass::Array.empty())
+		TheaterTypeClass::LoadAllTheatersToArray();
 
 	R->EAX<int>(TheaterTypeClass::FindIndexById(nTheaterName));
 	return 0x48DC12;
@@ -233,13 +235,13 @@ DEFINE_HOOK(0x546753, IsometricTileTypeClass_TheaterType_MMx, 0x6)
 	return 0x546759;
 }
 
-DEFINE_HOOK(0x546833, IsometricTileTypeClass_FallbackTheater , 0x5)
+DEFINE_HOOK(0x546833, IsometricTileTypeClass_FallbackTheater, 0x5)
 {
 	GET(char*, pFileName, EDX);
 	LEA_STACK(char*, pBuffer, STACK_OFFS(0x10, 0x2C0));
 	GET_STACK(bool, bSomething, STACK_OFFS(0x10, 0x9FE));
-	
-	CRT::_makepath(pBuffer, 0, 0, pFileName , TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->FallbackTheaterExtension.data());
+
+	CRT::_makepath(pBuffer, 0, 0, pFileName, TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->FallbackTheaterExtension.data());
 	R->AL(bSomething);
 	return 0x54684F;
 }
@@ -276,7 +278,8 @@ DEFINE_OVERRIDE_HOOK(0x5F9070, ObjectTypeClass_Load2DArt, 6)
 
 	TechnoTypeExt::ExtData* pTypeData = nullptr;
 
-	if (TechnoTypeClass* const pThisTechno = type_cast<TechnoTypeClass* const>(pType)) {
+	if (TechnoTypeClass* const pThisTechno = type_cast<TechnoTypeClass* const>(pType))
+	{
 		pTypeData = TechnoTypeExt::ExtMap.Find(pThisTechno);
 	}
 
@@ -407,6 +410,14 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 	typedef int(*wsprintfA_ptr)(LPSTR, LPCSTR, ...);
 	GET(wsprintfA_ptr, pFunc, EBP);
 
+	if (nType == TheaterType::None) {
+		//for some stupid reason this return to invalid 
+		//that mean it not parsed properly ?
+		Debug::Log("TheaterType is invalid ! , fallback to Temperate!");
+		ScenarioClass::Instance->Theater = TheaterType::Temperate;
+		nType = TheaterType::Temperate;
+	}
+
 	const auto& pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(nType);
 
 	// buffer size 16
@@ -421,7 +432,7 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 	LEA_STACK(char*, pRootMixMD, STACK_OFFS(0x6C, 0x40));
 
 	if (!pTheater->RootMixMD)
-		pFunc(pRootMixMD, "%sMD.MIX", pTheater->ControlFileName.data());
+		pFunc(pRootMixMD, "%s%s",  pTheater->ControlFileName.data(), GameStrings::_p_MD_INI());
 	else
 		CRT::strcpy(pRootMixMD, pTheater->RootMixMD.c_str());
 
@@ -429,7 +440,7 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 	LEA_STACK(char*, pExpansionMixMD, STACK_OFFS(0x6C, 0x20));
 
 	if (!pTheater->ExpansionMDMix)
-		pFunc(pExpansionMixMD, "%sMD.MIX", pTheater->PaletteFileName.data());
+		pFunc(pExpansionMixMD, "%s%s", pTheater->PaletteFileName.data(), GameStrings::_p_MD_INI());
 	else
 		CRT::strcpy(pExpansionMixMD, pTheater->ExpansionMDMix.c_str());
 
@@ -448,9 +459,9 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 		pFunc(pDataMix, "%s.MIX", pTheater->ArtFileName.data());
 	else
 		CRT::strcpy(pDataMix, pTheater->DataMix.c_str());
-	
-	GameDebugLog::Log("Theater[%s] Mix [%s , %s , %s , %s , %s]\n", pTheater->Name.data() ,
-	pRootMix , pRootMixMD, pExpansionMixMD, pSuffixMix, pDataMix );
+
+	GameDebugLog::Log("Theater[%s] Mix [%s , %s , %s , %s , %s]\n", pTheater->Name.data(),
+	pRootMix, pRootMixMD, pExpansionMixMD, pSuffixMix, pDataMix);
 
 	// any errors triggered before this line are irrelevant
 	// caused by reading the section while only certain flags from it are needed
@@ -459,13 +470,13 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 	Game::SetProgress(8);
 	R->EBX(pTheater->ControlFileName.data());
 	R->Stack(STACK_OFFS(0x6C, 0x58), pTheater->Extension.data());
-	
+
 	return 0x0534A68;
 }
 
 DEFINE_HOOK(0x534A9D, ScenarioClass_initTheater_TheaterType_ArticCheck, 0x6)
 {
-	enum { AllocateMix = 0x534AA6 , NextFunc = 0x534AD6 };
+	enum { AllocateMix = 0x534AA6, NextFunc = 0x534AD6 };
 	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
 	//this one usefull for loading additional mix files
 	return pTheater->RootMixMD || pTheater->IsArctic ?
@@ -588,7 +599,7 @@ DEFINE_HOOK(0x6DAE3E, TacticalClass_DrawWaypoints_SelectColor, 0x8)
 
 DEFINE_HOOK(0x71C076, TerrainClass_ClearOccupyBit_Theater, 0x7)
 {
-	enum { setArticOccupy = 0x71C08D , setTemperatOccupy = 0x71C07F };
+	enum { setArticOccupy = 0x71C08D, setTemperatOccupy = 0x71C07F };
 	GET(ScenarioClass*, pScen, EAX);
 	//Debug::Log("Clearing OccupyBit for [%d] \n", (int)pScen->Theater);
 	if ((int)pScen->Theater == -1)
@@ -609,7 +620,7 @@ DEFINE_HOOK(0x47C30C, CellClass_CellColor_AdjustBrightness, 0x7)
 	GET(ColorStruct*, pThatColor, ECX);
 	LEA_STACK(ColorStruct*, pThisColor, STACK_OFFS(0x14, 0xC));
 
-	R->EAX(pThisColor->AdjustBrightness(pThatColor , TheaterTypeClass::FindFromTheaterType_NoCheck(nTheater)->LowRadarBrightness1.Get()));
+	R->EAX(pThisColor->AdjustBrightness(pThatColor, TheaterTypeClass::FindFromTheaterType_NoCheck(nTheater)->LowRadarBrightness1.Get()));
 	return 0x47C329;
 }
 
@@ -625,7 +636,7 @@ DEFINE_HOOK(0x4758D4, CCINIClass_PutTheater_replace, 0x6)
 DEFINE_HOOK(0x5997B4, RMGClass_TheaterType_initRandomMap, 0x7)
 {
 	GET(TheaterType, nIndex, EAX);
-	if((size_t)nIndex == TheaterTypeClass::Array.size())
+	if ((size_t)nIndex == TheaterTypeClass::Array.size())
 		nIndex = (TheaterType)0;
 
 	R->ECX(TheaterTypeClass::FindFromTheaterType_NoCheck(nIndex)->Name.data());
@@ -644,14 +655,14 @@ DEFINE_HOOK(0x627699, TheaterTypeClass_ProcessOtherPalettes_Process, 0x6)
 	CRT::strcpy(pNameProcessed, pOriginalName);
 	CRT::strcat(pNameProcessed, TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->Extension.data());
 	CRT::strcat(pNameProcessed, ".");
-	CRT::strcat(pNameProcessed,"PAL");
+	CRT::strcat(pNameProcessed, "PAL");
 	CRT::strupr(pNameProcessed);
 
-	const auto pFile =  MixFileClass::Retrieve(pNameProcessed, false);
+	const auto pFile = MixFileClass::Retrieve(pNameProcessed, false);
 	//const auto nRest = !pFile ? "Failed to" : "Successfully";
 
-	if(!pFile)
-		Debug::Log("Failed to load [%s] as [%s] !\n" , pOriginalName, pNameProcessed);
+	if (!pFile)
+		Debug::Log("Failed to load [%s] as [%s] !\n", pOriginalName, pNameProcessed);
 
 	// cant use PaletteManager atm , because this will be modified after load done 
 	// so if PaletteManager used , that mean the color enries will get modified 
@@ -671,8 +682,7 @@ DEFINE_HOOK(0x74D45A, TheaterTypeClass_ProcessVeinhole, 0x6)
 
 DEFINE_HOOK(0x534CA9, Init_Theaters_SetPaletteUnit, 0x8)
 {
-	auto const& data = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->PaletteUnit;
-	if(data){
+	if (auto const& data = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->PaletteUnit) {
 		R->ESI(MixFileClass::Retrieve(data.c_str(), false));
 		return 0x534CCA;
 	}
@@ -682,8 +692,7 @@ DEFINE_HOOK(0x534CA9, Init_Theaters_SetPaletteUnit, 0x8)
 
 DEFINE_HOOK(0x534BEE, ScenarioClass_initTheater_TheaterType_OverlayPalette, 0x5)
 {
-	const auto& data = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->PaletteOverlay;
-	if (data) {
+	if (const auto& data = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->PaletteOverlay) {
 		R->EAX(MixFileClass::Retrieve(data.c_str(), false));
 		return 0x534C09;
 	}

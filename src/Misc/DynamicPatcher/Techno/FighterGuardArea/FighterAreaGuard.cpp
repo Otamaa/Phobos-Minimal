@@ -378,15 +378,15 @@ void FighterAreaGuard::OnUpdate()
 											|| pTech->BeingWarpedOut)
 											continue;
 
-										const auto IsBuilding = !Is_Building(pTech);
-										if (!IsBuilding && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTech)))
-											continue;
-										else if (IsBuilding)
+										bool IsBuilding = false;
+										if (const auto pBuilding = specific_cast<BuildingClass*>(pTech))
 										{
-											auto const pBldExt = BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pTech));
-											if (pBldExt->LimboID != -1)
+											IsBuilding = true;
+											if (BuildingExt::ExtMap.Find(pBuilding)->LimboID != -1)
 												continue;
-										}
+
+										}else if(TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTech)))
+											continue;
 
 										const auto pOwnerHouse = pTech->GetOwningHouse();
 										const auto pTechTypeHere = pTech->GetTechnoType();

@@ -63,20 +63,40 @@ DEFINE_OVERRIDE_HOOK(0x421798, AlphaShapeClass_SDDTOR_Anims, 0x6)
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x565215, MapClass_CTOR_NoInit_Crates, 0x6, 56522D)
 
-DEFINE_OVERRIDE_HOOK(0x5F6515, AbstractClass_Distance2DSquared_1, 0x8)
+DEFINE_HOOK(0x5F6500 , AbstractClass_Distance2DSquared_1 , 0x8)
 {
-	GET(AbstractClass*, pThis, ECX);
-	GET(AbstractClass*, pThat, EBX);
+	GET(AbstractClass* , pThis ,ECX);
+	GET_STACK(AbstractClass* , pThat , 0x4);
 
-	auto const nThisCoord = pThis->GetCoords();
-	auto const nThatCoord = pThat->GetCoords();
-	const auto nY = (int64_t(nThisCoord.Y - nThatCoord.Y) * int64_t(nThisCoord.Y - nThatCoord.Y));
-	const auto nX = (int64_t(nThisCoord.X - nThatCoord.X) * int64_t(nThisCoord.X - nThatCoord.X));
-	const auto nXY = nX + nY;
+	int nResult = 0;
+	if(pThat) {
+	  const auto nThisCoord = pThis->GetCoords();
+	  const auto nThatCoord = pThat->GetCoords();
+	  const auto nY = (int64_t(nThisCoord.Y - nThatCoord.Y) * int64_t(nThisCoord.Y - nThatCoord.Y));
+	  const auto nX = (int64_t(nThisCoord.X - nThatCoord.X) * int64_t(nThisCoord.X - nThatCoord.X));
+	  const auto nXY = nX + nY;
 
-	R->EAX(nXY >= INT_MAX ? INT_MAX : nXY);
-	return 0x5F6559;
+	  nResult = (nXY >= INT_MAX ? INT_MAX : nXY);
+	}
+
+	R->EAX(nResult);
+	return 0x5F655D;
 }
+
+// DEFINE_OVERRIDE_HOOK(0x5F6515, AbstractClass_Distance2DSquared_1, 0x8)
+// {
+// 	GET(AbstractClass*, pThis, ECX);
+// 	GET(AbstractClass*, pThat, EBX);
+
+// 	auto const nThisCoord = pThis->GetCoords();
+// 	auto const nThatCoord = pThat->GetCoords();
+// 	const auto nY = (int64_t(nThisCoord.Y - nThatCoord.Y) * int64_t(nThisCoord.Y - nThatCoord.Y));
+// 	const auto nX = (int64_t(nThisCoord.X - nThatCoord.X) * int64_t(nThisCoord.X - nThatCoord.X));
+// 	const auto nXY = nX + nY;
+
+// 	R->EAX(nXY >= INT_MAX ? INT_MAX : nXY);
+// 	return 0x5F6559;
+// }
 
 DEFINE_OVERRIDE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
 {
