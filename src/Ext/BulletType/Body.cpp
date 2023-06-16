@@ -57,6 +57,20 @@ bool BulletTypeExt::ExtData::HasSplitBehavior()
 	return this->Get()->Airburst || this->Splits.Get();
 }
 
+BulletClass* BulletTypeExt::ExtData::CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, WeaponTypeClass* pWeapon, bool addDamage, bool SetWeaponType) const
+{
+	if (auto pBullet = this->CreateBullet(pTarget, pOwner, pWeapon->Damage, pWeapon->Warhead,
+		pWeapon->Speed, WeaponTypeExt::ExtMap.Find(pWeapon)->GetProjectileRange(), pWeapon->Bright || pWeapon->Warhead->Bright, addDamage))
+	{
+		if(SetWeaponType)
+			pBullet->SetWeaponType(pWeapon);
+
+		return pBullet;
+	}
+
+	return nullptr;
+}
+
 BulletClass* BulletTypeExt::ExtData::CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, WeaponTypeClass* pWeapon) const
 {
 	if (auto pBullet = this->CreateBullet(pTarget, pOwner, pWeapon->Damage, pWeapon->Warhead,

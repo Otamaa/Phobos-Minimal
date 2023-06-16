@@ -11,6 +11,10 @@
 #include <ProgressTimer.h>
 #include <TransitionTimer.h>
 #include <FacingClass.h>
+enum class ProtectTypes : int
+{
+	IronCurtain , ForceShield
+};
 
 //forward declarations
 class AirstrikeClass;
@@ -751,7 +755,7 @@ public:
 	DECLARE_PROPERTY(CDTimerClass, AirstrikeTimer);
 	DECLARE_PROPERTY(CDTimerClass, AirstrikeTintTimer); // tracks alternation of the effect color
 	DWORD            AirstrikeTintStage; //  ^
-	int              ForceShielded;	//0 or 1, NOT a bool - is this under ForceShield as opposed to IC?
+	ProtectTypes     ProtectType;	//0 or 1, NOT a bool - is this under ForceShield as opposed to IC?
 	bool             Deactivated; //Robot Tanks without power for instance
 	TechnoClass*     DrainTarget; // eg Disk -> PowerPlant, this points to PowerPlant
 	TechnoClass*     DrainingMe;  // eg Disk -> PowerPlant, this points to Disk

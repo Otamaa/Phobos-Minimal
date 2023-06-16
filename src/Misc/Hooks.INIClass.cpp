@@ -9,6 +9,10 @@
 #include <vector>
 #include <set>
 #include <string>
+#include <atlstr.h>
+
+#include <New/Interfaces/LevitateLocomotionClass.h>
+#include <New/Interfaces/TestLocomotionClass.h>
 
 #ifdef ENABLE_PHOBOS_INHERITANCE
 namespace detail
@@ -20,21 +24,36 @@ namespace detail
 			return false;
 
 		// Semantic locomotor aliases
-		if (parser.value()[0] != '{')
-		{
+		if (parser.value()[0] != '{') {
+			for (size_t i = 0; i < EnumFunctions::LocomotorPairs_ToStrings.size(); ++i) {
+				if (IS_SAME_STR_(parser.value(), EnumFunctions::LocomotorPairs_ToStrings[i].first)) {
+					CLSID dummy;
+					if (CLSIDFromString(LPCOLESTR(EnumFunctions::LocomotorPairs_ToWideStrings[i].second), &dummy) == NOERROR) {
+						value = dummy;
+						return true;
+					}
+				}
+			}
 
-			if (IS_SAME_STR_(parser.value(), "Drive")) { value = LocomotionClass::CLSIDs::Drive; return true; }
-			if (IS_SAME_STR_(parser.value(), "Jumpjet")) { value = LocomotionClass::CLSIDs::Jumpjet; return true; }
-			if (IS_SAME_STR_(parser.value(), "Hover")) { value = LocomotionClass::CLSIDs::Hover; return true; }
-			if (IS_SAME_STR_(parser.value(), "Rocket")) { value = LocomotionClass::CLSIDs::Rocket; return true; }
-			if (IS_SAME_STR_(parser.value(), "Tunnel")) { value = LocomotionClass::CLSIDs::Tunnel; return true; }
-			if (IS_SAME_STR_(parser.value(), "Walk")) { value = LocomotionClass::CLSIDs::Walk; return true; }
-			if (IS_SAME_STR_(parser.value(), "Fly")) { value = LocomotionClass::CLSIDs::Fly; return true; }
-			if (IS_SAME_STR_(parser.value(), "Teleport")) { value = LocomotionClass::CLSIDs::Teleport; return true; }
-			if (IS_SAME_STR_(parser.value(), "Mech")) { value = LocomotionClass::CLSIDs::Mech; return true; }
-			if (IS_SAME_STR_(parser.value(), "Ship")) { value = LocomotionClass::CLSIDs::Ship; return true; }
-			if (IS_SAME_STR_(parser.value(), "Droppod")) { value = LocomotionClass::CLSIDs::Droppod; return true; }
+			if (IS_SAME_STR_(parser.value(), Test_data.s_name)) {
+				CLSID dummy;
+				if (CLSIDFromString(LPCOLESTR(Test_data.w_CLSID), &dummy) == NOERROR)
+				{
+					value = dummy;
+					return true;
+				}
+			}
 
+			if (IS_SAME_STR_(parser.value(), Levitate_data.s_name)) {
+				CLSID dummy;
+				if (CLSIDFromString(LPCOLESTR(Levitate_data.w_CLSID), &dummy) == NOERROR)
+				{
+					value = dummy;
+					return true;
+				}
+			}
+
+			//AddMore loco here
 			return false;
 		}
 
@@ -49,7 +68,7 @@ namespace detail
 			return false;
 
 		MultiByteToWideChar(0, 1, bytestr, -1, wcharstr, 128);
-		return SUCCEEDED(CLSIDFromString(wcharstr, &value));
+		return CLSIDFromString(wcharstr, &value) == NOERROR;
 	}
 }
 
@@ -339,69 +358,20 @@ DEFINE_HOOK(0x527B0A, INIClass_Get_UUID, 0x8)
 
 	if (buffer[0] != L'{')
 	{
-		if (_wcsicmp(buffer, L"Drive") == 0)
-		{
-			wcscpy_s(buffer, BufferSize, L"{4A582741-9839-11d1-B709-00A024DDAFD1}");
+		for (auto const&[name , CLSID] : EnumFunctions::LocomotorPairs_ToWideStrings) {
+			if (IS_SAME_WSTR(buffer, name)) {
+				wcscpy_s(buffer, BufferSize, CLSID);
+				return 0;
+			}
+		}
+
+		if (IS_SAME_WSTR(buffer, Test_data.w_name)) {
+			wcscpy_s(buffer, BufferSize, Test_data.w_CLSID);
 			return 0;
 		}
 
-		if (_wcsicmp(buffer, L"Jumpjet") == 0)
-		{
-			wcscpy_s(buffer, BufferSize, L"{92612C46-F71F-11d1-AC9F-006008055BB5}");
-			return 0;
-		}
-
-		if (_wcsicmp(buffer, L"Hover") == 0)
-		{
-			wcscpy_s(buffer, BufferSize, L"{4A582742-9839-11d1-B709-00A024DDAFD1}");
-			return 0;
-		}
-
-		if (_wcsicmp(buffer, L"Rocket") == 0)
-		{
-			wcscpy_s(buffer, BufferSize, L"{B7B49766-E576-11d3-9BD9-00104B972FE8}");
-			return 0;
-		}
-
-		if (_wcsicmp(buffer, L"Tunnel") == 0)
-		{
-			wcscpy_s(buffer, BufferSize, L"{4A582743-9839-11d1-B709-00A024DDAFD1}");
-			return 0;
-		}
-
-		if (_wcsicmp(buffer, L"Walk") == 0)
-		{
-			wcscpy_s(buffer, BufferSize, L"{4A582744-9839-11d1-B709-00A024DDAFD1}");
-			return 0;
-		}
-
-		if (_wcsicmp(buffer, L"DropPod") == 0)
-		{
-			wcscpy_s(buffer, BufferSize, L"{4A582745-9839-11d1-B709-00A024DDAFD1}");
-			return 0;
-		}
-
-		if (_wcsicmp(buffer, L"Fly") == 0)
-		{
-			wcscpy_s(buffer, BufferSize, L"{4A582746-9839-11d1-B709-00A024DDAFD1}");
-			return 0;
-		}
-
-		if (_wcsicmp(buffer, L"Teleport") == 0)
-		{
-			wcscpy_s(buffer, BufferSize, L"{4A582747-9839-11d1-B709-00A024DDAFD1}");
-			return 0;
-		}
-
-		if (_wcsicmp(buffer, L"Mech") == 0)
-		{
-			wcscpy_s(buffer, BufferSize, L"{55D141B8-DB94-11d1-AC98-006008055BB5}");
-			return 0;
-		}
-
-		if (_wcsicmp(buffer, L"Ship") == 0)
-		{
-			wcscpy_s(buffer, BufferSize, L"{2BEA74E1-7CCA-11d3-BE14-00104B62A16C}");
+		if (IS_SAME_WSTR(buffer, Levitate_data.w_name)) {
+			wcscpy_s(buffer, BufferSize, Levitate_data.w_CLSID);
 			return 0;
 		}
 	}

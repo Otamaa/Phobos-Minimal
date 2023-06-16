@@ -80,6 +80,7 @@
 //#include <New/Entity/BannerClass.h>
 
 #include <Commands/Commands.h>
+#include <Misc/PhobosGlobal.h>
 
 #include <utility>
 #include <LoadOptionsClass.h>
@@ -308,6 +309,7 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 	if(Phobos::Otamaa::ExeTerminated)
 		return 0;
 
+	PhobosGlobal::PointerGotInvalid(pInvalid, removed);
 	SWStateMachine::PointerGotInvalid(pInvalid, removed);
 	Process_InvalidatePtr<BulletExt>(pInvalid, removed);
 	Process_InvalidatePtr<SWTypeExt>(pInvalid, removed);
@@ -318,6 +320,7 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 // Clear static data from respective classes
 DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 {
+	PhobosGlobal::Clear();
 	SWStateMachine::Clear();
 	ArmorTypeClass::Clear();
 	BannerTypeClass::Clear();
@@ -411,7 +414,8 @@ DEFINE_HOOK(0x67D32C, SaveGame_Phobos_Global, 0x5)
 		Process_Save<TrailType>(pStm) &&
 		Process_Save<LaserTrailTypeClass>(pStm) && 
 		Process_Save<TunnelTypeClass>(pStm) &&
-		Process_Save<SWStateMachine>(pStm)
+		Process_Save<SWStateMachine>(pStm) && 
+		Process_Save<PhobosGlobal>(pStm)
 		;
 
 	if (!ret)
@@ -444,7 +448,8 @@ DEFINE_HOOK(0x67E826, LoadGame_Phobos_Global, 0x6)
 		Process_Load<TrailType>(pStm) &&
 		Process_Load<LaserTrailTypeClass>(pStm) &&
 		Process_Load<TunnelTypeClass>(pStm) &&
-		Process_Load<SWStateMachine>(pStm)
+		Process_Load<SWStateMachine>(pStm) &&
+		Process_Load<PhobosGlobal>(pStm)
 		;
 	
 	if (!ret)

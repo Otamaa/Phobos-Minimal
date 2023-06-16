@@ -1206,7 +1206,7 @@ namespace detail
 		if (parser.ReadString(pSection, pKey))
 		{
 			char* context = nullptr;
-			auto resultData = SuperWeaponTarget::None;
+			SuperWeaponTarget resultData = SuperWeaponTarget::None;
 
 			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
 				cur;
@@ -1234,17 +1234,23 @@ namespace detail
 				{
 					switch (result)
 					{
-					case 0: resultData |= SuperWeaponTarget::None; break;
-					case 1: goto err;
+					case 0: goto err;
+					case 1: resultData |= SuperWeaponTarget::Land; break;
 					case 2: resultData |= SuperWeaponTarget::Water; break;
+
 					case 14:
 					case 3: resultData |= SuperWeaponTarget::Empty; break;
+
 					case 4: resultData |= SuperWeaponTarget::Infantry; break;
+
 					case 5:
 					case 6: resultData |= SuperWeaponTarget::Unit; break;
+
 					case 7:
 					case 8: resultData |= SuperWeaponTarget::Building; break;
+
 					case 9: goto err;
+
 					case 10: resultData |= SuperWeaponTarget::All; break;
 					case 11: resultData |= SuperWeaponTarget::AllCells; break;
 					case 12: resultData |= SuperWeaponTarget::AllTechnos; break;
@@ -1294,7 +1300,7 @@ namespace detail
 					switch (result)
 					{
 					case 0: resultData |= TargetingConstraint::None; break;
-					case 1: goto err; break;
+					case 1: goto err;
 					case 2: resultData |= TargetingConstraint::DefensifeCellClear; break;
 					case 3: resultData |= TargetingConstraint::Enemy; break;
 					case 4: resultData |= TargetingConstraint::LighningStormInactive; break;
@@ -1359,6 +1365,7 @@ namespace detail
 		{
 			size_t result = 0;
 			bool found = false;
+
 			for (const auto& pString : EnumFunctions::AttachedAnimFlag_ToStrings)
 			{
 				if (IS_SAME_STR_(parser.value(), pString))
@@ -1384,6 +1391,7 @@ namespace detail
 				}
 			}
 		}
+
 		return false;
 	}
 

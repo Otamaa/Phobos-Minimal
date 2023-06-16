@@ -19,6 +19,7 @@
 #include <Misc/Patches.h>
 
 #include "Phobos.Threads.h"
+#include <Misc/PhobosGlobal.h>
 
 #include <Dbghelp.h>
 #include <tlhelp32.h>
@@ -511,6 +512,7 @@ bool FC CustomPalette_Read_Static(CustomPalette* pThis, DWORD, INI_EX* pEx, cons
 void Phobos::ExeRun()
 {
 	Phobos::Otamaa::ExeTerminated = false;
+	PhobosGlobal::Init();
 
 //	if (Patch::GetModuleBaseAddress("PatcherLoader.dll"))
 //	{
@@ -845,11 +847,5 @@ static DWORD Phobos_EndProgHandle_add()
 
 DEFINE_JUMP(CALL, 0x6BE118, GET_OFFSET(Phobos_EndProgHandle_add));
 #endif
-
-DEFINE_HOOK(0x4F4583, GScreenClass_DrawText, 0x6)
-{
-	Phobos::DrawVersionWarning();
-	return 0;
-}
 
 #pragma endregion

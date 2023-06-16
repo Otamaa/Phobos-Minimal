@@ -460,7 +460,9 @@ DEFINE_HOOK(0x701DFF, TechnoClass_ReceiveDamage_AfterObjectClassCall, 0x7)
 	GET(int* const, pDamage, EBX);
 	GET(WarheadTypeClass*, pWH, EBP);
 
-	if (Phobos::Debug_DisplayDamageNumbers && *pDamage)
+	const bool Show = Phobos::Otamaa::IsAdmin || *pDamage;
+	
+	if (Phobos::Debug_DisplayDamageNumbers && Show)
 		TechnoExt::DisplayDamageNumberString(pThis, *pDamage, false , pWH);
 
 	GET(DamageState, damageState, EDI);

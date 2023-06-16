@@ -6,18 +6,6 @@
 #include <Ext/BuildingType/Body.h>
 
 #pragma region Otamaa
-
-DEFINE_HOOK(0x44D0C3, BuildingClass_Missile_EMPFire_WeaponType, 0x5)
-{
-	GET(BulletClass*, pBullet, EAX);
-	GET(WeaponTypeClass*, pWeapon, EBP);
-
-	if (pBullet && pWeapon && !pBullet->GetWeaponType())
-		pBullet->SetWeaponType(pWeapon);
-
-	return 0;
-}
-
 DEFINE_HOOK(0x4518CF, BuildingClass_AnimLogic_check, 0x9)
 {
 	GET(BuildingClass*, pThis, ESI);

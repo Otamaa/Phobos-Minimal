@@ -1,9 +1,7 @@
 #pragma once
 #include <InfantryTypeClass.h>
 
-#include <Helpers/Macro.h>
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
+#include <Ext/TechnoType/Body.h>
 
 class InfantryTypeExt
 {
@@ -16,7 +14,7 @@ public:
 		static constexpr size_t ExtOffset = 0xECC;
 
 	public:
-
+		TechnoTypeExt::ExtData* Type;
 		Valueable<bool> Is_Deso;
 		Valueable<bool> Is_Cow;
 		Nullable<double> C4Delay;
@@ -29,6 +27,7 @@ public:
 		WeaponStruct CrawlingWeaponDatas[4];
 
 		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
+			, Type { nullptr }
 			, Is_Deso { false }
 			, Is_Cow { false }
 			, C4Delay {}

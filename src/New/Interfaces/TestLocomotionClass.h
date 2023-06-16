@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Locomotor/LocomotionClass.h>
+#include "Base.h"
 #include <FootClass.h>
 #include <VocClass.h>
 #include <Utilities/Debug.h>
@@ -10,9 +10,7 @@
 #include <comdef.h>
 #include <combaseapi.h>
 
-class DECLSPEC_UUID("74FC2B59-C2D3-47D7-9D10-93436A34EBB9")
-	TestLocomotionClass : public LocomotionClass
-	, public IPiggyback
+DEFINE_PIGGYLOCO(Test , 74FC2B59-C2D3-47D7-9D10-93436A34EBB9)
 {
 public:
 

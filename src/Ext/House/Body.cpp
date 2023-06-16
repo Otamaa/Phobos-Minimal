@@ -185,6 +185,38 @@ int HouseExt::TotalHarvesterCount(HouseClass* pThis)
 	return result;
 }
 
+// This basically gets same cell that AI script action 53 Gather at Enemy Base uses, and code for that (0x6EF700) was used as reference here.
+CellClass* HouseExt::GetEnemyBaseGatherCell(HouseClass* pTargetHouse, HouseClass* pCurrentHouse, const CoordStruct& defaultCurrentCoords, SpeedType speedTypeZone, int extraDistance)
+{
+	if (!pTargetHouse || !pCurrentHouse)
+		return nullptr;
+
+	const auto targetBaseCoords = CellClass::Cell2Coord(pTargetHouse->GetBaseCenter());
+
+	if (targetBaseCoords == CoordStruct::Empty)
+		return nullptr;
+
+	auto currentCoords = CellClass::Cell2Coord(pCurrentHouse->GetBaseCenter());
+
+	if (currentCoords == CoordStruct::Empty)
+		currentCoords = defaultCurrentCoords;
+
+	const int deltaX = currentCoords.X - targetBaseCoords.X;
+	const int deltaY = targetBaseCoords.Y - currentCoords.Y;
+	const int distance = (RulesClass::Instance->AISafeDistance + extraDistance) * Unsorted::LeptonsPerCell;
+
+	const double atan = std::atan2(deltaY, deltaX);
+	const double radians = (((atan - Math::HalfPi) * (1.0 / Math::BinaryAngleMagic)) - 0X3FFF) * Math::BinaryAngleMagic;
+	const int x = static_cast<int>(targetBaseCoords.X + std::cos(radians) * distance);
+	const int y = static_cast<int>(targetBaseCoords.Y - std::sin(radians) * distance);
+
+	auto newCoords = CoordStruct { x, y, targetBaseCoords.Z };
+	auto cellStruct = CellClass::Coord2Cell(newCoords);
+	cellStruct = MapClass::Instance->NearByLocation(cellStruct, speedTypeZone, -1, MovementZone::Normal, false, 3, 3, false, false, false, true, cellStruct, false, false);
+
+	return MapClass::Instance->TryGetCellAt(cellStruct);
+}
+
 HouseClass* HouseExt::FindCivilianSide()
 {
 	return HouseClass::FindBySideIndex(RulesExt::Global()->CivilianSideIndex);

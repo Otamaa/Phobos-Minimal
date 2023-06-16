@@ -759,14 +759,14 @@ DEFINE_HOOK(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 
 		for (int i = 0; i < (int)SuperWeaponTypeClass::SuperweaponTypeName.c_size(); ++i) {
 			if (!CRT::strcmpi(SuperWeaponTypeClass::SuperweaponTypeName[i], exINI.value())) {
-				pThis->Type = (SuperWeaponType)(i);
+				pThis->PreDependent = (SuperWeaponType)(i);
 			}
 		}
 
-		if (pThis->Type == SuperWeaponType::Invalid) {
+		if (pThis->PreDependent == SuperWeaponType::Invalid) {
 			const auto customType = NewSWType::FindFromTypeID(exINI.value());
 			if (customType > SuperWeaponType::Invalid) {
-				pThis->Type = customType;
+				pThis->PreDependent = customType;
 			}
 		}
 	}

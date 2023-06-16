@@ -101,7 +101,7 @@ bool conductAbduction(WeaponTypeExt::ExtData* pData , TechnoClass* pOwner, Abstr
 
 	//if it's owner meant to be changed, do it here
 	HouseClass* pDesiredOwner = (pData->Abductor_ChangeOwner && !TechnoExt::IsPsionicsImmune(Target)) 
-		? Attacker->Owner : pDesiredOwner = HouseExt::FindSpecial();
+		? Attacker->Owner :HouseExt::FindSpecial();
 
 	// if we ended up here, the target is of the right type, and the attacker can take it
 	// so we abduct the target...

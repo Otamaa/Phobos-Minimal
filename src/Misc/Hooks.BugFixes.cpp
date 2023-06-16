@@ -369,7 +369,7 @@ DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
 	bool NeedUpdate = false;
 	if (pThis->IsIronCurtained())
 	{
-		if (pThis->ForceShielded != 1)
+		if (pThis->ProtectType == ProtectTypes::IronCurtain)
 			nTintColor |= GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->IronCurtainColor);
 		else
 			nTintColor |= GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->ForceShieldColor);

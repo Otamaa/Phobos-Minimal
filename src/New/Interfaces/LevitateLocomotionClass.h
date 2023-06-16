@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Locomotor\LocomotionClass.h>
+#include "Base.h"
 #include <FootClass.h>
 #include <VocClass.h>
 #include <DebugLog.h>
@@ -45,11 +45,7 @@ struct LevitateCharacteristics
 	{}
 };
 
-//_COM_SMARTPTR_TYPEDEF(IPiggyback, __uuidof(IPiggyback));
-
-class DECLSPEC_UUID("3DC0B295-6546-11D3-80B0-00902792494C") 
-	LevitateLocomotionClass : public LocomotionClass 
-	, public IPiggyback
+DEFINE_PIGGYLOCO(Levitate, 3DC0B295-6546-11D3-80B0-00902792494C)
 {
 public:
 

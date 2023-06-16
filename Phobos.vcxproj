@@ -208,6 +208,8 @@
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Misc\Hooks.YRPatches.cpp" />
+    <ClCompile Include="src\Misc\PhobosGlobal.cpp" />
+    <ClCompile Include="src\New\Interfaces\Base.cpp" />
     <ClCompile Include="src\New\Interfaces\TestLocomotionClass.cpp" />
     <ClCompile Include="src\New\Type\TunnelTypeClass.cpp" />
     <ClCompile Include="src\New\Type\ImmunityTypeClass.cpp" />
@@ -453,6 +455,7 @@
     <ClInclude Include="src\Misc\Hooks.Otamaa.h" />
     <ClInclude Include="src\Misc\Locomotions.h" />
     <ClInclude Include="src\Misc\Patches.h" />
+    <ClInclude Include="src\Misc\PhobosGlobal.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />
     <ClInclude Include="src\New\AnonymousType\AresAttachEffectTypeClass.h" />
     <ClInclude Include="src\New\AnonymousType\PassengerDeletionTypeClass.h" />
@@ -462,6 +465,7 @@
     <ClInclude Include="src\New\Entity\HomingMissileTargetTracker.h" />
     <ClInclude Include="src\New\Entity\LauchSWData.h" />
     <ClInclude Include="src\New\Entity\ShieldClass.h" />
+    <ClInclude Include="src\New\Interfaces\Base.h" />
     <ClInclude Include="src\New\Interfaces\TestLocomotionClass.h" />
     <ClInclude Include="src\New\Type\TunnelTypeClass.h" />
     <ClInclude Include="src\New\Interfaces\LevitateLocomotionClass.h" />

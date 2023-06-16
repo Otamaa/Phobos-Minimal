@@ -99,8 +99,8 @@ bool TestLocomotionClass::Process()
 		 *  Rotate the object around the center coord.
 		 */
 		int radius = Unsorted::LeptonsPerCell * 2;
-		coord.X += radius * std::sin(Angle);
-		coord.Y += radius * std::cos(Angle);
+		coord.X += int(radius * std::sin(Angle));
+		coord.Y += int(radius * std::cos(Angle));
 		//coord.Z // No need to adjust the height of the object.
 
 		// Pickup the object the game world before we set the new coord.

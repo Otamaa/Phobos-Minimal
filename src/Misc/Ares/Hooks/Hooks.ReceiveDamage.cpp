@@ -44,7 +44,6 @@ void ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 		const auto pShield = TechnoExt::ExtMap.Find(pTechno)->GetShield();
 		bImmune_pt2 = (pShield && pShield->IsActive())
 			|| pTechno->TemporalTargetingMe
-			|| (pTechno->ForceShielded && !bIgnoreDefense)
 			|| pTechno->BeingWarpedOut
 			|| pTechno->IsSinking
 			;
@@ -143,24 +142,49 @@ DEFINE_HOOK(0x5F53DB, ObjectClass_ReceiveDamage_Handled, 0xA)
 	return nDamage > 0 ? DecideResult : SkipDecideResult;
 }
 
-DEFINE_OVERRIDE_HOOK(0x701A5C, TechnoClass_ReceiveDamage_IronCurtainFlash, 0x7)
+DEFINE_HOOK(0x701A3B, TechnoClass_ReceiveDamage_Flash, 0xA)
 {
+	enum{ NullifyDamage = 0x701A98 , ContinueChecks = 0x701AAD };
+
 	GET_STACK(WarheadTypeClass*, pWh, 0xD0);
 	GET(TechnoClass*, pThis, ESI);
+	GET_STACK(bool, forced, 0xD8);
+	GET_STACK(bool, third, 0x13);
+	GET(int*, pDamage, EBX);
 
-	if (!WarheadTypeExt::ExtMap.Find(pWh)->IC_Flash.Get(RulesExt::Global()->IC_Flash.Get()))
-		return 0x701A98;
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pShield = pExt->GetShield();
 
-	return (pThis->ForceShielded == 1) ? 0x701A65 : 0x701A69;
+	if(forced || third)
+		return ContinueChecks;
+
+	if (pShield && pShield->IsActive() && pShield->GetType()->HitBright.isset())
+	{
+		MapClass::FlashbangWarheadAt(2 * (*pDamage), pWh, pThis->Location , true, pShield->GetType()->HitBright);
+	}
+	else if (pThis->IsIronCurtained())
+	{
+		if(pThis->ProtectType == ProtectTypes::ForceShield)
+			MapClass::FlashbangWarheadAt(2 * (*pDamage), pWh, pThis->Location, true, SpotlightFlags::NoRed | SpotlightFlags::NoGreen);
+		else if(WarheadTypeExt::ExtMap.Find(pWh)->IC_Flash.Get(RulesExt::Global()->IC_Flash.Get()))
+			MapClass::FlashbangWarheadAt(2 * (*pDamage), pWh, pThis->Location, true, SpotlightFlags::NoColor);
+
+		return NullifyDamage; //nullify damage
+	}
+
+	return ContinueChecks;
 }
 
-bool IsDamaging;
-DEFINE_OVERRIDE_HOOK(0x701914, TechnoClass_ReceiveDamage_Damaging, 0x7)
-{
-	//R->Stack(0xE, R->EAX() > 0);
-	IsDamaging = R->EAX() > 0;
-	return 0;
-}
+//DEFINE_OVERRIDE_HOOK(0x701A5C, TechnoClass_ReceiveDamage_IronCurtainFlash, 0x7)
+//{
+//	GET_STACK(WarheadTypeClass*, pWh, 0xD0);
+//	GET(TechnoClass*, pThis, ESI);
+//
+//	if (!WarheadTypeExt::ExtMap.Find(pWh)->IC_Flash.Get(RulesExt::Global()->IC_Flash.Get()))
+//		return 0x701A98;
+//
+//	return (pThis->ProtectType == ProtectTypes::ForceShield) ? 0x701A65 : 0x701A69;
+//}
 
 DEFINE_OVERRIDE_HOOK(0x7021F5, TechnoClass_ReceiveDamage_OverrideDieSound, 0x6)
 {
@@ -194,6 +218,21 @@ DEFINE_OVERRIDE_HOOK(0x702185, TechnoClass_ReceiveDamage_OverrideVoiceDie, 0x6)
 	return 0x0;
 }
 
+//original hooks , jut in case the stuffs fail
+DEFINE_OVERRIDE_HOOK(0x702CFE, TechnoClass_ReceiveDamage_PreventScatter_Deep, 6)
+{
+	GET(FootClass*, pThis, ESI);
+	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0xC4, -0xC));
+
+	// only allow to scatter if not prevented
+	if (!WarheadTypeExt::ExtMap.Find(pWarhead)->PreventScatter) {
+		pThis->Scatter(CoordStruct::Empty, true, false);
+	}
+
+	return 0x702D11;
+}
+
+//these hook were really early checks
 DEFINE_HOOK_AGAIN(0x702BFE , TechnoClass_ReceiveDamage_PreventScatter,0x8)
 DEFINE_HOOK(0x702B47, TechnoClass_ReceiveDamage_PreventScatter, 0x8)
 {
@@ -276,6 +315,14 @@ DEFINE_OVERRIDE_HOOK(0x702050, TechnoClass_ReceiveDamage_ResultDestroyed , 6)
 	return 0x0;
 }
 
+//bool IsDamaging;
+DEFINE_OVERRIDE_HOOK(0x701914, TechnoClass_ReceiveDamage_Damaging, 0x7)
+{
+	R->Stack(0xE, R->EAX() > 0);
+	//IsDamaging = R->EAX() > 0;
+	return 0;
+}
+
 DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 {
 	GET(TechnoClass* const, pThis, ESI);
@@ -285,14 +332,15 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 	GET_STACK(int* const, pDamamge, 0xC8);
 	GET_STACK(bool const, bIgnoreDamage, 0xD8);
 	GET_STACK(HouseClass* const, pAttacker_House, STACK_OFFSET(0xC4, 0x18));
-	//GET_STACK(bool, IsDamaging, 0x12);
+	GET_STACK(bool, IsDamaging, 0x12);
 
 	bool bAffected = false;
 	const auto pType = pThis->GetTechnoType();
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const bool IsAffected = nDamageResult != DamageState::Unaffected;
 
-	if ((int)nDamageResult || bIgnoreDamage || !IsDamaging || *pDamamge) {
-		if ((int)nDamageResult && IsDamaging) {
+	if (IsAffected || bIgnoreDamage || !IsDamaging || *pDamamge) {
+		if (IsAffected && IsDamaging) {
 
 			const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 			const auto amount = pTypeExt->SelfHealing_CombatDelay.Get(pThis);
@@ -312,7 +360,7 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 		const auto pHouse = pAttacker ? pAttacker->Owner : pAttacker_House;
 
 		if (pWHExt->DecloakDamagedTargets.Get())
-			pThis->Uncloak(false);
+			pThis->Reveal();
 
 		const auto bCond1 = (!bAffected || !pWHExt->EffectsRequireDamage);
 		const auto bCond2 = (!pWHExt->EffectsRequireVerses || (pWHExt->GetVerses(TechnoExt::GetTechnoArmor(pThis, pWarhead)).Verses >= 0.0001));
@@ -350,7 +398,7 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 		}
 	}
 
-	return nDamageResult == DamageState::Unaffected ? 0x702823 : 0x0;
+	return !IsAffected ? 0x702823 : 0x0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
@@ -679,14 +727,6 @@ DEFINE_OVERRIDE_HOOK(0x702894, TechnoClass_ReceiveDamage_SmokeParticles, 6)
 	return 0x702938;
 }
 
-constexpr unsigned int Neighbours[] = {
-	9, 0, 2, 0, 0,
-	0, 7, 0, 0, 0,
-	1, 0, 0, 0, 4,
-	0, 0, 3, 0, 0,
-	0, 0, 5, 0, 0,
-	0, 6, 0, 0, 0
-};
 
 // spill the stored tiberium on destruction
 DEFINE_OVERRIDE_HOOK(0x702200, TechnoClass_ReceiveDamage_SpillTiberium, 6)
@@ -721,8 +761,16 @@ DEFINE_OVERRIDE_HOOK(0x702200, TechnoClass_ReceiveDamage_SpillTiberium, 6)
 			// get the spill center
 			CoordStruct crd = pThis->GetCoords();
 			CellClass* pCenter = MapClass::Instance->GetCellAt(crd);
+			static constexpr unsigned int Neighbours[] = {
+				9, 0, 2, 0, 0,
+				0, 7, 0, 0, 0,
+				1, 0, 0, 0, 4,
+				0, 0, 3, 0, 0,
+				0, 0, 5, 0, 0,
+				0, 6, 0, 0, 0
+			};
 
-			for (auto neighbour : Neighbours)
+			for (auto const& neighbour : Neighbours)
 			{
 				// spill random amount
 				int amount = ScenarioClass::Instance->Random.RandomFromMax(2);

@@ -27,6 +27,7 @@
 
 #include <Ext/TechnoType/Body.h>
 #include <Ext/SWType/Body.h>
+#include <Misc/PhobosGlobal.h>
 
 PhobosToolTip PhobosToolTip::Instance;
 
@@ -55,30 +56,29 @@ inline int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType) const
 	// BuildingTypeClass, AircraftTypeClass, InfantryTypeClass and UnitTypeClass
 	// It has to be these four classes, otherwise pType will just be 
 
-	static char BuildTimeDatas[0x720]; // Just big enough to hold all types
-	//std::memset(&BuildTimeDatas, 0, sizeof(BuildTimeDatas));
-
 	switch (GetVtableAddr(pType))
 	{
 	case BuildingTypeClass::vtable:
-		*reinterpret_cast<int*>(BuildTimeDatas) = BuildingClass::vtable;
-		reinterpret_cast<BuildingClass*>(BuildTimeDatas)->Type = (BuildingTypeClass*)pType;
+		*reinterpret_cast<int*>(PhobosGlobal::Instance()->BuildTimeDatas) = BuildingClass::vtable;
+		reinterpret_cast<BuildingClass*>(PhobosGlobal::Instance()->BuildTimeDatas)->Type = (BuildingTypeClass*)pType;
 		break;
 	case AircraftTypeClass::vtable:
-		*reinterpret_cast<int*>(BuildTimeDatas) = AircraftClass::vtable;
-		reinterpret_cast<AircraftClass*>(BuildTimeDatas)->Type = (AircraftTypeClass*)pType;
+		*reinterpret_cast<int*>(PhobosGlobal::Instance()->BuildTimeDatas) = AircraftClass::vtable;
+		reinterpret_cast<AircraftClass*>(PhobosGlobal::Instance()->BuildTimeDatas)->Type = (AircraftTypeClass*)pType;
 		break;
 	case InfantryTypeClass::vtable:
-		*reinterpret_cast<int*>(BuildTimeDatas) = InfantryClass::vtable;
-		reinterpret_cast<InfantryClass*>(BuildTimeDatas)->Type = (InfantryTypeClass*)pType;
+		*reinterpret_cast<int*>(PhobosGlobal::Instance()->BuildTimeDatas) = InfantryClass::vtable;
+		reinterpret_cast<InfantryClass*>(PhobosGlobal::Instance()->BuildTimeDatas)->Type = (InfantryTypeClass*)pType;
 		break;
 	case UnitTypeClass::vtable:
-		*reinterpret_cast<int*>(BuildTimeDatas) = UnitClass::vtable;
-		reinterpret_cast<UnitClass*>(BuildTimeDatas)->Type = (UnitTypeClass*)pType;
+		*reinterpret_cast<int*>(PhobosGlobal::Instance()->BuildTimeDatas) = UnitClass::vtable;
+		reinterpret_cast<UnitClass*>(PhobosGlobal::Instance()->BuildTimeDatas)->Type = (UnitTypeClass*)pType;
 		break;
+	default:
+			return 54;
 	}
 
-	const auto pTrick = reinterpret_cast<TechnoClass*>(BuildTimeDatas);
+	const auto pTrick = reinterpret_cast<TechnoClass*>(PhobosGlobal::Instance()->BuildTimeDatas);
 	pTrick->Owner = HouseClass::CurrentPlayer();
 
 	int nTimeToBuild = pTrick->TimeToBuild();

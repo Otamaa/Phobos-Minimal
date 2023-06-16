@@ -391,7 +391,7 @@ namespace DrawHeathData
 		if (pThis->IsIronCurtained())
 		{
 			if (Is_Building(pThis))
-				DrawBar_Building(pThis, iLength, pLocation, pBound, pThis->ForceShielded != 1 ? 2 : 3, 0, 0);
+				DrawBar_Building(pThis, iLength, pLocation, pBound, pThis->ProtectType != ProtectTypes::ForceShield ? 2 : 3, 0, 0);
 			else
 				DrawdBar_Other(pThis, iLength, pLocation, pBound, 18, 0);
 		}

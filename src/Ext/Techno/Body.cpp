@@ -1035,7 +1035,7 @@ void TechnoExt::PutPassengersInCoords(TechnoClass* pTransporter, const CoordStru
 
 void TechnoExt::SyncIronCurtainStatus(TechnoClass* pFrom, TechnoClass* pTo)
 {
-	if (pFrom->IsIronCurtained() && !pFrom->ForceShielded)
+	if (pFrom->IsIronCurtained() && pFrom->ProtectType == ProtectTypes::IronCurtain)
 	{
 		const auto bSyncIC = TechnoTypeExt::ExtMap.Find(pFrom->GetTechnoType())->IronCurtain_SyncDeploysInto
 			.Get(RulesExt::Global()->IronCurtain_SyncDeploysInto);
@@ -1507,6 +1507,16 @@ void TechnoExt::ForceJumpjetTurnToTarget(TechnoClass* pThis)
 		}
 	}
 }
+#include <format>
+
+// convert UTF-8 string to wstring
+std::wstring Str2Wstr(const std::string& str)
+{
+	int size_needed = MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), NULL, 0);
+	std::wstring wstrTo(size_needed, 0);
+	MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), &wstrTo[0], size_needed);
+	return wstrTo;
+}
 
 void TechnoExt::DisplayDamageNumberString(TechnoClass* pThis, int damage, bool isShieldDamage, WarheadTypeClass* pWH)
 {
@@ -1518,18 +1528,17 @@ void TechnoExt::DisplayDamageNumberString(TechnoClass* pThis, int damage, bool i
 	const ColorStruct color = isShieldDamage ? damage > 0 ? Phobos::Defines::ShieldPositiveDamageColor : Phobos::Defines::ShieldPositiveDamageColor :
 		damage > 0 ? Drawing::DefaultColors[(int)DefaultColorList::Red] : Drawing::DefaultColors[(int)DefaultColorList::Green];
 
-	wchar_t damageStr[0x20];
-#ifndef ShowWH
-	std::string nWHName = pWH->ID;
-	std::wstring widestr = std::wstring(nWHName.begin(), nWHName.end());
-	swprintf_s(damageStr, L"%ls - %d", widestr.c_str() ,damage);
-#else
-	swprintf_s(damageStr, L"%d",damage);
-#endif
+	std::wstring damageStr;
+
+	if (Phobos::Otamaa::IsAdmin)
+		damageStr = Str2Wstr(std::format("[{}] {} ({})", pThis->get_ID(), pWH->ID, damage));
+	else
+		damageStr = std::format(L"{}", damage);
+
 	auto coords = pThis->GetCenterCoords();
 	int maxOffset = 30;
 	int width = 0, height = 0;
-	BitFont::Instance->GetTextDimension(damageStr, &width, &height, 120);
+	BitFont::Instance->GetTextDimension(damageStr.c_str(), &width, &height, 120);
 
 	if (pExt->DamageNumberOffset >= maxOffset || pExt->DamageNumberOffset.empty())
 		pExt->DamageNumberOffset = -maxOffset;
@@ -1545,7 +1554,7 @@ void TechnoExt::DisplayDamageNumberString(TechnoClass* pThis, int damage, bool i
 		{
 			if (pThis->VisualCharacter(0, HouseClass::CurrentPlayer()) != VisualType::Hidden)
 			{
-				FlyingStrings::Add(damageStr, coords, color, Point2D { pExt->DamageNumberOffset - (width / 2), 0 });
+				FlyingStrings::Add(damageStr.c_str(), coords, color, Point2D { pExt->DamageNumberOffset - (width / 2), 0 });
 			}
 		}
 	}

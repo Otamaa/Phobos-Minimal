@@ -34,6 +34,7 @@ ShieldTypeClass::ShieldTypeClass(const char* const pTitle) : Enumerable<ShieldTy
 , PassthruNegativeDamage { false }
 , CanBeHealed { false }
 , HealCursorType { }
+, HitBright { }
 {};
 
 const char* Enumerable<ShieldTypeClass>::GetMainSection()
@@ -112,6 +113,7 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->PassthruNegativeDamage.Read(exINI, pSection, "PassthruNegativeDamage");
 	this->CanBeHealed.Read(exINI, pSection, "Repairable");
 	this->HealCursorType.Read(exINI, pSection, "RepairCursor");
+	this->HitBright.Read(exINI, pSection, "HitBright");
 }
 
 template <typename T>
@@ -148,6 +150,7 @@ void ShieldTypeClass::Serialize(T& Stm)
 		.Process(this->PassthruNegativeDamage)
 		.Process(this->CanBeHealed)
 		.Process(this->HealCursorType)
+		.Process(this->HitBright)
 		;
 }
 

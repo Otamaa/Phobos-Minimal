@@ -48,6 +48,7 @@ public:
 	Valueable<bool> PassthruNegativeDamage;
 	Valueable<bool> CanBeHealed;
 	NullableIdx<CursorTypeClass> HealCursorType;
+	Nullable<SpotlightFlags> HitBright;
 public:
 
 	ShieldTypeClass::ShieldTypeClass(const char* const pTitle);

@@ -7,6 +7,57 @@
 namespace detail
 {
 	template <>
+	inline bool read<SpotlightFlags>(SpotlightFlags& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+
+			char* context = nullptr;
+			SpotlightFlags resultData = SpotlightFlags::None;
+
+			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
+				cur;
+				cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
+				size_t result = 0;
+				bool found = false;
+				for (const auto& pStrings : EnumFunctions::SpotlightFlags_ToStrings)
+				{
+					if (IS_SAME_STR_(cur, pStrings))
+					{
+						found = true;
+						break;
+					}
+					++result;
+				}
+
+				if (!found)
+				{
+				err:
+					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected valid SpotlightFlags value");
+					return false;
+				}
+				else
+				{
+					switch (result)
+					{
+					case 0: goto err;
+					case 1: resultData |= SpotlightFlags::NoColor; break;
+					case 2: resultData |= SpotlightFlags::NoRed; break;
+					case 3: resultData |= SpotlightFlags::NoGreen; break;
+					case 4: resultData |= SpotlightFlags::NoBlue; break;
+					}
+				}
+			}
+
+			value = resultData;
+			return true;
+		}
+
+		return false;
+	}
+
+	template <>
 	inline bool read<ColorStruct>(ColorStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		if (!parser.Read3Bytes(pSection, pKey, (BYTE*)(&value)))
@@ -265,17 +316,20 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			if ((_strcmpi(parser.value(), "Hour") == 0))
+			if (IS_SAME_STR_(parser.value(), "Hour"))
 			{
 				value = ShowTimerType::Hour;
+				return true;
 			}
-			else if ((_strcmpi(parser.value(), "Minute") == 0))
+			else if (IS_SAME_STR_(parser.value(), "Minute"))
 			{
 				value = ShowTimerType::Minute;
+				return true;
 			}
-			else if ((_strcmpi(parser.value(), "Second") == 0))
+			else if (IS_SAME_STR_(parser.value(), "Second"))
 			{
 				value = ShowTimerType::Second;
+				return true;
 			}
 			else
 			{
@@ -306,10 +360,10 @@ namespace detail
 
 		for (int i = 0; i < nKeyCount; ++i)
 		{
-			char* context = nullptr;
 			if (!IniEx.ReadString(pSection, IniEx->GetKeyName(pSection, i)))
 				continue;
 
+			char* context = nullptr;
 			for (char* cur = strtok_s(IniEx.value(), Delims, &context);
 				cur; cur = strtok_s(nullptr, Delims, &context))
 			{

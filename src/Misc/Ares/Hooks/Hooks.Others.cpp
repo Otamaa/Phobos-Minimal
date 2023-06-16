@@ -26,6 +26,8 @@
 #include <Locomotor/HoverLocomotionClass.h>
 #include <New/Type/ArmorTypeClass.h>
 
+#include <Misc/PhobosGlobal.h>
+
 #include <Notifications.h>
 #include <strsafe.h>
 
@@ -74,7 +76,7 @@ DEFINE_HOOK(0x5F6500 , AbstractClass_Distance2DSquared_1 , 0x8)
 	  const auto nThatCoord = pThat->GetCoords();
 	  const auto nY = (int64_t(nThisCoord.Y - nThatCoord.Y) * int64_t(nThisCoord.Y - nThatCoord.Y));
 	  const auto nX = (int64_t(nThisCoord.X - nThatCoord.X) * int64_t(nThisCoord.X - nThatCoord.X));
-	  const auto nXY = nX + nY;
+	  const auto nXY = int(nX + nY);
 
 	  nResult = (nXY >= INT_MAX ? INT_MAX : nXY);
 	}
@@ -87,13 +89,13 @@ DEFINE_HOOK(0x5F6500 , AbstractClass_Distance2DSquared_1 , 0x8)
 // {
 // 	GET(AbstractClass*, pThis, ECX);
 // 	GET(AbstractClass*, pThat, EBX);
-
+//
 // 	auto const nThisCoord = pThis->GetCoords();
 // 	auto const nThatCoord = pThat->GetCoords();
 // 	const auto nY = (int64_t(nThisCoord.Y - nThatCoord.Y) * int64_t(nThisCoord.Y - nThatCoord.Y));
 // 	const auto nX = (int64_t(nThisCoord.X - nThatCoord.X) * int64_t(nThisCoord.X - nThatCoord.X));
 // 	const auto nXY = nX + nY;
-
+//
 // 	R->EAX(nXY >= INT_MAX ? INT_MAX : nXY);
 // 	return 0x5F6559;
 // }
@@ -106,11 +108,12 @@ DEFINE_OVERRIDE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
 
 	const auto nY = (int64_t(nThisCoord.Y - pThatCoord->Y) * int64_t(nThisCoord.Y - pThatCoord->Y));
 	const auto nX = (int64_t(nThisCoord.X - pThatCoord->X) * int64_t(nThisCoord.X - pThatCoord->X));
-	const auto nXY = nX + nY;
+	const auto nXY = int(nX + nY);
 
 	R->EAX(nXY >= INT_MAX ? INT_MAX : nXY);
 	return 0x5F659B;
 }
+
 DEFINE_HOOK(0x6E2290, ActionClass_PlayAnimAt, 0x6)
 {
 	GET(TActionClass*, pThis, ECX);
@@ -160,8 +163,6 @@ DEFINE_OVERRIDE_HOOK(0x4892BE, DamageArea_NullDamage, 0x6)
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x6AD0ED, Game_AllowSinglePlay, 0x5, 6AD16C);
 
-std::vector<unsigned char> ShpCompression1Buffer;
-
 DEFINE_OVERRIDE_HOOK(0x437CCC, BSurface_DrawSHPFrame1_Buffer, 0x8)
 {
 	REF_STACK(RectangleStruct const, bounds, STACK_OFFS(0x7C, 0x10));
@@ -172,7 +173,7 @@ DEFINE_OVERRIDE_HOOK(0x437CCC, BSurface_DrawSHPFrame1_Buffer, 0x8)
 		static_cast<short>(bounds.Width), 0, std::numeric_limits<short>::max()));
 
 	// buffer overrun is now not as forgiving as it was before
-	auto& Buffer = ShpCompression1Buffer;
+	auto& Buffer = PhobosGlobal::Instance()->ShpCompression1Buffer;
 	if (Buffer.size() < width)
 	{
 		Buffer.insert(Buffer.end(), width - Buffer.size(), 0u);
@@ -250,9 +251,9 @@ DEFINE_OVERRIDE_HOOK(0x4748A0, INIClass_GetPipIdx, 0x7)
 			// find the pip value with the name specified
 			const auto it = std::find_if(TechnoTypeClass::PipsTypeName.begin(), TechnoTypeClass::PipsTypeName.end(),
 				[](NamedValue<int>const& Data)
- {
-	 return Data == Phobos::readBuffer;
-			});
+				{
+					return Data == Phobos::readBuffer;
+				});
 
 			if (it != TechnoTypeClass::PipsTypeName.end())
 			{
@@ -265,9 +266,9 @@ DEFINE_OVERRIDE_HOOK(0x4748A0, INIClass_GetPipIdx, 0x7)
 			// find the pip value with the number
 			const auto it = std::find_if(TechnoTypeClass::PipsTypeName.begin(), TechnoTypeClass::PipsTypeName.end(),
 				[](NamedValue<int>const& Data)
- {
-	 return Data == std::atoi(Phobos::readBuffer);
-			});
+				{
+					return Data == std::atoi(Phobos::readBuffer);
+				});
 
 			if (it != TechnoTypeClass::PipsTypeName.end())
 			{
@@ -708,12 +709,8 @@ DEFINE_OVERRIDE_HOOK(0x72590E, AnnounceInvalidPointer_Particle, 0x9)
 	{
 		GET(ParticleClass*, pThis, ESI);
 
-		if (auto pSys = pThis->ParticleSystem)
-		{
-			if (!pSys->Particles.Remove(pThis))
-			{
-				return 0x725C08;
-			}
+		if (auto pSys = pThis->ParticleSystem) {
+			pSys->Particles.Remove(pThis);
 		}
 
 		return 0x725C08;
@@ -1670,7 +1667,7 @@ DEFINE_OVERRIDE_HOOK(0x70E2B0, TechnoClass_IronCurtain, 5)
 
 	pThis->IronCurtainTimer.Start(int(duration * modifier));
 	pThis->IronTintStage = 0;
-	pThis->ForceShielded = force ? TRUE : FALSE;
+	pThis->ProtectType = force ? ProtectTypes::ForceShield : ProtectTypes::IronCurtain;
 
 	R->EAX(DamageState::Unaffected);
 	return 0x70E2FD;

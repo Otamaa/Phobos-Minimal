@@ -84,6 +84,7 @@ public:
 	static std::array<const char* const, 3u> HealthCondition_ToStrings;
 	static std::array<const char* const, 21u> TileType_ToStrings;
 	static std::array<std::pair<const char*, const char*>, 11u> LocomotorPairs_ToStrings;
+	static std::array<std::pair<wchar_t*, wchar_t*>, 11u> LocomotorPairs_ToWideStrings;
 	static std::array<const char* const, 4u> TextAlign_ToStrings;
 	static std::array<const char* const, 3u> AreaFireTarget_ToStrings;
 	static std::array<const char* const, 5u> AttachedAnimFlag_ToStrings;
@@ -100,6 +101,7 @@ public:
 	static std::array<const char* const, 3u> TargetingPreference_ToStrings;
 	static std::array<const char* const, 3u> SelfHealGainType_ToStrings;
 	static std::array<const char* const, 5u> ChronoSparkleDisplayPosition_ToStrings;
+	static std::array<const char* const, 5u> SpotlightFlags_ToStrings;
 
 	static bool CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse);
 	static bool IsCellEligible(CellClass* const pCell, AffectedTarget const&  allowed, bool explicitEmptyCells = false);

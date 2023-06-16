@@ -36,8 +36,8 @@ DEFINE_HOOK(0x6FA2C7, TechnoClass_AI_DrawBehindAnim, 0x8) //was 4
 	GET_STACK(Point2D, nPoint, STACK_OFFS(0x78, 0x50));
 	GET_STACK(RectangleStruct, nBound, STACK_OFFS(0x78, 0x50));
 
-	if (Is_Building(pThis))
-		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->LimboID != -1)
+	if (const auto pBld = specific_cast<BuildingClass*>(pThis))
+		if (BuildingExt::ExtMap.Find(pBld)->LimboID != -1)
 			return 0x6FA2D8;
 
 	if (!pThis->GetTechnoType()->Invisible)
@@ -2757,33 +2757,6 @@ DEFINE_HOOK(0x6A8E25, SidebarClass_StripClass_AI_Building_EVA_ConstructionComple
 	return 0x0;
 }
 
-DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
-{
-
-	GET(BuildingClass* const, pThis, ESI);
-	GET(WeaponTypeClass* const, pWeapon, EBP);
-	GET_STACK(BulletClass* const, pBullet, STACK_OFFSET(0xF0, -0xA4));
-	LEA_STACK(CoordStruct*, pCoord, STACK_OFFSET(0xF0, -0x8C));
-
-	if (pWeapon && pBullet)
-	{
-		CoordStruct src = pThis->GetFLH(0, pThis->GetRenderCoords());
-		CoordStruct dest = *pCoord;
-		auto const pTarget = pBullet->Target ? pBullet->Target : MapClass::Instance->GetCellAt(dest);
-
-		// Draw bullet effect
-		Helpers_DP::DrawBulletEffect(pWeapon, src, dest, pThis, pTarget);
-		// Draw particle system
-		Helpers_DP::AttachedParticleSystem(pWeapon, src, pTarget, pThis, dest);
-		// Play report sound
-		Helpers_DP::PlayReportSound(pWeapon, src, pThis);
-		// Draw weapon anim
-		Helpers_DP::DrawWeaponAnim(pWeapon, src, dest, pThis, pTarget);
-	}
-
-	return 0;
-}
-
 // DEFINE_HOOK(0x518B98, InfantryClass_ReceiveDamage_UnInit, 0x8)
 // {
 // 	GET(InfantryClass*, pThis, ESI);
@@ -5007,6 +4980,78 @@ void MeteorShower_Process(CoordStruct Where, HouseClass* pOwner)
 			}
 		}
 	}
+}
+
+DEFINE_HOOK(0x46B3E6, BulletClass_NukeMaker_BulletParams, 0x8)
+{
+	enum { SkipGameCode = 0x46B40D };
+
+	GET_STACK(BulletClass* const, pThis, STACK_OFFSET(0x70, -0x60));
+	GET_STACK(TechnoClass* const, pOwner, STACK_OFFSET(0x74, -0x50));
+	GET(WeaponTypeClass* const, pWeapon, ESI);
+	GET(AbstractClass* const, pTarget, EBX);
+
+	pThis->Construct(pWeapon->Projectile,pTarget, pOwner, pWeapon->Damage, pWeapon->Warhead, pWeapon->Speed , pWeapon->Bright||pWeapon->Warhead->Bright);
+
+	R->EDI(pThis);
+	return SkipGameCode;
+}
+
+DEFINE_HOOK(0x44CABA, BuildingClass_Mission_Missile_BulletParams, 0x7)
+{
+	enum { SkipGameCode = 0x44CAF2 };
+
+	GET(BuildingClass* const, pThis, ESI);
+	GET(CellClass* const, pTarget, EAX);
+
+	auto pWeapon = SuperWeaponTypeClass::Array->GetItem(pThis->FiringSWType)->WeaponType;
+	BulletClass* pBullet = nullptr;
+
+	if (pWeapon){ 
+		pBullet = BulletTypeExt::ExtMap.Find(pWeapon->Projectile)->CreateBullet(pTarget, pThis, pWeapon->Damage , pWeapon->Warhead , pWeapon->Speed , 255 ,pWeapon->Bright || pWeapon->Warhead->Bright , false);
+	}
+
+	R->EAX(pBullet);
+	R->EBX(pWeapon);
+	return SkipGameCode;
+}
+
+DEFINE_HOOK(0x44D0C3, BuildingClass_Missile_EMPFire_WeaponType, 0x5)
+{
+	GET(BulletClass*, pBullet, EAX);
+	GET(WeaponTypeClass*, pWeapon, EBP);
+
+	if (pBullet && pWeapon && !pBullet->GetWeaponType())
+		pBullet->SetWeaponType(pWeapon);
+
+	return 0;
+}
+
+DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
+{
+
+	GET(BuildingClass* const, pThis, ESI);
+	GET(WeaponTypeClass* const, pWeapon, EBP);
+	GET_STACK(BulletClass* const, pBullet, STACK_OFFSET(0xF0, -0xA4));
+	LEA_STACK(CoordStruct*, pCoord, STACK_OFFSET(0xF0, -0x8C));
+
+	if (pWeapon && pBullet)
+	{
+		CoordStruct src = pThis->GetFLH(0, pThis->GetRenderCoords());
+		CoordStruct dest = *pCoord;
+		auto const pTarget = pBullet->Target ? pBullet->Target : MapClass::Instance->GetCellAt(dest);
+
+		// Draw bullet effect
+		Helpers_DP::DrawBulletEffect(pWeapon, src, dest, pThis, pTarget);
+		// Draw particle system
+		Helpers_DP::AttachedParticleSystem(pWeapon, src, pTarget, pThis, dest);
+		// Play report sound
+		Helpers_DP::PlayReportSound(pWeapon, src, pThis);
+		// Draw weapon anim
+		Helpers_DP::DrawWeaponAnim(pWeapon, src, dest, pThis, pTarget);
+	}
+
+	return 0;
 }
 
 //https://bugs.launchpad.net/ares/+bug/1577493

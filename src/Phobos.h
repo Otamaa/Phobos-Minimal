@@ -18,9 +18,11 @@
 
 #define IMPL_STRCMPI(a ,b) CRT::strcmpi(a,b)
 #define IMPL_STRCMP(a ,b) CRT::strcmp(a,b)
+#define IMPL_WSTRCMPI(a , b) _wcsicmp(a , b)
 
 #define IS_SAME_STR_(a ,b) (IMPL_STRCMPI(a,b) == 0)
 #define IS_SAME_STR_N(a ,b) (IMPL_STRCMP(a,b) == 0)
+#define IS_SAME_WSTR(a,b) (IMPL_WSTRCMPI(a,b) == 0)
 
 class CCINIClass;
 class AbstractClass;

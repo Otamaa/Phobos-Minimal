@@ -102,6 +102,7 @@ enum class PhobosScripts : unsigned int
 	JumpBackToPreviousScript = 134,
 
 	RepairDestroyedBridge = 10104,
+	ChronoshiftToEnemyBase = 10105, //was 10104
 
 	// Variables
 	LocalVariableSet = 500,
@@ -313,4 +314,7 @@ public:
 	static bool MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, FootClass* pLeader, int mode);
 
 	static bool IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrAbsorbed, bool allowSubterranean);
+
+	static void ChronoshiftToEnemyBase(TeamClass* pTeam, int extraDistance);
+	static void ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeamLeader, AbstractClass* pTarget);
 };

@@ -67,6 +67,7 @@ void InfantryTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
+		.Process(this->Type)
 		.Process(this->Is_Deso)
 		.Process(this->Is_Cow)
 		.Process(this->C4Delay)
@@ -91,7 +92,8 @@ InfantryTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x523970, InfantryTypeClass_CTOR, 0x5)
 {
 	GET(InfantryTypeClass*, pItem, ESI);
-	InfantryTypeExt::ExtMap.Allocate(pItem);
+	if(auto pExt = InfantryTypeExt::ExtMap.Allocate(pItem))
+		pExt->Type = TechnoTypeExt::ExtMap.Find(pItem);
 	return 0;
 }
 

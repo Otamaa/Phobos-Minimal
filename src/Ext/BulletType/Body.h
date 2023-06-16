@@ -191,6 +191,7 @@ public:
 			return pRules->MissileSafetyAltitude;
 		}
 
+		BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, WeaponTypeClass* pWeapon , bool addDamage , bool SetWeaponType) const;
 		BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, WeaponTypeClass* pWeapon) const;
 		BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, int damage, WarheadTypeClass* pWarhead, int speed, int range, bool bright , bool addDamage) const;
 
