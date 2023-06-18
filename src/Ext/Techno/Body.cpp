@@ -171,6 +171,14 @@ bool TechnoExt::IsParasiteImmune(TechnoClass* pThis)
 	return HasAbility(pThis, PhobosAbilityType::ParasiteImmune);
 }
 
+bool TechnoExt::IsUnwarpable(TechnoClass* pThis)
+{
+	if (!pThis->GetTechnoType()->Warpable)
+		return true;
+
+	return HasAbility(pThis, PhobosAbilityType::Unwarpable);
+}
+
 bool TechnoExt::ExtData::IsInterceptor()
 {
 	auto const pThis = this->Get();
@@ -180,6 +188,143 @@ bool TechnoExt::ExtData::IsInterceptor()
 		return true;
 
 	return HasAbility(pThis, PhobosAbilityType::Interceptor);
+}
+
+void TechnoExt::ExtData::CreateInitialPayload()
+{
+	if (this->PayloadCreated) {
+		return;
+	}
+
+	this->PayloadCreated = true;
+
+	auto const pThis = this->Get();
+	auto const pType = pThis->GetTechnoType();
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	auto const pBld = specific_cast<BuildingClass*>(pThis);
+
+	auto freeSlots = (pBld && pBld->Type->CanBeOccupied)
+		? pBld->Type->MaxNumberOccupants - pBld->GetOccupantCount()
+		: pType->Passengers - pThis->Passengers.NumPassengers;
+
+	auto const sizePayloadNum = pTypeExt->InitialPayload_Nums.size();
+	auto const sizePayloadRank = pTypeExt->InitialPayload_Vet.size();
+	auto const sizePyloadAddTeam = pTypeExt->InitialPayload_AddToTransportTeam.size();
+
+	for (auto i = 0u; i < pTypeExt->InitialPayload_Types.size(); ++i)
+	{
+		auto const pPayloadType = pTypeExt->InitialPayload_Types[i];
+
+		if (!pPayloadType)
+		{
+			continue;
+		}
+
+		// buildings and aircraft aren't valid payload, and building payload
+		// can only be infantry
+		auto const absPayload = pPayloadType->WhatAmI();
+		if (absPayload == AbstractType::BuildingType
+			|| absPayload == AbstractType::AircraftType
+			|| (pBld && absPayload != AbstractType::InfantryType))
+		{
+			continue;
+		}
+
+		// if there are no nums, index gets huge and invalid, which means 1
+		auto const idxPayloadNum = std::min(i + 1, sizePayloadNum) - 1;
+		auto const payloadNum = (idxPayloadNum < sizePayloadNum)
+			? pTypeExt->InitialPayload_Nums[idxPayloadNum] : 1;
+
+		auto const rank = idxPayloadNum < sizePayloadRank ?
+			pTypeExt->InitialPayload_Vet[idxPayloadNum] : Rank::Invalid;
+
+		auto const addtoteam = idxPayloadNum < sizePyloadAddTeam ?
+			pTypeExt->InitialPayload_AddToTransportTeam[idxPayloadNum] : false;
+
+		// never fill in more than allowed
+		auto const count = std::min(payloadNum, freeSlots);
+		freeSlots -= count;
+
+		for (auto j = 0; j < count; ++j)
+		{
+			auto const pObject = (TechnoClass*)pPayloadType->CreateObject(pThis->Owner);
+
+			if (!pObject)
+				continue;
+
+			if (rank == Rank::Veteran)
+				pObject->Veterancy.SetVeteran();
+			else if (rank == Rank::Elite)
+				pObject->Veterancy.SetElite();
+
+			if (pBld)
+			{
+				// buildings only allow infantry payload, so this in infantry
+				auto const pPayload = static_cast<InfantryClass*>(pObject);
+
+				if (pBld->Type->CanBeOccupied)
+				{
+					pBld->Occupants.AddItem(pPayload);
+					auto const pCell = pThis->GetCell();
+					//TODO:
+					AresGarrisonedIn(pPayload) = pBld;
+					pThis->UpdateThreatInCell(pCell);
+				}
+				else
+				{
+					pPayload->Limbo();
+
+					if (pBld->Type->InfantryAbsorb)
+					{
+						pPayload->Absorbed = true;
+
+						if (pPayload->CountedAsOwnedSpecial)
+						{
+							--pPayload->Owner->OwnedInfantry;
+							pPayload->CountedAsOwnedSpecial = false;
+						}
+
+						if (pBld->Type->ExtraPowerBonus > 0)
+						{
+							pBld->Owner->RecheckPower = true;
+						}
+					}
+					else
+					{
+						pPayload->SendCommand(RadioCommand::RequestLink, pBld);
+					}
+
+					pBld->Passengers.AddPassenger(pPayload);
+					pPayload->AbortMotion();
+				}
+
+			}
+			else
+			{
+				auto const pPayload = static_cast<FootClass*>(pObject);
+				pPayload->SetLocation(pThis->Location);
+				pPayload->Limbo();
+
+				if (pType->OpenTopped)
+				{
+					pThis->EnteredOpenTopped(pPayload);
+				}
+
+				pPayload->Transporter = pThis;
+
+				auto const old = std::exchange(VocClass::VoicesEnabled(), false);
+				pThis->AddPassenger(pPayload);
+				VocClass::VoicesEnabled = old;
+
+				if (addtoteam)
+				{
+					if (auto pTeam = ((FootClass*)pThis)->Team)
+						pTeam->AddMember(pPayload, true);
+				}
+			}
+		}
+	}
 }
 
 bool TechnoExt::HasAbility(TechnoClass* pThis, PhobosAbilityType nType)
@@ -354,6 +499,14 @@ bool TechnoExt::IsParasiteImmune(Rank vet, TechnoClass* pThis)
 		return false;
 
 	return HasAbility(vet , pThis, PhobosAbilityType::ParasiteImmune);
+}
+
+bool TechnoExt::IsUnwarpable(Rank vet, TechnoClass* pThis)
+{
+	if (!pThis->GetTechnoType()->Warpable)
+		return true;
+
+	return HasAbility(vet, pThis, PhobosAbilityType::Unwarpable);
 }
 
 
@@ -738,6 +891,90 @@ bool TechnoExt::IsAbductable(TechnoClass* pThis, WeaponTypeClass* pWeapon, FootC
 		return false;
 
 	return true;
+}
+
+void TechnoExt::SendPlane(size_t Aircraft, size_t Amount, HouseClass* pOwner, Rank SendRank, Mission SendMission, AbstractClass* pTarget, AbstractClass* pDest)
+{
+	if (!pOwner || Amount <= 0)
+		return;
+
+	const auto pAirCraft = AircraftTypeClass::Array->GetItemOrDefault(Aircraft);
+
+	if (!pAirCraft)
+		return;
+
+	for (size_t i = 0; i < Amount; ++i)
+	{
+		++Unsorted::IKnowWhatImDoing;
+		auto const pPlane = static_cast<AircraftClass*>(pAirCraft->CreateObject(pOwner));
+		--Unsorted::IKnowWhatImDoing;
+
+		if (!pPlane)
+			continue;
+
+		pPlane->Spawned = true;
+		Edge ed = pOwner->StartingEdge;
+
+		if (ed < Edge::North || ed > Edge::West)
+			ed = pOwner->GetCurrentEdge();
+
+		const auto nCell = MapClass::Instance->PickCellOnEdge(ed, CellStruct::Empty, CellStruct::Empty, SpeedType::Winged, true, MovementZone::Normal);
+		pPlane->QueueMission(SendMission, false);
+
+		if (SendRank != Rank::Rookie && SendRank != Rank::Invalid && pPlane->CurrentRanking < SendRank)
+			pPlane->Veterancy.SetRank(SendRank);
+
+		if (pDest)
+			pPlane->SetDestination(pDest, true);
+
+		if (pTarget)
+			pPlane->SetTarget(pTarget);
+
+		bool UnLimboSucceeded = false;
+		++Unsorted::IKnowWhatImDoing;
+		UnLimboSucceeded = pPlane->Unlimbo(CellClass::Cell2Coord(nCell), DirType::North);
+		--Unsorted::IKnowWhatImDoing;
+
+		if (!UnLimboSucceeded) {
+			pPlane->UnInit();
+		} else {
+
+			TechnoExt::ExtMap.Find(pPlane)->CreateInitialPayload();
+			pPlane->NextMission();
+		}
+	}
+
+}
+
+/*
+ * Object should NOT be placed on the map (->Limbo() it or don't Put in the first place)
+ * otherwise Bad Things (TM) will happen. Again.
+ */
+bool TechnoExt::CreateWithDroppod(FootClass* Object, const CoordStruct& XYZ) {
+	auto MyCell = MapClass::Instance->GetCellAt(XYZ);
+	if (Object->IsCellOccupied(MyCell, -1, -1, nullptr, false) != Move::OK) {
+		return false;
+	}
+	else {
+		LocomotionClass::ChangeLocomotorTo(Object, CLSIDs::Droppod);
+		CoordStruct xyz = XYZ;
+		xyz.Z = 0;
+
+		Object->SetLocation(xyz);
+		Object->SetDestination(MyCell, 1);
+		Object->Locomotor->Move_To(XYZ);
+
+		//Object->PrimaryFacing.set(DirStruct()); // TODO : random or let loco set the facing
+
+		if (!Object->InLimbo) {
+			Object->See(0, 0);
+			Object->QueueMission(Mission::Guard, 0);
+			Object->NextMission();
+			return true;
+		}
+
+		return false;
+	}
 }
 
 bool TechnoExt::TargetFootAllowFiring(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon)
@@ -3341,16 +3578,14 @@ bool TechnoExt::IsInWarfactory(TechnoClass* pThis, bool bCheckNaval)
 
 	auto const pBld = pCell->GetBuilding();
 
-	if (!pBld)
+	if (!pBld || pBld != pContact)
 		return false;
 
-	if (pBld != pContact)
-		return false;
+	if (pBld->Type->WeaponsFactory || (bCheckNaval && pBld->Type->Naval)) {
+		return true;
+	}
 
-	if (bCheckNaval && !pBld->Type->Naval)
-		return false;
-
-	return pBld->Type->WeaponsFactory;
+	return false;
 }
 
 CoordStruct TechnoExt::GetPutLocation(CoordStruct current, int distance)

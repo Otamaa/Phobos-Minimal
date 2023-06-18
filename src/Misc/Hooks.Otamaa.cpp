@@ -2724,9 +2724,11 @@ DEFINE_HOOK(0x4FB7CA, HouseClass_RegisterJustBuild_CreateSound_PlayerOnly, 0x6) 
 		if (!pTechnoTypeExt->CreateSound_Enable.Get())
 			return ReturnNoVoiceCreate;
 
-		if (RulesExt::Global()->CreateSound_PlayerOnly.Get())
-			return pThis->IsControlledByCurrentPlayer() ?
-			Continue : ReturnNoVoiceCreate;
+		if (!EnumFunctions::IsPlayerTypeEligible((AffectPlayerType::Observer | AffectPlayerType::Player) , HouseClass::CurrentPlayer))
+			return ReturnNoVoiceCreate;
+
+		if(!EnumFunctions::CanTargetHouse(pTechnoTypeExt->CreateSound_afect.Get(RulesExt::Global()->CreateSound_PlayerOnly) , pThis ,HouseClass::CurrentPlayer))
+			return ReturnNoVoiceCreate;
 	}
 
 	return Continue;
@@ -4982,20 +4984,20 @@ void MeteorShower_Process(CoordStruct Where, HouseClass* pOwner)
 	}
 }
 
-DEFINE_HOOK(0x46B3E6, BulletClass_NukeMaker_BulletParams, 0x8)
-{
-	enum { SkipGameCode = 0x46B40D };
-
-	GET_STACK(BulletClass* const, pThis, STACK_OFFSET(0x70, -0x60));
-	GET_STACK(TechnoClass* const, pOwner, STACK_OFFSET(0x74, -0x50));
-	GET(WeaponTypeClass* const, pWeapon, ESI);
-	GET(AbstractClass* const, pTarget, EBX);
-
-	pThis->Construct(pWeapon->Projectile,pTarget, pOwner, pWeapon->Damage, pWeapon->Warhead, pWeapon->Speed , pWeapon->Bright||pWeapon->Warhead->Bright);
-
-	R->EDI(pThis);
-	return SkipGameCode;
-}
+//DEFINE_HOOK(0x46B3E6, BulletClass_NukeMaker_BulletParams, 0x8)
+//{
+//	enum { SkipGameCode = 0x46B40D };
+//
+//	GET_STACK(BulletClass* const, pThis, STACK_OFFSET(0x70, -0x60));
+//	GET_STACK(TechnoClass* const, pOwner, STACK_OFFSET(0x74, -0x50));
+//	GET(WeaponTypeClass* const, pWeapon, ESI);
+//	GET(AbstractClass* const, pTarget, EBX);
+//
+//	pThis->Construct(pWeapon->Projectile,pTarget, pOwner, pWeapon->Damage, pWeapon->Warhead, pWeapon->Speed , pWeapon->Bright||pWeapon->Warhead->Bright);
+//
+//	R->EDI(pThis);
+//	return SkipGameCode;
+//}
 
 DEFINE_HOOK(0x44CABA, BuildingClass_Mission_Missile_BulletParams, 0x7)
 {

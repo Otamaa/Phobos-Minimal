@@ -941,13 +941,19 @@ DEFINE_OVERRIDE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 	GET_STACK(bool const, isPlayer, 0x8);
 
 	auto pSuperExt = SuperExt::ExtMap.Find(pSuper);
+
 	pSuperExt->Temp_IsPlayer = isPlayer;
 	pSuperExt->Temp_CellStruct = *pCell;
 
-	if (AresData::SW_Activate(pSuper, *pCell, isPlayer))
+	if (//AresData::SW_Activate(pSuper, *pCell, isPlayer)
+		SWTypeExt::ExtData::Activate(pSuper,*pCell , isPlayer)
+		)
 	{
 		Debug::Log("[LAUNCH] %s Handled\n", pSuper->Type->ID);
 		const auto pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type);
+
+		//auto pHouseExt = HouseExt::ExtMap.Find(pSuper->Owner);
+		//auto pAresExt = AresData::Ares_SWType_ExtMap_Find(pSuper->Type);
 		pSWExt->FireSuperWeapon(pSuper, pSuper->Owner, pCell, isPlayer);
 		return 0x6CDE40;
 	}
@@ -1764,13 +1770,16 @@ DEFINE_OVERRIDE_HOOK(0x6FB5F0, TechnoClass_DeleteGap_Optimize, 6)
 {
 	GET(CellClass*, pCell, EAX);
 
-	if (!HouseClass::CurrentPlayer->SpySatActive || --pCell->GapsCoveringThisCell > 0)
+	const int nDecrease = pCell->GapsCoveringThisCell - 1;
+	pCell->GapsCoveringThisCell = nDecrease;
+
+	if (!HouseClass::CurrentPlayer->SpySatActive || nDecrease > 0)
 		return 0x6FB69E;
 
 	--pCell->ShroudCounter;
 
 	if (pCell->ShroudCounter <= 0)
-		pCell->AltFlags |= AltCellFlags::Clear;
+		pCell->AltFlags |= (AltCellFlags::NoFog | AltCellFlags::Mapped);
 
 	return 0x6FB69E;
 }
@@ -1800,7 +1809,7 @@ DEFINE_OVERRIDE_HOOK(0x6FB306, TechnoClass_CreateGap_Optimize, 6)
 	}
 	++pCell->GapsCoveringThisCell;
 	if (nCounter_b >= 1)
-		pCell->AltFlags &= ((AltCellFlags)4294967271u);
+		pCell->AltFlags &= ((AltCellFlags)0xFFFFFFE7);
 
 	return 0x6FB3BD;
 }
@@ -2695,146 +2704,10 @@ DEFINE_OVERRIDE_HOOK(0x518434, InfantryClass_ReceiveDamage_SkipDeathAnim, 7)
 	return AresGarrisonedIn(pThis) ? 0x5185F1 : 0;
 }
 
-void CreateInitialPayload(TechnoClass* const pThis)
-{
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
-
-	if (pExt->PayloadCreated)
-	{
-		return;
-	}
-
-	pExt->PayloadCreated = true;
-
-	auto const pType = pThis->GetTechnoType();
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-
-	auto const pBld = specific_cast<BuildingClass*>(pThis);
-
-	auto freeSlots = (pBld && pBld->Type->CanBeOccupied)
-		? pBld->Type->MaxNumberOccupants - pBld->GetOccupantCount()
-		: pType->Passengers - pThis->Passengers.NumPassengers;
-
-	auto const sizePayloadNum = pTypeExt->InitialPayload_Nums.size();
-	auto const sizePayloadRank = pTypeExt->InitialPayload_Vet.size();
-	auto const sizePyloadAddTeam = pTypeExt->InitialPayload_AddToTransportTeam.size();
-
-	for (auto i = 0u; i < pTypeExt->InitialPayload_Types.size(); ++i)
-	{
-		auto const pPayloadType = pTypeExt->InitialPayload_Types[i];
-
-		if (!pPayloadType)
-		{
-			continue;
-		}
-
-		// buildings and aircraft aren't valid payload, and building payload
-		// can only be infantry
-		auto const absPayload = pPayloadType->WhatAmI();
-		if (absPayload == AbstractType::BuildingType
-			|| absPayload == AbstractType::AircraftType
-			|| (pBld && absPayload != AbstractType::InfantryType))
-		{
-			continue;
-		}
-
-		// if there are no nums, index gets huge and invalid, which means 1
-		auto const idxPayloadNum = std::min(i + 1, sizePayloadNum) - 1;
-		auto const payloadNum = (idxPayloadNum < sizePayloadNum)
-			? pTypeExt->InitialPayload_Nums[idxPayloadNum] : 1;
-
-		auto const rank = idxPayloadNum < sizePayloadRank ?
-			pTypeExt->InitialPayload_Vet[idxPayloadNum] : Rank::Invalid;
-
-		auto const addtoteam = idxPayloadNum < sizePyloadAddTeam ? 
-			pTypeExt->InitialPayload_AddToTransportTeam[idxPayloadNum] : false;
-
-		// never fill in more than allowed
-		auto const count = std::min(payloadNum, freeSlots);
-		freeSlots -= count;
-
-		for (auto j = 0; j < count; ++j)
-		{
-			auto const pObject = (TechnoClass*)pPayloadType->CreateObject(pThis->Owner);
-
-			if (!pObject)
-				continue;
-
-			if (rank == Rank::Veteran)
-				pObject->Veterancy.SetVeteran();
-			else if (rank == Rank::Elite)
-				pObject->Veterancy.SetElite();
-
-			if (pBld)
-			{
-				// buildings only allow infantry payload, so this in infantry
-				auto const pPayload = static_cast<InfantryClass*>(pObject);
-
-				if (pBld->Type->CanBeOccupied)
-				{
-					pBld->Occupants.AddItem(pPayload);
-					auto const pCell = pThis->GetCell();
-					AresGarrisonedIn(pPayload) = pBld;
-					pThis->UpdateThreatInCell(pCell);
-				}
-				else
-				{
-					pPayload->Limbo();
-
-					if (pBld->Type->InfantryAbsorb)
-					{
-						pPayload->Absorbed = true;
-
-						if (pPayload->CountedAsOwnedSpecial)
-						{
-							--pPayload->Owner->OwnedInfantry;
-							pPayload->CountedAsOwnedSpecial = false;
-						}
-
-						if (pBld->Type->ExtraPowerBonus > 0)
-						{
-							pBld->Owner->RecheckPower = true;
-						}
-					}
-					else
-					{
-						pPayload->SendCommand(RadioCommand::RequestLink, pBld);
-					}
-
-					pBld->Passengers.AddPassenger(pPayload);
-					pPayload->AbortMotion();
-				}
-
-			}
-			else
-			{
-				auto const pPayload = static_cast<FootClass*>(pObject);
-				pPayload->SetLocation(pThis->Location);
-				pPayload->Limbo();
-
-				if (pType->OpenTopped) {
-					pThis->EnteredOpenTopped(pPayload);
-				}
-
-				pPayload->Transporter = pThis;
-
-				auto const old = std::exchange(VocClass::VoicesEnabled(), false);
-				pThis->AddPassenger(pPayload);
-				VocClass::VoicesEnabled = old;
-
-				if(addtoteam) {
-					if (auto pTeam = ((FootClass*)pThis)->Team)
-						pTeam->AddMember(pPayload, true);
-				}
-			}
-		}
-	}
-}
-
 DEFINE_OVERRIDE_HOOK(0x446EE2, BuildingClass_Place_InitialPayload, 6)
 {
 	GET(BuildingClass* const, pThis, EBP);
-	CreateInitialPayload(pThis);
+	TechnoExt::ExtMap.Find(pThis)->CreateInitialPayload();
 	return 0;
 }
 
@@ -2844,7 +2717,7 @@ DEFINE_OVERRIDE_HOOK(0x4D718C, FootClass_Put_InitialPayload, 6)
 
 	if (pThis->WhatAmI() != AbstractType::Infantry)
 	{
-		CreateInitialPayload(pThis);
+		TechnoExt::ExtMap.Find(pThis)->CreateInitialPayload();
 	}
 
 	return 0;
@@ -3835,15 +3708,6 @@ bool ScriptExt_Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bTh
 //	return ScriptExt_Handle(pThis, pTeamMission, bThirdArg)
 //		? ReturnFunc : Continue;
 //}
-
-DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
-{
-	GET(TeamClass*, pThis, ECX);
-	GET_STACK(ScriptActionNode*, pTeamMission, 0x4);
-	GET_STACK(bool, barg3, 0x8);
-	AresData::FireIronCurtain(pThis, pTeamMission, barg3);
-	return 0x6EFE4F;
-}
 
 DEFINE_OVERRIDE_HOOK(0x413FD2, AircraftClass_Init_Academy, 6)
 {

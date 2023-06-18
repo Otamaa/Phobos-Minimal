@@ -89,7 +89,7 @@ public:
 
 	virtual std::vector<const char*> GetTypeString() const { return {}; }
 	virtual bool HandleThisType(SuperWeaponType type) const { return false; }
-	virtual SuperWeaponFlags Flags() const { return SuperWeaponFlags::NoEvent; }
+	virtual SuperWeaponFlags Flags() const { return SuperWeaponFlags::None; }
 
 	virtual bool CanFireAt(TargetingData const& data, CellStruct const& cell, bool manual) const;
 
@@ -97,18 +97,33 @@ public:
 	virtual void Deactivate(SuperClass* pThis, CellStruct cell, bool isPlayer) { }
 	virtual bool AbortFire(SuperClass* pSW, bool IsPlayer) { return false; }
 
-	virtual void Initialize(SWTypeExt::ExtData* pData) = 0;
+	virtual void Initialize(SWTypeExt::ExtData* pData) { }
 	virtual void LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI) { }
-	virtual bool IsLaunchSite(SWTypeExt::ExtData* pSWType, BuildingClass* pBuilding) const;
-	virtual std::pair<double, double> GetLaunchSiteRange(SWTypeExt::ExtData* pSWType, BuildingClass* pBuilding = nullptr) const;
+	virtual bool IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const;
+	virtual std::pair<double, double> GetLaunchSiteRange(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding = nullptr) const;
+
+	virtual bool IsDesignator(const SWTypeExt::ExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const;
+	virtual bool IsInhibitor(const SWTypeExt::ExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const;
 
 	virtual SWRange GetRange(const SWTypeExt::ExtData* pData) const;
-	virtual WarheadTypeClass* GetWarhead(const SWTypeExt::ExtData* pData) const { return nullptr; }
-	virtual AnimTypeClass* GetAnim(const SWTypeExt::ExtData* pData) const { return nullptr; }
-	virtual int GetSound(const SWTypeExt::ExtData* pData) const { return -1; }
-	virtual int GetDamage(const SWTypeExt::ExtData* pData) const { return 0; }
+	virtual WarheadTypeClass* GetWarhead(const SWTypeExt::ExtData* pData) const;
+	virtual AnimTypeClass* GetAnim(const SWTypeExt::ExtData* pData) const;
+	virtual int GetSound(const SWTypeExt::ExtData* pData) const;
+	virtual int GetDamage(const SWTypeExt::ExtData* pData) const;
 
-	/*virtual AresNewSuperType GetTypeIndex() const { return this->TypeIndex; }*/
+public:
+
+	bool HasDesignator(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords) const;
+	bool IsDesignatorEligible(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno) const;
+	bool HasInhibitor(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords) const;
+	bool IsInhibitorEligible(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno) const;
+
+	bool IsLaunchSiteEligible(SWTypeExt::ExtData* pSWType, const CellStruct& Coords, BuildingClass* pBuilding, bool ignoreRange) const;
+	bool HasLaunchSite(SWTypeExt::ExtData* pSWType, HouseClass* pOwner, const CellStruct& Coords) const;
+
+	std::unique_ptr<const TargetingData> GetTargetingData(SWTypeExt::ExtData* pData, HouseClass* pOwner) const;
+	bool CanFireAt(SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& cell, bool manual) const;
+
 public:
 	// static methods
 	static void Init();
@@ -119,4 +134,5 @@ public:
 	static SuperWeaponType GetHandledType(SuperWeaponType nType);
 	static NewSWType* GetNewSWType(const SWTypeExt::ExtData* pData);
 	static SuperWeaponType FindFromTypeID(const char* pType);
+
 };

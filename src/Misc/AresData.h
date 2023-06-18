@@ -11,6 +11,8 @@
 #include <CoordStruct.h>
 #include <ScriptActionNode.h>
 
+#include <Utilities/Enum.h>
+
 class AbstractClass;
 class TechnoClass;
 class TechnoTypeClass;
@@ -20,6 +22,7 @@ class BuildingTypeClass;
 class InfantryClass;
 class HouseClass;
 class SuperClass;
+class SuperWeaponTypeClass;
 struct VoxelStruct;
 class ConvertClass;
 class BulletTypeClass;
@@ -129,7 +132,9 @@ struct EMPulse
 #define AltOccupy_HasValue(techno)  (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0x9A)) 
 #define AltOccupy_Value(techno)  (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0x99)) 
 
-#define EMPulseTarget(techno) (*(AbstractClass*)(((char*)GetAresTechnoExt(techno)) + 0xA4))
+#define EMPulseTarget(techno) (*(AbstractClass**)(((char*)GetAresTechnoExt(techno)) + 0xA4))
+#define AttachedSuperWeapon(techno) (*(SuperClass**)(((char*)GetAresTechnoExt(techno)) + 0xA0))
+#define GetCloakSkipTimer(techno) (*(CDTimerClass*)(((char*)GetAresTechnoExt(techno)) + 0x44))
 
 // HouseExt
 #define Is_NavalYardSpied(var) (*(bool*)((char*)GetAresHouseExt(var) + 0x48))
@@ -138,6 +143,7 @@ struct EMPulse
 #define RadarPresist(var) (*(IndexBitfield<HouseClass*>*)((char*)GetAresHouseExt(var) + 0x44))
 #define StolenTechnoType(var) (*(std::bitset<32>*)((char*)GetAresHouseExt(var) + 0x40))
 #define AuxPower(var) (*(int*)((char*)GetAresHouseExt(var) + 0xC))
+#define BatteryCount(var) (*(int*)((char*)GetAresHouseExt(var) + 0x10))
 #define KeepAlivesCount(var) (*(int*)((char*)GetAresHouseExt(var) + 0x18))
 #define KeepAlivesBuildingCount(var) (*(int*)((char*)GetAresHouseExt(var) + 0x1C))
 
@@ -178,6 +184,7 @@ enum class NewFactoryState
 	Available_Primary = 4 // Ares 3.0
 };
 
+
 struct AresFactoryStateRet
 {
 	NewFactoryState state;
@@ -193,7 +200,7 @@ struct AresData
 	static DWORD AresMemAllocAddrFinal;
 
 	//number of static instance
-	static constexpr int AresStaticInstanceCount = 5;
+	static constexpr int AresStaticInstanceCount = 9;
 	//number of call for `CustomPalette::ReadFromINI`
 	static constexpr int AresCustomPaletteReadCount = 5;
 
@@ -261,6 +268,9 @@ struct AresData
 	static void RespondToFirewall(HouseClass* pHouse, bool Active);
 	static int RequirementsMet(HouseClass* pHouse , TechnoTypeClass* pTech);
 	static void UpdateAcademy(HouseClass* pThis, TechnoClass* pTechno, bool bAdded);
+
+	static void* Ares_SWType_ExtMap_Find(SuperWeaponTypeClass* pType);
+	static void SetSWMouseCursorAction(size_t CursorIdx, bool bShrouded, int nAction);
 };
 
 namespace AresMemory
@@ -379,9 +389,9 @@ struct AresDTORCaller
 	}
 };
 
-#define Debug_bTrackParseErrors (*((bool*)(AresData::AresStaticInstanceFinal[2])))
-#define ActiveSFW (*((SuperClass**)(AresData::AresStaticInstanceFinal[3])))
-#define EvaTypes (*((std::vector<const char*, AresMemory::AresAllocator<const char*>>*)(AresData::AresStaticInstanceFinal[4])))
+#define Debug_bTrackParseErrors (*((bool*)(AresData::AresStaticInstanceFinal[3])))
+#define ActiveSFW (*((SuperClass**)(AresData::AresStaticInstanceFinal[4])))
+#define EvaTypes (*((std::vector<const char*, AresMemory::AresAllocator<const char*>>*)(AresData::AresStaticInstanceFinal[5])))
 #define PoweredUnitUptr(techno) (*(PoweredUnitClass**)(((char*)GetAresTechnoExt(techno)) + 0x1C))
 #define RadarJammerUptr(techno) (*(JammerClass**)(((char*)GetAresTechnoExt(techno)) + 0x18))
 #define RegisteredJammers(techno) (*(PhobosMap<TechnoClass*, bool, AresMemory::AresAllocator<std::pair<TechnoClass*,bool>>>*)(((char*)GetAresBuildingExt(techno)) + 0x40))
@@ -391,3 +401,6 @@ struct AresDTORCaller
 #define ReverseEngineeredTechnoType(var) (*(std::vector<TechnoTypeClass*,AresMemory::AresAllocator<TechnoTypeClass*>>*)((char*)GetAresHouseExt(var) + 0x34))
 #define VeteranBuildings(var) (*(std::vector<BuildingTypeClass*,AresMemory::AresAllocator<BuildingTypeClass*>>*)((char*)GetAresHouseTypeExt(var) + 0x15C))
 #define OverpoweredBuildingType(var) (*(std::vector<BuildingTypeClass*,AresMemory::AresAllocator<BuildingTypeClass*>>*)((char*)GetAresHouseExt(var) + 0x7C))
+//#define GetDefaultTargetingArrayValue() (*((std::array<const AITargetingModeInfo , (size_t)SuperWeaponAITargetingMode::count>*)(AresData::AresStaticInstanceFinal[6])))
+#define SW_Firewall_Type (*((SuperWeaponType*)(AresData::AresStaticInstanceFinal[7])))
+#define Ares_CurrentSWType (*((SuperWeaponTypeClass**)(AresData::AresStaticInstanceFinal[8])))

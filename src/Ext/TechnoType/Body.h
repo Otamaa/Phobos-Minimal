@@ -91,7 +91,8 @@ public:
 		Valueable<bool> Interceptor_OnlyTargetBullet;
 
 		Nullable<PartialVector3D<int>> TurretOffset;
-		Valueable<bool> TurretShadow;
+		Nullable<bool> TurretShadow;
+		ValueableVector<int> ShadowIndices;
 		Valueable<bool> Powered_KillSpawns;
 		Valueable<bool> Spawn_LimitedRange;
 		Valueable<int> Spawn_LimitedExtraRange;
@@ -717,6 +718,7 @@ public:
 		Nullable<int> HunterSeekerAscentSpeed;
 		Nullable<int> HunterSeekerDescentSpeed;
 		Nullable<int> HunterSeekerEmergeSpeed;
+		Valueable<bool> HunterSeekerIgnore { false };
 
 		Valueable<bool> CanPassiveAcquire_Guard;
 		Valueable<bool> CanPassiveAcquire_Cloak;
@@ -724,6 +726,10 @@ public:
 		Valueable<bool> CrashSpin;
 		Valueable<int> AirRate;
 		Nullable<bool> Unsellable;
+
+		Nullable<AffectedHouse> CreateSound_afect;
+		Valueable<bool> Chronoshift_Allow;
+		Valueable<bool> Chronoshift_IsVehicle;
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, HealthBar_Hide { false }
@@ -755,7 +761,8 @@ public:
 			, Interceptor_ConsiderWeaponRange { false }
 			, Interceptor_OnlyTargetBullet { false }
 			, TurretOffset {}
-			, TurretShadow { true }
+			, TurretShadow { }
+			, ShadowIndices { }
 			, Powered_KillSpawns { false }
 			, Spawn_LimitedRange { false }
 			, Spawn_LimitedExtraRange { 0 }
@@ -1267,6 +1274,9 @@ public:
 			, CrashSpin { true }
 			, AirRate { 0 }
 			, Unsellable { }
+			, CreateSound_afect { }
+			, Chronoshift_Allow { true }
+			, Chronoshift_IsVehicle { false }
 		{ }
 
 		virtual ~ExtData() override = default;

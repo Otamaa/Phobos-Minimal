@@ -7,20 +7,22 @@ class SuperWeaponTypeClass;
 struct LauchSWData final
 {
 	int LaunchWhat;
-	bool LaunchWaitcharge;
-	bool LaunchResetCharge;
-	bool LaunchGrant;
-	bool LaunchGrant_RepaintSidebar;
-	bool LaunchGrant_OneTime;
-	bool LaunchGrant_OnHold;
-	bool LaunchSW_Manual;
-	bool LaunchSW_IgnoreInhibitors;
-	bool LaunchSW_IgnoreDesignators;
-	bool LauchSW_IgnoreMoney;
+	Valueable<bool> LaunchWaitcharge;
+	Valueable<bool> LaunchResetCharge;
+	Valueable<bool> LaunchGrant;
+	Valueable<bool> LaunchGrant_RepaintSidebar;
+	Valueable<bool> LaunchGrant_OneTime;
+	Valueable<bool> LaunchGrant_OnHold;
+	Valueable<bool> LaunchSW_Manual;
+	Valueable<bool> LaunchSW_IgnoreInhibitors;
+	Valueable<bool> LaunchSW_IgnoreDesignators;
+	Valueable<bool> LauchSW_IgnoreMoney;
 
-	bool LaunchSW_DisplayMoney;
-	AffectedHouse LaunchSW_DisplayMoney_Houses;
-	Point2D LaunchSW_DisplayMoney_Offset;
+	Valueable<bool> LaunchSW_DisplayMoney;
+	Valueable<AffectedHouse> LaunchSW_DisplayMoney_Houses;
+	Valueable<Point2D> LaunchSW_DisplayMoney_Offset;
+
+	Valueable<OwnerHouseKind> LauchhSW_Owner;
 
 	bool Read(INI_EX& exINI, const char* pID, int Prefix , SuperWeaponTypeClass* pReaded);
 
@@ -38,7 +40,8 @@ struct LauchSWData final
 
 		, LaunchSW_DisplayMoney { false }
 		, LaunchSW_DisplayMoney_Houses { AffectedHouse::All }
-		, LaunchSW_DisplayMoney_Offset {  0 , 0  }
+		, LaunchSW_DisplayMoney_Offset { {  0 , 0  } }
+		, LauchhSW_Owner { OwnerHouseKind::Invoker }
 	{ }
 
 	virtual ~LauchSWData() = default;

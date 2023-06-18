@@ -63,7 +63,7 @@ enum class SuperWeaponTarget : unsigned char
 };
 MAKE_ENUM_FLAGS(SuperWeaponTarget);
 
-enum class TargetingConstraint : int
+enum class TargetingConstraint : size_t
 {
 	None = 0x0,
 	OffensiveCellClear = 0x1,
@@ -74,7 +74,7 @@ enum class TargetingConstraint : int
 	Attacked = 0x20,
 	LowPower = 0x40,
 	OffensiveCellSet = 0x80,
-	DefensiveCellSet = 0x0100,
+	DefensiveCellSet = 0x100,
 };
 MAKE_ENUM_FLAGS(TargetingConstraint);
 
@@ -324,6 +324,12 @@ enum class AffectedHouse : unsigned char {
 
 MAKE_ENUM_FLAGS(AffectedHouse);
 
+enum class AffectPlayerType : unsigned char
+{
+	None = 0x0 , Computer , Player  , Observer
+};
+MAKE_ENUM_FLAGS(AffectPlayerType);
+
 enum class OwnerHouseKind : int {
 	Default = 0,
 	Invoker = 1,
@@ -335,10 +341,12 @@ enum class OwnerHouseKind : int {
 	Random = 7
 };
 
+// this flag is used to disable certain features that already handled when superweapon Lauched at SWTypeExt !
 enum class SuperWeaponFlags : unsigned short {
 	None = 0x0,
 	NoAnim = 0x1,
 	NoSound = 0x2,
+	NoPower = 0x3,
 	NoEvent = 0x4,
 	NoEVA = 0x8,
 	NoMoney = 0x10,

@@ -282,6 +282,8 @@ public:
 		Valueable<bool> InflictLocomotor;
 		Valueable<bool> RemoveInflictedLocomotor;
 
+		Nullable<int> Rocker_Damage;
+
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		PhobosMap<int, DamageTextTypeData> DamageTextPerArmor;
 #endif
@@ -515,6 +517,7 @@ public:
 
 			, InflictLocomotor { false }
 			, RemoveInflictedLocomotor { false }
+			, Rocker_Damage { }
 #ifdef COMPILE_PORTED_DP_FEATURES_
 			,DamageTextPerArmor { }
 

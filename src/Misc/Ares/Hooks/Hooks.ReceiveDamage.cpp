@@ -761,13 +761,8 @@ DEFINE_OVERRIDE_HOOK(0x702200, TechnoClass_ReceiveDamage_SpillTiberium, 6)
 			// get the spill center
 			CoordStruct crd = pThis->GetCoords();
 			CellClass* pCenter = MapClass::Instance->GetCellAt(crd);
-			static constexpr unsigned int Neighbours[] = {
-				9, 0, 2, 0, 0,
-				0, 7, 0, 0, 0,
-				1, 0, 0, 0, 4,
-				0, 0, 3, 0, 0,
-				0, 0, 5, 0, 0,
-				0, 6, 0, 0, 0
+			static constexpr size_t Neighbours[] = {
+				9, 2, 7, 1, 4, 3, 0, 5, 6
 			};
 
 			for (auto const& neighbour : Neighbours)

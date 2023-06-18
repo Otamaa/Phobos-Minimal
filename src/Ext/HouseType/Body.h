@@ -22,6 +22,11 @@ public:
 		Nullable<InfantryTypeClass*> Engineer;
 		Nullable<InfantryTypeClass*> Technician;
 		Valueable<AircraftTypeClass*> ParaDropPlane;
+		Nullable<AircraftTypeClass*> SpyPlane;
+		Nullable<UnitTypeClass*> HunterSeeker;
+
+		ValueableVector<TechnoTypeClass*> ParaDropTypes { };
+		ValueableVector<int> ParaDropNum { };
 
 		Nullable<int> NewTeamsSelector_MergeUnclassifiedCategoryWith;
 		Nullable<double> NewTeamsSelector_UnclassifiedCategoryPercentage;
@@ -37,6 +42,7 @@ public:
 			, Engineer { }
 			, Technician { }
 			, ParaDropPlane { nullptr }
+			, HunterSeeker { }
 
 			, NewTeamsSelector_MergeUnclassifiedCategoryWith { }
 			, NewTeamsSelector_UnclassifiedCategoryPercentage { }

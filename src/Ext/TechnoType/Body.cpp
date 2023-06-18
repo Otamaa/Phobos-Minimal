@@ -870,6 +870,10 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->CrashSpin.Read(exINI, pSection, "CrashSpin");
 		this->AirRate.Read(exINI, pSection, "AirRate");
 		this->Unsellable.Read(exINI, pSection, "Unsellable");
+		this->CreateSound_afect.Read(exINI, pSection, "CreateSound.AffectOwner");
+
+		this->Chronoshift_Allow.Read(exINI, pSection, "Chronoshift.Allow");
+		this->Chronoshift_IsVehicle.Read(exINI, pSection, "Chronoshift.IsVehicle");
 
 		if (Is_AircraftType(pThis))
 		{
@@ -919,6 +923,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 			this->HunterSeekerAscentSpeed.Read(exINI, pSection, "HunterSeeker.AscentSpeed");
 			this->HunterSeekerDescentSpeed.Read(exINI, pSection, "HunterSeeker.DescentSpeed");
 			this->HunterSeekerEmergeSpeed.Read(exINI, pSection, "HunterSeeker.EmergeSpeed");
+			this->HunterSeekerIgnore.Read(exINI, pSection, "HunterSeeker.Ignore");
 
 			this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
 			this->MyDiveData.Read(exINI, pSection);
@@ -942,6 +947,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		}
 
 		this->TurretShadow.Read(exArtINI, pArtSection, "TurretShadow");
+		this->ShadowIndices.Read(exArtINI, pArtSection, "ShadowIndices");
 
 		char tempBuffer[0x40];
 		char HitCoord_tempBuffer[0x20];
@@ -1205,6 +1211,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DesignatorRange)
 		.Process(this->TurretOffset)
 		.Process(this->TurretShadow)
+		.Process(this->ShadowIndices)
 		.Process(this->Powered_KillSpawns)
 		.Process(this->Spawn_LimitedRange)
 		.Process(this->Spawn_LimitedExtraRange)
@@ -1689,11 +1696,15 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->HunterSeekerAscentSpeed)
 		.Process(this->HunterSeekerDescentSpeed)
 		.Process(this->HunterSeekerEmergeSpeed)
+		.Process(this->HunterSeekerIgnore)
 		.Process(this->CanPassiveAcquire_Guard)
 		.Process(this->CanPassiveAcquire_Cloak)
 		.Process(this->CrashSpin)
 		.Process(this->AirRate)
 		.Process(this->Unsellable)
+		.Process(this->CreateSound_afect)
+		.Process(this->Chronoshift_Allow)
+		.Process(this->Chronoshift_IsVehicle)
 #pragma endregion
 		;
 

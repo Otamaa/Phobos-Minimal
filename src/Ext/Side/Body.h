@@ -43,6 +43,11 @@ public:
 		Nullable<InfantryTypeClass*> Engineer;
 		Nullable<InfantryTypeClass*> Technician;
 		ValueableIdx<AircraftTypeClass> ParaDropPlane;
+		Nullable<AircraftTypeClass*> SpyPlane;
+		Valueable<UnitTypeClass*> HunterSeeker;
+
+		NullableVector<TechnoTypeClass*> ParaDropTypes{ };
+		NullableVector<int> ParaDropNum { };
 
 		ExtData(SideClass* OwnerObject) : Extension<SideClass>(OwnerObject)
 			, ArrayIndex { -1 }
@@ -73,6 +78,8 @@ public:
 			, Engineer { }
 			, Technician{ }
 			, ParaDropPlane { -1 }
+
+			, HunterSeeker { }
 		{ }
 
 		virtual ~ExtData() override = default;
@@ -89,6 +96,14 @@ public:
 		InfantryTypeClass* GetDefaultCrew() const;
 		InfantryTypeClass* GetEngineer() const;
 		InfantryTypeClass* GetTechnician() const;
+
+		UnitTypeClass* GetHunterSeeker() const;
+
+		Iterator<TechnoTypeClass*> GetParaDropTypes() const;
+		Iterator<InfantryTypeClass*> GetDefaultParaDropTypes() const;
+
+		Iterator<int> GetParaDropNum() const;
+		Iterator<int> GetDefaultParaDropNum() const;
 
 	private:
 		template <typename T>

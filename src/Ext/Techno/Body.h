@@ -223,6 +223,7 @@ public:
 		void UpdateAircraftOpentopped();
 
 		bool IsInterceptor();
+		void CreateInitialPayload();
 private:
 		template <typename T>
 		void Serialize(T& Stm);
@@ -251,7 +252,7 @@ private:
 	static bool IsOnLimbo(TechnoClass* pThis, bool bIgnore);
 	static bool IsDeactivated(TechnoClass* pThis, bool bIgnore);
 	static bool IsUnderEMP(TechnoClass* pThis, bool bIgnore);
-
+	
 	static int GetSizeLeft(FootClass* const pThis);
 	static void Stop(TechnoClass* pThis, Mission const& eMission = Mission::Guard);
 	static bool IsHarvesting(TechnoClass* pThis);
@@ -330,6 +331,7 @@ private:
 	static bool IsAbductorImmune(TechnoClass* pThis);
 	static bool IsAssaulter(InfantryClass* pThis);
 	static bool IsParasiteImmune(TechnoClass* pThis);
+	static bool IsUnwarpable(TechnoClass* pThis);
 
 	static bool HasAbility(TechnoClass* pThis , PhobosAbilityType nType);
 	static bool HasImmunity(TechnoClass* pThis, int nType);
@@ -346,6 +348,7 @@ private:
 	static bool IsAbductorImmune(Rank vet, TechnoClass* pThis);
 	static bool IsAssaulter(Rank vet, InfantryClass* pThis);
 	static bool IsParasiteImmune(Rank vet, TechnoClass* pThis);
+	static bool IsUnwarpable(Rank vet, TechnoClass* pThis);
 
 	static bool HasAbility(Rank vet , TechnoClass* pThis, PhobosAbilityType nType);
 	static bool HasImmunity(Rank vet, TechnoClass* pThis, int nType);
@@ -375,4 +378,8 @@ private:
 	static bool ConvertToType(FootClass* pThis, TechnoTypeClass* toType);
 	static bool IsEligibleSize(TechnoClass* pThis, TechnoClass* pPassanger);
 	static bool IsAbductable(TechnoClass* pThis, WeaponTypeClass* pWeapon, FootClass* pFoot);
+
+	static void SendPlane(size_t Aircraft, size_t Amount , HouseClass* pOwner, Rank SendRank, Mission SendMission, AbstractClass* pTarget, AbstractClass* pDest);
+	static bool CreateWithDroppod(FootClass* Object, const CoordStruct& XYZ);
+
 };

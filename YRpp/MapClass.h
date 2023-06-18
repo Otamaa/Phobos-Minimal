@@ -186,6 +186,9 @@ class NOVTABLE MapClass : public GScreenClass
 {
 public:
 	//Static
+	static constexpr reference<short, 0x87F914u> const MapCellWidth{};
+	static constexpr reference<short, 0x87F918u> const MapCellHeight{};
+
 	static constexpr constant_ptr<MapClass, 0x87F7E8u> const Instance{};
 	static constexpr reference<CellClass, 0xABDC50u> const InvalidCell{};
 	static constexpr reference<LogicClass, 0x87F778u> const Logics{};

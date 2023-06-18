@@ -1,6 +1,7 @@
 #include "Body.h"
 
 #include <Utilities/GeneralUtils.h>
+#include <Utilities/Helpers.h>
 
 void HouseTypeExt::ExtData::InheritSettings(HouseTypeClass* pThis)
 {
@@ -11,6 +12,10 @@ void HouseTypeExt::ExtData::InheritSettings(HouseTypeClass* pThis)
 			this->Engineer = ParentData->Engineer;
 			this->Technician = ParentData->Technician;
 			this->ParaDropPlane = ParentData->ParaDropPlane;
+			this->SpyPlane = ParentData->SpyPlane;
+			this->HunterSeeker = ParentData->HunterSeeker;
+			this->ParaDropTypes = ParentData->ParaDropTypes;
+			this->ParaDropNum = ParentData->ParaDropNum;
 		}
 	}
 
@@ -38,6 +43,14 @@ void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr
 	this->Engineer.Read(exINI, pSection, "Engineer", true);
 	this->Technician.Read(exINI, pSection, "Technician", true);
 	this->ParaDropPlane.Read(exINI, pSection, "ParaDrop.Aircraft" , true);
+	this->HunterSeeker.Read(exINI, pSection, "HunterSeeker", true);
+	this->SpyPlane.Read(exINI, pSection, "SpyPlane.Aircraft", true);
+	this->ParaDropTypes.Read(exINI, pSection, "ParaDrop.Types");
+
+	// remove all types that cannot paradrop
+	Helpers::Alex::remove_non_paradroppables(this->ParaDropTypes, pSection, "ParaDrop.Types");
+
+	this->ParaDropNum.Read(exINI, pSection, "ParaDrop.Num");
 
 	// Disabled atm
 	this->NewTeamsSelector_MergeUnclassifiedCategoryWith.Read(exINI, pSection, "NewTeamsSelector.MergeUnclassifiedCategoryWith");
@@ -60,6 +73,10 @@ void  HouseTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Engineer)
 		.Process(this->Technician)
 		.Process(this->ParaDropPlane)
+		.Process(this->SpyPlane)
+		.Process(this->HunterSeeker)
+		.Process(this->ParaDropTypes)
+		.Process(this->ParaDropNum)
 
 		.Process(this->NewTeamsSelector_MergeUnclassifiedCategoryWith)
 		.Process(this->NewTeamsSelector_UnclassifiedCategoryPercentage)

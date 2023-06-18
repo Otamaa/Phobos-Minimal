@@ -515,7 +515,7 @@ bool NOINLINE Warpable(TechnoClass* pTarget)
 	if (!pTarget || pTarget->IsSinking || pTarget->IsCrashing || pTarget->IsIronCurtained())
 		return false;
 
-	if (TechnoExt::HasAbility(pTarget, PhobosAbilityType::Unwarpable))
+	if (TechnoExt::IsUnwarpable(pTarget))
 		return false;
 
 	if (Is_Building(pTarget))

@@ -6,6 +6,7 @@ class SW_Battery : public NewSWType
 {
 public:
 	virtual std::vector<const char*> GetTypeString() const override;
+	virtual SuperWeaponFlags Flags() const;
 
 	virtual bool Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer) override;
 	virtual void Deactivate(SuperClass* pSW, CellStruct cell, bool isPlayer) override;

@@ -13,9 +13,13 @@ public:
 	virtual void Initialize(SWTypeExt::ExtData* pData) override;
 	virtual void LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI) override;
 
-	virtual bool IsLaunchSite(SWTypeExt::ExtData* pSWType, BuildingClass* pBuilding) const override;
+	virtual bool IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const override;
 
 	virtual WarheadTypeClass* GetWarhead(const SWTypeExt::ExtData* pData) const override;
 	virtual int GetDamage(const SWTypeExt::ExtData* pData) const override;
 
+	static SuperClass* CurrentNukeType;
+
+public:
+	static WeaponTypeClass* GetNukePayload(SuperWeaponTypeClass* pSuper);
 };

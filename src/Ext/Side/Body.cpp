@@ -1,6 +1,7 @@
 #include "Body.h"
 
 #include <ThemeClass.h>
+#include <Utilities/Helpers.h>
 
 void SideExt::ExtData::Initialize()
 {
@@ -69,6 +70,60 @@ InfantryTypeClass* SideExt::ExtData::GetTechnician() const
 	return this->Technician.Get(RulesClass::Instance->Technician);
 }
 
+UnitTypeClass* SideExt::ExtData::GetHunterSeeker() const
+{
+	return this->HunterSeeker.Get();
+}
+
+Iterator<TechnoTypeClass*> SideExt::ExtData::GetParaDropTypes() const
+{
+	if (this->ParaDropTypes.HasValue() && this->ParaDropNum.HasValue())
+	{
+		return this->ParaDropTypes;
+	}
+
+	return this->GetDefaultParaDropTypes();
+}
+
+Iterator<InfantryTypeClass*> SideExt::ExtData::GetDefaultParaDropTypes() const
+{
+
+	switch (this->ArrayIndex)
+	{
+	case 1:
+		return RulesClass::Instance->SovParaDropInf;
+	case 2:
+		return RulesClass::Instance->YuriParaDropInf;
+	}
+
+	//return SovParaDropInf would be correct, but Ares < 0.6 does this:
+	return RulesClass::Instance->AllyParaDropInf;
+}
+
+Iterator<int> SideExt::ExtData::GetDefaultParaDropNum() const
+{
+	switch (this->ArrayIndex)
+	{
+	case 1:
+		return RulesClass::Instance->SovParaDropNum;
+	case 2:
+		return RulesClass::Instance->YuriParaDropNum;
+	}
+
+	//return SovParaDropNum would be correct, but Ares < 0.6 does this:
+	return RulesClass::Instance->AllyParaDropNum;
+}
+Iterator<int> SideExt::ExtData::GetParaDropNum() const
+{
+	if (this->ParaDropTypes.HasValue() && this->ParaDropNum.HasValue())
+	{
+		return this->ParaDropNum;
+	}
+
+	return this->GetDefaultParaDropNum();
+}
+
+
 void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->Get();
@@ -105,6 +160,15 @@ void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Engineer.Read(exINI, pSection, "Engineer", true);
 	this->Technician.Read(exINI, pSection, "Technician", true);
 	this->ParaDropPlane.Read(exINI, pSection, "ParaDrop.Aircraft");
+	this->SpyPlane.Read(exINI, pSection, "SpyPlane.Aircraft" , true);
+	this->HunterSeeker.Read(exINI, pSection, "HunterSeeker", true);
+
+	this->ParaDropTypes.Read(exINI, pSection, "ParaDrop.Types");
+
+	// remove all types that cannot paradrop
+	Helpers::Alex::remove_non_paradroppables(this->ParaDropTypes, pSection, "ParaDrop.Types");
+
+	this->ParaDropNum.Read(exINI, pSection, "ParaDrop.Num");
 }
 
 // =============================
@@ -146,6 +210,11 @@ void SideExt::ExtData::Serialize(T& Stm)
 		.Process(this->Engineer)
 		.Process(this->Technician)
 		.Process(this->ParaDropPlane)
+		.Process(this->SpyPlane)
+		.Process(this->HunterSeeker)
+
+		.Process(this->ParaDropTypes)
+		.Process(this->ParaDropNum)
 		;
 }
 

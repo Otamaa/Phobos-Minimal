@@ -655,6 +655,9 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->GateDownSound.Read(exINI, pSection, "GateDownSound");
 		this->GateUpSound.Read(exINI, pSection, "GateUpSound");
 		this->UnitSell.Read(exINI, pSection, "UnitSell");
+
+		this->LightningRod_Modifier.Read(exINI, pSection, "LightningRod.Modifier");
+
 	}
 #pragma endregion
 
@@ -856,6 +859,7 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->GateDownSound)
 		.Process(this->GateUpSound)
 		.Process(this->UnitSell)
+		.Process(this->LightningRod_Modifier)
 		;
 }
 

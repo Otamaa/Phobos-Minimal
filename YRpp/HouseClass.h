@@ -956,6 +956,17 @@ public:
 	double GetHouseCostMult(TechnoTypeClass* pType) const
 		{ JMP_THIS(0x50BEB0); }
 
+	CellStruct* RandomCellInZone(CellStruct* pResult, ZoneType zone) const {
+		JMP_THIS(0x501AC0);
+	}
+
+	CellStruct RandomCellInZone(ZoneType zone) const
+	{
+		CellStruct nBuffer;
+		RandomCellInZone(&nBuffer, zone);
+		return nBuffer;
+	}
+
 	//Constructor
 	HouseClass(HouseTypeClass* pCountry) noexcept
 		: HouseClass(noinit_t())

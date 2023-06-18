@@ -97,6 +97,7 @@
     <ClCompile Include="src\Ext\Super\Body.cpp" />
     <ClCompile Include="src\Ext\Surface\Body.cpp" />
     <ClCompile Include="src\Ext\SWType\Hook.ShortTimer.cpp" />
+    <ClCompile Include="src\Ext\SWType\Hooks.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\Battery.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\ChronoSphere.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\ChronoWarp.cpp" />
@@ -208,6 +209,7 @@
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Misc\Hooks.YRPatches.cpp" />
+    <ClCompile Include="src\Misc\MapRevealer.cpp" />
     <ClCompile Include="src\Misc\PhobosGlobal.cpp" />
     <ClCompile Include="src\New\Interfaces\Base.cpp" />
     <ClCompile Include="src\New\Interfaces\TestLocomotionClass.cpp" />
@@ -454,6 +456,7 @@
     <ClInclude Include="src\Misc\DynamicPatcher\Weapon\AttachFireData.h" />
     <ClInclude Include="src\Misc\Hooks.Otamaa.h" />
     <ClInclude Include="src\Misc\Locomotions.h" />
+    <ClInclude Include="src\Misc\MapRevealer.h" />
     <ClInclude Include="src\Misc\Patches.h" />
     <ClInclude Include="src\Misc\PhobosGlobal.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />

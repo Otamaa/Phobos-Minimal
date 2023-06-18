@@ -1319,3 +1319,15 @@ void TechnoClass::ClearAllTarget()
 		pTemporal->LetGo();
 	}
 }
+
+bool TechnoClass::IsCloaked() const
+{
+	if (this->CloakState == CloakState::Cloaked) {
+		return true;
+	}
+	else if (this->WhatAmI() == AbstractType::Building) {
+		return (reinterpret_cast<const BuildingClass*>(this)->Translucency == 15);
+	}
+
+	return false;
+}

@@ -14,7 +14,7 @@ public:
 	
 	virtual void LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI) override;
 
-	virtual bool IsLaunchSite(SWTypeExt::ExtData* pSWType, BuildingClass* pBuilding) const override;
-	virtual std::pair<double, double> GetLaunchSiteRange(SWTypeExt::ExtData* pSWType, BuildingClass* pBuilding) const override;
+	virtual bool IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const override;
+	virtual std::pair<double, double> GetLaunchSiteRange(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const override;
 
 };

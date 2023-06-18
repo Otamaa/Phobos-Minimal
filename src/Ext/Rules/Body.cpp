@@ -162,13 +162,18 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	this->DropPodTrailer.Read(exINI, GENERAL_SECTION, "DropPodTrailer" , true);
 	this->ElectricDeath.Read(exINI, AUDIOVISUAL_SECTION, "InfantryElectrocuted");
+	this->DropPodTypes.Read(exINI, GENERAL_SECTION, "DropPodTypes");
+	this->DropPodMinimum.Read(exINI, GENERAL_SECTION, "DropPodMinimum");
+	this->DropPodMaximum.Read(exINI, GENERAL_SECTION, "DropPodMaximum");
 
+	this->HunterSeekerBuildings.Read(exINI, SPECIALWEAPON_SECTION, "HSBuilding");
 	this->HunterSeekerDetonateProximity.Read(exINI, GENERAL_SECTION, "HunterSeekerDetonateProximity");
 	this->HunterSeekerDescendProximity.Read(exINI, GENERAL_SECTION, "HunterSeekerDescendProximity");
 	this->HunterSeekerAscentSpeed.Read(exINI, GENERAL_SECTION, "HunterSeekerAscentSpeed");
 	this->HunterSeekerDescentSpeed.Read(exINI, GENERAL_SECTION, "HunterSeekerDescentSpeed");
 	this->HunterSeekerEmergeSpeed.Read(exINI, GENERAL_SECTION, "HunterSeekerEmergeSpeed");
 	this->Units_UnSellable.Read(exINI, GENERAL_SECTION, "UnitsUnsellable");
+	this->DrawTurretShadow.Read(exINI, AUDIOVISUAL_SECTION, "DrawTurretShadow");
 
 	if (pThis->WallTower)
 		this->WallTowers.push_back(pThis->WallTower);
@@ -204,7 +209,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AI_AutoSellHealthRatio.Read(exINI, GENERAL_SECTION, "AI.AutoSellHealthRatio");
 	this->Building_PlacementPreview.Read(exINI, AUDIOVISUAL_SECTION, "ShowBuildingPlacementPreview");
 	this->DisablePathfindFailureLog.Read(exINI, GENERAL_SECTION, "DisablePathfindFailureLog");
-	this->CreateSound_PlayerOnly.Read(exINI, AUDIOVISUAL_SECTION, "CreateSound.PlayerOnly");
+	this->CreateSound_PlayerOnly.Read(exINI, AUDIOVISUAL_SECTION, "CreateSound.AffectOwner");
 	this->DoggiePanicMax.Read(exINI, COMBATDAMAGE_SECTION, "DoggiePanicMax");
 	this->HunterSeeker_Damage.Read(exINI, COMBATDAMAGE_SECTION, "HunterSeekerDamage");
 	this->AutoRepelAI.Read(exINI, COMBATDAMAGE_SECTION, "AutoRepel");
@@ -600,6 +605,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->RepairStopOnInsufficientFunds)
 		.Process(this->DropPodTrailer)
 		.Process(this->ElectricDeath)
+		.Process(this->HunterSeekerBuildings)
 		.Process(this->HunterSeekerDetonateProximity)
 		.Process(this->HunterSeekerDescendProximity)
 		.Process(this->HunterSeekerAscentSpeed)
@@ -607,6 +613,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->HunterSeekerEmergeSpeed)
 
 		.Process(this->Units_UnSellable)
+		.Process(this->DrawTurretShadow)
 
 		.Process(this->BerserkROFMultiplier)
 		.Process(this->TeamRetaliate)
@@ -624,6 +631,10 @@ void RulesExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->EnemyWrench)
 		.Process(this->DefaultParaPlane)
+
+		.Process(this->DropPodTypes)
+		.Process(this->DropPodMinimum)
+		.Process(this->DropPodMaximum)
 		;
 
 	MyPutData.Serialize(Stm);

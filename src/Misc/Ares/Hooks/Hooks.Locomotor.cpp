@@ -8,11 +8,14 @@
 
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
+#include <Misc/AresData.h>
 
+#include <Ext/Building/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
+#include <Ext/SWType/Body.h>
 
 #include <Locomotor/HoverLocomotionClass.h>
 
@@ -212,4 +215,124 @@ DEFINE_OVERRIDE_HOOK(0x4CCB84, FlyLocomotionClass_ILocomotion_Process_HunterSeek
 	}
 
 	return 0;
+}
+
+bool NOINLINE AcquireHunterSeekerTarget(TechnoClass* pThis)  {
+
+	if (!pThis->Target) {
+		std::vector<TechnoClass*> preferredTargets;
+		std::vector<TechnoClass*> randomTargets;
+
+		// defaults if SW isn't set
+		auto pOwner = pThis->GetOwningHouse();
+		SWTypeExt::ExtData* pSWExt = nullptr;
+		auto canPrefer = true;
+
+		// check the hunter seeker SW
+		if (auto const pSuper = AttachedSuperWeapon(pThis)) {
+			pOwner = pSuper->Owner;
+			pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type);
+			canPrefer = !pSWExt->HunterSeeker_RandomOnly;
+		}
+
+		auto const isHumanControlled = pOwner->IsControlledByHuman_();
+		auto const mode = SessionClass::Instance->GameMode;
+
+		// the AI in multiplayer games only attacks its favourite enemy
+		auto const pFavouriteEnemy = HouseClass::Array->GetItemOrDefault(pOwner->EnemyHouseIndex);
+		auto const favouriteEnemyOnly = (mode != GameMode::Campaign
+			&& pFavouriteEnemy && !isHumanControlled);
+
+		for (auto const& i : *TechnoClass::Array) {
+
+			// is the house ok?
+			if (favouriteEnemyOnly) {
+				if (i->Owner != pFavouriteEnemy) {
+					continue;
+				}
+			}
+			else if (!pSWExt && pOwner->IsAlliedWith(i->Owner)) {
+				// default without SW
+				continue;
+			}
+			else if (pSWExt && !pSWExt->IsHouseAffected(pOwner, i->Owner)) {
+				// use SW
+				continue;
+			}
+
+			// techno ineligible
+			if (i->Health < 0 || i->InLimbo || !i->IsAlive) {
+				continue;
+			}
+
+			if(auto pBuilding = specific_cast<BuildingClass*>(i)) {
+				const auto pExt = BuildingExt::ExtMap.Find(pBuilding);
+				if(pExt->LimboID != -1)
+				   continue;
+			}
+
+			// type prevents this being a target
+			auto const pType = i->GetTechnoType();
+			if (pType->Invisible || !pType->LegalTarget) {
+				continue;
+			}
+
+			// is type to be ignored?
+			auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
+			if (pExt->HunterSeekerIgnore) {
+				continue;
+			}
+
+			// harvester truce
+			if (ScenarioClass::Instance->SpecialFlags.StructEd.HarvesterImmune) {
+				if (auto const pUnitType = abstract_cast<UnitTypeClass*>(pType)) {
+					if (pUnitType->Harvester) {
+						continue;
+					}
+				}
+			}
+
+			// allow to exclude certain techno types
+			if (pSWExt && !pSWExt->IsTechnoAffected(i)) {
+				continue;
+			}
+
+			// in multiplayer games, non-civilian targets are preferred
+			// for human players
+			auto const isPreferred = mode != GameMode::Campaign && isHumanControlled
+				&& !i->Owner->Type->MultiplayPassive && canPrefer;
+
+			// add to the right list
+			if (isPreferred) {
+				preferredTargets.push_back(i);
+			}
+			else {
+				randomTargets.push_back(i);
+			}
+		}
+
+		auto const& targets = !preferredTargets.empty() ? preferredTargets : randomTargets;
+
+		if (auto const count = static_cast<int>(targets.size())) {
+			auto const index = ScenarioClass::Instance->Random.RandomFromMax(count - 1);
+			auto const& pTarget = targets[index];
+
+			// that's our target
+			pThis->SetTarget(pTarget);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4CFE80, FlyLocomotionClass_ILocomotion_AcquireHunterSeekerTarget, 5)
+{
+	GET_STACK(ILocomotion* const, pThis, 0x4);
+	auto const pLoco = static_cast<FlyLocomotionClass*>(pThis);
+
+	// replace the entire function
+	AcquireHunterSeekerTarget(pLoco->LinkedTo);
+
+	return 0x4D016F;
 }

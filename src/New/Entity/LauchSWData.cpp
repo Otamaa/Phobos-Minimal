@@ -7,70 +7,49 @@ bool LauchSWData::Read(INI_EX& exINI, const char* pID, int Prefix, SuperWeaponTy
 	char nBuff[0x80];
 	LaunchWhat = pReaded->ArrayIndex;
 
-	Valueable<bool> bool_Dummy { LaunchWaitcharge };
 	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.WaitForCharge", Prefix);
-	bool_Dummy.Read(exINI, pID, nBuff);
-	LaunchWaitcharge = bool_Dummy.Get();
+	LaunchWaitcharge.Read(exINI, pID, nBuff);
 
-	bool_Dummy = LaunchResetCharge;
 	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.ResetCharge", Prefix);
-	bool_Dummy.Read(exINI, pID, nBuff);
-	LaunchResetCharge = bool_Dummy.Get();
+	LaunchResetCharge.Read(exINI, pID, nBuff);
 
-	bool_Dummy = LaunchGrant;
 	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.Grant", Prefix);
-	bool_Dummy.Read(exINI, pID, nBuff);
-	LaunchGrant = bool_Dummy.Get();
+	LaunchGrant.Read(exINI, pID, nBuff);
 
-	bool_Dummy = LaunchGrant_RepaintSidebar;
 	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.Grant.RepaintSidebar", Prefix);
-	bool_Dummy.Read(exINI, pID, nBuff);
-	LaunchGrant_RepaintSidebar = bool_Dummy.Get();
+	LaunchGrant_RepaintSidebar.Read(exINI, pID, nBuff);
 
-	bool_Dummy = LaunchGrant_OneTime;
 	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.Grant.OneTime", Prefix);
-	bool_Dummy.Read(exINI, pID, nBuff);
-	LaunchGrant_OneTime = bool_Dummy.Get();
+	LaunchGrant_OneTime.Read(exINI, pID, nBuff);
 
-	bool_Dummy = LaunchGrant_OnHold;
 	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.Grant.OnHold", Prefix);
-	bool_Dummy.Read(exINI, pID, nBuff);
-	LaunchGrant_OnHold = bool_Dummy.Get();
+	LaunchGrant_OnHold.Read(exINI, pID, nBuff);
 
-	bool_Dummy = LaunchSW_Manual;
 	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.Manual", Prefix);
-	bool_Dummy.Read(exINI, pID, nBuff);
-	LaunchSW_Manual = bool_Dummy.Get();
+	LaunchSW_Manual.Read(exINI, pID, nBuff);
 
-	bool_Dummy = LaunchSW_IgnoreInhibitors;
 	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.IgnoreInhibitors", Prefix);
-	bool_Dummy.Read(exINI, pID, nBuff);
-	LaunchSW_IgnoreInhibitors = bool_Dummy.Get();
+	LaunchSW_IgnoreInhibitors.Read(exINI, pID, nBuff);
 
-	bool_Dummy =  LaunchSW_IgnoreDesignators;
 	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.IgnoreDesignators", Prefix);
-	bool_Dummy.Read(exINI, pID, nBuff);
-	LaunchSW_IgnoreDesignators = bool_Dummy.Get();
+	LaunchSW_IgnoreDesignators.Read(exINI, pID, nBuff);
 
-	bool_Dummy = LauchSW_IgnoreMoney;
 	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.IgnoreMoney", Prefix);
-	bool_Dummy.Read(exINI, pID, nBuff);
-	LauchSW_IgnoreMoney = bool_Dummy.Get();
+	LauchSW_IgnoreMoney.Read(exINI, pID, nBuff);
 
-	bool_Dummy = LaunchSW_DisplayMoney;
 	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.DisplayMoney", Prefix);
-	bool_Dummy.Read(exINI, pID, nBuff);
-	LaunchSW_DisplayMoney = bool_Dummy.Get();
+	LaunchSW_DisplayMoney.Read(exINI, pID, nBuff);
 
-	Valueable<AffectedHouse> dummy_AffectHouse { LaunchSW_DisplayMoney_Houses };
-	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.DisplayMoney.Houses", Prefix);
-	dummy_AffectHouse.Read(exINI, pID, nBuff);
-	LaunchSW_DisplayMoney_Houses = dummy_AffectHouse;
+	if(LaunchSW_DisplayMoney) {
+		IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.DisplayMoney.Houses", Prefix);
+		LaunchSW_DisplayMoney_Houses.Read(exINI, pID, nBuff);
 
-	Valueable<Point2D> dummy_DisplayOffs { LaunchSW_DisplayMoney_Offset };
-	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.DisplayMoney.Offset", Prefix);
-	dummy_DisplayOffs.Read(exINI, pID, nBuff);
-	LaunchSW_DisplayMoney_Offset = dummy_DisplayOffs;
+		IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.DisplayMoney.Offset", Prefix);
+		LaunchSW_DisplayMoney_Offset.Read(exINI, pID, nBuff);
+	}
+
+	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.Owner", Prefix);
+	LauchhSW_Owner.Read(exINI, pID, nBuff);
 
 	return true;
 }
@@ -103,6 +82,7 @@ bool LauchSWData::Serialize(T& Stm)
 		.Process(LaunchSW_DisplayMoney)
 		.Process(LaunchSW_DisplayMoney_Houses)
 		.Process(LaunchSW_DisplayMoney_Offset)
+		.Process(LauchhSW_Owner)
 		.Success()
 		;
 }

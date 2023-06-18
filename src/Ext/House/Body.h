@@ -8,6 +8,18 @@
 
 #include <map>
 
+struct LauchData
+{
+	int LastFrame { Unsorted::CurrentFrame };
+	int Count { 0 };
+};
+
+struct TunnelData
+{
+	std::vector<FootClass*> Vector;
+	int MaxCap;
+};
+
 class HouseExt
 {
 public:
@@ -60,22 +72,15 @@ public:
 		//#830
 		PhobosMap<TechnoClass* , KillMethod> AutoDeathObjects;
 
-		struct LauchData
-		{
-			int LastFrame;
-			int Count;
-		};
-
-		PhobosMap<int, LauchData> LaunchDatas;
+		std::vector<LauchData> LaunchDatas;
 		bool CaptureObjectExecuted;
 		CDTimerClass DiscoverEvaDelay;
-		struct TunnelData {
-			std::vector<FootClass*> Vector;
-			int MaxCap;
-		};
-
 		std::vector<TunnelData> Tunnels;
 		DWORD Seed;
+
+		int SWLastIndex;
+		std::vector<SuperClass*> Batteries;
+
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 			, PowerPlantEnhancerBuildings {}
 			, Building_BuildSpeedBonusCounter {}
@@ -106,6 +111,9 @@ public:
 
 			, Tunnels {}
 			, Seed { (DWORD)-1 }
+
+			, SWLastIndex { -1  }
+			, Batteries {}
 		{ }
 
 		virtual ~ExtData() override = default;
@@ -120,7 +128,9 @@ public:
 		void UpdateVehicleProduction();
 		void UpdateAutoDeathObjects();
 
-		//
+		void UpdateShotCount(SuperWeaponTypeClass* pFor);
+		void UpdateShotCountB(SuperWeaponTypeClass* pFor);
+		LauchData GetShotCount(SuperWeaponTypeClass* pFor);
 
 	private:
 		bool UpdateHarvesterProduction();
@@ -184,7 +194,9 @@ public:
 	static InfantryTypeClass* GetEngineer(HouseClass* pHouse);
 	static InfantryTypeClass* GetTechnician(HouseClass* pHouse);
 	static AircraftTypeClass* GetParadropPlane(HouseClass* pHouse);
-
+	static AircraftTypeClass* GetSpyPlane(HouseClass* pHouse);
+	static UnitTypeClass* GetHunterSeeker(HouseClass* pHouse);
+	static bool GetParadropContent(HouseClass* pHouse , Iterator<TechnoTypeClass*>& Types, Iterator<int>& Num);
 	//
 	static void ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode);
 

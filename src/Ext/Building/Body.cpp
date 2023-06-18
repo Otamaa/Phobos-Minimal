@@ -28,6 +28,31 @@ void BuildingExt::ApplyLimboKill(ValueableVector<int>& LimboIDs, Valueable<Affec
 	}
 }
 
+int BuildingExt::GetFirstSuperWeaponIndex(BuildingClass* pThis)
+{
+	const auto pExt = BuildingTypeExt::ExtMap.TryFind(pThis->Type);
+
+	if (!pExt)
+		return -1;
+
+	for (auto i = 0; i < pExt->GetSuperWeaponCount(); ++i)
+	{
+		const auto idxSW = pExt->GetSuperWeaponIndex(i, pThis->Owner);
+		if (idxSW != -1)
+		{
+			return idxSW;
+		}
+	}
+
+	return -1;
+}
+
+SuperClass* BuildingExt::GetFirstSuperWeapon(BuildingClass* pThis)
+{
+	const auto idxSW = GetFirstSuperWeaponIndex(pThis);
+	return pThis->Owner->Supers.GetItemOrDefault(idxSW);
+}
+
 void BuildingExt::ExtData::DisplayIncomeString()
 {
 	if (Unsorted::CurrentFrame % 15 == 0)

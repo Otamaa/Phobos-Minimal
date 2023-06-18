@@ -131,6 +131,8 @@ public:
 		Valueable<AnimTypeClass*> DropPodTrailer;
 		Valueable<AnimTypeClass*> ElectricDeath;
 
+		// hunter seeker
+		ValueableVector<BuildingTypeClass*> HunterSeekerBuildings {};
 		Valueable<int> HunterSeekerDetonateProximity;
 		Valueable<int> HunterSeekerDescendProximity;
 		Valueable<int> HunterSeekerAscentSpeed;
@@ -138,6 +140,8 @@ public:
 		Valueable<int> HunterSeekerEmergeSpeed;
 
 		Valueable<bool> Units_UnSellable;
+
+		Valueable<bool> DrawTurretShadow;
 #pragma region Otamaa
 
 		Nullable<ParticleTypeClass*> VeinholeParticle;
@@ -153,7 +157,7 @@ public:
 		Valueable<AnimTypeClass*> Aircraft_TakeOffAnim;
 
 		Valueable<bool> DisablePathfindFailureLog;
-		Valueable<bool> CreateSound_PlayerOnly;
+		Valueable<AffectedHouse> CreateSound_PlayerOnly;
 
 		int CivilianSideIndex;
 		int SpecialCountryIndex;
@@ -186,10 +190,13 @@ public:
 		Valueable<bool> EnemyWrench;
 
 		Valueable<AircraftTypeClass*> DefaultParaPlane;
+		Valueable<int> DropPodMinimum;
+		Valueable<int> DropPodMaximum;
+		ValueableVector<TechnoTypeClass*> DropPodTypes;
 
 		AircraftPutDataRules MyPutData;
 
-#pragma endregion	
+#pragma endregion
 
 		ExtData(RulesClass* OwnerObject) : Extension<RulesClass>(OwnerObject)
 			, Pips_Shield { { -1,-1,-1 } }
@@ -291,6 +298,8 @@ public:
 			, HunterSeekerEmergeSpeed { 0 }
 
 			, Units_UnSellable { true }
+			, DrawTurretShadow { false }
+
 			, VeinholeParticle { }
 			, DefaultVeinParticle { nullptr }
 			, DefaultSquidAnim { nullptr }
@@ -302,7 +311,7 @@ public:
 			, Aircraft_LandAnim { nullptr }
 			, Aircraft_TakeOffAnim { nullptr }
 			, DisablePathfindFailureLog { false }
-			, CreateSound_PlayerOnly { false }
+			, CreateSound_PlayerOnly { AffectedHouse::All }
 
 			, CivilianSideIndex { -1 }
 			, SpecialCountryIndex { -1 }
@@ -330,6 +339,11 @@ public:
 
 			, EnemyWrench { true }
 			, DefaultParaPlane { nullptr }
+
+			,DropPodMinimum {0}
+			,DropPodMaximum {0}
+			,DropPodTypes { }
+
 			, MyPutData { }
 		{ }
 

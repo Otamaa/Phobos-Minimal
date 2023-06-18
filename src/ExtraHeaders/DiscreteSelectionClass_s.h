@@ -9,8 +9,8 @@ template <typename T>
 class DiscreteSelectionClass_s
 {
 public:
-	DiscreteSelectionClass() = default;
-	explicit DiscreteSelectionClass(int initial) : Rating(initial) { }
+	DiscreteSelectionClass_s() = default;
+	explicit DiscreteSelectionClass_s(int initial) : Rating(initial) { }
 
 	void Add(T value, int rating)
 	{

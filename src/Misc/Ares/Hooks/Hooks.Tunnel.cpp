@@ -121,7 +121,7 @@ void NOINLINE DestroyTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass*
 	pTunnelData->clear();
 }
 
-NOINLINE HouseExt::ExtData::TunnelData* GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx)
+NOINLINE TunnelData* GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx)
 {
 	if (!pHouse)
 		return nullptr;
@@ -143,7 +143,7 @@ NOINLINE HouseExt::ExtData::TunnelData* GetTunnelVector(HouseClass* pHouse, size
 	return &pHouseExt->Tunnels[nTunnelIdx];
 }
 
-NOINLINE HouseExt::ExtData::TunnelData* GetTunnels(BuildingTypeClass* pBld, HouseClass* pHouse)
+NOINLINE TunnelData* GetTunnels(BuildingTypeClass* pBld, HouseClass* pHouse)
 {
 	const auto pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pBld);
 
@@ -209,7 +209,7 @@ NOINLINE std::vector<int>* PopulatePassangerPIPData(TechnoClass* pThis, TechnoTy
 
 	if (pBld)
 	{
-		const HouseExt::ExtData::TunnelData* pTunnelData = GetTunnels(pBld->Type, pThis->Owner);
+		const TunnelData* pTunnelData = GetTunnels(pBld->Type, pThis->Owner);
 		const bool Absorber = pBld->Absorber();
 
 		if (!pTunnelData)

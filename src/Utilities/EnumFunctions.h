@@ -102,6 +102,7 @@ public:
 	static std::array<const char* const, 3u> SelfHealGainType_ToStrings;
 	static std::array<const char* const, 5u> ChronoSparkleDisplayPosition_ToStrings;
 	static std::array<const char* const, 5u> SpotlightFlags_ToStrings;
+	static std::array<std::pair<const char* ,AffectPlayerType>, 5u> AffectPlayerType_ToStrings;
 
 	static bool CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse);
 	static bool IsCellEligible(CellClass* const pCell, AffectedTarget const&  allowed, bool explicitEmptyCells = false);
@@ -112,4 +113,5 @@ public:
 	static TextPrintType CastAlignToFlags(HorizontalPosition const& pos);
 	static IronCurtainFlag GetICFlagResult(IronCurtainFlag const& Input);
 	static std::pair<const char*, const char*>* locomotion_toSring(LocomotionClass* ptr);
+	static bool IsPlayerTypeEligible(AffectPlayerType flags, HouseClass* pFor);
 };

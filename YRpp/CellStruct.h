@@ -21,6 +21,16 @@ public:
 		return (X == a.X && Y == a.Y);
 	}
 
+	CellStruct operator+(short nThat) const
+	{ return { short(X + nThat), short(Y + nThat) }; }
+
+	CellStruct operator+(short nThat)
+	{
+		X += nThat;
+		Y += nThat;
+		return *this;
+	}
+
 	inline DWORD Pack() const noexcept {
 		return std::bit_cast<DWORD>(*this);
 	}

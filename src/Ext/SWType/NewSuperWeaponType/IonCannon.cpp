@@ -1,8 +1,14 @@
 #include "IonCannon.h"
 
+//TODO : rethink the implementaion of IonBlastClass
 std::vector<const char*> SW_IonCannon::GetTypeString() const
 {
 	return { "IonCannon" };
+}
+
+SuperWeaponFlags SW_IonCannon::Flags() const
+{
+	return SuperWeaponFlags::None;
 }
 
 bool SW_IonCannon::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)

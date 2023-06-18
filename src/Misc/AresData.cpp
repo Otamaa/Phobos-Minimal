@@ -52,7 +52,6 @@ enum FunctionIndices : int
 	JammerclassUnjamAllID = 25,
 	CPrismRemoveFromNetworkID = 26,
 
-
 	//WHextfunc 
 	applyIonCannonID = 27, //52790 , pWHExt , CoordStruct*
 	applyPermaMCID = 28, //53980 , pWHExt , AbstractClass*
@@ -84,6 +83,7 @@ enum FunctionIndices : int
 	RequirementsMetID = 48,
 
 	UpdateAcademyID = 49,
+	SetSWCursorID = 50,
 	count
 };
 
@@ -288,6 +288,8 @@ bool AresData::Init()
 		0x023010, //HouseExt::RespondToFirewall
 		0x022A70, //RequirementsMet
 		0x0231E0, //UpdateAcademy
+
+		0x058AD0, //MapSWAction
 	};
 
 	static constexpr DWORD AAresCustomPaletteReadTable[AresCustomPaletteReadCount] = {
@@ -301,12 +303,19 @@ bool AresData::Init()
 	static constexpr DWORD AresStaticInstanceTable[AresStaticInstanceCount] = {
 		0x0C2B84, //ParticleSystemExt
 		0x0C2DD0, //WeaponTypeExt
+		0x0C2C50, //SWTypeExt
 
 		0x0C2A00, //Debug::bTrackParserErrors
 
 		0x0C2A54, //HouseExt::FSW
 
 		0x0C3100, //std::vector<const char*>
+
+		0x09C934, //Default SWAiTargetingData
+
+		0x0C1134, //SW_Firewall::FirewallType
+
+		0x0C2C7C, //SWTypeExt::CurrentSWType
 	};
 
 	if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, ARES_DLL, &AresDllHmodule))
@@ -590,4 +599,14 @@ int AresData::RequirementsMet(HouseClass* pHouse, TechnoTypeClass* pTech)
 void AresData::UpdateAcademy(HouseClass* pThis, TechnoClass* pTechno, bool bAdded)
 {
 	AresThiscall<UpdateAcademyID, void, void*  , TechnoClass*, bool>()(GetAresHouseExt(pThis), pTechno , bAdded);
+}
+
+void* AresData::Ares_SWType_ExtMap_Find(SuperWeaponTypeClass* pType)
+{
+	return AresThiscall<ExtMapFindID, void*, DWORD , SuperWeaponTypeClass*>()(AresStaticInstanceFinal[2] ,pType);
+}
+
+void AresData::SetSWMouseCursorAction(size_t CursorIdx,  bool bShrouded , int nAction)
+{
+	AresStdcall<SetSWCursorID, void, size_t , bool , int>()(CursorIdx, bShrouded, nAction);
 }

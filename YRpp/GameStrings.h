@@ -253,11 +253,41 @@ struct GameStrings
 	GAMEMD_STR(EVA_PowerSabotaged, 0x8191B0u);
 	GAMEMD_STR(EVA_EnemyBasePoweredDown, 0x81917Cu);
 	GAMEMD_STR(EVA_BridgeRepaired, 0x825538);
+	GAMEMD_STR(EVA_NuclearMissileReady, 0x8424D4);
+	GAMEMD_STR(EVA_IronCurtainReady, 0x8424BC);
+	GAMEMD_STR(EVA_ForceShieldReady, 0x8424A4);
+	GAMEMD_STR(EVA_LightningStormReady, 0x84248C);
+	GAMEMD_STR(EVA_PsychicDominatorReady, 0x842470);
+	GAMEMD_STR(EVA_ChronosphereReady, 0x842458);
+	GAMEMD_STR(EVA_ReinforcementsReady, 0x842440);
+	GAMEMD_STR(EVA_GeneticMutatorReady, 0x842414);
+	GAMEMD_STR(EVA_PsychicRevealReady, 0x8423FC);
+	GAMEMD_STR(EVA_NewRallyPointEstablished, 0x818E58);
+	GAMEMD_STR(EVA_ChronosphereDetected, 0x818E78);
+	GAMEMD_STR(EVA_GeneticMutatorDetected, 0x818E94);
+	GAMEMD_STR(EVA_PsychicDominatorDetected, 0x818EB0);
+	GAMEMD_STR(EVA_WeatherDeviceReady, 0x818ED0);
+	GAMEMD_STR(EVA_IronCurtainDetected, 0x818EE8);
+	GAMEMD_STR(EVA_NuclearSiloDetected, 0x818F00);
+	GAMEMD_STR(EVA_Repairing, 0x818F18);
+	GAMEMD_STR(EVA_PrimaryBuildingSel, 0x818F28);
+	GAMEMD_STR(EVA_NuclearMissileLaunched, 0x842528);
+	GAMEMD_STR(EVA_GeneticMutatorActivated, 0x842544);
+	GAMEMD_STR(EVA_IronCurtainActivated, 0x842568);
+	GAMEMD_STR(EVA_PsychicDominatorActivated, 0x842584);
+	GAMEMD_STR(EVA_ChronosphereActivated, 0x8425A4);
+	GAMEMD_STR(EVA_SpyPlaneReady, 0x84242C);
+	GAMEMD_STR(EVA_InsufficientFunds, 0x819044);
+	GAMEMD_STR(EVA_SelectTarget, 0x83FB78);
+	GAMEMD_STR(EVA_LightningStormCreated, 0x828080);
 
 	//...
 
 	// Messages
 	GAMEMD_STR(FailedToLoadUIMDMsg, 0x827DACu);
+	GAMEMD_STR(DominatorActive_msg , 0x8280B8);
+	GAMEMD_STR(LightningStormActive_msg, 0x82809C);
+
 	//..
 
 	// Hardcoded Names
@@ -277,6 +307,10 @@ struct GameStrings
 	GAMEMD_STR(COW, 0x82554C);
 	GAMEMD_STR(DESO, 0x82557C);
 	GAMEMD_STR(FV, 0x84314C);
+	GAMEMD_STR(NukePayload, 0x81AFA0);
+	GAMEMD_STR(PSIWARN, 0x81907C);
+	GAMEMD_STR(SPYP , 0x842560);
+	GAMEMD_STR(PULSBALL, 0x819070);
 	//..
 
 	// CSF Labels
@@ -303,6 +337,9 @@ struct GameStrings
 	GAMEMD_STR(TXT_ABORTED, 0x81B42C);
 	GAMEMD_STR(TXT_WAITING, 0x81B448);
 	GAMEMD_STR(TXT_READY, 0x81B454);
+	GAMEMD_STR(TXT_HOLD, 0x83FB2C);
+	GAMEMD_STR(TXT_CHARGING, 0x8424EC);
+	GAMEMD_STR(TXT_FIRESTORM_ON, 0x8424FC);
 	GAMEMD_STR(TXT_DIFFICULTY_BRUTAL, 0x81B4B8);
 	GAMEMD_STR(TXT_DIFFICULTY_MEDIUM, 0x81B4D0);
 	GAMEMD_STR(TXT_DIFFICULTY_EASY, 0x81B500);
@@ -333,7 +370,8 @@ struct GameStrings
 	GAMEMD_STR(TXT_POOR_CONNECTION, 0x82400C);
 	GAMEMD_STR(TXT_WORST_CONNECTION, 0x824020);
 	GAMEMD_STR(TXT_TECHNICIAN, 0x825550);
-
+	GAMEMD_STR(TXT_LIGHTNING_STORM_APPROACHING, 0x828060);
+	GAMEMD_STR(TXT_LIGHTNING_STORM, 0x82804C);
 	//..
 
 	// Colors

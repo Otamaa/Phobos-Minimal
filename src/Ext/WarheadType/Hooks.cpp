@@ -53,7 +53,7 @@ DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 	{
 		// GET(const int, Damage, EDX);
 		// GET_BASE(const bool, AffectsTiberium, 0x10);
-		GET(const CoordStruct*, pCoords, ECX);
+		GET(CoordStruct*, pCoords, ECX);
 		GET_BASE(TechnoClass*, pOwner, 0x08);
 		GET_BASE(HouseClass*, pHouse, 0x14);
 
@@ -77,7 +77,7 @@ DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 			{
 				if (Lauch.LaunchWhat)
 				{
-					Helpers::Otamaa::LauchSW(Lauch, pDecidedOwner, *pCoords);
+					Helpers::Otamaa::LauchSW(Lauch, pDecidedOwner,*pCoords);
 				}
 			}
 		}
@@ -162,4 +162,17 @@ DEFINE_HOOK(0x48A4F3, SelectDamageAnimation_NegativeZeroDamage, 0x6)
 	R->EDI(damage);
 	R->ESI(warhead);
 	return SkipGameCode;
+}
+
+DEFINE_HOOK(0x489B49, MapClass_DamageArea_Rocker, 0xA)
+{
+	GET_BASE(WarheadTypeClass*, pWH, 0xC);
+	GET_STACK(int, damage, STACK_OFFSET(0xE0, 0xBC));
+
+	double rocker = WarheadTypeExt::ExtMap.Find(pWH)->Rocker_Damage.Get(damage);
+	rocker *= 0.01;
+
+	_asm fld rocker
+
+	return 0x489B53;
 }

@@ -32,6 +32,36 @@ void HouseExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	exINI.Read3Bool(pSection, "RepairBaseNodes", this->RepairBaseNodes);
 }
 
+//TODO : remove NOINLINE
+void NOINLINE HouseExt::ExtData::UpdateShotCount(SuperWeaponTypeClass* pFor)
+{
+	if ((int)this->LaunchDatas.size() < SuperWeaponTypeClass::Array->Count )
+		this->LaunchDatas.resize(SuperWeaponTypeClass::Array->Count);
+
+	auto& nData = this->LaunchDatas[pFor->ArrayIndex];
+	++nData.Count;
+	nData.LastFrame = Unsorted::CurrentFrame();
+}
+
+//TODO : remove NOINLINE
+void NOINLINE HouseExt::ExtData::UpdateShotCountB(SuperWeaponTypeClass* pFor)
+{
+	if ((int)this->LaunchDatas.size() < SuperWeaponTypeClass::Array->Count)
+		this->LaunchDatas.resize(SuperWeaponTypeClass::Array->Count);
+
+	if ((this->LaunchDatas[pFor->ArrayIndex].LastFrame & 0x80000000) != 0)
+		this->LaunchDatas[pFor->ArrayIndex].LastFrame = Unsorted::CurrentFrame();
+}
+
+//TODO : remove NOINLINE
+LauchData NOINLINE HouseExt::ExtData::GetShotCount(SuperWeaponTypeClass* pFor)
+{
+	if (pFor->ArrayIndex >= (int)this->LaunchDatas.size())
+		return {};
+
+	return this->LaunchDatas[pFor->ArrayIndex];
+}
+
 int HouseExt::GetSurvivorDivisor(HouseClass* pHouse)
 {
 	const auto pTypeExt = HouseTypeExt::ExtMap.TryFind(pHouse->Type);
@@ -111,6 +141,61 @@ AircraftTypeClass* HouseExt::GetParadropPlane(HouseClass* pHouse)
 	return AircraftTypeClass::Array->GetItemOrDefault(iPlane);
 }
 
+AircraftTypeClass* HouseExt::GetSpyPlane(HouseClass* pHouse)
+{
+	const auto pTypeExt = HouseTypeExt::ExtMap.TryFind(pHouse->Type);
+	if (pTypeExt && pTypeExt->SpyPlane.isset()) {
+		return pTypeExt->SpyPlane;
+	}
+
+	if (const auto pSide = HouseExt::GetSide(pHouse)) {
+		const auto pSideExt = SideExt::ExtMap.Find(pSide);
+
+		if(pSideExt->SpyPlane.isset() && pSideExt->SpyPlane.Get())
+			return pSideExt->SpyPlane;
+	}
+
+	return AircraftTypeClass::Find(GameStrings::SPYP);
+}
+
+UnitTypeClass* HouseExt::GetHunterSeeker(HouseClass* pHouse)
+{
+	const auto pTypeExt = HouseTypeExt::ExtMap.TryFind(pHouse->Type);
+	if (pTypeExt && pTypeExt->HunterSeeker.isset()) {
+		return pTypeExt->HunterSeeker;
+	}
+
+	if (const auto pSide = HouseExt::GetSide(pHouse)) {
+		return SideExt::ExtMap.Find(pSide)->GetHunterSeeker();
+	}
+
+	return nullptr;
+}
+
+bool HouseExt::GetParadropContent(HouseClass* pHouse, Iterator<TechnoTypeClass*>& Types, Iterator<int>& Num)
+{
+	const auto pTypeExt = HouseTypeExt::ExtMap.TryFind(pHouse->Type);
+
+	// tries to get the house's default contents and falls back to
+	// the sides default contents.
+	if (pTypeExt && pTypeExt->ParaDropTypes.size()) {
+		Types = pTypeExt->ParaDropTypes;
+		Num = pTypeExt->ParaDropNum;
+	}
+
+	// fall back to side specific para drop
+	if (!Types) {
+		if (const auto pSide = HouseExt::GetSide(pHouse)) {
+			SideExt::ExtData* pData = SideExt::ExtMap.Find(pSide);
+
+			Types = pData->GetParaDropTypes();
+			Num = pData->GetParaDropNum();
+		}
+	}
+
+	return (Types && Num);
+}
+
 bool HouseExt::ExtData::InvalidateIgnorable(void* ptr) const
 {
 	switch (VTable::Get(ptr))
@@ -120,6 +205,7 @@ bool HouseExt::ExtData::InvalidateIgnorable(void* ptr) const
 	case UnitClass::vtable:
 	case AircraftClass::vtable:
 	case TeamClass::vtable:
+	case SuperClass::vtable:
 		return false;
 	}
 
@@ -144,10 +230,11 @@ void HouseExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 		AutoDeathObjects.erase(reinterpret_cast<TechnoClass*>(ptr));
 	}
 
-	if (!Tunnels.empty()) {
-		for (auto& nTun : Tunnels)
-			AnnounceInvalidPointer(nTun.Vector , ptr);
-	}
+
+	for (auto& nTun : Tunnels)
+		AnnounceInvalidPointer(nTun.Vector , ptr);
+
+	AnnounceInvalidPointer(Batteries, ptr);
 }
 
 int HouseExt::ActiveHarvesterCount(HouseClass* pThis)
@@ -1051,6 +1138,9 @@ void HouseExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->Tunnels)
 		.Process(this->Seed)
+
+		.Process(this->SWLastIndex)
+		.Process(this->Batteries)
 		;
 }
 

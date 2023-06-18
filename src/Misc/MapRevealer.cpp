@@ -5,6 +5,49 @@
 
 #include <Utilities/Macro.h>
 
+#include <YRMath.h>
+
+bool MapRevealer::IsCellAvailable(const CellStruct& cell) const
+{
+	auto const sum = cell.X + cell.Y;
+
+	return sum > this->MapWidth
+		&& cell.X - cell.Y < this->MapWidth
+		&& cell.Y - cell.X < this->MapWidth
+		&& sum <= this->MapWidth + 2 * this->MapHeight;
+}
+
+bool MapRevealer::CheckLevel(const CellStruct& offset, int level) const
+{
+	auto const cellLevel = this->Base() + offset + GetRelation(offset) - this->CellOffset;
+	return MapClass::Instance->GetCellAt(cellLevel)->Level < level + CellClass::BridgeLevels;
+}
+
+CellStruct MapRevealer::TranslateBaseCell(const CoordStruct& coords) const
+{
+	auto const adjust = (TacticalClass::AdjustForZ(coords.Z) / -30) << 8;
+	auto const baseCoords = coords + CoordStruct { adjust, adjust, 0 };
+	return CellClass::Coord2Cell(baseCoords);
+}
+
+CellStruct MapRevealer::GetOffset(const CoordStruct& coords, const CellStruct& base) const
+{
+	return base - CellClass::Coord2Cell(coords) - CellStruct { 2, 2 };
+}
+
+bool MapRevealer::RequiresExtraChecks()
+{
+	auto& Session = SessionClass::Instance;
+	return Helpers::Alex::is_any_of(Session->GameMode, GameMode::LAN, GameMode::Internet) &&
+		Session->MPGameMode && !Session->MPGameMode->vt_entry_04();
+}
+
+CellStruct MapRevealer::GetRelation(const CellStruct& offset)
+{
+	return{ static_cast<short>(Math::signum(-offset.X)),
+		static_cast<short>(Math::signum(-offset.Y)) };
+}
+
 MapRevealer::MapRevealer(const CoordStruct& coords) :
 	BaseCell(this->TranslateBaseCell(coords)),
 	CellOffset(this->GetOffset(coords, this->Base())),
@@ -103,7 +146,7 @@ void MapRevealer::UpdateShroud(size_t start, size_t radius, bool fog) const
 				}
 			}
 
-			if (!ScenarioClass::Instance->SpecialFlags.FogOfWar && !bFlag)
+			if (!ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar && !bFlag)
 			{
 				continue;
 			}
@@ -143,7 +186,7 @@ void MapRevealer::Process0(CellClass* const pCell, bool unknown, bool fog, bool 
 		{
 			if ((pCell->Flags & CellFlags::Revealed) != CellFlags::Revealed && pCell->AltFlags & AltCellFlags::Mapped)
 			{
-				MouseClass::Instance->MapCellFoggedness(&pCell->MapCoords, HouseClass::CurrentPlayer);
+				MouseClass::Instance->MapCellFoggedness(pCell->MapCoords, HouseClass::CurrentPlayer);
 			}
 		}
 		else
@@ -154,7 +197,7 @@ void MapRevealer::Process0(CellClass* const pCell, bool unknown, bool fog, bool 
 				{
 					if (add)
 					{
-						MouseClass::Instance->RevealFogShroud(&pCell->MapCoords, HouseClass::CurrentPlayer, false);
+						MouseClass::Instance->RevealFogShroud(pCell->MapCoords, HouseClass::CurrentPlayer, false);
 					}
 					else
 					{
@@ -174,14 +217,14 @@ void MapRevealer::Process1(CellClass* const pCell, bool fog, bool add) const
 	{
 		if ((pCell->Flags & CellFlags::Revealed) != CellFlags::Revealed && pCell->AltFlags & AltCellFlags::Mapped)
 		{
-			MouseClass::Instance->MapCellFoggedness(&pCell->MapCoords, HouseClass::CurrentPlayer);
+			MouseClass::Instance->MapCellFoggedness(pCell->MapCoords, HouseClass::CurrentPlayer);
 		}
 	}
 	else
 	{
 		if (this->IsCellAllowed(pCell->MapCoords))
 		{
-			MouseClass::Instance->RevealFogShroud(&pCell->MapCoords, HouseClass::CurrentPlayer, add);
+			MouseClass::Instance->RevealFogShroud(pCell->MapCoords, HouseClass::CurrentPlayer, add);
 		}
 	}
 }

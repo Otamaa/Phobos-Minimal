@@ -9,6 +9,10 @@ bool SW_EMPField::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 {
 	auto pType = pThis->Type;
 	auto pData = SWTypeExt::ExtMap.Find(pType);
+
+	if (pData->EMPField_Duration == 0)
+		return false;
+
 	BuildingClass* pFirer = nullptr;
 
 	for (auto const& pBld : pThis->Owner->Buildings) {	
@@ -18,31 +22,14 @@ bool SW_EMPField::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 		}
 	}
 
-	return GameCreate<EMPulseClass>(Coords, int(pType->Range), 100 /*pData->EMPFieldDuration.Get()*/, pFirer);
+	return GameCreate<EMPulseClass>(Coords, this->GetRange(pData).width() , pData->EMPField_Duration.Get(), pFirer);
 
-}
-
-void SW_EMPField::Initialize(SWTypeExt::ExtData* pData)
-{
-	Debug::Log("EMPField[%s] init\n", pData->Get()->ID);
 }
 
 void SW_EMPField::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 {
+	const char* section = pData->Get()->ID;
 
-}
-
-bool SW_EMPField::IsLaunchSite(SWTypeExt::ExtData* pSWType, BuildingClass* pBuilding) const
-{
-	return false;
-}
-
-std::pair<double, double> SW_EMPField::GetLaunchSiteRange(SWTypeExt::ExtData* pSWType, BuildingClass* pBuilding) const
-{
-	return {};
-}
-
-SWRange SW_EMPField::GetRange(const SWTypeExt::ExtData* pData) const
-{
-	return {};
+	INI_EX exINI(pINI);
+	pData->EMPField_Duration.Read(exINI, section, "EMPField.Duration");
 }

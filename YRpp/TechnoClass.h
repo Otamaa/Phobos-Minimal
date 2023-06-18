@@ -709,6 +709,7 @@ public:
 	bool CanICloakByDefault() const;
 	void TurnFacing(const DirStruct& nDir);
 	void ClearAllTarget();
+	bool IsCloaked() const;
 
 	//Constructor
 	TechnoClass(HouseClass* pOwner) noexcept

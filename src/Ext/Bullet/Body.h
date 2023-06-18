@@ -31,6 +31,8 @@ public:
 		bool Intercepted_Detonate;
 		std::vector<LaserTrailClass> LaserTrails;
 		bool SnappedToTarget;
+		SuperClass* NukeSW;
+
 #pragma region Otamaa
 		bool BrightCheckDone;
 		HouseClass* Owner;
@@ -53,6 +55,7 @@ public:
 			, Intercepted_Detonate { true }
 			, LaserTrails {}
 			, SnappedToTarget { false }
+			, NukeSW { nullptr }
 			, BrightCheckDone { false }
 			, Owner { nullptr }
 

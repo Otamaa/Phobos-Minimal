@@ -114,6 +114,11 @@ namespace Helpers {
 			}
 
 			template <typename Func>
+			void apply_function_for_each(Func&& action) const {
+				static_cast<void>(std::find_if_not(begin(), end(), action));
+			}
+
+			template <typename Func>
 			int for_each_count(Func&& action) const {
 				return std::distance(begin(), std::find_if_not(begin(), end(), action));
 			}

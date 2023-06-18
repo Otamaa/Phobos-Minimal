@@ -236,11 +236,22 @@ std::array<const char* const, 3u> EnumFunctions::SelfHealGainType_ToStrings
 	{GameStrings::NoneStrb()}, { GameStrings::Infantry() }, { GameStrings::Units() }
 }
 };
+
 std::array<const char* const, 5u> EnumFunctions::ChronoSparkleDisplayPosition_ToStrings
 {
 {
 	{GameStrings::NoneStrb()}, {"Building"}, { "occupants" }, { "occupantslots" } ,
 	{ "all" }
+}
+};
+
+std::array<std::pair<const char* ,AffectPlayerType>, 5u> EnumFunctions::AffectPlayerType_ToStrings
+{
+{	{GameStrings::NoneStrb() ,AffectPlayerType::None }
+	, {"computer" ,AffectPlayerType::Computer }
+	, {"player" ,AffectPlayerType::Player }
+	, {"observer" ,AffectPlayerType::Observer }
+	, {"all" , AffectPlayerType::Computer | AffectPlayerType::Player | AffectPlayerType::Observer }
 }
 };
 
@@ -449,4 +460,33 @@ std::pair<const char*, const char*>* EnumFunctions::locomotion_toSring(Locomotio
 	default:
 		return &UnkPair;
 	}
+}
+
+bool EnumFunctions::IsPlayerTypeEligible(AffectPlayerType flags, HouseClass* pFor)
+{
+	if (!pFor)
+		return true;
+
+	if (flags == AffectPlayerType::None)
+		return false;
+
+	const bool Obs = (flags & AffectPlayerType::Observer) != AffectPlayerType::None;
+	const bool Comp = (flags & AffectPlayerType::Computer) != AffectPlayerType::None;
+	const bool Player = (flags & AffectPlayerType::Player) != AffectPlayerType::None;
+
+	if (Obs && Comp && Player)
+		return true;
+
+	if (Obs && !pFor->IsObserver())
+		return false;
+
+	const bool IsHumanControlled = pFor->IsControlledByHuman_();
+
+	if (Comp && IsHumanControlled)
+		return false;
+
+	if (Player && !IsHumanControlled)
+		return false;
+
+	return true;
 }

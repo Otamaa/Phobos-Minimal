@@ -7,11 +7,45 @@
 namespace detail
 {
 	template <>
+	inline bool read<AffectPlayerType>(AffectPlayerType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			char* context = nullptr;
+			AffectPlayerType resultData = AffectPlayerType::None;
+
+			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
+				cur;
+				cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
+				bool found = false;
+				for (const auto& [pStrings, evalue] : EnumFunctions::AffectPlayerType_ToStrings)
+				{
+					if (IS_SAME_STR_(cur, pStrings))
+					{
+						found = true;
+						resultData |= evalue;
+						break;
+					}
+				}
+
+				if (!found) {
+					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected valid AffectPlayerType value");
+				}
+			}
+
+			value = resultData;
+			return true;
+		}
+
+		return false;
+	}
+
+	template <>
 	inline bool read<SpotlightFlags>(SpotlightFlags& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-
 			char* context = nullptr;
 			SpotlightFlags resultData = SpotlightFlags::None;
 

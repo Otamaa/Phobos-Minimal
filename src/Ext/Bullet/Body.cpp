@@ -569,6 +569,7 @@ bool BulletExt::ExtData::InvalidateIgnorable(void* ptr) const
 
 void BulletExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved) {
 	AnnounceInvalidPointer(Owner , ptr);
+	AnnounceInvalidPointer(NukeSW, ptr);
 
 	if (auto& pTraj = Trajectory)
 		pTraj->InvalidatePointer(ptr, bRemoved);
@@ -802,6 +803,7 @@ void BulletExt::ExtData::Serialize(T& Stm)
 		.Process(this->Intercepted_Detonate)
 		.Process(this->LaserTrails)
 		.Process(this->SnappedToTarget)
+		.Process(this->NukeSW)
 		.Process(this->BrightCheckDone)
 		.Process(this->Owner)
 		.Process(this->Bouncing)

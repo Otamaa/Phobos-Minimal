@@ -1,4 +1,5 @@
 #include "Helpers.h"
+#include <Ext/Anim/Body.h>
 #include <Ext/SWType/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/House/Body.h>
@@ -8,7 +9,8 @@
 bool Helpers::Otamaa::LauchSW(const LauchSWData& nData,
 	HouseClass* pOwner, const CoordStruct Where)
 {
-	auto const HouseOwner = !pOwner || pOwner->Defeated ? HouseExt::FindCivilianSide() : pOwner;
+	const auto pOwnerResult = HouseExt::GetHouseKind(nData.LauchhSW_Owner, true, HouseExt::FindCivilianSide(), pOwner, nullptr);
+	auto const HouseOwner = pOwnerResult->Defeated ? HouseExt::FindCivilianSide() : pOwnerResult;
 
 	if (HouseOwner)
 	{
@@ -17,8 +19,7 @@ bool Helpers::Otamaa::LauchSW(const LauchSWData& nData,
 		{
 			auto const pSuper = pSelected;
 			const auto pSWExt = SWTypeExt::ExtMap.Find(pSelected->Type);
-
-			auto const nWhere = CellClass::Coord2Cell(Where);
+			auto const nWhere = MapClass::Instance->GetCellAt(Where)->MapCoords;
 			bool const lauch = (nData.LaunchWaitcharge) && (!pSuper->IsCharged || (pSuper->IsPowered() && HouseOwner->HasLowPower())) ? false : true;
 			bool const bIsObserver = HouseOwner->IsObserver();
 			bool const MoneyEligible = nData.LauchSW_IgnoreMoney ? true : HouseOwner->CanTransactMoney(pSWExt->Money_Amount.Get());

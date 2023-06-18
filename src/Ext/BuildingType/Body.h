@@ -292,6 +292,9 @@ public:
 		Nullable<bool> ImmuneToSaboteurs;
 		Valueable<bool> ReverseEngineersVictims;
 
+		// lightning rod
+		Valueable<double> LightningRod_Modifier { 1.0 };
+
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject)
 			, Type { nullptr }
 			, PowersUp_Owner { AffectedHouse::Owner }

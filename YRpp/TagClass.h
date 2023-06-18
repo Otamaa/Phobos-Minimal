@@ -78,11 +78,11 @@ public:
 
 	bool RaiseEvent(
 		TriggerEvent event, ObjectClass* pTagOwner, CellStruct location,
-		bool forceAllOccured = false, AbstractClass* pSource = nullptr)
+		bool forceAllOccured = false, void* pSource = nullptr)
 	{ JMP_THIS(0x6E53A0); }
 	
 	bool SpringEvent( TriggerEvent event, ObjectClass* pTagOwner, CellStruct location,
-	bool forceAllOccured = false, AbstractClass* pSource = nullptr)
+	bool forceAllOccured = false, void* pSource = nullptr)
 	{ JMP_THIS(0x6E53A0); }
 
 	// whether the tag transfers when the owner is "changed",
