@@ -192,7 +192,7 @@ public:
 		NullableIdx<VocClass> SW_Sound;
 		NullableIdx<VocClass> SW_ActivationSound;
 
-		ValueableVector<int> SpyPlanes_TypeIndex;
+		ValueableVector<AircraftTypeClass*> SpyPlanes_TypeIndex;
 		ValueableVector<int> SpyPlanes_Count;
 		ValueableVector<Mission> SpyPlanes_Mission;
 		ValueableVector<Rank> SpyPlanes_Rank;
@@ -355,7 +355,7 @@ public:
 		Valueable<int> Money_DrainDelay { 0 };
 #pragma endregion
 
-		Valueable<bool> SW_ManualFire { false };
+		Valueable<bool> SW_ManualFire { true };
 		Valueable<bool> SW_Unstoppable { false };
 		ExtData(SuperWeaponTypeClass* OwnerObject) : Extension<SuperWeaponTypeClass>(OwnerObject)
 			, EVA_Activated { -1 }

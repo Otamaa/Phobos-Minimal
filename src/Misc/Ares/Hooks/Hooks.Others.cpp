@@ -4163,22 +4163,6 @@ DEFINE_OVERRIDE_HOOK(0x446AAF, BuildingClass_Place_SkipFreeUnits, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x44019D, BuildingClass_Update_Battery, 6)
-{
-	GET(BuildingClass*, pThis, ESI);
-
-	const auto& nVec = OverpoweredBuildingType(pThis->Owner);
-
-	for (auto nPos = nVec.begin(); nPos != nVec.end(); ++nPos)
-	{
-		if ((*nPos) == pThis->Type)
-			pThis->IsOverpowered = true;
-	}
-
-	return 0x0;
-
-}
-
 // #665: Raidable Buildings - prevent raided buildings from being sold while raided
 DEFINE_OVERRIDE_HOOK(0x4494D2, BuildingClass_IsSellable, 6)
 {

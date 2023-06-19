@@ -1283,7 +1283,7 @@ bool SWTypeExt::ExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStr
 	const auto nResult = pNewType->Activate(pSuper, cell, isPlayer);
 
 	if (!nResult)
-		return nResult;
+		return false;
 
 	const auto pOwner = pSuper->Owner;
 	auto pHouseExt = HouseExt::ExtMap.Find(pOwner);
@@ -1343,7 +1343,7 @@ bool SWTypeExt::ExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStr
 				nCoord.Z += pData->SW_AnimHeight;
 				if (AnimClass* placeholder = GameCreate<AnimClass>(pAnim, nCoord))
 				{
-					//TODO :ownership
+					placeholder->SetHouse(pOwner);
 					placeholder->Invisible = !pData->IsAnimVisible(pOwner);
 				}
 			}
@@ -1613,6 +1613,14 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->SW_ManualFire.Read(exINI, pSection, "SW.ManualFire");
 	this->SW_Unstoppable.Read(exINI, pSection, "SW.Unstoppable");
+
+	// lighting
+	this->Lighting_Enabled.Read(exINI, pSection, "Light.Enabled");
+	this->Lighting_Ambient.Read(exINI, pSection, "Light.Ambient");
+	this->Lighting_Red.Read(exINI, pSection, "Light.Red");
+	this->Lighting_Green.Read(exINI, pSection, "Light.Green");
+	this->Lighting_Blue.Read(exINI, pSection, "Light.Blue");
+
 	// initialize the NewSWType that handles this SWType.
 	if (auto pNewSWType = NewSWType::GetNewSWType(this))
 	{
@@ -1929,7 +1937,7 @@ bool SWTypeExt::ExtData::IsAvailable(HouseClass* pHouse)
 {
 	const auto pThis = this->Get();
 
-	if(this->CanFire(pHouse))
+	if(!this->CanFire(pHouse))
 		return false;
 
 	const bool IsCurrentPlayer = pHouse->IsControlledByCurrentPlayer();
@@ -2089,7 +2097,7 @@ LightingColor SWTypeExt::GetLightingColor(SuperWeaponTypeClass* pCustom)
 	return ret;
 }
 
-bool SWTypeExt::ExtData::UpdateLightingColor(LightingColor& Lighting) const
+bool NOINLINE SWTypeExt::ExtData::UpdateLightingColor(LightingColor& Lighting) const
 {
 	if (this->Lighting_Enabled)
 	{

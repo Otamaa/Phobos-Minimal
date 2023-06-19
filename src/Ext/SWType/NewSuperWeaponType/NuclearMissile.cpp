@@ -72,7 +72,7 @@ bool SW_NuclearMissile::Activate(SuperClass* const pThis, const CellStruct& Coor
 					auto const pWarhead = this->GetWarhead(pData);
 
 					// create a bullet and the psi warning
-					if (auto const pBullet = BulletTypeExt::ExtMap.Find(pProjectile)->CreateBullet(nullptr, pSilo, damage, pWarhead,
+					if (auto const pBullet = BulletTypeExt::ExtMap.Find(pProjectile)->CreateBullet(pCell, pSilo, damage, pWarhead,
 						pWeapon->Speed, WeaponTypeExt::ExtMap.Find(pWeapon)->GetProjectileRange(), pWeapon->Bright || pWeapon->Warhead->Bright, true))
 					{
 						pBullet->SetWeaponType(pWeapon);
@@ -86,11 +86,12 @@ bool SW_NuclearMissile::Activate(SuperClass* const pThis, const CellStruct& Coor
 
 						// aim the bullet downward and put
 						// it over the target area.
-						VelocityClass vel { 0.0, 0.0, !pProjectile->Vertical ? 100.0 : -100.0 };
+						const bool bNotVert = !pProjectile->Vertical;
+						VelocityClass vel { 0.0, bNotVert ? 100.0 : 0.0,  bNotVert ? 0x0 : -100.0 };
 
 						auto high = target;
 
-						if(!pProjectile->Vertical)
+						if(bNotVert)
 							high.Z += 20000;
 
 						pBullet->MoveTo(high, vel);
@@ -154,22 +155,22 @@ bool SW_NuclearMissile::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingCl
 
 WarheadTypeClass* SW_NuclearMissile::GetWarhead(const SWTypeExt::ExtData* pData) const
 {
-	if (pData->SW_Warhead.isset())
+	if (pData->SW_Warhead.Get(nullptr))
 		return pData->SW_Warhead;
 
 	if (auto const pPayload = SW_NuclearMissile::GetNukePayload(pData->Get()))
 		return pPayload->Warhead;
 
-	return nullptr;
+	return RulesClass::Instance->V3Warhead; // :p
 }
 
 int SW_NuclearMissile::GetDamage(const SWTypeExt::ExtData* pData) const
 {
-	if (pData->SW_Damage.Get(0) != 0)
+	if (pData->SW_Damage.Get(-1) != -1)
 		return pData->SW_Damage;
 
 	const auto pPayload = SW_NuclearMissile::GetNukePayload(pData->Get());
-	if (pPayload && pPayload->Damage != 0)
+	if (pPayload && pPayload->Damage != -1)
 		return pPayload->Damage;
 
 	return RulesClass::Instance->AtomDamage;

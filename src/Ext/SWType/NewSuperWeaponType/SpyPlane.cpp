@@ -27,17 +27,15 @@ bool SW_SpyPlane::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 			const auto& PlaneRank = pData->SpyPlanes_Rank;
 
 			const auto IsEmpty = PlaneIdxes.empty();
-			const auto PlaneIdxesSize = (int)PlaneIdxes.size();
-			const auto nSize = IsEmpty ? 1 : PlaneIdxesSize;
-			const auto pDefault = IsEmpty ? HouseExt::GetSpyPlane(pThis->Owner) : nullptr;
+			const size_t nSize = IsEmpty ? 1 : PlaneIdxes.size();
 
-			for (auto idx = 0; idx < nSize; idx++)
+			for (auto idx = 0u; idx < nSize; idx++)
 			{
 				const int Amount = idx >= PlaneCounts.size() ? 1 : PlaneCounts[idx];
 				const Mission Mission = idx >= PlaneMissions.size() ? Mission::SpyplaneApproach : PlaneMissions[idx];
 				const Rank Rank = idx >= PlaneRank.size() ? Rank::Rookie : PlaneRank[idx];
 
-				TechnoExt::SendPlane(IsEmpty ? pDefault->ArrayIndex : PlaneIdxes[idx],
+				TechnoExt::SendPlane(IsEmpty ? HouseExt::GetSpyPlane(pThis->Owner)->ArrayIndex : PlaneIdxes[idx]->ArrayIndex,
 					Amount, 
 					pThis->Owner,
 					Rank, 
@@ -76,67 +74,8 @@ void SW_SpyPlane::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	char tempBuffer[32];
 	INI_EX exINI(pINI);
 
-	pData->SpyPlanes_TypeIndex.clear();
-	pData->SpyPlanes_Count.clear();
-	pData->SpyPlanes_Mission.clear();
-	pData->SpyPlanes_Rank.clear();
-
-	NullableIdx<AircraftTypeClass> reader;
-
-	reader.Read(exINI, section, "SpyPlane.Count");
-	if (reader.isset() || reader.Get() != -1)
-	{
-		pData->SpyPlanes_TypeIndex.push_back(reader.Get());
-
-		Nullable<int> nIntDummy;
-		nIntDummy.Read(exINI, section, "SpyPlane.Count");
-		if (nIntDummy.isset()) {
-			pData->SpyPlanes_Count.push_back(abs(nIntDummy.Get()));
-		}
-
-		Nullable<Mission> nMissionDummy;
-		nMissionDummy.Read(exINI, section, "SpyPlane.Mission");
-		if (nMissionDummy.isset()) {
-			pData->SpyPlanes_Mission.push_back(nMissionDummy.Get());
-		}
-
-		Nullable<Rank> nRankDummy;
-		nRankDummy.Read(exINI, section, "SpyPlane.Rank");
-		if (nRankDummy.isset() && nRankDummy.Get() != Rank::Rookie) {
-			pData->SpyPlanes_Rank.push_back(nRankDummy.Get());
-		}
-	}
-	else
-	{
-		for (int i = 0; ; ++i)
-		{
-			NullableIdx<AircraftTypeClass> nTypeDummy;
-
-			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "SpyPlane%d.Type", i);
-			nTypeDummy.Read(exINI, section, tempBuffer);
-
-			if (!nTypeDummy.isset() || nTypeDummy == -1) 
-				break;
-
-			pData->SpyPlanes_TypeIndex.push_back(nTypeDummy.Get());
-
-			Valueable<int> nIntDummy{ 1 };
-
-			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "SpyPlane%d.Count", i);
-			nIntDummy.Read(exINI, section, tempBuffer);
-
-			pData->SpyPlanes_Count.push_back(abs(nIntDummy.Get()));
-
-			Valueable<Mission> nMissionDummy{ Mission::SpyplaneApproach };
-
-			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "SpyPlane%d.Mission", i);
-			nMissionDummy.Read(exINI, section, tempBuffer);
-
-			pData->SpyPlanes_Mission.push_back(nMissionDummy.Get());
-
-			Valueable<Rank> nRankDummy { Rank::Rookie };
-			nRankDummy.Read(exINI, section, "SpyPlane%s.Rank");
-			pData->SpyPlanes_Rank.push_back(nRankDummy.Get());
-		}
-	}
+	pData->SpyPlanes_TypeIndex.Read(exINI ,section , "SpyPlane.Type");
+	pData->SpyPlanes_Count.Read(exINI, section, "SpyPlane.Count");
+	pData->SpyPlanes_Mission.Read(exINI, section, "SpyPlane.Mission");
+	pData->SpyPlanes_Rank.Read(exINI, section, "SpyPlane.Mission");
 }

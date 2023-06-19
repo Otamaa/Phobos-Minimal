@@ -20,7 +20,13 @@ bool SW_Battery::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 
 	//TODO : replace this with array size instead
 	++BatteryCount(pThis->Owner);
-	pHouseExt->Batteries.push_back(pThis);
+
+	const auto Iter = std::find_if(pHouseExt->Batteries.begin(), pHouseExt->Batteries.end(), [pThis](SuperClass* pSuper) 
+		{ return pSuper == pThis;  });
+
+	if(Iter == pHouseExt->Batteries.end())
+		pHouseExt->Batteries.push_back(pThis);
+
 	pThis->Owner->RecheckPower = true;
 	return true;
 }

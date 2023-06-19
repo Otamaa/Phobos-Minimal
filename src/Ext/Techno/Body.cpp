@@ -903,6 +903,27 @@ void TechnoExt::SendPlane(size_t Aircraft, size_t Amount, HouseClass* pOwner, Ra
 	if (!pAirCraft)
 		return;
 
+	//safeguard
+	Mission result = Mission::None;
+	switch (SendMission)
+	{
+	case Mission::Move: {
+		if (!pDest)
+			pDest = pTarget;
+
+		result = SendMission;
+	}
+	break;
+	case Mission::ParadropApproach:
+	case Mission::Attack:
+	case Mission::SpyplaneApproach:
+		result = SendMission;
+		break;
+	default:
+		result = Mission::SpyplaneApproach;
+		break;
+	}
+
 	for (size_t i = 0; i < Amount; ++i)
 	{
 		++Unsorted::IKnowWhatImDoing;
@@ -919,7 +940,7 @@ void TechnoExt::SendPlane(size_t Aircraft, size_t Amount, HouseClass* pOwner, Ra
 			ed = pOwner->GetCurrentEdge();
 
 		const auto nCell = MapClass::Instance->PickCellOnEdge(ed, CellStruct::Empty, CellStruct::Empty, SpeedType::Winged, true, MovementZone::Normal);
-		pPlane->QueueMission(SendMission, false);
+		pPlane->QueueMission(result, false);
 
 		if (SendRank != Rank::Rookie && SendRank != Rank::Invalid && pPlane->CurrentRanking < SendRank)
 			pPlane->Veterancy.SetRank(SendRank);

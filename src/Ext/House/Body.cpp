@@ -144,14 +144,14 @@ AircraftTypeClass* HouseExt::GetParadropPlane(HouseClass* pHouse)
 AircraftTypeClass* HouseExt::GetSpyPlane(HouseClass* pHouse)
 {
 	const auto pTypeExt = HouseTypeExt::ExtMap.TryFind(pHouse->Type);
-	if (pTypeExt && pTypeExt->SpyPlane.isset()) {
+	if (pTypeExt && pTypeExt->SpyPlane.Get(nullptr)) {
 		return pTypeExt->SpyPlane;
 	}
 
 	if (const auto pSide = HouseExt::GetSide(pHouse)) {
 		const auto pSideExt = SideExt::ExtMap.Find(pSide);
 
-		if(pSideExt->SpyPlane.isset() && pSideExt->SpyPlane.Get())
+		if(pSideExt->SpyPlane.Get(nullptr))
 			return pSideExt->SpyPlane;
 	}
 

@@ -1665,6 +1665,22 @@ namespace detail
 	}
 
 	template <>
+	inline void parse_values(std::vector<Mission>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		vector.clear();
+		char* context = nullptr;
+		for (auto cur = strtok_s(parser.value(),
+			Phobos::readDelims, &context);
+			cur;
+			cur = strtok_s(nullptr, Phobos::readDelims, &context))
+		{
+			Mission buffer = MissionClass::GetMissionById(cur);
+			if (buffer != Mission::None)
+				vector.push_back(buffer);
+		}
+	}
+
+	template <>
 	inline void parse_values(std::vector<Rank>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		vector.clear();

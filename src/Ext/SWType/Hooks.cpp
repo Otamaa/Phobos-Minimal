@@ -942,7 +942,7 @@ DEFINE_OVERRIDE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
 		if (pSuper->IsCharged && pSuper->ChargeDrainState != ChargeDrainState::Draining)
 		{
 			auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
-			if (!AIFire || pExt->SW_AutoFire)
+			if (AIFire || pExt->SW_AutoFire)
 			{
 				SWTypeExt::ExtData::TryFire(pSuper, false);
 			}
@@ -2162,4 +2162,83 @@ DEFINE_OVERRIDE_HOOK(0x555E50, LightConvertClass_CTOR_Lighting, 5)
 	pThis->UpdateColors(lighting.Red, lighting.Green, lighting.Blue, lighting.HasValue);
 
 	return 0x55606C;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4555D5, BuildingClass_IsPowerOnline_KeepOnline, 5)
+{
+	GET(BuildingClass*, pThis, ESI);
+	bool Contains = false;
+
+	if (auto pOwner = pThis->GetOwningHouse())
+	{
+		auto pOwnerExt = HouseExt::ExtMap.Find(pOwner);
+		for (auto const& pBatt : pOwnerExt->Batteries)
+		{
+			const auto pExt = SWTypeExt::ExtMap.Find(pBatt->Type);
+			if (pExt->Battery_KeepOnline.empty())
+				continue;
+
+			auto const Iter = std::find_if(pExt->Battery_KeepOnline.begin(),
+						pExt->Battery_KeepOnline.end(),
+				[&](const BuildingTypeClass* pItem) {
+					return pItem == pThis->Type;
+				});
+
+			if (Iter != pExt->Battery_KeepOnline.end())
+				Contains = true;
+		}
+	}
+
+	R->EDI(Contains ? 0 : 2);
+	return  Contains ? 0x4555DA : 0x0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x508E66, HouseClass_UpdateRadar_Battery, 8)
+{
+	GET(HouseClass*, pThis, ECX);
+	auto pOwnerExt = HouseExt::ExtMap.Find(pThis);
+	return pOwnerExt->Batteries.size() > 0 ? 0x508E87 : 0x508F2F;
+}
+
+// DEFINE_OVERRIDE_HOOK(0x44019D, BuildingClass_Update_Battery, 6)
+// {
+// 	GET(BuildingClass*, pThis, ESI);
+//
+// 	const auto& nVec = OverpoweredBuildingType(pThis->Owner);
+//
+// 	for (auto nPos = nVec.begin(); nPos != nVec.end(); ++nPos)
+// 	{
+// 		if ((*nPos) == pThis->Type)
+// 			pThis->IsOverpowered = true;
+// 	}
+//
+// 	return 0x0;
+//
+// }
+
+DEFINE_OVERRIDE_HOOK(0x44019D, BuildingClass_Update_Battery, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	if (auto pOwner = pThis->GetOwningHouse()) {
+
+		auto pOwnerExt = HouseExt::ExtMap.Find(pOwner);
+		for (auto const& pBatt : pOwnerExt->Batteries) {
+
+			const auto pExt = SWTypeExt::ExtMap.Find(pBatt->Type);
+			if (pExt->Battery_Overpower.empty())
+				continue;
+
+			auto const Iter = std::find_if(pExt->Battery_Overpower.begin(), 
+						pExt->Battery_Overpower.end(),
+				[&](const BuildingTypeClass* pItem) {
+					 return !pThis->IsOverpowered && pItem == pThis->Type;
+				});
+
+			if (Iter != pExt->Battery_Overpower.end())
+				pThis->IsOverpowered = true;
+		}
+	}
+
+	return 0x0;
 }
