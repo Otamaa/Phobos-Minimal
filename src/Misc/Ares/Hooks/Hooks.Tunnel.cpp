@@ -564,12 +564,13 @@ bool NOINLINE UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel, bool silent =
 	CellClass* NextCell = nullptr;
 	int nFacing = 0;
 
-	while (true)
+	//TODO Fix these loop
+	for (int i = 0;; ++i)
 	{
-		nFacing = (facing + nOffset) & 7;
+		nFacing = (facing + i) & 7;
 		const CellStruct tmpCoords = CellSpread::AdjacentCell[nFacing];
 		nResult = tmpCoords + Loc;
-		CellStruct next = tmpCoords + nResult;
+		CellStruct next = tmpCoords + tmpCoords + Loc;
 
 		CurrentAdj = MapClass::Instance->GetCellAt(nResult);
 		NextCell = MapClass::Instance->GetCellAt(next);
@@ -583,12 +584,9 @@ bool NOINLINE UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel, bool silent =
 			(CurrentAdj->Flags & CellFlags::BridgeHead) == CellFlags::Empty)
 			break;
 
-		bool bHere = false;
-		if (nOffset != 7)
-			bHere = IsLessThanseven;
+		IsLessThanseven = i == 7 ? false : true;
 
 		++nOffset;
-		IsLessThanseven = bHere;
 
 		if (nOffset >= 16)
 			return false;

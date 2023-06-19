@@ -377,7 +377,7 @@ void ChronoWarpStateMachine::Update()
 
 			//auto const pBldExt = BuildingExt::ExtMap.Find(pBld);
 			//pBldExt->AboutToChronoshift = false;
-			Ares_AboutToChronoshift(pBld) = true; //TODO 
+			Ares_AboutToChronoshift(pBld) = false; //TODO 
 
 			if (!success)
 			{

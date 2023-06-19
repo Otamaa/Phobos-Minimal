@@ -174,22 +174,22 @@ SWRange NewSWType::GetRange(const SWTypeExt::ExtData* pData) const
 
 WarheadTypeClass* NewSWType::GetWarhead(const SWTypeExt::ExtData* pData) const
 {
-	return pData->SW_Warhead;
+	return pData->SW_Warhead.Get(nullptr);
 }
 
 AnimTypeClass* NewSWType::GetAnim(const SWTypeExt::ExtData* pData) const
 {
-	return pData->SW_Anim;
+	return pData->SW_Anim.Get(nullptr);
 }
 
 int NewSWType::GetSound(const SWTypeExt::ExtData* pData) const
 {
-	return pData->SW_Sound;
+	return pData->SW_Sound.Get(-1);
 }
 
 int NewSWType::GetDamage(const SWTypeExt::ExtData* pData) const
 {
-	return pData->SW_Damage;
+	return pData->SW_Damage.Get(0);
 }
 
 bool NewSWType::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const

@@ -32,6 +32,6 @@ void SW_UnitDelivery::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 
 	INI_EX exINI(pINI);
 	pData->SW_Deliverables.Read(exINI, section, "Deliver.Types");
-	pData->SW_DeliverBuildups.Read(exINI, section, "Deliver.Buildups");
+	pData->SW_DeliverBuildups.Read(exINI, section, "Deliver.BaseNormal");
 	pData->SW_OwnerHouse.Read(exINI, section, "Deliver.Owner");
 }

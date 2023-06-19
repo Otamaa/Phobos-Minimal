@@ -475,17 +475,12 @@ DEFINE_OVERRIDE_HOOK(0x4F9004, HouseClass_Update_TrySWFire, 7)
 	GET(HouseClass*, pThis, ESI);
 	bool isHuman = R->AL() != 0;
 
-	if (isHuman)
-	{
+	if (isHuman) {
 		// update the SWs for human players to support auto firing.
 		pThis->AI_TryFireSW();
 	}
-	else if (!pThis->Type->MultiplayPassive)
-	{
-		return 0x4F9015;
-	}
 
-	return 0x4F9038;
+	return pThis->Type->MultiplayPassive ? 0x4F9038 : 0x4F9015;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6CBF5B, SuperClass_GetCameoChargeStage_ChargeDrainRatio, 9)
@@ -957,7 +952,7 @@ DEFINE_HOOK(0x46B310, BulletClass_NukeMaker_Handle, 6)
 
 DEFINE_OVERRIDE_HOOK(0x653B3A, RadarClass_GetMouseAction_CustomSWAction, 7)
 {
-	GET_STACK(CellStruct*, pMapCoords, 0x0C);
+	GET_STACK(CellStruct*, pMapCoords, 0x18);
 	GET_STACK(DWORD, flag, 0x58);
 
 	if (Unsorted::CurrentSWType() < 0)
@@ -988,6 +983,10 @@ DEFINE_OVERRIDE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
 		if (pSuper->IsCharged && pSuper->ChargeDrainState != ChargeDrainState::Draining) {
 			auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
 			if (AIFire || pExt->SW_AutoFire) {
+
+				if (IS_SAME_STR_(pExt->Get()->ID, "KnightfallSpawn"))
+					Debug::Log("Hey!\n");
+
 				SWTypeExt::ExtData::TryFire(pSuper, false);
 			}
 		}

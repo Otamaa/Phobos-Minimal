@@ -319,7 +319,7 @@ enum class AffectedHouse : unsigned char {
 	Team = Owner | Allies,
 	NotAllies = Owner | Enemies,
 	NotOwner = Allies | Enemies,
-	All = 0xA
+	All = Owner | Allies | Enemies,
 };
 
 MAKE_ENUM_FLAGS(AffectedHouse);

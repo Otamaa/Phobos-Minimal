@@ -50,7 +50,6 @@ std::array<const AITargetingModeInfo, (size_t)SuperWeaponAITargetingMode::count>
 	{SuperWeaponAITargetingMode::HunterSeeker, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraint::Enemy, TargetingPreference::None },
 	{SuperWeaponAITargetingMode::EnemyBase, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraint::Enemy, TargetingPreference::None },
 	{SuperWeaponAITargetingMode::IronCurtain, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraint::None, TargetingPreference::None },
-
 	{SuperWeaponAITargetingMode::Attack, SuperWeaponTarget::AllTechnos, AffectedHouse::Enemies, TargetingConstraint::Enemy, TargetingPreference::Offensive},
 	{SuperWeaponAITargetingMode::LowPower, SuperWeaponTarget::None, AffectedHouse::Owner, TargetingConstraint::Attacked, TargetingPreference::None},
 	{SuperWeaponAITargetingMode::LowPowerAttack, SuperWeaponTarget::Building, AffectedHouse::None, TargetingConstraint::LowPower, TargetingPreference::None },
@@ -309,9 +308,6 @@ bool SWTypeExt::ExtData::IsTargetConstraintEligible(SuperClass* pThis, bool IsPl
 	auto pOwner = pThis->Owner; auto nFlag = pExt->GetAITargetingConstraint();
 
 	auto valid = [](const CellStruct& nVal) { return nVal.X || nVal.Y; };
-
-	if (((nFlag & TargetingConstraint::None) != TargetingConstraint::None) && valid(pOwner->PreferredTargetCell))
-		return false;
 
 	if (((nFlag & TargetingConstraint::OffensiveCellSet) != TargetingConstraint::None) && !valid(pOwner->PreferredTargetCell))
 		return false;
@@ -592,6 +588,7 @@ struct PickEmptyTarget
 	}
 };
 
+//pick target basen on `IonCannonValue`
 struct PickIonCannonTarget
 {
 	enum class CloakHandling
@@ -990,7 +987,7 @@ struct SelfTargetSelector final : public TargetSelector
 	TargetResult operator()(const TargetingInfo& info) const
 	{
 		return{ GetTarget(info, CanFireAlways(), PreferNothing(), FindTargetCoords),
-			SWTargetFlags::DisallowEmpty };
+			SWTargetFlags::AllowEmpty };
 	}
 
 private:
@@ -1082,14 +1079,14 @@ TargetResult SWTypeExt::ExtData::PickSuperWeaponTarget(SuperClass* pSuper)
 {
 	TargetingInfo info(pSuper);
 
-	switch (info.TypeExt->GetAITargetingConstraint())
+	switch (info.TypeExt->GetAITargetingPreference())
 	{
-	case TargetingConstraint::OffensiveCellClear:
+	case TargetingPreference::Offensive:
 		if (!pSuper->Owner->PreferredTargetCell.IsValid())
 			break;
 
 		return { pSuper->Owner->PreferredTargetCell ,SWTargetFlags::AllowEmpty };
-	case TargetingConstraint::DefensifeCellClear:
+	case TargetingPreference::Devensive:
 
 		if (!pSuper->Owner->PreferredDefensiveCell2.IsValid())
 			break;
@@ -1113,6 +1110,10 @@ TargetResult SWTypeExt::ExtData::PickSuperWeaponTarget(SuperClass* pSuper)
 	case SuperWeaponAITargetingMode::ForceShield:
 		return ForceShieldTargetSelector()(info);
 	case SuperWeaponAITargetingMode::NoTarget:
+	case SuperWeaponAITargetingMode::HunterSeeker:
+	case SuperWeaponAITargetingMode::Attack:
+	case SuperWeaponAITargetingMode::LowPower:
+	case SuperWeaponAITargetingMode::LowPowerAttack:
 		return NoTargetTargetSelector()(info);
 	case SuperWeaponAITargetingMode::Offensive:
 		return OffensiveTargetSelector()(info);
@@ -1124,8 +1125,8 @@ TargetResult SWTypeExt::ExtData::PickSuperWeaponTarget(SuperClass* pSuper)
 		return BaseTargetSelector()(info);
 	case SuperWeaponAITargetingMode::MultiMissile:
 		return MultiMissileTargetSelector()(info);
-	case SuperWeaponAITargetingMode::HunterSeeker:
-		return HunterSeekerTargetSelector()(info);
+	//case SuperWeaponAITargetingMode::HunterSeeker:
+	//	return HunterSeekerTargetSelector()(info);
 	case SuperWeaponAITargetingMode::EnemyBase:
 		return EnemyBaseTargetSelector()(info);
 	case SuperWeaponAITargetingMode::Droppod:
@@ -1136,12 +1137,11 @@ TargetResult SWTypeExt::ExtData::PickSuperWeaponTarget(SuperClass* pSuper)
 			SpeedType::Foot, -1, MovementZone::Normal, false, 1, 1, false,
 			false, false, true, CellStruct::Empty, false, false);
 
-		if (nNearby.IsValid() && info.NewType->CanFireAt(*info.Data, nNearby, false))
-		{
+		if (nNearby.IsValid() && info.NewType->CanFireAt(*info.Data, nNearby, false)) {
 			return { nNearby  , SWTargetFlags::AllowEmpty };
 		}
 
-		return{ CellStruct::Empty, SWTargetFlags::DisallowEmpty };
+		break;
 	}
 	case SuperWeaponAITargetingMode::LighningRandom:
 	{
@@ -1163,12 +1163,13 @@ TargetResult SWTypeExt::ExtData::PickSuperWeaponTarget(SuperClass* pSuper)
 			if (info.NewType->CanFireAt(*info.Data, nBuffer, false))
 				return { nBuffer , SWTargetFlags::AllowEmpty };
 		}
-
-		return { CellStruct::Empty, SWTargetFlags::DisallowEmpty };
+		break;
 	}
 	default:
-		return{ CellStruct::Empty, SWTargetFlags::DisallowEmpty };
+		break;
 	}
+
+	return{ CellStruct::Empty, SWTargetFlags::DisallowEmpty };
 }
 
 #pragma endregion
@@ -1198,7 +1199,9 @@ bool SWTypeExt::ExtData::CanFire(HouseClass* pOwner)
 bool SWTypeExt::ExtData::IsAnimVisible(HouseClass* pFirer)
 {
 	auto relation = SWTypeExt::ExtData::GetRelation(pFirer, HouseClass::CurrentPlayer);
-	return (this->SW_AnimVisibility & relation) == relation;
+	const auto nRelationResult = (this->SW_AnimVisibility & relation);
+	const bool IsVisible = nRelationResult == relation;
+	return IsVisible;
 }
 
 // does pFirer's SW affects object belonging to pHouse?
@@ -1580,13 +1583,12 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_ChargeToDrainRatio.Read(exINI, pSection, "SW.ChargeToDrainRatio");
 
 	//
-	this->Deliver_Types.Read(exINI, pSection, "Deliver.Types");
 	this->Converts.Read(exINI, pSection, "Converts");
 	this->ConvertsPair.Read(exINI, pSection, "ConvertsPair");
 
 	//
 	this->SW_Warhead.Read(exINI, pSection, "SW.Warhead");
-	this->SW_Anim.Read(exINI, pSection, "SW.Anim");
+	this->SW_Anim.Read(exINI, pSection, "SW.Animation");
 	this->SW_Sound.Read(exINI, pSection, "SW.Sound");
 	this->SW_ActivationSound.Read(exINI, pSection, "SW.ActivationSound");
 
@@ -2099,12 +2101,8 @@ LightingColor SWTypeExt::GetLightingColor(SuperWeaponTypeClass* pCustom)
 	ret.Blue *= 10;
 
 	// active SW or custom one?
-	if (auto const pSW = pCustom ? pCustom : pType)
-	{
-		if (auto pData = SWTypeExt::ExtMap.Find(pSW))
-		{
-			pData->UpdateLightingColor(ret);
-		}
+	if (auto const pSW = pCustom ? pCustom : pType) {
+		SWTypeExt::ExtMap.Find(pSW)->UpdateLightingColor(ret);
 	}
 
 	return ret;
@@ -2250,7 +2248,6 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SW_AnimVisibility)
 		.Process(this->SW_AnimHeight)
 		.Process(this->SW_ChargeToDrainRatio)
-		.Process(this->Deliver_Types)
 		.Process(this->HandledType)
 		.Process(this->Converts)
 		.Process(this->ConvertsPair)

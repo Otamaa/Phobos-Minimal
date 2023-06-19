@@ -162,8 +162,6 @@ public:
 		Valueable<AffectedHouse> SW_AnimVisibility;
 		Valueable<int> SW_AnimHeight;
 
-		//UnitDelivery
-		ValueableVector<TechnoTypeClass*> Deliver_Types;
 		SuperWeaponType HandledType;
 
 		Valueable<bool> Converts;
@@ -332,7 +330,7 @@ public:
 
 #pragma region Unit Delivery
 		ValueableVector<TechnoTypeClass*> SW_Deliverables {  };
-		Valueable<bool> SW_DeliverBuildups;
+		Valueable<bool> SW_DeliverBuildups { true };
 		Valueable<OwnerHouseKind> SW_OwnerHouse{ OwnerHouseKind::Default  };
 #pragma endregion
 
@@ -423,7 +421,6 @@ public:
 			, SW_AnimVisibility { AffectedHouse::All }
 			, SW_AnimHeight { 0 }
 
-			, Deliver_Types { }
 			, HandledType { SuperWeaponType::Invalid }
 
 			, Converts { false }

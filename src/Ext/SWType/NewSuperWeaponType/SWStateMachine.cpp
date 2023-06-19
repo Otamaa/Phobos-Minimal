@@ -65,15 +65,22 @@ void UnitDeliveryStateMachine::Update()
 
 void UnitDeliveryStateMachine::PlaceUnits()
 {
-	auto pData = SWTypeExt::ExtMap.Find(this->Super->Type);
+	const auto pData = SWTypeExt::ExtMap.Find(this->Super->Type);
 	// get the house the units will belong to
-	auto pOwner = HouseExt::GetHouseKind(pData->SW_OwnerHouse, false, this->Super->Owner);
+	const auto pOwner = HouseExt::GetHouseKind(pData->SW_OwnerHouse, false, this->Super->Owner);
+	const bool IsPlayerControlled = pOwner->ControlledByPlayer_();
+	const bool bBaseNormal = pData->SW_DeliverBuildups;
+	const auto nPlace = this->Coords;
 
 	// create an instance of each type and place it
 	for (auto const& pType : pData->SW_Deliverables)
 	{
 		auto Item = static_cast<TechnoClass*>(pType->CreateObject(pOwner));
-		auto ItemBuilding = abstract_cast<BuildingClass*>(Item);
+
+		if (!Item)
+			continue;
+
+		auto ItemBuilding = specific_cast<BuildingClass*>(Item);
 
 		// get the best options to search for a place
 		short extentX = 1;
@@ -82,6 +89,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 		MovementZone MovementZone = MovementZone::Normal;
 		bool buildable = false;
 		bool anywhere = false;
+		auto PlaceCoords = nPlace;
 
 		if (ItemBuilding)
 		{
@@ -109,7 +117,8 @@ void UnitDeliveryStateMachine::PlaceUnits()
 		}
 
 		// move the target cell so this object is centered on the actual location
-		auto PlaceCoords = this->Coords - CellStruct{short(extentX / 2), short(extentY / 2)};
+		PlaceCoords.X += extentX / -2;
+		PlaceCoords.Y += extentY / -2;
 
 		// find a place to put this
 		if (!anywhere)
@@ -125,16 +134,15 @@ void UnitDeliveryStateMachine::PlaceUnits()
 			Item->OnBridge = pCell->ContainsBridge();
 
 			// set the appropriate mission
-			if (ItemBuilding && pData->SW_DeliverBuildups)
+			if (ItemBuilding)
 			{
-				ItemBuilding->QueueMission(Mission::Construction, false);
-			}
-			else
-			{
+				if(!bBaseNormal)
+					Is_FromSW(ItemBuilding) = true;
+				else
+					ItemBuilding->QueueMission(Mission::Construction, false);
+			} else {
 				// only computer units can hunt
-				auto Guard = ItemBuilding || pOwner->ControlledByPlayer_();
-				auto Mission = Guard ? Mission::Guard : Mission::Hunt;
-				Item->QueueMission(Mission, false);
+				Item->QueueMission(IsPlayerControlled ? Mission::Guard : Mission::Hunt, false);
 			}
 
 			// place and set up
@@ -143,17 +151,19 @@ void UnitDeliveryStateMachine::PlaceUnits()
 			{
 				if (ItemBuilding)
 				{
-					if (pData->SW_DeliverBuildups)
+					if (bBaseNormal)
 					{
-						ItemBuilding->DiscoveredBy(this->Super->Owner);
+						ItemBuilding->DiscoveredBy(pOwner);
 						ItemBuilding->IsReadyToCommence = 1;
-					}
-
-					Is_FromSW(ItemBuilding) = true;
+					}			
 				}
-				else if (pType->BalloonHover || pType->JumpJet)
+				else 
 				{
-					Item->Scatter(CoordStruct::Empty, true, false);
+					if (pType->BalloonHover || pType->JumpJet)
+						Item->Scatter(CoordStruct::Empty, true, false);
+
+					if (Item->CurrentMission == Mission::Area_Guard && !IsPlayerControlled)
+						Item->QueueMission(Mission::Hunt, true);
 				}
 				
 				if (!AresData::IsPowered(Item) || (!Is_Operated(Item) && !AresData::IsOperated(Item)))
@@ -163,8 +173,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 					{
 						Item->Owner->RecheckTechTree = true;
 					}
-				}
-				
+				}		
 			}
 			else
 			{
