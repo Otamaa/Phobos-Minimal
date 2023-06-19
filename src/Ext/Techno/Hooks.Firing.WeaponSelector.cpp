@@ -208,7 +208,7 @@ DEFINE_HOOK(0x6F37EB, TechnoClass_WhatWeaponShouldIUse_AntiAir, 0x6)
 {
 	enum { Primary = 0x6F37AD, Secondary = 0x6F3807 };
 
-	GET(TechnoClass*, pThis, ESI);
+	//GET(TechnoClass*, pThis, ESI);
 	GET(TechnoClass*, pTargetTechno, EBP);
 	GET_STACK(WeaponTypeClass*, pWeapon, STACK_OFFS(0x18, 0x4));
 	GET(WeaponTypeClass*, pSecWeapon, EAX);

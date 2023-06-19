@@ -20,6 +20,4 @@ public:
 
 	static SuperClass* CurrentNukeType;
 
-public:
-	static WeaponTypeClass* GetNukePayload(SuperWeaponTypeClass* pSuper);
 };

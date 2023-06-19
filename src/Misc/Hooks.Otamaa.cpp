@@ -4999,24 +4999,24 @@ void MeteorShower_Process(CoordStruct Where, HouseClass* pOwner)
 //	return SkipGameCode;
 //}
 
-DEFINE_HOOK(0x44CABA, BuildingClass_Mission_Missile_BulletParams, 0x7)
-{
-	enum { SkipGameCode = 0x44CAF2 };
-
-	GET(BuildingClass* const, pThis, ESI);
-	GET(CellClass* const, pTarget, EAX);
-
-	auto pWeapon = SuperWeaponTypeClass::Array->GetItem(pThis->FiringSWType)->WeaponType;
-	BulletClass* pBullet = nullptr;
-
-	if (pWeapon){ 
-		pBullet = BulletTypeExt::ExtMap.Find(pWeapon->Projectile)->CreateBullet(pTarget, pThis, pWeapon->Damage , pWeapon->Warhead , pWeapon->Speed , 255 ,pWeapon->Bright || pWeapon->Warhead->Bright , false);
-	}
-
-	R->EAX(pBullet);
-	R->EBX(pWeapon);
-	return SkipGameCode;
-}
+// DEFINE_HOOK(0x44CABA, BuildingClass_Mission_Missile_BulletParams, 0x7)
+// {
+// 	enum { SkipGameCode = 0x44CAF2 };
+//
+// 	GET(BuildingClass* const, pThis, ESI);
+// 	GET(CellClass* const, pTarget, EAX);
+//
+// 	auto pWeapon = SuperWeaponTypeClass::Array->GetItem(pThis->FiringSWType)->WeaponType;
+// 	BulletClass* pBullet = nullptr;
+//
+// 	if (pWeapon){ 
+// 		pBullet = BulletTypeExt::ExtMap.Find(pWeapon->Projectile)->CreateBullet(pTarget, pThis, pWeapon->Damage , pWeapon->Warhead , pWeapon->Speed , 255 ,pWeapon->Bright || pWeapon->Warhead->Bright , false);
+// 	}
+//
+// 	R->EAX(pBullet);
+// 	R->EBX(pWeapon);
+// 	return SkipGameCode;
+// }
 
 DEFINE_HOOK(0x44D0C3, BuildingClass_Missile_EMPFire_WeaponType, 0x5)
 {

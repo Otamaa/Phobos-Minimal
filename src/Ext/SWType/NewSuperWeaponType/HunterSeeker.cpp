@@ -51,7 +51,7 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 		if (auto pHunter = static_cast<UnitClass*>(pType->CreateObject(pOwner)))
 		{
 			if(pHunter->Type->HunterSeeker)
-				AttachedSuperWeapon(pHunter) = pThis;
+				TechnoExt::ExtMap.Find(pHunter)->LinkedSW = pThis;
 
 			// put it on the map and let it go
 			CoordStruct crd = CellClass::Cell2Coord(cell);

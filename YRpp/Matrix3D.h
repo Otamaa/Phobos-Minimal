@@ -122,6 +122,7 @@ public:
 		float theta = -rotate_z;
 		this->RotateZ(theta);
 	}
+
 	// rotation ctor
 	Matrix3D(const Vector3D<float>* axis, float angle) noexcept
 	{
@@ -149,6 +150,13 @@ public:
 		double v14 = axis->Z * axis->Z;
 		this->row[2][3] = 0.0f;
 		this->row[2][2] = static_cast<float>((1.0 - v14) * c + v14);
+	}
+
+	static Matrix3D GetIdentity()
+	{
+		Matrix3D mtx { };
+		mtx.MakeIdentity();
+		return mtx;
 	}
 
 	// copy ctor

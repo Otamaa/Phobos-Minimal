@@ -196,7 +196,8 @@ namespace detail
 				return true;
 			}
 
-			for (size_t i = 0; i < CellClass::LandTypeToStrings.size(); ++i) { {
+			for (size_t i = 0; i < CellClass::LandTypeToStrings.size(); ++i) { 
+				if (IS_SAME_STR_(CellClass::LandTypeToStrings[i], parser.c_str())) {				
 					value = LandType(i);
 					return true;
 				}
@@ -1982,6 +1983,48 @@ bool ValueableVector<T>::Save(PhobosStreamWriter& Stm) const
 		}
 		return true;
 	}
+	return false;
+}
+
+template <>
+inline bool ValueableVector<bool>::Load(PhobosStreamReader& stm, bool registerForChange)
+{
+	size_t size = 0;
+	if (Savegame::ReadPhobosStream(stm, size, registerForChange))
+	{
+		this->clear();
+
+		for (size_t i = 0; i < size; ++i)
+		{
+			bool value;
+
+			if (!Savegame::ReadPhobosStream(stm, value, false))
+				return false;
+
+			this->emplace_back(value);
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+template <>
+inline bool ValueableVector<bool>::Save(PhobosStreamWriter& stm) const
+{
+	auto size = this->size();
+	if (Savegame::WritePhobosStream(stm, size))
+	{
+		for (bool item : *this)
+		{
+			if (!Savegame::WritePhobosStream(stm, item))
+				return false;
+		}
+
+		return true;
+	}
+
 	return false;
 }
 

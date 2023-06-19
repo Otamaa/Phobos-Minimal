@@ -3937,6 +3937,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->MyFighterData)
 		.Process(this->SelfHealing_CombatDelay)
 		.Process(this->PayloadCreated)
+		.Process(this->LinkedSW)
 #ifdef ENABLE_HOMING_MISSILE
 		.Process(this->MissileTargetTracker)
 #endif
@@ -3960,6 +3961,7 @@ bool TechnoExt::ExtData::InvalidateIgnorable(void* ptr) const
 	case UnitClass::vtable:
 	case InfantryClass::vtable:
 	case TemporalClass::vtable:
+	case SuperClass::vtable:
 		return false;
 	}
 
@@ -3971,6 +3973,7 @@ void TechnoExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 
 	MyWeaponManager.InvalidatePointer(ptr, bRemoved);
 
+	AnnounceInvalidPointer(LinkedSW, ptr);
 	AnnounceInvalidPointer(OriginalPassengerOwner, ptr);
 	AnnounceInvalidPointer(LastAttacker, ptr);
 #ifdef ENABLE_HOMING_MISSILE

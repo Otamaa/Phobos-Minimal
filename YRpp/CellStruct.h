@@ -35,6 +35,12 @@ public:
 		return std::bit_cast<DWORD>(*this);
 	}
 
+	static CellStruct UnPack(const int nVal) {
+		CellStruct nBuffer;
+		std::memcpy(&nBuffer, &nVal, sizeof(int));
+		return nBuffer;
+	}
+
 	double Magnitude()
 	{
 		return std::sqrt(MagnitudeSquared());

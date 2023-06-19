@@ -292,6 +292,8 @@ public:
 		PaintballType PaintBallData;
 #pragma endregion
 
+		ValueableIdx<SuperWeaponTypeClass> NukePayload_LinkedSW;
+
 		ExtData(WarheadTypeClass* OwnerObject) : Extension<WarheadTypeClass>(OwnerObject)
 			, Reveal { 0 }
 			, BigGap { false }
@@ -524,6 +526,7 @@ public:
 #endif
 			, PaintBallDuration { -1 }
 			, PaintBallData { }
+			, NukePayload_LinkedSW { -1 }
 
 		{	
 			this->EvaluateArmor(OwnerObject);

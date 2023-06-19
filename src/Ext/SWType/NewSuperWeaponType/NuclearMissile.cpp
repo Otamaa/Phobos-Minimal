@@ -3,7 +3,11 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
+#include <Ext/Techno/Body.h>
+
 #include <New/Type/CursorTypeClass.h>
+
+#include <Misc/AresData.h>
 
 SuperClass* SW_NuclearMissile::CurrentNukeType = nullptr;
 
@@ -52,6 +56,7 @@ bool SW_NuclearMissile::Activate(SuperClass* const pThis, const CellStruct& Coor
 		{
 			// setup the missile and start the fire mission
 			pSilo->FiringSWType = pType->ArrayIndex;
+			TechnoExt::ExtMap.Find(pSilo)->LinkedSW = pThis;
 			pSilo->QueueMission(Mission::Missile, false);
 			pSilo->NextMission();
 
@@ -62,7 +67,7 @@ bool SW_NuclearMissile::Activate(SuperClass* const pThis, const CellStruct& Coor
 		if (!fired)
 		{
 			// if we reached this, there is no silo launch. still launch a missile.
-			if (auto const pWeapon = this->GetNukePayload(pType))
+			if (auto const pWeapon = pData->Nuke_Payload)
 			{
 				if (auto const pProjectile = pWeapon->Projectile)
 				{
@@ -124,7 +129,8 @@ bool SW_NuclearMissile::Activate(SuperClass* const pThis, const CellStruct& Coor
 void SW_NuclearMissile::Initialize(SWTypeExt::ExtData* pData)
 { 
 	// default values for the original Nuke
-	pData->Nuke_Payload = WeaponTypeClass::FindOrAllocate(GameStrings::NukePayload);
+	pData->Nuke_Payload = WeaponTypeClass::FindOrAllocate(GameStrings::NukePayload); //use for nuke pointing down
+	//SW->WeaponType = used for nuke pointing up !
 	pData->Nuke_PsiWarning = AnimTypeClass::Find(GameStrings::PSIWARN);
 
 	pData->EVA_Detected = VoxClass::FindIndexById(GameStrings::EVA_NuclearSiloDetected());
@@ -158,28 +164,18 @@ WarheadTypeClass* SW_NuclearMissile::GetWarhead(const SWTypeExt::ExtData* pData)
 	if (pData->SW_Warhead.Get(nullptr))
 		return pData->SW_Warhead;
 
-	if (auto const pPayload = SW_NuclearMissile::GetNukePayload(pData->Get()))
+	if (auto pPayload = pData->Nuke_Payload) {
 		return pPayload->Warhead;
+	}
 
-	return RulesClass::Instance->V3Warhead; // :p
+	return nullptr; // :p
 }
 
 int SW_NuclearMissile::GetDamage(const SWTypeExt::ExtData* pData) const
 {
-	if (pData->SW_Damage.Get(-1) != -1)
-		return pData->SW_Damage;
-
-	const auto pPayload = SW_NuclearMissile::GetNukePayload(pData->Get());
-	if (pPayload && pPayload->Damage != -1)
-		return pPayload->Damage;
-
-	return RulesClass::Instance->AtomDamage;
-}
-
-WeaponTypeClass* SW_NuclearMissile::GetNukePayload(SuperWeaponTypeClass* pSuper)
-{
-	if(auto pPayload = SWTypeExt::ExtMap.Find(pSuper)->Nuke_Payload.Get())
-		return pPayload;
-
-	return pSuper->WeaponType;
+	auto damage = pData->SW_Damage.Get(-1);
+	if (damage < 0) {
+		damage = pData->Nuke_Payload ? pData->Nuke_Payload->Damage : 0;
+	}
+	return damage;
 }

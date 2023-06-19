@@ -268,8 +268,8 @@ DEFINE_OVERRIDE_HOOK(0x71f683 , TEventClass_GetFlags_Ares, 5)
 
 	const auto& [handled , result] = GetTEventAttachFlags(nAction);
 	if (handled) {
-		return 0x71F6F6;
 		R->EAX(result);
+		return 0x71F6F6;
 	}
 
 	return (int)nAction > 59 ? 0x71F69C : 0x71F688;

@@ -366,6 +366,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	this->InflictLocomotor.Read(exINI, pSection, "InflictLocomotor");
 	this->RemoveInflictedLocomotor.Read(exINI, pSection, "RemoveInflictedLocomotor");
 	this->Rocker_Damage.Read(exINI, pSection, "Rocker.Damage");
+	this->NukePayload_LinkedSW.Read(exINI, pSection, "NukePayload.LinkedSW");
 
 	if (this->InflictLocomotor && pThis->Locomotor == _GUID())
 	{
@@ -1092,6 +1093,7 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->InflictLocomotor)
 		.Process(this->RemoveInflictedLocomotor)
 		.Process(this->Rocker_Damage)
+		.Process(this->NukePayload_LinkedSW)
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 

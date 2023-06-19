@@ -22,7 +22,8 @@ bool SW_DropPod::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 		: RulesExt::Global()->DropPodTypes;
 
 	// quick way out
-	if (Types.empty()) {
+	if (Types.empty())
+	{
 		return false;
 	}
 
@@ -38,11 +39,8 @@ bool SW_DropPod::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 		// get a random type from the list and create an instance
 		TechnoTypeClass* pType = Types[ScenarioClass::Instance->Random.RandomFromMax(Types.size() - 1)];
 
-		if (!pType)
-			break;
-
-		if (pType->WhatAmI() == BuildingTypeClass::AbsID) {
-			break;
+		if (!pType || pType->WhatAmI() == BuildingTypeClass::AbsID) {
+			continue;
 		}
 
 		FootClass* pFoot = static_cast<FootClass*>(pType->CreateObject(pOwner));

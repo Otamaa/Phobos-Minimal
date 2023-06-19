@@ -59,6 +59,21 @@ std::array<const AITargetingModeInfo, (size_t)SuperWeaponAITargetingMode::count>
 }
 };
 
+bool SWTypeExt::ExtData::IsTypeRedirected() const
+{
+	return this->HandledType > SuperWeaponType::Invalid;
+}
+
+bool SWTypeExt::ExtData::IsOriginalType() const
+{
+	return NewSWType::IsOriginalType(this->Get()->Type);
+}
+ 
+NewSWType* SWTypeExt::ExtData::GetNewSWType() const
+{
+	return NewSWType::GetNewSWType(this);
+}
+
 void SWTypeExt::ExtData::Initialize()
 {
 	this->Text_Ready = GameStrings::TXT_READY();
@@ -1291,13 +1306,10 @@ bool SWTypeExt::ExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStr
 	pHouseExt->UpdateShotCount(pSuper->Type);
 
 	const auto flags = pNewType->Flags();
-	const bool bIsPostclick = (flags & SuperWeaponFlags::PostClick) != SuperWeaponFlags::None;
 
-	if (bIsPostclick)
-	{
+	if ((flags & SuperWeaponFlags::PostClick)) {
 		// use the properties of the originally fired SW
-		if (pHouseExt->SWLastIndex >= 0)
-		{
+		if (pHouseExt->SWLastIndex >= 0) {
 			pSuper = pOwner->Supers[pHouseExt->SWLastIndex];
 		}
 	}
@@ -1307,8 +1319,9 @@ bool SWTypeExt::ExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStr
 	if (pSuper->Granted || pData->CanFire(pOwner))
 		pOwner->RecheckTechTree = true;
 
-	if (bIsPostclick && !pData->SW_AutoFire)
-		pHouseExt->SWLastIndex = pSuper->Type->ArrayIndex;
+	const auto curSuperIdx = pOwner->Supers.FindItemIndex(pSuper);
+	if (!(flags & SuperWeaponFlags::PostClick) && !pData->SW_AutoFire)
+		pHouseExt->SWLastIndex = curSuperIdx;
 
 	if ((flags & SuperWeaponFlags::NoEVA) == SuperWeaponFlags::None && !Unsorted::MuteSWLaunches)
 	{
@@ -1375,8 +1388,8 @@ bool SWTypeExt::ExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStr
 		// auto-firing might happen while the player still selects a target.
 		// PostClick SWs do have a different type index, so they need to be
 		// special cased, but they can't auto-fire anyhow.
-		if (pOwner == HouseClass::CurrentPlayer) {
-			if (pOwner->Supers.FindItemIndex(pSuper) == Unsorted::CurrentSWType || bIsPostclick) {
+		if (pOwner->IsCurrentPlayer()) {
+			if (curSuperIdx == Unsorted::CurrentSWType || (flags & SuperWeaponFlags::PostClick)) {
 				Unsorted::CurrentSWType = -1;
 			}
 		}

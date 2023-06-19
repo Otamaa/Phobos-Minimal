@@ -316,6 +316,8 @@ void NewSWType::Init()
 	RegSW(SW_DropPod, AresNewSuperType::DropPod)
 	RegSW(SW_EMPulse, AresNewSuperType::EMPulse)
 	RegSW(SW_Battery, AresNewSuperType::Battery)
+	//Adding new SW Type is not advisable atm, since we need to handle absolutely everyhing 
+	//otherwise the game will crash with out of bound array ,..
 	//RegSW(SW_EMPField, AresNewSuperType::EMPField)
 	//RegSW(SW_IonCannon, AresNewSuperType::IonCannon)
 	//RegSW(SW_ChemLauncher, AresNewSuperType::ChemLauncher)

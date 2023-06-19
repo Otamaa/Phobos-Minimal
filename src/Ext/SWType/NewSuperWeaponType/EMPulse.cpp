@@ -37,7 +37,7 @@ bool SW_EMPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 		{
 			// set extended properties
 			EMPulseTarget(pBld) = (AbstractClass*)MapClass::Instance->TryGetCellAt(Coords); //TODO:
-			AttachedSuperWeapon(pBld) = pThis;
+			TechnoExt::ExtMap.Find(pBld)->LinkedSW = pThis;
 			// setup the cannon and start the fire mission
 			pBld->FiringSWType = pThis->Type->ArrayIndex;
 			pBld->QueueMission(Mission::Missile, false);
@@ -69,7 +69,7 @@ void SW_EMPulse::Initialize(SWTypeExt::ExtData* pData)
 
 	pData->EMPulse_Linked = false;
 	pData->EMPulse_TargetSelf = false;
-
+	
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::None;
 	pData->CursorType = int(MouseCursorType::Attack);
 	pData->NoCursorType = int(MouseCursorType::AttackOutOfRange);

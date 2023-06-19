@@ -133,7 +133,7 @@ struct EMPulse
 #define AltOccupy_Value(techno)  (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0x99)) 
 
 #define EMPulseTarget(techno) (*(AbstractClass**)(((char*)GetAresTechnoExt(techno)) + 0xA4))
-#define AttachedSuperWeapon(techno) (*(SuperClass**)(((char*)GetAresTechnoExt(techno)) + 0xA0))
+//#define AttachedSuperWeapon(techno) (*(SuperClass**)(((char*)GetAresTechnoExt(techno)) + 0xA0))
 #define GetCloakSkipTimer(techno) (*(CDTimerClass*)(((char*)GetAresTechnoExt(techno)) + 0x44))
 
 // HouseExt

@@ -170,7 +170,7 @@ public:
 		ValueableVector<TechnoTypeConvertData> ConvertsPair;
 
 #pragma region Nuke 
-		Nullable<WeaponTypeClass*> Nuke_Payload;
+		Valueable<WeaponTypeClass*> Nuke_Payload;
 		Valueable<AnimTypeClass*> Nuke_PsiWarning;
 		Nullable<AnimTypeClass*> Nuke_TakeOff;
 		Valueable<bool> Nuke_SiloLaunch;
@@ -565,10 +565,9 @@ public:
 		TargetingPreference GetAITargetingPreference() const;
 		bool UpdateLightingColor(LightingColor& Lighting) const;
 		// is this an original type handled by a NewSWType?
-		bool IsTypeRedirected() const
-		{
-			return this->HandledType > SuperWeaponType::Invalid;
-		}
+		bool IsTypeRedirected() const;
+		bool IsOriginalType() const;
+		NewSWType* GetNewSWType() const;
 
 		//statics 
 		static bool Deactivate(SuperClass* pSuper, CellStruct const cell, bool const isPlayer);

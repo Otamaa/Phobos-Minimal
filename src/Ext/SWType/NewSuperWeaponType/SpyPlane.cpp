@@ -71,7 +71,6 @@ void SW_SpyPlane::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 {
 	const char* section = pData->Get()->ID;
 
-	char tempBuffer[32];
 	INI_EX exINI(pINI);
 
 	pData->SpyPlanes_TypeIndex.Read(exINI ,section , "SpyPlane.Type");
