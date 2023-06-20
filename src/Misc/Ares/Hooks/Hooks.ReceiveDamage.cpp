@@ -370,9 +370,14 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 			AresData::WarheadTypeExt_ExtData_ApplyKillDriver(pWarhead, pAttacker, pThis);
 
 			if (pWHExt->Sonar_Duration > 0) {
-				auto& nSonarTime = GetSonarTimer(pThis);
+				auto& nSonarTime = GetCloakSkipTimer(pThis);
 				if (pWHExt->Sonar_Duration > nSonarTime.GetTimeLeft()) {
 					nSonarTime.Start(pWHExt->Sonar_Duration);
+
+					if (pThis->CloakState != CloakState::Uncloaked) {
+						pThis->Uncloak(true);
+						pThis->NeedsRedraw = true;
+					}
 				}
 			}
 

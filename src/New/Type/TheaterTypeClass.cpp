@@ -2,6 +2,11 @@
 
 #include <Phobos.h>
 
+#include <Ext/Scenario/Body.h>
+#include <Misc/AresData.h>
+
+#include <MixFileClass.h>
+
 Enumerable<TheaterTypeClass>::container_t Enumerable<TheaterTypeClass>::Array;
 
 const char* Enumerable<TheaterTypeClass>::GetMainSection()
@@ -136,7 +141,7 @@ void TheaterTypeClass::AddDefaults()
 			pTheater->unknown_float_64 = Theater::Array[i].unknown_float_64;
 			pTheater->unknown_int_68 = Theater::Array[i].unknown_int_68;
 			pTheater->unknown_int_6C = Theater::Array[i].unknown_int_6C;
-			pTheater->FallbackTheaterExtension = "TEM";
+			pTheater->FallbackTheaterExtension = Theater::Array[0].Extension;
 		}
 	}
 }
@@ -305,7 +310,7 @@ DEFINE_OVERRIDE_HOOK(0x5F9070, ObjectTypeClass_Load2DArt, 6)
 	{
 		if (!pType->ArcticArtInUse)
 		{
-			IMPL_SNPRNINTF(basename, sizeof(basename), "%sA", pType->ImageFile);
+			IMPL_SNPRNINTF(basename, sizeof(basename), GameStrings::STRFORMAT_A(), pType->ImageFile);
 			PhobosCRT::strCopy(pType->ImageFile, basename);
 			pType->ArcticArtInUse = true;
 		}
@@ -399,9 +404,6 @@ DEFINE_OVERRIDE_HOOK(0x5F96B0, ObjectTypeClass_TheaterSpecificID, 6)
 // ini file for theater control can be specified with : "TerrainControl"
 // if both not specified , game will decide it with their naming convention
 
-#include <Ext/Scenario/Body.h>
-#include <Misc/AresData.h>
-
 DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 {
 	GET(TheaterType, nType, EDI);
@@ -424,7 +426,7 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 	LEA_STACK(char*, pRootMix, STACK_OFFS(0x6C, 0x50));
 
 	if (!pTheater->RootMix)
-		pFunc(pRootMix, "%s.MIX", pTheater->ControlFileName.data());
+		pFunc(pRootMix, GameStrings::STRFORMAT_DOT_MIX(), pTheater->ControlFileName.data());
 	else
 		CRT::strcpy(pRootMix, pTheater->RootMix.c_str());
 
@@ -432,7 +434,7 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 	LEA_STACK(char*, pRootMixMD, STACK_OFFS(0x6C, 0x40));
 
 	if (!pTheater->RootMixMD)
-		pFunc(pRootMixMD, GameStrings::_p_MD_INI(),  pTheater->ControlFileName.data());
+		pFunc(pRootMixMD, GameStrings::STRFORMAT_MD_DOT_MIX(),  pTheater->ControlFileName.data());
 	else
 		CRT::strcpy(pRootMixMD, pTheater->RootMixMD.c_str());
 
@@ -440,7 +442,7 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 	LEA_STACK(char*, pExpansionMixMD, STACK_OFFS(0x6C, 0x20));
 
 	if (!pTheater->ExpansionMDMix)
-		pFunc(pExpansionMixMD, GameStrings::_p_MD_INI(), pTheater->PaletteFileName.data());
+		pFunc(pExpansionMixMD, GameStrings::STRFORMAT_MD_DOT_MIX(), pTheater->PaletteFileName.data());
 	else
 		CRT::strcpy(pExpansionMixMD, pTheater->ExpansionMDMix.c_str());
 
@@ -448,7 +450,7 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 	LEA_STACK(char*, pSuffixMix, STACK_OFFS(0x6C, 0x30));
 
 	if (!pTheater->SuffixMix)
-		pFunc(pSuffixMix, "%s.MIX", pTheater->Extension.data());
+		pFunc(pSuffixMix, GameStrings::STRFORMAT_DOT_MIX(), pTheater->Extension.data());
 	else
 		CRT::strcpy(pSuffixMix, pTheater->SuffixMix.c_str());
 
@@ -456,7 +458,7 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 	LEA_STACK(char*, pDataMix, STACK_OFFS(0x6C, 0x10));
 
 	if (!pTheater->DataMix)
-		pFunc(pDataMix, "%s.MIX", pTheater->ArtFileName.data());
+		pFunc(pDataMix, GameStrings::STRFORMAT_DOT_MIX(), pTheater->ArtFileName.data());
 	else
 		CRT::strcpy(pDataMix, pTheater->DataMix.c_str());
 
@@ -645,8 +647,6 @@ DEFINE_HOOK(0x5997B4, RMGClass_TheaterType_initRandomMap, 0x7)
 
 DEFINE_JUMP(LJMP, 0x6275B7, 0x627680);
 
-#include <MixFileClass.h>
-
 DEFINE_HOOK(0x627699, TheaterTypeClass_ProcessOtherPalettes_Process, 0x6)
 {
 	GET_STACK(char*, pOriginalName, STACK_OFFS(0x424, -0x4));
@@ -654,8 +654,8 @@ DEFINE_HOOK(0x627699, TheaterTypeClass_ProcessOtherPalettes_Process, 0x6)
 
 	CRT::strcpy(pNameProcessed, pOriginalName);
 	CRT::strcat(pNameProcessed, TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->Extension.data());
-	CRT::strcat(pNameProcessed, ".");
-	CRT::strcat(pNameProcessed, "PAL");
+	CRT::strcat(pNameProcessed, GameStrings::DOT_SEPARATOR());
+	CRT::strcat(pNameProcessed, GameStrings::PAL());
 	CRT::strupr(pNameProcessed);
 
 	const auto pFile = MixFileClass::Retrieve(pNameProcessed, false);

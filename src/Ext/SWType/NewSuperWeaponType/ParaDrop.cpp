@@ -370,14 +370,12 @@ void NOINLINE SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, A
 				pNew->SetLocation(pPlane->Location);
 				pNew->Limbo();
 
-				if (pPlane->Type->OpenTopped)
-				{
+				if (pPlane->Type->OpenTopped) {
 					pPlane->EnteredOpenTopped(pNew);
 				}
 
 				pNew->Transporter = pPlane;
 				pPlane->AddPassenger(static_cast<FootClass*>(pNew));
-
 			}
 		}
 	}
