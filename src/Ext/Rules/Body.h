@@ -194,6 +194,9 @@ public:
 		Valueable<int> DropPodMaximum;
 		ValueableVector<TechnoTypeClass*> DropPodTypes;
 
+		Valueable<bool> ReturnStructures { false };
+		Valueable<CSFText> MessageSilosNeeded {};
+
 		AircraftPutDataRules MyPutData;
 
 #pragma endregion

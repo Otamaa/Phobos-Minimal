@@ -24,6 +24,7 @@ bool SW_LightningStorm::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 			auto duration = pData->Weather_Duration.Get(RulesClass::Instance->LightningStormDuration);
 			auto deferment = pData->SW_Deferment.Get(RulesClass::Instance->LightningDeferment);
 			CurrentLightningStorm = pThis;
+
 			LightningStorm::Start(duration, deferment, Coords, pThis->Owner);
 
 			return true;

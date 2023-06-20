@@ -294,6 +294,9 @@ public:
 
 		// lightning rod
 		Valueable<double> LightningRod_Modifier { 1.0 };
+		Nullable<bool> Returnable {};
+		Nullable<double> BuildupTime {};
+		NullableIdx<VoxClass> SlamSound {};
 
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject)
 			, Type { nullptr }

@@ -502,10 +502,10 @@ struct TargetingFuncs
 					}
 					else if (cloak == CloakHandling::IgnoreCloaked)
 					{
-							// this prevents the 'targeting cloaked units bug'
+						// this prevents the 'targeting cloaked units bug'
 						if (cloaked)
 						{
-								return -1;
+							return -1;
 						}
 					}
 					else if (cloak == CloakHandling::RequireCloaked)
@@ -527,7 +527,8 @@ struct TargetingFuncs
 
 		TargetResult nResult { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 
-		if (pResult) {
+		if (pResult)
+		{
 			return { pResult->GetMapCoords() , SWTargetFlags::AllowEmpty };
 		}
 
@@ -538,7 +539,7 @@ struct TargetingFuncs
 	{
 		const auto nTarget = pThis->PickTargetByType(type);
 
-		TargetResult nResult ;
+		TargetResult nResult;
 
 		if (nTarget.IsValid())
 		{
@@ -551,39 +552,43 @@ struct TargetingFuncs
 	static TargetResult GetDominatorTarget(const TargetingInfo& info)
 	{
 		auto it = info.TypeExt->GetPotentialAITargets();
-		const auto pTarget =  GetTargetFirstMax(it.begin(), it.end(), [&info](TechnoClass* pTechno, int curMax)  {
+		const auto pTarget = GetTargetFirstMax(it.begin(), it.end(), [&info](TechnoClass* pTechno, int curMax)
+  {
 
-			if (!TargetingFuncs::IsTargetAllowed(pTechno)) {
-				return -1; 
-			}
+	  if (!TargetingFuncs::IsTargetAllowed(pTechno))
+	  {
+		  return -1;
+	  }
 
-			auto cell = pTechno->GetCell()->MapCoords;
+	  auto cell = pTechno->GetCell()->MapCoords;
 
-			int value = 0;
-		  for (size_t i = 0; i < CellSpread::NumCells(3); ++i) {
-			auto pCell = MapClass::Instance->GetCellAt(cell + CellSpread::GetCell(i));
+	  int value = 0;
+	  for (size_t i = 0; i < CellSpread::NumCells(3); ++i)
+	  {
+		  auto pCell = MapClass::Instance->GetCellAt(cell + CellSpread::GetCell(i));
 
-			for (NextObject j(pCell->FirstObject); j && abstract_cast<FootClass*>(*j); ++j)
-			{
-				auto pFoot = static_cast<FootClass*>(*j);
-				if (!info.Owner->IsAlliedWith(pFoot) && !pFoot->IsInAir() && pFoot->CanBePermaMindControlled())
-				{
-					// original game does not consider cloak
-					if (pFoot->CloakState != CloakState::Cloaked)
-					{
-						 ++value;
-					}
-				}
-			}
+		  for (NextObject j(pCell->FirstObject); j && abstract_cast<FootClass*>(*j); ++j)
+		  {
+			  auto pFoot = static_cast<FootClass*>(*j);
+			  if (!info.Owner->IsAlliedWith(pFoot) && !pFoot->IsInAir() && pFoot->CanBePermaMindControlled())
+			  {
+				  // original game does not consider cloak
+				  if (pFoot->CloakState != CloakState::Cloaked)
+				  {
+					  ++value;
+				  }
+			  }
 		  }
+	  }
 
-			// new check
-			if (value <= curMax || !info.CanFireAt(cell)) { return -1; }
+	  // new check
+	  if (value <= curMax || !info.CanFireAt(cell)) { return -1; }
 
-			return value;
+	  return value;
 		});
 
-		if (pTarget) {
+		if (pTarget)
+		{
 			return{ pTarget->GetMapCoords()  , SWTargetFlags::AllowEmpty };
 		}
 
@@ -606,7 +611,8 @@ struct TargetingFuncs
 				MovementZone::Normal, false, SpaceSize, SpaceSize, false,
 				false, false, true, CellStruct::Empty, false, false);
 
-			if (target != CellStruct::Empty) {
+			if (target != CellStruct::Empty)
+			{
 				target += CellStruct{SpaceSize / 2, SpaceSize / 2};
 			}
 
@@ -616,55 +622,59 @@ struct TargetingFuncs
 			target = pOwner->PickTargetByType(pOwner->PreferredTargetType);
 		}
 
-		if (!info.CanFireAt(target)) {			
+		if (!info.CanFireAt(target))
+		{
 			return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 		}
 
-		return  { target , SWTargetFlags::AllowEmpty } ;
+		return  { target , SWTargetFlags::AllowEmpty };
 	}
 
 	static TargetResult GetMutatorTarget(const TargetingInfo& info)
 	{
-	  //specific implementation for GeneticMutatorTargetSelector for
+		//specific implementation for GeneticMutatorTargetSelector for
 		auto it = info.TypeExt->GetPotentialAITargets();
-		const auto pResult = GetTargetFirstMax(it.begin(), it.end(), [&info](TechnoClass* pTechno, int curMax) {
+		const auto pResult = GetTargetFirstMax(it.begin(), it.end(), [&info](TechnoClass* pTechno, int curMax)
+ {
 
-		  if (!TargetingFuncs::IsTargetAllowed(pTechno)) {
-			  return -1;
-		  }
+	 if (!TargetingFuncs::IsTargetAllowed(pTechno))
+	 {
+		 return -1;
+	 }
 
-		  auto cell = pTechno->GetCell()->MapCoords;
-		  int value = 0;
+	 auto cell = pTechno->GetCell()->MapCoords;
+	 int value = 0;
 
-		  for (size_t i = 0; i < CellSpread::NumCells(1); ++i)
-		  {
-			  auto pCell = MapClass::Instance->GetCellAt(cell + CellSpread::GetCell(i));
+	 for (size_t i = 0; i < CellSpread::NumCells(1); ++i)
+	 {
+		 auto pCell = MapClass::Instance->GetCellAt(cell + CellSpread::GetCell(i));
 
-			  for (NextObject j(pCell->GetInfantry(pTechno->OnBridge)); j && abstract_cast<InfantryClass*>(*j); ++j)
-			  {
-				  auto pInf = static_cast<InfantryClass*>(*j);
+		 for (NextObject j(pCell->GetInfantry(pTechno->OnBridge)); j && abstract_cast<InfantryClass*>(*j); ++j)
+		 {
+			 auto pInf = static_cast<InfantryClass*>(*j);
 
-				  if (!info.Owner->IsAlliedWith(pInf) && !pInf->IsInAir())
-				  {
-					  // original game does not consider cloak
-					  if (pInf->CloakState != CloakState::Cloaked)
-					  {
-						  ++value;
-					  }
-				  }
-			  }
+			 if (!info.Owner->IsAlliedWith(pInf) && !pInf->IsInAir())
+			 {
+				 // original game does not consider cloak
+				 if (pInf->CloakState != CloakState::Cloaked)
+				 {
+					 ++value;
+				 }
+			 }
+		 }
 
-			  // new check
-			  if (value <= curMax || !info.CanFireAt(cell))
-			  {
-				  return -1;
-			  }
-		  }
+		 // new check
+		 if (value <= curMax || !info.CanFireAt(cell))
+		 {
+			 return -1;
+		 }
+	 }
 
-		  return value;
-		});	
+	 return value;
+		});
 
-		if (pResult) {
+		if (pResult)
+		{
 			return { pResult->GetMapCoords(), SWTargetFlags::AllowEmpty };
 		}
 
@@ -694,7 +704,8 @@ struct TargetingFuncs
 	{
 		auto pOwner = info.Owner;
 
-		if (pOwner->PreferredTargetType == TargetType::Anything) {
+		if (pOwner->PreferredTargetType == TargetType::Anything)
+		{
 
 			HouseClass* pHouseTarget = HouseClass::Array->GetItemOrDefault(pOwner->EnemyHouseIndex);
 
@@ -706,7 +717,7 @@ struct TargetingFuncs
 
 	static TargetResult GetStealthTarget(const TargetingInfo& info)
 	{
-		return TargetingFuncs::GetIonCannonTarget(info ,nullptr, CloakHandling::RequireCloaked);
+		return TargetingFuncs::GetIonCannonTarget(info, nullptr, CloakHandling::RequireCloaked);
 	}
 
 	static TargetResult GetDroppodTarget(const TargetingInfo& info)
@@ -717,7 +728,8 @@ struct TargetingFuncs
 			SpeedType::Foot, -1, MovementZone::Normal, false, 1, 1, false,
 			false, false, true, CellStruct::Empty, false, false);
 
-		if (nNearby.IsValid() && info.CanFireAt(nNearby)) {
+		if (nNearby.IsValid() && info.CanFireAt(nNearby))
+		{
 			return { nNearby  , SWTargetFlags::AllowEmpty };
 		}
 
@@ -741,7 +753,7 @@ struct TargetingFuncs
 				while (!MapClass::Instance->CoordinatesLegal(nBuffer));
 			}
 
-			
+
 			if (nBuffer.IsValid() && info.CanFireAt(nBuffer))
 				return { nBuffer , SWTargetFlags::AllowEmpty };
 		}
@@ -792,8 +804,9 @@ struct TargetingFuncs
 		// fire at the SW's owner's base cell
 		CellStruct cell = info.Owner->GetBaseCenter();
 
-		if (info.CanFireAt(cell)) {
-			return { cell, SWTargetFlags::AllowEmpty }; 
+		if (info.CanFireAt(cell))
+		{
+			return { cell, SWTargetFlags::AllowEmpty };
 		}
 
 		return{ CellStruct::Empty, SWTargetFlags::DisallowEmpty };
@@ -820,7 +833,7 @@ struct TargetingFuncs
 		if (pResult)
 		{
 			return{
-				pResult->GetMapCoords(), 
+				pResult->GetMapCoords(),
 				SWTargetFlags::AllowEmpty
 			};
 		}
@@ -830,7 +843,8 @@ struct TargetingFuncs
 
 	static TargetResult GetEnemyBaseTarget(const TargetingInfo& info)
 	{
-		if (auto pEnemy = HouseClass::Array->GetItemOrDefault(info.Owner->EnemyHouseIndex)) {
+		if (auto pEnemy = HouseClass::Array->GetItemOrDefault(info.Owner->EnemyHouseIndex))
+		{
 
 			CellStruct cell = pEnemy->GetBaseCenter();
 
@@ -839,7 +853,7 @@ struct TargetingFuncs
 				return { cell , SWTargetFlags::AllowEmpty };
 			}
 		}
-		
+
 		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
@@ -850,7 +864,7 @@ TargetResult SWTypeExt::ExtData::PickSuperWeaponTarget(SuperClass* pSuper)
 {
 	TargetingInfo info(pSuper);
 
-	if(!info.Data)
+	if (!info.Data)
 		info.GetData();
 
 	switch (info.TypeExt->GetAITargetingPreference())
@@ -879,8 +893,8 @@ TargetResult SWTypeExt::ExtData::PickSuperWeaponTarget(SuperClass* pSuper)
 		return TargetingFuncs::GetNukeAndLighningTarget(info);
 	}
 	case SuperWeaponAITargetingMode::PsychicDominator:
-	{ 
-		return TargetingFuncs::GetDominatorTarget(info); 
+	{
+		return TargetingFuncs::GetDominatorTarget(info);
 	}
 	case SuperWeaponAITargetingMode::ParaDrop:
 	{
@@ -1753,19 +1767,19 @@ void SWTypeExt::CreateChronoAnim(SuperClass* const pThis, const CoordStruct& Coo
 
 LightingColor SWTypeExt::GetLightingColor(SuperWeaponTypeClass* pCustom)
 {
-	auto scen = ScenarioClass::Instance();
 	SuperWeaponTypeClass* pType = nullptr;
-
 	LightingColor ret {};
+	auto scen = ScenarioClass::Instance();
+
 	if (NukeFlash::IsFadingIn() || ChronoScreenEffect::Status)
 	{
 		// nuke flash
 		ret.Ambient = scen->NukeAmbient;
-		ret.Red = scen->NukeLighting.Tint.Red;
-		ret.Green = scen->NukeLighting.Tint.Green;
-		ret.Blue = scen->NukeLighting.Tint.Blue;
+		ret.Red = scen->NukeLighting.Tint.Red * 10;
+		ret.Green = scen->NukeLighting.Tint.Green * 10;
+		ret.Blue = scen->NukeLighting.Tint.Blue * 10;
+		ret.HasValue = true; //default
 
-		ret.HasValue = true;
 		if (SuperClass* pSuper = SW_NuclearMissile::CurrentNukeType)
 		{
 			pType = pSuper->Type;
@@ -1775,11 +1789,12 @@ LightingColor SWTypeExt::GetLightingColor(SuperWeaponTypeClass* pCustom)
 	{
 		// lightning storm
 		ret.Ambient = scen->IonAmbient;
-		ret.Red = scen->IonLighting.Tint.Red;
-		ret.Green = scen->IonLighting.Tint.Green;
-		ret.Blue = scen->IonLighting.Tint.Blue;
+		ret.Red = scen->IonLighting.Tint.Red * 10;
+		ret.Green = scen->IonLighting.Tint.Green * 10;
+		ret.Blue = scen->IonLighting.Tint.Blue * 10;
 
 		ret.HasValue = true;
+
 		if (SuperClass* pSuper = SW_LightningStorm::CurrentLightningStorm)
 		{
 			pType = pSuper->Type;
@@ -1789,11 +1804,11 @@ LightingColor SWTypeExt::GetLightingColor(SuperWeaponTypeClass* pCustom)
 	{
 		// psychic dominator
 		ret.Ambient = scen->DominatorAmbient;
-		ret.Red = scen->DominatorLighting.Tint.Red;
-		ret.Green = scen->DominatorLighting.Tint.Green;
-		ret.Blue = scen->DominatorLighting.Tint.Blue;
-
+		ret.Red = scen->DominatorLighting.Tint.Red * 10;
+		ret.Green = scen->DominatorLighting.Tint.Green * 10;
+		ret.Blue = scen->DominatorLighting.Tint.Blue * 10;
 		ret.HasValue = true;
+
 		if (SuperClass* pSuper = SW_PsychicDominator::CurrentPsyDom)
 		{
 			pType = pSuper->Type;
@@ -1803,21 +1818,13 @@ LightingColor SWTypeExt::GetLightingColor(SuperWeaponTypeClass* pCustom)
 	{
 		// no special lightning
 		ret.Ambient = scen->AmbientOriginal;
-		ret.Red = scen->NormalLighting.Tint.Red;
-		ret.Green = scen->NormalLighting.Tint.Green;
-		ret.Blue = scen->NormalLighting.Tint.Blue;
-
-		ret.HasValue = false;
+		ret.Red = scen->NormalLighting.Tint.Red * 10;
+		ret.Green = scen->NormalLighting.Tint.Green * 10;
+		ret.Blue = scen->NormalLighting.Tint.Blue * 10;
+		ret.HasValue = false; //this is the default value
 	}
 
-	ret.Red *= 10;
-	ret.Green *= 10;
-	ret.Blue *= 10;
-
-	// active SW or custom one?
-	// has value overriden here
-	if (auto const pSW = pCustom ? pCustom : pType)
-	{
+	if (auto const pSW = pCustom ? pCustom : pType) {
 		SWTypeExt::ExtMap.Find(pSW)->UpdateLightingColor(ret);
 	}
 
@@ -1826,29 +1833,18 @@ LightingColor SWTypeExt::GetLightingColor(SuperWeaponTypeClass* pCustom)
 
 bool SWTypeExt::ExtData::UpdateLightingColor(LightingColor& Lighting) const
 {
-	if (this->Lighting_Enabled.isset())
-	{
-		if (this->Lighting_Enabled.Get())
-		{
-			auto UpdateValue = [](const Nullable<int>& from, int& into, int factor)
-			{
-				int value = from.Get(-1);
-				if (value >= 0)
-				{
-					into = factor * value;
-				}
-			};
+	auto UpdateValue = [](const Nullable<int>& from, int& into, int factor) {
+		int value = from.Get(-1);
+		if (value >= 0) { into = factor * value; }
+	};
 
-			UpdateValue(this->Lighting_Ambient, Lighting.Ambient, 1);
-			UpdateValue(this->Lighting_Red, Lighting.Red, 10);
-			UpdateValue(this->Lighting_Green, Lighting.Green, 10);
-			UpdateValue(this->Lighting_Blue, Lighting.Blue, 10);
-		}
-		else
-		{
-			Lighting.HasValue = false;
-		}
-	}
+	UpdateValue(this->Lighting_Ambient, Lighting.Ambient, 1);
+	UpdateValue(this->Lighting_Red, Lighting.Red, 10);
+	UpdateValue(this->Lighting_Green, Lighting.Green, 10);
+	UpdateValue(this->Lighting_Blue, Lighting.Blue, 10);
+
+	if (this->Lighting_Enabled.isset())
+		Lighting.HasValue = this->Lighting_Enabled.Get();
 
 	return true;
 }
@@ -2102,7 +2098,7 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SW_ManualFire)
 		.Process(this->SW_Unstoppable)
 
-			//Enemy Inhibitors
+		//Enemy Inhibitors
 		.Process(this->SW_Suppressors)
 		.Process(this->SW_AnySuppressor)
 

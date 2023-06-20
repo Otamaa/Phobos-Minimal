@@ -21,8 +21,11 @@
 
 class Fixed;
 struct SWRange {
-	SWRange(float widthOrRange = -1.0f, int height = -1) : WidthOrRange(widthOrRange), Height(height) {}
-	SWRange(int widthOrRange, int height = -1) : WidthOrRange(static_cast<float>(widthOrRange)), Height(height) {}
+	SWRange() : WidthOrRange(-1.0f), Height(-1) { }
+	SWRange(float widthOrRange, int height) : WidthOrRange(widthOrRange), Height(height) {}
+	SWRange(int widthOrRange, int height) : WidthOrRange((float)widthOrRange), Height(height) {}
+	SWRange(int widthOrRange) : WidthOrRange((float)widthOrRange), Height(-1) {}
+
 	~SWRange() = default;
 
 	SWRange(const SWRange& other) = default;
@@ -44,6 +47,8 @@ struct SWRange {
 		return this->WidthOrRange < 0.0
 			&& this->Height < 0;
 	}
+
+public:
 
 	float WidthOrRange;
 	int Height;

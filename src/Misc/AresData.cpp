@@ -84,6 +84,9 @@ enum FunctionIndices : int
 
 	UpdateAcademyID = 49,
 	SetSWCursorID = 50,
+	UpdateDisplayToID = 51,
+
+	GetTurretWeaponIdxID = 52,
 	count
 };
 
@@ -290,6 +293,10 @@ bool AresData::Init()
 		0x0231E0, //UpdateAcademy
 
 		0x058AD0, //MapSWAction
+
+		0x013760, //BuildingExt::UpdateDosplayTo
+
+		0x003E870, //TechnoTypeExt::GetTurretWeaponIdx
 	};
 
 	static constexpr DWORD AAresCustomPaletteReadTable[AresCustomPaletteReadCount] = {
@@ -609,4 +616,14 @@ void* AresData::Ares_SWType_ExtMap_Find(SuperWeaponTypeClass* pType)
 void AresData::SetSWMouseCursorAction(size_t CursorIdx,  bool bShrouded , int nAction)
 {
 	AresStdcall<SetSWCursorID, void, size_t , bool , int>()(CursorIdx, bShrouded, nAction);
+}
+
+void AresData::BuildingExt_UpdateDisplayTo(BuildingClass* pFor)
+{
+	AresStdcall<UpdateDisplayToID, void, BuildingClass*>()(pFor);
+}
+
+int AresData::TechnoTypeExt_GetTurretWeaponIdx(TechnoTypeClass* pThis, int idx)
+{
+	return AresThiscall<GetTurretWeaponIdxID, int, void*, int>()(GetAresTechnoTypeExt(pThis) , idx);
 }

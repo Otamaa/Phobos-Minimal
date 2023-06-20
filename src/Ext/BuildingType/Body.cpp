@@ -253,25 +253,17 @@ int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHou
 	float fFactor = 1.0f;
 
 	auto const pHouseExt = HouseExt::ExtMap.Find(pHouse);
+	for (const auto& [pBldType, nCount] : pHouseExt->PowerPlantEnhancerBuildings)
 	{
-		if (pBuilding)
-		{
-			for (const auto& [pBldType, nCount] : pHouseExt->PowerPlantEnhancerBuildings)
-			{
-				const auto pExt = BuildingTypeExt::ExtMap.Find(pBldType);
-				if (pExt->PowerPlantEnhancer_Buildings.empty() ||
-				  !pExt->PowerPlantEnhancer_Buildings.Contains(pBuilding->Type))
-					continue;
+		const auto pExt = BuildingTypeExt::ExtMap.Find(pBldType);
+		if (pExt->PowerPlantEnhancer_Buildings.empty() || !pExt->PowerPlantEnhancer_Buildings.Contains(pBuilding->Type))
+			continue;
 
-				fFactor *= std::powf(pExt->PowerPlantEnhancer_Factor.Get(1.0f), static_cast<float>(nCount));
-				nAmount += pExt->PowerPlantEnhancer_Amount.Get(0) * nCount;
-			}
-
-			return static_cast<int>(std::round(pBuilding->GetPowerOutput() * fFactor)) + nAmount;
-		}
+		fFactor *= std::powf(pExt->PowerPlantEnhancer_Factor.Get(1.0f), static_cast<float>(nCount));
+		nAmount += pExt->PowerPlantEnhancer_Amount.Get(0) * nCount;
 	}
 
-	return 0;
+	return static_cast<int>(std::round(pBuilding->GetPowerOutput() * fFactor)) + nAmount;
 }
 
 double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseClass* pOwner)
@@ -657,7 +649,9 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->UnitSell.Read(exINI, pSection, "UnitSell");
 
 		this->LightningRod_Modifier.Read(exINI, pSection, "LightningRod.Modifier");
-
+		this->Returnable.Read(exINI, pSection, "Returnable");
+		this->BuildupTime.Read(exINI, pSection, "BuildupTime");
+		this->SlamSound.Read(exINI, pSection, "SlamSound");
 	}
 #pragma endregion
 
@@ -860,6 +854,9 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->GateUpSound)
 		.Process(this->UnitSell)
 		.Process(this->LightningRod_Modifier)
+		.Process(this->Returnable)
+		.Process(this->BuildupTime)
+		.Process(this->SlamSound)
 		;
 }
 

@@ -738,6 +738,9 @@ public:
 		Valueable<bool> Chronoshift_Allow;
 		Valueable<bool> Chronoshift_IsVehicle;
 
+		Valueable<double> FactoryPlant_Multiplier {1.0};
+		Nullable<bool> MassSelectable {};
+
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, HealthBar_Hide { false }
 			, UIDescription {}

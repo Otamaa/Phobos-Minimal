@@ -542,7 +542,7 @@ void Phobos::ExeRun()
 		const auto Data = _CALL(nData, GET_OFFSET(CustomPalette_Read_Static));
 		VirtualProtect((LPVOID)nData, sizeof(Data), PAGE_EXECUTE_READWRITE, &protect_flag);
 		memcpy((LPVOID)nData, (LPVOID)(&Data), sizeof(Data));
-		VirtualProtect((LPVOID)nData, sizeof(Data), protect_flag, nullptr);
+		VirtualProtect((LPVOID)nData, sizeof(Data), protect_flag, 0);
 	}
 
 	Patch::ApplyStatic();

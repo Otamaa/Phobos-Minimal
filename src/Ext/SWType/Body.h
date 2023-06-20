@@ -233,7 +233,6 @@ public:
 
 		Nullable<int> SW_Deferment;
 
-		//TODO S/L read
 #pragma region Psychic Dominator
 		Valueable<bool> Dominator_Capture;
 		Nullable<int> Dominator_FireAtPercentage;
@@ -273,7 +272,6 @@ public:
 		ValueableVector<BuildingTypeClass*> EMPulse_Cannons;
 #pragma endregion
 
-		// TODO : S/L
 #pragma region Genetic Mutator
 		Nullable<bool> Mutate_Explosion;
 		Valueable<bool> Mutate_IgnoreCyborg;
@@ -298,7 +296,7 @@ public:
 		Valueable<CSFText> Message_Ready {};
 
 #pragma region Hunter Seeker
-		Nullable<UnitTypeClass*> HunterSeeker_Type  { };
+		Nullable<UnitTypeClass*> HunterSeeker_Type { };
 		Valueable<bool> HunterSeeker_RandomOnly { false };
 		ValueableVector<BuildingTypeClass*> HunterSeeker_Buildings { };
 #pragma endregion
@@ -307,9 +305,9 @@ public:
 		Nullable<int> Weather_Duration{  };
 		Nullable<int> Weather_HitDelay{  };
 		Nullable<int> Weather_ScatterDelay{  };
-		Valueable<int> Weather_ScatterCount;
+		Valueable<int> Weather_ScatterCount{ 1 };
 		Nullable<int> Weather_Separation{  };
-		Valueable<int> Weather_CloudHeight;
+		Valueable<int> Weather_CloudHeight { -1};
 		Nullable<int> Weather_RadarOutage{  };
 		Valueable<int> Weather_DebrisMin{ 0 };
 		Valueable<int> Weather_DebrisMax{ 1 };

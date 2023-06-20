@@ -271,6 +271,10 @@ struct AresData
 
 	static void* Ares_SWType_ExtMap_Find(SuperWeaponTypeClass* pType);
 	static void SetSWMouseCursorAction(size_t CursorIdx, bool bShrouded, int nAction);
+
+	static void BuildingExt_UpdateDisplayTo(BuildingClass* pFor);
+
+	static int TechnoTypeExt_GetTurretWeaponIdx(TechnoTypeClass* pThis, int idx);
 };
 
 namespace AresMemory
@@ -390,7 +394,7 @@ struct AresDTORCaller
 };
 
 #define Debug_bTrackParseErrors (*((bool*)(AresData::AresStaticInstanceFinal[3])))
-#define ActiveSFW (*((SuperClass**)(AresData::AresStaticInstanceFinal[4])))
+#define IsAnySFWActive (*((bool*)(AresData::AresStaticInstanceFinal[4])))
 #define EvaTypes (*((std::vector<const char*, AresMemory::AresAllocator<const char*>>*)(AresData::AresStaticInstanceFinal[5])))
 #define PoweredUnitUptr(techno) (*(PoweredUnitClass**)(((char*)GetAresTechnoExt(techno)) + 0x1C))
 #define RadarJammerUptr(techno) (*(JammerClass**)(((char*)GetAresTechnoExt(techno)) + 0x18))

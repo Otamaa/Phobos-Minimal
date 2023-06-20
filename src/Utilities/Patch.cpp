@@ -53,7 +53,7 @@ void Patch::Apply()
 	DWORD protect_flag;
 	VirtualProtect(pAddress, this->size, PAGE_EXECUTE_READWRITE, &protect_flag);
 	memcpy(pAddress, this->pData, this->size);
-	VirtualProtect(pAddress, this->size, protect_flag, nullptr);
+	VirtualProtect(pAddress, this->size, protect_flag, 0);
 }
 
 std::vector<module_export> Patch::enumerate_module_exports(HMODULE handle)

@@ -10,6 +10,7 @@
 #include "Body.h"
 
 #include <NetworkEvents.h>
+#include <CCToolTip.h>
 
 #include "NewSuperWeaponType/NuclearMissile.h"
 #include "NewSuperWeaponType/LightningStorm.h"
@@ -19,6 +20,16 @@
 //TODO : removing all SWTypeExt related call if possible 
 
 #ifndef Replace_SW
+
+#pragma warning( push )
+#pragma warning (disable : 4245)
+#pragma warning (disable : 4838)
+DEFINE_DISABLE_HOOK(0x6CEE96, SuperWeaponTypeClass_FindIndex_ares)
+DEFINE_DISABLE_HOOK(0x46B371, BulletClass_NukeMaker_ares)
+DEFINE_DISABLE_HOOK(0x44C9FF, BuildingClass_Mi_Missile_PsiWarn_6_ares)
+DEFINE_DISABLE_HOOK(0x46b423, BulletClass_NukeMaker_PropagateSW_ares)
+DEFINE_DISABLE_HOOK(0x4C78D6, Networking_RespondToEvent_SpecialPlace_ares)
+#pragma warning( pop )
 
 DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 {
@@ -41,7 +52,6 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 
 	for (auto pSuper : *SuperWeaponTypeClass::Array)
 	{
-
 		const auto pOwnerSuper = pOwner->Supers.GetItem(pSuper->ArrayIndex);
 		const auto pExt = SWTypeExt::ExtMap.Find(pSuper);
 
@@ -167,8 +177,6 @@ DEFINE_OVERRIDE_HOOK(0x6AAF9D, SidebarClass_ProcessCameoClick_SelectTarget, 5)
 	return 0x6AB95A;
 }
 
-#include <CCToolTip.h>
-
 DEFINE_OVERRIDE_HOOK(0x6A932B, StripClass_GetTip_MoneySW, 6)
 {
 	GET(SuperWeaponTypeClass*, pSW, EAX);
@@ -212,24 +220,6 @@ DEFINE_OVERRIDE_HOOK(0x6A932B, StripClass_GetTip_MoneySW, 6)
 	return 0;
 }
 
-DEFINE_DISABLE_HOOK(0x6CEE96, SuperWeaponTypeClass_FindIndex_ares)
-
-// 6CEE96, 5
-//DEFINE_OVERRIDE_HOOK(0x6CEE96, SuperWeaponTypeClass_FindIndex, 5)
-//{
-//	GET(const char*, TypeStr, EDI);
-//
-//	const auto customType = NewSWType::FindFromTypeID(TypeStr);
-//
-//	if (customType > SuperWeaponType::Invalid)
-//	{
-//		R->ESI(customType);
-//		return 0x6CEE9C;
-//	}
-//
-//	return 0;
-//}
-
 // 4AC20C, 7
 // translates SW click to type
 DEFINE_OVERRIDE_HOOK(0x4AC20C, DisplayClass_LeftMouseButtonUp, 7)
@@ -261,6 +251,34 @@ DEFINE_OVERRIDE_HOOK(0x4AC20C, DisplayClass_LeftMouseButtonUp, 7)
 
 	R->EAX(Ares_CurrentSWType);
 	return 0x4AC21C;
+}
+
+DEFINE_OVERRIDE_HOOK(0x653B3A, RadarClass_GetMouseAction_CustomSWAction, 7)
+{
+	GET_STACK(CellStruct, MapCoords, STACK_OFFS(0x54, 0x3C));
+	REF_STACK(MouseEvent, flag, 0x58);
+
+	enum
+	{
+		CheckOtherCases = 0x653CA3,
+		DrawMiniCursor = 0x653CC0,
+		NothingToDo = 0,
+		DifferentEventFlags = 0x653D6F
+	};
+
+	if (Unsorted::CurrentSWType() < 0)
+		return NothingToDo;
+
+	if ((flag & (MouseEvent::RightDown | MouseEvent::RightUp)))
+		return DifferentEventFlags;
+
+	const auto nResult = SWTypeExt::ExtData::GetAction(SuperWeaponTypeClass::Array->GetItem(Unsorted::CurrentSWType), &MapCoords);
+
+	if (nResult == Action::None)
+		return NothingToDo;
+
+	R->ESI(nResult);
+	return CheckOtherCases;
 }
 
 // decoupling sw anims from types
@@ -496,12 +514,12 @@ DEFINE_OVERRIDE_HOOK(0x6A99B7, StripClass_Draw_SuperDarken, 5)
 DEFINE_OVERRIDE_HOOK(0x4F9004, HouseClass_Update_TrySWFire, 7)
 {
 	GET(HouseClass*, pThis, ESI);
-	bool isHuman = R->AL() != 0;
 
-	if (isHuman)
+	if (R->AL())
 	{
 		// update the SWs for human players to support auto firing.
 		pThis->AI_TryFireSW();
+		return 0x4F9038;
 	}
 
 	return pThis->Type->MultiplayPassive ? 0x4F9038 : 0x4F9015;
@@ -923,7 +941,6 @@ DEFINE_OVERRIDE_HOOK(0x6CB70C, SuperClass_Grant_InitialReady, 0xA)
 	return 0x6CB750;
 }
 
-DEFINE_DISABLE_HOOK(0x46B371, BulletClass_NukeMaker_ares)
 DEFINE_HOOK(0x46B310, BulletClass_NukeMaker_Handle, 6)
 {
 	GET(BulletClass*, pThis, ECX);
@@ -982,34 +999,6 @@ DEFINE_HOOK(0x46B310, BulletClass_NukeMaker_Handle, 6)
 	return ret;
 }
 
-DEFINE_OVERRIDE_HOOK(0x653B3A, RadarClass_GetMouseAction_CustomSWAction, 7)
-{
-	GET_STACK(CellStruct, MapCoords, STACK_OFFS(0x54, 0x3C));
-	REF_STACK(MouseEvent, flag, 0x58);
-
-	enum
-	{
-		CheckOtherCases = 0x653CA3,
-		DrawMiniCursor = 0x653CC0,
-		NothingToDo = 0,
-		DifferentEventFlags = 0x653D6F
-	};
-
-	if (Unsorted::CurrentSWType() < 0)
-		return NothingToDo;
-
-	if ((flag & (MouseEvent::RightDown | MouseEvent::RightUp)))
-		return DifferentEventFlags;
-
-	const auto nResult = SWTypeExt::ExtData::GetAction(SuperWeaponTypeClass::Array->GetItem(Unsorted::CurrentSWType), &MapCoords);
-
-	if (nResult == Action::None)
-		return NothingToDo;
-
-	R->ESI(nResult);
-	return CheckOtherCases;
-}
-
 DEFINE_OVERRIDE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
 {
 	GET(HouseClass*, pThis, ECX);
@@ -1034,25 +1023,6 @@ DEFINE_OVERRIDE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
 	return 0x509AE7;
 }
 
-//DEFINE_OVERRIDE_HOOK(0x4C78D6, Networking_RespondToEvent_SpecialPlace, 0x8)
-//{
-//	GET(NetworkEvent*, pEvent, ESI);
-//	GET(HouseClass*, pHouse, EDI);
-//
-//	const auto pSuper = pHouse->Supers.Items[pEvent->Checksum];
-//	const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
-//
-//	if (!SWTypeExt::ExtData::TryFire(pSuper, 1) && pHouse == HouseClass::CurrentPlayer) {
-//		pExt->PrintMessage(pExt->Message_CannotFire, pHouse);
-//		return 0x4C78F8;
-//	} else {
-//		pHouse->Fire_SW(pEvent->Checksum, CellStruct::UnPack(pEvent->CommandCount));
-//	}
-//
-//	return 0x4C78F8;
-//}
-
-DEFINE_DISABLE_HOOK(0x4C78D6, Networking_RespondToEvent_SpecialPlace_ares)
 DEFINE_HOOK(0x4C78EF, Networking_RespondToEvent_SpecialPlace, 9)
 {
 	GET(CellStruct*, pCell, EDX);
@@ -1183,11 +1153,10 @@ std::vector<SWStatus> GetSuperWeaponStatuses(HouseClass* pHouse)
 			//reduce the amount of overhead
 			//since the SW count can go up to 600+ on some mods,..
 			const auto pSuper = pHouse->Supers[i];
-			const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
 
-			if (!pExt->IsAvailable(pHouse))
+			if(!Statuses[i].Available) 
 				continue;
-		
+
 			// turn off super weapons that are disallowed.
 			if (pSuper->IsDisabledFromShell()) {
 				Statuses[i].Available = false;
@@ -1420,7 +1389,6 @@ DEFINE_OVERRIDE_HOOK(0x44CCE7, BuildingClass_Mi_Missile_GenericSW, 6)
 	return ProcessEMPulse;
 }
 
-DEFINE_DISABLE_HOOK(0x44C9FF, BuildingClass_Mi_Missile_PsiWarn_6_ares)
 DEFINE_HOOK(0x44C9F3, BuildingClass_Mi_Missile_PsiWarn, 0x5)
 {
 	GET(BuildingClass* const, pThis, ESI);
@@ -1659,43 +1627,42 @@ DEFINE_OVERRIDE_HOOK(0x53A6CF, LightningStorm_Update, 7)
 {
 	enum { Legacy = 0x53A8FFu, Handled = 0x53AB45u };
 
+
+#pragma region NukeUpdate
 	// switch lightning for nuke
-	if (NukeFlash::Duration != -1)
-	{
-		if (NukeFlash::StartTime + NukeFlash::Duration < Unsorted::CurrentFrame)
-		{
-			if (NukeFlash::IsFadingIn())
-			{
+	if (NukeFlash::Duration != -1) {
+		if (NukeFlash::StartTime + NukeFlash::Duration < Unsorted::CurrentFrame) {
+			if (NukeFlash::IsFadingIn()) {
 				NukeFlash::Status = NukeFlashStatus::FadeOut;
 				NukeFlash::StartTime = Unsorted::CurrentFrame;
 				NukeFlash::Duration = 15;
 				ScenarioClass::Instance->UpdateLighting();
 				MapClass::Instance->RedrawSidebar(1);
 			}
-			else if (NukeFlash::IsFadingOut())
-			{
+			else if (NukeFlash::IsFadingOut()) {
 				SW_NuclearMissile::CurrentNukeType = nullptr;
 				NukeFlash::Status = NukeFlashStatus::Inactive;
 			}
 		}
 	}
+#pragma endregion
 
 	// update other screen effects
 	PsyDom::Update();
 	ChronoScreenEffect::Update();
 
+#pragma region RemoveBoltThathalfwaydone
 	// remove all bolts from the list that are halfway done
-	for (auto i = LightningStorm::BoltsPresent->Count - 1; i >= 0; --i)
-	{
-		if (auto const pAnim = LightningStorm::BoltsPresent->Items[i])
-		{
-			if (pAnim->Animation.Value >= pAnim->Type->GetImage()->Frames / 2)
-			{
+	for (auto i = LightningStorm::BoltsPresent->Count - 1; i >= 0; --i) {
+		if (auto const pAnim = LightningStorm::BoltsPresent->Items[i]) {
+			if (pAnim->Animation.Value >= pAnim->Type->GetImage()->Frames / 2) {
 				LightningStorm::BoltsPresent->RemoveAt(i);
 			}
 		}
 	}
+#pragma endregion
 
+#pragma region cloudsthatshouldstrikerightnow
 	// find the clouds that should strike right now
 	for (auto i = LightningStorm::CloudsManifesting->Count - 1; i >= 0; --i)
 	{
@@ -1709,6 +1676,7 @@ DEFINE_OVERRIDE_HOOK(0x53A6CF, LightningStorm_Update, 7)
 			}
 		}
 	}
+#pragma endregion
 
 	// all currently present clouds have to disappear first
 	if (LightningStorm::CloudsPresent->Count <= 0)
@@ -1938,8 +1906,8 @@ DEFINE_OVERRIDE_HOOK(0x53A140, LightningStorm_Strike, 7)
 				{
 					auto const pBoltAnim = itBolts.at(0);
 					pExt->Weather_CloudHeight = int(
-						((pBoltAnim->GetImage()->Height / 2) - 0.5)
-						* LightningStorm::CloudHeightFactor);
+						((double(pBoltAnim->GetImage()->Height) / 2) - 0.5)
+						* LightningStorm::CloudHeightFactor());
 				}
 			}
 			coords.Z += pExt->Weather_CloudHeight;
@@ -2258,7 +2226,7 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 // replace entire function
 DEFINE_OVERRIDE_HOOK(0x53C280, ScenarioClass_UpdateLighting, 5)
 {
-	auto lighting = SWTypeExt::GetLightingColor();
+	const auto lighting = SWTypeExt::GetLightingColor();
 
 	auto scen = ScenarioClass::Instance();
 	if (lighting.HasValue)

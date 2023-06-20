@@ -165,6 +165,9 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->DropPodTypes.Read(exINI, GENERAL_SECTION, "DropPodTypes");
 	this->DropPodMinimum.Read(exINI, GENERAL_SECTION, "DropPodMinimum");
 	this->DropPodMaximum.Read(exINI, GENERAL_SECTION, "DropPodMaximum");
+	this->ReturnStructures.Read(exINI, GENERAL_SECTION, "ReturnStructures");
+
+	this->MessageSilosNeeded.Read(exINI, GENERAL_SECTION, "Message.SilosNeeded");
 
 	this->HunterSeekerBuildings.Read(exINI, SPECIALWEAPON_SECTION, "HSBuilding");
 	this->HunterSeekerDetonateProximity.Read(exINI, GENERAL_SECTION, "HunterSeekerDetonateProximity");
@@ -635,6 +638,8 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->DropPodTypes)
 		.Process(this->DropPodMinimum)
 		.Process(this->DropPodMaximum)
+		.Process(this->ReturnStructures)
+		.Process(this->MessageSilosNeeded)
 		;
 
 	MyPutData.Serialize(Stm);

@@ -1669,3 +1669,33 @@ DEFINE_OVERRIDE_HOOK(0x709B4E, TechnoClass_DrawPipscale_SkipSkipTiberium, 6)
 
 	return showTiberium ? 0x709B6E : 0x70A980;
 }
+
+DEFINE_OVERRIDE_HOOK(0x44F7A0, BuildingClass_UpdateDisplayTo, 6)
+{
+	GET(BuildingClass*, B, ECX);
+	AresData::BuildingExt_UpdateDisplayTo(B);
+	return 0x44F813;
+}
+
+// if this is a radar, change the owner's house bitfields responsible for radar reveals
+DEFINE_OVERRIDE_HOOK(0x44161C, BuildingClass_Destroy_OldSpy1, 6)
+{
+	GET(BuildingClass*, B, ESI);
+	B->DisplayProductionTo.Clear();
+	AresData::BuildingExt_UpdateDisplayTo(B);
+	return 0x4416A2;
+}
+
+// if this is a radar, change the owner's house bitfields responsible for radar reveals
+DEFINE_OVERRIDE_HOOK(0x448312, BuildingClass_ChangeOwnership_OldSpy1, 0xA)
+{
+	GET(HouseClass*, newOwner, EBX);
+	GET(BuildingClass*, B, ESI);
+
+	if (B->DisplayProductionTo.Contains(newOwner)) {
+		B->DisplayProductionTo.Remove(newOwner);
+		AresData::BuildingExt_UpdateDisplayTo(B);
+	}
+
+	return 0x4483A0;
+}

@@ -877,6 +877,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		this->SuppressorRange.Read(exINI, pSection, "SuppressorRange");
 		this->AttractorRange.Read(exINI, pSection, "AttractorRange");
+		this->FactoryPlant_Multiplier.Read(exINI, pSection, "FactoryPlant.Multiplier");
+		this->MassSelectable.Read(exINI, pSection, "MassSelectable");
 
 		if (Is_AircraftType(pThis))
 		{
@@ -1708,9 +1710,11 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->CreateSound_afect)
 		.Process(this->Chronoshift_Allow)
 		.Process(this->Chronoshift_IsVehicle)
-
 		.Process(this->SuppressorRange)
 		.Process(this->AttractorRange)
+		.Process(this->FactoryPlant_Multiplier)
+		.Process(this->MassSelectable)
+
 #pragma endregion
 		;
 

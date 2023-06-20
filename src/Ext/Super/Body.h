@@ -19,13 +19,35 @@ public:
 		SWTypeExt::ExtData* Type;
 		bool Temp_IsPlayer;
 		CellStruct Temp_CellStruct;
+		TechnoClass* Firer;
+
 		ExtData(SuperClass* OwnerObject) : Extension<SuperClass>(OwnerObject)
 			, Type { nullptr }
 			, Temp_IsPlayer { false }
 			, Temp_CellStruct { }
+			, Firer { nullptr }
 		{ }
 
 		virtual ~ExtData() override  = default;
+		void InvalidatePointer(void* ptr, bool bRemoved)
+		{
+			AnnounceInvalidPointer(Firer, ptr);
+		}
+
+		bool InvalidateIgnorable(void* ptr) const
+		{
+			switch (VTable::Get(ptr))
+			{
+			case BuildingClass::vtable:
+			case AircraftClass::vtable:
+			case UnitClass::vtable:
+			case InfantryClass::vtable:
+				return false;
+			}
+
+			return true;
+		}
+
 		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 

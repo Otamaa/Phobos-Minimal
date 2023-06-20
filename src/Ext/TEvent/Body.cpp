@@ -190,6 +190,7 @@ bool TEventExt::Occured(TEventClass* pThis, EventArgs const& args , bool& bRetur
 		break;
 	case PhobosTriggerEvent::ShieldBroken:
 		bReturn = ShieldClass::TEventIsShieldBroken(args.Object);
+		break;
 	case PhobosTriggerEvent::HousesDestroyed:
 		return TEventExt::HousesAreDestroyedTEvent(pThis);
 		break;

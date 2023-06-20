@@ -95,7 +95,7 @@ int SW_PsychicDominator::GetDamage(const SWTypeExt::ExtData* pData) const
 
 SWRange SW_PsychicDominator::GetRange(const SWTypeExt::ExtData* pData) const
 {
-	return pData->SW_Range->empty() ? SWRange(RulesClass::Instance->DominatorCaptureRange) :  pData->SW_Range;
+	return pData->SW_Range->empty() ? SWRange(RulesClass::Instance->DominatorCaptureRange) : pData->SW_Range;
 }
 
 void PsychicDominatorStateMachine::Update()
