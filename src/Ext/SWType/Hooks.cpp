@@ -24,7 +24,7 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 {
 	GET(TeamClass*, pThis, ECX);
 	GET_STACK(ScriptActionNode*, pTeamMission, 0x4);
-	GET_STACK(bool, barg3, 0x8);
+	//GET_STACK(bool, barg3, 0x8);
 
 	auto pLeader = pThis->FetchLeader();
 
@@ -86,10 +86,10 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 
 DEFINE_OVERRIDE_HOOK(0x6CEF84, SuperWeaponTypeClass_GetAction, 7)
 {
-	GET_STACK(CellStruct*, pTarget, 0xC);
+	GET_STACK(CellStruct*, pMapCoords, 0x0C);
 	GET(SuperWeaponTypeClass*, pType, ECX);
 
-	const auto nAction = SWTypeExt::ExtData::GetAction(pType, pTarget);
+	const auto nAction = SWTypeExt::ExtData::GetAction(pType, pMapCoords);
 
 	if (nAction != Action::None)
 	{
@@ -984,22 +984,30 @@ DEFINE_HOOK(0x46B310, BulletClass_NukeMaker_Handle, 6)
 
 DEFINE_OVERRIDE_HOOK(0x653B3A, RadarClass_GetMouseAction_CustomSWAction, 7)
 {
-	GET_STACK(CellStruct*, pMapCoords, 0x18);
-	GET_STACK(DWORD, flag, 0x58);
+	GET_STACK(CellStruct, MapCoords, STACK_OFFS(0x54, 0x3C));
+	REF_STACK(MouseEvent, flag, 0x58);
+
+	enum
+	{
+		CheckOtherCases = 0x653CA3,
+		DrawMiniCursor = 0x653CC0,
+		NothingToDo = 0,
+		DifferentEventFlags = 0x653D6F
+	};
 
 	if (Unsorted::CurrentSWType() < 0)
-		return 0x0;
+		return NothingToDo;
 
-	if ((flag & 0x50) != 0)
-		return 0x653D6F;
+	if ((flag & (MouseEvent::RightDown | MouseEvent::RightUp)))
+		return DifferentEventFlags;
 
-	const auto nResult = SWTypeExt::ExtData::GetAction(SuperWeaponTypeClass::Array->GetItem(Unsorted::CurrentSWType), pMapCoords);
+	const auto nResult = SWTypeExt::ExtData::GetAction(SuperWeaponTypeClass::Array->GetItem(Unsorted::CurrentSWType), &MapCoords);
 
 	if (nResult == Action::None)
-		return 0x0;
+		return NothingToDo;
 
 	R->ESI(nResult);
-	return 0x653CA3;
+	return CheckOtherCases;
 }
 
 DEFINE_OVERRIDE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
@@ -1174,11 +1182,12 @@ std::vector<SWStatus> GetSuperWeaponStatuses(HouseClass* pHouse)
 		{
 			//reduce the amount of overhead
 			//since the SW count can go up to 600+ on some mods,..
-			if (!Statuses[i].Available)
-				continue;
-
 			const auto pSuper = pHouse->Supers[i];
+			const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
 
+			if (!pExt->IsAvailable(pHouse))
+				continue;
+		
 			// turn off super weapons that are disallowed.
 			if (pSuper->IsDisabledFromShell()) {
 				Statuses[i].Available = false;

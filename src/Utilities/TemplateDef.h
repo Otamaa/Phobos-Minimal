@@ -96,13 +96,18 @@ namespace detail
 					++result;
 				}
 
-				if (!found || result == (size_t)AffectedHouse::None)
+				if (!found)
 				{
 					Debug::INIParseFailed(pSection, pKey, parser.c_str(), "Expected a affected house");
 					return false;
 				}
 				else
 				{
+					if (result == (size_t)AffectedHouse::None) {
+						value = resultData;
+						return true;
+					}
+
 					switch (result)
 					{
 					case 1:

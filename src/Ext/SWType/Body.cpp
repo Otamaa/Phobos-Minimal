@@ -58,6 +58,14 @@ std::array<const AITargetingModeInfo, (size_t)SuperWeaponAITargetingMode::count>
 }
 };
 
+enum class CloakHandling
+{
+	RandomizeCloaked = 0,
+	AgnosticToCloak = 1,
+	IgnoreCloaked = 2,
+	RequireCloaked = 3
+};
+
 bool SWTypeExt::ExtData::IsTypeRedirected() const
 {
 	return this->HandledType > SuperWeaponType::Invalid;
@@ -371,9 +379,6 @@ bool SWTypeExt::ExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 
 }
 
-#pragma region Targetings
-
-#pragma region Support
 struct TargetingInfo
 {
 	TargetingInfo(SuperClass* pSuper) :
@@ -384,17 +389,11 @@ struct TargetingInfo
 	{
 	}
 
-	bool CanFireAt(const CellStruct& cell) const
+	bool CanFireAt(const CellStruct& cell, bool manual = false) const
 	{
-		if (!this->Data)
-		{
-			this->GetData();
-		}
-
-		return this->NewType->CanFireAt(*this->Data, cell, false);
+		return this->NewType->CanFireAt(*this->Data, cell, manual);
 	}
 
-private:
 	void GetData() const
 	{
 		this->Data = this->NewType->GetTargetingData(this->TypeExt, this->Owner);
@@ -408,449 +407,200 @@ public:
 	std::unique_ptr<const TargetingData> mutable Data;
 };
 
-CellStruct ConvertToCell(const CellStruct& result)
+struct TargetingFuncs
 {
-	return result;
-}
-
-template <typename T>
-CellStruct ConvertToCell(const T& result)
-{
-	return result ? result->GetMapCoords() : CellStruct::Empty;
-}
-
-// check for blocking things, check preferred, else select something manually
-template<typename CanFire, typename Prefer, typename Selector>
-CellStruct GetTarget(const TargetingInfo& info, CanFire canFire, Prefer prefer, Selector selector)
-{
-	CellStruct ret = CellStruct::Empty;
-
-	// check whether SW can fire and whether it should do so
-	// on the preferred target
-	if (canFire(info))
+#pragma region Helpers
+	template<typename It, typename Valuator>
+	static ObjectClass* GetTargetFirstMax(It first, It last, Valuator value)
 	{
-		auto const preferred = prefer(info);
-		if (preferred.first)
+		ObjectClass* pTarget = nullptr;
+		int maxValue = 0;
+
+		for (auto it = first; it < last; ++it)
 		{
-			ret = preferred.second;
-		}
-		else
-		{
-			// delegate finding a target, convert to cell
-			ret = ConvertToCell(selector(info));
-		}
-	}
-
-	return ret;
-}
-
-template<typename It, typename Valuator>
-ObjectClass* GetTargetFirstMax(It first, It last, Valuator value)
-{
-	ObjectClass* pTarget = nullptr;
-	int maxValue = 0;
-
-	for (auto it = first; it < last; ++it)
-	{
-		if (auto pItem = *it)
-		{
-			auto curValue = value(pItem, maxValue);
-
-			if (curValue > maxValue)
+			if (auto pItem = *it)
 			{
-				pTarget = pItem;
-				maxValue = curValue;
+				auto curValue = value(pItem, maxValue);
+
+				if (curValue > maxValue)
+				{
+					pTarget = pItem;
+					maxValue = curValue;
+				}
 			}
 		}
+
+		return pTarget;
 	}
 
-	return pTarget;
-}
-
-template<typename It, typename Valuator>
-ObjectClass* GetTargetAnyMax(It first, It last, Valuator value)
-{
-	DiscreteSelectionClass_s<ObjectClass*> targets;
-
-	for (auto it = first; it < last; ++it)
+	template<typename It, typename Valuator>
+	static ObjectClass* GetTargetAnyMax(It first, It last, Valuator value)
 	{
-		if (auto pItem = *it)
+		DiscreteSelectionClass_s<ObjectClass*> targets;
+
+		for (auto it = first; it < last; ++it)
 		{
-			auto curValue = value(pItem, targets.GetRating());
-			targets.Add(pItem, curValue);
+			if (auto pItem = *it)
+			{
+				auto curValue = value(pItem, targets.GetRating());
+				targets.Add(pItem, curValue);
+			}
 		}
+
+		return targets.Select(ScenarioClass::Instance->Random);
 	}
 
-	return targets.Select(ScenarioClass::Instance->Random);
-}
-
-template<typename It, typename Valuator>
-ObjectClass* GetTargetShareAny(It first, It last, Valuator value)
-{
-	DiscreteDistributionClass_s<ObjectClass*> targets;
-
-	for (auto it = first; it < last; ++it)
+	template<typename It, typename Valuator>
+	static ObjectClass* GetTargetShareAny(It first, It last, Valuator value)
 	{
-		if (auto pItem = *it)
+		DiscreteDistributionClass_s<ObjectClass*> targets;
+
+		for (auto it = first; it < last; ++it)
 		{
-			auto curValue = value(pItem);
-			targets.Add(pItem, curValue);
+			if (auto pItem = *it)
+			{
+				auto curValue = value(pItem);
+				targets.Add(pItem, curValue);
+			}
 		}
+
+		return targets.Select(ScenarioClass::Instance->Random);
 	}
 
-	return targets.Select(ScenarioClass::Instance->Random);
-}
+	static bool IsTargetAllowed(TechnoClass* pTechno)
+	{
+		return !pTechno->InLimbo;
+	}
 
+	static TargetResult NoTarget()
+	{
+		return { CellStruct::Empty , SWTargetFlags::AllowEmpty };
+	}
 #pragma endregion
 
-#pragma region CanFire functors
-
-// no restriction
-struct CanFireAlways
-{
-	bool operator()(const TargetingInfo& info) const
+#pragma region MainTargeting 
+	static TargetResult GetIonCannonTarget(const TargetingInfo& info, HouseClass* pEnemy, CloakHandling cloak)
 	{
-		// no restriction
-		return true;
-	}
-};
-
-struct CanFireRequiresEnemy
-{
-	bool operator()(const TargetingInfo& info) const
-	{
-		// if we need an enemy, make sure there is one
-		return info.Owner->EnemyHouseIndex != -1;
-	}
-};
-
-#pragma endregion
-
-#pragma region Prefer functors
-
-struct PreferNothing
-{
-	std::pair<bool, CellStruct> operator()(const TargetingInfo& info) const
-	{
-		// no preferred target
-		return { false, CellStruct::Empty };
-	}
-};
-
-// if preferred cell set, don't use it, but don't look further
-struct PreferHoldIfOffensive
-{
-	std::pair<bool, CellStruct> operator()(const TargetingInfo& info) const
-	{
-		// if preferred cell set, don't use it, but don't look further
-		if (info.Owner->PreferredTargetCell != CellStruct::Empty)
-		{
-			return { true, CellStruct::Empty };
-		}
-
-		return { false, CellStruct::Empty };
-	}
-};
-
-struct PreferOffensive
-{
-	std::pair<bool, CellStruct> operator()(const TargetingInfo& info) const
-	{
-		// if preferred cell set, use it
-		if (info.Owner->PreferredTargetCell != CellStruct::Empty)
-		{
-			return { true, info.Owner->PreferredTargetCell };
-		}
-
-		return { false, CellStruct::Empty };
-	}
-};
-
-struct PreferDefensive
-{
-	std::pair<bool, CellStruct> operator()(const TargetingInfo& info) const
-	{
-		// if preferred cell set, use it
-		if (info.Owner->PreferredDefensiveCell2 != CellStruct::Empty)
-		{
-			return { true, info.Owner->PreferredDefensiveCell2 };
-		}
-
-		return { false, CellStruct::Empty };
-	}
-};
-
-#pragma endregion
-
-#pragma region Target picking functors
-
-struct PickEmptyTarget
-{
-	CellStruct operator()(const TargetingInfo& info) const
-	{
-		return CellStruct::Empty;
-	}
-};
-
-//pick target basen on `IonCannonValue`
-struct PickIonCannonTarget
-{
-	enum class CloakHandling
-	{
-		RandomizeCloaked = 0,
-		AgnosticToCloak = 1,
-		IgnoreCloaked = 2,
-		RequireCloaked = 3
-	};
-
-	explicit PickIonCannonTarget(
-		HouseClass* pEnemy, CloakHandling cloak = CloakHandling::IgnoreCloaked)
-		: Enemy(pEnemy), Cloak(cloak)
-	{
-	}
-
-	CellStruct operator()(const TargetingInfo& info) const
-	{
-		auto const pOwner = info.Owner;
-		auto const pEnemy = this->Enemy;
-
 		const auto it = info.TypeExt->GetPotentialAITargets(pEnemy);
+		const auto pResult = GetTargetAnyMax(it.begin(), it.end(), [=, &info](TechnoClass* pTechno, int curMax)
+		{
+			// original game code only compares owner and doesn't support nullptr
+			auto const passedFilter = (!pEnemy || pTechno->Owner == pEnemy);
 
-		auto const pResult = GetTargetAnyMax(it.begin(), it.end(), [=, &info](TechnoClass* pTechno, int curMax)
- {
-	 // original game code only compares owner and doesn't support nullptr
-	 auto const passedFilter = (!pEnemy || pTechno->Owner == pEnemy);
+			if (passedFilter && info.Owner->IsIonCannonEligibleTarget(pTechno))
+			{
+				auto const cell = pTechno->GetMapCoords();
 
-	 if (passedFilter && pOwner->IsIonCannonEligibleTarget(pTechno))
-	 {
-		 auto const cell = pTechno->GetMapCoords();
-		 if (!MapClass::Instance->IsWithinUsableArea(cell, true))
-		 {
-			 return -1;
-		 }
+				if (!MapClass::Instance->IsWithinUsableArea(cell, true)) { return -1; }
 
-		 auto value = pTechno->GetIonCannonValue(pOwner->AIDifficulty);
+				auto value = pTechno->GetIonCannonValue(info.Owner->AIDifficulty);
 
-		 // cloak options
-		 if (this->Cloak != CloakHandling::AgnosticToCloak)
-		 {
-			 bool cloaked = pTechno->IsCloaked();
+				// cloak options
+				if (cloak != CloakHandling::AgnosticToCloak)
+				{
+					bool cloaked = pTechno->IsCloaked();
 
-			 if (this->Cloak == CloakHandling::RandomizeCloaked)
-			 {
-				 // original behavior
-				 if (cloaked)
-				 {
-					 value = ScenarioClass::Instance->Random.RandomFromMax(curMax + 10);
-				 }
-			 }
-			 else if (this->Cloak == CloakHandling::IgnoreCloaked)
-			 {
-				 // this prevents the 'targeting cloaked units bug'
-				 if (cloaked)
-				 {
-					 return -1;
-				 }
-			 }
-			 else if (this->Cloak == CloakHandling::RequireCloaked)
-			 {
-				 if (!cloaked)
-				 {
-					 return -1;
-				 }
-			 }
-		 }
+					if (cloak == CloakHandling::RandomizeCloaked)
+					{
+						// original behavior
+						if (cloaked)
+						{
+							value = ScenarioClass::Instance->Random.RandomFromMax(curMax + 10);
+						}
+					}
+					else if (cloak == CloakHandling::IgnoreCloaked)
+					{
+							// this prevents the 'targeting cloaked units bug'
+						if (cloaked)
+						{
+								return -1;
+						}
+					}
+					else if (cloak == CloakHandling::RequireCloaked)
+					{
+						if (!cloaked)
+						{
+							return -1;
+						}
+					}
+				}
 
-		 // do not do heavy lifting on objects that
-		  // would not be chosen anyhow
-		 if (value >= curMax && info.CanFireAt(cell))
-		 {
-			 return value;
-		 }
-	 }
+				// do not do heavy lifting on objects that
+				// would not be chosen anyhow
+				if (value >= curMax && info.CanFireAt(cell)) { return value; }
+			}
 
-	 return -1;
+			return -1;
 		});
 
-		return pResult ? pResult->GetMapCoords() : CellStruct::Empty;
-	}
+		TargetResult nResult { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 
-private:
-	HouseClass* Enemy;
-	CloakHandling Cloak;
-};
-
-struct PickPreferredTypeOrIonCannon
-{
-	CellStruct operator()(const TargetingInfo& info) const
-	{
-		auto pOwner = info.Owner;
-		auto type = pOwner->PreferredTargetType;
-		if (type == TargetType::Anything)
-		{
-			auto const pEnemy = HouseClass::Array->GetItemOrDefault(
-				info.Owner->EnemyHouseIndex);
-
-			return PickIonCannonTarget(pEnemy)(info);
+		if (pResult) {
+			return { pResult->GetMapCoords() , SWTargetFlags::AllowEmpty };
 		}
-		else
+
+		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
+	}
+
+	static TargetResult PickByHouseType(HouseClass* pThis, TargetType type)
+	{
+		const auto nTarget = pThis->PickTargetByType(type);
+
+		TargetResult nResult ;
+
+		if (nTarget.IsValid())
 		{
-			return pOwner->PickTargetByType(type);
+			return { nTarget , SWTargetFlags::AllowEmpty };
 		}
-	}
-};
 
-#pragma endregion
-
-#pragma region Target Selectors
-
-struct TargetSelector { };
-
-struct NuclearMissileTargetSelector final : public TargetSelector
-{
-	TargetResult operator()(const TargetingInfo& info) const
-	{
-		return{ GetTarget(info, CanFireRequiresEnemy(), PreferOffensive(), PickPreferredTypeOrIonCannon()),
-			SWTargetFlags::DisallowEmpty };
-	}
-};
-
-struct LightningStormTargetSelector final : public TargetSelector
-{
-	TargetResult operator()(const TargetingInfo& info) const
-	{
-		return{ GetTarget(info, CanAutoFire, PreferOffensive(), PickPreferredTypeOrIonCannon()),
-			SWTargetFlags::DisallowEmpty };
+		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
-private:
-	static bool CanAutoFire(const TargetingInfo& info)
-	{
-		return !LightningStorm::Active && CanFireRequiresEnemy()(info);
-	}
-};
-
-struct PsychicDominatorTargetSelector final : public TargetSelector
-{
-	TargetResult operator()(const TargetingInfo& info) const
-	{
-		return{ GetTarget(info, CanAutoFire, PreferHoldIfOffensive(), FindTargetItem),
-			SWTargetFlags::DisallowEmpty };
-	}
-
-private:
-	static bool CanAutoFire(const TargetingInfo& info)
-	{
-		return !PsyDom::Active() && CanFireRequiresEnemy()(info);
-	}
-
-	static ObjectClass* FindTargetItem(const TargetingInfo& info)
+	static TargetResult GetDominatorTarget(const TargetingInfo& info)
 	{
 		auto it = info.TypeExt->GetPotentialAITargets();
-		return GetTargetFirstMax(it.begin(), it.end(), [&info](TechnoClass* pTechno, int curMax)
- {
-	 if (pTechno->InLimbo)
-	 {
-		 return -1;
-	 }
+		const auto pTarget =  GetTargetFirstMax(it.begin(), it.end(), [&info](TechnoClass* pTechno, int curMax)  {
 
-	 auto cell = pTechno->GetCell()->MapCoords;
+			if (!TargetingFuncs::IsTargetAllowed(pTechno)) {
+				return -1; 
+			}
 
-	 int value = 0;
-	 for (size_t i = 0; i < CellSpread::NumCells(3); ++i)
-	 {
-		 auto pCell = MapClass::Instance->GetCellAt(cell + CellSpread::GetCell(i));
+			auto cell = pTechno->GetCell()->MapCoords;
 
-		 for (NextObject j(pCell->FirstObject); j && abstract_cast<FootClass*>(*j); ++j)
-		 {
-			 auto pFoot = static_cast<FootClass*>(*j);
-			 if (!info.Owner->IsAlliedWith(pFoot) && !pFoot->IsInAir() && pFoot->CanBePermaMindControlled())
-			 {
-				 // original game does not consider cloak
-				 if (pFoot->CloakState != CloakState::Cloaked)
-				 {
-					 ++value;
-				 }
-			 }
-		 }
-	 }
+			int value = 0;
+		  for (size_t i = 0; i < CellSpread::NumCells(3); ++i) {
+			auto pCell = MapClass::Instance->GetCellAt(cell + CellSpread::GetCell(i));
 
-	 // new check
-	 if (value <= curMax || !info.CanFireAt(cell))
-	 {
-		 return -1;
-	 }
+			for (NextObject j(pCell->FirstObject); j && abstract_cast<FootClass*>(*j); ++j)
+			{
+				auto pFoot = static_cast<FootClass*>(*j);
+				if (!info.Owner->IsAlliedWith(pFoot) && !pFoot->IsInAir() && pFoot->CanBePermaMindControlled())
+				{
+					// original game does not consider cloak
+					if (pFoot->CloakState != CloakState::Cloaked)
+					{
+						 ++value;
+					}
+				}
+			}
+		  }
 
-	 return value;
+			// new check
+			if (value <= curMax || !info.CanFireAt(cell)) { return -1; }
+
+			return value;
 		});
-	}
-};
 
-struct GeneticMutatorTargetSelector final : public TargetSelector
-{
-	TargetResult operator()(const TargetingInfo& info) const
-	{
-		return{ GetTarget(info, CanFireAlways(), PreferHoldIfOffensive(), FindTargetItem),
-			SWTargetFlags::DisallowEmpty };
+		if (pTarget) {
+			return{ pTarget->GetMapCoords()  , SWTargetFlags::AllowEmpty };
+		}
+
+		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
-private:
-	//specific implementation for GeneticMutatorTargetSelector for
-	static ObjectClass* FindTargetItem(const TargetingInfo& info)
-	{
-		auto it = info.TypeExt->GetPotentialAITargets();
-		return GetTargetFirstMax(it.begin(), it.end(), [&info](TechnoClass* pTechno, int curMax)
- {
-	 if (pTechno->InLimbo)
-	 {
-		 return -1;
-	 }
-
-	 auto cell = pTechno->GetCell()->MapCoords;
-
-	 int value = 0;
-	 for (size_t i = 0; i < CellSpread::NumCells(1); ++i)
-	 {
-		 auto pCell = MapClass::Instance->GetCellAt(cell + CellSpread::GetCell(i));
-
-		 for (NextObject j(pCell->GetInfantry(pTechno->OnBridge)); j && abstract_cast<InfantryClass*>(*j); ++j)
-		 {
-			 auto pInf = static_cast<InfantryClass*>(*j);
-			 if (!info.Owner->IsAlliedWith(pInf) && !pInf->IsInAir())
-			 {
-				 // original game does not consider cloak
-				 if (pInf->CloakState != CloakState::Cloaked)
-				 {
-					 ++value;
-				 }
-			 }
-		 }
-	 }
-
-	 // new check
-	 if (value <= curMax || !info.CanFireAt(cell))
-	 {
-		 return -1;
-	 }
-
-	 return value;
-		});
-	}
-};
-
-struct ParaDropTargetSelector final : public TargetSelector
-{
-	TargetResult operator()(const TargetingInfo& info) const
-	{
-		return{ GetTarget(info, CanFireAlways(), PreferOffensive(), FindTargetCoords),
-			SWTargetFlags::DisallowEmpty };
-	}
-
-private:
-	static CellStruct FindTargetCoords(const TargetingInfo& info)
+	static TargetResult GetParadropTarget(const TargetingInfo& info)
 	{
 		auto pOwner = info.Owner;
-
 		static const int SpaceSize = 5;
 
 		auto target = CellStruct::Empty;
@@ -864,8 +614,7 @@ private:
 				MovementZone::Normal, false, SpaceSize, SpaceSize, false,
 				false, false, true, CellStruct::Empty, false, false);
 
-			if (target != CellStruct::Empty)
-			{
+			if (target != CellStruct::Empty) {
 				target += CellStruct{SpaceSize / 2, SpaceSize / 2};
 			}
 
@@ -875,132 +624,140 @@ private:
 			target = pOwner->PickTargetByType(pOwner->PreferredTargetType);
 		}
 
-		// new check
-		if (!info.CanFireAt(target))
-		{
-			return CellStruct::Empty;
+		if (!info.CanFireAt(target)) {			
+			return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 		}
 
-		return target;
+		return  { target , SWTargetFlags::AllowEmpty } ;
 	}
-};
 
-struct ForceShieldTargetSelector final : public TargetSelector
-{
-	TargetResult operator()(const TargetingInfo& info) const
+	static TargetResult GetMutatorTarget(const TargetingInfo& info)
 	{
-		return{ GetTarget(info, CanFireAlways(), PreferDefensive(), FindTargetCoords),
-			SWTargetFlags::DisallowEmpty };
+	  //specific implementation for GeneticMutatorTargetSelector for
+		auto it = info.TypeExt->GetPotentialAITargets();
+		const auto pResult = GetTargetFirstMax(it.begin(), it.end(), [&info](TechnoClass* pTechno, int curMax) {
+
+		  if (!TargetingFuncs::IsTargetAllowed(pTechno)) {
+			  return -1;
+		  }
+
+		  auto cell = pTechno->GetCell()->MapCoords;
+		  int value = 0;
+
+		  for (size_t i = 0; i < CellSpread::NumCells(1); ++i)
+		  {
+			  auto pCell = MapClass::Instance->GetCellAt(cell + CellSpread::GetCell(i));
+
+			  for (NextObject j(pCell->GetInfantry(pTechno->OnBridge)); j && abstract_cast<InfantryClass*>(*j); ++j)
+			  {
+				  auto pInf = static_cast<InfantryClass*>(*j);
+
+				  if (!info.Owner->IsAlliedWith(pInf) && !pInf->IsInAir())
+				  {
+					  // original game does not consider cloak
+					  if (pInf->CloakState != CloakState::Cloaked)
+					  {
+						  ++value;
+					  }
+				  }
+			  }
+
+			  // new check
+			  if (value <= curMax || !info.CanFireAt(cell))
+			  {
+				  return -1;
+			  }
+		  }
+
+		  return value;
+		});	
+
+		if (pResult) {
+			return { pResult->GetMapCoords(), SWTargetFlags::AllowEmpty };
+		}
+
+		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
-private:
-	static CellStruct FindTargetCoords(const TargetingInfo& info)
+	static TargetResult GetForceShieldTarget(const TargetingInfo& info)
+	{
+		const auto pOwner = info.Owner;
+
+		if (pOwner->PreferredDefensiveCell.IsValid()
+			&& (RulesClass::Instance->AISuperDefenseFrames + pOwner->PreferredDefensiveCellStartTime) > Unsorted::CurrentFrame
+			&& info.CanFireAt(pOwner->PreferredDefensiveCell))
+		{
+			return { pOwner->PreferredDefensiveCell , SWTargetFlags::AllowEmpty };
+		}
+
+		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
+	}
+
+	static TargetResult GetOffensiveTarget(const TargetingInfo& info)
+	{
+		return GetIonCannonTarget(info, HouseClass::Array->GetItemOrDefault(info.Owner->EnemyHouseIndex), CloakHandling::IgnoreCloaked);
+	}
+
+	static TargetResult GetNukeAndLighningTarget(const TargetingInfo& info)
 	{
 		auto pOwner = info.Owner;
 
-		if (pOwner->PreferredDefensiveCell != CellStruct::Empty)
+		if (pOwner->PreferredTargetType == TargetType::Anything) {
+
+			HouseClass* pHouseTarget = HouseClass::Array->GetItemOrDefault(pOwner->EnemyHouseIndex);
+
+			return TargetingFuncs::GetIonCannonTarget(info, pHouseTarget, CloakHandling::IgnoreCloaked);
+		}
+
+		return TargetingFuncs::PickByHouseType(pOwner, pOwner->PreferredTargetType);
+	}
+
+	static TargetResult GetStealthTarget(const TargetingInfo& info)
+	{
+		return TargetingFuncs::GetIonCannonTarget(info ,nullptr, CloakHandling::RequireCloaked);
+	}
+
+	static TargetResult GetDroppodTarget(const TargetingInfo& info)
+	{
+		auto nRandom = ScenarioClass::Instance->Random.RandomRanged(1, 4);
+		auto nCell = info.Owner->RandomCellInZone((ZoneType)nRandom);
+		auto nNearby = MapClass::Instance->NearByLocation(nCell,
+			SpeedType::Foot, -1, MovementZone::Normal, false, 1, 1, false,
+			false, false, true, CellStruct::Empty, false, false);
+
+		if (nNearby.IsValid() && info.CanFireAt(nNearby)) {
+			return { nNearby  , SWTargetFlags::AllowEmpty };
+		}
+
+		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
+	}
+
+	static TargetResult GetLighningRandomTarget(const TargetingInfo& info)
+	{
+		CellStruct nBuffer;
+		for (int i = 0; i < 5; ++i)
 		{
-			if (RulesClass::Instance->AISuperDefenseFrames + pOwner->PreferredDefensiveCellStartTime > Unsorted::CurrentFrame)
+			auto& nRand = ScenarioClass::Instance->Random;
+			if (!MapClass::Instance->CoordinatesLegal(nBuffer))
 			{
-				// new check
-				if (info.CanFireAt(pOwner->PreferredDefensiveCell))
+				do
 				{
-					return pOwner->PreferredDefensiveCell;
+					nBuffer.X = (short)nRand.RandomFromMax(MapClass::MapCellWidth);
+					nBuffer.Y = (short)nRand.RandomFromMax(MapClass::MapCellHeight);
+
 				}
+				while (!MapClass::Instance->CoordinatesLegal(nBuffer));
 			}
+
+			
+			if (nBuffer.IsValid() && info.CanFireAt(nBuffer))
+				return { nBuffer , SWTargetFlags::AllowEmpty };
 		}
 
-		return CellStruct::Empty;
-	}
-};
-
-struct NoTargetTargetSelector final : public TargetSelector
-{
-	TargetResult operator()(const TargetingInfo& info) const
-	{
-		return{ CellStruct::Empty, SWTargetFlags::AllowEmpty };
-	}
-};
-
-struct HouseHasLowPowerTargetSelector final : public TargetSelector
-{
-	TargetResult operator()(const TargetingInfo& info) const
-	{
-		return{ CellStruct::Empty, SWTargetFlags::CheckHousePower };
-	}
-};
-
-struct BaseTargetSelector final : public TargetSelector
-{
-	TargetResult operator()(const TargetingInfo& info) const
-	{
-		// fire at the SW's owner's base cell
-		CellStruct cell = info.Owner->GetBaseCenter();
-
-		// new check
-		if (!info.CanFireAt(cell))
-		{
-			cell = CellStruct::Empty;
-		}
-
-		return{ cell, SWTargetFlags::AllowEmpty };
-	}
-};
-
-struct EnemyBaseTargetSelector final : public TargetSelector
-{
-	TargetResult operator()(const TargetingInfo& info) const
-	{
-		// fire at the owner's enemy base cell
-		return{ GetTarget(info, CanFireRequiresEnemy(), PreferNothing(), FindTargetCoords),
-			SWTargetFlags::AllowEmpty };
+		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
-	static CellStruct FindTargetCoords(const TargetingInfo& info)
-	{
-		if (auto pEnemy = HouseClass::Array->GetItemOrDefault(info.Owner->EnemyHouseIndex))
-		{
-			CellStruct cell = pEnemy->GetBaseCenter();
-
-			if (info.CanFireAt(cell))
-			{
-				return cell;
-			}
-		}
-		return CellStruct::Empty;
-	}
-};
-
-struct OffensiveTargetSelector final : public TargetSelector
-{
-	TargetResult operator()(const TargetingInfo& info) const
-	{
-		auto const pEnemy = HouseClass::Array->GetItemOrDefault(info.Owner->EnemyHouseIndex);
-		return{ GetTarget(info, CanFireRequiresEnemy(), PreferNothing(), PickIonCannonTarget(pEnemy)),
-			SWTargetFlags::DisallowEmpty };
-	}
-};
-
-struct StealthTargetSelector final : public TargetSelector
-{
-	TargetResult operator()(const TargetingInfo& info) const
-	{
-		return{ GetTarget(info, CanFireAlways(), PreferNothing(),
-			PickIonCannonTarget(nullptr, PickIonCannonTarget::CloakHandling::RequireCloaked)),
-			SWTargetFlags::DisallowEmpty };
-	}
-};
-
-struct SelfTargetSelector final : public TargetSelector
-{
-	TargetResult operator()(const TargetingInfo& info) const
-	{
-		return{ GetTarget(info, CanFireAlways(), PreferNothing(), FindTargetCoords),
-			SWTargetFlags::AllowEmpty };
-	}
-
-private:
-	static CellStruct FindTargetCoords(const TargetingInfo& info)
+	static TargetResult GetSelfTarget(const TargetingInfo& info)
 	{
 		// find the first building providing super
 		auto index = info.Super->Type->ArrayIndex;
@@ -1008,19 +765,20 @@ private:
 
 		// Ares < 0.9 didn't check power
 		auto it = std::find_if(buildings.begin(), buildings.end(), [index, &info](BuildingClass* pBld)
- {
-	 auto const pExt = BuildingExt::ExtMap.Find(pBld);
+		{
+			auto const pExt = BuildingExt::ExtMap.Find(pBld);
 
-	 if (pExt->HasSuperWeapon(index, true) && pBld->IsPowerOnline())
-	 {
-		 auto cell = pBld->GetMapCoords();
+			if (pExt->HasSuperWeapon(index, true) && pBld->IsPowerOnline())
+			{
+				auto cell = pBld->GetMapCoords();
 
-		 if (info.CanFireAt(cell))
-		 {
-			 return true;
-		 }
-	 }
-	 return false;
+				if (info.CanFireAt(cell))
+				{
+					return true;
+				}
+			}
+
+			return false;
 		});
 
 		if (it != buildings.end())
@@ -1030,63 +788,78 @@ private:
 				static_cast<short>(pBld->Type->GetFoundationWidth() / 2),
 				static_cast<short>(pBld->Type->GetFoundationHeight(false) / 2)
 			};
-			return pBld->GetCell()->MapCoords + Offset;
+
+			return { pBld->GetCell()->MapCoords + Offset ,SWTargetFlags::AllowEmpty };
 		}
 
-		return CellStruct::Empty;
+		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
-};
 
-struct MultiMissileTargetSelector final : public TargetSelector
-{
-	// classic TS code: fire at the enemy's most threatening building
-	TargetResult operator()(const TargetingInfo& info) const
+	static TargetResult GetBaseTarget(const TargetingInfo& info)
 	{
-		return{ GetTarget(info, CanFireRequiresEnemy(), PreferOffensive(), FindTargetItem),
-			SWTargetFlags::DisallowEmpty };
+		// fire at the SW's owner's base cell
+		CellStruct cell = info.Owner->GetBaseCenter();
+
+		if (info.CanFireAt(cell)) {
+			return { cell, SWTargetFlags::AllowEmpty }; 
+		}
+
+		return{ CellStruct::Empty, SWTargetFlags::DisallowEmpty };
 	}
 
-private:
-	static ObjectClass* FindTargetItem(const TargetingInfo& info)
+	static TargetResult GetMultiMissileTarget(const TargetingInfo& info)
 	{
 		auto pOwner = info.Owner;
-		auto pTargetPlayer = HouseClass::Array->GetItem(pOwner->EnemyHouseIndex);
+		auto it = info.TypeExt->GetPotentialAITargets(HouseClass::Array->GetItemOrDefault(pOwner->EnemyHouseIndex));
 
-		auto it = info.TypeExt->GetPotentialAITargets(pTargetPlayer);
-		return GetTargetFirstMax(it.begin(), it.end(), [pOwner, &info](TechnoClass* pTechno, int curMax)
- {
-	 auto cell = pTechno->GetMapCoords();
+		const auto pResult = GetTargetFirstMax(it.begin(), it.end(), [pOwner, &info](TechnoClass* pTechno, int curMax)
+		{
+			auto cell = pTechno->GetMapCoords();
 
-	 auto const value = pTechno->IsCloaked()
-		 ? ScenarioClass::Instance->Random.RandomFromMax(100)
-		 : MapClass::Instance->GetThreatPosed(cell, pOwner);
+			auto const value = pTechno->IsCloaked()
+				? ScenarioClass::Instance->Random.RandomFromMax(100)
+				: MapClass::Instance->GetThreatPosed(cell, pOwner);
 
-	 if (value <= curMax || !info.CanFireAt(cell))
-	 {
-		 return -1;
-	 }
+			if (value <= curMax || !info.CanFireAt(cell)) { return -1; }
 
-	 return value;
+			return value;
 		});
-	}
-};
 
-struct HunterSeekerTargetSelector final : public TargetSelector
-{
-	// from TS: launch at empty coords only if a house has an enemy
-	TargetResult operator()(const TargetingInfo& info) const
-	{
-		auto const hasEnemy = CanFireRequiresEnemy {}(info);
-		return{ CellStruct::Empty, hasEnemy ?
-			SWTargetFlags::AllowEmpty : SWTargetFlags::DisallowEmpty };
+		if (pResult)
+		{
+			return{
+				pResult->GetMapCoords(), 
+				SWTargetFlags::AllowEmpty
+			};
+		}
+
+		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
-};
+
+	static TargetResult GetEnemyBaseTarget(const TargetingInfo& info)
+	{
+		if (auto pEnemy = HouseClass::Array->GetItemOrDefault(info.Owner->EnemyHouseIndex)) {
+
+			CellStruct cell = pEnemy->GetBaseCenter();
+
+			if (info.CanFireAt(cell))
+			{
+				return { cell , SWTargetFlags::AllowEmpty };
+			}
+		}
+		
+		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
+	}
 
 #pragma endregion
+};
 
 TargetResult SWTypeExt::ExtData::PickSuperWeaponTarget(SuperClass* pSuper)
 {
 	TargetingInfo info(pSuper);
+
+	if(!info.Data)
+		info.GetData();
 
 	switch (info.TypeExt->GetAITargetingPreference())
 	{
@@ -1109,82 +882,70 @@ TargetResult SWTypeExt::ExtData::PickSuperWeaponTarget(SuperClass* pSuper)
 	switch (info.TypeExt->SW_AITargetingMode)
 	{
 	case SuperWeaponAITargetingMode::Nuke:
-		return NuclearMissileTargetSelector()(info);
 	case SuperWeaponAITargetingMode::LightningStorm:
-		return LightningStormTargetSelector()(info);
+	{
+		return TargetingFuncs::GetNukeAndLighningTarget(info);
+	}
 	case SuperWeaponAITargetingMode::PsychicDominator:
-		return PsychicDominatorTargetSelector()(info);
+	{ 
+		return TargetingFuncs::GetDominatorTarget(info); 
+	}
 	case SuperWeaponAITargetingMode::ParaDrop:
-		return ParaDropTargetSelector()(info);
+	{
+		return TargetingFuncs::GetParadropTarget(info);
+	}
 	case SuperWeaponAITargetingMode::GeneticMutator:
-		return GeneticMutatorTargetSelector()(info);
+	{
+		return TargetingFuncs::GetMutatorTarget(info);
+	}
 	case SuperWeaponAITargetingMode::ForceShield:
-		return ForceShieldTargetSelector()(info);
+	{
+		return TargetingFuncs::GetForceShieldTarget(info);
+	}
 	case SuperWeaponAITargetingMode::NoTarget:
 	case SuperWeaponAITargetingMode::HunterSeeker:
 	case SuperWeaponAITargetingMode::Attack:
 	case SuperWeaponAITargetingMode::LowPower:
 	case SuperWeaponAITargetingMode::LowPowerAttack:
-		return NoTargetTargetSelector()(info);
+	{
+		return TargetingFuncs::NoTarget();
+	}
 	case SuperWeaponAITargetingMode::Offensive:
-		return OffensiveTargetSelector()(info);
+	{
+		return TargetingFuncs::GetOffensiveTarget(info);
+	}
 	case SuperWeaponAITargetingMode::Stealth:
-		return StealthTargetSelector()(info);
+	{
+		return TargetingFuncs::GetStealthTarget(info);
+	}
 	case SuperWeaponAITargetingMode::Self:
-		return SelfTargetSelector()(info);
+	{
+		return TargetingFuncs::GetSelfTarget(info);
+	}
 	case SuperWeaponAITargetingMode::Base:
-		return BaseTargetSelector()(info);
+	{
+		return TargetingFuncs::GetBaseTarget(info);
+	}
 	case SuperWeaponAITargetingMode::MultiMissile:
-		return MultiMissileTargetSelector()(info);
-		//case SuperWeaponAITargetingMode::HunterSeeker:
-		//	return HunterSeekerTargetSelector()(info);
+	{
+		return TargetingFuncs::GetMultiMissileTarget(info);
+	}
 	case SuperWeaponAITargetingMode::EnemyBase:
-		return EnemyBaseTargetSelector()(info);
+	{
+		return TargetingFuncs::GetEnemyBaseTarget(info);
+	}
 	case SuperWeaponAITargetingMode::Droppod:
 	{
-		auto nRandom = ScenarioClass::Instance->Random.RandomRanged(1, 4);
-		auto nCell = pSuper->Owner->RandomCellInZone((ZoneType)nRandom);
-		auto nNearby = MapClass::Instance->NearByLocation(nCell,
-			SpeedType::Foot, -1, MovementZone::Normal, false, 1, 1, false,
-			false, false, true, CellStruct::Empty, false, false);
-
-		if (nNearby.IsValid() && info.NewType->CanFireAt(*info.Data, nNearby, false))
-		{
-			return { nNearby  , SWTargetFlags::AllowEmpty };
-		}
-
-		break;
+		return TargetingFuncs::GetDroppodTarget(info);
 	}
 	case SuperWeaponAITargetingMode::LighningRandom:
 	{
-		CellStruct nBuffer;
-		for (int i = 0; i < 5; ++i)
-		{
-			auto& nRand = ScenarioClass::Instance->Random;
-			if (!MapClass::Instance->CoordinatesLegal(nBuffer))
-			{
-				do
-				{
-					nBuffer.X = (short)nRand.RandomFromMax(MapClass::MapCellWidth);
-					nBuffer.Y = (short)nRand.RandomFromMax(MapClass::MapCellHeight);
-
-				}
-				while (!MapClass::Instance->CoordinatesLegal(nBuffer));
-			}
-
-			if (info.NewType->CanFireAt(*info.Data, nBuffer, false))
-				return { nBuffer , SWTargetFlags::AllowEmpty };
-		}
-		break;
+		return TargetingFuncs::GetLighningRandomTarget(info);
 	}
-	default:
-		break;
 	}
 
 	return{ CellStruct::Empty, SWTargetFlags::DisallowEmpty };
 }
-
-#pragma endregion
 
 double SWTypeExt::ExtData::GetChargeToDrainRatio() const
 {
@@ -1225,7 +986,9 @@ bool SWTypeExt::ExtData::IsHouseAffected(HouseClass* pFirer, HouseClass* pHouse)
 bool SWTypeExt::ExtData::IsHouseAffected(HouseClass* pFirer, HouseClass* pHouse, AffectedHouse value)
 {
 	auto relation = SWTypeExt::ExtData::GetRelation(pFirer, pHouse);
-	return (value & relation) == relation;
+	const auto nRelationResult = (value & relation);
+	const bool IsVisible = nRelationResult == relation;
+	return IsVisible;
 }
 
 AffectedHouse SWTypeExt::ExtData::GetRelation(HouseClass* pFirer, HouseClass* pHouse)
@@ -2130,7 +1893,8 @@ LightingColor SWTypeExt::GetLightingColor(SuperWeaponTypeClass* pCustom)
 
 	// active SW or custom one?
 	// has value overriden here
-	if (auto const pSW = pCustom ? pCustom : pType) {
+	if (auto const pSW = pCustom ? pCustom : pType)
+	{
 		SWTypeExt::ExtMap.Find(pSW)->UpdateLightingColor(ret);
 	}
 

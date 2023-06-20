@@ -5044,6 +5044,20 @@ DEFINE_OVERRIDE_HOOK(0x441f2c ,BuildingClass_Destroy_KickOutOfRubble, 5)
 	return 0x0;
 }
 
+DEFINE_HOOK(0x70CBC3, TechnoClass_DealParticleDamage_FixArgs, 0x6)
+{
+	GET(WeaponTypeClass*, pWeapon, EDI);
+	GET(float, nDamage , ECX);
+	GET(ObjectClass**, pVec, EDX);
+	GET(int, nIdx, ESI);
+	GET_STACK(TechnoClass*, pThis, 0xC4 - 0x44);
+
+	int iDamage = (int)nDamage;
+	pVec[nIdx]->ReceiveDamage(&iDamage, 0, pWeapon->Warhead, pThis, false, false, pThis->Owner);
+
+	return 0x70CBEE;
+}
+
 DEFINE_OVERRIDE_SKIP_HOOK(0x6F4103, TechnoClass_Init_ThisPartHandled, 6, 6F41C0)
 
 //DEFINE_HOOK_AGAIN(0x747705, TechnoTypeClass_ReadSpeedType_Validate, 0x6)
