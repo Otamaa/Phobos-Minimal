@@ -278,7 +278,7 @@ public:
 	BuildingClass* GetNearbyLaserFence(CoordStruct* pCoord, bool Unk = true, int threatrange = -1) const
 	{ JMP_THIS(0x452BB0); }
 
-	void PlayNthAnim(BuildingAnimSlot nWhich ,bool bIsDamage , bool bIsGarrisoned , int nDelay) const
+	void Game_PlayNthAnim(BuildingAnimSlot nWhich ,bool bIsDamage , bool bIsGarrisoned , int nDelay) const
 	{ JMP_THIS(0x451750); }
 
 	bool Absorber() const { JMP_THIS(0x4598A0); }

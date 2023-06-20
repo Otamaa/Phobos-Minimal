@@ -945,8 +945,12 @@ DEFINE_OVERRIDE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 	pSuperExt->Temp_IsPlayer = isPlayer;
 	pSuperExt->Temp_CellStruct = *pCell;
 
-	if (//AresData::SW_Activate(pSuper, *pCell, isPlayer)
+	if (
+#ifndef Replace_SW
 		SWTypeExt::ExtData::Activate(pSuper,*pCell , isPlayer)
+#else
+		AresData::SW_Activate(pSuper, *pCell, isPlayer)
+#endif
 		)
 	{
 		Debug::Log("[LAUNCH] %s Handled\n", pSuper->Type->ID);

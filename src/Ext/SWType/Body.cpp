@@ -934,7 +934,7 @@ struct BaseTargetSelector final : public TargetSelector
 			cell = CellStruct::Empty;
 		}
 
-		return{ cell, SWTargetFlags::DisallowEmpty };
+		return{ cell, SWTargetFlags::AllowEmpty };
 	}
 };
 
@@ -944,7 +944,7 @@ struct EnemyBaseTargetSelector final : public TargetSelector
 	{
 		// fire at the owner's enemy base cell
 		return{ GetTarget(info, CanFireRequiresEnemy(), PreferNothing(), FindTargetCoords),
-			SWTargetFlags::DisallowEmpty };
+			SWTargetFlags::AllowEmpty };
 	}
 
 	static CellStruct FindTargetCoords(const TargetingInfo& info)
@@ -1965,8 +1965,7 @@ bool SWTypeExt::ExtData::IsAvailable(HouseClass* pHouse)
 		return false;
 
 	// allow only certain houses, disallow forbidden houses
-	const auto OwnerBits = 1u << pHouse->Type->ArrayIndex;
-	if (!(this->SW_RequiredHouses & OwnerBits) || (this->SW_ForbiddenHouses & OwnerBits))
+	if (!this->SW_RequiredHouses.Contains(pHouse->Type) || this->SW_ForbiddenHouses.Contains(pHouse->Type))
 		return false;
 
 	// check that any aux building exist and no neg building
@@ -1982,7 +1981,7 @@ bool SWTypeExt::ExtData::IsAvailable(HouseClass* pHouse)
 
 	const auto& Neg = this->SW_NegBuildings;
 	// If building Exist
-	if (std::any_of(Neg.begin(), Neg.end(), IsBuildingPresent)) {
+	if (!Neg.empty() && std::any_of(Neg.begin(), Neg.end(), IsBuildingPresent)) {
 		return false;
 	}
 
@@ -2045,7 +2044,7 @@ LightingColor SWTypeExt::GetLightingColor(SuperWeaponTypeClass* pCustom)
 	auto scen = ScenarioClass::Instance();
 	SuperWeaponTypeClass* pType = nullptr;
 
-	LightingColor ret;
+	LightingColor ret {};
 	if (NukeFlash::IsFadingIn() || ChronoScreenEffect::Status)
 	{
 		// nuke flash

@@ -47,10 +47,11 @@ public:
 	bool SetOnHold(bool onHold)
 		{ JMP_THIS(0x6CB4D0); }
 
+	// Enable SW for the Owner
 	bool Grant(bool oneTime, bool announce, bool onHold)
 		{ JMP_THIS(0x6CB560); }
 
-	// true if this was ->Granted
+	// true if this was ->Granted , remove SW for the Owner
 	bool Lose()
 		{ JMP_THIS(0x6CB7B0); }
 
@@ -135,7 +136,7 @@ public:
 	PROTECTED_PROPERTY(BYTE, unused_66[2]);
 	AnimClass* Animation;                // 0x68
 	bool AnimationGotInvalid;
-	bool Granted;
+	bool Granted; //Is this SW enabled
 	bool OneTime; // remove this SW when it has been fired once
 	bool IsCharged;
 	bool IsOnHold;

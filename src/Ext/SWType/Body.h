@@ -121,8 +121,8 @@ public:
 
 		Valueable<double> SW_RangeMinimum;
 		Valueable<double> SW_RangeMaximum;
-		DWORD SW_RequiredHouses;
-		DWORD SW_ForbiddenHouses;
+		IndexBitfield<HouseTypeClass*> SW_RequiredHouses;
+		IndexBitfield<HouseTypeClass*> SW_ForbiddenHouses;
 		ValueableVector<BuildingTypeClass*> SW_AuxBuildings;
 		ValueableVector<BuildingTypeClass*> SW_NegBuildings;
 		Valueable<bool> SW_InitialReady;

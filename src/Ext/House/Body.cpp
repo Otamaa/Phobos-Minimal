@@ -5,6 +5,7 @@
 #include <Ext/Building/Body.h>
 #include <Ext/Side/Body.h>
 #include <Ext/HouseType/Body.h>
+#include <Ext/SWType/Body.h>
 
 #include <ScenarioClass.h>
 
@@ -60,6 +61,19 @@ LauchData NOINLINE HouseExt::ExtData::GetShotCount(SuperWeaponTypeClass* pFor)
 		return {};
 
 	return this->LaunchDatas[pFor->ArrayIndex];
+}
+
+SuperClass* HouseExt::ExtData::IsSuperAvail(int nIdx, HouseClass* pHouse)
+{
+	if (nIdx < 0)
+		return nullptr;
+
+	const auto pSW = pHouse->Supers[nIdx];
+
+	if (SWTypeExt::ExtMap.Find(pSW->Type)->IsAvailable(pHouse))
+		return pSW;
+
+	return nullptr;
 }
 
 int HouseExt::GetSurvivorDivisor(HouseClass* pHouse)

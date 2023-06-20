@@ -83,6 +83,12 @@ public:
 	IndexBitfield() = default;
 	explicit IndexBitfield(DWORD const defVal) noexcept : data(defVal) {};
 
+	IndexBitfield<T>& operator=(DWORD other)
+	{
+		std::swap(data, other);
+		return *this;
+	}
+
 	bool Contains(const T obj) const {
 		return Contains(obj->ArrayIndex);
 	}

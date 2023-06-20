@@ -17,7 +17,8 @@
 #pragma endregion
 
 //TODO : removing all SWTypeExt related call if possible 
-//		 AI auto targeting stuffs broken atm , looking at it !
+
+#ifndef Replace_SW
 
 DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 {
@@ -36,17 +37,19 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 	SuperWeaponTypeClass* pLast = nullptr;
 	bool found = false;
 
-	auto const[action, args] = *pTeamMission;
+	auto const [action, args] = *pTeamMission;
 
-	for (auto pSuper : *SuperWeaponTypeClass::Array) {
+	for (auto pSuper : *SuperWeaponTypeClass::Array)
+	{
 
 		const auto pOwnerSuper = pOwner->Supers.GetItem(pSuper->ArrayIndex);
 		const auto pExt = SWTypeExt::ExtMap.Find(pSuper);
 
 		if (!pLast &&
 			(pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain) &&
-			pExt->SW_Group == args) {
-			
+			pExt->SW_Group == args)
+		{
+
 			if (pOwnerSuper->IsCharged && (havePower || !pSuper->IsPowered))
 			{
 				pLast = pSuper;
@@ -69,7 +72,8 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 		}
 	}
 
-	if (found && pLast) {
+	if (found && pLast)
+	{
 		pOwner->Fire_SW(pLast->ArrayIndex, pThis->SpawnCell->MapCoords);
 		pThis->StepCompleted = true;
 	}
@@ -269,6 +273,15 @@ DEFINE_OVERRIDE_HOOK(0x4463F0, BuildingClass_Place_SuperWeaponAnimsA, 6)
 		R->EAX(pSuper);
 		return 0x44643E;
 	}
+	else
+	{
+		if (pThis->Type->SuperWeapon > 0)
+		{
+			const bool bIsDamage = !pThis->IsGreenHP();
+			const int nOcc = pThis->GetOccupantCount();
+			pThis->Game_PlayNthAnim(BuildingAnimSlot::SpecialThree, bIsDamage, nOcc > 0, 0);
+		}
+	}
 
 	return 0x446580;
 }
@@ -298,7 +311,7 @@ DEFINE_OVERRIDE_HOOK(0x4468F4, BuildingClass_Place_AnnounceSW, 6)
 
 	if (auto pSuper = BuildingExt::GetFirstSuperWeapon(pThis))
 	{
-		if(pSuper->Owner->IsNeutral())
+		if (pSuper->Owner->IsNeutral())
 			return 0x44699A;
 
 		const auto pData = SWTypeExt::ExtMap.Find(pSuper->Type);
@@ -367,14 +380,24 @@ DEFINE_OVERRIDE_HOOK(0x50CFAA, HouseClass_PickOffensiveSWTarget, 0xA)
 DEFINE_OVERRIDE_HOOK(0x457630, BuildingClass_SWAvailable, 9)
 {
 	GET(BuildingClass*, pThis, ECX);
-	R->EAX(BuildingTypeExt::ExtMap.Find(pThis->Type)->GetSuperWeaponIndex(1));
+
+	auto nSuper = pThis->Type->SuperWeapon2;
+	if(nSuper >= 0 && !HouseExt::ExtData::IsSuperAvail(nSuper , pThis->Owner))
+		nSuper = -1;
+
+	R->EAX(nSuper);
 	return 0x457688;
 }
 
 DEFINE_OVERRIDE_HOOK(0x457690, BuildingClass_SW2Available, 9)
 {
 	GET(BuildingClass*, pThis, ECX);
-	R->EAX(BuildingTypeExt::ExtMap.Find(pThis->Type)->GetSuperWeaponIndex(1));
+
+	auto nSuper = pThis->Type->SuperWeapon2;
+	if(nSuper >= 0 && !HouseExt::ExtData::IsSuperAvail(nSuper , pThis->Owner))
+		nSuper = -1;
+
+	R->EAX(nSuper);
 	return 0x4576E8;
 }
 
@@ -475,7 +498,8 @@ DEFINE_OVERRIDE_HOOK(0x4F9004, HouseClass_Update_TrySWFire, 7)
 	GET(HouseClass*, pThis, ESI);
 	bool isHuman = R->AL() != 0;
 
-	if (isHuman) {
+	if (isHuman)
+	{
 		// update the SWs for human players to support auto firing.
 		pThis->AI_TryFireSW();
 	}
@@ -530,11 +554,12 @@ DEFINE_OVERRIDE_HOOK(0x6CB7B0, SuperClass_Lose, 6)
 
 		if (SuperClass::ShowTimers->Remove(pThis))
 		{
-			std::sort(SuperClass::ShowTimers->begin(), SuperClass::ShowTimers->end(), 
-			[](SuperClass* a, SuperClass* b) {
-				const auto aExt = SWTypeExt::ExtMap.Find(a->Type);
-				const auto bExt = SWTypeExt::ExtMap.Find(b->Type);
-				return aExt->SW_Priority.Get() > bExt->SW_Priority.Get();
+			std::sort(SuperClass::ShowTimers->begin(), SuperClass::ShowTimers->end(),
+			[](SuperClass* a, SuperClass* b)
+ {
+	 const auto aExt = SWTypeExt::ExtMap.Find(a->Type);
+	 const auto bExt = SWTypeExt::ExtMap.Find(b->Type);
+	 return aExt->SW_Priority.Get() > bExt->SW_Priority.Get();
 			});
 		}
 
@@ -588,7 +613,7 @@ DEFINE_OVERRIDE_HOOK(0x66CB920, SuperClass_ClickFire, 5)
 				pThis->ChargeDrainState = ChargeDrainState::Ready;
 				auto const left = pThis->RechargeTimer.GetTimeLeft();
 
-				auto const duration = Game::F2I(pThis->GetRechargeTime()
+				auto const duration = int(pThis->GetRechargeTime()
 					- (left / pExt->GetChargeToDrainRatio()));
 				pThis->RechargeTimer.Start(duration);
 
@@ -601,7 +626,7 @@ DEFINE_OVERRIDE_HOOK(0x66CB920, SuperClass_ClickFire, 5)
 				pThis->ChargeDrainState = ChargeDrainState::Draining;
 				auto const left = pThis->RechargeTimer.GetTimeLeft();
 
-				auto const duration = Game::F2I(
+				auto const duration = int(
 					(pThis->GetRechargeTime() - left)
 					* pExt->GetChargeToDrainRatio());
 				pThis->RechargeTimer.Start(duration);
@@ -783,7 +808,7 @@ DEFINE_OVERRIDE_HOOK(0x6CBD6B, SuperClass_Update_DrainMoney, 8)
 // clear the chrono placement animation if not ChronoWarp
 DEFINE_OVERRIDE_HOOK(0x6CBCDE, SuperClass_Update_Animation, 5)
 {
-	if(Unsorted::CurrentSWType < 0)
+	if (Unsorted::CurrentSWType < 0)
 		return 0x6CBCE3;
 
 	return SuperWeaponTypeClass::Array->GetItem(Unsorted::CurrentSWType)->Type == SuperWeaponType::ChronoWarp ?
@@ -803,12 +828,17 @@ DEFINE_OVERRIDE_HOOK(0x6CEEB0, SuperWeaponTypeClass_FindFirstOfAction, 8)
 	// Otama : can be use for `TeamClass_IronCurtain` stuffs
 	for (auto pType : *SuperWeaponTypeClass::Array)
 	{
-		if (pType->Action == action) {
+		if (pType->Action == action)
+		{
 			pFound = pType;
 			break;
-		} else {
-			if (auto pNewSWType = SWTypeExt::ExtMap.Find(pType)->GetNewSWType()) {
-				if (pNewSWType->HandleThisType(SuperWeaponType::Nuke)) {
+		}
+		else
+		{
+			if (auto pNewSWType = SWTypeExt::ExtMap.Find(pType)->GetNewSWType())
+			{
+				if (pNewSWType->HandleThisType(SuperWeaponType::Nuke))
+				{
 					pFound = pType;
 					break;
 				}
@@ -817,7 +847,8 @@ DEFINE_OVERRIDE_HOOK(0x6CEEB0, SuperWeaponTypeClass_FindFirstOfAction, 8)
 	}
 
 	// put a hint into the debug log to explain why we will crash now.
-	if (!pFound) {
+	if (!pFound)
+	{
 		Debug::FatalErrorAndExit("Failed finding an Action=Nuke or Type=MultiMissile super weapon to be granted by ICBM crate.");
 	}
 
@@ -863,8 +894,10 @@ DEFINE_OVERRIDE_HOOK(0x6CB70C, SuperClass_Grant_InitialReady, 0xA)
 	pSuper->RechargeTimer.Start(nCharge);
 	auto nFrame = Unsorted::CurrentFrame();
 
-	if (pSuperExt->SW_VirtualCharge) {
-		if ((frame & 0x80000000) == 0) {
+	if (pSuperExt->SW_VirtualCharge)
+	{
+		if ((frame & 0x80000000) == 0)
+		{
 			pSuper->RechargeTimer.StartTime = frame;
 			nFrame = frame;
 		}
@@ -979,10 +1012,13 @@ DEFINE_OVERRIDE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
 	// method would abort if this house is human-controlled.
 	bool AIFire = !pThis->IsControlledByHuman_();
 
-	for (const auto pSuper : pThis->Supers) {
-		if (pSuper->IsCharged && pSuper->ChargeDrainState != ChargeDrainState::Draining) {
+	for (const auto pSuper : pThis->Supers)
+	{
+		if (pSuper->IsCharged && pSuper->ChargeDrainState != ChargeDrainState::Draining)
+		{
 			auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
-			if (AIFire || pExt->SW_AutoFire) {
+			if (AIFire || pExt->SW_AutoFire)
+			{
 
 				if (IS_SAME_STR_(pExt->Get()->ID, "KnightfallSpawn"))
 					Debug::Log("Hey!\n");
@@ -1048,7 +1084,6 @@ struct SWStatus
 	bool Charging;
 };
 
-bool AlwaysGrantedSWTYpe;
 // This function controls the availability of super weapons. If a you want to
 // add to or change the way the game thinks a building provides a super weapon,
 // change the lambda UpdateStatus. Available means this super weapon exists at
@@ -1059,18 +1094,23 @@ std::vector<SWStatus> GetSuperWeaponStatuses(HouseClass* pHouse)
 	std::vector<SWStatus> Statuses(pHouse->Supers.Count, { false, false, false });
 
 	// look at every sane building this player owns, if it is not defeated already.
-	if (!pHouse->Defeated && pHouse == HouseClass::CurrentPlayer())
+	if (!pHouse->Defeated && !pHouse->IsObserver())
 	{
-
-		for (auto pSuper : pHouse->Supers)
+		if (pHouse->Supers.Count > 0)
 		{
-			//if InitialReady and SWAvaible
-			const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
-
-			if (pExt->SW_InitialReady && pExt->IsAvailable(pHouse))
+			for (int i = 0; i < pHouse->Supers.Count; ++i)
 			{
-				Statuses[pSuper->Type->ArrayIndex].Available = true;
-				Statuses[pSuper->Type->ArrayIndex].Charging = true;
+				auto pSuper = pHouse->Supers[i];
+				auto& status = Statuses[i];
+
+				//if InitialReady and SWAvaible
+				const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
+
+				if (pExt->IsAvailable(pHouse) && pExt->SW_InitialReady)
+				{
+					//Statuses[pSuper->Type->ArrayIndex].Available = true;
+					status.Charging = true;
+				}
 			}
 		}
 
@@ -1078,15 +1118,16 @@ std::vector<SWStatus> GetSuperWeaponStatuses(HouseClass* pHouse)
 		{
 			if (pBld->IsAlive && !pBld->InLimbo)
 			{
-				TechnoExt::ExtData* pExt = TechnoExt::ExtMap.Find(pBld);
+				const auto pExt = TechnoExt::ExtMap.Find(pBld);
 
 				// the super weapon status update lambda.
-				auto UpdateStatus = [pBld, pExt, &Statuses](int idxSW)
+				auto UpdateStatus = [pBld, pExt, pHouse, &Statuses](int idxSW)
 				{
-					if (idxSW > -1)
+					if (idxSW >= 0)
 					{
 						auto& status = Statuses[idxSW];
-						status.Available = true;
+						const auto pSuperExt = SWTypeExt::ExtMap.Find(pHouse->Supers[idxSW]->Type);
+						status.Available = pSuperExt->IsAvailable(pHouse);
 
 						if (!status.Charging
 							&& pBld->HasPower
@@ -1115,7 +1156,8 @@ std::vector<SWStatus> GetSuperWeaponStatuses(HouseClass* pHouse)
 						const auto count = pUpgradeExt->GetSuperWeaponCount();
 						for (auto i = 0; i < count; ++i)
 						{
-							UpdateStatus(pUpgradeExt->GetSuperWeaponIndex(i, pHouse));
+							const auto Idx = pUpgradeExt->GetSuperWeaponIndex(i, pHouse);
+							UpdateStatus(Idx);
 						}
 					}
 				}
@@ -1132,27 +1174,29 @@ std::vector<SWStatus> GetSuperWeaponStatuses(HouseClass* pHouse)
 
 		// kill off super weapons that are disallowed and
 		// factor in the player's power status
-		auto hasPower = pHouse->HasFullPower();
+		const bool hasPower = pHouse->HasFullPower();
+		const bool isSWAavail = Unsorted::SWAllowed || SessionClass::Instance->GameMode == GameMode::Campaign;
 
-		for (auto pSuper : pHouse->Supers)
+		if (!hasPower || !isSWAavail)
 		{
-			auto index = pSuper->Type->ArrayIndex;
-			auto& status = Statuses[index];
-
-			// turn off super weapons that are disallowed.
-			if (SessionClass::Instance->GameMode != GameMode::Campaign && !Unsorted::SWAllowed)
+			for (auto pSuper : pHouse->Supers)
 			{
-				if (pSuper->Type->DisableableFromShell)
+				auto index = pSuper->Type->ArrayIndex;
+				auto& status = Statuses[index];
+
+				// turn off super weapons that are disallowed.
+
+				if (!isSWAavail && pSuper->Type->DisableableFromShell)
 				{
 					status.Available = false;
 				}
-			}
 
-			// if the house is generally on low power,
-			// powered super weapons aren't powered
-			if (pSuper->IsPowered())
-			{
-				status.PowerSourced &= hasPower;
+				// if the house is generally on low power,
+				// powered super weapons aren't powered
+				if (!hasPower && pSuper->IsPowered())
+				{
+					status.PowerSourced = false;
+				}
 			}
 		}
 	}
@@ -1176,50 +1220,47 @@ DEFINE_OVERRIDE_HOOK(0x50AF10, HouseClass_UpdateSuperWeaponsOwned, 5)
 			auto index = pType->ArrayIndex;
 			auto& status = Statuses[index];
 
+			auto Update = [&]()
+			{
+				// only the human player can see the sidebar.
+				if (pThis->IsCurrentPlayer())
+				{
+					if (Unsorted::CurrentSWType == index)
+						Unsorted::CurrentSWType = -1;
+
+					MouseClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(SuperClass::AbsID, index, 0));
+				}
+				pThis->RecheckTechTree = true;
+			};
+
 			// is this a super weapon to be updated?
 			// sw is bound to a building and no single-shot => create goody otherwise
-			bool isCreateGoody = (!pSuper->CanHold || pSuper->OneTime);
-			if (!isCreateGoody || pThis->Defeated)
+			if (pSuper->CanHold && !pSuper->OneTime || pThis->Defeated)
 			{
-
-				// shut down or power up super weapon and decide whether
-				// a sidebar tab update is needed.
-				bool update = false;
 				if (!status.Available || pThis->Defeated)
 				{
-					update = (pSuper->Lose() && HouseClass::CurrentPlayer);
+					if ((pSuper->Lose() && HouseClass::CurrentPlayer))
+						Update();
 				}
 				else if (status.Charging && !pSuper->IsPowered())
 				{
-					update = pSuper->IsOnHold && pSuper->SetOnHold(false);
+					if (pSuper->IsOnHold && pSuper->SetOnHold(false))
+						Update();
 				}
 				else if (!status.Charging && !pSuper->IsPowered())
 				{
-					update = !pSuper->IsOnHold && pSuper->SetOnHold(true);
+					if (!pSuper->IsOnHold && pSuper->SetOnHold(true))
+						Update();
 				}
 				else if (!status.PowerSourced)
 				{
-					update = (pSuper->IsPowered() && pSuper->SetOnHold(true));
+					if (pSuper->IsPowered() && pSuper->SetOnHold(true))
+						Update();
 				}
 				else
 				{
-					update = (status.PowerSourced && pSuper->SetOnHold(false));
-				}
-
-				// update only if needed.
-				if (update)
-				{
-					// only the human player can see the sidebar.
-					if (pThis->IsCurrentPlayer())
-					{
-						if (Unsorted::CurrentSWType == index)
-						{
-							Unsorted::CurrentSWType = -1;
-						}
-						int idxTab = SidebarClass::GetObjectTabIdx(SuperClass::AbsID, index, 0);
-						MouseClass::Instance->RepaintSidebar(idxTab);
-					}
-					pThis->RecheckTechTree = true;
+					if (status.PowerSourced && pSuper->SetOnHold(false))
+						Update();
 				}
 			}
 		}
@@ -1232,7 +1273,7 @@ DEFINE_OVERRIDE_HOOK(0x50B1D0, HouseClass_UpdateSuperWeaponsUnavailable, 6)
 {
 	GET(HouseClass*, pThis, ECX);
 
-	if (!pThis->Defeated)
+	if (!pThis->Defeated && !(pThis->IsObserver()))
 	{
 		auto Statuses = GetSuperWeaponStatuses(pThis);
 
@@ -1255,8 +1296,7 @@ DEFINE_OVERRIDE_HOOK(0x50B1D0, HouseClass_UpdateSuperWeaponsUnavailable, 6)
 						if (pData->SW_ShowCameo || !pData->SW_AutoFire)
 						{
 							MouseClass::Instance->AddCameo(AbstractType::Special, index);
-							int idxTab = SidebarClass::GetObjectTabIdx(SuperClass::AbsID, index, 0);
-							MouseClass::Instance->RepaintSidebar(idxTab);
+							MouseClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(SuperClass::AbsID, index, 0));
 						}
 					}
 				}
@@ -1388,7 +1428,8 @@ DEFINE_HOOK(0x44C9F3, BuildingClass_Mi_Missile_PsiWarn, 0x5)
 	AnimClass* PsiWarn = nullptr;
 	auto const pSWTypeExt = SWTypeExt::ExtMap.Find(pExt->LinkedSW->Type);
 
-	if (auto& Anim = pSWTypeExt->Nuke_PsiWarning) {
+	if (auto& Anim = pSWTypeExt->Nuke_PsiWarning)
+	{
 
 		auto nLoc = pCell->GetCoords();
 		if (auto pAnim = GameCreate<AnimClass>(Anim.Get(), nLoc))
@@ -1421,7 +1462,7 @@ DEFINE_OVERRIDE_HOOK(0x44CB4C, BuildingClass_Mi_Missile_NukeTakeOff, 7)
 		return DeleteBullet;
 
 	if (auto const pAnimType = SWTypeExt::ExtMap.Find(type)->Nuke_TakeOff.Get(
-			RulesClass::Instance->NukeTakeOff))
+		RulesClass::Instance->NukeTakeOff))
 	{
 		if (auto pAnim = GameCreate<AnimClass>(pAnimType, *pCoord))
 		{
@@ -1439,7 +1480,8 @@ DEFINE_HOOK(0x44C992, BuildingClass_MI_Missile_Safeguard, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	if (!TechnoExt::ExtMap.Find(pThis)->LinkedSW) {
+	if (!TechnoExt::ExtMap.Find(pThis)->LinkedSW)
+	{
 		Debug::Log("Building[%s] with Mission::Missile Missing Important Linked SW data !\n", pThis->get_ID());
 		return 0x44D584;
 	}
@@ -1449,27 +1491,29 @@ DEFINE_HOOK(0x44C992, BuildingClass_MI_Missile_Safeguard, 0x6)
 
 // Create bullet pointing up to the sky
 DEFINE_HOOK(0x44CABA, BuildingClass_MI_Missile_CreateBullet, 0x7)
- {
- 	enum { SkipGameCode = 0x44CAF2 };
+{
+	enum { SkipGameCode = 0x44CAF2 };
 
- 	GET(BuildingClass* const, pThis, ESI);
- 	GET(CellClass* const, pTarget, EAX);
+	GET(BuildingClass* const, pThis, ESI);
+	GET(CellClass* const, pTarget, EAX);
 
 	auto pSuper = TechnoExt::ExtMap.Find(pThis)->LinkedSW;
 	WeaponTypeClass* pWeapon = pSuper->Type->WeaponType;
- 	BulletClass* pBullet = nullptr;
+	BulletClass* pBullet = nullptr;
 
- 	if (pWeapon){ 
-		if (auto pCreated = BulletTypeExt::ExtMap.Find(pWeapon->Projectile)->CreateBullet(pTarget, pThis, pWeapon->Damage, pWeapon->Warhead, 255, WeaponTypeExt::ExtMap.Find(pWeapon)->GetProjectileRange(), pWeapon->Bright || pWeapon->Warhead->Bright, false)) {
+	if (pWeapon)
+	{
+		if (auto pCreated = BulletTypeExt::ExtMap.Find(pWeapon->Projectile)->CreateBullet(pTarget, pThis, pWeapon->Damage, pWeapon->Warhead, 255, WeaponTypeExt::ExtMap.Find(pWeapon)->GetProjectileRange(), pWeapon->Bright || pWeapon->Warhead->Bright, false))
+		{
 			BulletExt::ExtMap.Find(pCreated)->NukeSW = pSuper;
 			pBullet = pCreated;
 		}
- 	}
+	}
 
- 	R->EAX(pBullet);
- 	R->EBX(pWeapon);
- 	return SkipGameCode;
- }
+	R->EAX(pBullet);
+	R->EBX(pWeapon);
+	return SkipGameCode;
+}
 
 DEFINE_OVERRIDE_HOOK(0x48A59A, MapClass_SelectDamageAnimation_LightningWarhead, 5)
 {
@@ -1704,7 +1748,7 @@ DEFINE_OVERRIDE_HOOK(0x53A6CF, LightningStorm_Update, 7)
 		return Legacy;
 	}
 
-	auto const coords = LightningStorm::Coords();
+	CellStruct coords = LightningStorm::Coords();
 
 	auto const pType = pSuper->Type;
 	auto const pExt = SWTypeExt::ExtMap.Find(pType);
@@ -1890,7 +1934,7 @@ DEFINE_OVERRIDE_HOOK(0x53A140, LightningStorm_Strike, 7)
 					RulesClass::Instance->WeatherConBolts))
 				{
 					auto const pBoltAnim = itBolts.at(0);
-					pExt->Weather_CloudHeight = Game::F2I(
+					pExt->Weather_CloudHeight = int(
 						((pBoltAnim->GetImage()->Height / 2) - 0.5)
 						* LightningStorm::CloudHeightFactor);
 				}
@@ -2075,7 +2119,11 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 		{
 			CoordStruct animCoords = coords;
 			animCoords.Z += pData->Dominator_SecondAnimHeight;
-			PsyDom::Anim = GameCreate<AnimClass>(pAnimType, animCoords);
+			if (auto pCreated = GameCreate<AnimClass>(pAnimType, animCoords))
+			{
+				pCreated->SetHouse(PsyDom::Owner);
+				PsyDom::Anim = pCreated;
+			}
 		}
 
 		// kill
@@ -2094,89 +2142,88 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 			DynamicVectorClass<FootClass*> Minions;
 
 			auto Dominate = [pData, pFirer, &Minions](TechnoClass* pTechno) -> bool
-			{
-				TechnoTypeClass* pType = pTechno->GetTechnoType();
-
-				// don't even try.
-				if (pTechno->IsIronCurtained())
-				{
-					return true;
-				}
-
-				// ignore BalloonHover and inair units.
-				if (pType->BalloonHover || pTechno->IsInAir())
-				{
-					return true;
-				}
-
-				// ignore units with no drivers
-				if (Is_DriverKilled(pTechno))
-				{
-					return true;
-				}
-
-				// SW dependent stuff
-				if (!pData->IsHouseAffected(pFirer, pTechno->Owner))
-				{
-					return true;
-				}
-
-				if (!pData->IsTechnoAffected(pTechno))
-				{
-					return true;
-				}
-
-				// ignore mind-controlled
-				if (pTechno->MindControlledBy && !pData->Dominator_CaptureMindControlled)
-				{
-					return true;
-				}
-
-				// ignore permanently mind-controlled
-				if (pTechno->MindControlledByAUnit && !pTechno->MindControlledBy
-					&& !pData->Dominator_CapturePermaMindControlled)
-				{
-					return true;
-				}
-
-				// ignore ImmuneToPsionics, if wished
-				if (TechnoExt::IsPsionicsImmune(pTechno) && !pData->Dominator_CaptureImmuneToPsionics)
-				{
-					return true;
-				}
-
-				// free this unit
-				if (pTechno->MindControlledBy)
-				{
-					pTechno->MindControlledBy->CaptureManager->FreeUnit(pTechno);
-				}
-
-				// capture this unit, maybe permanently
-				pTechno->SetOwningHouse(pFirer);
-				pTechno->MindControlledByAUnit = pData->Dominator_PermanentCapture;
-
-				// remove old permanent mind control anim
-				if (pTechno->MindControlRingAnim)
-				{
-					pTechno->MindControlRingAnim->UnInit();
-					pTechno->MindControlRingAnim = nullptr;
-				}
-
-				// create a permanent capture anim
-				if (AnimTypeClass* pAnimType = pData->Dominator_ControlAnim.Get(RulesClass::Instance->PermaControlledAnimationType))
-				{
-					CoordStruct animCoords = pTechno->GetCoords();
-					animCoords.Z += pType->MindControlRingOffset;
-					pTechno->MindControlRingAnim = GameCreate<AnimClass>(pAnimType, animCoords);
-					if (pTechno->MindControlRingAnim)
-					{
-						pTechno->MindControlRingAnim->SetOwnerObject(pTechno);
-					}
-				}
-
-				// add to the other newly captured minions.
+			{				// add to the other newly captured minions.
 				if (FootClass* pFoot = generic_cast<FootClass*>(pTechno))
 				{
+					TechnoTypeClass* pType = pTechno->GetTechnoType();
+
+					// don't even try.
+					if (pTechno->IsIronCurtained())
+					{
+						return true;
+					}
+
+					// ignore BalloonHover and inair units.
+					if (pType->BalloonHover || pTechno->IsInAir())
+					{
+						return true;
+					}
+
+					// ignore units with no drivers
+					if (Is_DriverKilled(pTechno))
+					{
+						return true;
+					}
+
+					// SW dependent stuff
+					if (!pData->IsHouseAffected(pFirer, pTechno->Owner))
+					{
+						return true;
+					}
+
+					if (!pData->IsTechnoAffected(pTechno))
+					{
+						return true;
+					}
+
+					// ignore mind-controlled
+					if (pTechno->MindControlledBy && !pData->Dominator_CaptureMindControlled)
+					{
+						return true;
+					}
+
+					// ignore permanently mind-controlled
+					if (pTechno->MindControlledByAUnit && !pTechno->MindControlledBy
+						&& !pData->Dominator_CapturePermaMindControlled)
+					{
+						return true;
+					}
+
+					// ignore ImmuneToPsionics, if wished
+					if (TechnoExt::IsPsionicsImmune(pTechno) && !pData->Dominator_CaptureImmuneToPsionics)
+					{
+						return true;
+					}
+
+					// free this unit
+					if (pTechno->MindControlledBy)
+					{
+						pTechno->MindControlledBy->CaptureManager->FreeUnit(pTechno);
+					}
+
+					// capture this unit, maybe permanently
+					pTechno->SetOwningHouse(pFirer);
+					pTechno->MindControlledByAUnit = pData->Dominator_PermanentCapture;
+
+					// remove old permanent mind control anim
+					if (pTechno->MindControlRingAnim)
+					{
+						pTechno->MindControlRingAnim->UnInit();
+						pTechno->MindControlRingAnim = nullptr;
+					}
+
+					// create a permanent capture anim
+					if (AnimTypeClass* pAnimType = pData->Dominator_ControlAnim.Get(RulesClass::Instance->PermaControlledAnimationType))
+					{
+						CoordStruct animCoords = pTechno->GetCoords();
+						animCoords.Z += pType->MindControlRingOffset;
+						pTechno->MindControlRingAnim = GameCreate<AnimClass>(pAnimType, animCoords);
+						if (pTechno->MindControlRingAnim)
+						{
+							pTechno->MindControlRingAnim->SetOwnerObject(pTechno);
+						}
+					}
+
 					Minions.AddItem(pFoot);
 				}
 
@@ -2184,9 +2231,9 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 			};
 
 			// every techno in this area shall be one with Yuri.
-			auto range = pNewData->GetRange(pData);
+			auto const [widthORange, Height] = pNewData->GetRange(pData);
 			Helpers::Alex::DistinctCollector<TechnoClass*> items;
-			Helpers::Alex::for_each_in_rect_or_spread<TechnoClass>(cell, range.WidthOrRange, range.Height, items);
+			Helpers::Alex::for_each_in_rect_or_spread<TechnoClass>(cell, widthORange, Height, items);
 			items.apply_function_for_each(Dominate);
 
 			// the AI sends all new minions to hunt
@@ -2291,22 +2338,6 @@ DEFINE_OVERRIDE_HOOK(0x508E66, HouseClass_UpdateRadar_Battery, 8)
 	return pOwnerExt->Batteries.size() > 0 ? 0x508E87 : 0x508F2F;
 }
 
-// DEFINE_OVERRIDE_HOOK(0x44019D, BuildingClass_Update_Battery, 6)
-// {
-// 	GET(BuildingClass*, pThis, ESI);
-//
-// 	const auto& nVec = OverpoweredBuildingType(pThis->Owner);
-//
-// 	for (auto nPos = nVec.begin(); nPos != nVec.end(); ++nPos)
-// 	{
-// 		if ((*nPos) == pThis->Type)
-// 			pThis->IsOverpowered = true;
-// 	}
-//
-// 	return 0x0;
-//
-// }
-
 DEFINE_OVERRIDE_HOOK(0x44019D, BuildingClass_Update_Battery, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
@@ -2336,3 +2367,5 @@ DEFINE_OVERRIDE_HOOK(0x44019D, BuildingClass_Update_Battery, 6)
 
 	return 0x0;
 }
+
+#endif

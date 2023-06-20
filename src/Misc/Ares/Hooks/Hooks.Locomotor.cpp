@@ -229,7 +229,13 @@ bool NOINLINE AcquireHunterSeekerTarget(TechnoClass* pThis)  {
 		auto canPrefer = true;
 
 		// check the hunter seeker SW
-		if (auto const pSuper = TechnoExt::ExtMap.Find(pThis)->LinkedSW) {
+		if (auto const pSuper = 
+#ifndef Replace_SW
+			AttachedSuperWeapon(pThis)
+#else		
+			TechnoExt::ExtMap.Find(pThis)->LinkedSW
+#endif
+			) {
 			pOwner = pSuper->Owner;
 			pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type);
 			canPrefer = !pSWExt->HunterSeeker_RandomOnly;

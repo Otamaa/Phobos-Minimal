@@ -19,6 +19,9 @@ void BuildingExt::ApplyLimboKill(ValueableVector<int>& LimboIDs, Valueable<Affec
 
 	for (const auto& pBuilding : pTargetHouse->Buildings)
 	{
+		if (!Is_Building(pBuilding)) // this somehow reading out of bound array ,..
+			break;
+
 		const auto pBuildingExt = BuildingExt::ExtMap.Find(pBuilding);
 
 		if (pBuildingExt->LimboID <= -1 || !LimboIDs.Contains(pBuildingExt->LimboID))

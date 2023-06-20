@@ -132,6 +132,7 @@ public:
 		void UpdateShotCountB(SuperWeaponTypeClass* pFor);
 		LauchData GetShotCount(SuperWeaponTypeClass* pFor);
 
+		static SuperClass* IsSuperAvail(int nIdx , HouseClass* pHouse);
 	private:
 		bool UpdateHarvesterProduction();
 

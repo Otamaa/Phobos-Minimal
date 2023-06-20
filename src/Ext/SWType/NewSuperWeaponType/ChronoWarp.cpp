@@ -319,7 +319,7 @@ void ChronoWarpStateMachine::Update()
 	else if (passed == this->Duration - 1)
 	{
 		// move the array so items can't get invalidated
-		auto const buildings = std::move(this->Buildings);
+		DynamicVectorClass<ChronoWarpContainer> const buildings = std::move(this->Buildings);
 
 		// remove all buildings from the map at once
 		for (auto const& item : buildings)
