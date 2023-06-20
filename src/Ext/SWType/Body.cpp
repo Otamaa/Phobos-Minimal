@@ -67,7 +67,7 @@ bool SWTypeExt::ExtData::IsOriginalType() const
 {
 	return NewSWType::IsOriginalType(this->Get()->Type);
 }
- 
+
 NewSWType* SWTypeExt::ExtData::GetNewSWType() const
 {
 	return NewSWType::GetNewSWType(this);
@@ -126,7 +126,8 @@ Action SWTypeExt::ExtData::GetAction(SuperWeaponTypeClass* pSuper, CellStruct* p
 	const bool bCanFire = result == AresNewActionType::SuperWeaponAllowed;
 	int Cursor = -1;
 
-	if (!bCanFire){ 
+	if (!bCanFire)
+	{
 		Ares_CurrentSWType = nullptr;
 		Cursor = pExt->NoCursorType;
 	}
@@ -137,7 +138,7 @@ Action SWTypeExt::ExtData::GetAction(SuperWeaponTypeClass* pSuper, CellStruct* p
 	}
 
 
-	AresData::SetSWMouseCursorAction(Cursor, pExt->SW_FireToShroud , -1);
+	AresData::SetSWMouseCursorAction(Cursor, pExt->SW_FireToShroud, -1);
 	return (Action)result;
 }
 
@@ -542,7 +543,8 @@ struct PreferHoldIfOffensive
 	std::pair<bool, CellStruct> operator()(const TargetingInfo& info) const
 	{
 		// if preferred cell set, don't use it, but don't look further
-		if (info.Owner->PreferredTargetCell != CellStruct::Empty) {
+		if (info.Owner->PreferredTargetCell != CellStruct::Empty)
+		{
 			return { true, CellStruct::Empty };
 		}
 
@@ -555,7 +557,8 @@ struct PreferOffensive
 	std::pair<bool, CellStruct> operator()(const TargetingInfo& info) const
 	{
 		// if preferred cell set, use it
-		if (info.Owner->PreferredTargetCell != CellStruct::Empty) {
+		if (info.Owner->PreferredTargetCell != CellStruct::Empty)
+		{
 			return { true, info.Owner->PreferredTargetCell };
 		}
 
@@ -568,7 +571,8 @@ struct PreferDefensive
 	std::pair<bool, CellStruct> operator()(const TargetingInfo& info) const
 	{
 		// if preferred cell set, use it
-		if (info.Owner->PreferredDefensiveCell2 != CellStruct::Empty) {
+		if (info.Owner->PreferredDefensiveCell2 != CellStruct::Empty)
+		{
 			return { true, info.Owner->PreferredDefensiveCell2 };
 		}
 
@@ -612,20 +616,24 @@ struct PickIonCannonTarget
 
 		const auto it = info.TypeExt->GetPotentialAITargets(pEnemy);
 
-		auto const pResult = GetTargetAnyMax(it.begin(), it.end(), [=, &info](TechnoClass* pTechno, int curMax) {
-			// original game code only compares owner and doesn't support nullptr
-			auto const passedFilter = (!pEnemy || pTechno->Owner == pEnemy);
+		auto const pResult = GetTargetAnyMax(it.begin(), it.end(), [=, &info](TechnoClass* pTechno, int curMax)
+ {
+	 // original game code only compares owner and doesn't support nullptr
+	 auto const passedFilter = (!pEnemy || pTechno->Owner == pEnemy);
 
-			if (passedFilter && pOwner->IsIonCannonEligibleTarget(pTechno)) {
-				 auto const cell = pTechno->GetMapCoords();
-				if (!MapClass::Instance->IsWithinUsableArea(cell, true)) {
-				  return -1;
-				}
+	 if (passedFilter && pOwner->IsIonCannonEligibleTarget(pTechno))
+	 {
+		 auto const cell = pTechno->GetMapCoords();
+		 if (!MapClass::Instance->IsWithinUsableArea(cell, true))
+		 {
+			 return -1;
+		 }
 
-				auto value = pTechno->GetIonCannonValue(pOwner->AIDifficulty);
+		 auto value = pTechno->GetIonCannonValue(pOwner->AIDifficulty);
 
-				// cloak options
-				if (this->Cloak != CloakHandling::AgnosticToCloak) {
+		 // cloak options
+		 if (this->Cloak != CloakHandling::AgnosticToCloak)
+		 {
 			 bool cloaked = pTechno->IsCloaked();
 
 			 if (this->Cloak == CloakHandling::RandomizeCloaked)
@@ -653,14 +661,15 @@ struct PickIonCannonTarget
 			 }
 		 }
 
-				// do not do heavy lifting on objects that
-				 // would not be chosen anyhow
-				if (value >= curMax && info.CanFireAt(cell)) {
+		 // do not do heavy lifting on objects that
+		  // would not be chosen anyhow
+		 if (value >= curMax && info.CanFireAt(cell))
+		 {
 			 return value;
 		 }
-			}
+	 }
 
-			return -1;
+	 return -1;
 		});
 
 		return pResult ? pResult->GetMapCoords() : CellStruct::Empty;
@@ -1127,8 +1136,8 @@ TargetResult SWTypeExt::ExtData::PickSuperWeaponTarget(SuperClass* pSuper)
 		return BaseTargetSelector()(info);
 	case SuperWeaponAITargetingMode::MultiMissile:
 		return MultiMissileTargetSelector()(info);
-	//case SuperWeaponAITargetingMode::HunterSeeker:
-	//	return HunterSeekerTargetSelector()(info);
+		//case SuperWeaponAITargetingMode::HunterSeeker:
+		//	return HunterSeekerTargetSelector()(info);
 	case SuperWeaponAITargetingMode::EnemyBase:
 		return EnemyBaseTargetSelector()(info);
 	case SuperWeaponAITargetingMode::Droppod:
@@ -1139,7 +1148,8 @@ TargetResult SWTypeExt::ExtData::PickSuperWeaponTarget(SuperClass* pSuper)
 			SpeedType::Foot, -1, MovementZone::Normal, false, 1, 1, false,
 			false, false, true, CellStruct::Empty, false, false);
 
-		if (nNearby.IsValid() && info.NewType->CanFireAt(*info.Data, nNearby, false)) {
+		if (nNearby.IsValid() && info.NewType->CanFireAt(*info.Data, nNearby, false))
+		{
 			return { nNearby  , SWTargetFlags::AllowEmpty };
 		}
 
@@ -1312,9 +1322,11 @@ bool SWTypeExt::ExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStr
 
 	const auto flags = pNewType->Flags();
 
-	if ((flags & SuperWeaponFlags::PostClick)) {
+	if ((flags & SuperWeaponFlags::PostClick))
+	{
 		// use the properties of the originally fired SW
-		if (pHouseExt->SWLastIndex >= 0) {
+		if (pHouseExt->SWLastIndex >= 0)
+		{
 			pSuper = pOwner->Supers[pHouseExt->SWLastIndex];
 		}
 	}
@@ -1339,8 +1351,10 @@ bool SWTypeExt::ExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStr
 		pOwner->TransactMoney(pData->Money_Amount);
 	}
 
-	if ((flags & SuperWeaponFlags::NoPower) == SuperWeaponFlags::None) {
-		if (pData->SW_Power.isset() && pData->SW_Power.Get() != 0) {
+	if ((flags & SuperWeaponFlags::NoPower) == SuperWeaponFlags::None)
+	{
+		if (pData->SW_Power.isset() && pData->SW_Power.Get() != 0)
+		{
 			AuxPower(pOwner) += pData->SW_Power.Get();
 			pOwner->RecheckPower = true;
 		}
@@ -1376,11 +1390,13 @@ bool SWTypeExt::ExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStr
 		}
 	}
 
-	if ((flags & SuperWeaponFlags::NoEvent) == SuperWeaponFlags::None && pData->SW_RadarEvent) {
+	if ((flags & SuperWeaponFlags::NoEvent) == SuperWeaponFlags::None && pData->SW_RadarEvent)
+	{
 		RadarEventClass::Create(RadarEventType::SuperweaponActivated, cell);
 	}
 
-	if ((flags & SuperWeaponFlags::NoMessage) == SuperWeaponFlags::None) {
+	if ((flags & SuperWeaponFlags::NoMessage) == SuperWeaponFlags::None)
+	{
 		pData->PrintMessage(pData->Message_Launch, pOwner);
 	}
 
@@ -1393,14 +1409,17 @@ bool SWTypeExt::ExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStr
 		// auto-firing might happen while the player still selects a target.
 		// PostClick SWs do have a different type index, so they need to be
 		// special cased, but they can't auto-fire anyhow.
-		if (pOwner->IsCurrentPlayer()) {
-			if (curSuperIdx == Unsorted::CurrentSWType || (flags & SuperWeaponFlags::PostClick)) {
+		if (pOwner->IsCurrentPlayer())
+		{
+			if (curSuperIdx == Unsorted::CurrentSWType || (flags & SuperWeaponFlags::PostClick))
+			{
 				Unsorted::CurrentSWType = -1;
 			}
 		}
 
 		// do not play ready sound. this thing just got off.
-		if (pData->EVA_Ready >= 0) {
+		if (pData->EVA_Ready >= 0)
+		{
 			VoxClass::SilenceIndex(pData->EVA_Ready);
 		}
 	}
@@ -1453,8 +1472,10 @@ bool SWTypeExt::ExtData::Deactivate(SuperClass* pSuper, CellStruct const cell, b
 
 		const auto flags = pNewSWType->Flags();
 
-		if ((flags & SuperWeaponFlags::NoPower) == SuperWeaponFlags::None) {
-			if (pData->SW_Power.isset() && pData->SW_Power.Get() != 0) {
+		if ((flags & SuperWeaponFlags::NoPower) == SuperWeaponFlags::None)
+		{
+			if (pData->SW_Power.isset() && pData->SW_Power.Get() != 0)
+			{
 				AuxPower(pSuper->Owner) -= pData->SW_Power.Get();
 				pSuper->Owner->RecheckPower = true;
 			}
@@ -1954,12 +1975,12 @@ bool SWTypeExt::ExtData::IsAvailable(HouseClass* pHouse)
 {
 	const auto pThis = this->Get();
 
-	if(!this->CanFire(pHouse))
+	if (!this->CanFire(pHouse))
 		return false;
 
 	const bool IsCurrentPlayer = pHouse->IsControlledByCurrentPlayer();
 
-	if(IsCurrentPlayer ? this->SW_AllowPlayer == 0 : this->SW_AllowAI == 0)
+	if (IsCurrentPlayer ? this->SW_AllowPlayer == 0 : this->SW_AllowAI == 0)
 		return false;
 
 	// check whether the optional aux building exists
@@ -1971,19 +1992,22 @@ bool SWTypeExt::ExtData::IsAvailable(HouseClass* pHouse)
 		return false;
 
 	// check that any aux building exist and no neg building
-	auto IsBuildingPresent = [pHouse](BuildingTypeClass* pType) {
+	auto IsBuildingPresent = [pHouse](BuildingTypeClass* pType)
+	{
 		return pType && pHouse->CountOwnedAndPresent(pType) > 0;
 	};
 
 	const auto& Aux = this->SW_AuxBuildings;
 	// If building Not Exist
-	if (!Aux.empty() && std::none_of(Aux.begin(), Aux.end(), IsBuildingPresent)) {
+	if (!Aux.empty() && std::none_of(Aux.begin(), Aux.end(), IsBuildingPresent))
+	{
 		return false;
 	}
 
 	const auto& Neg = this->SW_NegBuildings;
 	// If building Exist
-	if (!Neg.empty() && std::any_of(Neg.begin(), Neg.end(), IsBuildingPresent)) {
+	if (!Neg.empty() && std::any_of(Neg.begin(), Neg.end(), IsBuildingPresent))
+	{
 		return false;
 	}
 
@@ -2055,6 +2079,7 @@ LightingColor SWTypeExt::GetLightingColor(SuperWeaponTypeClass* pCustom)
 		ret.Green = scen->NukeLighting.Tint.Green;
 		ret.Blue = scen->NukeLighting.Tint.Blue;
 
+		ret.HasValue = true;
 		if (SuperClass* pSuper = SW_NuclearMissile::CurrentNukeType)
 		{
 			pType = pSuper->Type;
@@ -2068,6 +2093,7 @@ LightingColor SWTypeExt::GetLightingColor(SuperWeaponTypeClass* pCustom)
 		ret.Green = scen->IonLighting.Tint.Green;
 		ret.Blue = scen->IonLighting.Tint.Blue;
 
+		ret.HasValue = true;
 		if (SuperClass* pSuper = SW_LightningStorm::CurrentLightningStorm)
 		{
 			pType = pSuper->Type;
@@ -2081,6 +2107,7 @@ LightingColor SWTypeExt::GetLightingColor(SuperWeaponTypeClass* pCustom)
 		ret.Green = scen->DominatorLighting.Tint.Green;
 		ret.Blue = scen->DominatorLighting.Tint.Blue;
 
+		ret.HasValue = true;
 		if (SuperClass* pSuper = SW_PsychicDominator::CurrentPsyDom)
 		{
 			pType = pSuper->Type;
@@ -2102,6 +2129,7 @@ LightingColor SWTypeExt::GetLightingColor(SuperWeaponTypeClass* pCustom)
 	ret.Blue *= 10;
 
 	// active SW or custom one?
+	// has value overriden here
 	if (auto const pSW = pCustom ? pCustom : pType) {
 		SWTypeExt::ExtMap.Find(pSW)->UpdateLightingColor(ret);
 	}
@@ -2111,30 +2139,31 @@ LightingColor SWTypeExt::GetLightingColor(SuperWeaponTypeClass* pCustom)
 
 bool NOINLINE SWTypeExt::ExtData::UpdateLightingColor(LightingColor& Lighting) const
 {
-	if (this->Lighting_Enabled)
+	if (this->Lighting_Enabled.isset())
 	{
-		auto UpdateValue = [](const Nullable<int>& from, int& into, int factor)
+		if (this->Lighting_Enabled.Get())
 		{
-			int value = from.Get(-1);
-			if (value >= 0)
+			auto UpdateValue = [](const Nullable<int>& from, int& into, int factor)
 			{
-				into = factor * value;
-			}
-		};
+				int value = from.Get(-1);
+				if (value >= 0)
+				{
+					into = factor * value;
+				}
+			};
 
-		UpdateValue(this->Lighting_Ambient, Lighting.Ambient, 1);
-		UpdateValue(this->Lighting_Red, Lighting.Red, 10);
-		UpdateValue(this->Lighting_Green, Lighting.Green, 10);
-		UpdateValue(this->Lighting_Blue, Lighting.Blue, 10);
+			UpdateValue(this->Lighting_Ambient, Lighting.Ambient, 1);
+			UpdateValue(this->Lighting_Red, Lighting.Red, 10);
+			UpdateValue(this->Lighting_Green, Lighting.Green, 10);
+			UpdateValue(this->Lighting_Blue, Lighting.Blue, 10);
+		}
+		else
+		{
+			Lighting.HasValue = false;
+		}
+	}
 
-		Lighting.HasValue = true;
-		return true;
-	}
-	else
-	{
-		Lighting.HasValue = false;
-		return false;
-	}
+	return true;
 }
 
 bool SWTypeExt::ChangeLighting(SuperWeaponTypeClass* pCustom)

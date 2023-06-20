@@ -337,7 +337,7 @@ public:
 		Valueable<bool> SW_ShowCameo { true };
 
 #pragma region Lighting
-		Valueable<bool> Lighting_Enabled { false };
+		Nullable<bool> Lighting_Enabled { };
 		Nullable<int> Lighting_Ambient {  };
 		Nullable<int> Lighting_Green {  };
 		Nullable<int> Lighting_Blue {  };

@@ -96,7 +96,7 @@ bool SW_NuclearMissile::Activate(SuperClass* const pThis, const CellStruct& Coor
 
 						auto high = target;
 
-						if(bNotVert)
+						if(!bNotVert)
 							high.Z += 20000;
 
 						pBullet->MoveTo(high, vel);

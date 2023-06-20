@@ -555,11 +555,10 @@ DEFINE_OVERRIDE_HOOK(0x6CB7B0, SuperClass_Lose, 6)
 		if (SuperClass::ShowTimers->Remove(pThis))
 		{
 			std::sort(SuperClass::ShowTimers->begin(), SuperClass::ShowTimers->end(),
-			[](SuperClass* a, SuperClass* b)
- {
-	 const auto aExt = SWTypeExt::ExtMap.Find(a->Type);
-	 const auto bExt = SWTypeExt::ExtMap.Find(b->Type);
-	 return aExt->SW_Priority.Get() > bExt->SW_Priority.Get();
+			[](SuperClass* a, SuperClass* b) {
+				const auto aExt = SWTypeExt::ExtMap.Find(a->Type);
+				const auto bExt = SWTypeExt::ExtMap.Find(b->Type);
+				return aExt->SW_Priority.Get() > bExt->SW_Priority.Get();
 			});
 		}
 
@@ -1019,10 +1018,6 @@ DEFINE_OVERRIDE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
 			auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
 			if (AIFire || pExt->SW_AutoFire)
 			{
-
-				if (IS_SAME_STR_(pExt->Get()->ID, "KnightfallSpawn"))
-					Debug::Log("Hey!\n");
-
 				SWTypeExt::ExtData::TryFire(pSuper, false);
 			}
 		}
@@ -1129,7 +1124,7 @@ std::vector<SWStatus> GetSuperWeaponStatuses(HouseClass* pHouse)
 						const auto pSuperExt = SWTypeExt::ExtMap.Find(pHouse->Supers[idxSW]->Type);
 						status.Available = pSuperExt->IsAvailable(pHouse);
 
-						if ( pBld->HasPower
+						if (pBld->HasPower
 							&& !pBld->IsUnderEMP()
 							&& (Is_Operated(pBld) || AresData::IsOperated(pBld)))
 						{
@@ -1175,25 +1170,26 @@ std::vector<SWStatus> GetSuperWeaponStatuses(HouseClass* pHouse)
 		// factor in the player's power status
 		const bool hasPower = pHouse->HasFullPower();
 
+		for (size_t i = 0; i < Statuses.size(); ++i)
 		{
-			for (auto pSuper : pHouse->Supers)
-			{
-				auto index = pSuper->Type->ArrayIndex;
-				auto& status = Statuses[index];
+			//reduce the amount of overhead
+			//since the SW count can go up to 600+ on some mods,..
+			if (!Statuses[i].Available)
+				continue;
 
-				// turn off super weapons that are disallowed.
-				if (SessionClass::Instance->GameMode != GameMode::Campaign && !Unsorted::SWAllowed) {
-					if (pSuper->Type->DisableableFromShell) {
-						status.Available = false;
-					}
-				}
+			const auto pSuper = pHouse->Supers[i];
 
-				// if the house is generally on low power,
-				// powered super weapons aren't powered
-				if (pSuper->IsPowered()) {
-					status.PowerSourced &= hasPower;
-				}
+			// turn off super weapons that are disallowed.
+			if (pSuper->IsDisabledFromShell()) {
+				Statuses[i].Available = false;
 			}
+
+			// if the house is generally on low power,
+			// powered super weapons aren't powered
+			if (pSuper->IsPowered()) {
+				Statuses[i].PowerSourced &= hasPower;
+			}
+
 		}
 	}
 
@@ -1338,7 +1334,9 @@ DEFINE_OVERRIDE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
 				RadarEventType::SuperweaponActivated, coords);
 		}
 
-		allowFlash = pSWTypeExt->Lighting_Enabled;
+		if(pSWTypeExt->Lighting_Enabled.isset())
+			allowFlash = pSWTypeExt->Lighting_Enabled.Get();
+
 		flashDuration = 30;
 	}
 
@@ -2087,7 +2085,7 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 {
 	if (SuperClass* pSuper = SW_PsychicDominator::CurrentPsyDom)
 	{
-		SWTypeExt::ExtData* pData = SWTypeExt::ExtMap.Find(pSuper->Type);
+		const auto pData = SWTypeExt::ExtMap.Find(pSuper->Type);
 		HouseClass* pFirer = PsyDom::Owner;
 		CellStruct cell = PsyDom::Coords;
 		auto pNewData = pData->GetNewSWType();
@@ -2138,9 +2136,7 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 			DynamicVectorClass<FootClass*> Minions;
 
 			auto Dominate = [pData, pFirer, &Minions](TechnoClass* pTechno) -> bool
-			{				// add to the other newly captured minions.
-				if (FootClass* pFoot = generic_cast<FootClass*>(pTechno))
-				{
+			{	
 					TechnoTypeClass* pType = pTechno->GetTechnoType();
 
 					// don't even try.
@@ -2220,6 +2216,8 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 						}
 					}
 
+				// add to the other newly captured minions.
+				if (FootClass* pFoot = generic_cast<FootClass*>(pTechno)) {
 					Minions.AddItem(pFoot);
 				}
 
@@ -2302,20 +2300,17 @@ DEFINE_OVERRIDE_HOOK(0x4555D5, BuildingClass_IsPowerOnline_KeepOnline, 5)
 	GET(BuildingClass*, pThis, ESI);
 	bool Contains = false;
 
-	if (auto pOwner = pThis->GetOwningHouse())
-	{
-		auto pOwnerExt = HouseExt::ExtMap.Find(pOwner);
-		for (auto const& pBatt : pOwnerExt->Batteries)
-		{
+	if (auto pOwner = pThis->GetOwningHouse()) {
+		for (auto const& pBatt : HouseExt::ExtMap.Find(pOwner)->Batteries) {
 			const auto pExt = SWTypeExt::ExtMap.Find(pBatt->Type);
+
 			if (pExt->Battery_KeepOnline.empty())
 				continue;
 
-			auto const Iter = std::find_if(pExt->Battery_KeepOnline.begin(),
+			const auto Iter = std::find_if(pExt->Battery_KeepOnline.begin(),
 						pExt->Battery_KeepOnline.end(),
-				[&](const BuildingTypeClass* pItem)
- {
-	 return pItem == pThis->Type;
+				[&](const BuildingTypeClass* pItem) {
+					return pItem == pThis->Type;
 				});
 
 			if (Iter != pExt->Battery_KeepOnline.end())
@@ -2330,30 +2325,24 @@ DEFINE_OVERRIDE_HOOK(0x4555D5, BuildingClass_IsPowerOnline_KeepOnline, 5)
 DEFINE_OVERRIDE_HOOK(0x508E66, HouseClass_UpdateRadar_Battery, 8)
 {
 	GET(HouseClass*, pThis, ECX);
-	auto pOwnerExt = HouseExt::ExtMap.Find(pThis);
-	return pOwnerExt->Batteries.size() > 0 ? 0x508E87 : 0x508F2F;
+	return HouseExt::ExtMap.Find(pThis)->Batteries.size() > 0
+		? 0x508E87 : 0x508F2F;
 }
 
 DEFINE_OVERRIDE_HOOK(0x44019D, BuildingClass_Update_Battery, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	if (auto pOwner = pThis->GetOwningHouse())
-	{
-
-		auto pOwnerExt = HouseExt::ExtMap.Find(pOwner);
-		for (auto const& pBatt : pOwnerExt->Batteries)
-		{
-
+	if (auto pOwner = pThis->GetOwningHouse()) {
+		for (auto const& pBatt : HouseExt::ExtMap.Find(pOwner)->Batteries) {
 			const auto pExt = SWTypeExt::ExtMap.Find(pBatt->Type);
 			if (pExt->Battery_Overpower.empty())
 				continue;
 
-			auto const Iter = std::find_if(pExt->Battery_Overpower.begin(),
+			const auto Iter = std::find_if(pExt->Battery_Overpower.begin(),
 						pExt->Battery_Overpower.end(),
-				[&](const BuildingTypeClass* pItem)
- {
-	 return !pThis->IsOverpowered && pItem == pThis->Type;
+				[&](const BuildingTypeClass* pItem) {
+					return !pThis->IsOverpowered && pItem == pThis->Type;
 				});
 
 			if (Iter != pExt->Battery_Overpower.end())

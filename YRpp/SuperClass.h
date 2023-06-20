@@ -58,6 +58,8 @@ public:
 	bool IsPowered() const
 		{ return this->Type->IsPowered; }
 
+	bool IsDisabledFromShell() const;
+
 	void Launch(const CellStruct& cell, bool isPlayer)
 		{ JMP_THIS(0x6CC390); }
 

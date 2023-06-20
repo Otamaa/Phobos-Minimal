@@ -1331,3 +1331,14 @@ bool TechnoClass::IsCloaked() const
 
 	return false;
 }
+
+bool SuperClass::IsDisabledFromShell() const
+{
+	if (SessionClass::Instance->GameMode != GameMode::Campaign && !Unsorted::SWAllowed) {
+		if (this->Type->DisableableFromShell) {
+			return true;
+		}
+	}
+
+	return false;
+}
