@@ -68,6 +68,13 @@ public:
 		Valueable<int> RadarJamRadius;
 		Nullable<int> InhibitorRange;
 		Nullable<int> DesignatorRange;
+
+		//Enemy Inhibitors
+		Nullable<int> SuppressorRange;
+
+		//Enemy Designator
+		Nullable<int> AttractorRange;
+
 		Valueable<Leptons> MindControlRangeLimit;
 
 		MultiBoolFixedArray<(int)PhobosAbilityType::count> Phobos_EliteAbilities;

@@ -407,6 +407,7 @@
     <ClInclude Include="src\Ext\TEvent\Body.h" />
     <ClInclude Include="src\Ext\TriggerType\Body.h" />
     <ClInclude Include="src\Ext\Wave\Body.h" />
+    <ClInclude Include="src\Lib\gcem\gcem.hpp" />
     <ClInclude Include="src\Misc\AresData.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintBall.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintballType.h" />

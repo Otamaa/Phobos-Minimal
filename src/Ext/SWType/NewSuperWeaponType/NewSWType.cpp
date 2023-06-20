@@ -60,7 +60,29 @@ bool NewSWType::CanFireAt(TargetingData const& data, CellStruct const& cell, boo
 		return false;
 	}
 
+	//Enemy Designator
+	if (data.NeedsAttractors && std::none_of(data.Attractors.begin(),
+		data.Attractors.end(), [cell](TargetingData::RangedItem const& site)
+		{
+			auto const distance = cell.DistanceFromSquared(site.Center);
+			return distance <= site.RangeSqr;
+		}))
+	{
+		return false;
+	}
+
 	if (std::any_of(data.Inhibitors.begin(), data.Inhibitors.end(),
+		[cell](TargetingData::RangedItem const& site)
+		{
+			auto const distance = cell.DistanceFromSquared(site.Center);
+			return distance <= site.RangeSqr;
+		}))
+	{
+		return false;
+	}
+
+	//Enemy Inhibitors
+	if (std::any_of(data.Suppressors.begin(), data.Suppressors.end(),
 		[cell](TargetingData::RangedItem const& site)
 		{
 			auto const distance = cell.DistanceFromSquared(site.Center);
@@ -167,6 +189,114 @@ bool NewSWType::IsInhibitorEligible(const SWTypeExt::ExtData* pData, HouseClass*
 	return false;
 }
 
+bool NewSWType::IsAttractor(const SWTypeExt::ExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const
+{
+	if (pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo && !pTechno->Deactivated)
+	{
+		if (!pTechno->GetOwningHouse()->IsAlliedWith(pOwner))
+		{
+			return pData->SW_AnyAttractor
+				|| pData->SW_Attractors.Contains(pTechno->GetTechnoType());
+		}
+	}
+
+	return false;
+}
+
+bool NewSWType::HasAttractor(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords) const
+{
+	// does not require Attractor
+	if (pData->SW_Attractors.empty() && !pData->SW_AnyAttractor)
+	{
+		return true;
+	}
+
+	// a single Attractor in range suffices
+	return std::any_of(TechnoClass::Array->begin(), TechnoClass::Array->end(), [=, &Coords](TechnoClass* pTechno)
+ {
+	 return IsAttractorEligible(pData, pOwner, Coords, pTechno);
+	});
+}
+
+bool NewSWType::IsAttractorEligible(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno) const
+{
+	if (IsAttractor(pData, pOwner, pTechno))
+	{
+		const auto pType = pTechno->GetTechnoType();
+		const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+
+		// get the Attractor's center
+		auto center = pTechno->GetCoords();
+		if (auto pBuilding = abstract_cast<BuildingClass*>(pTechno))
+		{
+			center = BuildingExt::GetCenterCoords(pBuilding);
+		}
+
+		// has to be closer than the Attractor range (which defaults to Sight)
+		auto distance = Coords.DistanceFrom(CellClass::Coord2Cell(center));
+		return distance <= pExt->AttractorRange.Get(pType->Sight);
+	}
+
+	return false;
+}
+
+bool NewSWType::IsSuppressor(const SWTypeExt::ExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const
+{
+	if (pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo && !pTechno->Deactivated)
+	{
+		if (pOwner->IsAlliedWith(pTechno))
+		{
+			if (auto pBld = abstract_cast<BuildingClass*>(pTechno))
+			{
+				if (!pBld->IsPowerOnline())
+				{
+					return false;
+				}
+			}
+
+			return pData->SW_AnySuppressor
+				|| pData->SW_Suppressors.Contains(pTechno->GetTechnoType());
+		}
+	}
+
+	return false;
+}
+
+bool NewSWType::HasSuppressor(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords) const
+{
+	// does not allow Suppressor
+	if (pData->SW_Suppressors.empty() && !pData->SW_AnySuppressor)
+	{
+		return false;
+	}
+
+	// a single Suppressor in range suffices
+	return std::any_of(TechnoClass::Array->begin(), TechnoClass::Array->end(), [=, &Coords](TechnoClass* pTechno)
+	{ return IsSuppressorEligible(pData, pOwner, Coords, pTechno);  });
+}
+
+bool NewSWType::IsSuppressorEligible(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno) const
+{
+	if (IsSuppressor(pData, pOwner, pTechno))
+	{
+		const auto pType = pTechno->GetTechnoType();
+		const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+
+		// get the Suppressor's center
+		auto center = pTechno->GetCoords();
+		if (auto pBuilding = abstract_cast<BuildingClass*>(pTechno))
+		{
+			center = BuildingExt::GetCenterCoords(pBuilding);
+		}
+
+		// has to be closer than the Suppressor range (which defaults to Sight)
+		auto distance = Coords.DistanceFrom(CellClass::Coord2Cell(center));
+		return distance <= pExt->SuppressorRange.Get(pType->Sight);
+	}
+
+	return false;
+}
+
 SWRange NewSWType::GetRange(const SWTypeExt::ExtData* pData) const
 {
 	return pData->SW_Range;
@@ -219,7 +349,7 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExt::ExtD
 	// get launchsite data
 	auto const&[minRange , MaxRange] = this->GetLaunchSiteRange(pData);
 
-	if (minRange >= 0.0 || minRange >= 0.0) {
+	if (minRange >= 0.0 || MaxRange >= 0.0) {
 		data->NeedsLaunchSite = true;
 
 		for (auto const& pBld : pOwner->Buildings) {
@@ -257,6 +387,34 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExt::ExtD
 		}
 	}
 
+	// get Enemy Designator data
+	if (!pData->SW_Attractors.empty() || pData->SW_AnyAttractor) {
+		data->NeedsAttractors = true;
+
+		for (auto const& pTechno : *TechnoClass::Array)
+		{
+			if (this->IsAttractor(pData, pOwner, pTechno))
+			{
+				// get the designator's center
+				auto center = pTechno->GetCoords();
+				if (auto pBuilding = abstract_cast<BuildingClass*>(pTechno))
+				{
+					center = BuildingExt::GetCenterCoords(pBuilding);
+				}
+
+				const auto pType = pTechno->GetTechnoType();
+				const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+				auto const range = pExt->AttractorRange.Get(pType->Sight);
+
+				if (range > 0)
+				{
+					data->Attractors.emplace_back(TargetingData::RangedItem{
+						range* range, CellClass::Coord2Cell(center) });
+				}
+			}
+		}
+	}
+
 	// get inhibitor data
 	if (!pData->SW_Inhibitors.empty() || pData->SW_AnyInhibitor) {
 		for (auto const& pTechno : *TechnoClass::Array) {
@@ -273,6 +431,29 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExt::ExtD
 
 				if (range > 0) {
 					data->Inhibitors.emplace_back(TargetingData::RangedItem{
+						range* range, CellClass::Coord2Cell(center) });
+				}
+			}
+		}
+	}
+
+	// get Enemy Inhibitors data
+	if (!pData->SW_Suppressors.empty() || pData->SW_AnySuppressor) {
+		for (auto const& pTechno : *TechnoClass::Array) {
+			if (this->IsSuppressor(pData, pOwner, pTechno)) {
+				// get the Suppressor's center
+				auto center = pTechno->GetCoords();
+
+				if (auto pBuilding = abstract_cast<BuildingClass*>(pTechno)) {
+					center = BuildingExt::GetCenterCoords(pBuilding);
+				}
+
+				const auto pType = pTechno->GetTechnoType();
+				const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+				auto const range = pExt->SuppressorRange.Get(pType->Sight);
+
+				if (range > 0) {
+					data->Suppressors.emplace_back(TargetingData::RangedItem{
 						range* range, CellClass::Coord2Cell(center) });
 				}
 			}

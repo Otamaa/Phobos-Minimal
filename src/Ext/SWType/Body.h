@@ -14,6 +14,15 @@ enum class SWTargetFlags
 	CheckHousePower
 };
 
+enum class CloakHandling
+{
+	RandomizeCloaked = 0,
+	AgnosticToCloak = 1,
+	IgnoreCloaked = 2,
+	RequireCloaked = 3
+};
+
+
 struct LightingColor
 {
 	int Red, Green, Blue, Ambient;
@@ -114,8 +123,10 @@ public:
 
 		std::vector<std::vector<int>> LimboDelivery_RandomWeightsData;
 		std::vector<std::vector<int>> SW_Next_RandomWeightsData;
+
 		ValueableVector<TechnoTypeClass*> SW_Inhibitors;
 		Valueable<bool> SW_AnyInhibitor;
+
 		ValueableVector<TechnoTypeClass*> SW_Designators;
 		Valueable<bool> SW_AnyDesignator;
 
@@ -355,6 +366,15 @@ public:
 
 		Valueable<bool> SW_ManualFire { true };
 		Valueable<bool> SW_Unstoppable { false };
+
+		//Enemy Inhibitors
+		ValueableVector<TechnoTypeClass*> SW_Suppressors {};
+		Valueable<bool> SW_AnySuppressor {};
+
+		//Enemy Designator
+		ValueableVector<TechnoTypeClass*> SW_Attractors {};
+		Valueable<bool> SW_AnyAttractor {};
+
 		ExtData(SuperWeaponTypeClass* OwnerObject) : Extension<SuperWeaponTypeClass>(OwnerObject)
 			, EVA_Activated { -1 }
 			, EVA_Ready { -1 }
@@ -521,11 +541,9 @@ public:
 		bool IsDesignator(HouseClass* pOwner, TechnoClass* pTechno) const;
 		bool HasDesignator(HouseClass* pOwner, const CellStruct& coords) const;
 		bool IsDesignatorEligible(HouseClass* pOwner, const CellStruct& coords, TechnoClass* pTechno) const;
-
-		bool IsLaunchSiteEligible(const CellStruct& Coords, BuildingClass* pBuilding, bool ignoreRange) const;
+		bool IsLaunchSiteEligible(const CellStruct& Coords, BuildingClass* pBuilding, bool ignoreRange);
 		bool IsLaunchSite(BuildingClass* pBuilding) const;
 		std::pair<double, double> GetLaunchSiteRange(BuildingClass* pBuilding = nullptr) const;
-		bool IsAvailable(HouseClass* pHouse);
 
 		void ApplyDetonation(HouseClass* pHouse, const CellStruct& cell);
 		void ApplySWNext(SuperClass* pSW, const CellStruct& cell);
@@ -553,6 +571,7 @@ public:
 		bool IsCellEligible(CellClass* pCell, SuperWeaponTarget allowed);
 		bool IsTechnoEligible(TechnoClass* pTechno, SuperWeaponTarget allowed);
 		bool IsTechnoAffected(TechnoClass* pTechno);
+		bool IsAvailable(HouseClass* pHouse);
 
 		//no arg(s)
 		double GetChargeToDrainRatio() const;

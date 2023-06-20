@@ -875,6 +875,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->Chronoshift_Allow.Read(exINI, pSection, "Chronoshift.Allow");
 		this->Chronoshift_IsVehicle.Read(exINI, pSection, "Chronoshift.IsVehicle");
 
+		this->SuppressorRange.Read(exINI, pSection, "SuppressorRange");
+		this->AttractorRange.Read(exINI, pSection, "AttractorRange");
+
 		if (Is_AircraftType(pThis))
 		{
 			this->CrashSpinLevelRate.Read(exINI, pSection, "CrashSpin.LevelRate");
@@ -1705,6 +1708,9 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->CreateSound_afect)
 		.Process(this->Chronoshift_Allow)
 		.Process(this->Chronoshift_IsVehicle)
+
+		.Process(this->SuppressorRange)
+		.Process(this->AttractorRange)
 #pragma endregion
 		;
 

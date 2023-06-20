@@ -58,14 +58,6 @@ std::array<const AITargetingModeInfo, (size_t)SuperWeaponAITargetingMode::count>
 }
 };
 
-enum class CloakHandling
-{
-	RandomizeCloaked = 0,
-	AgnosticToCloak = 1,
-	IgnoreCloaked = 2,
-	RequireCloaked = 3
-};
-
 bool SWTypeExt::ExtData::IsTypeRedirected() const
 {
 	return this->HandledType > SuperWeaponType::Invalid;
@@ -1316,6 +1308,14 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_Designators.Read(exINI, pSection, "SW.Designators");
 	this->SW_AnyDesignator.Read(exINI, pSection, "SW.AnyDesignator");
 
+	//Enemy Inhibitors
+	this->SW_Suppressors.Read(exINI, pSection, "SW.Suppressor");
+	this->SW_AnySuppressor.Read(exINI, pSection, "SW.AnySuppressor");
+
+	//Enemy Designator
+	this->SW_Attractors.Read(exINI, pSection, "SW.Attractor");
+	this->SW_AnyAttractor.Read(exINI, pSection, "SW.AnyAttractor");
+
 	this->SW_RangeMinimum.Read(exINI, pSection, "SW.RangeMinimum");
 	this->SW_RangeMaximum.Read(exINI, pSection, "SW.RangeMaximum");
 	this->SW_RequiredHouses = pINI->ReadHouseTypesList(pSection, "SW.RequiredHouses", this->SW_RequiredHouses);
@@ -1630,108 +1630,49 @@ void SWTypeExt::ExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, co
 	}
 }
 
-//Ares 0.A helpers
 bool SWTypeExt::ExtData::IsInhibitor(HouseClass* pOwner, TechnoClass* pTechno)
 {
-	if (pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo && !pTechno->Deactivated)
-	{
-		if (!pOwner->IsAlliedWith(pTechno))
-		{
-			if (auto pBld = abstract_cast<BuildingClass*>(pTechno))
-			{
-				if (!pBld->IsPowerOnline())
-					return false;
-			}
-
-			return SW_AnyInhibitor
-				|| SW_Inhibitors.Contains(pTechno->GetTechnoType());
-		}
-	}
-	return false;
-}
-
-bool SWTypeExt::ExtData::IsInhibitorEligible(HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno)
-{
-	if (IsInhibitor(pOwner, pTechno))
-	{
-		const auto pType = pTechno->GetTechnoType();
-		const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
-
-		// get the inhibitor's center
-		auto center = pTechno->GetCenterCoords();
-
-		// has to be closer than the inhibitor range (which defaults to Sight)
-		return Coords.DistanceFrom(CellClass::Coord2Cell(center)) <= pExt->InhibitorRange.Get(pType->Sight);
-	}
-
-	return false;
+	return this->GetNewSWType()->IsInhibitor(this, pOwner, pTechno);
 }
 
 bool SWTypeExt::ExtData::HasInhibitor(HouseClass* pOwner, const CellStruct& Coords)
 {
-	// does not allow inhibitors
-	if (SW_Inhibitors.empty() && !SW_AnyInhibitor)
-		return false;
-
-	// a single inhibitor in range suffices
-	return std::any_of(TechnoClass::Array->begin(), TechnoClass::Array->end(), [=, &Coords](TechnoClass* pTechno)
-						{ return IsInhibitorEligible(pOwner, Coords, pTechno); }
-	);
+	return this->GetNewSWType()->HasInhibitor(this, pOwner, Coords);
 }
 
-// Designators check
+bool SWTypeExt::ExtData::IsInhibitorEligible(HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno)
+{
+	return this->GetNewSWType()->IsInhibitorEligible(this, pOwner, Coords, pTechno);
+}
+
 bool SWTypeExt::ExtData::IsDesignator(HouseClass* pOwner, TechnoClass* pTechno) const
 {
-	if (pTechno->Owner == pOwner && pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo && !pTechno->Deactivated)
-		return this->SW_AnyDesignator || this->SW_Designators.Contains(pTechno->GetTechnoType());
-
-	return false;
-}
-
-bool SWTypeExt::ExtData::IsDesignatorEligible(HouseClass* pOwner, const CellStruct& coords, TechnoClass* pTechno) const
-{
-	if (this->IsDesignator(pOwner, pTechno))
-	{
-		const auto pType = pTechno->GetTechnoType();
-		const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
-
-		// get the designator's center
-		auto center = pTechno->GetCenterCoords();
-
-		// has to be closer than the designator range (which defaults to Sight)
-		return coords.DistanceFrom(CellClass::Coord2Cell(center)) <= pExt->DesignatorRange.Get(pType->Sight);
-	}
-
-	return false;
+	return this->GetNewSWType()->IsDesignator(this, pOwner, pTechno);
 }
 
 bool SWTypeExt::ExtData::HasDesignator(HouseClass* pOwner, const CellStruct& coords) const
 {
-	// does not require designators
-	if (this->SW_Designators.empty() && !this->SW_AnyDesignator)
-		return true;
+	return this->GetNewSWType()->HasDesignator(this, pOwner, coords);
+}
 
-	// a single designator in range suffices
-	return std::any_of(TechnoClass::Array->begin(), TechnoClass::Array->end(), [=, &coords](TechnoClass* pTechno)
-		{ return this->IsDesignatorEligible(pOwner, coords, pTechno); });
+bool SWTypeExt::ExtData::IsDesignatorEligible(HouseClass* pOwner, const CellStruct& coords, TechnoClass* pTechno) const
+{
+	return this->GetNewSWType()->IsDesignatorEligible(this, pOwner, coords, pTechno);
+}
+
+bool SWTypeExt::ExtData::IsLaunchSiteEligible(const CellStruct& Coords, BuildingClass* pBuilding, bool ignoreRange)
+{
+	return this->GetNewSWType()->IsLaunchSiteEligible(this, Coords, pBuilding, ignoreRange);
 }
 
 bool SWTypeExt::ExtData::IsLaunchSite(BuildingClass* pBuilding) const
 {
-	if (pBuilding->IsAlive && pBuilding->Health && !pBuilding->InLimbo && pBuilding->IsPowerOnline())
-	{
-		if (pBuilding->TemporalTargetingMe || pBuilding->IsBeingWarpedOut())
-			return false;
-
-		return BuildingExt::ExtMap.Find(pBuilding)->HasSuperWeapon(this->Get()->ArrayIndex, true);
-	}
-
-	return false;
+	return this->GetNewSWType()->IsLaunchSite(this, pBuilding);
 }
 
 std::pair<double, double> SWTypeExt::ExtData::GetLaunchSiteRange(BuildingClass* pBuilding) const
 {
-	return { this->SW_RangeMinimum.Get(), this->SW_RangeMaximum.Get() };
+	return this->GetNewSWType()->GetLaunchSiteRange(this, pBuilding);
 }
 
 bool SWTypeExt::ExtData::IsAvailable(HouseClass* pHouse)
@@ -1775,24 +1716,6 @@ bool SWTypeExt::ExtData::IsAvailable(HouseClass* pHouse)
 	}
 
 	return true;
-}
-
-bool SWTypeExt::ExtData::IsLaunchSiteEligible(const CellStruct& Coords, BuildingClass* pBuilding, bool ignoreRange) const
-{
-	if (!this->IsLaunchSite(pBuilding))
-		return false;
-
-	if (ignoreRange)
-		return true;
-
-	// get the range for this building
-	const auto& [minRange, maxRange] = this->GetLaunchSiteRange(pBuilding);
-	const auto center = CellClass::Coord2Cell(BuildingExt::GetCenterCoords(pBuilding));
-	const auto distance = Coords.DistanceFrom(center);
-
-	// negative range values just pass the test
-	return (minRange < 0.0 || distance >= minRange)
-		&& (maxRange < 0.0 || distance <= maxRange);
 }
 
 void SWTypeExt::ClearChronoAnim(SuperClass* pThis)
@@ -1901,7 +1824,7 @@ LightingColor SWTypeExt::GetLightingColor(SuperWeaponTypeClass* pCustom)
 	return ret;
 }
 
-bool NOINLINE SWTypeExt::ExtData::UpdateLightingColor(LightingColor& Lighting) const
+bool SWTypeExt::ExtData::UpdateLightingColor(LightingColor& Lighting) const
 {
 	if (this->Lighting_Enabled.isset())
 	{
@@ -2178,6 +2101,14 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Money_DrainDelay)
 		.Process(this->SW_ManualFire)
 		.Process(this->SW_Unstoppable)
+
+			//Enemy Inhibitors
+		.Process(this->SW_Suppressors)
+		.Process(this->SW_AnySuppressor)
+
+		//Enemy Designator
+		.Process(this->SW_Attractors)
+		.Process(this->SW_AnyAttractor)
 		;
 
 }

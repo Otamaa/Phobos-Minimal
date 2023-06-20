@@ -66,9 +66,18 @@ struct TargetingData
 	HouseClass* Owner;
 	bool NeedsLaunchSite;
 	bool NeedsDesignator;
+
+	bool NeedsAttractors;
+
 	std::vector<LaunchSite> LaunchSites;
 	std::vector<RangedItem> Designators;
 	std::vector<RangedItem> Inhibitors;
+
+	//Enemy Inhibitors
+	std::vector<RangedItem> Attractors;
+	//Enemy Designator
+	std::vector<RangedItem> Suppressors;
+
 };
 
 class NewSWType
@@ -104,6 +113,8 @@ public:
 
 	virtual bool IsDesignator(const SWTypeExt::ExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const;
 	virtual bool IsInhibitor(const SWTypeExt::ExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const;
+	virtual bool IsAttractor(const SWTypeExt::ExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const;
+	virtual bool IsSuppressor(const SWTypeExt::ExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const;
 
 	virtual SWRange GetRange(const SWTypeExt::ExtData* pData) const;
 	virtual WarheadTypeClass* GetWarhead(const SWTypeExt::ExtData* pData) const;
@@ -117,6 +128,12 @@ public:
 	bool IsDesignatorEligible(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno) const;
 	bool HasInhibitor(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords) const;
 	bool IsInhibitorEligible(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno) const;
+	
+	bool HasAttractor(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords) const;
+	bool IsAttractorEligible(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno) const;
+	
+	bool HasSuppressor(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords) const;
+	bool IsSuppressorEligible(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno) const;
 
 	bool IsLaunchSiteEligible(SWTypeExt::ExtData* pSWType, const CellStruct& Coords, BuildingClass* pBuilding, bool ignoreRange) const;
 	bool HasLaunchSite(SWTypeExt::ExtData* pSWType, HouseClass* pOwner, const CellStruct& Coords) const;
