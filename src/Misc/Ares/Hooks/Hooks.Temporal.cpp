@@ -100,8 +100,11 @@ bool conductAbduction(WeaponTypeExt::ExtData* pData , TechnoClass* pOwner, Abstr
 	}
 
 	//if it's owner meant to be changed, do it here
-	HouseClass* pDesiredOwner = (pData->Abductor_ChangeOwner && !TechnoExt::IsPsionicsImmune(Target)) 
-		? Attacker->Owner :HouseExt::FindSpecial();
+	HouseClass* pDesiredOwner = Attacker->Owner ? Attacker->Owner : HouseExt::FindSpecial();
+
+	//if it's owner meant to be changed, do it here
+	if((pData->Abductor_ChangeOwner && !TechnoExt::IsPsionicsImmune(Target)))
+		Target->SetOwningHouse(pDesiredOwner);
 
 	// if we ended up here, the target is of the right type, and the attacker can take it
 	// so we abduct the target...
@@ -176,9 +179,6 @@ bool conductAbduction(WeaponTypeExt::ExtData* pData , TechnoClass* pOwner, Abstr
 	Target->MarkAllOccupationBits(coordsUnitSource);
 	Target->ClearPlanningTokens(nullptr);
 	Target->Flashing.DurationRemaining = 0;
-
-	//if it's owner meant to be changed, do it here
-	Target->SetOwningHouse(pDesiredOwner);
 
 	if (!Target->Limbo()) {
 		Debug::Log("Abduction: Target unit %p (%s) could not be removed.\n", Target, Target->get_ID());

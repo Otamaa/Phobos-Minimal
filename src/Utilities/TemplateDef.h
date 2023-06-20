@@ -1081,15 +1081,8 @@ namespace detail
 			}
 			else
 			{
-				if (result == 0)
-				{
-					value = SuperWeaponAITargetingMode::NoTarget; return true;
-				}
-				else
-				{
-					value = static_cast<SuperWeaponAITargetingMode>(result);
-					return true;
-				}
+				value = static_cast<SuperWeaponAITargetingMode>(result);
+				return true;
 			}
 		}
 		return false;
@@ -1748,8 +1741,10 @@ void NOINLINE ValueableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection,
 	{
 		const char* val = parser.value();
 
-		if(GameStrings::IsBlank(val))
+		if(GameStrings::IsBlank(val)) { 
+			this->Value = -1;
 			return;
+		}
 
 		int idx = this->Value;
 

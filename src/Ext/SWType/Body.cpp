@@ -1092,6 +1092,8 @@ TargetResult SWTypeExt::ExtData::PickSuperWeaponTarget(SuperClass* pSuper)
 			break;
 
 		return { pSuper->Owner->PreferredDefensiveCell2 ,SWTargetFlags::AllowEmpty };
+	default:
+		break;
 	}
 
 	// all the different AI targeting modes

@@ -32,7 +32,7 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 		pThis->StepCompleted = true;
 
 	auto pOwner = pThis->Owner;
-	const bool havePower = !pOwner->PowerDrain || pOwner->PowerOutput >= pOwner->PowerDrain;
+	const bool havePower = pOwner->HasFullPower();
 
 	SuperWeaponTypeClass* pLast = nullptr;
 	bool found = false;
@@ -578,7 +578,7 @@ DEFINE_OVERRIDE_HOOK(0x6CB7B0, SuperClass_Lose, 6)
 }
 
 // activate or deactivate the SW
-DEFINE_OVERRIDE_HOOK(0x66CB920, SuperClass_ClickFire, 5)
+DEFINE_OVERRIDE_HOOK(0x6CB920, SuperClass_ClickFire, 5)
 {
 	GET(SuperClass* const, pThis, ECX);
 	GET_STACK(bool const, isPlayer, 0x4);
@@ -1106,7 +1106,7 @@ std::vector<SWStatus> GetSuperWeaponStatuses(HouseClass* pHouse)
 				//if InitialReady and SWAvaible
 				const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
 
-				if (pExt->IsAvailable(pHouse) && pExt->SW_InitialReady)
+				if (pExt->SW_InitialReady && pExt->IsAvailable(pHouse))
 				{
 					//Statuses[pSuper->Type->ArrayIndex].Available = true;
 					status.Charging = true;
@@ -1129,14 +1129,13 @@ std::vector<SWStatus> GetSuperWeaponStatuses(HouseClass* pHouse)
 						const auto pSuperExt = SWTypeExt::ExtMap.Find(pHouse->Supers[idxSW]->Type);
 						status.Available = pSuperExt->IsAvailable(pHouse);
 
-						if (!status.Charging
-							&& pBld->HasPower
+						if ( pBld->HasPower
 							&& !pBld->IsUnderEMP()
 							&& (Is_Operated(pBld) || AresData::IsOperated(pBld)))
 						{
 							status.PowerSourced = true;
 
-							if (!pBld->IsBeingWarpedOut()
+							if (!status.Charging &&	!pBld->IsBeingWarpedOut()
 								&& (pBld->CurrentMission != Mission::Construction)
 								&& (pBld->CurrentMission != Mission::Selling)
 								&& (pBld->QueuedMission != Mission::Construction)
@@ -1175,9 +1174,7 @@ std::vector<SWStatus> GetSuperWeaponStatuses(HouseClass* pHouse)
 		// kill off super weapons that are disallowed and
 		// factor in the player's power status
 		const bool hasPower = pHouse->HasFullPower();
-		const bool isSWAavail = Unsorted::SWAllowed || SessionClass::Instance->GameMode == GameMode::Campaign;
 
-		if (!hasPower || !isSWAavail)
 		{
 			for (auto pSuper : pHouse->Supers)
 			{
@@ -1185,17 +1182,16 @@ std::vector<SWStatus> GetSuperWeaponStatuses(HouseClass* pHouse)
 				auto& status = Statuses[index];
 
 				// turn off super weapons that are disallowed.
-
-				if (!isSWAavail && pSuper->Type->DisableableFromShell)
-				{
-					status.Available = false;
+				if (SessionClass::Instance->GameMode != GameMode::Campaign && !Unsorted::SWAllowed) {
+					if (pSuper->Type->DisableableFromShell) {
+						status.Available = false;
+					}
 				}
 
 				// if the house is generally on low power,
 				// powered super weapons aren't powered
-				if (!hasPower && pSuper->IsPowered())
-				{
-					status.PowerSourced = false;
+				if (pSuper->IsPowered()) {
+					status.PowerSourced &= hasPower;
 				}
 			}
 		}
