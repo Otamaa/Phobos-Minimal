@@ -19,8 +19,6 @@
 #include "NewSuperWeaponType/Dominator.h"
 #pragma endregion
 
-//TODO : removing all SWTypeExt related call if possible 
-
 #ifndef Replace_SW
 
 #pragma warning( push )
@@ -584,11 +582,10 @@ DEFINE_OVERRIDE_HOOK(0x6CB7B0, SuperClass_Lose, 6)
 		if (SuperClass::ShowTimers->Remove(pThis))
 		{
 			std::sort(SuperClass::ShowTimers->begin(), SuperClass::ShowTimers->end(),
-			[](SuperClass* a, SuperClass* b)
- {
-	 const auto aExt = SWTypeExt::ExtMap.Find(a->Type);
-	 const auto bExt = SWTypeExt::ExtMap.Find(b->Type);
-	 return aExt->SW_Priority.Get() > bExt->SW_Priority.Get();
+			[](SuperClass* a, SuperClass* b) {
+			 const auto aExt = SWTypeExt::ExtMap.Find(a->Type);
+			 const auto bExt = SWTypeExt::ExtMap.Find(b->Type);
+			 return aExt->SW_Priority.Get() > bExt->SW_Priority.Get();
 			});
 		}
 
@@ -1326,12 +1323,14 @@ DEFINE_OVERRIDE_HOOK(0x44CB4C, BuildingClass_Mi_Missile_NukeTakeOff, 7)
 	enum { DeleteBullet = 0x44CC42, SetUpNext = 0x44CCA7 };
 
 	auto const type = TechnoExt::ExtMap.Find(pThis)->LinkedSW->Type;
-	//auto nCos = 0.00004793836; //std::cos(1.570748388432313); // Accuracy is different from the game 
-	//auto nSin = 0.99999999885; //std::sin(1.570748388432313); // Accuracy is different from the game 
+	//auto nCos = 0.00004793836; 
+	constexpr auto nCos = gcem::cos(1.570748388432313); // Accuracy is different from the game 
+	//auto nSin = 0.99999999885; 
+	constexpr auto nSin = gcem::sin(1.570748388432313);// Accuracy is different from the game 
 
 	const auto nMult = pBullet->Type->Vertical ? 10.0 : 100.0;
 
-	if (!pBullet->MoveTo(*pCoord, { 0.00004793836 * 0.00004793836 * nMult , 0.00004793836 * 0.99999999885 * nMult , 0.99999999885 * nMult }))
+	if (!pBullet->MoveTo(*pCoord, { nCos * nCos * nMult , nCos * nSin * nMult , nSin * nMult }))
 		return DeleteBullet;
 
 	if (auto const pAnimType = SWTypeExt::ExtMap.Find(type)->Nuke_TakeOff.Get(
@@ -1746,6 +1745,7 @@ DEFINE_OVERRIDE_HOOK(0x53A6CF, LightningStorm_Update, 7)
 			// is this spot far away from another cloud?
 			auto const separation = pExt->Weather_Separation.Get(
 				RulesClass::Instance->LightningSeparation);
+
 			if (separation > 0)
 			{
 				// assume success and disprove.
@@ -2273,6 +2273,7 @@ DEFINE_OVERRIDE_HOOK(0x6A9952, StripClass_Draw_SuperWeapon_PCX, 6)
 	CameoPCXSurface = SWTypeExt::ExtMap.Find(pSuper)->SidebarPCX.GetSurface();
 	return 0x0;
 }
+
 DEFINE_OVERRIDE_HOOK(0x6A980A, StripClass_Draw_TechnoType_PCX, 8)
 {
 	GET(TechnoTypeClass*, pType, EBX);

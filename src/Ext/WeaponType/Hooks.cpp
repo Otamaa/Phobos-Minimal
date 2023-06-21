@@ -28,21 +28,3 @@ DEFINE_HOOK(0x773087, WeaponTypeClass_GetSpeed_ApplyGravity, 0x6)
 
 	return 0x7730A3;
 }
-
-#pragma region Otamaa
-//Ares 3.0p1 completely change the function , no reference to this anymore !
-//DEFINE_HOOK(0x71AB47, TemporalClass_GetHelperDamage_AfterAres, 0x5)
-//{
-//	GET(WeaponStruct* const, Weapon, EAX);
-//	GET(TemporalClass*, pTemp, ESI);
-//
-//	if (auto const TemporalWeapon = Weapon->WeaponType) {
-//		TemporalExt::ExtMap.Find(pTemp)->Weapon = TemporalWeapon;
-//	}
-//
-//	return 0;
-//}
-//
-
-
-#pragma endregion

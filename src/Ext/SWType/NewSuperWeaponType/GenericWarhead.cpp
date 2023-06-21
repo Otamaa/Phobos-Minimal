@@ -3,7 +3,6 @@
 #include <Ext/WarheadType/Body.h>
 #include <Misc/AresData.h>
 
-//TODO : use some of ares data
 std::vector<const char*> SW_GenericWarhead::GetTypeString() const
 {
 	return { "GenericWarhead" };

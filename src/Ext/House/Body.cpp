@@ -6,6 +6,7 @@
 #include <Ext/Side/Body.h>
 #include <Ext/HouseType/Body.h>
 #include <Ext/SWType/Body.h>
+#include <Ext/Super/Body.h>
 
 #include <ScenarioClass.h>
 
@@ -36,31 +37,22 @@ void HouseExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 //TODO : remove NOINLINE
 void NOINLINE HouseExt::ExtData::UpdateShotCount(SuperWeaponTypeClass* pFor)
 {
-	if ((int)this->LaunchDatas.size() < SuperWeaponTypeClass::Array->Count )
-		this->LaunchDatas.resize(SuperWeaponTypeClass::Array->Count);
-
-	auto& nData = this->LaunchDatas[pFor->ArrayIndex];
-	++nData.Count;
-	nData.LastFrame = Unsorted::CurrentFrame();
+	SuperExt::ExtMap.Find(this->Get()->Supers[pFor->ArrayIndex])->LauchDatas.Update();
 }
 
 //TODO : remove NOINLINE
 void NOINLINE HouseExt::ExtData::UpdateShotCountB(SuperWeaponTypeClass* pFor)
 {
-	if ((int)this->LaunchDatas.size() < SuperWeaponTypeClass::Array->Count)
-		this->LaunchDatas.resize(SuperWeaponTypeClass::Array->Count);
+	auto& nData = SuperExt::ExtMap.Find(this->Get()->Supers[pFor->ArrayIndex])->LauchDatas;
 
-	if ((this->LaunchDatas[pFor->ArrayIndex].LastFrame & 0x80000000) != 0)
-		this->LaunchDatas[pFor->ArrayIndex].LastFrame = Unsorted::CurrentFrame();
+	if ((nData.LastFrame & 0x80000000) != 0)
+		nData.LastFrame = Unsorted::CurrentFrame();
 }
 
 //TODO : remove NOINLINE
 LauchData NOINLINE HouseExt::ExtData::GetShotCount(SuperWeaponTypeClass* pFor)
 {
-	if (pFor->ArrayIndex >= (int)this->LaunchDatas.size())
-		return {};
-
-	return this->LaunchDatas[pFor->ArrayIndex];
+	return SuperExt::ExtMap.Find(this->Get()->Supers[pFor->ArrayIndex])->LauchDatas;
 }
 
 SuperClass* HouseExt::ExtData::IsSuperAvail(int nIdx, HouseClass* pHouse)
@@ -1112,9 +1104,9 @@ void HouseExt::ExtData::UpdateAutoDeathObjects()
 			if (pBldExt && pBldExt->LimboID != -1) {
 				BuildingExt::LimboKill(pBuilding);
 				continue;
-			} 
-		}		
-			
+			}
+		}
+
 		TechnoExt::KillSelf(pThis, nMethod, true , pTypeExt->AutoDeath_VanishAnimation);
 	}
 }
@@ -1146,7 +1138,7 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		.Process(this->ProducingNavalUnitTypeIndex)
 
 		.Process(this->AutoDeathObjects)
-		.Process(this->LaunchDatas)
+		//.Process(this->LaunchDatas)
 		.Process(this->CaptureObjectExecuted)
 		.Process(this->DiscoverEvaDelay)
 

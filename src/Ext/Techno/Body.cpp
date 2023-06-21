@@ -960,11 +960,13 @@ void TechnoExt::SendPlane(size_t Aircraft, size_t Amount, HouseClass* pOwner, Ra
 			pPlane->UnInit();
 		} else {
 
+			// we cant create InitialPayload when mutex atives 
+			// so here we handle the InitialPayload Creation !
+			// this way we can make opentopped airstrike happen !
 			TechnoExt::ExtMap.Find(pPlane)->CreateInitialPayload();
 			pPlane->NextMission();
 		}
 	}
-
 }
 
 /*

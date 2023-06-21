@@ -15,6 +15,20 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/House/Body.h>
 
+DEFINE_HOOK(0x707319, TechnoClass_CalcVoxelShadow_ShadowScale, 0x6)
+{
+	GET(TechnoTypeClass*, pType, EAX);
+
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	if (pTypeExt->ShadowScale > 0) {
+		REF_STACK(Matrix3D, mtx, STACK_OFFSET(0xE8, -0x90));
+		mtx.Scale(pTypeExt->ShadowScale);
+		return 0x707331;
+	}
+
+	return 0;
+}
+
 DEFINE_HOOK(0x6F64A9, TechnoClass_DrawHealthBar_Hide, 0x5)
 {
 	enum

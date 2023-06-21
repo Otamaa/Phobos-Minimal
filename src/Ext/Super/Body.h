@@ -5,6 +5,7 @@
 #include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 #include <Ext/SWType/Body.h>
+#include <Ext/House/Body.h>
 
 // cache all super weapon statuses
 struct SWStatus
@@ -35,6 +36,7 @@ public:
 		CellStruct Temp_CellStruct;
 		TechnoClass* Firer;
 		SWStatus Statusses;
+		LauchData LauchDatas;
 
 		ExtData(SuperClass* OwnerObject) : Extension<SuperClass>(OwnerObject)
 			, Type { nullptr }
@@ -42,6 +44,7 @@ public:
 			, Temp_CellStruct { }
 			, Firer { nullptr }
 			, Statusses { }
+			, LauchDatas { }
 		{ }
 
 		virtual ~ExtData() override  = default;

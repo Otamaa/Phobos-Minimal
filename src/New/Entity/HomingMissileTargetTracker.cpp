@@ -5,6 +5,10 @@
 #include <TechnoClass.h>
 #include <FootClass.h>
 
+// there is problem when target get invalidated in the middle of flight
+// often time the missile will stop targeting and circling for a while or just leave map
+// to medigate this i can do update more often , or record the last coordinate of the target 
+// before it get deleted ,..
 std::vector<HomingMissileTargetTracker*> HomingMissileTargetTracker::Array;
 
 HomingMissileTargetTracker::HomingMissileTargetTracker(AbstractClass* pTarget) :

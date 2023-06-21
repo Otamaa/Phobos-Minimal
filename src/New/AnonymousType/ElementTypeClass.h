@@ -2,6 +2,8 @@
 
 #include <Utilities/TemplateDefB.h>
 
+//https://genshin.gg/elements/
+
 enum class ElementType : int
 {
 	Pyro,
@@ -16,6 +18,13 @@ enum class ElementType : int
 	count
 };
 
+std::array<const char*, (size_t)ElementType::count> ElementTypeToStrings
+{
+	{
+		{"pyro"}, { "hydro" }, { "anemo" }, { "electro" }, { "dendro" }, { "geo" }, { "physical" }
+	}
+};
+
 namespace detail
 {
 	template <>
@@ -23,65 +32,38 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			if (IS_SAME_STR_(parser.value(), "pyro"))
-			{
-				value = ElementType::Pyro;
-				return true;
+			size_t i = 0;
+			for (auto const& pStr : ElementTypeToStrings) {
+				if (_IS_SAME_STR(pStr, parser.valur())) {
+					value = ElementType(i);
+					return true;
+				}
+				++i;
 			}
-			else if (IS_SAME_STR_(parser.value(), "hydro"))
-			{
-				value = ElementType::Hydro;
-				return true;
-			}
-			else if (IS_SAME_STR_(parser.value(), "anemo"))
-			{
-				value = ElementType::Anemo;
-				return true;
-			}
-			else if (IS_SAME_STR_(parser.value(), "electro"))
-			{
-				value = ElementType::Electro;
-				return true;
-			}
-			else if (IS_SAME_STR_(parser.value(), "dendro"))
-			{
-				value = ElementType::Dendro;
-				return true;
-			}
-			else if (IS_SAME_STR_(parser.value(), "geo"))
-			{
-				value = ElementType::Geo;
-				return true;
-			}
-			else if (IS_SAME_STR_(parser.value(), "physical"))
-			{
-				value = ElementType::Physical;
-				return true;
-			}
-			else
-			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected an ElementType");
-			}
+
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected an ElementType");
 		}
 
 		return false;
 	}
 }
 
-
 class ElementTypeClass
 {
 public:
-	Nullable<ElementType> ElementalType {};
+	Valueable<ElementType> ElementalType { ElementType::Physical };
 	Valueable<int> Elemental_Duration { -1 };
 	Valueable<int> Elemental_Mastery { 0 };
+};
 
+enum class ReactionResult : int
+{
+	Spread = 0,
+};
 
-	ElementTypeClass(const ElementTypeClass& ele) :
-		ElementalType { ele.ElementalType }
-		, Elemental_Duration { ele.Elemental_Duration }
-		, Elemental_Mastery { ele.Elemental_Mastery }
-	{ }
+enum class ResonanceResult : int
+{
+
 };
 
 // similar to AE ithink 
@@ -93,20 +75,50 @@ public:
 	public:
 		TechnoClass* Invoker;
 		CDTimerClass Duration;
-		ElementTypeClass* Type {};
+		ElementTypeClass* Type;
+		
+		static bool CanReact(ElementType A, ElementType B)
+		{
+			switch (A)
+			{
+				case ElementType::Pyro:
+				{
 
-		Elemet(int dur, const ElementTypeClass& nElement) :
-			Duration {}, Type {}
-		{ 
+				}
+				break;
+			}
+
+			return false;
+		}
+
+		Elemet(TechnoCLass* pInvoker , int dur, const ElementTypeClass* pEle) :
+			Invoker { pInvoker  } , Duration { }, Type { pEle }
+		{
 			Duration.Start(dur);
-			Type = std::move(std::make_unique<ElementTypeClass>(nElement));
 		}
 	};
 
-	// why map ? 
 	// these may be used for lemental raction base on GenshinImpact 
-	std::map<WarheadTypeClass*  , Elemet>  ActiveElements {};
+	std::vector<WarheadTypeClass*  , Elemet>  ActiveElements {};
 
-	void Apply(TechnoClass* pVictim , const ElementTypeClass& nElement)
-	{ }
+	// all of these should referenced from WHTypeExt , dummy for now
+	void Apply(TechnoClass* pInvoker, WarheadTypeClass* pWarhead, int dur, const ElementTypeClass* pEle)
+	{
+		if (ActiveElements.empty())
+		{
+			ActiveElements.empalace_back(pWarhead, Element { dur , element{ pInvoker.dur , pEle} });
+		else
+		{
+			//elemental readtion ?
+
+			bool Reacting = false;
+			for (auto pEle : ActiveElements)
+			{
+				if(!pEle->can)
+			}
+
+		}
+
+		}
+	}
 };

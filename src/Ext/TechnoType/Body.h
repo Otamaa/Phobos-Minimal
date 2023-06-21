@@ -742,8 +742,12 @@ public:
 		Nullable<bool> MassSelectable {};
 
 		Nullable<bool> TiltsWhenCrushes_Vehicles {};
-		Nullable<bool> TiltsWhenCrushes_Walls {};
-		Valueable<bool> WallCrushSlowdown { true };
+		Nullable<bool> TiltsWhenCrushes_Overlays {};
+		Nullable<double> CrushForwardTiltPerFrame {};
+		Valueable<double> CrushOverlayExtraForwardTilt { 0.2 };
+		Valueable<double> CrushSlowdownMultiplier { 0.2 };
+
+		Valueable<float> ShadowScale  { -1.0f };
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, HealthBar_Hide { false }

@@ -881,8 +881,10 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->MassSelectable.Read(exINI, pSection, "MassSelectable");
 
 		this->TiltsWhenCrushes_Vehicles.Read(exINI, pSection, "TiltsWhenCrushes.Vehicles");
-		this->TiltsWhenCrushes_Walls.Read(exINI, pSection, "TiltsWhenCrushes.Walls");
-		this->WallCrushSlowdown.Read(exINI, pSection, "WallCrushSlowdown");
+		this->TiltsWhenCrushes_Overlays.Read(exINI, pSection, "TiltsWhenCrushes.Overlays");
+		this->CrushForwardTiltPerFrame.Read(exINI, pSection, "CrushForwardTiltPerFrame");
+		this->CrushOverlayExtraForwardTilt.Read(exINI, pSection, "CrushOverlayExtraForwardTilt");
+		this->CrushSlowdownMultiplier.Read(exINI, pSection, "CrushSlowdownMultiplier");
 
 		if (Is_AircraftType(pThis))
 		{
@@ -1010,6 +1012,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		this->Spawner_SpawnOffsets.Read(exArtINI, pArtSection, "SpawnOffset");
 		this->Spawner_SpawnOffsets_OverrideWeaponFLH.Read(exArtINI, pArtSection, "SpawnOffsetOverrideFLH");
+		this->ShadowScale.Read(exArtINI, pArtSection, "ShadowScale");
 
 		//LineTrailData::LoadFromINI(this->LineTrailData, exArtINI, pArtSection);
 
@@ -1719,8 +1722,10 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->FactoryPlant_Multiplier)
 		.Process(this->MassSelectable)
 		.Process(this->TiltsWhenCrushes_Vehicles)
-		.Process(this->TiltsWhenCrushes_Walls)
-		.Process(this->WallCrushSlowdown)
+		.Process(this->TiltsWhenCrushes_Overlays)
+		.Process(this->CrushForwardTiltPerFrame)
+		.Process(this->CrushOverlayExtraForwardTilt)
+		.Process(this->CrushSlowdownMultiplier)
 
 #pragma endregion
 		;

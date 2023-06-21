@@ -12,6 +12,11 @@ struct LauchData
 {
 	int LastFrame { Unsorted::CurrentFrame };
 	int Count { 0 };
+
+	void Update() {
+		++Count;
+		LastFrame = Unsorted::CurrentFrame();
+	}
 };
 
 struct TunnelData
@@ -72,7 +77,7 @@ public:
 		//#830
 		PhobosMap<TechnoClass* , KillMethod> AutoDeathObjects;
 
-		std::vector<LauchData> LaunchDatas;
+		//std::vector<LauchData> LaunchDatas;
 		bool CaptureObjectExecuted;
 		CDTimerClass DiscoverEvaDelay;
 		std::vector<TunnelData> Tunnels;
@@ -105,7 +110,7 @@ public:
 			, ProducingNavalUnitTypeIndex { -1 }
 
 			, AutoDeathObjects {}
-			, LaunchDatas {}
+			//, LaunchDatas {}
 			, CaptureObjectExecuted { false }
 			, DiscoverEvaDelay {}
 
