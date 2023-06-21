@@ -25,8 +25,8 @@ enum class AresNewSuperType : int
 	DropPod = 15,
 	EMPulse = 16,
 	Battery = 17,
-	//EMPField = 18,
-	//IonCannon = 19,
+	EMPField = 18,
+	IonCannon = 19,
 	//ChemLauncher = 20,
 	//MultiLauncher = 21,
 	count

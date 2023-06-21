@@ -4298,12 +4298,8 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 	if (pTeamData && pTeamData->CloseEnough > 0)
 		closeEnough = pTeamData->CloseEnough;
 
-	bool bForceNextAction;
+	bool bForceNextAction = mode == 2;
 
-	if (mode == 2)
-		bForceNextAction = true;
-	else
-		bForceNextAction = false;
 
 	// Team already have a focused target
 	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
@@ -4383,7 +4379,7 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 						}
 						else
 						{
-							if (pUnit == pLeader)
+							if (pUnit->IsTeamLeader)
 								bForceNextAction = true;
 
 							if (pWhat == AircraftClass::vtable && pUnit->Ammo <= 0)
@@ -4663,79 +4659,37 @@ FootClass* ScriptExt::FindTheTeamLeader(TeamClass* pTeam)
 {
 	FootClass* pLeaderUnit = nullptr;
 	int bestUnitLeadershipValue = -1;
-	bool teamLeaderFound = false;
 
 	if (!pTeam)
-	{
 		return pLeaderUnit;
-	}
 
 	// Find the Leader or promote a new one
 	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 	{
-		if (!TechnoExt::IsActive(pUnit, true, true, false, true))
-		{
-			pUnit->IsTeamLeader = false;
+		if (!TechnoExt::IsActive(pUnit, true, true, false, true) || !(pUnit->IsTeamLeader && pUnit->WhatAmI() == AircraftClass::AbsID))
 			continue;
-		}
 
-		if (!pUnit->Owner)
-		{		
-			pUnit->IsTeamLeader = false;
-			continue;
-		}
 
 		auto const pType = pUnit->GetTechnoType();
 
-		if(!pType)
-		{
-			pUnit->IsTeamLeader = false;
-			continue;
-		}
-
 		const auto pExType = TechnoTypeExt::ExtMap.Find(pType);
 
-		if (pExType->IsDummy)
-		{
-			pUnit->IsTeamLeader = false;
+		if (pExType->IsDummy) {
 			continue;
 		}
 
-		if (TechnoExt::IsInWarfactory(pUnit))
-		{
-			pUnit->IsTeamLeader = false;
+		if (TechnoExt::IsInWarfactory(pUnit)) {
 			continue;
 		}
 
-		// Preventing >1 leaders in teams
-		if (teamLeaderFound)
-		{
-			pUnit->IsTeamLeader = false;
-			continue;
-		}
+		// The team Leader will be used for selecting targets, if there are living Team Members then always exists 1 Leader.
+		const int unitLeadershipRating = pType->LeadershipRating;
 
-		if (pUnit->IsTeamLeader)
+		if (unitLeadershipRating > bestUnitLeadershipValue)
 		{
 			pLeaderUnit = pUnit;
-			teamLeaderFound = true;
-			continue;
+			bestUnitLeadershipValue = unitLeadershipRating;
 		}
-
-		if (pType)
-		{
-			// The team Leader will be used for selecting targets, if there are living Team Members then always exists 1 Leader.
-			const int unitLeadershipRating = pType->LeadershipRating;
-
-			if (unitLeadershipRating > bestUnitLeadershipValue)
-			{
-				pLeaderUnit = pUnit;
-				bestUnitLeadershipValue = unitLeadershipRating;
-			}
-		}
-	}
-
-	if (pLeaderUnit){
-		pLeaderUnit->IsTeamLeader = true;
 	}
 
 	return pLeaderUnit;

@@ -464,6 +464,24 @@ struct TargetingFuncs
 		return !pTechno->InLimbo;
 	}
 
+	static bool IgnoreThis(TechnoClass* pTechno)
+	{
+		const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
+
+		if (pTechnoTypeExt->IsDummy)
+			return true;
+
+		if (auto pBld = specific_cast<BuildingClass*>(pTechno))
+		{
+			const auto pBldExt = BuildingExt::ExtMap.Find(pBld);
+
+			if (pBldExt->LimboID != -1)
+				return true;
+		}
+
+		return false;
+	}
+
 	static TargetResult NoTarget()
 	{
 		return { CellStruct::Empty , SWTargetFlags::AllowEmpty };
@@ -476,6 +494,9 @@ struct TargetingFuncs
 		const auto it = info.TypeExt->GetPotentialAITargets(pEnemy);
 		const auto pResult = GetTargetAnyMax(it.begin(), it.end(), [=, &info](TechnoClass* pTechno, int curMax)
 		{
+			if(TargetingFuncs::IgnoreThis(pTechno))
+				return -1;
+
 			// original game code only compares owner and doesn't support nullptr
 			auto const passedFilter = (!pEnemy || pTechno->Owner == pEnemy);
 
@@ -555,7 +576,7 @@ struct TargetingFuncs
 		const auto pTarget = GetTargetFirstMax(it.begin(), it.end(), [&info](TechnoClass* pTechno, int curMax)
   {
 
-	  if (!TargetingFuncs::IsTargetAllowed(pTechno))
+	  if (!TargetingFuncs::IsTargetAllowed(pTechno) || TargetingFuncs::IgnoreThis(pTechno))
 	  {
 		  return -1;
 	  }
@@ -637,7 +658,7 @@ struct TargetingFuncs
 		const auto pResult = GetTargetFirstMax(it.begin(), it.end(), [&info](TechnoClass* pTechno, int curMax)
  {
 
-	 if (!TargetingFuncs::IsTargetAllowed(pTechno))
+	 if (!TargetingFuncs::IsTargetAllowed(pTechno) || TargetingFuncs::IgnoreThis(pTechno))
 	 {
 		 return -1;
 	 }
@@ -768,7 +789,7 @@ struct TargetingFuncs
 		const auto& buildings = info.Owner->Buildings;
 
 		// Ares < 0.9 didn't check power
-		auto it = std::find_if(buildings.begin(), buildings.end(), [index, &info](BuildingClass* pBld)
+		const auto it = std::find_if(buildings.begin(), buildings.end(), [index, &info](BuildingClass* pBld)
 		{
 			auto const pExt = BuildingExt::ExtMap.Find(pBld);
 
@@ -819,6 +840,11 @@ struct TargetingFuncs
 
 		const auto pResult = GetTargetFirstMax(it.begin(), it.end(), [pOwner, &info](TechnoClass* pTechno, int curMax)
 		{
+			if (!TargetingFuncs::IsTargetAllowed(pTechno) || TargetingFuncs::IgnoreThis(pTechno))
+			{
+				return -1;
+			}
+
 			auto cell = pTechno->GetMapCoords();
 
 			auto const value = pTechno->IsCloaked()
@@ -845,7 +871,6 @@ struct TargetingFuncs
 	{
 		if (auto pEnemy = HouseClass::Array->GetItemOrDefault(info.Owner->EnemyHouseIndex))
 		{
-
 			CellStruct cell = pEnemy->GetBaseCenter();
 
 			if (info.CanFireAt(cell))
@@ -1342,7 +1367,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_AIRequiresTarget.Read(exINI, pSection, "SW.AIRequiresTarget");
 	this->SW_AIRequiresHouse.Read(exINI, pSection, "SW.AIRequiresHouse");
 	this->SW_AITargetingPreference.Read(exINI, pSection, "SW.AITargeting.Preference");
-	this->SW_FireToShroud.Read(exINI, pSection, "SW.FireToShroud");
+	this->SW_FireToShroud.Read(exINI, pSection, "SW.FireIntoShroud");
 	this->SW_UseAITargeting.Read(exINI, pSection, "SW.UseAITargeting");
 	this->Message_CannotFire.Read(exINI, pSection, "Message.CannotFire");
 	this->SW_RequiresTarget.Read(exINI, pSection, "SW.RequiresTarget");
@@ -1404,7 +1429,10 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->SW_MaxCount.Read(exINI, pSection, "SW.MaxCount");
 
-	this->EVA_Impatient.Read(exINI, pSection, "EVA.Impatient");
+	ValueableIdx<VoxClass> EVA_Impatient { -1 };
+	EVA_Impatient.Read(exINI, pSection, "EVA.Impatient");
+	pThis->ImpatientVoice = EVA_Impatient.Get();
+
 	this->EVA_InsufficientFunds.Read(exINI, pSection, "EVA.InsufficientFunds");
 	this->EVA_SelectTarget.Read(exINI, pSection, "EVA.SelectTarget");
 
@@ -1436,10 +1464,17 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Lighting_Green.Read(exINI, pSection, "Light.Green");
 	this->Lighting_Blue.Read(exINI, pSection, "Light.Blue");
 
+	this->SW_AlwaysGranted.Read(exINI, pSection, "SW.AlwaysGranted");
+
+	this->SidebarPalette.Read(exINI, pSection, "SidebarPalette");
+	this->SidebarPCX.Read(exINI.GetINI(), pSection, "SidebarPCX");
+
 	// initialize the NewSWType that handles this SWType.
 	if (auto pNewSWType = NewSWType::GetNewSWType(this))
 	{
+		pThis->Action = this->LastAction;
 		pNewSWType->LoadFromINI(this, pINI);
+		this->LastAction = pThis->Action;
 
 		// whatever the user does, we take care of the stupid tags.
 		// there is no need to have them not hardcoded.
@@ -1962,6 +1997,7 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SW_AnimHeight)
 		.Process(this->SW_ChargeToDrainRatio)
 		.Process(this->HandledType)
+		.Process(this->LastAction)
 		.Process(this->Converts)
 		.Process(this->ConvertsPair)
 		.Process(this->SW_Warhead)
@@ -2039,7 +2075,7 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Text_Active)
 #pragma endregion
 
-		.Process(this->EVA_Impatient)
+		.Process(this->Get()->ImpatientVoice)
 		.Process(this->EVA_InsufficientFunds)
 		.Process(this->EVA_SelectTarget)
 
@@ -2105,6 +2141,11 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		//Enemy Designator
 		.Process(this->SW_Attractors)
 		.Process(this->SW_AnyAttractor)
+
+		.Process(this->SW_AlwaysGranted)
+
+		.Process(this->SidebarPalette)
+		.Process(this->SidebarPCX)
 		;
 
 }
@@ -2215,6 +2256,36 @@ DEFINE_HOOK(0x6CEE43, SuperWeaponTypeClass_LoadFromINI, 0xA)
 	return 0;
 }
 
+DEFINE_HOOK(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
+{
+	GET(SuperWeaponTypeClass*, pThis, EBP);
+	GET(CCINIClass*, pINI, EBX);
+	GET(Action, result, ECX);
+
+	INI_EX exINI(pINI);
+	const auto pSection = pThis->ID;
+	if (exINI.ReadString(pSection, "Action")) {
+		bool found = false;
+		for (int i = 0; i < (int)SuperWeaponTypeClass::ActionTypeName.c_size(); ++i) {
+			if (IS_SAME_STR_(SuperWeaponTypeClass::ActionTypeName[i], exINI.value())) {
+				result = ((Action)(i));
+				found = true;
+			}
+		}
+
+		if (!found && IS_SAME_STR_("Custom", exINI.value())){ 
+			result = Action(AresNewActionType::SuperWeaponAllowed);
+			found = true;
+		}
+
+		SWTypeExt::ExtMap.Find(pThis)->LastAction = result;
+	}
+
+	
+	R->EAX(result);
+	return 0x6CEAA0;
+}
+
 DEFINE_HOOK(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 {
 	GET(SuperWeaponTypeClass*, pThis, EBP);
@@ -2234,11 +2305,9 @@ DEFINE_HOOK(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 			}
 		}
 
-		if (pThis->Type == SuperWeaponType::Invalid)
-		{
+		if (pThis->Type == SuperWeaponType::Invalid) {
 			const auto customType = NewSWType::FindFromTypeID(exINI.value());
-			if (customType > SuperWeaponType::Invalid)
-			{
+			if (customType > SuperWeaponType::Invalid) {
 				pThis->Type = customType;
 			}
 		}

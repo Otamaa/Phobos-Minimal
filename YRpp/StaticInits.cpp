@@ -45,7 +45,9 @@ std::array< ColorStruct, (size_t)DefaultColorList::count> Drawing::DefaultColors
 		// gery  , red , green
 		{ 128,128,128 } , { 255,0,0 } , { 0,255,0 } ,
 		// blue , yellow , white
-		{ 0,0,255 } , { 255,255,0 } , { 255 , 255 , 255 }
+		{ 0,0,255 } , { 255,255,0 } , { 255 , 255 , 255 } ,
+		// ares cameo transparent color
+		{ 255 , 0 , 255 }
 }
 };
 

@@ -222,7 +222,7 @@ public:
 	signed char       WaypointIndex; // which waypoint in my planning path am I following?
 	bool              IsToScatter; //678
 	bool              IsScanLimited; //688
-	bool              IsTeamLeader;
+	bool              IsTeamLeader;  // or IsInitiated , Is a fully joined member of a team, used for regroup etc. checks
 	bool              ShouldScanForTarget;
 	bool              IsPlanningToLook; //68B
 	bool              IsDeploying;	//68C

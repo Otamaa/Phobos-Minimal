@@ -87,6 +87,7 @@ enum FunctionIndices : int
 	UpdateDisplayToID = 51,
 
 	GetTurretWeaponIdxID = 52,
+	CameoIsEliteID = 53,
 	count
 };
 
@@ -297,6 +298,7 @@ bool AresData::Init()
 		0x013760, //BuildingExt::UpdateDosplayTo
 
 		0x003E870, //TechnoTypeExt::GetTurretWeaponIdx
+		0x003E210, //TechnoTypeExt::CameoIsElite
 	};
 
 	static constexpr DWORD AAresCustomPaletteReadTable[AresCustomPaletteReadCount] = {
@@ -626,4 +628,9 @@ void AresData::BuildingExt_UpdateDisplayTo(BuildingClass* pFor)
 int AresData::TechnoTypeExt_GetTurretWeaponIdx(TechnoTypeClass* pThis, int idx)
 {
 	return AresThiscall<GetTurretWeaponIdxID, int, void*, int>()(GetAresTechnoTypeExt(pThis) , idx);
+}
+
+bool AresData::TechnoTypeExt_CameoIsElite(TechnoTypeClass* pThis, HouseClass* Owner)
+{
+	return AresThiscall<CameoIsEliteID, bool, void*, HouseClass*>()(GetAresTechnoTypeExt(pThis), Owner);
 }

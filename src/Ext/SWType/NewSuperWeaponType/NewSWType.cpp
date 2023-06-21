@@ -34,7 +34,7 @@ std::array<std::unique_ptr<NewSWType>, (size_t)AresNewSuperType::count> NewSWTyp
 bool NewSWType::CanFireAt(TargetingData const& data, CellStruct const& cell, bool manual) const
 {
 	if (!data.TypeExt->CanFireAt(data.Owner, cell, manual)) {
-		return false;
+		return false;	
 	}
 
 	if (data.NeedsLaunchSite && std::none_of(data.LaunchSites.begin(),
@@ -497,12 +497,8 @@ void NewSWType::Init()
 	RegSW(SW_DropPod, AresNewSuperType::DropPod)
 	RegSW(SW_EMPulse, AresNewSuperType::EMPulse)
 	RegSW(SW_Battery, AresNewSuperType::Battery)
-	//Adding new SW Type is not advisable atm, since we need to handle absolutely everyhing 
-	//otherwise the game will crash with out of bound array ,..
-	//RegSW(SW_EMPField, AresNewSuperType::EMPField)
-	//RegSW(SW_IonCannon, AresNewSuperType::IonCannon)
-	//RegSW(SW_ChemLauncher, AresNewSuperType::ChemLauncher)
-	//RegSW(SW_MultiLauncher, AresNewSuperType::MultiLauncher)
+	RegSW(SW_EMPField, AresNewSuperType::EMPField)
+	RegSW(SW_IonCannon, AresNewSuperType::IonCannon)
 #undef RegSW
 }
 

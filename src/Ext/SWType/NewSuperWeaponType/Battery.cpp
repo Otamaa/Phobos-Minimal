@@ -61,4 +61,7 @@ void SW_Battery::LoadFromINI(SWTypeExt::ExtData * pData,CCINIClass * pINI)
 
 	pData->Battery_Overpower.Read(exINI, pSection, "Battery.Overpower");
 	pData->Battery_KeepOnline.Read(exINI, pSection, "Battery.KeepOnline");
+
+	if(!pData->SW_Power.isset())
+		pData->SW_Power.Read(exINI, pSection, "Battery.Power");
 }

@@ -168,6 +168,7 @@ struct EMPulse
 #define GetCursorEnter(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x598))
 #define GetCursorNoEnter(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x59C))
 #define GetCameoPCXSurface(var) (*(BSurface**)(((char*)GetAresTechnoTypeExt(var)) + 0x228))
+#define GetCameoPCXSurfaceElite(var) (*(BSurface**)(((char*)GetAresTechnoTypeExt(var)) + 0x24C))
 #define GetCameoSHPConvert(var) (*(ConvertClass**)(((char*)GetAresTechnoTypeExt(var)) + 0x120))
 //
 #define Is_MaliciousWH(wh) (*(bool*)((((char*)GetAresAresWarheadTypeExt(wh)) + 0x75)))
@@ -275,6 +276,8 @@ struct AresData
 	static void BuildingExt_UpdateDisplayTo(BuildingClass* pFor);
 
 	static int TechnoTypeExt_GetTurretWeaponIdx(TechnoTypeClass* pThis, int idx);
+	static bool TechnoTypeExt_CameoIsElite(TechnoTypeClass* pThis, HouseClass* Owner);
+
 };
 
 namespace AresMemory

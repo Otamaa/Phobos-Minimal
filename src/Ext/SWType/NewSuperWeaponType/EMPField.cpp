@@ -22,6 +22,7 @@ bool SW_EMPField::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 		}
 	}
 
+	//does not work ?
 	return GameCreate<EMPulseClass>(Coords, this->GetRange(pData).width() , pData->EMPField_Duration.Get(), pFirer);
 
 }
