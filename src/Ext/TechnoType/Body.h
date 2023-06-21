@@ -741,6 +741,10 @@ public:
 		Valueable<double> FactoryPlant_Multiplier {1.0};
 		Nullable<bool> MassSelectable {};
 
+		Nullable<bool> TiltsWhenCrushes_Vehicles {};
+		Nullable<bool> TiltsWhenCrushes_Walls {};
+		Valueable<bool> WallCrushSlowdown { true };
+
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, HealthBar_Hide { false }
 			, UIDescription {}

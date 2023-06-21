@@ -123,7 +123,7 @@ DEFINE_HOOK(0x74A83C, VoxelAnimClass_BounceAnim, 0x5) // A
 	return 0x74A884;
 }
 
-static void FC VoxelAnimClass_Remove_This(VoxelAnimClass* pThis)
+static void __fastcall VoxelAnimClass_Remove_This(VoxelAnimClass* pThis)
 {
 	if (pThis->Type)
 		VocClass::PlayIndexAtPos(pThis->Type->StopSound, pThis->Location);

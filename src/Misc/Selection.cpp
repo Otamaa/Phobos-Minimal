@@ -12,7 +12,7 @@
 class ExtSelection
 {
 public:
-	using callback_type = bool(FC*)(ObjectClass*);
+	using callback_type = bool(__fastcall*)(ObjectClass*);
 
 	static inline class TacticalSelectablesHelper
 	{
@@ -115,7 +115,7 @@ public:
 	}
 
 	static // Reversed from Tactical::MakeSelection
-	void FC Tactical_MakeFilteredSelection(TacticalClass* pThis, void*_, callback_type fpCheckCallback)
+	void __fastcall Tactical_MakeFilteredSelection(TacticalClass* pThis, void*_, callback_type fpCheckCallback)
 	{
 		if (pThis->Band.Left || pThis->Band.Top) {
 			int nLeft = pThis->Band.Left;

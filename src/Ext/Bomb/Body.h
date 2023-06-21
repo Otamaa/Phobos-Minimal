@@ -41,6 +41,6 @@ class BombExt
 
 	static ExtContainer ExtMap;
 
-	static HouseClass* FC GetOwningHouse(BombClass* pThis, void*);
-	static void FC InvalidatePointer(BombClass* pThis, void*, void* const ptr, bool removed);
+	static HouseClass* __fastcall GetOwningHouse(BombClass* pThis, void*);
+	static void __fastcall InvalidatePointer(BombClass* pThis, void*, void* const ptr, bool removed);
 };

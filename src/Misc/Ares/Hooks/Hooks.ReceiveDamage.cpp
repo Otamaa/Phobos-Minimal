@@ -666,7 +666,7 @@ DEFINE_OVERRIDE_HOOK(0x41668B, AircraftClass_ReceiveDamage_Survivours, 0x6)
 	return 0x0;
 }
 
-bool FC FootClass_Crash_(FootClass* pThis , DWORD , ObjectClass* pSource)
+bool __fastcall FootClass_Crash_(FootClass* pThis , DWORD , ObjectClass* pSource)
 {
 	// Crashable support for aircraft
 	const auto& nCrashable = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->Crashable;

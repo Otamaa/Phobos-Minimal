@@ -26,10 +26,10 @@ public:
 	static bool Create(RadarEventType nType, CellStruct nMapCoords)
 		{ PUSH_VAR32(nMapCoords); SET_REG32(ecx, nType); CALL(0x65FA70); }
 
-	static void FC Create(const CellStruct& nMapCoords)
+	static void __fastcall Create(const CellStruct& nMapCoords)
 		{ JMP_STD(0x660B80); }
 
-	static void FC Create(CellStruct* pMapCoords)
+	static void __fastcall Create(CellStruct* pMapCoords)
 		{ JMP_STD(0x660B80); }
 
 private:

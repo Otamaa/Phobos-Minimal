@@ -3,9 +3,9 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/WarheadType/Body.h>
 
-HouseClass* FC BombExt::GetOwningHouse(BombClass* pThis, void*) { return pThis->OwnerHouse; }
+HouseClass* __fastcall BombExt::GetOwningHouse(BombClass* pThis, void*) { return pThis->OwnerHouse; }
 
-void FC BombExt::InvalidatePointer(BombClass* pThis, void*, void* const ptr, bool removed){ }
+void __fastcall BombExt::InvalidatePointer(BombClass* pThis, void*, void* const ptr, bool removed){ }
 
 // =============================
 // load / save

@@ -18,9 +18,6 @@ bool SW_Battery::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 {
 	auto pHouseExt = HouseExt::ExtMap.Find(pThis->Owner);
 
-	//TODO : replace this with array size instead
-	//++BatteryCount(pThis->Owner);
-
 	const auto Iter = std::find_if(pHouseExt->Batteries.begin(),
 		pHouseExt->Batteries.end(), [pThis](SuperClass* pSuper) 
 		{ return pSuper == pThis;  });
@@ -42,9 +39,6 @@ void SW_Battery::Deactivate(SuperClass* pSW, CellStruct cell, bool isPlayer)
 			pHouseExt->Batteries.erase(pHouseExt->Batteries.begin() + i);
 		}
 	}
-
-	//TODO : replace this with array size instead
-	/*--BatteryCount(pSW->Owner);*/
 
 	pSW->Owner->RecheckPower = true;
 }

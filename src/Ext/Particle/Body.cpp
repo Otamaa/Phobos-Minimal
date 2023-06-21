@@ -94,7 +94,7 @@ DEFINE_HOOK(0x62D825, ParticleClass_Save_Suffix, 0x7)
 	return 0x62D82C;
 }
 
-static void FC ParticleClass_Detach(ParticleClass* pThis, void* _, AbstractClass* pTarget, bool bRemove)
+static void __fastcall ParticleClass_Detach(ParticleClass* pThis, void* _, AbstractClass* pTarget, bool bRemove)
 {
 	pThis->ObjectClass::PointerExpired(pTarget ,bRemove);
 

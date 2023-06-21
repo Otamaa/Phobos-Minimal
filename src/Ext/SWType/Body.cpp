@@ -1218,6 +1218,13 @@ bool SWTypeExt::ExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStr
 		}
 	}
 
+	if (!pData->SW_ResetType.empty()) {
+		for (auto& pHouseSuper : pOwner->Supers) {
+			if (pData->SW_ResetType.Contains(pHouseSuper->Type->ArrayIndex))
+				pHouseSuper->Reset();
+		}	
+	}
+
 	return true;
 }
 
@@ -1468,6 +1475,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->SidebarPalette.Read(exINI, pSection, "SidebarPalette");
 	this->SidebarPCX.Read(exINI.GetINI(), pSection, "SidebarPCX");
+	this->SW_ResetType.Read(exINI, pSection, "SW.ResetTypes");
 
 	// initialize the NewSWType that handles this SWType.
 	if (auto pNewSWType = NewSWType::GetNewSWType(this))
@@ -2146,6 +2154,7 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->SidebarPalette)
 		.Process(this->SidebarPCX)
+		.Process(this->SW_ResetType)
 		;
 
 }

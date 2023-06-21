@@ -372,6 +372,8 @@ public:
 		Valueable<PaletteManager*> SidebarPalette {}; //PaletteManager::Mode::Default
 		PhobosPCXFile SidebarPCX {};
 
+		ValueableIdxVector<SuperWeaponTypeClass> SW_ResetType {};
+
 		ExtData(SuperWeaponTypeClass* OwnerObject) : Extension<SuperWeaponTypeClass>(OwnerObject)
 		{}
 

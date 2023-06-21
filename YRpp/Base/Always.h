@@ -124,9 +124,3 @@ typedef union {
 
 #define LessOrEqualTo(a, b) (a <= b) ? (a) : (b);
 #define MoreOrEqualTo(a, b) (a >= b) ? (a) : (b);
-
-#define FC __fastcall
-#define TC __thiscall
-#define SC __stdcall
-#define VC __vectorcall
-#define CDCL __cdecl

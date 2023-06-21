@@ -6,6 +6,20 @@
 #include <Utilities/TemplateDef.h>
 #include <Ext/SWType/Body.h>
 
+// cache all super weapon statuses
+struct SWStatus
+{
+	bool Available; //0
+	bool PowerSourced; //1
+	bool Charging;
+
+	void reset() {
+		Available = false;
+		PowerSourced = false;
+		Charging = false;
+	}
+};
+
 class SuperExt
 {
 public:
@@ -20,12 +34,14 @@ public:
 		bool Temp_IsPlayer;
 		CellStruct Temp_CellStruct;
 		TechnoClass* Firer;
+		SWStatus Statusses;
 
 		ExtData(SuperClass* OwnerObject) : Extension<SuperClass>(OwnerObject)
 			, Type { nullptr }
 			, Temp_IsPlayer { false }
 			, Temp_CellStruct { }
 			, Firer { nullptr }
+			, Statusses { }
 		{ }
 
 		virtual ~ExtData() override  = default;
@@ -63,5 +79,6 @@ public:
 		~ExtContainer();
 	};
 
+	static void UpdateSuperWeaponStatuses(HouseClass* pHouse);
 	static ExtContainer ExtMap;
 };

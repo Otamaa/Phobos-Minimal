@@ -296,7 +296,7 @@ public:
 		Valueable<double> LightningRod_Modifier { 1.0 };
 		Nullable<bool> Returnable {};
 		Nullable<double> BuildupTime {};
-		NullableIdx<VoxClass> SlamSound {};
+		NullableIdx<VocClass> SlamSound {};
 
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject)
 			, Type { nullptr }
@@ -517,6 +517,6 @@ public:
 	static int BuildLimitRemaining(HouseClass const* pHouse, BuildingTypeClass const* pItem);
 	static int GetBuildingAnimTypeIndex(BuildingClass* pThis, const BuildingAnimSlot& nSlot, const char* pDefault);
 
-	static bool FC IsFactory(BuildingClass* pThis, void* _);
-	static void FC DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset);
+	static bool __fastcall IsFactory(BuildingClass* pThis, void* _);
+	static void __fastcall DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset);
 };

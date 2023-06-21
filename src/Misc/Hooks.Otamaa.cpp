@@ -111,7 +111,7 @@ DEFINE_HOOK(0x74C8FB, VeinholeMonsterClass_CTOR_SetArmor, 0x6)
 //	return 0x74D2AA;
 //}
 
-static	void FC DrawShape_VeinHole
+static	void __fastcall DrawShape_VeinHole
 (Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds,
  BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape,
  int ZShapeFrame, int XOffset, int YOffset
@@ -433,7 +433,7 @@ DEFINE_HOOK(0x50A9D2, HouseClass_AI_TakeOver_WallTowers_B, 0x6)
 //	return 0;
 //}
 
-static bool FC AircraftTypeClass_CanUseWaypoint(AircraftTypeClass* pThis, void*)
+static bool __fastcall AircraftTypeClass_CanUseWaypoint(AircraftTypeClass* pThis, void*)
 {
 	return !pThis->Spawned;
 }
@@ -4385,12 +4385,12 @@ DEFINE_HOOK(0x4A9CA0, MapClass_RevealFogShroud, 0x8)
 
 // Various call of TechnoClass::SetOwningHouse not respecting overloaded 2nd args fix !
 
-bool FC InfantryClass_SetOwningHouse(InfantryClass* const pThis, DWORD, HouseClass* pNewOwner, bool bAnnounce)
+bool __fastcall InfantryClass_SetOwningHouse(InfantryClass* const pThis, DWORD, HouseClass* pNewOwner, bool bAnnounce)
 {
 	return pThis->FootClass::SetOwningHouse(pNewOwner, bAnnounce);
 }
 
-bool FC AircraftClass_SetOwningHouse(AircraftClass* const pThis, DWORD, HouseClass* pNewOwner, bool bAnnounce)
+bool __fastcall AircraftClass_SetOwningHouse(AircraftClass* const pThis, DWORD, HouseClass* pNewOwner, bool bAnnounce)
 {
 	return pThis->FootClass::SetOwningHouse(pNewOwner, bAnnounce);
 }

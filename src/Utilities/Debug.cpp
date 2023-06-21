@@ -368,7 +368,7 @@ void Console::WriteLine(const char* str, int len)
 	Write("\n");
 }
 
-void FC Console::WriteWithVArgs(const char* pFormat, va_list args)
+void __fastcall Console::WriteWithVArgs(const char* pFormat, va_list args)
 {
 	vsprintf_s(Debug::StringBuffer, pFormat, args);
 	Write(Debug::StringBuffer, strlen(Debug::StringBuffer));

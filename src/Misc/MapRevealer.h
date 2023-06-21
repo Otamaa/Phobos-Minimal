@@ -81,7 +81,7 @@ private:
 
 public:
 	// Reveal_Area
-	static void FC MapClass_RevealArea0(MapClass* pThis, void*, CoordStruct* pCoord,
+	static void __fastcall MapClass_RevealArea0(MapClass* pThis, void*, CoordStruct* pCoord,
 		int nRadius, HouseClass* pHouse, int bOutlineOnly, bool bNoShroudUpdate, bool bFog,
 		bool bAllowRevealByHeight, bool bHideOnRadar)
 	{
@@ -91,7 +91,7 @@ public:
 	}
 
 	// Sight_From
-	static void FC MapClass_RevealArea1(MapClass* pThis, void*, CoordStruct* pCoord,
+	static void __fastcall MapClass_RevealArea1(MapClass* pThis, void*, CoordStruct* pCoord,
 		int nRadius, HouseClass* pHouse, int bOutlineOnly, bool bNoShroudUpdate, bool bFog,
 		bool bAllowRevealByHeight, bool bIncreaseShroudCounter)
 	{
@@ -99,7 +99,7 @@ public:
 		revealer.Reveal1(*pCoord, nRadius, pHouse, bOutlineOnly, bFog, bAllowRevealByHeight, bIncreaseShroudCounter);
 	}
 
-	static void FC MapClass_RevealArea2(MapClass* pThis, void*,
+	static void __fastcall MapClass_RevealArea2(MapClass* pThis, void*,
 		CoordStruct* Coords, int Height, int Radius, bool bSkipReveal)
 	{
 		MapRevealer const revealer(*Coords);

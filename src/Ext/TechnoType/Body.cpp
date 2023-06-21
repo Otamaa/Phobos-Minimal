@@ -880,6 +880,10 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->FactoryPlant_Multiplier.Read(exINI, pSection, "FactoryPlant.Multiplier");
 		this->MassSelectable.Read(exINI, pSection, "MassSelectable");
 
+		this->TiltsWhenCrushes_Vehicles.Read(exINI, pSection, "TiltsWhenCrushes.Vehicles");
+		this->TiltsWhenCrushes_Walls.Read(exINI, pSection, "TiltsWhenCrushes.Walls");
+		this->WallCrushSlowdown.Read(exINI, pSection, "WallCrushSlowdown");
+
 		if (Is_AircraftType(pThis))
 		{
 			this->CrashSpinLevelRate.Read(exINI, pSection, "CrashSpin.LevelRate");
@@ -1714,6 +1718,9 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->AttractorRange)
 		.Process(this->FactoryPlant_Multiplier)
 		.Process(this->MassSelectable)
+		.Process(this->TiltsWhenCrushes_Vehicles)
+		.Process(this->TiltsWhenCrushes_Walls)
+		.Process(this->WallCrushSlowdown)
 
 #pragma endregion
 		;

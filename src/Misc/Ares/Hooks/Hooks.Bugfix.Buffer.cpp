@@ -71,7 +71,7 @@ DEFINE_OVERRIDE_HOOK(0x772462, WeaponTypeClass_LoadFromINI_ListLength, 0x9)
 	GET(CCINIClass*, pINI, EDI);
 
 	INI_EX exINI(pINI);
-	detail::ParseVector<AnimTypeClass*>(pThis->Anim, exINI, pSection, GameStrings::Anim(), "Expect valid AnimType");
+	detail::ParseVector<AnimTypeClass*, true>(pThis->Anim, exINI, pSection, GameStrings::Anim(), "Expect valid AnimType");
 
 	return 0x77255F;
 }
@@ -84,7 +84,7 @@ DEFINE_OVERRIDE_HOOK(0x75D660, WarheadTypeClass_LoadFromINI_ListLength, 9)
 	GET(CCINIClass*, pINI, EDI);
 
 	INI_EX exINI(pINI);
-	detail::ParseVector<AnimTypeClass*>(pThis->AnimList, exINI, pSection, GameStrings::AnimList, "Expect valid AnimType");
+	detail::ParseVector<AnimTypeClass*, true>(pThis->AnimList, exINI, pSection, GameStrings::AnimList, "Expect valid AnimType");
 	detail::ParseVector(pThis->DebrisMaximums, exINI, pSection, GameStrings::DebrisMaximums, "Expect valid number");
 	detail::ParseVector<VoxelAnimTypeClass*>(pThis->DebrisTypes, exINI, pSection, GameStrings::DebrisTypes, "Expect valid VoxelAnimType");
 

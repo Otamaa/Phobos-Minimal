@@ -36,7 +36,7 @@ bool SW_EMPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 		if (!pData->EMPulse_TargetSelf)
 		{
 			// set extended properties
-			EMPulseTarget(pBld) = (AbstractClass*)MapClass::Instance->TryGetCellAt(Coords); //TODO:
+			TechnoExt::ExtMap.Find(pBld)->EMPTarget = Coords;
 			TechnoExt::ExtMap.Find(pBld)->LinkedSW = pThis;
 			// setup the cannon and start the fire mission
 			pBld->FiringSWType = pThis->Type->ArrayIndex;

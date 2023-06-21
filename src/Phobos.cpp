@@ -504,7 +504,7 @@ void InitConsole()
 	}
 }
 
-bool FC CustomPalette_Read_Static(CustomPalette* pThis, DWORD, INI_EX* pEx, const char* pSection, const char* pKey, const char* pDefault)
+bool __fastcall CustomPalette_Read_Static(CustomPalette* pThis, DWORD, INI_EX* pEx, const char* pSection, const char* pKey, const char* pDefault)
 {
 	return pThis->Read(pEx->GetINI(), pSection, pKey, pDefault);
 }

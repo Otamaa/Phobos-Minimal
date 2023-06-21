@@ -1,5 +1,128 @@
 #include "Body.h"
 
+#include <Misc/AresData.h>
+#include <Ext/Building/Body.h>
+
+// This function controls the availability of super weapons. If a you want to
+// add to or change the way the game thinks a building provides a super weapon,
+// change the lambda UpdateStatus. Available means this super weapon exists at
+// all. Setting it to false removes the super weapon. PowerSourced controls
+// whether the super weapon charges or can be used.
+void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
+{
+	// look at every sane building this player owns, if it is not defeated already.
+	if (!pHouse->Defeated && !pHouse->IsObserver())
+	{
+		if (pHouse->Supers.Count > 0)
+		{
+			for (int i = 0; i < pHouse->Supers.Count; ++i)
+			{
+				auto pExt = SuperExt::ExtMap.Find(pHouse->Supers[i]);
+				pExt->Statusses.reset();
+
+				//if InitialReady and SWAvaible
+
+				if (pExt->Type->SW_AlwaysGranted && pExt->Type->IsAvailable(pHouse))
+				{
+					pExt->Statusses.Available = true;
+					pExt->Statusses.Charging = true;
+				}
+			}
+		}
+
+		for (auto pBld : pHouse->Buildings)
+		{
+			if (pBld->IsAlive && !pBld->InLimbo)
+			{
+				bool Operatored = false;
+				bool IsPowered = false;
+
+				// the super weapon status update lambda.
+				auto UpdateStatus = [&](int idxSW)
+				{
+					if (idxSW >= 0)
+					{
+						const auto pSuperExt = SuperExt::ExtMap.Find(pHouse->Supers[idxSW]);
+						auto& status = pSuperExt->Statusses;
+
+						if (!status.Charging)
+						{
+							if (pSuperExt->Type->IsAvailable(pHouse))
+							{
+								status.Available = true;
+
+								if (!Operatored)
+								{
+									IsPowered = pBld->HasPower;
+									if (!pBld->IsUnderEMP() && (Is_Operated(pBld) || AresData::IsOperated(pBld)))
+										Operatored = true;
+								}
+
+								if (!status.Charging && IsPowered)
+								{
+									status.PowerSourced = true;
+
+									if (!pBld->IsBeingWarpedOut()
+										&& (pBld->CurrentMission != Mission::Construction)
+										&& (pBld->CurrentMission != Mission::Selling)
+										&& (pBld->QueuedMission != Mission::Construction)
+										&& (pBld->QueuedMission != Mission::Selling))
+									{
+										status.Charging = true;
+									}
+								}
+							}
+						}
+					}
+				};
+
+				// check for upgrades. upgrades can give super weapons, too.
+				for (const auto& pUpgrade : pBld->Upgrades) {
+					if (const auto pUpgradeExt = BuildingTypeExt::ExtMap.TryFind(pUpgrade)) {
+						for (auto i = 0; i < pUpgradeExt->GetSuperWeaponCount(); ++i) {
+							UpdateStatus(pUpgradeExt->GetSuperWeaponIndex(i, pHouse));
+						}
+					}
+				}
+
+				// look for the main building.
+				const auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+				for (auto i = 0; i < pBuildingExt->GetSuperWeaponCount(); ++i) {
+					UpdateStatus(pBuildingExt->GetSuperWeaponIndex(i));
+				}
+			}
+		}
+
+		// kill off super weapons that are disallowed and
+		// factor in the player's power status
+		const bool hasPower = pHouse->HasFullPower();
+		const bool bIsSWShellEnabled = Unsorted::SWAllowed || SessionClass::Instance->GameMode == GameMode::Campaign;
+
+		if (!hasPower || !bIsSWShellEnabled)
+		{
+			for (auto const& pSuper : pHouse->Supers)
+			{
+				auto& nStatus = SuperExt::ExtMap.Find(pSuper)->Statusses;
+
+				// turn off super weapons that are disallowed.
+				if (!bIsSWShellEnabled && pSuper->Type->DisableableFromShell)
+				{
+					nStatus.Available = false;
+				}
+
+				// if the house is generally on low power,
+				// powered super weapons aren't powered
+				if (!hasPower && pSuper->IsPowered())
+				{
+					nStatus.PowerSourced &= hasPower;
+				}
+
+			}
+		}
+	}
+}
+
+
 // =============================
 // load / save
 
@@ -12,6 +135,7 @@ void SuperExt::ExtData::Serialize(T& Stm) {
 		.Process(this->Temp_CellStruct)
 		.Process(this->Temp_IsPlayer)
 		.Process(this->Firer)
+		.Process(this->Statusses)
 
 		;
 }

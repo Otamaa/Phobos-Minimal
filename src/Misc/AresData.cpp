@@ -532,7 +532,7 @@ void AresData::EvalRaidStatus(BuildingClass* pBuilding)
 
 bool AresData::IsActiveFirestormWall(BuildingClass* pBuilding, HouseClass* pOwner)
 {
-	return AresThiscall<IsActiveFirestormWallID, bool, BuildingClass* , HouseClass* >()(pBuilding , pOwner);
+	return AresStdcall<IsActiveFirestormWallID, bool, BuildingClass* , HouseClass* >()(pBuilding , pOwner);
 }
 
 bool AresData::ImmolateVictim(BuildingClass* pBuilding, FootClass* pTarget, bool Destroy)

@@ -12,6 +12,8 @@
 #include <NetworkEvents.h>
 #include <CCToolTip.h>
 
+#include <Lib/gcem/gcem.hpp>
+
 #include "NewSuperWeaponType/NuclearMissile.h"
 #include "NewSuperWeaponType/LightningStorm.h"
 #include "NewSuperWeaponType/Dominator.h"
@@ -997,11 +999,14 @@ DEFINE_HOOK(0x46B310, BulletClass_NukeMaker_Handle, 6)
 		const auto pTargetCell = MapClass::Instance->GetCellAt(nTargetLoc);
 		auto nTargetLocBridge = pTargetCell->GetCoordsWithBridge();
 		nTargetLocBridge.Z += pPaylod->Projectile->DetonationAltitude;
-		//auto nCos = 0.00004793836; //std::cos(1.570748388432313); // Accuracy is different from the game 
-		//auto nSin = 0.99999999885; //std::sin(1.570748388432313); // Accuracy is different from the game 
-		constexpr double nX = 0.00004793836 * 0.00004793836 * -1.0;
-		constexpr double nY = 0.00004793836 * 0.99999999885 * -1.0;
-		constexpr double nZ = 0.99999999885 * -1.0;
+		//auto nCos = 0.00004793836; 
+		constexpr auto nCos = gcem::cos(1.570748388432313); // Accuracy is different from the game 
+		//auto nSin = 0.99999999885; 
+		constexpr auto nSin = gcem::sin(1.570748388432313); // Accuracy is different from the game 
+
+		constexpr double nX = nCos * nCos * -1.0;
+		constexpr double nY = nCos * nSin * -1.0;
+		constexpr double nZ = nSin * -1.0;
 
 		pPayloadBullet->MoveTo(nTargetLocBridge, { nX , nY , nZ });
 	}
@@ -1059,147 +1064,15 @@ DEFINE_HOOK(0x4C78EF, Networking_RespondToEvent_SpecialPlace, 9)
 	return 0x4C78F8;
 }
 
-// cache all super weapon statuses
-struct SWStatus
-{
-	bool Available; //0
-	bool PowerSourced; //1
-	bool Charging;
-};
-
-// This function controls the availability of super weapons. If a you want to
-// add to or change the way the game thinks a building provides a super weapon,
-// change the lambda UpdateStatus. Available means this super weapon exists at
-// all. Setting it to false removes the super weapon. PowerSourced controls
-// whether the super weapon charges or can be used.
-std::vector<SWStatus> GetSuperWeaponStatuses(HouseClass* pHouse)
-{
-	std::vector<SWStatus> Statuses(pHouse->Supers.Count, { false, false, false });
-
-	// look at every sane building this player owns, if it is not defeated already.
-	if (!pHouse->Defeated && !pHouse->IsObserver())
-	{
-		if (pHouse->Supers.Count > 0)
-		{
-			for (int i = 0; i < pHouse->Supers.Count; ++i)
-			{
-				auto pSuper = pHouse->Supers[i];
-				auto& status = Statuses[i];
-
-				//if InitialReady and SWAvaible
-				const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
-
-				if (pExt->SW_AlwaysGranted && pExt->IsAvailable(pHouse))
-				{
-					status.Available = true;
-					status.Charging = true;
-				}
-			}
-		}
-
-		for (auto pBld : pHouse->Buildings)
-		{
-			if (pBld->IsAlive && !pBld->InLimbo)
-			{
-				bool Operatored = false;
-				bool IsPowered = false;
-
-				// the super weapon status update lambda.
-				auto UpdateStatus = [&](int idxSW)
-				{
-					if (idxSW >= 0)
-					{
-						auto& status = Statuses[idxSW];
-						const auto pSuperExt = SWTypeExt::ExtMap.Find(pHouse->Supers[idxSW]->Type);
-
-						if (!status.Charging)
-						{
-							if (pSuperExt->IsAvailable(pHouse))
-							{
-								status.Available = true;
-
-								if (!Operatored)
-								{
-									IsPowered = pBld->HasPower;
-									if (!pBld->IsUnderEMP() && (Is_Operated(pBld) || AresData::IsOperated(pBld)))
-										Operatored = true;
-								}
-
-								if (!status.Charging && IsPowered)
-								{
-									status.PowerSourced = true;
-
-									if (!pBld->IsBeingWarpedOut()
-										&& (pBld->CurrentMission != Mission::Construction)
-										&& (pBld->CurrentMission != Mission::Selling)
-										&& (pBld->QueuedMission != Mission::Construction)
-										&& (pBld->QueuedMission != Mission::Selling))
-									{
-										status.Charging = true;
-									}
-								}
-							}
-						}
-					}
-				};
-
-				// check for upgrades. upgrades can give super weapons, too.
-				for (const auto& pUpgrade : pBld->Upgrades)
-				{
-					if (const auto pUpgradeExt = BuildingTypeExt::ExtMap.TryFind(pUpgrade))
-					{
-						for (auto i = 0; i < pUpgradeExt->GetSuperWeaponCount(); ++i)
-						{
-							const auto Idx = pUpgradeExt->GetSuperWeaponIndex(i, pHouse);
-							UpdateStatus(Idx);
-						}
-					}
-				}
-
-				// look for the main building.
-				const auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
-				for (auto i = 0; i < pBuildingExt->GetSuperWeaponCount(); ++i)
-				{
-					UpdateStatus(pBuildingExt->GetSuperWeaponIndex(i));
-				}
-			}
-		}
-
-		// kill off super weapons that are disallowed and
-		// factor in the player's power status
-		const bool hasPower = pHouse->HasFullPower();
-		const auto bIsSWShellEnabled = Unsorted::SWAllowed || SessionClass::Instance->GameMode == GameMode::Campaign;
-
-		if (!hasPower || !bIsSWShellEnabled)
-		{
-			for (size_t i = 0; i < Statuses.size(); ++i)
-			{
-				const auto pSuper = pHouse->Supers[i];
-				auto& nStatus = Statuses[i];
-
-				// turn off super weapons that are disallowed.
-				if (!bIsSWShellEnabled && pSuper->Type->DisableableFromShell) {
-					nStatus.Available = false;
-				}
-
-				// if the house is generally on low power,
-				// powered super weapons aren't powered
-				if (!hasPower && pSuper->IsPowered()) {
-					nStatus.PowerSourced &= hasPower;
-				}
-
-			}
-		}
-	}
-
-	return Statuses;
-}
 
 DEFINE_OVERRIDE_HOOK(0x50AF10, HouseClass_UpdateSuperWeaponsOwned, 5)
 {
 	GET(HouseClass*, pThis, ECX);
 
-	auto Statuses = GetSuperWeaponStatuses(pThis);
+	if(pThis->IsNeutral())
+		return 0x50B1CA;
+
+	SuperExt::UpdateSuperWeaponStatuses(pThis);
 
 	// now update every super weapon that is valid.
 	// if this weapon has not been granted there's no need to update
@@ -1209,7 +1082,7 @@ DEFINE_OVERRIDE_HOOK(0x50AF10, HouseClass_UpdateSuperWeaponsOwned, 5)
 		{
 			auto pType = pSuper->Type;
 			auto index = pType->ArrayIndex;
-			auto& status = Statuses[index];
+			auto& status = SuperExt::ExtMap.Find(pSuper)->Statusses;
 
 			auto Update = [&]()
 			{
@@ -1264,9 +1137,12 @@ DEFINE_OVERRIDE_HOOK(0x50B1D0, HouseClass_UpdateSuperWeaponsUnavailable, 6)
 {
 	GET(HouseClass*, pThis, ECX);
 
+	if (pThis->IsNeutral())
+		return 0x50B1CA;
+
 	if (!pThis->Defeated && !(pThis->IsObserver()))
 	{
-		auto Statuses = GetSuperWeaponStatuses(pThis);
+		SuperExt::UpdateSuperWeaponStatuses(pThis);
 
 		// update all super weapons not repeatedly available
 		for (auto pSuper : pThis->Supers)
@@ -1274,7 +1150,8 @@ DEFINE_OVERRIDE_HOOK(0x50B1D0, HouseClass_UpdateSuperWeaponsUnavailable, 6)
 			if (!pSuper->Granted || pSuper->OneTime)
 			{
 				auto index = pSuper->Type->ArrayIndex;
-				auto& status = Statuses[index];
+				const auto pExt = SuperExt::ExtMap.Find(pSuper);
+				auto& status = pExt->Statusses;
 
 				if (status.Available)
 				{
@@ -1283,8 +1160,7 @@ DEFINE_OVERRIDE_HOOK(0x50B1D0, HouseClass_UpdateSuperWeaponsUnavailable, 6)
 					if (pThis->IsCurrentPlayer())
 					{
 						// hide the cameo (only if this is an auto-firing SW)
-						auto pData = SWTypeExt::ExtMap.Find(pSuper->Type);
-						if (pData->SW_ShowCameo || !pData->SW_AutoFire)
+						if (pExt->Type->SW_ShowCameo || !pExt->Type->SW_AutoFire)
 						{
 							MouseClass::Instance->AddCameo(AbstractType::Special, index);
 							MouseClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(SuperClass::AbsID, index, 0));
@@ -1393,18 +1269,23 @@ DEFINE_OVERRIDE_HOOK(0x44CCE7, BuildingClass_Mi_Missile_GenericSW, 6)
 	enum { ProcessEMPulse = 0x44CD18, ReturnFromFunc = 0x44D599 };
 	GET(BuildingClass* const, pThis, ESI);
 
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+
 	if (!pThis->Type->EMPulseCannon)
 	{
 		// originally, this part was related to chem missiles
-		const auto pEMPTarget = EMPulseTarget(pThis);
-		const auto pTarget = pEMPTarget ? pEMPTarget
-			: MapClass::Instance->GetCellAt(pThis->Owner->NukeTarget);
+		const auto pTarget = pExt->EMPTarget.IsValid()
+			? pExt->EMPTarget : pThis->Owner->NukeTarget;
 
-		pThis->Fire(pTarget, 0);
+		pThis->Fire(MapClass::Instance->GetCellAt(pTarget), 0);
 		pThis->QueueMission(Mission::Guard, false);
 
 		R->EAX(1);
 		return ReturnFromFunc;
+	}
+
+	if(pExt->EMPTarget.IsValid()) {
+		pThis->Owner->EMPTarget = pExt->EMPTarget;
 	}
 
 	return ProcessEMPulse;
@@ -2317,9 +2198,8 @@ DEFINE_OVERRIDE_HOOK(0x4555D5, BuildingClass_IsPowerOnline_KeepOnline, 5)
 
 			const auto Iter = std::find_if(pExt->Battery_KeepOnline.begin(),
 						pExt->Battery_KeepOnline.end(),
-				[&](const BuildingTypeClass* pItem)
- {
-	 return pItem == pThis->Type;
+				[&](const BuildingTypeClass* pItem) {
+					return pItem == pThis->Type;
 				});
 
 			if (Iter != pExt->Battery_KeepOnline.end())
@@ -2352,9 +2232,8 @@ DEFINE_OVERRIDE_HOOK(0x44019D, BuildingClass_Update_Battery, 6)
 
 			const auto Iter = std::find_if(pExt->Battery_Overpower.begin(),
 						pExt->Battery_Overpower.end(),
-				[&](const BuildingTypeClass* pItem)
- {
-	 return !pThis->IsOverpowered && pItem == pThis->Type;
+				[&](const BuildingTypeClass* pItem) {
+					 return !pThis->IsOverpowered && pItem == pThis->Type;
 				});
 
 			if (Iter != pExt->Battery_Overpower.end())

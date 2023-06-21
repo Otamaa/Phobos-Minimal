@@ -402,7 +402,7 @@ public:
 		{ JMP_THIS(0x4FCE30); }
 
 	bool HasFullPower() const {
-		return this->PowerOutput >= this->PowerDrain || !this->PowerDrain;
+		return !this->PowerDrain || this->PowerOutput >= this->PowerDrain;
 	}
 
 	bool HasLowPower() const {

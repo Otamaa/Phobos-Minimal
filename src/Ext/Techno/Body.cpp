@@ -3938,6 +3938,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->SelfHealing_CombatDelay)
 		.Process(this->PayloadCreated)
 		.Process(this->LinkedSW)
+		.Process(this->EMPTarget)
 #ifdef ENABLE_HOMING_MISSILE
 		.Process(this->MissileTargetTracker)
 #endif
