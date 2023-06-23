@@ -599,11 +599,11 @@ DEFINE_OVERRIDE_HOOK(0x7400F0, UnitClass_GetActionOnObject_SelfDeployCursor_Bunk
 	GET(UnitClass*, pThis, ESI);
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
-	if (!pThis->BunkerLinkedItem) {
+	if (pThis->BunkerLinkedItem) {
 		//Cursor Deploy
 		AresData::SetMouseCursorAction(pTypeExt->Cursor_Deploy.Get(), Action::Self_Deploy, false);
 		return 0x73FFE6;
 	}
 
-	return pThis->unknown_bool_6AC ? 0x7400FA : 0x740115;
+	return pThis->Type->DeployFire ? 0x7400FA : 0x740115;
 }
