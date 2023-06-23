@@ -426,7 +426,7 @@ DEFINE_HOOK(0x5206F9, InfantryClass_UpdateFiringState_AIDeploy, 0x8)
 		// Other hooks needed
 		//DeployToFire.RequiresAIOnly
 
-		if (pHouseOwner->CurrentPlayer && (SessionGlobal.GameMode == GameMode::Campaign || pHouseOwner->PlayerControl))
+		if (pHouseOwner->IsHumanPlayer && (SessionGlobal.GameMode == GameMode::Campaign || pHouseOwner->PlayerControl))
 		{
 			const auto pTarget = pThis->Target;
 

@@ -53,34 +53,19 @@ namespace detail
 				cur;
 				cur = strtok_s(nullptr, Phobos::readDelims, &context))
 			{
-				size_t result = 0;
 				bool found = false;
-				for (const auto& pStrings : EnumFunctions::SpotlightFlags_ToStrings)
+				for (const auto& [pStrings , val]: EnumFunctions::SpotlightFlags_ToStrings)
 				{
 					if (IS_SAME_STR_(cur, pStrings))
 					{
 						found = true;
+						resultData |= val;
 						break;
 					}
-					++result;
 				}
 
-				if (!found)
-				{
-				err:
+				if (!found) {
 					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected valid SpotlightFlags value");
-					return false;
-				}
-				else
-				{
-					switch (result)
-					{
-					case 0: goto err;
-					case 1: resultData |= SpotlightFlags::NoColor; break;
-					case 2: resultData |= SpotlightFlags::NoRed; break;
-					case 3: resultData |= SpotlightFlags::NoGreen; break;
-					case 4: resultData |= SpotlightFlags::NoBlue; break;
-					}
 				}
 			}
 
@@ -146,8 +131,7 @@ namespace detail
 				}
 			}
 
-			if (!GameStrings::IsBlank(parser.value()))
-			{
+			if (!GameStrings::IsBlank(parser.value())) {
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid DamageDelayTargetFlag");
 			}
 		}
@@ -321,25 +305,17 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			if (IS_SAME_STR_(parser.value(), "body"))
+			for (size_t i = 0; i < EnumFunctions::SpotlightAttachment_ToStrings.size(); ++i)
 			{
-				value = SpotlightAttachment::Body;
-				return true;
+				if (IS_SAME_STR_(parser.value(), EnumFunctions::SpotlightAttachment_ToStrings[i]))
+				{
+					value = (SpotlightAttachment)i;
+					return true;
+				}		
 			}
-			else if (IS_SAME_STR_(parser.value(), "turret"))
-			{
-				value = SpotlightAttachment::Turret;
-				return true;
-			}
-			else if (IS_SAME_STR_(parser.value(), "barrel"))
-			{
-				value = SpotlightAttachment::Barrel;
-				return true;
-			}
-			else
-			{
-				Debug::INIParseFailed(pSection, pKey, parser.value());
-			}
+			
+			if (!parser.empty())
+			Debug::INIParseFailed(pSection, pKey, parser.value(),"Expect valid SpotlightAttachment");
 		}
 
 		return false;
@@ -350,27 +326,19 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			if (IS_SAME_STR_(parser.value(), "Hour"))
+			if (parser.ReadString(pSection, pKey))
 			{
-				value = ShowTimerType::Hour;
-				return true;
-			}
-			else if (IS_SAME_STR_(parser.value(), "Minute"))
-			{
-				value = ShowTimerType::Minute;
-				return true;
-			}
-			else if (IS_SAME_STR_(parser.value(), "Second"))
-			{
-				value = ShowTimerType::Second;
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+				for (size_t i = 0; i < EnumFunctions::ShowTimerType_ToStrings.size(); ++i)
+				{
+					if (IS_SAME_STR_(parser.value(), EnumFunctions::ShowTimerType_ToStrings[i]))
+					{
+						value = (ShowTimerType)i;
+						return true;
+					}
+				}
 
-			return true;
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid ShowTimerType");
+			}
 		}
 		return false;
 	}

@@ -411,11 +411,11 @@ void Phobos::Config::Read()
 			BlittersFix::Apply();
 		}
 
-		if (pINI->ReadBool(GENERAL_SECTION, "SkirmishUnlimitedColors", false))
-		{
-			ALLOCATE_LOCAL_PATCH(SkirmishColorPatch, 0x69A310,
-				0x8B, 0x44, 0x24, 0x04, 0xD1, 0xE0, 0x40, 0xC2, 0x04, 0x00);
-		}
+		//if (pINI->ReadBool(GENERAL_SECTION, "SkirmishUnlimitedColors", false))
+		//{
+		//	ALLOCATE_LOCAL_PATCH(SkirmishColorPatch, 0x69A310,
+		//		0x8B, 0x44, 0x24, 0x04, 0xD1, 0xE0, 0x40, 0xC2, 0x04, 0x00);
+		//}
 
 		Phobos::CloseConfig(pINI);
 	}
@@ -459,7 +459,7 @@ void InitAdminDebugMode()
 			Phobos::EnableConsole = true;
 #endif
 
-#ifndef DETACH_DEBUGGER
+#ifdef DETACH_DEBUGGER
 			// this thing can cause game to lockup when loading data
 			// better disable it for release
 				

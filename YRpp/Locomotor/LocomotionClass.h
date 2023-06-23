@@ -9,6 +9,14 @@
 #include <Matrix3D.h>
 #include "CLSIDs.h"
 
+struct LocoIdent
+{
+	wchar_t* w_name;
+	const char* s_name;
+	wchar_t* w_CLSID;
+	const char* s_CLSID;
+};
+
 class NOVTABLE LocomotionClass : public IPersistStream, public ILocomotion
 {
 public:

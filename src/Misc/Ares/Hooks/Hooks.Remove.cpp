@@ -48,6 +48,7 @@ DEFINE_DISABLE_HOOK(0x567DA0, MapClass_RevealArea2_ares)
 DEFINE_DISABLE_HOOK(0x5240bd, InfantryTypeClass_LoadFromINI_DamageSparks_ares)
 DEFINE_DISABLE_HOOK(0x4da584 ,FootClass_Update_RadImmune_ares)
 DEFINE_DISABLE_HOOK(0x457DB7, BuildingClass_CanBeOccupied_SpecificAssaulters_ares)
+DEFINE_DISABLE_HOOK(0x5F6515, AbstractClass_Distance2DSquared_1_ares)
 
 DEFINE_DISABLE_HOOK(0x42784B, AnimTypeClass_CTOR_ares)
 DEFINE_DISABLE_HOOK(0x428EA8, AnimTypeClass_SDDTOR_ares)

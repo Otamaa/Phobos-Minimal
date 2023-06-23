@@ -362,10 +362,10 @@ void ChronoWarpStateMachine::Update()
 			if (!success)
 			{
 				// put it back where it was
-				++Unsorted::IKnowWhatImDoing;
+				++Unsorted::ScenarioInit;
 				pBld->Unlimbo(item.origin, DirType::North);
 				pBld->Place(false);
-				--Unsorted::IKnowWhatImDoing;
+				--Unsorted::ScenarioInit;
 			}
 
 			// chronoshift ends

@@ -9,7 +9,9 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 #include <Misc/AresData.h>
+#include <Strsafe.h>
 
+#include <Ext/Anim/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
@@ -17,6 +19,9 @@
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/SWType/Body.h>
 
+#include <New/Type/ArmorTypeClass.h>
+
+#include <Locomotor/JumpjetLocomotionClass.h>
 #include <Locomotor/HoverLocomotionClass.h>
 
 DEFINE_OVERRIDE_HOOK(0x718275 ,TeleportLocomotionClass_MakeRoom, 9)
@@ -341,4 +346,364 @@ DEFINE_OVERRIDE_HOOK(0x4CFE80, FlyLocomotionClass_ILocomotion_AcquireHunterSeeke
 	AcquireHunterSeekerTarget(pLoco->LinkedTo);
 
 	return 0x4D016F;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4B5EB0, DropPodLocomotionClass_ILocomotion_Process_Smoke, 6)
+{
+	GET(FootClass*, pFoot, ESI);
+	REF_STACK(const CoordStruct, Coords, 0x34);
+
+	// create trailer even without weapon, but only if it is set
+	if (!(Unsorted::CurrentFrame % 6))
+	{
+		if (AnimTypeClass* pType = RulesExt::Global()->DropPodTrailer)
+		{
+			if (auto pAnim = GameCreate<AnimClass>(pType, Coords))
+			{
+				AnimExt::SetAnimOwnerHouseKind(pAnim, pFoot->Owner, nullptr, pFoot, false);
+			}
+		}
+	}
+
+	if (const auto pWeapon = RulesClass::Instance->DropPodWeapon)
+	{
+		R->ESI(pWeapon);
+		return 0x4B5F14;
+	}
+
+	return 0x4B602D;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4B99A2, DropshipLoadout_WriteUnit, 0xA)
+{
+	GET(TechnoTypeClass*, pType, ESI);
+
+	GET_STACK(bool, Available, STACK_OFFS(0x164, -0x8));
+
+	LEA_STACK(Point2D*, BaseCoords, STACK_OFFS(0x164, 0x14C));
+	LEA_STACK(Point2D*, AltCoords, STACK_OFFS(0x164, 0x144));
+
+	const size_t StringLen = 256;
+
+	wchar_t pName[StringLen];
+	wchar_t pArmor[StringLen];
+	wchar_t pArmament[StringLen];
+	wchar_t pCost[StringLen];
+
+	StringCchPrintfW(pName, StringLen, L"Name: %hs", pType->Name);
+
+	if (Available)
+	{
+		StringCchPrintfW(pCost, StringLen, L"Cost: %d", pType->GetCost());
+	}
+	else
+	{
+		StringCchPrintfW(pCost, StringLen, L"Cost: N/A");
+	}
+
+	if (auto pPrimary = pType->Weapon[0].WeaponType)
+	{
+		StringCchPrintfW(pArmament, StringLen, L"Armament: %hs", pPrimary->Name);
+	}
+	else
+	{
+		StringCchPrintfW(pArmament, StringLen, L"Armament: NONE");
+	}
+
+	if (const auto& pArmorType = ArmorTypeClass::Array[static_cast<unsigned int>(pType->Armor)])
+	{
+		StringCchPrintfW(pArmor, StringLen, L"Armor: %hs", pArmorType->Name.data());
+	}
+	else
+	{
+		StringCchPrintfW(pArmor, StringLen, L"Armor: UNKNOWN");
+	}
+
+	auto Color = ColorScheme::Find(Available ? GameStrings::Green() : GameStrings::Red(), 1);
+
+	auto pSurface = DSurface::Hidden();
+	RectangleStruct pSurfaceRect = pSurface->Get_Rect();
+	Point2D Coords = *BaseCoords;
+	Coords.X += 450;
+	Coords.Y += 300;
+
+	Drawing::PrintUnicode(AltCoords, pName, pSurface, &pSurfaceRect, &Coords, Color, 0, 70);
+
+	Coords.Y += 15;
+	Drawing::PrintUnicode(AltCoords, pArmament, pSurface, &pSurfaceRect, &Coords, Color, 0, 70);
+
+	Coords.Y += 15;
+	Drawing::PrintUnicode(AltCoords, pArmor, pSurface, &pSurfaceRect, &Coords, Color, 0, 70);
+
+	Coords.Y += 15;
+	Drawing::PrintUnicode(AltCoords, pCost, pSurface, &pSurfaceRect, &Coords, Color, 0, 70);
+
+	return 0x4B9BBF;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4B9A52, DropshipLoadout_PrintArmor, 5)
+{
+	R->Stack(0x4, ArmorTypeClass::Array[R->EDX()].get());
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4CF3D0, FlyLocomotionClass_sub_4CEFB0_HunterSeeker, 7)
+{
+	GET_STACK(FlyLocomotionClass* const, pThis, 0x20);
+	auto const pObject = pThis->LinkedTo;
+	auto const pType = pObject->GetTechnoType();
+	auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (pType->HunterSeeker)
+	{
+		if (auto const pTarget = pObject->Target)
+		{
+			auto const DetonateProximity = pExt->HunterSeekerDetonateProximity.Get(RulesExt::Global()->HunterSeekerDetonateProximity);
+			auto const DescendProximity = pExt->HunterSeekerDescendProximity.Get(RulesExt::Global()->HunterSeekerDescendProximity);
+
+			// get th difference of our position to the target,
+			// disregarding the Z component.
+			auto crd = pObject->GetCoords();
+			crd -= pThis->MovingDestination;
+			crd.Z = 0;
+
+			auto const dist = int(crd.Magnitude());
+
+			if (dist >= DetonateProximity)
+			{
+				// not close enough to detonate, but we might start the decent
+				if (dist < DescendProximity)
+				{
+					// the target's current height
+					auto const z = pTarget->GetCoords().Z;
+
+					// the hunter seeker's default flight level
+					crd = pObject->GetCoords();
+					auto floor = MapClass::Instance->GetCellFloorHeight(crd);
+					auto const height = floor + pType->GetFlightLevel();
+
+					// linear interpolation between target's Z and normal flight level
+					auto const ratio = dist / static_cast<double>(DescendProximity);
+					auto const lerp = z * (1.0 - ratio) + height * ratio;
+
+					// set the descending flight level
+					auto level = int(lerp) - floor;
+					if (level < 10)
+					{
+						level = 10;
+					}
+
+					pThis->FlightLevel = level;
+
+					return 0x4CF4D2;
+				}
+
+				// project the next steps using the current speed
+				// and facing. if there's a height difference, use
+				// the highest value as the new flight level.
+				auto const speed = pThis->Apparent_Speed();
+				if (speed > 0)
+				{
+					double const value = pObject->PrimaryFacing.Current().GetRadian();
+					double const cos = std::cos(value);
+					double const sin = std::sin(value);
+
+					int maxHeight = 0;
+					int currentHeight = 0;
+					auto crd2 = pObject->GetCoords();
+					for (int i = 0; i < 11; ++i)
+					{
+						auto const pCell = MapClass::Instance->GetCellAt(crd2);
+						auto const z = pCell->GetCoordsWithBridge().Z;
+
+						if (z > maxHeight)
+						{
+							maxHeight = z;
+						}
+
+						if (!i)
+						{
+							currentHeight = z;
+						}
+
+						// advance one step
+						crd2.X += int(cos * speed);
+						crd2.Y -= int(sin * speed);
+
+						// result is never used in TS, but a break sounds
+						// like a good idea.
+						auto const cell = CellClass::Coord2Cell(crd2);
+						if (!MapClass::Instance->CoordinatesLegal(cell))
+						{
+							break;
+						}
+					}
+
+					// pull the old lady up
+					if (maxHeight > currentHeight)
+					{
+						pThis->FlightLevel = pType->GetFlightLevel();
+						return 0x4CF4D2;
+					}
+				}
+
+			}
+			else
+			{
+				// close enough to detonate
+				if (auto const pTechno = abstract_cast<TechnoClass*>(pTarget))
+				{
+					auto const pWeapon = pObject->GetPrimaryWeapon()->WeaponType;
+
+					// damage the target
+					auto damage = pWeapon->Damage;
+					pTechno->ReceiveDamage(&damage, 0, pWeapon->Warhead, pObject, true, true, nullptr);
+
+					// damage the hunter seeker
+					damage = pWeapon->Damage;
+					pObject->ReceiveDamage(&damage, 0, pWeapon->Warhead, nullptr, true, true, nullptr);
+
+					// damage the map
+					auto const crd2 = pObject->GetCoords();
+					MapClass::FlashbangWarheadAt(pWeapon->Damage, RulesClass::Instance->C4Warhead, crd2);
+					MapClass::DamageArea(crd2, pWeapon->Damage, pObject, pWeapon->Warhead, true, nullptr);
+
+					// return 0
+					R->EBX(0);
+					return 0x4CF5F2;
+				}
+			}
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4CDE64, FlyLocomotionClass_sub_4CD600_HunterSeeker_Ascent, 6)
+{
+	GET(FlyLocomotionClass* const, pThis, ESI);
+	GET(int const, unk, EDI);
+	auto const pObject = pThis->LinkedTo;
+	auto const pType = pObject->GetTechnoType();
+	auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	auto ret = pThis->FlightLevel - unk;
+	auto max = 16;
+
+	if (!pType->IsDropship)
+	{
+		if (!pType->HunterSeeker)
+		{
+			// ordinary aircraft
+			max = (R->BL() != 0) ? 10 : 20;
+
+		}
+		else
+		{
+			// is hunter seeker
+			if (pThis->IsTakingOff)
+			{
+				max = pExt->HunterSeekerEmergeSpeed.Get(RulesExt::Global()->HunterSeekerEmergeSpeed);
+			}
+			else
+			{
+				max = pExt->HunterSeekerAscentSpeed.Get(RulesExt::Global()->HunterSeekerAscentSpeed);
+			}
+		}
+	}
+
+	if (ret > max)
+	{
+		ret = max;
+	}
+
+	R->EAX(ret);
+	return 0x4CDE8F;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4CDF54, FlyLocomotionClass_sub_4CD600_HunterSeeker_Descent, 5)
+{
+	GET(FlyLocomotionClass* const, pThis, ESI);
+	GET(int const, max, EDI);
+	auto const pObject = pThis->LinkedTo;
+	auto const pType = pObject->GetTechnoType();
+	auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (pType->HunterSeeker)
+	{
+		auto ret = pExt->HunterSeekerDescentSpeed.Get(RulesExt::Global()->HunterSeekerDescentSpeed);
+		if (max < ret)
+		{
+			ret = max;
+		}
+
+		R->ECX(ret);
+		return 0x4CDF81;
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x514A21, HoverLocomotionClass_ILocomotion_Process_DeployToLand, 9)
+{
+	GET(ILocomotion*, ILoco, ESI);
+
+	auto const bIsMovingNow = ILoco->Is_Moving_Now();
+	R->AL(bIsMovingNow);
+	auto const pOwner = static_cast<HoverLocomotionClass*>(ILoco)->Owner;
+
+	if (pOwner->InAir)
+	{
+		auto const pType = pOwner->GetTechnoType();
+		if (pType->DeployToLand)
+		{
+			auto pCell = pOwner->GetCell();
+			auto nLand = pCell->LandType;
+			if ((nLand == LandType::Beach || nLand == LandType::Water) && !pCell->ContainsBridge())
+			{
+				pOwner->InAir = false;
+				pOwner->QueueMission(Mission::Guard, true);
+			}
+
+			if (bIsMovingNow)
+			{
+				ILoco->Stop_Moving();
+				pOwner->SetDestination(nullptr, true);
+			}
+
+			if (pType->DeployingAnim)
+			{
+				auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+				const int nDeployDirVal = pTypeExt->DeployDir.isset() ? (int)pTypeExt->DeployDir.Get() << 13 : RulesClass::Instance->DeployDir << 8;
+				DirStruct nDeployDir(nDeployDirVal);
+
+				if (pOwner->PrimaryFacing.Current() != nDeployDir) {
+					pOwner->PrimaryFacing.Set_Desired(nDeployDir);
+				}
+			}
+
+			if (pOwner->GetHeight() <= 0)
+			{
+				pOwner->InAir = false;
+				ILoco->Mark_All_Occupation_Bits(0);
+			}
+		}
+	}
+
+	return 0x514A2A;
+}
+
+DEFINE_OVERRIDE_HOOK(0x54C767, JumpjetLocomotionClass_State4_54C550_DeployDir, 6)
+{
+	GET(JumpjetLocomotionClass*, pLoco, ESI);
+	auto const pOwner = pLoco->LinkedTo;
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
+	const int nDeployDirVal = pTypeExt->DeployDir.isset() ? (int)pTypeExt->DeployDir.Get() << 13 : RulesClass::Instance->DeployDir << 8;
+
+	DirStruct nDeployDir(nDeployDirVal);
+
+	if (pLoco->Facing.Current() != nDeployDir)
+		pLoco->Facing.Set_Desired(nDeployDir);
+
+	return 0x54C7A3;
 }

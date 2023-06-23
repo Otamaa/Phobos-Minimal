@@ -9,6 +9,7 @@ public:
 	std::vector<unsigned char> ShpCompression1Buffer;
 	ColorStruct maxColor;
 	char BuildTimeDatas[0x720];
+	bool DetonateDamageArea;
 
 public:
 	static bool SaveGlobals(PhobosStreamWriter& stm) { return PhobosGlobal::Instance()->Serialize(stm); }
@@ -22,6 +23,7 @@ public:
 		ShpCompression1Buffer { }
 		, maxColor { }
 		, BuildTimeDatas { }
+		, DetonateDamageArea { true }
 	{ }
 
 	~PhobosGlobal() = default;
@@ -38,6 +40,7 @@ public:
 	bool Serialize(T& stm)
 	{
 		return stm
+			.Process(this->DetonateDamageArea)
 			.Success();
 	}
 };

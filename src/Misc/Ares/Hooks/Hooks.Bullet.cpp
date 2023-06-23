@@ -9,6 +9,8 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 
+#include <Ext/WarheadType/Body.h>
+#include <Ext/Bullet/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/TechnoType/Body.h>
@@ -397,9 +399,6 @@ DEFINE_HOOK(0x46837F, BulletClass_DrawSHP_SetAnimPalette, 6)
 	return 0x0;
 }
 
-#include <Ext/WarheadType/Body.h>
-#include <Ext/Bullet/Body.h>
-
 DEFINE_OVERRIDE_HOOK(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
 {
 	enum { Continue = 0x469D06, NukeWarheadExtras = 0x469CAF };
@@ -444,4 +443,100 @@ DEFINE_OVERRIDE_HOOK(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
 	}
 
 	return Continue;
+}
+
+DEFINE_OVERRIDE_HOOK(0x46670F, BulletClass_Update_PreImpactAnim, 6)
+{
+	GET(BulletClass*, pThis, EBP);
+
+	const auto pWarheadTypeExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+
+	if (!pThis->NextAnim)
+		return 0x46671D;
+
+	if (pWarheadTypeExt->PreImpact_Moves.Get())
+	{
+		auto coords = pThis->NextAnim->GetCoords();
+		pThis->Location = coords;
+		pThis->Target = MapClass::Instance->TryGetCellAt(coords);
+	}
+
+	return 0x467FEE;
+}
+
+DEFINE_OVERRIDE_HOOK(0x46867F, BulletClass_SetMovement_Parachute, 5)
+{
+	GET(CoordStruct*, XYZ, EAX);
+	GET(BulletClass*, Bullet, ECX);
+	//	GET_BASE(VelocityClass *, Trajectory, 0xC);
+
+	R->EBX<BulletClass*>(Bullet);
+
+	const auto pBulletData = BulletTypeExt::ExtMap.Find(Bullet->Type);
+
+	bool result = false;
+	if (pBulletData->Parachuted)
+	{
+		result = Bullet->SpawnParachuted(*XYZ);
+		Bullet->IsABomb = true;
+	}
+	else
+	{
+		result = Bullet->Unlimbo(*XYZ, DirType::North);
+	}
+
+	R->EAX(result);
+	return 0x468689;
+}
+
+DEFINE_OVERRIDE_HOOK(0x468EB9, BulletClass_Fire_SplitsA, 6)
+{
+	//GET(BulletClass*, pThis, ESI);
+	GET(BulletTypeClass* const, pType, EAX);
+	return !BulletTypeExt::ExtMap.Find(pType)->HasSplitBehavior()
+		? 0x468EC7u : 0x468FF4u;
+}
+
+DEFINE_OVERRIDE_HOOK(0x468FFA, BulletClass_Fire_SplitsB, 6)
+{
+	GET(BulletTypeClass* const, pType, EAX);
+	return BulletTypeExt::ExtMap.Find(pType)->HasSplitBehavior()
+		? 0x46909Au : 0x469008u;
+}
+
+DEFINE_OVERRIDE_HOOK(0x469EBA, BulletClass_DetonateAt_Splits, 6)
+{
+	GET(BulletClass*, pThis, ESI);
+	BulletExt::ApplyAirburst(pThis);
+	return 0x46A290;
+}
+
+DEFINE_OVERRIDE_HOOK(0x468000, BulletClass_GetAnimFrame, 6)
+{
+	GET(BulletClass*, pThis, ECX);
+
+	int frame = 0;
+	if (pThis->Type->AnimLow || pThis->Type->AnimHigh)
+	{
+		frame = pThis->AnimFrame;
+	}
+	else if (pThis->Type->Rotates())
+	{
+		DirStruct dir(-pThis->Velocity.Y, pThis->Velocity.X);
+		const auto ReverseFacing32 = *reinterpret_cast<int(*)[8]>(0x7F4890);
+		const auto facing = ReverseFacing32[(short)dir.GetValue(5)];
+		const int length = BulletTypeExt::ExtMap.Find(pThis->Type)->AnimLength.Get();
+
+		if (length > 1)
+		{
+			frame = facing * length + ((Unsorted::CurrentFrame / pThis->Type->AnimRate) % length);
+		}
+		else
+		{
+			frame = facing;
+		}
+	}
+
+	R->EAX(frame);
+	return 0x468088;
 }

@@ -480,7 +480,7 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 					: args.SourceHouse
 					;
 
-				AnimExt::SetAnimOwnerHouseKind(Anim, Invoker, pThis->Owner ,args.Attacker);
+				AnimExt::SetAnimOwnerHouseKind(Anim, Invoker, pThis->Owner ,args.Attacker , false);
 
 				Handled = true;
 			}
@@ -495,7 +495,7 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 						;
 
 					//these were MakeInf stuffs  , to make sure no behaviour chages
-					AnimExt::SetAnimOwnerHouseKind(Anim, Invoker, pThis->Owner, args.Attacker);
+					AnimExt::SetAnimOwnerHouseKind(Anim, Invoker, pThis->Owner, args.Attacker , false);
 
 					Handled = true;
 				}

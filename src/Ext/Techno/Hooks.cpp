@@ -310,19 +310,16 @@ DEFINE_HOOK(0x443C81, BuildingClass_ExitObject_InitialClonedHealth, 0x7)
 DEFINE_HOOK(0x4D9F7B, FootClass_Sell, 0x6)
 {
 	enum { ReadyToVanish = 0x4D9FCB };
+
 	GET(FootClass*, pThis, ESI);
 
-	int money = pThis->GetRefund();
-	pThis->Owner->GiveMoney(money);
+	pThis->Owner->GiveMoney(pThis->GetRefund());
 
-	if (pThis->Owner->IsControlledByCurrentPlayer())
-	{
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-		if(pTypeExt->EVA_Sold.isset()) {
-			VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get());
-		} else {
-			VoxClass::Play(GameStrings::EVA_UnitSold());
-	}	}
+	if (pThis->Owner->IsControlledByCurrentPlayer()) {
+		const auto pType = pThis->GetTechnoType();
+		VoxClass::PlayIndex(TechnoTypeExt::ExtMap.Find(pType)->EVA_Sold.Get());
+		VocClass::PlayGlobal(TechnoTypeExt::ExtMap.Find(pType)->SellSound.Get(), Panning::Center,1.0f);
+	}
 
 	//DisplayIncome
 	//FlyingStrings::AddMoneyString(money, pThis->Owner, RulesExt::Global()->DisplayIncome_Houses.Get(), pThis->Location);
@@ -373,7 +370,7 @@ DEFINE_HOOK(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 	int cumulativeDelay = 0;
 	int projectedDelay = 0;
 
-	// Calculate cumulative burst delay as well cumulative delay after next shot (projected delay).
+	// Calculate cumulative burst delay as well cumulative SellSounddelay after next shot (projected delay).
 	if (pWeaponExt->Burst_FireWithinSequence)
 	{
 		for (int i = 0; i <= pThis->CurrentBurstIndex; i++)

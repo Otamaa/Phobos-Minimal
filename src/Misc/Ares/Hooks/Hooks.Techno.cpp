@@ -417,3 +417,86 @@ DEFINE_HOOK(0x6F534E, TechnoClass_DrawExtras_Insignia, 0x5)
 	return CheckDrawHealthAllowed;
 }
 
+DEFINE_HOOK(0x70CBC3, TechnoClass_DealParticleDamage_FixArgs, 0x6)
+{
+	GET(WeaponTypeClass*, pWeapon, EDI);
+	GET(float, nDamage , ECX);
+	GET(ObjectClass**, pVec, EDX);
+	GET(int, nIdx, ESI);
+	GET_STACK(TechnoClass*, pThis, 0xC0 - 0x44);
+
+	int iDamage = (int)nDamage;
+	pVec[nIdx]->ReceiveDamage(&iDamage, 0, pWeapon->Warhead, pThis, false, false, pThis->Owner);
+
+	return 0x70CBEE;
+}
+
+DEFINE_OVERRIDE_HOOK(0x70CBDA, TechnoClass_DealParticleDamage, 6)
+{
+	GET(TechnoClass*, pSource, EDX);
+	R->Stack<HouseClass*>(0xC, pSource->Owner);
+	return 0;
+}
+
+DEFINE_OVERRIDE_SKIP_HOOK(0x6F4103, TechnoClass_Init_ThisPartHandled, 6, 6F41C0)
+
+DEFINE_OVERRIDE_HOOK(0x70DC70 , TechnoClass_SwitchGunner, 6)
+{
+	GET(TechnoClass*, pThis, ECX);
+	GET_STACK(int, nIdx, 0x4);
+
+	const auto pType = pThis->GetTechnoType();
+
+	if (!pType->IsChargeTurret)
+	{
+		if (nIdx < 0 || nIdx >= pType->WeaponCount)
+			nIdx = 0;
+
+		pThis->CurrentTurretNumber = *AresData::TechnoTypeExt_GetTurretWeaponIdx(pType, nIdx);
+		pThis->CurrentWeaponNumber = nIdx;
+	}
+
+	return 0x70DCDB;
+}
+
+DEFINE_OVERRIDE_HOOK_AGAIN(0x6FF860, TechnoClass_Fire_FSW, 8)
+DEFINE_OVERRIDE_HOOK(0x6FF008, TechnoClass_Fire_FSW, 8)
+{
+	REF_STACK(CoordStruct const, src, 0x44);
+	REF_STACK(CoordStruct const, tgt, 0x88);
+
+	if (!IsAnySFWActive)
+	{
+		return 0;
+	}
+
+	auto const Bullet = R->Origin() == 0x6FF860
+		? R->EDI<BulletClass*>()
+		: R->EBX<BulletClass*>()
+		;
+
+	if (!Bullet->Type->IgnoresFirestorm)
+	{
+		return 0;
+	}
+
+	//	check the path of the projectile to see if there are any firestormed cells along the way
+	//	if so, redirect the proj to the nearest one so it crashes
+	//	this is technically only necessary for invisible projectiles which don't move to the target
+	//	- the BulletClass::Update hook above wouldn't work for them
+
+	// screw having two code paths
+
+	auto const crd = MapClass::Instance->FindFirstFirestorm(src, tgt, Bullet->Owner->Owner);
+
+	if (crd != CoordStruct::Empty)
+	{
+		auto const pCell = MapClass::Instance->GetCellAt(crd);
+		Bullet->Target = pCell->GetContent();
+		Bullet->Owner->ShouldLoseTargetNow = 1;
+		//		Bullet->Owner->SetTarget(nullptr);
+		//		Bullet->Owner->Scatter(0xB1CFE8, 1, 0);
+	}
+
+	return 0;
+}

@@ -119,24 +119,43 @@ std::array<const char* const, 3u> EnumFunctions::VerticalPosition_ToStrings
 }
 };
 
-std::array<const char* const, 5u> EnumFunctions::BannerNumberType_ToStrings
+std::array<std::pair<const char* const, BannerNumberType>, 5u> EnumFunctions::BannerNumberType_ToStrings
 {
 {
-	{NONE_STR2} , {"variable"} , {"prefixed"} , {"suffixed"} , {"fraction"}
+	{NONE_STR2 , BannerNumberType::None} ,
+	{"variable" , BannerNumberType::Variable } ,
+	{"prefixed" , BannerNumberType::Prefixed } ,
+	{"suffixed" , BannerNumberType::Suffixed } ,
+	{"fraction" , BannerNumberType::Fraction }
 }
 };
 
-std::array<const char* const, 5u> EnumFunctions::SpotlightFlags_ToStrings
+std::array<std::pair<const char* const, SpotlightFlags>, 5u> EnumFunctions::SpotlightFlags_ToStrings
 {
 	{
-		{NONE_STR2}, { "NoColor" }, { "NoRed" }, { "NoGreen" }, { "NoBlue" }
+		{NONE_STR2 , SpotlightFlags::None},
+		{ "NoColor" , SpotlightFlags::NoColor },
+		{ "NoRed" , SpotlightFlags::NoRed },
+		{ "NoGreen" , SpotlightFlags::NoGreen },
+		{ "NoBlue" , SpotlightFlags::NoBlue }
 	}
 };
 
-std::array<const char* const, 4u> EnumFunctions::TextAlign_ToStrings
+std::array<std::pair<const char* const, HorizontalPosition>, 4u> EnumFunctions::HorizontalPosition_ToStrings
+{
+	{
+		{ "left", HorizontalPosition::Left }, 
+		{ "center", HorizontalPosition::Right },
+		{ "right", HorizontalPosition::Center }
+	}
+};
+
+std::array<std::pair<const char* const, TextAlign>, 4u> EnumFunctions::TextAlign_ToStrings
 {
 {
-	{NONE_STR2} , {"left"} , {"center"} , {"right"}
+	{"left" , TextAlign::Left} ,
+	{"center", TextAlign::Right } ,
+	{"right", TextAlign::Center }
 }
 };
 
@@ -147,79 +166,148 @@ std::array<const char* const, 3u> EnumFunctions::AreaFireTarget_ToStrings
 }
 };
 
-std::array<const char* const, 5u>  EnumFunctions::AttachedAnimFlag_ToStrings
+std::array<std::pair<const char* const, AttachedAnimFlag>, 5u>  EnumFunctions::AttachedAnimFlag_ToStrings
 {
 {
-	{NONE_STR2} , {"hides"} , {"temporal"} , {"paused"}, {"pausedtemporal"}
+	{NONE_STR2 , AttachedAnimFlag::None} ,
+	{"hides" , AttachedAnimFlag::Hides } ,
+	{"temporal" , AttachedAnimFlag::Temporal } ,
+	{"paused" , AttachedAnimFlag::Paused },
+	{"pausedtemporal" , AttachedAnimFlag::PausedTemporal }
 }
 };
 
-std::array<const char* const, 11u> EnumFunctions::AffectedHouse_ToStrings
+std::array<std::pair<const char* const, AffectedHouse>, 11u> EnumFunctions::AffectedHouse_ToStrings
 {
 {
-	{NONE_STR2} , {"owner"} , {"self"} , {"allies"} ,
-	{"ally"} , {"enemies"} , {"enemy"} , {"team"} ,
-	{"others"} , {"all"} , {"trump"}
+	{NONE_STR2 , AffectedHouse::None} ,
+	{"owner" , AffectedHouse::Owner } ,
+	{"self" , AffectedHouse::Owner } ,
+	{"allies" , AffectedHouse::Allies } ,
+	{"ally" , AffectedHouse::Allies } ,
+	{"enemies" , AffectedHouse::Enemies } ,
+	{"enemy" , AffectedHouse::Enemies } ,
+	{"team" , AffectedHouse::Team } ,
+	{"others" , AffectedHouse::NotOwner } ,
+	{"all" , AffectedHouse::All } ,
+	{"trump" , AffectedHouse::NotAllies }
 }
 };
 
-std::array<const char* const, 15u> EnumFunctions::AffectedTarget_ToStrings
+std::array<std::pair<const char* const, AffectedTarget>, 15u> EnumFunctions::AffectedTarget_ToStrings
 {
 {
-	{NONE_STR2} , {"Land"} , {"Water"} , {"NoContent"} ,
-	{"Infantry"} ,	{"Unit"} , {"Units"} , {"Building"} ,
-	{"Buildings"} , {"Aircraft"} , {"All"} , {"AllCells"} , 
-	{"AllTechnos"} , {"AllContents"} ,  {"Empty"}
+	{NONE_STR2 , AffectedTarget::None} ,
+	{"Land" , AffectedTarget::Land } ,
+	{"Water" , AffectedTarget::Water } ,
+	{"NoContent" , AffectedTarget::NoContent } ,
+	{"Infantry" , AffectedTarget::Infantry } ,
+	{"Unit" , AffectedTarget::Unit } ,
+	{"Units" , AffectedTarget::Unit } ,
+	{"Building" , AffectedTarget::Building } ,
+	{"Buildings" , AffectedTarget::Aircraft } ,
+	{"Aircraft" , AffectedTarget::Aircraft } ,
+	{"All" , AffectedTarget::All } ,
+	{"AllCells" , AffectedTarget::AllCells } ,
+	{"AllTechnos" , AffectedTarget::AllTechnos } ,
+	{"AllContents" , AffectedTarget::AllContents } ,
+	{"Empty" , AffectedTarget::NoContent }
 }
 };
 
-std::array<const char* const, 21u> EnumFunctions::SuperWeaponAITargetingMode_ToStrings
+std::array<std::pair<const char* const, SuperWeaponAITargetingMode>, 21u> EnumFunctions::SuperWeaponAITargetingMode_ToStrings
 {
 {
-	{NONE_STR2} , {"nuke"}, {"lightningstorm"}, {"psychicdominator"}, {"paradrop"},
-	{"geneticmutator"}, {"forceshield"}, {"notarget"}, {"offensive"}, {"stealth"},
-	{"self"}, {"base"}, {"multimissile"}, {"hunterseeker"}, {"enemybase"} , {"ironcurtain"}
-	, {"attack"} ,{"lowpower"}, {"lowpowerattack"} , {"droppod"} , {"lightningrandom"}
+	{NONE_STR2 , SuperWeaponAITargetingMode::None} ,
+	{"nuke", SuperWeaponAITargetingMode::Nuke },
+	{"lightningstorm", SuperWeaponAITargetingMode::LightningStorm },
+	{"psychicdominator", SuperWeaponAITargetingMode::PsychicDominator },
+	{"paradrop", SuperWeaponAITargetingMode::ParaDrop },
+	{"geneticmutator", SuperWeaponAITargetingMode::GeneticMutator },
+	{"forceshield", SuperWeaponAITargetingMode::ForceShield },
+	{"notarget", SuperWeaponAITargetingMode::NoTarget },
+	{"offensive", SuperWeaponAITargetingMode::Offensive },
+	{"stealth", SuperWeaponAITargetingMode::Stealth },
+	{"self", SuperWeaponAITargetingMode::Self },
+	{"base", SuperWeaponAITargetingMode::Base },
+	{"multimissile", SuperWeaponAITargetingMode::MultiMissile },
+	{"hunterseeker", SuperWeaponAITargetingMode::HunterSeeker },
+	{"enemybase", SuperWeaponAITargetingMode::EnemyBase } ,
+	{"ironcurtain", SuperWeaponAITargetingMode::IronCurtain },
+	{"attack", SuperWeaponAITargetingMode::Attack } ,
+	{"lowpower", SuperWeaponAITargetingMode::LowPower },
+	{"lowpowerattack", SuperWeaponAITargetingMode::LowPowerAttack } ,
+	{"droppod", SuperWeaponAITargetingMode::Droppod } ,
+	{"lightningrandom", SuperWeaponAITargetingMode::LighningRandom }
 }
 };
 
 std::array<const char* const, 8u> EnumFunctions::OwnerHouseKind_ToStrings
 {
 {
-	{"default"} ,  {"invoker"} , {"killer"} , {"victim"} , {GameStrings::Civilian()} ,
-	{GameStrings::Special()} ,  {GameStrings::Neutral()} ,  {"random"}
+	{"default"} ,  
+	{"invoker"} ,
+	{"killer"} , 
+	{"victim"} ,
+	{GameStrings::Civilian()} ,
+	{GameStrings::Special()} , 
+	{GameStrings::Neutral()} ,  
+	{"random"}
 }
 };
 
-std::array<const char* const, 5u>  EnumFunctions::IronCurtainFlag_ToStrings
+std::array<std::pair<const char* const, IronCurtainFlag>, 6u>  EnumFunctions::IronCurtainFlag_ToStrings
 {
 {
-	{"Default"} , {"Kill"} , {"Invulnerable"} , {"Ignore"} , {"Random"}
+	{NONE_STR2, IronCurtainFlag::Default},
+	{"Default" , IronCurtainFlag::Default} ,
+	{"Kill" , IronCurtainFlag::Kill } ,
+	{"Invulnerable" , IronCurtainFlag::Invulnerable } ,
+	{"Ignore" , IronCurtainFlag::Ignore } ,
+	{"random" , IronCurtainFlag::Random }
 }
 };
 
-std::array<const char* const, 6u> EnumFunctions::KillMethod_ToStrings
+std::array<std::pair<const char* const, KillMethod>, 6u> EnumFunctions::KillMethod_ToStrings
 {
 {
-	{NONE_STR2} , {"explode"} , {"kill"} , {"vanish"} , {"sell"} , {"random"}
+	{NONE_STR2 , KillMethod::None} ,
+	{"explode" , KillMethod::Explode } ,
+	{"kill" , KillMethod::Explode } ,
+	{"vanish" , KillMethod::Vanish } ,
+	{"sell" , KillMethod::Sell } ,
+	{"random" , KillMethod::Random }
 }
 };
 
-std::array<const char* const, 9u>  EnumFunctions::SlaveReturnTo_ToStrings
+std::array<std::pair<const char* const, SlaveReturnTo>, 9u>  EnumFunctions::SlaveReturnTo_ToStrings
 {
 {
-	{"killer"} ,  {"master"} , {"suicide"} , {"explode"} , 
-	{"kill"} , {GameStrings::Neutral()} , {GameStrings::Civilian()} , 
-	{GameStrings::Special()} , {"random"}
+	{"killer" , SlaveReturnTo::Killer} ,
+	{"master", SlaveReturnTo::Master } ,
+	{"suicide", SlaveReturnTo::Suicide } ,
+	{"explode", SlaveReturnTo::Suicide } ,
+	{"kill", SlaveReturnTo::Suicide } ,
+	{GameStrings::Neutral(), SlaveReturnTo::Neutral } ,
+	{GameStrings::Civilian(), SlaveReturnTo::Civilian } ,
+	{GameStrings::Special(), SlaveReturnTo::Special } ,
+	{"random", SlaveReturnTo::Random }
 }
 };
 
-std::array<const char* const, 9u> EnumFunctions::TargetingConstraint_ToStrings
+std::array<std::pair<const char* const, TargetingConstraint>, 10u> EnumFunctions::TargetingConstraint_ToStrings
 {
 {
-	{NONE_STR2} , {"offensive_cell_clear"} , {"defensive_cell_clear"} ,
-	{"enemy"} , {"lightningstorm_inactive"} , {"dominator_inactive"} ,
-	{ "attacked" } , {"offensive_cell_set"} , {"defensive_cell_set"}
+	{NONE_STR2 , TargetingConstraint::None } ,
+	{"offensive_cell_clear", TargetingConstraint::OffensiveCellClear } ,
+	{"defensive_cell_clear", TargetingConstraint::DefensifeCellClear } ,
+	{"enemy", TargetingConstraint::Enemy } ,
+	{"lightningstorm_inactive", TargetingConstraint::LighningStormInactive } ,
+	{"dominator_inactive", TargetingConstraint::DominatorInactive } ,
+	{"attacked", TargetingConstraint::Attacked } ,
+	{"lowpower", TargetingConstraint::LowPower },
+	{"offensive_cell_set", TargetingConstraint::OffensiveCellSet } ,
+	{"defensive_cell_set", TargetingConstraint::DefensiveCellSet }
 }
 };
 
@@ -237,23 +325,42 @@ std::array<const char* const, 3u> EnumFunctions::SelfHealGainType_ToStrings
 }
 };
 
-std::array<const char* const, 5u> EnumFunctions::ChronoSparkleDisplayPosition_ToStrings
+std::array<std::pair<const char* const, ChronoSparkleDisplayPosition>, 5u> EnumFunctions::ChronoSparkleDisplayPosition_ToStrings
 {
 {
-	{GameStrings::NoneStrb()}, {"Building"}, { "occupants" }, { "occupantslots" } ,
-	{ "all" }
+	{GameStrings::NoneStrb() , ChronoSparkleDisplayPosition::None},
+	{"Building", ChronoSparkleDisplayPosition::Building },
+	{ "occupants" , ChronoSparkleDisplayPosition::Occupants },
+	{ "occupantslots", ChronoSparkleDisplayPosition::OccupantSlots } ,
+	{ "all" , ChronoSparkleDisplayPosition::All }
 }
 };
 
 std::array<std::pair<const char* ,AffectPlayerType>, 5u> EnumFunctions::AffectPlayerType_ToStrings
 {
-{	{GameStrings::NoneStrb() ,AffectPlayerType::None }
-	, {"computer" ,AffectPlayerType::Computer }
-	, {"player" ,AffectPlayerType::Player }
-	, {"observer" ,AffectPlayerType::Observer }
-	, {"all" , AffectPlayerType::Computer | AffectPlayerType::Player | AffectPlayerType::Observer }
+{	{GameStrings::NoneStrb() ,AffectPlayerType::None },
+	{"computer" ,AffectPlayerType::Computer },
+	{"player" ,AffectPlayerType::Player }, 
+	{"observer" ,AffectPlayerType::Observer }, 
+	{"all" , AffectPlayerType::Computer | AffectPlayerType::Player | AffectPlayerType::Observer }
 }
 };
+
+
+std::array<const char*, 3u> EnumFunctions::SpotlightAttachment_ToStrings
+{
+	{
+		{"Body"}, { "Turret" }, { "Barrel" }
+	}
+};
+
+std::array<const char*, 3u> EnumFunctions::ShowTimerType_ToStrings
+{
+	{
+		{"Hour"}, { "Minute" }, { "Second" }
+	}
+};
+
 
 bool EnumFunctions::CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse)
 {

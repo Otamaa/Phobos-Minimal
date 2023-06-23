@@ -359,7 +359,7 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 		const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
 		const auto pHouse = pAttacker ? pAttacker->Owner : pAttacker_House;
 
-		if (pWHExt->DecloakDamagedTargets.Get())
+		if (IsAffected && pWHExt->DecloakDamagedTargets.Get())
 			pThis->Reveal();
 
 		const auto bCond1 = (!bAffected || !pWHExt->EffectsRequireDamage);
@@ -403,7 +403,7 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 		}
 	}
 
-	return !IsAffected ? 0x702823 : 0x0;
+	return 0x702823;
 }
 
 DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
@@ -545,10 +545,10 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 				// the hijacker will now be controlled instead of the unit
 				if (auto const pController = pThis->MindControlledBy)
 				{
-					++Unsorted::IKnowWhatImDoing; // disables sound effects
+					++Unsorted::ScenarioInit; // disables sound effects
 					pController->CaptureManager->FreeUnit(pThis);
 					pController->CaptureManager->CaptureUnit(pHijacker); // does the immunetopsionics check for us
-					--Unsorted::IKnowWhatImDoing;
+					--Unsorted::ScenarioInit;
 					pHijacker->QueueMission(Mission::Guard, true); // override the fate the AI decided upon
 				}
 
@@ -816,7 +816,7 @@ DEFINE_OVERRIDE_HOOK(0x51849A, InfantryClass_ReceiveDamage_DeathAnim, 5)
 		: Arguments->SourceHouse
 		;
 
-	AnimExt::SetAnimOwnerHouseKind(Anim, Invoker, I->Owner, Arguments->Attacker);
+	AnimExt::SetAnimOwnerHouseKind(Anim, Invoker, I->Owner, Arguments->Attacker, false);
 
 	R->EAX<AnimClass*>(Anim);
 	return 0x5184F2;
@@ -864,7 +864,7 @@ DEFINE_OVERRIDE_HOOK(0x518698, InfantryClass_ReceiveDamage_Anims, 5) // Infantry
 		? Arguments.Attacker->Owner
 		: Arguments.SourceHouse;
 
-	AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker);
+	AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker,false);
 
 	return 0x5185F1;
 }
@@ -883,7 +883,7 @@ DEFINE_OVERRIDE_HOOK(0x51887B, InfantryClass_ReceiveDamage_InfantryVirus2, 0xA)
 		: Arguments.SourceHouse;
 
 	const auto&[bChanged , result] = 
-		AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker);
+		AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker, false);
 
 	 // reset the color for default (invoker).
 	if (bChanged && result != OwnerHouseKind::Default) {
@@ -905,7 +905,7 @@ DEFINE_OVERRIDE_HOOK(0x518A96, InfantryClass_ReceiveDamage_InfantryMutate, 7)
 		? Arguments.Attacker->Owner
 		: Arguments.SourceHouse;
 
-	AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker);
+	AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker, false);
 
 	return 0x518AFF;
 }

@@ -17,6 +17,8 @@
 
 #include <New/Entity/FlyingStrings.h>
 
+PhobosMap<IonBlastClass*, WarheadTypeExt::ExtData*> WarheadTypeExt::IonBlastExt;
+
 void WarheadTypeExt::ExtData::Initialize()
 {
 	Launchs.reserve(2);
@@ -367,6 +369,27 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	this->RemoveInflictedLocomotor.Read(exINI, pSection, "RemoveInflictedLocomotor");
 	this->Rocker_Damage.Read(exINI, pSection, "Rocker.Damage");
 	this->NukePayload_LinkedSW.Read(exINI, pSection, "NukePayload.LinkedSW");
+	this->IC_Duration.Read(exINI, pSection, "IronCurtain.Duration");
+	this->IC_Cap.Read(exINI, pSection, "IronCurtain.Cap");
+
+#pragma region Ion
+	this->Ion.Read(exINI, pSection, "IonCannon");
+
+	Nullable<int> Ion_ripple{};
+
+	Ion_ripple.Read(exINI, pSection, "Ripple.Radius");
+	if (Ion_ripple.isset())
+		this->Ripple_Radius = this->Ripple_Radius.Get();
+	else
+		this->Ripple_Radius.Read(exINI, pSection, "IonCannon.Ripple");
+
+	this->Ion_Beam.Read(exINI, pSection, "IonCannon.Beam");
+	this->Ion_Blast.Read(exINI, pSection, "IonCannon.Blast");
+	this->Ion_AllowWater.Read(exINI, pSection, "IonCannon.AllowWater");
+	this->Ion_Rocking.Read(exINI, pSection, "IonCannon.Rock");
+	this->Ion_WH.Read(exINI, pSection, "IonCannon.Warhead");
+	this->Ion_Damage.Read(exINI, pSection, "IonCannon.Damage");
+#pragma endregion
 
 	if (this->InflictLocomotor && pThis->Locomotor == _GUID())
 	{
@@ -385,8 +408,6 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 		Debug::Log("[Developer warning][%s] InflictLocomotor=yes and RemoveInflictedLocomotor=yes can't be set simultaneously!", pSection);
 		this->InflictLocomotor = this->RemoveInflictedLocomotor = false;
 	}
-
-
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
@@ -869,6 +890,17 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, AbstractClass* pTarget,
 	}
 }
 
+void WarheadTypeExt::CreateIonBlast(WarheadTypeClass* pThis, const CoordStruct& coords)
+{
+	const auto pExt = WarheadTypeExt::ExtMap.Find(pThis);
+
+	if (pExt->Ion || pExt->Ripple_Radius.isset() && pExt->Ripple_Radius > 0)
+	{
+		auto pIon = GameCreate<IonBlastClass>(coords);
+		pIon->DisableIonBeam = !pExt->Ion;
+		IonBlastExt.insert(pIon, pExt);
+	}
+}
 // =============================
 // load / save
 
@@ -1094,6 +1126,19 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->RemoveInflictedLocomotor)
 		.Process(this->Rocker_Damage)
 		.Process(this->NukePayload_LinkedSW)
+		.Process(this->IC_Duration)
+		.Process(this->IC_Cap)
+
+#pragma region Ion
+		.Process(this->Ion)
+		.Process(this->Ripple_Radius)
+		.Process(this->Ion_Beam)
+		.Process(this->Ion_Blast)
+		.Process(this->Ion_AllowWater)
+		.Process(this->Ion_Rocking)
+		.Process(this->Ion_WH)
+		.Process(this->Ion_Damage)
+#pragma endregion
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 
@@ -1133,6 +1178,25 @@ WarheadTypeExt::ExtContainer WarheadTypeExt::ExtMap;
 
 WarheadTypeExt::ExtContainer::ExtContainer() : Container("WarheadTypeClass") { }
 WarheadTypeExt::ExtContainer::~ExtContainer() = default;
+
+bool WarheadTypeExt::ExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return Stm
+		.Process(WarheadTypeExt::IonBlastExt)
+		.Success();
+}
+
+bool WarheadTypeExt::ExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return Stm
+		.Process(WarheadTypeExt::IonBlastExt)
+		.Success();
+}
+
+void WarheadTypeExt::ExtContainer::Clear()
+{
+	WarheadTypeExt::IonBlastExt.clear();
+}
 
 //void WarheadTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
 

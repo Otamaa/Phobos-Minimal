@@ -75,7 +75,7 @@ namespace detail
 	{
 		if (!parser.empty())
 		{
-			auto resultData = AffectedHouse::None;
+			AffectedHouse resultData = AffectedHouse::None;
 			char* context = nullptr;
 			std::string copy = parser;
 
@@ -84,45 +84,20 @@ namespace detail
 				pCur;
 				pCur = strtok_s(nullptr, Phobos::readDelims, &context))
 			{
-				size_t result = 0;
 				bool found = false;
-				for (auto const& pString : EnumFunctions::AffectedHouse_ToStrings)
+				for (auto const& [pString, val] : EnumFunctions::AffectedHouse_ToStrings)
 				{
 					if (IS_SAME_STR_(pCur, pString))
 					{
 						found = true;
+						resultData |= val;
 						break;
 					}
-					++result;
 				}
 
 				if (!found)
 				{
 					Debug::INIParseFailed(pSection, pKey, parser.c_str(), "Expected a affected house");
-					return false;
-				}
-				else
-				{
-					if (result == (size_t)AffectedHouse::None) {
-						value = resultData;
-						return true;
-					}
-
-					switch (result)
-					{
-					case 1:
-					case 2: resultData |= AffectedHouse::Owner; break;
-					case 3:
-					case 4: resultData |= AffectedHouse::Allies; break;
-					case 5:
-					case 6: resultData |= AffectedHouse::Enemies; break;
-					case 7: resultData |= AffectedHouse::Team; break;
-					case 8: resultData |= AffectedHouse::NotOwner; break;
-					case 9: resultData |= AffectedHouse::All; break;
-					case 10: resultData |= AffectedHouse::NotAllies;  break;
-					default:
-						break;
-					}
 				}
 			}
 
@@ -809,32 +784,19 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			size_t result = 0;
-			bool found = false;
-			for (auto const& pString : EnumFunctions::TextAlign_ToStrings)
+			for (auto const& [pString , val] : EnumFunctions::HorizontalPosition_ToStrings)
 			{
 				if (IS_SAME_STR_(parser.value(), pString))
 				{
-					found = true;
-					break;
+					value = val;
+					return true;
 				}
-				++result;
 			}
 
-			if (!found)
-			{
+			if (!parser.empty())
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Horizontal Position can be either Left, Center/Centre or Right");
-			}
-			else
-			{
-				switch (result)
-				{
-				case 1: value = HorizontalPosition::Left; return true;
-				case 2: value = HorizontalPosition::Center; return true;
-				case 3: value = HorizontalPosition::Right; return true;
-				}
-			}
 		}
+
 		return false;
 	}
 
@@ -843,30 +805,19 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			size_t result = 0;
-			bool found = false;
-			for (const auto& pString : EnumFunctions::BannerNumberType_ToStrings)
+			for (const auto& [pString, val] : EnumFunctions::BannerNumberType_ToStrings)
 			{
 				if (IS_SAME_STR_(parser.value(), pString))
 				{
-					found = true;
-					break;
+					value = val;
+					return true;
 				}
-				++result;
 			}
 
-			if (result == 0 || !found)
-			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(),
-				"Content.VariableFormat can be either none, prefixed, suffixed or fraction");
-				return false;
-			}
-			else
-			{
-				value = BannerNumberType(result);
-				return true;
-			}
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Content.VariableFormat can be either none, prefixed, suffixed or fraction");
 		}
+
 		return false;
 	}
 
@@ -915,38 +866,20 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			size_t result = 0;
-			bool found = false;
-			for (const auto& pString : EnumFunctions::SlaveReturnTo_ToStrings)
+			for (const auto& [pString , val] : EnumFunctions::SlaveReturnTo_ToStrings)
 			{
 				if (IS_SAME_STR_(parser.value(), pString))
 				{
-					found = true;
-					break;
+					value = val;
+					return true;
 				}
-				++result;
 			}
 
-			if (!found)
-			{
+			if (!parser.empty()) {
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a free-slave option, default to killer");
 			}
-			else
-			{
-				switch (result)
-				{
-				case 0: value = SlaveReturnTo::Killer; return true;
-				case 1: value = SlaveReturnTo::Master; return true;
-				case 2:
-				case 3:
-				case 4: value = SlaveReturnTo::Suicide; return true;
-				case 5: value = SlaveReturnTo::Neutral; return true;
-				case 6: value = SlaveReturnTo::Civilian; return true;
-				case 7: value = SlaveReturnTo::Special; return true;
-				case 8: value = SlaveReturnTo::Random; return true;
-				}
-			}
 		}
+
 		return false;
 	}
 
@@ -955,34 +888,18 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			size_t result = 0;
-			bool found = false;
-			for (const auto& pString : EnumFunctions::KillMethod_ToStrings)
+			for (const auto& [pString, val] : EnumFunctions::KillMethod_ToStrings)
 			{
 				if (IS_SAME_STR_(parser.value(), pString))
 				{
-					found = true;
-					break;
+					value = val;
+					return true;
 				}
-				++result;
 			}
 
-			if (!found)
+			if (!parser.empty())
 			{
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a kill method, default disabled");
-			}
-			else
-			{
-				switch (result)
-				{
-				case 0: value = KillMethod::None; return true;
-				case 1:
-				case 2: value = KillMethod::Explode; return true;
-				case 3: value = KillMethod::Vanish; return true;
-				case 4: value = KillMethod::Sell; return true;
-				case 5: value = KillMethod::Random; return true;
-
-				}
 			}
 		}
 		return false;
@@ -993,39 +910,18 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			size_t result = 0;
-			bool found = false;
-			for (auto const& pStrings : EnumFunctions::IronCurtainFlag_ToStrings)
+			for (auto const& [pStrings ,val]: EnumFunctions::IronCurtainFlag_ToStrings)
 			{
 				if (IS_SAME_STR_(parser.value(), pStrings))
 				{
-					found = true;
-					break;
-				}
-				++result;
-			}
-
-			if (!found)
-			{
-				if (GameStrings::IsBlank(parser.value()))
-				{
-					value = IronCurtainFlag::Default;
+					value = val;
 					return true;
 				}
-
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "IronCurtainFlag can be either kill, invulnerable, ignore or random");
-
 			}
-			else
+
+			if (!parser.empty())
 			{
-				switch (result)
-				{
-				case 0: value = IronCurtainFlag::Default; return true;
-				case 1: value = IronCurtainFlag::Kill; return true;
-				case 2: value = IronCurtainFlag::Invulnerable; return true;
-				case 3: value = IronCurtainFlag::Ignore; return true;
-				case 4: value = IronCurtainFlag::Random; return true;
-				}
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "IronCurtainFlag can be either kill, invulnerable, ignore or random");
 			}
 		}
 
@@ -1068,26 +964,17 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			size_t result = 0;
-			bool found = false;
-			for (const auto& pStrings : EnumFunctions::SuperWeaponAITargetingMode_ToStrings)
+			for (const auto& [pStrings, val] : EnumFunctions::SuperWeaponAITargetingMode_ToStrings)
 			{
 				if (IS_SAME_STR_(parser.value(), pStrings))
 				{
-					found = true;
-					break;
+					value = val;
+					return true;
 				}
-				++result;
 			}
 
-			if (!found)
-			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a targeting mode");
-			}
-			else
-			{
-				value = static_cast<SuperWeaponAITargetingMode>(result);
-				return true;
+			if (!parser.empty()) {
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a AItargetingmode");
 			}
 		}
 		return false;
@@ -1099,49 +986,27 @@ namespace detail
 		if (parser.ReadString(pSection, pKey))
 		{
 			char* context = nullptr;
-			auto resultData = AffectedTarget::None;
+			AffectedTarget resultData = AffectedTarget::None;
 
 			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
 				cur;
 				cur = strtok_s(nullptr, Phobos::readDelims, &context))
 			{
-				size_t result = 0;
 				bool found = false;
-				for (const auto& pStrings : EnumFunctions::AffectedTarget_ToStrings)
+				for (const auto& [pStrings , val] : EnumFunctions::AffectedTarget_ToStrings)
 				{
 					if (IS_SAME_STR_(cur, pStrings))
 					{
 						found = true;
+						resultData |= val;
 						break;
 					}
-					++result;
 				}
 
 				if (!found)
 				{
 					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a affected target");
 					return false;
-				}
-				else
-				{
-					switch (result)
-					{
-					case 0: resultData |= AffectedTarget::None; break;
-					case 1: resultData |= AffectedTarget::Land; break;
-					case 2: resultData |= AffectedTarget::Water; break;
-					case 14:
-					case 3: resultData |= AffectedTarget::NoContent; break;
-					case 4: resultData |= AffectedTarget::Infantry; break;
-					case 5:
-					case 6: resultData |= AffectedTarget::Unit; break;
-					case 7:
-					case 8: resultData |= AffectedTarget::Building; break;
-					case 9: resultData |= AffectedTarget::Aircraft; break;
-					case 10: resultData |= AffectedTarget::All; break;
-					case 11: resultData |= AffectedTarget::AllCells; break;
-					case 12: resultData |= AffectedTarget::AllTechnos; break;
-					case 13: resultData |= AffectedTarget::AllContents; break;
-					}
 				}
 			}
 
@@ -1163,32 +1028,19 @@ namespace detail
 				cur;
 				cur = strtok_s(nullptr, Phobos::readDelims, &context))
 			{
-				size_t result = 0;
 				bool found = false;
-				for (const auto& pStrings : EnumFunctions::ChronoSparkleDisplayPosition_ToStrings)
+				for (const auto& [pStrings , val] : EnumFunctions::ChronoSparkleDisplayPosition_ToStrings)
 				{
 					if (IS_SAME_STR_(cur, pStrings))
 					{
 						found = true;
+						resultData |= val;
 						break;
 					}
-					++result;
 				}
 
-				if (!found || result == (size_t)ChronoSparkleDisplayPosition::None)
-				{
+				if (!found) {
 					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a chrono sparkle position type");
-					return false;
-				}
-				else
-				{
-					switch (result)
-					{
-					case 1: resultData |= ChronoSparkleDisplayPosition::Building; break;
-					case 2: resultData |= ChronoSparkleDisplayPosition::Occupants; break;
-					case 3: resultData |= ChronoSparkleDisplayPosition::OccupantSlots; break;
-					case 4: resultData |= ChronoSparkleDisplayPosition::All; break;
-					}
 				}
 			}
 
@@ -1215,7 +1067,7 @@ namespace detail
 				bool found = false;
 				for (const auto& pStrings : EnumFunctions::AffectedTarget_ToStrings)
 				{
-					if (IS_SAME_STR_(cur, pStrings))
+					if (IS_SAME_STR_(cur, pStrings.first))
 					{
 						found = true;
 						break;
@@ -1276,38 +1128,18 @@ namespace detail
 				cur;
 				cur = strtok_s(nullptr, Phobos::readDelims, &context))
 			{
-				size_t result = 0;
 				bool found = false;
-				for (const auto& pStrings : EnumFunctions::TargetingConstraint_ToStrings)
-				{
-					if (IS_SAME_STR_(cur, pStrings))
-					{
+				for (const auto& [pStrings , val] : EnumFunctions::TargetingConstraint_ToStrings) {
+					if (IS_SAME_STR_(cur, pStrings)) {
+						resultData |= val;
 						found = true;
 						break;
 					}
-					++result;
 				}
 
-				if (!found)
-				{
-				err:
+				if (!found) {
 					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a targeting constraint");
 					return false;
-				}
-				else
-				{
-					switch (result)
-					{
-					case 0: resultData |= TargetingConstraint::None; break;
-					case 1: goto err;
-					case 2: resultData |= TargetingConstraint::DefensifeCellClear; break;
-					case 3: resultData |= TargetingConstraint::Enemy; break;
-					case 4: resultData |= TargetingConstraint::LighningStormInactive; break;
-					case 5: resultData |= TargetingConstraint::DominatorInactive; break;
-					case 6: resultData |= TargetingConstraint::Attacked; break;
-					case 7: resultData |= TargetingConstraint::OffensiveCellSet; break;
-					case 8: resultData |= TargetingConstraint::DefensiveCellSet; break;
-					}
 				}
 			}
 
@@ -1362,32 +1194,18 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			size_t result = 0;
-			bool found = false;
-
-			for (const auto& pString : EnumFunctions::AttachedAnimFlag_ToStrings)
+			for (const auto& [pString , val] : EnumFunctions::AttachedAnimFlag_ToStrings)
 			{
 				if (IS_SAME_STR_(parser.value(), pString))
 				{
-					found = true;
-					break;
+					value = val;
+					return true;
 				}
-				++result;
 			}
 
-			if (!found)
+			if (!parser.empty())
 			{
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a AttachedAnimFlag");
-			}
-			else
-			{
-				switch (result)
-				{
-				case 1: value = AttachedAnimFlag::Hides; return true;
-				case 2: value = AttachedAnimFlag::Temporal; return true;
-				case 3:	value = AttachedAnimFlag::Paused; return true;
-				case 4: value = AttachedAnimFlag::PausedTemporal; return true;
-				}
 			}
 		}
 
@@ -1419,30 +1237,18 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			size_t result = 0;
-			bool found = false;
-			for (auto const& pString : EnumFunctions::TextAlign_ToStrings)
+			for (auto const& [pString , val]: EnumFunctions::TextAlign_ToStrings)
 			{
 				if (IS_SAME_STR_(parser.value(), pString))
 				{
-					found = true;
-					break;
+					value = val;
+					return true;
 				}
-				++result;
 			}
 
-			if (!found)
+			if (!parser.empty())
 			{
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Text Alignment can be either Left, Center/Centre or Right");
-			}
-			else
-			{
-				switch (result)
-				{
-				case 1: value = TextAlign::Left; return true;
-				case 2: value = TextAlign::Center; return true;
-				case 3: value = TextAlign::Right; return true;
-				}
 			}
 		}
 

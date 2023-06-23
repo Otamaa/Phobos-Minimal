@@ -2693,18 +2693,7 @@ DEFINE_JUMP(LJMP, 0x702765, 0x7027AE); // this just an duplicate
 DEFINE_HOOK(0x4FB63A, HouseClass_PlaceObject_EVA_UnitReady, 0x5)
 {
 	GET(TechnoClass* const, pProduct, ESI);
-
-	const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pProduct->GetTechnoType());
-
-	if (pTechnoTypeExt->Eva_Complete.isset())
-	{
-		VoxClass::PlayIndex(pTechnoTypeExt->Eva_Complete.Get());
-	}
-	else
-	{
-		VoxClass::Play(GameStrings::EVA_UnitReady());
-	}
-
+	VoxClass::PlayIndex(TechnoTypeExt::ExtMap.Find(pProduct->GetTechnoType())->Eva_Complete.Get());
 	return 0x4FB649;
 }
 
@@ -2740,19 +2729,8 @@ DEFINE_HOOK(0x6A8E25, SidebarClass_StripClass_AI_Building_EVA_ConstructionComple
 
 	if (pTech && Is_Building(pTech)
 	 && pTech->Owner
-	 && pTech->Owner->ControlledByPlayer())
-	{
-		const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTech->GetTechnoType());
-
-		if (pTechnoTypeExt->Eva_Complete.isset())
-		{
-			VoxClass::PlayIndex(pTechnoTypeExt->Eva_Complete.Get());
-		}
-		else
-		{
-			VoxClass::Play(GameStrings::EVA_ConstructionComplete());
-		}
-
+	 && pTech->Owner->ControlledByPlayer()) {
+		VoxClass::PlayIndex(TechnoTypeExt::ExtMap.Find(pTech->GetTechnoType())->Eva_Complete.Get());
 		return 0x6A8E34;
 	}
 
@@ -4137,7 +4115,7 @@ DEFINE_HOOK(0x4ADFF0, DisplayClass_All_To_Look_Ground, 0x5)
 				(
 					pTechno->DiscoveredByCurrentPlayer &&
 					pTechno->Owner == HouseClass::CurrentPlayer() ||
-					pTechno->Owner->CurrentPlayer ||
+					pTechno->Owner->IsHumanPlayer ||
 					pTechno->Owner->IsInPlayerControl
 					) ||
 				(
@@ -4792,9 +4770,9 @@ DEFINE_HOOK(0x5FC668, OverlayTypeClass_Mark_Veinholedummies, 0x7)
 
 		pCell->OverlayTypeIndex = 0xA7; //VeiholeDummy -> used to place veinhole monster
 		pCell->OverlayData = 0;
-		++Unsorted::IKnowWhatImDoing();
+		++Unsorted::ScenarioInit();
 		GameCreate<VeinholeMonsterClass>(pPos);
-		--Unsorted::IKnowWhatImDoing();
+		--Unsorted::ScenarioInit();
 	}
 
 	return 0x5FD1FA;
@@ -5057,11 +5035,45 @@ DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
 }
 
 //https://bugs.launchpad.net/ares/+bug/1577493
-DEFINE_HOOK(0x4684F7, BulletClass_InvalidatePointer_CloakOwner, 0x6)
+DEFINE_HOOK(0x4684FF, BulletClass_InvalidatePointer_CloakOwner, 0xA)
 {
+	GET(BulletClass*, pThis, ESI);
 	GET_STACK(bool, bRemove, 0x8);
+	GET(AbstractClass*, pTarget, EDI);
+	GET(TechnoClass*, pOwner, EAX);
 
-	return bRemove ? 0x0 : 0x468509;
+	if (bRemove && pOwner == pTarget)
+		pThis->Owner = nullptr;
+
+	return 0x468509;
+}
+
+DEFINE_HOOK(0x442282, BuilngClass_TakeDamage_LATIme_SourceHouseptrIsMissing, 0xA)
+{
+	GET(TechnoClass*, pSource, EBP);
+	GET(BuildingClass*, pThis, ESI);
+
+	if (!pSource->GetOwningHouse()) {
+		Debug::Log("Building[%s] Taking damage from [%s] with nullptr house ! , skipping this part" , 
+			pThis->get_ID(), pSource->get_ID());
+		return 0x4422C1;
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x701E0E, TechnoClass_TakeDamage_UpdateAnger_nullptrHouse, 0xA)
+{
+	GET(TechnoClass*, pSource, EAX);
+	GET(TechnoClass*, pThis, ESI);
+
+	if (!pSource->Owner) {
+		Debug::Log("Techno[%s] Taking damage from [%s] with nullptr house ! , skipping this part",
+			pThis->get_ID(), pSource->get_ID());
+		return 0x701E71;
+	}
+
+	return 0x0;
 }
 
 //todo : 

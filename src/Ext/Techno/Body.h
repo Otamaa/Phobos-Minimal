@@ -115,7 +115,7 @@ public:
 		CDTimerClass SelfHealing_CombatDelay;
 		bool PayloadCreated;
 		SuperClass* LinkedSW;
-		CellStruct EMPTarget;
+		CellStruct SuperTarget;
 
 		ExtData(TechnoClass* OwnerObject) : Extension<TechnoClass>(OwnerObject)
 			, Type { nullptr }
@@ -184,7 +184,7 @@ public:
 			, SelfHealing_CombatDelay { }
 			, PayloadCreated { false }
 			, LinkedSW { nullptr }
-			, EMPTarget { }
+			, SuperTarget { }
 		{
 			//MyWeaponManager.CWeaponManager = std::make_unique<CustomWeaponManager>();
 		}

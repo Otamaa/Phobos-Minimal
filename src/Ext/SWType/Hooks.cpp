@@ -37,7 +37,94 @@ DEFINE_DISABLE_HOOK(0x6CE8BE, SuperWeaponTypeClass_Load_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x6CE8EA, SuperWeaponTypeClass_Save_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x6CEE50, SuperWeaponTypeClass_LoadFromINI_ares)
 DEFINE_DISABLE_HOOK(0x6CEE43, SuperWeaponTypeClass_LoadFromINIB_ares)
+DEFINE_DISABLE_HOOK(0x4F9004, HouseClass_Update_TrySWFire_ares)
 #pragma warning( pop )
+
+DEFINE_HOOK(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
+{
+	GET(SuperWeaponTypeClass*, pThis, EBP);
+	GET(CCINIClass*, pINI, EBX);
+	GET(Action, result, ECX);
+
+	INI_EX exINI(pINI);
+	const auto pSection = pThis->ID;
+	if (exINI.ReadString(pSection, "Action"))
+	{
+		bool found = false;
+		for (int i = 0; i < (int)SuperWeaponTypeClass::ActionTypeName.c_size(); ++i)
+		{
+			if (IS_SAME_STR_(SuperWeaponTypeClass::ActionTypeName[i], exINI.value()))
+			{
+				result = ((Action)(i));
+				found = true;
+			}
+		}
+
+		if (!found && IS_SAME_STR_("Custom", exINI.value()))
+		{
+			result = Action(AresNewActionType::SuperWeaponAllowed);
+			found = true;
+		}
+
+		SWTypeExt::ExtMap.Find(pThis)->LastAction = result;
+	}
+
+
+	R->EAX(result);
+	return 0x6CEAA0;
+}
+
+DEFINE_HOOK(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
+{
+	GET(SuperWeaponTypeClass*, pThis, EBP);
+	GET(CCINIClass*, pINI, EBX);
+
+	INI_EX exINI(pINI);
+	const auto pSection = pThis->ID;
+
+	if (exINI.ReadString(pSection, GameStrings::Type()))
+	{
+		for (int i = 0; i < (int)SuperWeaponTypeClass::SuperweaponTypeName.c_size(); ++i)
+		{
+			if (IS_SAME_STR_(SuperWeaponTypeClass::SuperweaponTypeName[i], exINI.value()))
+			{
+				pThis->Type = (SuperWeaponType)(i);
+				SWTypeExt::ExtMap.Find(pThis)->HandledType = NewSWType::GetHandledType((SuperWeaponType)(i));
+			}
+		}
+
+		if (pThis->Type == SuperWeaponType::Invalid)
+		{
+			const auto customType = NewSWType::FindFromTypeID(exINI.value());
+			if (customType > SuperWeaponType::Invalid)
+			{
+				pThis->Type = customType;
+			}
+		}
+	}
+
+	if (exINI.ReadString(pSection, GameStrings::PreDependent()))
+	{
+		for (int i = 0; i < (int)SuperWeaponTypeClass::SuperweaponTypeName.c_size(); ++i)
+		{
+			if (IS_SAME_STR_(SuperWeaponTypeClass::SuperweaponTypeName[i], exINI.value()))
+			{
+				pThis->PreDependent = (SuperWeaponType)(i);
+			}
+		}
+
+		if (pThis->PreDependent == SuperWeaponType::Invalid)
+		{
+			const auto customType = NewSWType::FindFromTypeID(exINI.value());
+			if (customType > SuperWeaponType::Invalid)
+			{
+				pThis->PreDependent = customType;
+			}
+		}
+	}
+
+	return 0x6CECEF;
+}
 
 DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 {
@@ -67,12 +154,10 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 			(pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain) &&
 			pExt->SW_Group == args)
 		{
-
 			if (pOwnerSuper->IsCharged && (havePower || !pSuper->IsPowered))
 			{
 				pLast = pSuper;
 				found = true;
-				continue;
 			}
 		}
 
@@ -85,14 +170,14 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 			{
 				pLast = pSuper;
 				found = false;
-				continue;
 			}
 		}
 	}
 
 	if (found && pLast)
 	{
-		pOwner->Fire_SW(pLast->ArrayIndex, pThis->SpawnCell->MapCoords);
+		auto nCoord = pThis->SpawnCell->GetCoords();
+		pOwner->Fire_SW(pLast->ArrayIndex, CellClass::Coord2Cell(nCoord));
 		pThis->StepCompleted = true;
 	}
 
@@ -520,18 +605,19 @@ DEFINE_OVERRIDE_HOOK(0x6A99B7, StripClass_Draw_SuperDarken, 5)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4F9004, HouseClass_Update_TrySWFire, 7)
+DEFINE_HOOK(0x4F8FE1, HouseClass_Update_TryFireSW, 0x6)
 {
 	GET(HouseClass*, pThis, ESI);
 
-	if (R->AL())
-	{
-		// update the SWs for human players to support auto firing.
-		pThis->AI_TryFireSW();
-		return 0x4F9038;
+	if (!pThis->Type->MultiplayPassive) {
+
+		if (!pThis->IsControlledByHuman_())
+			return 0x4F9015;
+		else
+			pThis->AI_TryFireSW();		// update the SWs for auto firings
 	}
 
-	return pThis->Type->MultiplayPassive ? 0x4F9038 : 0x4F9015;
+	return 0x4F9038;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6CBF5B, SuperClass_GetCameoChargeStage_ChargeDrainRatio, 9)
@@ -1018,14 +1104,12 @@ DEFINE_OVERRIDE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
 	// this method iterates over every available SW and checks
 	// whether it should be fired automatically. the original
 	// method would abort if this house is human-controlled.
-	bool AIFire = !pThis->IsControlledByHuman_();
+	bool AIFire = pThis->IsControlledByHuman();
 
 	for (const auto pSuper : pThis->Supers)
 	{
-		if (pSuper->IsCharged && pSuper->ChargeDrainState != ChargeDrainState::Draining)
-		{
-			auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
-			if (AIFire || pExt->SW_AutoFire)
+		if (pSuper->IsCharged && pSuper->ChargeDrainState != ChargeDrainState::Draining) {
+			if (!AIFire || SWTypeExt::ExtMap.Find(pSuper->Type)->SW_AutoFire)
 			{
 				SWTypeExt::ExtData::TryFire(pSuper, false);
 			}
@@ -1271,8 +1355,8 @@ DEFINE_OVERRIDE_HOOK(0x44CCE7, BuildingClass_Mi_Missile_GenericSW, 6)
 	if (!pThis->Type->EMPulseCannon)
 	{
 		// originally, this part was related to chem missiles
-		const auto pTarget = pExt->EMPTarget.IsValid()
-			? pExt->EMPTarget : pThis->Owner->NukeTarget;
+		const auto pTarget = pExt->SuperTarget.IsValid()
+			? pExt->SuperTarget : pThis->Owner->NukeTarget;
 
 		pThis->Fire(MapClass::Instance->GetCellAt(pTarget), 0);
 		pThis->QueueMission(Mission::Guard, false);
@@ -1281,8 +1365,8 @@ DEFINE_OVERRIDE_HOOK(0x44CCE7, BuildingClass_Mi_Missile_GenericSW, 6)
 		return ReturnFromFunc;
 	}
 
-	if(pExt->EMPTarget.IsValid()) {
-		pThis->Owner->EMPTarget = pExt->EMPTarget;
+	if(pExt->SuperTarget.IsValid()) {
+		pThis->Owner->EMPTarget = pExt->SuperTarget;
 	}
 
 	return ProcessEMPulse;

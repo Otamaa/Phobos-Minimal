@@ -230,7 +230,5 @@ void MapRevealer::Process1(CellClass* const pCell, bool fog, bool add) const
 }
 
 DEFINE_JUMP(LJMP, 0x5673A0, GET_OFFSET(MapRevealer::MapClass_RevealArea0));
-
 DEFINE_JUMP(LJMP, 0x5678E0, GET_OFFSET(MapRevealer::MapClass_RevealArea1));
-
 DEFINE_JUMP(LJMP, 0x567DA0, GET_OFFSET(MapRevealer::MapClass_RevealArea2));

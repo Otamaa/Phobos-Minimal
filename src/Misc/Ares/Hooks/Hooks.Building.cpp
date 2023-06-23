@@ -8,6 +8,7 @@
 
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
+#include <Utilities/Cast.h>
 
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
@@ -297,9 +298,9 @@ DEFINE_OVERRIDE_HOOK(0x449FF8, BuildingClass_Mi_Selling_PutMcv, 7)
 	REF_STACK(CoordStruct const, Crd, STACK_OFFS(0xD0, 0xB8));
 
 	// set the override for putting, not just for creation as WW did
-	++Unsorted::IKnowWhatImDoing;
+	++Unsorted::ScenarioInit;
 	const auto ret = pUnit->Unlimbo(Crd, facing);
-	--Unsorted::IKnowWhatImDoing;
+	--Unsorted::ScenarioInit;
 
 	// should never happen, but if anything breaks, it's here
 	if (!ret)
@@ -873,7 +874,7 @@ struct AresBldExtStuffs
 
 		if (IsEntererControlledByPlayer || IsOwnerControlledByPlayer)
 		{
-			CellStruct xy = EnteredBuilding->GetMapCoords();
+			CellStruct xy = CellClass::Coord2Cell(EnteredBuilding->GetCoords());
 			if (RadarEventClass::Create(RadarEventType::BuildingInfiltrated, xy))
 			{
 				raiseEva = true;
@@ -1062,7 +1063,7 @@ struct AresBldExtStuffs
 			if (pSuper->Grant(Onetime, IsCurrentPlayer, CanLauch))
 			{
 				if (pTypeExt->SpyEffect_SuperWeaponPermanent)
-					pSuper->IsOnHold = false;
+					pSuper->CanHold = false;
 
 				if (IsCurrentPlayer)
 				{
@@ -1583,10 +1584,6 @@ DEFINE_OVERRIDE_HOOK(0x741BDB, UnitClass_SetDestination_DockUnloadCell, 7)
 	R->EAX(Get::BuildingUnload(pThis));
 	return 0x741C28;
 }
-
-#include <Misc/AresData.h>
-#include <Utilities/Cast.h>
-
 DEFINE_OVERRIDE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
 {
 	// int (TechnoTypeClass *item, bool BuildLimitOnly, bool includeQueued)
@@ -1651,7 +1648,6 @@ DEFINE_OVERRIDE_HOOK(0x73F7B0, UnitClass_IsCellOccupied, 6)
 	return NoDecision;
 }
 
-
 // the game specifically hides tiberium building pips. allow them, but
 // take care they don't show up for the original game
 DEFINE_OVERRIDE_HOOK(0x709B4E, TechnoClass_DrawPipscale_SkipSkipTiberium, 6)
@@ -1659,8 +1655,10 @@ DEFINE_OVERRIDE_HOOK(0x709B4E, TechnoClass_DrawPipscale_SkipSkipTiberium, 6)
 	GET(TechnoClass* const, pThis, EBP);
 
 	bool showTiberium = true;
-	if (const auto pBld = specific_cast<BuildingClass*>(pThis)) {
-		if ((pBld->Type->Refinery || pBld->Type->ResourceDestination) && pBld->Type->Storage > 0) {
+	if (const auto pBld = specific_cast<BuildingClass*>(pThis))
+	{
+		if ((pBld->Type->Refinery || pBld->Type->ResourceDestination) && pBld->Type->Storage > 0)
+		{
 			// show only if this refinery uses storage. otherwise, the original
 			// refineries would show an unused tiberium pip scale
 			showTiberium = TechnoTypeExt::ExtMap.Find(pBld->Type)->Refinery_UseStorage;
@@ -1698,4 +1696,314 @@ DEFINE_OVERRIDE_HOOK(0x448312, BuildingClass_ChangeOwnership_OldSpy1, 0xA)
 	}
 
 	return 0x4483A0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x455DA0, BuildingClass_IsFactory_CloningFacility, 6)
+{
+	GET(BuildingClass*, pThis, ECX);
+	return BuildingTypeExt::ExtMap.Find(pThis->Type)->Cloning_Facility.Get()
+		? 0x455DCD : 0x0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4444B3, BuildingClass_KickOutUnit_NoAlternateKickout, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	return pThis->Type->Factory == AbstractType::None
+		|| BuildingTypeExt::ExtMap.Find(pThis->Type)->Cloning_Facility.Get()
+		? 0x4452C5 : 0x0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x446366, BuildingClass_Place_Academy, 6)
+{
+	GET(BuildingClass*, pThis, EBP);
+
+	if (Is_Academy(pThis->Type) && pThis->Owner)
+	{
+		AresData::UpdateAcademy(pThis->Owner, pThis, true);
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x445905, BuildingClass_Remove_Academy, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	if (pThis->IsOnMap && Is_Academy(pThis->Type) && pThis->Owner)
+	{
+		AresData::UpdateAcademy(pThis->Owner, pThis, false);
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x448AB2, BuildingClass_ChangeOwnership_Remove_Academy, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	if (pThis->IsOnMap && Is_Academy(pThis->Type) && pThis->Owner)
+	{
+		AresData::UpdateAcademy(pThis->Owner, pThis, false);
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4491D5, BuildingClass_ChangeOwnership_Add_Academy, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	if (Is_Academy(pThis->Type) && pThis->Owner)
+	{
+		AresData::UpdateAcademy(pThis->Owner, pThis, true);
+	}
+
+	return 0;
+}
+
+void KickOutHospitalArmory(BuildingClass* pThis)
+{
+	if (pThis->Type->Hospital || pThis->Type->Armory)
+	{
+		if (FootClass* Passenger = pThis->Passengers.RemoveFirstPassenger())
+		{
+			pThis->KickOutUnit(Passenger, CellStruct::Empty);
+		}
+	}
+}
+
+DEFINE_OVERRIDE_HOOK(0x44D8A1, BuildingClass_UnloadPassengers_Unload, 6)
+{
+	GET(BuildingClass*, B, EBP);
+	KickOutHospitalArmory(B);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x447113, BuildingClass_Sell_PrismForward, 6)
+{
+	GET(BuildingClass* const, pThis, ESI);
+
+	// #754 - evict Hospital/Armory contents
+	KickOutHospitalArmory(pThis);
+	AresData::CPrismRemoveFromNetwork(&PrimsForwardingPtr(pThis), true);
+	return 0x0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x446AAF, BuildingClass_Place_SkipFreeUnits, 6)
+{
+	// allow free units and non-separate aircraft to be created
+	// only once.
+	GET(BuildingClass*, pBld, EBP);
+
+	// skip handling free units
+	if (FreeUnitDone(pBld))
+		return 0x446FB6;
+
+	FreeUnitDone(pBld) = true;
+	return 0;
+}
+
+// #665: Raidable Buildings - prevent raided buildings from being sold while raided
+DEFINE_OVERRIDE_HOOK(0x4494D2, BuildingClass_IsSellable, 6)
+{
+	enum { Sellable = 0x449532, Unsellable = 0x449536, Undecided = 0 };
+	GET(BuildingClass*, pThis, ESI);
+
+	// enemy shouldn't be able to sell "borrowed" buildings
+	return Is_CurrentlyRaided(pThis) ? Unsellable : Undecided;
+}
+
+DEFINE_OVERRIDE_HOOK(0x449518, BuildingClass_IsSellable_FirestormWall, 6)
+{
+	enum { CheckHouseFireWallActive = 0x449522, ReturnFalse = 0x449536 };
+	//GET(BuildingClass*, pThis, ESI);
+
+	GET(BuildingTypeClass*, pType, ECX);
+	return Is_FirestromWall(pType) ? CheckHouseFireWallActive : ReturnFalse;
+}
+
+DEFINE_OVERRIDE_HOOK(0x44E550, BuildingClass_Mi_Open_GateDown, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	R->ECX(BuildingTypeExt::ExtMap.Find(pThis->Type)->GateDownSound
+		.Get(RulesClass::Instance->GateDown));
+	return 0x44E556;
+}
+
+DEFINE_OVERRIDE_HOOK(0x44E61E, BuildingClass_Mi_Open_GateUp, 6)
+{
+	GET(DWORD, offset, ESI);
+	const auto pThis = reinterpret_cast<BuildingClass*>(offset - 0x9C);
+	R->ECX(BuildingTypeExt::ExtMap.Find(pThis->Type)->GateUpSound
+		.Get(RulesClass::Instance->GateUp));
+	return 0x44E624;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4509B4, BuildingClass_UpdateRepair_Funds, 7)
+{
+	GET(BuildingClass*, pThis, ESI);
+	return !pThis->Owner->IsControlledByHuman_() || RulesExt::Global()->RepairStopOnInsufficientFunds
+		? 0x0 : 0x4509BB;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4521C8, BuildingClass_Disable_Temporal_Factories, 6)
+{
+	GET(BuildingClass*, pThis, ECX);
+
+	auto const pType = pThis->Type;
+	if (pType->Factory != AbstractType::None)
+	{
+		pThis->Owner->Update_FactoriesQueues(
+		pType->Factory, pType->Naval, BuildCat::DontCare);
+	}
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4566B0, BuildingClass_GetRangeOfRadial_Radius, 6)
+{
+	enum
+	{
+		SetVal = 0x45674E
+		, Nothing = 0x0
+	};
+
+	GET(BuildingClass*, pThis, ECX);
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+
+	if (!pExt->RadialIndicatorRadius.isset())
+		return Nothing;
+
+	R->EAX(pExt->RadialIndicatorRadius.Get());
+	return SetVal;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4581CD, BuildingClass_UnloadOccupants_AllOccupantsHaveLeft, 6)
+{
+	GET(BuildingClass*, pBld, ESI);
+	AresData::EvalRaidStatus(pBld);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x458729, BuildingClass_KillOccupiers_AllOccupantsKilled, 6)
+{
+	GET(BuildingClass*, pBld, ESI);
+	AresData::EvalRaidStatus(pBld);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4586CA, BuildingClass_KillOccupiers_EachOccupierKilled, 6)
+{
+	GET(BuildingClass*, pBld, ESI);
+	//GET(TechnoClass*, pKiller, EBP);
+	//GET(int, idxOccupant, EDI);
+	AresData::EvalRaidStatus(pBld);
+	//return 0x4586F0;
+	return 0;
+}
+
+void KickOutOfRubble(BuildingClass* pBld)
+{
+	DynamicVectorClass<std::pair<FootClass*, bool>> list;
+
+	// iterate over all cells and remove all infantry
+
+	auto const location = MapClass::Instance->GetCellAt(pBld->Location)->MapCoords;
+	// get the number of non-end-marker cells and a pointer to the cell data
+	for (auto i = pBld->Type->FoundationData; *i != CellStruct{0x7FFF, 0x7FFF}; ++i)
+	{
+		// remove every techno that resides on this cell
+		for (NextObject obj(MapClass::Instance->GetCellAt(location + *i)->
+			GetContent()); obj; ++obj)
+		{
+			if (auto const pFoot = abstract_cast<FootClass*>(*obj))
+			{
+				if (pFoot->Limbo())
+				{
+					list.AddItem(std::make_pair(pFoot, pFoot->IsSelected));
+				}
+			}
+		}
+	}
+
+	// this part kicks out all units we found in the rubble
+	for (auto const& [pFoot, bIsSelected] : list)
+	{
+		if (pBld->KickOutUnit(pFoot, location) == KickOutResult::Succeeded)
+		{
+			if (bIsSelected)
+			{
+				pFoot->Select();
+			}
+		}
+		else
+		{
+			pFoot->UnInit();
+		}
+	}
+}
+
+DEFINE_OVERRIDE_HOOK(0x441f2c ,BuildingClass_Destroy_KickOutOfRubble, 5)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+
+	if (pTypeExt->RubbleDestroyed || pTypeExt->RubbleIntact)
+		KickOutOfRubble(pThis);
+
+	return 0x0;
+}
+
+//there is 2 missing elemts here 
+// it is seems not readed from ini but only stored on BuildingTypeExt::ExtData 
+//void UpdateBuildupFrames(BuildingTypeClass* pThis)
+//{
+//	if (auto const pShp = pThis->Buildup)
+//	{
+//		auto const frames = pThis->Gate ?
+//			pThis->GateStages + 1 : pShp->Frames / 2;
+//
+//		auto const duration = (frames < 1) ?
+//			1 : static_cast<int>(BuildingTypeExt::ExtMap.Find(pThis)->BuildupTime.Get(
+//				RulesClass::Instance->BuildupTime) * 900.0 / frames);
+//
+//		pThis->BuildingAnimFrame[0].dwUnknown = 0;
+//		pThis->BuildingAnimFrame[0].FrameCount = frames;
+//		pThis->BuildingAnimFrame[0].FrameDuration = duration;
+//	}
+//}
+//
+//DEFINE_OVERRIDE_HOOK(0x465A48, BuildingTypeClass_GetBuildup_BuildupTime, 5)
+//{
+//	GET(BuildingTypeClass* const, pThis, ESI);
+//	UpdateBuildupFrames(pThis);
+//	return 0x465AAE;
+//}
+//
+//DEFINE_OVERRIDE_HOOK(0x45EAA5, BuildingTypeClass_LoadArt_BuildupTime, 6)
+//{
+//	GET(BuildingTypeClass* const, pThis, ESI);
+//	UpdateBuildupFrames(pThis);
+//	return 0x45EB3A;
+//}
+//
+//DEFINE_OVERRIDE_HOOK(0x45F2B4, BuildingTypeClass_Load2DArt_BuildupTime, 5)
+//{
+//	GET(BuildingTypeClass* const, pThis, EBP);
+//	UpdateBuildupFrames(pThis);
+//	return 0x45F310;
+//}
+
+DEFINE_OVERRIDE_HOOK(0x459C03, BuildingClass_CanBeSelectedNow_MassSelectable, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+
+	if (pTypeExt->MassSelectable.Get(pThis->Type->IsUndeployable()))
+	{
+		return 0x459C14;
+	}
+
+	R->EAX(false);
+	return 0x459C12;
 }

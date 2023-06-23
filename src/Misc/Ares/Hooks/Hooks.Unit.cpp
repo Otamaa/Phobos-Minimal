@@ -469,7 +469,7 @@ void RefineTiberium(TechnoClass* pThis, float const amount, int const idxType)
 
 	// get the number of applicable purifiers
 	auto purifiers = pHouse->NumOrePurifiers;
-	if (!pHouse->CurrentPlayer && SessionClass::Instance->GameMode != GameMode::Campaign)
+	if (!pHouse->IsHumanPlayer && SessionClass::Instance->GameMode != GameMode::Campaign)
 	{
 		purifiers += RulesClass::Instance->AIVirtualPurifiers.GetItem(pHouse->GetAIDifficultyIndex());
 	}

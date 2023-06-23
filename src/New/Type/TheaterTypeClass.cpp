@@ -250,7 +250,7 @@ DEFINE_HOOK(0x546833, IsometricTileTypeClass_FallbackTheater, 0x5)
 	R->AL(bSomething);
 	return 0x54684F;
 }
-//DEFINE_JUMP(CALL, 0x54692B, GET_OFFSET(_ReplaceMakePath::Exec2)); //roadtile urb
+
 #pragma endregion
 
 #pragma region AresHooks
@@ -390,6 +390,7 @@ DEFINE_OVERRIDE_HOOK(0x5F96B0, ObjectTypeClass_TheaterSpecificID, 6)
 	}
 	return 0x5F9702;
 }
+
 #pragma endregion
 
 #pragma region ScenarioClass_InitTheater
@@ -420,7 +421,7 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 		nType = TheaterType::Temperate;
 	}
 
-	const auto& pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(nType);
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(nType);
 
 	// buffer size 16
 	LEA_STACK(char*, pRootMix, STACK_OFFS(0x6C, 0x50));
@@ -488,7 +489,7 @@ DEFINE_HOOK(0x534A9D, ScenarioClass_initTheater_TheaterType_ArticCheck, 0x6)
 #pragma endregion
 
 #pragma region replacedMakepath
-//AnimType
+////AnimType
 DEFINE_HOOK(0x4279BB, AnimTypeClass_TheaterSuffix_1, 0x6)
 {
 	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
@@ -586,34 +587,71 @@ DEFINE_HOOK(0x5F915C, ObjectTypeClass_TheaterSuffix_3, 0x6)
 
 #pragma endregion
 
-#pragma region CellAndTerrainStuffs
-DEFINE_HOOK(0x483DE5, CellClass_CheckPassability_Artict, 0x6)
-{
-	return TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->IsArctic ? 0x483E0C : 0x483DF5;
-}
-
 DEFINE_HOOK(0x6DAE3E, TacticalClass_DrawWaypoints_SelectColor, 0x8)
 {
 	GET(ScenarioClass*, pScen, ECX);
-	R->EAX(TheaterTypeClass::FindFromTheaterType_NoCheck(pScen->Theater)->IsArctic ? 12 : 14);
+
+	const int color = 14;//default;
+	if ((int)pScen->Theater == -1)
+	{
+		Debug::Log("Scenario is negative idx , default to Temperate");
+		R->EAX(color);
+		return 0;
+	}
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(pScen->Theater);
+
+	R->EAX(pTheater->IsArctic ? 12 : 14);
 	return 0;
+}
+
+#pragma region CellAndTerrainStuffs
+
+DEFINE_HOOK(0x483DF0, CellClass_CheckPassability_ArtictA, 0x5)
+{
+	GET(TheaterType, theater, EAX);
+
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
+	return pTheater->IsArctic ? 
+		0x483E0C : 0x483DF5;
+}
+
+DEFINE_HOOK(0x483E03, CellClass_CheckPassability_ArtictB, 0x9)
+{
+	GET(TheaterType, theater, EAX);
+
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
+	return pTheater->IsArctic ?
+		0x483E0C : 0x483CD4;
 }
 
 DEFINE_HOOK(0x71C076, TerrainClass_ClearOccupyBit_Theater, 0x7)
 {
 	enum { setArticOccupy = 0x71C08D, setTemperatOccupy = 0x71C07F };
 	GET(ScenarioClass*, pScen, EAX);
-	//Debug::Log("Clearing OccupyBit for [%d] \n", (int)pScen->Theater);
-	if ((int)pScen->Theater == -1)
-		return setTemperatOccupy;
 
-	return TheaterTypeClass::FindFromTheaterType_NoCheck(pScen->Theater)->IsArctic ? setArticOccupy : setTemperatOccupy;
+	if ((int)pScen->Theater == -1) {
+		Debug::Log("Scenario is negative idx , default to Temperate");
+		return setTemperatOccupy;
+	}
+
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(pScen->Theater);
+	return pTheater->IsArctic ?
+	setArticOccupy : setTemperatOccupy;
 }
 
-DEFINE_HOOK(0x71C076, TerrainClass_SetOccupyBit_Theater, 0x7)
+DEFINE_HOOK(0x71C116, TerrainClass_SetOccupyBit_Theater, 0x7)
 {
+	enum { setArticOccupy = 0x71C12D, setTemperatOccupy = 0x71C11F };
 	GET(ScenarioClass*, pScen, EAX);
-	return TheaterTypeClass::FindFromTheaterType_NoCheck(pScen->Theater)->IsArctic ? 0x71C12D : 0x71C11F;
+
+	if ((int)pScen->Theater == -1) {
+		Debug::Log("Scenario is negative idx , default to Temperate");
+		return setTemperatOccupy;
+	}
+
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(pScen->Theater);
+	return pTheater->IsArctic ?
+	 setArticOccupy : setTemperatOccupy;
 }
 
 DEFINE_HOOK(0x47C30C, CellClass_CellColor_AdjustBrightness, 0x7)

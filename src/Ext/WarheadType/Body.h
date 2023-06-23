@@ -24,6 +24,7 @@ class ArmorTypeClass;
 class WarheadTypeExt
 {
 public:
+
 	class ExtData final : public Extension<WarheadTypeClass>
 	{
 	public:
@@ -293,6 +294,19 @@ public:
 #pragma endregion
 
 		ValueableIdx<SuperWeaponTypeClass> NukePayload_LinkedSW;
+		Valueable<int> IC_Duration { 0 };
+		Valueable<int> IC_Cap { -1 };
+
+#pragma region Ion
+		Valueable<bool> Ion{ false };
+		Nullable<int> Ripple_Radius {};
+		Nullable<AnimTypeClass*> Ion_Beam {};
+		Nullable<AnimTypeClass*> Ion_Blast {};
+		Valueable<bool> Ion_AllowWater { false };
+		Valueable<bool> Ion_Rocking { true };
+		Nullable<WarheadTypeClass*> Ion_WH {};
+		Nullable<int> Ion_Damage {};
+#pragma endregion
 
 		ExtData(WarheadTypeClass* OwnerObject) : Extension<WarheadTypeClass>(OwnerObject)
 			, Reveal { 0 }
@@ -540,6 +554,8 @@ public:
 		void ApplyLocomotorInfliction(TechnoClass* pTarget);
 		void ApplyLocomotorInflictionReset(TechnoClass* pTarget);
 
+		void applyIronCurtain(TechnoClass* items, HouseClass* Owner, int damage);
+
 	private:
 
 		void EvaluateArmor(WarheadTypeClass* OwnerObject);
@@ -611,11 +627,17 @@ public:
 	public:
 		ExtContainer();
 		~ExtContainer();
+
+		static bool LoadGlobals(PhobosStreamReader& Stm);
+		static bool SaveGlobals(PhobosStreamWriter& Stm);
+		static void Clear();
 	};
 
 	static ExtContainer ExtMap;
 
+	static PhobosMap<IonBlastClass*, WarheadTypeExt::ExtData*> IonBlastExt;
 	static void DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, TechnoClass* pOwner, int damage, bool targetCell = false);
 	static void DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool targetCell = false);
 	static void DetonateAt(WarheadTypeClass* pThis, AbstractClass* pTarget, const CoordStruct& coords, TechnoClass* pOwner, int damage);
+	static void CreateIonBlast(WarheadTypeClass* pThis , const CoordStruct& coords);
 };

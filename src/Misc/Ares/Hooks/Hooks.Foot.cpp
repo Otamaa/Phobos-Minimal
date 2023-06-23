@@ -9,10 +9,13 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 
+#include <Ext/BuildingType/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
+
+#include <New/Type/ArmorTypeClass.h>
 
 DEFINE_HOOK(0x4D5776, FootClass_ApproachTarget_Passive, 0x6)
 {
@@ -147,4 +150,115 @@ DEFINE_OVERRIDE_HOOK(0x4DAA68, FootClass_Update_MoveSound, 0x6)
 	}
 
 	return 0x4DAA70;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4D7524, FootClass_ActionOnObject_Allow, 9)
+{
+	//overwrote the ja, need to replicate it
+	GET(Action, CursorIndex, EBP);
+
+	if (CursorIndex == Action::None || CursorIndex > Action::Airstrike) {
+		return CursorIndex == Action(127) || CursorIndex == Action(126) ? 0x4D769F : 0x4D7CC0;
+	}
+
+	return 0x4D752D;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4D9920, FootClass_SelectAutoTarget_Cloaked, 9)
+{
+	GET(FootClass* const, pThis, ECX);
+
+	if (pThis->Owner->IsControlledByHuman_()
+		&& pThis->GetCurrentMission() == Mission::Guard)
+	{
+		auto const pType = pThis->GetTechnoType();
+		auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
+
+		auto allowAquire = true;
+
+		if (!pExt->CanPassiveAcquire_Guard)
+		{
+			// we are in guard mode
+			allowAquire = false;
+		}
+		else if (!pExt->CanPassiveAcquire_Cloak)
+		{
+			// passive acquire is disallowed when guarding and cloakable
+			if (pThis->IsCloakable() || pThis->HasAbility(AbilityType::Cloak))
+			{
+				allowAquire = false;
+			}
+		}
+
+		if (!allowAquire)
+		{
+			R->EAX(static_cast<TechnoClass*>(nullptr));
+			return 0x4D995C;
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4D9EBD, FootClass_CanBeSold_SellUnit, 6)
+{
+	GET(BuildingClass*, pBld, EAX);
+	GET(TechnoClass*, pDocker, ESI);
+
+	const auto nUnitRepair = BuildingTypeExt::ExtMap.Find(pBld->Type)->UnitSell.Get(pBld->Type->UnitRepair);
+	const auto nSellable = TechnoTypeExt::ExtMap.Find(pDocker->GetTechnoType())->Unsellable.Get(RulesExt::Global()->Units_UnSellable);
+
+	if (!nUnitRepair || !nSellable)
+	{
+		R->CL(false);
+	}
+	else
+	{
+		R->CL(true);
+	}
+
+	return 0x4D9EC9;
+}
+
+// move to the next hva frame, even if this unit isn't moving
+DEFINE_OVERRIDE_HOOK(0x4DA8B2, FootClass_Update_AnimRate, 6)
+{
+	GET(FootClass*, pThis, ESI);
+	auto pType = pThis->GetTechnoType();
+	auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	enum { Undecided = 0u, NoChange = 0x4DAA01u, Advance = 0x4DA9FBu };
+
+	// any of these prevents the animation to advance to the next frame
+	if (pThis->IsBeingWarpedOut() || pThis->IsWarpingIn() || pThis->IsAttackedByLocomotor)
+	{
+		return NoChange;
+	}
+
+	// animate unit whenever in air
+	if (pExt->AirRate && pThis->GetHeight() > 0)
+	{
+		return (Unsorted::CurrentFrame % pExt->AirRate) ? NoChange : Advance;
+	}
+
+	return Undecided;
+}
+
+ //rotation when crashing made optional
+DEFINE_OVERRIDE_HOOK(0x4DECAE, FootClass_Crash_Spin, 5)
+{
+	GET(FootClass*, pThis, ESI);
+	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->CrashSpin ? 0u : 0x4DED4Bu;
+}
+
+DEFINE_OVERRIDE_HOOK(0x518744, InfantryClass_ReceiveDamage_ElectricDeath, 6)
+{
+	AnimTypeClass* El = RulesExt::Global()->ElectricDeath;
+
+	if (!El) {
+		El = AnimTypeClass::Array->GetItem(1);
+	}
+
+	R->EDX(El);
+	return 0x51874D;
 }

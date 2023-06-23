@@ -625,9 +625,9 @@ void AresData::BuildingExt_UpdateDisplayTo(BuildingClass* pFor)
 	AresStdcall<UpdateDisplayToID, void, BuildingClass*>()(pFor);
 }
 
-int AresData::TechnoTypeExt_GetTurretWeaponIdx(TechnoTypeClass* pThis, int idx)
+int* AresData::TechnoTypeExt_GetTurretWeaponIdx(TechnoTypeClass* pThis, int idx)
 {
-	return AresThiscall<GetTurretWeaponIdxID, int, void*, int>()(GetAresTechnoTypeExt(pThis) , idx);
+	return AresThiscall<GetTurretWeaponIdxID, int*, void*, int>()(GetAresTechnoTypeExt(pThis) , idx);
 }
 
 bool AresData::TechnoTypeExt_CameoIsElite(TechnoTypeClass* pThis, HouseClass* Owner)

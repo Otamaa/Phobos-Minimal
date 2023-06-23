@@ -293,10 +293,10 @@ void NOINLINE SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, A
 		return;
 	}
 
-	++Unsorted::IKnowWhatImDoing;
+	++Unsorted::ScenarioInit;
 	auto const pPlane = static_cast<AircraftClass*>(
 		pPlaneType->CreateObject(pOwner));
-	--Unsorted::IKnowWhatImDoing;
+	--Unsorted::ScenarioInit;
 
 	if (!pPlane)
 		return;
@@ -315,9 +315,9 @@ void NOINLINE SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, A
 
 	auto const spawn_crd = CellClass::Cell2Coord(spawn_cell);
 
-	++Unsorted::IKnowWhatImDoing;
+	++Unsorted::ScenarioInit;
 	auto const bSpawned = pPlane->Unlimbo(spawn_crd, DirType::North);
-	--Unsorted::IKnowWhatImDoing;
+	--Unsorted::ScenarioInit;
 
 	if (!bSpawned)
 	{

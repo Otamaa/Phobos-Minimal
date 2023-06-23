@@ -158,7 +158,7 @@ DEFINE_HOOK(0x424AEC, AnimClass_AI_SetMission, 0x6)
 
 	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 
-	const Mission nMission = pTypeExt->MakeInfantry_Mission.Get(Mission::Hunt);
+	const Mission nMission = pTypeExt->MakeInfantry_Mission.Get(!pThis->Owner->ControlledByPlayer_() ? Mission::Hunt : Mission::Guard);
 	Debug::Log("Anim[%s] with MakeInf , setting Mission[%s] ! \n", pThis->Type->ID , MissionClass::MissionToString(nMission));
 	pInf->QueueMission(nMission, false);
 	return 0x0;

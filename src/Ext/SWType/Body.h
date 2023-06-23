@@ -421,7 +421,7 @@ public:
 		double GetChargeToDrainRatio() const;
 		SuperWeaponTarget GetAIRequiredTarget() const;
 		AffectedHouse GetAIRequiredHouse() const;
-		TargetingConstraint GetAITargetingConstraint() const;
+		std::pair<TargetingConstraint, bool> GetAITargetingConstraint() const;
 		TargetingPreference GetAITargetingPreference() const;
 		bool UpdateLightingColor(LightingColor& Lighting) const;
 		// is this an original type handled by a NewSWType?

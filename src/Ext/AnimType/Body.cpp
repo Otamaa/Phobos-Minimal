@@ -237,9 +237,9 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 
 			if (!pTypeExt->CreateUnit_ConsiderPathfinding.Get())
 			{
-				++Unsorted::IKnowWhatImDoing;
+				++Unsorted::ScenarioInit;
 				success = pTechno->Unlimbo(pAnimExt->CreateUnitLocation, DirType(resultingFacing));
-				--Unsorted::IKnowWhatImDoing;
+				--Unsorted::ScenarioInit;
 			}
 			else
 			{

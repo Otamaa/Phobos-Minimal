@@ -73,7 +73,7 @@ DEFINE_HOOK(0x442651, BuildingClass_ReceiveDamage_Remove, 0xB)
 		if (pThis->BunkerLinkedItem)
 			pThis->UnloadBunker();
 
-		if (!Unsorted::IKnowWhatImDoing)
+		if (!Unsorted::ScenarioInit)
 			pThis->KillCargo(pAttacker);
 
 		if (pThis->SlaveManager)

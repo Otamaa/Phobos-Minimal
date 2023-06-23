@@ -30,7 +30,7 @@ __forceinline T specific_cast(const AbstractClass* pAbstract) {
 	static_assert(!std::is_abstract<Base>::value,
 		"specific_cast: Abstract types (not fully implemented classes) are not suppored.");
 
-	return pAbstract && GetVtableAddr(pAbstract) == Base::vtable ? static_cast<T>(pAbstract) : nullptr;
+	return pAbstract && pAbstract->WhatAmI() == Base::AbsID ? static_cast<T>(pAbstract) : nullptr;
 };
 
 template <typename T>

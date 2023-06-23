@@ -16,6 +16,8 @@ void TechnoExt::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClas
 	if (!pTechnoTo || TechnoExt::IsPsionicsImmune(pTechnoTo))
 		return;
 
+	const auto pBld = specific_cast<BuildingClass*>(pTechnoTo);
+
 	// anim must be transfered before `Free` call , because it will get invalidated !
 	if (auto Anim = pTechnoFrom->MindControlRingAnim)
 	{
@@ -27,11 +29,6 @@ void TechnoExt::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClas
 			//pTechnoTo->MindControlRingAnim->TimeToDie = true;
 			//pTechnoTo->MindControlRingAnim->UnInit();
 		}
-
-		const auto pWhat = (VTable::Get(pTechnoTo));
-		const auto pBld = pWhat == BuildingClass::vtable ?
-			static_cast<BuildingClass*>(pTechnoTo) : nullptr;
-
 
 		CoordStruct location = pTechnoTo->GetCoords();
 
@@ -53,7 +50,7 @@ void TechnoExt::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClas
 		pTechnoTo->MindControlledByHouse = MCHouse;
 		pTechnoFrom->MindControlledByHouse = nullptr;
 	} else if(pTechnoTo->MindControlledByAUnit && !pTechnoFrom->MindControlledBy) {
-			pTechnoTo->MindControlledByAUnit = pTechnoFrom->MindControlledByAUnit;
+			pTechnoTo->MindControlledByAUnit = pTechnoFrom->MindControlledByAUnit; //perma MC ed
 	} else if (auto Controller = pTechnoFrom->MindControlledBy) {
 		if (auto Manager = Controller->CaptureManager)
 		{
@@ -63,12 +60,12 @@ void TechnoExt::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClas
 
 			if (Succeeded)
 			{
-				if (Is_Building(pTechnoTo))
+				if (pBld)
 				{
 					// Capturing the building after unlimbo before buildup has finished or even started appears to throw certain things off,
 					// Hopefully this is enough to fix most of it like anims playing prematurely etc.
-					static_cast<BuildingClass*>(pTechnoTo)->ActuallyPlacedOnMap = false;
-					static_cast<BuildingClass*>(pTechnoTo)->DestroyNthAnim(BuildingAnimSlot::All);
+					pBld->ActuallyPlacedOnMap = false;
+					pBld->DestroyNthAnim(BuildingAnimSlot::All);
 					pTechnoTo->QueueMission(Mission::Construction, 0);
 					pTechnoTo->Mission_Construction();
 				}

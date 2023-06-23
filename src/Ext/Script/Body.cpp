@@ -7144,13 +7144,16 @@ void ScriptExt::ChronoshiftToEnemyBase(TeamClass* pTeam, int extraDistance)
 
 	if (!pLeader)
 	{
+		const auto nCur = pScript->GetCurrentAction();
+		const auto nNext = pScript->GetNextAction();
+
 		Debug::Log("AI Scripts - ChronoshiftToEnemyBase: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No Leader found)\n",
 			pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, 
-			pScript->Type->ScriptActions[pScript->CurrentMission].Action, 
-			pScript->Type->ScriptActions[pScript->CurrentMission].Argument, 
+			nCur.Action,
+			nCur.Argument,
 			pScript->CurrentMission + 1, 
-			pScript->Type->ScriptActions[pScript->CurrentMission + 1].Action, 
-			pScript->Type->ScriptActions[pScript->CurrentMission + 1].Argument);
+			nNext.Action,
+			nNext.Argument);
 		pTeam->StepCompleted = true;
 		return;
 	}
@@ -7160,13 +7163,16 @@ void ScriptExt::ChronoshiftToEnemyBase(TeamClass* pTeam, int extraDistance)
 
 	if (!pEnemy)
 	{
+		const auto nCur = pScript->GetCurrentAction();
+		const auto nNext = pScript->GetNextAction();
+
 		Debug::Log("AI Scripts - ChronoshiftToEnemyBase: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No enemy house found)\n",
 			pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, 
-			pScript->Type->ScriptActions[pScript->CurrentMission].Action,
-			pScript->Type->ScriptActions[pScript->CurrentMission].Argument,
+			nCur.Action,
+			nCur.Argument,
 			pScript->CurrentMission + 1,
-			pScript->Type->ScriptActions[pScript->CurrentMission + 1].Action,
-			pScript->Type->ScriptActions[pScript->CurrentMission + 1].Argument);
+			nNext.Action,
+			nNext.Argument);
 
 		pTeam->StepCompleted = true;
 		return;
@@ -7176,13 +7182,16 @@ void ScriptExt::ChronoshiftToEnemyBase(TeamClass* pTeam, int extraDistance)
 
 	if (!pTargetCell)
 	{
+		const auto nCur = pScript->GetCurrentAction();
+		const auto nNext = pScript->GetNextAction();
+
 		Debug::Log("AI Scripts - ChronoshiftToEnemyBase: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No target cell found)\n",
 			pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission,
-			pScript->Type->ScriptActions[pScript->CurrentMission].Action,
-			pScript->Type->ScriptActions[pScript->CurrentMission].Argument,
+			nCur.Action,
+			nCur.Argument,
 			pScript->CurrentMission + 1,
-			pScript->Type->ScriptActions[pScript->CurrentMission + 1].Action,
-			pScript->Type->ScriptActions[pScript->CurrentMission + 1].Argument);
+			nNext.Action,
+			nNext.Argument);
 
 		pTeam->StepCompleted = true;
 		return;
@@ -7205,7 +7214,7 @@ void ScriptExt::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeamLead
 	{
 		if (!pSuperChronosphere && pSuper->Type->Type == SuperWeaponType::ChronoSphere)
 			pSuperChronosphere = pSuper;
-
+		
 		if (!pSuperChronowarp && pSuper->Type->Type == SuperWeaponType::ChronoWarp)
 			pSuperChronowarp = pSuper;
 

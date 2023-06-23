@@ -55,8 +55,14 @@ void TechnoTypeExt::ExtData::Initialize()
 
 	this->ShieldType = ShieldTypeClass::Array[0].get();
 
+	this->SellSound = RulesClass::Instance->SellSound;
+	auto Eva_ready = GameStrings::EVA_ConstructionComplete();
+	auto Eva_sold = GameStrings::EVA_StructureSold() ;
+
 	if (!Is_BuildingType(Get()))
 	{
+		Eva_ready = GameStrings::EVA_UnitReady();
+		Eva_sold = GameStrings::EVA_UnitSold();
 
 		if (Is_AircraftType(Get()))
 		{
@@ -71,6 +77,8 @@ void TechnoTypeExt::ExtData::Initialize()
 		this->Promote_Vet_Eva = nPromotedEva;
 	}
 
+	this->Eva_Complete = VoxClass::FindIndexById(Eva_ready);
+	this->EVA_Sold = VoxClass::FindIndexById(Eva_sold);
 }
 
 AnimTypeClass* TechnoTypeExt::GetSinkAnim(TechnoClass* pThis)
@@ -885,6 +893,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->CrushForwardTiltPerFrame.Read(exINI, pSection, "CrushForwardTiltPerFrame");
 		this->CrushOverlayExtraForwardTilt.Read(exINI, pSection, "CrushOverlayExtraForwardTilt");
 		this->CrushSlowdownMultiplier.Read(exINI, pSection, "CrushSlowdownMultiplier");
+
+		this->AIIonCannonValue.Read(exINI, pSection, "AIIonCannonValue");
 
 		if (Is_AircraftType(pThis))
 		{
@@ -1726,6 +1736,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->CrushForwardTiltPerFrame)
 		.Process(this->CrushOverlayExtraForwardTilt)
 		.Process(this->CrushSlowdownMultiplier)
+		.Process(this->AIIonCannonValue)
 
 #pragma endregion
 		;

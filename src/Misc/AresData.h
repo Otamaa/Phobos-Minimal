@@ -275,7 +275,7 @@ struct AresData
 
 	static void BuildingExt_UpdateDisplayTo(BuildingClass* pFor);
 
-	static int TechnoTypeExt_GetTurretWeaponIdx(TechnoTypeClass* pThis, int idx);
+	static int* TechnoTypeExt_GetTurretWeaponIdx(TechnoTypeClass* pThis, int idx);
 	static bool TechnoTypeExt_CameoIsElite(TechnoTypeClass* pThis, HouseClass* Owner);
 
 };
@@ -296,7 +296,10 @@ namespace AresMemory
 
 	static NOINLINE void* AresAllocateChecked(size_t sz)
 	{
-		return AresAllocate(sz);
+		if (auto const ptr = AresAllocate(sz)) {
+			return ptr;
+		}
+		exit(static_cast<int>(0x30000000u | sz));
 	}
 
 	template <typename T>

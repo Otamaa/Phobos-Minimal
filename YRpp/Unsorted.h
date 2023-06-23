@@ -837,7 +837,7 @@ namespace Unsorted
 	static constexpr constant_ptr<char, 0x8A3A08> except_txt_content {};
 
 	// Note: SomeMutex has been renamed to this because it reflects the usage better
-	static constexpr reference<int, 0xA8E7AC> IKnowWhatImDoing {}; // h2ik
+	static constexpr reference<int, 0xA8E7AC> ScenarioInit {}; // h2ik
 	static constexpr reference<int, 0xA8DAB4> SystemResponseMessages {};
 
 	static constexpr reference<CellStruct*, 0x880964u> CursorSize {};

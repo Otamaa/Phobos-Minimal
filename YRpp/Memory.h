@@ -64,12 +64,10 @@ namespace YRMemory {
 	}
 
 	inline __declspec(noinline) void* AllocateChecked(size_t sz) {
-		// why they do it like this ,..
-		//if(auto const ptr = YRMemory::Allocate(sz)) {
-		//	return ptr;
-		//}
-		//exit(static_cast<int>(0x30000000u | sz));
-		return YRMemory::Allocate(sz);
+		if(auto const ptr = YRMemory::Allocate(sz)) {
+			return ptr;
+		}
+		exit(static_cast<int>(0x30000000u | sz));
 	}
 }
 

@@ -913,9 +913,9 @@ TechnoClass* Helpers_DP::CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* 
 
 			if(!bPathfinding) {
 				pTechno->OnBridge = pCell->ContainsBridge();
-				++Unsorted::IKnowWhatImDoing;
+				++Unsorted::ScenarioInit;
 				UnlimboSuccess = pTechno->Unlimbo(pCell->GetCoordsWithBridge(), DirType::East);
-				--Unsorted::IKnowWhatImDoing;
+				--Unsorted::ScenarioInit;
 			} else {
 
 				if (Is_BuildingType(pType)) {

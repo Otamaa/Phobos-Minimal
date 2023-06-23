@@ -146,9 +146,9 @@ private:
 			pStand->OnBridge = pCell->ContainsBridge();
 			CoordStruct xyz = pCell->GetCoordsWithBridge();
 			xyz.Z = MapClass::Instance->GetCellFloorHeight(xyz);
-			++Unsorted::IKnowWhatImDoing;
+			++Unsorted::ScenarioInit;
 			auto bSucceed = pStand->Unlimbo(xyz, Direction::E);
-			--Unsorted::IKnowWhatImDoing;
+			--Unsorted::ScenarioInit;
 
 			if(bSucceed)
 				pCell->OccupationFlags = occFlags;

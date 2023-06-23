@@ -55,9 +55,9 @@ void PlaceVeinholeMonster::Execute(WWKey eInput) const
 
 			pCell->OverlayTypeIndex = 0xA7; //VeiholeDummy -> used to place veinhole monster
 			pCell->OverlayData = 0;
-			++Unsorted::IKnowWhatImDoing();
+			++Unsorted::ScenarioInit();
 			auto pVein = GameCreate<VeinholeMonsterClass>(&nPos);
-			--Unsorted::IKnowWhatImDoing();
+			--Unsorted::ScenarioInit();
 			created = true;
 
 			pVein->RegisterAffectedCells();

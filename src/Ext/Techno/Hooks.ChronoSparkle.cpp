@@ -109,7 +109,6 @@ DEFINE_HOOK(0x4403D4, BuildingClass_AI_ChronoSparkle, 0x6)
 			auto nLoc = pThis->GetCenterCoords();
 			PlayChronoSparkleAnim(pThis, &nLoc, 0);
 		}
-
 	}
 
 	return SkipGameCode;

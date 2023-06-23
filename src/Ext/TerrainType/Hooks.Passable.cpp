@@ -35,7 +35,7 @@ DEFINE_HOOK(0x71C110, TerrainClass_SetOccupyBit_PassableTerrain, 0x5)
 
 bool CanMoveHere(TechnoClass* pThis, TerrainClass* pTerrain)
 {
-	const auto pType = pThis->GetTechnoType();
+
 	const auto pExt = TerrainTypeExt::ExtMap.Find(pTerrain->Type);
 
 	if (pExt->IsPassable)
@@ -43,7 +43,7 @@ bool CanMoveHere(TechnoClass* pThis, TerrainClass* pTerrain)
 
 	if(Is_Unit(pThis)) {
 		if(pTerrain->Type->Crushable) {
-			if (TechnoTypeExt::ExtMap.Find(pType)->CrushLevel.Get(pThis) > pExt->CrushableLevel) {
+			if (TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->CrushLevel.Get(pThis) > pExt->CrushableLevel) {
 				return true;
 			}
 		}

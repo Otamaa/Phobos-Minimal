@@ -290,6 +290,8 @@ bool applyOccupantDamage(BulletClass* pThis)
 	return true;
 }
 
+#include <Misc/PhobosGlobal.h>
+
 DEFINE_OVERRIDE_HOOK(0x46920B, BulletClass_Detonate, 6)
 {
 	enum { CheckIvanBomb = 0x469343, ConituneMindControlCheck = 0x46921F, SkipEverything = 0x469AA4, Continue = 0x0 };
@@ -301,7 +303,11 @@ DEFINE_OVERRIDE_HOOK(0x46920B, BulletClass_Detonate, 6)
 	auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead); 
 	auto const pWeaponExt = WeaponTypeExt::ExtMap.TryFind(pThis->WeaponType);
 
-	auto const pOwnerHouse = pThis->Owner ? pThis->Owner->Owner : nullptr;
+	auto const pTechno = pThis->Owner ? pThis->Owner : nullptr;
+	auto const pOwnerHouse = pTechno ? pTechno->Owner : nullptr;
+
+	WarheadTypeExt::ExtMap.Find(pThis->WH)->Detonate(pTechno, pOwnerHouse, pThis, *pCoordsDetonation);
+	PhobosGlobal::Instance()->DetonateDamageArea = false;
 
 	// this snapping stuff does not belong here. it should go into BulletClass::Fire
 	auto coords = *pCoordsDetonation;
@@ -314,7 +320,8 @@ DEFINE_OVERRIDE_HOOK(0x46920B, BulletClass_Detonate, 6)
 	}
 
 	// these effects should be applied no matter what happens to the target
-	AresData::applyIonCannon(pWarhead , &coords);
+	//AresData::applyIonCannon(pWarhead , &coords);
+	 WarheadTypeExt::CreateIonBlast(pWarhead, coords);
 
 	bool targetStillOnMap = true;
 	if (snapped && pWeaponExt && conductAbduction(pWeaponExt, pThis->Owner, pThis->Target, coords)) {
@@ -330,8 +337,8 @@ DEFINE_OVERRIDE_HOOK(0x46920B, BulletClass_Detonate, 6)
 	// this check, you have to fix that as well
 	if (targetStillOnMap) {
 
-		auto const damage = pThis->WeaponType ? pThis->WeaponType->Damage : 0;
-		AresData::applyIC(pWarhead, &coords, pOwnerHouse, damage);
+		//auto const damage = pThis->WeaponType ? pThis->WeaponType->Damage : 0;
+		//AresData::applyIC(pWarhead, &coords, pOwnerHouse, damage);
 		AresData::applyEMP(pWarhead, &coords, pThis->Owner);
 		AresData::applyAE(pWarhead, &coords, pOwnerHouse);
 

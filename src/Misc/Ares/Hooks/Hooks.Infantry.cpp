@@ -15,9 +15,10 @@
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/Infantry/Body.h>
+#include <Ext/InfantryType/Body.h>
 
+#include <WWKeyboardClass.h>
 #include <Misc/AresData.h>
-
 
 DEFINE_OVERRIDE_HOOK(0x523932, InfantryTypeClass_CTOR_Initialize, 8)
 {
@@ -265,3 +266,102 @@ DEFINE_OVERRIDE_HOOK(0x51E3B0, InfantryClass_GetActionOnObject_EMP, 0x7)
 }
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x5200D7, InfantryClass_UpdatePanic_DontReload, 0x6, 52010B)
+
+DEFINE_OVERRIDE_HOOK(0x51BD4C , InfantryClass_Update_BuildingBelow, 6)
+{
+	GET(BuildingClass*, pBld, EDI);
+
+	if(Is_Passable(pBld->Type))
+		return 0x51BD7D;
+
+	if (Is_FirestromWall(pBld->Type))
+		return 0x51BD56;
+
+	return 0x51BD68;
+}
+
+DEFINE_OVERRIDE_HOOK(0x51CE9A, InfantryClass_Idle, 5)
+{
+	GET(InfantryClass*, I, ESI);
+	const auto pData = InfantryTypeExt::ExtMap.Find(I->Type);
+
+	// don't play idle when paralyzed
+	if (I->IsUnderEMP())
+	{
+		R->BL(false);
+		return 0x51CECD;
+	}
+
+	R->EDI(R->EAX()); // argh
+	R->BL(pData->Is_Cow); // aaaargh! again!
+	return pData->Is_Cow ? 0x51CEAEu : 0x51CECDu;
+}
+
+DEFINE_OVERRIDE_HOOK(0x51F76D, InfantryClass_Unload, 5)
+{
+	GET(InfantryClass*, I, ESI);
+	return InfantryTypeExt::ExtMap.Find(I->Type)->Is_Deso ? 0x51F77Du : 0x51F792u;
+}
+
+DEFINE_OVERRIDE_HOOK(0x52138c, InfantryClass_UpdateDeployment_Deso2, 6)
+{
+	GET(InfantryClass*, I, ESI);
+	return InfantryTypeExt::ExtMap.Find(I->Type)->Is_Deso ? 0x52139A : 0x5214B9;
+}
+
+DEFINE_OVERRIDE_HOOK(0x5215f9, InfantryClass_UpdateDeployment_Deso1, 6)
+{
+	GET(InfantryClass*, I, ESI);
+	return InfantryTypeExt::ExtMap.Find(I->Type)->Is_Deso ? 0x5216B6 : 0x52160D;
+}
+
+DEFINE_OVERRIDE_HOOK(0x629804, ParasiteClass_UpdateSquiddy, 9)
+{
+	GET(ParasiteClass*, pThis, ESI);
+	R->EAX(pThis->Owner->GetWeapon(Ares_ParasiteWeapon(pThis->Owner)));
+	return 0x62980D;
+}
+
+DEFINE_OVERRIDE_HOOK(0x51C4C8, InfantryClass_IsCellOccupied, 6)
+{
+	GET(BuildingClass* const, pBld, ESI);
+
+	enum { Impassable = 0x51C7D0, Ignore = 0x51C70F, NoDecision = 0x51C4EB, CheckFirestorm = 0x51C4D2 };
+
+	if (Is_Passable(pBld->Type)) {
+		return Ignore;
+	}
+
+	if (Is_FirestromWall(pBld->Type)) {
+		return CheckFirestorm;
+	}
+
+	return NoDecision;
+}
+
+// #1283638: ivans cannot enter grinders; they get an attack cursor. if the
+// grinder is rigged with a bomb, ivans can enter. this fix lets ivans enter
+// allied grinders. pressing the force fire key brings back the old behavior.
+DEFINE_OVERRIDE_HOOK(0x51EB48, InfantryClass_GetActionOnObject_IvanGrinder, 0xA)
+{
+	GET(InfantryClass*, pThis, EDI);
+	GET(ObjectClass*, pTarget, ESI);
+
+	if (auto pTargetBld = abstract_cast<BuildingClass*>(pTarget)) {
+		if (pTargetBld->Type->Grinding && pThis->Owner->IsAlliedWith(pTargetBld)) {
+
+			if (!InputManagerClass::Instance->IsForceFireKeyPressed()) {
+				static const byte return_grind[] = {
+					0x5F, 0x5E, 0x5D, // pop edi, esi and ebp
+					0xB8, 0x0B, 0x00, 0x00, 0x00, // eax = Action::Repair (not Action::Eaten)
+					0x5B, 0x83, 0xC4, 0x28, // esp += 0x28
+					0xC2, 0x08, 0x00 // retn 8
+				};
+
+				return reinterpret_cast<DWORD>(return_grind);
+			}
+		}
+	}
+
+	return 0;
+}

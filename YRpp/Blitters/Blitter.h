@@ -10,6 +10,9 @@
 // All Westwood fucking jesus blitters goes here!
 class Blitter
 {
+public :
+	static constexpr reference<Blitter, 0x7F7C0C> const Blit_Trans_Uchar_vftable {};
+	static constexpr reference<Blitter, 0x7F7BF4> const Blit_Trans_Ushort_vftable {};
 public:
 	virtual ~Blitter() = default;
 	virtual void Blit_Copy(void* dst, byte* src, int len, int zval, WORD* zbuf, WORD* abuf, int alvl, int warp) = 0;

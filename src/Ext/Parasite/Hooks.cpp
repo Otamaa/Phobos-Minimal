@@ -257,9 +257,9 @@ DEFINE_HOOK(0x629E90, FootClass_WakeAnim_OnlyWater, 0x6)
 //		Owner->IsFallingDown = Owner->IsABomb = true;
 //	}
 //
-//	++Unsorted::IKnowWhatImDoing();
+//	++Unsorted::ScenarioInit();
 //	if (!*pResult) {
-//		--Unsorted::IKnowWhatImDoing();
+//		--Unsorted::ScenarioInit();
 //		pThis->Owner->Health = 0;
 //		pThis->Owner->UnInit();
 //		pThis->Victim = nullptr;
@@ -268,7 +268,7 @@ DEFINE_HOOK(0x629E90, FootClass_WakeAnim_OnlyWater, 0x6)
 //
 //	if (!pThis->Owner->Unlimbo(*pResult, pThis->Victim->PrimaryFacing.Current().Get_Dir()))
 //	{
-//		--Unsorted::IKnowWhatImDoing();
+//		--Unsorted::ScenarioInit();
 //		pThis->Owner->Health = 0;
 //		TechnoExt::HandleRemove(pThis->Owner, nullptr, true);
 //		//pThis->Owner->UnInit();

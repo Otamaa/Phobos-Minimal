@@ -34,15 +34,8 @@ DEFINE_HOOK(0x449CC1, BuildingClass_Mission_Destruction_EVASoldAndUndeploysInto,
 	GET(BuildingClass*, pThis, EBP);
 
 	if (pThis->IsOwnedByCurrentPlayer && 
-		(!pThis->Focus || !pThis->Type->UndeploysInto))
-	{
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-
-		if(pTypeExt->EVA_Sold.isset()){
-			VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get());
-		} else {
-			VoxClass::Play(GameStrings::EVA_StructureSold());
-		}
+		(!pThis->Focus || !pThis->Type->UndeploysInto)) {
+		VoxClass::PlayIndex(TechnoTypeExt::ExtMap.Find(pThis->Type)->EVA_Sold.Get());
 	}
 
 	return MCVCanUndeploy(pThis) ? CreateUnit : SkipTheEntireShit;
@@ -53,10 +46,8 @@ DEFINE_HOOK(0x44A7CF, BuildingClass_Mi_Selling_PlaySellSound, 0x6)
 	GET(BuildingClass*, pThis, EBP);
 	enum { FinishPlaying = 0x44A85B };
 
-	if (!MCVCanUndeploy(pThis))
-	{
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-		VocClass::PlayIndexAtPos(pTypeExt->SellSound.Get(RulesClass::Instance->SellSound), pThis->Location);
+	if (!MCVCanUndeploy(pThis)) {
+		VocClass::PlayIndexAtPos(TechnoTypeExt::ExtMap.Find(pThis->Type)->SellSound.Get(), pThis->Location);
 	}
 
 	return FinishPlaying;

@@ -9,6 +9,8 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 
+#include <Ext/Building/Body.h>
+#include <Ext/BuildingType/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
@@ -286,4 +288,302 @@ DEFINE_OVERRIDE_HOOK(0x4FAF2A, HouseClass_SWDefendAgainst_Aborted, 0x8)
 {
 	GET(SuperClass*, pSW, EAX);
 	return (pSW && !pSW->IsCharged) ? 0x4FAF32 : 0x4FB0CF;
+}
+
+// restored from TS
+DEFINE_OVERRIDE_HOOK(0x4F9610, HouseClass_GiveTiberium_Storage, 0xA)
+{
+	GET(HouseClass* const, pThis, ECX);
+	GET_STACK(float, amount, 0x4);
+	GET_STACK(int const, idxType, 0x8);
+
+	pThis->SiloMoney += int(amount * 5.0);
+
+	if (SessionClass::Instance->GameMode == GameMode::Campaign || pThis->IsHumanPlayer)
+	{
+		// don't change, old values are needed for silo update
+		const auto lastStorage = int(pThis->OwnedTiberium.GetTotalAmount());
+		const auto lastTotalStorage = pThis->TotalStorage;
+
+		// this is the upper limit for stored tiberium
+		if (amount > lastTotalStorage - lastStorage)
+		{
+			amount = float(lastTotalStorage - lastStorage);
+		}
+
+		// go through all buildings and fill them up until all is in there
+		for (auto const& pBuilding : pThis->Buildings)
+		{
+			if (amount <= 0.0)
+			{
+				break;
+			}
+
+			auto const storage = pBuilding->Type->Storage;
+			if (pBuilding->IsOnMap && storage > 0)
+			{
+				// put as much tiberium into this silo
+				auto freeSpace = storage - pBuilding->Tiberium.GetTotalAmount();
+				if (freeSpace > 0.0)
+				{
+					if (freeSpace > amount)
+					{
+						freeSpace = amount;
+					}
+
+					pBuilding->Tiberium.AddAmount(freeSpace, idxType);
+					pThis->OwnedTiberium.AddAmount(freeSpace, idxType);
+
+					amount -= freeSpace;
+				}
+			}
+		}
+
+		// redraw silos
+		pThis->UpdateAllSilos(lastStorage, lastTotalStorage);
+	}
+	else
+	{
+		// just add the money. this is the only original YR logic
+		auto const pTib = TiberiumClass::Array->GetItem(idxType);
+		pThis->Balance += int(amount * pTib->Value * pThis->Type->IncomeMult);
+	}
+
+	return 0x4F9664;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4F62FF, HouseClass_CTOR_FixNameOverflow, 6)
+{
+	GET(HouseClass*, H, EBP);
+	GET_STACK(HouseTypeClass*, Country, 0x48);
+
+	PhobosCRT::wstrCopy(H->UIName, Country->UIName);
+
+	return 0x4F6312;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4F645F, HouseClass_CTOR_FixSideIndices, 5)
+{
+	GET(HouseClass*, pHouse, EBP);
+	if (HouseTypeClass* pCountry = pHouse->Type)
+	{
+		if (strcmp(pCountry->ID, GameStrings::Neutral()) &&
+			strcmp(pCountry->ID, GameStrings::Special()))
+		{
+			pHouse->SideIndex = pCountry->SideIndex;
+		}
+	}
+	return 0x4F6490;
+}
+
+DEFINE_OVERRIDE_HOOK(0x50BEB0, HouseClass_GetCostMult, 6)
+{
+	GET(HouseClass*, pThis, ECX);
+	GET_STACK(TechnoTypeClass*, pType, 0x4);
+
+	double nVal = 1.0;
+	double nDefVal = 1.0;
+
+	switch (pType->WhatAmI())
+	{
+	case AbstractType::AircraftType:
+	{
+		nVal = 1.0 - pThis->CostAircraftMult;
+		break;
+	}
+	case AbstractType::BuildingType:
+	{
+		nVal = 1.0 - (static_cast<BuildingTypeClass*>(pType)->BuildCat == BuildCat::Combat ? pThis->CostDefensesMult : pThis->CostBuildingsMult);
+		break;
+	}
+	case AbstractType::InfantryType:
+	{
+		nVal = 1.0 - pThis->CostInfantryMult;
+		break;
+	}
+	case AbstractType::UnitType:
+	{
+		nVal = 1.0 - (static_cast<UnitTypeClass*>(pType)->ConsideredAircraft ? pThis->CostAircraftMult : pThis->CostUnitsMult);
+		break;
+	}
+	}
+
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto nResult = (nDefVal - nVal * pTypeExt->FactoryPlant_Multiplier.Get());
+
+	__asm { fld nResult };
+	return 0x50BF1E;
+}
+
+DEFINE_OVERRIDE_HOOK(0x509140, HouseClass_Update_Factories_Queues, 5)
+{
+	GET(HouseClass*, H, ECX);
+	GET_STACK(AbstractType, nWhat, 0x4);
+	GET_STACK(bool, bIsNaval, 0x8);
+	GET_STACK(BuildCat, nBuildCat, 0xC);
+
+	if (nWhat == AbstractType::BuildingType && nBuildCat != BuildCat::DontCare)
+		H->Update_FactoriesQueues(nWhat, bIsNaval, nBuildCat);
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x508C7F, HouseClass_UpdatePower_Auxiliary, 6)
+{
+	GET(HouseClass*, pThis, ESI);
+
+	auto& curAux = AuxPower(pThis);
+
+	int nAux_ = 0;
+	if (curAux >= 0)
+		nAux_ = curAux;
+	pThis->PowerOutput = nAux_;
+
+	int nAux__ = 0;
+	if (curAux <= 0)
+		nAux__ = -curAux;
+
+	pThis->PowerDrain = nAux__;
+
+	return 0x508C8B;
+}
+
+// #917 - handle the case of no shipyard gracefully
+DEFINE_OVERRIDE_HOOK(0x50610E, HouseClass_FindPositionForBuilding_FixShipyard, 7)
+{
+	GET(BuildingTypeClass*, pShipyard, EAX);
+
+	if (pShipyard)
+	{
+		R->ESI<int>(pShipyard->GetFoundationWidth() + 2);
+		R->EAX<int>(pShipyard->GetFoundationHeight(false));
+		return 0x506134;
+	}
+
+	return 0x5060CE;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4FC731, HouseClass_DestroyAll_ReturnStructures, 7)
+{
+	GET_STACK(HouseClass*, pThis, STACK_OFFS(0x18, 0x8));
+	GET(TechnoClass*, pTechno, ESI);
+
+	// do not return structures in campaigns
+	if (SessionClass::Instance->IsCampaign()) {
+		return 0;
+	}
+
+	// check whether this is a building
+	if (auto pBld = specific_cast<BuildingClass*>(pTechno))
+	{
+		auto pInitialOwner = pBld->InitialOwner;
+
+		// was the building owned by a neutral country?
+		if (!pInitialOwner || pInitialOwner->Type->MultiplayPassive)
+		{
+			auto pExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+
+			auto occupants = pBld->GetOccupantCount();
+			auto canReturn = (pInitialOwner != pThis) || occupants > 0;
+
+			if (canReturn && pExt->Returnable.Get(RulesExt::Global()->ReturnStructures))
+			{
+				// this may change owner
+				if (occupants) {
+					pBld->KillOccupants(nullptr);
+				}
+
+				// don't do this when killing occupants already changed owner
+				if (pBld->GetOwningHouse() == pThis)
+				{
+
+					// fallback to first civilian side house, same logic SlaveManager uses
+					if (!pInitialOwner)
+					{
+						pInitialOwner = HouseClass::FindCivilianSide();
+					}
+
+					// give to other house and disable
+					if (pInitialOwner && pBld->SetOwningHouse(pInitialOwner, false))
+					{
+						pBld->Guard();
+
+						if (pBld->Type->NeedsEngineer)
+						{
+							pBld->HasEngineer = false;
+							pBld->DisableStuff();
+						}
+
+						return 0x4FC770;
+					}
+				}
+			}
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4FB2FD, HouseClass_UnitFromFactory_BuildingSlam, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	VocClass::PlayGlobal(BuildingTypeExt::ExtMap.Find(pThis->Type)->SlamSound.
+		Get(RulesClass::Instance->BuildingSlam), Panning::Center, 1.0, 0);
+
+	return 0x4FB319;
+}
+
+//0x4F8F54
+DEFINE_OVERRIDE_HOOK(0x4F8F54, HouseClass_Update_SlaveMinerCheck, 6)
+{
+	GET(HouseClass*, pThis, ESI);
+	GET(int, n, EDI);
+
+	const auto& Ref = RulesClass::Instance->BuildRefinery;
+	for (int i = 0; i < Ref.Count; ++i) {
+		//new sane way to find a slave miner
+		if (Ref.Items[i]->SlavesNumber > 0) {
+			n += pThis->ActiveBuildingTypes.GetItemCount(Ref.Items[i]->ArrayIndex);
+		}
+	}
+
+	R->EDI(n);
+	return 0x4F8F75;
+}
+
+
+//0x4F8C97
+DEFINE_OVERRIDE_HOOK(0x4F8C97, HouseClass_Update_BuildConst, 6)
+{
+	GET(HouseClass*, pThis, ESI);
+
+	enum { NotifyLowPower = 0x4F8D02, Skip = 0x4F8DB1 };
+
+	// disable FSW on low power
+	AresData::RespondToFirewall(pThis, false);
+
+	// should play low power EVA for more than three BuildConst items
+	for (auto const& pItem : RulesClass::Instance->BuildConst) {
+		if (pThis->ActiveBuildingTypes[pItem->ArrayIndex] > 0) {
+			return NotifyLowPower;
+		}
+	}
+
+	return Skip;
+}
+
+// play this annoying message every now and then
+DEFINE_OVERRIDE_HOOK(0x4F8C23, HouseClass_Update_SilosNeededEVA, 5)
+{
+	GET(HouseClass* const, pThis, ESI);
+
+	VoxClass::Play("EVA_SilosNeeded");
+
+	if (const CSFText& Message = RulesExt::Global()->MessageSilosNeeded) {
+		MessageListClass::Instance->PrintMessage(Message,
+			RulesClass::Instance->MessageDelay, pThis->ColorSchemeIndex);
+	}
+
+	return 0;
 }

@@ -28,6 +28,7 @@ DEFINE_HOOK(0x685078, Generate_OreTwinkle_Anims, 0x7)
 		if (!ScenarioClass::Instance->Random.RandomFromMax(pTibExt->GetTwinkleChance() - 1)) {
 			if (auto pAnimtype = pTibExt->GetTwinkleAnim()) {
 				if (auto pAnim = GameCreate<AnimClass>(pAnimtype, location->GetCoords(), 1)) {
+					pAnim->__lighting__celldraw_196 = true;
 					AnimExt::SetAnimOwnerHouseKind(pAnim, nullptr, nullptr, false);
 				}
 			}

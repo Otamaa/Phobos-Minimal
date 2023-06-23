@@ -138,6 +138,7 @@ void LaunchCannon()
 	}
 }*/
 
+// update it twice so it can
 void VerticalLaserClass::AI(int start, int count)
 {
 	const int increasement = 360 / count;

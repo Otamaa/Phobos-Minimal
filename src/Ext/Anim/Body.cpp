@@ -383,7 +383,7 @@ const std::pair<bool, OwnerHouseKind> AnimExt::SetAnimOwnerHouseKind(AnimClass* 
 		if (auto newOwner = HouseExt::GetHouseKind(pTypeExt->MakeInfantryOwner, true, nullptr, pInvoker, pVictim))
 		{
 			pAnim->SetHouse(newOwner);
-			if (pTypeExt->RemapAnim && !newOwner->Defeated)
+			if (!newOwner->Defeated)
 				pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
 
 			return { true , pTypeExt->MakeInfantryOwner }; //yes return true
@@ -436,7 +436,9 @@ const std::pair<bool, OwnerHouseKind> AnimExt::SetAnimOwnerHouseKind(AnimClass* 
 		if (auto newOwner = HouseExt::GetHouseKind(pTypeExt->MakeInfantryOwner, true, nullptr, pInvoker, pVictim))
 		{
 			pAnim->SetHouse(newOwner);
-			if (pTypeExt->RemapAnim && !newOwner->Defeated)
+			pAnim->__lighting__celldraw_196 = false;
+
+			if (!newOwner->Defeated)
 				pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
 
 			return { true , pTypeExt->MakeInfantryOwner }; //yes return true

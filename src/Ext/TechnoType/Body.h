@@ -270,8 +270,8 @@ public:
 		Valueable<IronCurtainFlag> IronCurtain_Effect;
 		Nullable<WarheadTypeClass*> IronCurtain_KillWarhead;
 
-		NullableIdx<VoxClass> EVA_Sold;
-		NullableIdx<VocClass> SellSound;
+		ValueableIdx<VoxClass> EVA_Sold { -1 };
+		ValueableIdx<VocClass> SellSound { -1};
 
 		Valueable<bool> MobileRefinery;
 		Valueable<int> MobileRefinery_TransRate;
@@ -381,7 +381,7 @@ public:
 		Valueable<bool> ROF_Random;
 		Nullable<Point2D> Rof_RandomMinMax;
 
-		NullableIdx<VoxClass> Eva_Complete;
+		ValueableIdx<VoxClass> Eva_Complete;
 		ValueableIdx<VocClass> VoiceCreate;
 		Valueable<bool>CreateSound_Enable;
 
@@ -749,6 +749,8 @@ public:
 
 		Valueable<float> ShadowScale  { -1.0f };
 
+		NullableVector<int> AIIonCannonValue {};
+
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, HealthBar_Hide { false }
 			, UIDescription {}
@@ -898,9 +900,6 @@ public:
 			, IronCurtain_Effect { IronCurtainFlag::Default }
 			, IronCurtain_KillWarhead { }
 
-			, EVA_Sold {}
-			, SellSound { }
-
 			, MobileRefinery { false }
 			, MobileRefinery_TransRate { 30 }
 			, MobileRefinery_CashMultiplier { 1.0 }
@@ -1013,7 +1012,7 @@ public:
 			, ROF_Random { true }
 			, Rof_RandomMinMax { }
 
-			, Eva_Complete { }
+			, Eva_Complete { -1 }
 			, VoiceCreate { -1 }
 			, CreateSound_Enable { true }
 

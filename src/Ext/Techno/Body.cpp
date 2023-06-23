@@ -566,11 +566,11 @@ bool TechnoExt::IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker)
 		{
 			if(pTerrain->Type->Immune || pTerrain->Type->SpawnsTiberium || !pTerrain->Type->Crushable)
 				return false;
-
+		
 			const auto pTerrainExt = TerrainTypeExt::ExtMap.Find(pTerrain->Type);
 			if(pTerrainExt->IsPassable)
 				return false;
-
+		
 			return pAttackerTechnoTypeExt->CrushLevel.Get(pAttacker) > pTerrainExt->CrushableLevel;
 		}
 
@@ -926,9 +926,9 @@ void TechnoExt::SendPlane(size_t Aircraft, size_t Amount, HouseClass* pOwner, Ra
 
 	for (size_t i = 0; i < Amount; ++i)
 	{
-		++Unsorted::IKnowWhatImDoing;
+		++Unsorted::ScenarioInit;
 		auto const pPlane = static_cast<AircraftClass*>(pAirCraft->CreateObject(pOwner));
-		--Unsorted::IKnowWhatImDoing;
+		--Unsorted::ScenarioInit;
 
 		if (!pPlane)
 			continue;
@@ -952,9 +952,9 @@ void TechnoExt::SendPlane(size_t Aircraft, size_t Amount, HouseClass* pOwner, Ra
 			pPlane->SetTarget(pTarget);
 
 		bool UnLimboSucceeded = false;
-		++Unsorted::IKnowWhatImDoing;
+		++Unsorted::ScenarioInit;
 		UnLimboSucceeded = pPlane->Unlimbo(CellClass::Cell2Coord(nCell), DirType::North);
-		--Unsorted::IKnowWhatImDoing;
+		--Unsorted::ScenarioInit;
 
 		if (!UnLimboSucceeded) {
 			pPlane->UnInit();
@@ -1215,9 +1215,9 @@ void TechnoExt::PutPassengersInCoords(TechnoClass* pTransporter, const CoordStru
 	bool Placed = false;
 	if (bForce)
 	{
-		++Unsorted::IKnowWhatImDoing;
+		++Unsorted::ScenarioInit;
 		Placed = pPassenger->Unlimbo(nDest, DirType::North);
-		--Unsorted::IKnowWhatImDoing;
+		--Unsorted::ScenarioInit;
 	}
 	else
 	{
@@ -3940,7 +3940,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->SelfHealing_CombatDelay)
 		.Process(this->PayloadCreated)
 		.Process(this->LinkedSW)
-		.Process(this->EMPTarget)
+		.Process(this->SuperTarget)
 #ifdef ENABLE_HOMING_MISSILE
 		.Process(this->MissileTargetTracker)
 #endif

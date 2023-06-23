@@ -296,72 +296,97 @@ int TechnoClass::GetIonCannonValue(AIDifficulty const difficulty) const {
 	const TypeList<int>* pValues = nullptr;
 	int value = 1;
 
-	if(auto pUnit = abstract_cast<const UnitClass*>(this)) {
-		auto pType = pUnit->Type;
+	switch (this->WhatAmI())
+	{
+	case AbstractType::Unit:
+	{
+		const auto pType = static_cast<const UnitClass*>(this)->Type;
 
-		if(pType->Harvester) {
+		if (pType->Harvester)
+		{
 			pValues = &rules.AIIonCannonHarvesterValue;
-
-		} else if(rules.BuildConst.FindItemIndex(pType->DeploysInto) != -1) {
+		}
+		else if (rules.BuildConst.FindItemIndex(pType->DeploysInto) != -1)
+		{
 			pValues = &rules.AIIonCannonMCVValue;
-
-		} else if(pType->Passengers > 0) {
+		}
+		else if (pType->Passengers > 0)
+		{
 			pValues = &rules.AIIonCannonAPCValue;
-
-		} else {
+		}
+		else
+		{
 			value = 2;
 		}
+		break;
+	}
+	case AbstractType::Building:
+	{
+		const auto pType = static_cast<const BuildingClass*>(this)->Type;
 
-	} else if(auto pBuilding = abstract_cast<const BuildingClass*>(this)) {
-		auto pType = pBuilding->Type;
-
-		if(pType->Factory == AbstractType::BuildingType) {
+		if (pType->Factory == AbstractType::BuildingType)
+		{
 			pValues = &rules.AIIonCannonConYardValue;
-
-		} else if(pType->Factory == AbstractType::UnitType && !pType->Naval) {
+		}
+		else if (pType->Factory == AbstractType::UnitType && !pType->Naval)
+		{
 			pValues = &rules.AIIonCannonWarFactoryValue;
-
-		} else if(pType->PowerBonus > pType->PowerDrain) {
+		}
+		else if (pType->PowerBonus > pType->PowerDrain)
+		{
 			pValues = &rules.AIIonCannonPowerValue;
-
-		} else if(pType->IsBaseDefense) {
+		}
+		else if (pType->IsBaseDefense)
+		{
 			pValues = &rules.AIIonCannonBaseDefenseValue;
 
-		} else if(pType->IsPlug) {
+		}
+		else if (pType->IsPlug)
+		{
 			pValues = &rules.AIIonCannonPlugValue;
-
-		} else if(pType->IsTemple) {
+		}
+		else if (pType->IsTemple)
+		{
 			pValues = &rules.AIIonCannonTempleValue;
-
-		} else if(pType->HoverPad) {
+		}
+		else if (pType->HoverPad)
+		{
 			pValues = &rules.AIIonCannonHelipadValue;
-
-		} else if(rules.BuildConst.FindItemIndex(pType) != -1) {
+		}
+		else if (rules.BuildConst.FindItemIndex(pType) != -1)
+		{
 			pValues = &rules.AIIonCannonTechCenterValue;
-
-		} else {
+		}
+		else
+		{
 			value = 4;
 		}
+		break;
+	}
+	case AbstractType::Infantry:
+	{
+		const auto pType = static_cast<const InfantryClass*>(this)->Type;
 
-	} else if(auto pInfantry = abstract_cast<const InfantryClass*>(this)) {
-		auto pType = pInfantry->Type;
-
-		if(pType->Engineer) {
+		if (pType->Engineer)
+		{
 			pValues = &rules.AIIonCannonEngineerValue;
-
-		} else if(pType->VehicleThief) {
+		}
+		else if (pType->VehicleThief)
+		{
 			pValues = &rules.AIIonCannonThiefValue;
-
-		} else {
+		}
+		else
+		{
 			value = 2;
 		}
+
+		break;
+	}
+	default:
+		break;
 	}
 
-	if(pValues) {
-		value = pValues->GetItemOrDefault(static_cast<int>(difficulty), value);
-	}
-
-	return value;
+	return pValues ? pValues->GetItemOrDefault(static_cast<int>(difficulty), value) : value;
 }
 
 TechnoTypeClass* BuildingClass::GetSecretProduction() const {

@@ -100,6 +100,65 @@ void WarheadTypeExt::ExtData::ApplyDirectional(BulletClass* pBullet, TechnoClass
 	//	pTarExt->ReceiveDamageMultiplier = this->DirectionalArmor_SideMultiplier.Get();
 }
 
+void WarheadTypeExt::ExtData::applyIronCurtain(TechnoClass* curTechno, HouseClass* Owner, int damage)
+{
+	if (this->IC_Duration != 0) {
+
+		// affect each object
+		{
+			// duration modifier
+			int duration = this->IC_Duration;
+
+			auto pType = curTechno->GetTechnoType();
+
+			// modify good durations only
+			if (duration > 0) {
+				duration = static_cast<int>(duration * TechnoTypeExt::ExtMap.Find(pType)->IronCurtain_Modifier);
+			}
+
+			// get the values
+			int oldValue = (curTechno->IronCurtainTimer.Expired() ? 0 : curTechno->IronCurtainTimer.GetTimeLeft());
+			int newValue = Helpers::Alex::getCappedDuration(oldValue, duration, this->IC_Cap);
+
+			// update iron curtain
+			if (oldValue <= 0)
+			{
+				// start iron curtain effect?
+				if (newValue > 0)
+				{
+					// damage the victim before ICing it
+					if (damage) {
+						curTechno->ReceiveDamage(&damage, 0, this->OwnerObject(), nullptr, true, false, Owner);
+					}
+
+					// unit may be destroyed already.
+					if (curTechno->IsAlive)
+					{
+						// start and prevent the multiplier from being applied twice
+						curTechno->IronCurtain(newValue, Owner, false);
+						curTechno->IronCurtainTimer.Start(newValue);
+					}
+				}
+			}
+			else
+			{
+				// iron curtain effect is already on.
+				if (newValue > 0)
+				{
+					// set new length and reset tint stage
+					curTechno->IronCurtainTimer.Start(newValue);
+					curTechno->IronTintStage = 4;
+				}
+				else
+				{
+					// turn iron curtain off
+					curTechno->IronCurtainTimer.Stop();
+				}
+			}
+		}
+	}
+}
+
 void WarheadTypeExt::ExtData::ApplyAttachTag(TechnoClass* pTarget)
 {
 	if (!this->AttachTag)
@@ -246,7 +305,8 @@ void WarheadTypeExt::ExtData::applyTransactMoney(TechnoClass* pOwner, HouseClass
 							nTransactVal = TransactMoney;
 							if (nTransactVal != 0 && pHouse->CanTransactMoney(nTransactVal))
 							{
-								bSucceed = pHouse->TransactMoney(TransactMoney);
+								pHouse->TransactMoney(TransactMoney);
+								bSucceed = true;
 								return;
 							}
 						}
@@ -258,7 +318,8 @@ void WarheadTypeExt::ExtData::applyTransactMoney(TechnoClass* pOwner, HouseClass
 								nTransactVal = TransactMoney_Ally.Get(TransactMoney);
 								if (nTransactVal != 0 && pBulletTargetHouse->CanTransactMoney(nTransactVal))
 								{
-									bSucceed = pBulletTargetHouse->TransactMoney(nTransactVal);
+									pBulletTargetHouse->TransactMoney(nTransactVal);
+									bSucceed = true;
 									bForSelf = false;
 									return;
 								}
@@ -271,7 +332,8 @@ void WarheadTypeExt::ExtData::applyTransactMoney(TechnoClass* pOwner, HouseClass
 								nTransactVal = TransactMoney_Enemy.Get(TransactMoney);
 								if (nTransactVal != 0 && pBulletTargetHouse->CanTransactMoney(nTransactVal))
 								{
-									bSucceed = pBulletTargetHouse->TransactMoney(nTransactVal);
+									pBulletTargetHouse->TransactMoney(nTransactVal);
+									bSucceed = true;
 									bForSelf = false;
 									return;
 								}
@@ -283,9 +345,10 @@ void WarheadTypeExt::ExtData::applyTransactMoney(TechnoClass* pOwner, HouseClass
 		}
 
 		nTransactVal = TransactMoney;
-		if (nTransactVal != 0 && pHouse->CanTransactMoney(nTransactVal))
-			bSucceed = pHouse->TransactMoney(TransactMoney);
-
+		if (nTransactVal != 0 && pHouse->CanTransactMoney(nTransactVal)){
+			pHouse->TransactMoney(TransactMoney);
+			bSucceed = true;
+		}
 	};
 
 	TransactMoneyFunc();
@@ -374,8 +437,9 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 
 	if (pOwner && pBullet)
 	{
-		if (TechnoExt::ExtMap.Find(pOwner)->IsInterceptor() && BulletExt::ExtMap.Find(pBullet)->IsInterceptor)
-			this->InterceptBullets(pOwner, pBullet->WeaponType, coords);
+		if(pOwner->IsAlive && pBullet->IsAlive)
+			if (TechnoExt::ExtMap.Find(pOwner)->IsInterceptor() && BulletExt::ExtMap.Find(pBullet)->IsInterceptor)
+				this->InterceptBullets(pOwner, pBullet->WeaponType, coords);
 
 		//TechnoExt::PutPassengersInCoords(pBullet->Owner, coords, RulesGlobal->WarpIn, RulesGlobal->BunkerWallsUpSound, false);
 	}
@@ -414,7 +478,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 	const bool isCellSpreadWarhead =
 		//this->RemoveDisguise ||
 		//this->RemoveMindControl ||
-		this->Crit_Chance ||
+		this->Crit_Chance  ||
 		this->Shield_Break ||
 		(this->Converts && !this->ConvertsPair.empty()) ||
 		this->Shield_Respawn_Duration > 0 ||
@@ -426,22 +490,18 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 		this->GattlingRateUp != 0 ||
 		this->AttachTag ||
 		//this->DirectionalArmor ||
-		this->ReloadAmmo != 0 ||
-		(this->RevengeWeapon.isset() && this->RevengeWeapon_GrantDuration > 0) ||
-		!this->LimboKill_IDs.empty()
+		this->ReloadAmmo != 0 
+		||  (this->RevengeWeapon.isset() && this->RevengeWeapon_GrantDuration > 0)
+		|| !this->LimboKill_IDs.empty()
 		|| (this->PaintBallData.Color != ColorStruct::Empty) 
 		|| this->InflictLocomotor 
 		|| this->RemoveInflictedLocomotor
+		|| this->IC_Duration != 0
 		;
 
 	if (isCellSpreadWarhead)
 	{
-		bool ThisbulletWasIntercepted = false;
-		if (pBullet)
-		{
-			ThisbulletWasIntercepted = BulletExt::ExtMap.Find(pBullet)->InterceptedStatus == InterceptedStatus::Intercepted;
-		}
-
+		const bool ThisbulletWasIntercepted = pBullet ? BulletExt::ExtMap.Find(pBullet)->InterceptedStatus == InterceptedStatus::Intercepted : false;
 		const float cellSpread = Get()->CellSpread;
 
 		//if the warhead itself has cellspread
@@ -508,6 +568,8 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 
 	if (!this->CanTargetHouse(pHouse, pTarget))
 		return;
+
+	this->applyIronCurtain(pTarget, pHouse, pBullet ? pBullet->WeaponType ? pBullet->WeaponType->Damage : 0 : 0);
 
 	if (!this->LimboKill_IDs.empty()) {
 		BuildingExt::ApplyLimboKill(this->LimboKill_IDs, this->LimboKill_Affected, pTarget->Owner, pHouse);

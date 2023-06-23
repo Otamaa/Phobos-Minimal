@@ -74,7 +74,7 @@ enum class TargetingConstraint : size_t
 	Attacked = 0x20,
 	LowPower = 0x40,
 	OffensiveCellSet = 0x80,
-	DefensiveCellSet = 0x100,
+	DefensiveCellSet = 0x100
 };
 MAKE_ENUM_FLAGS(TargetingConstraint);
 

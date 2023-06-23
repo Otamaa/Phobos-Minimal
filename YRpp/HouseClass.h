@@ -406,7 +406,7 @@ public:
 	}
 
 	bool HasLowPower() const {
-		return this->PowerOutput < this->PowerDrain && this->PowerDrain;
+		return this->PowerDrain && this->PowerOutput < this->PowerDrain;
 	}
 
 	bool IsNoPower() const {
@@ -433,21 +433,26 @@ public:
 		{ JMP_THIS(0x4F9950); }
 
 	bool CanTransactMoney(int amount) const {
-		if (amount > 0)
-			return true;
-		else
-			return this->Available_Money() >= -amount;
+		return (amount > 0) || this->Available_Money() >= -amount;
 	}
 
-	bool TransactMoney(int amount) {
+	void TransactMoney(int amount) {
 
 		if(amount > 0) {
 			this->GiveMoney(amount);
 		} else {
 			this->TakeMoney(-amount);
 		}
+	}
 
-		return true;
+	bool AbleToTransactMoney(int amount)
+	{
+		if (CanTransactMoney(amount)) {
+			TransactMoney(amount);
+			return true;
+		}
+
+		return false;
 	}
 
 	void GiveTiberium(float amount, int type)
@@ -511,8 +516,7 @@ public:
 
 	// gets the first house of a type with this name
 	static HouseClass* FindBySideName(const char* name) {
-		auto idx = SideClass::FindIndexById(name);
-		return FindBySideIndex(idx);
+		return FindBySideIndex(SideClass::FindIndexById(name));
 	}
 
 	// gets the first house of a type from the Civilian side
@@ -554,38 +558,23 @@ public:
 
 	// whether any human player controls this house
 	bool IsControlledByHuman() const  { JMP_THIS(0x50B730); }
-	//{
-	//	bool result = this->CurrentPlayer;
-	//	if(SessionClass::Instance->GameMode == GameMode::Campaign) {
-	//		result = result || this->IsInPlayerControl;
-	//	}
-	//	return result;
-	//}
-
 	bool IsControlledByHuman_() const
 	{
-		bool result = this->CurrentPlayer;
+		bool result = this->IsHumanPlayer;
 		if(SessionClass::Instance->GameMode == GameMode::Campaign) {
-			result = result || this->IsInPlayerControl;
+			result |= this->IsInPlayerControl;
 		}
 		return result;
 	}
 	
 	// whether the human player on this PC can control this house
 	bool ControlledByPlayer() const { JMP_THIS(0x50B6F0); }
-	//{
-	//	if(SessionClass::Instance->GameMode != GameMode::Campaign) {
-	//		return this->IsCurrentPlayer();
-	//	}
-	//	return this->CurrentPlayer || this->IsInPlayerControl;
-	//}
-
 	bool ControlledByPlayer_() const
 	{
 		if(SessionClass::Instance->GameMode != GameMode::Campaign) {
 			return this->IsCurrentPlayer();
 		}
-		return this->CurrentPlayer || this->IsInPlayerControl;
+		return this->IsHumanPlayer || this->IsInPlayerControl;
 	}
 	
 	// Target ought to be Object, I imagine, but cell doesn't work then

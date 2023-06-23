@@ -390,9 +390,9 @@ std::pair<bool, FootClass*> NOINLINE UnlimboOne(std::vector<FootClass*>* pVector
 	pPassenger->OnBridge = pTunnel->OnBridge;
 	pPassenger->SetLocation(nCoord);
 
-	++Unsorted::IKnowWhatImDoing();
+	++Unsorted::ScenarioInit();
 	bool Succeeded = pPassenger->Unlimbo(nCoord, (DirType)nBldFacing);
-	--Unsorted::IKnowWhatImDoing();
+	--Unsorted::ScenarioInit();
 
 	pVector->pop_back();
 
@@ -593,7 +593,7 @@ bool NOINLINE UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel, bool silent =
 	}
 
 	const auto pFootType = pFoot->GetTechnoType();
-	++Unsorted::IKnowWhatImDoing();
+	++Unsorted::ScenarioInit();
 
 	CoordStruct nResultC = CellClass::Cell2Coord(nResult);
 	if (pFoot->WhatAmI() == AbstractType::Infantry)
@@ -607,7 +607,7 @@ bool NOINLINE UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel, bool silent =
 	}
 
 	Succeeded = pFoot->Unlimbo(nResultC, DirType(32 * (nFacing & 0x3FFFFFF)));
-	--Unsorted::IKnowWhatImDoing();
+	--Unsorted::ScenarioInit();
 
 	if (Succeeded)
 	{
@@ -692,7 +692,7 @@ DEFINE_OVERRIDE_HOOK(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_
 	{
 		if (!IsTunnel)
 		{
-			if (!pThisBld->HasFreeLink(pRecpt) && !Unsorted::IKnowWhatImDoing())
+			if (!pThisBld->HasFreeLink(pRecpt) && !Unsorted::ScenarioInit())
 				return RetRadioNegative;
 
 			goto retContinueCheck;
