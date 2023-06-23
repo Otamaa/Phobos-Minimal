@@ -36,59 +36,56 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 			{
 				bool Operatored = false;
 				bool IsPowered = false;
+				BuildingTypeExt::ExtData* Types[4] = {
+					BuildingTypeExt::ExtMap.Find(pBld->Type)  ,
+					BuildingTypeExt::ExtMap.TryFind(pBld->Upgrades[0]) ,
+					BuildingTypeExt::ExtMap.TryFind(pBld->Upgrades[1]) ,
+					BuildingTypeExt::ExtMap.TryFind(pBld->Upgrades[2])
+				};
 
-				// the super weapon status update lambda.
-				auto UpdateStatus = [&](int idxSW)
-				{
-					if (idxSW >= 0)
-					{
-						const auto pSuperExt = SuperExt::ExtMap.Find(pHouse->Supers[idxSW]);
-						auto& status = pSuperExt->Statusses;
+				// check for upgrades. upgrades can give super weapons, too.
+				for (const auto& pUpgradeExt : Types) {
+					if (pUpgradeExt) {
 
-						if (!status.Charging)
-						{
-							if (pSuperExt->Type->IsAvailable(pHouse))
+						for (auto i = 0; i < pUpgradeExt->GetSuperWeaponCount(); ++i) {
+							const auto idxSW = pUpgradeExt->GetSuperWeaponIndex(i);
+
+							if (idxSW >= 0)
 							{
-								status.Available = true;
+								const auto pSuperExt = SuperExt::ExtMap.Find(pHouse->Supers[idxSW]);
+								auto& status = pSuperExt->Statusses;
 
-								if (!Operatored)
+								if (!status.Charging)
 								{
-									IsPowered = pBld->HasPower;
-									if (!pBld->IsUnderEMP() && (Is_Operated(pBld) || AresData::IsOperated(pBld)))
-										Operatored = true;
-								}
-
-								if (!status.Charging && IsPowered)
-								{
-									status.PowerSourced = true;
-
-									if (!pBld->IsBeingWarpedOut()
-										&& (pBld->CurrentMission != Mission::Construction)
-										&& (pBld->CurrentMission != Mission::Selling)
-										&& (pBld->QueuedMission != Mission::Construction)
-										&& (pBld->QueuedMission != Mission::Selling))
+									if (pSuperExt->Type->IsAvailable(pHouse))
 									{
-										status.Charging = true;
+										status.Available = true;
+
+										if (!Operatored)
+										{
+											IsPowered = pBld->HasPower;
+											if (!pBld->IsUnderEMP() && (Is_Operated(pBld) || AresData::IsOperated(pBld)))
+												Operatored = true;
+										}
+
+										if (!status.Charging && IsPowered)
+										{
+											status.PowerSourced = true;
+
+											if (!pBld->IsBeingWarpedOut()
+												&& (pBld->CurrentMission != Mission::Construction)
+												&& (pBld->CurrentMission != Mission::Selling)
+												&& (pBld->QueuedMission != Mission::Construction)
+												&& (pBld->QueuedMission != Mission::Selling))
+											{
+												status.Charging = true;
+											}
+										}
 									}
 								}
 							}
 						}
 					}
-				};
-
-				// check for upgrades. upgrades can give super weapons, too.
-				for (const auto& pUpgrade : pBld->Upgrades) {
-					if (const auto pUpgradeExt = BuildingTypeExt::ExtMap.TryFind(pUpgrade)) {
-						for (auto i = 0; i < pUpgradeExt->GetSuperWeaponCount(); ++i) {
-							UpdateStatus(pUpgradeExt->GetSuperWeaponIndex(i, pHouse));
-						}
-					}
-				}
-
-				// look for the main building.
-				const auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
-				for (auto i = 0; i < pBuildingExt->GetSuperWeaponCount(); ++i) {
-					UpdateStatus(pBuildingExt->GetSuperWeaponIndex(i));
 				}
 			}
 		}
@@ -116,7 +113,6 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 				{
 					nStatus.PowerSourced &= hasPower;
 				}
-
 			}
 		}
 	}

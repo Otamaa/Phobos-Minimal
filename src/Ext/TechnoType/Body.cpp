@@ -813,7 +813,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		// refinery and storage
 		this->Refinery_UseStorage.Read(exINI, pSection, "Refinery.UseStorage");
-		this->VHPscan_Value.Read(exINI, pSection, "VHPscan.Value");
+		this->VHPscan_Value.Read(exINI, pSection, "VHPScan.Value");
 
 		this->SelfHealing_Rate.Read(exINI, pSection, "SelfHealing.Rate");
 		this->SelfHealing_Amount.Read(exINI, pSection, "SelfHealing.%sAmount");

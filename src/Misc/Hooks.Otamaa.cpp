@@ -3966,7 +3966,8 @@ DEFINE_HOOK(0x6F357F, TechnoClass_SelectWeapon_DrainWeaponTarget, 0x6)
 	GET(TechnoClass* const, pThis, ESI);
 	GET(TechnoClass* const, pTarget, EBP);
 
-	return !pThis->DrainTarget && !pTarget->DrainingMe ?
+	const bool IsTargetEligible = !pThis->DrainTarget && !pTarget->DrainingMe;
+	return IsTargetEligible ?
 		CheckAlly : ContinueCheck;
 }
 

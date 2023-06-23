@@ -227,34 +227,19 @@ bool BuildingExt::HandleInfiltrate(BuildingClass* pBuilding, HouseClass* pInfilt
 bool BuildingExt::ExtData::HasSuperWeapon(const int index, const bool withUpgrades) const
 {
 	const auto pThis = this->Get();
-	const auto count = this->Type->GetSuperWeaponCount();
-
-	for (auto i = 0; i < count; ++i)
-	{
-		const auto idxSW = this->Type->GetSuperWeaponIndex(i, pThis->Owner);
-		if (idxSW == index)
-		{
+	for (auto i = 0; i < this->Type->GetSuperWeaponCount(); ++i) {
+		if (this->Type->GetSuperWeaponIndex(i, pThis->Owner) == index) {
 			return true;
 		}
 	}
 
-	if (withUpgrades)
-	{
-		for (auto const& pUpgrade : pThis->Upgrades)
-		{
-			const auto pUpgradeExt = BuildingTypeExt::ExtMap.TryFind(pUpgrade);
-
-			if (!pUpgradeExt)
-				continue;
-
-			const auto countUpgrade = pUpgradeExt->GetSuperWeaponCount();
-
-			for (auto i = 0; i < countUpgrade; ++i)
-			{
-				const auto idxSW = pUpgradeExt->GetSuperWeaponIndex(i, pThis->Owner);
-				if (idxSW == index)
-				{
-					return true;
+	if (withUpgrades) {
+		for (auto const& pUpgrade : pThis->Upgrades) {
+			if(const auto pUpgradeExt = BuildingTypeExt::ExtMap.TryFind(pUpgrade)){
+				for (auto i = 0; i < pUpgradeExt->GetSuperWeaponCount(); ++i) {
+					if (pUpgradeExt->GetSuperWeaponIndex(i, pThis->Owner) == index) {
+						return true;
+					}
 				}
 			}
 		}

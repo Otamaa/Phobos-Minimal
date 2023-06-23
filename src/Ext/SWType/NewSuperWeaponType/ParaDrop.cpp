@@ -27,10 +27,9 @@ void SW_ParaDrop::Initialize(SWTypeExt::ExtData* pData)
 	{
 		// the American paradrop will be the same for every country,
 		// thus we use the SW's default here.
-		pData->ParaDropPlanes.push_back(std::make_unique<ParadropPlane>());
-
-		auto const& pPlane = pData->ParaDropPlanes.back();
-		pData->ParaDrop[nullptr].push_back(pPlane.get());
+		auto& nData = pData->ParaDropDatas[pData->Get()];
+		nData.push_back(std::move(std::make_unique<ParadropData>()));
+		auto& pPlane = nData.back();
 
 		auto const& Inf = RulesClass::Instance->AmerParaDropInf;
 		pPlane->Types.insert(pPlane->Types.end(), Inf.begin(), Inf.end());
@@ -58,19 +57,17 @@ void SW_ParaDrop::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	auto CreateParaDropBase = [](char* pID, auto& Buffer)
 	{
 		// put a string like "Paradrop.Americans" into the buffer
-		if (pID && strlen(pID))
-		{
+		if (pID && strlen(pID)) {
 			IMPL_SNPRNINTF(Buffer, _TRUNCATE, "ParaDrop.%s", pID);
 		}
-		else
-		{
+		else {
 			PhobosCRT::strCopy(Buffer, "ParaDrop");
 		}
 	};
 
-	auto ParseParaDrop = [section, &exINI](char* pID, int Plane) -> std::unique_ptr<ParadropPlane>
+	auto ParseParaDrop = [section, &exINI](char* pID, int Plane) -> std::unique_ptr<ParadropData>
 	{
-		auto pPlane = std::make_unique<ParadropPlane>();
+		auto pPlane = std::make_unique<ParadropData>();
 
 		// create the plane part of this request. this will be
 		// an empty string for the first plane for this is the default.
@@ -112,8 +109,8 @@ void SW_ParaDrop::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	auto GetParadropPlane = [=, &base](char const* pID, size_t defaultCount, AbstractTypeClass* pKey)
 	{
 
-		auto& ParaDrop = pData->ParaDrop[pKey];
-		auto const lastCount = pData->ParaDrop.contains(pKey) ? ParaDrop.size() : defaultCount;
+		auto& ParaDrop = pData->ParaDropDatas[pKey];
+		auto const lastCount = ParaDrop.size() ? ParaDrop.size() : defaultCount;
 
 		// get the number of planes for this house or side
 		char key[0x40];
@@ -121,13 +118,12 @@ void SW_ParaDrop::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 		auto const count = pINI->ReadInteger(section, key, lastCount);
 
 		// parse every plane
-		ParaDrop.resize(static_cast<size_t>(count), nullptr);
+		ParaDrop.resize(static_cast<size_t>(count));
 		for (int i = 0; i < count; ++i)
 		{
 			if (auto pPlane = ParseParaDrop(base, i))
 			{
-				ParaDrop[i] = pPlane.get();
-				pData->ParaDropPlanes.push_back(std::move(pPlane));
+				ParaDrop[i] = std::move(pPlane);
 			}
 		}
 	};
@@ -139,20 +135,20 @@ void SW_ParaDrop::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 
 	// default
 	CreateParaDropBase(nullptr, base);
-	GetParadropPlane(base, 1, nullptr);
+	GetParadropPlane(base, 1, pData->Get());
 
 	// put all sides into the hash table
 	for (auto const& pSide : *SideClass::Array)
 	{
 		CreateParaDropBase(pSide->ID, base);
-		GetParadropPlane(base, pData->ParaDrop[nullptr].size(), pSide);
+		GetParadropPlane(base, pData->ParaDropDatas[pData->Get()].size(), pSide);
 	}
 
 	// put all countries into the hash table
 	for (auto const& pTHouse : *HouseTypeClass::Array)
 	{
 		CreateParaDropBase(pTHouse->ID, base);
-		GetParadropPlane(base, pData->ParaDrop[SideClass::Array->Items[pTHouse->SideIndex]].size(), pTHouse);
+		GetParadropPlane(base, pData->ParaDropDatas[SideClass::Array->Items[pTHouse->SideIndex]].size(), pTHouse);
 	}
 }
 
@@ -190,22 +186,17 @@ bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 	pFallbackPlane = HouseExt::GetParadropPlane(pHouse);
 
 	// use paradrop lists from house, side and default
-	std::vector<ParadropPlane*>* drops[3];
-	drops[0] = pData->ParaDrop.find(pHouse->Type);
-	drops[1] = pData->ParaDrop.find(SideClass::Array->Items[pHouse->Type->SideIndex]);
-	drops[2] = pData->ParaDrop.find(nullptr);
+	std::vector<std::unique_ptr<ParadropData>>* drops[3];
+	drops[0] = pData->ParaDropDatas.find(pHouse->Type);
+	drops[1] = pData->ParaDropDatas.find(SideClass::Array->Items[pHouse->Type->SideIndex]);
+	drops[2] = pData->ParaDropDatas.find(pType);
 
 	// how many planes shall we launch?
 	int count = 1;
-	for (auto const& planes : drops)
-	{
-		if (planes)
-		{
-			if (planes->size() > 0)
-			{
-				count = planes->size();
-				break;
-			}
+	for (auto const& planes : drops) {
+		if (planes) {
+			count = planes->size();
+			break;
 		}
 	}
 
@@ -240,7 +231,7 @@ bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 					}
 
 					// get the plane at specified index
-					if (auto const pPlane = (*planes)[index])
+					if (auto const& pPlane = (*planes)[index])
 					{
 
 						// get the contents, if not already set
@@ -271,12 +262,14 @@ bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 		}
 
 		// house fallback for the plane
-		AircraftTypeClass* pDecidedPlane = pParaDropPlane ? pParaDropPlane : pFallbackPlane;
+		if (!pParaDropPlane) {
+			pParaDropPlane = pFallbackPlane;
+		}
 
 		// finally, send the plane
-		if (ParaDropTypes && ParaDropNum && pDecidedPlane)
+		if (ParaDropTypes && ParaDropNum && pParaDropPlane)
 		{
-			SendPDPlane(pHouse, pCell, pDecidedPlane, ParaDropTypes, ParaDropNum);
+			this->SendPDPlane(pHouse, pCell, pParaDropPlane, ParaDropTypes, ParaDropNum);
 		}
 	}
 
@@ -288,14 +281,14 @@ bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 void NOINLINE SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, AircraftTypeClass* pPlaneType,
 	Iterator<TechnoTypeClass*> const Types, Iterator<int> const Nums)
 {
-	if (Types.size() != Nums.size())
+	if (Nums.size() != Types.size() || !Nums.size()
+		|| !pOwner || !pPlaneType || !pTarget)
 	{
 		return;
 	}
 
 	++Unsorted::ScenarioInit;
-	auto const pPlane = static_cast<AircraftClass*>(
-		pPlaneType->CreateObject(pOwner));
+	auto const pPlane = static_cast<AircraftClass*>(pPlaneType->CreateObject(pOwner));
 	--Unsorted::ScenarioInit;
 
 	if (!pPlane)
@@ -330,23 +323,7 @@ void NOINLINE SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, A
 		auto const pType = Types[i];
 
 		// find the nearest cell the paradrop troopers can land on
-
-		//if (!pTarget->IsClearToMove(pType->SpeedType, 0, 0, (int)MovementZone::None, 
-		//	MovementZone::Normal, -1, 1))
-		//{		
-		//	auto const cell = MapClass::Instance->NearByLocation(
-		//		pTarget->MapCoords, pType->SpeedType, -1, pType->MovementZone, false, 1, 1,
-		//		false, false, false, true, CellStruct::Empty, false, false);
-
-		//	if (cell.IsValid()) {
-		//		if (auto const pTemp = MapClass::Instance->TryGetCellAt(cell)) {
-		//			if (pTemp->IsClearToMove(pType->SpeedType, 0, 0, (int)MovementZone::None,
-		//				MovementZone::Normal, -1, 1))
-		//				pTarget = pTemp;
-		//		}
-		//	}
-		//}
-
+		// the movement zone etc is checked within first types of the passanger
 		CellClass* pDest = pTarget;
 		while (!pDest->IsClearToMove(pType->SpeedType, 0, 0, (int)MovementZone::None, pType->MovementZone, -1, 1)) {
 			pDest = MapClass::Instance->GetCellAt(MapClass::Instance->NearByLocation(pDest->MapCoords, pType->SpeedType, -1, pType->MovementZone, false, 1, 1, false, false, false, true, CellStruct::Empty, false, false));

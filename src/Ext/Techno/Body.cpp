@@ -3139,17 +3139,17 @@ void TechnoExt::ExtData::UpdateType(TechnoTypeClass* currentType)
 	this->Type = currentType;
 	auto const pTypeExtData = TechnoTypeExt::ExtMap.Find(currentType);
 
-	//if (auto pSpawnManager = pThis->SpawnManager) {
-	//	if (currentType->Spawns && pSpawnManager->SpawnType != currentType->Spawns) {
-	//		pSpawnManager->SpawnType = currentType->Spawns;
+	if (auto pSpawnManager = pThis->SpawnManager) {
+		if (currentType->Spawns && pSpawnManager->SpawnType != currentType->Spawns) {
+			pSpawnManager->SpawnType = currentType->Spawns;
 
-	//		if(currentType->SpawnsNumber > 0)
-	//			pSpawnManager->SpawnCount = currentType->SpawnsNumber;
+			if(currentType->SpawnsNumber > 0)
+				pSpawnManager->SpawnCount = currentType->SpawnsNumber;
 
-	//		pSpawnManager->RegenRate = currentType->SpawnRegenRate;
-	//		pSpawnManager->ReloadRate = currentType->SpawnReloadRate;
-	//	}
-	//}
+			pSpawnManager->RegenRate = currentType->SpawnRegenRate;
+			pSpawnManager->ReloadRate = currentType->SpawnReloadRate;
+		}
+	}
 	//else if(currentType->Spawns && currentType->SpawnsNumber > 0)
 	//{
 	//	pThis->SpawnManager = GameCreate<SpawnManagerClass>(
@@ -3684,7 +3684,7 @@ bool TechnoExt::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select)
 	else
 	{
 		Survivor->Scatter(CoordStruct::Empty, true, false);
-		Survivor->QueueMission(Survivor->Owner->IsControlledByHuman() ? Mission::Guard : Mission::Hunt, 0);
+		Survivor->QueueMission(!Survivor->Owner->IsControlledByHuman() ?  Mission::Hunt : Mission::Guard, 0);
 	}
 
 	Survivor->ShouldEnterOccupiable = false;

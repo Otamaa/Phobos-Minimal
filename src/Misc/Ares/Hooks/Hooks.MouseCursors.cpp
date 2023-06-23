@@ -554,7 +554,7 @@ DEFINE_OVERRIDE_HOOK(0x70055D, TechnoClass_GetActionOnObject_AttackCursor, 8)
 	return 0;
 }
 
-// WeaponCursor
+ //WeaponCursor
 DEFINE_OVERRIDE_HOOK(0x700AA8, TechnoClass_GetActionOnCell_AttackCursor, 8)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -599,7 +599,7 @@ DEFINE_OVERRIDE_HOOK(0x7400F0, UnitClass_GetActionOnObject_SelfDeployCursor_Bunk
 	GET(UnitClass*, pThis, ESI);
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
-	if (pThis->BunkerLinkedItem) {
+	if (!pThis->BunkerLinkedItem) {
 		//Cursor Deploy
 		AresData::SetMouseCursorAction(pTypeExt->Cursor_Deploy.Get(), Action::Self_Deploy, false);
 		return 0x73FFE6;

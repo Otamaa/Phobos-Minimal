@@ -29,7 +29,7 @@ struct LightingColor
 	bool HasValue;
 };
 
-class ParadropPlane
+class ParadropData
 {
 public:
 	Valueable<AircraftTypeClass*> Aircraft;
@@ -38,10 +38,10 @@ public:
 };
 
 template <>
-struct Savegame::PhobosStreamObject<ParadropPlane>
+struct Savegame::PhobosStreamObject<ParadropData>
 {
 
-	bool ReadFromStream(PhobosStreamReader& Stm, ParadropPlane& Value, bool RegisterForChange) const
+	bool ReadFromStream(PhobosStreamReader& Stm, ParadropData& Value, bool RegisterForChange) const
 	{
 		return Stm
 			.Process(Value.Aircraft, RegisterForChange)
@@ -50,7 +50,7 @@ struct Savegame::PhobosStreamObject<ParadropPlane>
 			.Success();
 	};
 
-	bool WriteToStream(PhobosStreamWriter& Stm, const ParadropPlane& Value) const
+	bool WriteToStream(PhobosStreamWriter& Stm, const ParadropData& Value) const
 	{
 		return Stm
 			.Process(Value.Aircraft)
@@ -334,8 +334,7 @@ public:
 #pragma endregion
 
 #pragma region  Generic Paradrop
-		PhobosMap<AbstractTypeClass*, std::vector<ParadropPlane*>> ParaDrop {};
-		std::vector<std::unique_ptr<ParadropPlane>> ParaDropPlanes {};
+		PhobosMap<AbstractTypeClass*, std::vector<std::unique_ptr<ParadropData>>> ParaDropDatas {};
 #pragma endregion
 
 #pragma region Generic Protection

@@ -132,57 +132,47 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 	GET_STACK(ScriptActionNode*, pTeamMission, 0x4);
 	//GET_STACK(bool, barg3, 0x8);
 
-	auto pLeader = pThis->FetchLeader();
+	const auto pLeader = pThis->FetchLeader();
 
 	if (!pLeader)
 		pThis->StepCompleted = true;
 
-	auto pOwner = pThis->Owner;
+	const auto pOwner = pThis->Owner;
 	const bool havePower = pOwner->HasFullPower();
 
-	SuperWeaponTypeClass* pLast = nullptr;
-	bool found = false;
+	const auto Iter = std::find_if(pOwner->Supers.begin(), pOwner->Supers.end(), [&](SuperClass* pSuper) {
+		
+		const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
 
-	auto const [action, args] = *pTeamMission;
-
-	for (auto pSuper : *SuperWeaponTypeClass::Array)
-	{
-		const auto pOwnerSuper = pOwner->Supers.GetItem(pSuper->ArrayIndex);
-		const auto pExt = SWTypeExt::ExtMap.Find(pSuper);
-
-		if (!pLast &&
-			(pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain) &&
-			pExt->SW_Group == args)
+		if ((pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain) &&
+			pExt->SW_Group == pTeamMission->Argument)
 		{
-			if (pOwnerSuper->IsCharged && (havePower || !pSuper->IsPowered))
+			if (!pSuper->IsCharged || (havePower && !pSuper->IsPowered()))
 			{
-				pLast = pSuper;
-				found = true;
+				if (!pSuper->Granted) {
+					return false;
+				} else {
+					auto v22 = pSuper->GetRechargeTime();
+					const auto nTimeLeft = pSuper->RechargeTimer.GetTimeLeft();
+
+					if ((v22 - nTimeLeft) < RulesClass::Instance->AIMinorSuperReadyPercent * v22)
+						return false;
+				}
 			}
+
+			return true;
 		}
 
-		if (!pLast && pOwnerSuper->Granted)
-		{
-			auto v22 = pOwnerSuper->GetRechargeTime();
-			const auto nTimeLeft = pOwnerSuper->RechargeTimer.GetTimeLeft();
+		return false;
+	});
 
-			if ((v22 - nTimeLeft) >= RulesClass::Instance->AIMinorSuperReadyPercent * v22)
-			{
-				pLast = pSuper;
-				found = false;
-			}
-		}
-	}
 
-	if (found && pLast)
-	{
+	if (Iter != pOwner->Supers.end()) {
 		auto nCoord = pThis->SpawnCell->GetCoords();
-		pOwner->Fire_SW(pLast->ArrayIndex, CellClass::Coord2Cell(nCoord));
-		pThis->StepCompleted = true;
+		pOwner->Fire_SW((*Iter)->Type->ArrayIndex, CellClass::Coord2Cell(nCoord));
 	}
 
-	if (!pLast)
-		pThis->StepCompleted = true;
+	pThis->StepCompleted = true;
 	/*AresData::FireIronCurtain(pThis, pTeamMission, barg3);*/
 	return 0x6EFE4F;
 }
@@ -201,6 +191,19 @@ DEFINE_OVERRIDE_HOOK(0x6CEF84, SuperWeaponTypeClass_GetAction, 7)
 
 	//use vanilla action
 	return 0x0;
+}
+
+// 6CEE96, 5
+DEFINE_OVERRIDE_HOOK(0x6CEE96, SuperWeaponTypeClass_GetTypeIndex, 5)
+{
+	GET(const char*, TypeStr, EDI);
+	auto customType = NewSWType::FindFromTypeID(TypeStr);
+	if (customType > SuperWeaponType::Invalid)
+	{
+		R->ESI(customType);
+		return 0x6CEE9C;
+	}
+	return 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
@@ -2202,12 +2205,12 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 			items.apply_function_for_each(Dominate);
 
 			// the AI sends all new minions to hunt
-			if (!PsyDom::Owner->IsControlledByHuman_())
+			for (auto const& pFoot : Minions)
 			{
-				for (auto const& pFoot : Minions)
-				{
-					pFoot->QueueMission(Mission::Hunt, false);
-				}
+				const auto nMission = pFoot->GetTechnoType()->ResourceGatherer ? Mission::Harvest:
+				!PsyDom::Owner->IsControlledByHuman_() ? Mission::Hunt : Mission::Guard;
+
+				pFoot->QueueMission(nMission, false);
 			}
 		}
 

@@ -2108,8 +2108,7 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Weather_Sounds)
 		.Process(this->Weather_RadarOutageAffects)
 
-		.Process(this->ParaDrop)
-		.Process(this->ParaDropPlanes)
+		.Process(this->ParaDropDatas)
 
 		.Process(this->Protect_Duration)
 		.Process(this->Protect_PlayFadeSoundTime)

@@ -155,7 +155,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 					{
 						ItemBuilding->DiscoveredBy(pOwner);
 						ItemBuilding->IsReadyToCommence = 1;
-					}			
+					}
 				}
 				else 
 				{
@@ -165,7 +165,6 @@ void UnitDeliveryStateMachine::PlaceUnits()
 					if (Item->CurrentMission == Mission::Area_Guard && !IsPlayerControlled)
 						Item->QueueMission(Mission::Hunt, true);
 				}
-				
 				if (!AresData::IsPowered(Item) || (!Is_Operated(Item) && !AresData::IsOperated(Item)))
 				{
 					Item->Deactivate();
@@ -173,7 +172,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 					{
 						Item->Owner->RecheckTechTree = true;
 					}
-				}		
+				}
 			}
 			else
 			{
