@@ -10,6 +10,7 @@
 #include <New/Type/HoverTypeClass.h>
 #include <New/Type/CursorTypeClass.h>
 #include <New/Type/ImmunityTypeClass.h>
+#include <New/Type/TheaterTypeClass.h>
 
 #include <Ext/LineTrail/Body.h>
 
@@ -435,11 +436,10 @@ public:
 		Nullable<bool> ConsideredVehicle;
 
 		// Ares 0.1
-		ValueableVector<int> Prerequisite_RequiredTheaters;
-		ValueableVector<int> Prerequisite;
-		ValueableVector<int> Prerequisite_Negative;
-		Valueable<int> Prerequisite_Lists;
-		std::vector<std::vector<int>> Prerequisite_ListVector;
+		ValueableIdxVector<TheaterTypeClass> Prerequisite_RequiredTheaters {};
+		std::vector<ValueableVector<int>> Prerequisite {};
+		Valueable<int> Prerequisite_Lists { 1 };
+		ValueableVector<int> Prerequisite_Negative {};
 
 		Nullable<int> Riparius_FrameIDx;
 		Nullable<int> Cruentus_FrameIDx;
@@ -750,6 +750,7 @@ public:
 		Valueable<float> ShadowScale  { -1.0f };
 
 		NullableVector<int> AIIonCannonValue {};
+		mutable OptionalStruct<bool, true> GenericPrerequisite {};
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, HealthBar_Hide { false }
@@ -1061,10 +1062,6 @@ public:
 			, ConsideredNaval { }
 			, ConsideredVehicle { }
 
-			, Prerequisite { }
-			, Prerequisite_Negative { }
-			, Prerequisite_Lists { 0 }
-
 			, Riparius_FrameIDx { }
 			, Cruentus_FrameIDx { }
 			, Vinifera_FrameIDx { }
@@ -1294,7 +1291,7 @@ public:
 			, CreateSound_afect { }
 			, Chronoshift_Allow { true }
 			, Chronoshift_IsVehicle { false }
-		{ }
+		{  }
 
 		virtual ~ExtData() override = default;
 
@@ -1312,6 +1309,7 @@ public:
 		// Ares 0.A
 		const char* GetSelectionGroupID() const;
 
+		bool IsGenericPrerequisite() const;
 	private:
 		template <typename T>
 		void Serialize(T& Stm);

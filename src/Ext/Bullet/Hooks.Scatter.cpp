@@ -18,6 +18,10 @@ DEFINE_HOOK(0x469008, BulletClass_Explode_Cluster, 0x8)
 
 			for (int i = 0; i < pThis->Type->Cluster; i++)
 			{
+				//what ,...
+				if(pThis->Owner && !Is_Techno(pThis->Owner))
+					pThis->Owner = nullptr;
+
 				pThis->Detonate(origCoords);
 
 				if (!BulletExt::IsReallyAlive(pThis))
@@ -34,6 +38,32 @@ DEFINE_HOOK(0x469008, BulletClass_Explode_Cluster, 0x8)
 
 	return 0x0;
 }
+
+int GetScatterResult(BulletClass* pThis
+	, int SecondaryScatter_Proportion
+	, Nullable<Leptons>& SecondaryScatter_Min
+	, Nullable<Leptons>& SecondaryScatter_Max
+
+	)
+{
+	const auto pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
+	int min = pTypeExt->BallisticScatter_Min.Get(static_cast<Leptons>(0));
+	const auto nMaxDef = Leptons(2 * RulesClass::Instance->BallisticScatter);
+	int max = pTypeExt->BallisticScatter_Max.Get(nMaxDef);
+
+	if(ScenarioClass::Instance->Random.RandomFromMax(99) < SecondaryScatter_Proportion)
+	{
+		min = SecondaryScatter_Min.Get(static_cast<Leptons>(0));
+		max = SecondaryScatter_Max.Get(nMaxDef);
+	}
+
+	return ScenarioClass::Instance->Random.RandomRanged(min , max);
+}
+
+// DEFINE_HOOK(0x4687C2 , BulletClass_MoveTo_BallisticScatter_Inviso, 6)
+// {
+// 	GET(BulletClass*, pThis, EBX);
+// }
 
 DEFINE_HOOK(0x46874E, BulletClass_Unlimbo_FlakScatter, 0x5)
 {

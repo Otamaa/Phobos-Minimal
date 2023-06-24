@@ -97,8 +97,6 @@ public:
 
 		Valueable<bool> Crate_LandOnly;
 
-		std::vector<std::pair<std::string, std::vector<int>>> GenericPrerequisitesData;
-
 		Valueable<bool> NewTeamsSelector;
 		Valueable<bool> NewTeamsSelector_SplitTriggersByCategory;
 		Valueable<bool> NewTeamsSelector_EnableFallback;
@@ -264,7 +262,6 @@ public:
 			, ToolTip_Background_BlurSize { 0.f }
 			, Crate_LandOnly { false }
 
-			, GenericPrerequisitesData { }
 			, NewTeamsSelector { false }
 			, NewTeamsSelector_SplitTriggersByCategory { true }
 			, NewTeamsSelector_EnableFallback { false }
@@ -396,5 +393,4 @@ public:
 
 	static bool DetailsCurrentlyEnabled();
 	static bool DetailsCurrentlyEnabled(int minDetailLevel);
-	static void FillDefaultPrerequisites(CCINIClass* pRules);
 };

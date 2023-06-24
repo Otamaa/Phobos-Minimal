@@ -9,6 +9,7 @@
 #include <Ext/House/Body.h>
 
 #include <New/Type/TheaterTypeClass.h>
+#include <New/Type/GenericPrerequisite.h>
 
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Cast.h>
@@ -46,7 +47,6 @@ void TechnoTypeExt::ExtData::Initialize()
 	Prerequisite_RequiredTheaters.reserve(7);
 	Prerequisite.reserve(10);
 	Prerequisite_Negative.reserve(10);
-	Prerequisite_ListVector.reserve(10);
 	TargetLaser_WeaponIdx.reserve(TechnoTypeClass::MaxWeapons);
 	PassengersWhitelist.reserve(10);
 	PassengersBlacklist.reserve(10);
@@ -121,6 +121,24 @@ VoxelStruct* TechnoTypeExt::GetTurretVoxelData(TechnoTypeClass* const pThis, siz
 const char* TechnoTypeExt::ExtData::GetSelectionGroupID() const
 {
 	return GeneralUtils::IsValidString(this->GroupAs) ? this->GroupAs : this->Get()->ID;
+}
+
+bool TechnoTypeExt::ExtData::IsGenericPrerequisite() const
+{
+	if (this->GenericPrerequisite.empty())
+	{
+		bool isGeneric = false;
+		for (auto const& Prereq : GenericPrerequisite::Array) {
+			if (Prereq->Alternates.Contains(this->OwnerObject())) {
+				isGeneric = true;
+				break;
+			}
+		}
+
+		this->GenericPrerequisite = isGeneric;
+	}
+
+	return this->GenericPrerequisite;
 }
 
 const char* TechnoTypeExt::GetSelectionGroupID(ObjectTypeClass* pType)
@@ -561,107 +579,25 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->ConsideredVehicle.Read(exINI, pSection, "ConsideredVehicle");
 
 #pragma region Prereq
-		// Prerequisite.RequiredTheaters contains a list of theader names
-		const char* key_prereqTheaters = "Prerequisite.RequiredTheaters";
 
-		if (pINI->ReadString(pSection, key_prereqTheaters, "", Phobos::readBuffer))
-		{
-			char* context = nullptr;
-			for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
-				cur;
-				cur = strtok_s(nullptr, Phobos::readDelims, &context))
-			{
-				cur = CRT::strtrim(cur);
-				int index = TheaterTypeClass::FindIndexById(cur);
-				if (index != -1)
-					this->Prerequisite_RequiredTheaters.push_back(index);
-			}
-		}
+		//TODO : PrerequisiteOverride
+	
+		this->Prerequisite_RequiredTheaters.Read(exINI, pSection, "Prerequisite.RequiredTheaters");
 
-		// Prerequisite with Generic Prerequistes support.
-		// Note: I have no idea of what could happen in all the game engine logics if I push the negative indexes of the Ares generic prerequisites directly into the original Prerequisite tag... for that reason this tag is duplicated for working with it
-		const char* key_prereqs = "Prerequisite";
-		if (pINI->ReadString(pSection, key_prereqs, "", Phobos::readBuffer))
-		{
-			char* context = nullptr;
-			for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
-			{
-				cur = CRT::strtrim(cur);
-				int idx = TechnoTypeClass::FindIndexById(cur);
+		// subtract the default list, get tag (not less than 0), add one back
+		const auto nRead = pINI->ReadInteger(pSection, "Prerequisite.Lists", static_cast<int>(this->Prerequisite.size()) - 1);
 
-				if (idx >= 0)
-				{
-					this->Prerequisite.push_back(idx);
-				}
-				else
-				{
-					int index = HouseExt::FindGenericPrerequisite(cur);
-					if (index < 0)
-						this->Prerequisite.push_back(index);
-				}
-			}
+		this->Prerequisite.resize(static_cast<size_t>(MaxImpl(nRead, 0) + 1));
+		GenericPrerequisite::Parse(pINI, pSection, "Prerequisite", this->Prerequisite[0]);
+
+		char flag[256];
+		for (auto i = 0u; i < this->Prerequisite.size(); ++i) {
+			IMPL_SNPRNINTF(flag, sizeof(flag), "Prerequisite.List%u", i);
+			GenericPrerequisite::Parse(pINI, pSection, flag, this->Prerequisite[i]);
 		}
 
 		// Prerequisite.Negative with Generic Prerequistes support
-		const char* key_prereqsNegative = "Prerequisite.Negative";
-
-		if (pINI->ReadString(pSection, key_prereqsNegative, "", Phobos::readBuffer))
-		{
-			char* context = nullptr;
-			for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
-			{
-				cur = CRT::strtrim(cur);
-				int idx = TechnoTypeClass::FindIndexById(cur);
-
-				if (idx >= 0)
-				{
-					this->Prerequisite_Negative.push_back(idx);
-				}
-				else
-				{
-					int index = HouseExt::FindGenericPrerequisite(cur);
-					if (index < 0)
-						this->Prerequisite_Negative.push_back(index);
-				}
-			}
-		}
-
-		// Prerequisite.ListX with Generic Prerequistes support
-		this->Prerequisite_Lists.Read(exINI, pSection, "Prerequisite.Lists");
-
-		if (this->Prerequisite_Lists > 0)
-		{
-			this->Prerequisite_ListVector.resize(Prerequisite_Lists);
-
-			for (int i = 0; i < Prerequisite_Lists; i++)
-			{
-				char keySection[0x100];
-				IMPL_SNPRNINTF(keySection, sizeof(keySection), "Prerequisite.List%d", (i + 1));
-
-				if (pINI->ReadString(pSection, keySection, "", Phobos::readBuffer))
-				{
-					char* context2 = nullptr;
-					for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context2);
-						cur;
-						cur = strtok_s(nullptr, Phobos::readDelims, &context2))
-					{
-						cur = CRT::strtrim(cur);
-						int idx = TechnoTypeClass::FindIndexById(cur);
-
-						if (idx >= 0)
-						{
-							this->Prerequisite_ListVector[i].push_back(idx);
-						}
-						else
-						{
-							int index = HouseExt::FindGenericPrerequisite(cur);
-							if (index < 0)
-								this->Prerequisite_ListVector[i].push_back(index);
-						}
-					}
-				}
-			}
-		}
+		GenericPrerequisite::Parse(pINI, pSection, "Prerequisite.Negative", this->Prerequisite_Negative);
 
 #pragma endregion Prereq
 
@@ -1525,9 +1461,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->Prerequisite_RequiredTheaters)
 		.Process(this->Prerequisite)
-		.Process(this->Prerequisite_Negative)
 		.Process(this->Prerequisite_Lists)
-		.Process(this->Prerequisite_ListVector)
+		.Process(this->Prerequisite_Negative)
 		.Process(this->ConsideredNaval)
 		.Process(this->ConsideredVehicle)
 
@@ -1737,6 +1672,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->CrushOverlayExtraForwardTilt)
 		.Process(this->CrushSlowdownMultiplier)
 		.Process(this->AIIonCannonValue)
+		.Process(this->GenericPrerequisite)
 
 #pragma endregion
 		;

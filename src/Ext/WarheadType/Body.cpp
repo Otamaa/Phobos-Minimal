@@ -876,6 +876,9 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, AbstractClass* pTarget,
 		}
 	}
 
+	if (!Is_Techno(pOwner)) {
+		Debug::Log("WarheadTypeExt::DetonateAt[%s] delivering damage from unknown source [%x] !", pThis->get_ID(), pOwner);
+	}
 	if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pType)->CreateBullet(pTarget, pOwner,
 		damage, pThis, 0, 0, pThis->Bright, true))
 	{

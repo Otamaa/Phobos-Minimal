@@ -12,6 +12,7 @@
 #include <New/Type/HoverTypeClass.h>
 #include <New/Type/ImmunityTypeClass.h>
 #include <New/Type/TunnelTypeClass.h>
+#include <New/Type/GenericPrerequisite.h>
 
 //#include <Ext/TechnoType/Body.h>
 
@@ -64,6 +65,7 @@ void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
 	TunnelTypeClass::LoadFromINIList(pINI);
 	ArmorTypeClass::LoadFromINIList_New(pINI);
+	GenericPrerequisite::AddDefaults();
 
 	// we override it , so it loaded before any type read happen , so all the properties will correcly readed
 	pThis->Read_CrateRules(pINI);
@@ -148,6 +150,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
 	//Allocate Default bullet
 	BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
+	GenericPrerequisite::LoadFromINIList_New(pINI);
 
 	INI_EX exINI(pINI);
 
@@ -307,96 +310,6 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 
 	this->EnemyWrench.Read(exINI, GENERAL_SECTION, "EnemyWrench");
-
-	// Section Generic Prerequisites
-	FillDefaultPrerequisites(pINI);
-
-}
-
-void RulesExt::FillDefaultPrerequisites(CCINIClass* pRules)
-{
-	auto& nPrepreqNames = RulesExt::Global()->GenericPrerequisitesData;
-
-	if (!nPrepreqNames.empty()) //everything was initiated
-		return;
-
-	if (pRules != CCINIClass::INI_Rules()) //it is not RulesMD , skip
-		return;
-
-	nPrepreqNames.resize(6); // resize it for 6
-
-	auto ReadPreReQs = [pRules, &nPrepreqNames](const char* pKey, const char* CatagoryName, size_t idx)
-	{
-		auto& [catagory, typelist] = nPrepreqNames[idx];
-
-		catagory = CatagoryName;
-
-		if (!pRules->ReadString(GameStrings::General(), pKey, "", Phobos::readBuffer))
-			return;
-
-		char* context = nullptr;
-		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
-			cur;
-			cur = strtok_s(nullptr, Phobos::readDelims, &context))
-		{
-			const int bTypeidx = BuildingTypeClass::FindIndexById(cur);
-			if (bTypeidx >= 0)
-				typelist.push_back(bTypeidx);
-			else
-				Debug::Log("[Phobos] %s Failed To Find BuildingTypeIndex for %s !  \n", pKey, cur);
-		}
-	};
-
-	//the order is based on ares code , dont change it !
-	ReadPreReQs(GameStrings::PrerequisitePower(), "POWER", 0);
-	ReadPreReQs(GameStrings::PrerequisiteFactory(), "FACTORY", 1);
-	ReadPreReQs(GameStrings::PrerequisiteBarracks(), "BARRACKS", 2);
-	ReadPreReQs(GameStrings::PrerequisiteRadar(), "RADAR", 3);
-	ReadPreReQs(GameStrings::PrerequisiteTech(), "TECH", 4);
-	ReadPreReQs(GameStrings::PrerequisiteProc(), "PROC", 5);
-
-	// If [GenericPrerequisites] is present will be added after these.
-	// Also the originals can be replaced by new ones
-	auto const pGenPrereq = "GenericPrerequisites";
-	for (int i = 0; i < pRules->GetKeyCount(pGenPrereq); ++i)
-	{
-		char* context = nullptr;
-		auto const pKeyName = pRules->GetKeyName(pGenPrereq, i);
-		if (!pRules->ReadString(pGenPrereq, pKeyName, "", Phobos::readBuffer))
-			continue;
-
-		bool bFound = false;
-		for (auto& [Catagory, Lists] : nPrepreqNames)
-		{
-			if (IS_SAME_STR_(Catagory.c_str(), pKeyName))
-			{
-				bFound = true;
-				Lists.clear();
-				for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
-					cur;
-					cur = strtok_s(nullptr, Phobos::readDelims, &context))
-				{
-					const int idx = BuildingTypeClass::FindIndexById(cur);
-					if (idx >= 0)
-						Lists.push_back(idx);
-				}
-			}
-		}
-
-		if (!bFound)
-		{
-			// New generic prerequisite
-			auto& It = nPrepreqNames.emplace_back(pKeyName, std::vector<int>());
-			for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
-			cur;
-			cur = strtok_s(nullptr, Phobos::readDelims, &context))
-			{
-				const int idx = BuildingTypeClass::FindIndexById(cur);
-				if (idx >= 0)
-					It.second.push_back(idx);
-			}
-		}
-	}
 }
 
 void RulesExt::LoadEarlyOptios(RulesClass* pThis, CCINIClass* pINI)
@@ -549,8 +462,6 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->ToolTip_Background_BlurSize)
 
 		.Process(this->Crate_LandOnly)
-
-		.Process(this->GenericPrerequisitesData)
 
 		.Process(this->NewTeamsSelector)
 		.Process(this->NewTeamsSelector_SplitTriggersByCategory)

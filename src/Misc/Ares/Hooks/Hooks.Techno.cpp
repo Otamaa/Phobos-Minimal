@@ -417,19 +417,19 @@ DEFINE_HOOK(0x6F534E, TechnoClass_DrawExtras_Insignia, 0x5)
 	return CheckDrawHealthAllowed;
 }
 
-DEFINE_HOOK(0x70CBC3, TechnoClass_DealParticleDamage_FixArgs, 0x6)
-{
-	GET(WeaponTypeClass*, pWeapon, EDI);
-	GET(float, nDamage , ECX);
-	GET(ObjectClass**, pVec, EDX);
-	GET(int, nIdx, ESI);
-	GET_STACK(TechnoClass*, pThis, 0xC0 - 0x44);
-
-	int iDamage = (int)nDamage;
-	pVec[nIdx]->ReceiveDamage(&iDamage, 0, pWeapon->Warhead, pThis, false, false, pThis->Owner);
-
-	return 0x70CBEE;
-}
+// DEFINE_HOOK(0x70CBC3, TechnoClass_DealParticleDamage_FixArgs, 0x6)
+// {
+// 	GET(WeaponTypeClass*, pWeapon, EDI);
+// 	GET(float, nDamage , ECX);
+// 	GET(ObjectClass**, pVec, EDX);
+// 	GET(int, nIdx, ESI);
+// 	GET_STACK(TechnoClass*, pThis, 0xC0 - 0x44);
+//
+// 	int iDamage = (int)nDamage;
+// 	pVec[nIdx]->ReceiveDamage(&iDamage, 0, pWeapon->Warhead, pThis, false, false, pThis->Owner);
+//
+// 	return 0x70CBEE;
+// }
 
 DEFINE_OVERRIDE_HOOK(0x70CBDA, TechnoClass_DealParticleDamage, 6)
 {

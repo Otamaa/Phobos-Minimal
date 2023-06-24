@@ -459,7 +459,7 @@ void InitAdminDebugMode()
 			Phobos::EnableConsole = true;
 #endif
 
-#ifdef DETACH_DEBUGGER
+#ifndef DETACH_DEBUGGER
 			// this thing can cause game to lockup when loading data
 			// better disable it for release
 				

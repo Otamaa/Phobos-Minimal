@@ -2,6 +2,7 @@
 
 #include <Utilities/Enumerable.h>
 #include <Utilities/Iterator.h>
+#include <Utilities/TemplateDefB.h>
 
 class GenericPrerequisite final : public Enumerable<GenericPrerequisite>
 {
@@ -17,31 +18,29 @@ public:
 	virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 
 	static void AddDefaults();
+	static void Parse(CCINIClass* pINI, const char* section, const char* key, ValueableVector<int>& Vec);
+	static void LoadFromINIList_New(CCINIClass* pINI, bool bDebug = false);
 
-	std::vector<int> Prereqs;
-	std::vector<TechnoTypeClass*> Alternates;
+	ValueableVector<int> Prereqs;
+	ValueableVector<TechnoTypeClass*> Alternates;
 };
 
 class Prereqs
 {
 public:
 	using BTypeIter = Iterator<BuildingTypeClass*>;
-	using IntIter = Iterator<int>;
-
-	static void Parse(CCINIClass* pINI, const char* section, const char* key, std::vector<int>& Vec);
-	static void ParseAlternate(CCINIClass* pINI, const char* section, const char* key, std::vector<TechnoTypeClass*>& Vec);
 
 	static bool HouseOwnsGeneric(HouseClass const* pHouse, int Index);
 	static bool HouseOwnsSpecific(HouseClass const* pHouse, int Index);
 	static bool HouseOwnsPrereq(HouseClass const* pHouse, int Index);
 
-	static bool HouseOwnsAll(HouseClass const* pHouse, const IntIter& list);
-	static bool HouseOwnsAny(HouseClass const* pHouse, const IntIter& list);
+	static bool HouseOwnsAll(HouseClass const* pHouse, const DynamicVectorClass<int>& list);
+	static bool HouseOwnsAny(HouseClass const* pHouse, const DynamicVectorClass<int>& list);
 
 	static bool ListContainsGeneric(const BTypeIter& List, int Index);
 	static bool ListContainsSpecific(const BTypeIter& List, int Index);
 	static bool ListContainsPrereq(const BTypeIter& List, int Index);
 
-	static bool ListContainsAll(const BTypeIter& List, const IntIter& Requirements);
-	static bool ListContainsAny(const BTypeIter& List, const IntIter& Requirements);
+	static bool ListContainsAll(const BTypeIter& List, const DynamicVectorClass<int>& Requirements);
+	static bool ListContainsAny(const BTypeIter& List, const DynamicVectorClass<int>& Requirements);
 };

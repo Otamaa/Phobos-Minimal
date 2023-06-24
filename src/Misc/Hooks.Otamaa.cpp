@@ -5054,9 +5054,8 @@ DEFINE_HOOK(0x442282, BuilngClass_TakeDamage_LATIme_SourceHouseptrIsMissing, 0xA
 	GET(TechnoClass*, pSource, EBP);
 	GET(BuildingClass*, pThis, ESI);
 
-	if (!pSource->GetOwningHouse()) {
-		Debug::Log("Building[%s] Taking damage from [%s] with nullptr house ! , skipping this part" , 
-			pThis->get_ID(), pSource->get_ID());
+	if (!Is_Techno(pSource)) {
+		Debug::Log("Building[%s] Taking damage from unknown source [%x] ! , skipping this part", pThis->get_ID(), pSource);
 		return 0x4422C1;
 	}
 
@@ -5068,9 +5067,9 @@ DEFINE_HOOK(0x701E0E, TechnoClass_TakeDamage_UpdateAnger_nullptrHouse, 0xA)
 	GET(TechnoClass*, pSource, EAX);
 	GET(TechnoClass*, pThis, ESI);
 
-	if (!pSource->Owner) {
-		Debug::Log("Techno[%s] Taking damage from [%s] with nullptr house ! , skipping this part",
-			pThis->get_ID(), pSource->get_ID());
+	if (!Is_Techno(pSource)) {
+		Debug::Log("Techno[%s] Taking damage from unknown source [%x] ! , skipping this part",
+			pThis->get_ID(), pSource);
 		return 0x701E71;
 	}
 

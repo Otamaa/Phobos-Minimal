@@ -177,6 +177,28 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 	return 0x6EFE4F;
 }
 
+// these thing picking first SW type with Chronosphere breaking the AI , bruh 
+// should check if the SW itself avaible before deciding it!
+DEFINE_HOOK(0x6EFF05, TeamClass_ChronosphereTeam_PickSuper_IsAvail_A, 0x9)
+{
+	GET(SuperClass*, pSuper, EAX);
+	GET(HouseClass*, pOwner, EBP);
+
+	return SWTypeExt::ExtMap.Find(pSuper->Type)->IsAvailable(pOwner) ?
+		0x0//allow
+		: 0x6EFF1C;//advance
+}
+
+DEFINE_HOOK(0x6F01BA, TeamClass_ChronosphereTeam_PickSuper_IsAvail_B, 0x9)
+{
+	GET(SuperClass*, pSuper, EAX);
+	GET(HouseClass*, pOwner, EBP);
+
+	return SWTypeExt::ExtMap.Find(pSuper->Type)->IsAvailable(pOwner) ?
+		0x0//allow
+		: 0x6F01D3;//advance
+}
+
 DEFINE_OVERRIDE_HOOK(0x6CEF84, SuperWeaponTypeClass_GetAction, 7)
 {
 	GET_STACK(CellStruct*, pMapCoords, 0x0C);

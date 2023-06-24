@@ -318,7 +318,7 @@ DEFINE_OVERRIDE_HOOK(0x76110B, WaveClass_RecalculateAffectedCells_Clear, 0x5)
 
 DEFINE_HOOK(0x75F415, WaveClass_DamageCell_FixNoHouseOwner, 0x6)
 {
-	GET(TechnoClass*, pTechnoOwner, EAX);
+	GET(WaveClass*, pThis, EBP);
 	GET(CellClass*, pCell, EDI);
 	GET(ObjectClass*, pVictim, ESI);
 	GET_STACK(int, nDamage, STACK_OFFS(0x18, 0x4));
@@ -334,7 +334,11 @@ DEFINE_HOOK(0x75F415, WaveClass_DamageCell_FixNoHouseOwner, 0x6)
 		}
 	}
 
+	if (!Is_Techno(pThis->Owner)) {
+		Debug::Log("WaveClass_DamageCell_FixNoHouseOwner delivering damage from unknown source [%x] !", pThis->Owner);
+	}
+
 	//pVictim->ReceiveDamage(&nDamage, 0, pWarhead, pTechnoOwner, false, false, pTechnoOwner->Owner);
-	WarheadTypeExt::DetonateAt(pWarhead, pVictim, pCell->GetCoordsWithBridge(), pTechnoOwner, nDamage);
+	WarheadTypeExt::DetonateAt(pWarhead, pVictim, pCell->GetCoordsWithBridge(), pThis->Owner, nDamage);
 	return 0x75F432;
 }

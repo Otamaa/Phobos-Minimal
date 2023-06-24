@@ -216,6 +216,7 @@
     <ClCompile Include="src\Misc\MapRevealer.cpp" />
     <ClCompile Include="src\Misc\PhobosGlobal.cpp" />
     <ClCompile Include="src\New\Interfaces\TestLocomotionClass.cpp" />
+    <ClCompile Include="src\New\Type\GenericPrerequisite.cpp" />
     <ClCompile Include="src\New\Type\TunnelTypeClass.cpp" />
     <ClCompile Include="src\New\Type\ImmunityTypeClass.cpp" />
     <ClCompile Include="src\New\Type\PaletteManager.cpp" />
@@ -472,6 +473,7 @@
     <ClInclude Include="src\New\Entity\ShieldClass.h" />
     <ClInclude Include="src\New\Interfaces\Base.h" />
     <ClInclude Include="src\New\Interfaces\TestLocomotionClass.h" />
+    <ClInclude Include="src\New\Type\GenericPrerequisite.h" />
     <ClInclude Include="src\New\Type\TunnelTypeClass.h" />
     <ClInclude Include="src\New\Interfaces\LevitateLocomotionClass.h" />
     <ClInclude Include="src\New\Type\ArmorTypeClass.h" />
@@ -594,7 +596,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <Optimization>Full</Optimization>
+      <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <SDLCheck>
       </SDLCheck>
@@ -619,10 +621,10 @@
       <EnableModules>false</EnableModules>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.22000.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>

@@ -1213,7 +1213,7 @@ DEFINE_OVERRIDE_HOOK(0x4140EB, AircraftClass_DTOR_Prereqs, 6)
 {
 	GET(UnitClass* const, pThis, EDI);
 
-	if (AresData::IsGenericPrerequisite(pThis->Type))
+	if (TechnoTypeExt::ExtMap.Find(pThis->Type)->IsGenericPrerequisite())
 	{
 		pThis->Owner->RecheckTechTree = true;
 	}
@@ -1225,7 +1225,7 @@ DEFINE_OVERRIDE_HOOK(0x517DF2, InfantryClass_DTOR_Prereqs, 6)
 {
 	GET(InfantryClass* const, pThis, ESI);
 
-	if (AresData::IsGenericPrerequisite(pThis->Type))
+	if (TechnoTypeExt::ExtMap.Find(pThis->Type)->IsGenericPrerequisite())
 	{
 		pThis->Owner->RecheckTechTree = true;
 	}
@@ -1237,7 +1237,7 @@ DEFINE_OVERRIDE_HOOK(0x7357F6, UnitClass_DTOR_Prereqs, 6)
 {
 	GET(UnitClass* const, pThis, ESI);
 
-	if (AresData::IsGenericPrerequisite(pThis->Type))
+	if (TechnoTypeExt::ExtMap.Find(pThis->Type)->IsGenericPrerequisite())
 	{
 		pThis->Owner->RecheckTechTree = true;
 	}
@@ -1251,8 +1251,7 @@ DEFINE_OVERRIDE_HOOK(0x4D7221, FootClass_Put_Prereqs, 6)
 
 	auto const pType = pThis->GetTechnoType();
 
-	if (AresData::IsGenericPrerequisite(pType))
-	{
+	if (TechnoTypeExt::ExtMap.Find(pType)->IsGenericPrerequisite()) {
 		pThis->Owner->RecheckTechTree = true;
 	}
 
@@ -1266,7 +1265,7 @@ DEFINE_OVERRIDE_HOOK(0x6F4A1D, TechnoClass_DiscoveredBy_Prereqs, 6)
 
 	auto const pType = pThis->GetTechnoType();
 
-	if (!Is_Building(pThis) && AresData::IsGenericPrerequisite(pType))
+	if (!Is_Building(pThis) && TechnoTypeExt::ExtMap.Find(pType)->IsGenericPrerequisite())
 	{
 		pThis->Owner->RecheckTechTree = true;
 	}
@@ -1281,7 +1280,7 @@ DEFINE_OVERRIDE_HOOK(0x7015EB, TechnoClass_ChangeOwnership_Prereqs, 7)
 
 	auto const pType = pThis->GetTechnoType();
 
-	if (!Is_Building(pThis) && AresData::IsGenericPrerequisite(pType))
+	if (!Is_Building(pThis) && TechnoTypeExt::ExtMap.Find(pType)->IsGenericPrerequisite())
 	{
 		pThis->Owner->RecheckTechTree = true;
 		pNewOwner->RecheckTechTree = true;

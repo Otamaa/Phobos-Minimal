@@ -1415,7 +1415,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	//
 	this->SW_Warhead.Read(exINI, pSection, "SW.Warhead");
-	this->SW_Anim.Read(exINI, pSection, "SW.Animation");
+	this->SW_Anim.Read(exINI, pSection, "SW.Animation", true);
 	this->SW_Sound.Read(exINI, pSection, "SW.Sound");
 	this->SW_ActivationSound.Read(exINI, pSection, "SW.ActivationSound");
 
@@ -1632,7 +1632,14 @@ void SWTypeExt::ExtData::ApplyDetonation(HouseClass* pHouse, const CellStruct& c
 	if (const auto pWeapon = this->Detonate_Weapon.Get())
 		WeaponTypeExt::DetonateAt(pWeapon, nDest, pFirer, this->Detonate_Damage.Get(pWeapon->Damage), true);
 	else
+	{
+		if (!Is_Techno(pFirer)) {
+			Debug::Log("SW[%s] delivering damage from unknown source [%x] !",this->get_ID(), pFirer);
+		}
+
 		WarheadTypeExt::DetonateAt(this->Detonate_Warhead.Get(), pTarget, nDest, pFirer, this->Detonate_Damage.Get(this->SW_Damage.Get(0)));
+	}
+
 }
 
 void SWTypeExt::ExtData::ApplySWNext(SuperClass* pSW, const CellStruct& cell)

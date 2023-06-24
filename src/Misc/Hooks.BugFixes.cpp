@@ -28,7 +28,7 @@
 #include <Locomotor/Cast.h>
 
 //Replace: checking of HasExtras = > checking of (HasExtras && Shadow)
-DEFINE_HOOK(0x423365, Phobos_BugFixes_SHPShadowCheck, 0x8)
+DEFINE_HOOK(0x423365, AnimClass_SHPShadowCheck, 0x8)
 {
 	GET(AnimClass* const, pAnim, ESI);
 	return (pAnim->Type->Shadow && pAnim->HasExtras) ?
@@ -989,6 +989,18 @@ DEFINE_HOOK(0x44E9FA, BuildingClass_Detach_RestoreAnims, 0x6)
 
 	if (pThis->InLimbo)
 		return R->Origin() == 0x44E997 ? SkipAnimOne : SkipAnimTwo;
+
+	return 0;
+}
+
+// Fix initial facing when jumpjet locomotor is being attached
+DEFINE_HOOK(0x54AE44, JumpjetLocomotionClass_LinkToObject_FixFacing, 0x7)
+{
+	GET(ILocomotion*, iLoco, EBP);
+	auto const pThis = static_cast<JumpjetLocomotionClass*>(iLoco);
+
+	pThis->Facing.Set_Current(pThis->LinkedTo->PrimaryFacing.Current());
+	pThis->Facing.Set_Desired(pThis->LinkedTo->PrimaryFacing.Desired());
 
 	return 0;
 }
