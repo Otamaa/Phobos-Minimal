@@ -1,5 +1,6 @@
 #include <AbstractClass.h>
 #include <TechnoClass.h>
+#include <TeamClass.h>
 #include <FootClass.h>
 #include <UnitClass.h>
 #include <Utilities/Macro.h>
@@ -21,6 +22,7 @@
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/Terrain/Body.h>
 #include <Ext/InfantryType/Body.h>
+#include <Ext/TeamType/Body.h>
 
 #include <TerrainTypeClass.h>
 #include <Locomotor/HoverLocomotionClass.h>
@@ -756,17 +758,17 @@ DEFINE_OVERRIDE_HOOK(0x7BB445, XSurface_20, 0x6)
 
 DEFINE_OVERRIDE_HOOK(0x6FF1FB, TechnoClass_Fire_DetachedRailgun, 0x6)
 {
-	GET(TechnoClass*, pThis, ESI);
+	//GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBX);
 
 	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
-	const bool IsRailgun = pWeapon->IsRailgun || pWeaponExt->IsDetachedRailgun;
+	//const bool IsRailgun = pWeapon->IsRailgun || pWeaponExt->IsDetachedRailgun;
 
-	if (IsRailgun && Is_Aircraft(pThis))
-	{
-		Debug::Log("TechnoClass_FireAt Aircraft[%s] attempting to fire Railgun !\n", pThis->get_ID());
+	//if (IsRailgun && Is_Aircraft(pThis))
+	//{
+		//Debug::Log("TechnoClass_FireAt Aircraft[%s] attempting to fire Railgun !\n", pThis->get_ID());
 		//return 0x6FF274;
-	}
+	//}
 
 	return pWeaponExt->IsDetachedRailgun
 		? 0x6FF20F : 0x0;
@@ -779,10 +781,6 @@ DEFINE_OVERRIDE_HOOK(0x6FF26E, TechnoClass_Fire_DetachedRailgun2, 0x6)
 	return WeaponTypeExt::ExtMap.Find(pWeapon)->IsDetachedRailgun
 		? 0x6FF274 : 0x0;
 }
-
-#include <TeamClass.h>
-#include <Ext/TeamType/Body.h>
-#include <format>
 
 DEFINE_OVERRIDE_HOOK(0x6EF8A1, TeamClass_GatherAtEnemyBase_Distance, 0x6)
 {

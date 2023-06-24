@@ -653,6 +653,13 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->BuildupTime.Read(exINI, pSection, "BuildupTime");
 		this->SlamSound.Read(exINI, pSection, "SlamSound");
 		this->Destroyed_CreateSmudge.Read(exINI, pSection, "Destroyed.CreateSmudge");
+
+		//TODO , the hook is disabled
+		// need better implementation
+		this->LaserFenceType.Read(exINI, pSection, "LaserFence.Type");
+		this->LaserFenceWEType.Read(exINI, pSection, "LaserFence.WEType");
+		this->LaserFencePostLinks.Read(exINI, pSection, "LaserFence.PostLinks");
+		this->LaserFenceDirection.Read(exINI, pSection, "LaserFence.Direction");
 	}
 #pragma endregion
 
@@ -859,6 +866,11 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->BuildupTime)
 		.Process(this->SlamSound)
 		.Process(this->Destroyed_CreateSmudge)
+
+		.Process(this->LaserFenceType)
+		.Process(this->LaserFenceWEType)
+		.Process(this->LaserFencePostLinks)
+		.Process(this->LaserFenceDirection)
 		;
 }
 

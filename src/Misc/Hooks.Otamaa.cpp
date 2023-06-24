@@ -5093,6 +5093,154 @@ DEFINE_HOOK(0x44177E, BuildingClass_Destroyed_CreateSmudge_B, 0x6)
 		? 0x0 : 0x4418EC;
 }
 
+DEFINE_HOOK(0x44E809, BuildingClass_PowerOutput_Absorber, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET_STACK(int, powertotal, 0x8);
+
+	for (auto pPas = pThis->Passengers.GetFirstPassenger(); 
+		pPas; 
+		pPas = generic_cast<FootClass*>(pPas->NextObject)) {
+
+		powertotal += abs(TechnoTypeExt::ExtMap.Find(pPas->GetTechnoType())
+			->ExtraPower_Amount.Get(pThis->Type->ExtraPowerBonus));
+	}
+
+	R->Stack(0x8, powertotal);
+	return 0x44E826;
+}
+
+bool NOINLINE IsLaserFence(BuildingClass* pNeighbour, BuildingClass* pThis, short nFacing)
+{
+	if (!pNeighbour->Owner || !pThis->Owner || pNeighbour->Owner != pThis->Owner)
+		return false;
+
+	const auto pThisExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+	const auto& nFence = pThisExt->LaserFencePostLinks;
+
+	if (nFence.empty() || !nFence.Contains(pNeighbour->Type))
+		return false;
+
+	const auto pThatExt = BuildingTypeExt::ExtMap.Find(pNeighbour->Type);
+
+	const auto nFacing_ = (nFacing & 3);
+
+	if (pNeighbour->Type->LaserFencePost
+		|| (pThisExt->LaserFenceWEType.Get(pThisExt->LaserFenceType) == pThatExt->LaserFenceWEType.Get(pNeighbour->Type))
+		|| nFacing_ == pThatExt->LaserFenceDirection && pThisExt->LaserFenceType == pNeighbour->Type)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+
+//DEFINE_HOOK(0x452F60, BuildingClass_CreateLaserPost_Construction, 5)
+//{
+//	enum { Failed = 0x452F7A, Succeeded = 0x452EAD };
+//	GET(BuildingClass*, pThis, ESI);
+//	LEA_STACK(CoordStruct*, pCoord, 0x24);
+//	GET(DirType, nValue, ECX);
+//
+//	const bool IsLasefence = pThis->Type->LaserFence;
+//
+//	if (!IsLasefence)
+//		pThis->QueueMission(Mission::Construction, false);
+//
+//	if (!pThis->Unlimbo(*pCoord, nValue))
+//		return Failed;
+//
+//	if (!IsLasefence)
+//	{
+//		pThis->DiscoveredBy(pThis->Owner);
+//		pThis->IsReadyToCommence = true;
+//	}
+//
+//	return Succeeded;
+//}
+//
+//DEFINE_SKIP_HOOK(0x452E2C, BuildingClass_CreateLaserPost_SkipTypeSearch, 5, 452E58)
+//
+//DEFINE_HOOK(0x452EFA, BuildingClass_CreateLaserPost_Type, 5)
+//{
+//	GET(BuildingClass*, pThis, EDI);
+//	GET_STACK(short, nFacing, 0x34);
+//
+//	auto const bTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+//
+//	if (!bTypeExt->LaserFenceType)
+//		return 0x45304A;
+//
+//	BuildingTypeClass* pDecided = nullptr;
+//
+//	if ((nFacing & 3) != 0) {
+//		pDecided = bTypeExt->LaserFenceWEType.Get(bTypeExt->LaserFenceType);
+//	}
+//
+//	R->EAX((BuildingClass*)pDecided->CreateObject(pThis->GetOwningHouse()));
+//	return 0x452F0F;
+//}
+//
+//DEFINE_HOOK(0x452BB0, BuildingClass_GetNearbyLaserFence, 7)
+//{
+//	GET(BuildingClass*, pThis, ECX);
+//	GET_STACK(short, nFacing, 0x4);
+//	GET_STACK(bool, bOnlyCheckPost, 0x8);
+//	GET_STACK(int, nThread, 0xC);
+//
+//	auto const pType = pThis->Type;
+//	BuildingClass* pResult = nullptr;
+//
+//	if (nThread < 0)
+//	{
+//		if (pType->LaserFencePost)
+//		{
+//			nThread = 1;
+//		}
+//
+//		auto const nThreadPosed = pType->ThreatPosed >> 8;
+//
+//		if (nThreadPosed > 1)
+//			nThread = nThreadPosed;
+//	}
+//
+//	if (!nThread)
+//	{
+//		R->EAX(pResult);
+//		return 0x452D37;
+//	}
+//
+//	auto nCell = CellClass::Coord2Cell(pThis->GetCoords());
+//
+//	for (int i = 0; i < nThread; ++i)
+//	{
+//		nCell += CellSpread::AdjacentCell[nFacing & 7];
+//
+//		if (auto const pBuilding = MapClass::Instance->GetCellAt(nCell)->GetBuilding())
+//		{
+//			if (IsLaserFence(pBuilding, pThis, nFacing))
+//				pResult = pBuilding;
+//
+//			const auto nFacing_ = (nFacing & 3);
+//
+//			if (!bOnlyCheckPost || !pType->LaserFencePost || (((((pThis->PrimaryFacing.Current().Raw) >> 12) + 1) >> 1) & 3) != nFacing_)
+//				break;
+//		}
+//	}
+//
+//	R->EAX(pResult);
+//	return 0x452D37;
+//}
+//
+//DEFINE_HOOK(0x6D5801, TacticalClass_DrawLaserFencePlaceLink, 6)
+//{
+//	GET(BuildingClass*, pThat, EAX);
+//	GET_STACK(short, nFacing, 0x28);
+//	return IsLaserFence(pThat, TacticalClass::DisplayPendingObject(), nFacing) ? 0x6D5828 : 0x6D59A6;
+//}
+
+
 // Sink sound //4DAC7B
 //todo : 
 

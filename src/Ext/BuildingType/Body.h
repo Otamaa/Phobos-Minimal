@@ -300,6 +300,11 @@ public:
 
 		Valueable<bool> Destroyed_CreateSmudge { true } ;
 
+		Valueable<BuildingTypeClass*> LaserFenceType { nullptr };
+		Nullable<BuildingTypeClass*> LaserFenceWEType { };
+		ValueableVector<BuildingTypeClass*> LaserFencePostLinks { };
+		Valueable<short> LaserFenceDirection {};
+
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject)
 			, Type { nullptr }
 			, PowersUp_Owner { AffectedHouse::Owner }

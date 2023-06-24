@@ -751,6 +751,7 @@ public:
 
 		NullableVector<int> AIIonCannonValue {};
 		mutable OptionalStruct<bool, true> GenericPrerequisite {};
+		Nullable<int> ExtraPower_Amount {};
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, HealthBar_Hide { false }

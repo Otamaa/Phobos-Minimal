@@ -15,6 +15,7 @@
 #include "Trajectories/PhobosTrajectory.h"
 
 #include <Utilities/Macro.h>
+#include <Lib/gcem/gcem.hpp>
 
 TechnoClass* BulletExt::InRangeTempFirer;
 
@@ -203,6 +204,8 @@ VelocityClass BulletExt::GenerateVelocity(BulletClass* pThis, AbstractClass* pTa
 	double const radians_fromXY = dir_fromXY.GetRadian();
 	double const sin_rad = std::sin(radians_fromXY);
 	double const cos_rad = std::cos(radians_fromXY);
+	constexpr double nMult_Cos = gcem::cos(0.7853262558535721);
+	constexpr double nMult_Sin = gcem::sin(0.7853262558535721);
 
 	velocity.X = cos_rad * nFirstMag;
 	velocity.Y -= sin_rad * nFirstMag;
@@ -220,8 +223,6 @@ VelocityClass BulletExt::GenerateVelocity(BulletClass* pThis, AbstractClass* pTa
 			velocity.Y /= std::cos(radians_foZ);
 		}
 
-		double const nMult_Cos = std::cos(0.7853262558535721);
-		double const nMult_Sin = std::sin(0.7853262558535721);
 		velocity.X *= nMult_Cos;
 		velocity.Y *= nMult_Cos;
 		velocity.Z *= nMult_Sin * nThirdMag;
@@ -251,8 +252,6 @@ VelocityClass BulletExt::GenerateVelocity(BulletClass* pThis, AbstractClass* pTa
 			velocity.Y /= std::cos(radians_foZ);
 		}
 
-		double const nMult_Cos = std::cos(0.7853262558535721);
-		double const nMult_Sin = std::sin(0.7853262558535721);
 		velocity.X *= nMult_Cos;
 		velocity.Y *= nMult_Cos;
 		velocity.Z *= nMult_Sin * nThirdMag;

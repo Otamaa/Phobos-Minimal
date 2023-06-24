@@ -831,6 +831,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->CrushSlowdownMultiplier.Read(exINI, pSection, "CrushSlowdownMultiplier");
 
 		this->AIIonCannonValue.Read(exINI, pSection, "AIIonCannonValue");
+		this->ExtraPower_Amount.Read(exINI, pSection, "ExtraPower.Amount");
 
 		if (Is_AircraftType(pThis))
 		{
@@ -1673,6 +1674,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->CrushSlowdownMultiplier)
 		.Process(this->AIIonCannonValue)
 		.Process(this->GenericPrerequisite)
+		.Process(this->ExtraPower_Amount)
 
 #pragma endregion
 		;

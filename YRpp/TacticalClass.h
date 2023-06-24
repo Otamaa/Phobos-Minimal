@@ -23,13 +23,14 @@ static_assert(sizeof(TacticalSelectableStruct) == 0xC, "Invalid Size !");
 
 class DSurface;
 class CellClass;
-
+class BuildingClass;
 class DECLSPEC_UUID("CF56B38A-240D-11D2-817C-006008055BB5")
 	NOVTABLE TacticalClass : public AbstractClass
 {
 public:
 
 	static constexpr reference<TacticalClass*, 0x887324u> const Instance{};
+	static constexpr reference<BuildingClass*, 0x88098Cu> const DisplayPendingObject{};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x6DBCE0);

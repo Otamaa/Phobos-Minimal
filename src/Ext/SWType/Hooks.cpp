@@ -1113,9 +1113,7 @@ DEFINE_HOOK(0x46B310, BulletClass_NukeMaker_Handle, 6)
 		pPayloadBullet->SourceCoords = pThis->GetCoords();
 		pPayloadBullet->TargetCoords = nTargetLoc;
 		nTargetLoc.Z += pPaylod->Projectile->DetonationAltitude;
-		//auto nCos = 0.00004793836; 
 		constexpr auto nCos = gcem::cos(1.570748388432313); // Accuracy is different from the game 
-		//auto nSin = 0.99999999885; 
 		constexpr auto nSin = gcem::sin(1.570748388432313); // Accuracy is different from the game 
 
 		constexpr double nX = nCos * nCos * -1.0;
@@ -1175,7 +1173,6 @@ DEFINE_HOOK(0x4C78EF, Networking_RespondToEvent_SpecialPlace, 9)
 
 	return 0x4C78F8;
 }
-
 
 DEFINE_OVERRIDE_HOOK(0x50AF10, HouseClass_UpdateSuperWeaponsOwned, 5)
 {
