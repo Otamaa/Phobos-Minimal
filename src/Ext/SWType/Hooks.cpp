@@ -66,6 +66,12 @@ DEFINE_HOOK(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
 			found = true;
 		}
 
+		//if (!found && NewSWType::FindFromTypeID(exINI.value()) != SuperWeaponType::Invalid)
+		//{
+		//	result = Action(AresNewActionType::SuperWeaponAllowed);
+		//	found = true;
+		//}
+
 		SWTypeExt::ExtMap.Find(pThis)->LastAction = result;
 	}
 
@@ -1103,10 +1109,10 @@ DEFINE_HOOK(0x46B310, BulletClass_NukeMaker_Handle, 6)
 	{
 		pPayloadBullet->Limbo();
 		BulletExt::ExtMap.Find(pPayloadBullet)->NukeSW = pNukeSW;
-		const auto nTargetLoc = pTarget->GetCoords();
-		const auto pTargetCell = MapClass::Instance->GetCellAt(nTargetLoc);
-		auto nTargetLocBridge = pTargetCell->GetCoordsWithBridge();
-		nTargetLocBridge.Z += pPaylod->Projectile->DetonationAltitude;
+		auto nTargetLoc = pTarget->GetCoords();
+		pPayloadBullet->SourceCoords = pThis->GetCoords();
+		pPayloadBullet->TargetCoords = nTargetLoc;
+		nTargetLoc.Z += pPaylod->Projectile->DetonationAltitude;
 		//auto nCos = 0.00004793836; 
 		constexpr auto nCos = gcem::cos(1.570748388432313); // Accuracy is different from the game 
 		//auto nSin = 0.99999999885; 
@@ -1116,7 +1122,7 @@ DEFINE_HOOK(0x46B310, BulletClass_NukeMaker_Handle, 6)
 		constexpr double nY = nCos * nSin * -1.0;
 		constexpr double nZ = nSin * -1.0;
 
-		pPayloadBullet->MoveTo(nTargetLocBridge, { nX , nY , nZ });
+		pPayloadBullet->MoveTo(nTargetLoc, { nX , nY , nZ });
 	}
 
 	return ret;
@@ -1290,7 +1296,7 @@ DEFINE_OVERRIDE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
 	auto const pExt = BulletExt::ExtMap.Find(pThis);
 	auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
 
-	enum { Default = 0u, FireNow = 0x467F9Bu, PreImpact = 0x467EB6 };
+	enum { Default = 0u, FireNow = 0x467F9Bu, PreImpact = 0x467EC8 };
 
 	auto allowFlash = true;
 	auto flashDuration = 0;
@@ -1340,9 +1346,9 @@ DEFINE_OVERRIDE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
 		MapClass::Instance->RedrawSidebar(1);
 	}
 
-	if (pWarheadExt->PreImpactAnim != -1)
+	if (pWarheadExt->PreImpactAnim.isset())
 	{
-		R->EAX(pWarheadExt->PreImpactAnim);
+		R->EDI(pWarheadExt->PreImpactAnim.Get());
 		return PreImpact;
 	}
 

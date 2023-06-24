@@ -510,10 +510,10 @@ DEFINE_OVERRIDE_HOOK(0x71AFB2, TemporalClass_Fire_HealthFactor, 5)
 	auto const pWeapon = pThis->Owner->GetWeapon(Ares_TemporalWeapon(pThis->Owner))->WeaponType;;
 	const auto pWarhead = pWeapon->Warhead;
 	const auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pWarhead);
-	const double nCalc = (1.0 - pTarget->Health / pTarget->GetTechnoType()->Strength) * pWarheadExt->Temporal_HealthFactor.Get();
+	const auto nCalc = (int)(((1.0 - pTarget->Health) / pTarget->GetTechnoType()->Strength) * pWarheadExt->Temporal_HealthFactor.Get());
 	const double nCalc_b = (1.0 - nCalc) * (10 * nStreght) + nCalc * 0.0;
 
-	R->EAX(nCalc_b <= 1.0 ? 1 : static_cast<int>(nCalc_b));
+	R->EAX(nCalc_b <= 1.0 ? 1 : int(nCalc_b));
 	return 0x71AFB7;
 }
 

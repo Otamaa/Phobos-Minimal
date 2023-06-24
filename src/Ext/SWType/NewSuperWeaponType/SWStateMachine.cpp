@@ -117,8 +117,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 		}
 
 		// move the target cell so this object is centered on the actual location
-		PlaceCoords.X += extentX / -2;
-		PlaceCoords.Y += extentY / -2;
+		PlaceCoords = this->Coords - CellStruct{short(extentX / 2), short(extentY / 2)};
 
 		// find a place to put this
 		if (!anywhere)

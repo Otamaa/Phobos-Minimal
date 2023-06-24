@@ -1369,15 +1369,6 @@ DEFINE_HOOK(0x4CA00D, FactoryClass_AbandonProduction_Log, 0x9)
 	return 0x4CA021;
 }
 
-DEFINE_HOOK(0x4430F4, BuildingClass_Destroyed_SurvivourLog, 0x6)
-{
-	GET(BuildingClass* const, pThis, EDI);
-	GET(InfantryTypeClass* const, pSurvivour, EAX);
-	GET(BuildingTypeClass* const, pThisType, EDX);
-	Debug::Log("[%x][%s] Creating survivor type '%s' \n", pThis, pThisType->ID, pSurvivour->ID);
-	return 0x443109;
-}
-
 DEFINE_HOOK(0x6E93BE, TeamClass_AI_TransportTargetLog, 0x5)
 {
 	GET(FootClass* const, pThis, EDI);
@@ -3749,7 +3740,7 @@ DEFINE_HOOK(0x70A35D, TechnoClass_DrawPipScale_Ammo, 5)
 	if (pTypeExt->AmmoPip.isset())
 	{
 		const auto pSHApe = pTypeExt->AmmoPip;
-		const int nFrame = int((1.0 - (pThis->Ammo / pTypeExt->Get()->Ammo)) * pSHApe->Frames);
+		const int nFrame = int(((1.0 - pThis->Ammo) / pTypeExt->Get()->Ammo) * pSHApe->Frames);
 		Point2D offs { nX, nY };
 		offs += pTypeExt->AmmoPip_Offset.Get();
 		ConvertClass* pConvert = FileSystem::PALETTE_PAL();
@@ -5076,8 +5067,36 @@ DEFINE_HOOK(0x701E0E, TechnoClass_TakeDamage_UpdateAnger_nullptrHouse, 0xA)
 	return 0x0;
 }
 
+DEFINE_HOOK(0x4431D3, BuildingClass_Destroyed_removeLog, 0x5)
+{
+	GET(InfantryClass*, pThis, ESI);
+	GET_STACK(int, nData, 0x8C - 0x70);
+
+	R->EBP(--nData);
+	R->EDX(pThis->Type);
+	return 0x4431EB;
+}
+
+//443292
+//44177E
+DEFINE_HOOK(0x443292, BuildingClass_Destroyed_CreateSmudge_A, 0x6)
+{
+	GET(BuildingClass*, pThis, EDI);
+	return BuildingTypeExt::ExtMap.Find(pThis->Type)->Destroyed_CreateSmudge 
+		? 0x0 : 0x4433F9;
+}
+
+DEFINE_HOOK(0x44177E, BuildingClass_Destroyed_CreateSmudge_B, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	return BuildingTypeExt::ExtMap.Find(pThis->Type)->Destroyed_CreateSmudge
+		? 0x0 : 0x4418EC;
+}
+
+// Sink sound //4DAC7B
 //todo : 
-// https://bugs.launchpad.net/ares/+bug/1891753
+
+
 // https://bugs.launchpad.net/ares/+bug/1840387
 // https://bugs.launchpad.net/ares/+bug/1777260
 // https://bugs.launchpad.net/ares/+bug/1324156

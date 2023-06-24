@@ -243,13 +243,13 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	this->IsNukeWarhead.Read(exINI, pSection, "IsNukeWarhead");
 
 	this->PreImpactAnim.Read(exINI, pSection, "PreImpactAnim");
-	if (this->IsNukeWarhead && this->PreImpactAnim == -1) {
-		this->PreImpactAnim = AnimTypeClass::FindIndexById(GameStrings::NUKEBALL());
+	if (this->IsNukeWarhead && !this->PreImpactAnim.isset()) {
+		this->PreImpactAnim = AnimTypeClass::Find(GameStrings::NUKEBALL());
 	}
 
 	this->NukeFlashDuration.Read(exINI, pSection, "NukeFlash.Duration");
 	if (this->IsNukeWarhead && !this->NukeFlashDuration.isset()) {
-		this->PreImpactAnim = 30;
+		this->NukeFlashDuration = 30;
 	}
 
 	this->Remover.Read(exINI, pSection, "Remover");

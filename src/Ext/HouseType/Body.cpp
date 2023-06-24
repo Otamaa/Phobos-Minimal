@@ -45,7 +45,7 @@ void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr
 	this->ParaDropPlane.Read(exINI, pSection, "ParaDrop.Aircraft" , true);
 	this->HunterSeeker.Read(exINI, pSection, "HunterSeeker", true);
 	this->SpyPlane.Read(exINI, pSection, "SpyPlane.Aircraft", true);
-	this->ParaDropTypes.Read(exINI, pSection, "ParaDrop.Types");
+	this->ParaDropTypes.Read(exINI, pSection, "ParaDrop.Types", true);
 
 	// remove all types that cannot paradrop
 	Helpers::Alex::remove_non_paradroppables(this->ParaDropTypes, pSection, "ParaDrop.Types");

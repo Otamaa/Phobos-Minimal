@@ -166,7 +166,7 @@ public:
 		Nullable<AnimTypeClass*> NotHuman_DeathAnim;
 
 		Valueable<bool> IsNukeWarhead;
-		ValueableIdx<AnimTypeClass*> PreImpactAnim;
+		Nullable<AnimTypeClass*> PreImpactAnim;
 		Nullable<int> NukeFlashDuration;
 
 		Valueable<bool> Remover;
@@ -431,7 +431,7 @@ public:
 			, NotHuman_DeathAnim { }
 
 			, IsNukeWarhead { false }
-			, PreImpactAnim { -1 }
+			, PreImpactAnim {}
 			, NukeFlashDuration { }
 
 			, Remover { false }

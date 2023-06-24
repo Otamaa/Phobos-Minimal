@@ -784,7 +784,8 @@ struct TargetingFuncs
 		const auto& buildings = info.Owner->Buildings;
 
 		// Ares < 0.9 didn't check power
-		const auto it = std::find_if(buildings.begin(), buildings.end(), [index, &info](BuildingClass* pBld)
+		const auto it = std::find_if(buildings.begin(), 
+			buildings.end(), [index, &info](BuildingClass* pBld)
 		{
 			auto const pExt = BuildingExt::ExtMap.Find(pBld);
 
@@ -801,15 +802,8 @@ struct TargetingFuncs
 			return false;
 		});
 
-		if (it != buildings.end())
-		{
-			auto pBld = *it;
-			CellStruct Offset = CellStruct {
-				static_cast<short>(pBld->Type->GetFoundationWidth() / 2),
-				static_cast<short>(pBld->Type->GetFoundationHeight(false) / 2)
-			};
-
-			return { CellClass::Coord2Cell(pBld->GetCoords()) + Offset ,SWTargetFlags::AllowEmpty };
+		if (it != buildings.end()) {
+			return { CellClass::Coord2Cell((*it)->GetCoords()) ,SWTargetFlags::AllowEmpty };
 		}
 
 		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };

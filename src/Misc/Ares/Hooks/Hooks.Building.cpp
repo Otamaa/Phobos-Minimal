@@ -22,6 +22,22 @@
 #include <Misc/AresData.h>
 
 #include <numeric>
+
+// #1156943: they check for type, and for the instance, yet
+// the Log call uses the values as if nothing happened.
+DEFINE_OVERRIDE_HOOK(0x4430E8, BuildingClass_Destroyed_SurvivourLog, 0x6)
+{
+	GET(BuildingClass* const, pThis, EDI);
+	GET(InfantryClass* const, pInf, ESI);
+
+	const auto pBldID = pThis ? pThis->Type->Name : GameStrings::NoneStr();
+	const auto pInfID = pInf ? pInf->Type->Name : GameStrings::NoneStr();
+	const auto pOwnedID = pThis && pThis->Owner && pThis->Owner->Type ? pThis->Owner->Type->ID : GameStrings::NoneStr();
+
+	Debug::Log("[%x][%s - %s] Creating survivor type '%s' \n", pThis, pBldID, pOwnedID, pInfID);
+	return 0x443109;
+}
+
 /* #183 - cloakable on Buildings and Aircraft */
 DEFINE_OVERRIDE_HOOK(0x442CE0, BuildingClass_Init_Cloakable, 0x6)
 {

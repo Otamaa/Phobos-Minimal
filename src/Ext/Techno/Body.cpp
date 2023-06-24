@@ -3135,7 +3135,7 @@ std::pair<WeaponTypeClass*, int> TechnoExt::GetDeployFireWeapon(TechnoClass* pTh
 void TechnoExt::ExtData::UpdateType(TechnoTypeClass* currentType)
 {
 	auto const pThis = this->Get();
-
+	const auto pOldType = this->Type;
 	this->Type = currentType;
 	auto const pTypeExtData = TechnoTypeExt::ExtMap.Find(currentType);
 
@@ -3150,6 +3150,11 @@ void TechnoExt::ExtData::UpdateType(TechnoTypeClass* currentType)
 			pSpawnManager->ReloadRate = currentType->SpawnReloadRate;
 		}
 	}
+
+	// https://bugs.launchpad.net/ares/+bug/1891753
+	if (pThis->IsDisguised() && pOldType->DisguiseWhenStill && !currentType->DisguiseWhenStill)
+		pThis->ClearDisguise();
+
 	//else if(currentType->Spawns && currentType->SpawnsNumber > 0)
 	//{
 	//	pThis->SpawnManager = GameCreate<SpawnManagerClass>(

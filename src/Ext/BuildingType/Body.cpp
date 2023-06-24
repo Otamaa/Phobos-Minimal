@@ -652,6 +652,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->Returnable.Read(exINI, pSection, "Returnable");
 		this->BuildupTime.Read(exINI, pSection, "BuildupTime");
 		this->SlamSound.Read(exINI, pSection, "SlamSound");
+		this->Destroyed_CreateSmudge.Read(exINI, pSection, "Destroyed.CreateSmudge");
 	}
 #pragma endregion
 
@@ -857,6 +858,7 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Returnable)
 		.Process(this->BuildupTime)
 		.Process(this->SlamSound)
+		.Process(this->Destroyed_CreateSmudge)
 		;
 }
 

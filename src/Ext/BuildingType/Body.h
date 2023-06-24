@@ -298,6 +298,8 @@ public:
 		Nullable<double> BuildupTime {};
 		NullableIdx<VocClass> SlamSound {};
 
+		Valueable<bool> Destroyed_CreateSmudge { true } ;
+
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject)
 			, Type { nullptr }
 			, PowersUp_Owner { AffectedHouse::Owner }

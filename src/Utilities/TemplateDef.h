@@ -1085,7 +1085,7 @@ namespace detail
 				{
 					switch (result)
 					{
-					case 0: goto err;
+					case 0: resultData |= SuperWeaponTarget::None; break;
 					case 1: resultData |= SuperWeaponTarget::Land; break;
 					case 2: resultData |= SuperWeaponTarget::Water; break;
 
