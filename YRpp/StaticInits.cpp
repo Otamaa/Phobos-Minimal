@@ -268,11 +268,11 @@ CellStruct FootClass::GetRandomDirection(FootClass* pFoot)
 		for (int j = 0; j < 8; ++j)
 		{
 			// get the direction in an overly verbose way
-			int dir = ((j + rnd) % 8) & 7;
+			FacingType dir = FacingType(((j + rnd) % 8) & 7);
 
 			if (auto pNeighbour = pCell->GetNeighbourCell(dir))
 			{
-				if (pFoot->IsCellOccupied(pNeighbour, -1, -1, nullptr, true) == Move::OK)
+				if (pFoot->IsCellOccupied(pNeighbour, FacingType::None, -1, nullptr, true) == Move::OK)
 				{
 					nRet = pNeighbour->MapCoords;
 					break;
@@ -1267,30 +1267,32 @@ HouseClass* HouseClass::FindCivilianSide()
 	return FindBySideName(GameStrings::Civilian());
 }
 
-constexpr unsigned int Neighbours[]
-= {
-	9, 0, 2, 0, 0,
-	0, 7, 0, 0, 0,
-	1, 0, 0, 0, 4,
-	0, 0, 3, 0, 0,
-	0, 0, 5, 0, 0,
-	0, 6, 0, 0, 0
-};
-
-void TechnoClass::SpillTiberium(int& value, CellClass* pCenter, Point2D const& nMinMax) const
+void TechnoClass::SpillTiberium(int& value ,int idx , CellClass* pCenter, Point2D const& nMinMax)
 {
 	if (!pCenter)
 		return;
+
+	constexpr FacingType Neighbours[] = {
+		FacingType::NorthWest, 
+		FacingType::East, 
+		FacingType::NorthWest, 
+		FacingType::NorthEast,
+		FacingType::South,
+		FacingType::SouthEast,
+		FacingType::North,
+		FacingType::SouthWest,
+		FacingType::West
+	};
 
 	for (auto const& neighbour : Neighbours) {
 		// spill random amount
 		const int amount = ScenarioClass::Instance->Random.RandomRanged(nMinMax.X , nMinMax.Y);
 		CellClass* pCell = pCenter->GetNeighbourCell(neighbour);
-		
+
 		if (!pCell)
 			continue;
 
-		pCell->IncreaseTiberium(0, amount);
+		pCell->IncreaseTiberium(idx, amount);
 		value -= amount;
 
 		// stop if value is reached

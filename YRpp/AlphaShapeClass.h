@@ -6,6 +6,7 @@
 
 #include <FileSystem.h>
 #include <AbstractClass.h>
+#include <Point2D.h>
 
 class ObjectClass;
 
@@ -35,6 +36,10 @@ public:
 
 	//Constructor
 	AlphaShapeClass(ObjectClass* pObj, int nX, int nY) noexcept
+		: AlphaShapeClass(noinit_t())
+	{ JMP_THIS(0x420960); }
+
+	AlphaShapeClass(ObjectClass* pObj, Point2D nPos) noexcept
 		: AlphaShapeClass(noinit_t())
 	{ JMP_THIS(0x420960); }
 

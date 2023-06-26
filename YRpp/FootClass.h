@@ -200,7 +200,7 @@ public:
 	AbstractClass*  unknown_5A0;  //TODO
 	AbstractClass*  Destination; //navcom possibly other objects as well
 	AbstractClass*  LastDestination; //suspendednavcom
-	DECLARE_PROPERTY(DynamicVectorClass<AbstractClass*>, unknown_abstract_array_5AC);
+	DECLARE_PROPERTY(DynamicVectorClass<AbstractClass*>, NavQueue);//unknown_abstract_array_5AC
 	int             state5C4;
 	DWORD           target5C8_CandidateTarget;
 	DWORD           ___CandidateTarget_5CC;
@@ -209,7 +209,7 @@ public:
 	TeamClass*      Team;
 	FootClass*      NextTeamMember;        //next unit in team
 	DWORD           unknown_5DC;
-	FacingTypeI      PathDirections[24]; // list of directions to move in next, like tube directions
+	int      PathDirections[24]; // list of directions to move in next, like tube directions
 	DECLARE_PROPERTY(CDTimerClass, PathDelayTimer); //CDTimerClass
 	int             TryTryAgain; //64C
 	DECLARE_PROPERTY(CDTimerClass, unknown_timer_650); //BaseAttackTimer  CDTimerClass

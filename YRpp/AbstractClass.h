@@ -128,6 +128,15 @@ struct StorageClass final
 
 	int First_Used_Slot() const { JMP_THIS(0x6C9820); };
 
+	int GetHighestStorageIdx() const
+	{
+		int nIdx = 0;
+		for (int p = 0; p < 4; p++)
+			nIdx += (this->Tiberiums[nIdx] < this->Tiberiums[p]) * (p - nIdx);
+
+		return nIdx;
+	}
+
 	StorageClass operator+(StorageClass& that) const { JMP_THIS(0x6C96E0); }
 	StorageClass operator+=(StorageClass& that) { JMP_THIS(0x6C9740); }
 	StorageClass operator-(StorageClass& that) const { JMP_THIS(0x6C9780); }

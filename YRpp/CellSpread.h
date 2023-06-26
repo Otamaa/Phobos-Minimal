@@ -34,6 +34,35 @@ public:
 		return AdjacentCell[direction];
 	}
 
+	static const Point2D GetNeighbourPointOffset(size_t direction)
+	{
+		if (direction > AdjacentPoint.size())
+		{
+			return Point2D::Empty;
+		}
+
+		return AdjacentPoint[direction];
+	}
+
+	static const Point2D GetNeighbourPointOffset(FacingType direction)
+	{
+		if ((size_t)direction > AdjacentPoint.size())
+		{
+			return Point2D::Empty;
+		}
+
+		return AdjacentPoint[(size_t)direction];
+	}
+
+	static const CellStruct GetNeighbourOffset(FacingType direction)
+	{
+		if ((size_t)direction > AdjacentCell.size()) {
+			return CellStruct::Empty;
+		}
+
+		return AdjacentCell[(size_t)direction];
+	}
+
 	static size_t GetDistance(int dx, int dy) {
 		auto x = static_cast<size_t>(std::abs(dx));
 		auto y = static_cast<size_t>(std::abs(dy));

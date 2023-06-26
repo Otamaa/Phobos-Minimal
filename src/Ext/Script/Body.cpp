@@ -7060,7 +7060,7 @@ bool ScriptExt::FindLinkedPath(TeamClass* pTeam, TechnoClass* pThis = nullptr, T
 					if (MapClass::Instance->IsWithinUsableArea(nCell, false))
 					{
 						const auto pCell = MapClass::Instance->TryGetCellAt(nCell);
-						if (pThis->IsCellOccupied(pCell, -1, -1, nullptr, false) != Move::OK)
+						if (pThis->IsCellOccupied(pCell, FacingType::None, -1, nullptr, false) != Move::OK)
 							pTeamData->MapPath_Grid[i][j] = true;
 
 						if (!pTeamData->MapPath_Grid[i][j])
@@ -7134,26 +7134,35 @@ bool ScriptExt::IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrA
 	return isAvailable;
 }
 
+#include <Ext/SWType/Body.h>
+
+void DebugHere(const char* pWho, const char* pReason, TeamClass* pTeam)
+{
+	auto pScript = pTeam->CurrentScript;
+	const auto nCur = pScript->GetCurrentAction();
+	const auto nNext = pScript->GetNextAction();
+
+	Debug::Log("AI Scripts - %s: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: %s)\n",
+	pWho, pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission,
+	nCur.Action,
+	nCur.Argument,
+	pScript->CurrentMission + 1,
+	nNext.Action,
+	nNext.Argument,
+	pReason
+	
+	);
+}
+
 void ScriptExt::ChronoshiftToEnemyBase(TeamClass* pTeam, int extraDistance)
 {
 	if (!pTeam)
 		return;
 
-	auto pScript = pTeam->CurrentScript;
 	auto const pLeader = ScriptExt::FindTheTeamLeader(pTeam);
 
-	if (!pLeader)
-	{
-		const auto nCur = pScript->GetCurrentAction();
-		const auto nNext = pScript->GetNextAction();
-
-		Debug::Log("AI Scripts - ChronoshiftToEnemyBase: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No Leader found)\n",
-			pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, 
-			nCur.Action,
-			nCur.Argument,
-			pScript->CurrentMission + 1, 
-			nNext.Action,
-			nNext.Argument);
+	if (!pLeader) {
+		DebugHere("ChronoshiftToEnemyBase", "No Leader found", pTeam);
 		pTeam->StepCompleted = true;
 		return;
 	}
@@ -7161,38 +7170,16 @@ void ScriptExt::ChronoshiftToEnemyBase(TeamClass* pTeam, int extraDistance)
 	int houseIndex = pLeader->Owner->EnemyHouseIndex;
 	HouseClass* pEnemy = houseIndex != -1 ? HouseClass::Array->GetItem(houseIndex) : nullptr;
 
-	if (!pEnemy)
-	{
-		const auto nCur = pScript->GetCurrentAction();
-		const auto nNext = pScript->GetNextAction();
-
-		Debug::Log("AI Scripts - ChronoshiftToEnemyBase: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No enemy house found)\n",
-			pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, 
-			nCur.Action,
-			nCur.Argument,
-			pScript->CurrentMission + 1,
-			nNext.Action,
-			nNext.Argument);
-
+	if (!pEnemy) {
+		DebugHere("ChronoshiftToEnemyBase", "No enemy house found", pTeam);
 		pTeam->StepCompleted = true;
 		return;
 	}
 
 	auto const pTargetCell = HouseExt::GetEnemyBaseGatherCell(pEnemy, pLeader->Owner, pLeader->GetCoords(), pLeader->GetTechnoType()->SpeedType, extraDistance);
 
-	if (!pTargetCell)
-	{
-		const auto nCur = pScript->GetCurrentAction();
-		const auto nNext = pScript->GetNextAction();
-
-		Debug::Log("AI Scripts - ChronoshiftToEnemyBase: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No target cell found)\n",
-			pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission,
-			nCur.Action,
-			nCur.Argument,
-			pScript->CurrentMission + 1,
-			nNext.Action,
-			nNext.Argument);
-
+	if (!pTargetCell) {
+		DebugHere("ChronoshiftToEnemyBase", "No target cell found", pTeam);
 		pTeam->StepCompleted = true;
 		return;
 	}
@@ -7205,13 +7192,15 @@ void ScriptExt::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeamLead
 	if (!pTeam || !pTeamLeader || !pTarget)
 		return;
 
-	auto pScript = pTeam->CurrentScript;
 	HouseClass* pOwner = pTeamLeader->Owner;
 	SuperClass* pSuperChronosphere = nullptr;
 	SuperClass* pSuperChronowarp = nullptr;
 
 	for (auto const pSuper : pOwner->Supers)
 	{
+		if (!SWTypeExt::ExtMap.Find(pSuper->Type)->IsAvailable(pOwner))
+			continue;
+
 		if (!pSuperChronosphere && pSuper->Type->Type == SuperWeaponType::ChronoSphere)
 			pSuperChronosphere = pSuper;
 		
@@ -7222,54 +7211,24 @@ void ScriptExt::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeamLead
 			break;
 	}
 
-	if (!pSuperChronosphere || !pSuperChronowarp)
-	{
-		auto const nCur = pScript->GetCurrentAction();
-		auto const nNext = pScript->GetNextAction();
-
-		Debug::Log("AI Scripts - ChronoshiftTeamToTarget: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No Chronosphere or ChronoWarp superweapon found)\n",
-			pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission,
-			nCur.Action,
-			nCur.Argument,
-			pScript->CurrentMission + 1,
-			nNext.Action,
-			nNext.Argument);
-		pTeam->StepCompleted = true;
+	if (!pSuperChronosphere || !pSuperChronowarp) {
+		DebugHere("ChronoshiftTeamToTarget", "No Chronosphere or ChronoWarp superweapon found", pTeam);
 		return;
 	}
 
-	if (!pSuperChronosphere->IsCharged || (pSuperChronosphere->IsPowered() && !pOwner->Is_Powered()))
-	{
-		if (pSuperChronosphere->Granted)
-		{
+	if (!pSuperChronosphere->IsCharged || (pSuperChronosphere->IsPowered() && !pOwner->Is_Powered())) {
+		if (pSuperChronosphere->Granted) {
+			
 			int rechargeTime = pSuperChronosphere->GetRechargeTime();
 			int timeLeft = pSuperChronosphere->RechargeTimer.GetTimeLeft();
 
-			if (1.0 - RulesClass::Instance->AIMinorSuperReadyPercent < timeLeft / rechargeTime)
-			{
-				auto const nCur = pScript->GetCurrentAction();
-
-				Debug::Log("AI Scripts - ChronoshiftTeamToTarget: [%s] [%s] (line: %d = %d,%d) Chronosphere superweapon charge not at AIMinorSuperReadyPercent yet, not jumping to next line yet)\n",
-					pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission,
-					nCur.Action,
-					nCur.Argument);
-
+			if (1.0 - RulesClass::Instance->AIMinorSuperReadyPercent < timeLeft / rechargeTime) {
+				DebugHere("ChronoshiftTeamToTarget", "Chronosphere superweapon charge not at AIMinorSuperReadyPercent yet, not jumping to next line yet", pTeam);
 				return;
 			}
-		}
-		else
-		{
-			auto const nCur = pScript->GetCurrentAction();
-			auto const nNext = pScript->GetNextAction();
 
-			Debug::Log("AI Scripts - ChronoshiftTeamToTarget: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: Chronosphere superweapon not available)\n",
-				pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, 
-				nCur.Action,
-				nCur.Argument,
-				pScript->CurrentMission + 1, 
-				nNext.Action,
-				nNext.Argument);
-
+		} else {
+			DebugHere("ChronoshiftTeamToTarget", "Chronosphere superweapon not available", pTeam);
 			pTeam->StepCompleted = true;
 			return;
 		}
@@ -7277,41 +7236,20 @@ void ScriptExt::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeamLead
 
 	auto pTargetCell = MapClass::Instance->TryGetCellAt(pTarget->GetCoords());
 
-	if (pTargetCell)
-	{
+	if (pTargetCell) {
 		pOwner->Fire_SW(pSuperChronosphere->Type->ArrayIndex, pTeam->SpawnCell->MapCoords);
 		pOwner->Fire_SW(pSuperChronowarp->Type->ArrayIndex, pTargetCell->MapCoords);
 		pTeam->AssignMissionTarget(pTargetCell);
 
-		auto const nCur = pScript->GetCurrentAction();
-		auto const nNext = pScript->GetNextAction();
-
-		Debug::Log("AI Scripts - ChronoshiftTeamToTarget: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: Finished successfully)\n",
-			pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, 
-			nCur.Action,
-			nCur.Argument,
-			pScript->CurrentMission + 1,
-			nNext.Action,
-			nNext.Argument);
-
-	}
-	else
-	{
-		auto const nCur = pScript->GetCurrentAction();
-		auto const nNext = pScript->GetNextAction();
-
-		Debug::Log("AI Scripts - ChronoshiftTeamToTarget: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No target cell found)\n",
-			pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission,
-			nCur.Action,
-			nCur.Argument,
-			pScript->CurrentMission + 1,
-			nNext.Action,
-			nNext.Argument);
+		DebugHere("ChronoshiftTeamToTarget", "Finished successfully", pTeam);
+	} else {
+		DebugHere("ChronoshiftTeamToTarget", "No target cell found", pTeam);
 	}
 
 	pTeam->StepCompleted = true;
 	return;
 }
+
 //
 //DEFINE_HOOK(0x6913F8, ScriptClass_CTOR, 0x5)
 //{

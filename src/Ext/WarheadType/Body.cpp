@@ -81,7 +81,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	ArmorTypeClass::LoadForWarhead(pINI, pThis);
 
 	//this will break targeting , so use it with caution !
-	exINI.ReadBool(pSection, "IsOrganic", &pThis->IsOrganic);
+	pThis->IsOrganic = exINI.ReadBool(pSection, "IsOrganic", &pThis->IsOrganic);
 
 	// Miscs
 	this->Reveal.Read(exINI, pSection, "Reveal");
@@ -876,8 +876,9 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, AbstractClass* pTarget,
 		}
 	}
 
-	if (!Is_Techno(pOwner)) {
+	if (pOwner && !Is_Techno(pOwner)) {	
 		Debug::Log("WarheadTypeExt::DetonateAt[%s] delivering damage from unknown source [%x] !", pThis->get_ID(), pOwner);
+		pOwner = nullptr;
 	}
 	if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pType)->CreateBullet(pTarget, pOwner,
 		damage, pThis, 0, 0, pThis->Bright, true))

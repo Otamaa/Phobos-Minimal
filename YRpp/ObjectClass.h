@@ -196,8 +196,8 @@ public:
 	virtual void SetRepairState(int state) RX; // 0 - off, 1 - on, -1 - toggle
 	virtual void Sell(int Control) RX; // -1 if Mission::Deconst , 0 if not Mission::Deconst , > 1 Play Generic Click
 	virtual void AssignPlanningPath(signed int idxPath, signed char idxWP) RX;
-	virtual void vt_entry_1A8(DWORD dwUnk) RX;
-	virtual Move IsCellOccupied(CellClass *pDestCell, int facing, int level, CellClass* pSourceCell, bool alt) const RT(Move); //can_enter_cell
+	virtual void MoveToDirection(FacingType facing) RX; // Vestigial, never called by the game.
+	virtual Move IsCellOccupied(CellClass *pDestCell, FacingType facing, int level, CellClass* pSourceCell, bool alt) const RT(Move); //can_enter_cell
 	virtual DWORD vt_entry_1B0(DWORD dwUnk, DWORD dwUnk2, DWORD dwUnk3, DWORD dwUnk4, DWORD dwUnk5) R0;
 	virtual void SetLocation(const CoordStruct& crd) RX;
 

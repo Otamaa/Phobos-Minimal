@@ -1627,7 +1627,7 @@ void SWTypeExt::ExtData::ApplyDetonation(HouseClass* pHouse, const CellStruct& c
 		WeaponTypeExt::DetonateAt(pWeapon, nDest, pFirer, this->Detonate_Damage.Get(pWeapon->Damage), true);
 	else
 	{
-		if (!Is_Techno(pFirer)) {
+		if (pFirer && !Is_Techno(pFirer)) {
 			Debug::Log("SW[%s] delivering damage from unknown source [%x] !",this->get_ID(), pFirer);
 		}
 

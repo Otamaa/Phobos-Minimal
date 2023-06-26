@@ -46,7 +46,7 @@ void PlaceVeinholeMonster::Execute(WWKey eInput) const
 			//this dummy overlay placed so it can be replace later with real veins
 			for (int i = 0; i < 8; ++i)
 			{
-				auto v11 = pCell->GetAdjacentCell(i);
+				auto v11 = pCell->GetAdjacentCell((FacingType)i);
 				v11->OverlayTypeIndex = 0x7E; //dummy image -> replaced with vein ? 
 				;
 				v11->OverlayData = 30u; //max it out

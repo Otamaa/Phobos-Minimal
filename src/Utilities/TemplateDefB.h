@@ -83,7 +83,6 @@ namespace detail
 		{
 			if (!parser.empty())
 			{
-
 				if (auto const& pColorClass = ColorTypeClass::Find(parser.value()))
 				{
 					value = pColorClass->ToColor();
@@ -245,15 +244,18 @@ namespace detail
 	inline bool read<DirType8>(DirType8& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		int nBuffer = -1;
-		if (parser.ReadInteger(pSection, pKey, &nBuffer) && nBuffer >= 0 && nBuffer <= 8)
+		if (parser.ReadInteger(pSection, pKey, &nBuffer))
 		{
-			value = (DirType8)nBuffer;
-			return true;
-		}
-		else
-		{
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a facing between 0 and 8");
+			if (nBuffer >= (int)DirType8::Min && nBuffer <= (int)DirType8::Max)
+			{
+				value = (DirType8)nBuffer;
+				return true;
+			}
+			else
+			{
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a DirType8 between 0 and 8");
+			}
+
 		}
 
 		return false;
@@ -263,15 +265,16 @@ namespace detail
 	inline bool read<DirType32>(DirType32& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		int nBuffer = -1;
-		if (parser.ReadInteger(pSection, pKey, &nBuffer) && nBuffer >= 0 && nBuffer <= 32)
+		if (parser.ReadInteger(pSection, pKey, &nBuffer))
 		{
-			value = (DirType32)nBuffer;
-			return true;
-		}
-		else
-		{
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a facing between 0 and 32");
+			if(nBuffer >= (int)DirType32::Min && nBuffer <= (int)DirType32::Max){
+				value = (DirType32)nBuffer;
+				return true;
+			}
+			else
+			{
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a DirType32 between 0 and 32");
+			}
 		}
 
 		return false;
@@ -286,15 +289,35 @@ namespace detail
 			if (nBuffer == -1) //uhh ROTE using -1 , so it will generate bunch of debug log
 				return false;
 
-			if(nBuffer >= 0 && nBuffer <= 255){
+			if(nBuffer >= (int)DirType::Min && nBuffer <= (int)DirType::Max){
 				value = (DirType)nBuffer;
 				return true;
 			}
+			else
+			{
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a DirType between 0 and 255");
+			}
 		}
-		else
+
+		return false;
+	}
+
+	template <>
+	inline bool read<FacingType>(FacingType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		int buffer;
+
+		if (parser.ReadInteger(pSection, pKey, &buffer))
 		{
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a facing between 0 and 255");
+			if (buffer <= (int)FacingType::Count && buffer >= (int)FacingType::None)
+			{
+				value = static_cast<FacingType>(buffer);
+				return true;
+			}
+			else
+			{
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid FacingType (0-7 or -1).");
+			}
 		}
 
 		return false;

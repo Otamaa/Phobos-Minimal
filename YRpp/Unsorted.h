@@ -112,6 +112,8 @@ struct Game
 	static constexpr reference<HIMC, 0xB7355Cu> const IMEContext {};
 	static constexpr reference<wchar_t, 0xB73318u, 257u> const IMECompositionString {};
 
+	static constexpr reference<bool, 0xA8F7ACu> const DontSetExceptionHandler{};
+
 	static struct Network
 	{
 	public:
@@ -134,7 +136,7 @@ struct Game
 
 	// the game's own rounding function
 	// infamous for true'ing (F2I(-5.00) == -4.00)
-	static __int64 F2I64(double val)
+	static uint64_t F2I64(double val)
 	{
 		double something = val;
 		__asm { fld something };
@@ -145,7 +147,7 @@ struct Game
 	// infamous for true'ing (F2I(-5.00) == -4.00)
 	static int F2I(double val)
 	{
-		return static_cast<int>(F2I64(val));
+		return int(F2I64(val));
 	}
 
 	[[noreturn]] static void __stdcall RaiseError(HRESULT err)

@@ -2470,7 +2470,7 @@ DEFINE_HOOK(0x6F8721, TechnoClass_EvalObject_VHPScan, 0x7)
 
 	switch (NewVHPScan(pExt->Get()->VHPScan))
 	{
-	case NewVHPScan::None:
+	case NewVHPScan::Normal:
 	{
 		if (pTarget->EstimatedHealth <= 0)
 		{
@@ -2486,7 +2486,7 @@ DEFINE_HOOK(0x6F8721, TechnoClass_EvalObject_VHPScan, 0x7)
 	break;
 	case NewVHPScan::Threat:
 	{
-		*pRiskValue *= *pRiskValue / nValue;
+		*pRiskValue *= (*pRiskValue / nValue);
 		break;
 	}
 	break;
@@ -2509,7 +2509,7 @@ DEFINE_HOOK(0x6F8721, TechnoClass_EvalObject_VHPScan, 0x7)
 			break;
 		}
 
-		*pRiskValue = pTechnoTarget->CombatDamage(-1) / nValue * *pRiskValue;
+		*pRiskValue = pTechnoTarget->CombatDamage(-1) / nValue * (*pRiskValue);
 	}
 	break;
 	case NewVHPScan::Value:
@@ -4750,9 +4750,9 @@ DEFINE_HOOK(0x5FC668, OverlayTypeClass_Mark_Veinholedummies, 0x7)
 	{
 		auto pCell = MapClass::Instance->GetCellAt(pPos);
 		//this dummy overlay placed so it can be replace later with real veins
-		for (int i = 0; i < 8; ++i)
+		for (int i = 0 ; i < 8; ++i)
 		{
-			auto v11 = pCell->GetAdjacentCell(i);
+			auto v11 = pCell->GetAdjacentCell((FacingType)i);
 			v11->OverlayTypeIndex = 0x7E; //dummy image -> replaced with vein ? 
 			;
 			v11->OverlayData = 30u; //max it out
@@ -4988,17 +4988,6 @@ void MeteorShower_Process(CoordStruct Where, HouseClass* pOwner)
 // 	return SkipGameCode;
 // }
 
-DEFINE_HOOK(0x44D0C3, BuildingClass_Missile_EMPFire_WeaponType, 0x5)
-{
-	GET(BulletClass*, pBullet, EAX);
-	GET(WeaponTypeClass*, pWeapon, EBP);
-
-	if (pBullet && pWeapon && !pBullet->GetWeaponType())
-		pBullet->SetWeaponType(pWeapon);
-
-	return 0;
-}
-
 DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
 {
 
@@ -5009,6 +4998,8 @@ DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
 
 	if (pWeapon && pBullet)
 	{
+		pBullet->SetWeaponType(pWeapon);
+
 		CoordStruct src = pThis->GetFLH(0, pThis->GetRenderCoords());
 		CoordStruct dest = *pCoord;
 		auto const pTarget = pBullet->Target ? pBullet->Target : MapClass::Instance->GetCellAt(dest);
@@ -5027,45 +5018,46 @@ DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
 }
 
 //https://bugs.launchpad.net/ares/+bug/1577493
-DEFINE_HOOK(0x4684FF, BulletClass_InvalidatePointer_CloakOwner, 0xA)
-{
-	GET(BulletClass*, pThis, ESI);
-	GET_STACK(bool, bRemove, 0x8);
-	GET(AbstractClass*, pTarget, EDI);
-	GET(TechnoClass*, pOwner, EAX);
+// stack 0x8 seems occupied by something else ?
+//DEFINE_HOOK(0x4684FF, BulletClass_InvalidatePointer_CloakOwner, 0xA)
+//{
+//	GET(BulletClass*, pThis, ESI);
+//	GET_STACK(bool, bRemove, 0x8);
+//	GET(AbstractClass*, pTarget, EDI);
+//	GET(TechnoClass*, pOwner, EAX);
+//   //nope , the third ags , seems not used consistenly , it can cause dangling pointer 
+//	if (bRemove && pOwner == pTarget)
+//		pThis->Owner = nullptr;
+//
+//	return 0x468509;
+//}
 
-	if (bRemove && pOwner == pTarget)
-		pThis->Owner = nullptr;
+//DEFINE_HOOK(0x442282, BuilngClass_TakeDamage_LATIme_SourceHouseptrIsMissing, 0xA)
+//{
+//	GET(TechnoClass*, pSource, EBP);
+//	GET(BuildingClass*, pThis, ESI);
+//
+//	if (!Is_Techno(pSource)) {
+//		Debug::Log("Building[%s] Taking damage from unknown source [%x] ! , skipping this part", pThis->get_ID(), pSource);
+//		return 0x4422C1;
+//	}
+//
+//	return 0x0;
+//}
 
-	return 0x468509;
-}
-
-DEFINE_HOOK(0x442282, BuilngClass_TakeDamage_LATIme_SourceHouseptrIsMissing, 0xA)
-{
-	GET(TechnoClass*, pSource, EBP);
-	GET(BuildingClass*, pThis, ESI);
-
-	if (!Is_Techno(pSource)) {
-		Debug::Log("Building[%s] Taking damage from unknown source [%x] ! , skipping this part", pThis->get_ID(), pSource);
-		return 0x4422C1;
-	}
-
-	return 0x0;
-}
-
-DEFINE_HOOK(0x701E0E, TechnoClass_TakeDamage_UpdateAnger_nullptrHouse, 0xA)
-{
-	GET(TechnoClass*, pSource, EAX);
-	GET(TechnoClass*, pThis, ESI);
-
-	if (!Is_Techno(pSource)) {
-		Debug::Log("Techno[%s] Taking damage from unknown source [%x] ! , skipping this part",
-			pThis->get_ID(), pSource);
-		return 0x701E71;
-	}
-
-	return 0x0;
-}
+//DEFINE_HOOK(0x701E0E, TechnoClass_TakeDamage_UpdateAnger_nullptrHouse, 0xA)
+//{
+//	GET(TechnoClass*, pSource, EAX);
+//	GET(TechnoClass*, pThis, ESI);
+//
+//	if (!Is_Techno(pSource)) {
+//		Debug::Log("Techno[%s] Taking damage from unknown source [%x] ! , skipping this part",
+//			pThis->get_ID(), pSource);
+//		return 0x701E71;
+//	}
+//
+//	return 0x0;
+//}
 
 DEFINE_HOOK(0x4431D3, BuildingClass_Destroyed_removeLog, 0x5)
 {
@@ -5134,7 +5126,6 @@ bool NOINLINE IsLaserFence(BuildingClass* pNeighbour, BuildingClass* pThis, shor
 
 	return false;
 }
-
 
 //DEFINE_HOOK(0x452F60, BuildingClass_CreateLaserPost_Construction, 5)
 //{
@@ -5240,10 +5231,8 @@ bool NOINLINE IsLaserFence(BuildingClass* pNeighbour, BuildingClass* pThis, shor
 //	return IsLaserFence(pThat, TacticalClass::DisplayPendingObject(), nFacing) ? 0x6D5828 : 0x6D59A6;
 //}
 
-
 // Sink sound //4DAC7B
 //todo : 
-
 
 // https://bugs.launchpad.net/ares/+bug/1840387
 // https://bugs.launchpad.net/ares/+bug/1777260

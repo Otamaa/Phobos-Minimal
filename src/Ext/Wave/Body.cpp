@@ -218,17 +218,18 @@ DEFINE_HOOK(0x763226, WaveClass_DTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x75F623, WaveClass_Detach, 0x6)
+DEFINE_HOOK(0x75F62B, WaveClass_Detach, 0xA)
 {
 	GET(WaveClass*, pItem, ESI);
 	GET(void*, pTarget, EDI);
-	GET(bool, bRemove, EAX);
+	GET_STACK(bool, bRemove, 0x8);
 
 	WaveExt::ExtMap.InvalidatePointerFor(pItem, pTarget, bRemove);
 
+	//the third remove args seems useless here ,...
+	// it somewhat always false ?
 	if (bRemove && pItem->Owner == pTarget)
 		pItem->Owner = nullptr;
 
-	R->EAX(0);
 	return 0x75F635;
 }

@@ -166,7 +166,7 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 
 	GET(BulletClass* const, pThis, ESI);
 
-	if (!BulletExt::IsReallyAlive(pThis)) {		
+	if (!BulletExt::IsReallyAlive(pThis)) {
 		return ReturnFromFunction;
 	}
 

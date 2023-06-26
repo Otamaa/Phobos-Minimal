@@ -431,16 +431,13 @@ namespace detail
 		short buffer;
 		if (parser.ReadShort(pSection, pKey, &buffer))
 		{
-			if (buffer < 0){ 
+			if (buffer < 0 || buffer > MAX_VAL(unsigned short)){
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid unsigned short between 0 and 65535 inclusive");
 				return false;
 			} else{
 				value = static_cast<unsigned short>(buffer);
 				return true;
 			}
-
-		}else if (!parser.empty()){ 
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid unsigned short");
 		}
 
 		return false;
@@ -739,11 +736,7 @@ namespace detail
 	template <>
 	inline bool read<Rank>(Rank& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		if (parser.ReadString(pSection, pKey) && getresult<Rank>(value, parser.value(), pSection, pKey)) {
-			return true;
-		}
-
-		return false;
+		return parser.ReadString(pSection, pKey) && getresult<Rank>(value, parser.value(), pSection, pKey);
 	}
 
 	template <>
@@ -875,9 +868,8 @@ namespace detail
 				}
 			}
 
-			if (!parser.empty()) {
+			if (!parser.empty())
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a free-slave option, default to killer");
-			}
 		}
 
 		return false;
@@ -898,9 +890,7 @@ namespace detail
 			}
 
 			if (!parser.empty())
-			{
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a kill method, default disabled");
-			}
 		}
 		return false;
 	}
@@ -920,9 +910,7 @@ namespace detail
 			}
 
 			if (!parser.empty())
-			{
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "IronCurtainFlag can be either kill, invulnerable, ignore or random");
-			}
 		}
 
 		return false;
@@ -942,7 +930,8 @@ namespace detail
 				}
 			}
 
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a owner house kind");
+			if(!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a owner house kind");
 		}
 		return false;
 	}
@@ -1172,21 +1161,13 @@ namespace detail
 	template <>
 	inline bool read<LandType>(LandType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		if (parser.ReadString(pSection, pKey) && getresult<LandType>(value , parser.value(),pSection , pKey , allocate)) {
-			return true;
-		}
-
-		return false;
+		return parser.ReadString(pSection, pKey) && getresult<LandType>(value, parser.value(), pSection, pKey, allocate);
 	}
 
 	template <>
 	inline bool read<AffectedHouse>(AffectedHouse& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		if (parser.ReadString(pSection, pKey) && getresult<AffectedHouse>(value, parser.value(), pSection, pKey, allocate)) {
-			return true;
-		}
-
-		return false;
+		return parser.ReadString(pSection, pKey) && getresult<AffectedHouse>(value, parser.value(), pSection, pKey, allocate);
 	}
 
 	template <>
@@ -1204,9 +1185,7 @@ namespace detail
 			}
 
 			if (!parser.empty())
-			{
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a AttachedAnimFlag");
-			}
 		}
 
 		return false;
@@ -1226,7 +1205,8 @@ namespace detail
 				}
 			}
 
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected an AreaFire target");
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected an AreaFire target");
 
 		}
 		return false;
@@ -1247,9 +1227,7 @@ namespace detail
 			}
 
 			if (!parser.empty())
-			{
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Text Alignment can be either Left, Center/Centre or Right");
-			}
 		}
 
 		return false;
@@ -1269,9 +1247,8 @@ namespace detail
 				}
 			}
 
-			if (!GameStrings::IsBlank(parser.value()) && !allocate)
+			if (!GameStrings::IsBlank(parser.value()))
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect a Valid Layer !");
-
 		}
 
 		return false;
@@ -1282,22 +1259,19 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			if (IS_SAME_STR_(parser.value(), GameStrings::NoneStrb()))
-			{
+			if (IS_SAME_STR_(parser.value(), GameStrings::NoneStrb())) {
 				value = AbstractType::None;
 				return true;
 			}
 
-			for (size_t i = 0; i < AbstractClass::RTTIToString.size(); ++i)
-			{
-				if (IS_SAME_STR_(parser.value(), AbstractClass::RTTIToString[i].Name))
-				{
+			for (size_t i = 0; i < AbstractClass::RTTIToString.size(); ++i) {
+				if (IS_SAME_STR_(parser.value(), AbstractClass::RTTIToString[i].Name)) {
 					value = AbstractType(i);
 					return true;
 				}
 			}
 
-			if (!allocate)
+			if (!parser.empty())
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect a Valid AbstractType !");
 		}
 
@@ -1318,7 +1292,8 @@ namespace detail
 				}
 			}
 
-			Debug::INIParseFailed(pSection, pKey, parser.value(), nullptr);
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid Locomotor CLSID or Name");
 		}
 
 		return false;
@@ -1327,10 +1302,7 @@ namespace detail
 	template <>
 	inline bool read(TileType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		if (parser.ReadString(pSection, pKey) && getresult<TileType>(value , parser.value() , pSection , pKey , allocate)) {
-			return true;
-		}
-		return false;
+		return parser.ReadString(pSection, pKey) && getresult<TileType>(value, parser.value(), pSection, pKey, allocate);
 	}
 
 #pragma endregion

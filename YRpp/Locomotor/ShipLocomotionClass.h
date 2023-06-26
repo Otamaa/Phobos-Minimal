@@ -48,8 +48,8 @@ protected:
 
 public:
 
-	DWORD Ramp1;
-	DWORD Ramp2;
+	DWORD PreviousRamp;
+	DWORD CurrentRamp;
 	RateTimer SlopeTimer;
 	CoordStruct Destination;
 	CoordStruct HeadToCoord;

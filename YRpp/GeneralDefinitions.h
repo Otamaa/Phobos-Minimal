@@ -145,7 +145,7 @@ enum class AbstractFlags : unsigned int {
 	Foot = 0x4
 };
 
-MAKE_ENUM_FLAGS(AbstractFlags);
+MAKE_ENUM_FLAGS(AbstractFlags)
 
 enum class TileType : int
 {
@@ -391,7 +391,7 @@ enum class TextPrintType : int
 	GradAll = 0xF000,
 };
 
-MAKE_ENUM_FLAGS(TextPrintType);
+MAKE_ENUM_FLAGS(TextPrintType)
 
 enum class TriggerPersistence : unsigned int {
 	Volatile = 0, // trigger for the first object whose events fired, then disable
@@ -727,7 +727,8 @@ enum class SpotlightFlags : unsigned int {
 	NoGreen = 0x4,
 	NoBlue = 0x8
 };
-MAKE_ENUM_FLAGS(SpotlightFlags);
+MAKE_ENUM_FLAGS(SpotlightFlags)
+
 enum class BehavesLike : int {
 	Smoke = 0,
 	Gas = 1,
@@ -828,7 +829,7 @@ enum class CellFlags : unsigned int
 	Bridge = BridgeHead | BridgeBody
 };
 
-MAKE_ENUM_FLAGS(CellFlags);
+MAKE_ENUM_FLAGS(CellFlags)
 
 enum class AltCellFlags : unsigned int
 {
@@ -845,48 +846,20 @@ enum class AltCellFlags : unsigned int
 	Clear = Mapped | NoFog
 };
 
-MAKE_ENUM_FLAGS(AltCellFlags);
+MAKE_ENUM_FLAGS(AltCellFlags)
 
 enum class FacingType : char
 {
-	N = 0,
-	North = N,
-	NE = 1,
-	NorthEast = NE,
-	E = 2,
-	East = E,
-	SE = 3,
-	SouthEast = SE,
-	S = 4,
-	South = S,
-	SW = 5,
-	SouthWest = SW,
-	W = 6,
-	West = W,
-	NW = 7,
-	NorthWest = NW,
-	Count = 8,
-	None = -1,
-};
+	North = 0,
+	NorthEast = 1,
+	East = 2,
+	SouthEast = 3,
+	South = 4,
+	SouthWest = 5,
+	West = 6,
+	NorthWest = 7,
 
-enum class FacingTypeI : int
-{
-	N = 0,
-	North = N,
-	NE = 1,
-	NorthEast = NE,
-	E = 2,
-	East = E,
-	SE = 3,
-	SouthEast = SE,
-	S = 4,
-	South = S,
-	SW = 5,
-	SouthWest = SW,
-	W = 6,
-	West = W,
-	NW = 7,
-	NorthWest = NW,
+	limit = 7,
 	Count = 8,
 	None = -1,
 };
@@ -1352,7 +1325,7 @@ enum class MouseCursorType : unsigned int {
 
 	count
 };
-MAKE_ENUM_FLAGS(MouseCursorType);
+MAKE_ENUM_FLAGS(MouseCursorType)
 
 enum class RadBeamType : unsigned int {
 	Temporal = 0,
@@ -1681,7 +1654,7 @@ enum class BlitterFlags : unsigned int {
 	Nonzero = 0x20000
 };
 
-MAKE_ENUM_FLAGS(BlitterFlags);
+MAKE_ENUM_FLAGS(BlitterFlags)
 // UI
 enum class MouseEvent : unsigned char {
 	None = 0x0,
@@ -1694,7 +1667,7 @@ enum class MouseEvent : unsigned char {
 	RightUp = 0x40
 };
 
-MAKE_ENUM_FLAGS(MouseEvent);
+MAKE_ENUM_FLAGS(MouseEvent)
 
 //control key flags
 typedef DWORD eControlKeyFlags;
@@ -1749,7 +1722,7 @@ enum class WWKey : int {
 	DoubleClick = 0x2000,
 	Button = 0x8000,
 };
-MAKE_ENUM_FLAGS(WWKey);
+MAKE_ENUM_FLAGS(WWKey)
 
 //Westwood custom messages (e.g. for SendMessage)
 #define	WW_SLIDER_GETVALUE			0x400

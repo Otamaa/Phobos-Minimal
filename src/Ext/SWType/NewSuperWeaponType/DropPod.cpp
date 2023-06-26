@@ -33,6 +33,7 @@ bool SW_DropPod::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 
 	// three times more tries than units to place.
 	int count = ScenarioClass::Instance->Random.RandomRanged(cMin, cMax);
+
 	for (int i = 3 * count; i; --i)
 	{
 
@@ -72,10 +73,10 @@ bool SW_DropPod::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 		for (int j = 0; j < 8; ++j) {
 
 			// get the direction in an overly verbose way
-			int dir = ((j + rnd) % 8) & 7;
+			FacingType dir = FacingType(((j + rnd) % 8) & 7);
 
 			CellClass* pNeighbour = pCell->GetNeighbourCell(dir);
-			if (pFoot->IsCellOccupied(pNeighbour, -1, -1, nullptr, true) == Move::OK)
+			if (pFoot->IsCellOccupied(pNeighbour, FacingType::None, -1, nullptr, true) == Move::OK)
 			{
 				cell = pNeighbour->MapCoords;
 				break;

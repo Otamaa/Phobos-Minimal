@@ -233,34 +233,21 @@ DEFINE_OVERRIDE_HOOK(0x4748A0, INIClass_GetPipIdx, 0x7)
 
 	if (pINI->ReadString(pSection, pKey, Phobos::readDefval, Phobos::readBuffer))
 	{
-		if (!isdigit(Phobos::readBuffer[0]))
-		{
-			// find the pip value with the name specified
-			const auto it = std::find_if(TechnoTypeClass::PipsTypeName.begin(), TechnoTypeClass::PipsTypeName.end(),
-				[](NamedValue<int>const& Data)
-				{
-					return Data == Phobos::readBuffer;
-				});
-
-			if (it != TechnoTypeClass::PipsTypeName.end())
-			{
-				R->EAX(it->Value);
-				return 0x474907;
-			}
+		int nbuffer;
+		if (Parser<int>::TryParse(Phobos::readBuffer, &nbuffer)) {
+			R->EAX(nbuffer);
+			return 0x474907;
 		}
-		else
-		{
-			// find the pip value with the number
-			const auto it = std::find_if(TechnoTypeClass::PipsTypeName.begin(), TechnoTypeClass::PipsTypeName.end(),
-				[](NamedValue<int>const& Data)
-				{
-					return Data == std::atoi(Phobos::readBuffer);
-				});
+		else {
 
-			if (it != TechnoTypeClass::PipsTypeName.end())
-			{
-				R->EAX(it->Value);
-				return 0x474907;
+			// find the pip value with the name specified
+			for (const auto& data : TechnoTypeClass::PipsTypeName) {
+				if (data == Phobos::readBuffer)
+				{
+					//Debug::Log("[%s]%s=%s ([%d] from [%s]) \n", pSection, pKey, Phobos::readBuffer, it->Value, it->Name);
+					R->EAX(data.Value);
+					return 0x474907;
+				}
 			}
 		}
 
@@ -935,7 +922,7 @@ DEFINE_OVERRIDE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 #endif
 		)
 	{
-		Debug::Log("[LAUNCH] %s Handled\n", pSuper->Type->ID);
+		Debug::Log("[%x][%s] %s Handled\n",pSuper, pSuper->Owner->get_ID() , pSuper->Type->ID);
 		const auto pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type);
 
 		//auto pHouseExt = HouseExt::ExtMap.Find(pSuper->Owner);
@@ -1180,9 +1167,9 @@ DEFINE_OVERRIDE_HOOK(0x489270, CellChainReact, 5)
 		// spawn some animation on the neighbour cells
 		if (auto pType = AnimTypeClass::Find("INVISO"))
 		{
-			for (size_t i = 0; i < 8; ++i)
+			for (int i = 0; i < 8; ++i)
 			{
-				auto pNeighbour = pCell->GetNeighbourCell(i);
+				auto pNeighbour = pCell->GetNeighbourCell((FacingType)i);
 
 				if (pNeighbour->GetContainedTiberiumIndex() != -1 && pNeighbour->OverlayData > 2)
 				{
@@ -1248,9 +1235,9 @@ DEFINE_OVERRIDE_HOOK(0x71C7C2, TerrainClass_Update_ForestFire, 6)
 
 			// check all neighbour cells that contain terrain objects and
 			// roll the dice for each of them.
-			for (unsigned int i = 0; i < 8; ++i)
+			for (int i = 0; i < 8; ++i)
 			{
-				if (auto pTree = pCell->GetNeighbourCell(i)->GetTerrain(false))
+				if (auto pTree = pCell->GetNeighbourCell((FacingType)i)->GetTerrain(false))
 				{
 					if (!pTree->IsBurning && ScenarioClass::Instance->Random.RandomDouble() < flammability)
 					{

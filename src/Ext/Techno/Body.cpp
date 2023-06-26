@@ -975,7 +975,7 @@ void TechnoExt::SendPlane(size_t Aircraft, size_t Amount, HouseClass* pOwner, Ra
  */
 bool TechnoExt::CreateWithDroppod(FootClass* Object, const CoordStruct& XYZ) {
 	auto MyCell = MapClass::Instance->GetCellAt(XYZ);
-	if (Object->IsCellOccupied(MyCell, -1, -1, nullptr, false) != Move::OK) {
+	if (Object->IsCellOccupied(MyCell, FacingType::None, -1, nullptr, false) != Move::OK) {
 		return false;
 	}
 	else {
@@ -1503,14 +1503,16 @@ CoordStruct TechnoExt::PassengerKickOutLocation(TechnoClass* pThis, FootClass* p
 		movementZone = pTypePassenger->MovementZone;
 	}
 
-	for (Point2D ExtDistance = { 0,0 }; ExtDistance.X < maxAttempts; ++ExtDistance)
+	Point2D ExtDistance = { 1,1 };
+	for (int i = 0; i < maxAttempts; ++i)
 	{
+		++ExtDistance;
 		placeCoords = pCell->MapCoords - CellStruct { (short)(ExtDistance.X / 2), (short)(ExtDistance.Y / 2) };
 		placeCoords = MapClass::Instance->NearByLocation(placeCoords, speedType, -1, movementZone, false, ExtDistance.X, ExtDistance.Y, true, false, false, false, CellStruct::Empty, false, false);
 		
 		pCell = MapClass::Instance->GetCellAt(placeCoords);
 
-		if ((pThis->IsCellOccupied(pCell, -1, -1, nullptr, false) == Move::OK) || pCell->MapCoords == CellStruct::Empty)
+		if ((pThis->IsCellOccupied(pCell, FacingType::None, -1, nullptr, false) == Move::OK) || pCell->MapCoords == CellStruct::Empty)
 		{
 			pPassenger->OnBridge = pCell->ContainsBridge();
 			return pCell->GetCoordsWithBridge();
@@ -3957,6 +3959,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 	this->MyDiveData.Serialize(Stm);
 	//this->MyJJData.Serialize(Stm);
 	this->MySpawnSuport.Serialize(Stm);
+
 }
 
 bool TechnoExt::ExtData::InvalidateIgnorable(void* ptr) const

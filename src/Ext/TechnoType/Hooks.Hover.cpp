@@ -57,7 +57,7 @@ DEFINE_HOOK(0x513EAA, HoverLocomotionClass_513D20_HoverHeight3, 0x5)
 {
 	GET(HoverLocomotionClass* const, pLoco, ESI);
 	const auto height = GetHover(GetOwner(pLoco))->GetHeight();
-	_asm fild dword ptr[height];
+	_asm fild height;
 	R->EAX(RulesClass::Instance());
 	return 0x513EB5;
 }
@@ -75,7 +75,7 @@ DEFINE_HOOK(0x513F1B, HoverLocomotionClass_513D20_HoverDampen, 0x6)
 {
 	GET(HoverLocomotionClass* const, pLoco, ESI);
 	const auto dampen = GetHover(GetOwner(pLoco))->GetDampen();
-	_asm fmul qword ptr[dampen];
+	_asm fmul dampen;
 	return 0x513F27;
 }
 
@@ -84,7 +84,7 @@ DEFINE_HOOK(0x513E14, HoverLocomotionClass_513D20_HoverBob, 0x6)
 	R->ECX(Unsorted::CurrentFrame()); //Uhh ...
 	GET(HoverLocomotionClass* const, pLoco, ESI);
 	const auto bob = GetHover(GetOwner(pLoco))->GetBob();
-	_asm fmul qword ptr[bob];
+	_asm fmul bob;
 	return 0x513E20;
 }
 
@@ -117,7 +117,7 @@ DEFINE_HOOK(0x516179, HoverLocomotionClass_515ED0_HoverAccel, 0x6)
 {
 	GET(HoverLocomotionClass* const, pLoco, ESI);
 	const auto accel = GetHover(GetOwner(pLoco))->GetAccel();
-	_asm fld qword ptr[accel];
+	_asm fld accel;
 	return 0x516185;
 }
 
@@ -125,7 +125,7 @@ DEFINE_HOOK(0x5161B1, HoverLocomotionClass_515ED0_HoverBrake, 0x6)
 {
 	GET(HoverLocomotionClass* const, pLoco, ESI);
 	const auto brake = GetHover(GetOwner(pLoco))->GetBrake();
-	_asm fld qword ptr[brake];
+	_asm fld brake;
 	return 0x5161BD;
 }
 

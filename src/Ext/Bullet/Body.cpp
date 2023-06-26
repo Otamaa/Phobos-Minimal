@@ -190,16 +190,10 @@ void BulletExt::ApplyAirburst(BulletClass* pThis)
 
 VelocityClass BulletExt::GenerateVelocity(BulletClass* pThis, AbstractClass* pTarget, const int nSpeed, bool bCalculateSpeedFirst)
 {
-	VelocityClass velocity { 0.0,0.0,0.0 };
+	VelocityClass velocity { 100.0 ,0.0,0.0 };
 	//inline get Direction from 2 coords
 	CoordStruct const nCenter = pTarget->GetCoords();
 	DirStruct const dir_fromXY((double)(pThis->Location.Y - nCenter.Y), (double)(pThis->Location.X - nCenter.X));
-
-	if (velocity.X == 0.0 && velocity.Y == 0.0)
-	{
-		velocity.X = 100.0;
-	}
-
 	double const nFirstMag = velocity.MagnitudeXY();
 	double const radians_fromXY = dir_fromXY.GetRadian();
 	double const sin_rad = std::sin(radians_fromXY);

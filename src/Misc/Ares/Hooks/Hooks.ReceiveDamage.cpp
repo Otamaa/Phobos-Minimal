@@ -617,7 +617,7 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 			}
 			else if (passengerChance == -1 && Is_Unit(pThis))
 			{
-				const Move occupation = pPassenger->IsCellOccupied(pThis->GetCell(), -1, -1, nullptr, true);
+				const Move occupation = pPassenger->IsCellOccupied(pThis->GetCell(), FacingType::None, -1, nullptr, true);
 				trySpawn = (occupation == Move::OK || occupation == Move::MovingBlock);
 			}
 
@@ -699,9 +699,9 @@ DEFINE_OVERRIDE_HOOK(0x702216, TechnoClass_ReceiveDamage_TiberiumHeal_SpillTiber
 
 		// increase the tiberium for the four neighbours and center.
 		// center is retrieved by getting a neighbour cell index >= 8
-		for (auto i = 0u; i < 10u; i += 2)
+		for (int i = 0; i < 8; i += 2)
 		{
-			pCenter->GetNeighbourCell(i)
+			pCenter->GetNeighbourCell((FacingType)i)
 				->IncreaseTiberium(nIdx, ScenarioClass::Instance->Random.RandomFromMax(2));
 		}
 	}
@@ -753,9 +753,7 @@ DEFINE_OVERRIDE_HOOK(0x702200, TechnoClass_ReceiveDamage_SpillTiberium, 6)
 				max = pType->Storage;
 			}
 
-			int nIdx = 0;
-			for (int p = 0; p < 4; p++)
-				nIdx += (pThis->Tiberium.Tiberiums[nIdx] < pThis->Tiberium.Tiberiums[p]) * (p - nIdx);
+			const int nIdx = pThis->Tiberium.GetHighestStorageIdx();
 
 			// assume about half full, recalc if possible
 			int value = static_cast<int>(max / 2);
@@ -764,26 +762,7 @@ DEFINE_OVERRIDE_HOOK(0x702200, TechnoClass_ReceiveDamage_SpillTiberium, 6)
 			}
 
 			// get the spill center
-			CoordStruct crd = pThis->GetCoords();
-			CellClass* pCenter = MapClass::Instance->GetCellAt(crd);
-			static constexpr size_t Neighbours[] = {
-				9, 2, 7, 1, 4, 3, 0, 5, 6
-			};
-
-			for (auto const& neighbour : Neighbours)
-			{
-				// spill random amount
-				int amount = ScenarioClass::Instance->Random.RandomFromMax(2);
-				CellClass* pCell = pCenter->GetNeighbourCell(neighbour);
-				pCell->IncreaseTiberium(nIdx, amount);
-				value -= amount;
-
-				// stop if value is reached
-				if (value <= 0)
-				{
-					break;
-				}
-			}
+			TechnoClass::SpillTiberium(value , nIdx, MapClass::Instance->GetCellAt(pThis->GetCoords()) ,{0,2});
 		}
 	}
 

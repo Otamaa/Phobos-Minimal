@@ -225,11 +225,11 @@ public:
 	void ScatterContent(const CoordStruct &crd, bool ignoreMission, bool ignoreDestination, bool alt) const
 		{ JMP_THIS(0x481670); }
 
-	CellClass* GetNeighbourCell(unsigned int direction) const
+	CellClass* GetNeighbourCell(FacingType facing) const
 		{ JMP_THIS(0x481810); }
 
 	//TompsonIDB
-	CellClass* GetAdjacentCell(unsigned int direction) const
+	CellClass* GetAdjacentCell(FacingType facing) const
 		{ JMP_THIS(0x481810); }
 
 	// called whenever anything moves, first to remove threat from source cell, second time to add threat to dest cell

@@ -48,7 +48,7 @@ bool SW_EMPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 			// create a bullet and detonate immediately
 			if (auto pWeapon = pBld->GetWeapon(0)->WeaponType)
 			{
-				if (auto pBullet = BulletTypeExt::ExtMap.Find(pWeapon->Projectile)->CreateBullet(pBld, pBld, pWeapon))
+				if (auto pBullet = BulletTypeExt::ExtMap.Find(pWeapon->Projectile)->CreateBullet(pBld, pBld, pWeapon , false , true))
 				{
 					pBullet->Limbo();
 					pBullet->Detonate(BuildingExt::GetCenterCoords(pBld));

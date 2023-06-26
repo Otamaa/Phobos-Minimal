@@ -23,8 +23,7 @@ bool SW_EMPField::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 	}
 
 	//does not work ?
-	//return GameCreate<EMPulseClass>(Coords, this->GetRange(pData).width() , pData->EMPField_Duration.Get(), pFirer);
-	return true;
+	return GameCreate<EMPulseClass>(Coords, this->GetRange(pData).width() , pData->EMPField_Duration.Get(), pFirer);
 }
 
 void SW_EMPField::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)

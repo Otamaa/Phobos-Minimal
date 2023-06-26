@@ -198,7 +198,7 @@ DEFINE_HOOK(0x6EFF05, TeamClass_ChronosphereTeam_PickSuper_IsAvail_A, 0x9)
 DEFINE_HOOK(0x6F01BA, TeamClass_ChronosphereTeam_PickSuper_IsAvail_B, 0x9)
 {
 	GET(SuperClass*, pSuper, EAX);
-	GET(HouseClass*, pOwner, EBP);
+	GET(HouseClass*, pOwner, EDI);
 
 	return SWTypeExt::ExtMap.Find(pSuper->Type)->IsAvailable(pOwner) ?
 		0x0//allow
@@ -1105,7 +1105,7 @@ DEFINE_HOOK(0x46B310, BulletClass_NukeMaker_Handle, 6)
 	}
 
 	if (auto pPayloadBullet = BulletTypeExt::ExtMap.Find(pPaylod->Projectile)
-		->CreateBullet(pTarget, pThis->Owner, pPaylod))
+		->CreateBullet(pTarget, pThis->Owner, pPaylod,false ,true))
 	{
 		pPayloadBullet->Limbo();
 		BulletExt::ExtMap.Find(pPayloadBullet)->NukeSW = pNukeSW;
@@ -1412,7 +1412,6 @@ DEFINE_HOOK(0x44C9F3, BuildingClass_Mi_Missile_PsiWarn, 0x5)
 
 	if (auto& Anim = pSWTypeExt->Nuke_PsiWarning)
 	{
-
 		auto nLoc = pCell->GetCoords();
 		if (auto pAnim = GameCreate<AnimClass>(Anim.Get(), nLoc))
 		{
@@ -1445,8 +1444,7 @@ DEFINE_OVERRIDE_HOOK(0x44CB4C, BuildingClass_Mi_Missile_NukeTakeOff, 7)
 	if (!pBullet->MoveTo(*pCoord, { nCos * nCos * nMult , nCos * nSin * nMult , nSin * nMult }))
 		return DeleteBullet;
 
-	if (auto const pAnimType = SWTypeExt::ExtMap.Find(type)->Nuke_TakeOff.Get(
-		RulesClass::Instance->NukeTakeOff))
+	if (auto const pAnimType = SWTypeExt::ExtMap.Find(type)->Nuke_TakeOff.Get(RulesClass::Instance->NukeTakeOff))
 	{
 		if (auto pAnim = GameCreate<AnimClass>(pAnimType, *pCoord))
 		{
@@ -1487,7 +1485,9 @@ DEFINE_HOOK(0x44CABA, BuildingClass_MI_Missile_CreateBullet, 0x7)
 
 	if (pWeapon)
 	{
-		if (auto pCreated = BulletTypeExt::ExtMap.Find(pWeapon->Projectile)->CreateBullet(pTarget, pThis, pWeapon->Damage, pWeapon->Warhead, 255, WeaponTypeExt::ExtMap.Find(pWeapon)->GetProjectileRange(), pWeapon->Bright || pWeapon->Warhead->Bright, false))
+		if (auto pCreated = BulletTypeExt::ExtMap.Find(pWeapon->Projectile)
+			->CreateBullet(pTarget, pThis, pWeapon->Damage, pWeapon->Warhead, 255, 
+			WeaponTypeExt::ExtMap.Find(pWeapon)->GetProjectileRange(), pWeapon->Bright || pWeapon->Warhead->Bright, false))
 		{
 			BulletExt::ExtMap.Find(pCreated)->NukeSW = pSuper;
 			pBullet = pCreated;
@@ -2299,22 +2299,9 @@ DEFINE_OVERRIDE_HOOK(0x4555D5, BuildingClass_IsPowerOnline_KeepOnline, 5)
 	GET(BuildingClass*, pThis, ESI);
 	bool Contains = false;
 
-	if (auto pOwner = pThis->GetOwningHouse())
-	{
-		for (auto const& pBatt : HouseExt::ExtMap.Find(pOwner)->Batteries)
-		{
-			const auto pExt = SWTypeExt::ExtMap.Find(pBatt->Type);
-
-			if (pExt->Battery_KeepOnline.empty())
-				continue;
-
-			const auto Iter = std::find_if(pExt->Battery_KeepOnline.begin(),
-						pExt->Battery_KeepOnline.end(),
-				[&](const BuildingTypeClass* pItem) {
-					return pItem == pThis->Type;
-				});
-
-			if (Iter != pExt->Battery_KeepOnline.end())
+	if (auto pOwner = pThis->GetOwningHouse()) {
+		for (auto const& pBatt : HouseExt::ExtMap.Find(pOwner)->Batteries) {
+			if(SWTypeExt::ExtMap.Find(pBatt->Type)->Battery_KeepOnline.Contains(pThis->Type))
 				Contains = true;
 		}
 	}
@@ -2334,22 +2321,12 @@ DEFINE_OVERRIDE_HOOK(0x44019D, BuildingClass_Update_Battery, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	if (auto pOwner = pThis->GetOwningHouse())
-	{
-		for (auto const& pBatt : HouseExt::ExtMap.Find(pOwner)->Batteries)
-		{
-			const auto pExt = SWTypeExt::ExtMap.Find(pBatt->Type);
-			if (pExt->Battery_Overpower.empty())
-				continue;
-
-			const auto Iter = std::find_if(pExt->Battery_Overpower.begin(),
-						pExt->Battery_Overpower.end(),
-				[&](const BuildingTypeClass* pItem) {
-					 return !pThis->IsOverpowered && pItem == pThis->Type;
-				});
-
-			if (Iter != pExt->Battery_Overpower.end())
-				pThis->IsOverpowered = true;
+	if (auto pOwner = pThis->GetOwningHouse()) {
+		if(!pThis->IsOverpowered)	{
+			for (auto const& pBatt : HouseExt::ExtMap.Find(pOwner)->Batteries) {
+				if(SWTypeExt::ExtMap.Find(pBatt->Type)->Battery_Overpower.Contains(pThis->Type))
+					pThis->IsOverpowered = true;
+			}
 		}
 	}
 

@@ -3,22 +3,27 @@
 #include <type_traits>
 
 template <typename T>
-struct EnumFlagHelper {
+struct EnumFlagHelper
+{
 	using type = std::underlying_type_t<T>;
 
-	EnumFlagHelper(T value) {
+	EnumFlagHelper(T value)
+	{
 		this->value = static_cast<type>(value);
 	}
 
-	explicit operator bool() const {
+	explicit operator bool() const
+	{
 		return value != type();
 	}
 
-	operator T() const {
+	operator T() const
+	{
 		return static_cast<T>(this->value);
 	}
 
-	explicit operator type() const {
+	explicit operator type() const
+	{
 		return value;
 	}
 
@@ -76,4 +81,3 @@ private:
 		using type = std::underlying_type_t<FLAG_ENUM_NAME>; \
 		return static_cast<FLAG_ENUM_NAME>(~static_cast<type>(rhs)); \
 	} \
-

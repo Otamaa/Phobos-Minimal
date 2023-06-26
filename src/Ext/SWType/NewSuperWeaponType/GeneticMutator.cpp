@@ -17,16 +17,26 @@ bool SW_GeneticMutator::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 
 	if (pThis->IsCharged)
 	{
+		BuildingClass* pFirer = nullptr;
+		for (auto const& pBld : pThis->Owner->Buildings)
+		{
+			if (this->IsLaunchSiteEligible(pData, Coords, pBld, false))
+			{
+				pFirer = pBld;
+				break;
+			}
+		}
+
 		if (pData->Mutate_Explosion.Get(RulesClass::Instance->MutateExplosion))
 		{
 			auto const pExtWh = GetWarhead(pData);
 			// single shot using cellspread warhead
-			MapClass::DamageArea(coords, GetDamage(pData), nullptr, pExtWh, pExtWh->Tiberium, pThis->Owner);
+			MapClass::DamageArea(coords, GetDamage(pData), pFirer, pExtWh, pExtWh->Tiberium, pThis->Owner);
 		}
 		else
 		{
 			// ranged approach
-			auto Mutate = [this, pThis, pData](InfantryClass* pInf) -> bool
+			auto Mutate = [=](InfantryClass* pInf) -> bool
 			{
 				// is this thing affected at all?
 				if (!pData->IsHouseAffected(pThis->Owner, pInf->Owner))
@@ -60,7 +70,7 @@ bool SW_GeneticMutator::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 				bool kill = (pType->Natural && pData->Mutate_KillNatural);
 				auto pWH = kill ? RulesClass::Instance->C4Warhead : GetWarhead(pData);
 
-				pInf->ReceiveDamage(&damage, 0, pWH, nullptr, true, false, pThis->Owner);
+				pInf->ReceiveDamage(&damage, 0, pWH, pFirer, true, false, pThis->Owner);
 
 				return true;
 			};

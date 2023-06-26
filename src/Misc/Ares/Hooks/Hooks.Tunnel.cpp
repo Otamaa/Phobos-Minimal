@@ -562,7 +562,7 @@ bool NOINLINE UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel, bool silent =
 	CellStruct nResult;
 	CellClass* CurrentAdj = nullptr;
 	CellClass* NextCell = nullptr;
-	int nFacing = 0;
+	size_t nFacing = 0;
 
 	//TODO Fix these loop
 	for (int i = 0;; ++i)
@@ -576,8 +576,8 @@ bool NOINLINE UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel, bool silent =
 		NextCell = MapClass::Instance->GetCellAt(next);
 
 		const auto nLevel = pTunnel->GetCellLevel();
-		const auto nOccupyResult = pFoot->IsCellOccupied(CurrentAdj, nFacing, nLevel, nullptr, true);
-		const auto nNextnOccupyResult = pFoot->IsCellOccupied(NextCell, nFacing, nLevel, nullptr, true);
+		const auto nOccupyResult = pFoot->IsCellOccupied(CurrentAdj, (FacingType)nFacing, nLevel, nullptr, true);
+		const auto nNextnOccupyResult = pFoot->IsCellOccupied(NextCell, (FacingType)nFacing, nLevel, nullptr, true);
 
 		if ((!(int)nNextnOccupyResult) &&
 			(!IsLessThanseven || (!(int)nOccupyResult)) &&

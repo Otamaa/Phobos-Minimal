@@ -43,7 +43,7 @@ void LevitateLocomotionClass::ProcessHovering()
 	const auto nInitialHeight = LinkedTo->GetHeight();
 	auto nInitialHeight_c1 = nInitialHeight;
 
-	if (LinkedTo->PathDirections[0] != FacingTypeI::None)
+	if (LinkedTo->PathDirections[0] != 0)
 	{
 		const auto nCoord = LinkedTo->GetCenterCoords();
 		const auto nZ = MapClass::Instance->GetCellFloorHeight(nCoord);
@@ -519,7 +519,7 @@ void LevitateLocomotionClass::DoPhase7()
 				LinkedTo->SetLocation(nCoordCellToCoord);
 				LinkedTo->IsSelected = nSelected;
 				const auto nCoord_diff = nTargetCoord - LinkedTo->GetCenterCoords();
-				const auto nFaceRaw = LinkedTo->PathDirections[0] != FacingTypeI::None ?
+				const auto nFaceRaw = LinkedTo->PathDirections[0] != 0 ?
 					(int)LinkedTo->PathDirections[0] << 13 :
 					(unsigned short)(((std::atan2(double(nCoord_diff.Y), double(nCoord_diff.X))) - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC_VALUE);
 
@@ -560,7 +560,7 @@ void LevitateLocomotionClass::DoPhase7()
 			LinkedTo->SetLocation(nCoordCellToCoord);
 			LinkedTo->IsSelected = nSelected;
 			const auto nCoord_diff = nTargetCoord - LinkedTo->GetRenderCoords();
-			const auto nFaceRaw = LinkedTo->PathDirections[0] != FacingTypeI::None ?
+			const auto nFaceRaw = LinkedTo->PathDirections[0] != 0 ?
 				(int)LinkedTo->PathDirections[0] << 13 :
 				(unsigned short)(((std::atan2(double(nCoord_diff.Y), double(nCoord_diff.X))) - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC_VALUE);
 
@@ -759,10 +759,10 @@ bool LevitateLocomotionClass::IsAdjentCellEligible(CoordStruct nArgsCoord)
 	const auto nCoordCell = MapClass::Instance->GetCellAt(nCoord);
 	const auto pCellInput = MapClass::Instance->GetCellAt(nArgsCoord);
 
-	int i = 7;
-	for (; i > 0 && nCoordCell->GetAdjacentCell(i) != pCellInput; --i);
+	int i = 8;
+	for (; i > 0 && nCoordCell->GetAdjacentCell((FacingType)i) != pCellInput; --i);
 
-	const auto CanEnter = LinkedTo->IsCellOccupied(pCellInput, i, LinkedTo->GetCellLevel(), nullptr, true);
+	const auto CanEnter = LinkedTo->IsCellOccupied(pCellInput, (FacingType)i, LinkedTo->GetCellLevel(), nullptr, true);
 
 	if (CanEnter == Move::OK)
 		return true;
