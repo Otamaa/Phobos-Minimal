@@ -93,7 +93,7 @@ void SWTypeExt::ExtData::Initialize()
 	}
 }
 
-Action SWTypeExt::ExtData::GetAction(SuperWeaponTypeClass* pSuper, CellStruct* pTarget)
+Action NOINLINE SWTypeExt::ExtData::GetAction(SuperWeaponTypeClass* pSuper, CellStruct* pTarget)
 {
 	if ((AresNewActionType)pSuper->Action != AresNewActionType::SuperWeaponAllowed)
 		return Action::None;

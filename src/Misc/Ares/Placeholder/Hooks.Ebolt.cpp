@@ -42,12 +42,12 @@ DEFINE_HOOK(4C1F33, EBolt_Draw_Colors, 7)
 	if (pDefaultPal->BytesPerPixel == 1)
 	{
 		BoltColors.X = BoltColors.Y = nColorBuffer[nColorIdx];
-		BoltColors.Z = nColorBuffer[WeaponTypeExt::EBoltColorIndx];
+		BoltColors.Z = nColorBuffer[15];
 	}
 	else
 	{
 		BoltColors.X = BoltColors.Y = nColorBuffer[2 * nColorIdx];
-		BoltColors.Z = nColorBuffer[2 * WeaponTypeExt::EBoltColorIndx];
+		BoltColors.Z = nColorBuffer[2 * 15];
 	}
 
 	if (auto pData = WeaponTypeExt::BoltExt.get_or_default(pThis))

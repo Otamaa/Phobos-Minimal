@@ -622,19 +622,28 @@ DEFINE_HOOK(0x65DF81, TeamTypeClass_CreateMembers_WhereTheHellIsIFV, 0x7)
 	GET(TeamClass* const, pTeam, EBP);
 
 	const bool isTransportOpenTopped = pTransport->GetTechnoType()->OpenTopped;
+	FootClass* pGunner = nullptr;
 
 	for (auto pNext = pPayload; pNext; pNext = abstract_cast<FootClass*>(pNext->NextObject))
 	{
 		if (pNext && pNext != pTransport && pNext->Team == pTeam)
 		{
-			pNext->Transporter = pTransport;
+			pPayload->Transporter = pTransport;
+			pGunner = pNext;
+
 			if (isTransportOpenTopped)
 				pTransport->EnteredOpenTopped(pNext);
 		}
 	}
 
+	// Add to transport - this will load the payload object and everything linked to it (rest of the team) in reverse order
+	pTransport->AddPassenger(pPayload);
+
+	// Handle gunner change - this is the 'last' passenger because of reverse order
+	if (pTransport->GetTechnoType()->Gunner && pGunner)
+		pTransport->ReceiveGunner(pGunner);
+
 	pPayload->SetLocation(pTransport->Location);
-	pTransport->AddPassenger(pPayload); // ReceiveGunner is done inside FootClass::AddPassenger
 	// Ares' CreateInitialPayload doesn't work here
 	return 0x65DF8D;
 }
@@ -650,13 +659,13 @@ DEFINE_HOOK(0x43D874, BuildingClass_Draw_BuildupBibShape, 0x6)
 	return !pThis->ActuallyPlacedOnMap ? DontDrawBib : 0x0;
 }
 
-DEFINE_HOOK(0x4DE652, FootClass_AddPassenger_NumPassengerGeq0, 0x7)
-{
-	enum { GunnerReception = 0x4DE65B, EndFuntion = 0x4DE666 };
-	GET(FootClass* const, pThis, ESI);
-	// Replace NumPassengers==1 check to allow multipassenger IFV using the fix above
-	return pThis->Passengers.NumPassengers > 0 ? GunnerReception : EndFuntion;
-}
+// DEFINE_HOOK(0x4DE652, FootClass_AddPassenger_NumPassengerGeq0, 0x7)
+// {
+// 	enum { GunnerReception = 0x4DE65B, EndFuntion = 0x4DE666 };
+// 	GET(FootClass* const, pThis, ESI);
+// 	// Replace NumPassengers==1 check to allow multipassenger IFV using the fix above
+// 	return pThis->Passengers.NumPassengers > 0 ? GunnerReception : EndFuntion;
+// }
 
 DEFINE_HOOK(0x440EBB, BuildingClass_Unlimbo_NaturalParticleSystem_CampaignSkip, 0x5)
 {
@@ -1003,4 +1012,32 @@ DEFINE_HOOK(0x54AE44, JumpjetLocomotionClass_LinkToObject_FixFacing, 0x7)
 	pThis->Facing.Set_Desired(pThis->LinkedTo->PrimaryFacing.Desired());
 
 	return 0;
+}
+
+// This fixes the issue when locomotor is crashing in grounded or
+// hovering state and the crash processing code won't be reached.
+// Can be observed easily when Crashable=yes jumpjet is attached to
+// a unit and then destroyed.
+DEFINE_HOOK(0x54AEDC, JumpjetLocomotionClass_Process_CheckCrashing, 0x0)
+{
+	enum { ProcessMovement = 0x54AEED, Skip = 0x54B16C };
+
+	GET(ILocomotion*, iLoco, ESI);
+	auto const pLoco = static_cast<JumpjetLocomotionClass*>(iLoco);
+
+	return pLoco->Is_Moving_Now()  // stolen code
+		|| pLoco->LinkedTo->IsCrashing
+		? ProcessMovement
+		: Skip;
+}
+
+// WWP for some reason passed nullptr as source to On_Destroyed even though the real source existed
+DEFINE_HOOK(0x738467, UnitClass_TakeDamage_FixOnDestroyedSource, 0x0)
+{
+	enum { Continue = 0x73866E, ForceKill = 0x73847B };
+
+	GET(UnitClass*, pThis, ESI);
+	GET_STACK(TechnoClass*, pSource, STACK_OFFSET(0x44, 0x10));
+
+	return pThis->Crash(pSource) ? Continue : ForceKill;
 }

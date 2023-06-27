@@ -72,6 +72,9 @@ struct PipDrawData
 bool NOINLINE FindSameTunnel(BuildingClass* pTunnel)
 {
 	const auto pOwner = pTunnel->Owner;
+	if(!pOwner)
+		return false;
+
 	const auto It = std::find_if_not(pOwner->Buildings.begin(), pOwner->Buildings.end(),
 		[pTunnel](BuildingClass* pBld)
 	{
@@ -145,6 +148,9 @@ NOINLINE TunnelData* GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx)
 
 NOINLINE TunnelData* GetTunnels(BuildingTypeClass* pBld, HouseClass* pHouse)
 {
+	if(!pHouse)
+		return nullptr;
+
 	const auto pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pBld);
 
 	if ((size_t)pBuildingTypeExt->TunnelType >= TunnelTypeClass::Array.size())

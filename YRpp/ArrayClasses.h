@@ -717,6 +717,7 @@ public:
 //=== CounterClass =======================================================
 //========================================================================
 
+struct IStream;
 class CounterClass : public VectorClass<int>
 {
 public:
@@ -821,8 +822,8 @@ public:
 		swap(this->Total, other.Total);
 	}
 
-	//HRESULT Load(IStream* pStm) { JMP_THIS(0x49FBE0); }
-	//HRESULT Save(IStream* pStm) { JMP_THIS(0x49FB70); }
+	//HRESULT LoadFromStream(IStream* pStm) { JMP_THIS(0x49FBE0); }
+	//HRESULT SaveFromStream(IStream* pStm) { JMP_THIS(0x49FB70); }
 public:
 	int Total { 0 };
 };

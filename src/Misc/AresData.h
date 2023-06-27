@@ -30,7 +30,16 @@ class WarheadTypeClass;
 class BuildingLightClass;
 class BSurface;
 class TeamClass;
+class EBolt;
+class WeaponTypeClass;
 typedef int (__cdecl *CallHook)(REGISTERS* R);
+
+template<class T>
+struct AresExtension
+{
+	T AttachedToObject;
+	DWORD Initialized;
+};
 
 class PoweredUnitClass
 {
@@ -201,7 +210,7 @@ struct AresData
 	static DWORD AresMemAllocAddrFinal;
 
 	//number of static instance
-	static constexpr int AresStaticInstanceCount = 9;
+	static constexpr int AresStaticInstanceCount = 13;
 	//number of call for `CustomPalette::ReadFromINI`
 	static constexpr int AresCustomPaletteReadCount = 5;
 
@@ -414,3 +423,8 @@ struct AresDTORCaller
 //#define GetDefaultTargetingArrayValue() (*((std::array<const AITargetingModeInfo , (size_t)SuperWeaponAITargetingMode::count>*)(AresData::AresStaticInstanceFinal[6])))
 #define SW_Firewall_Type (*((SuperWeaponType*)(AresData::AresStaticInstanceFinal[7])))
 #define Ares_CurrentSWType (*((SuperWeaponTypeClass**)(AresData::AresStaticInstanceFinal[8])))
+// remember , this only 3 elements , otherwise it will bleed to something else
+#define Ares_EboltColors1 (*((DWORD*)(AresData::AresStaticInstanceFinal[9])))
+#define Ares_EboltColors2 (*((DWORD*)(AresData::AresStaticInstanceFinal[10])))
+#define Ares_EboltColors3 (*((DWORD*)(AresData::AresStaticInstanceFinal[11])))
+#define Ares_EboltMap (*((const PhobosMap<EBolt* , AresExtension<WeaponTypeClass*>*>*)(AresData::AresStaticInstanceFinal[12])))

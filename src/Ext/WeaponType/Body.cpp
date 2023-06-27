@@ -5,7 +5,7 @@
 #include <Utilities/Macro.h>
 
 int WeaponTypeExt::nOldCircumference = DiskLaserClass::Radius;
-std::unordered_map<EBolt*, const WeaponTypeExt::ExtData*> WeaponTypeExt::boltWeaponTypeExt;
+PhobosMap<EBolt*, const WeaponTypeExt::ExtData*> WeaponTypeExt::boltWeaponTypeExt;
 
 void WeaponTypeExt::ExtData::Initialize()
 {
@@ -64,6 +64,7 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->Bolt_Disable1.Read(exINI, pSection, "Bolt.Disable1");
 		this->Bolt_Disable2.Read(exINI, pSection, "Bolt.Disable2");
 		this->Bolt_Disable3.Read(exINI, pSection, "Bolt.Disable3");
+		this->Bolt_Arcs.Read(exINI, pSection, "Bolt.Arcs");
 	}
 
 	if (!Phobos::Otamaa::DisableCustomRadSite)
@@ -193,6 +194,7 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Bolt_Disable1)
 		.Process(this->Bolt_Disable2)
 		.Process(this->Bolt_Disable3)
+		.Process(this->Bolt_Arcs)
 		.Process(this->Strafing_Shots)
 		.Process(this->Strafing_SimulateBurst)
 		.Process(this->CanTarget)

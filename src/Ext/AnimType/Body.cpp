@@ -230,20 +230,20 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 		{
 			bool success = false;
 
-			const short resultingFacing = (pTypeExt->CreateUnit_InheritDeathFacings.Get() &&
+			const DirType resultingFacing = (pTypeExt->CreateUnit_InheritDeathFacings.Get() &&
 				  pAnimExt->DeathUnitFacing.has_value())
 				? pAnimExt->DeathUnitFacing.get() : pTypeExt->CreateUnit_RandomFacing.Get()
-				? ScenarioClass::Instance->Random.RandomRangedSpecific<short>(0, 255) : (short)pTypeExt->CreateUnit_Facing.Get();
+				? ScenarioClass::Instance->Random.RandomRangedSpecific<DirType>(DirType::North, DirType::Max) : pTypeExt->CreateUnit_Facing.Get();
 
 			if (!pTypeExt->CreateUnit_ConsiderPathfinding.Get())
 			{
 				++Unsorted::ScenarioInit;
-				success = pTechno->Unlimbo(pAnimExt->CreateUnitLocation, DirType(resultingFacing));
+				success = pTechno->Unlimbo(pAnimExt->CreateUnitLocation, resultingFacing);
 				--Unsorted::ScenarioInit;
 			}
 			else
 			{
-				success = pTechno->Unlimbo(pAnimExt->CreateUnitLocation, DirType(resultingFacing));
+				success = pTechno->Unlimbo(pAnimExt->CreateUnitLocation, resultingFacing);
 			}
 
 			if (success)
@@ -296,11 +296,11 @@ void AnimTypeExt::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller)
 	if (!pType->DestroyAnim.Count)
 		return;
 
-	const auto facing = pThis->PrimaryFacing.Current().GetFacing<256>();
+	const DirType facing = (DirType)pThis->PrimaryFacing.Current().GetFacing<256>();
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
 	int idxAnim = 0;
-	GeneralUtils::GetRandomAnimVal(idxAnim, pType->DestroyAnim.Count, facing, pTypeExt->DestroyAnim_Random.Get());
+	GeneralUtils::GetRandomAnimVal(idxAnim, pType->DestroyAnim.Count, (short)facing, pTypeExt->DestroyAnim_Random.Get());
 	AnimTypeClass* pAnimType = pType->DestroyAnim[idxAnim];
 
 	if (!pAnimType)
@@ -315,7 +315,7 @@ void AnimTypeExt::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller)
 		AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, pThis, true);
 
 		if (pAnimTypeExt->CreateUnit_InheritDeathFacings.Get())
-			pAnimExt->DeathUnitFacing = static_cast<short>(facing);
+			pAnimExt->DeathUnitFacing = facing;
 
 		if (pAnimTypeExt->CreateUnit_InheritTurretFacings.Get())
 		{

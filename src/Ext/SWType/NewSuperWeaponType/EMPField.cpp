@@ -26,6 +26,13 @@ bool SW_EMPField::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 	return GameCreate<EMPulseClass>(Coords, this->GetRange(pData).width() , pData->EMPField_Duration.Get(), pFirer);
 }
 
+void SW_EMPField::Initialize(SWTypeExt::ExtData* pData)
+{
+	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::IronCurtain;
+	pData->CursorType = int(MouseCursorType::Attack);
+	pData->NoCursorType = int(MouseCursorType::AttackOutOfRange);
+}
+
 void SW_EMPField::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 {
 	const char* section = pData->Get()->ID;

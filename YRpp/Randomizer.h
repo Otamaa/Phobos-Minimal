@@ -79,11 +79,15 @@ public:
 	bool RandomBool()
 	{ return static_cast<bool>(RandomRanged(0, 1)); }
 
-	template<typename T> requires std::is_integral<T>::value
+	template<typename T> requires std::is_integral<std::underlying_type_t<T>>::value
 	T RandomRangedSpecific(T nMin, T nMax) {
 		return static_cast<T>(RandomRanged(static_cast<int>(nMin), static_cast<int>(nMax)));
 	}
 
+	template<typename T> requires std::is_integral<T>::value
+		T RandomRangedSpecific(T nMin, T nMax) {
+		return static_cast<T>(RandomRanged(static_cast<int>(nMin), static_cast<int>(nMax)));
+	}
 	int RandomFromMax(int nMax) {
 		return RandomRanged(0, nMax);
 	}

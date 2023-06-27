@@ -126,6 +126,7 @@ public:
 		Valueable<bool> Bolt_Disable1;
 		Valueable<bool> Bolt_Disable2;
 		Valueable<bool> Bolt_Disable3;
+		Valueable<int> Bolt_Arcs { 8 };
 
 		Nullable<ParticleSystemTypeClass*> Bolt_ParticleSys;
 		Valueable<int> Laser_Thickness;
@@ -237,7 +238,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	static std::unordered_map<EBolt*, const WeaponTypeExt::ExtData*> boltWeaponTypeExt;
+	static PhobosMap<EBolt*, const WeaponTypeExt::ExtData*> boltWeaponTypeExt;
 
 	class ExtContainer final :public Container<WeaponTypeExt::ExtData>
 	{

@@ -37,9 +37,8 @@ CellStruct MapRevealer::GetOffset(const CoordStruct& coords, const CellStruct& b
 
 bool MapRevealer::RequiresExtraChecks()
 {
-	auto& Session = SessionClass::Instance;
-	return Helpers::Alex::is_any_of(Session->GameMode, GameMode::LAN, GameMode::Internet) &&
-		Session->MPGameMode && !Session->MPGameMode->vt_entry_04();
+	return Helpers::Alex::is_any_of(SessionClass::Instance->GameMode, GameMode::LAN, GameMode::Internet) &&
+		SessionClass::Instance->MPGameMode && !SessionClass::Instance->MPGameMode->vt_entry_04();
 }
 
 CellStruct MapRevealer::GetRelation(const CellStruct& offset)
@@ -134,44 +133,13 @@ void MapRevealer::UpdateShroud(size_t start, size_t radius, bool fog) const
 			auto const cell = base + offset;
 			auto const pCell = MapClass::Instance->GetCellAt(cell);
 
-			bool bFlag = false;
-			if (pCell->Visibility != 0xFF)
+			auto shroudOcculusion = TacticalClass::Instance->GetOcclusion(cell, false);
+			if (pCell->Visibility != shroudOcculusion)
 			{
-				auto shroudOcculusion = TacticalClass::Instance->GetOcclusion(cell, false);
-				if (pCell->Visibility != shroudOcculusion)
-				{
-					pCell->Visibility = shroudOcculusion;
-					pCell->VisibilityChanged = true;
-					bFlag = true;
-				}
-			}
-
-			if (!ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar && !bFlag)
-			{
-				continue;
-			}
-
-			if (pCell->Foggedness != 0xFF)
-			{
-				auto foggedOcclusion = TacticalClass::Instance->GetOcclusion(cell, true);
-				if (pCell->Foggedness != foggedOcclusion)
-				{
-					pCell->Foggedness = foggedOcclusion;
-					bFlag = true;
-				}
-			}
-
-			if (bFlag)
-			{
-				TacticalClass::Instance->RegisterCellAsVisible(pCell);
-			}
-
-			/*auto shroudOcclusion = TacticalClass::Instance->GetOcclusion(cell, false);
-			if (pCell->Visibility != shroudOcclusion) {
-				pCell->Visibility = shroudOcclusion;
+				pCell->Visibility = shroudOcculusion;
 				pCell->VisibilityChanged = true;
 				TacticalClass::Instance->RegisterCellAsVisible(pCell);
-			}*/
+			}
 		}
 	}
 }
@@ -229,6 +197,57 @@ void MapRevealer::Process1(CellClass* const pCell, bool fog, bool add) const
 	}
 }
 
-DEFINE_JUMP(LJMP, 0x5673A0, GET_OFFSET(MapRevealer::MapClass_RevealArea0));
-DEFINE_JUMP(LJMP, 0x5678E0, GET_OFFSET(MapRevealer::MapClass_RevealArea1));
-DEFINE_JUMP(LJMP, 0x567DA0, GET_OFFSET(MapRevealer::MapClass_RevealArea2));
+//DEFINE_JUMP(LJMP, 0x5673A0, GET_OFFSET(MapRevealer::MapClass_RevealArea0));
+//DEFINE_JUMP(LJMP, 0x5678E0, GET_OFFSET(MapRevealer::MapClass_RevealArea1));
+//DEFINE_JUMP(LJMP, 0x567DA0, GET_OFFSET(MapRevealer::MapClass_RevealArea2));
+
+DEFINE_HOOK(0x5673A0, MapClass_RevealArea0, 5)
+{
+	//GET(MapClass*, pThis, ECX);
+	GET_STACK(CoordStruct const*, pCoords, 0x4);
+	GET_STACK(int, radius, 0x8);
+	GET_STACK(HouseClass*, pHouse, 0xC);
+	GET_STACK(bool, onlyOutline, 0x10);
+	GET_STACK(bool, a6, 0x14);
+	GET_STACK(bool, fog, 0x18);
+	GET_STACK(bool, allowRevealByHeight, 0x1C);
+	GET_STACK(bool, add, 0x20);
+
+	MapRevealer const revealer(*pCoords);
+	revealer.Reveal0(*pCoords, radius, pHouse, onlyOutline, a6, fog, allowRevealByHeight, add);
+	revealer.UpdateShroud(0, static_cast<size_t>(MaxImpl(radius, 0)), false);
+
+	return 0x5678D6;
+}
+
+DEFINE_HOOK(0x5678E0, MapClass_RevealArea1, 5)
+{
+	//GET(MapClass*, pThis, ECX);
+	GET_STACK(CoordStruct const*, pCoords, 0x4);
+	GET_STACK(int, radius, 0x8);
+	GET_STACK(HouseClass*, pHouse, 0xC);
+	GET_STACK(bool, onlyOutline, 0x10);
+	//GET_STACK(bool, a6, 0x14);
+	GET_STACK(bool, fog, 0x18);
+	GET_STACK(bool, allowRevealByHeight, 0x1C);
+	GET_STACK(bool, add, 0x20);
+
+	MapRevealer const revealer(*pCoords);
+	revealer.Reveal1(*pCoords, radius, pHouse, onlyOutline, fog, allowRevealByHeight, add);
+
+	return 0x567D8F;
+}
+
+DEFINE_HOOK(0x567DA0, MapClass_RevealArea2, 5)
+{
+	//GET(MapClass*, pThis, ECX);
+	GET_STACK(CoordStruct const*, pCoords, 0x4);
+	GET_STACK(int, start, 0x8);
+	GET_STACK(int, radius, 0xC);
+	GET_STACK(bool, fog, 0x10);
+
+	MapRevealer const revealer(*pCoords);
+	revealer.UpdateShroud(static_cast<size_t>(MaxImpl(start, 0)), static_cast<size_t>(MaxImpl(radius, 0)), fog);
+
+	return 0x567F61;
+}

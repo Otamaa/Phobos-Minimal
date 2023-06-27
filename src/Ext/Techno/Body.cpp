@@ -2353,9 +2353,12 @@ void TechnoExt::ExtData::UpdateEatPassengers()
 						if (auto const pFoot = abstract_cast<FootClass*>(pThis))
 						{
 							pFoot->RemoveGunner(pPassenger);
+							FootClass* pGunner = nullptr;
 
-							if (pThis->Passengers.NumPassengers > 0)
-								pFoot->ReceiveGunner(pThis->Passengers.FirstPassenger);
+								for (auto pNext = pThis->Passengers.FirstPassenger; pNext; pNext = abstract_cast<FootClass*>(pNext->NextObject))
+									pGunner = pNext;
+
+							pFoot->ReceiveGunner(pGunner);
 						}
 					}
 
@@ -2479,8 +2482,8 @@ void TechnoExt::KillSelf(TechnoClass* pThis, bool isPeaceful)
 
 KillMethod NOINLINE GetKillMethod(KillMethod deathOption)
 {
-	if (deathOption == KillMethod::Random) {
-		return static_cast<KillMethod>(ScenarioClass::Instance->Random.RandomRanged((int)KillMethod::Explode, (int)KillMethod::Sell));
+	if (deathOption == KillMethod::Random) { //ensure no death loop , only random when needed to 
+		return ScenarioClass::Instance->Random.RandomRangedSpecific<KillMethod>(KillMethod::Explode, KillMethod::Sell);
 	}
 
 	return deathOption;
@@ -3668,7 +3671,7 @@ bool TechnoExt::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select)
 	else
 	{
 		loc.Z = floorZ;
-		if (!Survivor->Unlimbo(loc, static_cast<DirType>(ScenarioClass::Instance->Random.RandomFromMax(7))))
+		if (!Survivor->Unlimbo(loc,ScenarioClass::Instance->Random.RandomRangedSpecific<DirType>(DirType::North, DirType::NorthWest)))
 		{
 			return false;
 		}

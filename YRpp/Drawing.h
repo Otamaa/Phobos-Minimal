@@ -310,7 +310,7 @@ struct Drawing
 		out.B = (BYTE)(src >> Drawing::BlueShiftLeft) << Drawing::BlueShiftRight;
 	}
 
-	static WORD ColorStructToWord(ColorStruct& modified)
+	static WORD ColorStructToWord(const ColorStruct& modified)
 	{
 		return (
 		   (BYTE)(modified.R >> Drawing::RedShiftRight) << Drawing::RedShiftLeft |

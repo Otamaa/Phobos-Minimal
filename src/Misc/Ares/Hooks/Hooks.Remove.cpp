@@ -42,9 +42,11 @@ DEFINE_DISABLE_HOOK(0x744216, UnitClass_UnmarkOccupationBits_ares)
 DEFINE_DISABLE_HOOK(0x7441b6, UnitClass_MarkOccupationBits_ares)
 DEFINE_DISABLE_HOOK(0x70cbda, TechnoClass_DealParticleDamage_ares)
 DEFINE_DISABLE_HOOK(0x6e1780, TActionClass_PlayAudioAtRandomWP_ares)
+
 DEFINE_DISABLE_HOOK(0x5673A0, MapClass_RevealArea0_ares)
 DEFINE_DISABLE_HOOK(0x5678E0, MapClass_RevealArea1_ares)
 DEFINE_DISABLE_HOOK(0x567DA0, MapClass_RevealArea2_ares)
+
 DEFINE_DISABLE_HOOK(0x5240bd, InfantryTypeClass_LoadFromINI_DamageSparks_ares)
 DEFINE_DISABLE_HOOK(0x4da584 ,FootClass_Update_RadImmune_ares)
 DEFINE_DISABLE_HOOK(0x457DB7, BuildingClass_CanBeOccupied_SpecificAssaulters_ares)

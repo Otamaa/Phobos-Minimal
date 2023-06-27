@@ -135,6 +135,7 @@ void SW_Protect::Initialize(SWTypeExt::ExtData* pData)
 
 		pData->CursorType = int(MouseCursorType::ForceShield);
 		pData->NoCursorType = int(MouseCursorType::NoForceShield);
+
 	}
 	else
 	{
@@ -142,7 +143,7 @@ void SW_Protect::Initialize(SWTypeExt::ExtData* pData)
 		pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_IronCurtainReady);
 		pData->EVA_Detected = VoxClass::FindIndexById(GameStrings::EVA_IronCurtainDetected);
 		pData->EVA_Activated = VoxClass::FindIndexById(GameStrings::EVA_IronCurtainActivated);
-
+		pData->SW_AITargetingMode = SuperWeaponAITargetingMode::IronCurtain;
 		pData->CursorType = int(MouseCursorType::IronCurtain);
 	}
 }

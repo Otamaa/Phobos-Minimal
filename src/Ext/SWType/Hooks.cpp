@@ -140,45 +140,83 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 
 	const auto pLeader = pThis->FetchLeader();
 
-	if (!pLeader)
+	if (!pLeader){ 
 		pThis->StepCompleted = true;
-
+		return 0x6EFE4F;
+	}
 	const auto pOwner = pThis->Owner;
 	const bool havePower = pOwner->HasFullPower();
 
-	const auto Iter = std::find_if(pOwner->Supers.begin(), pOwner->Supers.end(), [&](SuperClass* pSuper) {
-		
+	//const auto Iter = std::find_if(pOwner->Supers.begin(), pOwner->Supers.end(), [&](SuperClass* pSuper) {
+	//	
+	//	const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
+	//
+	//	if ((pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain) &&
+	//		pExt->SW_Group == pTeamMission->Argument)
+	//	{
+	//		if (!pSuper->IsCharged || (havePower && !pSuper->IsPowered()))
+	//		{
+	//			if (!pSuper->Granted) {
+	//				return false;
+	//			} else {
+	//				auto v22 = pSuper->GetRechargeTime();
+	//				const auto nTimeLeft = pSuper->RechargeTimer.GetTimeLeft();
+	//
+	//				if ((v22 - nTimeLeft) < RulesClass::Instance->AIMinorSuperReadyPercent * v22)
+	//					return false;
+	//			}
+	//		}
+	//
+	//		return true;
+	//	}
+	//
+	//	return false;
+	//});
+
+	SuperWeaponTypeClass* pCur = nullptr;
+	bool found = false;
+
+	for (const auto& pSuper : pOwner->Supers)
+	{
 		const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
 
-		if ((pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain) &&
-			pExt->SW_Group == pTeamMission->Argument)
+		if (!pExt->IsAvailable(pOwner))
+			continue;
+
+		if (!found && (pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain) && pExt->SW_Group == pTeamMission->Argument)
 		{
-			if (!pSuper->IsCharged || (havePower && !pSuper->IsPowered()))
+			if (pSuper->IsCharged && (havePower || !pSuper->IsPowered()))
 			{
-				if (!pSuper->Granted) {
-					return false;
-				} else {
-					auto v22 = pSuper->GetRechargeTime();
-					const auto nTimeLeft = pSuper->RechargeTimer.GetTimeLeft();
-
-					if ((v22 - nTimeLeft) < RulesClass::Instance->AIMinorSuperReadyPercent * v22)
-						return false;
-				}
+				pCur = pSuper->Type;
+				found = true;
+				continue;
 			}
-
-			return true;
 		}
 
-		return false;
-	});
+		if (!pCur && pSuper->Granted)
+		{
+			const auto charge = pSuper->GetRechargeTime();
+			const auto nTimeLeft = pSuper->RechargeTimer.GetTimeLeft();
 
-
-	if (Iter != pOwner->Supers.end()) {
-		auto nCoord = pThis->SpawnCell->GetCoords();
-		pOwner->Fire_SW((*Iter)->Type->ArrayIndex, CellClass::Coord2Cell(nCoord));
+			if ((charge - nTimeLeft) >= RulesClass::Instance->AIMinorSuperReadyPercent * charge)
+			{
+				pCur = pSuper->Type;
+				found = false;
+				continue;
+			}
+		}
 	}
 
-	pThis->StepCompleted = true;
+	if (found) {
+		auto nCoord = pThis->SpawnCell->GetCoords();
+		pOwner->Fire_SW(pCur->ArrayIndex, CellClass::Coord2Cell(nCoord));
+		pThis->StepCompleted = true;
+		return 0x6EFE4F;
+	}
+		
+	if(!pCur) //only stop if no SW exist
+		pThis->StepCompleted = true;
+
 	/*AresData::FireIronCurtain(pThis, pTeamMission, barg3);*/
 	return 0x6EFE4F;
 }

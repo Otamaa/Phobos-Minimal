@@ -325,6 +325,12 @@ bool AresData::Init()
 		0x0C1134, //SW_Firewall::FirewallType
 
 		0x0C2C7C, //SWTypeExt::CurrentSWType
+
+		0x0C2E2C, //EboltColors1
+		0x0C2E30, //EboltColors2
+		0x0C2E34, //EboltColors3
+
+		0x0C2E14, //Ebolt - Ext map
 	};
 
 	if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, ARES_DLL, &AresDllHmodule))

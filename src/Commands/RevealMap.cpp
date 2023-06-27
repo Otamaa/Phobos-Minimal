@@ -26,6 +26,7 @@ const wchar_t* RevealMapCommandClass::GetUIDescription() const
 }
 
 #include <Misc/AresData.h>
+#include <Misc/MapRevealer.h>
 
 void RevealMapCommandClass::Execute(WWKey eInput) const
 {
@@ -41,5 +42,4 @@ void RevealMapCommandClass::Execute(WWKey eInput) const
 	
 	if(HouseClass::CurrentPlayer())
 		MapClass::Instance->Reveal(HouseClass::CurrentPlayer());
-
 }

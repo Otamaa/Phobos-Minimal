@@ -20,7 +20,7 @@ public:
 
 	public:
 		OptionalStruct<CoordStruct, true> BackupCoords;
-		OptionalStruct<short, true> DeathUnitFacing;
+		OptionalStruct<DirType, true> DeathUnitFacing;
 		OptionalStruct<DirStruct, true> DeathUnitTurretFacing;
 		TechnoClass* Invoker;
 		bool OwnerSet;

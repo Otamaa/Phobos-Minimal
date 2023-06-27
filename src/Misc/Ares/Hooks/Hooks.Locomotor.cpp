@@ -29,13 +29,14 @@ DEFINE_OVERRIDE_HOOK(0x718275 ,TeleportLocomotionClass_MakeRoom, 9)
 	LEA_STACK(CoordStruct*, pCoord, 0x3C);
 	GET(TeleportLocomotionClass*, pLoco, EBP);
 
-	auto pCell = MapClass::Instance->TryGetCellAt(*pCoord);
+	const auto pCell = MapClass::Instance->GetCellAt(pCoord);
+
 	R->Stack(0x48 , false);
 	const bool bLinkedIsInfantry = pLoco->LinkedTo->WhatAmI() == AbstractType::Infantry;
 	R->EBX(pCell->OverlayTypeIndex);
 	R->EDI(false);
 
-	for (auto pObj = pCell->GetContent(); pObj; pObj = pObj->NextObject)
+	for (auto pObj = pCell->GetContentB(); pObj; pObj = pObj->NextObject)
 	{
 		auto bObjIsInfantry = pObj->WhatAmI() == AbstractType::Infantry;
 		bool bIsImmune = pObj->IsIronCurtained();
@@ -45,8 +46,10 @@ DEFINE_OVERRIDE_HOOK(0x718275 ,TeleportLocomotionClass_MakeRoom, 9)
 		if (pTypeExt && !pTypeExt->Chronoshift_Crushable)
 			bIsImmune = 1;
 
-		if (!RulesExt::Global()->ChronoInfantryCrush && bLinkedIsInfantry && !bObjIsInfantry)
+		if (!RulesExt::Global()->ChronoInfantryCrush && bLinkedIsInfantry && !bObjIsInfantry) {
+			pLoco->LinkedTo->ReceiveDamage(&pLoco->LinkedTo->GetType()->Strength, 0, RulesClass::Instance->C4Warhead, 0, 1, 0, 0);
 			break;
+		}
 
 		if (!bIsImmune && bObjIsInfantry && bLinkedIsInfantry)
 		{
@@ -61,6 +64,7 @@ DEFINE_OVERRIDE_HOOK(0x718275 ,TeleportLocomotionClass_MakeRoom, 9)
 				R->Stack(0x48, true);
 			} else if(bIsImmune) {
 				pLoco->LinkedTo->ReceiveDamage(&pLoco->LinkedTo->GetType()->Strength, 0, RulesClass::Instance->C4Warhead, 0, 1, 0, 0);
+				break;
 			}
 		} else {
 			pObj->ReceiveDamage(&pObj->GetType()->Strength, 0, RulesClass::Instance->C4Warhead, 0, 1, 0, 0);

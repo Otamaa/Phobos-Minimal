@@ -3952,7 +3952,7 @@ DEFINE_HOOK(0x4251AB, AnimClass_Detach_LogTypeDetached, 0x6)
 
 DEFINE_HOOK(0x6F357F, TechnoClass_SelectWeapon_DrainWeaponTarget, 0x6)
 {
-	enum { CheckAlly = 0x6F3589, ContinueCheck = 0x6F35A8 };
+	enum { CheckAlly = 0x6F3589, ContinueCheck = 0x6F35A8  , RetPrimary = 0x6F37AD };
 
 	GET(TechnoClass* const, pThis, ESI);
 	GET(TechnoClass* const, pTarget, EBP);

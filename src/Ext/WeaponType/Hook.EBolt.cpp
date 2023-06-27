@@ -2,6 +2,8 @@
 #include <EBolt.h>
 #include <map>
 
+#include <Misc/AresData.h>
+
 DEFINE_HOOK(0x6FD5FC, TechnoClass_CreateEbolt_UnnessesaryData, 0xA)
 {
 	GET(UnitClass*, pThis, ESI);
@@ -20,48 +22,112 @@ namespace BoltTemp
 	const WeaponTypeExt::ExtData* pType = nullptr;
 }
 
-DEFINE_HOOK(0x6FD494, TechnoClass_FireEBolt_SetExtMap_AfterAres, 0x7)
-{
-	GET_STACK(WeaponTypeClass*, pWeapon, STACK_OFFS(0x30, -0x8));
-	GET(EBolt* const, pBolt, EAX);
+//DEFINE_HOOK(0x6FD494, TechnoClass_FireEBolt_SetExtMap_AfterAres, 0x7)
+//{
+//	GET_STACK(WeaponTypeClass*, pWeapon, STACK_OFFS(0x30, -0x8));
+//	GET(EBolt* const, pBolt, EAX);
+//
+//	if (pWeapon) {
+//		WeaponTypeExt::boltWeaponTypeExt[pBolt] =  WeaponTypeExt::ExtMap.Find(pWeapon);
+//	}
+//
+//	return 0;
+//}
 
-	if (pWeapon) {
-		auto const pWpTypeExt = WeaponTypeExt::ExtMap.Find(pWeapon);
-		if(pWpTypeExt->Bolt_Disable1 || pWpTypeExt->Bolt_Disable2 || pWpTypeExt->Bolt_Disable3){
-			WeaponTypeExt::boltWeaponTypeExt.emplace(pBolt, pWpTypeExt);
-		}
-	}
+////DEFINE_OVERRIDE_HOOK(0x4C1F33, EBolt_Draw_Colors, 7)
+////{
+////	GET(EBolt*, pThis, ECX);
+////	GET_BASE(int, nColorIdx, 0x20);
+////
+////	auto& data1 = Ares_EboltColors1;
+////	auto& data2 = Ares_EboltColors2;
+////	auto& data3 = Ares_EboltColors3;
+////	auto const& nMap = Ares_EboltMap;
+////
+////	auto const pDefaultPal = FileSystem::PALETTE_PAL();
+////	auto const nColorBuffer = pDefaultPal->BufferMid;
+////
+////	if (pDefaultPal->BytesPerPixel == 1)
+////	{
+////		const WORD nFirst = nColorBuffer[nColorIdx];
+////		const WORD nSec = nColorBuffer[15];
+////		data1 = nFirst;
+////		data2 = nFirst;
+////		data3 = nSec;
+////	}
+////	else
+////	{
+////		const WORD nFirst = nColorBuffer[nColorIdx * 2];
+////		const WORD nSec = nColorBuffer[30];
+////
+////		ColorStruct nFirst_result = ColorStruct(nFirst);
+////		ColorStruct nSec_result = ColorStruct(nSec);
+////
+////		Debug::Log("Ebolt Default Color1[%d -(%d %d %d)] , Color2[%d -(%d %d %d)] , Color3[%d -(%d %d %d)]\n" , 
+////			nFirst , nFirst_result.R, nFirst_result.G, nFirst_result.B,
+////			nFirst , nFirst_result.R, nFirst_result.G, nFirst_result.B,
+////			nSec, nSec_result.R, nSec_result.G, nSec_result.B);
+////
+////		data1 = nFirst;
+////		data2 = nFirst;
+////		data3 = nSec;
+////	}
+////
+////	if (auto pAresExt = nMap.get_or_default(pThis))
+////	{
+////		const auto pData = WeaponTypeExt::ExtMap.Find(pAresExt->AttachedToObject);
+////		BoltTemp::pType = pData;
+////
+////		auto& clr1 = pData->Bolt_Color1;
+////		if (clr1.isset()) { data1 = Drawing::ColorStructToWord(clr1.Get()); }
+////
+////		auto& clr2 = pData->Bolt_Color2;
+////		if (clr2.isset()) { data2 = Drawing::ColorStructToWord(clr2.Get()); }
+////
+////		auto& clr3 = pData->Bolt_Color3;
+////		if (clr3.isset()) { data3 = Drawing::ColorStructToWord(clr3.Get()); }
+////	}
+////
+////	return 0x4C1F66;
+////}
 
-	return 0;
-}
-
-DEFINE_HOOK(0x4C2951, EBolt_DTOR, 0x5)
-{
-	GET(EBolt* const, pBolt, ECX);
-
-	WeaponTypeExt::boltWeaponTypeExt.erase(pBolt);
-	
-	return 0;
-}
+//DEFINE_HOOK(0x4C2951, EBolt_DTOR, 0x5)
+//{
+//	GET(EBolt* const, pBolt, ECX);
+//
+//	WeaponTypeExt::boltWeaponTypeExt.erase(pBolt);
+//	
+//	return 0;
+//}
 
 DEFINE_HOOK(0x4C24E4, Ebolt_DrawFist_Disable, 0x8)
 {
-	GET_STACK(EBolt* const, pBolt, 0x40);
+	//GET_STACK(EBolt* const, pBolt, 0x40);
 
-	auto const& nMap = WeaponTypeExt::boltWeaponTypeExt;
+	if (BoltTemp::pType && BoltTemp::pType->Bolt_Disable1){
 
-	if (nMap.contains(pBolt)) {
-		if (auto const pWeaponLinked = nMap.at(pBolt)) {
+		if (!BoltTemp::pType->Bolt_Disable2 && !BoltTemp::pType->Bolt_Disable3)
+			BoltTemp::pType = nullptr;
 
-			if (pWeaponLinked->Bolt_Disable3 || pWeaponLinked->Bolt_Disable2)
-				BoltTemp::pType = pWeaponLinked;
-
-			if (pWeaponLinked->Bolt_Disable1)
-				return 0x4C2515;
-		}
+		return 0x4C2515;
 	}
 
 	return 0;
+}
+
+DEFINE_HOOK(0x4C20BC, EBolt_DrawArcs, 0xB)
+{
+	enum { DoLoop = 0x4C20C7, Break = 0x4C2400 };
+
+	//GET_STACK(EBolt*, pBolt, 0x40);
+	GET_STACK(int, plotIndex, STACK_OFFSET(0x408, -0x3E0))
+	
+	if(BoltTemp::pType){
+		return plotIndex < BoltTemp::pType->Bolt_Arcs
+		? DoLoop : Break;
+	}
+
+	return 0x0;
 }
 
 DEFINE_HOOK(0x4C25FD, Ebolt_DrawSecond_Disable, 0xA)

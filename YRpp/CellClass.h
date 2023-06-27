@@ -387,6 +387,9 @@ public:
 	ObjectClass* GetContent() const
 		{ return this->ContainsBridge() ? this->AltObject : this->FirstObject; }
 
+	ObjectClass* GetContentB() const
+	{ return (this->Flags & CellFlags::BridgeHead) ? this->AltObject : this->FirstObject; }
+
 	int GetLevel() const
 		{ return this->Level + (this->ContainsBridge() ? BridgeLevels : 0); }
 

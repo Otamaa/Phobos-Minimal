@@ -286,11 +286,11 @@ namespace detail
 		int nBuffer = -1;
 		if (parser.ReadInteger(pSection, pKey, &nBuffer))
 		{
-			if (nBuffer == -1) //uhh ROTE using -1 , so it will generate bunch of debug log
-				return false;
+			const bool IsNegative = nBuffer < 0;
+			const DirType nVal = (DirType)abs(nBuffer);
 
-			if(nBuffer >= (int)DirType::Min && nBuffer <= (int)DirType::Max){
-				value = (DirType)nBuffer;
+			if(DirType::North <= nVal && nVal <= DirType::Max){
+				value = (IsNegative ? (DirType)((int)DirType::Max - (int)nVal) : nVal);
 				return true;
 			}
 			else

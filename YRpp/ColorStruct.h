@@ -273,6 +273,12 @@ struct BytePalette
 	ColorStruct const& operator [](int const idx) const
 	{ return this->Entries[idx]; }
 
+	ColorStruct& at(int const idx)
+	{ return this->Entries[idx]; }
+
+	ColorStruct const& at(int const idx) const
+	{ return this->Entries[idx]; }
+
 	bool operator==(const BytePalette& that) const { return std::memcmp(Entries, that.Entries, sizeof(Entries)) == 0; }
 	bool operator!=(const BytePalette& that) const { return std::memcmp(Entries, that.Entries, sizeof(Entries)) != 0; }
 	BytePalette& operator=(const BytePalette& that) {
