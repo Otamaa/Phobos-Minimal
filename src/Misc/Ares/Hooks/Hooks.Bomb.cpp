@@ -436,3 +436,20 @@ DEFINE_OVERRIDE_HOOK(0x4D9F7B, FootClass_Sell_Detonate, 6)
 
 	return 0;
 }
+
+// custom ivan bomb attachment
+// bugfix #385: Only InfantryTypes can use Ivan Bombs
+DEFINE_OVERRIDE_HOOK(0x438E86, BombListClass_Plant_AllTechnos, 5)
+{
+	GET(TechnoClass*, Source, EBP);
+	switch (Source->WhatAmI())
+	{
+	case AbstractType::Aircraft:
+	case AbstractType::Infantry:
+	case AbstractType::Unit:
+	case AbstractType::Building:
+		return 0x438E97;
+	default:
+		return 0x439022;
+	}
+}
