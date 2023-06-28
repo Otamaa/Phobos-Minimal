@@ -753,6 +753,17 @@ public:
 		mutable OptionalStruct<bool, true> GenericPrerequisite {};
 		Nullable<int> ExtraPower_Amount {};
 
+		Nullable<bool> Bounty_Display { };
+		Promotable<int> Bounty_Value { 0 };
+
+		ValueableVector<TechnoTypeClass*> BountyAllow {};
+		ValueableVector<TechnoTypeClass*> BountyDissallow {};
+
+		Promotable<double> BountyBonusmult { 1.0 };
+		Nullable<BountyValueOption> Bounty_Value_Option { };
+		Promotable<double> Bounty_Value_mult { 1.0 };
+		Valueable<bool> Bounty_IgnoreEnablers { false };
+
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, HealthBar_Hide { false }
 			, UIDescription {}

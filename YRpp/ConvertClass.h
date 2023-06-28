@@ -43,26 +43,20 @@ public:
 
 	static void Recalc_Color_Remap_Tables(int a1, int a2, int a3, int a4) JMP_THIS(0x491100);
 
-	inline constexpr unsigned inline_01(unsigned index)
+	inline unsigned inline_01(unsigned index)
 	{
-		switch (BytesPerPixel)
-		{
-		case BytesPerPixel::One:
+		if (BytesPerPixel == BytesPerPixel::One)
 			return reinterpret_cast<uint8_t*>(BufferA)[index];
-		case BytesPerPixel::Two:
-			return reinterpret_cast<uint16_t*>(BufferA)[index];
-		};
+
+		return reinterpret_cast<uint16_t*>(BufferA)[index];
 	}
 
 	inline unsigned inline_02(unsigned index)
 	{
-		switch (BytesPerPixel)
-		{
-		case BytesPerPixel::One:
+		if  (BytesPerPixel == BytesPerPixel::One)
 			return reinterpret_cast<uint8_t*>(BufferMid)[index];
-		case BytesPerPixel::Two:
-			return reinterpret_cast<uint16_t*>(BufferMid)[index];
-		};
+
+		return reinterpret_cast<uint16_t*>(BufferMid)[index];
 	}
 
 	void* SelectProperBlitter(SHPStruct* SHP, int FrameIndex, BlitterFlags flags) {
@@ -104,8 +98,8 @@ public:
 	Blitter* Blitters[50];
 	RLEBlitter* RLEBlitters[39];
 	int ShadeCount; //16C
-	char* BufferA; //170, new(ShadeCount * 8 * BytesPerPixel) - gets filled with palette values on CTOR
-	char* BufferMid; //174, points to the middle of BufferA above, ??
+	void* BufferA; //170, new(ShadeCount * 8 * BytesPerPixel) - gets filled with palette values on CTOR
+	void* BufferMid; //174, points to the middle of BufferA above, ??
 	char* BufferB; //178, if(BytesPerPixel == 1) { BufferB = new byte[0x100]; }
 	DWORD CurrentZRemap; //17C, set right before drawing
 	DWORD HalfColorMask; //180, for masking colors right-shifted by 1

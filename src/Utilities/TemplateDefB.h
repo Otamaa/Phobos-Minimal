@@ -366,6 +366,28 @@ namespace detail
 		return false;
 	}
 
+	template <>
+	inline bool read<BountyValueOption>(BountyValueOption& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			if (parser.ReadString(pSection, pKey))
+			{
+				for (size_t i = 0; i < EnumFunctions::BountyValueOption_ToSrings.size(); ++i)
+				{
+					if (IS_SAME_STR_(parser.value(), EnumFunctions::BountyValueOption_ToSrings[i]))
+					{
+						value = (BountyValueOption)i;
+						return true;
+					}
+				}
+
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid BountyValueOption");
+			}
+		}
+		return false;
+	}
+
 	template<typename T, bool Alloc = false>
 	inline void ParseVector(INI_EX& IniEx, std::vector<std::vector<T>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false, const char* Delims = Phobos::readDelims, const char* message = nullptr)
 	{

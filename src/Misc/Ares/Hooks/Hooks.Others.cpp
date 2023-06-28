@@ -2845,18 +2845,6 @@ DEFINE_OVERRIDE_HOOK(0x6F6AC9, TechnoClass_Remove_Early, 6)
 	return pThis->InLimbo ? 0x6F6C93u : 0x6F6AD5u;
 }
 
-DEFINE_OVERRIDE_HOOK(0x702E64, TechnoClass_RegisterDestruction_Bounty, 6)
-{
-	GET(TechnoClass*, pVictim, ESI);
-	GET(TechnoClass*, pKiller, EDI);
-
-	//TODO : portThese
-	if (pKiller && TechnoTypeExt::ExtMap.Find(pKiller->GetTechnoType())->Bounty)
-		AresData::CalculateBounty(pVictim, pKiller);
-
-	return 0x0;
-}
-
 DEFINE_OVERRIDE_HOOK_AGAIN(0x6F6D0E, TechnoClass_Put_BuildingLight, 7)
 DEFINE_OVERRIDE_HOOK(0x6F6F20, TechnoClass_Put_BuildingLight, 6)
 {
@@ -4008,6 +3996,92 @@ DEFINE_OVERRIDE_HOOK(0x6BED08, Game_Terminate_Mouse, 7)
 DEFINE_OVERRIDE_SKIP_HOOK(0x56017a, OptionsDlg_WndProc_RemoveResLimit, 0x5 , 560183)
 DEFINE_OVERRIDE_SKIP_HOOK(0x5601e3, OptionsDlg_WndProc_RemoveHiResCheck, 0x9 , 5601FC)
 
+#include <Ext/HouseType/Body.h>
+
+int GetValue(TechnoClass* pVictim , TechnoTypeClass* pVictimType , BountyValueOption nOpt)
+{
+	switch (nOpt)
+	{
+	case BountyValueOption::Cost:
+		return pVictimType->GetCost();
+		break;
+	case BountyValueOption::Soylent:
+		return pVictim->GetRefund();
+		break;
+	default:
+		return TechnoTypeExt::ExtMap.Find(pVictimType)->Bounty_Value.Get(pVictim);
+		break;
+	}
+}
+
+void GiveBounty(TechnoClass* pVictim, TechnoClass* pKiller)
+{
+	if(!pKiller || !TechnoExt::IsBountyHunter(pKiller))
+		return;
+
+	const auto pKillerTypeExt = TechnoTypeExt::ExtMap.Find(pKiller->GetTechnoType());
+	const auto pVictimType = pVictim->GetTechnoType();
+
+	if (!pKillerTypeExt->BountyAllow.Eligible(pVictimType))
+		return;
+
+	if (!pKillerTypeExt->BountyDissallow.empty() && pKillerTypeExt->BountyDissallow.Contains(pVictimType))
+		return;
+
+	if (pKiller->Owner) {
+		const auto GievesBounty = HouseTypeExt::ExtMap.Find(pVictim->Owner->Type)->GivesBounty;
+
+		if (GievesBounty && !pKiller->Owner->IsAlliedWith(pVictim)) {
+			const auto pRulesGlobal = RulesExt::Global();
+
+			if (!pKillerTypeExt->Bounty_IgnoreEnablers && !pRulesGlobal->Bounty_Enablers.empty()) {
+				for (auto const& pBTypes : pRulesGlobal->Bounty_Enablers) {
+					if (!(pKiller->Owner->OwnedBuildingTypes.GetItemCount(pBTypes->ArrayIndex) > 0)) {
+						return;
+					}
+				}
+			}
+
+			const auto pVictimTypeExt = TechnoTypeExt::ExtMap.Find(pVictimType);
+			const double  nVicMult = pVictimTypeExt->Bounty_Value_mult.Get(pVictim);
+			const double nMult = pKillerTypeExt->BountyBonusmult.Get(pKiller);
+			const int nValueResult = GetValue(pVictim, pVictimType, pKillerTypeExt->Bounty_Value_Option.Get(pRulesGlobal->Bounty_Value_Option));
+			const int nValue = int(nValueResult * nVicMult * nMult);
+
+			if(nValue != 0 && pKiller->Owner->AbleToTransactMoney(nValue)) {
+
+				if (pKillerTypeExt->Bounty_Display.Get(pRulesGlobal->Bounty_Display))
+				{
+					if (pKillerTypeExt->Get()->MissileSpawn && pKiller->SpawnOwner)
+						pKiller = pKiller->SpawnOwner;
+
+					TechnoValueAmount(pKiller) += nValue;
+				}
+			}
+		}
+	}
+}
+
+// DEFINE_OVERRIDE_HOOK(0x702E64, TechnoClass_RegisterDestruction_Bounty, 6)
+// {
+// 	GET(TechnoClass*, pVictim, ESI);
+// 	GET(TechnoClass*, pKiller, EDI);
+//
+// 	if (pKiller && TechnoTypeExt::ExtMap.Find(pKiller->GetTechnoType())->Bounty)
+// 		AresData::CalculateBounty(pVictim, pKiller);
+//
+// 	return 0x0;
+// }
+
+DEFINE_OVERRIDE_HOOK(0x702E64, TechnoClass_RegisterDestruction_Bounty, 6)
+{
+	GET(TechnoClass*, pVictim, ESI);
+	GET(TechnoClass*, pKiller, EDI);
+
+	GiveBounty(pVictim, pKiller);
+
+	return 0x0;
+}
 
 //#include <EventClass.h>
 

@@ -34,62 +34,53 @@ namespace BoltTemp
 //	return 0;
 //}
 
-////DEFINE_OVERRIDE_HOOK(0x4C1F33, EBolt_Draw_Colors, 7)
-////{
-////	GET(EBolt*, pThis, ECX);
-////	GET_BASE(int, nColorIdx, 0x20);
-////
-////	auto& data1 = Ares_EboltColors1;
-////	auto& data2 = Ares_EboltColors2;
-////	auto& data3 = Ares_EboltColors3;
-////	auto const& nMap = Ares_EboltMap;
-////
-////	auto const pDefaultPal = FileSystem::PALETTE_PAL();
-////	auto const nColorBuffer = pDefaultPal->BufferMid;
-////
-////	if (pDefaultPal->BytesPerPixel == 1)
-////	{
-////		const WORD nFirst = nColorBuffer[nColorIdx];
-////		const WORD nSec = nColorBuffer[15];
-////		data1 = nFirst;
-////		data2 = nFirst;
-////		data3 = nSec;
-////	}
-////	else
-////	{
-////		const WORD nFirst = nColorBuffer[nColorIdx * 2];
-////		const WORD nSec = nColorBuffer[30];
-////
-////		ColorStruct nFirst_result = ColorStruct(nFirst);
-////		ColorStruct nSec_result = ColorStruct(nSec);
-////
-////		Debug::Log("Ebolt Default Color1[%d -(%d %d %d)] , Color2[%d -(%d %d %d)] , Color3[%d -(%d %d %d)]\n" , 
-////			nFirst , nFirst_result.R, nFirst_result.G, nFirst_result.B,
-////			nFirst , nFirst_result.R, nFirst_result.G, nFirst_result.B,
-////			nSec, nSec_result.R, nSec_result.G, nSec_result.B);
-////
-////		data1 = nFirst;
-////		data2 = nFirst;
-////		data3 = nSec;
-////	}
-////
-////	if (auto pAresExt = nMap.get_or_default(pThis))
-////	{
-////		const auto pData = WeaponTypeExt::ExtMap.Find(pAresExt->AttachedToObject);
-////		BoltTemp::pType = pData;
-////
-////		auto& clr1 = pData->Bolt_Color1;
-////		if (clr1.isset()) { data1 = Drawing::ColorStructToWord(clr1.Get()); }
-////
-////		auto& clr2 = pData->Bolt_Color2;
-////		if (clr2.isset()) { data2 = Drawing::ColorStructToWord(clr2.Get()); }
-////
-////		auto& clr3 = pData->Bolt_Color3;
-////		if (clr3.isset()) { data3 = Drawing::ColorStructToWord(clr3.Get()); }
-////	}
-////
-////	return 0x4C1F66;
-////}
+static std::vector<BYTE> dump;
+
+inline unsigned inline_02(ConvertClass* pConvert , int idx)
+{
+	switch (pConvert->BytesPerPixel)
+	{
+	default:
+	case ConvertClass::BytesPerPixel::One:
+		return reinterpret_cast<uint8_t*>(pConvert->BufferMid)[idx];
+	case ConvertClass::BytesPerPixel::Two:
+		return reinterpret_cast<uint16_t*>(pConvert->BufferMid)[idx];
+	};
+}
+
+DEFINE_OVERRIDE_HOOK(0x4C1F33, EBolt_Draw_Colors, 7)
+{
+	GET(EBolt*, pThis, ECX);
+	GET_BASE(int, nColorIdx, 0x20);
+
+	auto& data1 = Ares_EboltColors1;
+	auto& data2 = Ares_EboltColors2;
+	auto& data3 = Ares_EboltColors3;
+	auto const& nMap = Ares_EboltMap;
+
+	const auto nFirst = FileSystem::PALETTE_PAL()->inline_02(nColorIdx);
+	const auto nSec = FileSystem::PALETTE_PAL()->inline_02(15);
+	data1 = data2 = nFirst;
+	data3 = nSec;
+
+
+	if (auto pAresExt = nMap.get_or_default(pThis))
+	{
+		const auto pData = WeaponTypeExt::ExtMap.Find(pAresExt->AttachedToObject);
+		BoltTemp::pType = pData;
+
+		auto& clr1 = pData->Bolt_Color1;
+		if (clr1.isset()) { data1 = Drawing::ColorStructToWord(clr1.Get()); }
+
+		auto& clr2 = pData->Bolt_Color2;
+		if (clr2.isset()) { data2 = Drawing::ColorStructToWord(clr2.Get()); }
+
+		auto& clr3 = pData->Bolt_Color3;
+		if (clr3.isset()) { data3 = Drawing::ColorStructToWord(clr3.Get()); }
+	}
+
+	return 0x4C1F66;
+}
 
 //DEFINE_HOOK(0x4C2951, EBolt_DTOR, 0x5)
 //{

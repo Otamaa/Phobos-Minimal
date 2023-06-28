@@ -140,6 +140,9 @@ public:
 		Valueable<bool> Units_UnSellable;
 
 		Valueable<bool> DrawTurretShadow;
+		ValueableVector<BuildingTypeClass*> Bounty_Enablers { };
+		Valueable<bool> Bounty_Display { false };
+		Valueable<BountyValueOption> Bounty_Value_Option { BountyValueOption::Value };
 #pragma region Otamaa
 
 		Nullable<ParticleTypeClass*> VeinholeParticle;

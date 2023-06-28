@@ -179,6 +179,16 @@ bool TechnoExt::IsUnwarpable(TechnoClass* pThis)
 	return HasAbility(pThis, PhobosAbilityType::Unwarpable);
 }
 
+bool TechnoExt::IsBountyHunter(TechnoClass* pThis)
+{
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (pTypeExt->Bounty)
+		return true;
+
+	return HasAbility(pThis, PhobosAbilityType::BountyHunter);
+}
+
 bool TechnoExt::ExtData::IsInterceptor()
 {
 	auto const pThis = this->Get();
@@ -509,6 +519,15 @@ bool TechnoExt::IsUnwarpable(Rank vet, TechnoClass* pThis)
 	return HasAbility(vet, pThis, PhobosAbilityType::Unwarpable);
 }
 
+bool TechnoExt::IsBountyHunter(Rank vet, TechnoClass* pThis)
+{
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (pTypeExt->Bounty)
+		return true;
+
+	return HasAbility(vet , pThis, PhobosAbilityType::BountyHunter);
+}
 
 bool TechnoExt::HasAbility(Rank vet, TechnoClass* pThis, PhobosAbilityType nType)
 {

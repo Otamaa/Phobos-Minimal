@@ -395,9 +395,13 @@ public:
 	}
 
 	auto get_key_iterator(const TKey& key) const {
-		return std::find_if(this->values.begin(), this->values.end(), [&](const container_t::value_type& item) {
-			return item.first == key;
-		});
+		if constexpr (direct_comparable<TKey>){
+			return std::find_if(this->values.begin(), this->values.end(), [&](const container_t::value_type& item) {
+				return item.first == key;
+			});
+		} else {
+			return std::find(this->values.begin(), this->values.end(), key);
+		}
 	}
 
 	TValue& insert_unchecked(const TKey& key, TValue value) {

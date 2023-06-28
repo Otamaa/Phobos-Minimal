@@ -763,7 +763,6 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->InitialPayload_Vet.Read(exINI, pSection, "InitialPayload.Ranks");
 		this->InitialPayload_AddToTransportTeam.Read(exINI, pSection, "InitialPayload.AddToTransportTeam");
 
-		this->Bounty.Read(exINI, pSection, "Bounty");
 		this->HasSpotlight.Read(exINI, pSection, "HasSpotlight");
 		this->Crew_TechnicianChance.Read(exINI, pSection, "Crew.TechnicianChance");
 		this->Crew_EngineerChance.Read(exINI, pSection, "Crew.EngineerChance");
@@ -882,6 +881,19 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 			this->HunterSeekerDescentSpeed.Read(exINI, pSection, "HunterSeeker.DescentSpeed");
 			this->HunterSeekerEmergeSpeed.Read(exINI, pSection, "HunterSeeker.EmergeSpeed");
 			this->HunterSeekerIgnore.Read(exINI, pSection, "HunterSeeker.Ignore");
+
+			// killer tags
+			this->Bounty.Read(exINI, pSection, "Bounty");
+			this->Bounty_Display.Read(exINI, pSection, "Bounty.Display");
+			this->BountyAllow.Read(exINI, pSection, "Bounty.AffectTypes");
+			this->BountyDissallow.Read(exINI, pSection, "Bounty.IgnoreTypes");
+			this->BountyBonusmult.Read(exINI, pSection, "Bounty.%sBonusMult");
+			this->Bounty_IgnoreEnablers.Read(exINI, pSection, "Bounty.IgnoreEnablers");
+
+			// victim tags
+			this->Bounty_Value.Read(exINI, pSection, "Bounty.%sValue");
+			this->Bounty_Value_Option.Read(exINI, pSection, "Bounty.RewardOption");
+			this->Bounty_Value_mult.Read(exINI, pSection, "Bounty.%sValueMult");
 
 			this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
 			this->MyDiveData.Read(exINI, pSection);
@@ -1474,6 +1486,11 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Elite_PrimaryCrawlFLH)
 		.Process(this->SecondaryCrawlFLH)
 		.Process(this->Elite_SecondaryCrawlFLH)
+
+		.Process(this->BountyAllow)
+		.Process(this->BountyDissallow)
+		.Process(this->BountyBonusmult)
+		.Process(this->Bounty_IgnoreEnablers)
 		.Process(this->MissileHoming)
 
 		.Process(this->Riparius_FrameIDx)
@@ -1655,6 +1672,12 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->HunterSeekerDescentSpeed)
 		.Process(this->HunterSeekerEmergeSpeed)
 		.Process(this->HunterSeekerIgnore)
+
+		.Process(this->Bounty_Display)
+		.Process(this->Bounty_Value)
+		.Process(this->Bounty_Value_Option)
+		.Process(this->Bounty_Value_mult)
+
 		.Process(this->CanPassiveAcquire_Guard)
 		.Process(this->CanPassiveAcquire_Cloak)
 		.Process(this->CrashSpin)

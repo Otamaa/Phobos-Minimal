@@ -308,8 +308,8 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->NewTeamsSelector_NavalCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.NavalCategoryPercentage");
 	//
 
-
 	this->EnemyWrench.Read(exINI, GENERAL_SECTION, "EnemyWrench");
+	this->Bounty_Value_Option.Read(exINI, GENERAL_SECTION, "BountyRewardOption");
 }
 
 void RulesExt::LoadEarlyOptios(RulesClass* pThis, CCINIClass* pINI)
@@ -351,6 +351,9 @@ void RulesExt::ExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 		return;
 
 	INI_EX exINI(pINI);
+
+	pData->Bounty_Enablers.Read(exINI, GENERAL_SECTION, "BountyEnablers");
+	pData->Bounty_Display.Read(exINI, AUDIOVISUAL_SECTION, "BountyDisplay");
 
 }
 
@@ -528,7 +531,9 @@ void RulesExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->Units_UnSellable)
 		.Process(this->DrawTurretShadow)
-
+		.Process(this->Bounty_Enablers)
+		.Process(this->Bounty_Display)
+		.Process(this->Bounty_Value_Option)
 		.Process(this->BerserkROFMultiplier)
 		.Process(this->TeamRetaliate)
 		.Process(this->AI_CostMult)

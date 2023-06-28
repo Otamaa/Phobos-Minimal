@@ -107,6 +107,7 @@ public:
 	static std::array<std::pair<const char* ,AffectPlayerType>, 5u> AffectPlayerType_ToStrings;
 	static std::array<const char*, 3u> SpotlightAttachment_ToStrings;
 	static std::array<const char*, 3u> ShowTimerType_ToStrings;
+	static std::array<const char*, (size_t)BountyValueOption::count> BountyValueOption_ToSrings;
 
 	static bool CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse);
 	static bool IsCellEligible(CellClass* const pCell, AffectedTarget const&  allowed, bool explicitEmptyCells = false);

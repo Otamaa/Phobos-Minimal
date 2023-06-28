@@ -34,6 +34,11 @@
 
 #include <GeneralDefinitions.h>
 
+enum class BountyValueOption : int
+{
+	Value , Cost , Soylent ,count
+};
+
 enum class ShowTimerType : int
 {
 	Hour = 0,
@@ -173,6 +178,7 @@ enum class PhobosAbilityType : int
 	AbductorImmune = 12,
 	Assaulter = 13,
 	ParasiteImmune = 14 ,
+	BountyHunter = 15,
 
 	count
 };

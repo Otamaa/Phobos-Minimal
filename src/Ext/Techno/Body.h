@@ -336,6 +336,7 @@ private:
 	static bool IsAssaulter(InfantryClass* pThis);
 	static bool IsParasiteImmune(TechnoClass* pThis);
 	static bool IsUnwarpable(TechnoClass* pThis);
+	static bool IsBountyHunter(TechnoClass* pThis);
 
 	static bool HasAbility(TechnoClass* pThis , PhobosAbilityType nType);
 	static bool HasImmunity(TechnoClass* pThis, int nType);
@@ -353,6 +354,7 @@ private:
 	static bool IsAssaulter(Rank vet, InfantryClass* pThis);
 	static bool IsParasiteImmune(Rank vet, TechnoClass* pThis);
 	static bool IsUnwarpable(Rank vet, TechnoClass* pThis);
+	static bool IsBountyHunter(Rank vet, TechnoClass* pThis);
 
 	static bool HasAbility(Rank vet , TechnoClass* pThis, PhobosAbilityType nType);
 	static bool HasImmunity(Rank vet, TechnoClass* pThis, int nType);

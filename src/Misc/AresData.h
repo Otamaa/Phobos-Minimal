@@ -424,7 +424,7 @@ struct AresDTORCaller
 #define SW_Firewall_Type (*((SuperWeaponType*)(AresData::AresStaticInstanceFinal[7])))
 #define Ares_CurrentSWType (*((SuperWeaponTypeClass**)(AresData::AresStaticInstanceFinal[8])))
 // remember , this only 3 elements , otherwise it will bleed to something else
-#define Ares_EboltColors1 (*((DWORD*)(AresData::AresStaticInstanceFinal[9])))
-#define Ares_EboltColors2 (*((DWORD*)(AresData::AresStaticInstanceFinal[10])))
-#define Ares_EboltColors3 (*((DWORD*)(AresData::AresStaticInstanceFinal[11])))
+#define Ares_EboltColors1 (*((int*)(AresData::AresStaticInstanceFinal[9])))
+#define Ares_EboltColors2 (*((int*)(AresData::AresStaticInstanceFinal[10])))
+#define Ares_EboltColors3 (*((int*)(AresData::AresStaticInstanceFinal[11])))
 #define Ares_EboltMap (*((const PhobosMap<EBolt* , AresExtension<WeaponTypeClass*>*>*)(AresData::AresStaticInstanceFinal[12])))

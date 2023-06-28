@@ -18,7 +18,7 @@ std::array<const char* const, (size_t)PhobosAbilityType::count> EnumFunctions::P
 	{ "PSIONICSIMMUNE" } , { "CULLINGIMMUNE" } , { "EMPIMMUNE" } ,
 	{ "RADIMMUNE" } , { "PROTECTED_DRIVER" } , { "UNWARPABLE" } , 
 	{ "POISONIMMUNE" } , { "PSIONICSWEAPONIMMUNE" } , { "BERSERKIMMUNE" } ,
-	{ "ABDUCTORIMMUNE" } , { "ASSAULTER" } , { "PARASITEIMMUNE" }
+	{ "ABDUCTORIMMUNE" } , { "ASSAULTER" } , { "PARASITEIMMUNE" } , {"BOUNTYHUNTER"}
  }
 };
 
@@ -361,6 +361,12 @@ std::array<const char*, 3u> EnumFunctions::ShowTimerType_ToStrings
 	}
 };
 
+std::array<const char*, (size_t)BountyValueOption::count> EnumFunctions::BountyValueOption_ToSrings
+{
+	{
+		{"value"} , {"cost"} , {"soylent"}
+	}
+};
 
 bool EnumFunctions::CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse)
 {
