@@ -40,10 +40,16 @@ enum class AresNewActionType :int
 
 struct TargetingData
 {
-	TargetingData(SWTypeExt::ExtData* pTypeExt, HouseClass* pOwner) noexcept :  TypeExt(pTypeExt)
-		, Owner(pOwner)
-		, NeedsLaunchSite(false)
-		, NeedsDesignator(false)
+	TargetingData(SWTypeExt::ExtData* pTypeExt, HouseClass* pOwner) noexcept : TypeExt { pTypeExt }
+		, Owner { pOwner }
+		, NeedsLaunchSite { false}
+		, NeedsDesignator { false }
+		, NeedsAttractors { false }
+		, LaunchSites {}
+		, Designators {}
+		, Inhibitors {}
+		, Attractors {}
+		, Suppressors {}
 	{ }
 
 	~TargetingData() noexcept = default;

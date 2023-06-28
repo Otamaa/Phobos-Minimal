@@ -4954,40 +4954,6 @@ void MeteorShower_Process(CoordStruct Where, HouseClass* pOwner)
 	}
 }
 
-//DEFINE_HOOK(0x46B3E6, BulletClass_NukeMaker_BulletParams, 0x8)
-//{
-//	enum { SkipGameCode = 0x46B40D };
-//
-//	GET_STACK(BulletClass* const, pThis, STACK_OFFSET(0x70, -0x60));
-//	GET_STACK(TechnoClass* const, pOwner, STACK_OFFSET(0x74, -0x50));
-//	GET(WeaponTypeClass* const, pWeapon, ESI);
-//	GET(AbstractClass* const, pTarget, EBX);
-//
-//	pThis->Construct(pWeapon->Projectile,pTarget, pOwner, pWeapon->Damage, pWeapon->Warhead, pWeapon->Speed , pWeapon->Bright||pWeapon->Warhead->Bright);
-//
-//	R->EDI(pThis);
-//	return SkipGameCode;
-//}
-
-// DEFINE_HOOK(0x44CABA, BuildingClass_Mission_Missile_BulletParams, 0x7)
-// {
-// 	enum { SkipGameCode = 0x44CAF2 };
-//
-// 	GET(BuildingClass* const, pThis, ESI);
-// 	GET(CellClass* const, pTarget, EAX);
-//
-// 	auto pWeapon = SuperWeaponTypeClass::Array->GetItem(pThis->FiringSWType)->WeaponType;
-// 	BulletClass* pBullet = nullptr;
-//
-// 	if (pWeapon){ 
-// 		pBullet = BulletTypeExt::ExtMap.Find(pWeapon->Projectile)->CreateBullet(pTarget, pThis, pWeapon->Damage , pWeapon->Warhead , pWeapon->Speed , 255 ,pWeapon->Bright || pWeapon->Warhead->Bright , false);
-// 	}
-//
-// 	R->EAX(pBullet);
-// 	R->EBX(pWeapon);
-// 	return SkipGameCode;
-// }
-
 DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
 {
 
@@ -5102,30 +5068,32 @@ DEFINE_HOOK(0x44E809, BuildingClass_PowerOutput_Absorber, 0x6)
 	return 0x44E826;
 }
 
-bool NOINLINE IsLaserFence(BuildingClass* pNeighbour, BuildingClass* pThis, short nFacing)
-{
-	if (!pNeighbour->Owner || !pThis->Owner || pNeighbour->Owner != pThis->Owner)
-		return false;
+DEFINE_JUMP(LJMP, 0x4417A7, 0x44180A);
 
-	const auto pThisExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
-	const auto& nFence = pThisExt->LaserFencePostLinks;
-
-	if (nFence.empty() || !nFence.Contains(pNeighbour->Type))
-		return false;
-
-	const auto pThatExt = BuildingTypeExt::ExtMap.Find(pNeighbour->Type);
-
-	const auto nFacing_ = (nFacing & 3);
-
-	if (pNeighbour->Type->LaserFencePost
-		|| (pThisExt->LaserFenceWEType.Get(pThisExt->LaserFenceType) == pThatExt->LaserFenceWEType.Get(pNeighbour->Type))
-		|| nFacing_ == pThatExt->LaserFenceDirection && pThisExt->LaserFenceType == pNeighbour->Type)
-	{
-		return true;
-	}
-
-	return false;
-}
+//bool NOINLINE IsLaserFence(BuildingClass* pNeighbour, BuildingClass* pThis, short nFacing)
+//{
+//	if (!pNeighbour->Owner || !pThis->Owner || pNeighbour->Owner != pThis->Owner)
+//		return false;
+//
+//	const auto pThisExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+//	const auto& nFence = pThisExt->LaserFencePostLinks;
+//
+//	if (nFence.empty() || !nFence.Contains(pNeighbour->Type))
+//		return false;
+//
+//	const auto pThatExt = BuildingTypeExt::ExtMap.Find(pNeighbour->Type);
+//
+//	const auto nFacing_ = (nFacing & 3);
+//
+//	if (pNeighbour->Type->LaserFencePost
+//		|| (pThisExt->LaserFenceWEType.Get(pThisExt->LaserFenceType) == pThatExt->LaserFenceWEType.Get(pNeighbour->Type))
+//		|| nFacing_ == pThatExt->LaserFenceDirection && pThisExt->LaserFenceType == pNeighbour->Type)
+//	{
+//		return true;
+//	}
+//
+//	return false;
+//}
 
 //DEFINE_HOOK(0x452F60, BuildingClass_CreateLaserPost_Construction, 5)
 //{
