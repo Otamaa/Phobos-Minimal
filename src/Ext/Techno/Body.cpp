@@ -346,18 +346,7 @@ bool TechnoExt::HasAbility(TechnoClass* pThis, PhobosAbilityType nType)
 		return false;
 	}
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-
-	if (IsVet)
-	{
-		return pTypeExt->Phobos_VeteranAbilities.at((int)nType);
-	}
-	else if (IsElite)
-	{
-		return  pTypeExt->Phobos_VeteranAbilities.at((int)nType) || pTypeExt->Phobos_EliteAbilities.at((int)nType);
-	}
-
-	return false;
+	return HasAbility(IsVet ? Rank::Veteran: Rank::Elite, pThis, nType);
 }
 
 bool TechnoExt::HasImmunity(TechnoClass* pThis, int nType)
@@ -531,6 +520,9 @@ bool TechnoExt::IsBountyHunter(Rank vet, TechnoClass* pThis)
 
 bool TechnoExt::HasAbility(Rank vet, TechnoClass* pThis, PhobosAbilityType nType)
 {
+	if (nType == PhobosAbilityType::None)
+		return false;
+
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if (vet == Rank::Veteran)

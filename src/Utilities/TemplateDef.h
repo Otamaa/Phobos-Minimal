@@ -190,6 +190,32 @@ namespace detail
 	}
 
 	template <>
+	inline bool getresult<PhobosAbilityType>(PhobosAbilityType& value, const std::string& parser, const char* pSection, const char* pKey, bool bAllocate)
+	{
+		if (!parser.empty())
+		{
+			for (size_t i = 0; i < EnumFunctions::PhobosAbilityType_ToStrings.size(); ++i) {
+				if (IS_SAME_STR_(EnumFunctions::PhobosAbilityType_ToStrings[i], parser.c_str())) {
+					value = PhobosAbilityType(i);
+					return true;
+				}
+			}
+
+			bool found = false;
+			for (size_t a = 0; a < TechnoTypeClass::AbilityTypeToStrings.c_size(); ++a) {
+				if (IS_SAME_STR_(TechnoTypeClass::AbilityTypeToStrings[a], parser.c_str())) { 
+					found = true;
+				}
+			}
+
+			if(!found)
+				Debug::INIParseFailed(pSection, pKey, parser.c_str(), "Expect Valind AbilityTypes");
+		}
+
+		return false;
+	}
+
+	template <>
 	inline bool getresult<Rank>(Rank& value, const std::string& parser, const char* pSection, const char* pKey, bool bAllocate)
 	{
 		if (!parser.empty())
@@ -1406,6 +1432,21 @@ namespace detail
 		{
 			LandType buffer;
 			if (getresult<LandType>(buffer, cur, pSection, pKey, allocate))
+				vector.push_back(buffer);
+		}
+	}
+
+	template <>
+	inline void parse_values(std::vector<PhobosAbilityType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		vector.clear();
+		char* context = nullptr;
+		for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
+			cur;
+			cur = strtok_s(nullptr, Phobos::readDelims, &context))
+		{
+			PhobosAbilityType buffer;
+			if (getresult<PhobosAbilityType>(buffer, cur, pSection, pKey, allocate))
 				vector.push_back(buffer);
 		}
 	}

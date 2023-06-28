@@ -1130,6 +1130,9 @@ DEFINE_HOOK(0x46B310, BulletClass_NukeMaker_Handle, 6)
 		GetItemOrDefault(WarheadTypeExt::ExtMap.Find(pThis->WH)->NukePayload_LinkedSW))
 	{
 		pPaylod = SWTypeExt::ExtMap.Find(pLinkedNuke)->Nuke_Payload;
+
+		if (pThis->Owner && pThis->Owner->Owner)
+			pNukeSW = pThis->Owner->Owner->Supers[WarheadTypeExt::ExtMap.Find(pThis->WH)->NukePayload_LinkedSW];
 	}
 	else
 	{

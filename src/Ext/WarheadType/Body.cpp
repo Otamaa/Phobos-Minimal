@@ -389,6 +389,8 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	this->Ion_Rocking.Read(exINI, pSection, "IonCannon.Rock");
 	this->Ion_WH.Read(exINI, pSection, "IonCannon.Warhead");
 	this->Ion_Damage.Read(exINI, pSection, "IonCannon.Damage");
+
+	this->DetonateParticleSystem.Read(exINI, pSection, "DetonateParticleSystems");
 #pragma endregion
 
 	if (this->InflictLocomotor && pThis->Locomotor == _GUID())
@@ -1143,6 +1145,8 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Ion_WH)
 		.Process(this->Ion_Damage)
 #pragma endregion
+
+		.Process(this->DetonateParticleSystem)
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 

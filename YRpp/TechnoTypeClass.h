@@ -90,7 +90,8 @@ public:
 	static constexpr reference<const char*, 0x81BA88, 13u> const MovementZonesToString {};
 	static constexpr reference<int, 0x7F4890, 40u> const BodyShapeStage {};
 	static constexpr reference<int, 0x7F4890, 8u> const BodyShapeStage_Force8 {}; //used by ares 
-	
+	static constexpr reference<const char* , 0x8463B8 ,18u> const AbilityTypeToStrings {};
+
 	//These is same with belows , just for confinient
 	static constexpr reference<bool, 0xAC1488u, 4u> const ShapesIsAllocated {};
 

@@ -380,6 +380,11 @@ public:
 	TypeList<int>* GetTypeList(TypeList<int>* ret , const char* pSection , const char* pKey , TypeList<int> def)
 		{ JMP_THIS(0x475D70); }
 
+	int ReadTime(const char* pSection, const char* pKey, int nDefault)
+		{ JMP_THIS(0x52A760); }
+
+	bool WriteTime(const char* pSection, const char* pKey, int nValue)
+		{ JMP_THIS(0x52A940); }
 	//Properties
 
 public:

@@ -308,6 +308,8 @@ public:
 		Nullable<int> Ion_Damage {};
 #pragma endregion
 
+		ValueableVector<ParticleSystemTypeClass*> DetonateParticleSystem {};
+
 		ExtData(WarheadTypeClass* OwnerObject) : Extension<WarheadTypeClass>(OwnerObject)
 			, Reveal { 0 }
 			, BigGap { false }

@@ -627,6 +627,8 @@ public:
 	bool CreateConnections()
 		{ JMP_THIS(0x697B70) }
 
+	void Resume()
+		{ JMP_THIS(0x69BAB0) }
 public:
 	GameMode GameMode;
 	MPGameModeClass* MPGameMode;

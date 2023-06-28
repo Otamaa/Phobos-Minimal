@@ -426,6 +426,11 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 	//}
 
 	VocClass::PlayIndexAtPos(Sound, coords);
+	if (!this->DetonateParticleSystem.empty()) {
+		for (auto const& pSys : this->DetonateParticleSystem) {
+			GameCreate<ParticleSystemClass>(pSys, coords, nullptr, pOwner, CoordStruct::Empty, pHouse);
+		}
+	}
 
 	if (!pBullet)
 	{

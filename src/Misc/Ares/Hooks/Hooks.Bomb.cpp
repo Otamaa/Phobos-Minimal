@@ -239,6 +239,7 @@ DEFINE_HOOK(0x438761, BombClass_Detonate_Handle, 0x7)
 //new
 DEFINE_JUMP(VTABLE, 0x7E3D4C, GET_OFFSET(BombExt::GetOwningHouse));
 DEFINE_JUMP(VTABLE, 0x7E3D38 , GET_OFFSET(BombExt::InvalidatePointer));
+
 //new
 DEFINE_HOOK(0x6F51F8, TechnoClass_DrawExtras_IvanBombImage_Pos, 0x9)
 {

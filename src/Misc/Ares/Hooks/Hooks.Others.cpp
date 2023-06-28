@@ -4045,7 +4045,8 @@ void GiveBounty(TechnoClass* pVictim, TechnoClass* pKiller)
 			const auto pVictimTypeExt = TechnoTypeExt::ExtMap.Find(pVictimType);
 			const double nVicMult = pVictimTypeExt->Bounty_Value_mult.Get(pVictim);
 			const double nMult = pKillerTypeExt->BountyBonusmult.Get(pKiller);
-			const int nValueResult = GetValue(pVictim, pVictimType, pKillerTypeExt->Bounty_Value_Option.Get(pRulesGlobal->Bounty_Value_Option));
+			const auto nValueType = pKillerTypeExt->Bounty_Value_Option.Get(pRulesGlobal->Bounty_Value_Option);
+			const int nValueResult = GetValue(pVictim, pVictimType, nValueType);
 			const int nValue = int(nValueResult * nVicMult * nMult);
 
 			if(nValue != 0 && pKiller->Owner->AbleToTransactMoney(nValue)) {

@@ -83,24 +83,6 @@ DEFINE_HOOK(4C2951, EBolt_DTOR, 5)
 	return 0;
 }
 
-DEFINE_HOOK(4C24BE, EBolt_Draw_Color1, 5)
-{
-	R->EAX(BoltColors.X);
-	return 0x4C24E4;
-}
-
-DEFINE_HOOK(4C25CB, EBolt_Draw_Color2, 5)
-{
-	R->Stack<int>(0x18, BoltColors.Y);
-	return 0x4C25FD;
-}
-
-DEFINE_HOOK(4C26CF, EBolt_Draw_Color3, 5)
-{
-	R->EAX(BoltColors.Z);
-	return 0x4C26EE;
-}
-
 //DEFINE_HOOK(4C2AFF, EBolt_Fire_Particles, 5)
 //{
 //	GET(EBolt*, pThis, ESI);
