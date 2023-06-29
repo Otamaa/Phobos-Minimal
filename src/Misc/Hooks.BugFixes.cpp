@@ -1003,16 +1003,16 @@ DEFINE_HOOK(0x44E9FA, BuildingClass_Detach_RestoreAnims, 0x6)
 }
 
 // Fix initial facing when jumpjet locomotor is being attached
-DEFINE_HOOK(0x54AE44, JumpjetLocomotionClass_LinkToObject_FixFacing, 0x7)
-{
-	GET(ILocomotion*, iLoco, EBP);
-	auto const pThis = static_cast<JumpjetLocomotionClass*>(iLoco);
-
-	pThis->Facing.Set_Current(pThis->LinkedTo->PrimaryFacing.Current());
-	pThis->Facing.Set_Desired(pThis->LinkedTo->PrimaryFacing.Desired());
-
-	return 0;
-}
+//DEFINE_HOOK(0x54AE44, JumpjetLocomotionClass_LinkToObject_FixFacing, 0x7)
+//{
+//	GET(ILocomotion*, iLoco, EBP);
+//	auto const pThis = static_cast<JumpjetLocomotionClass*>(iLoco);
+//
+//	pThis->Facing.Set_Current(pThis->LinkedTo->PrimaryFacing.Current());
+//	pThis->Facing.Set_Desired(pThis->LinkedTo->PrimaryFacing.Desired());
+//
+//	return 0;
+//}
 
 // This fixes the issue when locomotor is crashing in grounded or
 // hovering state and the crash processing code won't be reached.

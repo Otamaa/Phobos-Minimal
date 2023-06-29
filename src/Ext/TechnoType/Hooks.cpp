@@ -20,7 +20,8 @@ DEFINE_HOOK(0x707319, TechnoClass_CalcVoxelShadow_ShadowScale, 0x6)
 	GET(TechnoTypeClass*, pType, EAX);
 
 	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-	if (pTypeExt->ShadowScale > 0) {
+	if (pTypeExt->ShadowScale > 0)
+	{
 		REF_STACK(Matrix3D, mtx, STACK_OFFSET(0xE8, -0x90));
 		mtx.Scale(pTypeExt->ShadowScale);
 		return 0x707331;
@@ -188,7 +189,7 @@ DEFINE_HOOK(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
 
 		if (idxArray != -1)
 		{
-			const auto nFramesPerFacing = pData->OreGathering_FramesPerDir.GetItemAtOrDefault(idxArray , 15);
+			const auto nFramesPerFacing = pData->OreGathering_FramesPerDir.GetItemAtOrDefault(idxArray, 15);
 
 			if (auto pAnimType = pData->OreGathering_Anims.GetItemAtOrMax(idxArray))
 			{
@@ -349,16 +350,16 @@ DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 	GET_STACK(int, idx, STACK_OFFSET(0x18, 0x8));
 	GET_STACK(VoxelStruct*, pVXL, STACK_OFFSET(0x18, 0x4));
 
-	
+
 	auto pType = pThis->GetTechnoType();
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 	const auto tur = pType->Gunner || pType->IsChargeTurret
-		? AresData::GetTurretsVoxel(pType , pThis->CurrentTurretNumber)
+		? AresData::GetTurretsVoxel(pType, pThis->CurrentTurretNumber)
 		: &pType->TurretVoxel;
 
 	if (pTypeExt->TurretShadow.Get(RulesExt::Global()->DrawTurretShadow) && tur->VXL && tur->HVA)
 	{
-		Matrix3D mtx; 
+		Matrix3D mtx;
 		pThis->Locomotor->Shadow_Matrix(&mtx, nullptr);
 		mtx.RotateZ((float)(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>()));
 		const auto pTurOffset = pTypeExt->TurretOffset.GetEx();
@@ -370,7 +371,7 @@ DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 
 		pThis->DrawVoxelShadow(tur, 0, angle, 0, a4, &a3, &mtx, a9, pSurface, pos);
 
-		const auto bar = pType->ChargerBarrels  ? 
+		const auto bar = pType->ChargerBarrels ?
 			AresData::GetBarrelsVoxel(pType, pThis->CurrentTurretNumber)
 			: &pType->BarrelVoxel;
 
@@ -384,9 +385,11 @@ DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 	}
 	else
 	{
-		for (auto index : pTypeExt->ShadowIndices) {
-			pMatrix->TranslateZ(-pVXL->HVA->Matrixes[index].GetZVal());
-			Matrix3D::MatrixMultiply(pMatrix, &Game::VoxelDefaultMatrix(), pMatrix);
+		for (const auto& index : pTypeExt->ShadowIndices)
+		{
+			//Matrix3D copy_ = *pMatrix;
+			//copy_.TranslateZ(-pVXL->HVA->Matrixes[index].GetZVal());
+			//Matrix3D::MatrixMultiply(&copy_, &Game::VoxelDefaultMatrix(), &copy_);
 			pThis->DrawVoxelShadow(pVXL, index, angle, a5, a4, &a3, pMatrix, a9, pSurface, pos);
 		}
 	}

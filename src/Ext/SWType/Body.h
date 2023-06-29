@@ -372,6 +372,8 @@ public:
 		PhobosPCXFile SidebarPCX {};
 
 		ValueableIdxVector<SuperWeaponTypeClass> SW_ResetType {};
+		ValueableVector<BuildingTypeClass*> SW_Require {};
+		ValueableVector<TechnoTypeClass*> Aux_Techno {};
 
 		ExtData(SuperWeaponTypeClass* OwnerObject) : Extension<SuperWeaponTypeClass>(OwnerObject)
 		{}

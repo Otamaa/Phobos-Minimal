@@ -832,6 +832,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->AIIonCannonValue.Read(exINI, pSection, "AIIonCannonValue");
 		this->ExtraPower_Amount.Read(exINI, pSection, "ExtraPower.Amount");
 
+#pragma region AircraftOnly
 		if (Is_AircraftType(pThis))
 		{
 			this->CrashSpinLevelRate.Read(exINI, pSection, "CrashSpin.LevelRate");
@@ -900,6 +901,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 			this->MyPutData.Read(exINI, pSection);
 			this->MyFighterData.Read(exINI, pSection, pThis);
 		}
+#pragma endregion
 	}
 
 	// Art tags

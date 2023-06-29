@@ -132,6 +132,36 @@ DEFINE_HOOK(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 	return 0x6CECEF;
 }
 
+DEFINE_OVERRIDE_HOOK(0x41F0F1, AITriggerClass_IC_Ready, 0xA)
+{
+	enum { advance = 0x41F0FD , breakloop = 0x41F10D };
+	GET(SuperClass*, pSuper, EDI);
+	
+	const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
+	if (!pExt->IsAvailable(pSuper->Owner))
+		return advance;
+
+	if (pSuper->Type->Type == SuperWeaponType::IronCurtain || (pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain))
+		return breakloop;
+
+	return advance;
+}
+
+DEFINE_OVERRIDE_HOOK(0x41F1A1, AITriggerClass_Chrono_Ready, 0xA)
+{
+	enum { advance = 0x41F1AD, breakloop = 0x41F1BD};
+	GET(SuperClass*, pSuper, EBX);
+
+	const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
+	if (!pExt->IsAvailable(pSuper->Owner))
+		return advance;
+
+	if (pSuper->Type->Type == SuperWeaponType::ChronoSphere)
+		return breakloop;
+
+	return advance;
+}
+
 DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 {
 	GET(TeamClass*, pThis, ECX);

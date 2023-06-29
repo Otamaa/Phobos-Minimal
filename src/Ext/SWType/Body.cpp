@@ -1465,6 +1465,8 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SidebarPalette.Read(exINI, pSection, "SidebarPalette");
 	this->SidebarPCX.Read(exINI.GetINI(), pSection, "SidebarPCX");
 	this->SW_ResetType.Read(exINI, pSection, "SW.ResetTypes");
+	this->SW_Require.Read(exINI, pSection, "SW.RequireBuildings");
+	this->Aux_Techno.Read(exINI, pSection, "SW.AuxTechnos");
 
 	// initialize the NewSWType that handles this SWType.
 	if (auto pNewSWType = NewSWType::GetNewSWType(this))
@@ -1740,6 +1742,13 @@ bool SWTypeExt::ExtData::IsAvailable(HouseClass* pHouse)
 	if (IsCurrentPlayer ? this->SW_AllowPlayer == 0 : this->SW_AllowAI == 0)
 		return false;
 
+	if (!this->SW_Require.empty()) {
+		for (auto const& pBld : this->SW_Require) {
+			if (pBld && !pHouse->CountOwnedAndPresent(pBld))
+				return false;
+		}
+	}
+
 	// check whether the optional aux building exists
 	if (pThis->AuxBuilding && pHouse->CountOwnedAndPresent(pThis->AuxBuilding) <= 0)
 		return false;
@@ -1749,22 +1758,25 @@ bool SWTypeExt::ExtData::IsAvailable(HouseClass* pHouse)
 		return false;
 
 	// check that any aux building exist and no neg building
-	auto IsBuildingPresent = [pHouse](BuildingTypeClass* pType)
-	{
+	auto IsBuildingPresent = [pHouse](BuildingTypeClass* pType) {
 		return pType && pHouse->CountOwnedAndPresent(pType) > 0;
 	};
 
 	const auto& Aux = this->SW_AuxBuildings;
 	// If building Not Exist
-	if (!Aux.empty() && std::none_of(Aux.begin(), Aux.end(), IsBuildingPresent))
-	{
+	if (!Aux.empty() && std::none_of(Aux.begin(), Aux.end(), IsBuildingPresent)) {
 		return false;
 	}
 
 	const auto& Neg = this->SW_NegBuildings;
 	// If building Exist
-	if (!Neg.empty() && std::any_of(Neg.begin(), Neg.end(), IsBuildingPresent))
-	{
+	if (!Neg.empty() && std::any_of(Neg.begin(), Neg.end(), IsBuildingPresent)) {
+		return false;
+	}
+	
+	const auto& AuxT = this->Aux_Techno;
+	if (!AuxT.empty() && std::none_of(AuxT.begin(), AuxT.end(), 
+		[pHouse](TechnoTypeClass* pType) { return pType && pHouse->CountOwnedAndPresent(pType) > 0; })) {
 		return false;
 	}
 
@@ -2150,6 +2162,8 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SidebarPalette)
 		.Process(this->SidebarPCX)
 		.Process(this->SW_ResetType)
+		.Process(this->SW_Require)
+		.Process(this->Aux_Techno)
 		;
 
 }

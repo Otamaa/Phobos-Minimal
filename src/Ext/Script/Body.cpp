@@ -4692,6 +4692,9 @@ FootClass* ScriptExt::FindTheTeamLeader(TeamClass* pTeam)
 		}
 	}
 
+	if (pLeaderUnit)
+		pLeaderUnit->IsTeamLeader = true;
+
 	return pLeaderUnit;
 }
 

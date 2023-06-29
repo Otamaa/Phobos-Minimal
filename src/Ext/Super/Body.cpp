@@ -20,10 +20,10 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 				auto pExt = SuperExt::ExtMap.Find(pHouse->Supers[i]);
 				pExt->Statusses.reset();
 
-				//if InitialReady and SWAvaible
+				//if AlwaysGranted and SWAvaible
 
-				if (pExt->Type->SW_AlwaysGranted && pExt->Type->IsAvailable(pHouse))
-				{
+				if (pExt->Type->SW_AlwaysGranted && pExt->Type->IsAvailable(pHouse)) {
+
 					pExt->Statusses.Available = true;
 					pExt->Statusses.Charging = true;
 				}
@@ -99,7 +99,8 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 		{
 			for (auto const& pSuper : pHouse->Supers)
 			{
-				auto& nStatus = SuperExt::ExtMap.Find(pSuper)->Statusses;
+				const auto pExt = SuperExt::ExtMap.Find(pSuper);
+				auto& nStatus = pExt->Statusses;
 
 				// turn off super weapons that are disallowed.
 				if (!bIsSWShellEnabled && pSuper->Type->DisableableFromShell)
