@@ -629,6 +629,7 @@ public:
 		Nullable<SHPStruct*> AmmoPip;
 		Valueable<Point2D> AmmoPip_Offset;
 		Valueable<PaletteManager*> AmmoPip_Palette; //CustomPalette::PaletteMode::Default
+
 		struct InsigniaData
 		{
 			Promotable<SHPStruct*> Shapes { nullptr };
@@ -763,6 +764,7 @@ public:
 		Nullable<BountyValueOption> Bounty_Value_Option { };
 		Promotable<double> Bounty_Value_mult { 1.0 };
 		Valueable<bool> Bounty_IgnoreEnablers { false };
+		bool RecheckTechTreeWhenDie { false };
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, HealthBar_Hide { false }

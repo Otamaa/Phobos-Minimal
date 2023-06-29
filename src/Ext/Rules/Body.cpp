@@ -104,6 +104,8 @@ void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	Data->LoadBeforeTypeData(pThis, pINI);
 }
 
+#include <Ext/SWType/Body.h>
+
 void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
 	if (pINI == CCINIClass::INI_Rules)
@@ -111,13 +113,12 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 		INI_EX iniEX(pINI);
 
 		char buffer[0x30];
-		for (auto const& pInfType : *InfantryTypeClass::Array)
+		for (auto pInfType : *InfantryTypeClass::Array)
 		{
-
 			if (!pInfType)
 				continue;
 
-			for (auto const& pWarhead : *WarheadTypeClass::Array)
+			for (auto pWarhead : *WarheadTypeClass::Array)
 			{
 				if (auto const pExt = WarheadTypeExt::ExtMap.TryFind(pWarhead))
 				{
@@ -134,10 +135,27 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 			}
 		}
 
-		Data->InitializeAfterTypeData(pThis);
-	}
+		for (auto pSWType : *SuperWeaponTypeClass::Array)
+		{
+			if (!pSWType)
+				continue;
+			
+			const auto pSuperExt = SWTypeExt::ExtMap.Find(pSWType);
 
-	Data->LoadAfterTypeData(pThis, pINI);
+			if (pSuperExt->Aux_Techno.empty())
+				continue;
+
+			for (auto pType : *TechnoTypeClass::Array)
+			{
+				if (!pType || pType->WhatAmI() == AbstractType::BuildingType)
+					continue;
+
+				if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType))
+					if (pSuperExt->Aux_Techno.Contains(pType))
+						pTypeExt->RecheckTechTreeWhenDie = true;
+			}
+		}
+	}
 }
 
 // earliest loader - can't really do much because nothing else is initialized yet, so lookups won't work

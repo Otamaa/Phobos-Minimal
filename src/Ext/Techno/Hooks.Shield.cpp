@@ -34,8 +34,10 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Early, 0x6)
 	pWHExt->ApplyDamageMult(pThis, &args);
 	//SkipAllReaction = false
 
-	if (!args.IgnoreDefenses) {
-		if (auto pShieldData = TechnoExt::ExtMap.Find(pThis)->GetShield()) {
+	if (!args.IgnoreDefenses)
+	{
+		if (auto pShieldData = TechnoExt::ExtMap.Find(pThis)->GetShield())
+		{
 			pShieldData->OnReceiveDamage(&args);
 		}
 		//else
@@ -60,9 +62,12 @@ DEFINE_HOOK(0x7019D8, TechnoClass_ReceiveDamage_SkipLowDamageCheck, 0x5)
 
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
 
-	if (pExt->SkipLowDamageCheck) {
+	if (pExt->SkipLowDamageCheck)
+	{
 		pExt->SkipLowDamageCheck = false;
-	} else {
+	}
+	else
+	{
 
 		// Restore overridden instructions
 		if (*pDamage < 1)
@@ -84,8 +89,9 @@ DEFINE_HOOK(0x70CF39, TechnoClass_EvalThreatRating_Shield, 0x6)
 	GET(WeaponTypeClass*, pWeapon, EBX);
 	GET(ObjectClass*, pTarget, ESI);
 
-	if (auto pTechno = generic_cast<TechnoClass*>(pTarget)) {
-		if(TechnoExt::ReplaceArmor(R,pTechno,pWeapon))
+	if (auto pTechno = generic_cast<TechnoClass*>(pTarget))
+	{
+		if (TechnoExt::ReplaceArmor(R, pTechno, pWeapon))
 			return R->Origin() + 6;
 	}
 
@@ -98,11 +104,19 @@ REPLACE_ARMOR(0x708AEB, ESI, EBP, TechnoClass_ShouldRetaliate_Shield) //
 
 #undef REPLACE_ARMOR
 
+#include <Ext/Super/Body.h>
+
 DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_AfterRadioClassRemove, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
 
-	if (const auto pShieldData = TechnoExt::ExtMap.Find(pThis)->GetShield())
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
+
+	if (pThis->Owner && !pThis->Owner->RecheckTechTree && pTypeExt->RecheckTechTreeWhenDie)
+		pThis->Owner->RecheckTechTree = true;
+
+	if (const auto pShieldData = pExt->GetShield())
 		pShieldData->OnRemove();
 
 	return 0;

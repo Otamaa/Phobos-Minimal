@@ -1700,7 +1700,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->AIIonCannonValue)
 		.Process(this->GenericPrerequisite)
 		.Process(this->ExtraPower_Amount)
-
+		.Process(this->RecheckTechTreeWhenDie)
 #pragma endregion
 		;
 
