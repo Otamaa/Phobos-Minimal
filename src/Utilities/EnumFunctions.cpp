@@ -370,13 +370,17 @@ std::array<const char*, (size_t)BountyValueOption::count> EnumFunctions::BountyV
 
 bool EnumFunctions::CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse)
 {
-	if ((flags & AffectedHouse::All) != AffectedHouse::None)
+	if (flags == AffectedHouse::All)
 		return true;
 
 	if (ownerHouse && targetHouse) {
-		return (flags & AffectedHouse::Owner) && ownerHouse == targetHouse ||
-			   (flags & AffectedHouse::Allies) && ownerHouse != targetHouse && ownerHouse->IsAlliedWith(targetHouse) ||
-			   (flags & AffectedHouse::Enemies) && ownerHouse != targetHouse && !ownerHouse->IsAlliedWith(targetHouse);
+
+		if ((flags & AffectedHouse::Owner) && ownerHouse == targetHouse)
+			return true;
+
+		const auto IsAlly = ownerHouse->IsAlliedWith(targetHouse);
+		return (flags & AffectedHouse::Allies) && ownerHouse != targetHouse && IsAlly ||
+			   (flags & AffectedHouse::Enemies) && ownerHouse != targetHouse && !IsAlly;
 	}
 
 	return (flags & AffectedHouse::Enemies) != AffectedHouse::None;

@@ -994,10 +994,10 @@ bool SWTypeExt::ExtData::CanFire(HouseClass* pOwner)
 // can i see the animation of pFirer's SW?
 bool SWTypeExt::ExtData::IsAnimVisible(HouseClass* pFirer)
 {
-	auto relation = SWTypeExt::ExtData::GetRelation(pFirer, HouseClass::CurrentPlayer);
-	const auto nRelationResult = (this->SW_AnimVisibility & relation);
-	const bool IsVisible = nRelationResult == relation;
-	return IsVisible;
+	// auto relation = SWTypeExt::ExtData::GetRelation(pFirer, HouseClass::CurrentPlayer);
+	// const auto nRelationResult = (this->SW_AnimVisibility & relation);
+	// const bool IsVisible = nRelationResult == relation;
+	return EnumFunctions::CanTargetHouse(this->SW_AnimVisibility , pFirer , HouseClass::CurrentPlayer());
 }
 
 // does pFirer's SW affects object belonging to pHouse?
@@ -1008,10 +1008,10 @@ bool SWTypeExt::ExtData::IsHouseAffected(HouseClass* pFirer, HouseClass* pHouse)
 
 bool SWTypeExt::ExtData::IsHouseAffected(HouseClass* pFirer, HouseClass* pHouse, AffectedHouse value)
 {
-	auto relation = SWTypeExt::ExtData::GetRelation(pFirer, pHouse);
-	const auto nRelationResult = (value & relation);
-	const bool IsVisible = nRelationResult == relation;
-	return IsVisible;
+	// auto relation = SWTypeExt::ExtData::GetRelation(pFirer, pHouse);
+	// const auto nRelationResult = (value & relation);
+	// const bool IsVisible = nRelationResult == relation;
+	return EnumFunctions::CanTargetHouse(value , pFirer ,pHouse);
 }
 
 AffectedHouse SWTypeExt::ExtData::GetRelation(HouseClass* pFirer, HouseClass* pHouse)

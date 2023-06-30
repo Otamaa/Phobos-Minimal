@@ -788,6 +788,9 @@ bool TechnoExt::TechnoTargetAllowFiring(TechnoClass* pThis, TechnoClass* pTarget
 {
 	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 
+	if (IS_SAME_STR_(pWeapon->ID, "CoyoteGun"))
+		Debug::Log("Hey");
+
 	if (!EnumFunctions::IsTechnoEligible(pTarget, pWeaponExt->CanTarget) ||
 		!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner, pTarget->Owner))
 	{
