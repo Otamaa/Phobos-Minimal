@@ -1180,10 +1180,10 @@ DEFINE_HOOK(0x46B310, BulletClass_NukeMaker_Handle, 6)
 	{
 		pPayloadBullet->Limbo();
 		BulletExt::ExtMap.Find(pPayloadBullet)->NukeSW = pNukeSW;
-		auto nTargetLoc = pTarget->GetCoords();
-		pPayloadBullet->SourceCoords = pThis->GetCoords();
-		pPayloadBullet->TargetCoords = nTargetLoc;
-		nTargetLoc.Z += pPaylod->Projectile->DetonationAltitude;
+		CoordStruct nTargetLoc = pTarget->GetCoords();
+		CoordStruct nOffs { 0 , 0, pPaylod->Projectile->DetonationAltitude };
+		CoordStruct dest = nTargetLoc + nOffs;
+
 		constexpr auto nCos = gcem::cos(1.570748388432313); // Accuracy is different from the game 
 		constexpr auto nSin = gcem::sin(1.570748388432313); // Accuracy is different from the game 
 
@@ -1191,7 +1191,7 @@ DEFINE_HOOK(0x46B310, BulletClass_NukeMaker_Handle, 6)
 		constexpr double nY = nCos * nSin * -1.0;
 		constexpr double nZ = nSin * -1.0;
 
-		pPayloadBullet->MoveTo(nTargetLoc, { nX , nY , nZ });
+		pPayloadBullet->MoveTo(dest, { nX , nY , nZ });
 	}
 
 	return ret;

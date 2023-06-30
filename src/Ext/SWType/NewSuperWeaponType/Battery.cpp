@@ -45,6 +45,9 @@ void SW_Battery::Deactivate(SuperClass* pSW, CellStruct cell, bool isPlayer)
 
 void SW_Battery::Initialize(SWTypeExt::ExtData* pData)
 {
+	pData->OwnerObject()->Action = Action::None;
+	pData->OwnerObject()->UseChargeDrain = true;
+	pData->SW_RadarEvent = false;
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::LowPower;
 }
 

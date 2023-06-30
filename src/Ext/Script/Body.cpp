@@ -2074,17 +2074,17 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 
 		// This action finished
 		pTeam->StepCompleted = true;
-		auto const& nCur = pScript->GetCurrentAction();
-		auto const& nNext = pScript->GetNextAction();
-		Debug::Log("AI Scripts - Mission_Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No Leader found | Exists Aircrafts without ammo | Team members have no weapons)\n", 
-			pTeam->Type->ID, 
-			pScript->Type->ID, 
-			pScript->CurrentMission, 
-			nCur.Action,
-			nCur.Argument,
-			pScript->CurrentMission + 1, 
-			nNext.Action,
-			nNext.Argument);
+		//auto const& nCur = pScript->GetCurrentAction();
+		//auto const& nNext = pScript->GetNextAction();
+		//Debug::Log("AI Scripts - Mission_Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No Leader found | Exists Aircrafts without ammo | Team members have no weapons)\n", 
+		//	pTeam->Type->ID, 
+		//	pScript->Type->ID, 
+		//	pScript->CurrentMission, 
+		//	nCur.Action,
+		//	nCur.Argument,
+		//	pScript->CurrentMission + 1, 
+		//	nNext.Action,
+		//	nNext.Argument);
 
 		return;
 	}

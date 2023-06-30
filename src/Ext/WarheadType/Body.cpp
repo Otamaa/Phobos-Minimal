@@ -37,7 +37,7 @@ void WarheadTypeExt::ExtData::Initialize()
 	Shield_AttachTypes.reserve(8);
 	Shield_RemoveTypes.reserve(8);
 	InfDeathAnims.reserve(200);
-	IsNukeWarhead = IS_SAME_STR_N(RulesExt::Global()->NukeWarheadName.data(), this->Get()->ID);
+	IsNukeWarhead = IS_SAME_STR_(RulesExt::Global()->NukeWarheadName.data(), this->Get()->ID);
 }
 
 void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)

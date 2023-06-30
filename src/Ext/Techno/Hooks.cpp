@@ -148,19 +148,24 @@ DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_LaserTrails, 0x7)
 
 DEFINE_HOOK(0x6F6CFE, TechnoClass_Unlimbo_LaserTrails, 0x6)
 {
-	GET(TechnoClass*, pTechno, ESI);
-	auto const pTechnoExt = TechnoExt::ExtMap.Find(pTechno);
+	GET(TechnoClass*, pThis, ESI);
 
-	if (!pTechnoExt->LaserTrails.empty())
+	auto const pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
+
+	if (pThis->Owner && !pThis->Owner->RecheckTechTree && pTypeExt->RecheckTechTreeWhenDie)
+		pThis->Owner->RecheckTechTree = true;
+
+	if (!pExt->LaserTrails.empty())
 	{
-		for (auto& pLaserTrail : pTechnoExt->LaserTrails)
+		for (auto& pLaserTrail : pExt->LaserTrails)
 		{
 			pLaserTrail.LastLocation.clear();
 			pLaserTrail.Visible = true;
 		}
 	}
 
-	TrailsManager::Hide(pTechno);
+	TrailsManager::Hide(pThis);
 
 	return 0;
 }

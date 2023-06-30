@@ -54,8 +54,8 @@ std::array<const AITargetingModeInfo, (size_t)SuperWeaponAITargetingMode::count>
 	{SuperWeaponAITargetingMode::EnemyBase, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraint::Enemy, TargetingPreference::None },
 	{SuperWeaponAITargetingMode::IronCurtain, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraint::None, TargetingPreference::None },
 	{SuperWeaponAITargetingMode::Attack, SuperWeaponTarget::AllTechnos, AffectedHouse::Enemies, TargetingConstraint::Enemy, TargetingPreference::Offensive},
-	{SuperWeaponAITargetingMode::LowPower, SuperWeaponTarget::None, AffectedHouse::Owner, TargetingConstraint::Attacked, TargetingPreference::None},
-	{SuperWeaponAITargetingMode::LowPowerAttack, SuperWeaponTarget::Building, AffectedHouse::None, TargetingConstraint::LowPower, TargetingPreference::None },
+	{SuperWeaponAITargetingMode::LowPower, SuperWeaponTarget::None, AffectedHouse::Owner, TargetingConstraint::LowPower, TargetingPreference::None},
+	{SuperWeaponAITargetingMode::LowPowerAttack, SuperWeaponTarget::Building, AffectedHouse::Owner, TargetingConstraint::Attacked | TargetingConstraint::LowPower, TargetingPreference::None },
 	{SuperWeaponAITargetingMode::Droppod, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraint::Enemy , TargetingPreference::None},
 	{SuperWeaponAITargetingMode::LighningRandom, SuperWeaponTarget::AllCells, AffectedHouse::All, TargetingConstraint::Enemy, TargetingPreference::None },
 }
@@ -89,8 +89,11 @@ void SWTypeExt::ExtData::Initialize()
 
 	if (auto pNewSWType = NewSWType::GetNewSWType(this))
 	{
+		this->Get()->Action = Action(AresNewActionType::SuperWeaponAllowed);
 		pNewSWType->Initialize(this);
 	}
+
+	this->LastAction = this->Get()->Action;
 }
 
 Action NOINLINE SWTypeExt::ExtData::GetAction(SuperWeaponTypeClass* pSuper, CellStruct* pTarget)
@@ -1474,7 +1477,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		pThis->Action = this->LastAction;
 		pNewSWType->LoadFromINI(this, pINI);
 		this->LastAction = pThis->Action;
-
+		
 		// whatever the user does, we take care of the stupid tags.
 		// there is no need to have them not hardcoded.
 		auto const flags = pNewSWType->Flags();
