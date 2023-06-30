@@ -23,6 +23,7 @@
 #include "Battery.h"
 #include "EMPField.h"
 #include "IonCannon.h"
+#include "MeteorShower.h"
 
 #include <Misc/AresData.h>
 
@@ -499,6 +500,7 @@ void NewSWType::Init()
 	RegSW(SW_Battery, AresNewSuperType::Battery)
 	RegSW(SW_EMPField, AresNewSuperType::EMPField)
 	RegSW(SW_IonCannon, AresNewSuperType::IonCannon)
+	RegSW(SW_MeteorShower, AresNewSuperType::MeteorShower)
 #undef RegSW
 }
 
@@ -556,7 +558,7 @@ SuperWeaponType NewSWType::FindFromTypeID(const char* pType)
 		if (!pIDs.empty()) {
 			for (auto& Id : pIDs) {
 				//ares usin strcmp , so i just follow it here
-				if (!strcmp(Id, pType)) {
+				if (!CRT::strcmp(Id, pType)) {
 					return true;
 				}
 			}

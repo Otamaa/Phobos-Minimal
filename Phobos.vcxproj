@@ -111,6 +111,7 @@
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\HunterSeeker.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\IonCannon.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\LightningStorm.cpp" />
+    <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\MeteorShower.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\NewSWType.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\NuclearMissile.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\ParaDrop.cpp" />
@@ -392,6 +393,7 @@
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\HunterSeeker.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\IonCannon.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\LightningStorm.h" />
+    <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\MeteorShower.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\NewSWType.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\NuclearMissile.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\ParaDrop.h" />

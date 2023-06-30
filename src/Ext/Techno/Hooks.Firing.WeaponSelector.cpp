@@ -152,9 +152,6 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 	bool allowAAFallback = allowFallback ? true : pTypeExt->NoSecondaryWeaponFallback_AllowAA;
 	const int weaponIndex = TechnoExt::PickWeaponIndex(pThis, pTargetTechno, pTarget, 0, 1, allowFallback, allowAAFallback);
 
-	/*	if (IS_SAME_STR_("LYNXBUFF", pThis->get_ID()) && pTargetTechno && IS_SAME_STR_("LTNKUP", pTargetTechno->get_ID()))
-			Debug::Log("LynxBuff Trying To fire[%d] After HP check! \n", weaponIndex);*/
-
 	if (weaponIndex != -1)
 		return weaponIndex == 1 ? Secondary : Primary;
 

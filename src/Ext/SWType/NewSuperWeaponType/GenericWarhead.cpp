@@ -69,8 +69,6 @@ bool SW_GenericWarhead::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 
 	auto pOwnerHouse = pThis->Owner;
     WarheadTypeExt::CreateIonBlast(pWarhead, coords);
-	//AresData::applyIonCannon(pWarhead, &coords);
-	//AresData::applyIC(pWarhead, &coords, pOwnerHouse, damage);
 	AresData::applyEMP(pWarhead, &coords, pFirer);
 	AresData::applyAE(pWarhead, &coords, pOwnerHouse);
 

@@ -27,8 +27,7 @@ enum class AresNewSuperType : int
 	Battery = 17,
 	EMPField = 18,
 	IonCannon = 19,
-	//ChemLauncher = 20,
-	//MultiLauncher = 21,
+	MeteorShower = 20,
 	count
 };
 

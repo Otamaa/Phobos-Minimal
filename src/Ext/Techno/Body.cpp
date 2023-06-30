@@ -2429,7 +2429,7 @@ void TechnoExt::ExtData::UpdateDelayFireAnim()
 	TechnoExt::ResetDelayFireAnim(pThis);
 }
 
-bool TechnoExt::CanFireNoAmmoWeapon(TechnoClass* pThis, int weaponIndex)
+bool NOINLINE TechnoExt::CanFireNoAmmoWeapon(TechnoClass* pThis, int weaponIndex)
 {
 	if (pThis->GetTechnoType()->Ammo > 0)
 	{
@@ -3564,8 +3564,9 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno,
 
 	const auto pWeaponOne = pWeaponStructOne->WeaponType;
 	const auto pWeaponTwo = pWeaponStructTwo->WeaponType;
+	const auto pFirstExt = WeaponTypeExt::ExtMap.Find(pWeaponOne);
+	const auto pSecondExt = WeaponTypeExt::ExtMap.Find(pWeaponTwo);
 
-	if (const auto pSecondExt = WeaponTypeExt::ExtMap.Find(pWeaponTwo))
 	{
 		if ((targetCell && !EnumFunctions::IsCellEligible(targetCell, pSecondExt->CanTarget, true)) ||
 			(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pSecondExt->CanTarget) ||
@@ -3573,12 +3574,16 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno,
 		{
 			return weaponIndexOne;
 		}
-		else if (const auto pFirstExt = WeaponTypeExt::ExtMap.Find(pWeaponOne))
+		else
 		{
 			const bool secondaryIsAA = pTargetTechno && pTargetTechno->IsInAir() && pWeaponTwo->Projectile->AA;
 
 			if (!allowFallback && (!allowAAFallback || !secondaryIsAA) && !TechnoExt::CanFireNoAmmoWeapon(pThis, 1))
-				return weaponIndexOne;
+					return weaponIndexOne;
+
+			//these 2 exclusive weapon will always be the preferable
+			 //if (pWeaponTwo->Warhead->MakesDisguise)
+			//	return weaponIndexTwo;
 
 			if ((targetCell && !EnumFunctions::IsCellEligible(targetCell, pFirstExt->CanTarget, true)) ||
 				(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pFirstExt->CanTarget) ||
