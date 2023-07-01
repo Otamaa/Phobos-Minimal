@@ -23,31 +23,21 @@ public:
 
 	public:
 
-		ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types;
-		Valueable<bool> Warhead_Detonate;
+		ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types { };
+		Valueable<bool> Warhead_Detonate { false };
 #pragma region Otamaa
-		NullableVector <AnimTypeClass*> SplashList;//
-		Valueable<bool> SplashList_Pickrandom;
-		Nullable<AnimTypeClass*> WakeAnim; //
-		Valueable<bool> ExplodeOnWater;
+		NullableVector <AnimTypeClass*> SplashList { };//
+		Valueable<bool> SplashList_Pickrandom { true };
+		Nullable<AnimTypeClass*> WakeAnim { }; //
+		Valueable<bool> ExplodeOnWater { false };
 		Valueable<bool> Damage_DealtByOwner;
-		Nullable<WeaponTypeClass*> Weapon;
-		Valueable<bool> ExpireDamage_ConsiderInvokerVet;
+		Nullable<WeaponTypeClass*> Weapon { };
+		Valueable<bool> ExpireDamage_ConsiderInvokerVet { false };
 
-		TrailsReader Trails;
+		TrailsReader Trails { };
 #pragma endregion
 
 		ExtData(VoxelAnimTypeClass* OwnerObject) : Extension<VoxelAnimTypeClass>(OwnerObject)
-			, LaserTrail_Types { }
-			, Warhead_Detonate { false }
-			, SplashList { }
-			, SplashList_Pickrandom { true }
-			, WakeAnim { }
-			, ExplodeOnWater { false }
-			, Damage_DealtByOwner { false }
-			, Weapon { }
-			, ExpireDamage_ConsiderInvokerVet { false }
-			, Trails { }
 		{ }
 
 		virtual ~ExtData() override = default;

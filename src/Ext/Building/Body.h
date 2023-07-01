@@ -23,47 +23,28 @@ public:
 		//static constexpr size_t ExtOffset = 0x6FC;
 
 	public:
-		BuildingTypeExt::ExtData* Type;
-		TechnoExt::ExtData* TechnoExt;
-		bool DeployedTechno;
-		int LimboID;
-		int GrindingWeapon_LastFiredFrame;
-		BuildingClass* CurrentAirFactory;
-		int AccumulatedGrindingRefund;
-		int AccumulatedIncome;
-		bool IsCreatedFromMapFile;
+		BuildingTypeExt::ExtData* Type { nullptr };
+		TechnoExt::ExtData* TechnoExt { nullptr };
+		bool DeployedTechno { false };
+		int LimboID { -1 };
+		int GrindingWeapon_LastFiredFrame { 0 };
+		BuildingClass* CurrentAirFactory { nullptr };
+		int AccumulatedGrindingRefund { 0 };
+		int AccumulatedIncome { 0 };
+		bool IsCreatedFromMapFile { false };
 
-		std::vector<AnimClass*> DamageFireAnims;
-		CDTimerClass AutoSellTimer;
-		bool LighningNeedUpdate;
-		bool TogglePower_HasPower;
-		OptionalStruct<int , true> C4Damage;
-		HouseClass* C4Owner;
-		WarheadTypeClass* C4Warhead;
-		bool Silent;
-		WarheadTypeClass* ReceiveDamageWarhead;
+		std::vector<AnimClass*> DamageFireAnims { };
+		CDTimerClass AutoSellTimer { };
+		bool LighningNeedUpdate { false };
+		bool TogglePower_HasPower { false };
+		bool Silent { false };
 
-		ExtData(BuildingClass* OwnerObject) : Extension<BuildingClass>(OwnerObject)
-			, Type { nullptr }
-			, TechnoExt { nullptr }
-			, DeployedTechno { false }
-			, LimboID { -1 }
-			, GrindingWeapon_LastFiredFrame { 0 }
-			, CurrentAirFactory { nullptr }
-			, AccumulatedGrindingRefund { 0 }
-			, AccumulatedIncome { 0 }
-			, IsCreatedFromMapFile { false }
-			, DamageFireAnims { }
-			, AutoSellTimer { }
-			, LighningNeedUpdate { false }
-			, TogglePower_HasPower { false }
-			, C4Damage { }
-			, C4Owner { nullptr }
-			, C4Warhead { nullptr }
-			, Silent { false }
-			, ReceiveDamageWarhead { nullptr }
-		{ }
+		OptionalStruct<int , true> C4Damage { };
+		HouseClass* C4Owner { nullptr };
+		WarheadTypeClass* C4Warhead { nullptr };
+		WarheadTypeClass* ReceiveDamageWarhead { nullptr };
 
+		ExtData(BuildingClass* OwnerObject) : Extension<BuildingClass>(OwnerObject)	{ }
 		virtual ~ExtData() override = default;
 
 		void InvalidatePointer(void* ptr, bool bRemoved);

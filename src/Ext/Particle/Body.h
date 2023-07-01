@@ -22,13 +22,10 @@ public:
 
 	public:
 
-		std::vector<LaserTrailClass> LaserTrails;
-		std::vector<UniversalTrail> Trails;
+		std::vector<LaserTrailClass> LaserTrails { };
+		std::vector<UniversalTrail> Trails { };
 
 		ExtData(ParticleClass* OwnerObject) : Extension<ParticleClass>(OwnerObject)
-			,  LaserTrails { }
-			, Trails { }
-
 		{ }
 
 		virtual ~ExtData() override = default;

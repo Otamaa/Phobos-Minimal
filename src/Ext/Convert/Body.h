@@ -17,14 +17,11 @@ public:
 
 	public:
 
-		char* m_ColorDatas;
-		Blitter* NewBlitters[17];
-		RLEBlitter* NewRLEBlitters[18];
+		char* m_ColorDatas { nullptr };
+		Blitter* NewBlitters[17] {};
+		RLEBlitter* NewRLEBlitters[18] {};
 
 		ExtData(ConvertClass* OwnerObject) : Extension<ConvertClass>(OwnerObject)
-			, m_ColorDatas { nullptr }
-			, NewBlitters {}
-			, NewRLEBlitters {}
 		{
 			//Built the Color data replacements here
 			//Built the new blitters here

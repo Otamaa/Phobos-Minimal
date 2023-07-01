@@ -18,93 +18,56 @@ public:
 		using base_type = TeamClass;
 
 	public:
-		int WaitNoTargetAttempts;
-		double NextSuccessWeightAward;
-		int IdxSelectedObjectFromAIList;
-		double CloseEnough;
-		int Countdown_RegroupAtLeader;
-		int MoveMissionEndMode;
-		int WaitNoTargetCounter;
-		CDTimerClass WaitNoTargetTimer;
-		CDTimerClass ForceJump_Countdown;
-		int ForceJump_InitialCountdown;
-		bool ForceJump_RepeatMode;
-		FootClass* TeamLeader;
-		int GenericStatus;
-		int FailedCounter;
+
+		int WaitNoTargetAttempts { 0 };
+		double NextSuccessWeightAward { 0.0 };
+		int IdxSelectedObjectFromAIList { -1 };
+		int CloseEnough { -1 };
+		int Countdown_RegroupAtLeader { -1 };
+		int MoveMissionEndMode { 0 };
+		int WaitNoTargetCounter { 0 };
+		CDTimerClass WaitNoTargetTimer {};
+		CDTimerClass ForceJump_Countdown {};
+		int ForceJump_InitialCountdown { -1 };
+		bool ForceJump_RepeatMode { false };
+		FootClass* TeamLeader { nullptr };
+		int GenericStatus { 0 };
+		int FailedCounter { -1 };
 
 		// #442
-		int AngerNodeModifier;
-		bool OnlyTargetHouseEnemy;
-		int OnlyTargetHouseEnemyMode;
+		int AngerNodeModifier { 5000 };
+		bool OnlyTargetHouseEnemy { false };
+		int OnlyTargetHouseEnemyMode { -1 };
 
 		// #599
-		bool ConditionalJump_Evaluation;
-		int ConditionalJump_ComparatorMode;
-		int ConditionalJump_ComparatorValue;
-		int ConditionalJump_Counter;
-		int ConditionalJump_Index;
-		bool AbortActionAfterKilling;
-		bool ConditionalJump_EnabledKillsCount;
-		bool ConditionalJump_ResetVariablesIfJump;
+		bool ConditionalJump_Evaluation { false };
+		int ConditionalJump_ComparatorMode { 3 };
+		int ConditionalJump_ComparatorValue { 1 };
+		int ConditionalJump_Counter { 0 };
+		int ConditionalJump_Index { -1000000 };
+		bool AbortActionAfterKilling { false };
+		bool ConditionalJump_EnabledKillsCount { false };
+		bool ConditionalJump_ResetVariablesIfJump { false };
 
 		//#691
-		std::vector<ScriptClass*> PreviousScriptList;
+		std::vector<ScriptClass*> PreviousScriptList { };
 
 		//#565
-		int TriggersSideIdx;
-		int TriggersHouseIdx;
+		int TriggersSideIdx { -1 };
+		int TriggersHouseIdx { -1 };
 
 		//#791
-		std::vector<std::vector<bool>> MapPath_Grid; // Used for marking visited/analyzed cells
-		std::vector<MapPathCellElement> MapPath_Queue; // Cells that will be analyzed for finding a path
-		bool MapPath_InProgress;
-		TechnoClass* MapPath_StartTechno;
-		TechnoClass* MapPath_EndTechno;
-		std::vector<TechnoClass*> MapPath_BridgeRepairHuts;
-		std::vector<TechnoClass*> MapPath_ValidBridgeRepairHuts;
-		std::vector<TechnoClass*> MapPath_CheckedBridgeRepairHuts;
+		std::vector<std::vector<bool>> MapPath_Grid { }; // Used for marking visited/analyzed cells
+		std::vector<MapPathCellElement> MapPath_Queue { }; // Cells that will be analyzed for finding a path
+		bool MapPath_InProgress { false };
+		TechnoClass* MapPath_StartTechno { nullptr };
+		TechnoClass* MapPath_EndTechno { nullptr };
+		std::vector<TechnoClass*> MapPath_BridgeRepairHuts { };
+		std::vector<TechnoClass*> MapPath_ValidBridgeRepairHuts { };
+		std::vector<TechnoClass*> MapPath_CheckedBridgeRepairHuts { };
 
 		ExtData(TeamClass* OwnerObject) : Extension<TeamClass>(OwnerObject)
-			, WaitNoTargetAttempts { 0 }
-			, NextSuccessWeightAward { 0 }
-			, IdxSelectedObjectFromAIList { -1 }
-			, CloseEnough { -1 }
-			, Countdown_RegroupAtLeader { -1 }
-			, MoveMissionEndMode { 0 }
-			, WaitNoTargetCounter { 0 }
-			, WaitNoTargetTimer { 0 }
-			, ForceJump_Countdown { -1 }
-			, ForceJump_InitialCountdown { -1 }
-			, ForceJump_RepeatMode { false }
-			, TeamLeader { nullptr }
-			, GenericStatus { 0 }
-			, FailedCounter { -1 }
 
-			, AngerNodeModifier { 5000 }
-			, OnlyTargetHouseEnemy { false }
-			, OnlyTargetHouseEnemyMode { -1 }
-
-			, ConditionalJump_Evaluation { false }
-			, ConditionalJump_ComparatorMode { 3 }
-			, ConditionalJump_ComparatorValue { 1 }
-			, ConditionalJump_Counter { 0 }
-			, ConditionalJump_Index { -1000000 }
-			, AbortActionAfterKilling { false }
-			, ConditionalJump_EnabledKillsCount { false }
-			, ConditionalJump_ResetVariablesIfJump { false }
-
-			, TriggersSideIdx { -1 }
-			, TriggersHouseIdx { -1 }
-
-			, MapPath_Grid { }
-			, MapPath_Queue { }
-			, MapPath_InProgress { false }
-			, MapPath_StartTechno { nullptr }
-			, MapPath_EndTechno { nullptr }
-			, MapPath_BridgeRepairHuts { }
-			, MapPath_ValidBridgeRepairHuts { }
-			, MapPath_CheckedBridgeRepairHuts { }
 		{ }
 
 		virtual ~ExtData() override = default;

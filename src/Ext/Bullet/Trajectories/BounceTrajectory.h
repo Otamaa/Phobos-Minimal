@@ -6,15 +6,12 @@ class BounceTrajectoryType final : public PhobosTrajectoryType
 {
 public:
 
-	int BounceAmount;
-	Valueable<WeaponTypeClass*> BounceWeapon;
+	int BounceAmount { 0 };
+	Valueable<WeaponTypeClass*> BounceWeapon { nullptr };
 
-	BounceTrajectoryType() : PhobosTrajectoryType { TrajectoryFlag::Bounce }
-		, BounceAmount { 0 }
-		, BounceWeapon { nullptr }
-	{ }
-
+	BounceTrajectoryType() : PhobosTrajectoryType { TrajectoryFlag::Bounce } { }
 	virtual ~BounceTrajectoryType() = default;
+
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
@@ -27,20 +24,15 @@ class BounceTrajectory final : public PhobosTrajectory
 {
 public:
 
-	bool IsBouncing;
-	int BounceLeft;
+	bool IsBouncing { false };
+	int BounceLeft { 0 };
 
-	BounceTrajectory() : PhobosTrajectory { TrajectoryFlag::Bounce }
-		, IsBouncing { false }
-		, BounceLeft { 0 }
+	BounceTrajectory() : PhobosTrajectory { TrajectoryFlag::Bounce } {}
+	BounceTrajectory(BulletClass* pBullet , PhobosTrajectoryType* pType) : 
+		PhobosTrajectory { TrajectoryFlag::Bounce , pBullet , pType } 
 	{}
-
-	BounceTrajectory(BulletClass* pBullet , PhobosTrajectoryType* pType) : PhobosTrajectory { TrajectoryFlag::Bounce , pBullet , pType }
-		, IsBouncing { false }
-		, BounceLeft { 0 }
-	{}
-
 	virtual ~BounceTrajectory() override = default;
+
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;

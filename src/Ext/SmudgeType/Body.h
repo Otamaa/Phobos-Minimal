@@ -17,10 +17,9 @@ public:
 
 	public:
 
-		Valueable<bool> Clearable;
+		Valueable<bool> Clearable { true };
 
 		ExtData(SmudgeTypeClass* OwnerObject) : Extension<SmudgeTypeClass>(OwnerObject)
-			, Clearable { true }
 		{ }
 
 		virtual ~ExtData() override = default;

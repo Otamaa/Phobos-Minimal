@@ -19,20 +19,14 @@ public:
 
 	public:
 
-		ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types;
-		TrailsReader Trails;
-		Valueable<bool> ReadjustZ;
-		Valueable<PaletteManager*> Palette; //CustomPalette::PaletteMode::Temperate
-		Valueable<double> DamageRange;
-		Valueable<bool> DeleteWhenReachWater;
+		ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types { };
+		TrailsReader Trails { };
+		Valueable<bool> ReadjustZ { true };
+		Valueable<PaletteManager*> Palette { }; //CustomPalette::PaletteMode::Temperate
+		Valueable<double> DamageRange { 0.0 };
+		Valueable<bool> DeleteWhenReachWater { false };
 
 		ExtData(ParticleTypeClass* OwnerObject) : Extension<ParticleTypeClass>(OwnerObject)
-			, LaserTrail_Types()
-			, Trails { }
-			, ReadjustZ { true }
-			, Palette {}
-			, DamageRange { 0.0 }
-			, DeleteWhenReachWater { false }
 		{ }
 
 		virtual ~ExtData() override  = default;

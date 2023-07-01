@@ -14,29 +14,19 @@ public:
 		static constexpr size_t ExtOffset = 0xECC;
 
 	public:
-		TechnoTypeExt::ExtData* Type;
-		Valueable<bool> Is_Deso;
-		Valueable<bool> Is_Cow;
-		Nullable<double> C4Delay;
-		Nullable<int> C4ROF;
-		Nullable<int> C4Damage;
-		Nullable<WarheadTypeClass*> C4Warhead;
+		TechnoTypeExt::ExtData* Type { nullptr };
+		Valueable<bool> Is_Deso { false };
+		Valueable<bool> Is_Cow { false };
+		Nullable<double> C4Delay {};
+		Nullable<int> C4ROF {};
+		Nullable<int> C4Damage {};
+		Nullable<WarheadTypeClass*> C4Warhead {};
 
-		Valueable<bool> HideWhenDeployAnimPresent;
-		Valueable<bool> DeathBodies_UseDieSequenceAsIndex;
-		WeaponStruct CrawlingWeaponDatas[4];
+		Valueable<bool> HideWhenDeployAnimPresent { false };
+		Valueable<bool> DeathBodies_UseDieSequenceAsIndex { false };
+		WeaponStruct CrawlingWeaponDatas[4] {};
 
 		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
-			, Type { nullptr }
-			, Is_Deso { false }
-			, Is_Cow { false }
-			, C4Delay {}
-			, C4ROF {}
-			, C4Damage {}
-			, C4Warhead {}
-			, HideWhenDeployAnimPresent { false }
-			, DeathBodies_UseDieSequenceAsIndex { false }
-			, CrawlingWeaponDatas {}
 		{ }
 
 		virtual ~ExtData() override = default;

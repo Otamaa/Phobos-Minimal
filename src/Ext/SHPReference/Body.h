@@ -18,11 +18,9 @@ public:
 
 	public:
 
-		SHPReference* Alpha;
-		RectangleStruct Data;
+		SHPReference* Alpha { nullptr };
+		RectangleStruct Data { 0,0,0,0 };
 		ExtData(SHPReference* OwnerObject) : Extension<SHPReference>(OwnerObject)
-			, Alpha { nullptr }
-			, Data { 0,0,0,0 }
 		{}
 
 		virtual ~ExtData() override = default;

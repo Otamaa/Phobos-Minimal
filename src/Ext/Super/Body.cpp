@@ -17,7 +17,8 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 		{
 			for (int i = 0; i < pHouse->Supers.Count; ++i)
 			{
-				auto pExt = SuperExt::ExtMap.Find(pHouse->Supers[i]);
+				const auto pSuper = pHouse->Supers[i];
+				auto pExt = SuperExt::ExtMap.Find(pSuper);
 				pExt->Statusses.reset();
 
 				//if AlwaysGranted and SWAvaible
@@ -26,6 +27,7 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 
 					pExt->Statusses.Available = true;
 					pExt->Statusses.Charging = true;
+					pExt->Statusses.PowerSourced = !pSuper->IsPowered();
 				}
 			}
 		}

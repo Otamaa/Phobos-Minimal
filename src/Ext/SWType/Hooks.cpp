@@ -966,6 +966,7 @@ DEFINE_OVERRIDE_HOOK(0x6CB4D0, SuperClass_SetOnHold, 6)
 					pThis->ChargeDrainState = ChargeDrainState::Ready;
 					pThis->ReadinessFrame = Unsorted::CurrentFrame();
 					pThis->IsCharged = true;
+					//pThis->IsOnHold = false;
 				}
 			}
 		}
@@ -1123,6 +1124,7 @@ DEFINE_OVERRIDE_HOOK(0x6CB70C, SuperClass_Grant_InitialReady, 0xA)
 		if (nTimeLeft <= 0)
 		{
 			pSuper->IsCharged = true;
+			//pSuper->IsOnHold = false;
 			pSuper->ReadinessFrame = Unsorted::CurrentFrame();
 
 			if (pSuper->Type->UseChargeDrain)
@@ -1162,7 +1164,7 @@ DEFINE_HOOK(0x46B310, BulletClass_NukeMaker_Handle, 6)
 		pPaylod = SWTypeExt::ExtMap.Find(pLinkedNuke)->Nuke_Payload;
 
 		if (pThis->Owner && pThis->Owner->Owner)
-			pNukeSW = pThis->Owner->Owner->Supers[WarheadTypeExt::ExtMap.Find(pThis->WH)->NukePayload_LinkedSW];
+			pNukeSW = pThis->Owner->Owner->Supers.GetItemOrDefault(WarheadTypeExt::ExtMap.Find(pThis->WH)->NukePayload_LinkedSW);
 	}
 	else
 	{
@@ -1180,6 +1182,11 @@ DEFINE_HOOK(0x46B310, BulletClass_NukeMaker_Handle, 6)
 	{
 		pPayloadBullet->Limbo();
 		BulletExt::ExtMap.Find(pPayloadBullet)->NukeSW = pNukeSW;
+
+		//TODO:
+		//if (pPaylod->Projectile->Inaccurate)
+		//{}
+
 		CoordStruct nTargetLoc = pTarget->GetCoords();
 		CoordStruct nOffs { 0 , 0, pPaylod->Projectile->DetonationAltitude };
 		CoordStruct dest = nTargetLoc + nOffs;
@@ -1201,12 +1208,15 @@ DEFINE_OVERRIDE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
 {
 	GET(HouseClass*, pThis, ECX);
 
+	//if (!pThis->Supers.IsAllocated && !pThis->Supers.IsInitialized)
+	//	return 0x509AE7;
+
 	// this method iterates over every available SW and checks
 	// whether it should be fired automatically. the original
 	// method would abort if this house is human-controlled.
 	bool AIFire = pThis->IsControlledByHuman();
 
-	for (const auto pSuper : pThis->Supers)
+	for (const auto& pSuper : pThis->Supers)
 	{
 		if (pSuper->IsCharged && pSuper->ChargeDrainState != ChargeDrainState::Draining) {
 			if (!AIFire || SWTypeExt::ExtMap.Find(pSuper->Type)->SW_AutoFire)
@@ -1256,7 +1266,7 @@ DEFINE_OVERRIDE_HOOK(0x50AF10, HouseClass_UpdateSuperWeaponsOwned, 5)
 
 	// now update every super weapon that is valid.
 	// if this weapon has not been granted there's no need to update
-	for (auto pSuper : pThis->Supers)
+	for (auto& pSuper : pThis->Supers)
 	{
 		if (pSuper->Granted)
 		{
@@ -1325,7 +1335,7 @@ DEFINE_OVERRIDE_HOOK(0x50B1D0, HouseClass_UpdateSuperWeaponsUnavailable, 6)
 		SuperExt::UpdateSuperWeaponStatuses(pThis);
 
 		// update all super weapons not repeatedly available
-		for (auto pSuper : pThis->Supers)
+		for (auto& pSuper : pThis->Supers)
 		{
 			if (!pSuper->Granted || pSuper->OneTime)
 			{

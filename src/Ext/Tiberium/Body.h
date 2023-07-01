@@ -17,52 +17,35 @@ public:
 		static constexpr size_t Canary = 0xB16B00B5;
 		using base_type = TiberiumClass;
 
+		//Dont forget to remove this if ares one re-enabled
+		static constexpr size_t ExtOffset = 0xAC;
+
 	public:
-		Valueable<PaletteManager*> Palette; //CustomPalette::PaletteMode::Temperate
-		Nullable<AnimTypeClass*> OreTwinkle;
-		Nullable<int> OreTwinkleChance;
-		Nullable<int> Ore_TintLevel;
-		Nullable<ColorStruct> MinimapColor;
-		Valueable<bool> EnableLighningFix;
-		Valueable<bool> UseNormalLight;
-		Valueable<bool> EnablePixelFXAnim;
-		//int Replaced_EC;
+		Valueable<PaletteManager*> Palette {}; //CustomPalette::PaletteMode::Temperate
+		Nullable<AnimTypeClass*> OreTwinkle {};
+		Nullable<int> OreTwinkleChance {};
+		Nullable<int> Ore_TintLevel {};
+		Nullable<ColorStruct> MinimapColor {};
+		Valueable<bool> EnableLighningFix { true };
+		Valueable<bool> UseNormalLight { true };
+		Valueable<bool> EnablePixelFXAnim { true };
 
-		Nullable<int> Damage;
-		Nullable<WarheadTypeClass*> Warhead;
+		Nullable<int> Damage {};
+		Nullable<WarheadTypeClass*> Warhead {};
 
-		Nullable<int> Heal_Step;
-		Nullable<int> Heal_IStep;
-		Nullable<int> Heal_UStep;
-		Nullable<double> Heal_Delay;
+		Nullable<int> Heal_Step {};
+		Nullable<int> Heal_IStep {};
+		Nullable<int> Heal_UStep {};
+		Nullable<double> Heal_Delay {};
 
-		Nullable<WarheadTypeClass*> ExplosionWarhead;
-		Nullable<int> ExplosionDamage;
+		Nullable<WarheadTypeClass*> ExplosionWarhead {};
+		Nullable<int> ExplosionDamage {};
 
-		Valueable<int> DebrisChance;
+		Valueable<int> DebrisChance {33};
 
-		ExtData(TiberiumClass* OwnerObject) : Extension<TiberiumClass>(OwnerObject)
-			, Palette { }
-			, OreTwinkle {}
-			, OreTwinkleChance {}
-			, Ore_TintLevel {}
-			, MinimapColor {}
-			, EnableLighningFix { true }
-			, UseNormalLight { true }
-			, EnablePixelFXAnim { true }
-			//, Replaced_EC { 0 }
-			, Damage()
-			, Warhead()
-			, Heal_Step()
-			, Heal_IStep()
-			, Heal_UStep()
-			, Heal_Delay()
-			, ExplosionWarhead()
-			, ExplosionDamage()
-			, DebrisChance(33)
-		{ }
-
+		ExtData(TiberiumClass* OwnerObject) : Extension<TiberiumClass>(OwnerObject) { }
 		virtual ~ExtData() override = default;
+
 		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }

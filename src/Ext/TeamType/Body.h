@@ -17,14 +17,11 @@ public:
 
 	public:
 
-		Nullable<int> AI_SafeDIstance;
-		Nullable<int> AI_FriendlyDistance;
-		Nullable<bool> AttackWaypoint_AllowCell;
+		Nullable<int> AI_SafeDIstance { };
+		Nullable<int> AI_FriendlyDistance { };
+		Nullable<bool> AttackWaypoint_AllowCell { };
 
 		ExtData(TeamTypeClass* OwnerObject) : Extension<TeamTypeClass>(OwnerObject)
-			, AI_SafeDIstance { }
-			, AI_FriendlyDistance { }
-			, AttackWaypoint_AllowCell { }
 		{ }
 
 		virtual ~ExtData() override = default;

@@ -2,6 +2,11 @@
 
 SuperClass* SW_LightningStorm::CurrentLightningStorm = nullptr;
 
+std::vector<const char*> SW_LightningStorm::GetTypeString() const
+{
+	return { "NewLS" };
+}
+
 bool SW_LightningStorm::HandleThisType(SuperWeaponType type) const
 {
 	return (type == SuperWeaponType::LightningStorm);

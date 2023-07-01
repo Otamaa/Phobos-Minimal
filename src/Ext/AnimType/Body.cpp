@@ -119,7 +119,6 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->ConcurrentChance.Read(exINI, pID, "ConcurrentChance");
 	this->ConcurrentAnim.Read(exINI, pID, "ConcurrentAnim");
-	this->ShouldFogRemove.Read(exINI, pID, "ShouldFogRemove");
 	this->AttachedSystem.Read(exINI, pID, "AttachedSystem", true);
 
 	//Launchs
@@ -373,35 +372,34 @@ void AnimTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Damage_TargetFlag)
 		.Process(this->Warhead_Detonate)
 
-		.Process(SplashList)
-		.Process(SplashIndexRandom)
-		.Process(WakeAnim)
-		.Process(ExplodeOnWater)
+		.Process(this->SplashList)
+		.Process(this->SplashIndexRandom)
+		.Process(this->WakeAnim)
+		.Process(this->ExplodeOnWater)
 
-		.Process(SpawnsMultiple)
-		.Process(SpawnsMultiple_Random)
-		.Process(SpawnsMultiple_amouts)
+		.Process(this->SpawnsMultiple)
+		.Process(this->SpawnsMultiple_Random)
+		.Process(this->SpawnsMultiple_amouts)
 
-		.Process(ParticleRangeMin)
-		.Process(ParticleRangeMax)
-		.Process(ParticleChance)
+		.Process(this->ParticleRangeMin)
+		.Process(this->ParticleRangeMax)
+		.Process(this->ParticleChance)
 
-		.Process(Launchs)
+		.Process(this->Launchs)
 
-		.Process(CraterDecreaseTiberiumAmount)
-		.Process(CraterChance)
-		.Process(SpawnCrater)
-		.Process(ScorchChance)
-		.Process(SpecialDraw)
-		.Process(NoOwner)
-		.Process(Spawns_Delay)
+		.Process(this->CraterDecreaseTiberiumAmount)
+		.Process(this->CraterChance)
+		.Process(this->SpawnCrater)
+		.Process(this->ScorchChance)
+		.Process(this->SpecialDraw)
+		.Process(this->NoOwner)
+		.Process(this->Spawns_Delay)
 
-		.Process(ConcurrentChance)
-		.Process(ConcurrentAnim)
-		.Process(ShouldFogRemove)
+		.Process(this->ConcurrentChance)
+		.Process(this->ConcurrentAnim)
 		.Process(this->MakeInfantryOwner)
-		.Process(AttachedSystem)
-		.Process(IsInviso)
+		.Process(this->AttachedSystem)
+		.Process(this->IsInviso)
 		.Process(this->RemapAnim)
 		//.Process(SpawnerDatas)
 		;

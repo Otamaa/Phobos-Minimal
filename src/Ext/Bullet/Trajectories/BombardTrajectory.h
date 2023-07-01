@@ -6,15 +6,12 @@ class BombardTrajectoryType final : public PhobosTrajectoryType
 {
 public:
 
-	Valueable<double> Height;
-	Valueable<bool> Anti;
+	Valueable<double> Height { 0.0 };
+	Valueable<bool> Anti { false };
 	
-	BombardTrajectoryType() : PhobosTrajectoryType { TrajectoryFlag::Bombard }
-		, Height { 0.0 }
-		, Anti { false }
-	{ }
-
+	BombardTrajectoryType() : PhobosTrajectoryType { TrajectoryFlag::Bombard } { }
 	virtual ~BombardTrajectoryType() = default;
+
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) override  { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
@@ -27,20 +24,15 @@ class BombardTrajectory final : public PhobosTrajectory
 {
 public:
 
-	bool IsFalling;
-	double Height;
+	bool IsFalling { false };
+	double Height { 0.0 };
 
-	BombardTrajectory() : PhobosTrajectory { TrajectoryFlag::Bombard }
-		, IsFalling { false }
-		, Height { 0.0 }
+	BombardTrajectory() : PhobosTrajectory { TrajectoryFlag::Bombard } {}
+	BombardTrajectory(BulletClass* pBullet , PhobosTrajectoryType* pType) :
+		PhobosTrajectory { TrajectoryFlag::Bombard , pBullet,  pType }
 	{}
-
-	BombardTrajectory(BulletClass* pBullet , PhobosTrajectoryType* pType) : PhobosTrajectory { TrajectoryFlag::Bombard , pBullet,  pType }
-		, IsFalling { false }
-		, Height { 0.0 }
-	{}
-
 	virtual ~BombardTrajectory() = default;
+
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;

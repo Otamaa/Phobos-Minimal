@@ -57,20 +57,14 @@ public:
 
 	public:
 
-		//std::string Value1;
-		//std::string Value2;
-		//std::string Parm3;
-		//std::string Parm4;
-		//std::string Parm5;
-		//std::string Parm6;
+		//std::string Value1 { };
+		//std::string Value2 { };
+		//std::string Parm3 { };
+		//std::string Parm4 { };
+		//std::string Parm5 { };
+		//std::string Parm6 { };
 
 		ExtData(TActionClass* const OwnerObject) : Extension<base_type>(OwnerObject)
-		//, Value1 { }
-		//, Value2 { }
-		//, Parm3 { }
-		//, Parm4 { }
-		//, Parm5 { }
-		//, Parm6 { }
 		{ }
 
 		virtual ~ExtData() override = default;

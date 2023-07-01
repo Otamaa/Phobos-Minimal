@@ -38,156 +38,84 @@ public:
 		static constexpr size_t ExtOffset = 0x34C;
 
 	public:
-		TechnoTypeClass* Type;
-		OptionalStruct<AbstractType, true> AbsType;
-		std::unique_ptr<ShieldClass> Shield;
-		std::vector<LaserTrailClass> LaserTrails;
-		bool ReceiveDamage;
-		bool LastKillWasTeamTarget;
-		CDTimerClass	PassengerDeletionTimer;
-		ShieldTypeClass* CurrentShieldType;
-		int LastWarpDistance;
-		CDTimerClass Death_Countdown;
-		AnimTypeClass* MindControlRingAnimType;
-		OptionalStruct<int, false> DamageNumberOffset;
-		OptionalStruct<int, true> CurrentLaserWeaponIndex;
+		TechnoTypeClass* Type { nullptr };
+		OptionalStruct<AbstractType, true> AbsType {};
+		std::unique_ptr<ShieldClass> Shield {};
+		std::vector<LaserTrailClass> LaserTrails {};
+		bool ReceiveDamage { false };
+		bool LastKillWasTeamTarget { false };
+		CDTimerClass PassengerDeletionTimer {};
+		ShieldTypeClass* CurrentShieldType { nullptr };
+		int LastWarpDistance {};
+		CDTimerClass Death_Countdown {};
+		AnimTypeClass* MindControlRingAnimType { nullptr };
+		OptionalStruct<int, false> DamageNumberOffset {};
+		OptionalStruct<int, true> CurrentLaserWeaponIndex {};
 		// Used for Passengers.SyncOwner.RevertOnExit instead of TechnoClass::InitialOwner / OriginallyOwnedByHouse,
 		// as neither is guaranteed to point to the house the TechnoClass had prior to entering transport and cannot be safely overridden.
-		HouseClass* OriginalPassengerOwner;
-		UniqueGamePtr<AnimClass> DelayedFire_Anim;
-		int DelayedFire_Anim_LoopCount;
-		int DelayedFire_DurationTimer;
-		bool IsInTunnel;
-		CDTimerClass DeployFireTimer;
-		CDTimerClass DisableWeaponTimer;
+		HouseClass* OriginalPassengerOwner { nullptr };
+		UniqueGamePtr<AnimClass> DelayedFire_Anim {};
+		int DelayedFire_Anim_LoopCount { 1 };
+		int DelayedFire_DurationTimer { 0 };
+		bool IsInTunnel { false };
+		CDTimerClass DeployFireTimer {};
+		CDTimerClass DisableWeaponTimer {};
 
-		std::vector<TimedWarheadValue<WeaponTypeClass*>> RevengeWeapons;
+		std::vector<TimedWarheadValue<WeaponTypeClass*>> RevengeWeapons {};
 
-	#pragma region Otamaa
-		bool IsDriverKilled;
-		int GattlingDmageDelay;
-		bool GattlingDmageSound;
-		bool AircraftOpentoppedInitEd;
+		bool IsDriverKilled { false };
+		int GattlingDmageDelay { -1 };
+		bool GattlingDmageSound { false };
+		bool AircraftOpentoppedInitEd { false };
 
-		std::vector<int> FireSelf_Count;
-		CDTimerClass EngineerCaptureDelay;
-		bool FlhChanged;
-		//std::vector<LineTrail*> TechnoLineTrail;
-		bool IsMissisleSpawn;
-		TechnoClass* LastAttacker;
-		int Attempt;
-		OptionalStruct<double , true> ReceiveDamageMultiplier;
-		bool SkipLowDamageCheck;
+		std::vector<int> FireSelf_Count {};
+		CDTimerClass EngineerCaptureDelay {};
+		bool FlhChanged { false };
+		//std::vector<LineTrail*> TechnoLineTrail {};
+		bool IsMissisleSpawn { false };
+		TechnoClass* LastAttacker { nullptr };
+		int Attempt { 5 };
+		OptionalStruct<double , true> ReceiveDamageMultiplier {};
+		bool SkipLowDamageCheck { false };
 
-		bool aircraftPutOffsetFlag;
-		bool aircraftPutOffset;
-		bool VirtualUnit;
-		bool IsMissileHoming;
-		bool SkipVoice;
+		bool aircraftPutOffsetFlag { false };
+		bool aircraftPutOffset { false };
+		bool VirtualUnit { false };
+		bool IsMissileHoming { false };
+		bool SkipVoice { false };
 
-		CoordStruct HomingTargetLocation;
-		PhobosMap<WeaponTypeClass*, CDTimerClass> ExtraWeaponTimers;
-		std::vector<UniversalTrail> Trails;
-		std::unique_ptr<GiftBox> MyGiftBox;
-		std::unique_ptr<PaintBall> PaintBallState;
-		std::unique_ptr<DamageSelfState> DamageSelfState;
-		int CurrentWeaponIdx;
+		CoordStruct HomingTargetLocation { 0,0,0 };
+		PhobosMap<WeaponTypeClass*, CDTimerClass> ExtraWeaponTimers {};
+		std::vector<UniversalTrail> Trails {};
+		std::unique_ptr<GiftBox> MyGiftBox {};
+		std::unique_ptr<PaintBall> PaintBallState {};
+		std::unique_ptr<DamageSelfState> DamageSelfState {};
+		int CurrentWeaponIdx { -1 };
 
 #ifdef ENABLE_HOMING_MISSILE
-		HomingMissileTargetTracker* MissileTargetTracker;
+		HomingMissileTargetTracker* MissileTargetTracker { nullptr };
 #endif
-		FireWeaponManager MyWeaponManager;
-		DriveData MyDriveData;
-		AircraftDive MyDiveData;
-		//JJFacingToTarget MyJJData;
-		SpawnSupport MySpawnSuport;
-		std::unique_ptr<FighterAreaGuard> MyFighterData;
+		FireWeaponManager MyWeaponManager { };
+		DriveData MyDriveData { };
+		AircraftDive MyDiveData { };
+		//JJFacingToTarget MyJJData { };
+		SpawnSupport MySpawnSuport { };
+		std::unique_ptr<FighterAreaGuard> MyFighterData { };
 
-	#pragma endregion
-
-		UniqueGamePtr<AnimClass> AttachedAnim;
-		bool KillActionCalled;
-		CDTimerClass WarpedOutDelay;
-		OptionalStruct<bool, true> AltOccupation; // if the unit marks cell occupation flags, this is set to whether it uses the "high" occupation members
-		TemporalClass* MyOriginalTemporal;
-		Armor CurrentArmor;
-		bool SupressEVALost;
-		CDTimerClass SelfHealing_CombatDelay;
-		bool PayloadCreated;
-		SuperClass* LinkedSW;
-		CellStruct SuperTarget;
+		UniqueGamePtr<AnimClass> AttachedAnim { };
+		bool KillActionCalled { false };
+		CDTimerClass WarpedOutDelay { };
+		OptionalStruct<bool, true> AltOccupation { }; // if the unit marks cell occupation flags, this is set to whether it uses the "high" occupation members
+		TemporalClass* MyOriginalTemporal { nullptr };
+		Armor CurrentArmor { Armor::None };
+		bool SupressEVALost { false };
+		CDTimerClass SelfHealing_CombatDelay { };
+		bool PayloadCreated { false };
+		SuperClass* LinkedSW { nullptr };
+		CellStruct SuperTarget { };
 
 		ExtData(TechnoClass* OwnerObject) : Extension<TechnoClass>(OwnerObject)
-			, Type { nullptr }
-			, AbsType {}
-			, Shield {}
-			, LaserTrails {}
-			, ReceiveDamage { false }
-			, LastKillWasTeamTarget { false }
-			, PassengerDeletionTimer {}
-			, CurrentShieldType { nullptr }
-			, LastWarpDistance {}
-			, Death_Countdown {}
-			, MindControlRingAnimType { nullptr }
-			, DamageNumberOffset {}
-			, CurrentLaserWeaponIndex {}
-			, OriginalPassengerOwner{ nullptr }
-			, DelayedFire_Anim { }
-			, DelayedFire_Anim_LoopCount { 1 }
-			, DelayedFire_DurationTimer { 0 }
-			, IsInTunnel { false }
-			, DeployFireTimer {}
-			, DisableWeaponTimer {}
-			, RevengeWeapons {}
-			, IsDriverKilled { false }
-			, GattlingDmageDelay { -1 }
-			, GattlingDmageSound { false }
-			, AircraftOpentoppedInitEd { false }
-			, FireSelf_Count {}
-			, EngineerCaptureDelay {}
-			, FlhChanged { false }
-			//, TechnoLineTrail { }
-			, IsMissisleSpawn { false }
-			, LastAttacker { nullptr }
-			, Attempt { 5 }
-			, ReceiveDamageMultiplier { }
-			, SkipLowDamageCheck { false }
-			, aircraftPutOffsetFlag { false }
-			, aircraftPutOffset { false }
-			, VirtualUnit { false }
-			, IsMissileHoming { false }
-			, SkipVoice { false }
-			, HomingTargetLocation { 0,0,0 }
-			, ExtraWeaponTimers {}
-			, Trails {}
-			, MyGiftBox {}
-			, PaintBallState {}
-			, DamageSelfState {}
-			, CurrentWeaponIdx { -1}
-
-#ifdef ENABLE_HOMING_MISSILE
-			, MissileTargetTracker { nullptr }
-#endif
-			, MyWeaponManager { }
-			, MyDriveData { }
-			, MyDiveData { }
-			//, MyJJData { }
-			, MySpawnSuport { }
-			, MyFighterData { nullptr }
-			, AttachedAnim { }
-			, KillActionCalled { false }
-			, WarpedOutDelay { }
-			, AltOccupation { }
-			, MyOriginalTemporal { nullptr }
-			, CurrentArmor { Armor::None }
-			, SupressEVALost { false }
-			, SelfHealing_CombatDelay { }
-			, PayloadCreated { false }
-			, LinkedSW { nullptr }
-			, SuperTarget { }
-		{
-			//MyWeaponManager.CWeaponManager = std::make_unique<CustomWeaponManager>();
-		}
+		{ }
 
 		virtual ~ExtData() override = default;
 

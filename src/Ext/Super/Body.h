@@ -31,20 +31,14 @@ public:
 		using base_type = SuperClass;
 	public:
 
-		SWTypeExt::ExtData* Type;
-		bool Temp_IsPlayer;
-		CellStruct Temp_CellStruct;
-		TechnoClass* Firer;
-		SWStatus Statusses;
-		LauchData LauchDatas;
+		SWTypeExt::ExtData* Type { nullptr };
+		bool Temp_IsPlayer { false };
+		CellStruct Temp_CellStruct { };
+		TechnoClass* Firer { nullptr };
+		SWStatus Statusses { };
+		LauchData LauchDatas { };
 
 		ExtData(SuperClass* OwnerObject) : Extension<SuperClass>(OwnerObject)
-			, Type { nullptr }
-			, Temp_IsPlayer { false }
-			, Temp_CellStruct { }
-			, Firer { nullptr }
-			, Statusses { }
-			, LauchDatas { }
 		{ }
 
 		virtual ~ExtData() override  = default;

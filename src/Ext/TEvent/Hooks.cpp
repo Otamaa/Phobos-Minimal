@@ -30,12 +30,12 @@ DEFINE_HOOK(0x71E940, TEventClass_Execute, 0x5)
 
 DEFINE_HOOK(0x7271F9, TEventClass_GetFlags, 0x5)
 {
-	GET(int, eAttach, EAX);
+	GET(TriggerAttachType, eAttach, EAX);
 	GET(TEventClass*, pThis, ESI);
 
 	int nEvent = static_cast<int>(pThis->EventKind);
 	if (nEvent >= PhobosTriggerEvent::LocalVariableGreaterThan && nEvent <= PhobosTriggerEvent::ShieldBroken)
-		eAttach |= 0x10; // LOGIC
+		eAttach |= TriggerAttachType::Logic; // LOGIC
 
 	R->EAX(eAttach);
 
@@ -44,12 +44,12 @@ DEFINE_HOOK(0x7271F9, TEventClass_GetFlags, 0x5)
 
 DEFINE_HOOK(0x71F3FE, TEventClass_BuildINIEntry, 0x5)
 {
-	GET(int, eNeedType, EAX);
+	GET(LogicNeedType, eNeedType, EAX);
 	GET(TEventClass*, pThis, ECX);
 
 	int nEvent = static_cast<int>(pThis->EventKind);
 	if (nEvent >= PhobosTriggerEvent::LocalVariableGreaterThan && nEvent <= PhobosTriggerEvent::ShieldBroken)
-		eNeedType = 43;
+		eNeedType = LogicNeedType::NumberNTech;
 
 	R->EAX(eNeedType);
 

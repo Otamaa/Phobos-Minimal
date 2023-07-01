@@ -139,7 +139,7 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 		{
 			if (!pSWType)
 				continue;
-			
+
 			const auto pSuperExt = SWTypeExt::ExtMap.Find(pSWType);
 
 			if (pSuperExt->Aux_Techno.empty())
@@ -151,8 +151,8 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 					continue;
 
 				if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType))
-					if (pSuperExt->Aux_Techno.Contains(pType))
-						pTypeExt->RecheckTechTreeWhenDie = true;
+					if (pSuperExt->Aux_Techno.Contains(pType) && !pTypeExt->Linked_SW.Contains(pSWType))
+						pTypeExt->Linked_SW.push_back(pSWType);
 			}
 		}
 	}

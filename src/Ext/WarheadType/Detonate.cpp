@@ -398,6 +398,33 @@ void WarheadTypeExt::ExtData::InterceptBullets(TechnoClass* pOwner, WeaponTypeCl
 	}
 }
 
+bool NOINLINE IsCellSpreadWH(WarheadTypeExt::ExtData* pData)
+{
+	// List all Warheads here that respect CellSpread
+
+	return //pData->RemoveDisguise ||
+		//pData->RemoveMindControl ||
+		pData->Crit_Chance ||
+		pData->Shield_Break ||
+		(pData->Converts && !pData->ConvertsPair.empty()) ||
+		pData->Shield_Respawn_Duration > 0 ||
+		pData->Shield_SelfHealing_Duration > 0 ||
+		pData->Shield_AttachTypes.size() > 0 ||
+		pData->Shield_RemoveTypes.size() > 0 ||
+		pData->Transact || //ISPermaMC ||
+		pData->GattlingStage > 0 ||
+		pData->GattlingRateUp != 0 ||
+		pData->AttachTag ||
+		//pData->DirectionalArmor ||
+		pData->ReloadAmmo != 0
+		|| (pData->RevengeWeapon.isset() && pData->RevengeWeapon_GrantDuration > 0)
+		|| !pData->LimboKill_IDs.empty()
+		|| (pData->PaintBallData.Color != ColorStruct::Empty)
+		|| pData->InflictLocomotor
+		|| pData->RemoveInflictedLocomotor
+		|| pData->IC_Duration != 0
+		;
+}
 
 void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct coords)
 {
@@ -479,32 +506,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 	this->RandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
 	//const bool ISPermaMC = this->PermaMC && !pBullet;
 
-	// List all Warheads here that respect CellSpread
-	const bool isCellSpreadWarhead =
-		//this->RemoveDisguise ||
-		//this->RemoveMindControl ||
-		this->Crit_Chance  ||
-		this->Shield_Break ||
-		(this->Converts && !this->ConvertsPair.empty()) ||
-		this->Shield_Respawn_Duration > 0 ||
-		this->Shield_SelfHealing_Duration > 0 ||
-		this->Shield_AttachTypes.size() > 0 ||
-		this->Shield_RemoveTypes.size() > 0 ||
-		this->Transact || //ISPermaMC ||
-		this->GattlingStage > 0 ||
-		this->GattlingRateUp != 0 ||
-		this->AttachTag ||
-		//this->DirectionalArmor ||
-		this->ReloadAmmo != 0 
-		||  (this->RevengeWeapon.isset() && this->RevengeWeapon_GrantDuration > 0)
-		|| !this->LimboKill_IDs.empty()
-		|| (this->PaintBallData.Color != ColorStruct::Empty) 
-		|| this->InflictLocomotor 
-		|| this->RemoveInflictedLocomotor
-		|| this->IC_Duration != 0
-		;
-
-	if (isCellSpreadWarhead)
+	if (IsCellSpreadWH(this))
 	{
 		const bool ThisbulletWasIntercepted = pBullet ? BulletExt::ExtMap.Find(pBullet)->InterceptedStatus == InterceptedStatus::Intercepted : false;
 		const float cellSpread = Get()->CellSpread;

@@ -4247,10 +4247,10 @@ void ScriptExt::SetCloseEnoughDistance(TeamClass* pTeam, double distance = -1)
 	if (auto pTeamData = TeamExt::ExtMap.Find(pTeam))
 	{
 		if (distance > 0)
-			pTeamData->CloseEnough = distance;
+			pTeamData->CloseEnough = (int)distance;
 
 		if (distance <= 0)
-			pTeamData->CloseEnough = RulesClass::Instance->CloseEnough / 256.0;
+			pTeamData->CloseEnough = (int)(RulesClass::Instance->CloseEnough / 256.0);
 
 	}
 
@@ -7223,9 +7223,10 @@ void ScriptExt::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeamLead
 		if (pSuperChronosphere->Granted) {
 			
 			int rechargeTime = pSuperChronosphere->GetRechargeTime();
-			int timeLeft = pSuperChronosphere->RechargeTimer.GetTimeLeft();
+			double timeLeft = (double)pSuperChronosphere->RechargeTimer.GetTimeLeft();
 
-			if (1.0 - RulesClass::Instance->AIMinorSuperReadyPercent < timeLeft / rechargeTime) {
+			if ((1.0 - RulesClass::Instance->AIMinorSuperReadyPercent) < (timeLeft / rechargeTime))
+			{
 				DebugHere("ChronoshiftTeamToTarget", "Chronosphere superweapon charge not at AIMinorSuperReadyPercent yet, not jumping to next line yet", pTeam);
 				return;
 			}

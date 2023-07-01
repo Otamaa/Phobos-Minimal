@@ -28,7 +28,7 @@ public:
 			//, PlacedRadSite { }
 			//, NewPowerups {-1}
 			//, FoggedObjects { }
-		{ };
+		{ }
 
 		virtual ~ExtData() override = default;
 

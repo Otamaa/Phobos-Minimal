@@ -6,10 +6,9 @@ class VerticalTrajectoryType final : public PhobosTrajectoryType
 {
 public:
 
-	Valueable<double> Height;
+	Valueable<double> Height { 10000.0 };
 
 	VerticalTrajectoryType() : PhobosTrajectoryType { TrajectoryFlag::Vertical }
-		, Height { 10000.0 }
 	{ }
 
 	virtual ~VerticalTrajectoryType() = default;
@@ -26,17 +25,14 @@ class VerticalTrajectory final : public PhobosTrajectory
 {
 public:
 
-	bool IsFalling;
-	double Height;
+	bool IsFalling { false };
+	double Height { 0.0 };
 
 	VerticalTrajectory() : PhobosTrajectory { TrajectoryFlag::Vertical }
-		, IsFalling { false }
-		, Height { 0.0 }
 	{ }
 
-	VerticalTrajectory(BulletClass* pBullet, PhobosTrajectoryType* pType) : PhobosTrajectory { TrajectoryFlag::Vertical , pBullet , pType }
-		, IsFalling { false }
-		, Height { 0.0 }
+	VerticalTrajectory(BulletClass* pBullet, PhobosTrajectoryType* pType) : 
+		PhobosTrajectory { TrajectoryFlag::Vertical , pBullet , pType }
 	{ }
 
 	virtual ~VerticalTrajectory() = default;

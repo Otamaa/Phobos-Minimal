@@ -19,32 +19,21 @@ public:
 		static constexpr size_t Canary = 0xAAAAAAAA;
 
 	public:
-		OptionalStruct<CoordStruct, true> BackupCoords;
-		OptionalStruct<DirType, true> DeathUnitFacing;
-		OptionalStruct<DirStruct, true> DeathUnitTurretFacing;
-		TechnoClass* Invoker;
-		bool OwnerSet;
-		bool AllowCreateUnit;
+		OptionalStruct<CoordStruct, true> BackupCoords {};
+		OptionalStruct<DirType, true> DeathUnitFacing {};
+		OptionalStruct<DirStruct, true> DeathUnitTurretFacing {};
+		TechnoClass* Invoker { nullptr };
+		bool OwnerSet { false };
+		bool AllowCreateUnit { false };
+
 		// This is a failsafe that is only set if this is a building animation 
 		// and the building is not on same cell as the animation.
-		BuildingClass* ParentBuilding;
+		BuildingClass* ParentBuilding { nullptr };
 
-		UniqueParticleSystemClassPtr AttachedSystem;
-		CoordStruct CreateUnitLocation;
+		UniqueParticleSystemClassPtr AttachedSystem {};
+		CoordStruct CreateUnitLocation {};
 
-		ExtData(base_type* OwnerObject) : Extension<AnimClass>(OwnerObject)
-			, BackupCoords {}
-			, DeathUnitFacing { }
-			, DeathUnitTurretFacing { }
-			, Invoker { nullptr }
-			, OwnerSet { false }
-			, AllowCreateUnit { false }
-			, ParentBuilding {}
-
-			, AttachedSystem { nullptr }
-			, CreateUnitLocation {}
-		{ }
-
+		ExtData(base_type* OwnerObject) : Extension<AnimClass>(OwnerObject) {}
 		virtual ~ExtData() override = default;
 
 		void InvalidatePointer(void* ptr, bool bRemoved);

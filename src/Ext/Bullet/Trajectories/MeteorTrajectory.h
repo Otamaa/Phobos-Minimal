@@ -6,15 +6,12 @@ class MeteorTrajectoryType final : public PhobosTrajectoryType
 {
 public:
 
-	Valueable<double> Height;
-	Valueable<double> Range;
+	Valueable<double> Height { 10000.0 };
+	Valueable<double> Range { 30.0 };
 
-	MeteorTrajectoryType() : PhobosTrajectoryType { TrajectoryFlag::Meteor }
-		, Height { 10000.0 }
-		, Range { 30.0 }
-	{ }
-
+	MeteorTrajectoryType() : PhobosTrajectoryType { TrajectoryFlag::Meteor } { }
 	virtual ~MeteorTrajectoryType() = default;
+
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
@@ -28,10 +25,10 @@ class MeteorTrajectory final : public PhobosTrajectory
 {
 public:
 
-	MeteorTrajectory() : PhobosTrajectory { TrajectoryFlag::Meteor }
-	{ }
+	MeteorTrajectory() : PhobosTrajectory { TrajectoryFlag::Meteor } { }
 
-	MeteorTrajectory(BulletClass* pBullet, PhobosTrajectoryType* pType) : PhobosTrajectory { TrajectoryFlag::Meteor , pBullet , pType }
+	MeteorTrajectory(BulletClass* pBullet, PhobosTrajectoryType* pType) : 
+		PhobosTrajectory { TrajectoryFlag::Meteor , pBullet , pType }
 	{ }
 
 	virtual ~MeteorTrajectory() = default;

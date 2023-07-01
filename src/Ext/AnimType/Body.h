@@ -20,130 +20,75 @@ public:
 		//static constexpr size_t ExtOffset = 0x374;
 
 	public:
-		Valueable<PaletteManager*> Palette; //CustomPalette::PaletteMode::Temperate
-		Valueable<UnitTypeClass*> CreateUnit;
-		Valueable<DirType> CreateUnit_Facing;
-		Valueable<bool> CreateUnit_InheritDeathFacings;
-		Valueable<bool> CreateUnit_InheritTurretFacings;
-		Nullable<bool> CreateUnit_RemapAnim;
-		Valueable<bool> CreateUnit_RandomFacing;
-		Valueable<Mission> CreateUnit_Mission;
-		Valueable<OwnerHouseKind> CreateUnit_Owner;
-		Valueable<bool> CreateUnit_ConsiderPathfinding;
-		Nullable<AnimTypeClass*> CreateUnit_SpawnAnim;
-		Valueable<bool> CreateUnit_AlwaysSpawnOnGround;
-		Valueable<bool> CreateUnit_KeepOwnerIfDefeated;
+		Valueable<PaletteManager*> Palette {}; //CustomPalette::PaletteMode::Temperate
 
-		Valueable<int> XDrawOffset;
-		Valueable<int> HideIfNoOre_Threshold;
-		Nullable<bool> Layer_UseObjectLayer;
-		Valueable<bool> UseCenterCoordsIfAttached;
-		Nullable<WeaponTypeClass*> Weapon;
-		Valueable<int> Damage_Delay;
-		Valueable<bool> Damage_DealtByInvoker;
-		Valueable<bool> Damage_ApplyOnce;
-		Valueable<bool> Damage_ConsiderOwnerVeterancy;
-		Nullable<DamageDelayTargetFlag> Damage_TargetFlag;
-		Nullable<Mission> MakeInfantry_Mission;
+#pragma region CreateUnit
+		Valueable<UnitTypeClass*> CreateUnit {};
+		Valueable<DirType> CreateUnit_Facing { DirType::North };
+		Valueable<bool> CreateUnit_InheritDeathFacings { false };
+		Valueable<bool> CreateUnit_InheritTurretFacings { false };
+		Nullable<bool> CreateUnit_RemapAnim { };
+		Valueable<bool> CreateUnit_RandomFacing { true };
+		Valueable<Mission> CreateUnit_Mission { Mission::Guard };
+		Valueable<OwnerHouseKind> CreateUnit_Owner { OwnerHouseKind::Victim };
+		Valueable<bool> CreateUnit_ConsiderPathfinding { false };
+		Nullable<AnimTypeClass*> CreateUnit_SpawnAnim { };
+		Valueable<bool> CreateUnit_AlwaysSpawnOnGround { true };
+		Valueable<bool> CreateUnit_KeepOwnerIfDefeated { true };
+#pragma endregion
 
-		Valueable<bool> Warhead_Detonate;
+		Valueable<int> XDrawOffset { 0 };
+		Valueable<int> HideIfNoOre_Threshold { 0 };
+		Nullable<bool> Layer_UseObjectLayer {};
+		Valueable<bool> UseCenterCoordsIfAttached { false };
 
-		#pragma region Otamaa
-		NullableVector <AnimTypeClass*> SplashList;
-		Valueable<bool> SplashIndexRandom;
+		Nullable<WeaponTypeClass*> Weapon {};
+		Valueable<bool> Warhead_Detonate { false };
 
-		Nullable<AnimTypeClass*> WakeAnim;
-		Valueable<bool> ExplodeOnWater;
+		Valueable<int> Damage_Delay { 0 };
+		Valueable<bool> Damage_DealtByInvoker { false };
+		Valueable<bool> Damage_ApplyOnce { false };
+		Valueable<bool> Damage_ConsiderOwnerVeterancy { true };
+		Nullable<DamageDelayTargetFlag> Damage_TargetFlag {};
 
-		ValueableVector<AnimTypeClass*> SpawnsMultiple;
-		Valueable<bool> SpawnsMultiple_Random;
-		std::vector<int> SpawnsMultiple_amouts;
+		Nullable<Mission> MakeInfantry_Mission {};
 
-		Valueable<double> ParticleRangeMin;
-		Valueable<double> ParticleRangeMax;
-		Nullable<int> ParticleChance;
+		NullableVector <AnimTypeClass*> SplashList {};
+		Valueable<bool> SplashIndexRandom { false };
 
-		std::vector<LauchSWData> Launchs;
+		Nullable<AnimTypeClass*> WakeAnim {};
+		Valueable<bool> ExplodeOnWater { false };
 
-		Valueable<int> CraterDecreaseTiberiumAmount;
-		Valueable<double> CraterChance;
-		Nullable<bool> SpawnCrater;
-		Nullable<double> ScorchChance;
-		Valueable<bool> SpecialDraw;
-		Valueable<bool> NoOwner;
+		ValueableVector<AnimTypeClass*> SpawnsMultiple {};
+		Valueable<bool> SpawnsMultiple_Random { false };
+		std::vector<int> SpawnsMultiple_amouts {};
 
-		Valueable<int> Spawns_Delay;
+		Valueable<double> ParticleRangeMin { 0.0 };
+		Valueable<double> ParticleRangeMax { 0.0 };
+		Nullable<int> ParticleChance {};
 
-		Valueable<double> ConcurrentChance;
-		ValueableVector<AnimTypeClass*> ConcurrentAnim;
-		Valueable<bool> ShouldFogRemove;
-		Valueable<OwnerHouseKind> MakeInfantryOwner;
-	    #pragma endregion
-		Valueable<ParticleSystemTypeClass*> AttachedSystem;
-		bool IsInviso;
+		std::vector<LauchSWData> Launchs {};
 
-		Valueable<bool> RemapAnim;
+		Valueable<int> CraterDecreaseTiberiumAmount { 6 };
+		Valueable<double> CraterChance { 0.5 };
+		Nullable<bool> SpawnCrater { };
+		Nullable<double> ScorchChance { };
+
+		Valueable<bool> SpecialDraw { false };
+		Valueable<bool> NoOwner { false };
+
+		Valueable<int> Spawns_Delay { 0 };
+
+		Valueable<double> ConcurrentChance { 0.0 };
+		ValueableVector<AnimTypeClass*> ConcurrentAnim { };
+		Valueable<OwnerHouseKind> MakeInfantryOwner { OwnerHouseKind::Invoker };
+		Valueable<ParticleSystemTypeClass*> AttachedSystem {};
+		bool IsInviso { false };
+
+		Valueable<bool> RemapAnim { false };
 		//AnimSpawnerDatas SpawnerDatas;
-		ExtData(AnimTypeClass* OwnerObject) : Extension<AnimTypeClass>(OwnerObject)
-			, Palette { }
-			, CreateUnit { }
-			, CreateUnit_Facing { DirType::North }
-			, CreateUnit_InheritDeathFacings { false }
-			, CreateUnit_InheritTurretFacings { false }
-			, CreateUnit_RemapAnim { }
-			, CreateUnit_RandomFacing { true }
-			, CreateUnit_Mission { Mission::Guard }
-			, CreateUnit_Owner { OwnerHouseKind::Victim }
-			, CreateUnit_ConsiderPathfinding { false }
-			, CreateUnit_SpawnAnim { }
-			, CreateUnit_AlwaysSpawnOnGround { true }
-			, CreateUnit_KeepOwnerIfDefeated { true }
 
-			, XDrawOffset { 0 }
-			, HideIfNoOre_Threshold { 0 }
-			, Layer_UseObjectLayer {}
-			, UseCenterCoordsIfAttached { false }
-			, Weapon {}
-			, Damage_Delay { 0 }
-			, Damage_DealtByInvoker { false }
-			, Damage_ApplyOnce{ false }
-			, Damage_ConsiderOwnerVeterancy { true }
-			, Damage_TargetFlag {}
-			, Warhead_Detonate { false }
-
-			, SplashList {}
-			, SplashIndexRandom { false }
-			, WakeAnim {}
-			, ExplodeOnWater { false }
-
-			, SpawnsMultiple {}
-			, SpawnsMultiple_Random { false }
-			, SpawnsMultiple_amouts {}
-
-			, ParticleRangeMin { 0.0 }
-			, ParticleRangeMax { 0.0 }
-			, ParticleChance {}
-
-			, Launchs {}
-
-			, CraterDecreaseTiberiumAmount { 6 }
-			, CraterChance { 0.5 }
-			, SpawnCrater { }
-			, ScorchChance { }
-			, SpecialDraw { false }
-			, NoOwner { false }
-			, Spawns_Delay { 0 }
-
-			, ConcurrentChance { 0.0 }
-			, ConcurrentAnim { }
-			, ShouldFogRemove { true }
-			, MakeInfantryOwner { OwnerHouseKind::Invoker }
-			, AttachedSystem {}
-			, IsInviso { false }
-			, RemapAnim { false }
-			//, SpawnerDatas {}
-		{ }
-
+		ExtData(AnimTypeClass* OwnerObject) : Extension<AnimTypeClass> { OwnerObject } { }
 		virtual ~ExtData() override = default;
 
 		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

@@ -1,6 +1,8 @@
 #include "MeteorShower.h"
 
 #include <Ext/House/Body.h>
+#include <Ext/Anim/Body.h>
+#include <Ext/VoxelAnim/Body.h>
 
 #include <Misc/AresData.h>
 
@@ -20,6 +22,9 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 	{
 		if (const auto pCell = MapClass::Instance->TryGetCellAt(Coords))
 		{
+			auto const pData = SWTypeExt::ExtMap.Find(pThis->Type);
+			BuildingClass* pFirer = this->GetFirer(pThis, Coords, false);
+
 			const auto nCoord = pCell->GetCoordsWithBridge();
 			const auto _meteor_counts = { 6, 8, 15 };
 			const auto _impact_counts = { 2 , 4 , 5 }; // too much of this , causing game to freeze , lmao
@@ -52,7 +57,7 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 					large_meteor : small_meteor)
 				{
 					if (auto pAnim = GameCreate<AnimClass>(anim, nwhere))
-						pAnim->Owner = pThis->Owner;
+						AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner, nullptr, pFirer, false);
 				}
 			}
 
@@ -71,7 +76,10 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 					if (VoxelAnimTypeClass* impact = ScenarioClass::Instance->Random.PercentChance(impact_chance) ?
 						large_Impact : small_Impact)
 					{
-						GameCreate<VoxelAnimClass>(impact, &im_where, pThis->Owner);
+						if (auto pVxl = GameCreate<VoxelAnimClass>(impact, &im_where, pThis->Owner))
+						{
+							VoxelAnimExt::ExtMap.Find(pVxl)->Invoker = pFirer;
+						}
 					}
 				}
 			}

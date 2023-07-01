@@ -621,6 +621,7 @@ enum class TriggerAttachType : int {
 	House = 0x8,
 	Logic = 0x10
 };
+MAKE_ENUM_FLAGS(TriggerAttachType);
 
 enum class LogicNeedType : int {
 	None = 0,

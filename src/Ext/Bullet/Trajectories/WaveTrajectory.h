@@ -6,12 +6,10 @@ class WaveTrajectoryType final : public PhobosTrajectoryType
 {
 public:
 
-	Valueable<int> MaxHeight;
-	Valueable<int> MinHeight;
+	Valueable<int> MaxHeight { 2000 };
+	Valueable<int> MinHeight { 0 };
 
 	WaveTrajectoryType() : PhobosTrajectoryType { TrajectoryFlag::Wave }
-		, MaxHeight { 2000 }
-		, MinHeight { 0 }
 	{ }
 
 	virtual ~WaveTrajectoryType() = default;
@@ -27,14 +25,13 @@ class WaveTrajectory final : public PhobosTrajectory
 {
 public:
 
-	bool Fallen;
+	bool Fallen { false };
 
 	WaveTrajectory() : PhobosTrajectory { TrajectoryFlag::Wave }
-		, Fallen { false }
 	{ }
 
-	WaveTrajectory(BulletClass* pBullet, PhobosTrajectoryType* pType) : PhobosTrajectory { TrajectoryFlag::Wave , pBullet , pType }
-		, Fallen { false }
+	WaveTrajectory(BulletClass* pBullet, PhobosTrajectoryType* pType) : 
+		PhobosTrajectory { TrajectoryFlag::Wave , pBullet , pType }
 	{ }
 
 	virtual ~WaveTrajectory() = default;

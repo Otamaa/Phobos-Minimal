@@ -15,9 +15,8 @@ public:
 
 	public:
 
-		int HouseParam;
-		ExtData(TriggerTypeClass* OwnerObject) : Extension<TriggerTypeClass>(OwnerObject) ,
-			HouseParam { -1 }
+		int HouseParam { -1 };
+		ExtData(TriggerTypeClass* OwnerObject) : Extension<TriggerTypeClass>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override = default;

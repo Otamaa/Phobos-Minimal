@@ -22,9 +22,9 @@ struct module_export
 struct __declspec(novtable)
 	Patch
 {
-	size_t offset;
-	size_t size;
-	BYTE* pData;
+	const size_t offset;
+	const size_t size;
+	const BYTE* pData;
 
 	static void ApplyStatic();
 	void Apply();
@@ -65,6 +65,32 @@ struct __declspec(novtable)
 		uintptr_t rawptr = reinterpret_cast<uintptr_t>(ptr);
 		return reinterpret_cast<T>(rawptr + amount);
 	}
+
+	static void Apply_RAW(DWORD offset, std::initializer_list<byte> data);
+
+	static void Apply_LJMP(DWORD offset, DWORD pointer);
+	static inline void Apply_LJMP(DWORD offset, void* pointer)
+	{
+		Apply_LJMP(offset, reinterpret_cast<DWORD>(pointer));
+	};
+
+	static void Apply_CALL(DWORD offset, DWORD pointer);
+	static inline void Apply_CALL(DWORD offset, void* pointer)
+	{
+		Apply_CALL(offset, reinterpret_cast<DWORD>(pointer));
+	};
+
+	static void Apply_CALL6(DWORD offset, DWORD pointer);
+	static inline void Apply_CALL6(DWORD offset, void* pointer)
+	{
+		Apply_CALL6(offset, reinterpret_cast<DWORD>(pointer));
+	};
+
+	static void Apply_VTABLE(DWORD offset, DWORD pointer);
+	static inline void Apply_VTABLE(DWORD offset, void* pointer)
+	{
+		Apply_VTABLE(offset, reinterpret_cast<DWORD>(pointer));
+	};
 
 	static std::vector<module_export> enumerate_module_exports(HMODULE handle);
 	static uintptr_t GetModuleBaseAddress(const char* modName);

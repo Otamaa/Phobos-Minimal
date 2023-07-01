@@ -245,7 +245,7 @@ protected:
 public:
 
 	bool unknown_4;
-	DynamicVectorClass<MPTeam *> MPTeams;
+	DECLARE_PROPERTY(DynamicVectorClass<MPTeam*>, MPTeams);
 	DECLARE_PROPERTY(WideWstring, CSFTitle);
 	DECLARE_PROPERTY(WideWstring, CSFTooltip);
 	int MPModeIndex;

@@ -1701,6 +1701,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->GenericPrerequisite)
 		.Process(this->ExtraPower_Amount)
 		.Process(this->RecheckTechTreeWhenDie)
+		.Process(this->Linked_SW)
 #pragma endregion
 		;
 

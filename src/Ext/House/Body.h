@@ -49,76 +49,44 @@ public:
 		static constexpr size_t ExtOffset = 0x16098;
 
 	public:
-		PhobosMap<BuildingTypeClass*, int> PowerPlantEnhancerBuildings;
-		PhobosMap<BuildingTypeClass*, int> Building_BuildSpeedBonusCounter;
-		std::vector<BuildingClass*> HouseAirFactory;
-		bool ForceOnlyTargetHouseEnemy;
-		int ForceOnlyTargetHouseEnemyMode;
 
-		//DWORD RandomNumber;
+		PhobosMap<BuildingTypeClass*, int> PowerPlantEnhancerBuildings {};
+		PhobosMap<BuildingTypeClass*, int> Building_BuildSpeedBonusCounter {};
+		std::vector<BuildingClass*> HouseAirFactory {};
 
-		BuildingClass* Factory_BuildingType;
-		BuildingClass* Factory_InfantryType;
-		BuildingClass* Factory_VehicleType;
-		BuildingClass* Factory_NavyType;
-		BuildingClass* Factory_AircraftType;
+		bool ForceOnlyTargetHouseEnemy { false };
+		int ForceOnlyTargetHouseEnemyMode { -1 };
 
-		bool AllRepairEventTriggered;
-		int LastBuildingTypeArrayIdx;
+		BuildingClass* Factory_BuildingType { nullptr };
+		BuildingClass* Factory_InfantryType { nullptr };
+		BuildingClass* Factory_VehicleType { nullptr };
+		BuildingClass* Factory_NavyType { nullptr };
+		BuildingClass* Factory_AircraftType { nullptr };
 
-		bool RepairBaseNodes[3];
+		bool AllRepairEventTriggered { false };
+		int LastBuildingTypeArrayIdx { -1 };
 
-		std::vector<TeamClass*> ActiveTeams;
+		bool RepairBaseNodes[3] { false };
+
+		std::vector<TeamClass*> ActiveTeams {};
 
 		//#817
-		int LastBuiltNavalVehicleType;
-		int ProducingNavalUnitTypeIndex;
+		int LastBuiltNavalVehicleType { -1 };
+		int ProducingNavalUnitTypeIndex { -1 };
 
 		//#830
-		PhobosMap<TechnoClass* , KillMethod> AutoDeathObjects;
+		PhobosMap<TechnoClass* , KillMethod> AutoDeathObjects {};
 
 		//std::vector<LauchData> LaunchDatas;
-		bool CaptureObjectExecuted;
-		CDTimerClass DiscoverEvaDelay;
-		std::vector<TunnelData> Tunnels;
-		DWORD Seed;
+		bool CaptureObjectExecuted { false };
+		CDTimerClass DiscoverEvaDelay {};
+		std::vector<TunnelData> Tunnels {};
+		DWORD Seed { 0 };
 
-		int SWLastIndex;
-		std::vector<SuperClass*> Batteries;
+		int SWLastIndex { -1 };
+		std::vector<SuperClass*> Batteries {};
 
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
-			, PowerPlantEnhancerBuildings {}
-			, Building_BuildSpeedBonusCounter {}
-			, HouseAirFactory { }
-			, ForceOnlyTargetHouseEnemy { false }
-			, ForceOnlyTargetHouseEnemyMode { -1 }
-			//, RandomNumber { 0 }
-
-			, Factory_BuildingType { nullptr }
-			, Factory_InfantryType { nullptr }
-			, Factory_VehicleType { nullptr }
-			, Factory_NavyType { nullptr }
-			, Factory_AircraftType { nullptr }
-
-			, AllRepairEventTriggered { false }
-			, LastBuildingTypeArrayIdx { -1 }
-			, RepairBaseNodes { false,false,false }
-
-			, ActiveTeams { }
-
-			, LastBuiltNavalVehicleType { -1 }
-			, ProducingNavalUnitTypeIndex { -1 }
-
-			, AutoDeathObjects {}
-			//, LaunchDatas {}
-			, CaptureObjectExecuted { false }
-			, DiscoverEvaDelay {}
-
-			, Tunnels {}
-			, Seed { (DWORD)-1 }
-
-			, SWLastIndex { -1  }
-			, Batteries {}
 		{ }
 
 		virtual ~ExtData() override = default;

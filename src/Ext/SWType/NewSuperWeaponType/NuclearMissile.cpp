@@ -11,6 +11,11 @@
 
 SuperClass* SW_NuclearMissile::CurrentNukeType = nullptr;
 
+std::vector<const char*> SW_NuclearMissile::GetTypeString() const
+{
+	return { "NewNuke" };
+}
+
 bool SW_NuclearMissile::HandleThisType(SuperWeaponType type) const
 {
 	return (type == SuperWeaponType::Nuke);

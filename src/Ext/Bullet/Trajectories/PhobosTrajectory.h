@@ -34,11 +34,10 @@ class PhobosTrajectoryType
 {
 public:
 	TrajectoryFlag Flag { TrajectoryFlag::Invalid };
-	Nullable<Leptons> DetonationDistance;
+	Nullable<Leptons> DetonationDistance { };
 
 	PhobosTrajectoryType(noinit_t){ }
 	PhobosTrajectoryType(TrajectoryFlag flag) : Flag { flag }
-		, DetonationDistance { }
 	{}
 
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
@@ -65,15 +64,12 @@ class PhobosTrajectory
 public:
 
 	TrajectoryFlag Flag { TrajectoryFlag::Invalid };
-	BulletClass* AttachedTo;
-	PhobosTrajectoryType* Type;
-	Leptons DetonationDistance;
+	BulletClass* AttachedTo { nullptr };
+	PhobosTrajectoryType* Type { nullptr };
+	Leptons DetonationDistance { 0 };
 
 	PhobosTrajectory(noinit_t) { }
 	PhobosTrajectory(TrajectoryFlag flag ) : Flag { flag }
-		, AttachedTo { nullptr }
-		, Type { nullptr }
-		, DetonationDistance { 0 }
 	{ }
 
 	PhobosTrajectory(TrajectoryFlag flag , BulletClass* pBullet , PhobosTrajectoryType* type) : Flag { flag }

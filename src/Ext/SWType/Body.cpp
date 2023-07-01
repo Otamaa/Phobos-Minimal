@@ -1470,6 +1470,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_ResetType.Read(exINI, pSection, "SW.ResetTypes");
 	this->SW_Require.Read(exINI, pSection, "SW.RequireBuildings");
 	this->Aux_Techno.Read(exINI, pSection, "SW.AuxTechnos");
+	this->SW_Lauchsites.Read(exINI, pSection, "SW.LaunchSites");
 
 	// initialize the NewSWType that handles this SWType.
 	if (auto pNewSWType = NewSWType::GetNewSWType(this))
@@ -1599,15 +1600,13 @@ void SWTypeExt::ExtData::ApplyLimboKill(HouseClass* pHouse)
 	}
 }
 
-void SWTypeExt::ExtData::ApplyDetonation(HouseClass* pHouse, const CellStruct& cell)
+void SWTypeExt::ExtData::ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, const CellStruct& cell)
 {
 	if (!this->Detonate_Weapon.isset() && !this->Detonate_Warhead.isset())
 		return;
 
 	const auto pCell = MapClass::Instance->GetCellAt(cell);
-	BuildingClass* const pFirer = *(std::find_if(pHouse->Buildings.begin(), pHouse->Buildings.end(),
-		[&](BuildingClass* const pBld) { return this->IsLaunchSiteEligible(cell, pBld, false); }));
-
+	BuildingClass* pFirer = this->GetNewSWType()->GetFirer(pSW, cell, true);
 	CoordStruct nDest = CoordStruct::Empty;
 	AbstractClass* pTarget = nullptr;
 
@@ -1626,19 +1625,14 @@ void SWTypeExt::ExtData::ApplyDetonation(HouseClass* pHouse, const CellStruct& c
 	}
 
 	if (!MapClass::Instance->IsWithinUsableArea(nDest))
-		Debug::Log("SW [%s] Lauch Outside Usable Map Area ! \n", this->Get()->ID);
+		Debug::Log("SW [%s] Lauch Outside Usable Map Area [%d . %d]! \n", this->Get()->ID , nDest.X , nDest.Y);
 
 	if (const auto pWeapon = this->Detonate_Weapon.Get())
 		WeaponTypeExt::DetonateAt(pWeapon, nDest, pFirer, this->Detonate_Damage.Get(pWeapon->Damage), true);
 	else
 	{
-		if (pFirer && !Is_Techno(pFirer)) {
-			Debug::Log("SW[%s] delivering damage from unknown source [%x] !",this->get_ID(), pFirer);
-		}
-
 		WarheadTypeExt::DetonateAt(this->Detonate_Warhead.Get(), pTarget, nDest, pFirer, this->Detonate_Damage.Get(this->SW_Damage.Get(0)));
 	}
-
 }
 
 void SWTypeExt::ExtData::ApplySWNext(SuperClass* pSW, const CellStruct& cell)
@@ -1676,7 +1670,7 @@ void SWTypeExt::ExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, co
 		ApplyLimboKill(pHouse);
 
 	if (this->Detonate_Warhead.isset() || this->Detonate_Weapon.isset())
-		this->ApplyDetonation(pSW->Owner, *pCell);
+		this->ApplyDetonation(pSW , pSW->Owner, *pCell);
 
 	if (!this->SW_Next.empty())
 		this->ApplySWNext(pSW, *pCell);
@@ -2167,6 +2161,7 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SW_ResetType)
 		.Process(this->SW_Require)
 		.Process(this->Aux_Techno)
+		.Process(this->SW_Lauchsites)
 		;
 
 }

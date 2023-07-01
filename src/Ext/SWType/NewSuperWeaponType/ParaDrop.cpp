@@ -3,6 +3,11 @@
 #include <Utilities/Helpers.h>
 #include <Ext/House/Body.h>
 
+std::vector<const char*> SW_ParaDrop::GetTypeString() const
+{
+	return { "NewParaDrop" };
+}
+
 bool SW_ParaDrop::HandleThisType(SuperWeaponType type) const
 {
 	return (type == SuperWeaponType::ParaDrop) || (type == SuperWeaponType::AmerParaDrop);

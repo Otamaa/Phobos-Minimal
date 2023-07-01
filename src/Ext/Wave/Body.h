@@ -237,44 +237,28 @@ public:
 
 	public:
 
-		WeaponTypeClass* Weapon;
-		int WeaponIdx;
-		bool ReverseAgainstTarget;
-		CoordStruct SourceCoord;
-		bool CanDoUpdate;
+		WeaponTypeClass* Weapon { nullptr };
+		int WeaponIdx { -1 };
+		bool ReverseAgainstTarget { false };
+		CoordStruct SourceCoord { };
+		bool CanDoUpdate { false };
+
 		/// vinivera
 		/*
-		bool SonicBeamIsClear;
-		double SonicBeamAlpha;
-		double SonicBeamSineDuration;
-		double SonicBeamSineAmplitude;
-		double SonicBeamOffset;
-		SonicBeamSurfacePatternType SonicBeamSurfacePattern;
-		SonicBeamSinePatternType SonicBeamSinePattern;
-		Vector3D<double> SonicBeamStartPinLeft;
-		Vector3D<double> SonicBeamStartPinRight;
-		Vector3D<double> SonicBeamEndPinLeft;
-		Vector3D<double> SonicBeamEndPinRight;
+		bool SonicBeamIsClear { false };
+		double SonicBeamAlpha { 0.5 };
+		double SonicBeamSineDuration { 0.125 };
+		double SonicBeamSineAmplitude { 12.0 };
+		double SonicBeamOffset { 0.49 };
+		SonicBeamSurfacePatternType SonicBeamSurfacePattern { SonicBeamSurfacePatternType::CIRCLE };
+		SonicBeamSinePatternType SonicBeamSinePattern { SonicBeamSurfacePatternType::CIRCLE };
+		Vector3D<double> SonicBeamStartPinLeft { -30.0, -100.0, 0.0 };
+		Vector3D<double> SonicBeamStartPinRight { -30.0, 100.0, 0.0 };
+		Vector3D<double> SonicBeamEndPinLeft { 30.0, -100.0, 0.0 };
+		Vector3D<double> SonicBeamEndPinRight { 30.0, 100.0, 0.0 };
 		*/
+
 		ExtData(WaveClass* OwnerObject) : Extension<WaveClass>(OwnerObject)
-			, Weapon { nullptr }
-			, WeaponIdx { -1 }
-			, ReverseAgainstTarget { false }
-			, SourceCoord { }
-			, CanDoUpdate { false }
-			/*
-			, SonicBeamIsClear { false }
-			, SonicBeamAlpha { 0.5 }
-			, SonicBeamSineDuration { 0.125 }
-			, SonicBeamSineAmplitude { 12.0 }
-			, SonicBeamOffset { 0.49 }
-			, SonicBeamSurfacePattern { SonicBeamSurfacePatternType::CIRCLE }
-			, SonicBeamSinePattern { SonicBeamSinePatternType::CIRCLE }
-			, SonicBeamStartPinLeft { -30.0, -100.0, 0.0 }
-			, SonicBeamStartPinRight { -30.0, 100.0, 0.0 }
-			, SonicBeamEndPinLeft { 30.0, -100.0, 0.0 }
-			, SonicBeamEndPinRight { 30.0, 100.0, 0.0 }
-			*/
 		{ }
 
 		virtual ~ExtData() override = default;

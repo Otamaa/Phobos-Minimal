@@ -83,7 +83,7 @@ namespace detail
 		{
 			if (!parser.empty())
 			{
-				if (auto const& pColorClass = ColorTypeClass::Find(parser.value()))
+				if (auto const pColorClass = ColorTypeClass::Find(parser.value()))
 				{
 					value = pColorClass->ToColor();
 					return true;

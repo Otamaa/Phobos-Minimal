@@ -2,6 +2,11 @@
 
 SuperClass* SW_PsychicDominator::CurrentPsyDom = nullptr;
 
+std::vector<const char*> SW_PsychicDominator::GetTypeString() const
+{
+	return { "NewDominator" };
+}
+
 bool SW_PsychicDominator::HandleThisType(SuperWeaponType type) const
 {
 	return (type == SuperWeaponType::PsychicDominator);

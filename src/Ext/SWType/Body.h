@@ -22,7 +22,6 @@ enum class CloakHandling
 	RequireCloaked = 3
 };
 
-
 struct LightingColor
 {
 	int Red, Green, Blue, Ambient;
@@ -317,7 +316,7 @@ public:
 		Nullable<int> Weather_Duration {};
 		Nullable<int> Weather_HitDelay {};
 		Nullable<int> Weather_ScatterDelay {};
-		Valueable<int> Weather_ScatterCount{ 1 };
+		Valueable<int> Weather_ScatterCount { 1 };
 		Nullable<int> Weather_Separation {};
 		Valueable<int> Weather_CloudHeight { -1};
 		Nullable<int> Weather_RadarOutage {};
@@ -374,6 +373,7 @@ public:
 		ValueableIdxVector<SuperWeaponTypeClass> SW_ResetType {};
 		ValueableVector<BuildingTypeClass*> SW_Require {};
 		ValueableVector<TechnoTypeClass*> Aux_Techno {};
+		ValueableVector<BuildingTypeClass*> SW_Lauchsites {};
 
 		ExtData(SuperWeaponTypeClass* OwnerObject) : Extension<SuperWeaponTypeClass>(OwnerObject)
 		{}
@@ -390,7 +390,7 @@ public:
 		bool IsLaunchSite(BuildingClass* pBuilding) const;
 		std::pair<double, double> GetLaunchSiteRange(BuildingClass* pBuilding = nullptr) const;
 
-		void ApplyDetonation(HouseClass* pHouse, const CellStruct& cell);
+		void ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, const CellStruct& cell);
 		void ApplySWNext(SuperClass* pSW, const CellStruct& cell);
 
 		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

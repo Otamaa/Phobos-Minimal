@@ -21,21 +21,12 @@ enum class BunkerSoundMode : int
 
 struct BuildSpeedBonus
 {
-	bool Enabled;
-	double SpeedBonus_Aircraft;
-	double SpeedBonus_Building;
-	double SpeedBonus_Infantry;
-	double SpeedBonus_Unit;
-	ValueableVector<TechnoTypeClass*> AffectedType;
-
-	BuildSpeedBonus() : Enabled { false }
-		, SpeedBonus_Aircraft { 0.000 }
-		, SpeedBonus_Building { 0.000 }
-		, SpeedBonus_Infantry { 0.000 }
-		, SpeedBonus_Unit { 0.000 }
-		, AffectedType { }
-	{
-	}
+	bool Enabled { false };
+	double SpeedBonus_Aircraft { 0.000 };
+	double SpeedBonus_Building { 0.000 };
+	double SpeedBonus_Infantry { 0.000 };
+	double SpeedBonus_Unit { 0.000 };
+	ValueableVector<TechnoTypeClass*> AffectedType { };
 
 	void Read(INI_EX& parser, const char* pSection)
 	{
@@ -92,8 +83,6 @@ private:
 	template <typename T>
 	bool Serialize(T& stm)
 	{
-		//Debug::Log("Processing Items From BuildSpeedBonus ! \n");
-
 		return stm
 			.Process(Enabled)
 			.Process(SpeedBonus_Aircraft)
@@ -120,177 +109,179 @@ public:
 		static constexpr size_t ExtOffset = 0x1794;
 
 	public:
-		TechnoTypeExt::ExtData* Type;
-		Valueable<AffectedHouse> PowersUp_Owner;
-		ValueableVector<BuildingTypeClass*> PowersUp_Buildings;
-		ValueableIdxVector<SuperWeaponTypeClass> SuperWeapons;
 
-		ValueableVector<BuildingTypeClass*> PowerPlantEnhancer_Buildings;
-		Nullable<int> PowerPlantEnhancer_Amount;
-		Nullable<float> PowerPlantEnhancer_Factor;
+		TechnoTypeExt::ExtData* Type { nullptr };
 
-		std::vector<Point2D> OccupierMuzzleFlashes;
+		Valueable<AffectedHouse> PowersUp_Owner { AffectedHouse::Owner };
+		ValueableVector<BuildingTypeClass*> PowersUp_Buildings {};
+		ValueableIdxVector<SuperWeaponTypeClass> SuperWeapons {};
 
-		Valueable<bool> Refinery_UseStorage;
-		Nullable<bool> AllowAirstrike;
-		Valueable<bool> Grinding_AllowAllies;
-		Valueable<bool> Grinding_AllowOwner;
-		ValueableVector<TechnoTypeClass*> Grinding_AllowTypes;
-		ValueableVector<TechnoTypeClass*> Grinding_DisallowTypes;
-		NullableIdx<VocClass> Grinding_Sound;
-		Nullable<WeaponTypeClass*> Grinding_Weapon;
-		Valueable<bool> Grinding_DisplayRefund;
-		Valueable<AffectedHouse> Grinding_DisplayRefund_Houses;
-		Valueable<Point2D> Grinding_DisplayRefund_Offset;
-		Valueable<bool> Grinding_PlayDieSound;
+		ValueableVector<BuildingTypeClass*> PowerPlantEnhancer_Buildings {};
+		Nullable<int> PowerPlantEnhancer_Amount {};
+		Nullable<float> PowerPlantEnhancer_Factor {};
 
-		Valueable<bool> Refinery_DisplayDumpedMoneyAmount;
-		Valueable<Point2D> Refinery_DisplayRefund_Offset;
+		std::vector<Point2D> OccupierMuzzleFlashes {};
 
-		Nullable<bool> PlacementPreview_Show;
-		Nullable<Theater_SHPStruct*> PlacementPreview_Shape;
-		Nullable<int> PlacementPreview_ShapeFrame;
-		Valueable<CoordStruct> PlacementPreview_Offset;
-		Valueable<bool> PlacementPreview_Remap;
-		Valueable<PaletteManager*> PlacementPreview_Palette; //CustomPalette::PaletteMode::Default
-		Nullable<int> PlacementPreview_TranslucentLevel;
+		Valueable<bool> Refinery_UseStorage { false };
 
-		Nullable<AffectedHouse> RadialIndicator_Visibility;
+		Nullable<bool> AllowAirstrike {};
 
-		Valueable<bool> SpyEffect_Custom;
-		NullableIdx<SuperWeaponTypeClass> SpyEffect_VictimSuperWeapon;
-		NullableIdx<SuperWeaponTypeClass> SpyEffect_InfiltratorSuperWeapon;
+		Valueable<bool> Grinding_AllowAllies { false };
+		Valueable<bool> Grinding_AllowOwner { true };
+		ValueableVector<TechnoTypeClass*> Grinding_AllowTypes {};
+		ValueableVector<TechnoTypeClass*> Grinding_DisallowTypes {};
+		NullableIdx<VocClass> Grinding_Sound {};
+		Nullable<WeaponTypeClass*> Grinding_Weapon {};
+		Valueable<bool> Grinding_DisplayRefund { false };
+		Valueable<AffectedHouse> Grinding_DisplayRefund_Houses { AffectedHouse::All };
+		Valueable<Point2D> Grinding_DisplayRefund_Offset { {0, 0} };
+		Valueable<bool> Grinding_PlayDieSound { false };
+
+		Valueable<bool> Refinery_DisplayDumpedMoneyAmount { false };
+		Valueable<Point2D> Refinery_DisplayRefund_Offset { {0, 0} };
+
+		Nullable<bool> PlacementPreview_Show {};
+		Nullable<Theater_SHPStruct*> PlacementPreview_Shape {};
+		Nullable<int> PlacementPreview_ShapeFrame {};
+		Valueable<CoordStruct> PlacementPreview_Offset { {0, -15, 1} };
+		Valueable<bool> PlacementPreview_Remap { true };
+		Valueable<PaletteManager*> PlacementPreview_Palette {}; //CustomPalette::PaletteMode::Default
+		Nullable<int> PlacementPreview_TranslucentLevel {};
+
+		Nullable<AffectedHouse> RadialIndicator_Visibility {};
+
+		Valueable<bool> SpyEffect_Custom { false };
+		NullableIdx<SuperWeaponTypeClass> SpyEffect_VictimSuperWeapon {};
+		NullableIdx<SuperWeaponTypeClass> SpyEffect_InfiltratorSuperWeapon {};
 
 		//#814
-		Valueable<bool> SpyEffect_InfiltratorSW_JustGrant;
-		Valueable<bool> SpyEffect_VictimSW_RealLaunch;
+		Valueable<bool> SpyEffect_InfiltratorSW_JustGrant { false };
+		Valueable<bool> SpyEffect_VictimSW_RealLaunch { false };
 
-		Valueable<bool> SpyEffect_RevealProduction;
-		Valueable<bool> SpyEffect_ResetSW;
-		Valueable<bool> SpyEffect_ResetRadar;
-		Valueable<bool> SpyEffect_RevealRadar;
-		Valueable<bool> SpyEffect_RevealRadarPersist;
-		Valueable<bool> SpyEffect_GainVeterancy;
-		Valueable<bool> SpyEffect_UnReverseEngineer;
-		Valueable<int> SpyEffect_StolenTechIndex;
-		Valueable<int> SpyEffect_StolenMoneyAmount;
-		Valueable<int> SpyEffect_StolenMoneyPercentage;
-		Valueable<int> SpyEffect_PowerOutageDuration;
-		Valueable<int> SpyEffect_SabotageDelay;
-		Valueable<SuperWeaponTypeClass*> SpyEffect_SuperWeapon;
-		Valueable<bool> SpyEffect_SuperWeaponPermanent;
+		Valueable<bool> SpyEffect_RevealProduction { false };
+		Valueable<bool> SpyEffect_ResetSW { false };
+		Valueable<bool> SpyEffect_ResetRadar { false };
+		Valueable<bool> SpyEffect_RevealRadar { false };
+		Valueable<bool> SpyEffect_RevealRadarPersist { false };
+		Valueable<bool> SpyEffect_GainVeterancy { false };
+		Valueable<bool> SpyEffect_UnReverseEngineer { false };
+		Valueable<int> SpyEffect_StolenTechIndex { -1 };
+		Valueable<int> SpyEffect_StolenMoneyAmount { 0 };
+		Valueable<int> SpyEffect_StolenMoneyPercentage { 0 };
+		Valueable<int> SpyEffect_PowerOutageDuration { 0 };
+		Valueable<int> SpyEffect_SabotageDelay { 0 };
+		Valueable<SuperWeaponTypeClass*> SpyEffect_SuperWeapon { nullptr };
+		Valueable<bool> SpyEffect_SuperWeaponPermanent { false };
 
-		Valueable<bool> SpyEffect_InfantryVeterancy;
-		Valueable<bool> SpyEffect_VehicleVeterancy;
-		Valueable<bool> SpyEffect_NavalVeterancy;
-		Valueable<bool> SpyEffect_AircraftVeterancy;
-		Valueable<bool> SpyEffect_BuildingVeterancy;
+		Valueable<bool> SpyEffect_InfantryVeterancy { false };
+		Valueable<bool> SpyEffect_VehicleVeterancy { false };
+		Valueable<bool> SpyEffect_NavalVeterancy { false };
+		Valueable<bool> SpyEffect_AircraftVeterancy { false };
+		Valueable<bool> SpyEffect_BuildingVeterancy { false };
 
-		Valueable<bool> ZShapePointMove_OnBuildup;
-		Valueable<int> SellBuildupLength;
+		Valueable<bool> ZShapePointMove_OnBuildup { false };
+		Valueable<int> SellBuildupLength { 23 };
 
-		Valueable<bool> CanC4_AllowZeroDamage;
-		Valueable<double> C4_Modifier;
+		Valueable<bool> CanC4_AllowZeroDamage { false };
+		Valueable<double> C4_Modifier { 1.0 };
 
-		Valueable<CellStruct> DockUnload_Cell;
-		Nullable<DirType32> DockUnload_Facing;
+		Valueable<CellStruct> DockUnload_Cell { { 3, 1 } };
+		Nullable<DirType32> DockUnload_Facing { };
 
 		// solid
-		Valueable<int> Solid_Height;
-		Valueable<int> Solid_Level;
+		Valueable<int> Solid_Height { 0 };
+		Valueable<int> Solid_Level { 1 };
 
-		Nullable<bool> AIBaseNormal;
-		Nullable<bool> AIInnerBase;
-		Valueable<bool> Cloning_Facility;
+		Nullable<bool> AIBaseNormal { };
+		Nullable<bool> AIInnerBase { };
+		Valueable<bool> Cloning_Facility { false };
 
 		// gates
-		NullableIdx<VocClass> GateDownSound;
-		NullableIdx<VocClass> GateUpSound;
-		Nullable<bool> UnitSell;
+		NullableIdx<VocClass> GateDownSound {};
+		NullableIdx<VocClass> GateUpSound {};
+		Nullable<bool> UnitSell {};
 
-#pragma region Otamaa
-		NullableVector<AnimTypeClass*> DamageFireTypes;
-		NullableVector<AnimTypeClass*> OnFireTypes;
-		NullableVector<int> OnFireIndex;
-		HealthOnFireData HealthOnfire;
+		NullableVector<AnimTypeClass*> DamageFireTypes {};
+		NullableVector<AnimTypeClass*> OnFireTypes {};
+		NullableVector<int> OnFireIndex {};
+		HealthOnFireData HealthOnfire {};
 
-		Valueable<BuildingTypeClass*> RubbleIntact; 		//!< What BuildingType to turn into when reconstructed. (This is the normal building, set on rubble.)
-		Valueable<BuildingTypeClass*> RubbleDestroyed;	//!< What BuildingType to turn into when destroyed. (This is the rubble, set on normal buildings.)
-		Valueable<AnimTypeClass*> RubbleDestroyedAnim;
-		Valueable<AnimTypeClass*> RubbleIntactAnim;
-		Valueable<OwnerHouseKind> RubbleDestroyedOwner;
-		Valueable<OwnerHouseKind> RubbleIntactOwner;
-		Valueable<int> RubbleDestroyedStrength;
-		Valueable<int> RubbleIntactStrength;
-		Valueable<bool> RubbleDestroyedRemove;
-		Valueable<bool> RubbleIntactRemove;
+		Valueable<BuildingTypeClass*> RubbleIntact { nullptr }; 		//!< What BuildingType to turn into when reconstructed. (This is the normal building, set on rubble.)
+		Valueable<BuildingTypeClass*> RubbleDestroyed { nullptr };	//!< What BuildingType to turn into when destroyed. (This is the rubble, set on normal buildings.)
+		Valueable<AnimTypeClass*> RubbleDestroyedAnim { nullptr };
+		Valueable<AnimTypeClass*> RubbleIntactAnim { nullptr };
+		Valueable<OwnerHouseKind> RubbleDestroyedOwner { OwnerHouseKind::Default };
+		Valueable<OwnerHouseKind> RubbleIntactOwner { OwnerHouseKind::Default };
+		Valueable<int> RubbleDestroyedStrength { 0 };
+		Valueable<int> RubbleIntactStrength { -1 };
+		Valueable<bool> RubbleDestroyedRemove { false };
+		Valueable<bool> RubbleIntactRemove { false };
 
-		ValueableVector<Point2D> DamageFire_Offs;
+		ValueableVector<Point2D> DamageFire_Offs {};
 
-		Nullable<double> RepairRate;
-		Nullable<int> RepairStep;
+		Nullable<double> RepairRate {};
+		Nullable<int> RepairStep {};
 
-		Nullable<bool> PlayerReturnFire;
+		Nullable<bool> PlayerReturnFire {};
 
-		Valueable<bool> PackupSound_PlayGlobal;
-		Valueable<bool> DisableDamageSound;
+		Valueable<bool> PackupSound_PlayGlobal { false };
+		Valueable<bool> DisableDamageSound { false };
 
-		Nullable<float> BuildingOccupyDamageMult;
-		Nullable<float> BuildingOccupyROFMult;
+		Nullable<float> BuildingOccupyDamageMult {};
+		Nullable<float> BuildingOccupyROFMult {};
 
-		Nullable<float> BuildingBunkerDamageMult;
-		Nullable<float> BuildingBunkerROFMult;
+		Nullable<float> BuildingBunkerDamageMult {};
+		Nullable<float> BuildingBunkerROFMult {};
 
 
-		NullableIdx<VocClass> BunkerWallsUpSound;
-		NullableIdx<VocClass> BunkerWallsDownSound;
+		NullableIdx<VocClass> BunkerWallsUpSound {};
+		NullableIdx<VocClass> BunkerWallsDownSound {};
 
-		ValueableIdxVector<BuildingTypeClass> AIBuildInsteadPerDiff;
+		ValueableIdxVector<BuildingTypeClass> AIBuildInsteadPerDiff {};
 
-		PhobosMap<int, AnimTypeClass*> GarrisonAnim_idle;
-		PhobosMap<int, AnimTypeClass*> GarrisonAnim_ActiveOne;
-		PhobosMap<int, AnimTypeClass*> GarrisonAnim_ActiveTwo;
-		PhobosMap<int, AnimTypeClass*> GarrisonAnim_ActiveThree;
-		PhobosMap<int, AnimTypeClass*> GarrisonAnim_ActiveFour;
+		PhobosMap<int, AnimTypeClass*> GarrisonAnim_idle {};
+		PhobosMap<int, AnimTypeClass*> GarrisonAnim_ActiveOne {};
+		PhobosMap<int, AnimTypeClass*> GarrisonAnim_ActiveTwo {};
+		PhobosMap<int, AnimTypeClass*> GarrisonAnim_ActiveThree {};
+		PhobosMap<int, AnimTypeClass*> GarrisonAnim_ActiveFour {};
 
-		Valueable<PaletteManager*> PipShapes01Palette; //CustomPalette::PaletteMode::Temperate
-		Valueable<bool> PipShapes01Remap;
+		Valueable<PaletteManager*> PipShapes01Palette {}; //CustomPalette::PaletteMode::Temperate
+		Valueable<bool> PipShapes01Remap { false };
 
-		Nullable<AnimTypeClass*> TurretAnim_LowPower;
-		Nullable<AnimTypeClass*> TurretAnim_DamagedLowPower;
+		Nullable<AnimTypeClass*> TurretAnim_LowPower {};
+		Nullable<AnimTypeClass*> TurretAnim_DamagedLowPower {};
 
-		Valueable<bool> BuildUp_UseNormalLIght;
+		Valueable<bool> BuildUp_UseNormalLIght {};
 
-		Valueable<bool> Power_DegradeWithHealth;
+		Valueable<bool> Power_DegradeWithHealth { true };
 
-		Nullable<float> AutoSellTime;
+		Nullable<float> AutoSellTime {};
 
-		Valueable<bool> IsJuggernaut;
+		Valueable<bool> IsJuggernaut { false };
 
-		Nullable<SHPStruct*> BuildingPlacementGrid_Shape;
-		BuildSpeedBonus SpeedBonus;
+		Nullable<SHPStruct*> BuildingPlacementGrid_Shape {};
+		BuildSpeedBonus SpeedBonus {};
 
-		Valueable<PaletteManager*> RubblePalette; //CustomPalette::PaletteMode::Temperates
+		Valueable<PaletteManager*> RubblePalette {}; //CustomPalette::PaletteMode::Temperates
 
-		NullableIdx<VocClass> EnterBioReactorSound;
-		NullableIdx<VocClass> LeaveBioReactorSound;
-		std::vector<int> DockPoseDir;
+		NullableIdx<VocClass> EnterBioReactorSound {};
+		NullableIdx<VocClass> LeaveBioReactorSound {};
+		std::vector<int> DockPoseDir {};
 
-		Nullable<bool> EngineerRepairable;
-#pragma endregion
+		Nullable<bool> EngineerRepairable {};
 
-		signed int IsTrench; 					//!< Enables moving between segments - saves ID of a kind of trench. \sa trenchKinds
+		signed int IsTrench { -1 };					//!< Enables moving between segments - saves ID of a kind of trench. \sa trenchKinds
 
-		ValueableIdx<TunnelTypeClass> TunnelType;
+		ValueableIdx<TunnelTypeClass> TunnelType { -1 };
 
-		Valueable<double> UCPassThrough; 					//!< How many percent of the shots pass through the building to the occupants? 0.0 = 0%, 1.0 = 100%; Defaults to 0.0.
-		Valueable<double> UCFatalRate; 					//!< Chance of an occupant getting killed instantly when a bullet passes through. 0.0 = 0%, 1.0 = 100%; Defaults to 0.0.
-		Valueable<double> UCDamageMultiplier; 				//!< How many percent of normal damage are applied if an occupant is hit when a bullet passes through. 0.0 = 0%, 1.0 = 100%; Defaults to 1.0.
+		Valueable<double> UCPassThrough { 0.0 }; 					//!< How many percent of the shots pass through the building to the occupants? 0.0 = 0%, 1.0 = 100%; Defaults to 0.0.
+		Valueable<double> UCFatalRate { 0.0 }; 					//!< Chance of an occupant getting killed instantly when a bullet passes through. 0.0 = 0%, 1.0 = 100%; Defaults to 0.0.
+		Valueable<double> UCDamageMultiplier { 1.0 }; 				//!< How many percent of normal damage are applied if an occupant is hit when a bullet passes through. 0.0 = 0%, 1.0 = 100%; Defaults to 1.0.
 
-		ValueableIdx<CursorTypeClass> Cursor_Spy;
-		ValueableIdx<CursorTypeClass> Cursor_Sabotage;
-		Nullable<bool> ImmuneToSaboteurs;
-		Valueable<bool> ReverseEngineersVictims;
+		ValueableIdx<CursorTypeClass> Cursor_Spy { (int)MouseCursorType::Enter };
+		ValueableIdx<CursorTypeClass> Cursor_Sabotage { 93 };
+		Nullable<bool> ImmuneToSaboteurs {};
+		Valueable<bool> ReverseEngineersVictims { false };
 
 		// lightning rod
 		Valueable<double> LightningRod_Modifier { 1.0 };
@@ -305,151 +296,11 @@ public:
 		ValueableVector<BuildingTypeClass*> LaserFencePostLinks { };
 		Valueable<short> LaserFenceDirection {};
 
-		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject)
-			, Type { nullptr }
-			, PowersUp_Owner { AffectedHouse::Owner }
-			, PowersUp_Buildings {}
-			, PowerPlantEnhancer_Buildings {}
-			, PowerPlantEnhancer_Amount {}
-			, PowerPlantEnhancer_Factor {}
-			, OccupierMuzzleFlashes { }
-			, Refinery_UseStorage { false }
-			, AllowAirstrike {}
-			, Grinding_AllowAllies { false }
-			, Grinding_AllowOwner { true }
-			, Grinding_AllowTypes {}
-			, Grinding_DisallowTypes {}
-			, Grinding_Sound {}
-			, Grinding_Weapon {}
-			, Grinding_DisplayRefund { false }
-			, Grinding_DisplayRefund_Houses { AffectedHouse::All }
-			, Grinding_DisplayRefund_Offset { { 0,0 } }
-			, Grinding_PlayDieSound { false }
-
-			, Refinery_DisplayDumpedMoneyAmount { false }
-			, Refinery_DisplayRefund_Offset { {0,0} }
-			, PlacementPreview_Show {}
-			, PlacementPreview_Shape {}
-			, PlacementPreview_ShapeFrame {}
-			, PlacementPreview_Offset { {0,-15,1} }
-			, PlacementPreview_Remap { true }
-			, PlacementPreview_Palette {}
-			, PlacementPreview_TranslucentLevel {}
-			, RadialIndicator_Visibility {}
-			, SpyEffect_Custom { false }
-			, SpyEffect_VictimSuperWeapon {}
-			, SpyEffect_InfiltratorSuperWeapon {}
-			, SpyEffect_InfiltratorSW_JustGrant { false }
-			, SpyEffect_VictimSW_RealLaunch { false }
-
-			, SpyEffect_RevealProduction {}
-			, SpyEffect_ResetSW {}
-			, SpyEffect_ResetRadar {}
-			, SpyEffect_RevealRadar {}
-			, SpyEffect_RevealRadarPersist {}
-			, SpyEffect_GainVeterancy {}
-			, SpyEffect_UnReverseEngineer {}
-			, SpyEffect_StolenTechIndex { -1 }
-			, SpyEffect_StolenMoneyAmount { 0 }
-			, SpyEffect_StolenMoneyPercentage { 0 }
-			, SpyEffect_PowerOutageDuration { 0 }
-			, SpyEffect_SabotageDelay { 0 }
-			, SpyEffect_SuperWeapon {}
-			, SpyEffect_SuperWeaponPermanent {}
-			, SpyEffect_InfantryVeterancy {}
-			, SpyEffect_VehicleVeterancy {}
-			, SpyEffect_NavalVeterancy {}
-			, SpyEffect_AircraftVeterancy {}
-			, SpyEffect_BuildingVeterancy {}
-
-			, ZShapePointMove_OnBuildup { false }
-			, SellBuildupLength { 23 }
-
-			, CanC4_AllowZeroDamage { false }
-			, C4_Modifier { 1.0 }
-			, DockUnload_Cell { { 3, 1 } }
-			, DockUnload_Facing {}
-			, Solid_Height { 0 }
-			, Solid_Level { 1 }
-			, AIBaseNormal {}
-			, AIInnerBase {}
-			, Cloning_Facility { false }
-			, GateDownSound {}
-			, GateUpSound {}
-			, UnitSell {}
-			, DamageFireTypes {}
-			, OnFireTypes {}
-			, OnFireIndex {}
-			, HealthOnfire {}
-			, RubbleIntact(nullptr)
-			, RubbleDestroyed(nullptr)
-			, RubbleDestroyedAnim(nullptr)
-			, RubbleIntactAnim(nullptr)
-			, RubbleDestroyedOwner(OwnerHouseKind::Default)
-			, RubbleIntactOwner(OwnerHouseKind::Default)
-			, RubbleDestroyedStrength(0)
-			, RubbleIntactStrength(-1)
-			, RubbleDestroyedRemove(false)
-			, RubbleIntactRemove(false)
-			, RepairRate {}
-			, RepairStep {}
-
-			, PlayerReturnFire {}
-
-			, PackupSound_PlayGlobal { false }
-			, DisableDamageSound { false }
-
-			, BuildingOccupyDamageMult {}
-			, BuildingOccupyROFMult {}
-
-			, BuildingBunkerDamageMult {}
-			, BuildingBunkerROFMult {}
-
-			, BunkerWallsUpSound {}
-			, BunkerWallsDownSound {}
-
-			, AIBuildInsteadPerDiff {}
-
-			, GarrisonAnim_idle {}
-			, GarrisonAnim_ActiveOne {}
-			, GarrisonAnim_ActiveTwo {}
-			, GarrisonAnim_ActiveThree {}
-			, GarrisonAnim_ActiveFour {}
-
-			, PipShapes01Palette { }
-			, PipShapes01Remap { false }
-
-			, TurretAnim_LowPower {}
-			, TurretAnim_DamagedLowPower {}
-			, BuildUp_UseNormalLIght { false }
-			, Power_DegradeWithHealth { true }
-			, IsJuggernaut { false }
-			, BuildingPlacementGrid_Shape {}
-			, SpeedBonus {}
-			, RubblePalette {}
-			, EnterBioReactorSound {}
-			, LeaveBioReactorSound {}
-			, DockPoseDir {}
-			, EngineerRepairable {}
-			, IsTrench { -1 }
-			, TunnelType { -1 }
-			, UCPassThrough { 0.0 }
-			, UCFatalRate { 0.0 }
-			, UCDamageMultiplier { 1.0 }
-			, Cursor_Spy { (int)MouseCursorType::Enter }
-			, Cursor_Sabotage { 93 }
-			, ImmuneToSaboteurs { }
-			, ReverseEngineersVictims { false }
-		{ }
-
+		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject) { }
 		virtual ~ExtData() override = default;
 
 		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-		void Initialize() {
-			this->OccupierMuzzleFlashes.reserve(((BuildingTypeClass*)this->Type->Get())->MaxNumberOccupants);
-			this->DockPoseDir.reserve(((BuildingTypeClass*)this->Type->Get())->NumberOfDocks);
-		}
-
+		void Initialize();
 		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 

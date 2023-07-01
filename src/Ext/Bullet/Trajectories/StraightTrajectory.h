@@ -5,21 +5,14 @@
 class StraightTrajectoryType final : public PhobosTrajectoryType
 {
 public:
-	Valueable<bool> SnapOnTarget;
-	Nullable<Leptons> SnapThreshold;
-	Valueable<Leptons> SDetonationDistance;
-	Valueable<Leptons> TargetSnapDistance;
-	Valueable<bool> PassThrough;
+	Valueable<bool> SnapOnTarget { true };
+	Nullable<Leptons> SnapThreshold { Leptons(Unsorted::LeptonsPerCell) };
+	Valueable<Leptons> SDetonationDistance { Leptons(102) };
+	Valueable<Leptons> TargetSnapDistance { Leptons(0) };
+	Valueable<bool> PassThrough { false };
 
 	StraightTrajectoryType() : PhobosTrajectoryType {TrajectoryFlag::Straight}
-		, SnapOnTarget { true }
-		, SnapThreshold {}
-		, SDetonationDistance { Leptons(102) }
-		, TargetSnapDistance { Leptons(0) }
-		, PassThrough { false }
-	{
-		SnapThreshold = Leptons(Unsorted::LeptonsPerCell);
-	}
+	{ }
 
 	virtual ~StraightTrajectoryType() = default;
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) override  { }
@@ -36,7 +29,8 @@ public:
 	StraightTrajectory() : PhobosTrajectory { TrajectoryFlag::Straight }
 	{ }
 
-	StraightTrajectory(BulletClass* pBullet, PhobosTrajectoryType* pType) : PhobosTrajectory {TrajectoryFlag::Straight , pBullet , pType }
+	StraightTrajectory(BulletClass* pBullet, PhobosTrajectoryType* pType) :
+		PhobosTrajectory {TrajectoryFlag::Straight , pBullet , pType }
 	{ }
 
 	virtual ~StraightTrajectory() override = default;

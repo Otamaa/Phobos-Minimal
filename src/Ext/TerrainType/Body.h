@@ -16,61 +16,37 @@ public:
 		using base_type = TerrainTypeClass;
 
 	public:
-		Valueable<PaletteManager*> CustomPalette; //CustomPalette::PaletteMode::Temperate
-		Valueable<int> SpawnsTiberium_Type;
-		Valueable<int> SpawnsTiberium_Range;
-		Valueable<PartialVector2D<int>> SpawnsTiberium_GrowthStage;
-		Valueable<PartialVector2D<int>> SpawnsTiberium_CellsPerAnim;
-		Nullable<AnimTypeClass*> DestroyAnim;
-		NullableIdx<VocClass> DestroySound;
-		Nullable<ColorStruct> MinimapColor;
+		Valueable<PaletteManager*> CustomPalette { }; //CustomPalette::PaletteMode::Temperate
+		Valueable<int> SpawnsTiberium_Type { 0 };
+		Valueable<int> SpawnsTiberium_Range { 1 };
+		Valueable<PartialVector2D<int>> SpawnsTiberium_GrowthStage { { 3, 0 } };
+		Valueable<PartialVector2D<int>> SpawnsTiberium_CellsPerAnim{ { 1, 0 } };
+		Nullable<AnimTypeClass*> DestroyAnim { };
+		NullableIdx<VocClass> DestroySound { };
+		Nullable<ColorStruct> MinimapColor { };
 
-		Valueable<bool> IsPassable;
-		Valueable<bool> CanBeBuiltOn;
+		Valueable<bool> IsPassable { false };
+		Valueable<bool> CanBeBuiltOn { false };
 		
 		Valueable<int> CrushableLevel;
-		#pragma region Otamaa
-		Valueable<bool> LightEnabled;
-		Nullable<int> LightVisibility;
-		Nullable<double> LightIntensity;
-		Nullable<double> LightRedTint;
-		Nullable<double> LightGreenTint;
-		Nullable<double> LightBlueTint;
 
-		ValueableVector<AnimTypeClass*> AttachedAnim;
-		Nullable<WarheadTypeClass*> Warhead;
-		Nullable<int> Damage;
-		Valueable<bool> AreaDamage;
-		#pragma endregion
+		Valueable<bool> LightEnabled { false };
+		Nullable<int> LightVisibility { };
+		Nullable<double> LightIntensity { };
+		Nullable<double> LightRedTint { };
+		Nullable<double> LightGreenTint { };
+		Nullable<double> LightBlueTint { };
 
-		Valueable<int> Bounty;
+		ValueableVector<AnimTypeClass*> AttachedAnim { };
+		Nullable<WarheadTypeClass*> Warhead { };
+		Nullable<int> Damage { };
+		Valueable<bool> AreaDamage  { false };
 
-		ExtData(TerrainTypeClass* OwnerObject) : Extension<TerrainTypeClass>(OwnerObject)
-			, CustomPalette { }
-			, SpawnsTiberium_Type { 0 }
-			, SpawnsTiberium_Range { 1 }
-			, SpawnsTiberium_GrowthStage { { 3, 0 } }
-			, SpawnsTiberium_CellsPerAnim { { 1, 0 } }
+		Valueable<int> Bounty { 0 };
 
-			, DestroyAnim {}
-			, DestroySound {}
-			, MinimapColor {}
-			, IsPassable { false }
-			, CanBeBuiltOn { false }
+		ExtData(TerrainTypeClass* OwnerObject) : 
+			Extension<TerrainTypeClass>(OwnerObject)
 			, CrushableLevel { OwnerObject->Crushable ? 10 : 0 }
-
-			, LightEnabled { false }
-			, LightVisibility { 0 }
-			, LightIntensity { }
-			, LightRedTint { }
-			, LightGreenTint { }
-			, LightBlueTint { }
-			, AttachedAnim { }
-			, Warhead { }
-			, Damage { }
-			, AreaDamage { false }
-			, Bounty { 0 }
-
 		{ }
 
 		virtual ~ExtData() override = default;

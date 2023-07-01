@@ -23,12 +23,10 @@ public:
 
 	public:
 
-		UniqueGamePtrB<LightSourceClass> LighSource;
-		AnimClass* AttachedAnim;
+		UniqueGamePtrB<LightSourceClass> LighSource { };
+		AnimClass* AttachedAnim { nullptr };
 
 		ExtData(TerrainClass* OwnerObject) : Extension<TerrainClass>(OwnerObject)
-			, LighSource { }
-			, AttachedAnim { nullptr }
 		{ }
 
 		virtual ~ExtData() override = default;

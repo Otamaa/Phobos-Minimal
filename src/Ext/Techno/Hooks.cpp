@@ -146,6 +146,8 @@ DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_LaserTrails, 0x7)
 	return 0;
 }
 
+#include <Ext/Super/Body.h>
+
 DEFINE_HOOK(0x6F6CFE, TechnoClass_Unlimbo_LaserTrails, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -153,8 +155,8 @@ DEFINE_HOOK(0x6F6CFE, TechnoClass_Unlimbo_LaserTrails, 0x6)
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
 
-	if (pThis->Owner && !pThis->Owner->RecheckTechTree && pTypeExt->RecheckTechTreeWhenDie)
-		pThis->Owner->RecheckTechTree = true;
+	if (pThis->Owner && !pThis->Owner->RecheckTechTree && !pTypeExt->Linked_SW.empty())
+		pThis->Owner->SuperWeapon_AI();
 
 	if (!pExt->LaserTrails.empty())
 	{

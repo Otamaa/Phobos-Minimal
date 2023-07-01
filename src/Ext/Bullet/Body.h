@@ -25,53 +25,29 @@ public:
 		using base_type = BulletClass;
 
 	public:
-		int CurrentStrength;
-		bool IsInterceptor;
-		InterceptedStatus InterceptedStatus;
-		bool Intercepted_Detonate;
-		std::vector<LaserTrailClass> LaserTrails;
-		bool SnappedToTarget;
-		SuperClass* NukeSW;
+		int CurrentStrength { 0 };
+		bool IsInterceptor { false };
+		InterceptedStatus InterceptedStatus { InterceptedStatus::None };
+		bool Intercepted_Detonate { true };
+		std::vector<LaserTrailClass> LaserTrails {};
+		bool SnappedToTarget { false };
+		SuperClass* NukeSW { nullptr };
 
-#pragma region Otamaa
-		bool BrightCheckDone;
-		HouseClass* Owner;
+		bool BrightCheckDone { false };
+		HouseClass* Owner { nullptr };
 
-		bool Bouncing;
-		ObjectClass* LastObject;
-		int BounceAmount;
-		std::vector<LineTrail*> BulletTrails;
-		OptionalStruct<DirStruct ,true> InitialBulletDir;
+		bool Bouncing { false };
+		ObjectClass* LastObject { nullptr };
+		int BounceAmount { 0 };
+		std::vector<LineTrail*> BulletTrails {};
+		OptionalStruct<DirStruct ,true> InitialBulletDir {};
 
-		std::vector<UniversalTrail> Trails;
+		std::vector<UniversalTrail> Trails {};
+		std::unique_ptr<PhobosTrajectory> Trajectory {};
 
-#pragma region
-		std::unique_ptr<PhobosTrajectory> Trajectory;
-
-		ExtData(BulletClass* OwnerObject) : Extension<BulletClass>(OwnerObject)
-			, CurrentStrength { 0 }
-			, IsInterceptor { false }
-			, InterceptedStatus { InterceptedStatus::None }
-			, Intercepted_Detonate { true }
-			, LaserTrails {}
-			, SnappedToTarget { false }
-			, NukeSW { nullptr }
-			, BrightCheckDone { false }
-			, Owner { nullptr }
-
-			//
-			, Bouncing { false }
-			, LastObject { nullptr }
-			, BounceAmount { 0 }
-			//
-			, BulletTrails { }
-			, InitialBulletDir { }
-			, Trails { }
-			, Trajectory {}
-
-		{ }
-
+		ExtData(BulletClass* OwnerObject) : Extension<BulletClass>(OwnerObject) { }
 		virtual ~ExtData() = default;
+
 		void InvalidatePointer(void* ptr, bool bRemoved);
 		bool InvalidateIgnorable(void* ptr) const;
 

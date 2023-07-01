@@ -14,9 +14,7 @@ public:
 
 	public:
 
-		ExtData(DiskLaserClass* OwnerObject) : Extension<DiskLaserClass>(OwnerObject)
-		{ }
-
+		ExtData(DiskLaserClass* OwnerObject) : Extension<DiskLaserClass>(OwnerObject) { }
 		virtual ~ExtData() override = default;
 
 		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

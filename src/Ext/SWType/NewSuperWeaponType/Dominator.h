@@ -6,6 +6,7 @@
 class SW_PsychicDominator : public NewSWType
 {
 public:
+	virtual std::vector<const char*> GetTypeString() const override;
 	virtual bool HandleThisType(SuperWeaponType type) const override;
 	virtual SuperWeaponFlags Flags() const override;
 

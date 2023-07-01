@@ -28,15 +28,11 @@ public:
 
 	public:
 
-		TechnoClass* Invoker;
-		std::vector<LaserTrailClass> LaserTrails;
-
-		std::vector<UniversalTrail> Trails;
+		TechnoClass* Invoker { nullptr };
+		std::vector<LaserTrailClass> LaserTrails { };
+		std::vector<UniversalTrail> Trails { };
 
 		ExtData(VoxelAnimClass* OwnerObject) : Extension<VoxelAnimClass>(OwnerObject)
-			, Invoker { nullptr }
-			, LaserTrails { }
-			, Trails { }
 		{ }
 
 		virtual ~ExtData() override = default;

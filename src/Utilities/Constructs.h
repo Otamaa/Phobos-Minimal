@@ -438,10 +438,11 @@ public:
 				pSource = PCX::Instance->GetSurface(this->filename, nullptr);
 
 			if (pSource) {
-				if (!this->Surface)
-					this->Surface.reset(GameCreate<BSurface>());
+				//if (!this->Surface)
+				//	this->Surface.reset(GameCreate<BSurface>());
 
-				std::memcpy(this->Surface.get(), pSource, sizeof(BSurface));
+				//std::memcpy(this->Surface.get(), pSource, sizeof(BSurface));
+				this->Surface = pSource;
 			}
 		}
 
@@ -453,11 +454,11 @@ public:
 	}
 
 	BSurface* GetSurface() const {
-		return this->Surface.get();
+		return this->Surface;
 	}
 
 	bool Exists() const {
-		return this->Surface.get();
+		return this->Surface;
 	}
 
 	bool Read(INIClass* pINI, const char* pSection, const char* pKey, const char* pDefault = "") {
@@ -490,20 +491,21 @@ public:
 				Debug::Log("PCX file '%s' not found.\n", this->filename.data());
 
 			if (pSource) {
-				if (!this->Surface)
-					this->Surface.reset(GameCreate<BSurface>());
+				//if (!this->Surface)
+				//	this->Surface.reset(GameCreate<BSurface>());
 
-				std::memcpy(this->Surface.get(), pSource, sizeof(BSurface));
+				//std::memcpy(this->Surface.get(), pSource, sizeof(BSurface));
+				this->Surface = pSource;
 			}
 
-			SwizzleManagerClass::Instance().Here_I_Am((long)oldPtr, this->Surface.get());
+			SwizzleManagerClass::Instance().Here_I_Am((long)oldPtr, this->Surface);
 		}
 
 		return true;
 	}
 
 	bool Save(PhobosStreamWriter& Stm) const {
-		Stm.Save(this->Surface.get());
+		Stm.Save(this->Surface);
 		Stm.Save(this->filename);
 		return true;
 	}
@@ -515,7 +517,8 @@ private:
 		this->filename = nullptr;
 	}
 
-	mutable UniqueGamePtrB<BSurface> Surface;
+	//mutable UniqueGamePtrB<BSurface> Surface;
+	BSurface* Surface;
 	FixedString<Capacity> filename;
 
 protected:

@@ -68,10 +68,9 @@ public:
 		using base_type = TEventClass;
 
 	public:
-		OptionalStruct<TechnoTypeClass* , false> TechnoType;
+		OptionalStruct<TechnoTypeClass* , false> TechnoType {};
 
 		ExtData(TEventClass* const OwnerObject) : Extension<TEventClass>(OwnerObject)
-			, TechnoType {}
 		{ }
 
 		virtual ~ExtData() override = default;

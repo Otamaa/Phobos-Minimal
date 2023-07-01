@@ -16,11 +16,9 @@ class BombExt
 
 	public:
 
-		WeaponTypeExt::ExtData* Weapon;
-		ExtData(BombClass* OwnerObject) : Extension<BombClass>(OwnerObject)
-			, Weapon { nullptr }
-		{ }
+		WeaponTypeExt::ExtData* Weapon { nullptr };
 
+		ExtData(BombClass* OwnerObject) : Extension<BombClass>(OwnerObject){ }
 		virtual ~ExtData() override = default;
 
 		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

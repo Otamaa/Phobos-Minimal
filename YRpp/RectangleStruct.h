@@ -119,9 +119,10 @@ public:
 		return tmp;
 	}
 
-	RectangleStruct Bias_To(const RectangleStruct &rect)
+	RectangleStruct Bias_To(const RectangleStruct& rect)
 	{
-		return { (X, Y), (rect.X + rect.Width, rect.Y), Width, Height };
+		Point2D xy = Top_Left() + rect.Top_Left();
+		return { xy.X ,xy.Y , Width, Height };
 	}
 
 	inline void Reset_Position() { X = 0; Y = 0; }

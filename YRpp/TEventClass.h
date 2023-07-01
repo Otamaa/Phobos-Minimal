@@ -51,6 +51,7 @@ public:
 	// both need to be true to check this event as done
 	bool GetStateA() const
 		{ JMP_THIS(0x71F950); }
+
 	bool GetStateB() const
 		{ JMP_THIS(0x71F9C0); }
 

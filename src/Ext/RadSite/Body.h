@@ -20,18 +20,13 @@ public:
 		using base_type = RadSiteClass;
 
 	public:
-		RadTypeClass* Type;
-		WeaponTypeClass* Weapon;
-		TechnoClass* TechOwner;
-		HouseClass* HouseOwner;
-		bool NoOwner;
+		RadTypeClass* Type { nullptr };
+		WeaponTypeClass* Weapon { nullptr };
+		TechnoClass* TechOwner { nullptr };
+		HouseClass* HouseOwner { nullptr };
+		bool NoOwner { true };
 
 		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
-			, Type { nullptr }
-			, Weapon { nullptr }
-			, TechOwner { nullptr }
-			, HouseOwner { nullptr }
-			, NoOwner { true }
 		{}
 
 		virtual ~ExtData() override = default;

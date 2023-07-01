@@ -20,10 +20,9 @@ public:
 
 	public:
 
-		ExtData(CaptureManagerClass* OwnerObject) : Extension<base_type>(OwnerObject)
-		{ }
-
+		ExtData(CaptureManagerClass* OwnerObject) : Extension<base_type>(OwnerObject) { }
 		virtual ~ExtData() override = default;
+
 		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 

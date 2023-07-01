@@ -69,13 +69,7 @@ int TiberiumExt::ExtData::GetHealStep(TechnoClass* pTechno) const
 
 int TiberiumExt::ExtData::GetDamage() const
 {
-	int damage = this->OwnerObject()->Power / 10;
-	if (damage < 1)
-	{
-		damage = 1;
-	}
-
-	return this->Damage.Get(damage);
+	return this->Damage.Get(MinImpl((this->OwnerObject()->Power / 10), 1));
 }
 
 WarheadTypeClass* TiberiumExt::ExtData::GetWarhead() const

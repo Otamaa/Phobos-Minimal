@@ -57,15 +57,7 @@ bool SW_GenericWarhead::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 	auto const pCell = MapClass::Instance->GetCellAt(Coords);
 	auto coords = pCell->GetCoordsWithBridge();
 
-	BuildingClass* pFirer = nullptr;
-	for (auto const& pBld : pThis->Owner->Buildings)
-	{
-		if (this->IsLaunchSiteEligible(pData, Coords, pBld, false))
-		{
-			pFirer = pBld;
-			break;
-		}
-	}
+	auto pFirer = this->GetFirer(pThis,Coords, false);
 
 	auto pOwnerHouse = pThis->Owner;
     WarheadTypeExt::CreateIonBlast(pWarhead, coords);

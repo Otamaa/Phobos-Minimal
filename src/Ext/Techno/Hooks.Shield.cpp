@@ -113,8 +113,8 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_AfterRadioClassRemove, 0x5)
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
 
-	if (pThis->Owner && !pThis->Owner->RecheckTechTree && pTypeExt->RecheckTechTreeWhenDie)
-		pThis->Owner->RecheckTechTree = true;
+	if (pThis->Owner && !pThis->Owner->RecheckTechTree && !pTypeExt->Linked_SW.empty())
+		pThis->Owner->SuperWeapon_Handler();
 
 	if (const auto pShieldData = pExt->GetShield())
 		pShieldData->OnRemove();

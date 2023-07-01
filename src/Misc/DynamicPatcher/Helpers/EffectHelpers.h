@@ -310,8 +310,8 @@ public:
 			pRadBeam->SetCoordsSource(sourcePos);
 			pRadBeam->SetCoordsTarget(targetPos);
 			pRadBeam->Color = beamColor;
-			pRadBeam->Period = type.Period;
-			pRadBeam->Amplitude = type.Amplitude;
+			pRadBeam->Period = type.Period.Get();
+			pRadBeam->Amplitude = type.Amplitude.Get();
 		}
 	}
 

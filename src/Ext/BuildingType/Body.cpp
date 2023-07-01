@@ -13,6 +13,12 @@
 std::vector<std::string> BuildingTypeExt::trenchKinds;
 const DirStruct  BuildingTypeExt::DefaultJuggerFacing = DirStruct { 0x7FFF };
 
+void BuildingTypeExt::ExtData::Initialize()
+{
+	this->OccupierMuzzleFlashes.reserve(((BuildingTypeClass*)this->Type->Get())->MaxNumberOccupants);
+	this->DockPoseDir.reserve(((BuildingTypeClass*)this->Type->Get())->NumberOfDocks);
+}
+
 int BuildingTypeExt::BuildLimitRemaining(HouseClass const* pHouse, BuildingTypeClass const* pItem)
 {
 	const auto BuildLimit = pItem->BuildLimit;
