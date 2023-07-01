@@ -287,6 +287,8 @@ struct AresData
 	static int* TechnoTypeExt_GetTurretWeaponIdx(TechnoTypeClass* pThis, int idx);
 	static bool TechnoTypeExt_CameoIsElite(TechnoTypeClass* pThis, HouseClass* Owner);
 
+	static Action TechnoExt_GetActionHijack(TechnoClass* pThis, TechnoClass* pTarget);
+
 };
 
 namespace AresMemory

@@ -88,6 +88,8 @@ enum FunctionIndices : int
 
 	GetTurretWeaponIdxID = 52,
 	CameoIsEliteID = 53,
+
+	GetActionHijackID = 54,
 	count
 };
 
@@ -299,6 +301,7 @@ bool AresData::Init()
 
 		0x003E870, //TechnoTypeExt::GetTurretWeaponIdx
 		0x003E210, //TechnoTypeExt::CameoIsElite
+		0x0045B60, //TechnoExt::GetActionHijack
 	};
 
 	static constexpr DWORD AAresCustomPaletteReadTable[AresCustomPaletteReadCount] = {
@@ -639,4 +642,9 @@ int* AresData::TechnoTypeExt_GetTurretWeaponIdx(TechnoTypeClass* pThis, int idx)
 bool AresData::TechnoTypeExt_CameoIsElite(TechnoTypeClass* pThis, HouseClass* Owner)
 {
 	return AresThiscall<CameoIsEliteID, bool, void*, HouseClass*>()(GetAresTechnoTypeExt(pThis), Owner);
+}
+
+Action AresData::TechnoExt_GetActionHijack(TechnoClass* pThis, TechnoClass* pTarget)
+{
+	return AresThiscall<GetActionHijackID, Action, void*, TechnoClass*>()(GetAresTechnoExt(pThis), pTarget);
 }

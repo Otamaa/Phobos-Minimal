@@ -768,6 +768,8 @@ public:
 		bool RecheckTechTreeWhenDie { false };
 		ValueableVector<SuperWeaponTypeClass*> Linked_SW {};
 
+		Valueable<bool> CanDrive { false }; //!< Whether this TechnoType can act as the driver of vehicles whose driver has been killed. Request #733.
+
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, AttachedEffect { OwnerObject }
 		{ }

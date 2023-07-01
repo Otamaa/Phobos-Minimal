@@ -831,6 +831,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		this->AIIonCannonValue.Read(exINI, pSection, "AIIonCannonValue");
 		this->ExtraPower_Amount.Read(exINI, pSection, "ExtraPower.Amount");
+		this->CanDrive.Read(exINI, pSection, "CanDrive");
 
 #pragma region AircraftOnly
 		if (Is_AircraftType(pThis))
@@ -1702,6 +1703,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->ExtraPower_Amount)
 		.Process(this->RecheckTechTreeWhenDie)
 		.Process(this->Linked_SW)
+		.Process(this->CanDrive)
 #pragma endregion
 		;
 

@@ -27,9 +27,6 @@
 
 #include <Misc/AresData.h>
 
-//#include "ChemLauncher.h"
-//#include "MultiLauncher.h"
-
 std::array<std::unique_ptr<NewSWType>, (size_t)AresNewSuperType::count> NewSWType::Array;
 
 bool NewSWType::CanFireAt(TargetingData const& data, CellStruct const& cell, bool manual) const

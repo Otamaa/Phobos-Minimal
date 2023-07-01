@@ -4063,25 +4063,60 @@ void GiveBounty(TechnoClass* pVictim, TechnoClass* pKiller)
 	}
 }
 
-// DEFINE_OVERRIDE_HOOK(0x702E64, TechnoClass_RegisterDestruction_Bounty, 6)
-// {
-// 	GET(TechnoClass*, pVictim, ESI);
-// 	GET(TechnoClass*, pKiller, EDI);
-//
-// 	if (pKiller && TechnoTypeExt::ExtMap.Find(pKiller->GetTechnoType())->Bounty)
-// 		AresData::CalculateBounty(pVictim, pKiller);
-//
-// 	return 0x0;
-// }
-
 DEFINE_OVERRIDE_HOOK(0x702E64, TechnoClass_RegisterDestruction_Bounty, 6)
 {
 	GET(TechnoClass*, pVictim, ESI);
 	GET(TechnoClass*, pKiller, EDI);
 
 	GiveBounty(pVictim, pKiller);
+	// 	if (pKiller && TechnoTypeExt::ExtMap.Find(pKiller->GetTechnoType())->Bounty)
+	// 	AresData::CalculateBounty(pVictim, pKiller);
 
 	return 0x0;
+}
+
+enum class AresHijackActionResult
+{
+	None = 0,
+	Hijack = 1,
+	Drive = 2
+};
+
+DEFINE_OVERRIDE_HOOK(0x51E7BF, InfantryClass_GetActionOnObject_CanCapture, 6)
+{
+	enum
+	{
+		Capture = 0x51E84B,  // the game will return an Enter cursor no questions asked
+		DontCapture = 0x51E85A, // the game will assume this is not a VehicleThief and will check for other cursors normally
+		Select = 0x51E7EF, // select target instead of ordering this
+		DontMindMe = 0, // the game will check if this is a VehicleThief
+	};
+
+	GET(InfantryClass*, pSelected, EDI);
+	GET(ObjectClass*, pTarget, ESI);
+
+	TechnoClass* pTechnoTarget = generic_cast<TechnoClass*>(pTarget);
+
+	if(!pTechnoTarget)
+		return DontCapture;
+
+	const auto pSelectedType = pSelected->Type;
+	if (!pSelectedType->VehicleThief && !TechnoTypeExt::ExtMap.Find(pSelectedType)->CanDrive)
+		return DontCapture;
+
+	if (pTechnoTarget->GetTechnoType()->IsTrain)
+		return Select;
+
+	// Ares 3.0 add check for harvester truce thing , so it wont capture harvester
+	const auto nResult = (AresHijackActionResult)AresData::TechnoExt_GetActionHijack(pSelected, pTechnoTarget);
+	if(nResult == AresHijackActionResult::None)
+		return DontCapture;
+
+	if(nResult == AresHijackActionResult::Drive && InputManagerClass::Instance->IsForceFireKeyPressed())
+		return DontCapture;
+
+	AresData::SetMouseCursorAction(92, Action::Capture, false);
+	return Capture;
 }
 
 //#include <EventClass.h>
