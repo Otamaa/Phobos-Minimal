@@ -77,7 +77,7 @@ public:
 		const bool isLevel = pBulletType->Level ? pCurrentCell->IsOnFloor() : false;
 		const auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pBulletType);
 
-		if (isLevel && !pBulletTypeExt->SubjectToLand.isset() && !pBulletTypeExt->SubjectToWater.isset())
+		if (!isTargetingCheck &&isLevel && !pBulletTypeExt->SubjectToLand.isset() && !pBulletTypeExt->SubjectToWater.isset())
 			return true;
 		else if (!isCellWater && pBulletTypeExt->SubjectToLand.Get(false))
 			return !isTargetingCheck ? pBulletTypeExt->SubjectToLand_Detonate : true;
@@ -162,7 +162,7 @@ DEFINE_HOOK(0x6F7647, TechnoClass_InRange_Obstacles, 0x5)
 
 	const auto pFirer = BulletExt::InRangeTempFirer;
 
-	if (!pResult && !pFirer->IsInAir()) // disable it for in air stuffs for now , broke some Aircraft targeting
+	if (!pResult) // disable it for in air stuffs for now , broke some Aircraft targeting
 		pResult = BulletObstacleHelper::FindFirstImpenetrableObstacle(*pSourceCoords, targetCoords, pFirer, pTarget, pFirer->Owner, pWeapon, true);
 
 	BulletExt::InRangeTempFirer = nullptr;

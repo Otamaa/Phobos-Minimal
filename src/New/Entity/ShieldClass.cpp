@@ -768,9 +768,8 @@ void ShieldClass::CreateAnim()
 	{
 		if (auto const pAnim = GameCreate<AnimClass>(idleAnimType, this->Techno->Location))
 		{
-			pAnim->SetOwnerObject(this->Techno);
-			pAnim->Owner = this->Techno->Owner;
 			pAnim->RemainingIterations = 0xFFu;
+			AnimExt::SetAnimOwnerHouseKind(pAnim, this->Techno->Owner, nullptr, this->Techno, false);
 			this->IdleAnim = pAnim;
 		}
 	}

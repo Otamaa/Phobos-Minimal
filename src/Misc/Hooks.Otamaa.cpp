@@ -978,6 +978,7 @@ static void ClearShit(TechnoTypeClass* a1)
 //	return R->Origin() + 6;
 //}
 
+DEFINE_HOOK_AGAIN(0x6FF933, TechnoClass_FireAt_End, 0x5)
 DEFINE_HOOK(0x6FDE05, TechnoClass_FireAt_End, 0x5)
 {
 	GET(TechnoClass* const, pThis, ESI);

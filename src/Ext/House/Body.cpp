@@ -322,7 +322,7 @@ HouseClass* HouseExt::FindSpecial()
 
 HouseClass* HouseExt::FindNeutral()
 {
-	return  HouseClass::FindByCountryIndex(RulesExt::Global()->NeutralCountryIndex);
+	return HouseClass::FindByCountryIndex(RulesExt::Global()->NeutralCountryIndex);
 }
 
 void HouseExt::ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode = -1)

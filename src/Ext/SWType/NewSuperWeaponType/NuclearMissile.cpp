@@ -40,19 +40,9 @@ bool SW_NuclearMissile::Activate(SuperClass* const pThis, const CellStruct& Coor
 		// collected from crates. second, the normal way firing from a silo.
 		BuildingClass* pSilo = nullptr;
 
-		if ((!pThis->Granted || !pThis->OneTime) && pData->Nuke_SiloLaunch)
-		{
+		if ((!pThis->Granted || !pThis->OneTime) && pData->Nuke_SiloLaunch) {
 			// find a building owned by the player that can fire this SWType
-			auto const& Buildings = pThis->Owner->Buildings;
-			auto it = std::find_if(Buildings.begin(), Buildings.end(), [=](BuildingClass* pBld) 
-			{
-				return this->IsLaunchSiteEligible(pData, Coords, pBld, false);
-			});
-
-			if (it != Buildings.end())
-			{
-				pSilo = *it;
-			}
+			pSilo = this->GetFirer(pThis, Coords, false);
 		}
 
 		// via silo

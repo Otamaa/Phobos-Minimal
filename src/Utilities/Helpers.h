@@ -252,6 +252,50 @@ namespace Helpers {
 			return ret;
 		}
 
+		template<bool includeInAir = false, typename Func>
+		__forceinline FootClass* getCellSpreadItems_Foot(
+			CoordStruct const& coords, double const spread, Func&& action)
+		{
+			// set of possibly affected objects. every object can be here only once.
+			DistinctCollector<FootClass*> set;
+
+			// the quick way. only look at stuff residing on the very cells we are affecting.
+			auto const cellCoords = MapClass::Instance->GetCellAt(coords)->MapCoords;
+			auto const range = static_cast<size_t>(spread + 0.99);
+			for (CellSpreadEnumerator it(range); it; ++it) {
+				auto const pCell = MapClass::Instance->GetCellAt(*it + cellCoords);
+				for (NextObject obj(pCell->GetContent()); obj; ++obj) {
+					if (auto const pTechno = abstract_cast<FootClass*>(*obj)) {
+						set.insert(pTechno);
+					}
+				}
+			}
+
+			// flying objects are not included normally
+			if constexpr (includeInAir) {
+				// the not quite so fast way. skip everything not in the air.
+				std::for_each(FootClass::Array->begin(), FootClass::Array->end(), [&](FootClass* pTechno) {
+					if (pTechno->GetHeight() > 0) {
+						// rough estimation
+						if (pTechno->Location.DistanceFrom(coords) <= spread * 256) {
+							set.insert(pTechno);
+						}
+					}
+				});
+			}
+
+			for (auto nBegin = set.begin(); nBegin != set.end(); ++nBegin) {
+				// this is good
+				const auto pFoot = (*nBegin);
+
+				if (action(pFoot)) {
+					return pFoot;
+				}
+			}
+
+			return nullptr;
+		}
+
 		//! Invokes an action for every cell or every object contained on the cells.
 		/*!
 			action is invoked only once per cell. action can be invoked multiple times

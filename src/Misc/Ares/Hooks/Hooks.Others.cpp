@@ -3592,6 +3592,7 @@ bool ScriptExt_Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bTh
 	}
 }
 
+
 //DEFINE_OVERRIDE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
 //{
 //	enum { ReturnFunc = 0x6E95AB, Continue = 0x0 };
@@ -4082,6 +4083,33 @@ enum class AresHijackActionResult
 	Drive = 2
 };
 
+bool IsOperated(TechnoClass* pThis)
+{
+	auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (pExt->Operators.empty())
+	{
+		if (pExt->Operator_Any)
+			return pThis->Passengers.GetFirstPassenger() != nullptr;
+
+		Is_Operated(pThis) = true;
+		return true;
+	}
+	else
+	{
+		for (NextObject object(pThis->Passengers.GetFirstPassenger()); object; ++object)
+		{
+			if (pExt->Operators.Contains((TechnoTypeClass*)object->GetType()))
+			{
+				// takes a specific operator and someone is present AND that someone is the operator, therefore it is operated
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 // this isn't called VehicleThief action, because it also includes other logic
 // related to infantry getting into an vehicle like CanDrive.
 AresHijackActionResult GetActionHijack(InfantryClass* pThis , TechnoClass* const pTarget)
@@ -4101,7 +4129,7 @@ AresHijackActionResult GetActionHijack(InfantryClass* pThis , TechnoClass* const
 	}
 
 	//no , this one bit different ?
-	const bool IsNotOperated = !Is_Operated(pTarget) && !AresData::IsOperated(pTarget);
+	const bool IsNotOperated = !Is_Operated(pTarget) && !IsOperated(pTarget);
 
 	// i'm in a state that forbids capturing
 	if (pThis->IsDeployed() || IsNotOperated)
@@ -4127,11 +4155,6 @@ AresHijackActionResult GetActionHijack(InfantryClass* pThis , TechnoClass* const
 		return AresHijackActionResult::None;
 	}
 
-	if(absTarget == AbstractType::Unit 
-		&& ScenarioClass::Instance->SpecialFlags.RawFlags & 0x8u 
-		&& RulesClass::Instance->HarvesterUnit.FindItemIndex((UnitTypeClass*)pTargetType) != -1)
-		return AresHijackActionResult::None;
-
 	// bunkered units can't be hijacked.
 	if (pTarget->BunkerLinkedItem)
 	{
@@ -4147,9 +4170,16 @@ AresHijackActionResult GetActionHijack(InfantryClass* pThis , TechnoClass* const
 		}
 	}
 
+	if (absTarget == AbstractType::Unit && ScenarioClass::Instance->SpecialFlags.RawFlags & 0x8u && RulesClass::Instance->HarvesterUnit.Contains((UnitTypeClass*)pTargetType))
+	{
+		return AresHijackActionResult::None;
+	}
+
 	//drivers can drive, but only stuff owned by neutrals. if a driver is a vehicle thief
 	//also, it can reclaim units even if they are immune to hijacking (see below)
-	const auto specialOwned = pTarget->Owner->Type->MultiplayPassive;
+	const auto pHouseTypeExt = HouseTypeExt::ExtMap.Find(pTarget->Owner->Type);
+	const auto specialOwned = pHouseTypeExt->CanBeDriven.Get(pTarget->Owner->Type->MultiplayPassive);
+
 	if (specialOwned && pTypeExt->CanDrive)
 	{
 		return AresHijackActionResult::Drive;
@@ -4159,7 +4189,7 @@ AresHijackActionResult GetActionHijack(InfantryClass* pThis , TechnoClass* const
 	if (pType->VehicleThief)
 	{
 		// can't steal allied unit (CanDrive and special already handled)
-		if (pThis->Owner->IsAlliedWith(pTarget->Owner) || specialOwned)
+		if (pThis->Owner->IsAlliedWith_(pTarget->Owner) || specialOwned)
 		{
 			return AresHijackActionResult::None;
 		}
@@ -4176,6 +4206,158 @@ AresHijackActionResult GetActionHijack(InfantryClass* pThis , TechnoClass* const
 
 	// no hijacking ability
 	return AresHijackActionResult::None;
+}
+
+#include <SlaveManagerClass.h>
+
+// perform the most appropriate hijack action
+bool PerformActionHijack(TechnoClass* pFrom , TechnoClass* const pTarget)
+{
+	// was the hijacker lost in the process?
+	bool ret = false;
+
+	if (const auto pThis = abstract_cast<InfantryClass*>(pFrom))
+	{
+		const auto pType = pThis->Type;
+		const auto pExt = TechnoExt::ExtMap.Find(pThis);
+		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+		const auto action = GetActionHijack(pThis , pTarget);
+
+		// abort capturing this thing, it looked
+		// better from over there...
+		if (action == AresHijackActionResult::None)
+		{
+			pThis->SetDestination(nullptr, true);
+			const auto& crd = pTarget->GetCoords();
+			pThis->Scatter(crd, true, false);
+			return false;
+		}
+
+		// prepare for a smooth transition. free the destination from
+		// any mind control. #762
+		if (pTarget->MindControlledBy)
+		{
+			pTarget->MindControlledBy->CaptureManager->FreeUnit(pTarget);
+		}
+		pTarget->MindControlledByAUnit = false;
+		if (pTarget->MindControlRingAnim)
+		{
+			pTarget->MindControlRingAnim->UnInit();
+			pTarget->MindControlRingAnim = nullptr;
+		}
+
+		bool asPassenger = false;
+		if (action == AresHijackActionResult::Drive)
+		{
+			const auto pDestTypeExt = TechnoTypeExt::ExtMap.Find(pTarget->GetTechnoType());
+			if (Is_Operated(pTarget) || pDestTypeExt->Operator_Any)
+			{
+				asPassenger = true;
+			}
+		}
+
+		if (!asPassenger)
+		{
+			// raise some events in case the hijacker/driver will be
+			// swallowed by the vehicle.
+			if (pTarget->AttachedTag)
+			{
+				pTarget->AttachedTag->RaiseEvent(TriggerEvent::DestroyedByAnything,
+					pThis, CellStruct::Empty, false, nullptr);
+			}
+			pTarget->Owner->HasBeenThieved = true;
+			if (auto const pTag = pThis->AttachedTag)
+			{
+				if (pTag->ShouldReplace())
+				{
+					pTarget->ReplaceTag(pTag);
+				}
+			}
+		}
+		else
+		{
+			// raise some events in case the driver enters
+			// a vehicle that needs an Operator
+			if (pTarget->AttachedTag)
+			{
+				pTarget->AttachedTag->RaiseEvent(TriggerEvent::EnteredBy,
+					pThis, CellStruct::Empty, false, nullptr);
+			}
+		}
+
+		// if the hijacker is mind-controlled, free it,
+		// too, and attach to the new target. #762
+		const auto controller = pThis->MindControlledBy;
+		if (controller)
+		{
+			++Unsorted::ScenarioInit;
+			controller->CaptureManager->FreeUnit(pThis);
+			--Unsorted::ScenarioInit;
+		}
+
+		// let's make a steal
+		pTarget->SetOwningHouse(pThis->Owner, true);
+		pTarget->GotHijacked();
+		VocClass::PlayAt(pTypeExt->HijackerEnterSound, pTarget->Location, nullptr);
+
+		// remove the driverless-marker
+		Is_DriverKilled(pTarget) = false;
+
+		// save the hijacker's properties
+		if (action == AresHijackActionResult::Hijack)
+		{
+			pTarget->HijackerInfantryType = pType->ArrayIndex;
+			HijackerOwner(pTarget) = pThis->Owner;
+			HijackerHealth(pTarget) = pThis->Health;
+			HijackerVeterancy(pTarget) = pThis->Veterancy.Veterancy;
+		}
+
+		// hook up the original mind-controller with the target #762
+		if (controller)
+		{
+			++Unsorted::ScenarioInit;
+			controller->CaptureManager->CaptureUnit(pTarget);
+			--Unsorted::ScenarioInit;
+		}
+
+		// reboot the slave manager
+		if (pTarget->SlaveManager)
+		{
+			pTarget->SlaveManager->ResumeWork();
+		}
+
+		// the hijacker enters and closes the door.
+		ret = true;
+
+		// only for the drive action: if the target requires an operator,
+		// we add the driver to the passengers list instead of deleting it.
+		// this does not check passenger count or size limits.
+		if (asPassenger)
+		{
+			pTarget->AddPassenger(pThis);
+			pThis->AbortMotion();
+			ret = false;
+		}
+
+		auto const nMission = pThis->Owner->ControlledByPlayer() ? Mission::Guard : Mission::Hunt;
+		pTarget->QueueMission(nMission, true);
+
+		if (auto const pTag = pTarget->AttachedTag)
+		{
+			pTag->RaiseEvent(TriggerEvent(AresTriggerEvents::VehicleTaken_ByHouse), pTarget, CellStruct::Empty, false, pThis);
+		}
+
+		if (pTarget->IsAlive)
+		{
+			if (auto const pTag2 = pTarget->AttachedTag)
+			{
+				pTag2->RaiseEvent(TriggerEvent(AresTriggerEvents::VehicleTaken), pTarget, CellStruct::Empty, false, nullptr);
+			}
+		}
+	}
+
+	return ret;
 }
 
 DEFINE_OVERRIDE_HOOK(0x51E7BF, InfantryClass_GetActionOnObject_CanCapture, 6)
@@ -4203,8 +4385,8 @@ DEFINE_OVERRIDE_HOOK(0x51E7BF, InfantryClass_GetActionOnObject_CanCapture, 6)
 	if (pTechnoTarget->GetTechnoType()->IsTrain)
 		return Select;
 
-	// Ares 3.0 add check for harvester truce thing , so it wont capture harvester
-	const auto nResult = (AresHijackActionResult)AresData::TechnoExt_GetActionHijack(pSelected, pTechnoTarget);
+	//const auto nResult = (AresHijackActionResult)AresData::TechnoExt_GetActionHijack(pSelected, pTechnoTarget);
+	const auto nResult = GetActionHijack(pSelected, pTechnoTarget);
 	if(nResult == AresHijackActionResult::None)
 		return DontCapture;
 
@@ -4213,6 +4395,139 @@ DEFINE_OVERRIDE_HOOK(0x51E7BF, InfantryClass_GetActionOnObject_CanCapture, 6)
 
 	AresData::SetMouseCursorAction(92, Action::Capture, false);
 	return Capture;
+}
+
+// the hijacker is close to the target. capture.
+DEFINE_OVERRIDE_HOOK(0x5203F7, InfantryClass_UpdateVehicleThief_Hijack, 5)
+{
+	enum { GoOn = 0x5206A1, Stop = 0x520473 };
+
+	GET(InfantryClass*, pThis, ESI);
+	GET(FootClass*, pTarget, EDI);
+	TechnoExt::ExtData* pExt = TechnoExt::ExtMap.Find(pThis);
+
+	bool finalize = PerformActionHijack(pThis , pTarget);
+	if (finalize)
+	{
+		// manually deinitialize this infantry
+		pThis->UnInit();
+	}
+	return finalize ? Stop : GoOn;
+}
+
+// change all the special things infantry do, like vehicle thief, infiltration,
+// bridge repair, enter transports or bio reactors, ...
+DEFINE_HOOK(519675, InfantryClass_UpdatePosition_BeforeInfantrySpecific, 0xA)
+{
+	// called after FootClass:UpdatePosition has been called and before
+	// all specific infantry handling takes place.
+	enum
+	{
+		Return = 0x51AA01, // skip the original logic
+		Destroy = 0x51A010, // uninits this infantry and returns
+		Handle = 0 // resume the original function
+	} DoWhat = Handle;
+
+	GET(InfantryClass*, pThis, ESI);
+
+	if (pThis)
+	{
+		// steal vehicles / reclaim KillDriver'd units using CanDrive
+		if (pThis->CurrentMission == Mission::Capture)
+		{
+			if (TechnoClass* pDest = generic_cast<TechnoClass*>(pThis->Destination))
+			{
+				// this is the possible target we stand on
+				CellClass* pCell = pThis->GetCell();
+				TechnoClass* pTarget = pCell->GetUnit(pThis->OnBridge);
+				if (!pTarget)
+				{
+					pTarget = pCell->GetAircraft(pThis->OnBridge);
+					if (!pTarget)
+					{
+						pTarget = pCell->GetBuilding();
+						if (pTarget && !pTarget->IsStrange())
+						{
+							pTarget = nullptr;
+						}
+					}
+				}
+
+				// reached its destination?
+				if (pTarget && pTarget == pDest)
+				{
+					// reached the target. capture.
+					bool finalize = PerformActionHijack(pThis , pTarget);
+					DoWhat = finalize ? Destroy : Return;
+				}
+			}
+		}
+	}
+
+	return DoWhat;
+}
+
+// update the vehicle thief's destination. needed to follow a
+// target without the requirement to also enable Thief=yes.
+DEFINE_OVERRIDE_HOOK(0x5202F9, InfantryClass_UpdateVehicleThief_Check, 6)
+{
+	GET(InfantryClass*, pThis, ESI);
+
+	// good old WW checks for Thief. idiots.
+	if (!pThis->Type->VehicleThief) {
+		// also allow for drivers, because vehicles may still drive around. usually they are not.
+		if (!TechnoTypeExt::ExtMap.Find(pThis->Type)->CanDrive) {
+			return 0x5206A1;
+		}
+	}
+
+	return 0x52030D;
+}
+
+bool NOINLINE FindAndTakeVehicle(FootClass* pThis)
+{
+	const auto pInf = specific_cast<InfantryClass*>(pThis);
+	if (!pInf)
+		return false;
+
+	const auto nDistanceMax = ScenarioClass::Instance->Random.RandomFromMax(128);
+
+	//this one iam not really sure how to implement it 
+	//it seems Ares one do multiple item comparison before doing hijack ?
+	//cant really get right decomp result or maybe just me that not understand ,.. 
+	//these should work fine for now ,..
+	if (const auto It = Helpers::Alex::getCellSpreadItems_Foot(pThis->Location, pInf->Type->Sight * 256.0 , 
+		[&](FootClass* pFoot) {
+		if (pFoot == pThis || pFoot->WhatAmI() != UnitClass::AbsID)
+			return false;
+
+		 return pThis->Location.DistanceFrom(pFoot->Location) <= nDistanceMax && GetActionHijack(pInf, pFoot) != AresHijackActionResult::None;
+
+	})){
+
+		TakeVehicleMode(pThis) = true;
+		pThis->ShouldGarrisonStructure = true;
+		if (pThis->Target != It || pThis->CurrentMission != Mission::Capture) {
+			pThis->SetDestination(It, true);
+			pThis->QueueMission(Mission::Capture, true);
+			return true;
+		}
+	}
+
+	TakeVehicleMode(pThis) = false;
+	pThis->ShouldGarrisonStructure = false;
+	return false;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4DFE00, FootClass_GarrisonStructure_TakeVehicle, 6)
+{
+	GET(FootClass*, pThis, ECX);
+
+	if (!TakeVehicleMode(pThis))
+		return 0x0;
+
+	R->EAX(FindAndTakeVehicle(pThis));
+	return 0x4DFF3E;
 }
 
 //#include <EventClass.h>

@@ -17,6 +17,7 @@ void HouseTypeExt::ExtData::InheritSettings(HouseTypeClass* pThis)
 			this->ParaDropTypes = ParentData->ParaDropTypes;
 			this->ParaDropNum = ParentData->ParaDropNum;
 			this->GivesBounty = ParentData->GivesBounty;
+			this->CanBeDriven = ParentData->CanBeDriven;
 		}
 	}
 
@@ -52,8 +53,8 @@ void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr
 	Helpers::Alex::remove_non_paradroppables(this->ParaDropTypes, pSection, "ParaDrop.Types");
 
 	this->ParaDropNum.Read(exINI, pSection, "ParaDrop.Num");
-	
 	this->GivesBounty.Read(exINI, pSection, "GivesBounty");
+	this->CanBeDriven.Read(exINI, pSection, "CanBeDriven");
 
 	// Disabled atm
 	this->NewTeamsSelector_MergeUnclassifiedCategoryWith.Read(exINI, pSection, "NewTeamsSelector.MergeUnclassifiedCategoryWith");
@@ -81,6 +82,7 @@ void  HouseTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->ParaDropTypes)
 		.Process(this->ParaDropNum)
 		.Process(this->GivesBounty)
+		.Process(this->CanBeDriven)
 		.Process(this->NewTeamsSelector_MergeUnclassifiedCategoryWith)
 		.Process(this->NewTeamsSelector_UnclassifiedCategoryPercentage)
 		.Process(this->NewTeamsSelector_GroundCategoryPercentage)

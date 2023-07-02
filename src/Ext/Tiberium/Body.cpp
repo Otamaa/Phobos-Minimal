@@ -48,23 +48,17 @@ double TiberiumExt::ExtData::GetHealDelay() const
 
 int TiberiumExt::ExtData::GetHealStep(TechnoClass* pTechno) const
 {
-	auto pType = pTechno->GetTechnoType();
-	int step = pType->GetRepairStep();
+	const auto pType = pTechno->GetTechnoType();
 
 	switch (pType->WhatAmI())
 	{
 	case InfantryTypeClass::AbsID:
-		step = this->Heal_IStep.Get(step);
-		break;
+		return this->Heal_IStep.Get(pType->GetRepairStep());
 	case UnitTypeClass::AbsID:
-		step = this->Heal_UStep.Get(step);
-		break;
+		return this->Heal_UStep.Get(pType->GetRepairStep());
 	default:
-		step = this->Heal_Step.Get(step);
-		break;
+		return this->Heal_Step.Get(pType->GetRepairStep());
 	}
-
-	return step;
 }
 
 int TiberiumExt::ExtData::GetDamage() const

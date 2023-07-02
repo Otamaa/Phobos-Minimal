@@ -557,6 +557,19 @@ public:
 		return (&this->Items[this->Count]);
 	}
 
+	bool Contains(T item) const
+	{
+		for (auto nPos = this->begin(); 
+			nPos != this->end();
+			++nPos) {
+
+			if ((*nPos) == item)
+				return true;
+		}
+
+		return false;
+	}
+
 	bool AddItem(T item)
 	{
 		if (!this->IsValidArray())

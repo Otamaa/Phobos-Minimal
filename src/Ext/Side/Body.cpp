@@ -49,8 +49,6 @@ InfantryTypeClass* SideExt::ExtData::GetDefaultCrew() const
 {
 	switch (this->ArrayIndex)
 	{
-	case 0:
-		return RulesClass::Instance->AlliedCrew;
 	case 1:
 		return RulesClass::Instance->SovietCrew;
 	case 2:

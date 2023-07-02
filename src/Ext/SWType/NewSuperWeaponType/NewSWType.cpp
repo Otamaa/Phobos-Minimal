@@ -381,8 +381,7 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExt::ExtD
 				auto const range = this->GetLaunchSiteRange(pData, pBld);
 				auto const center = CellClass::Coord2Cell(BuildingExt::GetCenterCoords(pBld));
 
-				data->LaunchSites.emplace_back(TargetingData::LaunchSite{
-					pBld, center, range.first, range.second });
+				data->LaunchSites.emplace_back(pBld, center, range.first, range.second);
 			}
 		}
 	}
@@ -403,7 +402,7 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExt::ExtD
 			auto center = pTechno->GetCoords();
 			if (auto pBuilding = specific_cast<BuildingClass*>(pTechno)) {
 
-				if (BuildingExt::ExtMap.Find(pBuilding)->LimboID <= -1)
+				if (BuildingExt::ExtMap.Find(pBuilding)->LimboID > -1)
 					continue;
 
 				center = BuildingExt::GetCenterCoords(pBuilding);
@@ -419,8 +418,7 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExt::ExtD
 
 				if (range > 0)
 				{
-					data->Designators.emplace_back(TargetingData::RangedItem{
-						range * range, CellClass::Coord2Cell(center) });
+					data->Designators.emplace_back(range * range, CellClass::Coord2Cell(center));
 				}
 			}
 
@@ -432,8 +430,7 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExt::ExtD
 
 				if (range > 0)
 				{
-					data->Attractors.emplace_back(TargetingData::RangedItem{
-						range* range, CellClass::Coord2Cell(center) });
+					data->Attractors.emplace_back(range* range, CellClass::Coord2Cell(center));
 				}
 			}
 
@@ -444,8 +441,7 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExt::ExtD
 
 				if (range > 0)
 				{
-					data->Inhibitors.emplace_back(TargetingData::RangedItem{
-						range* range, CellClass::Coord2Cell(center) });
+					data->Inhibitors.emplace_back(range* range, CellClass::Coord2Cell(center));
 				}
 			}
 
@@ -457,8 +453,7 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExt::ExtD
 
 				if (range > 0)
 				{
-					data->Suppressors.emplace_back(TargetingData::RangedItem{
-						range* range, CellClass::Coord2Cell(center) });
+					data->Suppressors.emplace_back(range* range, CellClass::Coord2Cell(center));
 				}
 			}
 		}

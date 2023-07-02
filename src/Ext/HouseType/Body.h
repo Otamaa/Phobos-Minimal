@@ -35,6 +35,7 @@ public:
 		Nullable<double> NewTeamsSelector_AirCategoryPercentage { };
 
 		Valueable<bool> GivesBounty { true };
+		Nullable<bool> CanBeDriven {};
 
 		ExtData(HouseTypeClass* OwnerObject) : Extension<HouseTypeClass>(OwnerObject)
 		{ }

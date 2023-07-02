@@ -28,10 +28,10 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 	}
 
 	Debug::Log("[ChronoWarp::Activate] Launching %s with %s as source.\n", pThis->Type->ID, pSource->Type->ID);
-	auto const pData = SWTypeExt::ExtMap.Find(pSource->Type);
+	auto const pSourceSWExt = SWTypeExt::ExtMap.Find(pSource->Type);
 
 	// add radar events for source and target
-	if (pData->SW_RadarEvent)
+	if (pSourceSWExt->SW_RadarEvent)
 	{
 		RadarEventClass::Create(RadarEventType::SuperweaponActivated, pSource->ChronoMapCoords);
 		RadarEventClass::Create(RadarEventType::SuperweaponActivated, Coords);
@@ -40,22 +40,22 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 	// update animations
 	SWTypeExt::ClearChronoAnim(pThis);
 
-	if (auto const pAnimType = pData->Chronosphere_BlastSrc.Get(RulesClass::Instance->ChronoBlast))
+	if (auto const pAnimType = pSourceSWExt->Chronosphere_BlastSrc.Get(RulesClass::Instance->ChronoBlast))
 	{
 		auto const pCellSource = MapClass::Instance->GetCellAt(pSource->ChronoMapCoords);
 		auto coordsSource = pCellSource->GetCoordsWithBridge();
-		coordsSource.Z += pData->SW_AnimHeight;
+		coordsSource.Z += pSourceSWExt->SW_AnimHeight;
 
 		//Otamaa Add
 		if (auto pAnim = GameCreate<AnimClass>(pAnimType, coordsSource))
 			pAnim->Owner = pSource->Owner;
 	}
 
-	if (auto const pAnimType = pData->Chronosphere_BlastDest.Get(RulesClass::Instance->ChronoBlastDest))
+	if (auto const pAnimType = pSourceSWExt->Chronosphere_BlastDest.Get(RulesClass::Instance->ChronoBlastDest))
 	{
 		auto const pCellTarget = MapClass::Instance->GetCellAt(Coords);
 		auto coordsTarget = pCellTarget->GetCoordsWithBridge();
-		coordsTarget.Z += pData->SW_AnimHeight;
+		coordsTarget.Z += pSourceSWExt->SW_AnimHeight;
 
 		//Otamaa Add
 		if (auto pAnim = GameCreate<AnimClass>(pAnimType, coordsTarget))
@@ -64,14 +64,14 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 
 	DynamicVectorClass<ChronoWarpStateMachine::ChronoWarpContainer> RegisteredBuildings;
 
-	auto Chronoport = [pThis, pData, pSource, Coords, &RegisteredBuildings](TechnoClass* const pTechno) -> bool
+	auto Chronoport = [pThis, pSourceSWExt, pSource, Coords, &RegisteredBuildings](TechnoClass* const pTechno) -> bool
 	{
 		// is this thing affected at all?
-		if (!pData->IsHouseAffected(pThis->Owner, pTechno->Owner)) {
+		if (!pSourceSWExt->IsHouseAffected(pThis->Owner, pTechno->Owner)) {
 			return true;
 		}
 
-		if (!pData->IsTechnoAffected(pTechno)) {
+		if (!pSourceSWExt->IsTechnoAffected(pTechno)) {
 			return true;
 		}
 
@@ -95,22 +95,22 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 			}
 
 			// use "smart" detection of vehicular building types?
-			if (pData->Chronosphere_ReconsiderBuildings)
+			if (pSourceSWExt->Chronosphere_ReconsiderBuildings)
 			{
 				IsVehicle = pExt->Chronoshift_IsVehicle;
 			}
 
 			// always let undeployers pass if all undeployers are affected
-			if (!pData->Chronosphere_AffectUndeployable || !pBld->Type->UndeploysInto)
+			if (!pSourceSWExt->Chronosphere_AffectUndeployable || !pBld->Type->UndeploysInto)
 			{
 				// we don't handle buildings and this is a real one
-				if (!IsVehicle && !pData->Chronosphere_AffectBuildings)
+				if (!IsVehicle && !pSourceSWExt->Chronosphere_AffectBuildings)
 				{
 					return true;
 				}
 
 				// this is a vehicle in disguise and we don't handle them
-				if (IsVehicle && !(pData->SW_AffectsTarget & SuperWeaponTarget::Unit))
+				if (IsVehicle && !(pSourceSWExt->SW_AffectsTarget & SuperWeaponTarget::Unit))
 				{
 					return true;
 				}
@@ -132,12 +132,12 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 		}
 
 		// unwarpable unit
-		if (TechnoExt::IsUnwarpable(pTechno) && !pData->Chronosphere_AffectUnwarpable) {
+		if (TechnoExt::IsUnwarpable(pTechno) && !pSourceSWExt->Chronosphere_AffectUnwarpable) {
 			return true;
 		}
 
 		// iron curtained units
-		if (pTechno->IsIronCurtained() && !pData->Chronosphere_AffectIronCurtain) {
+		if (pTechno->IsIronCurtained() && !pSourceSWExt->Chronosphere_AffectIronCurtain) {
 			return true;
 		}
 
@@ -150,9 +150,9 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 		// behind this point, the units are affected.
 
 		// organics are destroyed as long as they aren't teleporters
-		if (pType->Organic && pData->Chronosphere_KillOrganic)
+		if (pType->Organic && pSourceSWExt->Chronosphere_KillOrganic)
 		{
-			if (!pType->Teleporter || pData->Chronosphere_KillTeleporters)
+			if (!pType->Teleporter || pSourceSWExt->Chronosphere_KillTeleporters)
 			{
 				int strength = pType->Strength;
 				pTechno->ReceiveDamage(&strength, 0, RulesClass::Instance->C4Warhead,
@@ -282,14 +282,14 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 
 	// collect every techno in this range only once. apply the Chronosphere.
 
-	auto range = NewSWType::GetNewSWType(pData)->GetRange(pData);
+	auto range = NewSWType::GetNewSWType(pSourceSWExt)->GetRange(pSourceSWExt);
 	Helpers::Alex::DistinctCollector<TechnoClass*> items;
 	Helpers::Alex::for_each_in_rect_or_range<TechnoClass>(pSource->ChronoMapCoords, range.WidthOrRange, range.Height, items);
 	items.apply_function_for_each(Chronoport);
 
 	if (RegisteredBuildings.Count)
 	{
-		this->newStateMachine(pData->Chronosphere_Delay.Get(RulesClass::Instance->ChronoDelay) + 1, Coords, pSource, this, std::move(RegisteredBuildings));
+		this->newStateMachine(pSourceSWExt->Chronosphere_Delay.Get(RulesClass::Instance->ChronoDelay) + 1, Coords, pSource, this, std::move(RegisteredBuildings));
 	}
 
 	return true;

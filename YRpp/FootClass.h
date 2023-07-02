@@ -228,9 +228,9 @@ public:
 	bool              IsDeploying;	//68C
 	bool              IsFiring;	//68D
 	bool               __AssignNewThreat; //68E
-	bool              ShouldEnterAbsorber; // orders the unit to enter the closest bio reactor
-	bool              ShouldEnterOccupiable; // orders the unit to enter the closest battle bunker
-	bool              ShouldGarrisonStructure; // orders the unit to enter the closest neutral building
+	bool              ShouldEnterAbsorber; // 68F , orders the unit to enter the closest bio reactor
+	bool              ShouldEnterOccupiable; // 690 ,orders the unit to enter the closest battle bunker
+	bool              ShouldGarrisonStructure; // 691 , orders the unit to enter the closest neutral building
 	FootClass*        ParasiteEatingMe; // the tdrone/squid that's eating me
 	DWORD             __ParasiteFireBlock_698;
 	ParasiteClass*    ParasiteImUsing;	// my parasitic half, nonzero for, eg, terror drone or squiddy

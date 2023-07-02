@@ -41,7 +41,6 @@ DEFINE_HOOK(0x517D90, InfantryClass_DTOR, 0x5)
 	return 0;
 }
 
-
 DEFINE_HOOK_AGAIN(0x521B00, InfantryClass_SaveLoad_Prefix, 0x8)
 DEFINE_HOOK(0x521960, InfantryClass_SaveLoad_Prefix, 0x6)
 {
