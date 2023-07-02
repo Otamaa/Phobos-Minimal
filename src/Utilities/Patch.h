@@ -22,8 +22,8 @@ struct module_export
 struct __declspec(novtable)
 	Patch
 {
-	const size_t offset;
-	const size_t size;
+	size_t offset;
+	size_t size;
 	const BYTE* pData;
 
 	static void ApplyStatic();
@@ -66,7 +66,7 @@ struct __declspec(novtable)
 		return reinterpret_cast<T>(rawptr + amount);
 	}
 
-	static void Apply_RAW(DWORD offset, std::initializer_list<byte> data);
+	static void Apply_RAW(DWORD offset, std::initializer_list<BYTE> data);
 
 	static void Apply_LJMP(DWORD offset, DWORD pointer);
 	static inline void Apply_LJMP(DWORD offset, void* pointer)
