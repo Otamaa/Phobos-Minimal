@@ -100,10 +100,10 @@ public:
 	struct ChronoWarpContainer
 	{
 	public:
-		BuildingClass* building;
-		CellStruct target;
-		CoordStruct origin;
-		bool isVehicle;
+		BuildingClass* building { nullptr };
+		CellStruct target {};
+		CoordStruct origin {};
+		bool isVehicle { false };
 
 		ChronoWarpContainer(BuildingClass* pBld, const CellStruct& target, const CoordStruct& origin, bool isVehicle) :
 			building(pBld),

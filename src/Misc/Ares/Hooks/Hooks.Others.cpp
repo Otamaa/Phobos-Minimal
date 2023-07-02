@@ -4082,6 +4082,102 @@ enum class AresHijackActionResult
 	Drive = 2
 };
 
+// this isn't called VehicleThief action, because it also includes other logic
+// related to infantry getting into an vehicle like CanDrive.
+AresHijackActionResult GetActionHijack(InfantryClass* pThis , TechnoClass* const pTarget)
+{
+	if (!pThis || !pTarget || !pThis->IsAlive || !pTarget->IsAlive) {
+		return AresHijackActionResult::None;
+	}
+
+	const auto pType = pThis->Type;
+	const auto pTargetType = pTarget->GetTechnoType();
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	// this can't steal vehicles
+	if (!pType->VehicleThief && !pTypeExt->CanDrive)
+	{
+		return AresHijackActionResult::None;
+	}
+
+	//no , this one bit different ?
+	const bool IsNotOperated = !Is_Operated(pTarget) && !AresData::IsOperated(pTarget);
+
+	// i'm in a state that forbids capturing
+	if (pThis->IsDeployed() || IsNotOperated)
+	{
+		return AresHijackActionResult::None;
+	}
+
+	// target type is not eligible (hijackers can also enter strange buildings)
+	const auto absTarget = pTarget->WhatAmI();
+	if (absTarget != AbstractType::Aircraft && absTarget != AbstractType::Unit
+		&& (!pType->VehicleThief || absTarget != AbstractType::Building))
+	{
+		return AresHijackActionResult::None;
+	}
+
+	// target is bad
+	if (pTarget->CurrentMission == Mission::Selling || pTarget->IsBeingWarpedOut()
+		|| pTargetType->IsTrain || pTargetType->BalloonHover
+		|| (absTarget != AbstractType::Unit && !pTarget->IsStrange())
+		//|| (absTarget == abs_Unit && ((UnitTypeClass*)pTargetType)->NonVehicle) replaced by Hijacker.Allowed
+		|| !pTarget->IsOnFloor())
+	{
+		return AresHijackActionResult::None;
+	}
+
+	if(absTarget == AbstractType::Unit 
+		&& ScenarioClass::Instance->SpecialFlags.RawFlags & 0x8u 
+		&& RulesClass::Instance->HarvesterUnit.FindItemIndex((UnitTypeClass*)pTargetType) != -1)
+		return AresHijackActionResult::None;
+
+	// bunkered units can't be hijacked.
+	if (pTarget->BunkerLinkedItem)
+	{
+		return AresHijackActionResult::None;
+	}
+
+	// a thief that can't break mind control loses without trying further
+	if (pType->VehicleThief)
+	{
+		if (pTarget->IsMindControlled() && !pTypeExt->HijackerBreakMindControl)
+		{
+			return AresHijackActionResult::None;
+		}
+	}
+
+	//drivers can drive, but only stuff owned by neutrals. if a driver is a vehicle thief
+	//also, it can reclaim units even if they are immune to hijacking (see below)
+	const auto specialOwned = pTarget->Owner->Type->MultiplayPassive;
+	if (specialOwned && pTypeExt->CanDrive)
+	{
+		return AresHijackActionResult::Drive;
+	}
+
+	// hijacking only affects enemies
+	if (pType->VehicleThief)
+	{
+		// can't steal allied unit (CanDrive and special already handled)
+		if (pThis->Owner->IsAlliedWith(pTarget->Owner) || specialOwned)
+		{
+			return AresHijackActionResult::None;
+		}
+
+		const auto pTargetTypeExt = TechnoTypeExt::ExtMap.Find(pTargetType);
+		if (!pTargetTypeExt->HijackerAllowed)
+		{
+			return AresHijackActionResult::None;
+		}
+
+		// allowed to steal from enemy
+		return AresHijackActionResult::Hijack;
+	}
+
+	// no hijacking ability
+	return AresHijackActionResult::None;
+}
+
 DEFINE_OVERRIDE_HOOK(0x51E7BF, InfantryClass_GetActionOnObject_CanCapture, 6)
 {
 	enum

@@ -137,14 +137,9 @@ DEFINE_OVERRIDE_HOOK(0x41F0F1, AITriggerClass_IC_Ready, 0xA)
 	enum { advance = 0x41F0FD , breakloop = 0x41F10D };
 	GET(SuperClass*, pSuper, EDI);
 	
-	const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
-	if (!pExt->IsAvailable(pSuper->Owner))
-		return advance;
-
-	if (pSuper->Type->Type == SuperWeaponType::IronCurtain || (pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain))
-		return breakloop;
-
-	return advance;
+	return (pSuper->Type->Type == SuperWeaponType::IronCurtain
+		&& SWTypeExt::ExtMap.Find(pSuper->Type)->IsAvailable(pSuper->Owner))
+		? breakloop : advance;
 }
 
 DEFINE_OVERRIDE_HOOK(0x41F1A1, AITriggerClass_Chrono_Ready, 0xA)
@@ -152,14 +147,9 @@ DEFINE_OVERRIDE_HOOK(0x41F1A1, AITriggerClass_Chrono_Ready, 0xA)
 	enum { advance = 0x41F1AD, breakloop = 0x41F1BD};
 	GET(SuperClass*, pSuper, EBX);
 
-	const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
-	if (!pExt->IsAvailable(pSuper->Owner))
-		return advance;
-
-	if (pSuper->Type->Type == SuperWeaponType::ChronoSphere)
-		return breakloop;
-
-	return advance;
+	return (pSuper->Type->Type == SuperWeaponType::ChronoSphere 
+		&& SWTypeExt::ExtMap.Find(pSuper->Type)->IsAvailable(pSuper->Owner))
+		? breakloop : advance;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
@@ -501,13 +491,13 @@ DEFINE_OVERRIDE_HOOK(0x450F9E, BuildingClass_ProcessAnims_SuperWeaponsA, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
+	const auto miss = pThis->GetCurrentMission();
+	if (miss == Mission::Construction || miss == Mission::Selling || pThis->Type->ChargedAnimTime > 990.0)
+		return 0x451145;
+
 	const auto pSuper = BuildingExt::GetFirstSuperWeapon(pThis);
 
 	if (!pSuper)
-		return 0x451145;
-
-	const auto miss = pThis->GetCurrentMission();
-	if (miss == Mission::Construction || miss == Mission::Selling || pThis->Type->ChargedAnimTime > 990.0)
 		return 0x451145;
 
 	R->EDI(pThis->Type);

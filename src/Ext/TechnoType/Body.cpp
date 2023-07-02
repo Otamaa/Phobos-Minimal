@@ -779,6 +779,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->HijackerKillPilots.Read(exINI, pSection, "VehicleThief.KillPilots");
 		this->HijackerEnterSound.Read(exINI, pSection, "VehicleThief.EnterSound");
 		this->HijackerLeaveSound.Read(exINI, pSection, "VehicleThief.LeaveSound");
+		this->HijackerBreakMindControl.Read(exINI, pSection, "VehicleThief.BreakMindControl");
+		this->HijackerAllowed.Read(exINI, pSection, "VehicleThief.Allowed");
 		this->Cursor_Deploy.Read(exINI, pSection, "Cursor.Deploy");
 		this->Cursor_NoDeploy.Read(exINI, pSection, "Cursor.NoDeploy");
 		this->Cursor_Enter.Read(exINI, pSection, "Cursor.Enter");
@@ -832,6 +834,16 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->AIIonCannonValue.Read(exINI, pSection, "AIIonCannonValue");
 		this->ExtraPower_Amount.Read(exINI, pSection, "ExtraPower.Amount");
 		this->CanDrive.Read(exINI, pSection, "CanDrive");
+
+		if (exINI.ReadString(pSection, "Operator"))
+		{ // try to read the flag
+			this->Operators.clear();
+			this->Operator_Any = (IS_SAME_STR_N(exINI.value(), "_ANY_")); // set whether this type accepts all operators
+			if (!this->Operator_Any)
+			{ // if not, find the specific operator it allows
+				detail::parse_values(this->Operators, exINI, pSection, "Operator");
+			}
+		}
 
 #pragma region AircraftOnly
 		if (Is_AircraftType(pThis))
@@ -1638,7 +1650,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->HijackerKillPilots)
 		.Process(this->HijackerEnterSound)
 		.Process(this->HijackerLeaveSound)
-
+		.Process(this->HijackerBreakMindControl)
+		.Process(this->HijackerAllowed)
 		.Process(this->Survivors_PilotChance)
 		.Process(this->Crew_TechnicianChance)
 		.Process(this->Crew_EngineerChance)
@@ -1704,6 +1717,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->RecheckTechTreeWhenDie)
 		.Process(this->Linked_SW)
 		.Process(this->CanDrive)
+		.Process(this->Operators)
+		.Process(this->Operator_Any)
 #pragma endregion
 		;
 

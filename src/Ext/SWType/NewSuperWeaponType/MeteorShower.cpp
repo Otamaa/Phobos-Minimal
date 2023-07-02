@@ -91,7 +91,6 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 
 void SW_MeteorShower::Initialize(SWTypeExt::ExtData* pData)
 {
-	pData->SW_RadarEvent = false;
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::LightningStorm;
 }
 

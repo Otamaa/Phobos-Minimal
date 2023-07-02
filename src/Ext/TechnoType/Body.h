@@ -675,6 +675,9 @@ public:
 		ValueableIdx<VocClass> HijackerEnterSound { -1 };
 		ValueableIdx<VocClass> HijackerLeaveSound { -1 };
 
+		Valueable<bool> HijackerBreakMindControl{ true };
+		Valueable<bool> HijackerAllowed { true };
+
 		Promotable<int> Survivors_PilotChance { -1 };
 
 		ValueableIdx<CursorTypeClass*> Cursor_Deploy { (int)MouseCursorType::Deploy };
@@ -769,6 +772,8 @@ public:
 		ValueableVector<SuperWeaponTypeClass*> Linked_SW {};
 
 		Valueable<bool> CanDrive { false }; //!< Whether this TechnoType can act as the driver of vehicles whose driver has been killed. Request #733.
+		ValueableVector<TechnoTypeClass*> Operators {};
+		Valueable<bool> Operator_Any { false };
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, AttachedEffect { OwnerObject }
