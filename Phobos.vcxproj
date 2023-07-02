@@ -23,6 +23,7 @@
     <ClCompile Include="src\Commands\ShowTeamLeader.cpp" />
     <ClCompile Include="src\Commands\ShowTechnoNames.cpp" />
     <ClCompile Include="src\Commands\ShowHealthPercent.cpp" />
+    <ClCompile Include="src\Commands\ToggleRadialIndicatorDrawMode.cpp" />
     <ClCompile Include="src\Ext\Abstract\Body.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.Otamaa.cpp" />
@@ -343,6 +344,7 @@
     <ClInclude Include="src\Commands\ShowTeamLeader.h" />
     <ClInclude Include="src\Commands\ShowTechnoNames.h" />
     <ClInclude Include="src\Commands\ShowHealthPercent.h" />
+    <ClInclude Include="src\Commands\ToggleRadialIndicatorDrawMode.h" />
     <ClInclude Include="src\ExtraHeaders\AStarClass.h" />
     <ClInclude Include="src\ExtraHeaders\Buffer.h" />
     <ClInclude Include="src\ExtraHeaders\CompileTimeDirStruct.h" />

@@ -774,6 +774,7 @@ public:
 		Valueable<bool> CanDrive { false }; //!< Whether this TechnoType can act as the driver of vehicles whose driver has been killed. Request #733.
 		ValueableVector<TechnoTypeClass*> Operators {};
 		Valueable<bool> Operator_Any { false };
+		Nullable<bool> AlwayDrawRadialIndicator { };
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, AttachedEffect { OwnerObject }

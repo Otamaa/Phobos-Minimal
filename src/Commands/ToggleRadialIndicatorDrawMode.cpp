@@ -1,0 +1,31 @@
+#include "ToggleRadialIndicatorDrawMode.h"
+
+#include <Utilities/GeneralUtils.h>
+
+bool ToggleRadialIndicatorDrawModeClass::ShowForAll = false;
+
+const char* ToggleRadialIndicatorDrawModeClass::GetName() const
+{
+	return "Toggle RadialIndicator Draw Mode";
+}
+
+const wchar_t* ToggleRadialIndicatorDrawModeClass::GetUIName() const
+{
+	return GeneralUtils::LoadStringUnlessMissing("TXT_MARKBLD", L"Toggle RadialIndicator Draw Mode");
+}
+
+const wchar_t* ToggleRadialIndicatorDrawModeClass::GetUICategory() const
+{
+	return GeneralUtils::LoadStringUnlessMissing("TXT_INTERFACE", L"Interface");
+}
+
+const wchar_t* ToggleRadialIndicatorDrawModeClass::GetUIDescription() const
+{
+	return GeneralUtils::LoadStringUnlessMissing("TXT_MARKBLD_DESC", L"Toggle RadialIndicator Draw Mode.");
+}
+
+void ToggleRadialIndicatorDrawModeClass::Execute(WWKey eInput) const
+{
+	//TODO : S/L ?
+	ToggleRadialIndicatorDrawModeClass::ShowForAll = !ToggleRadialIndicatorDrawModeClass::ShowForAll;
+}

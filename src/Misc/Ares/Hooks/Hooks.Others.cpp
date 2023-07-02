@@ -3757,6 +3757,32 @@ DEFINE_OVERRIDE_HOOK(0x41946B, AircraftClass_ReceivedRadioCommand_QueryEnterAsPa
 	return (Is_DriverKilled(pThis) ? 0x4190DDu : 0u);
 }
 
+#include <Commands/ToggleRadialIndicatorDrawMode.h>
+
+DEFINE_HOOK(0x6DBE35 , TacticalClass_DrawLinesOrCircles ,  0x9)
+{
+	if(!ToggleRadialIndicatorDrawModeClass::ShowForAll)
+	{
+		for(auto const& pObj : ObjectClass::CurrentObjects())
+		{
+			if(pObj && pObj->GetTechnoType() && pObj->GetTechnoType()->HasRadialIndicator)
+			{
+				pObj->DrawRadialIndicator(1);
+			}
+		}
+	}
+	else
+	{
+		for (auto const& pObj : *TechnoClass::Array) {
+			if (pObj && pObj->IsOnMyView() && pObj->GetTechnoType() && pObj->GetTechnoType()->HasRadialIndicator) {
+				pObj->DrawRadialIndicator(1);
+			}
+		}
+	}
+
+	return 0x6DBE74;
+}
+
 DEFINE_OVERRIDE_HOOK(0x41BE80, ObjectClass_DrawRadialIndicator, 3)
 {
 	GET(ObjectClass*, pObj, ECX);
@@ -3764,8 +3790,9 @@ DEFINE_OVERRIDE_HOOK(0x41BE80, ObjectClass_DrawRadialIndicator, 3)
 	if (const auto pTechno = generic_cast<TechnoClass*>(pObj))
 	{
 		const auto pType = pTechno->GetTechnoType();
+		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
-		if (pType->HasRadialIndicator && !pTechno->Deactivated)
+		if (pType->HasRadialIndicator && pTypeExt->AlwayDrawRadialIndicator.Get(!pTechno->Deactivated))
 		{
 			const auto pOwner = pTechno->Owner;
 
@@ -3774,7 +3801,7 @@ DEFINE_OVERRIDE_HOOK(0x41BE80, ObjectClass_DrawRadialIndicator, 3)
 
 			if (pOwner->ControlledByPlayer_())
 			{
-				const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
 				int nRadius = 0;
 
 				if (pTypeExt->RadialIndicatorRadius.isset())

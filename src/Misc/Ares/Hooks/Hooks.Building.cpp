@@ -1893,6 +1893,16 @@ DEFINE_OVERRIDE_HOOK(0x4566B0, BuildingClass_GetRangeOfRadial_Radius, 6)
 	return SetVal;
 }
 
+DEFINE_HOOK(0x456768 , BuildingClass_DrawRadialIndicator_Always , 0x6)
+{
+	GET(BuildingClass* , pThis ,ESI);
+
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+
+	return pExt->AlwayDrawRadialIndicator.Get(pThis->HasPower) ?
+		0x456776  : 0x456962;
+}
+
 DEFINE_OVERRIDE_HOOK(0x4581CD, BuildingClass_UnloadOccupants_AllOccupantsHaveLeft, 6)
 {
 	GET(BuildingClass*, pBld, ESI);
