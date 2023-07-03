@@ -564,7 +564,7 @@ namespace TEventExt_dummy
 				CellStruct Cell;
 			};
 
-			if (((int)pThis->EventKind != Args.EventType) && IS_SAME_STR_(((PackedDatas*)Args.Source)->Super->Type->ID, pThis->String))
+			if (((int)pThis->EventKind == Args.EventType) && IS_SAME_STR_(((PackedDatas*)Args.Source)->Super->Type->ID, pThis->String))
 			{
 				const auto nCell = ScenarioClass::Instance->GetWaypointCoords(pThis->Value);
 				CellStruct nDesired = { ((PackedDatas*)Args.Source)->Cell.X - nCell.X ,((PackedDatas*)Args.Source)->Cell.Y - nCell.Y };

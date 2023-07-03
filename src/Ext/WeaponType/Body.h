@@ -109,6 +109,9 @@ public:
 		Nullable<bool> Ivan_CanDetonateTimeBomb {};
 		Nullable<bool> Ivan_CanDetonateDeathBomb {};
 		Valueable<bool> Ivan_DetonateOnSell { false };
+
+		Valueable<bool> Ivan_DeathBombOnAllies { false };
+		Valueable<bool> Ivan_DeathBomb { false };
 		//
 		Nullable<bool> ApplyDamage {}; // whether Damage should be applied even if IsSonic=yes or UseFireParticles=yes
 

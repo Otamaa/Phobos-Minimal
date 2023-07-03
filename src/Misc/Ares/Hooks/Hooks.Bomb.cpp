@@ -52,6 +52,12 @@ namespace Funcs
 				pBomb->DetonationFrame = Unsorted::CurrentFrame + pWeaponExt->Ivan_Delay.Get(RulesClass::Instance->IvanTimedDelay);
 				pBomb->TickSound = pWeaponExt->Ivan_TickingSound.Get(RulesClass::Instance->BombTickingSound);
 
+				const auto IsAlly = pSource->Owner && pSource->Owner->IsAlliedWith_(pTarget);
+				const auto Deathbomb = (!IsAlly && pWeaponExt->Ivan_DeathBomb) || (IsAlly && pWeaponExt->Ivan_DeathBombOnAllies);
+				//Debug::Log("Ivan[%s] Planting DeathBomb ? [%d] \n", pSource->get_ID(), Deathbomb);
+				
+				pBomb->Type = Deathbomb ? BombType::DeathBomb : BombType::NormalBomb;
+
 				if (pSource->Owner && pSource->Owner->ControlledByPlayer())
 				{
 					VocClass::PlayIndexAtPos(pWeaponExt->Ivan_AttachSound.Get(RulesClass::Instance->BombAttachSound)

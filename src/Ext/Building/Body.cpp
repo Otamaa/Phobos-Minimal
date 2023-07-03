@@ -709,6 +709,7 @@ void BuildingExt::ExtData::Serialize(T& Stm)
 		.Process(this->C4Warhead)
 		.Process(this->Silent)
 		.Process(this->ReceiveDamageWarhead)
+		.Process(this->DockReloadTimers)
 		;
 }
 

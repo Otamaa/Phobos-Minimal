@@ -67,6 +67,7 @@ DEFINE_OVERRIDE_HOOK(0x421798, AlphaShapeClass_SDDTOR_Anims, 0x6)
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x565215, MapClass_CTOR_NoInit_Crates, 0x6, 56522D)
 
+
 DEFINE_HOOK(0x5F6500 , AbstractClass_Distance2DSquared_1 , 0x8)
 {
 	GET(AbstractClass* , pThis ,ECX);
@@ -76,14 +77,10 @@ DEFINE_HOOK(0x5F6500 , AbstractClass_Distance2DSquared_1 , 0x8)
 	if(pThat) {
 	  const auto nThisCoord = pThis->GetCoords();
 	  const auto nThatCoord = pThat->GetCoords();
-	  const auto nY = (int64_t(nThisCoord.Y - nThatCoord.Y) * int64_t(nThisCoord.Y - nThatCoord.Y));
-	  const auto nX = (int64_t(nThisCoord.X - nThatCoord.X) * int64_t(nThisCoord.X - nThatCoord.X));
-	  const auto nXY = int(nX + nY);
-
-	  nResult = (nXY >= INT_MAX ? INT_MAX : nXY);
+	  nResult = ((Point2D { nThisCoord.X , nThisCoord.Y } - Point2D{nThatCoord.X, nThatCoord.Y}).Length());
 	}
 
-	R->EAX(nResult);
+	R->EAX((nResult > INT_MAX ? INT_MAX : nResult));
 	return 0x5F655D;
 }
 
@@ -93,11 +90,9 @@ DEFINE_OVERRIDE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
 	auto const nThisCoord = pThis->GetCoords();
 	GET_STACK(CoordStruct*, pThatCoord, 0x4);
 
-	const auto nY = (int64_t(nThisCoord.Y - pThatCoord->Y) * int64_t(nThisCoord.Y - pThatCoord->Y));
-	const auto nX = (int64_t(nThisCoord.X - pThatCoord->X) * int64_t(nThisCoord.X - pThatCoord->X));
-	const auto nXY = int(nX + nY);
+	const auto nXY = ((Point2D { nThisCoord.X , nThisCoord.Y } - Point2D{ pThatCoord->X , pThatCoord->Y }).Length());
 
-	R->EAX(nXY >= INT_MAX ? INT_MAX : nXY);
+	R->EAX(nXY > INT_MAX ? INT_MAX : nXY);
 	return 0x5F659B;
 }
 
@@ -3761,12 +3756,9 @@ DEFINE_OVERRIDE_HOOK(0x41946B, AircraftClass_ReceivedRadioCommand_QueryEnterAsPa
 
 DEFINE_HOOK(0x6DBE35 , TacticalClass_DrawLinesOrCircles ,  0x9)
 {
-	if(!ToggleRadialIndicatorDrawModeClass::ShowForAll)
-	{
-		for(auto const& pObj : ObjectClass::CurrentObjects())
-		{
-			if(pObj && pObj->GetTechnoType() && pObj->GetTechnoType()->HasRadialIndicator)
-			{
+	if(!ToggleRadialIndicatorDrawModeClass::ShowForAll) {
+		for(auto const& pObj : ObjectClass::CurrentObjects()) {
+			if(pObj && pObj->IsOnMyView() && pObj->GetTechnoType() && pObj->GetTechnoType()->HasRadialIndicator) {
 				pObj->DrawRadialIndicator(1);
 			}
 		}
@@ -4557,6 +4549,104 @@ DEFINE_OVERRIDE_HOOK(0x4DFE00, FootClass_GarrisonStructure_TakeVehicle, 6)
 	return 0x4DFF3E;
 }
 
+// replaces the UnitReload handling and makes each docker independent of all
+// others. this means planes don't have to wait one more ReloadDelay because
+// the first docker triggered repair mission while the other dockers arrive
+// too late and need to be put to sleep first.
+DEFINE_OVERRIDE_HOOK(0x44C844, BuildingClass_MissionRepair_Reload, 6)
+{
+	GET(BuildingClass* const, pThis, EBP);
+	auto const pExt = BuildingExt::ExtMap.Find(pThis);
+
+	// ensure there are enough slots
+	if((int)pExt->DockReloadTimers.size() < pThis->RadioLinks.Capacity)
+		pExt->DockReloadTimers.resize(pThis->RadioLinks.Capacity);
+
+	// update all dockers, check if there's
+	// at least one needing more attention
+	bool keep_reloading = false;
+	for (auto i = 0; i < pThis->RadioLinks.Capacity; ++i)
+	{
+		if (auto const pLink = pThis->GetNthLink(i))
+		{
+
+			auto const SendCommand = [=](RadioCommand command) {
+				return pThis->SendCommand(command, pLink) == RadioCommand::AnswerPositive;
+			};
+
+			// check if reloaded and repaired already
+			auto const pLinkType = pLink->GetTechnoType();
+			auto done = SendCommand(RadioCommand::QueryReadiness)
+				&& pLink->Health == pLinkType->Strength;
+
+			if (!done)
+			{
+				// check if docked
+				auto const miss = pLink->GetCurrentMission();
+				if (miss == Mission::Enter
+					|| !SendCommand(RadioCommand::QueryMoving))
+				{
+					continue;
+				}
+
+				keep_reloading = true;
+
+				// make the unit sleep first
+				if (miss != Mission::Sleep)
+				{
+					pLink->QueueMission(Mission::Sleep, false);
+					continue;
+				}
+
+				// check whether the timer completed
+				auto const last_timer = pExt->DockReloadTimers[i];
+				if (last_timer > Unsorted::CurrentFrame)
+				{
+					continue;
+				}
+
+				// set the next frame
+				auto const pLinkExt = TechnoTypeExt::ExtMap.Find(pLinkType);
+				auto const defaultRate = RulesClass::Instance->ReloadRate;
+				auto const rate = pLinkExt->ReloadRate.Get(defaultRate);
+				auto const frames = static_cast<int>(rate * 900);
+				pExt->DockReloadTimers[i] = Unsorted::CurrentFrame + frames;
+
+				// only reload if the timer was not outdated
+				if (last_timer != Unsorted::CurrentFrame)
+				{
+					continue;
+				}
+
+				// reload and repair, return true if both failed
+				done = !SendCommand(RadioCommand::RequestReload)
+					&& !SendCommand(RadioCommand::RequestRepair);
+			}
+
+			if (done)
+			{
+				pLink->EnterIdleMode(false, 1);
+				pLink->ForceMission(Mission::Guard);
+				pLink->ProceedToNextPlanningWaypoint();
+
+				pExt->DockReloadTimers[i] = -1;
+			}
+		}
+	}
+
+	if (keep_reloading)
+	{
+		// update each frame
+		R->EAX(1);
+	}
+	else
+	{
+		pThis->QueueMission(Mission::Guard, false);
+		R->EAX(3);
+	}
+
+	return 0x44C968;
+}
 //#include <EventClass.h>
 
 //hmm dunno , 

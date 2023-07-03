@@ -174,6 +174,8 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 	this->Ivan_Image.Read(exINI, pSection, "IvanBomb.Image");
 	this->Ivan_CanDetonateTimeBomb.Read(exINI, pSection, "IvanBomb.CanDetonateTimeBomb");
 	this->Ivan_CanDetonateDeathBomb.Read(exINI, pSection, "IvanBomb.CanDetonateDeathBomb");
+	this->Ivan_DeathBombOnAllies.Read(exINI, pSection, "IvanBomb.DeathBombOnAllies");
+	this->Ivan_DeathBomb.Read(exINI, pSection, "IvanBomb.DeathBomb");
 	this->Ivan_DetonateOnSell.Read(exINI, pSection, "IvanBomb.DetonateOnSell");
 	this->ApplyDamage.Read(exINI, pSection, "ApplyDamage");
 
@@ -261,6 +263,8 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Ivan_CanDetonateTimeBomb)
 		.Process(this->Ivan_CanDetonateDeathBomb)
 		.Process(this->Ivan_DetonateOnSell)
+		.Process(this->Ivan_DeathBombOnAllies)
+		.Process(this->Ivan_DeathBomb)
 		.Process(this->ApplyDamage)
 		.Process(this->Cursor_Attack)
 		.Process(this->Cursor_AttackOutOfRange)

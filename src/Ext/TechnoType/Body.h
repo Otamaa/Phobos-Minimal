@@ -775,6 +775,7 @@ public:
 		ValueableVector<TechnoTypeClass*> Operators {};
 		Valueable<bool> Operator_Any { false };
 		Nullable<bool> AlwayDrawRadialIndicator { };
+		Nullable<double> ReloadRate { };
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, AttachedEffect { OwnerObject }

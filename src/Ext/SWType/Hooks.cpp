@@ -2372,8 +2372,9 @@ DEFINE_OVERRIDE_HOOK(0x4555D5, BuildingClass_IsPowerOnline_KeepOnline, 5)
 
 	if (auto pOwner = pThis->GetOwningHouse()) {
 		for (auto const& pBatt : HouseExt::ExtMap.Find(pOwner)->Batteries) {
-			if(SWTypeExt::ExtMap.Find(pBatt->Type)->Battery_KeepOnline.Contains(pThis->Type))
+			if (SWTypeExt::ExtMap.Find(pBatt->Type)->Battery_KeepOnline.Contains(pThis->Type)) {
 				Contains = true;
+				break; }
 		}
 	}
 
@@ -2395,8 +2396,9 @@ DEFINE_OVERRIDE_HOOK(0x44019D, BuildingClass_Update_Battery, 6)
 	if (auto pOwner = pThis->GetOwningHouse()) {
 		if(!pThis->IsOverpowered)	{
 			for (auto const& pBatt : HouseExt::ExtMap.Find(pOwner)->Batteries) {
-				if(SWTypeExt::ExtMap.Find(pBatt->Type)->Battery_Overpower.Contains(pThis->Type))
+				if (SWTypeExt::ExtMap.Find(pBatt->Type)->Battery_Overpower.Contains(pThis->Type)) {
 					pThis->IsOverpowered = true;
+					break; }
 			}
 		}
 	}
