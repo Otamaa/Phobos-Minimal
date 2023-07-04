@@ -24,19 +24,18 @@ DEFINE_OVERRIDE_HOOK(0x523932, InfantryTypeClass_CTOR_Initialize, 8)
 {
 	GET(InfantryTypeClass*, pItem, ESI)
 
-		for (int i = 0; i < DoControls::MaxCount; ++i)
-		{
-			auto& nSeq = pItem->Sequence->Data[i];
-			nSeq.StartFrame = 0;
-			nSeq.CountFrames = 0;
-			nSeq.FacingMultiplier = 0;
-			nSeq.Facing = DoTypeFacing(-1);
-			nSeq.SoundCount = 0;
-			nSeq.Sound1StartFrame = 0;
-			nSeq.Sound1Index = -1;
-			nSeq.Sound2StartFrame = 0;
-			nSeq.Sound2Index = -1;
-		}
+	for (auto& nSeq : pItem->Sequence->Data)
+	{
+		nSeq.StartFrame = 0;
+		nSeq.CountFrames = 0;
+		nSeq.FacingMultiplier = 0;
+		nSeq.Facing = DoTypeFacing(-1);
+		nSeq.SoundCount = 0;
+		nSeq.Sound1StartFrame = 0;
+		nSeq.Sound1Index = -1;
+		nSeq.Sound2StartFrame = 0;
+		nSeq.Sound2Index = -1;
+	}
 
 	return 0x523970;
 }
@@ -351,7 +350,7 @@ DEFINE_OVERRIDE_HOOK(0x51EB48, InfantryClass_GetActionOnObject_IvanGrinder, 0xA)
 		if (pTargetBld->Type->Grinding && pThis->Owner->IsAlliedWith(pTargetBld)) {
 
 			if (!InputManagerClass::Instance->IsForceFireKeyPressed()) {
-				static const byte return_grind[] = {
+				static constexpr BYTE return_grind[] = {
 					0x5F, 0x5E, 0x5D, // pop edi, esi and ebp
 					0xB8, 0x0B, 0x00, 0x00, 0x00, // eax = Action::Repair (not Action::Eaten)
 					0x5B, 0x83, 0xC4, 0x28, // esp += 0x28

@@ -770,6 +770,7 @@ void ShieldClass::CreateAnim()
 		{
 			pAnim->RemainingIterations = 0xFFu;
 			AnimExt::SetAnimOwnerHouseKind(pAnim, this->Techno->Owner, nullptr, this->Techno, false);
+			pAnim->SetOwnerObject(this->Techno);
 			this->IdleAnim = pAnim;
 		}
 	}

@@ -156,7 +156,7 @@ DEFINE_HOOK(0x6F6CFE, TechnoClass_Unlimbo_LaserTrails, 0x6)
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
 
 	if (pThis->Owner && !pThis->Owner->RecheckTechTree && !pTypeExt->Linked_SW.empty())
-		pThis->Owner->SuperWeapon_AI();
+		pThis->Owner->UpdateSuperWeaponsUnavailable();
 
 	if (!pExt->LaserTrails.empty())
 	{
@@ -474,4 +474,60 @@ DEFINE_HOOK(0x701DFF, TechnoClass_ReceiveDamage_AfterObjectClassCall, 0x7)
 	GiftBoxFunctional::TakeDamage(TechnoExt::ExtMap.Find(pThis), TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()), pWH, damageState);
 
 	return 0;
+}
+
+DEFINE_HOOK(0x7037F7, TechnoClass_Cloak_CloakAnim, 0x5)
+{
+	GET(TechnoClass* const, pThis, ESI);
+
+	if (const auto pAnimType = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->CloakAnim.Get(RulesExt::Global()->CloakAnim))
+	{
+		if (const auto pAnim = GameCreate<AnimClass>(pAnimType, pThis->GetCoords()))
+			AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner, nullptr, false);
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x70374F, TechnoClass_Uncloak_DecloakAnim, 0x5)
+{
+	TechnoClass* const pThis = reinterpret_cast<TechnoClass*>(R->ESI<int>() - 0x9C);
+
+	if (const auto pAnimType = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->DecloakAnim.Get(RulesExt::Global()->DecloakAnim))
+	{
+		if (const auto pAnim = GameCreate<AnimClass>(pAnimType, pThis->GetCoords()))
+			AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner, nullptr, false);
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x4D9992, FootClass_PointerGotInvalid_Parasite, 0x7)
+{
+	enum { SkipGameCode = 0x4D99D3 };
+
+	GET(FootClass*, pThis, ESI);
+	GET(AbstractClass*, pAbstract, EDI);
+	GET(FootClass*, pParasiteOwner, EAX);
+	GET(bool, bRemoved, EBX);
+
+	if (pParasiteOwner == pAbstract && (!pParasiteOwner->Health || !Make_Global<char>(0xA8ED5C)))
+	{
+		pThis->ParasiteEatingMe = nullptr;
+		return SkipGameCode;
+	}
+
+	if (!bRemoved)
+	{
+		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		bRemoved = pTypeExt->Cloak_KickOutParasite.Get(RulesExt::Global()->Cloak_KickOutParasite);
+	}
+
+	if (pParasiteOwner && pParasiteOwner->Health > 0)
+		pParasiteOwner->ParasiteImUsing->PointerExpired(pAbstract, bRemoved);
+
+	if (pThis == pAbstract && bRemoved)
+		pThis->ParasiteEatingMe = nullptr;
+
+	return SkipGameCode;
 }

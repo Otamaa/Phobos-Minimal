@@ -144,7 +144,7 @@ public:
 		NullablePromotable<int> ChronoDelay {};
 
 		Promotable<WeaponTypeClass*> WarpInWeapon { nullptr };
-		Promotable<WeaponTypeClass*> WarpInMinRangeWeapon { nullptr };
+		NullablePromotable<WeaponTypeClass*> WarpInMinRangeWeapon { nullptr };
 		Promotable<WeaponTypeClass*> WarpOutWeapon { nullptr };
 		Promotable<bool> WarpInWeapon_UseDistanceAsDamage { false };
 
@@ -776,6 +776,10 @@ public:
 		Valueable<bool> Operator_Any { false };
 		Nullable<bool> AlwayDrawRadialIndicator { };
 		Nullable<double> ReloadRate { };
+
+		Nullable<AnimTypeClass*> CloakAnim { };
+		Nullable<AnimTypeClass*> DecloakAnim { };
+		Nullable<bool> Cloak_KickOutParasite { };
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, AttachedEffect { OwnerObject }

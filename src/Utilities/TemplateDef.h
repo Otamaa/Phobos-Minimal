@@ -1660,29 +1660,33 @@ void NOINLINE Promotable<T>::Read(INI_EX& parser, const char* const pSection, co
 {
 
 	// read the common flag, with the trailing dot being stripped
-	char flagName[0x80];
-	auto const pSingleFormat = pSingleFlag ? pSingleFlag : pBaseFlag;
-	auto res = IMPL_SNPRNINTF(flagName, sizeof(flagName), pSingleFormat, Phobos::readDefval);
-	if (res > 0 && flagName[res - 1] == '.')
+	char flagbuffer[0x80];
+	const auto res = IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pSingleFlag ? pSingleFlag : pBaseFlag, Phobos::readDefval); //remove the formatting
+
+	if (res > 0)
 	{
-		flagName[res - 1] = '\0';
+		if (flagbuffer[res - 1] == '.')
+			flagbuffer[res - 1] = '\0';
+
+		if (flagbuffer[0] == '.')
+			strcpy_s(flagbuffer, flagbuffer + 1);
+
 	}
 
 	T placeholder {};
-	if (detail::read(placeholder, parser, pSection, flagName , allocate))
-	{
+	if (detail::read(placeholder, parser, pSection, flagbuffer, allocate)) {
 		this->SetAll(placeholder);
 	}
 
 	// read specific flags
-	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Rookie]);
-	detail::read(this->Rookie, parser, pSection, flagName, allocate);
+	IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Rookie]);
+	detail::read(this->Rookie, parser, pSection, flagbuffer, allocate);
 
-	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran]);
-	detail::read(this->Veteran, parser, pSection, flagName, allocate);
+	IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran]);
+	detail::read(this->Veteran, parser, pSection, flagbuffer, allocate);
 
-	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Elite]);
-	detail::read(this->Elite, parser, pSection, flagName, allocate);
+	IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Elite]);
+	detail::read(this->Elite, parser, pSection, flagbuffer, allocate);
 };
 
 template <typename T>
@@ -1705,31 +1709,36 @@ bool Promotable<T>::Save(PhobosStreamWriter& Stm) const
 template <typename T>
 void NOINLINE NullablePromotable<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
 {
-
 	// read the common flag, with the trailing dot being stripped
-	char flagName[0x100];
-	auto const pSingleFormat = pSingleFlag ? pSingleFlag : pBaseFlag;
-	auto res = IMPL_SNPRNINTF(flagName, sizeof(flagName), pSingleFormat, Phobos::readDefval);
-	if (res > 0 && flagName[res - 1] == '.')
+	char flagbuffer[0x80];
+	const auto res = IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pSingleFlag ? pSingleFlag : pBaseFlag, Phobos::readDefval); //remove the formatting
+
+	if (res > 0)
 	{
-		flagName[res - 1] = '\0';
+		if (flagbuffer[res - 1] == '.')
+			flagbuffer[res - 1] = '\0';
+
+		if (flagbuffer[0] == '.')
+			strcpy_s(flagbuffer, flagbuffer + 1);
+
+
 	}
 
 	T placeholder {};
-	if (detail::read(placeholder, parser, pSection, flagName))
+	if (detail::read(placeholder, parser, pSection, flagbuffer))
 	{
 		this->SetAll(placeholder);
 	}
 
 	// read specific flags
-	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Rookie]);
-	this->Rookie.Read(parser, pSection, flagName);
+	IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Rookie]);
+	this->Rookie.Read(parser, pSection, flagbuffer);
 
-	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran]);
-	this->Veteran.Read(parser, pSection, flagName);
+	IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran]);
+	this->Veteran.Read(parser, pSection, flagbuffer);
 
-	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Elite]);
-	this->Elite.Read(parser, pSection, flagName);
+	IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Elite]);
+	this->Elite.Read(parser, pSection, flagbuffer);
 };
 
 template <typename T>
@@ -1922,8 +1931,12 @@ void NOINLINE Damageable<T>::Read(INI_EX& parser, const char* const pSection, co
 	auto const pSingleFormat = pSingleFlag ? pSingleFlag : pBaseFlag;
 	auto res = IMPL_SNPRNINTF(flagName, sizeof(flagName), pSingleFormat, Phobos::readDefval);
 
-	if (res > 0 && flagName[res - 1] == '.')
-		flagName[res - 1] = '\0';
+	if (res > 0) {
+		if (flagName[res - 1] == '.') //dot in the end
+			flagName[res - 1] = '\0';
+		else if (flagName[0] == '.') //dot in the first
+			flagName[0] = '\0';
+	}
 
 	this->BaseValue.Read(parser, pSection, flagName , Alloc);
 
@@ -2005,9 +2018,12 @@ void NOINLINE DamageableVector<T>::Read(INI_EX& parser, const char* const pSecti
 	auto const pSingleFormat = pSingleFlag ? pSingleFlag : pBaseFlag;
 	auto res = IMPL_SNPRNINTF(flagName, sizeof(flagName), pSingleFormat, Phobos::readDefval);
 
-	if (res > 0 && flagName[res - 1] == '.')
+	if (res > 0)
 	{
-		flagName[res - 1] = '\0';
+		if (flagName[res - 1] == '.') //dot in the end
+			flagName[res - 1] = '\0';
+		else if (flagName[0] == '.') //dot in the first
+			flagName[0] = '\0';
 	}
 
 	this->BaseValue.Read(parser, pSection, flagName);
@@ -2049,12 +2065,16 @@ void NOINLINE PromotableVector<T>::Read(INI_EX& parser, const char* const pSecti
 	auto const pSingleFormat = pSingleFlag ? pSingleFlag : pBaseFlag;
 	auto res = IMPL_SNPRNINTF(flagName, sizeof(flagName), pSingleFormat, Phobos::readDefval);
 
-	if (res > 0 && flagName[res - 1] == '.')
+	if (res > 0)
 	{
-		flagName[res - 1] = '\0';
-	}
+		if (flagName[res - 1] == '.')
+			flagName[res - 1] = '\0';
 
-	this->Base.Read(parser, pSection, flagName);
+		if (flagName[0] == '.')
+			strcpy_s(flagName, flagName + 1);
+
+		this->Base.Read(parser, pSection, flagName);
+	}
 
 	NullableVector<T> veteran;
 	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran]);

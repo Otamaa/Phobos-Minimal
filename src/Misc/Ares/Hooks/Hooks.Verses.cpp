@@ -155,18 +155,18 @@ DEFINE_OVERRIDE_HOOK(0x6F36E3, TechnoClass_SelectWeapon_Verses, 0x5)
 	};
 
 	GET(TechnoClass*, pTarget, EBP);
-	GET_STACK(WeaponTypeClass*, pWeapon_A, 0x10);
-	GET_STACK(WeaponTypeClass*, pWeapon_B, 0x14);
+	GET_STACK(WeaponTypeClass*, pSecondary, 0x10); //secondary
+	GET_STACK(WeaponTypeClass*, pPrimary, 0x14); //primary
 
 	const int nArmor = (int)pTarget->GetTechnoType()->Armor;
-	const auto vsData_A = &WarheadTypeExt::ExtMap.Find(pWeapon_A->Warhead)->Verses[nArmor];
+	const auto vsData_Secondary = &WarheadTypeExt::ExtMap.Find(pSecondary->Warhead)->Verses[nArmor];
 
-	if (vsData_A->Verses == 0.0)
+	if (vsData_Secondary->Verses == 0.0)
 		return UsePrimary;
 
-	const auto vsData_B = &WarheadTypeExt::ExtMap.Find(pWeapon_B->Warhead)->Verses[nArmor];
+	const auto vsData_Primary = &WarheadTypeExt::ExtMap.Find(pPrimary->Warhead)->Verses[nArmor];
 
-	return vsData_B->Verses != 0.0 ? ContinueCheck : UseSecondary;
+	return vsData_Primary->Verses != 0.0 ? ContinueCheck : UseSecondary;
 }
 
 DEFINE_OVERRIDE_HOOK(0x708AF7, TechnoClass_ShouldRetaliate_Verses, 0x7)

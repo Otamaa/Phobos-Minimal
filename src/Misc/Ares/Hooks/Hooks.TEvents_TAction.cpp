@@ -457,7 +457,7 @@ namespace TEventExt_dummy
 		case AresTriggerEvents::UnderEMP:
 		{
 			result = generic_cast<FootClass*>(Args.Object)
-				&& (int)pThis->EventKind == Args.EventType
+				&& pThis->EventKind == Args.EventType
 				&& ((TechnoClass*)Args.Object)->EMPLockRemaining > 0;
 
 			break;
@@ -465,7 +465,7 @@ namespace TEventExt_dummy
 		case AresTriggerEvents::UnderEMP_ByHouse:
 		{
 			result = generic_cast<FootClass*>(Args.Object)
-				&& (int)pThis->EventKind == Args.EventType
+				&& pThis->EventKind == Args.EventType
 				&& Args.Source && ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
 
 			break;
@@ -473,7 +473,7 @@ namespace TEventExt_dummy
 		case AresTriggerEvents::RemoveEMP:
 		{
 			result = generic_cast<FootClass*>(Args.Object)
-				&& (int)pThis->EventKind == Args.EventType
+				&& pThis->EventKind == Args.EventType
 				&& ((TechnoClass*)Args.Object)->EMPLockRemaining <= 0;
 
 			break;
@@ -481,7 +481,7 @@ namespace TEventExt_dummy
 		case AresTriggerEvents::RemoveEMP_ByHouse:
 		{
 			result = generic_cast<FootClass*>(Args.Object)
-				&& (int)pThis->EventKind == Args.EventType
+				&& pThis->EventKind == Args.EventType
 				&& Args.Source && ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
 
 			break;
@@ -494,14 +494,14 @@ namespace TEventExt_dummy
 		case AresTriggerEvents::DriverKiller:
 		{
 			result = generic_cast<FootClass*>(Args.Object)
-				&& (int)pThis->EventKind == Args.EventType;
+				&& pThis->EventKind == Args.EventType;
 
 			break;
 		}
 		case AresTriggerEvents::DriverKilled_ByHouse:
 		{
 			result = generic_cast<FootClass*>(Args.Object)
-				&& (int)pThis->EventKind == Args.EventType
+				&& pThis->EventKind == Args.EventType
 				&& Args.Source
 				&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
 
@@ -509,13 +509,15 @@ namespace TEventExt_dummy
 		}
 		case AresTriggerEvents::VehicleTaken:
 		{
-			result = generic_cast<FootClass*>(Args.Object) && (int)pThis->EventKind == Args.EventType;
+			result = generic_cast<FootClass*>(Args.Object) 
+				&& pThis->EventKind == Args.EventType;
+
 			break;
 		}
 		case AresTriggerEvents::VehicleTaken_ByHouse:
 		{
 			result = generic_cast<FootClass*>(Args.Object)
-				&& (int)pThis->EventKind == Args.EventType
+				&& pThis->EventKind == Args.EventType
 				&& Args.Source
 				&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
 
@@ -524,13 +526,15 @@ namespace TEventExt_dummy
 		case AresTriggerEvents::Abducted:
 		case AresTriggerEvents::AbductSomething:
 		{
-			result = generic_cast<FootClass*>(Args.Object) && (int)pThis->EventKind == Args.EventType;
+			result = generic_cast<FootClass*>(Args.Object) 
+				&& pThis->EventKind == Args.EventType;
+
 			break;
 		}
 		case AresTriggerEvents::Abducted_ByHouse:
 		{
 			result = generic_cast<FootClass*>(Args.Object)
-				&& (int)pThis->EventKind == Args.EventType
+				&& pThis->EventKind == Args.EventType
 				&& Args.Source
 				&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
 
@@ -539,7 +543,7 @@ namespace TEventExt_dummy
 		case AresTriggerEvents::AbductSomething_OfHouse:
 		{
 			result = generic_cast<FootClass*>(Args.Object)
-				&& (int)pThis->EventKind == Args.EventType
+				&& pThis->EventKind == Args.EventType
 				&& Args.Source
 				&& Args.Source->WhatAmI() == AbstractType::House
 				&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
@@ -549,7 +553,7 @@ namespace TEventExt_dummy
 		case AresTriggerEvents::SuperActivated:
 		case AresTriggerEvents::SuperDeactivated:
 		{
-			result = (int)pThis->EventKind == Args.EventType
+			result = pThis->EventKind == Args.EventType
 				&& Args.Source
 				&& Args.Source->WhatAmI() == AbstractType::Super
 				&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
@@ -564,7 +568,7 @@ namespace TEventExt_dummy
 				CellStruct Cell;
 			};
 
-			if (((int)pThis->EventKind == Args.EventType) && IS_SAME_STR_(((PackedDatas*)Args.Source)->Super->Type->ID, pThis->String))
+			if ((pThis->EventKind == Args.EventType) && IS_SAME_STR_(((PackedDatas*)Args.Source)->Super->Type->ID, pThis->String))
 			{
 				const auto nCell = ScenarioClass::Instance->GetWaypointCoords(pThis->Value);
 				CellStruct nDesired = { ((PackedDatas*)Args.Source)->Cell.X - nCell.X ,((PackedDatas*)Args.Source)->Cell.Y - nCell.Y };
@@ -592,7 +596,7 @@ namespace TEventExt_dummy
 		}
 		case AresTriggerEvents::ReverseEngineerAnything:
 		{
-			result = ((int)pThis->EventKind == Args.EventType);
+			result = (pThis->EventKind == Args.EventType);
 			break;
 		}
 		case AresTriggerEvents::ReverseEngineerType:
@@ -612,12 +616,12 @@ namespace TEventExt_dummy
 		}
 		case AresTriggerEvents::AttackedOrDestroyedByAnybody:
 		{
-			result = ((int)pThis->EventKind == Args.EventType);
+			result = (pThis->EventKind == Args.EventType);
 			break;
 		}
 		case AresTriggerEvents::AttackedOrDestroyedByHouse:
 		{
-			result = ((int)pThis->EventKind == Args.EventType)
+			result = (pThis->EventKind == Args.EventType)
 				&& Args.Source
 				&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
 
@@ -648,14 +652,14 @@ namespace TEventExt_dummy
 		}
 		default:
 			switch (Args.EventType)
-			{
-			case 0x3C:
+			{			
+			case TriggerEvent::TechTypeExists:
 			{
 				//TechnoTypeExist
 				result = FindTechnoType(pThis, pThis->Value, nullptr);
 				break;
 			}
-			case 0x3D:
+			case TriggerEvent::TechTypeDoesntExist:
 			{
 				//TechnoTypeDoesntExist
 				result = FindTechnoType(pThis, 1, nullptr);

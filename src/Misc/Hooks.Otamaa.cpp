@@ -40,8 +40,12 @@ DEFINE_HOOK(0x6FA2C7, TechnoClass_AI_DrawBehindAnim, 0x8) //was 4
 		if (BuildingExt::ExtMap.Find(pBld)->LimboID != -1)
 			return 0x6FA2D8;
 
-	if (!pThis->GetTechnoType()->Invisible)
-		pThis->DrawBehind(&nPoint, &nBound);
+	const auto pType = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if(pType->IsDummy)
+		return 0x6FA2D8;
+
+	pThis->DrawBehind(&nPoint, &nBound);
 
 	return 0x6FA2D8;
 }
@@ -3067,6 +3071,8 @@ DEFINE_HOOK(0x70FB50, TechnoClass_Bunkerable, 0x5)
 		if (pFoot->ParasiteEatingMe)
 			ret = false;
 
+		//crash the game , dont allow it
+		//maybe because of force_track stuffs,..
 		if (locomotion_cast<HoverLocomotionClass*>(pFoot->Locomotor))
 			ret = false;
 	}
@@ -3971,9 +3977,11 @@ DEFINE_HOOK(0x71AA13, TemporalClass_AI_BunkerLinked_Check, 0x7)
 
 #include <Ext/InfantryType/Body.h>
 std::array<const char* const, 6u> DamageState_to_srings
-{ {
-		"Unaffected", "Unchanged", "NowYellow", "NowRed", "NowDead", "PostMortem"
-	} };
+{
+{
+	"Unaffected", "Unchanged", "NowYellow", "NowRed", "NowDead", "PostMortem"
+}
+};
 
 //DEFINE_HOOK(0x440333, BuildingClass_AI_C4TimerRanOut_ApplyDamage, 0x6)
 //{
@@ -4430,53 +4438,6 @@ DEFINE_HOOK(0x508F82, HouseClass_AI_checkSpySat_IncludeUpgrades, 0x6)
 	return Continue;
 }
 
-// TODO: more update from the PR
-//DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
-//{
-//	GET(FootClass*, pThis, ESI);
-//	const auto pType = pThis->GetTechnoType();
-//	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
-//
-//	if (!pExt->TurretShadow)
-//		return 0x0;
-//
-//	const auto tur = pThis->CurrentTurretNumber != -1 ?
-//		AresData::GetTurretsVoxel(pType, pThis->CurrentTurretNumber) :
-//		&pType->TurretVoxel;
-//
-//	if (tur->VXL && tur->HVA)
-//	{
-//		GET_STACK(Point2D, shadow_point, STACK_OFFSET(0x18, 0x28));
-//		GET_STACK(Surface*, pSurface, STACK_OFFSET(0x18, 0x24));
-//		GET_STACK(bool, a9, STACK_OFFSET(0x18, 0x20)); // unknown usage
-//		GET_STACK(Point2D*, a4, STACK_OFFSET(0x18, 0x14)); // unknown usage
-//		LEA_STACK(Point2D*, a3, STACK_OFFSET(0x18, -0x10)); // unknown usage
-//		GET_STACK(int, angle, STACK_OFFSET(0x18, 0xC));
-//
-//		Matrix3D mtx;
-//		mtx.MakeIdentity();
-//		mtx.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>()));
-//		const auto offset = pExt->TurretOffset.GetEx();
-//		float x = static_cast<float>(offset->X * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
-//		float y = static_cast<float>(offset->Y * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
-//		float z = static_cast<float>(offset->Z * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
-//		mtx.Translate(x, y, z);
-//		Matrix3D::MatrixMultiply(&mtx, &Game::VoxelDefaultMatrix, &mtx);
-//
-//		pThis->DrawVoxelShadow(tur, 0, angle, 0, a4, a3, &mtx, a9, pSurface, shadow_point);
-//
-//		const auto bar = pThis->CurrentTurretNumber != -1 ?
-//			AresData::GetBarrelsVoxel(pType, pThis->CurrentTurretNumber) : &pType->BarrelVoxel;
-//
-//		if (bar->VXL && bar->HVA)
-//		{
-//			pThis->DrawVoxelShadow(bar, 0, angle, 0, a4, a3, &mtx, a9, pSurface, shadow_point);
-//		}
-//	}
-//
-//	return 0;
-//}
-
 #pragma region Assaulter
 //https://blueprints.launchpad.net/ares/+spec/assaulter-veterancy
 //522A09
@@ -4833,7 +4794,7 @@ DEFINE_HOOK(0x4B5CF1, DropPodLocomotionClass_Process_DroppodPuff, 0x5)
 	GET(FootClass*, pFoot, ESI);
 	LEA_STACK(CoordStruct*, pCoord, 0x40 - 0x18);
 
-	if (!pFoot->Unlimbo(*pCoord, (DirType)ScenarioClass::Instance->Random.RandomFromMax((int)DirType::Max)))
+	if (!pFoot->Unlimbo(*pCoord, ScenarioClass::Instance->Random.RandomRangedSpecific<DirType>(DirType::Min, DirType::Max)))
 		return 0x4B5D0A;
 
 	if (auto pAnimType = RulesClass::Instance->DropPodPuff)
@@ -4889,70 +4850,6 @@ DEFINE_HOOK(0x4B619F, DropPodLocomotionClass_MoveTo_AtmosphereEntry, 0x5)
 	}
 
 	return 0x4B61D6;
-}
-
-//call this each deferment time stop
-//maybe look at UnitDelivery code for better
-void MeteorShower_Process(CoordStruct Where, HouseClass* pOwner)
-{
-	if (const auto pCell = MapClass::Instance->TryGetCellAt(Where))
-	{
-		const auto nCoord = pCell->GetCoordsWithBridge();
-		const auto _meteor_counts = { 6, 8, 15 };
-		const auto _impact_counts = { 2 , 4 , 5 }; // too much of this , causing game to freeze , lmao
-		const auto Chances = { 30 , 10 , 50 };
-
-		const int count = *(_meteor_counts.begin() + ScenarioClass::Instance->Random.RandomFromMax(_meteor_counts.size() - 1));
-		const int chance = *Chances.begin();
-		const int Shower_addImpactChance = *(Chances.begin() + 1);
-		const int impact_chance = *(Chances.begin() + 2);
-		const int impact_count = *(_impact_counts.begin() + ScenarioClass::Instance->Random.RandomFromMax(_impact_counts.size() - 1));
-
-		AnimTypeClass* large_meteor = AnimTypeClass::Find("METLARGE");
-		AnimTypeClass* small_meteor = AnimTypeClass::Find("METSMALL");
-		VoxelAnimTypeClass* large_Impact = VoxelAnimTypeClass::Find("METEOR01");
-		VoxelAnimTypeClass* small_Impact = VoxelAnimTypeClass::Find("METEOR02");
-		const int nMaxForrand = count * 70;
-
-		for (int i = 0; i < count; ++i)
-		{
-			const int x_adj = ScenarioClass::Instance->Random.Random() % (nMaxForrand);
-			const int y_adj = ScenarioClass::Instance->Random.Random() % (nMaxForrand);
-
-			Coordinate nwhere = nCoord;
-
-			nwhere.X += x_adj;
-			nwhere.Y += y_adj;
-			nwhere.Z = MapClass::Instance->GetCellFloorHeight(nwhere);
-
-			if (AnimTypeClass* anim = ScenarioClass::Instance->Random.PercentChance(chance) ?
-				large_meteor : small_meteor)
-			{
-				if (auto pAnim = GameCreate<AnimClass>(anim, nwhere))
-					pAnim->Owner = pOwner;
-			}
-		}
-
-		if (ScenarioClass::Instance->Random.PercentChance(Shower_addImpactChance))
-		{
-			for (int a = 0; a < impact_count; ++a)
-			{
-				Coordinate im_where = nCoord;
-
-				const int x_adj = ScenarioClass::Instance->Random.Random() % (impact_count);
-				const int y_adj = ScenarioClass::Instance->Random.Random() % (impact_count);
-
-				im_where.X += x_adj;
-				im_where.Y += y_adj;
-				im_where.Z = MapClass::Instance->GetCellFloorHeight(im_where);
-				if (VoxelAnimTypeClass* impact = ScenarioClass::Instance->Random.PercentChance(impact_chance) ?
-					large_Impact : small_Impact)
-				{
-					GameCreate<VoxelAnimClass>(impact, &im_where, pOwner);
-				}
-			}
-		}
-	}
 }
 
 DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)

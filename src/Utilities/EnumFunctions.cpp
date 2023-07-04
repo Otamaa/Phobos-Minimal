@@ -205,7 +205,7 @@ std::array<std::pair<const char* const, AffectedTarget>, 15u> EnumFunctions::Aff
 	{"Unit" , AffectedTarget::Unit } ,
 	{"Units" , AffectedTarget::Unit } ,
 	{"Building" , AffectedTarget::Building } ,
-	{"Buildings" , AffectedTarget::Aircraft } ,
+	{"Buildings" , AffectedTarget::Building } ,
 	{"Aircraft" , AffectedTarget::Aircraft } ,
 	{"All" , AffectedTarget::All } ,
 	{"AllCells" , AffectedTarget::AllCells } ,

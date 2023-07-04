@@ -197,6 +197,10 @@ public:
 		Valueable<bool> ReturnStructures { false };
 		Valueable<CSFText> MessageSilosNeeded {};
 
+		Valueable<AnimTypeClass*> CloakAnim { nullptr };
+		Valueable<AnimTypeClass*> DecloakAnim { nullptr };
+		Valueable<bool> Cloak_KickOutParasite { true };
+
 		AircraftPutDataRules MyPutData { };
 
 		ExtData(RulesClass* OwnerObject) : Extension<RulesClass>(OwnerObject)		
@@ -206,7 +210,6 @@ public:
 
 		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 		void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
-		void LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI);
 
 		void Initialize();
 		void InitializeAfterTypeData(RulesClass* pThis);

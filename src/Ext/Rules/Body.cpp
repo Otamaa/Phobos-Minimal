@@ -106,12 +106,22 @@ void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 #include <Ext/SWType/Body.h>
 
+// this should load everything that TypeData is not dependant on
+// i.e. InfantryElectrocuted= can go here since nothing refers to it
+// but [GenericPrerequisites] have to go earlier because they're used in parsing TypeData
 void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
+	INI_EX iniEX(pINI);
+	auto pData = RulesExt::Global();
+
+	pData->Bounty_Enablers.Read(iniEX, GENERAL_SECTION, "BountyEnablers");
+	pData->Bounty_Display.Read(iniEX, AUDIOVISUAL_SECTION, "BountyDisplay");
+	pData->CloakAnim.Read(iniEX, AUDIOVISUAL_SECTION, "CloakAnim");
+	pData->DecloakAnim.Read(iniEX, AUDIOVISUAL_SECTION, "DecloakAnim");
+	pData->Cloak_KickOutParasite.Read(iniEX, GameStrings::CombatDamage, "Cloak.KickOutParasite");
+
 	if (pINI == CCINIClass::INI_Rules)
 	{
-		INI_EX iniEX(pINI);
-
 		char buffer[0x30];
 		for (auto pInfType : *InfantryTypeClass::Array)
 		{
@@ -156,6 +166,7 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 			}
 		}
 	}
+
 }
 
 // earliest loader - can't really do much because nothing else is initialized yet, so lookups won't work
@@ -356,22 +367,6 @@ void RulesExt::ExtData::InitializeAfterTypeData(RulesClass* const pThis)
 
 	if (!Data->DropPodTrailer)
 		Data->DropPodTrailer = AnimTypeClass::Find(GameStrings::SMOKEY());
-}
-
-// this should load everything that TypeData is not dependant on
-// i.e. InfantryElectrocuted= can go here since nothing refers to it
-// but [GenericPrerequisites] have to go earlier because they're used in parsing TypeData
-void RulesExt::ExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
-{
-	RulesExt::ExtData* pData = RulesExt::Global();
-
-	if (!pData /*|| pINI != CCINIClass::INI_Rules()*/)
-		return;
-
-	INI_EX exINI(pINI);
-
-	pData->Bounty_Enablers.Read(exINI, GENERAL_SECTION, "BountyEnablers");
-	pData->Bounty_Display.Read(exINI, AUDIOVISUAL_SECTION, "BountyDisplay");
 
 }
 
@@ -574,6 +569,10 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->DropPodMaximum)
 		.Process(this->ReturnStructures)
 		.Process(this->MessageSilosNeeded)
+
+		.Process(this->CloakAnim)
+		.Process(this->DecloakAnim)
+		.Process(this->Cloak_KickOutParasite)
 		;
 
 	MyPutData.Serialize(Stm);
@@ -686,12 +685,6 @@ DEFINE_HOOK(0x679CAF, RulesData_LoadAfterTypeData, 0x5)
 	GET(CCINIClass*, pINI, ESI);
 
 	RulesExt::LoadAfterTypeData(pItem, pINI);
-
-	//Debug::Log(__FUNCTION__" Called ! \n");
-	// std::for_each(BuildingTypeClass::Array->begin(), BuildingTypeClass::Array->end(), [](BuildingTypeClass* pType) {
-	// 	if (auto const pExt = BuildingTypeExt::ExtMap.Find(pType))
-	// 	pExt->CompleteInitialization();
-	// });
 
 	return 0;
 }

@@ -91,7 +91,7 @@ public:
 
 struct EventArgs
 {
-	int EventType;
+	TriggerEvent EventType;
 	HouseClass* Owner;
 	ObjectClass* Object;
 	CDTimerClass* ActivationFrame;

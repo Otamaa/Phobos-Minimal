@@ -37,21 +37,12 @@ DEFINE_OVERRIDE_HOOK(0x53CBF5, IonBlastClass_Update_Duration, 5)
 	GET(IonBlastClass*, IB, EBX);
 
 	int Ripple_Radius = 79;
-	if (auto pData = WarheadTypeExt::IonBlastExt.get_or_default(IB))
-	{
-		Ripple_Radius = std::min(Ripple_Radius, pData->Ripple_Radius + 1);
+	if (auto pData = WarheadTypeExt::IonBlastExt.get_or_default(IB)) {
+		Ripple_Radius = MinImpl(Ripple_Radius, pData->Ripple_Radius + 1);
 	}
 
-	if (IB->Lifetime < Ripple_Radius)
-	{
-		return 0x53CC3A;
-	}
-	else
-	{
-		return 0x53CBFA;
-	}
-
-
+	return IB->Lifetime < Ripple_Radius ?
+		0x53CC3A : 0x53CBFA;
 }
 
 DEFINE_OVERRIDE_HOOK(0x53CC63, IonBlastClass_Update_Beam, 6)

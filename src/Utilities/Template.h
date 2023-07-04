@@ -322,6 +322,7 @@ public:
  * be used. For the single flag name, a trailing dot (after replacing %s) will
  * be removed. I.e. "Test.%s" will be converted to "Test".
  */
+
 template<typename T>
 class Promotable
 {
@@ -797,8 +798,10 @@ public:
 
 	~PromotableVector() = default;
 
+	//TODO : untested
 	inline void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr);
 
+	//TODO : untested
 	inline void ReadList(INI_EX& parser, const char* pSection, const char* pFlag, bool allocate = false);
 
 	const T& Get(int index, double veterancy) const noexcept

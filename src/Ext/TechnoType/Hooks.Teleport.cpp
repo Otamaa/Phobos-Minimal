@@ -34,13 +34,16 @@ DEFINE_HOOK(0x719742, TeleportLocomotionClass_ILocomotion_Process_WarpInAnim, 0x
 
 	const auto pTechnoExt = TechnoExt::ExtMap.Find(pOwner);
 
-	const auto& weaponType =
-		pTechnoExt->LastWarpDistance < pExt->ChronoRangeMinimum.GetOrDefault(pOwner ,RulesClass::Instance->ChronoRangeMinimum)
-		? pExt->WarpInMinRangeWeapon : pExt->WarpInWeapon ;
+	const auto Rank = pOwner->CurrentRanking;
+	const auto pWarpInWeapon = pExt->WarpInWeapon.GetFromSpecificRank(Rank);
 
-	if (const auto pWeapon = weaponType.Get(pOwner)) {
+	const auto pWeapon = pTechnoExt->LastWarpDistance < pExt->ChronoRangeMinimum.GetOrDefault(pOwner ,RulesClass::Instance->ChronoRangeMinimum)
+		? pExt->WarpInMinRangeWeapon.GetFromSpecificRank(Rank)->Get(pWarpInWeapon) : pWarpInWeapon;
+
+	if (pWeapon) {
 		const int damage = pExt->WarpInWeapon_UseDistanceAsDamage.Get(pOwner) ?
 			(pTechnoExt->LastWarpDistance / Unsorted::LeptonsPerCell) : pWeapon->Damage;
+
 		WeaponTypeExt::DetonateAt(pWeapon, pOwner, pOwner, damage, true);
 	}
 

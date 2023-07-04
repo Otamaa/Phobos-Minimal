@@ -918,10 +918,10 @@ public:
 	void ForceEnd()
 		{ JMP_THIS(0x4FCDC0); }
 
-	void SuperWeapon_Handler() const
+	void UpdateSuperWeaponsOwned() const
 		{ JMP_THIS(0x50AF10); }
 
-	void SuperWeapon_AI() const
+	void UpdateSuperWeaponsUnavailable() const
 		{ JMP_THIS(0x50B1D0); }
 
 	void UpdateScoutNodes(HouseClass* house) const

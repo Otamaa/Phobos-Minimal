@@ -847,6 +847,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		this->AlwayDrawRadialIndicator.Read(exINI, pSection, "RadialIndicator.AlwaysDraw");
 		this->ReloadRate.Read(exINI, pSection, "ReloadRate");
+		this->CloakAnim.Read(exINI, pSection, "CloakAnim");
+		this->DecloakAnim.Read(exINI, pSection, "DecloakAnim");
+		this->Cloak_KickOutParasite.Read(exINI, pSection, "Cloak.KickOutParasite");
 #pragma region AircraftOnly
 		if (Is_AircraftType(pThis))
 		{
@@ -1723,6 +1726,9 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Operator_Any)
 		.Process(this->AlwayDrawRadialIndicator)
 		.Process(this->ReloadRate)
+		.Process(this->CloakAnim)
+		.Process(this->DecloakAnim)
+		.Process(this->Cloak_KickOutParasite)
 #pragma endregion
 		;
 

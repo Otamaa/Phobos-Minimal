@@ -194,6 +194,18 @@ void PhobosToolTip::HelpText(SuperWeaponTypeClass* pType)
 			<< std::setw(2) << std::setfill(L'0') << nSec;
 	}
 
+	const auto pExt = SWTypeExt::ExtMap.Find(pType);
+	const auto nPower = pExt->SW_Power;
+
+	if (nPower != 0)
+	{
+		oss << L" " << Phobos::UI::PowerLabel;
+		if (nPower > 0)
+			oss << L"+";
+
+		oss << std::setw(1) << nPower;
+	}
+
 	if (auto pDesc = GetUIDescription(pData))
 		oss << L"\n" << pDesc;
 
