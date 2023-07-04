@@ -24,7 +24,9 @@ void SWStateMachine::UpdateAll()
 
 void SWStateMachine::PointerGotInvalid(void* ptr, bool remove) {
 	for (auto& Machine : SWStateMachine::Array) {
-		Machine->InvalidatePointer(ptr, remove);
+
+		if(Machine)
+			Machine->InvalidatePointer(ptr, remove);
 	}
 
 	AnnounceInvalidPointer(SW_NuclearMissile::CurrentNukeType, ptr);

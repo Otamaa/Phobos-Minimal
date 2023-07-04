@@ -10,7 +10,7 @@ enum class SWStateMachineIdentifier : int
 	UnitDelivery = 0,
 	ChronoWarp = 1,
 	PsychicDominator = 2,
-	EMPulse = 3
+	CloneableLighningStorm = 3 ,
 };
 
 // state machines - create one to use delayed effects [create a child class per NewSWType, obviously]
@@ -187,6 +187,93 @@ protected:
 	int Deferment;
 };
 
+class CloneableLighningStormStateMachine : public SWStateMachine
+{
+public:
+
+	CloneableLighningStormStateMachine()
+		: SWStateMachine(), ActualDuration(0), StartTime(0), Deferment(0), IsActive(false), TimeToEnd(false)
+	{
+	}
+
+	CloneableLighningStormStateMachine(int Duration, int Deferment, CellStruct XY, SuperClass* pSuper, NewSWType* pSWType)
+		: SWStateMachine(Duration, XY, pSuper, pSWType), ActualDuration(0), StartTime(0), Deferment(0), IsActive(false), TimeToEnd(false)
+	{
+		Start(XY, Duration, Deferment);
+	}
+
+	virtual void Update() override;
+
+	virtual bool Finished() override
+	{
+		return ActualDuration <= -1 ? false : Clock.Completed() && !Deferment && TimeToEnd;
+	}
+
+	virtual void InvalidatePointer(void* ptr, bool remove) override;
+
+	virtual ~CloneableLighningStormStateMachine()
+	{
+		for (auto& CP : CloudsPresent)
+		{
+			if (CP)
+			{
+				CP->UnInit();
+				CP = nullptr;
+			}
+		}
+
+		CloudsPresent.Clear();
+
+		for (auto& CM : CloudsManifest)
+		{
+			if (CM)
+			{
+				CM->UnInit();
+				CM = nullptr;
+			}
+		}
+
+		CloudsManifest.Clear();
+
+		for (auto& BP : BoltsPresent)
+		{
+			if (BP)
+			{
+				BP->UnInit();
+				BP = nullptr;
+			}
+		}
+
+		BoltsPresent.Clear();
+	}
+
+	virtual SWStateMachineIdentifier GetIdentifier() const override
+	{
+		return SWStateMachineIdentifier::CloneableLighningStorm;
+	}
+
+	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
+
+	virtual bool Save(PhobosStreamWriter& Stm) const override;
+
+	void Strike2(CoordStruct const& nCoord);
+	bool Strike(CellStruct const& nCell);
+	bool Start(CellStruct& cell, int nDuration, int nDeferment);
+	void Stop() { TimeToEnd = true; }
+
+public:
+	DynamicVectorClass<AnimClass*> CloudsPresent;
+	DynamicVectorClass<AnimClass*> CloudsManifest;
+	DynamicVectorClass<AnimClass*> BoltsPresent;
+
+	int ActualDuration;
+	int StartTime; //storing current frame
+	int Deferment;
+	static constexpr double CloudHeightFactor { 6.968466256176567 };
+	bool IsActive;
+	bool TimeToEnd;
+};
+
 template <>
 struct Savegame::ObjectFactory<SWStateMachine>
 {
@@ -203,6 +290,8 @@ struct Savegame::ObjectFactory<SWStateMachine>
 				return std::make_unique<ChronoWarpStateMachine>();
 			case SWStateMachineIdentifier::PsychicDominator:
 				return std::make_unique<PsychicDominatorStateMachine>();
+			case SWStateMachineIdentifier::CloneableLighningStorm:
+				return std::make_unique<CloneableLighningStormStateMachine>();
 			default:
 				Debug::FatalErrorAndExit("SWStateMachineType %d not recognized.",
 					static_cast<unsigned int>(type));

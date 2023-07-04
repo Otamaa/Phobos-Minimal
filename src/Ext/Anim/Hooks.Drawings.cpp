@@ -8,9 +8,10 @@ DEFINE_HOOK(0x4236F0, AnimClass_DrawIt_Tiled_Palette, 0x6)
 	GET(AnimClass* const, pThis, ESI);
 
 	if (const auto pCustom = AnimTypeExt::ExtMap.Find(pThis->Type)->Palette) {
-		if(auto const pConvert = pCustom->GetConvert<PaletteManager::Mode::Temperate>())
+		if(auto const pConvert = pCustom->GetConvert<PaletteManager::Mode::Temperate>()){ 
 			R->EDX(pConvert);
-		return 0x4236F6;
+			return 0x4236F6;
+		}
 	}
 
 	R->EDX(FileSystem::ANIM_PAL());

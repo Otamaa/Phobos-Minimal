@@ -341,7 +341,6 @@ bool NewSWType::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBu
 {
 	if (pBuilding->IsAlive && pBuilding->Health && !pBuilding->InLimbo && pBuilding->IsPowerOnline())
 	{
-
 		if (pBuilding->TemporalTargetingMe || pBuilding->IsBeingWarpedOut())
 			return false;
 
@@ -647,8 +646,7 @@ bool NewSWType::HasLaunchSite(SWTypeExt::ExtData* pSWType, HouseClass* pOwner, c
 		return true;
 	}
 
-	return std::any_of(pOwner->Buildings.begin(), pOwner->Buildings.end(), [=, &Coords](BuildingClass* pBld)
- {
-	 return this->IsLaunchSiteEligible(pSWType, Coords, pBld, false);
+	return std::any_of(pOwner->Buildings.begin(), pOwner->Buildings.end(), [=, &Coords](BuildingClass* pBld) {
+	 	return this->IsLaunchSiteEligible(pSWType, Coords, pBld, false);
 	});
 }

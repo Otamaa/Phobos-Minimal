@@ -2419,7 +2419,7 @@ enum class NewVHPScan : int
 	count
 };
 
-std::array<const char*, (size_t)NewVHPScan::count> NewVHPScanToString
+constexpr std::array<const char*, (size_t)NewVHPScan::count> NewVHPScanToString
 { {
 	{"None" },
 	{ "Normal" },

@@ -2117,6 +2117,7 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Weather_Debris)
 		.Process(this->Weather_Sounds)
 		.Process(this->Weather_RadarOutageAffects)
+		.Process(this->Weather_UseSeparateState)
 
 		.Process(this->ParaDropDatas)
 
@@ -2162,6 +2163,19 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SW_Require)
 		.Process(this->Aux_Techno)
 		.Process(this->SW_Lauchsites)
+
+		.Process(this->MeteorCounts)
+		.Process(this->MeteorImactCounts)
+		.Process(this->MeteorAddImpactChance)
+		.Process(this->MeteorKindChance)
+		.Process(this->MeteorImpactKindChance)
+
+		.Process(this->MeteorSmall)
+		.Process(this->MeteorLarge)
+
+		.Process(this->MeteorImpactSmall)
+		.Process(this->MeteorImpactLarge)
+
 		;
 
 }

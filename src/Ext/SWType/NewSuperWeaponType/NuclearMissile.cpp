@@ -4,6 +4,7 @@
 #include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/Building/Body.h>
 
 #include <New/Type/CursorTypeClass.h>
 
@@ -123,7 +124,7 @@ bool SW_NuclearMissile::Activate(SuperClass* const pThis, const CellStruct& Coor
 }
 
 void SW_NuclearMissile::Initialize(SWTypeExt::ExtData* pData)
-{ 
+{
 	// default values for the original Nuke
 	pData->Nuke_Payload = WeaponTypeClass::FindOrAllocate(GameStrings::NukePayload); //use for nuke pointing down
 	//SW->WeaponType = used for nuke pointing up !
@@ -152,6 +153,10 @@ void SW_NuclearMissile::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 
 bool SW_NuclearMissile::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
 {
+	const auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
+	if(pBldExt->LimboID != -1)
+		return false;
+
 	return pBuilding->Type->NukeSilo && NewSWType::IsLaunchSite(pData, pBuilding);
 }
 

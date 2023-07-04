@@ -330,6 +330,8 @@ public:
 		NullableVector<AnimTypeClass*> Weather_Debris {};
 		NullableIdxVector<VocClass> Weather_Sounds {};
 		Valueable<AffectedHouse> Weather_RadarOutageAffects{ AffectedHouse::All };
+
+		Valueable<bool> Weather_UseSeparateState { false };
 #pragma endregion
 
 #pragma region  Generic Paradrop
@@ -374,6 +376,20 @@ public:
 		ValueableVector<BuildingTypeClass*> SW_Require {};
 		ValueableVector<TechnoTypeClass*> Aux_Techno {};
 		ValueableVector<BuildingTypeClass*> SW_Lauchsites {};
+
+#pragma region MeteorShower
+		Valueable<int> MeteorCounts { 15 };
+		Valueable<int> MeteorImactCounts { 5 };
+		Valueable<int> MeteorAddImpactChance { 10 };
+		Valueable<int> MeteorKindChance { 30 };
+		Valueable<int> MeteorImpactKindChance { 50 };
+
+		Valueable<AnimTypeClass*> MeteorSmall { nullptr };
+		Valueable<AnimTypeClass*> MeteorLarge { nullptr };
+
+		Valueable<VoxelAnimTypeClass*> MeteorImpactSmall { nullptr };
+		Valueable<VoxelAnimTypeClass*> MeteorImpactLarge { nullptr };
+#pragma endregion
 
 		ExtData(SuperWeaponTypeClass* OwnerObject) : Extension<SuperWeaponTypeClass>(OwnerObject)
 		{}

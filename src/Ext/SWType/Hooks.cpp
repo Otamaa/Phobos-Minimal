@@ -2191,18 +2191,16 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 
 		// kill
 		auto damage = pNewData->GetDamage(pData);
-		if (damage > 0)
-		{
-			if (auto pWarhead = pNewData->GetWarhead(pData))
-			{
-				MapClass::Instance->DamageArea(coords, damage, nullptr, pWarhead, true, pFirer);
-			}
+		auto pWarhead = pNewData->GetWarhead(pData);
+
+		if (pWarhead && damage != 0 ) {
+			MapClass::Instance->DamageArea(coords, damage, nullptr, pWarhead, true, pFirer);
 		}
 
 		// capture
 		if (pData->Dominator_Capture)
 		{
-			DynamicVectorClass<FootClass*> Minions;
+			std::vector<FootClass*> Minions;
 
 			auto Dominate = [pData, pFirer, &Minions](TechnoClass* pTechno) -> bool
 			{
@@ -2286,9 +2284,8 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 				}
 
 				// add to the other newly captured minions.
-				if (FootClass* pFoot = generic_cast<FootClass*>(pTechno))
-				{
-					Minions.AddItem(pFoot);
+				if (FootClass* pFoot = generic_cast<FootClass*>(pTechno)) {
+					Minions.push_back(pFoot);
 				}
 
 				return true;
@@ -2459,7 +2456,7 @@ DEFINE_OVERRIDE_HOOK(0x6A9A43, StripClass_Draw_DrawPCX, 6)
 	{
 		GET(int, TLX, ESI);
 		GET(int, TLY, EBP);
-		RectangleStruct bounds = { TLX, TLY, 60, 48 };
+		RectangleStruct bounds { TLX, TLY, 60, 48 };
 		const WORD Color = (0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft) | (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft);
 		PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, CameoPCXSurface, Color);
 		CameoPCXSurface = nullptr;

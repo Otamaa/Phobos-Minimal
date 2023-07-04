@@ -93,11 +93,20 @@ void SW_EMPulse::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 
 bool SW_EMPulse::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
 {
+	const auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
+	if(pBldExt->LimboID != -1)
+		return false;
+
 	// don't further question the types in this list
-	if (!pData->EMPulse_Cannons.empty())
-	{
-		return pData->EMPulse_Cannons.Contains(pBuilding->Type) && pBuilding->IsAlive
-			&& pBuilding->Health && !pBuilding->InLimbo && pBuilding->IsPowerOnline();
+	if (!pData->EMPulse_Cannons.empty() && pData->EMPulse_Cannons.Contains(pBuilding->Type)) {
+
+		if(!pBuilding->IsAlive || !pBuilding->Health || pBuilding->InLimbo || !pBuilding->IsPowerOnline())
+			return false;
+
+		if (pBuilding->TemporalTargetingMe || pBuilding->IsBeingWarpedOut())
+			return false;
+
+		return true;
 	}
 
 	return pBuilding->Type->EMPulseCannon && NewSWType::IsLaunchSite(pData, pBuilding);

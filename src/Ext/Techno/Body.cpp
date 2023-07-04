@@ -949,6 +949,8 @@ void TechnoExt::SendPlane(size_t Aircraft, size_t Amount, HouseClass* pOwner, Ra
 		break;
 	}
 
+	const auto edge = pOwner->GetHouseEdge();
+
 	for (size_t i = 0; i < Amount; ++i)
 	{
 		++Unsorted::ScenarioInit;
@@ -956,15 +958,11 @@ void TechnoExt::SendPlane(size_t Aircraft, size_t Amount, HouseClass* pOwner, Ra
 		--Unsorted::ScenarioInit;
 
 		if (!pPlane)
-			continue;
+			continue ;
 
 		pPlane->Spawned = true;
-		Edge ed = pOwner->StartingEdge;
-
-		if (ed < Edge::North || ed > Edge::West)
-			ed = pOwner->GetCurrentEdge();
-
-		const auto nCell = MapClass::Instance->PickCellOnEdge(ed, CellStruct::Empty, CellStruct::Empty, SpeedType::Winged, true, MovementZone::Normal);
+		//randomized
+		const auto nCell = MapClass::Instance->PickCellOnEdge(edge, CellStruct::Empty, CellStruct::Empty, SpeedType::Winged, true, MovementZone::Normal);
 		pPlane->QueueMission(result, false);
 
 		if (SendRank != Rank::Rookie && SendRank != Rank::Invalid && pPlane->CurrentRanking < SendRank)
@@ -992,6 +990,10 @@ void TechnoExt::SendPlane(size_t Aircraft, size_t Amount, HouseClass* pOwner, Ra
 			// so here we handle the InitialPayload Creation !
 			// this way we can make opentopped airstrike happen !
 			TechnoExt::ExtMap.Find(pPlane)->CreateInitialPayload();
+
+			if (pPlane->Passengers.GetTotalSize() > 0)
+				pPlane->HasPassengers = true;
+
 			pPlane->NextMission();
 		}
 	}

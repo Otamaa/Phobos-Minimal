@@ -16,6 +16,7 @@ SuperWeaponFlags SW_MeteorShower::Flags() const
 	return  SuperWeaponFlags::NoEvent;
 }
 
+// TODO : support deferment
 bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	if (pThis->IsCharged)
@@ -24,22 +25,17 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 		{
 			auto const pData = SWTypeExt::ExtMap.Find(pThis->Type);
 			BuildingClass* pFirer = this->GetFirer(pThis, Coords, false);
+			const auto nRange = this->GetRange(pData).width();
 
 			const auto nCoord = pCell->GetCoordsWithBridge();
-			const auto _meteor_counts = { 6, 8, 15 };
-			const auto _impact_counts = { 2 , 4 , 5 }; // too much of this , causing game to freeze , lmao
-			const auto Chances = { 30 , 10 , 50 };
 
-			const int count = *(_meteor_counts.begin() + ScenarioClass::Instance->Random.RandomFromMax(_meteor_counts.size() - 1));
-			const int chance = *Chances.begin();
-			const int Shower_addImpactChance = *(Chances.begin() + 1);
-			const int impact_chance = *(Chances.begin() + 2);
-			const int impact_count = *(_impact_counts.begin() + ScenarioClass::Instance->Random.RandomFromMax(_impact_counts.size() - 1));
+			const int count =  ScenarioClass::Instance->Random.RandomFromMax(pData->MeteorCounts);
 
-			AnimTypeClass* large_meteor = AnimTypeClass::Find("METLARGE");
-			AnimTypeClass* small_meteor = AnimTypeClass::Find("METSMALL");
-			VoxelAnimTypeClass* large_Impact = VoxelAnimTypeClass::Find("METEOR01");
-			VoxelAnimTypeClass* small_Impact = VoxelAnimTypeClass::Find("METEOR02");
+
+			AnimTypeClass* large_meteor = pData->MeteorLarge;
+			AnimTypeClass* small_meteor = pData->MeteorSmall;
+			VoxelAnimTypeClass* large_Impact = pData->MeteorImpactLarge;
+			VoxelAnimTypeClass* small_Impact = pData->MeteorImpactSmall;
 			const int nMaxForrand = count * 70;
 
 			for (int i = 0; i < count; ++i)
@@ -51,9 +47,16 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 
 				nwhere.X += x_adj;
 				nwhere.Y += y_adj;
+
+				if (nwhere.X > nRange)
+					nwhere.X = nRange;
+
+				if (nwhere.Y > nRange)
+					nwhere.Y = nRange;
+
 				nwhere.Z = MapClass::Instance->GetCellFloorHeight(nwhere);
 
-				if (AnimTypeClass* anim = ScenarioClass::Instance->Random.PercentChance(chance) ?
+				if (AnimTypeClass* anim = ScenarioClass::Instance->Random.PercentChance(pData->MeteorKindChance) ?
 					large_meteor : small_meteor)
 				{
 					if (auto pAnim = GameCreate<AnimClass>(anim, nwhere))
@@ -61,19 +64,28 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 				}
 			}
 
-			if (ScenarioClass::Instance->Random.PercentChance(Shower_addImpactChance))
+			if (ScenarioClass::Instance->Random.PercentChance(pData->MeteorAddImpactChance))
 			{
-				for (int a = 0; a < impact_count; ++a)
+				const auto count = pData->MeteorImactCounts.Get();
+
+				for (int a = 0; a < count; ++a)
 				{
 					Coordinate im_where = nCoord;
 
-					const int x_adj = ScenarioClass::Instance->Random.Random() % (impact_count);
-					const int y_adj = ScenarioClass::Instance->Random.Random() % (impact_count);
+					const int x_adj = ScenarioClass::Instance->Random.Random() % (count);
+					const int y_adj = ScenarioClass::Instance->Random.Random() % (count);
 
 					im_where.X += x_adj;
 					im_where.Y += y_adj;
+
+					if (im_where.X > nRange)
+						im_where.X = nRange;
+
+					if (im_where.Y > nRange)
+						im_where.Y = nRange;
+
 					im_where.Z = MapClass::Instance->GetCellFloorHeight(im_where);
-					if (VoxelAnimTypeClass* impact = ScenarioClass::Instance->Random.PercentChance(impact_chance) ?
+					if (VoxelAnimTypeClass* impact = ScenarioClass::Instance->Random.PercentChance(pData->MeteorImpactKindChance) ?
 						large_Impact : small_Impact)
 					{
 						if (auto pVxl = GameCreate<VoxelAnimClass>(impact, &im_where, pThis->Owner))
@@ -92,10 +104,28 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 void SW_MeteorShower::Initialize(SWTypeExt::ExtData* pData)
 {
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::LightningStorm;
+
+	pData->MeteorSmall = AnimTypeClass::Find("METSMALL");
+	pData->MeteorLarge = AnimTypeClass::Find("METLARGE");
+
+	pData->MeteorImpactSmall = VoxelAnimTypeClass::Find("METEOR02");
+	pData->MeteorImpactLarge = VoxelAnimTypeClass::Find("METEOR01");
 }
 
 void SW_MeteorShower::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 {
-	//const auto pSection = pData->Get()->ID;
-	//INI_EX exINI(pINI);
+	const auto pSection = pData->Get()->ID;
+	INI_EX exINI(pINI);
+
+	pData->MeteorCounts.Read(exINI ,pSection,"Meteor.Count");
+	pData->MeteorImactCounts.Read(exINI, pSection, "Meteor.ImpactCount");
+	pData->MeteorAddImpactChance.Read(exINI, pSection, "Meteor.AddImpactChance");
+	pData->MeteorKindChance.Read(exINI, pSection, "Meteor.KindChance");
+	pData->MeteorImpactKindChance.Read(exINI, pSection, "Meteor.ImpactKindChance");
+
+	pData->MeteorSmall.Read(exINI, pSection, "Meteor.SmallAnim");
+	pData->MeteorLarge.Read(exINI, pSection, "Meteor.LargeAnim");
+
+	pData->MeteorImpactSmall.Read(exINI, pSection, "Meteor.VoxelAnimImpactSmall");
+	pData->MeteorImpactLarge.Read(exINI, pSection, "Meteor.VoxelAnimImpactLarge");
 }

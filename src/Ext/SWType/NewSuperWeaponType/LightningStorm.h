@@ -21,4 +21,11 @@ public:
 	virtual SWRange GetRange(const SWTypeExt::ExtData* pData) const override;
 
 	static SuperClass* CurrentLightningStorm;
+
+	using TStateMachine = CloneableLighningStormStateMachine;
+
+	void newStateMachine(int Duration, int Deferment, CellStruct XY, SuperClass* pSuper)
+	{
+		SWStateMachine::Register(std::make_unique<CloneableLighningStormStateMachine>(Duration, Deferment, XY, pSuper, this));
+	}
 };
