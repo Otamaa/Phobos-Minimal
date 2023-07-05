@@ -1905,10 +1905,12 @@ DEFINE_OVERRIDE_HOOK(0x53A6CF, LightningStorm_Update, 7)
 				// if, by coincidence, this is a rod, hit it.
 				auto const pCell = MapClass::Instance->GetCellAt(ret);
 				auto const pCellBld = pCell->GetBuilding();
+				const auto& nRodTypes = pExt->Weather_LightningRodTypes;
 
 				if (pCellBld && pCellBld->Type->LightningRod)
 				{
-					return ret;
+					if (nRodTypes.empty() || nRodTypes.Contains(pCellBld->Type))
+						return ret;
 				}
 
 				// if a lightning rod is next to this, hit that instead. naive.
@@ -1919,7 +1921,10 @@ DEFINE_OVERRIDE_HOOK(0x53A6CF, LightningStorm_Update, 7)
 					{
 						if (pBld->Type->LightningRod)
 						{
-							return pBld->GetMapCoords();
+							if (nRodTypes.empty() || nRodTypes.Contains(pBld->Type))
+							{
+								return pBld->GetMapCoords();
+							}
 						}
 					}
 				}
@@ -2089,8 +2094,10 @@ DEFINE_OVERRIDE_HOOK(0x53A300, LightningStorm_Strike2, 5)
 		{
 			if (auto const pBldObj = specific_cast<BuildingClass*>(pObj))
 			{
+				const auto& nRodTypes = pData->Weather_LightningRodTypes;
 				auto const pBldType = pBldObj->Type;
-				if (pBldType->LightningRod)
+
+				if (pBldType->LightningRod && (nRodTypes.empty() || nRodTypes.Contains(pBldType)))
 				{
 					// multiply the damage, but never go below zero.
 					auto const pBldExt = BuildingTypeExt::ExtMap.Find(pBldType);
@@ -2103,8 +2110,10 @@ DEFINE_OVERRIDE_HOOK(0x53A300, LightningStorm_Strike2, 5)
 		if (damage)
 		{
 			auto const pWarhead = pNewSW->GetWarhead(pData);
+
 			MapClass::FlashbangWarheadAt(
 				damage, pWarhead, coords, false, SpotlightFlags::None);
+
 			MapClass::DamageArea(
 				coords, damage, nullptr, pWarhead, true, pSuper->Owner);
 

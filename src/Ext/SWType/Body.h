@@ -332,6 +332,7 @@ public:
 		Valueable<AffectedHouse> Weather_RadarOutageAffects{ AffectedHouse::All };
 
 		Valueable<bool> Weather_UseSeparateState { false };
+		ValueableVector<BuildingTypeClass*> Weather_LightningRodTypes {};
 #pragma endregion
 
 #pragma region  Generic Paradrop

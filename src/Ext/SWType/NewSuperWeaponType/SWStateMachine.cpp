@@ -13,7 +13,9 @@ std::vector<std::unique_ptr<SWStateMachine>> SWStateMachine::Array;
 void SWStateMachine::UpdateAll()
 {
 	for (auto& Machine : SWStateMachine::Array) {
-		Machine->Update();
+
+		if (Machine)
+			Machine->Update();
 	}
 
 	Array.erase(std::remove_if(Array.begin(), Array.end(), 
@@ -22,7 +24,9 @@ void SWStateMachine::UpdateAll()
 	}), Array.end());
 }
 
-void SWStateMachine::PointerGotInvalid(void* ptr, bool remove) {
+void SWStateMachine::PointerGotInvalid(void* ptr, bool remove)
+{
+
 	for (auto& Machine : SWStateMachine::Array) {
 
 		if(Machine)
@@ -31,6 +35,7 @@ void SWStateMachine::PointerGotInvalid(void* ptr, bool remove) {
 
 	AnnounceInvalidPointer(SW_NuclearMissile::CurrentNukeType, ptr);
 	AnnounceInvalidPointer(SW_PsychicDominator::CurrentPsyDom, ptr);
+	AnnounceInvalidPointer(SW_LightningStorm::CurrentLightningStorm, ptr);
 }
 
 void SWStateMachine::Clear()

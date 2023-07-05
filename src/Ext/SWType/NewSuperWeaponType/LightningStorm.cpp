@@ -2,6 +2,8 @@
 
 #include <Utilities/Helpers.h>
 #include <Ext/BuildingType/Body.h>
+#include <Ext/WarheadType/Body.h>
+#include <Ext/Anim/Body.h>
 
 SuperClass* SW_LightningStorm::CurrentLightningStorm = nullptr;
 
@@ -83,7 +85,7 @@ void SW_LightningStorm::Initialize(SWTypeExt::ExtData* pData)
 	pData->CursorType = int(MouseCursorType::LightningStorm);
 
 	//
-	pData->Weather_UseSeparateState = true;
+	pData->Weather_UseSeparateState = false;
 
 }
 
@@ -109,7 +111,8 @@ void SW_LightningStorm::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->Weather_Bolts.Read(exINI, section, "Lightning.Bolts");
 	pData->Weather_Debris.Read(exINI, section, "Lightning.Debris");
 	pData->Weather_Sounds.Read(exINI, section, "Lightning.Sounds");
-	pData->Weather_UseSeparateState.Read(exINI, section, "Lighning.UseSeparateState");
+	pData->Weather_UseSeparateState.Read(exINI, section, "Lightning.UseSeparateState");
+	pData->Weather_LightningRodTypes.Read(exINI, section, "Lightning.LighningRodTypes");
 }
 
 WarheadTypeClass* SW_LightningStorm::GetWarhead(const SWTypeExt::ExtData* pData) const
@@ -139,6 +142,7 @@ bool CloneableLighningStormStateMachine::Load(PhobosStreamReader& Stm, bool Regi
 		.Process(this->Deferment)
 		.Process(this->IsActive)
 		.Process(this->TimeToEnd)
+		.Process(this->Invoker , RegisterForChange)
 		.Success();
 }
 
@@ -154,6 +158,7 @@ bool CloneableLighningStormStateMachine::Save(PhobosStreamWriter& Stm) const
 		.Process(this->Deferment)
 		.Process(this->IsActive)
 		.Process(this->TimeToEnd)
+		.Process(this->Invoker)
 		.Success();
 }
 
@@ -180,7 +185,7 @@ void CloneableLighningStormStateMachine::Update()
 			if (pAnim->Animation.Value >= pAnim->Type->GetImage()->Frames / 2)
 			{
 				auto const crdStrike = pAnim->GetCoords();
-				Strike2(crdStrike);
+				this->Strike2(crdStrike);
 				CloudsManifest.RemoveAt(i);
 			}
 		}
@@ -243,7 +248,7 @@ void CloneableLighningStormStateMachine::Update()
 			else
 			{
 				// launch the storm
-				Start(Coords, ActualDuration, 0);
+				this->Start(Coords, ActualDuration, 0);
 			}
 		}
 
@@ -262,9 +267,10 @@ void CloneableLighningStormStateMachine::Update()
 	// deterministic damage. the very target cell.
 	auto const hitDelay = pExt->Weather_HitDelay.Get(
 		RulesClass::Instance->LightningHitDelay);
+
 	if (hitDelay > 0 && (Unsorted::CurrentFrame % hitDelay == 0))
 	{
-		Strike(Coords);
+		this->Strike(Coords);
 	}
 
 	// random damage. somewhere in range.
@@ -272,7 +278,7 @@ void CloneableLighningStormStateMachine::Update()
 		RulesClass::Instance->LightningScatterDelay);
 	if (scatterDelay > 0 && (Unsorted::CurrentFrame % scatterDelay == 0))
 	{
-		auto const range = pExt->GetNewSWType()->GetRange(pExt);
+		auto const range = Type->GetRange(pExt);
 		auto const isRectangle = (range.height() <= 0);
 		auto const width = range.width();
 		auto const height = isRectangle ? width : range.height();
@@ -303,10 +309,12 @@ void CloneableLighningStormStateMachine::Update()
 				// if, by coincidence, this is a rod, hit it.
 				auto const pCell = MapClass::Instance->GetCellAt(ret);
 				auto const pCellBld = pCell->GetBuilding();
+				const auto& nRodTypes = pExt->Weather_LightningRodTypes;
 
 				if (pCellBld && pCellBld->Type->LightningRod)
 				{
-					return ret;
+					if (nRodTypes.empty() || nRodTypes.Contains(pCellBld->Type))
+						return ret;
 				}
 
 				// if a lightning rod is next to this, hit that instead. naive.
@@ -315,9 +323,11 @@ void CloneableLighningStormStateMachine::Update()
 				{
 					if (auto const pBld = specific_cast<BuildingClass*>(pObj))
 					{
-						if (pBld->Type->LightningRod)
-						{
-							return pBld->GetMapCoords();
+						if(pBld->Type->LightningRod) {
+							if (nRodTypes.empty() || nRodTypes.Contains(pBld->Type))
+							{
+								return pBld->GetMapCoords();
+							}
 						}
 					}
 				}
@@ -354,7 +364,7 @@ void CloneableLighningStormStateMachine::Update()
 				if (cell != CellStruct::Empty)
 				{
 					// found a valid position. strike there.
-					Strike(cell);
+					this->Strike(cell);
 					break;
 				}
 			}
@@ -382,6 +392,7 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 
 			if (auto const pAnim = GameCreate<AnimClass>(pAnimType, coords))
 			{
+				AnimExt::SetAnimOwnerHouseKind(pAnim, Super->Owner, nullptr, Invoker, false);
 				BoltsPresent.AddItem(pAnim);
 			}
 		}
@@ -413,18 +424,19 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 		}
 
 		// account for lightning rods
-		auto damage = pData->GetNewSWType()->GetDamage(pData);
+		auto damage = Type->GetDamage(pData);
 		if (!pData->Weather_IgnoreLightningRod)
 		{
 			if (auto const pBldObj = specific_cast<BuildingClass*>(pObj))
 			{
+				const auto& nRodTypes = pData->Weather_LightningRodTypes;
 				auto const pBldType = pBldObj->Type;
-				if (pBldType->LightningRod)
+
+				if (pBldType->LightningRod && (nRodTypes.empty() || nRodTypes.Contains(pBldType)))
 				{
 					// multiply the damage, but never go below zero.
 					auto const pBldExt = BuildingTypeExt::ExtMap.Find(pBldType);
-					damage = MaxImpl(static_cast<int>(
-						damage * pBldExt->LightningRod_Modifier), 0);
+					damage = MaxImpl(int(damage * pBldExt->LightningRod_Modifier), 0);
 				}
 			}
 		}
@@ -432,16 +444,16 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 		// cause mayhem
 		if (damage)
 		{
-			auto pWarhead = pData->GetNewSWType()->GetWarhead(pData);
-			MapClass::FlashbangWarheadAt(
-				damage, pWarhead, coords, false, SpotlightFlags::None);
-			MapClass::DamageArea(
-				coords, damage, nullptr, pWarhead, true, Super->Owner);
+			auto pWarhead = Type->GetWarhead(pData);
 
-			// fancy stuff if damage is dealt
-			auto const pAnimType = MapClass::SelectDamageAnimation(
-				damage, pWarhead, pCell->LandType, coords);
-			GameCreate<AnimClass>(pAnimType, coords);
+			if (!Invoker)
+				Debug::Log("LS[%d - %s] Invoked is nullptr, dealing damage without ownership !! \n", Super, Super->Type->ID);
+
+			WarheadTypeExt::DetonateAt(pWarhead, MapClass::Instance->GetCellAt(coords), coords, Invoker, damage);
+
+			if(auto pBoltExt = pData->Weather_BoltExplosion.Get(RulesClass::Instance->WeatherConBoltExplosion))
+				if (auto pAnim = GameCreate<AnimClass>(pBoltExt, coords))
+					pAnim->SetHouse(Super->Owner);
 		}
 
 		// has the last target been destroyed?
@@ -465,7 +477,8 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 					auto const rnd = ScenarioClass::Instance->Random.Random();
 					auto const pAnimType = it.at(rnd % it.size());
 
-					GameCreate<AnimClass>(pAnimType, coords);
+					if(auto pAnim = GameCreate<AnimClass>(pAnimType, coords))
+						AnimExt::SetAnimOwnerHouseKind(pAnim, Super->Owner, nullptr, Invoker, false);
 				}
 			}
 		}
@@ -507,6 +520,7 @@ bool CloneableLighningStormStateMachine::Strike(CellStruct const& nCell)
 		// create the cloud and do some book keeping.
 		if (auto const pAnim = GameCreate<AnimClass>(pAnimType, coords))
 		{
+			AnimExt::SetAnimOwnerHouseKind(pAnim, Super->Owner, nullptr, Invoker, false);
 			CloudsManifest.AddItem(pAnim);
 			CloudsPresent.AddItem(pAnim);
 		}
@@ -538,6 +552,7 @@ bool CloneableLighningStormStateMachine::Start(CellStruct& cell, int nDuration, 
 	}
 
 	Coords = cell;
+	Invoker = Type->GetFirer(Super, cell, true);
 
 	if (!IsActive)
 	{
@@ -564,6 +579,7 @@ bool CloneableLighningStormStateMachine::Start(CellStruct& cell, int nDuration, 
 			// blackout
 			auto const outage = pData->Weather_RadarOutage.Get(
 				RulesClass::Instance->LightningStormDuration);
+
 			if (outage > 0)
 			{
 				for (auto const pHouse : *HouseClass::Array)
@@ -578,6 +594,7 @@ bool CloneableLighningStormStateMachine::Start(CellStruct& cell, int nDuration, 
 					}
 				}
 			}
+
 			if (HouseClass::CurrentPlayer)
 			{
 				HouseClass::CurrentPlayer->RecheckRadar = true;
@@ -613,6 +630,9 @@ bool CloneableLighningStormStateMachine::Start(CellStruct& cell, int nDuration, 
 
 void CloneableLighningStormStateMachine::InvalidatePointer(void* ptr, bool remove)
 {
+	if(remove)
+		AnnounceInvalidPointer(Invoker, ptr);
+
 	AnnounceInvalidPointer(CloudsPresent, ptr);
 	AnnounceInvalidPointer(CloudsManifest, ptr);
 	AnnounceInvalidPointer(BoltsPresent, ptr);

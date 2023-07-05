@@ -488,6 +488,7 @@ bool NOINLINE NewSWType::CanHaveLauchSite(SWTypeExt::ExtData* pData, BuildingCla
 {
 	switch (this->TypeIndex)
 	{
+	case AresNewSuperType::LightningStorm:
 	case AresNewSuperType::SonarPulse:
 	case AresNewSuperType::UnitDelivery:
 	case AresNewSuperType::GenericWarhead:

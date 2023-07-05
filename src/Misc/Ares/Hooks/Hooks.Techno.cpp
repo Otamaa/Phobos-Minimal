@@ -188,7 +188,7 @@ DEFINE_OVERRIDE_HOOK(0x707b09, TechnoClass_PointerGotInvalid_ResetMindControl, 0
 DEFINE_OVERRIDE_HOOK(0x6FA2C7, TechnoClass_Update_DrawHidden, 0x8)
 {
 	GET(TechnoClass* const, pThis, ESI);
-	auto const disallowed = pThis->InOpenToppedTransport || pThis->GetTechnoType()->Invisible;
+	auto const disallowed = pThis->InOpenToppedTransport;
 	return !disallowed ? 0u : 0x6FA30Cu;
 }
 

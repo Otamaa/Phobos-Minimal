@@ -2118,6 +2118,7 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Weather_Sounds)
 		.Process(this->Weather_RadarOutageAffects)
 		.Process(this->Weather_UseSeparateState)
+		.Process(this->Weather_LightningRodTypes)
 
 		.Process(this->ParaDropDatas)
 

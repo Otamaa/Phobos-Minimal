@@ -272,6 +272,7 @@ public:
 	static constexpr double CloudHeightFactor { 6.968466256176567 };
 	bool IsActive;
 	bool TimeToEnd;
+	BuildingClass* Invoker { nullptr };
 };
 
 template <>
