@@ -348,7 +348,7 @@ DEFINE_OVERRIDE_HOOK(0x702E9D, TechnoClass_RegisterDestruction_Veterancy, 0x6)
 
 	GET(TechnoClass*, pKiller, EDI);
 	GET(TechnoClass*, pVictim, ESI);
-	GET(const int, VictimCost, EBP);
+	GET(const int, Score, EBP);
 
 	// get the unit that receives veterancy
 	TechnoClass* pExpReceiver = nullptr;
@@ -362,7 +362,7 @@ DEFINE_OVERRIDE_HOOK(0x702E9D, TechnoClass_RegisterDestruction_Veterancy, 0x6)
 	TechnoExperienceData::EvaluateExtReceiverData(pExpReceiver, pKiller, ExpFactor, promoteImmediately);
 
 	// update the veterancy
-	TechnoExperienceData::UpdateVeterancy(pExpReceiver, pKiller, pVictim, VictimCost, ExpFactor, promoteImmediately);
+	TechnoExperienceData::UpdateVeterancy(pExpReceiver, pKiller, pVictim, Score, ExpFactor, promoteImmediately);
 
 	// skip the entire veterancy handling
 	return 0x702FF5;

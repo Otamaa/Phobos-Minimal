@@ -12,6 +12,7 @@ public:
 
 	virtual void Initialize(SWTypeExt::ExtData* pData) override;
 	virtual void LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI) override;
+	virtual bool IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const override;
 
 	virtual SWRange GetRange(const SWTypeExt::ExtData* pData) const override;
 };

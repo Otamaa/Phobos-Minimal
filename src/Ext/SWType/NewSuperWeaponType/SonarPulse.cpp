@@ -94,6 +94,17 @@ void SW_SonarPulse::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->Get()->Action = (GetRange(pData).WidthOrRange < 0) ? Action::None : (Action)AresNewActionType::SuperWeaponAllowed;
 }
 
+bool SW_SonarPulse::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+{
+	if (!this->IsLaunchsiteAlive(pBuilding))
+		return false;
+
+	if (!pData->SW_Lauchsites.empty() && pData->SW_Lauchsites.Contains(pBuilding->Type))
+		return true;
+
+	return this->IsSWTypeAttachedToThis(pData, pBuilding);
+}
+
 SWRange SW_SonarPulse::GetRange(const SWTypeExt::ExtData* pData) const
 {
 	return pData->SW_Range->empty() ? SWRange{ 10 } :pData->SW_Range.Get();

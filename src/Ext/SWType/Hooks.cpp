@@ -2203,7 +2203,9 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 		auto pWarhead = pNewData->GetWarhead(pData);
 
 		if (pWarhead && damage != 0 ) {
-			MapClass::Instance->DamageArea(coords, damage, nullptr, pWarhead, true, pFirer);
+
+			//this update every frame , so getting the firer here , seems degreading the performance ,..
+			MapClass::Instance->DamageArea(coords, damage, pNewData->GetFirer(pSuper, cell , false), pWarhead, true, pFirer);
 		}
 
 		// capture

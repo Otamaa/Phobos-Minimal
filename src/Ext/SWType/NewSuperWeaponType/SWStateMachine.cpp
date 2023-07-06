@@ -80,7 +80,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 	const auto nPlace = this->Coords;
 
 	// create an instance of each type and place it
-	for (auto const& pType : pData->SW_Deliverables)
+	for (auto& pType : pData->SW_Deliverables)
 	{
 		auto Item = static_cast<TechnoClass*>(pType->CreateObject(pOwner));
 

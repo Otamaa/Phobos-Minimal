@@ -4647,6 +4647,8 @@ DEFINE_OVERRIDE_HOOK(0x44C844, BuildingClass_MissionRepair_Reload, 6)
 
 	return 0x44C968;
 }
+
+
 //#include <EventClass.h>
 
 //hmm dunno , 

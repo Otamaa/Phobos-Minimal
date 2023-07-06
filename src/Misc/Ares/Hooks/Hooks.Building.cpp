@@ -591,12 +591,12 @@ DEFINE_OVERRIDE_HOOK(0x5198AD, InfantryClass_UpdatePosition_EnteredGrinder, 0x6)
 
 bool NOINLINE IsSabotagable(BuildingClass const* const pThis)
 {
-	auto const pType = pThis->Type;
-	auto const pExt = BuildingTypeExt::ExtMap.Find(pType);
-	auto const civ_occupiable = pType->CanBeOccupied && pType->TechLevel == -1;
-	auto const default_sabotabable = pType->CanC4 && !civ_occupiable;
+	const auto pType = pThis->Type;
+	const auto pExt = BuildingTypeExt::ExtMap.Find(pType);
+	const auto civ_occupiable = pType->CanBeOccupied && pType->TechLevel == -1;
+	const auto default_sabotabable = pType->CanC4 && !civ_occupiable;
 
-	return !pExt->ImmuneToSaboteurs.Get(!default_sabotabable);
+	return pExt->ImmuneToSaboteurs.isset() ? !pExt->ImmuneToSaboteurs : default_sabotabable;
 }
 
 Action NOINLINE GetiInfiltrateActionResult(InfantryClass* pInf , BuildingClass* pBuilding)

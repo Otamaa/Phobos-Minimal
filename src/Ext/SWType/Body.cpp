@@ -1105,8 +1105,8 @@ bool SWTypeExt::ExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStr
 	auto pHouseExt = HouseExt::ExtMap.Find(pOwner);
 
 	pHouseExt->UpdateShotCount(pSuper->Type);
-
-	const auto flags = pNewType->Flags();
+	const auto pCurrentSWTypeData = SWTypeExt::ExtMap.Find(pSuper->Type); //previous data
+	const auto flags = pNewType->Flags(pCurrentSWTypeData);
 
 	if ((flags & SuperWeaponFlags::PostClick))
 	{
@@ -1117,7 +1117,7 @@ bool SWTypeExt::ExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStr
 		}
 	}
 
-	auto pData = SWTypeExt::ExtMap.Find(pSuper->Type);
+	const auto pData = SWTypeExt::ExtMap.Find(pSuper->Type); //newer data
 
 	if (pSuper->Granted || pData->CanFire(pOwner))
 		pOwner->RecheckTechTree = true;
@@ -1263,7 +1263,7 @@ bool SWTypeExt::ExtData::Deactivate(SuperClass* pSuper, CellStruct const cell, b
 	{
 		pNewSWType->Deactivate(pSuper, cell, isPlayer);
 
-		const auto flags = pNewSWType->Flags();
+		const auto flags = pNewSWType->Flags(pData);
 
 		if ((flags & SuperWeaponFlags::NoPower) == SuperWeaponFlags::None)
 		{
@@ -1481,7 +1481,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		
 		// whatever the user does, we take care of the stupid tags.
 		// there is no need to have them not hardcoded.
-		auto const flags = pNewSWType->Flags();
+		auto const flags = pNewSWType->Flags(this);
 		pThis->PreClick = static_cast<bool>(flags & SuperWeaponFlags::PreClick);
 		pThis->PostClick = static_cast<bool>(flags & SuperWeaponFlags::PostClick);
 		pThis->PreDependent = SuperWeaponType::Invalid;
@@ -2066,6 +2066,7 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DropPod_Maximum)
 		.Process(this->DropPod_Veterancy)
 		.Process(this->DropPod_Types)
+		.Process(this->Droppod_Duration)
 
 		.Process(this->EMPField_Duration)
 		.Process(this->SW_MaxCount)

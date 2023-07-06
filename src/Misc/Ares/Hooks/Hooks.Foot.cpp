@@ -71,7 +71,7 @@ DEFINE_DISABLE_HOOK(0x4D99AA, FootClass_PointerGotInvalid_Parasite_ares)
 // 	GET(FootClass* const, pThis, ESI);
 // 	GET(AbstractClass* const, ptr, EDI);
 // 	GET(bool, remove, EBX);
-
+//
 // 	// pass the real remove state, instead of always true. this was unused
 // 	// in the original game, but now propagates the real value.
 // 	if (const auto pParasiteOwner = pThis->ParasiteEatingMe) {
@@ -79,13 +79,13 @@ DEFINE_DISABLE_HOOK(0x4D99AA, FootClass_PointerGotInvalid_Parasite_ares)
 // 			pParasiteOwner->ParasiteImUsing->PointerExpired(ptr, remove);
 // 		}
 // 	}
-
+//
 // 	// only unset the parasite owner, if we are removed.
 // 	// cloaking does not count any more.
 // 	if (remove && pThis == ptr) {
 // 		pThis->ParasiteEatingMe = nullptr;
 // 	}
-
+//
 // 	return 0x4D99D3;
 // }
 

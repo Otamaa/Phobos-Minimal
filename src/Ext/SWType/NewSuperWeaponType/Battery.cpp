@@ -9,11 +9,6 @@ std::vector<const char*> SW_Battery::GetTypeString() const
 	return { "Battery" , "Generator" };
 }
 
-SuperWeaponFlags SW_Battery::Flags() const
-{
-	return  SuperWeaponFlags::NoEvent;
-}
-
 bool SW_Battery::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	auto pHouseExt = HouseExt::ExtMap.Find(pThis->Owner);

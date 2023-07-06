@@ -103,7 +103,7 @@ public:
 
 	virtual std::vector<const char*> GetTypeString() const { return {}; }
 	virtual bool HandleThisType(SuperWeaponType type) const { return false; }
-	virtual SuperWeaponFlags Flags() const { return SuperWeaponFlags::None; }
+	virtual SuperWeaponFlags Flags(const SWTypeExt::ExtData* pData) const { return SuperWeaponFlags::None; }
 
 	virtual bool CanFireAt(TargetingData const& data, CellStruct const& cell, bool manual) const;
 
@@ -127,6 +127,8 @@ public:
 	virtual int GetSound(const SWTypeExt::ExtData* pData) const;
 	virtual int GetDamage(const SWTypeExt::ExtData* pData) const;
 
+	bool IsLaunchsiteAlive(BuildingClass* pBuilding) const;
+	bool IsSWTypeAttachedToThis(const SWTypeExt::ExtData* pData ,BuildingClass* pBuilding) const;
 public:
 
 	bool HasDesignator(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords) const;

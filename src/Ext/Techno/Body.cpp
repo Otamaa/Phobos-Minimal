@@ -3609,11 +3609,19 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno,
 	const auto pFirstExt = WeaponTypeExt::ExtMap.Find(pWeaponOne);
 	const auto pSecondExt = WeaponTypeExt::ExtMap.Find(pWeaponTwo);
 
+	bool IsSecondary_cellTargetRestricted = false;
+	bool IsSecondary_versesRestricted = false;
+	bool IsSecondary_TechnoTargetRestricted = false;
+	bool IsSecondary_HouseTargetRestricted = false;
+
 	{
-		const bool IsSecondary_cellTargetRestricted = targetCell && !EnumFunctions::IsCellEligible(targetCell, pSecondExt->CanTarget, true);
-		const bool IsSecondary_versesRestricted = pTargetTechno && WarheadTypeExt::ExtMap.Find(pWeaponTwo->Warhead)->GetVerses(pTargetTechno->GetType()->Armor).Verses == 0.0;
-		const bool IsSecondary_TechnoTargetRestricted = pTargetTechno && !EnumFunctions::IsTechnoEligible(pTargetTechno, pSecondExt->CanTarget);
-		const bool IsSecondary_HouseTargetRestricted = pTargetTechno && !EnumFunctions::CanTargetHouse(pSecondExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner);
+		IsSecondary_cellTargetRestricted = targetCell && !EnumFunctions::IsCellEligible(targetCell, pSecondExt->CanTarget, true);
+
+		if(pTargetTechno){
+			IsSecondary_versesRestricted = WarheadTypeExt::ExtMap.Find(pWeaponTwo->Warhead)->GetVerses(pTargetTechno->GetType()->Armor).Verses == 0.0;
+			IsSecondary_TechnoTargetRestricted = !EnumFunctions::IsTechnoEligible(pTargetTechno, pSecondExt->CanTarget);
+			IsSecondary_HouseTargetRestricted = !EnumFunctions::CanTargetHouse(pSecondExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner);
+		}
 
 		if (IsSecondary_cellTargetRestricted || IsSecondary_versesRestricted || IsSecondary_TechnoTargetRestricted || IsSecondary_HouseTargetRestricted) {
 			return weaponIndexOne;

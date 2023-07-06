@@ -129,6 +129,70 @@ DEFINE_HOOK(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x8)
 //	return OriginalCheck;
 //}
 
+// Compares two weapons and returns index of which one is eligible to fire against current target (0 = first, 1 = second), or -1 if neither works.
+int PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno, AbstractClass* pTarget, int weaponIndexOne, int weaponIndexTwo, bool allowFallback, bool allowAAFallback)
+{
+	CellClass* pTargetCell = nullptr;
+
+	// Ignore target cell for airborne target technos.
+	if (!pTargetTechno || !pTargetTechno->IsInAir())
+	{
+		if (auto const pCell = abstract_cast<CellClass*>(pTarget))
+			pTargetCell = pCell;
+		else if (auto const pObject = abstract_cast<ObjectClass*>(pTarget))
+			pTargetCell = pObject->GetCell();
+	}
+
+	auto const pWeaponStructOne = pThis->GetWeapon(weaponIndexOne);
+	auto const pWeaponStructTwo = pThis->GetWeapon(weaponIndexTwo);
+
+	if (!pWeaponStructOne && !pWeaponStructTwo)
+		return -1;
+	else if (!pWeaponStructTwo)
+		return weaponIndexOne;
+	else if (!pWeaponStructOne)
+		return weaponIndexTwo;
+
+	auto const pWeaponOne = pWeaponStructOne->WeaponType;
+	auto const pWeaponTwo = pWeaponStructTwo->WeaponType;
+
+	if (auto const pSecondExt = WeaponTypeExt::ExtMap.TryFind(pWeaponTwo))
+	{
+		if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pSecondExt->CanTarget, true)) ||
+			(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pSecondExt->CanTarget) ||
+				!EnumFunctions::CanTargetHouse(pSecondExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner))))
+		{
+			return weaponIndexOne;
+		}
+		else if (auto const pFirstExt = WeaponTypeExt::ExtMap.TryFind(pWeaponOne))
+		{
+			bool secondaryIsAA = pTargetTechno && pTargetTechno->IsInAir() && pWeaponTwo->Projectile->AA;
+
+			if (!allowFallback && (!allowAAFallback || !secondaryIsAA) && !TechnoExt::CanFireNoAmmoWeapon(pThis, 1))
+				return weaponIndexOne;
+
+			if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pFirstExt->CanTarget, true)) ||
+				(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pFirstExt->CanTarget) ||
+					!EnumFunctions::CanTargetHouse(pFirstExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner))))
+			{
+				return weaponIndexTwo;
+			}
+		}
+	}
+
+	auto const pType = pThis->GetTechnoType();
+
+	// Handle special case with NavalTargeting / LandTargeting.
+	if (!pTargetTechno && (pType->NavalTargeting == NavalTargetingType::Naval_primary ||
+		pType->LandTargeting == LandTargetingType::Land_secondary) &&
+		pTargetCell->LandType != LandType::Water && pTargetCell->LandType != LandType::Beach)
+	{
+		return weaponIndexTwo;
+	}
+
+	return -1;
+}
+
 DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 {
 	GET(TechnoClass*, pThis, ESI);

@@ -252,35 +252,110 @@ DEFINE_HOOK(0x739B7C, UnitClass_Deploy_DeployDir, 0x6)
 	return SkipAnim;
 }
 
-DEFINE_HOOK_AGAIN(0x739D8B, UnitClass_DeployUndeploy_DeployAnim, 0x5)
-DEFINE_HOOK(0x739BA8, UnitClass_DeployUndeploy_DeployAnim, 0x5)
+NOINLINE AnimTypeClass* GetDeployAnim(UnitClass* pThis)
 {
-	enum { Deploy = 0x739C20, DeployUseUnitDrawer = 0x739C0A, Undeploy = 0x739E04, UndeployUseUnitDrawer = 0x739DEE };
+	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
-	GET(UnitClass*, pThis, ESI);
+	if (pExt->DeployAnims.empty())
+		return nullptr;
 
-	bool isDeploying = R->Origin() == 0x739BA8;
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	if(((pExt->DeployAnims.size() & 28u) != 0u))
+		return pExt->DeployAnims[0];
 
-	{
-		if (auto const pAnim = GameCreate<AnimClass>(pThis->Type->DeployingAnim,
-			pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0,
-			!isDeploying ? pExt->DeployingAnim_ReverseForUndeploy.Get() : false))
-		{
-			pThis->DeployAnim = pAnim;
-			pAnim->SetOwnerObject(pThis);
+	const auto nIdx = ((pExt->DeployAnims.size() * (((pThis->PrimaryFacing.Current().Raw >> 7) + 1) >> 1)) >> 8);
+	return pExt->DeployAnims[nIdx];
+}
 
-			if (pExt->DeployingAnim_UseUnitDrawer)
-				return isDeploying ? DeployUseUnitDrawer : UndeployUseUnitDrawer;
-		}
-		else
-		{
-			pThis->DeployAnim = nullptr;
-		}
+bool NOINLINE SetAnim(AnimTypeClass* pAnimType , UnitClass* pUnit , bool isDeploying)
+{
+	if(pUnit->DeployAnim) {
+		return true;
 	}
 
-	return isDeploying ? Deploy : Undeploy;
+	auto const pExt = TechnoTypeExt::ExtMap.Find(pUnit->Type);
+
+	if (auto const pAnim = GameCreate<AnimClass>(pAnimType,
+			pUnit->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0,
+				!isDeploying ? pExt->DeployingAnim_ReverseForUndeploy.Get() : false))
+	{
+			pUnit->DeployAnim = pAnim;
+			pAnim->SetOwnerObject(pUnit);
+
+			if (pExt->DeployingAnim_UseUnitDrawer) {
+				pAnim->LightConvert = pUnit->GetRemapColour();
+			}
+
+		return true;
+	}
+
+	return false;
 }
+
+DEFINE_HOOK(0x739B90 , UnitClass_Deploy_DeployAnim , 0x6)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	const auto pAnimType = GetDeployAnim(pThis);
+
+	if(!pAnimType)
+		return 0x739C6A;
+
+	return SetAnim(pAnimType , pThis , true) ?
+		0x739C20 : 0x739C62;
+}
+
+DEFINE_HOOK(0x739D73 , UnitClass_UnDeploy_DeployAnim , 0x6)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	const auto pAnimType = GetDeployAnim(pThis);
+
+	if(!pAnimType)
+		return 0x739E4F;
+
+	return SetAnim(pAnimType , pThis , false) ?
+		0x739E04 : 0x739E46;
+}
+
+DEFINE_HOOK(0x714706, TechnoTypeClass_read_DeployAnim, 0x9)
+{
+	GET(TechnoTypeClass*, pThis, EBP);
+	pThis->UnloadingClass = R->EAX<UnitTypeClass*>();
+	R->EAX((UnitTypeClass*)nullptr);
+	return 0x71473F;
+}
+
+// DEFINE_HOOK_AGAIN(0x739D8B, UnitClass_DeployUndeploy_DeployAnim, 0x5)
+// DEFINE_HOOK(0x739BA8, UnitClass_DeployUndeploy_DeployAnim, 0x5)
+// {
+// 	enum { Deploy = 0x739C20, DeployUseUnitDrawer = 0x739C0A, Undeploy = 0x739E04, UndeployUseUnitDrawer = 0x739DEE };
+//
+// 	GET(UnitClass*, pThis, ESI);
+//
+// 	bool isDeploying = R->Origin() == 0x739BA8;
+// 	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+//
+// 	{
+// 		if(auto pAnimType = GetDeployAnim(pThis)) {
+// 			if (auto const pAnim = GameCreate<AnimClass>(pAnimType,
+// 				pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0,
+// 				!isDeploying ? pExt->DeployingAnim_ReverseForUndeploy.Get() : false))
+// 			{
+// 				pThis->DeployAnim = pAnim;
+// 				pAnim->SetOwnerObject(pThis);
+//
+// 				if (pExt->DeployingAnim_UseUnitDrawer)
+// 					return isDeploying ? DeployUseUnitDrawer : UndeployUseUnitDrawer;
+// 			}
+// 			else
+// 			{
+// 				pThis->DeployAnim = nullptr;
+// 			}
+// 		}
+// 	}
+//
+// 	return isDeploying ? Deploy : Undeploy;
+// }
 
 DEFINE_HOOK_AGAIN(0x739E81, UnitClass_DeployUndeploy_DeploySound, 0x6)
 DEFINE_HOOK(0x739C86, UnitClass_DeployUndeploy_DeploySound, 0x6)

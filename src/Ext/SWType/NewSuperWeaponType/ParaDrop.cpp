@@ -283,7 +283,7 @@ bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 
 //A new SendPDPlane function
 //Allows vehicles, sends one single plane for all types
-void NOINLINE SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, AircraftTypeClass* pPlaneType,
+void SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, AircraftTypeClass* pPlaneType,
 	Iterator<TechnoTypeClass*> const Types, Iterator<int> const Nums)
 {
 	if (Nums.size() != Types.size() || !Nums.size()
@@ -364,4 +364,15 @@ void NOINLINE SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, A
 
 	pPlane->HasPassengers = true;
 	pPlane->NextMission();
+}
+
+bool SW_ParaDrop::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+{
+	if (!this->IsLaunchsiteAlive(pBuilding))
+		return false;
+
+	if (!pData->SW_Lauchsites.empty() && pData->SW_Lauchsites.Contains(pBuilding->Type))
+		return true;
+
+	return this->IsSWTypeAttachedToThis(pData, pBuilding);
 }

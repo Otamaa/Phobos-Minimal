@@ -22,7 +22,7 @@ bool SW_NuclearMissile::HandleThisType(SuperWeaponType type) const
 	return (type == SuperWeaponType::Nuke);
 }
 
-SuperWeaponFlags SW_NuclearMissile::Flags() const
+SuperWeaponFlags SW_NuclearMissile::Flags(const SWTypeExt::ExtData* pData) const
 {
 	return SuperWeaponFlags::NoEvent;
 }
@@ -157,7 +157,10 @@ bool SW_NuclearMissile::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingCl
 	if(pBldExt->LimboID != -1)
 		return false;
 
-	return pBuilding->Type->NukeSilo && NewSWType::IsLaunchSite(pData, pBuilding);
+	if(!this->IsLaunchsiteAlive(pBuilding))
+		return false;
+
+	return pBuilding->Type->NukeSilo && this->IsSWTypeAttachedToThis(pData, pBuilding);
 }
 
 WarheadTypeClass* SW_NuclearMissile::GetWarhead(const SWTypeExt::ExtData* pData) const

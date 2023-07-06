@@ -8,85 +8,40 @@ std::vector<const char*> SW_DropPod::GetTypeString() const
 	return { "DropPod" };
 }
 
+SuperWeaponFlags SW_DropPod::Flags(const SWTypeExt::ExtData* pData) const { 
+	
+	if (pData && pData->Droppod_Duration > 0)
+		return SuperWeaponFlags::NoEvent | SuperWeaponFlags::NoMessage;
+
+	return SuperWeaponFlags::None;
+}
+
 bool SW_DropPod::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	SuperWeaponTypeClass* pSW = pThis->Type;
 	auto pData = SWTypeExt::ExtMap.Find(pSW);
 
-	HouseClass* pOwner = pThis->Owner;
-	CellStruct cell = Coords;
-
-	// collect the options
-	auto const& Types = !pData->DropPod_Types.empty()
-		? pData->DropPod_Types
-		: RulesExt::Global()->DropPodTypes;
-
-	// quick way out
-	if (Types.empty())
-	{
-		return false;
+	if(pData->Droppod_Duration > 0) {
+		this->newStateMachine(pData->Droppod_Duration, pData->SW_Deferment, Coords ,pThis);
 	}
-
-	int cMin = pData->DropPod_Minimum.Get(RulesExt::Global()->DropPodMinimum);
-	int cMax = pData->DropPod_Maximum.Get(RulesExt::Global()->DropPodMaximum);
-	double veterancy = pData->DropPod_Veterancy.Get();
-
-	// three times more tries than units to place.
-	int count = ScenarioClass::Instance->Random.RandomRanged(cMin, cMax);
-
-	for (int i = 3 * count; i; --i)
+	else
 	{
+		// collect the options
+		auto& Types = !pData->DropPod_Types.empty()
+			? pData->DropPod_Types
+			: RulesExt::Global()->DropPodTypes;
 
-		// get a random type from the list and create an instance
-		TechnoTypeClass* pType = Types[ScenarioClass::Instance->Random.RandomFromMax(Types.size() - 1)];
-
-		if (!pType || pType->WhatAmI() == BuildingTypeClass::AbsID) {
-			continue;
+		// quick way out
+		if (Types.empty())
+		{
+			return false;
 		}
 
-		FootClass* pFoot = static_cast<FootClass*>(pType->CreateObject(pOwner));
-		if (!pFoot)
-			continue;
+		int cMin = pData->DropPod_Minimum.Get(RulesExt::Global()->DropPodMinimum);
+		int cMax = pData->DropPod_Maximum.Get(RulesExt::Global()->DropPodMaximum);
+		double veterancy = pData->DropPod_Veterancy.Get();
 
-		// update veterancy only if higher
-		if (veterancy > pFoot->Veterancy.Veterancy) {
-			pFoot->Veterancy.Add(veterancy);
-		}
-
-		// select a free cell the unit can enter
-		CellStruct tmpCell = MapClass::Instance->NearByLocation(cell, pType->SpeedType, -1,
-			pType->MovementZone, false, 1, 1, false, false, false, false, CellStruct::Empty, false, false);
-
-		CoordStruct crd = CellClass::Cell2Coord(tmpCell);
-
-		// let the locomotor take care of the rest
-		if (TechnoExt::CreateWithDroppod(pFoot, crd)) {
-			if (!--count) {
-				break;
-			}
-		}
-
-		// randomize the target coodinates
-		CellClass* pCell = MapClass::Instance->GetCellAt(tmpCell);
-		int rnd = ScenarioClass::Instance->Random.RandomFromMax(7);
-
-		for (int j = 0; j < 8; ++j) {
-
-			// get the direction in an overly verbose way
-			FacingType dir = FacingType(((j + rnd) % 8) & 7);
-
-			CellClass* pNeighbour = pCell->GetNeighbourCell(dir);
-			if (pFoot->IsCellOccupied(pNeighbour, FacingType::None, -1, nullptr, true) == Move::OK)
-			{
-				cell = pNeighbour->MapCoords;
-				break;
-			}
-		}
-
-		// failed to place
-		if (pFoot->InLimbo) {
-			pFoot->UnInit();
-		}
+		DroppodStateMachine::PlaceUnits(pThis, veterancy, Types, cMin, cMax, Coords , true);
 	}
 
 	return true;
@@ -111,4 +66,162 @@ void SW_DropPod::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->DropPod_Maximum.Read(exINI, section, "DropPod.Maximum");
 	pData->DropPod_Veterancy.Read(exINI, section, "DropPod.Veterancy");
 	pData->DropPod_Types.Read(exINI, section, "DropPod.Types");
+	pData->Droppod_Duration.Read(exINI, section, "Droppod.Duration");
+}
+
+void DroppodStateMachine::Update()
+{
+	auto pData = GetTypeExtData();
+
+	if (!this->AlreadyActivated)
+	{
+		pData->PrintMessage(pData->Message_Launch, this->Super->Owner);
+		this->AlreadyActivated = true;
+	}
+
+		// still counting down?
+	if (this->Deferment > 0) {
+		// still waiting
+		if (--this->Deferment) {
+			return;
+		}
+	}
+
+	//reset the defement
+	this->Activate(pData->SW_Deferment);
+}
+
+void DroppodStateMachine::Activate(int nDeferment)
+{
+	this->Deferment = nDeferment;
+
+	auto pData = this->GetTypeExtData();
+
+	// activation stuff
+	pData->PrintMessage(pData->Message_Activate, Super->GetOwningHouse());
+
+	auto const sound = pData->SW_ActivationSound.Get(-1);
+	if (sound != -1)
+	{
+		VocClass::PlayGlobal(sound, Panning::Center, 1.0);
+	}
+
+	this->SendDroppods();
+
+	if (pData->SW_RadarEvent)
+	{
+		RadarEventClass::Create(
+			RadarEventType::SuperweaponActivated, this->Coords);
+	}
+}
+
+void DroppodStateMachine::SendDroppods()
+{
+	auto pData = GetTypeExtData();
+
+	// collect the options
+	auto& Types = !pData->DropPod_Types.empty()
+		? pData->DropPod_Types
+		: RulesExt::Global()->DropPodTypes;
+
+	// quick way out
+	if (Types.empty()) {
+		return;
+	}
+
+	int cMin = pData->DropPod_Minimum.Get(RulesExt::Global()->DropPodMinimum);
+	int cMax = pData->DropPod_Maximum.Get(RulesExt::Global()->DropPodMaximum);
+
+	DroppodStateMachine::PlaceUnits(Super, pData->DropPod_Veterancy.Get(), Types, cMin, cMax, Coords , false);
+}
+
+void DroppodStateMachine::PlaceUnits(SuperClass* pSuper , double veterancy , Iterator<TechnoTypeClass*> const Types, int cMin ,int cMax , const CellStruct& Coords, bool retries)
+{
+	const auto pData = SWTypeExt::ExtMap.Find(pSuper->Type);
+	// three times more tries than units to place.
+	int count = ScenarioClass::Instance->Random.RandomRanged(cMin, cMax);
+
+	if (retries)
+		count *= 3;
+
+	CellStruct cell = Coords;
+
+	for (int i = count; i; --i)
+	{
+
+		// get a random type from the list and create an instance
+		TechnoTypeClass* pType = Types[ScenarioClass::Instance->Random.RandomFromMax(Types.size() - 1)];
+
+		if (!pType || pType->WhatAmI() == BuildingTypeClass::AbsID)
+		{
+			continue;
+		}
+
+		FootClass* pFoot = static_cast<FootClass*>(pType->CreateObject(pSuper->Owner));
+		if (!pFoot)
+			continue;
+
+		// update veterancy only if higher
+		if (veterancy > pFoot->Veterancy.Veterancy)
+		{
+			pFoot->Veterancy.Add(veterancy);
+		}
+
+		// select a free cell the unit can enter
+		CellStruct tmpCell = MapClass::Instance->NearByLocation(cell, pType->SpeedType, -1,
+			pType->MovementZone, false, 1, 1, false, false, false, false, CellStruct::Empty, false, false);
+
+		CoordStruct crd = CellClass::Cell2Coord(tmpCell);
+
+		// let the locomotor take care of the rest
+		if (TechnoExt::CreateWithDroppod(pFoot, crd))
+		{
+			if (!--count)
+			{
+				break;
+			}
+		}
+
+		// randomize the target coodinates
+		CellClass* pCell = MapClass::Instance->GetCellAt(tmpCell);
+		int rnd = ScenarioClass::Instance->Random.RandomFromMax(7);
+
+		for (int j = 0; j < 8; ++j)
+		{
+
+			// get the direction in an overly verbose way
+			FacingType dir = FacingType(((j + rnd) % 8) & 7);
+
+			CellClass* pNeighbour = pCell->GetNeighbourCell(dir);
+			if (pFoot->IsCellOccupied(pNeighbour, FacingType::None, -1, nullptr, true) == Move::OK)
+			{
+				cell = pNeighbour->MapCoords;
+				break;
+			}
+		}
+
+		// failed to place
+		if (pFoot->InLimbo)
+		{
+			pFoot->UnInit();
+		}
+	}
+}
+
+bool DroppodStateMachine::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+{
+	return SWStateMachine::Load(Stm, RegisterForChange)
+		&& Stm
+		.Process(this->AlreadyActivated)
+		.Process(this->Deferment)
+		.Success();
+}
+
+bool DroppodStateMachine::Save(PhobosStreamWriter& Stm) const
+{
+	return SWStateMachine::Save(Stm)
+		&& Stm
+		.Process(this->AlreadyActivated)
+		.Process(this->Deferment)
+		.Success();
 }

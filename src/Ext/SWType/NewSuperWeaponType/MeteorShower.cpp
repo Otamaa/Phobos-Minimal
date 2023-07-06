@@ -11,11 +11,6 @@ std::vector<const char*> SW_MeteorShower::GetTypeString() const
 	return { "MeteorShower" };
 }
 
-SuperWeaponFlags SW_MeteorShower::Flags() const
-{
-	return  SuperWeaponFlags::NoEvent;
-}
-
 // TODO : support deferment
 bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
@@ -25,7 +20,6 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 		{
 			auto const pData = SWTypeExt::ExtMap.Find(pThis->Type);
 			BuildingClass* pFirer = this->GetFirer(pThis, Coords, false);
-			const auto nRange = this->GetRange(pData).width();
 
 			const auto nCoord = pCell->GetCoordsWithBridge();
 
@@ -47,12 +41,6 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 
 				nwhere.X += x_adj;
 				nwhere.Y += y_adj;
-
-				if (nwhere.X > nRange)
-					nwhere.X = nRange;
-
-				if (nwhere.Y > nRange)
-					nwhere.Y = nRange;
 
 				nwhere.Z = MapClass::Instance->GetCellFloorHeight(nwhere);
 
@@ -78,12 +66,6 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 					im_where.X += x_adj;
 					im_where.Y += y_adj;
 
-					if (im_where.X > nRange)
-						im_where.X = nRange;
-
-					if (im_where.Y > nRange)
-						im_where.Y = nRange;
-
 					im_where.Z = MapClass::Instance->GetCellFloorHeight(im_where);
 					if (VoxelAnimTypeClass* impact = ScenarioClass::Instance->Random.PercentChance(pData->MeteorImpactKindChance) ?
 						large_Impact : small_Impact)
@@ -104,7 +86,7 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 void SW_MeteorShower::Initialize(SWTypeExt::ExtData* pData)
 {
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::LightningStorm;
-
+	pData->SW_RadarEvent = false;
 	pData->MeteorSmall = AnimTypeClass::Find("METSMALL");
 	pData->MeteorLarge = AnimTypeClass::Find("METLARGE");
 
@@ -128,4 +110,15 @@ void SW_MeteorShower::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 
 	pData->MeteorImpactSmall.Read(exINI, pSection, "Meteor.VoxelAnimImpactSmall");
 	pData->MeteorImpactLarge.Read(exINI, pSection, "Meteor.VoxelAnimImpactLarge");
+}
+
+bool SW_MeteorShower::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+{
+	if (!this->IsLaunchsiteAlive(pBuilding))
+		return false;
+
+	if (!pData->SW_Lauchsites.empty() && pData->SW_Lauchsites.Contains(pBuilding->Type))
+		return true;
+
+	return this->IsSWTypeAttachedToThis(pData, pBuilding);
 }

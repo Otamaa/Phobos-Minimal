@@ -337,17 +337,30 @@ int NewSWType::GetDamage(const SWTypeExt::ExtData* pData) const
 	return pData->SW_Damage.Get(0);
 }
 
-bool NewSWType::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+bool NewSWType::IsLaunchsiteAlive(BuildingClass* pBuilding) const
 {
 	if (pBuilding->IsAlive && pBuilding->Health && !pBuilding->InLimbo && pBuilding->IsPowerOnline())
 	{
 		if (pBuilding->TemporalTargetingMe || pBuilding->IsBeingWarpedOut())
 			return false;
 
-		return BuildingExt::ExtMap.Find(pBuilding)->HasSuperWeapon(pData->OwnerObject()->ArrayIndex, true);
+		return true;
 	}
 
 	return false;
+}
+
+bool NewSWType::IsSWTypeAttachedToThis(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+{
+	return  BuildingExt::ExtMap.Find(pBuilding)->HasSuperWeapon(pData->OwnerObject()->ArrayIndex, true);;
+}
+
+bool NewSWType::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+{
+	if (!this->IsLaunchsiteAlive(pBuilding))
+		return false;
+
+	return BuildingExt::ExtMap.Find(pBuilding)->HasSuperWeapon(pData->OwnerObject()->ArrayIndex, true);
 }
 
 std::pair<double, double> NewSWType::GetLaunchSiteRange(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
@@ -486,23 +499,24 @@ BuildingClass* NewSWType::GetFirer(SuperClass* pSW, const CellStruct& Coords, bo
 
 bool NOINLINE NewSWType::CanHaveLauchSite(SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
 {
-	switch (this->TypeIndex)
-	{
-	case AresNewSuperType::LightningStorm:
-	case AresNewSuperType::SonarPulse:
-	case AresNewSuperType::UnitDelivery:
-	case AresNewSuperType::GenericWarhead:
-	case AresNewSuperType::Protect:
-	case AresNewSuperType::Reveal:
-	case AresNewSuperType::ParaDrop:
-	case AresNewSuperType::SpyPlane:
-	case AresNewSuperType::IonCannon:
-	case AresNewSuperType::MeteorShower:
-	case AresNewSuperType::EMPField:
-		if (!pData->SW_Lauchsites.empty()
-			&& pData->SW_Lauchsites.Contains(pBuilding->Type))
-			return true;
-	}
+	//switch (this->TypeIndex)
+	//{
+	//case AresNewSuperType::LightningStorm:
+	//case AresNewSuperType::PsychicDominator:
+	//case AresNewSuperType::SonarPulse:
+	//case AresNewSuperType::UnitDelivery:
+	//case AresNewSuperType::GenericWarhead:
+	//case AresNewSuperType::Protect:
+	//case AresNewSuperType::Reveal:
+	//case AresNewSuperType::ParaDrop:
+	//case AresNewSuperType::SpyPlane:
+	//case AresNewSuperType::IonCannon:
+	//case AresNewSuperType::MeteorShower:
+	//case AresNewSuperType::EMPField:
+	//	if (!pData->SW_Lauchsites.empty()
+	//		&& pData->SW_Lauchsites.Contains(pBuilding->Type))
+	//		return true;
+	//}
 
 	return false;
 }
@@ -617,7 +631,7 @@ SuperWeaponType NewSWType::FindFromTypeID(const char* pType)
 
 bool NOINLINE NewSWType::IsLaunchSiteEligible(SWTypeExt::ExtData* pSWType, const CellStruct& Coords, BuildingClass* pBuilding, bool ignoreRange) const
 {
-	if (!this->IsLaunchSite(pSWType, pBuilding) && !this->CanHaveLauchSite(pSWType, pBuilding))
+	if (!this->IsLaunchSite(pSWType, pBuilding) /*&& !this->CanHaveLauchSite(pSWType, pBuilding)*/)
 	{
 		return false;
 	}

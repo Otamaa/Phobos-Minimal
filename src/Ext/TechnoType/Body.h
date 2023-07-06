@@ -781,6 +781,8 @@ public:
 		Nullable<AnimTypeClass*> DecloakAnim { };
 		Nullable<bool> Cloak_KickOutParasite { };
 
+		ValueableVector<AnimTypeClass*> DeployAnims {};
+
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, AttachedEffect { OwnerObject }
 		{ }

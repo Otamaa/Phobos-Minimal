@@ -340,8 +340,11 @@ DEFINE_HOOK(0x474230, CCINIClass_Load_Inheritance, 0x5)
 	return 0;
 }
 
+
+#else
+
 // Fix issue with TilesInSet caused by incorrect vanilla INIs and the fixed parser returning correct default value (-1) instead of 0 for existing non-integer values
-int FC IsometricTileTypeClass_ReadINI_TilesInSet_Wrapper(INIClass* pThis, void* _, const char* pSection, const char* pKey, int defaultValue)
+int __fastcall IsometricTileTypeClass_ReadINI_TilesInSet_Wrapper(INIClass* pThis, void* _, const char* pSection, const char* pKey, int defaultValue)
 {
 	if (pThis->Exists(pSection, pKey))
 		return pThis->ReadInteger(pSection, pKey, 0);
@@ -350,7 +353,7 @@ int FC IsometricTileTypeClass_ReadINI_TilesInSet_Wrapper(INIClass* pThis, void* 
 }
 
 DEFINE_JUMP(CALL, 0x545FD4, GET_OFFSET(IsometricTileTypeClass_ReadINI_TilesInSet_Wrapper));
-#else
+
 DEFINE_HOOK(0x527B0A, INIClass_Get_UUID, 0x8)
 {
 	GET(wchar_t*, buffer, ECX);

@@ -5,6 +5,9 @@
 #include <ScenarioClass.h>
 #include <Ext/TAction/Body.h>
 
+// invalidation and stuffs can be done easily 
+// the thing is , how this behave on S/L
+// this thing doesnt have any S/L at all ,..
 //PhobosMap<IonBlastClass*, std::unique_ptr<IonBlastExt::ExtData>> IonBlastExt::IonExtMap;
 //
 //bool IonBlastExt::DoAffects(IonBlastClass* pIon)

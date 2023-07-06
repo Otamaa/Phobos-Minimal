@@ -59,7 +59,6 @@ bool SW_SpyPlane::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 void SW_SpyPlane::Initialize(SWTypeExt::ExtData* pData)
 {
 	// Defaults to Spy Plane values
-
 	pData->SW_RadarEvent = false;
 
 	pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_SpyPlaneReady);
@@ -78,4 +77,15 @@ void SW_SpyPlane::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->SpyPlanes_Count.Read(exINI, section, "SpyPlane.Count");
 	pData->SpyPlanes_Mission.Read(exINI, section, "SpyPlane.Mission");
 	pData->SpyPlanes_Rank.Read(exINI, section, "SpyPlane.Rank");
+}
+
+bool SW_SpyPlane::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+{
+	if (!this->IsLaunchsiteAlive(pBuilding))
+		return false;
+
+	if (!pData->SW_Lauchsites.empty() && pData->SW_Lauchsites.Contains(pBuilding->Type))
+		return true;
+
+	return this->IsSWTypeAttachedToThis(pData, pBuilding);
 }

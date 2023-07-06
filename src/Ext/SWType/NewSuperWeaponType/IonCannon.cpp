@@ -8,11 +8,6 @@ std::vector<const char*> SW_IonCannon::GetTypeString() const
 	return { "IonCannon" };
 }
 
-SuperWeaponFlags SW_IonCannon::Flags() const
-{
-	return SuperWeaponFlags::None;
-}
-
 bool SW_IonCannon::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	if (!Coords.IsValid())
@@ -40,3 +35,14 @@ void SW_IonCannon::Initialize(SWTypeExt::ExtData* pData)
 
 void SW_IonCannon::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 { }
+
+bool SW_IonCannon::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+{
+	if (!this->IsLaunchsiteAlive(pBuilding))
+		return false;
+
+	if (!pData->SW_Lauchsites.empty() && pData->SW_Lauchsites.Contains(pBuilding->Type))
+		return true;
+
+	return this->IsSWTypeAttachedToThis(pData, pBuilding);
+}

@@ -8,13 +8,14 @@ class SW_LightningStorm : public NewSWType
 public:
 	virtual std::vector<const char*> GetTypeString() const override;
 	virtual bool HandleThisType(SuperWeaponType type) const override;
-	virtual SuperWeaponFlags Flags() const override;
+	virtual SuperWeaponFlags Flags(const SWTypeExt::ExtData* pData) const override;
 
 	virtual bool Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer) override;
 	virtual bool AbortFire(SuperClass* pSW, bool IsPlayer) override;
 
 	virtual void LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI) override;
 	virtual void Initialize(SWTypeExt::ExtData* pData) override;
+	virtual bool IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const override;
 
 	virtual WarheadTypeClass* GetWarhead(const SWTypeExt::ExtData* pData) const override;
 	virtual int GetDamage(const SWTypeExt::ExtData* pData) const override;
@@ -24,8 +25,8 @@ public:
 
 	using TStateMachine = CloneableLighningStormStateMachine;
 
-	void newStateMachine(int Duration, int Deferment, CellStruct XY, SuperClass* pSuper)
+	void newStateMachine(int Duration, int Deferment, CellStruct XY, SuperClass* pSuper , BuildingClass* pFirer)
 	{
-		SWStateMachine::Register(std::make_unique<CloneableLighningStormStateMachine>(Duration, Deferment, XY, pSuper, this));
+		SWStateMachine::Register(std::make_unique<TStateMachine>(Duration, Deferment, XY, pSuper, pFirer, this));
 	}
 };

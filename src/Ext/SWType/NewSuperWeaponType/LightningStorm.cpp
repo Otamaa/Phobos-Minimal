@@ -17,7 +17,7 @@ bool SW_LightningStorm::HandleThisType(SuperWeaponType type) const
 	return (type == SuperWeaponType::LightningStorm);
 }
 
-SuperWeaponFlags SW_LightningStorm::Flags() const
+SuperWeaponFlags SW_LightningStorm::Flags(const SWTypeExt::ExtData* pData) const
 {
 	return SuperWeaponFlags::NoMessage | SuperWeaponFlags::NoEvent;
 }
@@ -39,7 +39,7 @@ bool SW_LightningStorm::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 		}
 		else
 		{
-			this->newStateMachine(duration,deferment, Coords, pThis);
+			this->newStateMachine(duration,deferment, Coords, pThis , this->GetFirer(pThis, Coords, false));
 		}
 
 		return true;
@@ -87,6 +87,17 @@ void SW_LightningStorm::Initialize(SWTypeExt::ExtData* pData)
 	//
 	pData->Weather_UseSeparateState = false;
 
+}
+
+bool SW_LightningStorm::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+{
+	if (!this->IsLaunchsiteAlive(pBuilding))
+		return false;
+
+	if (!pData->SW_Lauchsites.empty() && pData->SW_Lauchsites.Contains(pBuilding->Type))
+		return true;
+
+	return this->IsSWTypeAttachedToThis(pData, pBuilding);
 }
 
 void SW_LightningStorm::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
@@ -552,7 +563,6 @@ bool CloneableLighningStormStateMachine::Start(CellStruct& cell, int nDuration, 
 	}
 
 	Coords = cell;
-	Invoker = Type->GetFirer(Super, cell, true);
 
 	if (!IsActive)
 	{

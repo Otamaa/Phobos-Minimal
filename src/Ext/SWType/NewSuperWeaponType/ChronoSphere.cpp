@@ -5,7 +5,7 @@ bool SW_ChronoSphere::HandleThisType(SuperWeaponType type) const
 	return (type == SuperWeaponType::ChronoSphere);
 }
 
-SuperWeaponFlags SW_ChronoSphere::Flags() const
+SuperWeaponFlags SW_ChronoSphere::Flags(const SWTypeExt::ExtData* pData) const
 {
 	return SuperWeaponFlags::NoAnim | SuperWeaponFlags::NoEVA | SuperWeaponFlags::NoMoney
 		| SuperWeaponFlags::NoEvent | SuperWeaponFlags::NoCleanup | SuperWeaponFlags::NoMessage

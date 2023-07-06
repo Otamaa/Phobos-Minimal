@@ -97,19 +97,15 @@ bool SW_EMPulse::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pB
 	if(pBldExt->LimboID != -1)
 		return false;
 
+	if(!this->IsLaunchsiteAlive(pBuilding))
+		return false;
+
 	// don't further question the types in this list
 	if (!pData->EMPulse_Cannons.empty() && pData->EMPulse_Cannons.Contains(pBuilding->Type)) {
-
-		if(!pBuilding->IsAlive || !pBuilding->Health || pBuilding->InLimbo || !pBuilding->IsPowerOnline())
-			return false;
-
-		if (pBuilding->TemporalTargetingMe || pBuilding->IsBeingWarpedOut())
-			return false;
-
-		return true;
+		return true; //quick exit
 	}
 
-	return pBuilding->Type->EMPulseCannon && NewSWType::IsLaunchSite(pData, pBuilding);
+	return pBuilding->Type->EMPulseCannon && this->IsSWTypeAttachedToThis(pData, pBuilding);
 }
 
 std::pair<double, double> SW_EMPulse::GetLaunchSiteRange(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const

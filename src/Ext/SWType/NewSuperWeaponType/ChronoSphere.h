@@ -6,7 +6,7 @@ class SW_ChronoSphere : public NewSWType
 {
 public:
 	virtual bool HandleThisType(SuperWeaponType type) const override;
-	virtual SuperWeaponFlags Flags() const override;
+	virtual SuperWeaponFlags Flags(const SWTypeExt::ExtData* pData) const override;
 
 	virtual bool Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer) override;
 

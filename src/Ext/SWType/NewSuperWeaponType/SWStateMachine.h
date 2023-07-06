@@ -11,6 +11,7 @@ enum class SWStateMachineIdentifier : int
 	ChronoWarp = 1,
 	PsychicDominator = 2,
 	CloneableLighningStorm = 3 ,
+	Droppod = 4,
 };
 
 // state machines - create one to use delayed effects [create a child class per NewSWType, obviously]
@@ -88,10 +89,44 @@ public:
 
 	virtual SWStateMachineIdentifier GetIdentifier() const override
 	{
-		return SWStateMachineIdentifier::UnitDelivery;
+		return SWStateMachineIdentifier::Droppod;
 	}
 
 	void PlaceUnits();
+};
+
+class DroppodStateMachine : public SWStateMachine
+{
+public:
+	DroppodStateMachine()
+		: SWStateMachine() , Deferment { 0 } , AlreadyActivated { false }
+	{
+	}
+
+	DroppodStateMachine(int Duration, int Deferment, CellStruct XY, SuperClass* pSuper, NewSWType* pSWType)
+		: SWStateMachine(Duration, XY, pSuper, pSWType), Deferment { 0 }, AlreadyActivated { false }
+	{
+		Activate(Deferment);
+	}
+
+	virtual void Update();
+
+	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
+	virtual bool Save(PhobosStreamWriter& Stm) const override;
+
+	virtual SWStateMachineIdentifier GetIdentifier() const override
+	{
+		return SWStateMachineIdentifier::UnitDelivery;
+	}
+
+	void SendDroppods();
+	void Activate(int nDeferment);
+
+	static void PlaceUnits(SuperClass* pSuper, double veterancy, Iterator<TechnoTypeClass*> const Types, int cMin, int cMax, const CellStruct& Coords ,bool retries);
+
+protected:
+	int Deferment;
+	bool AlreadyActivated;
 };
 
 class ChronoWarpStateMachine : public SWStateMachine
@@ -190,14 +225,15 @@ protected:
 class CloneableLighningStormStateMachine : public SWStateMachine
 {
 public:
+	static constexpr double CloudHeightFactor { 6.968466256176567 };
 
 	CloneableLighningStormStateMachine()
-		: SWStateMachine(), ActualDuration(0), StartTime(0), Deferment(0), IsActive(false), TimeToEnd(false)
+		: SWStateMachine(), ActualDuration(0), StartTime(0), Deferment(0), IsActive(false), TimeToEnd(false) , Invoker(nullptr)
 	{
 	}
 
-	CloneableLighningStormStateMachine(int Duration, int Deferment, CellStruct XY, SuperClass* pSuper, NewSWType* pSWType)
-		: SWStateMachine(Duration, XY, pSuper, pSWType), ActualDuration(0), StartTime(0), Deferment(0), IsActive(false), TimeToEnd(false)
+	CloneableLighningStormStateMachine(int Duration, int Deferment, CellStruct XY, SuperClass* pSuper, BuildingClass* pFirer, NewSWType* pSWType)
+		: SWStateMachine(Duration, XY, pSuper, pSWType), ActualDuration(0), StartTime(0), Deferment(0), IsActive(false), TimeToEnd(false) , Invoker(pFirer)
 	{
 		Start(XY, Duration, Deferment);
 	}
@@ -269,10 +305,9 @@ public:
 	int ActualDuration;
 	int StartTime; //storing current frame
 	int Deferment;
-	static constexpr double CloudHeightFactor { 6.968466256176567 };
 	bool IsActive;
 	bool TimeToEnd;
-	BuildingClass* Invoker { nullptr };
+	BuildingClass* Invoker;
 };
 
 template <>
@@ -293,6 +328,8 @@ struct Savegame::ObjectFactory<SWStateMachine>
 				return std::make_unique<PsychicDominatorStateMachine>();
 			case SWStateMachineIdentifier::CloneableLighningStorm:
 				return std::make_unique<CloneableLighningStormStateMachine>();
+			case SWStateMachineIdentifier::Droppod:
+				return std::make_unique<DroppodStateMachine>();
 			default:
 				Debug::FatalErrorAndExit("SWStateMachineType %d not recognized.",
 					static_cast<unsigned int>(type));

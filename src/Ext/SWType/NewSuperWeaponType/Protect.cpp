@@ -158,6 +158,17 @@ void SW_Protect::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->Protect_PlayFadeSoundTime.Read(exINI, section, "Protect.PlayFadeSoundTime");
 }
 
+bool SW_Protect::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+{
+	if (!this->IsLaunchsiteAlive(pBuilding))
+		return false;
+
+	if (!pData->SW_Lauchsites.empty() && pData->SW_Lauchsites.Contains(pBuilding->Type))
+		return true;
+
+	return this->IsSWTypeAttachedToThis(pData, pBuilding);
+}
+
 AnimTypeClass* SW_Protect::GetAnim(const SWTypeExt::ExtData* pData) const
 {
 	if (pData->SW_Anim.isset()) {

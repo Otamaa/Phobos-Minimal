@@ -1,16 +1,12 @@
 #include "GenericWarhead.h"
 
+#include <Ext/Anim/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Misc/AresData.h>
 
 std::vector<const char*> SW_GenericWarhead::GetTypeString() const
 {
 	return { "GenericWarhead" };
-}
-
-SuperWeaponFlags SW_GenericWarhead::Flags() const
-{
-	return SuperWeaponFlags::None;
 }
 
 void SW_GenericWarhead::Initialize(SWTypeExt::ExtData* pData)
@@ -70,13 +66,23 @@ bool SW_GenericWarhead::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 	{
 		MapClass::DamageArea(coords, damage, pFirer, pWarhead, true, pThis->Owner);
 		if (auto const pAnimType = MapClass::SelectDamageAnimation(damage, pWarhead, pCell->LandType, coords)) {
-			//Otamaa Added
 			if (auto pAnim = GameCreate<AnimClass>(pAnimType, coords))
-				pAnim->Owner = pThis->Owner;
+				AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner, nullptr, pFirer, false);
 		}
 
 		MapClass::FlashbangWarheadAt(damage, pWarhead, coords, false, SpotlightFlags::None);
 	}
 
 	return true;
+}
+
+bool SW_GenericWarhead::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+{
+	if (!this->IsLaunchsiteAlive(pBuilding))
+		return false;
+
+	if (!pData->SW_Lauchsites.empty() && pData->SW_Lauchsites.Contains(pBuilding->Type))
+		return true;
+
+	return this->IsSWTypeAttachedToThis(pData, pBuilding);
 }

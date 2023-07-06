@@ -94,6 +94,17 @@ int SW_Reveal::GetSound(const SWTypeExt::ExtData* pData) const
 	return pData->SW_Sound.Get(RulesClass::Instance->PsychicRevealActivateSound);
 }
 
+bool SW_Reveal::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+{
+	if (!this->IsLaunchsiteAlive(pBuilding))
+		return false;
+
+	if (!pData->SW_Lauchsites.empty() && pData->SW_Lauchsites.Contains(pBuilding->Type))
+		return true;
+
+	return this->IsSWTypeAttachedToThis(pData, pBuilding);
+}
+
 SWRange SW_Reveal::GetRange(const SWTypeExt::ExtData* pData) const
 {
 	if (pData->SW_Range->empty())

@@ -9,7 +9,7 @@ bool SW_ChronoWarp::HandleThisType(SuperWeaponType type) const
 	return (type == SuperWeaponType::ChronoWarp);
 }
 
-SuperWeaponFlags SW_ChronoWarp::Flags() const
+SuperWeaponFlags SW_ChronoWarp::Flags(const SWTypeExt::ExtData* pData) const
 {
 	return SuperWeaponFlags::NoAnim | SuperWeaponFlags::NoEvent | SuperWeaponFlags::PostClick;
 }

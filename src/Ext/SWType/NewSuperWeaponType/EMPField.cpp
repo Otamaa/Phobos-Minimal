@@ -21,6 +21,7 @@ bool SW_EMPField::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 
 void SW_EMPField::Initialize(SWTypeExt::ExtData* pData)
 {
+	pData->SW_RadarEvent = false;
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::IronCurtain;
 	pData->CursorType = int(MouseCursorType::Attack);
 	pData->NoCursorType = int(MouseCursorType::AttackOutOfRange);
@@ -32,4 +33,15 @@ void SW_EMPField::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 
 	INI_EX exINI(pINI);
 	pData->EMPField_Duration.Read(exINI, section, "EMPField.Duration");
+}
+
+bool SW_EMPField::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+{
+	if (!this->IsLaunchsiteAlive(pBuilding))
+		return false;
+
+	if (!pData->SW_Lauchsites.empty() && pData->SW_Lauchsites.Contains(pBuilding->Type))
+		return true;
+
+	return this->IsSWTypeAttachedToThis(pData, pBuilding);
 }

@@ -12,7 +12,7 @@ bool SW_PsychicDominator::HandleThisType(SuperWeaponType type) const
 	return (type == SuperWeaponType::PsychicDominator);
 }
 
-SuperWeaponFlags SW_PsychicDominator::Flags() const
+SuperWeaponFlags SW_PsychicDominator::Flags(const SWTypeExt::ExtData* pData) const
 {
 	return SuperWeaponFlags::NoEvent;
 }
@@ -86,6 +86,17 @@ void SW_PsychicDominator::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pIN
 	pData->Dominator_CapturePermaMindControlled.Read(exINI, section, "Dominator.CapturePermaMindControlled");
 	pData->Dominator_CaptureImmuneToPsionics.Read(exINI, section, "Dominator.CaptureImmuneToPsionics");
 	pData->Dominator_PermanentCapture.Read(exINI, section, "Dominator.PermanentCapture");
+}
+
+bool SW_PsychicDominator::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+{
+	if (!this->IsLaunchsiteAlive(pBuilding))
+		return false;
+
+	if (!pData->SW_Lauchsites.empty() && pData->SW_Lauchsites.Contains(pBuilding->Type))
+		return true;
+
+	return this->IsSWTypeAttachedToThis(pData, pBuilding);
 }
 
 WarheadTypeClass* SW_PsychicDominator::GetWarhead(const SWTypeExt::ExtData* pData) const

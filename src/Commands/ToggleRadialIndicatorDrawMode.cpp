@@ -26,6 +26,9 @@ const wchar_t* ToggleRadialIndicatorDrawModeClass::GetUIDescription() const
 
 void ToggleRadialIndicatorDrawModeClass::Execute(WWKey eInput) const
 {
+	if (this->CheckDebugDeactivated())
+		return;
+
 	//TODO : S/L ?
 	ToggleRadialIndicatorDrawModeClass::ShowForAll = !ToggleRadialIndicatorDrawModeClass::ShowForAll;
 }

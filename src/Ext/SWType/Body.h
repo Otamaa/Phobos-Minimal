@@ -122,7 +122,7 @@ public:
 		Valueable<CSFText> Text_Active {};
 #pragma endregion
 
-		Valueable<bool> SW_RadarEvent { false };
+		Valueable<bool> SW_RadarEvent { true };
 
 		Valueable<CSFText> UIDescription {};
 		Valueable<int> CameoPriority { 0 };
@@ -285,6 +285,7 @@ public:
 		Nullable<int> DropPod_Maximum {};
 		Valueable<double> DropPod_Veterancy  {2.0};
 		ValueableVector<TechnoTypeClass*> DropPod_Types {};
+		Valueable<int> Droppod_Duration { 0 };
 #pragma endregion
 
 #pragma region EMPField
