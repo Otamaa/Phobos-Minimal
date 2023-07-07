@@ -343,7 +343,7 @@ namespace TEventExt_dummy
 			return false;
 
 		if (args <= 0)
-			return false;
+			return true;
 
 		if (!pType->Insignificant && !pType->DontScore)
 		{
@@ -452,39 +452,52 @@ namespace TEventExt_dummy
 	// the bool result pointer is for the result of the Event itself
 	bool NOINLINE HasOccured(TEventClass* pThis, EventArgs const Args, bool& result)
 	{
-		switch ((AresTriggerEvents)Args.EventType)
+		switch ((AresTriggerEvents)pThis->EventKind)
 		{
 		case AresTriggerEvents::UnderEMP:
-		{
-			result = generic_cast<FootClass*>(Args.Object)
-				&& pThis->EventKind == Args.EventType
-				&& ((TechnoClass*)Args.Object)->EMPLockRemaining > 0;
-
-			break;
-		}
 		case AresTriggerEvents::UnderEMP_ByHouse:
-		{
-			result = generic_cast<FootClass*>(Args.Object)
-				&& pThis->EventKind == Args.EventType
-				&& Args.Source && ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
-
-			break;
-		}
 		case AresTriggerEvents::RemoveEMP:
-		{
-			result = generic_cast<FootClass*>(Args.Object)
-				&& pThis->EventKind == Args.EventType
-				&& ((TechnoClass*)Args.Object)->EMPLockRemaining <= 0;
-
-			break;
-		}
 		case AresTriggerEvents::RemoveEMP_ByHouse:
 		{
-			result = generic_cast<FootClass*>(Args.Object)
-				&& pThis->EventKind == Args.EventType
-				&& Args.Source && ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
+			const auto pTechno = generic_cast<FootClass*>(Args.Object);
 
-			break;
+			if (pTechno && pThis->EventKind == Args.EventType) {
+
+				switch ((AresTriggerEvents)Args.EventType)
+				{
+				case AresTriggerEvents::UnderEMP:
+				{
+					result = pTechno->EMPLockRemaining > 0;
+					return true;
+				}
+				case AresTriggerEvents::UnderEMP_ByHouse:
+				{
+					if (Args.Source && ((HouseClass*)(Args.Source))->ArrayIndex == pThis->Value)
+					{
+						result = pTechno->EMPLockRemaining > 0;
+						return true;
+					}
+					break;
+				}
+				case AresTriggerEvents::RemoveEMP:
+				{
+					result = pTechno->EMPLockRemaining <= 0;
+					return true;
+				}
+				case AresTriggerEvents::RemoveEMP_ByHouse:
+				{
+					if (Args.Source && ((HouseClass*)(Args.Source))->ArrayIndex == pThis->Value)
+					{
+						result = pTechno->EMPLockRemaining <= 0;
+						return true;
+					}
+					break;
+				}
+				}
+			}
+
+			result = false;
+			return true;
 		}
 		case AresTriggerEvents::EnemyInSpotlightNow:
 		{
@@ -525,29 +538,45 @@ namespace TEventExt_dummy
 		}
 		case AresTriggerEvents::Abducted:
 		case AresTriggerEvents::AbductSomething:
-		{
-			result = generic_cast<FootClass*>(Args.Object) 
-				&& pThis->EventKind == Args.EventType;
-
-			break;
-		}
 		case AresTriggerEvents::Abducted_ByHouse:
-		{
-			result = generic_cast<FootClass*>(Args.Object)
-				&& pThis->EventKind == Args.EventType
-				&& Args.Source
-				&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
-
-			break;
-		}
 		case AresTriggerEvents::AbductSomething_OfHouse:
 		{
-			result = generic_cast<FootClass*>(Args.Object)
-				&& pThis->EventKind == Args.EventType
-				&& Args.Source
-				&& Args.Source->WhatAmI() == AbstractType::House
-				&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
+			const auto pTechno = generic_cast<FootClass*>(Args.Object);
 
+			if (pTechno && pThis->EventKind == Args.EventType)
+			{
+				switch ((AresTriggerEvents)Args.EventType)
+				{
+				case AresTriggerEvents::Abducted:
+				case AresTriggerEvents::AbductSomething:
+				{
+					result = true;
+					return true;
+				}
+				case AresTriggerEvents::Abducted_ByHouse:
+				{
+					if (generic_cast<TechnoClass*>(Args.Source) && ((TechnoClass*)(Args.Source))->Owner->ArrayIndex == pThis->Value)
+					{
+						result = true;
+						return true;
+					}
+
+					break;
+				}
+				case AresTriggerEvents::AbductSomething_OfHouse:
+				{
+					if (specific_cast<HouseClass*>(Args.Source) && ((HouseClass*)(Args.Source))->ArrayIndex == pThis->Value)
+					{
+						result = true;
+						return true;
+					}
+
+					break;
+				}
+				}
+			}
+
+			result = false;
 			break;
 		}
 		case AresTriggerEvents::SuperActivated:
@@ -556,7 +585,7 @@ namespace TEventExt_dummy
 			result = pThis->EventKind == Args.EventType
 				&& Args.Source
 				&& Args.Source->WhatAmI() == AbstractType::Super
-				&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
+				&& ((SuperClass*)Args.Source)->Type->ArrayIndex == pThis->Value;
 
 			break;
 		}
@@ -623,6 +652,14 @@ namespace TEventExt_dummy
 		{
 			result = (pThis->EventKind == Args.EventType)
 				&& Args.Source
+				&& ((TechnoClass*)Args.Source)->Owner->ArrayIndex == pThis->Value;
+
+			break;
+		}
+		case AresTriggerEvents::DestroyedByHouse:
+		{
+			result = ((AresTriggerEvents)Args.EventType == AresTriggerEvents::DestroyedByHouse)
+				&& Args.Source
 				&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
 
 			break;
@@ -651,7 +688,7 @@ namespace TEventExt_dummy
 			break;
 		}
 		default:
-			switch (Args.EventType)
+			switch (pThis->EventKind)
 			{			
 			case TriggerEvent::TechTypeExists:
 			{
@@ -678,8 +715,9 @@ DEFINE_OVERRIDE_HOOK(0x71E949, TEventClass_HasOccured_Ares , 7)
 {
 
 	GET(TEventClass*, pThis, EBP);
-	GET_BASE(EventArgs const, args, STACK_OFFSET(0x2C, 0x4));
+	GET_STACK(EventArgs const, args, (0x2C + 0x4));
 	enum { return_true = 0x71F1B1, return_false = 0x71F163 };
+
 	bool result = false;
 	if (TEventExt_dummy::HasOccured(pThis, args, result))
 	{

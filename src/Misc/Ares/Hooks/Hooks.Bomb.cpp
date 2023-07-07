@@ -53,10 +53,8 @@ namespace Funcs
 				pBomb->TickSound = pWeaponExt->Ivan_TickingSound.Get(RulesClass::Instance->BombTickingSound);
 
 				const auto IsAlly = pSource->Owner && pSource->Owner->IsAlliedWith_(pTarget);
-				const auto Deathbomb = (!IsAlly && pWeaponExt->Ivan_DeathBomb) || (IsAlly && pWeaponExt->Ivan_DeathBombOnAllies);
-				//Debug::Log("Ivan[%s] Planting DeathBomb ? [%d] \n", pSource->get_ID(), Deathbomb);
-				
-				pBomb->Type = Deathbomb ? BombType::DeathBomb : BombType::NormalBomb;
+
+				pBomb->Type = BombType((!IsAlly && pWeaponExt->Ivan_DeathBomb) || (IsAlly && pWeaponExt->Ivan_DeathBombOnAllies));
 
 				if (pSource->Owner && pSource->Owner->ControlledByPlayer())
 				{

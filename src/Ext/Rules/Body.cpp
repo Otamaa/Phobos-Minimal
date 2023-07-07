@@ -120,6 +120,7 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->DecloakAnim.Read(iniEX, AUDIOVISUAL_SECTION, "DecloakAnim");
 	pData->Cloak_KickOutParasite.Read(iniEX, GameStrings::CombatDamage, "Cloak.KickOutParasite");
 
+	// TODO : move this to its main place , not modifiable thru map ,..
 	if (pINI == CCINIClass::INI_Rules)
 	{
 		char buffer[0x30];
@@ -165,6 +166,27 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 						pTypeExt->Linked_SW.push_back(pSWType);
 			}
 		}
+
+		//for (auto pType : *TechnoTypeClass::Array)
+		//{
+		//	if (auto pTypeExt = TechnoTypeExt::ExtMap.TryFind(pType)){
+		//
+		//		char Temp_[0x80];
+		//		pTypeExt->SpecificExpFactor.clear();
+		//		for (int i = 0;; ++i)
+		//		{
+		//			Nullable<TechnoTypeClass*> Temp {};
+		//			IMPL_SNPRNINTF(Temp_, sizeof(Temp_), "SpecificExperience%d.Type", i);
+		//				Temp.Read(iniEX, pType->ID, Temp_);
+		//
+		//			if (!Temp)
+		//				break;
+		//
+		//			IMPL_SNPRNINTF(Temp_, sizeof(Temp_), "SpecificExperience%d.Factor", i);
+		//			pTypeExt->SpecificExpFactor[Temp.Get()].Read(iniEX, pType->ID, Temp_);
+		//		}
+		//	}
+		//}
 	}
 
 }

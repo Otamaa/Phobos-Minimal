@@ -785,14 +785,15 @@ struct TargetingFuncs
 		// find the first building providing super
 		auto index = info.Super->Type->ArrayIndex;
 		const auto& buildings = info.Owner->Buildings;
-
 		// Ares < 0.9 didn't check power
 		const auto it = std::find_if(buildings.begin(), 
 			buildings.end(), [index, &info](BuildingClass* pBld)
 		{
 			auto const pExt = BuildingExt::ExtMap.Find(pBld);
 
-			if (pExt->HasSuperWeapon(index, true) && pBld->IsPowerOnline())
+			if ( /*pExt->HasSuperWeapon(index, true)*/ 
+				info.NewType->IsLaunchSite(info.TypeExt, pBld) 
+				&& pBld->IsPowerOnline())
 			{
 				auto cell = CellClass::Coord2Cell(pBld->GetCoords());
 
@@ -987,8 +988,7 @@ bool SWTypeExt::ExtData::CanFire(HouseClass* pOwner)
 	if (nAmount < 0)
 		return true;
 
-	const auto pHouseExt = HouseExt::ExtMap.Find(pOwner);
-	return pHouseExt->GetShotCount(this->Get()).Count < nAmount;
+	return HouseExt::ExtMap.Find(pOwner)->GetShotCount(this->Get()).Count < nAmount;
 }
 
 // can i see the animation of pFirer's SW?
@@ -1657,12 +1657,6 @@ void SWTypeExt::ExtData::ApplySWNext(SuperClass* pSW, const CellStruct& cell)
 
 void SWTypeExt::ExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const CellStruct* const pCell, bool IsCurrentPlayer)
 {
-	if (!pHouse)
-	{
-		Debug::Log("SW[%x] Trying To execute %s with nullptr HouseOwner ! \n", pSW, "FireSuperWeapon");
-		return;
-	}
-
 	if (!this->LimboDelivery_Types.empty())
 		ApplyLimboDelivery(pHouse);
 

@@ -276,8 +276,6 @@ DEFINE_OVERRIDE_HOOK(0x66F7C0, Buf_PPA, 9)
 	return 0x66F9FA;
 }
 
-
-
 DEFINE_OVERRIDE_HOOK(0x66F34B, Buf_RepairBay, 5)
 {
 	GET(RulesClass*, Rules, ESI);

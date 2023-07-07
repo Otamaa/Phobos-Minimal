@@ -734,6 +734,23 @@ DEFINE_OVERRIDE_HOOK(0x746C55, UnitClass_GetUIName_Space, 6)
 DEFINE_OVERRIDE_HOOK(0x740031, UnitClass_GetActionOnObject_NoManualUnload, 6)
 {
 	GET(UnitClass const* const, pThis, ESI);
+
+	/*
+	if(pExt->NoManualUnload)
+		return 0x740115u;
+
+	if(pThis->Passengers.NumPassengers)
+		R->EBP(&pThis->Passengers);
+	else
+	{
+		int nVal = Action::NoDeploy;
+		if(pThis->Type->DeployFire)
+		nVal = Action::Self;
+
+		R->Stack(0x28 ,nVal);
+		return 0x73FFFC;
+	}
+	*/
 	return TechnoTypeExt::ExtMap.Find(pThis->Type)->NoManualUnload ? 0x740115u : 0u;
 }
 

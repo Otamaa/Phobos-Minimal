@@ -782,6 +782,7 @@ public:
 		Nullable<bool> Cloak_KickOutParasite { };
 
 		ValueableVector<AnimTypeClass*> DeployAnims {};
+		PhobosMap<TechnoTypeClass*, Valueable<float>> SpecificExpFactor {};
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, AttachedEffect { OwnerObject }

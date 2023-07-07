@@ -850,7 +850,10 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->CloakAnim.Read(exINI, pSection, "CloakAnim");
 		this->DecloakAnim.Read(exINI, pSection, "DecloakAnim");
 		this->Cloak_KickOutParasite.Read(exINI, pSection, "Cloak.KickOutParasite");
-		this->DeployAnims.Read(exINI, pSection, "DeployingAnim");
+
+		//not fully working atm , disabled
+		//this->DeployAnims.Read(exINI, pSection, "DeployingAnim");
+
 #pragma region AircraftOnly
 		if (Is_AircraftType(pThis))
 		{
@@ -1731,6 +1734,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DecloakAnim)
 		.Process(this->Cloak_KickOutParasite)
 		.Process(this->DeployAnims)
+		.Process(this->SpecificExpFactor)
 #pragma endregion
 		;
 

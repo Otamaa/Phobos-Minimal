@@ -80,8 +80,10 @@ void UnitDeliveryStateMachine::PlaceUnits()
 	const auto nPlace = this->Coords;
 
 	// create an instance of each type and place it
-	for (auto& pType : pData->SW_Deliverables)
+	// Otamaa : this thing bugged on debug mode , idk 
+	for (auto nPos = pData->LimboDelivery_Types.begin(); nPos != pData->LimboDelivery_Types.end(); ++nPos)
 	{
+		auto pType = *nPos;
 		auto Item = static_cast<TechnoClass*>(pType->CreateObject(pOwner));
 
 		if (!Item)

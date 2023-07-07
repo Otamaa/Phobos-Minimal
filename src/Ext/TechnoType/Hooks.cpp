@@ -252,18 +252,19 @@ DEFINE_HOOK(0x739B7C, UnitClass_Deploy_DeployDir, 0x6)
 	return SkipAnim;
 }
 
-NOINLINE AnimTypeClass* GetDeployAnim(UnitClass* pThis)
+AnimTypeClass* GetDeployAnim(UnitClass* pThis)
 {
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	//auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
-	if (pExt->DeployAnims.empty())
-		return nullptr;
+	//if (pExt->DeployAnims.empty())
+	//	return nullptr;
 
-	if(((pExt->DeployAnims.size() & 28u) != 0u))
-		return pExt->DeployAnims[0];
+	//if(((pExt->DeployAnims.size() & 28u) != 0u))
+	//	return pExt->DeployAnims[0];
 
-	const auto nIdx = ((pExt->DeployAnims.size() * (((pThis->PrimaryFacing.Current().Raw >> 7) + 1) >> 1)) >> 8);
-	return pExt->DeployAnims[nIdx];
+	//const auto nIdx = (((pExt->DeployAnims.size() >> 2) * (((pThis->PrimaryFacing.Current().Raw >> 7) + 1) >> 1)) >> 8);
+	//return pExt->DeployAnims[nIdx];
+	return pThis->Type->DeployingAnim;
 }
 
 bool NOINLINE SetAnim(AnimTypeClass* pAnimType , UnitClass* pUnit , bool isDeploying)
@@ -317,13 +318,13 @@ DEFINE_HOOK(0x739D73 , UnitClass_UnDeploy_DeployAnim , 0x6)
 		0x739E04 : 0x739E46;
 }
 
-DEFINE_HOOK(0x714706, TechnoTypeClass_read_DeployAnim, 0x9)
-{
-	GET(TechnoTypeClass*, pThis, EBP);
-	pThis->UnloadingClass = R->EAX<UnitTypeClass*>();
-	R->EAX((UnitTypeClass*)nullptr);
-	return 0x71473F;
-}
+//DEFINE_HOOK(0x714706, TechnoTypeClass_read_DeployAnim, 0x9)
+//{
+//	GET(TechnoTypeClass*, pThis, EBP);
+//	pThis->UnloadingClass = R->EAX<UnitTypeClass*>();
+//	R->EAX((UnitTypeClass*)nullptr);
+//	return 0x71473F;
+//}
 
 // DEFINE_HOOK_AGAIN(0x739D8B, UnitClass_DeployUndeploy_DeployAnim, 0x5)
 // DEFINE_HOOK(0x739BA8, UnitClass_DeployUndeploy_DeployAnim, 0x5)

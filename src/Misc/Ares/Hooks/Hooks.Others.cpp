@@ -3588,15 +3588,15 @@ bool ScriptExt_Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bTh
 }
 
 
-//DEFINE_OVERRIDE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
-//{
-//	enum { ReturnFunc = 0x6E95AB, Continue = 0x0 };
-//	GET(TeamClass*, pThis, ESI);
-//	GET(ScriptActionNode*, pTeamMission, EAX);
-//	GET_STACK(bool, bThirdArg, 0x10);
-//	return ScriptExt_Handle(pThis, pTeamMission, bThirdArg)
-//		? ReturnFunc : Continue;
-//}
+DEFINE_OVERRIDE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
+{
+	enum { ReturnFunc = 0x6E95AB, Continue = 0x0 };
+	GET(TeamClass*, pThis, ESI);
+	GET(ScriptActionNode*, pTeamMission, EAX);
+	GET_STACK(bool, bThirdArg, 0x10);
+	return ScriptExt_Handle(pThis, pTeamMission, bThirdArg)
+		? ReturnFunc : Continue;
+}
 
 DEFINE_OVERRIDE_HOOK(0x413FD2, AircraftClass_Init_Academy, 6)
 {
@@ -4647,7 +4647,6 @@ DEFINE_OVERRIDE_HOOK(0x44C844, BuildingClass_MissionRepair_Reload, 6)
 
 	return 0x44C968;
 }
-
 
 //#include <EventClass.h>
 

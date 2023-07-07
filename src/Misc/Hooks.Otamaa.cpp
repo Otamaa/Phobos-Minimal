@@ -3605,6 +3605,7 @@ DEFINE_HOOK(0x73D909, UnitClass_Mi_Unload_LastPassengerOut, 8)
 
 	if (pThis->Passengers.NumPassengers < pThis->NonPassengerCount)
 	{
+		pThis->MissionStatus = 4;
 		pThis->QueueMission(Mission::Guard, false);
 		pThis->NextMission();
 		pThis->unknown_bool_B8 = true;

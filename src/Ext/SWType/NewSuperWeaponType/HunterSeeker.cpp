@@ -2,6 +2,7 @@
 
 #include <Misc/AresData.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/Building/Body.h>
 #include <Ext/Rules/Body.h>
 
 std::vector<const char*> SW_HunterSeeker::GetTypeString() const
@@ -25,56 +26,54 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 		return false;
 	}
 
-	// get the appropriate launch buildings list
-	auto HSBuilding = pExt->HunterSeeker_Buildings.size()  
-		? &pExt->HunterSeeker_Buildings : &RulesExt::Global()->HunterSeekerBuildings;
+
 
 	// the maximum number of buildings to fire. negative means all.
 	const auto Count = (pExt->SW_MaxCount >= 0)
 		? static_cast<size_t>(pExt->SW_MaxCount)
 		: std::numeric_limits<size_t>::max();
 
+	//
+
 	// only call on up to Count buildings that suffice IsEligible
 	size_t Success = 0;
 	Helpers::Alex::for_each_if_n(pOwner->Buildings.begin(), pOwner->Buildings.end(),
-		Count, [&HSBuilding](BuildingClass* pBld) { return HSBuilding->Contains(pBld->Type); },
-			   [=, &Success](BuildingClass* pBld)
-	{
-		auto cell = this->GetLaunchCell(pExt, pBld, pType);
+		Count, 
+		[=](BuildingClass* pBld) { return this->IsLaunchSite(pExt, pBld); },
+		[=, &Success](BuildingClass* pBld) { auto cell = this->GetLaunchCell(pExt, pBld, pType);
 
-		if (cell == CellStruct::Empty) {
-			return;
-		}
-
-		// Otama : something is change here ? alex seems creating new function for these .//
-		// create a hunter seeker
-		if (auto pHunter = static_cast<UnitClass*>(pType->CreateObject(pOwner)))
-		{
-			if(pHunter->Type->HunterSeeker)
-				TechnoExt::ExtMap.Find(pHunter)->LinkedSW = pThis;
-
-			// put it on the map and let it go
-			CoordStruct crd = CellClass::Cell2Coord(cell);
-
-			if (pHunter->Unlimbo(crd, DirType::East))
-			{
-				pHunter->Locomotor->Acquire_Hunter_Seeker_Target();
-				pHunter->QueueMission(pHunter->Type->Harvester ? Mission::Area_Guard : Mission::Attack, false);
-				pHunter->NextMission();
-				++Success;
+			if (cell == CellStruct::Empty) {
+				return;
 			}
-			else
+
+			// Otama : something is change here ? alex seems creating new function for these .//
+			// create a hunter seeker
+			if (auto pHunter = static_cast<UnitClass*>(pType->CreateObject(pOwner)))
 			{
-				GameDelete(pHunter);
+				if(pHunter->Type->HunterSeeker)
+					TechnoExt::ExtMap.Find(pHunter)->LinkedSW = pThis;
+
+				// put it on the map and let it go
+				CoordStruct crd = CellClass::Cell2Coord(cell);
+
+				if (pHunter->Unlimbo(crd, DirType::East))
+				{
+					pHunter->Locomotor->Acquire_Hunter_Seeker_Target();
+					pHunter->QueueMission(pHunter->Type->Harvester ? Mission::Area_Guard : Mission::Attack, false);
+					pHunter->NextMission();
+					++Success;
+				}
+				else
+				{
+					GameDelete(pHunter);
+				}
 			}
-		}
-	});
+		});
 
 	// no launch building found
-	if (!Success)
-	{
+	if (!Success) {
 		Debug::Log("HunterSeeker super weapon \"%s\" could not be launched. House \"%ls\" "
-			"does not own any HSBuilding (%u types set).\n", pThis->Type->ID, pOwner->UIName, HSBuilding->size());
+			"does not own any HSBuilding or No Buildings attached with this HSType Superweapon.\n", pThis->Type->ID, pOwner->UIName);
 	}
 
 	return Success != 0;
@@ -111,6 +110,27 @@ void SW_HunterSeeker::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	// hardcoded
 	pData->Get()->Action = Action::None;
 	pData->SW_RadarEvent = false;
+}
+
+bool SW_HunterSeeker::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+{
+	const auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
+	if (pBldExt->LimboID != -1)
+		return false;
+
+	if (!this->IsLaunchsiteAlive(pBuilding))
+		return false;
+
+	// don't further question the types in this list
+		// get the appropriate launch buildings list
+	const auto HSBuilding = pData->HunterSeeker_Buildings.size()
+		? &pData->HunterSeeker_Buildings : &RulesExt::Global()->HunterSeekerBuildings;
+
+	if (!HSBuilding->empty() && HSBuilding->Contains(pBuilding->Type)) {
+		return true; //quick exit
+	}
+
+	return this->IsSWTypeAttachedToThis(pData, pBuilding);
 }
 
 CellStruct SW_HunterSeeker::GetLaunchCell(SWTypeExt::ExtData* pSWType, BuildingClass* pBuilding, UnitTypeClass* pHunter) const

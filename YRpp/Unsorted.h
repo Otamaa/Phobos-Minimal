@@ -113,6 +113,7 @@ struct Game
 	static constexpr reference<wchar_t, 0xB73318u, 257u> const IMECompositionString {};
 
 	static constexpr reference<bool, 0xA8F7ACu> const DontSetExceptionHandler{};
+	static constexpr reference<bool, 0xB04880u> const EnableMPSyncDebug{};
 
 	static struct Network
 	{
