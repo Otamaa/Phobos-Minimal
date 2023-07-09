@@ -491,7 +491,12 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->CreateSound_Enable.Read(exINI, pSection, "CreateSound.Enable");
 
 		this->Eva_Complete.Read(exINI, pSection, "EVA.Complete");
-		this->VoiceCreate.Read(exINI, pSection, "VoiceCreate");
+
+		if (exINI.ReadString(pSection, "VoiceCreated")) {
+			this->VoiceCreate = VocClass::FindIndexById(exINI.c_str());
+		} else {
+			this->VoiceCreate.Read(exINI, pSection, "VoiceCreate");
+		}
 
 		this->SlaveFreeSound_Enable.Read(exINI, pSection, "SlaveFreeSound.Enable");
 		this->SlaveFreeSound.Read(exINI, pSection, "SlaveFreeSound");
@@ -511,9 +516,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->IsDummy.Read(exINI, pSection, "Dummy");
 
 		{
-			// UpdateCode Disabled 
+			// UpdateCode Disabled
 			// TODO : what will happen if the vectors for different state have different item count ?
-			// that will trigger crash because of out of bound idx 
+			// that will trigger crash because of out of bound idx
 			// so disable these untill i can figure out better codes
 
 			this->FireSelf_Weapon.Read(exINI, pSection, "FireSelf.Weapon");
@@ -581,7 +586,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 #pragma region Prereq
 
 		//TODO : PrerequisiteOverride
-	
+
 		this->Prerequisite_RequiredTheaters.Read(exINI, pSection, "Prerequisite.RequiredTheaters");
 
 		// subtract the default list, get tag (not less than 0), add one back
@@ -699,11 +704,11 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		this->OmniCrusher_Aggressive.Read(exINI, pSection, "OmniCrusher.Aggressive");
 		this->CrusherDecloak.Read(exINI, pSection, "Crusher.Decloak");
-		this->Crusher_SupressLostEva.Read(exINI, pSection, "Crusher.UnitLost.Suppress");
+		this->Crusher_SupressLostEva.Read(exINI, pSection, "Crusher.SuppressLostEVA");
+		this->CrushRange.Read(exINI, pSection, "Crusher.Range.%s");
 
 		this->CrushFireDeathWeapon.Read(exINI, pSection, "CrushFireDeathWeaponChance.%s");
 		this->CrushDamage.Read(exINI, pSection, "CrushDamage.%s");
-		this->CrushRange.Read(exINI, pSection, "CrushRange.%s");
 		this->CrushDamageWarhead.Read(exINI, pSection, "CrushDamage.Warhead");
 
 		this->DigInSound.Read(exINI, pSection, "DigInSound");
@@ -851,6 +856,23 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->DecloakAnim.Read(exINI, pSection, "DecloakAnim");
 		this->Cloak_KickOutParasite.Read(exINI, pSection, "Cloak.KickOutParasite");
 
+		// killer tags
+		this->Bounty.Read(exINI, pSection, "Bounty");
+		this->Bounty_Display.Read(exINI, pSection, "Bounty.Display");
+		this->BountyAllow.Read(exINI, pSection, "Bounty.AffectTypes");
+		this->BountyDissallow.Read(exINI, pSection, "Bounty.IgnoreTypes");
+		this->BountyBonusmult.Read(exINI, pSection, "Bounty.%sBonusMult");
+		this->Bounty_IgnoreEnablers.Read(exINI, pSection, "Bounty.IgnoreEnablers");
+
+		// victim tags
+		this->Bounty_Value.Read(exINI, pSection, "Bounty.%sValue");
+		this->Bounty_Value_Option.Read(exINI, pSection, "Bounty.RewardOption");
+		this->Bounty_Value_mult.Read(exINI, pSection, "Bounty.%sValueMult");
+
+		this->DeathWeapon_CheckAmmo.Read(exINI, pSection, "DeathWeapon.CheckAmmo");
+		this->Initial_DriverKilled.Read(exINI, pSection, "Initial.DriverKilled");
+
+		this->VoiceCantDeploy.Read(exINI, pSection, "VoiceCantDeploy");
 		//not fully working atm , disabled
 		//this->DeployAnims.Read(exINI, pSection, "DeployingAnim");
 
@@ -886,7 +908,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 			this->AttackingAircraftSightRange.Read(exINI, pSection, "AttackingAircraftSightRange");
 			this->CrashWeapon_s.Read(exINI, pSection, "Crash.Weapon", true);
 			this->CrashWeapon.Read(exINI, pSection, "Crash.%sWeapon",nullptr , true);
-			this->DeathWeapon_CheckAmmo.Read(exINI, pSection, "DeathWeapon.CheckAmmo");
+
 			this->NoAirportBound_DisableRadioContact.Read(exINI, pSection, "NoAirportBound.DisableRadioContact");
 
 			this->TakeOff_Anim.Read(exINI, pSection, "TakeOff.Anim");
@@ -905,19 +927,6 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 			this->HunterSeekerEmergeSpeed.Read(exINI, pSection, "HunterSeeker.EmergeSpeed");
 			this->HunterSeekerIgnore.Read(exINI, pSection, "HunterSeeker.Ignore");
 
-			// killer tags
-			this->Bounty.Read(exINI, pSection, "Bounty");
-			this->Bounty_Display.Read(exINI, pSection, "Bounty.Display");
-			this->BountyAllow.Read(exINI, pSection, "Bounty.AffectTypes");
-			this->BountyDissallow.Read(exINI, pSection, "Bounty.IgnoreTypes");
-			this->BountyBonusmult.Read(exINI, pSection, "Bounty.%sBonusMult");
-			this->Bounty_IgnoreEnablers.Read(exINI, pSection, "Bounty.IgnoreEnablers");
-
-			// victim tags
-			this->Bounty_Value.Read(exINI, pSection, "Bounty.%sValue");
-			this->Bounty_Value_Option.Read(exINI, pSection, "Bounty.RewardOption");
-			this->Bounty_Value_mult.Read(exINI, pSection, "Bounty.%sValueMult");
-
 			this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
 			this->MyDiveData.Read(exINI, pSection);
 			this->MyPutData.Read(exINI, pSection);
@@ -932,7 +941,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		INI_EX exArtINI(pArtIni);
 
 		this->TurretOffset.Read(exArtINI, pArtSection, GameStrings::TurretOffset());
-		
+
 		if (!this->TurretOffset.isset())
 		{
 			//put ddedfault single value inside
@@ -1735,6 +1744,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Cloak_KickOutParasite)
 		.Process(this->DeployAnims)
 		.Process(this->SpecificExpFactor)
+		.Process(this->Initial_DriverKilled)
+		.Process(this->VoiceCantDeploy)
 #pragma endregion
 		;
 

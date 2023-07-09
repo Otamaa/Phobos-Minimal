@@ -116,7 +116,6 @@ enum class QuarryType : int
 	TechBuildings = 0xb,
 };
 
-
 enum class SellCheckType :int
 {
 	CheckMissionDeconst = -1,
@@ -461,7 +460,9 @@ enum class TriggerEvent : unsigned int {
 	PowerFull = 0x3A,
 	EnteredOrOverflownBy = 0x3B,
 	TechTypeExists = 0x3C,
-	TechTypeDoesntExist = 0x3D
+	TechTypeDoesntExist = 0x3D,
+
+	count
 };
 
 enum class TriggerAction : unsigned int {
@@ -610,7 +611,9 @@ enum class TriggerAction : unsigned int {
 	RetintRed = 0x8E,
 	RetintGreen = 0x8F,
 	RetintBlue = 0x90,
-	JumpCameraHome = 0x91
+	JumpCameraHome = 0x91,
+
+	count
 };
 
 enum class TriggerAttachType : int {
@@ -737,7 +740,6 @@ enum class BehavesLike : int {
 	Spark = 3,
 	Railgun = 4
 };
-
 
 //ParticleSystemTypeClass->HoldsWhat, almost, but not entirely, unlike eBehavesLike above
 enum class ParticleSystemHoldsWhat : int
@@ -898,7 +900,6 @@ enum class CanBuildResult : int {
 	Unbuildable = 0, // permanently; remove cameo
 	Buildable = 1, // can build
 };
-
 
 // this is how game's enums are to be defined from now on
 enum class FireError : int {
@@ -1724,6 +1725,78 @@ enum class WWKey : int {
 	Button = 0x8000,
 };
 MAKE_ENUM_FLAGS(WWKey)
+
+enum class TeamMissionType : int
+{
+	Attack = 0,
+	Att_waypt = 1,
+	Go_bezerk = 2,//ts
+	Move = 3,
+	Movecell = 4,
+	Guard = 5,
+	Loop = 6,
+	Player_wins = 7,//ts
+	Unload = 8,
+	Deploy = 9,
+	Hound_dog = 10,
+	Do = 11,
+	Set_global = 12,
+	Idle_anim = 13,//ts
+	Load = 14,
+	Spy = 15,
+	Patrol = 16,
+	Change_script = 17,//ts
+	Change_team = 18,//ts
+	Panic = 19,//ts
+	Change_house = 20,//ts
+	Scatter = 21,//ts
+	Goto_nearby_shroud = 22,//ts
+	Player_loses = 23,//ts
+	Play_speech = 24,//ts
+	Play_sound = 25,//ts
+	Play_movie = 26,//ts
+	Play_music = 27,//ts
+	Reduce_tiberium = 28,//ts
+	Begin_production = 29,//ts
+	Fire_sale = 30,//ts
+	Self_destruct = 31,//ts
+	Ion_storm_start_in = 32,//ts
+	Ion_storn_end = 33,//ts
+	Center_view_on_team = 34,//ts
+	Reshroud_map = 35,//ts
+	Reveal_map = 36,//ts
+	Delete_team_members = 37,//ts
+	Clear_global = 38,//ts
+	Set_local = 39,//ts
+	Clear_local = 40,//ts
+	Unpanic = 41,//ts
+	Force_facing = 42,//ts
+	Wait_till_fully_loaded = 43,//ts
+	Truck_unload = 44,//ts
+	Truck_load = 45,//ts
+	Attack_enemy_building = 46,//ts
+	Moveto_enemy_building = 47,//ts
+	Scout = 48,//ts
+	Success = 49,//ts
+	Flash = 50,//ts
+	Play_anim = 51,//ts
+	Talk_bubble = 52,//ts
+	Gather_at_enemy = 53,//ra2
+	Gather_at_base = 54,//ra2
+	Iron_curtain_me = 55,//ra2
+	Chrono_prep_for_abwp = 56,//ra2
+	Chrono_prep_for_aq = 57,//ra2
+	Move_to_own_building = 58,//ra2
+	Attack_building_at_waypoint = 59, //yr
+	Enter_grinder = 60, //yr
+	Occupy_tank_bunker = 61, //yr
+	Enter_bio_reactor = 62, //yr
+	Occupy_battle_bunker = 63, //yr
+	Garrison_building = 64, //yr
+
+	count = 65,
+	none = -1,
+};
 
 //Westwood custom messages (e.g. for SendMessage)
 #define	WW_SLIDER_GETVALUE			0x400

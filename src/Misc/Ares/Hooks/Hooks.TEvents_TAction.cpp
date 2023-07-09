@@ -18,9 +18,11 @@
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/Terrain/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/Bullet/Body.h>
 
 #include <TerrainTypeClass.h>
 #include <New/Type/ArmorTypeClass.h>
+#include <Lib/gcem/gcem.hpp>
 
 #include <Notifications.h>
 #include <Misc/AresData.h>
@@ -262,12 +264,13 @@ std::pair<bool, TriggerAttachType> GetTEventAttachFlags(AresTriggerEvents nEvent
 	return { false ,TriggerAttachType::None };
 }
 
-DEFINE_OVERRIDE_HOOK(0x71f683 , TEventClass_GetFlags_Ares, 5)
+DEFINE_OVERRIDE_HOOK(0x71f683, TEventClass_GetFlags_Ares, 5)
 {
 	GET(AresTriggerEvents, nAction, ECX);
 
-	const auto& [handled , result] = GetTEventAttachFlags(nAction);
-	if (handled) {
+	const auto& [handled, result] = GetTEventAttachFlags(nAction);
+	if (handled)
+	{
 		R->EAX(result);
 		return 0x71F6F6;
 	}
@@ -347,16 +350,16 @@ namespace TEventExt_dummy
 
 		if (!pType->Insignificant && !pType->DontScore)
 		{
-			HouseClass** arr = pWho ? &pWho : HouseClass::Array->Items;
-			HouseClass** nEnd = &arr[pWho ? 1 : HouseClass::Array->Count];
+			HouseClass** const arr = pWho ? &pWho : HouseClass::Array->Items;
+			HouseClass** const nEnd = &arr[(pWho ? 1 : HouseClass::Array->Count)];
+
 			int i = args;
 
 			for (HouseClass** nPos = &arr[0]; nPos != nEnd; ++nPos)
 			{
 				i -= (*nPos)->CountOwnedNow(pType);
 
-				if (i <= 0)
-				{
+				if (i <= 0) {
 					return true;
 				}
 			}
@@ -373,8 +376,7 @@ namespace TEventExt_dummy
 					if (pWho && pWho != pTechno->Owner)
 						continue;
 
-					if (pTechno->GetTechnoType() == pType)
-					{
+					if (pTechno->Type == pType) {
 						i--;
 
 						if (i <= 0)
@@ -452,266 +454,272 @@ namespace TEventExt_dummy
 	// the bool result pointer is for the result of the Event itself
 	bool NOINLINE HasOccured(TEventClass* pThis, EventArgs const Args, bool& result)
 	{
-		switch ((AresTriggerEvents)pThis->EventKind)
+		if (pThis->EventKind < TriggerEvent::count)
 		{
-		case AresTriggerEvents::UnderEMP:
-		case AresTriggerEvents::UnderEMP_ByHouse:
-		case AresTriggerEvents::RemoveEMP:
-		case AresTriggerEvents::RemoveEMP_ByHouse:
-		{
-			const auto pTechno = generic_cast<FootClass*>(Args.Object);
-
-			if (pTechno && pThis->EventKind == Args.EventType) {
-
-				switch ((AresTriggerEvents)Args.EventType)
-				{
-				case AresTriggerEvents::UnderEMP:
-				{
-					result = pTechno->EMPLockRemaining > 0;
-					return true;
-				}
-				case AresTriggerEvents::UnderEMP_ByHouse:
-				{
-					if (Args.Source && ((HouseClass*)(Args.Source))->ArrayIndex == pThis->Value)
-					{
-						result = pTechno->EMPLockRemaining > 0;
-						return true;
-					}
-					break;
-				}
-				case AresTriggerEvents::RemoveEMP:
-				{
-					result = pTechno->EMPLockRemaining <= 0;
-					return true;
-				}
-				case AresTriggerEvents::RemoveEMP_ByHouse:
-				{
-					if (Args.Source && ((HouseClass*)(Args.Source))->ArrayIndex == pThis->Value)
-					{
-						result = pTechno->EMPLockRemaining <= 0;
-						return true;
-					}
-					break;
-				}
-				}
-			}
-
-			result = false;
-			return true;
-		}
-		case AresTriggerEvents::EnemyInSpotlightNow:
-		{
-			result = true;
-			break;
-		}
-		case AresTriggerEvents::DriverKiller:
-		{
-			result = generic_cast<FootClass*>(Args.Object)
-				&& pThis->EventKind == Args.EventType;
-
-			break;
-		}
-		case AresTriggerEvents::DriverKilled_ByHouse:
-		{
-			result = generic_cast<FootClass*>(Args.Object)
-				&& pThis->EventKind == Args.EventType
-				&& Args.Source
-				&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
-
-			break;
-		}
-		case AresTriggerEvents::VehicleTaken:
-		{
-			result = generic_cast<FootClass*>(Args.Object) 
-				&& pThis->EventKind == Args.EventType;
-
-			break;
-		}
-		case AresTriggerEvents::VehicleTaken_ByHouse:
-		{
-			result = generic_cast<FootClass*>(Args.Object)
-				&& pThis->EventKind == Args.EventType
-				&& Args.Source
-				&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
-
-			break;
-		}
-		case AresTriggerEvents::Abducted:
-		case AresTriggerEvents::AbductSomething:
-		case AresTriggerEvents::Abducted_ByHouse:
-		case AresTriggerEvents::AbductSomething_OfHouse:
-		{
-			const auto pTechno = generic_cast<FootClass*>(Args.Object);
-
-			if (pTechno && pThis->EventKind == Args.EventType)
-			{
-				switch ((AresTriggerEvents)Args.EventType)
-				{
-				case AresTriggerEvents::Abducted:
-				case AresTriggerEvents::AbductSomething:
-				{
-					result = true;
-					return true;
-				}
-				case AresTriggerEvents::Abducted_ByHouse:
-				{
-					if (generic_cast<TechnoClass*>(Args.Source) && ((TechnoClass*)(Args.Source))->Owner->ArrayIndex == pThis->Value)
-					{
-						result = true;
-						return true;
-					}
-
-					break;
-				}
-				case AresTriggerEvents::AbductSomething_OfHouse:
-				{
-					if (specific_cast<HouseClass*>(Args.Source) && ((HouseClass*)(Args.Source))->ArrayIndex == pThis->Value)
-					{
-						result = true;
-						return true;
-					}
-
-					break;
-				}
-				}
-			}
-
-			result = false;
-			break;
-		}
-		case AresTriggerEvents::SuperActivated:
-		case AresTriggerEvents::SuperDeactivated:
-		{
-			result = pThis->EventKind == Args.EventType
-				&& Args.Source
-				&& Args.Source->WhatAmI() == AbstractType::Super
-				&& ((SuperClass*)Args.Source)->Type->ArrayIndex == pThis->Value;
-
-			break;
-		}
-		case AresTriggerEvents::SuperNearWaypoint:
-		{
-			struct PackedDatas
-			{
-				SuperClass* Super;
-				CellStruct Cell;
-			};
-
-			if ((pThis->EventKind == Args.EventType) && IS_SAME_STR_(((PackedDatas*)Args.Source)->Super->Type->ID, pThis->String))
-			{
-				const auto nCell = ScenarioClass::Instance->GetWaypointCoords(pThis->Value);
-				CellStruct nDesired = { ((PackedDatas*)Args.Source)->Cell.X - nCell.X ,((PackedDatas*)Args.Source)->Cell.Y - nCell.Y };
-				if (nDesired.MagnitudeSquared() <= 5.0)
-				{
-					result = true;
-					break;
-				}
-			}
-
-			result = false;
-			break;
-		}
-		case AresTriggerEvents::ReverseEngineered:
-		{
-			if (!Args.Owner)
-				result = false;
-			else
-			{
-				auto const& nVec = ReverseEngineeredTechnoType(Args.Owner);
-				result = std::any_of(nVec.begin(), nVec.end(), [&](TechnoTypeClass* pTech)
-					{ return pTech == TEventExt::ExtMap.Find(pThis)->GetTechnoType(); });
-			}
-			break;
-		}
-		case AresTriggerEvents::ReverseEngineerAnything:
-		{
-			result = (pThis->EventKind == Args.EventType);
-			break;
-		}
-		case AresTriggerEvents::ReverseEngineerType:
-		{
-			result = ((TechnoClass*)Args.Source)->GetTechnoType() == TEventExt::ExtMap.Find(pThis)->GetTechnoType();
-			break;
-		}
-		case AresTriggerEvents::HouseOwnTechnoType:
-		{
-			result = FindTechnoType(pThis, pThis->Value, Args.Owner);
-			break;
-		}
-		case AresTriggerEvents::HouseDoesntOwnTechnoType:
-		{
-			result = !FindTechnoType(pThis, pThis->Value + 1, Args.Owner);
-			break;
-		}
-		case AresTriggerEvents::AttackedOrDestroyedByAnybody:
-		{
-			result = (pThis->EventKind == Args.EventType);
-			break;
-		}
-		case AresTriggerEvents::AttackedOrDestroyedByHouse:
-		{
-			result = (pThis->EventKind == Args.EventType)
-				&& Args.Source
-				&& ((TechnoClass*)Args.Source)->Owner->ArrayIndex == pThis->Value;
-
-			break;
-		}
-		case AresTriggerEvents::DestroyedByHouse:
-		{
-			result = ((AresTriggerEvents)Args.EventType == AresTriggerEvents::DestroyedByHouse)
-				&& Args.Source
-				&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
-
-			break;
-		}
-		case AresTriggerEvents::TechnoTypeDoesntExistMoreThan:
-		{
-			result = FindTechnoType(pThis, pThis->Value + 1, nullptr);
-			break;
-		}
-		case AresTriggerEvents::AllKeepAlivesDestroyed:
-		{
-			const HouseClass* pHouse = pThis->Value == 0x2325 ?
-				nullptr : HouseClass::Index_IsMP(pThis->Value) ?
-				HouseClass::FindByIndex(pThis->Value) : HouseClass::FindByCountryIndex(pThis->Value);
-
-			result = pHouse && KeepAlivesCount(pHouse) <= 0;
-			break;
-		}
-		case AresTriggerEvents::AllKeppAlivesBuildingDestroyed:
-		{
-			const HouseClass* pHouse = pThis->Value == 0x2325 ?
-				nullptr : HouseClass::Index_IsMP(pThis->Value) ?
-				HouseClass::FindByIndex(pThis->Value) : HouseClass::FindByCountryIndex(pThis->Value);
-
-			result = pHouse && KeepAlivesBuildingCount(pHouse) <= 0;
-			break;
-		}
-		default:
 			switch (pThis->EventKind)
-			{			
+			{
 			case TriggerEvent::TechTypeExists:
 			{
 				//TechnoTypeExist
 				result = FindTechnoType(pThis, pThis->Value, nullptr);
-				break;
+				return true;
 			}
 			case TriggerEvent::TechTypeDoesntExist:
 			{
 				//TechnoTypeDoesntExist
-				result = FindTechnoType(pThis, 1, nullptr);
+				result = !FindTechnoType(pThis, 1, nullptr);
+				return true;
+			}
+			}
+		}
+		else
+		{
+			switch ((AresTriggerEvents)pThis->EventKind)
+			{
+			case AresTriggerEvents::UnderEMP:
+			case AresTriggerEvents::UnderEMP_ByHouse:
+			case AresTriggerEvents::RemoveEMP:
+			case AresTriggerEvents::RemoveEMP_ByHouse:
+			{
+				const auto pTechno = generic_cast<FootClass*>(Args.Object);
+
+				if (pTechno && pThis->EventKind == Args.EventType)
+				{
+
+					switch ((AresTriggerEvents)Args.EventType)
+					{
+					case AresTriggerEvents::UnderEMP:
+					{
+						result = pTechno->EMPLockRemaining > 0;
+						return true;
+					}
+					case AresTriggerEvents::UnderEMP_ByHouse:
+					{
+						if (Args.Source && ((HouseClass*)(Args.Source))->ArrayIndex == pThis->Value)
+						{
+							result = pTechno->EMPLockRemaining > 0;
+							return true;
+						}
+						break;
+					}
+					case AresTriggerEvents::RemoveEMP:
+					{
+						result = pTechno->EMPLockRemaining <= 0;
+						return true;
+					}
+					case AresTriggerEvents::RemoveEMP_ByHouse:
+					{
+						if (Args.Source && ((HouseClass*)(Args.Source))->ArrayIndex == pThis->Value)
+						{
+							result = pTechno->EMPLockRemaining <= 0;
+							return true;
+						}
+						break;
+					}
+					}
+				}
+
+				result = false;
+				return true;
+			}
+			case AresTriggerEvents::EnemyInSpotlightNow:
+			{
+				result = true;
+				break;
+			}
+			case AresTriggerEvents::DriverKiller:
+			{
+				result = generic_cast<FootClass*>(Args.Object)
+					&& pThis->EventKind == Args.EventType;
+
+				break;
+			}
+			case AresTriggerEvents::DriverKilled_ByHouse:
+			{
+				result = generic_cast<FootClass*>(Args.Object)
+					&& pThis->EventKind == Args.EventType
+					&& Args.Source
+					&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
+
+				break;
+			}
+			case AresTriggerEvents::VehicleTaken:
+			{
+				result = generic_cast<FootClass*>(Args.Object)
+					&& pThis->EventKind == Args.EventType;
+
+				break;
+			}
+			case AresTriggerEvents::VehicleTaken_ByHouse:
+			{
+				result = generic_cast<FootClass*>(Args.Object)
+					&& pThis->EventKind == Args.EventType
+					&& Args.Source
+					&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
+
+				break;
+			}
+			case AresTriggerEvents::Abducted:
+			case AresTriggerEvents::AbductSomething:
+			case AresTriggerEvents::Abducted_ByHouse:
+			case AresTriggerEvents::AbductSomething_OfHouse:
+			{
+				const auto pTechno = generic_cast<FootClass*>(Args.Object);
+
+				if (pTechno && pThis->EventKind == Args.EventType)
+				{
+					switch ((AresTriggerEvents)Args.EventType)
+					{
+					case AresTriggerEvents::Abducted:
+					case AresTriggerEvents::AbductSomething:
+					{
+						result = true;
+						return true;
+					}
+					case AresTriggerEvents::Abducted_ByHouse:
+					{
+						if (generic_cast<TechnoClass*>(Args.Source) && ((TechnoClass*)(Args.Source))->Owner->ArrayIndex == pThis->Value)
+						{
+							result = true;
+							return true;
+						}
+
+						break;
+					}
+					case AresTriggerEvents::AbductSomething_OfHouse:
+					{
+						if (specific_cast<HouseClass*>(Args.Source) && ((HouseClass*)(Args.Source))->ArrayIndex == pThis->Value)
+						{
+							result = true;
+							return true;
+						}
+
+						break;
+					}
+					}
+				}
+
+				result = false;
+				break;
+			}
+			case AresTriggerEvents::SuperActivated:
+			case AresTriggerEvents::SuperDeactivated:
+			{
+				result = pThis->EventKind == Args.EventType
+					&& Args.Source
+					&& Args.Source->WhatAmI() == AbstractType::Super
+					&& ((SuperClass*)Args.Source)->Type->ArrayIndex == pThis->Value;
+
+				break;
+			}
+			case AresTriggerEvents::SuperNearWaypoint:
+			{
+				struct PackedDatas
+				{
+					SuperClass* Super;
+					CellStruct Cell;
+				};
+
+				if ((pThis->EventKind == Args.EventType) && IS_SAME_STR_(((PackedDatas*)Args.Source)->Super->Type->ID, pThis->String))
+				{
+					const auto nCell = ScenarioClass::Instance->GetWaypointCoords(pThis->Value);
+					CellStruct nDesired = { ((PackedDatas*)Args.Source)->Cell.X - nCell.X ,((PackedDatas*)Args.Source)->Cell.Y - nCell.Y };
+					if (nDesired.MagnitudeSquared() <= 5.0)
+					{
+						result = true;
+						break;
+					}
+				}
+
+				result = false;
+				break;
+			}
+			case AresTriggerEvents::ReverseEngineered:
+			{
+				if (!Args.Owner)
+					result = false;
+				else
+				{
+					auto const& nVec = ReverseEngineeredTechnoType(Args.Owner);
+					result = std::any_of(nVec.begin(), nVec.end(), [&](TechnoTypeClass* pTech)
+						{ return pTech == TEventExt::ExtMap.Find(pThis)->GetTechnoType(); });
+				}
+				break;
+			}
+			case AresTriggerEvents::ReverseEngineerAnything:
+			{
+				result = (pThis->EventKind == Args.EventType);
+				break;
+			}
+			case AresTriggerEvents::ReverseEngineerType:
+			{
+				result = ((TechnoClass*)Args.Source)->GetTechnoType() == TEventExt::ExtMap.Find(pThis)->GetTechnoType();
+				break;
+			}
+			case AresTriggerEvents::HouseOwnTechnoType:
+			{
+				result = FindTechnoType(pThis, pThis->Value, Args.Owner);
+				break;
+			}
+			case AresTriggerEvents::HouseDoesntOwnTechnoType:
+			{
+				result = !FindTechnoType(pThis, pThis->Value + 1, Args.Owner);
+				break;
+			}
+			case AresTriggerEvents::AttackedOrDestroyedByAnybody:
+			{
+				result = (pThis->EventKind == Args.EventType);
+				break;
+			}
+			case AresTriggerEvents::AttackedOrDestroyedByHouse:
+			{
+				result = (pThis->EventKind == Args.EventType)
+					&& Args.Source
+					&& ((TechnoClass*)Args.Source)->Owner->ArrayIndex == pThis->Value;
+
+				break;
+			}
+			case AresTriggerEvents::DestroyedByHouse:
+			{
+				result = ((AresTriggerEvents)Args.EventType == AresTriggerEvents::DestroyedByHouse)
+					&& Args.Source
+					&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
+
+				break;
+			}
+			case AresTriggerEvents::TechnoTypeDoesntExistMoreThan:
+			{
+				result = FindTechnoType(pThis, pThis->Value + 1, nullptr);
+				break;
+			}
+			case AresTriggerEvents::AllKeepAlivesDestroyed:
+			{
+				const HouseClass* pHouse = pThis->Value == 0x2325 ?
+					nullptr : HouseClass::Index_IsMP(pThis->Value) ?
+					HouseClass::FindByIndex(pThis->Value) : HouseClass::FindByCountryIndex(pThis->Value);
+
+				result = pHouse && KeepAlivesCount(pHouse) <= 0;
+				break;
+			}
+			case AresTriggerEvents::AllKeppAlivesBuildingDestroyed:
+			{
+				const HouseClass* pHouse = pThis->Value == 0x2325 ?
+					nullptr : HouseClass::Index_IsMP(pThis->Value) ?
+					HouseClass::FindByIndex(pThis->Value) : HouseClass::FindByCountryIndex(pThis->Value);
+
+				result = pHouse && KeepAlivesBuildingCount(pHouse) <= 0;
 				break;
 			}
 			}
 
-			return false;
+			return true;
 		}
 
-		return true;
+		return false;
 	}
 }
 
-DEFINE_OVERRIDE_HOOK(0x71E949, TEventClass_HasOccured_Ares , 7)
+DEFINE_OVERRIDE_HOOK(0x71E949, TEventClass_HasOccured_Ares, 7)
 {
 
 	GET(TEventClass*, pThis, EBP);
@@ -731,7 +739,8 @@ namespace TActionExt_dummy
 {
 	bool NOINLINE ActivateFirestorm(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
 	{
-		if (pHouse->FirestormActive) {
+		if (pHouse->FirestormActive)
+		{
 			AresData::RespondToFirewall(pHouse, true);
 		}
 		return true;
@@ -739,7 +748,8 @@ namespace TActionExt_dummy
 
 	bool NOINLINE DeactivateFirestorm(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
 	{
-		if (pHouse->FirestormActive) {
+		if (pHouse->FirestormActive)
+		{
 			AresData::RespondToFirewall(pHouse, false);
 		}
 		return true;
@@ -786,8 +796,9 @@ namespace TActionExt_dummy
 	bool NOINLINE SetEVAVoice(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
 	{
 		auto nValue = pAction->Value;
-		const auto& nEva= EvaTypes;
-		if ((size_t)nValue >= nEva.size()) {
+		const auto& nEva = EvaTypes;
+		if ((size_t)nValue >= nEva.size())
+		{
 			return false;
 		}
 
@@ -800,7 +811,8 @@ namespace TActionExt_dummy
 
 	bool NOINLINE SetGroup(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
 	{
-		if (auto pTech = generic_cast<TechnoClass*>(pObject)) {
+		if (auto pTech = generic_cast<TechnoClass*>(pObject))
+		{
 			pTech->Group = pAction->Value;
 
 			return true;
@@ -809,8 +821,176 @@ namespace TActionExt_dummy
 		return false;
 	}
 
+	bool NOINLINE LauchhNuke(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+	{
+		const auto pFind = WeaponTypeClass::Find(GameStrings::NukePayload);
+		if (!pFind)
+			return false;
+
+		const auto nLoc = ScenarioClass::Instance->GetWaypointCoords(pAction->Waypoint);
+		auto nCoord = CellClass::Cell2Coord(nLoc);
+		nCoord.Z = MapClass::Instance->GetCellFloorHeight(nCoord);
+
+		if (MapClass::Instance->GetCellAt(nCoord)->ContainsBridgeHead())
+			nCoord.Z += CellClass::BridgeHeight;
+
+		if (auto pBullet = pFind->Projectile->CreateBullet(MapClass::Instance->GetCellAt(nCoord), nullptr, pFind->Damage, pFind->Warhead, 50, false))
+		{
+			pBullet->SetWeaponType(pFind);
+			VelocityClass nVel {};
+
+			constexpr double nSin = gcem::sin(1.570748388432313);
+			constexpr double nCos = gcem::cos(1.570748388432313);
+
+			constexpr double nX = nCos * nCos * -100.0;
+			constexpr double nY = nCos * nSin * -100.0;
+			constexpr double nZ = nSin * -100.0;
+
+			BulletExt::ExtMap.Find(pBullet)->Owner = pHouse;
+			pBullet->MoveTo({ nCoord.X , nCoord.Y , nCoord.Z + 20000 }, nVel);
+			return true;
+		}
+
+		return false;
+	}
+
+	bool NOINLINE LauchhChemMissile(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+	{
+		const auto pFind = WeaponTypeClass::Find(GameStrings::ChemLauncher);
+		if (!pFind)
+			return false;
+
+		auto nLoc = ScenarioClass::Instance->GetWaypointCoords(pAction->Waypoint);
+
+		if (auto pBullet = pFind->Projectile->CreateBullet(MapClass::Instance->GetCellAt(nLoc), nullptr, pFind->Damage, pFind->Warhead, 20, false))
+		{
+			pBullet->SetWeaponType(pFind);
+			VelocityClass nVel {};
+
+			constexpr double nSin = gcem::sin(1.570748388432313);
+			constexpr double nCos = gcem::cos(-0.00009587672516830327);
+
+			constexpr double nX = nCos * nCos * 100.0;
+			constexpr double nY = nCos * nSin * 100.0;
+			constexpr double nZ = nSin * 100.0;
+
+			BulletExt::ExtMap.Find(pBullet)->Owner = pHouse;
+			auto nCell = MapClass::Instance->Localsize_586AC0(&nLoc, false);
+
+			pBullet->MoveTo({ nCell.X + 128 , nCell.Y + 128 , 0 }, nVel);
+			return true;
+		}
+
+		return false;
+	}
+
+	bool NOINLINE LightstormStrike(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+	{
+		auto nLoc = ScenarioClass::Instance->GetWaypointCoords(pAction->Waypoint);
+
+		// get center of cell coords
+		auto const pCell = MapClass::Instance->GetCellAt(nLoc);
+
+		// create a cloud animation
+		if (auto coords = pCell->GetCoordsWithBridge())
+		{
+			// select the anim
+			auto const& itClouds = RulesClass::Instance->WeatherConClouds;
+			auto const pAnimType = itClouds.GetItem( ScenarioClass::Instance->Random.Random() % itClouds.Count);
+			coords.Z += int(((double)pAnimType->GetImage()->Height / 2) * 104 + pCell->Level);
+
+			if (coords.IsValid())
+			{
+				// create the cloud and do some book keeping.
+				if (auto const pAnim = GameCreate<AnimClass>(pAnimType, coords))
+				{
+					pAnim->SetHouse(pHouse);
+					LightningStorm::CloudsManifesting->AddItem(pAnim);
+					LightningStorm::CloudsPresent->AddItem(pAnim);
+				}
+			}
+		}
+
+		return true;
+	}
+
+	bool NOINLINE MeteorStrike(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+	{
+		static constexpr reference<int , 0x842AFC, 5u> MeteorAddAmount {};
+
+		const auto pSmall = AnimTypeClass::Find(GameStrings::METSMALL);
+		const auto pBig = AnimTypeClass::Find(GameStrings::METLARGE);
+
+		if (!pSmall && !pBig)
+			return false;
+
+		auto nLoc = ScenarioClass::Instance->GetWaypointCoords(pAction->Waypoint);
+		CoordStruct nCoord = CellClass::Cell2Coord(nLoc);
+		nCoord.Z = MapClass::Instance->GetCellFloorHeight(nCoord);
+
+		if (MapClass::Instance->GetCellAt(nCoord)->ContainsBridge())
+			nCoord.Z += CellClass::BridgeHeight;
+
+		const auto amount = MeteorAddAmount[pAction->Value] + ScenarioClass::Instance->Random.Random() % 3;
+		if (amount <= 0)
+			return true;
+
+		const int nTotal = 70 * amount;
+
+		for (int i = nTotal; i > 0; --i)
+		{
+			auto nRandX = ScenarioClass::Instance->Random.Random() % nTotal;
+			auto nRandY = ScenarioClass::Instance->Random.Random() % nTotal;
+			CoordStruct nLoc { nRandX + nCoord.X ,nRandY + nCoord.Y ,nCoord.Z };
+
+			AnimTypeClass* pSelected = pBig;
+			int nRandHere = abs(ScenarioClass::Instance->Random.Random()) & 0x80000001;
+			bool v13 = nRandHere == 0;
+			if (nRandHere < 0) {
+				v13 = ((nRandHere - 1) | 0xFFFFFFFE) == -1;
+			}
+
+			if (v13) {
+				pSelected = pSmall;
+			}
+
+			if (pSelected) {
+				if (auto pAnim = GameCreate<AnimClass>(pSelected, nLoc, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0)) {
+					pAnim->Owner = pHouse;
+				}
+			}
+		}
+
+		return true;
+	}
+
 	bool NOINLINE Execute(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location, bool& ret)
 	{
+		switch (pAction->ActionKind)
+		{
+		case TriggerAction::MeteorShower:
+			ret = MeteorStrike(pAction, pHouse, pObject, pTrigger, location);
+			return true;
+		case TriggerAction::LightningStrike:
+			ret = LightstormStrike(pAction, pHouse, pObject, pTrigger, location);
+			return true;
+		case TriggerAction::ActivateFirestorm:
+			ret = ActivateFirestorm(pAction, pHouse, pObject, pTrigger, location);
+			return true;
+		case TriggerAction::DeactivateFirestorm:
+			ret = DeactivateFirestorm(pAction, pHouse, pObject, pTrigger, location);
+			return true;
+		case TriggerAction::NukeStrike:
+			ret = LauchhNuke(pAction, pHouse, pObject, pTrigger, location);
+			return true;
+		case TriggerAction::ChemMissileStrike:
+			ret = LauchhChemMissile(pAction, pHouse, pObject, pTrigger, location);
+			return true;
+		}
+
+		if ((AresNewTriggerAction)pAction->ActionKind < AresNewTriggerAction::AuxiliaryPower)
+			return false;
+
 		switch ((AresNewTriggerAction)pAction->ActionKind)
 		{
 		case AresNewTriggerAction::AuxiliaryPower:
@@ -820,7 +1000,7 @@ namespace TActionExt_dummy
 		}
 		case AresNewTriggerAction::KillDriversOf:
 		{
-			ret = AuxiliaryPower(pAction, pHouse, pObject, pTrigger, location);
+			ret = KillDriversOf(pAction, pHouse, pObject, pTrigger, location);
 			break;
 		}
 		case AresNewTriggerAction::SetEVAVoice:
@@ -834,17 +1014,6 @@ namespace TActionExt_dummy
 			break;
 		}
 		default:
-			switch (pAction->ActionKind)
-			{
-			case TriggerAction::ActivateFirestorm:
-				ret = ActivateFirestorm(pAction, pHouse, pObject, pTrigger, location);
-				return true;
-
-			case TriggerAction::DeactivateFirestorm:
-				ret = DeactivateFirestorm(pAction, pHouse, pObject, pTrigger, location);
-				return true;
-			}
-
 			return false;
 		}
 

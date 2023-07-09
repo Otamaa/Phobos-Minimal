@@ -383,12 +383,15 @@ public:
 	bool ContainsBridgeEx() const
 		{ return ContainsBridge(); }
 
+	bool ContainsBridgeHead() const
+		{ return static_cast<bool>(this->Flags & CellFlags::BridgeHead); }
+
 	// helper mimicking game's behaviour
 	ObjectClass* GetContent() const
 		{ return this->ContainsBridge() ? this->AltObject : this->FirstObject; }
 
 	ObjectClass* GetContentB() const
-	{ return (this->Flags & CellFlags::BridgeHead) ? this->AltObject : this->FirstObject; }
+	{ return (this->ContainsBridgeHead()) ? this->AltObject : this->FirstObject; }
 
 	int GetLevel() const
 		{ return this->Level + (this->ContainsBridge() ? BridgeLevels : 0); }

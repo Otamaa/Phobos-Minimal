@@ -3,7 +3,7 @@
 #include <Misc/AresData.h>
 #include <Utilities/Debug.h>
 
-void TechnoTypeConvertData::ApplyConvert(const std::vector<TechnoTypeConvertData>& nPairs , HouseClass * pHouse, TechnoClass * pTarget)
+void TechnoTypeConvertData::ApplyConvert(const std::vector<TechnoTypeConvertData>& nPairs , HouseClass * pHouse, TechnoClass * pTarget, AnimTypeClass* SucceededAnim)
 {
 	if (nPairs.empty())
 		return;
@@ -20,8 +20,16 @@ void TechnoTypeConvertData::ApplyConvert(const std::vector<TechnoTypeConvertData
 
 		if (pFrom == pCurType)
 		{
-			if (!AresData::ConvertTypeTo(pTarget, pTo))
+			const auto bConvertStatus = AresData::ConvertTypeTo(pTarget, pTo);
+
+			if (!bConvertStatus)
 				Debug::Log("WarheadTypeExt::ExtData::ApplyUpgrade Failed to ConvertType ! \n");
+			else
+			{
+				if (SucceededAnim)
+					if (auto pAnim = GameCreate<AnimClass>(SucceededAnim, pTarget->Location))
+						pAnim->SetOwnerObject(pTarget);
+			}
 		}
 	}
 }

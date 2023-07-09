@@ -257,10 +257,10 @@ void Phobos::Config::Read()
 	{
 		BYTE defaultspeed = (BYTE)Phobos::Config::CampaignDefaultGameSpeed;
 		// We overwrite the instructions that force GameSpeed to 2 (GS4)
-		PatchWrapper defaultspeed_patch1 { 0x55D77A , sizeof(defaultspeed), &defaultspeed };
+		Patch::Apply_RAW(0x55D77A, sizeof(defaultspeed), &defaultspeed);
 
 		// when speed control is off. Doesn't need a hook.
-		PatchWrapper defaultspeed_patch2 { 0x55D78D , sizeof(defaultspeed), &defaultspeed };
+		Patch::Apply_RAW(0x55D78D , sizeof(defaultspeed), &defaultspeed);
 	}
 
 	if (CCINIClass* pINI_UIMD = Phobos::OpenConfig(UIMD_FILENAME))
@@ -345,20 +345,20 @@ void Phobos::Config::Read()
 		//	std::string ModNameTemp;
 		//	pINI->ReadString(GENERAL_SECTION, "Name", "", Phobos::readBuffer);
 		//	ModNameTemp = Phobos::readBuffer;
-
+		//
 		//	if (!ModNameTemp.empty())
 		//	{
 		//		std::size_t nFInd = ModNameTemp.find("Rise of the East");
-
+		//
 		//		if (nFInd == std::string::npos)
 		//			nFInd = ModNameTemp.find("Ion Shock");
-
+		//
 		//		if (nFInd == std::string::npos)
 		//			nFInd = ModNameTemp.find("New War");
-
+		//
 		//		if (nFInd == std::string::npos)
 		//			nFInd = ModNameTemp.find("NewWar");
-
+		//
 		//		if (nFInd == std::string::npos)
 		//		{
 		//			MessageBoxW(NULL,
@@ -411,11 +411,20 @@ void Phobos::Config::Read()
 			BlittersFix::Apply();
 		}
 
-		//if (pINI->ReadBool(GENERAL_SECTION, "SkirmishUnlimitedColors", false))
-		//{
-		//	ALLOCATE_LOCAL_PATCH(SkirmishColorPatch, 0x69A310,
-		//		0x8B, 0x44, 0x24, 0x04, 0xD1, 0xE0, 0x40, 0xC2, 0x04, 0x00);
-		//}
+		if (pINI->ReadBool(GENERAL_SECTION, "SkirmishUnlimitedColors", false))
+		{
+			// Game_GetLinkedColor converts vanilla dropdown color index into color scheme index ([Colors] from rules)
+			// What we want to do is to restore vanilla from Ares hook, and immediately return arg
+			// So if spawner feeds us a number, it will be used to look up color scheme directly
+			Patch::Apply_RAW(0x69A310,
+				{
+					0x8B, 0x44, 0x24, 0x04, // mov eax, [esp+4]
+					0xD1, 0xE0,             // shl eax, 1
+					0x40,                   // inc eax
+					0xC2, 0x04, 0x00        // retn 4
+				}
+			);
+		}
 
 		Phobos::CloseConfig(pINI);
 	}
@@ -663,6 +672,78 @@ void NAKED _ExeTerminate()
 }
 #pragma endregion
 
+void NOINLINE encrypt_func(std::string& data, std::string key)
+{
+	for (unsigned i = 0; i < data.size(); i++)
+		data[i] ^= key[i % key.size()];
+}
+
+std::string Key_ =
+{
+	{"72951454391147260483756494947213627281"}
+};
+
+void NOINLINE decrypt_func(char* data, DWORD size, std::string& key)
+{
+	for (unsigned i = 0; i < size; i++)
+		data[i] ^= key[i % key.size()];
+}
+
+static bool IsDone = false;
+std::unordered_map<HANDLE, std::string> Data;
+
+HANDLE __stdcall CreatefileA_(LPCSTR a1,
+	DWORD dwDesiredAccess,
+	DWORD dwShareMode,
+	LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+	DWORD dwCreationDisposition,
+	DWORD dwFlagsAndAttributes,
+	HANDLE hTemplateFile)
+{
+	auto result = CreateFileA(
+			a1,
+			dwDesiredAccess,
+			dwShareMode,
+			lpSecurityAttributes,
+			dwCreationDisposition,
+			dwFlagsAndAttributes,
+			hTemplateFile);
+
+	if (result != INVALID_HANDLE_VALUE)
+	{
+		if (!Data.contains(result))
+		{
+			if (strstr(a1, ".MIX")) //recursive ? , mapping handle is not good idea ?
+			{
+				Data[result] = a1;
+			}
+		}
+	}
+
+	return result;
+}
+
+BOOL __stdcall CloseHandle_(HANDLE hObject)
+{
+	if (Data.contains(hObject))
+		Data.erase(hObject);
+
+	return CloseHandle(hObject);
+}
+
+BOOL __stdcall ReadFIle_(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped)
+{
+	const auto nRes = SetFilePointer(hFile,0u, nullptr ,1u);
+	auto result = ReadFile(hFile, lpBuffer, nNumberOfBytesToRead, lpNumberOfBytesRead, lpOverlapped);
+
+	if (Data.contains(hFile) && nRes >= 4) {
+		//decrypt_func(((char*)lpBuffer), nNumberOfBytesToRead, Key_);
+		Debug::Log("%s Mapped !!\n" , Data[hFile].c_str());
+	}
+
+	return result;
+}
+
 BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
 	switch (ul_reason_for_call)
@@ -670,22 +751,6 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 	case DLL_PROCESS_ATTACH:
 	{
 		Phobos::hInstance = hInstance;
-
-		/**
-		*  Set the FPU mode to match the game (rounding towards zero [chop mode]).
-		*/
-		_set_controlfp(_RC_CHOP, _MCW_RC);
-
-		/**
-		 *  And this is required for the std c++ lib.
-		 */
-		fesetround(FE_TOWARDZERO);
-#ifdef ENABLE_ENCRYPTION_HOOKS
-		Imports::ReadFile = ReadFIle_;
-		Imports::CreateFileA = CreateFileA_;
-		Imports::CloseHandle = CloseHandle_;
-		Imports::OleLoadFromStream = OleLoadFromStream_;
-#endif
 	}
 	break;
 	case DLL_PROCESS_DETACH:
@@ -797,6 +862,24 @@ DEFINE_HOOK(0x6BE131, Game_ExeTerminate, 0x5)
 
 DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 {
+	//Imports::ReadFile = ReadFIle_;
+	//Imports::CreateFileA = CreatefileA_;
+	//Imports::CloseHandle = CloseHandle_;
+
+#ifdef ENABLE_ENCRYPTION_HOOKS
+	Imports::OleLoadFromStream = OleLoadFromStream_;
+#endif
+
+	/**
+	*  Set the FPU mode to match the game (rounding towards zero [chop mode]).
+	*/
+	_set_controlfp(_RC_CHOP, _MCW_RC);
+
+	/**
+	 *  And this is required for the std c++ lib.
+	 */
+	fesetround(FE_TOWARDZERO);
+
 	Phobos::ExeRun();
 	Patch::PrintAllModuleAndBaseAddr();
 	return 0;

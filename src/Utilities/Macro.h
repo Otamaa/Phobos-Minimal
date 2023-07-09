@@ -60,6 +60,10 @@ struct _LJMP
 		pointer(pointer - offset - 5)
 	{
 	};
+
+	constexpr FORCEINLINE size_t size() const{
+		return sizeof(*this);
+	}
 };
 
 typedef JumpType CALL;
@@ -74,6 +78,10 @@ struct _CALL
 		pointer(pointer - offset - 5)
 	{
 	};
+
+	constexpr FORCEINLINE size_t size() const {
+		return sizeof(*this);
+	}
 };
 
 typedef JumpType CALL6;
@@ -90,6 +98,10 @@ struct _CALL6
 		nop(NOP_LETTER)
 	{
 	};
+
+	constexpr FORCEINLINE size_t size() const {
+		return sizeof(*this);
+	}
 };
 
 typedef JumpType VTABLE;
@@ -102,6 +114,10 @@ struct _VTABLE
 		pointer(pointer)
 	{
 	};
+
+	constexpr FORCEINLINE size_t size() const {
+		return sizeof(*this);
+	}
 };
 
 #pragma warning(pop)

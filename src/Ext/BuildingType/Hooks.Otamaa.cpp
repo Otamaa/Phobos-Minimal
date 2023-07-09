@@ -129,29 +129,25 @@ DEFINE_HOOK(0x450821, BuildingClass_Repair_AI_Step, 0x5)// B
 {
 	GET(BuildingClass* const, pThis, ESI);
 
-	if (pThis && pThis->Type) {
-		if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type)) {
-			R->EAX(int(pTypeExt->RepairRate.Get(RulesClass::Instance->RepairRate) * 900.0));
-			return 0x450837;
-		}
-	}
+	R->EAX(int(BuildingTypeExt::ExtMap.Find(pThis->Type)
+			->RepairRate.Get(RulesClass::Instance->RepairRate) * 900.0));
 
-	return 0x0;
+	return 0x450837;
 }
 
-DEFINE_HOOK(0x70BEF9, TechnoClass_canHealRepair_Building, 0x5) //B
-{
-	GET(TechnoClass*, pThis, ESI);
-
-	if (auto const pBuilding = specific_cast<BuildingClass*>(pThis)) {
-		if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type)) {
-			R->EAX(int(pTypeExt->RepairRate.Get(RulesClass::Instance->RepairRate) * 900.0));
-			return 0x70BF0F;
-		}
-	}
-
-	return 0;
-}
+// ares replace this
+//DEFINE_HOOK(0x70BEF9, TechnoClass_canHealRepair_Building, 0x5) //B
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//
+//	if (auto const pBuilding = specific_cast<BuildingClass*>(pThis)) {
+//		R->EAX(int(BuildingTypeExt::ExtMap.Find(pBuilding->Type)
+//			->RepairRate.Get(RulesClass::Instance->RepairRate) * 900.0));
+//		return 0x70BF0F;
+//	}
+//
+//	return 0;
+//}
 
 //https://modenc.renegadeprojects.com/RepairStep
 DEFINE_HOOK(0x712125, TechnoTypeClass_GetRepairStep_Building, 0x6)
@@ -161,8 +157,7 @@ DEFINE_HOOK(0x712125, TechnoTypeClass_GetRepairStep_Building, 0x6)
 
 	auto nStep = pRules->RepairStep;
 	if (auto const pBuildingType = type_cast<BuildingTypeClass*>(pThis))
-		if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pBuildingType))
-			nStep = pTypeExt->RepairStep.Get(nStep);
+		nStep = BuildingTypeExt::ExtMap.Find(pBuildingType)->RepairStep.Get(nStep);
 
 	R->EAX(nStep);
 
@@ -178,11 +173,12 @@ DEFINE_HOOK(0x7120D0, TechnoTypeClass_GetRepairCost_Building, 0x7)
 	auto nStep = RulesClass::Instance->RepairStep;
 
 	if (pThis) {
-		if (auto const pBuildingType = type_cast<BuildingTypeClass*,false>(pThis)) { 
+		if (auto const pBuildingType = type_cast<BuildingTypeClass*,false>(pThis)) {
 			nStep = BuildingTypeExt::ExtMap.Find(pBuildingType)->RepairStep.Get(nStep);
 		}
 
-		nVal = (std::clamp(((int)((pThis->GetCost() / (pThis->Strength / nStep) * RulesClass::Instance->RepairPercent))), 1, MAX_VAL(int)));
+		const auto nCalc = int(((double)pThis->GetCost() / int((double)pThis->Strength / nStep)) * RulesClass::Instance->RepairPercent);
+		nVal = nVal <= 1 ? 1 : nVal;
 	}
 
 	R->EAX(nVal);
@@ -212,8 +208,7 @@ DEFINE_HOOK(0x706389, TechnoClass_Draw_Object_NormalLight, 0x6) {
 	if (const auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
 		if ((pBuilding->CurrentMission == Mission::Construction)
 			&& pBuilding->BState == BStateType::Construction && pBuilding->Type->Buildup ) {
-			auto const pExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
-			if (pExt && pExt->BuildUp_UseNormalLIght.Get()) {
+			if (BuildingTypeExt::ExtMap.Find(pBuilding->Type)->BuildUp_UseNormalLIght.Get()) {
 				R->EBP(1000);
 			}
 		}
@@ -230,9 +225,11 @@ DEFINE_HOOK(0x505F6C, HouseClass_GenerateAIBuildList_AIBuildInstead, 0x6)
 		for (auto& nNodes : pHouse->Base.BaseNodes) {
 			auto nIdx = nNodes.BuildingTypeIndex;
 			if (nIdx >= 0) {
-				if (auto pBldTypeExt = BuildingTypeExt::ExtMap.Find(BuildingTypeClass::Array->GetItem(nIdx)))
-					if (!pBldTypeExt->AIBuildInsteadPerDiff.empty() && pBldTypeExt->AIBuildInsteadPerDiff[pHouse->GetCorrectAIDifficultyIndex()] != -1)
-						nIdx = pBldTypeExt->AIBuildInsteadPerDiff[pHouse->GetCorrectAIDifficultyIndex()];
+
+				const auto pBldTypeExt = BuildingTypeExt::ExtMap.Find(BuildingTypeClass::Array->GetItem(nIdx));
+
+				if (!pBldTypeExt->AIBuildInsteadPerDiff.empty() && pBldTypeExt->AIBuildInsteadPerDiff[pHouse->GetCorrectAIDifficultyIndex()] != -1)
+					nIdx = pBldTypeExt->AIBuildInsteadPerDiff[pHouse->GetCorrectAIDifficultyIndex()];
 
 				nNodes.BuildingTypeIndex = nIdx;
 			}

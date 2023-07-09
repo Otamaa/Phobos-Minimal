@@ -64,31 +64,6 @@ DEFINE_OVERRIDE_HOOK(0x4D9A83, FootClass_PointerGotInvalid_OccupierVehicleThief,
 	return 0;
 }
 
-// respect the remove state when updating the parasite.
-DEFINE_DISABLE_HOOK(0x4D99AA, FootClass_PointerGotInvalid_Parasite_ares)
-// DEFINE_OVERRIDE_HOOK(0x4D99AA, FootClass_PointerGotInvalid_Parasite, 0x6)
-// {
-// 	GET(FootClass* const, pThis, ESI);
-// 	GET(AbstractClass* const, ptr, EDI);
-// 	GET(bool, remove, EBX);
-//
-// 	// pass the real remove state, instead of always true. this was unused
-// 	// in the original game, but now propagates the real value.
-// 	if (const auto pParasiteOwner = pThis->ParasiteEatingMe) {
-// 		if (pParasiteOwner->Health > 0) {
-// 			pParasiteOwner->ParasiteImUsing->PointerExpired(ptr, remove);
-// 		}
-// 	}
-//
-// 	// only unset the parasite owner, if we are removed.
-// 	// cloaking does not count any more.
-// 	if (remove && pThis == ptr) {
-// 		pThis->ParasiteEatingMe = nullptr;
-// 	}
-//
-// 	return 0x4D99D3;
-// }
-
 DEFINE_OVERRIDE_SKIP_HOOK(0x4DB37C, FootClass_Remove_Airspace, 0x6, 4DB3A4)
 
 // update parasite coords along with the host

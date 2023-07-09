@@ -232,7 +232,7 @@ public:
 	{
 	}
 
-	CloneableLighningStormStateMachine(int Duration, int Deferment, CellStruct XY, SuperClass* pSuper, BuildingClass* pFirer, NewSWType* pSWType)
+	CloneableLighningStormStateMachine(int Duration, int Deferment, CellStruct XY, SuperClass* pSuper, TechnoClass* pFirer, NewSWType* pSWType)
 		: SWStateMachine(Duration, XY, pSuper, pSWType), ActualDuration(0), StartTime(0), Deferment(0), IsActive(false), TimeToEnd(false) , Invoker(pFirer)
 	{
 		Start(XY, Duration, Deferment);
@@ -307,7 +307,7 @@ public:
 	int Deferment;
 	bool IsActive;
 	bool TimeToEnd;
-	BuildingClass* Invoker;
+	TechnoClass* Invoker;
 };
 
 template <>

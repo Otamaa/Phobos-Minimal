@@ -56,7 +56,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 		);
 	}
 
-	if (!pINI->GetSection(pSection)) {	
+	if (!pINI->GetSection(pSection)) {
 		return;
 	}
 
@@ -259,6 +259,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 
 	this->Converts.Read(exINI, pSection, "Converts");
 	this->ConvertsPair.Read(exINI, pSection, "ConvertsPair");
+	this->Convert_SucceededAnim.Read(exINI, pSection, "ConvertsAnim");
 
 	this->DeadBodies.Read(exINI, pSection, "DeadBodies");
 	this->AffectEnemies_Damage_Mod.Read(exINI, pSection, "AffectEnemies.DamageModifier");
@@ -638,7 +639,7 @@ FullMapDetonateResult WarheadTypeExt::ExtData::EligibleForFullMapDetonation(Tech
 	if (!EnumFunctions::CanTargetHouse(this->DetonateOnAllMapObjects_AffectHouses, pOwner, pTechno->Owner))
 		return FullMapDetonateResult::TargetHouseNotEligible;
 
-	if(!this->DetonateOnAllMapObjects_AffectTypes.empty() 
+	if(!this->DetonateOnAllMapObjects_AffectTypes.empty()
 		&& !this->DetonateOnAllMapObjects_AffectTypes.Contains(pType))
 		return FullMapDetonateResult::TargetRestricted;
 
@@ -878,7 +879,7 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, AbstractClass* pTarget,
 		}
 	}
 
-	if (pOwner && !Is_Techno(pOwner)) {	
+	if (pOwner && !Is_Techno(pOwner)) {
 		Debug::Log("WarheadTypeExt::DetonateAt[%s] delivering damage from unknown source [%x] !", pThis->get_ID(), pOwner);
 		pOwner = nullptr;
 	}
@@ -1051,6 +1052,7 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Sound)
 		.Process(this->Converts)
 		.Process(this->ConvertsPair)
+		.Process(this->Convert_SucceededAnim)
 		.Process(this->StealMoney)
 		.Process(this->Steal_Display_Houses)
 		.Process(this->Steal_Display)
@@ -1260,6 +1262,6 @@ DEFINE_HOOK(0x75DEA0 , WarheadTypeClass_LoadFromINI, 0x5)
 	WarheadTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x75DEAF);
 
 	//0x75DE9A do net set isOrganic here , just skip it to next adrress to execute ares hook
-	return// R->Origin() == 0x75DE9A ? 0x75DEA0 : 
+	return// R->Origin() == 0x75DE9A ? 0x75DEA0 :
 		0;
 }

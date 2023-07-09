@@ -1,11 +1,12 @@
 #include "ShapeTextPrinter.h"
 
-const char* ShapeTextPrinter::SignSequence = "/%$,.!?|";
-const int ShapeTextPrinter::SignSequenceLength = CRT::strlen(ShapeTextPrinter::SignSequence);
+constexpr inline char* SignSequence { "/%$,.!?|" };
+constexpr inline int SignSequenceLength { std::char_traits<char>::length(SignSequence) };
 
 int ShapeTextPrinter::GetSignIndex(const char sign)
 {
 	return (std::find(SignSequence, SignSequence + SignSequenceLength, sign) - SignSequence);
+
 }
 
 void ShapeTextPrinter::BuildFrames(std::vector<int>& vFrames , const char* const text , const int baseNumberFrame , const int baseSignFrame)

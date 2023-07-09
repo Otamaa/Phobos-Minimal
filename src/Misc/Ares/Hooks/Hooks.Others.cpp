@@ -68,16 +68,17 @@ DEFINE_OVERRIDE_HOOK(0x421798, AlphaShapeClass_SDDTOR_Anims, 0x6)
 DEFINE_OVERRIDE_SKIP_HOOK(0x565215, MapClass_CTOR_NoInit_Crates, 0x6, 56522D)
 
 
-DEFINE_HOOK(0x5F6500 , AbstractClass_Distance2DSquared_1 , 0x8)
+DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 0x8)
 {
-	GET(AbstractClass* , pThis ,ECX);
-	GET_STACK(AbstractClass* , pThat , 0x4);
+	GET(AbstractClass*, pThis, ECX);
+	GET_STACK(AbstractClass*, pThat, 0x4);
 
 	int nResult = 0;
-	if(pThat) {
-	  const auto nThisCoord = pThis->GetCoords();
-	  const auto nThatCoord = pThat->GetCoords();
-	  nResult = ((Point2D { nThisCoord.X , nThisCoord.Y } - Point2D{nThatCoord.X, nThatCoord.Y}).Length());
+	if (pThat)
+	{
+		const auto nThisCoord = pThis->GetCoords();
+		const auto nThatCoord = pThat->GetCoords();
+		nResult = ((Point2D { nThisCoord.X , nThisCoord.Y } - Point2D{nThatCoord.X, nThatCoord.Y}).Length());
 	}
 
 	R->EAX((nResult > INT_MAX ? INT_MAX : nResult));
@@ -90,7 +91,7 @@ DEFINE_OVERRIDE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
 	auto const nThisCoord = pThis->GetCoords();
 	GET_STACK(CoordStruct*, pThatCoord, 0x4);
 
-	const auto nXY = ((Point2D { nThisCoord.X , nThisCoord.Y } - Point2D{ pThatCoord->X , pThatCoord->Y }).Length());
+	const auto nXY = ((Point2D { nThisCoord.X , nThisCoord.Y } - Point2D{ pThatCoord->X, pThatCoord->Y }).Length());
 
 	R->EAX(nXY > INT_MAX ? INT_MAX : nXY);
 	return 0x5F659B;
@@ -229,14 +230,17 @@ DEFINE_OVERRIDE_HOOK(0x4748A0, INIClass_GetPipIdx, 0x7)
 	if (pINI->ReadString(pSection, pKey, Phobos::readDefval, Phobos::readBuffer))
 	{
 		int nbuffer;
-		if (Parser<int>::TryParse(Phobos::readBuffer, &nbuffer)) {
+		if (Parser<int>::TryParse(Phobos::readBuffer, &nbuffer))
+		{
 			R->EAX(nbuffer);
 			return 0x474907;
 		}
-		else {
+		else
+		{
 
 			// find the pip value with the name specified
-			for (const auto& data : TechnoTypeClass::PipsTypeName) {
+			for (const auto& data : TechnoTypeClass::PipsTypeName)
+			{
 				if (data == Phobos::readBuffer)
 				{
 					//Debug::Log("[%s]%s=%s ([%d] from [%s]) \n", pSection, pKey, Phobos::readBuffer, it->Value, it->Name);
@@ -679,7 +683,8 @@ DEFINE_OVERRIDE_HOOK(0x72590E, AnnounceInvalidPointer_Particle, 0x9)
 	{
 		GET(ParticleClass*, pThis, ESI);
 
-		if (auto pSys = pThis->ParticleSystem) {
+		if (auto pSys = pThis->ParticleSystem)
+		{
 			pSys->Particles.Remove(pThis);
 		}
 
@@ -762,29 +767,6 @@ DEFINE_OVERRIDE_HOOK(0x6FF26E, TechnoClass_Fire_DetachedRailgun2, 0x6)
 
 	return WeaponTypeExt::ExtMap.Find(pWeapon)->IsDetachedRailgun
 		? 0x6FF274 : 0x0;
-}
-
-DEFINE_OVERRIDE_HOOK(0x6EF8A1, TeamClass_GatherAtEnemyBase_Distance, 0x6)
-{
-	//GET_STACK(TeamClass*, pTeam, STACK_OFFS(0x5C, 0x34));
-	GET_BASE(ScriptActionNode*, pTeamM, 0x8);
-	//const auto pTeamExt = TeamTypeExt::ExtMap.Find(pTeam->Type);
-	//Debug::Log(std::format(__FUNCTION__ " Function With Type {} ! \n",pTeam->Type->ID));
-	//R->EDX(pTeamExt->AI_SafeDIstance.Get(RulesClass::Instance->AISafeDistance) + pTeamM->Argument);
-	R->EDX(RulesClass::Instance->AISafeDistance + pTeamM->Argument);
-
-	return 0x6EF8A7;
-}
-
-DEFINE_OVERRIDE_HOOK(0x6EFB69, TeamClass_GatherAtFriendlyBase_Distance, 0x6)
-{
-	//GET_STACK(TeamClass*, pTeam, STACK_OFFS(0x4C, 0x2C));
-	GET_BASE(ScriptActionNode*, pTeamM, 0x8);
-	//Debug::Log("%s", std::format("{} Function With Type {} ! \n", __FUNCTION__, pTeam->Type->ID).c_str());
-	//const auto pTeamExt = TeamTypeExt::ExtMap.Find(pTeam->Type);
-	//R->EDX(pTeamExt->AI_FriendlyDistance.Get(RulesExt::Global()->AIFriendlyDistance.Get(RulesClass::Instance->AISafeDistance)) + pTeamM->Argument);
-	R->EDX(RulesExt::Global()->AIFriendlyDistance.Get(RulesClass::Instance->AISafeDistance) + pTeamM->Argument);
-	return 0x6EFB6F;
 }
 
 DEFINE_OVERRIDE_HOOK(0x5FDDA4, OverlayClass_GetTiberiumType_NotReallyTiberiumLog, 0x6)
@@ -911,13 +893,13 @@ DEFINE_OVERRIDE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 
 	if (
 #ifndef Replace_SW
-		SWTypeExt::ExtData::Activate(pSuper,*pCell , isPlayer)
+		SWTypeExt::ExtData::Activate(pSuper, *pCell, isPlayer)
 #else
 		AresData::SW_Activate(pSuper, *pCell, isPlayer)
 #endif
 		)
 	{
-		Debug::Log("[%x][%s] %s Handled\n",pSuper, pSuper->Owner->get_ID() , pSuper->Type->ID);
+		Debug::Log("[%x][%s] %s Handled\n", pSuper, pSuper->Owner->get_ID(), pSuper->Type->ID);
 		const auto pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type);
 
 		//auto pHouseExt = HouseExt::ExtMap.Find(pSuper->Owner);
@@ -956,7 +938,7 @@ DEFINE_OVERRIDE_HOOK(0x48A2D9, MapClass_DamageArea_ExplodesThreshold, 6)
 	GET(OverlayTypeClass*, pOverlay, EAX);
 	GET_STACK(int, damage, 0x24);
 
-	return pOverlay->Explodes && damage >= RulesExt::Global()->OverlayExplodeThreshold 
+	return pOverlay->Explodes && damage >= RulesExt::Global()->OverlayExplodeThreshold
 		? 0x48A2E7 : 0x48A433;
 }
 
@@ -1020,11 +1002,12 @@ void SpawnVisceroid(CoordStruct& crd, ObjectTypeClass* pType, int chance, bool i
 					created = pVisc->Unlimbo(crd, DirType(0));
 					--Unsorted::ScenarioInit;
 
-					if (!created) {
+					if (!created)
+					{
 						// opposed to TS, we clean up, though
 						// the mutex should make it happen.
 						GameDelete(pVisc);
-					}				
+					}
 				}
 			}
 		}
@@ -1200,7 +1183,7 @@ DEFINE_OVERRIDE_HOOK(0x424DD3, AnimClass_ReInit_TiberiumChainReaction_Chance, 6)
 {
 	GET(TiberiumClass*, pTib, EDI);
 
-	return ScenarioClass::Instance->Random.RandomFromMax(99) < TiberiumExt::ExtMap.Find(pTib)->GetDebrisChance() 
+	return ScenarioClass::Instance->Random.RandomFromMax(99) < TiberiumExt::ExtMap.Find(pTib)->GetDebrisChance()
 		? 0x424DF9 : 0x424E9B;
 }
 
@@ -1726,7 +1709,7 @@ DEFINE_OVERRIDE_HOOK(0x70CBB0, TechnoClass_DealParticleDamage_AmbientDamage, 6)
 	return (!(R->EAX<int>() <= 0)) ? 0x70CBB9 : 0x70CBF7;
 }
 
-// the fuck , game calling `MapClass[]` multiple times , fixed it 
+// the fuck , game calling `MapClass[]` multiple times , fixed it
 DEFINE_OVERRIDE_HOOK(0x6FB5F0, TechnoClass_DeleteGap_Optimize, 6)
 {
 	GET(CellClass*, pCell, EAX);
@@ -1773,74 +1756,6 @@ DEFINE_OVERRIDE_HOOK(0x6FB306, TechnoClass_CreateGap_Optimize, 6)
 		pCell->AltFlags &= ((AltCellFlags)0xFFFFFFE7);
 
 	return 0x6FB3BD;
-}
-
-// #895225: make the AI smarter. this code was missing from YR.
-// it clears the targets and assigns the attacker the team's current focus.
-DEFINE_OVERRIDE_HOOK(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
-{
-	GET(TeamClass*, pThis, ESI);
-	GET(AbstractClass*, pAttacker, EBP);
-
-	// get ot if global option is off
-	if (!RulesExt::Global()->TeamRetaliate)
-	{
-		return 0x6EB47A;
-	}
-
-	auto pFocus = abstract_cast<TechnoClass*>(pThis->Focus);
-	auto pSpawn = pThis->SpawnCell;
-
-	if (!pFocus || !pFocus->IsArmed() || !pSpawn || pFocus->IsCloseEnoughToAttackCoords(pSpawn->GetCoords()))
-	{
-		// disallow aircraft, or units considered as aircraft, or stuff not on map like parasites
-		if (!Is_Aircraft(pAttacker))
-		{
-			if (auto pAttackerFoot = abstract_cast<FootClass*>(pAttacker))
-			{
-				if (pAttackerFoot->InLimbo || pAttackerFoot->GetTechnoType()->ConsideredAircraft)
-				{
-					return 0x6EB47A;
-				}
-			}
-
-			pThis->Focus = pAttacker;
-
-			// this is the original code, but commented out because it's responsible for switching
-			// targets when the team is attacked by two or more opponents. Now, the team should pick
-			// the first target, and keep it. -AlexB
-			//for(NextTeamMember i(pThis->FirstUnit); i; ++i) {
-			//	if(i->IsAlive && i->Health && (Unsorted::ScenarioInit || !i->InLimbo)) {
-			//		if(i->IsTeamLeader || i->WhatAmI() == AircraftClass::AbsID) {
-			//			i->SetTarget(nullptr);
-			//			i->SetDestination(nullptr, true);
-			//		}
-			//	}
-			//}
-		}
-	}
-
-	return 0x6EB47A;
-}
-
-// #1260: reinforcements via actions 7 and 80, and chrono reinforcements
-// via action 107 cause crash if house doesn't exist
-DEFINE_OVERRIDE_HOOK_AGAIN(0x65EC4A, TeamTypeClass_ValidateHouse, 6)
-DEFINE_OVERRIDE_HOOK(0x65D8FB, TeamTypeClass_ValidateHouse, 6)
-{
-	GET(TeamTypeClass*, pThis, ECX);
-	HouseClass* pHouse = pThis->GetHouse();
-
-	// house exists; it's either declared explicitly (not Player@X) or a in campaign mode
-	// (we don't second guess those), or it's still alive in a multiplayer game
-	if (pHouse &&
-		(pThis->Owner || SessionClass::Instance->GameMode == GameMode::Campaign || !pHouse->Defeated))
-	{
-		return 0;
-	}
-
-	// no.
-	return (R->Origin() == 0x65D8FB) ? 0x65DD1B : 0x65F301;
 }
 
 // bugfix #187: Westwood idiocy
@@ -2282,7 +2197,7 @@ DEFINE_OVERRIDE_HOOK(0x481D3D, CellClass_CrateBeingCollected_Cloak1, 6)
 	}
 
 	// cloaking forbidden for type
-	return  (!TechnoTypeExt::ExtMap.Find(Unit->GetTechnoType())->CloakAllowed) 
+	return  (!TechnoTypeExt::ExtMap.Find(Unit->GetTechnoType())->CloakAllowed)
 		? 0x481C86 : 0x481D52;
 }
 
@@ -2635,10 +2550,14 @@ DEFINE_OVERRIDE_HOOK(0x4DA53E, FootClass_Update, 6)
 
 	auto const pType = pThis->GetTechnoType();
 
-	if (IsAnySFWActive) {
-		if (pThis->IsAlive && !pThis->InLimbo && !pThis->InOpenToppedTransport && !pType->IgnoresFirestorm) {
-			if (auto const pBld = pThis->GetCell()->GetBuilding()) {
-				if (AresData::IsActiveFirestormWall(pBld, nullptr)) {
+	if (IsAnySFWActive)
+	{
+		if (pThis->IsAlive && !pThis->InLimbo && !pThis->InOpenToppedTransport && !pType->IgnoresFirestorm)
+		{
+			if (auto const pBld = pThis->GetCell()->GetBuilding())
+			{
+				if (AresData::IsActiveFirestormWall(pBld, nullptr))
+				{
 					AresData::ImmolateVictim(pBld, pThis, true);
 				}
 			}
@@ -2647,9 +2566,12 @@ DEFINE_OVERRIDE_HOOK(0x4DA53E, FootClass_Update, 6)
 
 	// tiberium heal, as in Tiberian Sun, but customizable per Tiberium type
 	if (pThis->IsAlive && RulesExt::Global()->Tiberium_HealEnabled
-		&& pThis->GetHeight() <= RulesClass::Instance->HoverHeight) {
-		if (pType->TiberiumHeal || pThis->HasAbility(AbilityType::TiberiumHeal)) {
-			if (pThis->Health > 0 && pThis->Health < pType->Strength) {
+		&& pThis->GetHeight() <= RulesClass::Instance->HoverHeight)
+	{
+		if (pType->TiberiumHeal || pThis->HasAbility(AbilityType::TiberiumHeal))
+		{
+			if (pThis->Health > 0 && pThis->Health < pType->Strength)
+			{
 
 				auto const pCell = pThis->GetCell();
 
@@ -3438,7 +3360,8 @@ DEFINE_OVERRIDE_HOOK(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
-	if (auto pJammer = RadarJammerUptr(pThis)) {
+	if (auto pJammer = RadarJammerUptr(pThis))
+	{
 		AresData::JammerClassUnjamAll(pJammer);
 	}
 
@@ -3446,156 +3369,6 @@ DEFINE_OVERRIDE_HOOK(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
 		AresData::FlyingStringsAdd(pThis, true);
 
 	return 0;
-}
-
-DEFINE_OVERRIDE_HOOK(0x65DBB3, TeamTypeClass_CreateInstance_Plane, 5)
-{
-	GET(FootClass*, pFoot, EBP);
-	R->ECX(HouseExt::GetParadropPlane(pFoot->Owner));
-	++Unsorted::ScenarioInit();
-	return 0x65DBD0;
-}
-
-enum AresScripts : int
-{
-	AuxilarryPower = 65,
-	KillDrivers = 66,
-	TakeVehicles = 67,
-	ConvertType = 68,
-	SonarReveal = 69,
-	DisableWeapons = 70,
-};
-
-bool ScriptExt_Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bThirdArd)
-{
-	switch ((AresScripts)pTeamMission->Action)
-	{
-	case AuxilarryPower:
-	{
-		AuxPower(pTeam->Owner) += pTeamMission->Argument;
-		pTeam->Owner->RecheckPower = 1;
-		pTeam->StepCompleted = 1;
-		return true;
-	}
-	case KillDrivers:
-	{
-		const auto pToHouse = HouseExt::FindSpecial();
-
-		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
-		{
-			if (pUnit->Health > 0 && pUnit->IsAlive && pUnit->IsOnMap && !pUnit->InLimbo)
-			{
-				if (!Is_DriverKilled(pUnit) && AresData::IsDriverKillable(pUnit, 1.0))
-				{
-					AresData::KillDriverCore(pUnit, pToHouse, nullptr, false);
-				}
-			}
-		}
-
-		pTeam->StepCompleted = 1;
-		return true;
-	}
-	case TakeVehicles:
-	{
-		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
-		{
-			TakeVehicleMode(pUnit) = true;
-
-			if (pUnit->GarrisonStructure())
-				pUnit->Team->RemoveMember(pUnit, -1, 1);
-		}
-
-		pTeam->StepCompleted = 1;
-		return true;
-	}
-	case ConvertType:
-	{
-		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
-		{
-			const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pUnit->GetTechnoType());
-			if (pTypeExt->Convert_Script)
-			{
-				AresData::ConvertTypeTo(pUnit, pTypeExt->Convert_Script);
-			}
-		}
-
-		pTeam->StepCompleted = 1;
-		return true;
-	}
-	case SonarReveal:
-	{
-		const auto nDur = pTeamMission->Argument;
-		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
-		{
-			auto& nSonarTime = GetSonarTimer(pUnit);
-			if (nDur > nSonarTime.GetTimeLeft())
-			{
-				nSonarTime.Start(nDur);
-			}
-			else if (nDur <= 0)
-			{
-				if (nDur == 0)
-				{
-					nSonarTime.Stop();
-				}
-			}
-		}
-
-		pTeam->StepCompleted = 1;
-		return true;
-	}
-	case DisableWeapons:
-	{
-		const auto nDur = pTeamMission->Argument;
-		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
-		{
-			auto& nTimer = GetDisableWeaponTimer(pUnit);
-			if (nDur > nTimer.GetTimeLeft())
-			{
-				nTimer.Start(nDur);
-			}
-			else if (nDur <= 0)
-			{
-				if (nDur == 0)
-				{
-					nTimer.Stop();
-				}
-			}
-		}
-
-
-		pTeam->StepCompleted = 1;
-		return true;
-	}
-	default:
-
-		if (pTeamMission->Action == 64)
-		{
-			for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
-			{
-				TakeVehicleMode(pUnit) = false;
-
-				if (pUnit->GarrisonStructure())
-					pUnit->Team->RemoveMember(pUnit, -1, 1);
-			}
-
-			pTeam->StepCompleted = 1;
-			return true;
-		}
-
-		return false;
-	}
-}
-
-
-DEFINE_OVERRIDE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
-{
-	enum { ReturnFunc = 0x6E95AB, Continue = 0x0 };
-	GET(TeamClass*, pThis, ESI);
-	GET(ScriptActionNode*, pTeamMission, EAX);
-	GET_STACK(bool, bThirdArg, 0x10);
-	return ScriptExt_Handle(pThis, pTeamMission, bThirdArg)
-		? ReturnFunc : Continue;
 }
 
 DEFINE_OVERRIDE_HOOK(0x413FD2, AircraftClass_Init_Academy, 6)
@@ -3618,8 +3391,9 @@ DEFINE_OVERRIDE_HOOK(0x517D51, InfantryClass_Init_Academy, 6)
 {
 	GET(InfantryClass*, pThis, ESI);
 
-	if (pThis->Owner) {
-		AresData::HouseExt_ExtData_ApplyAcademy(pThis->Owner , pThis, AbstractType::Infantry);
+	if (pThis->Owner)
+	{
+		AresData::HouseExt_ExtData_ApplyAcademy(pThis->Owner, pThis, AbstractType::Infantry);
 	}
 
 	return 0;
@@ -3695,7 +3469,8 @@ bool CarryallCanLift(AircraftTypeClass* pCarryAll, UnitClass* Target)
 
 	const auto& nSize = CarryAllData->CarryallSizeLimit;
 
-	if (nSize.isset() && nSize.Get() != -1) {
+	if (nSize.isset() && nSize.Get() != -1)
+	{
 		return nSize.Get() >= ((TechnoTypeClass*)Target->Type)->Size;
 	}
 
@@ -3754,19 +3529,24 @@ DEFINE_OVERRIDE_HOOK(0x41946B, AircraftClass_ReceivedRadioCommand_QueryEnterAsPa
 
 #include <Commands/ToggleRadialIndicatorDrawMode.h>
 
-DEFINE_HOOK(0x6DBE35 , TacticalClass_DrawLinesOrCircles ,  0x9)
+DEFINE_HOOK(0x6DBE35, TacticalClass_DrawLinesOrCircles, 0x9)
 {
-	if(!ToggleRadialIndicatorDrawModeClass::ShowForAll) {
-		for(auto const& pObj : ObjectClass::CurrentObjects()) {
-			if(pObj && pObj->IsOnMyView() && pObj->GetTechnoType() && pObj->GetTechnoType()->HasRadialIndicator) {
+	if (!ToggleRadialIndicatorDrawModeClass::ShowForAll)
+	{
+		for (auto const& pObj : ObjectClass::CurrentObjects())
+		{
+			if (pObj && pObj->IsOnMyView() && pObj->GetTechnoType() && pObj->GetTechnoType()->HasRadialIndicator)
+			{
 				pObj->DrawRadialIndicator(1);
 			}
 		}
 	}
 	else
 	{
-		for (auto const& pObj : *TechnoClass::Array) {
-			if (pObj && pObj->IsOnMyView() && pObj->GetTechnoType() && pObj->GetTechnoType()->HasRadialIndicator) {
+		for (auto const& pObj : *TechnoClass::Array)
+		{
+			if (pObj && pObj->IsOnMyView() && pObj->GetTechnoType() && pObj->GetTechnoType()->HasRadialIndicator)
+			{
 				pObj->DrawRadialIndicator(1);
 			}
 		}
@@ -3951,14 +3731,16 @@ DEFINE_OVERRIDE_HOOK(0x442974, BuildingClass_ReceiveDamage_Malicious, 6)
 	return 0x442980;
 }
 
-DEFINE_SKIP_HOOK(0x71B09C , TemporalClass_Logic_BuildingUnderAttack_NullptrShit , 0x5 , 71B0E7);
+DEFINE_SKIP_HOOK(0x71B09C, TemporalClass_Logic_BuildingUnderAttack_NullptrShit, 0x5, 71B0E7);
 
 DEFINE_OVERRIDE_HOOK(0x4F94A5, HouseClass_BuildingUnderAttack, 6)
 {
 	GET(BuildingClass*, pSource, ESI);
 
-	if (auto pWh = std::exchange(BuildingExt::ExtMap.Find(pSource)->ReceiveDamageWarhead, nullptr)) {
-		if (!WarheadTypeExt::ExtMap.Find(pWh)->Malicious){
+	if (auto pWh = std::exchange(BuildingExt::ExtMap.Find(pSource)->ReceiveDamageWarhead, nullptr))
+	{
+		if (!WarheadTypeExt::ExtMap.Find(pWh)->Malicious)
+		{
 			return 0x4F95D4;
 		}
 	}
@@ -4013,12 +3795,12 @@ DEFINE_OVERRIDE_HOOK(0x6BED08, Game_Terminate_Mouse, 7)
 	return 0x6BED34;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x56017a, OptionsDlg_WndProc_RemoveResLimit, 0x5 , 560183)
-DEFINE_OVERRIDE_SKIP_HOOK(0x5601e3, OptionsDlg_WndProc_RemoveHiResCheck, 0x9 , 5601FC)
+DEFINE_OVERRIDE_SKIP_HOOK(0x56017a, OptionsDlg_WndProc_RemoveResLimit, 0x5, 560183)
+DEFINE_OVERRIDE_SKIP_HOOK(0x5601e3, OptionsDlg_WndProc_RemoveHiResCheck, 0x9, 5601FC)
 
 #include <Ext/HouseType/Body.h>
 
-int GetValue(TechnoClass* pVictim , TechnoTypeClass* pVictimType , BountyValueOption nOpt)
+int GetValue(TechnoClass* pVictim, TechnoTypeClass* pVictimType, BountyValueOption nOpt)
 {
 	switch (nOpt)
 	{
@@ -4036,27 +3818,36 @@ int GetValue(TechnoClass* pVictim , TechnoTypeClass* pVictimType , BountyValueOp
 
 void GiveBounty(TechnoClass* pVictim, TechnoClass* pKiller)
 {
-	if(!pKiller || !TechnoExt::IsBountyHunter(pKiller))
+	if (!pKiller || !TechnoExt::IsBountyHunter(pKiller))
 		return;
 
-	const auto pKillerTypeExt = TechnoTypeExt::ExtMap.Find(pKiller->GetTechnoType());
-	const auto pVictimType = pVictim->GetTechnoType();
+	if (pKiller->Owner)
+	{
 
-	if (!pKillerTypeExt->BountyAllow.Eligible(pVictimType))
-		return;
+		const auto pHouseTypeExt = HouseTypeExt::ExtMap.TryFind(pVictim->Owner->Type);
 
-	if (!pKillerTypeExt->BountyDissallow.empty() && pKillerTypeExt->BountyDissallow.Contains(pVictimType))
-		return;
+		if (!pHouseTypeExt || !pHouseTypeExt->GivesBounty)
+			return;
 
-	if (pKiller->Owner) {
-		const auto GievesBounty = HouseTypeExt::ExtMap.Find(pVictim->Owner->Type)->GivesBounty;
+		const auto pKillerTypeExt = TechnoTypeExt::ExtMap.Find(pKiller->GetTechnoType());
+		const auto pVictimType = pVictim->GetTechnoType();
 
-		if (GievesBounty && !pKiller->Owner->IsAlliedWith(pVictim)) {
+		if (!pKillerTypeExt->BountyAllow.Eligible(pVictimType))
+			return;
+
+		if (!pKillerTypeExt->BountyDissallow.empty() && pKillerTypeExt->BountyDissallow.Contains(pVictimType))
+			return;
+
+		if (!pKiller->Owner->IsAlliedWith(pVictim))
+		{
 			const auto pRulesGlobal = RulesExt::Global();
 
-			if (!pKillerTypeExt->Bounty_IgnoreEnablers && !pRulesGlobal->Bounty_Enablers.empty()) {
-				for (auto const& pBTypes : pRulesGlobal->Bounty_Enablers) {
-					if (!(pKiller->Owner->OwnedBuildingTypes.GetItemCount(pBTypes->ArrayIndex) > 0)) {
+			if (!pKillerTypeExt->Bounty_IgnoreEnablers && !pRulesGlobal->Bounty_Enablers.empty())
+			{
+				for (auto const& pBTypes : pRulesGlobal->Bounty_Enablers)
+				{
+					if (!(pKiller->Owner->OwnedBuildingTypes.GetItemCount(pBTypes->ArrayIndex) > 0))
+					{
 						return;
 					}
 				}
@@ -4069,7 +3860,8 @@ void GiveBounty(TechnoClass* pVictim, TechnoClass* pKiller)
 			const int nValueResult = GetValue(pVictim, pVictimType, nValueType);
 			const int nValue = int(nValueResult * nVicMult * nMult);
 
-			if(nValue != 0 && pKiller->Owner->AbleToTransactMoney(nValue)) {
+			if (nValue != 0 && pKiller->Owner->AbleToTransactMoney(nValue))
+			{
 
 				if (pKillerTypeExt->Bounty_Display.Get(pRulesGlobal->Bounty_Display))
 				{
@@ -4104,7 +3896,7 @@ enum class AresHijackActionResult
 
 bool IsOperated(TechnoClass* pThis)
 {
-	auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if (pExt->Operators.empty())
 	{
@@ -4131,9 +3923,10 @@ bool IsOperated(TechnoClass* pThis)
 
 // this isn't called VehicleThief action, because it also includes other logic
 // related to infantry getting into an vehicle like CanDrive.
-AresHijackActionResult GetActionHijack(InfantryClass* pThis , TechnoClass* const pTarget)
+AresHijackActionResult GetActionHijack(InfantryClass* pThis, TechnoClass* const pTarget)
 {
-	if (!pThis || !pTarget || !pThis->IsAlive || !pTarget->IsAlive) {
+	if (!pThis || !pTarget || !pThis->IsAlive || !pTarget->IsAlive)
+	{
 		return AresHijackActionResult::None;
 	}
 
@@ -4230,7 +4023,7 @@ AresHijackActionResult GetActionHijack(InfantryClass* pThis , TechnoClass* const
 #include <SlaveManagerClass.h>
 
 // perform the most appropriate hijack action
-bool PerformActionHijack(TechnoClass* pFrom , TechnoClass* const pTarget)
+bool PerformActionHijack(TechnoClass* pFrom, TechnoClass* const pTarget)
 {
 	// was the hijacker lost in the process?
 	bool ret = false;
@@ -4241,7 +4034,7 @@ bool PerformActionHijack(TechnoClass* pFrom , TechnoClass* const pTarget)
 		const auto pExt = TechnoExt::ExtMap.Find(pThis);
 		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
-		const auto action = GetActionHijack(pThis , pTarget);
+		const auto action = GetActionHijack(pThis, pTarget);
 
 		// abort capturing this thing, it looked
 		// better from over there...
@@ -4330,6 +4123,7 @@ bool PerformActionHijack(TechnoClass* pFrom , TechnoClass* const pTarget)
 			HijackerOwner(pTarget) = pThis->Owner;
 			HijackerHealth(pTarget) = pThis->Health;
 			HijackerVeterancy(pTarget) = pThis->Veterancy.Veterancy;
+			TechnoExt::StoreHijackerLastDisguiseData(pThis, (FootClass*)pTarget);
 		}
 
 		// hook up the original mind-controller with the target #762
@@ -4394,7 +4188,7 @@ DEFINE_OVERRIDE_HOOK(0x51E7BF, InfantryClass_GetActionOnObject_CanCapture, 6)
 
 	TechnoClass* pTechnoTarget = generic_cast<TechnoClass*>(pTarget);
 
-	if(!pTechnoTarget)
+	if (!pTechnoTarget)
 		return DontCapture;
 
 	const auto pSelectedType = pSelected->Type;
@@ -4406,10 +4200,10 @@ DEFINE_OVERRIDE_HOOK(0x51E7BF, InfantryClass_GetActionOnObject_CanCapture, 6)
 
 	//const auto nResult = (AresHijackActionResult)AresData::TechnoExt_GetActionHijack(pSelected, pTechnoTarget);
 	const auto nResult = GetActionHijack(pSelected, pTechnoTarget);
-	if(nResult == AresHijackActionResult::None)
+	if (nResult == AresHijackActionResult::None)
 		return DontCapture;
 
-	if(nResult == AresHijackActionResult::Drive && InputManagerClass::Instance->IsForceFireKeyPressed())
+	if (nResult == AresHijackActionResult::Drive && InputManagerClass::Instance->IsForceFireKeyPressed())
 		return DontCapture;
 
 	AresData::SetMouseCursorAction(92, Action::Capture, false);
@@ -4425,7 +4219,7 @@ DEFINE_OVERRIDE_HOOK(0x5203F7, InfantryClass_UpdateVehicleThief_Hijack, 5)
 	GET(FootClass*, pTarget, EDI);
 	TechnoExt::ExtData* pExt = TechnoExt::ExtMap.Find(pThis);
 
-	bool finalize = PerformActionHijack(pThis , pTarget);
+	bool finalize = PerformActionHijack(pThis, pTarget);
 	if (finalize)
 	{
 		// manually deinitialize this infantry
@@ -4476,7 +4270,7 @@ DEFINE_HOOK(519675, InfantryClass_UpdatePosition_BeforeInfantrySpecific, 0xA)
 				if (pTarget && pTarget == pDest)
 				{
 					// reached the target. capture.
-					bool finalize = PerformActionHijack(pThis , pTarget);
+					bool finalize = PerformActionHijack(pThis, pTarget);
 					DoWhat = finalize ? Destroy : Return;
 				}
 			}
@@ -4493,9 +4287,11 @@ DEFINE_OVERRIDE_HOOK(0x5202F9, InfantryClass_UpdateVehicleThief_Check, 6)
 	GET(InfantryClass*, pThis, ESI);
 
 	// good old WW checks for Thief. idiots.
-	if (!pThis->Type->VehicleThief) {
+	if (!pThis->Type->VehicleThief)
+	{
 		// also allow for drivers, because vehicles may still drive around. usually they are not.
-		if (!TechnoTypeExt::ExtMap.Find(pThis->Type)->CanDrive) {
+		if (!TechnoTypeExt::ExtMap.Find(pThis->Type)->CanDrive)
+		{
 			return 0x5206A1;
 		}
 	}
@@ -4511,22 +4307,25 @@ bool NOINLINE FindAndTakeVehicle(FootClass* pThis)
 
 	const auto nDistanceMax = ScenarioClass::Instance->Random.RandomFromMax(128);
 
-	//this one iam not really sure how to implement it 
+	//this one iam not really sure how to implement it
 	//it seems Ares one do multiple item comparison before doing hijack ?
-	//cant really get right decomp result or maybe just me that not understand ,.. 
+	//cant really get right decomp result or maybe just me that not understand ,..
 	//these should work fine for now ,..
-	if (const auto It = Helpers::Alex::getCellSpreadItems_Foot(pThis->Location, pInf->Type->Sight * 256.0 , 
-		[&](FootClass* pFoot) {
-		if (pFoot == pThis || pFoot->WhatAmI() != UnitClass::AbsID)
-			return false;
+	if (const auto It = Helpers::Alex::getCellSpreadItems_Foot(pThis->Location, pInf->Type->Sight * 256.0,
+		[&](FootClass* pFoot)
+		{
+			if (pFoot == pThis || pFoot->WhatAmI() != UnitClass::AbsID)
+				return false;
 
-		 return pThis->Location.DistanceFrom(pFoot->Location) <= nDistanceMax && GetActionHijack(pInf, pFoot) != AresHijackActionResult::None;
+			return pThis->Location.DistanceFrom(pFoot->Location) <= nDistanceMax && GetActionHijack(pInf, pFoot) != AresHijackActionResult::None;
 
-	})){
+		}))
+	{
 
 		TakeVehicleMode(pThis) = true;
 		pThis->ShouldGarrisonStructure = true;
-		if (pThis->Target != It || pThis->CurrentMission != Mission::Capture) {
+		if (pThis->Target != It || pThis->CurrentMission != Mission::Capture)
+		{
 			pThis->SetDestination(It, true);
 			pThis->QueueMission(Mission::Capture, true);
 			return true;
@@ -4559,8 +4358,9 @@ DEFINE_OVERRIDE_HOOK(0x44C844, BuildingClass_MissionRepair_Reload, 6)
 	auto const pExt = BuildingExt::ExtMap.Find(pThis);
 
 	// ensure there are enough slots
-	if((int)pExt->DockReloadTimers.size() < pThis->RadioLinks.Capacity)
-		pExt->DockReloadTimers.resize(pThis->RadioLinks.Capacity);
+	while ((int)pExt->DockReloadTimers.size() < pThis->RadioLinks.Capacity) {
+		pExt->DockReloadTimers.push_back(-1);
+	}
 
 	// update all dockers, check if there's
 	// at least one needing more attention
@@ -4570,7 +4370,8 @@ DEFINE_OVERRIDE_HOOK(0x44C844, BuildingClass_MissionRepair_Reload, 6)
 		if (auto const pLink = pThis->GetNthLink(i))
 		{
 
-			auto const SendCommand = [=](RadioCommand command) {
+			auto const SendCommand = [=](RadioCommand command)
+			{
 				return pThis->SendCommand(command, pLink) == RadioCommand::AnswerPositive;
 			};
 
@@ -4648,9 +4449,133 @@ DEFINE_OVERRIDE_HOOK(0x44C844, BuildingClass_MissionRepair_Reload, 6)
 	return 0x44C968;
 }
 
+DEFINE_HOOK(0x4CAD00, FastMath_Cos_Replace, 0xA)
+{
+	GET_STACK(double, val, 0x4);
+	const auto nResult = std::cos(val);
+	__asm { fld nResult };
+	return 0x4CAD48;
+}
+
+DEFINE_HOOK(0x4CB1A0 , FastMath_Cos_float_Replace , 0xA)
+{
+	GET_STACK(float, val, 0x4);
+	const auto nResult = std::cos(val);
+	__asm { fld nResult };
+	return 0x4CB1F1;
+}
+
+DEFINE_HOOK(0x4CACB0, FastMath_Sin_Replace, 0xA)
+{
+	GET_STACK(double, val, 0x4);
+	const auto nResult = std::sin(val);
+	__asm { fld nResult };
+	return 0x4CACF1;
+}
+
+DEFINE_HOOK(0x4CB150, FastMath_Sin_float_Replace, 0xA)
+{
+	GET_STACK(float, val, 0x4);
+	const auto nResult = std::sin(val);
+	__asm { fld nResult };
+	return 0x4CB19A;
+}
+
+DEFINE_HOOK(0x4CAD50, FastMath_Tan_Replace, 0xA)
+{
+	GET_STACK(double, val, 0x4);
+	const auto nResult = std::tan(val);
+	__asm { fld nResult };
+	return 0x4CAD7B;
+}
+
+DEFINE_HOOK(0x4CB320, FastMath_Tan_float_Replace, 0xA)
+{
+	GET_STACK(float, val, 0x4);
+	const auto nResult = std::tan(val);
+	__asm { fld nResult };
+	return 0x4CB350;
+}
+
+DEFINE_HOOK(0x4CADE0, FastMath_ATan_Replace, 0x8)
+{
+	GET_STACK(double, val, 0x4);
+	const auto nResult = std::atan(val);
+	__asm { fld nResult };
+	return 0x4CAE21;
+}
+
+DEFINE_HOOK(0x4CB480, FastMath_ATan_float_Replace, 0xA)
+{
+	GET_STACK(float, val, 0x4);
+	const auto nResult = std::atan(val);
+	__asm { fld nResult };
+	return 0x4CB4BD;
+}
+
+DEFINE_HOOK(0x4CAE30, FastMath_ATan2_Replace, 0x5)
+{
+	GET_STACK(double, val, 0x4);
+	GET_STACK(double, val2, 0xC);
+	const auto nResult = std::atan2(val , val2);
+	__asm { fld nResult };
+	return 0x4CAEE1;
+}
+
+DEFINE_HOOK(0x4CB3D0, FastMath_ATan2_float_Replace, 0xA)
+{
+	GET_STACK(float, val, 0x4);
+	GET_STACK(float, val2, 0xC);
+	const auto nResult = std::atan2(val , val2);
+	__asm { fld nResult };
+	return 0x4CB472;
+}
+
+DEFINE_HOOK(0x4CAC40, FastMath_sqrt_Replace, 0xA)
+{
+	GET_STACK(double, val, 0x4);
+	const auto nResult = std::sqrt(val);
+	__asm { fld nResult };
+	return 0x4CACAD;
+}
+
+DEFINE_HOOK(0x4CB060, FastMath_sqrt_float_Replace, 0xA)
+{
+	GET_STACK(float, val, 0x4);
+	const auto nResult = std::sqrt(val);
+	__asm { fld nResult };
+	return 0x4CB0D5;
+}
+
+//DEFINE_HOOK(0x71F1A2, TEventClass_HasOccured_DestroyedAll, 6)
+//{
+//	enum{ retfalse = 0x71F163 , rettrue = 0x71F1B1 };
+//	GET(HouseClass*, pHouse, ESI);
+//
+//	if (pHouse->ActiveInfantryTypes.Total <= 0)
+//	{
+//		auto nPos = &pHouse->Buildings.Items[0];
+//		const auto nEnd = &pHouse->Buildings.Items[pHouse->Buildings.Count];
+//		for (auto& pBld : pHouse->Buildings)
+//		{
+//
+//		}
+//		if (nPos == nEnd)
+//			return 0x71F1B1;
+//
+//		while (!(*nPos)->Type->CanBeOccupied || (*nPos)->Occupants.Count <= 0)
+//		{
+//			if (nPos++ == nEnd)
+//				return 0x71F1B1;
+//		}
+//	}
+//
+//	return retfalse;
+//}
+
 //#include <EventClass.h>
 
-//hmm dunno , 
+//hmm dunno ,
 //void Test(REGISTERS* R)
 //{
 //	GET(EventClass*, pEvent, EAX);

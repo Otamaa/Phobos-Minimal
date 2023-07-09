@@ -72,8 +72,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF5F5, TechnoClass_Fire_OtherWaves, 6)
 DEFINE_OVERRIDE_HOOK(0x75FA29, WaveClass_Draw_Colors, 0x6)
 {
 	GET(WaveClass*, pThis, ESI);
-	const auto nData = WaveExt::GetWaveColor(pThis);
-	std::memcpy(&AresCreateWave::TempColor, &nData, sizeof(WaveColorData));
+	AresCreateWave::TempColor = WaveExt::GetWaveColor(pThis);
 	return 0x0;
 
 }
@@ -83,9 +82,6 @@ DEFINE_OVERRIDE_HOOK(0x760F50, WaveClass_Update, 0x6)
 	GET(WaveClass*, pThis, ECX);
 
 	const auto pData = WaveExt::ExtMap.Find(pThis);
-
-	//::Log("WaveClass::Update Try Damage with WP [%x][%s]  ! \n", pData->Weapon, 
-	//	pData->Weapon->ID);
 
 	if (pData->Weapon && pData->Weapon->AmbientDamage) {
 		CoordStruct coords;
@@ -332,10 +328,6 @@ DEFINE_HOOK(0x75F415, WaveClass_DamageCell_FixNoHouseOwner, 0x6)
 			if (pUnit->DeathFrameCounter > 0)
 				return 0x75F432;
 		}
-	}
-
-	if (!Is_Techno(pThis->Owner)) {
-		Debug::Log("WaveClass_DamageCell_FixNoHouseOwner delivering damage from unknown source [%x] !", pThis->Owner);
 	}
 
 	//pVictim->ReceiveDamage(&nDamage, 0, pWarhead, pTechnoOwner, false, false, pTechnoOwner->Owner);

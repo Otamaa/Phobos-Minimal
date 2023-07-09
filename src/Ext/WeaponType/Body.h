@@ -132,6 +132,9 @@ public:
 		Nullable<ParticleSystemTypeClass*> Bolt_ParticleSys {};
 		Valueable<int> Laser_Thickness { -1 };
 
+		ValueableVector<WarheadTypeClass*> ExtraWarheads {};
+		ValueableVector<int> ExtraWarheads_DamageOverrides {};
+
 		ExtData(WeaponTypeClass* OwnerObject) : Extension<WeaponTypeClass>(OwnerObject)		
 		{ }
 

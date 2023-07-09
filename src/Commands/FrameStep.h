@@ -98,7 +98,7 @@ inline const wchar_t* FrameStepCommandClass<Frame>::GetUIName() const
 				buffer[idx++] = 'm';
 				buffer[idx++] = 'e';
 				buffer[idx++] = 's';
-				buffer[idx++] = '.';
+
 				buffer[idx++] = '\0';
 			}
 			else
@@ -112,7 +112,7 @@ inline const wchar_t* FrameStepCommandClass<Frame>::GetUIName() const
 				buffer[idx++] = 'm';
 				buffer[idx++] = 'e';
 				buffer[idx++] = 's';
-				buffer[idx++] = '.';
+
 				buffer[idx++] = '\0';
 			}
 		}

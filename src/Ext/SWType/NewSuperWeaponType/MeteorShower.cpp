@@ -19,7 +19,7 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 		if (const auto pCell = MapClass::Instance->TryGetCellAt(Coords))
 		{
 			auto const pData = SWTypeExt::ExtMap.Find(pThis->Type);
-			BuildingClass* pFirer = this->GetFirer(pThis, Coords, false);
+			auto pFirer = this->GetFirer(pThis, Coords, false);
 
 			const auto nCoord = pCell->GetCoordsWithBridge();
 
@@ -87,8 +87,8 @@ void SW_MeteorShower::Initialize(SWTypeExt::ExtData* pData)
 {
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::LightningStorm;
 	pData->SW_RadarEvent = false;
-	pData->MeteorSmall = AnimTypeClass::Find("METSMALL");
-	pData->MeteorLarge = AnimTypeClass::Find("METLARGE");
+	pData->MeteorSmall = AnimTypeClass::Find(GameStrings::METSMALL);
+	pData->MeteorLarge = AnimTypeClass::Find(GameStrings::METLARGE);
 
 	pData->MeteorImpactSmall = VoxelAnimTypeClass::Find("METEOR02");
 	pData->MeteorImpactLarge = VoxelAnimTypeClass::Find("METEOR01");

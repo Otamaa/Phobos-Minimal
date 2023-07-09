@@ -206,7 +206,7 @@ static bool something_704(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 		{
 			do
 			{
-				Vector3D<float> vect { v29 * 1.0f, nDimension * 1.0f  , 0.0f };
+				Vector3D<float> vect { v29 * 1.0f, nDimension * 1.0f, 0.0f };
 				Vector3D<float> Vec3Dresult {};
 				Matrix3D::MatrixMultiply(Vec3Dresult, &TacticalClass::Instance->IsoTransformMatrix, vect);
 				auto nCoord = CoordStruct { (int)Vec3Dresult.X , (int)Vec3Dresult.Y , 0 };
@@ -320,7 +320,7 @@ CoordStruct* GetSomething(CoordStruct* a1)
 	auto v2 = 30 * MapRect.Height;
 	auto vect_X = ScenarioClass::Instance->Random.RandomFromMax((60 * MapRect.Width) - v1 / 2);
 	auto vect_Y = (v2 / 2 + ScenarioClass::Instance->Random.RandomFromMax(v2));
-	Vector3D<float> vect { (float)vect_X , (float)vect_Y , 0.0f };
+	Vector3D<float> vect { (float)vect_X, (float)vect_Y, 0.0f };
 	Vector3D<float> Vec3Dresult { };
 	Matrix3D::MatrixMultiply(Vec3Dresult, &TacticalClass::Instance->IsoTransformMatrix, vect);
 	a1->Z = 0;
@@ -344,14 +344,29 @@ static bool something_720(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 	return true;
 }
 
-bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args , bool& ret)
+bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 {
 	HouseClass* pHouse = args.pHouse;
 	ObjectClass* pObject = args.pObject;
 	TriggerClass* pTrigger = args.pTrigger;
 
+	// Vanilla overriden
+	switch (pThis->ActionKind)
+	{
+	case TriggerAction::PlaySoundEffectRandom:
+	{
+		ret = TActionExt::PlayAudioAtRandomWP(pThis, pHouse, pObject, pTrigger, args.plocation);
+		return true;
+	}
+	};
+
+	//quick way out
+	if ((PhobosTriggerAction)pThis->ActionKind < PhobosTriggerAction::SaveGame || 
+		(AresNewTriggerAction)pThis->ActionKind < AresNewTriggerAction::count)
+		return false;
+
 	// Phobos
-	switch (static_cast<PhobosTriggerAction>(pThis->ActionKind))
+	switch ((PhobosTriggerAction)pThis->ActionKind)
 	{
 	case PhobosTriggerAction::SaveGame:
 		ret = TActionExt::SaveGame(pThis, pHouse, pObject, pTrigger, args.plocation);
@@ -422,18 +437,6 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args , bool& ret
 		ret = TActionExt::ToggleMCVRedeploy(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
 	default:
-
-		// Vanilla
-		switch (pThis->ActionKind)
-		{
-		case TriggerAction::PlaySoundEffectRandom:
-		{
-			ret = TActionExt::PlayAudioAtRandomWP(pThis, pHouse, pObject, pTrigger, args.plocation);
-			return true;
-		}
-		};
-
-		ret = false;
 		return false;
 	}
 
@@ -471,12 +474,14 @@ bool TActionExt::PlayAudioAtRandomWP(TActionClass* pThis, HouseClass* pHouse, Ob
 
 	auto const pScen = ScenarioClass::Instance();
 
-	for (auto const&[idx , cell] : ScenarioExt::Global()->Waypoints){
+	for (auto const& [idx, cell] : ScenarioExt::Global()->Waypoints)
+	{
 		if (pScen->IsDefinedWaypoint(idx))
 			waypoints.push_back(cell);
 	}
 
-	if (!waypoints.empty()) {
+	if (!waypoints.empty())
+	{
 		VocClass::PlayIndexAtPos(pThis->Value,
 		CellClass::Cell2Coord(waypoints[pScen->Random.RandomFromMax(waypoints.size() - 1)]));
 	}
@@ -493,7 +498,8 @@ bool TActionExt::SaveGame(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 		auto pUI = UI::sub_623230((LPARAM)nMessage, 0, 0);
 		WWMouseClass::Instance->HideCursor();
 
-		if (pUI) {
+		if (pUI)
+		{
 			UI::FocusOnWindow(pUI);
 		}
 
@@ -524,7 +530,8 @@ bool TActionExt::SaveGame(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 
 		WWMouseClass::Instance->ShowCursor();
 
-		if (pUI) {
+		if (pUI)
+		{
 			UI::EndDialog(pUI);
 		}
 
@@ -770,7 +777,7 @@ bool TActionExt::RunSuperWeaponAt(TActionClass* pThis, int X, int Y)
 			}
 
 			if (housesListIdx.size() > 0)
-				houseIdx = 
+				houseIdx =
 				housesListIdx[ScenarioClass::Instance->Random.RandomFromMax(housesListIdx.size() - 1)];
 			else
 				return true;
@@ -806,7 +813,7 @@ bool TActionExt::RunSuperWeaponAt(TActionClass* pThis, int X, int Y)
 			}
 
 			if (housesListIdx.size() > 0)
-				houseIdx = 
+				houseIdx =
 				housesListIdx[(ScenarioClass::Instance->Random.RandomFromMax(housesListIdx.size() - 1))];
 			else
 				return true;
@@ -1075,7 +1082,7 @@ DEFINE_HOOK(0x6DD176, TActionClass_CTOR, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x6DD1E6 , TActionClass_SDDTOR, 0x7)
+DEFINE_HOOK_AGAIN(0x6DD1E6, TActionClass_SDDTOR, 0x7)
 DEFINE_HOOK(0x6E4696, TActionClass_SDDTOR, 0x7)
 {
 	GET(TActionClass*, pItem, ESI);

@@ -133,7 +133,7 @@ void SuperExt::ExtData::Serialize(T& Stm) {
 		.Process(this->Type)
 		.Process(this->Temp_CellStruct)
 		.Process(this->Temp_IsPlayer)
-		.Process(this->Firer)
+		//.Process(this->Firer)
 		.Process(this->Statusses)
 		.Process(this->LauchDatas)
 		;

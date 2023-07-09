@@ -1,5 +1,7 @@
 #include "UnitDelivery.h"
 
+#include <Misc/AresData.h>
+
 std::vector<const char*> SW_UnitDelivery::GetTypeString() const
 {
 	return { "UnitDelivery" };
@@ -45,4 +47,148 @@ bool SW_UnitDelivery::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClas
 		return true;
 
 	return this->IsSWTypeAttachedToThis(pData, pBuilding);
+}
+
+
+void UnitDeliveryStateMachine::Update()
+{
+	if (this->Finished())
+	{
+		CoordStruct coords = CellClass::Cell2Coord(this->Coords);
+
+		auto pData = SWTypeExt::ExtMap.Find(this->Super->Type);
+
+		pData->PrintMessage(pData->Message_Activate, this->Super->Owner);
+
+		if (pData->SW_ActivationSound != -1)
+		{
+			VocClass::PlayAt(pData->SW_ActivationSound, coords, nullptr);
+		}
+
+		this->PlaceUnits();
+	}
+}
+
+//This function doesn't skip any placeable items, no matter how
+//they are ordered. Infantry is grouped. Units are moved to the
+//center as close as they can.
+void UnitDeliveryStateMachine::PlaceUnits()
+{
+	auto pData = SWTypeExt::ExtMap.Find(this->Super->Type);
+	// get the house the units will belong to
+	auto pOwner = HouseExt::GetHouseKind(pData->SW_OwnerHouse, false, this->Super->Owner);
+	bool IsPlayerControlled = pOwner->ControlledByPlayer_();
+	bool bBaseNormal = pData->SW_DeliverBuildups;
+
+	// create an instance of each type and place it
+	// Otamaa : this thing bugged on debug mode , idk 
+	for (auto nPos = pData->LimboDelivery_Types.begin(); nPos != pData->LimboDelivery_Types.end(); ++nPos)
+	{
+		auto pType = *nPos;
+		auto Item = static_cast<TechnoClass*>(pType->CreateObject(pOwner));
+
+		if (!Item)
+			continue;
+
+		auto ItemBuilding = specific_cast<BuildingClass*>(Item);
+
+		// get the best options to search for a place
+		short extentX = 1;
+		short extentY = 1;
+		SpeedType SpeedType = SpeedType::Track;
+		MovementZone MovementZone = MovementZone::Normal;
+		bool buildable = false;
+		bool anywhere = false;
+		auto PlaceCoords = this->Coords;
+
+		if (ItemBuilding)
+		{
+			auto BuildingType = ItemBuilding->Type;
+			extentX = BuildingType->GetFoundationWidth();
+			extentY = BuildingType->GetFoundationHeight(true);
+			anywhere = BuildingType->PlaceAnywhere;
+			if (pType->SpeedType == SpeedType::Float)
+			{
+				SpeedType = SpeedType::Float;
+			}
+			else
+			{
+				buildable = true;
+			}
+		}
+		else
+		{
+			// place aircraft types on ground explicitly
+			if (pType->WhatAmI() != AbstractType::AircraftType)
+			{
+				SpeedType = pType->SpeedType;
+				MovementZone = pType->MovementZone;
+			}
+		}
+
+		// move the target cell so this object is centered on the actual location
+		PlaceCoords = this->Coords - CellStruct{short(extentX / 2), short(extentY / 2)};
+
+		// find a place to put this
+		if (!anywhere)
+		{
+			int a5 = -1; // usually MapClass::CanLocationBeReached call. see how far we can get without it
+			PlaceCoords = MapClass::Instance->NearByLocation(PlaceCoords,
+				SpeedType, a5, MovementZone, false, extentX, extentY, true,
+				false, false, false, CellStruct::Empty, false, buildable);
+		}
+
+		if (auto pCell = MapClass::Instance->TryGetCellAt(PlaceCoords))
+		{
+			Item->OnBridge = pCell->ContainsBridge();
+
+			// set the appropriate mission
+			if (ItemBuilding)
+			{
+				if (!bBaseNormal)
+					Is_FromSW(ItemBuilding) = true;
+				else
+					ItemBuilding->QueueMission(Mission::Construction, false);
+			}
+			else
+			{
+				// only computer units can hunt
+				Item->QueueMission(IsPlayerControlled ? Mission::Guard : Mission::Hunt, false);
+			}
+
+			// place and set up
+			auto XYZ = pCell->GetCoordsWithBridge();
+			if (Item->Unlimbo(XYZ, DirType(MapClass::GetCellIndex(pCell->MapCoords) & 7u)))
+			{
+				if (ItemBuilding)
+				{
+					if (bBaseNormal)
+					{
+						ItemBuilding->DiscoveredBy(pOwner);
+						ItemBuilding->IsReadyToCommence = 1;
+					}
+				}
+				else
+				{
+					if (pType->BalloonHover || pType->JumpJet)
+						Item->Scatter(CoordStruct::Empty, true, false);
+
+					if (Item->CurrentMission == Mission::Area_Guard && !IsPlayerControlled)
+						Item->QueueMission(Mission::Hunt, true);
+				}
+				if (!AresData::IsPowered(Item) || (!Is_Operated(Item) && !AresData::IsOperated(Item)))
+				{
+					Item->Deactivate();
+					if (ItemBuilding)
+					{
+						Item->Owner->RecheckTechTree = true;
+					}
+				}
+			}
+			else
+			{
+				Item->UnInit();
+			}
+		}
+	}
 }

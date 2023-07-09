@@ -481,10 +481,12 @@ bool NewSWType::CanFireAt(SWTypeExt::ExtData* pData, HouseClass* pOwner, const C
 	return this->CanFireAt(*data, cell, manual);
 }
 
-BuildingClass* NewSWType::GetFirer(SuperClass* pSW, const CellStruct& Coords, bool ignoreRange) const
+#include <Ext/Super/Body.h>
+TechnoClass* NewSWType::GetFirer(SuperClass* pSW, const CellStruct& Coords, bool ignoreRange) const
 {
-	BuildingClass* pFirer = nullptr;
+	TechnoClass* pFirer = nullptr;
 	auto const pData = SWTypeExt::ExtMap.Find(pSW->Type);
+	//const auto pFirer_e = SuperExt::ExtMap.Find(pSW)->Firer;
 
 	for (auto const& pBld : pSW->Owner->Buildings)
 	{
@@ -494,6 +496,9 @@ BuildingClass* NewSWType::GetFirer(SuperClass* pSW, const CellStruct& Coords, bo
 			break;
 		}
 	}
+
+	//if (!pFirer && pFirer_e)
+	//	pFirer = pFirer_e;
 
 	return pFirer;
 }

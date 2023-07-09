@@ -15,13 +15,13 @@ struct LocationMark
 	DirStruct Direction;
 
 	LocationMark(CoordStruct location, DirStruct direction) :
-		Location { Location }
-		, Direction { Direction }
+		Location { location }
+		, Direction { direction }
 	{ }
 
 	LocationMark(DirStruct direction , CoordStruct location) :
-		Location { Location }
-		, Direction { Direction }
+		Location { location }
+		, Direction { direction }
 	{ }
 
 	LocationMark() :

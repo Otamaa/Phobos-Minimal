@@ -24,7 +24,7 @@ struct __declspec(novtable)
 {
 	size_t offset;
 	size_t size;
-	const BYTE* pData;
+	BYTE* pData;
 
 	static void ApplyStatic();
 	void Apply();
@@ -67,6 +67,7 @@ struct __declspec(novtable)
 	}
 
 	static void Apply_RAW(DWORD offset, std::initializer_list<BYTE> data);
+	static void Apply_RAW(DWORD offset, size_t sz, BYTE* data);
 
 	static void Apply_LJMP(DWORD offset, DWORD pointer);
 	static inline void Apply_LJMP(DWORD offset, void* pointer)

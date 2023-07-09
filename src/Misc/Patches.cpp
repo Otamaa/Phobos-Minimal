@@ -110,7 +110,7 @@ public:
 void BlittersFix::Apply() //C3 Z-aware SHP translucency fixes
 {
 	// 25% translucency blitter
-	ALLOCATE_LOCAL_PATCH(Blit25TranslucencyFix, 0x4989EE,
+	Patch::Apply_RAW(0x4989EE, {
 		0x66, 0xBE, 0xDE, 0xF7,					// mov    si, 0xF7DE
 		0x66, 0x8B, 0x0A,						// mov    cx, WORD PTR [edx]
 		0x31, 0xC0,								// xor    eax, eax
@@ -138,15 +138,16 @@ void BlittersFix::Apply() //C3 Z-aware SHP translucency fixes
 		0x66, 0x89, 0x07,						// mov    WORD PTR [edi], ax
 		0x47,									// inc    edi
 		0x47									// inc    edi
+		}
 	);
 
 	// 50% translucency blitter pt. 1
-	ALLOCATE_LOCAL_PATCH(Blit50TranslucencyFix1, 0x4987F7,
+	Patch::Apply_RAW(0x4987F7,{
 		0x66, 0xBA, 0xDE, 0xF7	// mov	dx, 0xF7DE
-	);		
+	 });
 
 	// 50% translucency blitter pt. 2
-	ALLOCATE_LOCAL_PATCH(Blit50TranslucencyFix2, 0x498817,
+	Patch::Apply_RAW(0x498817,{
 		0x8B, 0x04, 0x41,			// mov    eax, DWORD PTR [ecx+eax*2]
 		0x89, 0xC1,					// mov    ecx, eax
 		0x33, 0x0B,					// xor    ecx, DWORD PTR [ebx]
@@ -155,10 +156,10 @@ void BlittersFix::Apply() //C3 Z-aware SHP translucency fixes
 		0x0B, 0x03,					// or     eax, DWORD PTR [ebx]
 		0x29, 0xC8,					// sub    eax, ecx
 		0x90, 0x90, 0x90, 0x90		// nop nop nop nop
-	);
+	});
 
 	// 75% translucency blitter
-	ALLOCATE_LOCAL_PATCH(Blit75TranslucencyFix, 0x4985FE,
+	Patch::Apply_RAW(0x4985FE,{
 		0x66, 0xBE, 0xDE, 0xF7,					// mov    si, 0xF7DE
 		0x66, 0x8B, 0x0A,						// mov    cx, WORD PTR [edx]
 		0x31, 0xC0,								// xor    eax, eax
@@ -186,13 +187,13 @@ void BlittersFix::Apply() //C3 Z-aware SHP translucency fixes
 		0x66, 0x89, 0x0F,						// mov    WORD PTR [edi], cx
 		0x47,									// inc    edi
 		0x47									// inc    edi
-	);
+	});
 }
 
 void PoseDirOverride::Apply()
 {
-	ALLOCATE_LOCAL_PATCH(IFlyControl_LandDirection_MovEAX, 0x41B7BE,
-	0x8B, 0xC0,  // mov    eax , eax
-	0x90 // nop
-	);
+	Patch::Apply_RAW(0x41B7BE,{ 
+		0x8B, 0xC0,  // mov    eax , eax
+		0x90 // nop
+	});
 }

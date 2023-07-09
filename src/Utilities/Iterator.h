@@ -36,7 +36,7 @@
 #include <vector>
 
 template<typename T>
-concept direct_comparable = std::is_pointer<T>::value || std::is_integral<T>::value || has_operator_equal<T>::value;
+concept direct_comparable = std::is_pointer<T>::value || std::is_integral<T>::value || std::equality_comparable<T>;
 
 template<typename T>
 class Iterator {

@@ -109,6 +109,9 @@ public:
 	static std::array<const char*, 3u> ShowTimerType_ToStrings;
 	static std::array<const char*, (size_t)BountyValueOption::count> BountyValueOption_ToSrings;
 
+	static std::array<const char*, (size_t)BuildingSelectBracketPosition::count> BuildingSelectBracketPosition_ToSrings;
+	static std::array<const char*, (size_t)DisplayInfoType::count> DisplayInfoType_ToSrings;
+
 	static bool CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse);
 	static bool IsCellEligible(CellClass* const pCell, AffectedTarget const&  allowed, bool explicitEmptyCells = false);
 	static bool IsTechnoEligible(TechnoClass* const pTechno, AffectedTarget  const& allowed, bool considerAircraftSeparately = false);

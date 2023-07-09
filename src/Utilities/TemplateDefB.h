@@ -251,11 +251,9 @@ namespace detail
 				value = (DirType8)nBuffer;
 				return true;
 			}
-			else
-			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a DirType8 between 0 and 8");
-			}
 
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a DirType8 between 0 and 8");
 		}
 
 		return false;
@@ -271,10 +269,9 @@ namespace detail
 				value = (DirType32)nBuffer;
 				return true;
 			}
-			else
-			{
+
+			if (!parser.empty())
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a DirType32 between 0 and 32");
-			}
 		}
 
 		return false;
@@ -293,10 +290,9 @@ namespace detail
 				value = (IsNegative ? (DirType)((int)DirType::Max - (int)nVal) : nVal);
 				return true;
 			}
-			else
-			{
+
+			if (!parser.empty())
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a DirType between 0 and 255");
-			}
 		}
 
 		return false;
@@ -314,10 +310,9 @@ namespace detail
 				value = static_cast<FacingType>(buffer);
 				return true;
 			}
-			else
-			{
+
+			if (!parser.empty())
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid FacingType (0-7 or -1).");
-			}
 		}
 
 		return false;
@@ -334,11 +329,11 @@ namespace detail
 				{
 					value = (SpotlightAttachment)i;
 					return true;
-				}		
+				}
 			}
-			
+
 			if (!parser.empty())
-			Debug::INIParseFailed(pSection, pKey, parser.value(),"Expect valid SpotlightAttachment");
+				Debug::INIParseFailed(pSection, pKey, parser.value(),"Expect valid SpotlightAttachment");
 		}
 
 		return false;
@@ -349,20 +344,19 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			if (parser.ReadString(pSection, pKey))
+			for (size_t i = 0; i < EnumFunctions::ShowTimerType_ToStrings.size(); ++i)
 			{
-				for (size_t i = 0; i < EnumFunctions::ShowTimerType_ToStrings.size(); ++i)
+				if (IS_SAME_STR_(parser.value(), EnumFunctions::ShowTimerType_ToStrings[i]))
 				{
-					if (IS_SAME_STR_(parser.value(), EnumFunctions::ShowTimerType_ToStrings[i]))
-					{
-						value = (ShowTimerType)i;
-						return true;
-					}
+					value = (ShowTimerType)i;
+					return true;
 				}
-
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid ShowTimerType");
 			}
+
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid ShowTimerType");
 		}
+
 		return false;
 	}
 
@@ -371,20 +365,61 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			if (parser.ReadString(pSection, pKey))
-			{
-				for (size_t i = 0; i < EnumFunctions::BountyValueOption_ToSrings.size(); ++i)
-				{
-					if (IS_SAME_STR_(parser.value(), EnumFunctions::BountyValueOption_ToSrings[i]))
-					{
-						value = (BountyValueOption)i;
-						return true;
-					}
-				}
+			const auto pVal = parser.value();
 
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid BountyValueOption");
+			for (size_t i = 0; i < EnumFunctions::BountyValueOption_ToSrings.size(); ++i)
+			{
+				if (IS_SAME_STR_(pVal, EnumFunctions::BountyValueOption_ToSrings[i]))
+				{
+					value = (BountyValueOption)i;
+					return true;
+				}
 			}
+
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, pVal, "Expect valid BountyValueOption");
 		}
+
+		return false;
+	}
+
+	template <>
+	inline bool read<BuildingSelectBracketPosition>(BuildingSelectBracketPosition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			const auto str = parser.value();
+
+			for (size_t i = 0; i < EnumFunctions::BuildingSelectBracketPosition_ToSrings.size(); ++i) {
+				if (IS_SAME_STR_(str, EnumFunctions::BuildingSelectBracketPosition_ToSrings[i])) {
+					value = BuildingSelectBracketPosition(i);
+					return true;
+				}
+			}
+
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, str, "Expect valid BuildingSelectBracketPosition");
+		}
+	}
+
+	template <>
+	inline bool read<DisplayInfoType>(DisplayInfoType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			auto str = parser.value();
+
+			for (size_t i = 0; i < EnumFunctions::DisplayInfoType_ToSrings.size(); ++i) {
+				if (IS_SAME_STR_(str, EnumFunctions::DisplayInfoType_ToSrings[i])) {
+					value = DisplayInfoType(i);
+					return true;
+				}
+			}
+
+			if(!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, str, "Expect valid DisplayInfoType");
+		}
+
 		return false;
 	}
 

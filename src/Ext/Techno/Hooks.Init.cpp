@@ -1,5 +1,9 @@
 #include "Body.h"
 
+#include <Ext/TechnoType/Body.h>
+
+#include <Misc/AresData.h>
+
 
 DEFINE_HOOK(0x517D69, InfantryClass_Init_InitialStrength, 0x6)
 {
@@ -14,7 +18,12 @@ DEFINE_HOOK(0x517D69, InfantryClass_Init_InitialStrength, 0x6)
 
 DEFINE_HOOK(0x7355BA, UnitClass_Init_InitialStrength, 0x6)
 {
+	GET(UnitClass*, pThis, ESI);
 	GET(UnitTypeClass*, pType, EAX);
+
+	if(TechnoTypeExt::ExtMap.Find(pType)->Initial_DriverKilled)
+		Is_DriverKilled(pThis) = true;
+
 	R->EAX(TechnoExt::GetInitialStrength(pType, pType->Strength));
 	return 0x7355C0;
 }

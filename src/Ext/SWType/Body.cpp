@@ -193,7 +193,7 @@ std::pair<TargetingConstraint, bool> SWTypeExt::ExtData::GetAITargetingConstrain
 		if (index < AITargetingModes.size()) {
 			return { AITargetingModes[(int)index].Constrain , true };
 		}
-	}	
+	}
 
 	return { TargetingConstraint::None , false };
 }
@@ -311,7 +311,7 @@ bool SWTypeExt::ExtData::CanFireAt(HouseClass* pOwner, const CellStruct& coords,
 bool SWTypeExt::ExtData::IsTargetConstraintEligible(SuperClass* pThis, bool IsPlayer)
 {
 	const auto pExt = SWTypeExt::ExtMap.Find(pThis->Type);
-	auto pOwner = pThis->Owner; 
+	auto pOwner = pThis->Owner;
 	auto const& [nFlag , IsDefault] = pExt->GetAITargetingConstraint();
 
 	auto valid = [](const CellStruct& nVal) { return nVal.X || nVal.Y; };
@@ -489,12 +489,12 @@ struct TargetingFuncs
 	}
 #pragma endregion
 
-#pragma region MainTargeting 
+#pragma region MainTargeting
 	static TargetResult GetIonCannonTarget(const TargetingInfo& info, HouseClass* pEnemy, CloakHandling cloak)
 	{
 		const auto it = info.TypeExt->GetPotentialAITargets(pEnemy);
 
-		const auto pResult = GetTargetAnyMax(it.begin(), it.end(), 
+		const auto pResult = GetTargetAnyMax(it.begin(), it.end(),
 			[=, &info](TechnoClass* pTechno, int curMax) {
 				if(TargetingFuncs::IgnoreThis(pTechno))
 					return -1;
@@ -726,8 +726,8 @@ struct TargetingFuncs
 		auto pOwner = info.Owner;
 
 		if (pOwner->PreferredTargetType == TargetType::Anything) {
-			return TargetingFuncs::GetIonCannonTarget(info, 
-				HouseClass::Array->GetItemOrDefault(pOwner->EnemyHouseIndex), 
+			return TargetingFuncs::GetIonCannonTarget(info,
+				HouseClass::Array->GetItemOrDefault(pOwner->EnemyHouseIndex),
 				CloakHandling::IgnoreCloaked);
 		}
 
@@ -786,13 +786,13 @@ struct TargetingFuncs
 		auto index = info.Super->Type->ArrayIndex;
 		const auto& buildings = info.Owner->Buildings;
 		// Ares < 0.9 didn't check power
-		const auto it = std::find_if(buildings.begin(), 
+		const auto it = std::find_if(buildings.begin(),
 			buildings.end(), [index, &info](BuildingClass* pBld)
 		{
 			auto const pExt = BuildingExt::ExtMap.Find(pBld);
 
-			if ( /*pExt->HasSuperWeapon(index, true)*/ 
-				info.NewType->IsLaunchSite(info.TypeExt, pBld) 
+			if ( /*pExt->HasSuperWeapon(index, true)*/
+				info.NewType->IsLaunchSite(info.TypeExt, pBld)
 				&& pBld->IsPowerOnline())
 			{
 				auto cell = CellClass::Coord2Cell(pBld->GetCoords());
@@ -1214,7 +1214,7 @@ bool SWTypeExt::ExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStr
 		for (auto& pHouseSuper : pOwner->Supers) {
 			if (pData->SW_ResetType.Contains(pHouseSuper->Type->ArrayIndex))
 				pHouseSuper->Reset();
-		}	
+		}
 	}
 
 	return true;
@@ -1409,6 +1409,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	//
 	this->Converts.Read(exINI, pSection, "Converts");
 	this->ConvertsPair.Read(exINI, pSection, "ConvertsPair");
+	this->Convert_SucceededAnim.Read(exINI, pSection, "ConvertsAnim");
 
 	//
 	this->SW_Warhead.Read(exINI, pSection, "SW.Warhead");
@@ -1478,7 +1479,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		pThis->Action = this->LastAction;
 		pNewSWType->LoadFromINI(this, pINI);
 		this->LastAction = pThis->Action;
-		
+
 		// whatever the user does, we take care of the stupid tags.
 		// there is no need to have them not hardcoded.
 		auto const flags = pNewSWType->Flags(this);
@@ -1606,7 +1607,8 @@ void SWTypeExt::ExtData::ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, co
 		return;
 
 	const auto pCell = MapClass::Instance->GetCellAt(cell);
-	BuildingClass* pFirer = this->GetNewSWType()->GetFirer(pSW, cell, true);
+	TechnoClass* pFirer = this->GetNewSWType()->GetFirer(pSW, cell, true);
+
 	CoordStruct nDest = CoordStruct::Empty;
 	AbstractClass* pTarget = nullptr;
 
@@ -1625,7 +1627,10 @@ void SWTypeExt::ExtData::ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, co
 	}
 
 	if (!MapClass::Instance->IsWithinUsableArea(nDest))
-		Debug::Log("SW [%s] Lauch Outside Usable Map Area [%d . %d]! \n", this->Get()->ID , nDest.X , nDest.Y);
+		Debug::Log("SW[%s] Lauch Outside Usable Map Area [%d . %d]! \n", this->Get()->ID , nDest.X , nDest.Y);
+
+	if (!pFirer)
+		Debug::Log("SW[%s] ApplyDetonate without Firer!\n", this->Get()->ID);
 
 	if (const auto pWeapon = this->Detonate_Weapon.Get())
 		WeaponTypeExt::DetonateAt(pWeapon, nDest, pFirer, this->Detonate_Damage.Get(pWeapon->Damage), true);
@@ -1644,14 +1649,14 @@ void SWTypeExt::ExtData::ApplySWNext(SuperClass* pSW, const CellStruct& cell)
 		this->WeightedRollsHandler(results, &this->SW_Next_RollChances, &this->SW_Next_RandomWeightsData, this->SW_Next.size());
 		for (const int& result : results)
 		{
-			SWTypeExt::Launch(pSW->Owner, this, this->SW_Next[result], cell);
+			SWTypeExt::Launch(pSW, pSW->Owner, this, this->SW_Next[result], cell);
 		}
 	}
 	// no randomness mode
 	else
 	{
 		for (const auto& pSWType : this->SW_Next)
-			SWTypeExt::Launch(pSW->Owner, this, pSWType, cell);
+			SWTypeExt::Launch(pSW ,pSW->Owner, this, pSWType, cell);
 	}
 }
 
@@ -1672,7 +1677,7 @@ void SWTypeExt::ExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, co
 	if (this->Converts)
 	{
 		for (const auto pTargetFoot : *FootClass::Array)
-			TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTargetFoot);
+			TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTargetFoot , this->Convert_SucceededAnim);
 	}
 }
 
@@ -1764,9 +1769,9 @@ bool SWTypeExt::ExtData::IsAvailable(HouseClass* pHouse)
 	if (!Neg.empty() && std::any_of(Neg.begin(), Neg.end(), IsBuildingPresent)) {
 		return false;
 	}
-	
+
 	const auto& AuxT = this->Aux_Techno;
-	if (!AuxT.empty() && std::none_of(AuxT.begin(), AuxT.end(), 
+	if (!AuxT.empty() && std::none_of(AuxT.begin(), AuxT.end(),
 		[pHouse](TechnoTypeClass* pType) { return pType && pHouse->CountOwnedAndPresent(pType) > 0; })) {
 		return false;
 	}
@@ -1911,7 +1916,7 @@ void SWTypeExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int I
 }
 
 // SW.Next proper launching mechanic
-void SWTypeExt::Launch(HouseClass* pHouse, SWTypeExt::ExtData* pLauncherTypeExt, int pLaunchedType, const CellStruct& cell)
+void SWTypeExt::Launch(SuperClass* pFired, HouseClass* pHouse, SWTypeExt::ExtData* pLauncherTypeExt, int pLaunchedType, const CellStruct& cell)
 {
 	const auto pSuper = pHouse->Supers.GetItemOrDefault(pLaunchedType);
 
@@ -1927,11 +1932,12 @@ void SWTypeExt::Launch(HouseClass* pHouse, SWTypeExt::ExtData* pLauncherTypeExt,
 			&& (pLauncherTypeExt->SW_Next_IgnoreDesignators || pSuperTypeExt->HasDesignator(pHouse, cell)))
 		{
 			// Forcibly fire
+			//SuperExt::ExtMap.Find(pSuper)->Firer = SuperExt::ExtMap.Find(pFired)->Firer;
+
 			pSuper->Launch(cell, true);
 			if (pLauncherTypeExt->SW_Next_RealLaunch)
 				pSuper->Reset();
 		}
-
 	}
 }
 
@@ -2007,6 +2013,7 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->LastAction)
 		.Process(this->Converts)
 		.Process(this->ConvertsPair)
+		.Process(this->Convert_SucceededAnim)
 		.Process(this->SW_Warhead)
 		.Process(this->SW_Anim)
 		.Process(this->SW_Sound)

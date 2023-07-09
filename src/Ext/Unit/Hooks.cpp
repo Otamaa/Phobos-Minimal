@@ -30,3 +30,17 @@ DEFINE_HOOK(0x73E474, UnitClass_Unload_Storage, 0x6)
 
 	return 0;
 }
+
+DEFINE_HOOK(0x7394FF, UnitClass_TryToDeploy_CantDeployVoice, 0x8)
+{
+	GET(UnitClass* const, pThis, EBP);
+
+	const auto pThisTechno = TechnoTypeExt::ExtMap.Find(pThis->Type);
+
+	if (pThisTechno->VoiceCantDeploy.isset()) {
+		VocClass::PlayGlobal(pThisTechno->VoiceCantDeploy, Panning::Center, 1.0);
+		return 0x73950F;
+	}
+
+	return 0x0;
+}

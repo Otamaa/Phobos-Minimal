@@ -68,8 +68,10 @@ void SpiralTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 	this->SetInaccurate();
 	this->CenterLocation = pBullet->Location;
 
+	constexpr auto halfpi = (Math::Pi / 2);
+
 	this->DirectionAngel = std::atan2((double)(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y), 
-		(double)(pBullet->TargetCoords.X - pBullet->SourceCoords.X)) + (Math::Pi / 2);
+		(double)(pBullet->TargetCoords.X - pBullet->SourceCoords.X)) + halfpi;
 
 	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
 	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);

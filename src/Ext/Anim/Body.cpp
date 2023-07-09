@@ -265,7 +265,7 @@ bool AnimExt::OnMiddle(AnimClass* pThis)
 		if (!pTypeExt->Launchs.empty()) {
 			for (const auto& nLauch : pTypeExt->Launchs) {
 				if (nLauch.LaunchWhat) {
-					Helpers::Otamaa::LauchSW(nLauch , pHouse, nCoord);
+					Helpers::Otamaa::LauchSW(nLauch , pHouse, nCoord , pObject);
 				}
 			}
 		}

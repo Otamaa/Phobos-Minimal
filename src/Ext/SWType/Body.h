@@ -230,9 +230,10 @@ public:
 #pragma region converts
 		Valueable<bool> Converts { false };
 		ValueableVector<TechnoTypeConvertData> ConvertsPair {};
+		Valueable<AnimTypeClass*> Convert_SucceededAnim { nullptr };
 #pragma endregion
 
-#pragma region Nuke 
+#pragma region Nuke
 		Valueable<WeaponTypeClass*> Nuke_Payload { nullptr };
 		Valueable<AnimTypeClass*> Nuke_PsiWarning { nullptr };
 		Nullable<AnimTypeClass*> Nuke_TakeOff {};
@@ -448,7 +449,7 @@ public:
 		bool IsOriginalType() const;
 		NewSWType* GetNewSWType() const;
 
-		//statics 
+		//statics
 		static bool Deactivate(SuperClass* pSuper, CellStruct const cell, bool const isPlayer);
 		static bool Activate(SuperClass* pSuper, CellStruct const cell, bool const isPlayer);
 		static AffectedHouse GetRelation(HouseClass* pFirer, HouseClass* pHouse);
@@ -484,7 +485,7 @@ public:
 	static ExtContainer ExtMap;
 	static void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID);
 	static void WeightedRollsHandler(std::vector<int>& nResult, Valueable<double>& RandomBuffer, const ValueableVector<float>& rolls, const ValueableVector<ValueableVector<int>>& weights, size_t size);
-	static void Launch(HouseClass* pHouse, SWTypeExt::ExtData* pLauncherTypeExt, int pLaunchedType, const CellStruct& cell);
+	static void Launch(SuperClass* pFired , HouseClass* pHouse, SWTypeExt::ExtData* pLauncherTypeExt, int pLaunchedType, const CellStruct& cell);
 	static void ClearChronoAnim(SuperClass* pThis);
 	static void CreateChronoAnim(SuperClass* pThis, const CoordStruct& Coords, AnimTypeClass* pAnimType);
 	static bool ChangeLighting(SuperWeaponTypeClass* pCustom = nullptr);

@@ -370,6 +370,19 @@ public:
 
 	static const char* GetLocomotionName(const CLSID& clsid);
 
+	static int CountDigitsInNumber(int number)
+	{
+		int digits = 0;
+
+		while (number)
+		{
+			number /= 10;
+			digits++;
+		}
+
+		return digits;
+	}
+
 #pragma region Otamaa
 	static const int GetAnimIndexFromFacing(FootClass* pFoot, int nVectorSize);
 

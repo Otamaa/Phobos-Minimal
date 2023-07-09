@@ -17,7 +17,7 @@ bool SW_GeneticMutator::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 
 	if (pThis->IsCharged)
 	{
-		BuildingClass* pFirer = this->GetFirer(pThis, Coords, false);
+		auto pFirer = this->GetFirer(pThis, Coords, false);
 
 		if (pData->Mutate_Explosion.Get(RulesClass::Instance->MutateExplosion))
 		{

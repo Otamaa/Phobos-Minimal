@@ -183,9 +183,8 @@ int PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno, AbstractClas
 	auto const pType = pThis->GetTechnoType();
 
 	// Handle special case with NavalTargeting / LandTargeting.
-	if (!pTargetTechno && (pType->NavalTargeting == NavalTargetingType::Naval_primary ||
-		pType->LandTargeting == LandTargetingType::Land_secondary) &&
-		pTargetCell->LandType != LandType::Water && pTargetCell->LandType != LandType::Beach)
+	if (!pTargetTechno && pTargetCell && (pType->NavalTargeting == NavalTargetingType::Naval_primary || pType->LandTargeting == LandTargetingType::Land_secondary)
+		&& pTargetCell->LandType != LandType::Water && pTargetCell->LandType != LandType::Beach)
 	{
 		return weaponIndexTwo;
 	}
@@ -289,7 +288,7 @@ DEFINE_HOOK(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 	int oddWeaponIndex = 2 * pThis->CurrentGattlingStage;
 	int evenWeaponIndex = oddWeaponIndex + 1;
 	int chosenWeaponIndex = oddWeaponIndex;
-	int eligibleWeaponIndex = TechnoExt::PickWeaponIndex(pThis, pTargetTechno, pTarget, oddWeaponIndex, evenWeaponIndex, true);
+	int eligibleWeaponIndex = TechnoExt::PickWeaponIndex(pThis, pTargetTechno, pTarget, oddWeaponIndex, evenWeaponIndex, true,true);
 
 	if (eligibleWeaponIndex != -1)
 	{

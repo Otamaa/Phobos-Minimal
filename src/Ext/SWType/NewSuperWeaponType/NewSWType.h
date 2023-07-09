@@ -148,7 +148,7 @@ public:
 	std::unique_ptr<const TargetingData> GetTargetingData(SWTypeExt::ExtData* pData, HouseClass* pOwner) const;
 	bool CanFireAt(SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& cell, bool manual) const;
 
-	BuildingClass* GetFirer(SuperClass* pSW, const CellStruct& Coords, bool ignoreRange) const;
+	TechnoClass* GetFirer(SuperClass* pSW, const CellStruct& Coords, bool ignoreRange) const;
 	bool CanHaveLauchSite(SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const;
 
 public:

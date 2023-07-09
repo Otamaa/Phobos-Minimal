@@ -642,6 +642,15 @@ public:
 	bool IsLinkedBridgeDestroyed(const CellStruct& cell) const
 		{ JMP_THIS(0x587410); }
 
+	CellStruct* Localsize_586AC0(CellStruct* buffer, CellStruct* from, bool dec) const
+		{ JMP_THIS(0x586AC0); }
+
+	CellStruct Localsize_586AC0(CellStruct* from, bool dec) const
+	{
+		CellStruct nBuffer;
+		this->Localsize_586AC0(&nBuffer, from, dec);
+		return nBuffer;
+	}
 	//find_type 0 - 3 ,range and threadposed related
 	static BuildingClass* __fastcall FindEnemyBuilding(BuildingTypeClass* type, HouseClass* house, TechnoClass* attacker, int find_type, bool OnlyTargetHouseEnemy)
 		{ JMP_STD(0x6EEBD0); }

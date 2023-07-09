@@ -13,7 +13,7 @@ bool SW_EMPField::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 	if (pData->EMPField_Duration == 0)
 		return false;
 
-	BuildingClass* pFirer = this->GetFirer(pThis,Coords , false);
+	auto pFirer = this->GetFirer(pThis,Coords , false);
 
 	//does not work ?
 	return GameCreate<EMPulseClass>(Coords, this->GetRange(pData).width() , pData->EMPField_Duration.Get(), pFirer);

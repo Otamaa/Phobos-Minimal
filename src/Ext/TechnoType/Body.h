@@ -783,6 +783,9 @@ public:
 
 		ValueableVector<AnimTypeClass*> DeployAnims {};
 		PhobosMap<TechnoTypeClass*, Valueable<float>> SpecificExpFactor {};
+		Valueable<bool> Initial_DriverKilled { false };
+
+		NullableIdx<VocClass> VoiceCantDeploy {};
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, AttachedEffect { OwnerObject }

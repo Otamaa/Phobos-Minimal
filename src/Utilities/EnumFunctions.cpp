@@ -16,7 +16,7 @@ std::array<const char* const, (size_t)PhobosAbilityType::count> EnumFunctions::P
  {
 	{ "INTERCEPTOR" } , { "CHRONODELAYIMMUNE" } , { "CRITIMMUNE" } ,
 	{ "PSIONICSIMMUNE" } , { "CULLINGIMMUNE" } , { "EMPIMMUNE" } ,
-	{ "RADIMMUNE" } , { "PROTECTED_DRIVER" } , { "UNWARPABLE" } , 
+	{ "RADIMMUNE" } , { "PROTECTED_DRIVER" } , { "UNWARPABLE" } ,
 	{ "POISONIMMUNE" } , { "PSIONICSWEAPONIMMUNE" } , { "BERSERKIMMUNE" } ,
 	{ "ABDUCTORIMMUNE" } , { "ASSAULTER" } , { "PARASITEIMMUNE" } , {"BOUNTYHUNTER"}
  }
@@ -53,7 +53,7 @@ std::array<const char* const, (size_t)DamageDelayTargetFlag::count> EnumFunction
 std::array<const char* const, 6u> EnumFunctions::MouseCursorData_ToStrings
 {
 {
-	{ "%s.Frame" } , { "%s.Count" } , { "%s.Interval" } , 
+	{ "%s.Frame" } , { "%s.Count" } , { "%s.Interval" } ,
 	{ "%s.MiniFrame" } , { "%s.MiniCount" } , { "%s.MiniInterval" }
 }
 };
@@ -68,11 +68,11 @@ std::array<const char* const, 3u> EnumFunctions::HealthCondition_ToStrings
 std::array<const char* const, 21u> EnumFunctions::TileType_ToStrings
 {
 {
-	{ "Unknown" } , { "Tunnel" } , { "Water" } , 
+	{ "Unknown" } , { "Tunnel" } , { "Water" } ,
 	{ "Ramp" } , {"Blank"} , {"Shore"} ,
 	{"Wet"} , {"MiscPave"} , {"Pave"} ,
 	{"DirtRoad"} , {"PavedRoad"} , {"PavedRoadEnd"} ,
-	{"PavedRoadSlope"} , {"Median"} , {"Bridge"} , 
+	{"PavedRoadSlope"} , {"Median"} , {"Bridge"} ,
 	{"WoodBridge"} , {"ClearToSandLAT"} , {"Green"} ,
 	{"NotWater"} , {"DestroyableCliff"}
 }
@@ -144,7 +144,7 @@ std::array<std::pair<const char* const, SpotlightFlags>, 5u> EnumFunctions::Spot
 std::array<std::pair<const char* const, HorizontalPosition>, 4u> EnumFunctions::HorizontalPosition_ToStrings
 {
 	{
-		{ "left", HorizontalPosition::Left }, 
+		{ "left", HorizontalPosition::Left },
 		{ "center", HorizontalPosition::Right },
 		{ "right", HorizontalPosition::Center }
 	}
@@ -161,7 +161,7 @@ std::array<std::pair<const char* const, TextAlign>, 4u> EnumFunctions::TextAlign
 
 std::array<const char* const, 3u> EnumFunctions::AreaFireTarget_ToStrings
 {
-{ 	
+{
 	{"base"} , {"self"} , {"random"}
 }
 };
@@ -245,13 +245,13 @@ std::array<std::pair<const char* const, SuperWeaponAITargetingMode>, 21u> EnumFu
 std::array<const char* const, 8u> EnumFunctions::OwnerHouseKind_ToStrings
 {
 {
-	{"default"} ,  
+	{"default"} ,
 	{"invoker"} ,
-	{"killer"} , 
+	{"killer"} ,
 	{"victim"} ,
 	{GameStrings::Civilian()} ,
-	{GameStrings::Special()} , 
-	{GameStrings::Neutral()} ,  
+	{GameStrings::Special()} ,
+	{GameStrings::Neutral()} ,
 	{"random"}
 }
 };
@@ -340,32 +340,58 @@ std::array<std::pair<const char* ,AffectPlayerType>, 5u> EnumFunctions::AffectPl
 {
 {	{GameStrings::NoneStrb() ,AffectPlayerType::None },
 	{"computer" ,AffectPlayerType::Computer },
-	{"player" ,AffectPlayerType::Player }, 
-	{"observer" ,AffectPlayerType::Observer }, 
+	{"player" ,AffectPlayerType::Player },
+	{"observer" ,AffectPlayerType::Observer },
 	{"all" , AffectPlayerType::Computer | AffectPlayerType::Player | AffectPlayerType::Observer }
 }
 };
 
-
 std::array<const char*, 3u> EnumFunctions::SpotlightAttachment_ToStrings
 {
-	{
-		{"Body"}, { "Turret" }, { "Barrel" }
-	}
+{
+	{"Body"}, { "Turret" }, { "Barrel" }
+}
 };
 
 std::array<const char*, 3u> EnumFunctions::ShowTimerType_ToStrings
 {
-	{
-		{"Hour"}, { "Minute" }, { "Second" }
-	}
+{
+	{"Hour"}, { "Minute" }, { "Second" }
+}
 };
 
 std::array<const char*, (size_t)BountyValueOption::count> EnumFunctions::BountyValueOption_ToSrings
 {
-	{
-		{"value"} , {"cost"} , {"soylent"}
-	}
+{
+	{"value"}, { "cost" }, { "soylent" }
+}
+};
+
+std::array<const char*, (size_t)BuildingSelectBracketPosition::count> EnumFunctions::BuildingSelectBracketPosition_ToSrings
+{
+{
+	{ "top" },
+	{ "lefttop" },
+	{ "leftbottom" },
+	{ "bottom" },
+	{ "rightbottom" },
+	{ "righttop" },
+}
+};
+
+std::array<const char*, (size_t)DisplayInfoType::count> EnumFunctions::DisplayInfoType_ToSrings
+{
+{	{ "health" },
+	{ "shield" },
+	{ "ammo" },
+	{ "mindcontrol" },
+	{ "spawns" },
+	{ "passengers" },
+	{ "tiberium" },
+	{ "experience" },
+	{ "occupants" },
+	{ "gattlingstage" }
+}
 };
 
 bool EnumFunctions::CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse)

@@ -29,10 +29,6 @@ public:
 class ShapeTextPrinter
 {
 private:
-
-	static const char* SignSequence;
-	static const int SignSequenceLength;
-
 	static int GetSignIndex(const char sign);
 	static void BuildFrames(std::vector<int>& vFrames, const char* const text, const int baseNumberFrame, const int baseSignFrame);
 

@@ -494,6 +494,7 @@ NOINLINE InfantryClass* RecoverHijacker(FootClass* const pThis)
 		if (!pTypeExt->HijackerOneTime && pOwner && !pOwner->Defeated)
 		{
 			if(auto const pHijacker = static_cast<InfantryClass*>(pType->CreateObject(pOwner))) {
+				TechnoExt::RestoreStoreHijackerLastDisguiseData(pHijacker,pThis);
 				pHijacker->Health = MaxImpl(HijackerHealth(pThis), 10) / 2;
 				pHijacker->Veterancy.Veterancy = HijackerVeterancy(pThis);
 				return pHijacker;

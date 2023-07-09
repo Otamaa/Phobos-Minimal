@@ -34,7 +34,7 @@ public:
 		SWTypeExt::ExtData* Type { nullptr };
 		bool Temp_IsPlayer { false };
 		CellStruct Temp_CellStruct { };
-		TechnoClass* Firer { nullptr };
+		//TechnoClass* Firer { nullptr };
 		SWStatus Statusses { };
 		LauchData LauchDatas { };
 
@@ -44,7 +44,7 @@ public:
 		virtual ~ExtData() override  = default;
 		void InvalidatePointer(void* ptr, bool bRemoved)
 		{
-			AnnounceInvalidPointer(Firer, ptr);
+		//	AnnounceInvalidPointer(Firer, ptr);
 		}
 
 		bool InvalidateIgnorable(void* ptr) const

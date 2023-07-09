@@ -41,6 +41,21 @@
 
 #include <memory>
 
+void TechnoExt::StoreHijackerLastDisguiseData(InfantryClass* pThis, FootClass* pVictim)
+{
+	auto pExt = TechnoExt::ExtMap.Find(pVictim);
+	pExt->HijackerLastDisguiseType = (InfantryTypeClass*)pThis->GetDisguise(true);
+	pExt->HijackerLastDisguiseHouse = pThis->GetDisguiseHouse(true);
+}
+
+void TechnoExt::RestoreStoreHijackerLastDisguiseData(InfantryClass* pThis, FootClass* pVictim)
+{
+	const auto pExt = TechnoExt::ExtMap.Find(pVictim);
+	pThis->ClearDisguise();
+	pThis->Disguise = pExt->HijackerLastDisguiseType;
+	pThis->DisguisedAsHouse = pExt->HijackerLastDisguiseHouse;
+}
+
 bool TechnoExt::IsCullingImmune(TechnoClass* pThis)
 {
 	return HasAbility(pThis, PhobosAbilityType::CullingImmune);
@@ -555,7 +570,6 @@ bool TechnoExt::HasImmunity(Rank vet, TechnoClass* pThis, int nType)
 	return pTypeExt->R_ImmuneToType.Contains(nType);
 }
 
-
 #include <Ext/TerrainType/Body.h>
 
 bool TechnoExt::IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker)
@@ -790,10 +804,7 @@ bool TechnoExt::CheckCellAllowFiring(CellClass* pCell, WeaponTypeClass* pWeapon)
 
 bool TechnoExt::TechnoTargetAllowFiring(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon)
 {
-	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
-
-	if (IS_SAME_STR_(pWeapon->ID, "CoyoteGun"))
-		Debug::Log("Hey");
+	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);;
 
 	if (!EnumFunctions::IsTechnoEligible(pTarget, pWeaponExt->CanTarget) ||
 		!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner, pTarget->Owner))
@@ -3579,19 +3590,15 @@ bool TechnoExt::ExtData::UpdateKillSelf_Slave()
 int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno,
  AbstractClass* pTarget, int weaponIndexOne, int weaponIndexTwo, bool allowFallback, bool allowAAFallback)
 {
-	CellClass* targetCell = nullptr;
+	CellClass* pTargetCell = nullptr;
 
 	// Ignore target cell for airborne target technos.
-	if (pTarget)
+	if (!pTargetTechno || !pTargetTechno->IsInAir())
 	{
-		if (const auto pCell = abstract_cast<CellClass*>(pTarget))
-			targetCell = pCell;
-		else if (const auto pObject = abstract_cast<ObjectClass*>(pTarget))
-		{
-			// Ignore target cell for technos that are in air.
-			if ((pTargetTechno && !pTargetTechno->IsInAir()) || pObject != pTargetTechno)
-				targetCell = pObject->GetCell();
-		}
+		if (auto const pCell = abstract_cast<CellClass*>(pTarget))
+			pTargetCell = pCell;
+		else if (auto const pObject = abstract_cast<ObjectClass*>(pTarget))
+			pTargetCell = pObject->GetCell();
 	}
 
 	const auto pWeaponStructOne = pThis->GetWeapon(weaponIndexOne);
@@ -3604,59 +3611,40 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno,
 	else if (!pWeaponStructOne)
 		return weaponIndexTwo;
 
-	const auto pWeaponOne = pWeaponStructOne->WeaponType;
-	const auto pWeaponTwo = pWeaponStructTwo->WeaponType;
-	const auto pFirstExt = WeaponTypeExt::ExtMap.Find(pWeaponOne);
-	const auto pSecondExt = WeaponTypeExt::ExtMap.Find(pWeaponTwo);
+	auto const pWeaponOne = pWeaponStructOne->WeaponType;
+	auto const pWeaponTwo = pWeaponStructTwo->WeaponType;
 
-	bool IsSecondary_cellTargetRestricted = false;
-	bool IsSecondary_versesRestricted = false;
-	bool IsSecondary_TechnoTargetRestricted = false;
-	bool IsSecondary_HouseTargetRestricted = false;
-
+	if (auto const pSecondExt = WeaponTypeExt::ExtMap.TryFind(pWeaponTwo))
 	{
-		IsSecondary_cellTargetRestricted = targetCell && !EnumFunctions::IsCellEligible(targetCell, pSecondExt->CanTarget, true);
-
-		if(pTargetTechno){
-			IsSecondary_versesRestricted = WarheadTypeExt::ExtMap.Find(pWeaponTwo->Warhead)->GetVerses(pTargetTechno->GetType()->Armor).Verses == 0.0;
-			IsSecondary_TechnoTargetRestricted = !EnumFunctions::IsTechnoEligible(pTargetTechno, pSecondExt->CanTarget);
-			IsSecondary_HouseTargetRestricted = !EnumFunctions::CanTargetHouse(pSecondExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner);
-		}
-
-		if (IsSecondary_cellTargetRestricted || IsSecondary_versesRestricted || IsSecondary_TechnoTargetRestricted || IsSecondary_HouseTargetRestricted) {
-			return weaponIndexOne;
-		}
-		else //primary check here
+		if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pSecondExt->CanTarget, true)) ||
+			(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pSecondExt->CanTarget) ||
+				!EnumFunctions::CanTargetHouse(pSecondExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner))))
 		{
-			const bool secondaryIsAA = pTargetTechno && pTargetTechno->IsInAir() && pWeaponTwo->Projectile->AA;
-
-			if (!(!allowFallback && (!allowAAFallback || !secondaryIsAA) && !TechnoExt::CanFireNoAmmoWeapon(pThis, 1)))
-			{
-				//everything is fine , but we check primary capabilities first
-				const bool IsPrimary_cellTargetRestricted = targetCell && !EnumFunctions::IsCellEligible(targetCell, pFirstExt->CanTarget, true);
-				const bool IsPrimary_versesRestricted = pTargetTechno && WarheadTypeExt::ExtMap.Find(pWeaponOne->Warhead)->GetVerses(pTargetTechno->GetType()->Armor).Verses == 0.0;
-				const bool IsPrimary_TechnoTargetRestricted = pTargetTechno && !EnumFunctions::IsTechnoEligible(pTargetTechno, pFirstExt->CanTarget);
-				const bool IsPrimary_HouseTargetRestricted = pTargetTechno && !EnumFunctions::CanTargetHouse(pFirstExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner);
-
-				if (IsPrimary_cellTargetRestricted || IsPrimary_versesRestricted || IsPrimary_TechnoTargetRestricted || IsPrimary_HouseTargetRestricted) {
-					return weaponIndexTwo;
-				}
-
-				const auto pType = pThis->GetTechnoType();
-
-				// Handle special case with NavalTargeting / LandTargeting.
-				if (!pTargetTechno &&
-					(pType->NavalTargeting == NavalTargetingType::Naval_primary || pType->LandTargeting == LandTargetingType::Land_secondary))
-				{
-					if (targetCell) {
-						if ((targetCell->LandType != LandType::Water && targetCell->LandType != LandType::Beach) || targetCell->ContainsBridge())
-							return weaponIndexTwo;
-					}
-				}
-			}
-
 			return weaponIndexOne;
 		}
+		else if (auto const pFirstExt = WeaponTypeExt::ExtMap.TryFind(pWeaponOne))
+		{
+			bool secondaryIsAA = pTargetTechno && pTargetTechno->IsInAir() && pWeaponTwo->Projectile->AA;
+
+			if (!allowFallback && (!allowAAFallback || !secondaryIsAA) && !TechnoExt::CanFireNoAmmoWeapon(pThis, 1))
+				return weaponIndexOne;
+
+			if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pFirstExt->CanTarget, true)) ||
+				(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pFirstExt->CanTarget) ||
+					!EnumFunctions::CanTargetHouse(pFirstExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner))))
+			{
+				return weaponIndexTwo;
+			}
+		}
+	}
+
+	auto const pType = pThis->GetTechnoType();
+
+	// Handle special case with NavalTargeting / LandTargeting.
+	if (!pTargetTechno && pTargetCell && (pType->NavalTargeting == NavalTargetingType::Naval_primary || pType->LandTargeting == LandTargetingType::Land_secondary)
+		&& pTargetCell->LandType != LandType::Water && pTargetCell->LandType != LandType::Beach)
+	{
+		return weaponIndexTwo;
 	}
 
 	return -1;
@@ -4025,6 +4013,8 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->PayloadCreated)
 		.Process(this->LinkedSW)
 		.Process(this->SuperTarget)
+		.Process(this->HijackerLastDisguiseType)
+		.Process(this->HijackerLastDisguiseHouse)
 #ifdef ENABLE_HOMING_MISSILE
 		.Process(this->MissileTargetTracker)
 #endif

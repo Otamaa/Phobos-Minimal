@@ -114,6 +114,9 @@ public:
 		SuperClass* LinkedSW { nullptr };
 		CellStruct SuperTarget { };
 
+		InfantryTypeClass* HijackerLastDisguiseType { nullptr };
+		HouseClass* HijackerLastDisguiseHouse { nullptr };
+
 		ExtData(TechnoClass* OwnerObject) : Extension<TechnoClass>(OwnerObject)
 		{ }
 
@@ -315,5 +318,8 @@ private:
 
 	static void SendPlane(size_t Aircraft, size_t Amount , HouseClass* pOwner, Rank SendRank, Mission SendMission, AbstractClass* pTarget, AbstractClass* pDest);
 	static bool CreateWithDroppod(FootClass* Object, const CoordStruct& XYZ);
+
+	static void StoreHijackerLastDisguiseData(InfantryClass* pThis , FootClass* pVictim);
+	static void RestoreStoreHijackerLastDisguiseData(InfantryClass* pThis , FootClass* pVictim);
 
 };

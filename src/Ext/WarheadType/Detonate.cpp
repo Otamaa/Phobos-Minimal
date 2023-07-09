@@ -193,7 +193,7 @@ void WarheadTypeExt::ExtData::ApplyAttachTag(TechnoClass* pTarget)
 
 void WarheadTypeExt::ExtData::ApplyUpgrade(HouseClass* pHouse, TechnoClass* pTarget)
 {
-	TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTarget);
+	TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTarget , this->Convert_SucceededAnim);
 }
 
 bool WarheadTypeExt::ExtData::applyPermaMC(HouseClass* const Owner, AbstractClass* const Target)

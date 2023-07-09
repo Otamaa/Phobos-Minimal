@@ -11,5 +11,5 @@ struct TechnoTypeConvertData
 	TechnoTypeClass* To { nullptr };
 	AffectedHouse Eligible { AffectedHouse::All };
 
-	static void ApplyConvert(const std::vector<TechnoTypeConvertData>& nPairs , HouseClass* pHouse, TechnoClass* pTarget);
+	static void ApplyConvert(const std::vector<TechnoTypeConvertData>& nPairs , HouseClass* pHouse, TechnoClass* pTarget , AnimTypeClass* SucceededAnim);
 };

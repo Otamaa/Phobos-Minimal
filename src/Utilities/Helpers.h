@@ -525,7 +525,8 @@ namespace Helpers {
 		bool LauchSW(
 		const LauchSWData& nData,
 		HouseClass* pOwner,
-		const CoordStruct Where
+		const CoordStruct Where,
+		TechnoClass* pFirer
 		);
 	}
 };

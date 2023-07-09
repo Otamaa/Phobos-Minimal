@@ -58,36 +58,36 @@ void Patch::Apply()
 
 void Patch::Apply_RAW(DWORD offset, std::initializer_list<BYTE> data)
 {
-	Patch patch = { offset, data.size(), data.begin() };
-	patch.Apply();
+	Patch::Apply_RAW(offset, data.size(), const_cast<byte*>(data.begin()));
+}
+
+void Patch::Apply_RAW(DWORD offset, size_t sz , BYTE* data)
+{
+	PatchWrapper dummy { offset, sz, data };
 }
 
 void Patch::Apply_LJMP(DWORD offset, DWORD pointer)
 {
 	const _LJMP data(offset, pointer);
-	Patch patch = { offset, sizeof(data), (BYTE*)&data };
-	patch.Apply();
+	Patch::Apply_RAW(offset, data.size(), (BYTE*)&data);
 }
 
 void Patch::Apply_CALL(DWORD offset, DWORD pointer)
 {
 	const _CALL data(offset, pointer);
-	Patch patch = { offset, sizeof(data), (BYTE*)&data };
-	patch.Apply();
+	Patch::Apply_RAW(offset, data.size(), (BYTE*)&data);
 }
 
 void Patch::Apply_CALL6(DWORD offset, DWORD pointer)
 {
 	const _CALL6 data(offset, pointer);
-	Patch patch = { offset, sizeof(data), (BYTE*)&data };
-	patch.Apply();
+	Patch::Apply_RAW(offset, data.size(), (BYTE*)&data);
 }
 
 void Patch::Apply_VTABLE(DWORD offset, DWORD pointer)
 {
 	const _VTABLE data(offset, pointer);
-	Patch patch = { offset, sizeof(data), (BYTE*)&data };
-	patch.Apply();
+	Patch::Apply_RAW(offset, data.size(), (BYTE*)&data);
 }
 
 std::vector<module_export> Patch::enumerate_module_exports(HMODULE handle)

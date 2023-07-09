@@ -76,7 +76,7 @@ DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 			{
 				if (Lauch.LaunchWhat)
 				{
-					Helpers::Otamaa::LauchSW(Lauch, pDecidedOwner,*pCoords);
+					Helpers::Otamaa::LauchSW(Lauch, pDecidedOwner,*pCoords, pOwner);
 				}
 			}
 		}

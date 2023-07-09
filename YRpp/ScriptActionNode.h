@@ -32,6 +32,6 @@ public:
 	}
 
 public:
-	int Action { -1 };
+	TeamMissionType Action { TeamMissionType::none };
 	int Argument { 0 };
 };

@@ -201,6 +201,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.ReceiveDamage.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Remove.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Tactical.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Team_Script.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Temporal.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.TEvents_TAction.cpp" />
@@ -345,13 +346,6 @@
     <ClInclude Include="src\Commands\ShowTechnoNames.h" />
     <ClInclude Include="src\Commands\ShowHealthPercent.h" />
     <ClInclude Include="src\Commands\ToggleRadialIndicatorDrawMode.h" />
-    <ClInclude Include="src\ExtraHeaders\AStarClass.h" />
-    <ClInclude Include="src\ExtraHeaders\Buffer.h" />
-    <ClInclude Include="src\ExtraHeaders\CompileTimeDirStruct.h" />
-    <ClInclude Include="src\ExtraHeaders\DataVectors.h" />
-    <ClInclude Include="src\ExtraHeaders\DiscreteDistributionClass_s.h" />
-    <ClInclude Include="src\ExtraHeaders\DiscreteSelectionClass_s.h" />
-    <ClInclude Include="src\ExtraHeaders\nanoprintf.h" />
     <ClInclude Include="src\Ext\Abstract\Body.h" />
     <ClInclude Include="src\Ext\AITriggerType\Body.h" />
     <ClInclude Include="src\Ext\Bomb\Body.h" />
@@ -602,7 +596,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
+      <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <SDLCheck>
       </SDLCheck>
@@ -630,7 +624,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.22000.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>

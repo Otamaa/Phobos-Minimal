@@ -34,6 +34,18 @@
 
 #include <GeneralDefinitions.h>
 
+enum class AresScripts : int
+{
+	AuxilarryPower = 65,
+	KillDrivers = 66,
+	TakeVehicles = 67,
+	ConvertType = 68,
+	SonarReveal = 69,
+	DisableWeapons = 70,
+
+	count
+};
+
 enum class BountyValueOption : int
 {
 	Value , Cost , Soylent ,count
@@ -94,7 +106,9 @@ enum class AresNewTriggerAction : int
 	AuxiliaryPower = 146,
 	KillDriversOf = 147,
 	SetEVAVoice = 148,
-	SetGroup = 149
+	SetGroup = 149,
+
+	count
 };
 
 enum class AresTriggerEvents : int
@@ -107,25 +121,27 @@ enum class AresTriggerEvents : int
 	DriverKiller = 67 ,
 	DriverKilled_ByHouse = 68 ,
 	VehicleTaken = 69 ,
-	VehicleTaken_ByHouse = 70 , 
-	Abducted = 71 , 
+	VehicleTaken_ByHouse = 70 ,
+	Abducted = 71 ,
 	Abducted_ByHouse = 72 ,
 	AbductSomething = 73,
 	AbductSomething_OfHouse = 74,
-	SuperActivated = 75 , 
+	SuperActivated = 75 ,
 	SuperDeactivated = 76 ,
 	SuperNearWaypoint = 77 ,
 	ReverseEngineered = 78 ,
 	ReverseEngineerAnything = 79 ,
 	ReverseEngineerType = 80 ,
-	HouseOwnTechnoType = 81 , 
+	HouseOwnTechnoType = 81 ,
 	HouseDoesntOwnTechnoType = 82 ,
-	AttackedOrDestroyedByAnybody = 83 , 
-	AttackedOrDestroyedByHouse = 84 , 
+	AttackedOrDestroyedByAnybody = 83 ,
+	AttackedOrDestroyedByHouse = 84 ,
 	DestroyedByHouse = 85 ,
 	TechnoTypeDoesntExistMoreThan = 86 ,
 	AllKeepAlivesDestroyed = 87,
 	AllKeppAlivesBuildingDestroyed = 88 ,
+
+	count
 };
 
 enum class NewMouseCursorType : unsigned int
@@ -209,7 +225,7 @@ enum class DamageDelayTargetFlag : int
 	Cell = 0,
 	AttachedObject = 1,
 	Invoker = 2,
-	
+
 	count
 };
 
@@ -392,21 +408,21 @@ enum class TextAlign : int
 	Right = 0x200,
 };
 
-enum class HorizontalPosition
+enum class HorizontalPosition : BYTE
 {
 	Left = 0,
 	Center = 1,
 	Right = 2
 };
 
-enum class VerticalPosition
+enum class VerticalPosition : BYTE
 {
 	Top = 0,
 	Center = 1,
 	Bottom = 2
 };
 
-enum class FeedBackType
+enum class FeedBackType : BYTE
 {
 	WeaponFire = 0 ,
 	HealthLevel = 1,
@@ -418,6 +434,36 @@ enum class InterceptedStatus : int
 	None = 0,
 	Targeted = 1,
 	Intercepted = 2
+};
+
+//hexagon
+enum class BuildingSelectBracketPosition :BYTE
+{
+	Top = 0,
+	LeftTop = 1,
+	LeftBottom = 2,
+	Bottom = 3,
+	RightBottom = 4,
+	RightTop = 5,
+
+	count
+
+};
+
+enum class DisplayInfoType : BYTE
+{
+	Health = 0,
+	Shield = 1,
+	Ammo = 2,
+	MindControl = 3,
+	Spawns = 4,
+	Passengers = 5,
+	Tiberium = 6,
+	Experience = 7,
+	Occupants = 8,
+	GattlingStage = 9,
+
+	count
 };
 
 enum class SlaveReturnTo : int

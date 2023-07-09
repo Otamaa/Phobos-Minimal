@@ -27,14 +27,17 @@ void TEventExt::ExtData::Serialize(T& Stm)
 }
 
 // helper struct
-namespace std {
+namespace std
+{
 	template <class _Ty = void>
-	struct and_with {
+	struct and_with
+	{
 		_CXX17_DEPRECATE_ADAPTOR_TYPEDEFS typedef _Ty _FIRST_ARGUMENT_TYPE_NAME;
 		_CXX17_DEPRECATE_ADAPTOR_TYPEDEFS typedef _Ty _SECOND_ARGUMENT_TYPE_NAME;
 		_CXX17_DEPRECATE_ADAPTOR_TYPEDEFS typedef bool _RESULT_TYPE_NAME;
 
-		_NODISCARD constexpr bool operator()(const _Ty& _Left, const _Ty& _Right) const {
+		_NODISCARD constexpr bool operator()(const _Ty& _Left, const _Ty& _Right) const
+		{
 			return _Left & _Right;
 		}
 	};
@@ -57,7 +60,8 @@ TechnoTypeClass* TEventExt::ExtData::GetTechnoType()
 		const char* eventTechno = this->OwnerObject()->String;
 		TechnoTypeClass* pType = TechnoTypeClass::Find(eventTechno);
 
-		if (!pType) {
+		if (!pType)
+		{
 			Debug::Log("Event references non-existing techno type \"%s\".", eventTechno);
 		}
 
@@ -67,16 +71,19 @@ TechnoTypeClass* TEventExt::ExtData::GetTechnoType()
 	return this->TechnoType;
 }
 
-bool TEventExt::Occured(TEventClass* pThis, EventArgs const& args , bool& bReturn)
+bool TEventExt::Occured(TEventClass* pThis, EventArgs const& args, bool& bReturn)
 {
-	//int iEvent = args.EventType;
+	//int iEvent = args.EventType; // not used here ,.. ares using it compare
 	//HouseClass* pHouse = args.Owner;
 	//ObjectClass* pObject = args.Object;
 	//CDTimerClass* pTimer = args.ActivationFrame;
 	//bool* isPersitant = args.isRepeating;
 	//AbstractClass* pSource = args.Source;
 
-	switch (static_cast<PhobosTriggerEvent>(pThis->EventKind))
+	if ((PhobosTriggerEvent)pThis->EventKind < PhobosTriggerEvent::LocalVariableGreaterThan)
+		return false;
+
+	switch ((PhobosTriggerEvent)pThis->EventKind)
 	{
 	case PhobosTriggerEvent::LocalVariableGreaterThan:
 		bReturn = TEventExt::VariableCheck<false, std::greater<int>>(pThis);
@@ -114,7 +121,6 @@ bool TEventExt::Occured(TEventClass* pThis, EventArgs const& args , bool& bRetur
 	case PhobosTriggerEvent::GlobalVariableAndIsTrue:
 		bReturn = TEventExt::VariableCheck<true, std::and_with<int>>(pThis);
 		break;
-
 	case PhobosTriggerEvent::LocalVariableGreaterThanLocalVariable:
 		bReturn = TEventExt::VariableCheckBinary<false, false, std::greater<int>>(pThis);
 		break;
@@ -151,7 +157,6 @@ bool TEventExt::Occured(TEventClass* pThis, EventArgs const& args , bool& bRetur
 	case PhobosTriggerEvent::GlobalVariableAndIsTrueLocalVariable:
 		bReturn = TEventExt::VariableCheckBinary<false, true, std::and_with<int>>(pThis);
 		break;
-
 	case PhobosTriggerEvent::LocalVariableGreaterThanGlobalVariable:
 		bReturn = TEventExt::VariableCheckBinary<true, false, std::greater<int>>(pThis);
 		break;
@@ -192,10 +197,9 @@ bool TEventExt::Occured(TEventClass* pThis, EventArgs const& args , bool& bRetur
 		bReturn = ShieldClass::TEventIsShieldBroken(args.Object);
 		break;
 	case PhobosTriggerEvent::HousesDestroyed:
-		return TEventExt::HousesAreDestroyedTEvent(pThis);
+		bReturn = TEventExt::HousesAreDestroyedTEvent(pThis);
 		break;
 	default:
-		bReturn = false;
 		return false;
 	};
 
@@ -243,20 +247,24 @@ bool TEventExt::HousesAreDestroyedTEvent(TEventClass* pThis)
 
 	const auto& nHouseList = RulesExt::Global()->AIHousesLists;
 
-	if (nHouseList.empty() || (size_t)nIdxVariable >= nHouseList.size()) {
+	if (nHouseList.empty() || (size_t)nIdxVariable >= nHouseList.size())
+	{
 		Debug::Log("Map event %d: [AIHousesList] is empty. This event can't continue.\n", (int)pThis->EventKind);
 		return false;
 	}
 
 	const auto housesList = Iterator(nHouseList[nIdxVariable]);
 
-	if (housesList.empty()) {
+	if (housesList.empty())
+	{
 		Debug::Log("Map event %d: [AIHousesList](%d) is empty. This event can't continue.\n", (int)pThis->EventKind, nIdxVariable);
 		return false;
 	}
 
-	for (auto pTechno : *TechnoClass::Array) {
-		if (ScriptExt::IsUnitAvailable(pTechno, false, true)) {
+	for (auto pTechno : *TechnoClass::Array)
+	{
+		if (ScriptExt::IsUnitAvailable(pTechno, false, true))
+		{
 			if (pTechno->Owner && housesList.contains(pTechno->Owner->Type))
 				return false;
 		}
@@ -317,7 +325,7 @@ DEFINE_HOOK(0x71F8C0, TEventClass_SaveLoad_Prefix, 0x5)
 
 DEFINE_HOOK(0x71F92B, TEventClass_Load_Suffix, 0x5)
 {
-	TEventExt::ExtMap.LoadStatic();	
+	TEventExt::ExtMap.LoadStatic();
 	return 0x0;
 }
 

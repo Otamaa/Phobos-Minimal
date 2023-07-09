@@ -198,6 +198,8 @@ public:
 		Valueable<bool> Converts { false };
 
 		ValueableVector<TechnoTypeConvertData> ConvertsPair {};
+		Valueable<AnimTypeClass*> Convert_SucceededAnim { nullptr };
+
 		ValueableVector<AnimTypeClass*> DeadBodies {};
 
 		Nullable<double> AffectEnemies_Damage_Mod {};

@@ -188,6 +188,9 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 	this->Bolt_ParticleSys.Read(exINI, pSection, "Bolt.ParticleSystem");
 	this->Laser_Thickness.Read(exINI, pSection, "LaserThickness");
+
+	this->ExtraWarheads.Read(exINI, pSection, "ExtraWarheads");
+	this->ExtraWarheads_DamageOverrides.Read(exINI, pSection, "ExtraWarheads.DamageOverrides");
 }
 
 template <typename T>
@@ -278,6 +281,9 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Bolt_Color3)
 		.Process(this->Bolt_ParticleSys)
 		.Process(this->Laser_Thickness)
+
+		.Process(this->ExtraWarheads)
+		.Process(this->ExtraWarheads_DamageOverrides)
 		;
 
 	MyAttachFireDatas.Serialize(Stm);

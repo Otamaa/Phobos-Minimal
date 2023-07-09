@@ -112,7 +112,7 @@ class PriorityQueueClass final
 	static_assert(std::is_copy_assignable_v<TPriority>, "TPriority must be copy assignable.");
 	static_assert(std::is_move_assignable_v<TElement>, "TElement must be move assignable.");
 	static_assert(std::is_move_assignable_v<TPriority>, "TPriority must be move assignable.");
-	static_assert(has_operator_equal<TElement>::value, "TElement must be equality comparable with itself.");
+	static_assert(std::equality_comparable<TElement>, "TElement must be equality comparable with itself.");
 
 public:
 	PriorityQueueClass(int size);

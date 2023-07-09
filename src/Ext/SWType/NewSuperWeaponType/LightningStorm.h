@@ -25,7 +25,7 @@ public:
 
 	using TStateMachine = CloneableLighningStormStateMachine;
 
-	void newStateMachine(int Duration, int Deferment, CellStruct XY, SuperClass* pSuper , BuildingClass* pFirer)
+	void newStateMachine(int Duration, int Deferment, CellStruct XY, SuperClass* pSuper , TechnoClass* pFirer)
 	{
 		SWStateMachine::Register(std::make_unique<TStateMachine>(Duration, Deferment, XY, pSuper, pFirer, this));
 	}
