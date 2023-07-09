@@ -89,7 +89,7 @@ DEFINE_OVERRIDE_HOOK(0x6FCB6A, TechnoClass_CanFire_Verses, 0x7)
 	const auto pData = WarheadTypeExt::ExtMap.Find(pWH);
 	const auto vsData = &pData->Verses[nArmor];
 
-	if (!vsData->Flags.ForceFire || vsData->Verses == 0.0)
+	if (!vsData->Flags.ForceFire && vsData->Verses == 0.0)
 		return FireIllegal;
 
 	if (pWH->BombDisarm)
