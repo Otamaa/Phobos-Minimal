@@ -8,8 +8,8 @@ std::vector<const char*> SW_DropPod::GetTypeString() const
 	return { "DropPod" };
 }
 
-SuperWeaponFlags SW_DropPod::Flags(const SWTypeExt::ExtData* pData) const { 
-	
+SuperWeaponFlags SW_DropPod::Flags(const SWTypeExt::ExtData* pData) const {
+
 	if (pData && pData->Droppod_Duration > 0)
 		return SuperWeaponFlags::NoEvent | SuperWeaponFlags::NoMessage;
 
@@ -58,7 +58,7 @@ void SW_DropPod::Initialize(SWTypeExt::ExtData* pData)
 }
 
 void SW_DropPod::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
-{ 
+{
 	const char* section = pData->Get()->ID;
 
 	INI_EX exINI(pINI);
@@ -131,7 +131,7 @@ void DroppodStateMachine::SendDroppods()
 	auto pData = GetTypeExtData();
 
 	// collect the options
-	auto& Types = !pData->DropPod_Types.empty()
+	const auto& Types = !pData->DropPod_Types.empty()
 		? pData->DropPod_Types
 		: RulesExt::Global()->DropPodTypes;
 

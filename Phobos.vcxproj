@@ -201,8 +201,10 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.ReceiveDamage.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Remove.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Tactical.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Team_Script.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Temporal.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.TEvents_TAction.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Tunnel.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Unit.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Verses.cpp" />

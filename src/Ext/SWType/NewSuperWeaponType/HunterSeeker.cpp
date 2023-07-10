@@ -26,8 +26,6 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 		return false;
 	}
 
-
-
 	// the maximum number of buildings to fire. negative means all.
 	const auto Count = (pExt->SW_MaxCount >= 0)
 		? static_cast<size_t>(pExt->SW_MaxCount)
@@ -114,32 +112,44 @@ void SW_HunterSeeker::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 
 bool SW_HunterSeeker::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
 {
-	const auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
-	if (pBldExt->LimboID != -1)
-		return false;
-
 	if (!this->IsLaunchsiteAlive(pBuilding))
 		return false;
 
 	// don't further question the types in this list
 		// get the appropriate launch buildings list
 	const auto HSBuilding = !pData->HunterSeeker_Buildings.empty()
-		? &pData->HunterSeeker_Buildings : &RulesExt::Global()->HunterSeekerBuildings;
+		? make_iterator(pData->HunterSeeker_Buildings) : make_iterator(RulesExt::Global()->HunterSeekerBuildings);
 
-	if (!HSBuilding->empty() && HSBuilding->Contains(pBuilding->Type)) {
+	if (!HSBuilding.empty() && HSBuilding.contains(pBuilding->Type)) {
 		return true; //quick exit
 	}
 
 	return this->IsSWTypeAttachedToThis(pData, pBuilding);
 }
 
-CellStruct SW_HunterSeeker::GetLaunchCell(SWTypeExt::ExtData* pSWType, BuildingClass* pBuilding, UnitTypeClass* pHunter) const
+CellStruct NOINLINE SW_HunterSeeker::GetLaunchCell(SWTypeExt::ExtData* pSWType, BuildingClass* pBuilding, UnitTypeClass* pHunter) const
 {
-	auto position = CellClass::Coord2Cell(pBuilding->GetCoords());
+	const auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
+	CellStruct cell;
 
-	auto cell = MapClass::Instance->NearByLocation(position, pHunter->SpeedType,
-		-1, pHunter->MovementZone, false, 1, 1, false, false, false, true,
-		CellStruct::Empty, false, false);
+	if (pBldExt->LimboID != -1)
+	{
+		//Get edge (direction for plane to come from)
+		const auto edge = pBuilding->Owner->GetHouseEdge();
+
+		// seems to retrieve a random cell struct at a given edge
+		cell = MapClass::Instance->PickCellOnEdge(
+			edge, CellStruct::Empty, CellStruct::Empty, pHunter->SpeedType, true,
+			pHunter->MovementZone);
+
+	} else {
+
+		auto position = CellClass::Coord2Cell(pBuilding->GetCoords());
+
+		cell = MapClass::Instance->NearByLocation(position, pHunter->SpeedType,
+			-1, pHunter->MovementZone, false, 1, 1, false, false, false, true,
+			CellStruct::Empty, false, false);
+	}
 
 	return MapClass::Instance->IsWithinUsableArea(cell, true) ? cell : CellStruct::Empty;
 }
