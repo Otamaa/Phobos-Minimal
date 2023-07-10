@@ -243,9 +243,9 @@ private:
 
 	static CoordStruct PassengerKickOutLocation(TechnoClass* pThis, FootClass* pPassenger, int maxAttempts = 1);
 	// Return false if the `location` is invalid
-	static bool EjectRandomly(FootClass* pEjectee, CoordStruct const& location, int distance, bool select);
+	static bool EjectRandomly(FootClass* pEjectee, CoordStruct const& location, int distance, bool select, std::optional<bool> InAir = std::nullopt);
 	// Always Make Sure `CoordStruct` is valid before using this
-	static bool EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select);
+	static bool EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select , std::optional<bool> InAir = std::nullopt);
 	// Return `Empty` if the next location on distance is invalid
 	static CoordStruct GetPutLocation(CoordStruct current, int distance);
 

@@ -299,7 +299,7 @@ public:
 		{ JMP_THIS(0x47B3A0); }
 
 	// used by ambient waves and stuff in leptons
-	// use GetCoords() instead 
+	// use GetCoords() instead
 	//CoordStruct* GetCenterCoords(CoordStruct* pOutBuffer) const
 	//	{ JMP_THIS(0x486840); }
 
@@ -447,6 +447,7 @@ public:
 	CoordStruct FindInfantrySubposition(const CoordStruct& coords, bool ignoreContents, bool alt, bool useCellCoords , int Zcoords) {
 		CoordStruct outBuffer;
 		this->FindInfantrySubposition(&outBuffer, coords, ignoreContents, alt, useCellCoords);
+		outBuffer.Z = Zcoords;
 		return outBuffer;
 	}
 

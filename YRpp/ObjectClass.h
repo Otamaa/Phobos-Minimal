@@ -116,14 +116,14 @@ public:
 	virtual bool IsControllable() const R0;
 
 	// On non-buildings this is same as GetCenterCoord(), on buildings it returns the target coordinate that is affected by TargetCoordOffset.
-	virtual CoordStruct* GetTargetCoords(CoordStruct* pCrd) const R0;
+	virtual CoordStruct* GetTargetCoords(CoordStruct* pCrd) const R0; //0xA4
 
 	// gets a building's free dock coordinates for a unit. falls back to this->GetCoords(pCrd);
-	virtual CoordStruct* GetDockCoords(CoordStruct* pCrd, TechnoClass* docker) const R0;
+	virtual CoordStruct* GetDockCoords(CoordStruct* pCrd, TechnoClass* docker) const R0; //0xA8
 
 	// stupid! guess what happens again?
-	virtual CoordStruct* GetRenderCoords(CoordStruct* pCrd) const R0; //GetPosition_2
-	virtual CoordStruct* GetFLH(CoordStruct *pDest, int idxWeapon, CoordStruct BaseCoords) const R0; //0xB0 mcoord_4263D0 
+	virtual CoordStruct* GetRenderCoords(CoordStruct* pCrd) const R0; //0xAC , GetPosition_2
+	virtual CoordStruct* GetFLH(CoordStruct *pDest, int idxWeapon, CoordStruct BaseCoords) const R0; //0xB0 mcoord_4263D0
 	virtual CoordStruct* GetExitCoords(CoordStruct* pCrd, DWORD dwUnk) const R0; //0xB4 Exit_Coord
 	virtual int GetYSort() const R0;
 	virtual bool IsOnBridge(TechnoClass* pDocker = nullptr) const R0; // pDocker is passed to GetDestination
@@ -142,7 +142,7 @@ public:
 	// cleanup things (lose line trail, deselect, etc). Permanently: destroyed/removed/gone opposed to just going out of sight.
 	virtual void Disappear(bool permanently) RX;
 
-	virtual void RegisterDestruction(TechnoClass *Destroyer) JMP_THIS(0x744720); //E0 
+	virtual void RegisterDestruction(TechnoClass *Destroyer) JMP_THIS(0x744720); //E0
 
 	 // maybe Object instead of Techno? Raises Map Events, grants veterancy, increments house kill counters
 	virtual void RegisterKill(HouseClass *Destroyer) RX; // ++destroyer's kill counters , etc E0
@@ -181,7 +181,7 @@ public:
 	virtual bool IsCloseEnough3D(DWORD dwUnk, DWORD dwUnk2) const R0;
 	virtual int GetWeaponRange(int idxWeapon) const R0;
 	virtual DamageState ReceiveDamage(int* pDamage, int DistanceFromEpicenter, WarheadTypeClass* pWH,
-	  ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseClass* pAttackingHouse) RT(DamageState);
+	  ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseClass* pAttackingHouse) JMP_THIS(0x5F5390);
 	virtual void Destroy() RX;
 	virtual void Scatter(const CoordStruct &crd, bool ignoreMission, bool ignoreDestination) RX;
 	virtual bool Ignite() R0;

@@ -32,18 +32,20 @@ public:
 	virtual void Update() override JMP_THIS(0x4DA530);
 
 	//ObjectClass
+	virtual DamageState ReceiveDamage(int* pDamage, int DistanceFromEpicenter, WarheadTypeClass* pWH,
+	ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseClass* pAttackingHouse) override JMP_THIS(0x4D7330);
 
 	//MissionClass
 	virtual void Override_Mission(Mission mission, AbstractClass* tarcom = nullptr, AbstractClass* navcom = nullptr) override JMP_THIS(0x4D8F40);
 
 	//TechnoClass
-	virtual void Destroyed(ObjectClass* Killer) override RX;
 	virtual bool SetOwningHouse(HouseClass* pHouse, bool announce = true) override JMP_THIS(0x4DBED0);
 	virtual bool ForceCreate(CoordStruct& coord, DWORD dwUnk = 0) override R0;
 	virtual bool IsInSameZoneAs(AbstractClass* pTarget) override JMP_THIS(0x4DBA50);
 	virtual bool IsInSameZone(const CoordStruct* nZone) override JMP_THIS(0x4D3810);
 	virtual bool Crash(ObjectClass* Killer) override JMP_THIS(0x4DEBB0);
 	virtual bool IsAllowedToLeaveMap() const override JMP_THIS(0x4DA1D0); // 0x320
+	virtual void Destroyed(ObjectClass* Killer) override JMP_THIS(0x4D98C0);
 
 	//FootClass
 	virtual void ReceiveGunner(FootClass* Gunner) RX;

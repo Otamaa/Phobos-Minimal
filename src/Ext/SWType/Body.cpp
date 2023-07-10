@@ -2101,6 +2101,7 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->HunterSeeker_Type)
 		.Process(this->HunterSeeker_RandomOnly)
 		.Process(this->HunterSeeker_Buildings)
+		.Process(this->HunterSeeker_AllowAttachedBuildingAsFallback)
 
 		.Process(this->Weather_Duration)
 		.Process(this->Weather_HitDelay)

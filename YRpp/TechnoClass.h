@@ -230,10 +230,12 @@ public:
 	virtual int GetOwningHouseIndex() const override JMP_THIS(0x6F9DB0);//{ return this->Owner->ArrayIndex; }
 	virtual HouseClass* GetOwningHouse() const override { return this->Owner; }
 	virtual void Update() override JMP_THIS(0x6F9E50);
-			  
+
 	//ObjectClass
 	virtual void AnimPointerExpired(AnimClass* pAnim) override JMP_THIS(0x710410);
 	virtual DamageState IronCurtain(int nDuration, HouseClass* pSource, bool ForceShield) override JMP_THIS(0x4DEAE0);
+	virtual DamageState ReceiveDamage(int* pDamage, int DistanceFromEpicenter, WarheadTypeClass* pWH,
+ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseClass* pAttackingHouse) override JMP_THIS(0x701900);
 	virtual LightConvertClass* GetRemapColour() const override JMP_THIS(0x705D70);;
 
 	// remove object from the map
@@ -774,7 +776,7 @@ public:
 	DECLARE_PROPERTY(IndexBitfield<HouseClass *>, DisplayProductionTo); // each bit corresponds to one player on the map, telling us whether that player has (1) or hasn't (0) spied this building, and the game should display what's being produced inside it to that player. The bits are arranged by player ID, i.e. bit 0 refers to house #0 in HouseClass::Array, 1 to 1, etc.; query like ((1 << somePlayer->ArrayIndex) & someFactory->DisplayProductionToHouses) != 0
 
 	int              Group; //0-9, assigned by CTRL+Number, these kinds // also set by aimd TeamType->Group !
-	/*  Focus on RA1 Source , called `ArchiveTarget` ,  
+	/*  Focus on RA1 Source , called `ArchiveTarget` ,
 		For units in area guard mode, this is the recorded home position. The guarding
 		unit will try to stay near this location in the course of it's maneuvers. This is
 		also used to record a pending transport for those passengers that are waiting for

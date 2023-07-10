@@ -345,7 +345,7 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 			const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 			const auto amount = pTypeExt->SelfHealing_CombatDelay.Get(pThis);
 
-			//the timer will always restart 
+			//the timer will always restart
 			//not accumulated
 			if (amount > 0) {
 				pExt->SelfHealing_CombatDelay.Start(amount);
@@ -364,7 +364,7 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 
 		const auto bCond1 = (!bAffected || !pWHExt->EffectsRequireDamage);
 		const auto bCond2 = (!pWHExt->EffectsRequireVerses || (pWHExt->GetVerses(TechnoExt::GetTechnoArmor(pThis, pWarhead)).Verses >= 0.0001));
-		
+
 		if ( bCond1 && bCond2) {
 
 			AresData::WarheadTypeExt_ExtData_ApplyKillDriver(pWarhead, pAttacker, pThis);
@@ -388,7 +388,7 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 				}
 			}
 
-			if (pWHExt->Flash_Duration > 0 
+			if (pWHExt->Flash_Duration > 0
 				&& pWHExt->Flash_Duration > pThis->Flashing.DurationRemaining) {
 				pThis->Flash(pWHExt->Flash_Duration);
 			}
@@ -468,7 +468,7 @@ DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 		//this will happen regardless the immunity i guess
 		if (auto pInf = specific_cast<InfantryClass*>(pThis)) {
 			if (RulesClass::Instance->BerzerkAllowed && pInf->Type->Cyborg && pThis->IsYellowHP()) {
-				if (!pInf->Berzerk) { 
+				if (!pInf->Berzerk) {
 					pInf->Berzerk = true;
 					pInf->GoBerzerkFor(10);
 				}
@@ -561,39 +561,41 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 			}
 		}
 
-		int pilotChance = pTypeExt->Survivors_PilotChance.Get(pThis);
-		if (pilotChance < 0)
-		{
-			pilotChance = static_cast<int>(RulesClass::Instance->CrewEscape * 100);
-		}
-
 		// possibly eject up to pilotCount crew members
-		if (pType->Crewed && pilotChance > 0)
+		if (pilotCount > 0 && pType->Crewed)
 		{
-			for (int i = 0; i < pilotCount; ++i)
-			{
-				if (auto pPilotType = pThis->GetCrew())
+			int pilotChance = pTypeExt->Survivors_PilotChance.Get(pThis);
+			if (pilotChance < 0) {
+				pilotChance = static_cast<int>(RulesClass::Instance->CrewEscape * 100);
+			}
+
+			if(pilotChance > 0) {
+
+				for (int i = 0; i < pilotCount; ++i)
 				{
-					if (ScenarioClass::Instance->Random.RandomRanged(1, 100) <= pilotChance)
+					if (auto pPilotType = pThis->GetCrew())
 					{
-						auto const pPilot = static_cast<InfantryClass*>(pPilotType->CreateObject(pOwner));
-						pPilot->Health /= 2;
-						pPilot->Veterancy.Veterancy = pThis->Veterancy.Veterancy;
-
-						if (!TechnoExt::EjectRandomly(pPilot, pThis->Location, 144, Select))
+						if (ScenarioClass::Instance->Random.RandomRanged(1, 100) <= pilotChance)
 						{
-							pPilot->RegisterDestruction(pKiller);
+							auto const pPilot = static_cast<InfantryClass*>(pPilotType->CreateObject(pOwner));
+							pPilot->Health /= 2;
+							pPilot->Veterancy.Veterancy = pThis->Veterancy.Veterancy;
 
-							if (pPilot->IsAlive) {
-								GameDelete<true,false>(pPilot);
-								//pPilot->UnInit();
-							}
-						}
-						else if (auto const pTag = pThis->AttachedTag)
-						{
-							if (pTag->ShouldReplace())
+							if (!TechnoExt::EjectRandomly(pPilot, pThis->Location, 144, Select))
 							{
-								pPilot->ReplaceTag(pTag);
+								pPilot->RegisterDestruction(pKiller);
+
+								if (pPilot->IsAlive) {
+									GameDelete<true,false>(pPilot);
+									//pPilot->UnInit();
+								}
+							}
+							else if (auto const pTag = pThis->AttachedTag)
+							{
+								if (pTag->ShouldReplace())
+								{
+									pPilot->ReplaceTag(pTag);
+								}
 							}
 						}
 					}
@@ -606,6 +608,10 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 	{
 		// passenger escape chances
 		const auto passengerChance = pTypeExt->Survivors_PassengerChance.Get(pThis);
+
+		//quick exit
+		if (passengerChance == 0)
+			return;
 
 		// eject or kill all passengers
 		while (pThis->Passengers.GetFirstPassenger())
@@ -653,34 +659,73 @@ DEFINE_OVERRIDE_HOOK(0x737F97, UnitClass_ReceiveDamage_Survivours, 0xA)
 	return 0x73838A;
 }
 
-DEFINE_OVERRIDE_HOOK(0x41668B, AircraftClass_ReceiveDamage_Survivours, 0x6)
+// replace the whole func , because the original function is kind a messy
+// pop ing register too early,..
+DEFINE_HOOK(0x4165C0, AircraftClass_ReceiveDamage_Handle, 0x7)
 {
 	GET(AircraftClass*, pThis, ESI);
-	GET_STACK(TechnoClass*, pKiller, 0x28);
-	GET_STACK(int, ignoreDefenses, 0x20);
-	GET_STACK(bool, preventPassangersEscape, STACK_OFFSET(0x14, 0x18));
+	REF_STACK(const args_ReceiveDamage, args, 0x4);
 
-	const bool bSelected = pThis->IsSelected && pThis->Owner && pThis->Owner->ControlledByPlayer();
+	auto nResult = pThis->FootClass::ReceiveDamage(
+		args.Damage,
+		args.DistanceToEpicenter,
+		args.WH,
+		args.Attacker,
+		args.IgnoreDefenses,
+		args.PreventsPassengerEscape,
+		args.SourceHouse);
 
-	SpawnSurvivors(pThis, pKiller, bSelected, ignoreDefenses, preventPassangersEscape);
+	if(nResult == DamageState::NowDead) {
 
-	return 0x0;
-}
+		pThis->Destroyed(args.Attacker);
 
-bool __fastcall FootClass_Crash_(FootClass* pThis , DWORD , ObjectClass* pSource)
-{
-	// Crashable support for aircraft
-	const auto& nCrashable = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->Crashable;
-	if (nCrashable.isset() && !nCrashable.Get()) {
-		return false;
+		if (pThis->Type->Explosion.Count > 0) {
+			if (auto pExp = pThis->Type->Explosion
+				[ScenarioClass::Instance->Random.Random() % pThis->Type->Explosion.Count]) {
+				auto nCoord = pThis->GetTargetCoords();
+				if (auto pAnim = GameCreate<AnimClass>(pExp, nCoord)) {
+					const auto pVictim = args.SourceHouse ? args.SourceHouse :
+						(args.Attacker ? args.Attacker->Owner : nullptr);
+					AnimExt::SetAnimOwnerHouseKind(pAnim, pVictim, pThis->Owner, true);
+				}
+			}
+		}
+
+		// bugfix #297: Crewed=yes AircraftTypes spawn parachuting infantry on death
+		const bool bSelected = pThis->IsSelected && pThis->Owner && pThis->Owner->ControlledByPlayer();
+		SpawnSurvivors(pThis,
+			args.Attacker,
+			bSelected,
+			args.IgnoreDefenses,
+			args.PreventsPassengerEscape);
+
+		const auto& nCrashable = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->Crashable;
+		if ((nCrashable.isset() && !nCrashable.Get()) || !pThis->Crash(args.Attacker)) {
+			pThis->UnInit();
+		}
 	}
 
-	// call the address direcly instead of vtable
-	return pThis->FootClass::Crash(pSource);
+	R->EAX(nResult);
+	return 0x4166B0;
 }
 
-//replace an vtable call
-DEFINE_JUMP(CALL6, 0x416694, GET_OFFSET(FootClass_Crash_));
+DEFINE_DISABLE_HOOK(0x41668B, AircraftClass_ReceiveDamage_Survivours_ares)
+
+//// cant be replace easily unfortunately , there is pop ebx that on messup place
+//bool __fastcall FootClass_Crash_(FootClass* pThis , DWORD , ObjectClass* pSource)
+//{
+//	// Crashable support for aircraft
+//	const auto& nCrashable = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->Crashable;
+//	if (nCrashable.isset() && !nCrashable.Get()) {
+//		return false;
+//	}
+//
+//	// call the address direcly instead of vtable
+//	return pThis->FootClass::Crash(pSource);
+//}
+//
+////replace an vtable call
+//DEFINE_JUMP(CALL6, 0x416694, GET_OFFSET(FootClass_Crash_));
 
 // spawn tiberium when a unit dies. this is a minor part of the
 // tiberium heal feature. the actual healing happens in FootClass_Update.
@@ -692,10 +737,7 @@ DEFINE_OVERRIDE_HOOK(0x702216, TechnoClass_ReceiveDamage_TiberiumHeal_SpillTiber
 	if (TechnoTypeExt::ExtMap.Find(pType)->TiberiumRemains
 		.Get(pType->TiberiumHeal && RulesExt::Global()->Tiberium_HealEnabled))
 	{
-		int nIdx = 0;
-		for (int p = 0; p < 4; p++)
-			nIdx += (pThis->Tiberium.Tiberiums[nIdx] < pThis->Tiberium.Tiberiums[p]) * (p - nIdx);
-
+		int nIdx = pThis->Tiberium.GetHighestStorageIdx();
 		const CellClass* pCenter = MapClass::Instance->GetCellAt(pThis->Location);
 
 		// increase the tiberium for the four neighbours and center.
@@ -862,7 +904,7 @@ DEFINE_OVERRIDE_HOOK(0x51887B, InfantryClass_ReceiveDamage_InfantryVirus2, 0xA)
 		? Arguments.Attacker->Owner
 		: Arguments.SourceHouse;
 
-	const auto&[bChanged , result] = 
+	const auto&[bChanged , result] =
 		AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker, false);
 
 	 // reset the color for default (invoker).
@@ -953,7 +995,7 @@ DEFINE_OVERRIDE_HOOK(0x702DD6, TechnoClass_RegisterDestruction_Trigger, 0x6)
 
 	if (pThis && pThis->IsAlive && pAttacker) {
 		if (auto pTag = pThis->AttachedTag) {
-			// 85 
+			// 85
 			pTag->RaiseEvent((TriggerEvent)AresTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker->GetOwningHouse());
 		}
 	}
@@ -1024,7 +1066,7 @@ DEFINE_OVERRIDE_HOOK(0x4368C9, BuildingLightClass_Update_Trigger, 0x5)
 //
 //	if(pWhat == BulletClass::AbsID)
 //		Debug::Log("Bullet[%x - %s] Getting hit by [%s] Warhead [%s] !\n" , pTarget,pTarget->get_ID() ,dummy , pWarhead->ID);
-//	
+//
 //	{
 //
 //		if(pWhat == BuildingClass::AbsID && static_cast<BuildingClass*>(pTarget)->Type->InvisibleInGame)

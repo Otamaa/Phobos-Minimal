@@ -62,14 +62,14 @@ bool SW_EMPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 }
 
 void SW_EMPulse::Initialize(SWTypeExt::ExtData* pData)
-{ 
+{
 	pData->SW_RangeMaximum = -1.0;
 	pData->SW_RangeMinimum = 0.0;
 	pData->SW_MaxCount = 1;
 
 	pData->EMPulse_Linked = false;
 	pData->EMPulse_TargetSelf = false;
-	
+
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::None;
 	pData->CursorType = int(MouseCursorType::Attack);
 	pData->NoCursorType = int(MouseCursorType::AttackOutOfRange);

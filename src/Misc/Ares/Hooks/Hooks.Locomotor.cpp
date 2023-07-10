@@ -238,10 +238,10 @@ bool NOINLINE AcquireHunterSeekerTarget(TechnoClass* pThis)  {
 		auto canPrefer = true;
 
 		// check the hunter seeker SW
-		if (auto const pSuper = 
+		if (auto const pSuper =
 #ifndef Replace_SW
 			AttachedSuperWeapon(pThis)
-#else		
+#else
 			TechnoExt::ExtMap.Find(pThis)->LinkedSW
 #endif
 			) {
@@ -280,6 +280,9 @@ bool NOINLINE AcquireHunterSeekerTarget(TechnoClass* pThis)  {
 				continue;
 			}
 
+			if (i->IsIronCurtained())
+				continue;
+
 			if(auto pBuilding = specific_cast<BuildingClass*>(i)) {
 				const auto pExt = BuildingExt::ExtMap.Find(pBuilding);
 				if(pExt->LimboID != -1)
@@ -288,6 +291,7 @@ bool NOINLINE AcquireHunterSeekerTarget(TechnoClass* pThis)  {
 
 			// type prevents this being a target
 			auto const pType = i->GetTechnoType();
+
 			if (pType->Invisible || !pType->LegalTarget) {
 				continue;
 			}

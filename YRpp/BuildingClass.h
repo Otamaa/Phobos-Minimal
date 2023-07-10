@@ -56,6 +56,9 @@ public:
 	virtual void Update() override JMP_THIS(0x43FB20);
 
 	//ObjectClass
+	virtual DamageState ReceiveDamage(int* pDamage, int DistanceFromEpicenter, WarheadTypeClass* pWH,
+	ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseClass* pAttackingHouse) override JMP_THIS(0x442230);
+
 	//MissionClass
 	//TechnoClass
 	virtual InfantryTypeClass* GetCrew() const override { JMP_THIS(0x44EB53); }
@@ -308,8 +311,8 @@ public:
 		JMP_THIS(0x449BC0);
 	}
 
-	void UpdateAnimations() { 
-		JMP_THIS(0x4509D0); 
+	void UpdateAnimations() {
+		JMP_THIS(0x4509D0);
 	}
 
 	//Constructor

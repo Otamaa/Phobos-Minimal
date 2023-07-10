@@ -37,6 +37,8 @@ public:
 	virtual bool Limbo() override JMP_THIS(0x71C930);
 	virtual bool Unlimbo(const CoordStruct& Crd, DirType dFaceDir) override JMP_THIS(0x71D000);
 	virtual bool UpdatePlacement(PlacementType value) override { JMP_THIS(0x71BFB0); }
+	virtual DamageState ReceiveDamage(int* pDamage, int DistanceFromEpicenter, WarheadTypeClass* pWH,
+  ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseClass* pAttackingHouse) override JMP_THIS(0x71B920);
 
 	void Placement_DrawIt_71C360(const Point2D& nPoint, const RectangleStruct& nRect)
 	{ JMP_THIS(0x71C360); }

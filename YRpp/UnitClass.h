@@ -36,8 +36,11 @@ public:
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
 	virtual int Size() const override R0;
 	virtual void Update() override JMP_THIS(0x7360C0);
+
 	//ObjectClass
 	virtual Action MouseOverObject(ObjectClass const* pObject, bool ignoreForce = false) const override JMP_THIS(0x73FD50);
+	virtual DamageState ReceiveDamage(int* pDamage, int DistanceFromEpicenter, WarheadTypeClass* pWH,
+	ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseClass* pAttackingHouse) override JMP_THIS(0x737C90);
 
 	//TechnoClass
 	virtual InfantryTypeClass* GetCrew() const override { JMP_THIS(0x740EE0); }
@@ -47,6 +50,7 @@ public:
 
 	//FootClass
 	virtual bool ApproachTarget(bool bSomething) override JMP_THIS(0x7414E0);
+
 	//UnitClass
 	// main drawing functions - Draw() calles one of these, they call parent's Draw_A_smth
 	virtual void DrawAsVXL(Point2D Coords, RectangleStruct BoundingRect, int Brightness, int Tint)
@@ -57,8 +61,8 @@ public:
 
 	virtual void DrawObject(Surface* pSurface, Point2D Coords, RectangleStruct CacheRect, int Brightness, int Tint)
 		{ JMP_THIS(0x73B140); }
-	// non-virtual
 
+	// non-virtual
 	bool IsDeactivated() const
 		{ JMP_THIS(0x70FBD0); }
 

@@ -47,7 +47,7 @@ public:
 	virtual HRESULT __stdcall QueryInterface(REFIID iid, LPVOID* ppvObject) override JMP_STD(0x414290);
 	virtual ULONG __stdcall AddRef() override JMP_STD(0x4142F0);
 	virtual ULONG __stdcall Release() override JMP_STD(0x414300);
-	
+
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x41C190);
 
@@ -59,6 +59,10 @@ public:
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
 	virtual int	Size() const override R0;
 	virtual void Update() override JMP_THIS(0x414BB0);
+
+	//ObjectClass
+	virtual DamageState ReceiveDamage(int* pDamage, int DistanceFromEpicenter, WarheadTypeClass* pWH,
+	ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseClass* pAttackingHouse) override JMP_THIS(0x4165C0);
 
 	//MisionClass
 	virtual void Override_Mission(Mission mission, AbstractClass* tarcom = nullptr, AbstractClass* navcom = nullptr) override JMP_THIS(0x41BB30);

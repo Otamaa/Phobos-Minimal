@@ -104,6 +104,7 @@ void SW_HunterSeeker::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->HunterSeeker_Type.Read(exINI, section, "HunterSeeker.Type");
 	pData->HunterSeeker_RandomOnly.Read(exINI, section, "HunterSeeker.RandomOnly");
 	pData->HunterSeeker_Buildings.Read(exINI, section, "HunterSeeker.Buildings");
+	pData->HunterSeeker_AllowAttachedBuildingAsFallback.Read(exINI, section, "HunterSeeker.AllowAttachedBuildingAsFallback");
 
 	// hardcoded
 	pData->Get()->Action = Action::None;
@@ -120,11 +121,9 @@ bool SW_HunterSeeker::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClas
 	const auto HSBuilding = !pData->HunterSeeker_Buildings.empty()
 		? make_iterator(pData->HunterSeeker_Buildings) : make_iterator(RulesExt::Global()->HunterSeekerBuildings);
 
-	if (!HSBuilding.empty() && HSBuilding.contains(pBuilding->Type)) {
-		return true; //quick exit
-	}
-
-	return this->IsSWTypeAttachedToThis(pData, pBuilding);
+	// added new tag so it wont break the default behaviour
+	return pData->HunterSeeker_AllowAttachedBuildingAsFallback ?
+		this->IsSWTypeAttachedToThis(pData, pBuilding) : HSBuilding.contains(pBuilding->Type);
 }
 
 CellStruct NOINLINE SW_HunterSeeker::GetLaunchCell(SWTypeExt::ExtData* pSWType, BuildingClass* pBuilding, UnitTypeClass* pHunter) const
@@ -134,7 +133,7 @@ CellStruct NOINLINE SW_HunterSeeker::GetLaunchCell(SWTypeExt::ExtData* pSWType, 
 
 	if (pBldExt->LimboID != -1)
 	{
-		//Get edge (direction for plane to come from)
+		//Get edge (direction for hunterseeker to come from)
 		const auto edge = pBuilding->Owner->GetHouseEdge();
 
 		// seems to retrieve a random cell struct at a given edge

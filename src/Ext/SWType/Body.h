@@ -312,6 +312,7 @@ public:
 		Nullable<UnitTypeClass*> HunterSeeker_Type {};
 		Valueable<bool> HunterSeeker_RandomOnly { false };
 		ValueableVector<BuildingTypeClass*> HunterSeeker_Buildings {};
+		Valueable<bool> HunterSeeker_AllowAttachedBuildingAsFallback { false };
 #pragma endregion
 
 #pragma region Lightning Storm

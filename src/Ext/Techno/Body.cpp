@@ -3727,7 +3727,7 @@ CoordStruct TechnoExt::GetPutLocation(CoordStruct current, int distance)
 	return tmpCell->FindInfantrySubposition(current, false, false, false, current.Z);
 }
 
-bool TechnoExt::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select)
+bool TechnoExt::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select, std::optional<bool> InAir)
 {
 	const CellClass* pCell = MapClass::Instance->TryGetCellAt(loc);
 
@@ -3743,11 +3743,15 @@ bool TechnoExt::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select)
 	}
 
 	Survivor->OnBridge = pCell->ContainsBridge();
-
 	const int floorZ = pCell->GetCoordsWithBridge().Z;
-	const bool chuted = (loc.Z - floorZ > 2 * Unsorted::LevelHeight);
 
-	if (chuted)
+	bool Chuted = false;
+	if(!InAir.has_value()){
+		Chuted = (loc.Z - floorZ > 2 * Unsorted::LevelHeight);
+	}
+	else { Chuted = InAir.value(); }
+
+	if (Chuted)
 	{
 		// HouseClass::CreateParadrop does this when building passengers for a paradrop... it might be a wise thing to mimic!
 		Survivor->Limbo();
@@ -3770,7 +3774,7 @@ bool TechnoExt::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select)
 	Survivor->LastMapCoords = pCell->MapCoords;
 
 	// don't ask, don't tell
-	if (chuted)
+	if (Chuted)
 	{
 		const bool scat = Survivor->OnBridge;
 		const auto occupation = scat ? pCell->AltOccupationFlags : pCell->OccupationFlags;
@@ -3797,14 +3801,14 @@ bool TechnoExt::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select)
 	return true;
 }
 
-bool TechnoExt::EjectRandomly(FootClass* pEjectee, CoordStruct const& location, int distance, bool select)
+bool TechnoExt::EjectRandomly(FootClass* pEjectee, CoordStruct const& location, int distance, bool select, std::optional<bool> InAir)
 {
 	CoordStruct destLoc = GetPutLocation(location, distance);
 
 	if (destLoc == CoordStruct::Empty || !MapClass::Instance->IsWithinUsableArea(destLoc))
 		return false;
 
-	return EjectSurvivor(pEjectee, destLoc, select);
+	return EjectSurvivor(pEjectee, destLoc, select , InAir);
 }
 
 bool TechnoExt::ReplaceArmor(REGISTERS* R, TechnoClass* pTarget, WeaponTypeClass* pWeapon)
