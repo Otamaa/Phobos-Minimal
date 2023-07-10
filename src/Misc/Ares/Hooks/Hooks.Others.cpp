@@ -4305,6 +4305,10 @@ bool NOINLINE FindAndTakeVehicle(FootClass* pThis)
 	if (!pInf)
 		return false;
 
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pInf->Type);
+	if (!pInf->Type->VehicleThief && !pExt->CanDrive)
+		return false;
+
 	const auto nDistanceMax = ScenarioClass::Instance->Random.RandomFromMax(128);
 
 	//this one iam not really sure how to implement it

@@ -125,10 +125,10 @@ bool ScriptExt_Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bTh
 				auto pNext = pFirst->NextTeamMember;
 				do
 				{
-					TakeVehicleMode(pNext) = true;
+					TakeVehicleMode(pFirst) = true;
 
-					if (pNext->GarrisonStructure())
-						pTeam->RemoveMember(pNext, -1, 1);
+					if (pFirst->GarrisonStructure())
+						pTeam->RemoveMember(pFirst, -1, 1);
 
 					pCur = pNext;
 
@@ -219,15 +219,15 @@ bool ScriptExt_Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bTh
 	return false;
 }
 
-//DEFINE_OVERRIDE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
-//{
-//	enum { ReturnFunc = 0x6E95AB, Continue = 0x0 };
-//	GET(TeamClass*, pThis, ESI);
-//	GET(ScriptActionNode*, pTeamMission, EAX);
-//	GET_STACK(bool, bThirdArg, 0x10);
-//	return ScriptExt_Handle(pThis, pTeamMission, bThirdArg)
-//		? ReturnFunc : Continue;
-//}
+DEFINE_OVERRIDE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
+{
+	enum { ReturnFunc = 0x6E95AB, Continue = 0x0 };
+	GET(TeamClass*, pThis, ESI);
+	GET(ScriptActionNode*, pTeamMission, EAX);
+	GET_STACK(bool, bThirdArg, 0x10);
+	return ScriptExt_Handle(pThis, pTeamMission, bThirdArg)
+		? ReturnFunc : Continue;
+}
 
 DEFINE_OVERRIDE_HOOK(0x6EF8A1, TeamClass_GatherAtEnemyBase_Distance, 0x6)
 {

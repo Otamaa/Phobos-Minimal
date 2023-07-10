@@ -2803,7 +2803,7 @@ DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6)
 // 	GET(InfantryClass*, pThis, ESI);
 // 	const auto pType = pThis->Type;
 //
-// 	if (pType->Ammo > 0 && pType->Ammo > pThis->Ammo && !pType->ManualReload 
+// 	if (pType->Ammo > 0 && pType->Ammo > pThis->Ammo && !pType->ManualReload
 // 		&& !pThis->ReloadTimer.HasStarted())
 // 		pThis->StartReloading();
 //
@@ -2860,7 +2860,7 @@ DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
 //	if ((nDW == 0x10 || nDW == 0x2 || nDW == 0x112) && pMsg->wParam == (WPARAM)0xF060)
 //		ExitProcess(1u);
 //
-//	//if ((nDW == 0x104 || nDW == 0x100) 
+//	//if ((nDW == 0x104 || nDW == 0x100)
 //	//	&& pMsg.wParam == (WPARAM)0xD && ((pMsg.lParam & 0x20000000) != 0))
 //	//{
 //	//	set critical section here ?
@@ -2881,20 +2881,20 @@ DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
 //		return 0x0;
 //
 //	const CanBuildResult canBuild = pHouse->CanBuild(pItem, true, false);
-//	
+//
 //	if (canBuild == CanBuildResult::TemporarilyUnbuildable) {
 //		for (auto pTechno : *TechnoClass::Array) {
 //
 //			if (!pTechno->IsAlive || pTechno->IsCrashing || pTechno->IsSinking)
 //				continue;
-//			
+//
 //			if (pTechno->Owner == pHouse && pTechno->GetTechnoType() == pItem)
 //			{
 //				CoordStruct coords = pTechno->GetCoords();
 //
 //				if (!coords)
 //					continue;
-//		
+//
 //				TacticalClass::Instance->SetTacticalPosition(&coords);
 //				pTechno->Flash(60);
 //				if (pItem->VoiceSelect.Items)
@@ -2962,7 +2962,7 @@ FunctionreturnType KickoutTechnoType(BuildingClass* pProduction, KickOutProducti
 //		return 0x0; // nothing
 //	case FunctionreturnType::Succeeded:
 //		return 0x4448CE; // set mission
-//	case FunctionreturnType::Failed : 
+//	case FunctionreturnType::Failed :
 //		return 0x444EDE; // decrease mutex
 //	}
 //}
@@ -2987,19 +2987,19 @@ DEFINE_HOOK(0x6F9F42, TechnoClass_AI_Berzerk_SetMissionAfterDone, 0x6)
 //	return 0x70F8E6;
 //}
 
-// tester says these make team completely stop protecting ToProtect 
+// tester says these make team completely stop protecting ToProtect
 // all of them instead of the skipped one , weird
-// Infantry 
+// Infantry
 // continue 0x708239 , skip 0x7083BC
 //DEFINE_HOOK(0x70822B, TechnoClass_ToProtectAttacked_Ignore_Infantry, 0x6)
 //{
 //	GET(InfantryClass*, pInf, ESI);
 //	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pInf->Type);
-//	return pTypeExt->IgnoreToProtect || pTypeExt->IsDummy 
+//	return pTypeExt->IgnoreToProtect || pTypeExt->IsDummy
 //		? 0x7083BC : 0x0;
 //}
 
-// Unit 0x7086F5 
+// Unit 0x7086F5
 // recuit chance
 // 0x708461
 // continue 0x708461 , skip 0x708622
@@ -3401,8 +3401,8 @@ DEFINE_HOOK(0x55AFB3, LogicClass_Update_Early, 0x6)
 // 	return pCell->OverlayTypeIndex != -1 ? 0x4B19A1 : 0x4B1A04;
 // }
 
-// this shit is something fuckup check 
-// it check if not unit then check if itself is not infantry is building 
+// this shit is something fuckup check
+// it check if not unit then check if itself is not infantry is building
 // what event shit is this
 //DEFINE_HOOK(0x6FA697, TechnoClass_UpdateTarget_ShouldReTarget , 0x6)
 //{
@@ -3519,7 +3519,7 @@ DEFINE_HOOK(0x437C29, sub_437A10_Lock_Bound_Fix, 7)
 //	return 0x73B074;
 //}
 
-// the unit seems dont like it 
+// the unit seems dont like it
 // something missing
 //bool IsAllowToTurn(UnitClass* pThis, AbstractClass* pTarget, int nMax, DirStruct* pTargetDir)
 //{
@@ -3534,7 +3534,7 @@ DEFINE_HOOK(0x437C29, sub_437A10_Lock_Bound_Fix, 7)
 //
 //	if (abs(nFrom - nTo) <= nMax)
 //		return true;
-//	
+//
 //	short n_To_s = (nTo <= 127) ? nTo : (nTo - 256);
 //	short n_From_s = (nFrom <= 127) ? nFrom : (nFrom - 256);
 //
@@ -3558,7 +3558,7 @@ DEFINE_HOOK(0x437C29, sub_437A10_Lock_Bound_Fix, 7)
 //	{
 //		if (!pTypeExt->DeployFire_UpdateFacing)
 //		{
-//			//R->EAX(FireError::OK); //yes , dont return facing error 
+//			//R->EAX(FireError::OK); //yes , dont return facing error
 //			//return 0x74132B;
 //			return 0x741327; //fireOK
 //		}
@@ -3837,7 +3837,7 @@ DEFINE_HOOK(0x62C361, ParticleClass_ProcessGasBehaviour_DisOnWater, 6)
 //	GET(WarheadTypeClass*, pWeapon, EDI);
 //	int result; // eax
 //
-//	return !pOvl->Immune || pWeapon->Wall 
+//	return !pOvl->Immune || pWeapon->Wall
 //		? 0x7009F3 : 0x7009DE;
 //}
 
@@ -4002,7 +4002,7 @@ std::array<const char* const, 6u> DamageState_to_srings
 //	return 0x0;
 //}
 
-//basically this C4 thing will always one hit kill regardless, 
+//basically this C4 thing will always one hit kill regardless,
 // because of fcki g weird ass ww code desing ,..
 //DEFINE_HOOK(0x442696, BuildingClass_ReceiveDamage_C4, 0xA)
 //{
@@ -4451,7 +4451,7 @@ DEFINE_HOOK(0x522A09, InfantryClass_EnteredThing_Assaulter, 0x6)
 	return TechnoExt::IsAssaulter(pThis) ? retTrue : retFalse;
 }
 
-//51F580 
+//51F580
 DEFINE_HOOK(0x51F580, InfantryClass_MissionHunt_Assaulter, 0x6)
 {
 	enum { retTrue = 0x51F58A, retFalse = 0x51F5C0 };
@@ -4461,7 +4461,7 @@ DEFINE_HOOK(0x51F580, InfantryClass_MissionHunt_Assaulter, 0x6)
 	return TechnoExt::IsAssaulter(pThis) ? retTrue : retFalse;
 }
 
-//51F493 
+//51F493
 DEFINE_HOOK(0x51F493, InfantryClass_MissionAttack_Assaulter, 0x6)
 {
 	enum { retTrue = 0x51F49D, retFalse = 0x51F4D3 };
@@ -4471,7 +4471,7 @@ DEFINE_HOOK(0x51F493, InfantryClass_MissionAttack_Assaulter, 0x6)
 	return TechnoExt::IsAssaulter(pThis) ? retTrue : retFalse;
 }
 
-//51968E 
+//51968E
 DEFINE_HOOK(0x51968E, InfantryClass_sub_519633_Assaulter, 0x6)
 {
 	enum { retTrue = 0x5196A6, retFalse = 0x519698 };
@@ -4691,14 +4691,14 @@ DEFINE_HOOK(0x4249EC, AnimClass_CreateMakeInf_WeirdAssCode, 0x6)
 // 	return 0x0;
 // }
 
-// do some pre-validation evenbefore function going to be executed 
+// do some pre-validation evenbefore function going to be executed
 // save some cpu cycle
 DEFINE_HOOK(0x486920, CellClass_TriggerVein_Precheck, 0x6)
 {
 	return RulesClass::Instance->VeinAttack ? 0x0 : 0x486A6B;
 }
 
-// this thing do some placement check twice 
+// this thing do some placement check twice
 // this can be bad because the `GrowthLogic` data inside not inited properly !
 DEFINE_HOOK(0x74C688, VeinholeMonsterClass_CTOR_SkipPlacementCheck, 0x7)
 {
@@ -4716,7 +4716,7 @@ DEFINE_HOOK(0x5FC668, OverlayTypeClass_Mark_Veinholedummies, 0x7)
 		for (int i = 0 ; i < 8; ++i)
 		{
 			auto v11 = pCell->GetAdjacentCell((FacingType)i);
-			v11->OverlayTypeIndex = 0x7E; //dummy image -> replaced with vein ? 
+			v11->OverlayTypeIndex = 0x7E; //dummy image -> replaced with vein ?
 			;
 			v11->OverlayData = 30u; //max it out
 			v11->RedrawForVeins();
@@ -4890,7 +4890,7 @@ DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
 //	GET_STACK(bool, bRemove, 0x8);
 //	GET(AbstractClass*, pTarget, EDI);
 //	GET(TechnoClass*, pOwner, EAX);
-//   //nope , the third ags , seems not used consistenly , it can cause dangling pointer 
+//   //nope , the third ags , seems not used consistenly , it can cause dangling pointer
 //	if (bRemove && pOwner == pTarget)
 //		pThis->Owner = nullptr;
 //
@@ -4939,7 +4939,7 @@ DEFINE_HOOK(0x4431D3, BuildingClass_Destroyed_removeLog, 0x5)
 DEFINE_HOOK(0x443292, BuildingClass_Destroyed_CreateSmudge_A, 0x6)
 {
 	GET(BuildingClass*, pThis, EDI);
-	return BuildingTypeExt::ExtMap.Find(pThis->Type)->Destroyed_CreateSmudge 
+	return BuildingTypeExt::ExtMap.Find(pThis->Type)->Destroyed_CreateSmudge
 		? 0x0 : 0x4433F9;
 }
 
@@ -4955,8 +4955,8 @@ DEFINE_HOOK(0x44E809, BuildingClass_PowerOutput_Absorber, 0x6)
 	GET(BuildingClass*, pThis, ESI);
 	GET_STACK(int, powertotal, 0x8);
 
-	for (auto pPas = pThis->Passengers.GetFirstPassenger(); 
-		pPas; 
+	for (auto pPas = pThis->Passengers.GetFirstPassenger();
+		pPas;
 		pPas = generic_cast<FootClass*>(pPas->NextObject)) {
 
 		powertotal += abs(TechnoTypeExt::ExtMap.Find(pPas->GetTechnoType())
@@ -5099,7 +5099,7 @@ DEFINE_JUMP(LJMP, 0x4417A7, 0x44180A);
 //}
 
 // Sink sound //4DAC7B
-//todo : 
+//todo :
 
 // https://bugs.launchpad.net/ares/+bug/1840387
 // https://bugs.launchpad.net/ares/+bug/1777260
@@ -5124,8 +5124,8 @@ DEFINE_JUMP(LJMP, 0x4417A7, 0x44180A);
 //  - Weeder
 //  - Ice stuffs using WW pointer heap logic
 //  - proper damaging function for veins
-// 
-//fcking heap pointer is deleted after some time 
+//
+//fcking heap pointer is deleted after some time
 //who the fuck doing that ?
 //DEFINE_HOOK(0x74D847, VeinholeMonsterClass_AI_HeapIsZero, 0x6)
 //{

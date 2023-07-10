@@ -89,22 +89,23 @@ DEFINE_OVERRIDE_HOOK(0x6FCB6A, TechnoClass_CanFire_Verses, 0x7)
 	const auto pData = WarheadTypeExt::ExtMap.Find(pWH);
 	const auto vsData = &pData->Verses[nArmor];
 
-	if (!vsData->Flags.ForceFire && vsData->Verses == 0.0)
-		return FireIllegal;
-
-	if (pWH->BombDisarm)
+	// i think there is no way for the techno know if it attack using force fire or not
+	if (vsData->Flags.ForceFire || vsData->Verses != 0.0)
 	{
-		if (!pTarget->AttachedBomb)
+		if (pWH->BombDisarm &&
+			(!pTarget->AttachedBomb ||
+			!BombExt::ExtMap.Find(pTarget->AttachedBomb)->Weapon->Ivan_Detachable)
+		) {
+			return FireIllegal;
+		}
+
+		if (pWH->IvanBomb && pTarget->AttachedBomb)
 			return FireIllegal;
 
-		if (!BombExt::ExtMap.Find(pTarget->AttachedBomb)->Weapon->Ivan_Detachable)
-			return FireIllegal;
+		return  ContinueCheck;
 	}
 
-	if (pWH->IvanBomb && pTarget->AttachedBomb)
-		return FireIllegal;
-
-	return  ContinueCheck;
+	return FireIllegal;
 }
 
 DEFINE_OVERRIDE_HOOK(0x70CEA0, TechnoClass_EvalThreatRating_TargetWeaponWarhead_Verses, 0x6)

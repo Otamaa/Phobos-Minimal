@@ -136,7 +136,7 @@ DEFINE_OVERRIDE_HOOK(0x41F0F1, AITriggerClass_IC_Ready, 0xA)
 {
 	enum { advance = 0x41F0FD , breakloop = 0x41F10D };
 	GET(SuperClass*, pSuper, EDI);
-	
+
 	return (pSuper->Type->Type == SuperWeaponType::IronCurtain
 		&& SWTypeExt::ExtMap.Find(pSuper->Type)->IsAvailable(pSuper->Owner))
 		? breakloop : advance;
@@ -147,7 +147,7 @@ DEFINE_OVERRIDE_HOOK(0x41F1A1, AITriggerClass_Chrono_Ready, 0xA)
 	enum { advance = 0x41F1AD, breakloop = 0x41F1BD};
 	GET(SuperClass*, pSuper, EBX);
 
-	return (pSuper->Type->Type == SuperWeaponType::ChronoSphere 
+	return (pSuper->Type->Type == SuperWeaponType::ChronoSphere
 		&& SWTypeExt::ExtMap.Find(pSuper->Type)->IsAvailable(pSuper->Owner))
 		? breakloop : advance;
 }
@@ -160,7 +160,7 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 
 	const auto pLeader = pThis->FetchLeader();
 
-	if (!pLeader){ 
+	if (!pLeader){
 		pThis->StepCompleted = true;
 		return 0x6EFE4F;
 	}
@@ -168,7 +168,7 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 	const bool havePower = pOwner->HasFullPower();
 
 	//const auto Iter = std::find_if(pOwner->Supers.begin(), pOwner->Supers.end(), [&](SuperClass* pSuper) {
-	//	
+	//
 	//	const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
 	//
 	//	if ((pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain) &&
@@ -233,7 +233,7 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 		pThis->StepCompleted = true;
 		return 0x6EFE4F;
 	}
-		
+
 	if(!pCur) //only stop if no SW exist
 		pThis->StepCompleted = true;
 
@@ -241,7 +241,7 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 	return 0x6EFE4F;
 }
 
-// these thing picking first SW type with Chronosphere breaking the AI , bruh 
+// these thing picking first SW type with Chronosphere breaking the AI , bruh
 // should check if the SW itself avaible before deciding it!
 DEFINE_HOOK(0x6EFF05, TeamClass_ChronosphereTeam_PickSuper_IsAvail_A, 0x9)
 {
@@ -368,35 +368,32 @@ DEFINE_OVERRIDE_HOOK(0x6A932B, StripClass_GetTip_MoneySW, 6)
 
 	if (pData->Money_Amount < 0)
 	{
-		wchar_t* pTip = SidebarClass::TooltipBuffer;
-
 		// account for no-name SWs
 		if (CCToolTip::HideName() || !wcslen(pSW->UIName))
 		{
 			const wchar_t* pFormat = StringTable::LoadStringA(GameStrings::TXT_MONEY_FORMAT_1);
-			swprintf(pTip, SidebarClass::TooltipBuffer.size(), pFormat, -pData->Money_Amount);
+			swprintf(SidebarClass::TooltipBuffer(), SidebarClass::TooltipBuffer.size(), pFormat, -pData->Money_Amount);
 		}
 		else
 		{
 			// then, this must be brand SWs
 			const wchar_t* pFormat = StringTable::LoadStringA(GameStrings::TXT_MONEY_FORMAT_2);
-			swprintf(pTip, SidebarClass::TooltipBuffer.size(), pFormat, pSW->UIName, -pData->Money_Amount);
+			swprintf(SidebarClass::TooltipBuffer(), SidebarClass::TooltipBuffer.size(), pFormat, pSW->UIName, -pData->Money_Amount);
 		}
 
-		pTip[SidebarClass::TooltipBuffer.size() - 1] = 0;
+		SidebarClass::TooltipBuffer[SidebarClass::TooltipBuffer.size() - 1] = 0;
 
 		// replace space by new line
-		for (int i = wcslen(pTip); i >= 0; --i)
+		for (int i = wcslen(SidebarClass::TooltipBuffer()); i >= 0; --i)
 		{
-			if (pTip[i] == 0x20)
-			{
-				pTip[i] = 0xA;
+			if (SidebarClass::TooltipBuffer[i] == 0x20) {
+				SidebarClass::TooltipBuffer[i] = 0xA;
 				break;
 			}
 		}
 
 		// put it there
-		R->EAX(pTip);
+		R->EAX(SidebarClass::TooltipBuffer());
 		return 0x6A93E5;
 	}
 
@@ -1181,8 +1178,8 @@ DEFINE_HOOK(0x46B310, BulletClass_NukeMaker_Handle, 6)
 		CoordStruct nOffs { 0 , 0, pPaylod->Projectile->DetonationAltitude };
 		CoordStruct dest = nTargetLoc + nOffs;
 
-		constexpr auto nCos = gcem::cos(1.570748388432313); // Accuracy is different from the game 
-		constexpr auto nSin = gcem::sin(1.570748388432313); // Accuracy is different from the game 
+		constexpr auto nCos = gcem::cos(1.570748388432313); // Accuracy is different from the game
+		constexpr auto nSin = gcem::sin(1.570748388432313); // Accuracy is different from the game
 
 		constexpr double nX = nCos * nCos * -1.0;
 		constexpr double nY = nCos * nSin * -1.0;
@@ -1505,10 +1502,10 @@ DEFINE_OVERRIDE_HOOK(0x44CB4C, BuildingClass_Mi_Missile_NukeTakeOff, 7)
 	enum { DeleteBullet = 0x44CC42, SetUpNext = 0x44CCA7 };
 
 	auto const type = TechnoExt::ExtMap.Find(pThis)->LinkedSW->Type;
-	//auto nCos = 0.00004793836; 
-	constexpr auto nCos = gcem::cos(1.570748388432313); // Accuracy is different from the game 
-	//auto nSin = 0.99999999885; 
-	constexpr auto nSin = gcem::sin(1.570748388432313);// Accuracy is different from the game 
+	//auto nCos = 0.00004793836;
+	constexpr auto nCos = gcem::cos(1.570748388432313); // Accuracy is different from the game
+	//auto nSin = 0.99999999885;
+	constexpr auto nSin = gcem::sin(1.570748388432313);// Accuracy is different from the game
 
 	const auto nMult = pBullet->Type->Vertical ? 10.0 : 100.0;
 
@@ -1557,7 +1554,7 @@ DEFINE_HOOK(0x44CABA, BuildingClass_MI_Missile_CreateBullet, 0x7)
 	if (pWeapon)
 	{
 		if (auto pCreated = BulletTypeExt::ExtMap.Find(pWeapon->Projectile)
-			->CreateBullet(pTarget, pThis, pWeapon->Damage, pWeapon->Warhead, 255, 
+			->CreateBullet(pTarget, pThis, pWeapon->Damage, pWeapon->Warhead, 255,
 			WeaponTypeExt::ExtMap.Find(pWeapon)->GetProjectileRange(), pWeapon->Bright || pWeapon->Warhead->Bright, false))
 		{
 			BulletExt::ExtMap.Find(pCreated)->NukeSW = pSuper;

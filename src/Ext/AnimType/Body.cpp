@@ -25,7 +25,7 @@ void AnimTypeExt::ExtData::Initialize()
 	IsInviso = IS_SAME_STR_(pID, INVISO_NAME);
 }
 
-// AnimType Class is readed before Unit and weapon 
+// AnimType Class is readed before Unit and weapon
 // so it is safe to `allocate` them before
 
 void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
@@ -180,7 +180,7 @@ void AnimTypeExt::CreateUnit_MarkCell(AnimClass* pThis)
 
 		const auto pCellAfter = MapClass::Instance->GetCellAt(Location);
 
-		//there is some unsolved vanilla bug that causing unit uneable to die 
+		//there is some unsolved vanilla bug that causing unit uneable to die
 		//when it on brige , idk what happen there , but it is what it is for now
 		//will reenable if fixed !
 		if (pCellAfter->ContainsBridge())
@@ -189,7 +189,7 @@ void AnimTypeExt::CreateUnit_MarkCell(AnimClass* pThis)
 		if (!MapClass::Instance->IsWithinUsableArea(Location))
 			return;
 
-		if(pCellAfter->GetBuilding())
+		if (pCellAfter->GetBuilding())
 			return;
 
 		pExt->AllowCreateUnit = true;
@@ -219,67 +219,65 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 	if (!pAnimExt->AllowCreateUnit)
 		return;
 
-	if (const auto unit = pTypeExt->CreateUnit.Get())
+	pThis->UnmarkAllOccupationBits(pAnimExt->CreateUnitLocation);
+
+	HouseClass* decidedOwner = GetOwnerForSpawned(pThis);
+	//const auto pCell = MapClass::Instance->TryGetCellAt(pAnimExt->CreateUnitLocation);
+
+	if (const auto pTechno = static_cast<UnitClass*>(pTypeExt->CreateUnit->CreateObject(decidedOwner)))
 	{
-		HouseClass* decidedOwner = GetOwnerForSpawned(pThis);
-		//const auto pCell = MapClass::Instance->TryGetCellAt(pAnimExt->CreateUnitLocation);
-		pThis->UnmarkAllOccupationBits(pAnimExt->CreateUnitLocation);
+		bool success = false;
 
-		if (const auto pTechno = static_cast<UnitClass*>(unit->CreateObject(decidedOwner)))
+		const DirType resultingFacing = (pTypeExt->CreateUnit_InheritDeathFacings.Get() &&
+			  pAnimExt->DeathUnitFacing.has_value())
+			? pAnimExt->DeathUnitFacing.get() : pTypeExt->CreateUnit_RandomFacing.Get()
+			? ScenarioClass::Instance->Random.RandomRangedSpecific<DirType>(DirType::North, DirType::Max) : pTypeExt->CreateUnit_Facing.Get();
+
+		if (!pTypeExt->CreateUnit_ConsiderPathfinding.Get())
 		{
-			bool success = false;
+			++Unsorted::ScenarioInit;
+			success = pTechno->Unlimbo(pAnimExt->CreateUnitLocation, resultingFacing);
+			--Unsorted::ScenarioInit;
+		}
+		else
+		{
+			success = pTechno->Unlimbo(pAnimExt->CreateUnitLocation, resultingFacing);
+		}
 
-			const DirType resultingFacing = (pTypeExt->CreateUnit_InheritDeathFacings.Get() &&
-				  pAnimExt->DeathUnitFacing.has_value())
-				? pAnimExt->DeathUnitFacing.get() : pTypeExt->CreateUnit_RandomFacing.Get()
-				? ScenarioClass::Instance->Random.RandomRangedSpecific<DirType>(DirType::North, DirType::Max) : pTypeExt->CreateUnit_Facing.Get();
+		if (success)
+		{
+			//pTechno->UpdatePlacement(PlacementType::Remove);
+			//pTechno->OnBridge = pCell->ContainsBridge();
+			//pTechno->UpdatePlacement(PlacementType::Put);
 
-			if (!pTypeExt->CreateUnit_ConsiderPathfinding.Get())
+			if (const auto pCreateUnitAnimType = pTypeExt->CreateUnit_SpawnAnim.Get(nullptr))
 			{
-				++Unsorted::ScenarioInit;
-				success = pTechno->Unlimbo(pAnimExt->CreateUnitLocation, resultingFacing);
-				--Unsorted::ScenarioInit;
-			}
-			else
-			{
-				success = pTechno->Unlimbo(pAnimExt->CreateUnitLocation, resultingFacing);
-			}
-
-			if (success)
-			{
-				//pTechno->UpdatePlacement(PlacementType::Remove);
-				//pTechno->OnBridge = pCell->ContainsBridge();
-				//pTechno->UpdatePlacement(PlacementType::Put);
-
-				if (const auto pCreateUnitAnimType = pTypeExt->CreateUnit_SpawnAnim.Get(nullptr))
+				if (auto const pCreateUnitAnim = GameCreate<AnimClass>(pCreateUnitAnimType, pAnimExt->CreateUnitLocation))
 				{
-					if (auto const pCreateUnitAnim = GameCreate<AnimClass>(pCreateUnitAnimType, pAnimExt->CreateUnitLocation))
-					{
-						pCreateUnitAnim->Owner = decidedOwner;
-						if (auto pCreateUnitAnimExt = AnimExt::ExtMap.Find(pCreateUnitAnim))
-							pCreateUnitAnimExt->Invoker = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
-					}
+					pCreateUnitAnim->Owner = decidedOwner;
+					if (auto pCreateUnitAnimExt = AnimExt::ExtMap.Find(pCreateUnitAnim))
+						pCreateUnitAnimExt->Invoker = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
 				}
-
-				if (!decidedOwner->IsNeutral() && !unit->Insignificant)
-				{
-					decidedOwner->RegisterGain(pTechno, false);
-					decidedOwner->AddTracking(pTechno);
-					decidedOwner->RecheckTechTree = 1;
-				}
-
-				if (pTechno->HasTurret() && pAnimExt->DeathUnitTurretFacing.has_value())
-				{
-					pTechno->SecondaryFacing.Set_Desired(pAnimExt->DeathUnitTurretFacing.get());
-				}
-
-
-				pTechno->QueueMission(pTypeExt->CreateUnit_Mission.Get(), false);
 			}
-			else
+
+			if (!decidedOwner->IsNeutral() && !pTypeExt->CreateUnit->Insignificant)
 			{
-				TechnoExt::HandleRemove(pTechno);
+				decidedOwner->RegisterGain(pTechno, false);
+				decidedOwner->AddTracking(pTechno);
+				decidedOwner->RecheckTechTree = 1;
 			}
+
+			if (pTechno->HasTurret() && pAnimExt->DeathUnitTurretFacing.has_value())
+			{
+				pTechno->SecondaryFacing.Set_Desired(pAnimExt->DeathUnitTurretFacing.get());
+			}
+
+
+			pTechno->QueueMission(pTypeExt->CreateUnit_Mission.Get(), false);
+		}
+		else
+		{
+			TechnoExt::HandleRemove(pTechno);
 		}
 	}
 }
@@ -436,7 +434,7 @@ DEFINE_HOOK(0x428800, AnimTypeClass_SaveLoad_Prefix, 0xA)
 	return 0;
 }
 
-// Before : 
+// Before :
 DEFINE_HOOK_AGAIN(0x42892C, AnimTypeClass_Load_Suffix, 0x6)
 DEFINE_HOOK(0x428958, AnimTypeClass_Load_Suffix, 0x6)
 {

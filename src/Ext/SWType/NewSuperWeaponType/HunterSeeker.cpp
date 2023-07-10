@@ -38,7 +38,7 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 	// only call on up to Count buildings that suffice IsEligible
 	size_t Success = 0;
 	Helpers::Alex::for_each_if_n(pOwner->Buildings.begin(), pOwner->Buildings.end(),
-		Count, 
+		Count,
 		[=](BuildingClass* pBld) { return this->IsLaunchSite(pExt, pBld); },
 		[=, &Success](BuildingClass* pBld) { auto cell = this->GetLaunchCell(pExt, pBld, pType);
 
@@ -123,7 +123,7 @@ bool SW_HunterSeeker::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClas
 
 	// don't further question the types in this list
 		// get the appropriate launch buildings list
-	const auto HSBuilding = pData->HunterSeeker_Buildings.size()
+	const auto HSBuilding = !pData->HunterSeeker_Buildings.empty()
 		? &pData->HunterSeeker_Buildings : &RulesExt::Global()->HunterSeekerBuildings;
 
 	if (!HSBuilding->empty() && HSBuilding->Contains(pBuilding->Type)) {

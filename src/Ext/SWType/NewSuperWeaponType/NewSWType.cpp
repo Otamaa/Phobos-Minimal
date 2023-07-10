@@ -342,6 +342,11 @@ bool NewSWType::IsLaunchsiteAlive(BuildingClass* pBuilding) const
 {
 	if (pBuilding->IsAlive && pBuilding->Health && !pBuilding->InLimbo && pBuilding->IsPowerOnline())
 	{
+		//const auto nMission = pBuilding->GetCurrentMission();
+
+		//if (nMission == Mission::Selling || nMission == Mission::Construction)
+		//	return false;
+
 		if (pBuilding->TemporalTargetingMe || pBuilding->IsBeingWarpedOut())
 			return false;
 

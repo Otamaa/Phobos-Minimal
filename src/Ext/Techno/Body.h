@@ -187,7 +187,7 @@ private:
 	static bool IsOnLimbo(TechnoClass* pThis, bool bIgnore);
 	static bool IsDeactivated(TechnoClass* pThis, bool bIgnore);
 	static bool IsUnderEMP(TechnoClass* pThis, bool bIgnore);
-	
+
 	static int GetSizeLeft(FootClass* const pThis);
 	static void Stop(TechnoClass* pThis, Mission const& eMission = Mission::Guard);
 	static bool IsHarvesting(TechnoClass* pThis);
@@ -316,10 +316,12 @@ private:
 	static bool IsEligibleSize(TechnoClass* pThis, TechnoClass* pPassanger);
 	static bool IsAbductable(TechnoClass* pThis, WeaponTypeClass* pWeapon, FootClass* pFoot);
 
-	static void SendPlane(size_t Aircraft, size_t Amount , HouseClass* pOwner, Rank SendRank, Mission SendMission, AbstractClass* pTarget, AbstractClass* pDest);
+	static void SendPlane(AircraftTypeClass* Aircraft, size_t Amount , HouseClass* pOwner, Rank SendRank, Mission SendMission, AbstractClass* pTarget, AbstractClass* pDest);
 	static bool CreateWithDroppod(FootClass* Object, const CoordStruct& XYZ);
 
 	static void StoreHijackerLastDisguiseData(InfantryClass* pThis , FootClass* pVictim);
 	static void RestoreStoreHijackerLastDisguiseData(InfantryClass* pThis , FootClass* pVictim);
 
+	static WeaponTypeClass* GetCurrentWeapon(TechnoClass* pThis, int& weaponIndex, bool getSecondary = false);
+	static WeaponTypeClass* GetCurrentWeapon(TechnoClass* pThis, bool getSecondary = false);
 };

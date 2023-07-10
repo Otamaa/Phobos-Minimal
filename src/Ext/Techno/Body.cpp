@@ -56,6 +56,39 @@ void TechnoExt::RestoreStoreHijackerLastDisguiseData(InfantryClass* pThis, FootC
 	pThis->DisguisedAsHouse = pExt->HijackerLastDisguiseHouse;
 }
 
+WeaponTypeClass* TechnoExt::GetCurrentWeapon(TechnoClass* pThis, int& weaponIndex, bool getSecondary)
+{
+	if (!pThis)
+		return nullptr;
+
+	auto const pType = pThis->GetTechnoType();
+	weaponIndex = getSecondary ? 1 : 0;
+
+	if (pType->TurretCount > 0 && !pType->IsGattling)
+	{
+		if (getSecondary)
+		{
+			weaponIndex = -1;
+			return nullptr;
+		}
+
+		weaponIndex = pThis->CurrentWeaponNumber != 0xFFFFFFFF ? pThis->CurrentWeaponNumber : 0;
+	}
+	else if (pType->IsGattling)
+	{
+		weaponIndex = pThis->CurrentGattlingStage * 2 + weaponIndex;
+	}
+
+	return pThis->GetWeapon(weaponIndex)->WeaponType;
+}
+
+WeaponTypeClass* TechnoExt::GetCurrentWeapon(TechnoClass* pThis, bool getSecondary)
+{
+	int weaponIndex = 0;
+	return TechnoExt::GetCurrentWeapon(pThis, weaponIndex, getSecondary);
+}
+
+
 bool TechnoExt::IsCullingImmune(TechnoClass* pThis)
 {
 	return HasAbility(pThis, PhobosAbilityType::CullingImmune);
@@ -928,14 +961,9 @@ bool TechnoExt::IsAbductable(TechnoClass* pThis, WeaponTypeClass* pWeapon, FootC
 	return true;
 }
 
-void TechnoExt::SendPlane(size_t Aircraft, size_t Amount, HouseClass* pOwner, Rank SendRank, Mission SendMission, AbstractClass* pTarget, AbstractClass* pDest)
+void TechnoExt::SendPlane(AircraftTypeClass* Aircraft, size_t Amount, HouseClass* pOwner, Rank SendRank, Mission SendMission, AbstractClass* pTarget, AbstractClass* pDest)
 {
-	if (!pOwner || Amount <= 0)
-		return;
-
-	const auto pAirCraft = AircraftTypeClass::Array->GetItemOrDefault(Aircraft);
-
-	if (!pAirCraft)
+	if (!Aircraft || !pOwner || Amount <= 0)
 		return;
 
 	//safeguard
@@ -965,7 +993,7 @@ void TechnoExt::SendPlane(size_t Aircraft, size_t Amount, HouseClass* pOwner, Ra
 	for (size_t i = 0; i < Amount; ++i)
 	{
 		++Unsorted::ScenarioInit;
-		auto const pPlane = static_cast<AircraftClass*>(pAirCraft->CreateObject(pOwner));
+		auto const pPlane = static_cast<AircraftClass*>(Aircraft->CreateObject(pOwner));
 		--Unsorted::ScenarioInit;
 
 		if (!pPlane)
@@ -997,7 +1025,7 @@ void TechnoExt::SendPlane(size_t Aircraft, size_t Amount, HouseClass* pOwner, Ra
 		else
 		{
 
-			// we cant create InitialPayload when mutex atives 
+			// we cant create InitialPayload when mutex atives
 			// so here we handle the InitialPayload Creation !
 			// this way we can make opentopped airstrike happen !
 			TechnoExt::ExtMap.Find(pPlane)->CreateInitialPayload();
@@ -1236,7 +1264,7 @@ void TechnoExt::PutPassengersInCoords(TechnoClass* pTransporter, const CoordStru
 	if (!pTransporter || !pTransporter->Passengers.NumPassengers || !MapClass::Instance->IsWithinUsableArea(nCoord))
 		return;
 
-	//TODO : check if passenger is actually allowed to go outside 
+	//TODO : check if passenger is actually allowed to go outside
 	auto pPassenger = pTransporter->Passengers.RemoveFirstPassenger();
 	CoordStruct nDest = nCoord;
 
@@ -2541,7 +2569,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, bool isPeaceful)
 KillMethod NOINLINE GetKillMethod(KillMethod deathOption)
 {
 	if (deathOption == KillMethod::Random)
-	{ //ensure no death loop , only random when needed to 
+	{ //ensure no death loop , only random when needed to
 		return ScenarioClass::Instance->Random.RandomRangedSpecific<KillMethod>(KillMethod::Explode, KillMethod::Sell);
 	}
 
@@ -3230,8 +3258,8 @@ void TechnoExt::ExtData::UpdateType(TechnoTypeClass* currentType)
 	//{
 	//	pThis->SpawnManager = GameCreate<SpawnManagerClass>(
 	//		pThis,
-	//		currentType->Spawns , 
-	//		currentType->SpawnsNumber , 
+	//		currentType->Spawns ,
+	//		currentType->SpawnsNumber ,
 	//		currentType->SpawnRegenRate ,
 	//		currentType->SpawnReloadRate);
 	//}

@@ -10,7 +10,7 @@ std::vector<const char*> SW_Protect::GetTypeString() const
 
 bool SW_Protect::HandleThisType(SuperWeaponType type) const
 {
-	return (type == SuperWeaponType::IronCurtain) || 
+	return (type == SuperWeaponType::IronCurtain) ||
 			(type == SuperWeaponType::ForceShield);
 }
 
@@ -171,18 +171,8 @@ bool SW_Protect::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pB
 
 AnimTypeClass* SW_Protect::GetAnim(const SWTypeExt::ExtData* pData) const
 {
-	if (pData->SW_Anim.isset()) {
-		return pData->SW_Anim;
-	}
-
-	if (pData->OwnerObject()->Type == SuperWeaponType::ForceShield)
-	{
-		return RulesClass::Instance->ForceShieldInvokeAnim;
-	}
-	else
-	{
-		return RulesClass::Instance->IronCurtainInvokeAnim;
-	}
+	return pData->SW_Anim.Get(pData->OwnerObject()->Type == SuperWeaponType::ForceShield ?
+		RulesClass::Instance->ForceShieldInvokeAnim : RulesClass::Instance->IronCurtainInvokeAnim);
 }
 
 SWRange SW_Protect::GetRange(const SWTypeExt::ExtData* pData) const

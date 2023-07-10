@@ -24,7 +24,7 @@ bool SW_UnitDelivery::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 }
 
 void SW_UnitDelivery::Initialize(SWTypeExt::ExtData* pData)
-{ 
+{
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::ParaDrop;
 }
 
@@ -75,14 +75,20 @@ void UnitDeliveryStateMachine::Update()
 void UnitDeliveryStateMachine::PlaceUnits()
 {
 	auto pData = SWTypeExt::ExtMap.Find(this->Super->Type);
+
+	// some mod using this for an dummy SW , just skip everything if the SW_Deliverables
+	// is empty
+	if (pData->SW_Deliverables.empty())
+		return;
+
 	// get the house the units will belong to
 	auto pOwner = HouseExt::GetHouseKind(pData->SW_OwnerHouse, false, this->Super->Owner);
 	bool IsPlayerControlled = pOwner->ControlledByPlayer_();
 	bool bBaseNormal = pData->SW_DeliverBuildups;
 
 	// create an instance of each type and place it
-	// Otamaa : this thing bugged on debug mode , idk 
-	for (auto nPos = pData->LimboDelivery_Types.begin(); nPos != pData->LimboDelivery_Types.end(); ++nPos)
+	// Otamaa : this thing bugged on debug mode , idk
+	for (auto nPos = pData->SW_Deliverables.begin(); nPos != pData->SW_Deliverables.end(); ++nPos)
 	{
 		auto pType = *nPos;
 		auto Item = static_cast<TechnoClass*>(pType->CreateObject(pOwner));
@@ -90,7 +96,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 		if (!Item)
 			continue;
 
-		auto ItemBuilding = specific_cast<BuildingClass*>(Item);
+		const auto ItemBuilding = specific_cast<BuildingClass*>(Item);
 
 		// get the best options to search for a place
 		short extentX = 1;
