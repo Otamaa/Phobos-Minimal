@@ -70,7 +70,7 @@ void SpiralTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 
 	constexpr auto halfpi = (Math::Pi / 2);
 
-	this->DirectionAngel = std::atan2((double)(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y), 
+	this->DirectionAngel = Math::atan2((double)(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y), 
 		(double)(pBullet->TargetCoords.X - pBullet->SourceCoords.X)) + halfpi;
 
 	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
@@ -85,11 +85,11 @@ bool SpiralTrajectory::OnAI()
 
 	if (!this->close)
 	{
-		double height = std::sin(Math::deg2rad(this->CurrentAngel)) * this->CurrentRadius;
-		double width = std::cos(Math::deg2rad(this->CurrentAngel)) * this->CurrentRadius;
+		double height = Math::sin(Math::deg2rad(this->CurrentAngel)) * this->CurrentRadius;
+		double width = Math::cos(Math::deg2rad(this->CurrentAngel)) * this->CurrentRadius;
 
-		pBullet->Location.X = static_cast<int>((width * std::cos(this->DirectionAngel)) + this->CenterLocation.X);
-		pBullet->Location.Y = static_cast<int>((width * std::sin(this->DirectionAngel)) + this->CenterLocation.Y);
+		pBullet->Location.X = static_cast<int>((width * Math::cos(this->DirectionAngel)) + this->CenterLocation.X);
+		pBullet->Location.Y = static_cast<int>((width * Math::sin(this->DirectionAngel)) + this->CenterLocation.Y);
 		pBullet->Location.Z = static_cast<int>(height + this->CenterLocation.Z);
 
 		this->CurrentAngel += this->GetTrajectoryType()->Angel;

@@ -29,15 +29,11 @@ public:
 
 	public:
 
-		BehavesLike Behave;
-		std::vector<ParticleDatas> PreCalculatedParticlesData;
-		std::vector<ParticleDatas> SomeArray_b;
-		ParticleTypeClass* AdditionalHeldType;
+		BehavesLike Behave { BehavesLike::Smoke };
+		std::vector<ParticleDatas> PreCalculatedParticlesData { };
+		std::vector<ParticleDatas> SomeArray_b { };
+		ParticleTypeClass* AdditionalHeldType { nullptr };
 		ExtData(ParticleSystemClass* OwnerObject) : Extension<base_type> { OwnerObject }
-			, Behave { BehavesLike::Smoke }
-			, PreCalculatedParticlesData { }
-			, SomeArray_b { }
-			, AdditionalHeldType { nullptr }
 		{ }
 
 		virtual ~ExtData() override = default;

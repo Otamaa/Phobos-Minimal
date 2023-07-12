@@ -37,27 +37,27 @@ SuperClass* SWTypeExt::LauchData = nullptr;
 std::array<const AITargetingModeInfo, (size_t)SuperWeaponAITargetingMode::count> SWTypeExt::AITargetingModes =
 {
 {
-	{SuperWeaponAITargetingMode::None, SuperWeaponTarget::None, AffectedHouse::None , TargetingConstraint::None , TargetingPreference::None},
-	{SuperWeaponAITargetingMode::Nuke, SuperWeaponTarget::AllTechnos, AffectedHouse::Enemies , TargetingConstraint::Enemy, TargetingPreference::Offensive },
-	{SuperWeaponAITargetingMode::LightningStorm, SuperWeaponTarget::AllTechnos, AffectedHouse::Enemies, TargetingConstraint::Enemy | TargetingConstraint::LighningStormInactive, TargetingPreference::Offensive},
-	{SuperWeaponAITargetingMode::PsychicDominator, SuperWeaponTarget::Infantry | SuperWeaponTarget::Unit, AffectedHouse::All, TargetingConstraint::Enemy | TargetingConstraint::DominatorInactive | TargetingConstraint::OffensiveCellClear , TargetingPreference::None},
-	{SuperWeaponAITargetingMode::ParaDrop, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraint::None, TargetingPreference::Offensive },
-	{SuperWeaponAITargetingMode::GeneticMutator, SuperWeaponTarget::Infantry, AffectedHouse::All, TargetingConstraint::OffensiveCellClear , TargetingPreference::None},
-	{SuperWeaponAITargetingMode::ForceShield, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraint::Enemy , TargetingPreference::Devensive},
-	{SuperWeaponAITargetingMode::NoTarget, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraint::None , TargetingPreference::None},
-	{SuperWeaponAITargetingMode::Offensive, SuperWeaponTarget::AllTechnos, AffectedHouse::Enemies, TargetingConstraint::Enemy , TargetingPreference::None},
-	{SuperWeaponAITargetingMode::Stealth, SuperWeaponTarget::AllTechnos, AffectedHouse::Enemies, TargetingConstraint::None, TargetingPreference::None },
-	{SuperWeaponAITargetingMode::Self, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraint::None , TargetingPreference::None},
-	{SuperWeaponAITargetingMode::Base, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraint::None, TargetingPreference::None },
-	{SuperWeaponAITargetingMode::MultiMissile, SuperWeaponTarget::Building, AffectedHouse::None, TargetingConstraint::Enemy, TargetingPreference::Offensive },
-	{SuperWeaponAITargetingMode::HunterSeeker, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraint::Enemy, TargetingPreference::None },
-	{SuperWeaponAITargetingMode::EnemyBase, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraint::Enemy, TargetingPreference::None },
-	{SuperWeaponAITargetingMode::IronCurtain, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraint::None, TargetingPreference::None },
-	{SuperWeaponAITargetingMode::Attack, SuperWeaponTarget::AllTechnos, AffectedHouse::Enemies, TargetingConstraint::Enemy, TargetingPreference::Offensive},
-	{SuperWeaponAITargetingMode::LowPower, SuperWeaponTarget::None, AffectedHouse::Owner, TargetingConstraint::LowPower, TargetingPreference::None},
-	{SuperWeaponAITargetingMode::LowPowerAttack, SuperWeaponTarget::Building, AffectedHouse::Owner, TargetingConstraint::Attacked | TargetingConstraint::LowPower, TargetingPreference::None },
-	{SuperWeaponAITargetingMode::Droppod, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraint::Enemy , TargetingPreference::None},
-	{SuperWeaponAITargetingMode::LighningRandom, SuperWeaponTarget::AllCells, AffectedHouse::All, TargetingConstraint::Enemy, TargetingPreference::None },
+	{SuperWeaponAITargetingMode::None, SuperWeaponTarget::None, AffectedHouse::None , TargetingConstraints::None , TargetingPreference::None},
+	{SuperWeaponAITargetingMode::Nuke, SuperWeaponTarget::AllTechnos, AffectedHouse::Enemies , TargetingConstraints::Enemy, TargetingPreference::Offensive },
+	{SuperWeaponAITargetingMode::LightningStorm, SuperWeaponTarget::AllTechnos, AffectedHouse::Enemies, TargetingConstraints::Enemy | TargetingConstraints::LighningStormInactive, TargetingPreference::Offensive},
+	{SuperWeaponAITargetingMode::PsychicDominator, SuperWeaponTarget::Infantry | SuperWeaponTarget::Unit, AffectedHouse::All, TargetingConstraints::Enemy | TargetingConstraints::DominatorInactive | TargetingConstraints::OffensiveCellClear , TargetingPreference::None},
+	{SuperWeaponAITargetingMode::ParaDrop, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::None, TargetingPreference::Offensive },
+	{SuperWeaponAITargetingMode::GeneticMutator, SuperWeaponTarget::Infantry, AffectedHouse::All, TargetingConstraints::OffensiveCellClear , TargetingPreference::None},
+	{SuperWeaponAITargetingMode::ForceShield, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::Enemy , TargetingPreference::Devensive},
+	{SuperWeaponAITargetingMode::NoTarget, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::None , TargetingPreference::None},
+	{SuperWeaponAITargetingMode::Offensive, SuperWeaponTarget::AllTechnos, AffectedHouse::Enemies, TargetingConstraints::Enemy , TargetingPreference::None},
+	{SuperWeaponAITargetingMode::Stealth, SuperWeaponTarget::AllTechnos, AffectedHouse::Enemies, TargetingConstraints::None, TargetingPreference::None },
+	{SuperWeaponAITargetingMode::Self, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::None , TargetingPreference::None},
+	{SuperWeaponAITargetingMode::Base, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::None, TargetingPreference::None },
+	{SuperWeaponAITargetingMode::MultiMissile, SuperWeaponTarget::Building, AffectedHouse::None, TargetingConstraints::Enemy, TargetingPreference::Offensive },
+	{SuperWeaponAITargetingMode::HunterSeeker, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::Enemy, TargetingPreference::None },
+	{SuperWeaponAITargetingMode::EnemyBase, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::Enemy, TargetingPreference::None },
+	{SuperWeaponAITargetingMode::IronCurtain, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::None, TargetingPreference::None },
+	{SuperWeaponAITargetingMode::Attack, SuperWeaponTarget::AllTechnos, AffectedHouse::Enemies, TargetingConstraints::Enemy, TargetingPreference::Offensive},
+	{SuperWeaponAITargetingMode::LowPower, SuperWeaponTarget::None, AffectedHouse::Owner, TargetingConstraints::LowPower, TargetingPreference::None},
+	{SuperWeaponAITargetingMode::LowPowerAttack, SuperWeaponTarget::Building, AffectedHouse::Owner, TargetingConstraints::Attacked | TargetingConstraints::LowPower, TargetingPreference::None },
+	{SuperWeaponAITargetingMode::DropPod, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::Enemy , TargetingPreference::None},
+	{SuperWeaponAITargetingMode::LightningRandom, SuperWeaponTarget::AllCells, AffectedHouse::All, TargetingConstraints::None, TargetingPreference::None },
 }
 };
 
@@ -182,7 +182,7 @@ AffectedHouse SWTypeExt::ExtData::GetAIRequiredHouse() const
 	return AffectedHouse::None;
 }
 
-std::pair<TargetingConstraint, bool> SWTypeExt::ExtData::GetAITargetingConstraint() const
+std::pair<TargetingConstraints, bool> SWTypeExt::ExtData::GetAITargetingConstraints() const
 {
 	if (this->SW_AITargetingConstrain.isset())
 		return { this->SW_AITargetingConstrain.Get(), true };
@@ -191,11 +191,11 @@ std::pair<TargetingConstraint, bool> SWTypeExt::ExtData::GetAITargetingConstrain
 		const auto index = static_cast<unsigned int>(this->SW_AITargetingMode.Get());
 
 		if (index < AITargetingModes.size()) {
-			return { AITargetingModes[(int)index].Constrain , true };
+			return { AITargetingModes[(int)index].Constraints , true };
 		}
 	}
 
-	return { TargetingConstraint::None , false };
+	return { TargetingConstraints::None , false };
 }
 
 TargetingPreference SWTypeExt::ExtData::GetAITargetingPreference() const
@@ -308,43 +308,43 @@ bool SWTypeExt::ExtData::CanFireAt(HouseClass* pOwner, const CellStruct& coords,
 	return true;
 }
 
-bool SWTypeExt::ExtData::IsTargetConstraintEligible(SuperClass* pThis, bool IsPlayer)
+bool SWTypeExt::ExtData::IsTargetConstraintsEligible(SuperClass* pThis, bool IsPlayer)
 {
 	const auto pExt = SWTypeExt::ExtMap.Find(pThis->Type);
 	auto pOwner = pThis->Owner;
-	auto const& [nFlag , IsDefault] = pExt->GetAITargetingConstraint();
+	auto const& [nFlag , IsDefault] = pExt->GetAITargetingConstraints();
 
 	auto valid = [](const CellStruct& nVal) { return nVal.X || nVal.Y; };
 
 	if (!IsDefault) {
-		if (((nFlag & TargetingConstraint::OffensiveCellClear) != TargetingConstraint::None) && valid(pOwner->PreferredTargetCell))
+		if (((nFlag & TargetingConstraints::OffensiveCellClear) != TargetingConstraints::None) && valid(pOwner->PreferredTargetCell))
 			return false;
 	}
 
-	if (((nFlag & TargetingConstraint::OffensiveCellSet) != TargetingConstraint::None) && !valid(pOwner->PreferredTargetCell))
+	if (((nFlag & TargetingConstraints::OffensiveCellSet) != TargetingConstraints::None) && !valid(pOwner->PreferredTargetCell))
 		return false;
 
-	if (((nFlag & TargetingConstraint::DefensifeCellClear) != TargetingConstraint::None) && valid(pOwner->PreferredDefensiveCell2))
+	if (((nFlag & TargetingConstraints::DefensifeCellClear) != TargetingConstraints::None) && valid(pOwner->PreferredDefensiveCell2))
 		return false;
 
-	if (((nFlag & TargetingConstraint::DefensiveCellSet) != TargetingConstraint::None) && !valid(pOwner->PreferredDefensiveCell2))
+	if (((nFlag & TargetingConstraints::DefensiveCellSet) != TargetingConstraints::None) && !valid(pOwner->PreferredDefensiveCell2))
 		return false;
 
-	if (((nFlag & TargetingConstraint::Enemy) != TargetingConstraint::None) && pOwner->EnemyHouseIndex < 0)
+	if (((nFlag & TargetingConstraints::Enemy) != TargetingConstraints::None) && pOwner->EnemyHouseIndex < 0)
 		return false;
 
 	if (!IsPlayer)
 	{
-		if (((nFlag & TargetingConstraint::LighningStormInactive) != TargetingConstraint::None) && LightningStorm::Active())
+		if (((nFlag & TargetingConstraints::LighningStormInactive) != TargetingConstraints::None) && LightningStorm::Active())
 			return false;
 
-		if (((nFlag & TargetingConstraint::DominatorInactive) != TargetingConstraint::None) && PsyDom::Active())
+		if (((nFlag & TargetingConstraints::DominatorInactive) != TargetingConstraints::None) && PsyDom::Active())
 			return false;
 
-		if (((nFlag & TargetingConstraint::Attacked) != TargetingConstraint::None) && (pOwner->LATime && (pOwner->LATime + 75) < Unsorted::CurrentFrame))
+		if (((nFlag & TargetingConstraints::Attacked) != TargetingConstraints::None) && (pOwner->LATime && (pOwner->LATime + 75) < Unsorted::CurrentFrame))
 			return false;
 
-		if (((nFlag & TargetingConstraint::LowPower) != TargetingConstraint::None) && pOwner->HasFullPower())
+		if (((nFlag & TargetingConstraints::LowPower) != TargetingConstraints::None) && pOwner->HasFullPower())
 			return false;
 	}
 
@@ -358,7 +358,7 @@ bool SWTypeExt::ExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 	// don't try to fire if we obviously haven't enough money
 	if (pThis->Owner->CanTransactMoney(pExt->Money_Amount.Get()))
 	{
-		if (SWTypeExt::ExtData::IsTargetConstraintEligible(pThis, IsPlayer))
+		if (SWTypeExt::ExtData::IsTargetConstraintsEligible(pThis, IsPlayer))
 		{
 			auto const& [Cell, Flag] = SWTypeExt::ExtData::PickSuperWeaponTarget(pThis);
 			if (Flag != SWTargetFlags::DisallowEmpty)
@@ -755,7 +755,7 @@ struct TargetingFuncs
 		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
-	static TargetResult GetLighningRandomTarget(const TargetingInfo& info)
+	static TargetResult NOINLINE GetLighningRandomTarget(const TargetingInfo& info)
 	{
 		CellStruct nBuffer;
 		for (int i = 0; i < 5; ++i)
@@ -958,11 +958,11 @@ TargetResult SWTypeExt::ExtData::PickSuperWeaponTarget(SuperClass* pSuper)
 	{
 		return TargetingFuncs::GetEnemyBaseTarget(info);
 	}
-	case SuperWeaponAITargetingMode::Droppod:
+	case SuperWeaponAITargetingMode::DropPod:
 	{
 		return TargetingFuncs::GetDroppodTarget(info);
 	}
-	case SuperWeaponAITargetingMode::LighningRandom:
+	case SuperWeaponAITargetingMode::LightningRandom:
 	{
 		return TargetingFuncs::GetLighningRandomTarget(info);
 	}
@@ -1827,9 +1827,9 @@ LightingColor SWTypeExt::GetLightingColor(SuperWeaponTypeClass* pCustom)
 		ret.Blue = scen->NukeLighting.Tint.Blue * 10;
 		ret.HasValue = true; //default
 
-		if (SuperClass* pSuper = SW_NuclearMissile::CurrentNukeType)
+		if (auto  pSuper = SW_NuclearMissile::CurrentNukeType)
 		{
-			pType = pSuper->Type;
+			pType = pSuper;
 		}
 	}
 	else if (LightningStorm::Active)
@@ -2180,6 +2180,12 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->MeteorImpactSmall)
 		.Process(this->MeteorImpactLarge)
 
+		.Process(this->IonCannon_Ripple)
+		.Process(this->IonCannon_Blast)
+		.Process(this->IonCannon_Beam)
+		.Process(this->IonCannon_BlastHeight)
+		.Process(this->IonCannon_BeamHeight)
+		.Process(this->IonCannon_FireAtPercentage)
 		;
 
 }

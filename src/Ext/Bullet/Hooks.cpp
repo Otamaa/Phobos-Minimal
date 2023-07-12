@@ -94,7 +94,7 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 	TrailsManager::AI(pThis);
 
 	//if (!pThis->Type->Inviso && pBulletExt->InitialBulletDir.has_value())
-	//	pBulletExt->InitialBulletDir = DirStruct((-1) * std::atan2(pThis->Velocity.Y, pThis->Velocity.X));
+	//	pBulletExt->InitialBulletDir = DirStruct((-1) * Math::atan2(pThis->Velocity.Y, pThis->Velocity.X));
 
 	return 0;
 }
@@ -264,7 +264,7 @@ DEFINE_HOOK(0x469D1A, BulletClass_Logics_Debris_Checks, 0x6)
 
 	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
 	auto const pCell = pThis->GetCell();
-	const bool isLand = !pCell ? true : 
+	const bool isLand = !pCell ? true :
 	pCell->LandType != LandType::Water || pCell->ContainsBridge();
 
 	if (!isLand && pWHExt->Debris_Conventional.Get())
@@ -290,13 +290,12 @@ DEFINE_HOOK(0x469B44, BulletClass_Logics_LandTypeCheck, 0x6)
 	return 0;
 }
 
-
 DEFINE_HOOK(0x46A290, BulletClass_Logics_ExtraWarheads, 0x5)
 {
 	GET(BulletClass*, pThis, ESI);
 	GET_BASE(CoordStruct*, coords, 0x8);
 
-	if (pThis->WeaponType)
+	if (pThis->WeaponType )
 	{
 		auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pThis->WeaponType);
 		int defaultDamage = pThis->WeaponType->Damage;

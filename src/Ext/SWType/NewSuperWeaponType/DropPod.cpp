@@ -53,7 +53,7 @@ void SW_DropPod::Initialize(SWTypeExt::ExtData* pData)
 	pData->EVA_Ready = VoxClass::FindIndexById("EVA_DropPodReady");
 	pData->EVA_Activated = VoxClass::FindIndexById("EVA_DropPodActivated");
 
-	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::Droppod;
+	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::DropPod;
 	pData->CursorType = (int)MouseCursorType::ParaDrop;
 }
 
@@ -66,7 +66,9 @@ void SW_DropPod::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->DropPod_Maximum.Read(exINI, section, "DropPod.Maximum");
 	pData->DropPod_Veterancy.Read(exINI, section, "DropPod.Veterancy");
 	pData->DropPod_Types.Read(exINI, section, "DropPod.Types");
-	pData->Droppod_Duration.Read(exINI, section, "Droppod.Duration");
+	pData->Droppod_Duration.Read(exINI, section, "DropPod.Duration");
+
+	Helpers::Alex::remove_non_paradroppables(pData->DropPod_Types, section, "DropPod.Types");
 }
 
 bool SW_DropPod::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
@@ -150,71 +152,68 @@ void DroppodStateMachine::PlaceUnits(SuperClass* pSuper , double veterancy , Ite
 {
 	const auto pData = SWTypeExt::ExtMap.Find(pSuper->Type);
 	// three times more tries than units to place.
-	int count = ScenarioClass::Instance->Random.RandomRanged(cMin, cMax);
-
-	if (retries)
-		count *= 3;
-
+	const int count = ScenarioClass::Instance->Random.RandomRanged(cMin, cMax);
 	CellStruct cell = Coords;
+	std::vector<std::pair<bool , int>> Succeededs(count , {false , 3 });
 
-	for (int i = count; i; --i)
+	for (auto&[status , retrycount] : Succeededs)
 	{
-
-		// get a random type from the list and create an instance
-		TechnoTypeClass* pType = Types[ScenarioClass::Instance->Random.RandomFromMax(Types.size() - 1)];
-
-		if (!pType || pType->WhatAmI() == BuildingTypeClass::AbsID)
+		if (!status && retrycount)
 		{
-			continue;
-		}
+			// get a random type from the list and create an instance
+			TechnoTypeClass* pType = Types[ScenarioClass::Instance->Random.RandomFromMax(Types.size() - 1)];
 
-		FootClass* pFoot = static_cast<FootClass*>(pType->CreateObject(pSuper->Owner));
-		if (!pFoot)
-			continue;
-
-		// update veterancy only if higher
-		if (veterancy > pFoot->Veterancy.Veterancy)
-		{
-			pFoot->Veterancy.Add(veterancy);
-		}
-
-		// select a free cell the unit can enter
-		CellStruct tmpCell = MapClass::Instance->NearByLocation(cell, pType->SpeedType, -1,
-			pType->MovementZone, false, 1, 1, false, false, false, false, CellStruct::Empty, false, false);
-
-		CoordStruct crd = CellClass::Cell2Coord(tmpCell);
-
-		// let the locomotor take care of the rest
-		if (TechnoExt::CreateWithDroppod(pFoot, crd))
-		{
-			if (!--count)
+			if (!pType || pType->WhatAmI() == BuildingTypeClass::AbsID)
 			{
-				break;
+				continue;
 			}
-		}
 
-		// randomize the target coodinates
-		CellClass* pCell = MapClass::Instance->GetCellAt(tmpCell);
-		int rnd = ScenarioClass::Instance->Random.RandomFromMax(7);
+			FootClass* pFoot = static_cast<FootClass*>(pType->CreateObject(pSuper->Owner));
+			if (!pFoot)
+				continue;
 
-		for (int j = 0; j < 8; ++j)
-		{
-
-			// get the direction in an overly verbose way
-			FacingType dir = FacingType(((j + rnd) % 8) & 7);
-
-			CellClass* pNeighbour = pCell->GetNeighbourCell(dir);
-			if (pFoot->IsCellOccupied(pNeighbour, FacingType::None, -1, nullptr, true) == Move::OK)
+			// update veterancy only if higher
+			if (veterancy > pFoot->Veterancy.Veterancy)
 			{
-				cell = pNeighbour->MapCoords;
-				break;
+				pFoot->Veterancy.Add(veterancy);
 			}
-		}
 
-		// failed to place
-		if (pFoot->InLimbo)
-		{
-			pFoot->UnInit();
+			// select a free cell the unit can enter
+			CellStruct tmpCell = MapClass::Instance->NearByLocation(cell, pType->SpeedType, -1,
+				pType->MovementZone, false, 1, 1, false, false, false, false, CellStruct::Empty, false, false);
+
+			CoordStruct crd = CellClass::Cell2Coord(tmpCell);
+
+			// let the locomotor take care of the rest
+			if (TechnoExt::CreateWithDroppod(pFoot, crd)) {
+				status = true;
+			} else {
+				--retrycount;
+			}
+
+			// randomize the target coodinates
+			CellClass* pCell = MapClass::Instance->GetCellAt(tmpCell);
+			int rnd = ScenarioClass::Instance->Random.RandomFromMax(7);
+
+			for (int j = 0; j < 8; ++j)
+			{
+
+				// get the direction in an overly verbose way
+				FacingType dir = FacingType(((j + rnd) % 8) & 7);
+
+				CellClass* pNeighbour = pCell->GetNeighbourCell(dir);
+				if (pFoot->IsCellOccupied(pNeighbour, FacingType::None, -1, nullptr, true) == Move::OK)
+				{
+					cell = pNeighbour->MapCoords;
+					break;
+				}
+			}
+
+			// failed to place
+			if (pFoot->InLimbo)
+			{
+				pFoot->UnInit();
+			}
 		}
 	}
 }

@@ -13,7 +13,7 @@ std::vector<CoordStruct> CircleDifferentiator::DivideArcByTolerance(const CoordS
 	while (true)
 	{
 		double dRad = 2 * Math::C_Sharp_Pi / n;
-		int dLength = (int)(std::sqrt(2) * radius * std::sin(dRad));
+		int dLength = (int)(std::sqrt(2) * radius * Math::sin(dRad));
 		if (dLength <= tolerance)
 			break;
 		n++;
@@ -44,8 +44,8 @@ std::vector<CoordStruct> CircleDifferentiator::DivideArcByCount(const CoordStruc
 
 	for (double rad = 0; rad < Math::C_Sharp_Pi * 2; rad += dRad)
 	{
-		nDummy.X = (float)(radius * std::cos(rad));
-		nDummy.Y = (float)(radius * std::sin(rad));
+		nDummy.X = (float)(radius * Math::cos(rad));
+		nDummy.Y = (float)(radius * Math::sin(rad));
 
 		if (UpVec != UnitZ) {
 			nDummy = Helpers_DP_Vec::Transform(nDummy, q);

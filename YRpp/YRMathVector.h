@@ -159,8 +159,8 @@ public:
 	Vector2D FromPolar(double rad, double theta)
 	{
 		Vector2D v;
-		v.X = rad * std::cos(theta);
-		v.Y = rad * std::sin(theta);
+		v.X = rad * Math::cos(theta);
+		v.Y = rad * Math::sin(theta);
 		return v;
 	}
 
@@ -235,7 +235,7 @@ public:
 
 	void Rotate(double theta)
 	{
-		return Rotate(std::sin(theta), std::cos(theta));;
+		return Rotate(Math::sin(theta), Math::cos(theta));;
 	}
 
 	void Rotate(double s, double c, bool Sin_Cos)
@@ -252,8 +252,8 @@ public:
 	{
 		if (Sin_Cos)
 		{
-			max_s = std::sin(max_s);
-			max_c = std::cos(max_c);
+			max_s = Math::sin(max_s);
+			max_c = Math::cos(max_c);
 		}
 
 		bool return_value = false;
@@ -736,7 +736,7 @@ public:
 
 	void Rotate_X(double angle)
 	{
-		Rotate_X(std::sin(angle), std::cos(angle));
+		Rotate_X(Math::sin(angle), Math::cos(angle));
 	}
 
 
@@ -751,7 +751,7 @@ public:
 
 	void Rotate_Y(double angle)
 	{
-		Rotate_X(std::sin(angle), std::cos(angle));
+		Rotate_X(Math::sin(angle), Math::cos(angle));
 	}
 
 	void Rotate_Y(double s_angle, double c_angle)
@@ -765,7 +765,7 @@ public:
 
 	void Rotate_Z(double angle)
 	{
-		Rotate_X(std::sin(angle), std::cos(angle));
+		Rotate_X(Math::sin(angle), Math::cos(angle));
 	}
 
 	void Rotate_Z(double s_angle, double c_angle)

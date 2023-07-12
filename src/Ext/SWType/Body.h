@@ -64,7 +64,7 @@ struct AITargetingModeInfo
 	SuperWeaponAITargetingMode Mode;
 	SuperWeaponTarget Target;
 	AffectedHouse House;
-	TargetingConstraint Constrain;
+	TargetingConstraints Constraints;
 	TargetingPreference Preference;
 };
 
@@ -204,7 +204,7 @@ public:
 		Valueable<int> SW_AnimHeight  { 0 };
 		SuperWeaponType HandledType { SuperWeaponType::Invalid };
 		Action LastAction { Action::None };
-		Nullable<TargetingConstraint> SW_AITargetingConstrain {};
+		Nullable<TargetingConstraints> SW_AITargetingConstrain {};
 		Nullable<SuperWeaponTarget> SW_AIRequiresTarget {};
 		Nullable<AffectedHouse> SW_AIRequiresHouse {};
 		Nullable<TargetingPreference> SW_AITargetingPreference {};
@@ -395,6 +395,15 @@ public:
 		Valueable<VoxelAnimTypeClass*> MeteorImpactLarge { nullptr };
 #pragma endregion
 
+#pragma region IonCannon
+		Valueable<bool> IonCannon_Ripple { true };
+		Valueable<AnimTypeClass*> IonCannon_Blast {};
+		Valueable<AnimTypeClass*> IonCannon_Beam {};
+		Valueable<int> IonCannon_BlastHeight { 0 };
+		Valueable<int> IonCannon_BeamHeight { 0 };
+		Valueable<int> IonCannon_FireAtPercentage { 0 };
+#pragma endregion
+
 		ExtData(SuperWeaponTypeClass* OwnerObject) : Extension<SuperWeaponTypeClass>(OwnerObject)
 		{}
 
@@ -442,7 +451,7 @@ public:
 		double GetChargeToDrainRatio() const;
 		SuperWeaponTarget GetAIRequiredTarget() const;
 		AffectedHouse GetAIRequiredHouse() const;
-		std::pair<TargetingConstraint, bool> GetAITargetingConstraint() const;
+		std::pair<TargetingConstraints, bool> GetAITargetingConstraints() const;
 		TargetingPreference GetAITargetingPreference() const;
 		bool UpdateLightingColor(LightingColor& Lighting) const;
 		// is this an original type handled by a NewSWType?
@@ -456,7 +465,7 @@ public:
 		static AffectedHouse GetRelation(HouseClass* pFirer, HouseClass* pHouse);
 		static Action GetAction(SuperWeaponTypeClass* pSuper, CellStruct* pTarget);
 		static bool TryFire(SuperClass* pThis, bool IsPlayer);
-		static bool IsTargetConstraintEligible(SuperClass* pThis, bool IsPlayer);
+		static bool IsTargetConstraintsEligible(SuperClass* pThis, bool IsPlayer);
 		static TargetResult PickSuperWeaponTarget(SuperClass* pSuper);
 
 	private:

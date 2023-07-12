@@ -112,9 +112,9 @@ const char* GeneralUtils::GetLocomotionName(const CLSID& clsid)
 	{
 		return "Jumpjet";
 	}
-	else if (clsid == CLSIDs::Droppod())
+	else if (clsid == CLSIDs::DropPod())
 	{
-		return "Droppod";
+		return "DropPod";
 	}
 	else if (clsid == CLSIDs::Tunnel())
 	{
@@ -222,5 +222,17 @@ const int GeneralUtils::GetAnimIndexFromFacing(FootClass* pFoot, int nVectorSize
 	}
 
 	return 0;
+}
+
+int GeneralUtils::GetLSAnimHeightFactor(AnimTypeClass* pType, CellClass* pCell, bool checklevel)
+{
+	int ImageHeignt = 0;
+	if (auto pImage = pType->GetImage())
+		ImageHeignt = pImage->Height;
+
+	const auto Height = int(((double)ImageHeignt) / 2);
+	const auto LSFactor = (Height - 0.5) * LightningStorm::CloudHeightFactor();
+
+	return int(checklevel ? LSFactor + Unsorted::LevelHeight * pCell->Level : LSFactor);
 }
 #pragma endregion

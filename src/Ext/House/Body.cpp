@@ -251,7 +251,7 @@ int HouseExt::ActiveHarvesterCount(HouseClass* pThis)
 	std::count_if(TechnoClass::Array->begin(), TechnoClass::Array->end(),
 	[pThis](TechnoClass* techno)
 	{
-		if (TechnoTypeExt::ExtMap.Find(techno->GetTechnoType())->IsCountedAsHarvester() 
+		if (TechnoTypeExt::ExtMap.Find(techno->GetTechnoType())->IsCountedAsHarvester()
 			&& techno->Owner == pThis)
 			return TechnoExt::IsHarvesting(techno);
 
@@ -298,10 +298,10 @@ CellClass* HouseExt::GetEnemyBaseGatherCell(HouseClass* pTargetHouse, HouseClass
 	const int deltaY = targetBaseCoords.Y - currentCoords.Y;
 	const int distance = (RulesClass::Instance->AISafeDistance + extraDistance) * Unsorted::LeptonsPerCell;
 
-	const double atan = std::atan2(deltaY, deltaX);
+	const double atan = Math::atan2((double)deltaY, (double)deltaX);
 	const double radians = (((atan - Math::HalfPi) * (1.0 / Math::BinaryAngleMagic)) - 0X3FFF) * Math::BinaryAngleMagic;
-	const int x = static_cast<int>(targetBaseCoords.X + std::cos(radians) * distance);
-	const int y = static_cast<int>(targetBaseCoords.Y - std::sin(radians) * distance);
+	const int x = static_cast<int>(targetBaseCoords.X + Math::cos(radians) * distance);
+	const int y = static_cast<int>(targetBaseCoords.Y - Math::sin(radians) * distance);
 
 	auto newCoords = CoordStruct { x, y, targetBaseCoords.Z };
 	auto cellStruct = CellClass::Coord2Cell(newCoords);
@@ -825,7 +825,7 @@ size_t HouseExt::FindBuildableIndex(
 
 		if (pHouse->CanExpectToBuild(pItem, idxParentCountry))
 		{
-			auto const pBld = abstract_cast<const BuildingTypeClass*>(pItem);
+			auto const pBld = specific_cast<const BuildingTypeClass*>(pItem);
 			if (pBld && HouseExt::IsDisabledFromShell(pHouse, pBld))
 			{
 				continue;
@@ -998,6 +998,6 @@ DEFINE_HOOK(0x4FB9B7, HouseClass_Detach, 0xA)
 
 	R->ESI(pThis);
 	R->EBX(0);
-	return pThis->ToCapture == target ? 
+	return pThis->ToCapture == target ?
 		0x4FB9C3 : 0x4FB9C9;
 }

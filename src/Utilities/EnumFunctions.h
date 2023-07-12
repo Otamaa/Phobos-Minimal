@@ -99,7 +99,7 @@ public:
 	static std::array<std::pair<const char* const, SlaveReturnTo>, 9u> SlaveReturnTo_ToStrings;
 	static std::array<const char* const, 3u> VerticalPosition_ToStrings;
 	static std::array<std::pair<const char* const, BannerNumberType>, 5u> BannerNumberType_ToStrings;
-	static std::array<std::pair<const char* const , TargetingConstraint> , 10u> TargetingConstraint_ToStrings;
+	static std::array<std::pair<const char* const , TargetingConstraints> , 10u> TargetingConstraints_ToStrings;
 	static std::array<const char* const, 3u> TargetingPreference_ToStrings;
 	static std::array<const char* const, 3u> SelfHealGainType_ToStrings;
 	static std::array<std::pair<const char* const, ChronoSparkleDisplayPosition>, 5u> ChronoSparkleDisplayPosition_ToStrings;

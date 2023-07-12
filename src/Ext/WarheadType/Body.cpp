@@ -37,7 +37,11 @@ void WarheadTypeExt::ExtData::Initialize()
 	Shield_AttachTypes.reserve(8);
 	Shield_RemoveTypes.reserve(8);
 	InfDeathAnims.reserve(200);
-	IsNukeWarhead = IS_SAME_STR_(RulesExt::Global()->NukeWarheadName.data(), this->Get()->ID);
+	if(IS_SAME_STR_(RulesExt::Global()->NukeWarheadName.data(), this->Get()->ID)){
+		IsNukeWarhead = true;
+		PreImpactAnim = AnimTypeClass::Find(GameStrings::NUKEBALL());
+		NukeFlashDuration = 30;
+	}
 }
 
 void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
@@ -242,15 +246,8 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 
 	this->IsNukeWarhead.Read(exINI, pSection, "IsNukeWarhead");
 
-	this->PreImpactAnim.Read(exINI, pSection, "PreImpactAnim");
-	if (this->IsNukeWarhead && !this->PreImpactAnim.isset()) {
-		this->PreImpactAnim = AnimTypeClass::Find(GameStrings::NUKEBALL());
-	}
-
+	this->PreImpactAnim.Read(exINI, pSection, "PreImpactAnim" ,true);
 	this->NukeFlashDuration.Read(exINI, pSection, "NukeFlash.Duration");
-	if (this->IsNukeWarhead && !this->NukeFlashDuration.isset()) {
-		this->NukeFlashDuration = 30;
-	}
 
 	this->Remover.Read(exINI, pSection, "Remover");
 	this->Remover_Anim.Read(exINI, pSection, "Remover.Anim");
@@ -369,7 +366,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	this->InflictLocomotor.Read(exINI, pSection, "InflictLocomotor");
 	this->RemoveInflictedLocomotor.Read(exINI, pSection, "RemoveInflictedLocomotor");
 	this->Rocker_Damage.Read(exINI, pSection, "Rocker.Damage");
-	this->NukePayload_LinkedSW.Read(exINI, pSection, "NukePayload.LinkedSW");
+	this->NukePayload_LinkedSW.Read(exINI, pSection, "NukeMaker.LinkedSW");
 	this->IC_Duration.Read(exINI, pSection, "IronCurtain.Duration");
 	this->IC_Cap.Read(exINI, pSection, "IronCurtain.Cap");
 

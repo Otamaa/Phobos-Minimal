@@ -349,12 +349,12 @@ DEFINE_OVERRIDE_HOOK(0x4895B8, DamageArea_CellSpread1, 0x6)
 
 	pIter = nullptr;
 
-	if (spread >= 0)
-	{
-		pIter = new CellSpreadEnumerator(spread);
-	}
+	if(spread < 0)
+		return 0x4899DA;
 
-	return (pIter && *pIter) ? 0x4895C3 : 0x4899DA;
+	pIter = new CellSpreadEnumerator(spread);
+
+	return *pIter ? 0x4895C3 : 0x4899DA;
 }
 
 // apply the current value
@@ -379,8 +379,7 @@ DEFINE_OVERRIDE_HOOK(0x4899BE, DamageArea_CellSpread3, 0x8)
 	index++;
 
 	// advance iterator
-	if (++*pIter)
-	{
+	if (++*pIter) {
 		return 0x4895C0;
 	}
 
@@ -4453,103 +4452,103 @@ DEFINE_OVERRIDE_HOOK(0x44C844, BuildingClass_MissionRepair_Reload, 6)
 	return 0x44C968;
 }
 
-DEFINE_HOOK(0x4CAD00, FastMath_Cos_Replace, 0xA)
-{
-	GET_STACK(double, val, 0x4);
-	const auto nResult = std::cos(val);
-	__asm { fld nResult };
-	return 0x4CAD48;
-}
-
-DEFINE_HOOK(0x4CB1A0 , FastMath_Cos_float_Replace , 0xA)
-{
-	GET_STACK(float, val, 0x4);
-	const auto nResult = std::cos(val);
-	__asm { fld nResult };
-	return 0x4CB1F1;
-}
-
-DEFINE_HOOK(0x4CACB0, FastMath_Sin_Replace, 0xA)
-{
-	GET_STACK(double, val, 0x4);
-	const auto nResult = std::sin(val);
-	__asm { fld nResult };
-	return 0x4CACF1;
-}
-
-DEFINE_HOOK(0x4CB150, FastMath_Sin_float_Replace, 0xA)
-{
-	GET_STACK(float, val, 0x4);
-	const auto nResult = std::sin(val);
-	__asm { fld nResult };
-	return 0x4CB19A;
-}
-
-DEFINE_HOOK(0x4CAD50, FastMath_Tan_Replace, 0xA)
-{
-	GET_STACK(double, val, 0x4);
-	const auto nResult = std::tan(val);
-	__asm { fld nResult };
-	return 0x4CAD7B;
-}
-
-DEFINE_HOOK(0x4CB320, FastMath_Tan_float_Replace, 0xA)
-{
-	GET_STACK(float, val, 0x4);
-	const auto nResult = std::tan(val);
-	__asm { fld nResult };
-	return 0x4CB350;
-}
-
-DEFINE_HOOK(0x4CADE0, FastMath_ATan_Replace, 0x8)
-{
-	GET_STACK(double, val, 0x4);
-	const auto nResult = std::atan(val);
-	__asm { fld nResult };
-	return 0x4CAE21;
-}
-
-DEFINE_HOOK(0x4CB480, FastMath_ATan_float_Replace, 0xA)
-{
-	GET_STACK(float, val, 0x4);
-	const auto nResult = std::atan(val);
-	__asm { fld nResult };
-	return 0x4CB4BD;
-}
-
-DEFINE_HOOK(0x4CAE30, FastMath_ATan2_Replace, 0x5)
-{
-	GET_STACK(double, val, 0x4);
-	GET_STACK(double, val2, 0xC);
-	const auto nResult = std::atan2(val , val2);
-	__asm { fld nResult };
-	return 0x4CAEE1;
-}
-
-DEFINE_HOOK(0x4CB3D0, FastMath_ATan2_float_Replace, 0xA)
-{
-	GET_STACK(float, val, 0x4);
-	GET_STACK(float, val2, 0xC);
-	const auto nResult = std::atan2(val , val2);
-	__asm { fld nResult };
-	return 0x4CB472;
-}
-
-DEFINE_HOOK(0x4CAC40, FastMath_sqrt_Replace, 0xA)
-{
-	GET_STACK(double, val, 0x4);
-	const auto nResult = std::sqrt(val);
-	__asm { fld nResult };
-	return 0x4CACAD;
-}
-
-DEFINE_HOOK(0x4CB060, FastMath_sqrt_float_Replace, 0xA)
-{
-	GET_STACK(float, val, 0x4);
-	const auto nResult = std::sqrt(val);
-	__asm { fld nResult };
-	return 0x4CB0D5;
-}
+//DEFINE_HOOK(0x4CAD00, FastMath_Cos_Replace, 0xA)
+//{
+//	GET_STACK(double, val, 0x4);
+//	const auto nResult = Math::cos(val);
+//	__asm { fld nResult };
+//	return 0x4CAD48;
+//}
+//
+//DEFINE_HOOK(0x4CB1A0 , FastMath_Cos_float_Replace , 0xA)
+//{
+//	GET_STACK(float, val, 0x4);
+//	const auto nResult = Math::cos(val);
+//	__asm { fld nResult };
+//	return 0x4CB1F1;
+//}
+//
+//DEFINE_HOOK(0x4CACB0, FastMath_Sin_Replace, 0xA)
+//{
+//	GET_STACK(double, val, 0x4);
+//	const auto nResult = Math::sin(val);
+//	__asm { fld nResult };
+//	return 0x4CACF1;
+//}
+//
+//DEFINE_HOOK(0x4CB150, FastMath_Sin_float_Replace, 0xA)
+//{
+//	GET_STACK(float, val, 0x4);
+//	const auto nResult = Math::sin(val);
+//	__asm { fld nResult };
+//	return 0x4CB19A;
+//}
+//
+//DEFINE_HOOK(0x4CAD50, FastMath_Tan_Replace, 0xA)
+//{
+//	GET_STACK(double, val, 0x4);
+//	const auto nResult = Math::tan(val);
+//	__asm { fld nResult };
+//	return 0x4CAD7B;
+//}
+//
+//DEFINE_HOOK(0x4CB320, FastMath_Tan_float_Replace, 0xA)
+//{
+//	GET_STACK(float, val, 0x4);
+//	const auto nResult = Math::tan(val);
+//	__asm { fld nResult };
+//	return 0x4CB350;
+//}
+//
+//DEFINE_HOOK(0x4CADE0, FastMath_ATan_Replace, 0x8)
+//{
+//	GET_STACK(double, val, 0x4);
+//	const auto nResult = std::atan(val);
+//	__asm { fld nResult };
+//	return 0x4CAE21;
+//}
+//
+//DEFINE_HOOK(0x4CB480, FastMath_ATan_float_Replace, 0xA)
+//{
+//	GET_STACK(float, val, 0x4);
+//	const auto nResult = std::atan(val);
+//	__asm { fld nResult };
+//	return 0x4CB4BD;
+//}
+//
+//DEFINE_HOOK(0x4CAE30, FastMath_ATan2_Replace, 0x5)
+//{
+//	GET_STACK(double, val, 0x4);
+//	GET_STACK(double, val2, 0xC);
+//	const auto nResult = Math::atan2(val , val2);
+//	__asm { fld nResult };
+//	return 0x4CAEE1;
+//}
+//
+//DEFINE_HOOK(0x4CB3D0, FastMath_ATan2_float_Replace, 0xA)
+//{
+//	GET_STACK(float, val, 0x4);
+//	GET_STACK(float, val2, 0xC);
+//	const auto nResult = Math::atan2(val , val2);
+//	__asm { fld nResult };
+//	return 0x4CB472;
+//}
+//
+//DEFINE_HOOK(0x4CAC40, FastMath_sqrt_Replace, 0xA)
+//{
+//	GET_STACK(double, val, 0x4);
+//	const auto nResult = std::sqrt(val);
+//	__asm { fld nResult };
+//	return 0x4CACAD;
+//}
+//
+//DEFINE_HOOK(0x4CB060, FastMath_sqrt_float_Replace, 0xA)
+//{
+//	GET_STACK(float, val, 0x4);
+//	const auto nResult = std::sqrt(val);
+//	__asm { fld nResult };
+//	return 0x4CB0D5;
+//}
 
 //DEFINE_HOOK(0x71F1A2, TEventClass_HasOccured_DestroyedAll, 6)
 //{

@@ -136,7 +136,6 @@ public:
 	}
 
 	//Constructor
-protected:
 	BulletClass() noexcept
 		: BulletClass(noinit_t())
 	{ JMP_THIS(0x466380); }
@@ -155,10 +154,10 @@ public:
 	BulletTypeClass* Type;
 	TechnoClass* Owner;
 	bool IsInaccurate; //B4
-	BulletData Data;
+	DECLARE_PROPERTY(BulletData ,Data);
 	bool Bright;
 	DWORD unknown_E4;
-	VelocityClass Velocity;
+	DECLARE_PROPERTY(VelocityClass ,Velocity);
 	DWORD unknown_100;
 	bool __CourseLocked;
 	int __CourseLockedDuration;
@@ -172,9 +171,9 @@ public:
 	byte AnimFrame;
 	byte AnimRateCounter;
 	WeaponTypeClass* WeaponType;
-	CoordStruct SourceCoords;
-	CoordStruct TargetCoords;
-	CellStruct LastMapCoords;
+	DECLARE_PROPERTY(CoordStruct, SourceCoords);
+	DECLARE_PROPERTY(CoordStruct, TargetCoords);
+	DECLARE_PROPERTY(CellStruct, LastMapCoords);
 	int DamageMultiplier;
 	AnimClass* NextAnim;
 	bool SpawnNextAnim;

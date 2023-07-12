@@ -11,7 +11,8 @@ enum class SWStateMachineIdentifier : int
 	ChronoWarp = 1,
 	PsychicDominator = 2,
 	CloneableLighningStorm = 3 ,
-	Droppod = 4,
+	DropPod = 4,
+	IonCannon = 5,
 };
 
 // state machines - create one to use delayed effects [create a child class per NewSWType, obviously]
@@ -46,7 +47,7 @@ public:
 	}
 
 	// static methods
-	static void Register(std::unique_ptr<SWStateMachine> Machine) 
+	static void Register(std::unique_ptr<SWStateMachine> Machine)
 	{
 		if (Machine) {
 			Array.push_back(std::move(Machine));
@@ -89,7 +90,7 @@ public:
 
 	virtual SWStateMachineIdentifier GetIdentifier() const override
 	{
-		return SWStateMachineIdentifier::Droppod;
+		return SWStateMachineIdentifier::DropPod;
 	}
 
 	void PlaceUnits();
@@ -222,6 +223,74 @@ protected:
 	int Deferment;
 };
 
+class IonCannonStateMachine : public SWStateMachine
+{
+public:
+	enum class IonCannonStatus : unsigned int
+	{
+		Inactive = 0,
+		FirstAnim = 1,
+		Fire = 2,
+		SecondAnim = 3,
+		Reset = 4,
+		Over = 5
+	};
+
+public:
+
+	IonCannonStateMachine()
+		: SWStateMachine(),
+		Deferment(0),
+		Status(IonCannonStatus::FirstAnim),
+		Owner(nullptr),
+		Anim(nullptr),
+		Firer(nullptr)
+	{
+	}
+
+	IonCannonStateMachine(CellStruct XY, SuperClass* pSuper,TechnoClass* pFirer , NewSWType* pSWType)
+		: SWStateMachine(MAXINT32, XY, pSuper, pSWType),
+		Deferment(0) ,
+		Status(IonCannonStatus::FirstAnim) ,
+		Owner (pSuper->Owner) ,
+		Anim(nullptr) ,
+		Firer(pFirer)
+	{
+		// the initial deferment
+		SWTypeExt::ExtData* pData = SWTypeExt::ExtMap.Find(pSuper->Type);
+		this->Deferment = pData->SW_Deferment.Get(0);
+	};
+
+	virtual void Update();
+
+	virtual SWStateMachineIdentifier GetIdentifier() const override
+	{
+		return SWStateMachineIdentifier::IonCannon;
+	}
+
+	virtual ~IonCannonStateMachine()
+	{
+		if (this->Anim)
+		{
+			this->Anim->TimeToDie = true;
+			this->Anim->UnInit();
+		}
+	}
+
+	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
+	virtual bool Save(PhobosStreamWriter& Stm) const override;
+
+	void Fire();
+	virtual void InvalidatePointer(void* ptr, bool remove) override;
+
+protected:
+	int Deferment;
+	IonCannonStatus Status;
+	HouseClass* Owner;
+	AnimClass* Anim;
+	TechnoClass* Firer;
+};
+
 class CloneableLighningStormStateMachine : public SWStateMachine
 {
 public:
@@ -328,8 +397,10 @@ struct Savegame::ObjectFactory<SWStateMachine>
 				return std::make_unique<PsychicDominatorStateMachine>();
 			case SWStateMachineIdentifier::CloneableLighningStorm:
 				return std::make_unique<CloneableLighningStormStateMachine>();
-			case SWStateMachineIdentifier::Droppod:
+			case SWStateMachineIdentifier::DropPod:
 				return std::make_unique<DroppodStateMachine>();
+			case SWStateMachineIdentifier::IonCannon:
+				return std::make_unique<IonCannonStateMachine>();
 			default:
 				Debug::FatalErrorAndExit("SWStateMachineType %d not recognized.",
 					static_cast<unsigned int>(type));

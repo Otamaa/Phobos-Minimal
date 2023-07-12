@@ -204,7 +204,7 @@ void PsychicDominatorStateMachine::Update()
 	}
 	case PsychicDominatorStatus::Reset:
 	{
-		// wait for the last frame... WTF? 
+		// wait for the last frame... WTF?
 		AnimClass* pAnim = PsyDom::Anim;
 		if (pAnim)
 		{

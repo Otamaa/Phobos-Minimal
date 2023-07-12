@@ -176,8 +176,8 @@ namespace detail
 				return true;
 			}
 
-			for (size_t i = 0; i < CellClass::LandTypeToStrings.size(); ++i) { 
-				if (IS_SAME_STR_(CellClass::LandTypeToStrings[i], parser.c_str())) {				
+			for (size_t i = 0; i < CellClass::LandTypeToStrings.size(); ++i) {
+				if (IS_SAME_STR_(CellClass::LandTypeToStrings[i], parser.c_str())) {
 					value = LandType(i);
 					return true;
 				}
@@ -203,7 +203,7 @@ namespace detail
 
 			bool found = false;
 			for (size_t a = 0; a < TechnoTypeClass::AbilityTypeToStrings.c_size(); ++a) {
-				if (IS_SAME_STR_(TechnoTypeClass::AbilityTypeToStrings[a], parser.c_str())) { 
+				if (IS_SAME_STR_(TechnoTypeClass::AbilityTypeToStrings[a], parser.c_str())) {
 					found = true;
 				}
 			}
@@ -397,7 +397,7 @@ namespace detail
 
 		return false;
 	}
-	
+
 	template <>
 	inline bool read<ReversePartialVector3D<int>>(ReversePartialVector3D<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
@@ -555,6 +555,20 @@ namespace detail
 	}
 
 	template <>
+	inline bool read<Vector2D<int>>(Vector2D<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.Read2Integers(pSection, pKey, (int*)&value))
+		{
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid Vector2D");
+
+			return false;
+		}
+
+		return true;
+	}
+
+	template <>
 	inline bool read<Point3D>(Point3D& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		if (!parser.Read3Integers(pSection, pKey, (int*)&value))
@@ -620,7 +634,7 @@ namespace detail
 
 			return false;
 		}
-		 
+
 		return true;
 	}
 
@@ -787,7 +801,7 @@ namespace detail
 
 			if (!parser.empty())
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid map Edge strings");
-			
+
 			return false;
 		}
 	}
@@ -1132,19 +1146,19 @@ namespace detail
 	}
 
 	template <>
-	inline bool read<TargetingConstraint>(TargetingConstraint& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	inline bool read<TargetingConstraints>(TargetingConstraints& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
 			char* context = nullptr;
-			auto resultData = TargetingConstraint::None;
+			auto resultData = TargetingConstraints::None;
 
 			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
 				cur;
 				cur = strtok_s(nullptr, Phobos::readDelims, &context))
 			{
 				bool found = false;
-				for (const auto& [pStrings , val] : EnumFunctions::TargetingConstraint_ToStrings) {
+				for (const auto& [pStrings , val] : EnumFunctions::TargetingConstraints_ToStrings) {
 					if (IS_SAME_STR_(cur, pStrings)) {
 						resultData |= val;
 						found = true;
@@ -1394,7 +1408,7 @@ namespace detail
 		static_assert(std::is_pointer<T>::value, "Pointer Required !");
 
 		if (parser.ReadString(pSection, pKey))
-		{	
+		{
 			detail::parse_Alloc_values(vector, parser, pSection, pKey, allocate);
 		}
 	}
@@ -1565,7 +1579,7 @@ void NOINLINE ValueableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection,
 	{
 		const char* val = parser.value();
 
-		if(GameStrings::IsBlank(val)) { 
+		if(GameStrings::IsBlank(val)) {
 			this->Value = -1;
 			return;
 		}

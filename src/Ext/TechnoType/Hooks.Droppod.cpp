@@ -56,7 +56,7 @@ DEFINE_HOOK(0x4B5C50, DroppodLoco_Process_Angle3, 0x6)
 //Fix crash if anim not there 4B602D , 0x6
 //DEFINE_HOOK(0x4B6025, )
 // Direction is unused , which default to 128
-// so , Droppod anim based on Direction is gone on YR , because of this
+// so , DropPod anim based on Direction is gone on YR , because of this
 // some anim were not checking type before construct can cause possible crash if the type is nullptr/invalid
 
 /*

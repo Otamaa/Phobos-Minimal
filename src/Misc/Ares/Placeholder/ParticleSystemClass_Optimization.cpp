@@ -319,8 +319,8 @@ struct ParticleSystemExt_ExtData
 			if (nMaxXYCopy < nMaxXYNeg)
 				nMaxXYCopy = nMaxXYNeg;
 
-			const auto nSin = (float)std::sin(nMagCopy / nMagSquared);
-			const auto nCos = (float)std::cos(nMaxXYCopy / nMaxXY) * ((((nDifferenct.Y - nDifferenct.Y) >> 0x1F) & 0xFFFFFFFE) + 1);
+			const auto nSin = (float)Math::sin(nMagCopy / nMagSquared);
+			const auto nCos = (float)Math::cos(nMaxXYCopy / nMaxXY) * ((((nDifferenct.Y - nDifferenct.Y) >> 0x1F) & 0xFFFFFFFE) + 1);
 			Matrix3D mtx {};
 			mtx.MakeIdentity();
 			mtx.RotateZ(nCos);
@@ -345,8 +345,8 @@ struct ParticleSystemExt_ExtData
 					const auto v91 = i / nDecidedsize;
 					const auto radians = v91 * nMagSquared * nSpinDelta;
 					nDummy.X = 0.0f;
-					nDummy.Y = std::cos((float)radians);
-					nDummy.Z = std::sin((float)radians);
+					nDummy.Y = Math::cos((float)radians);
+					nDummy.Z = Math::sin((float)radians);
 					const auto nResult = Matrix3D::MatrixMultiply(mtx, nDummy);
 					const auto nRand_Double1 = ScenarioClass::Instance->Random.RandomDouble();
 					const auto nRand_Double2 = ScenarioClass::Instance->Random.RandomDouble();

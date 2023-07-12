@@ -23,6 +23,7 @@
     <ClCompile Include="src\Commands\ShowTeamLeader.cpp" />
     <ClCompile Include="src\Commands\ShowTechnoNames.cpp" />
     <ClCompile Include="src\Commands\ShowHealthPercent.cpp" />
+    <ClCompile Include="src\Commands\ToggleDigitalDisplay.cpp" />
     <ClCompile Include="src\Commands\ToggleRadialIndicatorDrawMode.cpp" />
     <ClCompile Include="src\Ext\Abstract\Body.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.cpp" />
@@ -78,6 +79,7 @@
     <ClCompile Include="src\Ext\OverlayType\Body.cpp" />
     <ClCompile Include="src\Ext\Parasite\Body.cpp" />
     <ClCompile Include="src\Ext\Parasite\Hooks.cpp" />
+    <ClCompile Include="src\Ext\ParticleSystem\Body.cpp" />
     <ClCompile Include="src\Ext\ParticleType\Body.cpp" />
     <ClCompile Include="src\Ext\Particle\Body.cpp" />
     <ClCompile Include="src\Ext\Particle\Hooks.cpp" />
@@ -216,10 +218,10 @@
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Misc\Hooks.YRPatches.cpp" />
-    <ClCompile Include="src\Misc\Locomotion.cpp" />
     <ClCompile Include="src\Misc\MapRevealer.cpp" />
     <ClCompile Include="src\Misc\PhobosGlobal.cpp" />
     <ClCompile Include="src\New\Interfaces\TestLocomotionClass.cpp" />
+    <ClCompile Include="src\New\Type\DigitalDisplayTypeClass.cpp" />
     <ClCompile Include="src\New\Type\GenericPrerequisite.cpp" />
     <ClCompile Include="src\New\Type\TunnelTypeClass.cpp" />
     <ClCompile Include="src\New\Type\ImmunityTypeClass.cpp" />
@@ -345,6 +347,7 @@
     <ClInclude Include="src\Commands\ShowTeamLeader.h" />
     <ClInclude Include="src\Commands\ShowTechnoNames.h" />
     <ClInclude Include="src\Commands\ShowHealthPercent.h" />
+    <ClInclude Include="src\Commands\ToggleDigitalDisplay.h" />
     <ClInclude Include="src\Commands\ToggleRadialIndicatorDrawMode.h" />
     <ClInclude Include="src\Ext\Abstract\Body.h" />
     <ClInclude Include="src\Ext\AITriggerType\Body.h" />
@@ -367,6 +370,7 @@
     <ClInclude Include="src\Ext\Infantry\Body.h" />
     <ClInclude Include="src\Ext\OverlayType\Body.h" />
     <ClInclude Include="src\Ext\Parasite\Body.h" />
+    <ClInclude Include="src\Ext\ParticleSystem\Body.h" />
     <ClInclude Include="src\Ext\ParticleType\Body.h" />
     <ClInclude Include="src\Ext\Particle\Body.h" />
     <ClInclude Include="src\Ext\ScriptType\Body.h" />
@@ -473,6 +477,7 @@
     <ClInclude Include="src\New\Entity\ShieldClass.h" />
     <ClInclude Include="src\New\Interfaces\Base.h" />
     <ClInclude Include="src\New\Interfaces\TestLocomotionClass.h" />
+    <ClInclude Include="src\New\Type\DigitalDisplayTypeClass.h" />
     <ClInclude Include="src\New\Type\GenericPrerequisite.h" />
     <ClInclude Include="src\New\Type\TunnelTypeClass.h" />
     <ClInclude Include="src\New\Interfaces\LevitateLocomotionClass.h" />

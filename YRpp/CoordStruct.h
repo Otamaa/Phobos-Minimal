@@ -501,7 +501,7 @@ public:
 	}
 
 	void Rotate_X(double angle)
-	{ Rotate_X(std::sin(angle), std::cos(angle)); }
+	{ Rotate_X(Math::sin(angle), Math::cos(angle)); }
 
 	void Rotate_X(double s_angle, double c_angle)
 	{
@@ -513,7 +513,7 @@ public:
 	}
 
 	void Rotate_Y(double angle)
-	{ Rotate_X(std::sin(angle), std::cos(angle)); }
+	{ Rotate_X(Math::sin(angle), Math::cos(angle)); }
 
 	void Rotate_Y(double s_angle, double c_angle)
 	{
@@ -525,7 +525,7 @@ public:
 	}
 
 	void Rotate_Z(double angle)
-	{ Rotate_X(std::sin(angle), std::cos(angle)); }
+	{ Rotate_X(Math::sin(angle), Math::cos(angle)); }
 
 	void Rotate_Z(double s_angle, double c_angle)
 	{

@@ -22,12 +22,11 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 				pExt->Statusses.reset();
 
 				//if AlwaysGranted and SWAvaible
+				pExt->Statusses.PowerSourced = !pSuper->IsPowered();
 
 				if (pExt->Type->SW_AlwaysGranted && pExt->Type->IsAvailable(pHouse)) {
-
 					pExt->Statusses.Available = true;
 					pExt->Statusses.Charging = true;
-					pExt->Statusses.PowerSourced = !pSuper->IsPowered();
 				}
 			}
 		}
@@ -38,16 +37,10 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 			{
 				bool Operatored = false;
 				bool IsPowered = false;
-				BuildingTypeExt::ExtData* Types[4] = {
-					BuildingTypeExt::ExtMap.Find(pBld->Type)  ,
-					BuildingTypeExt::ExtMap.TryFind(pBld->Upgrades[0]) ,
-					BuildingTypeExt::ExtMap.TryFind(pBld->Upgrades[1]) ,
-					BuildingTypeExt::ExtMap.TryFind(pBld->Upgrades[2])
-				};
 
 				// check for upgrades. upgrades can give super weapons, too.
-				for (const auto& pUpgradeExt : Types) {
-					if (pUpgradeExt) {
+				for (const auto type : pBld->GetTypes()) {
+					if (auto pUpgradeExt = BuildingTypeExt::ExtMap.TryFind(const_cast<BuildingTypeClass*>(type))) {
 
 						for (auto i = 0; i < pUpgradeExt->GetSuperWeaponCount(); ++i) {
 							const auto idxSW = pUpgradeExt->GetSuperWeaponIndex(i);
@@ -126,7 +119,7 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 // load / save
 
 template <typename T>
-void SuperExt::ExtData::Serialize(T& Stm) { 
+void SuperExt::ExtData::Serialize(T& Stm) {
 
 	Stm
 		.Process(this->Initialized)

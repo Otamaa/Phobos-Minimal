@@ -534,7 +534,7 @@ void ScriptExt::ProcessAction(TeamClass* pTeam)
 	auto const& [action, argument] = pTeam->CurrentScript->GetCurrentAction();
 
 	//only find stuffs on the range , reducing the load
-	if (action >= TeamMissionType::count && (AresScripts)action <= AresScripts::count)
+	if ((AresScripts)action >= AresScripts::count)
 	{
 		switch ((PhobosScripts)action)
 		{
@@ -1441,7 +1441,7 @@ bool ScriptExt::IsValidFriendlyTarget(TeamClass* pTeam, int group, TechnoClass* 
 	return false;
 }
 
-void ScriptExt::FollowFriendlyByGroup(TeamClass* pTeam, int group)
+void NOINLINE ScriptExt::FollowFriendlyByGroup(TeamClass* pTeam, int group)
 {
 	bool isSelfNaval = true, isSelfAircraft = true;
 	double distMin = std::numeric_limits<double>::infinity();
@@ -1644,7 +1644,7 @@ bool ScriptExt::IsValidRallyTarget(TeamClass* pTeam, FootClass* pFoot, int nType
 		}
 */
 
-void ScriptExt::Set_ForceJump_Countdown(TeamClass* pTeam, bool repeatLine = false, int count = 0)
+void NOINLINE ScriptExt::Set_ForceJump_Countdown(TeamClass* pTeam, bool repeatLine = false, int count = 0)
 {
 	bool bSucceeded = false;
 	if (auto pTeamData = TeamExt::ExtMap.Find(pTeam))
@@ -1707,7 +1707,7 @@ void ScriptExt::Stop_ForceJump_Countdown(TeamClass* pTeam)
 		nCur.Argument);
 }
 
-void ScriptExt::ExecuteTimedAreaGuardAction(TeamClass* pTeam)
+void NOINLINE ScriptExt::ExecuteTimedAreaGuardAction(TeamClass* pTeam)
 {
 	if (pTeam->GuardAreaTimer.TimeLeft == 0 && !pTeam->GuardAreaTimer.InProgress())
 	{
@@ -1858,7 +1858,7 @@ void ScriptExt::WaitUntilFullAmmoAction(TeamClass* pTeam)
 	pTeam->StepCompleted = true;
 }
 
-void ScriptExt::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown = -1)
+void NOINLINE ScriptExt::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown = -1)
 {
 	FootClass* pLeaderUnit = nullptr;
 	int initialCountdown = pTeam->CurrentScript->GetCurrentAction().Argument;
@@ -2057,7 +2057,7 @@ bool IsUnitMindControlledFriendly(HouseClass* pHouse, TechnoClass* pTechno)
 	return pHouse->IsAlliedWith(pTechno) && pTechno->IsMindControlled() && !pHouse->IsAlliedWith(pTechno->MindControlledBy);
 }
 
-void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int calcThreatMode = 0, int attackAITargetType = -1, int idxAITargetTypeItem = -1)
+void NOINLINE ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int calcThreatMode = 0, int attackAITargetType = -1, int idxAITargetTypeItem = -1)
 {
 	const auto pScript = pTeam->CurrentScript;
 
@@ -2499,8 +2499,14 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, int cal
 	for (int i = 0; i < TechnoClass::Array->Count; i++)
 	{
 		const auto object = TechnoClass::Array->GetItem(i);
+		auto objectType = object->GetTechnoType();
 
-		if (!TechnoExt::IsActive(object, false, false, false, true) || !object->Owner)
+		if (!IsUnitAvailable(object, true, true)
+			|| !object->Owner
+			|| objectType->Immune
+			|| object->TemporalTargetingMe
+			|| object->Owner == pTechno->Owner
+			|| object->BeingWarpedOut)
 			continue;
 
 		if (object->Location == CoordStruct::Empty)
@@ -2510,7 +2516,6 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, int cal
 		if (nFootMapCoords == CellStruct::Empty)
 			continue;
 
-		const auto objectType = object->GetTechnoType();
 		//if (pTechno->GetFireError(object, pTechno->SelectWeapon(object), true) != FireError::OK)
 		//	continue;
 
@@ -2598,11 +2603,7 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, int cal
 		if (onlyTargetThisHouseEnemy && object->Owner != onlyTargetThisHouseEnemy)
 			continue;
 
-		if (object != pTechno
-			&& (object->Owner != pTechno->Owner || (object->Owner == pTechno->Owner && attackAITargetType == -1 && (method == 39 || method == 40)))
-			&& (!pTechno->Owner->IsAlliedWith(object) || (object->Owner == pTechno->Owner && attackAITargetType == -1 && (method == 39 || method == 40)) || (pTechno->Owner->IsAlliedWith(object)
-				&& object->IsMindControlled()
-				&& !pTechno->Owner->IsAlliedWith(object->MindControlledBy))))
+		if ((!pTechno->Owner->IsAlliedWith(object) || IsUnitMindControlledFriendly(pTechno->Owner, object)))
 		{
 			double value = 0;
 
@@ -2863,11 +2864,10 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 		{
 			if (auto pBld = specific_cast<BuildingClass*>(pTechno))
 			{
-				return pBld->Type->PowerBonus > 0
-					|| (pBld->Upgrades[0] && pBld->Upgrades[0]->PowerBonus > 0)
-					|| (pBld->Upgrades[1] && pBld->Upgrades[1]->PowerBonus > 0)
-					|| (pBld->Upgrades[2] && pBld->Upgrades[2]->PowerBonus > 0)
-					;
+				for (const auto type : pBld->GetTypes()) {
+					if (type)
+						return type->PowerBonus > 0;
+				}
 			}
 		}
 
@@ -3000,13 +3000,12 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 
 			if (auto pBld = specific_cast<BuildingClass*>(pTechno))
 			{
-				return (pBld->Upgrades[0] && pBld->Upgrades[0]->ProduceCashAmount > 0)
-					|| (pBld->Upgrades[1] && pBld->Upgrades[1]->ProduceCashAmount > 0)
-					|| (pBld->Upgrades[2] && pBld->Upgrades[2]->ProduceCashAmount > 0)
-					|| pBld->Type->Refinery
-					|| pBld->Type->ProduceCashAmount
-					|| pBld->Type->OrePurifier
-					|| pBld->Type->ResourceGatherer
+				for (auto const type : pBld->GetTypes()) {
+					if (type && (type->ProduceCashAmount > 0 || type->OrePurifier))
+						return true;
+				}
+
+				return  pBld->Type->Refinery || pBld->Type->ResourceGatherer
 					|| (pTechno->SlaveManager && pBld->Type->Enslaves)
 					;
 			}
@@ -3044,15 +3043,17 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 	}
 	case 22:
 	{
-		auto pBld = specific_cast<BuildingClass*>(pTechno);
 		// Radar & SpySat
-		return (!pTechno->Owner->IsNeutral()
-			&& (pBld && pBld->Type
-				&& (pBld->Type->Radar
-					|| pBld->Type->SpySat
-					|| (pBld->Upgrades[0] && (pBld->Upgrades[0]->SpySat || pBld->Upgrades[0]->Radar))
-					|| (pBld->Upgrades[1] && (pBld->Upgrades[1]->SpySat || pBld->Upgrades[1]->Radar))
-					|| (pBld->Upgrades[2] && (pBld->Upgrades[2]->SpySat || pBld->Upgrades[2]->Radar)))));
+		if (!pTechno->Owner->IsNeutral()) {
+			if (auto pBld = specific_cast<BuildingClass*>(pTechno)) {
+				for (auto const type : pBld->GetTypes()) {
+					if (type && (type->Radar || type->SpySat))
+						return true;
+				}
+			}
+		}
+
+		return false;
 	}
 	case 23:
 	{
@@ -3083,20 +3084,12 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 		{
 			if (auto pBld = specific_cast<BuildingClass*>(pTechno))
 			{
-				const BuildingTypeExt::ExtData* TypeExts[4] {
-					BuildingTypeExt::ExtMap.Find(pBld->Type),
-					BuildingTypeExt::ExtMap.TryFind(pBld->Upgrades[0]),
-					BuildingTypeExt::ExtMap.TryFind(pBld->Upgrades[1]),
-					BuildingTypeExt::ExtMap.TryFind(pBld->Upgrades[2]),
-				};
-
-				int count = 0;
-				for (auto const TypeExt : TypeExts)
-				{
-					count += TypeExt->GetSuperWeaponCount();
+				for (auto type : pBld->GetTypes()) {
+					if (auto typeExt = BuildingTypeExt::ExtMap.TryFind(const_cast<BuildingTypeClass*>(type))) {
+						if (typeExt->GetSuperWeaponCount() > 0)
+							return true;
+					}
 				}
-
-				IsOK = count > 0;
 			}
 		}
 
@@ -3136,24 +3129,16 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 	case 28:
 	{
 		// Cloak Generator & Gap Generator
-		bool IsOk = false;
-		if (!pTechno->Owner->IsNeutral())
-		{
-			if (auto pBuilding = specific_cast<BuildingClass*>(pTechno))
-			{
-				const BuildingTypeClass* Types[4] {
-					pBuilding->Type , pBuilding->Upgrades[0], pBuilding->Upgrades[1], pBuilding->Upgrades[2]
-				};
-
-				for (auto pBldTypeHere : Types)
-				{
-					if(pBldTypeHere)
-						IsOk |= pBuilding->Type->GapGenerator || pBuilding->Type->CloakGenerator;
+		if (!pTechno->Owner->IsNeutral()) {
+			if (auto pBuilding = specific_cast<BuildingClass*>(pTechno)) {
+				for (const auto pBldTypeHere : pBuilding->GetTypes()) {
+					if (pBldTypeHere && (pBuilding->Type->GapGenerator || pBuilding->Type->CloakGenerator))
+						return true;
 				}
 			}
 		}
 
-		return IsOk;
+		return false;
 	}
 	case 29:
 	{
@@ -3525,7 +3510,7 @@ void ScriptExt::Mission_Attack_List(TeamClass* pTeam, bool repeatAction, int cal
 	}
 }
 
-void ScriptExt::Mission_Move(TeamClass* pTeam, int calcThreatMode = 0, bool pickAllies = false, int attackAITargetType = -1, int idxAITargetTypeItem = -1)
+void NOINLINE ScriptExt::Mission_Move(TeamClass* pTeam, int calcThreatMode = 0, bool pickAllies = false, int attackAITargetType = -1, int idxAITargetTypeItem = -1)
 {
 	const auto pScript = pTeam->CurrentScript;
 
@@ -3597,8 +3582,6 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, int calcThreatMode = 0, bool pick
 
 		// This action finished
 		pTeam->StepCompleted = true;
-		Debug::Log("AI Scripts - Mission_Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reasons: No Leader | Aircrafts without ammo)\n", pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, pScript->CurrentMission + 1, pScript->GetNextAction().Action, pScript->GetNextAction().Argument);
-
 		return;
 	}
 
@@ -3614,18 +3597,6 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, int calcThreatMode = 0, bool pick
 
 		if (selectedTarget)
 		{
-			const auto& nCurAct = pScript->GetCurrentAction();
-			Debug::Log("AI Scripts - Mission_Move: [%s] [%s] (line: %d = %d,%d) Leader [%s] (UID: %lu) selected [%s] (UID: %lu) as target.\n",
-				pTeam->Type->ID,
-				pScript->Type->ID,
-				pScript->CurrentMission,
-				nCurAct.Action,
-				nCurAct.Argument,
-				pLeaderUnitType->ID,
-				pLeaderUnit->UniqueID,
-				pLeaderUnitType->ID,
-				selectedTarget->UniqueID);
-
 			pTeam->Focus = selectedTarget;
 			pTeamData->WaitNoTargetAttempts = 0; // Disable Script Waits if there are any because a new target was selected
 			pTeamData->WaitNoTargetTimer.Stop();
@@ -3633,7 +3604,7 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, int calcThreatMode = 0, bool pick
 
 			for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 			{
-				if (TechnoExt::IsActive(pUnit, true, true, false, true))
+				if (IsUnitAvailable(pUnit, true, true))
 				{
 					auto pUnitType = pUnit->GetTechnoType();
 
@@ -3697,19 +3668,7 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, int calcThreatMode = 0, bool pick
 			if (pTeamData->CloseEnough >= 0)
 				pTeamData->CloseEnough = -1;
 
-			const auto& nCur = pScript->GetCurrentAction();
-			const auto& nNext = pScript->GetNextAction();
-			// This action finished
 			pTeam->StepCompleted = true;
-			Debug::Log("AI Scripts - Mission_Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d (new target NOT FOUND)\n",
-				pTeam->Type->ID,
-				pScript->Type->ID,
-				pScript->CurrentMission,
-				nCur.Action,
-				nCur.Argument,
-				pScript->CurrentMission + 1,
-				nNext.Action,
-				nNext.Argument);
 
 			return;
 		}
@@ -3791,7 +3750,7 @@ TechnoClass* ScriptExt::FindBestObject(TechnoClass* pTechno, int method, int cal
 	{
 		const auto object = TechnoClass::Array->GetItem(i);
 
-		if (!TechnoExt::IsAlive(object) || object == pTechno || !object->Owner)
+		if (!IsUnitAvailable(object, true, false) || object == pTechno || !object->Owner)
 			continue;
 
 		const auto objectType = object->GetTechnoType();
@@ -3813,9 +3772,9 @@ TechnoClass* ScriptExt::FindBestObject(TechnoClass* pTechno, int method, int cal
 		if (enemyHouse && !enemyHouse->Defeated && enemyHouse != object->Owner)
 			continue;
 
-		if ((((pickAllies && pTechno->Owner->IsAlliedWith(object))
-			|| (!pickAllies && !pTechno->Owner->IsAlliedWith(object))
-			|| (method == 39 && attackAITargetType == -1))))
+		if (IsUnitAvailable(object, true, false)
+			&& ((pickAllies && pTechno->Owner->IsAlliedWith(object))
+				|| (!pickAllies && !pTechno->Owner->IsAlliedWith(object))))
 		{
 
 			// Don't pick underground units
@@ -4090,7 +4049,9 @@ void ScriptExt::Mission_Move_List1Random(TeamClass* pTeam, int calcThreatMode, b
 		if (idxSelectedObject < 0 && !objectsListIter.empty() && !selected)
 		{
 			// Finding the objects from the list that actually exists in the map
-			auto const objectFromIter = std::find_if(TechnoClass::Array->begin(), TechnoClass::Array->end(), [objectsListIter, pTeam, pickAllies](TechnoClass* objectFromList)
+			auto const objectFromIter = std::find_if(
+				TechnoClass::Array->begin(),
+				TechnoClass::Array->end(), [objectsListIter, pTeam, pickAllies](TechnoClass* objectFromList)
 			{
 				if (objectFromList && (objectsListIter.contains(objectFromList->GetTechnoType())
 					&& TechnoExt::IsActive(objectFromList, false, false, false, true)))
@@ -4107,7 +4068,7 @@ void ScriptExt::Mission_Move_List1Random(TeamClass* pTeam, int calcThreatMode, b
 				return false;
 			});
 
-			if ((*objectFromIter) && objectFromIter != TechnoClass::Array->end())
+			if (objectFromIter != TechnoClass::Array->end())
 			{
 				auto const nITerHere = std::find_if(objectsList.begin(), objectsList.end(),
 				[objectFromIter](TechnoTypeClass* pTech)
@@ -4548,7 +4509,7 @@ void ScriptExt::VariableBinaryOperationHandler(TeamClass* pTeam, int nVariable, 
 	pTeam->StepCompleted = true;
 }
 
-FootClass* ScriptExt::FindTheTeamLeader(TeamClass* pTeam)
+NOINLINE FootClass* ScriptExt::FindTheTeamLeader(TeamClass* pTeam)
 {
 	FootClass* pLeaderUnit = nullptr;
 	int bestUnitLeadershipValue = -1;
@@ -7011,13 +6972,16 @@ bool ScriptExt::FindLinkedPath(TeamClass* pTeam, TechnoClass* pThis = nullptr, T
 }
 #undef TECHNO_IS_ALIVE
 
-bool ScriptExt::IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrAbsorbed, bool allowSubterranean)
+bool NOINLINE ScriptExt::IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrAbsorbed, bool allowSubterranean)
 {
 	if (!pTechno)
 		return false;
 
 	bool isAvailable = pTechno->IsAlive && pTechno->Health > 0
 		&& !pTechno->InLimbo && !pTechno->Transporter && !pTechno->Absorbed;
+
+	if (!isAvailable)
+		return false;
 
 	bool isSubterranean = allowSubterranean && pTechno->InWhichLayer() == Layer::Underground;
 	isAvailable &= pTechno->IsOnMap || isSubterranean;

@@ -87,7 +87,7 @@ std::array<std::pair<const char*, const char*>, 11u> EnumFunctions::LocomotorPai
 	{"Rocket","{B7B49766-E576-11d3-9BD9-00104B972FE8}"} ,
 	{"Tunnel","{4A582743-9839-11d1-B709-00A024DDAFD1}"} ,
 	{"Walk","{4A582744-9839-11d1-B709-00A024DDAFD1}"} ,
-	{"Droppod","{4A582745-9839-11d1-B709-00A024DDAFD1}"} ,
+	{"DropPod","{4A582745-9839-11d1-B709-00A024DDAFD1}"} ,
 	{"Fly","{4A582746-9839-11d1-B709-00A024DDAFD1}"} ,
 	{"Teleport","{4A582747-9839-11d1-B709-00A024DDAFD1}"} ,
 	{"Mech","{55D141B8-DB94-11d1-AC98-006008055BB5}"} ,
@@ -104,7 +104,7 @@ std::array<std::pair<wchar_t*, wchar_t*>, 11u> EnumFunctions::LocomotorPairs_ToW
 		{ L"Rocket", L"{B7B49766-E576-11d3-9BD9-00104B972FE8}" },
 		{ L"Tunnel", L"{4A582743-9839-11d1-B709-00A024DDAFD1}" },
 		{ L"Walk", L"{4A582744-9839-11d1-B709-00A024DDAFD1}" },
-		{ L"Droppod", L"{4A582745-9839-11d1-B709-00A024DDAFD1}" },
+		{ L"DropPod", L"{4A582745-9839-11d1-B709-00A024DDAFD1}" },
 		{ L"Fly", L"{4A582746-9839-11d1-B709-00A024DDAFD1}" },
 		{ L"Teleport", L"{4A582747-9839-11d1-B709-00A024DDAFD1}" },
 		{ L"Mech", L"{55D141B8-DB94-11d1-AC98-006008055BB5}" },
@@ -237,8 +237,8 @@ std::array<std::pair<const char* const, SuperWeaponAITargetingMode>, 21u> EnumFu
 	{"attack", SuperWeaponAITargetingMode::Attack } ,
 	{"lowpower", SuperWeaponAITargetingMode::LowPower },
 	{"lowpowerattack", SuperWeaponAITargetingMode::LowPowerAttack } ,
-	{"droppod", SuperWeaponAITargetingMode::Droppod } ,
-	{"lightningrandom", SuperWeaponAITargetingMode::LighningRandom }
+	{"droppod", SuperWeaponAITargetingMode::DropPod } ,
+	{"lightningrandom", SuperWeaponAITargetingMode::LightningRandom }
 }
 };
 
@@ -295,19 +295,19 @@ std::array<std::pair<const char* const, SlaveReturnTo>, 9u>  EnumFunctions::Slav
 }
 };
 
-std::array<std::pair<const char* const, TargetingConstraint>, 10u> EnumFunctions::TargetingConstraint_ToStrings
+std::array<std::pair<const char* const, TargetingConstraints>, 10u> EnumFunctions::TargetingConstraints_ToStrings
 {
 {
-	{NONE_STR2 , TargetingConstraint::None } ,
-	{"offensive_cell_clear", TargetingConstraint::OffensiveCellClear } ,
-	{"defensive_cell_clear", TargetingConstraint::DefensifeCellClear } ,
-	{"enemy", TargetingConstraint::Enemy } ,
-	{"lightningstorm_inactive", TargetingConstraint::LighningStormInactive } ,
-	{"dominator_inactive", TargetingConstraint::DominatorInactive } ,
-	{"attacked", TargetingConstraint::Attacked } ,
-	{"lowpower", TargetingConstraint::LowPower },
-	{"offensive_cell_set", TargetingConstraint::OffensiveCellSet } ,
-	{"defensive_cell_set", TargetingConstraint::DefensiveCellSet }
+	{NONE_STR2 , TargetingConstraints::None } ,
+	{"offensive_cell_clear", TargetingConstraints::OffensiveCellClear } ,
+	{"defensive_cell_clear", TargetingConstraints::DefensifeCellClear } ,
+	{"enemy", TargetingConstraints::Enemy } ,
+	{"lightningstorm_inactive", TargetingConstraints::LighningStormInactive } ,
+	{"dominator_inactive", TargetingConstraints::DominatorInactive } ,
+	{"attacked", TargetingConstraints::Attacked } ,
+	{"lowpower", TargetingConstraints::LowPower },
+	{"offensive_cell_set", TargetingConstraints::OffensiveCellSet } ,
+	{"defensive_cell_set", TargetingConstraints::DefensiveCellSet }
 }
 };
 

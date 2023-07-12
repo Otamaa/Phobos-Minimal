@@ -151,6 +151,8 @@ struct Phobos final
 		static bool RealTimeTimers;
 		static bool RealTimeTimers_Adaptive;
 		static int CampaignDefaultGameSpeed;
+
+		static bool DigitalDisplay_Enable;
 	};
 
 	struct Misc

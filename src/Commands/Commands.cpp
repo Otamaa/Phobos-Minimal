@@ -14,6 +14,7 @@
 #include "RevealMap.h"
 #include "PlaceVeinholeMonster.h"
 #include "ToggleRadialIndicatorDrawMode.h"
+#include "ToggleDigitalDisplay.h"
 
 #define Make(arg)\
 		Make<arg>();
@@ -34,6 +35,7 @@ DEFINE_HOOK(0x533066, CommandClassCallback_Register, 0x6)
 	Make(FrameByFrameCommandClass);
 	Make(ShowTeamLeaderCommandClass);
 	Make(ToggleRadialIndicatorDrawModeClass);
+	Make(ToggleDigitalDisplayCommandClass);
 	Make(FrameStepCommandClass<1>); // Single step in
 	Make(FrameStepCommandClass<5>); // Speed 1
 	Make(FrameStepCommandClass<10>); // Speed 2

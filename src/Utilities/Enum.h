@@ -80,7 +80,7 @@ enum class SuperWeaponTarget : unsigned char
 };
 MAKE_ENUM_FLAGS(SuperWeaponTarget);
 
-enum class TargetingConstraint : size_t
+enum class TargetingConstraints : size_t
 {
 	None = 0x0,
 	OffensiveCellClear = 0x1,
@@ -93,7 +93,7 @@ enum class TargetingConstraint : size_t
 	OffensiveCellSet = 0x80,
 	DefensiveCellSet = 0x100
 };
-MAKE_ENUM_FLAGS(TargetingConstraint);
+MAKE_ENUM_FLAGS(TargetingConstraints);
 
 enum class TargetingPreference : char
 {
@@ -308,8 +308,8 @@ enum class SuperWeaponAITargetingMode
 	Attack = 16,
 	LowPower = 17,
 	LowPowerAttack = 18,
-	Droppod = 19,
-	LighningRandom = 20 ,
+	DropPod = 19,
+	LightningRandom = 20 ,
 
 	count
 };

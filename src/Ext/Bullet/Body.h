@@ -31,7 +31,7 @@ public:
 		bool Intercepted_Detonate { true };
 		std::vector<LaserTrailClass> LaserTrails {};
 		bool SnappedToTarget { false };
-		SuperClass* NukeSW { nullptr };
+		SuperWeaponTypeClass* NukeSW { nullptr };
 
 		bool BrightCheckDone { false };
 		HouseClass* Owner { nullptr };
@@ -53,7 +53,7 @@ public:
 
 		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-	
+
 		void ApplyRadiationToCell(CoordStruct const& nCoord, int Spread, int RadLevel);
 		void InitializeLaserTrails();
 

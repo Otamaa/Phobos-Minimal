@@ -6,8 +6,8 @@ DEFINE_HOOK(0x469008, BulletClass_Explode_Cluster, 0x8)
 	enum { SkipGameCode = 0x469091 };
 
 	GET(BulletClass*, pThis, ESI);
-	GET_STACK(CoordStruct, origCoords, STACK_OFFS(0x3C, 0x30));
-	LEA_STACK(CoordStruct*, pCoordBuffer, STACK_OFFS(0x3C, 0xC));
+	GET_STACK(CoordStruct, origCoords, (0x3C - 0x30));
+	LEA_STACK(CoordStruct*, pCoordBuffer, (0x3C - 0xC));
 
 	if (pThis->Type->Cluster > 0)
 	{
@@ -18,10 +18,6 @@ DEFINE_HOOK(0x469008, BulletClass_Explode_Cluster, 0x8)
 
 			for (int i = 0; i < pThis->Type->Cluster; i++)
 			{
-				//what ,...
-				if(pThis->Owner && !Is_Techno(pThis->Owner))
-					pThis->Owner = nullptr;
-
 				pThis->Detonate(origCoords);
 
 				if (!BulletExt::IsReallyAlive(pThis))

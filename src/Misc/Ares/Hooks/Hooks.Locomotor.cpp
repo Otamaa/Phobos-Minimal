@@ -513,8 +513,8 @@ DEFINE_OVERRIDE_HOOK(0x4CF3D0, FlyLocomotionClass_sub_4CEFB0_HunterSeeker, 7)
 				if (speed > 0)
 				{
 					double const value = pObject->PrimaryFacing.Current().GetRadian();
-					double const cos = std::cos(value);
-					double const sin = std::sin(value);
+					double const cos = Math::cos(value);
+					double const sin = Math::sin(value);
 
 					int maxHeight = 0;
 					int currentHeight = 0;

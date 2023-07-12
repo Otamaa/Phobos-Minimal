@@ -356,8 +356,8 @@ void PhobosTrajectory::SetInaccurate() const
 
 		CoordStruct offset
 		{
-			static_cast<int>(random * std::cos(theta)),
-			static_cast<int>(random * std::sin(theta)),
+			static_cast<int>(random * Math::cos(theta)),
+			static_cast<int>(random * Math::sin(theta)),
 			0
 		};
 

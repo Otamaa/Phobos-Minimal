@@ -10,7 +10,7 @@
 
 #include <Misc/AresData.h>
 
-SuperClass* SW_NuclearMissile::CurrentNukeType = nullptr;
+SuperWeaponTypeClass* SW_NuclearMissile::CurrentNukeType = nullptr;
 
 std::vector<const char*> SW_NuclearMissile::GetTypeString() const
 {
@@ -65,42 +65,8 @@ bool SW_NuclearMissile::Activate(SuperClass* const pThis, const CellStruct& Coor
 		if (!fired)
 		{
 			// if we reached this, there is no silo launch. still launch a missile.
-			if (auto const pWeapon = pData->Nuke_Payload)
-			{
-				if (auto const pProjectile = pWeapon->Projectile)
-				{
-					// get damage and warhead. they are not available during
-					// initialisation, so we gotta fall back now if they are invalid.
-					auto const damage = this->GetDamage(pData);
-					auto const pWarhead = this->GetWarhead(pData);
-
-					// create a bullet and the psi warning
-					if (auto const pBullet = BulletTypeExt::ExtMap.Find(pProjectile)->CreateBullet(pCell, pSilo, damage, pWarhead,
-						pWeapon->Speed, WeaponTypeExt::ExtMap.Find(pWeapon)->GetProjectileRange(), pWeapon->Bright || pWeapon->Warhead->Bright, true))
-					{
-						pBullet->SetWeaponType(pWeapon);
-
-						if (auto const pAnimType = pData->Nuke_PsiWarning) {
-							pThis->Owner->PsiWarn(pCell, pBullet, pAnimType->ID);
-						}
-
-						// remember the fired SW type
-						BulletExt::ExtMap.Find(pBullet)->NukeSW = pThis;
-
-						// aim the bullet downward and put
-						// it over the target area.
-						const bool bNotVert = !pProjectile->Vertical;
-						VelocityClass vel { 0.0, bNotVert ? 100.0 : 0.0,  bNotVert ? 0x0 : -100.0 };
-
-						auto high = target;
-
-						if(!bNotVert)
-							high.Z += 20000;
-
-						pBullet->MoveTo(high, vel);
-						fired = true;
-					}
-				}
+			if (auto const pWeapon = pData->Nuke_Payload) {
+				fired = SW_NuclearMissile::DropNukeAt(pType, target, pSilo, pThis->Owner, pWeapon);
 			}
 		}
 
@@ -183,4 +149,72 @@ int SW_NuclearMissile::GetDamage(const SWTypeExt::ExtData* pData) const
 		damage = pData->Nuke_Payload ? pData->Nuke_Payload->Damage : 0;
 	}
 	return damage;
+}
+
+bool SW_NuclearMissile::DropNukeAt(SuperWeaponTypeClass* pSuper, CoordStruct const& to, TechnoClass* Owner, HouseClass* OwnerHouse, WeaponTypeClass* pPayload)
+{
+	if (!pPayload->Projectile)
+		return false;
+
+	const auto pCell = MapClass::Instance->GetCellAt(to);
+
+	if (auto const pBullet = GameCreate<BulletClass>()
+		//BulletTypeExt::ExtMap.Find(pPayload->Projectile)->CreateBullet(pCell, Owner, 0, nullptr,
+		//pPayload->Speed, WeaponTypeExt::ExtMap.Find(pPayload)->GetProjectileRange(), false , false)
+		)
+	{
+		pBullet->Construct(pPayload->Projectile, pCell, Owner, 0, nullptr, pPayload->Speed, false);
+		pBullet->SetWeaponType(pPayload);
+
+		int Damage = pPayload->Damage;
+		WarheadTypeClass* pWarhead = pPayload->Warhead;
+
+		if(pSuper){
+			auto const pData = SWTypeExt::ExtMap.Find(pSuper);
+
+			if (auto const pAnimType = pData->Nuke_PsiWarning) {
+				OwnerHouse->PsiWarn(pCell, pBullet, pAnimType->ID);
+			}
+
+			Damage = NewSWType::GetNewSWType(pData)->GetDamage(pData);
+			pWarhead = NewSWType::GetNewSWType(pData)->GetWarhead(pData);
+
+			// remember the fired SW type
+			BulletExt::ExtMap.Find(pBullet)->NukeSW = pSuper;
+		}
+
+		pBullet->Health = Damage; //Yes , this is
+		pBullet->WH = pWarhead;
+		pBullet->Bright = pPayload->Bright || pWarhead->Bright;
+
+#ifndef vanilla
+		// aim the bullet downward and put
+		// it over the target area.
+		const bool bNotVert = !pPayload->Projectile->Vertical;
+		VelocityClass vel { 0.0, bNotVert ? 100.0 : 0.0,  bNotVert ? 0.0 : -100.0 };
+
+		CoordStruct high = to;
+
+		if (!bNotVert)
+			high.Z += pPayload->Projectile->DetonationAltitude;
+
+		return pBullet->MoveTo(high, vel);
+
+#else
+
+		CoordStruct nOffs { 0 , 0, pPayload->Projectile->DetonationAltitude };
+		CoordStruct dest = to + nOffs;
+
+		auto nCos = Math::cos(1.570748388432313); // Accuracy is different from the game
+		auto nSin = Math::sin(1.570748388432313); // Accuracy is different from the game
+
+		double nX = nCos * nCos * -1.0;
+		double nY = nCos * nSin * -1.0;
+		double nZ = nSin * -1.0;
+
+		return pBullet->MoveTo(dest, { nX , nY , nZ });
+#endif
+	}
+
+	return false;
 }

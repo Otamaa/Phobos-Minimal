@@ -1,9 +1,9 @@
 #include "Body.h"
 
-//Droppod able to move Limboed passengers outside
+//DropPod able to move Limboed passengers outside
 // if it failed to move , the locomotor is not relesed 
 //Teleport loco cant move limboed passengers , passengers will stuck after ejected with Chrono locomotor still intact
-bool CreateWithDroppod(FootClass* Object, const CoordStruct& XYZ, const CLSID& nID = LocomotionClass::CLSIDs::Droppod)
+bool CreateWithDroppod(FootClass* Object, const CoordStruct& XYZ, const CLSID& nID = LocomotionClass::CLSIDs::DropPod)
 {
 	auto MyCell = MapClass::Instance->GetCellAt(XYZ);
 	if (Object->IsCellOccupied(MyCell, -1, -1, nullptr, false) != Move::OK)

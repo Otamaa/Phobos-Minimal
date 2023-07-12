@@ -7,6 +7,7 @@
 #include <Misc/AresData.h>
 
 #include <Ext/House/Body.h>
+#include <Ext/WarheadType/Body.h>
 
 std::vector<std::unique_ptr<SWStateMachine>> SWStateMachine::Array;
 
@@ -18,7 +19,7 @@ void SWStateMachine::UpdateAll()
 			Machine->Update();
 	}
 
-	Array.erase(std::remove_if(Array.begin(), Array.end(), 
+	Array.erase(std::remove_if(Array.begin(), Array.end(),
 	[](const std::unique_ptr<SWStateMachine>& ptr) {
 		return ptr->Finished();
 	}), Array.end());

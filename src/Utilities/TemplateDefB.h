@@ -400,6 +400,8 @@ namespace detail
 			if (!parser.empty())
 				Debug::INIParseFailed(pSection, pKey, str, "Expect valid BuildingSelectBracketPosition");
 		}
+
+		return false;
 	}
 
 	template <>

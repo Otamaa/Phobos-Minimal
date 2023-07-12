@@ -149,6 +149,8 @@ bool Phobos::Config::ForbidParallelAIQueues_Building = false;
 bool Phobos::Config::TogglePowerInsteadOfRepair = false;
 bool Phobos::Config::ShowTechnoNamesIsActive = false;
 
+bool Phobos::Config::DigitalDisplay_Enable = false;
+
 std::string Phobos::AppIconPath;
 char Phobos::AppName[0x40] = "";
 
@@ -247,6 +249,7 @@ void Phobos::Config::Read()
 
 	Phobos::Config::RealTimeTimers = pRA2MD->ReadBool(PHOBOS_STR, "RealTimeTimers", false);
 	Phobos::Config::RealTimeTimers_Adaptive = pRA2MD->ReadBool(PHOBOS_STR, "RealTimeTimers.Adaptive", false);
+	Phobos::Config::DigitalDisplay_Enable = pRA2MD->ReadBool(PHOBOS_STR, "DigitalDisplay.Enable", false);
 
 	// Custom game speeds, 6 - i so that GS6 is index 0, just like in the engine
 	Phobos::Config::CampaignDefaultGameSpeed = 6 - pRA2MD->ReadInteger(PHOBOS_STR, "CampaignDefaultGameSpeed", 4);
@@ -338,8 +341,8 @@ void Phobos::Config::Read()
 
 	if (CCINIClass* pINI = Phobos::OpenConfig(GameStrings::RULESMD_INI))
 	{
-		// there is only few mod(s) that using this 
-		// just add your mod name or remove these code if you dont like it 
+		// there is only few mod(s) that using this
+		// just add your mod name or remove these code if you dont like it
 		//if (!Phobos::Otamaa::IsAdmin)
 		//{
 		//	std::string ModNameTemp;
@@ -471,7 +474,7 @@ void InitAdminDebugMode()
 #ifndef DETACH_DEBUGGER
 			// this thing can cause game to lockup when loading data
 			// better disable it for release
-				
+
 			const bool Detached = Phobos::DetachFromDebugger();
 			if (Detached)
 			{

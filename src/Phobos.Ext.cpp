@@ -30,6 +30,7 @@
 #include <Ext/VoxelAnimType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/ParticleSystem/Body.h>
 
 //#include <Misc/TriggerMPOwner.h>
 
@@ -43,6 +44,7 @@
 #include <New/Type/CursorTypeClass.h>
 #include <New/Type/BannerTypeClass.h>
 #include <New/Type/TunnelTypeClass.h>
+#include <New/Type/DigitalDisplayTypeClass.h>
 
 #pragma region OtamaaStuffs
 #include <Ext/Bomb/Body.h>
@@ -262,7 +264,7 @@ HRESULT Phobos::SaveGameDataAfter(IStream* pStm)
 
 void Phobos::LoadGameDataAfter(IStream* pStm)
 {
-	//clear the loadgame flag 
+	//clear the loadgame flag
 	Phobos::Otamaa::DoingLoadGame = false;
 	//Debug::Log("Finished loading the game\n");
 }
@@ -274,7 +276,7 @@ template<typename T>
 FORCEINLINE void Process_InvalidatePtr(AbstractClass* pInvalid, bool const removed)
 {
 	if constexpr (HasExtMap<T>)
-	{	
+	{
 		if constexpr (PointerInvalidationIgnorAble<decltype(T::ExtMap)> &&
 				PointerInvalidationSubscribable<decltype(T::ExtMap)>) {
 			if (!T::ExtMap.InvalidateIgnorable(pInvalid)) {
@@ -284,7 +286,7 @@ FORCEINLINE void Process_InvalidatePtr(AbstractClass* pInvalid, bool const remov
 		else if(PointerInvalidationSubscribable<decltype(T::ExtMap)>)
 		{
 			T::ExtMap.InvalidatePointer(pInvalid, removed);
-		}	
+		}
 	}
 	else
 	{
@@ -325,6 +327,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	ArmorTypeClass::Clear();
 	BannerTypeClass::Clear();
 	ColorTypeClass::Clear();
+	DigitalDisplayTypeClass::Clear();
 	ImmunityTypeClass::Clear();
 	CursorTypeClass::Clear();
 	ElectricBoltManager::Clear();
@@ -344,7 +347,6 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	HouseExt::ExtMap.Clear();
 	TunnelTypeClass::Clear();
 	WeaponTypeExt::ExtMap.Clear();
-
 	return 0;
 }
 
@@ -401,6 +403,7 @@ DEFINE_HOOK(0x67D32C, SaveGame_Phobos_Global, 0x5)
 	bool ret =
 		Process_Save<PaletteManager>(pStm) &&
 		Process_Save<CursorTypeClass>(pStm) &&
+		Process_Save<DigitalDisplayTypeClass>(pStm) &&
 		Process_Save<ArmorTypeClass>(pStm) &&
 		Process_Save<ImmunityTypeClass>(pStm) &&
 		Process_Save<ColorTypeClass>(pStm) &&
@@ -414,9 +417,9 @@ DEFINE_HOOK(0x67D32C, SaveGame_Phobos_Global, 0x5)
 		Process_Save<HoverTypeClass>(pStm) &&
 		Process_Save<BannerTypeClass>(pStm) &&
 		Process_Save<TrailType>(pStm) &&
-		Process_Save<LaserTrailTypeClass>(pStm) && 
+		Process_Save<LaserTrailTypeClass>(pStm) &&
 		Process_Save<TunnelTypeClass>(pStm) &&
-		Process_Save<SWStateMachine>(pStm) && 
+		Process_Save<SWStateMachine>(pStm) &&
 		Process_Save<PhobosGlobal>(pStm)
 		;
 
@@ -432,9 +435,10 @@ DEFINE_HOOK(0x67E826, LoadGame_Phobos_Global, 0x6)
 	GET(IStream*, pStm, ESI);
 	Phobos::Otamaa::DoingLoadGame = true;
 
-	bool ret = 
+	bool ret =
 		Process_Load<PaletteManager>(pStm) &&
 		Process_Load<CursorTypeClass>(pStm) &&
+		Process_Load<DigitalDisplayTypeClass>(pStm) &&
 		Process_Load<ArmorTypeClass>(pStm) &&
 		Process_Load<ImmunityTypeClass>(pStm) &&
 		Process_Load<ColorTypeClass>(pStm) &&
@@ -453,7 +457,7 @@ DEFINE_HOOK(0x67E826, LoadGame_Phobos_Global, 0x6)
 		Process_Load<SWStateMachine>(pStm) &&
 		Process_Load<PhobosGlobal>(pStm)
 		;
-	
+
 	if (!ret)
 		Debug::Log("[Phobos] Global LoadGame Failed !\n");
 

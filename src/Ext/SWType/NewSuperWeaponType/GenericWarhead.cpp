@@ -54,24 +54,25 @@ bool SW_GenericWarhead::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 	auto coords = pCell->GetCoordsWithBridge();
 
 	auto pFirer = this->GetFirer(pThis,Coords, false);
+	//auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
 
-	auto pOwnerHouse = pThis->Owner;
-    WarheadTypeExt::CreateIonBlast(pWarhead, coords);
-	AresData::applyEMP(pWarhead, &coords, pFirer);
-	AresData::applyAE(pWarhead, &coords, pOwnerHouse);
-
-	auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
-
-	if (!pWHExt->applyPermaMC(pThis->Owner, pCell->GetContent()))
-	{
-		MapClass::DamageArea(coords, damage, pFirer, pWarhead, true, pThis->Owner);
-		if (auto const pAnimType = MapClass::SelectDamageAnimation(damage, pWarhead, pCell->LandType, coords)) {
-			if (auto pAnim = GameCreate<AnimClass>(pAnimType, coords))
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner, nullptr, pFirer, false);
-		}
-
-		MapClass::FlashbangWarheadAt(damage, pWarhead, coords, false, SpotlightFlags::None);
-	}
+	//if(pWHExt->PermaMC) {
+	WarheadTypeExt::DetonateAt(pWarhead , pCell ,coords , pFirer , damage);
+	//} else {
+	//
+	//	auto pOwnerHouse = pThis->Owner;
+	//	WarheadTypeExt::CreateIonBlast(pWarhead, coords);
+	//	AresData::applyEMP(pWarhead, &coords, pFirer);
+	//	AresData::applyAE(pWarhead, &coords, pOwnerHouse);
+	//
+	//	MapClass::DamageArea(coords, damage, pFirer, pWarhead, true, pThis->Owner);
+	//	if (auto const pAnimType = MapClass::SelectDamageAnimation(damage, pWarhead, pCell->LandType, coords)) {
+	//		if (auto pAnim = GameCreate<AnimClass>(pAnimType, coords))
+	//			AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner, nullptr, pFirer, false);
+	//	}
+	//
+	//	MapClass::FlashbangWarheadAt(damage, pWarhead, coords, false, SpotlightFlags::None);
+	//}
 
 	return true;
 }

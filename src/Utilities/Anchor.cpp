@@ -1,8 +1,5 @@
 #include "Anchor.h"
 
-#include <GeneralDefinitions.h>
-
-
 double Anchor::GetRelativeOffsetHorizontal() const
 {
 	// Enum goes from 0 to 2 from left to right. Cast it and divide it
@@ -53,7 +50,6 @@ Point2D Anchor::OffsetPosition(const LTRBStruct& ltrb) const
 
 	return result;
 }
-
 
 void Anchor::Read(INI_EX& parser, const char* pSection, const char* pFlagFormat)
 {

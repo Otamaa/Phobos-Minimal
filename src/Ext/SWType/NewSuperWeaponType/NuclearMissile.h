@@ -19,6 +19,6 @@ public:
 	virtual WarheadTypeClass* GetWarhead(const SWTypeExt::ExtData* pData) const override;
 	virtual int GetDamage(const SWTypeExt::ExtData* pData) const override;
 
-	static SuperClass* CurrentNukeType;
-
+	static SuperWeaponTypeClass* CurrentNukeType;
+	static bool DropNukeAt(SuperWeaponTypeClass* pSuper , CoordStruct const& to, TechnoClass* Owner , HouseClass* OwnerHouse , WeaponTypeClass* pPayload);
 };

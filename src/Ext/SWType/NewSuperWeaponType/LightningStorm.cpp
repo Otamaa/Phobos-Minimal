@@ -64,7 +64,7 @@ bool SW_LightningStorm::AbortFire(SuperClass* pSW, bool IsPlayer)
 }
 
 void SW_LightningStorm::Initialize(SWTypeExt::ExtData* pData)
-{ 
+{
 	// Defaults to Lightning Storm values
 	pData->Weather_DebrisMin = 2;
 	pData->Weather_DebrisMax = 4;
@@ -101,7 +101,7 @@ bool SW_LightningStorm::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingCl
 }
 
 void SW_LightningStorm::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
-{ 
+{
 	const char* section = pData->get_ID();
 
 	INI_EX exINI(pINI);
@@ -520,10 +520,7 @@ bool CloneableLighningStormStateMachine::Strike(CellStruct const& nCell)
 			if (auto const itBolts = pExt->Weather_Bolts.GetElements(
 				RulesClass::Instance->WeatherConBolts))
 			{
-				auto const pBoltAnim = itBolts.at(0);
-				pExt->Weather_CloudHeight = Game::F2I(
-					((pBoltAnim->GetImage()->Height / 2) - 0.5)
-					* CloudHeightFactor);
+				pExt->Weather_CloudHeight = GeneralUtils::GetLSAnimHeightFactor(itBolts[0], pCell);
 			}
 		}
 		coords.Z += pExt->Weather_CloudHeight;

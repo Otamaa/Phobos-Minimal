@@ -315,6 +315,10 @@ public:
 		JMP_THIS(0x4509D0);
 	}
 
+	inline std::array<BuildingTypeClass* ,4u> GetTypes() const {
+		return { this->Type , this->Upgrades[0] , this->Upgrades[1] , this->Upgrades[2] };
+	};
+
 	//Constructor
 	BuildingClass(BuildingTypeClass* pType, HouseClass* pOwner) noexcept
 		: BuildingClass(noinit_t())

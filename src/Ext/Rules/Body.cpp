@@ -13,6 +13,7 @@
 #include <New/Type/ImmunityTypeClass.h>
 #include <New/Type/TunnelTypeClass.h>
 #include <New/Type/GenericPrerequisite.h>
+#include <New/Type/DigitalDisplayTypeClass.h>
 
 //#include <Ext/TechnoType/Body.h>
 
@@ -59,7 +60,7 @@ void RulesExt::LoadFromINIFile(RulesClass* pThis, CCINIClass* pINI)
 	Data->LoadFromINIFile(pINI, false);
 }
 
-// do everything before `TypeData::ReadFromINI` executed 
+// do everything before `TypeData::ReadFromINI` executed
 // to makesure everything is properly allocated from the list
 void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
@@ -100,6 +101,7 @@ void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	HoverTypeClass::LoadFromINIList(pINI);
 
 	LaserTrailTypeClass::LoadFromINIList(&CCINIClass::INI_Art.get());
+	DigitalDisplayTypeClass::LoadFromINIList(pINI);
 
 	Data->LoadBeforeTypeData(pThis, pINI);
 }
@@ -119,6 +121,11 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->CloakAnim.Read(iniEX, AUDIOVISUAL_SECTION, "CloakAnim");
 	pData->DecloakAnim.Read(iniEX, AUDIOVISUAL_SECTION, "DecloakAnim");
 	pData->Cloak_KickOutParasite.Read(iniEX, GameStrings::CombatDamage, "Cloak.KickOutParasite");
+
+	pData->Buildings_DefaultDigitalDisplayTypes.Read(iniEX, GameStrings::AudioVisual, "Buildings.DefaultDigitalDisplayTypes");
+	pData->Infantry_DefaultDigitalDisplayTypes.Read(iniEX, GameStrings::AudioVisual, "Infantry.DefaultDigitalDisplayTypes");
+	pData->Vehicles_DefaultDigitalDisplayTypes.Read(iniEX, GameStrings::AudioVisual, "Vehicles.DefaultDigitalDisplayTypes");
+	pData->Aircraft_DefaultDigitalDisplayTypes.Read(iniEX, GameStrings::AudioVisual, "Aircraft.DefaultDigitalDisplayTypes");
 
 	// TODO : move this to its main place , not modifiable thru map ,..
 	if (pINI == CCINIClass::INI_Rules)
@@ -595,6 +602,10 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->CloakAnim)
 		.Process(this->DecloakAnim)
 		.Process(this->Cloak_KickOutParasite)
+		.Process(this->Buildings_DefaultDigitalDisplayTypes)
+		.Process(this->Infantry_DefaultDigitalDisplayTypes)
+		.Process(this->Vehicles_DefaultDigitalDisplayTypes)
+		.Process(this->Aircraft_DefaultDigitalDisplayTypes)
 		;
 
 	MyPutData.Serialize(Stm);
@@ -775,7 +786,7 @@ DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 			);
 		}
 	}
-	
+
 	return 0x0;
 }
 
@@ -790,7 +801,7 @@ DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 //	return 0x0;
 //}
 
-DEFINE_JUMP(LJMP, 0x668F2B ,0x668F63); // move all these reading before type reading 
+DEFINE_JUMP(LJMP, 0x668F2B ,0x668F63); // move all these reading before type reading
 DEFINE_JUMP(LJMP, 0x66919B, 0x6691B7); // remove reading warhead from `SpecialWeapon`
 //DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 //{

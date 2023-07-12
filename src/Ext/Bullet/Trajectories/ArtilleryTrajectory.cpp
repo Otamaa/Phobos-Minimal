@@ -81,14 +81,14 @@ void ArtilleryTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocit
 	double distance = TempTargetLocation.DistanceFrom(TempSourceLocation);
 	double fix = (((this->Height - pBullet->TargetCoords.Z) * distance) / (2 * this->Height - pBullet->SourceCoords.Z - pBullet->TargetCoords.Z)) / (this->Height - pBullet->TargetCoords.Z);
 
-	double DirectionAngel = std::atan2((double)(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y), (double)(pBullet->TargetCoords.X - pBullet->SourceCoords.X)) + (Math::Pi / 2);
+	double DirectionAngel = Math::atan2((double)(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y), (double)(pBullet->TargetCoords.X - pBullet->SourceCoords.X)) + (Math::Pi / 2);
 
-	this->InitialTargetLocation.X += static_cast<int>((pBullet->TargetCoords.Z * fix * std::cos(DirectionAngel)));
-	this->InitialTargetLocation.Y += static_cast<int>((pBullet->TargetCoords.Z * fix * std::sin(DirectionAngel)));
+	this->InitialTargetLocation.X += static_cast<int>((pBullet->TargetCoords.Z * fix * Math::cos(DirectionAngel)));
+	this->InitialTargetLocation.Y += static_cast<int>((pBullet->TargetCoords.Z * fix * Math::sin(DirectionAngel)));
 	this->InitialTargetLocation.Z = 0;
 
-	this->InitialSourceLocation.X -= static_cast<int>((pBullet->SourceCoords.Z * fix * std::cos(DirectionAngel)));
-	this->InitialSourceLocation.Y -= static_cast<int>((pBullet->SourceCoords.Z * fix * std::sin(DirectionAngel)));
+	this->InitialSourceLocation.X -= static_cast<int>((pBullet->SourceCoords.Z * fix * Math::cos(DirectionAngel)));
+	this->InitialSourceLocation.Y -= static_cast<int>((pBullet->SourceCoords.Z * fix * Math::sin(DirectionAngel)));
 	this->InitialSourceLocation.Z = 0;
 
 	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
@@ -131,11 +131,11 @@ bool ArtilleryTrajectory::OnAI()
 
 	// Trajectory angle
 	const int sinDecimalTrajectoryAngle = 90;
-	const double sinRadTrajectoryAngle = std::sin(Math::deg2rad(sinDecimalTrajectoryAngle));
+	const double sinRadTrajectoryAngle = Math::sin(Math::deg2rad(sinDecimalTrajectoryAngle));
 
 	// Angle of the projectile in the current location
 	const double angle = (currentBulletDistance * sinDecimalTrajectoryAngle) / halfInitialDistance;
-	const double sinAngle = std::sin(Math::deg2rad(angle));
+	const double sinAngle = Math::sin(Math::deg2rad(angle));
 
 	// Height of the flying projectile in the current location
 	const double currHeight = (sinAngle * this->Height) / sinRadTrajectoryAngle;
@@ -144,7 +144,7 @@ bool ArtilleryTrajectory::OnAI()
 	source.Z = 0;
 	double SourceDistance = this->InitialSourceLocation.DistanceFrom(source);
 	double fixangle = (SourceDistance * sinDecimalTrajectoryAngle) / halfInitialDistance;
-	double fixsinAngle = std::sin(Math::deg2rad(fixangle));
+	double fixsinAngle = Math::sin(Math::deg2rad(fixangle));
 	double heightfix = pBullet->SourceCoords.Z - (fixsinAngle * this->Height) / sinRadTrajectoryAngle;
 
 	pBullet->Location.Z = pBullet->TargetCoords.Z + static_cast<int>(currHeight + heightfix);

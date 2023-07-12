@@ -139,12 +139,12 @@ public:
 			zz = static_cast<float>(zz / v7);
 		}
 
-		double s = std::sin(phi * 0.5);
+		double s = Math::sin(phi * 0.5);
 		Quaternion sX;
 		sX.X = static_cast<float>(xx * s);
 		sX.Y = static_cast<float>(y * s);
 		sX.Z = static_cast<float>(zz * s);	
-		sX.W = static_cast<float>(std::cos(phi * 0.5));
+		sX.W = static_cast<float>(Math::cos(phi * 0.5));
 		return sX;
 	}
 
@@ -272,12 +272,12 @@ public:
 
 	Quaternion FromEuler(float x, float y, float z)
 	{
-		float cx = std::cos(x * 0.5f);
-		float cy = std::cos(y * 0.5f);
-		float cz = std::cos(z * 0.5f);
-		float sx = std::cos(x * 0.5f);
-		float sy = std::cos(y * 0.5f);
-		float sz = std::cos(z * 0.5f);
+		float cx = Math::cos(x * 0.5f);
+		float cy = Math::cos(y * 0.5f);
+		float cz = Math::cos(z * 0.5f);
+		float sx = Math::cos(x * 0.5f);
+		float sy = Math::cos(y * 0.5f);
+		float sz = Math::cos(z * 0.5f);
 
 		Quaternion buffer;
 
@@ -322,9 +322,9 @@ public:
 		else
 		{
 			float n4 = std::acos(n3);
-			float n5 = 1.0f / std::sin(n4);
-			n2 = std::sin((1 - alpha) * n4) * n5;
-			n1 = flag ? -std::sin(alpha * n4) * n5 : std::sin(alpha * n4) * n5;
+			float n5 = 1.0f / Math::sin(n4);
+			n2 = Math::sin((1 - alpha) * n4) * n5;
+			n1 = flag ? -Math::sin(alpha * n4) * n5 : Math::sin(alpha * n4) * n5;
 		}
 		Quaternion buffer;
 		auto A = *this;

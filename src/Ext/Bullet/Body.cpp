@@ -15,7 +15,7 @@
 #include "Trajectories/PhobosTrajectory.h"
 
 #include <Utilities/Macro.h>
-#include <Lib/gcem/gcem.hpp>
+//#include <Lib/gcem/gcem.hpp>
 
 TechnoClass* BulletExt::InRangeTempFirer;
 
@@ -156,15 +156,15 @@ void BulletExt::ApplyAirburst(BulletClass* pThis)
 #ifdef DEBUG_AIRBURSTSPLITS_TARGETING
 				if (const auto pTechno = generic_cast<TechnoClass*>(pTarget))
 					Debug::Log("Airburst [%s] targeting Target [%s] \n", pWeapon->get_ID(), pTechno->get_ID());
-#endif				
+#endif
 				if (const auto pBullet = BulletTypeExt::ExtMap
 					.Find(pWeapon->Projectile)->CreateBullet(pTarget, pThis->Owner, pWeapon))
 				{
 					DirStruct const dir(5, random.RandomRangedSpecific<short>(0, 32));
 					auto const radians = dir.GetRadian();
 
-					auto const sin_rad = std::sin(radians);
-					auto const cos_rad = std::cos(radians);
+					auto const sin_rad = Math::sin(radians);
+					auto const cos_rad = Math::cos(radians);
 					auto const cos_factor = -2.44921270764e-16;
 					auto const flatSpeed = cos_factor * pBullet->Speed;
 
@@ -196,10 +196,10 @@ VelocityClass BulletExt::GenerateVelocity(BulletClass* pThis, AbstractClass* pTa
 	DirStruct const dir_fromXY((double)(pThis->Location.Y - nCenter.Y), (double)(pThis->Location.X - nCenter.X));
 	double const nFirstMag = velocity.MagnitudeXY();
 	double const radians_fromXY = dir_fromXY.GetRadian();
-	double const sin_rad = std::sin(radians_fromXY);
-	double const cos_rad = std::cos(radians_fromXY);
-	constexpr double nMult_Cos = gcem::cos(0.7853262558535721);
-	constexpr double nMult_Sin = gcem::sin(0.7853262558535721);
+	double const sin_rad = Math::sin(radians_fromXY);
+	double const cos_rad = Math::cos(radians_fromXY);
+	double nMult_Cos = Math::cos(0.7853262558535721);
+	double nMult_Sin = Math::sin(0.7853262558535721);
 
 	velocity.X = cos_rad * nFirstMag;
 	velocity.Y -= sin_rad * nFirstMag;
@@ -213,8 +213,8 @@ VelocityClass BulletExt::GenerateVelocity(BulletClass* pThis, AbstractClass* pTa
 
 		if (radians_foZ != 0.0)
 		{
-			velocity.X /= std::cos(radians_foZ);
-			velocity.Y /= std::cos(radians_foZ);
+			velocity.X /= Math::cos(radians_foZ);
+			velocity.Y /= Math::cos(radians_foZ);
 		}
 
 		velocity.X *= nMult_Cos;
@@ -242,8 +242,8 @@ VelocityClass BulletExt::GenerateVelocity(BulletClass* pThis, AbstractClass* pTa
 
 		if (radians_foZ != 0.0)
 		{
-			velocity.X /= std::cos(radians_foZ);
-			velocity.Y /= std::cos(radians_foZ);
+			velocity.X /= Math::cos(radians_foZ);
+			velocity.Y /= Math::cos(radians_foZ);
 		}
 
 		velocity.X *= nMult_Cos;

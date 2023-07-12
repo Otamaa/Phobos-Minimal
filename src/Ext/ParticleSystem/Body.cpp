@@ -46,7 +46,7 @@ ParticleSystemExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x62DF05, ParticleSystemClass_CTOR, 0x5)
 {
 	GET(ParticleSystemClass*, pItem, ESI);
-	ParticleSystemExt::ExtMap.FindOrAllocate(pItem);
+	ParticleSystemExt::ExtMap.Allocate(pItem);
 	return 0;
 }
 

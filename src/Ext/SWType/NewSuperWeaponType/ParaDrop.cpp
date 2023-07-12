@@ -26,7 +26,7 @@ bool SW_ParaDrop::Activate(SuperClass* const pThis, const CellStruct& Coords, bo
 }
 
 void SW_ParaDrop::Initialize(SWTypeExt::ExtData* pData)
-{  
+{
 	// default for american paradrop
 	if (pData->Get()->Type == SuperWeaponType::AmerParaDrop)
 	{
@@ -191,10 +191,11 @@ bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 	pFallbackPlane = HouseExt::GetParadropPlane(pHouse);
 
 	// use paradrop lists from house, side and default
-	std::vector<std::unique_ptr<ParadropData>>* drops[3];
-	drops[0] = pData->ParaDropDatas.find(pHouse->Type);
-	drops[1] = pData->ParaDropDatas.find(SideClass::Array->Items[pHouse->Type->SideIndex]);
-	drops[2] = pData->ParaDropDatas.find(pType);
+	const std::vector<std::unique_ptr<ParadropData>>* drops[3] {
+		pData->ParaDropDatas.find(pHouse->Type),
+		pData->ParaDropDatas.find(SideClass::Array->Items[pHouse->Type->SideIndex]),
+		pData->ParaDropDatas.find(pType)
+	};
 
 	// how many planes shall we launch?
 	int count = 1;

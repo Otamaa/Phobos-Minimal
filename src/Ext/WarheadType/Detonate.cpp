@@ -202,7 +202,11 @@ bool WarheadTypeExt::ExtData::applyPermaMC(HouseClass* const Owner, AbstractClas
 		return false;
 
 	const auto pTargetTechno = abstract_cast<TechnoClass*>(Target);
-	if (!this->CanDealDamage(pTargetTechno) || TechnoExt::IsPsionicsImmune(pTargetTechno))
+	if (!pTargetTechno)
+		return false;
+
+	if (//!this->CanDealDamage(pTargetTechno) ||
+		TechnoExt::IsPsionicsImmune(pTargetTechno))
 		return false;
 
 	const auto pType = pTargetTechno->GetTechnoType();
@@ -411,7 +415,8 @@ bool NOINLINE IsCellSpreadWH(WarheadTypeExt::ExtData* pData)
 		pData->Shield_SelfHealing_Duration > 0 ||
 		pData->Shield_AttachTypes.size() > 0 ||
 		pData->Shield_RemoveTypes.size() > 0 ||
-		pData->Transact || //ISPermaMC ||
+		pData->Transact ||
+		pData->PermaMC ||
 		pData->GattlingStage > 0 ||
 		pData->GattlingRateUp != 0 ||
 		pData->AttachTag ||
@@ -590,8 +595,8 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 	//if (this->RemoveMindControl)
 	//	this->ApplyRemoveMindControl(pHouse, pTarget);
 
-	//if (this->Get()->MindControl && this->PermaMC && !pBullet)
-	//	this->applyPermaMC(pHouse, pTarget);
+	if (this->PermaMC)
+		this->applyPermaMC(pHouse, pTarget);
 
 	if (this->Crit_Chance && (!this->Crit_SuppressOnIntercept || !bulletWasIntercepted))
 		this->ApplyCrit(pHouse, pTarget, pOwner);

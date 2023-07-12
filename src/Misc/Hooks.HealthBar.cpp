@@ -421,6 +421,7 @@ DEFINE_HOOK(0x6F65D1, TechnoClass_DrawdBar_Building, 0x6)
 
 	DrawHeathData::DrawNumber(pThis, pLocation, pBound);
 	//DrawHeathData::DrawIronCurtaindBar(pThis, iLength, pLocation, pBound);
+	TechnoExt::ProcessDigitalDisplays(pThis);
 	return 0;
 }
 
@@ -443,6 +444,7 @@ DEFINE_HOOK(0x6F683C, TechnoClass_DrawBar_Foot, 0x7)
 	DrawHeathData::DrawBar(pThis, pLocation, pBound);
 	DrawHeathData::DrawNumber(pThis, pLocation, pBound);
 	//DrawHeathData::DrawIronCurtaindBar(pThis, iLength, pLocation, pBound);
+	TechnoExt::ProcessDigitalDisplays(pThis);
 
 	return 0x6F6A58;
 }

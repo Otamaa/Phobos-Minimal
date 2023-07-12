@@ -77,9 +77,6 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 	this->Strafing_SimulateBurst.Read(exINI, pSection, "Strafing.SimulateBurst");
 	this->CanTarget.Read(exINI, pSection, "CanTarget");
 
-	if (IS_SAME_STR_("TerrorBomb", pSection))
-		Debug::Log("Test");
-
 	this->CanTargetHouses.Read(exINI, pSection, "CanTargetHouses");
 
 	this->Burst_Delays.Read(exINI, pSection, "Burst.Delays");

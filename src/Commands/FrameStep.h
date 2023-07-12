@@ -81,7 +81,7 @@ inline const wchar_t* FrameStepCommandClass<Frame>::GetUIName() const
 	class to_string_t
 	{
 	public:
-		wchar_t buffer[Frame >= 10 ? 24 : 23];
+		wchar_t buffer[Frame >= 10 ? 23 : 22];
 
 	public:
 		constexpr to_string_t() noexcept

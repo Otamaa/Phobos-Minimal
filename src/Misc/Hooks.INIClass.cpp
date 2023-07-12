@@ -168,8 +168,8 @@ namespace INIInheritance
 		if (!buffer || length < 2)
 			return 0;
 
-		INIClass::INISection* pSection = useCurrentSection ? 
-			ini->CurrentSection : ini->SectionIndex.IsPresent(sectionCRC) 
+		INIClass::INISection* pSection = useCurrentSection ?
+			ini->CurrentSection : ini->SectionIndex.IsPresent(sectionCRC)
 			? ini->SectionIndex.Archive->Data : nullptr;
 
 		if (!pSection)
@@ -249,15 +249,15 @@ namespace INIInheritance
 	}
 };
 
-// 
+//
 DEFINE_DISABLE_HOOK(0x528A10, INIClass_GetString_DisableAres);
-// 
+//
 DEFINE_DISABLE_HOOK(0x526CC0, INIClass_GetKeyName_DisableAres);
 // INIClass__GetInt__Hack // pop edi, jmp + 6, nop
 DEFINE_PATCH(0x5278C6, 0x5F, 0xEB, 0x06, 0x90);
-// 
+//
 DEFINE_DISABLE_HOOK(0x474200, CCINIClass_ReadCCFile1_DisableAres)
-// 
+//
 DEFINE_DISABLE_HOOK(0x474314, CCINIClass_ReadCCFile2_DisableAres)
 
 DEFINE_HOOK(0x5276D0, INIClass_ReadInt_Overwrite, 0x5)
@@ -368,15 +368,15 @@ DEFINE_HOOK(0x527B0A, INIClass_Get_UUID, 0x8)
 			}
 		}
 
-		if (IS_SAME_WSTR(buffer, Test_data.w_name)) {
-			wcscpy_s(buffer, BufferSize, Test_data.w_CLSID);
-			return 0;
-		}
+		//if (IS_SAME_WSTR(buffer, Test_data.w_name)) {
+		//	wcscpy_s(buffer, BufferSize, Test_data.w_CLSID);
+		//	return 0;
+		//}
 
-		if (IS_SAME_WSTR(buffer, Levitate_data.w_name)) {
-			wcscpy_s(buffer, BufferSize, Levitate_data.w_CLSID);
-			return 0;
-		}
+		//if (IS_SAME_WSTR(buffer, Levitate_data.w_name)) {
+		//	wcscpy_s(buffer, BufferSize, Levitate_data.w_CLSID);
+		//	return 0;
+		//}
 	}
 
 	return 0;

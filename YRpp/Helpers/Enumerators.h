@@ -251,21 +251,19 @@ protected:
 */
 class CellSpreadEnumerator
 {
-	CellStruct current;
-	size_t spread;
-	size_t curspread;
-	bool hasTwo;
-	bool hadTwo;
+	CellStruct current; //4
+	size_t spread; //4
+	size_t curspread; // 4
+	bool hasTwo; //2
+	bool hadTwo; //2
 
 public:
 	constexpr inline static const size_t Max = 0x100u;
 
-	CellSpreadEnumerator(size_t spread, size_t start=0u) : current(CellStruct()), spread(spread), curspread(0u), hasTwo(false), hadTwo(false) {
-		if(spread > Max) {
-			spread = Max;
-		}
-
-		reset(start);
+	CellSpreadEnumerator(size_t Spread, size_t start=0u) noexcept : current(CellStruct())
+	, spread(MinImpl(Spread, Max)), curspread(0u)
+	, hasTwo(false), hadTwo(false)
+	{
 	}
 
 	operator bool () const {

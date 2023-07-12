@@ -17,7 +17,7 @@ public:
 	static constexpr inline uintptr_t vtable = 0x7E8344;
 	static constexpr inline uintptr_t ILoco_vtable = 0x7E8278;
 	static constexpr inline uintptr_t IPiggy_vtable = 0x7E8254;
-	static const inline CLSID ClassGUID = CLSIDs::Droppod();
+	static const inline CLSID ClassGUID = CLSIDs::DropPod();
 
 	//IUnknown
 	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override R0;

@@ -143,7 +143,7 @@ DEFINE_HOOK(0x468B72, BulletClass_Unlimbo_Trajectories, 0x5)
 	PhobosTrajectory::CreateInstance(pThis, pCoord, pVelocity);
 
 	//if (WarheadTypeExt::ExtMap.Find(pThis->WH)->DirectionalArmor) {
-	//	BulletExt::ExtMap.Find(pThis)->InitialBulletDir = DirStruct(std::atan2(static_cast<double>(pThis->SourceCoords.Y - pThis->TargetCoords.Y), static_cast<double>(pThis->TargetCoords.X - pThis->SourceCoords.X)));
+	//	BulletExt::ExtMap.Find(pThis)->InitialBulletDir = DirStruct(Math::atan2(static_cast<double>(pThis->SourceCoords.Y - pThis->TargetCoords.Y), static_cast<double>(pThis->TargetCoords.X - pThis->SourceCoords.X)));
 	//}
 
 	return 0;

@@ -87,7 +87,7 @@ public:
 	{ }
 
 	explicit DirStruct(double Y, double X) noexcept : Raw { 0 }
-	{ SetRadian<65536>(std::atan2(Y, X)); }
+	{ SetRadian<65536>(Math::atan2(Y, X)); }
 
 	bool operator==(const DirStruct& another) const
 	{

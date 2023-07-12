@@ -42,7 +42,7 @@ struct ImageStatusses
 };
 
 class Matrix3D;
-
+class DigitalDisplayTypeClass;
 class TechnoTypeExt
 {
 public:
@@ -786,6 +786,8 @@ public:
 		Valueable<bool> Initial_DriverKilled { false };
 
 		NullableIdx<VocClass> VoiceCantDeploy {};
+		Valueable<bool> DigitalDisplay_Disable { false };
+		ValueableVector<DigitalDisplayTypeClass*> DigitalDisplayTypes {};
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, AttachedEffect { OwnerObject }

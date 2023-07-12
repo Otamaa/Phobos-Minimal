@@ -197,7 +197,7 @@ int Mission_Attack(AircraftClass* pThis)
 					nDirDef.Raw = 0;
 				}
 
-				nDirDef.SetRadian<65536>(std::atan2(static_cast<double>(nFLH.Y - nCorrd.Y), static_cast<double>(nFLH.X - nCorrd.X)));
+				nDirDef.SetRadian<65536>(Math::atan2(static_cast<double>(nFLH.Y - nCorrd.Y), static_cast<double>(nFLH.X - nCorrd.X)));
 				pThis->SecondaryFacing.Set_Desired(nDirDef);
 				return 1;
 			}

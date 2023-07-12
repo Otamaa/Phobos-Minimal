@@ -330,7 +330,7 @@ DEFINE_HOOK(0x466BAF, BulletClass_AI_MissileROTVar, 0x6)
 	const double nMissileROTVar = BulletTypeExt::ExtMap.Find(pThis->Type)
 		->MissileROTVar.Get(RulesClass::Instance->MissileROTVar);
 
-	R->EAX(int(std::sin(static_cast<double>(nFrame) *
+	R->EAX(int(Math::sin(static_cast<double>(nFrame) *
 		0.06666666666666667 *
 		6.283185307179586) *
 		nMissileROTVar + nMissileROTVar + 1.0) *

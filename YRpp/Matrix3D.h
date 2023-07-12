@@ -128,8 +128,8 @@ public:
 	{
 		//JMP_THIS(0x5AE750);
 		double v3 = angle;
-		float c = std::cos(angle);
-		double s = std::sin(v3);
+		float c = Math::cos(angle);
+		double s = Math::sin(v3);
 		double v7 = axis->X * axis->X;
 		this->row[0][0] = static_cast<float>((1.0 - v7) * c + v7);
 		double v8 = 1.0 - c;
@@ -445,8 +445,8 @@ public:
 	void PreRotateX(float theta)
 	{
 		double v2 = theta;
-		float s = std::sin(theta);
-		double c = std::cos(v2);
+		float s = Math::sin(theta);
+		double c = Math::cos(v2);
 		float row_1_1 = this->row[1][1];
 		double sn = -s;
 		float row_2_0 = this->row[2][0];
@@ -483,8 +483,8 @@ public:
 		float s; // [esp+20h] [ebp+4h]
 
 		v2 = theta;
-		s = std::sin(theta);
-		c = std::cos(v2);
+		s = Math::sin(theta);
+		c = Math::cos(v2);
 		sn = -s;
 		row_0_0 = this->row[0][0];
 		row_2_0 = this->row[2][0];
@@ -521,8 +521,8 @@ public:
 		float s; // [esp+28h] [ebp+4h]
 
 		v2 = theta;
-		s = std::sin(theta);
-		c = std::cos(v2);
+		s = Math::sin(theta);
+		c = Math::cos(v2);
 		row_0_1 = this->row[0][1];
 		sn = -s;
 		row_1_0 = this->row[1][0];
@@ -545,8 +545,8 @@ public:
 	//void RotateX(float theta) const { JMP_THIS(0x5AEF60); }
 	void RotateX(float theta) { 
 		double v2 = theta;
-		float s = std::sin(theta);
-		double c = std::cos(v2);
+		float s = Math::sin(theta);
+		double c = Math::cos(v2);
 		double tmp1 = this->row[0][1];
 		double tmp2 = this->row[0][2];
 		this->row[0][1] = static_cast<float>(tmp1 * c + tmp2 * s);
@@ -588,8 +588,8 @@ public:
 		float s; // [esp+Ch] [ebp+4h]
 
 		v2 = theta;
-		s = std::sin(theta);
-		c = std::cos(v2);
+		s = Math::sin(theta);
+		c = Math::cos(v2);
 		tmp1 = this->row[0][0];
 		tmp2 = this->row[0][2];
 		this->row[0][0] = static_cast<float>(tmp1 * c - tmp2 * s);
@@ -624,8 +624,8 @@ public:
 	//void RotateZ(float theta) const { JMP_THIS(0x5AF1A0); }
 	void RotateZ(float theta) { 
 		double v2 = theta;
-		float c = std::cos(theta);
-		double s = std::sin(v2);
+		float c = Math::cos(theta);
+		double s = Math::sin(v2);
 		double tmp1 = this->row[0][0];
 		double tmp2 = this->row[0][1];
 		this->row[0][0] = static_cast<float>(tmp2 * s + tmp1 * c);
@@ -688,7 +688,7 @@ public:
 		Vector3D<float> vec { 0.0f , 1.0f , 0.0f };
 		Vector3D<float> ret_;
 		MatrixMultiply(ret_, this, vec);
-		return (float)std::atan2((double)ret_.Z , (double)ret_.Y);
+		return (float)Math::atan2((double)ret_.Z , (double)ret_.Y);
 	}
 
 	//float GetYRotation() const  { JMP_THIS(0x5AF410); }
@@ -696,7 +696,7 @@ public:
 		Vector3D<float> vec { 0.0f , 0.0f , 1.0f };
 		Vector3D<float> ret_;
 		MatrixMultiply(ret_, this, vec);
-		return (float)std::atan2((double)ret_.X, (double)ret_.Z);
+		return (float)Math::atan2((double)ret_.X, (double)ret_.Z);
 	}
 
 	//float GetZRotation() const { JMP_THIS(0x5AF470); }
@@ -705,7 +705,7 @@ public:
 		Vector3D<float> vec { 1.0f , 0.0f , 0.0f};
 		Vector3D<float> ret_;
 		MatrixMultiply(ret_,this, vec);
-		return (float)std::atan2((double)ret_.Y, (double)ret_.X);
+		return (float)Math::atan2((double)ret_.Y, (double)ret_.X);
 	}
 
 	Vector3D<float>* RotateVector(Vector3D<float>* ret, Vector3D<float>* rotate) const { JMP_THIS(0x5AF4D0); }
@@ -844,19 +844,19 @@ public:
 		}
 		else
 		{
-			yaw = std::atan2(_dy, _dx);
+			yaw = Math::atan2(_dy, _dx);
 		}
 		v22 = _dy * _dy;
 		v5 = _dx * _dx;
 		v21 = static_cast<float>(v5);
 		x = std::sqrt(v5 + v22);
-		pitch = std::atan2(-v31, static_cast<float>(x));
-		yawc = std::cos(yaw);
-		yaws = std::sin(yaw);
-		v24 = std::cos(pitch);
-		pitchs = std::sin(pitch);
-		v17 = std::cos(roll);
-		rolls = std::sin(roll);
+		pitch = Math::atan2(-v31, static_cast<float>(x));
+		yawc = Math::cos(yaw);
+		yaws = Math::sin(yaw);
+		v24 = Math::cos(pitch);
+		pitchs = Math::sin(pitch);
+		v17 = Math::cos(roll);
+		rolls = Math::sin(roll);
 		v8 = v17 * pitchs;
 		v33 = static_cast<float>(v8 * yawc + rolls * yaws);
 		v34 = static_cast<float>(v8 * yaws - rolls * yawc);

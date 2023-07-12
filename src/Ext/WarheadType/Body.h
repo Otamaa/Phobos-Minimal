@@ -51,11 +51,11 @@ public:
 		Valueable<bool> Steal_Display { false };
 		Valueable<Point2D> Steal_Display_Offset { { 0, 0 } };
 
-		ValueableVector<AnimTypeClass*> SplashList {};
+		NullableVector<AnimTypeClass*> SplashList {};
 		Valueable<bool> SplashList_PickRandom { false };
 		Valueable<bool> RemoveDisguise { false };
 		Valueable<bool> RemoveMindControl { false };
-		Valueable<bool> AnimList_PickRandom { false };
+		Nullable<bool> AnimList_PickRandom { };
 		Valueable<bool> AnimList_ShowOnZeroDamage { false };
 		Valueable<bool> DecloakDamagedTargets { true };
 		Valueable<bool> ShakeIsLocal { false };
@@ -166,8 +166,8 @@ public:
 		Nullable<AnimTypeClass*> NotHuman_DeathAnim { };
 
 		Valueable<bool> IsNukeWarhead { false };
-		Nullable<AnimTypeClass*> PreImpactAnim {};
-		Nullable<int> NukeFlashDuration { };
+		Valueable<AnimTypeClass*> PreImpactAnim {};
+		Valueable<int> NukeFlashDuration { };
 
 		Valueable<bool> Remover{ false };
 		Valueable<AnimTypeClass*> Remover_Anim { nullptr };

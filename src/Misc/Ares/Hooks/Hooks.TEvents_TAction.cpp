@@ -22,7 +22,7 @@
 
 #include <TerrainTypeClass.h>
 #include <New/Type/ArmorTypeClass.h>
-#include <Lib/gcem/gcem.hpp>
+//#include <Lib/gcem/gcem.hpp>
 
 #include <Notifications.h>
 #include <Misc/AresData.h>
@@ -735,6 +735,8 @@ DEFINE_OVERRIDE_HOOK(0x71E949, TEventClass_HasOccured_Ares, 7)
 	return 0;
 }
 
+#include <Ext/SWType/NewSuperWeaponType/NuclearMissile.h>
+
 namespace TActionExt_dummy
 {
 	bool NOINLINE ActivateFirestorm(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
@@ -821,6 +823,7 @@ namespace TActionExt_dummy
 		return false;
 	}
 
+	//TODO : re-eval
 	bool NOINLINE LauchhNuke(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
 	{
 		const auto pFind = WeaponTypeClass::Find(GameStrings::NukePayload);
@@ -834,26 +837,29 @@ namespace TActionExt_dummy
 		if (MapClass::Instance->GetCellAt(nCoord)->ContainsBridgeHead())
 			nCoord.Z += CellClass::BridgeHeight;
 
-		if (auto pBullet = pFind->Projectile->CreateBullet(MapClass::Instance->GetCellAt(nCoord), nullptr, pFind->Damage, pFind->Warhead, 50, false))
-		{
-			pBullet->SetWeaponType(pFind);
-			VelocityClass nVel {};
+		SW_NuclearMissile::DropNukeAt(nullptr, nCoord, nullptr , pHouse , pFind);
 
-			constexpr double nSin = gcem::sin(1.570748388432313);
-			constexpr double nCos = gcem::cos(1.570748388432313);
-
-			constexpr double nX = nCos * nCos * -100.0;
-			constexpr double nY = nCos * nSin * -100.0;
-			constexpr double nZ = nSin * -100.0;
-
-			BulletExt::ExtMap.Find(pBullet)->Owner = pHouse;
-			pBullet->MoveTo({ nCoord.X , nCoord.Y , nCoord.Z + 20000 }, nVel);
-			return true;
-		}
+		//if (auto pBullet = pFind->Projectile->CreateBullet(MapClass::Instance->GetCellAt(nCoord), nullptr, pFind->Damage, pFind->Warhead, 50, false))
+		//{
+		//	pBullet->SetWeaponType(pFind);
+		//	VelocityClass nVel {};
+		//
+		//	double nSin = Math::sin(1.570748388432313);
+		//	double nCos = Math::cos(1.570748388432313);
+		//
+		//	double nX = nCos * nCos * -100.0;
+		//	double nY = nCos * nSin * -100.0;
+		//	double nZ = nSin * -100.0;
+		//
+		//	BulletExt::ExtMap.Find(pBullet)->Owner = pHouse;
+		//	pBullet->MoveTo({ nCoord.X , nCoord.Y , nCoord.Z + 20000 }, nVel);
+		//	return true;
+		//}
 
 		return false;
 	}
 
+	//TODO : re-eval
 	bool NOINLINE LauchhChemMissile(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
 	{
 		const auto pFind = WeaponTypeClass::Find(GameStrings::ChemLauncher);
@@ -867,12 +873,12 @@ namespace TActionExt_dummy
 			pBullet->SetWeaponType(pFind);
 			VelocityClass nVel {};
 
-			constexpr double nSin = gcem::sin(1.570748388432313);
-			constexpr double nCos = gcem::cos(-0.00009587672516830327);
+			double nSin = Math::sin(1.570748388432313);
+			double nCos = Math::cos(-0.00009587672516830327);
 
-			constexpr double nX = nCos * nCos * 100.0;
-			constexpr double nY = nCos * nSin * 100.0;
-			constexpr double nZ = nSin * 100.0;
+			double nX = nCos * nCos * 100.0;
+			double nY = nCos * nSin * 100.0;
+			double nZ = nSin * 100.0;
 
 			BulletExt::ExtMap.Find(pBullet)->Owner = pHouse;
 			auto nCell = MapClass::Instance->Localsize_586AC0(&nLoc, false);
@@ -897,7 +903,7 @@ namespace TActionExt_dummy
 			// select the anim
 			auto const& itClouds = RulesClass::Instance->WeatherConClouds;
 			auto const pAnimType = itClouds.GetItem( ScenarioClass::Instance->Random.Random() % itClouds.Count);
-			coords.Z += int(((double)pAnimType->GetImage()->Height / 2) * 104 + pCell->Level);
+			coords.Z += GeneralUtils::GetLSAnimHeightFactor(itClouds[0], pCell);
 
 			if (coords.IsValid())
 			{

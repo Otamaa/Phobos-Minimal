@@ -4,7 +4,6 @@
 
 #include <Helpers/Macro.h>
 #include <Utilities/Container.h>
-
 #include <Utilities/TemplateDef.h>
 //#include <Utilities/EventHandler.h>
 
@@ -22,6 +21,8 @@
 #include <Misc/DynamicPatcher/Techno/SpawnSupport/SpawnSupport.h>
 #include <Misc/DynamicPatcher/Techno/FighterGuardArea/FighterAreaGuard.h>
 #include <Misc/DynamicPatcher/AttachedAffects/Effects/PaintBall/PaintBall.h>
+
+#include <New/Type/DigitalDisplayTypeClass.h>
 
 class BulletClass;
 class TechnoTypeClass;
@@ -324,4 +325,10 @@ private:
 
 	static WeaponTypeClass* GetCurrentWeapon(TechnoClass* pThis, int& weaponIndex, bool getSecondary = false);
 	static WeaponTypeClass* GetCurrentWeapon(TechnoClass* pThis, bool getSecondary = false);
+
+	static Point2D GetScreenLocation(TechnoClass* pThis);
+	static Point2D GetFootSelectBracketPosition(TechnoClass* pThis, Anchor anchor);
+	static Point2D GetBuildingSelectBracketPosition(TechnoClass* pThis, BuildingSelectBracketPosition bracketPosition);
+	static void ProcessDigitalDisplays(TechnoClass* pThis);
+	static void GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType, int& value, int& maxValue);
 };

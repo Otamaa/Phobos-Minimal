@@ -146,12 +146,14 @@ public:
 		pShakeVal = v6;
 	}
 
-	static void IntToDigits(std::string& sDigits, int num)
+	static std::string IntToDigits(int num)
 	{
+		std::string sDigits;
+
 		if (num == 0)
 		{
 			sDigits.push_back('0');
-			return;
+			return sDigits;
 		}
 
 		while (num)
@@ -161,6 +163,7 @@ public:
 		}
 
 		std::reverse(sDigits.begin(), sDigits.end());
+		return sDigits;
 	}
 
 	static inline const int GetRangedRandomOrSingleValue(const Point2D& range)
@@ -397,7 +400,7 @@ public:
 	static const DirStruct Desired_Facing(int x1, int y1, int x2, int y2)
 	{
 		DirStruct dir {};
-		unsigned short value = static_cast<short>(int((std::atan2(static_cast<double>(y2 - y1), static_cast<double>(x2 - x1)) - Math::deg2rad(-(360.0 / (USHRT_MAX - 1))))));
+		unsigned short value = static_cast<short>(int((Math::atan2(static_cast<double>(y2 - y1), static_cast<double>(x2 - x1)) - Math::deg2rad(-(360.0 / (USHRT_MAX - 1))))));
 		dir.SetValue<16>(value);
 		return dir;
 	}
@@ -409,7 +412,7 @@ public:
 
 	static const DirStruct Coord2DirSTruct(CoordStruct Loc1, CoordStruct Loc2)
 	{
-		auto angle = std::atan2((double)(Loc2.X - Loc1.X), (double)(Loc2.Y - Loc1.Y));
+		auto angle = Math::atan2((double)(Loc2.X - Loc1.X), (double)(Loc2.Y - Loc1.Y));
 		auto theta = angle * (180 / Math::Pi);
 		return DirStruct(theta);
 	}
@@ -448,6 +451,7 @@ public:
 		return defVal;
 	}
 
+	static int GetLSAnimHeightFactor(AnimTypeClass* pType, CellClass* pCell , bool checklevel = false);
 #pragma endregion
 
 };

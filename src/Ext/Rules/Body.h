@@ -19,7 +19,7 @@ class MouseCursor;
 class TechnoTypeClass;
 class VocClass;
 class WarheadTypeClass;
-
+class DigitalDisplayTypeClass;
 class RulesExt
 {
 public:
@@ -201,9 +201,14 @@ public:
 		Valueable<AnimTypeClass*> DecloakAnim { nullptr };
 		Valueable<bool> Cloak_KickOutParasite { true };
 
+		ValueableVector<DigitalDisplayTypeClass*> Buildings_DefaultDigitalDisplayTypes {};
+		ValueableVector<DigitalDisplayTypeClass*> Infantry_DefaultDigitalDisplayTypes {};
+		ValueableVector<DigitalDisplayTypeClass*> Vehicles_DefaultDigitalDisplayTypes {};
+		ValueableVector<DigitalDisplayTypeClass*> Aircraft_DefaultDigitalDisplayTypes {};
+
 		AircraftPutDataRules MyPutData { };
 
-		ExtData(RulesClass* OwnerObject) : Extension<RulesClass>(OwnerObject)		
+		ExtData(RulesClass* OwnerObject) : Extension<RulesClass>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() = default;

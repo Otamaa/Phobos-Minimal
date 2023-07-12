@@ -76,10 +76,10 @@ struct SonicBeamDrawingData
 				{
 				default:
 				case SonicBeamSinePatternType::CIRCLE:
-					SonicBeamSineTable[i] = (short)(std::sin(i * SonicBeamSineDuration) * SonicBeamSineAmplitude + SonicBeamOffset);
+					SonicBeamSineTable[i] = (short)(Math::sin(i * SonicBeamSineDuration) * SonicBeamSineAmplitude + SonicBeamOffset);
 					break;
 				case SonicBeamSinePatternType::SQUARE:
-					SonicBeamSineTable[i] = (short)(Math::signum(std::sin(i)));
+					SonicBeamSineTable[i] = (short)(Math::signum(Math::sin((double)i)));
 					break;
 				case SonicBeamSinePatternType::SAWTOOTH:
 					SonicBeamSineTable[i] = (short)(2 * (i / SonicBeamSineDuration - std::floor(i / SonicBeamSineDuration + 1 / 2)));

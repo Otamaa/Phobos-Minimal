@@ -12,8 +12,6 @@
 #include <NetworkEvents.h>
 #include <CCToolTip.h>
 
-#include <Lib/gcem/gcem.hpp>
-
 #include "NewSuperWeaponType/NuclearMissile.h"
 #include "NewSuperWeaponType/LightningStorm.h"
 #include "NewSuperWeaponType/Dominator.h"
@@ -322,7 +320,7 @@ DEFINE_OVERRIDE_HOOK(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
 		return 0x6AAFB1;
 	}
 
-	if (!pData->SW_UseAITargeting.Get() || SWTypeExt::ExtData::IsTargetConstraintEligible(pSuper, true))
+	if (!pData->SW_UseAITargeting.Get() || SWTypeExt::ExtData::IsTargetConstraintsEligible(pSuper, true))
 	{
 		// disallow manuals and active unstoppables
 		if (manual || unstoppable)
@@ -682,7 +680,7 @@ DEFINE_OVERRIDE_HOOK(0x6A99B7, StripClass_Draw_SuperDarken, 5)
 
 	bool darken = false;
 	if (pSW->IsCharged && !pSW->Owner->CanTransactMoney(pExt->Money_Amount)
-		|| (pExt->SW_UseAITargeting && !SWTypeExt::ExtData::IsTargetConstraintEligible(pSW, true)))
+		|| (pExt->SW_UseAITargeting && !SWTypeExt::ExtData::IsTargetConstraintsEligible(pSW, true)))
 	{
 		darken = true;
 	}
@@ -1124,73 +1122,6 @@ DEFINE_OVERRIDE_HOOK(0x6CB70C, SuperClass_Grant_InitialReady, 0xA)
 	return 0x6CB750;
 }
 
-DEFINE_HOOK(0x46B310, BulletClass_NukeMaker_Handle, 6)
-{
-	GET(BulletClass*, pThis, ECX);
-
-	enum { ret = 0x46B53C };
-
-	const auto pTarget = pThis->Target;
-	if (!pTarget)
-	{
-		Debug::Log("Bullet[%s] Trying to Apply NukeMaker but has invalid target !\n", pThis->Type->ID);
-		return ret;
-	}
-
-	WeaponTypeClass* pPaylod = nullptr;
-	SuperClass* pNukeSW = nullptr;
-
-	if (auto const pNuke = BulletExt::ExtMap.Find(pThis)->NukeSW)
-	{
-		pPaylod = SWTypeExt::ExtMap.Find(pNuke->Type)->Nuke_Payload;
-		pNukeSW = pNuke;
-	}
-	else if (auto pLinkedNuke = SuperWeaponTypeClass::Array->
-		GetItemOrDefault(WarheadTypeExt::ExtMap.Find(pThis->WH)->NukePayload_LinkedSW))
-	{
-		pPaylod = SWTypeExt::ExtMap.Find(pLinkedNuke)->Nuke_Payload;
-
-		if (pThis->Owner && pThis->Owner->Owner)
-			pNukeSW = pThis->Owner->Owner->Supers.GetItemOrDefault(WarheadTypeExt::ExtMap.Find(pThis->WH)->NukePayload_LinkedSW);
-	}
-	else
-	{
-		pPaylod = WeaponTypeClass::Find(GameStrings::NukePayload());
-	}
-
-	if (!pPaylod || !pPaylod->Projectile)
-	{
-		Debug::Log("Bullet[%s] Trying to Apply NukeMaker but has invalid Payload Weapon or Payload Weapon Projectile !\n", pThis->Type->ID);
-		return ret;
-	}
-
-	if (auto pPayloadBullet = BulletTypeExt::ExtMap.Find(pPaylod->Projectile)
-		->CreateBullet(pTarget, pThis->Owner, pPaylod,false ,true))
-	{
-		pPayloadBullet->Limbo();
-		BulletExt::ExtMap.Find(pPayloadBullet)->NukeSW = pNukeSW;
-
-		//TODO:
-		//if (pPaylod->Projectile->Inaccurate)
-		//{}
-
-		CoordStruct nTargetLoc = pTarget->GetCoords();
-		CoordStruct nOffs { 0 , 0, pPaylod->Projectile->DetonationAltitude };
-		CoordStruct dest = nTargetLoc + nOffs;
-
-		constexpr auto nCos = gcem::cos(1.570748388432313); // Accuracy is different from the game
-		constexpr auto nSin = gcem::sin(1.570748388432313); // Accuracy is different from the game
-
-		constexpr double nX = nCos * nCos * -1.0;
-		constexpr double nY = nCos * nSin * -1.0;
-		constexpr double nZ = nSin * -1.0;
-
-		pPayloadBullet->MoveTo(dest, { nX , nY , nZ });
-	}
-
-	return ret;
-}
-
 DEFINE_OVERRIDE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
 {
 	GET(HouseClass*, pThis, ECX);
@@ -1351,6 +1282,81 @@ DEFINE_OVERRIDE_HOOK(0x50B1D0, HouseClass_UpdateSuperWeaponsUnavailable, 6)
 	return 0x50B36E;
 }
 
+//DEFINE_HOOK(0x469BD4, BulletClass_Logics_AnimSelected, 0x8)
+//{
+//	GET(BulletClass*, pThis, ESI);
+//	GET(AnimTypeClass*, Ret, EAX);
+//
+//	Debug::Log("%d . %d\n", pThis, Ret);
+//	return 0x0;
+//}
+
+// create a downward pointing missile if the launched one leaves the map.
+DEFINE_HOOK(0x46B371, BulletClass_NukeMaker, 5)
+{
+	GET(BulletClass* const, pThis, EBP);
+
+	SuperWeaponTypeClass* pNukeSW = nullptr;
+
+	if (auto const pNuke = BulletExt::ExtMap.Find(pThis)->NukeSW)
+	{
+		pNukeSW = pNuke;
+	}
+	else if (auto pLinkedNuke = SuperWeaponTypeClass::Array->
+		GetItemOrDefault(WarheadTypeExt::ExtMap.Find(pThis->WH)->NukePayload_LinkedSW))
+	{
+		pNukeSW = pLinkedNuke;
+	}
+
+	if (pNukeSW)
+	{
+		auto const pSWExt = SWTypeExt::ExtMap.Find(pNukeSW);
+
+		// get the per-SW nuke payload weapon
+		if (WeaponTypeClass const* const pPayload = pSWExt->Nuke_Payload)
+		{
+
+			// these are not available during initialisation, so we gotta
+			// fall back now if they are invalid.
+			auto const damage = NewSWType::GetNewSWType(pSWExt)->GetDamage(pSWExt);
+			auto const pWarhead = NewSWType::GetNewSWType(pSWExt)->GetWarhead(pSWExt);
+
+			// put the new values into the registers
+			R->Stack(0x30, R->EAX());
+			R->ESI(pPayload);
+			R->Stack(0x10, 0);
+			R->Stack(0x18, pPayload->Speed);
+			R->Stack(0x28, pPayload->Projectile);
+			R->EAX(pWarhead);
+			R->ECX(R->lea_Stack<CoordStruct*>(0x10));
+			R->EDX(damage);
+
+			return 0x46B3B7;
+		}
+		else
+		{
+			Debug::Log(
+				"[%s] has no payload weapon type, or it is invalid.\n",
+				pNukeSW->ID);
+		}
+	}
+
+	return 0;
+}
+
+// just puts the launched SW pointer on the downward aiming missile.
+DEFINE_HOOK(0x46B423, BulletClass_NukeMaker_PropagateSW, 6)
+{
+	GET(BulletClass* const, pThis, EBP);
+	GET(BulletClass* const, pNuke, EDI);
+
+	auto const pThisExt = BulletExt::ExtMap.Find(pThis);
+	auto const pNukeExt = BulletExt::ExtMap.Find(pNuke);
+	pNukeExt->NukeSW = pThisExt->NukeSW;
+
+	return 0;
+}
+
 // deferred explosion. create a nuke ball anim and, when that is over, go boom.
 DEFINE_OVERRIDE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
 {
@@ -1361,7 +1367,7 @@ DEFINE_OVERRIDE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
 	auto const pExt = BulletExt::ExtMap.Find(pThis);
 	auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
 
-	enum { Default = 0u, FireNow = 0x467F9Bu, PreImpact = 0x467EC8 };
+	enum { Default = 0u, FireNow = 0x467F9Bu, PreImpact = 0x467ED0 };
 
 	auto allowFlash = true;
 	auto flashDuration = 0;
@@ -1377,7 +1383,7 @@ DEFINE_OVERRIDE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
 		}
 
 		// cause yet another radar event
-		auto const pSWTypeExt = SWTypeExt::ExtMap.Find(pExt->NukeSW->Type);
+		auto const pSWTypeExt = SWTypeExt::ExtMap.Find(pExt->NukeSW);
 
 		if (pSWTypeExt->SW_RadarEvent)
 		{
@@ -1388,12 +1394,10 @@ DEFINE_OVERRIDE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
 
 		if (pSWTypeExt->Lighting_Enabled.isset())
 			allowFlash = pSWTypeExt->Lighting_Enabled.Get();
-
-		flashDuration = 30;
 	}
 
 	// does this create a flash?
-	auto const duration = pWarheadExt->NukeFlashDuration.Get(flashDuration);
+	auto const duration = pWarheadExt->NukeFlashDuration.Get();
 
 	if (allowFlash && duration > 0)
 	{
@@ -1407,20 +1411,94 @@ DEFINE_OVERRIDE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
 		NukeFlash::StartTime = Unsorted::CurrentFrame;
 		NukeFlash::Duration = duration;
 
-		SWTypeExt::ChangeLighting(pExt->NukeSW ? pExt->NukeSW->Type : nullptr);
+		SWTypeExt::ChangeLighting(pExt->NukeSW ? pExt->NukeSW : nullptr);
 		MapClass::Instance->RedrawSidebar(1);
 	}
 
-	if (pWarheadExt->PreImpactAnim.isset())
+	if (auto pPreImpact = pWarheadExt->PreImpactAnim.Get())
 	{
-		R->EDI(pWarheadExt->PreImpactAnim.Get());
+		R->EDI(pPreImpact);
 		return PreImpact;
 	}
 
 	return FireNow;
 }
 
-DEFINE_OVERRIDE_HOOK(0x44CE46, BuildingClass_Mi_Missile_Pulsball, 5)
+//create nuke pointing down to the target
+//DEFINE_HOOK(0x46B310, BulletClass_NukeMaker_Handle, 6)
+//{
+//	GET(BulletClass*, pThis, ECX);
+//
+//	enum { ret = 0x46B53C };
+//
+//	const auto pTarget = pThis->Target;
+//	if (!pTarget)
+//	{
+//		Debug::Log("Bullet[%s] Trying to Apply NukeMaker but has invalid target !\n", pThis->Type->ID);
+//		return ret;
+//	}
+//
+//	WeaponTypeClass* pPaylod = nullptr;
+//	SuperWeaponTypeClass* pNukeSW = nullptr;
+//
+//	if (auto const pNuke = BulletExt::ExtMap.Find(pThis)->NukeSW)
+//	{
+//		pPaylod = SWTypeExt::ExtMap.Find(pNuke)->Nuke_Payload;
+//		pNukeSW = pNuke;
+//	}
+//	else if (auto pLinkedNuke = SuperWeaponTypeClass::Array->
+//		GetItemOrDefault(WarheadTypeExt::ExtMap.Find(pThis->WH)->NukePayload_LinkedSW))
+//	{
+//		pPaylod = SWTypeExt::ExtMap.Find(pLinkedNuke)->Nuke_Payload;
+//		pNukeSW = pLinkedNuke;
+//	}
+//	else
+//	{
+//		pPaylod = WeaponTypeClass::Find(GameStrings::NukePayload());
+//	}
+//
+//	if (!pPaylod || !pPaylod->Projectile)
+//	{
+//		Debug::Log("Bullet[%s] Trying to Apply NukeMaker but has invalid Payload Weapon or Payload Weapon Projectile !\n",
+//			pThis->Type->ID);
+//		return ret;
+//	}
+//	auto targetcoord = pTarget->GetCoords();
+//
+//	R->EAX(SW_NuclearMissile::DropNukeAt(pNukeSW, targetcoord, nullptr, pThis->Owner ? pThis->Owner->Owner : HouseExt::FindCivilianSide(), pPaylod));
+//	return ret;
+//}
+
+DEFINE_HOOK(0x44D455, BuildingClass_Mi_Missile_EMPPulseBulletWeapon, 0x8)
+{
+
+	GET(BuildingClass* const, pThis, ESI);
+	GET(WeaponTypeClass* const, pWeapon, EBP);
+	GET_STACK(BulletClass* const, pBullet, STACK_OFFSET(0xF0, -0xA4));
+	LEA_STACK(CoordStruct*, pCoord, STACK_OFFSET(0xF0, -0x8C));
+
+	if (pWeapon && pBullet)
+	{
+		pBullet->SetWeaponType(pWeapon);
+
+		CoordStruct src = pThis->GetFLH(0, pThis->GetRenderCoords());
+		CoordStruct dest = *pCoord;
+		auto const pTarget = pBullet->Target ? pBullet->Target : MapClass::Instance->GetCellAt(dest);
+
+		// Draw bullet effect
+		Helpers_DP::DrawBulletEffect(pWeapon, src, dest, pThis, pTarget);
+		// Draw particle system
+		Helpers_DP::AttachedParticleSystem(pWeapon, src, pTarget, pThis, dest);
+		// Play report sound
+		Helpers_DP::PlayReportSound(pWeapon, src, pThis);
+		// Draw weapon anim
+		Helpers_DP::DrawWeaponAnim(pWeapon, src, dest, pThis, pTarget);
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x44CE46, BuildingClass_Mi_Missile_EMPulse_Pulsball, 5)
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -1441,6 +1519,8 @@ DEFINE_OVERRIDE_HOOK(0x44CE46, BuildingClass_Mi_Missile_Pulsball, 5)
 	return 0x44CEC2;
 }
 
+// this one setting the building target
+// either it is non EMPulse or EMPulse
 DEFINE_OVERRIDE_HOOK(0x44CCE7, BuildingClass_Mi_Missile_GenericSW, 6)
 {
 	enum { ProcessEMPulse = 0x44CD18, ReturnFromFunc = 0x44D599 };
@@ -1493,39 +1573,6 @@ DEFINE_HOOK(0x44C9F3, BuildingClass_Mi_Missile_PsiWarn, 0x5)
 	return 0x44CA74;
 }
 
-DEFINE_OVERRIDE_HOOK(0x44CB4C, BuildingClass_Mi_Missile_NukeTakeOff, 7)
-{
-	GET(BuildingClass* const, pThis, ESI);
-	GET(BulletClass*, pBullet, EDI);
-	GET(CoordStruct*, pCoord, EAX);
-
-	enum { DeleteBullet = 0x44CC42, SetUpNext = 0x44CCA7 };
-
-	auto const type = TechnoExt::ExtMap.Find(pThis)->LinkedSW->Type;
-	//auto nCos = 0.00004793836;
-	constexpr auto nCos = gcem::cos(1.570748388432313); // Accuracy is different from the game
-	//auto nSin = 0.99999999885;
-	constexpr auto nSin = gcem::sin(1.570748388432313);// Accuracy is different from the game
-
-	const auto nMult = pBullet->Type->Vertical ? 10.0 : 100.0;
-
-	if (!pBullet->MoveTo(*pCoord, { nCos * nCos * nMult , nCos * nSin * nMult , nSin * nMult }))
-		return DeleteBullet;
-
-	if (auto const pAnimType = SWTypeExt::ExtMap.Find(type)->Nuke_TakeOff.Get(RulesClass::Instance->NukeTakeOff))
-	{
-		if (auto pAnim = GameCreate<AnimClass>(pAnimType, *pCoord))
-		{
-			if (!pAnim->ZAdjust)
-				pAnim->ZAdjust = -100;
-
-			pAnim->SetHouse(pThis->GetOwningHouse());
-		}
-	}
-
-	return SetUpNext;
-}
-
 DEFINE_HOOK(0x44C992, BuildingClass_MI_Missile_Safeguard, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
@@ -1540,31 +1587,72 @@ DEFINE_HOOK(0x44C992, BuildingClass_MI_Missile_Safeguard, 0x6)
 }
 
 // Create bullet pointing up to the sky
-DEFINE_HOOK(0x44CABA, BuildingClass_MI_Missile_CreateBullet, 0x7)
+DEFINE_HOOK(0x44CA97, BuildingClass_MI_Missile_CreateBullet, 0x6)
 {
-	enum { SkipGameCode = 0x44CAF2 };
+	enum {
+		SkipGameCode = 0x44CAF2,
+		DeleteBullet = 0x44CC42,
+		SetUpNext = 0x44CCA7,
+		SetRate = 0x44CCB1
+	};
 
 	GET(BuildingClass* const, pThis, ESI);
-	GET(CellClass* const, pTarget, EAX);
 
+	auto pTarget = MapClass::Instance->GetCellAt(pThis->Owner->NukeTarget);
 	auto pSuper = TechnoExt::ExtMap.Find(pThis)->LinkedSW;
-	WeaponTypeClass* pWeapon = pSuper->Type->WeaponType;
-	BulletClass* pBullet = nullptr;
 
-	if (pWeapon)
-	{
-		if (auto pCreated = BulletTypeExt::ExtMap.Find(pWeapon->Projectile)
-			->CreateBullet(pTarget, pThis, pWeapon->Damage, pWeapon->Warhead, 255,
-			WeaponTypeExt::ExtMap.Find(pWeapon)->GetProjectileRange(), pWeapon->Bright || pWeapon->Warhead->Bright, false))
-		{
-			BulletExt::ExtMap.Find(pCreated)->NukeSW = pSuper;
-			pBullet = pCreated;
+	if (WeaponTypeClass* pWeapon = pSuper->Type->WeaponType) {
+
+		//speed harcoded to 255
+		if (auto pCreated = pWeapon->Projectile->CreateBullet(pTarget, pThis, pWeapon->Damage, pWeapon->Warhead, 255 , pWeapon->Bright || pWeapon->Warhead->Bright)) {
+			BulletExt::ExtMap.Find(pCreated)->NukeSW = pSuper->Type;
+			pCreated->Range = WeaponTypeExt::ExtMap.Find(pWeapon)->GetProjectileRange();
+
+
+			pCreated->SetWeaponType(pWeapon);
+
+			if (pThis->PsiWarnAnim)
+			{
+				pThis->PsiWarnAnim->SetBullet(pCreated);
+				pThis->PsiWarnAnim = nullptr;
+			}
+
+			//Limbo-in the bullet will remove the `TechnoClass` owner from the bullet !
+			//pThis->Limbo();
+
+			auto nFLH = pThis->GetFLH(0, CoordStruct::Empty);
+
+			// Otamaa : the original calculation seems causing missile to be invisible
+			//auto nCos = 0.00004793836;
+			//auto nCos = Math::cos(1.570748388432313); // Accuracy is different from the game
+			//auto nSin = 0.99999999885;
+			//auto nSin = Math::sin(1.570748388432313);// Accuracy is different from the game
+
+			const auto nMult = pCreated->Type->Vertical ? 10.0 : 100.0;
+			//const auto nX = nCos * nCos * nMult;
+			//const auto nY = nCos * nSin * nMult;
+			//const auto nZ = nSin * nMult;
+
+			if (!pCreated->MoveTo(nFLH, { 0.0, 0.0 , nMult }))
+				return DeleteBullet;
+
+			if (auto const pAnimType = SWTypeExt::ExtMap.Find(pSuper->Type)->Nuke_TakeOff.Get(RulesClass::Instance->NukeTakeOff))
+			{
+				if (auto pAnim = GameCreate<AnimClass>(pAnimType, nFLH))
+				{
+					if (!pAnim->ZAdjust)
+						pAnim->ZAdjust = -100;
+
+					pAnim->SetHouse(pThis->GetOwningHouse());
+				}
+			}
+
+			return SetUpNext;
 		}
 	}
 
-	R->EAX(pBullet);
-	R->EBX(pWeapon);
-	return SkipGameCode;
+	return SetRate;
+
 }
 
 DEFINE_OVERRIDE_HOOK(0x48A59A, MapClass_SelectDamageAnimation_LightningWarhead, 5)
@@ -1998,10 +2086,7 @@ DEFINE_OVERRIDE_HOOK(0x53A140, LightningStorm_Strike, 7)
 				if (auto const itBolts = pExt->Weather_Bolts.GetElements(
 					RulesClass::Instance->WeatherConBolts))
 				{
-					auto const pBoltAnim = itBolts.at(0);
-					pExt->Weather_CloudHeight = int(
-						((double(pBoltAnim->GetImage()->Height) / 2) - 0.5)
-						* LightningStorm::CloudHeightFactor());
+					pExt->Weather_CloudHeight = GeneralUtils::GetLSAnimHeightFactor(itBolts[0], pCell);
 				}
 			}
 			coords.Z += pExt->Weather_CloudHeight;

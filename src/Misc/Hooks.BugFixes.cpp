@@ -159,9 +159,9 @@ DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
 	//{
 	//	return 0;
 	//}
-	auto totalSpawnAmount = ScenarioClass::Instance->Random.RandomRanged(pType->MinDebris, pType->MaxDebris - 1);
+	auto totalSpawnAmount = ScenarioClass::Instance->Random.RandomRanged(pType->MinDebris, pType->MaxDebris);
 
-	if (pType->DebrisTypes.Count > 0 && pType->DebrisMaximums.Count > 0)
+	if (totalSpawnAmount && pType->DebrisTypes.Count > 0 && pType->DebrisMaximums.Count > 0)
 	{
 		auto nCoords = pThis->GetCoords();
 
@@ -173,7 +173,8 @@ DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
 			if (!pType->DebrisMaximums[currentIndex])
 				continue;
 
-			int amountToSpawn = abs(int(ScenarioClass::Instance->Random.Random())) % pType->DebrisMaximums[currentIndex];
+			//this never goes to 0
+			int amountToSpawn = (abs(int(ScenarioClass::Instance->Random.Random())) % pType->DebrisMaximums[currentIndex]) + 1;
 			amountToSpawn = LessOrEqualTo(amountToSpawn, totalSpawnAmount);
 			totalSpawnAmount -= amountToSpawn;
 
@@ -902,8 +903,8 @@ DEFINE_HOOK(0x451033, BuildingClass_AnimationAI_SuperAnim, 0x6)
 
 	GET(SuperClass*, pSuper, EAX);
 
-	if (pSuper->RechargeTimer.StartTime == 0 
-		&& pSuper->RechargeTimer.TimeLeft == 0 
+	if (pSuper->RechargeTimer.StartTime == 0
+		&& pSuper->RechargeTimer.TimeLeft == 0
 		&& !SWTypeExt::ExtMap.Find(pSuper->Type)->SW_InitialReady)
 		return SkipSuperAnimCode;
 

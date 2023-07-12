@@ -2120,8 +2120,8 @@ static int AnimClass_Expired_SpawnsParticle(REGISTERS* R)
 			{
 				const auto v13 = abs(ScenarioClass::Instance->Random.RandomRanged(nMin, nMax));
 				const auto v10 = ScenarioClass::Instance->Random.RandomDouble() * v17 + v16;
-				const auto v18 = std::cos(v10);
-				const auto v9 = std::sin(v10);
+				const auto v18 = Math::cos(v10);
+				const auto v9 = Math::sin(v10);
 				CoordStruct nCoordB { nCoord.X + static_cast<int>(v13 * v18),nCoord.Y - static_cast<int>(v9 * v13), nCoord.Z };
 				nCoordB.Z = v8 + MapClass::Instance->GetCellFloorHeight(nCoordB);
 				ParticleSystemClass::Instance->SpawnParticle(pType, &nCoordB);
@@ -2919,7 +2919,7 @@ void ObjectClass_ReceiveDamage_NPEXT_EMPulseSparkles(ObjectClass* pTarget)
 enum class KickOutProductionType : int
 {
 	Normal = 0,
-	Droppod,
+	DropPod,
 	Paradrop,
 	Anim,
 };
@@ -2936,7 +2936,7 @@ FunctionreturnType KickoutTechnoType(BuildingClass* pProduction, KickOutProducti
 	bool UnlimboSucceeded = false;
 	switch (nDecided)
 	{
-	case KickOutProductionType::Droppod:
+	case KickOutProductionType::DropPod:
 	{
 		return UnlimboSucceeded ? FunctionreturnType::Succeeded : FunctionreturnType::Failed;
 	}
@@ -4787,7 +4787,7 @@ DEFINE_HOOK(0x444159, BuildingClass_KickoutUnit_WeaponFactory_Rubble, 0x6)
 	return 0x444167; //continue check
 }
 
-//TODO : Droppod WH explosion 4B5D8F ,4B6028
+//TODO : DropPod WH explosion 4B5D8F ,4B6028
 
 DEFINE_HOOK(0x4B5CF1, DropPodLocomotionClass_Process_DroppodPuff, 0x5)
 {
@@ -4851,35 +4851,6 @@ DEFINE_HOOK(0x4B619F, DropPodLocomotionClass_MoveTo_AtmosphereEntry, 0x5)
 	}
 
 	return 0x4B61D6;
-}
-
-DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
-{
-
-	GET(BuildingClass* const, pThis, ESI);
-	GET(WeaponTypeClass* const, pWeapon, EBP);
-	GET_STACK(BulletClass* const, pBullet, STACK_OFFSET(0xF0, -0xA4));
-	LEA_STACK(CoordStruct*, pCoord, STACK_OFFSET(0xF0, -0x8C));
-
-	if (pWeapon && pBullet)
-	{
-		pBullet->SetWeaponType(pWeapon);
-
-		CoordStruct src = pThis->GetFLH(0, pThis->GetRenderCoords());
-		CoordStruct dest = *pCoord;
-		auto const pTarget = pBullet->Target ? pBullet->Target : MapClass::Instance->GetCellAt(dest);
-
-		// Draw bullet effect
-		Helpers_DP::DrawBulletEffect(pWeapon, src, dest, pThis, pTarget);
-		// Draw particle system
-		Helpers_DP::AttachedParticleSystem(pWeapon, src, pTarget, pThis, dest);
-		// Play report sound
-		Helpers_DP::PlayReportSound(pWeapon, src, pThis);
-		// Draw weapon anim
-		Helpers_DP::DrawWeaponAnim(pWeapon, src, dest, pThis, pTarget);
-	}
-
-	return 0;
 }
 
 //https://bugs.launchpad.net/ares/+bug/1577493

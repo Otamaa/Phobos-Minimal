@@ -205,7 +205,7 @@ VelocityClass Helpers_DP::RecalculateVelocityClass(BulletClass* pBullet, CoordSt
 DirStruct Helpers_DP::Point2Dir(CoordStruct& sourcePos, CoordStruct& targetPos)
 {
 	// get angle
-	double radians = std::atan2(static_cast<double>(sourcePos.Y - targetPos.Y), static_cast<double>(targetPos.X - sourcePos.X));
+	double radians = Math::atan2(static_cast<double>(sourcePos.Y - targetPos.Y), static_cast<double>(targetPos.X - sourcePos.X));
 	// Magic form tomsons26
 	radians -= Math::deg2rad_Alternate(90);
 	return DirStruct(static_cast<short>(radians / Math::BINARY_ANGLE_MAGIC_ALTERNATE));
@@ -336,9 +336,9 @@ DirStruct Helpers_DP::DirNormalized(int index, int facing)
 
 CoordStruct Helpers_DP::OneCellOffsetToTarget(CoordStruct& sourcePos, CoordStruct& targetPos)
 {
-	const double angle = std::atan2(static_cast<double>(targetPos.Y - sourcePos.Y), static_cast<double>(targetPos.X - sourcePos.X));
-	int y = static_cast<int>(256.0 * std::tan(angle));
-	int x = static_cast<int>(256.0 / std::tan(angle));
+	const double angle = Math::atan2(static_cast<double>(targetPos.Y - sourcePos.Y), static_cast<double>(targetPos.X - sourcePos.X));
+	int y = static_cast<int>(256.0 * Math::tan(angle));
+	int x = static_cast<int>(256.0 / Math::tan(angle));
 
 	CoordStruct offset = CoordStruct::Empty;
 
@@ -533,7 +533,7 @@ Matrix3D Helpers_DP::GetMatrix3D(TechnoClass* pTechno)
 Vector3D<float> Helpers_DP::ToVector3D(DirStruct& dir)
 {
 	double rad = -dir.GetRadian();
-	return { static_cast<float>(std::cos(rad)), static_cast<float>(std::sin(rad)), 0.0f };
+	return { static_cast<float>(Math::cos(rad)), static_cast<float>(Math::sin(rad)), 0.0f };
 }
 
 Vector3D<float> Helpers_DP::GetForwardVector(TechnoClass* pTechno, bool getTurret)
@@ -560,13 +560,13 @@ CoordStruct Helpers_DP::GetFLH(CoordStruct& source, CoordStruct& flh, DirStruct&
 		double radians = dir.GetRadian();
 
 		double rF = flh.X;
-		double xF = rF * std::cos(-radians);
-		double yF = rF * std::sin(-radians);
+		double xF = rF * Math::cos(-radians);
+		double yF = rF * Math::sin(-radians);
 		CoordStruct offsetF = { static_cast<int>(xF),static_cast<int>(yF), 0 };
 
 		double rL = flip ? flh.Y : -flh.Y;
-		double xL = rL * std::sin(radians);
-		double yL = rL * std::cos(radians);
+		double xL = rL * Math::sin(radians);
+		double yL = rL * Math::cos(radians);
 		CoordStruct offsetL = { static_cast<int>(xL), static_cast<int>(yL), 0 };
 
 		CoordStruct nZFLHBuff { 0, 0, flh.Z };
@@ -803,7 +803,7 @@ CoordStruct Helpers_DP::RandomOffset(int min, int max)
 
 	if (r > 0) {
 		const double theta = ScenarioClass::Instance->Random.RandomDouble() * 2 * Math::PI;
-		return { (int)(r * std::cos(theta)) ,(int)(r * std::sin(theta)) , 0 };
+		return { (int)(r * Math::cos(theta)) ,(int)(r * Math::sin(theta)) , 0 };
 	}
 
 	return CoordStruct::Empty;

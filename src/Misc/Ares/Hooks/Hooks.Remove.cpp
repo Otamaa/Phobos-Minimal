@@ -44,6 +44,8 @@ DEFINE_DISABLE_HOOK(0x70cbda, TechnoClass_DealParticleDamage_ares)
 DEFINE_DISABLE_HOOK(0x6e1780, TActionClass_PlayAudioAtRandomWP_ares)
 DEFINE_DISABLE_HOOK(0x4D99AA, FootClass_PointerGotInvalid_Parasite_ares)
 
+DEFINE_DISABLE_HOOK(0x41668B, AircraftClass_ReceiveDamage_Survivours_ares)
+
 DEFINE_DISABLE_HOOK(0x5673A0, MapClass_RevealArea0_ares)
 DEFINE_DISABLE_HOOK(0x5678E0, MapClass_RevealArea1_ares)
 DEFINE_DISABLE_HOOK(0x567DA0, MapClass_RevealArea2_ares)

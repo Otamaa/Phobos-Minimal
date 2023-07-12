@@ -19,7 +19,7 @@ DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 	{
 		if (pBld && pBld->IsAlive && !pBld->InLimbo && pBld->IsOnMap)
 		{
-			auto pExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+			const auto pExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
 
 			if(pBld->HasPower) {
 				if (pExt->PowerPlantEnhancer_Buildings.size() &&

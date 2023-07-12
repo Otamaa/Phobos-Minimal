@@ -10,6 +10,7 @@
 
 #include <New/Type/TheaterTypeClass.h>
 #include <New/Type/GenericPrerequisite.h>
+#include <New/Type/DigitalDisplayTypeClass.h>
 
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Cast.h>
@@ -873,6 +874,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->Initial_DriverKilled.Read(exINI, pSection, "Initial.DriverKilled");
 
 		this->VoiceCantDeploy.Read(exINI, pSection, "VoiceCantDeploy");
+		this->DigitalDisplay_Disable.Read(exINI, pSection, "DigitalDisplay.Disable");
+		this->DigitalDisplayTypes.Read(exINI, pSection, "DigitalDisplayTypes");
+
 		//not fully working atm , disabled
 		//this->DeployAnims.Read(exINI, pSection, "DeployingAnim");
 
@@ -1746,6 +1750,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SpecificExpFactor)
 		.Process(this->Initial_DriverKilled)
 		.Process(this->VoiceCantDeploy)
+		.Process(this->DigitalDisplay_Disable)
+		.Process(this->DigitalDisplayTypes)
 #pragma endregion
 		;
 

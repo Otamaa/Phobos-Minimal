@@ -27,7 +27,7 @@ enum class Locomotors : int
 	Rocket = 3,
 	Tunnel = 4,
 	Walk = 5,
-	Droppod = 6,
+	DropPod = 6,
 	Fly = 7,
 	Teleport = 8,
 	Mech = 9,

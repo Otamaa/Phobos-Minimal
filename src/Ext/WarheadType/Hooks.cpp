@@ -19,24 +19,24 @@
 
 #pragma region DETONATION
 
-// DEFINE_HOOK(0x46920B, BulletClass_Logics, 0x6)
-// {
-// 	GET(BulletClass* const, pThis, ESI);
-// 	GET_BASE(const CoordStruct*, pCoords, 0x8);
-//
-// 	if (pThis && pThis->WH)
-// 	{
-// 		auto const pExt = BulletExt::ExtMap.Find(pThis);
-// 		auto const pTechno = pThis->Owner ? pThis->Owner : nullptr;
-// 		auto const pHouse = pTechno ? pTechno->Owner : pExt->Owner ? pExt->Owner : nullptr;
-//
-// 		WarheadTypeExt::ExtMap.Find(pThis->WH)->Detonate(pTechno, pHouse, pThis, *pCoords);
-// 	}
-//
-// 	PhobosGlobal::Instance()->DetonateDamageArea = false;
-//
-// 	return 0;
-// }
+ DEFINE_HOOK(0x46920B, BulletClass_Logics, 0x6)
+ {
+ 	GET(BulletClass* const, pThis, ESI);
+ 	GET_BASE(const CoordStruct*, pCoords, 0x8);
+
+ 	if (pThis && pThis->WH)
+ 	{
+ 		auto const pExt = BulletExt::ExtMap.Find(pThis);
+ 		auto const pTechno = pThis->Owner ? pThis->Owner : nullptr;
+ 		auto const pHouse = pTechno ? pTechno->Owner : pExt->Owner ? pExt->Owner : nullptr;
+
+ 		WarheadTypeExt::ExtMap.Find(pThis->WH)->Detonate(pTechno, pHouse, pThis, *pCoords);
+ 	}
+
+ 	PhobosGlobal::Instance()->DetonateDamageArea = false;
+
+ 	return 0;
+ }
 
 DEFINE_HOOK(0x46A290, BulletClass_Logics_Return, 0x5)
 {
@@ -95,13 +95,14 @@ DEFINE_HOOK(0x48A551, WarheadTypeClass_AnimList_SplashList, 0x6)
 	GET(WarheadTypeClass* const, pThis, ESI);
 	auto pWHExt = WarheadTypeExt::ExtMap.Find(pThis);
 
-	if (pWHExt->SplashList.size())
+	if (const auto Vec = pWHExt->SplashList.GetElements(RulesClass::Instance->SplashList))
 	{
 		GET(int, nDamage, ECX);
 		int idx = pWHExt->SplashList_PickRandom ?
-			ScenarioClass::Instance->Random.RandomFromMax(pWHExt->SplashList.size() - 1) :
-			MinImpl(pWHExt->SplashList.size() * 35 - 1, (size_t)nDamage) / 35;
-		R->EAX(pWHExt->SplashList[idx]);
+			ScenarioClass::Instance->Random.RandomFromMax(Vec.size() - 1) :
+			MinImpl(Vec.size() * 35 - 1, (size_t)nDamage) / 35;
+
+		R->EAX(Vec[idx]);
 		return 0x48A5AD;
 	}
 
@@ -111,7 +112,8 @@ DEFINE_HOOK(0x48A551, WarheadTypeClass_AnimList_SplashList, 0x6)
 DEFINE_HOOK(0x48A5BD, WarheadTypeClass_AnimList_PickRandom, 0x6)
 {
 	GET(WarheadTypeClass* const, pThis, ESI);
-	return WarheadTypeExt::ExtMap.Find(pThis)->AnimList_PickRandom ? 0x48A5C7 : 0;
+	return WarheadTypeExt::ExtMap.Find(pThis)->AnimList_PickRandom.Get(pThis->EMEffect)
+		? 0x48A5C7 : 0x48A5EB;
 }
 
 DEFINE_HOOK(0x48A5B3, WarheadTypeClass_AnimList_CritAnim, 0x6)

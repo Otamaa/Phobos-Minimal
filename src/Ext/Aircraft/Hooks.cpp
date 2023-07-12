@@ -232,7 +232,7 @@ enum class AirAttackStatusP : int
 //				DirStruct nDir {};
 //
 //				if (v17.X != v16.X || v17.Y != v16.Y) {
-//					nDir.SetRadian<65536>(std::atan2(double(v17.Y - v16.Y), double(v16.X - v17.X))); ;
+//					nDir.SetRadian<65536>(Math::atan2(double(v17.Y - v16.Y), double(v16.X - v17.X))); ;
 //				}			
 //
 //				pThis->SecondaryFacing.Set_Desired(nDir);
