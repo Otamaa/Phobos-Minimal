@@ -134,7 +134,9 @@ namespace Math
 	}
 
 	// template <typename T>
-	// inline double stdsqrt(T val) { return std::sqrt(val); }
+	// inline double stdsqrt(T val) { return Math::sqrt(val); }
+
+	inline double sqrt(int val) { return sqrt((double)val); }
 
 	inline constexpr double deg2rad(double deg)
 	{
@@ -146,7 +148,7 @@ namespace Math
 		return deg * C_Sharp_Pi / 180.0;
 	}
 
-	//template <typename T> inline constexpr 
+	//template <typename T> inline constexpr
 	//	int signum(T val) {
 	//	// http://stackoverflow.com/a/4609795
 	//	return (T(0) < val) - (val < T(0));

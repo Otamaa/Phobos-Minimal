@@ -880,6 +880,11 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		//not fully working atm , disabled
 		//this->DeployAnims.Read(exINI, pSection, "DeployingAnim");
 
+		this->AmmoPip.Read(exINI, pSection, "AmmoPip");
+		this->EmptyAmmoPip.Read(exINI, pSection, "EmptyAmmoPip");
+		this->PipWrapAmmoPip.Read(exINI, pSection, "PipWrapAmmoPip");
+		this->AmmoPipSize.Read(exINI, pSection, "AmmoPipSize");
+
 #pragma region AircraftOnly
 		if (Is_AircraftType(pThis))
 		{
@@ -1752,6 +1757,10 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->VoiceCantDeploy)
 		.Process(this->DigitalDisplay_Disable)
 		.Process(this->DigitalDisplayTypes)
+		.Process(this->AmmoPip)
+		.Process(this->EmptyAmmoPip)
+		.Process(this->PipWrapAmmoPip)
+		.Process(this->AmmoPipSize)
 #pragma endregion
 		;
 

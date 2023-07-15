@@ -133,7 +133,7 @@ void SpiralTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosit
 	{
 		if (this->CurrentRadius < type->MaxRadius)
 		{
-			double speed = std::sqrt(pow(pSpeed->X, 2) + pow(pSpeed->Y, 2));
+			double speed = Math::sqrt(pow(pSpeed->X, 2) + pow(pSpeed->Y, 2));
 			this->CurrentRadius += type->MaxRadius / (type->Length / speed);
 		}
 	}
@@ -141,7 +141,7 @@ void SpiralTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosit
 	{
 		if (this->CurrentRadius > 0)
 		{
-			double speed = std::sqrt(pow(pSpeed->X, 2) + pow(pSpeed->Y, 2));
+			double speed = Math::sqrt(pow(pSpeed->X, 2) + pow(pSpeed->Y, 2));
 			this->CurrentRadius -= type->MaxRadius / (type->Length / speed);
 		}
 		else if (!this->close)

@@ -2134,6 +2134,7 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->SW_Deliverables)
 		.Process(this->SW_DeliverBuildups)
+		.Process(this->SW_BaseNormal)
 		.Process(this->SW_OwnerHouse)
 
 		.Process(this->SW_ShowCameo)

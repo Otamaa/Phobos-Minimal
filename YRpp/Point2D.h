@@ -81,7 +81,7 @@ public:
 
 	int Length() const
 	{
-		return static_cast<int>(std::sqrt(static_cast<double>((X * X) + (Y * Y))));
+		return static_cast<int>(Math::sqrt(static_cast<double>((X * X) + (Y * Y))));
 	}
 
 public:

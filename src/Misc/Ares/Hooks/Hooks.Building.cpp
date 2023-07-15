@@ -963,29 +963,11 @@ struct AresBldExtStuffs
 		if (pTypeExt->SpyEffect_ResetSW)
 		{
 			bool somethingReset = false;
-			const auto buildingSWCount = pTypeExt->GetSuperWeaponCount();
-			for (auto i = 0; i < buildingSWCount; ++i)
-			{
-				if (auto pSuper = Owner->Supers.GetItemOrDefault(i))
-				{
-					pSuper->Reset();
-					somethingReset = true;
-				}
-			}
-
-			for (int i = 0; i < EnteredType->Upgrades; ++i)
-			{
-				if (auto Upgrade = EnteredBuilding->Upgrades[i])
-				{
-					auto UpgradeExt = BuildingTypeExt::ExtMap.Find(Upgrade);
-					const auto upgradeSWCount = UpgradeExt->GetSuperWeaponCount();
-
-					for (auto j = 0; j < upgradeSWCount; ++j)
-					{
-						int swIdx = UpgradeExt->GetSuperWeaponIndex(j, Owner);
-						if (swIdx != -1)
-						{
-							Owner->Supers.Items[swIdx]->Reset();
+			for (auto types : EnteredBuilding->GetTypes()) {
+				if (auto typeExt = BuildingTypeExt::ExtMap.TryFind(types)) {
+					for (auto i = 0; i < typeExt->GetSuperWeaponCount(); ++i) {
+						if (auto pSuper = Owner->Supers.GetItemOrDefault(i)) {
+							pSuper->Reset();
 							somethingReset = true;
 						}
 					}
@@ -1130,7 +1112,7 @@ struct AresBldExtStuffs
 
 			if (bounty > 0)
 			{
-				bounty = std::min(bounty, available);
+				bounty = MinImpl(bounty, available);
 				Owner->TakeMoney(bounty);
 				Enterer->GiveMoney(bounty);
 				if (evaForOwner)
@@ -1421,7 +1403,7 @@ struct AresBldExtStuffs
 
 };
 
-// Fixing this wont change anything unless i change 
+// Fixing this wont change anything unless i change
 // everything that reference this function , for fuck sake
 //DEFINE_OVERRIDE_HOOK(0x4440378, BuildingClass_Update_FirestormWall, 6)
 //{
@@ -1980,8 +1962,8 @@ DEFINE_OVERRIDE_HOOK(0x441f2c ,BuildingClass_Destroy_KickOutOfRubble, 5)
 	return 0x0;
 }
 
-//there is 2 missing elemts here 
-// it is seems not readed from ini but only stored on BuildingTypeExt::ExtData 
+//there is 2 missing elemts here
+// it is seems not readed from ini but only stored on BuildingTypeExt::ExtData
 //void UpdateBuildupFrames(BuildingTypeClass* pThis)
 //{
 //	if (auto const pShp = pThis->Buildup)

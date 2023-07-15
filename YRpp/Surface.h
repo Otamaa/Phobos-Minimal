@@ -160,7 +160,7 @@ class NOVTABLE XSurface : public Surface
 public:
 
 	static inline constexpr DWORD vtable = 0x7E2104;
-	
+
 	XSurface() : Surface(), LockLevel(0), BytesPerPixel(0) { VTable::Set(this , vtable); }
 	XSurface(int width, int height) JMP_THIS(0x5FE020);
 	XSurface(int width, int height, int bpp) : Surface(width, height), LockLevel(0), BytesPerPixel(bpp) { VTable::Set(this, vtable); }
@@ -220,7 +220,7 @@ public:
 
 	void DrawEllipse(int CenterX, int CenterY, double CellSpread, RectangleStruct Rect, COLORREF nColor)
 	{
-		double factor = (CellSpread * 2 + 1) / std::sqrt(8);
+		double factor = (CellSpread * 2 + 1) / Math::sqrt(8);
 
 		int semiMajor = static_cast<int>(factor * Unsorted::CellWidthInPixels);
 		int semiMinor = static_cast<int>(factor * Unsorted::CellHeightInPixels);
@@ -365,7 +365,7 @@ static void __fastcall Draw_Radial_Indicator(bool draw_line, bool adjust_color, 
 static bool __fastcall Buffer_To_Surface_wrapper(Surface *tosurface, RectangleStruct *torect, Surface *fromsurface, RectangleStruct *fromrect) {
 	JMP_STD(0x7BC1F0);
 }
-static bool __fastcall Buffer_To_Surface_wrapper(Surface *tosurface, RectangleStruct *torect, Surface *fromsurface, RectangleStruct *fromrect, Blitter *blitter, int z_val, int somearrayindex, int alpha_val, int Blit_Move_2_arg) {
+static bool __fastcall Buffer_To_Surface_wrapper(Surface *tosurface, RectangleStruct *torect, Surface *fromsurface, RectangleStruct *fromrect, void* blitter, int z_val, int somearrayindex, int alpha_val, int Blit_Move_2_arg) {
   JMP_STD(0x437350);
 }
 

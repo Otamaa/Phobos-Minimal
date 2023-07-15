@@ -648,7 +648,7 @@ void LevitateLocomotionClass::ProcessSomething()
 		this->DeltaY = this->AccelerationDurationNegSinus + this->DeltaY;
 	}
 
-	this->CurrentVelocity = std::sqrt(this->DeltaY * this->DeltaY + this->DeltaX * this->DeltaX);
+	this->CurrentVelocity = Math::sqrt(this->DeltaY * this->DeltaY + this->DeltaX * this->DeltaX);
 
 	const CoordStruct nDelta = { (int)this->DeltaX , (int)this->DeltaY , 0 };
 	const CoordStruct nRender = LinkedTo->GetCenterCoords();

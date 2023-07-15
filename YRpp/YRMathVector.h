@@ -96,7 +96,7 @@ public:
 	//magnitude
 	double Magnitude() const
 	{
-		return std::sqrt(MagnitudeSquared());
+		return Math::sqrt(MagnitudeSquared());
 	}
 	//magnitude squared
 	double MagnitudeSquared() const
@@ -153,7 +153,7 @@ public:
 		v = fmax(v, -1.0);
 		v = fmin(v, 1.0);
 
-		return std::acos(v);
+		return Math::acos(v);
 	}
 
 	Vector2D FromPolar(double rad, double theta)
@@ -366,7 +366,7 @@ private:
 
 	double MagnitudeFor(Vector2D v)
 	{
-		return std::sqrt(SqrMagnitude(v));
+		return Math::sqrt(SqrMagnitude(v));
 	}
 
 };
@@ -471,11 +471,11 @@ public:
 	//magnitude
 	double Magnitude() const
 	{
-		return std::sqrt(MagnitudeSquared());
+		return Math::sqrt(MagnitudeSquared());
 	}
 
 	double MagnitudeXY()
-	{ return std::sqrt(X * X + Y * Y); }
+	{ return Math::sqrt(X * X + Y * Y); }
 
 	//magnitude squared
 	double MagnitudeSquared() const
@@ -537,7 +537,7 @@ public:
 		v = fmax(v, -1.0);
 		v = fmin(v, 1.0);
 
-		return std::acos(v);
+		return Math::acos(v);
 	}
 
 	Vector3D Lerp(Vector3D b, double t)
@@ -817,7 +817,7 @@ private:
 
 	double MagnitudeFor(Vector3D v)
 	{
-		return std::sqrt(SqrMagnitude(v));
+		return Math::sqrt(SqrMagnitude(v));
 	}
 
 	double SqrMagnitude(Vector3D v)
@@ -860,7 +860,7 @@ public:
 
 	double Length() const
 	{
-		return std::sqrt(Length2());
+		return Math::sqrt(Length2());
 	}
 
 	inline void Swap(Vector4D &b)

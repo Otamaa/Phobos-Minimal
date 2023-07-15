@@ -3729,42 +3729,42 @@ DEFINE_HOOK(0x6F7EFE, TechnoClass_CanAutoTargetObject_SelectWeapon, 6)
 	return Allow ? AllowAttack : ContinueCheck;
 }
 
-DEFINE_HOOK(0x70A3E5, TechnoClass_DrawPipScale_Ammo_Idx, 7)
-{
-	GET(TechnoClass* const, pThis, EBP);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	R->ESP(pTypeExt->PipScaleIndex.Get(13));
-	return 0x0;
-}
+// DEFINE_HOOK(0x70A3E5, TechnoClass_DrawPipScale_Ammo_Idx, 7)
+// {
+// 	GET(TechnoClass* const, pThis, EBP);
+// 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+// 	R->ESP(pTypeExt->PipScaleIndex.Get(13));
+// 	return 0x0;
+// }
 
-DEFINE_HOOK(0x70A35D, TechnoClass_DrawPipScale_Ammo, 5)
-{
-	GET(TechnoClass* const, pThis, EBP);
-	GET_STACK(RectangleStruct*, pRect, 0x80);
-	GET_STACK(int const, nX, 0x50);
-	GET_STACK(int const, nY, 0x54);
-
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	if (pTypeExt->AmmoPip.isset())
-	{
-		const auto pSHApe = pTypeExt->AmmoPip;
-		const int nFrame = int(((1.0 - pThis->Ammo) / pTypeExt->Get()->Ammo) * pSHApe->Frames);
-		Point2D offs { nX, nY };
-		offs += pTypeExt->AmmoPip_Offset.Get();
-		ConvertClass* pConvert = FileSystem::PALETTE_PAL();
-		if (const auto pConvertData = pTypeExt->AmmoPip_Palette)
-		{
-			pConvert = pConvertData->GetConvert<PaletteManager::Mode::Default>();
-		}
-
-		DSurface::Temp->DrawSHP(pConvert, pSHApe,
-			nFrame, &offs, pRect, (BlitterFlags)0x600u, 0, 0, 1000, 0, 0, nullptr, 0, 0, 0);
-
-		return 0x70A4EC;
-	}
-
-	return 0x0;
-}
+// DEFINE_HOOK(0x70A35D, TechnoClass_DrawPipScale_Ammo, 5)
+// {
+// 	GET(TechnoClass* const, pThis, EBP);
+// 	GET_STACK(RectangleStruct*, pRect, 0x80);
+// 	GET_STACK(int const, nX, 0x50);
+// 	GET_STACK(int const, nY, 0x54);
+//
+// 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+// 	if (pTypeExt->AmmoPip.isset())
+// 	{
+// 		const auto pSHApe = pTypeExt->AmmoPip;
+// 		const int nFrame = int(((1.0 - pThis->Ammo) / pTypeExt->Get()->Ammo) * pSHApe->Frames);
+// 		Point2D offs { nX, nY };
+// 		offs += pTypeExt->AmmoPip_Offset.Get();
+// 		ConvertClass* pConvert = FileSystem::PALETTE_PAL();
+// 		if (const auto pConvertData = pTypeExt->AmmoPip_Palette)
+// 		{
+// 			pConvert = pConvertData->GetConvert<PaletteManager::Mode::Default>();
+// 		}
+//
+// 		DSurface::Temp->DrawSHP(pConvert, pSHApe,
+// 			nFrame, &offs, pRect, (BlitterFlags)0x600u, 0, 0, 1000, 0, 0, nullptr, 0, 0, 0);
+//
+// 		return 0x70A4EC;
+// 	}
+//
+// 	return 0x0;
+// }
 
 DEFINE_HOOK(0x741554, UnitClass_ApproachTarget_CrushRange, 0x6)
 {
@@ -4939,6 +4939,13 @@ DEFINE_HOOK(0x44E809, BuildingClass_PowerOutput_Absorber, 0x6)
 }
 
 DEFINE_JUMP(LJMP, 0x4417A7, 0x44180A);
+
+DEFINE_HOOK(0x6FA4E5, TechnoClass_AI_RecoilUpdate, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	return !pThis->InLimbo ? 0x0 : 0x6FA4FB;
+}
 
 //bool NOINLINE IsLaserFence(BuildingClass* pNeighbour, BuildingClass* pThis, short nFacing)
 //{

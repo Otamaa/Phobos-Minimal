@@ -36,7 +36,6 @@ public:
 		CellStruct Temp_CellStruct { };
 		//TechnoClass* Firer { nullptr };
 		SWStatus Statusses { };
-		LauchData LauchDatas { };
 
 		ExtData(SuperClass* OwnerObject) : Extension<SuperClass>(OwnerObject)
 		{ }

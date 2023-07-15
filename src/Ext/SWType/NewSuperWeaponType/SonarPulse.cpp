@@ -8,6 +8,14 @@ std::vector<const char*> SW_SonarPulse::GetTypeString() const
 	return { "SonarPulse" };
 }
 
+SuperWeaponFlags SW_SonarPulse::Flags(const SWTypeExt::ExtData* pData) const
+{
+	if (this->GetRange(pData).WidthOrRange > 0)
+		return SuperWeaponFlags::NoEvent;
+
+	return SuperWeaponFlags::None;
+}
+
 bool SW_SonarPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	auto const pType = pThis->Type;
@@ -43,7 +51,7 @@ bool SW_SonarPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 		return true;
 	};
 
-	auto const range = GetRange(pData);
+	auto const range = this->GetRange(pData);
 
 	if (range.WidthOrRange < 0)
 	{
@@ -52,7 +60,6 @@ bool SW_SonarPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 		{
 			Detect(pTechno);
 		}
-
 	}
 	else
 	{

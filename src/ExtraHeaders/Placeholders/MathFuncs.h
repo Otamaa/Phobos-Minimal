@@ -6,7 +6,7 @@ void static_init_math_pow_sqrt_0076C0A0()
 	long double v0; // st7
 
 	v0 = pow(256.0, 2.0);
-	dbl_B72A30 = FastMath::Sqrt(v0 + v0);
+	dbl_B72A30 = FastMath::sqrt(v0 + v0);
 }
 
 signed __int64 static_init_math_cell_height_leptons_0076C170()

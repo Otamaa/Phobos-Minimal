@@ -128,7 +128,6 @@ void SuperExt::ExtData::Serialize(T& Stm) {
 		.Process(this->Temp_IsPlayer)
 		//.Process(this->Firer)
 		.Process(this->Statusses)
-		.Process(this->LauchDatas)
 		;
 }
 

@@ -747,8 +747,8 @@ public:
 		v14 = static_cast<float>(dz);
 		siny = static_cast<float>(dz * v14);
 		cosp = v12 * v12;
-		len1 = std::sqrt(dy * dy + cosp + siny);
-		len2 = std::sqrt(cosp + siny);
+		len1 = Math::sqrt(dy * dy + cosp + siny);
+		len2 = Math::sqrt(cosp + siny);
 		if (len1 == 0.0f)
 		{
 			sinp = 0.0f;
@@ -849,7 +849,7 @@ public:
 		v22 = _dy * _dy;
 		v5 = _dx * _dx;
 		v21 = static_cast<float>(v5);
-		x = std::sqrt(v5 + v22);
+		x = Math::sqrt(v5 + v22);
 		pitch = Math::atan2(-v31, static_cast<float>(x));
 		yawc = Math::cos(yaw);
 		yaws = Math::sin(yaw);
@@ -861,7 +861,7 @@ public:
 		v33 = static_cast<float>(v8 * yawc + rolls * yaws);
 		v34 = static_cast<float>(v8 * yaws - rolls * yawc);
 		v35 = v17 * v24;
-		len = std::sqrt(v31 * v31 + v21 + v22);
+		len = Math::sqrt(v31 * v31 + v21 + v22);
 		if (len != 0.0)
 		{
 			v18 = static_cast<float>(_dx / len);

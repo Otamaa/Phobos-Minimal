@@ -8,6 +8,7 @@
 #include <Ext/Techno/Body.h>
 
 #include "PaletteManager.h"
+#include <string>
 
 Enumerable<DigitalDisplayTypeClass>::container_t Enumerable<DigitalDisplayTypeClass>::Array;
 
@@ -39,19 +40,19 @@ void DigitalDisplayTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->InfoType.Read(exINI, section, "InfoType");
 }
 
-void DigitalDisplayTypeClass::Draw(Point2D position, int length, int value, int maxValue, bool isBuilding, bool isInfantry, bool hasShield) const
+void DigitalDisplayTypeClass::Draw(Point2D position, int length, int value, int maxValue, bool isBuilding, bool isInfantry, bool hasShield)
 {
-	position.X += Offset->X;
-	position.Y -= Offset->Y;
+	position.X += this->Offset->X;
+	position.Y -= this->Offset->Y;
 
 	if (hasShield)
 	{
-		if (Offset_ShieldDelta.isset())
+		if (this->Offset_ShieldDelta.isset())
 		{
-			position.X += Offset_ShieldDelta->X;
-			position.Y -= Offset_ShieldDelta->Y;
+			position.X += this->Offset_ShieldDelta->X;
+			position.Y -= this->Offset_ShieldDelta->Y;
 		}
-		else if (InfoType == DisplayInfoType::Shield)
+		else if (this->InfoType == DisplayInfoType::Shield)
 		{
 			position.Y -= 10;	//default
 		}
@@ -59,134 +60,114 @@ void DigitalDisplayTypeClass::Draw(Point2D position, int length, int value, int 
 
 	if (isBuilding)
 	{
-		if (AnchorType_Building == BuildingSelectBracketPosition::Top)
+		if (this->AnchorType_Building == BuildingSelectBracketPosition::Top)
 			position.Y -= 4; //Building's pips height
-		else if (AnchorType_Building == BuildingSelectBracketPosition::LeftTop || AnchorType_Building == BuildingSelectBracketPosition::LeftBottom)
+		else if (this->AnchorType_Building == BuildingSelectBracketPosition::LeftTop || this->AnchorType_Building == BuildingSelectBracketPosition::LeftBottom)
 			position.X -= 8; //anchor to the left border of pips
 	}
 
-	if (Shape != nullptr)
-		DisplayShape(position, length, value, maxValue, isBuilding, isInfantry, hasShield);
+	if (this->Shape != nullptr)
+		this->DisplayShape(position, length, value, maxValue, isBuilding, isInfantry, hasShield);
 	else
-		DisplayText(position, length, value, maxValue, isBuilding, isInfantry, hasShield);
+		this->DisplayText(position, length, value, maxValue, isBuilding, isInfantry, hasShield);
 }
 
-void DigitalDisplayTypeClass::DisplayText(Point2D& position, int length, int value, int maxValue, bool isBuilding, bool isInfantry, bool hasShield) const
+void DigitalDisplayTypeClass::DisplayText(Point2D& position, int length, int value, int maxValue, bool isBuilding, bool isInfantry, bool hasShield)
 {
-	wchar_t text[0x20];
+	std::wstring valueString(std::move(Percentage ?
+		std::to_wstring(static_cast<int>(static_cast<double>(value) / maxValue * 100)) :
+		std::to_wstring(value)
+	));
 
-	if (Percentage.Get())
+	if (Percentage)
+		valueString.push_back('%%');
+	else if (!HideMaxValue.Get(isInfantry))
 	{
-		swprintf_s(text, L"%d", static_cast<int>((static_cast<double>(value) / maxValue) * 100));
-		wcscat_s(text, L"%%");
-	}
-	else if (HideMaxValue.Get(isInfantry))
-	{
-		swprintf_s(text, L"%d", value);
-	}
-	else
-	{
-		swprintf_s(text, L"%d/%d", value, maxValue);
+		valueString += '/';
+		valueString += std::to_wstring(maxValue);
 	}
 
 	double ratio = static_cast<double>(value) / maxValue;
-	COLORREF color = Drawing::RGB_To_Int(Text_Color.Get(ratio));
+	COLORREF color = Drawing::RGB_To_Int(this->Text_Color.Get(ratio));
 	RectangleStruct rect = DSurface::Composite->Get_Rect();
 	const int textHeight = 12;
 	const int pipsHeight = hasShield ? 4 : 0;
 
-	if (AnchorType.Vertical == VerticalPosition::Top)
+	if (this->AnchorType.Vertical == VerticalPosition::Top)
 		position.Y -= textHeight + pipsHeight; // upper of healthbar and shieldbar
 
-	TextPrintType printType = static_cast<TextPrintType>(Align.Get())
+	TextPrintType printType = static_cast<TextPrintType>(this->Align.Get())
 		| TextPrintType::FullShadow
-		| (Text_Background ? TextPrintType::Background : TextPrintType::LASTPOINT);
+		| (this->Text_Background ? TextPrintType::Background : TextPrintType::LASTPOINT);
 
-	DSurface::Composite->DSurfaceDrawText(text, &rect, &position, color, 0, printType);
+	DSurface::Composite->DSurfaceDrawText(valueString.c_str(), &rect, &position, color, 0, printType);
 }
 
-void DigitalDisplayTypeClass::DisplayShape(Point2D& position, int length, int value, int maxValue, bool isBuilding, bool isInfantry, bool hasShield) const
+Point2D GetSpacing(const Nullable<Point2D>& shapeSpace, bool isBuilding)
+{
+	if (shapeSpace.isset())
+		return shapeSpace.Get();
+
+	if (isBuilding)
+		return { 4, -2 };
+
+	return { 4 , 0 };
+}
+
+struct FrameData
+{
+	int Base, Extra;
+};
+
+void DigitalDisplayTypeClass::DisplayShape(Point2D& position, int length, int value, int maxValue, bool isBuilding, bool isInfantry, bool hasShield)
 {
 	std::string valueString(std::move(Percentage ?
-		GeneralUtils::IntToDigits(static_cast<int>(static_cast<double>(value) / maxValue * 100)) :
-		GeneralUtils::IntToDigits(value)
+		std::to_string(static_cast<int>(static_cast<double>(value) / maxValue * 100)) :
+		std::to_string(value)
 	));
 
-	std::string maxValueString(!Percentage && !HideMaxValue.Get(isInfantry) ?
-		std::move(GeneralUtils::IntToDigits(maxValue)) :
-		""
-	);
-
-	Vector2D<int> spacing = (
-		Shape_Spacing.isset() ?
-		Shape_Spacing.Get() :
-		(isBuilding ? Vector2D<int> { 4, -2 } : Vector2D<int> { 4, 0 }) // default
-	);
+	Point2D spacing = GetSpacing(this->Shape_Spacing,isBuilding);
 	const int pipsHeight = hasShield ? 4 : 0;
 
 	if (Percentage)
 		valueString.push_back('%');
 	else if (!HideMaxValue.Get(isInfantry))
-		valueString += '/' + maxValueString;
+	{
+		valueString += '/';
+		valueString += std::to_string(maxValue);
+	}
 
 	if (AnchorType.Vertical == VerticalPosition::Top)
 		position.Y -= Shape->Height + pipsHeight; // upper of healthbar and shieldbar
 
 	switch (Align)
 	{
-	case TextAlign::Left:
-	{
-		break;
-	}
 	case TextAlign::Center:
 	{
-		position.X -= valueString.length() * spacing.X / 2;
-		position.Y += valueString.length() * spacing.Y / 2;
+		position.X -= (int)valueString.length() * spacing.X / 2;
+		position.Y += (int)valueString.length() * spacing.Y / 2;
 		break;
 	}
 	case TextAlign::Right:
 	{
+		std::reverse(valueString.begin(), valueString.end());
 		position.X -= spacing.X;
+		spacing.X = -spacing.X;
 		break;
 	}
+	default:
+		break;
 	}
 
-	const int greenBaseFrame = 0;
-	const int yellowBaseFrame = 10;
-	const int redBaseFrame = 20;
-	const int greenExtraFrame = 30;
-	const int yellowExtraFrame = 32;
-	const int redExtraFrame = 34;
-	int numberBaseFrame = greenBaseFrame;
-	int extraBaseFrame = greenExtraFrame;
-	double ratio = static_cast<double>(value) / maxValue;
-
-	if (ratio > RulesClass::Instance->ConditionYellow)
-		numberBaseFrame = greenBaseFrame;
-	else if (ratio > RulesClass::Instance->ConditionRed)
-		numberBaseFrame = yellowBaseFrame;
-	else
-		numberBaseFrame = redBaseFrame;
-
-	if (numberBaseFrame == yellowBaseFrame)
-		extraBaseFrame = yellowExtraFrame;
-	else if (numberBaseFrame == redBaseFrame)
-		extraBaseFrame = redExtraFrame;
-
-	if (Align == TextAlign::Right)
-	{
-		std::reverse(valueString.begin(), valueString.end());
-		spacing.X = -spacing.X;
-	}
-
-	ConvertClass* pPal = Palette.Get() ? Palette->GetConvert<PaletteManager::Mode::Default>() : FileSystem::PALETTE_PAL;
+	const auto ExtraFrame = GeneralUtils::GetItemByHealthRatio<FrameData>(static_cast<double>(value) / maxValue, { 0, 30 }, { 10 , 32 }, { 20 , 34 });
+	ConvertClass* pPal = Palette.Get() ? Palette->GetConvert<PaletteManager::Mode::Temperate>() : FileSystem::PALETTE_PAL;
 
 	ShapeTextPrintData shapeTextPrintData
 	(
 		Shape.Get(),
 		pPal,
-		numberBaseFrame,
-		extraBaseFrame,
+		ExtraFrame.Base,
+		ExtraFrame.Extra,
 		spacing
 	);
 

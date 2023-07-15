@@ -21,8 +21,8 @@ struct LauchData
 
 struct TunnelData
 {
-	std::vector<FootClass*> Vector;
-	int MaxCap;
+	std::vector<FootClass*> Vector {};
+	int MaxCap { 1 };
 };
 
 class HouseExt
@@ -77,7 +77,7 @@ public:
 		//#830
 		PhobosMap<TechnoClass* , KillMethod> AutoDeathObjects {};
 
-		//std::vector<LauchData> LaunchDatas;
+		std::vector<LauchData> LaunchDatas {};
 		bool CaptureObjectExecuted { false };
 		CDTimerClass DiscoverEvaDelay {};
 		std::vector<TunnelData> Tunnels {};
@@ -200,4 +200,7 @@ public:
 		auto const index = FindBuildableIndex(pHouse, idxParent, items, start);
 		return index < items.size() ? items[index] : nullptr;
 	}
+
+	static TunnelData* GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx);
+	static TunnelData* GetTunnels(BuildingTypeClass* pBld, HouseClass* pHouse);
 };

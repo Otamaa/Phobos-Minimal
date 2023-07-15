@@ -6,38 +6,33 @@ class ShapeTextPrintData
 {
 public:
 	// Shape
-	const SHPStruct* const Shape;
-	const ConvertClass* const Palette;
+	SHPStruct* Shape;
+	ConvertClass* Palette;
 	int BaseNumberFrame;	// frame index of 0
-	int BaseSignFrame;		// as sequence ShapeTextPrinter::SignSequence
-	Vector2D<int> Interval;
+	int BaseExtraFrame;		// as sequence ShapeTextPrinter::SignSequence
+	Point2D Spacing;
 
-	ShapeTextPrintData(const SHPStruct* const shape, const ConvertClass* const palette, int iBaseNumberFrame, int iBaseSignFrame, const Vector2D<int>& vInterval)
+	ShapeTextPrintData(SHPStruct* shape, ConvertClass* palette, int iBaseNumberFrame, int baseExtraFrame, const Point2D& spacing)
 		: Shape { shape }
 		, Palette { palette }
 		, BaseNumberFrame { iBaseNumberFrame }
-		, BaseSignFrame { iBaseSignFrame }
-		, Interval { vInterval }
+		, BaseExtraFrame { baseExtraFrame }
+		, Spacing { spacing }
 	{ }
-
-	~ShapeTextPrintData() = default;
-
-	ShapeTextPrintData(const ShapeTextPrintData& other) = default;
-	ShapeTextPrintData& operator=(const ShapeTextPrintData& other) = default;
 };
 
 class ShapeTextPrinter
 {
 private:
 	static int GetSignIndex(const char sign);
-	static void BuildFrames(std::vector<int>& vFrames, const char* const text, const int baseNumberFrame, const int baseSignFrame);
+	static std::vector<int> BuildFrames(const std::string& text, const int baseNumberFrame, const int baseSignFrame);
 
 public:
 
 	static void PrintShape
 	(
-		const char* text,
-		const ShapeTextPrintData& data,
+		const std::string& text,
+		ShapeTextPrintData data,
 		Point2D* pPosDraw,
 		RectangleStruct* pRBound,
 		DSurface* pSurface,

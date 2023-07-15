@@ -356,6 +356,7 @@ public:
 #pragma region Unit Delivery
 		ValueableVector<TechnoTypeClass*> SW_Deliverables  {};
 		Valueable<bool> SW_DeliverBuildups { true };
+		Valueable<bool> SW_BaseNormal { true };
 		Valueable<OwnerHouseKind> SW_OwnerHouse{ OwnerHouseKind::Default  };
 #pragma endregion
 

@@ -126,7 +126,7 @@ public:
 	static inline auto Distance(const CoordStruct& coord1, const CoordStruct& coord2)
 	{
 		 CoordStruct coord = coord1 - coord2;
-		 return int(std::sqrt(
+		 return int(Math::sqrt(
 			 static_cast<double>(coord.X) * static_cast<double>(coord.X) +
 			 static_cast<double>(coord.Y) * static_cast<double>(coord.Y) +
 			 static_cast<double>(coord.Z) * static_cast<double>(coord.Z)

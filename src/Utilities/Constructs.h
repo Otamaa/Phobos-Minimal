@@ -432,18 +432,12 @@ public:
 			this->filename = pFilename;
 			auto& data = this->filename.data();
 			_strlwr_s(data);
-			BSurface* pSource = nullptr;
 
-			if(PCX::Instance->GetSurface(this->filename) || PCX::Instance->LoadFile(this->filename))
+			BSurface* pSource = PCX::Instance->GetSurface(this->filename);
+			if( !pSource && PCX::Instance->LoadFile(this->filename))
 				pSource = PCX::Instance->GetSurface(this->filename, nullptr);
 
-			if (pSource) {
-				//if (!this->Surface)
-				//	this->Surface.reset(GameCreate<BSurface>());
-
-				//std::memcpy(this->Surface.get(), pSource, sizeof(BSurface));
-				this->Surface = pSource;
-			}
+			this->Surface = pSource;
 		}
 
 		return *this;
@@ -466,7 +460,7 @@ public:
 		if (pINI->ReadString(pSection, pKey, pDefault, buffer)) {
 			*this = buffer;
 
-			if (!this->Surface) {
+			if (this->filename && !this->Surface) {
 				Debug::INIParseFailed(pSection, pKey, this->filename, "PCX file not found.");
 			}
 		}
@@ -483,19 +477,14 @@ public:
 			return false;
 
 		if (oldPtr) {
-			BSurface* pSource = nullptr;
-
-			if(PCX::Instance->GetSurface(this->filename) || PCX::Instance->LoadFile(this->filename))
+			BSurface* pSource = PCX::Instance->GetSurface(this->filename);
+			if( !pSource && PCX::Instance->LoadFile(this->filename))
 				pSource = PCX::Instance->GetSurface(this->filename, nullptr);
-			else
-				Debug::Log("PCX file '%s' not found.\n", this->filename.data());
 
-			if (pSource) {
-				//if (!this->Surface)
-				//	this->Surface.reset(GameCreate<BSurface>());
+			this->Surface = pSource;
 
-				//std::memcpy(this->Surface.get(), pSource, sizeof(BSurface));
-				this->Surface = pSource;
+			if (this->filename && !this->Surface) {
+				Debug::Log("PCX file[%s] not found.\n",this->filename.data());
 			}
 
 			SwizzleManagerClass::Instance().Here_I_Am((long)oldPtr, this->Surface);

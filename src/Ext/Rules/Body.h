@@ -62,6 +62,10 @@ public:
 		Valueable<Point2D> Pips_SelfHeal_Infantry_Offset { { 25, -35 } };
 		Valueable<Point2D> Pips_SelfHeal_Units_Offset { { 33, -32 } };
 		Valueable<Point2D> Pips_SelfHeal_Buildings_Offset { { 15, 10 } };
+		Valueable<Point2D> Pips_Generic_Size { { 4, 0 } };
+		Valueable<Point2D> Pips_Generic_Buildings_Size { { 4, 2 } };
+		Valueable<Point2D> Pips_Ammo_Size { { 4, 0 } };
+		Valueable<Point2D> Pips_Ammo_Buildings_Size { { 4, 2 } };
 
 		Nullable<int> InfantryGainSelfHealCap {};
 		Nullable<int> UnitsGainSelfHealCap {};

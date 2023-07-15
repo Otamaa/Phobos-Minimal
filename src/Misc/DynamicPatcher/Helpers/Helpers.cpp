@@ -295,7 +295,7 @@ int Helpers_DP::ColorAdd2RGB565(ColorStruct colorAdd)
 
 int Helpers_DP::Dir2FacingIndex(DirStruct& dir, int facing)
 {
-	size_t bits = static_cast<size_t>(std::round(std::sqrt(facing)));
+	size_t bits = static_cast<size_t>(std::round(Math::sqrt(facing)));
 	double face = static_cast<double>(dir.GetValue(bits));
 	auto nDivider = static_cast<int>(bits);
 	auto nDivider_shrOne = (1 << nDivider);
@@ -866,7 +866,7 @@ VelocityClass Helpers_DP::GetBulletArcingVelocity(const CoordStruct& sourcePos, 
 	}
 
 	if (outData.m_RealSpeed == 0.0) {
-		outData.m_RealSpeed = std::sqrt(outData.m_StraightDistance * gravity * 1.2);
+		outData.m_RealSpeed = Math::sqrt(outData.m_StraightDistance * gravity * 1.2);
 	}
 
 	// 高抛弹道

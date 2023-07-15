@@ -24,7 +24,6 @@ void HouseTypeExt::ExtData::InheritSettings(HouseTypeClass* pThis)
 	this->SettingsInherited = true;
 }
 
-
 void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->Get();

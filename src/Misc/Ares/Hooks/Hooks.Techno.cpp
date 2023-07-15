@@ -207,7 +207,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF2D1, TechnoClass_FireAt_Facings, 0x6)
 		// 2^highest is the frame count, 3 means 8 frames
 		if (highest >= 3) {
 			nIdx = pThis->GetRealFacing().GetValue(highest, 1u << (highest - 3));
-		} 
+		}
 	}
 
 	R->EDI(pWeapon->Anim.GetItemOrDefault(nIdx , nullptr));
@@ -243,10 +243,10 @@ DEFINE_OVERRIDE_HOOK(0x6F826E, TechnoClass_CanAutoTargetObject_CivilianEnemy, 0x
 	GET(TechnoClass*, pTarget, ESI);
 	GET(TechnoTypeClass*, pTargetType, EBP);
 
-	enum { 
-		Undecided = 0, 
-		ConsiderEnemy = 0x6F8483, 
-		ConsiderCivilian = 0x6F83B1, 
+	enum {
+		Undecided = 0,
+		ConsiderEnemy = 0x6F8483,
+		ConsiderCivilian = 0x6F83B1,
 		Ignore = 0x6F894F
 	};
 
@@ -264,7 +264,7 @@ DEFINE_OVERRIDE_HOOK(0x6F826E, TechnoClass_CanAutoTargetObject_CivilianEnemy, 0x
 		if (pOwner->IsAlliedWith_(pTargetTarget)) {
 			const auto pData = RulesExt::Global();
 
-			if (pOwner->IsControlledByHuman() ? 
+			if (pOwner->IsControlledByHuman() ?
 				pData->AutoRepelPlayer : pData->AutoRepelAI) {
 				return ConsiderEnemy;
 			}

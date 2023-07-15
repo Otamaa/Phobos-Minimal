@@ -30,7 +30,7 @@ public:
 	static void DoubleValidCheck(double* source, const char* section, const char* tag, double defaultValue, double min = MIN_VAL(double), double max = MAX_VAL(double));
 	static const wchar_t* LoadStringOrDefault(const char* key, const wchar_t* defaultValue);
 	static const wchar_t* LoadStringUnlessMissing(const char* key, const wchar_t* defaultValue);
-	static void AdjacentCellsInRange(std::vector<CellStruct>& nCells , size_t range);
+	static void AdjacentCellsInRange(std::vector<CellStruct>& nCells, size_t range);
 	static const bool ProduceBuilding(HouseClass* pOwner, int idxBuilding);
 
 	static bool is_number(const std::string& s)
@@ -267,9 +267,10 @@ public:
 	static std::string ApplyTheaterSuffixToString(const std::string& str);
 
 	template <size_t size>
-	static inline void lowercase(char (&nBuff)[size] , char const (&nData)[size])
+	static inline void lowercase(char(&nBuff)[size], char const (&nData)[size])
 	{
-		for (size_t i = 0; i < size; ++i) {
+		for (size_t i = 0; i < size; ++i)
+		{
 			nBuff[i] = (char)std::tolower(nData[i]);
 		}
 	}
@@ -277,7 +278,8 @@ public:
 	template <size_t size>
 	static inline void uppercase(char(&nBuff)[size], char(&nData)[size])
 	{
-		for (size_t i = 0; i < size; ++i) {
+		for (size_t i = 0; i < size; ++i)
+		{
 			nBuff[i] = (char)std::toupper(nData[i]);
 		}
 	}
@@ -308,12 +310,12 @@ public:
 
 	static CellClass* GetCell(CellClass* pIn, CoordStruct& InOut, size_t nSpread, bool EmptyCell)
 	{
-		if(!pIn)
+		if (!pIn)
 			return nullptr;
 
 		CellStruct const cell = CellClass::Coord2Cell(InOut);
 		std::vector<CellStruct> nDummy {};
-		GeneralUtils::AdjacentCellsInRange(nDummy ,nSpread);
+		GeneralUtils::AdjacentCellsInRange(nDummy, nSpread);
 		int const max = (int)nDummy.size();
 
 		for (int i = 0; i < max; i++)
@@ -405,7 +407,7 @@ public:
 		return dir;
 	}
 
-	static const DirStruct Desired_Facing(const Point2D &point1, const Point2D &point2)
+	static const DirStruct Desired_Facing(const Point2D& point1, const Point2D& point2)
 	{
 		return Desired_Facing(point1.X, point1.Y, point2.X, point2.Y);
 	}
@@ -424,7 +426,8 @@ public:
 	{ return Leptons(distance * 256); }
 
 	//https://noobtuts.com/cpp/compare-float-values
-	static __forceinline bool cmpf(float A, float B, float epsilon = 0.005f) {
+	static __forceinline bool cmpf(float A, float B, float epsilon = 0.005f)
+	{
 		return (fabs(A - B) < epsilon);
 	}
 
@@ -451,6 +454,16 @@ public:
 		return defVal;
 	}
 
+	template<typename T>
+	static inline T GetItemByHealthRatio(double ratio, T green , T yellow , T red)
+	{
+		if (ratio <= RulesClass::Instance->ConditionRed)
+			return red;
+		else if (ratio <= RulesClass::Instance->ConditionYellow)
+			return yellow;
+
+		return green;
+	}
 	static int GetLSAnimHeightFactor(AnimTypeClass* pType, CellClass* pCell , bool checklevel = false);
 #pragma endregion
 

@@ -6,75 +6,117 @@
 
 std::array<const char* const, (size_t)FullMapDetonateResult::count> EnumFunctions::FullMapDetonateResult_ToStrings {
  {
-	{ "TargetNotDamageable" } , { "TargetNotEligible" } ,
-	{ "TargetHouseNotEligible" } , { "TargetRestricted" } ,
+	{ "TargetNotDamageable" } ,
+	{ "TargetNotEligible" } ,
+	{ "TargetHouseNotEligible" } ,
+	{ "TargetRestricted" } ,
 	{ "TargetValid" }
  }
 };
 
 std::array<const char* const, (size_t)PhobosAbilityType::count> EnumFunctions::PhobosAbilityType_ToStrings {
  {
-	{ "INTERCEPTOR" } , { "CHRONODELAYIMMUNE" } , { "CRITIMMUNE" } ,
-	{ "PSIONICSIMMUNE" } , { "CULLINGIMMUNE" } , { "EMPIMMUNE" } ,
-	{ "RADIMMUNE" } , { "PROTECTED_DRIVER" } , { "UNWARPABLE" } ,
-	{ "POISONIMMUNE" } , { "PSIONICSWEAPONIMMUNE" } , { "BERSERKIMMUNE" } ,
-	{ "ABDUCTORIMMUNE" } , { "ASSAULTER" } , { "PARASITEIMMUNE" } , {"BOUNTYHUNTER"}
+	{ "INTERCEPTOR" } ,
+	{ "CHRONODELAYIMMUNE" } ,
+	{ "CRITIMMUNE" } ,
+	{ "PSIONICSIMMUNE" } ,
+	{ "CULLINGIMMUNE" } ,
+	{ "EMPIMMUNE" } ,
+	{ "RADIMMUNE" } ,
+	{ "PROTECTED_DRIVER" } ,
+	{ "UNWARPABLE" } ,
+	{ "POISONIMMUNE" } ,
+	{ "PSIONICSWEAPONIMMUNE" } ,
+	{ "BERSERKIMMUNE" } ,
+	{ "ABDUCTORIMMUNE" } ,
+	{ "ASSAULTER" } ,
+	{ "PARASITEIMMUNE" } ,
+	{"BOUNTYHUNTER"}
  }
 };
 
 std::array<const char* const, 3u> EnumFunctions::Rank_ToStrings {
  {
-	{ "Elite" } , { "Veteran" } , { "Rookie" }
+	{ "Elite" } ,
+	{ "Veteran" } ,
+	{ "Rookie" }
  }
 };
 
 std::array<const char* const, (size_t)TargetZoneScanType::count> EnumFunctions::TargetZoneScanType_ToStrings
 {
 {
-	{ "same" } , { "any" } , { "inrange" }
+	{ "same" } ,
+	{ "any" } ,
+	{ "inrange" }
 }
 };
 
 std::array<const char* const, (size_t)DefaultColorList::count> EnumFunctions::DefaultGameColor_ToStrings
 {
 {
-	{ GameStrings::Grey() } , { GameStrings::Red() } , { GameStrings::Green() } ,
-	{ "Blue" }, { GameStrings::Yellow() }, { "White" }
+	{ GameStrings::Grey() } ,
+	{ GameStrings::Red() } ,
+	{ GameStrings::Green() } ,
+	{ "Blue" } ,
+	{ GameStrings::Yellow() } ,
+	{ "White" }
 }
 };
 
 std::array<const char* const, (size_t)DamageDelayTargetFlag::count> EnumFunctions::DamageDelayTargetFlag_ToStrings
 {
 {
-	{ "Cell" } , { "AttachedObject" } , { "Invoker" }
+	{ "Cell" } ,
+	{ "AttachedObject" } ,
+	{ "Invoker" }
 }
 };
 
 std::array<const char* const, 6u> EnumFunctions::MouseCursorData_ToStrings
 {
 {
-	{ "%s.Frame" } , { "%s.Count" } , { "%s.Interval" } ,
-	{ "%s.MiniFrame" } , { "%s.MiniCount" } , { "%s.MiniInterval" }
+	{ "%s.Frame" } ,
+	{ "%s.Count" } ,
+	{ "%s.Interval" } ,
+	{ "%s.MiniFrame" } ,
+	{ "%s.MiniCount" } ,
+	{ "%s.MiniInterval" }
 }
 };
 
 std::array<const char* const, 3u> EnumFunctions::HealthCondition_ToStrings
 {
 {
-	{ "ConditionGreen" } , { "ConditionYellow" } , { "ConditionRed" }
+	{ "ConditionGreen" } ,
+	{ "ConditionYellow" } ,
+	{ "ConditionRed" }
 }
 };
 
 std::array<const char* const, 21u> EnumFunctions::TileType_ToStrings
 {
 {
-	{ "Unknown" } , { "Tunnel" } , { "Water" } ,
-	{ "Ramp" } , {"Blank"} , {"Shore"} ,
-	{"Wet"} , {"MiscPave"} , {"Pave"} ,
-	{"DirtRoad"} , {"PavedRoad"} , {"PavedRoadEnd"} ,
-	{"PavedRoadSlope"} , {"Median"} , {"Bridge"} ,
-	{"WoodBridge"} , {"ClearToSandLAT"} , {"Green"} ,
-	{"NotWater"} , {"DestroyableCliff"}
+	{ "Unknown" } ,
+	{ "Tunnel" } ,
+	{ "Water" } ,
+	{ "Ramp" } ,
+	{"Blank"} ,
+	{"Shore"} ,
+	{"Wet"} ,
+	{"MiscPave"} ,
+	{"Pave"} ,
+	{"DirtRoad"} ,
+	{"PavedRoad"} ,
+	{"PavedRoadEnd"} ,
+	{"PavedRoadSlope"} ,
+	{"Median"} ,
+	{"Bridge"} ,
+	{"WoodBridge"} ,
+	{"ClearToSandLAT"} ,
+	{"Green"} ,
+	{"NotWater"} ,
+	{"DestroyableCliff"}
 }
 };
 
@@ -97,25 +139,27 @@ std::array<std::pair<const char*, const char*>, 11u> EnumFunctions::LocomotorPai
 
 std::array<std::pair<wchar_t*, wchar_t*>, 11u> EnumFunctions::LocomotorPairs_ToWideStrings
 {
-	{
-		{ L"Drive", L"{4A582741-9839-11d1-B709-00A024DDAFD1}"},
-		{ L"Jumpjet",L"{92612C46-F71F-11d1-AC9F-006008055BB5}" },
-		{ L"Hover", L"{4A582742-9839-11d1-B709-00A024DDAFD1}" },
-		{ L"Rocket", L"{B7B49766-E576-11d3-9BD9-00104B972FE8}" },
-		{ L"Tunnel", L"{4A582743-9839-11d1-B709-00A024DDAFD1}" },
-		{ L"Walk", L"{4A582744-9839-11d1-B709-00A024DDAFD1}" },
-		{ L"DropPod", L"{4A582745-9839-11d1-B709-00A024DDAFD1}" },
-		{ L"Fly", L"{4A582746-9839-11d1-B709-00A024DDAFD1}" },
-		{ L"Teleport", L"{4A582747-9839-11d1-B709-00A024DDAFD1}" },
-		{ L"Mech", L"{55D141B8-DB94-11d1-AC98-006008055BB5}" },
-		{ L"Ship", L"{2BEA74E1-7CCA-11d3-BE14-00104B62A16C}" }
-	}
+{
+	{ L"Drive", L"{4A582741-9839-11d1-B709-00A024DDAFD1}"},
+	{ L"Jumpjet",L"{92612C46-F71F-11d1-AC9F-006008055BB5}" },
+	{ L"Hover", L"{4A582742-9839-11d1-B709-00A024DDAFD1}" },
+	{ L"Rocket", L"{B7B49766-E576-11d3-9BD9-00104B972FE8}" },
+	{ L"Tunnel", L"{4A582743-9839-11d1-B709-00A024DDAFD1}" },
+	{ L"Walk", L"{4A582744-9839-11d1-B709-00A024DDAFD1}" },
+	{ L"DropPod", L"{4A582745-9839-11d1-B709-00A024DDAFD1}" },
+	{ L"Fly", L"{4A582746-9839-11d1-B709-00A024DDAFD1}" },
+	{ L"Teleport", L"{4A582747-9839-11d1-B709-00A024DDAFD1}" },
+	{ L"Mech", L"{55D141B8-DB94-11d1-AC98-006008055BB5}" },
+	{ L"Ship", L"{2BEA74E1-7CCA-11d3-BE14-00104B62A16C}" }
+}
 };
 
 std::array<const char* const, 3u> EnumFunctions::VerticalPosition_ToStrings
 {
 {
-	{ "top" }, { "center" }, { "bottom" }
+	{ "top" },
+	{ "center" },
+	{ "bottom" }
 }
 };
 
@@ -132,37 +176,39 @@ std::array<std::pair<const char* const, BannerNumberType>, 5u> EnumFunctions::Ba
 
 std::array<std::pair<const char* const, SpotlightFlags>, 5u> EnumFunctions::SpotlightFlags_ToStrings
 {
-	{
-		{NONE_STR2 , SpotlightFlags::None},
-		{ "NoColor" , SpotlightFlags::NoColor },
-		{ "NoRed" , SpotlightFlags::NoRed },
-		{ "NoGreen" , SpotlightFlags::NoGreen },
-		{ "NoBlue" , SpotlightFlags::NoBlue }
-	}
+{
+	{NONE_STR2 , SpotlightFlags::None},
+	{ "NoColor" , SpotlightFlags::NoColor },
+	{ "NoRed" , SpotlightFlags::NoRed },
+	{ "NoGreen" , SpotlightFlags::NoGreen },
+	{ "NoBlue" , SpotlightFlags::NoBlue }
+}
 };
 
 std::array<std::pair<const char* const, HorizontalPosition>, 4u> EnumFunctions::HorizontalPosition_ToStrings
 {
-	{
-		{ "left", HorizontalPosition::Left },
-		{ "center", HorizontalPosition::Right },
-		{ "right", HorizontalPosition::Center }
-	}
+{
+	{ "left", HorizontalPosition::Left },
+	{ "center", HorizontalPosition::Center },
+	{ "right", HorizontalPosition::Right }
+}
 };
 
 std::array<std::pair<const char* const, TextAlign>, 4u> EnumFunctions::TextAlign_ToStrings
 {
 {
 	{"left" , TextAlign::Left} ,
-	{"center", TextAlign::Right } ,
-	{"right", TextAlign::Center }
+	{"center", TextAlign::Center } ,
+	{"right", TextAlign::Right }
 }
 };
 
 std::array<const char* const, 3u> EnumFunctions::AreaFireTarget_ToStrings
 {
 {
-	{"base"} , {"self"} , {"random"}
+	{"base"} ,
+	{"self"} ,
+	{"random"}
 }
 };
 
@@ -314,14 +360,18 @@ std::array<std::pair<const char* const, TargetingConstraints>, 10u> EnumFunction
 std::array<const char* const, 3u> EnumFunctions::TargetingPreference_ToStrings
 {
 {
-	{NONE_STR2} , {"defensive"} , {"offensive"}
+	{NONE_STR2} ,
+	{"defensive"} ,
+	{"offensive"}
 }
 };
 
 std::array<const char* const, 3u> EnumFunctions::SelfHealGainType_ToStrings
 {
 {
-	{GameStrings::NoneStrb()}, { GameStrings::Infantry() }, { GameStrings::Units() }
+	{ GameStrings::NoneStrb() },
+	{ GameStrings::Infantry() },
+	{ GameStrings::Units() }
 }
 };
 
@@ -329,7 +379,7 @@ std::array<std::pair<const char* const, ChronoSparkleDisplayPosition>, 5u> EnumF
 {
 {
 	{GameStrings::NoneStrb() , ChronoSparkleDisplayPosition::None},
-	{"Building", ChronoSparkleDisplayPosition::Building },
+	{ "Building" , ChronoSparkleDisplayPosition::Building },
 	{ "occupants" , ChronoSparkleDisplayPosition::Occupants },
 	{ "occupantslots", ChronoSparkleDisplayPosition::OccupantSlots } ,
 	{ "all" , ChronoSparkleDisplayPosition::All }
@@ -338,32 +388,38 @@ std::array<std::pair<const char* const, ChronoSparkleDisplayPosition>, 5u> EnumF
 
 std::array<std::pair<const char* ,AffectPlayerType>, 5u> EnumFunctions::AffectPlayerType_ToStrings
 {
-{	{GameStrings::NoneStrb() ,AffectPlayerType::None },
-	{"computer" ,AffectPlayerType::Computer },
-	{"player" ,AffectPlayerType::Player },
-	{"observer" ,AffectPlayerType::Observer },
-	{"all" , AffectPlayerType::Computer | AffectPlayerType::Player | AffectPlayerType::Observer }
+{	{ GameStrings::NoneStrb() ,AffectPlayerType::None },
+	{ "computer" ,AffectPlayerType::Computer },
+	{ "player" ,AffectPlayerType::Player },
+	{ "observer" ,AffectPlayerType::Observer },
+	{ "all" , AffectPlayerType::Computer | AffectPlayerType::Player | AffectPlayerType::Observer }
 }
 };
 
 std::array<const char*, 3u> EnumFunctions::SpotlightAttachment_ToStrings
 {
 {
-	{"Body"}, { "Turret" }, { "Barrel" }
+	{ "Body" },
+	{ "Turret" },
+	{ "Barrel" }
 }
 };
 
 std::array<const char*, 3u> EnumFunctions::ShowTimerType_ToStrings
 {
 {
-	{"Hour"}, { "Minute" }, { "Second" }
+	{ "Hour" },
+	{ "Minute" },
+	{ "Second" }
 }
 };
 
 std::array<const char*, (size_t)BountyValueOption::count> EnumFunctions::BountyValueOption_ToSrings
 {
 {
-	{"value"}, { "cost" }, { "soylent" }
+	{ "value" },
+	{ "cost" },
+	{ "soylent" }
 }
 };
 

@@ -34,8 +34,9 @@ void SW_UnitDelivery::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 
 	INI_EX exINI(pINI);
 	pData->SW_Deliverables.Read(exINI, section, "Deliver.Types");
-	pData->SW_DeliverBuildups.Read(exINI, section, "Deliver.BaseNormal");
+	pData->SW_BaseNormal.Read(exINI, section, "Deliver.BaseNormal");
 	pData->SW_OwnerHouse.Read(exINI, section, "Deliver.Owner");
+	pData->SW_DeliverBuildups.Read(exINI, section, "Deliver.BuildUp");
 }
 
 bool SW_UnitDelivery::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
@@ -84,7 +85,8 @@ void UnitDeliveryStateMachine::PlaceUnits()
 	// get the house the units will belong to
 	auto pOwner = HouseExt::GetHouseKind(pData->SW_OwnerHouse, false, this->Super->Owner);
 	bool IsPlayerControlled = pOwner->ControlledByPlayer_();
-	bool bBaseNormal = pData->SW_DeliverBuildups;
+	bool bBaseNormal = pData->SW_BaseNormal;
+	bool bDeliverBuildup = pData->SW_DeliverBuildups;
 
 	// create an instance of each type and place it
 	// Otamaa : this thing bugged on debug mode , idk
@@ -153,7 +155,8 @@ void UnitDeliveryStateMachine::PlaceUnits()
 			{
 				if (!bBaseNormal)
 					Is_FromSW(ItemBuilding) = true;
-				else
+
+				if(bDeliverBuildup)
 					ItemBuilding->QueueMission(Mission::Construction, false);
 			}
 			else

@@ -48,20 +48,20 @@ struct SonicBeamDrawingData
 					{
 					default:
 					case SonicBeamSurfacePatternType::CIRCLE:
-						SonicBeamSurfacePatternTable[x][y] = (short)std::sqrt(x * x + y * y);
+						SonicBeamSurfacePatternTable[x][y] = (short)Math::sqrt(x * x + y * y);
 						break;
 					case SonicBeamSurfacePatternType::ELLIPSE:
 					{
 						double x_stretch_coeff = 2.0;
 						double y_stretch_coeff = 1.0;
-						SonicBeamSurfacePatternTable[x][y] = (short)(std::sqrt((x * 2) / x_stretch_coeff + (y * 2) / y_stretch_coeff));
+						SonicBeamSurfacePatternTable[x][y] = (short)(Math::sqrt((x * 2) / x_stretch_coeff + (y * 2) / y_stretch_coeff));
 						break;
 					}
 					case SonicBeamSurfacePatternType::RHOMBUS:
-						SonicBeamSurfacePatternTable[x][y] = (short)(std::sqrt(x + y));
+						SonicBeamSurfacePatternTable[x][y] = (short)(Math::sqrt(x + y));
 						break;
 					case SonicBeamSurfacePatternType::SQUARE:
-						SonicBeamSurfacePatternTable[x][y] = (short)(std::sqrt(MaxImpl(std::abs(x), std::abs(y))));
+						SonicBeamSurfacePatternTable[x][y] = (short)(Math::sqrt(MaxImpl(std::abs(x), std::abs(y))));
 						break;
 					};
 				}

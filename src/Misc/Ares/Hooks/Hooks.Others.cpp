@@ -3099,7 +3099,66 @@ DEFINE_OVERRIDE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 	return 0x70AD4C;
 }
 
-#include <Blitters/Blitter.h>
+class AresBlitter
+{
+public:
+
+	virtual ~AresBlitter() = default;
+	virtual void Blit_Copy(void* dst, void* src, int len, int zval, WORD* zbuf, WORD* abuf, int alvl, int warp) = 0;
+	virtual void Blit_Copy_Tinted(void* dst, void* src, int len, int zval, WORD* zbuf, WORD* abuf, int alvl, int warp, WORD tint) = 0;
+	virtual void Blit_Move(void* dst, void* src, int len, int zval, WORD* zbuf, WORD* abuf, int alvl, int warp) = 0;
+	virtual void Blit_Move_Tinted(void* dst, void* src, int len, int zval, WORD* zbuf, WORD* abuf, int alvl, int warp, WORD tint) = 0;
+
+};
+
+template <typename T>
+class AresPcxBlit final : public AresBlitter
+{
+public:
+	inline explicit AresPcxBlit(WORD mask) noexcept
+	{
+		Mask = mask;
+	}
+
+	virtual ~AresPcxBlit() override final = default;
+
+	virtual void Blit_Copy(void* dst, void* src, int len, int zval, WORD* zbuf, WORD* abuf, int alvl, int warp) override final
+	{
+		auto dest = reinterpret_cast<T*>(dst);
+		auto source = reinterpret_cast<T*>(src);
+
+		if (len > 0)
+		{
+			for (auto i = len; i; --i)
+			{
+				if (auto v12 = *source++) {
+					if(v12 != this->Mask)
+						*dest = v12;
+				}
+
+				dest++;
+			}
+		}
+	}
+
+	virtual void Blit_Copy_Tinted(void* dst, void* src, int len, int zval, WORD* zbuf, WORD* abuf, int alvl, int warp, WORD tint)
+	{
+		Blit_Copy(dst, src, len, zval, zbuf, abuf, alvl, 0);
+	}
+
+	virtual void Blit_Move(void* dst, void* src, int len, int zval, WORD* zbuf, WORD* abuf, int alvl, int warp)
+	{
+		Blit_Copy(dst, src, len, zval, zbuf, abuf, alvl, 0);
+	}
+
+	virtual void Blit_Move_Tinted(void* dst, void* src, int len, int zval, WORD* zbuf, WORD* abuf, int alvl, int warp, WORD tint)
+	{
+		Blit_Copy(dst, src, len, zval, zbuf, abuf, alvl, 0);
+	}
+
+private:
+	WORD Mask;
+};
 
 DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 {
@@ -3108,7 +3167,6 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 	GET_STACK(RectangleStruct*, pBounds, 0x8);
 
 	auto pType = pThis->Type;
-
 
 	if (!pThis->IsSelected)
 		return 0x43E8F2;
@@ -3124,10 +3182,8 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 	// show building or house state
 	if (bAllied || IsObserver || bReveal)
 	{
-
 		Point2D DrawExtraLoc = { pLocation->X , pLocation->Y };
 		pThis->DrawExtraInfo(DrawExtraLoc, pLocation, pBounds);
-
 
 		// display production cameo
 		if (IsObserver || bReveal)
@@ -3155,7 +3211,8 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 
 					if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds))
 					{
-						Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds);
+						AresPcxBlit<WORD> blithere((0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft) | (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft));
+						Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds,&blithere, 0, 3, 1000,0);
 					}
 				}
 				else
@@ -3166,7 +3223,7 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 					if (!pCameo)
 						return 0x43E8F2;
 
-					const auto pCustomConvert = GetCameoSHPConvert(pProdType);;
+					const auto pCustomConvert = GetCameoSHPConvert(pProdType);
 					DSurface::Temp->DrawSHP(pCustomConvert ? pCustomConvert : FileSystem::CAMEO_PAL(), pCameo, 0, &DrawExtraLoc, pBounds, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, nullptr, 0, 0, 0);
 				}
 
@@ -4503,7 +4560,7 @@ DEFINE_OVERRIDE_HOOK(0x44C844, BuildingClass_MissionRepair_Reload, 6)
 //DEFINE_HOOK(0x4CADE0, FastMath_ATan_Replace, 0x8)
 //{
 //	GET_STACK(double, val, 0x4);
-//	const auto nResult = std::atan(val);
+//	const auto nResult = Math::atan(val);
 //	__asm { fld nResult };
 //	return 0x4CAE21;
 //}
@@ -4511,7 +4568,7 @@ DEFINE_OVERRIDE_HOOK(0x44C844, BuildingClass_MissionRepair_Reload, 6)
 //DEFINE_HOOK(0x4CB480, FastMath_ATan_float_Replace, 0xA)
 //{
 //	GET_STACK(float, val, 0x4);
-//	const auto nResult = std::atan(val);
+//	const auto nResult = Math::atan(val);
 //	__asm { fld nResult };
 //	return 0x4CB4BD;
 //}
@@ -4537,7 +4594,7 @@ DEFINE_OVERRIDE_HOOK(0x44C844, BuildingClass_MissionRepair_Reload, 6)
 //DEFINE_HOOK(0x4CAC40, FastMath_sqrt_Replace, 0xA)
 //{
 //	GET_STACK(double, val, 0x4);
-//	const auto nResult = std::sqrt(val);
+//	const auto nResult = Math::sqrt(val);
 //	__asm { fld nResult };
 //	return 0x4CACAD;
 //}
@@ -4545,7 +4602,7 @@ DEFINE_OVERRIDE_HOOK(0x44C844, BuildingClass_MissionRepair_Reload, 6)
 //DEFINE_HOOK(0x4CB060, FastMath_sqrt_float_Replace, 0xA)
 //{
 //	GET_STACK(float, val, 0x4);
-//	const auto nResult = std::sqrt(val);
+//	const auto nResult = Math::sqrt(val);
 //	__asm { fld nResult };
 //	return 0x4CB0D5;
 //}

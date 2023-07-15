@@ -1006,9 +1006,9 @@ DEFINE_OVERRIDE_HOOK(0x73FDBD, UnitClass_GetActionOnObject_Heal, 5)
 		return ContinueCheck;
 
 	const auto pThatTechno = generic_cast<TechnoClass*>(pThat);
-	if(WWKeyboardClass::Instance->IsForceMoveKeyPressed() || 
-		pThis == pThat || 
-		!pThatTechno || 
+	if(WWKeyboardClass::Instance->IsForceMoveKeyPressed() ||
+		pThis == pThat ||
+		!pThatTechno ||
 		!pThat->IsSurfaced()
 	  )
 		return DoActionSelect;
@@ -1020,7 +1020,7 @@ DEFINE_OVERRIDE_HOOK(0x73FDBD, UnitClass_GetActionOnObject_Heal, 5)
 	}
 
 	auto pThatType = pThat->GetTechnoType();
-	const auto& [ret, nCursorSelected] = HealActionProhibited(false, pThatTechno, 
+	const auto& [ret, nCursorSelected] = HealActionProhibited(false, pThatTechno,
 			    pThis->GetWeapon(pThis->SelectWeapon(pThat))->WeaponType);
 
 	if(ret)
@@ -1033,7 +1033,7 @@ DEFINE_OVERRIDE_HOOK(0x73FDBD, UnitClass_GetActionOnObject_Heal, 5)
 	return DoActionGRepair;//0x73FE08;
 }
 
-UnitTypeClass* GetUnitTypeImage(UnitClass* const pThis)
+NOINLINE UnitTypeClass* GetUnitTypeImage(UnitClass* const pThis)
 {
 	const auto pData = TechnoTypeExt::ExtMap.Find(pThis->Type);
 	if (pData->WaterImage && !pThis->OnBridge && pThis->GetCell()->LandType == LandType::Water && !pThis->IsAttackedByLocomotor) {
@@ -1078,6 +1078,99 @@ DEFINE_OVERRIDE_HOOK(0x73C5FC, UnitClass_DrawSHP_WaterType, 6)
 	return 0x73CE00;
 }
 
+#include <Utilities/Cast.h>
+
+NOINLINE TechnoTypeClass* GetImage(FootClass* pThis)
+{
+	if (const auto pUnit = specific_cast<UnitClass*>(pThis))
+	{
+		TechnoTypeClass* Image = pUnit->Type;
+
+		if (UnitTypeClass* const pCustomType = GetUnitTypeImage(pUnit))
+		{
+			Image = pCustomType;
+		}
+
+		if (pUnit->Deployed && pUnit->Type->UnloadingClass)
+		{
+			Image = pUnit->Type->UnloadingClass;
+		}
+
+		if (!pUnit->IsClearlyVisibleTo(HouseClass::CurrentPlayer)) {
+			if (auto pDisUnit = type_cast<UnitTypeClass*>(pUnit->GetDisguise(true))) {
+				Image = pDisUnit;
+			}
+		}
+
+		return Image;
+	}
+
+	return pThis->GetTechnoType();
+}
+
+DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
+{
+	GET(FootClass*, pThis, ESI);
+	GET_STACK(Point2D, pos, STACK_OFFSET(0x18, 0x28));
+	GET_STACK(Surface*, pSurface, STACK_OFFSET(0x18, 0x24));
+	GET_STACK(bool, a9, STACK_OFFSET(0x18, 0x20)); // unknown usage
+	GET_STACK(Matrix3D*, pMatrix, STACK_OFFSET(0x18, 0x1C));
+	GET_STACK(Point2D*, a4, STACK_OFFSET(0x18, 0x14)); // unknown usage
+	GET_STACK(Point2D, a3, STACK_OFFSET(0x18, -0x10)); // unknown usage
+	GET_STACK(int*, a5, STACK_OFFSET(0x18, 0x10)); // unknown usage
+	GET_STACK(int, angle, STACK_OFFSET(0x18, 0xC));
+	GET_STACK(int, idx, STACK_OFFSET(0x18, 0x8));
+	GET_STACK(VoxelStruct*, pVXL, STACK_OFFSET(0x18, 0x4));
+
+	auto pType = GetImage(pThis);
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto tur = pType->Gunner || pType->IsChargeTurret
+		? AresData::GetTurretsVoxel(pType, pThis->CurrentTurretNumber)
+		: &pType->TurretVoxel;
+
+	if (pTypeExt->TurretShadow.Get(RulesExt::Global()->DrawTurretShadow) && tur->VXL && tur->HVA)
+	{
+		Matrix3D mtx;
+		pThis->Locomotor->Shadow_Matrix(&mtx, nullptr);
+
+		if(pType->Turret)
+			mtx.RotateZ((float)(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>()));
+
+		const auto pTurOffset = pTypeExt->TurretOffset.GetEx();
+		float x = (float)(pTurOffset->X / 8);
+		float y = (float)(pTurOffset->Y / 8);
+		float z = -tur->VXL->TailerData->MinBounds.Z;
+		mtx.Translate(x, y, z);
+		Matrix3D::MatrixMultiply(&mtx, &Game::VoxelDefaultMatrix(), &mtx);
+
+		pThis->DrawVoxelShadow(tur, 0, angle, 0, a4, &a3, &mtx, a9, pSurface, pos);
+
+		const auto bar = pType->ChargerBarrels ?
+			AresData::GetBarrelsVoxel(pType, pThis->CurrentTurretNumber)
+			: &pType->BarrelVoxel;
+
+		if (bar->VXL && bar->HVA)
+			pThis->DrawVoxelShadow(bar, 0, angle, 0, a4, &a3, &mtx, a9, pSurface, pos);
+	}
+
+	if (pTypeExt->ShadowIndices.empty())
+	{
+		pThis->DrawVoxelShadow(pVXL, idx, angle, a5, a4, &a3, pMatrix, a9, pSurface, pos);
+	}
+	else
+	{
+		for (const auto& index : pTypeExt->ShadowIndices)
+		{
+			//Matrix3D copy_ = *pMatrix;
+			//copy_.TranslateZ(-pVXL->HVA->Matrixes[index].GetZVal());
+			//Matrix3D::MatrixMultiply(&copy_, &Game::VoxelDefaultMatrix(), &copy_);
+			pThis->DrawVoxelShadow(pVXL, index, angle, a5, a4, &a3, pMatrix, a9, pSurface, pos);
+		}
+	}
+
+	return 0x4DB195;
+}
+
 DEFINE_OVERRIDE_HOOK(0x73B4A0, UnitClass_DrawVXL_WaterType, 9)
 {
 	R->ESI(0);
@@ -1085,22 +1178,16 @@ DEFINE_OVERRIDE_HOOK(0x73B4A0, UnitClass_DrawVXL_WaterType, 9)
 
 	ObjectTypeClass* Image = U->Type;
 
-	if (!U->IsClearlyVisibleTo(HouseClass::CurrentPlayer))
-	{
-		Image = U->GetDisguise(true);
-	}
-
-	if (U->Deployed)
-	{
-		if (UnitTypeClass* const Unloader = U->Type->UnloadingClass)
-		{
-			Image = Unloader;
-		}
-	}
-
-	if (UnitTypeClass* const pCustomType = GetUnitTypeImage(U))
-	{
+	if (UnitTypeClass* const pCustomType = GetUnitTypeImage(U)) {
 		Image = pCustomType;
+	}
+
+	if (U->Deployed && U->Type->UnloadingClass) {
+		Image = U->Type->UnloadingClass;
+	}
+
+	if (!U->IsClearlyVisibleTo(HouseClass::CurrentPlayer)) {
+		Image = U->GetDisguise(true);
 	}
 
 	R->EBX<ObjectTypeClass*>(Image);
@@ -1357,7 +1444,7 @@ DEFINE_HOOK(0x7418A1, UnitClass_CrusCell_TiltWhenCrushSomething, 0x5)
 	case AbstractType::Aircraft:
 	case AbstractType::Terrain:
 		return Tilt;
-	case AbstractType::Infantry: 
+	case AbstractType::Infantry:
 	{
 		const auto pInf = static_cast<InfantryClass*>(pVictim);
 		if (pInf->Type->Cyborg)

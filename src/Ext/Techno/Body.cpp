@@ -120,68 +120,71 @@ Point2D TechnoExt::GetBuildingSelectBracketPosition(TechnoClass* pThis, Building
 	return position;
 }
 
+Iterator<DigitalDisplayTypeClass*> GetDisplayType(TechnoClass* pThis , TechnoTypeClass* pType ,int& length)
+{
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (pTypeExt->DigitalDisplayTypes.empty())
+	{
+		switch (pThis->WhatAmI())
+		{
+		case AbstractType::Building:
+		{
+			const auto pBuildingType = static_cast<BuildingTypeClass*>(pType);
+			const int height = pBuildingType->GetFoundationHeight(false);
+			length = height * 7 + height / 2;
+			return make_iterator(RulesExt::Global()->Buildings_DefaultDigitalDisplayTypes);
+		}
+		case AbstractType::Infantry:
+		{
+			length = 8;
+			return make_iterator(RulesExt::Global()->Infantry_DefaultDigitalDisplayTypes);
+
+		}
+		case AbstractType::Unit:
+		{
+			return make_iterator(RulesExt::Global()->Vehicles_DefaultDigitalDisplayTypes);
+		}
+		case AbstractType::Aircraft:
+		{
+			return make_iterator(RulesExt::Global()->Aircraft_DefaultDigitalDisplayTypes);
+		}
+		}
+	}
+
+	return make_iterator(pTypeExt->DigitalDisplayTypes);
+}
+
 void TechnoExt::ProcessDigitalDisplays(TechnoClass* pThis)
 {
 	if (!Phobos::Config::DigitalDisplay_Enable)
 		return;
 
 	const auto pType = pThis->GetTechnoType();
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
-	if (pTypeExt->DigitalDisplay_Disable)
+	if (TechnoTypeExt::ExtMap.Find(pType)->DigitalDisplay_Disable)
 		return;
 
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 	int length = 17;
-	Iterator<DigitalDisplayTypeClass*> pDisplayTypes;
 	const auto What = pThis->WhatAmI();
 	const bool isBuilding = What == AbstractType::Building;
 	const bool isInfantry = What == AbstractType::Infantry;
 
-	if (!pTypeExt->DigitalDisplayTypes.empty())
-	{
-		pDisplayTypes = make_iterator(pTypeExt->DigitalDisplayTypes);
-	}
-	else
-	{
-		switch (What)
-		{
-		case AbstractType::Building:
-		{
-			pDisplayTypes = make_iterator(RulesExt::Global()->Buildings_DefaultDigitalDisplayTypes);
-			const auto pBuildingType = static_cast<BuildingTypeClass*>(pThis->GetTechnoType());
-			const int height = pBuildingType->GetFoundationHeight(false);
-			length = height * 7 + height / 2;
-			break;
-		}
-		case AbstractType::Infantry:
-		{
-			pDisplayTypes = make_iterator(RulesExt::Global()->Infantry_DefaultDigitalDisplayTypes);
-			length = 8;
-			break;
-		}
-		case AbstractType::Unit:
-		{
-			pDisplayTypes = make_iterator(RulesExt::Global()->Vehicles_DefaultDigitalDisplayTypes);
-			break;
-		}
-		case AbstractType::Aircraft:
-		{
-			pDisplayTypes = make_iterator(RulesExt::Global()->Aircraft_DefaultDigitalDisplayTypes);
-			break;
-		}
-		default:
+	auto const pDisplayTypes = GetDisplayType(pThis, pType, length);
+
+	if (!pDisplayTypes)
+		return;
+
+	const bool IsCurPlayerObserver = HouseClass::IsCurrentPlayerObserver();
+
+	std::for_each(pDisplayTypes.begin(), pDisplayTypes.end(), [&](DigitalDisplayTypeClass* pDisplayType) {
+
+		if (IsCurPlayerObserver && !pDisplayType->VisibleToHouses_Observer)
 			return;
-		}
-	}
 
-	for (const DigitalDisplayTypeClass* pDisplayType : pDisplayTypes)
-	{
-		if (HouseClass::IsCurrentPlayerObserver() && !pDisplayType->VisibleToHouses_Observer)
-			continue;
-
-		if (!HouseClass::IsCurrentPlayerObserver() && !EnumFunctions::CanTargetHouse(pDisplayType->VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer))
-			continue;
+		if (!IsCurPlayerObserver && !EnumFunctions::CanTargetHouse(pDisplayType->VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer))
+			return;
 
 		int value = -1;
 		int maxValue = -1;
@@ -189,19 +192,20 @@ void TechnoExt::ProcessDigitalDisplays(TechnoClass* pThis)
 		GetValuesForDisplay(pThis, pDisplayType->InfoType, value, maxValue);
 
 		if (value == -1 || maxValue == -1)
-			continue;
+			return;
 
 		const bool hasShield = pExt->Shield != nullptr && !pExt->Shield->IsBrokenAndNonRespawning();
-		Point2D position = isBuilding ?
-			GetBuildingSelectBracketPosition(pThis, pDisplayType->AnchorType_Building)
+		Point2D position = isBuilding ? GetBuildingSelectBracketPosition(pThis, pDisplayType->AnchorType_Building)
 			: GetFootSelectBracketPosition(pThis, pDisplayType->AnchorType);
+
 		position.Y += pType->PixelSelectionBracketDelta;
 
 		if (pDisplayType->InfoType == DisplayInfoType::Shield)
-			position.Y += pExt->Shield->GetType()->BracketDelta;
+			position.Y += pExt->CurrentShieldType->BracketDelta;
 
 		pDisplayType->Draw(position, length, value, maxValue, isBuilding, isInfantry, hasShield);
-	}
+	});
+
 }
 
 void TechnoExt::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType, int& value, int& maxValue)
@@ -1476,7 +1480,7 @@ bool TechnoExt::AllowedTargetByZone(TechnoClass* pThis, TechnoClass* pTarget, co
 	const auto pThisType = pThis->GetTechnoType();
 	const MovementZone mZone = pThisType->MovementZone;
 	const ZoneType currentZone = zone ? zone.value() :
-		MapClass::Instance->GetMovementZoneType(pThis->InlineMapCoords(), mZone, pThis->IsOnBridge());
+		MapClass::Instance->GetMovementZoneType(pThis->InlineMapCoords(), mZone, pThis->OnBridge);
 
 	if (currentZone != ZoneType::None)
 	{
@@ -1484,7 +1488,7 @@ bool TechnoExt::AllowedTargetByZone(TechnoClass* pThis, TechnoClass* pTarget, co
 			return true;
 
 		const ZoneType targetZone =
-			MapClass::Instance->GetMovementZoneType(pTarget->InlineMapCoords(), mZone, pTarget->IsOnBridge());
+			MapClass::Instance->GetMovementZoneType(pTarget->InlineMapCoords(), mZone, pTarget->OnBridge);
 
 		if (zoneScanType == TargetZoneScanType::Same)
 		{

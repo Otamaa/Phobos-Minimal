@@ -29,10 +29,10 @@ DEFINE_HOOK(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 		auto const pFromTechnoType = pFrom->GetTechnoType();
 		auto const nMission = pThis->GetCurrentMission();
 
-		if (nMission == Mission::Construction 
-			|| nMission == Mission::Selling 
-			|| pThis->BState == BStateType::Construction 
-			|| !pThis->HasPower 
+		if (nMission == Mission::Construction
+			|| nMission == Mission::Selling
+			|| pThis->BState == BStateType::Construction
+			|| !pThis->HasPower
 			|| pFromTechnoType->BalloonHover)
 		{
 			return ReturnNegative;
@@ -82,10 +82,10 @@ DEFINE_HOOK(0x51F0AF, InfantryClass_WhatAction_Grinding, 0x5)
 
 	if (auto pBuilding = specific_cast<BuildingClass*>(pTarget))
 	{
-		if (pBuilding->Type->Grinding 
-			&& pThis->Owner->IsControlledByCurrentPlayer() 
-			&& !pBuilding->IsBeingWarpedOut() 
-			&& pThis->Owner->IsAlliedWith(pTarget) 
+		if (pBuilding->Type->Grinding
+			&& pThis->Owner->IsControlledByCurrentPlayer()
+			&& !pBuilding->IsBeingWarpedOut()
+			&& pThis->Owner->IsAlliedWith(pTarget)
 			&& (BuildingTypeExt::ExtMap.Find(pBuilding->Type)->Grinding_AllowAllies || action == Action::Select))
 		{
 			action = BuildingExt::CanGrindTechno(pBuilding, pThis) ? Action::Repair : Action::NoEnter;
@@ -107,7 +107,14 @@ DEFINE_HOOK(0x51E63A, InfantryClass_WhatAction_Grinding_Engineer, 0x6)
 	if (auto pBuilding = specific_cast<BuildingClass*>(pTarget))
 	{
 		const bool canBeGrinded = pBuilding->Type->Grinding && BuildingExt::CanGrindTechno(pBuilding, pThis);
-		R->EBP(canBeGrinded ? Action::Repair : Action::NoGRepair);
+		const auto TunnelData = HouseExt::GetTunnels(pBuilding->Type, pBuilding->Owner);
+		Action ret = Action::NoGRepair;
+		if(!canBeGrinded && TunnelData)
+			ret =  (int)TunnelData->Vector.size() >= TunnelData->MaxCap ? Action::NoEnter : Action::Enter;
+		else if(canBeGrinded)
+			ret = Action::Repair;
+
+		R->EBP(ret);
 		return ReturnValue;
 	}
 
@@ -128,8 +135,8 @@ DEFINE_HOOK(0x740134, UnitClass_WhatAction_Grinding, 0x9) //0
 	if (auto pBuilding = specific_cast<BuildingClass*>(pTarget))
 	{
 		if (pThis->Owner->IsControlledByCurrentPlayer()
-			&& !pBuilding->IsBeingWarpedOut() 
-			&& pThis->Owner->IsAlliedWith(pTarget) 
+			&& !pBuilding->IsBeingWarpedOut()
+			&& pThis->Owner->IsAlliedWith(pTarget)
 			&& (pBuilding->Type->Grinding || action == Action::Select))
 		{
 			if (pThis->SendCommand(RadioCommand::QueryCanEnter, pTarget) == RadioCommand::AnswerPositive)
@@ -154,7 +161,7 @@ DEFINE_HOOK(0x4DFABD, FootClass_Try_Grinding_CheckIfAllowed, 0x8)
 	enum { Continue = 0x0 , Skip = 0x4DFB30 };
 	GET(FootClass*, pThis, ESI);
 	GET(BuildingClass*, pBuilding, EBX);
-	return BuildingExt::CanGrindTechno(pBuilding, pThis) 
+	return BuildingExt::CanGrindTechno(pBuilding, pThis)
 		? Continue : Skip;
 }
 
@@ -209,7 +216,7 @@ DEFINE_HOOK(0x519790, InfantryClass_UpdatePosition_Grinding_SkipDiesound, 0xA)
 {
 	enum { Play = 0x0 , DoNotPlay = 0x51986A };
 	GET(BuildingClass*, pBuilding, EBX);
-	return BuildingTypeExt::ExtMap.Find(pBuilding->Type)->Grinding_PlayDieSound.Get() ? 
+	return BuildingTypeExt::ExtMap.Find(pBuilding->Type)->Grinding_PlayDieSound.Get() ?
 		Play : DoNotPlay;
 }
 
@@ -238,7 +245,7 @@ DEFINE_HOOK(0x73E4D0, UnitClass_Mission_Unload_CheckBalanceAfter, 0xA)
 	GET(BuildingClass* const, pDock, EDI);
 
 	if(BuildingTypeExt::ExtMap.Find(pDock->Type)->Refinery_DisplayDumpedMoneyAmount){
-		BuildingExt::ExtMap.Find(pDock)->AccumulatedIncome += 
+		BuildingExt::ExtMap.Find(pDock)->AccumulatedIncome +=
 			pHouse->Available_Money() - HouseExt::LastHarvesterBalance;
 	}
 

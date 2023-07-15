@@ -56,6 +56,9 @@ public:
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
 	virtual int Size() const override R0;
 
+	//ObjectClass
+	//virtual bool Limbo() override { static_assert(true, "BulletLimboCalled"); }
+
 	//BulletClass
 	virtual BYTE GetAnimFrame() const JMP_THIS(0x468000);
 	virtual void SetTarget(AbstractClass* pTarget) JMP_THIS(0x46B5A0);

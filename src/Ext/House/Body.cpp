@@ -34,25 +34,29 @@ void HouseExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	exINI.Read3Bool(pSection, "RepairBaseNodes", this->RepairBaseNodes);
 }
 
-//TODO : remove NOINLINE
-void NOINLINE HouseExt::ExtData::UpdateShotCount(SuperWeaponTypeClass* pFor)
+void HouseExt::ExtData::UpdateShotCount(SuperWeaponTypeClass* pFor)
 {
-	SuperExt::ExtMap.Find(this->Get()->Supers[pFor->ArrayIndex])->LauchDatas.Update();
+	this->LaunchDatas.resize(SuperWeaponTypeClass::Array->Count);
+	this->LaunchDatas[pFor->ArrayIndex].Update();
 }
 
-//TODO : remove NOINLINE
-void NOINLINE HouseExt::ExtData::UpdateShotCountB(SuperWeaponTypeClass* pFor)
+void HouseExt::ExtData::UpdateShotCountB(SuperWeaponTypeClass* pFor)
 {
-	auto& nData = SuperExt::ExtMap.Find(this->Get()->Supers[pFor->ArrayIndex])->LauchDatas;
+	this->LaunchDatas.resize(SuperWeaponTypeClass::Array->Count);
+
+	auto& nData = this->LaunchDatas[pFor->ArrayIndex];
 
 	if ((nData.LastFrame & 0x80000000) != 0)
 		nData.LastFrame = Unsorted::CurrentFrame();
 }
 
-//TODO : remove NOINLINE
-LauchData NOINLINE HouseExt::ExtData::GetShotCount(SuperWeaponTypeClass* pFor)
+LauchData HouseExt::ExtData::GetShotCount(SuperWeaponTypeClass* pFor)
 {
-	return SuperExt::ExtMap.Find(this->Get()->Supers[pFor->ArrayIndex])->LauchDatas;
+	if (pFor->ArrayIndex >= (int)this->LaunchDatas.size()) {
+		return {};
+	}
+
+	return this->LaunchDatas[pFor->ArrayIndex];
 }
 
 SuperClass* HouseExt::ExtData::IsSuperAvail(int nIdx, HouseClass* pHouse)
@@ -901,7 +905,7 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		.Process(this->ProducingNavalUnitTypeIndex)
 
 		.Process(this->AutoDeathObjects)
-		//.Process(this->LaunchDatas)
+		.Process(this->LaunchDatas)
 		.Process(this->CaptureObjectExecuted)
 		.Process(this->DiscoverEvaDelay)
 

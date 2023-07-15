@@ -43,7 +43,7 @@ public:
 
 	double Magnitude()
 	{
-		return std::sqrt(MagnitudeSquared());
+		return Math::sqrt(MagnitudeSquared());
 	}
 
 	//magnitude squared
@@ -100,7 +100,7 @@ public:
 	}
 
 	short Length() const {
-		return static_cast<short>(std::sqrt(static_cast<double>(X) * static_cast<double>(X) + static_cast<double>(Y) * static_cast<double>(Y)));
+		return static_cast<short>(Math::sqrt(static_cast<double>(X) * static_cast<double>(X) + static_cast<double>(Y) * static_cast<double>(Y)));
 	}
 
 private:

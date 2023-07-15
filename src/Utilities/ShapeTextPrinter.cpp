@@ -6,12 +6,13 @@ constexpr inline int SignSequenceLength { std::char_traits<char>::length(SignSeq
 int ShapeTextPrinter::GetSignIndex(const char sign)
 {
 	return (std::find(SignSequence, SignSequence + SignSequenceLength, sign) - SignSequence);
-
 }
 
-void ShapeTextPrinter::BuildFrames(std::vector<int>& vFrames , const char* const text , const int baseNumberFrame , const int baseSignFrame)
+std::vector<int> ShapeTextPrinter::BuildFrames(const std::string& text, const int baseNumberFrame , const int baseSignFrame)
 {
-	for (size_t i = 0; i < strlen(text); i++)
+	std::vector<int> vFrames;
+
+	for (size_t i = 0; i < text.size(); i++)
 	{
 		int frame = 0;
 
@@ -26,17 +27,19 @@ void ShapeTextPrinter::BuildFrames(std::vector<int>& vFrames , const char* const
 			if (signIndex < SignSequenceLength)
 				frame = baseSignFrame + signIndex;
 			else
-				return;
+				break;
 		}
 
-		vFrames.push_back(frame);
+		vFrames.emplace_back(frame);
 	}
+
+	return vFrames;
 }
 
 void ShapeTextPrinter::PrintShape
 (
-	const char* text,
-	const ShapeTextPrintData& data,
+	const std::string& text,
+	ShapeTextPrintData data,
 	Point2D* pPosDraw,
 	RectangleStruct* pRBound,
 	DSurface* pSurface,
@@ -46,31 +49,33 @@ void ShapeTextPrinter::PrintShape
 	int iTintColor
 )
 {
-	std::vector<int> vFrames;
-	ShapeTextPrinter::BuildFrames(vFrames, text, data.BaseNumberFrame, data.BaseSignFrame);
+	if (text.empty())
+		return;
 
-	for (const int& frame : vFrames)
+	std::vector<int> frames = ShapeTextPrinter::BuildFrames(text, data.BaseNumberFrame, data.BaseExtraFrame);
+
+	for (int frame : frames)
 	{
 		pSurface->DrawSHP
 		(
-			const_cast<ConvertClass*>(data.Palette),
-			const_cast<SHPStruct*>(data.Shape),
+			data.Palette,
+			data.Shape,
 			frame,
 			pPosDraw,
 			pRBound,
-			BlitterFlags::None,
+			eBlitterFlags,
 			0,
 			0,
 			ZGradient::Ground,
-			1000,
-			0,
+			iBright,
+			iTintColor,
 			nullptr,
 			0,
 			0,
 			0
 		);
 
-		pPosDraw->X += data.Interval.X;
-		pPosDraw->Y += data.Interval.Y;
+		pPosDraw->X += data.Spacing.X;
+		pPosDraw->Y -= data.Spacing.Y;
 	}
 }

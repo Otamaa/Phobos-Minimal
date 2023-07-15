@@ -2183,7 +2183,8 @@ void NOINLINE ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = tr
 		pTeamData->TeamLeader = pLeaderUnit;
 	}
 
-	if (!pLeaderUnit || bAircraftsWithoutAmmo || (pacifistTeam && !agentMode))
+	//leader unit doest exist anymore
+	if (!pLeaderUnit || bAircraftsWithoutAmmo || !Is_Techno(pLeaderUnit) || (pacifistTeam && !agentMode))
 	{
 		pTeamData->IdxSelectedObjectFromAIList = -1;
 		if (pTeamData->WaitNoTargetAttempts != 0)
@@ -2485,7 +2486,7 @@ void NOINLINE ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = tr
 
 TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, int calcThreatMode = 0, HouseClass* onlyTargetThisHouseEnemy = nullptr, int attackAITargetType = -1, int idxAITargetTypeItem = -1, bool agentMode = false)
 {
-	if (!pTechno || !pTechno->Owner)
+	if (!pTechno || !pTechno->Owner || !Is_Techno(pTechno))
 		return nullptr;
 
 	TechnoClass* bestObject = nullptr;
@@ -6978,7 +6979,11 @@ bool NOINLINE ScriptExt::IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTra
 		return false;
 
 	bool isAvailable = pTechno->IsAlive && pTechno->Health > 0
-		&& !pTechno->InLimbo && !pTechno->Transporter && !pTechno->Absorbed;
+		&& !pTechno->InLimbo
+		&& !pTechno->Transporter
+		&& !pTechno->Absorbed
+		&& !pTechno->IsCrashing
+		&& !pTechno->IsSinking;
 
 	if (!isAvailable)
 		return false;

@@ -623,9 +623,9 @@ public:
 
 		Valueable<AnimTypeClass*> NoAmmoEffectAnim { nullptr };
 		Valueable<int> AttackFriendlies_WeaponIdx { -1 };
-		Nullable<WORD> PipScaleIndex {};
+		Nullable<WORD> PipScaleIndex { };
 
-		Nullable<SHPStruct*> AmmoPip {};
+		Nullable<SHPStruct*> AmmoPip_shape { };
 		Valueable<Point2D> AmmoPip_Offset { };
 		Valueable<PaletteManager*> AmmoPip_Palette { }; //CustomPalette::PaletteMode::Default
 
@@ -788,6 +788,11 @@ public:
 		NullableIdx<VocClass> VoiceCantDeploy {};
 		Valueable<bool> DigitalDisplay_Disable { false };
 		ValueableVector<DigitalDisplayTypeClass*> DigitalDisplayTypes {};
+
+		Valueable<int> AmmoPip { 13 };
+		Valueable<int> EmptyAmmoPip { -1 };
+		Valueable<int> PipWrapAmmoPip { 14 };
+		Nullable<Point2D> AmmoPipSize {};
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, AttachedEffect { OwnerObject }

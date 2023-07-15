@@ -164,10 +164,10 @@ public:
 	{ return (X != nThat.X || Y != nThat.Y || Z != nThat.Z); }
 
 	double Magnitude_() const
-	{ return std::sqrt(MagnitudeSquared()); }
+	{ return Math::sqrt(MagnitudeSquared()); }
 
 	double Magnitude() const
-	{ return std::sqrt(MagnitudeSquared()); }
+	{ return Math::sqrt(MagnitudeSquared()); }
 
 	int MagnitudeInt() const
 	{ return static_cast<int>(Magnitude() * 0.00390625);}
@@ -324,7 +324,7 @@ public:
 		v = fmax(v, -1.0);
 		v = fmin(v, 1.0);
 
-		return std::acos(v);
+		return Math::acos(v);
 	}
 
 	CoordStruct Max(const CoordStruct& nThat)

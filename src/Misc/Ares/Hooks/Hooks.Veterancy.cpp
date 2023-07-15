@@ -219,10 +219,10 @@ struct TechnoExperienceData
 				if (Promoted_PlayAnim && !pExpReceiver->InLimbo) {
 					if (auto pAnim = GameCreate<AnimClass>(Promoted_PlayAnim, pExpReceiver->Location, 0, 1, 0x600u, 0, 0)){
 						pAnim->SetOwnerObject(pExpReceiver);
-						
+
 						if (Is_Building(pExpReceiver))
 							pAnim->ZAdjust = -1024;
-					}	
+					}
 				}
 
 				AresData::RecalculateStat(pExpReceiver);
@@ -232,7 +232,7 @@ struct TechnoExperienceData
 		}
 	}
 
-	static void UpdateVeterancy(TechnoClass*& pExpReceiver, TechnoClass* pKiller, TechnoClass* pVictim, int VictimCost, double& d_factor, bool promoteImmediately) 
+	static void UpdateVeterancy(TechnoClass*& pExpReceiver, TechnoClass* pKiller, TechnoClass* pVictim, int VictimCost, double& d_factor, bool promoteImmediately)
 	{
 		if (pExpReceiver)
 		{

@@ -31,7 +31,7 @@ public:
 	}
 
 	Quaternion Normalized(Quaternion rotation) { return rotation /= Norm(rotation); }
-	float Norm(const Quaternion& rotation) { return std::sqrt(rotation.X * rotation.X + rotation.Y * rotation.Y + rotation.Z * rotation.Z + rotation.W * rotation.W); }
+	float Norm(const Quaternion& rotation) { return Math::sqrt(rotation.X * rotation.X + rotation.Y * rotation.Y + rotation.Z * rotation.Z + rotation.W * rotation.W); }
 	static float Dot(const Quaternion& A, const Quaternion& B) { return A.X * B.X + A.Y * B.Y + A.Z * B.Z + A.W * B.W; }
 	
 	void Scale(float s)
@@ -52,7 +52,7 @@ public:
 
 	inline void Make_Identity() { Set(); };
 	inline float Length2() const { return (X*X + Y*Y + Z*Z + W*W); }
-	inline float Length() const { return std::sqrt(Length2()); }
+	inline float Length() const { return Math::sqrt(Length2()); }
 
 	//idk 
 	Quaternion* Func_645D60(Quaternion* B) const { JMP_THIS(0x645D60); }
@@ -132,7 +132,7 @@ public:
 		float zz = a.Z;
 		float xx = a.X;
 		float x = a.X;
-		double v7 = std::sqrt(zz * zz + y * y + x * x);
+		double v7 = Math::sqrt(zz * zz + y * y + x * x);
 		if (v7 != 0.0) {
 			xx = static_cast<float>(x / v7);
 			y = static_cast<float>(y / v7);
@@ -268,7 +268,7 @@ public:
 	Quaternion operator-() const { return { -X, -Y, -Z, W }; }
 	Quaternion operator+() const { return *this; }
 
-	float Angle(Quaternion B) { double dot = Dot(*this, B); return static_cast<float>(std::acos(fmin(fabs(dot), 1)) * 2); }
+	float Angle(Quaternion B) { double dot = Dot(*this, B); return static_cast<float>(Math::acos(fmin(fabs(dot), 1)) * 2); }
 
 	Quaternion FromEuler(float x, float y, float z)
 	{
@@ -321,7 +321,7 @@ public:
 		}
 		else
 		{
-			float n4 = std::acos(n3);
+			float n4 = Math::acos(n3);
 			float n5 = 1.0f / Math::sin(n4);
 			n2 = Math::sin((1 - alpha) * n4) * n5;
 			n1 = flag ? -Math::sin(alpha * n4) * n5 : Math::sin(alpha * n4) * n5;
