@@ -24,7 +24,9 @@ void AnimExt::OnInit(AnimClass* pThis, CoordStruct* pCoord)
 
 	if (pTypeExt->ConcurrentChance.Get() >= 1.0 && !pTypeExt->ConcurrentAnim.empty()) {
 		if (ScenarioClass::Instance->Random.RandomDouble() <= pTypeExt->ConcurrentChance.Get()) {
-			auto const nIdx = ScenarioClass::Instance->Random.RandomFromMax(pTypeExt->ConcurrentAnim.size() - 1);
+
+			auto const nIdx = pTypeExt->ConcurrentAnim.size() == 1 ?
+			0 : ScenarioClass::Instance->Random.RandomFromMax(pTypeExt->ConcurrentAnim.size() - 1);
 
 			if (auto pType = pTypeExt->ConcurrentAnim[nIdx]) {
 

@@ -2239,16 +2239,16 @@ void NOINLINE ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = tr
 
 		if (selectedTarget)
 		{
-			auto const& nCur = pScript->GetCurrentAction();
-			Debug::Log("AI Scripts - Mission_Attack: [%s] [%s] (line: %d = %d,%d) Leader [%s] (UID: %lu) selected [%s] (UID: %lu) as target.\n",
-				pTeam->Type->ID,
-				pScript->Type->ID,
-				pScript->CurrentMission,
-				nCur.Action,
-				nCur.Argument,
-				pLeaderUnitType->ID,
-				pLeaderUnit->UniqueID,
-				pLeaderUnitType->ID, selectedTarget->UniqueID);
+			//auto const& nCur = pScript->GetCurrentAction();
+			//Debug::Log("AI Scripts - Mission_Attack: [%s] [%s] (line: %d = %d,%d) Leader [%s] (UID: %lu) selected [%s] (UID: %lu) as target.\n",
+			//	pTeam->Type->ID,
+			//	pScript->Type->ID,
+			//	pScript->CurrentMission,
+			//	nCur.Action,
+			//	nCur.Argument,
+			//	pLeaderUnitType->ID,
+			//	pLeaderUnit->UniqueID,
+			//	pLeaderUnitType->ID, selectedTarget->UniqueID);
 
 			pTeam->Focus = selectedTarget;
 			pTeamData->WaitNoTargetAttempts = 0; // Disable Script Waits if there are any because a new target was selected
@@ -3435,17 +3435,24 @@ void ScriptExt::CreateNewCurrentScript(TeamClass* pThis, ScriptTypeClass* pNewTy
 	);
 }
 
-ScriptTypeClass* ScriptExt::GetFromAIScriptList(size_t nIdx)
+NOINLINE ScriptTypeClass* ScriptExt::GetFromAIScriptList(size_t nIdx)
 {
 	const auto& nBaseVec = RulesExt::Global()->AIScriptsLists;
 
 	if (nBaseVec.empty() || nIdx < 0 || nIdx > nBaseVec.size())
+	{
+		Debug::Log("ScriptExt::GetFromAIScriptList Failed getting index [%d] of AIScriptsLists with vector size[%d] !\n", nIdx , nBaseVec.size());
 		return nullptr;
+	}
+
+	Debug::Log("ScriptExt::GetFromAIScriptList Successfully getting index [%d] of AIScriptsLists !\n", nIdx);
 
 	const auto& objectsList = nBaseVec[nIdx];
 
 	if (objectsList.empty())
 		return nullptr;
+
+	Debug::Log("ScriptExt::GetFromAIScriptList Successfully getting ItemVector at [%d] of AIScriptsLists with size[%d] !\n", nIdx , objectsList.size());
 
 	return objectsList[ScenarioClass::Instance->Random.RandomFromMax(objectsList.size() - 1)];
 }
@@ -3455,13 +3462,12 @@ void ScriptExt::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 	if (idxScriptsList <= 0)
 		idxScriptsList = pTeam->CurrentScript->GetCurrentAction().Argument;
 
-	bool changeFailed = true;
 	if (ScriptTypeClass* pNewScript = GetFromAIScriptList(idxScriptsList))
 	{
+		Debug::Log("ScriptExt::PickRandomScript Successfully GetFromAIScriptList with index [%d] !\n", idxScriptsList);
+
 		if (pNewScript->ActionsCount > 0)
 		{
-			changeFailed = false;
-
 			//remember previous script
 			TeamExt::ExtMap.Find(pTeam)->PreviousScriptList.push_back(pTeam->CurrentScript);
 
@@ -3484,15 +3490,13 @@ void ScriptExt::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 
 			return;
 		}
-	}
-
-	// This action finished
-	if (changeFailed)
-	{
+	}else {
 		pTeam->StepCompleted = true;
-		Debug::Log("AI Scripts - PickRandomScript: [%s] [%s] Failed to change the Team Script with a random one!\n",
+		Debug::Log("AI Scripts - PickRandomScript: [%s] [%s] Failed to change the Team Script with a random one because the vector or the index is invalid [%d]!\n",
 			pTeam->Type->ID,
-			pTeam->CurrentScript->Type->ID);
+			pTeam->CurrentScript->Type->ID ,
+			idxScriptsList
+		);
 	}
 }
 

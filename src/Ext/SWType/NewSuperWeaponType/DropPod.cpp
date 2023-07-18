@@ -55,6 +55,19 @@ void SW_DropPod::Initialize(SWTypeExt::ExtData* pData)
 
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::DropPod;
 	pData->CursorType = (int)MouseCursorType::ParaDrop;
+
+	pData->Droppod_PodImage_Infantry = FileSystem::LoadSHPFile(GameStrings::POD_SHP);
+	pData->Droppod_Puff = RulesClass::Instance->DropPodPuff;
+	pData->Droppod_Angle = RulesClass::Instance->DropPodAngle;
+	pData->Droppod_Speed = RulesClass::Instance->DropPodSpeed;
+	pData->Droppod_Height = RulesClass::Instance->DropPodHeight;
+	pData->Droppod_Weapon = RulesClass::Instance->DropPodWeapon;
+
+	for (auto const Pod : RulesClass::Instance->DropPod)
+		pData->Droppod_GroundPodAnim.push_back(Pod);
+
+	pData->Droppod_Trailer = RulesExt::Global()->DropPodTrailer;
+	pData->Droppod_AtmosphereEntry = RulesClass::Instance->AtmosphereEntry;
 }
 
 void SW_DropPod::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
@@ -69,6 +82,27 @@ void SW_DropPod::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->Droppod_Duration.Read(exINI, section, "DropPod.Duration");
 
 	Helpers::Alex::remove_non_paradroppables(pData->DropPod_Types, section, "DropPod.Types");
+
+	pData->Droppod_RetryCount.Read(exINI, section, "DropPod.RetryCount");
+
+	pData->Droppod_PodImage_Infantry.Read(exINI, section, "DropPod.PodImageInfantry");
+	pData->Droppod_Puff.Read(exINI, section, "DropPod.Puff");
+	pData->Droppod_Angle.Read(exINI, section, "DropPod.Angle");
+
+	if (pData->Droppod_Angle >= 1.178097245096172) {
+		pData->Droppod_Angle = 1.178097245096172;
+	}
+
+	if (pData->Droppod_Angle <= 0.3926990816987241) {
+		pData->Droppod_Angle = 0.3926990816987241;
+	}
+	pData->Droppod_Speed.Read(exINI, section, "DropPod.Speed");
+	pData->Droppod_Height.Read(exINI, section, "DropPod.Height");
+	pData->Droppod_Weapon.Read(exINI, section, "DropPod.Weapon");
+	pData->Droppod_GroundPodAnim.Read(exINI, section, "DropPod.Pods");
+
+	pData->Droppod_Trailer.Read(exINI, section, "DropPod.Trailer");
+	pData->Droppod_AtmosphereEntry.Read(exINI, section, "DropPod.AtmosphereEntry");
 }
 
 bool SW_DropPod::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
@@ -154,14 +188,15 @@ void DroppodStateMachine::PlaceUnits(SuperClass* pSuper , double veterancy , Ite
 	// three times more tries than units to place.
 	const int count = ScenarioClass::Instance->Random.RandomRanged(cMin, cMax);
 	CellStruct cell = Coords;
-	std::vector<std::pair<bool , int>> Succeededs(count , {false , 3 });
+	std::vector<std::pair<bool , int>> Succeededs(count , {false , pData->Droppod_RetryCount });
+	const bool needRandom = Types.size() > 1;
 
 	for (auto&[status , retrycount] : Succeededs)
 	{
 		if (!status && retrycount)
 		{
 			// get a random type from the list and create an instance
-			TechnoTypeClass* pType = Types[ScenarioClass::Instance->Random.RandomFromMax(Types.size() - 1)];
+			TechnoTypeClass* pType = Types[needRandom ? ScenarioClass::Instance->Random.RandomFromMax(Types.size() - 1) : 0];
 
 			if (!pType || pType->WhatAmI() == BuildingTypeClass::AbsID)
 			{
@@ -185,7 +220,9 @@ void DroppodStateMachine::PlaceUnits(SuperClass* pSuper , double veterancy , Ite
 			CoordStruct crd = CellClass::Cell2Coord(tmpCell);
 
 			// let the locomotor take care of the rest
+			TechnoExt::ExtMap.Find(pFoot)->LinkedSW = pSuper;
 			if (TechnoExt::CreateWithDroppod(pFoot, crd)) {
+				TechnoExt::ExtMap.Find(pFoot)->LinkedSW = nullptr;
 				status = true;
 			} else {
 				--retrycount;

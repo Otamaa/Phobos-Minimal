@@ -1,6 +1,7 @@
 #include "UnitDelivery.h"
 
 #include <Misc/AresData.h>
+#include <Misc/Ares/Hooks/Header.h>
 
 std::vector<const char*> SW_UnitDelivery::GetTypeString() const
 {
@@ -49,7 +50,6 @@ bool SW_UnitDelivery::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClas
 
 	return this->IsSWTypeAttachedToThis(pData, pBuilding);
 }
-
 
 void UnitDeliveryStateMachine::Update()
 {
@@ -185,7 +185,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 					if (Item->CurrentMission == Mission::Area_Guard && !IsPlayerControlled)
 						Item->QueueMission(Mission::Hunt, true);
 				}
-				if (!AresData::IsPowered(Item) || (!Is_Operated(Item) && !AresData::IsOperated(Item)))
+				if (!TechnoExt_ExtData::IsPowered(Item) || (!Is_Operated(Item) && !TechnoExt_ExtData::IsOperated(Item)))
 				{
 					Item->Deactivate();
 					if (ItemBuilding)

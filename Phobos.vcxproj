@@ -132,20 +132,19 @@
     <ClCompile Include="src\Ext\Team\Body.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hook.TunnelSpeed.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.cpp" />
+    <ClCompile Include="src\Ext\TechnoType\Hooks.Droppod.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Hover.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Teleport.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.ChronoSparkle.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Cloak.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Disguise.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.EffectTargetCoordsFix.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Firing.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.DeployFireWeapon.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.FLH.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.Gravity.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.Firing.JumpJet.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.Speed.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Firing.WeaponSelector.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Grinding.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.IC.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Init.cpp" />
@@ -198,6 +197,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.IonBlast.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Locomotor.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.MouseCursors.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Networking.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Others.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Perf.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.ReceiveDamage.cpp" />
@@ -220,6 +220,7 @@
     <ClCompile Include="src\Misc\Hooks.YRPatches.cpp" />
     <ClCompile Include="src\Misc\MapRevealer.cpp" />
     <ClCompile Include="src\Misc\PhobosGlobal.cpp" />
+    <ClCompile Include="src\Misc\SyncLogging.cpp" />
     <ClCompile Include="src\New\Interfaces\TestLocomotionClass.cpp" />
     <ClCompile Include="src\New\Type\DigitalDisplayTypeClass.cpp" />
     <ClCompile Include="src\New\Type\GenericPrerequisite.cpp" />
@@ -415,6 +416,7 @@
     <ClInclude Include="src\Ext\Wave\Body.h" />
     <ClInclude Include="src\Lib\gcem\gcem.hpp" />
     <ClInclude Include="src\Misc\AresData.h" />
+    <ClInclude Include="src\Misc\Ares\Hooks\Header.h" />
     <ClInclude Include="src\Misc\Ares\Utilities\AttachedAlpha.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintBall.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintballType.h" />
@@ -467,6 +469,7 @@
     <ClInclude Include="src\Misc\Patches.h" />
     <ClInclude Include="src\Misc\PhobosGlobal.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />
+    <ClInclude Include="src\Misc\SyncLogging.h" />
     <ClInclude Include="src\New\AnonymousType\AresAttachEffectTypeClass.h" />
     <ClInclude Include="src\New\AnonymousType\PassengerDeletionTypeClass.h" />
     <ClInclude Include="src\New\Entity\DelayFireAnimClass.h" />

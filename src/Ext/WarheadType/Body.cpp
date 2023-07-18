@@ -200,6 +200,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	this->GattlingRateUp.Read(exINI, pSection, "TargetGattlingRateUp");
 	this->ReloadAmmo.Read(exINI, pSection, "TargetReloadAmmo");
 
+	this->MindControl_UseTreshold.Read(exINI, pSection, "MindControl.UseTreshold");
 	this->MindControl_Threshold.Read(exINI, pSection, "MindControl.Threshold");
 	this->MindControl_Threshold_Inverse.Read(exINI, pSection, "MindControl.Threshold.Inverse");
 	this->MindControl_AlternateDamage.Read(exINI, pSection, "MindControl.AlternateDamage");
@@ -389,6 +390,9 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	this->Ion_Damage.Read(exINI, pSection, "IonCannon.Damage");
 
 	this->DetonateParticleSystem.Read(exINI, pSection, "DetonateParticleSystems");
+	this->BridgeAbsoluteDestroyer.Read(exINI, pSection, "BridgeAbsoluteDestroyer");
+	this->CellSpread_MaxAffect.Read(exINI, pSection, "CellSpread.MaxAffect");
+	this->DamageAirThreshold.Read(exINI, pSection, "DamageAirThreshold");
 #pragma endregion
 
 	if (this->InflictLocomotor && pThis->Locomotor == _GUID())
@@ -1003,6 +1007,7 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->GattlingRateUp)
 		.Process(this->ReloadAmmo)
 
+		.Process(this->MindControl_UseTreshold)
 		.Process(this->MindControl_Threshold)
 		.Process(this->MindControl_Threshold_Inverse)
 		.Process(this->MindControl_AlternateDamage)
@@ -1146,6 +1151,10 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 #pragma endregion
 
 		.Process(this->DetonateParticleSystem)
+		.Process(this->BridgeAbsoluteDestroyer)
+		.Process(this->DamageAirThreshold)
+		.Process(this->CellSpread_MaxAffect)
+
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 

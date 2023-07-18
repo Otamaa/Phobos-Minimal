@@ -19,24 +19,24 @@
 
 #pragma region DETONATION
 
- DEFINE_HOOK(0x46920B, BulletClass_Logics, 0x6)
- {
- 	GET(BulletClass* const, pThis, ESI);
- 	GET_BASE(const CoordStruct*, pCoords, 0x8);
-
- 	if (pThis && pThis->WH)
- 	{
- 		auto const pExt = BulletExt::ExtMap.Find(pThis);
- 		auto const pTechno = pThis->Owner ? pThis->Owner : nullptr;
- 		auto const pHouse = pTechno ? pTechno->Owner : pExt->Owner ? pExt->Owner : nullptr;
-
- 		WarheadTypeExt::ExtMap.Find(pThis->WH)->Detonate(pTechno, pHouse, pThis, *pCoords);
- 	}
-
- 	PhobosGlobal::Instance()->DetonateDamageArea = false;
-
- 	return 0;
- }
+//DEFINE_HOOK(0x46920B, BulletClass_Logics, 0x6)
+//{
+//	GET(BulletClass* const, pThis, ESI);
+//	GET_BASE(const CoordStruct*, pCoords, 0x8);
+//
+//	if (pThis && pThis->WH)
+//	{
+//		auto const pExt = BulletExt::ExtMap.Find(pThis);
+//		auto const pTechno = pThis->Owner ? pThis->Owner : nullptr;
+//		auto const pHouse = pTechno ? pTechno->Owner : pExt->Owner ? pExt->Owner : nullptr;
+//
+//		WarheadTypeExt::ExtMap.Find(pThis->WH)->Detonate(pTechno, pHouse, pThis, *pCoords);
+//	}
+//
+//	PhobosGlobal::Instance()->DetonateDamageArea = false;
+//
+//	return 0;
+//}
 
 DEFINE_HOOK(0x46A290, BulletClass_Logics_Return, 0x5)
 {
@@ -76,7 +76,7 @@ DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 			{
 				if (Lauch.LaunchWhat)
 				{
-					Helpers::Otamaa::LauchSW(Lauch, pDecidedOwner,*pCoords, pOwner);
+					Helpers::Otamaa::LauchSW(Lauch, pDecidedOwner, *pCoords, pOwner);
 				}
 			}
 		}

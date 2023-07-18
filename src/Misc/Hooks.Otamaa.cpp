@@ -1392,11 +1392,8 @@ DEFINE_HOOK(0x6EF9BD, TeamMissionClass_GatherAtEnemyCell_Log, 0x5)
 	return 0x6EF9D0;
 }
 
-DEFINE_JUMP(LJMP, 0x4495FF, 0x44961A);
-//DEFINE_HOOK(0x4495FF, BuildingClass_ClearFactoryBib_Log1, 0xA) { return 0x44961A; }
-
-DEFINE_JUMP(LJMP, 0x449657, 0x449672);
-//DEFINE_HOOK(0x449657, BuildingClass_ClearFactoryBib_Log2, 0xA) { return 0x449672; }
+DEFINE_SKIP_HOOK(0x4495FF, BuildingClass_ClearFactoryBib_Log1, 0xA , 44961A);
+DEFINE_SKIP_HOOK(0x449657, BuildingClass_ClearFactoryBib_Log2, 0xA , 449672);
 
 #pragma region TSL_Test
 //struct SHP_AlphaData
@@ -2684,7 +2681,8 @@ DEFINE_HOOK(0x4426DB, BuildingClass_ReceiveDamage_DisableDamageSound, 0x6)
 	return 0x0;
 }
 
-DEFINE_JUMP(LJMP, 0x702765, 0x7027AE); // this just an duplicate
+// this just an duplicate
+DEFINE_SKIP_HOOK(0x702765, TechnoClass_TakeDamage_DuplicateDamageSound , 0xA , 7027AE);
 
 DEFINE_HOOK(0x4FB63A, HouseClass_PlaceObject_EVA_UnitReady, 0x5)
 {
@@ -4417,7 +4415,7 @@ DEFINE_HOOK(0x7225F3, TiberiumClass_Spread_nullptrheap, 0x7)
 }
 
 //skip vanilla TurretOffset read
-DEFINE_JUMP(LJMP, 0x715876, 0x71589A);
+DEFINE_SKIP_HOOK(0x715876,TechnoTypeClass_ReadINI_SkipTurretOffs, 0x6 , 71589A);
 
 DEFINE_HOOK(0x508F82, HouseClass_AI_checkSpySat_IncludeUpgrades, 0x6)
 {
@@ -4787,72 +4785,6 @@ DEFINE_HOOK(0x444159, BuildingClass_KickoutUnit_WeaponFactory_Rubble, 0x6)
 	return 0x444167; //continue check
 }
 
-//TODO : DropPod WH explosion 4B5D8F ,4B6028
-
-DEFINE_HOOK(0x4B5CF1, DropPodLocomotionClass_Process_DroppodPuff, 0x5)
-{
-	//GET(DropPodLocomotionClass*, pLoco, EDI);
-	GET(FootClass*, pFoot, ESI);
-	LEA_STACK(CoordStruct*, pCoord, 0x40 - 0x18);
-
-	if (!pFoot->Unlimbo(*pCoord, ScenarioClass::Instance->Random.RandomRangedSpecific<DirType>(DirType::Min, DirType::Max)))
-		return 0x4B5D0A;
-
-	if (auto pAnimType = RulesClass::Instance->DropPodPuff)
-	{
-		if (auto pAnim = GameCreate<AnimClass>(pAnimType, pCoord, 0, 1, AnimFlag(0x600), 0, 0))
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pFoot->Owner, nullptr, pFoot, false);
-	}
-
-	const auto& nDroppod = RulesClass::Instance->DropPod;
-
-	if (!nDroppod.Count)
-		return 0x4B5E4C;
-
-	//TS random it with the lpvtable ? idk
-	if (auto pAnimType = nDroppod[ScenarioClass::Instance->Random.RandomFromMax(nDroppod.Count - 1)])
-	{
-		if (auto pAnim = GameCreate<AnimClass>(pAnimType, pCoord, 0, 1, AnimFlag(0x600), 0, 0))
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pFoot->Owner, nullptr, pFoot, false);
-	}
-
-	//original game code
-	//using static_cast adding some unnessesary check !
-	/*pLoco + 0x18*/
-	//if (reinterpret_cast<void*>((DWORD)pLoco + 0x18)) {
-	//
-	//	if(RulesClass::Instance->DropPod.Count == 1)
-	//		return 0x4B5E4C;
-	//
-	//	if (auto pAnimType = RulesClass::Instance->DropPod[1]) {
-	//		if (auto pAnim = GameCreate<AnimClass>(pAnimType, pCoord, 0, 1, AnimFlag(0x600), 0, 0))
-	//			AnimExt::SetAnimOwnerHouseKind(pAnim, pFoot->Owner, nullptr, pFoot, false);
-	//	}
-	//} else {
-	//
-	//	if (auto pAnimType = RulesClass::Instance->DropPod[0]) {
-	//		if (auto pAnim = GameCreate<AnimClass>(pAnimType, pCoord, 0, 1, AnimFlag(0x600), 0, 0))
-	//			AnimExt::SetAnimOwnerHouseKind(pAnim, pFoot->Owner, nullptr, pFoot, false);
-	//	}
-	//}
-
-	return 0x4B5E4C;
-}
-
-DEFINE_HOOK(0x4B619F, DropPodLocomotionClass_MoveTo_AtmosphereEntry, 0x5)
-{
-	GET(DropPodLocomotionClass*, pLoco, EDI);
-	LEA_STACK(CoordStruct*, pCoord, 0x1C - 0xC);
-
-	if (auto pAnimType = RulesClass::Instance->AtmosphereEntry)
-	{
-		if (auto pAnim = GameCreate<AnimClass>(pAnimType, pCoord, 0, 1, AnimFlag(0x600), 0, 0))
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pLoco->Owner->Owner, nullptr, pLoco->Owner, false);
-	}
-
-	return 0x4B61D6;
-}
-
 //https://bugs.launchpad.net/ares/+bug/1577493
 // stack 0x8 seems occupied by something else ?
 //DEFINE_HOOK(0x4684FF, BulletClass_InvalidatePointer_CloakOwner, 0xA)
@@ -4938,7 +4870,7 @@ DEFINE_HOOK(0x44E809, BuildingClass_PowerOutput_Absorber, 0x6)
 	return 0x44E826;
 }
 
-DEFINE_JUMP(LJMP, 0x4417A7, 0x44180A);
+DEFINE_SKIP_HOOK(0x4417A7, BuildingClass_Destroy_UnusedRandom, 0x6, 44180A);
 
 DEFINE_HOOK(0x6FA4E5, TechnoClass_AI_RecoilUpdate, 0x6)
 {

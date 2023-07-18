@@ -142,6 +142,10 @@ struct _VTABLE
 	}                                                             \
 	_ALLOCATE_STATIC_PATCH(offset, sizeof(data), data);
 
+/*
+	Be aware that LJMP is only recomended to use on 5 bytes address
+	using it on other than that , possibly causing stack corruption
+*/
 #define DEFINE_JUMP(jumpType, offset, pointer)                    \
 	namespace STATIC_PATCH##offset                                \
 	{                                                             \

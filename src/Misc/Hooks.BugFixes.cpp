@@ -47,7 +47,8 @@ DEFINE_HOOK(0x423365, AnimClass_SHPShadowCheck, 0x8)
 
 	Author : E1 Elite
 */
-DEFINE_JUMP(LJMP, 0x545CE2, 0x545CE9) //Phobos_BugFixes_Tileset255_RemoveNonMMArrayFill
+DEFINE_SKIP_HOOK(0x545CE2 , Phobos_BugFixes_Tileset255_RemoveNonMMArrayFill , 0x7 , 545CE9);
+//DEFINE_JUMP(LJMP, 0x545CE2, 0x545CE9) //Phobos_BugFixes_Tileset255_RemoveNonMMArrayFill
 DEFINE_JUMP(LJMP, 0x546C23, 0x546C8B) //Phobos_BugFixes_Tileset255_RefNonMMArray
 
 // WWP's shit code! Wrong check.
@@ -204,7 +205,8 @@ DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
 
 // issue #250: Building placement hotkey not responding
 // Author: Uranusian
-DEFINE_JUMP(LJMP, 0x4ABBD5, 0x4ABBD5 + 7); // DisplayClass_MouseLeftRelease_HotkeyFix
+//DEFINE_JUMP(LJMP, 0x4ABBD5, 0x4ABBD5 + 7); // DisplayClass_MouseLeftRelease_HotkeyFix
+DEFINE_SKIP_HOOK(0x4ABBD5 , DisplayClass_MouseLeftRelease_HotkeyFix , 0x7 , 4ABBDC);
 
 DEFINE_HOOK(0x4FB2DE, HouseClass_PlaceObject_HotkeyFix, 0x6)
 {
@@ -243,7 +245,7 @@ DEFINE_HOOK(0x44377E, BuildingClass_ActiveClickWith, 0x6)
 
 // issue #232: Naval=yes overrides WaterBound=no and prevents move orders onto Land cells
 // Author: Uranusian
-DEFINE_JUMP(LJMP, 0x47CA05, 0x47CA33); // CellClass_IsClearToBuild_SkipNaval
+DEFINE_SKIP_HOOK(0x47CA05 , CellClass_IsClearToBuild_SkipNaval, 0x6 , 47CA33);
 
 // bugfix: DeathWeapon not properly detonates
 // Author: Uranusian
@@ -862,8 +864,8 @@ FireError __stdcall JumpjetLocomotionClass_Can_Fire(ILocomotion* pThis)
 DEFINE_JUMP(VTABLE, 0x7ECDF4, GET_OFFSET(JumpjetLocomotionClass_Can_Fire))
 
 // BuildingClass_What_Action() - Fix no attack cursor if AG=no projectile on primary
-DEFINE_JUMP(LJMP, 0x447380, 0x44739E);
-DEFINE_JUMP(LJMP, 0x447709, 0x447727);
+DEFINE_SKIP_HOOK(0x447380 , BuildingClass_What_Action_RemoveAGCheckA , 0x6 , 44739E);
+DEFINE_SKIP_HOOK(0x447709 , BuildingClass_What_Action_RemoveAGCheckB , 0x6 , 447727);
 
 //// AG=no projectiles shouldn't fire at land.
 //DEFINE_HOOK(0x6FC87D, TechnoClass_CanFire_AG, 0x6)
@@ -1054,5 +1056,7 @@ DEFINE_HOOK(0x738467, UnitClass_TakeDamage_FixOnDestroyedSource, 0x0)
 	GET(UnitClass*, pThis, ESI);
 	GET_STACK(TechnoClass*, pSource, STACK_OFFSET(0x44, 0x10));
 
-	return pThis->Crash(pSource) ? Continue : ForceKill;
+	R->AL(pThis->Crash(pSource));
+	return 0x738473;
+	//return  ? Continue : ForceKill;
 }

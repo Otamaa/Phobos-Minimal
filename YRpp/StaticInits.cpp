@@ -1273,9 +1273,9 @@ void TechnoClass::SpillTiberium(int& value ,int idx , CellClass* pCenter, Point2
 		return;
 
 	constexpr FacingType Neighbours[] = {
-		FacingType::NorthWest, 
-		FacingType::East, 
-		FacingType::NorthWest, 
+		FacingType::NorthWest,
+		FacingType::East,
+		FacingType::NorthWest,
 		FacingType::NorthEast,
 		FacingType::South,
 		FacingType::SouthEast,
@@ -1359,6 +1359,52 @@ bool TechnoClass::IsCloaked() const
 	}
 
 	return false;
+}
+
+void TechnoClass::DetachSpecificSpawnee(HouseClass* NewSpawneeOwner)
+{
+	if (!this->SpawnOwner)
+		return;
+
+	// setting up the nodes. Funnily, nothing else from the manager is needed
+	const auto& SpawnNodes = this->SpawnOwner->SpawnManager->SpawnedNodes;
+
+	//find the specific spawnee in the node
+	for (auto SpawnNode : SpawnNodes) {
+
+		if (this == SpawnNode->Unit) {
+
+			SpawnNode->Unit = nullptr;
+			this->SpawnOwner = nullptr;
+
+			SpawnNode->Status = SpawnNodeStatus::Dead;
+
+			this->SetOwningHouse(NewSpawneeOwner);
+		}
+	}
+}
+
+void TechnoClass::FreeSpecificSlave(HouseClass* Affector) {
+
+	if (!this->SlaveOwner)
+		return;
+
+	//If you're a slave, you're an InfantryClass. But since most functions use TechnoClasses and the check can be done in that level as well
+	//it's easier to set up the recasting in this function
+	//Anybody who writes 357, take note that SlaveManager uses InfantryClasses everywhere, SpawnManager uses TechnoClasses derived from AircraftTypeClasses
+	//as I wrote it in http://bugs.renegadeprojects.com/view.php?id=357#c10331
+	//So, expand that one instead, kthx.
+
+	if (InfantryClass* pSlave = specific_cast<InfantryClass*>(this)) {
+		auto Manager = pSlave->SlaveOwner->SlaveManager;
+
+		//LostSlave can free the unit from the miner, so we're awesome.
+		Manager->LostSlave(pSlave);
+		pSlave->SlaveOwner = nullptr;
+
+		//OK, delinked, Now relink it to the side which separated the slave from the miner
+		pSlave->SetOwningHouse(Affector);
+	}
 }
 
 bool SuperClass::IsDisabledFromShell() const

@@ -44,6 +44,7 @@ DEFINE_OVERRIDE_HOOK(0x523932, InfantryTypeClass_CTOR_Initialize, 8)
 // skip old logic's way to determine the cursor
 // Was 7
 DEFINE_OVERRIDE_SKIP_HOOK(0x51E5BB, InfantryClass_GetActionOnObject_MultiEngineerA, 0x5, 51E5D9)
+//DEFINE_JUMP(LJMP, 0x51E5BB, 0x51E5D9);
 
 DEFINE_OVERRIDE_HOOK(0x51F628, InfantryClass_Guard_Doggie, 0x5)
 {
@@ -188,6 +189,7 @@ DEFINE_OVERRIDE_HOOK(0x520731, InfantryClass_UpdateFiringState_Heal, 0x5)
 // actual game code: if(auto B = specific_cast<BuildingClass *>(T)) { if(T->currentAmmo > 1) { return 1; } }
 // if the object being queried doesn't have a weapon (Armory/Hospital), it'll return 1 anyway
 DEFINE_OVERRIDE_SKIP_HOOK(0x6FCFA4, TechnoClass_GetROF_BuildingHack, 0x5, 6FCFC1)
+//DEFINE_JUMP(LJMP, 0x6FCFA4, 0x6FCFC1);
 
 DEFINE_OVERRIDE_HOOK(0x51BCB2, InfantryClass_Update_Reload, 0x6)
 {
@@ -202,6 +204,7 @@ DEFINE_OVERRIDE_HOOK(0x51BCB2, InfantryClass_Update_Reload, 0x6)
 }
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x51F1D8, InfantryClass_ActionOnObject_IvanBombs, 0x6, 51F1EA)
+//DEFINE_JUMP(LJMP, 0x51F1D8, 0x51F1EA);
 
 DEFINE_OVERRIDE_HOOK(0x52070F, InfantryClass_UpdateFiringState_Uncloak, 0x5)
 {
@@ -265,6 +268,7 @@ DEFINE_OVERRIDE_HOOK(0x51E3B0, InfantryClass_GetActionOnObject_EMP, 0x7)
 }
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x5200D7, InfantryClass_UpdatePanic_DontReload, 0x6, 52010B)
+//DEFINE_JUMP(LJMP, 0x5200D7, 0x52010B);
 
 DEFINE_OVERRIDE_HOOK(0x51BD4C , InfantryClass_Update_BuildingBelow, 6)
 {
@@ -273,7 +277,7 @@ DEFINE_OVERRIDE_HOOK(0x51BD4C , InfantryClass_Update_BuildingBelow, 6)
 	if(Is_Passable(pBld->Type))
 		return 0x51BD7D;
 
-	if (Is_FirestromWall(pBld->Type))
+	if (BuildingTypeExt::ExtMap.Find(pBld->Type)->Firestorm_Wall)
 		return 0x51BD56;
 
 	return 0x51BD68;
@@ -331,7 +335,7 @@ DEFINE_OVERRIDE_HOOK(0x51C4C8, InfantryClass_IsCellOccupied, 6)
 		return Ignore;
 	}
 
-	if (Is_FirestromWall(pBld->Type)) {
+	if (BuildingTypeExt::ExtMap.Find(pBld->Type)->Firestorm_Wall) {
 		return CheckFirestorm;
 	}
 

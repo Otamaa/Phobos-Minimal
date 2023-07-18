@@ -430,11 +430,11 @@ namespace detail
 	{
 		static_assert(std::is_pointer<T>::value, "Pointer Required !");
 		using baseType = std::remove_pointer_t<T>;
-		nVecDest.clear();
 
 		if (!IniEx->GetSection(pSection))
 			return;
 
+		nVecDest.clear();
 		const auto nKeyCount = IniEx->GetKeyCount(pSection);
 
 		if (!nKeyCount)
@@ -459,18 +459,13 @@ namespace detail
 				else
 					buffer = baseType::FindOrAllocate(res);
 
-				if (buffer)
-				{
+				if (bVerbose)
+					Debug::Log("ParseVector DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, i, res);
+
+				if (buffer) {
 					nVecDest[i].push_back(buffer);
-
-					if (bVerbose)
-						Debug::Log("ParseVector DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, nVecDest.size(), res);
-
-					return;
-				}
-
-				if (bDebug && !GameStrings::IsBlank(cur)) {
-					Debug::Log("ParseVector DEBUG: [%s][%d]: Error parsing [%s]\n", pSection, nVecDest.size(), res);
+				}else if (bDebug && !GameStrings::IsBlank(cur)) {
+					Debug::Log("ParseVector DEBUG: [%s][%d]: Error parsing [%s]\n", pSection, i, res);
 				}
 			}
 		}
@@ -478,10 +473,10 @@ namespace detail
 
 	inline void ParseVector(INI_EX& IniEx, std::vector<std::vector<std::string>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false, const char* Delims = Phobos::readDelims, const char* message = nullptr)
 	{
-		nVecDest.clear();
-
 		if (!IniEx->GetSection(pSection))
 			return;
+
+		nVecDest.clear();
 
 		const auto nKeyCount = IniEx->GetKeyCount(pSection);
 		if (!nKeyCount)
@@ -505,7 +500,7 @@ namespace detail
 					nVecDest[i].push_back(res);
 
 				if (bVerbose)
-					Debug::Log("ParseVector DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, nVecDest.size(), cur);
+					Debug::Log("ParseVector DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, i, cur);
 			}
 		}
 	}

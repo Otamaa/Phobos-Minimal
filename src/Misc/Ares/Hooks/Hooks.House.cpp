@@ -133,6 +133,7 @@ DEFINE_OVERRIDE_HOOK(0x50B370, HouseClass_ShouldDisableCameo, 5)
 }
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x50928C, HouseClass_Update_Factories_Queues_SkipBrokenDTOR, 0x5, 5092A3)
+//DEFINE_JUMP(LJMP, 0x50928C, 0x5092A3);
 
 // reject negative indexes. if the index is the result of the function above, this
 // catches all invalid cells. otherwise, the game can write of of bounds, which can

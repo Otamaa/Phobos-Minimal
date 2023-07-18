@@ -472,13 +472,14 @@ DEFINE_HOOK(0x6EC55A, TeamClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x6EAEC7, TeamClass_Detach, 0x5)
+DEFINE_HOOK(0x6EAE60, TeamClass_Detach, 0x7)
 {
 	GET(TeamClass*, pThis, ECX);
-	GET(void*, target, EAX);
-	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+	GET_STACK(void*, target, 0x4);
+	GET_STACK(bool, all, 0x8);
 
 	TeamExt::ExtMap.InvalidatePointerFor(pThis, target, all);
 
-	return pThis->Target == target ? 0x6EAECC : 0x6EAECF;
+	//return pThis->Target == target ? 0x6EAECC : 0x6EAECF;
+	return 0x0;
 }

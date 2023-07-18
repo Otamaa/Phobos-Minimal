@@ -3,6 +3,8 @@
 #include <Misc/AresData.h>
 #include <Ext/Building/Body.h>
 
+#include <Misc/Ares/Hooks/Header.h>
+
 // This function controls the availability of super weapons. If a you want to
 // add to or change the way the game thinks a building provides a super weapon,
 // change the lambda UpdateStatus. Available means this super weapon exists at
@@ -27,6 +29,7 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 				if (pExt->Type->SW_AlwaysGranted && pExt->Type->IsAvailable(pHouse)) {
 					pExt->Statusses.Available = true;
 					pExt->Statusses.Charging = true;
+					pExt->Statusses.PowerSourced = true;
 				}
 			}
 		}
@@ -35,8 +38,8 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 		{
 			if (pBld->IsAlive && !pBld->InLimbo)
 			{
-				bool Operatored = false;
-				bool IsPowered = false;
+				bool PowerChecked = false;
+				bool HasPower = false;
 
 				// check for upgrades. upgrades can give super weapons, too.
 				for (const auto type : pBld->GetTypes()) {
@@ -56,14 +59,16 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 									{
 										status.Available = true;
 
-										if (!Operatored)
+										if (!PowerChecked)
 										{
-											IsPowered = pBld->HasPower;
-											if (!pBld->IsUnderEMP() && (Is_Operated(pBld) || AresData::IsOperated(pBld)))
-												Operatored = true;
+											HasPower = pBld->HasPower
+												&& !pBld->IsUnderEMP()
+												&& (Is_Operated(pBld) || TechnoExt_ExtData::IsOperated(pBld));
+
+											PowerChecked = true;
 										}
 
-										if (!status.Charging && IsPowered)
+										if (!status.Charging && HasPower)
 										{
 											status.PowerSourced = true;
 
@@ -97,9 +102,11 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 				const auto pExt = SuperExt::ExtMap.Find(pSuper);
 				auto& nStatus = pExt->Statusses;
 
+				if (!nStatus.Available)
+					continue;
+
 				// turn off super weapons that are disallowed.
-				if (!bIsSWShellEnabled && pSuper->Type->DisableableFromShell)
-				{
+				if (!bIsSWShellEnabled && pSuper->Type->DisableableFromShell) {
 					nStatus.Available = false;
 				}
 

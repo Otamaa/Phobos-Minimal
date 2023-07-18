@@ -362,6 +362,9 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	this->ChronoInfantryCrush.Read(exINI, GENERAL_SECTION, "ChronoInfantryCrush");
 
+	this->DamageAirConsiderBridges.Read(exINI, COMBATDAMAGE_SECTION, "DamageAirConsiderBridges");
+	this->DiskLaserAnimEnabled.Read(exINI, AUDIOVISUAL_SECTION, "DiskLaserAnimEnabled");
+
 	//TODO :Disabled atm
 	this->NewTeamsSelector.Read(exINI, "AI", "NewTeamsSelector");
 	this->NewTeamsSelector_SplitTriggersByCategory.Read(exINI, "AI", "NewTeamsSelector.SplitTriggersByCategory");
@@ -614,6 +617,10 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->CloakAnim)
 		.Process(this->DecloakAnim)
 		.Process(this->Cloak_KickOutParasite)
+
+		.Process(this->DamageAirConsiderBridges)
+		.Process(this->DiskLaserAnimEnabled)
+
 		.Process(this->Buildings_DefaultDigitalDisplayTypes)
 		.Process(this->Infantry_DefaultDigitalDisplayTypes)
 		.Process(this->Vehicles_DefaultDigitalDisplayTypes)
@@ -813,8 +820,10 @@ DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 //	return 0x0;
 //}
 
-DEFINE_JUMP(LJMP, 0x668F2B ,0x668F63); // move all these reading before type reading
-DEFINE_JUMP(LJMP, 0x66919B, 0x6691B7); // remove reading warhead from `SpecialWeapon`
+DEFINE_SKIP_HOOK(0x668F2B , RulesClass_Process_RemoveThese , 0x8 , 668F63);
+//DEFINE_JUMP(LJMP, 0x668F2B ,0x668F63); // move all these reading before type reading
+DEFINE_SKIP_HOOK(0x66919B , RulesClass_Process_SpecialWeapon_RemoveWHReadingDuplicate , 0x9 , 6691B7);
+//DEFINE_JUMP(LJMP, 0x66919B, 0x6691B7); // remove reading warhead from `SpecialWeapon`
 //DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 //{
 //	return 0x0;

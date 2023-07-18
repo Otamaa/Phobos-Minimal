@@ -1537,7 +1537,12 @@ namespace detail
 			pCur;
 			pCur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
-			int idx = Lookuper::FindIndexById(pCur);
+			int idx = -1;
+			if constexpr (std::is_pointer<Lookuper>::value) {
+				using base_type = std::remove_pointer_t<Lookuper>;
+				idx = base_type::FindIndexById(pCur);
+			} else { idx = Lookuper::FindIndexById(pCur); }
+
 			if (idx != -1 || GameStrings::IsBlank(pCur))
 			{
 				vector.push_back(idx);

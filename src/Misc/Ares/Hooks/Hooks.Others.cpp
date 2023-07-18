@@ -33,6 +33,8 @@
 #include <Notifications.h>
 #include <strsafe.h>
 
+#include "Header.h"
+
 DEFINE_OVERRIDE_HOOK(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
 {
 	GET(FactoryClass*, pThis, ESI);
@@ -66,7 +68,7 @@ DEFINE_OVERRIDE_HOOK(0x421798, AlphaShapeClass_SDDTOR_Anims, 0x6)
 }
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x565215, MapClass_CTOR_NoInit_Crates, 0x6, 56522D)
-
+//DEFINE_JUMP(LJMP, 0x565215, 0x56522D);
 
 DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 0x8)
 {
@@ -145,6 +147,7 @@ DEFINE_OVERRIDE_HOOK(0x4892BE, DamageArea_NullDamage, 0x6)
 }
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x6AD0ED, Game_AllowSinglePlay, 0x5, 6AD16C);
+//DEFINE_JUMP(LJMP, 0x6AD0ED, 0x6AD16C);
 
 DEFINE_OVERRIDE_HOOK(0x437CCC, BSurface_DrawSHPFrame1_Buffer, 0x8)
 {
@@ -169,6 +172,7 @@ DEFINE_OVERRIDE_HOOK(0x437CCC, BSurface_DrawSHPFrame1_Buffer, 0x8)
 
 // this douchebag blows your base up when it thinks you're cheating
 DEFINE_OVERRIDE_SKIP_HOOK(0x55CFDF, CopyProtection_DontBlowMeUp, 0x7, 55D059);
+//DEFINE_JUMP(LJMP, 0x55CFDF, 0x55D059);
 
 namespace ShakeScreenHandle
 {
@@ -322,6 +326,7 @@ DEFINE_OVERRIDE_HOOK(0x4C6DDB, Networking_RespondToEvent_Selling, 0x8)
 
 // #895374: skip the code that removes the crates (size 7)
 DEFINE_OVERRIDE_SKIP_HOOK(0x483BF1, CellClass_Load_Crates, 0x7, 483BFE)
+//DEFINE_JUMP(LJMP, 0x483BF1, 0x483BFE);
 
 DEFINE_OVERRIDE_HOOK(0x49F5C0, CopyProtection_IsLauncherRunning, 0x8)
 {
@@ -349,7 +354,7 @@ DEFINE_OVERRIDE_HOOK(0x4895B8, DamageArea_CellSpread1, 0x6)
 
 	pIter = nullptr;
 
-	if(spread < 0)
+	if (spread < 0)
 		return 0x4899DA;
 
 	pIter = new CellSpreadEnumerator(spread);
@@ -379,7 +384,8 @@ DEFINE_OVERRIDE_HOOK(0x4899BE, DamageArea_CellSpread3, 0x8)
 	index++;
 
 	// advance iterator
-	if (++*pIter) {
+	if (++*pIter)
+	{
 		return 0x4895C0;
 	}
 
@@ -500,10 +506,7 @@ DEFINE_OVERRIDE_HOOK(0x62A2F8, ParasiteClass_PointerGotInvalid, 0x6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x6BB9DD, WinMain_LogClassSizes, 5, 6BBE2B)
-
 // bugfix #187: Westwood idiocy
-//DEFINE_OVERRIDE_SKIP_HOOK(0x5F698F, ObjectClass_GetCell, 5, 5F69B2)
 DEFINE_HOOK(0x5F6960, ObjectClass_Getcell, 0xA)
 {
 	GET(ObjectClass*, pThis, ECX);
@@ -519,10 +522,15 @@ DEFINE_OVERRIDE_HOOK(0x720DE8, Theme_Stop_NoLog, 0x5) // skip Theme::PlaySong
 }
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x720F37, skip_Theme_Stop, 0x5, 720F3C)
+//DEFINE_JUMP(LJMP, 0x720F37, 0x720F3C);
 DEFINE_OVERRIDE_SKIP_HOOK(0x720A61, skip_Theme_AI, 0x5, 720A66)
+//DEFINE_JUMP(LJMP, 0x720A61, 0x720A66);
 DEFINE_OVERRIDE_SKIP_HOOK(0x615BD3, Handle_Static_Messages_LoopingMovie, 0x5, 615BE0)
+//DEFINE_JUMP(LJMP, 0x615BD3, 0x615BE0);
 DEFINE_OVERRIDE_SKIP_HOOK(0x78997B, sub_789960_RemoveWOLResolutionCheck, 0x5, 789A58)
+//DEFINE_JUMP(LJMP, 0x78997B, 0x789A58);
 DEFINE_OVERRIDE_SKIP_HOOK(0x4BA61B, DSurface_CTOR_SkipVRAM, 0x6, 4BA623)
+//DEFINE_JUMP(LJMP, 0x4BA61B, 0x4BA623);
 
 DEFINE_OVERRIDE_HOOK(0x74A884, VoxelAnimClass_UpdateBounce_Damage, 0x6)
 {
@@ -587,6 +595,7 @@ DEFINE_OVERRIDE_HOOK(0x547043, IsometricTileTypeClass_ReadFromFile, 0x6)
 
 // skip the entire method, we handle it ourselves
 DEFINE_OVERRIDE_SKIP_HOOK(0x53AF40, PsyDom_Update, 6, 53B060)
+//DEFINE_JUMP(LJMP, 0x53AF40, 0x53B060);
 
 DEFINE_HOOK(0x65EA43, SendReinforcement_Opentopped, 0x6)
 {
@@ -1297,6 +1306,7 @@ DEFINE_OVERRIDE_HOOK(0x44D760, BuildingClass_Destroyed_UnitLost, 7)
 }
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x715857, TechnoTypeClass_LoadFromINI_LimitPalettes, 5, 715876)
+//DEFINE_JUMP(LJMP, 0x715857, 0x715876);
 
 DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 {
@@ -1694,7 +1704,9 @@ DEFINE_OVERRIDE_HOOK(0x70DA95, TechnoClass_RadarTrackingUpdate_AnnounceDetected,
 }
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x6BB9DD, WinMain_LogGameClasses, 5, 6BBE2B)
+//DEFINE_JUMP(LJMP, 0x6BB9DD, 0x6BBE2B);
 DEFINE_OVERRIDE_SKIP_HOOK(0x70CAD8, TechnoClass_DealParticleDamage_DontDestroyCliff, 9, 70CB30)
+//DEFINE_JUMP(LJMP, 0x70CAD8, 0x70CB30);
 
 DEFINE_OVERRIDE_HOOK(0x70CBB0, TechnoClass_DealParticleDamage_AmbientDamage, 6)
 {
@@ -1759,9 +1771,11 @@ DEFINE_OVERRIDE_HOOK(0x6FB306, TechnoClass_CreateGap_Optimize, 6)
 
 // bugfix #187: Westwood idiocy
 DEFINE_OVERRIDE_SKIP_HOOK(0x531726, Game_BulkDataInit_MultipleDataInitFix1, 5, 53173A)
+//DEFINE_JUMP(LJMP, 0x531726, 0x53173A);
 
 // bugfix #187: Westwood idiocy
 DEFINE_OVERRIDE_SKIP_HOOK(0x53173F, Game_BulkDataInit_MultipleDataInitFix2, 5, 531749)
+//DEFINE_JUMP(LJMP, 0x53173F, 0x531749);
 
 //this hook taking a lot of time , i guess because of UnitTypeClass::InitOneTimeData thing
 // DEFINE_OVERRIDE_HOOK(0x531726, Game_BulkDataInit_MultipleDataInitFix, 5)
@@ -1849,26 +1863,34 @@ DEFINE_OVERRIDE_HOOK(0x67E74A, LoadGame_EarlyLoadSides, 5)
 }
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x67F281, LoadGame_LateSkipSides, 7, 67F2BF)
-
+//DEFINE_JUMP(LJMP, 0x67F281, 0x67F2BF);
 // ==============================
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x5A5C6A, MapSeedClass_Generate_PlacePavedRoads_RoadEndNE, 9, 5A5CC8)
+//DEFINE_JUMP(LJMP, 0x5A5C6A, 0x5A5CC8);
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x5A5D6F, MapSeedClass_Generate_PlacePavedRoads_RoadEndSW, 9, 5A5DB8)
+//DEFINE_JUMP(LJMP, 0x5A5D6F, 0x5A5DB8);
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x5A5F6A, MapSeedClass_Generate_PlacePavedRoads_RoadEndNW, 8, 5A5FF8)
+//DEFINE_JUMP(LJMP, 0x5A5F6A, 0x5A5FF8);
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x5A6464, MapSeedClass_Generate_PlacePavedRoads_RoadEndSE, 9, 5A64AD)
+//DEFINE_JUMP(LJMP, 0x5A6464, 0x5A64AD);
 
 // ==============================
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x59000E, RMG_FixPavedRoadEnd_Bridges_North, 5, 590087)
+//DEFINE_JUMP(LJMP, 0x59000E, 0x590087);
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x5900F7, RMG_FixPavedRoadEnd_Bridges_South, 5, 59015E)
+//DEFINE_JUMP(LJMP, 0x5900F7, 0x59015E);
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x58FCC6, RMG_FixPavedRoadEnd_Bridges_West, 5, 58FD2A)
+//DEFINE_JUMP(LJMP, 0x58FCC6, 0x58FD2A);
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x58FBDD, RMG_FixPavedRoadEnd_Bridges_East, 5, 58FC55)
+//DEFINE_JUMP(LJMP, 0x58FBDD, 0x58FC55);
 
 DEFINE_OVERRIDE_HOOK(0x58FA51, RMG_PlaceWEBridge, 6)
 {
@@ -2411,7 +2433,7 @@ DEFINE_OVERRIDE_HOOK(0x73C143, UnitClass_DrawVXL_Deactivated, 5)
 
 		// use the operator check because it is more
 		// efficient than the powered check.
-		if (Is_Operated(pThis) || AresData::IsOperated(pThis))
+		if (Is_Operated(pThis) || TechnoExt_ExtData::IsOperated(pThis))
 		{
 			factor = pRules->DeactivateDim_Powered;
 		}
@@ -3055,7 +3077,7 @@ DEFINE_OVERRIDE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 			DSurface::Temp->Draw_Rect(nIntersect, (COLORREF)nColorInt);
 			Point2D nRet;
 			Simple_Text_Print_Wide(&nRet, pFormat, DSurface::Temp.get(), pRect, &nPoint, (COLORREF)nColorInt, (COLORREF)0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, true);
-			pPoint->Y += (nTextDimension.Height);
+			pPoint->Y += (nTextDimension.Height) + 2; //extra number for the background
 		};
 
 		const bool IsAlly = pOwner->IsAlliedWith(HouseClass::CurrentPlayer);
@@ -3075,7 +3097,6 @@ DEFINE_OVERRIDE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 				auto pDrain = (int)pOwner->Power_Drain();
 				auto pOutput = (int)pOwner->Power_Output();
 				swprintf_s(pOutDraimFormat, pDrainFormat, pOutput, pDrain);
-
 				DrawTheStuff(pOutDraimFormat);
 			}
 
@@ -3131,8 +3152,9 @@ public:
 		{
 			for (auto i = len; i; --i)
 			{
-				if (auto v12 = *source++) {
-					if(v12 != this->Mask)
+				if (auto v12 = *source++)
+				{
+					if (v12 != this->Mask)
 						*dest = v12;
 				}
 
@@ -3212,7 +3234,7 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 					if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds))
 					{
 						AresPcxBlit<WORD> blithere((0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft) | (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft));
-						Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds,&blithere, 0, 3, 1000,0);
+						Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &blithere, 0, 3, 1000, 0);
 					}
 				}
 				else
@@ -3298,45 +3320,42 @@ DEFINE_OVERRIDE_HOOK(0x70FBE0, TechnoClass_Activate_AresReplace, 6)
 		If any of the above conditions, bail out and don't activate the object.
 	*/
 
-	if (pThis->IsUnderEMP() || !AresData::IsPowered(pThis))
+	if (pThis->IsUnderEMP() || !TechnoExt_ExtData::IsPowered(pThis))
 	{
 		return 0x70FC85;
 	}
 
-	const bool IsOperatored = Is_Operated(pThis) || AresData::IsOperated(pThis);
-	if (!IsOperatored)
+	if (Is_Operated(pThis) || TechnoExt_ExtData::IsOperated(pThis))
 	{
-		return 0x70FC85;
-	}
+		pThis->Guard();
 
-	pThis->Guard();
-
-	if (auto const pFoot = abstract_cast<FootClass*>(pThis))
-	{
-		pFoot->Locomotor.GetInterfacePtr()->Power_On();
-	}
-
-	if (auto const wasDeactivated = std::exchange(pThis->Deactivated, false))
-	{
-		// change: don't play sound when mutex active
-		if (!Unsorted::ScenarioInit && pType->ActivateSound != -1)
+		if (auto const pFoot = abstract_cast<FootClass*>(pThis))
 		{
-			VocClass::PlayAt(pType->ActivateSound, pThis->Location, nullptr);
+			pFoot->Locomotor.GetInterfacePtr()->Power_On();
 		}
 
-		// change: add spotlight
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-		if (pTypeExt->HasSpotlight)
+		if (auto const wasDeactivated = std::exchange(pThis->Deactivated, false))
 		{
-			++Unsorted::ScenarioInit;
-			AresData::SetSpotlight(pThis, GameCreate<BuildingLightClass>(pThis));
-			--Unsorted::ScenarioInit;
-		}
+			// change: don't play sound when mutex active
+			if (!Unsorted::ScenarioInit && pType->ActivateSound != -1)
+			{
+				VocClass::PlayAt(pType->ActivateSound, pThis->Location, nullptr);
+			}
 
-		// change: update factories
-		if (auto const pBld = specific_cast<BuildingClass*>(pThis))
-		{
-			UpdateFactoryQueues(pBld);
+			// change: add spotlight
+			auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+			if (pTypeExt->HasSpotlight)
+			{
+				++Unsorted::ScenarioInit;
+				AresData::SetSpotlight(pThis, GameCreate<BuildingLightClass>(pThis));
+				--Unsorted::ScenarioInit;
+			}
+
+			// change: update factories
+			if (auto const pBld = specific_cast<BuildingClass*>(pThis))
+			{
+				UpdateFactoryQueues(pBld);
+			}
 		}
 	}
 
@@ -3851,8 +3870,11 @@ DEFINE_OVERRIDE_HOOK(0x6BED08, Game_Terminate_Mouse, 7)
 	return 0x6BED34;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x56017a, OptionsDlg_WndProc_RemoveResLimit, 0x5, 560183)
-DEFINE_OVERRIDE_SKIP_HOOK(0x5601e3, OptionsDlg_WndProc_RemoveHiResCheck, 0x9, 5601FC)
+DEFINE_OVERRIDE_SKIP_HOOK(0x56017A, OptionsDlg_WndProc_RemoveResLimit, 0x5, 560183)
+//DEFINE_JUMP(LJMP, 0x56017A, 0x560183);
+
+DEFINE_OVERRIDE_SKIP_HOOK(0x5601E3, OptionsDlg_WndProc_RemoveHiResCheck, 0x9, 5601FC)
+//DEFINE_JUMP(LJMP, 0x5601E3, 0x5601FC);
 
 #include <Ext/HouseType/Body.h>
 
@@ -3877,9 +3899,8 @@ void GiveBounty(TechnoClass* pVictim, TechnoClass* pKiller)
 	if (!pKiller || !TechnoExt::IsBountyHunter(pKiller))
 		return;
 
-	if (pKiller->Owner)
+	if (pKiller->Owner && pVictim->Owner)
 	{
-
 		const auto pHouseTypeExt = HouseTypeExt::ExtMap.TryFind(pVictim->Owner->Type);
 
 		if (!pHouseTypeExt || !pHouseTypeExt->GivesBounty)
@@ -3918,7 +3939,6 @@ void GiveBounty(TechnoClass* pVictim, TechnoClass* pKiller)
 
 			if (nValue != 0 && pKiller->Owner->AbleToTransactMoney(nValue))
 			{
-
 				if (pKillerTypeExt->Bounty_Display.Get(pRulesGlobal->Bounty_Display))
 				{
 					if (pKillerTypeExt->Get()->MissileSpawn && pKiller->SpawnOwner)
@@ -3950,7 +3970,7 @@ enum class AresHijackActionResult
 	Drive = 2
 };
 
-bool IsOperated(TechnoClass* pThis)
+bool NOINLINE TechnoExt_ExtData::IsOperated(TechnoClass* pThis)
 {
 	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
@@ -3977,6 +3997,34 @@ bool IsOperated(TechnoClass* pThis)
 	return false;
 }
 
+bool NOINLINE TechnoExt_ExtData::IsPowered(TechnoClass* pThis)
+{
+	auto pType = pThis->GetTechnoType();
+
+	if (pType && pType->PoweredUnit)
+	{
+		for (const auto& pBuilding : pThis->Owner->Buildings)
+		{
+			if (pBuilding->Type->PowersUnit == pType
+				&& pBuilding->RegisteredAsPoweredUnitSource
+				&& !pBuilding->IsUnderEMP()) // alternatively, HasPower, IsPowerOnline()
+			{
+				return true;
+			}
+		}
+		// if we reach this, we found no building that currently powers this object
+		return false;
+	}
+	else if (auto pPower = PoweredUnitUptr(pThis))
+	{
+		// #617
+		return pPower->Powered;
+	}
+
+	// object doesn't need a particular powering structure, therefore, for the purposes of the game, it IS powered
+	return true;
+}
+
 // this isn't called VehicleThief action, because it also includes other logic
 // related to infantry getting into an vehicle like CanDrive.
 AresHijackActionResult GetActionHijack(InfantryClass* pThis, TechnoClass* const pTarget)
@@ -3997,7 +4045,7 @@ AresHijackActionResult GetActionHijack(InfantryClass* pThis, TechnoClass* const 
 	}
 
 	//no , this one bit different ?
-	const bool IsNotOperated = !Is_Operated(pTarget) && !IsOperated(pTarget);
+	const bool IsNotOperated = !Is_Operated(pTarget) && !TechnoExt_ExtData::IsOperated(pTarget);
 
 	// i'm in a state that forbids capturing
 	if (pThis->IsDeployed() || IsNotOperated)
@@ -4418,9 +4466,7 @@ DEFINE_OVERRIDE_HOOK(0x44C844, BuildingClass_MissionRepair_Reload, 6)
 	auto const pExt = BuildingExt::ExtMap.Find(pThis);
 
 	// ensure there are enough slots
-	while ((int)pExt->DockReloadTimers.size() < pThis->RadioLinks.Capacity) {
-		pExt->DockReloadTimers.push_back(-1);
-	}
+	pExt->DockReloadTimers.resize(pThis->RadioLinks.Capacity ,-1);
 
 	// update all dockers, check if there's
 	// at least one needing more attention
@@ -4509,6 +4555,277 @@ DEFINE_OVERRIDE_HOOK(0x44C844, BuildingClass_MissionRepair_Reload, 6)
 	return 0x44C968;
 }
 
+DEFINE_OVERRIDE_HOOK(0x621B80, DSurface_FillRectWithColor, 5)
+{
+	GET(RectangleStruct*, rect, ECX);
+	GET(Surface*, surface, EDX);
+
+	int surfaceWidth = surface->Get_Width();
+	int surfaceHeight = surface->Get_Height();
+
+	//make sure the rectangle to fill is within the surface's boundaries, this should do the trick
+	rect->X = (rect->X >= 0) ? rect->X : 0;
+	rect->Y = (rect->Y >= 0) ? rect->Y : 0;
+	rect->Width = (rect->X + rect->Width <= surfaceWidth) ? rect->Width : surfaceWidth - rect->X;
+	rect->Height = (rect->Y + rect->Height <= surfaceHeight) ? rect->Height : surfaceHeight - rect->Y;
+
+	if (rect->Width == 0 || rect->Height == 0)
+		return 0x621D26;
+	else
+		return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x489E9F, DamageArea_BridgeAbsoluteDestroyer, 5)
+{
+	GET(WarheadTypeClass*, pWH, EBX);
+	GET(WarheadTypeClass*, pIonCannonWH, EDI);
+	R->Stack(0x13, WarheadTypeExt::ExtMap.Find(pWH)->BridgeAbsoluteDestroyer.Get(pWH == pIonCannonWH));
+	return 0x489EA4;
+}
+
+DEFINE_OVERRIDE_HOOK(0x489FD8, DamageArea_BridgeAbsoluteDestroyer2, 6)
+{
+	return R->Stack<bool>(0xF) ? 0x48A004 : 0x489FE0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x48A15D, DamageArea_BridgeAbsoluteDestroyer3, 6)
+{
+	return R->Stack<bool>(0xF) ? 0x48A188 : 0x48A165;
+}
+
+DEFINE_OVERRIDE_HOOK(0x48A229, DamageArea_BridgeAbsoluteDestroyer4, 6)
+{
+	return  R->Stack<bool>(0xF) ? 0x48A250 : 0x48A231;
+}
+
+DEFINE_OVERRIDE_HOOK(0x48A283, DamageArea_BridgeAbsoluteDestroyer5, 6)
+{
+	return R->Stack<bool>(0xF) ? 0x48A2AA : 0x48A28B;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4A76ED, DiskLaserClass_Update_Anim, 7)
+{
+	GET(DiskLaserClass* const, pThis, ESI);
+	REF_STACK(CoordStruct, coords, STACK_OFFS(0x54, 0x1C));
+
+	auto const pWarhead = pThis->Weapon->Warhead;
+
+	if (RulesExt::Global()->DiskLaserAnimEnabled)
+	{
+		auto const pType = MapClass::SelectDamageAnimation(
+			pThis->Damage, pWarhead, LandType::Clear, coords);
+
+		if (pType)
+		{
+			// Otamaa Added
+			if (auto pAnim = GameCreate<AnimClass>(pType, coords))
+				pAnim->Owner = pThis->Owner->GetOwningHouse();
+		}
+	}
+
+	MapClass::FlashbangWarheadAt(pThis->Damage, pWarhead, coords);
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4893BA, DamageArea_DamageAir, 9)
+{
+	GET(const CoordStruct* const, pCoords, EDI);
+	GET(WarheadTypeClass*, pWarhead, ESI);
+	GET(int const, heightFloor, EAX);
+	GET_STACK(const CellClass*, pCell, STACK_OFFS(0xE0, 0xC0));
+
+	int heightAboveGround = pCoords->Z - heightFloor;
+
+	// consider explosions on and over bridges
+	if (heightAboveGround > CellClass::BridgeHeight
+		&& pCell->ContainsBridge()
+		&& RulesExt::Global()->DamageAirConsiderBridges)
+	{
+		heightAboveGround -= CellClass::BridgeHeight;
+	}
+
+	// damage units in air if detonation is above a threshold
+	auto const pExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+	auto const damageAir = heightAboveGround > pExt->DamageAirThreshold;
+
+	return damageAir ? 0x4893C3u : 0x48955Eu;
+}
+
+// #895990: limit the number of times a warhead with
+// CellSpread will hit the same object for each hit
+DEFINE_OVERRIDE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
+{
+	struct DamageGroup
+	{
+		ObjectClass* Target;
+		int Distance;
+	};
+
+	REF_STACK(DynamicVectorClass<DamageGroup*>, groups, STACK_OFFS(0xE0, 0xA8));
+	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
+
+	auto pExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+	const int MaxAffect = pExt->CellSpread_MaxAffect;
+
+	if (MaxAffect < 0)
+	{
+		return 0;
+	}
+
+	constexpr auto const DefaultSize = 1000;
+	ObjectClass* bufferHandled[DefaultSize];
+	DynamicVectorClass<ObjectClass*> handled(DefaultSize, bufferHandled);
+	handled.Reserve(groups.Count);
+
+	DamageGroup** bufferTarget[DefaultSize];
+	DynamicVectorClass<DamageGroup**> target(DefaultSize, bufferTarget);
+	target.Reserve(groups.Count);
+
+	for (auto& group : groups)
+	{
+		// group could have been cleared by previous iteration.
+		// only handle if has not been handled already.
+		if (group && handled.AddUnique(group->Target))
+		{
+			target.Count = 0;
+
+			// collect all slots containing damage groups for this target
+			std::for_each(&group, groups.end(), [group, &target](DamageGroup*& item) {
+				if (item && item->Target == group->Target) {
+				 target.AddItem(&item);
+				}
+			});
+
+			// if more than allowed, sort them and remove the ones further away
+			if (target.Count > MaxAffect)
+			{
+				Helpers::Alex::selectionsort(
+					target.begin(), target.begin() + MaxAffect, target.end(),
+					[](DamageGroup** a, DamageGroup** b)
+				{
+					return (*a)->Distance < (*b)->Distance;
+				});
+
+				std::for_each(target.begin() + MaxAffect, target.end(), [](DamageGroup** ppItem) {
+					GameDelete(*ppItem);
+					*ppItem = nullptr;
+				});
+			}
+		}
+	}
+
+	// move all the empty ones to the back, then remove them
+	auto const end = std::remove_if(groups.begin(), groups.end(), [](DamageGroup* pGroup) {
+	  return pGroup == nullptr;
+	});
+
+	auto const validCount = std::distance(groups.begin(), end);
+	groups.Count = validCount;
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4ABFBE, DisplayClass_LeftMouseButtonUp_ExecPowerToggle, 7)
+{
+	GET(TechnoClass*, Target, ESI);
+	return (Target && Target->Owner->IsControlledByHuman_() && Target->WhatAmI() == AbstractType::Building)
+		? 0x4ABFCE
+		: 0x4AC294
+		;
+}
+
+struct HashData
+{
+	DWORD Rules { 0 };
+	DWORD Art { 0 };
+	DWORD AI { 0 };
+};
+
+HashData GetINIChecksums()
+{
+	HashData nBuffer;
+	if (SessionClass::Instance->GameMode != GameMode::LAN)
+	{
+		nBuffer = { CCINIClass::RulesHash.get() , CCINIClass::ArtHash.get() ,  CCINIClass::AIHash.get() };
+	}
+	else
+	{
+		nBuffer = { CCINIClass::RulesHash_Internet.get() , CCINIClass::ArtHash_Internet.get() ,  CCINIClass::AIHash_Internet.get() };
+	}
+
+	if (!nBuffer.Rules)
+		nBuffer.Rules = ScenarioClass::GetRulesUniqueID();
+
+	if (!nBuffer.Art)
+		nBuffer.Art = ScenarioClass::GetArtUniqueID();
+
+	if (!nBuffer.AI)
+		nBuffer.AI = ScenarioClass::GetAIUniqueID();
+
+	return nBuffer;
+}
+
+//DEFINE_OVERRIDE_HOOK(0x52E9AA, Frontend_WndProc_Checksum, 5)
+//{
+//	if (SessionClass::Instance->GameMode == GameMode::LAN || SessionClass::Instance->GameMode == GameMode::Internet)
+//	{
+//		auto nHashes = GetINIChecksums();
+//		Debug::Log("Rules checksum: %08X\n", nHashes.Rules);
+//		Debug::Log("Art checksum: %08X\n", nHashes.Art);
+//		Debug::Log("AI checksum: %08X\n", nHashes.AI);
+//	}
+//	return 0;
+//}
+
+// drain affecting only the drained power plant
+DEFINE_OVERRIDE_HOOK(0x508D32, HouseClass_UpdatePower_LocalDrain1, 5)
+{
+	GET(HouseClass*, pThis, ESI);
+	GET(BuildingClass*, pBld, EDI);
+
+	bool fullDrain = true;
+
+	auto output = pBld->GetPowerOutput();
+
+	if (output > 0)
+	{
+		auto pBldTypeExt = TechnoTypeExt::ExtMap.Find(pBld->Type);
+		auto pDrainTypeExt = TechnoTypeExt::ExtMap.Find(pBld->DrainingMe->GetTechnoType());
+
+		// local, if any of the participants in the drain is local
+		if (pBldTypeExt->Drain_Local || pDrainTypeExt->Drain_Local)
+		{
+			fullDrain = false;
+
+			// use the sign to select min or max.
+			// 0 means no change (maximum of 0 and a positive value)
+			auto limit = [](int value, int limit)
+			{
+				if (limit <= 0)
+				{
+					return MaxImpl(value, -limit);
+				}
+				else
+				{
+					return MinImpl(value, limit);
+				}
+			};
+
+			// drains the entire output of this building by default
+			// (the local output). building has the last word though.
+			auto drain = limit(output, pDrainTypeExt->Drain_Amount);
+			drain = limit(drain, pBldTypeExt->Drain_Amount);
+
+			if (drain > 0)
+			{
+				pThis->PowerOutput -= drain;
+			}
+		}
+	}
+
+	return fullDrain ? 0 : 0x508D37;
+}
 //DEFINE_HOOK(0x4CAD00, FastMath_Cos_Replace, 0xA)
 //{
 //	GET_STACK(double, val, 0x4);

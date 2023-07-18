@@ -16,6 +16,7 @@
 #include <Ext/VoxelAnim/Body.h>
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x414D36, AircraftClass_Update_DontloseTargetInAir, 0x5 , 414D4D)
+//DEFINE_JUMP(LJMP,0x414D36 ,0x414D4D);
 
 DEFINE_OVERRIDE_HOOK(0x416CF4, AircraftClass_Carryall_Unload_Guard, 0x5)
 {

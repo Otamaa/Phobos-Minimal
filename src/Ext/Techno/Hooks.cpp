@@ -537,24 +537,16 @@ DEFINE_HOOK(0x709B2E, TechnoClass_DrawPips_Sizes, 0x5)
 	GET(TechnoClass*, pThis, ECX);
 	REF_STACK(int, pipWidth, STACK_OFFSET(0x74, -0x1C));
 
-	Point2D size;
-	bool isBuilding = pThis->WhatAmI() == AbstractType::Building;
+	const bool isBuilding = pThis->WhatAmI() == AbstractType::Building;
 
-	if (pThis->GetTechnoType()->PipScale == PipScale::Ammo)
-	{
-		if (isBuilding)
-			size = RulesExt::Global()->Pips_Ammo_Buildings_Size;
-		else
-			size = RulesExt::Global()->Pips_Ammo_Size;
+	Point2D size = Point2D::Empty;
+	const auto pType = pThis->GetTechnoType();
 
-		size = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->AmmoPipSize.Get(size);
-	}
-	else
-	{
-		if (isBuilding)
-			size = RulesExt::Global()->Pips_Generic_Buildings_Size;
-		else
-			size = RulesExt::Global()->Pips_Generic_Size;
+	if (pType->PipScale == PipScale::Ammo) {
+		size = TechnoTypeExt::ExtMap.Find(pType)->AmmoPipSize.Get((isBuilding ?
+			RulesExt::Global()->Pips_Ammo_Buildings_Size : RulesExt::Global()->Pips_Ammo_Size));
+	} else {
+		size = (isBuilding ? RulesExt::Global()->Pips_Generic_Buildings_Size : RulesExt::Global()->Pips_Generic_Size).Get();
 	}
 
 	pipWidth = size.X;
@@ -615,7 +607,7 @@ DEFINE_HOOK(0x70A36E, TechnoClass_DrawPips_Ammo, 0x6)
 			}
 
 			position.X += offset->Width;
-			position.Y += i * yOffset;
+			position.Y += yOffset;
 
 			DSurface::Temp->DrawSHP(pConvert, pSHApe,
 				frame, &position, rect, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
@@ -633,7 +625,7 @@ DEFINE_HOOK(0x70A36E, TechnoClass_DrawPips_Ammo, 0x6)
 
 			int frame = i >= pipCount ? emptyFrame : ammoFrame;
 			position.X += offset->Width;
-			position.Y += i * yOffset;
+			position.Y += yOffset;
 
 			DSurface::Temp->DrawSHP(pConvert, pSHApe,
 				frame, &position, rect, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);

@@ -75,6 +75,7 @@
 //}
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x5F848C, ObjectTypeClass_Load3DArt_NoSpawnAlt2, 6, 5F8844)
+//DEFINE_JUMP(LJMP, 0x5F848C, 0x5F8844);
 
 //DEFINE_OVERRIDE_HOOK(0x5F887B, ObjectTypeClass_Load3DArt_Barrels, 6)
 //{

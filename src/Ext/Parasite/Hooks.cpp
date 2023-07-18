@@ -219,7 +219,8 @@ DEFINE_HOOK(0x6298CC, ParasiteClass_GrappleAI_AnimType, 0x5)
 	return CreateAnim;
 }
 
-DEFINE_JUMP(LJMP, 0x629852, 0x629890);
+DEFINE_SKIP_HOOK(0x629852 , ParasiteClass_GrappleAI_RemoveHarcodedWaterTilesetCheck , 7 , 629890);
+//DEFINE_JUMP(LJMP, 0x629852, 0x629890);
 
 DEFINE_HOOK(0x629E90, FootClass_WakeAnim_OnlyWater, 0x6)
 {

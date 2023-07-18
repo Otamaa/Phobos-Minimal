@@ -42,8 +42,8 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Early, 0x6)
 		}
 		//else
 		//{
-		//	if (pThis->Owner == HouseClass::CurrentPlayer 
-		//		&& pThis->OnBridge 
+		//	if (pThis->Owner == HouseClass::CurrentPlayer
+		//		&& pThis->OnBridge
 		//		&& (pThis->CurrentMission == Mission::Harmless || pThis->CurrentMission == Mission::Sleep))
 		//	{
 		//		Debug::Log("GereIam !\n");

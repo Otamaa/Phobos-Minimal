@@ -2086,7 +2086,7 @@ DEFINE_OVERRIDE_HOOK(0x53A140, LightningStorm_Strike, 7)
 				if (auto const itBolts = pExt->Weather_Bolts.GetElements(
 					RulesClass::Instance->WeatherConBolts))
 				{
-					pExt->Weather_CloudHeight = GeneralUtils::GetLSAnimHeightFactor(itBolts[0], pCell);
+					pExt->Weather_CloudHeight = GeneralUtils::GetLSAnimHeightFactor(itBolts[0], pCell , true);
 				}
 			}
 			coords.Z += pExt->Weather_CloudHeight;

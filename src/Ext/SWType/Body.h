@@ -287,6 +287,18 @@ public:
 		Valueable<double> DropPod_Veterancy  {2.0};
 		ValueableVector<TechnoTypeClass*> DropPod_Types {};
 		Valueable<int> Droppod_Duration { 0 };
+		Valueable<int> Droppod_RetryCount { 3 };
+
+		Valueable<SHPStruct*> Droppod_PodImage_Infantry {};
+		Valueable<AnimTypeClass*> Droppod_Puff {};
+		Valueable<double> Droppod_Angle {};
+		Valueable<int> Droppod_Speed {};
+		Valueable<int> Droppod_Height {};
+		Valueable<WeaponTypeClass*> Droppod_Weapon {};
+		ValueableVector<AnimTypeClass*> Droppod_GroundPodAnim {};
+
+		Valueable<AnimTypeClass*> Droppod_Trailer {};
+		Valueable<AnimTypeClass*> Droppod_AtmosphereEntry {};
 #pragma endregion
 
 #pragma region EMPField

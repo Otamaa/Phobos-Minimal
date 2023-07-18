@@ -11,18 +11,54 @@
 
 #include <Misc/AresData.h>
 
+#include <Misc/PhobosGlobal.h>
+
 /*
 *	Otamaa : Nedd storage for `AlphaShapeClass` pointer for later check
-*			 ObjectClass 0x28 seems used by something also 
+*			 ObjectClass 0x28 seems used by something also
 *			 Ext cant be implemented without changing everything too ..
 */
 #pragma warning( push )
 #pragma warning (disable : 4245)
 #pragma warning (disable : 4838)
-DEFINE_DISABLE_HOOK(0x5F3D65, ObjectClass_DTOR_ares)
-DEFINE_DISABLE_HOOK(0x421730, AlphaShapeClass_SDDTOR_ares)
-DEFINE_DISABLE_HOOK(0x420960, AlphaShapeClass_CTOR_ares)
+//DEFINE_DISABLE_HOOK(0x5F3D65, ObjectClass_DTOR_ares)
+//DEFINE_DISABLE_HOOK(0x421730, AlphaShapeClass_SDDTOR_ares)
+//DEFINE_DISABLE_HOOK(0x420960, AlphaShapeClass_CTOR_ares)
 #pragma warning( pop )
+
+DEFINE_OVERRIDE_HOOK(0x420960, AlphaShapeClass_CTOR, 5)
+{
+	GET_STACK(ObjectClass*, pSource, 0x4);
+	GET(AlphaShapeClass*, pAlpha, ECX);
+
+	if (auto pOldAlpha = PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pSource))
+	{
+		GameDelete(pOldAlpha);
+		// pSource is erased from map
+	}
+
+	PhobosGlobal::Instance()->ObjectLinkedAlphas[pSource] = pAlpha;
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x421730, AlphaShapeClass_SDDTOR, 8)
+{
+	GET(AlphaShapeClass*, pAlpha, ECX);
+	PhobosGlobal::Instance()->ObjectLinkedAlphas.erase(pAlpha->AttachedTo);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x5F3D65, ObjectClass_DTOR, 6)
+{
+	GET(ObjectClass*, pThis, ESI);
+
+	if (auto pAlpha = PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pThis)) {
+		GameDelete(pAlpha);
+		// pThis is erased from map
+	}
+
+	return 0;
+}
 
 void NOINLINE UpdateObjectAlpha(ObjectClass* pSource)
 {
@@ -43,12 +79,11 @@ void NOINLINE UpdateObjectAlpha(ObjectClass* pSource)
 	Point2D off = { ScreenArea.X - (pImage->Width / 2), ScreenArea.Y - (pImage->Height / 2) };
 	Point2D xy;
 
-	if (AlphaShapeClass* pAlpha_ = (AlphaShapeClass*)pSource->unknown_28)
+	if (AlphaShapeClass* pAlpha_ = PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pSource))
 	{
 		if (pSource->InLimbo || !pSource->IsAlive)
 		{
 			GameDelete(pAlpha_);
-			pSource->unknown_28 = 0;
 			return;
 		}
 
@@ -95,20 +130,20 @@ void NOINLINE UpdateObjectAlpha(ObjectClass* pSource)
 			if(pTechno->Deactivated)
 			{
 				GameDelete(pAlpha_);
-				pSource->unknown_28 = 0;
 				return;
+			}
+
+			if (auto pBld = specific_cast<BuildingClass*>(pSource))
+			{
+				if (pBld->GetCurrentMission() != Mission::Construction && !pBld->IsPowerOnline())
+				{
+					GameDelete(pAlpha_);
+					return;
+				}
 			}
 		}
 
-		if (auto pBld = specific_cast<BuildingClass*>(pSource))
-		{
-			if (pBld->GetCurrentMission() != Mission::Construction && !pBld->IsPowerOnline())
-			{
-				GameDelete(pAlpha_);
-				pSource->unknown_28 = 0;
-				return;
-			}
-		}
+
 	}
 	else
 	{
@@ -121,23 +156,13 @@ void NOINLINE UpdateObjectAlpha(ObjectClass* pSource)
 			TacticalClass::Instance->CoordsToClient(&XYZ, &xy);
 			xy += off;
 			++Unsorted::ScenarioInit;
-			pSource->unknown_28 = (DWORD)GameCreate<AlphaShapeClass>(pSource, xy);
+			GameCreate<AlphaShapeClass>(pSource, xy);
 			--Unsorted::ScenarioInit;
 			//int Margin = 40;
 			RectangleStruct Dirty = { xy.X - ScreenArea.X, xy.Y - ScreenArea.Y, pImage->Width, pImage->Height };
 			TacticalClass::Instance->RegisterDirtyArea(Dirty, true);
 		}
 	}
-}
-
-DEFINE_HOOK(0x420E30, AplhaSaveClass_Load_SetContext, 7)
-{
-	GET(AlphaShapeClass*, pThis, ESI);
-
-	if (auto pObj = pThis->AttachedTo)
-		pObj->unknown_28 = (DWORD)pThis;
-
-	return 0x0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x5F3E70, ObjectClass_Update_AlphaLight, 5)

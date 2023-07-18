@@ -884,6 +884,17 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->EmptyAmmoPip.Read(exINI, pSection, "EmptyAmmoPip");
 		this->PipWrapAmmoPip.Read(exINI, pSection, "PipWrapAmmoPip");
 		this->AmmoPipSize.Read(exINI, pSection, "AmmoPipSize");
+		this->ProduceCashDisplay.Read(exINI, pSection, "ProduceCashDisplay");
+
+		// drain settings
+		this->Drain_Local.Read(exINI, pSection, "Drain.Local");
+		this->Drain_Amount.Read(exINI, pSection, "Drain.Amount");
+
+		this->FactoryOwners.Read(exINI, pSection, "FactoryOwners");
+		this->FactoryOwners_Forbidden.Read(exINI, pSection, "FactoryOwners.Forbidden");
+		this->FactoryOwners_HaveAllPlans.Read(exINI, pSection, "FactoryOwners.HaveAllPlans");
+		this->FactoryOwners_HaveAllPlans.Read(exINI, pSection, "FactoryOwners.Permanent");
+		this->FactoryOwners_HasAllPlans.Read(exINI, pSection, "FactoryOwners.HasAllPlans");
 
 #pragma region AircraftOnly
 		if (Is_AircraftType(pThis))
@@ -942,6 +953,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 			this->MyFighterData.Read(exINI, pSection, pThis);
 		}
 #pragma endregion
+
+		//this->ShadowIndices.Read(exINI, pSection, "ShadowIndices");
+
 	}
 
 	// Art tags
@@ -1761,6 +1775,10 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->EmptyAmmoPip)
 		.Process(this->PipWrapAmmoPip)
 		.Process(this->AmmoPipSize)
+		.Process(this->ProduceCashDisplay)
+
+		.Process(this->Drain_Local)
+		.Process(this->Drain_Amount)
 #pragma endregion
 		;
 

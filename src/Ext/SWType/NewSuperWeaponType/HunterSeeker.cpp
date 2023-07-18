@@ -44,7 +44,6 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 				return;
 			}
 
-			// Otama : something is change here ? alex seems creating new function for these .//
 			// create a hunter seeker
 			if (auto pHunter = static_cast<UnitClass*>(pType->CreateObject(pOwner)))
 			{

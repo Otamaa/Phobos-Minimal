@@ -22,6 +22,22 @@
 #include <Misc/AresData.h>
 
 #include <numeric>
+#include "Header.h"
+
+void TechnoExt_ExtData::EvalRaidStatus(BuildingClass* pThis)
+{
+	auto pExt = BuildingExt::ExtMap.Find(pThis);
+
+	// if the building is still marked as raided, but unoccupied, return it to its previous owner
+	if (pExt->OwnerBeforeRaid && !pThis->Occupants.Count) {
+		// Fix for #838: Only return the building to the previous owner if he hasn't been defeated
+		if (!pExt->OwnerBeforeRaid->Defeated) {
+			pThis->SetOwningHouse(pExt->OwnerBeforeRaid, false);
+		}
+
+		pExt->OwnerBeforeRaid = nullptr;
+	}
+}
 
 // #1156943: they check for type, and for the instance, yet
 // the Log call uses the values as if nothing happened.
@@ -150,6 +166,7 @@ DEFINE_OVERRIDE_HOOK(0x4430E8, BuildingClass_Demolish_LogCrash, 0x6)
 
 // bugfix #231: DestroyAnims don't remap and cause reconnection errors
 DEFINE_OVERRIDE_SKIP_HOOK(0x441D25, BuildingClass_Destroy, 0xA, 441D37);
+//DEFINE_JUMP(LJMP, 0x441D25, 0x441D37);
 
 DEFINE_OVERRIDE_HOOK(0x451E40, BuildingClass_DestroyNthAnim_Destroy, 0x7)
 {
@@ -228,6 +245,7 @@ DEFINE_OVERRIDE_HOOK(0x444D26, BuildingClass_KickOutUnit_ArmoryExitBug, 0x6)
 }
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x4449DF, BuildingClass_KickOutUnit_PreventClone, 0x6, 444A53)
+//DEFINE_JUMP(LJMP, 0x4449DF, 0x444A53);
 
 DEFINE_OVERRIDE_HOOK(0x44266B, BuildingClass_ReceiveDamage_Destroyed, 0x6)
 {
@@ -378,8 +396,11 @@ DEFINE_OVERRIDE_HOOK(0x451A54, BuildingClass_PlayAnim_NeedsEngineer, 0x6)
 }
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x441163, BuildingClass_Put_DontSpawnSpotlight, 0x6, 441196)
+//DEFINE_JUMP(LJMP, 0x441163, 0x441196);
 DEFINE_OVERRIDE_SKIP_HOOK(0x451132, BuildingClass_ProcessAnims_SuperWeaponsB, 0x6, 451145)
+//DEFINE_JUMP(LJMP, 0x451132, 0x451145);
 DEFINE_OVERRIDE_SKIP_HOOK(0x44656D, BuildingClass_Place_SuperWeaponAnimsB, 0x6, 446580)
+//DEFINE_JUMP(LJMP, 0x44656D, 0x446580);
 
 // EMP'd power plants don't produce power
 DEFINE_OVERRIDE_HOOK(0x44E855, BuildingClass_PowerProduced_EMP, 0x6)
@@ -1618,7 +1639,7 @@ DEFINE_OVERRIDE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
 DEFINE_OVERRIDE_HOOK(0x6F64CB, TechnoClass_DrawHealthBar_FirestormWall, 6)
 {
 	GET(BuildingClass* const, pThis, ESI);
-	return Is_FirestromWall(pThis->Type) ? 0x6F6832u : 0u;
+	return BuildingTypeExt::ExtMap.Find(pThis->Type)->Firestorm_Wall ? 0x6F6832u : 0u;
 }
 
 DEFINE_OVERRIDE_HOOK(0x73F7B0, UnitClass_IsCellOccupied, 6)
@@ -1638,7 +1659,7 @@ DEFINE_OVERRIDE_HOOK(0x73F7B0, UnitClass_IsCellOccupied, 6)
 		return Ignore;
 	}
 
-	if (Is_FirestromWall(pBld->Type))
+	if (BuildingTypeExt::ExtMap.Find(pBld->Type)->Firestorm_Wall)
 	{
 		return CheckFirestormActive;
 	}
@@ -1808,7 +1829,7 @@ DEFINE_OVERRIDE_HOOK(0x4494D2, BuildingClass_IsSellable, 6)
 	GET(BuildingClass*, pThis, ESI);
 
 	// enemy shouldn't be able to sell "borrowed" buildings
-	return Is_CurrentlyRaided(pThis) ? Unsellable : Undecided;
+	return BuildingExt::ExtMap.Find(pThis)->OwnerBeforeRaid ? Unsellable : Undecided;
 }
 
 DEFINE_OVERRIDE_HOOK(0x449518, BuildingClass_IsSellable_FirestormWall, 6)
@@ -1817,7 +1838,7 @@ DEFINE_OVERRIDE_HOOK(0x449518, BuildingClass_IsSellable_FirestormWall, 6)
 	//GET(BuildingClass*, pThis, ESI);
 
 	GET(BuildingTypeClass*, pType, ECX);
-	return Is_FirestromWall(pType) ? CheckHouseFireWallActive : ReturnFalse;
+	return BuildingTypeExt::ExtMap.Find(pType)->Firestorm_Wall ? CheckHouseFireWallActive : ReturnFalse;
 }
 
 DEFINE_OVERRIDE_HOOK(0x44E550, BuildingClass_Mi_Open_GateDown, 6)
@@ -1888,14 +1909,14 @@ DEFINE_HOOK(0x456768 , BuildingClass_DrawRadialIndicator_Always , 0x6)
 DEFINE_OVERRIDE_HOOK(0x4581CD, BuildingClass_UnloadOccupants_AllOccupantsHaveLeft, 6)
 {
 	GET(BuildingClass*, pBld, ESI);
-	AresData::EvalRaidStatus(pBld);
+	TechnoExt_ExtData::EvalRaidStatus(pBld);
 	return 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x458729, BuildingClass_KillOccupiers_AllOccupantsKilled, 6)
 {
 	GET(BuildingClass*, pBld, ESI);
-	AresData::EvalRaidStatus(pBld);
+	TechnoExt_ExtData::EvalRaidStatus(pBld);
 	return 0;
 }
 
@@ -1904,7 +1925,7 @@ DEFINE_OVERRIDE_HOOK(0x4586CA, BuildingClass_KillOccupiers_EachOccupierKilled, 6
 	GET(BuildingClass*, pBld, ESI);
 	//GET(TechnoClass*, pKiller, EBP);
 	//GET(int, idxOccupant, EDI);
-	AresData::EvalRaidStatus(pBld);
+	TechnoExt_ExtData::EvalRaidStatus(pBld);
 	//return 0x4586F0;
 	return 0;
 }
@@ -2007,11 +2028,269 @@ DEFINE_OVERRIDE_HOOK(0x459C03, BuildingClass_CanBeSelectedNow_MassSelectable, 6)
 	GET(BuildingClass*, pThis, ESI);
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
-	if (pTypeExt->MassSelectable.Get(pThis->Type->IsUndeployable()))
-	{
+	if (pTypeExt->MassSelectable.Get(pThis->Type->IsUndeployable())) {
 		return 0x459C14;
 	}
 
 	R->EAX(false);
 	return 0x459C12;
 }
+
+/* 	#218 - specific occupiers
+	#665 - raidable buildings */
+DEFINE_OVERRIDE_HOOK(0x457D58, BuildingClass_CanBeOccupied_SpecificOccupiers, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(InfantryClass*, pInf, EDI);
+
+	if (!pInf->Type->Occupier)
+		return 0x457DA3;
+
+	BuildingTypeExt::ExtData* pBuildTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+	if(!pBuildTypeExt->CanBeOccupiedBy(pInf))
+		return 0x457DA3;
+
+	const auto count = pThis->GetOccupantCount();
+	const bool isFull = (count == pThis->Type->MaxNumberOccupants);
+	const bool isIneligible = ((pThis->Type->TechLevel == -1 && pThis->IsRedHP()) || pInf->IsMindControlled());
+	const bool isRaidable = (pBuildTypeExt->BunkerRaidable && count == 0); // if it's not empty, it cannot be raided anymore, 'cause it already was
+	const bool isNeutral = pThis->Owner->IsNeutral();
+	const bool sameOwner = (pThis->Owner == pInf->Owner);
+	bool can_occupy = false;
+
+	if(!isFull && !isIneligible) {
+		/*	The building switches owners after the first occupant enters,
+			so this check should not interfere with the player who captured it,
+			only prevent others from entering it while it's occupied. (Bug #699) */
+		can_occupy = (sameOwner ? true : (isNeutral || isRaidable));
+	}
+
+	return can_occupy ? 0x457DD5 : 0x457DA3;
+}
+
+/* Requested in issue #695
+	Instructions from D:
+	Flow:
+	Occupier is Remove()'d from the map,
+	added to the Occupants list,
+	<-- hook happens here
+	ThreatToCell is updated,
+	"EVA_StructureGarrisoned" is played if applicable.
+*/
+DEFINE_OVERRIDE_HOOK(0x52297F, InfantryClass_GarrisonBuilding_OccupierEntered, 5)
+{
+	GET(InfantryClass*, pInf, ESI);
+	GET(BuildingClass*, pBld, EBP);
+
+	AresGarrisonedIn(pInf) = pBld;
+
+	auto buildingExtData = BuildingExt::ExtMap.Find(pBld);
+
+	// if building and owner are from different players, and the building is not in raided state
+	// change the building's owner and mark it as raided
+	// but only if that's even necessary - no need to raid urban combat buildings.
+	// 27.11.2010 changed to include fix for #1305
+	const bool differentOwners = (pBld->Owner != pInf->Owner) && ((SessionClass::Instance->GameMode == GameMode::Campaign) || !pBld->Owner->CurrentPlayer || !pInf->Owner->CurrentPlayer);
+	const bool ucBuilding = ((pBld->Type->TechLevel == -1) && pBld->Owner->IsNeutral());
+
+	if (differentOwners && !ucBuilding && !buildingExtData->OwnerBeforeRaid) {
+		buildingExtData->OwnerBeforeRaid = pBld->Owner;
+		pBld->SetOwningHouse(pInf->Owner);
+	}
+
+	return 0;
+}
+
+void UpdateSensorArray(BuildingClass* pBld)
+{
+	if (pBld->Type->SensorArray)
+	{
+		bool isActive = pBld->IsPowerOnline() && !pBld->Deactivated;
+		bool wasActive = (BuildingExt::ExtMap.Find(pBld)->SensorArrayActiveCounter > 0);
+
+		if (isActive != wasActive)
+		{
+			if (isActive)
+			{
+				pBld->SensorArrayActivate();
+			}
+			else
+			{
+				pBld->SensorArrayDeactivate();
+			}
+		}
+	}
+}
+
+
+DEFINE_OVERRIDE_HOOK(0x455828, BuildingClass_SensorArrayActivate, 8)
+{
+	GET(BuildingClass*, pBld, ECX);
+	auto pExt = BuildingExt::ExtMap.Find(pBld);
+
+	// only add sensor if ActiveCount was zero
+	if (pBld->IsPowerOnline() && !pBld->Deactivated && !pExt->SensorArrayActiveCounter++) {
+		return 0x455838;
+	}
+
+	return 0x45596F;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4556E1, BuildingClass_SensorArrayDeactivate, 7)
+{
+	GET(BuildingClass*, pBld, ECX);
+	auto pExt = BuildingExt::ExtMap.Find(pBld);
+
+	// don't do the same work twice
+	if (pExt->SensorArrayActiveCounter > 0)
+	{
+		pExt->SensorArrayActiveCounter = 0;
+
+		// this fixes the issue where the removed area does not match the
+		// added area. adding uses SensorsSight, so we remove that one here.
+		R->EBP(pBld->Type->SensorsSight);
+
+		return 0x4556E8;
+	}
+
+	return 0x45580D;
+}
+
+// powered state changed
+DEFINE_OVERRIDE_HOOK_AGAIN(0x54B5F, BuildingClass_UpdatePowered_SensorArray, 6)
+DEFINE_OVERRIDE_HOOK(0x4549F8, BuildingClass_UpdatePowered_SensorArray, 6)
+{
+	GET(BuildingClass*, pBld, ESI);
+	UpdateSensorArray(pBld);
+	return 0;
+}
+
+// something changed to the worse, like toggle power
+DEFINE_OVERRIDE_HOOK(0x4524A3, BuildingClass_DisableThings, 6)
+{
+	GET(BuildingClass*, pBld, EDI);
+	UpdateSensorArray(pBld);
+	return 0;
+}
+
+// check every frame
+DEFINE_OVERRIDE_HOOK(0x43FE69, BuildingClass_Update_SensorArray, 0xA)
+{
+	GET(BuildingClass*, pBld, ESI);
+	UpdateSensorArray(pBld);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x454BDC , BuildingClass_UpdatePowered_LargeGap, 7)
+{
+	GET(BuildingTypeClass*, pType, ECX);
+	R->EDX(TechnoTypeExt::ExtMap.Find(pType)->GapRadiusInCells.Get());
+	return 0x454BE3;
+}
+
+DEFINE_OVERRIDE_HOOK(0x43FB6D , BuildingClass_Update_LaserFencePost, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	if (pThis->Type->LaserFencePost)
+		pThis->CreateEndPost(true);
+
+	return 0x0;
+}
+
+/*
+static void UpdateFactoriesPlant(BuildingClass* pThis)
+{
+	auto types = pThis->GetTypes().begin();
+
+	while ( !*types || !*((*types)->TechnoTypeExt + 0x320) ) {
+	   if ( ++types == pThis->GetTypes().end() )
+		return;
+	}
+
+	HouseExt::ExtMap.Find(pThis->Owner)->Factories_HouseTypes.push_back(TechnoExt::ExtMap.Find(pThis)->OriginalHouseType);
+}
+// support oil derrick logic on building upgrades
+DEFINE_OVERRIDE_HOOK(0x4409F4, BuildingClass_Put_ProduceCash, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(BuildingClass*, pToUpgrade, EDI);
+
+	auto pExt = BuildingExt::ExtMap.Find(pToUpgrade);
+
+	if (auto delay = pThis->Type->ProduceCashDelay)
+	{
+		pExt->CashUpgradeTimers[pToUpgrade->UpgradeLevel - 1].Start(delay);
+	}
+
+
+
+	// this one need to be accessed direcly
+	// it doing push on the type vector
+	// BuildingExt::ExtData::UpdateFactoryPlans(v1);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x43FD2C, BuildingClass_Update_ProduceCash, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	auto pExt = BuildingExt::ExtMap.Find(pThis);
+
+	auto Process = [](BuildingClass* pBld, BuildingTypeClass* pType, CDTimerClass& timer)
+	{
+		if (timer.GetTimeLeft() == 1)
+		{
+			timer.Start(pType->ProduceCashDelay);
+
+			if (!pBld->Owner->Type->MultiplayPassive && pBld->IsPowerOnline())
+			{
+				//Display the funds here
+				pBld->Owner->TransactMoney(pType->ProduceCashAmount);
+			}
+		}
+	};
+
+	Process(pThis, pThis->Type, pThis->CashProductionTimer);
+
+	for (size_t i = 0; i < 3; ++i)
+	{
+		if (const auto& pUpgrade = pThis->Upgrades[i])
+		{
+			Process(pThis, pUpgrade, pExt->CashUpgradeTimers[i]);
+		}
+	}
+
+	return 0x43FDD6;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4482BD, BuildingClass_ChangeOwnership_ProduceCash, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(HouseClass*, pNewOwner, EBX);
+	auto pExt = BuildingExt::ExtMap.Find(pThis);
+
+	auto Process = [](HouseClass* pOwner, BuildingTypeClass* pType, CDTimerClass& timer)
+	{
+		if (pType->ProduceCashStartup)
+		{
+			//Display the funds here
+			pOwner->TransactMoney(pType->ProduceCashStartup);
+			timer.Start(pType->ProduceCashDelay);
+		}
+	};
+
+	Process(pNewOwner, pThis->Type, pThis->CashProductionTimer);
+
+
+	for (size_t i = 0; i < 3; ++i)
+	{
+		if (const auto& pUpgrade = pThis->Upgrades[i])
+		{
+			Process(pNewOwner, pUpgrade, pExt->CashUpgradeTimers[i]);
+		}
+	}
+
+	return 0x4482FC;
+}
+
+*/

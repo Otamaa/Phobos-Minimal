@@ -27,10 +27,7 @@ DEFINE_HOOK(0x685078, Generate_OreTwinkle_Anims, 0x7)
 
 		if (!ScenarioClass::Instance->Random.RandomFromMax(pTibExt->GetTwinkleChance() - 1)) {
 			if (auto pAnimtype = pTibExt->GetTwinkleAnim()) {
-				if (auto pAnim = GameCreate<AnimClass>(pAnimtype, location->GetCoords(), 1)) {
-					pAnim->__lighting__celldraw_196 = true;
-					AnimExt::SetAnimOwnerHouseKind(pAnim, nullptr, nullptr, false);
-				}
+				GameCreate<AnimClass>(pAnimtype, location->GetCoords(), 1);
 			}
 		}
 	}
@@ -49,7 +46,7 @@ DEFINE_HOOK(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
 	//overriden instruction !
 	R->Stack(STACK_OFFS(0x8C, 0x78), R->AL());
 
-	return AnimExt::OnExpired(pThis, LandIsWater, EligibleHeight) ? 
+	return AnimExt::OnExpired(pThis, LandIsWater, EligibleHeight) ?
 		SkipGameCode : 0x0 ;
 }
 
@@ -68,7 +65,7 @@ DEFINE_HOOK(0x42504D, AnimClass_Middle_SpawnCreater, 0xA) //was 4
 	GET(int, nX, EBP);
 	GET_STACK(int, nY, STACK_OFFS(0x30, 0x20));
 
-	return AnimExt::OnMiddle_SpawnParticle(pThis, pCell, { nX ,nY }) ? 
+	return AnimExt::OnMiddle_SpawnParticle(pThis, pCell, { nX ,nY }) ?
 		0x42513F : 0x0 ;
 }
 

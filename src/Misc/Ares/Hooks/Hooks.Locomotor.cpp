@@ -79,13 +79,6 @@ DEFINE_OVERRIDE_HOOK(0x718275 ,TeleportLocomotionClass_MakeRoom, 9)
 	return 0x7184CE;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4B5F9E, DropPodLocomotionClass_ILocomotion_Process_Report, 0x6)
-{
-	// do not divide by zero
-	GET(int const, count, EBP);
-	return count ? 0 : 0x4B5FAD;
-}
-
 DEFINE_OVERRIDE_HOOK_AGAIN(0x514F60, HoverLocomotionClass_ILocomotion_MoveTo, 0x7)
 DEFINE_OVERRIDE_HOOK(0x514E97, HoverLocomotionClass_ILocomotion_MoveTo, 0x7)
 {
@@ -240,9 +233,9 @@ bool NOINLINE AcquireHunterSeekerTarget(TechnoClass* pThis)  {
 		// check the hunter seeker SW
 		if (auto const pSuper =
 #ifndef Replace_SW
-			AttachedSuperWeapon(pThis)
-#else
 			TechnoExt::ExtMap.Find(pThis)->LinkedSW
+#else
+			AttachedSuperWeapon(pThis)
 #endif
 			) {
 			pOwner = pSuper->Owner;
@@ -354,32 +347,6 @@ DEFINE_OVERRIDE_HOOK(0x4CFE80, FlyLocomotionClass_ILocomotion_AcquireHunterSeeke
 	AcquireHunterSeekerTarget(pLoco->LinkedTo);
 
 	return 0x4D016F;
-}
-
-DEFINE_OVERRIDE_HOOK(0x4B5EB0, DropPodLocomotionClass_ILocomotion_Process_Smoke, 6)
-{
-	GET(FootClass*, pFoot, ESI);
-	REF_STACK(const CoordStruct, Coords, 0x34);
-
-	// create trailer even without weapon, but only if it is set
-	if (!(Unsorted::CurrentFrame % 6))
-	{
-		if (AnimTypeClass* pType = RulesExt::Global()->DropPodTrailer)
-		{
-			if (auto pAnim = GameCreate<AnimClass>(pType, Coords))
-			{
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pFoot->Owner, nullptr, pFoot, false);
-			}
-		}
-	}
-
-	if (const auto pWeapon = RulesClass::Instance->DropPodWeapon)
-	{
-		R->ESI(pWeapon);
-		return 0x4B5F14;
-	}
-
-	return 0x4B602D;
 }
 
 DEFINE_OVERRIDE_HOOK(0x4B99A2, DropshipLoadout_WriteUnit, 0xA)

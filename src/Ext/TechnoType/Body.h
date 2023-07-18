@@ -794,6 +794,16 @@ public:
 		Valueable<int> PipWrapAmmoPip { 14 };
 		Nullable<Point2D> AmmoPipSize {};
 
+		Valueable<bool> ProduceCashDisplay { false };
+
+		ValueableVector<HouseTypeClass*> FactoryOwners { };
+		ValueableVector<HouseTypeClass*> FactoryOwners_Forbidden { };
+		Valueable<bool> FactoryOwners_HaveAllPlans { false };
+		Valueable<bool> FactoryOwners_HasAllPlans { false };
+
+		Valueable<bool> Drain_Local { false };
+		Valueable<int> Drain_Amount { 0 };
+
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, AttachedEffect { OwnerObject }
 		{ }

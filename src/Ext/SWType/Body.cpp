@@ -1406,6 +1406,12 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_AnimHeight.Read(exINI, pSection, "SW.AnimationHeight");
 	this->SW_ChargeToDrainRatio.Read(exINI, pSection, "SW.ChargeToDrainRatio");
 
+	this->SW_Next.Read(exINI, pSection, "SW.Next");
+	this->SW_Next_RealLaunch.Read(exINI, pSection, "SW.Next.RealLaunch");
+	this->SW_Next_IgnoreInhibitors.Read(exINI, pSection, "SW.Next.IgnoreInhibitors");
+	this->SW_Next_IgnoreDesignators.Read(exINI, pSection, "SW.Next.IgnoreDesignators");
+	this->SW_Next_RollChances.Read(exINI, pSection, "SW.Next.RollChances");
+
 	//
 	this->Converts.Read(exINI, pSection, "Converts");
 	this->ConvertsPair.Read(exINI, pSection, "ConvertsPair");
@@ -1733,9 +1739,7 @@ bool SWTypeExt::ExtData::IsAvailable(HouseClass* pHouse)
 	if (!this->CanFire(pHouse))
 		return false;
 
-	const bool IsCurrentPlayer = pHouse->IsControlledByCurrentPlayer();
-
-	if (IsCurrentPlayer ? this->SW_AllowPlayer == 0 : this->SW_AllowAI == 0)
+	if (pHouse->IsControlledByCurrentPlayer() ? (!this->SW_AllowPlayer) : (!this->SW_AllowAI))
 		return false;
 
 	if (!this->SW_Require.empty()) {
@@ -2068,6 +2072,17 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DropPod_Veterancy)
 		.Process(this->DropPod_Types)
 		.Process(this->Droppod_Duration)
+		.Process(this->Droppod_RetryCount)
+		.Process(this->Droppod_PodImage_Infantry)
+		.Process(this->Droppod_Puff)
+		.Process(this->Droppod_Angle)
+		.Process(this->Droppod_Speed)
+		.Process(this->Droppod_Height)
+		.Process(this->Droppod_Weapon)
+		.Process(this->Droppod_GroundPodAnim)
+
+		.Process(this->Droppod_Trailer)
+		.Process(this->Droppod_AtmosphereEntry)
 
 		.Process(this->EMPField_Duration)
 		.Process(this->SW_MaxCount)

@@ -395,7 +395,7 @@ DEFINE_OVERRIDE_HOOK(0x5F96B0, ObjectTypeClass_TheaterSpecificID, 6)
 
 #pragma region ScenarioClass_InitTheater
 
-//How mix loaded ? 
+//How mix loaded ?
 // controlfilename.mix - inside RA2 mix ,overlay and tree stuffs , must ?
 // ArtFileName.mix - inside RA2 mix , c_shadow , civ building shp , majority of terrain files , terraub files us must
 // Extension.mix - inside RA2 mix ,wake1 , wake2 ,ammo01 shp , ignorable ?
@@ -414,7 +414,7 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 	GET(wsprintfA_ptr, pFunc, EBP);
 
 	if (nType == TheaterType::None) {
-		//for some stupid reason this return to invalid 
+		//for some stupid reason this return to invalid
 		//that mean it not parsed properly ?
 		Debug::Log("TheaterType is invalid ! , fallback to Temperate!");
 		ScenarioClass::Instance->Theater = TheaterType::Temperate;
@@ -518,7 +518,7 @@ DEFINE_HOOK(0x428CBF, AnimTypeClass_TheaterSuffix_4, 0x6)
 	return 0x428CC5;
 }
 
-//BuildingType 
+//BuildingType
 DEFINE_HOOK(0x45E9FD, BuildingTypeClass_TheaterSuffix_1, 0x6)
 {
 	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
@@ -570,7 +570,7 @@ DEFINE_HOOK(0x6B57A7, SmudgeTypesClass_TheaterSuffix_2, 0x6)
 	return 0x6B57AD;
 }
 
-//TerrainType 
+//TerrainType
 DEFINE_HOOK(0x71DCE4, TerrainTypeClass_TheaterSuffix, 0x6)
 {
 	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
@@ -611,7 +611,7 @@ DEFINE_HOOK(0x483DF0, CellClass_CheckPassability_ArtictA, 0x5)
 	GET(TheaterType, theater, EAX);
 
 	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
-	return pTheater->IsArctic ? 
+	return pTheater->IsArctic ?
 		0x483E0C : 0x483DF5;
 }
 
@@ -683,7 +683,8 @@ DEFINE_HOOK(0x5997B4, RMGClass_TheaterType_initRandomMap, 0x7)
 	return 0x5997C6;
 }
 
-DEFINE_JUMP(LJMP, 0x6275B7, 0x627680);
+DEFINE_SKIP_HOOK(0x6275B7, scheme_62759_ProcessOtherPalettes_RemoveThseCall , 0x7 , 627680);
+//DEFINE_JUMP(LJMP, 0x6275B7, 0x627680);
 
 DEFINE_HOOK(0x627699, TheaterTypeClass_ProcessOtherPalettes_Process, 0x6)
 {
@@ -702,8 +703,8 @@ DEFINE_HOOK(0x627699, TheaterTypeClass_ProcessOtherPalettes_Process, 0x6)
 	if (!pFile)
 		Debug::Log("Failed to load [%s] as [%s] !\n", pOriginalName, pNameProcessed);
 
-	// cant use PaletteManager atm , because this will be modified after load done 
-	// so if PaletteManager used , that mean the color enries will get modified 
+	// cant use PaletteManager atm , because this will be modified after load done
+	// so if PaletteManager used , that mean the color enries will get modified
 	// for second time !
 	R->EAX(pFile);
 	return 0x6276A4;

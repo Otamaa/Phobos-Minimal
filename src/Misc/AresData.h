@@ -138,10 +138,10 @@ struct EMPulse
 #define GetAEData(techno) (*(AEData*)(((char*)GetAresTechnoExt(techno)) + 0x20))
 
 #define TakeVehicleMode(techno) (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0xB0))
-#define AltOccupy_HasValue(techno)  (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0x9A)) 
-#define AltOccupy_Value(techno)  (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0x99)) 
+#define AltOccupy_HasValue(techno)  (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0x9A))
+#define AltOccupy_Value(techno)  (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0x99))
 
-#define EMPulseTarget(techno) (*(AbstractClass**)(((char*)GetAresTechnoExt(techno)) + 0xA4))
+//#define EMPulseTarget(techno) (*(AbstractClass**)(((char*)GetAresTechnoExt(techno)) + 0xA4))
 #define AttachedSuperWeapon(techno) (*(SuperClass**)(((char*)GetAresTechnoExt(techno)) + 0xA0))
 #define GetCloakSkipTimer(techno) (*(CDTimerClass*)(((char*)GetAresTechnoExt(techno)) + 0x44))
 
@@ -157,12 +157,12 @@ struct EMPulse
 #define KeepAlivesBuildingCount(var) (*(int*)((char*)GetAresHouseExt(var) + 0x1C))
 
 // BldTypeExt
-#define Is_FirestromWall(techno) (*(bool*)((char*)GetAresBuildingTypeExt(techno) + 0x5D))
+//#define Is_FirestromWall(techno) (*(bool*)((char*)GetAresBuildingTypeExt(techno) + 0x5D))
 #define Is_Passable(techno) (*(bool*)((char*)GetAresBuildingTypeExt(techno) + 0x5E))
-#define TunnelIdx(var) (*(int*)(((char*)GetAresBuildingTypeExt(var)) + 0x244))
+//#define TunnelIdx(var) (*(int*)(((char*)GetAresBuildingTypeExt(var)) + 0x244))
 #define Is_Academy(var) (*(bool*)((char*)GetAresBuildingTypeExt(var) + 0x138))
 //
-#define Is_CurrentlyRaided(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0x8))
+//#define OwnerBeforeRaid(var) (*(HouseClass**)(((char*)GetAresBuildingExt(var)) + 0x8))
 #define FreeUnitDone(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0xC))
 #define Ares_AboutToChronoshift(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0xD))
 #define Is_FromSW(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0xE))
@@ -236,7 +236,9 @@ struct AresData
 	static void TechnoTransferAffects(TechnoClass* const pFrom, TechnoClass* const pTo);
 	static bool IsGenericPrerequisite(TechnoTypeClass* const pThis);
 	static int GetSelfHealAmount(TechnoClass* const pTechno);
-	static bool IsOperated(TechnoClass* const pTechno);
+
+	//static bool IsOperated(TechnoClass* const pTechno);
+	//static bool IsPowered(TechnoClass* pThis);
 
 	static ConvertClass* GetBulletTypeConvert(BulletTypeClass* pThis);
 	static void WarheadTypeExt_ExtData_ApplyKillDriver(WarheadTypeClass* pThis, TechnoClass* const pAttacker, TechnoClass* const pVictim);
@@ -258,7 +260,7 @@ struct AresData
 	static void applyEMP(WarheadTypeClass* pWH, CoordStruct* pTarget, TechnoClass* pOwner);
 	static void applyAE(WarheadTypeClass* pWH, CoordStruct* pTarget, HouseClass* pOwner);
 
-	static void EvalRaidStatus(BuildingClass* pBuilding);
+	//static void EvalRaidStatus(BuildingClass* pBuilding);
 	static bool IsActiveFirestormWall(BuildingClass* pBuilding , HouseClass* pOwner);
 	static bool ImmolateVictim(BuildingClass* pBuilding , FootClass* pTarget , bool Destroy);
 
@@ -271,7 +273,7 @@ struct AresData
 	static void FlyingStringsAdd(TechnoClass* pTech, bool bSomething);
 	static void CalculateBounty(TechnoClass* pThis, TechnoClass* pKiller);
 	static void SetSpotlight(TechnoClass* pThis , BuildingLightClass* pSpotlight);
-	static bool IsPowered(TechnoClass* pThis);
+
 	static bool IsDriverKillable(TechnoClass* pThis, double tresh);
 	static bool KillDriverCore(TechnoClass* pThis, HouseClass* pToHouse, TechnoClass* pKiller, bool removeVet);
 	static void FireIronCurtain(TeamClass* pTeam, ScriptActionNode* pNode , bool ntrhd);
@@ -289,6 +291,7 @@ struct AresData
 
 	static Action TechnoExt_GetActionHijack(TechnoClass* pThis, TechnoClass* pTarget);
 
+	static void AresNetEvent_Handlers_RespondToFirewallToggle(HouseClass* pFor, bool Activate);
 };
 
 namespace AresMemory

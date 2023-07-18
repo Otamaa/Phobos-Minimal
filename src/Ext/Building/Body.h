@@ -44,6 +44,10 @@ public:
 		WarheadTypeClass* C4Warhead { nullptr };
 		WarheadTypeClass* ReceiveDamageWarhead { nullptr };
 		std::vector<int> DockReloadTimers {};
+		HouseClass* OwnerBeforeRaid { nullptr };
+
+		CDTimerClass CashUpgradeTimers[3] {};
+		int SensorArrayActiveCounter { 0 };
 
 		ExtData(BuildingClass* OwnerObject) : Extension<BuildingClass>(OwnerObject)	{ }
 		virtual ~ExtData() override = default;

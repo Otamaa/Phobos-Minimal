@@ -85,6 +85,7 @@ public:
 
 		int SWLastIndex { -1 };
 		std::vector<SuperClass*> Batteries {};
+		std::vector<HouseTypeClass*> Factories_HouseTypes {};
 
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 		{ }

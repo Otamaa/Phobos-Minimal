@@ -1487,7 +1487,7 @@ enum class RadioCommand : int {
 	QueryCanTote = 36, // Want ride
 };
 
-enum class NetworkEvents : unsigned char {
+enum class NetworkEventType : unsigned char {
 	Empty = 0x0,
 	PowerOn = 0x1,
 	PowerOff = 0x2,

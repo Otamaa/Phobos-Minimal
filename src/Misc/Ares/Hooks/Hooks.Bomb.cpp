@@ -116,6 +116,7 @@ namespace Funcs
 };
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x438FD7 , BombListClass_Plant_AttachSound, 7 , 439022);
+//DEFINE_JUMP(LJMP, 0x438FD7, 0x439022);
 
 DEFINE_OVERRIDE_HOOK(0x438A00, BombClass_GetCurrentFrame, 6)
 {
@@ -194,7 +195,7 @@ DEFINE_OVERRIDE_HOOK(0x6F523C, TechnoClass_DrawExtras_IvanBombImage_Shape, 5)
 //		if(!BombExt::ExtMap.Find(pTarget->AttachedBomb)->Weapon->Ivan_Detachable) {
 //			return ReturnFireIllegal;
 //		}
-//	} 
+//	}
 //	if(pWarhead->IvanBomb && pTarget->AttachedBomb) {
 //		return ReturnFireIllegal;
 //	}
@@ -225,6 +226,7 @@ DEFINE_HOOK(0x438761, BombClass_Detonate_Handle, 0x7)
 	const auto nDamage = pExt->Weapon->Ivan_Damage.Get(RulesClass::Instance->IvanDamage);
 	const auto OwningHouse = pThis->GetOwningHouse();
 
+	/*WarheadTypeExt::DetonateAt(pBombWH, pTarget, coords, pThis->Owner, nDamage);*/
 	MapClass::Instance->DamageArea(coords, nDamage, pThis->Owner, pBombWH, pBombWH->Tiberium, OwningHouse);
 	MapClass::Instance->FlashbangWarheadAt(nDamage, pBombWH, coords);
 	const auto pCell = MapClass::Instance->GetCellAt(coords);

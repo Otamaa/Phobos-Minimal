@@ -359,7 +359,8 @@ namespace TEventExt_dummy
 			{
 				i -= (*nPos)->CountOwnedNow(pType);
 
-				if (i <= 0) {
+				if (i <= 0)
+				{
 					return true;
 				}
 			}
@@ -376,7 +377,8 @@ namespace TEventExt_dummy
 					if (pWho && pWho != pTechno->Owner)
 						continue;
 
-					if (pTechno->Type == pType) {
+					if (pTechno->Type == pType)
+					{
 						i--;
 
 						if (i <= 0)
@@ -837,7 +839,7 @@ namespace TActionExt_dummy
 		if (MapClass::Instance->GetCellAt(nCoord)->ContainsBridgeHead())
 			nCoord.Z += CellClass::BridgeHeight;
 
-		SW_NuclearMissile::DropNukeAt(nullptr, nCoord, nullptr , pHouse , pFind);
+		SW_NuclearMissile::DropNukeAt(nullptr, nCoord, nullptr, pHouse, pFind);
 
 		//if (auto pBullet = pFind->Projectile->CreateBullet(MapClass::Instance->GetCellAt(nCoord), nullptr, pFind->Damage, pFind->Warhead, 50, false))
 		//{
@@ -902,17 +904,21 @@ namespace TActionExt_dummy
 		{
 			// select the anim
 			auto const& itClouds = RulesClass::Instance->WeatherConClouds;
-			auto const pAnimType = itClouds.GetItem( ScenarioClass::Instance->Random.Random() % itClouds.Count);
-			coords.Z += GeneralUtils::GetLSAnimHeightFactor(itClouds[0], pCell);
+			auto const pAnimType = itClouds.GetItem(ScenarioClass::Instance->Random.RandomFromMax(itClouds.Count - 1));
 
-			if (coords.IsValid())
+			if (pAnimType)
 			{
-				// create the cloud and do some book keeping.
-				if (auto const pAnim = GameCreate<AnimClass>(pAnimType, coords))
+				coords.Z += GeneralUtils::GetLSAnimHeightFactor(pAnimType, pCell , true);
+
+				if (coords.IsValid())
 				{
-					pAnim->SetHouse(pHouse);
-					LightningStorm::CloudsManifesting->AddItem(pAnim);
-					LightningStorm::CloudsPresent->AddItem(pAnim);
+					// create the cloud and do some book keeping.
+					if (auto const pAnim = GameCreate<AnimClass>(pAnimType, coords))
+					{
+						pAnim->SetHouse(pHouse);
+						LightningStorm::CloudsManifesting->AddItem(pAnim);
+						LightningStorm::CloudsPresent->AddItem(pAnim);
+					}
 				}
 			}
 		}
@@ -922,7 +928,7 @@ namespace TActionExt_dummy
 
 	bool NOINLINE MeteorStrike(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
 	{
-		static constexpr reference<int , 0x842AFC, 5u> MeteorAddAmount {};
+		static constexpr reference<int, 0x842AFC, 5u> MeteorAddAmount {};
 
 		const auto pSmall = AnimTypeClass::Find(GameStrings::METSMALL);
 		const auto pBig = AnimTypeClass::Find(GameStrings::METLARGE);
@@ -952,18 +958,43 @@ namespace TActionExt_dummy
 			AnimTypeClass* pSelected = pBig;
 			int nRandHere = abs(ScenarioClass::Instance->Random.Random()) & 0x80000001;
 			bool v13 = nRandHere == 0;
-			if (nRandHere < 0) {
+			if (nRandHere < 0)
+			{
 				v13 = ((nRandHere - 1) | 0xFFFFFFFE) == -1;
 			}
 
-			if (v13) {
+			if (v13)
+			{
 				pSelected = pSmall;
 			}
 
-			if (pSelected) {
-				if (auto pAnim = GameCreate<AnimClass>(pSelected, nLoc, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0)) {
+			if (pSelected)
+			{
+				if (auto pAnim = GameCreate<AnimClass>(pSelected, nLoc, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0))
+				{
 					pAnim->Owner = pHouse;
 				}
+			}
+		}
+
+		return true;
+	}
+
+	bool NOINLINE PlayAnimAt(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+	{
+		if (const auto pAnimType = AnimTypeClass::Array->GetItemOrDefault(pAction->Value))
+		{
+			auto nLoc = ScenarioClass::Instance->GetWaypointCoords(pAction->Waypoint);
+			CoordStruct nCoord = CellClass::Cell2Coord(nLoc);
+			nCoord.Z = MapClass::Instance->GetCellFloorHeight(nCoord);
+
+			if (MapClass::Instance->GetCellAt(nCoord)->ContainsBridge())
+				nCoord.Z += CellClass::BridgeHeight;
+
+			if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0))
+			{
+				pAnim->IsPlaying = true;
+				pAnim->Owner = pHouse;
 			}
 		}
 
@@ -974,6 +1005,9 @@ namespace TActionExt_dummy
 	{
 		switch (pAction->ActionKind)
 		{
+		case TriggerAction::PlayAnimAt:
+			ret = PlayAnimAt(pAction, pHouse, pObject, pTrigger, location);
+			return true;
 		case TriggerAction::MeteorShower:
 			ret = MeteorStrike(pAction, pHouse, pObject, pTrigger, location);
 			return true;

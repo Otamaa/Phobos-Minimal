@@ -95,7 +95,7 @@ private:
 };
 
 class BuildingTypeExt
-{ 
+{
 public:
 
 	static std::vector<std::string> trenchKinds; //!< Vector of strings associating known trench names with IsTrench IDs. \sa IsTrench
@@ -296,6 +296,12 @@ public:
 		ValueableVector<BuildingTypeClass*> LaserFencePostLinks { };
 		Valueable<short> LaserFenceDirection {};
 
+		// #218 Specific Occupiers
+		ValueableVector<InfantryTypeClass*> AllowedOccupiers {};
+
+		Valueable<bool> BunkerRaidable { false };
+		Valueable<bool> Firestorm_Wall { false };
+
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject) { }
 		virtual ~ExtData() override = default;
 
@@ -309,6 +315,7 @@ public:
 		int GetSuperWeaponIndex(int index, HouseClass* pHouse) const;
 		int GetSuperWeaponIndex(int index) const;
 
+		bool CanBeOccupiedBy(InfantryClass* whom);
 	private:
 		template <typename T>
 		void Serialize(T& Stm);

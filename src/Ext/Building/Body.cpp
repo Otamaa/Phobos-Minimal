@@ -589,6 +589,8 @@ void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int
 	// even with it no bueno yet, plus new issues
 	// probably should just port it from Ares 0.A and be done
 
+	pOwner->UpdateSuperWeaponsUnavailable();
+
 	// LimboKill init
 	if (ID != -1)
 	{
@@ -678,6 +680,8 @@ void BuildingExt::LimboKill(BuildingClass* pBuilding)
 			pTargetHouse->UnitsSelfHeal = 0;
 	}
 
+	pTargetHouse->UpdateSuperWeaponsUnavailable();
+
 	// Remove completely
 	TechnoExt::HandleRemove(pBuilding, nullptr, true, true);
 }
@@ -710,6 +714,9 @@ void BuildingExt::ExtData::Serialize(T& Stm)
 		.Process(this->Silent)
 		.Process(this->ReceiveDamageWarhead)
 		.Process(this->DockReloadTimers)
+		.Process(this->OwnerBeforeRaid)
+		.Process(this->CashUpgradeTimers)
+		.Process(this->SensorArrayActiveCounter)
 		;
 }
 

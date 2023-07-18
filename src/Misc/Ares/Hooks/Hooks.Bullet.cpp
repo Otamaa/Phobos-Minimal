@@ -315,6 +315,33 @@ CellClass* AresTrajectoryHelper::FindFirstImpenetrableObstacle(
 	return nullptr;
 }
 
+DEFINE_OVERRIDE_HOOK(0x468BE2, BulletClass_ShouldDetonate_Obstacle, 6)
+{
+	GET(BulletClass* const, pThis, ESI);
+	GET(CoordStruct* const, pOutCoords, EDI);
+
+	auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
+
+	if (AresTrajectoryHelper::SubjectToAnything(pThis->Type, pTypeExt))
+	{
+		auto const Map = MapClass::Instance();
+		auto const pCellSource = Map->GetCellAt(pThis->SourceCoords);
+		auto const pCellTarget = Map->GetCellAt(pThis->TargetCoords);
+		auto const pCellLast = Map->GetCellAt(pThis->LastMapCoords);
+
+		auto const pOwner = pThis->Owner ? pThis->Owner->Owner : nullptr;
+
+		if (AresTrajectoryHelper::GetObstacle(
+			pCellSource, pCellTarget, pThis->Owner, pThis->Target, pCellLast,
+			*pOutCoords, pThis->Type, pTypeExt, pOwner))
+		{
+			return 0x468C76;
+		}
+	}
+
+	return 0x468C86;
+}
+
 DEFINE_OVERRIDE_HOOK_AGAIN(0x6F7631, TechnoClass_IsCloseEnoughToTarget_Obstacle, 6)
 DEFINE_OVERRIDE_HOOK(0x6F7511, TechnoClass_IsCloseEnoughToTarget_Obstacle, 6)
 {

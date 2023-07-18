@@ -69,7 +69,8 @@ namespace DamageFireAnims
 				CoordStruct nPixCoord { nPiX, nPiY, 0 };
 				nPixCoord += pThis->GetRenderCoords();
 
-				if (const auto pFireType = pFire[ScenarioClass::Instance->Random.RandomFromMax(pFire.size() - 1)])
+				if (const auto pFireType = pFire[pFire.size() == 1 ?
+					 0 : ScenarioClass::Instance->Random.RandomFromMax(pFire.size() - 1)])
 				{
 					if (auto pAnim = GameCreate<AnimClass>(pFireType, nPixCoord))
 					{
@@ -97,7 +98,11 @@ DEFINE_HOOK(0x43FC90, BuildingClass_CreateDamageFireAnims, 0x7)
 }
 
 //DEFINE_JUMP(CALL, 0x43FC92, GET_OFFSET(DamageFireAnims::Construct));
-DEFINE_JUMP(LJMP,0x460388, 0x46048E); // no thankyou , we handle it ourself !
+//DEFINE_JUMP(LJMP,0x460388, 0x46048E); // no thankyou , we handle it ourself !
+DEFINE_HOOK(0x46038A , BuildingTypeClass_ReadINI_SkipDamageFireAnims, 0x6)
+{
+	return 0x46048E;
+}
 //DEFINE_JUMP(LJMP,0x43BA72, 0x43BA7F); //remove memset for buildingFireAnims
 
 #define HANDLEREMOVE_HOOKS(addr ,reg ,name, size ,ret) \
@@ -140,7 +145,10 @@ DEFINE_HOOK(0x44EA1C, BuildingClass_DetachOrInvalidPtr_handle, 0x6)
 }
 
 //remove it from load
-DEFINE_JUMP(LJMP, 0x454154, 0x454170);
+//DEFINE_JUMP(LJMP, 0x454154, 0x454170);
+DEFINE_HOOK(0x454154 , BuildingClass_LoadGame_DamageFireAnims , 0x6) {
+	return 0x454170;
+}
 #endif
 
 DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)

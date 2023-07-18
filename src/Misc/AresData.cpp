@@ -52,13 +52,13 @@ enum FunctionIndices : int
 	JammerclassUnjamAllID = 25,
 	CPrismRemoveFromNetworkID = 26,
 
-	//WHextfunc 
+	//WHextfunc
 	applyIonCannonID = 27, //52790 , pWHExt , CoordStruct*
 	applyPermaMCID = 28, //53980 , pWHExt , AbstractClass*
 	applyICID = 29, // 53540 , pWHExt , HouseClass* , int
 	applyEMPID = 30, // 53520 , pWHExt , CoordStruct* , TechnoClass*
 	applyAEID = 31, // 533B0 , pWHExt , CoordStruct* , TechnoClass*
-	applyOccupantDamageID = 32, // 53940 , BulletClass* 
+	applyOccupantDamageID = 32, // 53940 , BulletClass*
 
 	EvalRaidStatusID = 33,
 	IsActiveFirestormWallID = 34, //BuildingExt  IsActiveFirestormWall BuildingClass* HouseClass*
@@ -90,6 +90,8 @@ enum FunctionIndices : int
 	CameoIsEliteID = 53,
 
 	GetActionHijackID = 54,
+
+	NetEvent_RespondToFirewall = 55,
 	count
 };
 
@@ -240,7 +242,7 @@ bool AresData::Init()
 		0x044130,	// ConvertTypeTo
 		0x047030, // TechnoExt::SpawnSurvivors
 		0x046C10, //TechnoExt::ExtData::RecalculateStat
-		0x013390, // static BuildingExt::ReverseEngineer 
+		0x013390, // static BuildingExt::ReverseEngineer
 		0x025DF0, // static  GetInfActionOverObject
 		0x058AB0, // static MouseCursor::SetAction
 		0x022580, // static HouseExt::canBuild
@@ -270,7 +272,7 @@ bool AresData::Init()
 		0x053540, // applyIC ,  pWHExt , HouseClass* , int
 		0x053520, // applyEMP , pWHExt , CoordStruct* , TechnoClass*
 		0x0533B0, // applyAE , pWHExt , CoordStruct* , TechnoClass*
-		0x053940, // applyOccupantDamage , BulletClass* 
+		0x053940, // applyOccupantDamage , BulletClass*
 
 		0x013C50, //BuildingExt  EvalRaidStatus
 		0x012D00, //BuildingExt  IsActiveFirestormWall BuildingClass* HouseClass*
@@ -302,6 +304,7 @@ bool AresData::Init()
 		0x003E870, //TechnoTypeExt::GetTurretWeaponIdx
 		0x003E210, //TechnoTypeExt::CameoIsElite
 		0x0045B60, //TechnoExt::GetActionHijack
+		0x0023010, //AresEvent::Handle::RespondToFirewall
 	};
 
 	static constexpr DWORD AAresCustomPaletteReadTable[AresCustomPaletteReadCount] = {
@@ -438,10 +441,10 @@ int AresData::GetSelfHealAmount(TechnoClass* const pTechno)
 	return AresThiscall<GetSelfHealAmountID, int, void*>()(GetAresTechnoExt(pTechno));
 }
 
-bool AresData::IsOperated(TechnoClass* const pTechno)
-{
-	return AresThiscall<IsOperatedID, bool, void*>()(GetAresTechnoExt(pTechno));
-}
+//bool AresData::IsOperated(TechnoClass* const pTechno)
+//{
+//	return AresThiscall<IsOperatedID, bool, void*>()(GetAresTechnoExt(pTechno));
+//}
 
 ConvertClass* AresData::GetBulletTypeConvert(BulletTypeClass* pThis)
 {
@@ -490,7 +493,7 @@ int NOINLINE AresData::CallAresArmorType_FindIndex(REGISTERS* R)
 			return (Data)(R);
 		}
 	}
-	
+
 	return-1;
 }
 
@@ -534,10 +537,10 @@ void AresData::applyAE(WarheadTypeClass* pWH, CoordStruct* pTarget, HouseClass* 
 	AresThiscall<applyAEID, void, void*, CoordStruct* , HouseClass*>()(GetAresAresWarheadTypeExt(pWH), pTarget , pOwner);
 }
 
-void AresData::EvalRaidStatus(BuildingClass* pBuilding)
-{
-	AresThiscall<EvalRaidStatusID, void, void*>()(GetAresBuildingExt(pBuilding));
-}
+// void AresData::EvalRaidStatus(BuildingClass* pBuilding)
+// {
+// 	AresThiscall<EvalRaidStatusID, void, void*>()(GetAresBuildingExt(pBuilding));
+// }
 
 bool AresData::IsActiveFirestormWall(BuildingClass* pBuilding, HouseClass* pOwner)
 {
@@ -584,10 +587,10 @@ void AresData::SetSpotlight(TechnoClass* pThis, BuildingLightClass* pSpotlight)
 	AresThiscall<SetSpotlightID, void, void*, BuildingLightClass*>()(GetAresTechnoExt(pThis), pSpotlight);
 }
 
-bool AresData::IsPowered(TechnoClass* pThis)
-{
-	return AresThiscall<IsPoweredID, bool, void*>()(GetAresTechnoExt(pThis));
-}
+//bool AresData::IsPowered(TechnoClass* pThis)
+//{
+//	return AresThiscall<IsPoweredID, bool, void*>()(GetAresTechnoExt(pThis));
+//}
 
 bool AresData::IsDriverKillable(TechnoClass* pThis, double tresh)
 {
@@ -647,4 +650,9 @@ bool AresData::TechnoTypeExt_CameoIsElite(TechnoTypeClass* pThis, HouseClass* Ow
 Action AresData::TechnoExt_GetActionHijack(TechnoClass* pThis, TechnoClass* pTarget)
 {
 	return AresThiscall<GetActionHijackID, Action, void*, TechnoClass*>()(GetAresTechnoExt(pThis), pTarget);
+}
+
+void AresData::AresNetEvent_Handlers_RespondToFirewallToggle(HouseClass* pFor, bool Activate)
+{
+	AresThiscall<NetEvent_RespondToFirewall, void, void*, bool>()(GetAresHouseExt(pFor), Activate);
 }

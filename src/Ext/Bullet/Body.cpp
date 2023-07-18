@@ -79,7 +79,7 @@ void BulletExt::ApplyAirburst(BulletClass* pThis)
 
 					 //if (!EnumFunctions::IsCellEligible(pTarget->GetCell(), pExt->Splits_Affects))
 						 //	return;
-		
+
 					 //if (!EnumFunctions::IsTechnoEligible(pTarget, this->Splits_Affects))
 						 //	return;
 
@@ -91,7 +91,7 @@ void BulletExt::ApplyAirburst(BulletClass* pThis)
 
 						const CoordStruct crdTechno = pTechno->GetCoords();
 						if (crdDest.DistanceFrom(crdTechno) < pExt->Splits_Range.Get()
-						 && ((!pTechno->IsInAir() && pWeapon->Projectile->AG) 
+						 && ((!pTechno->IsInAir() && pWeapon->Projectile->AG)
 							 || (pTechno->IsInAir() && pWeapon->Projectile->AA))) {
 							 targets.push_back(pTechno);
 						}
@@ -470,13 +470,20 @@ bool BulletExt::HandleBulletRemove(BulletClass* pThis, bool bDetonate, bool bRem
 
 bool BulletExt::ApplyMCAlternative(BulletClass* pThis)
 {
+	if (!pThis->WH->MindControl || !pThis->Owner)
+		return false;
+
+
+	auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+	if(!pWarheadExt->MindControl_UseTreshold)
+		return false;
+
 	const auto pTarget = generic_cast<TechnoClass*>(pThis->Target);
 
-	if (!pTarget || !pThis->WH->MindControl || !pThis->Owner)
+	if(!pTarget)
 		return false;
 
 	const auto pTargetType = pTarget->GetTechnoType();
-	auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
 	double currentHealthPerc = pTarget->GetHealthPercentage();
 	const bool flipComparations = pWarheadExt->MindControl_Threshold_Inverse;
 	double nTreshold = pWarheadExt->MindControl_Threshold;
@@ -672,7 +679,7 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 			pExt->Intercepted_Detonate = !pTechnoTypeExt->Interceptor_DeleteOnIntercept.Get(pThisTypeExt->Interceptable_DeleteOnIntercept);
 
 			if (auto const pWeaponOverride = pTechnoTypeExt->Interceptor_WeaponOverride.Get(pThisTypeExt->Interceptable_WeaponOverride.Get(nullptr))) {
-				
+
 				pThis->WeaponType = pWeaponOverride;
 				pThis->Health = pTechnoTypeExt->Interceptor_WeaponCumulativeDamage ?
 					pThis->Health + pWeaponOverride->Damage : pWeaponOverride->Damage;
@@ -843,7 +850,7 @@ DEFINE_HOOK(0x46AE70, BulletClass_SaveLoad_Prefix, 0x5)
 	return 0;
 }
 
-// Before : 
+// Before :
 //DEFINE_HOOK_AGAIN(0x46AF97, BulletClass_Load_Suffix, 0x7)
 //DEFINE_HOOK(0x46AF9E, BulletClass_Load_Suffix, 0x7)
 

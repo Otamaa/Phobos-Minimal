@@ -226,7 +226,7 @@ bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 			for (auto const& planes : drops)
 			{ // get the country/side-specific plane list
 
-// only do something if there is data missing
+				// only do something if there is data missing
 				if (!(ParaDropTypes && ParaDropNum && pParaDropPlane))
 				{
 					auto const index = static_cast<size_t>(i * j);

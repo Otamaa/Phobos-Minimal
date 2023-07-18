@@ -142,6 +142,7 @@ public:
 		Valueable<int> GattlingRateUp { 0 };
 		Valueable<int> ReloadAmmo { 0 };
 
+		Valueable<bool> MindControl_UseTreshold { false };
 		Valueable<double> MindControl_Threshold { 1.0 };
 		Valueable<bool> MindControl_Threshold_Inverse { };
 		Nullable<int> MindControl_AlternateDamage { };
@@ -310,6 +311,9 @@ public:
 #pragma endregion
 
 		ValueableVector<ParticleSystemTypeClass*> DetonateParticleSystem {};
+		Nullable<bool> BridgeAbsoluteDestroyer {};
+		Valueable<int> DamageAirThreshold { 0 };
+		Valueable<int> CellSpread_MaxAffect { -1 };
 
 		ExtData(WarheadTypeClass* OwnerObject) : Extension<WarheadTypeClass>(OwnerObject)
 			, AttachedEffect { OwnerObject }

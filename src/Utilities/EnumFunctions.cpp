@@ -31,7 +31,7 @@ std::array<const char* const, (size_t)PhobosAbilityType::count> EnumFunctions::P
 	{ "ABDUCTORIMMUNE" } ,
 	{ "ASSAULTER" } ,
 	{ "PARASITEIMMUNE" } ,
-	{"BOUNTYHUNTER"}
+	{ "BOUNTYHUNTER" }
  }
 };
 
@@ -97,10 +97,10 @@ std::array<const char* const, 3u> EnumFunctions::HealthCondition_ToStrings
 std::array<const char* const, 21u> EnumFunctions::TileType_ToStrings
 {
 {
-	{ "Unknown" } ,
-	{ "Tunnel" } ,
-	{ "Water" } ,
-	{ "Ramp" } ,
+	{"Unknown"} ,
+	{"Tunnel"} ,
+	{"Water"} ,
+	{"Ramp"} ,
 	{"Blank"} ,
 	{"Shore"} ,
 	{"Wet"} ,

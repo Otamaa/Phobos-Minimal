@@ -28,7 +28,6 @@ Point2D Anchor::OffsetPosition(
 	return result;
 }
 
-
 Point2D Anchor::OffsetPosition(const RectangleStruct& rect) const
 {
 	Point2D result { rect.X, rect.Y };

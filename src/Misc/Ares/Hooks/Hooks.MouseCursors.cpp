@@ -65,7 +65,6 @@
 
 447548 = BuildingClass_GetActionOnCell_Deactivated, 6
 7404B9 = UnitClass_GetActionOnCell_Deactivated, 6
-51F808 = InfantryClass_GetActionOnCell_Deactivated, 6
 417F83 = AircraftClass_GetActionOnCell_Deactivated, 6
 
 51E710 = InfantryClass_GetActionOnObject_Heal, 7

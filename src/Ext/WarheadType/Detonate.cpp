@@ -21,6 +21,8 @@
 #include <Utilities/EnumFunctions.h>
 #include <New/Entity/FlyingStrings.h>
 
+#include <Ext/SWType/NewSuperWeaponType/Reveal.h>
+
 #include <New/Entity/VerticalLaserClass.h>
 #include <Misc/AresData.h>
 
@@ -498,12 +500,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 	 }
 			});
 		}
-
-		if (this->Reveal > 0)
-			MapClass::Instance->RevealArea1(&coords, this->Reveal, pHouse, CellStruct::Empty, 0, 0, 0, 1);
-		else if (this->Reveal < 0)
-			MapClass::Instance->Reveal(pHouse);
-
+		SW_Reveal::RevealMap(CellClass::Coord2Cell(coords), (float)this->Reveal.Get(), 0, pHouse);
 		this->applyTransactMoney(pOwner, pHouse, pBullet, coords);
 	}
 

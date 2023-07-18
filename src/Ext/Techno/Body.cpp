@@ -1336,7 +1336,7 @@ bool TechnoExt::CreateWithDroppod(FootClass* Object, const CoordStruct& XYZ)
 		if (!Object->InLimbo)
 		{
 			Object->See(0, 0);
-			Object->QueueMission(Mission::Guard, 0);
+			Object->QueueMission(Object->Owner && Object->Owner->ControlledByPlayer_() ? Mission::Guard : Mission::Hunt, 0);
 			Object->NextMission();
 			return true;
 		}
@@ -1386,10 +1386,7 @@ void TechnoExt::UpdateMCOverloadDamage(TechnoClass* pOwner)
 {
 	auto pThis = pOwner->CaptureManager;
 
-	if (!pThis)
-		return;
-
-	if (!pThis->InfiniteMindControl)
+	if (!pThis || !pThis->InfiniteMindControl || pOwner->InLimbo)
 		return;
 
 	const auto pOwnerTypeExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
@@ -4008,7 +4005,7 @@ bool TechnoExt::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select,
 		if (!Is_Passable(pBld->Type))
 			return false;
 
-		if (Is_FirestromWall(pBld->Type) &&
+		if (BuildingTypeExt::ExtMap.Find(pBld->Type)->Firestorm_Wall &&
 			pBld->Owner &&
 			pBld->Owner->FirestormActive)
 			return false;

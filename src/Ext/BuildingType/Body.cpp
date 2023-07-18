@@ -19,6 +19,12 @@ void BuildingTypeExt::ExtData::Initialize()
 	this->DockPoseDir.reserve(((BuildingTypeClass*)this->Type->Get())->NumberOfDocks);
 }
 
+bool BuildingTypeExt::ExtData::CanBeOccupiedBy(InfantryClass* whom)
+{
+	// if CanBeOccupiedBy isn't empty, we have to check if this soldier is allowed in
+	return this->AllowedOccupiers.empty() || this->AllowedOccupiers.Contains(whom->Type);
+}
+
 int BuildingTypeExt::BuildLimitRemaining(HouseClass const* pHouse, BuildingTypeClass const* pItem)
 {
 	const auto BuildLimit = pItem->BuildLimit;
@@ -249,7 +255,7 @@ bool BuildingTypeExt::IsLinkable(BuildingTypeClass* pThis)
 {
 	const auto pExt = BuildingTypeExt::ExtMap.Find(pThis);
 
-	return Is_FirestromWall(pThis) || pExt->IsTrench >= 0;
+	return pExt->Firestorm_Wall || pExt->IsTrench >= 0;
 
 }
 
@@ -666,6 +672,16 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->LaserFenceWEType.Read(exINI, pSection, "LaserFence.WEType");
 		this->LaserFencePostLinks.Read(exINI, pSection, "LaserFence.PostLinks");
 		this->LaserFenceDirection.Read(exINI, pSection, "LaserFence.Direction");
+
+		// #218 Specific Occupiers
+		this->AllowedOccupiers.Read(exINI, pSection, "CanBeOccupiedBy");
+		if (!this->AllowedOccupiers.empty()) {
+			// having a specific occupier list implies that this building is supposed to be occupiable
+			pThis->CanBeOccupied = true;
+		}
+
+		this->BunkerRaidable.Read(exINI, pSection, "Bunker.Raidable");
+		this->Firestorm_Wall.Read(exINI, pSection, "Firestorm.Wall");
 	}
 #pragma endregion
 
@@ -877,6 +893,9 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->LaserFenceWEType)
 		.Process(this->LaserFencePostLinks)
 		.Process(this->LaserFenceDirection)
+		.Process(this->AllowedOccupiers)
+		.Process(this->BunkerRaidable)
+		.Process(this->Firestorm_Wall)
 		;
 }
 

@@ -309,7 +309,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	virtual int VoiceMove() R0;
 	virtual int VoiceDeploy() R0;
 	virtual int VoiceAttack(ObjectClass *pTarget) R0;
-	virtual bool ClickedEvent(NetworkEvents event) R0;
+	virtual bool ClickedEvent(NetworkEventType event) R0;
 
 	// depending on the mission you click, cells/Target are not always needed
 	virtual bool ClickedMission(Mission Mission, ObjectClass *pTarget, CellClass * TargetCell, CellClass *NearestTargetCellICanEnter) R0;
@@ -712,6 +712,9 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	void TurnFacing(const DirStruct& nDir);
 	void ClearAllTarget();
 	bool IsCloaked() const;
+
+	void DetachSpecificSpawnee(HouseClass* NewSpawneeOwner);
+	void FreeSpecificSlave(HouseClass* Affector);
 
 	//Constructor
 	TechnoClass(HouseClass* pOwner) noexcept

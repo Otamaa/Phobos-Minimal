@@ -85,7 +85,7 @@ const bool GeneralUtils::ProduceBuilding(HouseClass* pOwner, int idxBuilding)
 
 				VocClass::PlayGlobal(RulesClass::Instance->GUIBuildSound, Panning::Center, 1.0);
 				vEvent.FillEvent_ProduceAbandonSuspend(
-					pOwner->ArrayIndex, NetworkEvents::Produce, pItem->WhatAmI(), pItem->GetArrayIndex(), pItem->Naval
+					pOwner->ArrayIndex, NetworkEventType::Produce, pItem->WhatAmI(), pItem->GetArrayIndex(), pItem->Naval
 				);
 
 				Networking::AddEvent(&vEvent);

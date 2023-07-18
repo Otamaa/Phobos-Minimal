@@ -63,8 +63,10 @@ DEFINE_OVERRIDE_HOOK(0x73D81E, UnitClass_Mi_Unload_LastPassenger, 0x5)
 }
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x7388EB, UnitClass_ActionOnObject_IvanBombs, 0x6, 7388FD)
+//DEFINE_JUMP(LJMP, 0x7388EB, 0x7388FD);
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x73C733, UnitClass_DrawSHP_SkipTurretedShadow, 7, 73C7AC)
+//DEFINE_JUMP(LJMP, 0x73C733, 0x73C7AC);
 
 DEFINE_OVERRIDE_HOOK(0x741206, UnitClass_CanFire, 0x6)
 {
@@ -570,6 +572,7 @@ DEFINE_OVERRIDE_HOOK(0x73DBF9, UnitClass_Mi_Unload_Decactivated, 5)
 
 #include <SlaveManagerClass.h>
 DEFINE_OVERRIDE_SKIP_HOOK(0x73E66D, UnitClass_Mi_Harvest_SkipDock, 6, 73E6CF);
+//DEFINE_JUMP(LJMP, 0x73E66D, 0x73E6CF);
 
 DEFINE_OVERRIDE_HOOK(0x6AF748, SlaveManagerClass_UpdateSlaves_SlaveScan, 6)
 {
@@ -820,6 +823,7 @@ DEFINE_OVERRIDE_HOOK(0x74031A, UnitClass_GetActionOnObject_NoManualEnter, 6)
 }
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x6F7FC5, TechnoClass_CanAutoTargetObject_Heal, 7, 6F7FDF)
+//DEFINE_JUMP(LJMP, 0x6F7FC5, 0x6F7FDF);
 
 DEFINE_OVERRIDE_HOOK_AGAIN(0x6F8F1F, TechnoClass_FindTargetType_Heal, 6)
 DEFINE_OVERRIDE_HOOK(0x6F8EE3, TechnoClass_FindTargetType_Heal, 6)

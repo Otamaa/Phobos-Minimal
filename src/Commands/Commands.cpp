@@ -27,7 +27,7 @@ DEFINE_HOOK(0x533066, CommandClassCallback_Register, 0x6)
 	Make(NextIdleHarvesterCommandClass);
 	Make(QuickSaveCommandClass);
 	Make(CaptureObjectsCommandClass);
-	Make(ShowHealthPercentCommandClass);
+	//Make(ShowHealthPercentCommandClass);
 	Make(DamageDisplayCommandClass);
 	Make(ShowAnimNameCommandClass);
 	Make(ShowTechnoNameCommandClass);

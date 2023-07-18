@@ -193,7 +193,7 @@ DEFINE_OVERRIDE_HOOK(0x7021F5, TechnoClass_ReceiveDamage_OverrideDieSound, 0x6)
 
 	auto const& nSound = WarheadTypeExt::ExtMap.Find(pWh)->DieSound_Override;
 
-	if (nSound.isset())
+	if (nSound.isset() && nSound.Get() >= 0)
 	{
 		VocClass::PlayIndexAtPos(nSound, pThis->Location);
 		return 0x702200;
@@ -209,7 +209,7 @@ DEFINE_OVERRIDE_HOOK(0x702185, TechnoClass_ReceiveDamage_OverrideVoiceDie, 0x6)
 
 	auto const& nSound = WarheadTypeExt::ExtMap.Find(pWh)->VoiceSound_Override;
 
-	if (nSound.isset())
+	if (nSound.isset() && nSound.Get() >= 0)
 	{
 		VocClass::PlayIndexAtPos(nSound, pThis->Location);
 		return 0x702200;
@@ -772,7 +772,12 @@ DEFINE_HOOK(0x41660C, AircraftClass_ReceiveDamage_destroyed, 0x5)
 		args.PreventsPassengerEscape);
 
 	const auto& nCrashable = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->Crashable;
-	return (nCrashable.isset() && !nCrashable.Get() || !pThis->Crash(args.Attacker)) ? 0x41669F : 0x4166A9;
+	//return (nCrashable.isset() && !nCrashable.Get() || !pThis->Crash(args.Attacker)) ? 0x41669F : 0x4166A9;
+
+	if ((nCrashable.isset() && !nCrashable.Get() || !pThis->Crash(args.Attacker)))
+		pThis->UnInit();
+
+	return 0x4166A9;
 }
 
 //DEFINE_OVERRIDE_HOOK(0x41668B, AircraftClass_ReceiveDamage_Survivours, 0x6)

@@ -1,0 +1,2 @@
+// BuildingClass_CanFire_PrismForward
+// BuildingClass_ChangeOwner_PrismForwardAndLeaveBomb

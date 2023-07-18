@@ -17,4 +17,6 @@ public:
 
 	virtual int GetSound(const SWTypeExt::ExtData* pData) const override;
 	virtual SWRange GetRange(const SWTypeExt::ExtData* pData) const override;
+
+	static void RevealMap(const CellStruct& Coords , float range , int height , HouseClass* Owner);
 };

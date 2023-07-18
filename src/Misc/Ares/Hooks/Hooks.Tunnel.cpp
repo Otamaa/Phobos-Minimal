@@ -75,25 +75,25 @@ bool NOINLINE FindSameTunnel(BuildingClass* pTunnel)
 	if(!pOwner)
 		return false;
 
-	const auto It = std::find_if_not(pOwner->Buildings.begin(), pOwner->Buildings.end(),
+	const auto It = std::find_if(pOwner->Buildings.begin(), pOwner->Buildings.end(),
 		[pTunnel](BuildingClass* pBld)
 	{
-		if (pBld->Health > 0 && !pBld->InLimbo && pBld->IsOnMap)
+		if (pTunnel != pBld && pBld->Health > 0 && !pBld->InLimbo && pBld->IsOnMap)
 		{
-			const auto nCurMission = pBld->CurrentMission;
-			if (nCurMission != Mission::Construction && nCurMission != Mission::Selling && pTunnel != pBld)
-			{
-				const auto pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
-				const auto pBuildingTypeExt2 = BuildingTypeExt::ExtMap.Find(pTunnel->Type);
+			if (BuildingExt::ExtMap.Find(pBld)->LimboID != -1)
+				return false;
 
-				if (pBuildingTypeExt->TunnelType == pBuildingTypeExt2->TunnelType)
+			const auto nCurMission = pBld->CurrentMission;
+			if (nCurMission != Mission::Construction && nCurMission != Mission::Selling)
+			{
+				if (BuildingTypeExt::ExtMap.Find(pBld->Type)->TunnelType == BuildingTypeExt::ExtMap.Find(pTunnel->Type)->TunnelType)
 				{
-					return false;
+					return true;
 				}
 			}
 		}
 
-		return true;
+		return false;
 	});
 
 	//found new building
@@ -114,6 +114,9 @@ void NOINLINE KillFootClass(FootClass* pFoot, TechnoClass* pKiller)
 
 void NOINLINE DestroyTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, TechnoClass* pKiller)
 {
+	if (pTunnelData->empty())
+		return;
+
 	if (FindSameTunnel(pTunnel))
 		return;
 
@@ -135,12 +138,7 @@ NOINLINE TunnelData* HouseExt::GetTunnelVector(HouseClass* pHouse, size_t nTunne
 	{
 		while (pHouseExt->Tunnels.size() < TunnelTypeClass::Array.size())
 		{
-			pHouseExt->Tunnels.push_back({});
-
-			const auto nMaxSize = TunnelTypeClass::Array[pHouseExt->Tunnels.size() - 1]->Passengers;
-			auto& back = pHouseExt->Tunnels.back();
-			back.Vector.reserve(nMaxSize);
-			back.MaxCap = nMaxSize;
+			pHouseExt->Tunnels.push_back({ {} , TunnelTypeClass::Array[nTunnelIdx]->Passengers });
 		}
 	}
 
@@ -154,7 +152,7 @@ NOINLINE TunnelData* HouseExt::GetTunnels(BuildingTypeClass* pBld, HouseClass* p
 
 	const auto pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pBld);
 
-	if ((size_t)pBuildingTypeExt->TunnelType >= TunnelTypeClass::Array.size())
+	if ((size_t)pBuildingTypeExt->TunnelType.Get() >= TunnelTypeClass::Array.size())
 		return nullptr;
 
 	return HouseExt::GetTunnelVector(pHouse, pBuildingTypeExt->TunnelType);

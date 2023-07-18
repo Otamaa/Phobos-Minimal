@@ -65,6 +65,7 @@ DEFINE_OVERRIDE_HOOK(0x4D9A83, FootClass_PointerGotInvalid_OccupierVehicleThief,
 }
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x4DB37C, FootClass_Remove_Airspace, 0x6, 4DB3A4)
+//DEFINE_JUMP(LJMP, 0x4DB37C, 0x4DB3A4);
 
 // update parasite coords along with the host
 DEFINE_OVERRIDE_HOOK(0x4DB87E, FootClass_SetLocation_Parasite, 0x6)

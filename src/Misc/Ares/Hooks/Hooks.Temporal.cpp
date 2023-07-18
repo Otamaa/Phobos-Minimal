@@ -13,6 +13,7 @@
 #include <Ext/AnimType/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
+#include <Ext/Bullet/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
@@ -29,45 +30,7 @@
 #include <SpawnManagerClass.h>
 #include <SlaveManagerClass.h>
 
-void DetachSpecificSpawnee(TechnoClass* Spawnee, HouseClass* NewSpawneeOwner) {
-
-	// setting up the nodes. Funnily, nothing else from the manager is needed
-	const auto& SpawnNodes = Spawnee->SpawnOwner->SpawnManager->SpawnedNodes;
-
-	//find the specific spawnee in the node
-	for (auto SpawnNode : SpawnNodes) {
-
-		if (Spawnee == SpawnNode->Unit) {
-
-			SpawnNode->Unit = nullptr;
-			Spawnee->SpawnOwner = nullptr;
-
-			SpawnNode->Status = SpawnNodeStatus::Dead;
-
-			Spawnee->SetOwningHouse(NewSpawneeOwner);
-		}
-	}
-}
-
-void FreeSpecificSlave(TechnoClass* Slave, HouseClass* Affector) {
-
-	//If you're a slave, you're an InfantryClass. But since most functions use TechnoClasses and the check can be done in that level as well
-	//it's easier to set up the recasting in this function
-	//Anybody who writes 357, take note that SlaveManager uses InfantryClasses everywhere, SpawnManager uses TechnoClasses derived from AircraftTypeClasses
-	//as I wrote it in http://bugs.renegadeprojects.com/view.php?id=357#c10331
-	//So, expand that one instead, kthx.
-
-	if (InfantryClass* pSlave = specific_cast<InfantryClass*>(Slave)) {
-		auto Manager = pSlave->SlaveOwner->SlaveManager;
-
-		//LostSlave can free the unit from the miner, so we're awesome.
-		Manager->LostSlave(pSlave);
-		pSlave->SlaveOwner = nullptr;
-
-		//OK, delinked, Now relink it to the side which separated the slave from the miner
-		pSlave->SetOwningHouse(Affector);
-	}
-}
+#include "Header.h"
 
 bool conductAbduction(WeaponTypeExt::ExtData* pData , TechnoClass* pOwner, AbstractClass* pTarget, CoordStruct nTargetCoords) {
 
@@ -143,9 +106,7 @@ bool conductAbduction(WeaponTypeExt::ExtData* pData , TechnoClass* pOwner, Abstr
 	}
 
 	//if the target is spawned, detach it from it's spawner
-	if (Target->SpawnOwner) {
-		DetachSpecificSpawnee(Target, pDesiredOwner);
-	}
+	Target->DetachSpecificSpawnee(pDesiredOwner);
 
 	// if the unit is a spawner, kill the spawns
 	if (Target->SpawnManager) {
@@ -154,9 +115,7 @@ bool conductAbduction(WeaponTypeExt::ExtData* pData , TechnoClass* pOwner, Abstr
 	}
 
 	//if the unit is a slave, it should be freed
-	if (Target->SlaveOwner) {
-		FreeSpecificSlave(Target, pDesiredOwner);
-	}
+	Target->FreeSpecificSlave(pDesiredOwner);
 
 	// If the unit is a SlaveManager, free the slaves
 	if (auto pSlaveManager = Target->SlaveManager) {
@@ -239,7 +198,7 @@ bool conductAbduction(WeaponTypeExt::ExtData* pData , TechnoClass* pOwner, Abstr
 
 bool applyOccupantDamage(BulletClass* pThis)
 {
-	auto const pBuilding = abstract_cast<BuildingClass*>(pThis->Target);
+	auto const pBuilding = specific_cast<BuildingClass*>(pThis->Target);
 
 	// if that pointer is null, something went wrong
 	if (!pBuilding) {
@@ -285,7 +244,7 @@ bool applyOccupantDamage(BulletClass* pThis)
 
 	// if the last occupant was killed and this building was raided,
 	// it needs to be returned to its owner. (Bug #700)
-	AresData::EvalRaidStatus(pBuilding);
+	TechnoExt_ExtData::EvalRaidStatus(pBuilding);
 
 	return true;
 }
@@ -300,13 +259,13 @@ DEFINE_OVERRIDE_HOOK(0x46920B, BulletClass_Detonate, 6)
 	GET_BASE(const CoordStruct* const, pCoordsDetonation, 0x8);
 
 	auto const pWarhead = pThis->WH;
-	auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead); 
+	auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
 	auto const pWeaponExt = WeaponTypeExt::ExtMap.TryFind(pThis->WeaponType);
 
 	auto const pTechno = pThis->Owner ? pThis->Owner : nullptr;
-	auto const pOwnerHouse = pTechno ? pTechno->Owner : nullptr;
+	auto const pOwnerHouse = pTechno ? pTechno->Owner : BulletExt::ExtMap.Find(pThis)->Owner;
 
-	WarheadTypeExt::ExtMap.Find(pThis->WH)->Detonate(pTechno, pOwnerHouse, pThis, *pCoordsDetonation);
+	pWHExt->Detonate(pTechno, pOwnerHouse, pThis, *pCoordsDetonation);
 	PhobosGlobal::Instance()->DetonateDamageArea = false;
 
 	// this snapping stuff does not belong here. it should go into BulletClass::Fire
@@ -350,7 +309,10 @@ DEFINE_OVERRIDE_HOOK(0x46920B, BulletClass_Detonate, 6)
 		}
 	}
 
-	return pWHExt->PermaMC ? 0x469AA4u : 0u;
+	if(pWHExt->PermaMC)
+		return 0x469AA4u;
+
+	return BulletExt::ApplyMCAlternative(pThis) ? 0x469AA4u : 0u;
 }
 
 DEFINE_OVERRIDE_HOOK(0x71AAAC, TemporalClass_Update_Abductor, 6)
@@ -414,7 +376,7 @@ int NOINLINE GetWarpPerStep(TemporalClass* pThis, int nStep)
 {
 	int nAddStep = 0;
 	int nStepR = 0;
-	
+
 	if (!pThis)
 		return 0;
 
@@ -450,6 +412,7 @@ DEFINE_OVERRIDE_HOOK(0x71AB10, TemporalClass_GetWarpPerStep, 6)
 // skip freeing captured and destroying spawned units,
 // as it is not clear here if this is warpable at all.
 DEFINE_OVERRIDE_SKIP_HOOK(0x71AF2B, TemporalClass_Fire_UnwarpableA, 0xA, 71AF4D)
+//DEFINE_JUMP(LJMP, 0x71AF2B, 0x71AF4D);
 
 DEFINE_HOOK(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)
 {
@@ -604,7 +567,7 @@ DEFINE_HOOK(0x71B0AE, TemporalClass_Logic_Building_UnderAttack, 0x7)
 	GET(TemporalClass*, pThis, ESI);
 	GET(BuildingClass*, pBld, EDI);
 
-	BuildingExt::ExtMap.Find(pBld)->ReceiveDamageWarhead = 
+	BuildingExt::ExtMap.Find(pBld)->ReceiveDamageWarhead =
 		pThis->Owner->GetWeapon(Ares_TemporalWeapon(pThis->Owner))
 			 ->WeaponType->Warhead;
 

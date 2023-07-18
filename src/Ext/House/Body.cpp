@@ -914,6 +914,7 @@ void HouseExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->SWLastIndex)
 		.Process(this->Batteries)
+		.Process(this->Factories_HouseTypes)
 		;
 }
 
