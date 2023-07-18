@@ -138,13 +138,16 @@
     <ClCompile Include="src\Ext\TechnoType\Hooks.Teleport.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.ChronoSparkle.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Cloak.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Disguise.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.EffectTargetCoordsFix.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.Firing.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.DeployFireWeapon.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.FLH.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.Gravity.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.JumpJet.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.Speed.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.Firing.WeaponSelector.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Grinding.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.IC.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Init.cpp" />
