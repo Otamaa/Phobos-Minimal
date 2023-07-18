@@ -17,6 +17,34 @@
 #include "NewSuperWeaponType/Dominator.h"
 #pragma endregion
 
+DEFINE_OVERRIDE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
+{
+	GET(SuperClass* const, pSuper, ECX);
+	GET_STACK(CellStruct* const, pCell, 0x4);
+	GET_STACK(bool const, isPlayer, 0x8);
+
+	auto pSuperExt = SuperExt::ExtMap.Find(pSuper);
+
+	pSuperExt->Temp_IsPlayer = isPlayer;
+	pSuperExt->Temp_CellStruct = *pCell;
+
+	if (
+#ifndef Replace_SW
+		SWTypeExt::ExtData::Activate(pSuper, *pCell, isPlayer)
+#else
+		AresData::SW_Activate(pSuper, *pCell, isPlayer)
+#endif
+		)
+	{
+		Debug::Log("Lauch [%x][%s] %s succeeded \n", pSuper, pSuper->Owner->get_ID(), pSuper->Type->ID);
+		SWTypeExt::ExtMap.Find(pSuper->Type)->FireSuperWeapon(pSuper, pSuper->Owner, pCell, isPlayer);
+		return 0x6CDE40;
+	}
+
+	Debug::Log("Lauch [%x][%s] %s failed \n", pSuper, pSuper->Owner->get_ID(), pSuper->Type->ID);
+	return 0x6CDE40;
+}
+
 #ifndef Replace_SW
 
 #pragma warning( push )
@@ -784,7 +812,6 @@ DEFINE_OVERRIDE_HOOK(0x6CB920, SuperClass_ClickFire, 5)
 
 	auto const pType = pThis->Type;
 	auto const pExt = SWTypeExt::ExtMap.Find(pType);
-
 	auto const pOwner = pThis->Owner;
 
 	if (pType->UseChargeDrain)
@@ -928,7 +955,7 @@ DEFINE_OVERRIDE_HOOK(0x6CB4D0, SuperClass_SetOnHold, 6)
 				{
 					SWTypeExt::ExtData::Deactivate(pThis, CellStruct::Empty, false);
 					const auto nTime = pThis->GetRechargeTime();
-					const auto nRation = pThis->RechargeTimer.GetTimeLeft() / RulesClass::Instance->ChargeToDrainRatio;
+					const auto nRation = pThis->RechargeTimer.GetTimeLeft() / SWTypeExt::ExtMap.Find(pThis->Type)->GetChargeToDrainRatio();
 					pThis->RechargeTimer.Start(int(nTime - nRation));
 					pThis->RechargeTimer.Pause();
 				}
@@ -985,7 +1012,7 @@ DEFINE_OVERRIDE_HOOK(0x6CBD6B, SuperClass_Update_DrainMoney, 8)
 				// only abort if SW drains money and there is none
 				if (!pOwner->CanTransactMoney(money))
 				{
-					if (pOwner->IsControlledByHuman())
+					if (pOwner->IsControlledByHuman_())
 					{
 						VoxClass::PlayIndex(pData->EVA_InsufficientFunds);
 						pData->PrintMessage(pData->Message_InsufficientFunds, HouseClass::CurrentPlayer);
@@ -1150,26 +1177,22 @@ DEFINE_OVERRIDE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
 DEFINE_HOOK(0x4C78EF, Networking_RespondToEvent_SpecialPlace, 9)
 {
 	GET(CellStruct*, pCell, EDX);
-	//GET(int , nCRC , EAX);
-	GET(NetworkEvent*, pEvent, ESI);
+	GET(int , Checksum, EAX);
+	//GET(NetworkEvent*, pEvent, ESI);
 	GET(HouseClass*, pHouse, EDI);
 
-	auto pSuper = pHouse->Supers.Items[pEvent->Checksum];
-	auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
+	const auto pSuper = pHouse->Supers.Items[Checksum];
+	const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
 
-	if (pExt->SW_UseAITargeting)
-	{
-		if (!SWTypeExt::ExtData::TryFire(pSuper, 1) && pHouse == HouseClass::CurrentPlayer)
-		{
-			pExt->PrintMessage(pExt->Message_CannotFire, pHouse);
-			return 0x4C78F8;
-		}
-	}
-	else
-	{
-		pHouse->Fire_SW(pEvent->Checksum, *pCell);
+	if (pExt->SW_UseAITargeting
+		&& !SWTypeExt::ExtData::TryFire(pSuper, 1)
+		&& pHouse == HouseClass::CurrentPlayer
+	) {
+		pExt->PrintMessage(pExt->Message_CannotFire, pHouse);
+		return 0x4C78F8;
 	}
 
+	pHouse->Fire_SW(Checksum, *pCell);
 	return 0x4C78F8;
 }
 
@@ -1281,15 +1304,6 @@ DEFINE_OVERRIDE_HOOK(0x50B1D0, HouseClass_UpdateSuperWeaponsUnavailable, 6)
 
 	return 0x50B36E;
 }
-
-//DEFINE_HOOK(0x469BD4, BulletClass_Logics_AnimSelected, 0x8)
-//{
-//	GET(BulletClass*, pThis, ESI);
-//	GET(AnimTypeClass*, Ret, EAX);
-//
-//	Debug::Log("%d . %d\n", pThis, Ret);
-//	return 0x0;
-//}
 
 // create a downward pointing missile if the launched one leaves the map.
 DEFINE_HOOK(0x46B371, BulletClass_NukeMaker, 5)
@@ -1471,7 +1485,6 @@ DEFINE_OVERRIDE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
 
 DEFINE_HOOK(0x44D455, BuildingClass_Mi_Missile_EMPPulseBulletWeapon, 0x8)
 {
-
 	GET(BuildingClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const, pWeapon, EBP);
 	GET_STACK(BulletClass* const, pBullet, STACK_OFFSET(0xF0, -0xA4));
@@ -2077,8 +2090,7 @@ DEFINE_OVERRIDE_HOOK(0x53A140, LightningStorm_Strike, 7)
 			// select the anim
 			auto const itClouds = pExt->Weather_Clouds.GetElements(
 				RulesClass::Instance->WeatherConClouds);
-			auto const pAnimType = itClouds.at(
-				ScenarioClass::Instance->Random.Random() % itClouds.size());
+			auto const pAnimType = itClouds.at(ScenarioClass::Instance->Random.RandomFromMax(itClouds.size() - 1));
 
 			// infer the height this thing will be drawn at.
 			if (pExt->Weather_CloudHeight < 0)
@@ -2134,8 +2146,7 @@ DEFINE_OVERRIDE_HOOK(0x53A300, LightningStorm_Strike2, 5)
 		if (auto it = pData->Weather_Bolts.GetElements(
 			RulesClass::Instance->WeatherConBolts))
 		{
-			auto const rnd = ScenarioClass::Instance->Random.Random();
-			auto const pAnimType = it.at(rnd % it.size());
+			auto const pAnimType = it.at(ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1));
 
 			if (auto const pAnim = GameCreate<AnimClass>(pAnimType, coords))
 			{
@@ -2148,8 +2159,7 @@ DEFINE_OVERRIDE_HOOK(0x53A300, LightningStorm_Strike2, 5)
 		if (auto const it = pData->Weather_Sounds.GetElements(
 			RulesClass::Instance->LightningSounds))
 		{
-			auto const rnd = ScenarioClass::Instance->Random.Random();
-			VocClass::PlayAt(it.at(rnd % it.size()), coords, nullptr);
+			VocClass::PlayAt(it.at(ScenarioClass::Instance->Random.RandomFromMax(it.size()  - 1)), coords, nullptr);
 		}
 
 		auto debris = false;
@@ -2226,8 +2236,7 @@ DEFINE_OVERRIDE_HOOK(0x53A300, LightningStorm_Strike2, 5)
 
 				for (int i = 0; i < count; ++i)
 				{
-					auto const rnd = ScenarioClass::Instance->Random.Random();
-					auto const pAnimType = it.at(rnd % it.size());
+					auto const pAnimType = it.at(ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1));
 
 					// Otamaa Add
 					if (auto pAnim = GameCreate<AnimClass>(pAnimType, coords))

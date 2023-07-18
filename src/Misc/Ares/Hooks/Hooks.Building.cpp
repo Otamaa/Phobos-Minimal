@@ -24,21 +24,6 @@
 #include <numeric>
 #include "Header.h"
 
-void TechnoExt_ExtData::EvalRaidStatus(BuildingClass* pThis)
-{
-	auto pExt = BuildingExt::ExtMap.Find(pThis);
-
-	// if the building is still marked as raided, but unoccupied, return it to its previous owner
-	if (pExt->OwnerBeforeRaid && !pThis->Occupants.Count) {
-		// Fix for #838: Only return the building to the previous owner if he hasn't been defeated
-		if (!pExt->OwnerBeforeRaid->Defeated) {
-			pThis->SetOwningHouse(pExt->OwnerBeforeRaid, false);
-		}
-
-		pExt->OwnerBeforeRaid = nullptr;
-	}
-}
-
 // #1156943: they check for type, and for the instance, yet
 // the Log call uses the values as if nothing happened.
 DEFINE_OVERRIDE_HOOK(0x4430E8, BuildingClass_Destroyed_SurvivourLog, 0x6)

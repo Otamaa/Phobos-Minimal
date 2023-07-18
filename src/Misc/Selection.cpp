@@ -84,7 +84,7 @@ public:
 			{
 				const auto pTechno = selected.Techno;
 				const auto pTechnoType = pTechno->GetTechnoType();
-				
+
 				if (!pTechnoType)
 					continue;
 
@@ -102,7 +102,9 @@ public:
 					const auto pBldType = type_cast<BuildingTypeClass*>(pTechnoType);
 					const auto pOwner = pTechno->GetOwningHouse();
 
-					if (pOwner && pOwner->ControlledByPlayer() && pTechno->CanBeSelected()
+					if (pOwner
+						&& pOwner->ControlledByPlayer()
+						&& pTechno->CanBeSelected()
 						&& (!pBldType || (pBldType && pBldType->UndeploysInto && pBldType->IsUndeployable())))
 					{
 						Unsorted::MoveFeedback = !pTechno->Select();

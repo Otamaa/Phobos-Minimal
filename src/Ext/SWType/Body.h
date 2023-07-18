@@ -39,7 +39,6 @@ public:
 template <>
 struct Savegame::PhobosStreamObject<ParadropData>
 {
-
 	bool ReadFromStream(PhobosStreamReader& Stm, ParadropData& Value, bool RegisterForChange) const
 	{
 		return Stm
@@ -370,6 +369,7 @@ public:
 		Valueable<bool> SW_DeliverBuildups { true };
 		Valueable<bool> SW_BaseNormal { true };
 		Valueable<OwnerHouseKind> SW_OwnerHouse{ OwnerHouseKind::Default  };
+		Valueable<bool> SW_DeliverableScatter { true };
 #pragma endregion
 
 #pragma region Lighting
@@ -437,7 +437,7 @@ public:
 
 		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 		void LoadFromRulesFile(CCINIClass* pINI);
-		virtual ~ExtData() override = default;
+		virtual ~ExtData() override;
 		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 		void Initialize();

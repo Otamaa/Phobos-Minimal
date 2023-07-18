@@ -280,6 +280,13 @@ DEFINE_HOOK(0x43FE69, BuildingClass_AI_Add, 0xA)
 	return 0x0;
 }
 
+#include <Ext/SWType/NewSuperWeaponType/SWStateMachine.h>
+
+DEFINE_HOOK(0x55AFB3, LogicClass_Update_Early, 0x6)
+{
+	SWStateMachine::UpdateAll();
+	return 0x0;
+}
 //DEFINE_HOOK_AGAIN(0x6FAFFD, TechnoClass_LateUpdate,  7)
 //DEFINE_HOOK(0x6FAF7A, TechnoClass_LateUpdate, 7)
 //{

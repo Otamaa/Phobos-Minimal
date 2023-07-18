@@ -3260,14 +3260,6 @@ DEFINE_HOOK(0x6EE17E, MoveCrameraToWaypoint_CancelFollowTarget, 0x8)
 	return 0x0;
 }
 
-#include <Ext/SWType/NewSuperWeaponType/SWStateMachine.h>
-
-DEFINE_HOOK(0x55AFB3, LogicClass_Update_Early, 0x6)
-{
-	SWStateMachine::UpdateAll();
-	return 0x0;
-}
-
 //bool CheckDone = false;
 //
 //DEFINE_HOOK(0x55B582, LogicClass_Update_AfterTeamClass, 0x6)

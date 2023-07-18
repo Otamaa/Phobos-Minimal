@@ -931,24 +931,24 @@ void UpdateAttachedAnimLayers(TechnoClass* pThis)
 }
 
 //causing desyncs
-//DEFINE_HOOK(0x54B188, JumpjetLocomotionClass_Process_LayerUpdate, 0x6)
-//{
-//	GET(TechnoClass*, pLinkedTo, EAX);
-//
-//	UpdateAttachedAnimLayers(pLinkedTo);
-//
-//	return 0;
-//}
-//
-//DEFINE_HOOK(0x4CD4E1, FlyLocomotionClass_Update_LayerUpdate, 0x6)
-//{
-//	GET(TechnoClass*, pLinkedTo, ECX);
-//
-//	if (pLinkedTo->LastLayer != pLinkedTo->InWhichLayer())
-//		UpdateAttachedAnimLayers(pLinkedTo);
-//
-//	return 0;
-//}
+DEFINE_HOOK(0x54B188, JumpjetLocomotionClass_Process_LayerUpdate, 0x6)
+{
+	GET(TechnoClass*, pLinkedTo, EAX);
+
+	UpdateAttachedAnimLayers(pLinkedTo);
+
+	return 0;
+}
+
+DEFINE_HOOK(0x4CD4E1, FlyLocomotionClass_Update_LayerUpdate, 0x6)
+{
+	GET(TechnoClass*, pLinkedTo, ECX);
+
+	if (pLinkedTo->LastLayer != pLinkedTo->InWhichLayer())
+		UpdateAttachedAnimLayers(pLinkedTo);
+
+	return 0;
+}
 
 DEFINE_HOOK(0x688F8C, ScenarioClass_ScanPlaceUnit_CheckMovement, 0x5)
 {

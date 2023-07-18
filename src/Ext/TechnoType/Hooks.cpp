@@ -30,12 +30,12 @@ DEFINE_HOOK(0x707319, TechnoClass_CalcVoxelShadow_ShadowScale, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6F64A9, TechnoClass_DrawHealthBar_Hide, 0x5)
+DEFINE_HOOK(0x6F64A0, TechnoClass_DrawHealthBar_Hide, 0x5)
 {
 	enum
 	{
 		Draw = 0x0,
-		DoNotDraw = 0x6F6AB6
+		DoNotDraw = 0x6F6ABD
 	};
 
 	GET(TechnoClass*, pThis, ECX);
@@ -44,17 +44,8 @@ DEFINE_HOOK(0x6F64A9, TechnoClass_DrawHealthBar_Hide, 0x5)
 		if (pUnit->DeathFrameCounter > 0)
 			return DoNotDraw;
 
-	//if (auto pBuilding = specific_cast<BuildingClass*>(pThis))
-	//{
-	//	auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
-	//	if (pBldExt->LimboID != -1)
-	//		return DoNotDraw;
-	//}
-
 	if ((TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->HealthBar_Hide.Get()) || pThis->TemporalTargetingMe || pThis->IsSinking)
 		return DoNotDraw;
-
-
 
 	return Draw;
 }

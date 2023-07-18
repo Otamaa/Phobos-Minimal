@@ -164,7 +164,7 @@ void TheaterTypeClass::SaveToStream(PhobosStreamWriter& Stm)
 {
 	//this->Swizzle(Stm);
 }
-
+#ifndef DISABLE_THEATER_HOOKS
 DEFINE_HOOK(0x48DBE0, TheaterTypeClass_FindIndex, 0x5)
 {
 	GET(char*, nTheaterName, ECX);
@@ -740,3 +740,5 @@ DEFINE_HOOK(0x534BEE, ScenarioClass_initTheater_TheaterType_OverlayPalette, 0x5)
 }
 
 #undef CURRENT_THEATER
+
+#endif

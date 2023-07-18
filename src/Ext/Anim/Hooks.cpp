@@ -53,57 +53,80 @@ DEFINE_HOOK(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x6)
 
 //DEFINE_JUMP(VTABLE, 0x7E33CC, GET_OFFSET(AnimExt::GetLayer_patch));
 
-DEFINE_HOOK(0x424CB0, AnimClass_InWhichLayer_Override, 0x6) //was 5
+//DEFINE_HOOK(0x424CB0, AnimClass_InWhichLayer_Override, 0x6) //was 5
+//{
+//	GET(AnimClass*, pThis, ECX);
+//
+//	enum
+//	{
+//		RetLayerGround = 0x424CBA,
+//		RetLayerAir = 0x0424CD1,
+//		RetTypeLayer = 0x424CCA,
+//		ReturnSetManualResult = 0x424CD6
+//	};
+//
+//	if (pThis->Type) {
+//		if (pThis->OwnerObject) {
+//
+//			const auto pExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+//
+//			if (!pExt->Layer_UseObjectLayer.isset() || !pThis->OwnerObject->IsAlive) {
+//				return RetLayerGround;
+//			}
+//
+//			if (pExt->Layer_UseObjectLayer.Get()) {
+//
+//				Layer nRes = Layer::Ground;
+//
+//				if (auto const pFoot = generic_cast<FootClass*>(pThis->OwnerObject)) {
+//
+//					if(pFoot->IsCrashing ||  pFoot->IsSinking)
+//						return RetLayerGround;
+//
+//					if (auto const pLocomotor = pFoot->Locomotor.GetInterfacePtr())
+//						nRes = pLocomotor->In_Which_Layer();
+//				}
+//				else if (auto const pBullet = specific_cast<BulletClass*>(pThis->OwnerObject)) {
+//					nRes = pBullet->InWhichLayer();
+//				}
+//				else {
+//					nRes = pThis->OwnerObject->ObjectClass::InWhichLayer();
+//				}
+//
+//				R->EAX(nRes);
+//				return ReturnSetManualResult;
+//			}
+//		}
+//		else {
+//			R->EAX(pThis->Type->Layer);
+//			return ReturnSetManualResult;
+//		}
+//	}
+//
+//	return RetLayerAir;
+//}
+
+DEFINE_HOOK(0x424CB0, AnimClass_InWhichLayer_AttachedObjectLayer, 0x6)
 {
+	enum { ReturnValue = 0x424CBF };
+
 	GET(AnimClass*, pThis, ECX);
 
-	enum
+	auto pExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+
+	if (pThis->OwnerObject && pExt->Layer_UseObjectLayer.isset())
 	{
-		RetLayerGround = 0x424CBA,
-		RetLayerAir = 0x0424CD1,
-		RetTypeLayer = 0x424CCA,
-		ReturnSetManualResult = 0x424CD6
-	};
+		Layer layer = pThis->Type->Layer;
 
-	if (pThis->Type) {
-		if (pThis->OwnerObject) {
+		if (pExt->Layer_UseObjectLayer.Get())
+			layer = pThis->OwnerObject->InWhichLayer();
 
-			const auto pExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+		R->EAX(layer);
 
-			if (!pExt->Layer_UseObjectLayer.isset() || !pThis->OwnerObject->IsAlive) {
-				return RetLayerGround;
-			}
-
-			if (pExt->Layer_UseObjectLayer.Get()) {
-
-				Layer nRes = Layer::Ground;
-
-				if (auto const pFoot = generic_cast<FootClass*>(pThis->OwnerObject)) {
-
-					if(pFoot->IsCrashing ||  pFoot->IsSinking)
-						return RetLayerGround;
-
-					if (auto const pLocomotor = pFoot->Locomotor.GetInterfacePtr())
-						nRes = pLocomotor->In_Which_Layer();
-				}
-				else if (auto const pBullet = specific_cast<BulletClass*>(pThis->OwnerObject)) {
-					nRes = pBullet->InWhichLayer();
-				}
-				else {
-					nRes = pThis->OwnerObject->ObjectClass::InWhichLayer();
-				}
-
-				R->EAX(nRes);
-				return ReturnSetManualResult;
-			}
-		}
-		else {
-			R->EAX(pThis->Type->Layer);
-			return ReturnSetManualResult;
-		}
+		return ReturnValue;
 	}
 
-	return RetLayerAir;
+	return 0;
 }
 
 DEFINE_HOOK(0x424C3D, AnimClass_AttachTo_BuildingCoords, 0x6)
@@ -158,7 +181,7 @@ DEFINE_HOOK(0x424AEC, AnimClass_AI_SetMission, 0x6)
 
 	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 
-	const Mission nMission = pTypeExt->MakeInfantry_Mission.Get(!pThis->Owner->ControlledByPlayer_() ? Mission::Hunt : Mission::Guard);
+	const Mission nMission = pTypeExt->MakeInfantry_Mission.Get(!pThis->Owner->IsControlledByHuman_() ? Mission::Hunt : Mission::Guard);
 	Debug::Log("Anim[%s] with MakeInf , setting Mission[%s] ! \n", pThis->Type->ID , MissionClass::MissionToString(nMission));
 	pInf->QueueMission(nMission, false);
 	return 0x0;

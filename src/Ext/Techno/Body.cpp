@@ -1336,7 +1336,7 @@ bool TechnoExt::CreateWithDroppod(FootClass* Object, const CoordStruct& XYZ)
 		if (!Object->InLimbo)
 		{
 			Object->See(0, 0);
-			Object->QueueMission(Object->Owner && Object->Owner->ControlledByPlayer_() ? Mission::Guard : Mission::Hunt, 0);
+			Object->QueueMission(Object->Owner && Object->Owner->IsControlledByHuman_() ? Mission::Guard : Mission::Hunt, 0);
 			Object->NextMission();
 			return true;
 		}

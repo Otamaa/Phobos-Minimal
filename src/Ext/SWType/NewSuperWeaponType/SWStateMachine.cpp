@@ -13,28 +13,26 @@ std::vector<std::unique_ptr<SWStateMachine>> SWStateMachine::Array;
 
 void SWStateMachine::UpdateAll()
 {
-	for (auto& Machine : SWStateMachine::Array) {
+	for(size_t i = 0 ; i < SWStateMachine::Array.size(); ++i) {
+		if(auto& pMachine = SWStateMachine::Array[i]) {
+			pMachine->Update();
 
-		if (Machine)
-			Machine->Update();
+			if (pMachine->Finished()){
+				Debug::Log("%s - [%s : %d] Finished , removing\n", pMachine->GetIdentifierStrings() , pMachine->Super->get_ID() , i);
+				SWStateMachine::Array.erase(SWStateMachine::Array.begin() + i);
+			}
+		}
 	}
-
-	Array.erase(std::remove_if(Array.begin(), Array.end(),
-	[](const std::unique_ptr<SWStateMachine>& ptr) {
-		return ptr->Finished();
-	}), Array.end());
 }
 
 void SWStateMachine::PointerGotInvalid(void* ptr, bool remove)
 {
-
 	for (auto& Machine : SWStateMachine::Array) {
-
-		if(Machine)
+		if(Machine) {
 			Machine->InvalidatePointer(ptr, remove);
+		}
 	}
 
-	AnnounceInvalidPointer(SW_NuclearMissile::CurrentNukeType, ptr);
 	AnnounceInvalidPointer(SW_PsychicDominator::CurrentPsyDom, ptr);
 	AnnounceInvalidPointer(SW_LightningStorm::CurrentLightningStorm, ptr);
 }

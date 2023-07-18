@@ -57,7 +57,7 @@ void UnitDeliveryStateMachine::Update()
 	{
 		CoordStruct coords = CellClass::Cell2Coord(this->Coords);
 
-		auto pData = SWTypeExt::ExtMap.Find(this->Super->Type);
+		const auto pData = SWTypeExt::ExtMap.Find(this->Super->Type);
 
 		pData->PrintMessage(pData->Message_Activate, this->Super->Owner);
 
@@ -75,7 +75,7 @@ void UnitDeliveryStateMachine::Update()
 //center as close as they can.
 void UnitDeliveryStateMachine::PlaceUnits()
 {
-	auto pData = SWTypeExt::ExtMap.Find(this->Super->Type);
+	const auto pData = SWTypeExt::ExtMap.Find(this->Super->Type);
 
 	// some mod using this for an dummy SW , just skip everything if the SW_Deliverables
 	// is empty
@@ -83,11 +83,12 @@ void UnitDeliveryStateMachine::PlaceUnits()
 		return;
 
 	// get the house the units will belong to
-	auto pOwner = HouseExt::GetHouseKind(pData->SW_OwnerHouse, false, this->Super->Owner);
-	bool IsPlayerControlled = pOwner->ControlledByPlayer_();
-	bool bBaseNormal = pData->SW_BaseNormal;
-	bool bDeliverBuildup = pData->SW_DeliverBuildups;
+	const auto pOwner = HouseExt::GetHouseKind(pData->SW_OwnerHouse, false, this->Super->Owner);
+	const bool IsPlayerControlled = pOwner->IsControlledByHuman_();
+	const bool bBaseNormal = pData->SW_BaseNormal;
+	const bool bDeliverBuildup = pData->SW_DeliverBuildups;
 
+	Debug::Log("PlaceUnits for [%s] - Owner[%s] \n", pData->get_ID(), pOwner->get_ID());
 	// create an instance of each type and place it
 	// Otamaa : this thing bugged on debug mode , idk
 	for (auto nPos = pData->SW_Deliverables.begin(); nPos != pData->SW_Deliverables.end(); ++nPos)
@@ -97,6 +98,8 @@ void UnitDeliveryStateMachine::PlaceUnits()
 
 		if (!Item)
 			continue;
+
+		Debug::Log("PlaceUnits for [%s] - Owner[%s] After CreateObj[%s] \n", pData->get_ID(), pOwner->get_ID() , pType->ID);
 
 		const auto ItemBuilding = specific_cast<BuildingClass*>(Item);
 
@@ -161,30 +164,38 @@ void UnitDeliveryStateMachine::PlaceUnits()
 			}
 			else
 			{
+				const auto mission = IsPlayerControlled ? Mission::Guard : Mission::Hunt;
+				Debug::Log("PlaceUnits for [%s] - Owner[%s] SwtMission[%s - %s] \n", pData->get_ID(), pOwner->get_ID(), pType->ID , MissionClass::MissionToString(mission));
+
 				// only computer units can hunt
-				Item->QueueMission(IsPlayerControlled ? Mission::Guard : Mission::Hunt, false);
+				Item->QueueMission(mission, false);
 			}
 
 			// place and set up
 			auto XYZ = pCell->GetCoordsWithBridge();
 			if (Item->Unlimbo(XYZ, DirType(MapClass::GetCellIndex(pCell->MapCoords) & 7u)))
 			{
+				Debug::Log("PlaceUnits for [%s] - Owner[%s] After Unlimbo[%s] \n", pData->get_ID(), pOwner->get_ID(), pType->ID);
+
 				if (ItemBuilding)
 				{
 					if (bBaseNormal)
 					{
 						ItemBuilding->DiscoveredBy(pOwner);
 						ItemBuilding->IsReadyToCommence = 1;
+
+						Debug::Log("PlaceUnits for [%s] - Owner[%s] After DiscoverBld[%s] \n", pData->get_ID(), pOwner->get_ID(), pType->ID);
 					}
 				}
 				else
 				{
-					if (pType->BalloonHover || pType->JumpJet)
+					if (pData->SW_DeliverableScatter && (pType->BalloonHover || pType->JumpJet))
 						Item->Scatter(CoordStruct::Empty, true, false);
 
 					if (Item->CurrentMission == Mission::Area_Guard && !IsPlayerControlled)
 						Item->QueueMission(Mission::Hunt, true);
 				}
+
 				if (!TechnoExt_ExtData::IsPowered(Item) || (!Is_Operated(Item) && !TechnoExt_ExtData::IsOperated(Item)))
 				{
 					Item->Deactivate();
@@ -200,4 +211,6 @@ void UnitDeliveryStateMachine::PlaceUnits()
 			}
 		}
 	}
+
+	Debug::Log("PlaceUnits for [%s] - Owner[%s] Done \n", pData->get_ID(), pOwner->get_ID());
 }

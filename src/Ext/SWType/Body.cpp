@@ -61,6 +61,15 @@ std::array<const AITargetingModeInfo, (size_t)SuperWeaponAITargetingMode::count>
 }
 };
 
+SWTypeExt::ExtData::~ExtData()
+{
+	SuperWeaponTypeClass* pCopy = Ares_CurrentSWType;
+	if (this->Get() == Ares_CurrentSWType)
+		pCopy = nullptr;
+
+	Ares_CurrentSWType = pCopy;
+};
+
 bool SWTypeExt::ExtData::IsTypeRedirected() const
 {
 	return this->HandledType > SuperWeaponType::Invalid;
@@ -741,8 +750,8 @@ struct TargetingFuncs
 
 	static TargetResult GetDroppodTarget(const TargetingInfo& info)
 	{
-		auto nRandom = ScenarioClass::Instance->Random.RandomRanged(1, 4);
-		auto nCell = info.Owner->RandomCellInZone((ZoneType)nRandom);
+		auto nRandom = ScenarioClass::Instance->Random.RandomRangedSpecific(ZoneType::North, ZoneType::West);
+		auto nCell = info.Owner->RandomCellInZone(nRandom);
 		auto nNearby = MapClass::Instance->NearByLocation(nCell,
 			SpeedType::Foot, -1, MovementZone::Normal, false, 1, 1, false,
 			false, false, true, CellStruct::Empty, false, false);
@@ -1235,6 +1244,8 @@ bool SWTypeExt::ExtData::Activate(SuperClass* pSuper, CellStruct const cell, boo
 	if (!pNewType || !pExt->Launch(pNewType, pSuper, cell, isPlayer))
 		return false;
 
+	Debug::Log(__FUNCTION__" for [%s] - Owner[%s] AfterSWLauch \n", pExt->get_ID(), pOwner->get_ID());
+
 	for (int i = 0; i < pOwner->RelatedTags.Count; ++i)
 	{
 		if (auto pTag = pOwner->RelatedTags.GetItem(i))
@@ -1245,11 +1256,13 @@ bool SWTypeExt::ExtData::Activate(SuperClass* pSuper, CellStruct const cell, boo
 		}
 	}
 
+	Debug::Log(__FUNCTION__" for [%s] - Owner[%s] After SuperNearWaypoint  \n", pExt->get_ID(), pOwner->get_ID());
 	for (int a = 0; a < pOwner->RelatedTags.Count; ++a)
 	{
 		if (auto pTag = pOwner->RelatedTags.GetItem(a))
 			pTag->RaiseEvent(TriggerEvent(AresTriggerEvents::SuperActivated), nullptr, CellStruct::Empty, false, pSuper);
 	}
+	Debug::Log(__FUNCTION__" for [%s] - Owner[%s] After SuperActivated  \n", pExt->get_ID(), pOwner->get_ID());
 
 	return true;
 
@@ -1668,6 +1681,8 @@ void SWTypeExt::ExtData::ApplySWNext(SuperClass* pSW, const CellStruct& cell)
 
 void SWTypeExt::ExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const CellStruct* const pCell, bool IsCurrentPlayer)
 {
+	Debug::Log("Applying additional functionalities for sw[%s]\n", pSW->get_ID());
+
 	if (!this->LimboDelivery_Types.empty())
 		ApplyLimboDelivery(pHouse);
 
@@ -1739,7 +1754,7 @@ bool SWTypeExt::ExtData::IsAvailable(HouseClass* pHouse)
 	if (!this->CanFire(pHouse))
 		return false;
 
-	if (pHouse->IsControlledByCurrentPlayer() ? (!this->SW_AllowPlayer) : (!this->SW_AllowAI))
+	if (pHouse->IsControlledByHuman_() ? (!this->SW_AllowPlayer) : (!this->SW_AllowAI))
 		return false;
 
 	if (!this->SW_Require.empty()) {
@@ -2151,6 +2166,7 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SW_DeliverBuildups)
 		.Process(this->SW_BaseNormal)
 		.Process(this->SW_OwnerHouse)
+		.Process(this->SW_DeliverableScatter)
 
 		.Process(this->SW_ShowCameo)
 
@@ -2231,6 +2247,7 @@ bool SWTypeExt::ExtContainer::InvalidateIgnorable(void* ptr)
 bool SWTypeExt::ExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
 	const bool First = Stm
+		.Process(Ares_CurrentSWType)
 		.Process(SWTypeExt::TempSuper)
 		.Process(SWTypeExt::Handled)
 		.Process(SWTypeExt::LauchData)
@@ -2242,6 +2259,7 @@ bool SWTypeExt::ExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 bool SWTypeExt::ExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
 	const bool First = Stm
+		.Process(Ares_CurrentSWType)
 		.Process(SWTypeExt::TempSuper)
 		.Process(SWTypeExt::Handled)
 		.Process(SWTypeExt::LauchData)

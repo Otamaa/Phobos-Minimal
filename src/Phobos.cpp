@@ -472,10 +472,11 @@ void InitAdminDebugMode()
 #endif
 
 #ifdef DETACH_DEBUGGER
-			// this thing can cause game to lockup when loading data
-			// better disable it for release
+			 //this thing can cause game to lockup when loading data
+			//better disable it for release
 
-			const bool Detached = Phobos::DetachFromDebugger();
+			const bool Detached =
+				Phobos::DetachFromDebugger();
 			if (Detached)
 			{
 				MessageBoxW(NULL,

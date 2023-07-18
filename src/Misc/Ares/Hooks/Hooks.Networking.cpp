@@ -44,42 +44,42 @@ namespace Fix
 	}
 };
 
-//DEFINE_OVERRIDE_HOOK(0x64C314, sub_64BDD0_PayloadSize2, 0x8)
-//{
-//	GET(uint8_t, nSize, ESI);
-//
-//	const auto nFix = Fix::EventLength(nSize);
-//
-//	R->ECX(nFix);
-//	R->EBP(nFix + (nSize == 4u));
-//
-//	return 0x64C321;
-//}
-//
-//DEFINE_OVERRIDE_HOOK(0x64BE83, sub_64BDD0_PayloadSize1, 0x8)
-//{
-//	GET(uint8_t, nSize, EDI);
-//
-//	const auto nFix = Fix::EventLength(nSize);
-//
-//	R->ECX(nFix);
-//	R->EBP(nFix);
-//	R->Stack(0x20, nFix);
-//
-//	return nSize == 4 ? 0x64BF1A : 0x64BE97;
-//}
-//
-//DEFINE_OVERRIDE_HOOK(0x64B704, sub_64B660_PayloadSize, 0x8)
-//{
-//	GET(uint8_t, nSize, EDI);
-//
-//	const auto nFix = Fix::EventLength(nSize);
-//
-//	R->EDX(nFix);
-//	R->EBP(nFix);
-//
-//	return (nSize == 0x1Fu) ? 0x64B710 : 0x64B71D;
-//}
+DEFINE_OVERRIDE_HOOK(0x64C314, sub_64BDD0_PayloadSize2, 0x8)
+{
+	GET(uint8_t, nSize, ESI);
+
+	const auto nFix = Fix::EventLength(nSize);
+
+	R->ECX(nFix);
+	R->EBP(nFix + (nSize == 4u));
+
+	return 0x64C321;
+}
+
+DEFINE_OVERRIDE_HOOK(0x64BE83, sub_64BDD0_PayloadSize1, 0x8)
+{
+	GET(uint8_t, nSize, EDI);
+
+	const auto nFix = Fix::EventLength(nSize);
+
+	R->ECX(nFix);
+	R->EBP(nFix);
+	R->Stack(0x20, nFix);
+
+	return nSize == 4 ? 0x64BF1A : 0x64BE97;
+}
+
+DEFINE_OVERRIDE_HOOK(0x64B704, sub_64B660_PayloadSize, 0x8)
+{
+	GET(uint8_t, nSize, EDI);
+
+	const auto nFix = Fix::EventLength(nSize);
+
+	R->EDX(nFix);
+	R->EBP(nFix);
+
+	return (nSize == 0x1Fu) ? 0x64B710 : 0x64B71D;
+}
 
 class AresNetEvent {
 public:

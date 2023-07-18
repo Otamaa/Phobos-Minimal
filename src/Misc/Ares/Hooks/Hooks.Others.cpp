@@ -888,59 +888,6 @@ DEFINE_HOOK(0x6F5190, TechnoClass_DrawIt_Add, 0x6)
 #include <Ext/Super/Body.h>
 #include <Ext/Techno/Body.h>
 
-DEFINE_OVERRIDE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
-{
-	GET(SuperClass* const, pSuper, ECX);
-	GET_STACK(CellStruct* const, pCell, 0x4);
-	GET_STACK(bool const, isPlayer, 0x8);
-
-	auto pSuperExt = SuperExt::ExtMap.Find(pSuper);
-
-	pSuperExt->Temp_IsPlayer = isPlayer;
-	pSuperExt->Temp_CellStruct = *pCell;
-
-	if (
-#ifndef Replace_SW
-		SWTypeExt::ExtData::Activate(pSuper, *pCell, isPlayer)
-#else
-		AresData::SW_Activate(pSuper, *pCell, isPlayer)
-#endif
-		)
-	{
-		Debug::Log("[%x][%s] %s Handled\n", pSuper, pSuper->Owner->get_ID(), pSuper->Type->ID);
-		const auto pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type);
-
-		//auto pHouseExt = HouseExt::ExtMap.Find(pSuper->Owner);
-		//auto pAresExt = AresData::Ares_SWType_ExtMap_Find(pSuper->Type);
-		pSWExt->FireSuperWeapon(pSuper, pSuper->Owner, pCell, isPlayer);
-		return 0x6CDE40;
-	}
-	else
-	{
-		SWTypeExt::LauchData = pSuper;
-	}
-
-	return 0x0;
-}
-
-DEFINE_HOOK(0x6CDE36, SuperClass_Place_FireNormal, 0xA)
-{
-	if (const auto pSuper = SWTypeExt::LauchData)
-	{
-		Debug::Log("[LAUNCH] %s Normal at [0x%x]\n", pSuper->Type->ID, R->Origin());
-		const auto pSuperExt = SuperExt::ExtMap.Find(pSuper);
-		const auto pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type);
-		pSWExt->FireSuperWeapon(pSuper, pSuper->Owner, &pSuperExt->Temp_CellStruct, pSuperExt->Temp_IsPlayer);
-		SWTypeExt::LauchData = nullptr;
-	}
-	else
-	{
-		Debug::Log("[LAUNCH] SW as Normal but SuperPointer is somewhat invalid at [0x%x]!\n", R->Origin());
-	}
-
-	return 0x0;
-}
-
 DEFINE_OVERRIDE_HOOK(0x48A2D9, MapClass_DamageArea_ExplodesThreshold, 6)
 {
 	GET(OverlayTypeClass*, pOverlay, EAX);
@@ -3969,61 +3916,6 @@ enum class AresHijackActionResult
 	Hijack = 1,
 	Drive = 2
 };
-
-bool NOINLINE TechnoExt_ExtData::IsOperated(TechnoClass* pThis)
-{
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-
-	if (pExt->Operators.empty())
-	{
-		if (pExt->Operator_Any)
-			return pThis->Passengers.GetFirstPassenger() != nullptr;
-
-		Is_Operated(pThis) = true;
-		return true;
-	}
-	else
-	{
-		for (NextObject object(pThis->Passengers.GetFirstPassenger()); object; ++object)
-		{
-			if (pExt->Operators.Contains((TechnoTypeClass*)object->GetType()))
-			{
-				// takes a specific operator and someone is present AND that someone is the operator, therefore it is operated
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
-
-bool NOINLINE TechnoExt_ExtData::IsPowered(TechnoClass* pThis)
-{
-	auto pType = pThis->GetTechnoType();
-
-	if (pType && pType->PoweredUnit)
-	{
-		for (const auto& pBuilding : pThis->Owner->Buildings)
-		{
-			if (pBuilding->Type->PowersUnit == pType
-				&& pBuilding->RegisteredAsPoweredUnitSource
-				&& !pBuilding->IsUnderEMP()) // alternatively, HasPower, IsPowerOnline()
-			{
-				return true;
-			}
-		}
-		// if we reach this, we found no building that currently powers this object
-		return false;
-	}
-	else if (auto pPower = PoweredUnitUptr(pThis))
-	{
-		// #617
-		return pPower->Powered;
-	}
-
-	// object doesn't need a particular powering structure, therefore, for the purposes of the game, it IS powered
-	return true;
-}
 
 // this isn't called VehicleThief action, because it also includes other logic
 // related to infantry getting into an vehicle like CanDrive.

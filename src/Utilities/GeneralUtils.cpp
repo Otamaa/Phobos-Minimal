@@ -162,7 +162,7 @@ bool GeneralUtils::ApplyTheaterSuffixToString(char* str)
 		pSuffix[0] = pTheater[0];
 		pSuffix[1] = pTheater[1];
 		pSuffix[2] = pTheater[2];
-		Debug::Log("Found designated string, Replacing [%s] to [%s] \n", str, pSuffix);
+		//Debug::Log("Found designated string, Replacing [%s] to [%s] \n", str, pSuffix);
 		return true;
 	}
 
@@ -199,8 +199,8 @@ std::string GeneralUtils::ApplyTheaterSuffixToString(const std::string& str)
 		//only set the 3 characters without the terminator string
 		buffer.replace(nPos, 3, pTheater);
 
-		Debug::Log("Found designated string at [%d] Replacing [%s] to [%s] \n",
-			nPos, str.c_str(), buffer.c_str());
+		//Debug::Log("Found designated string at [%d] Replacing [%s] to [%s] \n",
+		//	nPos, str.c_str(), buffer.c_str());
 
 	}
 

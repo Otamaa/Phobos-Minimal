@@ -34,6 +34,37 @@ void HouseExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	exINI.Read3Bool(pSection, "RepairBaseNodes", this->RepairBaseNodes);
 }
 
+NOINLINE TunnelData* HouseExt::GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx)
+{
+	if (!pHouse)
+		return nullptr;
+
+	auto pHouseExt = HouseExt::ExtMap.Find(pHouse);
+
+	if (nTunnelIdx >= pHouseExt->Tunnels.size())
+	{
+		while (pHouseExt->Tunnels.size() < TunnelTypeClass::Array.size())
+		{
+			pHouseExt->Tunnels.push_back({ {} , TunnelTypeClass::Array[nTunnelIdx]->Passengers });
+		}
+	}
+
+	return &pHouseExt->Tunnels[nTunnelIdx];
+}
+
+NOINLINE TunnelData* HouseExt::GetTunnels(BuildingTypeClass* pBld, HouseClass* pHouse)
+{
+	if (!pHouse)
+		return nullptr;
+
+	const auto pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pBld);
+
+	if ((size_t)pBuildingTypeExt->TunnelType.Get() >= TunnelTypeClass::Array.size())
+		return nullptr;
+
+	return HouseExt::GetTunnelVector(pHouse, pBuildingTypeExt->TunnelType);
+}
+
 void HouseExt::ExtData::UpdateShotCount(SuperWeaponTypeClass* pFor)
 {
 	this->LaunchDatas.resize(SuperWeaponTypeClass::Array->Count);

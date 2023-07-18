@@ -175,8 +175,9 @@ void SyncLogger::WriteTargetChanges(FILE* const pLogFile, int frameDigits)
 		if (!targetChange.Initialized)
 			continue;
 
-		fprintf(pLogFile, "#%05d: RTTI: %02d | ID: %08d | TargetRTTI: %02d | TargetID: %08d | Caller: %08x | Frame: %*d\n",
-			i, targetChange.Type, targetChange.ID, targetChange.TargetType, targetChange.TargetID, targetChange.Caller, frameDigits, targetChange.Frame);
+		fprintf(pLogFile, "#%05d: RTTI: (%s)%02d | ID: %08d | TargetRTTI: (%s)%02d | TargetID: %08d | Caller: %08x | Frame: %*d\n",
+			i, AbstractClass::GetAbstractClassName(targetChange.Type), targetChange.Type,
+			targetChange.ID, AbstractClass::GetAbstractClassName(targetChange.TargetType), targetChange.TargetType, targetChange.TargetID, targetChange.Caller, frameDigits, targetChange.Frame);
 	}
 
 	fprintf(pLogFile, "\n");
@@ -193,8 +194,10 @@ void SyncLogger::WriteDestinationChanges(FILE* const pLogFile, int frameDigits)
 		if (!destChange.Initialized)
 			continue;
 
-		fprintf(pLogFile, "#%05d: RTTI: %02d | ID: %08d | TargetRTTI: %02d | TargetID: %08d | Caller: %08x | Frame: %*d\n",
-			i, destChange.Type, destChange.ID, destChange.TargetType, destChange.TargetID, destChange.Caller, frameDigits, destChange.Frame);
+		fprintf(pLogFile, "#%05d: RTTI: (%s)%02d | ID: %08d | TargetRTTI: (%s)%02d | TargetID: %08d | Caller: %08x | Frame: %*d\n",
+			i,
+			AbstractClass::GetAbstractClassName(destChange.Type), destChange.Type,
+			destChange.ID, AbstractClass::GetAbstractClassName(destChange.TargetType) , destChange.TargetType, destChange.TargetID, destChange.Caller, frameDigits, destChange.Frame);
 	}
 
 	fprintf(pLogFile, "\n");

@@ -489,7 +489,7 @@ public:
 		 JMP_STD(0x510F60);
 		//return at >= PlayerAtA && at <= PlayerAtH;
 	}
-	
+
 	static HouseClass* __fastcall FindByPlayerAt(int at)
 		{ JMP_STD(0x510ED0); }
 
@@ -558,6 +558,7 @@ public:
 
 	// whether any human player controls this house
 	bool IsControlledByHuman() const  { JMP_THIS(0x50B730); }
+	// whether any human player controls this house
 	bool IsControlledByHuman_() const
 	{
 		bool result = this->IsHumanPlayer;
@@ -566,9 +567,10 @@ public:
 		}
 		return result;
 	}
-	
+
 	// whether the human player on this PC can control this house
 	bool ControlledByPlayer() const { JMP_THIS(0x50B6F0); }
+	// whether the human player on this PC can control this house
 	bool ControlledByPlayer_() const
 	{
 		if(SessionClass::Instance->GameMode != GameMode::Campaign) {
@@ -576,7 +578,7 @@ public:
 		}
 		return this->IsHumanPlayer || this->IsInPlayerControl;
 	}
-	
+
 	// Target ought to be Object, I imagine, but cell doesn't work then
 	void __fastcall SendSpyPlanes(int AircraftTypeIdx, int AircraftAmount, Mission SetMission, AbstractClass *Target, ObjectClass *Destination)
 		{ JMP_STD(0x65EAB0); }
@@ -1011,8 +1013,8 @@ public:
 	//}StaticData;
 	DWORD                 AIState_1E4;
 	int                   SideIndex;
-	bool                  IsHumanPlayer;		//is controlled by the player at this computer ,IsHuman
-	bool                  IsInPlayerControl;		//a human controls this House
+	bool                  IsHumanPlayer;	// 1EC	,is controlled by the player at this computer ,IsHuman
+	bool                  IsInPlayerControl;		// 1ED , a human controls this House
 	bool                  Production;		//AI production has begun
 	bool                  AutocreateAllowed;
 	bool			      NodeLogic_1F0;

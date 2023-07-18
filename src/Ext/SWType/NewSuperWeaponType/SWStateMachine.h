@@ -38,6 +38,7 @@ public:
 	virtual void Update() { }
 	virtual void InvalidatePointer(void* ptr, bool remove) { }
 	virtual SWStateMachineIdentifier GetIdentifier() const = 0;
+	virtual const char* GetIdentifierStrings() const = 0;
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	virtual bool Save(PhobosStreamWriter& Stm) const;
 
@@ -47,7 +48,7 @@ public:
 	}
 
 	// static methods
-	static void Register(std::unique_ptr<SWStateMachine> Machine)
+	static constexpr void Register(std::unique_ptr<SWStateMachine> Machine)
 	{
 		if (Machine) {
 			Array.push_back(std::move(Machine));
@@ -90,7 +91,12 @@ public:
 
 	virtual SWStateMachineIdentifier GetIdentifier() const override
 	{
-		return SWStateMachineIdentifier::DropPod;
+		return SWStateMachineIdentifier::UnitDelivery;
+	}
+
+	virtual const char* GetIdentifierStrings() const override
+	{
+		return "SWStateMachine::UnitDelivery";
 	}
 
 	void PlaceUnits();
@@ -117,9 +123,13 @@ public:
 
 	virtual SWStateMachineIdentifier GetIdentifier() const override
 	{
-		return SWStateMachineIdentifier::UnitDelivery;
+		return SWStateMachineIdentifier::DropPod;
 	}
 
+	virtual const char* GetIdentifierStrings() const override
+	{
+		return "SWStateMachine::Droppod";
+	}
 	void SendDroppods();
 	void Activate(int nDeferment);
 
@@ -176,6 +186,11 @@ public:
 		return SWStateMachineIdentifier::ChronoWarp;
 	}
 
+	virtual const char* GetIdentifierStrings() const override
+	{
+		return "SWStateMachine::ChronoWarp";
+	}
+
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
@@ -213,6 +228,11 @@ public:
 	virtual SWStateMachineIdentifier GetIdentifier() const override
 	{
 		return SWStateMachineIdentifier::PsychicDominator;
+	}
+
+	virtual const char* GetIdentifierStrings() const override
+	{
+		return "SWStateMachine::PsyhicDominator";
 	}
 
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
@@ -266,6 +286,11 @@ public:
 	virtual SWStateMachineIdentifier GetIdentifier() const override
 	{
 		return SWStateMachineIdentifier::IonCannon;
+	}
+
+	virtual const char* GetIdentifierStrings() const override
+	{
+		return "SWStateMachine::IonCannon";
 	}
 
 	virtual ~IonCannonStateMachine()
@@ -355,6 +380,11 @@ public:
 	virtual SWStateMachineIdentifier GetIdentifier() const override
 	{
 		return SWStateMachineIdentifier::CloneableLighningStorm;
+	}
+
+	virtual const char* GetIdentifierStrings() const override
+	{
+		return "SWStateMachine::CloneableLighningStorm";
 	}
 
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;

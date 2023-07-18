@@ -141,6 +141,7 @@
     <ClCompile Include="src\Ext\Techno\Hooks.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Disguise.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.EffectTargetCoordsFix.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.Firing.BuildingOccupants.Unfinish.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.DeployFireWeapon.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.FLH.cpp" />
@@ -181,6 +182,7 @@
     <ClCompile Include="src\Ext\WeaponType\Hooks.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.DiskLaserRadius.cpp" />
     <ClCompile Include="src\Misc\AresData.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Header.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hook.Init.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Aircraft.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Ammo.cpp" />
@@ -215,6 +217,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Verses.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Veterancy.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Wave.cpp" />
+    <ClCompile Include="src\Misc\DynamicPatcher\ExtHooks\TechnoExt.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\FighterGuardArea\FighterAreaGuard.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\TurretAngle\Status.cpp" />
     <ClCompile Include="src\Misc\Hooks.Blowfish.cpp" />
@@ -227,6 +230,7 @@
     <ClCompile Include="src\New\Interfaces\TestLocomotionClass.cpp" />
     <ClCompile Include="src\New\Type\DigitalDisplayTypeClass.cpp" />
     <ClCompile Include="src\New\Type\GenericPrerequisite.cpp" />
+    <ClCompile Include="src\New\Type\TheaterTypeClass.cpp" />
     <ClCompile Include="src\New\Type\TunnelTypeClass.cpp" />
     <ClCompile Include="src\New\Type\ImmunityTypeClass.cpp" />
     <ClCompile Include="src\New\Type\PaletteManager.cpp" />
@@ -234,7 +238,6 @@
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\CustomWeapon\CustomWeapon.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\CustomWeapon\DelayFireWeapon.cpp" />
-    <ClCompile Include="src\Misc\DynamicPatcher\ExtHooks\TechnoExt.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Helpers\Helpers.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Others\TextHandler.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\AircraftDive\AircraftDiveData.cpp" />
@@ -260,7 +263,6 @@
     <ClCompile Include="src\Misc\DynamicPatcher\Trails\TrailType.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Weapon\AttachFireData.cpp" />
     <ClCompile Include="src\Misc\Hooks.GameSpeed.cpp" />
-    <ClCompile Include="src\Misc\Hooks.HealthBar.cpp" />
     <ClCompile Include="src\Misc\Hooks.Image.cpp" />
     <ClCompile Include="src\Misc\Hooks.INIClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.cpp" />
@@ -311,7 +313,6 @@
     <ClCompile Include="src\Ext\VoxelAnim\Body.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Body.cpp" />
     <ClCompile Include="src\Commands\ObjectInfo.cpp" />
-    <ClCompile Include="src\New\Type\TheaterTypeClass.cpp" />
     <ClCompile Include="src\Phobos.Ext.cpp" />
     <ClCompile Include="src\Utilities\Anchor.cpp" />
     <ClCompile Include="src\Utilities\Cast.cpp" />
