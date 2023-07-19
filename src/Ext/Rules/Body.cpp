@@ -64,8 +64,11 @@ void RulesExt::LoadFromINIFile(RulesClass* pThis, CCINIClass* pINI)
 // to makesure everything is properly allocated from the list
 void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
-	TunnelTypeClass::LoadFromINIList(pINI);
 	ArmorTypeClass::LoadFromINIList_New(pINI);
+	ColorTypeClass::LoadFromINIList_New(pINI);
+	CursorTypeClass::LoadFromINIList_New(pINI);
+
+	TunnelTypeClass::LoadFromINIList(pINI);
 	GenericPrerequisite::AddDefaults();
 
 	// we override it , so it loaded before any type read happen , so all the properties will correcly readed
@@ -77,15 +80,13 @@ void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pThis->Read_AudioVisual(pINI);
 	pThis->Read_SpecialWeapons(pINI);
 
-	ColorTypeClass::LoadFromINIList_New(pINI);
-	CursorTypeClass::LoadFromINIList_New(pINI);
 	ImmunityTypeClass::LoadFromINIList(pINI);
 	ArmorTypeClass::EvaluateDefault();
 
 	TrailType::LoadFromINIList(&CCINIClass::INI_Art.get());
 
-	if (!Phobos::Otamaa::DisableCustomRadSite) {
-
+	if (!Phobos::Otamaa::DisableCustomRadSite)
+	{
 		if (RadTypeClass::Array.empty())
 			RadTypeClass::AddDefaults();
 
@@ -117,6 +118,24 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
 	INI_EX iniEX(pINI);
 	auto pData = RulesExt::Global();
+
+	if (!Data->ElectricDeath)
+		Data->ElectricDeath = AnimTypeClass::Find("ELECTRO");
+
+	if (!Data->DefaultParaPlane)
+		Data->DefaultParaPlane = AircraftTypeClass::Find(GameStrings::PDPLANE());
+
+	Data->DefaultVeinParticle = ParticleTypeClass::Find(GameStrings::GASCLUDM1());
+	Data->DefaultSquidAnim = AnimTypeClass::Find(GameStrings::SQDG());
+
+	if (!Data->CarryAll_LandAnim)
+		Data->CarryAll_LandAnim = AnimTypeClass::Find(GameStrings::CARYLAND());
+
+	if (!Data->DropShip_LandAnim)
+		Data->DropShip_LandAnim = AnimTypeClass::Find(GameStrings::DROPLAND());
+
+	if (!Data->DropPodTrailer)
+		Data->DropPodTrailer = AnimTypeClass::Find(GameStrings::SMOKEY());
 
 	pData->Bounty_Enablers.Read(iniEX, GENERAL_SECTION, "BountyEnablers");
 	pData->Bounty_Display.Read(iniEX, AUDIOVISUAL_SECTION, "BountyDisplay");
@@ -198,6 +217,7 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 		//}
 	}
 
+
 }
 
 // earliest loader - can't really do much because nothing else is initialized yet, so lookups won't work
@@ -216,15 +236,16 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 #pragma region Otamaa
 
-	this->DefaultParaPlane.Read(exINI, GENERAL_SECTION, "ParadropPlane" , true);
+	this->DefaultParaPlane.Read(exINI, GENERAL_SECTION, "ParadropPlane", true);
 	this->VeinholeParticle.Read(exINI, AUDIOVISUAL_SECTION, "VeinholeSpawnParticleType", true);
 	this->CarryAll_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Carryall", true);
 	this->DropShip_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Dropship", true);
 	this->Aircraft_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Aircraft", true);
 	this->Aircraft_TakeOffAnim.Read(exINI, AUDIOVISUAL_SECTION, "TakeOffAnim.Aircraft", true);
 
-	this->DropPodTrailer.Read(exINI, GENERAL_SECTION, "DropPodTrailer" , true);
+	this->DropPodTrailer.Read(exINI, GENERAL_SECTION, "DropPodTrailer", true);
 	this->ElectricDeath.Read(exINI, AUDIOVISUAL_SECTION, "InfantryElectrocuted");
+
 	this->DropPodTypes.Read(exINI, GENERAL_SECTION, "DropPodTypes");
 	this->DropPodMinimum.Read(exINI, GENERAL_SECTION, "DropPodMinimum");
 	this->DropPodMaximum.Read(exINI, GENERAL_SECTION, "DropPodMaximum");
@@ -248,7 +269,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	detail::ParseVector(exINI, this->AITargetTypesLists, "AITargetTypes");
 	detail::ParseVector<ScriptTypeClass*, true>(exINI, this->AIScriptsLists, "AIScriptsList");
-	detail::ParseVector<HouseTypeClass* , true>(exINI, this->AIHateHousesLists, "AIHateHousesList");
+	detail::ParseVector<HouseTypeClass*, true>(exINI, this->AIHateHousesLists, "AIHateHousesList");
 	detail::ParseVector<HouseTypeClass*, true>(exINI, this->AIHousesLists, "AIHousesList");
 	detail::ParseVector(exINI, this->AIConditionsLists, "AIConditionsList", true, false, "/");
 	detail::ParseVector<AITriggerTypeClass*, true>(exINI, this->AITriggersLists, "AITriggersList");
@@ -385,29 +406,6 @@ void RulesExt::LoadEarlyOptios(RulesClass* pThis, CCINIClass* pINI)
 
 void RulesExt::LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI)
 { }
-
-// this runs between the before and after type data loading methods for rules ini
-void RulesExt::ExtData::InitializeAfterTypeData(RulesClass* const pThis)
-{
-	if (!Data->ElectricDeath)
-		Data->ElectricDeath = AnimTypeClass::Find("ELECTRO");
-
-	if (!Data->DefaultParaPlane)
-		Data->DefaultParaPlane = AircraftTypeClass::Find(GameStrings::PDPLANE());
-
-	Data->DefaultVeinParticle = ParticleTypeClass::Find(GameStrings::GASCLUDM1());
-	Data->DefaultSquidAnim = AnimTypeClass::Find(GameStrings::SQDG());
-
-	if (!Data->CarryAll_LandAnim)
-		Data->CarryAll_LandAnim = AnimTypeClass::Find(GameStrings::CARYLAND());
-
-	if (!Data->DropShip_LandAnim)
-		Data->DropShip_LandAnim = AnimTypeClass::Find(GameStrings::DROPLAND());
-
-	if (!Data->DropPodTrailer)
-		Data->DropPodTrailer = AnimTypeClass::Find(GameStrings::SMOKEY());
-
-}
 
 bool RulesExt::DetailsCurrentlyEnabled()
 {
@@ -694,9 +692,23 @@ DEFINE_HOOK(0x675205, RulesClass_Save_Suffix, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x52C9C4, GameInit_VeryEarlyRulesInit, 0x6)
+DEFINE_HOOK(0x52C9C4, GameInit_ReReadStuffs, 0x6)
 {
-	//RulesExt::LoadVeryEarlyBeforeAnyData(RulesClass::Instance(), CCINIClass::INI_Rules());
+	for (auto pAnimType : *AnimTypeClass::Array)
+		pAnimType->LoadFromINI(&CCINIClass::INI_Art());
+
+	for (auto pBldType : *BuildingTypeClass::Array)
+		pBldType->LoadFromINI(CCINIClass::INI_Rules());
+
+	//for (auto pSWType : *SuperWeaponTypeClass::Array)
+	//	pSWType->LoadFromINI(CCINIClass::INI_Rules());
+
+	//for (auto pWeapon : *WeaponTypeClass::Array)
+	//	pWeapon->LoadFromINI(CCINIClass::INI_Rules());
+
+	//for (auto pWH : *WarheadTypeClass::Array)
+	//	pWH->LoadFromINI(CCINIClass::INI_Rules());
+
 	return 0x52CA37;
 }
 
@@ -706,16 +718,16 @@ DEFINE_HOOK(0x52C9C4, GameInit_VeryEarlyRulesInit, 0x6)
 // 	return 0;
 // }
 
-DEFINE_HOOK(0x668BF0, RulesClass_Addition, 0x5)
-{
-	GET(RulesClass*, pItem, ECX);
-	GET_STACK(CCINIClass*, pINI, 0x4);
-
-	//	RulesClass::Initialized = false;
-	RulesExt::LoadFromINIFile(pItem, pINI);
-
-	return 0;
-}
+//DEFINE_HOOK(0x668BF0, RulesClass_Addition, 0x5)
+//{
+//	GET(RulesClass*, pItem, ECX);
+//	GET_STACK(CCINIClass*, pINI, 0x4);
+//
+//	//	RulesClass::Initialized = false;
+//	RulesExt::LoadFromINIFile(pItem, pINI);
+//
+//	return 0;
+//}
 
 DEFINE_HOOK(0x679A15, RulesData_LoadBeforeTypeData, 0x6)
 {
@@ -741,25 +753,25 @@ DEFINE_HOOK(0x679CAF, RulesData_LoadAfterTypeData, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x66D530, RulesData_LoadBeforeGeneralData, 0x6)
-{
-	GET(RulesClass*, pItem, ECX);
-	GET_STACK(CCINIClass*, pINI, 0x4);
+//DEFINE_HOOK(0x66D530, RulesData_LoadBeforeGeneralData, 0x6)
+//{
+//	GET(RulesClass*, pItem, ECX);
+//	GET_STACK(CCINIClass*, pINI, 0x4);
+//
+//	RulesExt::LoadBeforeGeneralData(pItem, pINI);
+//
+//	return 0;
+//}
 
-	RulesExt::LoadBeforeGeneralData(pItem, pINI);
-
-	return 0;
-}
-
-DEFINE_HOOK(0x668F6A, RulesData_LoadAfterAllLogicData, 0x5)
-{
-	GET(RulesClass*, pItem, EDI);
-	GET(CCINIClass*, pINI, ESI);
-
-	RulesExt::LoadAfterAllLogicData(pItem, pINI);
-
-	return 0;
-}
+//DEFINE_HOOK(0x668F6A, RulesData_LoadAfterAllLogicData, 0x5)
+//{
+//	GET(RulesClass*, pItem, EDI);
+//	GET(CCINIClass*, pINI, ESI);
+//
+//	RulesExt::LoadAfterAllLogicData(pItem, pINI);
+//
+//	return 0;
+//}
 
 DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9
 {
@@ -784,26 +796,23 @@ DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9
 
 DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 {
-	if (SessionClass::Instance->GameMode == GameMode::Skirmish)
+	Debug::Log("Scenario Name [%s] , Map Name [%s] \n", ScenarioClass::Instance->FileName, SessionClass::Instance->ScenarioFilename);
+	for (auto const it : *HouseClass::Array)
 	{
-		Debug::Log("Scenario Name [%s] , Map Name [%s] \n", ScenarioClass::Instance->FileName, SessionClass::Instance->ScenarioFilename);
-		for (auto const& it : *HouseClass::Array)
-		{
-			Debug::Log("Player Name: %s IsCurrentPlayer: %u; ColorScheme: %s; ID: %d; HouseType: %s; Edge: %d; StartingAllies: %d; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d\n",
-			it->PlainName ? it->PlainName : NONE_STR,
-			it->IsHumanPlayer,
-			ColorScheme::Array->GetItem(it->ColorSchemeIndex)->ID,
-			it->ArrayIndex,
-			HouseTypeClass::Array->GetItem(it->Type->ArrayIndex)->Name,
-			it->Edge,
-			(int)it->StartingAllies.data,
-			it->StartingCell.X,
-			it->StartingCell.Y,
-			it->Visionary,
-			it->MapIsClear,
-			it->Available_Money()
-			);
-		}
+		Debug::Log("Player Name: %s IsCurrentPlayer: %u; ColorScheme: %s; ID: %d; HouseType: %s; Edge: %d; StartingAllies: %d; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d\n",
+		it->PlainName ? it->PlainName : NONE_STR,
+		it->IsHumanPlayer,
+		ColorScheme::Array->GetItem(it->ColorSchemeIndex)->ID,
+		it->ArrayIndex,
+		HouseTypeClass::Array->GetItem(it->Type->ArrayIndex)->Name,
+		it->Edge,
+		(int)it->StartingAllies.data,
+		it->StartingCell.X,
+		it->StartingCell.Y,
+		it->Visionary,
+		it->MapIsClear,
+		it->Available_Money()
+		);
 	}
 
 	return 0x0;
@@ -820,9 +829,9 @@ DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 //	return 0x0;
 //}
 
-DEFINE_SKIP_HOOK(0x668F2B , RulesClass_Process_RemoveThese , 0x8 , 668F63);
+DEFINE_SKIP_HOOK(0x668F2B, RulesClass_Process_RemoveThese, 0x8, 668F63);
 //DEFINE_JUMP(LJMP, 0x668F2B ,0x668F63); // move all these reading before type reading
-DEFINE_SKIP_HOOK(0x66919B , RulesClass_Process_SpecialWeapon_RemoveWHReadingDuplicate , 0x9 , 6691B7);
+DEFINE_SKIP_HOOK(0x66919B, RulesClass_Process_SpecialWeapon_RemoveWHReadingDuplicate, 0x9, 6691B7);
 //DEFINE_JUMP(LJMP, 0x66919B, 0x6691B7); // remove reading warhead from `SpecialWeapon`
 //DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 //{

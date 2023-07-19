@@ -662,13 +662,13 @@ DEFINE_HOOK(0x43D874, BuildingClass_Draw_BuildupBibShape, 0x6)
 	return !pThis->ActuallyPlacedOnMap ? DontDrawBib : 0x0;
 }
 
-// DEFINE_HOOK(0x4DE652, FootClass_AddPassenger_NumPassengerGeq0, 0x7)
-// {
-// 	enum { GunnerReception = 0x4DE65B, EndFuntion = 0x4DE666 };
-// 	GET(FootClass* const, pThis, ESI);
-// 	// Replace NumPassengers==1 check to allow multipassenger IFV using the fix above
-// 	return pThis->Passengers.NumPassengers > 0 ? GunnerReception : EndFuntion;
-// }
+DEFINE_HOOK(0x4DE652, FootClass_AddPassenger_NumPassengerGeq0, 0x7)
+{
+	enum { GunnerReception = 0x4DE65B, EndFuntion = 0x4DE666 };
+	GET(FootClass* const, pThis, ESI);
+	// Replace NumPassengers==1 check to allow multipassenger IFV using the fix above
+	return pThis->Passengers.NumPassengers > 0 ? GunnerReception : EndFuntion;
+}
 
 DEFINE_HOOK(0x440EBB, BuildingClass_Unlimbo_NaturalParticleSystem_CampaignSkip, 0x5)
 {

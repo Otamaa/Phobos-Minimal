@@ -120,9 +120,14 @@ bool SW_HunterSeeker::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClas
 	const auto HSBuilding = !pData->HunterSeeker_Buildings.empty()
 		? make_iterator(pData->HunterSeeker_Buildings) : make_iterator(RulesExt::Global()->HunterSeekerBuildings);
 
+	if (HSBuilding.contains(pBuilding->Type))
+		return true;
+
 	// added new tag so it wont break the default behaviour
-	return pData->HunterSeeker_AllowAttachedBuildingAsFallback ?
-		this->IsSWTypeAttachedToThis(pData, pBuilding) : HSBuilding.contains(pBuilding->Type);
+	if (pData->HunterSeeker_AllowAttachedBuildingAsFallback)
+		return this->IsSWTypeAttachedToThis(pData, pBuilding);
+
+	return false;
 }
 
 CellStruct NOINLINE SW_HunterSeeker::GetLaunchCell(SWTypeExt::ExtData* pSWType, BuildingClass* pBuilding, UnitTypeClass* pHunter) const
@@ -137,16 +142,15 @@ CellStruct NOINLINE SW_HunterSeeker::GetLaunchCell(SWTypeExt::ExtData* pSWType, 
 
 		// seems to retrieve a random cell struct at a given edge
 		cell = MapClass::Instance->PickCellOnEdge(
-			edge, CellStruct::Empty, CellStruct::Empty, pHunter->SpeedType, true,
-			pHunter->MovementZone);
+			edge, CellStruct::Empty, CellStruct::Empty, SpeedType::Foot, true,
+			MovementZone::Normal);
 
 	} else {
 
 		auto position = CellClass::Coord2Cell(pBuilding->GetCoords());
 
-		cell = MapClass::Instance->NearByLocation(position, pHunter->SpeedType,
-			-1, pHunter->MovementZone, false, 1, 1, false, false, false, true,
-			CellStruct::Empty, false, false);
+		cell = MapClass::Instance->NearByLocation(position, SpeedType::Foot,
+			-1, MovementZone::Normal, false, 1, 1, false, false, false, true, CellStruct::Empty, false, false);
 	}
 
 	return MapClass::Instance->IsWithinUsableArea(cell, true) ? cell : CellStruct::Empty;

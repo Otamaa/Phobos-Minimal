@@ -224,7 +224,6 @@ public:
 		void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 
 		void Initialize();
-		void InitializeAfterTypeData(RulesClass* pThis);
 
 		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }

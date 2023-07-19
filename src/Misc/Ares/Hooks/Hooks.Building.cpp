@@ -883,8 +883,6 @@ struct AresBldExtStuffs
 		auto EnteredType = EnteredBuilding->Type;
 		auto Owner = EnteredBuilding->Owner;
 		auto pTypeExt = BuildingTypeExt::ExtMap.Find(EnteredBuilding->Type);
-		//auto pEntererExt = HouseExt::ExtMap.Find(Enterer);
-		//auto pEnteredExt = HouseExt::ExtMap.Find(Owner);
 
 		if (!pTypeExt->SpyEffect_Custom) {
 			return false;

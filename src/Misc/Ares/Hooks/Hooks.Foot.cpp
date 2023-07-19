@@ -54,8 +54,8 @@ DEFINE_OVERRIDE_HOOK(0x4D9A83, FootClass_PointerGotInvalid_OccupierVehicleThief,
 	GET(InfantryClass* const, pInfantry, ESI);
 	GET(InfantryTypeClass* const, pType, EAX);
 
-	if (pType->VehicleThief 
-		&& pInfantry->Destination 
+	if (pType->VehicleThief
+		&& pInfantry->Destination
 		&& (pInfantry->Destination->AbstractFlags & AbstractFlags::Foot) )
 	{
 		return 0x4D9AB9;
@@ -233,7 +233,7 @@ DEFINE_OVERRIDE_HOOK(0x518744, InfantryClass_ReceiveDamage_ElectricDeath, 6)
 	AnimTypeClass* El = RulesExt::Global()->ElectricDeath;
 
 	if (!El) {
-		El = AnimTypeClass::Array->GetItem(1);
+		El = AnimTypeClass::Array->GetItem(0);
 	}
 
 	R->EDX(El);

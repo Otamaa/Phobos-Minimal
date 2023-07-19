@@ -12,7 +12,7 @@
 #include <ArrayClasses.h>
 #include <CCINIClass.h>
 
-// an wrapper class to make `Type` like in the game 
+// an wrapper class to make `Type` like in the game
 // remember to not modify the array ouside allocation new item(s) from the back
 // it will mess upt the `ArrayIndex` !
 template <typename T> class Enumerable
@@ -88,7 +88,7 @@ public:
 
 	static void AllocateNoCheck(const char* Title)
 	{
-		Array.push_back(std::move(std::make_unique<T>(Title)));	
+		Array.push_back(std::move(std::make_unique<T>(Title)));
 	}
 
 	static T* FindOrAllocate(const char* Title)
@@ -102,6 +102,32 @@ public:
 	static void Clear()
 	{
 		Array.clear();
+	}
+
+	// pre-allocate all keys and read them later
+	static void FindOrAllocateKeysFromINI(CCINIClass* pINI, bool bDebug = false)
+	{
+		const char* section = GetMainSection();
+
+		if (!pINI->GetSection(section))
+			return;
+
+		auto const pKeyCount = pINI->GetKeyCount(section);
+
+		if (!pKeyCount)
+			return;
+
+		for (int i = 0; i < pKeyCount; ++i) {
+			if (pINI->ReadString(section, pINI->GetKeyName(section, i),
+				Phobos::readDefval, Phobos::readBuffer)) {
+				FindOrAllocate(Phobos::readBuffer);
+			}
+		}
+	}
+
+	static void ReadListFromINI(CCINIClass* pINI, bool bDebug = false) {
+		for (auto& pItem : Array)
+			pItem->LoadFromINI(pINI);
 	}
 
 	static void LoadFromINIList(CCINIClass* pINI, bool bDebug = false)

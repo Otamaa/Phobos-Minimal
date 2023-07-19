@@ -2078,8 +2078,8 @@ void NOINLINE ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = tr
 	bool agentMode = false;
 	bool pacifistTeam = true;
 
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
-	const auto pHouseExt = HouseExt::ExtMap.Find(pTeam->Owner);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pHouseExt = HouseExt::ExtMap.Find(pTeam->Owner);
 
 	// When the new target wasn't found it sleeps some few frames before the new attempt. This can save cycles and cycles of unnecessary executed lines.
 	if (pTeamData->WaitNoTargetCounter > 0)
@@ -2484,7 +2484,7 @@ void NOINLINE ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = tr
 	}
 }
 
-TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, int calcThreatMode = 0, HouseClass* onlyTargetThisHouseEnemy = nullptr, int attackAITargetType = -1, int idxAITargetTypeItem = -1, bool agentMode = false)
+NOINLINE TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, int calcThreatMode = 0, HouseClass* onlyTargetThisHouseEnemy = nullptr, int attackAITargetType = -1, int idxAITargetTypeItem = -1, bool agentMode = false)
 {
 	if (!pTechno || !pTechno->Owner || !Is_Techno(pTechno))
 		return nullptr;
@@ -2501,6 +2501,9 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, int cal
 	{
 		const auto object = TechnoClass::Array->GetItem(i);
 		auto objectType = object->GetTechnoType();
+
+		if (object == pTechno)
+			continue;
 
 		if (!IsUnitAvailable(object, true, true)
 			|| !object->Owner
@@ -4604,7 +4607,7 @@ void ScriptExt::ResetAngerAgainstHouses(TeamClass* pTeam)
 
 void ScriptExt::SetHouseAngerModifier(TeamClass* pTeam, int modifier = 0)
 {
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 
 	if (modifier <= 0)
 		modifier = pTeam->CurrentScript->GetCurrentAction().Argument;
@@ -4623,7 +4626,7 @@ void ScriptExt::ModifyHateHouses_List(TeamClass* pTeam, int idxHousesList = -1)
 	if (!pTeam)
 		return;
 
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 	bool changeFailed = true;
 
 	if (!pTeamData)
@@ -4682,7 +4685,7 @@ void ScriptExt::ModifyHateHouses_List1Random(TeamClass* pTeam, int idxHousesList
 	if (!pTeam)
 		return;
 
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 	int changes = 0;
 
 	if (!pTeamData)
@@ -4746,7 +4749,7 @@ void ScriptExt::SetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int mode = 
 	if (!pTeam)
 		return;
 
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 
 	if (!pTeamData)
 	{
@@ -4862,7 +4865,7 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 	else
 		mode = 1;
 
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 	FootClass* pLeaderUnit = nullptr;
 	int bestUnitLeadershipValue = -1;
 
@@ -5406,7 +5409,7 @@ void ScriptExt::OverrideOnlyTargetHouseEnemy(TeamClass* pTeam, int mode = -1)
 	if (!pTeam)
 		return;
 
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 
 	if (!pTeamData)
 	{
@@ -5468,7 +5471,7 @@ void ScriptExt::ModifyHateHouse_Index(TeamClass* pTeam, int idxHouse = -1)
 	if (!pTeam)
 		return;
 
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 
 	if (!pTeamData)
 	{
@@ -5660,7 +5663,7 @@ void ScriptExt::ConditionalJumpIfTrue(TeamClass* pTeam, int newScriptLine = -1)
 	if (!pTeam)
 		return;
 
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 
 	if (!pTeamData)
 	{
@@ -5715,7 +5718,7 @@ void ScriptExt::ConditionalJumpIfFalse(TeamClass* pTeam, int newScriptLine = -1)
 	if (!pTeam)
 		return;
 
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 
 	if (!pTeamData)
 	{
@@ -5769,7 +5772,7 @@ void ScriptExt::ConditionalJump_KillEvaluation(TeamClass* pTeam)
 	if (!pTeam)
 		return;
 
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 	if (!pTeamData)
 	{
 		// This action finished
@@ -5799,7 +5802,7 @@ void ScriptExt::ConditionalJump_ManageKillsCounter(TeamClass* pTeam, int enable 
 	if (!pTeam)
 		return;
 
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 
 	if (!pTeamData)
 	{
@@ -5836,7 +5839,7 @@ void ScriptExt::ConditionalJump_SetIndex(TeamClass* pTeam, int index = -1000000)
 	if (!pTeam)
 		return;
 
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 	if (!pTeamData)
 	{
 		// This action finished
@@ -5867,7 +5870,7 @@ void ScriptExt::ConditionalJump_SetComparatorValue(TeamClass* pTeam, int value =
 	if (!pTeam)
 		return;
 
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 	if (!pTeamData)
 	{
 		// This action finished
@@ -5899,7 +5902,7 @@ void ScriptExt::ConditionalJump_SetComparatorMode(TeamClass* pTeam, int value = 
 	if (!pTeam)
 		return;
 
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 	if (!pTeamData)
 	{
 		// This action finished
@@ -5930,7 +5933,7 @@ void ScriptExt::ConditionalJump_SetCounter(TeamClass* pTeam, int value = -100000
 	if (!pTeam)
 		return;
 
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 	if (!pTeamData)
 	{
 		// This action finished
@@ -5957,7 +5960,7 @@ void ScriptExt::ConditionalJump_ResetVariables(TeamClass* pTeam)
 	if (!pTeam)
 		return;
 
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 	if (!pTeamData)
 	{
 		// This action finished
@@ -6051,7 +6054,7 @@ void ScriptExt::ConditionalJump_CheckObjects(TeamClass* pTeam)
 	if (!pTeam)
 		return;
 
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 
 	if (!pTeamData)
 	{
@@ -6104,7 +6107,7 @@ void ScriptExt::ConditionalJump_CheckCount(TeamClass* pTeam, int modifier = 0)
 	if (!pTeam)
 		return;
 
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 	if (!pTeamData)
 	{
 		// This action finished
@@ -6173,7 +6176,7 @@ void ScriptExt::ConditionalJump_CheckHumanIsMostHated(TeamClass* pTeam)
 	if (!pTeam)
 		return;
 
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 
 	if (!pTeamData)
 	{
@@ -6221,7 +6224,7 @@ void ScriptExt::ConditionalJump_CheckAliveHumans(TeamClass* pTeam, int mode = 0)
 	if (!pTeam)
 		return;
 
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 	if (!pTeamData)
 	{
 		// This action finished
@@ -6279,7 +6282,7 @@ void ScriptExt::JumpBackToPreviousScript(TeamClass* pTeam)
 	if (!pTeam)
 		return;
 
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 
 	if (!pTeamData->PreviousScriptList.empty())
 	{
@@ -6416,7 +6419,7 @@ void ScriptExt::ManageAITriggers(TeamClass* pTeam, int enabled = -1)
 	if (!pTeam)
 		return;
 
-	if (const auto pTeamData = TeamExt::ExtMap.Find(pTeam))
+	if (auto pTeamData = TeamExt::ExtMap.Find(pTeam))
 	{
 		int sideIdx = pTeamData->TriggersSideIdx;
 		int houseIdx = pTeamData->TriggersHouseIdx;
@@ -6510,7 +6513,7 @@ void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 		return;
 
 	const auto pScript = pTeam->CurrentScript;
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 
 	if (!pTeamData)
 	{
@@ -6832,7 +6835,7 @@ bool ScriptExt::FindLinkedPath(TeamClass* pTeam, TechnoClass* pThis = nullptr, T
 	if (!pTeam)
 		return false;
 
-	const auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 	CellStruct startCell = CellStruct::Empty;
 	CellStruct endCell = CellStruct::Empty;
 

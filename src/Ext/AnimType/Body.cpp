@@ -269,9 +269,8 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 
 			if (pTechno->HasTurret() && pAnimExt->DeathUnitTurretFacing.has_value())
 			{
-				pTechno->SecondaryFacing.Set_Desired(pAnimExt->DeathUnitTurretFacing.get());
+				pTechno->SecondaryFacing.Set_Current(pAnimExt->DeathUnitTurretFacing.get());
 			}
-
 
 			pTechno->QueueMission(pTypeExt->CreateUnit_Mission.Get(), false);
 		}

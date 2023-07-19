@@ -2,6 +2,7 @@
 
 #include <Misc/MapRevealer.h>
 #include <Utilities/Helpers.h>
+#include <Misc/Ares/Hooks/AresNetEvent.h>
 
 std::vector<const char*> SW_Reveal::GetTypeString() const
 {
@@ -92,6 +93,8 @@ void SW_Reveal::RevealMap(const CellStruct& Coords, float range, int height, Hou
 						revealer.Process1(pCell, false, add);
 					}
 				}
+
+				AresNetEvent::Handlers::RaiseRevealMap(Owner);
 			}
 			else
 			{

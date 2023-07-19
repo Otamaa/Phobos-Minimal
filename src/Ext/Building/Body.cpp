@@ -107,21 +107,12 @@ void BuildingExt::ExtData::UpdateAutoSellTimer()
 
 	if (!pThis->Type->Unsellable && pThis->Type->TechLevel != -1)
 	{
-
 		auto const pRulesExt = RulesExt::Global();
 
 		if (this->Type->AutoSellTime.isset() && std::abs(this->Type->AutoSellTime.Get()) > 0.00f)
 		{
-
 			if (!AutoSellTimer.HasStarted())
 				AutoSellTimer.Start(static_cast<int>(this->Type->AutoSellTime.Get() * 900.0));
-			else
-			{
-				if (AutoSellTimer.Completed())
-				{
-					pThis->Sell(-1);
-				}
-			}
 		}
 
 		if (!pRulesExt->AI_AutoSellHealthRatio.empty() && pRulesExt->AI_AutoSellHealthRatio.size() >= 3)
@@ -136,6 +127,10 @@ void BuildingExt::ExtData::UpdateAutoSellTimer()
 
 			if (nValue > 0.0 && pThis->GetHealthPercentage() <= nValue)
 				pThis->Sell(-1);
+		}
+
+		if (AutoSellTimer.Completed()) {
+			pThis->Sell(-1);
 		}
 	}
 }
@@ -219,7 +214,6 @@ bool BuildingExt::HandleInfiltrate(BuildingClass* pBuilding, HouseClass* pInfilt
 
 	if (pInfiltratorHouse->IsAlliedWith(pVictimHouse))
 		return true;
-
 
 	return true;
 }

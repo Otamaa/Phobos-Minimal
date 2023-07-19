@@ -52,3 +52,9 @@ DEFINE_OVERRIDE_HOOK(0x420F40, AlphaShapeClass_DrawAll_Details, 6)
 	const auto details = RulesExt::DetailsCurrentlyEnabled();
 	return details ? 0x0u : 0x421346u;
 }
+
+DEFINE_HOOK(0x7609F3, WaveClass_DrawAll_Details, 6)
+{
+	const auto details = RulesExt::DetailsCurrentlyEnabled();
+	return details ? 0x7609F9u : 0x760F3Eu;
+}
