@@ -141,7 +141,6 @@
     <ClCompile Include="src\Ext\Techno\Hooks.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Disguise.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.EffectTargetCoordsFix.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Firing.BuildingOccupants.Unfinish.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.DeployFireWeapon.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.FLH.cpp" />
@@ -226,7 +225,6 @@
     <ClCompile Include="src\Misc\Hooks.YRPatches.cpp" />
     <ClCompile Include="src\Misc\MapRevealer.cpp" />
     <ClCompile Include="src\Misc\PhobosGlobal.cpp" />
-    <ClCompile Include="src\Misc\SyncLogging.cpp" />
     <ClCompile Include="src\New\Interfaces\TestLocomotionClass.cpp" />
     <ClCompile Include="src\New\Type\DigitalDisplayTypeClass.cpp" />
     <ClCompile Include="src\New\Type\GenericPrerequisite.cpp" />
@@ -420,6 +418,7 @@
     <ClInclude Include="src\Ext\Wave\Body.h" />
     <ClInclude Include="src\Lib\gcem\gcem.hpp" />
     <ClInclude Include="src\Misc\AresData.h" />
+    <ClInclude Include="src\Misc\Ares\Hooks\AresNetEvent.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\Header.h" />
     <ClInclude Include="src\Misc\Ares\Utilities\AttachedAlpha.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintBall.h" />
@@ -473,7 +472,6 @@
     <ClInclude Include="src\Misc\Patches.h" />
     <ClInclude Include="src\Misc\PhobosGlobal.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />
-    <ClInclude Include="src\Misc\SyncLogging.h" />
     <ClInclude Include="src\New\AnonymousType\AresAttachEffectTypeClass.h" />
     <ClInclude Include="src\New\AnonymousType\PassengerDeletionTypeClass.h" />
     <ClInclude Include="src\New\Entity\DelayFireAnimClass.h" />

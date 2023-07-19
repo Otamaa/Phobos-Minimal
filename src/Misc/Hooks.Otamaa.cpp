@@ -554,16 +554,16 @@ DEFINE_HOOK(0x4419A9, BuildingClass_Destroy_ExplodeAnim, 0x5)
 	GET(int, Z, EAX);
 	GET(int, zAdd, EDI);
 
-	const auto nRandType = ScenarioClass::Instance->Random.Random() % pThis->Type->Explosion.Count;
-	const auto nDelay = ScenarioClass::Instance->Random.RandomFromMax(3);
 	CoordStruct nLoc { X , Y , Z + zAdd };
-	if (auto const pType = pThis->Type->Explosion.GetItemOrDefault(nRandType))
-	{
+	if (auto const pType = pThis->Type->Explosion.GetItem(ScenarioClass::Instance->Random.RandomFromMax(pThis->Type->Explosion.Count - 1))) {
+		const auto nDelay = ScenarioClass::Instance->Random.RandomFromMax(3);
 		if (auto pAnim = GameCreate<AnimClass>(pType, nLoc, nDelay, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false))
 			AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
-
 	}
 
+	R->Stack(0x20, nLoc.X);
+	R->Stack(0x24, nLoc.Y);
+	R->Stack(0x28, nLoc.Z);
 	return 0x441A24;
 }
 
@@ -2665,17 +2665,24 @@ DEFINE_HOOK(0x44DBBC, InfantryClass_PCP_Leave_Bio_Reactor_Sound, 0x7)
 	return 0x44DBDA;
 }
 
-DEFINE_HOOK_AGAIN(0x702777, BuildingClass_ReceiveDamage_DisableDamageSound, 0x6)
-DEFINE_HOOK(0x4426DB, BuildingClass_ReceiveDamage_DisableDamageSound, 0x6)
+DEFINE_HOOK(0x702721, TechnoClass_ReceiveDamage_DamagedSound, 0x6)
 {
-	GET(TechnoClass* const, pThis, ESI);
+	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoTypeClass*, pThisType, EAX);
 
-	if (const auto pBuilding = specific_cast<BuildingClass* const>(pThis))
-	{
-		if (BuildingTypeExt::ExtMap.Find(pBuilding->Type)->DisableDamageSound.Get())
-		{
-			return R->Origin() + 0x6;
-		}
+	if (pThisType->DamageSound != -1) {
+		VoxClass::PlayAtPos(pThisType->DamageSound, &pThis->Location);
+	}
+
+	return 0x7027AE;
+}
+
+DEFINE_HOOK(0x4426DB, BuildingClass_ReceiveDamage_DisableDamagedSoundFallback, 0x6)
+{
+	GET(BuildingClass* const, pThis, ESI);
+
+	if (BuildingTypeExt::ExtMap.Find(pThis->Type)->DisableDamageSound.Get()) {
+		return R->Origin() + 0x6;
 	}
 
 	return 0x0;
@@ -3911,8 +3918,12 @@ DEFINE_HOOK(0x711F0F, TechnoTypeClass_GetCost_AICostMult, 0x8)
 	GET(HouseClass* const, pHouse, EDI);
 	GET(TechnoTypeClass* const, pType, ESI);
 
-	//const double mult = !pHouse->ControlledByPlayer() ? RulesExt::Global()->AI_CostMult : 1.0;
-	R->EAX(int(pType->GetCost() * pHouse->GetHouseCostMult(pType) * pHouse->GetHouseTypeCostMult(pType) /* mult*/));
+	double result = int(pType->GetCost() * pHouse->GetHouseCostMult(pType) * pHouse->GetHouseTypeCostMult(pType));
+
+	if(!pHouse->IsControlledByHuman_())
+		result *= RulesExt::Global()->AI_CostMult;
+
+	R->EAX(result);
 	return 0x711F46;
 }
 
@@ -4730,7 +4741,6 @@ DEFINE_HOOK(0x489671, MapClass_DamageArea_Veinhole, 0x6)
 
 	if (pOverlay->ArrayIndex == 0xA7)
 	{
-
 		GET_STACK(int, nDamage, 0x24);
 		GET(WarheadTypeClass*, pWarhead, ESI);
 		GET_BASE(TechnoClass*, pSource, 0x8);
@@ -4767,10 +4777,10 @@ DEFINE_HOOK(0x444159, BuildingClass_KickoutUnit_WeaponFactory_Rubble, 0x6)
 
 	if (pExt->RubbleDestroyed)
 	{
-		if (pThis->Factory && pThis->Factory->Object == pObj)
+		if (pThis->Type->Factory == pObj->GetTechnoType()->WhatAmI() && pThis->Factory && pThis->Factory->Object == pObj)
 			return 0x444167; //continue check
 
-		if (const auto pIf = specific_cast<InfantryClass*>(pObj))
+		if (pObj->WhatAmI() == InfantryClass::AbsID)
 			return 0x4445FB; // just eject
 	}
 
@@ -4819,15 +4829,15 @@ DEFINE_HOOK(0x444159, BuildingClass_KickoutUnit_WeaponFactory_Rubble, 0x6)
 //	return 0x0;
 //}
 
-DEFINE_HOOK(0x4431D3, BuildingClass_Destroyed_removeLog, 0x5)
-{
-	GET(InfantryClass*, pThis, ESI);
-	GET_STACK(int, nData, 0x8C - 0x70);
-
-	R->EBP(--nData);
-	R->EDX(pThis->Type);
-	return 0x4431EB;
-}
+//DEFINE_HOOK(0x4431D3, BuildingClass_Destroyed_removeLog, 0x5)
+//{
+//	GET(InfantryClass*, pThis, ESI);
+//	GET_STACK(int, nData, 0x8C - 0x70);
+//
+//	R->EBP(--nData);
+//	R->EDX(pThis->Type);
+//	return 0x4431EB;
+//}
 
 //443292
 //44177E

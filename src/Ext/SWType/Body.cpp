@@ -1244,7 +1244,7 @@ bool SWTypeExt::ExtData::Activate(SuperClass* pSuper, CellStruct const cell, boo
 	if (!pNewType || !pExt->Launch(pNewType, pSuper, cell, isPlayer))
 		return false;
 
-	Debug::Log(__FUNCTION__" for [%s] - Owner[%s] AfterSWLauch \n", pExt->get_ID(), pOwner->get_ID());
+	//Debug::Log(__FUNCTION__" for [%s] - Owner[%s] AfterSWLauch \n", pExt->get_ID(), pOwner->get_ID());
 
 	for (int i = 0; i < pOwner->RelatedTags.Count; ++i)
 	{
@@ -1256,13 +1256,14 @@ bool SWTypeExt::ExtData::Activate(SuperClass* pSuper, CellStruct const cell, boo
 		}
 	}
 
-	Debug::Log(__FUNCTION__" for [%s] - Owner[%s] After SuperNearWaypoint  \n", pExt->get_ID(), pOwner->get_ID());
+	//Debug::Log(__FUNCTION__" for [%s] - Owner[%s] After SuperNearWaypoint  \n", pExt->get_ID(), pOwner->get_ID());
 	for (int a = 0; a < pOwner->RelatedTags.Count; ++a)
 	{
 		if (auto pTag = pOwner->RelatedTags.GetItem(a))
 			pTag->RaiseEvent(TriggerEvent(AresTriggerEvents::SuperActivated), nullptr, CellStruct::Empty, false, pSuper);
 	}
-	Debug::Log(__FUNCTION__" for [%s] - Owner[%s] After SuperActivated  \n", pExt->get_ID(), pOwner->get_ID());
+
+	//Debug::Log(__FUNCTION__" for [%s] - Owner[%s] After SuperActivated  \n", pExt->get_ID(), pOwner->get_ID());
 
 	return true;
 
@@ -1435,9 +1436,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_Anim.Read(exINI, pSection, "SW.Animation", true);
 	this->SW_Sound.Read(exINI, pSection, "SW.Sound");
 	this->SW_ActivationSound.Read(exINI, pSection, "SW.ActivationSound");
-
 	this->SW_Power.Read(exINI, pSection, "SW.Power");
-
 	this->SW_AffectsTarget.Read(exINI, pSection, "SW.AffectsTarget");
 	this->SW_PostDependent.Read(exINI.GetINI(), pSection, "SW.PostDependent");
 
@@ -1681,7 +1680,7 @@ void SWTypeExt::ExtData::ApplySWNext(SuperClass* pSW, const CellStruct& cell)
 
 void SWTypeExt::ExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const CellStruct* const pCell, bool IsCurrentPlayer)
 {
-	Debug::Log("Applying additional functionalities for sw[%s]\n", pSW->get_ID());
+	//Debug::Log("Applying additional functionalities for sw[%s]\n", pSW->get_ID());
 
 	if (!this->LimboDelivery_Types.empty())
 		ApplyLimboDelivery(pHouse);

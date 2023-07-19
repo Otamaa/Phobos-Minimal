@@ -36,12 +36,12 @@ DEFINE_OVERRIDE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 #endif
 		)
 	{
-		Debug::Log("Lauch [%x][%s] %s succeeded \n", pSuper, pSuper->Owner->get_ID(), pSuper->Type->ID);
+		//Debug::Log("Lauch [%x][%s] %s succeeded \n", pSuper, pSuper->Owner->get_ID(), pSuper->Type->ID);
 		SWTypeExt::ExtMap.Find(pSuper->Type)->FireSuperWeapon(pSuper, pSuper->Owner, pCell, isPlayer);
 		return 0x6CDE40;
 	}
 
-	Debug::Log("Lauch [%x][%s] %s failed \n", pSuper, pSuper->Owner->get_ID(), pSuper->Type->ID);
+	//Debug::Log("Lauch [%x][%s] %s failed \n", pSuper, pSuper->Owner->get_ID(), pSuper->Type->ID);
 	return 0x6CDE40;
 }
 

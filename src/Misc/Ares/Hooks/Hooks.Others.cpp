@@ -3002,6 +3002,9 @@ DEFINE_OVERRIDE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 	//	GET_STACK(unsigned int , nFrame, 0x4);
 	GET_STACK(RectangleStruct*, pRect, 0xC);
 
+	if(!HouseClass::CurrentPlayer)
+		return 0x70AD4C;
+
 	if (auto pBuilding = specific_cast<BuildingClass*>(pThis))
 	{
 		auto const pType = pBuilding->Type;
@@ -3028,7 +3031,7 @@ DEFINE_OVERRIDE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 		};
 
 		const bool IsAlly = pOwner->IsAlliedWith(HouseClass::CurrentPlayer);
-		const bool IsObserver = HouseClass::Observer || HouseClass::IsCurrentPlayerObserver();
+		const bool IsObserver = HouseClass::CurrentPlayer->IsObserver();
 		const bool isFake = pTypeExt->Fake_Of.Get();
 		const bool bReveal = pThis->DisplayProductionTo.Contains(HouseClass::CurrentPlayer);
 
@@ -3137,14 +3140,14 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 
 	auto pType = pThis->Type;
 
-	if (!pThis->IsSelected)
+	if (!pThis->IsSelected || !HouseClass::CurrentPlayer)
 		return 0x43E8F2;
 
 	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pType);
 
 	// helpers (with support for the new spy effect)
 	const bool bAllied = pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer);
-	const bool IsObserver = HouseClass::Observer();
+	const bool IsObserver = HouseClass::CurrentPlayer->IsObserver();
 	const bool bReveal = pTypeExt->SpyEffect_RevealProduction && pThis->DisplayProductionTo.Contains(HouseClass::CurrentPlayer);
 	//Point2D loc = { pLocation->X , pLocation->Y };
 
@@ -3157,11 +3160,10 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 		// display production cameo
 		if (IsObserver || bReveal)
 		{
-			auto pFactory = pThis->Factory;
-			if (pThis->Owner->ControlledByPlayer())
-			{
-				pFactory = pThis->Owner->GetPrimaryFactory(pType->Factory, pType->Naval, BuildCat::DontCare);
-			}
+			const auto pFactory = pThis->Owner->IsControlledByHuman_() ?
+				pThis->Owner->GetPrimaryFactory(pType->Factory, pType->Naval, BuildCat::DontCare)
+				:
+				pThis->Factory;
 
 			if (pFactory && pFactory->Object)
 			{
@@ -3187,14 +3189,12 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 				else
 				{
 					// old shp cameos, fixed palette
-					auto pCameo = pProdType->GetCameo();
-
-					if (!pCameo)
-						return 0x43E8F2;
-
-					const auto pCustomConvert = GetCameoSHPConvert(pProdType);
-					DSurface::Temp->DrawSHP(pCustomConvert ? pCustomConvert : FileSystem::CAMEO_PAL(), pCameo, 0, &DrawExtraLoc, pBounds, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, nullptr, 0, 0, 0);
+					if(auto pCameo = pProdType->GetCameo()){
+						const auto pCustomConvert = GetCameoSHPConvert(pProdType);
+						DSurface::Temp->DrawSHP(pCustomConvert ? pCustomConvert : FileSystem::CAMEO_PAL(), pCameo, 0, &DrawExtraLoc, pBounds, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, nullptr, 0, 0, 0);
+					}
 				}
+
 
 				//auto nPoint = loc;
 				////DrawingPart

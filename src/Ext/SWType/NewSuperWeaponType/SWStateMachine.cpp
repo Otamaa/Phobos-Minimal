@@ -18,7 +18,7 @@ void SWStateMachine::UpdateAll()
 			pMachine->Update();
 
 			if (pMachine->Finished()){
-				Debug::Log("%s - [%s : %d] Finished , removing\n", pMachine->GetIdentifierStrings() , pMachine->Super->get_ID() , i);
+				//Debug::Log("%s - [%s : %d] Finished , removing\n", pMachine->GetIdentifierStrings() , pMachine->Super->get_ID() , i);
 				SWStateMachine::Array.erase(SWStateMachine::Array.begin() + i);
 			}
 		}

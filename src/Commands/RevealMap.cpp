@@ -4,6 +4,7 @@
 #include <HouseClass.h>
 
 #include <Ext/House/Body.h>
+#include <Ext/SWType/NewSuperWeaponType/Reveal.h>
 
 const char* RevealMapCommandClass::GetName() const
 {
@@ -27,19 +28,17 @@ const wchar_t* RevealMapCommandClass::GetUIDescription() const
 
 #include <Misc/AresData.h>
 #include <Misc/MapRevealer.h>
+#include <Misc/Ares/Hooks/AresNetEvent.h>
 
 void RevealMapCommandClass::Execute(WWKey eInput) const
 {
 	if (this->CheckDebugDeactivated())
 		return;
 
-	if (!Phobos::Otamaa::IsAdmin)
+	const auto pPlayer = HouseClass::CurrentPlayer();
+	if (!Phobos::Otamaa::IsAdmin || !pPlayer)
 		return;
 
-	//Reveal map will causing desync when used on multiplayer
-	if (!((SessionClass::Instance->GameMode == GameMode::Campaign) || (SessionClass::Instance->GameMode == GameMode::Skirmish)))
-		return;
-	
-	if(HouseClass::CurrentPlayer())
-		MapClass::Instance->Reveal(HouseClass::CurrentPlayer());
+	SW_Reveal::RevealMap(pPlayer->GetBaseCenter(), -1.0f, 0, pPlayer);
+	AresNetEvent::Handlers::RaiseRevealMap(pPlayer);
 }

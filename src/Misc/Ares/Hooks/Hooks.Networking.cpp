@@ -14,9 +14,11 @@
 #include <Base/Always.h>
 
 #include "Header.h"
+#include "AresNetEvent.h"
 
 // was desynct all time
 // not sure WTF is happening
+
 namespace Fix
 {
 	static constexpr reference<uint8_t, 0x8208ECu,46u> const EventLengthArr {};
@@ -31,24 +33,48 @@ namespace Fix
 		return NetworkEvent::EventLength[nInput];
 	}
 
-	int NOINLINE EventLength(uint8_t nInput)
+	int NOINLINE EventLength(AresNetEvent::Events nInput)
 	{
-		if (nInput <= 0x2Eu) // default event
-			return Fix::EventLengthArr[nInput];
-		if (nInput == 0x60u) // TrenchRedirectClick
-			return 10;
-		if (nInput == 0x61u) // FirewallToggle
-			return 5;
+		if ((uint8_t)nInput <= 0x2Eu) // default event
+			return Fix::EventLengthArr[(uint8_t)nInput];
 
-		return 0;
+		switch (nInput)
+		{
+		case AresNetEvent::Events::TrenchRedirectClick:
+			return 10;
+		case AresNetEvent::Events::FirewallToggle:
+			return 5;
+		case AresNetEvent::Events::Revealmap:
+			return 5;
+		default:
+			return 0;
+		}
 	}
 };
+
+void AresNetEvent::Handlers::RaiseRevealMap(HouseClass* pSource)
+{
+	Debug::Log("Sending RevealMap to all clients\n");
+	NetworkEvent Event;
+	Event.Kind = static_cast<NetworkEventType>(AresNetEvent::Events::Revealmap);
+	Event.HouseIndex = byte(pSource->ArrayIndex);
+	Networking::AddEvent(&Event);
+}
+
+void AresNetEvent::Handlers::RespondRevealMap(NetworkEvent* Event)
+{
+	Debug::Log("Receiving RevealMap from a clients\n");
+	if (HouseClass* pSourceHouse = HouseClass::Array->GetItem(Event->HouseIndex))
+	{
+		pSourceHouse->Visionary = true; //sync the state with other clients
+	}
+}
 
 DEFINE_OVERRIDE_HOOK(0x64C314, sub_64BDD0_PayloadSize2, 0x8)
 {
 	GET(uint8_t, nSize, ESI);
 
-	const auto nFix = Fix::EventLength(nSize);
+	const auto nFix = Fix::EventLength((AresNetEvent::Events)nSize);
 
 	R->ECX(nFix);
 	R->EBP(nFix + (nSize == 4u));
@@ -60,7 +86,7 @@ DEFINE_OVERRIDE_HOOK(0x64BE83, sub_64BDD0_PayloadSize1, 0x8)
 {
 	GET(uint8_t, nSize, EDI);
 
-	const auto nFix = Fix::EventLength(nSize);
+	const auto nFix = Fix::EventLength((AresNetEvent::Events)nSize);
 
 	R->ECX(nFix);
 	R->EBP(nFix);
@@ -73,33 +99,13 @@ DEFINE_OVERRIDE_HOOK(0x64B704, sub_64B660_PayloadSize, 0x8)
 {
 	GET(uint8_t, nSize, EDI);
 
-	const auto nFix = Fix::EventLength(nSize);
+	const auto nFix = Fix::EventLength((AresNetEvent::Events)nSize);
 
 	R->EDX(nFix);
 	R->EBP(nFix);
 
 	return (nSize == 0x1Fu) ? 0x64B710 : 0x64B71D;
 }
-
-class AresNetEvent {
-public:
-	enum class Events : unsigned char {
-		TrenchRedirectClick = 0x60,
-		FirewallToggle = 0x61,
-
-		First = TrenchRedirectClick,
-		Last = FirewallToggle
-	};
-
-	class Handlers {
-	public:
-		static void RaiseTrenchRedirectClick(BuildingClass *Source, CellStruct *Target);
-		static void RespondToTrenchRedirectClick(NetworkEvent *Event);
-
-		static void RaiseFirewallToggle(HouseClass *Source);
-		static void RespondToFirewallToggle(NetworkEvent *Event);
-	};
-};
 
 /*
  how to raise your own events
@@ -261,11 +267,20 @@ DEFINE_OVERRIDE_HOOK(0x4C6CCD, Networking_RespondToEvent, 0)
 		// Received Ares event, do something about it
 		switch(kind) {
 			case AresNetEvent::Events::TrenchRedirectClick:
+			{
 				AresNetEvent::Handlers::RespondToTrenchRedirectClick(Event);
-				break;
+			}
+			break;
 			case AresNetEvent::Events::FirewallToggle:
+			{
 				AresNetEvent::Handlers::RespondToFirewallToggle(Event);
-				break;
+			}
+			break;
+			case  AresNetEvent::Events::Revealmap:
+			{
+				AresNetEvent::Handlers::RespondRevealMap(Event);
+			}
+			break;
 		}
 	}
 

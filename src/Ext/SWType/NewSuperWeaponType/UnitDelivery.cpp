@@ -38,6 +38,7 @@ void SW_UnitDelivery::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->SW_BaseNormal.Read(exINI, section, "Deliver.BaseNormal");
 	pData->SW_OwnerHouse.Read(exINI, section, "Deliver.Owner");
 	pData->SW_DeliverBuildups.Read(exINI, section, "Deliver.BuildUp");
+	pData->SW_DeliverableScatter.Read(exINI, section, "Deliver.Scatter");
 }
 
 bool SW_UnitDelivery::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
@@ -88,9 +89,8 @@ void UnitDeliveryStateMachine::PlaceUnits()
 	const bool bBaseNormal = pData->SW_BaseNormal;
 	const bool bDeliverBuildup = pData->SW_DeliverBuildups;
 
-	Debug::Log("PlaceUnits for [%s] - Owner[%s] \n", pData->get_ID(), pOwner->get_ID());
+	//Debug::Log("PlaceUnits for [%s] - Owner[%s] \n", pData->get_ID(), pOwner->get_ID());
 	// create an instance of each type and place it
-	// Otamaa : this thing bugged on debug mode , idk
 	for (auto nPos = pData->SW_Deliverables.begin(); nPos != pData->SW_Deliverables.end(); ++nPos)
 	{
 		auto pType = *nPos;
@@ -99,7 +99,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 		if (!Item)
 			continue;
 
-		Debug::Log("PlaceUnits for [%s] - Owner[%s] After CreateObj[%s] \n", pData->get_ID(), pOwner->get_ID() , pType->ID);
+		//Debug::Log("PlaceUnits for [%s] - Owner[%s] After CreateObj[%s] \n", pData->get_ID(), pOwner->get_ID() , pType->ID);
 
 		const auto ItemBuilding = specific_cast<BuildingClass*>(Item);
 
@@ -165,7 +165,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 			else
 			{
 				const auto mission = IsPlayerControlled ? Mission::Guard : Mission::Hunt;
-				Debug::Log("PlaceUnits for [%s] - Owner[%s] SwtMission[%s - %s] \n", pData->get_ID(), pOwner->get_ID(), pType->ID , MissionClass::MissionToString(mission));
+				//Debug::Log("PlaceUnits for [%s] - Owner[%s] SwtMission[%s - %s] \n", pData->get_ID(), pOwner->get_ID(), pType->ID , MissionClass::MissionToString(mission));
 
 				// only computer units can hunt
 				Item->QueueMission(mission, false);
@@ -175,7 +175,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 			auto XYZ = pCell->GetCoordsWithBridge();
 			if (Item->Unlimbo(XYZ, DirType(MapClass::GetCellIndex(pCell->MapCoords) & 7u)))
 			{
-				Debug::Log("PlaceUnits for [%s] - Owner[%s] After Unlimbo[%s] \n", pData->get_ID(), pOwner->get_ID(), pType->ID);
+				//Debug::Log("PlaceUnits for [%s] - Owner[%s] After Unlimbo[%s] \n", pData->get_ID(), pOwner->get_ID(), pType->ID);
 
 				if (ItemBuilding)
 				{
@@ -184,7 +184,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 						ItemBuilding->DiscoveredBy(pOwner);
 						ItemBuilding->IsReadyToCommence = 1;
 
-						Debug::Log("PlaceUnits for [%s] - Owner[%s] After DiscoverBld[%s] \n", pData->get_ID(), pOwner->get_ID(), pType->ID);
+						//Debug::Log("PlaceUnits for [%s] - Owner[%s] After DiscoverBld[%s] \n", pData->get_ID(), pOwner->get_ID(), pType->ID);
 					}
 				}
 				else
@@ -212,5 +212,5 @@ void UnitDeliveryStateMachine::PlaceUnits()
 		}
 	}
 
-	Debug::Log("PlaceUnits for [%s] - Owner[%s] Done \n", pData->get_ID(), pOwner->get_ID());
+	//Debug::Log("PlaceUnits for [%s] - Owner[%s] Done \n", pData->get_ID(), pOwner->get_ID());
 }

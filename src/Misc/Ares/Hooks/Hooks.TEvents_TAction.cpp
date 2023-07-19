@@ -781,14 +781,11 @@ namespace TActionExt_dummy
 		{
 			if (pUnit->Health > 0 && pUnit->IsAlive && pUnit->IsOnMap && !pUnit->InLimbo)
 			{
-				if (auto pTag = pUnit->AttachedTag)
+				if (pUnit->AttachedTag && pUnit->AttachedTag->ContainsTrigger(pTrigger))
 				{
-					if (pTag->ContainsTrigger(pTrigger))
+					if (!Is_DriverKilled(pUnit) && AresData::IsDriverKillable(pUnit, 1.0))
 					{
-						if (!Is_DriverKilled(pUnit) && AresData::IsDriverKillable(pUnit, 1.0))
-						{
-							AresData::KillDriverCore(pUnit, pDecidedHouse, nullptr, false);
-						}
+						AresData::KillDriverCore(pUnit, pDecidedHouse, nullptr, false);
 					}
 				}
 			}
@@ -943,7 +940,7 @@ namespace TActionExt_dummy
 		if (MapClass::Instance->GetCellAt(nCoord)->ContainsBridge())
 			nCoord.Z += CellClass::BridgeHeight;
 
-		const auto amount = MeteorAddAmount[pAction->Value] + ScenarioClass::Instance->Random.Random() % 3;
+		const auto amount = MeteorAddAmount[pAction->Value % MeteorAddAmount.size()] + ScenarioClass::Instance->Random.Random() % 3;
 		if (amount <= 0)
 			return true;
 

@@ -551,7 +551,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->RepairRate.Read(exINI, pSection, GameStrings::RepairRate());
 		this->RepairStep.Read(exINI, pSection, GameStrings::RepairStep());
 
-		this->DisableDamageSound.Read(exINI, pSection, "DisableDamagedSound");
+		this->DisableDamageSound.Read(exINI, pSection, "DisableFallbackDamagedSound");
 		this->PlayerReturnFire.Read(exINI, pSection, "PlayerReturnFire");
 
 		this->BuildingOccupyDamageMult.Read(exINI, pSection, GameStrings::OccupyDamageMultiplier());

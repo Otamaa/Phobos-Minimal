@@ -200,19 +200,16 @@ struct TechnoExperienceData
 					Promoted_PlayAnim = pTypeExt->Promote_Elite_Anim;
 				}
 
-				if (pNewType && AresData::ConvertTypeTo(pExpReceiver, pNewType) && promoteExp != 0.0)
-				{
+				if (pNewType && AresData::ConvertTypeTo(pExpReceiver, pNewType) && promoteExp != 0.0) {
 					newRank = pExpReceiver->Veterancy.AddAndGetRank(promoteExp);
 				}
 
-				if (!bSilent && pExpReceiver->Owner->IsControlledByCurrentPlayer())
-				{
+				if (!bSilent && pExpReceiver->Owner->IsControlledByHuman_()) {
 					VocClass::PlayIndexAtPos(sound, (pExpReceiver->Transporter ? pExpReceiver->Transporter : pExpReceiver)->Location, nullptr);
 					VoxClass::PlayIndex(eva);
 				}
 
-				if (Flash && flash > 0)
-				{
+				if (Flash && flash > 0) {
 					pExpReceiver->Flashing.DurationRemaining = flash;
 				}
 

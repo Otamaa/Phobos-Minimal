@@ -38,9 +38,6 @@ void CaptureObjectsCommandClass::Execute(WWKey eInput) const
 	if (!Phobos::Otamaa::IsAdmin)
 		return;
 
-	if (!((SessionClass::Instance->GameMode == GameMode::Campaign) || (SessionClass::Instance->GameMode == GameMode::Skirmish)))
-		return;
-
 	if (!ObjectClass::CurrentObjects->Count)
 		return;
 
@@ -59,7 +56,6 @@ void CaptureObjectsCommandClass::Execute(WWKey eInput) const
 
 			techno->SetOwningHouse(pToOwner);
 		}
-
 	});
 
 	auto const pHouseExt = HouseExt::ExtMap.TryFind(HouseClass::CurrentPlayer());
