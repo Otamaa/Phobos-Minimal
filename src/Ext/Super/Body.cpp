@@ -15,37 +15,36 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 	// look at every sane building this player owns, if it is not defeated already.
 	if (!pHouse->Defeated && !pHouse->IsObserver())
 	{
-		if (pHouse->Supers.Count > 0)
-		{
-			for (int i = 0; i < pHouse->Supers.Count; ++i)
-			{
-				const auto pSuper = pHouse->Supers[i];
+		if (pHouse->Supers.Count > 0) {
+			pHouse->Supers.for_each([pHouse](SuperClass* pSuper) {
 				auto pExt = SuperExt::ExtMap.Find(pSuper);
 				pExt->Statusses.reset();
 
 				//if AlwaysGranted and SWAvaible
 				pExt->Statusses.PowerSourced = !pSuper->IsPowered();
 
-				if (pExt->Type->SW_AlwaysGranted && pExt->Type->IsAvailable(pHouse)) {
+				if (pExt->Type->SW_AlwaysGranted && pExt->Type->IsAvailable(pHouse))
+				{
 					pExt->Statusses.Available = true;
 					pExt->Statusses.Charging = true;
 					pExt->Statusses.PowerSourced = true;
 				}
-			}
+			});
 		}
 
-		for (auto pBld : pHouse->Buildings)
-		{
+		pHouse->Buildings.for_each([=](BuildingClass* pBld) {
 			if (pBld->IsAlive && !pBld->InLimbo)
 			{
 				bool PowerChecked = false;
 				bool HasPower = false;
 
 				// check for upgrades. upgrades can give super weapons, too.
-				for (const auto type : pBld->GetTypes()) {
-					if (auto pUpgradeExt = BuildingTypeExt::ExtMap.TryFind(const_cast<BuildingTypeClass*>(type))) {
-
-						for (auto i = 0; i < pUpgradeExt->GetSuperWeaponCount(); ++i) {
+				for (const auto type : pBld->GetTypes())
+				{
+					if (auto pUpgradeExt = BuildingTypeExt::ExtMap.TryFind(const_cast<BuildingTypeClass*>(type)))
+					{
+						for (auto i = 0; i < pUpgradeExt->GetSuperWeaponCount(); ++i)
+						{
 							const auto idxSW = pUpgradeExt->GetSuperWeaponIndex(i);
 
 							if (idxSW >= 0)
@@ -88,25 +87,22 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 					}
 				}
 			}
-		}
+		});
 
 		// kill off super weapons that are disallowed and
 		// factor in the player's power status
 		const bool hasPower = pHouse->HasFullPower();
 		const bool bIsSWShellEnabled = Unsorted::SWAllowed || SessionClass::Instance->GameMode == GameMode::Campaign;
 
-		if (!hasPower || !bIsSWShellEnabled)
-		{
-			for (auto const& pSuper : pHouse->Supers)
-			{
+		if (!hasPower || !bIsSWShellEnabled) {
+			pHouse->Supers.for_each([&](SuperClass* pSuper) {
+
 				const auto pExt = SuperExt::ExtMap.Find(pSuper);
 				auto& nStatus = pExt->Statusses;
 
-				if (!nStatus.Available)
-					continue;
-
 				// turn off super weapons that are disallowed.
-				if (!bIsSWShellEnabled && pSuper->Type->DisableableFromShell) {
+				if (!bIsSWShellEnabled && pSuper->Type->DisableableFromShell)
+				{
 					nStatus.Available = false;
 				}
 
@@ -116,7 +112,7 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 				{
 					nStatus.PowerSourced &= hasPower;
 				}
-			}
+			});
 		}
 	}
 }

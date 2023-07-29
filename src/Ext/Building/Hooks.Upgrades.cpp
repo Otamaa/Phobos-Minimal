@@ -20,6 +20,28 @@ DEFINE_HOOK(0x4409F4, BuildingClass_Put_Upgrade_Add, 0x6)
 	return 0;
 }
 
+DEFINE_HOOK(0x44AAD3 , BuildingClass_Mi_Selling_Upgrades, 9)
+{
+	GET(BuildingTypeClass*, pUpgrades, ECX);
+	GET(BuildingClass*, pThis, EBP);
+
+	if (pUpgrades) {
+		if (int UnitsGainSelfHeal = pUpgrades->UnitsGainSelfHeal)
+			pThis->Owner->UnitsSelfHeal -= UnitsGainSelfHeal;
+
+			if (pThis->Owner->UnitsSelfHeal < 0)
+				pThis->Owner->UnitsSelfHeal = 0;
+
+		if(int InfGainSelfHeall = pUpgrades->InfantryGainSelfHeal)
+			pThis->Owner->InfantrySelfHeal -= InfGainSelfHeall;
+
+		if (pThis->Owner->InfantrySelfHeal < 0)
+				pThis->Owner->InfantrySelfHeal = 0;
+	}
+
+	return 0;
+}
+
 DEFINE_HOOK(0x445A9F, BuildingClass_Remove_Upgrades, 0x8)
 {
 	GET(BuildingClass*, pThis, ESI);

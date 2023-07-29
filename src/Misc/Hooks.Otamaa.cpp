@@ -24,11 +24,41 @@
 #include <TiberiumClass.h>
 #include <FPSCounter.h>
 #include <GameOptionsClass.h>
+#include <AircraftTrackerClass.h>
 
 #include <Memory.h>
 
 #include <Locomotor/Cast.h>
 #pragma endregion
+
+DEFINE_HOOK(0x687AF4, CCINIClass_InitializeStuffOnMap_AdjustAircrafts, 0x5)
+{
+	AircraftClass::Array->for_each([](AircraftClass* const pThis)
+	{
+		 if (pThis && pThis->Type->AirportBound)
+		 {
+			if (auto pCell = pThis->GetCell())
+			{
+				if (auto pBuilding = pCell->GetBuilding())
+				{
+				 if (pBuilding->Type->Helipad)
+				 {
+						pBuilding->SendCommand(RadioCommand::RequestLink, pThis);
+						 pBuilding->SendCommand(RadioCommand::RequestTether, pThis);
+						pThis->SetLocation(pBuilding->GetDockCoords(pThis));
+						 pThis->DockedTo = pBuilding;
+						 pThis->SecondaryFacing.Set_Current(pBuilding->PrimaryFacing.Current());
+
+						if (pThis->GetHeight() > 0)
+							 AircraftTrackerClass::Instance->Add(pThis);
+					}
+					}
+				}
+			}
+	});
+
+	return 0x0;
+}
 
 DEFINE_HOOK(0x6FA2C7, TechnoClass_AI_DrawBehindAnim, 0x8) //was 4
 {
@@ -840,17 +870,17 @@ DEFINE_HOOK(0x4F9AF0, HouseClass_IsAlly_AbstractClass, 0x7)
 		auto const pWhat = pTarget->WhatAmI();
 		if ((pTarget->AbstractFlags & AbstractFlags::Object) != AbstractFlags::None)
 		{
-			res = pThis->IsAlliedWith(pTarget->GetOwningHouse());
+			res = pThis->IsAlliedWith_(pTarget->GetOwningHouse());
 		}
 		else if (pWhat == AbstractType::House)
 		{
 			switch (pWhat)
 			{
 			case AbstractType::House:
-				res = pThis->IsAlliedWith(static_cast<HouseClass*>(pTarget));
+				res = pThis->IsAlliedWith_(static_cast<HouseClass*>(pTarget));
 			break;
 			case AbstractType::Bomb:
-				res = pThis->IsAlliedWith(pTarget->GetOwningHouse());
+				res = pThis->IsAlliedWith_(pTarget->GetOwningHouse());
 			break;
 			}
 		}
@@ -870,7 +900,7 @@ DEFINE_HOOK(0x4F9AF0, HouseClass_IsAlly_AbstractClass, 0x7)
 //		if (pThis == pTarget)
 //			ret = true;
 //		else
-//			ret = pThis->IsAlliedWith(pTarget->ArrayIndex);
+//			ret = pThis->IsAlliedWith_(pTarget->ArrayIndex);
 //	}
 //	R->AL(ret);
 //	return 0x4F9A60;
@@ -880,7 +910,7 @@ DEFINE_HOOK(0x4F9AF0, HouseClass_IsAlly_AbstractClass, 0x7)
 //{
 //	GET(HouseClass*, pThis, ECX);
 //	GET_STACK(ObjectClass*, pTarget, 0x4);
-//	R->AL(pThis->IsAlliedWith(pTarget->GetOwningHouse()));
+//	R->AL(pThis->IsAlliedWith_(pTarget->GetOwningHouse()));
 //	return 0x4F9AAB;
 //}
 
@@ -1113,28 +1143,28 @@ DEFINE_HOOK(0x71ADE0, TemporalClass_LetGo_Replace, 0x6)
 
 }
 
-DEFINE_HOOK(0x73DDC0, UnitClass_Mi_Unload_DeployIntoSpeed, 0x6)
-{
-	GET(UnitClass* const, pThis, ESI);
-
-	if (R->AL())
-	{
-		if (pThis->Type->Speed > 0)
-		{
-			return 0x73DE20;
-		}
-		else
-		{
-			pThis->StopMoving();
-			pThis->QueueMission(Mission::Unload, false);
-			pThis->NextMission();
-			return 0x73DE3A;
-		}
-	}
-
-	R->ECX(pThis);
-	return 0x73DDC6;
-}
+//DEFINE_HOOK(0x73DDC0, UnitClass_Mi_Unload_DeployIntoSpeed, 0x6)
+//{
+//	GET(UnitClass* const, pThis, ESI);
+//
+//	//Loco->Is_Moving
+//	if (R->AL())
+//	{
+//		if (pThis->Type->Speed > 0)
+//		{
+//			return 0x73DE20;
+//		}
+//		else
+//		{
+//			pThis->StopMoving();
+//			pThis->QueueMission(Mission::Unload, false);
+//			pThis->NextMission();
+//			return 0x73DE3A;
+//		}
+//	}
+//
+//	return 0x73DDC4;
+//}
 
 //DEFINE_HOOK(0x7397E4, UnitClass_DeployIntoBuilding_DesyncFix, 0x5)
 //{
@@ -1179,7 +1209,7 @@ DEFINE_HOOK(0x51D45B, InfantryClass_Scatter_Process, 0x6)
 //	GET(HouseClass*, pThis, ESI);
 //	GET(HouseClass*, pEnemy, EBX);
 //
-//	if (pThis->IsAlliedWith(pEnemy))
+//	if (pThis->IsAlliedWith_(pEnemy))
 //		R->EAX(INT_MAX);
 //	else
 //		R->EAX(pThis->BaseCenter ? pThis->BaseCenter.X : pThis->BaseSpawnCell.X);
@@ -1369,7 +1399,7 @@ DEFINE_HOOK(0x4CA00D, FactoryClass_AbandonProduction_Log, 0x9)
 {
 	GET(FactoryClass* const, pThis, ESI);
 	GET(TechnoTypeClass* const, pType, EAX);
-	Debug::Log("[%x] Factory with Owner '%s' Abandoning production of '%s' \n", pThis, pThis->Owner ? pThis->Owner->get_ID() : NONE_STR2, pType->ID);
+	//Debug::Log("[%x] Factory with Owner '%s' Abandoning production of '%s' \n", pThis, pThis->Owner ? pThis->Owner->get_ID() : NONE_STR2, pType->ID);
 	R->ECX(pThis->Object);
 	return 0x4CA021;
 }
@@ -1789,7 +1819,7 @@ DEFINE_HOOK(0x746CD0, UnitClass_SelectWeapon_Replacements, 0x6)
 //	}
 //
 //	if (W->DrainWeapon) {
-//		return pTargetT->Drainable && !pThis->DrainTarget && !pThis->Owner->IsAlliedWith(pTarget);
+//		return pTargetT->Drainable && !pThis->DrainTarget && !pThis->Owner->IsAlliedWith_(pTarget);
 //	}
 //
 //	if (W->AreaFire) {
@@ -2637,7 +2667,7 @@ DEFINE_HOOK(0x629BB2, ParasiteClass_UpdateSquiddy_Culling, 0x8)
 	if (!WarheadTypeExt::ExtMap.Find(pWH)->ApplyCulling(pThis->Owner, pThis->Victim))
 		return ApplyDamage;
 
-	return pThis->Owner && pThis->Owner->Owner && pThis->Owner->Owner->IsAlliedWith(pThis->Victim)
+	return pThis->Owner && pThis->Owner->Owner && pThis->Owner->Owner->IsAlliedWith_(pThis->Victim)
 		? SkipGainExperience : GainExperience;
 }
 
@@ -3611,27 +3641,6 @@ DEFINE_HOOK(0x73D909, UnitClass_Mi_Unload_LastPassengerOut, 8)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x73DDC0, UnitClass_Mi_Unload_DeployIntoPlaceAnywhere, 6)
-{
-	GET(UnitClass*, pThis, ESI);
-
-	if (R->AL())
-	{
-		if (pThis->Type->Speed)
-			return 0x73DE20;
-		else
-		{
-			pThis->StopMoving();
-			pThis->QueueMission(Mission::Unload, false);
-			pThis->NextMission();
-			return 0x73DE3A;
-		}
-	}
-
-	R->ECX(pThis);
-	return 0x73DDC6;
-}
-
 //DEFINE_HOOK(0x714522, TechnoTypeClass_LoadFromINI_RequiredHouses, 9)
 //{
 //	GET(CCINIClass*, pCCINI, ESI);
@@ -3894,6 +3903,7 @@ DEFINE_HOOK(0x62C361, ParticleClass_ProcessGasBehaviour_DisOnWater, 6)
 // UnitClass_Unload_NoManualEject , 0x0 false , 0x73DCD3 true , Typeptr Eax
 //  , 0x0 false , 0x7400F0 true , Typeptr Eax
 
+// make unit able to deploy fire without ejecting it passengers
 DEFINE_HOOK(0x73D6EC, UnitClass_Unload_NoManualEject, 0x6)
 {
 	GET(TechnoTypeClass* const, pType, EAX);
@@ -3934,17 +3944,6 @@ DEFINE_HOOK(0x711F0F, TechnoTypeClass_GetCost_AICostMult, 0x8)
 //}
 
 //DEFINE_JUMP(CALL,0x711F12, GET_OFFSET(HouseClass_GetTypeCostMult));
-
-//DEFINE_HOOK(0x4179F7, AircraftClass_AssumeTaskComplete_DontCrash, 0x6)
-//{
-//	GET(AircraftClass*, pThis, ESI);
-//
-//	if (pThis->Type->Spawned || pThis->Type->Carryall)
-//		return 0;
-//
-//	pThis->SetDestination(nullptr, true);
-//	return 0x417B69;
-//}
 
 DEFINE_HOOK(0x422A59, AnimClass_DTOR_DoNotClearType, 0x6)
 {
@@ -4124,7 +4123,7 @@ DEFINE_HOOK(0x4ADFF0, DisplayClass_All_To_Look_Ground, 0x5)
 				(
 					pTechno->Owner == HouseClass::CurrentPlayer() ||
 					HouseClass::CurrentPlayer()->ArrayIndex != -1 &&
-					pTechno->Owner->IsAlliedWith(HouseClass::CurrentPlayer())
+					pTechno->Owner->IsAlliedWith_(HouseClass::CurrentPlayer())
 					))
 			{
 				pTechno->See(0, dwUnk2);
@@ -4501,7 +4500,7 @@ DEFINE_HOOK(0x457DAD, BuildingClass_CanBeOccupied_Assaulter, 0x6)
 
 	if (TechnoExt::IsAssaulter(pInfantry))
 	{
-		if (!pThis->Owner->IsAlliedWith(pInfantry) && pThis->GetOccupantCount() > 0)
+		if (!pThis->Owner->IsAlliedWith_(pInfantry) && pThis->GetOccupantCount() > 0)
 		{
 			const auto pBldExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
@@ -4877,10 +4876,436 @@ DEFINE_SKIP_HOOK(0x4417A7, BuildingClass_Destroy_UnusedRandom, 0x6, 44180A);
 DEFINE_HOOK(0x6FA4E5, TechnoClass_AI_RecoilUpdate, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
-
 	return !pThis->InLimbo ? 0x0 : 0x6FA4FB;
 }
 
+//stop EMPulseCannon building finding target altho it cant fire automatically
+DEFINE_HOOK(0x445F00, BuildingClass_GreatestThreat_EMPulseCannon, 0x6)
+{
+	GET(BuildingClass*, pThis, ECX);
+
+	if (pThis->Type->EMPulseCannon) {
+		R->EAX(0);
+		return 0x445F6F;
+	}
+
+	return 0x0;
+}
+
+//building abandon sound 458291
+//AbandonedSound
+DEFINE_HOOK(0x458291, BuildingClass_GarrisonAI_AbandonedSound, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	const auto pExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+	const auto nVal = pExt->AbandonedSound.Get(RulesClass::Instance->BuildingAbandonedSound);
+	if (nVal >= 0) {
+		VocClass::PlayIndexAtPos(nVal, pThis->Location ,nullptr);
+	}
+
+	return 0x4582AE;
+}
+
+DEFINE_HOOK(0x6F6BD6, TechnoClass_Limbo_UpdateAfterHouseCounter, 0xA)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
+
+	//only update the SW once the techno is really not present
+	if (pThis->Owner && !Is_Building(pThis) && !pTypeExt->Linked_SW.empty() && pThis->Owner->CountOwnedAndPresent(pExt->Type) <= 0)
+		pThis->Owner->UpdateSuperWeaponsOwned();
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x6EA192, TeamClass_Regroup_LimboDelivered, 0x6)
+{
+	enum { advance = 0x6EA38C , ret =0x0};
+	GET(BuildingClass*, pBuilding, ESI);
+	return BuildingExt::ExtMap.Find(pBuilding)->LimboID != -1 ?
+		advance : ret;
+}
+
+DEFINE_HOOK(0x6EEC6D, TeamClass_FindTargetBuilding_LimboDelivered, 0x6)
+{
+	enum { advance = 0x6EEE45, ret = 0x0 };
+	GET(BuildingClass*, pBuilding, ESI);
+	return BuildingExt::ExtMap.Find(pBuilding)->LimboID != -1 ?
+		advance : ret;
+}
+
+DEFINE_HOOK(0x6EE8D9, TeamClass_Scout_LimboDelivered, 0x9)
+{
+	enum { advance = 0x6EE928, ret = 0x0 };
+	GET(BuildingClass**, pBuilding, ESI);
+	return BuildingExt::ExtMap.Find(*pBuilding)->LimboID != -1 ?
+		advance : ret;
+}
+
+DEFINE_HOOK(0x6EEEF2, TeamClass_6EEEA0_LimboDelivered, 0xA)
+{
+	enum { advance = 0x6EF0D7, ret = 0x0 };
+	GET(BuildingClass*, pBuilding, ESI);
+	return BuildingExt::ExtMap.Find(pBuilding)->LimboID != -1 ?
+		advance : ret;
+}
+
+//DEFINE_HOOK(0x4179AA, AircraftClass_EnterIdleMode_AlreadiHasDestination, 0x6)
+//{
+//	GET(AircraftClass*, pThis, ESI);
+//	GET(BuildingClass*, pDest, EAX);
+//	R->EDI(pDest);
+//	return pThis->Destination == pDest ? 0x4179DD : 0x0;
+//}
+
+//DEFINE_HOOK(0x419CC1, AircraftClass_Mi_Enter_AiportBound, 0x6)
+//{
+//	GET(AircraftClass*, pThis, ESI);
+//	GET(AbstractClass*, pNavCom, EDI);
+//	GET(BuildingClass*, pCellBuilding, EAX);
+//
+//	if (pNavCom != pCellBuilding)
+//	{
+//		if (auto pNavBuilding = specific_cast<BuildingClass*>(pNavCom))
+//		{
+//			pThis->DockedTo = pNavBuilding;
+//			pThis->SendToFirstLink(RadioCommand::NotifyUnlink);
+//			pThis->SendCommand(RadioCommand::RequestLink, pNavBuilding);
+//			pThis->SetDestination(pNavBuilding, true);
+//			return 0x419CFF;
+//		}
+//
+//		if (pThis->SendCommand(RadioCommand::QueryCanEnter, pCellBuilding) == RadioCommand::AnswerPositive)
+//		{
+//			pThis->SendToFirstLink(RadioCommand::NotifyUnlink);
+//			pThis->SendToFirstLink(RadioCommand::RequestUntether);
+//			pThis->SendCommand(RadioCommand::RequestLink, pCellBuilding);
+//			pThis->SetDestination(pCellBuilding, true);
+//		}
+//	}
+//
+//	return 0x419D0B;
+//}
+
+DEFINE_HOOK(0x416748, AircraftClass_AirportBound_SkipValidatingLZ, 0x5)
+{
+	GET(AircraftClass*, pThis, ESI);
+	return pThis->Type->AirportBound ? 0x41675D : 0x0;
+}
+
+DWORD ReloadAircraft(REGISTERS* R)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	const auto pType = pThis->GetTechnoType();
+	const auto ammo = pType->Ammo;
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	int realod = 1;
+
+	if (pThis->Ammo > 0) {
+		pThis->Ammo = pThis->Ammo + pTypeExt->ReloadAmount;
+		R->EAX(true);
+		return 0x6F4CCE;
+	}
+
+	if (!pThis->Ammo)
+	{
+		pThis->Ammo = pThis->Ammo + pTypeExt->EmptyReloadAmount.Get(pTypeExt->ReloadAmount);
+		R->EAX(true);
+		return 0x6F4CCE;
+	}
+
+	R->EAX(true);
+	return 0x6F4CCE;
+}
+
+//DEFINE_HOOK(0x41AA87 , AircraftClass_SetDestination_BugFix, 0xA)
+//{
+//	GET(AircraftClass*, pThis, ECX);
+//	GET(AbstractClass*, pTarget, EDI);
+//	R->ESI(pThis);
+//
+//	if (!pThis->Type->AirportBound)
+//	{
+//		return pTarget ? 0x41AA91 : 0x41ADAC;
+//	}
+//
+//	auto CheckLoco = [&]() {
+//		if (!pThis->IsAttackedByLocomotor)
+//		{
+//			auto pLoco = pThis->Locomotor.GetInterfacePtr();
+//			if (!pLoco->Is_Moving_Now())
+//			{
+//				auto pCell = pThis->GetCell();
+//				if (auto pCBld = pCell->GetBuilding())
+//				{
+//					if (pCBld == pTarget)
+//					{
+//						if (pThis->ContainsLink(pCBld))
+//						{
+//							pThis->SendCommand(RadioCommand::RequestLink, pCBld);
+//							R->EAX(false);
+//							return 0x41AAAB;
+//						}
+//					}
+//				}
+//			}
+//		}
+//
+//		return pTarget ? 0x41AA91 : 0x41ADAC;
+//	};
+//
+//	if (!pTarget) {
+//		return CheckLoco();
+//	}
+//
+//	const auto whatTech = pTarget->WhatAmI();
+//	if (whatTech == AbstractType::Building)
+//	{
+//		if (pThis->SendCommand(RadioCommand::QueryCanEnter, (BuildingClass*)pTarget) != RadioCommand::AnswerPositive)
+//		{
+//			R->EDI(((BuildingClass*)pTarget)->GetCell());
+//			return 0x41AA91;
+//		}
+//
+//		return CheckLoco();
+//	}
+//
+//	if (whatTech != AbstractType::Cell) {
+//		return CheckLoco();
+//	}
+//
+//	auto pCell = (CellClass*)pTarget;
+//	auto pCBldHere = pCell->GetBuilding();
+//
+//	if(!pCBldHere || !pCBldHere->Type->Helipad)
+//		return CheckLoco();
+//
+//	if (pThis->SendCommand(RadioCommand::QueryCanEnter, pCBldHere) != RadioCommand::AnswerPositive)
+//		return 0x41AA9C;
+//
+//	if (pThis->ContainsLink(pCBldHere)) {
+//		pThis->SendCommand(RadioCommand::RequestLink, pCBldHere);
+//	}
+//
+//	R->EDI(pCBldHere);
+//	return 0x41AA91;
+//}
+
+//DEFINE_HOOK(0x4179F7, AircraftClass_AssumeTaskComplete_DontCrash, 0x6)
+//{
+//	GET(AircraftClass*, pThis, ESI);
+//
+//	if (pThis->Type->Spawned || pThis->Type->Carryall)
+//		return 0;
+//
+//	pThis->SetDestination(nullptr, true);
+//	return 0x417B69;
+//}
+
+//DEFINE_HOOK(0x44B1E8, BuildingClass_Mi_Attack_Facing, 7)
+//{
+//	GET(BuildingClass*, pThis, ESI);
+//
+//	if (pThis->Type->TurretAnimIsVoxel || pThis->Anims[9])
+//		return 0;
+//
+//	R->EAX(10);
+//	return 0x44B22D;
+//}
+
+//DEFINE_HOOK(446593, BuildingClass_Place_Turret, 6)
+//{
+//	GET(BuildingClass*, pThis, EBP);
+//
+//	return pThis->Type->IsAnimDelayedFire ?
+//		0x4466D5 : 0x0;
+//}
+
+//DEFINE_HOOK(0x44EA37, BuildingClass_PointerExpired_Anim, 8)
+//{
+//	GET(AnimClass*, pAnim, EBP);
+//	GET(BuildingClass*, pThis, ESI);
+//	int result = 0;
+//
+//	if (pThis->IsAlive)
+//	{
+//		int nIdx = 0;
+//		for (auto i = pThis->Anims; pAnim != *i; ++i)
+//		{
+//			if (++nIdx >= 21)
+//				return 0x44EA3F;
+//		}
+//
+//		pThis->Anims[nIdx] = 0;
+//		auto const pThisType = pThis->Type;
+//		switch (nIdx)
+//		{
+//		case 10:
+//			if (pThisType->UnitRepair)
+//			{
+//				if (pThis->HasAnyLink()
+//					&& pThis->GetMission() == Mission::Repair)
+//				{
+//					pThis->PlayNthAnim(BuildingAnimSlot::SpecialTwo, 0);
+//					result = 0x44EA3F;
+//				}
+//				else
+//				{
+//					pThis->PlayNthAnim(BuildingAnimSlot::Idle, 0);
+//					result = 0x44EA3F;
+//				}
+//				return result;
+//			}
+//
+//			if (pThisType->IsAnimDelayedFire)
+//			{
+//				if (pAnim->__ToDelete_197)
+//				{
+//					pThis->PlayNthAnim(BuildingAnimSlot::Active, 0);
+//					if (pThisType->Turret)
+//					{
+//						pThis->PlayNthAnim(BuildingAnimSlot::Turret, 0);
+//						auto const nDeployDir = DirStruct(pThisType->DeployFacing << 8);
+//						pThis->PrimaryFacing.Set_Desired(nDeployDir);
+//
+//						if (auto v9 = pThis->Anims[9])
+//						{
+//							auto ReverseFacing32 = *reinterpret_cast<int(*)[8]>(0x7F4890);
+//							auto facing = ReverseFacing32[nDeployDir.Getvalue32()];
+//
+//							v9->Animation.Value = facing;
+//							v9->Animation.Step = 0;
+//
+//							return 0x44EA3F;
+//						}
+//					}
+//				}
+//			}
+//			break;
+//		case 12:
+//			if (!pThisType->UnitRepair || !pAnim->__ToDelete_197)
+//				return 0x44EA3F;
+//
+//			pThis->PlayNthAnim(BuildingAnimSlot::Idle, 0);
+//			result = 0x44EA3F;
+//		case 15:
+//			if (!pAnim->__ToDelete_197)
+//				return 0x44EA3F;
+//
+//			pThis->PlayNthAnim(BuildingAnimSlot::SuperThree, 0);
+//			return 0x44EA3F;
+//		case 17:
+//			if (pAnim->__ToDelete_197)
+//			{
+//				pThis->PlayNthAnim(BuildingAnimSlot::Super, 0);
+//				if (pThisType->IsAnimDelayedFire)
+//					pThis->PlayNthAnim(BuildingAnimSlot::Active, 0);
+//			}
+//			return 0x44EA3F;
+//		default:
+//			return 0x44EA3F;
+//		}
+//	}
+//	return 0x44EA3F;
+//}
+
+//DEFINE_HOOK(0x43C630 , BuildingClass_ReceiveCommand_Helipad, 6)
+//{
+//	GET(TechnoClass*, pFrom, EDI);
+//	GET(BuildingClass*, pThis, ESI);
+//
+//	const auto pFromwhat = pFrom->WhatAmI();
+//	const RadioCommand answer = pFromwhat == AbstractType::Aircraft ? RadioCommand::AnswerPositive : RadioCommand::AnswerNegative;
+//
+//	if (pFromwhat == AbstractType::Aircraft)
+//	{
+//		auto pAir = static_cast<AircraftClass*>(pFrom);
+//		auto pAirType = pAir->Type;
+//		if (pAirType->Dock.FindItemIndex(pThis->Type) == -1)
+//		{
+//			R->EAX(RadioCommand::AnswerNegative);
+//			return 0x43CE55;
+//		}
+//
+//		auto nDockCount = pThis->Type->NumberOfDocks;
+//		if (pThis->RadioLinks.Capacity > 0)
+//		{
+//			for (int i = 0; i < pThis->RadioLinks.Capacity; ++i)
+//			{
+//				auto pRadio = pThis->RadioLinks[i];
+//				if (pRadio && pRadio != pAir)
+//				{
+//					if (pRadio->WhatAmI() == AbstractType::Aircraft)
+//					{
+//						nDockCount -= 1;
+//					}
+//				}
+//			}
+//		}
+//
+//		if (nDockCount < 1){
+//			R->EAX(RadioCommand::AnswerNegative);
+//			return 0x43CE55;
+//		}
+//	}
+//
+//	R->EAX(answer);
+//	return 0x43CE55;
+//}
+
+DEFINE_HOOK(0x456376 , BuildingClass_RemoveSpacingAroundArea, 6)
+{
+	GET(BuildingTypeClass*, pThisType, EAX);
+
+	if(!pThisType->UndeploysInto && pThisType->ResourceGatherer)
+		return 0x4563A1;
+
+	return pThisType->Adjacent == 0 ? 0x4563A1 : 0x45638A;
+}
+
+DEFINE_HOOK(0x518607, InfantryClass_TakeDamage_FixOnDestroyedSource, 0xA)
+{
+	GET(InfantryClass*, pThis, ESI);
+	GET_STACK(TechnoClass*, pSource, STACK_OFFSET(0xD0, 0x10));
+	R->AL(pThis->Crash(pSource));
+	return 0x518611;
+}
+
+//DEFINE_HOOK(0x6F6D0E, TechnoClass_Unlimbo_LastStep, 7)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//
+//	auto const pExt = TechnoExt::ExtMap.Find(pThis);
+//	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
+//
+//	if (pThis->Owner && !pThis->Owner->RecheckTechTree && !pTypeExt->Linked_SW.empty())
+//		pThis->Owner->UpdateSuperWeaponsUnavailable();
+//
+//	return 0x0;
+//}
+
+//DEFINE_HOOK(0x6F917D, TechnoClass_GreatestThreat_Occupy, 0x8)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//
+//	if (pThis->WhatAmI() == InfantryClass::AbsID && AresGarrisonedIn(pThis)) {
+//		return 0x6F9193;
+//	}
+//
+//	return 0x0;
+//}
+
+//DEFINE_HOOK(0x672458, RulesClass_ReadSides_checkAmount, 0x5)
+//{
+//	GET(int, keyCount, EDI);
+//	Debug::Log("Processing %d Sides.\n", keyCount);
+//	R->Stack(0x18, keyCount);
+//	return 0x672469;
+//}
 //bool NOINLINE IsLaserFence(BuildingClass* pNeighbour, BuildingClass* pThis, short nFacing)
 //{
 //	if (!pNeighbour->Owner || !pThis->Owner || pNeighbour->Owner != pThis->Owner)

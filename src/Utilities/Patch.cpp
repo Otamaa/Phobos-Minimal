@@ -197,7 +197,7 @@ void Patch::PrintAllModuleAndBaseAddr()
 				{
 					Patch::LoadedModules.emplace_back(moduleName , (uintptr_t)info.lpBaseOfDll);
 					// Print the module's name and base address using Debug::Log
-					Debug::LogDeferred("%s: Base address = %p\n", moduleName, info.lpBaseOfDll);
+					Debug::LogDeferred("Found Module [%s: Base address = %p]\n", moduleName, info.lpBaseOfDll);
 				}
 			}
 		}

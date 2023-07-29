@@ -18,54 +18,20 @@ public:
 		using base_type = TeamClass;
 
 	public:
-
 		int WaitNoTargetAttempts { 0 };
-		double NextSuccessWeightAward { 0.0 };
+		double NextSuccessWeightAward { 0 };
 		int IdxSelectedObjectFromAIList { -1 };
-		int CloseEnough { -1 };
+		double CloseEnough { -1 };
 		int Countdown_RegroupAtLeader { -1 };
 		int MoveMissionEndMode { 0 };
 		int WaitNoTargetCounter { 0 };
-		CDTimerClass WaitNoTargetTimer {};
-		CDTimerClass ForceJump_Countdown {};
+		CDTimerClass WaitNoTargetTimer { 0 };
+		CDTimerClass ForceJump_Countdown { 0 };
 		int ForceJump_InitialCountdown { -1 };
 		bool ForceJump_RepeatMode { false };
 		FootClass* TeamLeader { nullptr };
-		int GenericStatus { 0 };
-		int FailedCounter { -1 };
 
-		// #442
-		int AngerNodeModifier { 5000 };
-		bool OnlyTargetHouseEnemy { false };
-		int OnlyTargetHouseEnemyMode { -1 };
-
-		// #599
-		bool ConditionalJump_Evaluation { false };
-		int ConditionalJump_ComparatorMode { 3 };
-		int ConditionalJump_ComparatorValue { 1 };
-		int ConditionalJump_Counter { 0 };
-		int ConditionalJump_Index { -1000000 };
-		bool AbortActionAfterKilling { false };
-		bool ConditionalJump_EnabledKillsCount { false };
-		bool ConditionalJump_ResetVariablesIfJump { false };
-
-		//#691
-		std::vector<ScriptClass*> PreviousScriptList { };
-
-		//#565
-		int TriggersSideIdx { -1 };
-		int TriggersHouseIdx { -1 };
-
-		//#791
-		std::vector<std::vector<bool>> MapPath_Grid { }; // Used for marking visited/analyzed cells
-		std::vector<MapPathCellElement> MapPath_Queue { }; // Cells that will be analyzed for finding a path
-		bool MapPath_InProgress { false };
-		TechnoClass* MapPath_StartTechno { nullptr };
-		TechnoClass* MapPath_EndTechno { nullptr };
-		std::vector<TechnoClass*> MapPath_BridgeRepairHuts { };
-		std::vector<TechnoClass*> MapPath_ValidBridgeRepairHuts { };
-		std::vector<TechnoClass*> MapPath_CheckedBridgeRepairHuts { };
-
+		SuperClass* LastFoundSW { nullptr };
 		ExtData(TeamClass* OwnerObject) : Extension<TeamClass>(OwnerObject)
 
 		{ }

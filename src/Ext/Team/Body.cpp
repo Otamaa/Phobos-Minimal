@@ -9,6 +9,7 @@ bool TeamExt::ExtData::InvalidateIgnorable(void* ptr) const {
 	case UnitClass::vtable:
 	case InfantryClass::vtable:
 	case ScriptClass::vtable:
+	case SuperClass::vtable:
 	{
 		return false;
 	}
@@ -20,12 +21,7 @@ bool TeamExt::ExtData::InvalidateIgnorable(void* ptr) const {
 void TeamExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(TeamLeader, ptr);
-	AnnounceInvalidPointer(MapPath_StartTechno, ptr);
-	AnnounceInvalidPointer(MapPath_EndTechno, ptr);
-	AnnounceInvalidPointer(MapPath_BridgeRepairHuts, ptr);
-	AnnounceInvalidPointer(MapPath_ValidBridgeRepairHuts, ptr);
-	AnnounceInvalidPointer(MapPath_CheckedBridgeRepairHuts, ptr);
-	AnnounceInvalidPointer(PreviousScriptList, ptr);
+	AnnounceInvalidPointer(LastFoundSW, ptr);
 }
 
 bool TeamExt::HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, const Iterator<TechnoTypeClass*>& list)
@@ -41,7 +37,7 @@ bool TeamExt::HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool alli
 			if (!TechnoExt::IsAlive(pObject))
 				continue;
 
-			if (((!allies && pObject->Owner == pHouse) || (allies && pHouse != pObject->Owner && pHouse->IsAlliedWith(pObject->Owner)))
+			if (((!allies && pObject->Owner == pHouse) || (allies && pHouse != pObject->Owner && pHouse->IsAlliedWith_(pObject->Owner)))
 				&& !pObject->Owner->Type->MultiplayPassive
 				&& pObject->GetTechnoType() == pItem)
 			{
@@ -82,7 +78,7 @@ bool TeamExt::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClas
 	bool result = false;
 	int counter = 0;
 
-	if (pEnemy && pHouse->IsAlliedWith(pEnemy) && !onlySelectedEnemy)
+	if (pEnemy && pHouse->IsAlliedWith_(pEnemy) && !onlySelectedEnemy)
 		pEnemy = nullptr;
 
 	// Count all objects of the list, like an OR operator
@@ -94,7 +90,7 @@ bool TeamExt::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClas
 				continue;
 
 			if (pObject->Owner != pHouse
-				&& (!pEnemy || (pEnemy && !pHouse->IsAlliedWith(pEnemy)))
+				&& (!pEnemy || (pEnemy && !pHouse->IsAlliedWith_(pEnemy)))
 				&& !pObject->Owner->Type->MultiplayPassive
 				&& pObject->GetTechnoType() == pItem)
 			{
@@ -244,7 +240,7 @@ bool TeamExt::EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseC
 {
 	bool result = true;
 
-	if (pEnemy && pHouse->IsAlliedWith(pEnemy))
+	if (pEnemy && pHouse->IsAlliedWith_(pEnemy))
 		pEnemy = nullptr;
 
 	if (list.empty())
@@ -265,7 +261,7 @@ bool TeamExt::EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseC
 				continue;
 
 			if (pObject->Owner != pHouse
-				&& (!pEnemy || (pEnemy && !pHouse->IsAlliedWith(pEnemy)))
+				&& (!pEnemy || (pEnemy && !pHouse->IsAlliedWith_(pEnemy)))
 				&& !pObject->Owner->Type->MultiplayPassive
 				&& pObject->GetTechnoType() == pItem)
 			{
@@ -379,6 +375,7 @@ void TeamExt::ExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
+
 		.Process(this->WaitNoTargetAttempts)
 		.Process(this->NextSuccessWeightAward)
 		.Process(this->IdxSelectedObjectFromAIList)
@@ -391,35 +388,8 @@ void TeamExt::ExtData::Serialize(T& Stm)
 		.Process(this->ForceJump_InitialCountdown)
 		.Process(this->ForceJump_RepeatMode)
 		.Process(this->TeamLeader)
-		.Process(this->GenericStatus)
-		.Process(this->FailedCounter)
 
-		.Process(this->AngerNodeModifier)
-		.Process(this->OnlyTargetHouseEnemy)
-		.Process(this->OnlyTargetHouseEnemyMode)
-
-		.Process(this->ConditionalJump_Evaluation)
-		.Process(this->ConditionalJump_ComparatorMode)
-		.Process(this->ConditionalJump_ComparatorValue)
-		.Process(this->ConditionalJump_EnabledKillsCount)
-		.Process(this->ConditionalJump_Counter)
-		.Process(this->AbortActionAfterKilling)
-		.Process(this->ConditionalJump_Index)
-		.Process(this->ConditionalJump_ResetVariablesIfJump)
-
-		.Process(this->PreviousScriptList)
-
-		.Process(this->TriggersSideIdx)
-		.Process(this->TriggersHouseIdx)
-
-		.Process(this->MapPath_Grid)
-		.Process(this->MapPath_Queue)
-		.Process(this->MapPath_InProgress)
-		.Process(this->MapPath_StartTechno)
-		.Process(this->MapPath_EndTechno)
-		.Process(this->MapPath_BridgeRepairHuts)
-		.Process(this->MapPath_ValidBridgeRepairHuts)
-		.Process(this->MapPath_CheckedBridgeRepairHuts)
+		.Process(this->LastFoundSW)
 		;
 }
 

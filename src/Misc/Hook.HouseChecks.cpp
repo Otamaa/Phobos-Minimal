@@ -17,33 +17,33 @@ DEFINE_HOOK(0x4A2614, CreditClass_Graphic_AI_ReplaceCheck, 0x8)
 
 DEFINE_HOOK(0x5094F9, HouseClass_AdjustThreats, 0x6)
 {
-	return R->EBX<HouseClass*>()->IsAlliedWith(R->ESI<HouseClass*>()) ? 0x5095B6 : 0x509532;
+	return R->EBX<HouseClass*>()->IsAlliedWith_(R->ESI<HouseClass*>()) ? 0x5095B6 : 0x509532;
 }
 
 DEFINE_HOOK(0x4F9432, HouseClass_Attacked, 0x6)
 {
-	return R->EDI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x4F9474 : 0x4F9478;
+	return R->EDI<HouseClass*>()->IsAlliedWith_(R->EAX<HouseClass*>()) ? 0x4F9474 : 0x4F9478;
 }
 
 DEFINE_HOOK(0x4FBD1C, HouseClass_DoesEnemyBuildingExist, 0x6)
 {
-	return R->ESI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x4FBD57 : 0x4FBD47;
+	return R->ESI<HouseClass*>()->IsAlliedWith_(R->EAX<HouseClass*>()) ? 0x4FBD57 : 0x4FBD47;
 
 }
 
 DEFINE_HOOK(0x5003BA, HouseClass_FindJuicyTarget, 0x6)
 {
-	return R->EDI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x5003F7 : 0x5004B1;
+	return R->EDI<HouseClass*>()->IsAlliedWith_(R->EAX<HouseClass*>()) ? 0x5003F7 : 0x5004B1;
 }
 
 DEFINE_HOOK(0x501548, HouseClass_IsAllowedToAlly, 0x6)
 {
-	return R->ESI<HouseClass*>()->IsAlliedWith(R->EDI<HouseClass*>()) ? 0x501575 : 0x50157C;
+	return R->ESI<HouseClass*>()->IsAlliedWith_(R->EDI<HouseClass*>()) ? 0x501575 : 0x50157C;
 }
 
 DEFINE_HOOK(0x5015F2, HouseClass_IsAllowedToAlly_2, 0x6)
 {
-	return R->ESI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x501627 : 0x501628;
+	return R->ESI<HouseClass*>()->IsAlliedWith_(R->EAX<HouseClass*>()) ? 0x501627 : 0x501628;
 
 }
 
@@ -53,8 +53,8 @@ DEFINE_HOOK(0x4FC4DF, HouseClass_MPlayer_Defeated, 0x6)
 	GET(HouseClass*, pThis, EDX);
 	GET(HouseClass*, pThat, EAX);
 
-	return (!pThis->IsAlliedWith(pThat)
-	  || !pThat->IsAlliedWith(pThis)) ? 0x4FC57C : 0x4FC52D;
+	return (!pThis->IsAlliedWith_(pThat)
+	  || !pThat->IsAlliedWith_(pThis)) ? 0x4FC57C : 0x4FC52D;
 }
 
 DEFINE_HOOK(0x4F9CFA, HouseClass_MakeAlly_3, 0x7)
@@ -62,7 +62,7 @@ DEFINE_HOOK(0x4F9CFA, HouseClass_MakeAlly_3, 0x7)
 	GET(HouseClass*, pThis, ESI);
 	GET(TechnoClass*, pThat, EAX);
 
-	return pThis->IsAlliedWith(pThat->GetOwningHouse()) ? 0x4F9D34 : 0x4F9D40;
+	return pThis->IsAlliedWith_(pThat->GetOwningHouse()) ? 0x4F9D34 : 0x4F9D40;
 }
 
 DEFINE_HOOK(0x4F9E10, HouseClass_MakeAlly_4, 0x8)
@@ -70,7 +70,7 @@ DEFINE_HOOK(0x4F9E10, HouseClass_MakeAlly_4, 0x8)
 	GET(HouseClass*, pThis, ESI);
 	GET(HouseClass*, pThat, EBP);
 
-	return (!pThis || !pThis->IsAlliedWith(pThat))
+	return (!pThis || !pThis->IsAlliedWith_(pThat))
 		? 0x4F9EC9 : 0x4F9E49;
 }
 
@@ -78,7 +78,7 @@ DEFINE_HOOK(0x4F9E5A, HouseClass_MakeAlly_5, 0x5)
 {
 	GET(HouseClass*, pThis, ESI);
 	GET(HouseClass*, pThat, EBP);
-	return (!pThis->IsAlliedWith(HouseClass::CurrentPlayer()) || !pThat->IsAlliedWith(HouseClass::CurrentPlayer())) ? 0x4F9EBD : 0x4F9EB1;
+	return (!pThis->IsAlliedWith_(HouseClass::CurrentPlayer()) || !pThat->IsAlliedWith_(HouseClass::CurrentPlayer())) ? 0x4F9EBD : 0x4F9EB1;
 }
 
 DEFINE_HOOK(0x4FAD64, HouseClass_SpecialWeapon_Update, 0x7)
@@ -86,7 +86,7 @@ DEFINE_HOOK(0x4FAD64, HouseClass_SpecialWeapon_Update, 0x7)
 	GET(HouseClass*, pThis, EDI);
 	GET(BuildingClass*, pThat, ESI);
 
-	return pThis->IsAlliedWith(pThat->GetOwningHouse()) ? 0x4FADD9 : 0x4FAD9E;
+	return pThis->IsAlliedWith_(pThat->GetOwningHouse()) ? 0x4FADD9 : 0x4FAD9E;
 }
 
 DEFINE_HOOK(0x50A23A, HouseClass_Target_Dominator, 0x6)
@@ -94,7 +94,7 @@ DEFINE_HOOK(0x50A23A, HouseClass_Target_Dominator, 0x6)
 	GET(HouseClass*, pThis, EDI);
 	GET(TechnoClass*, pThat, ESI);
 
-	return pThis->IsAlliedWith(pThat->GetOwningHouse()) ? 0x50A292 : 0x50A278;
+	return pThis->IsAlliedWith_(pThat->GetOwningHouse()) ? 0x50A292 : 0x50A278;
 }
 
 DEFINE_HOOK(0x50A04B, HouseClass_Target_GenericMutator, 0x7)
@@ -102,7 +102,7 @@ DEFINE_HOOK(0x50A04B, HouseClass_Target_GenericMutator, 0x7)
 	GET(HouseClass*, pThis, EBX);
 	GET(TechnoClass*, pThat, ESI);
 
-	return pThis->IsAlliedWith(pThat->GetOwningHouse()) ? 0x50A096 : 0x50A087;
+	return pThis->IsAlliedWith_(pThat->GetOwningHouse()) ? 0x50A096 : 0x50A087;
 }
 
 DEFINE_HOOK(0x5047F5, HouseClass_UpdateAngetNodes, 0x6)
@@ -110,7 +110,7 @@ DEFINE_HOOK(0x5047F5, HouseClass_UpdateAngetNodes, 0x6)
 	GET(HouseClass*, pThis, EAX);
 	GET(HouseClass*, pThat, EDX);
 
-	return pThis->IsAlliedWith(pThat) ? 0x504826 : 0x504820;
+	return pThis->IsAlliedWith_(pThat) ? 0x504826 : 0x504820;
 }
 
 DEFINE_HOOK(0x5C98E5, MultiplayerScore_5C98A0, 0x6)

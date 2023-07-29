@@ -113,7 +113,7 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_AfterRadioClassRemove, 0x5)
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
 
-	if (pThis->Owner && !pThis->Owner->RecheckTechTree && !pTypeExt->Linked_SW.empty())
+	if (pThis->Owner  && pThis->Owner->CountOwnedAndPresent(pExt->Type) <= 0 && !pTypeExt->Linked_SW.empty())
 		pThis->Owner->UpdateSuperWeaponsOwned();
 
 	if (const auto pShieldData = pExt->GetShield())
@@ -231,7 +231,7 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_AfterRadioClassRemove, 0x5)
 //		{
 //			const auto pExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
 //
-//			if (HouseClass::CurrentPlayer->IsAlliedWith(pBuilding))
+//			if (HouseClass::CurrentPlayer->IsAlliedWith_(pBuilding))
 //			{
 //				return pExt->EngineerRepairable.Get(pBuilding->Type->Repairable);
 //			}

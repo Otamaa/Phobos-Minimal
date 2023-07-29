@@ -35,7 +35,7 @@ public:
 	//AbstractClass
 	virtual AbstractType WhatAmI() const override JMP_THIS(0x6F0430);
 	virtual int Size() const override JMP_THIS(0x6F0440);
-	
+
 	// fills dest with all types needed to complete this team. each type is
 	// included as often as it is needed.
 	void GetTaskForceMissingMemberTypes(DynamicVectorClass<TechnoTypeClass *>& dest) const { JMP_THIS(0x6EF4D0); }
@@ -70,6 +70,8 @@ public:
 
 	static void __fastcall Suspend_Teams(int priority, HouseClass* house) { JMP_STD(0x6EC250); }
 	static ThreatType __fastcall ThreatFromQuarry(QuarryType q) { JMP_THIS(0x645BB0); }
+
+	const char* get_ID() const;
 
 	//Constructor
 	TeamClass(TeamTypeClass* pType , HouseClass* pOwner, int investigate_me) noexcept

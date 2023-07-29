@@ -117,10 +117,11 @@ Point2D TechnoExt::GetBuildingSelectBracketPosition(TechnoClass* pThis, Building
 		break;
 	}
 
-	return position;
-}
+		return position;
+	}
 
-Iterator<DigitalDisplayTypeClass*> GetDisplayType(TechnoClass* pThis , TechnoTypeClass* pType ,int& length)
+
+Iterator<DigitalDisplayTypeClass*> TechnoExt::GetDisplayType(TechnoClass* pThis , TechnoTypeClass* pType, int& length)
 {
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
@@ -305,6 +306,35 @@ void TechnoExt::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType
 		maxValue = pType->WeaponStages;
 		break;
 	}
+	case DisplayInfoType::IronCurtain:
+	{
+		if (pThis->IronCurtainTimer.TimeLeft == 0 && pThis->IronCurtainTimer.StartTime == -1)
+			return;
+
+		value = pThis->IronCurtainTimer.GetTimeLeft();
+		maxValue = pThis->IronCurtainTimer.TimeLeft;
+		break;
+	}
+	case DisplayInfoType::DisableWeapon:
+	{
+		auto& nTimer = GetDisableWeaponTimer(pThis);
+		if (nTimer.TimeLeft == 0 && nTimer.StartTime == -1)
+			return;
+
+		value = nTimer.GetTimeLeft();
+		maxValue = nTimer.TimeLeft;
+		break;
+	}
+	case DisplayInfoType::CloakDisable :
+	{
+		auto& nTimer = GetSonarTimer(pThis);
+		if (nTimer.TimeLeft == 0 && nTimer.StartTime == -1)
+			return;
+
+		value = nTimer.GetTimeLeft();
+		maxValue = nTimer.TimeLeft;
+		break;
+	}
 	default:
 	{
 		value = pThis->Health;
@@ -329,7 +359,7 @@ void TechnoExt::RestoreStoreHijackerLastDisguiseData(InfantryClass* pThis, FootC
 	pThis->DisguisedAsHouse = pExt->HijackerLastDisguiseHouse;
 }
 
-WeaponTypeClass* TechnoExt::GetCurrentWeapon(TechnoClass* pThis, int& weaponIndex, bool getSecondary)
+NOINLINE WeaponTypeClass* TechnoExt::GetCurrentWeapon(TechnoClass* pThis, int& weaponIndex, bool getSecondary)
 {
 	if (!pThis)
 		return nullptr;
@@ -355,12 +385,11 @@ WeaponTypeClass* TechnoExt::GetCurrentWeapon(TechnoClass* pThis, int& weaponInde
 	return pThis->GetWeapon(weaponIndex)->WeaponType;
 }
 
-WeaponTypeClass* TechnoExt::GetCurrentWeapon(TechnoClass* pThis, bool getSecondary)
+NOINLINE WeaponTypeClass* TechnoExt::GetCurrentWeapon(TechnoClass* pThis, bool getSecondary)
 {
 	int weaponIndex = 0;
 	return TechnoExt::GetCurrentWeapon(pThis, weaponIndex, getSecondary);
 }
-
 
 bool TechnoExt::IsCullingImmune(TechnoClass* pThis)
 {
@@ -886,7 +915,7 @@ bool TechnoExt::IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker)
 	if (pVictim->IsIronCurtained())
 		return false;
 
-	if (pAttacker->Owner && pAttacker->Owner->IsAlliedWith(pVictim))
+	if (pAttacker->Owner && pAttacker->Owner->IsAlliedWith_(pVictim))
 		return false;
 
 	auto const pAttackerType = pAttacker->GetTechnoType();
@@ -1466,7 +1495,7 @@ void TechnoExt::UpdateMCOverloadDamage(TechnoClass* pOwner)
 	}
 }
 
-bool TechnoExt::AllowedTargetByZone(TechnoClass* pThis, TechnoClass* pTarget, const TargetZoneScanType& zoneScanType, WeaponTypeClass* pWeapon, std::optional<std::reference_wrapper<const ZoneType>> zone)
+bool TechnoExt::AllowedTargetByZone(TechnoClass* pThis, ObjectClass* pTarget, const TargetZoneScanType& zoneScanType, WeaponTypeClass* pWeapon, std::optional<std::reference_wrapper<const ZoneType>> zone)
 {
 	if (!pThis || !pTarget)
 		return false;
@@ -1876,9 +1905,8 @@ void TechnoExt::DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pType, 
 	if (!pTypeExt->UseCustomSelectBrd.Get(RulesExt::Global()->UseSelectBrd.Get(Phobos::Config::EnableSelectBrd)))
 		return;
 
-	SHPStruct* SelectBrdSHP = pTypeExt->SHP_SelectBrdSHP.isset() ?
-		pTypeExt->SHP_SelectBrdSHP.Get() :
-		(isInfantry ? RulesExt::Global()->SHP_SelectBrdSHP_INF : RulesExt::Global()->SHP_SelectBrdSHP_UNIT).Get();
+	SHPStruct* SelectBrdSHP = pTypeExt->SHP_SelectBrdSHP
+		.Get(isInfantry ? RulesExt::Global()->SHP_SelectBrdSHP_INF : RulesExt::Global()->SHP_SelectBrdSHP_UNIT);
 
 	if (!SelectBrdSHP)
 		return;
@@ -1895,17 +1923,16 @@ void TechnoExt::DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pType, 
 	Point2D vLoc = *pLocation;
 	int frame, XOffset, YOffset;
 
-	const Point3D selectbrdFrame = (pTypeExt->SelectBrd_Frame.isset() ? pTypeExt->SelectBrd_Frame
-		: (isInfantry ? RulesExt::Global()->SelectBrd_Frame_Infantry : RulesExt::Global()->SelectBrd_Frame_Unit)).Get();
+	const Point3D selectbrdFrame = pTypeExt->SelectBrd_Frame.Get((isInfantry ? RulesExt::Global()->SelectBrd_Frame_Infantry : RulesExt::Global()->SelectBrd_Frame_Unit));
 
 	const auto nFlag = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | EnumFunctions::GetTranslucentLevel(pTypeExt->SelectBrd_TranslucentLevel.Get(RulesExt::Global()->SelectBrd_DefaultTranslucentLevel.Get()));
-	const auto canSee = sIsDisguised && pThis->DisguisedAsHouse ? pThis->DisguisedAsHouse->IsAlliedWith(HouseClass::CurrentPlayer) :
-		pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer)
-		|| HouseExt::IsObserverPlayer()
+	const auto canSee = sIsDisguised && pThis->DisguisedAsHouse ? pThis->DisguisedAsHouse->IsAlliedWith_(HouseClass::CurrentPlayer) :
+		pThis->Owner->IsAlliedWith_(HouseClass::CurrentPlayer)
+		|| HouseClass::CurrentPlayer->IsObserver()
 		|| pTypeExt->SelectBrd_ShowEnemy.Get(RulesExt::Global()->SelectBrd_DefaultShowEnemy.Get());
 
-	const Point2D offs = (pTypeExt->SelectBrd_DrawOffset.isset() ? pTypeExt->SelectBrd_DrawOffset : (isInfantry ?
-		RulesExt::Global()->SelectBrd_DrawOffset_Infantry : RulesExt::Global()->SelectBrd_DrawOffset_Unit)).Get();
+	const Point2D offs = pTypeExt->SelectBrd_DrawOffset.Get((isInfantry ?
+		RulesExt::Global()->SelectBrd_DrawOffset_Infantry : RulesExt::Global()->SelectBrd_DrawOffset_Unit));
 
 	XOffset = offs.X;
 	YOffset = pTypeExt->Get()->PixelSelectionBracketDelta + offs.Y;
@@ -1938,8 +1965,13 @@ void TechnoExt::DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pType, 
 
 std::pair<TechnoTypeClass*, HouseClass*> TechnoExt::GetDisguiseType(TechnoClass* pTarget, bool CheckHouse, bool CheckVisibility, bool bVisibleResult)
 {
-	HouseClass* pHouseOut = pTarget->GetOwningHouse();
 	TechnoTypeClass* pTypeOut = pTarget->GetTechnoType();
+	HouseClass* pHouseOut = pTarget->GetOwningHouse();
+
+	//Building cant disguise , so dont bother to check
+	if (pTarget->WhatAmI() == BuildingClass::AbsID)
+		return { pTypeOut , pHouseOut };
+
 	const bool bIsVisible = !CheckVisibility ? bVisibleResult : (pTarget->IsClearlyVisibleTo(HouseClass::CurrentPlayer));
 
 	if (pTarget->IsDisguised() && !bIsVisible)
@@ -2025,10 +2057,9 @@ std::tuple<CoordStruct, SHPStruct*, int> GetInsigniaDatas(TechnoClass* pThis, Te
 	return { drawOffs, pShapeFile  , frameIndexRet };
 }
 
-// Based on Ares source.
 void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 {
-	if (pThis->CurrentRanking == Rank::Invalid)
+	if (pThis->CurrentRanking == Rank::Invalid || pThis->CurrentRanking == Rank::Rookie)
 		return;
 
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
@@ -2055,7 +2086,12 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 	if (!pTypeExt->DrawInsignia)
 		return;
 
-	const bool isVisibleToPlayer = (pOwner && pOwner->IsAlliedWith(HouseClass::CurrentPlayer))
+	bool IsAlly = false;
+	if(pOwner) {
+		IsAlly = pOwner->IsAlliedWith_(HouseClass::CurrentPlayer);
+	}
+
+	const bool isVisibleToPlayer = IsAlly
 		|| IsObserverPlayer
 		|| pTypeExt->Insignia_ShowEnemy.Get(RulesExt::Global()->EnemyInsignia);
 
@@ -2242,60 +2278,62 @@ void TechnoExt::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 	TechnoClass* pObjectKiller = (pKiller->GetTechnoType()->Spawned || pKiller->GetTechnoType()->MissileSpawn) && pKiller->SpawnOwner ?
 		pKiller->SpawnOwner : pKiller;
 
-	if (pObjectKiller && pObjectKiller->BelongsToATeam())
-	{
-
-		if (auto const pFootKiller = abstract_cast<const FootClass*>(pObjectKiller))
-		{
-
-			auto const pKillerTechnoData = TechnoExt::ExtMap.Find(pObjectKiller);
-			auto const pFocus = abstract_cast<TechnoClass*>(pFootKiller->Team->Focus);
-			pKillerTechnoData->LastKillWasTeamTarget = false;
-
-			if (pFocus && pFocus->GetTechnoType() == pVictim->GetTechnoType())
-			{
-				pKillerTechnoData->LastKillWasTeamTarget = true;
-			}
-
-			// Conditional Jump Script Action stuff
-			if (auto const pKillerTeamData = TeamExt::ExtMap.Find(pFootKiller->Team))
-			{
-				if (pKillerTeamData->ConditionalJump_EnabledKillsCount)
-				{
-					const bool isValidKill = pKillerTeamData->ConditionalJump_Index < 0 ?
-						false : ScriptExt::EvaluateObjectWithMask(pVictim, pKillerTeamData->ConditionalJump_Index, -1, -1, pKiller);;
-
-					if (isValidKill || pKillerTechnoData->LastKillWasTeamTarget)
-						pKillerTeamData->ConditionalJump_Counter++;
-				}
-
-				// Special case for interrupting current action
-				if (pKillerTeamData->AbortActionAfterKilling
-					&& pKillerTechnoData->LastKillWasTeamTarget)
-				{
-					pKillerTeamData->AbortActionAfterKilling = false;
-					const auto pTeam = pFootKiller->Team;
-					auto const nAction = pTeam->CurrentScript->GetCurrentAction();
-					auto const nActionNext = pTeam->CurrentScript->GetNextAction();
-
-					//					Debug::Log("DEBUG: [%s] [%s] %d = %d,%d - Force next script action after successful kill: %d = %d,%d\n"
-					//						, pTeam->Type->ID
-					//						, pTeam->CurrentScript->Type->ID
-					//						, pTeam->CurrentScript->CurrentMission
-					//						, nAction.Action
-					//						, nAction.Argument
-					//						, pTeam->CurrentScript->CurrentMission + 1
-					//						, nActionNext.Action
-					//						, nActionNext.Argument);
-
-										// Jumping to the next line of the script list
-					pTeam->StepCompleted = true;
-
-					return;
-				}
-			}
+	if (pObjectKiller && pObjectKiller->BelongsToATeam()) {
+		if (auto const pFootKiller = generic_cast<FootClass*>(pObjectKiller)) {
+			TechnoExt::ExtMap.Find(pObjectKiller)->LastKillWasTeamTarget = pFootKiller->Team->Focus == pVictim;
 		}
 	}
+	//if (pObjectKiller && pObjectKiller->BelongsToATeam())
+	//{
+	//	if (auto const pFootKiller = abstract_cast<const FootClass*>(pObjectKiller))
+	//	{
+	//		auto const pKillerTechnoData = TechnoExt::ExtMap.Find(pObjectKiller);
+	//		auto const pFocus = abstract_cast<TechnoClass*>(pFootKiller->Team->Focus);
+	//		pKillerTechnoData->LastKillWasTeamTarget = false;
+	//		if (pFocus && pFocus->GetTechnoType() == pVictim->GetTechnoType())
+	//		{
+	//			pKillerTechnoData->LastKillWasTeamTarget = true;
+	//		}
+	//
+	//		// Conditional Jump Script Action stuff
+	//		if (auto const pKillerTeamData = TeamExt::ExtMap.Find(pFootKiller->Team))
+	//		{
+	//			if (pKillerTeamData->ConditionalJump_EnabledKillsCount)
+	//			{
+	//				const bool isValidKill = pKillerTeamData->ConditionalJump_Index < 0 ?
+	//					false : ScriptExt::EvaluateObjectWithMask(pVictim, pKillerTeamData->ConditionalJump_Index, -1, -1, pKiller);;
+	//
+	//				if (isValidKill || pKillerTechnoData->LastKillWasTeamTarget)
+	//					pKillerTeamData->ConditionalJump_Counter++;
+	//			}
+	//
+	//			// Special case for interrupting current action
+	//			if (pKillerTeamData->AbortActionAfterKilling
+	//				&& pKillerTechnoData->LastKillWasTeamTarget)
+	//			{
+	//				pKillerTeamData->AbortActionAfterKilling = false;
+	//				const auto pTeam = pFootKiller->Team;
+	//				auto const nAction = pTeam->CurrentScript->GetCurrentAction();
+	//				auto const nActionNext = pTeam->CurrentScript->GetNextAction();
+	//
+	//				//					Debug::Log("DEBUG: [%s] [%s] %d = %d,%d - Force next script action after successful kill: %d = %d,%d\n"
+	//				//						, pTeam->Type->ID
+	//				//						, pTeam->CurrentScript->Type->ID
+	//				//						, pTeam->CurrentScript->CurrentMission
+	//				//						, nAction.Action
+	//				//						, nAction.Argument
+	//				//						, pTeam->CurrentScript->CurrentMission + 1
+	//				//						, nActionNext.Action
+	//				//						, nActionNext.Argument);
+	//
+	//									// Jumping to the next line of the script list
+	//				pTeam->StepCompleted = true;
+	//
+	//				return;
+	//			}
+	//		}
+	//	}
+	//}
 }
 
 void TechnoExt::ExtData::UpdateMCRangeLimit()
@@ -2495,7 +2533,7 @@ bool TechnoExt::FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeaponTyp
 	if (!pWeaponType)
 		return false;
 
-	WeaponTypeExt::DetonateAt(pWeaponType, pThis, pThis, true);
+	WeaponTypeExt::DetonateAt(pWeaponType, pThis, pThis, true, nullptr);
 	return true;
 }
 
@@ -2831,7 +2869,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, bool isPeaceful)
 	}
 	else
 	{
-		pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance()->C4Warhead, nullptr, false, false, pThis->Owner);
+		pThis->ReceiveDamage(&pThis->GetType()->Strength, 0, RulesClass::Instance()->C4Warhead, nullptr, false, false, pThis->Owner);
 	}
 }
 
@@ -2858,7 +2896,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 	{
 		if (pThis)
 		{
-			auto nHealth = pThis->Health;
+			auto nHealth = pThis->GetType()->Strength;
 			pThis->ReceiveDamage(&nHealth, 0, RulesClass::Instance()->C4Warhead, nullptr, true, false, nullptr);
 		}
 
@@ -2922,7 +2960,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 
 		if (pThis && pThis->IsAlive)
 		{
-			pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance()->C4Warhead, nullptr, true, false, nullptr);
+			pThis->ReceiveDamage(&pThis->GetType()->Strength, 0, RulesClass::Instance()->C4Warhead, nullptr, true, false, nullptr);
 		}
 
 	}break;
@@ -3439,7 +3477,7 @@ void TechnoExt::ExtData::UpdateFireSelf()
 
 			FireSelf_Count[i] = ROF;
 
-			WeaponTypeExt::DetonateAt(FireSelf_Weapon->at(i), pThis, pThis, true);
+			WeaponTypeExt::DetonateAt(FireSelf_Weapon->at(i), pThis, pThis, true, nullptr);
 		}
 	}
 }

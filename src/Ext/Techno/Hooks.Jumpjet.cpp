@@ -66,8 +66,8 @@ DEFINE_HOOK(0x54C036, JumpjetLocomotionClass_State3_UpdateSensors, 0x7)
 	if (pLinkedTo 
 		&& pLinkedTo->IsAlive
 		&& pLinkedTo->GetTechnoType()->SensorsSight 
-		&& pLinkedTo->LastJumpjetMapCoords != currentCell) {
-		pLinkedTo->RemoveSensorsAt(pLinkedTo->LastJumpjetMapCoords);
+		&& pLinkedTo->LastFlightMapCoords != currentCell) {
+		pLinkedTo->RemoveSensorsAt(pLinkedTo->LastFlightMapCoords);
 		pLinkedTo->AddSensorsAt(currentCell);
 	}
 

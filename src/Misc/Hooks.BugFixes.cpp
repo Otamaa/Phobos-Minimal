@@ -786,15 +786,15 @@ DEFINE_HOOK(0x51A996, InfantryClass_PerCellProcess_KillOnImpassable, 0x5)
 
 DEFINE_HOOK(0x718B29, LocomotionClass_SomethingWrong_ReceiveDamage_UseCurrentHP, 0x6)
 {
-	GET(TechnoClass* const, pThis, ECX);
-	R->ECX(pThis->Health);
+	GET(FootClass* const, pLinked, ECX);
+	R->ECX(pLinked->GetType()->Strength);
 	return R->Origin() + 0x6;
 }
 
 DEFINE_HOOK(0x6FDDD4, TechnoClass_FireAt_Suicide_UseCurrentHP, 0x6)
 {
 	GET(TechnoClass* const, pThis, ESI);
-	R->ECX(pThis->Health);
+	R->ECX(pThis->GetType()->Strength);
 	return 0x6FDDDA;
 }
 
@@ -803,7 +803,7 @@ DEFINE_HOOK(0x70BC6F, TechnoClass_UpdateRigidBodyKinematics_KillFlipped, 0xA)
 	GET(TechnoClass* const, pThis, ESI);
 
 	const auto pFlipper = pThis->DirectRockerLinkedUnit;
-	pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead,
+	pThis->ReceiveDamage(&pThis->GetType()->Strength, 0, RulesClass::Instance->C4Warhead,
 		nullptr, true, false, pFlipper ? pFlipper->Owner : nullptr);
 
 	return 0x70BCA4;
@@ -813,7 +813,7 @@ DEFINE_HOOK(0x4425C0, BuildingClass_ReceiveDamage_MaybeKillRadioLinks, 0x6)
 {
 	GET(TechnoClass* const, pRadio, EDI);
 
-	pRadio->ReceiveDamage(&pRadio->Health, 0, RulesClass::Instance->C4Warhead,
+	pRadio->ReceiveDamage(&pRadio->GetType()->Strength, 0, RulesClass::Instance->C4Warhead,
 		nullptr, true, true, nullptr);
 
 	return 0x4425F4;
@@ -823,7 +823,7 @@ DEFINE_HOOK(0x501477, HouseClass_IHouse_AllToHunt_KillMCInsignificant, 0xA)
 {
 	GET(TechnoClass* const, pItem, ESI);
 
-	pItem->ReceiveDamage(&pItem->Health, 0, RulesClass::Instance->C4Warhead,
+	pItem->ReceiveDamage(&pItem->GetType()->Strength, 0, RulesClass::Instance->C4Warhead,
 		nullptr, true, true, nullptr);
 
 	return 0x50150E;
@@ -833,7 +833,7 @@ DEFINE_HOOK(0x7187D2, TeleportLocomotionClass_7187A0_IronCurtainFuckMeUp, 0x8)
 {
 	GET(FootClass* const, pOwner, ECX);
 
-	pOwner->ReceiveDamage(&pOwner->Health, 0, RulesClass::Instance->C4Warhead,
+	pOwner->ReceiveDamage(&pOwner->GetType()->Strength, 0, RulesClass::Instance->C4Warhead,
 		nullptr, true, false, nullptr);
 
 	return 0x71880A;
@@ -931,24 +931,24 @@ void UpdateAttachedAnimLayers(TechnoClass* pThis)
 }
 
 //causing desyncs , need to be retest
-//DEFINE_HOOK(0x54B188, JumpjetLocomotionClass_Process_LayerUpdate, 0x6)
-//{
-//	GET(TechnoClass*, pLinkedTo, EAX);
-//
-//	UpdateAttachedAnimLayers(pLinkedTo);
-//
-//	return 0;
-//}
-//
-//DEFINE_HOOK(0x4CD4E1, FlyLocomotionClass_Update_LayerUpdate, 0x6)
-//{
-//	GET(TechnoClass*, pLinkedTo, ECX);
-//
-//	if (pLinkedTo->LastLayer != pLinkedTo->InWhichLayer())
-//		UpdateAttachedAnimLayers(pLinkedTo);
-//
-//	return 0;
-//}
+DEFINE_HOOK(0x54B188, JumpjetLocomotionClass_Process_LayerUpdate, 0x6)
+{
+	GET(TechnoClass*, pLinkedTo, EAX);
+
+	UpdateAttachedAnimLayers(pLinkedTo);
+
+	return 0;
+}
+
+DEFINE_HOOK(0x4CD4E1, FlyLocomotionClass_Update_LayerUpdate, 0x6)
+{
+	GET(TechnoClass*, pLinkedTo, ECX);
+
+	if (pLinkedTo->LastLayer != pLinkedTo->InWhichLayer())
+		UpdateAttachedAnimLayers(pLinkedTo);
+
+	return 0;
+}
 
 DEFINE_HOOK(0x688F8C, ScenarioClass_ScanPlaceUnit_CheckMovement, 0x5)
 {
@@ -1024,7 +1024,6 @@ DEFINE_HOOK(0x44E9FA, BuildingClass_Detach_RestoreAnims, 0x6)
 void __stdcall JumpjetLocomotionClass_Unlimbo(ILocomotion* pThis)
 {
 	auto const pThisLoco = static_cast<JumpjetLocomotionClass*>(pThis);
-
 	pThisLoco->Facing.Set_Current(pThisLoco->LinkedTo->PrimaryFacing.Current());
 	pThisLoco->Facing.Set_Desired(pThisLoco->LinkedTo->PrimaryFacing.Desired());
 }
@@ -1035,7 +1034,7 @@ DEFINE_JUMP(VTABLE, 0x7ECDB8, GET_OFFSET(JumpjetLocomotionClass_Unlimbo))
 // hovering state and the crash processing code won't be reached.
 // Can be observed easily when Crashable=yes jumpjet is attached to
 // a unit and then destroyed.
-DEFINE_HOOK(0x54AEDC, JumpjetLocomotionClass_Process_CheckCrashing, 0x0)
+DEFINE_HOOK(0x54AEDC, JumpjetLocomotionClass_Process_CheckCrashing, 0x9)
 {
 	enum { ProcessMovement = 0x54AEED, Skip = 0x54B16C };
 
@@ -1049,7 +1048,7 @@ DEFINE_HOOK(0x54AEDC, JumpjetLocomotionClass_Process_CheckCrashing, 0x0)
 }
 
 // WWP for some reason passed nullptr as source to On_Destroyed even though the real source existed
-DEFINE_HOOK(0x738467, UnitClass_TakeDamage_FixOnDestroyedSource, 0x0)
+DEFINE_HOOK(0x738467, UnitClass_TakeDamage_FixOnDestroyedSource, 0x6)
 {
 	enum { Continue = 0x73866E, ForceKill = 0x73847B };
 
@@ -1059,4 +1058,19 @@ DEFINE_HOOK(0x738467, UnitClass_TakeDamage_FixOnDestroyedSource, 0x0)
 	R->AL(pThis->Crash(pSource));
 	return 0x738473;
 	//return  ? Continue : ForceKill;
+}
+
+// Only first half of the colorschemes array gets adjusted thanks to the count being wrong, quick and dirty fix.
+DEFINE_HOOK(0x53AD97, IonStormClass_AdjustLighting_ColorCount, 0x6)
+{
+	GET(int, colorSchemesCount, EAX);
+	R->EAX(colorSchemesCount * 2);
+	return 0;
+}
+
+DEFINE_HOOK(0x4C780A, EventClass_Execute_DeployEvent_NoVoiceFix, 0x6)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	pThis->VoiceDeploy();
+	return 0x0;
 }

@@ -546,7 +546,7 @@ public:
 	T* back() const {
 		return end() - 1;
 	}
-	
+
 	T* begin()
 	{
 		return (&this->Items[0]);
@@ -559,7 +559,7 @@ public:
 
 	bool Contains(T item) const
 	{
-		for (auto nPos = this->begin(); 
+		for (auto nPos = this->begin();
 			nPos != this->end();
 			++nPos) {
 
@@ -597,13 +597,13 @@ public:
 
 		return true;
 	}
-	
+
 	template <class... _Valty>
 	constexpr decltype(auto) emplace_back(_Valty&&... _Val) {
 		AddItem(T{ _Val... });
 		return *back();
 	}
-	
+
 	bool AddUnique(const T& item)
 	{
 		int idx = this->FindItemIndex(item);
@@ -657,9 +657,38 @@ public:
 		swap(this->CapacityIncrement, other.CapacityIncrement);
 	}
 
-	size_t Size() const
-	{
+	size_t Size() const {
 		return static_cast<size_t>(Count);
+	}
+
+	template <typename Func>
+	void for_each(Func&& act) const {
+		std::for_each(this->begin(), this->end(), std::forward<Func>(act));
+	}
+
+	template <typename Func>
+	void for_each(Func&& act) {
+		std::for_each(this->begin(), this->end(), std::forward<Func>(act));
+	}
+
+	template<typename func>
+	bool none_of(func&& fn) const {
+		return std::none_of(this->begin(), this->end(), std::forward<func>(fn));
+	}
+
+	template<typename func>
+	bool none_of(func&& fn) {
+		return std::none_of(this->begin(), this->end(), std::forward<func>(fn));
+	}
+
+	template<typename func>
+	bool any_of(func&& fn) const {
+		return std::any_of(this->begin(), this->end(), std::forward<func>(fn));
+	}
+
+	template<typename func>
+	bool any_of(func&& fn) {
+		return std::any_of(this->begin(), this->end(), std::forward<func>(fn));
 	}
 
 public:

@@ -56,7 +56,6 @@ void SW_ParaDrop::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	const char* section = pData->get_ID();
 
 	INI_EX exINI(pINI);
-
 	char base[0x40];
 
 	auto CreateParaDropBase = [](char* pID, auto& Buffer)
@@ -331,9 +330,20 @@ void SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, AircraftTy
 		// find the nearest cell the paradrop troopers can land on
 		// the movement zone etc is checked within first types of the passanger
 		CellClass* pDest = pTarget;
-		while (!pDest->IsClearToMove(pType->SpeedType, 0, 0, (int)MovementZone::None, pType->MovementZone, -1, 1)) {
-			pDest = MapClass::Instance->GetCellAt(MapClass::Instance->NearByLocation(pDest->MapCoords, pType->SpeedType, -1, pType->MovementZone, false, 1, 1, false, false, false, true, CellStruct::Empty, false, false));
+		bool allowBridges = GroundType::Array[static_cast<int>(LandType::Clear)].Cost[static_cast<int>(pType->SpeedType)] > 0.0;
+		bool isBridge = allowBridges && pDest->ContainsBridge();
+
+		while (!pDest->IsClearToMove(pType->SpeedType, 0, 0, (int)MovementZone::None, pType->MovementZone, -1, isBridge)) {
+			pDest = MapClass::Instance->GetCellAt(
+				MapClass::Instance->NearByLocation(
+					pDest->MapCoords,
+					pType->SpeedType,
+					-1,
+					pType->MovementZone, isBridge, 1, 1, true, false, false, isBridge, CellStruct::Empty, false, false));
+
+			isBridge = allowBridges && pDest->ContainsBridge();
 		}
+
 		pTarget = pDest;
 
 		pPlane->SetTarget(pTarget);

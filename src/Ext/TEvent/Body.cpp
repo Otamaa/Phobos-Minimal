@@ -263,7 +263,7 @@ bool TEventExt::HousesAreDestroyedTEvent(TEventClass* pThis)
 
 	for (auto pTechno : *TechnoClass::Array)
 	{
-		if (ScriptExt::IsUnitAvailable(pTechno, false, true))
+		if (ScriptExt::IsUnitAvailable(pTechno, false))
 		{
 			if (pTechno->Owner && housesList.contains(pTechno->Owner->Type))
 				return false;

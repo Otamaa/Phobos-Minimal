@@ -94,7 +94,7 @@ void ProximityFunctional::AI(BulletClass* pBullet)
 						{
 							return BulletProx->Data.AffectsAllies || BulletProx->Data.AffectsOwner;
 						}
-						else if (pSourceOwner->IsAlliedWith(pTargetOwner))
+						else if (pSourceOwner->IsAlliedWith_(pTargetOwner))
 						{
 							return BulletProx->Data.AffectsAllies.Get();
 						}

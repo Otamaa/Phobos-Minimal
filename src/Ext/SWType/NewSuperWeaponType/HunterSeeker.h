@@ -14,4 +14,6 @@ public:
 	virtual bool IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const override;
 	CellStruct GetLaunchCell(SWTypeExt::ExtData* pSWType, BuildingClass* pBuilding, UnitTypeClass* pHunter) const;
 
+	// ignore all building state and keep lauching the sw regardless ,..
+	bool IsLaunchSite_HS(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const;
 };

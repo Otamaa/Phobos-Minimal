@@ -413,8 +413,32 @@ public:
 	static ExtContainer ExtMap;
 
 	static PhobosMap<IonBlastClass*, WarheadTypeExt::ExtData*> IonBlastExt;
-	static void DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, TechnoClass* pOwner, int damage, bool targetCell = false);
-	static void DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool targetCell = false);
-	static void DetonateAt(WarheadTypeClass* pThis, AbstractClass* pTarget, const CoordStruct& coords, TechnoClass* pOwner, int damage);
+	static void DetonateAt(
+		WarheadTypeClass* pThis,
+		ObjectClass* pTarget,
+		TechnoClass* pOwner,
+		int damage,
+		bool targetCell = false,
+		HouseClass* pFiringHouse = nullptr
+		);
+
+	static void DetonateAt(
+		WarheadTypeClass* pThis,
+		const CoordStruct& coords,
+		TechnoClass* pOwner,
+		int damage,
+		bool targetCell = false,
+		HouseClass* pFiringHouse = nullptr
+		);
+
+	static void DetonateAt(
+		WarheadTypeClass* pThis,
+		AbstractClass* pTarget,
+		const CoordStruct& coords,
+		TechnoClass* pOwner,
+		int damage,
+		HouseClass* pFiringHouse = nullptr
+		);
+
 	static void CreateIonBlast(WarheadTypeClass* pThis, const CoordStruct& coords);
 };

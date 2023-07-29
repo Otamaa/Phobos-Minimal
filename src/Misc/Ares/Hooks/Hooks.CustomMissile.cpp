@@ -21,7 +21,7 @@
 #include <SpawnManagerClass.h>
 
 #pragma region RocketLocoHooks
-//TODO : Cmisl Hardcoded shit 
+//TODO : Cmisl Hardcoded shit
 // 662496
 // 66235D
 
@@ -170,7 +170,7 @@ DEFINE_OVERRIDE_HOOK(0x663218, RocketLocomotionClass_Explode_CustomMissile2, 5)
 	if (pExt->IsCustomMissile) {
 		if (auto const& pWeapon = pThis->SpawnerIsElite
 			? pExt->CustomMissileEliteWeapon : pExt->CustomMissileWeapon) {
-			WeaponTypeExt::DetonateAt(pWeapon, coords, pOwner , true);
+			WeaponTypeExt::DetonateAt(pWeapon, coords, pOwner , true , pOwner ? pOwner->Owner : nullptr);
 			return 0x6632CC;
 		}
 	}
@@ -283,8 +283,8 @@ DEFINE_HOOK(0x6B750B, SpawnManagerClass_Update_CustomMissilePreLauchAnim, 0x5)
 	if (pSpawned->Type == RulesClass::Instance->CMisl.Type) {
 		return 0x0;
 	} else if (pTypeExt->IsCustomMissile) {
-		if(AnimTypeClass* pType = pTypeExt->CustomMissilePreLauchAnim) { 
-			if (auto pAnim = GameCreate<AnimClass>(pType, pSpawned->Location, 2, 1, 0x600, -10, false)) { 
+		if(AnimTypeClass* pType = pTypeExt->CustomMissilePreLauchAnim) {
+			if (auto pAnim = GameCreate<AnimClass>(pType, pSpawned->Location, 2, 1, 0x600, -10, false)) {
 				AnimExt::SetAnimOwnerHouseKind(pAnim, pSpawned->Owner, nullptr, pSpawned, true);
 			}
 		}

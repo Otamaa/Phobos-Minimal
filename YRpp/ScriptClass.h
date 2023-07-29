@@ -56,6 +56,8 @@ public:
 	bool NextMission() { ++this->CurrentMission; return this->HasNextMission(); }
 	bool HasNextMission() const { JMP_THIS(0x6915B0); }
 
+	const char* get_ID() const;
+
 	//Constructor
 	ScriptClass(ScriptTypeClass* pType) noexcept
 		: AbstractClass(noinit_t())

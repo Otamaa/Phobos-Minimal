@@ -66,7 +66,7 @@ bool SW_NuclearMissile::Activate(SuperClass* const pThis, const CellStruct& Coor
 		{
 			// if we reached this, there is no silo launch. still launch a missile.
 			if (auto const pWeapon = pData->Nuke_Payload) {
-				fired = SW_NuclearMissile::DropNukeAt(pType, target, pSilo, pThis->Owner, pWeapon);
+				fired = SW_NuclearMissile::DropNukeAt(pType, target, this->GetAlternateLauchSite(pData, pThis), pThis->Owner, pWeapon);
 			}
 		}
 
@@ -75,7 +75,7 @@ bool SW_NuclearMissile::Activate(SuperClass* const pThis, const CellStruct& Coor
 			// allies can see the target location before the enemy does
 			if (pData->SW_RadarEvent)
 			{
-				if (pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer))
+				if (pThis->Owner->IsAlliedWith_(HouseClass::CurrentPlayer))
 				{
 					RadarEventClass::Create(RadarEventType::SuperweaponActivated, Coords);
 				}
@@ -149,6 +149,19 @@ int SW_NuclearMissile::GetDamage(const SWTypeExt::ExtData* pData) const
 		damage = pData->Nuke_Payload ? pData->Nuke_Payload->Damage : 0;
 	}
 	return damage;
+}
+
+BuildingClass* SW_NuclearMissile::GetAlternateLauchSite(const SWTypeExt::ExtData* pData, SuperClass* pThis)
+{
+	for (auto pBuilding : pThis->Owner->Buildings) {
+		if (!this->IsLaunchsiteAlive(pBuilding))
+			continue;
+
+		if (this->IsSWTypeAttachedToThis(pData, pBuilding))
+			return pBuilding;
+	}
+
+	return nullptr;
 }
 
 bool SW_NuclearMissile::DropNukeAt(SuperWeaponTypeClass* pSuper, CoordStruct const& to, TechnoClass* Owner, HouseClass* OwnerHouse, WeaponTypeClass* pPayload)

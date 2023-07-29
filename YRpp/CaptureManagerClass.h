@@ -70,6 +70,7 @@ public:
 		{ JMP_THIS(0x471C90); }
 	bool CannotControlAnyMore() const
 		{ JMP_THIS(0x4722A0); }
+
 	bool IsControllingSomething() const
 		{ JMP_THIS(0x4722C0); }
 	bool IsOverloading(bool *wasDamageApplied) const

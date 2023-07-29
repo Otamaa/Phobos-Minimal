@@ -54,7 +54,7 @@ void CaptureObjectsCommandClass::Execute(WWKey eInput) const
 			if (Is_DriverKilled(techno))
 				Is_DriverKilled(techno) = false;
 
-			techno->SetOwningHouse(pToOwner);
+			techno->SetOwningHouse(pToOwner, false);
 		}
 	});
 

@@ -22,15 +22,13 @@ public:
 	public:
 
 		ValueableVector<ScriptActionNode> PhobosNode {};
-		ExtData(ScriptTypeClass* OwnerObject) : Extension<ScriptTypeClass>(OwnerObject)
-		{ 
-			PhobosNode.reserve(ScriptTypeClass::MaxActions); 
+		ExtData(ScriptTypeClass* OwnerObject) : Extension<ScriptTypeClass>(OwnerObject) {
+			PhobosNode.reserve(ScriptTypeClass::MaxActions);
 		}
 
 		virtual ~ExtData() override = default;
 		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 
 	private:
 		template <typename T>

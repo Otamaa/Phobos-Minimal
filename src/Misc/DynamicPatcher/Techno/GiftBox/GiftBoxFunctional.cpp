@@ -224,6 +224,8 @@ void GetGifts(const GiftBoxData& nData, std::vector<TechnoTypeClass*>& nOut)
 	}
 }
 
+#include <AircraftTrackerClass.h>
+
 void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 {
 	const auto pHouse = pOwner->GetOwningHouse();
@@ -261,9 +263,9 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 
 				if (auto pAir = specific_cast<AircraftClass*>(pGift))
 				{
-					if (pAir->IsInAir())
+					if (pAir->GetHeight() > 0)
 					{
-						pAir->Tracker_4134A0();
+						AircraftTrackerClass::Instance->Add(pAir);
 					}
 				}
 

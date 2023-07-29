@@ -3,18 +3,13 @@
 #include <ThemeClass.h>
 #include <Utilities/Helpers.h>
 
-void SideExt::ExtData::Initialize()
-{
-	auto const nIdx = SideClass::Array->FindItemIndex(this->Get());
-	this->ArrayIndex = nIdx;
-	this->Sidebar_GDIPositions = nIdx == 0; // true = Allied
-};
+void SideExt::ExtData::Initialize() {};
 
 bool SideExt::isNODSidebar()
 {
 	auto const PlayerSideIndex = ScenarioClass::Instance->PlayerSideIndex;
 	if (const auto pSide = SideClass::Array->GetItemOrDefault(PlayerSideIndex)) {
-		return !SideExt::ExtMap.Find(pSide)->Sidebar_GDIPositions;
+		return !SideExt::ExtMap.Find(pSide)->Sidebar_GDIPositions.Get(PlayerSideIndex == 0);
 	}
 
 	return PlayerSideIndex;
@@ -121,13 +116,12 @@ Iterator<int> SideExt::ExtData::GetParaDropNum() const
 	return this->GetDefaultParaDropNum();
 }
 
-
 void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 
-	if (!pINI->GetSection(pSection))
+	if (parseFailAddr)
 		return;
 
 	INI_EX exINI(pINI);
@@ -226,11 +220,14 @@ SideExt::ExtContainer::~ExtContainer() = default;
 // =============================
 // container hooks
 
-DEFINE_HOOK(0x6A4609, SideClass_CTOR, 0x7)
+DEFINE_HOOK(0x6A4600, SideClass_CTOR, 0x6)
 {
 	GET(SideClass*, pItem, ESI);
-	//GET(int, nIdx, ECX);
-	SideExt::ExtMap.Allocate(pItem);
+	GET(int, nIdx, EAX);
+
+	if(auto pExt = SideExt::ExtMap.Allocate(pItem))
+		pExt->ArrayIndex = nIdx;
+
 	return 0;
 }
 
@@ -266,16 +263,16 @@ DEFINE_HOOK(0x6A48FC, SideClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x679A10, SideClass_LoadAllFromINI, 0x5)
-{
-	GET_STACK(CCINIClass*, pINI, 0x4);
-
-	for (auto pSide : *SideClass::Array) {
-		SideExt::ExtMap.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
-	}
-
-	return 0;
-}
+// DEFINE_HOOK(0x679A10, SideClass_LoadAllFromINI, 0x5)
+// {
+// 	GET_STACK(CCINIClass*, pINI, 0x4);
+//
+// 	for (auto pSide : *SideClass::Array) {
+// 		SideExt::ExtMap.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
+// 	}
+//
+// 	return 0;
+// }
 
 /*
 FINE_HOOK(6725C4, RulesClass_Addition_Sides, 8)

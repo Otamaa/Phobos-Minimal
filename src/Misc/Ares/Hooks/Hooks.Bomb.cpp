@@ -396,13 +396,14 @@ DEFINE_OVERRIDE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_IvanBombsA, 5)
 
 	if (const auto pTargetType = pObject->GetTechnoType())
 	{
+		auto pTargetTypeExt = TechnoTypeExt::ExtMap.Find(pTargetType);
 		// Cursor Enter
-		AresData::SetMouseCursorAction(pTypeExt->Cursor_Enter.Get(), Action::Repair, false);
-		AresData::SetMouseCursorAction(pTypeExt->Cursor_Enter.Get(), Action::Enter, false);
+		AresData::SetMouseCursorAction(pTargetTypeExt->Cursor_Enter.Get(), Action::Repair, false);
+		AresData::SetMouseCursorAction(pTargetTypeExt->Cursor_Enter.Get(), Action::Enter, false);
 		//
 
 		// Cursor NoEnter
-		AresData::SetMouseCursorAction(pTypeExt->Cursor_NoEnter.Get(), Action::NoEnter, false);
+		AresData::SetMouseCursorAction(pTargetTypeExt->Cursor_NoEnter.Get(), Action::NoEnter, false);
 	}
 
 	return 0x0;

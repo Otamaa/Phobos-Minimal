@@ -9,7 +9,7 @@ namespace Helper
 	namespace Otamaa
 	{
 		inline AnimTypeClass* PickSplashAnim(NullableVector<AnimTypeClass*> const& nSplash, Nullable<AnimTypeClass*> const& nWake, bool Random, bool IsMeteor)
-		{		
+		{
 			if (nSplash.HasValue()) {
 				if (nSplash.size() > 0) {
 					return nSplash[Random ? ScenarioClass::Instance->Random.RandomFromMax((nSplash.size() - 1)) : 0];
@@ -27,7 +27,7 @@ namespace Helper
 
 				if (bWarheadDetonate)
 				{
-					WarheadTypeExt::DetonateAt(pWarhead, Where, pInvoker, nDamage);
+					WarheadTypeExt::DetonateAt(pWarhead, Where, pInvoker, nDamage , pOwner);
 				}
 				else
 				{

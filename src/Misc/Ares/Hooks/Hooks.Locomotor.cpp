@@ -259,7 +259,7 @@ bool NOINLINE AcquireHunterSeekerTarget(TechnoClass* pThis)  {
 					continue;
 				}
 			}
-			else if (!pSWExt && pOwner->IsAlliedWith(i->Owner)) {
+			else if (!pSWExt && pOwner->IsAlliedWith_(i->Owner)) {
 				// default without SW
 				continue;
 			}

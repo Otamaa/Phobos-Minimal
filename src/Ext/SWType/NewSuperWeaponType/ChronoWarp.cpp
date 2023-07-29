@@ -301,6 +301,24 @@ void SW_ChronoWarp::Initialize(SWTypeExt::ExtData* pData)
 	pData->CursorType = (int)MouseCursorType::Chronosphere;
 }
 
+bool SW_ChronoWarp::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+{
+	// get the previous super weapon
+	SuperClass* pSource = pBuilding->Owner->Supers.GetItemOrDefault(HouseExt::ExtMap.Find(pBuilding->Owner)->SWLastIndex);
+
+	if(!pSource) {
+		if (!this->IsLaunchsiteAlive(pBuilding))
+			return false;
+
+		if (!pData->SW_Lauchsites.empty() && pData->SW_Lauchsites.Contains(pBuilding->Type))
+			return true;
+
+		return this->IsSWTypeAttachedToThis(pData, pBuilding);
+	}
+
+	return SWTypeExt::ExtMap.Find(pSource->Type)->GetNewSWType()->IsLaunchSite(pData , pBuilding);
+}
+
 void ChronoWarpStateMachine::Update()
 {
 	int passed = this->TimePassed();
@@ -377,7 +395,7 @@ void ChronoWarpStateMachine::Update()
 
 			//auto const pBldExt = BuildingExt::ExtMap.Find(pBld);
 			//pBldExt->AboutToChronoshift = false;
-			Ares_AboutToChronoshift(pBld) = false; //TODO 
+			Ares_AboutToChronoshift(pBld) = false; //TODO
 
 			if (!success)
 			{

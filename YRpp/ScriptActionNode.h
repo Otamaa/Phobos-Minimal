@@ -13,8 +13,11 @@ public:
 
 	ScriptActionNode(int Act, int Arg) noexcept :
 		Action { Act }, Argument { Arg }
-	{
-	}
+	{ }
+
+	ScriptActionNode(TeamMissionType Act, int Arg) noexcept :
+		Action { Act }, Argument { Arg }
+	{ }
 
 	ScriptActionNode() noexcept = default;
 	~ScriptActionNode() noexcept = default;

@@ -175,7 +175,6 @@ bool CloneableLighningStormStateMachine::Save(PhobosStreamWriter& Stm) const
 
 void CloneableLighningStormStateMachine::Update()
 {
-
 	// remove all bolts from the list that are halfway done
 	for (auto i = BoltsPresent.Count - 1; i >= 0; --i)
 	{

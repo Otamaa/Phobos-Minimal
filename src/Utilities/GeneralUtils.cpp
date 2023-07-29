@@ -9,6 +9,7 @@
 #include <Utilities/Cast.h>
 
 #include <Ext/Techno/Body.h>
+#include <Ext/WarheadType/Body.h>
 #include <TranslateFixedPoints.h>
 
 #include <Locomotor/CLSIDs.h>
@@ -65,7 +66,8 @@ void GeneralUtils::AdjacentCellsInRange(std::vector<CellStruct>& nCells, size_t 
 
 const double GeneralUtils::GetWarheadVersusArmor(WarheadTypeClass* pWH, Armor const ArmorType)
 {
-	return double(MapClass::GetTotalDamage(100, pWH, ArmorType, 0)) / 100.0;
+	const auto& verses = WarheadTypeExt::ExtMap.Find(pWH)->GetVerses(ArmorType);
+	return verses.Verses;
 }
 
 const bool GeneralUtils::ProduceBuilding(HouseClass* pOwner, int idxBuilding)

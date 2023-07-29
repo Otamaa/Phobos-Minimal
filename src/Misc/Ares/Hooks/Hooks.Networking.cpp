@@ -23,16 +23,6 @@ namespace Fix
 {
 	static constexpr reference<uint8_t, 0x8208ECu,46u> const EventLengthArr {};
 
-	unsigned int EventLength_Hares(int nInput)
-	{
-		if (nInput == 0x80)
-			return 10;
-		if (nInput == 0x81 || nInput == 0x82)
-			return 5;
-
-		return NetworkEvent::EventLength[nInput];
-	}
-
 	int NOINLINE EventLength(AresNetEvent::Events nInput)
 	{
 		if ((uint8_t)nInput <= 0x2Eu) // default event
@@ -257,7 +247,7 @@ DEFINE_OVERRIDE_HOOK(0x443414, BuildingClass_ActionOnObject, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4C6CCD, Networking_RespondToEvent, 0)
+DEFINE_OVERRIDE_HOOK(0x4C6CCD, Networking_RespondToEvent, 0xA)
 {
 	GET(DWORD, EventKind, EAX);
 	GET(NetworkEvent *, Event, ESI);

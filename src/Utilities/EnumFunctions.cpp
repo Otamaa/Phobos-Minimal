@@ -261,7 +261,7 @@ std::array<std::pair<const char* const, AffectedTarget>, 15u> EnumFunctions::Aff
 }
 };
 
-std::array<std::pair<const char* const, SuperWeaponAITargetingMode>, 21u> EnumFunctions::SuperWeaponAITargetingMode_ToStrings
+std::array<std::pair<const char* const, SuperWeaponAITargetingMode>, 23u> EnumFunctions::SuperWeaponAITargetingMode_ToStrings
 {
 {
 	{NONE_STR2 , SuperWeaponAITargetingMode::None} ,
@@ -284,7 +284,9 @@ std::array<std::pair<const char* const, SuperWeaponAITargetingMode>, 21u> EnumFu
 	{"lowpower", SuperWeaponAITargetingMode::LowPower },
 	{"lowpowerattack", SuperWeaponAITargetingMode::LowPowerAttack } ,
 	{"droppod", SuperWeaponAITargetingMode::DropPod } ,
-	{"lightningrandom", SuperWeaponAITargetingMode::LightningRandom }
+	{"lightningrandom", SuperWeaponAITargetingMode::LightningRandom } ,
+	{"lauchsite", SuperWeaponAITargetingMode::LauchSite },
+	{ "findauxtechno", SuperWeaponAITargetingMode::FindAuxTechno }
 }
 };
 
@@ -446,7 +448,10 @@ std::array<const char*, (size_t)DisplayInfoType::count> EnumFunctions::DisplayIn
 	{ "tiberium" },
 	{ "experience" },
 	{ "occupants" },
-	{ "gattlingstage" }
+	{ "gattlingstage" },
+	{ "ironcurtain" } ,
+	{ "disableweapon" },
+	{ "cloakdisable" }
 }
 };
 
@@ -460,7 +465,7 @@ bool EnumFunctions::CanTargetHouse(AffectedHouse const &flags, HouseClass* owner
 		if ((flags & AffectedHouse::Owner) && ownerHouse == targetHouse)
 			return true;
 
-		const auto IsAlly = ownerHouse->IsAlliedWith(targetHouse);
+		const auto IsAlly = ownerHouse->IsAlliedWith_(targetHouse);
 		return (flags & AffectedHouse::Allies) && ownerHouse != targetHouse && IsAlly ||
 			   (flags & AffectedHouse::Enemies) && ownerHouse != targetHouse && !IsAlly;
 	}

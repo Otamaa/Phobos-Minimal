@@ -2,7 +2,7 @@
 #include <Misc/AresData.h>
 
 #include <Ext/WarheadType/Body.h>
-//TODO : rethink the implementaion of IonBlastClass
+
 std::vector<const char*> SW_IonCannon::GetTypeString() const
 {
 	return { "IonCannon" };
@@ -202,7 +202,7 @@ bool IonCannonStateMachine::Save(PhobosStreamWriter& Stm) const
 		.Success();
 }
 
-void NOINLINE IonCannonStateMachine::Fire()
+void IonCannonStateMachine::Fire()
 {
 	const auto pData = this->GetTypeExtData();
 	HouseClass* pFirer = this->Owner;
@@ -249,7 +249,6 @@ void NOINLINE IonCannonStateMachine::Fire()
 	}
 
 	//TODO , destroy bridges
-
 }
 
 void IonCannonStateMachine::InvalidatePointer(void* ptr, bool remove)

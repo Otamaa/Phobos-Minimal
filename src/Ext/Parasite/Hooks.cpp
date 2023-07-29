@@ -116,7 +116,7 @@ DEFINE_HOOK(0x62A16A, ParasiteClass_AI_DisableRocking, 0x5)
 	enum { DealDamage = 0x62A222 , Continue = 0x0 };
 	GET(ParasiteClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const, pWeapon, EDI);
-	
+
 	if (pThis->Victim->IsAttackedByLocomotor)
 		return DealDamage;
 
@@ -135,14 +135,14 @@ DEFINE_HOOK(0x62A222, ParasiteClass_AI_DealDamage, 0x6)
 	auto const pWarheadTypeExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
 
 	if (pWarheadTypeExt->Parasite_Damaging_Chance.isset()
-		&& ScenarioClass::Instance->Random.RandomDouble() >= 
+		&& ScenarioClass::Instance->Random.RandomDouble() >=
 		abs(pWarheadTypeExt->Parasite_Damaging_Chance.Get())
 		) {
 		return SkipDamaging;
 	}
 
 	if (auto const pInvestationWP = pWarheadTypeExt->Parasite_InvestationWP.Get(nullptr)) {
-		WeaponTypeExt::DetonateAt(pInvestationWP,pThis->Victim, pThis->Owner , true);
+		WeaponTypeExt::DetonateAt(pInvestationWP,pThis->Victim, pThis->Owner , true , nullptr);
 		return SkipDamaging;
 	}
 

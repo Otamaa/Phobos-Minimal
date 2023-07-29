@@ -302,6 +302,7 @@ public:
 		Valueable<bool> BunkerRaidable { false };
 		Valueable<bool> Firestorm_Wall { false };
 
+		NullableIdx<VocClass> AbandonedSound {};
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject) { }
 		virtual ~ExtData() override = default;
 

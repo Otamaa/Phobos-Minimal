@@ -351,7 +351,7 @@ DEFINE_OVERRIDE_HOOK(0x51EB48, InfantryClass_GetActionOnObject_IvanGrinder, 0xA)
 	GET(ObjectClass*, pTarget, ESI);
 
 	if (auto pTargetBld = abstract_cast<BuildingClass*>(pTarget)) {
-		if (pTargetBld->Type->Grinding && pThis->Owner->IsAlliedWith(pTargetBld)) {
+		if (pTargetBld->Type->Grinding && pThis->Owner->IsAlliedWith_(pTargetBld)) {
 
 			if (!InputManagerClass::Instance->IsForceFireKeyPressed()) {
 				static constexpr BYTE return_grind[] = {

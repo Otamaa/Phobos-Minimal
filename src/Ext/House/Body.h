@@ -52,7 +52,6 @@ public:
 
 		PhobosMap<BuildingTypeClass*, int> PowerPlantEnhancerBuildings {};
 		PhobosMap<BuildingTypeClass*, int> Building_BuildSpeedBonusCounter {};
-		std::vector<BuildingClass*> HouseAirFactory {};
 
 		bool ForceOnlyTargetHouseEnemy { false };
 		int ForceOnlyTargetHouseEnemyMode { -1 };
@@ -87,6 +86,7 @@ public:
 		std::vector<SuperClass*> Batteries {};
 		std::vector<HouseTypeClass*> Factories_HouseTypes {};
 
+		int AvaibleDocks { 0 };
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 		{ }
 
@@ -203,5 +203,5 @@ public:
 	}
 
 	static TunnelData* GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx);
-	static TunnelData* GetTunnels(BuildingTypeClass* pBld, HouseClass* pHouse);
+	static TunnelData* GetTunnelVector(BuildingTypeClass* pBld, HouseClass* pHouse);
 };

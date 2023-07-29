@@ -4,7 +4,7 @@
 #include <Ext/Side/Body.h>
 
 IStream* SidebarExt::g_pStm = nullptr;
-std::array<UniqueGamePtrB<SHPStruct>, 4u> SidebarExt::TabProducingProgress;
+std::array<SHPReference*, 4u> SidebarExt::TabProducingProgress {};
  std::unique_ptr<SidebarExt::ExtData> SidebarExt::Data = nullptr;
 
 void SidebarExt::Allocate(SidebarClass* pThis)
@@ -19,11 +19,12 @@ void SidebarExt::Remove(SidebarClass* pThis)
 
 void SidebarExt::DrawProducingProgress()
 {
-	if (HouseExt::IsObserverPlayer())
+	const auto pPlayer = HouseClass::CurrentPlayer();
+
+	if (HouseExt::IsObserverPlayer(pPlayer))
 		return;
 
 	if (Phobos::UI::ShowProducingProgress) {
-		const auto pPlayer = HouseClass::CurrentPlayer();
 		const auto pSideExt = SideExt::ExtMap.Find(SideClass::Array->GetItem(pPlayer->SideIndex));
 
 		if (!pSideExt)
@@ -34,7 +35,7 @@ void SidebarExt::DrawProducingProgress()
 		const int YBase = 197 + pSideExt->Sidebar_ProducingProgress_Offset.Get().Y;
 
 		for (int i = 0; i < (int)SidebarExt::TabProducingProgress.size(); i++) {
-			if (const auto pSHP = SidebarExt::TabProducingProgress[i].get()) {
+			if (auto pSHP = SidebarExt::TabProducingProgress[i]) {
 
 				const auto rtti = i == 0 || i == 1 ? AbstractType::BuildingType : AbstractType::InfantryType;
 				FactoryClass* pFactory = nullptr;
@@ -49,17 +50,17 @@ void SidebarExt::DrawProducingProgress()
 						pFactory = pPlayer->GetPrimaryFactory(AbstractType::AircraftType, false, BuildCat::DontCare);
 				}
 
-				const int idxFrame = pFactory
-					? (int)(((double)pFactory->GetProgress() / 54) * (pSHP->Frames - 1))
-					: -1;
+				if(pFactory) {
 
-				Point2D vPos = { XBase + i * XOffset, YBase };
-				RectangleStruct sidebarRect = DSurface::Sidebar()->Get_Rect();
+					const int idxFrame = (int)(((double)pFactory->GetProgress() / 54) * (pSHP->Frames - 1)) ;
+					Point2D vPos = { XBase + i * XOffset, YBase };
+					RectangleStruct sidebarRect = DSurface::Sidebar()->Get_Rect();
 
-				if (idxFrame != -1)
-				{
-					DSurface::Sidebar()->DrawSHP(FileSystem::SIDEBAR_PAL, pSHP, idxFrame, &vPos,
-						&sidebarRect, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+					if (idxFrame != -1)
+					{
+						DSurface::Sidebar()->DrawSHP(FileSystem::SIDEBAR_PAL, pSHP, idxFrame, &vPos,
+							&sidebarRect, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+					}
 				}
 			}
 		}

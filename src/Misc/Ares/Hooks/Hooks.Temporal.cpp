@@ -165,7 +165,7 @@ bool conductAbduction(WeaponTypeExt::ExtData* pData , TechnoClass* pOwner, Abstr
 	}
 
 	Target->Transporter = Attacker;
-	if (AttackerType->OpenTopped && Target->Owner->IsAlliedWith(Attacker)) {
+	if (AttackerType->OpenTopped && Target->Owner->IsAlliedWith_(Attacker)) {
 		Attacker->EnteredOpenTopped(Target);
 	}
 

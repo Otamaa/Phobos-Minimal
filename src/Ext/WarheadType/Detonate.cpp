@@ -25,6 +25,7 @@
 
 #include <New/Entity/VerticalLaserClass.h>
 #include <Misc/AresData.h>
+#include <Misc/Ares/Hooks/AresNetEvent.h>
 
 void WarheadTypeExt::ExtData::ApplyLocomotorInfliction(TechnoClass* pTarget)
 {
@@ -317,7 +318,7 @@ void WarheadTypeExt::ExtData::applyTransactMoney(TechnoClass* pOwner, HouseClass
 							}
 						}
 
-						if (pHouse->IsAlliedWith(pBulletTargetHouse))
+						if (pHouse->IsAlliedWith_(pBulletTargetHouse))
 						{
 							if (Transact_AffectsAlly.Get() && pBulletTargetHouse != pHouse)
 							{
@@ -435,30 +436,6 @@ bool NOINLINE IsCellSpreadWH(WarheadTypeExt::ExtData* pData)
 
 void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct coords)
 {
-	//if (pBullet && pBullet->WeaponType && (pBullet->WeaponType->IsLaser) && pOwner) {
-
-	//	const auto it = std::find_if(VerticalLaserClass::Array.begin(), VerticalLaserClass::Array.end(), [pOwner](auto const pData) { return pData->Owner == pOwner;  });
-	//	if(VerticalLaserClass::Array.empty() || it == VerticalLaserClass::Array.end()){
-
-	//		int nHeight = 0;
-	//		switch (pBullet->Target->WhatAmI())
-	//		{
-	//		case AbstractType::Building:
-	//		case AbstractType::Infantry:
-	//		case AbstractType::Aircraft:
-	//		case AbstractType::Unit:
-	//			nHeight = static_cast<TechnoClass*>(pBullet->Target)->GetHeight();
-	//			break;
-	//		default:
-	//			nHeight = Map.GetCellFloorHeight(coords);
-	//			break;
-	//		}
-
-	//		if (auto pLaser = GameCreate<VerticalLaserClass>(pBullet->WeaponType, coords, nHeight))
-	//			pLaser->Owner = pOwner;
-	//	}
-	//}
-
 	VocClass::PlayIndexAtPos(Sound, coords);
 	if (!this->DetonateParticleSystem.empty()) {
 		for (auto const& pSys : this->DetonateParticleSystem) {
@@ -470,7 +447,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 	{
 		for (auto const& pWeapon : this->DetonatesWeapons)
 		{
-			WeaponTypeExt::DetonateAt(pWeapon, coords, pOwner, true);
+			WeaponTypeExt::DetonateAt(pWeapon, coords, pOwner, true , pHouse);
 		}
 	}
 
@@ -494,13 +471,24 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 		 !HouseExt::IsObserverPlayer(pOtherHouse) &&		  // Not Observer
 		 !pOtherHouse->Defeated &&			  // Not Defeated
 		 pOtherHouse != pHouse &&			  // Not pThisHouse
-		 !pHouse->IsAlliedWith(pOtherHouse))   // Not Allied
+		 !pHouse->IsAlliedWith_(pOtherHouse))   // Not Allied
 	 {
 		 pOtherHouse->ReshroudMap();
 	 }
 			});
 		}
-		SW_Reveal::RevealMap(CellClass::Coord2Cell(coords), (float)this->Reveal.Get(), 0, pHouse);
+
+		if (this->Reveal < 0)
+		{
+			MapClass::Instance->Reveal(pHouse);
+			if (SessionClass::Instance->GameMode == GameMode::Internet || SessionClass::Instance->GameMode == GameMode::LAN)
+				AresNetEvent::Handlers::RaiseRevealMap(pHouse);
+		}
+		else if (this->Reveal > 0)
+		{
+			SW_Reveal::RevealMap(CellClass::Coord2Cell(coords), (float)this->Reveal.Get(), 0, pHouse);
+		}
+
 		this->applyTransactMoney(pOwner, pHouse, pBullet, coords);
 	}
 
@@ -580,6 +568,9 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 
 	this->applyIronCurtain(pTarget, pHouse, pBullet ? pBullet->WeaponType ? pBullet->WeaponType->Damage : 0 : 0);
 
+	if (!pTarget->IsAlive)
+		return;
+
 	if (!this->LimboKill_IDs.empty()) {
 		BuildingExt::ApplyLimboKill(this->LimboKill_IDs, this->LimboKill_Affected, pTarget->Owner, pHouse);
 	}
@@ -647,6 +638,9 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 
 void WarheadTypeExt::ExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 {
+	if (!pTarget)
+		return;
+
 	auto pExt = TechnoExt::ExtMap.Find(pTarget);
 
 

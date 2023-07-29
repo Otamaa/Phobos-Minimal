@@ -373,24 +373,21 @@ DEFINE_HOOK(0x51EAF2, TechnoClass_WhatAction_AllowAirstrike, 0x6)
 }
 
 // Basically a hack to make game and Ares pick laser properties from non-Primary weapons.
-DEFINE_HOOK(0x70E1A5, TechnoClass_GetTurretWeapon_LaserWeapon, 0x6)
+DEFINE_HOOK(0x70E1A0, TechnoClass_GetTurretWeapon_LaserWeapon, 0x5)
 {
-	enum { ReturnResult = 0x70E1C7, Continue = 0x70E1AB };
 
-	GET(TechnoClass* const, pThis, ESI);
+
+	GET(TechnoClass* const, pThis, ECX);
 
 	if (Is_Building(pThis))
 	{
 		auto const pExt = TechnoExt::ExtMap.Find(pThis);
 
-		if (!pExt->CurrentLaserWeaponIndex.empty())
-		{
-			R->EAX(pThis->GetWeapon(pExt->CurrentLaserWeaponIndex.get()));
-			return ReturnResult;
+		if (!pExt->CurrentLaserWeaponIndex.empty()) {
+			R->EAX(pThis->GetWeapon(pExt->CurrentLaserWeaponIndex));
+			return 0x70E1C8;
 		}
 	}
 
-	// Restore overridden instructions.
-	R->EAX(pThis->GetTechnoType());
-	return Continue;
+	return 0;
 }

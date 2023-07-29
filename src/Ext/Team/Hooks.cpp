@@ -1,43 +1,115 @@
 #include "Body.h"
 
+#include <Ext/Script/Body.h>
+
 #include <Ext/TechnoType/Body.h>
 
-bool NOINLINE GroupAllowed(const std::string& nFirst, const std::string& nSecond)
+DEFINE_HOOK(0x6E9443, TeamClass_AI, 0x8)
 {
-	if (nFirst.empty() || nSecond.empty())
-		return false;
+	GET(TeamClass*, pTeam, ESI);
 
-	auto nNone = NONE_STR;
-	auto nNone2 = NONE_STR2;
-	if (IS_SAME_STR_(nFirst.c_str(), nNone)
-		|| IS_SAME_STR_(nSecond.c_str(), nNone)
-		|| IS_SAME_STR_(nFirst.c_str(), nNone2)
-		|| IS_SAME_STR_(nSecond.c_str(), nNone2)
-		)
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+
+	// Force a line jump. This should support vanilla YR Actions
+	if (pTeamData->ForceJump_InitialCountdown > 0 && pTeamData->ForceJump_Countdown.Expired())
 	{
-		return false;
+		auto pScript = pTeam->CurrentScript;
+
+		if (pTeamData->ForceJump_RepeatMode)
+		{
+			auto currentMission = std::exchange(pScript->CurrentMission , pScript->CurrentMission -1);
+			pTeam->Focus = nullptr;
+			pTeam->QueuedFocus = nullptr;
+			const auto nextAction = pScript->GetNextAction();
+			Debug::Log("DEBUG: [%s] [%s](line: %d = %d,%d): Jump to the same line -> (Reason: Timed Jump loop)\n",
+				pTeam->Type->ID,
+				pScript->Type->ID,
+				currentMission,
+				nextAction.Action,
+				nextAction.Argument);
+
+			if (pTeamData->ForceJump_InitialCountdown > 0)
+			{
+				pTeamData->ForceJump_Countdown.Start(pTeamData->ForceJump_InitialCountdown);
+				pTeamData->ForceJump_RepeatMode = true;
+			}
+		}
+		else
+		{
+			pTeamData->ForceJump_InitialCountdown = -1;
+			Debug::Log("DEBUG: [%s] [%s](line: %d = %d,%d): Jump to line: %d = %d,%d -> (Reason: Timed Jump)\n", pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, pScript->CurrentMission + 1, pScript->GetNextAction().Action, pScript->GetNextAction().Argument);
+		}
+
+		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
+		{
+			if (pUnit
+				&& pUnit->IsAlive
+				&& pUnit->Health > 0
+				&& !pUnit->InLimbo)
+			{
+				pUnit->EnterIdleMode(false , 1);
+			}
+		}
+
+		pTeam->StepCompleted = true;
+
+	}
+	else
+	{
+		ScriptExt::ProcessScriptActions(pTeam);
 	}
 
-	return IS_SAME_STR_(nSecond.c_str(), nSecond.c_str());
+	return 0;
 }
 
+// Take NewINIFormat into account just like the other classes does
+// Author: secsome
+DEFINE_HOOK(0x6E95B3, TeamClass_AI_MoveToCell, 0x6)
+{
+	if (!R->BL())
+		return 0x6E95A4;
+
+	GET(int, nCoord, ECX);
+	REF_STACK(CellStruct, cell, STACK_OFFS(0x38, 0x28));
+
+	// if ( NewINIFormat < 4 ) then divide 128
+	// in other times we divide 1000
+	const int nDivisor = ScenarioClass::NewINIFormat() < 4 ? 128 : 1000;
+	cell.X = static_cast<short>(nCoord % nDivisor);
+	cell.Y = static_cast<short>(nCoord / nDivisor);
+
+	R->EAX(MapClass::Instance->GetCellAt(cell));
+	return 0x6E959C;
+}
 bool NOINLINE GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat)
 {
-	if (pThis == pThat)
+	if (pThis == pThat) //default comparison result
 		return true;
 
-	//InfantryClass doesnt support this ,..
-   // if (Is_InfantryType(pThis))
-	//	return false;
+	const auto pThatTechExt = TechnoTypeExt::ExtMap.TryFind(pThat);
+	const auto pThisTechExt = TechnoTypeExt::ExtMap.TryFind(pThis);
 
-	const auto pThatTechExt = TechnoTypeExt::ExtMap.Find(pThat);
-	const auto pThisTechExt = TechnoTypeExt::ExtMap.Find(pThis);
-
-	if (!pThatTechExt || !pThisTechExt || pThatTechExt->IsDummy.Get())
+	if (!pThatTechExt || !pThisTechExt)
 		return false;
 
-	return GroupAllowed(pThatTechExt->GroupAs.data(), pThisTechExt->GroupAs.data());
+	if (GeneralUtils::IsValidString(pThatTechExt->GroupAs)) return IS_SAME_STR_(pThis->ID, pThatTechExt->GroupAs.c_str());
+	else if (GeneralUtils::IsValidString(pThisTechExt->GroupAs)) return  IS_SAME_STR_(pThat->ID, pThisTechExt->GroupAs.c_str());
+
+	return false;
 }
+
+//6EF57F
+//DEFINE_HOOK(0x6EF577, TeamClass_GetMissionMemberTypes, 0x6)
+//{
+//	GET(TechnoTypeClass*, pCurMember, EAX);
+//	GET(DynamicVectorClass<TechnoTypeClass*>*, OutVector , ESI);
+//
+//	return  OutVector->any_of([=](TechnoTypeClass* pMember) {
+//		return pMember == pCurMember || GroupAllowed(pMember, pCurMember);
+//	}) ?
+//		//add member : // skip
+//		0x6EF584 : 0x6EF5A5;
+//}
 
 DEFINE_HOOK(0x6EAD86, TeamClass_CanAdd_CompareType_Convert_UnitType, 0x7) //6
 {
@@ -56,53 +128,24 @@ DEFINE_HOOK(0x6EAD86, TeamClass_CanAdd_CompareType_Convert_UnitType, 0x7) //6
 		ContinueCheck : ContinueLoop;
 }
 
-void NOINLINE CompareGroup(int* pData, int nMax, TaskForceClass* pTask, TechnoTypeClass* pThat)
+DEFINE_HOOK(0x6EA6D3, TeamClass_CanAdd_ReplaceLoop, 0x7)
 {
-	int temp = 0;
+	GET(TaskForceClass*, pForce, EDX);
+	GET(TechnoTypeClass*, pThat, EAX);
+	GET(int, idx, EDI);
 
-	do
-	{
-		temp = *pData;
-		if (pTask->Entries[temp].Type == pThat)
-			break;
-
-		*pData = temp + 1;
-
-	}
-	while ((temp + 1) < nMax);
+	return GroupAllowed(pForce->Entries[idx].Type , pThat) ? 0x6EA6F2 : 0x6EA6DC;
 }
 
-DEFINE_HOOK(0x6EA6A5, TeamClass_CanAdd_ReplaceLoop, 0x6)
+DEFINE_HOOK(0x50968F, HouseClass_CreateTeam_recuitType, 0x6)
 {
-	GET(TeamClass*, pThis, EBP);
-	GET(TechnoClass*, pThat, ESI);
-	GET(int*, pMissMatchCount, EBX);
+	GET(TechnoTypeClass*, pThis, EBX);
+	GET(FootClass* , pFoot ,ESI);
+	GET(HouseClass* , pThisOwner ,EBP);
 
-	*pMissMatchCount = 0;
+	return (pFoot->Owner == pThisOwner && GroupAllowed(pThis, pFoot->GetTechnoType())) ?
 
-	if (pThis->Type->TaskForce->CountEntries > 0) {
-		CompareGroup(pMissMatchCount, pThis->Type->TaskForce->CountEntries, pThis->Type->TaskForce, pThat->GetTechnoType());
-	}
-
-	R->EBX(pMissMatchCount);
-	return 0x6EA6F2;
+	//GET(TechnoTypeClass*, pThat, EAX);
+	//return GroupAllowed(pThis, pThat) ?
+		0x5096A5 : 0x5096B4;
 }
-
-
-#ifdef BROKE_
-DEFINE_HOOK(0x6EA6CD, TeamClass_Recuits_CompareType_Convert_All, 0x6)
-{
-	enum
-	{
-		Break = 0x6EA6F2,
-		ContinueLoop = 0x6EA6DC
-	};
-
-	GET(TechnoTypeClass*, pGoingToBeRecuited, EAX);
-	GET(TeamTypeClass*, pTeam, ECX);
-	GET(int, nMemberIdx, EDI);
-
-	return GroupAllowed(pTeam->TaskForce->Entries[nMemberIdx].Type, pGoingToBeRecuited) ?
-		Break : ContinueLoop;
-}
-#endif

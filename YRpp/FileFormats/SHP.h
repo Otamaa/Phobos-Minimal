@@ -90,11 +90,11 @@ struct SHPReference : public SHPStruct
 	SHPReference(const char* filename)
 		{ JMP_THIS(0x69E430); }
 
-	//SHPFile* GetData()
-	//	{ JMP_THIS(0x69E580); }
+	SHPFile* GetData()
+		{ JMP_THIS(0x69E580); }
 
 	char*			Filename;
-	SHPStruct*		Data;
+	SHPFile*		Data;
 	bool			Loaded;
 	int				Index;
 	//linked list of all SHPReferences
@@ -109,7 +109,7 @@ struct SHPFrame
 
 	short		Left; //X
 	short		Top; //Y
-	short		Width; 
+	short		Width;
 	short		Height;
 	DWORD		Flags;
 	ColorStruct	Color;

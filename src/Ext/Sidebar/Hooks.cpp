@@ -11,10 +11,16 @@ DEFINE_HOOK(0x6A593E, SidebarClass_InitForHouse_AdditionalFiles, 0x5)
 	char filename[0x20];
 
 	for (int i = 0; i < (int)SidebarExt::TabProducingProgress.size(); i++) {
-		IMPL_SNPRNINTF(filename,sizeof(filename), "tab%02dpp%s", i , GameStrings::dot_SHP());
 
-		if(const auto pFile = FileSystem::LoadSHPFile(filename))
-			SidebarExt::TabProducingProgress[i].reset(pFile);
+		auto& shp = SidebarExt::TabProducingProgress[i];
+
+		if(!shp) {
+			IMPL_SNPRNINTF(filename,sizeof(filename), "tab%02dpp%s", i , GameStrings::dot_SHP());
+
+			if (auto pFile = FileSystem::LoadSHPRef(filename)) {
+				shp = pFile;
+			}
+		}
 	}
 
 	return 0;
@@ -22,8 +28,18 @@ DEFINE_HOOK(0x6A593E, SidebarClass_InitForHouse_AdditionalFiles, 0x5)
 
 DEFINE_HOOK(0x6A5EA1, SidebarClass_UnloadShapes_AdditionalFiles, 0x5)
 {
-	for (auto& nShps : SidebarExt::TabProducingProgress) {
-		nShps.reset(nullptr);
+	if (!Phobos::Otamaa::ExeTerminated)
+		return 0x0;
+
+	for (int i = 0; i < (int)SidebarExt::TabProducingProgress.size(); i++)
+	{
+		auto& shp = SidebarExt::TabProducingProgress[i];
+
+		if(shp){
+			GameDelete<false, false>(shp);
+		}
+
+		shp = nullptr;
 	}
 
 	return 0;

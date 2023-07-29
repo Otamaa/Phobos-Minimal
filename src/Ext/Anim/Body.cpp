@@ -203,7 +203,7 @@ DWORD AnimExt::DealDamageDelay(AnimClass* pThis)
 	{
 		AbstractClass* pTarget = AnimExt::GetTarget(pThis);
 		// use target loc instead of anim loc , it doesnt work well with bridges
-		WeaponTypeExt::DetonateAt(pWeapon, pTarget ? pTarget->GetCoords() : nCoord, pTarget, pInvoker, nDamageResult , false);
+		WeaponTypeExt::DetonateAt(pWeapon, pTarget ? pTarget->GetCoords() : nCoord, pTarget, pInvoker, nDamageResult , false , pOwner);
 	}
 	else
 	{
@@ -214,12 +214,12 @@ DWORD AnimExt::DealDamageDelay(AnimClass* pThis)
 		{
 			AbstractClass* pTarget = AnimExt::GetTarget(pThis);
 			// use target loc instead of anim loc , it doesnt work well with bridges
-			WarheadTypeExt::DetonateAt(pWarhead, pTarget , pTarget ? pTarget->GetCoords() : nCoord, pInvoker, nDamageResult);
+			WarheadTypeExt::DetonateAt(pWarhead, pTarget , pTarget ? pTarget->GetCoords() : nCoord, pInvoker, nDamageResult , pOwner);
 
 		} else {
 
 			MapClass::DamageArea(nCoord, nDamageResult, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
-			MapClass::FlashbangWarheadAt(nDamageResult, pWarhead, nCoord); 
+			MapClass::FlashbangWarheadAt(nDamageResult, pWarhead, nCoord);
 		}
 	}
 

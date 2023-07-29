@@ -67,7 +67,7 @@ bool SW_ChronoSphere::Activate(SuperClass* const pThis, const CellStruct& Coords
 }
 
 void SW_ChronoSphere::Initialize(SWTypeExt::ExtData* pData)
-{ 
+{
 	pData->SW_AnimVisibility = AffectedHouse::Team;
 	pData->SW_AnimHeight = 5;
 
@@ -83,7 +83,7 @@ void SW_ChronoSphere::Initialize(SWTypeExt::ExtData* pData)
 	pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_ChronosphereReady);
 	pData->EVA_Detected = VoxClass::FindIndexById(GameStrings::EVA_ChronosphereDetected);
 	pData->EVA_Activated = VoxClass::FindIndexById(GameStrings::EVA_ChronosphereActivated);
-	
+
 	pData->SW_AffectsTarget = SuperWeaponTarget::Infantry | SuperWeaponTarget::Unit;
 	pData->CursorType = (int)MouseCursorType::Chronosphere;
 }
@@ -127,4 +127,15 @@ AnimTypeClass* SW_ChronoSphere::GetAnim(const SWTypeExt::ExtData* pData) const
 SWRange SW_ChronoSphere::GetRange(const SWTypeExt::ExtData* pData) const
 {
 	return pData->SW_Range->empty() ? SWRange{3, 3} : pData->SW_Range;
+}
+
+bool SW_ChronoSphere::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+{
+	if (!this->IsLaunchsiteAlive(pBuilding))
+		return false;
+
+	if (!pData->SW_Lauchsites.empty() && pData->SW_Lauchsites.Contains(pBuilding->Type))
+		return true;
+
+	return this->IsSWTypeAttachedToThis(pData, pBuilding);
 }

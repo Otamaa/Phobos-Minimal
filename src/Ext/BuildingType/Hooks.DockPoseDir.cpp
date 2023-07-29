@@ -1,5 +1,7 @@
 #include "Body.h"
-
+/*
+* disable due to some radio contact bug , that can use aircraft to dock using wrong facing
+*/
 DEFINE_HOOK(0x464A21, BuildingTypeClass_ReadFromINI_Dock, 0x5)
 {
 	GET(BuildingTypeClass*, pThis, EBP);
@@ -39,41 +41,19 @@ static DirStruct GetPoseDir(BuildingClass* pBld, AircraftClass* pAir, int nDefau
 	}
 }
 
+#include <AircraftTrackerClass.h>
+
 DEFINE_HOOK(0x446FA2, BuildingClass_GrandOpening_PoseDir, 0x6)
 {
 	GET(BuildingClass*, pThis, EBP);
 	GET(AircraftClass*, pAir, ESI);
 	pThis->SendCommand(RadioCommand::RequestTether, pAir);
 	pAir->SecondaryFacing.Set_Current(GetPoseDir(pThis, pAir, 0));
+
+	if (pThis->GetHeight() > 0)
+		AircraftTrackerClass::Instance->Add(pThis);
+
 	return 0x446FB0;
-}
-
-DEFINE_HOOK(0x687AF4, CCINIClass_InitializeStuffOnMap_AdjustAircrafts, 0x5)
-{
-	std::for_each(AircraftClass::Array->begin(), AircraftClass::Array->end(), [](AircraftClass* const pThis)
- {
-	 if (pThis && pThis->Type->AirportBound)
-	 {
-		 if (auto pCell = pThis->GetCell())
-		 {
-			 if (auto pBuilding = pCell->GetBuilding())
-			 {
-				 if (pBuilding->Type->Helipad)
-				 {
-					 pBuilding->SendCommand(RadioCommand::RequestLink, pThis);
-					 pBuilding->SendCommand(RadioCommand::RequestTether, pThis);
-					 pThis->SetLocation(pBuilding->GetDockCoords(pThis));
-					 pThis->DockedTo = pBuilding;
-					 pThis->SecondaryFacing.Set_Current(GetPoseDir(pBuilding, pThis, 0));
-					 if (pThis->GetHeight() > 0)
-						 pThis->Tracker_4134A0();
-				 }
-			 }
-		 }
-	 }
-	});
-
-	return 0x0;
 }
 
 #ifndef checkradio
@@ -87,8 +67,23 @@ DEFINE_HOOK(0x444014, BuildingClass_ExitObject_PoseDir_A, 0x5)
 	pAir->SetLocation(pThis->GetDockCoords(pAir));
 	pAir->DockedTo = pThis;
 	pAir->SecondaryFacing.Set_Current(GetPoseDir(pThis, pAir, 0));
+
+	if (pAir->GetHeight() > 0)
+		AircraftTrackerClass::Instance->Add(pAir);
+
 	return 0x444053;
 }
+
+DEFINE_HOOK(0x443FD8, BuildingClass_ExitObject_AircraftTracker, 0x8)
+{
+	GET(AircraftClass*, pAir, ESI);
+
+	if (pAir->GetHeight() > 0)
+		AircraftTrackerClass::Instance->Add(pAir);
+
+	return 0x0;
+}
+
 #else
 DEFINE_HOOK(0x444053, BuildingClass_ExitObject_PoseDir_A, 0x6)
 {
@@ -220,13 +215,13 @@ DEFINE_HOOK(0x41B780, IFlyControl_LandDirection_InRadioContact , 0x5)
 
 		if (!pExt->DockPoseDir.empty() && nIdx != -1) {
 			R->EAX(abs(pExt->DockPoseDir[nIdx]));
-			return SetFromValue; //we return here , similar to Rules->PoseDir 
+			return SetFromValue; //we return here , similar to Rules->PoseDir
 		}
 	}
 
 	//original game code , this can be return 0 , but i prefer doing it this way !
 	const auto nRaw = pContact->PrimaryFacing.Current().Raw;
-	R->EAX(&nRaw); // this will be depointer later 
+	R->EAX(&nRaw); // this will be depointer later
 	return SetFromCurrent;
 }
 

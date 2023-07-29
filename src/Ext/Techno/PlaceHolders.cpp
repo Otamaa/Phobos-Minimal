@@ -1,7 +1,7 @@
 #include "Body.h"
 
 //DropPod able to move Limboed passengers outside
-// if it failed to move , the locomotor is not relesed 
+// if it failed to move , the locomotor is not relesed
 //Teleport loco cant move limboed passengers , passengers will stuck after ejected with Chrono locomotor still intact
 bool CreateWithDroppod(FootClass* Object, const CoordStruct& XYZ, const CLSID& nID = LocomotionClass::CLSIDs::DropPod)
 {
@@ -151,58 +151,6 @@ void DrawGroupID_Other(TechnoClass* pThis, Point2D* pLocation, const Point2D& Gr
 		Fancy_Text_Print_Wide(&nTemp, L"%d", DSurface::Temp(), &rect, &vGroupPos, GroupIDColor, 0, TextPrintType::NoShadow, groupid);
 
 	}
-}
-
-void DrawHealthBar_Building(TechnoClass* pThis, int iLength, Point2D* pLocation, RectangleStruct* pBound, ConvertClass* PipsPAL, SHPStruct* PipsSHP, const Point3D& pip)
-{
-	if (PipsSHP == nullptr) return;
-	if (PipsPAL == nullptr) return;
-
-	CoordStruct vCoords = { 0, 0, 0 };
-	pThis->GetTechnoType()->Dimension2(&vCoords);
-	Point2D vPos2 = { 0, 0 };
-	CoordStruct vCoords2 = { -vCoords.X / 2, vCoords.Y / 2,vCoords.Z };
-	TacticalClass::Instance->CoordsToScreen(&vPos2, &vCoords2);
-
-	Point2D vLoc = *pLocation;
-	vLoc.Y += 1;
-
-	Point2D vPos = { 0, 0 };
-
-
-	const int iTotal = DrawHealthBar_PipAmount(pThis, iLength);
-	int frame = DrawHealthBar_Pip(pThis, true, pip);
-
-	if (iTotal > 0)
-	{
-		int frameIdx, deltaX, deltaY;
-		for (frameIdx = iTotal, deltaX = 0, deltaY = 0;
-			frameIdx;
-			frameIdx--, deltaX += 4, deltaY -= 2)
-		{
-			vPos.X = vPos2.X + vLoc.X + 4 * iLength + 3 - deltaX;
-			vPos.Y = vPos2.Y + vLoc.Y - 2 * iLength + 4 - deltaY;
-
-			DSurface::Composite->DrawSHP(PipsPAL, PipsSHP,
-				frame, &vPos, pBound, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
-		}
-	}
-
-	if (iTotal < iLength)
-	{
-		int frameIdx, deltaX, deltaY;
-		for (frameIdx = iLength - iTotal, deltaX = 4 * iTotal, deltaY = -2 * iTotal;
-			frameIdx;
-			frameIdx--, deltaX += 4, deltaY -= 2)
-		{
-			vPos.X = vPos2.X + vLoc.X + 4 * iLength + 3 - deltaX;
-			vPos.Y = vPos2.Y + vLoc.Y - 2 * iLength + 4 - deltaY;
-
-			DSurface::Composite->DrawSHP(PipsPAL, PipsSHP,
-				0, &vPos, pBound, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
-		}
-	}
-
 }
 
 void DrawHealthBar_Other(TechnoClass* pThis, int iLength, Point2D* pLocation, RectangleStruct* pBound, ConvertClass* PipsPAL, SHPStruct* PipSHP, SHPStruct* PipBrdSHP, ConvertClass* PipBrdPAL, const Point3D& pip, const Point2D& DrawOffs, int nXOffset)

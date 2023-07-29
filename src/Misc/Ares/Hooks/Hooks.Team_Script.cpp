@@ -233,10 +233,11 @@ DEFINE_OVERRIDE_HOOK(0x6EF8A1, TeamClass_GatherAtEnemyBase_Distance, 0x6)
 {
 	//GET_STACK(TeamClass*, pTeam, STACK_OFFS(0x5C, 0x34));
 	GET_BASE(ScriptActionNode*, pTeamM, 0x8);
+	GET(RulesClass*, pRules, ECX);
 	//const auto pTeamExt = TeamTypeExt::ExtMap.Find(pTeam->Type);
 	//Debug::Log(std::format(__FUNCTION__ " Function With Type {} ! \n",pTeam->Type->ID));
 	//R->EDX(pTeamExt->AI_SafeDIstance.Get(RulesClass::Instance->AISafeDistance) + pTeamM->Argument);
-	R->EDX(RulesClass::Instance->AISafeDistance + pTeamM->Argument);
+	R->EDX(pRules->AISafeDistance + pTeamM->Argument);
 
 	return 0x6EF8A7;
 }
@@ -245,10 +246,11 @@ DEFINE_OVERRIDE_HOOK(0x6EFB69, TeamClass_GatherAtFriendlyBase_Distance, 0x6)
 {
 	//GET_STACK(TeamClass*, pTeam, STACK_OFFS(0x4C, 0x2C));
 	GET_BASE(ScriptActionNode*, pTeamM, 0x8);
+	GET(RulesClass*, pRules, ECX);
 	//Debug::Log("%s", std::format("{} Function With Type {} ! \n", __FUNCTION__, pTeam->Type->ID).c_str());
 	//const auto pTeamExt = TeamTypeExt::ExtMap.Find(pTeam->Type);
 	//R->EDX(pTeamExt->AI_FriendlyDistance.Get(RulesExt::Global()->AIFriendlyDistance.Get(RulesClass::Instance->AISafeDistance)) + pTeamM->Argument);
-	R->EDX(RulesExt::Global()->AIFriendlyDistance.Get(RulesClass::Instance->AISafeDistance) + pTeamM->Argument);
+	R->EDX(RulesExt::Global()->AIFriendlyDistance.Get(pRules->AISafeDistance) + pTeamM->Argument);
 	return 0x6EFB6F;
 }
 

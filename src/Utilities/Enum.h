@@ -310,7 +310,8 @@ enum class SuperWeaponAITargetingMode
 	LowPowerAttack = 18,
 	DropPod = 19,
 	LightningRandom = 20 ,
-
+	LauchSite = 21 ,
+	FindAuxTechno = 22 ,
 	count
 };
 
@@ -462,7 +463,9 @@ enum class DisplayInfoType : BYTE
 	Experience = 7,
 	Occupants = 8,
 	GattlingStage = 9,
-
+	IronCurtain = 10,
+	DisableWeapon = 11,
+	CloakDisable = 12,
 	count
 };
 

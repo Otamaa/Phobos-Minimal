@@ -114,8 +114,8 @@ void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, 
 
 	const auto ROF = TechnoExt::GetROFMult(pThis);
 
-	if (nFLH == CoordStruct::Empty) { 
-		if(auto const pWPStr = pThis->GetWeapon(nWeaponIdx)) { 
+	if (nFLH == CoordStruct::Empty) {
+		if(auto const pWPStr = pThis->GetWeapon(nWeaponIdx)) {
 			nFLH = pWPStr->FLH;
 		}
 	}
@@ -130,9 +130,9 @@ void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, 
 
 			if (fireData.UseROF)
 			{
+				auto& nTimer = pExt->ExtraWeaponTimers[pWeapon];
 				bFire = false;
 				nRof = (int)(pWeapon->ROF * ROF);
-				auto& nTimer = pExt->ExtraWeaponTimers[pWeapon];
 
 				if (nTimer.Expired())
 				{

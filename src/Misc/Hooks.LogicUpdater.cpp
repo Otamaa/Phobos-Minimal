@@ -142,7 +142,7 @@ DEFINE_HOOK(0x51BAC7, TechnoClass_AI_Tunnel, 0x6) // Inf
 
 DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 {
-	GET(TechnoClass* const, pThis, ESI);
+	GET(TechnoClass*, pThis, ESI);
 
 	pThis->UpdateIronCurtainTimer();
 	pThis->UpdateAirstrikeTimer();
@@ -168,7 +168,7 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 	}
 
 	return pThis->IsAlive ? 0x6F9EBB : 0x6FAFFD;
-
+	//return 0x6F9EBB;
 }
 
 DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)

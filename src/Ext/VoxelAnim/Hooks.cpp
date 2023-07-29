@@ -68,7 +68,7 @@ DEFINE_HOOK(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 	R->Stack(0x12, R->AL());
 
 	TechnoClass* const pInvoker = VoxelAnimExt::GetTechnoOwner(pThis);
-	
+
 	auto const pOwner = pThis->OwnerHouse ? pThis->OwnerHouse : pInvoker ? pInvoker->GetOwningHouse() : HouseExt::FindCivilianSide();
 	CoordStruct nLocation = pThis->GetCoords();
 

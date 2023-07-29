@@ -39,12 +39,12 @@ public:
 	static constexpr reference<SHPStruct*, 0xAC147Cu> PIPS_SHP{};
 	static constexpr reference<SHPStruct*, 0xAC1480u> PIPS2_SHP{};
 	static constexpr reference<SHPStruct*, 0xAC1484u> TALKBUBL_SHP{};
-	
+
 	static constexpr reference<SHPStruct*, 0x89DDC8u> WRENCH_SHP{};
 	static constexpr reference<SHPStruct*, 0x89DDC4u> POWEROFF_SHP{};
 	static constexpr reference<SHPStruct*, 0xA8F794u> GRFXTXT_SHP{};
 	static constexpr reference<SHPStruct*, 0xB1CF98u> OREGATH_SHP{};
-	
+
 	static constexpr reference<SHPStruct*, 0x89DDBCu> BUILDINGZ_SHA {};
 	static constexpr reference<SHPStruct*, 0x8A03FCu> PLACE_SHP {};
 
@@ -76,6 +76,9 @@ public:
 	static SHPStruct* LoadSHPFile(const char* pFileName)
 		{ return static_cast<SHPStruct*>(LoadFile(pFileName, true)); }
 
+	static SHPReference* LoadSHPRef(const char* pFileName)
+	{ return reinterpret_cast<SHPReference*>(LoadFile(pFileName, true)); }
+
 	//I'm just making this up for easy palette loading
 	static ConvertClass* LoadPALFile(const char* pFileName, DSurface* pSurface)
 	{
@@ -102,7 +105,7 @@ public:
 	template <typename T = void>
 	static T* AllocateFile(const char* pFilename) {
 		CCFileClass file(pFilename);
-	
+
 		T* buffer = static_cast<T*>(file.ReadWholeFile());
 		if (!buffer)
 			GameDebugLog::Log("File[%s] Doesnt Exist ! \n", file.FileName);

@@ -277,8 +277,8 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	virtual NavalTargetingType SelectNavalTargeting(AbstractClass *pTarget) const JMP_THIS(0x6F3820);
 	virtual int GetZAdjustment() const R0;
 	virtual ZGradient GetZGradient() const RT(ZGradient);
-	virtual CellStruct* GetSomeCellStruct(CellStruct* buffer) const R0;
-	virtual void SetLastCellStruct(CellStruct Buffer) RX;
+	virtual CellStruct GetLastFlightMapCoords() const RT(CellStruct);
+	virtual void SetLastFlightMapCoords(CellStruct coord) RX;
 	virtual CellStruct FindExitCell(TechnoClass* pDocker, CellStruct nDefault) const; //
 	virtual CoordStruct * vt_entry_300(CoordStruct * Buffer, DWORD dwUnk2) const R0;
 	virtual DWORD vt_entry_304(DWORD dwUnk, DWORD dwUnk2) const R0;

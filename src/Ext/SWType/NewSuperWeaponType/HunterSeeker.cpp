@@ -31,13 +31,13 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 		? static_cast<size_t>(pExt->SW_MaxCount)
 		: std::numeric_limits<size_t>::max();
 
-	//
-
 	// only call on up to Count buildings that suffice IsEligible
+	// create hunterseeker regardless building alive state
+	// only check if cell is actually eligible
 	size_t Success = 0;
 	Helpers::Alex::for_each_if_n(pOwner->Buildings.begin(), pOwner->Buildings.end(),
 		Count,
-		[=](BuildingClass* pBld) { return this->IsLaunchSite(pExt, pBld); },
+		[=](BuildingClass* pBld) { return this->IsLaunchSite_HS(pExt, pBld); },
 		[=, &Success](BuildingClass* pBld) { auto cell = this->GetLaunchCell(pExt, pBld, pType);
 
 			if (cell == CellStruct::Empty) {
@@ -45,10 +45,9 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 			}
 
 			// create a hunter seeker
-			if (auto pHunter = static_cast<UnitClass*>(pType->CreateObject(pOwner)))
+			if (auto pHunter = GameCreate<UnitClass>(pType, pOwner))
 			{
-				if(pHunter->Type->HunterSeeker)
-					TechnoExt::ExtMap.Find(pHunter)->LinkedSW = pThis;
+				TechnoExt::ExtMap.Find(pHunter)->LinkedSW = pThis;
 
 				// put it on the map and let it go
 				CoordStruct crd = CellClass::Cell2Coord(cell);
@@ -56,7 +55,7 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 				if (pHunter->Unlimbo(crd, DirType::East))
 				{
 					pHunter->Locomotor->Acquire_Hunter_Seeker_Target();
-					pHunter->QueueMission(pHunter->Type->Harvester ? Mission::Area_Guard : Mission::Attack, false);
+					pHunter->QueueMission(Mission::Attack, false);
 					pHunter->NextMission();
 					++Success;
 				}
@@ -65,6 +64,37 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 					GameDelete(pHunter);
 				}
 			}
+
+			//bool succededHere = false;
+			//std::vector<std::pair<bool, int>> retries(pExt->HunterSeeker_Type_Count, { false , 3 });
+			//for (auto&[done , att] : retries) {
+			//	if (!done && att > 0) {
+			//		// create a hunter seeker
+			//		if (auto pHunter = static_cast<UnitClass*>(pType->CreateObject(pOwner)))
+			//		{
+			//			if (pHunter->Type->HunterSeeker)
+			//				TechnoExt::ExtMap.Find(pHunter)->LinkedSW = pThis;
+			//
+			//			// put it on the map and let it go
+			//			CoordStruct crd = CellClass::Cell2Coord(cell);
+
+			//			if (pHunter->Unlimbo(crd, DirType::East)) {
+			//				done = true;
+			//				succededHere = true; //one is counted as succeded
+			//				pHunter->Locomotor->Acquire_Hunter_Seeker_Target();
+			//				pHunter->QueueMission(pHunter->Type->Harvester ? Mission::Area_Guard : Mission::Attack, false);
+			//				pHunter->NextMission();
+			//			} else {
+			//				--att;
+			//				GameDelete<true, false>(pHunter);
+			//			}
+			//		}
+			//	}
+			//}
+			//
+			//if (succededHere){
+			//	++Success;
+			//}
 		});
 
 	// no launch building found
@@ -104,17 +134,15 @@ void SW_HunterSeeker::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->HunterSeeker_RandomOnly.Read(exINI, section, "HunterSeeker.RandomOnly");
 	pData->HunterSeeker_Buildings.Read(exINI, section, "HunterSeeker.Buildings");
 	pData->HunterSeeker_AllowAttachedBuildingAsFallback.Read(exINI, section, "HunterSeeker.AllowAttachedBuildingAsFallback");
+	pData->HunterSeeker_Type_Count.Read(exINI, section, "HunterSeeker.Count");
 
 	// hardcoded
 	pData->Get()->Action = Action::None;
 	pData->SW_RadarEvent = false;
 }
 
-bool SW_HunterSeeker::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+bool SW_HunterSeeker::IsLaunchSite_HS(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
 {
-	if (!this->IsLaunchsiteAlive(pBuilding))
-		return false;
-
 	// don't further question the types in this list
 		// get the appropriate launch buildings list
 	const auto HSBuilding = !pData->HunterSeeker_Buildings.empty()
@@ -128,6 +156,14 @@ bool SW_HunterSeeker::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClas
 		return this->IsSWTypeAttachedToThis(pData, pBuilding);
 
 	return false;
+}
+
+bool SW_HunterSeeker::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+{
+	if (!this->IsLaunchsiteAlive(pBuilding))
+		return false;
+
+	return this->IsLaunchSite_HS(pData , pBuilding);
 }
 
 CellStruct NOINLINE SW_HunterSeeker::GetLaunchCell(SWTypeExt::ExtData* pSWType, BuildingClass* pBuilding, UnitTypeClass* pHunter) const

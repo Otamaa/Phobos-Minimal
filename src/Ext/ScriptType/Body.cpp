@@ -1,15 +1,5 @@
 #include "Body.h"
 
-void ScriptTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
-{
-	const char* pID = this->Get()->ID;
-
-	if (!pINI->GetSection(pID))
-		return;
-
-	INI_EX exINI(pINI);
-}
-
 // =============================
 // load / save
 
@@ -37,7 +27,7 @@ ScriptTypeExt::ExtContainer::~ExtContainer() = default;
 //DEFINE_HOOK(0x691769, ScriptTypeClass_CTOR, 0x6)
 //{
 //	GET(ScriptTypeClass*, pThis, ESI);
-//	ScriptTypeExt::ExtMap.FindOrAllocate(pThis);
+//	ScriptTypeExt::ExtMap.Allocate(pThis);
 //
 //	return 0;
 //}

@@ -3,6 +3,7 @@
 #include <unordered_map>
 
 #include <Ext/Techno/Body.h>
+#include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
 
 DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
@@ -31,6 +32,11 @@ DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 
 			if (pExt->SpeedBonus.Enabled)
 				++pHouseExt->Building_BuildSpeedBonusCounter[pBld->Type];
+
+			if (BuildingExt::ExtMap.Find(pBld)->LimboID != -1)
+			{
+				pHouseExt->AvaibleDocks += pBld->Type->NumberOfDocks;
+			}
 		}
 	}
 

@@ -4,6 +4,9 @@
 #include "NewSWType.h"
 #include <ProgressTimer.h>
 
+#include <Ext/WeaponType/Body.h>
+#include <New/Entity/ElectricBoltClass.h>
+
 enum class SWStateMachineIdentifier : int
 {
 	Invalid = -1,
@@ -13,6 +16,8 @@ enum class SWStateMachineIdentifier : int
 	CloneableLighningStorm = 3 ,
 	DropPod = 4,
 	IonCannon = 5,
+	LaserStrike = 6 ,
+	count
 };
 
 // state machines - create one to use delayed effects [create a child class per NewSWType, obviously]
@@ -48,7 +53,7 @@ public:
 	}
 
 	// static methods
-	static constexpr void Register(std::unique_ptr<SWStateMachine> Machine)
+	static void Register(std::unique_ptr<SWStateMachine> Machine)
 	{
 		if (Machine) {
 			Array.push_back(std::move(Machine));
@@ -409,6 +414,87 @@ public:
 	TechnoClass* Invoker;
 };
 
+class LaserStrikeStateMachine : public SWStateMachine
+{
+public:
+
+	LaserStrikeStateMachine()
+		: SWStateMachine()
+		, Firer { nullptr }
+		, LaserStrikesetRadius { true }
+		, LaserStrikeRadius { -1 }
+		, LaserStrikeStartAngle { -180 }
+		, LaserStrikeStop { false }
+		, LaserStrikeRate { -1 }
+		, LaserStrikeROF { 0 }
+		, LaserStrikeRadiusReduce { 0 }
+		, LaserStrikeAngle { 0 }
+		, LaserStrikeScatter_Max { 0 }
+		, LaserStrikeScatter_Min { 0 }
+		, LaserStrikeDuration { 0 }
+		, AlreadyActivated { false }
+		, Deferment { -1 }
+		, MaxCount { 1 }
+		, MaxCountCounter { 1 }
+	{ }
+
+	LaserStrikeStateMachine(CellStruct XY, SuperClass* pSuper, TechnoClass* pFirer, int maxcount , int deferment , NewSWType* pSWType)
+		: SWStateMachine(10000, XY, pSuper, pSWType)
+		, Firer { pFirer }
+		, LaserStrikesetRadius { true }
+		, LaserStrikeRadius { -1 }
+		, LaserStrikeStartAngle { -180 }
+		, LaserStrikeStop { false }
+		, LaserStrikeRate { -1 }
+		, LaserStrikeROF { 0 }
+		, LaserStrikeRadiusReduce { 0 }
+		, LaserStrikeAngle { 0 }
+		, LaserStrikeScatter_Max { 0 }
+		, LaserStrikeScatter_Min { 0 }
+		, LaserStrikeDuration { 0 }
+		, AlreadyActivated { false }
+		, Deferment { deferment }
+		, MaxCount { abs(maxcount) }
+		, MaxCountCounter { abs(maxcount) }
+	{ }
+
+	virtual void Update();
+
+	virtual SWStateMachineIdentifier GetIdentifier() const override
+	{
+		return SWStateMachineIdentifier::LaserStrike;
+	}
+
+	virtual const char* GetIdentifierStrings() const override
+	{
+		return "SWStateMachine::LaserStrike";
+	}
+
+	virtual ~LaserStrikeStateMachine() = default;
+	virtual bool Finished() override { return SWStateMachine::Finished() || MaxCountCounter <= 0; }
+	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
+	virtual bool Save(PhobosStreamWriter& Stm) const override;
+	virtual void InvalidatePointer(void* ptr, bool remove) override;
+
+protected:
+	TechnoClass* Firer;
+	bool LaserStrikesetRadius;
+	int LaserStrikeRadius;
+	int LaserStrikeStartAngle;
+	bool LaserStrikeStop;
+	int LaserStrikeRate;
+	int LaserStrikeROF;
+	int LaserStrikeRadiusReduce;
+	int LaserStrikeAngle;
+	int LaserStrikeScatter_Max;
+	int LaserStrikeScatter_Min;
+	int LaserStrikeDuration;
+	bool AlreadyActivated;
+	int Deferment;
+	int MaxCount;
+	int MaxCountCounter;
+};
+
 template <>
 struct Savegame::ObjectFactory<SWStateMachine>
 {
@@ -431,6 +517,8 @@ struct Savegame::ObjectFactory<SWStateMachine>
 				return std::make_unique<DroppodStateMachine>();
 			case SWStateMachineIdentifier::IonCannon:
 				return std::make_unique<IonCannonStateMachine>();
+			case SWStateMachineIdentifier::LaserStrike:
+				return std::make_unique<LaserStrikeStateMachine>();
 			default:
 				Debug::FatalErrorAndExit("SWStateMachineType %d not recognized.",
 					static_cast<unsigned int>(type));

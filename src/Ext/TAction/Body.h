@@ -16,10 +16,10 @@ enum class PhobosTriggerAction : unsigned int
 	GenerateRandomNumber = 502,
 	PrintVariableValue = 503,
 	BinaryOperation = 504,
-	AdjustLighting = 505,
-	RunSuperWeaponAtLocation = 506,
-	RunSuperWeaponAtWaypoint = 507,
-	
+	//AdjustLighting = 505,
+	RunSuperWeaponAtLocation = 505,
+	RunSuperWeaponAtWaypoint = 506,
+
 	//#844
 	ToggleMCVRedeploy = 510,
 
@@ -30,18 +30,19 @@ enum class PhobosTriggerAction : unsigned int
 	ScoreCampaignText = 19000,
 	ScoreCampaignTheme = 19001,
 	SetNextMission = 19002 ,
+
 	//ES
-	Something_700 = 700,
-	Something_701 = 701,
-	LauchSWAtWaypoint = 702,
-	AISetMode = 703,
-	Something_704 = 704,
-	Something_705 = 705 ,
-	DoFlash = 713 ,
-	Something_716 = 716 ,
-	Something_717 = 717,
-	DoLighningStormStrike  = 720 ,
-	DrawLaserBetweenWeaypoints = 9940
+	//Something_700 = 700,
+	//Something_701 = 701,
+	//LauchSWAtWaypoint = 702,
+	//AISetMode = 703,
+	//Something_704 = 704,
+	//Something_705 = 705 ,
+	//DoFlash = 713 ,
+	//Something_716 = 716 ,
+	//Something_717 = 717,
+	//DoLighningStormStrike  = 720 ,
+	//DrawLaserBetweenWeaypoints = 9940
 };
 
 class TActionExt

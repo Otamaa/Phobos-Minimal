@@ -17,7 +17,7 @@ public:
 	public:
 
 		Valueable<int> ArrayIndex { -1 };
-		Valueable<bool> Sidebar_GDIPositions { false };
+		Nullable<bool> Sidebar_GDIPositions { };
 		Valueable<int> IngameScore_WinTheme { -2 };
 		Valueable<int> IngameScore_LoseTheme { -2 };
 		Valueable<Point2D> Sidebar_HarvesterCounter_Offset { { 0, 0 } };

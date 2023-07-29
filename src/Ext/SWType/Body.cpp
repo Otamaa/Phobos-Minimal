@@ -58,6 +58,9 @@ std::array<const AITargetingModeInfo, (size_t)SuperWeaponAITargetingMode::count>
 	{SuperWeaponAITargetingMode::LowPowerAttack, SuperWeaponTarget::Building, AffectedHouse::Owner, TargetingConstraints::Attacked | TargetingConstraints::LowPower, TargetingPreference::None },
 	{SuperWeaponAITargetingMode::DropPod, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::Enemy , TargetingPreference::None},
 	{SuperWeaponAITargetingMode::LightningRandom, SuperWeaponTarget::AllCells, AffectedHouse::All, TargetingConstraints::None, TargetingPreference::None },
+	{SuperWeaponAITargetingMode::LauchSite, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::None , TargetingPreference::None},
+	{SuperWeaponAITargetingMode::FindAuxTechno , SuperWeaponTarget::AllTechnos , AffectedHouse::Owner , TargetingConstraints::None , TargetingPreference::None }
+
 }
 };
 
@@ -194,34 +197,33 @@ AffectedHouse SWTypeExt::ExtData::GetAIRequiredHouse() const
 std::pair<TargetingConstraints, bool> SWTypeExt::ExtData::GetAITargetingConstraints() const
 {
 	if (this->SW_AITargetingConstrain.isset())
-		return { this->SW_AITargetingConstrain.Get(), true };
+		return { this->SW_AITargetingConstrain.Get(), false };
 	else
 	{
-		const auto index = static_cast<unsigned int>(this->SW_AITargetingMode.Get());
+		const auto index = static_cast<size_t>(this->SW_AITargetingMode.Get());
 
 		if (index < AITargetingModes.size()) {
-			return { AITargetingModes[(int)index].Constraints , true };
+			return { AITargetingModes[index].Constraints , false };
 		}
 	}
 
-	return { TargetingConstraints::None , false };
+	return { TargetingConstraints::None , true };
 }
 
 TargetingPreference SWTypeExt::ExtData::GetAITargetingPreference() const
 {
-	auto nFlag = TargetingPreference::None;
 	if (this->SW_AITargetingPreference.isset())
-		nFlag = this->SW_AITargetingPreference.Get();
+		return this->SW_AITargetingPreference.Get();
 	else
 	{
 		auto index = static_cast<unsigned int>(this->SW_AITargetingMode.Get());
 		if (index < AITargetingModes.size())
 		{
-			nFlag = AITargetingModes[(int)index].Preference;
+			return AITargetingModes[(int)index].Preference;
 		}
 	}
 
-	return nFlag;
+	return TargetingPreference::None;
 }
 
 bool SWTypeExt::ExtData::IsCellEligible(CellClass* pCell, SuperWeaponTarget allowed)
@@ -271,8 +273,7 @@ bool SWTypeExt::ExtData::IsTechnoEligible(TechnoClass* pTechno, SuperWeaponTarge
 bool SWTypeExt::ExtData::IsTechnoAffected(TechnoClass* pTechno)
 {
 	// check land and water cells
-	if (!this->IsCellEligible(pTechno->GetCell(), this->SW_AffectsTarget))
-	{
+	if (!this->IsCellEligible(pTechno->GetCell(), this->SW_AffectsTarget)) {
 		return false;
 	}
 
@@ -321,11 +322,11 @@ bool SWTypeExt::ExtData::IsTargetConstraintsEligible(SuperClass* pThis, bool IsP
 {
 	const auto pExt = SWTypeExt::ExtMap.Find(pThis->Type);
 	auto pOwner = pThis->Owner;
-	auto const& [nFlag , IsDefault] = pExt->GetAITargetingConstraints();
+	auto const& [nFlag , SkipOffensiveClear] = pExt->GetAITargetingConstraints();
 
 	auto valid = [](const CellStruct& nVal) { return nVal.X || nVal.Y; };
 
-	if (!IsDefault) {
+	if (!SkipOffensiveClear) {
 		if (((nFlag & TargetingConstraints::OffensiveCellClear) != TargetingConstraints::None) && valid(pOwner->PreferredTargetCell))
 			return false;
 	}
@@ -370,8 +371,11 @@ bool SWTypeExt::ExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 		if (SWTypeExt::ExtData::IsTargetConstraintsEligible(pThis, IsPlayer))
 		{
 			auto const& [Cell, Flag] = SWTypeExt::ExtData::PickSuperWeaponTarget(pThis);
-			if (Flag != SWTargetFlags::DisallowEmpty)
+			if (Flag == SWTargetFlags::AllowEmpty)
 			{
+				if(pThis->Owner->IsControlledByHuman_() && !pExt->SW_AutoFire && pExt->SW_ManualFire)
+					MapClass::UnselectAll();
+
 				return pThis->Owner->Fire_SW(pThis->Type->ArrayIndex, Cell);
 			}
 		}
@@ -476,16 +480,8 @@ struct TargetingFuncs
 
 	static bool IgnoreThis(TechnoClass* pTechno)
 	{
-		const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
-
-		if (pTechnoTypeExt->IsDummy)
-			return true;
-
-		if (auto pBld = specific_cast<BuildingClass*>(pTechno))
-		{
-			const auto pBldExt = BuildingExt::ExtMap.Find(pBld);
-
-			if (pBldExt->LimboID != -1)
+		if (const auto pBld = specific_cast<BuildingClass*>(pTechno)) {
+			if (BuildingExt::ExtMap.Find(pBld)->LimboID != -1)
 				return true;
 		}
 
@@ -502,7 +498,6 @@ struct TargetingFuncs
 	static TargetResult GetIonCannonTarget(const TargetingInfo& info, HouseClass* pEnemy, CloakHandling cloak)
 	{
 		const auto it = info.TypeExt->GetPotentialAITargets(pEnemy);
-
 		const auto pResult = GetTargetAnyMax(it.begin(), it.end(),
 			[=, &info](TechnoClass* pTechno, int curMax) {
 				if(TargetingFuncs::IgnoreThis(pTechno))
@@ -512,72 +507,66 @@ struct TargetingFuncs
 				auto const passedFilter = (!pEnemy || pTechno->Owner == pEnemy);
 
 				if (passedFilter && info.Owner->IsIonCannonEligibleTarget(pTechno))
-			{
-				auto const cell = CellClass::Coord2Cell(pTechno->GetCoords());
-
-				if (!MapClass::Instance->IsWithinUsableArea(cell, true)) { return -1; }
-
-				const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
-
-				int value = !pTypeExt->AIIonCannonValue.HasValue() ?
-					pTechno->GetIonCannonValue(info.Owner->AIDifficulty) :
-					make_iterator(pTypeExt->AIIonCannonValue).at((int)info.Owner->AIDifficulty);
-
-				// cloak options
-				if (cloak != CloakHandling::AgnosticToCloak)
 				{
-					bool cloaked = pTechno->IsCloaked();
+					auto const cell = CellClass::Coord2Cell(pTechno->GetCoords());
 
-					if (cloak == CloakHandling::RandomizeCloaked)
+					if (!MapClass::Instance->IsWithinUsableArea(cell, true)) { return -1; }
+
+					const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
+
+					int value = !pTypeExt->AIIonCannonValue.HasValue() ?
+						pTechno->GetIonCannonValue(info.Owner->AIDifficulty) :
+						make_iterator(pTypeExt->AIIonCannonValue).at((int)info.Owner->AIDifficulty);
+
+					// cloak options
+					if (cloak != CloakHandling::AgnosticToCloak)
 					{
-						// original behavior
-						if (cloaked)
+						bool cloaked = pTechno->IsCloaked();
+
+						if (cloak == CloakHandling::RandomizeCloaked)
 						{
-							value = ScenarioClass::Instance->Random.RandomFromMax(curMax + 10);
+							// original behavior
+							if (cloaked)
+							{
+								value = ScenarioClass::Instance->Random.RandomFromMax(curMax + 10);
+							}
+						}
+						else if (cloak == CloakHandling::IgnoreCloaked)
+						{
+							// this prevents the 'targeting cloaked units bug'
+							if (cloaked)
+							{
+								return -1;
+							}
+						}
+						else if (cloak == CloakHandling::RequireCloaked)
+						{
+							if (!cloaked)
+							{
+								return -1;
+							}
 						}
 					}
-					else if (cloak == CloakHandling::IgnoreCloaked)
-					{
-						// this prevents the 'targeting cloaked units bug'
-						if (cloaked)
-						{
-							return -1;
-						}
-					}
-					else if (cloak == CloakHandling::RequireCloaked)
-					{
-						if (!cloaked)
-						{
-							return -1;
-						}
-					}
+
+					// do not do heavy lifting on objects that
+					// would not be chosen anyhow
+					if (value >= curMax && info.CanFireAt(cell)) { return value; }
 				}
-
-				// do not do heavy lifting on objects that
-				// would not be chosen anyhow
-				if (value >= curMax && info.CanFireAt(cell)) { return value; }
-			}
 
 				return -1;
 			});
 
-
-		if (pResult) {
-			return { CellClass::Coord2Cell(pResult->GetCoords()) , SWTargetFlags::AllowEmpty };
-		}
-
-		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
+		return pResult ?
+		TargetResult{ CellClass::Coord2Cell(pResult->GetCoords()) , SWTargetFlags::AllowEmpty } :
+		TargetResult{ CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
 	static TargetResult PickByHouseType(HouseClass* pThis, TargetType type)
 	{
 		const auto nTarget = pThis->PickTargetByType(type);
-
-		if (nTarget.IsValid()) {
-			return { nTarget , SWTargetFlags::AllowEmpty };
-		}
-
-		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
+		return nTarget.IsValid() ?
+		TargetResult{ nTarget , SWTargetFlags::AllowEmpty } :
+		TargetResult{ CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
 	static TargetResult GetDominatorTarget(const TargetingInfo& info)
@@ -585,141 +574,120 @@ struct TargetingFuncs
 		auto it = info.TypeExt->GetPotentialAITargets();
 		const auto pTarget = GetTargetFirstMax(it.begin(), it.end(), [&info](TechnoClass* pTechno, int curMax) {
 
-		 if (!TargetingFuncs::IsTargetAllowed(pTechno) || TargetingFuncs::IgnoreThis(pTechno))
-		 {
-			return -1;
-		 }
+			if (!TargetingFuncs::IsTargetAllowed(pTechno) || TargetingFuncs::IgnoreThis(pTechno)) {
+				return -1;
+			}
 
-	  auto cell = pTechno->GetCell()->MapCoords;
+			const auto cell = pTechno->GetCell()->MapCoords;
+			int value = 0;
 
-	  int value = 0;
-	  for (size_t i = 0; i < CellSpread::NumCells(3); ++i)
-	  {
-		  auto pCell = MapClass::Instance->GetCellAt(cell + CellSpread::GetCell(i));
+			for (size_t i = 0; i < CellSpread::NumCells(3); ++i)
+			{
+				 auto pCell = MapClass::Instance->GetCellAt(cell + CellSpread::GetCell(i));
+				 for (NextObject j(pCell->FirstObject); abstract_cast<FootClass*>(*j); ++j)
+				 {
+					 const auto pFoot = static_cast<FootClass*>(*j);
 
-		  for (NextObject j(pCell->FirstObject); j && abstract_cast<FootClass*>(*j); ++j)
-		  {
-			  auto pFoot = static_cast<FootClass*>(*j);
-			  if (!info.Owner->IsAlliedWith_(pFoot) && !pFoot->IsInAir())
-			  {
-				  // original game does not consider cloak
-				  if (pFoot->CanBePermaMindControlled() && (pFoot->CloakState != CloakState::Cloaked))
-				  {
-					  ++value;
-				  }
-			  }
-		  }
-	  }
+					 if (!info.Owner->IsAlliedWith_(pFoot) && !pFoot->IsInAir())
+					 {
+						  // original game does not consider cloak
+						 if (pFoot->CanBePermaMindControlled() && (pFoot->CloakState != CloakState::Cloaked))
+						 {
+							 ++value;
+						 }
+					 }
+				 }
+			}
 
-	  // new check
-	  if (value <= curMax || !info.CanFireAt(cell)) { return -1; }
-
-	  return value;
+			// new check
+			 return (value <= curMax || !info.CanFireAt(cell)) ? -1 : value;
 		});
 
-		if (pTarget)
-		{
-			return{ CellClass::Coord2Cell(pTarget->GetCoords())  , SWTargetFlags::AllowEmpty };
-		}
-
-		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
+		return pTarget ?
+		TargetResult{ CellClass::Coord2Cell(pTarget->GetCoords())  , SWTargetFlags::AllowEmpty }:
+		TargetResult{ CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
 	static TargetResult GetParadropTarget(const TargetingInfo& info)
 	{
-		auto pOwner = info.Owner;
 		static const int SpaceSize = 5;
-
 		auto target = CellStruct::Empty;
-		if (pOwner->PreferredTargetType == TargetType::Anything)
+
+		if (info.Owner->PreferredTargetType == TargetType::Anything)
 		{
 			// if no enemy yet, reinforce own base
-			auto pTargetPlayer = HouseClass::Array->GetItemOrDefault(pOwner->EnemyHouseIndex, info.Owner);
+			const auto pTargetPlayer = HouseClass::Array->GetItemOrDefault(info.Owner->EnemyHouseIndex, info.Owner);
 
 			target = MapClass::Instance->NearByLocation(
 				pTargetPlayer->GetBaseCenter(), SpeedType::Foot, -1,
 				MovementZone::Normal, false, SpaceSize, SpaceSize, false,
 				false, false, true, CellStruct::Empty, false, false);
 
-			if (target != CellStruct::Empty)
-			{
-				target += CellStruct{SpaceSize / 2, SpaceSize / 2};
+			if (target != CellStruct::Empty) {
+				target += CellStruct{ short(SpaceSize / 2), short(SpaceSize / 2) };
 			}
-
 		}
 		else
 		{
-			target = pOwner->PickTargetByType(pOwner->PreferredTargetType);
+			target = info.Owner->PickTargetByType(info.Owner->PreferredTargetType);
 		}
 
-		if (!target.IsValid() || !info.CanFireAt(target))
-		{
-			return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
-		}
-
-		return  { target , SWTargetFlags::AllowEmpty };
+		return  (!target.IsValid() || !info.CanFireAt(target))  ?
+		TargetResult{ CellStruct::Empty, SWTargetFlags::DisallowEmpty } :
+		TargetResult{ target , SWTargetFlags::AllowEmpty };
 	}
 
 	static TargetResult GetMutatorTarget(const TargetingInfo& info)
 	{
 		//specific implementation for GeneticMutatorTargetSelector for
-		auto it = info.TypeExt->GetPotentialAITargets();
-		const auto pResult = GetTargetFirstMax(it.begin(), it.end(), [&info](TechnoClass* pTechno, int curMax)
- {
+		const auto it = info.TypeExt->GetPotentialAITargets();
+		const auto pResult = GetTargetFirstMax(it.begin(), it.end(), [&info](TechnoClass* pTechno, int curMax) {
 
-	 if (!TargetingFuncs::IsTargetAllowed(pTechno) || TargetingFuncs::IgnoreThis(pTechno))
-	 {
-		 return -1;
-	 }
+			if (!TargetingFuncs::IsTargetAllowed(pTechno) || TargetingFuncs::IgnoreThis(pTechno)) {
+			  return -1;
+			}
 
-	 auto cell = pTechno->GetCell()->MapCoords;
-	 int value = 0;
+			auto cell = pTechno->GetCell()->MapCoords;
+			int value = 0;
 
-	 for (size_t i = 0; i < CellSpread::NumCells(1); ++i)
-	 {
-		 auto pCell = MapClass::Instance->GetCellAt(cell + CellSpread::GetCell(i));
+			for (size_t i = 0; i < CellSpread::NumCells(1); ++i)
+			{
+				 const auto pCell = MapClass::Instance->GetCellAt(cell + CellSpread::GetCell(i));
 
-		 for (NextObject j(pCell->GetInfantry(pTechno->OnBridge)); j && abstract_cast<InfantryClass*>(*j); ++j)
-		 {
-			 auto pInf = static_cast<InfantryClass*>(*j);
-
-			 if (!info.Owner->IsAlliedWith_(pInf) && !pInf->IsInAir())
-			 {
-				 // original game does not consider cloak
-				 if (pInf->CloakState != CloakState::Cloaked)
+				 for (NextObject j(pCell->GetInfantry(pTechno->OnBridge)); specific_cast<InfantryClass*>(*j); ++j)
 				 {
-					 ++value;
+					const auto pInf = static_cast<InfantryClass*>(*j);
+
+					 if (!info.Owner->IsAlliedWith_(pInf) && !pInf->IsInAir())
+					 {
+						 // original game does not consider cloak
+						 if (pInf->CloakState != CloakState::Cloaked)
+						 {
+							 ++value;
+						 }
+					 }
 				 }
-			 }
-		 }
 
-		 // new check
-		 if (value <= curMax || !info.CanFireAt(cell))
-		 {
-			 return -1;
-		 }
-	 }
+				 if (value <= curMax || !info.CanFireAt(cell)) {
+					 return -1;
+				 }
+			}
 
-	 return value;
+		   return value;
 		});
 
-		if (pResult)
-		{
-			return { CellClass::Coord2Cell(pResult->GetCoords()), SWTargetFlags::AllowEmpty };
-		}
-
-		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
+		return pResult ?
+		TargetResult{ CellClass::Coord2Cell(pResult->GetCoords()), SWTargetFlags::AllowEmpty }:
+		TargetResult{ CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
 	static TargetResult GetForceShieldTarget(const TargetingInfo& info)
 	{
-		const auto pOwner = info.Owner;
-
-		if (pOwner->PreferredDefensiveCell.IsValid()
-			&& (RulesClass::Instance->AISuperDefenseFrames + pOwner->PreferredDefensiveCellStartTime) > Unsorted::CurrentFrame
-			&& info.CanFireAt(pOwner->PreferredDefensiveCell))
+		if (info.Owner->PreferredDefensiveCell.IsValid()
+			&& (RulesClass::Instance->AISuperDefenseFrames + info.Owner->PreferredDefensiveCellStartTime) > Unsorted::CurrentFrame
+			&& info.CanFireAt(info.Owner->PreferredDefensiveCell))
 		{
-			return { pOwner->PreferredDefensiveCell , SWTargetFlags::AllowEmpty };
+			return { info.Owner->PreferredDefensiveCell , SWTargetFlags::AllowEmpty };
 		}
 
 		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
@@ -727,20 +695,20 @@ struct TargetingFuncs
 
 	static TargetResult GetOffensiveTarget(const TargetingInfo& info)
 	{
-		return GetIonCannonTarget(info, HouseClass::Array->GetItemOrDefault(info.Owner->EnemyHouseIndex), CloakHandling::IgnoreCloaked);
+		return GetIonCannonTarget(info,
+			HouseClass::Array->GetItemOrDefault(info.Owner->EnemyHouseIndex),
+			CloakHandling::IgnoreCloaked);
 	}
 
 	static TargetResult GetNukeAndLighningTarget(const TargetingInfo& info)
 	{
-		auto pOwner = info.Owner;
-
-		if (pOwner->PreferredTargetType == TargetType::Anything) {
+		if (info.Owner->PreferredTargetType == TargetType::Anything) {
 			return TargetingFuncs::GetIonCannonTarget(info,
-				HouseClass::Array->GetItemOrDefault(pOwner->EnemyHouseIndex),
+				HouseClass::Array->GetItemOrDefault(info.Owner->EnemyHouseIndex),
 				CloakHandling::IgnoreCloaked);
 		}
 
-		return TargetingFuncs::PickByHouseType(pOwner, pOwner->PreferredTargetType);
+		return TargetingFuncs::PickByHouseType(info.Owner, info.Owner->PreferredTargetType);
 	}
 
 	static TargetResult GetStealthTarget(const TargetingInfo& info)
@@ -750,21 +718,18 @@ struct TargetingFuncs
 
 	static TargetResult GetDroppodTarget(const TargetingInfo& info)
 	{
-		auto nRandom = ScenarioClass::Instance->Random.RandomRangedSpecific(ZoneType::North, ZoneType::West);
-		auto nCell = info.Owner->RandomCellInZone(nRandom);
-		auto nNearby = MapClass::Instance->NearByLocation(nCell,
+		const auto nRandom = ScenarioClass::Instance->Random.RandomRangedSpecific(ZoneType::North, ZoneType::West);
+		const auto nCell = info.Owner->RandomCellInZone(nRandom);
+		const auto nNearby = MapClass::Instance->NearByLocation(nCell,
 			SpeedType::Foot, -1, MovementZone::Normal, false, 1, 1, false,
 			false, false, true, CellStruct::Empty, false, false);
 
-		if (nNearby.IsValid() && info.CanFireAt(nNearby))
-		{
-			return { nNearby  , SWTargetFlags::AllowEmpty };
-		}
-
-		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
+		return  (nNearby.IsValid() && info.CanFireAt(nNearby))  ?
+		TargetResult{ nNearby, SWTargetFlags::AllowEmpty }:
+		TargetResult{ CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
-	static TargetResult NOINLINE GetLighningRandomTarget(const TargetingInfo& info)
+	static TargetResult GetLighningRandomTarget(const TargetingInfo& info)
 	{
 		CellStruct nBuffer;
 		for (int i = 0; i < 5; ++i)
@@ -781,45 +746,44 @@ struct TargetingFuncs
 				while (!MapClass::Instance->CoordinatesLegal(nBuffer));
 			}
 
-
-			if (nBuffer.IsValid() && info.CanFireAt(nBuffer))
+			if (info.CanFireAt(nBuffer)) {
 				return { nBuffer , SWTargetFlags::AllowEmpty };
+			}
 		}
 
 		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
-	static TargetResult GetSelfTarget(const TargetingInfo& info)
+	static TargetResult GetOwnerBuildingAsTarget(const TargetingInfo& info , bool checkLauchsite = false)
 	{
 		// find the first building providing super
 		auto index = info.Super->Type->ArrayIndex;
 		const auto& buildings = info.Owner->Buildings;
 		// Ares < 0.9 didn't check power
 		const auto it = std::find_if(buildings.begin(),
-			buildings.end(), [index, &info](BuildingClass* pBld)
-		{
-			auto const pExt = BuildingExt::ExtMap.Find(pBld);
-
-			if ( /*pExt->HasSuperWeapon(index, true)*/
-				info.NewType->IsLaunchSite(info.TypeExt, pBld)
-				&& pBld->IsPowerOnline())
+			buildings.end(), [index, &info , checkLauchsite](BuildingClass* pBld)
 			{
-				auto cell = CellClass::Coord2Cell(pBld->GetCoords());
+				auto const pExt = BuildingExt::ExtMap.Find(pBld);
+				const bool IsEligibleBuilding = !checkLauchsite ?
+					info.NewType->IsLaunchSite(info.TypeExt, pBld):
+					pExt->HasSuperWeapon(index, true);
 
-				if (info.CanFireAt(cell))
+				if (IsEligibleBuilding && pBld->IsPowerOnline())
 				{
-					return true;
+					auto cell = CellClass::Coord2Cell(pBld->GetCoords());
+
+					if (info.CanFireAt(cell))
+					{
+						return true;
+					}
 				}
-			}
 
-			return false;
-		});
+				return false;
+			});
 
-		if (it != buildings.end()) {
-			return { CellClass::Coord2Cell((*it)->GetCoords()) ,SWTargetFlags::AllowEmpty };
-		}
-
-		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
+		return (it != buildings.end()) ?
+			TargetResult{ CellClass::Coord2Cell((*it)->GetCoords()), SWTargetFlags::AllowEmpty } :
+			TargetResult{ CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
 	static TargetResult GetBaseTarget(const TargetingInfo& info)
@@ -827,20 +791,16 @@ struct TargetingFuncs
 		// fire at the SW's owner's base cell
 		CellStruct cell = info.Owner->GetBaseCenter();
 
-		if (cell.IsValid() && info.CanFireAt(cell))
-		{
-			return { cell, SWTargetFlags::AllowEmpty };
-		}
-
-		return{ CellStruct::Empty, SWTargetFlags::DisallowEmpty };
+		return cell.IsValid() && info.CanFireAt(cell) ?
+			TargetResult{ cell, SWTargetFlags::AllowEmpty }:
+			TargetResult{ CellStruct::Empty, SWTargetFlags::DisallowEmpty };
 	}
 
 	static TargetResult GetMultiMissileTarget(const TargetingInfo& info)
 	{
-		auto pOwner = info.Owner;
-		auto it = info.TypeExt->GetPotentialAITargets(HouseClass::Array->GetItemOrDefault(pOwner->EnemyHouseIndex));
+		const auto it = info.TypeExt->GetPotentialAITargets(HouseClass::Array->GetItemOrDefault(info.Owner->EnemyHouseIndex));
 
-		const auto pResult = GetTargetFirstMax(it.begin(), it.end(), [pOwner, &info](TechnoClass* pTechno, int curMax)
+		const auto pResult = GetTargetFirstMax(it.begin(), it.end(), [&info](TechnoClass* pTechno, int curMax)
 		{
 			if (!TargetingFuncs::IsTargetAllowed(pTechno) || TargetingFuncs::IgnoreThis(pTechno))
 			{
@@ -851,22 +811,16 @@ struct TargetingFuncs
 
 			auto const value = pTechno->IsCloaked()
 				? ScenarioClass::Instance->Random.RandomFromMax(100)
-				: MapClass::Instance->GetThreatPosed(cell, pOwner);
+				: MapClass::Instance->GetThreatPosed(cell, info.Owner);
 
 			if (value <= curMax || !info.CanFireAt(cell)) { return -1; }
 
 			return value;
 		});
 
-		if (pResult)
-		{
-			return{
-				CellClass::Coord2Cell(pResult->GetCoords()),
-				SWTargetFlags::AllowEmpty
-			};
-		}
-
-		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
+		return pResult ?
+			TargetResult{ CellClass::Coord2Cell(pResult->GetCoords()), SWTargetFlags::AllowEmpty } :
+			TargetResult{ CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
 	static TargetResult GetEnemyBaseTarget(const TargetingInfo& info)
@@ -884,7 +838,54 @@ struct TargetingFuncs
 		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
+	static TargetResult GetAuxTechnoTarget(const TargetingInfo& info)
+	{
+		if (!info.TypeExt->Aux_Techno.empty())
+		{
+			//const auto TargetOwner = info.TypeExt->GetAIRequiredHouse();
+			//HouseClass* TargetHouse = nullptr;
+			//if ((TargetOwner & AffectedHouse::Owner) != AffectedHouse::None)
+			//	TargetHouse = info.Owner;
+			//else if ((TargetOwner & AffectedHouse::Enemies) != AffectedHouse::None)
+			//	TargetHouse = HouseClass::Array->GetItemOrDefault(info.Owner->EnemyHouseIndex);
+			//else if ((TargetOwner & AffectedHouse::Allies) != AffectedHouse::None){
+			//	const auto It = std::find_if(HouseClass::Array->begin(), HouseClass::Array->end(),
+			//		[&](HouseClass* pHouse) {
+			//			 if (pHouse->Defeated || pHouse->IsObserver())
+			//				 return false;
+			//
+			//			return info.Owner->Allies.Contains(pHouse);
+			//		});
+			//
+			//	TargetHouse = It != HouseClass::Array->end() ? *It : nullptr;
+			//}
+			//
+			//if (!TargetHouse || TargetHouse->Defeated || TargetHouse->IsObserver())
+			//	return { CellStruct::Empty ,SWTargetFlags::DisallowEmpty };
+
+			for (auto pTech : info.TypeExt->GetPotentialAITargets(nullptr)) {
+				if (TechnoExt::IsAlive(pTech, false, false, false)) {
+
+					auto nLoc = pTech->GetCoords();
+					auto nLocCell = CellClass::Coord2Cell(nLoc);
+
+					if (nLoc == CoordStruct::Empty || nLocCell == CellStruct::Empty)
+						continue;
+
+					if (info.TypeExt->Aux_Techno.Contains(pTech->GetTechnoType())) {
+						if (info.CanFireAt(nLocCell))
+						{
+							return { nLocCell , SWTargetFlags::AllowEmpty };
+						}
+					}
+				}
+			}
+		}
+
+		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
+	}
 #pragma endregion
+
 };
 
 TargetResult SWTypeExt::ExtData::PickSuperWeaponTarget(SuperClass* pSuper)
@@ -914,6 +915,10 @@ TargetResult SWTypeExt::ExtData::PickSuperWeaponTarget(SuperClass* pSuper)
 	// all the different AI targeting modes
 	switch (info.TypeExt->SW_AITargetingMode)
 	{
+	case SuperWeaponAITargetingMode::FindAuxTechno:
+	{
+		return  TargetingFuncs::GetAuxTechnoTarget(info);
+	}
 	case SuperWeaponAITargetingMode::Nuke:
 	case SuperWeaponAITargetingMode::LightningStorm:
 	{
@@ -953,7 +958,11 @@ TargetResult SWTypeExt::ExtData::PickSuperWeaponTarget(SuperClass* pSuper)
 	}
 	case SuperWeaponAITargetingMode::Self:
 	{
-		return TargetingFuncs::GetSelfTarget(info);
+		return TargetingFuncs::GetOwnerBuildingAsTarget(info);
+	}
+	case SuperWeaponAITargetingMode::LauchSite:
+	{
+		return TargetingFuncs::GetOwnerBuildingAsTarget(info , true);
 	}
 	case SuperWeaponAITargetingMode::Base:
 	{
@@ -1031,7 +1040,7 @@ AffectedHouse SWTypeExt::ExtData::GetRelation(HouseClass* pFirer, HouseClass* pH
 		return AffectedHouse::Owner;
 	}
 
-	if (pFirer->IsAlliedWith(pHouse))
+	if (pFirer->IsAlliedWith_(pHouse))
 	{
 		// only friendly houses
 		return AffectedHouse::Allies;
@@ -1132,8 +1141,9 @@ bool SWTypeExt::ExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStr
 		pOwner->RecheckTechTree = true;
 
 	const auto curSuperIdx = pOwner->Supers.FindItemIndex(pSuper);
-	if (!(flags & SuperWeaponFlags::PostClick) && !pData->SW_AutoFire)
+	if (!(flags & SuperWeaponFlags::PostClick) && !pData->SW_AutoFire) {
 		pHouseExt->SWLastIndex = curSuperIdx;
+	}
 
 	if ((flags & SuperWeaponFlags::NoEVA) == SuperWeaponFlags::None && !Unsorted::MuteSWLaunches)
 	{
@@ -1341,7 +1351,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LimboDelivery.RandomWeights%d", i);
 		weights.Read(exINI, pSection, tempBuffer);
 
-		if (!weights.size())
+		if (weights.empty())
 			break;
 
 		this->LimboDelivery_RandomWeightsData.push_back(weights);
@@ -1349,11 +1359,12 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	ValueableVector<int> weights;
 	weights.Read(exINI, pSection, "LimboDelivery.RandomWeights");
-	if (weights.size())
+	if (!weights.empty())
 		this->LimboDelivery_RandomWeightsData[0] = weights;
 
 	this->LimboKill_Affected.Read(exINI, pSection, "LimboKill.Affected");
 	this->LimboKill_IDs.Read(exINI, pSection, "LimboKill.IDs");
+
 	// inhibitor related
 	this->SW_Inhibitors.Read(exINI, pSection, "SW.Inhibitors");
 	this->SW_AnyInhibitor.Read(exINI, pSection, "SW.AnyInhibitor");
@@ -1370,13 +1381,15 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->SW_RangeMinimum.Read(exINI, pSection, "SW.RangeMinimum");
 	this->SW_RangeMaximum.Read(exINI, pSection, "SW.RangeMaximum");
+
 	this->SW_RequiredHouses = pINI->ReadHouseTypesList(pSection, "SW.RequiredHouses", this->SW_RequiredHouses);
 	this->SW_ForbiddenHouses = pINI->ReadHouseTypesList(pSection, "SW.ForbiddenHouses", this->SW_ForbiddenHouses);
+
 	this->SW_AuxBuildings.Read(exINI, pSection, "SW.AuxBuildings");
 	this->SW_NegBuildings.Read(exINI, pSection, "SW.NegBuildings");
 	this->SW_InitialReady.Read(exINI, pSection, "SW.InitialReady");
 
-	this->SW_AITargetingConstrain.Read(exINI, pSection, "SW.AITargeting.Constraints");;
+	this->SW_AITargetingConstrain.Read(exINI, pSection, "SW.AITargeting.Constraints");
 	this->SW_AIRequiresTarget.Read(exINI, pSection, "SW.AIRequiresTarget");
 	this->SW_AIRequiresHouse.Read(exINI, pSection, "SW.AIRequiresHouse");
 	this->SW_AITargetingPreference.Read(exINI, pSection, "SW.AITargeting.Preference");
@@ -1540,8 +1553,9 @@ void SWTypeExt::WeightedRollsHandler(std::vector<int>& nResult, Valueable<double
 	}
 }
 
-void SWTypeExt::ExtData::WeightedRollsHandler(std::vector<int>& nResult, std::vector<float>* rolls, std::vector<std::vector<int>>* weights, size_t size)
+std::vector<int> SWTypeExt::ExtData::WeightedRollsHandler(std::vector<float>* rolls, std::vector<std::vector<int>>* weights, size_t size)
 {
+	std::vector<int> nResult {};
 	bool rollOnce = false;
 	size_t rollsSize = rolls->size();
 	size_t weightsSize = weights->size();
@@ -1567,8 +1581,10 @@ void SWTypeExt::ExtData::WeightedRollsHandler(std::vector<int>& nResult, std::ve
 		// If modder provides more weights than there are objects and we hit one of these, ignore it
 		// otherwise add
 		if (size_t(index) < size)
-			nResult.push_back(index);
+			nResult.emplace_back(index);
 	}
+
+	return nResult;
 }
 
 void SWTypeExt::ExtData::ApplyLimboDelivery(HouseClass* pHouse)
@@ -1578,8 +1594,7 @@ void SWTypeExt::ExtData::ApplyLimboDelivery(HouseClass* pHouse)
 	{
 		int id = -1;
 		size_t idsSize = this->LimboDelivery_IDs.size();
-		std::vector<int> results;
-		this->WeightedRollsHandler(results, &this->LimboDelivery_RollChances, &this->LimboDelivery_RandomWeightsData, this->LimboDelivery_Types.size());
+		std::vector<int> results = this->WeightedRollsHandler(&this->LimboDelivery_RollChances, &this->LimboDelivery_RandomWeightsData, this->LimboDelivery_Types.size());
 
 		for (const size_t& result : results)
 		{
@@ -1651,10 +1666,10 @@ void SWTypeExt::ExtData::ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, co
 		Debug::Log("SW[%s] ApplyDetonate without Firer!\n", this->Get()->ID);
 
 	if (const auto pWeapon = this->Detonate_Weapon.Get())
-		WeaponTypeExt::DetonateAt(pWeapon, nDest, pFirer, this->Detonate_Damage.Get(pWeapon->Damage), true);
+		WeaponTypeExt::DetonateAt(pWeapon, nDest, pFirer, this->Detonate_Damage.Get(pWeapon->Damage), true , pSW->Owner);
 	else
 	{
-		WarheadTypeExt::DetonateAt(this->Detonate_Warhead.Get(), pTarget, nDest, pFirer, this->Detonate_Damage.Get(this->SW_Damage.Get(0)));
+		WarheadTypeExt::DetonateAt(this->Detonate_Warhead.Get(), pTarget, nDest, pFirer, this->Detonate_Damage.Get(0), pSW->Owner);
 	}
 }
 
@@ -1663,8 +1678,7 @@ void SWTypeExt::ExtData::ApplySWNext(SuperClass* pSW, const CellStruct& cell)
 	// random mode
 	if (this->SW_Next_RandomWeightsData.size())
 	{
-		std::vector<int> results;
-		this->WeightedRollsHandler(results, &this->SW_Next_RollChances, &this->SW_Next_RandomWeightsData, this->SW_Next.size());
+		std::vector<int> results = this->WeightedRollsHandler(&this->SW_Next_RollChances, &this->SW_Next_RandomWeightsData, this->SW_Next.size());
 		for (const int& result : results)
 		{
 			SWTypeExt::Launch(pSW, pSW->Owner, this, this->SW_Next[result], cell);
@@ -1789,8 +1803,18 @@ bool SWTypeExt::ExtData::IsAvailable(HouseClass* pHouse)
 	}
 
 	const auto& AuxT = this->Aux_Techno;
+	int count = 0;
 	if (!AuxT.empty() && std::none_of(AuxT.begin(), AuxT.end(),
-		[pHouse](TechnoTypeClass* pType) { return pType && pHouse->CountOwnedAndPresent(pType) > 0; })) {
+		[pHouse, &count](TechnoTypeClass* pType)
+		{
+			if (pType)
+			{
+				count = pHouse->CountOwnedAndPresent(pType);
+			}
+
+			return count > 0;
+		}))
+	{
 		return false;
 	}
 
@@ -2131,6 +2155,7 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->HunterSeeker_RandomOnly)
 		.Process(this->HunterSeeker_Buildings)
 		.Process(this->HunterSeeker_AllowAttachedBuildingAsFallback)
+		.Process(this->HunterSeeker_Type_Count)
 
 		.Process(this->Weather_Duration)
 		.Process(this->Weather_HitDelay)
@@ -2217,6 +2242,41 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->IonCannon_BlastHeight)
 		.Process(this->IonCannon_BeamHeight)
 		.Process(this->IonCannon_FireAtPercentage)
+
+#pragma region LaserStrike
+		.Process(this->LaserStrikeDuration)
+		.Process(this->LaserStrikeRadius)
+		.Process(this->LaserStrikeMax)
+		.Process(this->LaserStrikeMin)
+		.Process(this->LaserStrikeMaxRadius)
+		.Process(this->LaserStrikeMinRadius)
+		.Process(this->LaserStrikeRadiusReduce)
+		.Process(this->LaserStrikeRadiusReduceAcceleration)
+		.Process(this->LaserStrikeRadiusReduceMax)
+		.Process(this->LaserStrikeRadiusReduceMin)
+		.Process(this->LaserStrikeROF)
+		.Process(this->LaserStrikeScatter_Max)
+		.Process(this->LaserStrikeScatter_Min)
+		.Process(this->LaserStrikeScatter_Max_IncreaseMax)
+		.Process(this->LaserStrikeScatter_Max_IncreaseMin)
+		.Process(this->LaserStrikeScatter_Max_Increase)
+		.Process(this->LaserStrikeScatter_Min_IncreaseMax)
+		.Process(this->LaserStrikeScatter_Min_IncreaseMin)
+		.Process(this->LaserStrikeScatter_Min_Increase)
+		.Process(this->LaserStrikeLines)
+		.Process(this->LaserStrikeAngle)
+		.Process(this->LaserStrikeAngleAcceleration)
+		.Process(this->LaserStrikeAngleMax)
+		.Process(this->LaserStrikeAngleMin)
+		.Process(this->LaserStrikeZeroRadius_Weapon)
+		.Process(this->LaserStrikeInnerColor)
+		.Process(this->LaserStrikeOuterColor)
+		.Process(this->LaserStrikeOuterSpread)
+		.Process(this->LaserStrikeLaserDuration)
+		.Process(this->LaserStrikeLaserHeight)
+		.Process(this->LaserStrikeThickness)
+		.Process(this->LaserStrikeRate)
+#pragma endregion
 		;
 
 }

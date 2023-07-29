@@ -191,25 +191,11 @@ DEFINE_HOOK(0x418072, AircraftClass_MI_Attack_BypasPassangersRangeDeterminer, 0x
 {
 	GET(AircraftClass*, pThis, ESI);
 	auto const pTarget = generic_cast<TechnoClass*>(pThis->Target);
-	pThis->SetDestination(pTarget ? pTarget->GetCell() : pThis->GoodTargetLoc(pThis->Target), true);
+	pThis->SetDestination(pTarget ? pTarget->GetCell() : pThis->GoodTargetLoc_(pThis->Target), true);
 	return 0x418087;
 }
 #endif
 
-//DEFINE_HOOK(0x416748, AircraftClass_AirportBound_SkipValidatingLZ, 0x5)
-//{
-//	GET(AircraftClass*, pThis, ESI);
-//	return pThis->Type->AirportBound ? 0x41675D : 0x0;
-//}
-//
-//DEFINE_HOOK(0x4179AA, AircraftClass_EnterIdleMode_AlreadiHasDestination, 0x6)
-//{
-//	GET(AircraftClass*, pThis, ESI);
-//	GET(BuildingClass*, pDest, EAX);
-//	R->EDI(pDest);
-//	return pThis->Destination == pDest ? 0x4179DD : 0x0;
-//}
-//
 //DEFINE_HOOK(0x4CD105, FlyLocomotionClass_StopMoving_AirportBound, 0x5)
 //{
 //	GET(AircraftClass*, pThis, EDI);
@@ -304,9 +290,9 @@ DEFINE_HOOK(0x418072, AircraftClass_MI_Attack_BypasPassangersRangeDeterminer, 0x
 //DEFINE_HOOK(0x73BDA3, UnitClass_DrawVoxel_TurretFacing, 0x5)
 //{
 //	GET(TechnoClass*, pThis, EBP);
-//	
+//
 //	if (!pThis->GetTechnoType()->Turret) {
-//		if (auto pDisguiseType = GetUnitDisguise(pThis)) { 
+//		if (auto pDisguiseType = GetUnitDisguise(pThis)) {
 //			if (pDisguiseType->Turret) {
 //				GET(DirStruct*, pDir, EAX);
 //				*pDir = (pThis->PrimaryFacing.Current());
@@ -380,32 +366,4 @@ DEFINE_HOOK(0x418072, AircraftClass_MI_Attack_BypasPassangersRangeDeterminer, 0x
 ////TechnoClass_Draw_VXL_Disguise_Blit_Flags 0x5
 //DEFINE_JUMP(LJMP, 0x706724, 0x706731);
 
-//DEFINE_HOOK(0x419CC1, AircraftClass_Mi_Enter_AiportBound, 0x6)
-//{
-//	GET(AircraftClass*, pThis, ESI);
-//	GET(AbstractClass*, pNavCom, EDI);
-//	GET(BuildingClass*, pCellBuilding, EAX);
-//
-//	if (pNavCom != pCellBuilding)
-//	{
-//		if (auto pNavBuilding = specific_cast<BuildingClass*>(pNavCom))
-//		{
-//			pThis->DockedTo = pNavBuilding;
-//			pThis->SendToFirstLink(RadioCommand::NotifyUnlink);
-//			pThis->SendCommand(RadioCommand::RequestLink, pNavBuilding);
-//			pThis->SetDestination(pNavBuilding, true);
-//			return 0x419CFF;
-//		}
-//
-//		if (pThis->SendCommand(RadioCommand::QueryCanEnter, pCellBuilding) == RadioCommand::AnswerPositive)
-//		{
-//			pThis->SendToFirstLink(RadioCommand::NotifyUnlink);
-//			pThis->SendToFirstLink(RadioCommand::RequestUntether);
-//			pThis->SendCommand(RadioCommand::RequestLink, pCellBuilding);
-//			pThis->SetDestination(pCellBuilding, true);
-//		}
-//	}
-//
-//	return 0x419D0B;
-//}
 #pragma endregion

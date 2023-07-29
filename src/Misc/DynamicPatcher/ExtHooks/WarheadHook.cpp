@@ -11,7 +11,7 @@ bool CanAffectHouse(WarheadTypeExt::ExtData* warheadTypeExt,HouseClass* pOwnerHo
 		{
 			return warheadTypeExt->AffectsAllies.Get() || warheadTypeExt->AffectsOwner.Get();
 		}
-		else if (pOwnerHouse->IsAlliedWith(pTargetHouse))
+		else if (pOwnerHouse->IsAlliedWith_(pTargetHouse))
 		{
 			return  warheadTypeExt->AffectsAllies.Get();
 		}

@@ -87,9 +87,9 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 			if (pTeamType && ((pTriggerType->Team1 && pTriggerType->Team1 == pTeamType) || (pTriggerType->Team2 && pTriggerType->Team2 == pTeamType)))
 			{
 				found = true;
-				Append(buffer, "TriggerID = %s, weights [Current, Min, Max]: %f, %f, %f", 
-					pTriggerType->ID, pTriggerType->Weight_Current, 
-					pTriggerType->Weight_Minimum, 
+				Append(buffer, "TriggerID = %s, weights [Current, Min, Max]: %f, %f, %f",
+					pTriggerType->ID, pTriggerType->Weight_Current,
+					pTriggerType->Weight_Minimum,
 					pTriggerType->Weight_Maximum);
 			}
 		}
@@ -117,7 +117,7 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 			const char* pTargetStr = NONE_STR;
 
 			if (pFirst->Target)
-			{		
+			{
 				if (pFirst->Target->AbstractFlags & AbstractFlags::Object)
 				{
 					pTargetStr = static_cast<ObjectClass*>(pFirst->Target)->get_ID();
@@ -216,6 +216,7 @@ void PrintBuilding(T& buffer, BuildingClass* pBuilding)
 	const auto nFootMapCoords = pBuilding->InlineMapCoords();
 	Append(buffer, "ID = %s, ", pBuilding->get_ID());
 	Append(buffer, "Owner = %s (%s), ", pBuilding->Owner->get_ID(), pBuilding->Owner->PlainName);
+	Append(buffer, "Current Mission = %d (%s)\n", pBuilding->CurrentMission, MissionClass::MissionToString(pBuilding->CurrentMission));
 	Append(buffer, "fp = %fl , am = %fl ,", pBuilding->FirepowerMultiplier, pBuilding->ArmorMultiplier);
 	Append(buffer, "Loc = (%d, %d)\n", nFootMapCoords.X, nFootMapCoords.Y);
 

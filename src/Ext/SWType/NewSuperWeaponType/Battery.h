@@ -11,5 +11,5 @@ public:
 	virtual void Deactivate(SuperClass* pSW, CellStruct cell, bool isPlayer) override;
 	virtual void Initialize(SWTypeExt::ExtData* pData) override;
 	virtual void LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI) override;
-
+	virtual bool IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const override;
 };

@@ -677,7 +677,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->NoManualEnter.Read(exINI, pSection, "NoManualEnter");
 		this->NoManualEject.Read(exINI, pSection, "NoManualEject");
 
-		this->Crashable.Read(exINI, pSection, "Crashable");
+		//this->Crashable.Read(exINI, pSection, "Crashable");
 
 		this->Passengers_BySize.Read(exINI, pSection, "Passengers.BySize");
 		this->Convert_Deploy.Read(exINI, pSection, "Convert.Deploy");
@@ -895,6 +895,11 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->FactoryOwners_HaveAllPlans.Read(exINI, pSection, "FactoryOwners.HaveAllPlans");
 		this->FactoryOwners_HaveAllPlans.Read(exINI, pSection, "FactoryOwners.Permanent");
 		this->FactoryOwners_HasAllPlans.Read(exINI, pSection, "FactoryOwners.HasAllPlans");
+
+		this->HealthBar_Sections.Read(exINI, pSection, "HealthBar.Sections");
+		this->HealthBar_Border.Read(exINI, pSection, "HealthBar.Border");
+		this->HealthBar_BorderFrame.Read(exINI, pSection, "HealthBar.BorderFrame");
+		this->HealthBar_BorderAdjust.Read(exINI, pSection, "HealthBar.BorderAdjust");
 
 #pragma region AircraftOnly
 		if (Is_AircraftType(pThis))
@@ -1604,7 +1609,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->NoManualEnter)
 		.Process(this->NoManualEject)
 		.Process(this->Passengers_BySize)
-		.Process(this->Crashable)
+		//.Process(this->Crashable)
 		.Process(this->Convert_Deploy)
 		.Process(this->Convert_Script)
 		.Process(this->Harvester_LongScan)
@@ -1779,6 +1784,11 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->Drain_Local)
 		.Process(this->Drain_Amount)
+
+		.Process(this->HealthBar_Sections)
+		.Process(this->HealthBar_Border)
+		.Process(this->HealthBar_BorderFrame)
+		.Process(this->HealthBar_BorderAdjust)
 #pragma endregion
 		;
 

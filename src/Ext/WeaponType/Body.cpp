@@ -306,12 +306,12 @@ int WeaponTypeExt::GetBurstDelay(WeaponTypeClass* pThis, int burstIndex)
 	return -1;
 }
 
-void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, bool AddDamage)
+void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, bool AddDamage, HouseClass* HouseInveoker)
 {
-	WeaponTypeExt::DetonateAt(pThis, pTarget, pOwner, pThis->Damage , AddDamage);
+	WeaponTypeExt::DetonateAt(pThis, pTarget, pOwner, pThis->Damage , AddDamage , HouseInveoker);
 }
 
-void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage)
+void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
 {
 	if (pThis->Warhead->NukeMaker)
 	{
@@ -329,16 +329,16 @@ void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, T
 		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright, AddDamage))
 	{
 		pBullet->SetWeaponType(pThis);
-		BulletExt::DetonateAt(pBullet, pTarget, pOwner);
+		BulletExt::DetonateAt(pBullet, pTarget, pOwner, CoordStruct::Empty , HouseInveoker);
 	}
 }
 
-void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, bool AddDamage)
+void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, bool AddDamage, HouseClass* HouseInveoker)
 {
-	WeaponTypeExt::DetonateAt(pThis, coords, pOwner, pThis->Damage , AddDamage);
+	WeaponTypeExt::DetonateAt(pThis, coords, pOwner, pThis->Damage , AddDamage , HouseInveoker);
 }
 
-void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool AddDamage)
+void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
 {
 	if (!coords)
 	{
@@ -346,10 +346,10 @@ void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords
 		return;
 	}
 
-	WeaponTypeExt::DetonateAt(pThis, MapClass::Instance->GetCellAt(coords), pOwner, damage, AddDamage);
+	WeaponTypeExt::DetonateAt(pThis, MapClass::Instance->GetCellAt(coords), pOwner, damage, AddDamage , HouseInveoker);
 }
 
-void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage)
+void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
 {
 	if (pThis->Warhead->NukeMaker)
 	{
@@ -367,7 +367,7 @@ void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords
 		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright, AddDamage))
 	{
 		pBullet->SetWeaponType(pThis);
-		BulletExt::DetonateAt(pBullet, pTarget, pOwner, coords);
+		BulletExt::DetonateAt(pBullet, pTarget, pOwner, coords , HouseInveoker);
 	}
 }
 // =============================

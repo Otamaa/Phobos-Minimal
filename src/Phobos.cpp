@@ -126,7 +126,7 @@ bool Phobos::Config::ToolTipBlur = false;
 bool Phobos::Config::PrioritySelectionFiltering = true;
 bool Phobos::Config::DevelopmentCommands = true;
 bool Phobos::Config::ArtImageSwap = false;
-bool Phobos::Config::AllowParallelAIQueues = true;
+
 bool Phobos::Config::EnableBuildingPlacementPreview = false;
 
 bool Phobos::Config::RealTimeTimers = false;
@@ -139,12 +139,6 @@ int Phobos::Misc::CustomGS_ChangeDelay[7] = { 0, 1, 2, 3, 4, 5, 6 };
 int Phobos::Misc::CustomGS_DefaultDelay[7] = { 0, 1, 2, 3, 4, 5, 6 };
 
 bool Phobos::Config::EnableSelectBrd = false;
-
-bool Phobos::Config::ForbidParallelAIQueues_Infantry = false;
-bool Phobos::Config::ForbidParallelAIQueues_Vehicle = false;
-bool Phobos::Config::ForbidParallelAIQueues_Navy = false;
-bool Phobos::Config::ForbidParallelAIQueues_Aircraft = false;
-bool Phobos::Config::ForbidParallelAIQueues_Building = false;
 
 bool Phobos::Config::TogglePowerInsteadOfRepair = false;
 bool Phobos::Config::ShowTechnoNamesIsActive = false;
@@ -377,13 +371,6 @@ void Phobos::Config::Read()
 
 		Phobos::Otamaa::DisableCustomRadSite = pINI->ReadBool(PHOBOS_STR, "DisableCustomRadSite", false);
 		Phobos::Config::ArtImageSwap = pINI->ReadBool(GENERAL_SECTION, "ArtImageSwap", false);
-		Phobos::Config::AllowParallelAIQueues = pINI->ReadBool(GLOBALCONTROLS_SECTION, "AllowParallelAIQueues", false);
-
-		Phobos::Config::ForbidParallelAIQueues_Infantry = pINI->ReadBool(GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Infantry", Phobos::Config::AllowParallelAIQueues);
-		Phobos::Config::ForbidParallelAIQueues_Vehicle = pINI->ReadBool(GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Vehicle", Phobos::Config::AllowParallelAIQueues);
-		Phobos::Config::ForbidParallelAIQueues_Navy = pINI->ReadBool(GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Navy", Phobos::Config::AllowParallelAIQueues);
-		Phobos::Config::ForbidParallelAIQueues_Aircraft = pINI->ReadBool(GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Aircraft", Phobos::Config::AllowParallelAIQueues);
-		Phobos::Config::ForbidParallelAIQueues_Building = pINI->ReadBool(GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Building", Phobos::Config::AllowParallelAIQueues);
 
 		if (pINI->ReadBool(GENERAL_SECTION, "CustomGS", false))
 		{
@@ -559,7 +546,7 @@ void Phobos::ExeRun()
 	}
 
 	Patch::ApplyStatic();
-	PoseDirOverride::Apply();
+	//PoseDirOverride::Apply();
 	InitAdminDebugMode();
 	InitConsole();
 }

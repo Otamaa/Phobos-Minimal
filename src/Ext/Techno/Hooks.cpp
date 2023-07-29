@@ -155,9 +155,6 @@ DEFINE_HOOK(0x6F6CFE, TechnoClass_Unlimbo_LaserTrails, 0x6)
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
 
-	if (pThis->Owner && !pThis->Owner->RecheckTechTree && !pTypeExt->Linked_SW.empty())
-		pThis->Owner->UpdateSuperWeaponsUnavailable();
-
 	if (!pExt->LaserTrails.empty())
 	{
 		for (auto& pLaserTrail : pExt->LaserTrails)
@@ -434,13 +431,13 @@ DEFINE_HOOK(0x702672, TechnoClass_ReceiveDamage_RevengeWeapon, 0x5)
 		if (pTypeExt && pTypeExt->RevengeWeapon.isset() &&
 			EnumFunctions::CanTargetHouse(pTypeExt->RevengeWeapon_AffectsHouses, pThis->Owner, pSource->Owner))
 		{
-			WeaponTypeExt::DetonateAt(pTypeExt->RevengeWeapon.Get(), pSource, pThis, true);
+			WeaponTypeExt::DetonateAt(pTypeExt->RevengeWeapon.Get(), pSource, pThis, true, nullptr);
 		}
 
 		for (const auto& weapon : pExt->RevengeWeapons)
 		{
 			if (EnumFunctions::CanTargetHouse(weapon.ApplyToHouses, pThis->Owner, pSource->Owner))
-				WeaponTypeExt::DetonateAt(weapon.Value, pSource, pThis , true);
+				WeaponTypeExt::DetonateAt(weapon.Value, pSource, pThis , true, nullptr);
 		}
 	}
 

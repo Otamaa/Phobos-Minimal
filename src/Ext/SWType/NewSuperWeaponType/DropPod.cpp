@@ -226,7 +226,6 @@ void DroppodStateMachine::PlaceUnits(SuperClass* pSuper , double veterancy , Ite
 			} else {
 				--retrycount;
 			}
-			TechnoExt::ExtMap.Find(pFoot)->LinkedSW = nullptr;
 
 			// randomize the target coodinates
 			CellClass* pCell = MapClass::Instance->GetCellAt(tmpCell);

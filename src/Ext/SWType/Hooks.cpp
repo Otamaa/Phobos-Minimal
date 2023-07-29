@@ -28,6 +28,8 @@ DEFINE_OVERRIDE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 	pSuperExt->Temp_IsPlayer = isPlayer;
 	pSuperExt->Temp_CellStruct = *pCell;
 
+	Debug::Log("Lauch [%x][%s] %s \n", pSuper, pSuper->Owner->get_ID(), pSuper->Type->ID);
+
 	if (
 #ifndef Replace_SW
 		SWTypeExt::ExtData::Activate(pSuper, *pCell, isPlayer)
@@ -36,7 +38,6 @@ DEFINE_OVERRIDE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 #endif
 		)
 	{
-		//Debug::Log("Lauch [%x][%s] %s succeeded \n", pSuper, pSuper->Owner->get_ID(), pSuper->Type->ID);
 		SWTypeExt::ExtMap.Find(pSuper->Type)->FireSuperWeapon(pSuper, pSuper->Owner, pCell, isPlayer);
 		return 0x6CDE40;
 	}
@@ -178,12 +179,15 @@ DEFINE_OVERRIDE_HOOK(0x41F1A1, AITriggerClass_Chrono_Ready, 0xA)
 		? breakloop : advance;
 }
 
+#include <Ext/Team/Body.h>
+
 DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 {
 	GET(TeamClass*, pThis, ECX);
 	GET_STACK(ScriptActionNode*, pTeamMission, 0x4);
 	//GET_STACK(bool, barg3, 0x8);
 
+	auto pTeamExt = TeamExt::ExtMap.Find(pThis);
 	const auto pLeader = pThis->FetchLeader();
 
 	if (!pLeader){
@@ -191,80 +195,67 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 		return 0x6EFE4F;
 	}
 	const auto pOwner = pThis->Owner;
-	const bool havePower = pOwner->HasFullPower();
 
-	//const auto Iter = std::find_if(pOwner->Supers.begin(), pOwner->Supers.end(), [&](SuperClass* pSuper) {
-	//
-	//	const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
-	//
-	//	if ((pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain) &&
-	//		pExt->SW_Group == pTeamMission->Argument)
-	//	{
-	//		if (!pSuper->IsCharged || (havePower && !pSuper->IsPowered()))
-	//		{
-	//			if (!pSuper->Granted) {
-	//				return false;
-	//			} else {
-	//				auto v22 = pSuper->GetRechargeTime();
-	//				const auto nTimeLeft = pSuper->RechargeTimer.GetTimeLeft();
-	//
-	//				if ((v22 - nTimeLeft) < RulesClass::Instance->AIMinorSuperReadyPercent * v22)
-	//					return false;
-	//			}
-	//		}
-	//
-	//		return true;
-	//	}
-	//
-	//	return false;
-	//});
-
-	SuperWeaponTypeClass* pCur = nullptr;
-	bool found = false;
-
-	for (const auto& pSuper : pOwner->Supers)
-	{
-		const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
-
-		if (!pExt->IsAvailable(pOwner))
-			continue;
-
-		if (!found && (pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain) && pExt->SW_Group == pTeamMission->Argument)
-		{
-			if (pSuper->IsCharged && (havePower || !pSuper->IsPowered()))
-			{
-				pCur = pSuper->Type;
-				found = true;
-				continue;
-			}
-		}
-
-		if (!pCur && pSuper->Granted)
-		{
-			const auto charge = pSuper->GetRechargeTime();
-			const auto nTimeLeft = pSuper->RechargeTimer.GetTimeLeft();
-
-			if ((charge - nTimeLeft) >= RulesClass::Instance->AIMinorSuperReadyPercent * charge)
-			{
-				pCur = pSuper->Type;
-				found = false;
-				continue;
-			}
-		}
-	}
-
-	if (found) {
-		auto nCoord = pThis->SpawnCell->GetCoords();
-		pOwner->Fire_SW(pCur->ArrayIndex, CellClass::Coord2Cell(nCoord));
+	if(pOwner->Supers.Count <= 0) {
 		pThis->StepCompleted = true;
 		return 0x6EFE4F;
 	}
 
-	if(!pCur) //only stop if no SW exist
-		pThis->StepCompleted = true;
+	const bool havePower = pOwner->HasFullPower();
 
-	/*AresData::FireIronCurtain(pThis, pTeamMission, barg3);*/
-	return 0x6EFE4F;
+	if(!pTeamExt->LastFoundSW) {
+
+		for (const auto& pSuper : pOwner->Supers)
+		{
+			const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
+
+			if (pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain && pExt->SW_Group == pTeamMission->Argument)
+			{
+				if (!pSuper->Granted || !pExt->IsAvailable(pOwner))
+					continue;
+
+				// found SW that already charged , just use it and return
+				if (pSuper->IsCharged && (havePower || !pSuper->IsPowered())) {
+					auto nCoord = pThis->SpawnCell->GetCoords();
+					pOwner->Fire_SW(pSuper->Type->ArrayIndex, CellClass::Coord2Cell(nCoord));
+					pThis->StepCompleted = true;
+					return 0x6EFE4F;
+				}
+				else
+				{
+					int rechargeTime = pSuper->GetRechargeTime();
+					double timeLeft = (double)pSuper->RechargeTimer.GetTimeLeft();
+
+					if ((1.0 - RulesClass::Instance->AIMinorSuperReadyPercent) < (timeLeft / rechargeTime)){
+						pTeamExt->LastFoundSW = pSuper;
+						return 0x6EFE4F;
+					}
+				}
+			}
+		}
+
+		pThis->StepCompleted = true;
+		return 0x6EFE4F;
+
+	} else { //continue waiting until it ready
+
+		if (!pTeamExt->LastFoundSW->Granted ||
+			!SWTypeExt::ExtMap.Find(pTeamExt->LastFoundSW->Type)->IsAvailable(pOwner))
+		{
+			pTeamExt->LastFoundSW = nullptr;
+			pThis->StepCompleted = true;
+			return 0x6EFE4F;
+		}
+
+		if (pTeamExt->LastFoundSW->IsCharged && (havePower || !pTeamExt->LastFoundSW->IsPowered())) {
+			auto nCoord = pThis->SpawnCell->GetCoords();
+			pOwner->Fire_SW(pTeamExt->LastFoundSW->Type->ArrayIndex, CellClass::Coord2Cell(nCoord));
+			pThis->StepCompleted = true;
+			return 0x6EFE4F;
+		}
+
+		return 0x6EFE4F;
+	}
 }
 
 // these thing picking first SW type with Chronosphere breaking the AI , bruh
@@ -320,6 +311,12 @@ DEFINE_OVERRIDE_HOOK(0x6CEE96, SuperWeaponTypeClass_GetTypeIndex, 5)
 
 DEFINE_OVERRIDE_HOOK(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
 {
+	enum {
+		RetImpatientClick = 0x6AAFB1 ,
+		SendSWLauchEvent = 0x6AAF10 ,
+		ClearDisplay = 0x6AAF46
+	};
+
 	GET(int, idxSW, ESI);
 
 	SuperClass* pSuper = HouseClass::CurrentPlayer->Supers.GetItem(idxSW);
@@ -328,15 +325,14 @@ DEFINE_OVERRIDE_HOOK(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
 	// if this SW is only auto-firable, discard any clicks.
 	// if AutoFire is off, the sw would not be firable at all,
 	// thus we ignore the setting in that case.
-	bool manual = !pData->SW_ManualFire && pData->SW_AutoFire;
-	bool unstoppable = pSuper->Type->UseChargeDrain && pSuper->ChargeDrainState == ChargeDrainState::Draining
+	const bool manual = !pData->SW_ManualFire && pData->SW_AutoFire;
+	const bool unstoppable = pSuper->Type->UseChargeDrain && pSuper->ChargeDrainState == ChargeDrainState::Draining
 		&& pData->SW_Unstoppable;
 
 	// play impatient voice, if this isn't charged yet
-	if (!pSuper->CanFire() && !manual)
-	{
+	if (!manual && !pSuper->CanFire()) {
 		VoxClass::PlayIndex(pSuper->Type->ImpatientVoice);
-		return 0x6AAFB1;
+		return RetImpatientClick;
 	}
 
 	// prevent firing the SW if the player doesn't have sufficient
@@ -345,32 +341,27 @@ DEFINE_OVERRIDE_HOOK(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
 	{
 		VoxClass::PlayIndex(pData->EVA_InsufficientFunds);
 		pData->PrintMessage(pData->Message_InsufficientFunds, HouseClass::CurrentPlayer);
-		return 0x6AAFB1;
+		return RetImpatientClick;
 	}
 
 	if (!pData->SW_UseAITargeting.Get() || SWTypeExt::ExtData::IsTargetConstraintsEligible(pSuper, true))
 	{
 		// disallow manuals and active unstoppables
-		if (manual || unstoppable)
-		{
-			return 0x6AAFB1;
+		if (manual || unstoppable) {
+			return RetImpatientClick;
 		}
 
-		if (!((int)pSuper->Type->Action) || pData->SW_UseAITargeting.Get())
-		{
+		if (pSuper->Type->Action == Action::None || pData->SW_UseAITargeting.Get()) {
 			R->EAX(HouseClass::CurrentPlayer());
-			return 0x6AAF10;
+			return SendSWLauchEvent;
 		}
-		else
-		{
-			return 0x6AAF46;
-		}
+
+		return ClearDisplay;
 	}
-	else
-	{
-		pData->PrintMessage(pData->Message_CannotFire, HouseClass::CurrentPlayer);
-		return 0x6AAFB1;
-	}
+
+	Debug::Log("SW [%s]-[%s] CannotFire\n" ,pSuper->Type->ID , pSuper->Owner->get_ID());
+	pData->PrintMessage(pData->Message_CannotFire, HouseClass::CurrentPlayer);
+	return RetImpatientClick;
 }
 
 // play a customizable target selection EVA message
@@ -717,7 +708,7 @@ DEFINE_OVERRIDE_HOOK(0x6A99B7, StripClass_Draw_SuperDarken, 5)
 	return 0;
 }
 
-DEFINE_HOOK(0x4F8FE1, HouseClass_Update_TryFireSW, 0x6)
+DEFINE_HOOK(0x4F8FE1, HouseClass_Update_TryFireSW, 0x5)
 {
 	GET(HouseClass*, pThis, ESI);
 
@@ -1184,15 +1175,15 @@ DEFINE_HOOK(0x4C78EF, Networking_RespondToEvent_SpecialPlace, 9)
 	const auto pSuper = pHouse->Supers.Items[Checksum];
 	const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
 
-	if (pExt->SW_UseAITargeting
-		&& !SWTypeExt::ExtData::TryFire(pSuper, 1)
-		&& pHouse == HouseClass::CurrentPlayer
-	) {
-		pExt->PrintMessage(pExt->Message_CannotFire, pHouse);
-		return 0x4C78F8;
+	if (pExt->SW_UseAITargeting) {
+		if(!SWTypeExt::ExtData::TryFire(pSuper, 1) && pHouse == HouseClass::CurrentPlayer) {
+			Debug::Log("SW [%s]-[%s] CannotFire\n" ,pSuper->Type->ID , pHouse->get_ID());
+			pExt->PrintMessage(pExt->Message_CannotFire, pHouse);
+		}
+	} else{
+		pHouse->Fire_SW(Checksum, *pCell);
 	}
 
-	pHouse->Fire_SW(Checksum, *pCell);
 	return 0x4C78F8;
 }
 
@@ -1367,6 +1358,8 @@ DEFINE_HOOK(0x46B423, BulletClass_NukeMaker_PropagateSW, 6)
 	auto const pThisExt = BulletExt::ExtMap.Find(pThis);
 	auto const pNukeExt = BulletExt::ExtMap.Find(pNuke);
 	pNukeExt->NukeSW = pThisExt->NukeSW;
+	pNuke->Owner = pThis->Owner;
+	pNukeExt->Owner = pNukeExt->Owner;
 
 	return 0;
 }

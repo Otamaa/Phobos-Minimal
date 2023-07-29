@@ -852,7 +852,7 @@ public:
 	double			 ConditionYellow;
 	double			 ConditionRed;
 	double			 IdleActionFrequency;
-	int				 CloseEnough;
+	Leptons			CloseEnough;
 	int				 Stray;
 	int				 RelaxedStray;
 	int				 GuardModeStray;

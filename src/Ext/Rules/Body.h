@@ -193,6 +193,13 @@ public:
 
 		Valueable<bool> EnemyWrench { true };
 
+		Valueable<bool> AllowParallelAIQueues { true };
+		Nullable<bool> ForbidParallelAIQueues_Infantry { };
+		Nullable<bool> ForbidParallelAIQueues_Vehicle { };
+		Nullable<bool> ForbidParallelAIQueues_Navy { };
+		Nullable<bool> ForbidParallelAIQueues_Aircraft { };
+		Nullable<bool> ForbidParallelAIQueues_Building { };
+
 		Valueable<AircraftTypeClass*> DefaultParaPlane { nullptr };
 		Valueable<int> DropPodMinimum { 0 };
 		Valueable<int> DropPodMaximum { 0 };
@@ -212,6 +219,8 @@ public:
 
 		Valueable<bool> DamageAirConsiderBridges { false };
 		Valueable<bool> DiskLaserAnimEnabled { false };
+
+		ValueableIdx<ColorScheme> AnimRemapDefaultColorScheme { 0 };
 
 		AircraftPutDataRules MyPutData { };
 

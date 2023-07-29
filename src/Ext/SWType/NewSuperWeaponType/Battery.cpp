@@ -45,7 +45,7 @@ void SW_Battery::Initialize(SWTypeExt::ExtData* pData)
 }
 
 void SW_Battery::LoadFromINI(SWTypeExt::ExtData * pData,CCINIClass * pINI)
-{ 
+{
 	const auto pSection = pData->Get()->ID;
 	INI_EX exINI(pINI);
 
@@ -54,4 +54,15 @@ void SW_Battery::LoadFromINI(SWTypeExt::ExtData * pData,CCINIClass * pINI)
 
 	if(!pData->SW_Power.isset())
 		pData->SW_Power.Read(exINI, pSection, "Battery.Power");
+}
+
+bool SW_Battery::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+{
+	if (!this->IsLaunchsiteAlive(pBuilding))
+		return false;
+
+	if (!pData->SW_Lauchsites.empty() && pData->SW_Lauchsites.Contains(pBuilding->Type))
+		return true;
+
+	return this->IsSWTypeAttachedToThis(pData, pBuilding);
 }

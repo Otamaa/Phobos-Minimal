@@ -12,7 +12,7 @@ class SidebarExt
 {
 public:
 	static IStream* g_pStm;
-	static std::array<UniqueGamePtrB<SHPStruct>, 4u> TabProducingProgress;
+	static std::array<SHPReference*, 4u> TabProducingProgress;
 
 	class ExtData final : public Extension<SidebarClass>
 	{

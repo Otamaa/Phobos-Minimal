@@ -4,7 +4,7 @@
 
 #include <Ext/Anim/Body.h>
 #include <Ext/Techno/Body.h>
-#include <Ext/SWType/Body.h>
+#include <Ext/SWType/NewSuperWeaponType/NewSWType.h>
 
 DEFINE_HOOK(0x4B5BCD, DroppodLoco_Process_Speed, 0x6)
 {
@@ -72,6 +72,20 @@ DEFINE_HOOK(0x519168, InfantryClass_DrawIt_DroppodLinked, 0x5)
 	if(pExt->LinkedSW) {
 		R->EAX(SWTypeExt::ExtMap.Find(pExt->LinkedSW->Type)->Droppod_PodImage_Infantry.Get());
 		return 0x519172;
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x4B641D, DroppodLocomotionClass_IPiggy_EndPiggyback, 7)
+{
+	GET(ILocomotion*, pIloco, EAX);
+	const auto pLoco = static_cast<LocomotionClass*>(pIloco);
+
+	if (pLoco->Owner) {
+		const auto pExt = TechnoExt::ExtMap.Find(pLoco->Owner);
+		if (pExt->LinkedSW && (AresNewSuperType)pExt->LinkedSW->Type->Type == AresNewSuperType::DropPod)
+			pExt->LinkedSW = nullptr;
 	}
 
 	return 0x0;
@@ -175,7 +189,7 @@ DEFINE_HOOK(0x4B619F, DropPodLocomotionClass_MoveTo_AtmosphereEntry, 0x5)
 	return 0x4B61D6;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4B5F7E, DropPodLocomotionClass_ILocomotion_Process_Report, 0x6)
+DEFINE_HOOK(0x4B5F7E, DropPodLocomotionClass_ILocomotion_Process_Report, 0x6)
 {
 	// do not divide by zero
 	GET(int const, count, EBP);

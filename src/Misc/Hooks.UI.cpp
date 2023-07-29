@@ -22,7 +22,7 @@
 DEFINE_HOOK(0x777C41, UI_ApplyAppIcon, 0x9)
 {
 	if (!Phobos::AppIconPath.empty()) {
-		Debug::Log("Applying AppIcon from \"%s\"\n", Phobos::AppIconPath.c_str());		
+		Debug::Log("Applying AppIcon from \"%s\"\n", Phobos::AppIconPath.c_str());
 		R->EAX(LoadImageA(NULL, Phobos::AppIconPath.c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE));
 		return 0x777C4A;
 	}
@@ -86,27 +86,27 @@ DEFINE_HOOK(0x4A25E0, CreditsClass_GraphicLogic_Additionals , 0x7)
 	const auto pSideExt = SideExt::ExtMap.Find(pSide);
 	wchar_t counter[0x20];
 
-	if (Phobos::UI::ShowHarvesterCounter)
-	{	
-		const auto nActive = HouseExt::ActiveHarvesterCount(pPlayer);
-		const auto nTotal = HouseExt::TotalHarvesterCount(pPlayer);
-		const auto nPercentage = nTotal == 0 ? 1.0 : (double)nActive / (double)nTotal;
+	 if (Phobos::UI::ShowHarvesterCounter)
+	 {
+	 	const auto nActive = HouseExt::ActiveHarvesterCount(pPlayer);
+	 	const auto nTotal = HouseExt::TotalHarvesterCount(pPlayer);
+	 	const auto nPercentage = nTotal == 0 ? 1.0 : (double)nActive / (double)nTotal;
 
-		const ColorStruct clrToolTip = nPercentage > Phobos::UI::HarvesterCounter_ConditionYellow
-			? Drawing::TooltipColor() : nPercentage > Phobos::UI::HarvesterCounter_ConditionRed
-			? pSideExt->Sidebar_HarvesterCounter_Yellow : pSideExt->Sidebar_HarvesterCounter_Red;
+	 	const ColorStruct clrToolTip = nPercentage > Phobos::UI::HarvesterCounter_ConditionYellow
+	 		? Drawing::TooltipColor() : nPercentage > Phobos::UI::HarvesterCounter_ConditionRed
+	 		? pSideExt->Sidebar_HarvesterCounter_Yellow : pSideExt->Sidebar_HarvesterCounter_Red;
 
-		swprintf_s(counter, L"%ls%d/%d", Phobos::UI::HarvesterLabel, nActive, nTotal);
+	 	swprintf_s(counter, L"%ls%d/%d", Phobos::UI::HarvesterLabel, nActive, nTotal);
 
-		Point2D vPos {
-			DSurface::Sidebar->Get_Width() / 2 + 50 + pSideExt->Sidebar_HarvesterCounter_Offset.Get().X,
-			2 + pSideExt->Sidebar_HarvesterCounter_Offset.Get().Y
-		};
+	 	Point2D vPos {
+	 		DSurface::Sidebar->Get_Width() / 2 + 50 + pSideExt->Sidebar_HarvesterCounter_Offset.Get().X,
+	 		2 + pSideExt->Sidebar_HarvesterCounter_Offset.Get().Y
+	 	};
 
-		RectangleStruct vRect = DSurface::Sidebar->Get_Rect();
-		DSurface::Sidebar->DSurfaceDrawText(counter, &vRect, &vPos, Drawing::RGB2DWORD(clrToolTip), 0,
-			TextPrintType::UseGradPal | TextPrintType::Center | TextPrintType::Metal12);
-	}
+	 	RectangleStruct vRect = DSurface::Sidebar->Get_Rect();
+	 	DSurface::Sidebar->DSurfaceDrawText(counter, &vRect, &vPos, Drawing::RGB2DWORD(clrToolTip), 0,
+	 		TextPrintType::UseGradPal | TextPrintType::Center | TextPrintType::Metal12);
+	 }
 
 	if (Phobos::UI::ShowPowerDelta)
 	{

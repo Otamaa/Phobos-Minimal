@@ -190,8 +190,8 @@ public:
 
 	CellStruct      CurrentMapCoords;
 	CellStruct      LastMapCoords; // ::UpdatePosition uses this to remove threat from last occupied cell, etc
-	CellStruct      LastJumpjetMapCoords; // which cell was I occupying previously? only for jumpjets
-	CellStruct      CurrentJumpjetMapCoords; // which cell am I occupying? only for jumpjets
+	CellStruct      LastFlightMapCoords; // which cell was I occupying previously? only for AircraftTracker-tracked stuff
+	CellStruct      CurrentJumpjetMapCoords; // unconfirmed, which cell am I occupying? only for jumpjets
 	CoordStruct     CurrentMechPos; //unknown_coords_568 5B0832
 	PROTECTED_PROPERTY(DWORD,   unused_574);
 	double          SpeedPercentage;

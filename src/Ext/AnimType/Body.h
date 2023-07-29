@@ -88,6 +88,7 @@ public:
 		Valueable<bool> RemapAnim { false };
 		//AnimSpawnerDatas SpawnerDatas;
 
+		Valueable<bool> AltPalette_ApplyLighting { false };
 		ExtData(AnimTypeClass* OwnerObject) : Extension<AnimTypeClass> { OwnerObject } { }
 		virtual ~ExtData() override = default;
 

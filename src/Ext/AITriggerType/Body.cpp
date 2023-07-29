@@ -121,7 +121,7 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 
 		if (cur[0])
 			essentialRequirementsCount = atoi(cur[0]);
-		else 
+		else
 			Debug::Log("AITriggerTypeExt - CustomizableAICondition : [AIConditionsList]: Error parsing Essential Requirements Count [0] !.\n");
 
 		if (cur[1])
@@ -238,7 +238,7 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 //	return 0;
 //}
 //
-//// BEfore -> 41E5A1 
+//// BEfore -> 41E5A1
 //// After -> 41E5B2
 //// Better -> 41E5A1
 //DEFINE_HOOK(0x41E5B2, AITriggerTypeClass_Load_Suffix, 0x6)

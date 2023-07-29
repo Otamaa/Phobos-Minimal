@@ -3,6 +3,8 @@
 #include <FactoryClass.h>
 #include <TEventClass.h>
 
+#include <Misc/AresData.h>
+
 // AI Naval queue bugfix hooks
 // https://github.com/Phobos-developers/Phobos/pull/817
 // Todo :  Otamaa : seems unstable atm ? , need to retest
@@ -10,6 +12,39 @@
 namespace ExitObjectTemp
 {
 	int ProducingUnitIndex = -1;
+}
+
+DEFINE_HOOK(0x4FB6FC, HouseClass_JustBuilt_NavalProductionFix, 0x6)
+{
+	enum { SkipGameCode = 0x4FB702 };
+
+	GET(HouseClass* const, pThis, EDI);
+	GET(UnitTypeClass* const, pUnitType, EDX);
+	GET(int const, ID, EAX);
+
+	if (pUnitType->Naval)
+	{
+		HouseExt::ExtMap.Find(pThis)->LastBuiltNavalVehicleType = ID;
+		return SkipGameCode;
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x71F003, TEventClass_Execute_NavalProductionFix, 0x6)
+{
+	enum { Occured = 0x71F014, Skip = 0x71F163 };
+
+	GET(TEventClass* const, pThis, EBP);
+	GET(HouseClass* const, pHouse, EAX);
+
+	if (pHouse->LastBuiltVehicleType != pThis->Value &&
+		HouseExt::ExtMap.Find(pHouse)->LastBuiltNavalVehicleType != pThis->Value)
+	{
+		return Skip;
+	}
+
+	return Occured;
 }
 
 DEFINE_HOOK(0x444113, BuildingClass_ExitObject_NavalProductionFix1, 0x6)
@@ -21,9 +56,7 @@ DEFINE_HOOK(0x444113, BuildingClass_ExitObject_NavalProductionFix1, 0x6)
 
 	if (Is_Unit(pObject) && pObject->GetTechnoType()->Naval)
 	{
-		if (auto const pHouseExt = HouseExt::ExtMap.Find(pHouse))
-			pHouseExt->ProducingNavalUnitTypeIndex = -1;
-
+		HouseExt::ExtMap.Find(pHouse)->ProducingNavalUnitTypeIndex = -1;
 		ExitObjectTemp::ProducingUnitIndex = pHouse->ProducingUnitTypeIndex;
 	}
 
@@ -104,11 +137,8 @@ DEFINE_HOOK(0x4CA0A1, FactoryClass_Abandon_NavalProductionFix, 0x5)
 
 	if (Is_Unit(pThis->Object) && pThis->Object->GetTechnoType()->Naval)
 	{
-		if (auto const pHouseExt = HouseExt::ExtMap.Find(pThis->Owner))
-		{
-			pHouseExt->ProducingNavalUnitTypeIndex = -1;
-			return SkipUnitTypeCheck;
-		}
+		HouseExt::ExtMap.Find(pThis->Owner)->ProducingNavalUnitTypeIndex = -1;
+		return SkipUnitTypeCheck;
 	}
 
 	return 0;
@@ -125,20 +155,20 @@ DEFINE_HOOK(0x4F91A4, HouseClass_AI_BuildingProductionCheck, 0x6)
 	bool cantBuild = pThis->ProducingUnitTypeIndex == -1 && pThis->ProducingInfantryTypeIndex == -1 &&
 		pThis->ProducingAircraftTypeIndex == -1 && pExt->ProducingNavalUnitTypeIndex == -1;
 
-	int index = pExt->ProducingNavalUnitTypeIndex;
-	if (index != -1 && !UnitTypeClass::Array->GetItem(index)->FindFactory(true, true, true, pThis))
+	if (pExt->ProducingNavalUnitTypeIndex != -1
+		&& !UnitTypeClass::Array->GetItem(pExt->ProducingNavalUnitTypeIndex)->FindFactory(true, true, true, pThis))
 		cantBuild = true;
 
-	index = pThis->ProducingUnitTypeIndex;
-	if (index != -1 && !UnitTypeClass::Array->GetItem(index)->FindFactory(true, true, true, pThis))
+	if (pThis->ProducingUnitTypeIndex != -1
+		&& !UnitTypeClass::Array->GetItem(pThis->ProducingUnitTypeIndex)->FindFactory(true, true, true, pThis))
 		cantBuild = true;
 
-	index = pThis->ProducingInfantryTypeIndex;
-	if (index != -1 && !InfantryTypeClass::Array->GetItem(index)->FindFactory(true, true, true, pThis))
+	if (pThis->ProducingInfantryTypeIndex != -1
+		&& !InfantryTypeClass::Array->GetItem(pThis->ProducingInfantryTypeIndex)->FindFactory(true, true, true, pThis))
 		cantBuild = true;
 
-	index = pThis->ProducingAircraftTypeIndex;
-	if ((index != -1 && !AircraftTypeClass::Array->GetItem(index)->FindFactory(true, true, true, pThis)) || cantBuild)
+	if ((pThis->ProducingAircraftTypeIndex != -1
+		&& !AircraftTypeClass::Array->GetItem(pThis->ProducingAircraftTypeIndex)->FindFactory(true, true, true, pThis)) || cantBuild)
 		return CheckBuildingProduction;
 
 	return SkipGameCode;
@@ -152,49 +182,4 @@ DEFINE_HOOK(0x4FE0A3, HouseClass_AI_RaiseMoney_NavalProductionFix, 0x6)
 		pExt->ProducingNavalUnitTypeIndex = -1;
 
 	return 0;
-}
-
-DEFINE_HOOK_AGAIN(0x4F90F0, HouseClass_AI_NavalProductionFix, 0x7)
-DEFINE_HOOK(0x4F9250, HouseClass_AI_NavalProductionFix, 0x7)
-{
-	enum { SkipGameCodeOne = 0x4F9257, SkipGameCodeTwo = 0x4F90F7 };
-
-	GET(HouseClass* const, pThis, ESI);
-
-	HouseExt::ExtMap.Find(pThis)->UpdateVehicleProduction();
-
-	return R->Origin() == 0x4F9250 ? SkipGameCodeOne : SkipGameCodeTwo;
-}
-
-DEFINE_HOOK(0x4FB6FC, HouseClass_JustBuilt_NavalProductionFix, 0x6)
-{
-	enum { SkipGameCode = 0x4FB702 };
-
-	GET(HouseClass* const, pThis, EDI);
-	GET(UnitTypeClass* const, pUnitType, EDX);
-	GET(int const, ID, EAX);
-
-	if (pUnitType->Naval)
-	{
-		HouseExt::ExtMap.Find(pThis)->LastBuiltNavalVehicleType = ID;
-		return SkipGameCode;
-	}
-
-	return 0;
-}
-
-DEFINE_HOOK(0x71F003, TEventClass_Execute_NavalProductionFix, 0x6)
-{
-	enum { Occured = 0x71F014, Skip = 0x71F163 };
-
-	GET(TEventClass* const, pThis, EBP);
-	GET(HouseClass* const, pHouse, EAX);
-
-	if (pHouse->LastBuiltVehicleType != pThis->Value &&
-		HouseExt::ExtMap.Find(pHouse)->LastBuiltNavalVehicleType != pThis->Value)
-	{
-		return Skip;
-	}
-
-	return Occured;
 }

@@ -12,6 +12,9 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 
+#include <Locomotor/Cast.h>
+#include <Locomotor/JumpjetLocomotionClass.h>
+
 void AnimTypeExt::ExtData::Initialize()
 {
 	SplashList.reserve(RulesClass::Instance->SplashList.Count);
@@ -121,6 +124,8 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->ConcurrentAnim.Read(exINI, pID, "ConcurrentAnim");
 	this->AttachedSystem.Read(exINI, pID, "AttachedSystem", true);
 
+	this->AltPalette_ApplyLighting.Read(exINI, pID, "AltPalette.ApplyLighting");
+
 	//Launchs
 	this->Launchs.clear();
 	for (size_t i = 0; ; ++i)
@@ -159,37 +164,45 @@ void AnimTypeExt::CreateUnit_MarkCell(AnimClass* pThis)
 	{
 		auto Location = pThis->GetCoords();
 
-		if (pTypeExt->CreateUnit_ConsiderPathfinding)
+		if (!MapClass::Instance->IsWithinUsableArea(Location))
+			return;
+
+		auto pCell = pThis->GetCell();
+
+		bool allowBridges = GroundType::Array[static_cast<int>(LandType::Clear)].Cost[static_cast<int>(pUnit->SpeedType)] > 0.0;
+		bool isBridge = allowBridges && pCell->ContainsBridge();
+
+		if (pTypeExt->CreateUnit_ConsiderPathfinding
+			&& (!pCell || !pCell->IsClearToMove(pUnit->SpeedType, false, false, -1, pUnit->MovementZone, -1, isBridge)))
 		{
 			const auto nCell = MapClass::Instance->NearByLocation(CellClass::Coord2Cell(Location),
-				pUnit->SpeedType, -1, pUnit->MovementZone, false, 1, 1, true,
-				false, false, pUnit->SpeedType != SpeedType::Float, CellStruct::Empty, false, false);
+				pUnit->SpeedType, -1, pUnit->MovementZone, isBridge, 1, 1, true,
+				false, false, isBridge, CellStruct::Empty, false, false);
 
 			CellClass* pCell = MapClass::Instance->TryGetCellAt(nCell);
 			if (!pCell)
 				return;
 
-			Location = pTypeExt->CreateUnit->SpeedType != SpeedType::Float ?
-				pCell->GetCoordsWithBridge() : pCell->GetCoords();
+			Location = pCell->GetCoords();
 		}
 
+		isBridge = allowBridges && pCell->ContainsBridge();
+		int bridgeZ = isBridge ? CellClass::BridgeHeight : 0;
+
 		// TODO : this shit break when the unit on top of bridge
-		const int z = pTypeExt->CreateUnit_AlwaysSpawnOnGround ? INT32_MIN : pThis->GetCoords().Z;
+		const int z = pTypeExt->CreateUnit_AlwaysSpawnOnGround ? INT32_MIN : Location.Z;
 		const auto nCellHeight = MapClass::Instance->GetCellFloorHeight(Location);
-		Location.Z = MaxImpl(nCellHeight, z);
+		Location.Z = MaxImpl(nCellHeight + bridgeZ, z);
 
 		const auto pCellAfter = MapClass::Instance->GetCellAt(Location);
 
 		//there is some unsolved vanilla bug that causing unit uneable to die
 		//when it on brige , idk what happen there , but it is what it is for now
 		//will reenable if fixed !
-		if (pCellAfter->ContainsBridge())
-			return;
+		//if (pCellAfter->ContainsBridge())
+		//	return;
 
 		if (!MapClass::Instance->IsWithinUsableArea(Location))
-			return;
-
-		if (pCellAfter->GetBuilding())
 			return;
 
 		pExt->AllowCreateUnit = true;
@@ -222,34 +235,28 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 	pThis->UnmarkAllOccupationBits(pAnimExt->CreateUnitLocation);
 
 	HouseClass* decidedOwner = GetOwnerForSpawned(pThis);
-	//const auto pCell = MapClass::Instance->TryGetCellAt(pAnimExt->CreateUnitLocation);
 
 	if (const auto pTechno = static_cast<UnitClass*>(pTypeExt->CreateUnit->CreateObject(decidedOwner)))
 	{
-		bool success = false;
-
 		const DirType resultingFacing = (pTypeExt->CreateUnit_InheritDeathFacings.Get() &&
 			  pAnimExt->DeathUnitFacing.has_value())
 			? pAnimExt->DeathUnitFacing.get() : pTypeExt->CreateUnit_RandomFacing.Get()
 			? ScenarioClass::Instance->Random.RandomRangedSpecific<DirType>(DirType::North, DirType::Max) : pTypeExt->CreateUnit_Facing.Get();
 
-		if (!pTypeExt->CreateUnit_ConsiderPathfinding.Get())
+		auto pCell = MapClass::Instance->GetCellAt(pAnimExt->CreateUnitLocation);
+		if (!pTypeExt->CreateUnit_ConsiderPathfinding.Get() || !pCell->GetBuilding())
 		{
 			++Unsorted::ScenarioInit;
-			success = pTechno->Unlimbo(pAnimExt->CreateUnitLocation, resultingFacing);
+			pTechno->Unlimbo(pAnimExt->CreateUnitLocation, resultingFacing);
 			--Unsorted::ScenarioInit;
 		}
 		else
 		{
-			success = pTechno->Unlimbo(pAnimExt->CreateUnitLocation, resultingFacing);
+			 pTechno->Unlimbo(pAnimExt->CreateUnitLocation, resultingFacing);
 		}
 
-		if (success)
+		if (!pTechno->InLimbo)
 		{
-			//pTechno->UpdatePlacement(PlacementType::Remove);
-			//pTechno->OnBridge = pCell->ContainsBridge();
-			//pTechno->UpdatePlacement(PlacementType::Put);
-
 			if (const auto pCreateUnitAnimType = pTypeExt->CreateUnit_SpawnAnim.Get(nullptr))
 			{
 				if (auto const pCreateUnitAnim = GameCreate<AnimClass>(pCreateUnitAnimType, pAnimExt->CreateUnitLocation))
@@ -270,6 +277,33 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 			if (pTechno->HasTurret() && pAnimExt->DeathUnitTurretFacing.has_value())
 			{
 				pTechno->SecondaryFacing.Set_Current(pAnimExt->DeathUnitTurretFacing.get());
+			}
+
+			if (pThis->IsInAir() && !pTypeExt->CreateUnit_AlwaysSpawnOnGround)
+			{
+				if (auto const pJJLoco = locomotion_cast<JumpjetLocomotionClass*>(pTechno->Locomotor))
+				{
+					auto const pType = pTechno->GetTechnoType();
+					pJJLoco->Facing.Set_Current(DirStruct(static_cast<DirType>(resultingFacing)));
+
+					if (pType->BalloonHover)
+					{
+						// Makes the jumpjet think it is hovering without actually moving.
+						pJJLoco->NextState = JumpjetLocomotionClass::State::Hovering;
+						pJJLoco->IsMoving = true;
+						pJJLoco->HeadToCoord = pAnimExt->CreateUnitLocation;
+						pJJLoco->Height = pType->JumpjetHeight;
+					}
+					else
+					{
+						// Order non-BalloonHover jumpjets to land.
+						pJJLoco->Move_To(pAnimExt->CreateUnitLocation);
+					}
+				}
+				else
+				{
+					pTechno->IsFallingDown = true;
+				}
 			}
 
 			pTechno->QueueMission(pTypeExt->CreateUnit_Mission.Get(), false);
@@ -399,6 +433,8 @@ void AnimTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->IsInviso)
 		.Process(this->RemapAnim)
 		//.Process(SpawnerDatas)
+
+		.Process(this->AltPalette_ApplyLighting)
 		;
 }
 

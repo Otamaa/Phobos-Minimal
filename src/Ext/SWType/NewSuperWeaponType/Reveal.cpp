@@ -84,7 +84,6 @@ void SW_Reveal::RevealMap(const CellStruct& Coords, float range, int height, Hou
 			if (range < 0.0)
 			{
 				// reveal all cells without hundred thousands function calls
-				//auto const Map = MapClass::Instance();
 				MapClass::Instance->CellIteratorReset();
 				while (auto const pCell = MapClass::Instance->CellIteratorNext())
 				{
@@ -94,7 +93,8 @@ void SW_Reveal::RevealMap(const CellStruct& Coords, float range, int height, Hou
 					}
 				}
 
-				AresNetEvent::Handlers::RaiseRevealMap(Owner);
+				if (SessionClass::Instance->GameMode == GameMode::Internet || SessionClass::Instance->GameMode == GameMode::LAN)
+					AresNetEvent::Handlers::RaiseRevealMap(Owner);
 			}
 			else
 			{

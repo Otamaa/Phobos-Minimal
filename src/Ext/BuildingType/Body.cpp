@@ -682,6 +682,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 
 		this->BunkerRaidable.Read(exINI, pSection, "Bunker.Raidable");
 		this->Firestorm_Wall.Read(exINI, pSection, "Firestorm.Wall");
+		this->AbandonedSound.Read(exINI, pSection, "AbandonedSound");
 	}
 #pragma endregion
 
@@ -896,6 +897,8 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->AllowedOccupiers)
 		.Process(this->BunkerRaidable)
 		.Process(this->Firestorm_Wall)
+
+		.Process(this->AbandonedSound)
 		;
 }
 

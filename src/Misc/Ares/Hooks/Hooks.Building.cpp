@@ -619,7 +619,7 @@ Action NOINLINE GetiInfiltrateActionResult(InfantryClass* pInf , BuildingClass* 
 		auto pBldOwner = pBuilding->GetOwningHouse();
 		auto pInfOwner = pInf->GetOwningHouse();
 
-		if (!pBldOwner || (pBldOwner != pInfOwner && !pBldOwner->IsAlliedWith(pInfOwner)))
+		if (!pBldOwner || (pBldOwner != pInfOwner && !pBldOwner->IsAlliedWith_(pInfOwner)))
 			return Action::Move;
 	}
 
@@ -659,7 +659,7 @@ DEFINE_OVERRIDE_HOOK(0x51EE6B, InfantryClass_GetActionOnObject_Saboteur, 6)
 
 	if (auto pBldObject = abstract_cast<BuildingClass*>(pObject))
 	{
-		if (!pThis->Owner->IsAlliedWith(pBldObject))
+		if (!pThis->Owner->IsAlliedWith_(pBldObject))
 		{
 			const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBldObject->Type);
 
@@ -2066,6 +2066,7 @@ DEFINE_OVERRIDE_HOOK(0x52297F, InfantryClass_GarrisonBuilding_OccupierEntered, 5
 	GET(BuildingClass*, pBld, EBP);
 
 	AresGarrisonedIn(pInf) = pBld;
+	//pInf->Target = nullptr; //reset targeting
 
 	auto buildingExtData = BuildingExt::ExtMap.Find(pBld);
 
@@ -2140,7 +2141,7 @@ DEFINE_OVERRIDE_HOOK(0x4556E1, BuildingClass_SensorArrayDeactivate, 7)
 }
 
 // powered state changed
-DEFINE_OVERRIDE_HOOK_AGAIN(0x54B5F, BuildingClass_UpdatePowered_SensorArray, 6)
+DEFINE_OVERRIDE_HOOK_AGAIN(0x454B5F, BuildingClass_UpdatePowered_SensorArray, 6)
 DEFINE_OVERRIDE_HOOK(0x4549F8, BuildingClass_UpdatePowered_SensorArray, 6)
 {
 	GET(BuildingClass*, pBld, ESI);

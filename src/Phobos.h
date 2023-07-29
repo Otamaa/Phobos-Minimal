@@ -16,8 +16,8 @@
 #define IMPL_SNPRNINTF npf_snprintf
 #endif
 
-#define IMPL_STRCMPI(a ,b) CRT::strcmpi(a,b)
-#define IMPL_STRCMP(a ,b) CRT::strcmp(a,b)
+#define IMPL_STRCMPI(a ,b) _strcmpi(a,b)
+#define IMPL_STRCMP(a ,b) strcmp(a,b)
 #define IMPL_WSTRCMPI(a , b) _wcsicmp(a , b)
 
 #define IS_SAME_STR_(a ,b) (IMPL_STRCMPI(a,b) == 0)
@@ -135,15 +135,9 @@ struct Phobos final
 		static bool PrioritySelectionFiltering;
 		static bool DevelopmentCommands;
 		static bool ArtImageSwap;
-		static bool AllowParallelAIQueues;
+
 		static bool EnableBuildingPlacementPreview;
 		static bool EnableSelectBrd;
-
-		static bool ForbidParallelAIQueues_Infantry;
-		static bool ForbidParallelAIQueues_Vehicle;
-		static bool ForbidParallelAIQueues_Navy;
-		static bool ForbidParallelAIQueues_Aircraft;
-		static bool ForbidParallelAIQueues_Building;
 
 		static bool TogglePowerInsteadOfRepair;
 		static bool ShowTechnoNamesIsActive;

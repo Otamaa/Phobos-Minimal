@@ -12,6 +12,7 @@ public:
 	virtual bool Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer) override;
 
 	virtual void Initialize(SWTypeExt::ExtData* pData) override;
+	virtual bool IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const override;
 
 	void newStateMachine(int Duration, const CellStruct& XY, SuperClass* pSuper, NewSWType* pSWType,
 	DynamicVectorClass<ChronoWarpStateMachine::ChronoWarpContainer> Buildings)

@@ -332,7 +332,7 @@ bool BulletExt::ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pTarge
 
 		if (pThis->Owner && checkOwner)
 		{
-			if (pThis->Owner->Owner->IsAlliedWith(pTarget))
+			if (pThis->Owner->Owner->IsAlliedWith_(pTarget))
 				return false;
 		}
 	}
@@ -456,7 +456,7 @@ bool BulletExt::HandleBulletRemove(BulletClass* pThis, bool bDetonate, bool bRem
 		if (isLimbo)
 		{
 			pThis->SetTarget(nullptr);
-			auto damage = pTechno->Health;
+			auto damage = pTechno->GetType()->Strength;
 			pTechno->SetLocation(pThis->GetCoords());
 			pTechno->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
 		}
@@ -782,7 +782,7 @@ void BulletExt::DetonateAt(BulletClass* pThis, AbstractClass* pTarget, TechnoCla
 		BulletExt::ExtMap.Find(pThis)->Owner = pBulletOwner;
 	}
 
-	pThis->Limbo();
+	//pThis->Limbo();
 	pThis->SetLocation(nCoord);
 	pThis->Explode(false);
 	//GameDelete<true,false>(pThis);

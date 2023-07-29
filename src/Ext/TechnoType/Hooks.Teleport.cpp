@@ -20,7 +20,7 @@ DEFINE_HOOK(0x7193F6, TeleportLocomotionClass_ILocomotion_Process_WarpoutAnim, 0
 	TechnoExt::PlayAnim(pExt->WarpOut.GetOrDefault(pOwner , RulesClass::Instance->WarpOut), pOwner);
 
 	if (const auto pWeapon = pExt->WarpOutWeapon.Get(pOwner))
-		WeaponTypeExt::DetonateAt(pWeapon, pOwner, pOwner , true);
+		WeaponTypeExt::DetonateAt(pWeapon, pOwner, pOwner , true , nullptr);
 
 	return 0x719447;
 }
@@ -44,7 +44,7 @@ DEFINE_HOOK(0x719742, TeleportLocomotionClass_ILocomotion_Process_WarpInAnim, 0x
 		const int damage = pExt->WarpInWeapon_UseDistanceAsDamage.Get(pOwner) ?
 			(pTechnoExt->LastWarpDistance / Unsorted::LeptonsPerCell) : pWeapon->Damage;
 
-		WeaponTypeExt::DetonateAt(pWeapon, pOwner, pOwner, damage, true);
+		WeaponTypeExt::DetonateAt(pWeapon, pOwner, pOwner, damage, true, nullptr);
 	}
 
 	return 0x719796;

@@ -36,33 +36,22 @@ void HouseExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 NOINLINE TunnelData* HouseExt::GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx)
 {
-	if (!pHouse)
+	if (!pHouse || nTunnelIdx >= TunnelTypeClass::Array.size())
 		return nullptr;
 
 	auto pHouseExt = HouseExt::ExtMap.Find(pHouse);
 
-	if (nTunnelIdx >= pHouseExt->Tunnels.size())
-	{
-		while (pHouseExt->Tunnels.size() < TunnelTypeClass::Array.size())
-		{
-			pHouseExt->Tunnels.push_back({ {} , TunnelTypeClass::Array[nTunnelIdx]->Passengers });
-		}
+	while (pHouseExt->Tunnels.size() < TunnelTypeClass::Array.size()) {
+		pHouseExt->Tunnels.emplace_back(TunnelData{});
+		pHouseExt->Tunnels.back().MaxCap = TunnelTypeClass::Array[nTunnelIdx]->Passengers;
 	}
 
 	return &pHouseExt->Tunnels[nTunnelIdx];
 }
 
-NOINLINE TunnelData* HouseExt::GetTunnels(BuildingTypeClass* pBld, HouseClass* pHouse)
+TunnelData* HouseExt::GetTunnelVector(BuildingTypeClass* pBld, HouseClass* pHouse)
 {
-	if (!pHouse)
-		return nullptr;
-
-	const auto pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pBld);
-
-	if ((size_t)pBuildingTypeExt->TunnelType.Get() >= TunnelTypeClass::Array.size())
-		return nullptr;
-
-	return HouseExt::GetTunnelVector(pHouse, pBuildingTypeExt->TunnelType);
+	return HouseExt::GetTunnelVector(pHouse, BuildingTypeExt::ExtMap.Find(pBld)->TunnelType);
 }
 
 void HouseExt::ExtData::UpdateShotCount(SuperWeaponTypeClass* pFor)
@@ -175,11 +164,8 @@ AircraftTypeClass* HouseExt::GetParadropPlane(HouseClass* pHouse)
 	}
 
 	// didn't help. default to the PDPlane like the game does.
-	if (iPlane < 0) {
-		return RulesExt::Global()->DefaultParaPlane;
-	}
 
-	return AircraftTypeClass::Array->GetItemOrDefault(iPlane);
+	return AircraftTypeClass::Array->GetItemOrDefault(iPlane , RulesExt::Global()->DefaultParaPlane);
 }
 
 AircraftTypeClass* HouseExt::GetSpyPlane(HouseClass* pHouse)
@@ -259,7 +245,6 @@ void HouseExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 	if (ptr == nullptr)
 		return;
 
-	AnnounceInvalidPointer(HouseAirFactory, reinterpret_cast<BuildingClass*>(ptr));
 	AnnounceInvalidPointer(Factory_BuildingType, ptr);
 	AnnounceInvalidPointer(Factory_InfantryType, ptr);
 	AnnounceInvalidPointer(Factory_VehicleType, ptr);
@@ -473,150 +458,96 @@ bool HouseExt::IsObserverPlayer(HouseClass* pCur)
 
 int HouseExt::GetHouseIndex(int param, TeamClass* pTeam = nullptr, TActionClass* pTAction = nullptr)
 {
-	if ((pTeam && pTAction) || (param == 8997 && !pTeam && !pTAction))
-		return -1;
+	// Special case that returns the house index of the TeamClass object or the Trigger Action
+	if (param == 8997) {
+		if(pTAction)
+			return (pTeam ? pTeam->Owner->ArrayIndex : pTAction->TeamType->Owner->ArrayIndex);
+		else
+			return -1;
+	}
 
-	int houseIdx = -1;
-	std::vector<int> housesListIdx;
-
-	// Transtale the Multiplayer index into a valid index for the HouseClass array
-	if (param >= HouseClass::PlayerAtA && param <= HouseClass::PlayerAtH)
+	if (param < 0)
 	{
+		std::vector<HouseClass*> housesListIdx {};
+
 		switch (param)
 		{
-		case HouseClass::PlayerAtA:
-			houseIdx = 0;
-			break;
-
-		case HouseClass::PlayerAtB:
-			houseIdx = 1;
-			break;
-
-		case HouseClass::PlayerAtC:
-			houseIdx = 2;
-			break;
-
-		case HouseClass::PlayerAtD:
-			houseIdx = 3;
-			break;
-
-		case HouseClass::PlayerAtE:
-			houseIdx = 4;
-			break;
-
-		case HouseClass::PlayerAtF:
-			houseIdx = 5;
-			break;
-
-		case HouseClass::PlayerAtG:
-			houseIdx = 6;
-			break;
-
-		case HouseClass::PlayerAtH:
-			houseIdx = 7;
-			break;
-
-		default:
-			break;
-		}
-
-		if (houseIdx >= 0)
+		case -1:
 		{
-			HouseClass* pHouse = HouseClass::Array->GetItem(houseIdx);
+			// Random non-neutral
+			for (auto pHouse : *HouseClass::Array) {
+				if (!pHouse->Defeated
+					&& !HouseExt::IsObserverPlayer(pHouse)
+					&& !pHouse->Type->MultiplayPassive)
+				{
+					housesListIdx.emplace_back(pHouse);
+				}
+			}
 
+			return housesListIdx.empty() ?
+				-1 :
+				housesListIdx[ScenarioClass::Instance->Random.RandomFromMax(housesListIdx.size() - 1)]->ArrayIndex;
+		}
+		case -2:
+		{
+			// Find first Neutral
+			for (auto pHouseNeutral : *HouseClass::Array) {
+				if (pHouseNeutral->IsNeutral()) {
+					return pHouseNeutral->ArrayIndex;
+				}
+			}
+
+			return -1;
+		}
+		case -3:
+		{
+			// Random Human Player
+			for (auto pHouse : *HouseClass::Array) {
+				if (pHouse->IsControlledByHuman()
+					&& !pHouse->Defeated
+					&& !HouseExt::IsObserverPlayer(pHouse))
+				{
+					housesListIdx.emplace_back(pHouse);
+				}
+			}
+
+			return housesListIdx.empty() ?
+				-1 :
+				housesListIdx[(ScenarioClass::Instance->Random.RandomFromMax(housesListIdx.size() - 1))]
+				->ArrayIndex;
+		}
+		default:
+			return -1;
+		}
+	}
+
+	// Transtale the Multiplayer index into a valid index for the HouseClass array
+	if (HouseClass::Index_IsMP(param)) {
+		if(HouseClass* pHouse = HouseClass::FindByIndex(param)) {
 			if (!pHouse->Defeated
 				&& !pHouse->IsObserver()
 				&& !pHouse->Type->MultiplayPassive)
 			{
-				return houseIdx;
+				return pHouse->ArrayIndex;
 			}
 		}
 
 		return -1;
 	}
 
-	// Special case that returns the house index of the TeamClass object or the Trigger Action
-	if (param == 8997)
-	{
-		return (pTeam ? pTeam->Owner->ArrayIndex : pTAction->TeamType->Owner->ArrayIndex);
-	}
 
 	// Positive index values check. Includes any kind of House
-	if (param >= 0)
-	{
-		if (param < HouseClass::Array->Count)
+	if (HouseClass* pHouse = HouseClass::FindByCountryIndex(param)) {
+		if (!pHouse->Defeated && !pHouse->IsObserver())
 		{
-			HouseClass* pHouse = HouseClass::Array->GetItem(param);
-
-			if (!pHouse->Defeated
-				&& !pHouse->IsObserver())
-			{
-				return houseIdx;
-			}
+				return pHouse->ArrayIndex;
 		}
 
 		return -1;
 	}
 
-	// Special cases
-	switch (param)
-	{
-	case -1:
-		// Random non-neutral
-		for (auto pHouse : *HouseClass::Array)
-		{
-			if (!pHouse->Defeated
-				&& !pHouse->IsObserver()
-				&& !pHouse->Type->MultiplayPassive)
-			{
-				housesListIdx.push_back(pHouse->ArrayIndex);
-			}
-		}
 
-		if (!housesListIdx.empty())
-			houseIdx = housesListIdx[ScenarioClass::Instance->Random.RandomFromMax(housesListIdx.size() - 1)];
-		else
-			return -1;
-
-		break;
-
-	case -2:
-		// Find first Neutral house
-		for (auto pHouseNeutral : *HouseClass::Array)
-		{
-			if (pHouseNeutral->IsNeutral())
-			{
-				houseIdx = pHouseNeutral->ArrayIndex;
-				break;
-			}
-		}
-
-		break;
-
-	case -3:
-		// Random Human Player
-		for (auto pHouse : *HouseClass::Array)
-		{
-			if (pHouse->IsControlledByHuman()
-				&& !pHouse->Defeated
-				&& !pHouse->IsObserver())
-			{
-				housesListIdx.push_back(pHouse->ArrayIndex);
-			}
-		}
-
-		if (!housesListIdx.empty())
-			houseIdx = housesListIdx[ScenarioClass::Instance->Random.RandomFromMax(housesListIdx.size() - 1)];
-		else
-			return -1;
-
-		break;
-
-	default:
-		break;
-	}
-
-	return houseIdx;
+	return -1;
 }
 
 bool HouseExt::ExtData::UpdateHarvesterProduction()
@@ -635,7 +566,7 @@ bool HouseExt::ExtData::UpdateHarvesterProduction()
 			: RulesClass::Instance->AISlaveMinerNumber[AIDifficulty];
 
 		if (pThis->IQLevel2 >= RulesClass::Instance->Harvester && !pThis->IsTiberiumShort
-			&& !pThis->IsControlledByHuman() && harvesters < maxHarvesters
+			&& !pThis->IsControlledByHuman_() && harvesters < maxHarvesters
 			&& pThis->TechLevel >= pHarvesterUnit->TechLevel)
 		{
 			pThis->ProducingUnitTypeIndex = pHarvesterUnit->ArrayIndex;
@@ -644,14 +575,10 @@ bool HouseExt::ExtData::UpdateHarvesterProduction()
 	}
 	else
 	{
-		const auto maxHarvesters = RulesClass::Instance->AISlaveMinerNumber[AIDifficulty];
-
-		if (pThis->CountResourceGatherers < maxHarvesters)
+		if (pThis->CountResourceGatherers < RulesClass::Instance->AISlaveMinerNumber[AIDifficulty])
 		{
-			const auto pRefinery = HouseExt::FindBuildable(
-				pThis, idxParentCountry, make_iterator(RulesClass::Instance->BuildRefinery));
-
-			if (pRefinery)
+			if (const auto pRefinery = HouseExt::FindBuildable(
+				pThis, idxParentCountry, make_iterator(RulesClass::Instance->BuildRefinery)))
 			{
 				if (auto const pSlaveMiner = pRefinery->UndeploysInto)
 				{
@@ -666,141 +593,6 @@ bool HouseExt::ExtData::UpdateHarvesterProduction()
 	}
 
 	return false;
-}
-
-// Based on Ares' rewrite of 0x4FEA60.
-void HouseExt::ExtData::UpdateVehicleProduction()
-{
-	const auto pThis = this->Get();
-	const auto AIDifficulty = static_cast<int>(pThis->GetAIDifficultyIndex());
-	const bool skipGround = pThis->ProducingUnitTypeIndex != -1;
-	const bool skipNaval = this->ProducingNavalUnitTypeIndex != -1;
-
-	if (skipGround && skipNaval)
-		return;
-
-	if (!skipGround && this->UpdateHarvesterProduction())
-		return;
-
-	auto& creationFrames = HouseExt::AIProduction_CreationFrames;
-	auto& values = HouseExt::AIProduction_Values;
-	auto& bestChoices = HouseExt::AIProduction_BestChoices;
-	auto& bestChoicesNaval = HouseExt::AIProduction_BestChoicesNaval;
-
-	const auto count = static_cast<size_t>(UnitTypeClass::Array->Count);
-	creationFrames.assign(count, 0x7FFFFFFF);
-	values.assign(count, 0);
-
-	for (auto currentTeam : *TeamClass::Array)
-	{
-		if (!currentTeam || currentTeam->Owner != pThis)
-			continue;
-
-		int teamCreationFrame = currentTeam->CreationFrame;
-
-		if ((!currentTeam->Type->Reinforce || currentTeam->IsFullStrength)
-			&& (currentTeam->IsForcedActive || currentTeam->IsHasBeen))
-		{
-			continue;
-		}
-
-		DynamicVectorClass<TechnoTypeClass*> taskForceMembers;
-		currentTeam->GetTaskForceMissingMemberTypes(taskForceMembers);
-
-		for (auto const& currentMember : taskForceMembers)
-		{
-			if (!currentMember)
-				continue;
-
-			if (Is_UnitType(currentMember) ||
-				(skipGround && !currentMember->Naval) ||
-				(skipNaval && currentMember->Naval))
-				continue;
-
-			const auto index = static_cast<size_t>(currentMember->GetArrayIndex());
-			++values[index];
-
-			if (teamCreationFrame < creationFrames[index])
-				creationFrames[index] = teamCreationFrame;
-		}
-	}
-
-	for (auto unit : *UnitClass::Array)
-	{
-		const auto index = static_cast<unsigned int>(unit->GetType()->GetArrayIndex());
-
-		if (values[index] > 0 && unit->CanBeRecruited(pThis))
-			--values[index];
-	}
-
-	bestChoices.clear();
-	bestChoicesNaval.clear();
-
-	int bestValue = -1;
-	int bestValueNaval = -1;
-	int earliestTypenameIndex = -1;
-	int earliestTypenameIndexNaval = -1;
-	int earliestFrame = 0x7FFFFFFF;
-	int earliestFrameNaval = 0x7FFFFFFF;
-
-	for (auto i = 0u; i < count; ++i)
-	{
-		const auto type = UnitTypeClass::Array->Items[static_cast<int>(i)];
-		const int currentValue = values[i];
-
-		if (currentValue <= 0 || pThis->CanBuild(type, false, false) == CanBuildResult::Unbuildable
-			|| type->GetActualCost(pThis) > pThis->Available_Money())
-		{
-			continue;
-		}
-
-		bool isNaval = type->Naval;
-		int* cBestValue = !isNaval ? &bestValue : &bestValueNaval;
-		std::vector<int>* cBestChoices = !isNaval ? &bestChoices : &bestChoicesNaval;
-
-		if (*cBestValue < currentValue || *cBestValue == -1)
-		{
-			*cBestValue = currentValue;
-			cBestChoices->clear();
-		}
-
-		cBestChoices->push_back(static_cast<int>(i));
-
-		int* cEarliestTypeNameIndex = !isNaval ? &earliestTypenameIndex : &earliestTypenameIndexNaval;
-		int* cEarliestFrame = !isNaval ? &earliestFrame : &earliestFrameNaval;
-
-		if (*cEarliestFrame > creationFrames[i] || *cEarliestTypeNameIndex == -1)
-		{
-			*cEarliestTypeNameIndex = static_cast<int>(i);
-			*cEarliestFrame = creationFrames[i];
-		}
-	}
-
-	const int earliestOdds = RulesClass::Instance->FillEarliestTeamProbability[AIDifficulty];
-
-	if (!skipGround)
-	{
-		if (ScenarioClass::Instance->Random.RandomFromMax(99) < earliestOdds)
-		{
-			pThis->ProducingUnitTypeIndex = earliestTypenameIndex;
-		}
-		else if (const auto size = static_cast<int>(bestChoices.size()))
-		{
-			pThis->ProducingUnitTypeIndex = bestChoices[static_cast<size_t>(ScenarioClass::Instance->Random.RandomFromMax(size - 1))];
-		}
-	}
-
-	if (!skipNaval)
-	{
-		if (ScenarioClass::Instance->Random.RandomFromMax(99) < earliestOdds)
-		{
-			this->ProducingNavalUnitTypeIndex = earliestTypenameIndexNaval;
-		}
-		else if (const auto size = static_cast<int>(bestChoicesNaval.size()))
-		{
-			this->ProducingNavalUnitTypeIndex = bestChoicesNaval[static_cast<size_t>(ScenarioClass::Instance->Random.RandomFromMax(size - 1))];
-		}
-	}
 }
 
 size_t HouseExt::FindOwnedIndex(
@@ -919,7 +711,6 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		.Process(this->Initialized)
 		.Process(this->PowerPlantEnhancerBuildings)
 		.Process(this->Building_BuildSpeedBonusCounter)
-		.Process(this->HouseAirFactory)
 		.Process(this->ForceOnlyTargetHouseEnemy)
 		.Process(this->ForceOnlyTargetHouseEnemyMode)
 		//.Process(this->RandomNumber)
@@ -946,6 +737,7 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		.Process(this->SWLastIndex)
 		.Process(this->Batteries)
 		.Process(this->Factories_HouseTypes)
+		.Process(this->AvaibleDocks)
 		;
 }
 

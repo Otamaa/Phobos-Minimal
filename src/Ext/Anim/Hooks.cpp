@@ -19,6 +19,56 @@
 //	return 0;
 //}
 
+DEFINE_HOOK(0x4232E2, AnimClass_DrawIt_AltPalette, 0x6)
+{
+	enum { SkipGameCode = 0x4232EA };
+
+	GET(AnimClass*, pThis, ESI);
+
+	int schemeIndex = pThis->Owner ? pThis->Owner->ColorSchemeIndex - 1 : RulesExt::Global()->AnimRemapDefaultColorScheme;
+	schemeIndex += AnimTypeExt::ExtMap.Find(pThis->Type)->AltPalette_ApplyLighting ? 1 : 0;
+	auto const scheme = ColorScheme::Array->Items[schemeIndex];
+
+	R->ECX(scheme);
+	return SkipGameCode;
+}
+
+namespace ConvertTemp
+{
+	bool isColorScheme = false;
+	int shadeCount = -1;
+}
+
+DEFINE_HOOK(0x68C4AD, GenerateColorSpread_SetContext, 0x5)
+{
+	ConvertTemp::isColorScheme = true;
+
+	return 0;
+}
+
+// Set ShadeCount to 53 to initialize the palette fully shaded - this is required to make it not draw over shroud for some reason.
+DEFINE_HOOK(0x68C4C4, GenerateColorSpread_ShadeCountSet, 0x5)
+{
+	GET(int, shadeCount, EDX);
+
+	ConvertTemp::shadeCount = shadeCount;
+	R->EDX(53);
+
+	return 0;
+}
+
+DEFINE_HOOK(0x68C4C4, GenerateColorSpread_ShadeCountUnset, 0x5)
+{
+	GET(LightConvertClass*, pConvert, EAX);
+
+	if (pConvert && ConvertTemp::shadeCount != -1) {
+		pConvert->ShadeCount = std::exchange(ConvertTemp::shadeCount , -1);
+	}
+
+	return 0;
+}
+
+
 DEFINE_HOOK(0x422CAB, AnimClass_DrawIt_XDrawOffset, 0x5)
 {
 	GET(AnimClass* const, pThis, ECX);

@@ -66,7 +66,7 @@ public:
 		Valueable<bool> HealthBar_Hide { false };
 		Valueable<CSFText> UIDescription {};
 		Valueable<bool> LowSelectionPriority { false };
-		PhobosFixedString<0x20> GroupAs { NONE_STR };
+		PhobosFixedString<0x20> GroupAs { };
 		Valueable<int> RadarJamRadius { 0 };
 		Nullable<int> InhibitorRange {};
 		Nullable<int> DesignatorRange {};
@@ -507,7 +507,7 @@ public:
 		Valueable<bool> NoManualEject { false };
 
 		Valueable<bool> Passengers_BySize { true };
-		Nullable<bool> Crashable { };
+		//Nullable<bool> Crashable { };
 
 		Valueable<TechnoTypeClass*> Convert_Deploy { nullptr };
 		Valueable<TechnoTypeClass*> Convert_Script { nullptr };
@@ -803,6 +803,11 @@ public:
 
 		Valueable<bool> Drain_Local { false };
 		Valueable<int> Drain_Amount { 0 };
+
+		Nullable<int> HealthBar_Sections { 0 };
+		Nullable<SHPStruct*> HealthBar_Border { };
+		Nullable<int> HealthBar_BorderFrame { };
+		Nullable<int> HealthBar_BorderAdjust { };
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, AttachedEffect { OwnerObject }

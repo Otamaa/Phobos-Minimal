@@ -324,6 +324,7 @@ public:
 		Valueable<bool> HunterSeeker_RandomOnly { false };
 		ValueableVector<BuildingTypeClass*> HunterSeeker_Buildings {};
 		Valueable<bool> HunterSeeker_AllowAttachedBuildingAsFallback { false };
+		Valueable<int> HunterSeeker_Type_Count { 1 };
 #pragma endregion
 
 #pragma region Lightning Storm
@@ -417,6 +418,41 @@ public:
 		Valueable<int> IonCannon_FireAtPercentage { 0 };
 #pragma endregion
 
+#pragma region LaserStrike
+		Valueable<int> LaserStrikeDuration { 100 };
+		Valueable<int> LaserStrikeRadius { 4096 };
+		Valueable<int> LaserStrikeMax { 2 };
+		Valueable<int> LaserStrikeMin { 1 };
+		Valueable<int> LaserStrikeMaxRadius { -1 };
+		Valueable<int> LaserStrikeMinRadius { -1 };
+		Valueable<int> LaserStrikeRadiusReduce { 20 };
+		Valueable<int> LaserStrikeRadiusReduceAcceleration { 0 };
+		Valueable<int> LaserStrikeRadiusReduceMax { 0 };
+		Valueable<int> LaserStrikeRadiusReduceMin { 0 };
+		Valueable<int> LaserStrikeROF { 0 };
+		Valueable<int> LaserStrikeScatter_Max { 0 };
+		Valueable<int> LaserStrikeScatter_Min { 0 };
+		Valueable<int> LaserStrikeScatter_Max_IncreaseMax { 0 };
+		Valueable<int> LaserStrikeScatter_Max_IncreaseMin { 0 };
+		Valueable<int> LaserStrikeScatter_Max_Increase { 0 };
+		Valueable<int> LaserStrikeScatter_Min_IncreaseMax { 0 };
+		Valueable<int> LaserStrikeScatter_Min_IncreaseMin { 0 };
+		Valueable<int> LaserStrikeScatter_Min_Increase { 0 };
+		Valueable<int> LaserStrikeLines { 8 };
+		Valueable<int> LaserStrikeAngle { 2 };
+		Valueable<int> LaserStrikeAngleAcceleration { 0 };
+		Valueable<int> LaserStrikeAngleMax { 0 };
+		Valueable<int> LaserStrikeAngleMin { 0 };
+		Valueable<WeaponTypeClass*> LaserStrikeZeroRadius_Weapon { nullptr };
+		Valueable<ColorStruct> LaserStrikeInnerColor { {255, 0, 0} };
+		Valueable<ColorStruct> LaserStrikeOuterColor { {255, 0, 0} };
+		Valueable<ColorStruct> LaserStrikeOuterSpread { {255, 0, 0} };
+		Valueable<int> LaserStrikeLaserDuration { 3 };
+		Valueable<int> LaserStrikeLaserHeight { 20000 };
+		Valueable<int> LaserStrikeThickness { 10 };
+		Valueable<int> LaserStrikeRate { 0 };
+#pragma endregion
+
 		ExtData(SuperWeaponTypeClass* OwnerObject) : Extension<SuperWeaponTypeClass>(OwnerObject)
 		{}
 
@@ -483,7 +519,7 @@ public:
 
 	private:
 
-		void WeightedRollsHandler(std::vector<int>& nResult, std::vector<float>* chances, std::vector<std::vector<int>>* weights, size_t size);
+		std::vector<int> WeightedRollsHandler(std::vector<float>* chances, std::vector<std::vector<int>>* weights, size_t size);
 
 		void ApplyLimboDelivery(HouseClass* pHouse);
 		void ApplyLimboKill(HouseClass* pHouse);

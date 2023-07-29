@@ -1183,17 +1183,14 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			size_t i = 0;
-			while (IMPL_STRCMPI(parser.value(), EnumFunctions::TargetingPreference_ToStrings[i]))
-			{
-				if (i >= EnumFunctions::TargetingPreference_ToStrings.size()) {
-					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a targeting preference");
-					return false;
+			for (size_t i = 0; i < EnumFunctions::TargetingPreference_ToStrings.size(); ++i) {
+				if(IS_SAME_STR_(parser.value(), EnumFunctions::TargetingPreference_ToStrings[i])){
+					value = TargetingPreference(i);
+					return true;
 				}
 			}
 
-			value = TargetingPreference(i);
-			return true;
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a targeting preference");
 		}
 		return false;
 	}
@@ -1386,7 +1383,7 @@ namespace detail
 			auto buffer = T();
 			if (Parser<T>::Parse(pCur, &buffer))
 				vector.push_back(buffer);
-			else if (!GameStrings::IsBlank(pCur))
+			else if (!allocate || !GameStrings::IsBlank(pCur))
 				Debug::INIParseFailed(pSection, pKey, pCur, nullptr);
 		}
 	}

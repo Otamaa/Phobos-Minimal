@@ -445,7 +445,7 @@ void WarheadTypeExt::ExtData::ApplyDamageMult(TechnoClass* pVictim, args_Receive
 
 		if (pVictimHouse != pHouse)
 		{
-			if (pVictimHouse->IsAlliedWith(pHouse) && pWH->AffectsAllies && nAllyMod.isset())
+			if (pVictimHouse->IsAlliedWith_(pHouse) && pWH->AffectsAllies && nAllyMod.isset())
 			{
 				*pArgs->Damage = static_cast<int>(nDamage * nAllyMod.Get());
 			}
@@ -531,7 +531,7 @@ bool WarheadTypeExt::ExtData::CanAffectHouse(HouseClass* pOwnerHouse, HouseClass
 		if (pTargetHouse == pOwnerHouse)
 			return this->AffectsOwner.Get(this->Get()->AffectsAllies);
 
-		if (pOwnerHouse->IsAlliedWith(pTargetHouse) && pTargetHouse != pOwnerHouse)
+		if (pOwnerHouse->IsAlliedWith_(pTargetHouse) && pTargetHouse != pOwnerHouse)
 			return this->Get()->AffectsAllies;
 
 		return AffectsEnemies.Get();
@@ -840,7 +840,14 @@ AnimTypeClass* WarheadTypeExt::ExtData::GetArmorHitAnim(int Armor)
 	return nullptr;
 }
 
-void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, TechnoClass* pOwner, int damage, bool targetCell)
+void WarheadTypeExt::DetonateAt(
+	WarheadTypeClass* pThis,
+	ObjectClass* pTarget,
+	TechnoClass* pOwner,
+	int damage,
+	bool targetCell, 
+	HouseClass* pFiringHouse
+)
 {
 	if (targetCell && !pTarget)
 	{
@@ -849,10 +856,17 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, T
 	}
 
 	AbstractClass* pATarget = !targetCell ? static_cast<AbstractClass*>(pTarget) : pTarget->GetCell();
-	WarheadTypeExt::DetonateAt(pThis, pATarget, CoordStruct::Empty, pOwner, damage);
+	WarheadTypeExt::DetonateAt(pThis, pATarget, CoordStruct::Empty, pOwner, damage , pFiringHouse);
 }
 
-void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool targetCell)
+void WarheadTypeExt::DetonateAt(
+	WarheadTypeClass* pThis,
+	const CoordStruct& coords,
+	TechnoClass* pOwner,
+	int damage,
+	bool targetCell, 
+	HouseClass* pFiringHouse
+)
 {
 	if (targetCell && !coords)
 	{
@@ -861,10 +875,17 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coor
 	}
 
 	AbstractClass* pTarget = !targetCell ? nullptr : coords ? MapClass::Instance->GetCellAt(coords) : nullptr;
-	WarheadTypeExt::DetonateAt(pThis, pTarget, coords, pOwner, damage);
+	WarheadTypeExt::DetonateAt(pThis, pTarget, coords, pOwner, damage , pFiringHouse);
 }
 
-void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, AbstractClass* pTarget, const CoordStruct& coords, TechnoClass* pOwner, int damage)
+void WarheadTypeExt::DetonateAt(
+	WarheadTypeClass* pThis,
+	AbstractClass* pTarget, 
+	const CoordStruct& coords, 
+	TechnoClass* pOwner,
+	int damage, 
+	HouseClass* pFiringHouse
+)
 {
 	if (!pThis)
 		return;
@@ -894,7 +915,7 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, AbstractClass* pTarget,
 		if (pCellCoord->ContainsBridge())
 			pBullet->OnBridge = true;
 
-		BulletExt::DetonateAt(pBullet, pTarget, pOwner, coords);
+		BulletExt::DetonateAt(pBullet, pTarget, pOwner, coords, pFiringHouse);
 	}
 }
 

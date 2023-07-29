@@ -4,6 +4,7 @@
 #include <Utilities/Enum.h>
 
 #include <array>
+#include <Utilities/VectorHelper.h>
 
 enum class AresNewSuperType : int
 {
@@ -28,6 +29,7 @@ enum class AresNewSuperType : int
 	EMPField = 18,
 	IonCannon = 19,
 	MeteorShower = 20,
+	LaserStrike = 21 ,
 	count
 };
 
@@ -74,14 +76,14 @@ struct TargetingData
 
 	bool NeedsAttractors;
 
-	std::vector<LaunchSite> LaunchSites;
-	std::vector<RangedItem> Designators;
-	std::vector<RangedItem> Inhibitors;
+	HelperedVector<LaunchSite> LaunchSites;
+	HelperedVector<RangedItem> Designators;
+	HelperedVector<RangedItem> Inhibitors;
 
 	//Enemy Inhibitors
-	std::vector<RangedItem> Attractors;
+	HelperedVector<RangedItem> Attractors;
 	//Enemy Designator
-	std::vector<RangedItem> Suppressors;
+	HelperedVector<RangedItem> Suppressors;
 
 };
 
@@ -89,7 +91,7 @@ class NewSWType
 {
 	static std::array<std::unique_ptr<NewSWType>, (size_t)AresNewSuperType::count> Array;
 
-	static constexpr void Register(std::unique_ptr<NewSWType> pType, AresNewSuperType nType)
+	static void Register(std::unique_ptr<NewSWType> pType, AresNewSuperType nType)
 	{
 		pType->TypeIndex = nType;
 		Array[size_t(nType)] = (std::move(pType));

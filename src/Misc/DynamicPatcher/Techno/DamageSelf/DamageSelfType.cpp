@@ -120,7 +120,8 @@ void DamageSelfState::TechnoClass_Update_DamageSelf(TechnoClass* pTechno)
 			{
 				// 维修或者显形直接炸
 				int nDamage = Data->Damage;
-				pTechno->ReceiveDamage(&nDamage, 0, Data->Warhead, nullptr, Data->IgnoreArmor, pTechno->GetTechnoType()->Crewed, pHouse);
+				if(pTechno->Health > 0 && pTechno->IsAlive && !pTechno->IsSinking && !pTechno->IsCrashing)
+					pTechno->ReceiveDamage(&nDamage, 0, Data->Warhead, nullptr, Data->IgnoreArmor, pTechno->GetTechnoType()->Crewed, pHouse);
 			}
 			else
 			{
@@ -135,7 +136,8 @@ void DamageSelfState::TechnoClass_Update_DamageSelf(TechnoClass* pTechno)
 				if (realDamage >= pTechno->Health)
 				{
 					// 本次伤害足够打死目标
-					pTechno->ReceiveDamage(&realDamage, 0, Data->Warhead, nullptr, true, pTechno->GetTechnoType()->Crewed, pHouse);
+					if(pTechno->Health > 0 &&pTechno->IsAlive && !pTechno->IsSinking && !pTechno->IsCrashing)
+						pTechno->ReceiveDamage(&realDamage, 0, Data->Warhead, nullptr, true, pTechno->GetTechnoType()->Crewed, pHouse);
 				}
 				else
 				{

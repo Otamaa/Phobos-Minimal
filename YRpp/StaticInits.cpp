@@ -214,7 +214,7 @@ bool HouseClass::CanExpectToBuild(const TechnoTypeClass* const pItem, int const 
 		if(this->InRequiredHouses(pItem)) {
 			if(!this->InForbiddenHouses(pItem)) {
 				auto const BaseSide = pItem->AIBasePlanningSide;
-				if(BaseSide == -1 || BaseSide == this->Type->SideIndex) {
+				if(BaseSide < 0 || BaseSide == this->Type->SideIndex) {
 					return true;
 				}
 			}
@@ -1416,4 +1416,14 @@ bool SuperClass::IsDisabledFromShell() const
 	}
 
 	return false;
+}
+
+const char* TeamClass::get_ID() const
+{
+	return Type ? Type->get_ID() : GameStrings::NoneStr;
+}
+
+const char* ScriptClass::get_ID() const
+{
+	return Type ? Type->get_ID() : GameStrings::NoneStr;
 }

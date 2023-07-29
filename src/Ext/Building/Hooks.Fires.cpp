@@ -81,7 +81,7 @@ namespace DamageFireAnims
 						if (pAnim->Type->End > 0)
 							pAnim->Animation.Value = ScenarioClass::Instance->Random.RandomFromMax(pAnim->Type->End - 1);
 
-						pAnim->Owner = pThis->GetOwningHouse();			
+						pAnim->Owner = pThis->GetOwningHouse();
 						pExt->DamageFireAnims[i] = std::move(pAnim);
 					}
 				}

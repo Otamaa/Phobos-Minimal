@@ -70,6 +70,11 @@ DEFINE_OVERRIDE_HOOK(0x421798, AlphaShapeClass_SDDTOR_Anims, 0x6)
 DEFINE_OVERRIDE_SKIP_HOOK(0x565215, MapClass_CTOR_NoInit_Crates, 0x6, 56522D)
 //DEFINE_JUMP(LJMP, 0x565215, 0x56522D);
 
+int squared(Point2D a, Point2D b)
+{
+	return Game::F2I(std::sqrt((CoordStruct { a.X , a.Y, 0 } - CoordStruct { b.X, b.Y, 0 }).MagnitudeSquared()));
+}
+
 DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 0x8)
 {
 	GET(AbstractClass*, pThis, ECX);
@@ -80,10 +85,10 @@ DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 0x8)
 	{
 		const auto nThisCoord = pThis->GetCoords();
 		const auto nThatCoord = pThat->GetCoords();
-		nResult = ((Point2D { nThisCoord.X , nThisCoord.Y } - Point2D{nThatCoord.X, nThatCoord.Y}).Length());
+		nResult = squared({ nThisCoord.X , nThisCoord.Y }, { nThatCoord.X, nThatCoord.Y });
 	}
 
-	R->EAX((nResult > INT_MAX ? INT_MAX : nResult));
+	R->EAX(nResult);
 	return 0x5F655D;
 }
 
@@ -92,39 +97,36 @@ DEFINE_OVERRIDE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
 	GET(AbstractClass*, pThis, ECX);
 	auto const nThisCoord = pThis->GetCoords();
 	GET_STACK(CoordStruct*, pThatCoord, 0x4);
-
-	const auto nXY = ((Point2D { nThisCoord.X , nThisCoord.Y } - Point2D{ pThatCoord->X, pThatCoord->Y }).Length());
-
-	R->EAX(nXY > INT_MAX ? INT_MAX : nXY);
+	R->EAX(squared({ nThisCoord.X , nThisCoord.Y }, { pThatCoord->X,  pThatCoord->Y }));
 	return 0x5F659B;
 }
 
-DEFINE_HOOK(0x6E2290, ActionClass_PlayAnimAt, 0x6)
-{
-	GET(TActionClass*, pThis, ECX);
-	GET_STACK(HouseClass*, pOwner, 0x4);
-	//GET_STACK(TechnoClass*, pInvoker, 0x8);
-	//GET_STACK(TriggerClass*, pTrigger, 0xC);
-	//GET_STACK(CellStruct*, pCell, 0x10);
-
-	auto nCell = ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint);
-	auto nCoord = CellClass::Cell2Coord(nCell);
-	nCoord.Z = MapClass::Instance->GetZPos(&nCoord);
-	auto pCellTarget = MapClass::Instance->GetCellAt(nCell);
-	nCoord = pCellTarget->GetCoordsWithBridge();
-
-	if (AnimTypeClass* AnimType = AnimTypeClass::Array->GetItemOrDefault(pThis->Value))
-	{
-		if (AnimClass* pAnim = GameCreate<AnimClass>(AnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false))
-		{
-			pAnim->IsPlaying = true;
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, false);
-		}
-	}
-
-	R->EAX(1);
-	return 0x6E2387;
-}
+//DEFINE_HOOK(0x6E2290, ActionClass_PlayAnimAt, 0x6)
+//{
+//	GET(TActionClass*, pThis, ECX);
+//	GET_STACK(HouseClass*, pOwner, 0x4);
+//	//GET_STACK(TechnoClass*, pInvoker, 0x8);
+//	//GET_STACK(TriggerClass*, pTrigger, 0xC);
+//	//GET_STACK(CellStruct*, pCell, 0x10);
+//
+//	auto nCell = ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint);
+//	auto nCoord = CellClass::Cell2Coord(nCell);
+//	nCoord.Z = MapClass::Instance->GetZPos(&nCoord);
+//	auto pCellTarget = MapClass::Instance->GetCellAt(nCell);
+//	nCoord = pCellTarget->GetCoordsWithBridge();
+//
+//	if (AnimTypeClass* AnimType = AnimTypeClass::Array->GetItemOrDefault(pThis->Value))
+//	{
+//		if (AnimClass* pAnim = GameCreate<AnimClass>(AnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false))
+//		{
+//			pAnim->IsPlaying = true;
+//			AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, false);
+//		}
+//	}
+//
+//	R->EAX(1);
+//	return 0x6E2387;
+//}
 
 DEFINE_OVERRIDE_HOOK(0x4892BE, DamageArea_NullDamage, 0x6)
 {
@@ -797,6 +799,9 @@ DEFINE_OVERRIDE_HOOK(0x716D98, TechnoTypeClass_Load_Palette, 0x5)
 DEFINE_HOOK(0x6D47A6, TacticalClass_Render_Techno, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
+
+	// if(auto pTargetTech = generic_cast<ObjectClass*>(pThis->Target))
+	// 		Drawing::DrawLinesTo(pTargetTech->GetRenderCoords(), pThis->Location, pThis->Owner->LaserColor);
 
 	if (pThis->InLimbo)
 		return 0x0;
@@ -2737,6 +2742,13 @@ DEFINE_OVERRIDE_HOOK(0x6F6F20, TechnoClass_Put_BuildingLight, 6)
 
 	auto pTypeData = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
+	auto const pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
+
+	//only update the SW if really needed it
+	if (pThis->Owner && !Is_Building(pThis) && !pTypeExt->Linked_SW.empty() && pThis->Owner->CountOwnedAndPresent(pExt->Type) >= 1)
+		pThis->Owner->UpdateSuperWeaponsUnavailable();
+
 	if (pTypeData->HasSpotlight)
 	{
 		AresData::SetSpotlight(pThis, GameCreate<BuildingLightClass>(pThis));
@@ -2897,7 +2909,7 @@ DEFINE_OVERRIDE_HOOK(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 	if (auto pBld = abstract_cast<BuildingClass*>(pTechno))
 	{
 		// allies and observers can always see by default
-		bool canSeeRepair = HouseClass::CurrentPlayer->IsAlliedWith(pBld->Owner)
+		bool canSeeRepair = HouseClass::CurrentPlayer->IsAlliedWith_(pBld->Owner)
 			|| HouseClass::IsCurrentPlayerObserver();
 
 		bool showRepair = FileSystem::WRENCH_SHP
@@ -3014,23 +3026,23 @@ DEFINE_OVERRIDE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 		if (!pType || !pOwner)
 			return 0x70AD4C;
 
+		Point2D DrawLoca = *pPoint;
 		auto DrawTheStuff = [&](const wchar_t* pFormat)
 		{
-			auto nPoint = *pPoint;
 			//DrawingPart
 			RectangleStruct nTextDimension;
-			Drawing::GetTextDimensions(&nTextDimension, pFormat, nPoint, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, 4, 2);
+			Drawing::GetTextDimensions(&nTextDimension, pFormat, DrawLoca, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, 4, 2);
 			auto nIntersect = Drawing::Intersect(nTextDimension, *pRect);
 			auto nColorInt = pOwner->Color.ToInit();//0x63DAD0
 
 			DSurface::Temp->Fill_Rect(nIntersect, (COLORREF)0);
 			DSurface::Temp->Draw_Rect(nIntersect, (COLORREF)nColorInt);
 			Point2D nRet;
-			Simple_Text_Print_Wide(&nRet, pFormat, DSurface::Temp.get(), pRect, &nPoint, (COLORREF)nColorInt, (COLORREF)0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, true);
-			pPoint->Y += (nTextDimension.Height) + 2; //extra number for the background
+			Simple_Text_Print_Wide(&nRet, pFormat, DSurface::Temp.get(), pRect, &DrawLoca, (COLORREF)nColorInt, (COLORREF)0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, true);
+			DrawLoca.Y += (nTextDimension.Height) + 2; //extra number for the background
 		};
 
-		const bool IsAlly = pOwner->IsAlliedWith(HouseClass::CurrentPlayer);
+		const bool IsAlly = pOwner->IsAlliedWith_(HouseClass::CurrentPlayer);
 		const bool IsObserver = HouseClass::CurrentPlayer->IsObserver();
 		const bool isFake = pTypeExt->Fake_Of.Get();
 		const bool bReveal = pThis->DisplayProductionTo.Contains(HouseClass::CurrentPlayer);
@@ -3146,10 +3158,9 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pType);
 
 	// helpers (with support for the new spy effect)
-	const bool bAllied = pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer);
+	const bool bAllied = pThis->Owner->IsAlliedWith_(HouseClass::CurrentPlayer);
 	const bool IsObserver = HouseClass::CurrentPlayer->IsObserver();
 	const bool bReveal = pTypeExt->SpyEffect_RevealProduction && pThis->DisplayProductionTo.Contains(HouseClass::CurrentPlayer);
-	//Point2D loc = { pLocation->X , pLocation->Y };
 
 	// show building or house state
 	if (bAllied || IsObserver || bReveal)
@@ -3162,13 +3173,14 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 		{
 			const auto pFactory = pThis->Owner->IsControlledByHuman_() ?
 				pThis->Owner->GetPrimaryFactory(pType->Factory, pType->Naval, BuildCat::DontCare)
-				:
-				pThis->Factory;
+				: pThis->Factory;
 
 			if (pFactory && pFactory->Object)
 			{
 				auto pProdType = pFactory->Object->GetTechnoType();
-				//const int nTotal = pFactory->CountTotal(pProdType);
+				const int nTotal = pFactory->CountTotal(pProdType);
+				Point2D DrawCameoLoc = { pLocation->X , pLocation->Y + 45};
+				RectangleStruct cameoRect {};
 
 				// support for pcx cameos
 				if (auto pPCX = GetCameoPCXSurface(pProdType))
@@ -3178,10 +3190,12 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 
 					RectangleStruct cameoBounds = { 0, 0, pPCX->Width, pPCX->Height };
 					RectangleStruct DefcameoBounds = { 0, 0, cameoWidth, cameoHeight };
-					RectangleStruct destRect = { DrawExtraLoc.X - cameoWidth / 2, DrawExtraLoc.Y - cameoHeight / 2, cameoWidth , cameoHeight };
+					RectangleStruct destRect = { DrawCameoLoc.X - cameoWidth / 2, DrawCameoLoc.Y - cameoHeight / 2, cameoWidth , cameoHeight };
+
 
 					if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds))
 					{
+						cameoRect = destRect;
 						AresPcxBlit<WORD> blithere((0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft) | (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft));
 						Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &blithere, 0, 3, 1000, 0);
 					}
@@ -3190,28 +3204,28 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 				{
 					// old shp cameos, fixed palette
 					if(auto pCameo = pProdType->GetCameo()){
+						cameoRect = { DrawCameoLoc.X, DrawCameoLoc.Y, pCameo->Width, pCameo->Height };
 						const auto pCustomConvert = GetCameoSHPConvert(pProdType);
-						DSurface::Temp->DrawSHP(pCustomConvert ? pCustomConvert : FileSystem::CAMEO_PAL(), pCameo, 0, &DrawExtraLoc, pBounds, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, nullptr, 0, 0, 0);
+						DSurface::Temp->DrawSHP(pCustomConvert ? pCustomConvert : FileSystem::CAMEO_PAL(), pCameo, 0, &DrawCameoLoc, pBounds, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, nullptr, 0, 0, 0);
 					}
 				}
 
-
-				//auto nPoint = loc;
-				////DrawingPart
+				//auto nColorInt = pThis->Owner->Color.ToInit();//0x63DAD0
+				//DSurface::Temp->Draw_Rect(cameoRect, (COLORREF)nColorInt);
+				//Point2D DrawTextLoc = { DrawCameoLoc.X - 20 , DrawCameoLoc.Y - 20 };
+				//std::wstring pFormat = std::to_wstring(nTotal);
+				//pFormat += L"X";
 				//RectangleStruct nTextDimension;
-				//wchar_t pOutFormat[0x80];
-				//swprintf_s(pOutFormat, L"x%d", nTotal);
-				//Drawing::GetTextDimensions(&nTextDimension, pOutFormat, nPoint, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, 4, 2);
-				//auto nIntersect = Drawing::Intersect(nTextDimension, *pBounds);
-				//auto nColorInt = pFactory->Owner->Color.ToInit();//0x63DAD0
+				//Drawing::GetTextDimensions(&nTextDimension, pFormat.c_str(), DrawTextLoc, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, 4, 2);
+				//auto nIntersect = Drawing::Intersect(nTextDimension, cameoRect);
 
 				//DSurface::Temp->Fill_Rect(nIntersect, (COLORREF)0);
 				//DSurface::Temp->Draw_Rect(nIntersect, (COLORREF)nColorInt);
+
 				//Point2D nRet;
-				//Simple_Text_Print_Wide(&nRet, pOutFormat, DSurface::Temp.get(), pBounds, &nPoint, (COLORREF)nColorInt, (COLORREF)0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, true);
+				//Simple_Text_Print_Wide(&nRet, pFormat.c_str(), DSurface::Temp.get(), &cameoRect, &DrawTextLoc, (COLORREF)nColorInt, (COLORREF)0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, true);
 			}
 		}
-
 	}
 
 	return 0x43E8F2;
@@ -3862,7 +3876,7 @@ void GiveBounty(TechnoClass* pVictim, TechnoClass* pKiller)
 		if (!pKillerTypeExt->BountyDissallow.empty() && pKillerTypeExt->BountyDissallow.Contains(pVictimType))
 			return;
 
-		if (!pKiller->Owner->IsAlliedWith(pVictim))
+		if (!pKiller->Owner->IsAlliedWith_(pVictim))
 		{
 			const auto pRulesGlobal = RulesExt::Global();
 
@@ -4226,7 +4240,7 @@ DEFINE_OVERRIDE_HOOK(0x5203F7, InfantryClass_UpdateVehicleThief_Hijack, 5)
 
 // change all the special things infantry do, like vehicle thief, infiltration,
 // bridge repair, enter transports or bio reactors, ...
-DEFINE_HOOK(519675, InfantryClass_UpdatePosition_BeforeInfantrySpecific, 0xA)
+DEFINE_OVERRIDE_HOOK(0x519675, InfantryClass_UpdatePosition_BeforeInfantrySpecific, 0xA)
 {
 	// called after FootClass:UpdatePosition has been called and before
 	// all specific infantry handling takes place.
@@ -4670,6 +4684,41 @@ HashData GetINIChecksums()
 //	return 0;
 //}
 
+DEFINE_OVERRIDE_HOOK(0x480534, CellClass_AttachesToNeighbourOverlay, 5)
+{
+	GET(int, idxOverlay, EAX);
+	bool Wall = idxOverlay != -1 && OverlayTypeClass::Array->GetItem(idxOverlay)->Wall;
+	return Wall ? 0x480549 : 0x480552;
+}
+
+DEFINE_OVERRIDE_HOOK(0x483D94, CellClass_UpdatePassability, 6)
+{
+	GET(BuildingClass* const, pBuilding, ESI);
+	auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+	return pTypeExt->Firestorm_Wall ? 0x483D9E : 0x483DB0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x489562, DamageArea_DestroyCliff, 9)
+{
+	GET(CellClass* const, pCell, EAX);
+
+	if (pCell->Tile_Is_DestroyableCliff()) {
+		if (ScenarioClass::Instance->Random.PercentChance(RulesClass::Instance->CollapseChance)) {
+			MapClass::Instance->DestroyCliff(pCell);
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x48A507, SelectDamageAnimation_FixNegatives, 5)
+{
+	GET(int, Damage, EDI);
+	Damage = abs(Damage);
+	R->EDI(Damage);
+	return 0;
+}
+
 // drain affecting only the drained power plant
 DEFINE_OVERRIDE_HOOK(0x508D32, HouseClass_UpdatePower_LocalDrain1, 5)
 {
@@ -4718,6 +4767,19 @@ DEFINE_OVERRIDE_HOOK(0x508D32, HouseClass_UpdatePower_LocalDrain1, 5)
 
 	return fullDrain ? 0 : 0x508D37;
 }
+
+// replaced the entire function, to have one centralized implementation
+DEFINE_OVERRIDE_HOOK(0x5051E0, HouseClass_FirstBuildableFromArray, 5)
+{
+	GET(HouseClass const* const, pThis, ECX);
+	GET_STACK(const DynamicVectorClass<BuildingTypeClass*>*const, pList, 0x4);
+	R->EAX(HouseExt::FindBuildable(pThis, pThis->Type->FindParentCountryIndex(), make_iterator(*pList)));
+	return 0x505300;
+}
+
+//InitGame_Delay
+DEFINE_JUMP(LJMP , 0x52CA37, 0x52CA65)
+
 //DEFINE_HOOK(0x4CAD00, FastMath_Cos_Replace, 0xA)
 //{
 //	GET_STACK(double, val, 0x4);

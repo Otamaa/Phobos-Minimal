@@ -24,6 +24,8 @@
 
 #include <New/Type/DigitalDisplayTypeClass.h>
 
+#include <Utilities/BuildingBrackedPositionData.h>
+
 class BulletClass;
 class TechnoTypeClass;
 class REGISTERS;
@@ -250,7 +252,7 @@ private:
 	// Return `Empty` if the next location on distance is invalid
 	static CoordStruct GetPutLocation(CoordStruct current, int distance);
 
-	static bool AllowedTargetByZone(TechnoClass* pThis, TechnoClass* pTarget, const TargetZoneScanType& zoneScanType, WeaponTypeClass* pWeapon = nullptr, std::optional<std::reference_wrapper<const ZoneType>> zone = std::nullopt);
+	static bool AllowedTargetByZone(TechnoClass* pThis, ObjectClass* pTarget, const TargetZoneScanType& zoneScanType, WeaponTypeClass* pWeapon = nullptr, std::optional<std::reference_wrapper<const ZoneType>> zone = std::nullopt);
 
 	static void UpdateMCOverloadDamage(TechnoClass* pOwner);
 	static ObjectTypeClass* SetInfDefaultDisguise(TechnoClass* const pThis, TechnoTypeClass* const pType);
@@ -331,4 +333,5 @@ private:
 	static Point2D GetBuildingSelectBracketPosition(TechnoClass* pThis, BuildingSelectBracketPosition bracketPosition);
 	static void ProcessDigitalDisplays(TechnoClass* pThis);
 	static void GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType, int& value, int& maxValue);
+	static Iterator<DigitalDisplayTypeClass*> GetDisplayType(TechnoClass* pThis, TechnoTypeClass* pType, int& length);
 };

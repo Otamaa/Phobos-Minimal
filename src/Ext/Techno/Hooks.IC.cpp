@@ -16,7 +16,7 @@ DEFINE_HOOK(0x457C90, BuildingClass_IronCuratin, 0x6)
 	{
 		if (pTypeExt->IronCurtain_Affect == IronCurtainAffects::Kill)
 		{
-			R->EAX(pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, pSource));
+			R->EAX(pThis->ReceiveDamage(&pThis->GetType()->Strength, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, pSource));
 			return 0x457CDB;
 		}
 		else if (pTypeExt->IronCurtain_Affect == IronCurtainAffects::NoAffect)
@@ -53,7 +53,7 @@ DEFINE_HOOK(0x4DEAEE, FootClass_IronCurtain, 0x6)
 
 	if (ironAffect == IronCurtainAffects::Kill)
 	{
-		R->EAX(pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, pSource));
+		R->EAX(pThis->ReceiveDamage(&pThis->GetType()->Strength, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, pSource));
 	}
 	else if (ironAffect == IronCurtainAffects::Affect)
 	{

@@ -152,13 +152,9 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	if (pINI == CCINIClass::INI_Rules)
 	{
 		char buffer[0x30];
-		for (auto pInfType : *InfantryTypeClass::Array)
-		{
-			if (!pInfType)
-				continue;
 
-			for (auto pWarhead : *WarheadTypeClass::Array)
-			{
+		InfantryTypeClass::Array->for_each([&](InfantryTypeClass* pInfType) {
+			WarheadTypeClass::Array->for_each([&](WarheadTypeClass* pWarhead) {
 				if (auto const pExt = WarheadTypeExt::ExtMap.TryFind(pWarhead))
 				{
 					Nullable<AnimTypeClass*> nBuffer {};
@@ -166,34 +162,29 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 					nBuffer.Read(iniEX, pWarhead->ID, buffer);
 
 					if (!nBuffer.isset() || !nBuffer.Get())
-						continue;
+						return;
 
 					//Debug::Log("Found specific InfDeathAnim for [WH : %s Inf : %s Anim %s]\n", pWarhead->ID, pInfType->ID, nBuffer->ID);
 					pExt->InfDeathAnims[pInfType->ArrayIndex] = nBuffer;
 				}
-			}
-		}
+			});
+		});
 
-		for (auto pSWType : *SuperWeaponTypeClass::Array)
-		{
-			if (!pSWType)
-				continue;
-
+		SuperWeaponTypeClass::Array->for_each([&](SuperWeaponTypeClass* pSWType) {
 			const auto pSuperExt = SWTypeExt::ExtMap.Find(pSWType);
 
 			if (pSuperExt->Aux_Techno.empty())
-				continue;
+				return;
 
-			for (auto pType : *TechnoTypeClass::Array)
-			{
-				if (!pType || pType->WhatAmI() == AbstractType::BuildingType)
-					continue;
+			TechnoTypeClass::Array->for_each([&](TechnoTypeClass* pType) {
+				if (pType->WhatAmI() == AbstractType::BuildingType)
+					return;
 
-				if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType))
-					if (pSuperExt->Aux_Techno.Contains(pType) && !pTypeExt->Linked_SW.Contains(pSWType))
+				auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+				if (pSuperExt->Aux_Techno.Contains(pType) && !pTypeExt->Linked_SW.Contains(pSWType))
 						pTypeExt->Linked_SW.push_back(pSWType);
-			}
-		}
+			});
+		});
 
 		//for (auto pType : *TechnoTypeClass::Array)
 		//{
@@ -217,7 +208,6 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 		//}
 	}
 
-
 }
 
 // earliest loader - can't really do much because nothing else is initialized yet, so lookups won't work
@@ -229,12 +219,28 @@ void RulesExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
 	//Allocate Default bullet
+	int len = pINI->GetKeyCount("Projectiles");
+	for (int i = 0; i < len; ++i) {
+		const char* key = pINI->GetKeyName("Projectiles", i);
+		if (pINI->ReadString("Projectiles", key, "", Phobos::readBuffer)) {
+			BulletTypeClass::FindOrAllocate(Phobos::readBuffer);
+		}
+	}
+
 	BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
 	GenericPrerequisite::LoadFromINIList_New(pINI);
 
 	INI_EX exINI(pINI);
 
 #pragma region Otamaa
+
+	this->AllowParallelAIQueues.Read(exINI, GLOBALCONTROLS_SECTION, "AllowParallelAIQueues");
+	this->ForbidParallelAIQueues_Infantry.Read(exINI, GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Infantry");
+	this->ForbidParallelAIQueues_Vehicle.Read(exINI, GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Vehicle");
+	this->ForbidParallelAIQueues_Navy.Read(exINI, GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Navy");
+	this->ForbidParallelAIQueues_Aircraft.Read(exINI, GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Aircraft");
+	this->ForbidParallelAIQueues_Building.Read(exINI, GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Building");
+
 
 	this->DefaultParaPlane.Read(exINI, GENERAL_SECTION, "ParadropPlane", true);
 	this->VeinholeParticle.Read(exINI, AUDIOVISUAL_SECTION, "VeinholeSpawnParticleType", true);
@@ -261,6 +267,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->HunterSeekerEmergeSpeed.Read(exINI, GENERAL_SECTION, "HunterSeekerEmergeSpeed");
 	this->Units_UnSellable.Read(exINI, GENERAL_SECTION, "UnitsUnsellable");
 	this->DrawTurretShadow.Read(exINI, AUDIOVISUAL_SECTION, "DrawTurretShadow");
+	this->AnimRemapDefaultColorScheme.Read(exINI, AUDIOVISUAL_SECTION, "AnimRemapDefaultColorScheme");
 
 	if (pThis->WallTower)
 		this->WallTowers.push_back(pThis->WallTower);
@@ -604,6 +611,13 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->ChronoInfantryCrush)
 
 		.Process(this->EnemyWrench)
+		.Process(this->AllowParallelAIQueues)
+		.Process(this->ForbidParallelAIQueues_Infantry)
+		.Process(this->ForbidParallelAIQueues_Vehicle)
+		.Process(this->ForbidParallelAIQueues_Navy)
+		.Process(this->ForbidParallelAIQueues_Aircraft)
+		.Process(this->ForbidParallelAIQueues_Building)
+
 		.Process(this->DefaultParaPlane)
 
 		.Process(this->DropPodTypes)
@@ -623,6 +637,8 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->Infantry_DefaultDigitalDisplayTypes)
 		.Process(this->Vehicles_DefaultDigitalDisplayTypes)
 		.Process(this->Aircraft_DefaultDigitalDisplayTypes)
+
+		.Process(this->AnimRemapDefaultColorScheme)
 		;
 
 	MyPutData.Serialize(Stm);
@@ -694,20 +710,25 @@ DEFINE_HOOK(0x675205, RulesClass_Save_Suffix, 0x8)
 
 DEFINE_HOOK(0x52C9C4, GameInit_ReReadStuffs, 0x6)
 {
-	for (auto pAnimType : *AnimTypeClass::Array)
-		pAnimType->LoadFromINI(&CCINIClass::INI_Art());
+	//AnimTypeClass::Array->ForEach([](AnimTypeClass* pType) {
+	//	pType->LoadFromINI(&CCINIClass::INI_Art());
+	//});
 
-	for (auto pBldType : *BuildingTypeClass::Array)
-		pBldType->LoadFromINI(CCINIClass::INI_Rules());
+	//BuildingTypeClass::Array->ForEach([](BuildingTypeClass* pType) {
+	//	pType->LoadFromINI(CCINIClass::INI_Rules());
+	//});
 
-	//for (auto pSWType : *SuperWeaponTypeClass::Array)
-	//	pSWType->LoadFromINI(CCINIClass::INI_Rules());
+	//SuperWeaponTypeClass::Array->ForEach([](SuperWeaponTypeClass* pType) {
+	//	pType->LoadFromINI(CCINIClass::INI_Rules());
+	//});
 
-	//for (auto pWeapon : *WeaponTypeClass::Array)
-	//	pWeapon->LoadFromINI(CCINIClass::INI_Rules());
+	//WeaponTypeClass::Array->ForEach([](WeaponTypeClass* pType) {
+	//	pType->LoadFromINI(CCINIClass::INI_Rules());
+	//});
 
-	//for (auto pWH : *WarheadTypeClass::Array)
-	//	pWH->LoadFromINI(CCINIClass::INI_Rules());
+	//WarheadTypeClass::Array->ForEach([](WarheadTypeClass* pType) {
+	//	pType->LoadFromINI(CCINIClass::INI_Rules());
+	//});
 
 	return 0x52CA37;
 }
@@ -733,6 +754,10 @@ DEFINE_HOOK(0x679A15, RulesData_LoadBeforeTypeData, 0x6)
 {
 	GET(RulesClass*, pItem, ECX);
 	GET_STACK(CCINIClass*, pINI, 0x4);
+
+	SideClass::Array->for_each([pINI](SideClass* pSide) {
+		SideExt::ExtMap.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
+	});
 
 	// All TypeClass Created but not yet read INI
 	//	RulesClass::Initialized = true;
@@ -797,14 +822,15 @@ DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9
 DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 {
 	Debug::Log("Scenario Name [%s] , Map Name [%s] \n", ScenarioClass::Instance->FileName, SessionClass::Instance->ScenarioFilename);
-	for (auto const it : *HouseClass::Array)
-	{
+
+	HouseClass::Array->for_each([](HouseClass* it) {
+		const auto pType = HouseTypeClass::Array->GetItemOrDefault(it->Type->ArrayIndex);
 		Debug::Log("Player Name: %s IsCurrentPlayer: %u; ColorScheme: %s; ID: %d; HouseType: %s; Edge: %d; StartingAllies: %d; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d\n",
 		it->PlainName ? it->PlainName : NONE_STR,
 		it->IsHumanPlayer,
 		ColorScheme::Array->GetItem(it->ColorSchemeIndex)->ID,
 		it->ArrayIndex,
-		HouseTypeClass::Array->GetItem(it->Type->ArrayIndex)->Name,
+		pType ? pType->Name : NONE_STR,
 		it->Edge,
 		(int)it->StartingAllies.data,
 		it->StartingCell.X,
@@ -813,7 +839,7 @@ DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 		it->MapIsClear,
 		it->Available_Money()
 		);
-	}
+	});
 
 	return 0x0;
 }

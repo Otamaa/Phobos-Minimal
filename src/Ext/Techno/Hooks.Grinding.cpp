@@ -23,7 +23,7 @@ DEFINE_HOOK(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 		if (pExt->LimboID != -1 || pThis->Owner->Type->MultiplayPassive)
 			return ReturnStatic;
 
-		if (!pThis->Owner->IsAlliedWith(pFrom))
+		if (!pThis->Owner->IsAlliedWith_(pFrom))
 			return ReturnStatic;
 
 		auto const pFromTechnoType = pFrom->GetTechnoType();
@@ -85,7 +85,7 @@ DEFINE_HOOK(0x51F0AF, InfantryClass_WhatAction_Grinding, 0x5)
 		if (pBuilding->Type->Grinding
 			&& pThis->Owner->IsControlledByCurrentPlayer()
 			&& !pBuilding->IsBeingWarpedOut()
-			&& pThis->Owner->IsAlliedWith(pTarget)
+			&& pThis->Owner->IsAlliedWith_(pTarget)
 			&& (BuildingTypeExt::ExtMap.Find(pBuilding->Type)->Grinding_AllowAllies || action == Action::Select))
 		{
 			action = BuildingExt::CanGrindTechno(pBuilding, pThis) ? Action::Repair : Action::NoEnter;
@@ -107,12 +107,12 @@ DEFINE_HOOK(0x51E63A, InfantryClass_WhatAction_Grinding_Engineer, 0x6)
 	if (auto pBuilding = specific_cast<BuildingClass*>(pTarget))
 	{
 		const bool canBeGrinded = pBuilding->Type->Grinding && BuildingExt::CanGrindTechno(pBuilding, pThis);
-		const auto TunnelData = HouseExt::GetTunnels(pBuilding->Type, pBuilding->Owner);
-		Action ret = Action::NoGRepair;
-		if(!canBeGrinded && TunnelData)
-			ret =  (int)TunnelData->Vector.size() >= TunnelData->MaxCap ? Action::NoEnter : Action::Enter;
-		else if(canBeGrinded)
-			ret = Action::Repair;
+		Action ret = canBeGrinded ? Action::Repair : Action::NoGRepair;
+
+		if(ret == Action::NoGRepair && (pBuilding->Type->InfantryAbsorb || BuildingTypeExt::ExtMap.Find(pBuilding->Type)->TunnelType != -1)){
+			ret = pThis->SendCommand(RadioCommand::QueryCanEnter, pTarget) == RadioCommand::AnswerPositive ?
+				Action::Enter : Action::NoEnter;
+		}
 
 		R->EBP(ret);
 		return ReturnValue;
@@ -136,7 +136,7 @@ DEFINE_HOOK(0x740134, UnitClass_WhatAction_Grinding, 0x9) //0
 	{
 		if (pThis->Owner->IsControlledByCurrentPlayer()
 			&& !pBuilding->IsBeingWarpedOut()
-			&& pThis->Owner->IsAlliedWith(pTarget)
+			&& pThis->Owner->IsAlliedWith_(pTarget)
 			&& (pBuilding->Type->Grinding || action == Action::Select))
 		{
 			if (pThis->SendCommand(RadioCommand::QueryCanEnter, pTarget) == RadioCommand::AnswerPositive)

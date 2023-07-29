@@ -1485,6 +1485,8 @@ enum class RadioCommand : int {
 	QueryNeedRepair = 34, // Do you need service depot work?
 	QueryOnBuilding = 35, // Are you located on top of me?
 	QueryCanTote = 36, // Want ride
+
+	count,
 };
 
 enum class NetworkEventType : unsigned char {

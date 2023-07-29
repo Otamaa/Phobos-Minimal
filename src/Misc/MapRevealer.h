@@ -59,7 +59,7 @@ public:
 		}
 
 		return pHouse->RadarVisibleTo.Contains(Player) ||
-			(RulesClass::Instance->AllyReveal && pHouse->IsAlliedWith(Player));
+			(RulesClass::Instance->AllyReveal && pHouse->IsAlliedWith_(Player));
 	}
 
 	static bool RequiresExtraChecks();
