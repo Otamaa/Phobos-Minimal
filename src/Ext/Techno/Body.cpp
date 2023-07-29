@@ -2059,7 +2059,7 @@ std::tuple<CoordStruct, SHPStruct*, int> GetInsigniaDatas(TechnoClass* pThis, Te
 
 void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 {
-	if (pThis->CurrentRanking == Rank::Invalid || pThis->CurrentRanking == Rank::Rookie)
+	if (pThis->CurrentRanking == Rank::Invalid)
 		return;
 
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
