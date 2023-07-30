@@ -55,7 +55,7 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 				if (pHunter->Unlimbo(crd, DirType::East))
 				{
 					pHunter->Locomotor->Acquire_Hunter_Seeker_Target();
-					pHunter->QueueMission(Mission::Attack, false);
+					pHunter->QueueMission((pHunter->Type->Harvester || pHunter->Type->ResourceGatherer) ? Mission::Area_Guard : Mission::Attack, false);
 					pHunter->NextMission();
 					++Success;
 				}
