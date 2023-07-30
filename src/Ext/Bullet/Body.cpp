@@ -710,6 +710,10 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 
 					//LineTrailExt::DeallocateLineTrail(pThis);
 					//LineTrailExt::ConstructLineTrails(pThis);
+
+				   // Lose target if the current bullet is no longer interceptable.
+					if (!pNewProjTypeExt->Interceptable || (pNewProjTypeExt->Armor.isset() && GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead, pNewProjTypeExt->Armor.Get()) == 0.0))
+						pSource->SetTarget(nullptr);
 				}
 			}
 		}

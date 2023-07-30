@@ -953,6 +953,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 			this->HunterSeekerIgnore.Read(exINI, pSection, "HunterSeeker.Ignore");
 
 			this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
+			this->Crashable.Read(exINI, pSection, "Crashable");
 			this->MyDiveData.Read(exINI, pSection);
 			this->MyPutData.Read(exINI, pSection);
 			this->MyFighterData.Read(exINI, pSection, pThis);
@@ -1789,6 +1790,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->HealthBar_Border)
 		.Process(this->HealthBar_BorderFrame)
 		.Process(this->HealthBar_BorderAdjust)
+
+		.Process(this->Crashable)
 #pragma endregion
 		;
 

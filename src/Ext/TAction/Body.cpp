@@ -45,7 +45,7 @@ TActionExt::ExtContainer::~ExtContainer() = default;
 
 //==============================
 
-static bool SetTriggerTechnoVeterancy_700(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
+bool TActionExt::SetTriggerTechnoVeterancy(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
 	TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (!pTrigger)
@@ -83,7 +83,7 @@ static bool SetTriggerTechnoVeterancy_700(TActionClass* pThis, HouseClass* pHous
 
 }
 
-static bool TransactMoneyFor_701(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
+bool TActionExt::TransactMoneyFor(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
 	TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (!pTrigger)
@@ -108,35 +108,7 @@ static bool TransactMoneyFor_701(TActionClass* pThis, HouseClass* pHouse, Object
 	return true;
 }
 
-static bool LauchSuperWeaponAtWaypoin_702(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
-	TriggerClass* pTrigger, CellStruct* plocation)
-{
-	if (!pTrigger)
-		return false;
-
-	auto pOwner = pThis->FindHouseByIndex(pTrigger, pThis->Param3);
-
-	if (!pOwner)
-		return false;
-
-	auto pSuperType = SuperWeaponTypeClass::FindIndexById(pThis->Text);
-
-	if (pSuperType == -1 || pThis->Waypoint == -1)
-		return false;
-
-	CellStruct nBufer { };
-	ScenarioClass::Instance->GetWaypointCoords(&nBufer, pThis->Waypoint);
-
-	if (const auto pSuper = pOwner->Supers[pSuperType])
-	{
-		pSuper->IsCharged = true;
-		pSuper->Launch(nBufer, pOwner == HouseClass::CurrentPlayer());
-	}
-
-	return true;
-}
-
-static bool SetAIMode_703(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
+bool TActionExt::SetAIMode(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
 	TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (!pTrigger)
@@ -167,7 +139,7 @@ static bool SetAIMode_703(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 	return true;
 }
 
-static bool DrawAnimWithin_704(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
+bool TActionExt::DrawAnimWithin(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
 	TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (!pTrigger)
@@ -223,7 +195,7 @@ static bool DrawAnimWithin_704(TActionClass* pThis, HouseClass* pHouse, ObjectCl
 	return true;
 }
 
-static bool SetAllOwnedFootDestinationTo_705(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
+bool TActionExt::SetAllOwnedFootDestinationTo(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
 	TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (!pTrigger)
@@ -249,7 +221,7 @@ static bool SetAllOwnedFootDestinationTo_705(TActionClass* pThis, HouseClass* pH
 	return true;
 }
 
-static bool FlashTechnoFor_713(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
+bool TActionExt::FlashTechnoFor(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
 	TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (!pTrigger)
@@ -267,7 +239,7 @@ static bool FlashTechnoFor_713(TActionClass* pThis, HouseClass* pHouse, ObjectCl
 	return true;
 }
 
-static bool UnInitTechno_716(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
+bool TActionExt::UnInitTechno(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
 	TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (!pTrigger)
@@ -296,7 +268,7 @@ static bool UnInitTechno_716(TActionClass* pThis, HouseClass* pHouse, ObjectClas
 	return true;
 }
 
-static bool GameDeleteTechno_717(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
+bool TActionExt::GameDeleteTechno(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
 	TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (!pTrigger)
@@ -306,8 +278,23 @@ static bool GameDeleteTechno_717(TActionClass* pThis, HouseClass* pHouse, Object
 	{
 		if (pTech && pTech->IsAlive && pTech->IsOnMap && !pTech->InLimbo && !(pTech->IsCrashing || pTech->IsSinking))
 		{
-			GameDelete(pTech);
+			GameDelete<true,false>(pTech);
 		}
+	}
+
+	return true;
+}
+
+bool TActionExt::LightningStormStrikeAtObject(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
+	TriggerClass* pTrigger, CellStruct* plocation)
+{
+	if (pThis->Value <= 0 || !pObject)
+		return false;
+
+	for (int i = 0; i < pThis->Value; ++i)
+	{
+		auto ncell = pObject->InlineMapCoords();
+		LightningStorm::Strike(ncell);
 	}
 
 	return true;
@@ -329,21 +316,6 @@ CoordStruct* GetSomething(CoordStruct* a1)
 	return a1;
 }
 
-static bool something_720(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
-	TriggerClass* pTrigger, CellStruct* plocation)
-{
-	if (pThis->Value <= 0 || !pObject)
-		return false;
-
-	for (int i = 0; i < pThis->Value; ++i)
-	{
-		auto ncell = pObject->InlineMapCoords();
-		LightningStorm::Strike(ncell);
-	}
-
-	return true;
-}
-
 bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 {
 	HouseClass* pHouse = args.pHouse;
@@ -361,7 +333,7 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 	};
 
 	//quick way out
-	if ((PhobosTriggerAction)pThis->ActionKind < PhobosTriggerAction::SaveGame ||
+	if ((PhobosTriggerAction)pThis->ActionKind < PhobosTriggerAction::count ||
 		(AresNewTriggerAction)pThis->ActionKind < AresNewTriggerAction::count)
 		return false;
 
@@ -383,34 +355,41 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 	case PhobosTriggerAction::BinaryOperation:
 		ret = TActionExt::BinaryOperation(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
-	//case PhobosTriggerAction::AdjustLighting:
-	//	ret = TActionExt::AdjustLighting(pThis, pHouse, pObject, pTrigger, args.plocation);
-	//	break;
+		//case PhobosTriggerAction::AdjustLighting:
+		//	ret = TActionExt::AdjustLighting(pThis, pHouse, pObject, pTrigger, args.plocation);
+		//	break;
 	case PhobosTriggerAction::RunSuperWeaponAtLocation:
 		ret = TActionExt::RunSuperWeaponAtLocation(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
 	case PhobosTriggerAction::RunSuperWeaponAtWaypoint:
 		ret = TActionExt::RunSuperWeaponAtWaypoint(pThis, pHouse, pObject, pTrigger, args.plocation);
-		//	case PhobosTriggerAction::Something_700:
-		//		return something_700(pThis, pHouse, pObject, pTrigger, args.location);
-		//	case PhobosTriggerAction::Something_701:
-		//		return something_701(pThis, pHouse, pObject, pTrigger, args.location);
-		//	case PhobosTriggerAction::LauchSWAtWaypoint:
-		//		return something_702(pThis, pHouse, pObject, pTrigger, args.location);
-		//	case PhobosTriggerAction::AISetMode:
-		//		return something_703(pThis, pHouse, pObject, pTrigger, args.location);
-		//	case PhobosTriggerAction::Something_704:
-		//		return something_704(pThis, pHouse, pObject, pTrigger, args.location);
-		//	case PhobosTriggerAction::Something_705:
-		//		return something_705(pThis, pHouse, pObject, pTrigger, args.location);
-		//	case PhobosTriggerAction::DoFlash:
-		//		return something_713(pThis, pHouse, pObject, pTrigger, args.location);
-		//	case PhobosTriggerAction::Something_716:
-		//		return something_716(pThis, pHouse, pObject, pTrigger, args.location);
-		//	case PhobosTriggerAction::Something_717:
-		//		return something_717(pThis, pHouse, pObject, pTrigger, args.location);
-		//	case PhobosTriggerAction::DoLighningStormStrike:
-		//		return something_720(pThis, pHouse, pObject, pTrigger, args.location);
+		break;
+	case PhobosTriggerAction::SetTriggerTechnoVeterancy:
+		ret = SetTriggerTechnoVeterancy(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::TransactMoneyFor:
+		ret = TransactMoneyFor(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::SetAIMode:
+		ret = SetAIMode(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::DrawAnimWithin:
+		ret = DrawAnimWithin(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::SetAllOwnedFootDestinationTo:
+		ret = SetAllOwnedFootDestinationTo(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::FlashTechnoFor:
+		ret = FlashTechnoFor(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::UnInitTechno:
+		ret = UnInitTechno(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::GameDeleteTechno:
+		ret = GameDeleteTechno(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::LightningStormStrikeAtObject:
+		ret = LightningStormStrikeAtObject(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
 	case PhobosTriggerAction::RandomTriggerPut:
 		ret = TActionExt::RandomTriggerPut(pThis, pHouse, pObject, pTrigger, args.plocation);
@@ -429,10 +408,7 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 		break;
 	case PhobosTriggerAction::SetNextMission:
 		ret = TActionExt::SetNextMission(pThis, pHouse, pObject, pTrigger, args.plocation);
-		break;
-	//case PhobosTriggerAction::DrawLaserBetweenWeaypoints:
-	//	ret = TActionExt::DrawLaserBetweenWaypoints(pThis, pHouse, pObject, pTrigger, args.plocation);
-	//	break;
+		break;;
 	case PhobosTriggerAction::ToggleMCVRedeploy:
 		ret = TActionExt::ToggleMCVRedeploy(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
@@ -448,9 +424,11 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 bool TActionExt::DrawLaserBetweenWaypoints(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	//auto const pExt = TActionExt::ExtMap.Find(pThis);
-	//const int duration = atoi(pExt->Value2.c_str());
-	//const ColorStruct innerColor = Drawing::RGB888_HEX(pExt->Parm5.c_str());
-	//const ColorStruct outerColor = Drawing::RGB888_HEX(pExt->Parm6.c_str());
+	//const int duration = pThis->Value2;
+
+	//const ColorStruct innerColor = Drawing::RGB888_HEX((char)pThis->Param5);
+	//const ColorStruct outerColor = Drawing::RGB888_HEX(pThis->Param6);
+
 	//auto const& pScen = ScenarioClass::Instance;
 	//const CellStruct srcCell = pScen->GetWaypointCoords(pThis->Param3);
 	//const CellStruct destCell = pScen->GetWaypointCoords(pThis->Param4);
@@ -698,7 +676,8 @@ bool TActionExt::RunSuperWeaponAtWaypoint(TActionClass* pThis, HouseClass* pHous
 
 NOINLINE HouseClass* GetPlayerAt(int param, HouseClass* const pOwnerHouse = nullptr)
 {
-	if (param == 8997) {
+	if (param == 8997)
+	{
 		return pOwnerHouse;
 	}
 
@@ -711,7 +690,8 @@ NOINLINE HouseClass* GetPlayerAt(int param, HouseClass* const pOwnerHouse = null
 		case -1:
 		{
 			// Random non-neutral
-			for (auto pHouse : *HouseClass::Array) {
+			for (auto pHouse : *HouseClass::Array)
+			{
 				if (!pHouse->Defeated
 					&& !HouseExt::IsObserverPlayer(pHouse)
 					&& !pHouse->Type->MultiplayPassive)
@@ -726,8 +706,10 @@ NOINLINE HouseClass* GetPlayerAt(int param, HouseClass* const pOwnerHouse = null
 		case -2:
 		{
 			// Find first Neutral
-			for (auto pHouseNeutral : *HouseClass::Array) {
-				if (pHouseNeutral->IsNeutral()) {
+			for (auto pHouseNeutral : *HouseClass::Array)
+			{
+				if (pHouseNeutral->IsNeutral())
+				{
 					return pHouseNeutral;
 				}
 			}
@@ -737,7 +719,8 @@ NOINLINE HouseClass* GetPlayerAt(int param, HouseClass* const pOwnerHouse = null
 		case -3:
 		{
 			// Random Human Player
-			for (auto pHouse : *HouseClass::Array) {
+			for (auto pHouse : *HouseClass::Array)
+			{
 				if (pHouse->IsControlledByHuman()
 					&& !pHouse->Defeated
 					&& !HouseExt::IsObserverPlayer(pHouse))
@@ -756,7 +739,8 @@ NOINLINE HouseClass* GetPlayerAt(int param, HouseClass* const pOwnerHouse = null
 		}
 	}
 
-	if (HouseClass::Index_IsMP(param)) {
+	if (HouseClass::Index_IsMP(param))
+	{
 		return HouseClass::FindByIndex(param);
 	}
 
@@ -785,7 +769,8 @@ bool TActionExt::RunSuperWeaponAt(TActionClass* pThis, int X, int Y)
 			if (Y < 0)
 				targetLocation.Y += ScenarioClass::Instance->Random.RandomRangedSpecific<short>(0, (short)MapClass::Instance->MapCoordBounds.Bottom);
 
-			if (++retry >= 10) {
+			if (++retry >= 10)
+			{
 				Debug::Log("Failed to `RunSuperWeaponAt` after 10 retries bailout!\n");
 				return true;
 			}
@@ -815,7 +800,8 @@ void TActionExt::RecreateLightSources()
 	// Yeah, we just simply recreating these lightsource...
 	// Stupid but works fine.
 
-	BuildingClass::Array->for_each([](BuildingClass* const pBld) {
+	BuildingClass::Array->for_each([](BuildingClass* const pBld)
+ {
 	 if (pBld->LightSource)
 	 {
 		 bool activated = pBld->LightSource->Activated;
@@ -837,34 +823,36 @@ void TActionExt::RecreateLightSources()
 	 }
 	});
 
-	RadSiteClass::Array->for_each([](RadSiteClass* const pRadSite) {
-		if (pRadSite->LightSource)
-		{
-			bool activated = pRadSite->LightSource->Activated;
-			auto coord = pRadSite->LightSource->Location;
-			auto color = pRadSite->LightSource->LightTint;
-			auto intensity = pRadSite->LightSource->LightIntensity;
-			auto visibility = pRadSite->LightSource->LightVisibility;
+	RadSiteClass::Array->for_each([](RadSiteClass* const pRadSite)
+ {
+	 if (pRadSite->LightSource)
+	 {
+		 bool activated = pRadSite->LightSource->Activated;
+		 auto coord = pRadSite->LightSource->Location;
+		 auto color = pRadSite->LightSource->LightTint;
+		 auto intensity = pRadSite->LightSource->LightIntensity;
+		 auto visibility = pRadSite->LightSource->LightVisibility;
 
-			GameDelete<true>(pRadSite->LightSource);
+		 GameDelete<true>(pRadSite->LightSource);
 
-			pRadSite->LightSource = GameCreate<LightSourceClass>(coord,
-				visibility, intensity, color);
+		 pRadSite->LightSource = GameCreate<LightSourceClass>(coord,
+			 visibility, intensity, color);
 
-			if (activated)
-				pRadSite->LightSource->Activate();
-			else
-				pRadSite->LightSource->Deactivate();
-		}
+		 if (activated)
+			 pRadSite->LightSource->Activate();
+		 else
+			 pRadSite->LightSource->Deactivate();
+	 }
 	 });
 
-	TerrainClass::Array->for_each([](auto const& nPair) {
-		if (nPair->IsAlive && !nPair->InLimbo)
-		 {
-			 const  auto pExt = TerrainExt::ExtMap.Find(nPair);
-			 pExt->ClearLightSource();
-			 pExt->InitializeLightSource();
-		 }
+	TerrainClass::Array->for_each([](auto const& nPair)
+ {
+	 if (nPair->IsAlive && !nPair->InLimbo)
+	 {
+		 const  auto pExt = TerrainExt::ExtMap.Find(nPair);
+		 pExt->ClearLightSource();
+		 pExt->InitializeLightSource();
+	 }
 	});
 
 }

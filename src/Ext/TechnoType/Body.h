@@ -809,6 +809,8 @@ public:
 		Nullable<int> HealthBar_BorderFrame { };
 		Nullable<int> HealthBar_BorderAdjust { };
 
+		Nullable<bool> Crashable {};
+
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, AttachedEffect { OwnerObject }
 		{ }

@@ -5275,6 +5275,13 @@ DEFINE_HOOK(0x518607, InfantryClass_TakeDamage_FixOnDestroyedSource, 0xA)
 	return 0x518611;
 }
 
+DEFINE_HOOK(0x450B48, BuildingClass_Anim_AI_UnitAbsorb, 0x6)
+{
+	GET(BuildingTypeClass*, pThis, EAX);
+	R->CL(pThis->InfantryAbsorb || pThis->UnitAbsorb);
+	return 0x450B4E;
+}
+
 //DEFINE_HOOK(0x6F6D0E, TechnoClass_Unlimbo_LastStep, 7)
 //{
 //	GET(TechnoClass*, pThis, ESI);

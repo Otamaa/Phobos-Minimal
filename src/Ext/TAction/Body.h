@@ -16,7 +16,6 @@ enum class PhobosTriggerAction : unsigned int
 	GenerateRandomNumber = 502,
 	PrintVariableValue = 503,
 	BinaryOperation = 504,
-	//AdjustLighting = 505,
 	RunSuperWeaponAtLocation = 505,
 	RunSuperWeaponAtWaypoint = 506,
 
@@ -32,17 +31,19 @@ enum class PhobosTriggerAction : unsigned int
 	SetNextMission = 19002 ,
 
 	//ES
-	//Something_700 = 700,
-	//Something_701 = 701,
-	//LauchSWAtWaypoint = 702,
-	//AISetMode = 703,
-	//Something_704 = 704,
-	//Something_705 = 705 ,
-	//DoFlash = 713 ,
-	//Something_716 = 716 ,
-	//Something_717 = 717,
-	//DoLighningStormStrike  = 720 ,
-	//DrawLaserBetweenWeaypoints = 9940
+	SetTriggerTechnoVeterancy = 700,
+	TransactMoneyFor = 701,
+	SetAIMode = 703,
+	DrawAnimWithin = 704,
+	SetAllOwnedFootDestinationTo = 705 ,
+	FlashTechnoFor = 713 ,
+	UnInitTechno = 716 ,
+	GameDeleteTechno = 717,
+	LightningStormStrikeAtObject  = 720 ,
+
+	//DrawLaserBetweenWeaypoints = 9940,
+	//AdjustLighting = 505,
+	count
 };
 
 class TActionExt
@@ -138,6 +139,16 @@ public:
 	ACTION_FUNC(SetNextMission);
 
 	ACTION_FUNC(ToggleMCVRedeploy);
+
+	ACTION_FUNC(SetTriggerTechnoVeterancy);
+	ACTION_FUNC(TransactMoneyFor);
+	ACTION_FUNC(SetAIMode);
+	ACTION_FUNC(DrawAnimWithin);
+	ACTION_FUNC(SetAllOwnedFootDestinationTo);
+	ACTION_FUNC(FlashTechnoFor);
+	ACTION_FUNC(UnInitTechno);
+	ACTION_FUNC(GameDeleteTechno);
+	ACTION_FUNC(LightningStormStrikeAtObject);
 
 #undef ACTION_FUNC
 };

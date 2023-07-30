@@ -771,9 +771,8 @@ DEFINE_HOOK(0x41660C, AircraftClass_ReceiveDamage_destroyed, 0x5)
 		args.IgnoreDefenses,
 		args.PreventsPassengerEscape);
 
-	//return (nCrashable.isset() && !nCrashable.Get() || !pThis->Crash(args.Attacker)) ? 0x41669F : 0x4166A9;
-
-	if (!pThis->GetTechnoType()->Crashable || !pThis->Crash(args.Attacker))
+	const auto& crashable = TechnoTypeExt::ExtMap.Find(pThis->Type)->Crashable;
+	if ((crashable.isset() && !crashable.Get()) || !pThis->Crash(args.Attacker))
 		pThis->UnInit();
 
 	return 0x4166A9;
