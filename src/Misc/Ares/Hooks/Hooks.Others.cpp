@@ -34,6 +34,7 @@
 #include <strsafe.h>
 
 #include "Header.h"
+#include <Ares_TechnoExt.h>
 
 DEFINE_OVERRIDE_HOOK(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
 {
@@ -1417,7 +1418,7 @@ DEFINE_OVERRIDE_HOOK(0x6FA743, TechnoClass_Update_SelfHeal, 0xA)
 	GET(TechnoClass* const, pThis, ESI);
 
 	// prevent crashing and sinking technos from self-healing
-	if (pThis->InLimbo || pThis->IsCrashing || pThis->IsSinking || Is_DriverKilled(pThis))
+	if (pThis->InLimbo || pThis->IsCrashing || pThis->IsSinking || pThis->align_154->Is_DriverKilled)
 	{
 		return SkipAnySelfHeal;
 	}
@@ -2092,14 +2093,14 @@ DEFINE_OVERRIDE_HOOK(0x62C2C2, ParticleClass_Update_Gas_Damage, 6)
 DEFINE_OVERRIDE_HOOK(0x62A020, ParasiteClass_Update, 0xA)
 {
 	GET(TechnoClass*, pOwner, ECX);
-	R->EAX(pOwner->GetWeapon(Ares_ParasiteWeapon(pOwner)));
+	R->EAX(pOwner->GetWeapon(pOwner->align_154->idxSlot_Parasite));
 	return 0x62A02A;
 }
 
 DEFINE_OVERRIDE_HOOK(0x62A7B1, Parasite_ExitUnit, 9)
 {
 	GET(TechnoClass*, pOwner, ECX);
-	R->EAX(pOwner->GetWeapon(Ares_ParasiteWeapon(pOwner)));
+	R->EAX(pOwner->GetWeapon(pOwner->align_154->idxSlot_Parasite));
 	return 0x62A7BA;
 }
 
@@ -2145,26 +2146,26 @@ DEFINE_OVERRIDE_HOOK(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 DEFINE_OVERRIDE_HOOK(0x481C6C, CellClass_CrateBeingCollected_Armor1, 6)
 {
 	GET(TechnoClass*, Unit, EDI);
-	return (AE_ArmorMult(Unit) == 1.0) ? 0x481D52 : 0x481C86;
+	return (Unit->align_154->AE_ArmorMult == 1.0) ? 0x481D52 : 0x481C86;
 }
 
 DEFINE_OVERRIDE_HOOK(0x481CE1, CellClass_CrateBeingCollected_Speed1, 6)
 {
 	GET(FootClass*, Unit, EDI);
-	return (AE_SpeedMult(Unit) == 1.0) ? 0x481D52 : 0x481C86;
+	return (Unit->align_154->AE_SpeedMult == 1.0) ? 0x481D52 : 0x481C86;
 }
 
 DEFINE_OVERRIDE_HOOK(0x481D0E, CellClass_CrateBeingCollected_Firepower1, 6)
 {
 	GET(TechnoClass*, Unit, EDI);
-	return (AE_FirePowerMult(Unit) == 1.0) ? 0x481D52 : 0x481C86;
+	return (Unit->align_154->AE_FirePowerMult == 1.0) ? 0x481D52 : 0x481C86;
 }
 
 DEFINE_OVERRIDE_HOOK(0x481D3D, CellClass_CrateBeingCollected_Cloak1, 6)
 {
 	GET(TechnoClass*, Unit, EDI);
 
-	if (Unit->CanICloakByDefault() || AE_Cloak(Unit))
+	if (Unit->CanICloakByDefault() || Unit->align_154->AE_Cloak)
 	{
 		return 0x481C86;
 	}
@@ -2178,7 +2179,7 @@ DEFINE_OVERRIDE_HOOK(0x481D3D, CellClass_CrateBeingCollected_Cloak1, 6)
 DEFINE_OVERRIDE_HOOK(0x48294F, CellClass_CrateBeingCollected_Cloak2, 7)
 {
 	GET(TechnoClass*, Unit, EDX);
-	AE_Cloak(Unit) = true;
+	Unit->align_154->AE_Cloak = true;
 	AresData::RecalculateStat(Unit);
 	return 0x482956;
 }
@@ -2188,10 +2189,9 @@ DEFINE_OVERRIDE_HOOK(0x482E57, CellClass_CrateBeingCollected_Armor2, 6)
 	GET(TechnoClass*, Unit, ECX);
 	GET_STACK(double, Pow_ArmorMultiplier, 0x20);
 
-	auto& nArmor = AE_ArmorMult(Unit);
-	if (nArmor == 1.0)
+	if (Unit->align_154->AE_ArmorMult == 1.0)
 	{
-		nArmor = Pow_ArmorMultiplier;
+		Unit->align_154->AE_ArmorMult = Pow_ArmorMultiplier;
 		AresData::RecalculateStat(Unit);
 		R->AL(Unit->GetOwningHouse()->IsInPlayerControl);
 		return 0x482E89;
@@ -2207,10 +2207,9 @@ DEFINE_OVERRIDE_HOOK(0x48303A, CellClass_CrateBeingCollected_Speed2, 6)
 	// removed aircraft check
 	// these originally not allow those to gain speed mult
 
-	auto& nSpeed = AE_SpeedMult(Unit);
-	if (nSpeed == 1.0)
+	if (Unit->align_154->AE_SpeedMult == 1.0)
 	{
-		nSpeed = Pow_SpeedMultiplier;
+		Unit->align_154->AE_SpeedMult = Pow_SpeedMultiplier;
 		AresData::RecalculateStat(Unit);
 		R->CL(Unit->GetOwningHouse()->IsInPlayerControl);
 		return 0x483078;
@@ -2223,10 +2222,9 @@ DEFINE_OVERRIDE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 	GET(TechnoClass*, Unit, ECX);
 	GET_STACK(double, Pow_FirepowerMultiplier, 0x20);
 
-	auto& nFP = AE_FirePowerMult(Unit);
-	if (nFP == 1.0)
+	if (Unit->align_154->AE_FirePowerMult == 1.0)
 	{
-		nFP = Pow_FirepowerMultiplier;
+		Unit->align_154->AE_FirePowerMult = Pow_FirepowerMultiplier;
 		AresData::RecalculateStat(Unit);
 		R->AL(Unit->GetOwningHouse()->IsInPlayerControl);
 		return 0x483258;
@@ -2288,7 +2286,7 @@ DEFINE_OVERRIDE_HOOK(0x739F21, UnitClass_UpdatePosition_Visceroid, 6)
 		if (pUnit->TemporalTargetingMe)
 			return false;
 
-		if (Is_DriverKilled(pUnit))
+		if (pUnit->align_154->Is_DriverKilled)
 			return false;
 
 		if (pUnit->BerzerkDurationLeft)
@@ -2385,7 +2383,7 @@ DEFINE_OVERRIDE_HOOK(0x73C143, UnitClass_DrawVXL_Deactivated, 5)
 
 		// use the operator check because it is more
 		// efficient than the powered check.
-		if (Is_Operated(pThis) || TechnoExt_ExtData::IsOperated(pThis))
+		if (pThis->align_154->Is_Operated || TechnoExt_ExtData::IsOperated(pThis))
 		{
 			factor = pRules->DeactivateDim_Powered;
 		}
@@ -2452,7 +2450,7 @@ DEFINE_OVERRIDE_HOOK(0x471C96, CaptureManagerClass_CanCapture, 0xA)
 	}
 
 	// driver killed. has no mind.
-	if (Is_DriverKilled(pTarget))
+	if (pTarget->align_154->Is_DriverKilled)
 	{
 		return Disallowed;
 	}
@@ -2465,7 +2463,7 @@ DEFINE_OVERRIDE_HOOK(0x51DF38, InfantryClass_Remove, 0xA)
 {
 	GET(InfantryClass*, pThis, ESI);
 
-	if (auto pGarrison = AresGarrisonedIn(pThis))
+	if (auto pGarrison = pThis->align_154->GarrisonedIn)
 	{
 		if (!pGarrison->Occupants.Remove(pThis))
 		{
@@ -2474,7 +2472,7 @@ DEFINE_OVERRIDE_HOOK(0x51DF38, InfantryClass_Remove, 0xA)
 		}
 	}
 
-	AresGarrisonedIn(pThis) = nullptr;
+	pThis->align_154->GarrisonedIn = nullptr;
 
 	return 0;
 }
@@ -2482,7 +2480,7 @@ DEFINE_OVERRIDE_HOOK(0x51DF38, InfantryClass_Remove, 0xA)
 DEFINE_OVERRIDE_HOOK(0x51DFFD, InfantryClass_Put, 5)
 {
 	GET(InfantryClass*, pThis, EDI);
-	AresGarrisonedIn(pThis) = nullptr;
+	pThis->align_154->GarrisonedIn = nullptr;
 	return 0;
 }
 
@@ -2495,7 +2493,7 @@ DEFINE_OVERRIDE_HOOK(0x518434, InfantryClass_ReceiveDamage_SkipDeathAnim, 7)
 	// too much space would get wasted since there is only four bytes worth of data we need to store per object
 	// so those four bytes get stashed in Techno Map instead. they will get their own map if there's ever enough data to warrant it
 
-	return AresGarrisonedIn(pThis) ? 0x5185F1 : 0;
+	return pThis->align_154->GarrisonedIn ? 0x5185F1 : 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x446EE2, BuildingClass_Place_InitialPayload, 6)
@@ -2673,7 +2671,7 @@ DEFINE_OVERRIDE_HOOK(0x6FAF0D, TechnoClass_Update_EMPLock, 6)
 			if (!pThis->Deactivated && EMPulse::IsDeactivationAdvisable(pThis))
 			{
 				// update the current mission
-				AresEMPLastMission(pThis) = pThis->CurrentMission;
+				pThis->align_154->EMPLastMission = pThis->CurrentMission;
 				pThis->Deactivate();
 			}
 		}
@@ -2727,7 +2725,7 @@ DEFINE_OVERRIDE_HOOK(0x6F6AC9, TechnoClass_Remove_Early, 6)
 	if (AresData::RemoveAE(&GetAEData(pThis)))
 		AresData::RecalculateStat(pThis);
 
-	if (TechnoValueAmount(pThis) != 0)
+	if (pThis->align_154->TechnoValueAmount != 0)
 	{
 		AresData::FlyingStringsAdd(pThis, true);
 	}
@@ -2761,7 +2759,7 @@ DEFINE_OVERRIDE_HOOK(0x6FD0BF, TechnoClass_GetROF_AttachEffect, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	const auto nRof = AE_ROF(pThis);
+	const auto nRof = pThis->align_154->AE_ROF;
 	__asm { fmul nRof };
 	return 0x0;
 }
@@ -3014,7 +3012,7 @@ DEFINE_OVERRIDE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 	//	GET_STACK(unsigned int , nFrame, 0x4);
 	GET_STACK(RectangleStruct*, pRect, 0xC);
 
-	if(!HouseClass::CurrentPlayer)
+	if (!HouseClass::CurrentPlayer)
 		return 0x70AD4C;
 
 	if (auto pBuilding = specific_cast<BuildingClass*>(pThis))
@@ -3179,7 +3177,7 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 			{
 				auto pProdType = pFactory->Object->GetTechnoType();
 				const int nTotal = pFactory->CountTotal(pProdType);
-				Point2D DrawCameoLoc = { pLocation->X , pLocation->Y + 45};
+				Point2D DrawCameoLoc = { pLocation->X , pLocation->Y + 45 };
 				RectangleStruct cameoRect {};
 
 				// support for pcx cameos
@@ -3203,7 +3201,8 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 				else
 				{
 					// old shp cameos, fixed palette
-					if(auto pCameo = pProdType->GetCameo()){
+					if (auto pCameo = pProdType->GetCameo())
+					{
 						cameoRect = { DrawCameoLoc.X, DrawCameoLoc.Y, pCameo->Width, pCameo->Height };
 						const auto pCustomConvert = GetCameoSHPConvert(pProdType);
 						DSurface::Temp->DrawSHP(pCustomConvert ? pCustomConvert : FileSystem::CAMEO_PAL(), pCameo, 0, &DrawCameoLoc, pBounds, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, nullptr, 0, 0, 0);
@@ -3286,7 +3285,7 @@ DEFINE_OVERRIDE_HOOK(0x70FBE0, TechnoClass_Activate_AresReplace, 6)
 		return 0x70FC85;
 	}
 
-	if (Is_Operated(pThis) || TechnoExt_ExtData::IsOperated(pThis))
+	if (pThis->align_154->Is_Operated || TechnoExt_ExtData::IsOperated(pThis))
 	{
 		pThis->Guard();
 
@@ -3401,7 +3400,7 @@ DEFINE_OVERRIDE_HOOK(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
 		AresData::JammerClassUnjamAll(pJammer);
 	}
 
-	if (TechnoValueAmount(pThis) != 0)
+	if (pThis->align_154->TechnoValueAmount != 0)
 		AresData::FlyingStringsAdd(pThis, true);
 
 	return 0;
@@ -3560,7 +3559,7 @@ DEFINE_OVERRIDE_HOOK(0x41946B, AircraftClass_ReceivedRadioCommand_QueryEnterAsPa
 	// prevent units from getting the enter cursor on transports
 	// with killed drivers.
 	GET(TechnoClass*, pThis, ESI);
-	return (Is_DriverKilled(pThis) ? 0x4190DDu : 0u);
+	return (pThis->align_154->Is_DriverKilled ? 0x4190DDu : 0u);
 }
 
 #include <Commands/ToggleRadialIndicatorDrawMode.h>
@@ -3905,7 +3904,7 @@ void GiveBounty(TechnoClass* pVictim, TechnoClass* pKiller)
 					if (pKillerTypeExt->Get()->MissileSpawn && pKiller->SpawnOwner)
 						pKiller = pKiller->SpawnOwner;
 
-					TechnoValueAmount(pKiller) += nValue;
+					pKiller->align_154->TechnoValueAmount += nValue;
 				}
 			}
 		}
@@ -3951,7 +3950,7 @@ AresHijackActionResult GetActionHijack(InfantryClass* pThis, TechnoClass* const 
 	}
 
 	//no , this one bit different ?
-	const bool IsNotOperated = !Is_Operated(pTarget) && !TechnoExt_ExtData::IsOperated(pTarget);
+	const bool IsNotOperated = !pThis->align_154->Is_Operated && !TechnoExt_ExtData::IsOperated(pTarget);
 
 	// i'm in a state that forbids capturing
 	if (pThis->IsDeployed() || IsNotOperated)
@@ -4033,7 +4032,7 @@ AresHijackActionResult GetActionHijack(InfantryClass* pThis, TechnoClass* const 
 #include <SlaveManagerClass.h>
 
 // perform the most appropriate hijack action
-bool PerformActionHijack(TechnoClass* pFrom, TechnoClass* const pTarget)
+bool NOINLINE PerformActionHijack(TechnoClass* pFrom, TechnoClass* const pTarget)
 {
 	// was the hijacker lost in the process?
 	bool ret = false;
@@ -4062,6 +4061,7 @@ bool PerformActionHijack(TechnoClass* pFrom, TechnoClass* const pTarget)
 		{
 			pTarget->MindControlledBy->CaptureManager->FreeUnit(pTarget);
 		}
+
 		pTarget->MindControlledByAUnit = false;
 		if (pTarget->MindControlRingAnim)
 		{
@@ -4070,16 +4070,21 @@ bool PerformActionHijack(TechnoClass* pFrom, TechnoClass* const pTarget)
 		}
 
 		bool asPassenger = false;
-		if (action == AresHijackActionResult::Drive)
+		const auto pDestTypeExt = TechnoTypeExt::ExtMap.Find(pTarget->GetTechnoType());
+
+		if (action == AresHijackActionResult::Drive && (!pDestTypeExt->Operators.empty() || pDestTypeExt->Operator_Any))
 		{
-			const auto pDestTypeExt = TechnoTypeExt::ExtMap.Find(pTarget->GetTechnoType());
-			if (Is_Operated(pTarget) || pDestTypeExt->Operator_Any)
+			asPassenger = true;
+
+			// raise some events in case the driver enters
+			// a vehicle that needs an Operator
+			if (pTarget->AttachedTag)
 			{
-				asPassenger = true;
+				pTarget->AttachedTag->RaiseEvent(TriggerEvent::EnteredBy,
+					pThis, CellStruct::Empty, false, nullptr);
 			}
 		}
-
-		if (!asPassenger)
+		else
 		{
 			// raise some events in case the hijacker/driver will be
 			// swallowed by the vehicle.
@@ -4088,6 +4093,7 @@ bool PerformActionHijack(TechnoClass* pFrom, TechnoClass* const pTarget)
 				pTarget->AttachedTag->RaiseEvent(TriggerEvent::DestroyedByAnything,
 					pThis, CellStruct::Empty, false, nullptr);
 			}
+
 			pTarget->Owner->HasBeenThieved = true;
 			if (auto const pTag = pThis->AttachedTag)
 			{
@@ -4095,16 +4101,6 @@ bool PerformActionHijack(TechnoClass* pFrom, TechnoClass* const pTarget)
 				{
 					pTarget->ReplaceTag(pTag);
 				}
-			}
-		}
-		else
-		{
-			// raise some events in case the driver enters
-			// a vehicle that needs an Operator
-			if (pTarget->AttachedTag)
-			{
-				pTarget->AttachedTag->RaiseEvent(TriggerEvent::EnteredBy,
-					pThis, CellStruct::Empty, false, nullptr);
 			}
 		}
 
@@ -4124,15 +4120,15 @@ bool PerformActionHijack(TechnoClass* pFrom, TechnoClass* const pTarget)
 		VocClass::PlayAt(pTypeExt->HijackerEnterSound, pTarget->Location, nullptr);
 
 		// remove the driverless-marker
-		Is_DriverKilled(pTarget) = false;
+		pTarget->align_154->Is_DriverKilled = 0;
 
 		// save the hijacker's properties
 		if (action == AresHijackActionResult::Hijack)
 		{
 			pTarget->HijackerInfantryType = pType->ArrayIndex;
-			HijackerOwner(pTarget) = pThis->Owner;
-			HijackerHealth(pTarget) = pThis->Health;
-			HijackerVeterancy(pTarget) = pThis->Veterancy.Veterancy;
+			pTarget->align_154->HijackerOwner = pThis->Owner;
+			pTarget->align_154->HijackerHealth = pThis->Health;
+			pTarget->align_154->HijackerVeterancy = pThis->Veterancy.Veterancy;
 			TechnoExt::StoreHijackerLastDisguiseData(pThis, (FootClass*)pTarget);
 		}
 
@@ -4163,8 +4159,7 @@ bool PerformActionHijack(TechnoClass* pFrom, TechnoClass* const pTarget)
 			ret = false;
 		}
 
-		auto const nMission = pThis->Owner->ControlledByPlayer() ? Mission::Guard : Mission::Hunt;
-		pTarget->QueueMission(nMission, true);
+		pTarget->QueueMission(pThis->Owner->IsControlledByHuman_() ? Mission::Guard : Mission::Hunt, true);
 
 		if (auto const pTag = pTarget->AttachedTag)
 		{
@@ -4233,7 +4228,8 @@ DEFINE_OVERRIDE_HOOK(0x5203F7, InfantryClass_UpdateVehicleThief_Hijack, 5)
 	if (finalize)
 	{
 		// manually deinitialize this infantry
-		pThis->UnInit();
+		if(pThis->IsAlive)
+			pThis->UnInit();
 	}
 	return finalize ? Stop : GoOn;
 }
@@ -4271,7 +4267,7 @@ DEFINE_OVERRIDE_HOOK(0x519675, InfantryClass_UpdatePosition_BeforeInfantrySpecif
 						pTarget = pCell->GetBuilding();
 						if (pTarget && !pTarget->IsStrange())
 						{
-							pTarget = nullptr;
+							return 0;
 						}
 					}
 				}
@@ -4280,8 +4276,7 @@ DEFINE_OVERRIDE_HOOK(0x519675, InfantryClass_UpdatePosition_BeforeInfantrySpecif
 				if (pTarget && pTarget == pDest)
 				{
 					// reached the target. capture.
-					bool finalize = PerformActionHijack(pThis, pTarget);
-					DoWhat = finalize ? Destroy : Return;
+					DoWhat = PerformActionHijack(pThis, pTarget) ? Destroy : Return;
 				}
 			}
 		}
@@ -4336,7 +4331,7 @@ bool NOINLINE FindAndTakeVehicle(FootClass* pThis)
 		}))
 	{
 
-		TakeVehicleMode(pThis) = true;
+		pThis->align_154->TakeVehicleMode = true;
 		pThis->ShouldGarrisonStructure = true;
 		if (pThis->Target != It || pThis->CurrentMission != Mission::Capture)
 		{
@@ -4346,7 +4341,7 @@ bool NOINLINE FindAndTakeVehicle(FootClass* pThis)
 		}
 	}
 
-	TakeVehicleMode(pThis) = false;
+	pThis->align_154->TakeVehicleMode = false;
 	pThis->ShouldGarrisonStructure = false;
 	return false;
 }
@@ -4355,7 +4350,7 @@ DEFINE_OVERRIDE_HOOK(0x4DFE00, FootClass_GarrisonStructure_TakeVehicle, 6)
 {
 	GET(FootClass*, pThis, ECX);
 
-	if (!TakeVehicleMode(pThis))
+	if (!pThis->align_154->TakeVehicleMode)
 		return 0x0;
 
 	R->EAX(FindAndTakeVehicle(pThis));
@@ -4372,7 +4367,7 @@ DEFINE_OVERRIDE_HOOK(0x44C844, BuildingClass_MissionRepair_Reload, 6)
 	auto const pExt = BuildingExt::ExtMap.Find(pThis);
 
 	// ensure there are enough slots
-	pExt->DockReloadTimers.resize(pThis->RadioLinks.Capacity ,-1);
+	pExt->DockReloadTimers.resize(pThis->RadioLinks.Capacity, -1);
 
 	// update all dockers, check if there's
 	// at least one needing more attention
@@ -4597,10 +4592,12 @@ DEFINE_OVERRIDE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 			target.Count = 0;
 
 			// collect all slots containing damage groups for this target
-			std::for_each(&group, groups.end(), [group, &target](DamageGroup*& item) {
-				if (item && item->Target == group->Target) {
-				 target.AddItem(&item);
-				}
+			std::for_each(&group, groups.end(), [group, &target](DamageGroup*& item)
+ {
+	 if (item && item->Target == group->Target)
+	 {
+		 target.AddItem(&item);
+	 }
 			});
 
 			// if more than allowed, sort them and remove the ones further away
@@ -4613,17 +4610,19 @@ DEFINE_OVERRIDE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 					return (*a)->Distance < (*b)->Distance;
 				});
 
-				std::for_each(target.begin() + MaxAffect, target.end(), [](DamageGroup** ppItem) {
-					GameDelete(*ppItem);
-					*ppItem = nullptr;
+				std::for_each(target.begin() + MaxAffect, target.end(), [](DamageGroup** ppItem)
+ {
+	 GameDelete(*ppItem);
+	 *ppItem = nullptr;
 				});
 			}
 		}
 	}
 
 	// move all the empty ones to the back, then remove them
-	auto const end = std::remove_if(groups.begin(), groups.end(), [](DamageGroup* pGroup) {
-	  return pGroup == nullptr;
+	auto const end = std::remove_if(groups.begin(), groups.end(), [](DamageGroup* pGroup)
+ {
+	 return pGroup == nullptr;
 	});
 
 	auto const validCount = std::distance(groups.begin(), end);
@@ -4702,8 +4701,10 @@ DEFINE_OVERRIDE_HOOK(0x489562, DamageArea_DestroyCliff, 9)
 {
 	GET(CellClass* const, pCell, EAX);
 
-	if (pCell->Tile_Is_DestroyableCliff()) {
-		if (ScenarioClass::Instance->Random.PercentChance(RulesClass::Instance->CollapseChance)) {
+	if (pCell->Tile_Is_DestroyableCliff())
+	{
+		if (ScenarioClass::Instance->Random.PercentChance(RulesClass::Instance->CollapseChance))
+		{
 			MapClass::Instance->DestroyCliff(pCell);
 		}
 	}
@@ -4778,7 +4779,7 @@ DEFINE_OVERRIDE_HOOK(0x5051E0, HouseClass_FirstBuildableFromArray, 5)
 }
 
 //InitGame_Delay
-DEFINE_JUMP(LJMP , 0x52CA37, 0x52CA65)
+DEFINE_JUMP(LJMP, 0x52CA37, 0x52CA65)
 
 //DEFINE_HOOK(0x4CAD00, FastMath_Cos_Replace, 0xA)
 //{

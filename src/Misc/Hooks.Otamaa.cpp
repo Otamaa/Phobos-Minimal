@@ -4610,6 +4610,7 @@ DEFINE_HOOK(0x520E75, InfantryClass_SequenceAI_PreventOutOfBoundArrayRead, 0x6)
 DEFINE_HOOK(0x5194EF, InfantryClass_DrawIt_InAir_NoShadow, 5)
 {
 	GET(InfantryClass*, pThis, EBP);
+	//TODO : add option for this
 	return pThis->Type->NoShadow ? 0x51958A : 0x0;
 }
 
@@ -5282,6 +5283,46 @@ DEFINE_HOOK(0x450B48, BuildingClass_Anim_AI_UnitAbsorb, 0x6)
 	return 0x450B4E;
 }
 
+int InfantryClass_Mission_Harvest(InfantryClass* pThis)
+{
+	if (pThis->Type->Slaved)
+	{
+		if (pThis->Type->Storage)
+		{
+			auto pCell = pThis->GetCell();
+			if (!pCell->HasTiberium() || pThis->GetStoragePercentage() == 1.0)
+			{
+				pThis->PlayAnim(DoType::Ready);
+				pThis->QueueMission(Mission::Guard, false);
+				return 1;
+			}
+			else
+			{
+				if (pThis->SequenceAnim != DoType::Shovel)
+				{
+					pThis->PlayAnim(DoType::Shovel);
+				}
+
+				auto tiberium = pCell->GetContainedTiberiumIndex();
+				auto curamount = pThis->Type->Storage - pThis->Tiberium.GetTotalAmount();
+				const auto reduceamount = curamount <= 1.0 ? curamount : 1.0;
+
+				pCell->ReduceTiberium(reduceamount);
+				pThis->Tiberium.AddAmount(reduceamount, tiberium);
+				return pThis->Type->HarvestRate;
+			}
+		}
+	}
+
+	if (!pThis->Destination)
+		return 1;
+
+	auto pCell = pThis->GetCell();
+	if (pThis->Type->ResourceGatherer && pThis->GetStoragePercentage() < 1.0 && pCell->HasTiberium())
+	{
+		auto tiberium = pCell->GetContainedTiberiumIndex();
+	}
+}
 //DEFINE_HOOK(0x6F6D0E, TechnoClass_Unlimbo_LastStep, 7)
 //{
 //	GET(TechnoClass*, pThis, ESI);

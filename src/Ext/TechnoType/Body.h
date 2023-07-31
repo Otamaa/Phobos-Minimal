@@ -294,7 +294,7 @@ public:
 		Valueable<TargetZoneScanType> TargetZoneScanType { TargetZoneScanType::Same };
 		Nullable<bool> GrapplingAttack {};
 
-		Valueable<bool> FacingRotation_Disable { false };
+		Nullable<bool> FacingRotation_Disable { };
 		Valueable<bool> FacingRotation_DisalbeOnEMP { false };
 		Valueable<bool> FacingRotation_DisalbeOnDeactivated { false };
 		Valueable<bool> FacingRotation_DisableOnDriverKilled { true };

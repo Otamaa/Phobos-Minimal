@@ -12,6 +12,8 @@
 #include <NetworkEvents.h>
 #include <CCToolTip.h>
 
+#include <Ares_TechnoExt.h>
+
 #include "NewSuperWeaponType/NuclearMissile.h"
 #include "NewSuperWeaponType/LightningStorm.h"
 #include "NewSuperWeaponType/Dominator.h"
@@ -2314,7 +2316,7 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 				}
 
 				// ignore units with no drivers
-				if (Is_DriverKilled(pTechno))
+				if (pTechno->align_154->Is_DriverKilled)
 				{
 					return true;
 				}

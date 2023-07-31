@@ -1231,6 +1231,9 @@ bool SWTypeExt::ExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStr
 
 	if (!pData->SW_ResetType.empty()) {
 		for (auto& pHouseSuper : pOwner->Supers) {
+			if (pHouseSuper == pSuper)
+				continue;
+
 			if (pData->SW_ResetType.Contains(pHouseSuper->Type->ArrayIndex))
 				pHouseSuper->Reset();
 		}

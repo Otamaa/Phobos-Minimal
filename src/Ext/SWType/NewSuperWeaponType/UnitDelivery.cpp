@@ -3,6 +3,8 @@
 #include <Misc/AresData.h>
 #include <Misc/Ares/Hooks/Header.h>
 
+#include <Ares_TechnoExt.h>
+
 std::vector<const char*> SW_UnitDelivery::GetTypeString() const
 {
 	return { "UnitDelivery" };
@@ -196,7 +198,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 						Item->QueueMission(Mission::Hunt, true);
 				}
 
-				if (!TechnoExt_ExtData::IsPowered(Item) || (!Is_Operated(Item) && !TechnoExt_ExtData::IsOperated(Item)))
+				if (!TechnoExt_ExtData::IsPowered(Item) || (!Item->align_154->Is_Operated && !TechnoExt_ExtData::IsOperated(Item)))
 				{
 					Item->Deactivate();
 					if (ItemBuilding)

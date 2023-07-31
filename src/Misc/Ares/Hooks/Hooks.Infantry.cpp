@@ -19,6 +19,7 @@
 
 #include <WWKeyboardClass.h>
 #include <Misc/AresData.h>
+#include <Ares_TechnoExt.h>
 
 DEFINE_OVERRIDE_HOOK(0x523932, InfantryTypeClass_CTOR_Initialize, 8)
 {
@@ -321,7 +322,7 @@ DEFINE_OVERRIDE_HOOK(0x5215f9, InfantryClass_UpdateDeployment_Deso1, 6)
 DEFINE_OVERRIDE_HOOK(0x629804, ParasiteClass_UpdateSquiddy, 9)
 {
 	GET(ParasiteClass*, pThis, ESI);
-	R->EAX(pThis->Owner->GetWeapon(Ares_ParasiteWeapon(pThis->Owner)));
+	R->EAX(pThis->Owner->GetWeapon(pThis->Owner->align_154->idxSlot_Parasite));
 	return 0x62980D;
 }
 

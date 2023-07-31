@@ -26,6 +26,7 @@
 #include <New/Entity/VerticalLaserClass.h>
 #include <Misc/AresData.h>
 #include <Misc/Ares/Hooks/AresNetEvent.h>
+#include <Ares_TechnoExt.h>
 
 void WarheadTypeExt::ExtData::ApplyLocomotorInfliction(TechnoClass* pTarget)
 {
@@ -210,6 +211,9 @@ bool WarheadTypeExt::ExtData::applyPermaMC(HouseClass* const Owner, AbstractClas
 
 	if (//!this->CanDealDamage(pTargetTechno) ||
 		TechnoExt::IsPsionicsImmune(pTargetTechno))
+		return false;
+
+	if (pTargetTechno->align_154->Is_DriverKilled)
 		return false;
 
 	const auto pType = pTargetTechno->GetTechnoType();

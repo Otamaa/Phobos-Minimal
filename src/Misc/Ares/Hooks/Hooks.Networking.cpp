@@ -16,6 +16,7 @@
 #include "Header.h"
 #include "AresNetEvent.h"
 
+#include <Ares_TechnoExt.h>
 // was desynct all time
 // not sure WTF is happening
 
@@ -31,9 +32,9 @@ namespace Fix
 		switch (nInput)
 		{
 		case AresNetEvent::Events::TrenchRedirectClick:
+		case AresNetEvent::Events::SetDriverKilledStatusToTrue:
 			return 10;
 		case AresNetEvent::Events::FirewallToggle:
-			return 5;
 		case AresNetEvent::Events::Revealmap:
 			return 5;
 		default:
@@ -57,6 +58,38 @@ void AresNetEvent::Handlers::RespondRevealMap(NetworkEvent* Event)
 	if (HouseClass* pSourceHouse = HouseClass::Array->GetItem(Event->HouseIndex))
 	{
 		pSourceHouse->Visionary = true; //sync the state with other clients
+	}
+}
+
+//TODO : proper owner for the event ?
+void NOINLINE AresNetEvent::Handlers::RaiseSetDriverKilledStatusToTrue(TechnoClass* Current)
+{
+	NetworkEvent Event;
+	Debug::Log("Sending RaiseSetDriverKilledStatusToTrue to all clients\n");
+	if (Current->Owner->ArrayIndex >= 0)
+	{
+		Event.Kind = NetworkEventType(AresNetEvent::Events::SetDriverKilledStatusToTrue);
+		Event.HouseIndex = byte(Current->Owner->ArrayIndex);
+	}
+
+	byte* ExtraData = Event.ExtraData;
+	NetID SourceObject {};
+	SourceObject.Pack(Current);
+	memcpy(ExtraData, &SourceObject, sizeof(SourceObject));
+	ExtraData += sizeof(SourceObject);
+
+	Networking::AddEvent(&Event);
+
+}
+
+void NOINLINE AresNetEvent::Handlers::ResponseToSetDriverKilledStatusToTrue(NetworkEvent* Event)
+{
+	NetID* ID = reinterpret_cast<NetID*>(Event->ExtraData);
+	Debug::Log("Receiving ResponseToSetDriverKilledStatusToTrue from a clients\n");
+
+	if (auto pTechno = ID->UnpackTechno())
+	{
+		pTechno->align_154->Is_DriverKilled = true;
 	}
 }
 
@@ -259,18 +292,23 @@ DEFINE_OVERRIDE_HOOK(0x4C6CCD, Networking_RespondToEvent, 0xA)
 			case AresNetEvent::Events::TrenchRedirectClick:
 			{
 				AresNetEvent::Handlers::RespondToTrenchRedirectClick(Event);
+				break;
 			}
-			break;
 			case AresNetEvent::Events::FirewallToggle:
 			{
 				AresNetEvent::Handlers::RespondToFirewallToggle(Event);
+				break;
 			}
-			break;
 			case  AresNetEvent::Events::Revealmap:
 			{
 				AresNetEvent::Handlers::RespondRevealMap(Event);
+				break;
 			}
-			break;
+			case AresNetEvent::Events::SetDriverKilledStatusToTrue:
+			{
+				AresNetEvent::Handlers::ResponseToSetDriverKilledStatusToTrue(Event);
+				break;
+			}
 		}
 	}
 

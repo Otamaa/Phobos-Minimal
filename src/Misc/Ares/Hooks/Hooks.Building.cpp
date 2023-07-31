@@ -24,6 +24,8 @@
 #include <numeric>
 #include "Header.h"
 
+#include <Ares_TechnoExt.h>
+
 // #1156943: they check for type, and for the instance, yet
 // the Log call uses the values as if nothing happened.
 DEFINE_OVERRIDE_HOOK(0x4430E8, BuildingClass_Destroyed_SurvivourLog, 0x6)
@@ -2065,7 +2067,7 @@ DEFINE_OVERRIDE_HOOK(0x52297F, InfantryClass_GarrisonBuilding_OccupierEntered, 5
 	GET(InfantryClass*, pInf, ESI);
 	GET(BuildingClass*, pBld, EBP);
 
-	AresGarrisonedIn(pInf) = pBld;
+	pInf->align_154->GarrisonedIn = pBld;
 	//pInf->Target = nullptr; //reset targeting
 
 	auto buildingExtData = BuildingExt::ExtMap.Find(pBld);

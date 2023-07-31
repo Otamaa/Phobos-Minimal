@@ -12,6 +12,7 @@ public:
 		TrenchRedirectClick = 0x60,
 		FirewallToggle = 0x61,
 		Revealmap = 0x62,
+		SetDriverKilledStatusToTrue = 0x63,
 
 		First = TrenchRedirectClick,
 		Last = Revealmap
@@ -28,5 +29,8 @@ public:
 
 		static void RaiseRevealMap(HouseClass* pSource);
 		static void RespondRevealMap(NetworkEvent* Event);
+
+		static void RaiseSetDriverKilledStatusToTrue(TechnoClass* Current);
+		static void ResponseToSetDriverKilledStatusToTrue(NetworkEvent* Event);
 	};
 };

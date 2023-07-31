@@ -24,6 +24,8 @@
 #include <Conversions.h>
 #include <New/Type/ArmorTypeClass.h>
 
+#include <Ares_TechnoExt.h>
+
 void ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 {
 	if (Unsorted::CurrentFrame % 15)
@@ -378,7 +380,7 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 
 			if (pWHExt->Sonar_Duration > 0)
 			{
-				auto& nSonarTime = GetCloakSkipTimer(pThis);
+				auto& nSonarTime = pThis->align_154->CloakSkipTimer;
 				if (pWHExt->Sonar_Duration > nSonarTime.GetTimeLeft())
 				{
 					nSonarTime.Start(pWHExt->Sonar_Duration);
@@ -393,7 +395,7 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 
 			if (pWHExt->DisableWeapons_Duration > 0)
 			{
-				auto& nTimer = GetDisableWeaponTimer(pThis);
+				auto& nTimer = pThis->align_154->DisableWeaponTimer;
 				if (pWHExt->DisableWeapons_Duration > nTimer.GetTimeLeft())
 				{
 					nTimer.Start(pWHExt->DisableWeapons_Duration);
@@ -503,8 +505,8 @@ NOINLINE InfantryClass* RecoverHijacker(FootClass* const pThis)
 	if (auto const pType = InfantryTypeClass::Array->GetItemOrDefault(
 		pThis->HijackerInfantryType))
 	{
-		const auto pOwner = HijackerOwner(pThis) ?
-			HijackerOwner(pThis) : pThis->Owner;
+		const auto pOwner = pThis->align_154->HijackerOwner ?
+			pThis->align_154->HijackerOwner : pThis->Owner;
 
 		pThis->HijackerInfantryType = -1;
 
@@ -514,8 +516,8 @@ NOINLINE InfantryClass* RecoverHijacker(FootClass* const pThis)
 			if (auto const pHijacker = static_cast<InfantryClass*>(pType->CreateObject(pOwner)))
 			{
 				TechnoExt::RestoreStoreHijackerLastDisguiseData(pHijacker, pThis);
-				pHijacker->Health = MaxImpl(HijackerHealth(pThis), 10) / 2;
-				pHijacker->Veterancy.Veterancy = HijackerVeterancy(pThis);
+				pHijacker->Health = MaxImpl(pThis->align_154->HijackerHealth, 10) / 2;
+				pHijacker->Veterancy.Veterancy = pThis->align_154->HijackerVeterancy;
 				return pHijacker;
 			}
 		}
@@ -531,17 +533,14 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
 	// do not ever do this again for this unit
-	if (!Is_SurvivorsDone(pThis))
-	{
-		Is_SurvivorsDone(pThis) = true;
-	}
-	else
-	{
+	if (!pThis->align_154->Is_SurvivorsDone) {
+		pThis->align_154->Is_SurvivorsDone = true;
+	} else {
 		return;
 	}
 
 	// always eject passengers, but passengers only if not supressed.
-	if (!Is_DriverKilled(pThis) && !IgnoreDefenses)
+	if (!pThis->align_154->Is_DriverKilled && !IgnoreDefenses)
 	{
 		// save this, because the hijacker can kill people
 		auto pilotCount = pThis->GetCrewCount();

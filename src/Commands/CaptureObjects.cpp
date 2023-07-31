@@ -3,8 +3,12 @@
 #include <SessionClass.h>
 #include <HouseClass.h>
 
+#include <Misc/AresData.h>
+
+#include <Ares_TechnoExt.h>
 #include <Ext/House/Body.h>
 #include <Utilities/GeneralUtils.h>
+#include <Misc/Ares/Hooks/AresNetEvent.h>
 
 bool CaptureObjectsCommandClass::Given = false;
 
@@ -28,8 +32,6 @@ const wchar_t* CaptureObjectsCommandClass::GetUIDescription() const
 	return GeneralUtils::LoadStringUnlessMissing("TXT_CAPTUREOBJECTS_DESC", L"Take ownership of any selected objects.");
 }
 
-#include <Misc/AresData.h>
-
 void CaptureObjectsCommandClass::Execute(WWKey eInput) const
 {
 	if (this->CheckDebugDeactivated())
@@ -41,20 +43,28 @@ void CaptureObjectsCommandClass::Execute(WWKey eInput) const
 	if (!ObjectClass::CurrentObjects->Count)
 		return;
 
-	std::for_each(ObjectClass::CurrentObjects->begin(), ObjectClass::CurrentObjects->end(), [](ObjectClass* const object) {
-		if (!object || !(object->AbstractFlags & AbstractFlags::Techno))
-			return;
 
-		auto const pToOwner = HouseClass::CurrentPlayer();
-		if (object->GetOwningHouse() == pToOwner)
-			return;
+	ObjectClass::CurrentObjects->for_each([](ObjectClass* const object) {
+		if (TechnoClass* techno = generic_cast<TechnoClass*>(object)) {
 
-		if (TechnoClass* techno = static_cast<TechnoClass*>(object)) {
+			auto const pToOwner = HouseClass::CurrentPlayer();
 
-			if (Is_DriverKilled(techno))
-				Is_DriverKilled(techno) = false;
+			if (techno->GetOwningHouse() == pToOwner)
+			{
+				return;
+				//if ((techno->AbstractFlags & AbstractFlags::Foot) && !Is_DriverKilled(techno)){
+				//	techno->SetOwningHouse(HouseExt::FindSpecial(), false);
+				//	techno->QueueMission(Mission::Harmless, true);
+				//}
+			}
+			else
+			{
 
-			techno->SetOwningHouse(pToOwner, false);
+				if (techno->align_154->Is_DriverKilled)
+					techno->align_154->Is_DriverKilled = false;
+
+				techno->SetOwningHouse(pToOwner, false);
+			}
 		}
 	});
 

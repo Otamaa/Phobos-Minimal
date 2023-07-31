@@ -34,6 +34,7 @@
 
 #include <Notifications.h>
 #include <strsafe.h>
+#include <Ares_TechnoExt.h>
 
 bool NOINLINE TechnoExt_ExtData::IsOperated(TechnoClass* pThis)
 {
@@ -44,7 +45,7 @@ bool NOINLINE TechnoExt_ExtData::IsOperated(TechnoClass* pThis)
 		if (pExt->Operator_Any)
 			return pThis->Passengers.GetFirstPassenger() != nullptr;
 
-		Is_Operated(pThis) = true;
+		pThis->align_154->Is_Operated = true;
 		return true;
 	}
 	else

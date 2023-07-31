@@ -26,6 +26,7 @@
 
 #include <Notifications.h>
 #include <Misc/AresData.h>
+#include <Ares_TechnoExt.h>
 
 DEFINE_OVERRIDE_HOOK(0x41E893, AITriggerTypeClass_ConditionMet_SideIndex, 0xA)
 {
@@ -783,7 +784,7 @@ namespace TActionExt_dummy
 			{
 				if (pUnit->AttachedTag && pUnit->AttachedTag->ContainsTrigger(pTrigger))
 				{
-					if (!Is_DriverKilled(pUnit) && AresData::IsDriverKillable(pUnit, 1.0))
+					if (!pUnit->align_154->Is_DriverKilled && AresData::IsDriverKillable(pUnit, 1.0))
 					{
 						AresData::KillDriverCore(pUnit, pDecidedHouse, nullptr, false);
 					}

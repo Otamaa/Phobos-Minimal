@@ -33,6 +33,7 @@
 
 #include <Notifications.h>
 #include <strsafe.h>
+#include <Ares_TechnoExt.h>
 
 DEFINE_OVERRIDE_HOOK(0x65DBB3, TeamTypeClass_CreateInstance_Plane, 5)
 {
@@ -54,7 +55,7 @@ bool ScriptExt_Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bTh
 			auto pNext = pFirst->NextTeamMember;
 			do
 			{
-				TakeVehicleMode(pFirst) = false;
+				pFirst->align_154->TakeVehicleMode = false;
 
 				if (pFirst->GarrisonStructure())
 					pTeam->RemoveMember(pFirst, -1, 1);
@@ -97,7 +98,7 @@ bool ScriptExt_Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bTh
 				{
 					if (pFirst->Health > 0 && pFirst->IsAlive && pFirst->IsOnMap && !pFirst->InLimbo)
 					{
-						if (!Is_DriverKilled(pFirst) && AresData::IsDriverKillable(pFirst, 1.0))
+						if (!pFirst->align_154->Is_DriverKilled && AresData::IsDriverKillable(pFirst, 1.0))
 						{
 							AresData::KillDriverCore(pFirst, pToHouse, nullptr, false);
 						}
@@ -125,7 +126,7 @@ bool ScriptExt_Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bTh
 				auto pNext = pFirst->NextTeamMember;
 				do
 				{
-					TakeVehicleMode(pFirst) = true;
+					pFirst->align_154->TakeVehicleMode = true;
 
 					if (pFirst->GarrisonStructure())
 						pTeam->RemoveMember(pFirst, -1, 1);
@@ -177,7 +178,7 @@ bool ScriptExt_Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bTh
 			const auto nDur = pTeamMission->Argument;
 			for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 			{
-				auto& nSonarTime = GetSonarTimer(pUnit);
+				auto& nSonarTime = pUnit->align_154->CloakSkipTimer;
 				if (nDur > nSonarTime.GetTimeLeft())
 				{
 					nSonarTime.Start(nDur);
@@ -199,7 +200,7 @@ bool ScriptExt_Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bTh
 			const auto nDur = pTeamMission->Argument;
 			for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 			{
-				auto& nTimer = GetDisableWeaponTimer(pUnit);
+				auto& nTimer = pUnit->align_154->DisableWeaponTimer;
 				if (nDur > nTimer.GetTimeLeft())
 				{
 					nTimer.Start(nDur);

@@ -1,5 +1,7 @@
 #include "Body.h"
 
+#include <Ares_TechnoExt.h>
+
 #include <Misc/AresData.h>
 #include <Ext/Building/Body.h>
 
@@ -62,7 +64,7 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 										{
 											HasPower = pBld->HasPower
 												&& !pBld->IsUnderEMP()
-												&& (Is_Operated(pBld) || TechnoExt_ExtData::IsOperated(pBld));
+												&& (pBld->align_154->Is_Operated || TechnoExt_ExtData::IsOperated(pBld));
 
 											PowerChecked = true;
 										}

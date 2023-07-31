@@ -41,6 +41,7 @@
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
 
 #include <memory>
+#include <Ares_TechnoExt.h>
 
 Point2D TechnoExt::GetScreenLocation(TechnoClass* pThis)
 {
@@ -317,7 +318,7 @@ void TechnoExt::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType
 	}
 	case DisplayInfoType::DisableWeapon:
 	{
-		auto& nTimer = GetDisableWeaponTimer(pThis);
+		auto& nTimer = pThis->align_154->DisableWeaponTimer;
 		if (nTimer.TimeLeft == 0 && nTimer.StartTime == -1)
 			return;
 
@@ -327,7 +328,7 @@ void TechnoExt::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType
 	}
 	case DisplayInfoType::CloakDisable :
 	{
-		auto& nTimer = GetSonarTimer(pThis);
+		auto& nTimer = pThis->align_154->CloakSkipTimer;
 		if (nTimer.TimeLeft == 0 && nTimer.StartTime == -1)
 			return;
 
@@ -629,7 +630,7 @@ void TechnoExt::ExtData::CreateInitialPayload()
 					pBld->Occupants.AddItem(pPayload);
 					auto const pCell = pThis->GetCell();
 					//TODO:
-					AresGarrisonedIn(pPayload) = pBld;
+					pPayload->align_154->GarrisonedIn = pBld;
 					pThis->UpdateThreatInCell(pCell);
 				}
 				else
@@ -1236,7 +1237,7 @@ bool TechnoExt::IsAbductable(TechnoClass* pThis, WeaponTypeClass* pWeapon, FootC
 	pFoot->IsIronCurtained() ||
 	pFoot->IsSinking ||
 	!pFoot->IsAlive ||
-	Is_DriverKilled(pFoot))
+	pFoot->align_154->Is_DriverKilled)
 	{
 		return false;
 	}
