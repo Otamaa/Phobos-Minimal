@@ -219,13 +219,13 @@ void RulesExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
 	//Allocate Default bullet
-	int len = pINI->GetKeyCount("Projectiles");
-	for (int i = 0; i < len; ++i) {
-		const char* key = pINI->GetKeyName("Projectiles", i);
-		if (pINI->ReadString("Projectiles", key, "", Phobos::readBuffer)) {
-			BulletTypeClass::FindOrAllocate(Phobos::readBuffer);
-		}
-	}
+	//int len = pINI->GetKeyCount("Projectiles");
+	//for (int i = 0; i < len; ++i) {
+	//	const char* key = pINI->GetKeyName("Projectiles", i);
+	//	if (pINI->ReadString("Projectiles", key, "", Phobos::readBuffer)) {
+	//		BulletTypeClass::FindOrAllocate(Phobos::readBuffer);
+	//	}
+	//}
 
 	BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
 	GenericPrerequisite::LoadFromINIList_New(pINI);
@@ -241,6 +241,9 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->ForbidParallelAIQueues_Aircraft.Read(exINI, GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Aircraft");
 	this->ForbidParallelAIQueues_Building.Read(exINI, GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Building");
 
+	this->EngineerDamage.Read(exINI, GENERAL_SECTION, "EngineerDamage");
+	this->EngineerAlwaysCaptureTech.Read(exINI, GENERAL_SECTION, "EngineerAlwaysCaptureTech");
+	this->EngineerDamageCursor.Read(exINI, GENERAL_SECTION, "EngineerDamageCursor");
 
 	this->DefaultParaPlane.Read(exINI, GENERAL_SECTION, "ParadropPlane", true);
 	this->VeinholeParticle.Read(exINI, AUDIOVISUAL_SECTION, "VeinholeSpawnParticleType", true);
@@ -406,6 +409,8 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	this->EnemyWrench.Read(exINI, GENERAL_SECTION, "EnemyWrench");
 	this->Bounty_Value_Option.Read(exINI, GENERAL_SECTION, "BountyRewardOption");
+	this->EMPAIRecoverMission.Read(exINI, COMBATDAMAGE_SECTION, "EMPAIRecoverMission");
+	this->TimerBlinkColorScheme.Read(exINI, GameStrings::AudioVisual, "TimerBlinkColorScheme");
 }
 
 void RulesExt::LoadEarlyOptios(RulesClass* pThis, CCINIClass* pINI)
@@ -618,6 +623,10 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->ForbidParallelAIQueues_Aircraft)
 		.Process(this->ForbidParallelAIQueues_Building)
 
+		.Process(this->EngineerDamage)
+		.Process(this->EngineerAlwaysCaptureTech)
+		.Process(this->EngineerDamageCursor)
+
 		.Process(this->DefaultParaPlane)
 
 		.Process(this->DropPodTypes)
@@ -639,6 +648,8 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->Aircraft_DefaultDigitalDisplayTypes)
 
 		.Process(this->AnimRemapDefaultColorScheme)
+		.Process(this->EMPAIRecoverMission)
+		.Process(this->TimerBlinkColorScheme)
 		;
 
 	MyPutData.Serialize(Stm);
@@ -857,7 +868,15 @@ DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 
 DEFINE_SKIP_HOOK(0x668F2B, RulesClass_Process_RemoveThese, 0x8, 668F63);
 //DEFINE_JUMP(LJMP, 0x668F2B ,0x668F63); // move all these reading before type reading
-DEFINE_SKIP_HOOK(0x66919B, RulesClass_Process_SpecialWeapon_RemoveWHReadingDuplicate, 0x9, 6691B7);
+
+void NAKED RulesClass_Process_SpecialWeapon_RemoveWHReadingDuplicate_RET() {
+	POP_REG(ebx);
+	JMP(0x6691B7);
+}
+
+DEFINE_HOOK(0x669193, RulesClass_Process_SpecialWeapon_RemoveWHReadingDuplicate, 0x9) {
+	return (int)RulesClass_Process_SpecialWeapon_RemoveWHReadingDuplicate_RET;
+}
 //DEFINE_JUMP(LJMP, 0x66919B, 0x6691B7); // remove reading warhead from `SpecialWeapon`
 //DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 //{

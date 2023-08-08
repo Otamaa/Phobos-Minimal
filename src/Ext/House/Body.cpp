@@ -96,8 +96,8 @@ int HouseExt::GetSurvivorDivisor(HouseClass* pHouse)
 {
 	const auto pTypeExt = HouseTypeExt::ExtMap.TryFind(pHouse->Type);
 
-	if (pTypeExt && pTypeExt->SurvivorDivisor.isset())
-		return pTypeExt->SurvivorDivisor.Get();
+	if (pTypeExt && (pTypeExt->SurvivorDivisor.Get(-1) > 0))
+		return pTypeExt->SurvivorDivisor;
 
 	if (const auto pSide = HouseExt::GetSide(pHouse)) {
 		return SideExt::ExtMap.Find(pSide)->GetSurvivorDivisor();
@@ -110,8 +110,8 @@ InfantryTypeClass* HouseExt::GetCrew(HouseClass* pHouse)
 {
 	const auto pTypeExt = HouseTypeExt::ExtMap.TryFind(pHouse->Type);
 
-	if (pTypeExt && pTypeExt->Crew.isset())
-		return pTypeExt->Crew.Get();
+	if (pTypeExt && pTypeExt->Crew.Get(nullptr))
+		return pTypeExt->Crew;
 
 	if (const auto pSide = HouseExt::GetSide(pHouse)) {
 		return SideExt::ExtMap.Find(pSide)->GetCrew();
@@ -124,8 +124,8 @@ InfantryTypeClass* HouseExt::GetEngineer(HouseClass* pHouse)
 {
 	const auto pTypeExt = HouseTypeExt::ExtMap.TryFind(pHouse->Type);
 
-	if (pTypeExt && pTypeExt->Engineer.isset())
-		return pTypeExt->Engineer.Get();
+	if (pTypeExt && pTypeExt->Engineer.Get(nullptr))
+		return pTypeExt->Engineer;
 
 	if (const auto pSide = HouseExt::GetSide(pHouse)) {
 		return SideExt::ExtMap.Find(pSide)->GetEngineer();
@@ -138,8 +138,8 @@ InfantryTypeClass* HouseExt::GetTechnician(HouseClass* pHouse)
 {
 	const auto pTypeExt = HouseTypeExt::ExtMap.TryFind(pHouse->Type);
 
-	if (pTypeExt && pTypeExt->Technician.isset())
-		return pTypeExt->Technician.Get();
+	if (pTypeExt && pTypeExt->Technician.Get(nullptr))
+		return pTypeExt->Technician;
 
 	if (const auto pSide = HouseExt::GetSide(pHouse)) {
 		return SideExt::ExtMap.Find(pSide)->GetTechnician();
@@ -154,7 +154,7 @@ AircraftTypeClass* HouseExt::GetParadropPlane(HouseClass* pHouse)
 	// the sides default plane.
 	const auto pTypeExt = HouseTypeExt::ExtMap.TryFind(pHouse->Type);
 
-	if (pTypeExt && pTypeExt->ParaDropPlane) {
+	if (pTypeExt && pTypeExt->ParaDropPlane.Get(nullptr)) {
 		return pTypeExt->ParaDropPlane;
 	}
 
@@ -188,7 +188,7 @@ AircraftTypeClass* HouseExt::GetSpyPlane(HouseClass* pHouse)
 UnitTypeClass* HouseExt::GetHunterSeeker(HouseClass* pHouse)
 {
 	const auto pTypeExt = HouseTypeExt::ExtMap.TryFind(pHouse->Type);
-	if (pTypeExt && pTypeExt->HunterSeeker.isset()) {
+	if (pTypeExt && pTypeExt->HunterSeeker.Get(nullptr)) {
 		return pTypeExt->HunterSeeker;
 	}
 
@@ -197,6 +197,24 @@ UnitTypeClass* HouseExt::GetHunterSeeker(HouseClass* pHouse)
 	}
 
 	return nullptr;
+}
+
+AnimTypeClass* HouseExt::GetParachuteAnim(HouseClass* pHouse) {
+	const auto pTypeExt = HouseTypeExt::ExtMap.TryFind(pHouse->Type);
+	if (pTypeExt && pTypeExt->ParachuteAnim.Get(nullptr)) {
+		return pTypeExt->ParachuteAnim;
+	}
+
+	if (const auto pSide = HouseExt::GetSide(pHouse)) {
+		if (auto pAnim = SideExt::ExtMap.Find(pSide)->ParachuteAnim.Get(RulesClass::Instance->Parachute))
+			return pAnim;
+
+		Debug::Log(
+			"[GetParachuteAnim] House %s and its side have no valid parachute defined. Rules fallback failed.\n",
+			pHouse->get_ID());
+	}
+
+	return AnimTypeClass::Find("PARACH");
 }
 
 bool HouseExt::GetParadropContent(HouseClass* pHouse, Iterator<TechnoTypeClass*>& Types, Iterator<int>& Num)
@@ -223,7 +241,7 @@ bool HouseExt::GetParadropContent(HouseClass* pHouse, Iterator<TechnoTypeClass*>
 	return (Types && Num);
 }
 
-bool HouseExt::ExtData::InvalidateIgnorable(void* ptr) const
+bool HouseExt::ExtData::InvalidateIgnorable(void* ptr)
 {
 	switch (VTable::Get(ptr))
 	{
@@ -596,7 +614,7 @@ bool HouseExt::ExtData::UpdateHarvesterProduction()
 }
 
 size_t HouseExt::FindOwnedIndex(
-	HouseClass const* const, int const idxParentCountry,
+	HouseClass* , int const idxParentCountry,
 	Iterator<TechnoTypeClass const*> const items, size_t const start)
 {
 	auto const bitOwner = 1u << idxParentCountry;
@@ -615,7 +633,7 @@ size_t HouseExt::FindOwnedIndex(
 }
 
 bool HouseExt::IsDisabledFromShell(
-	HouseClass const* const pHouse, BuildingTypeClass const* const pItem)
+	HouseClass* pHouse, BuildingTypeClass const* const pItem)
 {
 	// SWAllowed does not apply to campaigns any more
 	if (SessionClass::Instance->GameMode == GameMode::Campaign
@@ -643,7 +661,7 @@ bool HouseExt::IsDisabledFromShell(
 }
 
 size_t HouseExt::FindBuildableIndex(
-	HouseClass const* const pHouse, int const idxParentCountry,
+	HouseClass* pHouse, int const idxParentCountry,
 	Iterator<TechnoTypeClass const*> const items, size_t const start)
 {
 	for (auto i = start; i < items.size(); ++i)
@@ -816,16 +834,16 @@ DEFINE_HOOK(0x50114D, HouseClass_InitFromINI, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x4FB9B7, HouseClass_Detach, 0xA)
-{
-	GET(HouseClass*, pThis, ECX);
-	GET_STACK(void*, target, STACK_OFFSET(0xC, 0x4));
-	GET_STACK(bool, all, STACK_OFFSET(0xC, 0x8));
-
-	HouseExt::ExtMap.InvalidatePointerFor(pThis, target, all);
-
-	R->ESI(pThis);
-	R->EBX(0);
-	return pThis->ToCapture == target ?
-		0x4FB9C3 : 0x4FB9C9;
-}
+//DEFINE_HOOK(0x4FB9B7, HouseClass_Detach, 0xA)
+//{
+//	GET(HouseClass*, pThis, ECX);
+//	GET_STACK(void*, target, STACK_OFFSET(0xC, 0x4));
+//	GET_STACK(bool, all, STACK_OFFSET(0xC, 0x8));
+//
+//	HouseExt::ExtMap.InvalidatePointerFor(pThis, target, all);
+//
+//	R->ESI(pThis);
+//	R->EBX(0);
+//	return pThis->ToCapture == target ?
+//		0x4FB9C3 : 0x4FB9C9;
+//}

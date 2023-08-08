@@ -21,7 +21,7 @@ public:
 		Nullable<InfantryTypeClass*> Crew { };
 		Nullable<InfantryTypeClass*> Engineer { };
 		Nullable<InfantryTypeClass*> Technician { };
-		Valueable<AircraftTypeClass*> ParaDropPlane { nullptr };
+		Nullable<AircraftTypeClass*> ParaDropPlane { };
 		Nullable<AircraftTypeClass*> SpyPlane { };
 		Nullable<UnitTypeClass*> HunterSeeker { };
 
@@ -36,6 +36,9 @@ public:
 
 		Valueable<bool> GivesBounty { true };
 		Nullable<bool> CanBeDriven {};
+
+		Nullable<AnimTypeClass*> ParachuteAnim {};
+		Valueable<bool> StartInMultiplayer_WithConst { false };
 
 		ExtData(HouseTypeClass* OwnerObject) : Extension<HouseTypeClass>(OwnerObject)
 		{ }

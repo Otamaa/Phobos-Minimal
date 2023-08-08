@@ -3,12 +3,40 @@
 #include <Base/Always.h>
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 struct module_export
 {
 	void* address;
 	const char* name;
 	WORD ordinal;
+};
+
+struct module_Import
+{
+	void* address;
+	const char* name;
+};
+
+struct dllData
+{
+	std::string ModuleName;
+	HMODULE Handle;
+	uintptr_t BaseAddr;
+	std::vector<module_Import> Impors;
+	std::vector< module_export> Exports;
+
+	dllData() = default;
+
+	dllData(const char* name, HMODULE handle, uintptr_t baseaddr) : ModuleName { name }
+		, Handle { handle }
+		, BaseAddr { baseaddr }
+		, Impors {}
+		, Exports {}
+	{
+	}
+
+	~dllData() = default;
 };
 
 // no more than 8 characters
@@ -29,7 +57,7 @@ struct __declspec(novtable)
 	static void ApplyStatic();
 	void Apply();
 
-	static std::vector<std::pair<std::string, uintptr_t>> LoadedModules;
+	static std::unordered_map<std::string, dllData> ModuleDatas;
 
 	template<typename TFrom, typename To>
 	static inline void Apply(uintptr_t addrFrom, To toImpl, DWORD& protect_flag, DWORD ReadFlag = PAGE_READWRITE, size_t size = 4u)
@@ -97,6 +125,10 @@ struct __declspec(novtable)
 	static uintptr_t GetModuleBaseAddress(const char* modName);
 	static DWORD GetDebuggerProcessId(DWORD dwSelfProcessId);
 	static void PrintAllModuleAndBaseAddr();
+
+	static void InitRelatedModule();
+	static uintptr_t GetEATAddress(const char* moduleName, const char* funcName);
+	static uintptr_t GetIATAddress(const char* moduleName, const char* funcName);
 };
 
 struct __declspec(novtable)

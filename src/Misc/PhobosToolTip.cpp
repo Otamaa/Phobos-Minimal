@@ -54,7 +54,7 @@ inline int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType) const
 {
 	// TechnoTypeClass only has 4 final classes :
 	// BuildingTypeClass, AircraftTypeClass, InfantryTypeClass and UnitTypeClass
-	// It has to be these four classes, otherwise pType will just be 
+	// It has to be these four classes, otherwise pType will just be
 
 	switch (GetVtableAddr(pType))
 	{
@@ -146,18 +146,21 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 
 int PhobosToolTip::TickTimeToSeconds(int tickTime)
 {
-	if(!Phobos::Config::RealTimeTimers)
-		return tickTime / 15;
+	//if(!Phobos::Config::RealTimeTimers) {
+	//
+	//	if (Phobos::Config::RealTimeTimers_Adaptive ||
+	//	GameOptionsClass::Instance->GameSpeed == 0
+	//	|| (Phobos::Misc::CustomGS && !SessionClass::IsMultiplayer())
+	//	)
+	//	{
+	//	const auto nCur = (int)FPSCounter::CurrentFrameRate;
+	//		return tickTime / MaxImpl(nCur, 1);
+	//	}
+	//
+	//	return tickTime / (60 / GameOptionsClass::Instance->GameSpeed);
+	//}
 
-	if (Phobos::Config::RealTimeTimers_Adaptive
-		|| GameOptionsClass::Instance->GameSpeed == 0
-		|| (Phobos::Misc::CustomGS && !SessionClass::IsMultiplayer()))
-	{
-		const auto nCur = (int)FPSCounter::CurrentFrameRate;
-		return tickTime / MaxImpl(nCur, 1);
-	}
-
-	return tickTime / (60 / GameOptionsClass::Instance->GameSpeed);
+	return tickTime / 15;
 }
 
 void PhobosToolTip::HelpText(SuperWeaponTypeClass* pType)

@@ -551,7 +551,7 @@ HouseClass* BulletExt::GetHouse(BulletClass* const pThis)
 	return BulletExt::ExtMap.Find(pThis)->Owner;
 }
 
-bool BulletExt::ExtData::InvalidateIgnorable(void* ptr) const
+bool BulletExt::ExtData::InvalidateIgnorable(void* ptr)
 {
 	switch (VTable::Get(ptr))
 	{
@@ -786,9 +786,9 @@ void BulletExt::DetonateAt(BulletClass* pThis, AbstractClass* pTarget, TechnoCla
 		BulletExt::ExtMap.Find(pThis)->Owner = pBulletOwner;
 	}
 
-	//pThis->Limbo();
+	pThis->Limbo();
 	pThis->SetLocation(nCoord);
-	pThis->Explode(false);
+	pThis->Explode(true);
 	//GameDelete<true,false>(pThis);
 	pThis->UnInit();
 }
@@ -874,16 +874,16 @@ DEFINE_HOOK(0x46AFC4, BulletClass_Save_Suffix, 0x3)
 	return 0;
 }
 
-DEFINE_HOOK(0x4685BE, BulletClass_Detach, 0x6)
-{
-	GET(BulletClass*, pThis, ESI);
-	GET(void*, target, EDI);
-	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
-
-	BulletExt::ExtMap.InvalidatePointerFor(pThis, target, all);
-
-	return pThis->NextAnim == target ? 0x4685C6 :0x4685CC;
-}
+//DEFINE_HOOK(0x4685BE, BulletClass_Detach, 0x6)
+//{
+//	GET(BulletClass*, pThis, ESI);
+//	GET(void*, target, EDI);
+//	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+//
+//	BulletExt::ExtMap.InvalidatePointerFor(pThis, target, all);
+//
+//	return pThis->NextAnim == target ? 0x4685C6 :0x4685CC;
+//}
 
 static void __fastcall BulletClass_AnimPointerExpired(BulletClass* pThis, void* _, AnimClass* pTarget)
 {

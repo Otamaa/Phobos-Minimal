@@ -33,7 +33,8 @@ public:
 
 		void InvalidatePointer(void* ptr, bool bRemoved);
 
-		bool InvalidateIgnorable(void* ptr) const { 
+		static bool InvalidateIgnorable(void* ptr) {
+
 			switch (VTable::Get(ptr))
 			{
 			case BuildingClass::vtable:

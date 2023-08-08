@@ -97,7 +97,7 @@ void IonCannonStateMachine::Update()
 		{
 			if (auto pCreated = GameCreate<AnimClass>(pAnimType, coords))
 			{
-				pCreated->SetHouse(this->Super->Owner);
+				pCreated->SetHouse(this->Owner);
 				this->Anim = pCreated;
 			}
 		}
@@ -108,7 +108,7 @@ void IonCannonStateMachine::Update()
 			VocClass::PlayAt(sound, coords, nullptr);
 		}
 
-		pData->PrintMessage(pData->Message_Activate, this->Super->Owner);
+		pData->PrintMessage(pData->Message_Activate, this->Owner);
 
 		this->Status = IonCannonStatus::Fire;
 		return;
@@ -235,7 +235,7 @@ void IonCannonStateMachine::Fire()
 		animCoords.Z += pData->IonCannon_BlastHeight;
 		if (auto pCreated = GameCreate<AnimClass>(pAnimType, animCoords))
 		{
-			pCreated->SetHouse(PsyDom::Owner);
+			pCreated->SetHouse(this->Owner);
 			this->Anim = pCreated;
 		}
 	}
@@ -245,7 +245,7 @@ void IonCannonStateMachine::Fire()
 	auto pWarhead = pNewData->GetWarhead(pData);
 
 	if (pWarhead && damage != 0) {
-		WarheadTypeExt::DetonateAt(pWarhead, pTarget, coords, this->Firer, damage);
+		WarheadTypeExt::DetonateAt(pWarhead, pTarget, coords, this->Firer, damage, this->Owner);
 	}
 
 	//TODO , destroy bridges

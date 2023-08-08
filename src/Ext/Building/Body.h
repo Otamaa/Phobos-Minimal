@@ -53,7 +53,7 @@ public:
 		virtual ~ExtData() override = default;
 
 		void InvalidatePointer(void* ptr, bool bRemoved);
-		bool InvalidateIgnorable(void* ptr) const;
+		static bool InvalidateIgnorable(void* ptr);
 		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 

@@ -24,10 +24,8 @@ DEFINE_HOOK(0x74A70E, VoxelAnimClass_AI_Additional, 0x6) // C
 	GET(VoxelAnimClass* const, pThis, EBX);
 
 	const auto pThisExt = VoxelAnimExt::ExtMap.TryFind(pThis);
-	if (!pThisExt)
-		return 0x0;
 
-	if (!pThisExt->LaserTrails.empty())
+	if (pThisExt && !pThisExt->LaserTrails.empty())
 	{
 		CoordStruct location = pThis->GetCoords();
 		CoordStruct drawnCoords = location;
@@ -39,7 +37,6 @@ DEFINE_HOOK(0x74A70E, VoxelAnimClass_AI_Additional, 0x6) // C
 
 			trail.Visible = pThis->IsVisible;
 			trail.Update(drawnCoords);
-
 		}
 	}
 

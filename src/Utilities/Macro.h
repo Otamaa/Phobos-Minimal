@@ -171,7 +171,7 @@ struct _VTABLE
 
 #define ALLOCATE_LOCAL_PATCH(name , offset , ...)                 \
 	BYTE name##_data[] = {__VA_ARGS__};                           \
-	PatchWrapper name { offset , sizeof(##name##_data) , name##_data };       
+	PatchWrapper name { offset , sizeof(##name##_data) , name##_data };
 
 #define DEFINE_DYNAMIC_JUMP(jumpType, name, offset, pointer)      \
 	namespace DYNAMIC_PATCH_##name                                \

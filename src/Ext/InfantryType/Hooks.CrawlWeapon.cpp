@@ -34,7 +34,7 @@ static WeaponStruct* GetCrawlWeapon(InfantryClass* pThis, int nIdx)
 // {
 // 	GET(TechnoClass*, pThis, ESI);
 // 	GET(int, nSlot, EDI);
-
+//
 // 	if (auto pInf = specific_cast<InfantryClass*>(pThis)) {
 // 		if (auto pCrawlWeaponStruct = GetCrawlWeapon<true>(pInf, nSlot)) {
 // 			if (pCrawlWeaponStruct->WeaponType) {
@@ -43,7 +43,7 @@ static WeaponStruct* GetCrawlWeapon(InfantryClass* pThis, int nIdx)
 // 			}
 // 		}
 // 	}
-
+//
 // 	R->EAX(pThis->GetTechnoType()->GetEliteWeapon(nSlot));
 // 	return 0x70E175;
 // }
@@ -52,7 +52,7 @@ static WeaponStruct* GetCrawlWeapon(InfantryClass* pThis, int nIdx)
 // {
 // 	GET(TechnoClass*, pThis, ESI);
 // 	GET(int, nSlot, EDI);
-
+//
 // 	if (auto pInf = specific_cast<InfantryClass*>(pThis)) {
 // 		if (auto pCrawlWeaponStruct = GetCrawlWeapon<false>(pInf, nSlot)){
 // 			if (pCrawlWeaponStruct->WeaponType) {

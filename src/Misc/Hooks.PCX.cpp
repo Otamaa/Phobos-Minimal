@@ -26,7 +26,7 @@ DEFINE_HOOK(0x5535D0, LoadProgressMgr_Draw_PCXLoadingScreen, 0x6)
 	{
 		IMPL_SNPRNINTF(nBuffer, sizeof(nBuffer) , "ls%sobs.pcx",
 			Game::ScreenWidth() != 640 ? GameStrings::_800() : GameStrings::_640());
-		
+
 		if(PCX::Instance->LoadFile(nBuffer))
 			pcx = PCX::Instance->GetSurface(nBuffer);
 	}

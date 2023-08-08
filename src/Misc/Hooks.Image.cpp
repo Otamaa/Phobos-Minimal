@@ -76,9 +76,14 @@ DEFINE_HOOK(0x524B53, InfantryTypeClass_Load, 0x5)
 {
 	if (Phobos::Config::ArtImageSwap)
 	{
-		R->EDI(R->EDI() - 0xE20);	// 0x524B42 permanently adds 0x520 to the pointer, we want to revert it
-		GET(TechnoTypeClass*, pType, EDI);
-		ReplaceImageInfantry(static_cast<InfantryTypeClass*>(pType));
+		GET(BYTE*, poisonedVal, EDI);
+		poisonedVal -= 0xE20;
+		//const auto TypeResult = R->EDI() - 0xE20;
+		//const auto prevEdi = R->EDI();
+		//R->EDI(TypeResult);	// 0x524B42 permanently adds 0x520 to the pointer, we want to revert it
+		//GET(TechnoTypeClass*, pType, EDI);
+		ReplaceImageInfantry(reinterpret_cast<InfantryTypeClass*>(poisonedVal));
+		//R->EDI(prevEdi);
 	}
 
 	return 0;
@@ -99,8 +104,8 @@ DEFINE_HOOK(0x74809E, UnitTypeClass_Load, 0x9)
 {
 	if (Phobos::Config::ArtImageSwap)
 	{
-		GET(TechnoTypeClass*, pType, ESI);
-		ReplaceImageUnit(static_cast<UnitTypeClass*>(pType));
+		GET(UnitTypeClass*, pType, ESI);
+		ReplaceImageUnit(pType);
 	}
 
 	return 0;
@@ -121,8 +126,8 @@ DEFINE_HOOK(0x41CE7E, AircraftTypeClass_Load, 0x6)
 {
 	if (Phobos::Config::ArtImageSwap)
 	{
-		GET(TechnoTypeClass*, pType, ESI);
-		ReplaceImageAircraft(static_cast<AircraftTypeClass*>(pType));
+		GET(AircraftTypeClass*, pType, ESI);
+		ReplaceImageAircraft(pType);
 	}
 
 	return 0;

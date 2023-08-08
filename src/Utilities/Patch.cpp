@@ -7,7 +7,7 @@
 #include <tlhelp32.h>
 #include <Psapi.h>
 
-std::vector<std::pair<std::string, uintptr_t>> Patch::LoadedModules;
+std::unordered_map<std::string, dllData> Patch::ModuleDatas;
 
 int GetSection(const char* sectionName, void** pVirtualAddress)
 {
@@ -195,11 +195,108 @@ void Patch::PrintAllModuleAndBaseAddr()
 				MODULEINFO info = { 0 };
 				if (GetModuleInformation(hProcess, hModules[i], &info, sizeof(info)))
 				{
-					Patch::LoadedModules.emplace_back(moduleName , (uintptr_t)info.lpBaseOfDll);
+					_strlwr_s(moduleName);
+					moduleName[0] &= ~0x20; // LOL HACK to uppercase a letter
+
+					Patch::ModuleDatas[moduleName] = { moduleName , hModules[i], (uintptr_t)info.lpBaseOfDll };
 					// Print the module's name and base address using Debug::Log
-					Debug::LogDeferred("Found Module [%s: Base address = %p]\n", moduleName, info.lpBaseOfDll);
+					Debug::LogDeferred("Found Module [(%d) %s: Base address = %p]\n",i, moduleName, info.lpBaseOfDll);
 				}
 			}
 		}
 	}
+}
+
+void  Patch::InitRelatedModule()
+{
+	for (auto& [name, data] : Patch::ModuleDatas)
+	{
+		auto image_base = (DWORD_PTR)data.Handle;
+		PIMAGE_DOS_HEADER dosHeaders = (PIMAGE_DOS_HEADER)image_base;
+		PIMAGE_NT_HEADERS ntHeaders = (PIMAGE_NT_HEADERS)(image_base + dosHeaders->e_lfanew);
+		auto image_base_void = (void*)image_base;
+
+		if (ntHeaders->Signature != IMAGE_NT_SIGNATURE)
+			continue; // The handle does not point to a valid module
+
+		if (ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].Size != 0)
+		{
+			const auto export_dir = (const IMAGE_EXPORT_DIRECTORY*)(image_base +
+				ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
+			const auto export_base = (WORD)export_dir->Base;
+
+			if (export_dir->NumberOfFunctions != 0)
+			{
+				data.Exports.reserve(export_dir->NumberOfNames);
+
+				for (size_t i = 0; i < (size_t)export_dir->NumberOfNames; i++)
+				{
+					module_export& symbol = data.Exports.emplace_back();
+					symbol.ordinal = export_base +
+						reinterpret_cast<const  WORD*>(image_base + export_dir->AddressOfNameOrdinals)[i];
+					symbol.name = reinterpret_cast<const char*>(image_base +
+					reinterpret_cast<const DWORD*>(image_base + export_dir->AddressOfNames)[i]);
+					symbol.address = const_cast<void*>(
+						reinterpret_cast<const void*>(image_base +
+							reinterpret_cast<const DWORD*>(image_base + export_dir->AddressOfFunctions)[symbol.ordinal - export_base]));
+				}
+			}
+		}
+
+		IMAGE_DATA_DIRECTORY importsDirectory = ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+
+		if (importsDirectory.Size != 0)
+		{
+			PIMAGE_IMPORT_DESCRIPTOR importDescriptor = (PIMAGE_IMPORT_DESCRIPTOR)(importsDirectory.VirtualAddress + image_base);
+
+			PIMAGE_THUNK_DATA originalFirstThunk = (PIMAGE_THUNK_DATA)(image_base + importDescriptor->OriginalFirstThunk);
+			PIMAGE_THUNK_DATA firstThunk = (PIMAGE_THUNK_DATA)(image_base + importDescriptor->FirstThunk);
+
+			while (originalFirstThunk->u1.AddressOfData != NULL)
+			{
+				module_Import& symbol = data.Impors.emplace_back();
+				auto data = (PIMAGE_IMPORT_BY_NAME)(image_base + originalFirstThunk->u1.AddressOfData);
+				symbol.name = data->Name;
+				symbol.address = (void*)firstThunk->u1.Function;
+				++originalFirstThunk;
+				++firstThunk;
+			}
+		}
+	}
+}
+
+uintptr_t Patch::GetEATAddress(const char* moduleName, const char* funcName)
+{
+	if (!ModuleDatas.contains(moduleName) || ModuleDatas[moduleName].Exports.empty())
+	{
+		return -1;
+	}
+
+	for (auto const& exportdata : ModuleDatas[moduleName].Exports)
+	{
+		if (strcmp(exportdata.name, funcName) == 0)
+		{
+			return (uintptr_t)exportdata.address;
+		}
+	}
+
+	return -1;
+}
+
+uintptr_t Patch::GetIATAddress(const char* moduleName, const char* funcName)
+{
+	if (!ModuleDatas.contains(moduleName) || ModuleDatas[moduleName].Impors.empty())
+	{
+		return -1;
+	}
+
+	for (auto const& exportdata : ModuleDatas[moduleName].Impors)
+	{
+		if (strcmp(exportdata.name, funcName) == 0)
+		{
+			return (uintptr_t)exportdata.address;
+		}
+	}
+
+	return -1;
 }

@@ -79,6 +79,7 @@ struct Game
 	static constexpr reference<CCFileClass, 0xA8D58Cu> const RecordFile {};
 	//static constexpr reference<DynamicVectorClass<DWORD>, 0xB0BC88u> const COMClasses {};
 
+	static constexpr reference<bool, 0xA8EDD8u> const ReadyToExit {};
 	static constexpr reference<bool, 0x822CF1u> const bDrawShadow {};
 	static constexpr reference<bool, 0x8A0DEFu> const bAllowDirect3D {};
 	static constexpr reference<bool, 0x8A0DF0u> const bDirect3DIsUseable {};

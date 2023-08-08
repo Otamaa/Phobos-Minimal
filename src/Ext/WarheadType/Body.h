@@ -71,6 +71,7 @@ public:
 		Valueable<bool> Crit_AnimOnAffectedTargets { false };
 		Valueable<double> Crit_AffectBelowPercent { 1.0 };
 		Valueable<bool> Crit_SuppressOnIntercept { false };
+		NullablePromotable<double> Crit_GuaranteeAfterHealthTreshold {};
 
 		double RandomBuffer { 0.0 };
 		bool HasCrit { false };
@@ -93,6 +94,8 @@ public:
 
 		Nullable<double> Shield_AbsorbPercent {};
 		Nullable<double> Shield_PassPercent {};
+		Nullable<int> Shield_ReceivedDamage_Minimum {};
+		Nullable<int> Shield_ReceivedDamage_Maximum {};
 
 		Valueable<int> Shield_Respawn_Duration { 0 };
 		Valueable<double> Shield_Respawn_Amount { 0.0 };
@@ -104,11 +107,13 @@ public:
 
 	public:
 
-		Valueable<bool> Shield_Respawn_ResetTimer { false };
+		Valueable<bool> Shield_Respawn_RestartTimer { false };
 		Valueable<int> Shield_SelfHealing_Duration { 0 };
 		Nullable<double> Shield_SelfHealing_Amount { };
 		Valueable<int> Shield_SelfHealing_Rate { -1 };
-		Valueable<bool> Shield_SelfHealing_ResetTimer { false };
+		Nullable<bool> Shield_SelfHealing_RestartInCombat {};
+		Valueable<int> Shield_SelfHealing_RestartInCombatDelay { -1 };
+		Valueable<bool> Shield_SelfHealing_RestartTimer { false };
 
 		ValueableVector<ShieldTypeClass*> Shield_AttachTypes { };
 		ValueableVector<ShieldTypeClass*> Shield_RemoveTypes { };
@@ -315,6 +320,10 @@ public:
 		Valueable<int> DamageAirThreshold { 0 };
 		Valueable<int> CellSpread_MaxAffect { -1 };
 
+		Valueable<int> EMP_Duration { 0 };
+		Valueable<int> EMP_Cap { -1 };
+		Valueable<AnimTypeClass*> EMP_Sparkles { nullptr };
+
 		ExtData(WarheadTypeClass* OwnerObject) : Extension<WarheadTypeClass>(OwnerObject)
 			, AttachedEffect { OwnerObject }
 		{
@@ -330,11 +339,12 @@ public:
 		void ApplyLocomotorInflictionReset(TechnoClass* pTarget);
 
 		void applyIronCurtain(TechnoClass* items, HouseClass* Owner, int damage);
+		void applyIronCurtain(const CoordStruct& coords, HouseClass* pOwner, int damage);
 
 	private:
 
 		void EvaluateArmor(WarheadTypeClass* OwnerObject);
-		void DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* pOwner = nullptr, BulletClass* pBullet = nullptr, bool bulletWasIntercepted = false);
+		void DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, int damage, TechnoClass* pOwner = nullptr, BulletClass* pBullet = nullptr, bool bulletWasIntercepted = false);
 
 		void ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* Owner);
 		void ApplyShieldModifiers(TechnoClass* pTarget);
@@ -360,7 +370,7 @@ public:
 		int TransactOneValue(TechnoClass* pTechno, TechnoTypeClass* pTechnoType, int transactValue, TransactValueType valueType);
 
 	public:
-		void Detonate(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct coords);
+		void Detonate(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct coords , int damage);
 		bool CanTargetHouse(HouseClass* pHouse, TechnoClass* pTechno);
 		void InterceptBullets(TechnoClass* pOwner, WeaponTypeClass* pWeapon, CoordStruct coords);
 		bool CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTargetHouse);

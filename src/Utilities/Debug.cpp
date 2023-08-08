@@ -6,28 +6,33 @@
 #include <CRT.h>
 #include <YRPPCore.h>
 #include <AbstractClass.h>
+#include <vector>
 
 char Debug::StringBuffer[0x1000];
 char Debug::DeferredStringBuffer[0x1000];
-int Debug::CurrentBufferSize = 0;
+static std::vector<std::string> DeferredLogData;
 
 void Debug::Log(const char* pFormat, ...)
 {
 	JMP_STD(0x4068E0);
 }
 
+//This log is not immedietely printed , but buffered until time it need to be finalize(printed)
 void Debug::LogDeferred(const char* pFormat, ...)
 {
 	va_list args;
 	va_start(args, pFormat);
-	CurrentBufferSize += vsprintf_s(DeferredStringBuffer + CurrentBufferSize, 4096 - CurrentBufferSize, pFormat, args);
+	vsprintf_s(DeferredStringBuffer, pFormat, args);
+	DeferredLogData.emplace_back(DeferredStringBuffer);
 	va_end(args);
 }
 
 void Debug::LogDeferredFinalize()
 {
-	Log("%s", DeferredStringBuffer);
-	CurrentBufferSize = 0;
+	for(auto const& Logs : DeferredLogData)
+		Log("%s", Logs);
+
+	DeferredLogData.clear();
 }
 
 void Debug::LogAndMessage(const char* pFormat, ...)

@@ -47,28 +47,6 @@ DEFINE_OVERRIDE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 	//Debug::Log("Lauch [%x][%s] %s failed \n", pSuper, pSuper->Owner->get_ID(), pSuper->Type->ID);
 	return 0x6CDE40;
 }
-
-#ifndef Replace_SW
-
-#pragma warning( push )
-#pragma warning (disable : 4245)
-#pragma warning (disable : 4838)
-DEFINE_DISABLE_HOOK(0x6CEE96, SuperWeaponTypeClass_FindIndex_ares)
-DEFINE_DISABLE_HOOK(0x46B371, BulletClass_NukeMaker_ares)
-DEFINE_DISABLE_HOOK(0x44C9FF, BuildingClass_Mi_Missile_PsiWarn_6_ares)
-DEFINE_DISABLE_HOOK(0x46b423, BulletClass_NukeMaker_PropagateSW_ares)
-DEFINE_DISABLE_HOOK(0x4C78D6, Networking_RespondToEvent_SpecialPlace_ares)
-DEFINE_DISABLE_HOOK(0x6CE6F6, SuperWeaponTypeClass_CTOR_ares)
-DEFINE_DISABLE_HOOK(0x6CEFE0, SuperWeaponTypeClass_SDDTOR_ares)
-DEFINE_DISABLE_HOOK(0x6CE8D0, SuperWeaponTypeClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x6CE800, SuperWeaponTypeClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x6CE8BE, SuperWeaponTypeClass_Load_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x6CE8EA, SuperWeaponTypeClass_Save_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x6CEE50, SuperWeaponTypeClass_LoadFromINI_ares)
-DEFINE_DISABLE_HOOK(0x6CEE43, SuperWeaponTypeClass_LoadFromINIB_ares)
-DEFINE_DISABLE_HOOK(0x4F9004, HouseClass_Update_TrySWFire_ares)
-#pragma warning( pop )
-
 DEFINE_HOOK(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
 {
 	GET(SuperWeaponTypeClass*, pThis, EBP);
@@ -161,9 +139,29 @@ DEFINE_HOOK(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 	return 0x6CECEF;
 }
 
+#ifndef Replace_SW
+#pragma warning( push )
+#pragma warning (disable : 4245)
+#pragma warning (disable : 4838)
+DEFINE_DISABLE_HOOK(0x6CEE96, SuperWeaponTypeClass_FindIndex_ares)
+DEFINE_DISABLE_HOOK(0x46B371, BulletClass_NukeMaker_ares)
+DEFINE_DISABLE_HOOK(0x44C9FF, BuildingClass_Mi_Missile_PsiWarn_6_ares)
+DEFINE_DISABLE_HOOK(0x46b423, BulletClass_NukeMaker_PropagateSW_ares)
+DEFINE_DISABLE_HOOK(0x4C78D6, Networking_RespondToEvent_SpecialPlace_ares)
+DEFINE_DISABLE_HOOK(0x6CE6F6, SuperWeaponTypeClass_CTOR_ares)
+DEFINE_DISABLE_HOOK(0x6CEFE0, SuperWeaponTypeClass_SDDTOR_ares)
+DEFINE_DISABLE_HOOK(0x6CE8D0, SuperWeaponTypeClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x6CE800, SuperWeaponTypeClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x6CE8BE, SuperWeaponTypeClass_Load_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x6CE8EA, SuperWeaponTypeClass_Save_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x6CEE50, SuperWeaponTypeClass_LoadFromINI_ares)
+DEFINE_DISABLE_HOOK(0x6CEE43, SuperWeaponTypeClass_LoadFromINIB_ares)
+DEFINE_DISABLE_HOOK(0x4F9004, HouseClass_Update_TrySWFire_ares)
+#pragma warning( pop )
+
 DEFINE_OVERRIDE_HOOK(0x41F0F1, AITriggerClass_IC_Ready, 0xA)
 {
-	enum { advance = 0x41F0FD , breakloop = 0x41F10D };
+	enum { advance = 0x41F0FD, breakloop = 0x41F10D };
 	GET(SuperClass*, pSuper, EDI);
 
 	return (pSuper->Type->Type == SuperWeaponType::IronCurtain
@@ -173,7 +171,7 @@ DEFINE_OVERRIDE_HOOK(0x41F0F1, AITriggerClass_IC_Ready, 0xA)
 
 DEFINE_OVERRIDE_HOOK(0x41F1A1, AITriggerClass_Chrono_Ready, 0xA)
 {
-	enum { advance = 0x41F1AD, breakloop = 0x41F1BD};
+	enum { advance = 0x41F1AD, breakloop = 0x41F1BD };
 	GET(SuperClass*, pSuper, EBX);
 
 	return (pSuper->Type->Type == SuperWeaponType::ChronoSphere
@@ -192,20 +190,23 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 	auto pTeamExt = TeamExt::ExtMap.Find(pThis);
 	const auto pLeader = pThis->FetchLeader();
 
-	if (!pLeader){
+	if (!pLeader)
+	{
 		pThis->StepCompleted = true;
 		return 0x6EFE4F;
 	}
 	const auto pOwner = pThis->Owner;
 
-	if(pOwner->Supers.Count <= 0) {
+	if (pOwner->Supers.Count <= 0)
+	{
 		pThis->StepCompleted = true;
 		return 0x6EFE4F;
 	}
 
 	const bool havePower = pOwner->HasFullPower();
 
-	if(!pTeamExt->LastFoundSW) {
+	if (!pTeamExt->LastFoundSW)
+	{
 
 		for (const auto& pSuper : pOwner->Supers)
 		{
@@ -217,7 +218,8 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 					continue;
 
 				// found SW that already charged , just use it and return
-				if (pSuper->IsCharged && (havePower || !pSuper->IsPowered())) {
+				if (pSuper->IsCharged && (havePower || !pSuper->IsPowered()))
+				{
 					auto nCoord = pThis->SpawnCell->GetCoords();
 					pOwner->Fire_SW(pSuper->Type->ArrayIndex, CellClass::Coord2Cell(nCoord));
 					pThis->StepCompleted = true;
@@ -228,7 +230,8 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 					int rechargeTime = pSuper->GetRechargeTime();
 					double timeLeft = (double)pSuper->RechargeTimer.GetTimeLeft();
 
-					if ((1.0 - RulesClass::Instance->AIMinorSuperReadyPercent) < (timeLeft / rechargeTime)){
+					if ((1.0 - RulesClass::Instance->AIMinorSuperReadyPercent) < (timeLeft / rechargeTime))
+					{
 						pTeamExt->LastFoundSW = pSuper;
 						return 0x6EFE4F;
 					}
@@ -239,7 +242,9 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 		pThis->StepCompleted = true;
 		return 0x6EFE4F;
 
-	} else { //continue waiting until it ready
+	}
+	else
+	{ //continue waiting until it ready
 
 		if (!pTeamExt->LastFoundSW->Granted ||
 			!SWTypeExt::ExtMap.Find(pTeamExt->LastFoundSW->Type)->IsAvailable(pOwner))
@@ -249,7 +254,8 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 			return 0x6EFE4F;
 		}
 
-		if (pTeamExt->LastFoundSW->IsCharged && (havePower || !pTeamExt->LastFoundSW->IsPowered())) {
+		if (pTeamExt->LastFoundSW->IsCharged && (havePower || !pTeamExt->LastFoundSW->IsPowered()))
+		{
 			auto nCoord = pThis->SpawnCell->GetCoords();
 			pOwner->Fire_SW(pTeamExt->LastFoundSW->Type->ArrayIndex, CellClass::Coord2Cell(nCoord));
 			pThis->StepCompleted = true;
@@ -289,7 +295,8 @@ DEFINE_OVERRIDE_HOOK(0x6CEF84, SuperWeaponTypeClass_GetAction, 7)
 
 	const auto nAction = SWTypeExt::ExtData::GetAction(pType, pMapCoords);
 
-	if (nAction != Action::None) {
+	if (nAction != Action::None)
+	{
 		R->EAX(nAction);
 		return 0x6CEFD9;
 	}
@@ -313,9 +320,10 @@ DEFINE_OVERRIDE_HOOK(0x6CEE96, SuperWeaponTypeClass_GetTypeIndex, 5)
 
 DEFINE_OVERRIDE_HOOK(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
 {
-	enum {
-		RetImpatientClick = 0x6AAFB1 ,
-		SendSWLauchEvent = 0x6AAF10 ,
+	enum
+	{
+		RetImpatientClick = 0x6AAFB1,
+		SendSWLauchEvent = 0x6AAF10,
 		ClearDisplay = 0x6AAF46
 	};
 
@@ -332,7 +340,8 @@ DEFINE_OVERRIDE_HOOK(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
 		&& pData->SW_Unstoppable;
 
 	// play impatient voice, if this isn't charged yet
-	if (!manual && !pSuper->CanFire()) {
+	if (!manual && !pSuper->CanFire())
+	{
 		VoxClass::PlayIndex(pSuper->Type->ImpatientVoice);
 		return RetImpatientClick;
 	}
@@ -349,20 +358,25 @@ DEFINE_OVERRIDE_HOOK(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
 	if (!pData->SW_UseAITargeting.Get() || SWTypeExt::ExtData::IsTargetConstraintsEligible(pSuper, true))
 	{
 		// disallow manuals and active unstoppables
-		if (manual || unstoppable) {
+		if (manual || unstoppable)
+		{
 			return RetImpatientClick;
 		}
 
-		if (pSuper->Type->Action == Action::None || pData->SW_UseAITargeting.Get()) {
+		if (pSuper->Type->Action == Action::None || pData->SW_UseAITargeting.Get())
+		{
 			R->EAX(HouseClass::CurrentPlayer());
 			return SendSWLauchEvent;
 		}
 
 		return ClearDisplay;
 	}
+	else
+	{
+		Debug::Log("SW [%s]-[%s] CannotFire\n", pSuper->Type->ID, pSuper->Owner->get_ID());
+		pData->PrintMessage(pData->Message_CannotFire, HouseClass::CurrentPlayer);
+	}
 
-	Debug::Log("SW [%s]-[%s] CannotFire\n" ,pSuper->Type->ID , pSuper->Owner->get_ID());
-	pData->PrintMessage(pData->Message_CannotFire, HouseClass::CurrentPlayer);
 	return RetImpatientClick;
 }
 
@@ -405,7 +419,8 @@ DEFINE_OVERRIDE_HOOK(0x6A932B, StripClass_GetTip_MoneySW, 6)
 		// replace space by new line
 		for (int i = wcslen(SidebarClass::TooltipBuffer()); i >= 0; --i)
 		{
-			if (SidebarClass::TooltipBuffer[i] == 0x20) {
+			if (SidebarClass::TooltipBuffer[i] == 0x20)
+			{
 				SidebarClass::TooltipBuffer[i] = 0xA;
 				break;
 			}
@@ -714,7 +729,8 @@ DEFINE_HOOK(0x4F8FE1, HouseClass_Update_TryFireSW, 0x5)
 {
 	GET(HouseClass*, pThis, ESI);
 
-	if (!pThis->Type->MultiplayPassive) {
+	if (!pThis->Type->MultiplayPassive)
+	{
 
 		if (!pThis->IsControlledByHuman_())
 			return 0x4F9015;
@@ -773,10 +789,11 @@ DEFINE_OVERRIDE_HOOK(0x6CB7B0, SuperClass_Lose, 6)
 		if (SuperClass::ShowTimers->Remove(pThis))
 		{
 			std::sort(SuperClass::ShowTimers->begin(), SuperClass::ShowTimers->end(),
-			[](SuperClass* a, SuperClass* b) {
-			 const auto aExt = SWTypeExt::ExtMap.Find(a->Type);
-			 const auto bExt = SWTypeExt::ExtMap.Find(b->Type);
-			 return aExt->SW_Priority.Get() > bExt->SW_Priority.Get();
+			[](SuperClass* a, SuperClass* b)
+ {
+	 const auto aExt = SWTypeExt::ExtMap.Find(a->Type);
+	 const auto bExt = SWTypeExt::ExtMap.Find(b->Type);
+	 return aExt->SW_Priority.Get() > bExt->SW_Priority.Get();
 			});
 		}
 
@@ -807,111 +824,99 @@ DEFINE_OVERRIDE_HOOK(0x6CB920, SuperClass_ClickFire, 5)
 	auto const pExt = SWTypeExt::ExtMap.Find(pType);
 	auto const pOwner = pThis->Owner;
 
-	if (pType->UseChargeDrain)
+	if (!pType->UseChargeDrain)
 	{
-		// AI get non-draining SWs
-		if (!pOwner->IsControlledByHuman_())
+		//change done
+		if ((pThis->RechargeTimer.StartTime < 0
+			|| !pThis->Granted
+			|| !pThis->IsCharged)
+			&& !pType->PostClick)
 		{
-			if (!pOwner->FirestormActive)
-			{
-				pThis->Launch(*pCell, isPlayer);
-			}
-			else
-			{
-				SWTypeExt::ExtData::Deactivate(pThis, *pCell, isPlayer);
-			}
-		}
-		else
-		{
-			if (pThis->ChargeDrainState == ChargeDrainState::Draining)
-			{
-				// deactivate for human players
-				pThis->ChargeDrainState = ChargeDrainState::Ready;
-				auto const left = pThis->RechargeTimer.GetTimeLeft();
-
-				auto const duration = int(pThis->GetRechargeTime()
-					- (left / pExt->GetChargeToDrainRatio()));
-				pThis->RechargeTimer.Start(duration);
-
-				SWTypeExt::ExtData::Deactivate(pThis, *pCell, isPlayer);
-
-			}
-			else if (pThis->ChargeDrainState == ChargeDrainState::Ready)
-			{
-				// activate for human players
-				pThis->ChargeDrainState = ChargeDrainState::Draining;
-				auto const left = pThis->RechargeTimer.GetTimeLeft();
-
-				auto const duration = int(
-					(pThis->GetRechargeTime() - left)
-					* pExt->GetChargeToDrainRatio());
-				pThis->RechargeTimer.Start(duration);
-
-				pThis->Launch(*pCell, isPlayer);
-			}
+			return ret(false);
 		}
 
-		return ret(false);
-	}
+		// auto-abort if no money
+		if (pOwner->CanTransactMoney(pExt->Money_Amount))
+		{
+			// can this super weapon fire now?
+			if (auto const pNewType = pExt->GetNewSWType())
+			{
+				if (pNewType->AbortFire(pThis, isPlayer))
+				{
+					return ret(false);
+				}
+			}
 
-	//change done
-	if ((pThis->RechargeTimer.StartTime < 0
-		|| !pThis->Granted
-		|| !pThis->IsCharged)
-		&& !pType->PostClick)
-	{
-		return ret(false);
-	}
+			pThis->Launch(*pCell, isPlayer);
 
-	// auto-abort if no money
-	if (!pOwner->CanTransactMoney(pExt->Money_Amount))
-	{
-		if (pOwner->IsCurrentPlayer())
+			// the others will be reset after the PostClick SW fired
+			if (!pType->PostClick && !pType->PreClick)
+			{
+				pThis->IsCharged = false;
+			}
+
+			if (pThis->OneTime || !pExt->CanFire(pOwner))
+			{
+				// remove this SW
+				pThis->OneTime = false;
+				return ret(pThis->Lose());
+			}
+
+			if (pType->ManualControl)
+			{
+				// set recharge timer, then pause
+				const auto time = pThis->GetRechargeTime();
+				pThis->CameoChargeState = -1;
+				pThis->RechargeTimer.Start(time);
+				pThis->RechargeTimer.Pause();
+
+				return ret(false);
+			}
+
+			if (!pType->PreClick && !pType->PostClick)
+			{
+				pThis->StopPreclickAnim(isPlayer);
+				return ret(false);
+			}
+
+			return ret(false);
+		}
+		else if (pOwner->IsCurrentPlayer())
 		{
 			VoxClass::PlayIndex(pExt->EVA_InsufficientFunds);
 			pExt->PrintMessage(pExt->Message_InsufficientFunds, pOwner);
-		}
-		return ret(false);
-	}
-
-	// can this super weapon fire now?
-	if (auto const pNewType = pExt->GetNewSWType())
-	{
-		if (pNewType->AbortFire(pThis, isPlayer))
-		{
 			return ret(false);
 		}
 	}
 
+	if (pThis->ChargeDrainState == ChargeDrainState::Draining)
+	{
+		// deactivate for human players
+		pThis->ChargeDrainState = ChargeDrainState::Ready;
+		auto const left = pThis->RechargeTimer.GetTimeLeft();
+
+		auto const duration = int(pThis->GetRechargeTime()
+			- (left / pExt->GetChargeToDrainRatio()));
+		pThis->RechargeTimer.Start(duration);
+
+		return ret(false);
+	}
+
+	if (pThis->ChargeDrainState != ChargeDrainState::Ready)
+	{
+		return ret(false);
+	}
+
+	// activate for human players
+	pThis->ChargeDrainState = ChargeDrainState::Draining;
+	auto const left = pThis->RechargeTimer.GetTimeLeft();
+
+	auto const duration = int(
+			(pThis->GetRechargeTime() - left)
+			* pExt->GetChargeToDrainRatio());
+	pThis->RechargeTimer.Start(duration);
+
 	pThis->Launch(*pCell, isPlayer);
-
-	// the others will be reset after the PostClick SW fired
-	if (!pType->PostClick && !pType->PreClick)
-	{
-		pThis->IsCharged = false;
-	}
-
-	if (pThis->OneTime || !pExt->CanFire(pOwner))
-	{
-		// remove this SW
-		pThis->OneTime = false;
-		return ret(pThis->Lose());
-	}
-	else if (pType->ManualControl)
-	{
-		// set recharge timer, then pause
-		const auto time = pThis->GetRechargeTime();
-		pThis->CameoChargeState = -1;
-		pThis->RechargeTimer.Start(time);
-		pThis->RechargeTimer.Pause();
-	}
-	else
-	{
-		if (!pType->PreClick && !pType->PostClick)
-		{
-			pThis->StopPreclickAnim(isPlayer);
-		}
-	}
 
 	return ret(false);
 }
@@ -1156,7 +1161,8 @@ DEFINE_OVERRIDE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
 
 	for (const auto& pSuper : pThis->Supers)
 	{
-		if (pSuper->IsCharged && pSuper->ChargeDrainState != ChargeDrainState::Draining) {
+		if (pSuper->IsCharged && pSuper->ChargeDrainState != ChargeDrainState::Draining)
+		{
 			if (!AIFire || SWTypeExt::ExtMap.Find(pSuper->Type)->SW_AutoFire)
 			{
 				SWTypeExt::ExtData::TryFire(pSuper, false);
@@ -1170,19 +1176,23 @@ DEFINE_OVERRIDE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
 DEFINE_HOOK(0x4C78EF, Networking_RespondToEvent_SpecialPlace, 9)
 {
 	GET(CellStruct*, pCell, EDX);
-	GET(int , Checksum, EAX);
+	GET(int, Checksum, EAX);
 	//GET(NetworkEvent*, pEvent, ESI);
 	GET(HouseClass*, pHouse, EDI);
 
 	const auto pSuper = pHouse->Supers.Items[Checksum];
 	const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
 
-	if (pExt->SW_UseAITargeting) {
-		if(!SWTypeExt::ExtData::TryFire(pSuper, 1) && pHouse == HouseClass::CurrentPlayer) {
-			Debug::Log("SW [%s]-[%s] CannotFire\n" ,pSuper->Type->ID , pHouse->get_ID());
+	if (pExt->SW_UseAITargeting)
+	{
+		if (!SWTypeExt::ExtData::TryFire(pSuper, 1) && pHouse == HouseClass::CurrentPlayer)
+		{
+			Debug::Log("SW [%s]-[%s] CannotFire\n", pSuper->Type->ID, pHouse->get_ID());
 			pExt->PrintMessage(pExt->Message_CannotFire, pHouse);
 		}
-	} else{
+	}
+	else
+	{
 		pHouse->Fire_SW(Checksum, *pCell);
 	}
 
@@ -1193,7 +1203,7 @@ DEFINE_OVERRIDE_HOOK(0x50AF10, HouseClass_UpdateSuperWeaponsOwned, 5)
 {
 	GET(HouseClass*, pThis, ECX);
 
-	if(pThis->IsNeutral())
+	if (pThis->IsNeutral())
 		return 0x50B1CA;
 
 	SuperExt::UpdateSuperWeaponStatuses(pThis);
@@ -1549,7 +1559,8 @@ DEFINE_OVERRIDE_HOOK(0x44CCE7, BuildingClass_Mi_Missile_GenericSW, 6)
 		return ReturnFromFunc;
 	}
 
-	if(pExt->SuperTarget.IsValid()) {
+	if (pExt->SuperTarget.IsValid())
+	{
 		pThis->Owner->EMPTarget = pExt->SuperTarget;
 	}
 
@@ -1597,7 +1608,8 @@ DEFINE_HOOK(0x44C992, BuildingClass_MI_Missile_Safeguard, 0x6)
 // Create bullet pointing up to the sky
 DEFINE_HOOK(0x44CA97, BuildingClass_MI_Missile_CreateBullet, 0x6)
 {
-	enum {
+	enum
+	{
 		SkipGameCode = 0x44CAF2,
 		DeleteBullet = 0x44CC42,
 		SetUpNext = 0x44CCA7,
@@ -1609,10 +1621,12 @@ DEFINE_HOOK(0x44CA97, BuildingClass_MI_Missile_CreateBullet, 0x6)
 	auto pTarget = MapClass::Instance->GetCellAt(pThis->Owner->NukeTarget);
 	auto pSuper = TechnoExt::ExtMap.Find(pThis)->LinkedSW;
 
-	if (WeaponTypeClass* pWeapon = pSuper->Type->WeaponType) {
+	if (WeaponTypeClass* pWeapon = pSuper->Type->WeaponType)
+	{
 
 		//speed harcoded to 255
-		if (auto pCreated = pWeapon->Projectile->CreateBullet(pTarget, pThis, pWeapon->Damage, pWeapon->Warhead, 255 , pWeapon->Bright || pWeapon->Warhead->Bright)) {
+		if (auto pCreated = pWeapon->Projectile->CreateBullet(pTarget, pThis, pWeapon->Damage, pWeapon->Warhead, 255, pWeapon->Bright || pWeapon->Warhead->Bright))
+		{
 			BulletExt::ExtMap.Find(pCreated)->NukeSW = pSuper->Type;
 			pCreated->Range = WeaponTypeExt::ExtMap.Find(pWeapon)->GetProjectileRange();
 
@@ -2093,7 +2107,7 @@ DEFINE_OVERRIDE_HOOK(0x53A140, LightningStorm_Strike, 7)
 				if (auto const itBolts = pExt->Weather_Bolts.GetElements(
 					RulesClass::Instance->WeatherConBolts))
 				{
-					pExt->Weather_CloudHeight = GeneralUtils::GetLSAnimHeightFactor(itBolts[0], pCell , true);
+					pExt->Weather_CloudHeight = GeneralUtils::GetLSAnimHeightFactor(itBolts[0], pCell, true);
 				}
 			}
 			coords.Z += pExt->Weather_CloudHeight;
@@ -2154,7 +2168,7 @@ DEFINE_OVERRIDE_HOOK(0x53A300, LightningStorm_Strike2, 5)
 		if (auto const it = pData->Weather_Sounds.GetElements(
 			RulesClass::Instance->LightningSounds))
 		{
-			VocClass::PlayAt(it.at(ScenarioClass::Instance->Random.RandomFromMax(it.size()  - 1)), coords, nullptr);
+			VocClass::PlayAt(it.at(ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1)), coords, nullptr);
 		}
 
 		auto debris = false;
@@ -2288,10 +2302,11 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 		auto damage = pNewData->GetDamage(pData);
 		auto pWarhead = pNewData->GetWarhead(pData);
 
-		if (pWarhead && damage != 0 ) {
+		if (pWarhead && damage != 0)
+		{
 
 			//this update every frame , so getting the firer here , seems degreading the performance ,..
-			MapClass::Instance->DamageArea(coords, damage, pNewData->GetFirer(pSuper, cell , false), pWarhead, true, pFirer);
+			MapClass::Instance->DamageArea(coords, damage, pNewData->GetFirer(pSuper, cell, false), pWarhead, true, pFirer);
 		}
 
 		// capture
@@ -2381,7 +2396,8 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 				}
 
 				// add to the other newly captured minions.
-				if (FootClass* pFoot = generic_cast<FootClass*>(pTechno)) {
+				if (FootClass* pFoot = generic_cast<FootClass*>(pTechno))
+				{
 					Minions.push_back(pFoot);
 				}
 
@@ -2397,8 +2413,8 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 			// the AI sends all new minions to hunt
 			for (auto const& pFoot : Minions)
 			{
-				const auto nMission = pFoot->GetTechnoType()->ResourceGatherer ? Mission::Harvest:
-				!PsyDom::Owner->IsControlledByHuman_() ? Mission::Hunt : Mission::Guard;
+				const auto nMission = pFoot->GetTechnoType()->ResourceGatherer ? Mission::Harvest :
+					!PsyDom::Owner->IsControlledByHuman_() ? Mission::Hunt : Mission::Guard;
 
 				pFoot->QueueMission(nMission, false);
 			}
@@ -2464,11 +2480,15 @@ DEFINE_OVERRIDE_HOOK(0x4555D5, BuildingClass_IsPowerOnline_KeepOnline, 5)
 	GET(BuildingClass*, pThis, ESI);
 	bool Contains = false;
 
-	if (auto pOwner = pThis->GetOwningHouse()) {
-		for (auto const& pBatt : HouseExt::ExtMap.Find(pOwner)->Batteries) {
-			if (SWTypeExt::ExtMap.Find(pBatt->Type)->Battery_KeepOnline.Contains(pThis->Type)) {
+	if (auto pOwner = pThis->GetOwningHouse())
+	{
+		for (auto const& pBatt : HouseExt::ExtMap.Find(pOwner)->Batteries)
+		{
+			if (SWTypeExt::ExtMap.Find(pBatt->Type)->Battery_KeepOnline.Contains(pThis->Type))
+			{
 				Contains = true;
-				break; }
+				break;
+			}
 		}
 	}
 
@@ -2487,12 +2507,17 @@ DEFINE_OVERRIDE_HOOK(0x44019D, BuildingClass_Update_Battery, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	if (auto pOwner = pThis->GetOwningHouse()) {
-		if(!pThis->IsOverpowered)	{
-			for (auto const& pBatt : HouseExt::ExtMap.Find(pOwner)->Batteries) {
-				if (SWTypeExt::ExtMap.Find(pBatt->Type)->Battery_Overpower.Contains(pThis->Type)) {
+	if (auto pOwner = pThis->GetOwningHouse())
+	{
+		if (!pThis->IsOverpowered)
+		{
+			for (auto const& pBatt : HouseExt::ExtMap.Find(pOwner)->Batteries)
+			{
+				if (SWTypeExt::ExtMap.Find(pBatt->Type)->Battery_Overpower.Contains(pThis->Type))
+				{
 					pThis->IsOverpowered = true;
-					break; }
+					break;
+				}
 			}
 		}
 	}
@@ -2555,8 +2580,8 @@ DEFINE_OVERRIDE_HOOK(0x6A9A43, StripClass_Draw_DrawPCX, 6)
 		GET(int, TLY, EBP);
 		RectangleStruct bounds { TLX, TLY, 60, 48 };
 		const WORD Color =
-		  (0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft)
-		| (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft);
+			(0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft)
+			| (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft);
 		PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, CameoPCXSurface, Color);
 		CameoPCXSurface = nullptr;
 	}

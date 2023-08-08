@@ -76,7 +76,7 @@ public:
 	virtual bool LoadFromINI(CCINIClass* pINI) JMP_THIS(0x410A60);
 	virtual bool SaveToINI(CCINIClass* pINI) JMP_THIS(0x410B90);
 
-	const char* 
+	const char*
 		get_ID() const {
 		return this->ID;
 	}

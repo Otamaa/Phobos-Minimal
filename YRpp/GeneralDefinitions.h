@@ -829,7 +829,8 @@ enum class CellFlags : unsigned int
 	Fogged = 0x400000,
 
 	Revealed = CenterRevealed | EdgeRevealed,
-	Bridge = BridgeHead | BridgeBody
+	Bridge = BridgeHead,
+	BridgeWithBody = BridgeHead | BridgeBody,
 };
 
 MAKE_ENUM_FLAGS(CellFlags)
@@ -1329,7 +1330,7 @@ enum class MouseCursorType : unsigned int {
 };
 MAKE_ENUM_FLAGS(MouseCursorType)
 
-enum class RadBeamType : unsigned int {
+enum class RadBeamType : int {
 	Temporal = 0,
 	RadBeam = 1,
 	Eruption = 2 // this sets the beam color to MagnaBeamColor! There probably was no reason for that whatsoever.
@@ -1536,7 +1537,9 @@ enum class NetworkEventType : unsigned char {
 	PlanCommit = 0x2B,
 	PlanNodeDelete = 0x2C,
 	AllCheer = 0x2D,
-	AbandonAll = 0x2E
+	AbandonAll = 0x2E,
+
+	count
 };
 
 // Sound specific
@@ -1796,7 +1799,7 @@ enum class TeamMissionType : int
 	Occupy_battle_bunker = 63, //yr
 	Garrison_building = 64, //yr
 
-	count = 65,
+	count,
 	none = -1,
 };
 

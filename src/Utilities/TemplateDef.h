@@ -641,16 +641,13 @@ namespace detail
 	template <>
 	inline bool read<Vector2D<double>>(Vector2D<double>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		if (!parser.Read2Double(pSection, pKey, (double*)&value))
-		{
-			if (!parser.empty()) {
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid 2 floating point Value");
-			}
-
-			return false;
+		if(parser.Read2Double(pSection, pKey, (double*)&value))
+			return true;
+		else if (!parser.empty()) {
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid 2 floating point Value");
 		}
 
-		return true;
+		return false;
 	}
 
 	template <>
@@ -730,10 +727,10 @@ namespace detail
 				value = Leptons(buffer);
 				return true;
 			}
-		}
 
-		if (!parser.empty())
 			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid floating point number");
+
+		}
 
 		return false;
 	}
@@ -799,11 +796,10 @@ namespace detail
 				}
 			}
 
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid map Edge strings");
-
-			return false;
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid map Edge strings");
 		}
+
+		return false;
 	}
 
 	template <>
@@ -826,8 +822,7 @@ namespace detail
 				}
 			}
 
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Horizontal Position can be either Left, Center/Centre or Right");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Horizontal Position can be either Left, Center/Centre or Right");
 		}
 
 		return false;
@@ -847,8 +842,7 @@ namespace detail
 				}
 			}
 
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Content.VariableFormat can be either none, prefixed, suffixed or fraction");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Content.VariableFormat can be either none, prefixed, suffixed or fraction");
 		}
 
 		return false;
@@ -868,8 +862,7 @@ namespace detail
 				}
 			}
 
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Vertical Position can be either Top, Center/Centre or Bottom");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Vertical Position can be either Top, Center/Centre or Bottom");
 
 		}
 		return false;
@@ -887,7 +880,6 @@ namespace detail
 				}
 			}
 
-			if(!parser.empty())
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a self heal gain type");
 		}
 
@@ -908,8 +900,7 @@ namespace detail
 				}
 			}
 
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a free-slave option, default to killer");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a free-slave option, default to killer");
 		}
 
 		return false;
@@ -929,8 +920,7 @@ namespace detail
 				}
 			}
 
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a kill method, default disabled");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a kill method, default disabled");
 		}
 		return false;
 	}
@@ -949,8 +939,7 @@ namespace detail
 				}
 			}
 
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "IronCurtainFlag can be either kill, invulnerable, ignore or random");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "IronCurtainFlag can be either kill, invulnerable, ignore or random");
 		}
 
 		return false;
@@ -970,8 +959,7 @@ namespace detail
 				}
 			}
 
-			if(!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a owner house kind");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a owner house kind");
 		}
 		return false;
 	}
@@ -1002,9 +990,7 @@ namespace detail
 				}
 			}
 
-			if (!parser.empty()) {
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a AItargetingmode");
-			}
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a AItargetingmode");
 		}
 		return false;
 	}
@@ -1104,9 +1090,8 @@ namespace detail
 					++result;
 				}
 
-				if (!found)
+				if (!found || result == 9)
 				{
-					err :
 					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a SW target");
 					return false;
 				}
@@ -1128,8 +1113,6 @@ namespace detail
 
 					case 7:
 					case 8: resultData |= SuperWeaponTarget::Building; break;
-
-					case 9: goto err;
 
 					case 10: resultData |= SuperWeaponTarget::All; break;
 					case 11: resultData |= SuperWeaponTarget::AllCells; break;
@@ -1221,8 +1204,7 @@ namespace detail
 				}
 			}
 
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a AttachedAnimFlag");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a AttachedAnimFlag");
 		}
 
 		return false;
@@ -1242,8 +1224,7 @@ namespace detail
 				}
 			}
 
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected an AreaFire target");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected an AreaFire target");
 
 		}
 		return false;
@@ -1263,8 +1244,7 @@ namespace detail
 				}
 			}
 
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Text Alignment can be either Left, Center/Centre or Right");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Text Alignment can be either Left, Center/Centre or Right");
 		}
 
 		return false;
@@ -1275,6 +1255,9 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
+			if(GameStrings::IsBlank(parser.value()))
+				return false;
+
 			for (size_t i = 0; i < CellClass::LayerToStrings.size(); ++i)
 			{
 				if (IS_SAME_STR_(parser.value(), CellClass::LayerToStrings[i]))
@@ -1284,8 +1267,7 @@ namespace detail
 				}
 			}
 
-			if (!GameStrings::IsBlank(parser.value()))
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect a Valid Layer !");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect a Valid Layer !");
 		}
 
 		return false;
@@ -1308,8 +1290,7 @@ namespace detail
 				}
 			}
 
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect a Valid AbstractType !");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect a Valid AbstractType !");
 		}
 
 		return false;
@@ -1329,8 +1310,7 @@ namespace detail
 				}
 			}
 
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid Locomotor CLSID or Name");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid Locomotor CLSID or Name");
 		}
 
 		return false;
@@ -1381,9 +1361,10 @@ namespace detail
 				pCur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
 			auto buffer = T();
-			if (Parser<T>::Parse(pCur, &buffer))
+
+			if (Parser<T>::Parse(pCur, &buffer) || GameStrings::IsBlank(pCur) )
 				vector.push_back(buffer);
-			else if (!allocate || !GameStrings::IsBlank(pCur))
+			else if (!allocate)
 				Debug::INIParseFailed(pSection, pKey, pCur, nullptr);
 		}
 	}
@@ -1874,7 +1855,7 @@ inline bool ValueableVector<bool>::Save(PhobosStreamWriter& stm) const
 
 // NullableVector
 template <typename T>
-void NOINLINE NullableVector<T>::Read(INI_EX& parser, const char* pSection, const char* pKey)
+void NOINLINE NullableVector<T>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 {
 	if (parser.ReadString(pSection, pKey))
 	{
@@ -1883,7 +1864,7 @@ void NOINLINE NullableVector<T>::Read(INI_EX& parser, const char* pSection, cons
 
 		if (non_default)
 		{
-			detail::parse_values<T>(*this, parser, pSection, pKey);
+			detail::parse_values<T>(*this, parser, pSection, pKey , allocate);
 		}
 	}
 }

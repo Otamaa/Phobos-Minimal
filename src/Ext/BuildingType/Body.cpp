@@ -626,7 +626,6 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->Solid_Level.Read(exINI, pSection, "SolidLevel");
 		this->AIBaseNormal.Read(exINI, pSection, "AIBaseNormal");
 		this->AIInnerBase.Read(exINI, pSection, "AIInnerBase");
-		this->Cloning_Facility.Read(exINI, pSection, "CloningFacility");
 		this->EngineerRepairable.Read(exINI, pSection, "EngineerRepairable");
 
 		// no code attached
@@ -683,6 +682,8 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->BunkerRaidable.Read(exINI, pSection, "Bunker.Raidable");
 		this->Firestorm_Wall.Read(exINI, pSection, "Firestorm.Wall");
 		this->AbandonedSound.Read(exINI, pSection, "AbandonedSound");
+		this->CloningFacility.Read(exINI, pSection, "CloningFacility");
+		this->Factory_ExplicitOnly.Read(exINI, pSection, "Factory.ExplicitOnly");
 	}
 #pragma endregion
 
@@ -866,7 +867,6 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Solid_Level)
 		.Process(this->AIBaseNormal)
 		.Process(this->AIInnerBase)
-		.Process(this->Cloning_Facility)
 		.Process(this->RubblePalette)
 		.Process(this->EnterBioReactorSound)
 		.Process(this->LeaveBioReactorSound)
@@ -899,6 +899,8 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Firestorm_Wall)
 
 		.Process(this->AbandonedSound)
+		.Process(this->CloningFacility)
+		.Process(this->Factory_ExplicitOnly)
 		;
 }
 

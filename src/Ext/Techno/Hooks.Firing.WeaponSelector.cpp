@@ -56,7 +56,8 @@ DEFINE_HOOK(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x8)
+//this hook disregard everything and return weapon index
+DEFINE_HOOK(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 {
 	enum
 	{
@@ -66,14 +67,12 @@ DEFINE_HOOK(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x8)
 	GET(TechnoTypeClass*, pThisTechnoType, EAX);
 	GET(TechnoClass*, pTarget, EBP);
 	GET(TechnoClass*, pThis, ECX);
+	//GET(WeaponTypeClass* , pSecondary , EDI);
+	//GET(WeaponTypeClass* , pSecondary , EBX);
 
-	if (pThis && pTarget)
+	if (pTarget && Is_Techno(pTarget))
 	{
 		const auto pTargetType = pTarget->GetTechnoType();
-
-		if (!pThisTechnoType || !pTargetType)
-			return 0;
-
 		const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pThisTechnoType);
 
 		if (pTechnoTypeExt->ForceWeapon_Naval_Decloaked >= 0
@@ -375,8 +374,6 @@ DEFINE_HOOK(0x51EAF2, TechnoClass_WhatAction_AllowAirstrike, 0x6)
 // Basically a hack to make game and Ares pick laser properties from non-Primary weapons.
 DEFINE_HOOK(0x70E1A0, TechnoClass_GetTurretWeapon_LaserWeapon, 0x5)
 {
-
-
 	GET(TechnoClass* const, pThis, ECX);
 
 	if (Is_Building(pThis))

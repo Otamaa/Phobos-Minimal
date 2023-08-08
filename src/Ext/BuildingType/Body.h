@@ -194,7 +194,6 @@ public:
 
 		Nullable<bool> AIBaseNormal { };
 		Nullable<bool> AIInnerBase { };
-		Valueable<bool> Cloning_Facility { false };
 
 		// gates
 		NullableIdx<VocClass> GateDownSound {};
@@ -303,6 +302,9 @@ public:
 		Valueable<bool> Firestorm_Wall { false };
 
 		NullableIdx<VocClass> AbandonedSound {};
+		Valueable<bool> CloningFacility { false };
+		Valueable<bool> Factory_ExplicitOnly { false };
+
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject) { }
 		virtual ~ExtData() override = default;
 

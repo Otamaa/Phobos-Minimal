@@ -18,6 +18,8 @@ void HouseTypeExt::ExtData::InheritSettings(HouseTypeClass* pThis)
 			this->ParaDropNum = ParentData->ParaDropNum;
 			this->GivesBounty = ParentData->GivesBounty;
 			this->CanBeDriven = ParentData->CanBeDriven;
+			this->ParachuteAnim = ParentData->ParachuteAnim;
+			this->StartInMultiplayer_WithConst = ParentData->StartInMultiplayer_WithConst;
 		}
 	}
 
@@ -62,6 +64,9 @@ void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr
 	this->NewTeamsSelector_AirCategoryPercentage.Read(exINI, pSection, "NewTeamsSelector.AirCategoryPercentage");
 	this->NewTeamsSelector_NavalCategoryPercentage.Read(exINI, pSection, "NewTeamsSelector.NavalCategoryPercentage");
 	//
+
+	this->ParachuteAnim.Read(exINI, pSection, "Parachute.Anim" , true);
+	this->StartInMultiplayer_WithConst.Read(exINI, pSection, "StartInMultiplayer.WithConst");
 }
 
 template <typename T>
@@ -87,6 +92,8 @@ void  HouseTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->NewTeamsSelector_GroundCategoryPercentage)
 		.Process(this->NewTeamsSelector_AirCategoryPercentage)
 		.Process(this->NewTeamsSelector_NavalCategoryPercentage)
+		.Process(this->ParachuteAnim)
+		.Process(this->StartInMultiplayer_WithConst)
 		;
 }
 

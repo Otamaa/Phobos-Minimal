@@ -406,23 +406,23 @@ DEFINE_OVERRIDE_HOOK(0x4502F4, BuildingClass_Update_Factory, 0x6)
 	HouseExt::ExtData* pData = HouseExt::ExtMap.Find(pOwner);
 	const  auto&[curFactory , block , type] = GetFactory(pThis->Type->Factory, pThis->Type->Naval, pData);
 
-	if (block) {
+	if (!curFactory) {
+		Game::RaiseError(E_POINTER);
+	}
+	else if (!*curFactory)
+	{
+		if (!pThis->IsPrimaryFactory)
+			pThis->IsPrimaryFactory = true;
 
-		if (!curFactory) {
-			Game::RaiseError(E_POINTER);
-		}
-		else if (!*curFactory)
-		{
 			*curFactory = pThis; //last check
-			return 0;
-		}
-		else if (*curFactory != pThis)
-		{
-			return Skip;
-		}
+		return 0;
+	}
+	else if (*curFactory != pThis)
+	{
+		return block ? Skip : 0x0;
 	}
 
-	return 0;
+	return 0x0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)

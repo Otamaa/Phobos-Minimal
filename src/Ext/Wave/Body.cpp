@@ -168,6 +168,7 @@ WaveExt::ExtContainer::~ExtContainer() = default;
 // =============================
 // container hooks
 //
+
 DEFINE_HOOK(0x75EA59, WaveClass_CTOR, 0x5)
 {
 	GET(WaveClass*, pItem, ESI);

@@ -34,7 +34,7 @@ DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
 	//auto pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
 	if (pThis->MissionStatus < (int)AirAttackStatus::FireAtTarget2_Strafe
-		|| pThis->MissionStatus >(int)AirAttackStatus::FireAtTarget5_Strafe 
+		|| pThis->MissionStatus >(int)AirAttackStatus::FireAtTarget5_Strafe
 		//|| !pExt->Aircraft_DecreaseAmmo.Get()
 		)
 	{
@@ -47,7 +47,7 @@ DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
 	if (pWeaponStr) {
 		if (pWeaponStr->WeaponType) {
 			int fireCount = pThis->MissionStatus - 4;
-			if (fireCount > 1 && 
+			if (fireCount > 1 &&
 				WeaponTypeExt::ExtMap.Find(pWeaponStr->WeaponType)->Strafing_Shots < fireCount) {
 
 					if (!pThis->Ammo)
@@ -145,7 +145,7 @@ enum class AirAttackStatusP : int
 //	case AirAttackStatusP::AIR_ATT_VALIDATE_AZ:
 //	{
 //		pThis->__DoingOverfly = false;
-//		
+//
 //		pThis->MissionStatus = //(pThis->Target ? -9 : 0) + (int)AirAttackStatusP::AIR_ATT_RETURN_TO_BASE
 //			!pThis->Target ? 11 : (int)AirAttackStatusP::AIR_ATT_RETURN_TO_BASE;
 //
@@ -233,7 +233,7 @@ enum class AirAttackStatusP : int
 //
 //				if (v17.X != v16.X || v17.Y != v16.Y) {
 //					nDir.SetRadian<65536>(Math::atan2(double(v17.Y - v16.Y), double(v16.X - v17.X))); ;
-//				}			
+//				}
 //
 //				pThis->SecondaryFacing.Set_Desired(nDir);
 //
@@ -287,7 +287,7 @@ enum class AirAttackStatusP : int
 //			AircraftExt::FireBurst(pThis, pThis->Target, AircraftFireMode::FireAt , v26);
 //			//pThis->Fire(pThis->Target, v26);
 //
-//			if(pThis->Target) 
+//			if(pThis->Target)
 //			{
 //				MapClass::Instance->GetCellAt(pThis->Target->GetCoords())
 //					->ScatterContent(pThis->Location, true, false, false);
@@ -389,7 +389,7 @@ enum class AirAttackStatusP : int
 //
 //				if (!pThis->Ammo)
 //				{
-//					pThis->MissionStatus = (int)AirAttackStatusP::AIR_ATT_RETURN_TO_BASE;			
+//					pThis->MissionStatus = (int)AirAttackStatusP::AIR_ATT_RETURN_TO_BASE;
 //					const auto v92 = pThis->GetCurrentMissionControl();
 //					return int(v92->Rate * 900.0) + ScenarioClass::Instance->Random.RandomFromMax(2);
 //				}
@@ -415,7 +415,7 @@ enum class AirAttackStatusP : int
 //				}
 //				else
 //				{
-//					pThis->MissionStatus = pTypeExt->CurleyShuffle.Get(RulesClass::Instance->CurleyShuffle) ? 
+//					pThis->MissionStatus = pTypeExt->CurleyShuffle.Get(RulesClass::Instance->CurleyShuffle) ?
 //						(int)AirAttackStatusP::AIR_ATT_FIRE_AT_TARGET1 : (int)AirAttackStatusP::AIR_ATT_FIRE_AT_TARGET0;
 //				}
 //
@@ -676,10 +676,10 @@ enum class AirAttackStatusP : int
 //		pThis->SetDestination(
 //			MapClass::Instance->GetCellAt(
 //			MapClass::Instance->PickCellOnEdge(
-//			pThis->Owner->GetCurrentEdge(), 
-//				CellStruct::Empty, 
-//				CellStruct::Empty, 
-//				SpeedType::Winged, 
+//			pThis->Owner->GetCurrentEdge(),
+//				CellStruct::Empty,
+//				CellStruct::Empty,
+//				SpeedType::Winged,
 //				true,
 //				MovementZone::Normal)), true
 //		);
@@ -708,8 +708,8 @@ enum class AirAttackStatusP : int
 //#pragma optimize("", on )
 
 // there is some funky shit happening here
-// the code is 90% close to decomp but it result different 
-// need to investigae 
+// the code is 90% close to decomp but it result different
+// need to investigae
 // disabled atm !
 //DEFINE_HOOK(0x417FE0, AircraftClass_MI_Attack_Handle, 0x6)
 //{

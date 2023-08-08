@@ -23,6 +23,9 @@ void SW_Firewall::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 
 bool SW_Firewall::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
+	if (!pThis->Granted)
+		return false;
+
 	AresData::RespondToFirewall(pThis->Owner, true);
 
 	if (IsPlayer) {

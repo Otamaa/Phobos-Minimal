@@ -43,56 +43,6 @@ namespace Fix
 	}
 };
 
-void AresNetEvent::Handlers::RaiseRevealMap(HouseClass* pSource)
-{
-	Debug::Log("Sending RevealMap to all clients\n");
-	NetworkEvent Event;
-	Event.Kind = static_cast<NetworkEventType>(AresNetEvent::Events::Revealmap);
-	Event.HouseIndex = byte(pSource->ArrayIndex);
-	Networking::AddEvent(&Event);
-}
-
-void AresNetEvent::Handlers::RespondRevealMap(NetworkEvent* Event)
-{
-	Debug::Log("Receiving RevealMap from a clients\n");
-	if (HouseClass* pSourceHouse = HouseClass::Array->GetItem(Event->HouseIndex))
-	{
-		pSourceHouse->Visionary = true; //sync the state with other clients
-	}
-}
-
-//TODO : proper owner for the event ?
-void NOINLINE AresNetEvent::Handlers::RaiseSetDriverKilledStatusToTrue(TechnoClass* Current)
-{
-	NetworkEvent Event;
-	Debug::Log("Sending RaiseSetDriverKilledStatusToTrue to all clients\n");
-	if (Current->Owner->ArrayIndex >= 0)
-	{
-		Event.Kind = NetworkEventType(AresNetEvent::Events::SetDriverKilledStatusToTrue);
-		Event.HouseIndex = byte(Current->Owner->ArrayIndex);
-	}
-
-	byte* ExtraData = Event.ExtraData;
-	NetID SourceObject {};
-	SourceObject.Pack(Current);
-	memcpy(ExtraData, &SourceObject, sizeof(SourceObject));
-	ExtraData += sizeof(SourceObject);
-
-	Networking::AddEvent(&Event);
-
-}
-
-void NOINLINE AresNetEvent::Handlers::ResponseToSetDriverKilledStatusToTrue(NetworkEvent* Event)
-{
-	NetID* ID = reinterpret_cast<NetID*>(Event->ExtraData);
-	Debug::Log("Receiving ResponseToSetDriverKilledStatusToTrue from a clients\n");
-
-	if (auto pTechno = ID->UnpackTechno())
-	{
-		pTechno->align_154->Is_DriverKilled = true;
-	}
-}
-
 DEFINE_OVERRIDE_HOOK(0x64C314, sub_64BDD0_PayloadSize2, 0x8)
 {
 	GET(uint8_t, nSize, ESI);

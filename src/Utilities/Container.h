@@ -15,6 +15,8 @@
 #include "Stream.h"
 #include "Swizzle.h"
 
+static constexpr size_t AbstractExtOffset = 0x18;
+
 template <class T>
 concept HasAbsID = requires(T) { T::AbsID; };
 template <class T>
@@ -40,9 +42,9 @@ template <typename T>
 concept PointerInvalidationIgnorAble =
 	requires (void* ptr) { T::InvalidateIgnorable(ptr); };
 
-template <typename T>
-concept ThisPointerInvalidationIgnorAble =
-	requires (T t, void* ptr) { t.InvalidateIgnorable(ptr); };
+//template <typename T>
+//concept ThisPointerInvalidationIgnorAble =
+//	requires (T t, void* ptr) { t.InvalidateIgnorable(ptr); };
 
 template <typename T>
 concept CanLoadFromStream =
@@ -112,16 +114,19 @@ private:
 	using extension_type_ptr = extension_type*;
 	using extension_type_ref_ptr = extension_type**;
 	using const_extension_type_ptr = const extension_type*;
+	using iterator = typename std::unordered_map<base_type_ptr, extension_type_ptr>::const_iterator;
 
 	base_type_ptr SavingObject;
 	IStream* SavingStream;
 	FixedString<0x100> Name;
+	std::unordered_map<base_type_ptr, extension_type_ptr> Map;
 
 public:
 
 	explicit Container(const char* pName) :
 		SavingObject { nullptr },
-		SavingStream { nullptr }
+		SavingStream { nullptr },
+		Map { }
 	{
 		Name = pName;
 	}
@@ -150,7 +155,8 @@ public:
 		else
 			(*(uintptr_t*)((char*)key + AbstractExtOffset)) = 0;
 
-		//this->ExtMap.erase(key);
+		if(this->Map.contains(key))
+			this->Map.erase(key);
 	}
 
 	inline void SetExtAttribute(base_type_ptr key, extension_type_ptr val)
@@ -159,6 +165,13 @@ public:
 			(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
 		else
 			(*(uintptr_t*)((char*)key + AbstractExtOffset)) = (uintptr_t)val;
+
+#ifndef DISABLEDUPLICATIONCHECK
+		if (this->Map.contains(key) && this->Map[key] != val) {
+			Debug::FatalError("ptr[%x] , Attempt to assign extension ptr to the class that already had one !\n", key);
+		}
+#endif
+		this->Map[key] = val;
 	}
 
 	inline extension_type_ptr GetExtAttribute(base_type_ptr key) const
@@ -167,6 +180,14 @@ public:
 			return (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset));
 		else
 			return (extension_type_ptr)(*(uintptr_t*)((char*)key + AbstractExtOffset));
+	}
+
+	inline extension_type_ptr GetExtAttributeSafe(base_type_ptr key)
+	{
+		if (this->Map.contains(key))
+			return this->Map[key];
+
+		return nullptr;
 	}
 
 	extension_type_ptr Allocate(base_type_ptr key)
@@ -218,6 +239,11 @@ public:
 		return this->GetExtAttribute(key);
 	}
 
+	extension_type_ptr TryFindSafe(base_type_ptr key)
+	{
+		return this->GetExtAttributeSafe(key);
+	}
+
 	void Remove(base_type_ptr key)
 	{
 		if (extension_type_ptr Item = TryFind(key))
@@ -231,7 +257,7 @@ public:
 	{
 		if constexpr (CanLoadFromINIFile<T>)
 		{
-			if (extension_type_ptr ptr = this->TryFind(key))
+			if (extension_type_ptr ptr = this->TryFindSafe(key))
 			{
 				if (!pINI)
 				{
@@ -245,15 +271,15 @@ public:
 				{
 					if constexpr (Initable<T>)
 						ptr->Initialize();
-					
+
 					ptr->Initialized = InitState::Inited;
-					goto ruled;
+					ptr->LoadFromINIFile(pINI, parseFailAddr);
+					ptr->Initialized = InitState::Ruled;
 				}
 
 				const InitState nInitStateNegOne = InitState((int)InitStateData - 1);
 
 				if (nInitStateNegOne == InitState::Blank || nInitStateNegOne == InitState::Constanted) {
-					ruled:
 					ptr->LoadFromINIFile(pINI, parseFailAddr);
 					ptr->Initialized = InitState::Ruled;
 				}
@@ -261,22 +287,43 @@ public:
 		}
 	}
 
+	void Clear() {
+		if (this->Map.size()) {
+			this->Map.clear();
+		}
+	}
+
 	void InvalidatePointerFor(base_type_ptr key, void* const ptr, bool bRemoved)
 	{
-		if constexpr (ThisPointerInvalidationIgnorAble<T> || ThisPointerInvalidationSubscribable<T>){
+		if constexpr (ThisPointerInvalidationSubscribable<T>){
 			if (Phobos::Otamaa::ExeTerminated)
 				return;
-			
+
 			extension_type_ptr Extptr = this->TryFind(key);
 
-			if (!Extptr || !bRemoved) // newer ares check for 2nd args 
+			if (!Extptr || !bRemoved) // newer ares check for 2nd args
 				return;
 
-			if constexpr (ThisPointerInvalidationIgnorAble<T> && ThisPointerInvalidationSubscribable<T>){
-				if (!Extptr->InvalidateIgnorable(ptr))
+			if constexpr (PointerInvalidationIgnorAble<T>){
+				if (!extension_type::InvalidateIgnorable(ptr))
 					Extptr->InvalidatePointer(ptr, bRemoved);
-			} else if constexpr (ThisPointerInvalidationSubscribable<T>) {
+			} else {
 					Extptr->InvalidatePointer(ptr, bRemoved);
+			}
+		}
+	}
+
+	void InvalidateMapPointers(void* const ptr, bool bRemoved)
+	{
+		if constexpr (ThisPointerInvalidationSubscribable<T>)
+		{
+			if constexpr (PointerInvalidationIgnorAble<T>) {
+				if (extension_type::InvalidateIgnorable(ptr))
+					return;
+			}
+
+			for (const auto& [key, Extptr] : this->Map) {
+				Extptr->InvalidatePointer(ptr, bRemoved);
 			}
 		}
 	}

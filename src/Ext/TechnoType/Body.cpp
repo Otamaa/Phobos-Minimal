@@ -168,11 +168,8 @@ bool TechnoTypeExt::ExtData::IsCountedAsHarvester() const
 
 	if (Is_UnitType(pThis))
 		pUnit = static_cast<UnitTypeClass*>(pThis);
-
-	if (this->Harvester_Counted.Get(pThis->Enslaves || (pUnit && (pUnit->Harvester || pUnit->Enslaves))))
-		return true;
-
-	return false;
+	return this->Harvester_Counted.
+		Get(pThis->Enslaves || (pUnit && (pUnit->Harvester || pUnit->Enslaves)));
 }
 
 void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection,
@@ -554,6 +551,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->CommandLine_Attack_Color.Read(exINI, pSection, "ActionLine.Attack.Color");
 		this->CloakMove.Read(exINI, pSection, "Cloak.Move");
 		this->PassiveAcquire_AI.Read(exINI, pSection, "CanPassiveAquire.AI");
+		this->CanPassiveAquire_Naval.Read(exINI, pSection, "CanPassiveAquire.Naval");
+
 		this->TankDisguiseAsTank.Read(exINI, pSection, "Disguise.AsTank"); // code disabled , crash
 		this->DisguiseDisAllowed.Read(exINI, pSection, "Disguise.Allowed");  // code disabled , crash
 		this->ChronoDelay_Immune.Read(exINI, pSection, "ChronoDelay.Immune");
@@ -681,6 +680,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		this->Passengers_BySize.Read(exINI, pSection, "Passengers.BySize");
 		this->Convert_Deploy.Read(exINI, pSection, "Convert.Deploy");
+		this->Convert_Deploy_Delay.Read(exINI, pSection, "Convert.DeployDelay");
 		this->Convert_Script.Read(exINI, pSection, "Convert.Script");
 		this->Harvester_LongScan.Read(exINI, pSection, "Harvester.LongScan");
 		this->Harvester_ShortScan.Read(exINI, pSection, "Harvester.ShortScan");
@@ -900,6 +900,38 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->HealthBar_Border.Read(exINI, pSection, "HealthBar.Border");
 		this->HealthBar_BorderFrame.Read(exINI, pSection, "HealthBar.BorderFrame");
 		this->HealthBar_BorderAdjust.Read(exINI, pSection, "HealthBar.BorderAdjust");
+
+		this->IsBomb.Read(exINI, pSection, "IsBomb");
+		this->ParachuteAnim.Read(exINI, pSection, "Parachute.Anim", true);
+
+		this->Cloneable.Read(exINI, pSection, "Cloneable");
+		this->ClonedAt.Read(exINI, pSection, "ClonedAt", true);
+		this->ClonedAs.Read(exINI, pSection, "ClonedAs", true);
+		this->BuiltAt.Read(exINI, pSection, "BuiltAt");
+		this->EMP_Sparkles.Read(exINI, pSection, "EMP.Sparkles");
+		this->EMP_Modifier.Read(exINI, pSection, "EMP.Modifier");
+
+		if (pINI->ReadString(pSection, "EMP.Threshold", "inair", Phobos::readBuffer))
+		{
+			if (CRT::strcmpi(Phobos::readBuffer, "inair") == 0)
+			{
+				this->EMP_Threshold = -1;
+			}
+			else if ((CRT::strcmpi(Phobos::readBuffer, "yes") == 0) || (CRT::strcmpi(Phobos::readBuffer, "true") == 0))
+			{
+				this->EMP_Threshold = 1;
+			}
+			else if ((CRT::strcmpi(Phobos::readBuffer, "no") == 0) || (CRT::strcmpi(Phobos::readBuffer, "false") == 0))
+			{
+				this->EMP_Threshold = 0;
+			}
+			else
+			{
+				this->EMP_Threshold = pINI->ReadInteger(pSection, "EMP.Threshold", this->EMP_Threshold);
+			}
+		}
+
+		this->PoweredBy.Read(exINI, pSection, "PoweredBy");
 
 #pragma region AircraftOnly
 		if (Is_AircraftType(pThis))
@@ -1525,6 +1557,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->CommandLine_Attack_Color)
 		.Process(this->CloakMove)
 		.Process(this->PassiveAcquire_AI)
+		.Process(this->CanPassiveAquire_Naval)
 		.Process(this->TankDisguiseAsTank)
 		.Process(this->DisguiseDisAllowed)
 		.Process(this->ChronoDelay_Immune)
@@ -1612,6 +1645,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Passengers_BySize)
 		//.Process(this->Crashable)
 		.Process(this->Convert_Deploy)
+		.Process(this->Convert_Deploy_Delay)
 		.Process(this->Convert_Script)
 		.Process(this->Harvester_LongScan)
 		.Process(this->Harvester_ShortScan)
@@ -1792,6 +1826,18 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->HealthBar_BorderAdjust)
 
 		.Process(this->Crashable)
+		.Process(this->IsBomb)
+		.Process(this->ParachuteAnim)
+
+		.Process(this->ClonedAs)
+		.Process(this->Cloneable)
+		.Process(this->ClonedAt)
+		.Process(this->ClonedAs)
+		.Process(this->BuiltAt)
+		.Process(this->EMP_Sparkles)
+		.Process(this->EMP_Modifier)
+		.Process(this->EMP_Threshold)
+		.Process(this->PoweredBy)
 #pragma endregion
 		;
 

@@ -15,53 +15,75 @@ DEFINE_HOOK(0x52190D, InfantryClass_WhatWeaponShouldIUse_DeployFireWeapon, 0x6) 
 	return pThis->Type->DeployFireWeapon == -1 ? 0x52194E : 0x0;
 }
 
-DEFINE_HOOK(0x73DD12, UnitClass_Mission_Unload_DeployFire, 0x6)
+DEFINE_HOOK(0x6FF923, TechnoClass_FireaAt_FireOnce, 0x6)
 {
-	enum { SkipGameCode = 0x73DD3C };
+	GET(TechnoClass*, pThis, ESI);
+	GET(WeaponTypeClass*, pWeapon, EBX);
+
+	pThis->SetTarget(nullptr);
+	if (auto pUnit = specific_cast<UnitClass*>(pThis)) {
+		if (pUnit->Type->DeployFire
+			&& !pUnit->Type->IsSimpleDeployer
+			&& !pUnit->Deployed
+			&& pThis->CurrentMission == Mission::Unload
+		)
+		{
+			TechnoExt::ExtMap.Find(pUnit)->DeployFireTimer.Start(pWeapon->ROF);
+		}
+	}
+
+	return 0x6FF92F;
+}
+
+DEFINE_HOOK(0x73DCEF, UnitClass_Mission_Unload_DeployFire, 0x6)
+{
+	enum { SkipGameCode = 0x73DD3C, SetMissionGuard = 0x73DEBA };
+
 	GET(UnitClass*, pThis, ESI);
 
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
-	auto const nWeapIdx = TechnoExt::GetDeployFireWeapon(pThis);
-	auto const pWs = pThis->GetWeapon(nWeapIdx);
-	auto const pWp = pWs->WeaponType;
 
-	if (!pWp || (pWp->FireOnce && pExt->DeployFireTimer.GetTimeLeft() > 0))
+	if (!pExt->DeployFireTimer.InProgress())
 	{
-		pExt->Get()->SetTarget(nullptr);
-		pExt->Get()->QueueMission(Mission::Guard, true);
-		return SkipGameCode;
-	}
+		auto const nWeapIdx = TechnoExt::GetDeployFireWeapon(pThis);
+		auto pTarget = pThis->GetCell();
+		pThis->SetTarget(pTarget);
 
-	if (pThis->GetFireError(pThis->Target, nWeapIdx, true) == FireError::OK)
-	{
-		pThis->Fire(pThis->GetCell(), nWeapIdx);
-
-		// fire error facing will stop techno firing , so force it to target cell instead
-		if (pWs->WeaponType->FireOnce)
+		if (pThis->GetFireError(pTarget, nWeapIdx, true) == FireError::OK)
 		{
-			pThis->SetTarget(nullptr);
-			pThis->QueueMission(Mission::Guard, true);
-			pExt->DeployFireTimer.Start(pWs->WeaponType->ROF);
+			auto pWeapon = pThis->GetWeapon(nWeapIdx);
+
+			pThis->Fire(pThis->GetCell(), nWeapIdx);
+
+			if (pWeapon->WeaponType->FireOnce) {
+				R->EBX(0);
+				return SetMissionGuard;
+			}
 		}
+	}
+	else
+	{
+		pThis->SetTarget(nullptr);
+		R->EBX(0);
+		return SetMissionGuard;
 	}
 
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x741288, UnitClass_CanFire_DeployFire, 0x6)
+DEFINE_HOOK(0x741288, UnitClass_CanFire_DeployFire_DoNotErrorFacing, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
-	if (pThis->Type->DeployFire 
-		&& !pThis->Type->IsSimpleDeployer 
-		&& !pThis->Deployed) {
-		if (!pTypeExt->DeployFire_UpdateFacing) {
-			//R->EAX(FireError::OK); //yes , dont return facing error 
-			//return 0x74132B;
-			return 0x741327; //fireOK
-		}
+	if (pThis->Type->DeployFire
+		&& !pThis->Type->IsSimpleDeployer
+		&& !pThis->Deployed
+		&& pThis->CurrentMission == Mission::Unload
+	)
+	{
+		return 0x741327; //fireOK
 	}
 
 	return 0x0;
@@ -79,14 +101,11 @@ DEFINE_HOOK(0x4C77E4, EventClass_Execute_UnitDeployFire, 0x6)
 		return 0x0;
 
 	/// Do not execute deploy command if the vehicle has only just fired its once-firing deploy weapon.
-	if (pUnit->Type->DeployFire && !pUnit->Type->IsSimpleDeployer)
+	if (pUnit->Type->DeployFire
+		&& !pUnit->Type->IsSimpleDeployer
+		&& TechnoExt::ExtMap.Find(pThis)->DeployFireTimer.InProgress())
 	{
-		auto const nWeapIdx = TechnoExt::GetDeployFireWeapon(pUnit);
-		auto const pWs = pThis->GetWeapon(nWeapIdx);
-
-		if (pWs->WeaponType && pWs->WeaponType->FireOnce
-			&& TechnoExt::ExtMap.Find(pThis)->DeployFireTimer.HasTimeLeft())
-			return DoNotExecute;
+		return DoNotExecute;
 	}
 
 	return 0x0;
@@ -98,7 +117,7 @@ DEFINE_HOOK(0x4C7518, EventClass_Execute_StopUnitDeployFire, 0x9)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
-	auto const pUnit = abstract_cast<UnitClass*>(pThis);
+	auto const pUnit = specific_cast<UnitClass*>(pThis);
 	if (pUnit
 		&& pUnit->CurrentMission == Mission::Unload
 		&& pUnit->Type->DeployFire
@@ -118,15 +137,9 @@ DEFINE_HOOK(0x746CD0, UnitClass_SelectWeapon_Replacements, 0x6)
 	GET(UnitClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pTarget, 0x4);
 
-	const auto pType = pThis->Type;
-
-	if (pThis->Deployed && pType->DeployFire)
-	{
-		int weaponIndex = pType->DeployFireWeapon;
-
-		if (weaponIndex != -1)
-		{
-			R->EAX(weaponIndex);
+	if (pThis->Deployed && pThis->Type->DeployFire) {
+		if (pThis->Type->DeployFireWeapon != -1) {
+			R->EAX(pThis->Type->DeployFireWeapon);
 			return 0x746CFD;
 		}
 	}

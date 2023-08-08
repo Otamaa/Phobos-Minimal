@@ -421,6 +421,7 @@ public:
 		Nullable<ColorStruct> CommandLine_Attack_Color { };
 		Nullable<bool> CloakMove { };
 		Nullable<bool> PassiveAcquire_AI { };
+		Nullable<bool> CanPassiveAquire_Naval { };
 		Valueable<bool> TankDisguiseAsTank { false };
 		ValueableVector<ObjectTypeClass*> DisguiseDisAllowed { };
 		Valueable<bool> ChronoDelay_Immune { false };
@@ -510,6 +511,7 @@ public:
 		//Nullable<bool> Crashable { };
 
 		Valueable<TechnoTypeClass*> Convert_Deploy { nullptr };
+		Valueable<int> Convert_Deploy_Delay { -1 };
 		Valueable<TechnoTypeClass*> Convert_Script { nullptr };
 
 		Nullable<Leptons> Harvester_LongScan { };
@@ -810,6 +812,19 @@ public:
 		Nullable<int> HealthBar_BorderAdjust { };
 
 		Nullable<bool> Crashable {};
+
+		Valueable<bool> IsBomb { false };
+		Valueable<AnimTypeClass*> ParachuteAnim { nullptr };
+
+		Nullable<TechnoTypeClass*> ClonedAs {};
+		Valueable<bool> Cloneable { true };
+		ValueableVector<TechnoTypeClass*> ClonedAt {};
+		ValueableVector<BuildingTypeClass const*> BuiltAt {};
+		Nullable<AnimTypeClass*> EMP_Sparkles {};
+		Valueable<double> EMP_Modifier { 1.0 };
+		int EMP_Threshold { -1 };
+
+		ValueableVector<BuildingTypeClass*> PoweredBy {};  //!< The buildingtype this unit is powered by or NULL.
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 			, AttachedEffect { OwnerObject }

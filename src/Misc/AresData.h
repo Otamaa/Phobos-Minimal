@@ -12,6 +12,7 @@
 #include <ScriptActionNode.h>
 
 #include <Utilities/Enum.h>
+#include <Ares_TechnoExt.h>
 
 class AbstractClass;
 class TechnoClass;
@@ -41,36 +42,10 @@ struct AresExtension
 	DWORD Initialized;
 };
 
-class PoweredUnitClass
-{
-public:
-	TechnoClass* Techno;
-	int LastScan;
-	bool Powered;
-};
-
-static_assert(sizeof(PoweredUnitClass) == 0xC, "Invalid Size !");
-
 struct DataBundleDetonate
 {
 	CoordStruct* pCoord;
 	void* ptr;
-};
-
-struct AEData
-{
-	DWORD* ArrFirst;
-	DWORD* ArrLast;
-	DWORD* ArrEnd;
-	int Delay;
-	bool NeedToRecreateAnim;
-};
-
-class JammerClass
-{
-	int LastScan;							//!< Frame number when the last scan was performed.
-	TechnoClass* AttachedToObject;			//!< Pointer to game object this jammer is on
-	bool Registered;						//!< Did I jam anything at all? Used to skip endless unjam calls.
 };
 
 class cPrismForwarding
@@ -83,10 +58,10 @@ class cPrismForwarding
 	int DamageReserve;
 };
 
-struct EMPulse
-{
-	static bool IsDeactivationAdvisable(TechnoClass* Target);
-};
+//struct EMPulse
+//{
+//	static bool IsDeactivationAdvisable(TechnoClass* Target);
+//};
 
 //struct ALIGN(4) OptionalStructDummy
 //{
@@ -99,7 +74,7 @@ struct EMPulse
 // becarefull when doing operation that involve those , it can result on undefine behaviour
 
 //TODO : port these
-#define GetAresTechnoExt(var) (void*)(*(uintptr_t*)((char*)var + 0x154))
+//#define GetAresTechnoExt(var) (void*)(*(uintptr_t*)((char*)var + 0x154))
 #define GetAresBuildingExt(var)  (void*)(*(uintptr_t*)((char*)var + 0x71C))
 #define GetAresHouseExt(var)  (void*)(*(uintptr_t*)((char*)var + 0x16084))
 #define GetAresHouseTypeExt(var)  (void*)(*(uintptr_t*)((char*)var + 0xC4))
@@ -249,8 +224,8 @@ struct AresData
 	static int NOINLINE CallAresArmorType_FindIndex(REGISTERS* R);
 
 	static std::vector<FootClass*>* GetTunnelArray(BuildingTypeClass* const pBld, HouseClass* const pOwner);
-	static void UpdateAEData(AEData* const pAE);
-	static void JammerClassUnjamAll(JammerClass* const pJamm);
+	static void UpdateAEData(AresTechnoExt::AEData* const pAE);
+	static void JammerClassUnjamAll(AresTechnoExt::JammerClass* const pJamm);
 	static void CPrismRemoveFromNetwork(cPrismForwarding* const pThis , bool bCease);
 
 	static void applyIonCannon(WarheadTypeClass* pWH, CoordStruct* pTarget);
@@ -263,11 +238,11 @@ struct AresData
 	static bool IsActiveFirestormWall(BuildingClass* pBuilding , HouseClass* pOwner);
 	static bool ImmolateVictim(BuildingClass* pBuilding , FootClass* pTarget , bool Destroy);
 
-	static void DisableEMPEffect(TechnoClass* pTechno);
+	//static void DisableEMPEffect(TechnoClass* pTechno);
 	static bool CloakDisallowed(TechnoClass* pTechno, bool allowPassive);
 	static bool CloakAllowed(TechnoClass* pTechno);
 
-	static bool RemoveAE(AEData* pAE);
+	static bool RemoveAE(AresTechnoExt::AEData* pAE);
 
 	static void FlyingStringsAdd(TechnoClass* pTech, bool bSomething);
 	static void CalculateBounty(TechnoClass* pThis, TechnoClass* pKiller);
@@ -415,8 +390,6 @@ struct AresDTORCaller
 #define Debug_bTrackParseErrors (*((bool*)(AresData::AresStaticInstanceFinal[3])))
 #define IsAnySFWActive (*((bool*)(AresData::AresStaticInstanceFinal[4])))
 #define EvaTypes (*((std::vector<const char*, AresMemory::AresAllocator<const char*>>*)(AresData::AresStaticInstanceFinal[5])))
-#define PoweredUnitUptr(techno) (*(PoweredUnitClass**)(((char*)GetAresTechnoExt(techno)) + 0x1C))
-#define RadarJammerUptr(techno) (*(JammerClass**)(((char*)GetAresTechnoExt(techno)) + 0x18))
 #define RegisteredJammers(techno) (*(PhobosMap<TechnoClass*, bool, AresMemory::AresAllocator<std::pair<TechnoClass*,bool>>>*)(((char*)GetAresBuildingExt(techno)) + 0x40))
 #define PrimsForwardingPtr(techno) (*(cPrismForwarding*)(((char*)GetAresBuildingExt(techno)) + 0x10))
 #define GetGunnerName(var) (*(std::vector<CSFText,AresMemory::AresAllocator<CSFText>>*)(((char*)GetAresTechnoTypeExt(var)) + 0xC8))

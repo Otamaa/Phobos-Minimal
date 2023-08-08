@@ -199,6 +199,10 @@ bool SW_NuclearMissile::DropNukeAt(SuperWeaponTypeClass* pSuper, CoordStruct con
 		pBullet->Health = Damage; //Yes , this is
 		pBullet->WH = pWarhead;
 		pBullet->Bright = pPayload->Bright || pWarhead->Bright;
+		pBullet->Range = WeaponTypeExt::ExtMap.Find(pPayload)->GetProjectileRange();
+
+		if(!Owner)
+			BulletExt::ExtMap.Find(pBullet)->Owner = OwnerHouse;
 
 #ifndef vanilla
 		// aim the bullet downward and put

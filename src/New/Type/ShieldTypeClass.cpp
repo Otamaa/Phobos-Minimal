@@ -11,6 +11,8 @@ ShieldTypeClass::ShieldTypeClass(const char* const pTitle) : Enumerable<ShieldTy
 , Respawn_Rate { 0 }
 , SelfHealing { 0.0 }
 , SelfHealing_Rate { 0 }
+, SelfHealing_RestartInCombat { true }
+, SelfHealing_RestartInCombatDelay { 0 }
 , AbsorbOverDamage { false }
 , BracketDelta { 0 }
 , IdleAnim_OfflineAction { AttachedAnimFlag::Hides }
@@ -22,6 +24,8 @@ ShieldTypeClass::ShieldTypeClass(const char* const pTitle) : Enumerable<ShieldTy
 , BreakWeapon {}
 , AbsorbPercent { 1.0 }
 , PassPercent { 0.0 }
+, ReceivedDamage_Minimum { INT32_MIN }
+, ReceivedDamage_Maximum { INT32_MAX }
 , AllowTransfer {}
 , Pips { { -1,-1,-1 } }
 , Pips_Background_SHP {}
@@ -66,7 +70,7 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->Powered.Read(exINI, pSection, "Powered");
 
 	this->Respawn.Read(exINI, pSection, "Respawn");
-	
+
 	Nullable<double> Respawn_Rate__InMinutes {};
 	Respawn_Rate__InMinutes.Read(exINI, pSection, "Respawn.Rate");
 
@@ -79,10 +83,15 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 	SelfHealing_Rate__InMinutes.Read(exINI, pSection, "SelfHealing.Rate");
 
 	if (SelfHealing_Rate__InMinutes.isset())
-	this->SelfHealing_Rate = (int)(SelfHealing_Rate__InMinutes.Get() * 900);
+		this->SelfHealing_Rate = (int)(SelfHealing_Rate__InMinutes.Get() * 900);
+
+	this->SelfHealing_RestartInCombat.Read(exINI, pSection, "SelfHealing.RestartInCombat");
+	this->SelfHealing_RestartInCombatDelay.Read(exINI, pSection, "SelfHealing.RestartInCombatDelay");
 
 	this->AbsorbOverDamage.Read(exINI, pSection, "AbsorbOverDamage");
 	this->BracketDelta.Read(exINI, pSection, "BracketDelta");
+	this->ReceivedDamage_Minimum.Read(exINI, pSection, "ReceivedDamage.Minimum");
+	this->ReceivedDamage_Maximum.Read(exINI, pSection, "ReceivedDamage.Maximum");
 
 	this->IdleAnim_OfflineAction.Read(exINI, pSection, "IdleAnim.OfflineAction");
 	this->IdleAnim_TemporalAction.Read(exINI, pSection, "IdleAnim.TemporalAction");
@@ -93,7 +102,7 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->BreakAnim.Read(exINI, pSection, "BreakAnim", true);
 	this->HitAnim.Read(exINI, pSection, "HitAnim", true);
 	this->BreakWeapon.Read(exINI, pSection, "BreakWeapon", true);
-	
+
 	this->AbsorbPercent.Read(exINI, pSection, "AbsorbPercent");
 	this->PassPercent.Read(exINI, pSection, "PassPercent");
 
@@ -128,8 +137,12 @@ void ShieldTypeClass::Serialize(T& Stm)
 		.Process(this->Respawn_Rate)
 		.Process(this->SelfHealing)
 		.Process(this->SelfHealing_Rate)
+		.Process(this->SelfHealing_RestartInCombat)
+		.Process(this->SelfHealing_RestartInCombatDelay)
 		.Process(this->AbsorbOverDamage)
 		.Process(this->BracketDelta)
+		.Process(this->ReceivedDamage_Minimum)
+		.Process(this->ReceivedDamage_Maximum)
 		.Process(this->IdleAnim_OfflineAction)
 		.Process(this->IdleAnim_TemporalAction)
 		.Process(this->IdleAnim)

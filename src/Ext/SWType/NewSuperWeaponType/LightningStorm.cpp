@@ -459,7 +459,7 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 			if (!Invoker)
 				Debug::Log("LS[%d - %s] Invoked is nullptr, dealing damage without ownership !! \n", Super, Super->Type->ID);
 
-			WarheadTypeExt::DetonateAt(pWarhead, MapClass::Instance->GetCellAt(coords), coords, Invoker, damage);
+			WarheadTypeExt::DetonateAt(pWarhead, MapClass::Instance->GetCellAt(coords), coords, Invoker, damage ,Super->Owner);
 
 			if(auto pBoltExt = pData->Weather_BoltExplosion.Get(RulesClass::Instance->WeatherConBoltExplosion))
 				if (auto pAnim = GameCreate<AnimClass>(pBoltExt, coords))

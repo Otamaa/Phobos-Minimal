@@ -83,7 +83,7 @@ public:
 	int MarbleMadnessTile;
 	int NonMarbleMadnessTile;
 	DWORD ArrayIndex; //2A0
-	DynamicVectorClass<Color16Struct*> RadarImage; //2A4
+	DECLARE_PROPERTY(DynamicVectorClass<Color16Struct*>, RadarImage); //2A4
 	IsometricTileTypeClass* NextTileTypeInSet; //2BC
 	int ToSnowTheater;
 	int ToTemperateTheater;

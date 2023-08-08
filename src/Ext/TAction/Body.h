@@ -95,7 +95,7 @@ public:
 			}
 		}
 
-		bool InvalidateIgnorable(void* ptr)
+		static bool InvalidateIgnorable(void* ptr)
 		{
 			switch (GetVtableAddr(ptr))
 			{

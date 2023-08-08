@@ -1074,3 +1074,57 @@ DEFINE_HOOK(0x4C780A, EventClass_Execute_DeployEvent_NoVoiceFix, 0x6)
 	pThis->VoiceDeploy();
 	return 0x0;
 }
+
+// Checks if vehicle can deploy into a building at its current location. If unit has no DeploysInto set returns noDeploysIntoDefaultValue (def = false) instead.
+bool CanDeployIntoBuilding(UnitClass* pThis, bool noDeploysIntoDefaultValue)
+{
+	if (!pThis)
+		return false;
+
+	auto const pDeployType = pThis->Type->DeploysInto;
+
+	if (!pDeployType)
+		return noDeploysIntoDefaultValue;
+
+	bool canDeploy = true;
+	auto mapCoords = CellClass::Coord2Cell(pThis->GetCoords());
+
+	if (pDeployType->GetFoundationWidth() > 2 || pDeployType->GetFoundationHeight(false) > 2)
+		mapCoords += CellStruct { -1, -1 };
+
+	pThis->UpdatePlacement(PlacementType::Remove);
+
+	pThis->Locomotor->Mark_All_Occupation_Bits((int)PlacementType::Remove);
+
+	if (!pDeployType->CanCreateHere(mapCoords, pThis->Owner))
+		canDeploy = false;
+
+	pThis->Locomotor->Mark_All_Occupation_Bits((int)PlacementType::Put);
+	pThis->UpdatePlacement(PlacementType::Put);
+
+	return canDeploy;
+}
+
+// Fix DeployToFire not working properly for WaterBound DeploysInto buildings and not recalculating position on land if can't deploy.
+DEFINE_HOOK(0x4D580B, FootClass_ApproachTarget_DeployToFire, 0x6)
+{
+	enum { SkipGameCode = 0x4D583F };
+
+	GET(UnitClass*, pThis, EBX);
+
+	R->EAX(CanDeployIntoBuilding(pThis, true));
+
+	return SkipGameCode;
+}
+
+DEFINE_HOOK(0x741050, UnitClass_CanFire_DeployToFire, 0x6)
+{
+	enum { SkipGameCode = 0x741086, MustDeploy = 0x7410A8 };
+
+	GET(UnitClass*, pThis, ESI);
+
+	if (pThis->Type->DeployToFire && pThis->CanDeployNow() && !CanDeployIntoBuilding(pThis, true))
+		return MustDeploy;
+
+	return SkipGameCode;
+}

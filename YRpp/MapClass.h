@@ -244,7 +244,7 @@ public:
 	// Get cellclasspointe with cellstruct Pointer but it will return nullptr if invalid !
 	CellClass* TryGetCellAt(const CellStruct& MapCoords) const {
 		int idx = GetCellIndex(MapCoords);
-		return (idx >= 0 && idx < 0x40000) ? Cells[idx] : nullptr;
+		return (idx >= 0 && idx < MaxCells) ? Cells[idx] : nullptr;
 	}
 
 	// Get cellclasspointer with coords but it will return nullptr if invalid !
@@ -453,7 +453,8 @@ public:
 	bool CoordinatesLegal(const CellStruct& cell) const
 		{ JMP_THIS(0x568300); }
 
-	CellClass* MapClass_findnearbyshroud_580BC0(int arg0) const { JMP_THIS(0x580BC0); }
+	CellClass* MapClass_findnearbyshroud_580BC0(int arg0) const 
+		{ JMP_THIS(0x580BC0); }
 
 // ====================================
 //         FIRESTORM RELATED

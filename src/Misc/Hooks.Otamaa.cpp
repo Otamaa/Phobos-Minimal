@@ -705,17 +705,21 @@ DEFINE_HOOK(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
 	GET(TechnoTypeClass* const, pType, EAX);
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-
+	bool DefaultCanPassive = pType->CanPassiveAquire;
 	if (pTypeExt->PassiveAcquire_AI.isset()
 		&& pThis->Owner
-		&& !pThis->Owner->IsControlledByHuman()
+		&& !pThis->Owner->IsControlledByHuman_()
 		&& !pThis->Owner->IsNeutral())
 	{
-		return pTypeExt->PassiveAcquire_AI.Get() ?
-			ContinueCheck : CantPassiveAcquire;
+		DefaultCanPassive =  pTypeExt->PassiveAcquire_AI.Get();
 	}
 
-	return Continue;
+	if(pType->Naval && pTypeExt->CanPassiveAquire_Naval.isset()) {
+		DefaultCanPassive = pTypeExt->CanPassiveAquire_Naval.Get();
+	}
+
+	return 	DefaultCanPassive ?	ContinueCheck : CantPassiveAcquire;
+	//return Continue;
 }
 
 //DEFINE_HOOK(0x45743B, BuildingClass_Infiltrated_StoleMoney_AI, 0xA)
@@ -1579,6 +1583,22 @@ DEFINE_HOOK(0x4D69F5, FootClass_ApproachTarget_EngineerCaptureDelay, 0x6)
 DEFINE_HOOK(0x5206B7, InfantryClass_FiringUpdate_EngCapture, 0x6)
 {
 	GET(InfantryClass*, pFoot, EBP);
+
+	if(pTypeExt->Engineer_CaptureDelay)
+	{
+		if(pFoot->Destination == pExt->LastBuilding)
+		{
+			if(pExt->EngineerCaptureDelay.GetTimeLeft() < 0)
+				pFoot->ForceMission(Mission::Capture);
+		}else if (pFoot->Destionation
+				&& pFoot->Destination->WhatIam() == BuildingClass::AbsID
+				&& pFoot->Type->Engineer)
+		{
+			pExt->LastBuilding = pFoot->Destionation;
+		}
+	}
+
+	return 0;
 }
 
 DEFINE_HOOK(0x51EEED, InfantryClass_GetCursorOverObject_Infiltrate, 0x7)
@@ -1607,6 +1627,10 @@ DEFINE_HOOK(0x51EE97, InfantryClass_WhatAction_Capturable, 0x6)
 
 	GET(InfantryClass*, pFoot, EDI);
 
+	if (pExt->EngineerCaptureDelay.InProgress()) {
+		return Skip;
+	}
+
 	return Nothing;
 }
 
@@ -1620,6 +1644,10 @@ DEFINE_HOOK(0x51E5AB, InfantryClass_WhatAction_Capturable2, 0x6)
 
 	GET(InfantryClass*, pFoot, EDI);
 
+	if (pExt->EngineerCaptureDelay.InProgress()) {
+		return Skip;
+	}
+
 	return Nothing;
 }
 
@@ -1632,6 +1660,10 @@ DEFINE_HOOK(0x51E6BA, InfantryClass_WhatAction_EngAttack, 0x6)
 	};
 
 	GET(InfantryClass*, pFoot, EDI);
+
+	if (pFoot->Type->Engineer && pExt->EngineerCaptureDelay.InProgress()) {
+		return Skip;
+	}
 
 	return Nothing;
 }
@@ -5283,46 +5315,77 @@ DEFINE_HOOK(0x450B48, BuildingClass_Anim_AI_UnitAbsorb, 0x6)
 	return 0x450B4E;
 }
 
-int InfantryClass_Mission_Harvest(InfantryClass* pThis)
+//int InfantryClass_Mission_Harvest(InfantryClass* pThis)
+//{
+//	if (pThis->Type->Slaved)
+//	{
+//		if (pThis->Type->Storage)
+//		{
+//			auto pCell = pThis->GetCell();
+//			if (!pCell->HasTiberium() || pThis->GetStoragePercentage() == 1.0)
+//			{
+//				pThis->PlayAnim(DoType::Ready);
+//				pThis->QueueMission(Mission::Guard, false);
+//				return 1;
+//			}
+//			else
+//			{
+//				if (pThis->SequenceAnim != DoType::Shovel)
+//				{
+//					pThis->PlayAnim(DoType::Shovel);
+//				}
+//
+//				auto tiberium = pCell->GetContainedTiberiumIndex();
+//				auto curamount = pThis->Type->Storage - pThis->Tiberium.GetTotalAmount();
+//				const auto reduceamount = curamount <= 1.0 ? curamount : 1.0;
+//
+//				pCell->ReduceTiberium(reduceamount);
+//				pThis->Tiberium.AddAmount(reduceamount, tiberium);
+//				return pThis->Type->HarvestRate;
+//			}
+//		}
+//	}
+//
+//	if (!pThis->Destination)
+//		return 1;
+//
+//	auto pCell = pThis->GetCell();
+//	if (pThis->Type->ResourceGatherer && pThis->GetStoragePercentage() < 1.0 && pCell->HasTiberium())
+//	{
+//		auto tiberium = pCell->GetContainedTiberiumIndex();
+//	}
+//}
+
+DEFINE_HOOK(0x700E47, TechnoClass_CanDeploy_DeployDelay, 0xA)
 {
-	if (pThis->Type->Slaved)
-	{
-		if (pThis->Type->Storage)
-		{
-			auto pCell = pThis->GetCell();
-			if (!pCell->HasTiberium() || pThis->GetStoragePercentage() == 1.0)
-			{
-				pThis->PlayAnim(DoType::Ready);
-				pThis->QueueMission(Mission::Guard, false);
-				return 1;
-			}
-			else
-			{
-				if (pThis->SequenceAnim != DoType::Shovel)
-				{
-					pThis->PlayAnim(DoType::Shovel);
-				}
+	GET(TechnoClass*, pThis, ESI);
 
-				auto tiberium = pCell->GetContainedTiberiumIndex();
-				auto curamount = pThis->Type->Storage - pThis->Tiberium.GetTotalAmount();
-				const auto reduceamount = curamount <= 1.0 ? curamount : 1.0;
-
-				pCell->ReduceTiberium(reduceamount);
-				pThis->Tiberium.AddAmount(reduceamount, tiberium);
-				return pThis->Type->HarvestRate;
-			}
-		}
-	}
-
-	if (!pThis->Destination)
-		return 1;
-
-	auto pCell = pThis->GetCell();
-	if (pThis->Type->ResourceGatherer && pThis->GetStoragePercentage() < 1.0 && pCell->HasTiberium())
-	{
-		auto tiberium = pCell->GetContainedTiberiumIndex();
-	}
+	return (TechnoExt::ExtMap.Find(pThis)->Convert_Deploy_Delay.InProgress() || pThis->IsUnderEMP())
+		? 0x700DCE : 0x700E59;
 }
+
+//DEFINE_HOOK(0x54C531, JumpjetLocomotionClass_State3_DeployToLand_Convert, 0x6)
+//{
+//	GET(CellClass*, pCell, EAX);
+//	GET(FootClass*, pLinked, EDI);
+//
+//	if (auto pUnit = specific_cast<UnitClass*>(pLinked)) {
+//
+//		if (!pUnit->Type->DeployToLand)
+//			return 0x0;
+//
+//		if(MapClass::Instance->IsWithinUsableArea(pCell->MapCoords , true)){
+//			if (auto pConvert = TechnoTypeExt::ExtMap.Find(pUnit->Type)->Convert_Deploy) {
+//				if (!MapClass::Instance->CanMoveHere(pCell->MapCoords, 1, 1, pConvert->SpeedType, -1, pConvert->MovementZone, -1, false, false))
+//					return 0x54C53B;
+//				else
+//					return 0x54C544;
+//			}
+//		}
+//	}
+//
+//	return 0x0;
+//}
 //DEFINE_HOOK(0x6F6D0E, TechnoClass_Unlimbo_LastStep, 7)
 //{
 //	GET(TechnoClass*, pThis, ESI);

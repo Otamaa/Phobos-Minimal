@@ -120,13 +120,16 @@ public:
 		InfantryTypeClass* HijackerLastDisguiseType { nullptr };
 		HouseClass* HijackerLastDisguiseHouse { nullptr };
 
+		CDTimerClass Convert_Deploy_Delay { };
+		bool DoingUnloadFire { false };
+
 		ExtData(TechnoClass* OwnerObject) : Extension<TechnoClass>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override = default;
 
 		void InvalidatePointer(void* ptr, bool bRemoved);
-		bool InvalidateIgnorable(void* ptr) const;
+		static bool InvalidateIgnorable(void* ptr);
 
 		ShieldClass* GetShield() const {
 			return this->Shield.get();

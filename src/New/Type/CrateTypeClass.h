@@ -14,7 +14,7 @@ class WeaponTypeClass;
 class CrateTypeClass final : public Enumerable<CrateTypeClass>
 {
 public:
-	
+
     Valueable<SuperWeaponTypeClass*> Super;
 	Valueable<WeaponTypeClass*> WeaponType;
 	Valueable<bool> SuperGrant;
@@ -27,7 +27,7 @@ public:
 	ValueableVector<UnitTypeClass*> Unit;
     Valueable<int> MoneyMin;
     Valueable<int> MoneyMax;
-	
+
     CrateTypeClass(const char* const pTitle): Enumerable<CrateTypeClass>(pTitle),
         Super(nullptr),
         WeaponType(nullptr),

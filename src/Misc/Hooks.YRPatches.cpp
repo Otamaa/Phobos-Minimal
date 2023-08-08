@@ -170,41 +170,6 @@
 //	return pThis->Owner ? 0x0 : 0x70B1C7;
 //}
 
-DEFINE_HOOK(0x70F820, TechnoClass_GetOriginalOwner_ValidateCaptureManager, 0x6)
-{
-	GET(TechnoClass* const, pThis, ECX);
-
-	if (pThis->MindControlledBy && pThis->MindControlledBy->CaptureManager)
-	{
-		R->EAX(pThis->MindControlledBy);
-		return 0x70F82A;
-	}
-
-	if (pThis->MindControlledByAUnit)
-	{
-		return 0x70F841;
-	}
-
-	return 0x70F837;
-}
-
-DEFINE_HOOK(0x65DC11, Do_Reinforcement_ValidateHouse, 0x6)
-{
-	GET(FootClass* const, pReinforcee, EBP);
-
-	if (!pReinforcee->Owner)
-	{
-		R->EAX(Edge::North);
-		return 0x65DC2B;
-	}
-
-	const Edge nEdge =
-		pReinforcee->Owner->StartingEdge < Edge::North || pReinforcee->Owner->StartingEdge > Edge::West
-		? pReinforcee->Owner->GetHouseEdge() : pReinforcee->Owner->StartingEdge;
-
-	R->EAX(nEdge);
-	return 0x65DC2B;
-}
 
 //DEFINE_HOOK(0x6F49CA, TechnoClass_Reveal_ValidateHouse, 0x6)
 //{

@@ -266,7 +266,7 @@ DEFINE_OVERRIDE_HOOK(0x46920B, BulletClass_Detonate, 6)
 	auto const pTechno = pThis->Owner ? pThis->Owner : nullptr;
 	auto const pOwnerHouse = pTechno ? pTechno->Owner : BulletExt::ExtMap.Find(pThis)->Owner;
 
-	pWHExt->Detonate(pTechno, pOwnerHouse, pThis, *pCoordsDetonation);
+	pWHExt->Detonate(pTechno, pOwnerHouse, pThis, *pCoordsDetonation , pThis->WeaponType ? pThis->WeaponType->Damage : 0);
 	PhobosGlobal::Instance()->DetonateDamageArea = false;
 
 	// this snapping stuff does not belong here. it should go into BulletClass::Fire
@@ -297,8 +297,8 @@ DEFINE_OVERRIDE_HOOK(0x46920B, BulletClass_Detonate, 6)
 	// this check, you have to fix that as well
 	if (targetStillOnMap) {
 
-		//auto const damage = pThis->WeaponType ? pThis->WeaponType->Damage : 0;
-		//AresData::applyIC(pWarhead, &coords, pOwnerHouse, damage);
+		auto const damage = pThis->WeaponType ? pThis->WeaponType->Damage : 0;
+		pWHExt->applyIronCurtain(coords, pOwnerHouse, damage);
 		AresData::applyEMP(pWarhead, &coords, pThis->Owner);
 		AresData::applyAE(pWarhead, &coords, pOwnerHouse);
 

@@ -36,7 +36,7 @@ void SW_UnitDelivery::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	const char* section = pData->get_ID();
 
 	INI_EX exINI(pINI);
-	pData->SW_Deliverables.Read(exINI, section, "Deliver.Types");
+	pData->SW_Deliverables.Read(exINI, section, "Deliver.Types" , true);
 	pData->SW_BaseNormal.Read(exINI, section, "Deliver.BaseNormal");
 	pData->SW_OwnerHouse.Read(exINI, section, "Deliver.Owner");
 	pData->SW_DeliverBuildups.Read(exINI, section, "Deliver.BuildUp");
@@ -96,6 +96,10 @@ void UnitDeliveryStateMachine::PlaceUnits()
 	for (auto nPos = pData->SW_Deliverables.begin(); nPos != pData->SW_Deliverables.end(); ++nPos)
 	{
 		auto pType = *nPos;
+
+		if (!pType)
+			continue;
+
 		auto Item = static_cast<TechnoClass*>(pType->CreateObject(pOwner));
 
 		if (!Item)
@@ -198,7 +202,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 						Item->QueueMission(Mission::Hunt, true);
 				}
 
-				if (!TechnoExt_ExtData::IsPowered(Item) || (!Item->align_154->Is_Operated && !TechnoExt_ExtData::IsOperated(Item)))
+				if (!TechnoExt_ExtData::IsPowered(Item) || !TechnoExt_ExtData::IsOperatedB(Item))
 				{
 					Item->Deactivate();
 					if (ItemBuilding)

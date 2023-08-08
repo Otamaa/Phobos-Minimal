@@ -5,6 +5,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/WarheadType/Body.h>
+#include <Ext/Bullet/Body.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/Helpers.h>
@@ -195,20 +196,27 @@ DWORD AnimExt::DealDamageDelay(AnimClass* pThis)
 		pThis->Accum = 0.0;
 
 	const auto nCoord = pExt && pExt->BackupCoords.has_value() ? pExt->BackupCoords.get() : pThis->GetCoords();
-	const auto nDamageResult = static_cast<int>(appliedDamage *
-		TechnoExt::GetDamageMult(pInvoker, !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
 	const auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->GetOwningHouse() : nullptr;
 
 	if (auto const pWeapon = pTypeExt->Weapon.Get(nullptr))
 	{
 		AbstractClass* pTarget = AnimExt::GetTarget(pThis);
 		// use target loc instead of anim loc , it doesnt work well with bridges
-		WeaponTypeExt::DetonateAt(pWeapon, pTarget ? pTarget->GetCoords() : nCoord, pTarget, pInvoker, nDamageResult , false , pOwner);
+		//auto pBullet = pWeapon->Projectile->CreateBullet(pTarget, pInvoker, nDamageResult, pWeapon->Warhead, pWeapon->Speed, pWeapon->Bright);
+		//pBullet->SetWeaponType(pWeapon);
+		//pBullet->Limbo();
+		//pBullet->SetLocation(nCoord);
+		//pBullet->Explode(true);
+		//pBullet->UnInit();
+
+		WeaponTypeExt::DetonateAt(pWeapon, nCoord, pTarget, pInvoker, appliedDamage, pTypeExt->Damage_ConsiderOwnerVeterancy.Get(), pOwner);
 	}
 	else
 	{
 		auto const pWarhead = pThis->Type->Warhead ? pThis->Type->Warhead :
 			!pTypeExt->IsInviso ? RulesClass::Instance->FlameDamage2 : RulesClass::Instance->C4Warhead;
+
+		const auto nDamageResult = static_cast<int>(appliedDamage * TechnoExt::GetDamageMult(pInvoker, !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
 
 		if (pTypeExt->Warhead_Detonate.Get())
 		{
@@ -282,7 +290,7 @@ AbstractClass* AnimExt::GetTarget(AnimClass* pThis)
 	auto const pTypeExt = AnimTypeExt::ExtMap.Find(pType);
 
 	if (!pTypeExt->Damage_TargetFlag.isset()) {
-		return pThis->OwnerObject ? (AbstractClass*)pThis->OwnerObject : pThis->GetCell();
+		return pThis->GetCell();
 	}
 
 	switch (pTypeExt->Damage_TargetFlag.Get())
@@ -313,7 +321,7 @@ AbstractClass* AnimExt::GetTarget(AnimClass* pThis)
 	return nullptr;
 }
 
-bool AnimExt::ExtData::InvalidateIgnorable(void* ptr) const
+bool AnimExt::ExtData::InvalidateIgnorable(void* ptr)
 {
 	switch (VTable::Get(ptr))
 	{
@@ -589,16 +597,16 @@ DEFINE_HOOK(0x4253FF, AnimClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
-{
-	GET(AnimClass* const, pThis, ESI);
-	GET(void*, target, EDI);
-	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
-
-	AnimExt::ExtMap.InvalidatePointerFor(pThis, target, all);
-
-	R->EBX(0);
-	return pThis->OwnerObject == target && target ? 0x425174 : 0x4251A3;
-}
+//DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
+//{
+//	GET(AnimClass* const, pThis, ESI);
+//	GET(void*, target, EDI);
+//	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+//
+//	AnimExt::ExtMap.InvalidatePointerFor(pThis, target, all);
+//
+//	R->EBX(0);
+//	return pThis->OwnerObject == target && target ? 0x425174 : 0x4251A3;
+//}
 
 DEFINE_JUMP(VTABLE, 0x7E3390, GET_OFFSET(AnimExt::GetOwningHouse_Wrapper));

@@ -73,10 +73,10 @@
     <ClCompile Include="src\Ext\House\Hooks.AINavalProduction.cpp" />
     <ClCompile Include="src\Ext\House\Hooks.cpp" />
     <ClCompile Include="src\Ext\InfantryType\Body.cpp" />
-    <ClCompile Include="src\Ext\InfantryType\Hooks.CrawlWeapon.cpp" />
     <ClCompile Include="src\Ext\Infantry\Body.cpp" />
     <ClCompile Include="src\Ext\LaserDraw\Hooks.Drawing.cpp" />
     <ClCompile Include="src\Ext\OverlayType\Body.cpp" />
+    <ClCompile Include="src\Ext\OverlayType\Hooks.cpp" />
     <ClCompile Include="src\Ext\Parasite\Body.cpp" />
     <ClCompile Include="src\Ext\Parasite\Hooks.cpp" />
     <ClCompile Include="src\Ext\ParticleSystem\Body.cpp" />
@@ -99,6 +99,7 @@
     <ClCompile Include="src\Ext\SmudgeType\Body.cpp" />
     <ClCompile Include="src\Ext\SmudgeType\Hooks.cpp" />
     <ClCompile Include="src\Ext\SpawnManager\Body.cpp" />
+    <ClCompile Include="src\Ext\SpawnManager\Hooks.cpp" />
     <ClCompile Include="src\Ext\Super\Body.cpp" />
     <ClCompile Include="src\Ext\Surface\Body.cpp" />
     <ClCompile Include="src\Ext\SWType\Hook.ShortTimer.cpp" />
@@ -128,6 +129,7 @@
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\SWStateMachine.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\UnitDelivery.cpp" />
     <ClCompile Include="src\Ext\Tactical\Body.cpp" />
+    <ClCompile Include="src\Ext\Tactical\Hooks.cpp" />
     <ClCompile Include="src\Ext\TAction\Body.cpp" />
     <ClCompile Include="src\Ext\TAction\Hooks.cpp" />
     <ClCompile Include="src\Ext\TeamType\Body.cpp" />
@@ -159,6 +161,7 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Shield.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Shield.Thread.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Targeting.MapZone.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.Targeting.Unfinish..cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Transport.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.VehicleToBuildingMCFix.cpp" />
     <ClCompile Include="src\Ext\Temporal\Body.cpp" />
@@ -187,7 +190,6 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Header.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hook.Init.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Aircraft.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Ammo.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Anim.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bomb.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bugfix.Buffer.cpp" />
@@ -224,9 +226,12 @@
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\TurretAngle\Status.cpp" />
     <ClCompile Include="src\Misc\Hooks.Blowfish.cpp" />
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
+    <ClCompile Include="src\Misc\Hooks.Crashes.cpp" />
     <ClCompile Include="src\Misc\Hooks.HealthBar.cpp" />
+    <ClCompile Include="src\Misc\Hooks.Image.cpp" />
+    <ClCompile Include="src\Misc\Hooks.LogicUpdater.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
-    <ClCompile Include="src\Misc\Hooks.YRPatches.cpp" />
+    <ClCompile Include="src\Misc\Hooks.UI.cpp" />
     <ClCompile Include="src\Misc\MapRevealer.cpp" />
     <ClCompile Include="src\Misc\PhobosGlobal.cpp" />
     <ClCompile Include="src\New\Interfaces\TestLocomotionClass.cpp" />
@@ -264,15 +269,9 @@
     <ClCompile Include="src\Misc\DynamicPatcher\Trails\TrailsManager.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Trails\TrailType.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Weapon\AttachFireData.cpp" />
-    <ClCompile Include="src\Misc\Hooks.GameSpeed.cpp" />
-    <ClCompile Include="src\Misc\Hooks.Image.cpp" />
     <ClCompile Include="src\Misc\Hooks.INIClass.cpp" />
-    <ClCompile Include="src\Misc\Hooks.LogicUpdater.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.Logics.cpp" />
     <ClCompile Include="src\Misc\Hooks.PCX.cpp" />
-    <ClCompile Include="src\Misc\Hooks.Render.cpp" />
-    <ClCompile Include="src\Misc\Hooks.Timers.cpp" />
-    <ClCompile Include="src\Misc\Hooks.UI.cpp" />
     <ClCompile Include="src\Misc\Patches.cpp" />
     <ClCompile Include="src\Misc\PhobosToolTip.cpp" />
     <ClCompile Include="src\Misc\RetryDialog.cpp" />
@@ -282,7 +281,6 @@
     <ClCompile Include="src\New\AnonymousType\PassengerDeletionTypeClass.cpp" />
     <ClCompile Include="src\New\Entity\ElectricBoltClass.cpp" />
     <ClCompile Include="src\New\Entity\FlyingStrings.cpp" />
-    <ClCompile Include="src\New\Entity\HomingMissileTargetTracker.cpp" />
     <ClCompile Include="src\New\Entity\LauchSWData.cpp" />
     <ClCompile Include="src\New\Entity\ShieldClass.cpp" />
     <ClCompile Include="src\New\Interfaces\LevitateLocomotionClass.cpp" />
@@ -482,7 +480,6 @@
     <ClInclude Include="src\New\Entity\DelayFireAnimClass.h" />
     <ClInclude Include="src\New\Entity\ElectricBoltClass.h" />
     <ClInclude Include="src\New\Entity\FlyingStrings.h" />
-    <ClInclude Include="src\New\Entity\HomingMissileTargetTracker.h" />
     <ClInclude Include="src\New\Entity\LauchSWData.h" />
     <ClInclude Include="src\New\Entity\ShieldClass.h" />
     <ClInclude Include="src\New\Interfaces\Base.h" />
@@ -613,7 +610,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>Full</Optimization>
+      <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <SDLCheck>
       </SDLCheck>
@@ -637,12 +634,12 @@
       <DisableSpecificWarnings>4100;4530;4731;4740;4458;4819;4505;26444;26451;6305;4201</DisableSpecificWarnings>
       <EnableModules>false</EnableModules>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <LanguageStandard_C>Default</LanguageStandard_C>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.22000.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>
       <BuildStlModules>false</BuildStlModules>

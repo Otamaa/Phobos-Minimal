@@ -46,7 +46,7 @@ public:
 		//	AnnounceInvalidPointer(Firer, ptr);
 		}
 
-		bool InvalidateIgnorable(void* ptr) const
+		static bool InvalidateIgnorable(void* ptr)
 		{
 			switch (VTable::Get(ptr))
 			{

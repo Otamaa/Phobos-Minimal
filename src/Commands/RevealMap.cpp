@@ -41,6 +41,6 @@ void RevealMapCommandClass::Execute(WWKey eInput) const
 
 	SW_Reveal::RevealMap(pPlayer->GetBaseCenter(), -1.0f, 0, pPlayer);
 
-	if(SessionClass::Instance->GameMode == GameMode::Internet || SessionClass::Instance->GameMode == GameMode::LAN )
-		AresNetEvent::Handlers::RaiseRevealMap(pPlayer);
+	//if(SessionClass::Instance->GameMode == GameMode::Internet || SessionClass::Instance->GameMode == GameMode::LAN )
+		//AresNetEvent::Handlers::RaiseRevealMap(pPlayer);
 }

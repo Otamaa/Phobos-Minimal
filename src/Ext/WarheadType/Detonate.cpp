@@ -104,6 +104,95 @@ void WarheadTypeExt::ExtData::ApplyDirectional(BulletClass* pBullet, TechnoClass
 	//	pTarExt->ReceiveDamageMultiplier = this->DirectionalArmor_SideMultiplier.Get();
 }
 
+void WarheadTypeExt::ExtData::applyIronCurtain(const CoordStruct& coords, HouseClass* Owner, int damage)
+{
+	CellStruct cellCoords = MapClass::Instance->GetCellAt(coords)->MapCoords;
+
+	if (this->IC_Duration != 0)
+	{
+		// set of affected objects. every object can be here only once.
+		auto items = Helpers::Alex::getCellSpreadItems(coords, this->OwnerObject()->CellSpread, true);
+
+		// affect each object
+		for (auto curTechno : items)
+		{
+			// don't protect the dead
+			if (!curTechno || curTechno->InLimbo || !curTechno->IsAlive || !curTechno->Health)
+			{
+				continue;
+			}
+
+			// affects enemies or allies respectively?
+			if (!this->CanAffectHouse(curTechno->Owner, Owner))
+			{
+				continue;
+			}
+
+			auto pType = curTechno->GetType();
+			// respect verses the boolean way
+			if (std::abs(this->GetVerses(pType->Armor).Verses) < 0.001)
+			{
+				continue;
+			}
+
+			// affect each object
+			{
+				// duration modifier
+				int duration = this->IC_Duration;
+
+				auto pType = curTechno->GetTechnoType();
+
+				// modify good durations only
+				if (duration > 0)
+				{
+					duration = static_cast<int>(duration * TechnoTypeExt::ExtMap.Find(pType)->IronCurtain_Modifier);
+				}
+
+				// get the values
+				int oldValue = (curTechno->IronCurtainTimer.Expired() ? 0 : curTechno->IronCurtainTimer.GetTimeLeft());
+				int newValue = Helpers::Alex::getCappedDuration(oldValue, duration, this->IC_Cap);
+
+				// update iron curtain
+				if (oldValue <= 0)
+				{
+					// start iron curtain effect?
+					if (newValue > 0)
+					{
+						// damage the victim before ICing it
+						if (damage)
+						{
+							curTechno->ReceiveDamage(&damage, 0, this->OwnerObject(), nullptr, true, false, Owner);
+						}
+
+						// unit may be destroyed already.
+						if (curTechno->IsAlive)
+						{
+							// start and prevent the multiplier from being applied twice
+							curTechno->IronCurtain(newValue, Owner, false);
+							curTechno->IronCurtainTimer.Start(newValue);
+						}
+					}
+				}
+				else
+				{
+					// iron curtain effect is already on.
+					if (newValue > 0)
+					{
+						// set new length and reset tint stage
+						curTechno->IronCurtainTimer.Start(newValue);
+						curTechno->IronTintStage = 4;
+					}
+					else
+					{
+						// turn iron curtain off
+						curTechno->IronCurtainTimer.Stop();
+					}
+				}
+			}
+		}
+	}
+}
+
 void WarheadTypeExt::ExtData::applyIronCurtain(TechnoClass* curTechno, HouseClass* Owner, int damage)
 {
 	if (this->IC_Duration != 0) {
@@ -438,7 +527,7 @@ bool NOINLINE IsCellSpreadWH(WarheadTypeExt::ExtData* pData)
 		;
 }
 
-void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct coords)
+void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct coords, int damage)
 {
 	VocClass::PlayIndexAtPos(Sound, coords);
 	if (!this->DetonateParticleSystem.empty()) {
@@ -511,7 +600,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 			std::vector<TechnoClass*> pTargetv = Helpers::Alex::getCellSpreadItems(coords, cellSpread, true);
 
 			std::for_each(pTargetv.begin(), pTargetv.end(), [&](TechnoClass* pTarget) {
-				 this->DetonateOnOneUnit(pHouse, pTarget, pOwner, pBullet, ThisbulletWasIntercepted);
+				 this->DetonateOnOneUnit(pHouse, pTarget, damage, pOwner, pBullet, ThisbulletWasIntercepted);
 			});
 
 			if (this->Transact) {
@@ -543,7 +632,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 						return static_cast<TechnoClass* const>(nullptr);
 					};
 
-					this->DetonateOnOneUnit(pHouse, static_cast<TechnoClass*>(pBullet->Target), pOwner, pBullet, ThisbulletWasIntercepted);
+					this->DetonateOnOneUnit(pHouse, static_cast<TechnoClass*>(pBullet->Target), damage, pOwner,  pBullet, ThisbulletWasIntercepted);
 
 					if (this->Transact)
 						this->TransactOnOneUnit(Eligible(static_cast<TechnoClass*>(pBullet->Target)), pOwner, 1);
@@ -562,17 +651,12 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 	}
 }
 
-void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* pOwner, BulletClass* pBullet, bool bulletWasIntercepted)
+void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, int damage, TechnoClass* pOwner, BulletClass* pBullet, bool bulletWasIntercepted)
 {
 	if (!this->CanDealDamage(pTarget))
 		return;
 
 	if (!this->CanTargetHouse(pHouse, pTarget))
-		return;
-
-	this->applyIronCurtain(pTarget, pHouse, pBullet ? pBullet->WeaponType ? pBullet->WeaponType->Damage : 0 : 0);
-
-	if (!pTarget->IsAlive)
 		return;
 
 	if (!this->LimboKill_IDs.empty()) {
@@ -590,8 +674,12 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 	if (this->PermaMC)
 		this->applyPermaMC(pHouse, pTarget);
 
-	if (this->Crit_Chance && (!this->Crit_SuppressOnIntercept || !bulletWasIntercepted))
+	if (this->Crit_Chance && (!this->Crit_SuppressOnIntercept || !bulletWasIntercepted)){
 		this->ApplyCrit(pHouse, pTarget, pOwner);
+
+		if (!pTarget->IsAlive)
+			return;
+	}
 
 	auto pExt = TechnoExt::ExtMap.Find(pTarget);
 
@@ -697,7 +785,7 @@ void WarheadTypeExt::ExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 						pExt->Shield->SetHP((int)(shieldType->Strength * oldRatio));
 
 						if (pExt->Shield->GetHP() == 0)
-							pExt->Shield->SetRespawn(shieldType->Respawn_Rate, shieldType->Respawn, shieldType->Respawn_Rate, true);
+							pExt->Shield->SetRespawn(shieldType->Respawn_Rate, shieldType->Respawn, shieldType->Respawn_Rate, this->Shield_Respawn_RestartTimer);
 					}
 				}
 			}
@@ -715,12 +803,14 @@ void WarheadTypeExt::ExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 				pExt->Shield->BreakShield(this->Shield_BreakAnim.Get(nullptr), this->Shield_BreakWeapon.Get(nullptr));
 
 			if (this->Shield_Respawn_Duration > 0 && this->Shield_Respawn_Types.Eligible(this->Shield_AffectTypes, pCurrentType))
-				pExt->Shield->SetRespawn(this->Shield_Respawn_Duration, this->Shield_Respawn_Amount, this->Shield_Respawn_Rate, this->Shield_Respawn_ResetTimer);
+				pExt->Shield->SetRespawn(this->Shield_Respawn_Duration, this->Shield_Respawn_Amount, this->Shield_Respawn_Rate, this->Shield_Respawn_RestartTimer);
 
 			if (this->Shield_SelfHealing_Duration > 0 && this->Shield_SelfHealing_Types.Eligible(this->Shield_AffectTypes, pCurrentType))
 			{
 				double amount = this->Shield_SelfHealing_Amount.Get(pCurrentType->SelfHealing);
-				pExt->Shield->SetSelfHealing(this->Shield_SelfHealing_Duration, amount, this->Shield_SelfHealing_Rate, this->Shield_SelfHealing_ResetTimer);
+				pExt->Shield->SetSelfHealing(this->Shield_SelfHealing_Duration, amount, this->Shield_SelfHealing_Rate,
+					this->Shield_SelfHealing_RestartInCombat.Get(pExt->Shield->GetType()->SelfHealing_RestartInCombat),
+					this->Shield_SelfHealing_RestartInCombatDelay, this->Shield_SelfHealing_RestartTimer);
 			}
 		}
 }
@@ -745,11 +835,18 @@ void WarheadTypeExt::ExtData::ApplyRemoveDisguise(HouseClass* pHouse, TechnoClas
 
 void WarheadTypeExt::ExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* pOwner)
 {
-	const double dice = this->Crit_ApplyChancePerTarget ?
-		ScenarioClass::Instance->Random.RandomDouble() : this->RandomBuffer;
-
-	if (this->Crit_Chance < dice)
+	if (TechnoExt::IsCritImmune(pTarget))
 		return;
+
+	const auto& tresh = this->Crit_GuaranteeAfterHealthTreshold.Get(pTarget);
+
+	if(!tresh->isset() || pTarget->GetHealthPercentage() > tresh->Get()){
+		const double dice = this->Crit_ApplyChancePerTarget ?
+			ScenarioClass::Instance->Random.RandomDouble() : this->RandomBuffer;
+
+		if (this->Crit_Chance < dice)
+			return;
+	}
 
 	if (auto pExt = TechnoExt::ExtMap.Find(pTarget))
 	{
@@ -757,9 +854,6 @@ void WarheadTypeExt::ExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget
 		if (pSld && pSld->IsActive() && pSld->GetType()->ImmuneToCrit)
 			return;
 	}
-
-	if (TechnoExt::IsCritImmune(pTarget))
-		return;
 
 	if (pTarget->GetHealthPercentage() > this->Crit_AffectBelowPercent)
 		return;
@@ -789,7 +883,7 @@ void WarheadTypeExt::ExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget
 	auto damage = this->Crit_ExtraDamage.Get();
 
 	if (this->Crit_Warhead.isset())
-		WarheadTypeExt::DetonateAt(this->Crit_Warhead.Get(), pTarget, pOwner, damage);
+		WarheadTypeExt::DetonateAt(this->Crit_Warhead.Get(), pTarget, pOwner, damage , pHouse);
 	else
 		pTarget->ReceiveDamage(&damage, 0, this->Get(), pOwner, false, false, pHouse);
 }

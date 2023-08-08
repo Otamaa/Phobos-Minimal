@@ -76,14 +76,14 @@ public:
 	ParticleSystemClass* ParticleSystem;
 	short RemainingEC;
 	short RemainingDC;
-	char StateAIAdvance;
-	char CoordChange;
-	char StartStateAI;
-	char Translucency;
-	char byte130;
-	char hasremaining;
-	char field_132;
-	char field_133;
+	BYTE StateAIAdvance;
+	BYTE CoordChange;
+	BYTE StartStateAI;
+	BYTE Translucency;
+	BYTE byte130;
+	BYTE hasremaining;
+	BYTE field_132;
+	BYTE field_133;
 	PROTECTED_PROPERTY(DWORD, align_134);
 
 };

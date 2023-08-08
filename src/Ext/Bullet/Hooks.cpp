@@ -301,8 +301,44 @@ DEFINE_HOOK(0x46A290, BulletClass_Logics_ExtraWarheads, 0x5)
 			if (pWeaponExt->ExtraWarheads_DamageOverrides.size() > i)
 				damage = pWeaponExt->ExtraWarheads_DamageOverrides[i];
 
-			WarheadTypeExt::DetonateAt(pWH, *coords, pThis->Owner, damage, pOwner);
+			WarheadTypeExt::DetonateAt(pWH, pThis->Target, *coords, pThis->Owner, damage , pOwner);
 		}
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x6FE657, TechnoClass_FireAt_ArcingFix, 0x6)
+{
+	GET_STACK(BulletTypeClass*, pBulletType, STACK_OFFSET(0xB0, -0x48));
+	GET(int, targetHeight, EDI);
+	GET(int, fireHeight, EAX);
+
+	if (pBulletType->Arcing && targetHeight > fireHeight)
+	{
+		auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pBulletType);
+
+		if (!pBulletTypeExt->Arcing_AllowElevationInaccuracy)
+			R->EAX(targetHeight);
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x44D23C, BuildingClass_Mission_Missile_ArcingFix, 0x7)
+{
+	GET(WeaponTypeClass*, pWeapon, EBP);
+	GET(int, targetHeight, EBX);
+	GET(int, fireHeight, EAX);
+
+	auto const pBulletType = pWeapon->Projectile;
+
+	if (pBulletType->Arcing && targetHeight > fireHeight)
+	{
+		auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pBulletType);
+
+		if (!pBulletTypeExt->Arcing_AllowElevationInaccuracy)
+			R->EAX(targetHeight);
 	}
 
 	return 0;

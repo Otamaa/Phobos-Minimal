@@ -191,34 +191,25 @@ struct AresThiscall<idx, void, TThis, TArgs...>
 DWORD AresData::AresCustomPaletteReadFuncFinal[AresData::AresCustomPaletteReadCount];
 DWORD AresData::AresStaticInstanceFinal[AresData::AresStaticInstanceCount];
 
-bool EMPulse::IsDeactivationAdvisable(TechnoClass* Target)
-{
-	switch (Target->CurrentMission)
-	{
-	case Mission::Selling:
-	case Mission::Construction:
-	case Mission::Unload:
-		return false;
-	}
-
-	return true;
-}
+//bool EMPulse::IsDeactivationAdvisable(TechnoClass* Target)
+//{
+//	switch (Target->CurrentMission)
+//	{
+//	case Mission::Selling:
+//	case Mission::Construction:
+//	case Mission::Unload:
+//		return false;
+//	}
+//
+//	return true;
+//}
 
 bool AresData::Init()
 {
-	AresBaseAddress = Patch::GetModuleBaseAddress(ARES_DLL_S);
-	PhobosBaseAddress = Patch::GetModuleBaseAddress(PHOBOS_DLL_S);
-	Debug::LogDeferred("[Phobos] Phobos base address: 0x%X.\n", PhobosBaseAddress);
-
-	if (!AresBaseAddress)
-	{
-		Debug::LogDeferred("[Phobos] Failed to detect Ares. Disabling integration.\n");
-		return false;
-	}
-	else
-	{
-		Debug::LogDeferred("[Phobos] Ares base address: 0x%X.\n", AresBaseAddress);
-	}
+	const auto& ares = Patch::ModuleDatas[ARES_DLL_S];
+	AresDllHmodule = ares.Handle;
+	AresBaseAddress = ares.BaseAddr;
+	PhobosBaseAddress = Patch::ModuleDatas[PHOBOS_DLL_S].BaseAddr;
 
 	// find offset of PE header
 	const int PEHeaderOffset = *(DWORD*)(AresBaseAddress + 0x3c);
@@ -339,20 +330,17 @@ bool AresData::Init()
 		0x0C2E14, //Ebolt - Ext map
 	};
 
-	if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, ARES_DLL, &AresDllHmodule))
-	{
-		for (int a = 0; a < FunctionIndices::count; a++)
-			AresFunctionOffsetsFinal[a] = AresData::AresBaseAddress + AresFunctionOffsets[a];
+	for (int a = 0; a < FunctionIndices::count; a++)
+		AresFunctionOffsetsFinal[a] = AresData::AresBaseAddress + AresFunctionOffsets[a];
 
-		for (int b = 0; b < AresData::AresStaticInstanceCount; b++)
-			AresData::AresStaticInstanceFinal[b] = AresData::AresBaseAddress + AresStaticInstanceTable[b];
+	for (int b = 0; b < AresData::AresStaticInstanceCount; b++)
+		AresData::AresStaticInstanceFinal[b] = AresData::AresBaseAddress + AresStaticInstanceTable[b];
 
-		for (int c = 0; c < AresData::AresCustomPaletteReadCount; c++)
-			AresData::AresCustomPaletteReadFuncFinal[c] = AresData::AresBaseAddress + AAresCustomPaletteReadTable[c];
+	for (int c = 0; c < AresData::AresCustomPaletteReadCount; c++)
+		AresData::AresCustomPaletteReadFuncFinal[c] = AresData::AresBaseAddress + AAresCustomPaletteReadTable[c];
 
-		AresData::AresMemDelAddrFinal = AresData::AresBaseAddress + 0x0077FCA;
-		AresData::AresMemAllocAddrFinal = AresData::AresBaseAddress + 0x077F9A;
-	}
+	AresData::AresMemDelAddrFinal = AresData::AresBaseAddress + 0x0077FCA;
+	AresData::AresMemAllocAddrFinal = AresData::AresBaseAddress + 0x077F9A;
 
 	return true;
 }
@@ -378,7 +366,7 @@ void AresData::SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller
 
 void AresData::RecalculateStat(TechnoClass* const pTechno)
 {
-	AresThiscall<RecalculateStatID, void,  void*>()(GetAresTechnoExt(pTechno));
+	AresThiscall<RecalculateStatID, void,  void*>()((void*)pTechno->align_154);
 }
 
 bool AresData::ReverseEngineer(BuildingClass* const pBld, TechnoTypeClass* const pTechnoType)
@@ -408,7 +396,7 @@ bool AresData::SW_Activate(SuperClass* pSuper, CellStruct cell, bool isPlayer)
 
 void AresData::TechnoExt_ExtData_DepositTiberium(TechnoClass* const pTechno, float const amount, float const bonus, int const idxType)
 {
-	AresThiscall<DepositTiberiumID, void, void* , float , float , int>()(GetAresTechnoExt(pTechno) ,amount , bonus , idxType);
+	AresThiscall<DepositTiberiumID, void, void* , float , float , int>()((void*)pTechno->align_154,amount , bonus , idxType);
 }
 
 void AresData::HouseExt_ExtData_ApplyAcademy(HouseClass* const pThis, TechnoClass* const pTarget, AbstractType Type)
@@ -438,7 +426,7 @@ bool AresData::IsGenericPrerequisite(TechnoTypeClass* const pThis)
 
 int AresData::GetSelfHealAmount(TechnoClass* const pTechno)
 {
-	return AresThiscall<GetSelfHealAmountID, int, void*>()(GetAresTechnoExt(pTechno));
+	return AresThiscall<GetSelfHealAmountID, int, void*>()((void*)pTechno->align_154);
 }
 
 //bool AresData::IsOperated(TechnoClass* const pTechno)
@@ -502,14 +490,14 @@ std::vector<FootClass*>* AresData::GetTunnelArray(BuildingTypeClass* const pBld,
 	return AresThiscall<GetTunnelArrayID, std::vector<FootClass*>*, void* , HouseClass* const>()(GetAresBuildingTypeExt(pBld) , pOwner);
 }
 
-void AresData::UpdateAEData(AEData* const pAE)
+void AresData::UpdateAEData(AresTechnoExt::AEData* const pAE)
 {
-	AresThiscall<UpdateAEDataID, void, AEData* const>()(pAE);
+	AresThiscall<UpdateAEDataID, void, AresTechnoExt::AEData* const>()(pAE);
 }
 
-void AresData::JammerClassUnjamAll(JammerClass* const pJamm)
+void AresData::JammerClassUnjamAll(AresTechnoExt::JammerClass* const pJamm)
 {
-	AresThiscall<JammerclassUnjamAllID, void, JammerClass* const>()(pJamm);
+	AresThiscall<JammerclassUnjamAllID, void, AresTechnoExt::JammerClass* const>()(pJamm);
 }
 
 void AresData::CPrismRemoveFromNetwork(cPrismForwarding* const pThis, bool bCease)
@@ -552,39 +540,39 @@ bool AresData::ImmolateVictim(BuildingClass* pBuilding, FootClass* pTarget, bool
 	return AresThiscall<ImmolateVictimID, bool, void*, FootClass*, bool>()(GetAresBuildingExt(pBuilding), pTarget , Destroy);
 }
 
-void AresData::DisableEMPEffect(TechnoClass* pTechno)
-{
-	AresStdcall<DisableEMPAffectID, void, TechnoClass*>()(pTechno);
-}
+//void AresData::DisableEMPEffect(TechnoClass* pTechno)
+//{
+//	AresStdcall<DisableEMPAffectID, void, TechnoClass*>()(pTechno);
+//}
 
 bool AresData::CloakDisallowed(TechnoClass* pTechno, bool allowPassive)
 {
-	return AresThiscall<CloakDisallowedID, bool, void*, bool>()(GetAresTechnoExt(pTechno), allowPassive);
+	return AresThiscall<CloakDisallowedID, bool, void*, bool>()((void*)pTechno->align_154, allowPassive);
 }
 
 bool AresData::CloakAllowed(TechnoClass* pTechno)
 {
-	return AresThiscall<CloadAllowedID, bool, void*>()(GetAresTechnoExt(pTechno));
+	return AresThiscall<CloadAllowedID, bool, void*>()((void*)pTechno->align_154);
 }
 
-bool AresData::RemoveAE(AEData* pAE)
+bool AresData::RemoveAE(AresTechnoExt::AEData* pAE)
 {
-	return AresThiscall<RemoveAEID, bool , AEData*>()(pAE);
+	return AresThiscall<RemoveAEID, bool , AresTechnoExt::AEData*>()(pAE);
 }
 
 void AresData::FlyingStringsAdd(TechnoClass* pTech, bool bSomething)
 {
-	AresThiscall<FlyingStringsAddID, void, void*, bool>()(GetAresTechnoExt(pTech), bSomething);
+	AresThiscall<FlyingStringsAddID, void, void*, bool>()((void*)pTech->align_154, bSomething);
 }
 
 void AresData::CalculateBounty(TechnoClass* pThis, TechnoClass* pKiller)
 {
-	AresThiscall <CalculateBountyID, void, void*, TechnoClass*>()(GetAresTechnoExt(pThis), pKiller);
+	AresThiscall <CalculateBountyID, void, void*, TechnoClass*>()((void*)pThis->align_154, pKiller);
 }
 
 void AresData::SetSpotlight(TechnoClass* pThis, BuildingLightClass* pSpotlight)
 {
-	AresThiscall<SetSpotlightID, void, void*, BuildingLightClass*>()(GetAresTechnoExt(pThis), pSpotlight);
+	AresThiscall<SetSpotlightID, void, void*, BuildingLightClass*>()((void*)pThis->align_154, pSpotlight);
 }
 
 //bool AresData::IsPowered(TechnoClass* pThis)
@@ -594,12 +582,12 @@ void AresData::SetSpotlight(TechnoClass* pThis, BuildingLightClass* pSpotlight)
 
 bool AresData::IsDriverKillable(TechnoClass* pThis, double tresh)
 {
-	return AresThiscall<IsDriverKillableID, bool, void* , double>()(GetAresTechnoExt(pThis), tresh);
+	return AresThiscall<IsDriverKillableID, bool, void* , double>()((void*)pThis->align_154, tresh);
 }
 
 bool AresData::KillDriverCore(TechnoClass* pThis, HouseClass* pToHouse, TechnoClass* pKiller, bool removeVet)
 {
-	return AresThiscall<KillDriverCoreID, bool, void* ,HouseClass*, TechnoClass* , bool>()(GetAresTechnoExt(pThis), pToHouse , pKiller , removeVet);
+	return AresThiscall<KillDriverCoreID, bool, void* ,HouseClass*, TechnoClass* , bool>()((void*)pThis->align_154, pToHouse , pKiller , removeVet);
 }
 
 void AresData::FireIronCurtain(TeamClass* pTeam, ScriptActionNode* pNode, bool ntrhd)
@@ -649,7 +637,7 @@ bool AresData::TechnoTypeExt_CameoIsElite(TechnoTypeClass* pThis, HouseClass* Ow
 
 Action AresData::TechnoExt_GetActionHijack(TechnoClass* pThis, TechnoClass* pTarget)
 {
-	return AresThiscall<GetActionHijackID, Action, void*, TechnoClass*>()(GetAresTechnoExt(pThis), pTarget);
+	return AresThiscall<GetActionHijackID, Action, void*, TechnoClass*>()((void*)pThis->align_154, pTarget);
 }
 
 void AresData::AresNetEvent_Handlers_RespondToFirewallToggle(HouseClass* pFor, bool Activate)

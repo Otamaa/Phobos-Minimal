@@ -46,11 +46,12 @@ public:
 	BSurface* ImagePCX;
 	ConvertClass* Palette;
 
-	BannerTypeClass(const char* pTitle = NONE_STR) : Enumerable<BannerTypeClass>(pTitle)
-		, Content()
-		, BannerType(BannerType::CSF)
-		, ImageSHP()
-		, Palette()
+	BannerTypeClass(const char* pTitle) : Enumerable<BannerTypeClass>(pTitle)
+		, Content {}
+		, BannerType { BannerType::CSF }
+		, ImageSHP {}
+		, ImagePCX {}
+		, Palette {}
 	{ }
 
 	void LoadImage();

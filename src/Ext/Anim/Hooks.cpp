@@ -33,41 +33,16 @@ DEFINE_HOOK(0x4232E2, AnimClass_DrawIt_AltPalette, 0x6)
 	return SkipGameCode;
 }
 
-namespace ConvertTemp
-{
-	bool isColorScheme = false;
-	int shadeCount = -1;
-}
-
-DEFINE_HOOK(0x68C4AD, GenerateColorSpread_SetContext, 0x5)
-{
-	ConvertTemp::isColorScheme = true;
-
-	return 0;
-}
-
 // Set ShadeCount to 53 to initialize the palette fully shaded - this is required to make it not draw over shroud for some reason.
 DEFINE_HOOK(0x68C4C4, GenerateColorSpread_ShadeCountSet, 0x5)
 {
 	GET(int, shadeCount, EDX);
 
-	ConvertTemp::shadeCount = shadeCount;
-	R->EDX(53);
+	if (shadeCount == 1)
+		R->EDX(53);
 
 	return 0;
 }
-
-DEFINE_HOOK(0x68C4C4, GenerateColorSpread_ShadeCountUnset, 0x5)
-{
-	GET(LightConvertClass*, pConvert, EAX);
-
-	if (pConvert && ConvertTemp::shadeCount != -1) {
-		pConvert->ShadeCount = std::exchange(ConvertTemp::shadeCount , -1);
-	}
-
-	return 0;
-}
-
 
 DEFINE_HOOK(0x422CAB, AnimClass_DrawIt_XDrawOffset, 0x5)
 {

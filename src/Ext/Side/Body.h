@@ -50,6 +50,9 @@ public:
 		NullableVector<TechnoTypeClass*> ParaDropTypes{ };
 		NullableVector<int> ParaDropNum { };
 
+		ValueableIdx<ColorScheme> MessageTextColorIndex { -1 };
+
+		Nullable<AnimTypeClass*> ParachuteAnim {};
 		ExtData(SideClass* OwnerObject) : Extension<SideClass>(OwnerObject)
 		{ }
 

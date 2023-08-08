@@ -61,7 +61,6 @@ void TechnoExt::InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType)
 	 pExt->Type == RulesClass::Instance->DMisl.Type || pExt->Type == RulesClass::Instance->CMisl.Type
 	 || pTypeExt->IsCustomMissile);
 
-
 	pExt->PaintBallState = std::make_unique<PaintBall>();
 
 	if (!Is_Building(pThis))

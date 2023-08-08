@@ -35,6 +35,59 @@
 #include <Notifications.h>
 #include <strsafe.h>
 #include <Ares_TechnoExt.h>
+#include "AresNetEvent.h"
+#include <NetworkEvents.h>
+#include <Networking.h>
+
+void AresNetEvent::Handlers::RaiseRevealMap(HouseClass* pSource)
+{
+	Debug::Log("Sending RevealMap to all clients\n");
+	//NetworkEvent Event;
+	//Event.Kind = static_cast<NetworkEventType>(AresNetEvent::Events::Revealmap);
+	//Event.HouseIndex = byte(pSource->ArrayIndex);
+	//Networking::AddEvent(&Event);
+}
+
+void AresNetEvent::Handlers::RespondRevealMap(NetworkEvent* Event)
+{
+	Debug::Log("Receiving RevealMap from a clients\n");
+	//if (HouseClass* pSourceHouse = HouseClass::Array->GetItem(Event->HouseIndex))
+	//{
+	//	pSourceHouse->Visionary = true; //sync the state with other clients
+	//}
+}
+
+//TODO : proper owner for the event ?
+void NOINLINE AresNetEvent::Handlers::RaiseSetDriverKilledStatusToTrue(TechnoClass* Current)
+{
+	NetworkEvent Event;
+	Debug::Log("Sending RaiseSetDriverKilledStatusToTrue to all clients\n");
+	if (Current->Owner->ArrayIndex >= 0)
+	{
+		Event.Kind = NetworkEventType(AresNetEvent::Events::SetDriverKilledStatusToTrue);
+		Event.HouseIndex = byte(Current->Owner->ArrayIndex);
+	}
+
+	byte* ExtraData = Event.ExtraData;
+	NetID SourceObject {};
+	SourceObject.Pack(Current);
+	memcpy(ExtraData, &SourceObject, sizeof(SourceObject));
+	ExtraData += sizeof(SourceObject);
+
+	Networking::AddEvent(&Event);
+
+}
+
+void NOINLINE AresNetEvent::Handlers::ResponseToSetDriverKilledStatusToTrue(NetworkEvent* Event)
+{
+	NetID* ID = reinterpret_cast<NetID*>(Event->ExtraData);
+	Debug::Log("Receiving ResponseToSetDriverKilledStatusToTrue from a clients\n");
+
+	if (auto pTechno = ID->UnpackTechno())
+	{
+		pTechno->align_154->Is_DriverKilled = true;
+	}
+}
 
 bool NOINLINE TechnoExt_ExtData::IsOperated(TechnoClass* pThis)
 {
@@ -63,6 +116,11 @@ bool NOINLINE TechnoExt_ExtData::IsOperated(TechnoClass* pThis)
 	return false;
 }
 
+bool TechnoExt_ExtData::IsOperatedB(TechnoClass* pThis)
+{
+	return pThis->align_154->Is_Operated || TechnoExt_ExtData::IsOperated(pThis);
+}
+
 bool NOINLINE TechnoExt_ExtData::IsPowered(TechnoClass* pThis)
 {
 	auto pType = pThis->GetTechnoType();
@@ -81,7 +139,7 @@ bool NOINLINE TechnoExt_ExtData::IsPowered(TechnoClass* pThis)
 		// if we reach this, we found no building that currently powers this object
 		return false;
 	}
-	else if (auto pPower = PoweredUnitUptr(pThis))
+	else if (auto pPower = pThis->align_154->PoweredUnitUptr)
 	{
 		// #617
 		return pPower->Powered;

@@ -14,11 +14,6 @@
 #include <Utilities/Debug.h>
 #include <Utilities/EnumFunctions.h>
 
-//DEFINE_HOOK(0x640E78, LoadingScreen_DisableColorPoints, 0x6)
-//{
-//	return 0x641071;
-//}
-
 DEFINE_HOOK(0x777C41, UI_ApplyAppIcon, 0x9)
 {
 	if (!Phobos::AppIconPath.empty()) {

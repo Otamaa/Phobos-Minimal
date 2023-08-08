@@ -45,7 +45,7 @@ public:
 
 	void BreakShield(AnimTypeClass* pBreakAnim = nullptr, WeaponTypeClass* pBreakWeapon = nullptr);
 	void SetRespawn(int duration, double amount, int rate, bool resetTimer);
-	void SetSelfHealing(int duration, double amount, int rate, bool resetTimer);
+	void SetSelfHealing(int duration, double amount, int rate, bool restartInCombat, int restartInCombatDelay, bool resetTimer);
 
 	void KillAnim();
 
@@ -106,6 +106,7 @@ private:
 	TechnoTypeClass* CurTechnoType;
 	int HP;
 
+	CDTimerClass Timers_SelfHealing_CombatRestart;
 	CDTimerClass Timers_SelfHealing;
 	CDTimerClass Timers_SelfHealing_Warhead;
 	CDTimerClass Timers_Respawn;
@@ -121,6 +122,8 @@ private:
 
 	double SelfHealing_Warhead;
 	int SelfHealing_Rate_Warhead;
+	bool SelfHealing_RestartInCombat_Warhead;
+	int SelfHealing_RestartInCombatDelay_Warhead;
 	double Respawn_Warhead;
 	int Respawn_Rate_Warhead;
 

@@ -38,7 +38,7 @@ public:
 		virtual ~ExtData() override = default;
 		void InvalidatePointer(void* ptr, bool bRemoved);
 
-		bool InvalidateIgnorable(void* const ptr) const {
+		static bool InvalidateIgnorable(void* ptr) {
 
 			switch (GetVtableAddr(ptr))
 			{

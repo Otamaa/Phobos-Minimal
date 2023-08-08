@@ -121,6 +121,9 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
+			if(GameStrings::IsBlank(parser.value()))
+				return false;
+
 			for (size_t i = 0; i < EnumFunctions::DamageDelayTargetFlag_ToStrings.size(); ++i)
 			{
 				if (IS_SAME_STR_(parser.value(), EnumFunctions::DamageDelayTargetFlag_ToStrings[i]))
@@ -130,9 +133,7 @@ namespace detail
 				}
 			}
 
-			if (!GameStrings::IsBlank(parser.value())) {
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid DamageDelayTargetFlag");
-			}
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid DamageDelayTargetFlag");
 		}
 
 		return false;
@@ -143,6 +144,9 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
+			if(GameStrings::IsBlank(parser.value()))
+				return false;
+
 			for (size_t i = 0; i < EnumFunctions::TargetZoneScanType_ToStrings.size(); ++i)
 			{
 				if (IS_SAME_STR_(parser.value(), EnumFunctions::TargetZoneScanType_ToStrings[i]))
@@ -152,10 +156,7 @@ namespace detail
 				}
 			}
 
-			if (!GameStrings::IsBlank(parser.value()))
-			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a target zone scan type");
-			}
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a target zone scan type");
 		}
 
 		return false;
@@ -252,12 +253,12 @@ namespace detail
 				return true;
 			}
 
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a DirType8 between 0 and 8");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a DirType8 between 0 and 8");
 		}
 
 		return false;
 	}
+
 
 	template <>
 	inline bool read<DirType32>(DirType32& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
@@ -270,12 +271,12 @@ namespace detail
 				return true;
 			}
 
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a DirType32 between 0 and 32");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a DirType32 between 0 and 32");
 		}
 
 		return false;
 	}
+
 
 	template <>
 	inline bool read<DirType>(DirType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
@@ -291,12 +292,12 @@ namespace detail
 				return true;
 			}
 
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a DirType between 0 and 255");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a DirType between 0 and 255");
 		}
 
 		return false;
 	}
+
 
 	template <>
 	inline bool read<FacingType>(FacingType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
@@ -311,12 +312,12 @@ namespace detail
 				return true;
 			}
 
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid FacingType (0-7 or -1).");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid FacingType (0-7 or -1).");
 		}
 
 		return false;
 	}
+
 
 	template <>
 	inline bool read<SpotlightAttachment>(SpotlightAttachment& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
@@ -332,8 +333,7 @@ namespace detail
 				}
 			}
 
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(),"Expect valid SpotlightAttachment");
+			Debug::INIParseFailed(pSection, pKey, parser.value(),"Expect valid SpotlightAttachment");
 		}
 
 		return false;
@@ -353,8 +353,7 @@ namespace detail
 				}
 			}
 
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid ShowTimerType");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid ShowTimerType");
 		}
 
 		return false;
@@ -376,8 +375,7 @@ namespace detail
 				}
 			}
 
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, pVal, "Expect valid BountyValueOption");
+			Debug::INIParseFailed(pSection, pKey, pVal, "Expect valid BountyValueOption");
 		}
 
 		return false;
@@ -397,8 +395,7 @@ namespace detail
 				}
 			}
 
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, str, "Expect valid BuildingSelectBracketPosition");
+			Debug::INIParseFailed(pSection, pKey, str, "Expect valid BuildingSelectBracketPosition");
 		}
 
 		return false;
@@ -418,8 +415,7 @@ namespace detail
 				}
 			}
 
-			if(!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, str, "Expect valid DisplayInfoType");
+			Debug::INIParseFailed(pSection, pKey, str, "Expect valid DisplayInfoType");
 		}
 
 		return false;

@@ -5,6 +5,40 @@
 #include <Misc/AresData.h>
 #include <Ares_TechnoExt.h>
 
+#include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDiveFunctional.h>
+#include <Misc/DynamicPatcher/Techno/DriveData/DriveDataFunctional.h>
+#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
+
+// init inside type check
+// should be no problem here
+DEFINE_HOOK(0x6F42ED, TechnoClass_Init_Early, 0xA)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	auto pType = pThis->GetTechnoType();
+
+	if (!pType)
+		return 0x0;
+
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto const pExt = TechnoExt::ExtMap.Find(pThis);
+
+	AircraftDiveFunctional::Init(pExt, pTypeExt);
+
+	if (Is_Aircraft(pThis))
+	{
+		if (pTypeExt->MyFighterData.Enable)
+		{
+			pExt->MyFighterData = std::make_unique<FighterAreaGuard>();
+			pExt->MyFighterData->OwnerObject = (AircraftClass*)pThis;
+		}
+	}
+
+	TechnoExt::InitializeItems(pThis, pType);
+
+	return 0x0;
+}
+
 DEFINE_HOOK(0x517D69, InfantryClass_Init_InitialStrength, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);

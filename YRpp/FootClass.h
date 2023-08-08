@@ -133,7 +133,7 @@ public:
 	void EnterAsPassenger(FootClass* pPassenger)
 	{ JMP_THIS(0x4DE630); }
 
-	void ClearSomeVector() // clears 5AC
+	void ClearNavQueue() // clears 5AC
 	{ JMP_THIS(0x4DA1C0); }
 
 	// searches cell, sets destination, and returns whether unit is on that cell

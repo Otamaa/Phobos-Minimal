@@ -46,7 +46,7 @@ DEFINE_HOOK(0x739717, UnitClass_TryToDeploy_Transfer, 0x8)
 
 		BuildingExt::ExtMap.Find(pStructure)->DeployedTechno = true;
 
-		return 0x73971F;	
+		return 0x73971F;
 	}
 
 	return 0x739A6E;
@@ -88,10 +88,10 @@ DEFINE_HOOK(0x43FE73, BuildingClass_AI_FlyingStrings, 0x6)
 
 	auto const pExt = BuildingExt::ExtMap.Find(pThis);
 	if (pExt->AccumulatedGrindingRefund) {
-		FlyingStrings::AddMoneyString(true, 
-			pExt->AccumulatedGrindingRefund, 
-			pThis, AffectedHouse::All, 
-			pThis->GetRenderCoords(), 
+		FlyingStrings::AddMoneyString(true,
+			pExt->AccumulatedGrindingRefund,
+			pThis, AffectedHouse::All,
+			pThis->GetRenderCoords(),
 			pExt->Type->Grinding_DisplayRefund_Offset);
 		pExt->AccumulatedGrindingRefund = 0;
 	}

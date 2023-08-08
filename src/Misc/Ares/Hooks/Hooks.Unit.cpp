@@ -543,6 +543,11 @@ DEFINE_OVERRIDE_HOOK(0x73DE90, UnitClass_Mi_Unload_SimpleDeployer, 0x6)
 		&& pTypeExt->Convert_Deploy
 		&& AresData::ConvertTypeTo(pThis, pTypeExt->Convert_Deploy))
 	{
+		if(pTypeExt->Convert_Deploy_Delay > 0)
+			TechnoExt::ExtMap.Find(pThis)->Convert_Deploy_Delay
+				//.Start(100);
+				.Start(pTypeExt->Convert_Deploy_Delay);
+
 		pThis->Deployed = false;
 	}
 
@@ -1126,6 +1131,9 @@ DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 	GET_STACK(int, angle, STACK_OFFSET(0x18, 0xC));
 	GET_STACK(int, idx, STACK_OFFSET(0x18, 0x8));
 	GET_STACK(VoxelStruct*, pVXL, STACK_OFFSET(0x18, 0x4));
+
+	if (!pThis->IsAlive)
+		return 0x0;
 
 	auto pType = GetImage(pThis);
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);

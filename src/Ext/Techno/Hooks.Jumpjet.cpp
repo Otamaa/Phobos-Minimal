@@ -63,9 +63,9 @@ DEFINE_HOOK(0x54C036, JumpjetLocomotionClass_State3_UpdateSensors, 0x7)
 	GET(FootClass* const, pLinkedTo, ECX);
 	GET(CellStruct const, currentCell, EAX);
 
-	if (pLinkedTo 
+	if (pLinkedTo
 		&& pLinkedTo->IsAlive
-		&& pLinkedTo->GetTechnoType()->SensorsSight 
+		&& pLinkedTo->GetTechnoType()->SensorsSight
 		&& pLinkedTo->LastFlightMapCoords != currentCell) {
 		pLinkedTo->RemoveSensorsAt(pLinkedTo->LastFlightMapCoords);
 		pLinkedTo->AddSensorsAt(currentCell);
@@ -193,7 +193,7 @@ DEFINE_HOOK(0x54D208, JumpjetLocomotionClass_MovementAI_Wobbles, 0x5)
 	if (pThis->NoWobbles)
 		return NoWobble;
 
-	if (const auto pUnit = specific_cast<UnitClass*>(pThis->LinkedTo ? pThis->LinkedTo : pThis->Owner)){ 
+	if (const auto pUnit = specific_cast<UnitClass*>(pThis->LinkedTo ? pThis->LinkedTo : pThis->Owner)){
 		if(TechnoExt::IsReallyTechno(pUnit) && pUnit->IsAlive) {
 			return pUnit->IsDeactivated() ? NoWobble : SetWobble;
 		}

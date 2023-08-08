@@ -134,7 +134,7 @@ void SW_HunterSeeker::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->HunterSeeker_RandomOnly.Read(exINI, section, "HunterSeeker.RandomOnly");
 	pData->HunterSeeker_Buildings.Read(exINI, section, "HunterSeeker.Buildings");
 	pData->HunterSeeker_AllowAttachedBuildingAsFallback.Read(exINI, section, "HunterSeeker.AllowAttachedBuildingAsFallback");
-	pData->HunterSeeker_Type_Count.Read(exINI, section, "HunterSeeker.Count");
+	pData->HunterSeeker_Type_Count.Read(exINI, section, "HunterSeeker.Count"); // WIP , attached code is disabled atm
 
 	// hardcoded
 	pData->Get()->Action = Action::None;

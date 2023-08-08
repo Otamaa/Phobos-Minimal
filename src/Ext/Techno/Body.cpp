@@ -376,7 +376,7 @@ NOINLINE WeaponTypeClass* TechnoExt::GetCurrentWeapon(TechnoClass* pThis, int& w
 			return nullptr;
 		}
 
-		weaponIndex = pThis->CurrentWeaponNumber != 0xFFFFFFFF ? pThis->CurrentWeaponNumber : 0;
+		weaponIndex = pThis->CurrentWeaponNumber >= 0 ? pThis->CurrentWeaponNumber : 0;
 	}
 	else if (pType->IsGattling)
 	{
@@ -429,7 +429,7 @@ bool TechnoExt::IsCritImmune(TechnoClass* pThis)
 
 bool TechnoExt::IsChronoDelayDamageImmune(FootClass* pThis)
 {
-	if (!pThis)
+	if (!pThis || !pThis->IsWarpingIn())
 		return false;
 
 	auto const pLoco = pThis->Locomotor.GetInterfacePtr();
@@ -440,9 +440,6 @@ bool TechnoExt::IsChronoDelayDamageImmune(FootClass* pThis)
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if (VTable::Get(pLoco) != TeleportLocomotionClass::ILoco_vtable)
-		return false;
-
-	if (!pThis->IsWarpingIn())
 		return false;
 
 	if (pTypeExt->ChronoDelay_Immune.Get())
@@ -4355,6 +4352,8 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->SuperTarget)
 		.Process(this->HijackerLastDisguiseType)
 		.Process(this->HijackerLastDisguiseHouse)
+		.Process(this->Convert_Deploy_Delay)
+		.Process(this->DoingUnloadFire)
 #ifdef ENABLE_HOMING_MISSILE
 		.Process(this->MissileTargetTracker)
 #endif
@@ -4369,7 +4368,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 
 }
 
-bool TechnoExt::ExtData::InvalidateIgnorable(void* ptr) const
+bool TechnoExt::ExtData::InvalidateIgnorable(void* ptr)
 {
 	switch (GetVtableAddr(ptr))
 	{
@@ -4388,6 +4387,8 @@ bool TechnoExt::ExtData::InvalidateIgnorable(void* ptr) const
 
 void TechnoExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
+	if (this->Get()->WhatAmI() == BuildingClass::AbsID)
+		BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(this->Get()))->InvalidatePointer(ptr, bRemoved);
 
 	MyWeaponManager.InvalidatePointer(ptr, bRemoved);
 
@@ -4442,19 +4443,19 @@ DEFINE_HOOK(0x70C264, TechnoClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x70783B, TechnoClass_Detach, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(void*, target, EBP);
-	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
-
-	//if (!Is_Techno(pThis))
-	//	Debug::Log("TechnoClass_Detach Called with gargabage ptr[%x] !\n", pThis);
-
-	TechnoExt::ExtMap.InvalidatePointerFor(pThis, target, all);
-
-	return pThis->BeingManipulatedBy == target ? 0x707843 : 0x707849;
-}
+//DEFINE_HOOK(0x70783B, TechnoClass_Detach, 0x6)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//	GET(void*, target, EBP);
+//	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+//
+//	//if (!Is_Techno(pThis))
+//	//	Debug::Log("TechnoClass_Detach Called with gargabage ptr[%x] !\n", pThis);
+//
+//	TechnoExt::ExtMap.InvalidatePointerFor(pThis, target, all);
+//
+//	return pThis->BeingManipulatedBy == target ? 0x707843 : 0x707849;
+//}
 
 DEFINE_HOOK(0x710443, TechnoClass_AnimPointerExpired_PhobosAdd, 6)
 {

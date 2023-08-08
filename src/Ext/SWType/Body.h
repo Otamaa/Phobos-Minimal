@@ -453,6 +453,9 @@ public:
 		Valueable<int> LaserStrikeRate { 0 };
 #pragma endregion
 
+#pragma region GenericWarheadSW
+		Valueable<bool> Generic_Warhead_Detonate { false };
+#pragma endregion
 		ExtData(SuperWeaponTypeClass* OwnerObject) : Extension<SuperWeaponTypeClass>(OwnerObject)
 		{}
 

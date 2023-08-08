@@ -20,6 +20,7 @@ class TechnoTypeClass;
 class VocClass;
 class WarheadTypeClass;
 class DigitalDisplayTypeClass;
+class CursorTypeClass;
 class RulesExt
 {
 public:
@@ -221,6 +222,12 @@ public:
 		Valueable<bool> DiskLaserAnimEnabled { false };
 
 		ValueableIdx<ColorScheme> AnimRemapDefaultColorScheme { 0 };
+
+		Valueable<double> EngineerDamage { 0.0 } ;
+		Valueable<bool> EngineerAlwaysCaptureTech { true };
+		ValueableIdx<CursorTypeClass*> EngineerDamageCursor { 87};
+		Nullable<Mission> EMPAIRecoverMission { };
+		ValueableIdx<ColorScheme> TimerBlinkColorScheme { 5 };
 
 		AircraftPutDataRules MyPutData { };
 

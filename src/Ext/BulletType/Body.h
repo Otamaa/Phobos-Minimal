@@ -97,6 +97,8 @@ public:
 		Valueable<bool> Parachuted { false };
 		Valueable<int> AnimLength { 0 };
 
+		Valueable<bool> Arcing_AllowElevationInaccuracy { true };
+
 		TrailsReader Trails { };
 
 		std::unique_ptr<PhobosTrajectoryType> TrajectoryType { };

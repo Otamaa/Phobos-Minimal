@@ -1,4 +1,4 @@
-#include <AbstractClass.h>
+ #include <AbstractClass.h>
 #include <TechnoClass.h>
 #include <TeamClass.h>
 #include <FootClass.h>
@@ -613,21 +613,22 @@ DEFINE_HOOK(0x65EA43, SendReinforcement_Opentopped, 0x6)
 	return 0x0;
 }
 
+// TODO : remove this
 // issue #1282: remap wall using its owner's colors
-DEFINE_OVERRIDE_HOOK(0x47F9A4, CellClass_DrawOverlay_WallRemap, 0x6)
-{
-	GET(CellClass*, pCell, ESI);
-
-	const int idx = pCell->WallOwnerIndex;
-
-	if (idx >= 0)
-	{
-		R->EDX(HouseClass::Array->GetItem(idx));
-		return 0x47F9AA;
-	}
-
-	return 0;
-}
+//DEFINE_OVERRIDE_HOOK(0x47F9A4, CellClass_DrawOverlay_WallRemap, 0x6)
+//{
+//	GET(CellClass*, pCell, ESI);
+//
+//	const int idx = pCell->WallOwnerIndex;
+//
+//	if (idx >= 0)
+//	{
+//		R->EDX(HouseClass::Array->GetItem(idx));
+//		return 0x47F9AA;
+//	}
+//
+//	return 0;
+//}
 
 // issue 1520: logging stupid shit crashes the game
 DEFINE_OVERRIDE_HOOK(0x4CA437, FactoryClass_GetCRC, 0x8)
@@ -2251,7 +2252,7 @@ bool IsPowered(TechnoClass* pThis)
 		// if we reach this, we found no building that currently powers this object
 		return false;
 	}
-	else if (auto pPoweredUnit = PoweredUnitUptr(pThis))
+	else if (auto pPoweredUnit = pThis->align_154->PoweredUnitUptr)
 	{
 		// #617
 		return pPoweredUnit->Powered;
@@ -2383,7 +2384,7 @@ DEFINE_OVERRIDE_HOOK(0x73C143, UnitClass_DrawVXL_Deactivated, 5)
 
 		// use the operator check because it is more
 		// efficient than the powered check.
-		if (pThis->align_154->Is_Operated || TechnoExt_ExtData::IsOperated(pThis))
+		if (TechnoExt_ExtData::IsOperatedB(pThis))
 		{
 			factor = pRules->DeactivateDim_Powered;
 		}
@@ -2579,28 +2580,28 @@ DEFINE_OVERRIDE_HOOK(0x4DA53E, FootClass_Update, 6)
 }
 
 // temporal per-slot
-DEFINE_OVERRIDE_HOOK(0x71A84E, TemporalClass_UpdateA, 5)
-{
-	GET(TemporalClass* const, pThis, ESI);
-
-	// it's not guaranteed that there is a target
-	if (auto const pTarget = pThis->Target)
-	{
-		if (auto nJammer = std::exchange(RadarJammerUptr(pTarget), nullptr))
-		{
-			AresData::JammerClassUnjamAll(nJammer);
-			AresMemory::Delete(nJammer);
-		}
-
-		//AttachEffect handling under Temporal
-		AresData::UpdateAEData(&GetAEData(pTarget));
-	}
-
-	pThis->WarpRemaining -= pThis->GetWarpPerStep(0);
-
-	R->EAX(pThis->WarpRemaining);
-	return 0x71A88D;
-}
+// DEFINE_OVERRIDE_HOOK(0x71A84E, TemporalClass_UpdateA, 5)
+// {
+// 	GET(TemporalClass* const, pThis, ESI);
+//
+// 	// it's not guaranteed that there is a target
+// 	if (auto const pTarget = pThis->Target)
+// 	{
+// 		if (auto nJammer = std::exchange(pTarget->align_154->RadarJammerUptr, nullptr))
+// 		{
+// 			AresData::JammerClassUnjamAll(nJammer);
+// 			AresMemory::Delete(nJammer);
+// 		}
+//
+// 		//AttachEffect handling under Temporal
+// 		AresData::UpdateAEData(&pTarget->align_154->AEDatas);
+// 	}
+//
+// 	pThis->WarpRemaining -= pThis->GetWarpPerStep(0);
+//
+// 	R->EAX(pThis->WarpRemaining);
+// 	return 0x71A88D;
+// }
 
 DEFINE_OVERRIDE_HOOK(0x71AF76, TemporalClass_Fire_PrismForwardAndWarpable, 9)
 {
@@ -2650,36 +2651,6 @@ DEFINE_OVERRIDE_HOOK(0x44EBF0, BuildingClass_Disappear_PrismForward, 5)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FAF0D, TechnoClass_Update_EMPLock, 6)
-{
-	GET(TechnoClass*, pThis, ESI);
-
-	// original code.
-	if (pThis->EMPLockRemaining)
-	{
-		--pThis->EMPLockRemaining;
-		if (!pThis->EMPLockRemaining)
-		{
-			// the forced vacation just ended. we use our own
-			// function here that is quicker in retrieving the
-			// EMP animation and does more stuff.
-			AresData::DisableEMPEffect(pThis);
-		}
-		else
-		{
-			// deactivate units that were unloading afterwards
-			if (!pThis->Deactivated && EMPulse::IsDeactivationAdvisable(pThis))
-			{
-				// update the current mission
-				pThis->align_154->EMPLastMission = pThis->CurrentMission;
-				pThis->Deactivate();
-			}
-		}
-	}
-
-	return 0x6FAFFD;
-}
-
 // replace the cloak checking functions to include checks for new features
 DEFINE_OVERRIDE_HOOK(0x6FB757, TechnoClass_UpdateCloak, 8)
 {
@@ -2704,34 +2675,34 @@ DEFINE_OVERRIDE_HOOK(0x6FBDC0, TechnoClass_ShouldBeCloaked, 5)
 	return 0x6FBF93;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6F6AC9, TechnoClass_Remove_Early, 6)
-{
-	GET(TechnoClass*, pThis, ESI);
+// DEFINE_OVERRIDE_HOOK(0x6F6AC9, TechnoClass_Remove_Early, 6)
+// {
+// 	GET(TechnoClass*, pThis, ESI);
+//
+// 	// if the removed object is a radar jammer, unjam all jammed radars
+// 	if (auto pRJ = std::exchange(pThis->align_154->RadarJammerUptr, nullptr))
+// 	{
+// 		AresData::JammerClassUnjamAll(pRJ);
+// 		AresMemory::Delete(pRJ);
+// 	}
+//
+// 	// #617 powered units
+// 	if (auto pPower = std::exchange(pThis->align_154->PoweredUnitUptr, nullptr))
+// 	{
+// 		AresMemory::Delete(pPower);
+// 	}
+//
+// 	//#1573, #1623, #255 attached effects
+// 	if (AresData::RemoveAE(&pThis->align_154->AEDatas))
+// 		AresData::RecalculateStat(pThis);
 
-	// if the removed object is a radar jammer, unjam all jammed radars
-	if (auto pRJ = std::exchange(RadarJammerUptr(pThis), nullptr))
-	{
-		AresData::JammerClassUnjamAll(pRJ);
-		AresMemory::Delete(pRJ);
-	}
-
-	// #617 powered units
-	if (auto pPower = std::exchange(PoweredUnitUptr(pThis), nullptr))
-	{
-		AresMemory::Delete(pPower);
-	}
-
-	//#1573, #1623, #255 attached effects
-	if (AresData::RemoveAE(&GetAEData(pThis)))
-		AresData::RecalculateStat(pThis);
-
-	if (pThis->align_154->TechnoValueAmount != 0)
-	{
-		AresData::FlyingStringsAdd(pThis, true);
-	}
-
-	return pThis->InLimbo ? 0x6F6C93u : 0x6F6AD5u;
-}
+// 	if (pThis->align_154->TechnoValueAmount != 0)
+// 	{
+// 		AresData::FlyingStringsAdd(pThis, true);
+// 	}
+//
+// 	return pThis->InLimbo ? 0x6F6C93u : 0x6F6AD5u;
+// }
 
 DEFINE_OVERRIDE_HOOK_AGAIN(0x6F6D0E, TechnoClass_Put_BuildingLight, 7)
 DEFINE_OVERRIDE_HOOK(0x6F6F20, TechnoClass_Put_BuildingLight, 6)
@@ -3190,7 +3161,6 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 					RectangleStruct DefcameoBounds = { 0, 0, cameoWidth, cameoHeight };
 					RectangleStruct destRect = { DrawCameoLoc.X - cameoWidth / 2, DrawCameoLoc.Y - cameoHeight / 2, cameoWidth , cameoHeight };
 
-
 					if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds))
 					{
 						cameoRect = destRect;
@@ -3285,7 +3255,7 @@ DEFINE_OVERRIDE_HOOK(0x70FBE0, TechnoClass_Activate_AresReplace, 6)
 		return 0x70FC85;
 	}
 
-	if (pThis->align_154->Is_Operated || TechnoExt_ExtData::IsOperated(pThis))
+	if (TechnoExt_ExtData::IsOperatedB(pThis))
 	{
 		pThis->Guard();
 
@@ -3395,7 +3365,7 @@ DEFINE_OVERRIDE_HOOK(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
-	if (auto pJammer = RadarJammerUptr(pThis))
+	if (auto pJammer = pThis->align_154->RadarJammerUptr)
 	{
 		AresData::JammerClassUnjamAll(pJammer);
 	}
@@ -3564,24 +3534,28 @@ DEFINE_OVERRIDE_HOOK(0x41946B, AircraftClass_ReceivedRadioCommand_QueryEnterAsPa
 
 #include <Commands/ToggleRadialIndicatorDrawMode.h>
 
-DEFINE_HOOK(0x6DBE35, TacticalClass_DrawLinesOrCircles, 0x9)
+DEFINE_HOOK(0x6DBE33, TacticalClass_DrawLinesOrCircles, 0x6)
 {
 	if (!ToggleRadialIndicatorDrawModeClass::ShowForAll)
 	{
-		for (auto const& pObj : ObjectClass::CurrentObjects())
-		{
-			if (pObj && pObj->IsOnMyView() && pObj->GetTechnoType() && pObj->GetTechnoType()->HasRadialIndicator)
-			{
+		GET(int, intCurObjcount, EBX);
+
+		if(!intCurObjcount)
+			return 0x6DBE74;
+
+		ObjectClass::CurrentObjects->for_each([](ObjectClass* pObj)	{
+			if (pObj && pObj->IsOnMyView() && pObj->GetType() && pObj->GetType()->HasRadialIndicator) {
 				pObj->DrawRadialIndicator(1);
 			}
-		}
+		});
 	}
 	else
 	{
-		for (auto const& pObj : *TechnoClass::Array)
-		{
-			if (pObj && pObj->IsOnMyView() && pObj->GetTechnoType() && pObj->GetTechnoType()->HasRadialIndicator)
-			{
+		if(!TechnoClass::Array->Count)
+			return 0x6DBE74;
+
+		for (auto const pObj : *TechnoClass::Array) {
+			if (pObj && pObj->IsOnMyView() && pObj->GetType() && pObj->GetType()->HasRadialIndicator) {
 				pObj->DrawRadialIndicator(1);
 			}
 		}
@@ -3608,7 +3582,6 @@ DEFINE_OVERRIDE_HOOK(0x41BE80, ObjectClass_DrawRadialIndicator, 3)
 
 			if (pOwner->ControlledByPlayer_())
 			{
-
 				int nRadius = 0;
 
 				if (pTypeExt->RadialIndicatorRadius.isset())
@@ -4772,7 +4745,7 @@ DEFINE_OVERRIDE_HOOK(0x508D32, HouseClass_UpdatePower_LocalDrain1, 5)
 // replaced the entire function, to have one centralized implementation
 DEFINE_OVERRIDE_HOOK(0x5051E0, HouseClass_FirstBuildableFromArray, 5)
 {
-	GET(HouseClass const* const, pThis, ECX);
+	GET(HouseClass* , pThis, ECX);
 	GET_STACK(const DynamicVectorClass<BuildingTypeClass*>*const, pList, 0x4);
 	R->EAX(HouseExt::FindBuildable(pThis, pThis->Type->FindParentCountryIndex(), make_iterator(*pList)));
 	return 0x505300;
@@ -4780,6 +4753,1250 @@ DEFINE_OVERRIDE_HOOK(0x5051E0, HouseClass_FirstBuildableFromArray, 5)
 
 //InitGame_Delay
 DEFINE_JUMP(LJMP, 0x52CA37, 0x52CA65)
+
+Action NOINLINE GetEngineerEnterEnemyBuildingAction(
+	BuildingClass* const pBld)
+{
+	// only skirmish allows to disable it, so we only check there. for all other
+	// modes, it's always on. single player campaigns also use special multi
+	// engineer behavior.
+	auto const gameMode = SessionClass::Instance->GameMode;
+	auto allowDamage = gameMode != GameMode::Skirmish
+		|| GameModeOptionsClass::Instance->MultiEngineer;
+
+	if (gameMode == GameMode::Campaign)
+	{
+		// single player missions are currently hardcoded to "don't do damage".
+		allowDamage = false; // TODO: replace this by a new rules tag.
+	}
+
+	// damage if multi engineer is enabled and target isn't that low on health.
+	if (allowDamage)
+	{
+
+		// check to always capture tech structures. a structure counts
+		// as tech if its initial owner is a multiplayer-passive country.
+		auto const isTech = pBld->InitialOwner
+			? pBld->InitialOwner->IsNeutral() : false;
+
+		auto const pRulesExt = RulesExt::Global();
+		if (!isTech || !pRulesExt->EngineerAlwaysCaptureTech)
+		{
+			// no civil structure. apply new logic.
+			auto const capLevel = RulesClass::Global()->EngineerCaptureLevel;
+			if (pBld->GetHealthPercentage() > capLevel)
+			{
+				return (pRulesExt->EngineerDamage > 0.0)
+					? Action::Damage : Action::NoEnter;
+			}
+		}
+	}
+
+	// default.
+	return Action::Capture;
+}
+
+DEFINE_OVERRIDE_HOOK(0x51E5E1, InfantryClass_GetActionOnObject_MultiEngineerB, 7)
+{
+	GET(BuildingClass*, pBld, ECX);
+	Action ret = GetEngineerEnterEnemyBuildingAction(pBld);
+
+	// use a dedicated cursor
+	if (ret == Action::Damage) {
+		AresData::SetMouseCursorAction(RulesExt::Global()->EngineerDamageCursor, Action::Damage, false);
+	}
+
+	// return our action
+	R->EAX(ret);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x519D9C, InfantryClass_UpdatePosition_MultiEngineer, 5)
+{
+	GET(InfantryClass*, pEngi, ESI);
+	GET(BuildingClass*, pBld, EDI);
+
+	// damage or capture
+	Action action = GetEngineerEnterEnemyBuildingAction(pBld);
+
+	if (action == Action::Damage)
+	{
+		int Damage = int(std::ceil(pBld->Type->Strength * RulesExt::Global()->EngineerDamage));
+		pBld->ReceiveDamage(&Damage, 0, RulesClass::Global()->C4Warhead, pEngi, true, false, pEngi->Owner);
+		return 0x51A010;
+	}
+
+	return 0x519EAA;
+}
+#include <MPGameModeClass.h>
+
+//Wrong register ?
+// game crash here , ugh
+//DEFINE_OVERRIDE_HOOK(0x5D6F61, MPGameModeClass_CreateStartingUnits_BaseCenter, 8)
+//{
+//	GET(MPGameModeClass*, pMode, ECX);
+//	GET(HouseClass*, pHouse, ESI);
+//	GET(DWORD*, pSomething, EAX);
+//
+//	*pSomething = R->EBP();
+//	CellStruct nBase = pHouse->BaseSpawnCell;
+//
+//	if(!pMode->SpawnBaseUnits(pHouse, pSomething))
+//		return 0x5D701B;
+//
+//	pHouse->ConYards.for_each([](BuildingClass* pConyards) {
+//		pConyards->QueueMission(Mission::Construction, true);
+//		++Unsorted::ScenarioInit();
+//		pConyards->EnterIdleMode(false, 1);
+//		--Unsorted::ScenarioInit();
+//	});
+//
+//	if (!nBase.IsValid())
+//		pHouse->BaseSpawnCell = nBase;
+//
+//	return 0x5D6F77;
+//}
+
+DEFINE_OVERRIDE_HOOK(0x687C56, INIClass_ReadScenario_ResetLogStatus, 5)
+{
+	// reset this so next scenario startup log is cleaner
+	Debug_bTrackParseErrors = false;
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x5f5add, ObjectClass_SpawnParachuted_Animation, 6)
+{
+	GET(ObjectClass*, pThis, ESI);
+
+	if (const auto pTechno = generic_cast<TechnoClass*>(pThis))
+	{
+		auto pType = pTechno->GetTechnoType();
+		auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+		if (pTypeExt->IsBomb)
+			pThis->IsABomb = true;
+
+		R->EDX(pTypeExt->ParachuteAnim ? pTypeExt->ParachuteAnim : HouseExt::GetParachuteAnim(pTechno->Owner));
+		return 0x5F5AE3;
+	}
+
+	return 0x0;
+}
+
+bool CloneBuildingEligible(BuildingClass* pBuilding)
+{
+	if (pBuilding->InLimbo ||
+	!pBuilding->IsAlive ||
+	pBuilding->IsPowerOnline() ||
+	pBuilding->TemporalTargetingMe ||
+	pBuilding->IsBeingWarpedOut()
+
+)
+	{
+		return false;
+	}
+	return true;
+}
+
+void KickOutClone(BuildingClass* pBuilding, TechnoTypeClass* ProductionType, HouseClass* FactoryOwner)
+{
+	auto Clone = static_cast<TechnoClass*>(ProductionType->CreateObject(FactoryOwner));
+	if (pBuilding->KickOutUnit(Clone, CellStruct::Empty) != KickOutResult::Succeeded) {
+		Clone->UnInit();
+	}
+}
+
+void KickOutClones(BuildingClass* pFactory , TechnoClass* const Production)
+{
+	const auto FactoryType = pFactory->Type;
+
+	if (FactoryType->Cloning ||
+		(FactoryType->Factory != InfantryTypeClass::AbsID &&
+			FactoryType->Factory != UnitTypeClass::AbsID)
+	) {
+		return;
+	}
+
+	const auto ProductionType = Production->GetTechnoType();
+	const auto ProductionTypeData = TechnoTypeExt::ExtMap.Find(ProductionType);
+	const auto ProductionTypeAs = ProductionTypeData->ClonedAs.Get(ProductionType);
+
+	if (!ProductionTypeData->Cloneable) {
+		return;
+	}
+
+	if (ProductionType->WhatAmI() != ProductionTypeAs->WhatAmI()) {
+		return;
+	}
+
+	auto const FactoryOwner = pFactory->Owner;
+	auto const& CloningSources = ProductionTypeData->ClonedAt;
+	auto const IsUnit = (FactoryType->Factory != InfantryTypeClass::AbsID);
+
+	// keep cloning vats for backward compat, unless explicit sources are defined
+	if (!IsUnit && CloningSources.empty())
+	{
+		for (auto const& CloningVat : FactoryOwner->CloningVats)
+		{
+			if (!CloneBuildingEligible(CloningVat))
+				continue;
+
+			KickOutClone(CloningVat, ProductionTypeAs, FactoryOwner);
+		}
+
+		return;
+	}
+
+	// and clone from new sources
+	if (!CloningSources.empty() || IsUnit)
+	{
+		for (auto const& CloningVat : FactoryOwner->Buildings)
+		{
+			if (!CloneBuildingEligible(CloningVat))
+				continue;
+
+			auto const BType = CloningVat->Type;
+
+			auto ShouldClone = false;
+			if (!CloningSources.empty()) {
+				ShouldClone = CloningSources.Contains(CloningVat->Type);
+			} else if (IsUnit) {
+				ShouldClone = BuildingTypeExt::ExtMap.Find(CloningVat->Type)->CloningFacility && (CloningVat->Type->Naval == FactoryType->Naval);
+			}
+
+			if (ShouldClone) {
+				KickOutClone(CloningVat, ProductionTypeAs, FactoryOwner);
+			}
+		}
+	}
+}
+
+DEFINE_OVERRIDE_HOOK(0x444DBC, BuildingClass_KickOutUnit_Infantry, 5)
+{
+	GET(TechnoClass*, Production, EDI);
+	GET(BuildingClass*, Factory, ESI);
+
+	// turn it off
+	--Unsorted::ScenarioInit;
+
+	KickOutClones(Factory, Production);
+
+	// turn it back on so the game can turn it off again
+	++Unsorted::ScenarioInit;
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4445F6, BuildingClass_KickOutUnit_Clone_NonNavalUnit, 5)
+{
+	GET(TechnoClass*, Production, EDI);
+	GET(BuildingClass*, Factory, ESI);
+
+	// turn it off
+	--Unsorted::ScenarioInit;
+
+	KickOutClones(Factory, Production);
+
+	// turn it back on so the game can turn it off again
+	++Unsorted::ScenarioInit;
+
+	return 0x444971;
+}
+
+DEFINE_OVERRIDE_HOOK(0x44441A, BuildingClass_KickOutUnit_Clone_NavalUnit, 6)
+{
+	GET(TechnoClass*, Production, EDI);
+	GET(BuildingClass*, Factory, ESI);
+
+	KickOutClones(Factory, Production);
+
+	return 0;
+}
+
+bool NOINLINE CanBeBuiltAt(TechnoTypeClass* pProduct , BuildingTypeClass* pFactoryType)
+{
+	const auto pProductTypeExt = TechnoTypeExt::ExtMap.Find(pProduct);
+	const auto pBExt = BuildingTypeExt::ExtMap.Find(pFactoryType);
+	return (pProductTypeExt->BuiltAt.empty() && !pBExt->Factory_ExplicitOnly)
+		|| pProductTypeExt->BuiltAt.Contains(pFactoryType);
+}
+
+DEFINE_OVERRIDE_HOOK(0x4444E2, BuildingClass_KickOutUnit_FindAlternateKickout, 6)
+{
+	GET(BuildingClass*, Src, ESI);
+	GET(BuildingClass*, Tst, EBP);
+	GET(TechnoClass*, Production, EDI);
+
+	if (Src != Tst
+	 && Tst->GetCurrentMission() == Mission::Guard
+	 && Tst->Type->Factory == Src->Type->Factory
+	 && Tst->Type->Naval == Src->Type->Naval
+	 && CanBeBuiltAt(Production->GetTechnoType() , Tst->Type)
+	 && !Tst->Factory)
+	{
+		return 0x44451F;
+	}
+
+	return 0x444508;
+}
+
+class AresEMPulse
+{
+public:
+
+	static void Destroy(TechnoClass* pTechno, TechnoClass* pKiller, HouseClass* pKillerHouse, WarheadTypeClass* pWarhead)
+	{
+		if (!pKillerHouse && pKiller) {
+			pKillerHouse = pKiller->Owner;
+		}
+
+		if (!pWarhead) {
+			pWarhead = RulesClass::Instance->C4Warhead;
+		}
+
+		int health = pTechno->GetType()->Strength;
+		pTechno->ReceiveDamage(&health, 0, pWarhead, pKiller, true, false, pKillerHouse);
+	}
+
+	static AnimTypeClass* GetSparkleAnimType(TechnoClass const* const pTechno)
+	{
+		auto const pType = pTechno->GetTechnoType();
+		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		return pTypeExt->EMP_Sparkles.Get(RulesClass::Instance->EMPulseSparkles);
+	}
+
+	static void announceAttack(TechnoClass* Techno)
+	{
+		enum class AttackEvents { None = 0, Base = 1, Harvester = 2 };
+		AttackEvents Event = AttackEvents::None;
+
+		// find out what event is the most appropriate.
+		if (Techno && Techno->Owner == HouseClass::CurrentPlayer)
+		{
+			if (auto pBuilding = specific_cast<BuildingClass*>(Techno))
+			{
+				if (pBuilding->Type->ResourceGatherer)
+				{
+					// slave miner, for example
+					Event = AttackEvents::Harvester;
+				}
+				else if (!pBuilding->Type->Insignificant && !pBuilding->Type->BaseNormal)
+				{
+					Event = AttackEvents::Base;
+				}
+			}
+			else if (auto pUnit = specific_cast<UnitClass*>(Techno))
+			{
+				if (pUnit->Type->Harvester || pUnit->Type->ResourceGatherer)
+				{
+					Event = AttackEvents::Harvester;
+				}
+			}
+		}
+
+		// handle the event.
+		switch (Event)
+		{
+		case AttackEvents::Harvester:
+			if (RadarEventClass::Create(RadarEventType::HarvesterAttacked, Techno->GetMapCoords()))
+				VoxClass::Play(GameStrings::EVA_OreMinerUnderAttack, -1, -1);
+			break;
+		case AttackEvents::Base:
+			HouseClass::CurrentPlayer->BuildingUnderAttack(specific_cast<BuildingClass*>(Techno));
+			break;
+		case AttackEvents::None:
+		default:
+			break;
+		}
+	}
+
+	static void updateSpawnManager(TechnoClass* Techno, ObjectClass* Source = nullptr)
+	{
+		auto pSM = Techno->SpawnManager;
+
+		if (!pSM)
+		{
+			return;
+		}
+
+		if (Techno->EMPLockRemaining > 0)
+		{
+			// crash all spawned units that are visible. else, they'd land somewhere else.
+			for (auto pSpawn : pSM->SpawnedNodes)
+			{
+				// kill every spawned unit that is in the air. exempt missiles.
+				if (pSpawn->IsSpawnMissile == FALSE && pSpawn->Unit)
+				{
+					auto Status = pSpawn->Status;
+					if (Status >= SpawnNodeStatus::TakeOff && Status <= SpawnNodeStatus::Returning)
+					{
+						AresEMPulse::Destroy(pSpawn->Unit, abstract_cast<TechnoClass*>(Source), nullptr , nullptr);
+					}
+				}
+			}
+
+			// pause the timers so spawning and regenerating is deferred.
+			pSM->SpawnTimer.Pause();
+			pSM->UpdateTimer.Pause();
+		}
+		else
+		{
+			// resume counting.
+			pSM->SpawnTimer.Resume();
+			pSM->UpdateTimer.Resume();
+		}
+	}
+
+	static void updateRadarBlackout(BuildingClass* const pBuilding)
+	{
+		for (auto pType : pBuilding->GetTypes()) {
+
+			if (!pType)
+				continue;
+
+			if (pType->Radar || pType->SpySat) {
+				pBuilding->Owner->RecheckRadar = true;
+				return; //one of just check once
+			}
+		}
+	}
+
+	static bool IsTypeEMPProne(TechnoTypeClass* pType)
+	{
+		auto const abs = pType->WhatAmI();
+
+		if (abs == AbstractType::BuildingType)
+		{
+			auto const pBldType = static_cast<BuildingTypeClass const*>(pType);
+
+			// exclude invisible buildings
+			if (pBldType->InvisibleInGame)
+			{
+				return false;
+			}
+
+			// buildings are prone if they consume power and need it to function
+			if (pBldType->Powered && pBldType->PowerDrain > 0)
+			{
+				return true;
+			}
+
+			// may have a special function.
+			return pBldType->Radar
+				|| pBldType->HasSuperWeapon()
+				|| pBldType->UndeploysInto
+				|| pBldType->PowersUnit
+				|| pBldType->Sensors
+				|| pBldType->LaserFencePost
+				|| pBldType->GapGenerator;
+
+		}
+		else if (abs == AbstractType::InfantryType)
+		{
+			// affected only if this is a cyborg.
+			auto const pInfType = static_cast<InfantryTypeClass const*>(pType);
+			return pInfType->Cyborg;
+		}
+		else
+		{
+			// if this is a vessel or vehicle that is organic: no effect.
+			return !pType->Organic;
+		}
+	}
+
+	static bool isCurrentlyEMPImmune(WarheadTypeClass* pWarhead, TechnoClass* Target, HouseClass* SourceHouse)
+	{
+		if (auto pBldLinked = specific_cast<BuildingClass*>(Target->BunkerLinkedItem)) {
+			if (!pWarhead->PenetratesBunker)
+				return true;
+		}
+
+		// objects currently doing some time travel are exempt
+		if (Target->BeingWarpedOut) {
+			return true;
+		}
+
+		// iron curtained objects can not be affected by EMPs
+		if (Target->IsIronCurtained()) {
+			return true;
+		}
+
+		if (Target->WhatAmI() == AbstractType::Unit) {
+			if (BuildingClass* pBld = MapClass::Instance->GetCellAt(Target->Location)->GetBuilding())
+			{
+				if (pBld->Type->WeaponsFactory)
+				{
+					if (pBld->IsUnderEMP() || pBld == Target->GetNthLink(0))
+					{
+						return true;
+					}
+
+					// units requiring an operator can't deactivate on the bib
+					// because nobody could enter it afterwards.
+					if (!TechnoExt_ExtData::IsOperatedB(Target))
+					{
+						return true;
+					}
+				}
+			}
+		}
+
+		// the current status does allow this target to
+		// be affected by EMPs. It may be immune, though.
+		return isEMPImmune(Target, SourceHouse);
+	}
+
+	static bool isEMPImmune(TechnoClass* Target, HouseClass* SourceHouse)
+	{
+		if (TechnoExt::IsEMPImmune(Target))
+			return true;
+
+		auto pType = Target->GetTechnoType();
+
+		if (!IsTypeEMPProne(pType))
+			return true;
+
+		// if houses differ, TypeImmune does not count.
+		if (Target->Owner == SourceHouse)
+		{
+			// ignore if type immune. don't even try.
+			if (isEMPTypeImmune(Target))
+			{
+				// This unit can fire emps and type immunity
+				// grants it to never be affected.
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	static bool isEMPTypeImmune(TechnoClass* Target)
+	{
+		auto pType = Target->GetTechnoType();
+		if (!pType->TypeImmune) {
+			return false;
+		}
+
+		auto isElite = Target->Veterancy.IsElite();
+		auto const& Weapons = *(isElite ? &pType->EliteWeapon : &pType->Weapon);
+
+		// find an emp weapon.
+		for (auto const& Weapon : Weapons)
+		{
+			if (auto pWeaponType = Weapon.WeaponType)
+			{
+				auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pWeaponType->Warhead);
+				if (pWarheadExt->EMP_Duration != 0)
+				{
+					// this unit can fire emps and type immunity
+					// grants it to never be affected.
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	static bool IsDeactivationAdvisable(TechnoClass* Target)
+	{
+	switch (Target->CurrentMission)
+	{
+	case Mission::Selling:
+	case Mission::Construction:
+		return false;
+	}
+
+	switch (Target->QueuedMission)
+	{
+	case Mission::Selling:
+	case Mission::Construction:
+		return false;
+	}
+
+	return true;
+	}
+
+	static void UpdateSparkleAnim(TechnoClass* pFrom, TechnoClass* pTo)
+	{
+		AnimTypeClass* pSparkle = nullptr;
+
+		if (pFrom->align_154->EMPSparkleAnim) {
+			const auto pSpecific = AresEMPulse::GetSparkleAnimType(pFrom);
+
+			if (pSpecific != pFrom->align_154->EMPSparkleAnim->Type)
+				pSparkle = pSpecific;
+		}
+
+		AresEMPulse::UpdateSparkleAnim(pTo, pSparkle);
+	}
+
+	static void UpdateSparkleAnim(TechnoClass* pWho, AnimTypeClass* pAnim = nullptr)
+	{
+		auto& Anim = pWho->align_154->EMPSparkleAnim;
+
+		if (pWho->IsUnderEMP())
+		{
+			if (!Anim)
+			{
+				auto const pAnimType = pAnim ? pAnim
+					: AresEMPulse::GetSparkleAnimType(pWho);
+
+				if (pAnimType)
+				{
+					Anim = GameCreate<AnimClass>(pAnimType, pWho->Location);
+					Anim->SetOwnerObject(pWho);
+
+					if (auto const pBld = specific_cast<BuildingClass*>(pWho))
+					{
+						Anim->ZAdjust = -1024;
+					}
+				}
+			}
+		}
+		else if (Anim)
+		{
+			// finish this loop, then disappear
+			Anim->RemainingIterations = 0;
+			Anim = nullptr;
+		}
+	}
+
+	static bool thresholdExceeded(TechnoClass* Victim)
+	{
+		auto const pData = TechnoTypeExt::ExtMap.Find(Victim->GetTechnoType());
+		if (pData->EMP_Threshold != 0 && Victim->EMPLockRemaining > (std::abs(pData->EMP_Threshold)))
+		{
+			if (pData->EMP_Threshold > 0 || (Victim->IsInAir() && !Victim->Parachute))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	static bool isEligibleEMPTarget(
+	TechnoClass* const pTarget, HouseClass* const pSourceHouse,
+	WarheadTypeExt::ExtData* pWarhead)
+	{
+		if (pWarhead->CanTargetHouse(pSourceHouse, pTarget)) {
+			return false;
+		}
+
+		return !AresEMPulse::isCurrentlyEMPImmune(pWarhead->Get(), pTarget, pSourceHouse);
+	}
+
+	static void deliverEMPDamage(
+	TechnoClass* const pTechno, TechnoClass* const pFirer,
+	WarheadTypeExt::ExtData* pWarhead)
+	{
+		auto const pHouse = pFirer ? pFirer->Owner : nullptr;
+		if (AresEMPulse::isEligibleEMPTarget(pTechno, pHouse, pWarhead))
+		{
+			auto const pType = pTechno->GetTechnoType();
+			auto const& Verses = pWarhead->GetVerses(pType->Armor).Verses;
+			if (std::abs(Verses) < 0.001)
+			{
+				return;
+			}
+
+			auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
+			// get the target-specific multiplier
+			auto modifier = pWarhead->EMP_Duration > 0 ? pExt->EMP_Modifier : 1.0;
+
+			// respect verses
+
+			auto duration = static_cast<int>(pWarhead->EMP_Duration * modifier);
+
+
+			// get the new capped value
+			auto const oldValue = static_cast<int>(pTechno->EMPLockRemaining);
+			auto const newValue = Helpers::Alex::getCappedDuration(
+				oldValue, duration, pWarhead->EMP_Cap);
+
+			// can not be less than zero
+			pTechno->EMPLockRemaining = (MaxImpl(newValue, 0));
+
+			auto diedFromPulse = false;
+			auto const underEMPBefore = (oldValue > 0);
+			auto const underEMPAfter = (pTechno->EMPLockRemaining > 0);
+			auto const newlyUnderEMP = !underEMPBefore && underEMPAfter;
+
+			if (underEMPBefore && !underEMPAfter)
+			{
+				// newly de-paralyzed
+				AresEMPulse::DisableEMPEffect(pTechno);
+
+				if (auto v19 = pTechno->AttachedTag)
+				{
+					v19->RaiseEvent(TriggerEvent(AresTriggerEvents::RemoveEMP_ByHouse), pTechno, CellStruct::Empty, 0, pFirer);
+				}
+
+				if (pTechno->IsAlive)
+				{
+					if (auto  v20 = pTechno->AttachedTag)
+					{
+						v20->RaiseEvent(TriggerEvent(AresTriggerEvents::RemoveEMP), pTechno, CellStruct::Empty, 0, 0);
+					}
+				}
+
+			}
+			else if (newlyUnderEMP)
+			{
+				// newly paralyzed unit
+				diedFromPulse = AresEMPulse::EnableEMPEffect(pTechno, pFirer);
+
+				if (!diedFromPulse && pWarhead->Malicious)
+				{
+					// warn the player
+					AresEMPulse::announceAttack(pTechno);
+				}
+
+				if (pTechno->IsAlive)
+				{
+					if (auto v19 = pTechno->AttachedTag)
+					{
+						v19->RaiseEvent(TriggerEvent(AresTriggerEvents::UnderEMP_ByHouse), pTechno, CellStruct::Empty, 0, pFirer);
+					}
+
+					if (pTechno->IsAlive)
+					{
+						if (auto  v20 = pTechno->AttachedTag)
+						{
+							v20->RaiseEvent(TriggerEvent(AresTriggerEvents::UnderEMP), pTechno, CellStruct::Empty, 0, nullptr);
+						}
+					}
+				}
+
+			}
+			else if (oldValue == newValue)
+			{
+				// no relevant change
+				return;
+			}
+
+			// is techno destroyed by EMP?
+			if (diedFromPulse || (underEMPAfter && AresEMPulse::thresholdExceeded(pTechno)))
+			{
+				AresEMPulse::Destroy(pTechno, pFirer , nullptr , nullptr);
+			}
+			else if (newlyUnderEMP || pWarhead->EMP_Sparkles)
+			{
+				// set the sparkle animation
+				AresEMPulse::UpdateSparkleAnim(pTechno, pWarhead->EMP_Sparkles);
+			}
+		}
+	}
+
+	static bool EnableEMPEffect(
+	TechnoClass* const pVictim, ObjectClass* const pSource)
+	{
+		auto const abs = pVictim->WhatAmI();
+
+		if (abs == AbstractType::Building)
+		{
+			auto const pBuilding = static_cast<BuildingClass*>(pVictim);
+			auto const pOwner = pBuilding->Owner;
+
+			pOwner->RecheckTechTree = true;
+			pOwner->RecheckPower = true;
+
+			pBuilding->DisableStuff();
+			AresEMPulse::updateRadarBlackout(pBuilding);
+		}
+		else if (abs == AbstractType::Aircraft)
+		{
+			// crash flying aircraft
+			auto const pAircraft = static_cast<AircraftClass*>(pVictim);
+			if (pAircraft->GetHeight() > 0)
+			{
+				return true;
+			}
+		}
+
+		// cache the last mission this thing did
+		pVictim->align_154->EMPLastMission = pVictim->CurrentMission;
+
+		// detach temporal
+		if (pVictim->IsWarpingSomethingOut())
+		{
+			pVictim->TemporalImUsing->LetGo();
+		}
+
+		// remove the unit from its team
+		if (auto const pFoot = abstract_cast<FootClass*>(pVictim))
+		{
+			if (pFoot->BelongsToATeam())
+			{
+				pFoot->Team->LiberateMember(pFoot);
+			}
+		}
+
+		// deactivate and sparkle
+		if (!pVictim->Deactivated && AresEMPulse::IsDeactivationAdvisable(pVictim))
+		{
+			auto const selected = pVictim->IsSelected;
+			auto const pFocus = pVictim->Focus;
+
+			pVictim->Deactivate();
+
+			if (selected)
+			{
+				auto const feedback = Unsorted::MoveFeedback();
+				Unsorted::MoveFeedback() = false;
+				pVictim->Select();
+				Unsorted::MoveFeedback() = feedback;
+			}
+
+			if (abs == AbstractType::Building)
+			{
+				pVictim->Focus = pFocus;
+			}
+		}
+
+		// release all captured units.
+		if (pVictim->CaptureManager)
+		{
+			pVictim->CaptureManager->FreeAll();
+		}
+
+		// update managers.
+		AresEMPulse::updateSpawnManager(pVictim, pSource);
+
+		if (auto const pSlaveManager = pVictim->SlaveManager)
+		{
+			pSlaveManager->SuspendWork();
+		}
+
+		// the unit still lives.
+		return false;
+	}
+
+	static void DisableEMPEffect(TechnoClass* const pVictim)
+	{
+		auto const abs = pVictim->WhatAmI();
+
+		auto hasPower = true;
+
+		if (abs == AbstractType::Building)
+		{
+			auto const pBuilding = static_cast<BuildingClass*>(pVictim);
+			hasPower = pBuilding->IsPowerOnline();
+
+			auto const pOwner = pBuilding->Owner;
+			pOwner->RecheckTechTree = true;
+			pOwner->RecheckPower = true;
+
+			auto const pType = pBuilding->Type;
+			if (hasPower || pType->LaserFencePost)
+			{
+				pBuilding->EnableStuff();
+			}
+			AresEMPulse::updateRadarBlackout(pBuilding);
+		}
+
+		if (hasPower && pVictim->Deactivated)
+		{
+			auto const pFocus = pVictim->Focus;
+			pVictim->Reactivate();
+			if (abs == AbstractType::Building)
+			{
+				pVictim->Focus = pFocus;
+			}
+		}
+
+		// allow to spawn units again.
+		AresEMPulse::updateSpawnManager(pVictim);
+
+		if (auto const pSlaveManager = pVictim->SlaveManager)
+		{
+			pSlaveManager->ResumeWork();
+		}
+
+		// update the animation
+		AresEMPulse::UpdateSparkleAnim(pVictim);
+
+		// get harvesters back to work and ai units to hunt
+		if (auto const pFoot = abstract_cast<FootClass*>(pVictim))
+		{
+			auto hasMission = false;
+			if (abs == AbstractType::Unit)
+			{
+				auto const pUnit = static_cast<UnitClass*>(pVictim);
+				if (pUnit->Type->Harvester || pUnit->Type->ResourceGatherer)
+				{
+					// prevent unloading harvesters from being irritated.
+					auto const mission = pVictim->align_154->EMPLastMission != Mission::Guard
+						? pVictim->align_154->EMPLastMission : Mission::Enter;
+
+					pUnit->QueueMission(mission, true);
+					hasMission = true;
+				}
+			}
+
+			if (!hasMission && !pFoot->Owner->IsControlledByHuman_())
+			{
+				pFoot->QueueMission(RulesExt::Global()->EMPAIRecoverMission.Get(Mission::Hunt), false);
+			}
+		}
+	}
+
+	static bool EnableEMPEffect2(TechnoClass* const pVictim)
+	{
+		auto const abs = pVictim->WhatAmI();
+
+		if (abs == AbstractType::Building)
+		{
+			auto const pBuilding = static_cast<BuildingClass*>(pVictim);
+			auto const pOwner = pBuilding->Owner;
+
+			pOwner->RecheckTechTree = true;
+			pOwner->RecheckPower = true;
+
+			pBuilding->DisableStuff();
+			AresEMPulse::updateRadarBlackout(pBuilding);
+		}
+		else if (abs == AbstractType::Aircraft)
+		{
+			// crash flying aircraft
+			auto const pAircraft = static_cast<AircraftClass*>(pVictim);
+			if (pAircraft->GetHeight() > 0)
+			{
+				return true;
+			}
+		}
+
+		// deactivate and sparkle
+		if (!pVictim->Deactivated && AresEMPulse::IsDeactivationAdvisable(pVictim))
+		{
+			// cache the last mission this thing did
+			pVictim->align_154->EMPLastMission = pVictim->CurrentMission;
+
+			// detach temporal
+			if (pVictim->IsWarpingSomethingOut())
+			{
+				pVictim->TemporalImUsing->LetGo();
+			}
+
+			// remove the unit from its team
+			if (auto const pFoot = abstract_cast<FootClass*>(pVictim))
+			{
+				if (pFoot->BelongsToATeam())
+				{
+					pFoot->Team->LiberateMember(pFoot);
+				}
+			}
+
+			auto const selected = pVictim->IsSelected;
+			auto const pFocus = pVictim->Focus;
+
+			pVictim->Deactivate();
+
+			if (selected)
+			{
+				auto const feedback = Unsorted::MoveFeedback();
+				Unsorted::MoveFeedback() = false;
+				pVictim->Select();
+				Unsorted::MoveFeedback() = feedback;
+			}
+
+			if (abs == AbstractType::Building)
+			{
+				pVictim->Focus = pFocus;
+			}
+
+			if (abstract_cast<FootClass*>(pVictim))
+			{
+				pVictim->QueueMission(Mission::Sleep, true);
+			}
+
+			// release all captured units.
+			if (pVictim->CaptureManager)
+			{
+				pVictim->CaptureManager->FreeAll();
+			}
+
+			// update managers.
+			AresEMPulse::updateSpawnManager(pVictim, nullptr);
+
+			if (auto const pSlaveManager = pVictim->SlaveManager)
+			{
+				pSlaveManager->SuspendWork();
+			}
+		}
+
+		// the unit still lives.
+		return false;
+	}
+
+	static void DisableEMPEffect2(TechnoClass* const pVictim)
+	{
+		auto const abs = pVictim->WhatAmI();
+
+		auto hasPower = TechnoExt_ExtData::IsPowered(pVictim) && TechnoExt_ExtData::IsOperated(pVictim);
+
+		if (abs == AbstractType::Building)
+		{
+			auto const pBuilding = static_cast<BuildingClass*>(pVictim);
+			hasPower = hasPower && pBuilding->IsPowerOnline();
+
+			auto const pOwner = pBuilding->Owner;
+			pOwner->RecheckTechTree = true;
+			pOwner->RecheckPower = true;
+
+			if (hasPower)
+			{
+				pBuilding->EnableStuff();
+			}
+			AresEMPulse::updateRadarBlackout(pBuilding);
+		}
+
+		if (hasPower && pVictim->Deactivated)
+		{
+			auto const pFocus = pVictim->Focus;
+			pVictim->Reactivate();
+			if (abs == AbstractType::Building)
+			{
+				pVictim->Focus = pFocus;
+			}
+
+			// allow to spawn units again.
+			AresEMPulse::updateSpawnManager(pVictim);
+
+			if (auto const pSlaveManager = pVictim->SlaveManager)
+			{
+				pSlaveManager->ResumeWork();
+			}
+
+			// get harvesters back to work and ai units to hunt
+			if (auto const pFoot = abstract_cast<FootClass*>(pVictim))
+			{
+				auto hasMission = false;
+				if (abs == AbstractType::Unit)
+				{
+					auto const pUnit = static_cast<UnitClass*>(pVictim);
+					if (pUnit->Type->Harvester || pUnit->Type->ResourceGatherer)
+					{
+						// prevent unloading harvesters from being irritated.
+						auto const mission = pVictim->align_154->EMPLastMission != Mission::Guard
+							? pVictim->align_154->EMPLastMission : Mission::Enter;
+
+						pUnit->QueueMission(mission, true);
+						hasMission = true;
+					}
+				}
+
+				if (!hasMission && !pFoot->Owner->IsControlledByHuman_())
+				{
+					pFoot->QueueMission(RulesExt::Global()->EMPAIRecoverMission.Get(Mission::Hunt), false);
+				}
+			}
+		}
+	}
+};
+
+class AresPoweredUnit : public AresTechnoExt::PoweredUnitClass
+{
+	bool IsPoweredBy(HouseClass* const pOwner) const
+	{
+		auto const pType = this->Techno->GetTechnoType();
+		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+		auto const& PoweredBy = pTypeExt->PoweredBy;
+
+		for (auto const& pBuilding : pOwner->Buildings)
+		{
+			auto const inArray = PoweredBy.Contains(pBuilding->Type);
+
+			if (inArray && !pBuilding->BeingWarpedOut && !pBuilding->IsUnderEMP())
+			{
+				if (TechnoExt_ExtData::IsOperated(pBuilding) && pBuilding->IsPowerOnline())
+				{
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	void PowerUp()
+	{
+		auto const pTechno = this->Techno;
+		if (!pTechno->IsUnderEMP() && TechnoExt_ExtData::IsOperated(pTechno))
+		{
+			AresEMPulse::DisableEMPEffect2(pTechno);
+		}
+	}
+
+	bool PowerDown()
+	{
+		auto const pTechno = this->Techno;
+
+		if (AresEMPulse::IsDeactivationAdvisable(pTechno))
+		{
+			// destroy if EMP.Threshold would crash this unit when in air
+			auto const pType = pTechno->GetTechnoType();
+			auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
+
+			if (AresEMPulse::EnableEMPEffect2(pTechno)
+				|| (pExt->EMP_Threshold && pTechno->IsInAir()))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	bool Update()
+	{
+		if ((Unsorted::CurrentFrame - this->LastScan) < 15)
+		{
+			return true;
+		}
+
+		auto const pTechno = this->Techno;
+
+		if (!pTechno->IsAlive || !pTechno->Health || pTechno->InLimbo)
+		{
+			return true;
+		}
+
+		this->LastScan = Unsorted::CurrentFrame;
+		auto const pOwner = pTechno->Owner;
+		auto const hasPower = this->IsPoweredBy(pOwner);
+
+		this->Powered = hasPower;
+
+		if (hasPower && pTechno->Deactivated)
+		{
+			this->PowerUp();
+		}
+		else if (!hasPower && !pTechno->Deactivated)
+		{
+			// don't shutdown units inside buildings (warfac, barracks, shipyard) because that locks up the factory and the robot tank did it
+			auto const whatAmI = pTechno->WhatAmI();
+			if ((whatAmI != InfantryClass::AbsID && whatAmI != UnitClass::AbsID) || (!pTechno->GetCell()->GetBuilding()))
+			{
+				return this->PowerDown();
+			}
+		}
+
+		return true;
+	}
+
+};
+
+DEFINE_OVERRIDE_HOOK(0x6FAF0D, TechnoClass_Update_EMPLock, 6)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	// original code.
+	if (pThis->EMPLockRemaining)
+	{
+		--pThis->EMPLockRemaining;
+		if (!pThis->EMPLockRemaining)
+		{
+			// the forced vacation just ended. we use our own
+			// function here that is quicker in retrieving the
+			// EMP animation and does more stuff.
+			AresEMPulse::DisableEMPEffect(pThis);
+		}
+		else
+		{
+			// deactivate units that were unloading afterwards
+			if (!pThis->Deactivated && AresEMPulse::IsDeactivationAdvisable(pThis))
+			{
+				// update the current mission
+				pThis->align_154->EMPLastMission = pThis->CurrentMission;
+				pThis->Deactivate();
+			}
+		}
+	}
+
+	return 0x6FAFFD;
+}
+
+// copy the remaining EMP duration to the unit when undeploying a building.
+DEFINE_OVERRIDE_HOOK(0x44A04C, BuildingClass_Unload_CopyEMPDuration, 6)
+{
+	GET(TechnoClass*, pBuilding, EBP);
+	GET(TechnoClass*, pUnit, EBX);
+
+	// reuse the EMP duration of the deployed/undeployed Techno.
+	pUnit->EMPLockRemaining = pBuilding->EMPLockRemaining;
+	AresEMPulse::UpdateSparkleAnim(pUnit, pBuilding);
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x5d7337, MPGameMode_SpawnStartingUnits_NoInfantry, 5)
+{
+	return R->Stack<int>(0x28) ? 0x0 : 0x5D734F;
+}
+
+DEFINE_OVERRIDE_HOOK(0x5D705E, MPGameMode_SpawnBaseUnit_BaseUnit, 6)
+{
+	enum { hasBaseUnit = 0x5D7064, hasNoBaseUnit = 0x5D70DB };
+
+	GET(HouseClass*, pHouse, EDI);
+	GET(UnitTypeClass*, pBaseUnit, EAX);
+	R->ESI(pBaseUnit);
+
+	if(pBaseUnit)
+		return hasBaseUnit;
+
+	Debug::Log("House of country [%s] cannot build anything from [General]BaseUnit=.\n", pHouse->Type->ID);
+	return hasNoBaseUnit;
+}
+
+//DEFINE_OVERRIDE_HOOK(0x5d7048, MPGameMode_SpawnBaseUnit_BuildConst, 5)
+//{
+//	GET_STACK(HouseClass*, pHouse, 0x18);
+//
+//	auto pHouseType = pHouse->Type;
+//
+//	if (!HouseTypeExt::ExtMap.Find(pHouseType)->StartInMultiplayer_WithConst)
+//		return 0;
+//
+//	auto idxParentCountry = HouseClass::FindIndexByName(pHouseType->ParentCountry);
+//	auto v7 = HouseExt::FindBuildable(pHouse, idxParentCountry, make_iterator(RulesClass::Instance->BuildConst), 0);
+//
+//	if (!v7) {
+//		Debug::Log("House of country [%s] cannot build anything from [General]BuildConst=.\n", pHouse->Type->ID);
+//		return 0x5D70DB;
+//	}
+//
+//	auto pBld = (BuildingClass*)v7->CreateObject(pHouse);
+//	if (!pBld)
+//		return 0x5D70DB;
+//
+//	pBld->ForceMission(Mission::Guard);
+//
+//	if (v7->GetFoundationWidth() > 2 || v7->GetFoundationHeight(0) > 2)
+//	{
+//		--pHouse->BaseSpawnCell.X;
+//		--pHouse->BaseSpawnCell.Y;
+//	}
+//
+//	if (!pHouse->IsControlledByHuman_())
+//	{
+//		pHouse->Func_505180();
+//		CellStruct base = pHouse->GetBaseCenter();
+//
+//		pHouse->Base.Center = base;
+//		pHouse->Base.BaseNodes.Items->MapCoords = base;
+//		pHouse->Production = 1;
+//		pHouse->AITriggersActive = true;
+//	}
+//
+//	R->EAX(pBld);
+//	R->EDI(pHouse);
+//	return 0x5D707E;
+//}
 
 //DEFINE_HOOK(0x4CAD00, FastMath_Cos_Replace, 0xA)
 //{

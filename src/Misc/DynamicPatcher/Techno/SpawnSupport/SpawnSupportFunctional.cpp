@@ -78,52 +78,6 @@ void SpawnSupportFunctional::FireSupportWeaponToSpawn(TechnoClass* pThis, Abstra
 	}
 }
 
-DEFINE_HOOK(0x6B743E , SpawnManagerAI_SpawnSupportFLH, 0x8)
-{
-	GET(SpawnManagerClass*, pSpawn, ESI);
-	//GET_STACK(int, nArrIdx, STACK_OFFS(0x68, 0x54));
-
-	if (auto pOwner = pSpawn->Owner)
-	{
-		//if ((*pFLH) == CoordStruct::Empty)
-		{
-			auto pTypeExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
-
-			if (pTypeExt->MySpawnSupportDatas.Enable)
-			{
-				//CoordStruct nFLH = CoordStruct::Empty;
-
-				SpawnSupportFLHData nFLHData = pTypeExt->MySpawnSupportFLH;
-				if (auto const pTransporter = pOwner->Transporter)
-				{
-					if (auto const pTransportExt = TechnoTypeExt::ExtMap.Find(pTransporter->GetTechnoType()))
-					{
-						nFLHData = pTransportExt->MySpawnSupportFLH;
-					}
-				}
-
-				CoordStruct nFLH = pOwner->Veterancy.IsElite() ? nFLHData.EliteSpawnSupportFLH : nFLHData.SpawnSupportFLH;
-
-				if (nFLH == CoordStruct::Empty)
-					return 0x0;
-
-				if(auto pSpawnExt = TechnoExt::ExtMap.Find(pOwner)){
-					if (pTypeExt->MySpawnSupportDatas.SwitchFLH)
-					{
-						nFLH.Y *= pSpawnExt->MySpawnSuport.supportFLHMult;
-						pSpawnExt->MySpawnSuport.supportFLHMult *= -1;
-					}
-				}
-
-				R->EAX(&nFLH);
-				return 0x6B7498;
-			}
-		}
-	}
-
-
-	return 0x0;
-}
 void SpawnSupportFunctional::AI(TechnoClass* pThis)
 {
 	//auto const pSpawnOwner = pThis->SpawnOwner;

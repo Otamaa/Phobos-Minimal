@@ -71,7 +71,7 @@ DEFINE_OVERRIDE_HOOK(0x718275 ,TeleportLocomotionClass_MakeRoom, 9)
 		}
 	}
 
-	if ((pCell->Flags & CellFlags(0x100)) != CellFlags(0) && (pCell->Flags & CellFlags(0x200)) == CellFlags(100))
+	if ((pCell->Flags & CellFlags(0x300)) == CellFlags(100))
 		R->Stack(0x48, true);
 
 	R->Stack(0x20 , pLoco->LinkedTo->GetCellAgain());
@@ -235,7 +235,7 @@ bool NOINLINE AcquireHunterSeekerTarget(TechnoClass* pThis)  {
 #ifndef Replace_SW
 			TechnoExt::ExtMap.Find(pThis)->LinkedSW
 #else
-			AttachedSuperWeapon(pThis)
+			pThis->align_154->AttachedSuperWeapon
 #endif
 			) {
 			pOwner = pSuper->Owner;

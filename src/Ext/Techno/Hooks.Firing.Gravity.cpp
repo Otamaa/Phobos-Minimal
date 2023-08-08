@@ -13,6 +13,30 @@ DEFINE_HOOK(0x6F7481, TechnoClass_Targeting_ApplyGravity, 0x6)
 	return 0x6F74A4;
 }
 
+
+DEFINE_HOOK_AGAIN(0x44D2AE, BuildingClass_Mission_Missile_ApplyGravity, 0x6)
+DEFINE_HOOK_AGAIN(0x44D264, BuildingClass_Mission_Missile_ApplyGravity, 0x6)
+DEFINE_HOOK(0x44D074, BuildingClass_Mission_Missile_ApplyGravity, 0x6)
+{
+	GET(WeaponTypeClass* const, pWeaponType, EBP);
+
+	auto const nGravity = BulletTypeExt::GetAdjustedGravity(pWeaponType->Projectile);
+	__asm { fld nGravity };
+
+	switch (R->Origin())
+	{
+	case 0x44D074:
+		return 0x44D07A;
+		break;
+	case 0x44D264:
+		return 0x44D26A;
+		break;
+	case 0x44D2AE:
+		return 0x44D2B4;
+		break;
+	}
+}
+
 DEFINE_HOOK(0x6FDAA6, TechnoClass_FireAngle_6FDA00_ApplyGravity, 0x5)
 {
 	GET(WeaponTypeClass* const, pWeaponType, EDI);

@@ -1,4 +1,54 @@
+#include <Ext/Bullet/Body.h>
 
+// this set after ares set their ownership
+// DEFINE_HOOK(0x469C98, BulletClass_Logics_DamageAnimSelected, 0x9) //was 0
+// {
+// 	enum { Continue = 0x469D06, NukeWarheadExtras = 0x469CAF };
+//
+// 	GET(BulletClass*, pThis, ESI);
+// 	GET(AnimClass*, pAnim, EAX);
+//
+// 	const auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+//
+// 	if (pAnim && pAnim->Type) {
+// 		HouseClass* pInvoker =  nullptr;
+// 		HouseClass* pVictim = nullptr;
+//
+// 		if(auto pTech = pThis->Owner) {
+// 			pInvoker = pThis->Owner->GetOwningHouse();
+// 			if(auto const pAnimExt = AnimExt::ExtMap.Find(pAnim))
+// 				pAnimExt->Invoker = pTech;
+// 		}
+// 		else
+// 		{
+// 			if(auto const pBulletExt = BulletExt::ExtMap.Find(pThis))
+// 			pInvoker = pBulletExt->Owner;
+// 		}
+//
+// 		if (TechnoClass* Target = generic_cast<TechnoClass*>(pThis->Target))
+// 			pVictim = Target->Owner;
+//
+// 		AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pVictim, pInvoker);
+//
+// 	} else if (pWarheadExt->IsNukeWarhead.Get()) {
+// 		return NukeWarheadExtras;
+// 	}
+//
+// 	return Continue;
+// }
+//
+//DEFINE_HOOK(0x6E2368, ActionClass_PlayAnimAt, 0x7)
+//{
+//	GET(AnimClass*, pAnim, EAX);
+//	GET_STACK(HouseClass*, pHouse, STACK_OFFS(0x18, -0x4));
+//
+//	if (pAnim) {
+//		AnimExt::SetAnimOwnerHouseKind(pAnim, pHouse, pHouse,false);
+//	}
+//
+//	return 0;
+//}
+//
 //DEFINE_HOOK(0x423AC0, AnimClass_Update, 0x6)
 //{
 	//GET(AnimClass*, pThis, ECX);

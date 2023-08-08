@@ -558,18 +558,20 @@ public:
 
 	// whether any human player controls this house
 	bool IsControlledByHuman() const  { JMP_THIS(0x50B730); }
+	
 	// whether any human player controls this house
 	bool IsControlledByHuman_() const
 	{
 		bool result = this->IsHumanPlayer;
 		if(SessionClass::Instance->GameMode == GameMode::Campaign) {
-			result |= this->IsInPlayerControl;
+			result = result || this->IsInPlayerControl;
 		}
 		return result;
 	}
 
 	// whether the human player on this PC can control this house
 	bool ControlledByPlayer() const { JMP_THIS(0x50B6F0); }
+	
 	// whether the human player on this PC can control this house
 	bool ControlledByPlayer_() const
 	{
@@ -800,6 +802,14 @@ public:
 		} else {
 			return this->BaseSpawnCell;
 		}
+	}
+
+	void SetBaseSpawnCell(const CellStruct& place) const {
+		JMP_THIS(0x50E000);
+	}
+
+	void SetBaseSpawnCell(const CellStruct& place)  {
+		this->BaseSpawnCell = place;
 	}
 
 	unsigned int GetAIDifficultyIndex() const {

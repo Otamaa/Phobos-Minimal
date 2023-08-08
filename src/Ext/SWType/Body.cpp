@@ -53,12 +53,12 @@ std::array<const AITargetingModeInfo, (size_t)SuperWeaponAITargetingMode::count>
 	{SuperWeaponAITargetingMode::HunterSeeker, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::Enemy, TargetingPreference::None },
 	{SuperWeaponAITargetingMode::EnemyBase, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::Enemy, TargetingPreference::None },
 	{SuperWeaponAITargetingMode::IronCurtain, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::None, TargetingPreference::None },
-	{SuperWeaponAITargetingMode::Attack, SuperWeaponTarget::AllTechnos, AffectedHouse::Enemies, TargetingConstraints::Enemy, TargetingPreference::Offensive},
+	{SuperWeaponAITargetingMode::Attack, SuperWeaponTarget::Building, AffectedHouse::None, TargetingConstraints::Attacked, TargetingPreference::None},
 	{SuperWeaponAITargetingMode::LowPower, SuperWeaponTarget::None, AffectedHouse::Owner, TargetingConstraints::LowPower, TargetingPreference::None},
-	{SuperWeaponAITargetingMode::LowPowerAttack, SuperWeaponTarget::Building, AffectedHouse::Owner, TargetingConstraints::Attacked | TargetingConstraints::LowPower, TargetingPreference::None },
-	{SuperWeaponAITargetingMode::DropPod, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::Enemy , TargetingPreference::None},
+	{SuperWeaponAITargetingMode::LowPowerAttack, SuperWeaponTarget::None, AffectedHouse::Owner, TargetingConstraints::Attacked | TargetingConstraints::LowPower, TargetingPreference::None },
+	{SuperWeaponAITargetingMode::DropPod, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::None , TargetingPreference::None},
 	{SuperWeaponAITargetingMode::LightningRandom, SuperWeaponTarget::AllCells, AffectedHouse::All, TargetingConstraints::None, TargetingPreference::None },
-	{SuperWeaponAITargetingMode::LauchSite, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::None , TargetingPreference::None},
+	{SuperWeaponAITargetingMode::LauchSite, SuperWeaponTarget::Building, AffectedHouse::None, TargetingConstraints::None , TargetingPreference::None},
 	{SuperWeaponAITargetingMode::FindAuxTechno , SuperWeaponTarget::AllTechnos , AffectedHouse::Owner , TargetingConstraints::None , TargetingPreference::None }
 
 }
@@ -941,7 +941,7 @@ TargetResult SWTypeExt::ExtData::PickSuperWeaponTarget(SuperClass* pSuper)
 		return TargetingFuncs::GetForceShieldTarget(info);
 	}
 	case SuperWeaponAITargetingMode::NoTarget:
-	case SuperWeaponAITargetingMode::HunterSeeker:
+	case SuperWeaponAITargetingMode::HunterSeeker: // the documentation say the house need to pick `Favorite` enemy , but infact the dll code just like thse
 	case SuperWeaponAITargetingMode::Attack:
 	case SuperWeaponAITargetingMode::LowPower:
 	case SuperWeaponAITargetingMode::LowPowerAttack:
@@ -1665,7 +1665,7 @@ void SWTypeExt::ExtData::ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, co
 	if (!MapClass::Instance->IsWithinUsableArea(nDest))
 		Debug::Log("SW[%s] Lauch Outside Usable Map Area [%d . %d]! \n", this->Get()->ID , nDest.X , nDest.Y);
 
-	if (!pFirer)
+	if (!pFirer || !Is_Techno(pFirer))
 		Debug::Log("SW[%s] ApplyDetonate without Firer!\n", this->Get()->ID);
 
 	if (const auto pWeapon = this->Detonate_Weapon.Get())
@@ -2279,6 +2279,10 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->LaserStrikeLaserHeight)
 		.Process(this->LaserStrikeThickness)
 		.Process(this->LaserStrikeRate)
+#pragma endregion
+
+#pragma region GenericWarheadSW
+		.Process(Generic_Warhead_Detonate)
 #pragma endregion
 		;
 

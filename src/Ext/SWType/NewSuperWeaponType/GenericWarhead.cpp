@@ -50,15 +50,41 @@ bool SW_GenericWarhead::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 	}
 
 	auto const pCell = MapClass::Instance->GetCellAt(Coords);
+	const auto pFirer = this->GetFirer(pThis, Coords, false);
+	const auto damage = GetDamage(pData);
+	auto detonationCoords = pCell->GetCoordsWithBridge();
 
-	WarheadTypeExt::DetonateAt(
+	if(pData->Generic_Warhead_Detonate){
+		AbstractClass* pTarget = pCell->GetSomeObject({}, pCell->ContainsBridge());
+		WarheadTypeExt::DetonateAt(
 		pWarhead ,
-		pCell ,
-		pCell->GetCoordsWithBridge(),
-		this->GetFirer(pThis, Coords, false),
-		GetDamage(pData),
+		pTarget ? pTarget : pCell ,
+		detonationCoords,
+		pFirer,
+		damage,
 		pThis->Owner
-	);
+		);
+	}
+	else
+	{
+		// crush, kill, destroy
+		auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+		WarheadTypeExt::CreateIonBlast(pWarhead, detonationCoords);
+		pWHExt->applyIronCurtain(detonationCoords, pThis->Owner, damage);
+		AresData::applyEMP(pWarhead, &detonationCoords, pFirer);
+		AresData::applyAE(pWarhead, &detonationCoords, pThis->Owner);
+
+		MapClass::DamageArea(detonationCoords, damage, pFirer, pWarhead, pWarhead->Tiberium, pThis->Owner);
+
+		if (auto const pAnimType = MapClass::SelectDamageAnimation(damage, pWarhead, pCell->LandType, detonationCoords))
+		{
+				//Otamaa Added
+			if (auto pAnim = GameCreate<AnimClass>(pAnimType, detonationCoords))
+				pAnim->Owner = pThis->Owner;
+		}
+
+		MapClass::FlashbangWarheadAt(damage, pWarhead, detonationCoords, false, SpotlightFlags::None);
+	}
 
 	return true;
 }
@@ -72,4 +98,12 @@ bool SW_GenericWarhead::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingCl
 		return true;
 
 	return this->IsSWTypeAttachedToThis(pData, pBuilding);
+}
+
+void SW_GenericWarhead::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
+{
+	const char* section = pData->Get()->ID;
+
+	INI_EX exINI(pINI);
+	pData->Generic_Warhead_Detonate.Read(exINI, section, "GenericWarhead.Detonate");
 }

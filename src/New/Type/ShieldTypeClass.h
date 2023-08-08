@@ -19,6 +19,8 @@ public:
 	Valueable<int> Respawn_Rate;
 	Valueable<double> SelfHealing;
 	Valueable<int> SelfHealing_Rate;
+	Valueable<bool> SelfHealing_RestartInCombat;
+	Valueable<int> SelfHealing_RestartInCombatDelay;
 
 	Valueable<bool> AbsorbOverDamage;
 	Valueable<int> BracketDelta;
@@ -31,6 +33,8 @@ public:
 	Nullable<WeaponTypeClass*> BreakWeapon;
 	Valueable<double> AbsorbPercent;
 	Valueable<double> PassPercent;
+	Valueable<int> ReceivedDamage_Minimum;
+	Valueable<int> ReceivedDamage_Maximum;
 
 	Nullable<bool> AllowTransfer;
 

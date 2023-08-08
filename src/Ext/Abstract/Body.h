@@ -7,8 +7,6 @@
 #include <Utilities/Macro.h>
 #include <Utilities/SavegameDef.h>
 
-static constexpr size_t AbstractExtOffset = 0x18;
-
 #ifdef AAAAA
 // All ext classes should derive from this class
 // Derivered with attached object
@@ -90,7 +88,7 @@ public:
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
 	virtual bool InvalidateIgnorable(void* ptr) const = 0;
 
-	virtual inline void SaveToStream(PhobosStreamWriter& Stm) { 
+	virtual inline void SaveToStream(PhobosStreamWriter& Stm) {
 		Stm.Save(this->Initialized);
 	}
 

@@ -523,7 +523,7 @@ protected:
 public:
 	NullableVector() noexcept = default;
 	~NullableVector() = default;
-	inline void Read(INI_EX& parser, const char* pSection, const char* pKey);
+	inline void Read(INI_EX& parser, const char* pSection, const char* pKey , bool allocate = false);
 
 	bool HasValue() const noexcept
 	{

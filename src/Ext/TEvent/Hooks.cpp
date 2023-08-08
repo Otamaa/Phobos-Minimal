@@ -10,7 +10,7 @@
 
 #include <Utilities/Macro.h>
 
-// we hook on the very first call 
+// we hook on the very first call
 // ares doing it before the switch statement call
 DEFINE_HOOK(0x71E940, TEventClass_Execute, 0x5)
 {

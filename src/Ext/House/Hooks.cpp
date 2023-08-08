@@ -5,12 +5,15 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
+#include <Ares_TechnoExt.h>
+#include <Misc/Ares/Hooks/Header.h>
 
 DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 {
 	GET(HouseClass*, pThis, ECX);
 
 	const auto pHouseExt = HouseExt::ExtMap.Find(pThis);
+
 	pHouseExt->PowerPlantEnhancerBuildings.clear();
 	pHouseExt->Building_BuildSpeedBonusCounter.clear();
 
@@ -20,26 +23,38 @@ DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 	{
 		if (pBld && pBld->IsAlive && !pBld->InLimbo && pBld->IsOnMap)
 		{
-			const auto pExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+			bool PowerChecked = false;
+			bool HasPower = false;
 
-			if(pBld->HasPower) {
-				if (pExt->PowerPlantEnhancer_Buildings.size() &&
-					(pExt->PowerPlantEnhancer_Amount != 0 || pExt->PowerPlantEnhancer_Factor != 1.0f))
+			for(auto const pType : pBld->GetTypes()){
+
+				if (!PowerChecked)
 				{
-					++pHouseExt->PowerPlantEnhancerBuildings[pBld->Type];
+					HasPower = pBld->HasPower
+						&& !pBld->IsUnderEMP()
+						&& (pBld->align_154->Is_Operated || TechnoExt_ExtData::IsOperated(pBld));
+
+					PowerChecked = true;
 				}
-			}
 
-			if (pExt->SpeedBonus.Enabled)
-				++pHouseExt->Building_BuildSpeedBonusCounter[pBld->Type];
+				const auto pExt = BuildingTypeExt::ExtMap.TryFind(pType);
 
-			if (BuildingExt::ExtMap.Find(pBld)->LimboID != -1)
-			{
-				pHouseExt->AvaibleDocks += pBld->Type->NumberOfDocks;
+				if (!pExt)
+					continue;
+
+				if(HasPower) {
+					if (pExt->PowerPlantEnhancer_Buildings.size() &&
+						(pExt->PowerPlantEnhancer_Amount != 0 || pExt->PowerPlantEnhancer_Factor != 1.0f))
+					{
+						++pHouseExt->PowerPlantEnhancerBuildings[pType];
+					}
+
+					if (pExt->SpeedBonus.Enabled)
+						++pHouseExt->Building_BuildSpeedBonusCounter[pType];
+				}
 			}
 		}
 	}
-
 
 	return 0;
 }

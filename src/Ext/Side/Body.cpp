@@ -3,7 +3,25 @@
 #include <ThemeClass.h>
 #include <Utilities/Helpers.h>
 
-void SideExt::ExtData::Initialize() {};
+void SideExt::ExtData::Initialize() {
+
+	const char* pID = this->OwnerObject()->ID;
+
+	if (IS_SAME_STR_(pID, "Nod"))
+	{ //Soviets
+		this->MessageTextColorIndex = 11;
+
+	}
+	else if (IS_SAME_STR_(pID, "ThirdSide"))
+	{ //Yuri
+		this->MessageTextColorIndex = 25;
+
+	}
+	else
+	{ //Allies or any other country
+		this->MessageTextColorIndex = 21;
+	}
+};
 
 bool SideExt::isNODSidebar()
 {
@@ -12,7 +30,7 @@ bool SideExt::isNODSidebar()
 		return !SideExt::ExtMap.Find(pSide)->Sidebar_GDIPositions.Get(PlayerSideIndex == 0);
 	}
 
-	return PlayerSideIndex;
+	return PlayerSideIndex == 0;
 }
 
 int SideExt::ExtData::GetSurvivorDivisor() const {
@@ -155,12 +173,15 @@ void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SpyPlane.Read(exINI, pSection, "SpyPlane.Aircraft" , true);
 	this->HunterSeeker.Read(exINI, pSection, "HunterSeeker", true);
 
-	this->ParaDropTypes.Read(exINI, pSection, "ParaDrop.Types");
+	this->ParaDropTypes.Read(exINI, pSection, "ParaDrop.Types" , true);
 
 	// remove all types that cannot paradrop
 	Helpers::Alex::remove_non_paradroppables(this->ParaDropTypes, pSection, "ParaDrop.Types");
 
 	this->ParaDropNum.Read(exINI, pSection, "ParaDrop.Num");
+
+	this->MessageTextColorIndex.Read(exINI, pSection, "MessageTextColor");
+	this->ParachuteAnim.Read(exINI, pSection, "Parachute.Anim", true);
 }
 
 // =============================
@@ -207,6 +228,10 @@ void SideExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->ParaDropTypes)
 		.Process(this->ParaDropNum)
+
+		.Process(this->MessageTextColorIndex)
+
+		.Process(this->ParachuteAnim)
 		;
 }
 

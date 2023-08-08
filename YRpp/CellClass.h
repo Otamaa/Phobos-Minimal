@@ -378,20 +378,20 @@ public:
 
 	// helper
 	bool ContainsBridge() const
-		{ return static_cast<bool>(this->Flags & CellFlags::Bridge); }
+		{ return (this->Flags & CellFlags::Bridge) != CellFlags::Empty; }
 
 	bool ContainsBridgeEx() const
-		{ return ContainsBridge(); }
+		{ return (this->Flags & CellFlags::BridgeWithBody) != CellFlags::Empty; }
 
-	bool ContainsBridgeHead() const
-		{ return static_cast<bool>(this->Flags & CellFlags::BridgeHead); }
+	bool ContainsBridgeBody() const
+		{ return (this->Flags & CellFlags::BridgeBody) != CellFlags::Empty; }
 
 	// helper mimicking game's behaviour
 	ObjectClass* GetContent() const
 		{ return this->ContainsBridge() ? this->AltObject : this->FirstObject; }
 
 	ObjectClass* GetContentB() const
-	{ return (this->ContainsBridgeHead()) ? this->AltObject : this->FirstObject; }
+	{ return (this->ContainsBridgeEx()) ? this->AltObject : this->FirstObject; }
 
 	int GetLevel() const
 		{ return this->Level + (this->ContainsBridge() ? BridgeLevels : 0); }

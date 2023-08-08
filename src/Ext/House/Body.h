@@ -93,7 +93,7 @@ public:
 		virtual ~ExtData() override = default;
 
 		void InvalidatePointer(void* ptr, bool bRemoved);
-		bool InvalidateIgnorable(void* ptr) const;
+		static bool InvalidateIgnorable(void* ptr);
 
 		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
@@ -171,6 +171,7 @@ public:
 	static AircraftTypeClass* GetParadropPlane(HouseClass* pHouse);
 	static AircraftTypeClass* GetSpyPlane(HouseClass* pHouse);
 	static UnitTypeClass* GetHunterSeeker(HouseClass* pHouse);
+	static AnimTypeClass* GetParachuteAnim(HouseClass* pHouse);
 	static bool GetParadropContent(HouseClass* pHouse , Iterator<TechnoTypeClass*>& Types, Iterator<int>& Num);
 	//
 	static void ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode);
@@ -183,20 +184,20 @@ public:
 	//static int FindGenericPrerequisite(const char* id);
 	static int GetHouseIndex(int param, TeamClass* pTeam, TActionClass* pTAction);
 
-	static bool IsDisabledFromShell( HouseClass const* pHouse, BuildingTypeClass const* pItem);
+	static bool IsDisabledFromShell(HouseClass* pHouse, BuildingTypeClass const* pItem);
 
-	static size_t FindOwnedIndex(HouseClass const* pHouse, int idxParentCountry, Iterator<TechnoTypeClass const*> items, size_t start = 0);
-	static size_t FindBuildableIndex(HouseClass const* pHouse, int idxParentCountry, Iterator<TechnoTypeClass const*> items, size_t start = 0);
+	static size_t FindOwnedIndex(HouseClass* pHouse, int idxParentCountry, Iterator<TechnoTypeClass const*> items, size_t start = 0);
+	static size_t FindBuildableIndex(HouseClass* pHouse, int idxParentCountry, Iterator<TechnoTypeClass const*> items, size_t start = 0);
 
 	template <typename T>
-	static T* FindOwned(HouseClass const* const pHouse, int const idxParent, Iterator<T*> const items, size_t const start = 0)
+	static T* FindOwned(HouseClass* pHouse, int const idxParent, Iterator<T*> const items, size_t const start = 0)
 	{
 		auto const index = FindOwnedIndex(pHouse, idxParent, items, start);
 		return index < items.size() ? items[index] : nullptr;
 	}
 
 	template <typename T>
-	static T* FindBuildable( HouseClass const* const pHouse, int const idxParent, Iterator<T*> const items, size_t const start = 0)
+	static T* FindBuildable(HouseClass* pHouse, int const idxParent, Iterator<T*> const items, size_t const start = 0)
 	{
 		auto const index = FindBuildableIndex(pHouse, idxParent, items, start);
 		return index < items.size() ? items[index] : nullptr;

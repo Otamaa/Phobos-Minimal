@@ -398,7 +398,8 @@ DEFINE_HOOK(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 		}
 	}
 
-	if (pThis->IsFiring && pThis->Animation.Value == firingFrame + cumulativeDelay)
+	//IsFiring
+	if (R->AL() && pThis->Animation.Value == firingFrame + cumulativeDelay)
 	{
 		if (pWeaponExt->Burst_FireWithinSequence)
 		{

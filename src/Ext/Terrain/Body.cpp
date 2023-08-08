@@ -215,16 +215,16 @@ DEFINE_HOOK(0x71CF44, TerrainClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x71CFE3, TerrainClass_Detach, 0x6)
-{
-	GET(TerrainClass*, pThis, ESI);
-	GET(void*, pObj, EDI);
-	GET_STACK(bool, bRemoved, STACK_OFFS(0x8, -0x8));
-
-	TerrainExt::ExtMap.InvalidatePointerFor(pThis, pObj, bRemoved);
-
-	return pThis->Type == pObj ? 0x71CFEB : 0x71CFF5;
-}
+//DEFINE_HOOK(0x71CFE3, TerrainClass_Detach, 0x6)
+//{
+//	GET(TerrainClass*, pThis, ESI);
+//	GET(void*, pObj, EDI);
+//	GET_STACK(bool, bRemoved, STACK_OFFS(0x8, -0x8));
+//
+//	TerrainExt::ExtMap.InvalidatePointerFor(pThis, pObj, bRemoved);
+//
+//	return pThis->Type == pObj ? 0x71CFEB : 0x71CFF5;
+//}
 
 // Skip D0 CRC here
 //DEFINE_JUMP(LJMP, 0x71CFA4, 0x71CFB2);

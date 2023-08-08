@@ -99,7 +99,7 @@ bool NOINLINE FindSameTunnel(BuildingClass* pTunnel)
 
 void NOINLINE KillFootClass(FootClass* pFoot, TechnoClass* pKiller)
 {
-	if (!pFoot || !Is_Techno(pFoot))
+	if (!pFoot || !Is_Techno(pFoot) || !pFoot->IsAlive)
 		return;
 
 	if (auto pTeam = pFoot->Team)

@@ -48,9 +48,9 @@ DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 {
 	GET_BASE(WarheadTypeClass*, pWH, 0x0C);
 
-	if (auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWH))
+	if (auto const pWHExt = WarheadTypeExt::ExtMap.TryFind(pWH))
 	{
-		// GET(const int, Damage, EDX);
+		 GET(const int, Damage, EDX);
 		// GET_BASE(const bool, AffectsTiberium, 0x10);
 		GET(CoordStruct*, pCoords, ECX);
 		GET_BASE(TechnoClass*, pOwner, 0x08);
@@ -82,7 +82,7 @@ DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 		}
 
 		if (PhobosGlobal::Instance()->DetonateDamageArea)
-			pWHExt->Detonate(pOwner, pDecidedOwner, nullptr, *pCoords);
+			pWHExt->Detonate(pOwner, pDecidedOwner, nullptr, *pCoords , Damage);
 	}
 
 	return 0;
@@ -112,7 +112,8 @@ DEFINE_HOOK(0x48A551, WarheadTypeClass_AnimList_SplashList, 0x6)
 DEFINE_HOOK(0x48A5BD, WarheadTypeClass_AnimList_PickRandom, 0x6)
 {
 	GET(WarheadTypeClass* const, pThis, ESI);
-	return WarheadTypeExt::ExtMap.Find(pThis)->AnimList_PickRandom.Get(pThis->EMEffect)
+	const auto& random = WarheadTypeExt::ExtMap.Find(pThis)->AnimList_PickRandom;
+	return random.Get(pThis->EMEffect)
 		? 0x48A5C7 : 0x48A5EB;
 }
 
@@ -121,7 +122,7 @@ DEFINE_HOOK(0x48A5B3, WarheadTypeClass_AnimList_CritAnim, 0x6)
 	GET(WarheadTypeClass* const, pThis, ESI);
 	auto pWHExt = WarheadTypeExt::ExtMap.Find(pThis);
 
-	if (pWHExt->HasCrit && pWHExt->Crit_AnimList.size() && !pWHExt->Crit_AnimOnAffectedTargets)
+	if (pWHExt->HasCrit && !pWHExt->Crit_AnimList.empty() && !pWHExt->Crit_AnimOnAffectedTargets)
 	{
 		GET(int, nDamage, ECX);
 		int idx = pThis->EMEffect || pWHExt->Crit_AnimList_PickRandom.Get(pWHExt->AnimList_PickRandom) ?

@@ -126,7 +126,7 @@ const double RadSiteExt::ExtData::GetRadLevelAt(CellStruct const& cell)
 	const auto nMax = static_cast<double>(pThis->Spread);
 	const auto nDistance = cell.DistanceFrom(pThis->BaseCell);
 
-	return (nDistance > nMax) 
+	return (nDistance > nMax)
 		? 0.0 : (nMax - nDistance) / nMax * currentLevel;
 }
 
@@ -150,7 +150,7 @@ const bool RadSiteExt::ExtData::ApplyRadiationDamage(TechnoClass* pTarget, int d
 {
 	const auto pWarhead = this->Type->GetWarhead();
 	if (!pTarget->IsAlive || pTarget->InLimbo || !pTarget->Health || pTarget->IsSinking || pTarget->IsCrashing)
-		return false; 
+		return false;
 
 	if (!this->Type->GetWarheadDetonate())
 	{
@@ -160,10 +160,11 @@ const bool RadSiteExt::ExtData::ApplyRadiationDamage(TechnoClass* pTarget, int d
 	else
 	{
 		auto const coords = pTarget->GetCoords();
-		WarheadTypeExt::DetonateAt(pWarhead, pTarget, coords , this->TechOwner, damage);
+		HouseClass* const pOwner = this->TechOwner ? this->TechOwner->Owner : this->HouseOwner;
+		WarheadTypeExt::DetonateAt(pWarhead, pTarget, coords , this->TechOwner, damage , pOwner);
 	}
 
-	return pTarget->IsAlive;
+	return pTarget->IsAlive && !pTarget->InLimbo && pTarget->Health > 0 && !pTarget->IsSinking && !pTarget->IsCrashing;
 }
 
 // =============================
@@ -303,7 +304,7 @@ DEFINE_HOOK(0x65B464, RadSiteClass_Save_Suffix, 0x5)
 
 static void __fastcall RadSiteClass_Detach(RadSiteClass* pThis, void* _, AbstractClass* pTarget, bool bRemove)
 {
-	if (!Phobos::Otamaa::DisableCustomRadSite){ 
+	if (!Phobos::Otamaa::DisableCustomRadSite){
 		RadSiteExt::ExtMap.InvalidatePointerFor(pThis, pTarget, bRemove);
 	}
 }
@@ -312,7 +313,7 @@ DEFINE_JUMP(VTABLE, 0x7F0838, GET_OFFSET(RadSiteClass_Detach));
 
 static HouseClass* __fastcall RadSiteClass_OwningHouse(RadSiteClass* pThis, void* _)
 {
-	if (!Phobos::Otamaa::DisableCustomRadSite){ 
+	if (!Phobos::Otamaa::DisableCustomRadSite){
 		if (const auto pExt = RadSiteExt::ExtMap.Find(pThis)){
 			return pExt->HouseOwner;
 		}

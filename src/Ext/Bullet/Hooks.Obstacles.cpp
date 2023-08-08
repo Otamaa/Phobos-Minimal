@@ -160,12 +160,11 @@ DEFINE_HOOK(0x6F7647, TechnoClass_InRange_Obstacles, 0x5)
 	GET_BASE(AbstractClass* const, pTarget, 0xC);
 	GET(CellClass*, pResult, EAX);
 
-	const auto pFirer = BulletExt::InRangeTempFirer;
+	const auto pFirer = std::exchange(BulletExt::InRangeTempFirer , nullptr);
 
 	if (!pResult) // disable it for in air stuffs for now , broke some Aircraft targeting
 		pResult = BulletObstacleHelper::FindFirstImpenetrableObstacle(*pSourceCoords, targetCoords, pFirer, pTarget, pFirer->Owner, pWeapon, true);
 
-	BulletExt::InRangeTempFirer = nullptr;
 
 	R->EAX(pResult);
 	return 0;

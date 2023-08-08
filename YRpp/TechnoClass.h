@@ -511,7 +511,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 
 	void DrawVoxelShadow(VoxelStruct* vxl, int shadow_index, signed int angle, int* shadow_cache,
 		Point2D* a4, Point2D* a3, Matrix3D* matrix, char a9, Surface* surface, Point2D shadow_point)
-		{ JMP_STD(0x706BD0); }
+		{ JMP_THIS(0x706BD0); }
 
 	//void DrawObject(SHPStruct* pSHP, int nFrame, Point2D* pLocation, RectangleStruct* pBounds,
 	//	int, int, int nZAdjust, ZGradient eZGradientDescIdx, int, int nBrightness, int TintColor,
@@ -742,7 +742,7 @@ public:
 	int              __TurretWeapon2_128;
 	AnimClass*       BehindAnim;
 	AnimClass*       DeployAnim;
-	bool             InAir;
+	BYTE             InAir;
 	int              CurrentWeaponNumber; // for IFV/gattling 138
 	Rank             CurrentRanking; // only used for promotion detection
 	int              CurrentGattlingStage;
@@ -763,15 +763,15 @@ public:
 	DECLARE_PROPERTY(CDTimerClass, AirstrikeTintTimer); // tracks alternation of the effect color
 	DWORD            AirstrikeTintStage; //  ^
 	ProtectTypes     ProtectType;	//0 or 1, NOT a bool - is this under ForceShield as opposed to IC?
-	bool             Deactivated; //Robot Tanks without power for instance
+	BYTE             Deactivated; //Robot Tanks without power for instance
 	TechnoClass*     DrainTarget; // eg Disk -> PowerPlant, this points to PowerPlant
 	TechnoClass*     DrainingMe;  // eg Disk -> PowerPlant, this points to Disk
 	AnimClass*       DrainAnim;
-	bool             Disguised;
+	BYTE             Disguised;
 	DWORD            DisguiseCreationFrame;
 	DECLARE_PROPERTY(CDTimerClass, InfantryBlinkTimer); // Rules->InfantryBlinkDisguiseTime , detects mirage firing per description
 	DECLARE_PROPERTY(CDTimerClass, DisguiseBlinkTimer); // disguise disruption timer
-	bool             UnlimboingInfantry; //1F8
+	BYTE             UnlimboingInfantry; //1F8
 	DECLARE_PROPERTY(CDTimerClass, ReloadTimer);
 	DWORD            unknown_208;
 	DWORD            unknown_20C;
@@ -793,28 +793,28 @@ public:
 	DECLARE_PROPERTY(StageClass, CloakProgress); // phase from [opaque] -> [fading] -> [transparent] , [General]CloakingStages= long
 	DECLARE_PROPERTY(CDTimerClass, CloakDelayTimer); // delay before cloaking again
 	float            WarpFactor; // don't ask! set to 0 in CTOR, never modified, only used as ((this->Fetch_ID) + this->WarpFactor) % 400 for something in cloak ripple
-	bool             unknown_bool_250;
+	BYTE             unknown_bool_250;
 	CoordStruct      LastSightCoords;
 	int              LastSightRange;
 	int              LastSightHeight;
-	bool             GapSuperCharged; // GapGenerator, when SuperGapRadiusInCells != GapRadiusInCells, you can deploy the gap to boost radius
-	bool             GeneratingGap; // is currently generating gap
+	BYTE             GapSuperCharged; // GapGenerator, when SuperGapRadiusInCells != GapRadiusInCells, you can deploy the gap to boost radius
+	BYTE             GeneratingGap; // is currently generating gap
 	int              GapRadius;
-	bool             BeingWarpedOut; // is being warped by CLEG used , for 70C5B0
-	bool             WarpingOut; // phasing in after chrono-jump used , for 70C5C0
-	bool             unknown_bool_272;
+	BYTE             BeingWarpedOut; // is being warped by CLEG used , for 70C5B0
+	BYTE             WarpingOut; // phasing in after chrono-jump used , for 70C5C0
+	BYTE             unknown_bool_272;
 	BYTE             unused_273;
 	TemporalClass*   TemporalImUsing; // CLEG attacking Power Plant : CLEG's this
 	TemporalClass*   TemporalTargetingMe; 	// CLEG attacking Power Plant : PowerPlant's this
-	bool             IsImmobilized; // by chrono aftereffects ,27C
+	BYTE             IsImmobilized; // by chrono aftereffects ,27C
 	DWORD            unknown_280;
 	int              ChronoLockRemaining; // 284 countdown after chronosphere warps things around
 	CoordStruct      ChronoDestCoords; // teleport loco and chsphere set this
 	AirstrikeClass*  Airstrike; //Boris
-	bool             Berzerk;
+	BYTE             Berzerk;
 	int            	BerzerkDurationLeft;
 	int            	SprayOffsetIndex; // hardcoded array of xyz offsets for sprayattack, 0 - 7, see 6FE0AD
-	bool             Uncrushable; // DeployedCrushable fiddles this, otherwise all 0
+	BYTE             Uncrushable; // DeployedCrushable fiddles this, otherwise all 0
 //	PROTECTED_PROPERTY(BYTE, align2A_5_6_7[3]);
  // unless source is Pushy=
  // abs_Infantry source links with abs_Unit target and vice versa - can't attack others until current target flips
@@ -827,7 +827,7 @@ public:
 	AbstractClass*   LastTarget; //suspendedtarcom
 	CaptureManagerClass* CaptureManager; //for Yuris
 	TechnoClass*     MindControlledBy;
-	bool             MindControlledByAUnit;
+	BYTE             MindControlledByAUnit;
 	AnimClass*       MindControlRingAnim;
 	HouseClass*      MindControlledByHouse; //used for a TAction
 	SpawnManagerClass* SpawnManager;
@@ -879,51 +879,49 @@ public:
 	DECLARE_PROPERTY(FacingClass, SecondaryFacing); // TurretFacing
 	int              CurrentBurstIndex;
 	DECLARE_PROPERTY(CDTimerClass, TargetLaserTimer);
-	short            weapon_sound_randomnumber_3C8;
+	WORD            weapon_sound_randomnumber_3C8;
 	WORD             __shipsink_3CA;
-	bool             CountedAsOwned; // is this techno contained in OwningPlayer->Owned... counts?
-	bool             IsSinking;
-	bool             WasSinkingAlready; // if(IsSinking && !WasSinkingAlready) { play SinkingSound; WasSinkingAlready = 1; }
-	bool             __ProtectMe_3CF;
-	bool             IsUseless; //3D0
-	bool			 IsTickedOff; //HasBeenAttacked //3D1
-	bool			 Cloakable; //3D2
-	bool			 IsPrimaryFactory; //3D3 IsLoaner
-//	bool			 IsALoaner; // 3D4
-//	bool			 IsLocked; // 3D5
-	bool			 Spawned; // 3D6
-	bool             IsInPlayfield; // 3D7
+	BYTE             CountedAsOwned; // is this techno contained in OwningPlayer->Owned... counts?
+	BYTE             IsSinking;
+	BYTE             WasSinkingAlready; // if(IsSinking && !WasSinkingAlready) { play SinkingSound; WasSinkingAlready = 1; }
+	BYTE             __ProtectMe_3CF;
+	BYTE             IsUseless; //3D0
+	BYTE			 IsTickedOff; //HasBeenAttacked //3D1
+	BYTE			 Cloakable; //3D2
+	BYTE			 IsPrimaryFactory; //3D3 IsLoaner
+	BYTE			 IsALoaner; // 3D4
+	BYTE			 IsLocked; // 3D5
+	BYTE			 Spawned; // 3D6
+	BYTE             IsInPlayfield; // 3D7
 	DECLARE_PROPERTY(RecoilData, TurretRecoil);
 	DECLARE_PROPERTY(RecoilData, BarrelRecoil);
-	bool             IsTethered; //418
-	bool             RADIO_26_27_419;
-	bool             IsOwnedByCurrentPlayer;
-	bool             DiscoveredByCurrentPlayer;
-	bool             DiscoveredByComputer;
-	bool             unknown_bool_41D;
-	bool             unknown_bool_41E;
-	bool             unknown_bool_41F;
-	char             SightIncrease; // used for LeptonsPerSightIncrease
-	bool             RecruitableA; // these two are like Lenny and Carl, weird purpose and never seen separate
-	bool             RecruitableB; // they're usually set on preplaced objects in maps
-	bool             IsRadarTracked;
-	bool             IsOnCarryall;
-	bool             IsCrashing;
-	bool             WasCrashingAlready;
-	bool             IsBeingManipulated;
+	BYTE             IsTethered; //418
+	BYTE             RADIO_26_27_419;
+	BYTE             IsOwnedByCurrentPlayer;
+	BYTE             DiscoveredByCurrentPlayer;
+	BYTE             DiscoveredByComputer;
+	BYTE             unknown_bool_41D;
+	BYTE             unknown_bool_41E;
+	BYTE             unknown_bool_41F;
+	BYTE             SightIncrease; // used for LeptonsPerSightIncrease
+	BYTE             RecruitableA; // these two are like Lenny and Carl, weird purpose and never seen separate
+	BYTE             RecruitableB; // they're usually set on preplaced objects in maps
+	BYTE             IsRadarTracked;
+	BYTE             IsOnCarryall;
+	BYTE             IsCrashing;
+	BYTE             WasCrashingAlready;
+	BYTE             IsBeingManipulated;
 	TechnoClass*     BeingManipulatedBy; // set when something is being molested by a locomotor such as magnetron
 	                                       // the pointee will be marked as the killer of whatever the victim falls onto
 	HouseClass*      ChronoWarpedByHouse;
-	bool             _Mission_Patrol_430;
-	bool             IsMouseHovering;
-	bool             parasitecontrol_byte432;
-	//bool			 byte_433;
+	BYTE             _Mission_Patrol_430;
+	BYTE             IsMouseHovering;
+	BYTE             parasitecontrol_byte432;
+	BYTE			 byte_433;
 	TeamClass*       OldTeam;
-	//bool			 IsTracked;
-	//bool			 IsTechnician;
-	bool             CountedAsOwnedSpecial; // for absorbers, infantry uses this to manually control OwnedInfantry count
-	bool             Absorbed; // in UnitAbsorb/InfantryAbsorb or smth, lousy memory
-	bool             forceattackforcemovefirendlytarget_bool_43A;
+	BYTE             CountedAsOwnedSpecial; // for absorbers, infantry uses this to manually control OwnedInfantry count
+	BYTE             Absorbed; // in UnitAbsorb/InfantryAbsorb or smth, lousy memory
+	BYTE             forceattackforcemovefirendlytarget_bool_43A;
 	int            __RadialFireCounter_43C;
 	DECLARE_PROPERTY(DynamicVectorClass<int>, CurrentTargetThreatValues);
 	DECLARE_PROPERTY(DynamicVectorClass<AbstractClass*>, CurrentTargets);
@@ -950,17 +948,28 @@ public:
 
 	int            	QueuedVoiceIndex;
 	int            	__LastVoicePlayed; //4F4
-	bool             deploy_bool_4F8;
+	BYTE             deploy_bool_4F8;
 	DWORD            __creationframe_4FC;	//gets initialized with the current Frame, but this is NOT a CDTimerClass!
 	BuildingClass*   LinkedBuilding; // 500 BuildingClass*
 	int            	EMPLockRemaining;
 	int            	ThreatPosed; // calculated to include cargo etc
-	bool            ShouldLoseTargetNow;
+	bool            ShouldLoseTargetNow; //the rest is padded for sure
 	RadBeam*         FiringRadBeam;
 	PlanningTokenClass* PlanningToken;
 	ObjectTypeClass* Disguise;
 	HouseClass*      DisguisedAsHouse;
 };
 
+// due to desync problem , i started to do these , to really make sure the class member at correct place
+// without need to see the dll on IDA manually
+static_assert(offsetof(TechnoClass, IsALoaner) == 0x3D4, "ClassMember Shifted !");
+static_assert(offsetof(TechnoClass, IsLocked) == 0x3D5, "ClassMember Shifted !");
+static_assert(offsetof(TechnoClass, byte_433) == 0x433, "ClassMember Shifted !");
+static_assert(offsetof(TechnoClass, OldTeam) == 0x434, "ClassMember Shifted !");
+static_assert(offsetof(TechnoClass, CountedAsOwnedSpecial) == 0x438, "ClassMember Shifted !");
+static_assert(offsetof(TechnoClass, Absorbed) == 0x439, "ClassMember Shifted !");
+static_assert(offsetof(TechnoClass, forceattackforcemovefirendlytarget_bool_43A) == 0x43A, "ClassMember Shifted !");
+static_assert(offsetof(TechnoClass, ShouldLoseTargetNow) == 0x50C, "ClassMember Shifted !");
+static_assert(offsetof(TechnoClass, FiringRadBeam) == 0x510, "ClassMember Shifted !");
 static_assert(offsetof(TechnoClass, Disguise) == 0x518, "ClassMember Shifted !");
 static_assert(sizeof(TechnoClass) == 0x520, "Invalid size.");

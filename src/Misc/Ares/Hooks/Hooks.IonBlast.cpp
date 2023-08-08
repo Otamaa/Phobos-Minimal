@@ -77,7 +77,7 @@ DEFINE_OVERRIDE_HOOK(0x53CC63, IonBlastClass_Update_Beam, 6)
 		{
 			int nDamage = pWHExt->Ion_Damage.Get(RulesClass::Instance->IonCannonDamage);
 
-			if (pCell->Flags & CellFlags::BridgeHead)
+			if (pCell->ContainsBridge())
 			{
 				auto nLocC = nLoc;
 				nLocC.Z += 416;

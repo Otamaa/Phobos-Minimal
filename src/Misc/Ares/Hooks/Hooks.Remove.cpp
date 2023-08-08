@@ -44,6 +44,15 @@ DEFINE_DISABLE_HOOK(0x70cbda, TechnoClass_DealParticleDamage_ares)
 DEFINE_DISABLE_HOOK(0x6e1780, TActionClass_PlayAudioAtRandomWP_ares)
 DEFINE_DISABLE_HOOK(0x4D99AA, FootClass_PointerGotInvalid_Parasite_ares)
 
+DEFINE_DISABLE_HOOK(0x6DD176, TActionClass_CTOR_ares)
+DEFINE_DISABLE_HOOK(0x6E4761, TActionClass_SDDTOR_ares)
+DEFINE_DISABLE_HOOK(0x6E3E30, TActionClass_Save_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x6E3DB0, TActionClass_Load_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x6E3E29, TActionClass_Load_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x6E3E4A, TActionClass_Save_Suffix_ares)
+
+DEFINE_DISABLE_HOOK(0x47F9A4, CellClass_DrawOverlay_WallRemap_ares)
+
 DEFINE_DISABLE_HOOK(0x41668B, AircraftClass_ReceiveDamage_Survivours_ares)
 
 DEFINE_DISABLE_HOOK(0x5673A0, MapClass_RevealArea0_ares)
@@ -77,4 +86,7 @@ DEFINE_DISABLE_HOOK(0x72212C, TiberiumClass_Save_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x721CDC, TiberiumClass_LoadFromINI_ares)
 DEFINE_DISABLE_HOOK(0x721CE9, TiberiumClass_LoadFromINI_ares)
 DEFINE_DISABLE_HOOK(0x721C7B, TiberiumClass_LoadFromINI_ares)
+
+DEFINE_DISABLE_HOOK(0x5F4FF9, ObjectClass_Put_IsFlammable_ares)
+DEFINE_DISABLE_HOOK(0x44cb4c, BuildingClass_Mi_Missile_NukeTakeOff_ares)
 #pragma warning( pop )

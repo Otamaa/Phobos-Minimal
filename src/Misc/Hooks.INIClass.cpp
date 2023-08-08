@@ -362,7 +362,7 @@ DEFINE_HOOK(0x527B0A, INIClass_Get_UUID, 0x8)
 	if (buffer[0] != L'{')
 	{
 		for (auto const&[name , CLSID] : EnumFunctions::LocomotorPairs_ToWideStrings) {
-			if (IS_SAME_WSTR(buffer, name)) {
+			if (CRT::wcsicmp(buffer, name) == 0) {
 				wcscpy_s(buffer, BufferSize, CLSID);
 				return 0;
 			}

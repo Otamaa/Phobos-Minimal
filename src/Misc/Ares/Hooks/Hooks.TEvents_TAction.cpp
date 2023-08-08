@@ -19,6 +19,7 @@
 #include <Ext/Terrain/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/Bullet/Body.h>
+#include <Ext/Side/Body.h>
 
 #include <TerrainTypeClass.h>
 #include <New/Type/ArmorTypeClass.h>
@@ -27,6 +28,19 @@
 #include <Notifications.h>
 #include <Misc/AresData.h>
 #include <Ares_TechnoExt.h>
+
+DEFINE_OVERRIDE_HOOK(0x6DE0D3, TActionClass_Execute_MessageColor, 6)
+{
+	int idxColor = 0;
+	if (SideClass* pSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex)) {
+		if (SideExt::ExtData* pExt = SideExt::ExtMap.Find(pSide)) {
+			idxColor = pExt->MessageTextColorIndex;
+		}
+	}
+
+	R->EAX(idxColor);
+	return 0x6DE0DE;
+}
 
 DEFINE_OVERRIDE_HOOK(0x41E893, AITriggerTypeClass_ConditionMet_SideIndex, 0xA)
 {
@@ -834,7 +848,7 @@ namespace TActionExt_dummy
 		auto nCoord = CellClass::Cell2Coord(nLoc);
 		nCoord.Z = MapClass::Instance->GetCellFloorHeight(nCoord);
 
-		if (MapClass::Instance->GetCellAt(nCoord)->ContainsBridgeHead())
+		if (MapClass::Instance->GetCellAt(nCoord)->ContainsBridge())
 			nCoord.Z += CellClass::BridgeHeight;
 
 		SW_NuclearMissile::DropNukeAt(nullptr, nCoord, nullptr, pHouse, pFind);

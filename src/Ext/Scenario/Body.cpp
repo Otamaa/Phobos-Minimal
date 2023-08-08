@@ -8,7 +8,7 @@ std::map<int, ExtendedVariable>* ScenarioExt::GetVariables(bool IsGlobal)
 {
 	if (IsGlobal)
 		return &ScenarioExt::Global()->Global_Variables;
-	
+
 	return &ScenarioExt::Global()->Local_Variables;
 }
 
@@ -204,7 +204,7 @@ DEFINE_HOOK(0x689669, ScenarioClass_Load_Suffix, 0x6)
 DEFINE_HOOK(0x68945B, ScenarioClass_Save_Suffix, 0x8)
 {
 	auto buffer = ScenarioExt::Global();
-	PhobosByteStream saver(//sizeof(GameModeOptionsClass) 
+	PhobosByteStream saver(//sizeof(GameModeOptionsClass)
 		+ sizeof(*buffer));
 	PhobosStreamWriter writer(saver);
 
@@ -248,7 +248,7 @@ DEFINE_HOOK(0x689E90, ScenarioClass_LoadFromINI_Early, 0x6)
 	GET(ScenarioClass*, pItem, ECX);
 	GET_STACK(CCINIClass*, pINI, 0x8);
 
-	//init the Ext 
+	//init the Ext
 	ScenarioExt::LoadFromINIFile(pItem, pINI);
 	return 0;
 }

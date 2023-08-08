@@ -22,40 +22,6 @@
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 
 #pragma region Otamaa
-/* Dont Enable ! , broke targeting !
-DEFINE_HOOK(0x6F7891, TechnoClass_TriggersCellInset_IgnoreVertical, 0x5)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EDI);
-	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x30, 0xC));
-	GET(TechnoClass*, pTarget, EBX);
-
-	bool bRangeIgnoreVertical = false;
-	if (auto const pExt = WeaponTypeExt::ExtMap.Find(pWeapon)) {
-		bRangeIgnoreVertical = pExt->Range_IgnoreVertical.Get();
-	}
-
-	if (pThis->IsInAir() && !bRangeIgnoreVertical) {
-		nCoord.Z = pTarget->GetCoords().Z;
-	}
-
-	R->EAX(pThis->InRange(nCoord, pTarget, pWeapon));
-	return 0x6F78BD;
-}
-
-DEFINE_HOOK(0x6F7893, TechnoClass_TriggersCellInset_IgnoreVertical, 0x5)
-{
-	GET(WeaponTypeClass*, pWeapon, EDI);
-	GET(TechnoClass*, pThis, ESI);
-
-	bool bRangeVertical = pThis->IsInAir();
-	if (auto const pExt = WeaponTypeExt::ExtMap.Find(pWeapon)) {
-		bRangeVertical = bRangeVertical && !pExt->Range_IgnoreVertical.Get();
-	}
-
-	R->AL(bRangeVertical);
-	return 0x6F7898;
-}*/
 
 DEFINE_HOOK(0x6FF329, TechnoCllass_FireAt_OccupyAnims, 0x6)
 {
@@ -158,7 +124,8 @@ void DetonateDeathWeapon(TechnoClass* pThis, TechnoTypeClass* pType, WeaponTypeC
 		auto const pBonus = RulesDeath ? (int)(pType->Strength * 0.5) : (int)(pDecided->Damage * pType->DeathWeaponDamageModifier);
 		auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pDecided->Projectile);
 
-		if (const auto pBullet = pBulletTypeExt->CreateBullet(pThis, pThis, pBonus + nMult, pDecided->Warhead, pDecided->Speed, 0,
+		if (const auto pBullet = pBulletTypeExt->CreateBullet(pThis, pThis, pBonus + nMult, pDecided->Warhead, pDecided->Speed,
+			WeaponTypeExt::ExtMap.Find(pDecided)->GetProjectileRange(),
 			pDecided->Bright || pDecided->Warhead->Bright, true))
 		{
 			pBullet->SetWeaponType(pDecided);
@@ -413,35 +380,6 @@ DEFINE_HOOK(0x70FDC2, TechnoClass_Drain_LocalDrainAnim, 0x5) //A
 	return 0x0;
 }
 
-/*
-DEFINE_HOOK(0x4B387A, DriveLocoClass_ClearNavCom2_Empty_WTF, 0x4)
-{
-	GET(UnitClass*, pLinked, ECX);
-
-	if (pLinked->Destination)
-	{
-		if (auto pDest = specific_cast<AircraftClass*>(pLinked->Destination))
-		{
-			return 0x4B3607;
-		}
-	}
-
-	return 0x0;
-}
-
-DEFINE_HOOK(0x4B05EE, DriveLocoClass_InfCheck_Extend , 0x5)
-{
-	GET(AbstractClass*, pDest, ECX);
-
-	return pDest->WhatAmI() == AbstractType::Infantry || pDest->WhatAmI() == AbstractType::Aircraft ? 0x4B05F8 : 0x4B063D;
-}*/
-
-#include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDiveFunctional.h>
-#include <Misc/DynamicPatcher/Techno/DriveData/DriveDataFunctional.h>
-#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
-
-// init inside type check 
-// should be no problem here
 
 DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 {
@@ -549,102 +487,5 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 
 	return Delete;
 }
-
-DEFINE_HOOK(0x6F42ED, TechnoClass_Init_Early, 0xA)
-{
-	GET(TechnoClass*, pThis, ESI);
-
-	auto pType = pThis->GetTechnoType();
-
-	if (!pType)
-		return 0x0;
-
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-	auto const pExt = TechnoExt::ExtMap.Find(pThis);
-
-
-	//if (pTypeExt->VirtualUnit.Get())
-	//	pExt->VirtualUnit = true;
-
-	//if (pExt->VirtualUnit)
-	//{
-	//	pThis->UpdatePlacement(PlacementType::Remove);
-	//	pThis->IsOnMap = false;
-	//	pType->DontScore = true;
-	//	pType->Selectable = false;
-	//	pType->Immune = true;
-	//}
-
-	AircraftDiveFunctional::Init(pExt, pTypeExt);
-
-	if (Is_Aircraft(pThis))
-	{
-		if (pTypeExt->MyFighterData.Enable)
-		{
-			pExt->MyFighterData = std::make_unique<FighterAreaGuard>();
-			pExt->MyFighterData->OwnerObject = (AircraftClass*)pThis;
-		}
-	}
-
-	TechnoExt::InitializeItems(pThis, pType);
-
-	return 0x0;
-}
-
-/*
-DEFINE_HOOK(0x6F3B2E, TechnoClass_Transform_FLH, 0x6)
-{
-	GET(WeaponStruct*, nWeaponStruct, EAX);
-	GET(TechnoClass*, pThis, EBX);
-	GET_STACK(int, idxWeapon, 0x8);
-
-	CoordStruct nRet = nWeaponStruct->FLH;
-
-	if (auto const pInf = specific_cast<InfantryClass*>(pThis))
-	{
-		if (pInf->Crawling)
-		{
-			if (auto const pExt = TechnoTypeExt::ExtMap.Find(pInf->Type))
-			{
-				if (!pThis->Veterancy.IsElite())
-				{
-					if (idxWeapon == 0)
-						nRet = pExt->PrimaryCrawlFLH.Get(nWeaponStruct->FLH);
-					else
-						nRet = pExt->SecondaryCrawlFLH.Get(nWeaponStruct->FLH);
-				}
-				else
-				{
-					if (idxWeapon == 0)
-						nRet = pExt->Elite_PrimaryCrawlFLH.Get(nWeaponStruct->FLH);
-					else
-						nRet = pExt->Elite_SecondaryCrawlFLH.Get(nWeaponStruct->FLH);
-				}
-			}
-		}
-	}
-
-	R->ECX(nRet.X);
-	R->EBP(nRet.Y);
-	R->EAX(nRet.Z);
-
-	return 0x6F3B37;
-}*/
-
-// DEFINE_HOOK(0x702E9D, TechnoClass_RegisterDestruction, 0x6)
-// {
-// 	GET(TechnoClass*, pVictim, ESI);
-// 	GET(TechnoClass*, pKiller, EDI);
-// 	GET(int, cost, EBP);
-
-// 	const auto pVictimTypeExt = TechnoTypeExt::ExtMap.Find(pVictim->GetTechnoType());
-// 	const auto pKillerTypeExt = TechnoTypeExt::ExtMap.Find(pKiller->GetTechnoType());
-// 	const double giveExpMultiple = pVictimTypeExt->Experience_VictimMultiple.Get();
-// 	const double gainExpMultiple = pKillerTypeExt->Experience_KillerMultiple.Get();
-
-// 	R->EBP(int(cost * giveExpMultiple * gainExpMultiple));
-
-// 	return 0;
-// }
 
 #pragma endregion

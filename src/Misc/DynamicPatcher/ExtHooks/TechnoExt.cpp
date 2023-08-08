@@ -90,6 +90,55 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_DP, 0x6) //8
 		: 0x0;
 }
 */
+
+DEFINE_HOOK(0x6B743E, SpawnManagerAI_SpawnSupportFLH, 0x8)
+{
+	GET(SpawnManagerClass*, pSpawn, ESI);
+	//GET_STACK(int, nArrIdx, STACK_OFFS(0x68, 0x54));
+
+	if (auto pOwner = pSpawn->Owner)
+	{
+		//if ((*pFLH) == CoordStruct::Empty)
+		{
+			auto pTypeExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
+
+			if (pTypeExt->MySpawnSupportDatas.Enable)
+			{
+				//CoordStruct nFLH = CoordStruct::Empty;
+
+				SpawnSupportFLHData nFLHData = pTypeExt->MySpawnSupportFLH;
+				if (auto const pTransporter = pOwner->Transporter)
+				{
+					if (auto const pTransportExt = TechnoTypeExt::ExtMap.Find(pTransporter->GetTechnoType()))
+					{
+						nFLHData = pTransportExt->MySpawnSupportFLH;
+					}
+				}
+
+				CoordStruct nFLH = pOwner->Veterancy.IsElite() ? nFLHData.EliteSpawnSupportFLH : nFLHData.SpawnSupportFLH;
+
+				if (nFLH == CoordStruct::Empty)
+					return 0x0;
+
+				if (auto pSpawnExt = TechnoExt::ExtMap.Find(pOwner))
+				{
+					if (pTypeExt->MySpawnSupportDatas.SwitchFLH)
+					{
+						nFLH.Y *= pSpawnExt->MySpawnSuport.supportFLHMult;
+						pSpawnExt->MySpawnSuport.supportFLHMult *= -1;
+					}
+				}
+
+				R->EAX(&nFLH);
+				return 0x6B7498;
+			}
+		}
+	}
+
+
+	return 0x0;
+}
+
 namespace CalculatePinch
 {
 	static void Calc(TechnoClass* pFirer, int nWeaponIdx)
@@ -282,47 +331,47 @@ DEFINE_HOOK(0x41A96C, AircraftClass_Mission_GuardArea_NoTarget_Enter , 6)
 	return 0x41A97A;
 }
 
-DEFINE_HOOK(0x4CF780, FlyLocomotionClass_Draw_Matrix_Rolling , 5)
-{
-	GET(ILocomotion*, Iloco, ESI);
+//DEFINE_HOOK(0x4CF780, FlyLocomotionClass_Draw_Matrix_Rolling , 5)
+//{
+//	GET(ILocomotion*, Iloco, ESI);
+//
+//	const FlyLocomotionClass* pFly = static_cast<FlyLocomotionClass*>(Iloco);
+//	auto pExt = TechnoExt::ExtMap.Find(pFly->LinkedTo);
+//
+//	if (!pExt->MyFighterData)
+//		return 0x0;
+//
+//	if (pFly->LinkedTo->GetTechnoType()->RollAngle != 0) {
+//		auto const& pData  = pExt->MyFighterData;
+//		if (pData->State == AircraftGuardState::ROLLING) {
+//			return pData->Clockwise ? 0x4CF7B0 : 0x4CF7DF;
+//		}
+//	}
+//
+//	return 0;
+//}
 
-	const FlyLocomotionClass* pFly = static_cast<FlyLocomotionClass*>(Iloco);
-	auto pExt = TechnoExt::ExtMap.Find(pFly->LinkedTo);
+//DEFINE_HOOK_AGAIN(0x730DEB, ObjectClass_GuardCommand ,6 ) //Building
+//DEFINE_HOOK(0x730E56, ObjectClass_GuardCommand , 6)
+//{
+//	GET(ObjectClass*, pObj, ESI);
+//
+//	if (auto pTechno = generic_cast<TechnoClass*>(pObj)) {
+//
+//	}
+//
+//   return 0;
+//}
 
-	if (!pExt->MyFighterData)
-		return 0x0;
-
-	if (pFly->LinkedTo->GetTechnoType()->RollAngle != 0) {
-		auto const& pData  = pExt->MyFighterData;
-		if (pData->State == AircraftGuardState::ROLLING) {
-			return pData->Clockwise ? 0x4CF7B0 : 0x4CF7DF;
-		}
-	}
-
-	return 0;
-}
-
-DEFINE_HOOK_AGAIN(0x730DEB, ObjectClass_GuardCommand ,6 ) //Building
-DEFINE_HOOK(0x730E56, ObjectClass_GuardCommand , 6)
-{
-	GET(ObjectClass*, pObj, ESI);
-
-	if (auto pTechno = generic_cast<TechnoClass*>(pObj)) {
-
-	}
-
-   return 0;
-}
-
-DEFINE_HOOK(0x730EEB, ObjectClass_StopCommand, 6)
-{
-	GET(ObjectClass*, pObj, ESI);
-
-	if (auto pTechno = generic_cast<TechnoClass*>(pObj)) {
-		auto pExt = TechnoExt::ExtMap.Find(pTechno);
-		if (pExt->MyFighterData)
-			pExt->MyFighterData->OnStopCommand();
-	}
-
-	return 0;
-}
+//DEFINE_HOOK(0x730EEB, ObjectClass_StopCommand, 6)
+//{
+//	GET(ObjectClass*, pObj, ESI);
+//
+//	if (auto pTechno = generic_cast<TechnoClass*>(pObj)) {
+//		auto pExt = TechnoExt::ExtMap.Find(pTechno);
+//		if (pExt->MyFighterData)
+//			pExt->MyFighterData->OnStopCommand();
+//	}
+//
+//	return 0;
+//}

@@ -66,7 +66,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	GET(TechnoClass*, pThis, ECX);
 
 	if (!pThis || !Is_Techno(pThis) || !pThis->IsAlive)
-		return Continue;
+		return retDead;
 
 	auto const pType = pThis->GetTechnoType();
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
@@ -78,19 +78,22 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	}
 
 	if (pThis->Location == CoordStruct::Empty) {
-
-		CheckRemove:
 		if (!pType->Spawned && !IsInLimboDelivered) {
 			Debug::Log("Techno[%x : %s] With Invalid Location ! , Removing ! \n", pThis, pThis->get_ID());
 			TechnoExt::HandleRemove(pThis, nullptr, false, false);
-			return Continue;
+			return retDead;
 		}
-	}
-	else
-	{
+	} else {
+
 		const auto nFootMapCoords = pThis->InlineMapCoords();
-		if (nFootMapCoords == CellStruct::Empty)
-			goto CheckRemove;
+		if (nFootMapCoords == CellStruct::Empty){
+			if (!pType->Spawned && !IsInLimboDelivered)
+			{
+				Debug::Log("Techno[%x : %s] With Invalid Location ! , Removing ! \n", pThis, pThis->get_ID());
+				TechnoExt::HandleRemove(pThis, nullptr, false, false);
+				return retDead;
+			}
+		}
 	}
 
 	// Set only if unset or type is changed
@@ -101,10 +104,10 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	pExt->IsInTunnel = false; // TechnoClass::AI is only called when not in tunnel.
 
 	if (pExt->UpdateKillSelf_Slave())
-		return Continue;
+		return retDead;
 
 	if (pExt->CheckDeathConditions())
-		return Continue;
+		return retDead;
 
 	pExt->UpdateBuildingLightning();
 	pExt->UpdateShield();
@@ -115,7 +118,8 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	pExt->UpdateSpawnLimitRange();
 	pExt->UpdateEatPassengers();
 	pExt->UpdateGattlingOverloadDamage();
-
+	if(!pThis->IsAlive)
+		return retDead;
 	//TODO : improve this to better handle delay anims !
 	//pExt->UpdateDelayFireAnim();
 
@@ -187,19 +191,19 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
 	return 0x414DA8;
 }
 
-DEFINE_HOOK(0x736479, UnitClass_AI_FootClass_AI, 0x7)
-{
-	GET(UnitClass*, pThis, ESI);
-
-	//const auto pExt = TechnoExt::ExtMap.Find(pThis);
-	//const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-
-	//JJFacingFunctional::AI(pExt, pTypeExt);
-
-	pThis->FootClass::Update();
-
-	return 0x736480;
-}
+//DEFINE_HOOK(0x736479, UnitClass_AI_FootClass_AI, 0x7)
+//{
+//	GET(UnitClass*, pThis, ESI);
+//
+//	//const auto pExt = TechnoExt::ExtMap.Find(pThis);
+//	//const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+//
+//	//JJFacingFunctional::AI(pExt, pTypeExt);
+//
+//	pThis->FootClass::Update();
+//
+//	return 0x736480;
+//}
 
 DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 {
@@ -207,9 +211,8 @@ DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 
 	auto pExt = TechnoExt::ExtMap.Find(pThis);
 
-	if (pThis->SpawnOwner && pExt->IsMissisleSpawn)
+	if (pThis->SpawnOwner && !pExt->IsMissisleSpawn)
 	{
-
 		auto pSpawnTechnoType = pThis->SpawnOwner->GetTechnoType();
 		auto pSpawnTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pSpawnTechnoType);
 

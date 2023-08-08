@@ -782,11 +782,6 @@ void ScriptExt::WaitUntilFullAmmoAction(TeamClass* pTeam)
 
 void ScriptExt::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown = -1)
 {
-	FootClass* pLeaderUnit = nullptr;
-	int initialCountdown = pTeam->CurrentScript->Type->ScriptActions[pTeam->CurrentScript->CurrentMission].Argument;
-	bool gatherUnits = false;
-	auto const pExt = TeamExt::ExtMap.Find(pTeam);
-
 	// This team has no units! END
 	if (!pTeam)
 	{
@@ -794,6 +789,11 @@ void ScriptExt::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown = -
 		pTeam->StepCompleted = true;
 		return;
 	}
+
+	FootClass* pLeaderUnit = nullptr;
+	int initialCountdown = pTeam->CurrentScript->Type->ScriptActions[pTeam->CurrentScript->CurrentMission].Argument;
+	bool gatherUnits = false;
+	auto const pExt = TeamExt::ExtMap.Find(pTeam);
 
 	// Load countdown
 	if (pExt->Countdown_RegroupAtLeader >= 0)
@@ -1491,29 +1491,12 @@ void ScriptExt::VariableBinaryOperationHandler(TeamClass* pTeam, int nVariable, 
 
 FootClass* ScriptExt::FindTheTeamLeader(TeamClass* pTeam)
 {
-	//FootClass* pLeaderUnit = nullptr;
-	//int bestUnitLeadershipValue = -1;
+	const auto pTech = pTeam->FetchLeader();
 
-	//if (!pTeam)
-	//	return pLeaderUnit;
+	if(pTech && Is_Techno(pTech))
+		return pTech;
 
-	//// Find the Leader or promote a new one
-	//for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
-	//{
-	//	if (!IsUnitAvailable(pUnit, true) || !(pUnit->IsTeamLeader || pUnit->WhatAmI() == AbstractType::Aircraft))
-	//		continue;
-	//
-	//	// The team Leader will be used for selecting targets, if there are living Team Members then always exists 1 Leader.
-	//	int unitLeadershipRating = pUnit->GetTechnoType()->LeadershipRating;
-	//
-	//	if (unitLeadershipRating > bestUnitLeadershipValue)
-	//	{
-	//		pLeaderUnit = pUnit;
-	//		bestUnitLeadershipValue = unitLeadershipRating;
-	//	}
-	//}
-
-	return pTeam->FetchLeader();
+	return nullptr;
 }
 
 bool ScriptExt::IsExtVariableAction(int action)
@@ -1680,7 +1663,7 @@ void ScriptExt::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeamLead
 
 bool ScriptExt::IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrAbsorbed)
 {
-	if (!pTechno)
+	if (!pTechno || !Is_Techno(pTechno))
 		return false;
 
 	bool isAvailable = pTechno->IsAlive && pTechno->Health > 0 && !pTechno->InLimbo && pTechno->IsOnMap;

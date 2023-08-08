@@ -254,10 +254,10 @@ void Phobos::Config::Read()
 	{
 		BYTE defaultspeed = (BYTE)Phobos::Config::CampaignDefaultGameSpeed;
 		// We overwrite the instructions that force GameSpeed to 2 (GS4)
-		Patch::Apply_RAW(0x55D77A, sizeof(defaultspeed), &defaultspeed);
+		//Patch::Apply_RAW(0x55D77A, sizeof(defaultspeed), &defaultspeed);
 
 		// when speed control is off. Doesn't need a hook.
-		Patch::Apply_RAW(0x55D78D , sizeof(defaultspeed), &defaultspeed);
+		//Patch::Apply_RAW(0x55D78D , sizeof(defaultspeed), &defaultspeed);
 	}
 
 	if (CCINIClass* pINI_UIMD = Phobos::OpenConfig(UIMD_FILENAME))
@@ -462,9 +462,9 @@ void InitAdminDebugMode()
 			 //this thing can cause game to lockup when loading data
 			//better disable it for release
 
-			//const bool Detached =
+			const bool Detached =
 				Phobos::DetachFromDebugger();
-			/*if (Detached)
+			if (Detached)
 			{
 				MessageBoxW(NULL,
 				L"You can now attach a debugger.\n\n"
@@ -484,7 +484,7 @@ void InitAdminDebugMode()
 
 				L"Press OK to continue YR execution.",
 				L"Debugger Notice", MB_OK);
-			}*/
+			}
 #endif
 		}
 	}
@@ -512,18 +512,9 @@ bool __fastcall CustomPalette_Read_Static(CustomPalette* pThis, DWORD, INI_EX* p
 void Phobos::ExeRun()
 {
 	Phobos::Otamaa::ExeTerminated = false;
-	PhobosGlobal::Init();
-
-//	if (Patch::GetModuleBaseAddress("PatcherLoader.dll"))
-//	{
-//		MessageBoxW(NULL,
-//		L"This version of phobos is not suppose to be run with DP.\n\n"
-//		L"Press OK to Closing the game .",
-//		L"Notice", MB_OK);
-//
-//		Phobos::ExeTerminate();
-//		exit(0);
-//	}
+	InitAdminDebugMode();
+	Patch::PrintAllModuleAndBaseAddr();
+	Patch::InitRelatedModule();
 
 	if (!AresData::Init())
 	{
@@ -536,6 +527,8 @@ void Phobos::ExeRun()
 		exit(0);
 	}
 
+	PhobosGlobal::Init();
+
 	DWORD protect_flag;
 	for (auto const& nData : AresData::AresCustomPaletteReadFuncFinal)
 	{
@@ -545,9 +538,9 @@ void Phobos::ExeRun()
 		VirtualProtect((LPVOID)nData, sizeof(Data), protect_flag, 0);
 	}
 
+
 	Patch::ApplyStatic();
 	//PoseDirOverride::Apply();
-	InitAdminDebugMode();
 	InitConsole();
 }
 
@@ -872,7 +865,7 @@ DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 	fesetround(FE_TOWARDZERO);
 
 	Phobos::ExeRun();
-	Patch::PrintAllModuleAndBaseAddr();
+
 	return 0;
 }
 

@@ -1705,7 +1705,7 @@ DEFINE_OVERRIDE_HOOK(0x448312, BuildingClass_ChangeOwnership_OldSpy1, 0xA)
 DEFINE_OVERRIDE_HOOK(0x455DA0, BuildingClass_IsFactory_CloningFacility, 6)
 {
 	GET(BuildingClass*, pThis, ECX);
-	return BuildingTypeExt::ExtMap.Find(pThis->Type)->Cloning_Facility.Get()
+	return BuildingTypeExt::ExtMap.Find(pThis->Type)->CloningFacility.Get()
 		? 0x455DCD : 0x0;
 }
 
@@ -1713,7 +1713,7 @@ DEFINE_OVERRIDE_HOOK(0x4444B3, BuildingClass_KickOutUnit_NoAlternateKickout, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	return pThis->Type->Factory == AbstractType::None
-		|| BuildingTypeExt::ExtMap.Find(pThis->Type)->Cloning_Facility.Get()
+		|| BuildingTypeExt::ExtMap.Find(pThis->Type)->CloningFacility.Get()
 		? 0x4452C5 : 0x0;
 }
 

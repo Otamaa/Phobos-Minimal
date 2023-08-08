@@ -55,7 +55,7 @@ public:
 
 	DWORD unknown_0;
 	TechnoClass* Owner;
-	byte unknown_8;
+	DWORD unknown_8;
 
 	/**
 	 * if there's difference in the Y coord of SourceLocation and TargetLocation,
@@ -69,26 +69,31 @@ public:
 	DWORD unknown_14;
 	double unknown_18;
 	ColorStruct Color;
+	BYTE gap23;
 	CoordStruct SourceLocation; //FLH
 	CoordStruct TargetLocation;
 	DWORD Period;
 	double Amplitude;
-	double unknown_48;
+	DWORD unknown_48;
+	DWORD unknown_4C;
 	DWORD unknown_50;
 	DWORD unknown_54;
-	byte unknown_58;
+	BYTE unknown_59;
+	BYTE unknown_5A[3];
 	CoordStruct coord5c;
 
 	double unknown_68;
 	CoordStruct AnotherLocation;
 	DWORD unknown_7C;
 	double unknown_80;
-	DWORD unknown_88;
-	DWORD unknown_8C;
+	int unknown_88;
+	int unknown_8C;
 	CoordStruct AndAnotherLocation;
 	CoordStruct coord9C;
 	CoordStruct coordA8;
-	DWORD unknown_B4;
+	BYTE unknown_B4[4];
 	double unknown_B8;
 	ColorStruct RgbC0;
 };
+
+static_assert(sizeof(RadBeam) == 0xC8, "Invalid Sizes!");

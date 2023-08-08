@@ -19,6 +19,7 @@
 
 ShieldClass::ShieldClass() : Techno { nullptr }
 , HP { 0 }
+, Timers_SelfHealing_CombatRestart { }
 , Timers_SelfHealing { }
 , Timers_SelfHealing_Warhead { }
 , Timers_Respawn { }
@@ -30,6 +31,7 @@ ShieldClass::ShieldClass() : Techno { nullptr }
 ShieldClass::ShieldClass(TechnoClass* pTechno, bool isAttached) : Techno { pTechno }
 , CurTechnoType { nullptr }
 , HP { 0 }
+, Timers_SelfHealing_CombatRestart { }
 , Timers_SelfHealing { }
 , Timers_SelfHealing_Warhead { }
 , Timers_Respawn { }
@@ -65,6 +67,7 @@ bool ShieldClass::Serialize(T& Stm)
 		.Process(this->Techno)
 		.Process(this->CurTechnoType)
 		.Process(this->HP)
+		.Process(this->Timers_SelfHealing_CombatRestart)
 		.Process(this->Timers_SelfHealing)
 		.Process(this->Timers_SelfHealing_Warhead)
 		.Process(this->Timers_Respawn)
@@ -78,6 +81,8 @@ bool ShieldClass::Serialize(T& Stm)
 		.Process(this->AreAnimsHidden)
 		.Process(this->SelfHealing_Warhead)
 		.Process(this->SelfHealing_Rate_Warhead)
+		.Process(this->SelfHealing_RestartInCombat_Warhead)
+		.Process(this->SelfHealing_RestartInCombatDelay_Warhead)
 		.Process(this->Respawn_Warhead)
 		.Process(this->Respawn_Rate_Warhead)
 		.Process(this->LastBreakFrame)
@@ -166,6 +171,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	const auto pSource = args->Attacker ? args->Attacker->Owner : args->SourceHouse;
 	int nDamage = 0;
 	int DamageToShield = 0;
+	int DamageToShieldAfterMinMax = 0;
 	int PassableDamageAnount = 0;
 	const bool ShieldStillInfullHP = (this->Type->Strength - this->HP) == 0;
 
@@ -179,8 +185,11 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 		const bool affectsShield = pWHExt->Shield_AffectTypes.empty() || pWHExt->Shield_AffectTypes.Contains(this->Type);
 		const double absorbPercent = affectsShield ? pWHExt->Shield_AbsorbPercent.Get(this->Type->AbsorbPercent) : this->Type->AbsorbPercent;
 		const double passPercent = affectsShield ? pWHExt->Shield_PassPercent.Get(this->Type->PassPercent) : this->Type->PassPercent;
+		int ShieldDamage = (int)((double)nDamage * absorbPercent);
+		DamageToShield = ShieldDamage;
+		DamageToShieldAfterMinMax = std::clamp(DamageToShield, pWHExt->Shield_ReceivedDamage_Minimum.Get(this->Type->ReceivedDamage_Minimum),
+		pWHExt->Shield_ReceivedDamage_Maximum.Get(this->Type->ReceivedDamage_Maximum));
 
-		DamageToShield = (int)((double)nDamage * absorbPercent);
 		// passthrough damage shouldn't be affected by shield armor
 		PassableDamageAnount = (int)((double)*args->Damage * passPercent);
 	}
@@ -188,7 +197,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	int nDamageResult = 0;
 	bool IsShielRequreFeeback = true;
 
-	if (DamageToShield == 0)
+	if (DamageToShieldAfterMinMax == 0)
 	{
 		auto nPassableDamageAnountCopy = PassableDamageAnount;
 		if (Phobos::Debug_DisplayDamageNumbers && (nPassableDamageAnountCopy) != 0)
@@ -196,11 +205,26 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 
 		nDamageResult = PassableDamageAnount;
 	}
-	else if (DamageToShield > 0)
+	else if (DamageToShieldAfterMinMax > 0)
 	{
-		const int rate = this->Timers_SelfHealing_Warhead.InProgress() ? this->SelfHealing_Rate_Warhead : this->Type->SelfHealing_Rate;
+		bool whModifiersApplied = this->Timers_SelfHealing_Warhead.InProgress();
+		bool restart = whModifiersApplied ? this->SelfHealing_RestartInCombat_Warhead : this->Type->SelfHealing_RestartInCombat;
 
-		this->Timers_SelfHealing.Start(rate); // when attacked, restart the timer
+		if (restart)
+		{
+			int delay = whModifiersApplied ? this->SelfHealing_RestartInCombatDelay_Warhead : this->Type->SelfHealing_RestartInCombatDelay;
+
+			if (delay > 0)
+			{
+				this->Timers_SelfHealing_CombatRestart.Start(this->Type->SelfHealing_RestartInCombatDelay);
+				this->Timers_SelfHealing.Stop();
+			}
+			else
+			{
+				const int rate = whModifiersApplied ? this->SelfHealing_Rate_Warhead : this->Type->SelfHealing_Rate;
+				this->Timers_SelfHealing.Start(rate); // when attacked, restart the timer
+			}
+		}
 		this->ResponseAttack();
 
 		if (pWHExt->DecloakDamagedTargets)
@@ -212,9 +236,9 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 		//the shield will be broken
 		if (residueDamage >= 0)
 		{
-			residueDamage = int((double)(residueDamage) /
+			residueDamage = MaxImpl(0 ,int((double)(residueDamage) /
 			//GeneralUtils::GetWarheadVersusArmor(args->WH , this->Type->Armor)
-			pWHExt->GetVerses(this->Type->Armor).Verses
+			pWHExt->GetVerses(this->Type->Armor).Verses)
 			); //only absord percentage damage
 
 			if (Phobos::Debug_DisplayDamageNumbers && (nHPCopy) != 0)
@@ -241,19 +265,19 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 			nDamageResult = 0;
 		}
 	}
-	else if (DamageToShield < 0) //negative damage
+	else if (DamageToShieldAfterMinMax < 0) //negative damage
 	{
 		// if the shield still in full HP
 		// heal the shield user instead
 		if (ShieldStillInfullHP) {
-			if (MapClass::GetTotalDamage(DamageToShield, args->WH, this->CurTechnoType->Armor, args->DistanceToEpicenter) < 0)
+			if (MapClass::GetTotalDamage(DamageToShieldAfterMinMax, args->WH, this->CurTechnoType->Armor, args->DistanceToEpicenter) < 0)
 				IsShielRequreFeeback = !this->Type->PassthruNegativeDamage;
 		} else { //otherwise we heal the shield
 			if (this->Type->CanBeHealed) {
-				auto nDamageCopy = DamageToShield;
+				auto nDamageCopy = DamageToShieldAfterMinMax;
 
-				if (Phobos::Debug_DisplayDamageNumbers && DamageToShield != 0)
-					TechnoExt::DisplayDamageNumberString(this->Techno, DamageToShield, true, args->WH);
+				if (Phobos::Debug_DisplayDamageNumbers && DamageToShieldAfterMinMax != 0)
+					TechnoExt::DisplayDamageNumberString(this->Techno, DamageToShieldAfterMinMax, true, args->WH);
 
 				this->HP = std::clamp(this->HP + (-nDamageCopy), 0, this->Type->Strength.Get());
 				this->UpdateIdleAnim();
@@ -608,28 +632,29 @@ bool ShieldClass::ConvertCheck()
 void ShieldClass::SelfHealing()
 {
 	const auto pType = this->Type;
-	const auto timer = &this->Timers_SelfHealing;
-	const auto timerWH = &this->Timers_SelfHealing_Warhead;
-
-	if (timerWH->Completed() && timer->InProgress())
+	if (this->Timers_SelfHealing_CombatRestart.InProgress())
 	{
-		int passedTime = Unsorted::CurrentFrame - timer->StartTime;
-		int timeLeft = pType->SelfHealing_Rate - passedTime;
-		timer->TimeLeft = timeLeft <= 0 ? 0 : timeLeft;
+		return;
+	}
+	else if (this->Timers_SelfHealing_CombatRestart.Completed())
+	{
+		const int rate = this->Timers_SelfHealing_Warhead.InProgress() ? this->SelfHealing_Rate_Warhead : this->Type->SelfHealing_Rate;
+		this->Timers_SelfHealing.Start(rate);
+		this->Timers_SelfHealing_CombatRestart.Stop();
 	}
 
-	const double amount = timerWH->InProgress() ? this->SelfHealing_Warhead : pType->SelfHealing;
-	const int rate = timerWH->InProgress() ? this->SelfHealing_Rate_Warhead : pType->SelfHealing_Rate;
+	const double amount = this->Timers_SelfHealing_Warhead.InProgress() ? this->SelfHealing_Warhead : pType->SelfHealing;
+	const int rate = this->Timers_SelfHealing_Warhead.InProgress() ? this->SelfHealing_Rate_Warhead : pType->SelfHealing_Rate;
 	const auto percentageAmount = this->GetPercentageAmount(amount);
 
 	if (percentageAmount != 0)
 	{
-		if ((this->HP < this->Type->Strength || percentageAmount < 0) && timer->StartTime == -1)
-			timer->Start(rate);
+		if ((this->HP < this->Type->Strength || percentageAmount < 0) && this->Timers_SelfHealing.StartTime == -1)
+			this->Timers_SelfHealing.Start(rate);
 
-		if (this->HP > 0 && timer->Completed())
+		if (this->HP > 0 && this->Timers_SelfHealing.Completed())
 		{
-			timer->Start(rate);
+			this->Timers_SelfHealing.Start(rate);
 			this->HP += percentageAmount;
 
 			UpdateIdleAnim();
@@ -637,7 +662,7 @@ void ShieldClass::SelfHealing()
 			if (this->HP > pType->Strength)
 			{
 				this->HP = pType->Strength;
-				timer->Stop();
+				this->Timers_SelfHealing.Stop();
 			}
 			else if (this->HP <= 0)
 			{
@@ -738,13 +763,15 @@ void ShieldClass::SetRespawn(int duration, double amount, int rate, bool resetTi
 	}
 }
 
-void ShieldClass::SetSelfHealing(int duration, double amount, int rate, bool resetTimer)
+void ShieldClass::SetSelfHealing(int duration, double amount, int rate, bool restartInCombat, int restartInCombatDelay, bool resetTimer)
 {
 	auto timer = &this->Timers_SelfHealing;
 	auto timerWH = &this->Timers_SelfHealing_Warhead;
 
 	this->SelfHealing_Warhead = amount;
 	this->SelfHealing_Rate_Warhead = rate >= 0 ? rate : Type->SelfHealing_Rate;
+	this->SelfHealing_RestartInCombat_Warhead = restartInCombat;
+	this->SelfHealing_RestartInCombatDelay_Warhead = restartInCombatDelay >= 0 ? restartInCombatDelay : Type->SelfHealing_RestartInCombatDelay;
 
 	timerWH->Start(duration);
 

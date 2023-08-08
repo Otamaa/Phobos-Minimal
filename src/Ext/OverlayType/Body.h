@@ -19,6 +19,9 @@ public:
 
 	public:
 
+		PhobosFixedString<32u> PaletteFile {};
+		DynamicVectorClass<ColorScheme*>* Palette {};
+
 		ExtData(OverlayTypeClass* OwnerObject) : Extension<OverlayTypeClass>(OwnerObject)
 		{ }
 

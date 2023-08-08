@@ -40,7 +40,7 @@ void VoxelAnimExt::ExtData::InitializeLaserTrails(VoxelAnimTypeExt::ExtData* pTy
 		return;
 
 	auto const pInvoker = VoxelAnimExt::GetTechnoOwner(pThis);
-	auto const pOwner = pThis->OwnerHouse ? 
+	auto const pOwner = pThis->OwnerHouse ?
 		pThis->OwnerHouse : pInvoker ? pInvoker->Owner : HouseExt::FindCivilianSide();
 
 	if(!pTypeExt->LaserTrail_Types.empty())
@@ -73,9 +73,6 @@ VoxelAnimExt::ExtContainer VoxelAnimExt::ExtMap;
 
 VoxelAnimExt::ExtContainer::ExtContainer() : Container("VoxelAnimClass") { }
 VoxelAnimExt::ExtContainer::~ExtContainer() = default;
-
-// =============================
-// container hooks
 
 DEFINE_HOOK(0x7494CE , VoxelAnimClass_CTOR, 0x6)
 {

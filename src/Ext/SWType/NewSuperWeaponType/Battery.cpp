@@ -11,6 +11,9 @@ std::vector<const char*> SW_Battery::GetTypeString() const
 
 bool SW_Battery::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
+	if (!pThis->Granted)
+		return false;
+
 	auto pHouseExt = HouseExt::ExtMap.Find(pThis->Owner);
 
 	//this check prevent same SW activated multiple times
