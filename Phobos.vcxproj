@@ -65,9 +65,6 @@
     <ClCompile Include="src\Ext\CaptureManager\Body.cpp" />
     <ClCompile Include="src\Ext\CaptureManager\Hook.McOverload.cpp" />
     <ClCompile Include="src\Ext\CaptureManager\Hooks.cpp" />
-    <ClCompile Include="src\Ext\Cell\Body.cpp" />
-    <ClCompile Include="src\Ext\Cell\Hooks.cpp" />
-    <ClCompile Include="src\Ext\Convert\Body.cpp" />
     <ClCompile Include="src\Ext\DiskLaser\Body.cpp" />
     <ClCompile Include="src\Ext\HouseType\Body.cpp" />
     <ClCompile Include="src\Ext\House\Hooks.AINavalProduction.cpp" />
@@ -84,7 +81,6 @@
     <ClCompile Include="src\Ext\Particle\Body.cpp" />
     <ClCompile Include="src\Ext\Particle\Hooks.cpp" />
     <ClCompile Include="src\Ext\RadSite\Hooks.cpp" />
-    <ClCompile Include="src\Ext\Scenario\Hooks.cpp" />
     <ClCompile Include="src\Ext\Scenario\Hooks.Variables.cpp" />
     <ClCompile Include="src\Ext\Scenario\Hooks.Waypoints.cpp" />
     <ClCompile Include="src\Ext\ScriptType\Body.cpp" />
@@ -161,7 +157,6 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Shield.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Shield.Thread.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Targeting.MapZone.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Targeting.Unfinish..cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Transport.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.VehicleToBuildingMCFix.cpp" />
     <ClCompile Include="src\Ext\Temporal\Body.cpp" />
@@ -190,6 +185,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Header.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hook.Init.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Aircraft.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Ammo.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Anim.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bomb.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bugfix.Buffer.cpp" />
@@ -221,6 +217,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Verses.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Veterancy.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Wave.cpp" />
+    <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\Hooks.PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\ExtHooks\TechnoExt.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\FighterGuardArea\FighterAreaGuard.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\TurretAngle\Status.cpp" />
@@ -229,11 +226,18 @@
     <ClCompile Include="src\Misc\Hooks.Crashes.cpp" />
     <ClCompile Include="src\Misc\Hooks.HealthBar.cpp" />
     <ClCompile Include="src\Misc\Hooks.Image.cpp" />
+    <ClCompile Include="src\Misc\Hooks.INIClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
+    <ClCompile Include="src\Misc\Hooks.PCX.cpp" />
+    <ClCompile Include="src\Misc\Hooks.Render.cpp" />
     <ClCompile Include="src\Misc\Hooks.UI.cpp" />
     <ClCompile Include="src\Misc\MapRevealer.cpp" />
     <ClCompile Include="src\Misc\PhobosGlobal.cpp" />
+    <ClCompile Include="src\Misc\PhobosToolTip.cpp" />
+    <ClCompile Include="src\Misc\RetryDialog.cpp" />
+    <ClCompile Include="src\Misc\Selection.cpp" />
+    <ClCompile Include="src\Misc\TextInput.cpp" />
     <ClCompile Include="src\New\Interfaces\TestLocomotionClass.cpp" />
     <ClCompile Include="src\New\Type\DigitalDisplayTypeClass.cpp" />
     <ClCompile Include="src\New\Type\GenericPrerequisite.cpp" />
@@ -241,7 +245,6 @@
     <ClCompile Include="src\New\Type\TunnelTypeClass.cpp" />
     <ClCompile Include="src\New\Type\ImmunityTypeClass.cpp" />
     <ClCompile Include="src\New\Type\PaletteManager.cpp" />
-    <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\Hooks.PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\CustomWeapon\CustomWeapon.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\CustomWeapon\DelayFireWeapon.cpp" />
@@ -269,14 +272,8 @@
     <ClCompile Include="src\Misc\DynamicPatcher\Trails\TrailsManager.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Trails\TrailType.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Weapon\AttachFireData.cpp" />
-    <ClCompile Include="src\Misc\Hooks.INIClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.Logics.cpp" />
-    <ClCompile Include="src\Misc\Hooks.PCX.cpp" />
     <ClCompile Include="src\Misc\Patches.cpp" />
-    <ClCompile Include="src\Misc\PhobosToolTip.cpp" />
-    <ClCompile Include="src\Misc\RetryDialog.cpp" />
-    <ClCompile Include="src\Misc\Selection.cpp" />
-    <ClCompile Include="src\Misc\TextInput.cpp" />
     <ClCompile Include="src\New\AnonymousType\AresAttachEffectTypeClass.cpp" />
     <ClCompile Include="src\New\AnonymousType\PassengerDeletionTypeClass.cpp" />
     <ClCompile Include="src\New\Entity\ElectricBoltClass.cpp" />
@@ -367,8 +364,6 @@
     <ClInclude Include="src\Ext\Bullet\Trajectories\VerticalTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\WaveTrajectory.h" />
     <ClInclude Include="src\Ext\CaptureManager\Body.h" />
-    <ClInclude Include="src\Ext\Cell\Body.h" />
-    <ClInclude Include="src\Ext\Convert\Body.h" />
     <ClInclude Include="src\Ext\DiskLaser\Body.h" />
     <ClInclude Include="src\Ext\HouseType\Body.h" />
     <ClInclude Include="src\Ext\InfantryType\Body.h" />
@@ -423,7 +418,6 @@
     <ClInclude Include="src\Misc\AresData.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\AresNetEvent.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\Header.h" />
-    <ClInclude Include="src\Misc\Ares\Utilities\AttachedAlpha.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintBall.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintballType.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\CustomWeapon\CustomWeapon.h" />
@@ -604,13 +598,13 @@
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(Configuration)\</OutDir>
     <IntDir>$(Configuration)\IntDir\</IntDir>
-    <TargetName>phobos</TargetName>
+    <TargetName>Phobos</TargetName>
     <LibraryPath>$(SolutionDir)src\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
+      <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <SDLCheck>
       </SDLCheck>
@@ -620,7 +614,7 @@
       <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;COMPILE_PORTED_DP_FEATURES;ENABLE_PHOBOS_DAMAGEDELAYANIM;ENABLE_PHOBOS_AIRBURST;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <StructMemberAlignment>8Bytes</StructMemberAlignment>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
@@ -631,14 +625,14 @@
       <ObjectFileName>$(IntDir)\%(RelativeDir)</ObjectFileName>
       <CallingConvention>StdCall</CallingConvention>
       <AdditionalOptions>/w14287 /w15038 %(AdditionalOptions)</AdditionalOptions>
-      <DisableSpecificWarnings>4100;4530;4731;4740;4458;4819;4505;26444;26451;6305;4201</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4100;4530;4731;4740;4458;4819;4505;26444;26451;6305;4201;26495</DisableSpecificWarnings>
       <EnableModules>false</EnableModules>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard_C>Default</LanguageStandard_C>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.22000.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>

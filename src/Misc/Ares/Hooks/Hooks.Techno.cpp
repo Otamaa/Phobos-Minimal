@@ -440,9 +440,6 @@ DEFINE_OVERRIDE_HOOK(0x70CBDA, TechnoClass_DealParticleDamage, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x6F4103, TechnoClass_Init_ThisPartHandled, 6, 6F41C0)
-//DEFINE_JUMP(LJMP, 0x6F4103, 0x6F41C0);
-
 DEFINE_OVERRIDE_HOOK(0x70DC70 , TechnoClass_SwitchGunner, 6)
 {
 	GET(TechnoClass*, pThis, ECX);

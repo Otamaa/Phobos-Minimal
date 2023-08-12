@@ -1910,12 +1910,12 @@ DEFINE_HOOK(0x711AE0, TechnoTypeClass_DTOR, 0x5)
 {
 	GET(TechnoTypeClass*, pItem, ECX);
 
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pItem);
-	TechnoTypeExt::ClearImageData(pExt->BarrelImageData);
-	TechnoTypeExt::ClearImageData(pExt->TurretImageData);
-
-	GameDelete<true, true>(pExt->SpawnAltData.VXL);
-	GameDelete<true, true>(pExt->SpawnAltData.HVA);
+	//const auto pExt = TechnoTypeExt::ExtMap.Find(pItem);
+	// these not yet impelented
+	//TechnoTypeExt::ClearImageData(pExt->BarrelImageData);
+	//TechnoTypeExt::ClearImageData(pExt->TurretImageData);
+	//GameDelete<true, true>(pExt->SpawnAltData.VXL);
+	//GameDelete<true, true>(pExt->SpawnAltData.HVA);
 
 	TechnoTypeExt::ExtMap.Remove(pItem);
 

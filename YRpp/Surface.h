@@ -260,7 +260,7 @@ protected:
 	void* Get_Buffer_Ptr() const { return BufferPtr.Get_Buffer(); }
 	void* Get_Buffer_Ptr(int x, int y) { return (unsigned char*)BufferPtr.Get_Buffer() + (x * Get_Bytes_Per_Pixel()) + (y * Get_Pitch()); }
 
-protected:
+public:
 	DECLARE_PROPERTY(MemoryBuffer , BufferPtr);
 };
 static_assert(sizeof(BSurface) == 0x20, "Invalid Size !");

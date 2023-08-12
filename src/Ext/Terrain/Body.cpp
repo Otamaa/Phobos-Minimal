@@ -142,14 +142,15 @@ TerrainExt::ExtContainer::ExtContainer() : Container("TerrainClass") { }
 TerrainExt::ExtContainer::~ExtContainer() = default;
 
 // container hooks
+#include <Notifications.h>
 
 DEFINE_SKIP_HOOK(0x71BC31 , TerrainClass_CTOR_RemoveUnlimboFunc , 0xA , 71BC86);
-//DEFINE_JUMP(LJMP, 0x71BC31, 0x71BC86);
 
 DEFINE_HOOK(0x71BE74, TerrainClass_CTOR, 0x5)
 {
 	GET(TerrainClass*, pItem, ESI);
 	TerrainExt::ExtMap.Allocate(pItem);
+	//PointerExpiredNotification::NotifyInvalidObject->Add(pItem);
 	return 0;
 }
 
@@ -187,6 +188,7 @@ DEFINE_HOOK(0x71B824, TerrainClass_DTOR, 0x5)
 		pExt->ClearAnim();
 		delete pExt;
 		TerrainExt::ExtMap.ClearExtAttribute(pItem);
+		//PointerExpiredNotification::NotifyInvalidObject->Remove(pItem);
 	}
 
 	return 0x71B845;
@@ -215,16 +217,17 @@ DEFINE_HOOK(0x71CF44, TerrainClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-//DEFINE_HOOK(0x71CFE3, TerrainClass_Detach, 0x6)
-//{
-//	GET(TerrainClass*, pThis, ESI);
-//	GET(void*, pObj, EDI);
-//	GET_STACK(bool, bRemoved, STACK_OFFS(0x8, -0x8));
-//
-//	TerrainExt::ExtMap.InvalidatePointerFor(pThis, pObj, bRemoved);
-//
-//	return pThis->Type == pObj ? 0x71CFEB : 0x71CFF5;
-//}
+DEFINE_HOOK(0x71CFD0, TerrainClass_Detach, 0x5)
+{
+	GET(TerrainClass*, pThis, ECX);
+	GET_STACK(AbstractClass*, pObj, 0x4);
+	GET_STACK(bool, bRemoved, 0x8);
 
-// Skip D0 CRC here
-//DEFINE_JUMP(LJMP, 0x71CFA4, 0x71CFB2);
+	pThis->ObjectClass::PointerExpired(pObj, bRemoved);
+	TerrainExt::ExtMap.InvalidatePointerFor(pThis, pObj, bRemoved);
+	
+	if (pThis->Type == pObj)
+		pThis->Type = nullptr;
+
+	return 0x71CFF7;
+}

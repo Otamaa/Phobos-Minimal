@@ -66,7 +66,7 @@ public:
 		Valueable<bool> HealthBar_Hide { false };
 		Valueable<CSFText> UIDescription {};
 		Valueable<bool> LowSelectionPriority { false };
-		PhobosFixedString<0x20> GroupAs { };
+		PhobosFixedString<0x20> GroupAs { NONE_STR2 };
 		Valueable<int> RadarJamRadius { 0 };
 		Nullable<int> InhibitorRange {};
 		Nullable<int> DesignatorRange {};
@@ -77,7 +77,7 @@ public:
 		//Enemy Designator
 		Nullable<int> AttractorRange {};
 
-		Valueable<Leptons> MindControlRangeLimit;
+		Valueable<Leptons> MindControlRangeLimit {};
 
 		MultiBoolFixedArray<(int)PhobosAbilityType::count> Phobos_EliteAbilities {};
 		MultiBoolFixedArray<(int)PhobosAbilityType::count> Phobos_VeteranAbilities {};
@@ -621,7 +621,7 @@ public:
 		FighterAreaGuardData MyFighterData { };
 		DamageSelfType DamageSelfData { };
 
-		AresAttachEffectTypeClass AttachedEffect;
+		AresAttachEffectTypeClass AttachedEffect { nullptr };
 
 		Valueable<AnimTypeClass*> NoAmmoEffectAnim { nullptr };
 		Valueable<int> AttackFriendlies_WeaponIdx { -1 };
@@ -787,7 +787,7 @@ public:
 		PhobosMap<TechnoTypeClass*, Valueable<float>> SpecificExpFactor {};
 		Valueable<bool> Initial_DriverKilled { false };
 
-		NullableIdx<VocClass> VoiceCantDeploy {};
+		NullableIdx<VocClass> VoiceCantDeploy { };
 		Valueable<bool> DigitalDisplay_Disable { false };
 		ValueableVector<DigitalDisplayTypeClass*> DigitalDisplayTypes {};
 
@@ -827,8 +827,9 @@ public:
 		ValueableVector<BuildingTypeClass*> PoweredBy {};  //!< The buildingtype this unit is powered by or NULL.
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
-			, AttachedEffect { OwnerObject }
-		{ }
+		{ 
+			AttachedEffect.Owner = OwnerObject;
+		}
 
 		virtual ~ExtData() override = default;
 

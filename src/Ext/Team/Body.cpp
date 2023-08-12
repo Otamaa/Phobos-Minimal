@@ -442,14 +442,14 @@ DEFINE_HOOK(0x6EC55A, TeamClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-//DEFINE_HOOK(0x6EAE60, TeamClass_Detach, 0x7)
-//{
-//	GET(TeamClass*, pThis, ECX);
-//	GET_STACK(void*, target, 0x4);
-//	GET_STACK(bool, all, 0x8);
-//
-//	TeamExt::ExtMap.InvalidatePointerFor(pThis, target, all);
-//
-//	//return pThis->Target == target ? 0x6EAECC : 0x6EAECF;
-//	return 0x0;
-//}
+DEFINE_HOOK(0x6EAE60, TeamClass_Detach, 0x7)
+{
+	GET(TeamClass*, pThis, ECX);
+	GET_STACK(void*, target, 0x4);
+	GET_STACK(bool, all, 0x8);
+
+	TeamExt::ExtMap.InvalidatePointerFor(pThis, target, all);
+
+	//return pThis->Target == target ? 0x6EAECC : 0x6EAECF;
+	return 0x0;
+}

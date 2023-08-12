@@ -58,7 +58,7 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Layer_UseObjectLayer.Read(exINI, pID, "Layer.UseObjectLayer");
 	this->UseCenterCoordsIfAttached.Read(exINI, pID, "UseCenterCoordsIfAttached");
 
-	this->Weapon.Read(exINI, pID, "Weapon", true);
+	this->Weapon.Read(exINI, pID, "Weapon");
 	this->Damage_Delay.Read(exINI, pID, "Damage.Delay");
 	this->Damage_DealtByInvoker.Read(exINI, pID, "Damage.DealtByInvoker");
 	this->Damage_ApplyOnce.Read(exINI, pID, "Damage.ApplyOnce");
@@ -200,7 +200,7 @@ void AnimTypeExt::CreateUnit_MarkCell(AnimClass* pThis)
 		//when it on brige , idk what happen there , but it is what it is for now
 		//will reenable if fixed !
 		//if (pCellAfter->ContainsBridge())
-		//	return;
+			//return;
 
 		if (!MapClass::Instance->IsWithinUsableArea(Location))
 			return;

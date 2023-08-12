@@ -49,20 +49,9 @@ DEFINE_HOOK(0x7467CA , UnitClass_CantTarget_Disguise, 0x5)
 	 0x7467FE : 0x0;
 }
 
-bool CanBlinkDisguise(TechnoClass* pTechno)
+bool CanBlinkDisguise(TechnoClass* pTechno , HouseClass* pCurPlayer)
 {
-	auto const pCurPlayer = HouseClass::CurrentPlayer();
-
-	if (!pCurPlayer)
-		return false;
-
-	if (pCurPlayer->IsObserver())
-		return true;
-	
-	if (!pCurPlayer->IsControlledByHuman())
-		return false;
-
-	return EnumFunctions::CanTargetHouse(
+	return pCurPlayer->IsObserver() || EnumFunctions::CanTargetHouse(
 		RulesExt::Global()->DisguiseBlinkingVisibility,pTechno->Owner, pCurPlayer);
 }
 
@@ -71,8 +60,10 @@ DEFINE_HOOK(0x4DEDCB, FootClass_GetImage_DisguiseBlinking, 0x7)
 	enum { ContinueChecks = 0x4DEDDB, AllowBlinking = 0x4DEE15 };
 
 	GET(TechnoClass*, pThis, ESI);
+	GET(HouseClass* , pCurPlayer , ECX);
+	//GET(CellClass*, pCell, EDI);
 
-	if (CanBlinkDisguise(pThis))
+	if (CanBlinkDisguise(pThis , pCurPlayer))
 		return AllowBlinking;
 
 	return ContinueChecks;
@@ -84,7 +75,7 @@ DEFINE_HOOK(0x70EE70, TechnoClass_IsClearlyVisibleTo_DisguiseBlinking, 0x5)
 
 	GET(TechnoClass*, pThis, ESI);
 
-	if (CanBlinkDisguise(pThis))
+	if (CanBlinkDisguise(pThis , HouseClass::CurrentPlayer()))
 		return ContinueChecks;
 
 	return DisallowBlinking;
@@ -96,7 +87,7 @@ DEFINE_HOOK(0x7062F5, TechnoClass_TechnoClass_DrawObject_DisguiseBlinking, 0x6)
 
 	GET(TechnoClass*, pThis, ESI);
 
-	if (CanBlinkDisguise(pThis))
+	if (CanBlinkDisguise(pThis, HouseClass::CurrentPlayer()))
 		return ContinueChecks;
 
 	return DisallowBlinking;
@@ -125,13 +116,13 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 	return SkipGameCode;
 }
 
-// somewhat crash the game when called 
+// somewhat crash the game when called
 // maybe already hooked by something else ?
 //DEFINE_HOOK(0x705D88, TechnoClass_GetRemapColor_CheckVector, 0x8)
 //{
 //	GET(DynamicVectorClass<ConvertClass*>*, pPal, EAX);
 //	GET(TechnoClass*, pThis, ESI);
-//	
+//
 //	int nColorIdx = 0;
 //	if (!pThis->Owner)
 //		Debug::Log("TechnoClass[%s] GetRemapColor with nullptr Owner ! \n ", pThis->get_ID());
@@ -162,17 +153,17 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 
 #include <TerrainTypeClass.h>
 
-DEFINE_HOOK(0x73649A, UnitClass_AI_DisguiseAI, 0x7)
-{
-	GET(UnitClass*, pThis, ESI);
-
-	if (!TechnoTypeExt::ExtMap.Find(pThis->Type)
-		->TankDisguiseAsTank.Get())
-		pThis->UpdateDisguise(); //this one updating the disguise blink and stuffs
-
-
-	return 0x7364A1;
-}
+//DEFINE_HOOK(0x73649A, UnitClass_AI_DisguiseAI, 0x7)
+//{
+//	GET(UnitClass*, pThis, ESI);
+//
+//	if (!TechnoTypeExt::ExtMap.Find(pThis->Type)
+//		->TankDisguiseAsTank.Get())
+//		pThis->UpdateDisguise(); //this one updating the disguise blink and stuffs
+//
+//
+//	return 0x7364A1;
+//}
 
 // DEFINE_HOOK(0x746A30, UnitClass_Disguise_AI_UnitAsUnit, 0x5)
 // {

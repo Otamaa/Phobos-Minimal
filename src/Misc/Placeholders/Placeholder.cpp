@@ -1,3 +1,74 @@
+
+//DEFINE_HOOK(0x5535D0, PCX_LoadScreen, 0x6)
+//{
+//	LEA_STACK(char*, name, 0x84);
+//
+//	char pFilename[0x20];
+//	strcpy_s(pFilename, name);
+//	_strlwr_s(pFilename);
+//
+//	if (CRT::strstr(pFilename, ".pcx")
+//		//|| CRT::strstr(pFilename, ".png")
+//		) {
+//
+//		BSurface* pCXSurf = nullptr;
+//
+//		if(PCX::Instance->LoadFile(pFilename))
+//			pCXSurf = PCX::Instance->GetSurface(pFilename);
+//
+//		if (pCXSurf) {
+//			GET_BASE(DSurface*, pSurf, 0x60);
+//			RectangleStruct pSurfBounds = { 0, 0, pSurf->Width, pSurf->Height };
+//			RectangleStruct pcxBounds = { 0, 0, pCXSurf->Width, pCXSurf->Height };
+//
+//			RectangleStruct destClip = { 0, 0, pCXSurf->Width, pCXSurf->Height };
+//			destClip.X = (pSurf->Width - pCXSurf->Width) / 2;
+//			destClip.Y = (pSurf->Height - pCXSurf->Height) / 2;
+//
+//			pSurf->Copy_From(pSurfBounds, destClip, pCXSurf, pcxBounds, pcxBounds, true, true);
+//		}
+//		return 0x553603;
+//	}
+//	return 0;
+//}
+
+/*
+DEFINE_HOOK(0x552F81, PCX_LoadingScreen_Campaign, 0x5)
+{
+	GET(LoadProgressManager*, pThis, EBP);
+
+	DSurface* pSurface = reinterpret_cast<DSurface*>(pThis->ProgressSurface);
+	char pFilename[0x20];
+	strcpy_s(pFilename, ScenarioClass::Instance->LS800BkgdName);
+	_strlwr_s(pFilename);
+
+	if (strstr(pFilename, ".pcx") == 0
+		|| strstr(pFilename, ".png") == 0 )
+	{
+		BSurface* pCXSurf = nullptr;
+
+		if (PCX::Instance->LoadFile(pFilename))
+			pCXSurf = PCX::Instance->GetSurface(pFilename);
+
+		if (pCXSurf)
+		{
+			RectangleStruct destClip = {
+				(pSurface->Width - pCXSurf->Width) / 2,
+				(pSurface->Height - pCXSurf->Height) / 2,
+				pCXSurf->Width, pCXSurf->Height
+			};
+
+			PCX::Instance->BlitToSurface(&destClip, pSurface, pCXSurf);
+		}
+
+		R->EBX(R->EDI());
+		return 0x552FC6;
+	}
+
+	return 0;
+}*/
+
+
 DEFINE_HOOK(0x5349E3, ScenarioClass_InitMixes, 0x6)
 {
 	GET(TheaterType, nType, EDI);

@@ -191,11 +191,39 @@ int PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno, AbstractClas
 	return -1;
 }
 
+#include <Ares_TechnoExt.h>
+
+//#pragma optimize("", off )
+//static uintptr_t calleraddr = -1;
+//DEFINE_HOOK(0x5218E0, InfantryClass_SelectWeapon_IsTargetTechnoAlive, 0x9)
+//{
+//	GET(InfantryClass*, pThis, ECX);
+//	GET_STACK(AbstractClass*, pTarget, 0x4);
+//	GET_STACK(uintptr_t, callerAddress, 0x0);
+//
+//	if(pTarget && Is_Techno(pTarget) && !static_cast<TechnoClass*>(pTarget)->IsAlive)
+//		Debug::Log("Caller[%x] InfantryClass_SelectWeapon[%s] Trying to target possibly dead Techno[%x] FromOwner [%s]\n", callerAddress, pThis->get_ID(), static_cast<TechnoClass*>(pTarget), static_cast<TechnoClass*>(pTarget)->align_154->OriginalHouseType->ID);
+//
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x6F3330, TechnoClass_SelectWeapon_IsTechnoTargetAlive, 5)
+//{
+//	GET(TechnoClass*, pThis, ECX);
+//	GET_STACK(AbstractClass*, pTarget, 0x4);
+//	GET_STACK(uintptr_t, callerAddress, 0x0);
+//
+//	calleraddr = callerAddress;
+//
+//	return 0x0;
+//}
+//#pragma optimize("", on )
+
 DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(TechnoClass*, pTargetTechno, EBP);
-	GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x18, -0x4));
+	GET_STACK(AbstractClass*, pTarget, 0x18 + 0x4);
 	//GET_STACK(WeaponTypeClass*, pPrimary,0x14);
 	//GET_STACK(WeaponTypeClass*, pSecondary ,0x10);
 
@@ -220,7 +248,16 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 	if (!pTargetTechno)
 		return Primary;
 
-	if (const auto pShield = TechnoExt::ExtMap.Find(pTargetTechno)->GetShield())
+	//select weapon is executed with dead target ?
+	const auto pTargetExt = TechnoExt::ExtMap.Find(pTargetTechno);
+
+	//if (!pTargetExt) {
+	//	Debug::Log("Caller[%x] Techno[%s] Trying to target possibly dead Techno[%x] FromOwner [%s]\n", calleraddr ,  pThis->get_ID(), pTargetTechno , pTargetTechno->align_154->OriginalHouseType->ID);
+	//	calleraddr = -1;
+	//	return OriginalCheck;
+	//}
+
+	if (const auto pShield = pTargetExt->GetShield())
 	{
 		if (pShield->IsActive())
 		{

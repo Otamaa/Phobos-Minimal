@@ -26,6 +26,7 @@
 
 #include <Utilities/BuildingBrackedPositionData.h>
 
+#include <Ares_TechnoExt.h>
 class BulletClass;
 class TechnoTypeClass;
 class REGISTERS;
@@ -126,7 +127,10 @@ public:
 		ExtData(TechnoClass* OwnerObject) : Extension<TechnoClass>(OwnerObject)
 		{ }
 
-		virtual ~ExtData() override = default;
+		virtual ~ExtData() override
+		{
+			GameDelete<true, true>(MyOriginalTemporal);
+		}
 
 		void InvalidatePointer(void* ptr, bool bRemoved);
 		static bool InvalidateIgnorable(void* ptr);

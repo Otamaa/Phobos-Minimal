@@ -2,6 +2,7 @@
 
 #include <YRMath.h>
 #include <utility>
+#include <bit>
 
 class CellStruct
 {

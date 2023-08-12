@@ -259,7 +259,6 @@ namespace detail
 		return false;
 	}
 
-
 	template <>
 	inline bool read<DirType32>(DirType32& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
@@ -276,7 +275,6 @@ namespace detail
 
 		return false;
 	}
-
 
 	template <>
 	inline bool read<DirType>(DirType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
@@ -298,7 +296,6 @@ namespace detail
 		return false;
 	}
 
-
 	template <>
 	inline bool read<FacingType>(FacingType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
@@ -317,7 +314,6 @@ namespace detail
 
 		return false;
 	}
-
 
 	template <>
 	inline bool read<SpotlightAttachment>(SpotlightAttachment& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)

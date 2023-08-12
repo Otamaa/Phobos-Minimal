@@ -854,7 +854,7 @@ DEFINE_HOOK(0x46AE70, BulletClass_SaveLoad_Prefix, 0x5)
 	return 0;
 }
 
-// Before :
+//Before :
 //DEFINE_HOOK_AGAIN(0x46AF97, BulletClass_Load_Suffix, 0x7)
 //DEFINE_HOOK(0x46AF9E, BulletClass_Load_Suffix, 0x7)
 
@@ -874,16 +874,16 @@ DEFINE_HOOK(0x46AFC4, BulletClass_Save_Suffix, 0x3)
 	return 0;
 }
 
-//DEFINE_HOOK(0x4685BE, BulletClass_Detach, 0x6)
-//{
-//	GET(BulletClass*, pThis, ESI);
-//	GET(void*, target, EDI);
-//	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
-//
-//	BulletExt::ExtMap.InvalidatePointerFor(pThis, target, all);
-//
-//	return pThis->NextAnim == target ? 0x4685C6 :0x4685CC;
-//}
+DEFINE_HOOK(0x4685BE, BulletClass_Detach, 0x6)
+{
+	GET(BulletClass*, pThis, ESI);
+	GET(void*, target, EDI);
+	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+
+	BulletExt::ExtMap.InvalidatePointerFor(pThis, target, all);
+
+	return pThis->NextAnim == target ? 0x4685C6 :0x4685CC;
+}
 
 static void __fastcall BulletClass_AnimPointerExpired(BulletClass* pThis, void* _, AnimClass* pTarget)
 {

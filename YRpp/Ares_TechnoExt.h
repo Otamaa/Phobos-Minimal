@@ -16,15 +16,19 @@ class HouseTypeClass;
 class AresTechnoExt
 {
 public:
-	TechnoClass* OwnerObj; //0
-	DWORD initState; //4
-	BYTE idxSlot_Wave; //5
-	BYTE idxSlot_Beam; //6
-	BYTE idxSlot_Warp; //7
-	BYTE idxSlot_Parasite; //8
-	BuildingClass* GarrisonedIn; //C
-	AnimClass* EMPSparkleAnim; //10
-	Mission EMPLastMission; //
+	AresTechnoExt(TechnoClass* Obj) : OwnerObj { Obj }
+	{ }
+
+public:
+	TechnoClass* OwnerObj { 0 }; //0
+	int initState { -1 }; //4
+	BYTE idxSlot_Wave { 0 }; //5
+	BYTE idxSlot_Beam { 0 }; //6
+	BYTE idxSlot_Warp { 0 }; //7
+	BYTE idxSlot_Parasite { 0 }; //8
+	BuildingClass* GarrisonedIn { 0 }; //C
+	AnimClass* EMPSparkleAnim { 0 }; //10
+	Mission EMPLastMission { 0 }; //
 
 	class JammerClass
 	{
@@ -33,7 +37,7 @@ public:
 		bool Registered;						//!< Did I jam anything at all? Used to skip endless unjam calls.
 	};
 	static_assert(sizeof(JammerClass) == 0xC, "InvalidSize!");
-	JammerClass* RadarJammerUptr;
+	JammerClass* RadarJammerUptr { 0 };
 
 	class PoweredUnitClass
 	{
@@ -43,7 +47,7 @@ public:
 		bool Powered;
 	};
 	static_assert(sizeof(PoweredUnitClass) == 0xC, "InvalidSize!");
-	PoweredUnitClass* PoweredUnitUptr;
+	PoweredUnitClass* PoweredUnitUptr { 0 };
 
 	struct AEData
 	{
@@ -89,37 +93,38 @@ public:
 	};
 	static_assert(sizeof(AEData) == 0x14, "InvalidSize!");
 
-	AEData AEDatas;
-	TemporalClass* MyOriginalTemporal;
-	BuildingLightClass* BuildingLight;
-	EBolt* MyBolt;
-	HouseTypeClass* OriginalHouseType;
-	CDTimerClass CloakSkipTimer; //
-	CDTimerClass DisableWeaponTimer;
-	CDTimerClass SelfHealingCombatTimer;
-	int HijackerHealth;
-	HouseClass* HijackerOwner;
+	AEData AEDatas; //0x20
+	TemporalClass* MyOriginalTemporal { 0 }; //0x34
+	BuildingLightClass* BuildingLight { 0 };
+	EBolt* MyBolt { 0 };
+	HouseTypeClass* OriginalHouseType { 0 };
+	CDTimerClass CloakSkipTimer {}; //
+	CDTimerClass DisableWeaponTimer {};
+	CDTimerClass SelfHealingCombatTimer {};
+	int HijackerHealth { 0 };
+	HouseClass* HijackerOwner { 0 };
 	float HijackerVeterancy;
-	BYTE gap74[4];
-	double AE_ROF;
-	double AE_FirePowerMult;
-	double AE_ArmorMult;
-	double AE_SpeedMult;
-	BYTE AE_Cloak;
-	BYTE AltOccupy_HasValue;
-	BYTE AltOccupy_Value;
-	BYTE Is_SurvivorsDone;
-	BYTE Is_DriverKilled;
-	BYTE Is_Operated;
-	BYTE Is_InitialPayloadDone;
-	BYTE Is_UnitLostMuted;
-	SuperClass* AttachedSuperWeapon;
-	AbstractClass* SuperTarget;
-	int TechnoValueAmount;
-	CellStruct EMPulseTarget;
-	BYTE TakeVehicleMode;
-	DWORD pad[2];
+	BYTE gap74[4] { 0 };
+	double AE_ROF { 0 };
+	double AE_FirePowerMult { 0 };
+	double AE_ArmorMult { 0 };
+	double AE_SpeedMult { 0 };
+	BYTE AE_Cloak { 0 };
+	BYTE AltOccupy_HasValue { 0 };
+	BYTE AltOccupy_Value { 0 };
+	BYTE Is_SurvivorsDone { 0 };
+	BYTE Is_DriverKilled { 0 };
+	BYTE Is_Operated { 0 };
+	BYTE Is_InitialPayloadDone { 0 };
+	BYTE Is_UnitLostMuted { 0 };
+	SuperClass* AttachedSuperWeapon { 0 };
+	AbstractClass* SuperTarget { 0 };
+	int TechnoValueAmount { 0 };
+	CellStruct EMPulseTarget { 0 };
+	BYTE TakeVehicleMode { 0 };
+	DWORD pad[2] { 0 };
 };
+
 static_assert(offsetof(AresTechnoExt, GarrisonedIn) == 0xC, "ClassMember Shifted !");
 static_assert(offsetof(AresTechnoExt, EMPSparkleAnim) == 0x10, "ClassMember Shifted !");
 static_assert(offsetof(AresTechnoExt, Is_DriverKilled) == 0x9C, "ClassMember Shifted !");

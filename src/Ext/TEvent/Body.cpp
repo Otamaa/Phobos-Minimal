@@ -284,18 +284,6 @@ TEventExt::ExtContainer::~ExtContainer() = default;
 // container hooks
 //
 
-//TODO : ReadFrom INI
-
-// Value0 is not instantiated yet !
-// Ares hook at the end of the function
-//DEFINE_HOOK(0x71E752, TEventClass_CTOR, 0x5)
-//{
-//	GET(TEventClass*, pItem, ESI);
-//	pItem->Value = 0;
-//	TEventExt::ExtMap.Allocate(pItem);
-//	return 0;
-//}
-
 DEFINE_HOOK(0x71E7F8, TEventClass_CTOR, 5)
 {
 	GET(TEventClass*, pItem, ESI);
@@ -304,7 +292,7 @@ DEFINE_HOOK(0x71E7F8, TEventClass_CTOR, 5)
 	return 0;
 }
 
-//DEFINE_HOOK_AGAIN(0x71FAA6, TEventClass_SDDTOR, 0x6) // Factory
+DEFINE_HOOK_AGAIN(0x71FAA6, TEventClass_SDDTOR, 0x6) // Factory
 DEFINE_HOOK(0x71E856, TEventClass_SDDTOR, 0x6)
 {
 	GET(TEventClass*, pItem, ESI);
@@ -323,16 +311,26 @@ DEFINE_HOOK(0x71F8C0, TEventClass_SaveLoad_Prefix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x71F92B, TEventClass_Load_Suffix, 0x5)
+DEFINE_HOOK(0x71F929, TEventClass_Load_Suffix, 0x6)
 {
-	TEventExt::ExtMap.LoadStatic();
+	GET(HRESULT, res, EAX);
+
+	if (SUCCEEDED(res))
+		TEventExt::ExtMap.LoadStatic();
+
 	return 0x0;
 }
 
-DEFINE_HOOK(0x71F94A, TEventClass_Save_Suffix, 0x5)
+DEFINE_HOOK(0x71F944, TEventClass_Save_Suffix, 0x6)
 {
-	TEventExt::ExtMap.SaveStatic();
-	return 0;
+	GET(HRESULT, res, EAX);
+
+	if (SUCCEEDED(res)) {
+		TEventExt::ExtMap.SaveStatic();
+		return 0x71F948;
+	}
+
+	return 0x71F94A;
 }
 
 //DEFINE_HOOK(0x71F811, TEventClass_Detach, 0x5)

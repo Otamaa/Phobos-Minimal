@@ -25,11 +25,6 @@ DEFINE_OVERRIDE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 	GET_STACK(CellStruct* const, pCell, 0x4);
 	GET_STACK(bool const, isPlayer, 0x8);
 
-	auto pSuperExt = SuperExt::ExtMap.Find(pSuper);
-
-	pSuperExt->Temp_IsPlayer = isPlayer;
-	pSuperExt->Temp_CellStruct = *pCell;
-
 	Debug::Log("Lauch [%x][%s] %s \n", pSuper, pSuper->Owner->get_ID(), pSuper->Type->ID);
 
 	if (
@@ -40,13 +35,14 @@ DEFINE_OVERRIDE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 #endif
 		)
 	{
-		SWTypeExt::ExtMap.Find(pSuper->Type)->FireSuperWeapon(pSuper, pSuper->Owner, pCell, isPlayer);
+		//SWTypeExt::ExtMap.Find(pSuper->Type)->FireSuperWeapon(pSuper, pSuper->Owner, pCell, isPlayer);
 		return 0x6CDE40;
 	}
 
 	//Debug::Log("Lauch [%x][%s] %s failed \n", pSuper, pSuper->Owner->get_ID(), pSuper->Type->ID);
 	return 0x6CDE40;
 }
+
 DEFINE_HOOK(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
 {
 	GET(SuperWeaponTypeClass*, pThis, EBP);
@@ -139,6 +135,41 @@ DEFINE_HOOK(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 	return 0x6CECEF;
 }
 
+DEFINE_HOOK(0x6DC2C5, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x5)
+{
+	GET(SuperWeaponTypeClass*, pSuperType, EDI);
+
+	const auto pExt = SWTypeExt::ExtMap.Find(pSuperType);
+
+	if (pExt->SW_Designators.empty() || !HouseClass::CurrentPlayer || !HouseClass::CurrentPlayer->IsControlledByHuman_())
+		return 0x0;
+
+	for (const auto pCurrentTechno : *TechnoClass::Array)
+	{
+		const auto pCurrentTechnoType = pCurrentTechno->GetTechnoType();
+		const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pCurrentTechnoType);
+
+		if (!pCurrentTechno->IsAlive
+			|| pCurrentTechno->InLimbo
+			|| !pExt->SW_Designators.Contains(pCurrentTechnoType)
+			|| (pCurrentTechno->Owner != HouseClass::CurrentPlayer))
+		{
+			continue;
+		}
+
+		const CoordStruct coords = pCurrentTechno->GetCenterCoords();
+		Draw_Radial_Indicator(false, 
+			true, 
+			coords, 
+			pCurrentTechno->Owner->Color, 
+			(float)(pTechnoTypeExt->DesignatorRange.Get(pCurrentTechnoType->Sight)), 
+			false, 
+			true);
+	}
+
+	return 0;
+}
+
 #ifndef Replace_SW
 #pragma warning( push )
 #pragma warning (disable : 4245)
@@ -207,7 +238,6 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 
 	if (!pTeamExt->LastFoundSW)
 	{
-
 		for (const auto& pSuper : pOwner->Supers)
 		{
 			const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);

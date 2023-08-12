@@ -77,24 +77,24 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 		IsInLimboDelivered = BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->LimboID >= 0;
 	}
 
-	if (pThis->Location == CoordStruct::Empty) {
-		if (!pType->Spawned && !IsInLimboDelivered) {
-			Debug::Log("Techno[%x : %s] With Invalid Location ! , Removing ! \n", pThis, pThis->get_ID());
-			TechnoExt::HandleRemove(pThis, nullptr, false, false);
-			return retDead;
-		}
-	} else {
-
-		const auto nFootMapCoords = pThis->InlineMapCoords();
-		if (nFootMapCoords == CellStruct::Empty){
-			if (!pType->Spawned && !IsInLimboDelivered)
-			{
-				Debug::Log("Techno[%x : %s] With Invalid Location ! , Removing ! \n", pThis, pThis->get_ID());
-				TechnoExt::HandleRemove(pThis, nullptr, false, false);
-				return retDead;
-			}
-		}
-	}
+	//if (pThis->Location == CoordStruct::Empty) {
+	//	if (!pType->Spawned && !IsInLimboDelivered) {
+	//		Debug::Log("Techno[%x : %s] With Invalid Location ! , Removing ! \n", pThis, pThis->get_ID());
+	//		TechnoExt::HandleRemove(pThis, nullptr, false, false);
+	//		return retDead;
+	//	}
+	//} else {
+	//
+	//	const auto nFootMapCoords = pThis->InlineMapCoords();
+	//	if (nFootMapCoords == CellStruct::Empty){
+	//		if (!pType->Spawned && !IsInLimboDelivered)
+	//		{
+	//			Debug::Log("Techno[%x : %s] With Invalid Location ! , Removing ! \n", pThis, pThis->get_ID());
+	//			TechnoExt::HandleRemove(pThis, nullptr, false, false);
+	//			return retDead;
+	//		}
+	//	}
+	//}
 
 	// Set only if unset or type is changed
 	// Notice that Ares may handle type conversion in the same hook here, which is executed right before this one thankfully
@@ -159,7 +159,9 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 	SpawnSupportFunctional::AI(pThis);
 
 	pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
-	GiftBoxFunctional::AI(pExt, pTypeExt);
+
+	if(pThis->IsAlive)
+		GiftBoxFunctional::AI(pExt, pTypeExt);
 
 	if(pThis->IsAlive){
 		if (auto& pPBState = pExt->PaintBallState) {

@@ -2904,7 +2904,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 		// this shit is not really good idea to pull off
 		// some stuffs doesnt really handled properly , wtf
 
-		if (pVanishAnim)
+		if (pVanishAnim && !pThis->InLimbo)
 		{
 			if (auto const pAnim = GameCreate<AnimClass>(pVanishAnim, pThis->GetCoords()))
 			{
@@ -3930,8 +3930,12 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno,
 	{
 		if (auto const pCell = abstract_cast<CellClass*>(pTarget))
 			pTargetCell = pCell;
-		else if (auto const pObject = abstract_cast<ObjectClass*>(pTarget))
-			pTargetCell = pObject->GetCell();
+		else if (auto const pObject = abstract_cast<ObjectClass*>(pTarget)) {
+			if (!pObject->IsAlive)
+				pTargetCell = MapClass::Instance->TryGetCellAt(pObject->Location);
+			else
+				pTargetCell = pObject->GetCell();
+		}
 	}
 
 	const auto pWeaponStructOne = pThis->GetWeapon(weaponIndexOne);
@@ -4017,7 +4021,7 @@ bool TechnoExt::IsInWarfactory(TechnoClass* pThis, bool bCheckNaval)
 CoordStruct TechnoExt::GetPutLocation(CoordStruct current, int distance)
 {
 	// this whole thing does not at all account for cells which are completely occupied.
-	const auto& tmpCoords = CellSpread::AdjacentCell[ScenarioClass::Instance->Random.RandomFromMax(7)];
+	const CellStruct tmpCoords = CellSpread::AdjacentCell[ScenarioClass::Instance->Random.RandomFromMax(7)];
 
 	current.X += tmpCoords.X * distance;
 	current.Y += tmpCoords.Y * distance;
@@ -4372,6 +4376,7 @@ bool TechnoExt::ExtData::InvalidateIgnorable(void* ptr)
 {
 	switch (GetVtableAddr(ptr))
 	{
+	case AnimClass::vtable:
 	case HouseClass::vtable:
 	case BuildingClass::vtable:
 	case AircraftClass::vtable:
@@ -4387,8 +4392,8 @@ bool TechnoExt::ExtData::InvalidateIgnorable(void* ptr)
 
 void TechnoExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	if (this->Get()->WhatAmI() == BuildingClass::AbsID)
-		BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(this->Get()))->InvalidatePointer(ptr, bRemoved);
+	if (auto& pShield = this->Shield)
+		pShield->InvalidatePointer(ptr, false);
 
 	MyWeaponManager.InvalidatePointer(ptr, bRemoved);
 
@@ -4443,19 +4448,19 @@ DEFINE_HOOK(0x70C264, TechnoClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-//DEFINE_HOOK(0x70783B, TechnoClass_Detach, 0x6)
-//{
-//	GET(TechnoClass*, pThis, ESI);
-//	GET(void*, target, EBP);
-//	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
-//
-//	//if (!Is_Techno(pThis))
-//	//	Debug::Log("TechnoClass_Detach Called with gargabage ptr[%x] !\n", pThis);
-//
-//	TechnoExt::ExtMap.InvalidatePointerFor(pThis, target, all);
-//
-//	return pThis->BeingManipulatedBy == target ? 0x707843 : 0x707849;
-//}
+DEFINE_HOOK(0x70783B, TechnoClass_Detach, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(void*, target, EBP);
+	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+
+	//if (!Is_Techno(pThis))
+	//	Debug::Log("TechnoClass_Detach Called with gargabage ptr[%x] !\n", pThis);
+
+	TechnoExt::ExtMap.InvalidatePointerFor(pThis, target, all);
+
+	return pThis->BeingManipulatedBy == target ? 0x707843 : 0x707849;
+}
 
 DEFINE_HOOK(0x710443, TechnoClass_AnimPointerExpired_PhobosAdd, 6)
 {

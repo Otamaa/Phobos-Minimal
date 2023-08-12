@@ -17,6 +17,8 @@ enum class PhobosAINewConditionTypes : int
 
 class AITriggerTypeExt
 {
+public:
+
 	class ExtData final : public Extension<AITriggerTypeClass>
 	{
 	public:

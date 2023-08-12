@@ -889,8 +889,8 @@ public:
 	BYTE			 IsTickedOff; //HasBeenAttacked //3D1
 	BYTE			 Cloakable; //3D2
 	BYTE			 IsPrimaryFactory; //3D3 IsLoaner
-	BYTE			 IsALoaner; // 3D4
-	BYTE			 IsLocked; // 3D5
+	//BYTE			 IsALoaner; // 3D4
+	//BYTE			 IsLocked; // 3D5
 	BYTE			 Spawned; // 3D6
 	BYTE             IsInPlayfield; // 3D7
 	DECLARE_PROPERTY(RecoilData, TurretRecoil);
@@ -917,7 +917,7 @@ public:
 	BYTE             _Mission_Patrol_430;
 	BYTE             IsMouseHovering;
 	BYTE             parasitecontrol_byte432;
-	BYTE			 byte_433;
+//	BYTE			 byte_433;
 	TeamClass*       OldTeam;
 	BYTE             CountedAsOwnedSpecial; // for absorbers, infantry uses this to manually control OwnedInfantry count
 	BYTE             Absorbed; // in UnitAbsorb/InfantryAbsorb or smth, lousy memory
@@ -962,9 +962,11 @@ public:
 
 // due to desync problem , i started to do these , to really make sure the class member at correct place
 // without need to see the dll on IDA manually
-static_assert(offsetof(TechnoClass, IsALoaner) == 0x3D4, "ClassMember Shifted !");
-static_assert(offsetof(TechnoClass, IsLocked) == 0x3D5, "ClassMember Shifted !");
-static_assert(offsetof(TechnoClass, byte_433) == 0x433, "ClassMember Shifted !");
+
+static_assert(offsetof(TechnoClass, unknown_34C) == 0x34C, "ClassMember Shifted !");
+//static_assert(offsetof(TechnoClass, IsALoaner) == 0x3D4, "ClassMember Shifted !");
+//static_assert(offsetof(TechnoClass, IsLocked) == 0x3D5, "ClassMember Shifted !");
+//static_assert(offsetof(TechnoClass, byte_433) == 0x433, "ClassMember Shifted !");
 static_assert(offsetof(TechnoClass, OldTeam) == 0x434, "ClassMember Shifted !");
 static_assert(offsetof(TechnoClass, CountedAsOwnedSpecial) == 0x438, "ClassMember Shifted !");
 static_assert(offsetof(TechnoClass, Absorbed) == 0x439, "ClassMember Shifted !");

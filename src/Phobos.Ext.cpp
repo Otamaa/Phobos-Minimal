@@ -313,12 +313,12 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 
 	PhobosGlobal::PointerGotInvalid(pInvalid, removed);
 	SWStateMachine::PointerGotInvalid(pInvalid, removed);
-	TechnoExt::ExtMap.InvalidateMapPointers(pInvalid, removed);
-	BulletExt::ExtMap.InvalidateMapPointers(pInvalid, removed);
-	TeamExt::ExtMap.InvalidateMapPointers(pInvalid, removed);
-	HouseExt::ExtMap.InvalidateMapPointers(pInvalid, removed);
-	AnimExt::ExtMap.InvalidateMapPointers(pInvalid, removed);
-	TerrainExt::ExtMap.InvalidateMapPointers(pInvalid, removed);
+	//TechnoExt::ExtMap.InvalidateMapPointers(pInvalid, removed);
+	//BulletExt::ExtMap.InvalidateMapPointers(pInvalid, removed);
+	//TeamExt::ExtMap.InvalidateMapPointers(pInvalid, removed);
+	//HouseExt::ExtMap.InvalidateMapPointers(pInvalid, removed);
+	//AnimExt::ExtMap.InvalidateMapPointers(pInvalid, removed);
+	//TerrainExt::ExtMap.InvalidateMapPointers(pInvalid, removed);
 	Process_InvalidatePtr<BulletExt>(pInvalid, removed);
 	Process_InvalidatePtr<SWTypeExt>(pInvalid, removed);
 	Process_InvalidatePtr<TActionExt>(pInvalid, removed);
@@ -353,6 +353,8 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	HouseExt::ExtMap.Clear();
 	TunnelTypeClass::Clear();
 	WeaponTypeExt::ExtMap.Clear();
+	WarheadTypeExt::ExtMap.Clear();
+
 	return 0;
 }
 

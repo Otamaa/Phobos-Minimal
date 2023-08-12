@@ -17,7 +17,7 @@ public:
 	MemoryBuffer(void* pBuffer, int size) noexcept
 		: Buffer(pBuffer), Size(size)
 	{
-		if(!this->Buffer && this->Size > 0) {
+		if(!pBuffer && size > 0) {
 			this->Buffer = YRMemory::Allocate(static_cast<size_t>(size));
 			this->Allocated = true;
 		}

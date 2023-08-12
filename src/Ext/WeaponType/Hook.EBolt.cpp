@@ -34,8 +34,6 @@ namespace BoltTemp
 //	return 0;
 //}
 
-static std::vector<BYTE> dump;
-
 inline unsigned inline_02(ConvertClass* pConvert , int idx)
 {
 	switch (pConvert->BytesPerPixel)

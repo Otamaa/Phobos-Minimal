@@ -21,17 +21,17 @@
 
 //DEFINE_HOOK(0x46920B, BulletClass_Logics, 0x6)
 //{
-//	GET(BulletClass* const, pThis, ESI);
-//	GET_BASE(const CoordStruct*, pCoords, 0x8);
+//	//GET(BulletClass* const, pThis, ESI);
+//	//GET_BASE(const CoordStruct*, pCoords, 0x8);
 //
-//	if (pThis && pThis->WH)
-//	{
-//		auto const pExt = BulletExt::ExtMap.Find(pThis);
-//		auto const pTechno = pThis->Owner ? pThis->Owner : nullptr;
-//		auto const pHouse = pTechno ? pTechno->Owner : pExt->Owner ? pExt->Owner : nullptr;
-//
-//		WarheadTypeExt::ExtMap.Find(pThis->WH)->Detonate(pTechno, pHouse, pThis, *pCoords);
-//	}
+//	//if (pThis && pThis->WH)
+//	//{
+//	//	auto const pExt = BulletExt::ExtMap.Find(pThis);
+//	//	auto const pTechno = pThis->Owner ? pThis->Owner : nullptr;
+//	//	auto const pHouse = pTechno ? pTechno->Owner : pExt->Owner ? pExt->Owner : nullptr;
+//	//
+//	//	WarheadTypeExt::ExtMap.Find(pThis->WH)->Detonate(pTechno, pHouse, pThis, *pCoords);
+//	//}
 //
 //	PhobosGlobal::Instance()->DetonateDamageArea = false;
 //
@@ -154,9 +154,7 @@ DEFINE_HOOK(0x48A4F3, SelectDamageAnimation_NegativeZeroDamage, 0x6)
 	if (!warhead)
 		return NoAnim;
 
-	auto const pWHExt = WarheadTypeExt::ExtMap.Find(warhead);
-
-	if (damage == 0 && !pWHExt->AnimList_ShowOnZeroDamage)
+	if (damage == 0 && !WarheadTypeExt::ExtMap.Find(warhead)->AnimList_ShowOnZeroDamage)
 		return NoAnim;
 	else if (damage < 0)
 		damage = -damage;
@@ -166,13 +164,13 @@ DEFINE_HOOK(0x48A4F3, SelectDamageAnimation_NegativeZeroDamage, 0x6)
 	return SkipGameCode;
 }
 
-//DEFINE_HOOK(0x489B49, MapClass_DamageArea_Rocker, 0xA)
-//{
-//	GET_BASE(WarheadTypeClass*, pWH, 0xC);
-//	GET_STACK(int, damage, STACK_OFFSET(0xE0, 0xBC));
-//
-//	const int rocker = WarheadTypeExt::ExtMap.Find(pWH)->Rocker_Damage.Get(damage);
-//	_asm fild rocker;
-//
-//	return 0x489B4D;
-//}
+DEFINE_HOOK(0x489B49, MapClass_DamageArea_Rocker, 0xA)
+{
+	GET_BASE(WarheadTypeClass*, pWH, 0xC);
+	GET_STACK(int, damage, 0xE0 - 0xBC);
+
+	const int rocker = WarheadTypeExt::ExtMap.Find(pWH)->Rocker_Damage.Get(damage);
+	_asm fild rocker;
+
+	return 0x489B4D;
+}

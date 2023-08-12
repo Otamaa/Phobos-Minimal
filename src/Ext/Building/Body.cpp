@@ -748,13 +748,13 @@ DEFINE_HOOK(0x454244, BuildingClass_Save_Suffix, 0x7)
 	return 0;
 }
 
-//DEFINE_HOOK(0x44E940, BuildingClass_Detach, 0x6)
-//{
-//	GET(BuildingClass*, pThis, ESI);
-//	GET(void*, target, EBP);
-//	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
-//
-//	BuildingExt::ExtMap.InvalidatePointerFor(pThis, target, all);
-//
-//	return pThis->LightSource == target ? 0x44E948 : 0x44E94E;
-//}
+DEFINE_HOOK(0x44E940, BuildingClass_Detach, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(void*, target, EBP);
+	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+
+	BuildingExt::ExtMap.InvalidatePointerFor(pThis, target, all);
+
+	return pThis->LightSource == target ? 0x44E948 : 0x44E94E;
+}

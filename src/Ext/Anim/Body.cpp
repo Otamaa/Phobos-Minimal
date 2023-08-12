@@ -597,16 +597,16 @@ DEFINE_HOOK(0x4253FF, AnimClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-//DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
-//{
-//	GET(AnimClass* const, pThis, ESI);
-//	GET(void*, target, EDI);
-//	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
-//
-//	AnimExt::ExtMap.InvalidatePointerFor(pThis, target, all);
-//
-//	R->EBX(0);
-//	return pThis->OwnerObject == target && target ? 0x425174 : 0x4251A3;
-//}
+DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
+{
+	GET(AnimClass* const, pThis, ESI);
+	GET(void*, target, EDI);
+	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+
+	AnimExt::ExtMap.InvalidatePointerFor(pThis, target, all);
+
+	R->EBX(0);
+	return pThis->OwnerObject == target && target ? 0x425174 : 0x4251A3;
+}
 
 DEFINE_JUMP(VTABLE, 0x7E3390, GET_OFFSET(AnimExt::GetOwningHouse_Wrapper));

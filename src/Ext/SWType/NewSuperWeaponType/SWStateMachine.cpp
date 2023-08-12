@@ -13,11 +13,15 @@ std::vector<std::unique_ptr<SWStateMachine>> SWStateMachine::Array;
 
 void SWStateMachine::UpdateAll()
 {
-	for(size_t i = 0 ; i < SWStateMachine::Array.size(); ++i) {
-		if(auto& pMachine = SWStateMachine::Array[i]) {
-			pMachine->Update();
+	for(auto& pMachine : SWStateMachine::Array) { 
+		if(pMachine) { 
+		  pMachine->Update();
+		}
+	}
 
-			if (pMachine->Finished()){
+	for (size_t i = 0; i < SWStateMachine::Array.size(); ++i) {
+		if (auto& pMachine = SWStateMachine::Array[i]) {
+			if (pMachine->Finished()) {
 				//Debug::Log("%s - [%s : %d] Finished , removing\n", pMachine->GetIdentifierStrings() , pMachine->Super->get_ID() , i);
 				SWStateMachine::Array.erase(SWStateMachine::Array.begin() + i);
 			}

@@ -92,6 +92,8 @@ enum FunctionIndices : int
 	GetActionHijackID = 54,
 
 	NetEvent_RespondToFirewall = 55,
+
+	TechnoTypeExt_GetWeaponTypeID = 56,
 	count
 };
 
@@ -296,6 +298,8 @@ bool AresData::Init()
 		0x003E210, //TechnoTypeExt::CameoIsElite
 		0x0045B60, //TechnoExt::GetActionHijack
 		0x0023010, //AresEvent::Handle::RespondToFirewall
+
+		0x003E810, //TechnoTypeExt::GetWeapon
 	};
 
 	static constexpr DWORD AAresCustomPaletteReadTable[AresCustomPaletteReadCount] = {
@@ -643,4 +647,8 @@ Action AresData::TechnoExt_GetActionHijack(TechnoClass* pThis, TechnoClass* pTar
 void AresData::AresNetEvent_Handlers_RespondToFirewallToggle(HouseClass* pFor, bool Activate)
 {
 	AresThiscall<NetEvent_RespondToFirewall, void, void*, bool>()(GetAresHouseExt(pFor), Activate);
+}
+
+WeaponStruct* AresData::GetWeapon(TechnoTypeClass* pType, int idx, bool Elite) {
+	return AresThiscall<TechnoTypeExt_GetWeaponTypeID, WeaponStruct*, void*, int , bool>()(GetAresTechnoTypeExt(pType), idx, Elite);
 }

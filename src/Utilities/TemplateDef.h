@@ -729,7 +729,6 @@ namespace detail
 			}
 
 			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid floating point number");
-
 		}
 
 		return false;
@@ -763,7 +762,8 @@ namespace detail
 	template <>
 	inline bool read<TechnoTypeConvertData>(TechnoTypeConvertData& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		return parser.ReadString(pSection, pKey) && getresult<TechnoTypeConvertData>(value, parser.value(), pSection, pKey, allocate);
+		return parser.ReadString(pSection, pKey) 
+			&& getresult<TechnoTypeConvertData>(value, parser.value(), pSection, pKey, allocate);
 	}
 
 #pragma endregion
@@ -773,7 +773,8 @@ namespace detail
 	template <>
 	inline bool read<Rank>(Rank& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		return parser.ReadString(pSection, pKey) && getresult<Rank>(value, parser.value(), pSection, pKey);
+		return parser.ReadString(pSection, pKey) 
+			&& getresult<Rank>(value, parser.value(), pSection, pKey);
 	}
 
 	template <>
@@ -880,7 +881,7 @@ namespace detail
 				}
 			}
 
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a self heal gain type");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a self heal gain type");
 		}
 
 		return false;
@@ -1181,13 +1182,15 @@ namespace detail
 	template <>
 	inline bool read<LandType>(LandType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		return parser.ReadString(pSection, pKey) && getresult<LandType>(value, parser.value(), pSection, pKey, allocate);
+		return parser.ReadString(pSection, pKey) 
+			&& getresult<LandType>(value, parser.value(), pSection, pKey, allocate);
 	}
 
 	template <>
 	inline bool read<AffectedHouse>(AffectedHouse& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		return parser.ReadString(pSection, pKey) && getresult<AffectedHouse>(value, parser.value(), pSection, pKey, allocate);
+		return parser.ReadString(pSection, pKey) 
+			&& getresult<AffectedHouse>(value, parser.value(), pSection, pKey, allocate);
 	}
 
 	template <>
@@ -1227,6 +1230,7 @@ namespace detail
 			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected an AreaFire target");
 
 		}
+
 		return false;
 	}
 
@@ -1319,7 +1323,8 @@ namespace detail
 	template <>
 	inline bool read(TileType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		return parser.ReadString(pSection, pKey) && getresult<TileType>(value, parser.value(), pSection, pKey, allocate);
+		return parser.ReadString(pSection, pKey) 
+			&& getresult<TileType>(value, parser.value(), pSection, pKey, allocate);
 	}
 
 #pragma endregion

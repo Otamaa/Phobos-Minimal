@@ -169,12 +169,11 @@ WaveExt::ExtContainer::~ExtContainer() = default;
 // container hooks
 //
 
+DEFINE_HOOK_AGAIN(0x75ED27, WaveClass_CTOR, 0x5)
 DEFINE_HOOK(0x75EA59, WaveClass_CTOR, 0x5)
 {
 	GET(WaveClass*, pItem, ESI);
-
 	WaveExt::ExtMap.FindOrAllocate(pItem);
-
 	return 0;
 }
 
@@ -183,28 +182,23 @@ DEFINE_HOOK(0x75F650, WaveClass_SaveLoad_Prefix, 0x6)
 {
 	GET_STACK(WaveClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
-
 	WaveExt::ExtMap.PrepareStream(pItem, pStm);
-
 	return 0;
 }
 
-DEFINE_HOOK(0x75F7BA, WaveClass_Load_Suffix, 0x5)
+//we load it before DVC<CellStruct> get loaded
+DEFINE_HOOK(0x75F704, WaveClass_Load_Suffix, 0x7)
 {
-	GET(HRESULT, nRes, EBP);
-
-	if(SUCCEEDED(nRes))
-		WaveExt::ExtMap.LoadStatic();
-
+	WaveExt::ExtMap.LoadStatic();
 	return 0;
 }
 
-DEFINE_HOOK(0x75F82F, WaveClass_Save_Suffix, 0x6)
+//write it before DVC<CellStruct>
+DEFINE_HOOK(0x75F7E7, WaveClass_Save_Suffix, 0x6)
 {
 	GET(HRESULT, nRes, EAX);
 
-	if (SUCCEEDED(nRes))
-		WaveExt::ExtMap.SaveStatic();
+	WaveExt::ExtMap.SaveStatic();
 
 	return 0;
 }
@@ -213,24 +207,25 @@ DEFINE_HOOK_AGAIN(0x75ED57 , WaveClass_DTOR, 0x6)
 DEFINE_HOOK(0x763226, WaveClass_DTOR, 0x6)
 {
 	GET(WaveClass*, pItem, EDI);
-
 	WaveExt::ExtMap.Remove(pItem);
-
 	return 0;
 }
 
-DEFINE_HOOK(0x75F62B, WaveClass_Detach, 0xA)
+DEFINE_HOOK(0x75F610, WaveClass_Detach, 0x5)
 {
-	GET(WaveClass*, pItem, ESI);
-	GET(void*, pTarget, EDI);
+	GET(WaveClass*, pItem, ECX);
+	GET_STACK(AbstractClass*, pTarget, 0x4);
 	GET_STACK(bool, bRemove, 0x8);
 
-	WaveExt::ExtMap.InvalidatePointerFor(pItem, pTarget, bRemove);
+	pItem->ObjectClass::PointerExpired(pTarget, bRemove);
 
-	//the third remove args seems useless here ,...
-	// it somewhat always false ?
+	//WaveExt::ExtMap.InvalidatePointerFor(pItem, pTarget, bRemove);
+
 	if (bRemove && pItem->Owner == pTarget)
 		pItem->Owner = nullptr;
 
-	return 0x75F635;
+	if (bRemove && pItem->Target == pTarget)
+		pItem->Target = nullptr;
+
+	return 0x75F645;
 }

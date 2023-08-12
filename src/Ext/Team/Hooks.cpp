@@ -26,7 +26,8 @@ DEFINE_HOOK(0x6E9443, TeamClass_AI, 0x8)
 				pScript->Type->ID,
 				currentMission,
 				nextAction.Action,
-				nextAction.Argument);
+				nextAction.Argument
+			);
 
 			if (pTeamData->ForceJump_InitialCountdown > 0)
 			{
@@ -37,7 +38,16 @@ DEFINE_HOOK(0x6E9443, TeamClass_AI, 0x8)
 		else
 		{
 			pTeamData->ForceJump_InitialCountdown = -1;
-			Debug::Log("DEBUG: [%s] [%s](line: %d = %d,%d): Jump to line: %d = %d,%d -> (Reason: Timed Jump)\n", pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, pScript->CurrentMission + 1, pScript->GetNextAction().Action, pScript->GetNextAction().Argument);
+			Debug::Log("DEBUG: [%s] [%s](line: %d = %d,%d): Jump to line: %d = %d,%d -> (Reason: Timed Jump)\n", 
+				pTeam->Type->ID, 
+				pScript->Type->ID, 
+				pScript->CurrentMission,
+				pScript->GetCurrentAction().Action, 
+				pScript->GetCurrentAction().Argument, 
+				pScript->CurrentMission + 1, 
+				pScript->GetNextAction().Action, 
+				pScript->GetNextAction().Argument
+			);
 		}
 
 		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
@@ -81,6 +91,7 @@ DEFINE_HOOK(0x6E95B3, TeamClass_AI_MoveToCell, 0x6)
 	R->EAX(MapClass::Instance->GetCellAt(cell));
 	return 0x6E959C;
 }
+
 bool NOINLINE GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat)
 {
 	if (pThis == pThat) //default comparison result
@@ -92,8 +103,8 @@ bool NOINLINE GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat)
 	if (!pThatTechExt || !pThisTechExt)
 		return false;
 
-	if (GeneralUtils::IsValidString(pThatTechExt->GroupAs)) return IS_SAME_STR_(pThis->ID, pThatTechExt->GroupAs.c_str());
-	else if (GeneralUtils::IsValidString(pThisTechExt->GroupAs)) return  IS_SAME_STR_(pThat->ID, pThisTechExt->GroupAs.c_str());
+	if (GeneralUtils::IsValidString(pThatTechExt->GroupAs.c_str())) return IS_SAME_STR_(pThis->ID, pThatTechExt->GroupAs.c_str());
+	else if (GeneralUtils::IsValidString(pThisTechExt->GroupAs.c_str())) return  IS_SAME_STR_(pThat->ID, pThisTechExt->GroupAs.c_str());
 
 	return false;
 }
@@ -109,6 +120,20 @@ bool NOINLINE GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat)
 //	}) ?
 //		//add member : // skip
 //		0x6EF584 : 0x6EF5A5;
+//}
+
+//this completely replaced by ares
+//DEFINE_HOOK(0x50968F, HouseClass_CreateTeam_recuitType, 0x6)
+//{
+//	GET(TechnoTypeClass*, pThis, EBX);
+//	GET(FootClass* , pFoot ,ESI);
+//	GET(HouseClass* , pThisOwner ,EBP);
+//
+//	return (pFoot->Owner == pThisOwner && GroupAllowed(pThis, pFoot->GetTechnoType())) ?
+//
+//	//GET(TechnoTypeClass*, pThat, EAX);
+//	//return GroupAllowed(pThis, pThat) ?
+//		0x5096A5 : 0x5096B4;
 //}
 
 DEFINE_HOOK(0x6EAD86, TeamClass_CanAdd_CompareType_Convert_UnitType, 0x7) //6
@@ -137,15 +162,3 @@ DEFINE_HOOK(0x6EA6D3, TeamClass_CanAdd_ReplaceLoop, 0x7)
 	return GroupAllowed(pForce->Entries[idx].Type , pThat) ? 0x6EA6F2 : 0x6EA6DC;
 }
 
-DEFINE_HOOK(0x50968F, HouseClass_CreateTeam_recuitType, 0x6)
-{
-	GET(TechnoTypeClass*, pThis, EBX);
-	GET(FootClass* , pFoot ,ESI);
-	GET(HouseClass* , pThisOwner ,EBP);
-
-	return (pFoot->Owner == pThisOwner && GroupAllowed(pThis, pFoot->GetTechnoType())) ?
-
-	//GET(TechnoTypeClass*, pThat, EAX);
-	//return GroupAllowed(pThis, pThat) ?
-		0x5096A5 : 0x5096B4;
-}

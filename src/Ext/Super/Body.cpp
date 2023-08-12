@@ -28,7 +28,7 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 				if (IsAlwaysAvail && pExt->Type->IsAvailable(pHouse))
 				{
 					pExt->Statusses.Available = true;
-					pExt->Statusses.Charging = true;
+					pExt->Statusses.Charging = pExt->Type->SW_AlwaysGranted;
 					pExt->Statusses.PowerSourced = true;
 				}
 			});
@@ -146,7 +146,6 @@ SuperExt::ExtContainer::~ExtContainer() = default;
 // =============================
 // container hooks
 
-
 DEFINE_HOOK_AGAIN(0x6CAF32 , SuperClass_CTOR, 0x6)
 DEFINE_HOOK(0x6CB10E, SuperClass_CTOR, 0x7)
 {
@@ -189,13 +188,13 @@ DEFINE_HOOK(0x6CDFE8, SuperClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-//DEFINE_HOOK(0x6CE001 , SuperClass_Detach , 0x5)
-//{
-//	GET(SuperClass*, pThis, ESI);
-//	GET(void*, target, EAX);
-//	GET_STACK(bool, all, STACK_OFFS(0x4, -0x8));
-//
-//	SuperExt::ExtMap.InvalidatePointerFor(pThis , target , all);
-//
-//	return target == pThis->Type ? 0x6CE006 : 0x6CE009;
-//}
+DEFINE_HOOK(0x6CE001 , SuperClass_Detach , 0x5)
+{
+	GET(SuperClass*, pThis, ESI);
+	GET(void*, target, EAX);
+	GET_STACK(bool, all, STACK_OFFS(0x4, -0x8));
+
+	SuperExt::ExtMap.InvalidatePointerFor(pThis , target , all);
+
+	return target == pThis->Type ? 0x6CE006 : 0x6CE009;
+}

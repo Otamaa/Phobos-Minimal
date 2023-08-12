@@ -119,14 +119,13 @@ private:
 	base_type_ptr SavingObject;
 	IStream* SavingStream;
 	FixedString<0x100> Name;
-	std::unordered_map<base_type_ptr, extension_type_ptr> Map;
+	//std::unordered_map<base_type_ptr, extension_type_ptr> Map;
 
 public:
 
-	explicit Container(const char* pName) :
-		SavingObject { nullptr },
-		SavingStream { nullptr },
-		Map { }
+	explicit Container(const char* pName) : SavingObject { nullptr } 
+		, SavingStream { nullptr }
+		//Map { }
 	{
 		Name = pName;
 	}
@@ -155,8 +154,8 @@ public:
 		else
 			(*(uintptr_t*)((char*)key + AbstractExtOffset)) = 0;
 
-		if(this->Map.contains(key))
-			this->Map.erase(key);
+		//if(this->Map.contains(key))
+		//	this->Map.erase(key);
 	}
 
 	inline void SetExtAttribute(base_type_ptr key, extension_type_ptr val)
@@ -166,29 +165,32 @@ public:
 		else
 			(*(uintptr_t*)((char*)key + AbstractExtOffset)) = (uintptr_t)val;
 
-#ifndef DISABLEDUPLICATIONCHECK
-		if (this->Map.contains(key) && this->Map[key] != val) {
-			Debug::FatalError("ptr[%x] , Attempt to assign extension ptr to the class that already had one !\n", key);
-		}
-#endif
-		this->Map[key] = val;
+		//if (this->Map.contains(key) && this->Map[key] != val) {
+		//	Debug::FatalError("ptr[%x] , Attempt to assign extension ptr to the class that already had one !\n", key);
+		//}
+		//this->Map[key] = val;
 	}
 
-	inline extension_type_ptr GetExtAttribute(base_type_ptr key) const
+	inline extension_type_ptr GetExtAttribute(base_type_ptr key)
 	{
 		if constexpr (HasOffset<T>)
 			return (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset));
 		else
 			return (extension_type_ptr)(*(uintptr_t*)((char*)key + AbstractExtOffset));
-	}
 
-	inline extension_type_ptr GetExtAttributeSafe(base_type_ptr key)
-	{
-		if (this->Map.contains(key))
-			return this->Map[key];
+		//if (this->Map.contains(key))
+		//	return this->Map[key];
 
 		return nullptr;
 	}
+
+	//inline extension_type_ptr GetExtAttributeSafe(base_type_ptr key)
+	//{
+	//	if (this->Map.contains(key))
+	//		return this->Map[key];
+	//
+	//	return nullptr;
+	//}
 
 	extension_type_ptr Allocate(base_type_ptr key)
 	{
@@ -226,12 +228,12 @@ public:
 		return this->Allocate(key);
 	}
 
-	extension_type_ptr Find(base_type_ptr key) const
+	extension_type_ptr Find(base_type_ptr key)
 	{
 		return this->GetExtAttribute(key);
 	}
 
-	extension_type_ptr TryFind(base_type_ptr key) const
+	extension_type_ptr TryFind(base_type_ptr key)
 	{
 		if (!key)
 			return nullptr;
@@ -239,10 +241,10 @@ public:
 		return this->GetExtAttribute(key);
 	}
 
-	extension_type_ptr TryFindSafe(base_type_ptr key)
-	{
-		return this->GetExtAttributeSafe(key);
-	}
+	//extension_type_ptr TryFindSafe(base_type_ptr key)
+	//{
+	//	return this->GetExtAttributeSafe(key);
+	//}
 
 	void Remove(base_type_ptr key)
 	{
@@ -257,7 +259,7 @@ public:
 	{
 		if constexpr (CanLoadFromINIFile<T>)
 		{
-			if (extension_type_ptr ptr = this->TryFindSafe(key))
+			if (extension_type_ptr ptr = this->TryFind(key))
 			{
 				if (!pINI)
 				{
@@ -288,9 +290,9 @@ public:
 	}
 
 	void Clear() {
-		if (this->Map.size()) {
-			this->Map.clear();
-		}
+		//if (this->Map.size()) {
+		//	this->Map.clear();
+		//}
 	}
 
 	void InvalidatePointerFor(base_type_ptr key, void* const ptr, bool bRemoved)
@@ -313,20 +315,20 @@ public:
 		}
 	}
 
-	void InvalidateMapPointers(void* const ptr, bool bRemoved)
-	{
-		if constexpr (ThisPointerInvalidationSubscribable<T>)
-		{
-			if constexpr (PointerInvalidationIgnorAble<T>) {
-				if (extension_type::InvalidateIgnorable(ptr))
-					return;
-			}
+	//void InvalidateMapPointers(void* const ptr, bool bRemoved)
+	//{
+	//	if constexpr (ThisPointerInvalidationSubscribable<T>)
+	//	{
+	//		if constexpr (PointerInvalidationIgnorAble<T>) {
+	//			if (extension_type::InvalidateIgnorable(ptr))
+	//				return;
+	//		}
 
-			for (const auto& [key, Extptr] : this->Map) {
-				Extptr->InvalidatePointer(ptr, bRemoved);
-			}
-		}
-	}
+	//		for (const auto& [key, Extptr] : this->Map) {
+	//			Extptr->InvalidatePointer(ptr, bRemoved);
+	//		}
+	//	}
+	//}
 
 	void PrepareStream(base_type_ptr key, IStream* pStm)
 	{
@@ -337,41 +339,32 @@ public:
 
 	void SaveStatic()
 	{
-		if (this->SavingObject && this->SavingStream)
-		{
-			//Debug::Log("[SaveStatic] Saving object %p as '%s'\n", this->SavingObject, this->Name.data());
+		if (this->SavingObject && this->SavingStream) {
 			if (!this->Save(this->SavingObject, this->SavingStream))
 				Debug::FatalErrorAndExit("[SaveStatic] Saving failed!\n");
 		}
-		else
-		{
-			//Debug::Log("[SaveStatic] Object or Stream not set for '%s': %p, %p\n",
-			//	this->Name.data(), this->SavingObject, this->SavingStream);
-		}
 
 		this->SavingObject = nullptr;
 		this->SavingStream = nullptr;
 	}
 
-	void LoadStatic()
+	bool LoadStatic()
 	{
 		if (this->SavingObject && this->SavingStream)
 		{
-			//Debug::Log("[LoadStatic] Loading object %p as '%s'\n", this->SavingObject, this->Name.data());
-			if (!this->Load(this->SavingObject, this->SavingStream))
-				Debug::FatalErrorAndExit("[LoadStatic] Loading object %p as '%s failed!\n", this->SavingObject, this->Name.data());
-		}
-		else
-		{
-			//Debug::Log("[LoadStatic] Object or Stream not set for '%s': %p, %p\n",
-			//	this->Name.data(), this->SavingObject, this->SavingStream);
+			if (!this->Load(this->SavingObject, this->SavingStream)){
+				Debug::Log("[LoadStatic] Loading object %p as '%s failed!\n", this->SavingObject, this->Name.data());
+				return false;
+			}
 		}
 
 		this->SavingObject = nullptr;
 		this->SavingStream = nullptr;
+		return true;
 	}
 
 protected:
+
 	// override this method to do type-specific stuff
 	virtual bool Save(base_type_ptr key, IStream* pStm)
 	{

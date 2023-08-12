@@ -154,7 +154,7 @@ void ScenarioExt::ExtData::Serialize(T& Stm)
 
 // =============================
 // container hooks
-
+//
 DEFINE_HOOK(0x683549, ScenarioClass_CTOR, 0x9)
 {
 	GET(ScenarioClass*, pItem, EAX);

@@ -5,8 +5,6 @@
 #include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 
-#include "AnimSpawner.h"
-
 class ParticleSystemClass;
 class AnimExt
 {

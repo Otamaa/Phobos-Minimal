@@ -33,6 +33,7 @@ class BSurface;
 class TeamClass;
 class EBolt;
 class WeaponTypeClass;
+struct WeaponStruct;
 typedef int (__cdecl *CallHook)(REGISTERS* R);
 
 template<class T>
@@ -266,6 +267,7 @@ struct AresData
 	static Action TechnoExt_GetActionHijack(TechnoClass* pThis, TechnoClass* pTarget);
 
 	static void AresNetEvent_Handlers_RespondToFirewallToggle(HouseClass* pFor, bool Activate);
+	static WeaponStruct* GetWeapon(TechnoTypeClass* pType, int idx, bool Elite);
 };
 
 namespace AresMemory

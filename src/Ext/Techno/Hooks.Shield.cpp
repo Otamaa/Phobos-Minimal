@@ -7,6 +7,8 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/TEvent/Body.h>
 #include <Locomotor/Cast.h>
+#include <Ext/Script/Body.h>
+#include <Ext/Anim/Body.h>
 
 namespace EvaluateObjectTemp
 {
@@ -20,6 +22,85 @@ DEFINE_HOOK(0x6F7E24, TechnoClass_EvaluateObject_SetContext, 0x6)
 	EvaluateObjectTemp::PickedWeapon = pWeapon;
 
 	return 0;
+}
+
+void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
+{
+	if (ScriptExt::IsUnitAvailable(pThis, false))
+	{
+		if (const auto pFoot = abstract_cast<FootClass*>(pThis))
+		{
+			// Ignore other cases that aren't useful for this logic
+			if (pFoot->ParasiteEatingMe
+				&& pThis->WhatAmI() != AbstractType::Building)
+			{
+				const auto pWHExt = WarheadTypeExt::ExtMap.Find(args->WH);
+				auto parasyte = pFoot->ParasiteEatingMe;
+
+				if (!pWHExt || !pWHExt->CanRemoveParasytes.isset() || !pWHExt->CanTargetHouse(parasyte->Owner, pThis))
+					return;
+
+				if (pWHExt->CanRemoveParasytes.Get())
+				{
+					if (pWHExt->CanRemoveParasytes_ReportSound.isset() && pWHExt->CanRemoveParasytes_ReportSound.Get() >= 0)
+						VocClass::PlayAt(pWHExt->CanRemoveParasytes_ReportSound.Get(), parasyte->GetCoords());
+
+					// Kill the parasyte
+					CoordStruct coord = TechnoExt::PassengerKickOutLocation(pThis, parasyte, 10);
+
+					if (!pWHExt->CanRemoveParasytes_KickOut.Get() || coord == CoordStruct::Empty)
+					{
+						auto parasyteOwner = parasyte->Owner;
+						parasyte->IsAlive = false;
+						parasyte->IsOnMap = false;
+						parasyte->Health = 0;
+
+						parasyteOwner->RegisterLoss(parasyte, false);
+						parasyteOwner->RemoveTracking(parasyte);
+						parasyte->UnInit();
+					}
+					else
+					{
+						// Kick the parasyte outside
+						pFoot->ParasiteEatingMe = nullptr;
+
+						if (!parasyte->Unlimbo(coord, parasyte->PrimaryFacing.Current().GetDir()))
+						{
+							// Failed to kick out the parasyte, remove it instead
+							auto parasyteOwner = parasyte->Owner;
+							parasyte->IsAlive = false;
+							parasyte->IsOnMap = false;
+							parasyte->Health = 0;
+
+							parasyteOwner->RegisterLoss(parasyte, false);
+							parasyteOwner->RemoveTracking(parasyte);
+							parasyte->UnInit();
+
+							return;
+						}
+
+						parasyte->Target = nullptr;
+						int paralysisCountdown = pWHExt->CanRemoveParasytes_KickOut_Paralysis.Get() < 0 ? 15 : pWHExt->CanRemoveParasytes_KickOut_Paralysis.Get();
+
+						if (paralysisCountdown > 0)
+						{
+							parasyte->ParalysisTimer.Start(paralysisCountdown);
+							parasyte->DiskLaserTimer.Start(paralysisCountdown);
+						}
+
+						if (pWHExt->CanRemoveParasytes_KickOut_Anim.isset())
+						{
+							if (auto const pAnim = GameCreate<AnimClass>(pWHExt->CanRemoveParasytes_KickOut_Anim.Get(), parasyte->GetCoords()))
+							{
+								AnimExt::SetAnimOwnerHouseKind(pAnim, args->SourceHouse ? args->SourceHouse : parasyte->Owner, pThis->Owner, parasyte, false);
+								pAnim->SetOwnerObject(parasyte);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 // #issue 88 : shield logic
@@ -51,6 +132,7 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Early, 0x6)
 		//}
 	}
 
+	applyRemoveParasite(pThis, &args);
 	return 0;
 }
 

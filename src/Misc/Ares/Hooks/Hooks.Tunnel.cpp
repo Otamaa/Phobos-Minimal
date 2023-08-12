@@ -111,14 +111,11 @@ void NOINLINE KillFootClass(FootClass* pFoot, TechnoClass* pKiller)
 
 void NOINLINE DestroyTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, TechnoClass* pKiller)
 {
-	if (pTunnelData->empty())
+	if (pTunnelData->empty() || FindSameTunnel(pTunnel))
 		return;
 
-	if (FindSameTunnel(pTunnel))
-		return;
-
-	for (auto nPos = pTunnelData->begin(); nPos != pTunnelData->end(); ++nPos) {
-		KillFootClass(*nPos, pKiller);
+	for (auto pFoot : *pTunnelData) {
+		KillFootClass(pFoot, pKiller);
 	}
 
 	pTunnelData->clear();

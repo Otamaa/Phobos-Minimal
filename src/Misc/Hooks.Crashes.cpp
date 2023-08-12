@@ -71,6 +71,10 @@ DEFINE_HOOK(0x70CE90, TechnoClass_Coef_checkForTechno, 0x6)
 }
 #endif
 
+DEFINE_HOOK(0x5F5896, TechnoClass_Mark_RemoveUnused, 0x5) {
+	return 0x5F58E1;
+}
+
 DEFINE_HOOK(0x70CD10, TechnoClass_Coef_CheckTarget, 0x6)
 {
 	GET_BASE(ObjectClass*, pTarget, 0x8);
@@ -103,7 +107,7 @@ DEFINE_HOOK(0x5D6BF1, MultiplayerGameMode_SetBaseSpawnCell_CheckAvail, 0x5)
 			if (pHouse->StartingPoint != -2)
 			{
 				// you dont want to read out of bound array here,..
-				if (pHouse->StartingPoint < pScenStruct->CellVector.Size())
+				if (pHouse->StartingPoint < (int)pScenStruct->CellVector.Size())
 				{
 					const auto& Cell = pScenStruct->CellVector.Items[pHouse->StartingPoint];
 					//IsCurrentCellAssigned[pHouse->StartingPoint] = true;

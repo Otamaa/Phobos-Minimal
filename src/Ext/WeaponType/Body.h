@@ -27,7 +27,6 @@ public:
 		using base_type = WeaponTypeClass;
 
 	public:
-
 		Valueable<double> DiskLaser_Radius { 38.2 };
 		Valueable<int> DiskLaser_Circumference { 240 };
 		Nullable<RadTypeClass*> RadType {};

@@ -96,7 +96,7 @@ void GetTypeToProduce(HouseClass* pThis, int& ProducingTypeIndex)
 
 	for (auto T : *TClass::Array)
 	{
-		auto const Idx = static_cast<unsigned int>(T->GetType()->GetArrayIndex());
+		auto const Idx = static_cast<unsigned int>(T->Type->GetArrayIndex());
 		if (Values[Idx] > 0 && T->CanBeRecruited(pThis))
 		{
 			--Values[Idx];
@@ -199,7 +199,7 @@ void HouseExt::ExtData::UpdateVehicleProduction()
 
 	for (auto unit : *UnitClass::Array)
 	{
-		const auto index = static_cast<unsigned int>(unit->GetType()->GetArrayIndex());
+		const auto index = static_cast<unsigned int>(unit->Type->GetArrayIndex());
 
 		if (values[index] > 0 && unit->CanBeRecruited(pThis))
 			--values[index];

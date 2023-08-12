@@ -14,8 +14,10 @@ bool InRange(TechnoClass* pShooter, AbstractClass* pTarget, WeaponTypeClass* pWe
 
 void CustomWeaponManager::Update(TechnoClass* pAttacker)
 {
-	if (!pAttacker
-		|| !pAttacker->Target
+	if (!pAttacker || !Is_Techno(pAttacker))
+		return;
+
+	if (!pAttacker->Target
 		|| !TechnoExt::IsActive(pAttacker)) {
 		Clear();
 	}
@@ -73,7 +75,10 @@ bool CustomWeaponManager::FireCustomWeapon(TechnoClass* pShooter,
 			{
 				if (fireData.UseAlternateFLH)
 				{
-					fireFLH = pTransporter->GetTechnoType()->Weapon[pTransporter->Passengers.IndexOf((FootClass*)pAttacker)].FLH;
+					auto nIdx = pTransporter->Passengers.IndexOf((FootClass*)pAttacker);
+					nIdx = nIdx > TechnoTypeClass::MaxWeapons ? TechnoTypeClass::MaxWeapons : nIdx;
+
+					fireFLH = pTransporter->GetTechnoType()->Weapon[nIdx].FLH;
 				}
 			}
 			else if (fireData.OnlyFireInTransport)

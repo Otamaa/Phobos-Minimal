@@ -5301,21 +5301,32 @@ public:
 
 	static bool IsDeactivationAdvisable(TechnoClass* Target)
 	{
-	switch (Target->CurrentMission)
-	{
-	case Mission::Selling:
-	case Mission::Construction:
-		return false;
+		switch (Target->CurrentMission)
+		{
+		case Mission::Selling:
+		case Mission::Construction:
+			return false;
+		}
+		return true;
 	}
 
-	switch (Target->QueuedMission)
+	static bool IsDeactivationAdvisableB(TechnoClass* Target)
 	{
-	case Mission::Selling:
-	case Mission::Construction:
-		return false;
-	}
+		switch (Target->CurrentMission)
+		{
+		case Mission::Selling:
+		case Mission::Construction:
+			return false;
+		}
 
-	return true;
+		switch (Target->QueuedMission)
+		{
+		case Mission::Selling:
+		case Mission::Construction:
+			return false;
+		}
+
+		return true;
 	}
 
 	static void UpdateSparkleAnim(TechnoClass* pFrom, TechnoClass* pTo)
@@ -5835,7 +5846,7 @@ class AresPoweredUnit : public AresTechnoExt::PoweredUnitClass
 	{
 		auto const pTechno = this->Techno;
 
-		if (AresEMPulse::IsDeactivationAdvisable(pTechno))
+		if (AresEMPulse::IsDeactivationAdvisableB(pTechno))
 		{
 			// destroy if EMP.Threshold would crash this unit when in air
 			auto const pType = pTechno->GetTechnoType();
@@ -5953,6 +5964,148 @@ DEFINE_OVERRIDE_HOOK(0x5D705E, MPGameMode_SpawnBaseUnit_BaseUnit, 6)
 	return hasNoBaseUnit;
 }
 
+DEFINE_DISABLE_HOOK(0x6F407D, TechnoClass_Init_1_ares);
+DEFINE_DISABLE_HOOK(0x6F4103, TechnoClass_Init_2_ares);
+//DEFINE_OVERRIDE_SKIP_HOOK(0x6F4103, TechnoClass_Init_ThisPartHandled, 6, 6F41C0)
+//DEFINE_JUMP(LJMP, 0x6F4103, 0x6F41C0);
+
+DEFINE_HOOK(0x6F3F88, TechnoClass_Init_1, 5)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	auto const pType = pThis->GetTechnoType();
+	auto const pData = pThis->align_154;
+
+	CaptureManagerClass* pCapturer = nullptr;
+	ParasiteClass* pParasite = nullptr;
+	TemporalClass* pTemporal = nullptr;
+	SpawnManagerClass* pSpawnManager = nullptr;
+	SlaveManagerClass* pSlaveManager = nullptr;
+	AirstrikeClass* pAirstrike = nullptr;
+
+	if (pType->Spawns) {
+		if (auto pSpawn = GameCreate<SpawnManagerClass>(pThis , pType->Spawns, pType->SpawnsNumber , pType->SpawnRegenRate , pType->SpawnReloadRate)) {
+			pSpawnManager = pSpawn;
+		}
+	}
+
+	if (pType->Enslaves) {
+		if (auto pSlaveMan = GameCreate<SlaveManagerClass>(pThis, pType->Enslaves, pType->SlavesNumber, pType->SlaveRegenRate, pType->SlaveReloadRate)) {
+			pSlaveManager = pSlaveMan;
+		}
+	}
+
+	if (pType->AirstrikeTeam > 0 && pType->AirstrikeTeamType) {
+		if(auto pAir = GameCreate<AirstrikeClass>(pThis)) {
+			pAirstrike = pAir;
+		}
+	}
+
+	auto const pFoot = abstract_cast<FootClass*>(pThis);
+
+	auto const CheckWeapon = [pThis, pType, pFoot, &pData, &pCapturer, &pParasite, &pTemporal](
+		WeaponTypeClass* pWeapon, int idxWeapon, const char* pTagName)
+		{
+			constexpr auto const Note = "Constructing an instance of [%s]:\r\n"
+				"%s %s (slot %d) has no %s!";
+
+			if (!pWeapon->Projectile)
+			{
+				Debug::FatalErrorAndExit(
+					Note, pType->ID, pTagName, pWeapon->ID, idxWeapon,
+					"Projectile");
+			}
+
+			auto const pWarhead = pWeapon->Warhead;
+
+			if (!pWarhead)
+			{
+				Debug::FatalErrorAndExit(
+					Note, pType->ID, pTagName, pWeapon->ID, idxWeapon, "Warhead");
+			}
+
+			if (pWarhead->MindControl && !pCapturer)
+			{
+				pCapturer = GameCreate<CaptureManagerClass>(
+					pThis, pWeapon->Damage, pWeapon->InfiniteMindControl);
+			}
+
+			if (pWarhead->Temporal && !pTemporal)
+			{
+				pTemporal = GameCreate<TemporalClass>(pThis);
+				pTemporal->WarpPerStep = pWeapon->Damage;
+				pData->idxSlot_Warp = static_cast<BYTE>(idxWeapon);
+			}
+
+			if (pWarhead->Parasite && pFoot && !pParasite)
+			{
+				pParasite = GameCreate<ParasiteClass>(pFoot);
+				pData->idxSlot_Parasite = static_cast<BYTE>(idxWeapon);
+			}
+		};
+
+	const int WeaponCount = pType->TurretCount <= 0  ? 2 : pType->WeaponCount;
+
+	// iterate all weapons and their elite counterparts
+	if(WeaponCount > 0) {
+
+		for (auto i = 0; i < WeaponCount; ++i) {
+
+			if (auto const pWeapon = AresData::GetWeapon(pType, i, false)->WeaponType) {
+				CheckWeapon(pWeapon, i, "Weapon");
+			}
+
+			if (auto const pWeapon = AresData::GetWeapon(pType, i, true)->WeaponType) {
+				CheckWeapon(pWeapon, i, "EliteWeapon");
+			}
+		}
+	}
+
+	pThis->CaptureManager = pCapturer;
+	pThis->TemporalImUsing = pTemporal;
+	if (pFoot) {
+		pFoot->ParasiteImUsing = pParasite;
+	}
+	pThis->SpawnManager = pSpawnManager;
+	pThis->SlaveManager = pSlaveManager;
+	pThis->Airstrike = pAirstrike;
+
+	const auto pHouseType = pThis->Owner->Type;
+	const auto pParentHouseType = pHouseType->FindParentCountry();
+	pData->OriginalHouseType = pParentHouseType ? pParentHouseType : pHouseType;
+
+	// if override is in effect, do not create initial payload.
+	// this object might have been deployed, undeployed, ...
+	if (Unsorted::ScenarioInit && Unsorted::CurrentFrame) {
+		TechnoExt::ExtMap.Find(pThis)->PayloadCreated = true;
+	}
+
+	R->EAX(pType);
+	return 0x6F4212;
+}
+
+DEFINE_OVERRIDE_HOOK(0x7177C0, TechnoTypeClass_GetWeapon, 0xB)
+{
+	GET_STACK(int, idx, 0x4);
+	GET(TechnoTypeClass*, pThis, ECX);
+
+	if (idx < 18)
+		return 0x0;
+
+	R->EAX(AresData::GetWeapon(pThis, idx, false));
+	return 0x7177D4;
+}
+
+DEFINE_OVERRIDE_HOOK(0x7177E0 , TechnoTypeClass_GetEliteWeapon, 0xB)
+{
+	GET_STACK(int, idx, 0x4);
+	GET(TechnoTypeClass*, pThis, ECX);
+
+	if (idx < 18)
+		return 0x0;
+
+	R->EAX(AresData::GetWeapon(pThis, idx, true));
+	return 0x7177F4;
+}
 //DEFINE_OVERRIDE_HOOK(0x5d7048, MPGameMode_SpawnBaseUnit_BuildConst, 5)
 //{
 //	GET_STACK(HouseClass*, pHouse, 0x18);

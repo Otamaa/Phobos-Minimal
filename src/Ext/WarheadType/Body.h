@@ -324,6 +324,12 @@ public:
 		Valueable<int> EMP_Cap { -1 };
 		Valueable<AnimTypeClass*> EMP_Sparkles { nullptr };
 
+		Nullable<bool> CanRemoveParasytes { };
+		Valueable<bool> CanRemoveParasytes_KickOut { false };
+		Valueable<int> CanRemoveParasytes_KickOut_Paralysis { -1 };
+		NullableIdx<VocClass> CanRemoveParasytes_ReportSound { };
+		Nullable<AnimTypeClass*> CanRemoveParasytes_KickOut_Anim { nullptr };
+
 		ExtData(WarheadTypeClass* OwnerObject) : Extension<WarheadTypeClass>(OwnerObject)
 			, AttachedEffect { OwnerObject }
 		{

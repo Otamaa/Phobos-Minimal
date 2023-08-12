@@ -1720,11 +1720,12 @@ DEFINE_OVERRIDE_HOOK(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
 	const CoordStruct crd = pCell->GetCoordsWithBridge();
 
 	// recreate replaced check, and also disallow if unit is still warping or dropping in.
-	return (pThis->IsUnderEMP()
+	return TechnoExt::ExtMap.Find(pThis)->Convert_Deploy_Delay.InProgress()
+	|| pThis->IsUnderEMP()
 	|| pThis->IsWarpingIn()
 	|| pThis->IsFallingDown
 	|| pThis->align_154->Is_DriverKilled
-	) ? 0x700DCE : 0x700E59;
+	 ? 0x700DCE : 0x700E59;
 }
 
 

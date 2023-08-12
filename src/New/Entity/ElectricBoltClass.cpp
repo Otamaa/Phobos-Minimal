@@ -81,8 +81,8 @@ void ElectricBoltClass::Create(CoordStruct const& start, CoordStruct const& end,
 	}
 }
 
-void ElectricBoltClass::Create(CoordStruct const& start, CoordStruct const& end, 
-	ColorStruct const& col1, ColorStruct const& col2, ColorStruct const& col3, 
+void ElectricBoltClass::Create(CoordStruct const& start, CoordStruct const& end,
+	ColorStruct const& col1, ColorStruct const& col2, ColorStruct const& col3,
 	bool col1_disable , bool col2_disable , bool col3_disable ,
 	int z_adjust ,ParticleSystemTypeClass* pSys , bool particleSysCoordFlip)
 {
@@ -113,8 +113,8 @@ void ElectricBoltClass::Plot_Bolt(CoordStruct& start, CoordStruct& end)
 		int EndZ;
 
 		EBoltPlotStruct(int count) :
-			StartCoords { count ,CoordStruct::Empty}
-			, EndCoords { count ,CoordStruct::Empty}
+			StartCoords { size_t(count) ,CoordStruct::Empty}
+			, EndCoords { size_t(count) ,CoordStruct::Empty}
 			, Distance {}
 			, Deviation {}
 			, StartZ {}

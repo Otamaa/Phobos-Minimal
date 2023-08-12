@@ -101,37 +101,47 @@ TriggerTypeExt::ExtContainer TriggerTypeExt::ExtMap;
 TriggerTypeExt::ExtContainer::ExtContainer() : Container("TriggerTypeClass") { }
 TriggerTypeExt::ExtContainer::~ExtContainer() = default;
 
-//DEFINE_HOOK(0x726DD7, TriggerTypeClass_CTOR, 6)
-//{
-//	GET(TriggerTypeClass*, pThis, ESI);
-//	TriggerTypeExt::ExtMap.Allocate(pThis);
-//	return 0x0;
-//}
-//
-//DEFINE_HOOK(0x726F46, TriggerTypeClass_DTOR, 5)
-//{
-//	GET(TriggerTypeClass*, pThis, EDI);
-//	TriggerTypeExt::ExtMap.Remove(pThis);
-//	return 0x0;
-//}
-//
-//DEFINE_HOOK_AGAIN(0x727C80, TriggerTypeClass_SaveLoad_Prefix, 8)
-//DEFINE_HOOK(0x727BF0, TriggerTypeClass_SaveLoad_Prefix, 5)
-//{
-//	GET_STACK(TriggerTypeClass*, pItem, 0x4);
-//	GET_STACK(IStream*, pStm, 0x8);
-//	TriggerTypeExt::ExtMap.PrepareStream(pItem, pStm);
-//	return 0;
-//}
-//
-//DEFINE_HOOK(0x727C75, TriggerTypeClass_Load_Suffix, 5)
-//{
-//	TriggerTypeExt::ExtMap.LoadStatic();
-//	return 0;
-//}
-//
-//DEFINE_HOOK(0x727C9A, TriggerTypeClass_Save_Suffix, 5)
-//{
-//	TriggerTypeExt::ExtMap.SaveStatic();
-//	return 0;
-//}
+DEFINE_HOOK(0x726DE6, TriggerTypeClass_CTOR, 6)
+{
+	GET(TriggerTypeClass*, pThis, ESI);
+	TriggerTypeExt::ExtMap.Allocate(pThis);
+	return 0x0;
+}
+
+DEFINE_HOOK(0x726EAC, TriggerTypeClass_DTOR, 6)
+{
+	GET(TriggerTypeClass*, pThis, EDI);
+	TriggerTypeExt::ExtMap.Remove(pThis);
+	return 0x0;
+}
+
+DEFINE_HOOK_AGAIN(0x727C80, TriggerTypeClass_SaveLoad_Prefix, 8)
+DEFINE_HOOK(0x727BF0, TriggerTypeClass_SaveLoad_Prefix, 5)
+{
+	GET_STACK(TriggerTypeClass*, pItem, 0x4);
+	GET_STACK(IStream*, pStm, 0x8);
+	TriggerTypeExt::ExtMap.PrepareStream(pItem, pStm);
+	return 0;
+}
+
+DEFINE_HOOK(0x727C73, TriggerTypeClass_Load_Suffix, 6)
+{
+	GET(HRESULT, res, EAX);
+
+	if (SUCCEEDED(res))
+		TriggerTypeExt::ExtMap.LoadStatic();
+
+	return 0;
+}
+
+DEFINE_HOOK(0x727C94, TriggerTypeClass_Save_Suffix, 6)
+{
+	GET(HRESULT, res, EAX);
+
+	if (SUCCEEDED(res)) {
+		TriggerTypeExt::ExtMap.SaveStatic();
+		return 0x727C98;
+	}
+
+	return 0x727C9A;
+}

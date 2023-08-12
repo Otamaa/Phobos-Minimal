@@ -36,10 +36,11 @@ DEFINE_HOOK(0x7394FF, UnitClass_TryToDeploy_CantDeployVoice, 0x8)
 
 	const auto pThisTechno = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
+	VoxClass::Play(GameStrings::EVA_CannotDeployHere());
+
 	if (pThisTechno->VoiceCantDeploy.isset()) {
 		VocClass::PlayGlobal(pThisTechno->VoiceCantDeploy, Panning::Center, 1.0);
-		return 0x73950F;
 	}
 
-	return 0x0;
+	return 0x73950F;
 }

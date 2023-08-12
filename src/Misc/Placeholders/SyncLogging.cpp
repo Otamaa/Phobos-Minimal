@@ -432,6 +432,7 @@ DEFINE_HOOK(0x4D8F40, FootClass_OverrideMission_SyncLog, 0x5)
 	return 0;
 }
 
+
 DEFINE_HOOK(0x7013A0, TechnoClass_OverrideMission_SyncLog, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
@@ -445,7 +446,6 @@ DEFINE_HOOK(0x7013A0, TechnoClass_OverrideMission_SyncLog, 0x5)
 }
 
 // Anim creation logging
-
 DEFINE_HOOK(0x421EA9, AnimClass_CTOR_SyncLog, 0x5)
 {
 	GET_BASE(CoordStruct*, coords, 0xC);
@@ -456,6 +456,7 @@ DEFINE_HOOK(0x421EA9, AnimClass_CTOR_SyncLog, 0x5)
 	return 0;
 }
 #pragma optimize("", on )
+
 // Disable sync logging hooks in non-MP games
 DEFINE_HOOK(0x683AB0, ScenarioClass_Start_DisableSyncLog, 0x6)
 {

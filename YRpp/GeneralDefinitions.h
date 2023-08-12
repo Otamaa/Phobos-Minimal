@@ -19,6 +19,21 @@
 #define SDDTOR_NODELETE				0x00
 #define SDDTOR_DELETE				0x01
 
+enum class AirAttackStatus
+{
+	ValidateAZ = 0,
+	PickAttackLocation = 1,
+	TakeOff = 2,
+	FlyToPosition = 3,
+	FireAtTarget = 4,
+	FireAtTarget2 = 5,
+	FireAtTarget2_Strafe = 6,
+	FireAtTarget3_Strafe = 7,
+	FireAtTarget4_Strafe = 8,
+	FireAtTarget5_Strafe = 9,
+	ReturnToBase = 10
+};
+
 enum class Locomotors : int
 {
 	Drive = 0,

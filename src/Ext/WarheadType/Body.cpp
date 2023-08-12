@@ -402,6 +402,13 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	this->EMP_Duration.Read(exINI, pSection, "EMP.Duration");
 	this->EMP_Cap.Read(exINI, pSection, "EMP.Cap");
 	this->EMP_Sparkles.Read(exINI, pSection, "EMP.Sparkles");
+
+	this->CanRemoveParasytes.Read(exINI, pSection, "CanRemoveParasytes");
+	this->CanRemoveParasytes_KickOut.Read(exINI, pSection, "CanRemoveParasytes.KickOut");
+	this->CanRemoveParasytes_KickOut_Paralysis.Read(exINI, pSection, "CanRemoveParasytes.KickOut.Paralysis");
+	this->CanRemoveParasytes_ReportSound.Read(exINI, pSection, "CanRemoveParasytes.ReportSound");
+	this->CanRemoveParasytes_KickOut_Anim.Read(exINI, pSection, "CanRemoveParasytes.KickOut.Anim");
+
 #pragma endregion
 
 	if (this->InflictLocomotor && pThis->Locomotor == _GUID())
@@ -1193,6 +1200,11 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->EMP_Cap)
 		.Process(this->EMP_Sparkles)
 
+		.Process(this->CanRemoveParasytes)
+		.Process(this->CanRemoveParasytes_KickOut)
+		.Process(this->CanRemoveParasytes_KickOut_Paralysis)
+		.Process(this->CanRemoveParasytes_ReportSound)
+		.Process(this->CanRemoveParasytes_KickOut_Anim)
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 

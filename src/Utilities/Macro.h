@@ -152,6 +152,12 @@ struct _VTABLE
 		const _##jumpType data (offset, pointer);                 \
 	}                                                             \
 	_ALLOCATE_STATIC_PATCH(offset, sizeof(data), &data);
+
+#define DEFINE_NAKED_HOOK(hook, funcname)                         \
+	void funcname();                                              \
+	DEFINE_JUMP(LJMP, hook, GET_OFFSET(funcname))                 \
+	void NAKED funcname()
+
 #pragma endregion Static Patch
 
 #pragma region Dynamic Patch

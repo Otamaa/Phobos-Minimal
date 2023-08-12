@@ -315,6 +315,9 @@ public:
 		JMP_THIS(0x4509D0);
 	}
 
+	int DrawInfoTipAndSpiedSelection(Point2D* pLocation, RectangleStruct* pRect) const
+		{ JMP_THIS(0x43E7B0); }
+
 	inline std::array<BuildingTypeClass* ,4u> GetTypes() const {
 		return { this->Type , this->Upgrades[0] , this->Upgrades[1] , this->Upgrades[2] };
 	};

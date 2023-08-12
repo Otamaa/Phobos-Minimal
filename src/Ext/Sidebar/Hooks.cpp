@@ -16,10 +16,7 @@ DEFINE_HOOK(0x6A593E, SidebarClass_InitForHouse_AdditionalFiles, 0x5)
 
 		if(!shp) {
 			IMPL_SNPRNINTF(filename,sizeof(filename), "tab%02dpp%s", i , GameStrings::dot_SHP());
-
-			if (auto pFile = FileSystem::LoadSHPRef(filename)) {
-				shp = pFile;
-			}
+			shp = GameCreate<SHPReference>(filename);
 		}
 	}
 

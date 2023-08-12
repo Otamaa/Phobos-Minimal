@@ -72,13 +72,13 @@ void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	GenericPrerequisite::AddDefaults();
 
 	// we override it , so it loaded before any type read happen , so all the properties will correcly readed
-	pThis->Read_CrateRules(pINI);
-	pThis->Read_CombatDamage(pINI);
-	pThis->Read_Radiation(pINI);
-	pThis->Read_ElevationModel(pINI);
-	pThis->Read_WallModel(pINI);
-	pThis->Read_AudioVisual(pINI);
-	pThis->Read_SpecialWeapons(pINI);
+	//pThis->Read_CrateRules(pINI);
+	//pThis->Read_CombatDamage(pINI);
+	//pThis->Read_Radiation(pINI);
+	//pThis->Read_ElevationModel(pINI);
+	//pThis->Read_WallModel(pINI);
+	//pThis->Read_AudioVisual(pINI);
+	//pThis->Read_SpecialWeapons(pINI);
 
 	ImmunityTypeClass::LoadFromINIList(pINI);
 	ArmorTypeClass::EvaluateDefault();
@@ -160,10 +160,10 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 					Nullable<AnimTypeClass*> nBuffer {};
 					IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.InfDeathAnim", pInfType->ID);
 					nBuffer.Read(iniEX, pWarhead->ID, buffer);
-
+		
 					if (!nBuffer.isset() || !nBuffer.Get())
 						return;
-
+		
 					//Debug::Log("Found specific InfDeathAnim for [WH : %s Inf : %s Anim %s]\n", pWarhead->ID, pInfType->ID, nBuffer->ID);
 					pExt->InfDeathAnims[pInfType->ArrayIndex] = nBuffer;
 				}
@@ -171,19 +171,21 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 		});
 
 		SuperWeaponTypeClass::Array->for_each([&](SuperWeaponTypeClass* pSWType) {
-			const auto pSuperExt = SWTypeExt::ExtMap.Find(pSWType);
-
-			if (pSuperExt->Aux_Techno.empty())
-				return;
-
-			TechnoTypeClass::Array->for_each([&](TechnoTypeClass* pType) {
-				if (pType->WhatAmI() == AbstractType::BuildingType)
+			if(const auto pSuperExt = SWTypeExt::ExtMap.TryFind(pSWType)) {
+		
+				if (pSuperExt->Aux_Techno.empty())
 					return;
-
-				auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-				if (pSuperExt->Aux_Techno.Contains(pType) && !pTypeExt->Linked_SW.Contains(pSWType))
-						pTypeExt->Linked_SW.push_back(pSWType);
-			});
+		
+				TechnoTypeClass::Array->for_each([&](TechnoTypeClass* pType) {
+					if (pType->WhatAmI() == AbstractType::BuildingType)
+						return;
+		
+					if(auto pTypeExt = TechnoTypeExt::ExtMap.TryFind(pType)) {
+						if (pSuperExt->Aux_Techno.Contains(pType) && !pTypeExt->Linked_SW.Contains(pSWType))
+								pTypeExt->Linked_SW.push_back(pSWType);
+					}
+				});
+			}
 		});
 
 		//for (auto pType : *TechnoTypeClass::Array)
@@ -866,17 +868,17 @@ DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 //	return 0x0;
 //}
 
-DEFINE_SKIP_HOOK(0x668F2B, RulesClass_Process_RemoveThese, 0x8, 668F63);
+//DEFINE_SKIP_HOOK(0x668F2B, RulesClass_Process_RemoveThese, 0x8, 668F63);
 //DEFINE_JUMP(LJMP, 0x668F2B ,0x668F63); // move all these reading before type reading
 
-void NAKED RulesClass_Process_SpecialWeapon_RemoveWHReadingDuplicate_RET() {
-	POP_REG(ebx);
-	JMP(0x6691B7);
-}
-
-DEFINE_HOOK(0x669193, RulesClass_Process_SpecialWeapon_RemoveWHReadingDuplicate, 0x9) {
-	return (int)RulesClass_Process_SpecialWeapon_RemoveWHReadingDuplicate_RET;
-}
+//void NAKED RulesClass_Process_SpecialWeapon_RemoveWHReadingDuplicate_RET() {
+//	POP_REG(ebx);
+//	JMP(0x6691B7);
+//}
+//
+//DEFINE_HOOK(0x669193, RulesClass_Process_SpecialWeapon_RemoveWHReadingDuplicate, 0x9) {
+//	return (int)RulesClass_Process_SpecialWeapon_RemoveWHReadingDuplicate_RET;
+//}
 //DEFINE_JUMP(LJMP, 0x66919B, 0x6691B7); // remove reading warhead from `SpecialWeapon`
 //DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 //{

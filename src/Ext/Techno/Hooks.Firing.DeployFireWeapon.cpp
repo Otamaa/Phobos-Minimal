@@ -12,10 +12,20 @@ DEFINE_HOOK(0x5223B3, InfantryClass_Approach_Target_DeployFireWeapon, 0x6)
 DEFINE_HOOK(0x52190D, InfantryClass_WhatWeaponShouldIUse_DeployFireWeapon, 0x6) //7
 {
 	GET(InfantryClass*, pThis, ESI);
-	return pThis->Type->DeployFireWeapon == -1 ? 0x52194E : 0x0;
+	GET(InfantryTypeClass*, pThisType, ECX);
+	GET_STACK(AbstractClass*, pTarget, 0x8);
+
+	if (pThisType->DeployFireWeapon == -1) {
+		R->EAX(pThis->TechnoClass::SelectWeapon(pTarget));
+	} else {
+		R->EAX(pThisType->DeployFireWeapon);
+	}
+
+	return 0x521913;
 }
 
-DEFINE_HOOK(0x6FF923, TechnoClass_FireaAt_FireOnce, 0x6)
+#ifdef DISABLEFORTESTINGS
+DEFINE_HOOK(0x6FF925, TechnoClass_FireaAt_FireOnce, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBX);
@@ -97,11 +107,8 @@ DEFINE_HOOK(0x4C77E4, EventClass_Execute_UnitDeployFire, 0x6)
 
 	auto const pUnit = specific_cast<UnitClass*>(pThis);
 
-	if (!pUnit)
-		return 0x0;
-
 	/// Do not execute deploy command if the vehicle has only just fired its once-firing deploy weapon.
-	if (pUnit->Type->DeployFire
+	if (pUnit && pUnit->Type->DeployFire
 		&& !pUnit->Type->IsSimpleDeployer
 		&& TechnoExt::ExtMap.Find(pThis)->DeployFireTimer.InProgress())
 	{
@@ -147,3 +154,4 @@ DEFINE_HOOK(0x746CD0, UnitClass_SelectWeapon_Replacements, 0x6)
 	R->EAX(pThis->TechnoClass::SelectWeapon(pTarget));
 	return 0x746CFD;
 }
+#endif

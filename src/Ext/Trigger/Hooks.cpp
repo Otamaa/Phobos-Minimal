@@ -6,8 +6,6 @@
 #include <Ext/House/Body.h>
 #include <Ext/TEvent/Body.h>
 
-#include <Misc/TriggerMPOwner.h>
-
 DEFINE_HOOK(0x727064, TriggerTypeClass_HasLocalSetOrClearedEvent, 0x5)
 {
 	GET(const int, nIndex, EDX);

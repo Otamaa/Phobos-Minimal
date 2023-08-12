@@ -138,7 +138,7 @@ public:
 		Valueable<double> RandomBuffer { 0.0 };
 
 #pragma region SWNext
-		ValueableIdxVector<SuperWeaponTypeClass*> SW_Next;
+		ValueableIdxVector<SuperWeaponTypeClass*> SW_Next {};
 		Valueable<bool> SW_Next_RealLaunch { true };
 		Valueable<bool> SW_Next_IgnoreInhibitors { false };
 		Valueable<bool> SW_Next_IgnoreDesignators { true };

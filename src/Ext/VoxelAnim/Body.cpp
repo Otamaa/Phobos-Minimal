@@ -61,9 +61,9 @@ void VoxelAnimExt::ExtData::Serialize(T& Stm)
 
 	 Stm
 		.Process(this->Initialized)
-		.Process(Invoker)
-		.Process(LaserTrails)
-		.Process(Trails)
+		.Process(this->Invoker)
+		.Process(this->LaserTrails)
+		.Process(this->Trails)
 		;
 }
 
@@ -103,8 +103,7 @@ DEFINE_HOOK(0x749B02, VoxelAnimClass_DTOR, 0xA)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x74A970, VoxelAnimClass_SaveLoad_Prefix, 0x5)
-DEFINE_HOOK(0x74AA10, VoxelAnimClass_SaveLoad_Prefix, 0x8)
+DEFINE_HOOK(0x74A970, VoxelAnimClass_Load_Prefix, 0x5)
 {
 	GET_STACK(VoxelAnimClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
@@ -125,14 +124,21 @@ DEFINE_HOOK(0x74A9EA , VoxelAnimClass_Load_Suffix, 0x6)
 	return 0x74A9FB;
 }
 
-DEFINE_HOOK(0x74AA24, VoxelAnimClass_Save_Suffix, 0x3)
+DEFINE_HOOK(0x74AA10, VoxelAnimClass_Save_Ext, 0x8)
 {
-	GET(const HRESULT, nRes, EAX);
+	GET_STACK(VoxelAnimClass*, pItem, 0x4);
+	GET_STACK(IStream*, pStm, 0x8);
+	GET_STACK(bool, isDirty, 0xC);
 
-	if(SUCCEEDED(nRes))
+	const auto res = AbstractClass::_Save(pItem, pStm, isDirty);
+
+	if(SUCCEEDED(res)){
+		VoxelAnimExt::ExtMap.PrepareStream(pItem, pStm);
 		VoxelAnimExt::ExtMap.SaveStatic();
+	}
 
-	return 0;
+	R->EAX(res);
+	return 0x74AA24;
 }
 
 static void __fastcall VoxelAnimClass_Detach(VoxelAnimClass* pThis,void* _, AbstractClass* pTarget, bool bRemove)

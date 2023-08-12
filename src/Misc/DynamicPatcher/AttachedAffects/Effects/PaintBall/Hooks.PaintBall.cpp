@@ -58,7 +58,7 @@ DEFINE_HOOK(0x73C15F, UnitClass_DrawVXL_Colour, 0x7)
 //	return 0;
 //}
 
-DEFINE_HOOK(0x423630, AnimClass_Draw_It, 0xC)
+DEFINE_HOOK(0x423630, AnimClass_Draw_It, 0x6)
 {
 	GET(AnimClass*, pAnim, ESI);
 

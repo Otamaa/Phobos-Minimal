@@ -275,4 +275,6 @@ private:
 	static bool MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, FootClass* pLeader, int mode);
 	static void ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeamLeader, AbstractClass* pTarget);
 
+	static ScriptActionNode GetSpecificAction(ScriptClass* pScript, int nIdx);
+
 };
