@@ -658,7 +658,9 @@ namespace TEventExt_dummy
 				else
 				{
 					auto const& nVec = ReverseEngineeredTechnoType(Args.Owner);
-					result = std::any_of(nVec.begin(), nVec.end(), [&](TechnoTypeClass* pTech)
+					const auto vec = make_iterator(&nVec[0], nVec.size());
+
+					result = std::any_of(vec.begin(), vec.end(), [&](TechnoTypeClass* pTech)
 						{ return pTech == TEventExt::ExtMap.Find(pThis)->GetTechnoType(); });
 				}
 				break;

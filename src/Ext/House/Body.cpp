@@ -263,6 +263,7 @@ void HouseExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 	if (ptr == nullptr)
 		return;
 
+	AnnounceInvalidPointer(OwnedTechno, ptr);
 	AnnounceInvalidPointer(Factory_BuildingType, ptr);
 	AnnounceInvalidPointer(Factory_InfantryType, ptr);
 	AnnounceInvalidPointer(Factory_VehicleType, ptr);
@@ -273,7 +274,6 @@ void HouseExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 	if (!AutoDeathObjects.empty()) {
 		AutoDeathObjects.erase(reinterpret_cast<TechnoClass*>(ptr));
 	}
-
 
 	for (auto& nTun : Tunnels)
 		AnnounceInvalidPointer(nTun.Vector , ptr);
@@ -755,6 +755,7 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		.Process(this->SWLastIndex)
 		.Process(this->Batteries)
 		.Process(this->Factories_HouseTypes)
+		.Process(this->OwnedTechno)
 		.Process(this->AvaibleDocks)
 		;
 }

@@ -406,4 +406,4 @@ struct AresDTORCaller
 #define Ares_EboltColors1 (*((int*)(AresData::AresStaticInstanceFinal[9])))
 #define Ares_EboltColors2 (*((int*)(AresData::AresStaticInstanceFinal[10])))
 #define Ares_EboltColors3 (*((int*)(AresData::AresStaticInstanceFinal[11])))
-#define Ares_EboltMap (*((const PhobosMap<EBolt* , AresExtension<WeaponTypeClass*>*>*)(AresData::AresStaticInstanceFinal[12])))
+#define Ares_EboltMap (*((const std::vector<std::pair<EBolt*, AresExtension<WeaponTypeClass*>*>, AresMemory::AresAllocator<std::pair<EBolt*, AresExtension<WeaponTypeClass*>*>>>*)(AresData::AresStaticInstanceFinal[12])))

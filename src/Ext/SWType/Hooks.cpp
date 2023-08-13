@@ -144,15 +144,14 @@ DEFINE_HOOK(0x6DC2C5, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x5)
 	if (pExt->SW_Designators.empty() || !HouseClass::CurrentPlayer || !HouseClass::CurrentPlayer->IsControlledByHuman_())
 		return 0x0;
 
-	for (const auto pCurrentTechno : *TechnoClass::Array)
+	for (const auto pCurrentTechno : HouseExt::ExtMap.Find(HouseClass::CurrentPlayer)->OwnedTechno)
 	{
 		const auto pCurrentTechnoType = pCurrentTechno->GetTechnoType();
 		const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pCurrentTechnoType);
 
 		if (!pCurrentTechno->IsAlive
 			|| pCurrentTechno->InLimbo
-			|| !pExt->SW_Designators.Contains(pCurrentTechnoType)
-			|| (pCurrentTechno->Owner != HouseClass::CurrentPlayer))
+			|| !pExt->SW_Designators.Contains(pCurrentTechnoType))
 		{
 			continue;
 		}

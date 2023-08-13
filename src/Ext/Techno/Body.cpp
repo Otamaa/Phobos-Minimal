@@ -4417,6 +4417,13 @@ DEFINE_HOOK(0x6F3260, TechnoClass_CTOR, 0x5)
 {
 	GET(TechnoClass*, pItem, ESI);
 	TechnoExt::ExtMap.Allocate(pItem);
+
+	if (pItem->Owner) {
+		if (auto pHouse = HouseExt::ExtMap.Find(pItem->Owner)) {
+			pHouse->OwnedTechno.push_back(pItem);
+		}
+	}
+
 	return 0;
 }
 
