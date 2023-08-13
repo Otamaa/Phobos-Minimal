@@ -24,7 +24,7 @@ DEFINE_HOOK(0x52190D, InfantryClass_WhatWeaponShouldIUse_DeployFireWeapon, 0x6) 
 	return 0x521913;
 }
 
-#ifdef DISABLEFORTESTINGS
+#ifndef DISABLEFORTESTINGS
 DEFINE_HOOK(0x6FF925, TechnoClass_FireaAt_FireOnce, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);

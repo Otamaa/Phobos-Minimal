@@ -225,7 +225,7 @@ DEFINE_HOOK(0x71CFD0, TerrainClass_Detach, 0x5)
 
 	pThis->ObjectClass::PointerExpired(pObj, bRemoved);
 	TerrainExt::ExtMap.InvalidatePointerFor(pThis, pObj, bRemoved);
-	
+
 	if (pThis->Type == pObj)
 		pThis->Type = nullptr;
 

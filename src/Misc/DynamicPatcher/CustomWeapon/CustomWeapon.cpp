@@ -76,7 +76,7 @@ bool CustomWeaponManager::FireCustomWeapon(TechnoClass* pShooter,
 				if (fireData.UseAlternateFLH)
 				{
 					auto nIdx = pTransporter->Passengers.IndexOf((FootClass*)pAttacker);
-					nIdx = nIdx > TechnoTypeClass::MaxWeapons ? TechnoTypeClass::MaxWeapons : nIdx;
+					nIdx = nIdx >= TechnoTypeClass::MaxWeapons ? TechnoTypeClass::MaxWeapons - 1 : nIdx;
 
 					fireFLH = pTransporter->GetTechnoType()->Weapon[nIdx].FLH;
 				}
@@ -138,7 +138,7 @@ void CustomWeaponManager::SimulateBurstFire(TechnoClass* pShooter, TechnoClass* 
 		b2.FlipY *= -1;
 		SimulateBurstFireOnce(pShooter, pAttacker, pTarget, pWeapon, b2);
 	}
-	
+
 	SimulateBurstFireOnce(pShooter, pAttacker, pTarget, pWeapon, burst);
 
 }
@@ -215,7 +215,7 @@ bool FireWeaponManager::FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAt
 }
 
 void FireWeaponManager::InvalidatePointer(void* ptr, bool bRemoved)
-{	
+{
 	for (size_t i = 0; i < DelayFires.size(); ++i) {
 		auto& nQueue = DelayFires[i];
 		if (nQueue.Target == ptr) {

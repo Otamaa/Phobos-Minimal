@@ -22,7 +22,7 @@
 #include "NewSuperWeaponType/NuclearMissile.h"
 #include "NewSuperWeaponType/LightningStorm.h"
 #include "NewSuperWeaponType/Dominator.h"
-
+#include <New/Type/GenericPrerequisite.h>
 //#include <ExtraHeaders/DiscreteSelectionClass_s.h>
 //#include <ExtraHeaders/DiscreteDistributionClass_s.h>
 

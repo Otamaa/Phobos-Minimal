@@ -35,7 +35,7 @@ DEFINE_OVERRIDE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 #endif
 		)
 	{
-		//SWTypeExt::ExtMap.Find(pSuper->Type)->FireSuperWeapon(pSuper, pSuper->Owner, pCell, isPlayer);
+		SWTypeExt::ExtMap.Find(pSuper->Type)->FireSuperWeapon(pSuper, pSuper->Owner, pCell, isPlayer);
 		return 0x6CDE40;
 	}
 
@@ -158,12 +158,12 @@ DEFINE_HOOK(0x6DC2C5, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x5)
 		}
 
 		const CoordStruct coords = pCurrentTechno->GetCenterCoords();
-		Draw_Radial_Indicator(false, 
-			true, 
-			coords, 
-			pCurrentTechno->Owner->Color, 
-			(float)(pTechnoTypeExt->DesignatorRange.Get(pCurrentTechnoType->Sight)), 
-			false, 
+		Draw_Radial_Indicator(false,
+			true,
+			coords,
+			pCurrentTechno->Owner->Color,
+			(float)(pTechnoTypeExt->DesignatorRange.Get(pCurrentTechnoType->Sight)),
+			false,
 			true);
 	}
 
