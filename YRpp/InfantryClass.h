@@ -26,26 +26,26 @@ public:
 	virtual ~InfantryClass() override JMP_THIS(0x523350);
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x51AA10);
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override { JMP_THIS(0x51AA10); }
 	virtual AbstractType WhatAmI() const override  RT(AbstractType);
 	virtual int	Size() const override  R0;
 	virtual void Update() override JMP_THIS(0x51BAB0);
 
 	//ObjectClass
-	virtual Action MouseOverObject(ObjectClass const* pObject, bool ignoreForce = false) const override JMP_THIS(0x51E3B0);
-	virtual DamageState ReceiveDamage(int* pDamage, int DistanceFromEpicenter, WarheadTypeClass* pWH,
-	ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseClass* pAttackingHouse) override JMP_THIS(0x517FA0);
+	virtual Action MouseOverObject(ObjectClass const* pObject, bool ignoreForce = false) const override { JMP_THIS(0x51E3B0); }
+	virtual DamageState ReceiveDamage(int* pDamage, int DistanceFromEpicenter, WarheadTypeClass* pWH, ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseClass* pAttackingHouse) override { JMP_THIS(0x517FA0); }
 
 	//TechnoClass
-	virtual int SelectWeapon(AbstractClass* pTarget) const override JMP_THIS(0x5218E0);
-	virtual FireError GetFireError(AbstractClass *pTarget, int nWeaponIndex, bool ignoreRange) const override JMP_THIS(0x51C8B0);
+	virtual int SelectWeapon(AbstractClass* pTarget) const override { JMP_THIS(0x5218E0); }
+	virtual FireError GetFireError(AbstractClass *pTarget, int nWeaponIndex, bool ignoreRange) const override { JMP_THIS(0x51C8B0); }
+	virtual CoordStruct* GetFLH(CoordStruct* pDest, int idxWeapon, CoordStruct BaseCoords) const override { JMP_THIS(0x523250); }
 
 	//FootClass
-	virtual bool ApproachTarget(bool bSomething) override JMP_THIS(0x522340);
+	virtual bool ApproachTarget(bool bSomething) override { JMP_THIS(0x522340); }
 
 	//InfantryClass
 	virtual bool IsDeployed() const R0;
-	virtual bool PlayAnim(DoType index, bool force = false, bool randomStartFrame = false) JMP_THIS(0x51D6F0); //`InfantryClass::Do_Action
+	virtual bool PlayAnim(DoType index, bool force = false, bool randomStartFrame = false) { JMP_THIS(0x51D6F0); } //`InfantryClass::Do_Action
 
 	bool IsDoingDeploySequence() { JMP_THIS(0x522510); }
 	void UnslaveMe();

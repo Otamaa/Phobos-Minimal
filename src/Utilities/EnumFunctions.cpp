@@ -285,8 +285,8 @@ std::array<std::pair<const char* const, SuperWeaponAITargetingMode>, 23u> EnumFu
 	{"lowpowerattack", SuperWeaponAITargetingMode::LowPowerAttack } ,
 	{"droppod", SuperWeaponAITargetingMode::DropPod } ,
 	{"lightningrandom", SuperWeaponAITargetingMode::LightningRandom } ,
-	{"lauchsite", SuperWeaponAITargetingMode::LauchSite },
-	{ "findauxtechno", SuperWeaponAITargetingMode::FindAuxTechno }
+	{"launchsite", SuperWeaponAITargetingMode::LauchSite },
+	{"findauxtechno", SuperWeaponAITargetingMode::FindAuxTechno }
 }
 };
 

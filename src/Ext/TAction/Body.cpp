@@ -45,6 +45,48 @@ TActionExt::ExtContainer::~ExtContainer() = default;
 
 //==============================
 
+bool TActionExt::MessageForSpecifiedHouse(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	int houseIdx = 0;
+	if (pThis->Param3 == -3)
+	{
+		// Random Human Player
+		std::vector<int> housesListIdx;
+		for (auto ptmpHouse : *HouseClass::Array)
+		{
+			if (ptmpHouse->IsControlledByHuman_()
+				&& !ptmpHouse->Defeated
+				&& !ptmpHouse->IsObserver())
+			{
+				housesListIdx.push_back(ptmpHouse->ArrayIndex);
+			}
+		}
+
+		if (housesListIdx.size() > 0)
+			houseIdx = housesListIdx.at(ScenarioClass::Instance->Random.RandomRanged(0, housesListIdx.size() - 1));
+		else
+			return true;
+	}
+	else
+	{
+		houseIdx = pThis->Param3;
+	}
+
+	const HouseClass* pTargetHouse = HouseClass::Index_IsMP(houseIdx) ? HouseClass::FindByIndex(houseIdx) : HouseClass::FindByCountryIndex(houseIdx);
+	if (!pTargetHouse)
+		return true;
+
+	for (int i = 0; i < HouseClass::Array->Count; i++)
+	{
+		auto pTmpHouse = HouseClass::Array->GetItem(i);
+		if (pTmpHouse->ControlledByPlayer() && pTmpHouse == pTargetHouse)
+		{
+			MessageListClass::Instance->PrintMessage(StringTable::LoadStringA(pThis->Text), RulesClass::Instance->MessageDelay, pTmpHouse->ColorSchemeIndex);
+		}
+	}
+	return true;
+}
+
 bool TActionExt::SetTriggerTechnoVeterancy(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
 	TriggerClass* pTrigger, CellStruct* plocation)
 {
@@ -411,6 +453,9 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 		break;;
 	case PhobosTriggerAction::ToggleMCVRedeploy:
 		ret = TActionExt::ToggleMCVRedeploy(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::MessageForSpecifiedHouse:
+		ret = TActionExt::MessageForSpecifiedHouse(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
 	default:
 		return false;
@@ -1020,32 +1065,32 @@ bool TActionExt::ToggleMCVRedeploy(TActionClass* pThis, HouseClass* pHouse, Obje
 // container hooks
 //
 
-DEFINE_HOOK(0x6DD176, TActionClass_CTOR, 0x5)
-{
-	GET(TActionClass*, pItem, ESI);
-	TActionExt::ExtMap.Allocate(pItem);
-	return 0;
-}
-
-DEFINE_HOOK_AGAIN(0x6DD1E6, TActionClass_SDDTOR, 0x7)
-DEFINE_HOOK(0x6E4696, TActionClass_SDDTOR, 0x7)
-{
-	GET(TActionClass*, pItem, ESI);
-	TActionExt::ExtMap.Remove(pItem);
-	return 0;
-}
-
-DEFINE_HOOK(0x6E3E29, TActionClass_Load_Suffix, 0x4)
-{
-	TActionExt::ExtMap.LoadStatic();
-	return 0x0;
-}
-
-DEFINE_HOOK(0x6E3E4A, TActionClass_Save_Suffix, 0x3)
-{
-	TActionExt::ExtMap.SaveStatic();
-	return 0x0;
-}
+//DEFINE_HOOK(0x6DD176, TActionClass_CTOR, 0x5)
+//{
+//	GET(TActionClass*, pItem, ESI);
+//	TActionExt::ExtMap.Allocate(pItem);
+//	return 0;
+//}
+//
+//DEFINE_HOOK_AGAIN(0x6DD1E6, TActionClass_SDDTOR, 0x7)
+//DEFINE_HOOK(0x6E4696, TActionClass_SDDTOR, 0x7)
+//{
+//	GET(TActionClass*, pItem, ESI);
+//	TActionExt::ExtMap.Remove(pItem);
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x6E3E29, TActionClass_Load_Suffix, 0x4)
+//{
+//	TActionExt::ExtMap.LoadStatic();
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x6E3E4A, TActionClass_Save_Suffix, 0x3)
+//{
+//	TActionExt::ExtMap.SaveStatic();
+//	return 0x0;
+//}
 
 //DEFINE_HOOK_AGAIN(0x6E3E30, TActionClass_SaveLoad_Prefix, 0x8)
 //DEFINE_HOOK(0x6E3DB0, TActionClass_SaveLoad_Prefix, 0x5)

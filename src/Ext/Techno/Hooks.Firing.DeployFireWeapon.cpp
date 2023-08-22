@@ -5,7 +5,22 @@
 DEFINE_HOOK(0x5223B3, InfantryClass_Approach_Target_DeployFireWeapon, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
-	R->EDI(pThis->Type->DeployFireWeapon == -1 ? pThis->SelectWeapon(pThis->Target) : pThis->Type->DeployFireWeapon);
+
+	int weapon = pThis->Type->DeployFireWeapon;
+	if (pThis->Type->DeployFireWeapon == -1)
+	{
+		if (const auto pTarget = generic_cast<TechnoClass*>(pThis->Target)) {
+			if (pTarget->IsAlive) {
+				weapon = pThis->SelectWeapon(pTarget);
+			}
+		} else if (pThis->Target && pThis->Target->WhatAmI() == CellClass::AbsID) {
+			weapon = pThis->SelectWeapon(pThis->Target);
+		}
+
+		weapon = 0;
+	}
+
+	R->EDI(weapon);
 	return 0x5223B9;
 }
 

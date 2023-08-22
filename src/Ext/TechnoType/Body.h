@@ -589,6 +589,7 @@ public:
 		Valueable<double> IronCurtain_Modifier { 1.0 };
 		Valueable<double> ForceShield_Modifier { 1.0 };
 		Valueable<int> Survivors_PilotCount { -1 }; //!< Defines the number of pilots inside this vehicle if Crewed=yes; maximum number of pilots who can survive. Defaults to 0 if Crewed=no; defaults to 1 if Crewed=yes. // NOTE: Flag in INI is called Survivor.Pilots
+		std::vector<InfantryTypeClass*> Survivors_Pilots {};
 
 		// berserk
 		Nullable<double> BerserkROFMultiplier { };
@@ -630,6 +631,13 @@ public:
 		Nullable<SHPStruct*> AmmoPip_shape { };
 		Valueable<Point2D> AmmoPip_Offset { };
 		Valueable<PaletteManager*> AmmoPip_Palette { }; //CustomPalette::PaletteMode::Default
+		Valueable<Point2D> AmmoPipOffset { { 0,0 } };
+
+		Nullable<bool> ShowSpawnsPips;
+		Valueable<int> SpawnsPip { 1 };
+		Valueable<int> EmptySpawnsPip { 0 };
+		Nullable<Point2D> SpawnsPipSize { };
+		Valueable<Point2D> SpawnsPipOffset { { 0,0 } };
 
 		struct InsigniaData
 		{
@@ -827,7 +835,7 @@ public:
 		ValueableVector<BuildingTypeClass*> PoweredBy {};  //!< The buildingtype this unit is powered by or NULL.
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
-		{ 
+		{
 			AttachedEffect.Owner = OwnerObject;
 		}
 

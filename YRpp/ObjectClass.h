@@ -321,11 +321,11 @@ public:
 		return ret;
 	}
 
-	CoordStruct GetFLH(int idxWeapon, const CoordStruct& base) const {
-		CoordStruct ret;
-		this->GetFLH(&ret, idxWeapon, base);
-		return ret;
-	}
+	//CoordStruct GetFLH(int idxWeapon, const CoordStruct& base) const {
+	//	CoordStruct ret;
+	//	this->GetFLH(&ret, idxWeapon, base);
+	//	return ret;
+	//}
 
 	CellStruct InlineMapCoords() const {
 		return { short(this->Location.X / 256) , short(this->Location.Y / 256) };

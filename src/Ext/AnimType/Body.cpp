@@ -186,6 +186,9 @@ void AnimTypeExt::CreateUnit_MarkCell(AnimClass* pThis)
 			Location = pCell->GetCoords();
 		}
 
+		if (!pCell)
+			return;
+
 		isBridge = allowBridges && pCell->ContainsBridge();
 		int bridgeZ = isBridge ? CellClass::BridgeHeight : 0;
 

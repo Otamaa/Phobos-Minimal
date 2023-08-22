@@ -83,7 +83,7 @@ struct RNGCallSyncLogEvent : SyncLogEvent
 	RNGCallSyncLogEvent() : SyncLogEvent() { }
 
 	RNGCallSyncLogEvent(int Type, bool IsCritical, unsigned int Index1, unsigned int Index2, unsigned int Caller, unsigned int Frame, int Min, int Max)
-		: Type(Type), IsCritical(IsCritical), Index1(Index1), Index2(Index2), Min(Min), Max(Max), SyncLogEvent(Caller, Frame)
+		: SyncLogEvent(Caller, Frame) , Type(Type), IsCritical(IsCritical), Index1(Index1), Index2(Index2), Min(Min), Max(Max)
 	{
 	}
 };
@@ -95,7 +95,7 @@ struct FacingChangeSyncLogEvent : SyncLogEvent
 	FacingChangeSyncLogEvent() : SyncLogEvent() { }
 
 	FacingChangeSyncLogEvent(unsigned short Facing, unsigned int Caller, unsigned int Frame)
-		: Facing(Facing), SyncLogEvent(Caller, Frame)
+		: SyncLogEvent(Caller, Frame) , Facing(Facing)
 	{
 	}
 };
@@ -110,7 +110,7 @@ struct TargetChangeSyncLogEvent : SyncLogEvent
 	TargetChangeSyncLogEvent() = default;
 
 	TargetChangeSyncLogEvent(const AbstractType& Type, const DWORD& ID, const AbstractType& TargetType, const DWORD& TargetID, unsigned int Caller, unsigned int Frame)
-		: Type(Type), ID(ID), TargetType(TargetType), TargetID(TargetID), SyncLogEvent(Caller, Frame)
+		: SyncLogEvent(Caller, Frame) ,  Type(Type), ID(ID), TargetType(TargetType), TargetID(TargetID)
 	{
 	}
 };
@@ -124,7 +124,7 @@ struct MissionOverrideSyncLogEvent : SyncLogEvent
 	MissionOverrideSyncLogEvent() : SyncLogEvent() { }
 
 	MissionOverrideSyncLogEvent(const AbstractType& Type, const DWORD& ID, int Mission, unsigned int Caller, unsigned int Frame)
-		: Type(Type), ID(ID), Mission(Mission), SyncLogEvent(Caller, Frame)
+		: SyncLogEvent(Caller, Frame) , Type(Type), ID(ID), Mission(Mission)
 	{
 	}
 };
@@ -136,7 +136,7 @@ struct AnimCreationSyncLogEvent : SyncLogEvent
 	AnimCreationSyncLogEvent() : SyncLogEvent() { }
 
 	AnimCreationSyncLogEvent(const CoordStruct& Coords, unsigned int Caller, unsigned int Frame)
-		: Coords(Coords), SyncLogEvent(Caller, Frame)
+		: SyncLogEvent(Caller, Frame),  Coords(Coords)
 	{
 	}
 };

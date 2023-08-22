@@ -12,11 +12,11 @@ DEFINE_HOOK(0x568432, MapClass_PlaceDown_0x0TerrainTypes, 0x8)
 {
 	GET(ObjectClass*, pObject, EDI);
 
-	if (auto const pTerrain = specific_cast<TerrainClass*>(pObject))
-	{
-		if (pTerrain->Type->Foundation == 21)
-			return 0x5687DF;
-	}
+	if (!pObject || !Is_Terrain(pObject))
+		return 0x0;
+
+	if (static_cast<TerrainClass*>(pObject)->Type->Foundation == 21)
+		return 0x5687DF;
 
 	return 0;
 }
@@ -84,18 +84,16 @@ DEFINE_HOOK(0x483D87, CellClass_CheckPassability_PassableTerrain, 0x5)
 	GET(CellClass*, pThis, EDI);
 	GET(ObjectClass*, pObject, ESI);
 
-	if (auto const pTerrain = specific_cast<TerrainClass*>(pObject))
-	{
-		if (TerrainTypeExt::ExtMap.Find(pTerrain->Type)->IsPassable)
-		{
-			pThis->Passability = 0;
-			return ReturnFromFunction;
-		}
+	if (!pObject || !Is_Terrain(pObject))
+		return SkipToNextObject;
 
-		return BreakFromLoop;
+	if (TerrainTypeExt::ExtMap.Find(static_cast<TerrainClass*>(pObject)->Type)->IsPassable)
+	{
+		pThis->Passability = 0;
+		return ReturnFromFunction;
 	}
 
-	return SkipToNextObject;
+	return BreakFromLoop;
 }
 
 // Passable TerrainTypes Hook #4 - Make passable for vehicles.
@@ -106,16 +104,18 @@ DEFINE_HOOK(0x73FB71, UnitClass_CanEnterCell_PassableTerrain, 0x6)
 	GET(UnitClass*, pThis, EBX);
 	GET(AbstractClass*, pTarget, ESI);
 
-	if (auto const pTerrain = specific_cast<TerrainClass*>(pTarget))
-	{
-		if (CanMoveHere(pThis, pTerrain))
-		{
-			if (IS_CELL_OCCUPIED(pTerrain->GetCell()))
-				return SkipTerrainChecks;
+	if (!pTarget || !Is_Terrain(pTarget))
+		return 0;
 
-			R->EBP(0);
-			return ReturnPassable;
-		}
+	auto const pTerrain = static_cast<TerrainClass*>(pTarget);
+
+	if (CanMoveHere(pThis, pTerrain))
+	{
+		if (IS_CELL_OCCUPIED(pTerrain->GetCell()))
+			return SkipTerrainChecks;
+
+		R->EBP(0);
+		return ReturnPassable;
 	}
 
 	return 0;

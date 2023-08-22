@@ -7,20 +7,12 @@ void OverlayTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 		return;
 
 	auto pThis = this->Get();
-	//const char* pSection = pThis->get_ID();
+	INI_EX exINI(pINI);
 
 	auto const pArtINI = &CCINIClass::INI_Art();
 	auto pArtSection = pThis->ImageFile;
 
-	this->PaletteFile.Read(pArtINI, pArtSection, "Palette");
-
-	if (GeneralUtils::IsValidString(this->PaletteFile))
-	{
-		char pFilename[0x20];
-		strcpy_s(pFilename, this->PaletteFile.data());
-
-		this->Palette = ColorScheme::GeneratePalette(pFilename);
-	}
+	this->Palette.Read(exINI , pArtSection, "Palette");
 }
 
 // =============================
@@ -31,7 +23,6 @@ void OverlayTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
-		.Process(this->PaletteFile)
 		.Process(this->Palette)
 		;
 }

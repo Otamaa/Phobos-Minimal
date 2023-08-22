@@ -2076,10 +2076,11 @@ DEFINE_OVERRIDE_HOOK(0x52297F, InfantryClass_GarrisonBuilding_OccupierEntered, 5
 	// change the building's owner and mark it as raided
 	// but only if that's even necessary - no need to raid urban combat buildings.
 	// 27.11.2010 changed to include fix for #1305
-	const bool differentOwners = (pBld->Owner != pInf->Owner) && ((SessionClass::Instance->GameMode == GameMode::Campaign) || !pBld->Owner->CurrentPlayer || !pInf->Owner->CurrentPlayer);
+	const bool isHuman = (SessionClass::Instance->GameMode != GameMode::Campaign) || !pBld->Owner->IsHumanPlayer || !pInf->Owner->IsHumanPlayer;
+	const bool differentOwners = (pBld->Owner != pInf->Owner) && isHuman;
 	const bool ucBuilding = ((pBld->Type->TechLevel == -1) && pBld->Owner->IsNeutral());
 
-	if (differentOwners && !ucBuilding && !buildingExtData->OwnerBeforeRaid) {
+	if (differentOwners && !buildingExtData->OwnerBeforeRaid && !ucBuilding) {
 		buildingExtData->OwnerBeforeRaid = pBld->Owner;
 		pBld->SetOwningHouse(pInf->Owner);
 	}

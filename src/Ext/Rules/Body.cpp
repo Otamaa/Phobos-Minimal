@@ -147,69 +147,61 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->Infantry_DefaultDigitalDisplayTypes.Read(iniEX, GameStrings::AudioVisual, "Infantry.DefaultDigitalDisplayTypes");
 	pData->Vehicles_DefaultDigitalDisplayTypes.Read(iniEX, GameStrings::AudioVisual, "Vehicles.DefaultDigitalDisplayTypes");
 	pData->Aircraft_DefaultDigitalDisplayTypes.Read(iniEX, GameStrings::AudioVisual, "Aircraft.DefaultDigitalDisplayTypes");
+}
 
-	// TODO : move this to its main place , not modifiable thru map ,..
-	if (pINI == CCINIClass::INI_Rules)
+DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
+{	// create an array of crew for faster lookup
+	std::vector<InfantryTypeClass*> Crews(SideClass::Array->Count, nullptr);
+	for (int i = 0; i < SideClass::Array->Count; ++i)
+		Crews[i] = SideExt::ExtMap.Find(SideClass::Array->Items[i])->GetCrew();
+
+	for (auto const pItem : *TechnoTypeClass::Array)
 	{
-		char buffer[0x30];
+		const auto isFoot = pItem->WhatAmI() != AbstractType::BuildingType;
+		auto pExt = TechnoTypeExt::ExtMap.Find(pItem);
 
-		InfantryTypeClass::Array->for_each([&](InfantryTypeClass* pInfType) {
-			WarheadTypeClass::Array->for_each([&](WarheadTypeClass* pWarhead) {
-				if (auto const pExt = WarheadTypeExt::ExtMap.TryFind(pWarhead))
-				{
+		// if empty, set survivor pilots to the corresponding side's Crew
+		{
+			const size_t count = MinImpl( pExt->Survivors_Pilots.size(), Crews.size());
+
+			for (size_t j = 0; j < count; ++j) {
+				if (!pExt->Survivors_Pilots[j]) {
+					pExt->Survivors_Pilots[j] = Crews[j];
+				}
+			}
+		}
+
+		if(isFoot) {
+			for (auto const pSuper : *SuperWeaponTypeClass::Array) {
+				auto pSuperExt = SWTypeExt::ExtMap.Find(pSuper);
+
+				if (!pSuperExt->Aux_Techno.empty() && pSuperExt->Aux_Techno.Contains(pItem))
+					pExt->Linked_SW.push_back(pSuper);
+			}
+		}
+	}
+
+	char buffer[0x30];
+	auto pINI = CCINIClass::INI_Rules();
+	INI_EX iniEX(pINI);
+
+	InfantryTypeClass::Array->for_each([&](InfantryTypeClass* pInfType) {
+		WarheadTypeClass::Array->for_each([&](WarheadTypeClass* pWarhead) {
+			 if (auto const pExt = WarheadTypeExt::ExtMap.TryFind(pWarhead)) {
 					Nullable<AnimTypeClass*> nBuffer {};
 					IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.InfDeathAnim", pInfType->ID);
-					nBuffer.Read(iniEX, pWarhead->ID, buffer);
+					 nBuffer.Read(iniEX, pWarhead->ID, buffer);
 
 					if (!nBuffer.isset() || !nBuffer.Get())
 						return;
 
 					//Debug::Log("Found specific InfDeathAnim for [WH : %s Inf : %s Anim %s]\n", pWarhead->ID, pInfType->ID, nBuffer->ID);
 					pExt->InfDeathAnims[pInfType->ArrayIndex] = nBuffer;
-				}
-			});
+			 }
 		});
+	});
 
-		SuperWeaponTypeClass::Array->for_each([&](SuperWeaponTypeClass* pSWType) {
-			if(const auto pSuperExt = SWTypeExt::ExtMap.TryFind(pSWType)) {
-
-				if (pSuperExt->Aux_Techno.empty())
-					return;
-
-				TechnoTypeClass::Array->for_each([&](TechnoTypeClass* pType) {
-					if (pType->WhatAmI() == AbstractType::BuildingType)
-						return;
-
-					if(auto pTypeExt = TechnoTypeExt::ExtMap.TryFind(pType)) {
-						if (pSuperExt->Aux_Techno.Contains(pType) && !pTypeExt->Linked_SW.Contains(pSWType))
-								pTypeExt->Linked_SW.push_back(pSWType);
-					}
-				});
-			}
-		});
-
-		//for (auto pType : *TechnoTypeClass::Array)
-		//{
-		//	if (auto pTypeExt = TechnoTypeExt::ExtMap.TryFind(pType)){
-		//
-		//		char Temp_[0x80];
-		//		pTypeExt->SpecificExpFactor.clear();
-		//		for (int i = 0;; ++i)
-		//		{
-		//			Nullable<TechnoTypeClass*> Temp {};
-		//			IMPL_SNPRNINTF(Temp_, sizeof(Temp_), "SpecificExperience%d.Type", i);
-		//				Temp.Read(iniEX, pType->ID, Temp_);
-		//
-		//			if (!Temp)
-		//				break;
-		//
-		//			IMPL_SNPRNINTF(Temp_, sizeof(Temp_), "SpecificExperience%d.Factor", i);
-		//			pTypeExt->SpecificExpFactor[Temp.Get()].Read(iniEX, pType->ID, Temp_);
-		//		}
-		//	}
-		//}
-	}
-
+	return 0x0;
 }
 
 // earliest loader - can't really do much because nothing else is initialized yet, so lookups won't work

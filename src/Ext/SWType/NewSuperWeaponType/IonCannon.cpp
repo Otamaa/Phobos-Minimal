@@ -253,7 +253,7 @@ void IonCannonStateMachine::Fire()
 
 void IonCannonStateMachine::InvalidatePointer(void* ptr, bool remove)
 {
-	AnnounceInvalidPointer(this->Firer, ptr);
+	AnnounceInvalidPointer(this->Firer, ptr , remove);
 	AnnounceInvalidPointer(this->Owner, ptr);
 	AnnounceInvalidPointer(this->Anim, ptr);
 }

@@ -58,7 +58,7 @@ DEFINE_HOOK(0x6B743E, SpawnManagerClass_AI_SpawnOffsets, 0x6)
 			CoordStruct FLH = pExt->Spawner_SpawnOffsets.Get();
 			if (pOwner->CurrentBurstIndex)
 			{
-				auto const pRet = pOwner->GetFLH(pBuffer, R->EBP<bool>(), pExt->Get()->SecondSpawnOffset);
+				auto const pRet = pOwner->GetFLH(pBuffer, R->EBP<int>(), pExt->Get()->SecondSpawnOffset);
 				pRet->X += FLH.X;
 				pRet->Y += FLH.Y;
 				pRet->Z += FLH.Z;
@@ -66,7 +66,7 @@ DEFINE_HOOK(0x6B743E, SpawnManagerClass_AI_SpawnOffsets, 0x6)
 			}
 			else
 			{
-				auto const pRet = pOwner->GetFLH(pBuffer2, R->EBP<bool>(), CoordStruct::Empty);
+				auto const pRet = pOwner->GetFLH(pBuffer2, R->EBP<int>(), CoordStruct::Empty);
 				pRet->X += FLH.X;
 				pRet->Y += FLH.Y;
 				pRet->Z += FLH.Z;

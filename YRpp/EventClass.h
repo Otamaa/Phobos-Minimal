@@ -190,7 +190,7 @@ public:
 
 		// timeGetTime();
 		//OutList->Timings[OutList->Tail] = ((int(__stdcall*)())0x7E1530)();
-		OutList->Timings[OutList->Tail] = static_cast<int>(Imports::TimeGetTime());
+		OutList->Timings[OutList->Tail] = static_cast<int>(Imports::TimeGetTime.get()());
 
 		++OutList->Count;
 		OutList->Tail = (OutList->Tail + 1) & 127;

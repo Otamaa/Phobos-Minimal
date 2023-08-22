@@ -1,10 +1,12 @@
 #include "Body.h"
 #include <Ext/Techno/Body.h>
+#include <Ext/TechnoType/Body.h>
 
 bool TeamExt::ExtData::InvalidateIgnorable(void* ptr) {
 
 	switch (GetVtableAddr(ptr))
 	{
+	case BuildingClass::vtable:
 	case AircraftClass::vtable:
 	case UnitClass::vtable:
 	case InfantryClass::vtable:
@@ -20,8 +22,9 @@ bool TeamExt::ExtData::InvalidateIgnorable(void* ptr) {
 
 void TeamExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	AnnounceInvalidPointer(TeamLeader, ptr);
+	AnnounceInvalidPointer(TeamLeader, ptr , bRemoved);
 	AnnounceInvalidPointer(LastFoundSW, ptr);
+	AnnounceInvalidPointer(PreviousScript, ptr);
 }
 
 bool TeamExt::HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, const Iterator<TechnoTypeClass*>& list)
@@ -367,6 +370,23 @@ bool TeamExt::NeutralOwnsAll(AITriggerTypeClass* pThis, const Iterator<TechnoTyp
 	return result;
 }
 
+bool TeamExt::GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat)
+{
+	if (pThis == pThat) //default comparison result
+		return true;
+
+	const auto pThatTechExt = TechnoTypeExt::ExtMap.TryFind(pThat);
+	const auto pThisTechExt = TechnoTypeExt::ExtMap.TryFind(pThis);
+
+	if (!pThatTechExt || !pThisTechExt)
+		return false;
+
+	if (GeneralUtils::IsValidString(pThatTechExt->GroupAs.c_str())) return IS_SAME_STR_(pThis->ID, pThatTechExt->GroupAs.c_str());
+	else if (GeneralUtils::IsValidString(pThisTechExt->GroupAs.c_str())) return  IS_SAME_STR_(pThat->ID, pThisTechExt->GroupAs.c_str());
+
+	return false;
+}
+
 // =============================
 // load / save
 
@@ -390,6 +410,24 @@ void TeamExt::ExtData::Serialize(T& Stm)
 		.Process(this->TeamLeader)
 
 		.Process(this->LastFoundSW)
+
+		.Process(this->ConditionalJump_Evaluation)
+		.Process(this->ConditionalJump_ComparatorMode)
+		.Process(this->ConditionalJump_ComparatorValue)
+		.Process(this->ConditionalJump_Counter)
+		.Process(this->ConditionalJump_Index)
+		.Process(this->AbortActionAfterKilling)
+		.Process(this->ConditionalJump_EnabledKillsCount)
+		.Process(this->ConditionalJump_ResetVariablesIfJump)
+
+		.Process(this->TriggersSideIdx)
+		.Process(this->TriggersHouseIdx)
+
+		.Process(this->AngerNodeModifier)
+		.Process(this->OnlyTargetHouseEnemy)
+		.Process(this->OnlyTargetHouseEnemyMode)
+
+		.Process(this->PreviousScript)
 		;
 }
 
@@ -442,14 +480,21 @@ DEFINE_HOOK(0x6EC55A, TeamClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x6EAE60, TeamClass_Detach, 0x7)
-{
-	GET(TeamClass*, pThis, ECX);
-	GET_STACK(void*, target, 0x4);
-	GET_STACK(bool, all, 0x8);
+ DEFINE_HOOK(0x6EAE60, TeamClass_Detach, 0x7)
+ {
+ 	GET(TeamClass*, pThis, ECX);
+ 	GET_STACK(void*, target, 0x4);
+ 	GET_STACK(bool, all, 0x8);
 
-	TeamExt::ExtMap.InvalidatePointerFor(pThis, target, all);
+ 	TeamExt::ExtMap.InvalidatePointerFor(pThis, target, true);
 
-	//return pThis->Target == target ? 0x6EAECC : 0x6EAECF;
-	return 0x0;
-}
+ 	//return pThis->Target == target ? 0x6EAECC : 0x6EAECF;
+ 	return 0x0;
+ }
+
+//void __fastcall TeamClass_Detach_Wrapper(TeamClass* pThis ,DWORD , AbstractClass* target , bool all)\
+//{
+//	TeamExt::ExtMap.InvalidatePointerFor(pThis , target , all);
+//	pThis->TeamClass::PointerExpired(target , all);
+//}
+//DEFINE_JUMP(VTABLE, 0x7F4758, GET_OFFSET(TeamClass_Detach_Wrapper))

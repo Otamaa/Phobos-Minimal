@@ -107,7 +107,7 @@ void BuildingTypeExt::DisplayPlacementPreview()
 	const auto nFrame = std::clamp(pTypeExt->PlacementPreview_ShapeFrame.Get(nDecidedFrame), 0, static_cast<int>(Selected->Frames));
 	nPoint.X += nOffsetX;
 	nPoint.Y += nOffsetY;
-	const auto nFlag = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | EnumFunctions::GetTranslucentLevel(pTypeExt->PlacementPreview_TranslucentLevel.Get(RulesExt::Global()->BuildingPlacementPreview_TranslucentLevel.Get()));
+	const auto nFlag = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | EnumFunctions::GetTranslucentLevel(pTypeExt->PlacementPreview_TranslucentLevel.Get(RulesExt::Global()->BuildingPlacementPreview_TranslucentLevel));
 	auto nREct = DSurface::Temp()->Get_Rect_WithoutBottomBar();
 
 	ConvertClass* pDecidedPal = FileSystem::UNITx_PAL();
@@ -118,7 +118,11 @@ void BuildingTypeExt::DisplayPlacementPreview()
 		}
 
 	} else {
-		pDecidedPal = pBuilding->GetRemapColour();
+		if (pTypeExt->PlacementPreview_Palette && pTypeExt->PlacementPreview_Palette->ColorschemeDataVector) {
+			pDecidedPal = pTypeExt->PlacementPreview_Palette->ColorschemeDataVector->GetItem(pBuilding->Owner->ColorSchemeIndex)->LightConvert;
+		} else {
+			pDecidedPal = pBuilding->GetRemapColour();
+		}
 	}
 
 	DSurface::Temp()->DrawSHP(pDecidedPal, Selected, nFrame, &nPoint, &nREct, nFlag, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
@@ -256,7 +260,6 @@ bool BuildingTypeExt::IsLinkable(BuildingTypeClass* pThis)
 	const auto pExt = BuildingTypeExt::ExtMap.Find(pThis);
 
 	return pExt->Firestorm_Wall || pExt->IsTrench >= 0;
-
 }
 
 int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse)

@@ -79,6 +79,9 @@ DEFINE_HOOK(0x4A25E0, CreditsClass_GraphicLogic_Additionals , 0x7)
 	//GET(CreditClass*, pThis, EBP);
 
 	const auto pSideExt = SideExt::ExtMap.Find(pSide);
+	if (!pSideExt)
+		return 0x0;
+
 	wchar_t counter[0x20];
 
 	 if (Phobos::UI::ShowHarvesterCounter)

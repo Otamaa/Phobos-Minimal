@@ -19,6 +19,7 @@
 #include <Ext/Side/Body.h>
 #include <Ext/SWType/Body.h>
 #include <Ext/SWType/NewSuperWeaponType/SWStateMachine.h>
+#include <Ext/SWType/SuperWeaponSidebar.h>
 #include <Ext/TAction/Body.h>
 #include <Ext/Team/Body.h>
 #include <Ext/Techno/Body.h>
@@ -354,6 +355,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	TunnelTypeClass::Clear();
 	WeaponTypeExt::ExtMap.Clear();
 	WarheadTypeExt::ExtMap.Clear();
+	SuperWeaponSidebar::Clear();
 
 	return 0;
 }
@@ -362,9 +364,11 @@ DEFINE_HOOK(0x67D04E, Game_Save_SavegameInformation, 0x7)
 {
 	REF_STACK(SavegameInformation, Info, STACK_OFFS(0x4A4, 0x3F4));
 	Info.Version = Info.Version + SAVEGAME_ID;
+
+	//crashing ares ?
+	//Info.InternalVersion = Info.InternalVersion + SAVEGAME_ID;
 	return 0;
 }
-
 DEFINE_HOOK(0x559F29, LoadOptionsClass_GetFileInfo, 0x8)
 {
 	if (!R->BL()) return 0x55A03D; // vanilla overridden check
@@ -373,6 +377,23 @@ DEFINE_HOOK(0x559F29, LoadOptionsClass_GetFileInfo, 0x8)
 	Info.Version = Info.Version - SAVEGAME_ID;
 	return 0x559F29 + 0x8;
 }
+
+//DEFINE_HOOK(0x559F27, LoadOptionsClass_GetFileInfo, 0xA)
+//{
+//	REF_STACK(SavegameInformation, Info, STACK_OFFSET(0x400, -0x3F4));
+//	Info.Version = Info.Version - SAVEGAME_ID;
+//	Info.InternalVersion = Info.InternalVersion - SAVEGAME_ID;
+//	return 0;
+//}
+//DEFINE_HOOK(0x559F29, LoadOptionsClass_GetFileInfo, 0x8)
+//{
+//	if (!R->BL()) return 0x55A03D; // vanilla overridden check
+//
+//	REF_STACK(SavegameInformation, Info, STACK_OFFS(0x400, 0x3F4));
+//	//Info.Version = Info.Version - SAVEGAME_ID;
+//	Info.InternalVersion = Info.InternalVersion - SAVEGAME_ID;
+//	return 0x559F29 + 0x8;
+//}
 
 // Ares saves its things at the end of the save
 // Phobos will save the things at the beginning of the save

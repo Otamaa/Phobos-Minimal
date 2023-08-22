@@ -89,4 +89,9 @@ DEFINE_DISABLE_HOOK(0x721C7B, TiberiumClass_LoadFromINI_ares)
 
 DEFINE_DISABLE_HOOK(0x5F4FF9, ObjectClass_Put_IsFlammable_ares)
 DEFINE_DISABLE_HOOK(0x44cb4c, BuildingClass_Mi_Missile_NukeTakeOff_ares)
+
+DEFINE_DISABLE_HOOK(0x6F407D, TechnoClass_Init_1_ares);
+DEFINE_DISABLE_HOOK(0x6F4103, TechnoClass_Init_2_ares);
+DEFINE_DISABLE_HOOK(0x41BE80, ObjectClass_DrawRadialIndicator_ares)
+
 #pragma warning( pop )

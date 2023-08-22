@@ -28,7 +28,7 @@ public:
 	void HelpText(SuperWeaponTypeClass* pType);
 
 	// Properties
-private:
+public:
 	std::wstring TextBuffer {};
 
 public:

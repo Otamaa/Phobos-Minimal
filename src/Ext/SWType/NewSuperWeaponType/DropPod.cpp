@@ -8,42 +8,14 @@ std::vector<const char*> SW_DropPod::GetTypeString() const
 	return { "DropPod" };
 }
 
-SuperWeaponFlags SW_DropPod::Flags(const SWTypeExt::ExtData* pData) const {
-
-	if (pData && pData->Droppod_Duration > 0)
-		return SuperWeaponFlags::NoEvent | SuperWeaponFlags::NoMessage;
-
-	return SuperWeaponFlags::None;
-}
-
 bool SW_DropPod::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	SuperWeaponTypeClass* pSW = pThis->Type;
 	auto pData = SWTypeExt::ExtMap.Find(pSW);
 
-	if(pData->Droppod_Duration > 0) {
-		this->newStateMachine(pData->Droppod_Duration, pData->SW_Deferment, Coords ,pThis);
-	}
-	else
-	{
-		// collect the options
-		auto& Types = !pData->DropPod_Types.empty()
-			? pData->DropPod_Types
-			: RulesExt::Global()->DropPodTypes;
+	const auto nDeferement = pData->SW_Deferment.Get(-1);
 
-		// quick way out
-		if (Types.empty())
-		{
-			return false;
-		}
-
-		int cMin = pData->DropPod_Minimum.Get(RulesExt::Global()->DropPodMinimum);
-		int cMax = pData->DropPod_Maximum.Get(RulesExt::Global()->DropPodMaximum);
-		double veterancy = pData->DropPod_Veterancy.Get();
-
-		DroppodStateMachine::PlaceUnits(pThis, veterancy, Types, cMin, cMax, Coords , true);
-	}
-
+	this->newStateMachine(nDeferement < 0 ? 20 : nDeferement, Coords, pThis);
 	return true;
 }
 
@@ -79,7 +51,6 @@ void SW_DropPod::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->DropPod_Maximum.Read(exINI, section, "DropPod.Maximum");
 	pData->DropPod_Veterancy.Read(exINI, section, "DropPod.Veterancy");
 	pData->DropPod_Types.Read(exINI, section, "DropPod.Types");
-	pData->Droppod_Duration.Read(exINI, section, "DropPod.Duration");
 
 	Helpers::Alex::remove_non_paradroppables(pData->DropPod_Types, section, "DropPod.Types");
 
@@ -118,53 +89,22 @@ bool SW_DropPod::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pB
 
 void DroppodStateMachine::Update()
 {
-	auto pData = GetTypeExtData();
-
-	if (!this->AlreadyActivated)
+	if (this->Finished())
 	{
-		pData->PrintMessage(pData->Message_Launch, this->Super->Owner);
-		this->AlreadyActivated = true;
-	}
-
-		// still counting down?
-	if (this->Deferment > 0) {
-		// still waiting
-		if (--this->Deferment) {
-			return;
-		}
-	}
-
-	//reset the defement
-	this->Activate(pData->SW_Deferment);
-}
-
-void DroppodStateMachine::Activate(int nDeferment)
-{
-	this->Deferment = nDeferment;
-
-	auto pData = this->GetTypeExtData();
-
-	// activation stuff
-	pData->PrintMessage(pData->Message_Activate, Super->GetOwningHouse());
-
-	auto const sound = pData->SW_ActivationSound.Get(-1);
-	if (sound != -1)
-	{
-		VocClass::PlayGlobal(sound, Panning::Center, 1.0);
-	}
-
-	this->SendDroppods();
-
-	if (pData->SW_RadarEvent)
-	{
-		RadarEventClass::Create(
-			RadarEventType::SuperweaponActivated, this->Coords);
+		this->SendDroppods();
 	}
 }
 
 void DroppodStateMachine::SendDroppods()
 {
 	auto pData = GetTypeExtData();
+
+	pData->PrintMessage(pData->Message_Activate, this->Super->Owner);
+
+	auto const sound = pData->SW_ActivationSound.Get(-1);
+	if (sound != -1) {
+		VocClass::PlayGlobal(sound, Panning::Center, 1.0);
+	}
 
 	// collect the options
 	const auto& Types = !pData->DropPod_Types.empty()
@@ -252,22 +192,4 @@ void DroppodStateMachine::PlaceUnits(SuperClass* pSuper , double veterancy , Ite
 			}
 		}
 	}
-}
-
-bool DroppodStateMachine::Load(PhobosStreamReader& Stm, bool RegisterForChange)
-{
-	return SWStateMachine::Load(Stm, RegisterForChange)
-		&& Stm
-		.Process(this->AlreadyActivated)
-		.Process(this->Deferment)
-		.Success();
-}
-
-bool DroppodStateMachine::Save(PhobosStreamWriter& Stm) const
-{
-	return SWStateMachine::Save(Stm)
-		&& Stm
-		.Process(this->AlreadyActivated)
-		.Process(this->Deferment)
-		.Success();
 }

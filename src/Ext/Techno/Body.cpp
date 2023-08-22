@@ -383,7 +383,11 @@ NOINLINE WeaponTypeClass* TechnoExt::GetCurrentWeapon(TechnoClass* pThis, int& w
 		weaponIndex = pThis->CurrentGattlingStage * 2 + weaponIndex;
 	}
 
-	return pThis->GetWeapon(weaponIndex)->WeaponType;
+	//Debug::Log("%s Getting WeaponIndex %d for %s\n", __FUNCTION__, weaponIndex, pThis->get_ID());
+	if(const auto pWpStr = pThis->GetWeapon(weaponIndex))
+		return pWpStr->WeaponType;
+
+	return nullptr;
 }
 
 NOINLINE WeaponTypeClass* TechnoExt::GetCurrentWeapon(TechnoClass* pThis, bool getSecondary)
@@ -1030,13 +1034,11 @@ int TechnoExt::GetThreadPosed(TechnoClass* pThis)
 {
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 
-	if (const auto pShieldData = pExt->GetShield())
-	{
-		if (pShieldData->IsActive())
-		{
+	if (const auto pShieldData = pExt->GetShield()) {
+		if (pShieldData->IsActive()) {
 			auto const pShiedType = pShieldData->GetType();
 			if (pShiedType->ThreadPosed.isset())
-				return pExt->Type->ThreatPosed + pShiedType->ThreadPosed.Get();
+				return pShiedType->ThreadPosed.Get();
 		}
 	}
 
@@ -1880,17 +1882,17 @@ CoordStruct TechnoExt::PassengerKickOutLocation(TechnoClass* pThis, FootClass* p
 	Point2D ExtDistance = { 1,1 };
 	for (int i = 0; i < maxAttempts; ++i)
 	{
-		++ExtDistance;
+
 		placeCoords = pCell->MapCoords - CellStruct { (short)(ExtDistance.X / 2), (short)(ExtDistance.Y / 2) };
 		placeCoords = MapClass::Instance->NearByLocation(placeCoords, speedType, -1, movementZone, false, ExtDistance.X, ExtDistance.Y, true, false, false, false, CellStruct::Empty, false, false);
 
 		pCell = MapClass::Instance->GetCellAt(placeCoords);
 
-		if ((pThis->IsCellOccupied(pCell, FacingType::None, -1, nullptr, false) == Move::OK) || pCell->MapCoords == CellStruct::Empty)
-		{
-			pPassenger->OnBridge = pCell->ContainsBridge();
+		if ((pThis->IsCellOccupied(pCell, FacingType::None, -1, nullptr, false) == Move::OK) && MapClass::Instance->IsWithinUsableArea(pCell->GetCoordsWithBridge())) {
 			return pCell->GetCoordsWithBridge();
 		}
+
+		++ExtDistance;
 	}
 
 	return CoordStruct::Empty;
@@ -2273,65 +2275,60 @@ void TechnoExt::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 {
 	if (!pKiller || !pVictim)
 		return;
+
 	TechnoClass* pObjectKiller = (pKiller->GetTechnoType()->Spawned || pKiller->GetTechnoType()->MissileSpawn) && pKiller->SpawnOwner ?
 		pKiller->SpawnOwner : pKiller;
 
 	if (pObjectKiller && pObjectKiller->BelongsToATeam()) {
 		if (auto const pFootKiller = generic_cast<FootClass*>(pObjectKiller)) {
-			TechnoExt::ExtMap.Find(pObjectKiller)->LastKillWasTeamTarget = pFootKiller->Team->Focus == pVictim;
+			auto pKillerExt = TechnoExt::ExtMap.Find(pObjectKiller);
+
+			if(auto const pFocus = generic_cast<TechnoClass*>(pFootKiller->Team->Focus))
+				pKillerExt->LastKillWasTeamTarget = TeamExt::GroupAllowed(pFocus->GetTechnoType(), pVictim->GetTechnoType())
+			 	//pFocus->GetTechnoType() == pVictim->GetTechnoType()
+				;
+
+			auto pKillerTeamExt = TeamExt::ExtMap.Find(pFootKiller->Team);
+
+			if (pKillerTeamExt->ConditionalJump_EnabledKillsCount)
+			{
+				bool isValidKill =
+					 pKillerTeamExt->ConditionalJump_Index < 0 ?
+					 false :
+					 ScriptExt::EvaluateObjectWithMask(pVictim, pKillerTeamExt->ConditionalJump_Index, -1, -1, pKiller);
+
+				if (isValidKill || pKillerExt->LastKillWasTeamTarget)
+				    pKillerTeamExt->ConditionalJump_Counter++;
+			}
+
+			// Special case for interrupting current action
+			if (pKillerTeamExt->AbortActionAfterKilling
+				&& pKillerExt->LastKillWasTeamTarget)
+			{
+				pKillerTeamExt->AbortActionAfterKilling = false;
+				auto pTeam = pFootKiller->Team;
+
+				const auto&[curAction , curArgs] = pTeam->CurrentScript->GetCurrentAction();
+				const auto&[nextAction , nextArgs] = pTeam->CurrentScript->GetNextAction();
+
+				Debug::Log("DEBUG: [%s] [%s] %d = %d,%d - Force next script action after successful kill: %d = %d,%d\n"
+					, pTeam->Type->ID
+					, pTeam->CurrentScript->Type->ID
+					, pTeam->CurrentScript->CurrentMission
+					, curAction
+					, curArgs
+					, pTeam->CurrentScript->CurrentMission + 1
+					, nextAction
+					, nextArgs
+				);
+
+				// Jumping to the next line of the script list
+				pTeam->StepCompleted = true;
+
+			}
+
 		}
 	}
-	//if (pObjectKiller && pObjectKiller->BelongsToATeam())
-	//{
-	//	if (auto const pFootKiller = abstract_cast<const FootClass*>(pObjectKiller))
-	//	{
-	//		auto const pKillerTechnoData = TechnoExt::ExtMap.Find(pObjectKiller);
-	//		auto const pFocus = abstract_cast<TechnoClass*>(pFootKiller->Team->Focus);
-	//		pKillerTechnoData->LastKillWasTeamTarget = false;
-	//		if (pFocus && pFocus->GetTechnoType() == pVictim->GetTechnoType())
-	//		{
-	//			pKillerTechnoData->LastKillWasTeamTarget = true;
-	//		}
-	//
-	//		// Conditional Jump Script Action stuff
-	//		if (auto const pKillerTeamData = TeamExt::ExtMap.Find(pFootKiller->Team))
-	//		{
-	//			if (pKillerTeamData->ConditionalJump_EnabledKillsCount)
-	//			{
-	//				const bool isValidKill = pKillerTeamData->ConditionalJump_Index < 0 ?
-	//					false : ScriptExt::EvaluateObjectWithMask(pVictim, pKillerTeamData->ConditionalJump_Index, -1, -1, pKiller);;
-	//
-	//				if (isValidKill || pKillerTechnoData->LastKillWasTeamTarget)
-	//					pKillerTeamData->ConditionalJump_Counter++;
-	//			}
-	//
-	//			// Special case for interrupting current action
-	//			if (pKillerTeamData->AbortActionAfterKilling
-	//				&& pKillerTechnoData->LastKillWasTeamTarget)
-	//			{
-	//				pKillerTeamData->AbortActionAfterKilling = false;
-	//				const auto pTeam = pFootKiller->Team;
-	//				auto const nAction = pTeam->CurrentScript->GetCurrentAction();
-	//				auto const nActionNext = pTeam->CurrentScript->GetNextAction();
-	//
-	//				//					Debug::Log("DEBUG: [%s] [%s] %d = %d,%d - Force next script action after successful kill: %d = %d,%d\n"
-	//				//						, pTeam->Type->ID
-	//				//						, pTeam->CurrentScript->Type->ID
-	//				//						, pTeam->CurrentScript->CurrentMission
-	//				//						, nAction.Action
-	//				//						, nAction.Argument
-	//				//						, pTeam->CurrentScript->CurrentMission + 1
-	//				//						, nActionNext.Action
-	//				//						, nActionNext.Argument);
-	//
-	//									// Jumping to the next line of the script list
-	//				pTeam->StepCompleted = true;
-	//
-	//				return;
-	//			}
-	//		}
-	//	}
-	//}
 }
 
 void TechnoExt::ExtData::UpdateMCRangeLimit()
@@ -2818,14 +2815,23 @@ bool NOINLINE TechnoExt::CanFireNoAmmoWeapon(TechnoClass* pThis, int weaponIndex
 	return false;
 }
 
+#include <AircraftTrackerClass.h>
+
 void TechnoExt::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool SkipTrackingRemove, bool Delete)
 {
 	// kill passenger cargo to prevent memleak
 	pThis->KillPassengers(pSource);
 
-	if (const auto pBuilding = specific_cast<BuildingClass*>(pThis))
+	const auto nWhat = pThis->WhatAmI();
+
+	if (nWhat == BuildingClass::AbsID)
 	{
-		pBuilding->KillOccupants(nullptr);
+		static_cast<BuildingClass*>(pThis)->KillOccupants(nullptr);
+	} else {
+
+		const auto flight = pThis->GetLastFlightMapCoords();
+		if(flight.IsValid())
+			AircraftTrackerClass::Instance->Remove(pThis);
 	}
 
 	if (!SkipTrackingRemove)
@@ -2846,12 +2852,14 @@ void TechnoExt::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool Skip
 	if (auto const pFoot = generic_cast<FootClass*>(pThis))
 		pFoot->LiberateMember();
 
-	pThis->RemoveFromTargetingAndTeam();
+	//pThis->RemoveFromTargetingAndTeam();
 
 	if (Delete)
 		GameDelete<true, false>(pThis);
 	else
+	{
 		pThis->UnInit();
+	}
 }
 
 void TechnoExt::KillSelf(TechnoClass* pThis, bool isPeaceful)
@@ -4393,13 +4401,13 @@ bool TechnoExt::ExtData::InvalidateIgnorable(void* ptr)
 void TechnoExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
 	if (auto& pShield = this->Shield)
-		pShield->InvalidatePointer(ptr, false);
+		pShield->InvalidatePointer(ptr, bRemoved);
 
 	MyWeaponManager.InvalidatePointer(ptr, bRemoved);
 
 	AnnounceInvalidPointer(LinkedSW, ptr);
 	AnnounceInvalidPointer(OriginalPassengerOwner, ptr);
-	AnnounceInvalidPointer(LastAttacker, ptr);
+	AnnounceInvalidPointer(LastAttacker, ptr , bRemoved);
 #ifdef ENABLE_HOMING_MISSILE
 	if (MissileTargetTracker)
 		MissileTargetTracker->InvalidatePointer(ptr, bRemoved);

@@ -98,7 +98,7 @@ namespace Helper
 
 		inline CoordStruct GetRandomCoordsInsideLoops(double nMin, double nMax, const CoordStruct& nPos, int Increment)
 		{
-			auto const [nMinMax, nMinL, nMaxL] = CheckMinMax(nMin, nMax);
+			auto const& [nMinMax, nMinL, nMaxL] = CheckMinMax(nMin, nMax);
 
 			if (nMinMax) {
 				auto nRandomCoords = MapClass::GetRandomCoordsNear(nPos,

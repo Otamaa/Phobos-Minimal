@@ -174,7 +174,7 @@ DEFINE_OVERRIDE_HOOK(0x437CCC, BSurface_DrawSHPFrame1_Buffer, 0x8)
 }
 
 // this douchebag blows your base up when it thinks you're cheating
-DEFINE_OVERRIDE_SKIP_HOOK(0x55CFDF, CopyProtection_DontBlowMeUp, 0x7, 55D059);
+DEFINE_OVERRIDE_SKIP_HOOK(0x55CFDF, CopyProtection_DontBlowMeUp, 0, 55D059);
 //DEFINE_JUMP(LJMP, 0x55CFDF, 0x55D059);
 
 namespace ShakeScreenHandle
@@ -506,6 +506,16 @@ DEFINE_OVERRIDE_HOOK(0x62A2F8, ParasiteClass_PointerGotInvalid, 0x6)
 		Owner->IsFallingDown = Owner->IsABomb = true;
 	}
 
+	CoordStruct result = *XYZ;
+	CellStruct result_cell = CellClass::Coord2Cell(result);
+
+	if (result == CoordStruct::Empty || result_cell == CellStruct::Empty) {
+		Debug::Log("Parasite[%x : %s] With Invalid Location ! , Removing ! \n", Parasite, Parasite->Owner->get_ID());
+		TechnoExt::HandleRemove(Parasite->Owner, nullptr, false, false);
+		Parasite->Victim = nullptr;
+		return 0x62A47B; //pop the registers
+	}
+
 	return 0;
 }
 
@@ -750,10 +760,10 @@ DEFINE_OVERRIDE_HOOK(0x6DA665, sub_6DA5C0_GroupAs, 0xA)
 	return R->Origin() + 13;
 }
 
-DEFINE_OVERRIDE_HOOK(0x7BB445, XSurface_20, 0x6)
-{
-	return R->EAX<void*>() ? 0x0 : 0x7BB90C;
-}
+// DEFINE_OVERRIDE_HOOK(0x7BB445, XSurface_20, 0x6)
+// {
+// 	return R->EAX<void*>() ? 0x0 : 0x7BB90C;
+// }
 
 DEFINE_OVERRIDE_HOOK(0x6FF1FB, TechnoClass_Fire_DetachedRailgun, 0x6)
 {
@@ -802,7 +812,7 @@ DEFINE_HOOK(0x6D47A6, TacticalClass_Render_Techno, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	// if(auto pTargetTech = generic_cast<ObjectClass*>(pThis->Target))
+	// if(auto pTargetTech = generic_cast<ObjectClass*>(pThis))
 	// 		Drawing::DrawLinesTo(pTargetTech->GetRenderCoords(), pThis->Location, pThis->Owner->LaserColor);
 
 	if (pThis->InLimbo)
@@ -816,12 +826,14 @@ DEFINE_HOOK(0x6D47A6, TacticalClass_Render_Techno, 0x6)
 		Drawing::DrawLinesTo(pOwner->GetRenderCoords(), pThis->Location, pOwner->Owner->Color);
 	}
 
-	if (auto const pOwner = pThis->SpawnOwner)
-	{
-		if (!pOwner->IsSelected)
-			return 0x0;
+	if(Phobos::Otamaa::IsAdmin) {
+		if (auto const pOwner = pThis->SpawnOwner)
+		{
+			if (!pOwner->IsSelected)
+				return 0x0;
 
-		Drawing::DrawLinesTo(pOwner->GetRenderCoords(), pThis->Location, pOwner->Owner->Color);
+			Drawing::DrawLinesTo(pOwner->GetRenderCoords(), pThis->Location, pOwner->Owner->Color);
+		}
 	}
 
 	if (ShowTeamLeaderCommandClass::IsActivated())
@@ -2804,13 +2816,14 @@ DEFINE_OVERRIDE_HOOK(0x707D20, TechnoClass_GetCrew, 5)
 		{
 			// customize with this techno's pilot type
 			// only use it if non-null, as documented
-			const auto& nVec = GetPilotTypeVec(pType);
+
+			const auto& nVec = pExt->Survivors_Pilots;
 
 			if ((size_t)pHouse->SideIndex >= nVec.size())
 			{
 				pCrewType = HouseExt::GetCrew(pHouse);
 			}
-			else if (auto pPilotType = nVec.at(pHouse->SideIndex))
+			else if (auto pPilotType = nVec[pHouse->SideIndex])
 			{
 				pCrewType = pPilotType;
 			}
@@ -3564,12 +3577,15 @@ DEFINE_HOOK(0x6DBE33, TacticalClass_DrawLinesOrCircles, 0x6)
 	return 0x6DBE74;
 }
 
-DEFINE_OVERRIDE_HOOK(0x41BE80, ObjectClass_DrawRadialIndicator, 3)
+void __fastcall DrawRadialIndicator(ObjectClass* pObj , DWORD)
 {
-	GET(ObjectClass*, pObj, ECX);
+	if (!pObj || !Is_Techno(pObj))
+		return;
 
-	if (const auto pTechno = generic_cast<TechnoClass*>(pObj))
+	const auto pTechno = static_cast<TechnoClass*>(pObj);
+
 	{
+
 		const auto pType = pTechno->GetTechnoType();
 		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
@@ -3578,7 +3594,7 @@ DEFINE_OVERRIDE_HOOK(0x41BE80, ObjectClass_DrawRadialIndicator, 3)
 			const auto pOwner = pTechno->Owner;
 
 			if (!pOwner)
-				return 0x0;
+				return;
 
 			if (pOwner->ControlledByPlayer_())
 			{
@@ -3592,7 +3608,7 @@ DEFINE_OVERRIDE_HOOK(0x41BE80, ObjectClass_DrawRadialIndicator, 3)
 				{
 					const auto pWeapons = pTechno->GetPrimaryWeapon();
 					if (!pWeapons || !pWeapons->WeaponType || pWeapons->WeaponType->Range <= 0)
-						return 0x0;
+						return;
 
 					nRadius = pWeapons->WeaponType->Range.ToCell();
 				}
@@ -3606,9 +3622,9 @@ DEFINE_OVERRIDE_HOOK(0x41BE80, ObjectClass_DrawRadialIndicator, 3)
 			}
 		}
 	}
-
-	return 0;
 }
+
+DEFINE_JUMP(LJMP, 0x41BE80, GET_OFFSET(DrawRadialIndicator))
 
 // issue #279: per unit AirstrikeAttackVoice and AirstrikeAbortSound
 DEFINE_OVERRIDE_HOOK(0x41D940, AirstrikeClass_Fire_AirstrikeAttackVoice, 5)
@@ -4293,7 +4309,7 @@ bool NOINLINE FindAndTakeVehicle(FootClass* pThis)
 	//it seems Ares one do multiple item comparison before doing hijack ?
 	//cant really get right decomp result or maybe just me that not understand ,..
 	//these should work fine for now ,..
-	if (const auto It = Helpers::Alex::getCellSpreadItems_Foot(pThis->Location, pInf->Type->Sight * 256.0,
+	if (const auto It = Helpers::Alex::getCellSpreadItems_Foot(pThis->Location, pInf->Type->Sight,
 		[&](FootClass* pFoot)
 		{
 			if (pFoot == pThis || pFoot->WhatAmI() != UnitClass::AbsID)
@@ -5964,10 +5980,13 @@ DEFINE_OVERRIDE_HOOK(0x5D705E, MPGameMode_SpawnBaseUnit_BaseUnit, 6)
 	return hasNoBaseUnit;
 }
 
-DEFINE_DISABLE_HOOK(0x6F407D, TechnoClass_Init_1_ares);
-DEFINE_DISABLE_HOOK(0x6F4103, TechnoClass_Init_2_ares);
 //DEFINE_OVERRIDE_SKIP_HOOK(0x6F4103, TechnoClass_Init_ThisPartHandled, 6, 6F41C0)
 //DEFINE_JUMP(LJMP, 0x6F4103, 0x6F41C0);
+
+DEFINE_OVERRIDE_HOOK(0x4C850B, Exception_Dialog, 5) {
+	Debug::FreeMouse();
+	return 0;
+}
 
 DEFINE_HOOK(0x6F3F88, TechnoClass_Init_1, 5)
 {

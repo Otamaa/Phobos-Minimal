@@ -473,10 +473,9 @@ bool BulletExt::ApplyMCAlternative(BulletClass* pThis)
 	if (!pThis->WH->MindControl || !pThis->Owner)
 		return false;
 
-
 	auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
-	if(!pWarheadExt->MindControl_UseTreshold)
-		return false;
+	//if(!pWarheadExt->MindControl_UseTreshold)
+	//	return false;
 
 	const auto pTarget = generic_cast<TechnoClass*>(pThis->Target);
 
@@ -568,6 +567,7 @@ bool BulletExt::ExtData::InvalidateIgnorable(void* ptr)
 }
 
 void BulletExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved) {
+
 	AnnounceInvalidPointer(Owner , ptr);
 	AnnounceInvalidPointer(NukeSW, ptr);
 
@@ -874,16 +874,23 @@ DEFINE_HOOK(0x46AFC4, BulletClass_Save_Suffix, 0x3)
 	return 0;
 }
 
-DEFINE_HOOK(0x4685BE, BulletClass_Detach, 0x6)
+// DEFINE_HOOK(	, BulletClass_Detach, 0x6)
+// {
+// 	GET(BulletClass*, pThis, ESI);
+// 	GET(void*, target, EDI);
+// 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+//
+// 	BulletExt::ExtMap.InvalidatePointerFor(pThis, target, all);
+//
+// 	return pThis->NextAnim == target ? 0x4685C6 :0x4685CC;
+// }
+
+void __fastcall BulletClass_Detach_Wrapper(BulletClass* pThis ,DWORD , AbstractClass* target , bool all)\
 {
-	GET(BulletClass*, pThis, ESI);
-	GET(void*, target, EDI);
-	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
-
 	BulletExt::ExtMap.InvalidatePointerFor(pThis, target, all);
-
-	return pThis->NextAnim == target ? 0x4685C6 :0x4685CC;
+	pThis->BulletClass::PointerExpired(target , all);
 }
+DEFINE_JUMP(VTABLE, 0x7E470C, GET_OFFSET(BulletClass_Detach_Wrapper))
 
 static void __fastcall BulletClass_AnimPointerExpired(BulletClass* pThis, void* _, AnimClass* pTarget)
 {

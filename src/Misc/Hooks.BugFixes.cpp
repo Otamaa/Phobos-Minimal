@@ -47,7 +47,7 @@ DEFINE_HOOK(0x423365, AnimClass_SHPShadowCheck, 0x8)
 
 	Author : E1 Elite
 */
-DEFINE_SKIP_HOOK(0x545CE2 , Phobos_BugFixes_Tileset255_RemoveNonMMArrayFill , 0x7 , 545CE9);
+DEFINE_SKIP_HOOK(0x545CE2, Phobos_BugFixes_Tileset255_RemoveNonMMArrayFill, 0x7, 545CE9);
 //DEFINE_JUMP(LJMP, 0x545CE2, 0x545CE9) //Phobos_BugFixes_Tileset255_RemoveNonMMArrayFill
 DEFINE_JUMP(LJMP, 0x546C23, 0x546C8B) //Phobos_BugFixes_Tileset255_RefNonMMArray
 
@@ -206,7 +206,7 @@ DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
 // issue #250: Building placement hotkey not responding
 // Author: Uranusian
 //DEFINE_JUMP(LJMP, 0x4ABBD5, 0x4ABBD5 + 7); // DisplayClass_MouseLeftRelease_HotkeyFix
-DEFINE_SKIP_HOOK(0x4ABBD5 , DisplayClass_MouseLeftRelease_HotkeyFix , 0x7 , 4ABBDC);
+DEFINE_SKIP_HOOK(0x4ABBD5, DisplayClass_MouseLeftRelease_HotkeyFix, 0x7, 4ABBDC);
 
 DEFINE_HOOK(0x4FB2DE, HouseClass_PlaceObject_HotkeyFix, 0x6)
 {
@@ -245,7 +245,7 @@ DEFINE_HOOK(0x44377E, BuildingClass_ActiveClickWith, 0x6)
 
 // issue #232: Naval=yes overrides WaterBound=no and prevents move orders onto Land cells
 // Author: Uranusian
-DEFINE_SKIP_HOOK(0x47CA05 , CellClass_IsClearToBuild_SkipNaval, 0x6 , 47CA33);
+DEFINE_SKIP_HOOK(0x47CA05, CellClass_IsClearToBuild_SkipNaval, 0x6, 47CA33);
 
 // bugfix: DeathWeapon not properly detonates
 // Author: Uranusian
@@ -277,12 +277,30 @@ DEFINE_HOOK(0x51BB6E, TechnoClass_AI_TemporalTargetingMe_Fix, 0x6) // InfantryCl
 		else // It should had being warped out, delete this object
 		{
 			pThis->TemporalTargetingMe = nullptr;
-			pThis->Limbo();
-			TechnoExt::HandleRemove(pThis ,nullptr, false , false);
+
+			if (pThis->IsAlive)
+			{
+				pThis->Limbo();
+				TechnoExt::HandleRemove(pThis, nullptr, false, false);
+			}
+			else
+			{
+				switch (R->Origin())
+				{
+				case 0x51BB6E:
+					return 0x51BF80;
+				case 0x736204:
+					return 0x7363C1;
+				case 0x414BDB:
+					return 0x414E25;
+				case 0x43FCF9:
+					return 0x440573;
+				}
+			}
 		}
 	}
 
-	return R->Origin() + 0xF;
+	return R->Origin() + 0xF; //skip updating the temporal
 }
 
 // Fix the issue that AITriggerTypes do not recognize building upgrades
@@ -864,8 +882,8 @@ FireError __stdcall JumpjetLocomotionClass_Can_Fire(ILocomotion* pThis)
 DEFINE_JUMP(VTABLE, 0x7ECDF4, GET_OFFSET(JumpjetLocomotionClass_Can_Fire))
 
 // BuildingClass_What_Action() - Fix no attack cursor if AG=no projectile on primary
-DEFINE_SKIP_HOOK(0x447380 , BuildingClass_What_Action_RemoveAGCheckA , 0x6 , 44739E);
-DEFINE_SKIP_HOOK(0x447709 , BuildingClass_What_Action_RemoveAGCheckB , 0x6 , 447727);
+DEFINE_SKIP_HOOK(0x447380, BuildingClass_What_Action_RemoveAGCheckA, 0x6, 44739E);
+DEFINE_SKIP_HOOK(0x447709, BuildingClass_What_Action_RemoveAGCheckB, 0x6, 447727);
 
 //// AG=no projectiles shouldn't fire at land.
 //DEFINE_HOOK(0x6FC87D, TechnoClass_CanFire_AG, 0x6)
@@ -1128,3 +1146,31 @@ DEFINE_HOOK(0x741050, UnitClass_CanFire_DeployToFire, 0x6)
 
 	return SkipGameCode;
 }
+
+// skip call DrawInfoTipAndSpiedSelection
+DEFINE_JUMP(LJMP, 0x6D9427, 0x6D95A1); // Tactical_RenderLayers
+
+// Fixed position and layer of info tip and reveal production cameo on selected building
+// Author: Belonit
+#pragma region DrawInfoTipAndSpiedSelection
+// Call DrawInfoTipAndSpiedSelection in new location
+DEFINE_HOOK(0x6D9781, Tactical_RenderLayers_DrawInfoTipAndSpiedSelection, 0x5)
+{
+	GET(TechnoClass*, pThis, EBX);
+	GET(Point2D*, pLocation, EAX);
+
+	const auto pBuilding = specific_cast<BuildingClass*>(pThis);
+
+	if (pBuilding && pBuilding->IsSelected && pBuilding->IsOnMap && BuildingExt::ExtMap.Find(pBuilding)->LimboID <= -1)
+	{
+		const int foundationHeight = pBuilding->Type->GetFoundationHeight(0);
+		const int typeHeight = pBuilding->Type->Height;
+		const int yOffest = (Unsorted::CellHeightInPixels * (foundationHeight + typeHeight)) >> 2;
+
+		Point2D centeredPoint = { pLocation->X, pLocation->Y - yOffest };
+		pBuilding->DrawInfoTipAndSpiedSelection(&centeredPoint, &DSurface::ViewBounds);
+	}
+
+	return 0;
+}
+#pragma endregion DrawInfoTipAndSpiedSelection

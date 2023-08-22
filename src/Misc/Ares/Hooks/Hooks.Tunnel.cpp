@@ -102,11 +102,8 @@ void NOINLINE KillFootClass(FootClass* pFoot, TechnoClass* pKiller)
 	if (!pFoot || !Is_Techno(pFoot) || !pFoot->IsAlive)
 		return;
 
-	if (auto pTeam = pFoot->Team)
-		pTeam->RemoveMember(pFoot);
-
 	pFoot->RegisterDestruction(pKiller);
-	pFoot->UnInit();
+	TechnoExt::HandleRemove(pFoot, pKiller, false, false);
 }
 
 void NOINLINE DestroyTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, TechnoClass* pKiller)

@@ -41,6 +41,8 @@
 #include <Helpers/Enumerators.h>
 #include <New/Entity/LauchSWData.h>
 
+#include "VectorHelper.h"
+
 #include <set>
 #include <functional>
 #include <algorithm>
@@ -121,6 +123,11 @@ namespace Helpers {
 			template <typename Func>
 			int for_each_count(Func&& action) const {
 				return std::distance(begin(), std::find_if_not(begin(), end(), action));
+			}
+
+			template <typename Func>
+			void for_each(Func&& action) {
+				std::for_each(begin(), end(), action);
 			}
 		};
 
@@ -208,7 +215,10 @@ namespace Helpers {
 			// flying objects are not included normally
 			if (includeInAir) {
 				// the not quite so fast way. skip everything not in the air.
-				std::for_each(TechnoClass::Array->begin(), TechnoClass::Array->end(), [&](TechnoClass* pTechno) {
+				TechnoClass::Array->for_each([&](TechnoClass* pTechno) {
+					if (pTechno->Health <= 0 || !pTechno->IsAlive || pTechno->IsCrashing || pTechno->IsSinking)
+						return;
+
 					if (pTechno->GetHeight() > 0) {
 						// rough estimation
 						if (pTechno->Location.DistanceFrom(coords) <= spread * 256) {
@@ -219,10 +229,9 @@ namespace Helpers {
 			}
 
 			// look closer. the final selection. put all affected items in a vector.
-			std::vector<TechnoClass*> ret;
+			HelperedVector<TechnoClass*> ret;
 			ret.reserve(set.size());
-
-			std::for_each(set.begin(), set.end(), [&](TechnoClass* pTechno) {
+			set.for_each([&](TechnoClass* pTechno) {
 
 				// ignore buildings that are not visible, like ambient light posts
 				if (Is_Building(pTechno)) {
@@ -243,6 +252,60 @@ namespace Helpers {
 
 				// this is good
 				if (!(dist <= spread * 256)) {
+					return;
+				}
+
+				ret.push_back(pTechno);
+			});
+
+			return ret;
+		}
+
+		__forceinline std::vector<TechnoClass*> getItemsInRangeOf(
+			CoordStruct const& coords, double const spread,
+			bool const includeInAir = false)
+		{
+			// set of possibly affected objects. every object can be here only once.
+			DistinctCollector<TechnoClass*> set;
+
+			// the not quite so fast way. skip everything not in the air.
+			TechnoClass::Array->for_each([&](TechnoClass* pTechno) {
+				if (pTechno->Health <= 0 || !pTechno->IsAlive || pTechno->IsCrashing || pTechno->IsSinking)
+					return;
+
+				if (!includeInAir && pTechno->GetHeight() > 0)
+					return;
+
+				// rough estimation
+				if (pTechno->Location.DistanceFrom(coords) <= spread * Unsorted::LeptonsPerCell) {
+					set.insert(pTechno);
+				}
+			});
+
+			// look closer. the final selection. put all affected items in a vector.
+			HelperedVector<TechnoClass*> ret;
+			ret.reserve(set.size());
+			set.for_each([&](TechnoClass* pTechno) {
+
+				// ignore buildings that are not visible, like ambient light posts
+				if (Is_Building(pTechno)) {
+					auto const pBuilding = static_cast<const BuildingClass*>(pTechno);
+					if (pBuilding->Type->InvisibleInGame) {
+						return;
+					}
+				}
+
+				// get distance from impact site
+				auto const target = pTechno->GetCoords();
+				auto dist = target.DistanceFrom(coords);
+
+				// reduce the distance for flying aircraft
+				if (Is_Aircraft(pTechno) && pTechno->IsInAir()) {
+					dist *= 0.5;
+				}
+
+				// this is good
+				if (!(dist <= spread * Unsorted::LeptonsPerCell)) {
 					return;
 				}
 
@@ -274,7 +337,10 @@ namespace Helpers {
 			// flying objects are not included normally
 			if constexpr (includeInAir) {
 				// the not quite so fast way. skip everything not in the air.
-				std::for_each(FootClass::Array->begin(), FootClass::Array->end(), [&](FootClass* pTechno) {
+				FootClass::Array->for_each([&](FootClass* pTechno) {
+					if (pTechno->Health <= 0 || !pTechno->IsAlive || pTechno->IsCrashing || pTechno->IsSinking)
+						return;
+
 					if (pTechno->GetHeight() > 0) {
 						// rough estimation
 						if (pTechno->Location.DistanceFrom(coords) <= spread * 256) {

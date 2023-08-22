@@ -45,7 +45,7 @@ HouseClass* TriggerTypeExt::ResolveHouseParam(int const param, HouseClass* const
 //		return 0x0;
 //
 //	const auto pHouse =
-//		TriggerTypeExt::ResolveHouseParam(pExt->HouseParam, pThis->House ? 
+//		TriggerTypeExt::ResolveHouseParam(pExt->HouseParam, pThis->House ?
 //			HouseClass::FindByCountryIndex(pThis->House->ArrayIndex) : nullptr);
 //
 //	GET(TActionClass*, pAction, ESI);
@@ -67,7 +67,7 @@ HouseClass* TriggerTypeExt::ResolveHouseParam(int const param, HouseClass* const
 //
 //	const auto pHouse =
 //		TriggerTypeExt::ResolveHouseParam(pExt->HouseParam,nullptr);
-//	
+//
 //	if (!pHouse)
 //		return 0x0;
 //
@@ -140,7 +140,7 @@ DEFINE_HOOK(0x727C94, TriggerTypeClass_Save_Suffix, 6)
 
 	if (SUCCEEDED(res)) {
 		TriggerTypeExt::ExtMap.SaveStatic();
-		return 0x727C98;
+		R->EAX(0x0);
 	}
 
 	return 0x727C9A;

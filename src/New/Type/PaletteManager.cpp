@@ -15,9 +15,18 @@ PaletteManager::PaletteManager(const char* const pTitle) : Enumerable<PaletteMan
 
 void PaletteManager::Clear_Internal()
 {
-	Palette.release();
-	Convert_Temperate.release();
-	Convert.release();
+	this->Palette.release();
+	this->Convert_Temperate.release();
+	this->Convert.release();
+	this->ColorschemeDataVector = nullptr;
+
+	//if (this->ColorschemeDataVector)
+	//{
+	//	if (!Phobos::Otamaa::ExeTerminated)
+	//		GameDelete<false, false>(ColorschemeDataVector);
+	//	else
+	//		GameDelete<false, true>(ColorschemeDataVector);
+	//}
 }
 
 void PaletteManager::CreateConvert()
@@ -29,6 +38,25 @@ void PaletteManager::CreateConvert()
 
 	this->Convert_Temperate.reset(GameCreate<ConvertClass>(this->Palette.get(), &FileSystem::TEMPERAT_PAL(), DSurface::Primary(), 53, false));
 	this->Convert.reset(GameCreate<ConvertClass>(this->Palette.get(), this->Palette.get(), DSurface::Alternate(), 1, false));
+
+	std::string realname = _strlwr(this->Name.data());
+
+	// the function will handle the name change
+	if(realname.find("~~~") != std::string::npos){
+		realname.erase(realname.find("~~~"));
+
+		if (realname.find(".pal") != std::string::npos)
+			realname.erase(realname.find(".pal"));
+
+		this->ColorschemeDataVector = (ColorScheme::GeneratePalette(realname.data()));
+	} else { //dont need extension
+		std::string cachedWithExt = _strlwr(this->CachedName.data());
+
+		if (cachedWithExt.find(".pal") != std::string::npos)
+			cachedWithExt.erase(cachedWithExt.find(".pal"));
+
+		this->ColorschemeDataVector = (ColorScheme::GeneratePalette(cachedWithExt.data()));
+	}
 }
 
 void PaletteManager::LoadFromName(const char* PaletteName)
@@ -55,6 +83,7 @@ bool PaletteManager::LoadFromCachedName()
 	{
 		this->Palette.reset(pPal);
 		this->CreateConvert();
+
 		return true;
 	}
 
@@ -84,17 +113,17 @@ void PaletteManager::LoadFromStream(PhobosStreamReader& Stm)
 		GeneralUtils::ApplyTheaterSuffixToString((const char*)this->Name.data()).c_str();
 
 	bool hasPalette = false;
-	auto ret = Stm.Load(hasPalette);
 
-	if (ret && hasPalette)
-	{
+	if (!Stm.Load(hasPalette))
+		return;
+
+	if (hasPalette) {
 		this->Palette.reset(GameCreate<BytePalette>());
-		ret = Stm.Load(*this->Palette);
 
-		if (ret)
-		{
-			this->CreateConvert();
-		}
+		if (!Stm.Load(*this->Palette))
+			return;
+
+		this->CreateConvert();
 	}
 }
 

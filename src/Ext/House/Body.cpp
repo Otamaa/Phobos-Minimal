@@ -263,20 +263,20 @@ void HouseExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 	if (ptr == nullptr)
 		return;
 
-	AnnounceInvalidPointer(OwnedTechno, ptr);
-	AnnounceInvalidPointer(Factory_BuildingType, ptr);
-	AnnounceInvalidPointer(Factory_InfantryType, ptr);
-	AnnounceInvalidPointer(Factory_VehicleType, ptr);
-	AnnounceInvalidPointer(Factory_NavyType, ptr);
-	AnnounceInvalidPointer(Factory_AircraftType, ptr);
+	AnnounceInvalidPointer(OwnedTechno, ptr , bRemoved);
+	AnnounceInvalidPointer(Factory_BuildingType, ptr, bRemoved);
+	AnnounceInvalidPointer(Factory_InfantryType, ptr, bRemoved);
+	AnnounceInvalidPointer(Factory_VehicleType, ptr, bRemoved);
+	AnnounceInvalidPointer(Factory_NavyType, ptr, bRemoved);
+	AnnounceInvalidPointer(Factory_AircraftType, ptr, bRemoved);
 	AnnounceInvalidPointer(ActiveTeams, ptr);
 
-	if (!AutoDeathObjects.empty()) {
+	if (!AutoDeathObjects.empty() && bRemoved) {
 		AutoDeathObjects.erase(reinterpret_cast<TechnoClass*>(ptr));
 	}
 
 	for (auto& nTun : Tunnels)
-		AnnounceInvalidPointer(nTun.Vector , ptr);
+		AnnounceInvalidPointer(nTun.Vector , ptr , bRemoved);
 
 	AnnounceInvalidPointer(Batteries, ptr);
 }
@@ -835,16 +835,23 @@ DEFINE_HOOK(0x50114D, HouseClass_InitFromINI, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x4FB9B7, HouseClass_Detach, 0xA)
+//DEFINE_HOOK(0x4FB9B7, HouseClass_Detach, 0xA)
+//{
+//	GET(HouseClass*, pThis, ECX);
+//	GET_STACK(void*, target, STACK_OFFSET(0xC, 0x4));
+//	GET_STACK(bool, all, STACK_OFFSET(0xC, 0x8));
+//
+//	HouseExt::ExtMap.InvalidatePointerFor(pThis, target, all);
+//
+//	R->ESI(pThis);
+//	R->EBX(0);
+//	return pThis->ToCapture == target ?
+//		0x4FB9C3 : 0x4FB9C9;
+//}
+
+void __fastcall HouseClass_Detach_Wrapper(HouseClass* pThis, DWORD, AbstractClass* target, bool all)
 {
-	GET(HouseClass*, pThis, ECX);
-	GET_STACK(void*, target, STACK_OFFSET(0xC, 0x4));
-	GET_STACK(bool, all, STACK_OFFSET(0xC, 0x8));
-
 	HouseExt::ExtMap.InvalidatePointerFor(pThis, target, all);
-
-	R->ESI(pThis);
-	R->EBX(0);
-	return pThis->ToCapture == target ?
-		0x4FB9C3 : 0x4FB9C9;
+	pThis->HouseClass::PointerExpired(target, all);
 }
+DEFINE_JUMP(VTABLE, 0x7EA8C8 , GET_OFFSET(HouseClass_Detach_Wrapper))

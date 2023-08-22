@@ -41,7 +41,6 @@ struct BuildType
 		return SortsBefore(this->ItemType, this->ItemIndex, rhs.ItemType, rhs.ItemIndex);
 	}
 
-protected:
 	static bool __stdcall SortsBefore(AbstractType leftType, int leftIndex, AbstractType rightType, int rightIndex)
 	{ JMP_STD(0x6A8420); }
 };
@@ -215,12 +214,12 @@ public:
 	static constexpr constant_ptr<SelectClass, 0xB07E80> const ButtonsPtr {};
 	static constexpr constant_ptr<SelectClass, 0xB07E8C> const Buttons_beginPtr {};
 	static constexpr constant_ptr<SelectClass, 0xB0B300> const Buttons_endPtr {};
-	
+
 	//Destructor
 	virtual ~SelectClass() RX;
 
 	//GadgetClass
-	
+
 	//ControlClass
 
 	void SetOwner(StripClass* pStrip, int nIdx) const { JMP_THIS(0x6AACE0); }

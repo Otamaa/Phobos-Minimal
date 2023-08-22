@@ -63,15 +63,39 @@ DEFINE_HOOK(0x54C036, JumpjetLocomotionClass_State3_UpdateSensors, 0x7)
 	GET(FootClass* const, pLinkedTo, ECX);
 	GET(CellStruct const, currentCell, EAX);
 
-	if (pLinkedTo
-		&& pLinkedTo->IsAlive
-		&& pLinkedTo->GetTechnoType()->SensorsSight
+	const auto pType = pLinkedTo->GetTechnoType();
+
+	if (pType->Sensors && pType->SensorsSight > 0
 		&& pLinkedTo->LastFlightMapCoords != currentCell) {
 		pLinkedTo->RemoveSensorsAt(pLinkedTo->LastFlightMapCoords);
-		pLinkedTo->AddSensorsAt(currentCell);
+
+		if(pLinkedTo->IsAlive)
+			pLinkedTo->AddSensorsAt(currentCell);
 	}
 
 	return 0;
+}
+
+#include <AircraftTrackerClass.h>
+
+DEFINE_HOOK(0x4CD64E , FlyLocomotionClass_MovementAI_UpdateSensors, 0xA)
+{
+	GET(FlyLocomotionClass* const, pThis, ESI);
+	GET(CellStruct, currentCell, EDI);
+
+	const auto pLinkedTo = pThis->LinkedTo;
+	const auto pType = pLinkedTo->GetTechnoType();
+
+	if (pType->Sensors && pType->SensorsSight > 0) {
+		pLinkedTo->RemoveSensorsAt(pLinkedTo->LastFlightMapCoords);
+
+		if(pLinkedTo->IsAlive)
+			pLinkedTo->AddSensorsAt(currentCell);
+	}
+
+	AircraftTrackerClass::Instance->Update(pLinkedTo, pLinkedTo->LastFlightMapCoords, currentCell);
+
+	return 0x4CD664;
 }
 
 //DEFINE_HOOK(0x54B8E9, JumpjetLocomotionClass_In_Which_Layer_Deviation, 0x6)

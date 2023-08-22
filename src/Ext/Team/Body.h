@@ -32,11 +32,34 @@ public:
 		FootClass* TeamLeader { nullptr };
 
 		SuperClass* LastFoundSW { nullptr };
+
+		bool ConditionalJump_Evaluation { false };
+		int ConditionalJump_ComparatorMode { 3 };
+		int ConditionalJump_ComparatorValue { 1 };
+		int ConditionalJump_Counter { 0 };
+		int ConditionalJump_Index { -1000000 };
+		bool AbortActionAfterKilling { false };
+		bool ConditionalJump_EnabledKillsCount { false };
+		bool ConditionalJump_ResetVariablesIfJump { false };
+
+		int TriggersSideIdx { -1 };
+		int TriggersHouseIdx { -1 };
+
+		int AngerNodeModifier { 5000 };
+		bool OnlyTargetHouseEnemy { false };
+		int OnlyTargetHouseEnemyMode { -1 };
+
+		ScriptClass* PreviousScript { nullptr };
+
 		ExtData(TeamClass* OwnerObject) : Extension<TeamClass>(OwnerObject)
 
 		{ }
 
-		virtual ~ExtData() override = default;
+		virtual ~ExtData() override {
+			GameDelete<true, true>(PreviousScript);
+			PreviousScript = nullptr;
+		}
+
 		void InvalidatePointer(void* ptr, bool bRemoved);
 		static bool InvalidateIgnorable(void* ptr);
 		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
@@ -56,10 +79,11 @@ public:
 
 	static ExtContainer ExtMap;
 
-	bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, const Iterator<TechnoTypeClass*>& list);
-	bool HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, const Iterator<TechnoTypeClass*>& list);
-	bool EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, bool onlySelectedEnemy, const Iterator<TechnoTypeClass*>& list);
-	bool EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, const Iterator<TechnoTypeClass*>& list);
-	bool NeutralOwns(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list);
-	bool NeutralOwnsAll(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list);
+	static bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, const Iterator<TechnoTypeClass*>& list);
+	static bool HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, const Iterator<TechnoTypeClass*>& list);
+	static bool EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, bool onlySelectedEnemy, const Iterator<TechnoTypeClass*>& list);
+	static bool EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, const Iterator<TechnoTypeClass*>& list);
+	static bool NeutralOwns(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list);
+	static bool NeutralOwnsAll(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list);
+	static bool NOINLINE GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat);
 };

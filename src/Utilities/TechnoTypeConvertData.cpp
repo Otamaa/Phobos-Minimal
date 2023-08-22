@@ -23,7 +23,7 @@ void TechnoTypeConvertData::ApplyConvert(const std::vector<TechnoTypeConvertData
 			const auto bConvertStatus = AresData::ConvertTypeTo(pTarget, pTo);
 
 			if (!bConvertStatus)
-				Debug::Log("WarheadTypeExt::ExtData::ApplyUpgrade Failed to ConvertType ! \n");
+				Debug::Log("Failed to ConvertType From[%x] To [%s]!\n" , pFrom->ID, pTo->ID);
 			else
 			{
 				if (SucceededAnim)

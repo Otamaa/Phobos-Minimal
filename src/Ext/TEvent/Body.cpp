@@ -311,26 +311,16 @@ DEFINE_HOOK(0x71F8C0, TEventClass_SaveLoad_Prefix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x71F929, TEventClass_Load_Suffix, 0x6)
+DEFINE_HOOK(0x71F92B, TEventClass_Load_Suffix, 0x5)
 {
-	GET(HRESULT, res, EAX);
-
-	if (SUCCEEDED(res))
-		TEventExt::ExtMap.LoadStatic();
-
+	TEventExt::ExtMap.LoadStatic();
 	return 0x0;
 }
 
-DEFINE_HOOK(0x71F944, TEventClass_Save_Suffix, 0x6)
+DEFINE_HOOK(0x71F94A, TEventClass_Save_Suffix, 0x5)
 {
-	GET(HRESULT, res, EAX);
-
-	if (SUCCEEDED(res)) {
-		TEventExt::ExtMap.SaveStatic();
-		return 0x71F948;
-	}
-
-	return 0x71F94A;
+	TEventExt::ExtMap.SaveStatic();
+	return 0x0;
 }
 
 //DEFINE_HOOK(0x71F811, TEventClass_Detach, 0x5)

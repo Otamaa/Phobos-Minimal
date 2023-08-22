@@ -30,6 +30,9 @@ enum class PhobosTriggerAction : unsigned int
 	ScoreCampaignTheme = 19001,
 	SetNextMission = 19002 ,
 
+	//#620
+	MessageForSpecifiedHouse = 9931,
+
 	//ES
 	SetTriggerTechnoVeterancy = 700,
 	TransactMoneyFor = 701,
@@ -139,6 +142,8 @@ public:
 	ACTION_FUNC(SetNextMission);
 
 	ACTION_FUNC(ToggleMCVRedeploy);
+
+	ACTION_FUNC(MessageForSpecifiedHouse);
 
 	ACTION_FUNC(SetTriggerTechnoVeterancy);
 	ACTION_FUNC(TransactMoneyFor);

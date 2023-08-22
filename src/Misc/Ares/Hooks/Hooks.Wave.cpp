@@ -256,7 +256,12 @@ DEFINE_OVERRIDE_HOOK(0x762B62, WaveClass_WaveAI , 0x6)
 	if (!Wave->bool_12C)
 		return 0x762D57;
 
-	const CoordStruct FLH = pData->WeaponIdx != -1 ? Firer->GetFLH(pData->WeaponIdx, CoordStruct::Empty) : pData->SourceCoord;
+	CoordStruct FLH;
+	if(pData->WeaponIdx != -1)
+		Firer->GetFLH(&FLH , pData->WeaponIdx, CoordStruct::Empty);
+	else
+		 FLH = pData->SourceCoord;
+
 	const CoordStruct xyzTgt = Target->GetCenterCoords(); // not GetCoords() !
 
 	if (Wave->Type == WaveType::Magnetron)

@@ -428,6 +428,7 @@ public:
 			ZGradient(ZGradientDescIndex), Brightness, TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
 	}
 
+
 	void DSurfaceDrawText(const wchar_t* pText, RectangleStruct* pBounds, Point2D* pLocation,
 		COLORREF ForeColor, COLORREF BackColor, TextPrintType Flag)
 	{
@@ -514,6 +515,24 @@ public:
 	bool Fill_Ellipse(Point2D point, int radius_x, int radius_y, RectangleStruct clip, unsigned color);
 	bool Fill_Ellipse_Trans(Point2D point, int radius_x, int radius_y, RectangleStruct clip, ColorStruct& rgb, unsigned opacity);
 	bool Put_Pixel_Trans(Point2D& point, ColorStruct& rgb, unsigned opacity);
+
+	void DrawSquare(const Point2D& center, double range, COLORREF nColor)
+	{
+		int semiWidth = static_cast<int>(range * Unsorted::CellWidthInPixels);
+		int semiHeight = static_cast<int>(range * Unsorted::CellHeightInPixels);
+
+		Point2D points[4] = {
+			center + Point2D{ semiWidth, 0 },
+			center + Point2D{ 0, semiHeight },
+			center + Point2D{ -semiWidth, 0 },
+			center + Point2D{ 0, -semiHeight }
+		};
+
+		for (int i = 0; i < 4; i++)
+		{
+			this->Draw_Line_Rect(DSurface::ViewBounds(), points[i], points[(i + 1) % 4], nColor);
+		}
+	}
 
 	void* Get_Buffer_Ptr(int x = 0, int y = 0) { return (unsigned char*)(BufferPtr)+(x * Get_Bytes_Per_Pixel()) + (y * Get_Pitch()); }
 

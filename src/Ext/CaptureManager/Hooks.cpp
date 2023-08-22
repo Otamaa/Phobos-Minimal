@@ -16,7 +16,8 @@ DEFINE_HOOK(0x4721E6, CaptureManagerClass_DrawLinkToVictim, 0x6) //C
 	if (CaptureExt::AllowDrawLink(pAttackerType)) {
 		auto nVictimCoord = pVictim->Location;
 		nVictimCoord.Z += pAttackerType->LeptonMindControlOffset;
-		const auto nFLH = pAttacker->GetFLH(-1 - nNodeCount % 5, CoordStruct::Empty);
+		CoordStruct nFLH ;
+		pAttacker->GetFLH(&nFLH ,-1 - nNodeCount % 5, CoordStruct::Empty);
 		Drawing::DrawLinesTo(nFLH, nVictimCoord, pAttacker->Owner->Color);
 	}
 
@@ -27,9 +28,9 @@ DEFINE_HOOK(0x4721E6, CaptureManagerClass_DrawLinkToVictim, 0x6) //C
 DEFINE_HOOK(0x471D40, CaptureManagerClass_CaptureUnit_ReplaceVanillaFunc, 0x7)
 {
 	GET(CaptureManagerClass*, pThis, ECX);
-	GET_STACK(TechnoClass*, pTechno, 0x4);
+	GET_STACK(AbstractClass*, pTechno, 0x4);
 
-	R->AL(CaptureExt::CaptureUnit(pThis, pTechno));
+	R->AL(CaptureExt::CaptureUnit(pThis, generic_cast<TechnoClass*>(pTechno)));
 
 	return 0x471D5A;
 }

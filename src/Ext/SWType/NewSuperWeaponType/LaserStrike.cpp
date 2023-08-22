@@ -14,7 +14,11 @@ bool SW_LaserStrike::Activate(SuperClass* pThis, const CellStruct& Coords, bool 
 {
 	if (pThis->IsCharged) {
 		const auto pData = SWTypeExt::ExtMap.Find(pThis->Type);
-		this->newStateMachine(Coords, pThis, this->GetFirer(pThis , Coords, false),ScenarioClass::Instance->Random.RandomRanged(pData->LaserStrikeMin, pData->LaserStrikeMax) , pData->SW_Deferment);
+		this->newStateMachine(Coords, pThis, this->GetFirer(pThis , Coords, false),
+			ScenarioClass::Instance->Random.RandomRanged(pData->LaserStrikeMin, pData->LaserStrikeMax) ,
+			pData->SW_Deferment ,
+			pData->LaserStrikeDuration
+		);
 	}
 
 	return true;
@@ -296,5 +300,5 @@ bool LaserStrikeStateMachine::Save(PhobosStreamWriter& Stm) const
 
 void LaserStrikeStateMachine::InvalidatePointer(void* ptr, bool remove)
 {
-	AnnounceInvalidPointer(Firer, ptr);
+	AnnounceInvalidPointer(Firer, ptr, remove);
 }

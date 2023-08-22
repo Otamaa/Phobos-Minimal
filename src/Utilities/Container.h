@@ -123,7 +123,7 @@ private:
 
 public:
 
-	explicit Container(const char* pName) : SavingObject { nullptr } 
+	explicit Container(const char* pName) : SavingObject { nullptr }
 		, SavingStream { nullptr }
 		//Map { }
 	{
@@ -303,7 +303,7 @@ public:
 
 			extension_type_ptr Extptr = this->TryFind(key);
 
-			if (!Extptr || !bRemoved) // newer ares check for 2nd args
+			if (!Extptr)
 				return;
 
 			if constexpr (PointerInvalidationIgnorAble<T>){
@@ -332,13 +332,14 @@ public:
 
 	void PrepareStream(base_type_ptr key, IStream* pStm)
 	{
-		//Debug::Log("[PrepareStream] Next is %p of type '%s'\n", key, this->Name.data());
+		Debug::Log("[PrepareStream] Next is %p of type '%s'\n", key, this->Name.data());
 		this->SavingObject = key;
 		this->SavingStream = pStm;
 	}
 
 	void SaveStatic()
 	{
+		Debug::Log("[SaveStatic] For object %p as '%s\n", this->SavingObject, this->Name.data());
 		if (this->SavingObject && this->SavingStream) {
 			if (!this->Save(this->SavingObject, this->SavingStream))
 				Debug::FatalErrorAndExit("[SaveStatic] Saving failed!\n");
@@ -350,6 +351,7 @@ public:
 
 	bool LoadStatic()
 	{
+		Debug::Log("[LoadStatic] For object %p as '%s\n", this->SavingObject, this->Name.data());
 		if (this->SavingObject && this->SavingStream)
 		{
 			if (!this->Load(this->SavingObject, this->SavingStream)){

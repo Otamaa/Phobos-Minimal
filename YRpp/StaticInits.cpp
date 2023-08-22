@@ -238,7 +238,7 @@ SuperClass* HouseClass::FindSuperWeapon(SuperWeaponType const type) const {
 }
 
 bool HouseClass::IsIonCannonEligibleTarget(const TechnoClass* const pTechno) const {
-	if(pTechno->InWhichLayer() == Layer::Ground && pTechno->IsAlive && !pTechno->InLimbo) {
+	if(pTechno->IsAlive && !pTechno->InLimbo && pTechno->InWhichLayer() == Layer::Ground) {
 		return true;
 	}
 

@@ -3,10 +3,7 @@
 #include <OverlayTypeClass.h>
 
 #include <Ext/Abstract/Body.h>
-#include <Utilities/Constructs.h>
-#include <Utilities/Template.h>
-#include <Utilities/Debug.h>
-#include <Helpers/Macro.h>
+#include <Utilities/TemplateDef.h>
 
 class OverlayTypeExt
 {
@@ -19,8 +16,7 @@ public:
 
 	public:
 
-		PhobosFixedString<32u> PaletteFile {};
-		DynamicVectorClass<ColorScheme*>* Palette {};
+		Valueable<PaletteManager*> Palette { };
 
 		ExtData(OverlayTypeClass* OwnerObject) : Extension<OverlayTypeClass>(OwnerObject)
 		{ }

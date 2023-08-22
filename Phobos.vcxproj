@@ -23,6 +23,7 @@
     <ClCompile Include="src\Commands\ShowTeamLeader.cpp" />
     <ClCompile Include="src\Commands\ShowTechnoNames.cpp" />
     <ClCompile Include="src\Commands\ShowHealthPercent.cpp" />
+    <ClCompile Include="src\Commands\ToggleDesignatorRange.cpp" />
     <ClCompile Include="src\Commands\ToggleDigitalDisplay.cpp" />
     <ClCompile Include="src\Commands\ToggleRadialIndicatorDrawMode.cpp" />
     <ClCompile Include="src\Ext\Abstract\Body.cpp" />
@@ -35,7 +36,6 @@
     <ClCompile Include="src\Ext\Anim\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.Ownerships.cpp" />
     <ClCompile Include="src\Ext\Bomb\Body.cpp" />
-    <ClCompile Include="src\Ext\BuildingType\Hooks.BuildSpeed.cpp" />
     <ClCompile Include="src\Ext\BuildingType\Hooks.cpp" />
     <ClCompile Include="src\Ext\BuildingType\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\BuildingType\Hooks.Upgrade.cpp" />
@@ -67,7 +67,6 @@
     <ClCompile Include="src\Ext\CaptureManager\Hooks.cpp" />
     <ClCompile Include="src\Ext\DiskLaser\Body.cpp" />
     <ClCompile Include="src\Ext\HouseType\Body.cpp" />
-    <ClCompile Include="src\Ext\House\Hooks.AINavalProduction.cpp" />
     <ClCompile Include="src\Ext\House\Hooks.cpp" />
     <ClCompile Include="src\Ext\InfantryType\Body.cpp" />
     <ClCompile Include="src\Ext\Infantry\Body.cpp" />
@@ -84,8 +83,11 @@
     <ClCompile Include="src\Ext\Scenario\Hooks.Variables.cpp" />
     <ClCompile Include="src\Ext\Scenario\Hooks.Waypoints.cpp" />
     <ClCompile Include="src\Ext\ScriptType\Body.cpp" />
-    <ClCompile Include="src\Ext\Script\Mission_Attack.cpp" />
-    <ClCompile Include="src\Ext\Script\Mission_Move.cpp" />
+    <ClCompile Include="src\Ext\Script\AngerNodes.cpp" />
+    <ClCompile Include="src\Ext\Script\ConditionalJump.cpp" />
+    <ClCompile Include="src\Ext\Script\ManagingTriggers.cpp" />
+    <ClCompile Include="src\Ext\Script\Mission.Attack.cpp" />
+    <ClCompile Include="src\Ext\Script\Mission.Move.cpp" />
     <ClCompile Include="src\Ext\SHPReference\Body.cpp" />
     <ClCompile Include="src\Ext\Sidebar\Body.cpp" />
     <ClCompile Include="src\Ext\Anim\Body.cpp" />
@@ -95,7 +97,6 @@
     <ClCompile Include="src\Ext\SmudgeType\Body.cpp" />
     <ClCompile Include="src\Ext\SmudgeType\Hooks.cpp" />
     <ClCompile Include="src\Ext\SpawnManager\Body.cpp" />
-    <ClCompile Include="src\Ext\SpawnManager\Hooks.cpp" />
     <ClCompile Include="src\Ext\Super\Body.cpp" />
     <ClCompile Include="src\Ext\Surface\Body.cpp" />
     <ClCompile Include="src\Ext\SWType\Hook.ShortTimer.cpp" />
@@ -131,6 +132,7 @@
     <ClCompile Include="src\Ext\TeamType\Body.cpp" />
     <ClCompile Include="src\Ext\Team\Body.cpp" />
     <ClCompile Include="src\Ext\Team\Hooks.cpp" />
+    <ClCompile Include="src\Ext\Team\Hooks.Script.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hook.TunnelSpeed.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Droppod.cpp" />
@@ -349,6 +351,7 @@
     <ClInclude Include="src\Commands\ShowTeamLeader.h" />
     <ClInclude Include="src\Commands\ShowTechnoNames.h" />
     <ClInclude Include="src\Commands\ShowHealthPercent.h" />
+    <ClInclude Include="src\Commands\ToggleDesignatorRange.h" />
     <ClInclude Include="src\Commands\ToggleDigitalDisplay.h" />
     <ClInclude Include="src\Commands\ToggleRadialIndicatorDrawMode.h" />
     <ClInclude Include="src\Ext\Abstract\Body.h" />
@@ -405,6 +408,7 @@
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\SpyPlane.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\SWStateMachine.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\UnitDelivery.h" />
+    <ClInclude Include="src\Ext\SWType\SuperWeaponSidebar.h" />
     <ClInclude Include="src\Ext\Tactical\Body.h" />
     <ClInclude Include="src\Ext\TAction\Body.h" />
     <ClInclude Include="src\Ext\TeamType\Body.h" />
@@ -600,11 +604,14 @@
     <IntDir>$(Configuration)\IntDir\</IntDir>
     <TargetName>Phobos</TargetName>
     <LibraryPath>$(SolutionDir)src\Lib;$(LibraryPath)</LibraryPath>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
+    <EnableClangTidyCodeAnalysis>false</EnableClangTidyCodeAnalysis>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>Full</Optimization>
+      <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <SDLCheck>
       </SDLCheck>
@@ -632,7 +639,7 @@
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.22000.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>

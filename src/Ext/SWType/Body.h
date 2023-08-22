@@ -7,6 +7,8 @@
 
 #include <New/Type/CursorTypeClass.h>
 
+#include <BitFont.h>
+
 enum class SWTargetFlags
 {
 	DisallowEmpty,
@@ -228,6 +230,7 @@ public:
 
 #pragma region converts
 		Valueable<bool> Converts { false };
+		Valueable<bool> Converts_UseSWRange { false };
 		ValueableVector<TechnoTypeConvertData> ConvertsPair {};
 		Valueable<AnimTypeClass*> Convert_SucceededAnim { nullptr };
 #pragma endregion
@@ -285,7 +288,6 @@ public:
 		Nullable<int> DropPod_Maximum {};
 		Valueable<double> DropPod_Veterancy  {2.0};
 		ValueableVector<TechnoTypeClass*> DropPod_Types {};
-		Valueable<int> Droppod_Duration { 0 };
 		Valueable<int> Droppod_RetryCount { 3 };
 
 		Valueable<SHPStruct*> Droppod_PodImage_Infantry {};
@@ -419,7 +421,7 @@ public:
 #pragma endregion
 
 #pragma region LaserStrike
-		Valueable<int> LaserStrikeDuration { 100 };
+		Valueable<int> LaserStrikeDuration { 1000 };
 		Valueable<int> LaserStrikeRadius { 4096 };
 		Valueable<int> LaserStrikeMax { 2 };
 		Valueable<int> LaserStrikeMin { 1 };
@@ -456,6 +458,7 @@ public:
 #pragma region GenericWarheadSW
 		Valueable<bool> Generic_Warhead_Detonate { false };
 #pragma endregion
+
 		ExtData(SuperWeaponTypeClass* OwnerObject) : Extension<SuperWeaponTypeClass>(OwnerObject)
 		{}
 
@@ -472,7 +475,7 @@ public:
 		std::pair<double, double> GetLaunchSiteRange(BuildingClass* pBuilding = nullptr) const;
 
 		void ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, const CellStruct& cell);
-		void ApplySWNext(SuperClass* pSW, const CellStruct& cell);
+		void ApplySWNext(SuperClass* pSW, const CellStruct& cell , bool IsPlayer);
 
 		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 		void LoadFromRulesFile(CCINIClass* pINI);
@@ -547,7 +550,7 @@ public:
 	static ExtContainer ExtMap;
 	static void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID);
 	static void WeightedRollsHandler(std::vector<int>& nResult, Valueable<double>& RandomBuffer, const ValueableVector<float>& rolls, const ValueableVector<ValueableVector<int>>& weights, size_t size);
-	static void Launch(SuperClass* pFired , HouseClass* pHouse, SWTypeExt::ExtData* pLauncherTypeExt, int pLaunchedType, const CellStruct& cell);
+	static void Launch(SuperClass* pFired , HouseClass* pHouse, SWTypeExt::ExtData* pLauncherTypeExt, int pLaunchedType, const CellStruct& cell, bool IsPlayer);
 	static void ClearChronoAnim(SuperClass* pThis);
 	static void CreateChronoAnim(SuperClass* pThis, const CoordStruct& Coords, AnimTypeClass* pAnimType);
 	static bool ChangeLighting(SuperWeaponTypeClass* pCustom = nullptr);

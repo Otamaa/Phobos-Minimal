@@ -15,13 +15,8 @@ bool SW_UnitDelivery::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 	SuperWeaponTypeClass* pSW = pThis->Type;
 	SWTypeExt::ExtData* pData = SWTypeExt::ExtMap.Find(pSW);
 
-	int deferment = pData->SW_Deferment.Get(-1);
-	if (deferment < 0)
-	{
-		deferment = 20;
-	}
-
-	this->newStateMachine(deferment, Coords, pThis);
+	const int deferment = pData->SW_Deferment.Get(-1);
+	this->newStateMachine(deferment < 0 ? 20 : deferment, Coords, pThis);
 
 	return true;
 }

@@ -245,7 +245,7 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 	if (weaponIndex != -1)
 		return weaponIndex == 1 ? Secondary : Primary;
 
-	if (!pTargetTechno)
+	if (!pTargetTechno || !pTargetTechno->IsAlive)
 		return Primary;
 
 	//select weapon is executed with dead target ?

@@ -859,7 +859,7 @@ bool NOINLINE FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget , WeaponTyp
 					return true;
 				} else {
 					if(pThatShield->GetType()->PassthruNegativeDamage)
-						goto checkTechnoHealth;
+						return !(pTarget->GetHealthPercentage_() >= nRulesGreen);
 				}
 			}
 
@@ -867,7 +867,6 @@ bool NOINLINE FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget , WeaponTyp
 		}
 	}
 
-	checkTechnoHealth:
 	return !(pTarget->GetHealthPercentage_() >= nRulesGreen);
 }
 
@@ -880,7 +879,7 @@ DEFINE_OVERRIDE_HOOK(0x51C913, InfantryClass_CanFire_Heal, 7)
 
 	const auto pThatTechno = generic_cast<TechnoClass*>(pTarget);
 
-	if (!pThatTechno){
+	if (!pThatTechno || pThatTechno->IsIronCurtained()){
 		return retFireIllegal;
 	}
 
@@ -896,7 +895,7 @@ DEFINE_OVERRIDE_HOOK(0x741113, UnitClass_CanFire_Heal, 0xA)
 	GET(TechnoClass*, pThatTechno, EDI);
 	GET_STACK(int , nWeaponIdx , STACK_OFFSET(0x1C , 0x8));
 
-	return FiringAllowed(pThis, pThatTechno , pThis->GetWeapon(nWeaponIdx)->WeaponType ) ?
+	return !pThatTechno->IsIronCurtained() && FiringAllowed(pThis, pThatTechno , pThis->GetWeapon(nWeaponIdx)->WeaponType ) ?
 		retContinue : retFireIllegal ;
 }
 
@@ -914,7 +913,7 @@ DEFINE_HOOK(0x6F7F4F, TechnoClass_EvalObject_NegativeDamage, 0x7)
 			retFalse : ContinueCheck;
 	}
 
-	return FiringAllowed(pThis,pThatTechno ,pThis->GetWeapon(pThis->SelectWeapon(pThatTechno))->WeaponType) ?
+	return !pThatTechno->IsIronCurtained() && FiringAllowed(pThis,pThatTechno ,pThis->GetWeapon(pThis->SelectWeapon(pThatTechno))->WeaponType) ?
 		 ContinueCheck : retFalse;
 
 }

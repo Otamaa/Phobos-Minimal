@@ -185,7 +185,7 @@ struct AresData
 	static DWORD AresMemAllocAddrFinal;
 
 	//number of static instance
-	static constexpr int AresStaticInstanceCount = 13;
+	static constexpr int AresStaticInstanceCount = 14;
 	//number of call for `CustomPalette::ReadFromINI`
 	static constexpr int AresCustomPaletteReadCount = 5;
 
@@ -407,3 +407,4 @@ struct AresDTORCaller
 #define Ares_EboltColors2 (*((int*)(AresData::AresStaticInstanceFinal[10])))
 #define Ares_EboltColors3 (*((int*)(AresData::AresStaticInstanceFinal[11])))
 #define Ares_EboltMap (*((const std::vector<std::pair<EBolt*, AresExtension<WeaponTypeClass*>*>, AresMemory::AresAllocator<std::pair<EBolt*, AresExtension<WeaponTypeClass*>*>>>*)(AresData::AresStaticInstanceFinal[12])))
+#define Ares_IsShuttingDown (*((bool*)(AresData::AresStaticInstanceFinal[12])))

@@ -66,7 +66,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	GET(TechnoClass*, pThis, ECX);
 
 	if (!pThis || !Is_Techno(pThis) || !pThis->IsAlive)
-		return retDead;
+		return Continue;
 
 	auto const pType = pThis->GetTechnoType();
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
@@ -77,24 +77,15 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 		IsInLimboDelivered = BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->LimboID >= 0;
 	}
 
-	//if (pThis->Location == CoordStruct::Empty) {
-	//	if (!pType->Spawned && !IsInLimboDelivered) {
-	//		Debug::Log("Techno[%x : %s] With Invalid Location ! , Removing ! \n", pThis, pThis->get_ID());
-	//		TechnoExt::HandleRemove(pThis, nullptr, false, false);
-	//		return retDead;
-	//	}
-	//} else {
-	//
-	//	const auto nFootMapCoords = pThis->InlineMapCoords();
-	//	if (nFootMapCoords == CellStruct::Empty){
-	//		if (!pType->Spawned && !IsInLimboDelivered)
-	//		{
-	//			Debug::Log("Techno[%x : %s] With Invalid Location ! , Removing ! \n", pThis, pThis->get_ID());
-	//			TechnoExt::HandleRemove(pThis, nullptr, false, false);
-	//			return retDead;
-	//		}
-	//	}
-	//}
+	const auto nFootMapCoords = pThis->InlineMapCoords();
+
+	if (pThis->Location == CoordStruct::Empty || nFootMapCoords == CellStruct::Empty) {
+		if (!pType->Spawned && !IsInLimboDelivered) {
+			Debug::Log("Techno[%x : %s] With Invalid Location ! , Removing ! \n", pThis, pThis->get_ID());
+			TechnoExt::HandleRemove(pThis, nullptr, false, false);
+			return Continue;
+		}
+	}
 
 	// Set only if unset or type is changed
 	// Notice that Ares may handle type conversion in the same hook here, which is executed right before this one thankfully
@@ -103,11 +94,13 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 
 	pExt->IsInTunnel = false; // TechnoClass::AI is only called when not in tunnel.
 
-	if (pExt->UpdateKillSelf_Slave())
-		return retDead;
+	if (pExt->UpdateKillSelf_Slave()) {
+		return Continue;
+	}
 
-	if (pExt->CheckDeathConditions())
-		return retDead;
+	if (pExt->CheckDeathConditions()) {
+		return Continue;
+	}
 
 	pExt->UpdateBuildingLightning();
 	pExt->UpdateShield();
@@ -118,8 +111,10 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	pExt->UpdateSpawnLimitRange();
 	pExt->UpdateEatPassengers();
 	pExt->UpdateGattlingOverloadDamage();
-	if(!pThis->IsAlive)
-		return retDead;
+	if(!pThis->IsAlive) {
+		pThis->AnnounceExpiredPointer();
+		return Continue;
+	}
 	//TODO : improve this to better handle delay anims !
 	//pExt->UpdateDelayFireAnim();
 
@@ -173,8 +168,8 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 		}
 	}
 
-	return pThis->IsAlive ? 0x6F9EBB : 0x6FAFFD;
-	//return 0x6F9EBB;
+	//return pThis->IsAlive ? 0x6F9EBB : 0x6FAFFD;
+	return 0x6F9EBB;
 }
 
 DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)

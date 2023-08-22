@@ -119,7 +119,7 @@ bool AnimExt::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight)
 			}
 			else
 			{
-				auto const [bPlayWHAnim, nDamage] = Helper::Otamaa::DetonateWarhead(int(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->GetCoords(), pTechOwner, pOwner, pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
+				auto const& [bPlayWHAnim, nDamage] = Helper::Otamaa::DetonateWarhead(int(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->GetCoords(), pTechOwner, pOwner, pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
 				if (bPlayWHAnim)
 				{
 					if (auto pSplashAnim = MapClass::SelectDamageAnimation(nDamage, pThis->Type->Warhead, pThis->GetCell()->LandType, pThis->GetCoords()))
@@ -338,10 +338,10 @@ bool AnimExt::ExtData::InvalidateIgnorable(void* ptr)
 
 void AnimExt::ExtData::InvalidatePointer(void* const ptr, bool bRemoved)
 {
-	AnnounceInvalidPointer(this->Invoker, ptr);
-	AnnounceInvalidPointer(this->ParentBuilding, ptr);
+	AnnounceInvalidPointer(this->Invoker, ptr , bRemoved);
+	AnnounceInvalidPointer(this->ParentBuilding, ptr, bRemoved);
 
-	if (this->AttachedSystem && this->AttachedSystem.get() == ptr)
+	if (this->AttachedSystem.get() == ptr)
 		this->AttachedSystem.reset(nullptr);
 }
 
@@ -555,9 +555,23 @@ AnimExt::ExtContainer::~ExtContainer() = default;
 // hooks
 
 //Only Extend Anim that Has "Type" Pointer
+DEFINE_HOOK_AGAIN(0x4228D2, AnimClass_CTOR, 0x5)
 DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 {
 	GET(AnimClass*, pItem, ESI);
+
+	if (pItem)
+	{
+		if (pItem->Fetch_ID() == -2) {
+			Debug::Log("Anim[%x] With some weird ID\n", pItem);
+			return 0x0;
+		}
+
+		if(!pItem->Type) {
+			Debug::Log("Anim[%x] With no Type pointer\n", pItem);
+			return 0x0;
+		}
+	}
 
 	if (auto pExt = AnimExt::ExtMap.Allocate(pItem)) {
 		pExt->CreateAttachedSystem();
@@ -597,16 +611,23 @@ DEFINE_HOOK(0x4253FF, AnimClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
+//DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
+//{
+//	GET(AnimClass* const, pThis, ESI);
+//	GET(void*, target, EDI);
+//	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+//
+//	AnimExt::ExtMap.InvalidatePointerFor(pThis, target, all);
+//
+//	R->EBX(0);
+//	return pThis->OwnerObject == target && target ? 0x425174 : 0x4251A3;
+//}
+
+void __fastcall AnimClass_Detach_Wrapper(AnimClass* pThis, DWORD, AbstractClass* target, bool all)
 {
-	GET(AnimClass* const, pThis, ESI);
-	GET(void*, target, EDI);
-	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
-
 	AnimExt::ExtMap.InvalidatePointerFor(pThis, target, all);
-
-	R->EBX(0);
-	return pThis->OwnerObject == target && target ? 0x425174 : 0x4251A3;
+	pThis->AnimClass::PointerExpired(target, all);
 }
 
+DEFINE_JUMP(VTABLE, 0x7E337C, GET_OFFSET(AnimClass_Detach_Wrapper));
 DEFINE_JUMP(VTABLE, 0x7E3390, GET_OFFSET(AnimExt::GetOwningHouse_Wrapper));

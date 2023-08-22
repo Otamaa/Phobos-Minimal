@@ -567,7 +567,8 @@ DEFINE_HOOK(0x70A36E, TechnoClass_DrawPips_Ammo, 0x6)
 	GET_STACK(SHPStruct*, pDefault, 0x74 - 0x48);
 
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	Point2D position = { offset->X, offset->Y };
+	auto const pipOffset = pTypeExt->AmmoPipOffset.Get();
+	Point2D position = { offset->X + pipOffset.X, offset->Y  + pipOffset.Y};
 	ConvertClass* pConvert = pTypeExt->AmmoPip_Palette ?
 		pTypeExt->AmmoPip_Palette->GetConvert<PaletteManager::Mode::Default>()
 		: FileSystem::PALETTE_PAL();

@@ -88,6 +88,7 @@ public:
 		std::vector<TechnoClass*> OwnedTechno {};
 
 		int AvaibleDocks { 0 };
+
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 		{ }
 

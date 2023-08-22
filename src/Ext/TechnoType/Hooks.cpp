@@ -142,6 +142,34 @@ DEFINE_HOOK(0x43E0C4, BuildingClass_Draw_43DA80_TurretMultiOffset, 0x5) //0
 	return 0x43E0E8;
 }
 
+DEFINE_HOOK(0x73CCE1, UnitClass_DrawSHP_TurretOffest, 0x6)
+{
+	GET(UnitClass*, pThis, EBP);
+	REF_STACK(Point2D, pos, STACK_OFFSET(0x15C, -0xE8));
+
+	Matrix3D mtx;
+	mtx.MakeIdentity();
+	mtx.RotateZ(static_cast<float>(pThis->PrimaryFacing.Current().GetRadian<32>()));
+	const auto& nOffs = TechnoTypeExt::ExtMap.Find(pThis->Type)->TurretOffset;
+
+	float x = static_cast<float>(nOffs->X * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+	float y = static_cast<float>(nOffs->Y * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+	float z = static_cast<float>(nOffs->Z * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+
+	mtx.Translate(x, y, z);
+
+	double turretRad = pThis->TurretFacing().GetRadian<32>();
+	double bodyRad = pThis->PrimaryFacing.Current().GetRadian<32>();
+	float angle = (float)(turretRad - bodyRad);
+	mtx.RotateZ(angle);
+	auto res = Matrix3D::MatrixMultiply(mtx, Vector3D<float>::Empty);
+	auto location = CoordStruct { static_cast<int>(res.X), static_cast<int>(-res.Y), static_cast<int>(res.Z) };
+	Point2D temp;
+	pos += *TacticalClass::Instance()->CoordsToScreen(&temp, &location);
+
+	return 0;
+}
+
 DEFINE_HOOK(0x6B7282, SpawnManagerClass_AI_PromoteSpawns, 0x5)
 {
 	GET(SpawnManagerClass*, pThis, ESI);

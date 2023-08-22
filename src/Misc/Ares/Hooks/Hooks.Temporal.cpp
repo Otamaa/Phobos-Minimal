@@ -313,7 +313,10 @@ DEFINE_OVERRIDE_HOOK(0x46920B, BulletClass_Detonate, 6)
 	if(pWHExt->PermaMC)
 		return 0x469AA4u;
 
-	return BulletExt::ApplyMCAlternative(pThis) ? 0x469AA4u : 0u;
+	if (!pWHExt->MindControl_UseTreshold)
+		return 0u;
+
+	return BulletExt::ApplyMCAlternative(pThis) ? 0x469AA4u  : 0u;
 }
 
 DEFINE_OVERRIDE_HOOK(0x71AAAC, TemporalClass_Update_Abductor, 6)
@@ -369,6 +372,9 @@ DEFINE_OVERRIDE_HOOK(0x71A917, TemporalClass_Update_Erase, 5)
 
 	if (pWarheadExt->Supress_LostEva)
 		pOwnerExt->SupressEVALost = true;
+
+	if (pThis->Target && pThis->Target->IsSelected)
+		pThis->Target->Deselect();
 
 	return 0x71A97D;
 }

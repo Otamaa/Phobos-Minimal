@@ -33,7 +33,10 @@ struct GameStrings
 
 	// <none>
 	GAMEMD_STR(NoneStr, 0x817474u);
+	//<human player>
+	GAMEMD_STR(human_player, 0x83DC8C);
 	// none
+	GAMEMD_STR(Computer_, 0x824FD8);
 	GAMEMD_STR(NoneStrb, 0x817694u);
 	GAMEMD_STR(RandomStr, 0x81C008u);
 	GAMEMD_STR(NAMStr, 0x841F43u);
@@ -384,7 +387,7 @@ struct GameStrings
 	GAMEMD_STR(TXT_TECHNICIAN, 0x825550);
 	GAMEMD_STR(TXT_LIGHTNING_STORM_APPROACHING, 0x828060);
 	GAMEMD_STR(TXT_LIGHTNING_STORM, 0x82804C);
-	
+
 	GAMEMD_STR(GUI_Debug            , 0x827AF8);
 	GAMEMD_STR(GUI_CursorCheat      , 0x827AE8);
 	//..
@@ -408,6 +411,15 @@ struct GameStrings
 	GAMEMD_STR(Civilian, 0x818164u);
 	GAMEMD_STR(Special, 0x817318);
 	// ..
+
+	GAMEMD_STR(PlayerAt_A, 0x825070);
+	GAMEMD_STR(PlayerAt_B, 0x825060);
+	GAMEMD_STR(PlayerAt_C, 0x825050);
+	GAMEMD_STR(PlayerAt_D, 0x825040);
+	GAMEMD_STR(PlayerAt_E, 0x825030);
+	GAMEMD_STR(PlayerAt_F, 0x825020);
+	GAMEMD_STR(PlayerAt_G, 0x825010);
+	GAMEMD_STR(PlayerAt_H, 0x825000);
 
 	static bool IsBlank(const char* pValue);
 };

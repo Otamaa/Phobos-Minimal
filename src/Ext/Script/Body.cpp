@@ -46,6 +46,333 @@ ScriptExt::ExtContainer ScriptExt::ExtMap;
 ScriptExt::ExtContainer::ExtContainer() : Container("ScriptClass") { }
 ScriptExt::ExtContainer::~ExtContainer() = default;
 
+#define stringify( name ) #name
+
+NOINLINE const char* ToStrings(PhobosScripts from)
+{
+	switch (from)
+	{
+	case PhobosScripts::TimedAreaGuard:
+		return "TimedAreaGuard";
+	case PhobosScripts::LoadIntoTransports:
+		return "LoadIntoTransports";
+	case PhobosScripts::WaitUntilFullAmmo:
+		return "WaitUntilFullAmmo";
+	case PhobosScripts::RepeatAttackCloserThreat:
+		return "RepeatAttackCloserThreat";
+	case PhobosScripts::RepeatAttackFartherThreat:
+		return "RepeatAttackFartherThreat";
+	case PhobosScripts::RepeatAttackCloser:
+		return "RepeatAttackCloser";
+	case PhobosScripts::RepeatAttackFarther:
+		return "RepeatAttackFarther";
+	case PhobosScripts::SingleAttackCloserThreat:
+		return "SingleAttackCloserThreat";
+	case PhobosScripts::SingleAttackFartherThreat:
+		return "SingleAttackFartherThreat";
+	case PhobosScripts::SingleAttackCloser:
+		return "SingleAttackCloser";
+	case PhobosScripts::SingleAttackFarther:
+		return "SingleAttackFarther";
+	case PhobosScripts::DecreaseCurrentAITriggerWeight:
+		return "DecreaseCurrentAITriggerWeight";
+	case PhobosScripts::IncreaseCurrentAITriggerWeight:
+		return "IncreaseCurrentAITriggerWeight";
+	case PhobosScripts::RepeatAttackTypeCloserThreat:
+		return "RepeatAttackTypeCloserThreat";
+	case PhobosScripts::RepeatAttackTypeFartherThreat:
+		return "RepeatAttackTypeFartherThreat";
+	case PhobosScripts::RepeatAttackTypeCloser:
+		return "RepeatAttackTypeCloser";
+	case PhobosScripts::RepeatAttackTypeFarther:
+		return "RepeatAttackTypeFarther";
+	case PhobosScripts::SingleAttackTypeCloserThreat:
+		return "SingleAttackTypeCloserThreat";
+	case PhobosScripts::SingleAttackTypeFartherThreat:
+		return "SingleAttackTypeFartherThreat";
+	case PhobosScripts::SingleAttackTypeCloser:
+		return "SingleAttackTypeCloser";
+	case PhobosScripts::SingleAttackTypeFarther:
+		return "SingleAttackTypeFarther";
+	case PhobosScripts::WaitIfNoTarget:
+		return "WaitIfNoTarget";
+	case PhobosScripts::TeamWeightReward:
+		return "TeamWeightReward";
+	case PhobosScripts::PickRandomScript:
+		return "PickRandomScript";
+	case PhobosScripts::MoveToEnemyCloser:
+		return "MoveToEnemyCloser";
+	case PhobosScripts::MoveToEnemyFarther:
+		return "MoveToEnemyFarther";
+	case PhobosScripts::MoveToFriendlyCloser:
+		return "MoveToFriendlyCloser";
+	case PhobosScripts::MoveToFriendlyFarther:
+		return "MoveToFriendlyFarther";
+	case PhobosScripts::MoveToTypeEnemyCloser:
+		return "MoveToTypeEnemyCloser";
+	case PhobosScripts::MoveToTypeEnemyFarther:
+		return "MoveToTypeEnemyFarther";
+	case PhobosScripts::MoveToTypeFriendlyCloser:
+		return "MoveToTypeFriendlyCloser";
+	case PhobosScripts::MoveToTypeFriendlyFarther:
+		return "MoveToTypeFriendlyFarther";
+	case PhobosScripts::ModifyTargetDistance:
+		return "ModifyTargetDistance";
+	case PhobosScripts::RandomAttackTypeCloser:
+		return "RandomAttackTypeCloser";
+	case PhobosScripts::RandomAttackTypeFarther:
+		return "RandomAttackTypeFarther";
+	case PhobosScripts::RandomMoveToTypeEnemyCloser:
+		return "RandomMoveToTypeEnemyCloser";
+	case PhobosScripts::RandomMoveToTypeEnemyFarther:
+		return "RandomMoveToTypeEnemyFarther";
+	case PhobosScripts::RandomMoveToTypeFriendlyCloser:
+		return "RandomMoveToTypeFriendlyCloser";
+	case PhobosScripts::RandomMoveToTypeFriendlyFarther:
+		return "RandomMoveToTypeFriendlyFarther";
+	case PhobosScripts::SetMoveMissionEndMode:
+		return "SetMoveMissionEndMode";
+	case PhobosScripts::UnregisterGreatSuccess:
+		return "UnregisterGreatSuccess";
+	case PhobosScripts::GatherAroundLeader:
+		return "GatherAroundLeader";
+	case PhobosScripts::RandomSkipNextAction:
+		return "RandomSkipNextAction";
+	case PhobosScripts::ChangeTeamGroup:
+		return "ChangeTeamGroup";
+	case PhobosScripts::DistributedLoading:
+		return "DistributedLoading";
+	case PhobosScripts::FollowFriendlyByGroup:
+		return "FollowFriendlyByGroup";
+	case PhobosScripts::RallyUnitWithSameGroup:
+		return "RallyUnitWithSameGroup";
+	case PhobosScripts::StopForceJumpCountdown:
+		return "StopForceJumpCountdown";
+	case PhobosScripts::NextLineForceJumpCountdown:
+		return "NextLineForceJumpCountdown";
+	case PhobosScripts::SameLineForceJumpCountdown:
+		return "SameLineForceJumpCountdown";
+	case PhobosScripts::ForceGlobalOnlyTargetHouseEnemy:
+		return "ForceGlobalOnlyTargetHouseEnemy";
+	case PhobosScripts::OverrideOnlyTargetHouseEnemy:
+		return "OverrideOnlyTargetHouseEnemy";
+	case PhobosScripts::SetHouseAngerModifier:
+		return "SetHouseAngerModifier";
+	case PhobosScripts::ModifyHateHouseIndex:
+		return "ModifyHateHouseIndex";
+	case PhobosScripts::ModifyHateHousesList:
+		return "ModifyHateHousesList";
+	case PhobosScripts::ModifyHateHousesList1Random:
+		return "ModifyHateHousesList1Randoms";
+	case PhobosScripts::SetTheMostHatedHouseMinorNoRandom:
+		return "SetTheMostHatedHouseMinorNoRandom";
+	case PhobosScripts::SetTheMostHatedHouseMajorNoRandom:
+		return "SetTheMostHatedHouseMajorNoRandom";
+	case PhobosScripts::SetTheMostHatedHouseRandom:
+		return "SetTheMostHatedHouseRandom";
+	case PhobosScripts::ResetAngerAgainstHouses:
+		return "ResetAngerAgainstHouses";
+	case PhobosScripts::AggroHouse:
+		return "AggroHouse";
+	case PhobosScripts::SetSideIdxForManagingTriggers:
+		return "SetSideIdxForManagingTriggers";
+	case PhobosScripts::SetHouseIdxForManagingTriggers:
+		return "SetHouseIdxForManagingTriggers";
+	case PhobosScripts::ManageAllAITriggers:
+		return "ManageAllAITriggers";
+	case PhobosScripts::EnableTriggersFromList:
+		return "EnableTriggersFromList";
+	case PhobosScripts::DisableTriggersFromList:
+		return "DisableTriggersFromList";
+	case PhobosScripts::DisableTriggersWithObjects:
+		return "DisableTriggersWithObjects";
+	case PhobosScripts::EnableTriggersWithObjects:
+		return "EnableTriggersWithObjects";
+	case PhobosScripts::ConditionalJumpResetVariables:
+		return "ConditionalJumpResetVariables";
+	case PhobosScripts::ConditionalJumpManageResetIfJump:
+		return "ConditionalJumpManageResetIfJump";
+	case PhobosScripts::AbortActionAfterSuccessKill:
+		return "AbortActionAfterSuccessKill";
+	case PhobosScripts::ConditionalJumpManageKillsCounter:
+		return "ConditionalJumpManageKillsCounter";
+	case PhobosScripts::ConditionalJumpSetCounter:
+		return "ConditionalJumpSetCounter";
+	case PhobosScripts::ConditionalJumpSetComparatorMode:
+		return "ConditionalJumpSetComparatorMode";
+	case PhobosScripts::ConditionalJumpSetComparatorValue:
+		return "ConditionalJumpSetComparatorValue";
+	case PhobosScripts::ConditionalJumpSetIndex:
+		return "ConditionalJumpSetIndex";
+	case PhobosScripts::ConditionalJumpIfFalse:
+		return "ConditionalJumpIfFalse";
+	case PhobosScripts::ConditionalJumpIfTrue:
+		return "ConditionalJumpIfTrue";
+	case PhobosScripts::ConditionalJumpKillEvaluation:
+		return "ConditionalJumpKillEvaluation";
+	case PhobosScripts::ConditionalJumpCheckCount:
+		return "ConditionalJumpCheckCount";
+	case PhobosScripts::ConditionalJumpCheckAliveHumans:
+		return "ConditionalJumpCheckAliveHumans";
+	case PhobosScripts::ConditionalJumpCheckObjects:
+		return "ConditionalJumpCheckObjects";
+	case PhobosScripts::ConditionalJumpCheckHumanIsMostHated:
+		return "ConditionalJumpCheckHumanIsMostHated";
+	case PhobosScripts::JumpBackToPreviousScript:
+		return "JumpBackToPreviousScript";
+	case PhobosScripts::RepairDestroyedBridge:
+		return "RepairDestroyedBridge";
+	case PhobosScripts::ChronoshiftToEnemyBase:
+		return "ChronoshiftToEnemyBase";
+	case PhobosScripts::LocalVariableSet:
+		return "LocalVariableSet";
+	case PhobosScripts::LocalVariableAdd:
+		return "LocalVariableAdd";
+	case PhobosScripts::LocalVariableMinus:
+		return "LocalVariableMinus";
+	case PhobosScripts::LocalVariableMultiply:
+		return "LocalVariableMultiply";
+	case PhobosScripts::LocalVariableDivide:
+		return "LocalVariableDivide";
+	case PhobosScripts::LocalVariableMod:
+		return "LocalVariableMod";
+	case PhobosScripts::LocalVariableLeftShift:
+		return "LocalVariableLeftShift";
+	case PhobosScripts::LocalVariableRightShift:
+		return "LocalVariableRightShift";
+	case PhobosScripts::LocalVariableReverse:
+		return "LocalVariableReverse";
+	case PhobosScripts::LocalVariableXor:
+		return "LocalVariableXor";
+	case PhobosScripts::LocalVariableOr:
+		return "LocalVariableOr";
+	case PhobosScripts::LocalVariableAnd:
+		return "LocalVariableAnd";
+	case PhobosScripts::GlobalVariableSet:
+		return "GlobalVariableSet";
+	case PhobosScripts::GlobalVariableAdd:
+		return "GlobalVariableAdd";
+	case PhobosScripts::GlobalVariableMinus:
+		return "GlobalVariableMinus";
+	case PhobosScripts::GlobalVariableMultiply:
+		return "GlobalVariableMultiply";
+	case PhobosScripts::GlobalVariableDivide:
+		return "GlobalVariableDivide";
+	case PhobosScripts::GlobalVariableMod:
+		return "GlobalVariableMod";
+	case PhobosScripts::GlobalVariableLeftShift:
+		return "GlobalVariableLeftShift";
+	case PhobosScripts::GlobalVariableRightShift:
+		return "GlobalVariableRightShift";
+	case PhobosScripts::GlobalVariableReverse:
+		return "GlobalVariableReverse";
+	case PhobosScripts::GlobalVariableXor:
+		return "GlobalVariableXor";
+	case PhobosScripts::GlobalVariableOr:
+		return "GlobalVariableOr";
+	case PhobosScripts::GlobalVariableAnd:
+		return "GlobalVariableAnd";
+	case PhobosScripts::LocalVariableSetByLocal:
+		return "LocalVariableSetByLocal";
+	case PhobosScripts::LocalVariableAddByLocal:
+		return "LocalVariableAddByLocal";
+	case PhobosScripts::LocalVariableMinusByLocal:
+		return "LocalVariableMinusByLocal";
+	case PhobosScripts::LocalVariableMultiplyByLocal:
+		return "LocalVariableMultiplyByLocal";
+	case PhobosScripts::LocalVariableDivideByLocal:
+		return "LocalVariableDivideByLocal";
+	case PhobosScripts::LocalVariableModByLocal:
+		return "LocalVariableModByLocal";
+	case PhobosScripts::LocalVariableLeftShiftByLocal:
+		return "LocalVariableLeftShiftByLocal";
+	case PhobosScripts::LocalVariableRightShiftByLocal:
+		return "LocalVariableRightShiftByLocal";
+	case PhobosScripts::LocalVariableReverseByLocal:
+		return "LocalVariableReverseByLocal";
+	case PhobosScripts::LocalVariableXorByLocal:
+		return "LocalVariableXorByLocal";
+	case PhobosScripts::LocalVariableOrByLocal:
+		return "LocalVariableOrByLocal";
+	case PhobosScripts::LocalVariableAndByLocal:
+		return "LocalVariableAndByLocal";
+	case PhobosScripts::GlobalVariableSetByLocal:
+		return "GlobalVariableSetByLocal";
+	case PhobosScripts::GlobalVariableAddByLocal:
+		return "GlobalVariableAddByLocal";
+	case PhobosScripts::GlobalVariableMinusByLocal:
+		return "GlobalVariableMinusByLocal";
+	case PhobosScripts::GlobalVariableMultiplyByLocal:
+		return "GlobalVariableMultiplyByLocal";
+	case PhobosScripts::GlobalVariableDivideByLocal:
+		return "GlobalVariableDivideByLocal";
+	case PhobosScripts::GlobalVariableModByLocal:
+		return "GlobalVariableModByLocal";
+	case PhobosScripts::GlobalVariableLeftShiftByLocal:
+		return "GlobalVariableLeftShiftByLocal";
+	case PhobosScripts::GlobalVariableRightShiftByLocal:
+		return "GlobalVariableRightShiftByLocal";
+	case PhobosScripts::GlobalVariableReverseByLocal:
+		return "GlobalVariableReverseByLocal";
+	case PhobosScripts::GlobalVariableXorByLocal:
+		return "GlobalVariableXorByLocal";
+	case PhobosScripts::GlobalVariableOrByLocal:
+		return "GlobalVariableOrByLocal";
+	case PhobosScripts::GlobalVariableAndByLocal:
+		return "GlobalVariableAndByLocal";
+	case PhobosScripts::LocalVariableSetByGlobal:
+		return "LocalVariableSetByGlobal";
+	case PhobosScripts::LocalVariableAddByGlobal:
+		return "LocalVariableAddByGlobal";
+	case PhobosScripts::LocalVariableMinusByGlobal:
+		return "LocalVariableMinusByGlobal";
+	case PhobosScripts::LocalVariableMultiplyByGlobal:
+		return "LocalVariableMultiplyByGlobal";
+	case PhobosScripts::LocalVariableDivideByGlobal:
+		return "LocalVariableDivideByGlobal";
+	case PhobosScripts::LocalVariableModByGlobal:
+		return "LocalVariableModByGlobal";
+	case PhobosScripts::LocalVariableLeftShiftByGlobal:
+		return "LocalVariableLeftShiftByGlobal";
+	case PhobosScripts::LocalVariableRightShiftByGlobal:
+		return "LocalVariableRightShiftByGlobal";
+	case PhobosScripts::LocalVariableReverseByGlobal:
+		return "LocalVariableReverseByGlobal";
+	case PhobosScripts::LocalVariableXorByGlobal:
+		return "LocalVariableXorByGlobal";
+	case PhobosScripts::LocalVariableOrByGlobal:
+		return "LocalVariableOrByGlobal";
+	case PhobosScripts::LocalVariableAndByGlobal:
+		return "LocalVariableAndByGlobal";
+	case PhobosScripts::GlobalVariableSetByGlobal:
+		return "GlobalVariableSetByGlobal";
+	case PhobosScripts::GlobalVariableAddByGlobal:
+		return "GlobalVariableAddByGlobal";
+	case PhobosScripts::GlobalVariableMinusByGlobal:
+		return "GlobalVariableMinusByGlobal";
+	case PhobosScripts::GlobalVariableMultiplyByGlobal:
+		return "GlobalVariableMultiplyByGlobal";
+	case PhobosScripts::GlobalVariableDivideByGlobal:
+		return "GlobalVariableDivideByGlobal";
+	case PhobosScripts::GlobalVariableModByGlobal:
+		return "GlobalVariableModByGlobal";
+	case PhobosScripts::GlobalVariableLeftShiftByGlobal:
+		return "GlobalVariableLeftShiftByGlobal";
+	case PhobosScripts::GlobalVariableRightShiftByGlobal:
+		return "GlobalVariableRightShiftByGlobal";
+	case PhobosScripts::GlobalVariableReverseByGlobal:
+		return "GlobalVariableReverseByGlobal";
+	case PhobosScripts::GlobalVariableXorByGlobal:
+		return "GlobalVariableXorByGlobal";
+	case PhobosScripts::GlobalVariableOrByGlobal:
+		return "GlobalVariableOrByGlobal";
+	case PhobosScripts::GlobalVariableAndByGlobal:
+		return "GlobalVariableAndByGlobal";
+	default:
+		return GameStrings::NoneStr();
+	}
+}
+
 void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
 {
 	auto const& [action, argument] = pTeam->CurrentScript->GetCurrentAction();
@@ -53,7 +380,14 @@ void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
 	//only find stuffs on the range , reducing the load
 	if ((AresScripts)action >= AresScripts::count)
 	{
-		//Debug::Log("Executing[%s - %x] %d - %d\n", pTeam->get_ID(), pTeam, action, argument);
+		Debug::Log("[%s - %x] Executing[%s - %x] [%d (%s) - %d]\n",
+			pTeam->Owner->get_ID(),
+			pTeam->Owner,
+			pTeam->get_ID(),
+			pTeam, action ,
+			ToStrings((PhobosScripts)action), argument
+		);
+
 		switch ((PhobosScripts)action)
 		{
 		case PhobosScripts::TimedAreaGuard:
@@ -71,58 +405,6 @@ void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
 			ScriptExt::WaitUntilFullAmmoAction(pTeam); //
 			return;
 		}
-
-#pragma region Mission_Attack
-		case PhobosScripts::RepeatAttackCloserThreat:
-		{
-			// Threats that are close have more priority. Kill until no more targets.
-			ScriptExt::Mission_Attack(pTeam, true, 0, -1, -1); //done
-			return;
-		}
-		case PhobosScripts::RepeatAttackFartherThreat:
-		{
-			// Threats that are far have more priority. Kill until no more targets.
-			ScriptExt::Mission_Attack(pTeam, true, 1, -1, -1); //done
-			return;
-		}
-		case PhobosScripts::RepeatAttackCloser:
-		{
-			// Closer targets from Team Leader have more priority. Kill until no more targets.
-			ScriptExt::Mission_Attack(pTeam, true, 2, -1, -1); //done
-			return;
-		}
-		case PhobosScripts::RepeatAttackFarther:
-		{
-			// Farther targets from Team Leader have more priority. Kill until no more targets.
-			ScriptExt::Mission_Attack(pTeam, true, 3, -1, -1); //done
-			return;
-		}
-		case PhobosScripts::SingleAttackCloserThreat:
-		{
-			// Threats that are close have more priority. 1 kill only (good for xx=49,0 combos)
-			ScriptExt::Mission_Attack(pTeam, false, 0, -1, -1); //done
-			return;
-		}
-		case PhobosScripts::SingleAttackFartherThreat:
-		{
-			// Threats that are far have more priority. 1 kill only (good for xx=49,0 combos)
-			ScriptExt::Mission_Attack(pTeam, false, 1, -1, -1); //done
-			return;
-		}
-		case PhobosScripts::SingleAttackCloser:
-		{
-			// Closer targets from Team Leader have more priority. 1 kill only (good for xx=49,0 combos)
-			ScriptExt::Mission_Attack(pTeam, false, 2, -1, -1); //done
-			return;
-		}
-		case PhobosScripts::SingleAttackFarther:
-		{
-			// Farther targets from Team Leader have more priority. 1 kill only (good for xx=49,0 combos)
-			ScriptExt::Mission_Attack(pTeam, false, 3, -1, -1); //done
-			return;
-		}
-#pragma endregion
-
 		case PhobosScripts::DecreaseCurrentAITriggerWeight:
 		{
 			ScriptExt::DecreaseCurrentTriggerWeight(pTeam, true, 0); //
@@ -133,58 +415,6 @@ void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
 			ScriptExt::IncreaseCurrentTriggerWeight(pTeam, true, 0);
 			return;
 		}
-
-#pragma region Mission_Attack_List
-		case PhobosScripts::RepeatAttackTypeCloserThreat:
-		{
-			// Threats specific targets that are close have more priority. Kill until no more targets.
-			ScriptExt::Mission_Attack_List(pTeam, true, 0, -1);
-			return;
-		}
-		case PhobosScripts::RepeatAttackTypeFartherThreat:
-		{
-			// Threats specific targets that are far have more priority. Kill until no more targets.
-			ScriptExt::Mission_Attack_List(pTeam, true, 1, -1);
-			return;
-		}
-		case PhobosScripts::RepeatAttackTypeCloser:
-		{
-			// Closer specific targets targets from Team Leader have more priority. Kill until no more targets.
-			ScriptExt::Mission_Attack_List(pTeam, true, 2, -1);
-			return;
-		}
-		case PhobosScripts::RepeatAttackTypeFarther:
-		{
-			// Farther specific targets targets from Team Leader have more priority. Kill until no more targets.
-			ScriptExt::Mission_Attack_List(pTeam, true, 3, -1);
-			return;
-		}
-		case PhobosScripts::SingleAttackTypeCloserThreat:
-		{
-			// Threats specific targets that are close have more priority. 1 kill only (good for xx=49,0 combos)
-			ScriptExt::Mission_Attack_List(pTeam, false, 0, -1);
-			return;
-		}
-		case PhobosScripts::SingleAttackTypeFartherThreat:
-		{
-			// Threats specific targets that are far have more priority. 1 kill only (good for xx=49,0 combos)
-			ScriptExt::Mission_Attack_List(pTeam, false, 1, -1);
-			return;
-		}
-		case PhobosScripts::SingleAttackTypeCloser:
-		{
-			// Closer specific targets from Team Leader have more priority. 1 kill only (good for xx=49,0 combos)
-			ScriptExt::Mission_Attack_List(pTeam, false, 2, -1);
-			return;
-		}
-		case PhobosScripts::SingleAttackTypeFarther:
-		{
-			// Farther specific targets from Team Leader have more priority. 1 kill only (good for xx=49,0 combos)
-			ScriptExt::Mission_Attack_List(pTeam, false, 3, -1);
-			return;
-		}
-#pragma endregion
-
 		case PhobosScripts::WaitIfNoTarget:
 		{
 			ScriptExt::WaitIfNoTarget(pTeam, -1);
@@ -200,110 +430,12 @@ void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
 			ScriptExt::PickRandomScript(pTeam, -1);
 			return;
 		}
-
-#pragma region Mission_Move
-		case PhobosScripts::MoveToEnemyCloser:
-		{
-			// Move to the closest enemy target
-			ScriptExt::Mission_Move(pTeam, 2, false, -1, -1);
-			return;
-		}
-		case PhobosScripts::MoveToEnemyFarther:
-		{
-			// Move to the farther enemy target
-			ScriptExt::Mission_Move(pTeam, 3, false, -1, -1);
-			return;
-		}
-		case PhobosScripts::MoveToFriendlyCloser:
-		{
-			// Move to the closest friendly target
-			ScriptExt::Mission_Move(pTeam, 2, true, -1, -1);
-			return;
-		}
-		case PhobosScripts::MoveToFriendlyFarther:
-		{
-			// Move to the farther friendly target
-			ScriptExt::Mission_Move(pTeam, 3, true, -1, -1);
-			return;
-		}
-#pragma endregion
-
-#pragma region Mission_Move_List
-		case PhobosScripts::MoveToTypeEnemyCloser:
-		{
-			// Move to the closest specific enemy target
-			ScriptExt::Mission_Move_List(pTeam, 2, false, -1);
-			return;
-		}
-		case PhobosScripts::MoveToTypeEnemyFarther:
-		{
-			// Move to the farther specific enemy target
-			ScriptExt::Mission_Move_List(pTeam, 3, false, -1);
-			return;
-		}
-		case PhobosScripts::MoveToTypeFriendlyCloser:
-		{
-			// Move to the closest specific friendly target
-			ScriptExt::Mission_Move_List(pTeam, 2, true, -1);
-			return;
-		}
-		case PhobosScripts::MoveToTypeFriendlyFarther:
-		{
-			// Move to the farther specific friendly target
-			ScriptExt::Mission_Move_List(pTeam, 3, true, -1);
-			return;
-		}
-#pragma endregion
-
 		case PhobosScripts::ModifyTargetDistance:
 		{
 			// AISafeDistance equivalent for Mission_Move()
 			ScriptExt::SetCloseEnoughDistance(pTeam , -1);
 			return;
 		}
-
-#pragma region Mission_Attack_List1Random
-		case PhobosScripts::RandomAttackTypeCloser:
-		{
-			// Pick 1 closer random objective from specific list for attacking it
-			ScriptExt::Mission_Attack_List1Random(pTeam, true, 2, -1);
-			return;
-		}
-		case PhobosScripts::RandomAttackTypeFarther:
-		{
-			// Pick 1 farther random objective from specific list for attacking it
-			ScriptExt::Mission_Attack_List1Random(pTeam, true, 3, -1);
-			return;
-		}
-#pragma endregion
-
-#pragma region Mission_Move_List1Random
-		case PhobosScripts::RandomMoveToTypeEnemyCloser:
-		{
-			// Pick 1 closer enemy random objective from specific list for moving to it
-			ScriptExt::Mission_Move_List1Random(pTeam, 2, false, -1, -1);
-			return;
-		}
-		case PhobosScripts::RandomMoveToTypeEnemyFarther:
-		{
-			// Pick 1 farther enemy random objective from specific list for moving to it
-			ScriptExt::Mission_Move_List1Random(pTeam, 3, false, -1, -1);
-			return;
-		}
-		case PhobosScripts::RandomMoveToTypeFriendlyCloser:
-		{
-			// Pick 1 closer friendly random objective from specific list for moving to it
-			ScriptExt::Mission_Move_List1Random(pTeam, 2, true, -1, -1);
-			return;
-		}
-		case PhobosScripts::RandomMoveToTypeFriendlyFarther:
-		{
-			// Pick 1 farther friendly random objective from specific list for moving to it
-			ScriptExt::Mission_Move_List1Random(pTeam, 3, true, -1, -1);
-			return;
-		}
-#pragma endregion
-
 		case PhobosScripts::SetMoveMissionEndMode:
 		{
 			// Set the condition for ending the Mission_Move Actions.
@@ -326,6 +458,262 @@ void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
 			ScriptExt::SkipNextAction(pTeam, -1);
 			return;
 		}
+		case PhobosScripts::ForceGlobalOnlyTargetHouseEnemy:
+		{
+			ScriptExt::ForceGlobalOnlyTargetHouseEnemy(pTeam, -1);
+			return;
+		}
+		case PhobosScripts::ChangeTeamGroup:
+		{
+		//	ScriptExt::TeamMemberSetGroup(pTeam, argument);
+			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
+			pTeam->StepCompleted = true;
+			return;
+		}
+		//TODO
+		case PhobosScripts::DistributedLoading:
+		{
+			//ScriptExt::DistributedLoadOntoTransport(pTeam, argument); //which branch is this again ?
+			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
+			pTeam->StepCompleted = true;
+			return;
+		}
+		case PhobosScripts::FollowFriendlyByGroup:
+		{
+			//ScriptExt::FollowFriendlyByGroup(pTeam, argument); //which branch is this again ?
+			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
+			pTeam->StepCompleted = true;
+			return;
+		}
+		case PhobosScripts::RallyUnitWithSameGroup:
+		{
+			//ScriptExt::RallyUnitInMap(pTeam, argument); //which branch is this again ?
+			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
+			pTeam->StepCompleted = true;
+			return;
+		}
+		case PhobosScripts::AbortActionAfterSuccessKill:
+		{
+			ScriptExt::SetAbortActionAfterSuccessKill(pTeam, -1);  //which branch is this again ?
+			return;
+		}
+		case PhobosScripts::JumpBackToPreviousScript:
+		{
+			ScriptExt::JumpBackToPreviousScript(pTeam);  //which branch is this again ?
+			return;
+		}
+		case PhobosScripts::RepairDestroyedBridge:
+		{
+			// Start Timed Jump that jumps to the same line when the countdown finish (in frames)
+			//ScriptExt::RepairDestroyedBridge(pTeam, -1);  //which branch is this again ?
+			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
+			pTeam->StepCompleted = true;
+			return;
+		}
+		case PhobosScripts::ChronoshiftToEnemyBase: //#1077
+		{
+			// Chronoshift to enemy base, argument is additional distance modifier
+			ScriptExt::ChronoshiftToEnemyBase(pTeam, argument);
+			return;
+		}
+
+#pragma region Mission_Attack
+		case PhobosScripts::RepeatAttackCloserThreat:
+		{
+			// Threats that are close have more priority. Kill until no more targets.
+			ScriptExt::Mission_Attack(pTeam, true, DistanceMode::idkZero, -1, -1); //done
+			return;
+		}
+		case PhobosScripts::RepeatAttackFartherThreat:
+		{
+			// Threats that are far have more priority. Kill until no more targets.
+			ScriptExt::Mission_Attack(pTeam, true, DistanceMode::idkOne, -1, -1); //done
+			return;
+		}
+		case PhobosScripts::RepeatAttackCloser:
+		{
+			// Closer targets from Team Leader have more priority. Kill until no more targets.
+			ScriptExt::Mission_Attack(pTeam, true, DistanceMode::Closest, -1, -1); //done
+			return;
+		}
+		case PhobosScripts::RepeatAttackFarther:
+		{
+			// Farther targets from Team Leader have more priority. Kill until no more targets.
+			ScriptExt::Mission_Attack(pTeam, true, DistanceMode::Furtherst, -1, -1); //done
+			return;
+		}
+		case PhobosScripts::SingleAttackCloserThreat:
+		{
+			// Threats that are close have more priority. 1 kill only (good for xx=49,0 combos)
+			ScriptExt::Mission_Attack(pTeam, false, DistanceMode::idkZero, -1, -1); //done
+			return;
+		}
+		case PhobosScripts::SingleAttackFartherThreat:
+		{
+			// Threats that are far have more priority. 1 kill only (good for xx=49,0 combos)
+			ScriptExt::Mission_Attack(pTeam, false, DistanceMode::idkOne, -1, -1); //done
+			return;
+		}
+		case PhobosScripts::SingleAttackCloser:
+		{
+			// Closer targets from Team Leader have more priority. 1 kill only (good for xx=49,0 combos)
+			ScriptExt::Mission_Attack(pTeam, false, DistanceMode::Closest, -1, -1); //done
+			return;
+		}
+		case PhobosScripts::SingleAttackFarther:
+		{
+			// Farther targets from Team Leader have more priority. 1 kill only (good for xx=49,0 combos)
+			ScriptExt::Mission_Attack(pTeam, false, DistanceMode::Furtherst, -1, -1); //done
+			return;
+		}
+#pragma endregion
+
+#pragma region Mission_Attack_List
+		case PhobosScripts::RepeatAttackTypeCloserThreat:
+		{
+			// Threats specific targets that are close have more priority. Kill until no more targets.
+			ScriptExt::Mission_Attack_List(pTeam, true, DistanceMode::idkZero, -1);
+			return;
+		}
+		case PhobosScripts::RepeatAttackTypeFartherThreat:
+		{
+			// Threats specific targets that are far have more priority. Kill until no more targets.
+			ScriptExt::Mission_Attack_List(pTeam, true, DistanceMode::idkOne, -1);
+			return;
+		}
+		case PhobosScripts::RepeatAttackTypeCloser:
+		{
+			// Closer specific targets targets from Team Leader have more priority. Kill until no more targets.
+			ScriptExt::Mission_Attack_List(pTeam, true, DistanceMode::Closest, -1);
+			return;
+		}
+		case PhobosScripts::RepeatAttackTypeFarther:
+		{
+			// Farther specific targets targets from Team Leader have more priority. Kill until no more targets.
+			ScriptExt::Mission_Attack_List(pTeam, true, DistanceMode::Furtherst, -1);
+			return;
+		}
+		case PhobosScripts::SingleAttackTypeCloserThreat:
+		{
+			// Threats specific targets that are close have more priority. 1 kill only (good for xx=49,0 combos)
+			ScriptExt::Mission_Attack_List(pTeam, false, DistanceMode::idkZero, -1);
+			return;
+		}
+		case PhobosScripts::SingleAttackTypeFartherThreat:
+		{
+			// Threats specific targets that are far have more priority. 1 kill only (good for xx=49,0 combos)
+			ScriptExt::Mission_Attack_List(pTeam, false, DistanceMode::idkOne, -1);
+			return;
+		}
+		case PhobosScripts::SingleAttackTypeCloser:
+		{
+			// Closer specific targets from Team Leader have more priority. 1 kill only (good for xx=49,0 combos)
+			ScriptExt::Mission_Attack_List(pTeam, false, DistanceMode::Closest, -1);
+			return;
+		}
+		case PhobosScripts::SingleAttackTypeFarther:
+		{
+			// Farther specific targets from Team Leader have more priority. 1 kill only (good for xx=49,0 combos)
+			ScriptExt::Mission_Attack_List(pTeam, false, DistanceMode::Furtherst, -1);
+			return;
+		}
+#pragma endregion
+
+#pragma region Mission_Attack_List1Random
+		case PhobosScripts::RandomAttackTypeCloser:
+		{
+			// Pick 1 closer random objective from specific list for attacking it
+			ScriptExt::Mission_Attack_List1Random(pTeam, true, DistanceMode::Closest, -1);
+			return;
+		}
+		case PhobosScripts::RandomAttackTypeFarther:
+		{
+			// Pick 1 farther random objective from specific list for attacking it
+			ScriptExt::Mission_Attack_List1Random(pTeam, true, DistanceMode::Furtherst, -1);
+			return;
+		}
+#pragma endregion
+
+#pragma region Mission_Move
+		case PhobosScripts::MoveToEnemyCloser:
+		{
+			// Move to the closest enemy target
+			ScriptExt::Mission_Move(pTeam, DistanceMode::Closest, false, -1, -1);
+			return;
+		}
+		case PhobosScripts::MoveToEnemyFarther:
+		{
+			// Move to the farther enemy target
+			ScriptExt::Mission_Move(pTeam, DistanceMode::Furtherst, false, -1, -1);
+			return;
+		}
+		case PhobosScripts::MoveToFriendlyCloser:
+		{
+			// Move to the closest friendly target
+			ScriptExt::Mission_Move(pTeam, DistanceMode::Closest, true, -1, -1);
+			return;
+		}
+		case PhobosScripts::MoveToFriendlyFarther:
+		{
+			// Move to the farther friendly target
+			ScriptExt::Mission_Move(pTeam, DistanceMode::Furtherst, true, -1, -1);
+			return;
+		}
+#pragma endregion
+
+#pragma region Mission_Move_List
+		case PhobosScripts::MoveToTypeEnemyCloser:
+		{
+			// Move to the closest specific enemy target
+			ScriptExt::Mission_Move_List(pTeam, DistanceMode::Closest, false, -1);
+			return;
+		}
+		case PhobosScripts::MoveToTypeEnemyFarther:
+		{
+			// Move to the farther specific enemy target
+			ScriptExt::Mission_Move_List(pTeam, DistanceMode::Furtherst, false, -1);
+			return;
+		}
+		case PhobosScripts::MoveToTypeFriendlyCloser:
+		{
+			// Move to the closest specific friendly target
+			ScriptExt::Mission_Move_List(pTeam, DistanceMode::Closest, true, -1);
+			return;
+		}
+		case PhobosScripts::MoveToTypeFriendlyFarther:
+		{
+			// Move to the farther specific friendly target
+			ScriptExt::Mission_Move_List(pTeam, DistanceMode::Furtherst, true, -1);
+			return;
+		}
+#pragma endregion
+
+#pragma region Mission_Move_List1Random
+		case PhobosScripts::RandomMoveToTypeEnemyCloser:
+		{
+			// Pick 1 closer enemy random objective from specific list for moving to it
+			ScriptExt::Mission_Move_List1Random(pTeam, DistanceMode::Closest, false, -1, -1);
+			return;
+		}
+		case PhobosScripts::RandomMoveToTypeEnemyFarther:
+		{
+			// Pick 1 farther enemy random objective from specific list for moving to it
+			ScriptExt::Mission_Move_List1Random(pTeam, DistanceMode::Furtherst, false, -1, -1);
+			return;
+		}
+		case PhobosScripts::RandomMoveToTypeFriendlyCloser:
+		{
+			// Pick 1 closer friendly random objective from specific list for moving to it
+			ScriptExt::Mission_Move_List1Random(pTeam, DistanceMode::Closest, true, -1, -1);
+			return;
+		}
+		case PhobosScripts::RandomMoveToTypeFriendlyFarther:
+		{
+			// Pick 1 farther friendly random objective from specific list for moving to it
+			ScriptExt::Mission_Move_List1Random(pTeam, DistanceMode::Furtherst, true, -1, -1);
+			return;
+		}
+#pragma endregion
 
 #pragma region Stop_ForceJump_Countdown
 		case PhobosScripts::StopForceJumpCountdown:
@@ -348,304 +736,173 @@ void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
 		}
 #pragma endregion
 
-
-		case PhobosScripts::ForceGlobalOnlyTargetHouseEnemy:
-		{
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n",pTeam,pTeam->get_ID() , pTeam->CurrentScript, pTeam->CurrentScript->get_ID() , action);
-			pTeam->StepCompleted = true;
-			//ScriptExt::ForceGlobalOnlyTargetHouseEnemy(pTeam, -1);
-			return;
-		}
-		case PhobosScripts::ChangeTeamGroup:
-		{
-		//	ScriptExt::TeamMemberSetGroup(pTeam, argument);
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
-			return;
-		}
-
-		//TODO
-		case PhobosScripts::DistributedLoading:
-		{
-			//ScriptExt::DistributedLoadOntoTransport(pTeam, argument); //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
-			return;
-		}
-
-		case PhobosScripts::FollowFriendlyByGroup:
-		{
-			//ScriptExt::FollowFriendlyByGroup(pTeam, argument); //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
-			return;
-		}
-		case PhobosScripts::RallyUnitWithSameGroup:
-		{
-			//ScriptExt::RallyUnitInMap(pTeam, argument); //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
-			return;
-		}
+#pragma region AngerNodes
 		case PhobosScripts::SetHouseAngerModifier:
 		{
-			//ScriptExt::SetHouseAngerModifier(pTeam, 0); //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::SetHouseAngerModifier(pTeam, 0); //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::OverrideOnlyTargetHouseEnemy:
 		{
-			//ScriptExt::OverrideOnlyTargetHouseEnemy(pTeam, -1); //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::OverrideOnlyTargetHouseEnemy(pTeam, -1); //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ModifyHateHouseIndex:
 		{
-			//ScriptExt::ModifyHateHouse_Index(pTeam, -1); //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ModifyHateHouse_Index(pTeam, -1); //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ModifyHateHousesList:
 		{
-			//ScriptExt::ModifyHateHouses_List(pTeam, -1); //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ModifyHateHouses_List(pTeam, -1); //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ModifyHateHousesList1Random:
 		{
-			//ScriptExt::ModifyHateHouses_List1Random(pTeam, -1);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ModifyHateHouses_List1Random(pTeam, -1);  //which branch is this again ?
 			return;
 		}
-
-#pragma region SetTheMostHatedHouse
 		case PhobosScripts::SetTheMostHatedHouseMinorNoRandom:
 		{
 			// <, no random
-			//ScriptExt::SetTheMostHatedHouse(pTeam, 0, 0, false);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::SetTheMostHatedHouse(pTeam, 0, 0, false);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::SetTheMostHatedHouseMajorNoRandom:
 		{
 			// >, no random
-		//	ScriptExt::SetTheMostHatedHouse(pTeam, 0, 1, false);
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::SetTheMostHatedHouse(pTeam, 0, 1, false);
 			return;
 		}
 		case PhobosScripts::SetTheMostHatedHouseRandom:
 		{
 			// random
-			//ScriptExt::SetTheMostHatedHouse(pTeam, 0, 0, true);
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::SetTheMostHatedHouse(pTeam, 0, 0, true);
 			return;
 		}
-#pragma endregion
-
-#pragma region AngerNodesMod
 		case PhobosScripts::ResetAngerAgainstHouses:
 		{
-			//ScriptExt::ResetAngerAgainstHouses(pTeam);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ResetAngerAgainstHouses(pTeam);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::AggroHouse:
 		{
-			//ScriptExt::AggroHouse(pTeam, -1);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
-			return;
-		}
-		case PhobosScripts::AbortActionAfterSuccessKill:
-		{
-			//ScriptExt::SetAbortActionAfterSuccessKill(pTeam, -1);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::AggroHouse(pTeam, -1);  //which branch is this again ?
 			return;
 		}
 #pragma endregion
 
-#pragma region ConditionalJump
+#pragma region ConditionalJump //#599
 		case PhobosScripts::ConditionalJumpSetCounter:
 		{
-			//ScriptExt::ConditionalJump_SetCounter(pTeam, -100000000);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ConditionalJump_SetCounter(pTeam, -100000000);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpSetComparatorMode:
 		{
-			//ScriptExt::ConditionalJump_SetComparatorMode(pTeam, -1);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ConditionalJump_SetComparatorMode(pTeam, -1);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpSetComparatorValue:
 		{
-			//ScriptExt::ConditionalJump_SetComparatorValue(pTeam, -1);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ConditionalJump_SetComparatorValue(pTeam, -1);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpSetIndex:
 		{
-			//ScriptExt::ConditionalJump_SetIndex(pTeam, -1000000);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ConditionalJump_SetIndex(pTeam, -1000000);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpResetVariables:
 		{
-			//ScriptExt::ConditionalJump_ResetVariables(pTeam);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ConditionalJump_ResetVariables(pTeam);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpIfFalse:
 		{
-			//ScriptExt::ConditionalJumpIfFalse(pTeam, -1);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ConditionalJumpIfFalse(pTeam, -1);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpIfTrue:
 		{
-			//ScriptExt::ConditionalJumpIfTrue(pTeam, -1);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ConditionalJumpIfTrue(pTeam, -1);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpManageKillsCounter:
 		{
-			//ScriptExt::ConditionalJump_ManageKillsCounter(pTeam, -1);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ConditionalJump_ManageKillsCounter(pTeam, -1);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpCheckAliveHumans:
 		{
-			//ScriptExt::ConditionalJump_CheckAliveHumans(pTeam, -1);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ConditionalJump_CheckAliveHumans(pTeam, -1);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpCheckHumanIsMostHated:
 		{
-			//ScriptExt::ConditionalJump_CheckHumanIsMostHated(pTeam);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ConditionalJump_CheckHumanIsMostHated(pTeam);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpKillEvaluation:
 		{
-			//ScriptExt::ConditionalJump_KillEvaluation(pTeam);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ConditionalJump_KillEvaluation(pTeam);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpCheckObjects:
 		{
-			//ScriptExt::ConditionalJump_CheckObjects(pTeam);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ConditionalJump_CheckObjects(pTeam);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpCheckCount:
 		{
-			//ScriptExt::ConditionalJump_CheckCount(pTeam, 0);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ConditionalJump_CheckCount(pTeam, 0);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpManageResetIfJump:
 		{
-			//ScriptExt::ConditionalJump_ManageResetIfJump(pTeam, -1);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ConditionalJump_ManageResetIfJump(pTeam, -1);  //which branch is this again ?
 			return;
 		}
 #pragma endregion
 
-		case PhobosScripts::JumpBackToPreviousScript:
-		{
-			//ScriptExt::JumpBackToPreviousScript(pTeam);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
-			return;
-		}
+#pragma region ManagingTriggers
 		case PhobosScripts::SetSideIdxForManagingTriggers:
 		{
-			//ScriptExt::SetSideIdxForManagingTriggers(pTeam, -1);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::SetSideIdxForManagingTriggers(pTeam, -1);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::SetHouseIdxForManagingTriggers:
 		{
-			//ScriptExt::SetHouseIdxForManagingTriggers(pTeam, 1000000);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::SetHouseIdxForManagingTriggers(pTeam, 1000000);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ManageAllAITriggers:
 		{
-			//ScriptExt::ManageAITriggers(pTeam, -1);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ManageAITriggers(pTeam, -1);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::EnableTriggersFromList:
 		{
-			//ScriptExt::ManageTriggersFromList(pTeam, -1, true);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ManageTriggersFromList(pTeam, -1, true);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::DisableTriggersFromList:
 		{
-			//ScriptExt::ManageTriggersFromList(pTeam, -1, false);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ManageTriggersFromList(pTeam, -1, false);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::EnableTriggersWithObjects:
 		{
-			//ScriptExt::ManageTriggersWithObjects(pTeam, -1, true);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ManageTriggersWithObjects(pTeam, -1, true);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::DisableTriggersWithObjects:
 		{
-			//ScriptExt::ManageTriggersWithObjects(pTeam, -1, false);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
+			ScriptExt::ManageTriggersWithObjects(pTeam, -1, false);  //which branch is this again ?
 			return;
 		}
-		case PhobosScripts::RepairDestroyedBridge:
-		{
-			// Start Timed Jump that jumps to the same line when the countdown finish (in frames)
-			//ScriptExt::RepairDestroyedBridge(pTeam, -1);  //which branch is this again ?
-			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
-			pTeam->StepCompleted = true;
-			return;
-		}
+#pragma endregion
 
-		case PhobosScripts::ChronoshiftToEnemyBase: //#1077
-		{
-			// Chronoshift to enemy base, argument is additional distance modifier
-			ScriptExt::ChronoshiftToEnemyBase(pTeam, argument);
-			return;
-		}
 		}
 
 		// Do nothing because or it is a wrong Action number or it is an Ares/YR action...
@@ -679,8 +936,12 @@ void ScriptExt::ExecuteTimedAreaGuardAction(TeamClass* pTeam)
 
 	if (pTeam->GuardAreaTimer.TimeLeft == 0 && !pTeam->GuardAreaTimer.InProgress())
 	{
-		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
+		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember){
+			if (TechnoExt::IsInWarfactory(pUnit))
+				return; // held back Timed area guard if one of the member still in warfactory
+
 			pUnit->QueueMission(Mission::Area_Guard, true);
+		}
 
 		pTeam->GuardAreaTimer.Start(15 * pScriptType->ScriptActions[pScript->CurrentMission].Argument);
 	}
@@ -774,7 +1035,7 @@ void ScriptExt::WaitUntilFullAmmoAction(TeamClass* pTeam)
 {
 	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 	{
-		if (!pUnit->InLimbo && pUnit->Health > 0)
+		if (ScriptExt::IsUnitAvailable(pUnit , false))
 		{
 			const auto pType = pUnit->GetTechnoType();
 
@@ -898,7 +1159,7 @@ void ScriptExt::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown = -
 		// Check if units are around the leader
 		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 		{
-			if (!ScriptExt::IsUnitAvailable(pUnit, true))
+			if (ScriptExt::IsUnitAvailable(pUnit, true))
 			{
 				auto pTypeUnit = pUnit->GetTechnoType();
 
@@ -1092,11 +1353,8 @@ void ScriptExt::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 				if (pNewScript->ActionsCount > 0)
 				{
 					changeFailed = false;
-
-					GameDelete<true, false>(pTeam->CurrentScript);
-					pTeam->CurrentScript = nullptr;
-					pTeam->CurrentScript = GameCreate<ScriptClass>(pNewScript);
-
+					TeamExt::ExtMap.Find(pTeam)->PreviousScript =
+					std::exchange(pTeam->CurrentScript , GameCreate<ScriptClass>(pNewScript));
 					// Ready for jumping to the first line of the new script
 					pTeam->CurrentScript->CurrentMission = -1;
 					pTeam->StepCompleted = true;
@@ -1136,10 +1394,6 @@ void ScriptExt::SetCloseEnoughDistance(TeamClass* pTeam, double distance = -1)
 
 	auto const pTeamData = TeamExt::ExtMap.Find(pTeam);
 
-	if (!pTeamData) {
-		pTeam->StepCompleted = true;
-		return;
-	}
 
 	if (distance > 0)
 		pTeamData->CloseEnough = distance;
@@ -1180,15 +1434,24 @@ void ScriptExt::SetMoveMissionEndMode(TeamClass* pTeam, int mode = 0)
 
 bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, FootClass* pLeader = nullptr, int mode = 0)
 {
-	if (!pTeam || !pFocus || mode < 0)
+
+	if (!pTeam || mode < 0)
 		return false;
 
-	if (mode != 2 && mode != 1 && !pLeader)
+	if (!ScriptExt::IsUnitAvailable(pFocus, false))
+	{
+		pTeam->Focus = nullptr;
 		return false;
-
-	double closeEnough = RulesClass::Instance->CloseEnough.ToCell();
+	}
 
 	auto const pTeamData = TeamExt::ExtMap.Find(pTeam);
+
+	if (mode != 2 && mode != 1 && !ScriptExt::IsUnitAvailable(pLeader, false)){
+		pTeamData->TeamLeader = nullptr;
+		return false;
+	}
+
+	double closeEnough = RulesClass::Instance->CloseEnough.ToCell();
 
 	if (pTeamData->CloseEnough > 0)
 		closeEnough = pTeamData->CloseEnough;
@@ -1254,7 +1517,7 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 				else
 				{
 					// All other cases: Team Leader mode in range
-					if (pLeader)
+					if (ScriptExt::IsUnitAvailable(pLeader, false))
 					{
 						if ((pUnit->DistanceFrom(pFocus->GetCell()) / 256.0) > closeEnough)
 						{
@@ -1291,12 +1554,12 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 void ScriptExt::SkipNextAction(TeamClass* pTeam, int successPercentage = 0)
 {
 	// This team has no units! END
-	if (!pTeam->FirstUnit)
+	if (!pTeam)
 	{
 		// This action finished
 		pTeam->StepCompleted = true;
-		const auto [curAct, curArg] = pTeam->CurrentScript->GetCurrentAction();
-		const auto [nextAct, nextArg] = pTeam->CurrentScript->GetNextAction();
+		const auto&[curAct, curArg] = pTeam->CurrentScript->GetCurrentAction();
+		const auto&[nextAct, nextArg] = pTeam->CurrentScript->GetNextAction();
 		ScriptExt::Log("AI Scripts - SkipNextAction: [%s] [%s] (line: %d) Jump to next line: %d = %d,%d -> (No team members alive)\n",
 			pTeam->Type->ID,
 			pTeam->CurrentScript->Type->ID,
@@ -1323,8 +1586,8 @@ void ScriptExt::SkipNextAction(TeamClass* pTeam, int successPercentage = 0)
 
 	if (percentage <= successPercentage)
 	{
-		const auto [curAct, curArg] = pTeam->CurrentScript->GetCurrentAction();
-		const auto [nextAct, nextArg] = ScriptExt::GetSpecificAction(pTeam->CurrentScript, pTeam->CurrentScript->CurrentMission + 2);
+		const auto&[curAct, curArg] = pTeam->CurrentScript->GetCurrentAction();
+		const auto&[nextAct, nextArg] = ScriptExt::GetSpecificAction(pTeam->CurrentScript, pTeam->CurrentScript->CurrentMission + 2);
 
 		ScriptExt::Log("AI Scripts - SkipNextAction: [%s] [%s] (line: %d = %d,%d) Next script line skipped successfuly. Next line will be: %d = %d,%d\n",
 			pTeam->Type->ID,
@@ -1541,12 +1804,29 @@ void ScriptExt::VariableBinaryOperationHandler(TeamClass* pTeam, int nVariable, 
 
 FootClass* ScriptExt::FindTheTeamLeader(TeamClass* pTeam)
 {
-	const auto pTech = pTeam->FetchLeader();
+	FootClass* pLeaderUnit = nullptr;
+	int bestUnitLeadershipValue = -1;
 
-	if(pTech && Is_Techno(pTech))
-		return pTech;
+	if (!pTeam)
+		return pLeaderUnit;
 
-	return nullptr;
+	// Find the Leader or promote a new one
+	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
+	{
+		if (!IsUnitAvailable(pUnit, true) || !(pUnit->IsTeamLeader || pUnit->WhatAmI() == AbstractType::Aircraft))
+			continue;
+
+		// The team Leader will be used for selecting targets, if there are living Team Members then always exists 1 Leader.
+		int unitLeadershipRating = pUnit->GetTechnoType()->LeadershipRating;
+
+		if (unitLeadershipRating > bestUnitLeadershipValue)
+		{
+			pLeaderUnit = pUnit;
+			bestUnitLeadershipValue = unitLeadershipRating;
+		}
+	}
+
+	return pLeaderUnit;
 }
 
 bool ScriptExt::IsExtVariableAction(int action)
@@ -1557,6 +1837,8 @@ bool ScriptExt::IsExtVariableAction(int action)
 
 void ScriptExt::Set_ForceJump_Countdown(TeamClass* pTeam, bool repeatLine = false, int count = 0)
 {
+	if (!pTeam)
+		return;
 	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 	const auto& [curAct, curArgs] = pTeam->CurrentScript->GetCurrentAction();
 
@@ -1754,18 +2036,89 @@ void ScriptExt::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeamLead
 	return;
 }
 
+void ScriptExt::ForceGlobalOnlyTargetHouseEnemy(TeamClass* pTeam, int mode = -1)
+{
+	if(!pTeam->CurrentScript)
+	{
+		pTeam->StepCompleted = true;
+		return;
+	}
+
+	auto pHouseExt = HouseExt::ExtMap.Find(pTeam->Owner);
+	const auto&[curAct , curArgs] = pTeam->CurrentScript->GetCurrentAction();
+
+	if (mode < 0 || mode > 2)
+		mode = curArgs;
+
+	if (mode < -1 || mode > 2)
+		mode = -1;
+
+	HouseExt::ForceOnlyTargetHouseEnemy(pTeam->Owner, mode);
+
+	// This action finished
+	pTeam->StepCompleted = true;
+}
+
+void ScriptExt::JumpBackToPreviousScript(TeamClass* pTeam)
+{
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	if (pTeamData->PreviousScript)
+	{
+		GameDelete<false, true>(pTeam->CurrentScript);
+		pTeam->CurrentScript = std::exchange(pTeamData->PreviousScript , nullptr);
+		pTeam->StepCompleted = true;
+		return;
+	}
+	else
+	{
+		auto pScript = pTeam->CurrentScript;
+		auto const& [curAct, curArgs] = pScript->GetCurrentAction();
+
+		Debug::Log("DEBUG: [%s] [%s](line: %d = %d,%d): Can't find the previous script! This script action must be used after PickRandomScript.\n",
+			pTeam->Type->ID,
+			pScript->Type->ID,
+			pScript->CurrentMission,
+			curAct,
+			curArgs
+		);
+
+		pTeam->StepCompleted = true;
+		return;
+	}
+}
+
+void ScriptExt::SetAbortActionAfterSuccessKill(TeamClass* pTeam, int enable = -1)
+{
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	int scriptArgument = enable;
+
+	if (scriptArgument < 0)
+	{
+		auto pScript = pTeam->CurrentScript;
+		const auto& [curAct, curArgs] = pScript->GetCurrentAction();
+		scriptArgument = curArgs;
+	}
+
+	if (scriptArgument >= 1)
+		pTeamData->AbortActionAfterKilling = true;
+	else
+		pTeamData->AbortActionAfterKilling = false;
+
+	// This action finished
+	pTeam->StepCompleted = true;
+}
+
 bool ScriptExt::IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrAbsorbed)
 {
 	if (!pTechno || !Is_Techno(pTechno) || !pTechno->Owner)
 		return false;
 
-	if (!pTechno->IsAlive && pTechno->Health > 0 && !pTechno->InLimbo)
-		return false;
+	bool isAvailable = pTechno->IsAlive && pTechno->Health > 0 && !pTechno->InLimbo && pTechno->IsOnMap;
 
 	if (checkIfInTransportOrAbsorbed)
-		return (!pTechno->Absorbed && !pTechno->Transporter);
+		isAvailable &= !pTechno->Absorbed && !pTechno->Transporter;
 
-	return true;
+	return isAvailable;
 }
 
 std::pair<WeaponTypeClass*, WeaponTypeClass*> ScriptExt::GetWeapon(TechnoClass* pTechno)

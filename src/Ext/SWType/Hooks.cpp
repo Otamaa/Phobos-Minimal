@@ -14,6 +14,8 @@
 
 #include <Ares_TechnoExt.h>
 
+#include "SuperWeaponSidebar.h"
+
 #include "NewSuperWeaponType/NuclearMissile.h"
 #include "NewSuperWeaponType/LightningStorm.h"
 #include "NewSuperWeaponType/Dominator.h"
@@ -25,7 +27,7 @@ DEFINE_OVERRIDE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 	GET_STACK(CellStruct* const, pCell, 0x4);
 	GET_STACK(bool const, isPlayer, 0x8);
 
-	Debug::Log("Lauch [%x][%s] %s \n", pSuper, pSuper->Owner->get_ID(), pSuper->Type->ID);
+	Debug::Log("[%s - %x] Lauch [%s - %x] \n", pSuper->Owner->get_ID() , pSuper->Owner, pSuper->Type->ID, pSuper);
 
 	if (
 #ifndef Replace_SW
@@ -134,10 +136,15 @@ DEFINE_HOOK(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 
 	return 0x6CECEF;
 }
+#include <Commands/ToggleDesignatorRange.h>
 
+// PR #1124
 DEFINE_HOOK(0x6DC2C5, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x5)
 {
 	GET(SuperWeaponTypeClass*, pSuperType, EDI);
+
+	if (!ToggleDesignatorRangeCommandClass::ShowDesignatorRange)
+		return 0x0;
 
 	const auto pExt = SWTypeExt::ExtMap.Find(pSuperType);
 
@@ -1325,6 +1332,7 @@ DEFINE_OVERRIDE_HOOK(0x50B1D0, HouseClass_UpdateSuperWeaponsUnavailable, 6)
 						// hide the cameo (only if this is an auto-firing SW)
 						if (pExt->Type->SW_ShowCameo || !pExt->Type->SW_AutoFire)
 						{
+							SuperWeaponSidebar::Instance()->AddSuper(pSuper);
 							MouseClass::Instance->AddCameo(AbstractType::Special, index);
 							MouseClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(SuperClass::AbsID, index, 0));
 						}
@@ -1528,7 +1536,8 @@ DEFINE_HOOK(0x44D455, BuildingClass_Mi_Missile_EMPPulseBulletWeapon, 0x8)
 	{
 		pBullet->SetWeaponType(pWeapon);
 
-		CoordStruct src = pThis->GetFLH(0, pThis->GetRenderCoords());
+		CoordStruct src;
+		pThis->GetFLH(&src ,  0, pThis->GetRenderCoords());
 		CoordStruct dest = *pCoord;
 		auto const pTarget = pBullet->Target ? pBullet->Target : MapClass::Instance->GetCellAt(dest);
 
@@ -1556,7 +1565,8 @@ DEFINE_OVERRIDE_HOOK(0x44CE46, BuildingClass_Mi_Missile_EMPulse_Pulsball, 5)
 	// also support no pulse ball
 	if (pPulseBall)
 	{
-		auto flh = pThis->GetFLH(0, CoordStruct::Empty);
+		CoordStruct flh;
+		pThis->GetFLH(&flh , 0, CoordStruct::Empty);
 		if (auto pAnim = GameCreate<AnimClass>(pPulseBall, flh))
 			pAnim->Owner = pThis->GetOwningHouse();
 	}
@@ -1671,7 +1681,8 @@ DEFINE_HOOK(0x44CA97, BuildingClass_MI_Missile_CreateBullet, 0x6)
 			//Limbo-in the bullet will remove the `TechnoClass` owner from the bullet !
 			//pThis->Limbo();
 
-			auto nFLH = pThis->GetFLH(0, CoordStruct::Empty);
+			CoordStruct nFLH;
+			 pThis->GetFLH(&nFLH , 0, CoordStruct::Empty);
 
 			// Otamaa : the original calculation seems causing missile to be invisible
 			//auto nCos = 0.00004793836;

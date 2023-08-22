@@ -332,6 +332,8 @@ bool AresData::Init()
 		0x0C2E34, //EboltColors3
 
 		0x0C2E14, //Ebolt - Ext map
+
+		0x0C1C64, //Ares_Shuttingdown
 	};
 
 	for (int a = 0; a < FunctionIndices::count; a++)

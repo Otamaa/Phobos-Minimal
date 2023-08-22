@@ -93,6 +93,7 @@ public:
 	static void DumpStack(const char* function, size_t len, int startAt = 0);
 	static void __cdecl LogUnflushed(const char* pFormat, ...);
 
+	static void ExitGame();
 private:
 	static void LogWithVArgsUnflushed(const char* pFormat, va_list args);
 #pragma endregion

@@ -29,7 +29,7 @@ TechnoClass* VoxelAnimExt::GetTechnoOwner(VoxelAnimClass* pThis)
 
 void VoxelAnimExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	AnnounceInvalidPointer(Invoker, ptr);
+	AnnounceInvalidPointer(Invoker, ptr , bRemoved);
 }
 
 void VoxelAnimExt::ExtData::InitializeLaserTrails(VoxelAnimTypeExt::ExtData* pTypeExt)

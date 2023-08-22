@@ -9,7 +9,7 @@
 
 void RadSiteExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	AnnounceInvalidPointer(TechOwner, ptr);
+	AnnounceInvalidPointer(TechOwner, ptr , bRemoved);
 	AnnounceInvalidPointer(HouseOwner, ptr);
 }
 

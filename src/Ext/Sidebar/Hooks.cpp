@@ -11,12 +11,9 @@ DEFINE_HOOK(0x6A593E, SidebarClass_InitForHouse_AdditionalFiles, 0x5)
 	char filename[0x20];
 
 	for (int i = 0; i < (int)SidebarExt::TabProducingProgress.size(); i++) {
-
-		auto& shp = SidebarExt::TabProducingProgress[i];
-
-		if(!shp) {
+		if(!SidebarExt::TabProducingProgress[i]) {
 			IMPL_SNPRNINTF(filename,sizeof(filename), "tab%02dpp%s", i , GameStrings::dot_SHP());
-			shp = GameCreate<SHPReference>(filename);
+			SidebarExt::TabProducingProgress[i] = GameCreate<SHPReference>(filename);
 		}
 	}
 
@@ -25,18 +22,13 @@ DEFINE_HOOK(0x6A593E, SidebarClass_InitForHouse_AdditionalFiles, 0x5)
 
 DEFINE_HOOK(0x6A5EA1, SidebarClass_UnloadShapes_AdditionalFiles, 0x5)
 {
-	if (!Phobos::Otamaa::ExeTerminated)
-		return 0x0;
-
 	for (int i = 0; i < (int)SidebarExt::TabProducingProgress.size(); i++)
 	{
-		auto& shp = SidebarExt::TabProducingProgress[i];
-
-		if(shp){
-			GameDelete<false, false>(shp);
+		//the shape is already invalid if the name not event there ,..
+		if(SidebarExt::TabProducingProgress[i] && SidebarExt::TabProducingProgress[i]->Filename){
+			//GameDelete<false, false>(SidebarExt::TabProducingProgress[i]);
+			SidebarExt::TabProducingProgress[i] = nullptr;
 		}
-
-		shp = nullptr;
 	}
 
 	return 0;

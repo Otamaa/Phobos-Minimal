@@ -17,6 +17,7 @@ enum class SWStateMachineIdentifier : int
 	DropPod = 4,
 	IonCannon = 5,
 	LaserStrike = 6 ,
+	GenericWarhead = 7,
 	count
 };
 
@@ -38,7 +39,7 @@ public:
 		Clock.Start(Duration);
 	}
 
-	virtual ~SWStateMachine() { }
+	virtual ~SWStateMachine() = default;
 	virtual bool Finished() { return Clock.Completed(); }
 	virtual void Update() { }
 	virtual void InvalidatePointer(void* ptr, bool remove) { }
@@ -111,20 +112,16 @@ class DroppodStateMachine : public SWStateMachine
 {
 public:
 	DroppodStateMachine()
-		: SWStateMachine() , Deferment { 0 } , AlreadyActivated { false }
+		: SWStateMachine()
 	{
 	}
 
-	DroppodStateMachine(int Duration, int Deferment, CellStruct XY, SuperClass* pSuper, NewSWType* pSWType)
-		: SWStateMachine(Duration, XY, pSuper, pSWType), Deferment { 0 }, AlreadyActivated { false }
+	DroppodStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, NewSWType* pSWType)
+		: SWStateMachine(Deferment, XY, pSuper, pSWType)
 	{
-		Activate(Deferment);
 	}
 
-	virtual void Update();
-
-	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
-	virtual bool Save(PhobosStreamWriter& Stm) const override;
+	virtual void Update() override;
 
 	virtual SWStateMachineIdentifier GetIdentifier() const override
 	{
@@ -135,14 +132,11 @@ public:
 	{
 		return "SWStateMachine::Droppod";
 	}
+
 	void SendDroppods();
-	void Activate(int nDeferment);
 
 	static void PlaceUnits(SuperClass* pSuper, double veterancy, Iterator<TechnoTypeClass*> const Types, int cMin, int cMax, const CellStruct& Coords ,bool retries);
 
-protected:
-	int Deferment;
-	bool AlreadyActivated;
 };
 
 class ChronoWarpStateMachine : public SWStateMachine
@@ -438,8 +432,8 @@ public:
 		, MaxCountCounter { 1 }
 	{ }
 
-	LaserStrikeStateMachine(CellStruct XY, SuperClass* pSuper, TechnoClass* pFirer, int maxcount , int deferment , NewSWType* pSWType)
-		: SWStateMachine(10000, XY, pSuper, pSWType)
+	LaserStrikeStateMachine(CellStruct XY, SuperClass* pSuper, TechnoClass* pFirer, int maxcount , int deferment , NewSWType* pSWType, int duration)
+		: SWStateMachine(duration, XY, pSuper, pSWType)
 		, Firer { pFirer }
 		, LaserStrikesetRadius { true }
 		, LaserStrikeRadius { -1 }
@@ -495,6 +489,41 @@ protected:
 	int MaxCountCounter;
 };
 
+class GenericWarheadStateMachine : public SWStateMachine
+{
+public:
+	GenericWarheadStateMachine()
+		: SWStateMachine() , Firer { nullptr }
+	{
+	}
+
+	GenericWarheadStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, TechnoClass* pfirer ,  NewSWType* pSWType)
+		: SWStateMachine(Deferment, XY, pSuper, pSWType), Firer { pfirer }
+	{
+	}
+
+	virtual void Update() override;
+
+	virtual SWStateMachineIdentifier GetIdentifier() const override
+	{
+		return SWStateMachineIdentifier::GenericWarhead;
+	}
+
+	virtual const char* GetIdentifierStrings() const override
+	{
+		return "SWStateMachine::GenericWarhead";
+	}
+
+	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
+	virtual bool Save(PhobosStreamWriter& Stm) const override;
+	virtual void InvalidatePointer(void* ptr, bool remove) override;
+
+	void SentPayload();
+
+protected:
+	TechnoClass* Firer;
+};
+
 template <>
 struct Savegame::ObjectFactory<SWStateMachine>
 {
@@ -519,6 +548,8 @@ struct Savegame::ObjectFactory<SWStateMachine>
 				return std::make_unique<IonCannonStateMachine>();
 			case SWStateMachineIdentifier::LaserStrike:
 				return std::make_unique<LaserStrikeStateMachine>();
+			case SWStateMachineIdentifier::GenericWarhead:
+				return std::make_unique<GenericWarheadStateMachine>();
 			default:
 				Debug::FatalErrorAndExit("SWStateMachineType %d not recognized.",
 					static_cast<unsigned int>(type));

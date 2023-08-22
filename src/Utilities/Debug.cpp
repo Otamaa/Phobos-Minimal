@@ -7,6 +7,8 @@
 #include <YRPPCore.h>
 #include <AbstractClass.h>
 #include <vector>
+#include <Phobos.h>
+#include <Misc/AresData.h>
 
 char Debug::StringBuffer[0x1000];
 char Debug::DeferredStringBuffer[0x1000];
@@ -67,18 +69,18 @@ void Debug::INIParseFailed(const char* section, const char* flag, const char* va
 {
 	va_list args;
 	va_start(args, pFormat);
-	LogWithVArgs(pFormat, args);
+	vsprintf_s(Phobos::readBuffer, pFormat, args);
 	va_end(args);
-	FatalExit(static_cast<int>(ExitCode::Undefined));
+	Debug::FatalError(false);
 }
 
 [[noreturn]] void Debug::FatalErrorAndExit(ExitCode nExitCode, const char* pFormat, ...)
 {
 	va_list args;
 	va_start(args, pFormat);
-	LogWithVArgs(pFormat, args);
+	vsprintf_s(Phobos::readBuffer, pFormat, args);
 	va_end(args);
-	FatalExit(static_cast<int>(nExitCode));
+	Debug::FatalError(false);
 }
 
 void __SUNINI_TORA2MD(const char* pFormat, ...) {
@@ -89,7 +91,6 @@ DEFINE_JUMP(CALL, 0x5FA636, GET_OFFSET(__SUNINI_TORA2MD));
 #pragma region Otamaa
 void Debug::DumpStack(const char* function, REGISTERS* R, size_t len, int startAt)
 {
-
 	Debug::LogUnflushed("Phobos::Dumping %X bytes of stack from [%s]\n", len, function);
 	auto const end = len / 4;
 	auto const* const mem = R->lea_Stack<DWORD*>(startAt);
@@ -162,7 +163,6 @@ void Debug::DumpObj(void const* const data, size_t const len)
 
 void Debug::DumpStack(const char* function, size_t len, int startAt)
 {
-
 	Debug::LogUnflushed("Phobos::Dumping %X bytes of stack from [%s]\n", len, function);
 	auto const end = len / 4;
 	DWORD lea_nData;
@@ -216,12 +216,12 @@ void Debug::FatalError(bool Dump)
 
 	Debug::Log("\nFatal Error:\n");
 	Debug::Log("%s\n", Phobos::readBuffer);
-
+	Debug::FreeMouse();
 	MessageBoxW(Game::hWnd, Message, L"Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
 
 	if (Dump)
 	{
-		// Debug::FullDump(); // Not Supported
+		Debug::ExitGame();
 	}
 }
 
@@ -236,7 +236,20 @@ void Debug::FatalError(const char* Message, ...)
 
 	Debug::FatalError(false);
 }
+
+#include <MouseClass.h>
+#include <WWMouseClass.h>
+#include <Surface.h>
+
+void Debug::ExitGame()
+{
+	Ares_IsShuttingDown = true;
+	Phobos::ExeTerminate();
+	ExitProcess(1u);
+}
+
 #pragma endregion
+
 
 static DWORD _Real_Debug_Log = 0x4A4AF9;
 void __declspec(naked) _Fake_Debug_Log()

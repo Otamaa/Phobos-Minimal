@@ -48,6 +48,9 @@ public:
 	static constexpr reference<SHPStruct*, 0x89DDBCu> BUILDINGZ_SHA {};
 	static constexpr reference<SHPStruct*, 0x8A03FCu> PLACE_SHP {};
 
+	static constexpr reference<SHPStruct*, 0xB0B484u> GCLOCK2_SHP {};
+	static constexpr reference<SHPStruct*, 0xB07BC0u> DARKEN_SHP {};
+
 	static constexpr reference<BytePalette, 0x885780u> TEMPERAT_PAL{};
 	static constexpr reference<BytePalette, 0xABBED0u> ISOx_PAL {};
 	static constexpr reference<BytePalette*, 0xA8F790u> GRFXTXT_PAL{};
@@ -62,7 +65,7 @@ public:
 	static constexpr reference<ConvertClass*, 0x87F6C8u> MOUSE_PAL{};
 	static constexpr reference<ConvertClass*, 0x87F6CCu> SIDEBAR_PAL{};
 	static constexpr reference<ConvertClass*, 0xA8F798u> GRFXTXT_Convert{};
-	static constexpr reference <ConvertClass*,0xB1D140u > EightBitVoxelDrawer{};
+	static constexpr reference<ConvertClass*,0xB1D140u > EightBitVoxelDrawer{};
 
 	static void* __fastcall LoadFile(const char* pFileName, bool bLoadAsSHP)
 		{ JMP_STD(0x5B40B0); }

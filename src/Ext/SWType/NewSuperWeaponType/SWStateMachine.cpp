@@ -13,8 +13,8 @@ std::vector<std::unique_ptr<SWStateMachine>> SWStateMachine::Array;
 
 void SWStateMachine::UpdateAll()
 {
-	for(auto& pMachine : SWStateMachine::Array) { 
-		if(pMachine) { 
+	for(auto& pMachine : SWStateMachine::Array) {
+		if(pMachine) {
 		  pMachine->Update();
 		}
 	}

@@ -16,6 +16,7 @@ public:
 	UniqueGamePtrB<ConvertClass> Convert_Temperate;
 	UniqueGamePtrB<ConvertClass> Convert;
 	UniqueGamePtr<BytePalette> Palette;
+	DynamicVectorClass<ColorScheme*>* ColorschemeDataVector;
 
 	PaletteManager(const char* const pTitle);
 	virtual ~PaletteManager() override = default;

@@ -15,6 +15,7 @@
 #include "PlaceVeinholeMonster.h"
 #include "ToggleRadialIndicatorDrawMode.h"
 #include "ToggleDigitalDisplay.h"
+#include "ToggleDesignatorRange.h"
 
 #define Make(arg)\
 		Make<arg>();
@@ -36,6 +37,7 @@ DEFINE_HOOK(0x533066, CommandClassCallback_Register, 0x6)
 	Make(ShowTeamLeaderCommandClass);
 	Make(ToggleRadialIndicatorDrawModeClass);
 	Make(ToggleDigitalDisplayCommandClass);
+	Make(ToggleDesignatorRangeCommandClass);
 	Make(FrameStepCommandClass<1>); // Single step in
 	Make(FrameStepCommandClass<5>); // Speed 1
 	Make(FrameStepCommandClass<10>); // Speed 2

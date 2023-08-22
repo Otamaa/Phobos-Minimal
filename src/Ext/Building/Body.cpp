@@ -253,7 +253,7 @@ CoordStruct BuildingExt::GetCenterCoords(BuildingClass* pBuilding, bool includeB
 
 void BuildingExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	AnnounceInvalidPointer(CurrentAirFactory, ptr);
+	AnnounceInvalidPointer(CurrentAirFactory, ptr , bRemoved);
 }
 
 bool BuildingExt::ExtData::InvalidateIgnorable(void* ptr)
@@ -748,13 +748,20 @@ DEFINE_HOOK(0x454244, BuildingClass_Save_Suffix, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x44E940, BuildingClass_Detach, 0x6)
+// DEFINE_HOOK(0x44E940, BuildingClass_Detach, 0x6)
+// {
+// 	GET(BuildingClass*, pThis, ESI);
+// 	GET(void*, target, EBP);
+// 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+//
+// 	BuildingExt::ExtMap.InvalidatePointerFor(pThis, target, all);
+//
+// 	return pThis->LightSource == target ? 0x44E948 : 0x44E94E;
+// }
+
+void __fastcall BuildingClass_Detach_Wrapper(BuildingClass* pThis , DWORD , AbstractClass* target , bool all)
 {
-	GET(BuildingClass*, pThis, ESI);
-	GET(void*, target, EBP);
-	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
-
 	BuildingExt::ExtMap.InvalidatePointerFor(pThis, target, all);
-
-	return pThis->LightSource == target ? 0x44E948 : 0x44E94E;
+	pThis->BuildingClass::PointerExpired(target , all);
 }
+DEFINE_JUMP(VTABLE, 0x7E3EE4, GET_OFFSET(BuildingClass_Detach_Wrapper))

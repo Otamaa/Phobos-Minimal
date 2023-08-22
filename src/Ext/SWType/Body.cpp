@@ -7,11 +7,13 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/Side/Body.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/EnumFunctions.h>
 
 #include <Misc/AresData.h>
+#include <Misc/PhobosToolTip.h>
 
 #include <Notifications.h>
 
@@ -28,6 +30,8 @@
 
 #include <DiscreteSelectionClass.h>
 #include <DiscreteDistributionClass.h>
+
+#include "SuperWeaponSidebar.h"
 
 bool SWTypeExt::Handled = false;
 SuperClass* SWTypeExt::TempSuper = nullptr;
@@ -373,8 +377,17 @@ bool SWTypeExt::ExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 			auto const& [Cell, Flag] = SWTypeExt::ExtData::PickSuperWeaponTarget(pThis);
 			if (Flag == SWTargetFlags::AllowEmpty)
 			{
-				if(pThis->Owner->IsControlledByHuman_() && !pExt->SW_AutoFire && pExt->SW_ManualFire)
+				if(pThis->Owner->IsControlledByHuman_() && !pExt->SW_AutoFire && pExt->SW_ManualFire) {
+					DisplayClass::Instance->CurrentBuilding = nullptr;
+					DisplayClass::Instance->CurrentBuildingType = nullptr;
+					DisplayClass::Instance->unknown_11AC = static_cast<DWORD>(-1);
+					DisplayClass::Instance->SetRepairMode(0);
+					DisplayClass::Instance->SetSellMode(0);
+					DisplayClass::Instance->PowerToggleMode = false;
+					DisplayClass::Instance->PlanningMode = false;
+					DisplayClass::Instance->PlaceBeaconMode = false;
 					MapClass::UnselectAll();
+				}
 
 				return pThis->Owner->Fire_SW(pThis->Type->ArrayIndex, Cell);
 			}
@@ -475,7 +488,7 @@ struct TargetingFuncs
 
 	static bool IsTargetAllowed(TechnoClass* pTechno)
 	{
-		return !pTechno->InLimbo;
+		return !pTechno->InLimbo && pTechno->IsAlive;
 	}
 
 	static bool IgnoreThis(TechnoClass* pTechno)
@@ -500,14 +513,15 @@ struct TargetingFuncs
 		const auto it = info.TypeExt->GetPotentialAITargets(pEnemy);
 		const auto pResult = GetTargetAnyMax(it.begin(), it.end(),
 			[=, &info](TechnoClass* pTechno, int curMax) {
-				if(TargetingFuncs::IgnoreThis(pTechno))
-					return -1;
 
 				// original game code only compares owner and doesn't support nullptr
 				auto const passedFilter = (!pEnemy || pTechno->Owner == pEnemy);
 
 				if (passedFilter && info.Owner->IsIonCannonEligibleTarget(pTechno))
 				{
+					if (TargetingFuncs::IgnoreThis(pTechno))
+						return -1;
+
 					auto const cell = CellClass::Coord2Cell(pTechno->GetCoords());
 
 					if (!MapClass::Instance->IsWithinUsableArea(cell, true)) { return -1; }
@@ -1444,6 +1458,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	//
 	this->Converts.Read(exINI, pSection, "Converts");
+	this->Converts_UseSWRange.Read(exINI, pSection, "Converts.UseSWRange");
 	this->ConvertsPair.Read(exINI, pSection, "ConvertsPair");
 	this->Convert_SucceededAnim.Read(exINI, pSection, "ConvertsAnim");
 
@@ -1676,7 +1691,7 @@ void SWTypeExt::ExtData::ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, co
 	}
 }
 
-void SWTypeExt::ExtData::ApplySWNext(SuperClass* pSW, const CellStruct& cell)
+void SWTypeExt::ExtData::ApplySWNext(SuperClass* pSW, const CellStruct& cell, bool IsPlayer)
 {
 	// random mode
 	if (this->SW_Next_RandomWeightsData.size())
@@ -1684,14 +1699,14 @@ void SWTypeExt::ExtData::ApplySWNext(SuperClass* pSW, const CellStruct& cell)
 		std::vector<int> results = this->WeightedRollsHandler(&this->SW_Next_RollChances, &this->SW_Next_RandomWeightsData, this->SW_Next.size());
 		for (const int& result : results)
 		{
-			SWTypeExt::Launch(pSW, pSW->Owner, this, this->SW_Next[result], cell);
+			SWTypeExt::Launch(pSW, pSW->Owner, this, this->SW_Next[result], cell , IsPlayer);
 		}
 	}
 	// no randomness mode
 	else
 	{
 		for (const auto& pSWType : this->SW_Next)
-			SWTypeExt::Launch(pSW ,pSW->Owner, this, pSWType, cell);
+			SWTypeExt::Launch(pSW ,pSW->Owner, this, pSWType, cell, IsPlayer);
 	}
 }
 
@@ -1709,12 +1724,31 @@ void SWTypeExt::ExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, co
 		this->ApplyDetonation(pSW , pSW->Owner, *pCell);
 
 	if (!this->SW_Next.empty())
-		this->ApplySWNext(pSW, *pCell);
+		this->ApplySWNext(pSW, *pCell , IsCurrentPlayer);
 
 	if (this->Converts)
 	{
-		for (const auto pTargetFoot : *FootClass::Array)
-			TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTargetFoot , this->Convert_SucceededAnim);
+		if(!this->Converts_UseSWRange){
+			for (const auto pTargetFoot : *FootClass::Array) {
+				if (pTargetFoot->Health <= 0 || !pTargetFoot->IsAlive || pTargetFoot->IsCrashing || pTargetFoot->IsSinking)
+					continue;
+
+				TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTargetFoot , this->Convert_SucceededAnim);
+			}
+		}
+		else
+		{
+			const auto pCellptr = MapClass::Instance->GetCellAt(*pCell);
+			const auto range = this->GetNewSWType()->GetRange(this);
+			auto vecTechno = Helpers::Alex::getItemsInRangeOf(pCellptr->GetCoordsWithBridge(), range.WidthOrRange, true);
+
+			for(auto pTargetFoot : vecTechno) {
+				if (pTargetFoot->Health <= 0 || !pTargetFoot->IsAlive || pTargetFoot->IsCrashing || pTargetFoot->IsSinking)
+					continue;
+
+				TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTargetFoot, this->Convert_SucceededAnim);
+			}
+		}
 	}
 }
 
@@ -1961,25 +1995,20 @@ void SWTypeExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int I
 }
 
 // SW.Next proper launching mechanic
-void SWTypeExt::Launch(SuperClass* pFired, HouseClass* pHouse, SWTypeExt::ExtData* pLauncherTypeExt, int pLaunchedType, const CellStruct& cell)
+void SWTypeExt::Launch(SuperClass* pFired, HouseClass* pHouse, SWTypeExt::ExtData* pLauncherTypeExt, int pLaunchedType, const CellStruct& cell, bool IsPlayer)
 {
 	const auto pSuper = pHouse->Supers.GetItemOrDefault(pLaunchedType);
 
-	if (!pSuper)
+	if (!pSuper || !pSuper->Type)
 		return;
 
 	const auto pSuperTypeExt = SWTypeExt::ExtMap.Find(pSuper->Type);
-	if (!pLauncherTypeExt->SW_Next_RealLaunch ||
-		(pSuperTypeExt && pSuper->IsCharged && pHouse->CanTransactMoney(pSuperTypeExt->Money_Amount)))
+	if (!pLauncherTypeExt->SW_Next_RealLaunch || (pSuper->IsCharged && pHouse->CanTransactMoney(pSuperTypeExt->Money_Amount)))
 	{
-
 		if (pLauncherTypeExt->SW_Next_IgnoreInhibitors || !pSuperTypeExt->HasInhibitor(pHouse, cell)
 			&& (pLauncherTypeExt->SW_Next_IgnoreDesignators || pSuperTypeExt->HasDesignator(pHouse, cell)))
 		{
-			// Forcibly fire
-			//SuperExt::ExtMap.Find(pSuper)->Firer = SuperExt::ExtMap.Find(pFired)->Firer;
-
-			pSuper->Launch(cell, true);
+			pSuper->Launch(cell, IsPlayer);
 			if (pLauncherTypeExt->SW_Next_RealLaunch)
 				pSuper->Reset();
 		}
@@ -2057,6 +2086,7 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->HandledType)
 		.Process(this->LastAction)
 		.Process(this->Converts)
+		.Process(this->Converts_UseSWRange)
 		.Process(this->ConvertsPair)
 		.Process(this->Convert_SucceededAnim)
 		.Process(this->SW_Warhead)
@@ -2112,7 +2142,6 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DropPod_Maximum)
 		.Process(this->DropPod_Veterancy)
 		.Process(this->DropPod_Types)
-		.Process(this->Droppod_Duration)
 		.Process(this->Droppod_RetryCount)
 		.Process(this->Droppod_PodImage_Infantry)
 		.Process(this->Droppod_Puff)
@@ -2282,10 +2311,340 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 #pragma endregion
 
 #pragma region GenericWarheadSW
-		.Process(Generic_Warhead_Detonate)
+		.Process(this->Generic_Warhead_Detonate)
 #pragma endregion
 		;
 
+}
+
+//TODO :
+/*
+*	Various states released
+*	Draw the border first
+*	Draw the cameo and the states separately to save performance
+*/
+
+std::unique_ptr<SuperWeaponSidebar> SuperWeaponSidebar::Data;
+
+void SuperWeaponSidebar::AddSuper(SuperClass* pSuper)
+{
+	if (!this->Owner)
+		return;
+
+	this->NeedSort = true;
+	this->Supers.push_back(pSuper);
+}
+
+void SuperWeaponSidebar::RemoveSuper(SuperClass* pSuper)
+{
+	if (!this->Owner)
+		return;
+
+	this->NeedSort = true;
+	for (int i = 0; i < (int)this->Supers.size(); ++i)
+	{
+		if (this->Supers[i] && this->Supers[i] == pSuper)
+			this->Supers.erase(this->Supers.begin() + i);
+	}
+}
+
+bool SuperWeaponSidebar::IsClippedToTheArea()
+{
+	return false;
+}
+
+void SuperWeaponSidebar::OnHover()
+{
+
+}
+
+void SuperWeaponSidebar::onClick()
+{
+
+}
+
+void SuperWeaponSidebar::onRelease()
+{
+
+}
+
+void SuperWeaponSidebar::Draws()
+{
+	if (!this->Owner)
+		this->Owner = HouseClass::CurrentPlayer();
+
+	if (this->Owner && this->ToolTipColor == -1)
+		this->ToolTipColor = (COLORREF)Drawing::RGB_To_Int(Drawing::TooltipColor());
+
+	if (this->Supers.empty())
+		return;
+
+	for (int i = 0; i < (int)this->Supers.size(); ++i) {
+		if (this->Supers[i] && !this->Supers[i]->Granted)
+		{
+			this->Supers.erase(this->Supers.begin() + i);
+
+			if (!this->NeedSort)
+				this->NeedSort = true;
+		}
+	}
+
+	if(this->NeedSort) {
+		std::sort(this->Supers.begin(), this->Supers.end(),
+		[](SuperClass* a, SuperClass* b)
+		{
+			return BuildType::SortsBefore(AbstractType::Special, a->Type->ArrayIndex, AbstractType::Special, b->Type->ArrayIndex);
+		});
+	}
+	{
+		this->NeedSort = false;
+	}
+
+	Point2D location = { 0, (Bounds->Height - std::min((int)this->Supers.size(), MaxPerRow) * cameoHeight) / 2 };
+	const Point2D crdCursor = WWMouseClass::Instance->GetCoords_();
+	RectangleStruct destRect = { 0, location.Y, cameoWidth, cameoHeight };
+	Point2D tooptipLocation = { cameoWidth, 0 };
+	//TODO : intesect inside localized box
+
+	int row = 0;
+	int line = 0;
+	int location_Y = location.Y;
+	int superCount = (int)this->Supers.size();
+
+	for (int idx = 0; idx < superCount; ++idx)
+	{
+		auto pSuper = this->Supers[idx];
+
+		if (this->DrawCameos(pSuper, &destRect, &location))
+		{
+			this->DrawBordeBar(BarPos::Right, &location);
+			const auto pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type);
+
+			if (pSuper->IsCharged && !Owner->CanTransactMoney(pSWExt->Money_Amount)
+				|| (pSWExt->SW_UseAITargeting && !SWTypeExt::ExtData::IsTargetConstraintsEligible(pSuper, true)))
+			{
+				Drawer->DrawSHP(FileSystem::SIDEBAR_PAL, FileSystem::DARKEN_SHP, 0, &location, Bounds, BlitterFlags(0x401), 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+			}
+
+			if (crdCursor.X > location.X && crdCursor.X < location.X + cameoWidth &&
+				crdCursor.Y > location.Y && crdCursor.Y < location.Y + cameoHeight)
+			{
+				tooptipLocation.Y = location.Y;
+
+				RectangleStruct cameoRect = { location.X, location.Y, cameoWidth, cameoHeight };
+				Drawer->Draw_Rect(cameoRect, ToolTipColor);
+			}
+
+			if (!pSuper->RechargeTimer.Completed())
+			{
+				Point2D loc = { location.X, location.Y };
+				Drawer->DrawSHP(FileSystem::SIDEBAR_PAL, FileSystem::GCLOCK2_SHP, pSuper->GetCameoChargeState() + 1, &loc,
+					Bounds, BlitterFlags::bf_400 | BlitterFlags::TransLucent50, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+			}
+
+			if (const auto buffer = pSuper->NameReadiness())
+			{
+				Point2D textLoc = { location.X + cameoWidth / 2, location.Y };
+				TextPrintType printType = TextPrintType::FullShadow | TextPrintType::Point8 | TextPrintType::Background | TextPrintType::Center;
+
+				Drawer->DrawText_Old(buffer, Bounds, &textLoc, (DWORD)ToolTipColor, 0, (DWORD)printType);
+			}
+
+			row++;
+
+			if (row >= MaxPerRow - line)
+			{
+				this->DrawBordeBar(BarPos::Bottom, &location);
+
+				row = 0;
+				line++;
+				location_Y += cameoHeight / 2;
+				location = { location.X + cameoWidth, location_Y };
+				destRect.X = location.X;
+				destRect.Y = location.Y;
+
+				if (idx < superCount - 1)
+					tooptipLocation.X += cameoWidth;
+			}
+			else
+			{
+				location.Y += cameoHeight;
+				destRect.Y += cameoHeight;
+			}
+
+			this->DrawToolTip(pSuper, &tooptipLocation);
+		}
+	}
+}
+
+SuperWeaponSidebar* SuperWeaponSidebar::Instance()
+{
+	return Data.get();
+}
+
+void SuperWeaponSidebar::Clear()
+{
+	Data = std::make_unique<SuperWeaponSidebar>();
+}
+
+// 53532F
+void SuperWeaponSidebar::ReadFromINI()
+{
+	/**
+	enum BarPos : int {
+		Top, Bottom, Right
+	};
+
+		read
+			SHPStruct* Bars[3] { nullptr };
+			ConvertClass* BarsPalette[3] { nullptr };
+	*/
+}
+
+bool SuperWeaponSidebar::DrawCameos(SuperClass* pSuper, RectangleStruct* pDestRect, Point2D* pLoc)
+{
+	const auto pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type);
+
+	if (auto pPCX = pSWExt->SidebarPCX.GetSurface())
+	{
+		return PCX::Instance->BlitToSurface(pDestRect, Drawer, pPCX);
+	}
+	else if (auto pCameo = pSuper->Type->SidebarImage) // old shp cameos, fixed palette
+	{
+		auto pCameoRef = pCameo->AsReference();
+		char pFilename[0x20];
+		strcpy_s(pFilename, RulesExt::Global()->MissingCameo.data());
+		_strlwr_s(pFilename);
+
+		if (!_stricmp(pCameoRef->Filename, GameStrings::XXICON_SHP) && strstr(pFilename, ".pcx"))
+		{
+			PCX::Instance->LoadFile(pFilename);
+			if (auto CameoPCX = PCX::Instance->GetSurface(pFilename))
+				return PCX::Instance->BlitToSurface(pDestRect, Drawer, CameoPCX);
+		}
+		else
+		{
+			ConvertClass* SWConvert = FileSystem::CAMEO_PAL();
+			if (auto pManager = pSWExt->SidebarPalette)
+				SWConvert = pManager->GetConvert<PaletteManager::Mode::Default>();
+
+			Drawer->DrawSHP(SWConvert, pCameo, 0, pLoc, Bounds, BlitterFlags(0x400), 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void SuperWeaponSidebar::DrawToolTip(SuperClass* pSuper, Point2D* pLoc)
+{
+	const auto pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type);
+
+	PhobosToolTip::Instance.HelpText(pSuper->Type);
+
+	if (const wchar_t* pDesc = PhobosToolTip::Instance.TextBuffer.c_str())
+	{
+		const int maxWidth = Phobos::UI::MaxToolTipWidth > 0 ? Phobos::UI::MaxToolTipWidth : Bounds->Width;
+		int width = 0, height = 0;
+
+		auto GetTextRect = [this, &width, &height, maxWidth](const wchar_t* pText)
+			{
+				int nWidth = 0, nHeight = 0;
+				Font->GetTextDimension(pText, &nWidth, &nHeight, maxWidth);
+
+				width = std::max(width, nWidth);
+				height += nHeight;
+			};
+
+		GetTextRect(pDesc);
+
+		width += 8;
+		height += 5;
+		pLoc->Y = std::clamp(pLoc->Y, 0, Bounds->Height - height + cameoHeight);
+		RectangleStruct fillRect = { pLoc->X, pLoc->Y, width, height };
+		ColorStruct fillColor = { 0,0,0 };
+		int fillOpacity = 100;
+
+		if (auto const pSide = SideClass::Array->GetItemOrDefault(Owner->SideIndex))
+		{
+			const auto pSideExt = SideExt::ExtMap.Find(pSide);
+			{
+				fillColor = pSideExt->ToolTip_Background_Color.Get(RulesExt::Global()->ToolTip_Background_Color);
+				fillOpacity = pSideExt->ToolTip_Background_Opacity.Get(RulesExt::Global()->ToolTip_Background_Opacity);
+			}
+		}
+
+		Drawer->Fill_Rect_Trans(&fillRect, &fillColor, fillOpacity);
+		Drawer->Draw_Rect(fillRect, ToolTipColor);
+
+		pLoc->Y += 4;
+		pLoc->X += 3;
+
+		const int textHeight = Font->InternalPTR->FontHeight + 4;
+
+		auto DrawTextBox = [pLoc, textHeight, this](const wchar_t* pText)
+			{
+				wchar_t buffer[0x400];
+				wcscpy_s(buffer, pText);
+				wchar_t* context = nullptr, delims[4] = L"\n";
+				DSurface* pSurface = DSurface::Composite;
+				const TextPrintType printType = TextPrintType::FullShadow | TextPrintType::Point8;
+
+				for (auto pCur = wcstok_s(buffer, delims, &context); pCur; pCur = wcstok_s(nullptr, delims, &context))
+				{
+					if (!wcslen(pCur))
+						continue;
+
+					pSurface->DSurfaceDrawText(pCur, &DSurface::ViewBounds(), pLoc, ToolTipColor, 0, printType);
+					pLoc->Y += textHeight;
+				}
+			};
+
+		DrawTextBox(pDesc);
+	}
+}
+
+std::pair<SHPStruct*, ConvertClass*> SuperWeaponSidebar::GetBarData(BarPos pos)
+{
+	switch (pos)
+	{
+	case SuperWeaponSidebar::Top:
+		return { Bars[0] , BarsPalette[0] ? BarsPalette[0] : FileSystem::PALETTE_PAL() };
+	case SuperWeaponSidebar::Bottom:
+		return { Bars[1] ,  BarsPalette[1] ? BarsPalette[1] : FileSystem::PALETTE_PAL() };
+	case SuperWeaponSidebar::Right:
+		return { Bars[2] , BarsPalette[2] ? BarsPalette[1] : FileSystem::PALETTE_PAL() };
+	default:
+		return { nullptr , nullptr };
+	}
+}
+
+void SuperWeaponSidebar::DrawBordeBar(BarPos pos, Point2D* pLoc)
+{
+	const auto& [pShape, pConvert] = this->GetBarData(pos);
+
+	if (!pShape || !pConvert)
+		return;
+
+	switch (pos)
+	{
+	case SuperWeaponSidebar::Top:
+	{
+		Point2D loc = { 0, pLoc->Y - pShape->Height };
+		Drawer->DrawSHP(pConvert, pShape, 0, &loc, Bounds, BlitterFlags(0x400), 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+	}break;
+	case SuperWeaponSidebar::Bottom:
+	{
+		Drawer->DrawSHP(pConvert, pShape, 0, pLoc, Bounds, BlitterFlags(0x400), 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+	}break;
+	case SuperWeaponSidebar::Right:
+	{
+		Drawer->DrawSHP(pConvert, pShape, 0, pLoc, Bounds, BlitterFlags(0x400), 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+	}break;
+	default:
+	{
+	}break;
+	}
 }
 
 // =============================

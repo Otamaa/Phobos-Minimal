@@ -553,12 +553,7 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 			if (!TechnoExt::EjectRandomly(pHijacker, pThis->Location, 144, Select))
 			{
 				pHijacker->RegisterDestruction(pKiller);
-
-				if (pHijacker->IsAlive)
-				{
-					GameDelete<true, false>(pHijacker);
-					//pHijacker->UnInit();
-				}
+				TechnoExt::HandleRemove(pHijacker, pKiller, false, true);
 			}
 			else
 			{
@@ -605,12 +600,7 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 							if (!TechnoExt::EjectRandomly(pPilot, pThis->Location, 144, Select))
 							{
 								pPilot->RegisterDestruction(pKiller);
-
-								if (pPilot->IsAlive)
-								{
-									GameDelete<true, false>(pPilot);
-									//pPilot->UnInit();
-								}
+								TechnoExt::HandleRemove(pPilot, pKiller, false, true);
 							}
 							else if (auto const pTag = pThis->AttachedTag)
 							{
@@ -657,12 +647,7 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 
 			// kill passenger, if not spawned
 			pPassenger->RegisterDestruction(pKiller);
-
-			if (pPassenger->IsAlive)
-			{
-				//GameDelete<true,false>(pPassenger);
-				pPassenger->UnInit();
-			}
+			TechnoExt::HandleRemove(pPassenger, pKiller, false, true);
 		}
 	}
 }

@@ -12,17 +12,15 @@ DEFINE_HOOK(0x47F974, CellClass_DrawOverlay_Walls, 0x5)
 	GET_STACK(OverlayTypeClass*, pOverlayType, STACK_OFFSET(0x24, -0x14));
 	REF_STACK(Point2D, pLocation, STACK_OFFSET(0x24, -0x10));
 
-	int wallOwnerIndex = pThis->WallOwnerIndex;
 	int colorSchemeIndex = HouseClass::CurrentPlayer->ColorSchemeIndex;
-
-	if (wallOwnerIndex >= 0)
-		colorSchemeIndex = HouseClass::Array->GetItem(wallOwnerIndex)->ColorSchemeIndex;
+	if (pThis->WallOwnerIndex >= 0)
+		colorSchemeIndex = HouseClass::Array->GetItem(pThis->WallOwnerIndex)->ColorSchemeIndex;
 
 	LightConvertClass* pConvert = nullptr;
-	auto const pTypeExt = OverlayTypeExt::ExtMap.Find(pOverlayType);
+	const auto pTypeExt = OverlayTypeExt::ExtMap.Find(pOverlayType);
 
-	if (pTypeExt->Palette)
-		pConvert = pTypeExt->Palette->GetItem(colorSchemeIndex)->LightConvert;
+	if (pTypeExt->Palette && pTypeExt->Palette->ColorschemeDataVector)
+		pConvert = pTypeExt->Palette->ColorschemeDataVector->GetItem(colorSchemeIndex)->LightConvert;
 	else
 		pConvert = ColorScheme::Array->GetItem(colorSchemeIndex)->LightConvert;
 

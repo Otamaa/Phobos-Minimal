@@ -26,72 +26,69 @@ bool DisguiseAllowed(const TechnoTypeExt::ExtData* pThis, ObjectTypeClass* pThat
 	return true;
 }
 
-//unnessesary i think , already put check at `CanFire` lets hope AI not freaking out about it !
-//DEFINE_HOOK(0x70EF00, TechnoClass_CanFireAt_Disguise, 0x7)
-//{
-//	GET(TechnoClass*, pThis, ESI);
-//	GET(AbstractClass*, pTarget, EDI);
-//
-//	if (const auto pWeapon = pThis->GetWeapon(pThis->SelectWeapon(pTarget))->WeaponType)
-//	{
-//		if (pTarget->AbstractFlags & AbstractFlags::Object) {
-//			auto const pObjectT = static_cast<ObjectClass*>(pTarget);
-//			ObjectTypeClass* pObjectDisguise = pObjectT->GetDisguise(true);
-//
-//			if (pWeapon->Warhead->MakesDisguise &&
-//				!DisguiseAllowed(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()),
-//					pObjectDisguise))
-//			{
-//				R->EAX(false);
-//				return 0x70EFC1;
-//			}
-//
-//			if (pObjectDisguise) {
-//				const auto nVtable = GetVtableAddr(pObjectDisguise);
-//				if (nVtable == TerrainTypeClass::vtable)
-//				{
-//					if ((RulesClass::Instance->TreeTargeting || pWeapon->TerrainFire))
-//					{
-//						R->EAX(true);
-//						return 0x70EFC1;
-//					}
-//				}
-//				else if (nVtable == OverlayTypeClass::vtable && static_cast<OverlayTypeClass*>(pObjectDisguise)->IsARock)
-//				{
-//					if(pWeapon->TerrainFire)
-//					{
-//						R->EAX(true);
-//						return 0x70EFC1;
-//					}
-//				}
-//			}
-//
-//			if (Is_Terrain(pTarget) && (RulesClass::Instance->TreeTargeting || pWeapon->TerrainFire))
-//			{
-//				R->EAX(true);
-//				return 0x70EFC1;
-//			}
-//		}
-//		else if (pWeapon->TerrainFire)
-//		{
-//			if (Is_Cell(pTarget))
-//			{
-//				auto const pCellT = static_cast<CellClass*>(pTarget);
-//				const auto nIdx = pCellT->OverlayTypeIndex;
-//
-//				if (nIdx != -1 && OverlayTypeClass::Array->GetItem(nIdx)->IsARock)
-//				{
-//					R->EAX(true);
-//					return 0x70EFC1;
-//				}
-//			}
-//		}
-//	}
-//
-//
-//	R->EAX(false);
-//	return 0x70EFC1;
-//}
+//https://github.com/Phobos-developers/Phobos/pull/1073/
+DEFINE_HOOK(0x6FE562, TechnoClass_FireAt_BurstRandomTarget, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(WeaponTypeClass*, pWeapon, EBX);
+	GET(BulletClass*, pBullet, EAX);
+
+	if (!pBullet || pWeapon->Burst < 2)
+		return 0;
+
+	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+	if (pWeaponExt->Burst_Retarget <= 0.0)
+		return 0;
+
+	const int retargetProbability = pWeaponExt->Burst_Retarget > 1.0 ? 100 : (int)std::round(pWeaponExt->Burst_Retarget * 100);
+
+	if (retargetProbability < ScenarioClass::Instance->Random.RandomRanged(1, 100))
+		return 0;
+
+	auto pThisType = pThis->GetTechnoType();
+	std::vector<TechnoClass*> candidates;
+	auto originalTarget = pThis->Target;
+	auto pThisExt = TechnoExt::ExtMap.Find(pThis);
+	int minimumRange = pWeapon->MinimumRange;
+	int range = pWeapon->Range;
+	int airRange = pWeapon->Range + pThisType->AirRangeBonus;
+
+	for (auto pTarget : *TechnoClass::Array)
+	{
+		if (pTarget == originalTarget)
+			continue;
+
+		const auto FireError = pThis->GetFireError(pTarget, pThisExt->CurrentWeaponIdx, false);
+		if (FireError != FireError::OK)
+			continue;
+
+		int distanceFromAttacker = pThis->DistanceFrom(pTarget);
+		if (distanceFromAttacker < minimumRange)
+			continue;
+
+		const auto rangemax = (pTarget->IsInAir() ? airRange : range);
+
+		if (pWeapon->OmniFire) {
+			if(distanceFromAttacker <= rangemax)
+				candidates.emplace_back(pTarget);
+		}
+		else
+		{
+			int distanceFromOriginalTarget = pTarget->DistanceFrom(originalTarget);
+
+			if (distanceFromAttacker <= rangemax && distanceFromOriginalTarget <= rangemax) {
+				candidates.emplace_back(pTarget);
+			}
+		}
+	}
+
+	if (!candidates.empty()) {
+		// Pick one new target from the list of targets inside the weapon range
+		pBullet->Target = candidates.at(ScenarioClass::Instance->Random.RandomFromMax(candidates.size() - 1));
+	}
+
+	return 0;
+}
 
 // Pre-Firing Checks
 DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8

@@ -1,46 +1,42 @@
 #include "Body.h"
 
+#include <Ext/Techno/Body.h>
+#include <Ext/TechnoType/Body.h>
 
-DEFINE_HOOK(0x71A9EE, TemporalClass_Update_RemoveBuildingTarget, 0x9)
+DEFINE_HOOK(0x71A9F1, TemporalClass_Update_RemoveBuildingTarget, 0x6)
 {
 	GET(TemporalClass* const, pThis, ESI);
+	GET(BuildingClass*, pTarget, EDI);
 
-	BuildingClass* BuildingTargetResult = nullptr;
-	auto const pTarget = pThis->Target;
-
+	if (!pTarget)
+		return 0x71AAD5;
 	{
-		if (pTarget->IsSelected)
-			pTarget->Deselect();
+		if (pTarget->BunkerLinkedItem)
+			pTarget->UnloadBunker();
 
-		if (auto const BuildingTarget = specific_cast<BuildingClass*>(pTarget))
+		if (pTarget->Type->Helipad
+			&& pTarget->RadioLinks.Items
+			&& pTarget->RadioLinks.IsAllocated
+			&& pTarget->RadioLinks.IsInitialized
+			)
 		{
-			BuildingTargetResult = BuildingTarget;
-
-			if (BuildingTarget->BunkerLinkedItem)
-				BuildingTarget->UnloadBunker();
-
-			if (BuildingTarget->Type->Helipad
-				&& BuildingTarget->RadioLinks.Items
-				&& BuildingTarget->RadioLinks.IsAllocated
-				&& BuildingTarget->RadioLinks.IsInitialized
-				)
+			for (auto i = 0; i < pTarget->RadioLinks.Capacity; ++i)
 			{
-				for (auto i = 0; i < BuildingTarget->RadioLinks.Capacity; ++i)
+				if (auto const pAir = specific_cast<AircraftClass*>(pTarget->RadioLinks[i]))
 				{
-					if (auto const pAir = specific_cast<AircraftClass*>(BuildingTarget->RadioLinks[i]))
+					if (pAir->IsAlive && !pAir->InLimbo && !pAir->TemporalTargetingMe)
 					{
-						if (pAir->IsAlive && !pAir->InLimbo)
+						const auto pExt = TechnoTypeExt::ExtMap.Find(pAir->Type);
+						if (pAir->IsInAir())
 						{
-							if (pAir->IsInAir() && pAir->Type->Crashable)
-							{
-								pAir->Crash(pThis->Owner);
-							}
-							else
-							{
-								//Ask plane to fly
-								BuildingTarget->SendCommand(RadioCommand::AnswerLeave, pAir);
-								pAir->DockedTo = nullptr;
-							}
+							if ((pExt->Crashable.isset() && !pExt->Crashable) || !pAir->Crash(pThis->Owner))
+								TechnoExt::HandleRemove(pAir, pThis->Owner, false, false);
+						}
+						else
+						{
+							//Ask plane to fly
+							pTarget->SendCommand(RadioCommand::AnswerLeave, pAir);
+							pAir->DockedTo = nullptr;
 						}
 					}
 				}
@@ -48,6 +44,5 @@ DEFINE_HOOK(0x71A9EE, TemporalClass_Update_RemoveBuildingTarget, 0x9)
 		}
 	}
 
-	R->ECX(BuildingTargetResult);
-	return 0x71AA1D;
+	return 0x71AA1A;
 }

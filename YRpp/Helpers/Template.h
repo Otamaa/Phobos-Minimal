@@ -59,16 +59,45 @@ void AnnounceInvalidPointer(T &elem, void *ptr) {
 }
 
 template<typename T>
+void AnnounceInvalidPointer(T& elem, void* ptr , bool removed) {
+	static_assert(std::is_pointer<T>::value, "Pointer Required !");
+	if (removed && ptr == static_cast<void*>(elem)) {
+		elem = nullptr;
+	}
+}
+
+template<typename T>
 void AnnounceInvalidPointer(DynamicVectorClass<T> &elem, void *ptr) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
 	elem.Remove((T)ptr);
 }
 
 template<typename T>
-void AnnounceInvalidPointer(std::vector<T>& elem, void* ptr)
-{
+void AnnounceInvalidPointer(DynamicVectorClass<T>& elem, void* ptr, bool removed) {
+	static_assert(std::is_pointer<T>::value, "Pointer Required !");
+	if(removed)
+		elem.Remove((T)ptr);
+}
+
+template<typename T>
+void AnnounceInvalidPointer(std::vector<T>& elem, void* ptr, bool removed) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
 
+	if (!removed)
+		return;
+
+	for (size_t i = 0; i < elem.size(); i++)
+	{
+		if (elem[i] == ptr)
+		{
+			elem.erase(elem.begin() + i);
+		}
+	}
+}
+
+template<typename T>
+void AnnounceInvalidPointer(std::vector<T>& elem, void* ptr) {
+	static_assert(std::is_pointer<T>::value, "Pointer Required !");
 	for (size_t i = 0; i < elem.size(); i++) {
 		if (elem[i] == ptr) {
 			elem.erase(elem.begin() + i);

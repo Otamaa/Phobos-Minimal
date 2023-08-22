@@ -356,7 +356,6 @@ DEFINE_OVERRIDE_HOOK(0x444119, BuildingClass_KickOutUnit_UnitType_Phobos, 0x6)
 	else
 		pHouseExt->Factory_VehicleType = nullptr;
 
-
 	return 0;
 }
 

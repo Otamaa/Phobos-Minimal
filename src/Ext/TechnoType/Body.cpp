@@ -229,7 +229,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 	if (pINI->GetSection(pSection))
 	{
 		INI_EX exINI(pINI);
-
+		// survivors
+		this->Survivors_Pilots.resize(SideClass::Array->Count , nullptr);
 		this->Survivors_PassengerChance.Read(exINI, pSection, "Survivor.%sPassengerChance");
 		this->HealthBar_Hide.Read(exINI, pSection, "HealthBar.Hide");
 		this->UIDescription.Read(exINI, pSection, "UIDescription");
@@ -634,7 +635,13 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->AmmoPip.Read(exINI, pSection, "AmmoPip");
 		this->AmmoPip_Offset.Read(exINI, pSection, "AmmoPipOffset");
 		this->AmmoPip_Palette.Read(exINI, pSection, "AmmoPipPalette");
+		this->AmmoPipOffset.Read(exINI, pSection, "AmmoPipOffset");
 
+		this->ShowSpawnsPips.Read(exINI, pSection, "ShowSpawnsPips");
+		this->SpawnsPip.Read(exINI, pSection, "SpawnsPip");
+		this->EmptySpawnsPip.Read(exINI, pSection, "EmptySpawnsPip");
+		this->SpawnsPipSize.Read(exINI, pSection, "SpawnsPipSize");
+		this->SpawnsPipOffset.Read(exINI, pSection, "SpawnsPipOffset");
 		// #346, #464, #970, #1014
 		this->PassengersGainExperience.Read(exINI, pSection, "Experience.PromotePassengers");
 		this->ExperienceFromPassengers.Read(exINI, pSection, "Experience.FromPassengers");
@@ -932,6 +939,22 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		}
 
 		this->PoweredBy.Read(exINI, pSection, "PoweredBy");
+
+		char Survivor_buffer[256];
+		for (int i = 0; i < SideClass::Array->Count; ++i)
+		{
+			IMPL_SNPRNINTF(Survivor_buffer,sizeof(Survivor_buffer), "Survivor.Side%d", i);
+			if (pINI->ReadString(pSection, Survivor_buffer, Phobos::readDefval, Phobos::readBuffer))
+			{
+				if ((this->Survivors_Pilots[i] = InfantryTypeClass::Find(Phobos::readBuffer)) == nullptr)
+				{
+					if (!GameStrings::IsBlank(Phobos::readBuffer))
+					{
+						Debug::INIParseFailed(pSection, Survivor_buffer, Phobos::readBuffer);
+					}
+				}
+			}
+		}
 
 #pragma region AircraftOnly
 		if (Is_AircraftType(pThis))
@@ -1709,6 +1732,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->IronCurtain_Modifier)
 		.Process(this->ForceShield_Modifier)
 		.Process(this->Survivors_PilotCount)
+		.Process(this->Survivors_Pilots)
 		.Process(this->BerserkROFMultiplier)
 		.Process(this->Refinery_UseStorage)
 		.Process(this->VHPscan_Value)
@@ -1861,7 +1885,13 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->AmmoPip)
 		.Process(this->AmmoPip_Offset)
 		.Process(this->AmmoPip_Palette)
+		.Process(this->AmmoPipOffset)
 
+		.Process(this->ShowSpawnsPips)
+		.Process(this->SpawnsPip)
+		.Process(this->EmptySpawnsPip)
+		.Process(this->SpawnsPipSize)
+		.Process(this->SpawnsPipOffset)
 		.Process(this->Insignia_Weapon)
 		;
 }

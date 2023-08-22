@@ -32,9 +32,9 @@ public:
 	virtual ~SuperClass() override JMP_THIS(0x6CB120);
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x6CDFF0);
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
 	virtual int Size() const override R0;
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x6CDFF0);
 
 	// non virtual
 	void CreateChronoAnim(CoordStruct coords)

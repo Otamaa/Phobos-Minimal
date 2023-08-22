@@ -86,7 +86,7 @@ public:
 
 		Valueable<int> Ammo { 1 };
 		Valueable<bool> IsDetachedRailgun { false };
-		
+
 		// TS Lasers
 		Valueable<bool> Wave_IsHouseColor { false };
 		Valueable<bool> Wave_IsLaser { false };
@@ -134,7 +134,9 @@ public:
 		ValueableVector<WarheadTypeClass*> ExtraWarheads {};
 		ValueableVector<int> ExtraWarheads_DamageOverrides {};
 
-		ExtData(WeaponTypeClass* OwnerObject) : Extension<WeaponTypeClass>(OwnerObject)		
+		Valueable<double> Burst_Retarget { 0.0 };
+
+		ExtData(WeaponTypeClass* OwnerObject) : Extension<WeaponTypeClass>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override  = default;

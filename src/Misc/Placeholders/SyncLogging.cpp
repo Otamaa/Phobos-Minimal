@@ -1,4 +1,4 @@
-#include <Misc/SyncLogging.h>
+#include "SyncLogging.h"
 
 #include <AircraftClass.h>
 #include <InfantryClass.h>
@@ -119,6 +119,312 @@ void SyncLogger::WriteSyncLog(const char* logFilename)
 		Debug::Log("Failed to open sync log file '%s'.\n", logFilename);
 	}
 }
+template<typename T>
+void WriteLog(const T* it, int idx, DWORD checksum, FILE* F)
+{
+	fprintf(F, "#%05d:\t%08X", idx, checksum);
+}
+
+template<>
+void WriteLog(const AbstractClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<void>(it, idx, checksum, F);
+	auto abs = it->WhatAmI();
+	fprintf(F, "; Abs: %u (%s)", abs, AbstractClass::GetAbstractClassName(abs));
+}
+
+template<>
+void WriteLog(const ObjectClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<AbstractClass>(it, idx, checksum, F);
+
+	const char* typeID = GameStrings::NoneStr();
+	int typeIndex = -1;
+	if (auto pType = it->GetType())
+	{
+		typeID = pType->ID;
+		typeIndex = pType->GetArrayIndex();
+	}
+
+	CoordStruct crd = it->GetCoords();
+	CellStruct cell = CellClass::Coord2Cell(crd);
+
+	fprintf(F, "; Type: %d (%s); Coords: %d,%d,%d (%d,%d); Health: %d; InLimbo: %u",
+		typeIndex, typeID, crd.X, crd.Y, crd.Z, cell.X, cell.Y, it->Health, it->InLimbo);
+}
+
+template<>
+void WriteLog(const MissionClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<ObjectClass>(it, idx, checksum, F);
+	fprintf(F, "; Mission: %d; StartTime: %d",
+		it->GetCurrentMission(), it->CurrentMissionStartTime);
+}
+
+template<>
+void WriteLog(const RadioClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<MissionClass>(it, idx, checksum, F);
+	//fprintf(F, "; LastCommand: %d", it->LastCommands[0]);
+}
+
+template<>
+void WriteLog(const TechnoClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<RadioClass>(it, idx, checksum, F);
+
+	const char* targetID = GameStrings::NoneStr();
+	int targetIndex = -1;
+	CoordStruct targetCrd = { -1, -1, -1 };
+	if (auto pTarget = it->Target)
+	{
+		targetID = pTarget->GetThisClassName();
+		targetIndex = pTarget->GetArrayIndex();
+		targetCrd = pTarget->GetCoords();
+	}
+
+	fprintf(F, "; Facing: %d; Facing2: %d; Target: %s (%d; %d,%d)",
+		it->PrimaryFacing.Current().Getvalue8(), it->SecondaryFacing.Current().Getvalue8(), targetID, targetIndex, targetCrd.X, targetCrd.Y);
+}
+
+template<>
+void WriteLog(const FootClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<TechnoClass>(it, idx, checksum, F);
+
+	const char* destID = GameStrings::NoneStr();
+	int destIndex = -1;
+	CoordStruct destCrd = { -1, -1, -1 };
+	if (auto pDest = it->Destination)
+	{
+		destID = pDest->GetThisClassName();
+		destIndex = pDest->GetArrayIndex();
+		destCrd = pDest->GetCoords();
+	}
+
+	fprintf(F, "; Destination: %s (%d; %d,%d)",
+		destID, destIndex, destCrd.X, destCrd.Y);
+}
+
+template<>
+void WriteLog(const InfantryClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<FootClass>(it, idx, checksum, F);
+	fprintf(F, "; Speed %d", Game::F2I(it->SpeedPercentage * 256));
+}
+
+template<>
+void WriteLog(const UnitClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<FootClass>(it, idx, checksum, F);
+
+	const auto& Loco = it->Locomotor;
+	auto accum = Loco->Get_Speed_Accum();
+	auto index = Loco->Get_Track_Index();
+	auto number = Loco->Get_Track_Number();
+
+	fprintf(F, "; Speed %d; TrackNumber: %d; TrackIndex: %d", accum, number, index);
+}
+
+template<>
+void WriteLog(const AircraftClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<FootClass>(it, idx, checksum, F);
+	fprintf(F, "; Speed %d; Height: %d", Game::F2I(it->SpeedPercentage * 256), it->GetHeight());
+}
+
+template<>
+void WriteLog(const BuildingClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<TechnoClass>(it, idx, checksum, F);
+}
+
+template<>
+void WriteLog(const AbstractTypeClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<AbstractClass>(it, idx, checksum, F);
+	fprintf(F, "; ID: %s; Name: %s", it->ID, it->Name);
+}
+
+template<>
+void WriteLog(const HouseClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<void>(it, idx, checksum, F);
+
+	fprintf(F, "; CurrentPlayer: %u; ColorScheme: %s; ID: %d; HouseType: %s; Edge: %d; StartingAllies: %u; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d",
+		it->IsHumanPlayer, ColorScheme::Array->GetItem(it->ColorSchemeIndex)->ID,
+		it->ArrayIndex, HouseTypeClass::Array->GetItem(it->Type->ArrayIndex)->Name,
+		it->Edge, it->StartingAllies.data, it->StartingCell.X, it->StartingCell.Y, it->Visionary,
+		it->MapIsClear, it->Available_Money());
+}
+
+// calls WriteLog and appends a newline
+template<typename T>
+void WriteLogLine(const T* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog(it, idx, checksum, F);
+	fprintf(F, "\n");
+}
+
+template<typename T>
+void LogItem(const T* it, int idx, FILE* F)
+{
+	if (it->WhatAmI() != AnimClass::AbsID || it->Fetch_ID() != -2)
+	{
+		DWORD Checksum(0);
+#ifdef MAKE_GAME_SLOWER_FOR_NO_REASON
+		if (auto ExtData = AbstractExt::ExtMap.Find(it))
+		{
+			Checksum = ExtData->LastChecksum;
+		}
+#else
+		SafeChecksummer Ch;
+		it->CalculateChecksum(Ch);
+		Checksum = Ch.Intermediate();
+#endif
+		WriteLogLine(it, idx, Checksum, F);
+	}
+}
+
+template<typename T>
+void VectorLogger(const DynamicVectorClass<T>* Array, FILE* F, const char* Label = nullptr)
+{
+	if (Label)
+	{
+		fprintf(F, "Checksums for [%s] (%d)\n", Label, Array ? Array->Count : -1);
+	}
+	if (Array)
+	{
+		for (auto i = 0; i < Array->Count; ++i)
+		{
+			auto it = Array->Items[i];
+			LogItem(it, i, F);
+		}
+	}
+	else
+	{
+		fprintf(F, "Array not initialized yet...\n");
+	}
+}
+
+template<typename T>
+void HouseLogger(const DynamicVectorClass<T>* Array, FILE* F, const char* Label = nullptr)
+{
+	if (Array)
+	{
+		for (auto j = 0; j < HouseClass::Array->Count; ++j)
+		{
+			auto pHouse = HouseClass::Array->GetItem(j);
+			fprintf(F, "-------------------- %s (%d) %s -------------------\n", pHouse->Type->Name, j, Label ? Label : "");
+
+			for (auto i = 0; i < Array->Count; ++i)
+			{
+				auto it = Array->Items[i];
+
+				if (it->Owner == pHouse)
+				{
+					LogItem(it, i, F);
+				}
+			}
+		}
+	}
+	else
+	{
+		fprintf(F, "Array not initialized yet...\n");
+	}
+}
+
+#include <Networking.h>
+#include <FPSCounter.h>
+#include <Phobos.version.h>
+
+//bool LogFrame(const char* LogFilename, NetworkEvent* OffendingEvent = nullptr)
+//{
+//	FILE* LogFile = nullptr;
+//	if (!fopen_s(&LogFile, LogFilename, "wt") && LogFile)
+//	{
+//		std::setvbuf(LogFile, nullptr, _IOFBF, 1024 * 1024); // 1024 kb buffer - should be sufficient for whole log
+//
+//		fprintf(LogFile, "YR synchronization log\n");
+//		fprintf(LogFile, "With Ares [21.352.1218] and Phobos [%s]\n", _STR(BUILD_NUMBER));
+//
+//		for (auto ixF = 0; ixF < Networking::LatestFramesCRC.size(); ++ixF) {
+//			fprintf(LogFile, "LastFrame CRC[%02X] = %08X\n", ixF, Networking::LatestFramesCRC[ixF]);
+//		}
+//
+//		fprintf(LogFile, "My Random Number: %08X\n", ScenarioClass::Instance->Random.Random());
+//		fprintf(LogFile, "My Frame: %08X\n", Unsorted::CurrentFrame);
+//		fprintf(LogFile, "Average FPS: %d\n", Game::F2I(FPSCounter::GetAverageFrameRate()));
+//		fprintf(LogFile, "Max MaxAhead: %d\n",  Unsorted::MaxAhead());
+//		fprintf(LogFile, "Latency setting: %d\n", Network::LatencyFudge());
+//		fprintf(LogFile, "Game speed setting: %d\n", GameOptionsClass::Instance->GameSpeed);
+//		fprintf(LogFile, "FrameSendRate: %d\n", Network::FrameSendRate());
+//		fprintf(LogFile, "Mod is %s with %d\n", );
+//		fprintf(LogFile, "Player Name %s\n", HouseClass::CurrentPlayer->PlainName);
+//		fprintf(LogFile, "Rules checksum: %08X\n", );
+//		fprintf(LogFile, "Art checksum: %08X\n", );
+//		fprintf(LogFile, "AI checksum: %08X\n", );
+//
+//		if (OffendingEvent)
+//		{
+//			fprintf(LogFile, "\nOffending event:\n");
+//			fprintf(LogFile, "Type:         %X\n", OffendingEvent->Kind);
+//			fprintf(LogFile, "Frame:        %X\n", OffendingEvent->Timestamp);
+//			fprintf(LogFile, "ID:           %X\n", OffendingEvent->HouseIndex);
+//			fprintf(LogFile, "CRC:          %X\n", OffendingEvent->Checksum);
+//			fprintf(LogFile, "CommandCount: %hu\n", OffendingEvent->CommandCount);
+//			fprintf(LogFile, "Delay:        %hhu\n", OffendingEvent->Delay);
+//			fprintf(LogFile, "\n\n");
+//		}
+//
+//		fprintf(LogFile, "\nTypes\n");
+//		HouseLogger(InfantryClass::Array(), LogFile, "Infantry");
+//		HouseLogger(UnitClass::Array(), LogFile, "Units");
+//		HouseLogger(AircraftClass::Array(), LogFile, "Aircraft");
+//		HouseLogger(BuildingClass::Array(), LogFile, "Buildings");
+//
+//		fprintf(LogFile, "\nChecksums\n");
+//		VectorLogger(HouseClass::Array(), LogFile, "Houses");
+//		VectorLogger(InfantryClass::Array(), LogFile, "Infantry");
+//		VectorLogger(UnitClass::Array(), LogFile, "Units");
+//		VectorLogger(AircraftClass::Array(), LogFile, "Aircraft");
+//		VectorLogger(BuildingClass::Array(), LogFile, "Buildings");
+//
+//		fprintf(LogFile, "\n");
+//		VectorLogger(&ObjectClass::CurrentObjects(), LogFile, "Current Objects");
+//		VectorLogger(ObjectClass::Logics(), LogFile, "Logics");
+//
+//		fprintf(LogFile, "\nChecksums for Map Layers\n");
+//		for (auto ixL = 0; ixL < 5; ++ixL)
+//		{
+//			fprintf(LogFile, "Checksums for Layer %d\n", ixL);
+//			VectorLogger(&(ObjectClass::ObjectsInLayers[ixL]), LogFile);
+//		}
+//
+//		fprintf(LogFile, "\nChecksums for Logics\n");
+//		VectorLogger(ObjectClass::Logics(), LogFile);
+//
+//		fprintf(LogFile, "\nChecksums for Abstracts\n");
+//		VectorLogger(AbstractClass::Array(), LogFile, "Abstracts");
+//		VectorLogger(AbstractTypeClass::Array(), LogFile, "AbstractTypes");
+//
+// 		int frameDigits = GeneralUtils::CountDigitsInNumber(Unsorted::CurrentFrame);
+//
+//		WriteRNGCalls(pLogFile, frameDigits);
+//		WriteFacingChanges(pLogFile, frameDigits);
+//		WriteTargetChanges(pLogFile, frameDigits);
+//		WriteDestinationChanges(pLogFile, frameDigits);
+//		WriteAnimCreations(pLogFile, frameDigits);
+//
+//		fclose(LogFile);
+//		return true;
+//	}
+//	else
+//	{
+//		Debug::Log("Failed to open file for sync log. Error code %X.\n", errno);
+//		return false;
+//	}
+//}
 
 void SyncLogger::WriteRNGCalls(FILE* const pLogFile, int frameDigits)
 {
@@ -432,7 +738,6 @@ DEFINE_HOOK(0x4D8F40, FootClass_OverrideMission_SyncLog, 0x5)
 	return 0;
 }
 
-
 DEFINE_HOOK(0x7013A0, TechnoClass_OverrideMission_SyncLog, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
@@ -446,10 +751,10 @@ DEFINE_HOOK(0x7013A0, TechnoClass_OverrideMission_SyncLog, 0x5)
 }
 
 // Anim creation logging
-DEFINE_HOOK(0x421EA9, AnimClass_CTOR_SyncLog, 0x5)
+DEFINE_HOOK(0x421EA0, AnimClass_CTOR_CallerAddress, 0x6)
 {
-	GET_BASE(CoordStruct*, coords, 0xC);
-	GET_STACK(unsigned int, callerAddress, STACK_OFFSET(0x58, 0x4));
+	GET_STACK(CoordStruct*, coords, 0x8);
+	GET_STACK(unsigned int, callerAddress, 0x0);
 
 	SyncLogger::AddAnimCreationSyncLogEvent(*coords, callerAddress);
 

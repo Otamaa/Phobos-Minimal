@@ -52,7 +52,7 @@ void TerrainExt::ExtData::InitializeAnim()
 		if (TypeData->AttachedAnim.size() == 1)
 			pAnimType = TypeData->AttachedAnim[0];
 		else
-			pAnimType = 
+			pAnimType =
 			TypeData->
 			AttachedAnim[ScenarioClass::Instance->Random.RandomFromMax(TypeData->AttachedAnim.size() - 1)];
 
@@ -97,7 +97,7 @@ void TerrainExt::Unlimbo(TerrainClass* pThis, CoordStruct* pCoord)
 
 	//if (auto const CellExt = CellExt::ExtMap.Find<true>(Map[*pCoord]))
 	//{
-	//	auto const iter = std::find_if(CellExt->AttachedTerrain.begin(), CellExt->AttachedTerrain.end(), 
+	//	auto const iter = std::find_if(CellExt->AttachedTerrain.begin(), CellExt->AttachedTerrain.end(),
 	//		[&](auto const pCellTerrain) { return pCellTerrain == pThis; });
 
 	//	if (iter != CellExt->AttachedTerrain.end())
@@ -162,7 +162,7 @@ DEFINE_HOOK(0x71BCA5, TerrainClass_CTOR_MoveAndAllocate, 0x5)
 	TerrainExt::ExtMap.FindOrAllocate(pItem);
 
 	if (pCoord->IsValid()) {
-		//vtable may not instantiated 
+		//vtable may not instantiated
 		if (!pItem->TerrainClass::Unlimbo(CellClass::Cell2Coord(*pCoord), static_cast<DirType>(0))) {
 			pItem->ObjectClass::UnInit();
 		}
@@ -217,17 +217,24 @@ DEFINE_HOOK(0x71CF44, TerrainClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x71CFD0, TerrainClass_Detach, 0x5)
+//DEFINE_HOOK(0x71CFD0, TerrainClass_Detach, 0x5)
+//{
+//	GET(TerrainClass*, pThis, ECX);
+//	GET_STACK(AbstractClass*, pObj, 0x4);
+//	GET_STACK(bool, bRemoved, 0x8);
+//
+//	pThis->ObjectClass::PointerExpired(pObj, bRemoved);
+//	TerrainExt::ExtMap.InvalidatePointerFor(pThis, pObj, bRemoved);
+//
+//	if (pThis->Type == pObj)
+//		pThis->Type = nullptr;
+//
+//	return 0x71CFF7;
+//}
+
+void __fastcall TerrainClass_Detach_Wrapper(TerrainClass* pThis, DWORD, AbstractClass* target, bool all)
 {
-	GET(TerrainClass*, pThis, ECX);
-	GET_STACK(AbstractClass*, pObj, 0x4);
-	GET_STACK(bool, bRemoved, 0x8);
-
-	pThis->ObjectClass::PointerExpired(pObj, bRemoved);
-	TerrainExt::ExtMap.InvalidatePointerFor(pThis, pObj, bRemoved);
-
-	if (pThis->Type == pObj)
-		pThis->Type = nullptr;
-
-	return 0x71CFF7;
+	TerrainExt::ExtMap.InvalidatePointerFor(pThis, target, all);
+	pThis->TerrainClass::PointerExpired(target, all);
 }
+DEFINE_JUMP(VTABLE, 0x7F5254, GET_OFFSET(TerrainClass_Detach_Wrapper));

@@ -164,13 +164,13 @@ DEFINE_HOOK(0x48A4F3, SelectDamageAnimation_NegativeZeroDamage, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x489B49, MapClass_DamageArea_Rocker, 0xA)
-{
-	GET_BASE(WarheadTypeClass*, pWH, 0xC);
-	GET_STACK(int, damage, 0xE0 - 0xBC);
-
-	const int rocker = WarheadTypeExt::ExtMap.Find(pWH)->Rocker_Damage.Get(damage);
-	_asm fild rocker;
-
-	return 0x489B4D;
-}
+//DEFINE_HOOK(0x489B49, MapClass_DamageArea_Rocker, 0xA)
+//{
+//	GET_BASE(WarheadTypeClass*, pWH, 0xC);
+//	GET_STACK(int, damage, 0xE0 - 0xBC);
+//
+//	const int rocker = WarheadTypeExt::ExtMap.Find(pWH)->Rocker_Damage.Get(damage);
+//	_asm fild rocker;
+//
+//	return 0x489B4D;
+//}

@@ -83,7 +83,7 @@ public:
 
 		static void InvalidatePointer(void* ptr, bool bRemoved)
 		{
-			AnnounceInvalidPointer(BulletExt::InRangeTempFirer, ptr);
+			AnnounceInvalidPointer(BulletExt::InRangeTempFirer, ptr, bRemoved);
 		}
 
 		static bool LoadGlobals(PhobosStreamReader& Stm)

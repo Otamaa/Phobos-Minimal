@@ -65,13 +65,13 @@ public:
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
 	virtual int Size() const override R0;
 	virtual void Update() override JMP_THIS(0x760F50);
-		
+
 	//ObjectClass
 	virtual Layer InWhichLayer() const override JMP_THIS(0x75F890); // dont ask me ,.. -Otamaa
 
 	// remove object from the map
 	virtual bool Limbo() override JMP_THIS(0x75F980);
-	
+
 	// place the object on the map
 	virtual bool Unlimbo(const CoordStruct& Crd, DirType dFaceDir) override JMP_THIS(0x75F8B0);
 	virtual void DrawIt(Point2D* pLocation, RectangleStruct* pBounds) const  override JMP_THIS(0x7F6D08);
