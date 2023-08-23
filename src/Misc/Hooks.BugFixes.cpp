@@ -636,12 +636,13 @@ DEFINE_HOOK(0x456776, BuildingClass_DrawRadialIndicator_Visibility, 0x6)
 }
 
 // Bugfix: TAction 7,80,107.
-DEFINE_HOOK(0x65DF81, TeamTypeClass_CreateMembers_WhereTheHellIsIFV, 0x7)
+DEFINE_HOOK(0x65DF81, TeamTypeClass_CreateMembers_LoadOntoTransport, 0x7)
 {
 	GET(FootClass* const, pPayload, EAX);
 	GET(FootClass* const, pTransport, ESI);
 	GET(TeamClass* const, pTeam, EBP);
 
+	TechnoExt::ExtMap.Find(pTransport)->CreatedFromAction = true;
 	const bool isTransportOpenTopped = pTransport->GetTechnoType()->OpenTopped;
 	FootClass* pGunner = nullptr;
 
@@ -649,11 +650,18 @@ DEFINE_HOOK(0x65DF81, TeamTypeClass_CreateMembers_WhereTheHellIsIFV, 0x7)
 	{
 		if (pNext && pNext != pTransport && pNext->Team == pTeam)
 		{
-			pPayload->Transporter = pTransport;
+			pNext->Transporter = pTransport;
 			pGunner = pNext;
 
 			if (isTransportOpenTopped)
 				pTransport->EnteredOpenTopped(pNext);
+
+			pNext->SetLocation(pTransport->Location);
+
+			if (pNext->WhatAmI() != InfantryClass::AbsID && pNext->Passengers.NumPassengers <= 0)
+			{
+				TechnoExt::ExtMap.Find(pNext)->CreatedFromAction = true;
+			}
 		}
 	}
 
@@ -664,7 +672,6 @@ DEFINE_HOOK(0x65DF81, TeamTypeClass_CreateMembers_WhereTheHellIsIFV, 0x7)
 	if (pTransport->GetTechnoType()->Gunner && pGunner)
 		pTransport->ReceiveGunner(pGunner);
 
-	pPayload->SetLocation(pTransport->Location);
 	// Ares' CreateInitialPayload doesn't work here
 	return 0x65DF8D;
 }
@@ -1148,7 +1155,8 @@ DEFINE_HOOK(0x741050, UnitClass_CanFire_DeployToFire, 0x6)
 }
 
 // skip call DrawInfoTipAndSpiedSelection
-DEFINE_JUMP(LJMP, 0x6D9427, 0x6D95A1); // Tactical_RenderLayers
+// Note that Ares have the TacticalClass_DrawUnits_ParticleSystems hook at 0x6D9427
+DEFINE_JUMP(LJMP, 0x6D9430, 0x6D95A1); // Tactical_RenderLayers
 
 // Fixed position and layer of info tip and reveal production cameo on selected building
 // Author: Belonit

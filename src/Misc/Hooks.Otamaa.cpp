@@ -5026,6 +5026,31 @@ DEFINE_HOOK(0x6EEEF2, TeamClass_6EEEA0_LimboDelivered, 0xA)
 		advance : ret;
 }
 
+DEFINE_HOOK(0x6E9696, TeamClass_ChangeHouse_nullptrresult, 0x9)
+{
+	GET(TeamClass*, pThis, ESI);
+	GET(int, args, ECX);
+	GET(FootClass*, pCurMember, EDI);
+
+	const auto pHouse = HouseClass::FindByCountryIndex(args);
+	if (!pHouse){
+		Debug::FatalErrorAndExit("[%s - %x] Team [%s - %x] ChangeHouse cannot find House by country idx [%d]\n",
+			pThis->Owner ? pThis->Owner->get_ID() : GameStrings::NoneStr() , pThis->Owner ,
+			pThis->get_ID() , pThis , args);
+	}
+
+	pCurMember->SetOwningHouse(pHouse);
+	return 0x6E96A8;
+}
+
+std::string hex(uint32_t n, uint8_t d)
+{
+	std::string s(d, '0');
+	for (int i = d - 1; i >= 0; i--, n >> 4)
+		s[i] = "0123456789ABCDEF"[n & 0xFF];
+	return s;
+}
+
 //DEFINE_HOOK(0x4179AA, AircraftClass_EnterIdleMode_AlreadiHasDestination, 0x6)
 //{
 //	GET(AircraftClass*, pThis, ESI);

@@ -124,6 +124,7 @@ public:
 		CDTimerClass Convert_Deploy_Delay { };
 		bool DoingUnloadFire { false };
 
+		bool CreatedFromAction { false };
 		ExtData(TechnoClass* OwnerObject) : Extension<TechnoClass>(OwnerObject)
 		{ }
 
@@ -168,7 +169,7 @@ public:
 		void UpdateAircraftOpentopped();
 
 		bool IsInterceptor();
-		void CreateInitialPayload();
+		void CreateInitialPayload(bool forced = false);
 private:
 		template <typename T>
 		void Serialize(T& Stm);

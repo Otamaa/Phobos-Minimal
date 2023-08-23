@@ -121,8 +121,11 @@ Point2D TechnoExt::GetBuildingSelectBracketPosition(TechnoClass* pThis, Building
 		return position;
 	}
 
+Iterator<DigitalDisplayTypeClass*> GetDisplayType(TechnoClass* pThis, TechnoTypeClass* pType, int& length) {
+	return make_iterator(RulesExt::Global()->Buildings_DefaultDigitalDisplayTypes);
+}
 
-Iterator<DigitalDisplayTypeClass*> TechnoExt::GetDisplayType(TechnoClass* pThis , TechnoTypeClass* pType, int& length)
+bool GetDisplayTypeData(std::vector<DigitalDisplayTypeClass*>& ret , TechnoClass* pThis , TechnoTypeClass* pType, int& length)
 {
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
@@ -135,26 +138,35 @@ Iterator<DigitalDisplayTypeClass*> TechnoExt::GetDisplayType(TechnoClass* pThis 
 			const auto pBuildingType = static_cast<BuildingTypeClass*>(pType);
 			const int height = pBuildingType->GetFoundationHeight(false);
 			length = height * 7 + height / 2;
-			return make_iterator(RulesExt::Global()->Buildings_DefaultDigitalDisplayTypes);
+			ret = RulesExt::Global()->Buildings_DefaultDigitalDisplayTypes;
+			return true;
 		}
 		case AbstractType::Infantry:
 		{
 			length = 8;
-			return make_iterator(RulesExt::Global()->Infantry_DefaultDigitalDisplayTypes);
-
+			ret = (RulesExt::Global()->Infantry_DefaultDigitalDisplayTypes);
+			return true;
 		}
 		case AbstractType::Unit:
 		{
-			return make_iterator(RulesExt::Global()->Vehicles_DefaultDigitalDisplayTypes);
+			ret = (RulesExt::Global()->Vehicles_DefaultDigitalDisplayTypes);
+			return true;
 		}
 		case AbstractType::Aircraft:
 		{
-			return make_iterator(RulesExt::Global()->Aircraft_DefaultDigitalDisplayTypes);
+			ret = (RulesExt::Global()->Aircraft_DefaultDigitalDisplayTypes);
+			return true;
 		}
+		default:
+		{
+			return false;
+		}
+
 		}
 	}
 
-	return make_iterator(pTypeExt->DigitalDisplayTypes);
+	ret = (pTypeExt->DigitalDisplayTypes);
+	return true;
 }
 
 void TechnoExt::ProcessDigitalDisplays(TechnoClass* pThis)
@@ -162,25 +174,28 @@ void TechnoExt::ProcessDigitalDisplays(TechnoClass* pThis)
 	if (!Phobos::Config::DigitalDisplay_Enable)
 		return;
 
-	const auto pType = pThis->GetTechnoType();
+	auto pType = pThis->GetTechnoType();
 
 	if (TechnoTypeExt::ExtMap.Find(pType)->DigitalDisplay_Disable)
 		return;
 
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
 	int length = 17;
 	const auto What = pThis->WhatAmI();
 	const bool isBuilding = What == AbstractType::Building;
 	const bool isInfantry = What == AbstractType::Infantry;
 
-	auto const pDisplayTypes = GetDisplayType(pThis, pType, length);
+	std::vector<DigitalDisplayTypeClass*> DisplayTypes {};
 
-	if (!pDisplayTypes)
+	if (!GetDisplayTypeData(DisplayTypes, pThis, pType, length))
+		return;
+
+	if (DisplayTypes.empty())
 		return;
 
 	const bool IsCurPlayerObserver = HouseClass::IsCurrentPlayerObserver();
 
-	std::for_each(pDisplayTypes.begin(), pDisplayTypes.end(), [&](DigitalDisplayTypeClass* pDisplayType) {
+	std::for_each(DisplayTypes.begin(), DisplayTypes.end(), [&](DigitalDisplayTypeClass* pDisplayType) {
 
 		if (IsCurPlayerObserver && !pDisplayType->VisibleToHouses_Observer)
 			return;
@@ -552,18 +567,22 @@ bool TechnoExt::ExtData::IsInterceptor()
 	return HasAbility(pThis, PhobosAbilityType::Interceptor);
 }
 
-void TechnoExt::ExtData::CreateInitialPayload()
+void TechnoExt::ExtData::CreateInitialPayload(bool forced)
 {
-	if (this->PayloadCreated)
-	{
-		return;
+	if (!forced) {
+
+		if (this->PayloadCreated)
+		{
+			return;
+		}
+
+		this->PayloadCreated = true;
 	}
-
-	this->PayloadCreated = true;
-
 	auto const pThis = this->Get();
 	auto const pType = pThis->GetTechnoType();
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	if (pTypeExt->InitialPayload_Types.empty())
+		return;
 
 	auto const pBld = specific_cast<BuildingClass*>(pThis);
 
@@ -680,10 +699,10 @@ void TechnoExt::ExtData::CreateInitialPayload()
 				pThis->AddPassenger(pPayload);
 				VocClass::VoicesEnabled = old;
 
-				if (addtoteam)
-				{
-					if (auto pTeam = ((FootClass*)pThis)->Team)
+				if (addtoteam) {
+					if (auto pTeam = ((FootClass*)pThis)->Team){
 						pTeam->AddMember(pPayload, true);
+					}
 				}
 			}
 		}
@@ -4366,6 +4385,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->HijackerLastDisguiseHouse)
 		.Process(this->Convert_Deploy_Delay)
 		.Process(this->DoingUnloadFire)
+		.Process(this->CreatedFromAction)
 #ifdef ENABLE_HOMING_MISSILE
 		.Process(this->MissileTargetTracker)
 #endif

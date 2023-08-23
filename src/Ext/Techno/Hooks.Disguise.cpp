@@ -49,48 +49,38 @@ DEFINE_HOOK(0x7467CA , UnitClass_CantTarget_Disguise, 0x5)
 	 0x7467FE : 0x0;
 }
 
-bool CanBlinkDisguise(TechnoClass* pTechno , HouseClass* pCurPlayer)
+bool NOINLINE CanBlinkDisguise(TechnoClass* pTechno , HouseClass* pCurPlayer)
 {
-	return pCurPlayer->IsObserver() || EnumFunctions::CanTargetHouse(
-		RulesExt::Global()->DisguiseBlinkingVisibility,pTechno->Owner, pCurPlayer);
+	if(!pCurPlayer->IsObserver()) {
+		return  EnumFunctions::CanTargetHouse(
+			RulesExt::Global()->DisguiseBlinkingVisibility,pTechno->Owner, pCurPlayer);
+	}
+
+	return true;
 }
 
 DEFINE_HOOK(0x4DEDCB, FootClass_GetImage_DisguiseBlinking, 0x7)
 {
-	enum { ContinueChecks = 0x4DEDDB, AllowBlinking = 0x4DEE15 };
-
 	GET(TechnoClass*, pThis, ESI);
 	GET(HouseClass* , pCurPlayer , ECX);
 	//GET(CellClass*, pCell, EDI);
 
-	if (CanBlinkDisguise(pThis , pCurPlayer))
-		return AllowBlinking;
-
-	return ContinueChecks;
+	R->EAX(CanBlinkDisguise(pThis, pCurPlayer));
+	return 0x4DEDD7;
 }
 
 DEFINE_HOOK(0x70EE6A, TechnoClass_IsClearlyVisibleTo_DisguiseBlinking, 0x6)
 {
-	enum { ContinueChecks = 0x70EE79, DisallowBlinking = 0x70EEB6 };
-
 	GET(TechnoClass*, pThis, ESI);
-
-	if (CanBlinkDisguise(pThis , HouseClass::CurrentPlayer()))
-		return ContinueChecks;
-
-	return DisallowBlinking;
+	R->EAX(CanBlinkDisguise(pThis, HouseClass::CurrentPlayer()));
+	return 0x70EE75;
 }
 
 DEFINE_HOOK(0x7062F5, TechnoClass_TechnoClass_DrawObject_DisguiseBlinking, 0x6)
 {
-	enum { ContinueChecks = 0x706304, DisallowBlinking = 0x70631F };
-
 	GET(TechnoClass*, pThis, ESI);
-
-	if (CanBlinkDisguise(pThis, HouseClass::CurrentPlayer()))
-		return ContinueChecks;
-
-	return DisallowBlinking;
+	R->EAX(CanBlinkDisguise(pThis, HouseClass::CurrentPlayer()));
+	return 0x706300;
 }
 
 #undef CAN_BLINK_DISGUISE

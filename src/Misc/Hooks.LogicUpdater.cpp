@@ -68,6 +68,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	if (!pThis || !Is_Techno(pThis) || !pThis->IsAlive)
 		return Continue;
 
+	//type may already change ,..
 	auto const pType = pThis->GetTechnoType();
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
 	const auto IsBuilding = Is_Building(pThis);

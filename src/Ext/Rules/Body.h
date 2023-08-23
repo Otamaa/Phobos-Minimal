@@ -71,7 +71,7 @@ public:
 		Nullable<int> InfantryGainSelfHealCap {};
 		Nullable<int> UnitsGainSelfHealCap {};
 		Valueable<bool> EnemyInsignia { true };
-		Valueable<AffectedHouse> DisguiseBlinkingVisibility { AffectedHouse::Owner };
+		Valueable<AffectedHouse> DisguiseBlinkingVisibility { AffectedHouse::Owner | AffectedHouse::Allies };
 
 		Valueable<SHPStruct*> SHP_SelectBrdSHP_INF { nullptr };
 		Valueable<PaletteManager*> SHP_SelectBrdPAL_INF { }; //CustomPalette::PaletteMode::Temperate
