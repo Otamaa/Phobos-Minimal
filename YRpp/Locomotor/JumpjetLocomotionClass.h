@@ -8,7 +8,7 @@ public:
 	static constexpr inline uintptr_t vtable = 0x7ECE34;
 	static constexpr inline uintptr_t ILoco_vtable = 0x7ECD68;
 	static constexpr inline uintptr_t IPiggy_vtable = 0x7ECD44;
-	static const inline CLSID ClassGUID = CLSIDs::Jumpjet();
+	static constexpr reference<CLSID const, 0x7E9AC0u> const ClassGUID {};
 
 	enum State
 	{

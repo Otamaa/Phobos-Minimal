@@ -165,7 +165,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 		return;
 	}
 
-	if(CanBePenetrated(args->WH))
+	if(CanBePenetrated(args->WH) || TechnoExt::IsTypeImmune(this->Techno, args->Attacker))
 		return;
 
 	const auto pSource = args->Attacker ? args->Attacker->Owner : args->SourceHouse;

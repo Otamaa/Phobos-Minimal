@@ -9,16 +9,19 @@ void SideExt::ExtData::Initialize() {
 
 	if (IS_SAME_STR_(pID, "Nod"))
 	{ //Soviets
+		this->EVAIndex = 1;
 		this->MessageTextColorIndex = 11;
 
 	}
 	else if (IS_SAME_STR_(pID, "ThirdSide"))
 	{ //Yuri
+		this->EVAIndex = 2;
 		this->MessageTextColorIndex = 25;
 
 	}
 	else
 	{ //Allies or any other country
+		this->EVAIndex = 0;
 		this->MessageTextColorIndex = 21;
 	}
 };
@@ -182,6 +185,8 @@ void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->MessageTextColorIndex.Read(exINI, pSection, "MessageTextColor");
 	this->ParachuteAnim.Read(exINI, pSection, "Parachute.Anim", true);
+
+	this->EVAIndex.Read(exINI, pSection, "EVA.Tag");
 }
 
 // =============================
@@ -232,6 +237,7 @@ void SideExt::ExtData::Serialize(T& Stm)
 		.Process(this->MessageTextColorIndex)
 
 		.Process(this->ParachuteAnim)
+		.Process(this->EVAIndex)
 		;
 }
 

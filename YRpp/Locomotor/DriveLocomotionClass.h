@@ -7,7 +7,7 @@ class //DECLSPEC_UUID("4A582741-9839-11d1-B709-00A024DDAFD1")
 public:
 	static constexpr inline uintptr_t vtable = 0x7E7F7C;
 	static constexpr inline uintptr_t ILoco_vtable = 0x7E7EB0;
-	static const inline CLSID ClassGUID = CLSIDs::Drive();
+	static constexpr reference<CLSID const, 0x7E9A30u> const ClassGUID {};
 
 	// TODO stub virtuals implementations
 	//IUnknown
@@ -27,7 +27,7 @@ public:
 
 	//LocomotionClass
 	virtual int Size() override { return 0x70; }
-	
+
 	void Stop_Drive() const JMP_THIS(0x4B0DA0);
 	void Start_Drive(CoordStruct* pWhere) const JMP_THIS(0x4B0DF0);
 
@@ -66,7 +66,7 @@ public:
 	bool IsOnShortTrack;
 	BYTE IsTurretLockedDown;
 	bool IsRotating;
-	bool IsDriving; 
+	bool IsDriving;
 	bool IsRocking;
 	bool IsLocked;
 	ILocomotion* Piggybackee;

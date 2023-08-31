@@ -8,6 +8,13 @@ static constexpr constant_ptr<const char,addr> const name {}
 
 struct GameStrings
 {
+	GAMEMD_STR(Allied, 0x846788);
+	GAMEMD_STR(Russian, 0x846790);
+	GAMEMD_STR(Yuri, 0x846798);
+
+	GAMEMD_STR(audio, 0x81626C);
+	GAMEMD_STR(DialogList, 0x8467D4);
+
 	// unsorted names
 	GAMEMD_STR(YURI_S_REVENGE, 0x849F48u);
 	GAMEMD_STR(BLOWFISH_DLL, 0x840A78u);

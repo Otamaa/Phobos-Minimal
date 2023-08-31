@@ -211,24 +211,26 @@ DEFINE_HOOK(0x763226, WaveClass_DTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x75F610, WaveClass_Detach, 0x5)
-{
-	GET(WaveClass*, pItem, ECX);
-	GET_STACK(AbstractClass*, pTarget, 0x4);
-	GET_STACK(bool, bRemove, 0x8);
-
-	pItem->ObjectClass::PointerExpired(pTarget, bRemove);
-
-	//WaveExt::ExtMap.InvalidatePointerFor(pItem, pTarget, bRemove);
-
-	if (bRemove && pItem->Owner == pTarget)
-		pItem->Owner = nullptr;
-
-	if (bRemove && pItem->Target == pTarget)
-		pItem->Target = nullptr;
-
-	return 0x75F645;
-}
+// broke atm , it keep shooting even the owner aleady gone
+// not sure what causing it atm
+//DEFINE_HOOK(0x75F610, WaveClass_Detach, 0x5)
+//{
+//	GET(WaveClass*, pItem, ECX);
+//	GET_STACK(AbstractClass*, pTarget, 0x4);
+//	GET_STACK(bool, bRemove, 0x8);
+//
+//	pItem->ObjectClass::PointerExpired(pTarget, bRemove);
+//
+//	//WaveExt::ExtMap.InvalidatePointerFor(pItem, pTarget, bRemove);
+//
+//	if (bRemove && pItem->Owner == pTarget)
+//		pItem->Owner = nullptr;
+//
+//	if (bRemove && pItem->Target == pTarget)
+//		pItem->Target = nullptr;
+//
+//	return 0x75F645;
+//}
 
 void __fastcall WaveClass_Detach_Wrapper(WaveClass* pThis ,DWORD , AbstractClass* target , bool all)\
 {

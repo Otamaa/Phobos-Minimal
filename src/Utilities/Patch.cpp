@@ -52,39 +52,39 @@ void Patch::Apply()
 
 	DWORD protect_flag;
 	VirtualProtect(pAddress, this->size, PAGE_EXECUTE_READWRITE, &protect_flag);
-	memcpy(pAddress, this->pData, this->size);
+	std::memcpy(pAddress, this->pData, this->size);
 	VirtualProtect(pAddress, this->size, protect_flag, 0);
 }
 
-void Patch::Apply_RAW(DWORD offset, std::initializer_list<BYTE> data)
+void Patch::Apply_RAW(uintptr_t offset, std::initializer_list<BYTE> data)
 {
 	Patch::Apply_RAW(offset, data.size(), const_cast<byte*>(data.begin()));
 }
 
-void Patch::Apply_RAW(DWORD offset, size_t sz , BYTE* data)
+void Patch::Apply_RAW(uintptr_t offset, size_t sz , BYTE* data)
 {
 	PatchWrapper dummy { offset, sz, data };
 }
 
-void Patch::Apply_LJMP(DWORD offset, DWORD pointer)
+void Patch::Apply_LJMP(uintptr_t offset, uintptr_t pointer)
 {
 	const _LJMP data(offset, pointer);
 	Patch::Apply_RAW(offset, data.size(), (BYTE*)&data);
 }
 
-void Patch::Apply_CALL(DWORD offset, DWORD pointer)
+void Patch::Apply_CALL(uintptr_t offset, uintptr_t pointer)
 {
 	const _CALL data(offset, pointer);
 	Patch::Apply_RAW(offset, data.size(), (BYTE*)&data);
 }
 
-void Patch::Apply_CALL6(DWORD offset, DWORD pointer)
+void Patch::Apply_CALL6(uintptr_t offset, uintptr_t pointer)
 {
 	const _CALL6 data(offset, pointer);
 	Patch::Apply_RAW(offset, data.size(), (BYTE*)&data);
 }
 
-void Patch::Apply_VTABLE(DWORD offset, DWORD pointer)
+void Patch::Apply_VTABLE(uintptr_t offset, uintptr_t pointer)
 {
 	const _VTABLE data(offset, pointer);
 	Patch::Apply_RAW(offset, data.size(), (BYTE*)&data);

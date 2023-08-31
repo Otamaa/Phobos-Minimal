@@ -83,6 +83,22 @@ public:
 	//	}
 	}
 
+	explicit TargetClass(const CellStruct* cell)
+	{
+		//	if constexpr (!UseJump)
+		JMP_THIS(0x6E6B20);
+		//	else
+		//	{
+		//		if (cell == CellStruct::Empty)
+		//			m_RTTI = 0;
+		//		else
+		//		{
+		//			m_RTTI = static_cast<unsigned char>(AbstractType::Cell);
+		//			m_ID = cell.X + 1000 * cell.Y;
+		//		}
+		//	}
+	}
+
 	//template<bool UseJump = false >
 	explicit TargetClass(const CoordStruct& coord)
 	{

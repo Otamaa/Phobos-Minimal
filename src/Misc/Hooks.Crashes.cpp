@@ -71,20 +71,13 @@ DEFINE_HOOK(0x70CE90, TechnoClass_Coef_checkForTechno, 0x6)
 }
 #endif
 
-DEFINE_HOOK(0x5F5896, TechnoClass_Mark_RemoveUnused, 0x5) {
-	return 0x5F58E1;
-}
+//DEFINE_SKIP_HOOK(0x5F5896, TechnoClass_Mark_RemoveUnused, 0x5, 5F58E1);
+DEFINE_JUMP(LJMP, 0x5F5896, 0x5F58E1);
 
-DEFINE_HOOK(0x70CD10, TechnoClass_Coef_CheckTarget, 0x6)
+DEFINE_HOOK(0x70CD29, TechnoClass_Coef_CheckTarget, 0x6)
 {
-	GET_BASE(ObjectClass*, pTarget, 0x8);
-
-	if (!pTarget) {
-		R->EAX(0.0);
-		return 0x70CD45;
-	}
-
-	return 0x0;
+	GET(ObjectClass*, pTarget, ESI);
+	return pTarget ? 0x0 : 0x70CD39;
 }
 
 struct ScenStruct {
@@ -106,18 +99,20 @@ DEFINE_HOOK(0x5D6BF1, MultiplayerGameMode_SetBaseSpawnCell_CheckAvail, 0x5)
 		{
 			if (pHouse->StartingPoint != -2)
 			{
+				const auto HouseID = pHouse->get_ID();
+
 				// you dont want to read out of bound array here,..
 				if (pHouse->StartingPoint < (int)pScenStruct->CellVector.Size())
 				{
 					const auto& Cell = pScenStruct->CellVector.Items[pHouse->StartingPoint];
 					//IsCurrentCellAssigned[pHouse->StartingPoint] = true;
-					Debug::Log("SetBaseSpawnCellFor[%s at %d with [%d - %d]\n", pHouse->get_ID(), pHouse->StartingPoint, Cell.X, Cell.Y);
+					Debug::Log("SetBaseSpawnCellFor[%s at %d with [%d - %d]\n", HouseID, pHouse->StartingPoint, Cell.X, Cell.Y);
 					pHouse->SetBaseSpawnCell(Cell);
 					ScenarioClass::Instance->HouseIndices[pHouse->StartingPoint] = i;
 				}
 				else
 				{
-					Debug::Log("Failed SetBaseSpawnCellFor[%s at %d]\n", pHouse->get_ID(), pHouse->StartingPoint);
+					Debug::Log("Failed SetBaseSpawnCellFor[%s at %d]\n", HouseID, pHouse->StartingPoint);
 					//UnAssigned.emplace_back(pHouse , i , false);
 				}
 			}
@@ -144,18 +139,13 @@ DEFINE_HOOK(0x70F820, TechnoClass_GetOriginalOwner_ValidateCaptureManager, 0x6)
 {
 	GET(TechnoClass* const, pThis, ECX);
 
-	if (pThis->MindControlledBy && pThis->MindControlledBy->CaptureManager)
-	{
+	if (pThis->MindControlledBy && pThis->MindControlledBy->CaptureManager) {
 		R->EAX(pThis->MindControlledBy);
 		return 0x70F82A;
 	}
 
-	if (pThis->MindControlledByAUnit)
-	{
-		return 0x70F841;
-	}
-
-	return 0x70F837;
+	return pThis->MindControlledByAUnit
+		? 0x70F841 : 0x70F837;
 }
 
 DEFINE_HOOK(0x65DC11, Do_Reinforcement_ValidateHouse, 0x6)

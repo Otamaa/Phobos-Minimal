@@ -94,7 +94,7 @@ DEFINE_HOOK(0x414F21, AircraftClass_AI_TrailerInheritOwner, 0x6)
 	GET(AnimClass*, pAnim, EAX);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x40, 0xC));
 
-	GameConstruct(pAnim, pThis->Type->Trailer, nCoord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+	pAnim->AnimClass::AnimClass(pThis->Type->Trailer, nCoord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
 	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, pThis, false);
 
 	return 0x414F47;

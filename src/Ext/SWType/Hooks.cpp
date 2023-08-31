@@ -139,17 +139,25 @@ DEFINE_HOOK(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 #include <Commands/ToggleDesignatorRange.h>
 
 // PR #1124
-DEFINE_HOOK(0x6DC2C5, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x5)
+DEFINE_HOOK(0x6DC2BA, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x6)
 {
 	GET(SuperWeaponTypeClass*, pSuperType, EDI);
+	GET(int, someval, EAX);
+
+	R->Stack(0x1A, R->CL());
+	R->Stack(0x15, 0);
+	R->Stack(0x16, 0);
+	R->Stack(0x24, someval);
+
+	const DWORD ret_value = someval <= 0 ? 0x6DC3AB : 0x6DC2D4;
 
 	if (!ToggleDesignatorRangeCommandClass::ShowDesignatorRange)
-		return 0x0;
+		return ret_value;
 
 	const auto pExt = SWTypeExt::ExtMap.Find(pSuperType);
 
 	if (pExt->SW_Designators.empty() || !HouseClass::CurrentPlayer || !HouseClass::CurrentPlayer->IsControlledByHuman_())
-		return 0x0;
+		return ret_value;
 
 	for (const auto pCurrentTechno : HouseExt::ExtMap.Find(HouseClass::CurrentPlayer)->OwnedTechno)
 	{
@@ -173,7 +181,7 @@ DEFINE_HOOK(0x6DC2C5, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x5)
 			true);
 	}
 
-	return 0;
+	return ret_value;
 }
 
 #ifndef Replace_SW
@@ -409,7 +417,8 @@ DEFINE_OVERRIDE_HOOK(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
 	}
 	else
 	{
-		Debug::Log("SW [%s]-[%s] CannotFire\n", pSuper->Type->ID, pSuper->Owner->get_ID());
+		const auto pHouseID = HouseClass::CurrentPlayer->get_ID();
+		Debug::Log("[%s - %x] SW [%s - %x] CannotFire\n", pHouseID, HouseClass::CurrentPlayer(), pSuper->Type->ID, pSuper);
 		pData->PrintMessage(pData->Message_CannotFire, HouseClass::CurrentPlayer);
 	}
 
@@ -441,13 +450,13 @@ DEFINE_OVERRIDE_HOOK(0x6A932B, StripClass_GetTip_MoneySW, 6)
 		if (CCToolTip::HideName() || !wcslen(pSW->UIName))
 		{
 			const wchar_t* pFormat = StringTable::LoadStringA(GameStrings::TXT_MONEY_FORMAT_1);
-			swprintf(SidebarClass::TooltipBuffer(), SidebarClass::TooltipBuffer.size(), pFormat, -pData->Money_Amount);
+			swprintf_s(SidebarClass::TooltipBuffer(), SidebarClass::TooltipBuffer.size(), pFormat, -pData->Money_Amount);
 		}
 		else
 		{
 			// then, this must be brand SWs
 			const wchar_t* pFormat = StringTable::LoadStringA(GameStrings::TXT_MONEY_FORMAT_2);
-			swprintf(SidebarClass::TooltipBuffer(), SidebarClass::TooltipBuffer.size(), pFormat, pSW->UIName, -pData->Money_Amount);
+			swprintf_s(SidebarClass::TooltipBuffer(), SidebarClass::TooltipBuffer.size(), pFormat, pSW->UIName, -pData->Money_Amount);
 		}
 
 		SidebarClass::TooltipBuffer[SidebarClass::TooltipBuffer.size() - 1] = 0;
@@ -767,7 +776,6 @@ DEFINE_HOOK(0x4F8FE1, HouseClass_Update_TryFireSW, 0x5)
 
 	if (!pThis->Type->MultiplayPassive)
 	{
-
 		if (!pThis->IsControlledByHuman_())
 			return 0x4F9015;
 		else
@@ -825,11 +833,10 @@ DEFINE_OVERRIDE_HOOK(0x6CB7B0, SuperClass_Lose, 6)
 		if (SuperClass::ShowTimers->Remove(pThis))
 		{
 			std::sort(SuperClass::ShowTimers->begin(), SuperClass::ShowTimers->end(),
-			[](SuperClass* a, SuperClass* b)
- {
-	 const auto aExt = SWTypeExt::ExtMap.Find(a->Type);
-	 const auto bExt = SWTypeExt::ExtMap.Find(b->Type);
-	 return aExt->SW_Priority.Get() > bExt->SW_Priority.Get();
+			[](SuperClass* a, SuperClass* b) {
+				const auto aExt = SWTypeExt::ExtMap.Find(a->Type);
+				const auto bExt = SWTypeExt::ExtMap.Find(b->Type);
+				return aExt->SW_Priority.Get() > bExt->SW_Priority.Get();
 			});
 		}
 
@@ -1209,27 +1216,36 @@ DEFINE_OVERRIDE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
 	return 0x509AE7;
 }
 
-DEFINE_HOOK(0x4C78EF, Networking_RespondToEvent_SpecialPlace, 9)
+#include <EventClass.h>
+
+DEFINE_HOOK(0x4C78D6, Networking_RespondToEvent_SpecialPlace, 8)
 {
-	GET(CellStruct*, pCell, EDX);
-	GET(int, Checksum, EAX);
-	//GET(NetworkEvent*, pEvent, ESI);
+	//GET(CellStruct*, pCell, EDX);
+	//GET(int, Checksum, EAX);
+	GET(EventClass*, pEvent, ESI);
 	GET(HouseClass*, pHouse, EDI);
 
-	const auto pSuper = pHouse->Supers.Items[Checksum];
+	const auto& [Idx, Loc] = pEvent->Data.SpecialPlace;
+	const auto pSuper = pHouse->Supers.Items[Idx];
 	const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
 
 	if (pExt->SW_UseAITargeting)
 	{
-		if (!SWTypeExt::ExtData::TryFire(pSuper, 1) && pHouse == HouseClass::CurrentPlayer)
+		if (!SWTypeExt::ExtData::TryFire(pSuper, 1))
 		{
-			Debug::Log("SW [%s]-[%s] CannotFire\n", pSuper->Type->ID, pHouse->get_ID());
-			pExt->PrintMessage(pExt->Message_CannotFire, pHouse);
+			const auto pHouseID = pHouse->get_ID();
+
+			if(pHouse == HouseClass::CurrentPlayer){
+				Debug::Log("[%s - %x] SW [%s - %x] CannotFire\n", pHouseID, pHouse, pSuper->Type->ID, pSuper);
+				pExt->PrintMessage(pExt->Message_CannotFire, pHouse);
+			} else {
+				Debug::Log("[%s - %x] SW [%s - %x] AI CannotFire\n", pHouseID, pHouse,  pSuper->Type->ID, pSuper);
+			}
 		}
 	}
 	else
 	{
-		pHouse->Fire_SW(Checksum, *pCell);
+		pHouse->Fire_SW(Idx, Loc);
 	}
 
 	return 0x4C78F8;

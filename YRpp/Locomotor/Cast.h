@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DriveLocomotionClass.h" 
+#include "DriveLocomotionClass.h"
 #include "DropPodLocomotionClass.h"
 #include "FlyLocomotionClass.h"
 #include "JumpjetLocomotionClass.h"
@@ -37,8 +37,8 @@ __forceinline T locomotion_cast(ILocomotion* iLoco)
 
 	if constexpr (LocoHasILocoVtbl<Base>) {
 		return (VTable::Get(iLoco) == Base::ILoco_vtable) ? static_cast<T>(iLoco) : nullptr;
-	} 
-	else if constexpr (LocoHasClassGUID<Base>) 
+	}
+	else if constexpr (LocoHasClassGUID<Base>)
 	{
 		CLSID locoCLSID;
 		return (SUCCEEDED(static_cast<LocomotionClass*>(iLoco)->GetClassID(&locoCLSID)) && locoCLSID == Base::ClassGUID()) ?

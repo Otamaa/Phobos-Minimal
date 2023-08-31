@@ -7,7 +7,7 @@ class //DECLSPEC_UUID("4A582742-9839-11d1-B709-00A024DDAFD1") NOVTABLE
 public:
 	static constexpr inline uintptr_t vtable = 0x7EADC8;
 	static constexpr inline uintptr_t ILoco_vtable = 0x7EACFC;
-	static const inline CLSID ClassGUID = CLSIDs::Hover();
+	static constexpr reference<CLSID const, 0x7E9A40u> const ClassGUID {};
 
 	//IUnknown
 	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override R0;

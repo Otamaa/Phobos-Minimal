@@ -14,6 +14,9 @@ char Debug::StringBuffer[0x1000];
 char Debug::DeferredStringBuffer[0x1000];
 static std::vector<std::string> DeferredLogData;
 
+// push    0x860A0000; vs 0x02CA0000
+//DEFINE_RAW_PATCH(0x777CC0, CreateMainWindow , 0x68, 0x00, 0x00, 0x0A, 0x86)
+
 void Debug::Log(const char* pFormat, ...)
 {
 	JMP_STD(0x4068E0);

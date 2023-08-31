@@ -171,5 +171,5 @@ DEFINE_HOOK(0x6F7647, TechnoClass_InRange_Obstacles, 0x5)
 }
 
 // Skip a forced detonation check for Level=true projectiles that is now handled in Hooks.Obstacles.cpp.
-//DEFINE_JUMP(LJMP, 0x468D08, 0x468D2F);
-DEFINE_SKIP_HOOK(0x468D08 , BulletClass_IsForceToExplode_SkipLevelCheck , 0x6 , 468D2F);
+DEFINE_JUMP(LJMP, 0x468D08, 0x468D2F);
+//DEFINE_SKIP_HOOK(0x468D08 , BulletClass_IsForceToExplode_SkipLevelCheck , 0x6 , 468D2F);

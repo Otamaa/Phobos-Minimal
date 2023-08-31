@@ -50,7 +50,7 @@ struct dllData
 struct __declspec(novtable)
 	Patch
 {
-	size_t offset;
+	uintptr_t offset;
 	size_t size;
 	BYTE* pData;
 
@@ -94,31 +94,56 @@ struct __declspec(novtable)
 		return reinterpret_cast<T>(rawptr + amount);
 	}
 
-	static void Apply_RAW(DWORD offset, std::initializer_list<BYTE> data);
-	static void Apply_RAW(DWORD offset, size_t sz, BYTE* data);
+	static void Apply_RAW(uintptr_t offset, std::initializer_list<BYTE> data);
+	static void Apply_RAW(uintptr_t offset, size_t sz, BYTE* data);
 
-	static void Apply_LJMP(DWORD offset, DWORD pointer);
-	static inline void Apply_LJMP(DWORD offset, void* pointer)
+	template <size_t Size>
+	static inline void Apply_RAW(uintptr_t offset, const char(&str)[Size])
 	{
-		Apply_LJMP(offset, reinterpret_cast<DWORD>(pointer));
+		PatchWrapper dummy { offset, Size, str };
 	};
 
-	static void Apply_CALL(DWORD offset, DWORD pointer);
-	static inline void Apply_CALL(DWORD offset, void* pointer)
+	template <typename T>
+	static inline void Apply_TYPED(uintptr_t offset, std::initializer_list<T> data)
 	{
-		Apply_CALL(offset, reinterpret_cast<DWORD>(pointer));
+		Patch::Apply_RAW(offset, data.size() * sizeof(T), const_cast<byte*>(reinterpret_cast<const byte*>(data.begin())));
 	};
 
-	static void Apply_CALL6(DWORD offset, DWORD pointer);
-	static inline void Apply_CALL6(DWORD offset, void* pointer)
+
+	static void Apply_LJMP(uintptr_t offset, uintptr_t pointer);
+	static inline void Apply_LJMP(uintptr_t offset, void* pointer)
 	{
-		Apply_CALL6(offset, reinterpret_cast<DWORD>(pointer));
+		Patch::Apply_LJMP(offset, reinterpret_cast<uintptr_t>(pointer));
 	};
 
-	static void Apply_VTABLE(DWORD offset, DWORD pointer);
-	static inline void Apply_VTABLE(DWORD offset, void* pointer)
+	static void Apply_CALL(uintptr_t offset, uintptr_t pointer);
+	static inline void Apply_CALL(uintptr_t offset, void* pointer)
 	{
-		Apply_VTABLE(offset, reinterpret_cast<DWORD>(pointer));
+		Patch::Apply_CALL(offset, reinterpret_cast<uintptr_t>(pointer));
+	};
+
+	static void Apply_CALL6(uintptr_t offset, uintptr_t pointer);
+	static inline void Apply_CALL6(uintptr_t offset, void* pointer)
+	{
+		Patch::Apply_CALL6(offset, reinterpret_cast<DWORD>(pointer));
+	};
+
+	static void Apply_VTABLE(uintptr_t offset, uintptr_t pointer);
+	static inline void Apply_VTABLE(uintptr_t offset, void* pointer)
+	{
+		Patch::Apply_VTABLE(offset, reinterpret_cast<uintptr_t>(pointer));
+	};
+
+
+	static void Apply_OFFSET(uintptr_t offset, uintptr_t pointer)
+	{
+		Patch::Apply_TYPED<uintptr_t>(offset, { pointer });
+	};
+
+
+	static inline void Apply_OFFSET(uintptr_t offset, uintptr_t* pointer)
+	{
+		Patch::Apply_OFFSET(offset, reinterpret_cast<DWORD>(pointer));
 	};
 
 	static std::vector<module_export> enumerate_module_exports(HMODULE handle);

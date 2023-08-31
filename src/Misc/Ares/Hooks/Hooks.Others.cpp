@@ -3577,55 +3577,6 @@ DEFINE_HOOK(0x6DBE33, TacticalClass_DrawLinesOrCircles, 0x6)
 	return 0x6DBE74;
 }
 
-void __fastcall DrawRadialIndicator(ObjectClass* pObj , DWORD)
-{
-	if (!pObj || !Is_Techno(pObj))
-		return;
-
-	const auto pTechno = static_cast<TechnoClass*>(pObj);
-
-	{
-
-		const auto pType = pTechno->GetTechnoType();
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-
-		if (pType->HasRadialIndicator && pTypeExt->AlwayDrawRadialIndicator.Get(!pTechno->Deactivated))
-		{
-			const auto pOwner = pTechno->Owner;
-
-			if (!pOwner)
-				return;
-
-			if (pOwner->ControlledByPlayer_())
-			{
-				int nRadius = 0;
-
-				if (pTypeExt->RadialIndicatorRadius.isset())
-					nRadius = pTypeExt->RadialIndicatorRadius.Get();
-				else if (pType->GapGenerator)
-					nRadius = pTypeExt->GapRadiusInCells.Get();
-				else
-				{
-					const auto pWeapons = pTechno->GetPrimaryWeapon();
-					if (!pWeapons || !pWeapons->WeaponType || pWeapons->WeaponType->Range <= 0)
-						return;
-
-					nRadius = pWeapons->WeaponType->Range.ToCell();
-				}
-
-				if (nRadius > 0)
-				{
-					auto nCoord = pTechno->GetCoords();
-					const auto Color = pTypeExt->RadialIndicatorColor.Get(pOwner->Color);
-					Draw_Radial_Indicator(false, true, nCoord, Color, (nRadius * 1.0f), false, true);
-				}
-			}
-		}
-	}
-}
-
-DEFINE_JUMP(LJMP, 0x41BE80, GET_OFFSET(DrawRadialIndicator))
-
 // issue #279: per unit AirstrikeAttackVoice and AirstrikeAbortSound
 DEFINE_OVERRIDE_HOOK(0x41D940, AirstrikeClass_Fire_AirstrikeAttackVoice, 5)
 {
@@ -3755,7 +3706,8 @@ DEFINE_OVERRIDE_HOOK(0x442974, BuildingClass_ReceiveDamage_Malicious, 6)
 	return 0x442980;
 }
 
-DEFINE_SKIP_HOOK(0x71B09C, TemporalClass_Logic_BuildingUnderAttack_NullptrShit, 0x5, 71B0E7);
+//DEFINE_SKIP_HOOK(0x71B09C, TemporalClass_Logic_BuildingUnderAttack_NullptrShit, 0x5, 71B0E7);
+DEFINE_JUMP(LJMP, 0x71B09C, 0x71B0E7);
 
 DEFINE_OVERRIDE_HOOK(0x4F94A5, HouseClass_BuildingUnderAttack, 6)
 {

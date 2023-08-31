@@ -1,11 +1,6 @@
-#include <NetworkEvents.h>
-
 #include <Ext/Building/Body.h>
 
 #include <HouseClass.h>
-
-#include <NetworkEvents.h>
-#include <Networking.h>
 
 #include <Misc/AresData.h>
 
@@ -17,37 +12,14 @@
 #include "AresNetEvent.h"
 
 #include <Ares_TechnoExt.h>
-// was desynct all time
-// not sure WTF is happening
 
-namespace Fix
-{
-	static constexpr reference<uint8_t, 0x8208ECu,46u> const EventLengthArr {};
-
-	int NOINLINE EventLength(AresNetEvent::Events nInput)
-	{
-		if ((uint8_t)nInput <= 0x2Eu) // default event
-			return Fix::EventLengthArr[(uint8_t)nInput];
-
-		switch (nInput)
-		{
-		case AresNetEvent::Events::TrenchRedirectClick:
-		case AresNetEvent::Events::SetDriverKilledStatusToTrue:
-			return 10;
-		case AresNetEvent::Events::FirewallToggle:
-		case AresNetEvent::Events::Revealmap:
-			return 5;
-		default:
-			return 0;
-		}
-	}
-};
+#include <EventClass.h>
 
 DEFINE_OVERRIDE_HOOK(0x64C314, sub_64BDD0_PayloadSize2, 0x8)
 {
 	GET(uint8_t, nSize, ESI);
 
-	const auto nFix = Fix::EventLength((AresNetEvent::Events)nSize);
+	const auto nFix = AresNetEvent::GetDataSize(nSize);
 
 	R->ECX(nFix);
 	R->EBP(nFix + (nSize == 4u));
@@ -59,7 +31,7 @@ DEFINE_OVERRIDE_HOOK(0x64BE83, sub_64BDD0_PayloadSize1, 0x8)
 {
 	GET(uint8_t, nSize, EDI);
 
-	const auto nFix = Fix::EventLength((AresNetEvent::Events)nSize);
+	const auto nFix = AresNetEvent::GetDataSize(nSize);
 
 	R->ECX(nFix);
 	R->EBP(nFix);
@@ -72,7 +44,7 @@ DEFINE_OVERRIDE_HOOK(0x64B704, sub_64B660_PayloadSize, 0x8)
 {
 	GET(uint8_t, nSize, EDI);
 
-	const auto nFix = Fix::EventLength((AresNetEvent::Events)nSize);
+	const auto nFix = AresNetEvent::GetDataSize(nSize);
 
 	R->EDX(nFix);
 	R->EBP(nFix);
@@ -80,38 +52,19 @@ DEFINE_OVERRIDE_HOOK(0x64B704, sub_64B660_PayloadSize, 0x8)
 	return (nSize == 0x1Fu) ? 0x64B710 : 0x64B71D;
 }
 
-/*
- how to raise your own events
-	NetworkEvent Event;
-	Event.Kind = AresNetworkEvent::aev_blah;
-	Event.HouseIndex = U->Owner->ArrayIndex;
-	memcpy(Event.ExtraData, "Boom de yada", 0xkcd);
-	Networking::AddEvent(&Event);
-*/
-
-void AresNetEvent::Handlers::RaiseTrenchRedirectClick(BuildingClass *Source, CellStruct *Target) {
-	NetworkEvent Event {};
+void AresNetEvent::TrenchRedirectClick::Raise(BuildingClass *Source, CellStruct *Target) {
+	EventClass Event {};
 
 	if(Source->Owner->ArrayIndex >= 0){
-		Event.Kind = NetworkEventType(AresNetEvent::Events::TrenchRedirectClick);
+		Event.Type = EventType(AresNetEvent::Events::TrenchRedirectClick);
 		Event.HouseIndex = byte(Source->Owner->ArrayIndex);
 	}
 
-	byte *ExtraData = Event.ExtraData;
+	TrenchRedirectClick Datas { Target , Source };
+	memcpy(&Event.Data.SpaceGap, &Datas, TrenchRedirectClick::size());
 
-	NetID TargetCoords {};
-
-	TargetCoords.Pack(Target);
-	memcpy(ExtraData, &TargetCoords, sizeof(TargetCoords));
-	ExtraData += sizeof(TargetCoords);
-
-	NetID SourceObject{};
-
-	SourceObject.Pack(Source);
-	memcpy(ExtraData, &SourceObject, sizeof(SourceObject));
-	ExtraData += sizeof(SourceObject);
 	//the data is an array containing 2 stuffs
-	Networking::AddEvent(&Event);
+	EventClass::AddEvent(Event);
 }
 
 bool NOINLINE IsSameTrech(BuildingClass* currentBuilding , BuildingClass* targetBuilding)
@@ -155,11 +108,11 @@ void NOINLINE doTraverseTo(BuildingClass* currentBuilding ,BuildingClass* target
 	TechnoExt_ExtData::EvalRaidStatus(currentBuilding); // if the traversal emptied the current building, it'll have to be returned to its owner
 }
 
-void AresNetEvent::Handlers::RespondToTrenchRedirectClick(NetworkEvent *Event) {
-	NetID *ID = reinterpret_cast<NetID *>(Event->ExtraData);
-	if(CellClass * pTargetCell = ID->UnpackCell()) {
+void AresNetEvent::TrenchRedirectClick::Respond(EventClass *Event) {
+	TargetClass *ID = reinterpret_cast<TargetClass*>(Event->Data.SpaceGap.Data);
+	if(CellClass * pTargetCell = ID->As_Cell()) {
 		++ID;
-		if(BuildingClass * pSourceBuilding = ID->UnpackBuilding()) {
+		if(BuildingClass * pSourceBuilding = ID->As_Building()) {
 			/*
 				pSourceBuilding == selected building the soldiers are in
 				pTargetCell == cell the user clicked on; event fires only on buildings which showed the enter cursor
@@ -171,19 +124,65 @@ void AresNetEvent::Handlers::RespondToTrenchRedirectClick(NetworkEvent *Event) {
 	}
 }
 
-void AresNetEvent::Handlers::RaiseFirewallToggle(HouseClass *Source) {
-	NetworkEvent Event;
-	Event.Kind = static_cast<NetworkEventType>(AresNetEvent::Events::FirewallToggle);
+void AresNetEvent::FirewallToggle::Raise(HouseClass *Source) {
+	EventClass Event;
+
+	Event.Type = static_cast<EventType>(AresNetEvent::Events::FirewallToggle);
 	Event.HouseIndex = byte(Source->ArrayIndex);
 
-	Networking::AddEvent(&Event);
+	EventClass::AddEvent(Event);
 }
 
-void AresNetEvent::Handlers::RespondToFirewallToggle(NetworkEvent *Event) {
+void AresNetEvent::FirewallToggle::Respond(EventClass*Event) {
 	if(HouseClass * pSourceHouse = HouseClass::Array->GetItem(Event->HouseIndex)) {
 		AresData::AresNetEvent_Handlers_RespondToFirewallToggle(pSourceHouse , !pSourceHouse->FirestormActive);
 	}
 }
+
+/* just for compile test */
+void AresNetEvent::ResponseTime2::Raise()
+{
+	if (SessionClass::IsSingleplayer())
+		return;
+
+	int currentFrame = Unsorted::CurrentFrame;
+
+	EventClass Event {};
+	Event.Type = AsEventType();
+	Event.HouseIndex = (char)HouseClass::CurrentPlayer->ArrayIndex;
+	Event.Frame = currentFrame + Game::Network::MaxAhead;
+	ResponseTime2 dataToSend { 10 ,20 };
+	memcpy(&Event.Data.SpaceGap, &dataToSend, size());
+
+	if (EventClass::AddEvent(Event))
+		Debug::Log("test");
+}
+
+void AresNetEvent::ResponseTime2::Respond(EventClass* Event)
+{
+	if (SessionClass::IsSingleplayer())
+		return;
+
+	char MaxAhead = Event->Data.SpaceGap.Data[0];
+	uint8_t LatencyLevel = Event->Data.SpaceGap.Data[1];
+
+	if (MaxAhead == 0)
+	{
+		Debug::Log("[Spawner] Returning because event->MaxAhead == 0\n");
+		return;
+	}
+
+	static int32_t PlayerMaxAheads[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+	static uint8_t PlayerLatencyMode[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+	static int32_t PlayerLastTimingFrame[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+
+	int32_t houseIndex = Event->HouseIndex;
+	PlayerMaxAheads[houseIndex] = (int32_t)MaxAhead;
+	PlayerLatencyMode[houseIndex] = LatencyLevel;
+	PlayerLastTimingFrame[houseIndex] = Event->Frame;
+
+}
+
 
 // #666: Trench Traversal - check if traversal is possible & cursor display
 DEFINE_OVERRIDE_HOOK(0x44725F, BuildingClass_GetActionOnObject_TargetABuilding, 5)
@@ -221,7 +220,7 @@ DEFINE_OVERRIDE_HOOK(0x443414, BuildingClass_ActionOnObject, 6)
 		if(BuildingClass *pTargetBuilding = specific_cast<BuildingClass *>(pTarget)) {
 			CoordStruct XYZ = pTargetBuilding->GetCoords();
 			CellStruct tgt = CellClass::Coord2Cell(XYZ);
-			AresNetEvent::Handlers::RaiseTrenchRedirectClick(pThis, &tgt);
+			AresNetEvent::TrenchRedirectClick::Raise(pThis, &tgt);
 			R->EAX(1);
 			return 0x44344D;
 		}
@@ -233,33 +232,12 @@ DEFINE_OVERRIDE_HOOK(0x443414, BuildingClass_ActionOnObject, 6)
 DEFINE_OVERRIDE_HOOK(0x4C6CCD, Networking_RespondToEvent, 0xA)
 {
 	GET(DWORD, EventKind, EAX);
-	GET(NetworkEvent *, Event, ESI);
+	GET(EventClass *, Event, ESI);
 
 	auto kind = static_cast<AresNetEvent::Events>(EventKind);
 	if(kind >= AresNetEvent::Events::First) {
 		// Received Ares event, do something about it
-		switch(kind) {
-			case AresNetEvent::Events::TrenchRedirectClick:
-			{
-				AresNetEvent::Handlers::RespondToTrenchRedirectClick(Event);
-				break;
-			}
-			case AresNetEvent::Events::FirewallToggle:
-			{
-				AresNetEvent::Handlers::RespondToFirewallToggle(Event);
-				break;
-			}
-			case  AresNetEvent::Events::Revealmap:
-			{
-				AresNetEvent::Handlers::RespondRevealMap(Event);
-				break;
-			}
-			case AresNetEvent::Events::SetDriverKilledStatusToTrue:
-			{
-				AresNetEvent::Handlers::ResponseToSetDriverKilledStatusToTrue(Event);
-				break;
-			}
-		}
+		AresNetEvent::RespondEvent(Event, kind);
 	}
 
 	--EventKind;

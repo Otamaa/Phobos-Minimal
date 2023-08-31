@@ -380,13 +380,13 @@ void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
 	//only find stuffs on the range , reducing the load
 	if ((AresScripts)action >= AresScripts::count)
 	{
-		Debug::Log("[%s - %x] Executing[%s - %x] [%d (%s) - %d]\n",
-			pTeam->Owner->get_ID(),
-			pTeam->Owner,
-			pTeam->get_ID(),
-			pTeam, action ,
-			ToStrings((PhobosScripts)action), argument
-		);
+		//Debug::Log("[%s - %x] Executing[%s - %x] [%d (%s) - %d]\n",
+		//	pTeam->Owner->get_ID(),
+		//	pTeam->Owner,
+		//	pTeam->get_ID(),
+		//	pTeam, action ,
+		//	ToStrings((PhobosScripts)action), argument
+		//);
 
 		switch ((PhobosScripts)action)
 		{

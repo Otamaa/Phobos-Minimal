@@ -292,6 +292,14 @@ struct alignas(16) overridehookdecl
 	const char* overrideModuleName;
 };
 
+//struct alignas(16) patchdecl
+//{
+//	unsigned int patchAddr;
+//	BYTE* patchData;
+//	unsigned int patchDataSize;
+//	const char* hookNamePtr;
+//};
+
 __declspec(align(16)) struct hostdecl
 {
 	unsigned int hostChecksum;
@@ -302,6 +310,7 @@ __declspec(align(16)) struct hostdecl
 
 #pragma section(".syhks00", read, write)
 #pragma section(".syhks01", read, write)
+#pragma section(".syhks02", read, write)
 #pragma section(".syexe00", read, write)
 namespace SyringeData
 {
@@ -335,6 +344,7 @@ namespace Hooks { \
 __declspec(allocate(".syhks01"))\
 overridehookdecl _hk__ ## hook ## funcname = { ## hook, ## size, #funcname , "Ares.dll" }; \
 }; };
+
 #endif // SYR_VER == 2
 
 
@@ -350,6 +360,21 @@ overridehookdecl _hk__ ## hook ## funcname = { ## hook, ## size, #funcname , "Ar
 #ifndef decl_override_hook
 #define decl_override_hook(hook, funcname, size)
 #endif // declhook
+
+//#define DEFINE_RAW_PATCH(hook,funcname ,...)								 \
+//	namespace patch##funcname													 \
+//	{																		 \
+//		const BYTE data[] = {__VA_ARGS__};									 \
+//	   __declspec(allocate(".syhks02"))										 \
+//		patchdecl patch = { ##hook, (BYTE*)##data , sizeof(##data), #funcname};	 \
+//	}
+//
+//#define DEFINE_RAW_PATCH_MANUAL(hook,funcname ,size , data)			\
+//	namespace patch##funcname											\
+//	{																\
+//	   __declspec(allocate(".syhks02"))								\
+//		patchdecl patch = { ##hook, (BYTE*)##data , ##size, #funcname};	\
+//	}
 
 #ifndef DEBUG_HOOK
 #define DEFINE_HOOK(hook,funcname,size) \

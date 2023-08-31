@@ -68,6 +68,9 @@ public:
 		Valueable<Point2D> Pips_Ammo_Size { { 4, 0 } };
 		Valueable<Point2D> Pips_Ammo_Buildings_Size { { 4, 2 } };
 
+		ValueableVector<int> Pips_Tiberiums_Frames {};
+		NullableVector<int> Pips_Tiberiums_DisplayOrder {};
+
 		Nullable<int> InfantryGainSelfHealCap {};
 		Nullable<int> UnitsGainSelfHealCap {};
 		Valueable<bool> EnemyInsignia { true };

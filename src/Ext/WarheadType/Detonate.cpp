@@ -574,8 +574,6 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 		if (this->Reveal < 0)
 		{
 			MapClass::Instance->Reveal(pHouse);
-			if (SessionClass::Instance->GameMode == GameMode::Internet || SessionClass::Instance->GameMode == GameMode::LAN)
-				AresNetEvent::Handlers::RaiseRevealMap(pHouse);
 		}
 		else if (this->Reveal > 0)
 		{

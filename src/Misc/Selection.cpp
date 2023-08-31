@@ -14,9 +14,8 @@ class ExtSelection
 public:
 	using callback_type = bool(__fastcall*)(ObjectClass*);
 
-	static inline class TacticalSelectablesHelper
+	static inline struct TacticalSelectablesHelper
 	{
-	public:
 		inline size_t size()
 		{
 			return TacticalClass::Instance->SelectableCount;

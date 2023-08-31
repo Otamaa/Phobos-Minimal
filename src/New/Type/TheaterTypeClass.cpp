@@ -684,8 +684,8 @@ DEFINE_HOOK(0x5997B4, RMGClass_TheaterType_initRandomMap, 0x7)
 	return 0x5997C6;
 }
 
-DEFINE_SKIP_HOOK(0x6275B7, scheme_62759_ProcessOtherPalettes_RemoveThseCall , 0x7 , 627680);
-//DEFINE_JUMP(LJMP, 0x6275B7, 0x627680);
+//DEFINE_SKIP_HOOK(0x6275B7, scheme_62759_ProcessOtherPalettes_RemoveThseCall , 0x7 , 627680);
+DEFINE_JUMP(LJMP, 0x6275B7, 0x627680);
 
 DEFINE_HOOK(0x627699, TheaterTypeClass_ProcessOtherPalettes_Process, 0x6)
 {

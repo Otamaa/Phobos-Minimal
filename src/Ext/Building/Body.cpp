@@ -519,6 +519,9 @@ void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int
 	//if (!pOwner->IsControlledByHuman())
 	//	pBuilding->DiscoveredBy(pOwner);
 
+	if (!pBuilding->Type->Insignificant && !pBuilding->Type->DontScore)
+		pOwnerExt->AddToLimboTracking(pBuilding->Type);
+
 	pOwner->RegisterGain(pBuilding, false);
 	pOwner->UpdatePower();
 	pOwner->RecheckTechTree = true;

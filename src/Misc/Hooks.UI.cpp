@@ -65,7 +65,7 @@ DEFINE_HOOK(0x641EE0, PreviewClass_ReadPreview, 0x6)
 	return 0x64203D;
 }
 
-DEFINE_HOOK(0x4A25E0, CreditsClass_GraphicLogic_Additionals , 0x7)
+DEFINE_HOOK(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 {
 	const auto pPlayer = HouseClass::CurrentPlayer();
 	if (HouseExt::IsObserverPlayer(pPlayer) || pPlayer->Defeated)
@@ -79,8 +79,6 @@ DEFINE_HOOK(0x4A25E0, CreditsClass_GraphicLogic_Additionals , 0x7)
 	//GET(CreditClass*, pThis, EBP);
 
 	const auto pSideExt = SideExt::ExtMap.Find(pSide);
-	if (!pSideExt)
-		return 0x0;
 
 	wchar_t counter[0x20];
 
@@ -166,7 +164,7 @@ DEFINE_HOOK(0x715A4D, Replace_XXICON_With_New, 0x7)         //TechnoTypeClass::R
 	return 0;
 }
 
-DEFINE_HOOK(0x6A8463, StripClass_OperatorLessThan_CameoPriority, 0x5)
+DEFINE_HOOK(0x6A8463, StripClass_OperatorLessThan_CameoPriority, 5)
 {
 	enum {
 		rTrue = 0x6A8692,

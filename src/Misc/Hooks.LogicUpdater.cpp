@@ -66,7 +66,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	GET(TechnoClass*, pThis, ECX);
 
 	if (!pThis || !Is_Techno(pThis) || !pThis->IsAlive)
-		return Continue;
+		return retDead;
 
 	//type may already change ,..
 	auto const pType = pThis->GetTechnoType();
@@ -84,7 +84,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 		if (!pType->Spawned && !IsInLimboDelivered) {
 			Debug::Log("Techno[%x : %s] With Invalid Location ! , Removing ! \n", pThis, pThis->get_ID());
 			TechnoExt::HandleRemove(pThis, nullptr, false, false);
-			return Continue;
+			return retDead;
 		}
 	}
 
@@ -96,11 +96,11 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	pExt->IsInTunnel = false; // TechnoClass::AI is only called when not in tunnel.
 
 	if (pExt->UpdateKillSelf_Slave()) {
-		return Continue;
+		return retDead;
 	}
 
 	if (pExt->CheckDeathConditions()) {
-		return Continue;
+		return retDead;
 	}
 
 	pExt->UpdateBuildingLightning();
@@ -114,7 +114,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	pExt->UpdateGattlingOverloadDamage();
 	if(!pThis->IsAlive) {
 		pThis->AnnounceExpiredPointer();
-		return Continue;
+		return retDead;
 	}
 	//TODO : improve this to better handle delay anims !
 	//pExt->UpdateDelayFireAnim();
@@ -169,8 +169,8 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 		}
 	}
 
-	//return pThis->IsAlive ? 0x6F9EBB : 0x6FAFFD;
-	return 0x6F9EBB;
+	return pThis->IsAlive ? 0x6F9EBB : 0x6FAFFD;
+	//return 0x6F9EBB;
 }
 
 DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
@@ -203,45 +203,45 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
 //	return 0x736480;
 //}
 
-DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
-{
-	GET(FootClass*, pThis, ESI);
-
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
-
-	if (pThis->SpawnOwner && !pExt->IsMissisleSpawn)
-	{
-		auto pSpawnTechnoType = pThis->SpawnOwner->GetTechnoType();
-		auto pSpawnTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pSpawnTechnoType);
-
-		if (const auto pTargetTech = abstract_cast<TechnoClass*>(pThis->Target))
-		{
-			//Spawnee trying to chase Aircraft that go out of map until it reset
-			//fix this , so reset immedietely if target is not on map
-			if (!MapClass::Instance->IsValid(pTargetTech->Location)
-				|| pTargetTech->TemporalTargetingMe
-				|| (pSpawnTechnoTypeExt->MySpawnSupportDatas.Enable && pThis->SpawnOwner->GetCurrentMission() != Mission::Attack && pThis->GetCurrentMission() == Mission::Attack)
-				)
-			{
-				if (pThis->SpawnOwner->Target == pThis->Target)
-					pThis->SpawnOwner->SetTarget(nullptr);
-
-				pThis->SpawnOwner->SpawnManager->ResetTarget();
-			}
-
-		}
-		else if (pSpawnTechnoTypeExt->MySpawnSupportDatas.Enable && pThis->SpawnOwner->GetCurrentMission() != Mission::Attack && pThis->GetCurrentMission() == Mission::Attack)
-		{
-			if (pThis->SpawnOwner->Target == pThis->Target)
-				pThis->SpawnOwner->SetTarget(nullptr);
-
-			pThis->SpawnOwner->SpawnManager->ResetTarget();
-		}
-	}
-
-	//return pThis->IsLocked ? 0x4DA677 : 0x4DA643;
-	return 0;
-}
+//DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
+//{
+//	GET(FootClass*, pThis, ESI);
+//
+//	auto pExt = TechnoExt::ExtMap.Find(pThis);
+//
+//	if (pThis->SpawnOwner && !pExt->IsMissisleSpawn)
+//	{
+//		auto pSpawnTechnoType = pThis->SpawnOwner->GetTechnoType();
+//		auto pSpawnTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pSpawnTechnoType);
+//
+//		if (const auto pTargetTech = abstract_cast<TechnoClass*>(pThis->Target))
+//		{
+//			//Spawnee trying to chase Aircraft that go out of map until it reset
+//			//fix this , so reset immedietely if target is not on map
+//			if (!MapClass::Instance->IsValid(pTargetTech->Location)
+//				|| pTargetTech->TemporalTargetingMe
+//				|| (pSpawnTechnoTypeExt->MySpawnSupportDatas.Enable && pThis->SpawnOwner->GetCurrentMission() != Mission::Attack && pThis->GetCurrentMission() == Mission::Attack)
+//				)
+//			{
+//				if (pThis->SpawnOwner->Target == pThis->Target)
+//					pThis->SpawnOwner->SetTarget(nullptr);
+//
+//				pThis->SpawnOwner->SpawnManager->ResetTarget();
+//			}
+//
+//		}
+//		else if (pSpawnTechnoTypeExt->MySpawnSupportDatas.Enable && pThis->SpawnOwner->GetCurrentMission() != Mission::Attack && pThis->GetCurrentMission() == Mission::Attack)
+//		{
+//			if (pThis->SpawnOwner->Target == pThis->Target)
+//				pThis->SpawnOwner->SetTarget(nullptr);
+//
+//			pThis->SpawnOwner->SpawnManager->ResetTarget();
+//		}
+//	}
+//
+//	//return pThis->IsLocked ? 0x4DA677 : 0x4DA643;
+//	return 0;
+//}
 
 DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 {
@@ -288,6 +288,7 @@ DEFINE_HOOK(0x55AFB3, LogicClass_Update_Early, 0x6)
 	SWStateMachine::UpdateAll();
 	return 0x0;
 }
+
 //DEFINE_HOOK_AGAIN(0x6FAFFD, TechnoClass_LateUpdate,  7)
 //DEFINE_HOOK(0x6FAF7A, TechnoClass_LateUpdate, 7)
 //{

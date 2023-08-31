@@ -659,7 +659,7 @@ DEFINE_OVERRIDE_HOOK(0x51EE6B, InfantryClass_GetActionOnObject_Saboteur, 6)
 	GET(InfantryClass*, pThis, EDI);
 	GET(ObjectClass*, pObject, ESI);
 
-	if (auto pBldObject = abstract_cast<BuildingClass*>(pObject))
+	if (auto pBldObject = specific_cast<BuildingClass*>(pObject))
 	{
 		if (!pThis->Owner->IsAlliedWith_(pBldObject))
 		{
@@ -1917,7 +1917,7 @@ DEFINE_OVERRIDE_HOOK(0x4586CA, BuildingClass_KillOccupiers_EachOccupierKilled, 6
 
 void KickOutOfRubble(BuildingClass* pBld)
 {
-	DynamicVectorClass<std::pair<FootClass*, bool>> list;
+	std::vector<std::pair<FootClass*, bool>> list;
 
 	// iterate over all cells and remove all infantry
 
@@ -1933,7 +1933,7 @@ void KickOutOfRubble(BuildingClass* pBld)
 			{
 				if (pFoot->Limbo())
 				{
-					list.AddItem(std::make_pair(pFoot, pFoot->IsSelected));
+					list.emplace_back(pFoot, pFoot->IsSelected);
 				}
 			}
 		}

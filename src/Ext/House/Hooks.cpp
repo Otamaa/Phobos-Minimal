@@ -28,6 +28,9 @@ DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 
 			for(auto const pType : pBld->GetTypes()){
 
+				if (!pType)
+					continue;
+
 				if (!PowerChecked)
 				{
 					HasPower = pBld->HasPower
@@ -38,9 +41,6 @@ DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 				}
 
 				const auto pExt = BuildingTypeExt::ExtMap.TryFind(pType);
-
-				if (!pExt)
-					continue;
 
 				if(HasPower) {
 					if (pExt->PowerPlantEnhancer_Buildings.size() &&
@@ -79,3 +79,69 @@ DEFINE_HOOK(0x4F8440, HouseClass_Update, 0x5)
 
 	return 0;
 }
+
+#pragma region LimboTracking
+
+namespace LimboTrackingTemp
+{
+	bool IsBeingDeleted = false;
+}
+
+void __fastcall TechnoClass_UnInit_Wrapper(TechnoClass* pThis , DWORD)
+{
+	auto const pType = pThis->GetTechnoType();
+
+	if (pThis->InLimbo && !pType->Insignificant && !pType->DontScore) {
+		HouseExt::ExtMap.Find(pThis->Owner)->RemoveFromLimboTracking(pType);
+	}
+
+	LimboTrackingTemp::IsBeingDeleted = true;
+	pThis->ObjectClass::UnInit();
+	LimboTrackingTemp::IsBeingDeleted = false;
+}
+
+DEFINE_JUMP(CALL, 0x4DE60B, GET_OFFSET(TechnoClass_UnInit_Wrapper));   // FootClass
+DEFINE_JUMP(VTABLE, 0x7E3FB4, GET_OFFSET(TechnoClass_UnInit_Wrapper)); // BuildingClass
+
+DEFINE_HOOK(0x6F6BC9, TechnoClass_Limbo_AddTracking, 0x6)
+{
+	GET(TechnoClass* const, pThis, ESI);
+
+	auto const pType = pThis->GetTechnoType();
+
+	if (!LimboTrackingTemp::IsBeingDeleted && !pType->Insignificant && !pType->DontScore) {
+		HouseExt::ExtMap.Find(pThis->Owner)->AddToLimboTracking(pType);
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x6F6D85, TechnoClass_Unlimbo_RemoveTracking, 0x6)
+{
+	GET(TechnoClass* const, pThis, ESI);
+
+	auto const pType = pThis->GetTechnoType();
+
+	if (!pType->Insignificant && !pType->DontScore) {
+		HouseExt::ExtMap.Find(pThis->Owner)->RemoveFromLimboTracking(pType);
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x7015C9, TechnoClass_Captured_UpdateTracking, 0x6)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	GET(HouseClass* const, pNewOwner, EBP);
+
+	auto const pType = pThis->GetTechnoType();
+
+	if (pThis->InLimbo && !pType->Insignificant && !pType->DontScore) {
+		HouseExt::ExtMap.Find(pThis->Owner)->RemoveFromLimboTracking(pType);
+		HouseExt::ExtMap.Find(pNewOwner)->AddToLimboTracking(pType);
+	}
+
+	return 0;
+}
+
+#pragma endregion

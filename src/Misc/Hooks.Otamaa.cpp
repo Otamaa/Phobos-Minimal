@@ -544,7 +544,7 @@ DEFINE_HOOK(0x414EAA, AircraftClass_IsSinking_SinkAnim, 0x6)
 	GET(AircraftClass* const, pThis, ESI);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x40, 0x24));
 
-	GameConstruct(pAnim, TechnoTypeExt::GetSinkAnim(pThis), nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+	pAnim->AnimClass::AnimClass(TechnoTypeExt::GetSinkAnim(pThis), nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
 	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
 
 	return 0x414ED0;
@@ -556,7 +556,7 @@ DEFINE_HOOK(0x736595, TechnoClass_IsSinking_SinkAnim, 0x6)
 	GET(UnitClass* const, pThis, ESI);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x30, 0x18));
 
-	GameConstruct(pAnim, TechnoTypeExt::GetSinkAnim(pThis), nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+	pAnim->AnimClass::AnimClass(TechnoTypeExt::GetSinkAnim(pThis), nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
 	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
 
 	return 0x7365BB;
@@ -630,7 +630,7 @@ DEFINE_HOOK(0x70253F, TechnoClass_ReceiveDamage_Metallic_AnimDebris, 0x6)
 	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0xC4, -0x4));
 
 	//well , the owner dies , so taking Invoker is not nessesary here ,..
-	GameConstruct(pAnim, RulesClass::Instance->MetallicDebris[nIdx], nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+	pAnim->AnimClass::AnimClass(RulesClass::Instance->MetallicDebris[nIdx], nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
 	AnimExt::SetAnimOwnerHouseKind(pAnim, args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse,
 	pThis->GetOwningHouse(), false);
 
@@ -647,7 +647,7 @@ DEFINE_HOOK(0x702484, TechnoClass_ReceiveDamage_AnimDebris, 0x6)
 	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0xC4, -0x4));
 
 	//well , the owner dies , so taking Invoker is not nessesary here ,..
-	GameConstruct(pAnim, pType->DebrisAnims[nIdx], nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+	pAnim->AnimClass::AnimClass(pType->DebrisAnims[nIdx], nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
 	AnimExt::SetAnimOwnerHouseKind(pAnim,
 	 args.Attacker ?
 	 args.Attacker->GetOwningHouse() : args.SourceHouse,
@@ -827,7 +827,6 @@ DEFINE_HOOK(0x4DC280, FootClass_DrawActionLines_Move, 0x5)
 
 	if (pTypeExt->CommandLine_Move_Color.isset())
 	{
-
 		GET_STACK(CoordStruct, nCooordDest, STACK_OFFS(0x34, 0x24));
 		GET(int, nCoordDest_Adjusted_Z, EDI);
 		GET(int, nLoc_X, EBP);
@@ -1427,8 +1426,10 @@ DEFINE_HOOK(0x6EF9BD, TeamMissionClass_GatherAtEnemyCell_Log, 0x5)
 	return 0x6EF9D0;
 }
 
-DEFINE_SKIP_HOOK(0x4495FF, BuildingClass_ClearFactoryBib_Log1, 0xA , 44961A);
-DEFINE_SKIP_HOOK(0x449657, BuildingClass_ClearFactoryBib_Log2, 0xA , 449672);
+//DEFINE_SKIP_HOOK(0x4495FF, BuildingClass_ClearFactoryBib_Log1, 0xA , 44961A);
+//DEFINE_SKIP_HOOK(0x449657, BuildingClass_ClearFactoryBib_Log2, 0xA , 449672);
+DEFINE_JUMP(LJMP, 0x4495FF, 0x44961A);
+DEFINE_JUMP(LJMP, 0x449657, 0x449672);
 
 #pragma region TSL_Test
 //struct SHP_AlphaData
@@ -2229,7 +2230,7 @@ DEFINE_HOOK(0x73AED4, UnitClass_PCP_DamageSelf_C4WarheadAnimCheck, 0x8)
 	auto nLoc = pThis->Location;
 	if (auto const pC4AnimType = MapClass::SelectDamageAnimation(pThis->Health, RulesClass::Instance->C4Warhead, nLand, nLoc))
 	{
-		GameConstruct(pAllocatedMem, pC4AnimType, nLoc, 0, 1, 0x2600, -15, false);
+		pAllocatedMem->AnimClass::AnimClass(pC4AnimType, nLoc, 0, 1, 0x2600, -15, false);
 		AnimExt::SetAnimOwnerHouseKind(pAllocatedMem, nullptr, pThis->GetOwningHouse(), true);
 
 	}
@@ -2270,51 +2271,66 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 			nPal = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
 	}
 
-	std::vector<std::pair<int , int>> Amounts((sizeof(pTechno->Tiberium.Tiberiums) / sizeof(float)));
+	constexpr int maximumStorage = sizeof(pTechno->Tiberium.Tiberiums) / sizeof(float);
+	std::vector<std::pair<int , int>> Amounts(maximumStorage);
 
-	for (int i = 0; i < 4; i++) {
-		Amounts[i] = { int(pTechno->Tiberium.Tiberiums[i] / nStorage * nMax + 0.5) , i == 1 ? 5 : 2 };
+	for (size_t i = 0; i < Amounts.size(); i++) {
+
+		int FrameIdx = 0;
+		int amount = int(pTechno->Tiberium.Tiberiums[i] / nStorage * nMax + 0.5);
+
+		switch (i)
+		{
+			case 0 :
+				FrameIdx = pTypeExt->Riparius_FrameIDx.Get(5);
+			case 1 :
+				FrameIdx = pTypeExt->Cruentus_FrameIDx.Get(2);
+			case 2:
+				FrameIdx = pTypeExt->Vinifera_FrameIDx.Get(2);
+			case 3:
+				FrameIdx = pTypeExt->Aboreus_FrameIDx.Get(2);
+			default:
+				FrameIdx = 2;
+		}
+
+		Amounts[i] = { amount , FrameIdx };
 	}
 
-	auto GetFrames = [&]()
-	{
-		for (int i = 0; i < 4; i++)
-		{
-			if (Amounts[i].first > 0)
-			{
-				--Amounts[i].first;
+	static constexpr std::array<int, maximumStorage> defOrder { {0, 2, 3, 1} };
+	const auto displayOrders = RulesExt::Global()->Pips_Tiberiums_DisplayOrder.GetElements(make_iterator(&defOrder[0], maximumStorage));
 
-				switch (i)
-				{
-				case 0 :
-					return pTypeExt->Riparius_FrameIDx.Get(Amounts[i].second);
-				case 1 :
-					return pTypeExt->Cruentus_FrameIDx.Get(Amounts[i].second);
-				case 2:
-					return pTypeExt->Vinifera_FrameIDx.Get(Amounts[i].second);
-				case 3:
-					return pTypeExt->Aboreus_FrameIDx.Get(Amounts[i].second);
-				default:
-					break;
-				}
+	const auto GetFrames = [&](
+		const Iterator<int> orders ,
+		const ValueableVector<int>& frames)
+	{
+		int frame = frames.empty() ? 0 : frames[0];
+
+		for (size_t i = 0; i < maximumStorage; i++)
+		{
+			size_t index = i;
+			if (i < orders.size())
+				index = orders[i];
+
+			if (Amounts[index].first > 0) {
+				--Amounts[index].first;
+				frame = frames.empty() || index >= (frames.size() - 1) ?
+					(Amounts[index].second) : (frames[index + 1]);
+
+				break;
 			}
 		}
 
-		return 0;
+		return frame > pShape->Frames ? pShape->Frames : frame;
 	};
 
 	for (int i = nMax; i; --i)
 	{
-		int nFrame = GetFrames();
-		if (nFrame > pShape->Frames)
-			nFrame = pShape->Frames;
-
 		Point2D nPointHere { nOffs.X + nPoints->X  , nOffs.Y + nPoints->Y };
 		CC_Draw_Shape(
 			DSurface::Temp(),
 			nPal,
 			pShape,
-			nFrame,
+			GetFrames(displayOrders, RulesExt::Global()->Pips_Tiberiums_Frames),
 			&nPointHere,
 			pRect,
 			0x600,
@@ -2746,7 +2762,8 @@ DEFINE_HOOK(0x4426DB, BuildingClass_ReceiveDamage_DisableDamagedSoundFallback, 0
 }
 
 // this just an duplicate
-DEFINE_SKIP_HOOK(0x702765, TechnoClass_TakeDamage_DuplicateDamageSound , 0xA , 7027AE);
+//DEFINE_SKIP_HOOK(0x702765, TechnoClass_TakeDamage_DuplicateDamageSound , 0xA , 7027AE);
+DEFINE_JUMP(LJMP, 0x702765, 0x7027AE);
 
 DEFINE_HOOK(0x4FB63A, HouseClass_PlaceObject_EVA_UnitReady, 0x5)
 {
@@ -2836,7 +2853,7 @@ DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6)
 	GET(AnimClass*, pThis, ESI);
 
 	auto nCoord = pThis->GetCoords();
-	GameConstruct(pAnim, pThis->Type->TrailerAnim, nCoord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+	pAnim->AnimClass::AnimClass(pThis->Type->TrailerAnim, nCoord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
 	const auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 	TechnoClass* const pTech = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker.Get());
 	HouseClass* const pOwner = !pThis->Owner && pTech ? pTech->Owner : pThis->Owner;
@@ -3032,7 +3049,8 @@ FunctionreturnType KickoutTechnoType(BuildingClass* pProduction, KickOutProducti
 //	}
 //}
 
-DEFINE_SKIP_HOOK(0x69A797, Game_DisableNoDigestLog, 0x6, 69A937);
+//DEFINE_SKIP_HOOK(0x69A797, Game_DisableNoDigestLog, 0x6, 69A937);
+DEFINE_JUMP(LJMP, 0x69A797, 0x69A937);
 
 DEFINE_HOOK(0x6F9F42, TechnoClass_AI_Berzerk_SetMissionAfterDone, 0x6)
 {
@@ -4447,7 +4465,8 @@ DEFINE_HOOK(0x7225F3, TiberiumClass_Spread_nullptrheap, 0x7)
 }
 
 //skip vanilla TurretOffset read
-DEFINE_SKIP_HOOK(0x715876,TechnoTypeClass_ReadINI_SkipTurretOffs, 0x6 , 71589A);
+//DEFINE_SKIP_HOOK(0x715876,TechnoTypeClass_ReadINI_SkipTurretOffs, 0x6 , 71589A);
+DEFINE_JUMP(LJMP, 0x715876, 0x71589A);
 
 DEFINE_HOOK(0x508F82, HouseClass_AI_checkSpySat_IncludeUpgrades, 0x6)
 {
@@ -4773,10 +4792,11 @@ DEFINE_HOOK(0x486920, CellClass_TriggerVein_Precheck, 0x6)
 
 // this thing do some placement check twice
 // this can be bad because the `GrowthLogic` data inside not inited properly !
-DEFINE_HOOK(0x74C688, VeinholeMonsterClass_CTOR_SkipPlacementCheck, 0x7)
-{
-	return 0x74C697;
-}
+//DEFINE_HOOK(0x74C688, VeinholeMonsterClass_CTOR_SkipPlacementCheck, 0x0)
+//{
+//	return 0x74C697;
+//}
+DEFINE_JUMP(LJMP, 0x74C688, 0x74C697);
 
 DEFINE_HOOK(0x5FC668, OverlayTypeClass_Mark_Veinholedummies, 0x7)
 {
@@ -4944,7 +4964,8 @@ DEFINE_HOOK(0x44E809, BuildingClass_PowerOutput_Absorber, 0x6)
 	return 0x44E826;
 }
 
-DEFINE_SKIP_HOOK(0x4417A7, BuildingClass_Destroy_UnusedRandom, 0x6, 44180A);
+//DEFINE_SKIP_HOOK(0x4417A7, BuildingClass_Destroy_UnusedRandom, 0x0, 44180A);
+DEFINE_JUMP(LJMP , 0x4417A7, 0x44180A)
 
 DEFINE_HOOK(0x6FA4E5, TechnoClass_AI_RecoilUpdate, 0x6)
 {
@@ -5043,6 +5064,18 @@ DEFINE_HOOK(0x6E9696, TeamClass_ChangeHouse_nullptrresult, 0x9)
 	return 0x6E96A8;
 }
 
+DEFINE_HOOK(0x4686FA, BulletClass_Unlimbo_MissingTargetPointer, 0x6)
+{
+	GET(BulletClass*, pThis, EBX);
+
+	if (!pThis->Target) {
+		Debug::FatalErrorAndExit("Bullet [%s - %x] Missing Target Pointer when Unlimbo !\n",
+			pThis->get_ID(), pThis);
+	}
+
+	return 0x0;
+}
+
 std::string hex(uint32_t n, uint8_t d)
 {
 	std::string s(d, '0');
@@ -5088,11 +5121,11 @@ std::string hex(uint32_t n, uint8_t d)
 //	return 0x419D0B;
 //}
 
-DEFINE_HOOK(0x416748, AircraftClass_AirportBound_SkipValidatingLZ, 0x5)
-{
-	GET(AircraftClass*, pThis, ESI);
-	return pThis->Type->AirportBound ? 0x41675D : 0x0;
-}
+//DEFINE_HOOK(0x416748, AircraftClass_AirportBound_SkipValidatingLZ, 0x5)
+//{
+//	GET(AircraftClass*, pThis, ESI);
+//	return pThis->Type->AirportBound ? 0x41675D : 0x0;
+//}
 
 DWORD ReloadAircraft(REGISTERS* R)
 {
@@ -5355,7 +5388,7 @@ DWORD ReloadAircraft(REGISTERS* R)
 //	return 0x43CE55;
 //}
 
-DEFINE_HOOK(0x456376 , BuildingClass_RemoveSpacingAroundArea, 6)
+DEFINE_HOOK(0x456376 , BuildingClass_RemoveSpacingAroundArea, 0x6)
 {
 	GET(BuildingTypeClass*, pThisType, EAX);
 
@@ -5404,7 +5437,7 @@ public:
 	}
 
 public:
-	void* Buffer{ nullptr };
+	void* Buffer { nullptr };
 	int Size { 0 };
 	bool Allocated { false };
 };
@@ -5413,11 +5446,11 @@ DEFINE_HOOK(0x4AD33E, DisplayClass_ReadINI_IsoMapPack5_Limit, 0x5)
 {
 	LEA_STACK(XSurface*, pSurface, 0x134 - 0x124);
 	Game::CallBack();
-	GameConstruct(pSurface ,0x00000300 ,0x00000400);
+	pSurface->XSurface::XSurface(0x00000300, 0x00000400);
 	pSurface->BytesPerPixel = 2;
 	CopyMemoryBuffer* buffer = reinterpret_cast<CopyMemoryBuffer*>(&reinterpret_cast<BSurface*>(pSurface)->BufferPtr);
 	static_assert(sizeof(CopyMemoryBuffer) == sizeof(MemoryBuffer), "Must Be same !");
-	GameConstruct(buffer ,nullptr , 0x00180000);
+	buffer->CopyMemoryBuffer::CopyMemoryBuffer(nullptr, 0x00180000);
 	return 0x4AD379;
 }
 
@@ -5437,6 +5470,74 @@ DEFINE_HOOK(0x6F91EC, TechnoClass_GreatestThreat_DeadTechnoInsideTracker, 0x6)
 	}
 
 	return 0x0;//contunye
+}
+
+
+void __fastcall DrawRadialIndicator(ObjectClass* pObj, DWORD)
+{
+	if (!pObj || !Is_Techno(pObj))
+		return;
+
+	const auto pTechno = static_cast<TechnoClass*>(pObj);
+
+	{
+
+		const auto pType = pTechno->GetTechnoType();
+		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+		if (pType->HasRadialIndicator && pTypeExt->AlwayDrawRadialIndicator.Get(!pTechno->Deactivated))
+		{
+			const auto pOwner = pTechno->Owner;
+
+			if (!pOwner)
+				return;
+
+			if (pOwner->ControlledByPlayer_())
+			{
+				int nRadius = 0;
+
+				if (pTypeExt->RadialIndicatorRadius.isset())
+					nRadius = pTypeExt->RadialIndicatorRadius.Get();
+				else if (pType->GapGenerator)
+					nRadius = pTypeExt->GapRadiusInCells.Get();
+				else
+				{
+					const auto pWeapons = pTechno->GetPrimaryWeapon();
+					if (!WeaponStruct::IsValid(pWeapons) || pWeapons->WeaponType->Range <= 0)
+						return;
+
+					nRadius = pWeapons->WeaponType->Range.ToCell();
+				}
+
+				if (nRadius > 0)
+				{
+					auto nCoord = pTechno->GetCoords();
+					const auto Color = pTypeExt->RadialIndicatorColor.Get(pOwner->Color);
+					Draw_Radial_Indicator(false, true, nCoord, Color, (nRadius * 1.0f), false, true);
+				}
+			}
+		}
+	}
+}
+
+//7F5DA0 unit
+//7EB188 inf
+//7E3FEC bld
+DEFINE_JUMP(VTABLE, 0x7F5DA0, GET_OFFSET(DrawRadialIndicator))
+DEFINE_JUMP(VTABLE, 0x7EB188, GET_OFFSET(DrawRadialIndicator))
+
+
+DEFINE_HOOK(0x71AAFD, TemporalClass_Update_OwnerEnterIdleMode_vtablecheck, 0x5)
+{
+	GET(TechnoClass*, pOwner,ECX);
+	GET(TemporalClass*, pTemp, ESI);
+
+	if (!Is_Techno(pOwner)){
+		pTemp->Owner = nullptr;
+		return 0x71AB08;
+	}
+
+	return 0x0;
 }
 
 //int InfantryClass_Mission_Harvest(InfantryClass* pThis)

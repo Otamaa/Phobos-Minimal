@@ -212,11 +212,14 @@ static inline T* GameCreate(TArgs&&... args) {
 }
 
 //Construct an This Object to an avaible memort space !
+//be aware that this calling `new` on debug mode
+//it will get optimize out on release mode !
 template <typename T, typename... TArgs>
 static inline void GameConstruct(T* AllocatedSpace , TArgs&&... args)
 {
 	static_assert(std::is_constructible<T, TArgs...>::value, "Cannot construct T from TArgs.");
 
+	//AllocatedSpace->T::template T(std::forward<TArgs>(args)...);
 	GameAllocator<T> alloc;
 	Memory::ConstructAt<T>(alloc, AllocatedSpace, std::forward<TArgs>(args)...);
 }

@@ -762,7 +762,7 @@ namespace detail
 	template <>
 	inline bool read<TechnoTypeConvertData>(TechnoTypeConvertData& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		return parser.ReadString(pSection, pKey) 
+		return parser.ReadString(pSection, pKey)
 			&& getresult<TechnoTypeConvertData>(value, parser.value(), pSection, pKey, allocate);
 	}
 
@@ -773,7 +773,7 @@ namespace detail
 	template <>
 	inline bool read<Rank>(Rank& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		return parser.ReadString(pSection, pKey) 
+		return parser.ReadString(pSection, pKey)
 			&& getresult<Rank>(value, parser.value(), pSection, pKey);
 	}
 
@@ -1182,14 +1182,14 @@ namespace detail
 	template <>
 	inline bool read<LandType>(LandType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		return parser.ReadString(pSection, pKey) 
+		return parser.ReadString(pSection, pKey)
 			&& getresult<LandType>(value, parser.value(), pSection, pKey, allocate);
 	}
 
 	template <>
 	inline bool read<AffectedHouse>(AffectedHouse& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		return parser.ReadString(pSection, pKey) 
+		return parser.ReadString(pSection, pKey)
 			&& getresult<AffectedHouse>(value, parser.value(), pSection, pKey, allocate);
 	}
 
@@ -1323,7 +1323,7 @@ namespace detail
 	template <>
 	inline bool read(TileType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		return parser.ReadString(pSection, pKey) 
+		return parser.ReadString(pSection, pKey)
 			&& getresult<TileType>(value, parser.value(), pSection, pKey, allocate);
 	}
 

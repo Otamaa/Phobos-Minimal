@@ -1,8 +1,8 @@
 #pragma once
 #include "LocomotionClass.h"
 
-class ALIGN(4) 
-	//DECLSPEC_UUID("4A582743-9839-11d1-B709-00A024DDAFD1") 
+class ALIGN(4)
+	//DECLSPEC_UUID("4A582743-9839-11d1-B709-00A024DDAFD1")
 	NOVTABLE TunnelLocomotionClass : public LocomotionClass
 {
 public:
@@ -18,10 +18,10 @@ public:
 		DIGGING_OUT = 0x6,
 		DUG_OUT = 0x7,
 	};
-	
+
 	static constexpr inline uintptr_t vtable = 0x7F5AF0;
 	static constexpr inline uintptr_t ILoco_vtable = 0x7F5A24;
-	static const inline CLSID ClassGUID = CLSIDs::Tunnel();
+	static constexpr reference<CLSID const, 0x7E9A50u> const ClassGUID {};
 
 	//IUnknown
 	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override R0;

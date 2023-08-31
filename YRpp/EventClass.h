@@ -60,15 +60,20 @@ enum class EventType : unsigned char
 #pragma pack(push, 1)
 union EventData
 {
-	EventData()
-	{
-
-	}
+	EventData() { }
 
 	struct
 	{
-		char Data[104];
+		char Data[0x68];
 	} SpaceGap; // Just a space gap to align the struct
+
+	struct unkData
+	{
+		DWORD Checksum;
+		WORD CommandCount;
+		BYTE Delay;
+		BYTE ExtraData[0x61];
+	} unkData;
 
 	struct
 	{
@@ -79,9 +84,9 @@ union EventData
 
 	struct
 	{
-		unsigned int CRC;
-		unsigned short CommandCount;
-		unsigned char Delay;
+		BYTE CRC;
+		WORD CommandCount;
+		BYTE Delay;
 	} FrameInfo;
 
 	struct
@@ -92,7 +97,7 @@ union EventData
 	struct
 	{
 		TargetClass Whom;
-		unsigned char Mission; // Mission but should be byte
+		BYTE Mission; // Mission but should be byte
 		char _gap_;
 		TargetClass Target;
 		TargetClass Destination;
@@ -103,7 +108,7 @@ union EventData
 	struct
 	{
 		TargetClass Whom;
-		unsigned char Mission;
+		BYTE Mission;
 		TargetClass Target;
 		TargetClass Destination;
 		int Speed;
@@ -151,6 +156,7 @@ union EventData
 		AbstractType RTTIType;
 		int ID;
 	} Specific;
+
 };
 
 class EventClass;
@@ -171,6 +177,7 @@ class EventClass
 public:
 	static constexpr reference<const char*, 0x82091C, 18> const EventNames {};
 	static constexpr reference<const char*, 0x82091C, 27> const AddEventNames {};
+	static constexpr reference<uint8_t, 0x8208ECu, 46u> const EventLength {};
 
 	static constexpr reference<EventList<0x80>, 0xA802C8> OutList {};
 	// If the event is a MegaMission, then add it to this list
@@ -196,6 +203,11 @@ public:
 		OutList->Tail = (OutList->Tail + 1) & 127;
 
 		return true;
+	}
+
+	EventClass()
+	{
+		memset(this, 0, sizeof(*this));
 	}
 
 	// Special
@@ -295,12 +307,16 @@ public:
 		return *this;
 	}
 
+public:
+
 	EventType Type;
 	bool IsExecuted;
 	char HouseIndex; // '-1' stands for not a valid house
-	unsigned int Frame; // 'Frame' is the frame that the command should execute on.
+	uint32_t Frame; // 'Frame' is the frame that the command should execute on.
 
 	EventData Data;
+
+public:
 
 	bool operator==(const EventClass& q) const
 	{

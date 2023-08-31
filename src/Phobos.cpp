@@ -26,63 +26,6 @@
 #include <winternl.h>
 #include <cfenv>
 
-struct scoped_handle
-{
-	HANDLE handle;
-
-	scoped_handle() :
-
-		handle(INVALID_HANDLE_VALUE)
-	{
-	}
-	scoped_handle(HANDLE handle) :
-		handle(handle) { }
-
-	scoped_handle(scoped_handle&& other) noexcept :
-		handle(other.handle)
-	{
-		other.handle = NULL;
-	}
-
-	~scoped_handle() { if (handle != NULL && handle != INVALID_HANDLE_VALUE) CloseHandle(handle); }
-
-	bool IsValid() const { return (handle != NULL && handle != INVALID_HANDLE_VALUE); }
-
-	operator HANDLE() const { return handle; }
-
-	HANDLE* operator&() { return &handle; }
-	const HANDLE* operator&() const { return &handle; }
-};
-
-struct scoped_library
-{
-	HMODULE handle;
-
-	scoped_library() :
-
-		handle(NULL)
-	{
-	}
-
-	scoped_library(HMODULE handle) :
-		handle(handle) { }
-
-	scoped_library(scoped_library&& other) noexcept :
-		handle(other.handle)
-	{
-		other.handle = NULL;
-	}
-
-	~scoped_library() { if (handle != NULL) FreeLibrary(handle); }
-
-	bool IsValid() const { return handle != NULL; }
-
-	operator HMODULE() const { return handle; }
-
-	HMODULE* operator&() { return &handle; }
-	const HMODULE* operator&() const { return &handle; }
-};
-
 #pragma region DEFINES
 #ifndef IS_RELEASE_VER
 bool Phobos::Config::HideWarning = false;
@@ -407,12 +350,12 @@ void Phobos::Config::Read()
 			// What we want to do is to restore vanilla from Ares hook, and immediately return arg
 			// So if spawner feeds us a number, it will be used to look up color scheme directly
 			Patch::Apply_RAW(0x69A310,
-				{
-					0x8B, 0x44, 0x24, 0x04, // mov eax, [esp+4]
-					0xD1, 0xE0,             // shl eax, 1
-					0x40,                   // inc eax
-					0xC2, 0x04, 0x00        // retn 4
-					});
+			{
+				0x8B, 0x44, 0x24, 0x04, // mov eax, [esp+4]
+				0xD1, 0xE0,             // shl eax, 1
+				0x40,                   // inc eax
+				0xC2, 0x04, 0x00        // retn 4
+			});
 		}
 
 
@@ -462,9 +405,9 @@ void InitAdminDebugMode()
 			 //this thing can cause game to lockup when loading data
 			//better disable it for release
 
-			/*const bool Detached =*/
+			/*const bool Detached =
 				Phobos::DetachFromDebugger();
-			/*
+
 			if (Detached)
 			{
 				MessageBoxW(NULL,
@@ -540,7 +483,6 @@ void Phobos::ExeRun()
 	}
 
 
-	Patch::ApplyStatic();
 	//PoseDirOverride::Apply();
 	InitConsole();
 }
@@ -736,6 +678,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 	case DLL_PROCESS_ATTACH:
 	{
 		Phobos::hInstance = hInstance;
+		Patch::ApplyStatic();
 	}
 	break;
 	case DLL_PROCESS_DETACH:

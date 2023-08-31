@@ -632,14 +632,10 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->NoAmmoEffectAnim.Read(exINI, pSection, "NoAmmoEffectAnim", true);
 		this->AttackFriendlies_WeaponIdx.Read(exINI, pSection, "AttackFriendlies.WeaponIdx");
 		this->PipScaleIndex.Read(exINI, pSection, "PipScaleIndex");
-		this->AmmoPip.Read(exINI, pSection, "AmmoPip");
-		this->AmmoPip_Offset.Read(exINI, pSection, "AmmoPipOffset");
-		this->AmmoPip_Palette.Read(exINI, pSection, "AmmoPipPalette");
-		this->AmmoPipOffset.Read(exINI, pSection, "AmmoPipOffset");
 
 		this->ShowSpawnsPips.Read(exINI, pSection, "ShowSpawnsPips");
-		this->SpawnsPip.Read(exINI, pSection, "SpawnsPip");
-		this->EmptySpawnsPip.Read(exINI, pSection, "EmptySpawnsPip");
+		this->SpawnsPip.Read(exINI, pSection, "SpawnsPipFrame");
+		this->EmptySpawnsPip.Read(exINI, pSection, "EmptySpawnsPipFrame");
 		this->SpawnsPipSize.Read(exINI, pSection, "SpawnsPipSize");
 		this->SpawnsPipOffset.Read(exINI, pSection, "SpawnsPipOffset");
 		// #346, #464, #970, #1014
@@ -887,9 +883,12 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		//not fully working atm , disabled
 		//this->DeployAnims.Read(exINI, pSection, "DeployingAnim");
 
-		this->AmmoPip.Read(exINI, pSection, "AmmoPip");
-		this->EmptyAmmoPip.Read(exINI, pSection, "EmptyAmmoPip");
-		this->PipWrapAmmoPip.Read(exINI, pSection, "PipWrapAmmoPip");
+		this->AmmoPip_Palette.Read(exINI, pSection, "AmmoPipPalette");
+		this->AmmoPipOffset.Read(exINI, pSection, "AmmoPipOffset");
+
+		this->AmmoPip.Read(exINI, pSection, "AmmoPipFrame");
+		this->EmptyAmmoPip.Read(exINI, pSection, "EmptyAmmoPipFrame");
+		this->PipWrapAmmoPip.Read(exINI, pSection, "AmmoPipWrapStartFrame");
 		this->AmmoPipSize.Read(exINI, pSection, "AmmoPipSize");
 		this->ProduceCashDisplay.Read(exINI, pSection, "ProduceCashDisplay");
 
@@ -1883,7 +1882,6 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->AttackFriendlies_WeaponIdx)
 		.Process(this->PipScaleIndex)
 		.Process(this->AmmoPip)
-		.Process(this->AmmoPip_Offset)
 		.Process(this->AmmoPip_Palette)
 		.Process(this->AmmoPipOffset)
 

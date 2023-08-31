@@ -144,7 +144,8 @@ TerrainExt::ExtContainer::~ExtContainer() = default;
 // container hooks
 #include <Notifications.h>
 
-DEFINE_SKIP_HOOK(0x71BC31 , TerrainClass_CTOR_RemoveUnlimboFunc , 0xA , 71BC86);
+//DEFINE_SKIP_HOOK(0x71BC31 , TerrainClass_CTOR_RemoveUnlimboFunc , 0xA , 71BC86);
+DEFINE_JUMP(LJMP, 0x71BC31 , 0x71BC86);
 
 DEFINE_HOOK(0x71BE74, TerrainClass_CTOR, 0x5)
 {

@@ -658,9 +658,8 @@ namespace TEventExt_dummy
 				else
 				{
 					auto const& nVec = ReverseEngineeredTechnoType(Args.Owner);
-					const auto vec = make_iterator(&nVec[0], nVec.size());
 
-					result = std::any_of(vec.begin(), vec.end(), [&](TechnoTypeClass* pTech)
+					result = std::any_of(nVec.begin(), nVec.end(), [&](TechnoTypeClass* pTech)
 						{ return pTech == TEventExt::ExtMap.Find(pThis)->GetTechnoType(); });
 				}
 				break;
@@ -755,6 +754,7 @@ DEFINE_OVERRIDE_HOOK(0x71E949, TEventClass_HasOccured_Ares, 7)
 }
 
 #include <Ext/SWType/NewSuperWeaponType/NuclearMissile.h>
+#include <Misc/Ares/EVAVoices.h>
 
 namespace TActionExt_dummy
 {
@@ -814,9 +814,8 @@ namespace TActionExt_dummy
 	bool NOINLINE SetEVAVoice(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
 	{
 		auto nValue = pAction->Value;
-		const auto& nEva = EvaTypes;
-		if ((size_t)nValue >= nEva.size())
-		{
+		const auto& nEvas = EVAVoices::Types;
+		if ((size_t)nValue >= nEvas.size()) {
 			return false;
 		}
 

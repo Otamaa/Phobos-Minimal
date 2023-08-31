@@ -56,21 +56,21 @@ inline int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType) const
 	// BuildingTypeClass, AircraftTypeClass, InfantryTypeClass and UnitTypeClass
 	// It has to be these four classes, otherwise pType will just be
 
-	switch (GetVtableAddr(pType))
+	switch (pType->WhatAmI())
 	{
-	case BuildingTypeClass::vtable:
+	case BuildingTypeClass::AbsID:
 		*reinterpret_cast<int*>(PhobosGlobal::Instance()->BuildTimeDatas) = BuildingClass::vtable;
 		reinterpret_cast<BuildingClass*>(PhobosGlobal::Instance()->BuildTimeDatas)->Type = (BuildingTypeClass*)pType;
 		break;
-	case AircraftTypeClass::vtable:
+	case AircraftTypeClass::AbsID:
 		*reinterpret_cast<int*>(PhobosGlobal::Instance()->BuildTimeDatas) = AircraftClass::vtable;
 		reinterpret_cast<AircraftClass*>(PhobosGlobal::Instance()->BuildTimeDatas)->Type = (AircraftTypeClass*)pType;
 		break;
-	case InfantryTypeClass::vtable:
+	case InfantryTypeClass::AbsID:
 		*reinterpret_cast<int*>(PhobosGlobal::Instance()->BuildTimeDatas) = InfantryClass::vtable;
 		reinterpret_cast<InfantryClass*>(PhobosGlobal::Instance()->BuildTimeDatas)->Type = (InfantryTypeClass*)pType;
 		break;
-	case UnitTypeClass::vtable:
+	case UnitTypeClass::AbsID:
 		*reinterpret_cast<int*>(PhobosGlobal::Instance()->BuildTimeDatas) = UnitClass::vtable;
 		reinterpret_cast<UnitClass*>(PhobosGlobal::Instance()->BuildTimeDatas)->Type = (UnitTypeClass*)pType;
 		break;

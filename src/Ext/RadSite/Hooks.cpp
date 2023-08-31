@@ -283,44 +283,72 @@ DEFINE_HOOK(0x43FB29, BuildingClass_AI_Radiation, 0x8)
 //}
 
 // Hook Adjusted to support Ares RadImmune Ability check
-DEFINE_HOOK(0x4DA554, FootClass_AI_Radiation, 0x5)
+DEFINE_HOOK(0x4DA554, FootClass_AI_ReplaceRadiationDamageProcessing, 0x5)
 {
 	enum
 	{
 		CheckOtherState = 0x4DA63B,
 		SkipEverything = 0x4DAF00,
-		Continue = 0x0,
+		//Continue = 0x0,
 		ProcessRadSiteCheckVanilla = 0x4DA59F,
 	};
 
 	GET(FootClass* const, pThis, ESI);
+
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
+
+	if (pThis->SpawnOwner && !pExt->IsMissisleSpawn)
+	{
+		auto pSpawnTechnoType = pThis->SpawnOwner->GetTechnoType();
+		auto pSpawnTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pSpawnTechnoType);
+
+		if (const auto pTargetTech = abstract_cast<TechnoClass*>(pThis->Target))
+		{
+			//Spawnee trying to chase Aircraft that go out of map until it reset
+			//fix this , so reset immedietely if target is not on map
+			if (!MapClass::Instance->IsValid(pTargetTech->Location)
+				|| pTargetTech->TemporalTargetingMe
+				|| (pSpawnTechnoTypeExt->MySpawnSupportDatas.Enable && pThis->SpawnOwner->GetCurrentMission() != Mission::Attack && pThis->GetCurrentMission() == Mission::Attack)
+				)
+			{
+				if (pThis->SpawnOwner->Target == pThis->Target)
+					pThis->SpawnOwner->SetTarget(nullptr);
+
+				pThis->SpawnOwner->SpawnManager->ResetTarget();
+			}
+
+		}
+		else if (pSpawnTechnoTypeExt->MySpawnSupportDatas.Enable && pThis->SpawnOwner->GetCurrentMission() != Mission::Attack && pThis->GetCurrentMission() == Mission::Attack)
+		{
+			if (pThis->SpawnOwner->Target == pThis->Target)
+				pThis->SpawnOwner->SetTarget(nullptr);
+
+			pThis->SpawnOwner->SpawnManager->ResetTarget();
+		}
+	}
+
 	const auto nLoc = pThis->InlineMapCoords();
+	auto const pUnit = specific_cast<UnitClass*>(pThis);
 
 	R->BL(false);
 
-	if (!RadSiteClass::Array->Count)
-		return CheckOtherState;
+	if ((pUnit && pUnit->DeathFrameCounter > 0) || !RadSiteClass::Array->Count)
+		return (CheckOtherState);
 
-	if (pThis->InLimbo || !pThis->Health || pThis->IsSinking || pThis->IsCrashing)
-		return CheckOtherState;
+	if (pThis->TemporalTargetingMe ||pThis->InLimbo || !pThis->Health || pThis->IsSinking || pThis->IsCrashing)
+		return (CheckOtherState);
 
 	if (pThis->IsInAir())
-		return CheckOtherState;
+		return (CheckOtherState);
 
-	auto const pUnit = specific_cast<UnitClass*>(pThis);
-
-	if (pThis->GetTechnoType()->Immune ||
-		pThis->IsIronCurtained() ||
-		pThis->TemporalTargetingMe || (pUnit && pUnit->DeathFrameCounter > 0))
-	{
-		return CheckOtherState;
-	}
+	if (pThis->GetTechnoType()->Immune || pThis->IsIronCurtained())
+		return (CheckOtherState);
 
 	if (pThis->IsBeingWarpedOut() || TechnoExt::IsChronoDelayDamageImmune(pThis))
-		return CheckOtherState;
+		return (CheckOtherState);
 
 	if (TechnoExt::IsRadImmune(pThis))
-		return CheckOtherState;
+		return (CheckOtherState);
 
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 	{
@@ -353,10 +381,10 @@ DEFINE_HOOK(0x4DA554, FootClass_AI_Radiation, 0x5)
 				return SkipEverything;
 		}
 
-		return CheckOtherState;
+		return (CheckOtherState);
 	}
 
-	return ProcessRadSiteCheckVanilla;
+	return (ProcessRadSiteCheckVanilla);
 }
 
 #define GET_RADSITE(reg, value)\

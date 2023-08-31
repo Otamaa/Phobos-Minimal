@@ -2656,12 +2656,9 @@ int TechnoExt::ExtData::GetEatPassangersTotalTime(TechnoTypeClass* pTransporterD
 void TechnoExt::ExtData::UpdateEatPassengers()
 {
 	auto const pThis = this->Get();
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(this->Type);
 
-	if (!TechnoExt::IsActive(pThis))
-		return;
-
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(Type);
-	if (!pTypeExt || !pTypeExt->PassengerDeletionType)
+	if (!pTypeExt->PassengerDeletionType || !TechnoExt::IsActive(pThis))
 		return;
 
 	auto const& pDelType = pTypeExt->PassengerDeletionType;
@@ -2841,6 +2838,7 @@ void TechnoExt::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool Skip
 	// kill passenger cargo to prevent memleak
 	pThis->KillPassengers(pSource);
 
+	const auto pThisType = pThis->GetTechnoType();
 	const auto nWhat = pThis->WhatAmI();
 
 	if (nWhat == BuildingClass::AbsID)
@@ -2857,14 +2855,17 @@ void TechnoExt::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool Skip
 	{
 		if (const auto pOwner = pThis->GetOwningHouse())
 		{
-			if (!pOwner->IsNeutral() && !pThis->GetTechnoType()->Insignificant && !pThis->InLimbo)
+			if (!pThisType && !pThisType->DontScore && !pThis->InLimbo)
 			{
 				pOwner->RegisterLoss(pThis, false);
 				pOwner->RemoveTracking(pThis);
 
 				if (!pOwner->RecheckTechTree)
 					pOwner->RecheckTechTree = true;
+
 			}
+
+			HouseExt::ExtMap.Find(pOwner)->RemoveFromLimboTracking(pThisType);
 		}
 	}
 
@@ -2887,14 +2888,18 @@ void TechnoExt::KillSelf(TechnoClass* pThis, bool isPeaceful)
 	{
 		// this shit is not really good idea to pull of
 		// some stuffs doesnt really handled properly , wtf
-		if (!pThis->InLimbo)
+		bool SkipRemoveTracking = false;
+		if (!pThis->InLimbo){
+			SkipRemoveTracking = true;
 			pThis->Limbo();
+		}
 
-		TechnoExt::HandleRemove(pThis, nullptr, false, false);
+		TechnoExt::HandleRemove(pThis, nullptr, SkipRemoveTracking, false);
 	}
 	else
 	{
-		pThis->ReceiveDamage(&pThis->GetType()->Strength, 0, RulesClass::Instance()->C4Warhead, nullptr, false, false, pThis->Owner);
+		if(pThis->IsAlive)
+			pThis->ReceiveDamage(&pThis->GetType()->Strength, 0, RulesClass::Instance()->C4Warhead, nullptr, false, false, pThis->Owner);
 	}
 }
 
@@ -2919,7 +2924,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 	{
 	case KillMethod::Explode:
 	{
-		if (pThis)
+		if (pThis && pThis->IsAlive)
 		{
 			auto nHealth = pThis->GetType()->Strength;
 			pThis->ReceiveDamage(&nHealth, 0, RulesClass::Instance()->C4Warhead, nullptr, true, false, nullptr);
@@ -2940,14 +2945,17 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 		}
 
 		pThis->Stun();
+		bool skiptrackingremove = false;
 
-		if (!pThis->InLimbo)
+		if (!pThis->InLimbo){
+			skiptrackingremove = true;
 			pThis->Limbo();
+		}
 
 		if (RegisterKill)
 			pThis->RegisterKill(pThis->Owner);
 
-		TechnoExt::HandleRemove(pThis, nullptr, false, false);
+		TechnoExt::HandleRemove(pThis, nullptr, skiptrackingremove, false);
 
 	}break;
 	case KillMethod::Sell:
@@ -3017,12 +3025,12 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 
 	const auto existTechnoTypes = [pThis](const ValueableVector<TechnoTypeClass*>& vTypes, AffectedHouse affectedHouse, bool any, bool allowLimbo)
 	{
-		const auto existSingleType = [pThis, affectedHouse, allowLimbo](const TechnoTypeClass* pType)
+		const auto existSingleType = [pThis, affectedHouse, allowLimbo](TechnoTypeClass* pType)
 		{
 			for (HouseClass* pHouse : *HouseClass::Array)
 			{
 				if (EnumFunctions::CanTargetHouse(affectedHouse, pThis->Owner, pHouse)
-					&& (allowLimbo ? pHouse->CountOwnedNow(pType) > 0 : pHouse->CountOwnedAndPresent(pType) > 0))
+					&& (allowLimbo ? HouseExt::ExtMap.Find(pHouse)->CountOwnedPresentAndLimboed(pType) > 0 : pHouse->CountOwnedAndPresent(pType) > 0))
 					return true;
 			}
 
@@ -4312,6 +4320,19 @@ bool TechnoExt::IsEligibleSize(TechnoClass* pThis, TechnoClass* pPassanger)
 	}
 
 	return true;
+}
+
+bool TechnoExt::IsTypeImmune(TechnoClass* pThis, TechnoClass* pSource)
+{
+	if (!pThis || !pSource)
+		return false;
+
+	auto const pType = pThis->GetTechnoType();
+
+	if (!pType->TypeImmune)
+		return false;
+
+	return pType == pSource->GetTechnoType() && pThis->Owner == pSource->Owner;
 }
 
 // =============================

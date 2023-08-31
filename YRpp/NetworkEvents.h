@@ -68,6 +68,7 @@ struct NetworkEvent {
 
 	static constexpr reference<size_t, 0x8208ECu , 36u> const EventLength{};
 };
+static_assert(sizeof(NetworkEvent) == 111);
 
 // This Replaced with TargetClass
 struct NetID {

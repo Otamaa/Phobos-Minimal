@@ -5,6 +5,9 @@
 #include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDefB.h>
 
+#ifndef disable_aresOverride
+#include <Misc/Ares/EVAVoices.h>
+#endif
 class SideExt
 {
 public:
@@ -53,6 +56,12 @@ public:
 		ValueableIdx<ColorScheme> MessageTextColorIndex { -1 };
 
 		Nullable<AnimTypeClass*> ParachuteAnim {};
+
+#ifndef disable_aresOverride
+		ValueableIdx<EVAVoices> EVAIndex { -1 };
+#else
+		ValueableIdx<int> EVAIndex { -1 };
+#endif
 		ExtData(SideClass* OwnerObject) : Extension<SideClass>(OwnerObject)
 		{ }
 

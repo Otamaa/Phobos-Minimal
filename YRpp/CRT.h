@@ -61,12 +61,14 @@ public:
 
 	static constexpr reference<HANDLE, 0xB78B9Cu> const Heap{};
 	static constexpr reference<volatile LONG, 0xB78BA4u> const _unguarded_readlc_active{};
-	
+
+	static constexpr reference<int , 0xB782C4u> const AllocatorMode {};
+
 	// unicode manipulations - "wcs" stands for "wide char string" or wchar_t equivalent of "str"
-		
+
 		static int __cdecl wcsncmp(const wchar_t *a1, const wchar_t *a2, size_t a3)
 			{ JMP_STD(0x7CB4CC); }
-			
+
 		static wchar_t* __cdecl wcsstr(const wchar_t*, const wchar_t*)
 			{ JMP_STD(0x7CC682); }
 
@@ -108,13 +110,16 @@ public:
 
 		static void __cdecl exit_noreturn(size_t reason)
 			{ JMP_STD(0x7CBDDC); }
-		
+
 		static int __cdecl exit_returnsomething(UINT uExitCode, int a2, int a3)
 			{ JMP_STD(0x7CBE1C); }
 
 		// memory management
 		static void *__cdecl malloc(size_t sz)
 			{ JMP_STD(0x7C9430); }
+
+		static void *__cdecl malloc(size_t sz , int mode)
+			{ JMP_STD(0x7C9442); }
 
 		static void __cdecl free(const void* p)
 			{ JMP_STD(0x7C93E8); }
