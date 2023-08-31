@@ -15,7 +15,7 @@
 
 DEFINE_DISABLE_HOOK(0x41BE80, ObjectClass_DrawRadialIndicator_ares)
 
-/*
+
 DEFINE_DISABLE_HOOK(0x6E232E, ActionClass_PlayAnimAt_ares)
 DEFINE_DISABLE_HOOK(0x6FC339, TechnoClass_GetFireError_OpenToppedGunnerTemporal_ares)
 DEFINE_DISABLE_HOOK(0x763226, WaveClass_DTOR_ares)
@@ -88,5 +88,5 @@ DEFINE_DISABLE_HOOK(0x44cb4c, BuildingClass_Mi_Missile_NukeTakeOff_ares)
 DEFINE_DISABLE_HOOK(0x6F407D, TechnoClass_Init_1_ares);
 DEFINE_DISABLE_HOOK(0x6F4103, TechnoClass_Init_2_ares);
 DEFINE_DISABLE_HOOK(0x65B5FB, RadSiteClass_Radiate_UnhardcodeSnow_ares)
-*/
+
 #pragma warning( pop )
