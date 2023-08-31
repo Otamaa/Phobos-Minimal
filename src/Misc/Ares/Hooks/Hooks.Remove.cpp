@@ -16,6 +16,8 @@
 DEFINE_DISABLE_HOOK(0x41BE80, ObjectClass_DrawRadialIndicator_ares)
 
 
+//DEFINE_DISABLE_HOOK(0x615BD3, Handle_Static_Messages_LoopingMovie_ares)
+
 DEFINE_DISABLE_HOOK(0x6E232E, ActionClass_PlayAnimAt_ares)
 DEFINE_DISABLE_HOOK(0x6FC339, TechnoClass_GetFireError_OpenToppedGunnerTemporal_ares)
 DEFINE_DISABLE_HOOK(0x763226, WaveClass_DTOR_ares)
