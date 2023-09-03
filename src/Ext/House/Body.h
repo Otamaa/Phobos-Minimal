@@ -5,7 +5,7 @@
 #include <Helpers/Macro.h>
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
-
+#include <Utilities/VectorHelper.h>
 #include <map>
 
 struct LauchData
@@ -83,9 +83,9 @@ public:
 		DWORD Seed { 0 };
 
 		int SWLastIndex { -1 };
-		std::vector<SuperClass*> Batteries {};
-		std::vector<HouseTypeClass*> Factories_HouseTypes {};
-		std::vector<TechnoClass*> LimboTechno {};
+		HelperedVector<SuperClass*> Batteries {};
+		HelperedVector<HouseTypeClass*> Factories_HouseTypes {};
+		HelperedVector<TechnoClass*> LimboTechno {};
 
 		int AvaibleDocks { 0 };
 

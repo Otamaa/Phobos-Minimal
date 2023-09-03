@@ -10,7 +10,6 @@
 
 void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode calcThreatMode, int attackAITargetType = -1, int idxAITargetTypeItem = -1)
 {
-
 	auto pScript = pTeam->CurrentScript;
 	// This is the target type
 	const auto& [curAct, scriptArgument] = pScript->GetCurrentAction();

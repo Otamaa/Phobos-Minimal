@@ -3034,11 +3034,9 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 				if (EnumFunctions::CanTargetHouse(affectedHouse, pThis->Owner, pHouse))
 				{
 					if(allowLimbo) {
-						if (const auto It = make_iterator(HouseExt::ExtMap.Find(pHouse)->LimboTechno)) {
-							for (const auto limbo : It) {
-								if (limbo->GetTechnoType() == pType)
-									return true;
-							}
+						for (const auto& limbo : HouseExt::ExtMap.Find(pHouse)->LimboTechno) {
+							if (limbo->GetTechnoType() == pType)
+								return true;
 						}
 					}
 
@@ -3050,8 +3048,8 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 		};
 
 		return any
-			? std::any_of(vTypes.begin(), vTypes.end(), existSingleType)
-			: std::all_of(vTypes.begin(), vTypes.end(), existSingleType);
+			? vTypes.Any_Of(existSingleType)
+			: vTypes.All_Of(existSingleType);
 	};
 
 	// Death if nonexist

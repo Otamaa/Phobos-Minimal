@@ -333,7 +333,7 @@ public:
 
 	Promotable() = default;
 	explicit Promotable(T const& all) noexcept(noexcept(T { all })) : Rookie(all), Veteran(all), Elite(all) { }
-	explicit Promotable(T const& r, T const& v, T const& e) 
+	explicit Promotable(T const& r, T const& v, T const& e)
 	noexcept(noexcept(T { r }) && noexcept(T { v }) && noexcept(T { e })) :
 		Rookie(r), Veteran(v), Elite(e) { }
 
@@ -424,45 +424,23 @@ public:
 		return this->Contains(other);
 	}
 
-	bool Contains(const T& other) const
+	auto Find(const T& item) const
 	{
 		if constexpr (direct_comparable<T>) {
-			for (auto pos = this->begin();
-					pos != this->end();
-					++pos)
-			{
-				if ((*pos) == other)
-				{
-					return true;
-				}
-			}
-
-			return false;
+			return std::find_if(this->begin(), this->end(), [item](const auto item_here) { return item_here == item; });
+		} else {
+			return std::find(this->begin(), this->end(), other);
 		}
-		else { return std::find(this->begin(), this->end(), other) != this->end(); }
+	}
+
+	bool Contains(const T& other) const {
+		return this->Find(other) != this->end();
 	}
 
 	int IndexOf(const T& other) const
 	{
-		if constexpr (direct_comparable<T>)
-		{
-			for (auto pos = this->begin();
-				pos != this->end();
-				++pos)
-			{
-				if ((*pos) == other) {
-					return std::distance(this->begin(), pos);
-				}
-			}
-		}
-		else
-		{
-			auto const iter = std::find(this->begin(), this->end(), other);
-			if (iter != this->end())
-				return std::distance(this->begin(), iter);
-		}
-
-		return -1;
+		const auto it = this->Find(other);
+		return it != this->end() ? std::distance(this->begin(), it) : -1;
 	}
 
 	bool ValidIndex(int index) const {
@@ -503,6 +481,54 @@ public:
 	{
 		if (this->Contains(other)) return;
 		else { this->empalace_back(other); }
+	}
+
+	template <typename Func>
+	void For_Each(Func&& act) const
+	{
+		std::for_each(this->begin(), this->end(), std::forward<Func>(act));
+	}
+
+	template <typename Func>
+	void For_Each(Func&& act)
+	{
+		std::for_each(this->begin(), this->end(), std::forward<Func>(act));
+	}
+
+	template<typename func>
+	bool None_Of(func&& fn) const
+	{
+		return std::none_of(this->begin(), this->end(), std::forward<func>(fn));
+	}
+
+	template<typename func>
+	bool None_Of(func&& fn)
+	{
+		return std::none_of(this->begin(), this->end(), std::forward<func>(fn));
+	}
+
+	template<typename func>
+	bool Any_Of(func&& fn) const
+	{
+		return std::any_of(this->begin(), this->end(), std::forward<func>(fn));
+	}
+
+	template<typename func>
+	bool Any_Of(func&& fn)
+	{
+		return std::any_of(this->begin(), this->end(), std::forward<func>(fn));
+	}
+
+	template<typename func>
+	bool All_Of(func&& fn) const
+	{
+		return std::all_of(this->begin(), this->end(), std::forward<func>(fn));
+	}
+
+	template<typename func>
+	bool All_Of(func&& fn)
+	{
+		return std::all_of(this->begin(), this->end(), std::forward<func>(fn));
 	}
 
 	Iterator<T> GetElements() const noexcept

@@ -6,8 +6,6 @@
 
 void ScriptExt::ManageTriggersFromList(TeamClass* pTeam, int idxAITriggerType = -1, bool isEnabled = false)
 {
-	
-
 	auto pScript = pTeam->CurrentScript;
 	const auto&[curAct , curArgs] = pScript->GetCurrentAction();
 
@@ -40,8 +38,6 @@ void ScriptExt::ManageTriggersFromList(TeamClass* pTeam, int idxAITriggerType = 
 
 void ScriptExt::ManageAllTriggersFromHouse(TeamClass* pTeam, HouseClass* pHouse = nullptr, int sideIdx = -1, int houseIdx = -1, bool isEnabled = true)
 {
-	
-
 	// if pHouse is set then it overwrites any argument
 	if (pHouse)
 	{
@@ -69,8 +65,6 @@ void ScriptExt::ManageAllTriggersFromHouse(TeamClass* pTeam, HouseClass* pHouse 
 
 void ScriptExt::SetSideIdxForManagingTriggers(TeamClass* pTeam, int sideIdx = -1)
 {
-	
-
 	auto pScript = pTeam->CurrentScript;
 	const auto&[curAct , curArgs] = pScript->GetCurrentAction();
 
@@ -88,8 +82,6 @@ void ScriptExt::SetSideIdxForManagingTriggers(TeamClass* pTeam, int sideIdx = -1
 
 void ScriptExt::SetHouseIdxForManagingTriggers(TeamClass* pTeam, int houseIdx = 1000000)
 {
-	
-
 	auto pScript = pTeam->CurrentScript;
 	const auto&[curAct , curArgs] = pScript->GetCurrentAction();
 
@@ -109,8 +101,6 @@ void ScriptExt::SetHouseIdxForManagingTriggers(TeamClass* pTeam, int houseIdx = 
 
 void ScriptExt::ManageAITriggers(TeamClass* pTeam, int enabled = -1)
 {
-	
-
 	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 	auto pScript = pTeam->CurrentScript;
 	const auto&[curAct , curArgs] = pScript->GetCurrentAction();
@@ -137,8 +127,6 @@ void ScriptExt::ManageAITriggers(TeamClass* pTeam, int enabled = -1)
 
 void ScriptExt::ManageTriggersWithObjects(TeamClass* pTeam, int idxAITargetType = -1, bool isEnabled = false)
 {
-	
-
 	auto pScript = pTeam->CurrentScript;
 	const auto&[curAct , curArgs] = pScript->GetCurrentAction();
 

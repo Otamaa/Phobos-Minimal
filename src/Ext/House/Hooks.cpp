@@ -112,9 +112,7 @@ DEFINE_HOOK(0x6F6BC9, TechnoClass_Limbo_AddTracking, 0x6)
 
 		if (!pType->Insignificant && !pType->DontScore) {
 			auto& limboTechvec = HouseExt::ExtMap.Find(pThis->Owner)->LimboTechno;
-			const auto it = std::find_if(limboTechvec.begin(), limboTechvec.end(), [pThis](TechnoClass* ptr) { return ptr == pThis; });
-
-			if (it == limboTechvec.end())
+			if (!limboTechvec.contains(pThis))
 				limboTechvec.push_back(pThis);
 		}
 	}
@@ -129,12 +127,7 @@ DEFINE_HOOK(0x6F6D85, TechnoClass_Unlimbo_RemoveTracking, 0x6)
 	auto const pType = pThis->GetTechnoType();
 
 	if (!pType->Insignificant && !pType->DontScore) {
-		auto& limboTechvec = HouseExt::ExtMap.Find(pThis->Owner)->LimboTechno;
-
-		const auto it = std::find_if(limboTechvec.begin(), limboTechvec.end(), [pThis](TechnoClass* ptr) { return ptr == pThis; });
-
-		if (it != limboTechvec.end())
-			limboTechvec.erase(it);
+		HouseExt::ExtMap.Find(pThis->Owner)->LimboTechno.remove(pThis);
 	}
 
 	return 0;
@@ -158,13 +151,7 @@ DEFINE_HOOK(0x7015C9, TechnoClass_Captured_UpdateTracking, 0x6)
 	}
 
 	if (pThis->InLimbo && !pType->Insignificant && !pType->DontScore) {
-
-		auto& limboTechvecOld = pOldOwnerExt->LimboTechno;
-
-		const auto it = std::find_if(limboTechvecOld.begin(), limboTechvecOld.end(), [pThis](TechnoClass* ptr) { return ptr == pThis; });
-
-		if (it != limboTechvecOld.end())
-			limboTechvecOld.erase(it);
+		pOldOwnerExt->LimboTechno.remove(pThis);
 
 		if (pThis->IsAlive)
 			pNewOwnerExt->LimboTechno.push_back(pThis);

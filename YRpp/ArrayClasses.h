@@ -557,7 +557,7 @@ public:
 		return this->Items + this->Count;
 	}
 
-	bool Contains(T item) const
+	bool Contains(const T& item) const
 	{
 		for (T* pos = this->Items;
 			pos != (this->Items + this->Count);

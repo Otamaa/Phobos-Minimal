@@ -270,7 +270,7 @@ void HouseExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(Factory_NavyType, ptr, bRemoved);
 	AnnounceInvalidPointer(Factory_AircraftType, ptr, bRemoved);
 	AnnounceInvalidPointer(ActiveTeams, ptr);
-	AnnounceInvalidPointer(LimboTechno, ptr, bRemoved);
+	AnnounceInvalidPointer<TechnoClass*>(LimboTechno, ptr, bRemoved);
 
 	if(bRemoved)
 		AutoDeathObjects.erase((TechnoClass*)ptr);
@@ -278,7 +278,7 @@ void HouseExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	for (auto& nTun : Tunnels)
 		AnnounceInvalidPointer(nTun.Vector , ptr , bRemoved);
 
-	AnnounceInvalidPointer(Batteries, ptr);
+	AnnounceInvalidPointer<SuperClass*>(Batteries, ptr);
 }
 
 int HouseExt::ActiveHarvesterCount(HouseClass* pThis)

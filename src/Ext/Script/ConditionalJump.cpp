@@ -6,8 +6,6 @@
 // 1-based like the original action '6,n' (so the first script line is n=1)
 void ScriptExt::ConditionalJumpIfTrue(TeamClass* pTeam, int newScriptLine = -1)
 {
-	
-
 	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 	auto pScript = pTeam->CurrentScript;
 	const auto&[curAct , curArgs] = pScript->GetCurrentAction();

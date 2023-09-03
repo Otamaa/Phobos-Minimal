@@ -174,7 +174,7 @@ DEFINE_HOOK(0x7120D0, TechnoTypeClass_GetRepairCost_Building, 0x7)
 		const int nStep = BuildingTypeExt::ExtMap.Find(pBuildingType)->RepairStep.Get(RulesClass::Instance->RepairStep);
 
 		const auto nCalc = int(((double)pThis->GetCost() / int((double)pThis->Strength / nStep)) * RulesClass::Instance->RepairPercent);
-		R->EAX(nCalc <= 1 ? 1 : nCalc);
+		R->EAX(MaxImpl(nCalc , 1));
 		return 0x712119;
 	}
 

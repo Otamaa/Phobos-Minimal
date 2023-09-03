@@ -7,6 +7,17 @@
 
 // here be dragons(plenty)
 
+template<class, template<class...> class>
+inline constexpr bool is_specialization = false;
+template<template<class...> class T, class... Args>
+inline constexpr bool is_specialization<T<Args...>, T> = true;
+
+template<class T>
+concept Vec = is_specialization<T, std::vector>;
+
+
+template<class T>
+concept NotAVec = !is_specialization<T, std::vector>;
 
 // return functors
 
@@ -50,7 +61,7 @@ public:
 
 // invalid pointers
 
-template<typename T>
+template<typename T> requires NotAVec<T>
 void AnnounceInvalidPointer(T &elem, void *ptr) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
 	if(ptr == static_cast<void*>(elem)) {
@@ -58,7 +69,7 @@ void AnnounceInvalidPointer(T &elem, void *ptr) {
 	}
 }
 
-template<typename T>
+template<typename T> requires NotAVec<T>
 void AnnounceInvalidPointer(T& elem, void* ptr , bool removed) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
 	if (removed && ptr == static_cast<void*>(elem)) {
