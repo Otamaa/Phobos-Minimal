@@ -330,6 +330,24 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Add, 0x8) //0
 
 		//pTargetExt->UpdateFireSelf();
 		//pTargetExt->UpdateRevengeWeapons();
+
+		if(auto pBldTarget = specific_cast<BuildingClass*>(pTarget))
+		{
+			auto pExt = BuildingExt::ExtMap.Find(pBldTarget);
+
+			std::array<std::pair<BuildingTypeClass*, CDTimerClass*>, 4u> Timers
+			{ {
+		 	{ pBldTarget->Type , &pBldTarget->CashProductionTimer },
+		 	{ pBldTarget->Upgrades[0] ,&pExt->CashUpgradeTimers[0] },
+		 	{ pBldTarget->Upgrades[1] ,&pExt->CashUpgradeTimers[1] },
+			 { pBldTarget->Upgrades[2] ,&pExt->CashUpgradeTimers[2] },
+			} };
+
+			for (auto& [pbld, timer] : Timers) {
+				if (pbld)
+				timer->Pause();
+			}
+		}
 	}
 
 	// Recovering vanilla instructions that were broken by a hook call

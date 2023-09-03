@@ -122,6 +122,10 @@ DEFINE_OVERRIDE_HOOK(0x43FD2C, BuildingClass_Update_ProduceCash, 6)
 		if (pbld) {
 
 			if(pbld->ProduceCashDelay > 0) {
+
+				if (timer->HasTimeLeft())
+					timer->Resume();
+
 				if(timer->GetTimeLeft() == 1) {
 					timer->Start(pbld->ProduceCashDelay + 1);
 					produceAmount += pbld->ProduceCashAmount;
