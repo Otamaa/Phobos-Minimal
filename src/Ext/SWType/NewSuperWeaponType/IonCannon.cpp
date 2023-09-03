@@ -251,7 +251,7 @@ void IonCannonStateMachine::Fire()
 	//TODO , destroy bridges
 }
 
-void IonCannonStateMachine::InvalidatePointer(void* ptr, bool remove)
+void IonCannonStateMachine::InvalidatePointer(AbstractClass* ptr, bool remove)
 {
 	AnnounceInvalidPointer(this->Firer, ptr , remove);
 	AnnounceInvalidPointer(this->Owner, ptr);

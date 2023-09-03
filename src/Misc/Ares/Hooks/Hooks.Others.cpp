@@ -36,14 +36,20 @@
 #include "Header.h"
 #include <Ares_TechnoExt.h>
 
+DEFINE_DISABLE_HOOK(0x41BE80, ObjectClass_DrawRadialIndicator_ares)
+DEFINE_DISABLE_HOOK(0x6FC339, TechnoClass_GetFireError_OpenToppedGunnerTemporal_ares)
+
+
 DEFINE_OVERRIDE_HOOK(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
 {
 	GET(FactoryClass*, pThis, ESI);
 
-	if (pThis->Owner == HouseClass::CurrentPlayer() && pThis->Object)
+	if (pThis->Owner == HouseClass::CurrentPlayer() &&
+		pThis->Object &&
+		pThis->Object->WhatAmI() == BuildingClass::AbsID
+		)
 	{
-		if (Is_Building(pThis->Object))
-			pThis->Object->RemoveSidebarObject();
+		pThis->Object->RemoveSidebarObject();
 	}
 
 	return 0;
@@ -53,7 +59,7 @@ DEFINE_OVERRIDE_HOOK(0x420A71, AlphaShapeClass_CTOR_Anims, 0x5)
 {
 	GET(AlphaShapeClass*, pThis, ESI);
 
-	if (Is_Anim(pThis->AttachedTo))
+	if (pThis->AttachedTo && pThis->AttachedTo->WhatAmI() == AnimClass::AbsID)
 	{
 		PointerExpiredNotification::NotifyInvalidAnim->Add(pThis);
 	}
@@ -73,10 +79,10 @@ DEFINE_OVERRIDE_SKIP_HOOK(0x565215, MapClass_CTOR_NoInit_Crates, 0x6, 56522D)
 
 int squared(Point2D a, Point2D b)
 {
-	return Game::F2I(std::sqrt((CoordStruct { a.X , a.Y, 0 } - CoordStruct { b.X, b.Y, 0 }).MagnitudeSquared()));
+	return (int)(std::sqrt((CoordStruct { a.X , a.Y, 0 } - CoordStruct { b.X, b.Y, 0 }).MagnitudeSquared()));
 }
 
-DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 0x8)
+DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 0)
 {
 	GET(AbstractClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pThat, 0x4);
@@ -93,7 +99,7 @@ DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 0x8)
 	return 0x5F655D;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
+DEFINE_OVERRIDE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 0)
 {
 	GET(AbstractClass*, pThis, ECX);
 	auto const nThisCoord = pThis->GetCoords();
@@ -488,14 +494,14 @@ DEFINE_OVERRIDE_HOOK(0x62A2F8, ParasiteClass_PointerGotInvalid, 0x6)
 	GET(CoordStruct*, XYZ, EAX);
 
 	auto Owner = Parasite->Owner;
-	auto const pWhat = GetVtableAddr(Owner);
+	auto const pWhat = Owner->WhatAmI();
 
 	bool allowed = false;
-	if (pWhat == UnitClass::vtable)
+	if (pWhat == UnitClass::AbsID)
 	{
 		allowed = !Owner->GetTechnoType()->Naval;
 	}
-	else if (pWhat == InfantryClass::vtable)
+	else if (pWhat == InfantryClass::AbsID)
 	{
 		allowed = true;
 	}
@@ -527,23 +533,47 @@ DEFINE_HOOK(0x5F6960, ObjectClass_Getcell, 0xA)
 	return 0x5F69B6;
 }
 
+#include <ThemeClass.h>
 // skip theme log lines
-DEFINE_OVERRIDE_HOOK_AGAIN(0x720C42, Theme_Stop_NoLog, 0x5) // skip Theme::Stop
-DEFINE_OVERRIDE_HOOK(0x720DE8, Theme_Stop_NoLog, 0x5) // skip Theme::PlaySong
+DEFINE_DISABLE_HOOK(0x720C42, Theme_PlaySong_DisableStopLog_ares) // skip Theme::Stop
+DEFINE_HOOK(0x720C3C,  Theme_PlaySong_DisableStopLog, 0x6) // skip Theme::PlaySong
 {
-	return R->Origin() + 5;
+	GET(ThemeClass*, pThis, ESI);
+	//Debug::Log(__FUNCTION__"\n");
+	R->ECX(pThis->Stream);
+	return 0x720C4D;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x720F37, skip_Theme_Stop, 0x5, 720F3C)
-//DEFINE_JUMP(LJMP, 0x720F37, 0x720F3C);
-DEFINE_OVERRIDE_SKIP_HOOK(0x720A61, skip_Theme_AI, 0x5, 720A66)
-//DEFINE_JUMP(LJMP, 0x720A61, 0x720A66);
-//DEFINE_OVERRIDE_SKIP_HOOK(0x615BD3, Handle_Static_Messages_LoopingMovie, 0x5, 615BE0)
-//DEFINE_JUMP(LJMP, 0x615BD3, 0x615BE0);
+
+DEFINE_DISABLE_HOOK(0x720DE8, ThemeClass_PlaySong_DisablePlaySongLog_ares)
+DEFINE_HOOK(0x720DBF , ThemeClass_PlaySong_DisablePlaySongLog , 0x5)
+{
+	GET(ThemeClass*, pThis, ESI);
+	//Debug::Log(__FUNCTION__"\n");
+	R->AL(pThis->IsScoreRepeat);
+	return 0x720DF3;
+}
+
+DEFINE_DISABLE_HOOK(0x720F37, ThemeClass_Stop_DisableStopLog_ares)
+DEFINE_HOOK(0x720F2E , ThemeClass_Stop_DisableStopLog , 0x9) {
+	GET(ThemeClass*, pThis, ESI);
+	R->ECX(pThis->Stream);
+	//Debug::Log(__FUNCTION__"\n");
+	return 0x720F42;
+}
+
+DEFINE_DISABLE_HOOK(0x720A61, skip_Theme_AI_ares)
+DEFINE_HOOK(0x720A58 , ThemeClass_AI_DisableLog,0x6)
+{
+	GET(ThemeClass*, pThis, ESI);
+	pThis->QueuedTheme = R->EAX<int>();
+	//Debug::Log(__FUNCTION__"\n");
+	return 0x720A69;
+}
+
+DEFINE_OVERRIDE_SKIP_HOOK(0x615BD3, Handle_Static_Messages_LoopingMovie, 0x5, 615BE0)
 DEFINE_OVERRIDE_SKIP_HOOK(0x78997B, sub_789960_RemoveWOLResolutionCheck, 0x5, 789A58)
-//DEFINE_JUMP(LJMP, 0x78997B, 0x789A58);
 DEFINE_OVERRIDE_SKIP_HOOK(0x4BA61B, DSurface_CTOR_SkipVRAM, 0x6, 4BA623)
-//DEFINE_JUMP(LJMP, 0x4BA61B, 0x4BA623);
 
 DEFINE_OVERRIDE_HOOK(0x74A884, VoxelAnimClass_UpdateBounce_Damage, 0x6)
 {
@@ -656,7 +686,7 @@ DEFINE_OVERRIDE_HOOK(0x47243F, CaptureManagerClass_DecideUnitFate_BuildingFate, 
 {
 	GET(TechnoClass*, pVictim, EBX);
 
-	if (Is_Building(pVictim))
+	if (pVictim->WhatAmI() == BuildingClass::AbsID)
 	{
 		// 1. add to team and other fates don't really make sense for buildings
 		// 2. BuildingClass::Mission_Hunt() implementation is to do nothing!
@@ -684,7 +714,7 @@ DEFINE_OVERRIDE_HOOK(0x6B72F9, SpawnManagerClass_Update_Buildings, 0x5)
 	auto const pOwner = pThis->Owner;
 	return (nNode.Status != SpawnNodeStatus::TakeOff
 		|| !pOwner
-		|| Is_Building(pOwner))
+		|| pOwner->WhatAmI() == BuildingClass::AbsID)
 		? 0x6B735C : 0x6B72FE;
 }
 
@@ -918,7 +948,7 @@ DEFINE_OVERRIDE_HOOK(0x48A2D9, MapClass_DamageArea_ExplodesThreshold, 6)
 
 DEFINE_OVERRIDE_HOOK(0x738749, UnitClass_Destroy_TiberiumExplosive, 6)
 {
-	GET(UnitClass*, pThis, ESI);
+	GET(const UnitClass* const, pThis, ESI);
 
 	if (RulesClass::Instance->TiberiumExplosive)
 	{
@@ -939,7 +969,7 @@ DEFINE_OVERRIDE_HOOK(0x738749, UnitClass_Destroy_TiberiumExplosive, 6)
 					CoordStruct crd = pThis->GetCoords();
 					if (auto pWH = RulesExt::Global()->Tiberium_ExplosiveWarhead)
 					{
-						MapClass::DamageArea(crd, morePower, pThis, pWH, pWH->Tiberium, pThis->Owner);
+						MapClass::DamageArea(crd, morePower, const_cast<UnitClass*>(pThis), pWH, pWH->Tiberium, pThis->Owner);
 					}
 
 					if (auto pAnim = RulesExt::Global()->Tiberium_ExplosiveAnim)
@@ -1014,13 +1044,6 @@ DEFINE_OVERRIDE_HOOK(0x4D85E4, FootClass_UpdatePosition_TiberiumDamage, 9)
 			{
 				if (auto pTiberium = TiberiumClass::Array->GetItemOrDefault(pThis->GetCell()->GetContainedTiberiumIndex()))
 				{
-
-					if (GetVtableAddr(pTiberium) != TiberiumClass::vtable)
-					{
-						Debug::Log("%x is Not A Tiberium\n", pTiberium);
-						return 0x0;
-					}
-
 					auto pTibExt = TiberiumExt::ExtMap.Find(pTiberium);
 
 					pWarhead = pTibExt->GetWarhead();
@@ -1032,28 +1055,7 @@ DEFINE_OVERRIDE_HOOK(0x4D85E4, FootClass_UpdatePosition_TiberiumDamage, 9)
 		}
 	}
 
-	//if(!TiberiumDamage)
-	//{
-	//	TechnoTypeClass* pType = pThis->GetTechnoType();
-	//	if (pThis->Health > 0 && pThis->GetHeight() <= RulesClass::Instance->HoverHeight) {
-	//
-	//		CellClass* pCell = pThis->GetCell();
-	//		if(pCell->OverlayTypeIndex == 0x7E &&
-	//			pCell->OverlayData >= 0x30u &&
-	//			!pCell->Level &&
-	//			(pCell->Flags & CellFlags(0x20000)) == CellFlags::Empty
-	//			)
-	//		{
-	//			if(!pType->ImmuneToVeins && !pThis->HasAbility(AbilityType::VeinProof))
-	//			{
-	//				pWarhead = RulesClass::Instance->C4Warhead;
-	//				damage = RulesClass::Instance->VeinDamage;
-	//			}
-	//		}
-	//	}
-	//}
-
-	if (damage && pWarhead)
+	if (damage != 0 && pWarhead)
 	{
 		CoordStruct crd = pThis->GetCoords();
 
@@ -1078,9 +1080,7 @@ DEFINE_OVERRIDE_HOOK(0x489270, CellChainReact, 5)
 	if (pCell->OverlayData <= 0)
 		return 0x0;
 
-	auto idxTib = pCell->GetContainedTiberiumIndex();
-
-	TiberiumClass* pTib = TiberiumClass::Array->GetItemOrDefault(idxTib);
+	TiberiumClass* pTib = TiberiumClass::Array->GetItemOrDefault(pCell->GetContainedTiberiumIndex());
 
 	if (!pTib)
 		return 0x0;
@@ -1271,8 +1271,9 @@ DEFINE_OVERRIDE_HOOK(0x44D760, BuildingClass_Destroyed_UnitLost, 7)
 	return 0x44D7C9;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x715857, TechnoTypeClass_LoadFromINI_LimitPalettes, 5, 715876)
-//DEFINE_JUMP(LJMP, 0x715857, 0x715876);
+DEFINE_DISABLE_HOOK(0x715857, TechnoTypeClass_LoadFromINI_LimitPalettes_ares);
+//DEFINE_OVERRIDE_SKIP_HOOK(0x715857, TechnoTypeClass_LoadFromINI_LimitPalettes, 5, 715876)
+DEFINE_JUMP(LJMP, 0x715857, 0x715876);
 
 DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 {
@@ -1281,6 +1282,7 @@ DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 	const auto pType = pThis->GetTechnoType();
 	const auto  pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 	double nFinalSpeed = 0.01;
+	const auto what = pThis->WhatAmI();
 
 	if (const auto pOwner = pThis->Owner)
 	{
@@ -1321,7 +1323,7 @@ DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 			const auto nFactorySpeed = pTypeExt->BuildTime_MultipleFactory.Get(RulesClass::Instance->MultipleFactory);
 			if (nFactorySpeed > 0.0)
 			{
-				for (int i = (pOwner->FactoryCount(pThis->WhatAmI(), Is_Unit(pThis) ? pType->Naval : false) - 1);
+				for (int i = (pOwner->FactoryCount(pThis->WhatAmI(), what == UnitClass::AbsID ? pType->Naval : false) - 1);
 					i > 0;
 					--i)
 				{
@@ -1334,7 +1336,7 @@ DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 	}
 
 	{ //Exception
-		if (Is_Building(pThis) && !pTypeExt->BuildTime_Speed.isset() && static_cast<BuildingTypeClass*>(pType)->Wall)
+		if (what == BuildingClass::AbsID && !pTypeExt->BuildTime_Speed.isset() && static_cast<BuildingTypeClass*>(pType)->Wall)
 			nFinalSpeed *= RulesClass::Instance->WallBuildSpeedCoefficient;
 	}
 
@@ -1468,14 +1470,15 @@ DEFINE_OVERRIDE_HOOK(0x6FAD49, TechnoClass_Update_SparkParticles, 8) // breaks t
 	auto pType = pThis->GetTechnoType();
 	auto pExt = TechnoTypeExt::ExtMap.Find(pType);
 
-	auto it = pExt->ParticleSystems_DamageSparks.GetElements(pType->DamageParticleSystems);
-	auto allowAny = pExt->ParticleSystems_DamageSparks.HasValue();
+	if(auto it = pExt->ParticleSystems_DamageSparks.GetElements(pType->DamageParticleSystems)){
+		auto allowAny = pExt->ParticleSystems_DamageSparks.HasValue();
 
-	for (auto pSystem : it)
-	{
-		if (allowAny || pSystem->BehavesLike == BehavesLike::Spark)
+		for (auto pSystem : it)
 		{
+			if (allowAny || pSystem->BehavesLike == BehavesLike::Spark)
+			{
 			Systems.AddItem(pSystem);
+			}
 		}
 	}
 
@@ -1556,7 +1559,7 @@ DEFINE_OVERRIDE_HOOK(0x732C30, TechnoClass_IDMatches, 5)
 			}
 
 			// buildings are exempt if they can't undeploy
-			if (Is_Building(pThis) && pType->UndeploysInto)
+			if (pThis->WhatAmI() == BuildingClass::AbsID && pType->UndeploysInto)
 			{
 				match = true;
 				break;
@@ -1991,7 +1994,7 @@ std::pair<TechnoClass*, HouseClass*> GetOwnership(ParticleClass* pThis)
 		{
 			if (((pSystemOwner->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None))
 				pAttacker = static_cast<TechnoClass*>(pSystemOwner);
-			else if (Is_Bullet(pSystemOwner))
+			else if (pSystemOwner->WhatAmI() == BulletClass::AbsID)
 				pAttacker = static_cast<BulletClass*>(pSystemOwner)->Owner;
 		}
 
@@ -2013,7 +2016,7 @@ DEFINE_OVERRIDE_HOOK(0x62C23D, ParticleClass_Update_Gas_DamageRange, 6)
 	const auto pVec = Helpers::Alex::getCellSpreadItems(pThis->Location, std::ceil(pTypeExt->DamageRange.Get()));
 	const auto& [pAttacker, pOwner] = GetOwnership(pThis);
 
-	for (const auto& pItem : pVec)
+	for (const auto pItem : pVec)
 	{
 		if (pItem->Health <= 0 || !pItem->IsAlive || pItem->InLimbo)
 			continue;
@@ -2021,7 +2024,7 @@ DEFINE_OVERRIDE_HOOK(0x62C23D, ParticleClass_Update_Gas_DamageRange, 6)
 		if (pItem->IsSinking || pItem->IsCrashing || pItem->TemporalTargetingMe)
 			continue;
 
-		if (!Is_Building(pItem) && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pItem)))
+		if (pItem->WhatAmI() != BuildingClass::AbsID && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pItem)))
 			continue;
 
 		auto nDamge = pThis->Type->Damage;
@@ -2064,7 +2067,7 @@ DEFINE_OVERRIDE_HOOK(0x62CDB6, ParticleClass_Update_Fire, 7)
 		if (pTechno->IsSinking || pTechno->IsCrashing || pTechno->TemporalTargetingMe)
 			return 0x62CE09;
 
-		if (!Is_Building(pTechno) && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTechno)))
+		if (pTechno->WhatAmI() != BuildingClass::AbsID && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTechno)))
 			return 0x62CE09;
 	}
 
@@ -2092,7 +2095,7 @@ DEFINE_OVERRIDE_HOOK(0x62C2C2, ParticleClass_Update_Gas_Damage, 6)
 		if (pTechno->IsSinking || pTechno->IsCrashing || pTechno->TemporalTargetingMe)
 			return 0x62C309;
 
-		if (!Is_Building(pTechno) && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTechno)))
+		if (pTechno->WhatAmI() != BuildingClass::AbsID && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTechno)))
 			return 0x62C309;
 	}
 
@@ -2379,9 +2382,10 @@ DEFINE_OVERRIDE_HOOK(0x746B89, UnitClass_GetUIName, 8)
 	return Text != nullptr ? 0x746C78 : 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x73C143, UnitClass_DrawVXL_Deactivated, 5)
+DEFINE_DISABLE_HOOK(0x73C143, UnitClass_DrawVXL_Deactivated_ares)
+DEFINE_HOOK(0x73C141, UnitClass_DrawVXL_Deactivated,  7)
 {
-	GET(UnitClass*, pThis, ECX);
+	GET(UnitClass*, pThis, EBP);
 	REF_STACK(int, Value, 0x1E0);
 
 	const auto pRules = RulesExt::Global();
@@ -2632,7 +2636,7 @@ DEFINE_OVERRIDE_HOOK(0x71AF76, TemporalClass_Fire_PrismForwardAndWarpable, 9)
 	}
 
 	// prism forward
-	if (Is_Building(pThis))
+	if (pThis->WhatAmI() == BuildingClass::AbsID)
 	{
 		AresData::CPrismRemoveFromNetwork(&PrimsForwardingPtr(static_cast<BuildingClass*>(pThis)), true);
 	}
@@ -2727,7 +2731,7 @@ DEFINE_OVERRIDE_HOOK(0x6F6F20, TechnoClass_Put_BuildingLight, 6)
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
 
 	//only update the SW if really needed it
-	if (pThis->Owner && !Is_Building(pThis) && !pTypeExt->Linked_SW.empty() && pThis->Owner->CountOwnedAndPresent(pExt->Type) >= 1)
+	if (pThis->Owner && pThis->WhatAmI() != BuildingClass::AbsID && !pTypeExt->Linked_SW.empty() && pThis->Owner->CountOwnedAndPresent(pExt->Type) >= 1)
 		pThis->Owner->UpdateSuperWeaponsUnavailable();
 
 	if (pTypeData->HasSpotlight)
@@ -3557,7 +3561,7 @@ DEFINE_HOOK(0x6DBE33, TacticalClass_DrawLinesOrCircles, 0x6)
 			return 0x6DBE74;
 
 		ObjectClass::CurrentObjects->for_each([](ObjectClass* pObj)	{
-			if (pObj && pObj->IsOnMyView() && pObj->GetType() && pObj->GetType()->HasRadialIndicator) {
+			if (pObj && pObj->GetType() && pObj->GetType()->HasRadialIndicator) {
 				pObj->DrawRadialIndicator(1);
 			}
 		});
@@ -3568,7 +3572,7 @@ DEFINE_HOOK(0x6DBE33, TacticalClass_DrawLinesOrCircles, 0x6)
 			return 0x6DBE74;
 
 		for (auto const pObj : *TechnoClass::Array) {
-			if (pObj && pObj->IsOnMyView() && pObj->GetType() && pObj->GetType()->HasRadialIndicator) {
+			if (pObj && pObj->GetType() && pObj->GetType()->HasRadialIndicator) {
 				pObj->DrawRadialIndicator(1);
 			}
 		}
@@ -4496,81 +4500,81 @@ DEFINE_OVERRIDE_HOOK(0x4893BA, DamageArea_DamageAir, 9)
 
 // #895990: limit the number of times a warhead with
 // CellSpread will hit the same object for each hit
-DEFINE_OVERRIDE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
-{
-	struct DamageGroup
-	{
-		ObjectClass* Target;
-		int Distance;
-	};
-
-	REF_STACK(DynamicVectorClass<DamageGroup*>, groups, STACK_OFFS(0xE0, 0xA8));
-	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
-
-	auto pExt = WarheadTypeExt::ExtMap.Find(pWarhead);
-	const int MaxAffect = pExt->CellSpread_MaxAffect;
-
-	if (MaxAffect < 0)
-	{
-		return 0;
-	}
-
-	constexpr auto const DefaultSize = 1000;
-	ObjectClass* bufferHandled[DefaultSize];
-	DynamicVectorClass<ObjectClass*> handled(DefaultSize, bufferHandled);
-	handled.Reserve(groups.Count);
-
-	DamageGroup** bufferTarget[DefaultSize];
-	DynamicVectorClass<DamageGroup**> target(DefaultSize, bufferTarget);
-	target.Reserve(groups.Count);
-
-	for (auto& group : groups)
-	{
-		// group could have been cleared by previous iteration.
-		// only handle if has not been handled already.
-		if (group && handled.AddUnique(group->Target))
-		{
-			target.Count = 0;
-
-			// collect all slots containing damage groups for this target
-			std::for_each(&group, groups.end(), [group, &target](DamageGroup*& item)
+ DEFINE_OVERRIDE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
  {
-	 if (item && item->Target == group->Target)
-	 {
-		 target.AddItem(&item);
-	 }
-			});
+ 	struct DamageGroup
+ 	{
+ 		ObjectClass* Target;
+ 		int Distance;
+ 	};
 
-			// if more than allowed, sort them and remove the ones further away
-			if (target.Count > MaxAffect)
-			{
-				Helpers::Alex::selectionsort(
-					target.begin(), target.begin() + MaxAffect, target.end(),
-					[](DamageGroup** a, DamageGroup** b)
-				{
-					return (*a)->Distance < (*b)->Distance;
-				});
+ 	REF_STACK(DynamicVectorClass<DamageGroup*>, groups, STACK_OFFS(0xE0, 0xA8));
+ 	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
 
-				std::for_each(target.begin() + MaxAffect, target.end(), [](DamageGroup** ppItem)
- {
-	 GameDelete(*ppItem);
-	 *ppItem = nullptr;
-				});
-			}
-		}
-	}
+ 	auto pExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+ 	const int MaxAffect = pExt->CellSpread_MaxAffect;
 
-	// move all the empty ones to the back, then remove them
-	auto const end = std::remove_if(groups.begin(), groups.end(), [](DamageGroup* pGroup)
- {
-	 return pGroup == nullptr;
-	});
+ 	if (MaxAffect < 0)
+ 	{
+ 		return 0;
+ 	}
 
-	auto const validCount = std::distance(groups.begin(), end);
-	groups.Count = validCount;
+ 	constexpr auto const DefaultSize = 1000;
+ 	ObjectClass* bufferHandled[DefaultSize];
+ 	DynamicVectorClass<ObjectClass*> handled(DefaultSize, bufferHandled);
+ 	handled.Reserve(groups.Count);
 
-	return 0;
-}
+ 	DamageGroup** bufferTarget[DefaultSize];
+ 	DynamicVectorClass<DamageGroup**> target(DefaultSize, bufferTarget);
+ 	target.Reserve(groups.Count);
+
+ 	for (auto& group : groups)
+ 	{
+ 		// group could have been cleared by previous iteration.
+ 		// only handle if has not been handled already.
+ 		if (group && handled.AddUnique(group->Target))
+ 		{
+ 			target.Count = 0;
+
+ 			// collect all slots containing damage groups for this target
+ 			std::for_each(&group, groups.end(), [group, &target](DamageGroup*& item)
+  {
+ 	 if (item && item->Target == group->Target)
+ 	 {
+ 		 target.AddItem(&item);
+ 	 }
+ 			});
+
+ 			// if more than allowed, sort them and remove the ones further away
+ 			if (target.Count > MaxAffect)
+ 			{
+ 				Helpers::Alex::selectionsort(
+ 					target.begin(), target.begin() + MaxAffect, target.end(),
+ 					[](DamageGroup** a, DamageGroup** b)
+ 				{
+ 					return (*a)->Distance < (*b)->Distance;
+ 				});
+
+ 				std::for_each(target.begin() + MaxAffect, target.end(), [](DamageGroup** ppItem)
+  {
+ 	 GameDelete(*ppItem);
+ 	 *ppItem = nullptr;
+ 				});
+ 			}
+ 		}
+ 	}
+
+ 	// move all the empty ones to the back, then remove them
+ 	auto const end = std::remove_if(groups.begin(), groups.end(), [](DamageGroup* pGroup)
+  {
+ 	 return pGroup == nullptr;
+ 	});
+
+ 	auto const validCount = std::distance(groups.begin(), end);
+ 	groups.Count = validCount;
+
+ 	return 0;
+ }
 
 DEFINE_OVERRIDE_HOOK(0x4ABFBE, DisplayClass_LeftMouseButtonUp_ExecPowerToggle, 7)
 {

@@ -210,77 +210,54 @@ public:
 
 	CoordStruct Lerp(const CoordStruct& nThat, float t)
 	{
-		auto coord1 = *this;
-		CoordStruct coord;
-
-		coord.X = static_cast<int>(((double)coord1.X * (1.0f - (double)t)) + ((double)nThat.X * t));
-		coord.Y = static_cast<int>(((double)coord1.Y * (1.0f - (double)t)) + ((double)nThat.Y * t));
-		coord.Z = static_cast<int>(((double)coord1.Z * (1.0f - (double)t)) + ((double)nThat.Z * t));
-
-		return coord;
+		return {
+			static_cast<int>(((double)this->X * (1.0f - (double)t)) + ((double)nThat.X * t)) ,
+			static_cast<int>(((double)this->Y * (1.0f - (double)t)) + ((double)nThat.Y * t)) ,
+			static_cast<int>(((double)this->Z * (1.0f - (double)t)) + ((double)nThat.Z * t))
+		};
 	}
 
 	CoordStruct Mid(const CoordStruct& nThat)
 	{
-		auto coord1 = *this;
-		CoordStruct coord;
-		coord.X = (coord1.X - nThat.X) / 2;
-		coord.Y = (coord1.Y - nThat.Y) / 2;
-		return coord;
+		return {
+			(this->X - nThat.X) / 2 ,
+			(this->Y - nThat.Y) / 2 ,
+			0
+		};
 	}
 
 	CoordStruct Mid()
 	{
-		auto coord1 = *this;
-		CoordStruct coord;
-		coord.X = (coord1.X) / 2;
-		coord.Y = (coord1.Y) / 2;
-		return coord;
+		return {
+			(this->X) / 2 ,
+			(this->Y) / 2 ,
+			0
+		};
 	}
 
 	CoordStruct Snap()
 	{
-		auto coord = *this;
 		// Convert coord to cell, and back again to get the absolute position.
-		int cellX = coord.X / 256;
-		int cellY = coord.Y / 256;
+		int cellX = this->X / 256;
+		int cellY = this->Y / 256;
 
-		CoordStruct tmp;
-		tmp.X = cellX * 256;
-		tmp.Y = cellY * 256;
+		CoordStruct tmp { cellX * 256  , cellY * 256 , this->Z };
 
 		// Snap coord to cell center.
 		tmp.X += 256 / 2;
 		tmp.Y += 256 / 2;
-
-		// Restore input coord Z value.
-		tmp.Z = coord.Z;
 
 		return tmp;
 	}
 
 	CoordStruct Fraction()
 	{
-		auto coord = *this;
-		CoordStruct tmp;
-		tmp.X = coord.X % 256;
-		tmp.Y = coord.Y % 256;
-
-		return tmp;
+		return { (this->X % 256)  , (this->Y % 256),  0 };
 	}
 
 	CoordStruct Whole()
 	{
-		auto coord = *this;
-		// Convert coord to cell, and back again to get the absolute position.
-		int cellX = coord.X / 256;
-		int cellY = coord.Y / 256;
-
-		CoordStruct tmp;
-		tmp.X = cellX * 256;
-		tmp.Y = cellY * 256;
-
-		return tmp;
+		return { (this->X / 256) * 256  , (this->Y / 256) * 256 , 0 };
 	}
 
 	inline int& operator[](int i) { return (&X)[i]; }
@@ -334,21 +311,15 @@ public:
 		//swapped ?
 		double z = Z > nThat.Z ? nThat.Z : Z;
 
-		CoordStruct pBuffer;
-		pBuffer.X += static_cast<int>(x);
-		pBuffer.Y += static_cast<int>(y);
-		pBuffer.Z += static_cast<int>(z);
-
-		return pBuffer;
+		return { static_cast<int>(x) , static_cast<int>(y) , static_cast<int>(z) };
 	}
 
 	CoordStruct MoveTowards(CoordStruct& nThat, double maxDistanceDelta)
 	{
-		CoordStruct d = nThat - *this;
+		CoordStruct d = (nThat - *this);
 		double m = d.Magnitude();
-		if (m < maxDistanceDelta || m == 0)
-			return nThat;
-		return *this += (d *= maxDistanceDelta * m);
+		return (m < maxDistanceDelta || m == 0)  ?
+			nThat : *this += (d *= maxDistanceDelta * m);
 	}
 
 	double Dot(const CoordStruct& nThat)

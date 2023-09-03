@@ -260,6 +260,8 @@ DEFINE_HOOK(0x546833, IsometricTileTypeClass_FallbackTheater, 0x5)
 #include <SmudgeTypeClass.h>
 #include <TerrainTypeClass.h>
 
+DEFINE_DISABLE_HOOK(0x534a4d, Theater_Init_ResetLogStatus_ares)
+
 DEFINE_OVERRIDE_HOOK(0x5F9634, ObjectTypeClass_LoadFromINI, 6)
 {
 	GET(ObjectTypeClass*, pType, EBX);
@@ -345,12 +347,13 @@ DEFINE_OVERRIDE_HOOK(0x5F9070, ObjectTypeClass_Load2DArt, 6)
 	pType->Image = nullptr;
 	pType->ImageAllocated = false;
 
+	const auto what = pType->WhatAmI();
 	// what? it's what the game does, evidently those load somewhere else
-	const bool IsTerrainOrSmudge = VTable::Get(pType) == SmudgeTypeClass::vtable || Is_TerrainType(pType);
+	const bool IsTerrainOrSmudge = what == SmudgeTypeClass::AbsID|| what == TerrainTypeClass::AbsID;
 
 	if (!IsTerrainOrSmudge)
 	{
-		const auto forceShp = VTable::Get(pType) == OverlayTypeClass::vtable || Is_AnimType(pType);
+		const auto forceShp = what == OverlayTypeClass::AbsID || what == AnimTypeClass::AbsID;
 
 		auto pImage = FileSystem::LoadFile(basename, forceShp);
 		if (!pImage)

@@ -30,7 +30,10 @@ DEFINE_HOOK(0x71A9F1, TemporalClass_Update_RemoveBuildingTarget, 0x6)
 						if (pAir->IsInAir())
 						{
 							if ((pExt->Crashable.isset() && !pExt->Crashable) || !pAir->Crash(pThis->Owner))
+							{
+								Debug::Log(__FUNCTION__" Called \n");
 								TechnoExt::HandleRemove(pAir, pThis->Owner, false, false);
+							}
 						}
 						else
 						{

@@ -94,9 +94,9 @@ public:
 		const char* pFile = CSF_SOURCE_NAME,
 		int nLine = 0)
 	{
-		if (pLabel && 
+		if (pLabel &&
 			CRT::strlen(pLabel) &&
-			CRT::strcmpi(pLabel, GameStrings::NoneStr()) && 
+			CRT::strcmpi(pLabel, GameStrings::NoneStr()) &&
 			CRT::strcmpi(pLabel, GameStrings::NoneStrb()))
 			return LoadString(pLabel, pSpeech, pFile, nLine);
 		else
@@ -110,8 +110,8 @@ public:
 		const char* pFile = CSF_SOURCE_NAME,
 		int nLine = 0)
 	{
-		if (pLabel && 
-			CRT::strlen(pLabel) && 
+		if (pLabel &&
+			CRT::strlen(pLabel) &&
 			CRT::strcmpi(pLabel, GameStrings::NoneStr()) &&
 			CRT::strcmpi(pLabel, GameStrings::NoneStrb()))
 		{

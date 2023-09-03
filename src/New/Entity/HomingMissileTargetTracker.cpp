@@ -41,7 +41,7 @@ AbstractClass* HomingMissileTargetTracker::AsAbstract() const
 	return nullptr;
 }
 
-void HomingMissileTargetTracker::InvalidatePointer(void* ptr, bool bDetach)
+void HomingMissileTargetTracker::InvalidatePointer(AbstractClass* ptr, bool bDetach)
 {
 	AnnounceInvalidPointer(Target, ptr);
 }

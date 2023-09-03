@@ -19,6 +19,9 @@ enum class PhobosTriggerAction : unsigned int
 	RunSuperWeaponAtLocation = 505,
 	RunSuperWeaponAtWaypoint = 506,
 
+	//#1144
+	DumpVariables = 507,
+
 	//#844
 	ToggleMCVRedeploy = 510,
 
@@ -92,17 +95,17 @@ public:
 			RandomTriggerPool.clear();
 		}
 
-		void InvalidatePointer(void* ptr, bool bRemoved) {
+		void InvalidatePointer(AbstractClass* ptr, bool bRemoved) {
 			for (auto& nMap : RandomTriggerPool) {
 				AnnounceInvalidPointer(nMap.second, ptr);
 			}
 		}
 
-		static bool InvalidateIgnorable(void* ptr)
+		static bool InvalidateIgnorable(AbstractClass* ptr)
 		{
-			switch (GetVtableAddr(ptr))
+			switch (ptr->WhatAmI())
 			{
-			case TriggerClass::vtable:
+			case TriggerClass::AbsID:
 				return false;
 			}
 
@@ -140,7 +143,7 @@ public:
 	ACTION_FUNC(ScoreCampaignText);
 	ACTION_FUNC(ScoreCampaignTheme);
 	ACTION_FUNC(SetNextMission);
-
+	ACTION_FUNC(DumpVariables);
 	ACTION_FUNC(ToggleMCVRedeploy);
 
 	ACTION_FUNC(MessageForSpecifiedHouse);

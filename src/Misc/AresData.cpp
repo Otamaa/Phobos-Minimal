@@ -94,6 +94,8 @@ enum FunctionIndices : int
 	NetEvent_RespondToFirewall = 55,
 
 	TechnoTypeExt_GetWeaponTypeID = 56,
+
+	BuildingExt_SetFactoryPlans = 57,
 	count
 };
 
@@ -300,6 +302,7 @@ bool AresData::Init()
 		0x0023010, //AresEvent::Handle::RespondToFirewall
 
 		0x003E810, //TechnoTypeExt::GetWeapon
+		0x00454B0, //BuildingExt::SetFactoryPlans
 	};
 
 	static constexpr DWORD AAresCustomPaletteReadTable[AresCustomPaletteReadCount] = {
@@ -653,4 +656,8 @@ void AresData::AresNetEvent_Handlers_RespondToFirewallToggle(HouseClass* pFor, b
 
 WeaponStruct* AresData::GetWeapon(TechnoTypeClass* pType, int idx, bool Elite) {
 	return AresThiscall<TechnoTypeExt_GetWeaponTypeID, WeaponStruct*, void*, int , bool>()(GetAresTechnoTypeExt(pType), idx, Elite);
+}
+
+void AresData::SetFactoryPlans(BuildingClass* pBld) {
+	AresStdcall< BuildingExt_SetFactoryPlans, void, BuildingClass*>()(pBld);
 }

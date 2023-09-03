@@ -4,12 +4,14 @@
 #include <PreviewClass.h>
 #include <Surface.h>
 #include <CreditClass.h>
+#include <ThemeClass.h>
 
 #include <Ext/House/Body.h>
 #include <Ext/Side/Body.h>
 #include <Ext/Rules/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/SWType/Body.h>
+#include <Ext/Scenario/Body.h>
 
 #include <Utilities/Debug.h>
 #include <Utilities/EnumFunctions.h>
@@ -202,6 +204,79 @@ DEFINE_HOOK(0x6A8463, StripClass_OperatorLessThan_CameoPriority, 5)
 	// Restore overridden instructions
 	GET(AbstractType, rtti1, ESI);
 	return rtti1 == AbstractType::Special ? rTrue_ : rFalse_;
+}
+
+namespace BriefingTemp
+{
+	bool ShowBriefing = false;
+}
+
+// Check if briefing dialog should be played before starting scenario.
+DEFINE_HOOK(0x683E41, ScenarioClass_Start_ShowBriefing, 0x6)
+{
+	enum { SkipGameCode = 0x683E6B };
+
+	GET_STACK(bool, showBriefing, STACK_OFFSET(0xFC, -0xE9));
+
+	// Don't show briefing dialog for non-campaign games or on restarts etc.
+	if (!ScenarioExt::Global()->ShowBriefing || !showBriefing || !SessionClass::Instance->IsCampaign())
+		return 0;
+
+	BriefingTemp::ShowBriefing = true;
+
+	int theme = ScenarioExt::Global()->BriefingTheme;
+
+	if (theme == -1)
+	{
+		SideClass* pSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex);
+
+		if (const auto pSideExt = SideExt::ExtMap.Find(pSide))
+			theme = pSideExt->BriefingTheme;
+	}
+
+	if (theme != -1)
+		ThemeClass::Instance->Queue(theme);
+
+	// Skip over playing scenario theme.
+	return SkipGameCode;
+}
+
+// Show the briefing dialog before entering game loop.
+DEFINE_HOOK(0x48CE85, MainGame_ShowBriefing, 0x5)
+{
+	enum { SkipGameCode = 0x48CE8A };
+
+	// Restore overridden instructions.
+	SessionClass::Instance->Resume();
+
+	if (BriefingTemp::ShowBriefing)
+	{
+		// Show briefing dialog.
+		Game::SpecialDialog = 9;
+		Game::ShowSpecialDialog();
+		BriefingTemp::ShowBriefing = false;
+
+		// Play scenario theme.
+		int theme = ScenarioClass::Instance->ThemeIndex;
+
+		if (theme == -1)
+			ThemeClass::Instance->Stop(true);
+		else
+			ThemeClass::Instance->Queue(theme);
+	}
+
+	return SkipGameCode;
+}
+
+DEFINE_HOOK(0x683F66, PauseGame_ShowBriefing, 0x5)
+{
+	enum { SkipGameCode = 0x683FAA };
+
+	// Skip redrawing the screen if we're gonna show the briefing screen immediately after loading screen finishes
+	if (BriefingTemp::ShowBriefing)
+		return SkipGameCode;
+
+	return 0;
 }
 
 #pragma region Otamaa

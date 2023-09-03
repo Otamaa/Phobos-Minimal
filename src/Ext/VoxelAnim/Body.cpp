@@ -15,11 +15,11 @@ TechnoClass* VoxelAnimExt::GetTechnoOwner(VoxelAnimClass* pThis)
 	if (!pExt || pExt->GetInitStatus() < InitState::Constanted || !pExt->Invoker)
 		return nullptr;
 
-	const auto pAddr = (((DWORD*)pExt->Invoker)[0]);
-	if (pAddr != UnitClass::vtable
-		&& pAddr != AircraftClass::vtable
-		&& pAddr != InfantryClass::vtable
-		&& pAddr != BuildingClass::vtable)
+	const auto pAddr = pExt->Invoker->WhatAmI();
+	if (pAddr != UnitClass::AbsID
+		&& pAddr != AircraftClass::AbsID
+		&& pAddr != InfantryClass::AbsID
+		&& pAddr != BuildingClass::AbsID)
 	{
 		return nullptr;
 	}
@@ -27,7 +27,7 @@ TechnoClass* VoxelAnimExt::GetTechnoOwner(VoxelAnimClass* pThis)
 	return pExt->Invoker;
 }
 
-void VoxelAnimExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
+void VoxelAnimExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(Invoker, ptr , bRemoved);
 }

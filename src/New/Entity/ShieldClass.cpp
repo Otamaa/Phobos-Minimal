@@ -307,12 +307,12 @@ void ShieldClass::ResponseAttack() const
 	if (this->Techno->Owner != HouseClass::CurrentPlayer || this->Techno->GetTechnoType()->Insignificant)
 		return;
 
-	const auto pWhat = GetVtableAddr(Techno);
-	if (pWhat == BuildingClass::vtable)
+	const auto pWhat = Techno->WhatAmI();
+	if (pWhat == BuildingClass::AbsID)
 	{
 		this->Techno->Owner->BuildingUnderAttack(static_cast<BuildingClass*>(this->Techno));
 	}
-	else if (pWhat == UnitClass::vtable)
+	else if (pWhat == UnitClass::AbsID)
 	{
 		const auto pUnit = static_cast<UnitClass*>(this->Techno);
 
@@ -420,7 +420,7 @@ void ShieldClass::OnUpdate()
 	if (this->Techno->Location == CoordStruct::Empty)
 		return;
 
-	if (Is_Building(this->Techno))
+	if (this->Techno->WhatAmI() == BuildingClass::AbsID)
 	{
 		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(this->Techno))->LimboID != -1)
 			return;
@@ -500,7 +500,7 @@ void ShieldClass::OnlineCheck()
 	auto pTechno = this->Techno;
 	bool isActive = !(pTechno->Deactivated || pTechno->IsUnderEMP());
 
-	if (isActive && Is_Building(this->Techno))
+	if (isActive && this->Techno->WhatAmI() == BuildingClass::AbsID)
 	{
 		auto const pBuilding = static_cast<BuildingClass const*>(this->Techno);
 		isActive = pBuilding->IsPowerOnline();
@@ -683,7 +683,7 @@ int ShieldClass::GetPercentageAmount(double iStatus) const
 	return (int)trunc(iStatus);
 }
 
-void ShieldClass::InvalidatePointer(void* ptr, bool bDetach)
+void ShieldClass::InvalidatePointer(AbstractClass* ptr, bool bDetach)
 {
 	AnnounceInvalidPointer(this->IdleAnim, ptr);
 }
@@ -841,7 +841,7 @@ void ShieldClass::DrawShieldBar(int iLength, Point2D* pLocation, RectangleStruct
 {
 	if (this->HP > 0 || this->Type->Respawn)
 	{
-		if (Is_Building(this->Techno))
+		if (this->Techno->WhatAmI() == BuildingClass::AbsID)
 			this->DrawShieldBar_Building(iLength, pLocation, pBound);
 		else
 			this->DrawShieldBar_Other(iLength, pLocation, pBound);

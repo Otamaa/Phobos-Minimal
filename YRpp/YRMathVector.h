@@ -156,13 +156,6 @@ public:
 		return Math::acos(v);
 	}
 
-	Vector2D FromPolar(double rad, double theta)
-	{
-		Vector2D v;
-		v.X = rad * Math::cos(theta);
-		v.Y = rad * Math::sin(theta);
-		return v;
-	}
 
 	Vector2D Lerp(Vector2D b, double t)
 	{
@@ -181,10 +174,7 @@ public:
 		double x = X > b.X ? X : b.X;
 		double y = Y > b.Y ? Y : b.Y;
 
-		Vector2D pBuffer;
-		pBuffer.X += static_cast<T>(x);
-		pBuffer.Y += static_cast<T>(y);
-		return pBuffer;
+		return { static_cast<T>(x) ,static_cast<T>(y) };
 	}
 
 	Vector2D Min(Vector2D b)
@@ -192,10 +182,7 @@ public:
 		double x = X > b.X ? b.X : X;
 		double y = Y > b.Y ? b.Y : Y;
 
-		Vector2D pBuffer;
-		pBuffer.X += static_cast<T>(x);
-		pBuffer.Y += static_cast<T>(y);
-		return pBuffer;
+		return  { static_cast<T>(x) ,static_cast<T>(y) };
 	}
 
 	Vector2D MoveTowards(Vector2D target, double maxDistanceDelta)
@@ -230,12 +217,13 @@ public:
 
 	void Scale(Vector2D b)
 	{
-		return Vector2D(X * b.X, Y * b.Y);
+		X *= b.X;
+		Y *= b.Y;
 	}
 
 	void Rotate(double theta)
 	{
-		return Rotate(Math::sin(theta), Math::cos(theta));;
+		return Rotate(Math::sin(theta), Math::cos(theta));
 	}
 
 	void Rotate(double s, double c, bool Sin_Cos)
@@ -292,7 +280,6 @@ public:
 		if (a.X < X) X = a.X;
 		if (a.Y < Y) Y = a.Y;
 	}
-
 
 	void Update_Max(const Vector2D & a)
 	{
@@ -398,6 +385,7 @@ public:
 	{
 		return Vector3D{ X + a.X, Y + a.Y, Z + a.Z };
 	}
+
 	//addition
 	Vector3D& operator+=(const Vector3D& a)
 	{
@@ -406,11 +394,13 @@ public:
 		Z += a.Z;
 		return *this;
 	}
+
 	//substraction
 	Vector3D operator-(const Vector3D& a) const
 	{
 		return Vector3D{ X - a.X, Y - a.Y, Z - a.Z };
 	}
+
 	//substraction
 	Vector3D& operator-=(const Vector3D& a)
 	{
@@ -419,21 +409,25 @@ public:
 		Z -= a.Z;
 		return *this;
 	}
+
 	//negation
 	Vector3D operator-() const
 	{
 		return Vector3D{ -X, -Y, -Z };
 	}
+
 	//equality
 	bool operator==(const Vector3D& a) const
 	{
 		return (X == a.X && Y == a.Y && Z == a.Z);
 	}
+
 	//unequality
 	bool operator!=(const Vector3D& a) const
 	{
 		return (X != a.X || Y != a.Y || Z != a.Z);
 	}
+
 	//scalar multiplication
 	Vector3D operator*(double r) const
 	{
@@ -506,6 +500,7 @@ public:
 	{
 		return CrossProduct(a).MagnitudeSquared() == 0;
 	}
+
 	//find scalar
 	double FindScalar(const Vector3D& a) const
 	{
@@ -518,13 +513,15 @@ public:
 			return *reinterpret_cast<double*>(NaN);
 		}
 	}
+
 	//cross product
 	Vector3D CrossProduct(const Vector3D& a) const
 	{
-		return Vector3D{
+		return {
 			Y * a.Z - Z * a.Y,
 			Z * a.X - X * a.Z,
-			X * a.Y - Y * a.X };
+			X * a.Y - Y * a.X
+		};
 	}
 
 	double Angle(const Vector3D b) const
@@ -558,11 +555,11 @@ public:
 		double y = Y > b.Y ? Y : b.Y;
 		double z = Z > b.Z ? b.Z : Z;
 
-		Vector3D pBuffer;
-		pBuffer.X += static_cast<T>(x);
-		pBuffer.Y += static_cast<T>(y);
-		pBuffer.Z += static_cast<T>(z);
-		return pBuffer;
+		return {
+			static_cast<T>(x) ,
+			static_cast<T>(y) ,
+			static_cast<T>(z)
+		};
 	}
 
 	Vector3D Min(Vector3D b)
@@ -571,11 +568,11 @@ public:
 		double y = Y > b.Y ? b.Y : Y;
 		double z = Z > b.Z ? b.Z : Z;
 
-		Vector3D pBuffer;
-		pBuffer.X += static_cast<T>(x);
-		pBuffer.Y += static_cast<T>(y);
-		pBuffer.Z += static_cast<T>(z);
-		return pBuffer;
+		return {
+			static_cast<T>(x) ,
+			static_cast<T>(y) ,
+			static_cast<T>(z)
+		};
 	}
 
 	Vector3D MoveTowards(Vector3D target, double maxDistanceDelta)
@@ -604,7 +601,9 @@ public:
 
 	void Scale(Vector3D b)
 	{
-		return Vector3D(X * b.X, Y * b.Y, Z * b.Z);
+		X *= b.X;
+		Y *= b.Y;
+		Z *= b.Z;
 	}
 
 	bool Equal_Within_Epsilon(const Vector3D &b, double epsilon)
@@ -652,8 +651,7 @@ public:
 		double max = abs(static_cast<double>(X - b.X));
 		double mid = abs(static_cast<double>(Y - b.Y));
 		double min = abs(static_cast<double>(Z - b.Z));
-
-		double tmp;
+		double tmp = 0.0;
 
 		if (max < mid)
 		{

@@ -170,7 +170,7 @@ bool conductAbduction(WeaponTypeExt::ExtData* pData , TechnoClass* pOwner, Abstr
 		Attacker->EnteredOpenTopped(Target);
 	}
 
-	if (Is_Building(Attacker)) {
+	if (Attacker->WhatAmI() == BuildingClass::AbsID) {
 		Target->Absorbed = true;
 	}
 
@@ -495,7 +495,7 @@ bool NOINLINE Warpable(TechnoClass* pTarget)
 	if (TechnoExt::IsUnwarpable(pTarget))
 		return false;
 
-	if (Is_Building(pTarget))
+	if (pTarget->WhatAmI() == BuildingClass::AbsID)
 	{
 		if (Ares_AboutToChronoshift(pTarget))
 		{

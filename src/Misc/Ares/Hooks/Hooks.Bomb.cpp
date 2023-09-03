@@ -28,6 +28,12 @@
 #include <Notifications.h>
 #include <algorithm>
 
+DEFINE_DISABLE_HOOK(0x4393F2, BombClass_SDDTOR_removeUnused1_ares)
+DEFINE_DISABLE_HOOK(0x438843, BombClass_Detonate_removeUnused2_ares)
+DEFINE_DISABLE_HOOK(0x438799, BombClass_Detonate_removeUnused3_ares)
+DEFINE_DISABLE_HOOK(0x6FCBAD, TechnoClass_GetObjectActivityState_IvanBomb_ares)
+DEFINE_DISABLE_HOOK(0x438e86, BombListClass_Plant_AllTechnos_ares)
+
 namespace Funcs
 {
 	void PlantBomb(TechnoClass* pSource, ObjectClass* pTarget, WeaponTypeClass* pWeapon)

@@ -10,19 +10,19 @@
 #include <Ext/Script/Body.h>
 #include <Ext/Anim/Body.h>
 
-namespace EvaluateObjectTemp
-{
-	WeaponTypeClass* PickedWeapon = nullptr;
-}
-
-DEFINE_HOOK(0x6F7E24, TechnoClass_EvaluateObject_SetContext, 0x6)
-{
-	GET(WeaponTypeClass*, pWeapon, EBP);
-
-	EvaluateObjectTemp::PickedWeapon = pWeapon;
-
-	return 0;
-}
+// namespace EvaluateObjectTemp
+// {
+// 	WeaponTypeClass* PickedWeapon = nullptr;
+// }
+//
+// DEFINE_HOOK(0x6F7E24, TechnoClass_EvaluateObject_SetContext, 0x6)
+// {
+// 	GET(WeaponTypeClass*, pWeapon, EBP);
+//
+// 	EvaluateObjectTemp::PickedWeapon = pWeapon;
+//
+// 	return 0;
+// }
 
 void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 {
@@ -50,14 +50,8 @@ void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 
 					if (!pWHExt->CanRemoveParasytes_KickOut.Get() || coord == CoordStruct::Empty)
 					{
-						auto parasyteOwner = parasyte->Owner;
-						parasyte->IsAlive = false;
-						parasyte->IsOnMap = false;
-						parasyte->Health = 0;
-
-						parasyteOwner->RegisterLoss(parasyte, false);
-						parasyteOwner->RemoveTracking(parasyte);
-						parasyte->UnInit();
+						Debug::Log(__FUNCTION__"\n");
+						TechnoExt::HandleRemove(parasyte, args->Attacker, false , false);
 					}
 					else
 					{
@@ -66,16 +60,8 @@ void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 
 						if (!parasyte->Unlimbo(coord, parasyte->PrimaryFacing.Current().GetDir()))
 						{
-							// Failed to kick out the parasyte, remove it instead
-							auto parasyteOwner = parasyte->Owner;
-							parasyte->IsAlive = false;
-							parasyte->IsOnMap = false;
-							parasyte->Health = 0;
-
-							parasyteOwner->RegisterLoss(parasyte, false);
-							parasyteOwner->RemoveTracking(parasyte);
-							parasyte->UnInit();
-
+							Debug::Log(__FUNCTION__"\n");
+							TechnoExt::HandleRemove(parasyte, nullptr, false , false);
 							return;
 						}
 

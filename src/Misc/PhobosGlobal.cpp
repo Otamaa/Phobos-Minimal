@@ -1,5 +1,7 @@
 #include "PhobosGlobal.h"
 
+#include <AbstractClass.h>
+
 std::unique_ptr<PhobosGlobal> PhobosGlobal::GlobalObject;
 
 void PhobosGlobal::Clear()
@@ -11,7 +13,7 @@ void PhobosGlobal::Clear()
 	pInstance->DetonateDamageArea = true;
 }
 
-void PhobosGlobal::PointerGotInvalid(void* ptr, bool removed)
+void PhobosGlobal::PointerGotInvalid(AbstractClass* ptr, bool removed)
 {
 
 }

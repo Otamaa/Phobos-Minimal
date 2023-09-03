@@ -16,6 +16,7 @@ enum class TrajectoryFlag : int
 	Meteor = 5,
 	Spiral = 6,
 	Wave = 7,
+	Arcing = 8,
 
 	Count
 };
@@ -40,7 +41,7 @@ public:
 	PhobosTrajectoryType(TrajectoryFlag flag) : Flag { flag }
 	{}
 
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	virtual bool Save(PhobosStreamWriter& Stm) const;
 	virtual bool Read(CCINIClass* const pINI, const char* pSection);
@@ -80,7 +81,7 @@ public:
 
 	virtual ~PhobosTrajectory() = default;
 
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	virtual bool Save(PhobosStreamWriter& Stm) const;
 

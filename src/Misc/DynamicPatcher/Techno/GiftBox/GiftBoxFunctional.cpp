@@ -70,6 +70,7 @@ void GiftBoxFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTy
 		if (pTypeExt->MyGiftBoxData.Remove)
 		{
 			pExt->Get()->Limbo();
+			Debug::Log(__FUNCTION__" Called \n");
 			TechnoExt::HandleRemove(pExt->Get(),nullptr , false , false);
 			return;
 		}
@@ -234,8 +235,9 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 	if (auto pCell = MapClass::Instance->TryGetCellAt(location)) {
 		AbstractClass* pDest = nullptr;
 		AbstractClass* pFocus = nullptr;
+		const auto IsBuilding = pOwner->WhatAmI() == BuildingClass::AbsID;
 
-		if (!Is_Building(pOwner)) {
+		if (!IsBuilding) {
 			pDest = static_cast<FootClass*>(pOwner)->Destination;
 			pFocus = pOwner->Focus;
 		}
@@ -283,14 +285,14 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 				}
 				else
 				{
-					if (!Is_Building(pGift))
+					if (pGift->WhatAmI() != BuildingClass::AbsID)
 					{
 						CoordStruct des = pDest ? pDest->GetCoords() : location;
 
 						if (pFocus)
 						{
 							pGift->SetFocus(pFocus);
-							if (Is_Unit(pGift))
+							if (pGift->WhatAmI() != BuildingClass::AbsID)
 							{
 								des = pFocus->GetCoords();
 							}
@@ -304,7 +306,7 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 					}
 				}
 
-				if (Is_BuildingType(pTech))
+				if (pTech->WhatAmI() == BuildingTypeClass::AbsID)
 				{
 					Debug::Log("[%s] Gift box release BuildingType as an gift ,pType [%s] \n", pOwner->get_ID(), pTech->get_ID());
 				}

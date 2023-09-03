@@ -41,12 +41,12 @@ public:
 		{ }
 
 		virtual ~ExtData() override  = default;
-		void InvalidatePointer(void* ptr, bool bRemoved)
+		void InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 		{
 		//	AnnounceInvalidPointer(Firer, ptr);
 		}
 
-		static bool InvalidateIgnorable(void* ptr)
+		static bool InvalidateIgnorable(AbstractClass* ptr)
 		{
 			switch (VTable::Get(ptr))
 			{

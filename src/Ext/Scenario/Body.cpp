@@ -111,10 +111,27 @@ void ScenarioExt::ExtData::FetchVariables(ScenarioClass* pScen)
 
 void ScenarioExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
-	// auto pThis = this->Get();
+	auto pThis = this->Get();
 
-	// INI_EX exINI(pINI);
+	 INI_EX exINI(pINI);
 
+	 CCINIClass* pINI_MISSIONMD = CCINIClass::LoadINIFile(GameStrings::MISSIONMD_INI);
+	 auto const scenarioName = pThis->FileName;
+
+	 // Override rankings
+	 pThis->ParTimeEasy = pINI_MISSIONMD->ReadTime(scenarioName, "Ranking.ParTimeEasy", pThis->ParTimeEasy);
+	 pThis->ParTimeMedium = pINI_MISSIONMD->ReadTime(scenarioName, "Ranking.ParTimeMedium", pThis->ParTimeMedium);
+	 pThis->ParTimeDifficult = pINI_MISSIONMD->ReadTime(scenarioName, "Ranking.ParTimeHard", pThis->ParTimeDifficult);
+
+	 pINI_MISSIONMD->ReadString(scenarioName, "Ranking.UnderParTitle", pThis->UnderParTitle, pThis->UnderParTitle);
+	 pINI_MISSIONMD->ReadString(scenarioName, "Ranking.UnderParMessage", pThis->UnderParMessage, pThis->UnderParMessage);
+	 pINI_MISSIONMD->ReadString(scenarioName, "Ranking.OverParTitle", pThis->OverParTitle, pThis->OverParTitle);
+	 pINI_MISSIONMD->ReadString(scenarioName, "Ranking.OverParMessage", pThis->OverParMessage, pThis->OverParMessage);
+
+	 this->ShowBriefing = pINI_MISSIONMD->ReadBool(scenarioName, "ShowBriefing", pINI->ReadBool(GameStrings::Basic, "ShowBriefing", this->ShowBriefing));
+	 this->BriefingTheme = pINI_MISSIONMD->ReadTheme(scenarioName, "BriefingTheme", pINI->ReadTheme(GameStrings::Basic, "BriefingTheme", this->BriefingTheme));
+
+	 CCINIClass::UnloadINIFile(pINI_MISSIONMD);
 }
 
 // =============================
@@ -147,6 +164,8 @@ void ScenarioExt::ExtData::Serialize(T& Stm)
 		//.Process(this->CurrentTint_Hashes)
 		.Process(this->AdjustLightingFix)
 
+		.Process(ShowBriefing)
+		.Process(BriefingTheme)
 		;
 
 

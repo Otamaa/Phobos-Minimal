@@ -7,7 +7,7 @@
 
 struct CompileTimeMatrix3D
 {
-	constexpr CompileTimeMatrix3D() noexcept 
+	constexpr CompileTimeMatrix3D() noexcept
 	{
 		this->row[0][0] = 1.0;
 		this->row[0][1] = 0.0;
@@ -177,7 +177,7 @@ public:
 		return *this;
 	}
 
-	Matrix3D& operator*(const Matrix3D& nAnother) const
+	Matrix3D operator*(const Matrix3D& nAnother) const
 	{
 		Matrix3D ret;
 		MatrixMultiply(&ret, this, &nAnother);
@@ -198,7 +198,7 @@ public:
 
 	// Non virtual
 	static Matrix3D* __fastcall TransposeMatrix(Matrix3D* buffer, const Matrix3D* mat) { JMP_STD(0x5AFC20); }
-	static Matrix3D& TransposeMatrix(const Matrix3D& A)
+	static Matrix3D TransposeMatrix(const Matrix3D& A)
 	{
 		Matrix3D v7; // [esp+8h] [ebp-30h] BYREF
 
@@ -227,7 +227,7 @@ public:
 	}
 
 	static Matrix3D* __fastcall FromQuaternion(Matrix3D* mat, const Quaternion* q) { JMP_STD(0x646980); }
-	static Matrix3D& FromQuaternion(const Quaternion& q)
+	static Matrix3D FromQuaternion(const Quaternion& q)
 	{
 		double v2; // st7
 		double v4; // st6
@@ -276,7 +276,7 @@ public:
 	void AdjustYTranslation(float y) { Row[1][3] += y; }
 	void AdjustZTranslation(float z) { Row[2][3] += z; }
 
-	Vector3D<float> GetTranslation() const { return Vector3D<float>{ Row[0][3], Row[1][3], Row[2][3] }; }
+	Vector3D<float> GetTranslation() const { return { Row[0][3], Row[1][3], Row[2][3] }; }
 	void GetTranslation(Vector3D<float>*set) const { set->X = Row[0][3]; set->Y = Row[1][3]; set->Z = Row[2][3]; }
 	void SetTranslation(const Vector3D<float> &t) { Row[0][3] = t[0]; Row[1][3] = t[1]; Row[2][3] = t[2]; }
 
@@ -469,32 +469,18 @@ public:
 	//void PreRotateY(float theta) const { JMP_THIS(0x5AED50); }
 	void PreRotateY(float theta)
 	{
-		double v2; // kr00_8
-		double c; // st7
-		double sn; // st6
-		double row_0_0; // st5
-		double row_2_0; // st4
-		float row_0_1; // [esp+0h] [ebp-1Ch]
-		float row_2_1; // [esp+4h] [ebp-18h]
-		float row_0_2; // [esp+8h] [ebp-14h]
-		float row_2_2; // [esp+Ch] [ebp-10h]
-		float row_0_3; // [esp+10h] [ebp-Ch]
-		float row_2_3; // [esp+14h] [ebp-8h]
-		float s; // [esp+20h] [ebp+4h]
-
-		v2 = theta;
-		s = Math::sin(theta);
-		c = Math::cos(v2);
-		sn = -s;
-		row_0_0 = this->row[0][0];
-		row_2_0 = this->row[2][0];
-		row_0_1 = this->row[0][1];
-		row_2_1 = this->row[2][1];
-		row_0_2 = this->row[0][2];
-		row_2_2 = this->row[2][2];
-		row_0_3 = this->row[0][3];
+		float s = Math::sin(theta);
+		double c = Math::cos(theta);
+		double sn = -s;
+		double row_0_0 = this->row[0][0];
+		double row_2_0 = this->row[2][0];
+		float row_0_1 = this->row[0][1];
+		float row_2_1 = this->row[2][1];
+		float row_0_2 = this->row[0][2];
+		float row_2_2 = this->row[2][2];
+		float row_0_3 = this->row[0][3];
 		this->row[0][0] = static_cast<float>(row_2_0 * s + row_0_0 * c);
-		row_2_3 = this->row[2][3];
+		float row_2_3 = this->row[2][3];
 		this->row[0][1] = static_cast<float>(row_2_1 * s + row_0_1 * c);
 		this->row[0][2] = static_cast<float>(row_2_2 * s + row_0_2 * c);
 		this->row[0][3] = static_cast<float>(row_2_3 * s + row_0_3 * c);
@@ -543,7 +529,7 @@ public:
 	}
 
 	//void RotateX(float theta) const { JMP_THIS(0x5AEF60); }
-	void RotateX(float theta) { 
+	void RotateX(float theta) {
 		double v2 = theta;
 		float s = Math::sin(theta);
 		double c = Math::cos(v2);
@@ -622,7 +608,7 @@ public:
 	}
 
 	//void RotateZ(float theta) const { JMP_THIS(0x5AF1A0); }
-	void RotateZ(float theta) { 
+	void RotateZ(float theta) {
 		double v2 = theta;
 		float c = Math::cos(theta);
 		double s = Math::sin(v2);
@@ -661,61 +647,52 @@ public:
 	}
 
 	//float GetXVal() const { JMP_THIS(0x5AF2C0); }
-	float GetXVal() { 
-		Vector3D<float> ret_;
-		MatrixMultiply(ret_, this, Vector3D<float>::Empty);
+	float GetXVal() {
+		Vector3D<float> ret_ = MatrixMultiply(this, Vector3D<float>::Empty);
 		return ret_.X;
 	}
 
 	//float GetYVal() const  { JMP_THIS(0x5AF310); }
 	float GetYVal()
 	{
-		Vector3D<float> ret_;
-		MatrixMultiply(ret_, this, Vector3D<float>::Empty);
+		Vector3D<float> ret_ = MatrixMultiply(this, Vector3D<float>::Empty);
 		return ret_.Y;
 	}
 
 	//float GetZVal() const { JMP_THIS(0x5AF360); }
 	float GetZVal()
 	{
-		Vector3D<float> ret_;
-		MatrixMultiply(ret_, this, Vector3D<float>::Empty);
+		Vector3D<float> ret_ = MatrixMultiply(this, Vector3D<float>::Empty);
 		return ret_.Z;
 	}
 
 	//float GetXRotation() const  { JMP_THIS(0x5AF3B0); }
-	float GetXRotation() { 
-		Vector3D<float> vec { 0.0f , 1.0f , 0.0f };
-		Vector3D<float> ret_;
-		MatrixMultiply(ret_, this, vec);
+	float GetXRotation() {
+		Vector3D<float> ret_ = MatrixMultiply(this, { 0.0f , 1.0f , 0.0f });
 		return (float)Math::atan2((double)ret_.Z , (double)ret_.Y);
 	}
 
 	//float GetYRotation() const  { JMP_THIS(0x5AF410); }
 	float GetYRotation() {
-		Vector3D<float> vec { 0.0f , 0.0f , 1.0f };
-		Vector3D<float> ret_;
-		MatrixMultiply(ret_, this, vec);
+		Vector3D<float> ret_ = MatrixMultiply(this, { 0.0f , 0.0f , 1.0f });
 		return (float)Math::atan2((double)ret_.X, (double)ret_.Z);
 	}
 
 	//float GetZRotation() const { JMP_THIS(0x5AF470); }
 	float GetZRotation()
 	{
-		Vector3D<float> vec { 1.0f , 0.0f , 0.0f};
-		Vector3D<float> ret_;
-		MatrixMultiply(ret_,this, vec);
+		Vector3D<float> ret_ = MatrixMultiply(this, { 1.0f , 0.0f , 0.0f });
 		return (float)Math::atan2((double)ret_.Y, (double)ret_.X);
 	}
 
 	Vector3D<float>* RotateVector(Vector3D<float>* ret, Vector3D<float>* rotate) const { JMP_THIS(0x5AF4D0); }
-	Vector3D<float>& RotateVector(const Vector3D<float>& rotate)
+	Vector3D<float> RotateVector(const Vector3D<float>& rotate)
 	{
-		Vector3D<float> buffer;
-		buffer.X = this->Row[0].Y * rotate.Y + this->Row[0].Z * rotate.Z + rotate.X * this->Row[0].X;
-		buffer.Y = this->Row[1].Y * rotate.Y + this->Row[1].X * rotate.X + this->Row[1].Z * rotate.Z;
-		buffer.Z = this->Row[2].Y * rotate.Y + this->Row[2].X * rotate.X + this->Row[2].Z * rotate.Z;
-		return buffer;
+		return  {
+			this->Row[0].Y* rotate.Y + this->Row[0].Z * rotate.Z + rotate.X * this->Row[0].X ,
+			this->Row[1].Y* rotate.Y + this->Row[1].X * rotate.X + this->Row[1].Z * rotate.Z ,
+			this->Row[2].Y* rotate.Y + this->Row[2].X * rotate.X + this->Row[2].Z * rotate.Z
+		};
 	}
 
 	void LookAt1(Vector3D<float>* p, Vector3D<float>* t, float roll) const { JMP_THIS(0x5AF550) };
@@ -891,7 +868,7 @@ public:
 	}
 
 	static Matrix3D* __fastcall MatrixMultiply(Matrix3D* ret, const Matrix3D* A, const Matrix3D* B) { JMP_STD(0x5AF980); }
-	static Matrix3D& MatrixMultiply(const Matrix3D& A, const Matrix3D& B)
+	static Matrix3D MatrixMultiply(const Matrix3D& A, const Matrix3D& B)
 	{
 		double a_row_00; // st7
 		double a_row_01; // st6
@@ -952,28 +929,32 @@ public:
 		return C;
 	}
 
-	static void MatrixMultiply(Vector3D<float>& result, const Matrix3D* mtx, const Vector3D<float>& vect)
+	static Vector3D<float>* __fastcall MatrixMultiply(Vector3D<float>* ret, const Matrix3D* mat, const Vector3D<float>* vec) { JMP_STD(0x5AFB80); }
+	static Vector3D<float> MatrixMultiply(const Matrix3D& mat, const Vector3D<float>& vect)
 	{
-		result.X = mtx->Row[0].Z * vect.Z + mtx->Row[0].Y * vect.Y + mtx->Row[0].X * vect.X + mtx->Row[0].W;
-		result.Y = mtx->Row[1].X * vect.X + mtx->Row[1].Z * vect.Z + mtx->Row[1].Y * vect.Y + mtx->Row[1].W;
-		result.Z = mtx->Row[2].X * vect.X + mtx->Row[2].Z * vect.Z + mtx->Row[2].Y * vect.Y + mtx->Row[2].W;
+		return {
+			mat.Row[0].Z * vect.Z + mat.Row[0].Y * vect.Y + mat.Row[0].X * vect.X + mat.Row[0].W ,
+			mat.Row[1].X * vect.X + mat.Row[1].Z * vect.Z + mat.Row[1].Y * vect.Y + mat.Row[1].W ,
+			mat.Row[2].X * vect.X + mat.Row[2].Z * vect.Z + mat.Row[2].Y * vect.Y + mat.Row[2].W
+		};
 	}
 
-	static Vector3D<float>* __fastcall MatrixMultiply(Vector3D<float>* ret, const Matrix3D* mat, const Vector3D<float>* vec) { JMP_STD(0x5AFB80); }
-	static Vector3D<float> MatrixMultiply(const Matrix3D& mat, const Vector3D<float>& vec)
+	static Vector3D<float> MatrixMultiply(Matrix3D* mtx, const Vector3D<float>& vect)
 	{
-		Vector3D<float> buffer;
-		MatrixMultiply(&buffer, &mat, &vec);
-		return buffer;
+		return {
+			mtx->Row[0].Z * vect.Z + mtx->Row[0].Y * vect.Y + mtx->Row[0].X * vect.X + mtx->Row[0].W ,
+			mtx->Row[1].X * vect.X + mtx->Row[1].Z * vect.Z + mtx->Row[1].Y * vect.Y + mtx->Row[1].W ,
+			mtx->Row[2].X * vect.X + mtx->Row[2].Z * vect.Z + mtx->Row[2].Y * vect.Y + mtx->Row[2].W
+		};
 	}
 
 	static Vector3D<float> InverseRotateVector(const Matrix3D &tm, const Vector3D<float> &in)
 	{
-		Vector3D<float> out;
-		out.X = (tm.row[0][0] * in.X + tm.row[1][0] * in.Y + tm.row[2][0] * in.Z);
-		out.Y = (tm.row[0][1] * in.X + tm.row[1][1] * in.Y + tm.row[2][1] * in.Z);
-		out.Z = (tm.row[0][2] * in.X + tm.row[1][2] * in.Y + tm.row[2][2] * in.Z);
-		return out;
+		return {
+			(tm.row[0][0] * in.X + tm.row[1][0] * in.Y + tm.row[2][0] * in.Z) ,
+			(tm.row[0][1] * in.X + tm.row[1][1] * in.Y + tm.row[2][1] * in.Z) ,
+			(tm.row[0][2] * in.X + tm.row[1][2] * in.Y + tm.row[2][2] * in.Z)
+		};
 	}
 
 	static Vector3D<float> InverseTransformVector(const Matrix3D &tm, const Vector3D<float> &in)
@@ -984,16 +965,16 @@ public:
 
 	static Vector3D<float> TransformVector(const Matrix3D &tm, const Vector3D<float> &in)
 	{
-		Vector3D<float> out;
-		out.X = (tm.row[0][0] * in.X + tm.row[0][1] * in.Y + tm.row[0][2] * in.Z + tm.row[0][3]);
-		out.Y = (tm.row[1][0] * in.X + tm.row[1][1] * in.Y + tm.row[1][2] * in.Z + tm.row[1][3]);
-		out.Z = (tm.row[2][0] * in.X + tm.row[2][1] * in.Y + tm.row[2][2] * in.Z + tm.row[2][3]);
-		return out;
+		return {
+			(tm.row[0][0] * in.X + tm.row[0][1] * in.Y + tm.row[0][2] * in.Z + tm.row[0][3]) ,
+			(tm.row[1][0] * in.X + tm.row[1][1] * in.Y + tm.row[1][2] * in.Z + tm.row[1][3]) ,
+			(tm.row[2][0] * in.X + tm.row[2][1] * in.Y + tm.row[2][2] * in.Z + tm.row[2][3])
+		};
 	}
 
 	static Quaternion* __fastcall FromMatrix(Quaternion* ret, Matrix3D* Mtx) { JMP_STD(0x00646730); }
 	// Idk : Otamaa
-	static Quaternion& FromMatrix(Matrix3D& Mtx)
+	static Quaternion FromMatrix(Matrix3D& Mtx)
 	{
 		Quaternion buffer;
 		FromMatrix(&buffer, &Mtx);

@@ -65,13 +65,13 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 
 	GET(TechnoClass*, pThis, ECX);
 
-	if (!pThis || !Is_Techno(pThis) || !pThis->IsAlive)
+	if (!pThis || !pThis->IsAlive)
 		return retDead;
 
 	//type may already change ,..
 	auto const pType = pThis->GetTechnoType();
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
-	const auto IsBuilding = Is_Building(pThis);
+	const auto IsBuilding = pThis->WhatAmI() == BuildingClass::AbsID;
 	bool IsInLimboDelivered = false;
 
 	if(IsBuilding) {
@@ -113,13 +113,13 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	pExt->UpdateEatPassengers();
 	pExt->UpdateGattlingOverloadDamage();
 	if(!pThis->IsAlive) {
-		pThis->AnnounceExpiredPointer();
 		return retDead;
 	}
 	//TODO : improve this to better handle delay anims !
 	//pExt->UpdateDelayFireAnim();
 
 	pExt->UpdateRevengeWeapons();
+	pExt->DepletedAmmoActions();
 
 	return Continue;
 }
@@ -286,6 +286,9 @@ DEFINE_HOOK(0x43FE69, BuildingClass_AI_Add, 0xA)
 DEFINE_HOOK(0x55AFB3, LogicClass_Update_Early, 0x6)
 {
 	SWStateMachine::UpdateAll();
+	for (auto pHouse : *HouseClass::Array) {
+		HouseExt::ExtMap.Find(pHouse)->UpdateAutoDeathObjects();
+	}
 	return 0x0;
 }
 

@@ -199,30 +199,29 @@ public:
 
 	static const RectangleStruct Intersect(const RectangleStruct &rect1, const RectangleStruct &rect2, int *x, int *y)
 	{
-		RectangleStruct rect{ 0, 0, 0, 0 };
 		RectangleStruct r = rect2;
 
 		if (r.X < rect1.X) {
 			r.Width -= rect1.X - r.X;
 			r.X = rect1.X;
 		}
-		if (r.Width < 1) return rect;
+		if (r.Width < 1) return { 0, 0, 0, 0 };
 
 		if (r.Y < rect1.Y) {
 			r.Height -= rect1.Y - r.Y;
 			r.Y = rect1.Y;
 		}
-		if (r.Height < 1) return rect;
+		if (r.Height < 1) return { 0, 0, 0, 0 };
 
 		if (r.X + r.Width > rect1.X + rect1.Width) {
 			r.Width = rect1.X + rect1.Width - r.X;
 		}
-		if (r.Width < 1) return rect;
+		if (r.Width < 1) return { 0, 0, 0, 0 };
 
 		if (r.Y + r.Height > rect1.Y + rect1.Height) {
 			r.Height = rect1.Y + rect1.Height - r.Y;
 		}
-		if (r.Height < 1) return rect;
+		if (r.Height < 1) return { 0, 0, 0, 0 };
 
 		if (x != nullptr) {
 			*x -= (r.X - rect2.X);
@@ -233,7 +232,6 @@ public:
 
 		return r;
 	}
-
 
 	int X, Y, Width, Height;
 

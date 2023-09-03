@@ -31,12 +31,12 @@ public:
 
 		virtual ~ExtData() override = default;
 
-		void InvalidatePointer(void* ptr, bool bRemoved);
-		static bool InvalidateIgnorable(void* ptr) {
-			switch (GetVtableAddr(ptr))
+		void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
+		static bool InvalidateIgnorable(AbstractClass* ptr) {
+			switch (ptr->WhatAmI())
 			{
-			case AnimClass::vtable:
-			case LightSourceClass::vtable:
+			case AnimClass::AbsID:
+			case LightSourceClass::AbsID:
 				return false;
 			}
 

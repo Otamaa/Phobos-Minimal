@@ -16,6 +16,10 @@ struct ExtraFireData
 		ValueableVector<CoordStruct> WeaponXFLH { };
 		NullableVector<CoordStruct> EliteWeaponXFLH { };
 
+		FLHData* AsPointer() const{
+			return const_cast<FLHData*>(this);
+		}
+
 		template <typename T>
 		void Serialize(T& Stm)
 		{

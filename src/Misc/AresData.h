@@ -136,12 +136,17 @@ class cPrismForwarding
 #define Is_Passable(techno) (*(bool*)((char*)GetAresBuildingTypeExt(techno) + 0x5E))
 //#define TunnelIdx(var) (*(int*)(((char*)GetAresBuildingTypeExt(var)) + 0x244))
 #define Is_Academy(var) (*(bool*)((char*)GetAresBuildingTypeExt(var) + 0x138))
+#define ShowMoneyAmount(var) (*(bool*)((char*)GetAresBuildingTypeExt(var) + 0x22E))
 //
 //#define OwnerBeforeRaid(var) (*(HouseClass**)(((char*)GetAresBuildingExt(var)) + 0x8))
 #define FreeUnitDone(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0xC))
 #define Ares_AboutToChronoshift(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0xD))
 #define Is_FromSW(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0xE))
-#define ToggalePowerHasPower(var) (*(bool*)(((char*)GetAresBuildingExt(var)) +0x51))
+#define ToggalePowerHasPower(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0x51))
+#define ProduceCashTimers1(var) (*(CDTimerClass*)((char*)GetAresBuildingExt(var) + 0x54))
+#define ProduceCashTimers2(var) (*(CDTimerClass*)((char*)GetAresBuildingExt(var) + 0x60))
+#define ProduceCashTimers3(var) (*(CDTimerClass*)((char*)GetAresBuildingExt(var) + 0x6C))
+
 //
 #define GetSelfHealingDleayAmount(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x4A8))
 #define GetNoSpawnAlt(var) (*(VoxelStruct**)(((char*)GetAresTechnoTypeExt(var)) + 0x1E0))
@@ -268,6 +273,8 @@ struct AresData
 
 	static void AresNetEvent_Handlers_RespondToFirewallToggle(HouseClass* pFor, bool Activate);
 	static WeaponStruct* GetWeapon(TechnoTypeClass* pType, int idx, bool Elite);
+
+	static void SetFactoryPlans(BuildingClass* pBld);
 };
 
 namespace AresMemory

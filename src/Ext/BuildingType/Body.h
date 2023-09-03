@@ -381,8 +381,8 @@ public:
 
 	static void DisplayPlacementPreview();
 	static Point2D* GetOccupyMuzzleFlash(BuildingClass* pThis, int nOccupyIdx);
-	static int CheckBuildLimit(HouseClass const* pHouse, BuildingTypeClass const* pItem, bool includeQueued);
-	static int BuildLimitRemaining(HouseClass const* pHouse, BuildingTypeClass const* pItem);
+	static int CheckBuildLimit(HouseClass* pHouse, BuildingTypeClass* pItem, bool includeQueued);
+	static int BuildLimitRemaining(HouseClass* pHouse, BuildingTypeClass* pItem);
 	static int GetBuildingAnimTypeIndex(BuildingClass* pThis, const BuildingAnimSlot& nSlot, const char* pDefault);
 
 	static bool __fastcall IsFactory(BuildingClass* pThis, void* _);

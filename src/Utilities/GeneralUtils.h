@@ -11,6 +11,7 @@
 
 #include <Utilities/Debug.h>
 #include <Utilities/Constructs.h>
+#include <Utilities/Iterator.h>
 
 #include <string.h>
 #include <iterator>
@@ -390,6 +391,8 @@ public:
 
 #pragma region Otamaa
 	static const int GetAnimIndexFromFacing(FootClass* pFoot, int nVectorSize);
+	static const int GetAnimIndexFromFacing(TechnoClass* pFirer, int nVectorSize);
+	static AnimTypeClass* GetAnimFacingFromVector(TechnoClass* pFirer, const Iterator<AnimTypeClass*> iter);
 
 	static const int ScaleF2I(float value, int scale)
 	{

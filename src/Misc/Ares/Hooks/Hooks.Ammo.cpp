@@ -36,7 +36,7 @@ void DecreaseAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapon)
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
 	if (GetAmmo(pThis, pWeapon) > 0) {
-		if (!Is_Aircraft(pThis)) {
+		if (pThis->WhatAmI() != AircraftClass::AbsID) {
 			if (pTypeExt->NoAmmoWeapon > -1 && pTypeExt->NoAmmoEffectAnim) {
 				const auto pCurWeapon = pThis->GetWeapon(pTypeExt->NoAmmoWeapon);
 				if (pThis->Ammo <= pTypeExt->NoAmmoAmount && pCurWeapon->WeaponType != pWeapon) {
@@ -48,7 +48,7 @@ void DecreaseAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapon)
 			}
 		}
 
-		if (Is_Building(pThis)) {
+		if (pThis->WhatAmI() == BuildingClass::AbsID) {
 			const auto Ammo = reinterpret_cast<BuildingClass*>(pThis)->Type->Ammo;
 			if (Ammo > 0 && pThis->Ammo < Ammo)
 				pThis->StartReloading();

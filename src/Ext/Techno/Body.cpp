@@ -960,12 +960,12 @@ bool TechnoExt::IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker)
 		return false;
 	}
 
-	auto const pWhatVictim = GetVtableAddr(pVictim);
+	auto const pWhatVictim = pVictim->WhatAmI();
 	auto const pVictimType = pVictim->GetTechnoType();
 
 	if (pAttackerType->OmniCrusher)
 	{
-		if (pWhatVictim == BuildingClass::vtable || pVictimType->OmniCrushResistant)
+		if (pWhatVictim == BuildingClass::AbsID || pVictimType->OmniCrushResistant)
 			return false;
 	}
 	else
@@ -976,7 +976,7 @@ bool TechnoExt::IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker)
 
 	auto const pVictimTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pVictimType);
 
-	if (pWhatVictim == InfantryClass::vtable)
+	if (pWhatVictim == InfantryClass::AbsID)
 	{
 		const auto& crushableLevel = static_cast<InfantryClass*>(pVictim)->IsDeployed() ?
 			pVictimTechnoTypeExt->DeployCrushableLevel :
@@ -1013,7 +1013,7 @@ AreaFireReturnFlag TechnoExt::ApplyAreaFire(TechnoClass* pThis, CellClass*& pTar
 	{
 	case AreaFireTarget::Random:
 	{
-		std::vector<CellStruct> adjacentCells;
+		std::vector<CellStruct> adjacentCells {};
 		GeneralUtils::AdjacentCellsInRange(adjacentCells, static_cast<size_t>(pWeapon->Range.ToDouble() + 0.99));
 		size_t const size = adjacentCells.size();
 
@@ -1105,7 +1105,7 @@ std::pair<TechnoClass*, CellClass*> TechnoExt::GetTargets(ObjectClass* pObjTarge
 	CellClass* targetCell = nullptr;
 
 	//pTarget nullptr check already done above this hook
-	if (Is_Cell(pTarget))
+	if (pTarget && pTarget->WhatAmI() == CellClass::AbsID)
 	{
 		return { nullptr , targetCell = static_cast<CellClass*>(pTarget) };
 	}
@@ -1206,7 +1206,7 @@ bool TechnoExt::InterceptorAllowFiring(TechnoClass* pThis, ObjectClass* pTarget)
 
 	if (pTechnoExt->IsInterceptor() && pTechnoTypeExt->Interceptor_OnlyTargetBullet.Get())
 	{
-		if (!pTarget || !Is_Bullet(pTarget))
+		if (!pTarget || pTarget->WhatAmI() == BulletClass::AbsID)
 		{
 			return false;
 		}
@@ -1519,7 +1519,7 @@ bool TechnoExt::AllowedTargetByZone(TechnoClass* pThis, ObjectClass* pTarget, co
 	if (!pThis || !pTarget)
 		return false;
 
-	if (Is_Aircraft(pThis))
+	if (pThis->WhatAmI() == AircraftClass::AbsID)
 		return true;
 
 	const auto pThisType = pThis->GetTechnoType();
@@ -1892,7 +1892,7 @@ CoordStruct TechnoExt::PassengerKickOutLocation(TechnoClass* pThis, FootClass* p
 	SpeedType speedType = SpeedType::Track;
 	MovementZone movementZone = MovementZone::Normal;
 
-	if (!Is_AircraftType(pTypePassenger))
+	if (pPassenger->WhatAmI() != AircraftClass::AbsID)
 	{
 		speedType = pTypePassenger->SpeedType;
 		movementZone = pTypePassenger->MovementZone;
@@ -2123,7 +2123,7 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 	if (frameIndex != -1 && pShapeFile)
 	{
 		offset.X += (5 + drawOffs.X);
-		offset.Y += (!Is_Infantry(pThis) ? 4 : 2 + drawOffs.Y);
+		offset.Y += (pThis->WhatAmI() != InfantryClass::AbsID ? 4 : 2 + drawOffs.Y);
 
 		DSurface::Temp->DrawSHP(
 			FileSystem::PALETTE_PAL, pShapeFile, frameIndex, &offset, pBounds, BlitterFlags(0xE00),
@@ -2275,7 +2275,7 @@ bool TechnoExt::IsActive(TechnoClass* pThis, bool bCheckEMP, bool bCheckDeactiva
 
 bool TechnoExt::IsAlive(TechnoClass* pThis, bool bIgnoreLimbo, bool bIgnoreIsOnMap, bool bIgnoreAbsorb)
 {
-	if (!pThis)
+	if (!pThis || !pThis->IsAlive || pThis->Health <= 0)
 		return false;
 
 	if ((IsOnLimbo(pThis, !bIgnoreLimbo)) || (pThis->Absorbed && !bIgnoreAbsorb) || (!pThis->IsOnMap && !bIgnoreIsOnMap))
@@ -2284,10 +2284,10 @@ bool TechnoExt::IsAlive(TechnoClass* pThis, bool bIgnoreLimbo, bool bIgnoreIsOnM
 	if (pThis->IsCrashing || pThis->IsSinking)
 		return false;
 
-	if (Is_Unit(pThis))
+	if (pThis->WhatAmI() == UnitClass::AbsID)
 		return (static_cast<UnitClass*>(pThis)->DeathFrameCounter > 0) ? false : true;
 
-	return pThis->IsAlive && pThis->Health > 0;
+	return true;
 }
 
 void TechnoExt::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
@@ -2378,14 +2378,13 @@ void TechnoExt::ExtData::UpdateInterceptor()
 	if (!this->IsInterceptor() || pThis->Target)
 		return;
 
-	if ((Is_Aircraft(pThis) && !pThis->IsInAir()))
+	if (pThis->WhatAmI() == AircraftClass::AbsID && !pThis->IsInAir())
 		return;
 
 	if (auto const pTransport = pThis->Transporter)
 	{
-		if (Is_Aircraft(pTransport))
-			if (!pTransport->IsInAir())
-				return;
+		if (pTransport->WhatAmI() == AircraftClass::AbsID && !pTransport->IsInAir())
+			return;
 
 		if (TechnoExt::IsInWarfactory(pTransport))
 			return;
@@ -2492,7 +2491,7 @@ bool TechnoExt::IsHarvesting(TechnoClass* pThis)
 	if (slave && slave->State != SlaveManagerStatus::Ready)
 		return true;
 
-	if (Is_Building(pThis) && pThis->IsPowerOnline())
+	if (pThis->WhatAmI() == AbstractType::Building && pThis->IsPowerOnline())
 		return true;
 
 	const auto mission = pThis->GetCurrentMission();
@@ -2521,7 +2520,7 @@ void TechnoExt::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 	const auto pType = pThis->GetTechnoType();
 
-	if (Is_Building(pThis) || pType->Invisible)
+	if (pThis->WhatAmI() == AbstractType::Building || pType->Invisible)
 		return;
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
@@ -2576,12 +2575,7 @@ CoordStruct TechnoExt::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordStruc
 	// Steps 2-3: turret offset and rotation
 	if (isOnTurret && pThis->HasTurret())
 	{
-		const auto& nOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset.Get();
-		float x = static_cast<float>(nOffs.X * 1.0);
-		float y = static_cast<float>(nOffs.Y * 1.0);
-		float z = static_cast<float>(nOffs.Z * 1.0);
-		mtx.Translate(x, y, z);
-
+		TechnoTypeExt::ExtMap.Find(pType)->ApplyTurretOffset(&mtx, 1.0);
 		double turretRad = (pThis->TurretFacing().GetFacing<32>() - 8) * -(Math::Pi / 16);
 		double bodyRad = (pThis->PrimaryFacing.Current().GetFacing<32>() - 8) * -(Math::Pi / 16);
 		float angle = static_cast<float>(turretRad - bodyRad);
@@ -2591,8 +2585,7 @@ CoordStruct TechnoExt::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordStruc
 	// Step 4: apply FLH offset
 	mtx.Translate(static_cast<float>(pCoord.X), static_cast<float>(pCoord.Y), static_cast<float>(pCoord.Z));
 
-	Vector3D<float> result {};
-	Matrix3D::MatrixMultiply(result, &mtx, Vector3D<float>::Empty);
+	Vector3D<float> result = Matrix3D::MatrixMultiply(mtx, Vector3D<float>::Empty);
 	// Resulting coords are mirrored along X axis, so we mirror it back
 	result.Y *= -1;
 
@@ -2797,6 +2790,7 @@ void TechnoExt::ExtData::UpdateEatPassengers()
 
 
 					pPassenger->RegisterDestruction(pDelType->DontScore ? nullptr : pThis);
+					Debug::Log(__FUNCTION__" Called \n");
 					TechnoExt::HandleRemove(pPassenger, pDelType->DontScore ? nullptr : pThis, false, false);
 				}
 
@@ -2833,6 +2827,10 @@ bool NOINLINE TechnoExt::CanFireNoAmmoWeapon(TechnoClass* pThis, int weaponIndex
 
 #include <AircraftTrackerClass.h>
 
+void NOINLINE DeleteTechnoPtr(TechnoClass* pThis) {
+	GameDelete<true, false>(pThis);
+}
+
 void TechnoExt::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool SkipTrackingRemove, bool Delete)
 {
 	// kill passenger cargo to prevent memleak
@@ -2840,11 +2838,14 @@ void TechnoExt::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool Skip
 
 	const auto pThisType = pThis->GetTechnoType();
 	const auto nWhat = pThis->WhatAmI();
+	Debug::Log(__FUNCTION__" Called For[%s - %x][%s - %x]\n", pThisType->ID, pThis, pThis->Owner ? pThis->Owner->get_ID() : GameStrings::NoneStr(), pThis->Owner);
 
 	if (nWhat == BuildingClass::AbsID)
 	{
 		static_cast<BuildingClass*>(pThis)->KillOccupants(nullptr);
 	} else {
+
+		((FootClass*)pThis)->LiberateMember();
 
 		const auto flight = pThis->GetLastFlightMapCoords();
 		if(flight.IsValid())
@@ -2855,31 +2856,22 @@ void TechnoExt::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool Skip
 	{
 		if (const auto pOwner = pThis->GetOwningHouse())
 		{
-			if (!pThisType && !pThisType->DontScore && !pThis->InLimbo)
+			if (!pThisType->DontScore && !pThisType->Insignificant)
 			{
 				pOwner->RegisterLoss(pThis, false);
 				pOwner->RemoveTracking(pThis);
 
 				if (!pOwner->RecheckTechTree)
 					pOwner->RecheckTechTree = true;
-
 			}
-
-			HouseExt::ExtMap.Find(pOwner)->RemoveFromLimboTracking(pThisType);
 		}
 	}
 
-	if (auto const pFoot = generic_cast<FootClass*>(pThis))
-		pFoot->LiberateMember();
-
-	//pThis->RemoveFromTargetingAndTeam();
 
 	if (Delete)
 		GameDelete<true, false>(pThis);
 	else
-	{
 		pThis->UnInit();
-	}
 }
 
 void TechnoExt::KillSelf(TechnoClass* pThis, bool isPeaceful)
@@ -2894,6 +2886,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, bool isPeaceful)
 			pThis->Limbo();
 		}
 
+		Debug::Log(__FUNCTION__" Called \n");
 		TechnoExt::HandleRemove(pThis, nullptr, SkipRemoveTracking, false);
 	}
 	else
@@ -2936,7 +2929,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 		// this shit is not really good idea to pull off
 		// some stuffs doesnt really handled properly , wtf
 
-		if (pVanishAnim && !pThis->InLimbo)
+		if (pVanishAnim && !pThis->InLimbo && (pThis->Location.IsValid() && pThis->InlineMapCoords().IsValid()))
 		{
 			if (auto const pAnim = GameCreate<AnimClass>(pVanishAnim, pThis->GetCoords()))
 			{
@@ -2955,6 +2948,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 		if (RegisterKill)
 			pThis->RegisterKill(pThis->Owner);
 
+		Debug::Log(__FUNCTION__" Called \n");
 		TechnoExt::HandleRemove(pThis, nullptr, skiptrackingremove, false);
 
 	}break;
@@ -3023,15 +3017,33 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 		}
 	}
 
+	//if (pTypeExt->Death_IfChangeOwnership) {
+	//	if (pThis->GetOriginalOwner() != pThis->Owner)
+	//	{
+	//		TechnoExt::KillSelf(pThis, nMethod, pVanishAnim);
+	//		return !pThis->IsAlive;
+	//	}
+	//}
+
 	const auto existTechnoTypes = [pThis](const ValueableVector<TechnoTypeClass*>& vTypes, AffectedHouse affectedHouse, bool any, bool allowLimbo)
 	{
 		const auto existSingleType = [pThis, affectedHouse, allowLimbo](TechnoTypeClass* pType)
 		{
 			for (HouseClass* pHouse : *HouseClass::Array)
 			{
-				if (EnumFunctions::CanTargetHouse(affectedHouse, pThis->Owner, pHouse)
-					&& (allowLimbo ? HouseExt::ExtMap.Find(pHouse)->CountOwnedPresentAndLimboed(pType) > 0 : pHouse->CountOwnedAndPresent(pType) > 0))
-					return true;
+				if (EnumFunctions::CanTargetHouse(affectedHouse, pThis->Owner, pHouse))
+				{
+					if(allowLimbo) {
+						if (const auto It = make_iterator(HouseExt::ExtMap.Find(pHouse)->LimboTechno)) {
+							for (const auto limbo : It) {
+								if (limbo->GetTechnoType() == pType)
+									return true;
+							}
+						}
+					}
+
+					return  pHouse->CountOwnedAndPresent(pType) > 0;
+				}
 			}
 
 			return false;
@@ -3218,11 +3230,11 @@ void TechnoExt::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rectang
 	if (nSelfHealType.isset() && nSelfHealType.Get() == SelfHealGainType::None)
 		return;
 
-	auto const pWhat = GetVtableAddr(pThis);
+	auto const pWhat = pThis->WhatAmI();
 	const bool hasInfantrySelfHeal = nSelfHealType.isset() && nSelfHealType.Get() == SelfHealGainType::Infantry;
 	const bool hasUnitSelfHeal = nSelfHealType.isset() && nSelfHealType.Get() == SelfHealGainType::Units;
-	const bool isOrganic = pWhat == InfantryClass::vtable
-		|| (pThis->GetTechnoType()->Organic && (pWhat == UnitClass::vtable));
+	const bool isOrganic = pWhat == InfantryClass::AbsID
+		|| (pThis->GetTechnoType()->Organic && (pWhat == UnitClass::AbsID));
 
 	if (pThis->Owner->InfantrySelfHeal > 0 && (hasInfantrySelfHeal || isOrganic))
 	{
@@ -3231,7 +3243,7 @@ void TechnoExt::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rectang
 		isInfantryHeal = true;
 	}
 	else if (pThis->Owner->UnitsSelfHeal > 0
-		&& (hasUnitSelfHeal || (pWhat == UnitClass::vtable && !isOrganic)))
+		&& (hasUnitSelfHeal || (pWhat == UnitClass::AbsID && !isOrganic)))
 	{
 		drawPip = true;
 		selfHealFrames = RulesClass::Instance->SelfHealUnitFrames;
@@ -3254,8 +3266,8 @@ void TechnoExt::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rectang
 
 		switch (pWhat)
 		{
-		case UnitClass::vtable:
-		case AircraftClass::vtable:
+		case UnitClass::AbsID:
+		case AircraftClass::AbsID:
 		{
 			const auto& offset = RulesExt::Global()->Pips_SelfHeal_Units_Offset.Get();
 			pipFrames = RulesExt::Global()->Pips_SelfHeal_Units.Get();
@@ -3263,7 +3275,7 @@ void TechnoExt::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rectang
 			yOffset = offset.Y + nBracket;
 		}
 		break;
-		case InfantryClass::vtable:
+		case InfantryClass::AbsID:
 		{
 			const auto& offset = RulesExt::Global()->Pips_SelfHeal_Infantry_Offset.Get();
 			pipFrames = RulesExt::Global()->Pips_SelfHeal_Infantry.Get();
@@ -3271,7 +3283,7 @@ void TechnoExt::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rectang
 			yOffset = offset.Y + nBracket;
 		}
 		break;
-		case BuildingClass::vtable:
+		case BuildingClass::AbsID:
 		{
 			const auto pType = static_cast<BuildingTypeClass*>(pThis->GetTechnoType());
 			int fHeight = pType->GetFoundationHeight(false);
@@ -3306,13 +3318,7 @@ void TechnoExt::TransformFLHForTurret(TechnoClass* pThis, Matrix3D& mtx, bool is
 	// turret offset and rotation
 	if (isOnTurret && pThis->HasTurret())
 	{
-		const auto& nOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset.Get();
-		float x = static_cast<float>(nOffs.X * TechnoTypeExt::TurretMultiOffsetDefaultMult);
-		float y = static_cast<float>(nOffs.Y * TechnoTypeExt::TurretMultiOffsetDefaultMult);
-		float z = static_cast<float>(nOffs.Z * TechnoTypeExt::TurretMultiOffsetDefaultMult);
-
-		mtx.Translate(x, y, z);
-
+		TechnoTypeExt::ExtMap.Find(pType)->ApplyTurretOffset(&mtx, TechnoTypeExt::TurretMultiOffsetDefaultMult);
 		double turretRad = (pThis->TurretFacing().GetFacing<32>() - 8) * -(Math::Pi / 16);
 		double bodyRad = (pThis->PrimaryFacing.Current().GetFacing<32>() - 8) * -(Math::Pi / 16);
 		float angle = (float)(turretRad - bodyRad);
@@ -3392,15 +3398,15 @@ double TechnoExt::GetCurrentSpeedMultiplier(FootClass* pThis)
 {
 	double houseMultiplier = 1.0;
 
-	switch (GetVtableAddr(pThis))
+	switch (pThis->WhatAmI())
 	{
-	case AircraftClass::vtable:
+	case AircraftClass::AbsID:
 		houseMultiplier = pThis->Owner->Type->SpeedAircraftMult;
 		break;
-	case InfantryClass::vtable:
+	case InfantryClass::AbsID:
 		houseMultiplier = pThis->Owner->Type->SpeedInfantryMult;
 		break;
-	case UnitClass::vtable:
+	case UnitClass::AbsID:
 		houseMultiplier = pThis->Owner->Type->SpeedUnitsMult;
 		break;
 	}
@@ -3540,7 +3546,7 @@ std::pair<WeaponTypeClass*, int> TechnoExt::GetDeployFireWeapon(TechnoClass* pTh
 	auto const pType = pThis->GetTechnoType();
 	int weaponIndex = pType->DeployFireWeapon;
 
-	if (Is_Unit(pThis))
+	if (pThis->WhatAmI() == UnitClass::AbsID)
 	{
 		if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType))
 		{
@@ -3653,7 +3659,7 @@ void TechnoExt::ExtData::UpdateBuildingLightning()
 {
 	auto const pThis = this->Get();
 
-	if (!Is_Building(pThis))
+	if (pThis->WhatAmI() != AbstractType::Building)
 		return;
 
 	auto pBldExt = BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis));
@@ -3819,6 +3825,28 @@ void TechnoExt::ExtData::UpdateAircraftOpentopped()
 	}
 }
 
+void TechnoExt::ExtData::DepletedAmmoActions()
+{
+	auto const pThis = this->OwnerObject();
+	auto const pType = pThis->GetTechnoType();
+	if ((pThis->WhatAmI() != AbstractType::Unit) || (pType->Ammo <= 0))
+		return;
+
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(Type);
+	auto const pUnit = abstract_cast<UnitClass*>(pThis);
+
+	if (!pUnit->Type->IsSimpleDeployer)
+		return;
+
+	const bool skipMinimum = pTypeExt->Ammo_AutoDeployMinimumAmount < 0;
+	const bool moreThanMinimum = pThis->Ammo >= pTypeExt->Ammo_AutoDeployMinimumAmount;
+	const bool skipMaximum = pTypeExt->Ammo_AutoDeployMaximumAmount < 0;
+	const bool lessThanMaximum = pThis->Ammo <= pTypeExt->Ammo_AutoDeployMaximumAmount;
+
+	if ((skipMinimum || moreThanMinimum) && (skipMaximum || lessThanMaximum))
+		pThis->QueueMission(Mission::Unload, true);
+}
+
 void TechnoExt::ExtData::UpdateLaserTrails()
 {
 	auto const pThis = this->Get();
@@ -3834,7 +3862,7 @@ void TechnoExt::ExtData::UpdateLaserTrails()
 		if (!IsInTunnel)
 			trail.Visible = true;
 
-		if (Is_Aircraft(pThis) && !pThis->IsInAir() && trail.LastLocation.isset())
+		if (pThis->WhatAmI() == AircraftClass::AbsID && !pThis->IsInAir() && trail.LastLocation.isset())
 			trail.LastLocation.clear();
 
 		CoordStruct trailLoc = TechnoExt::GetFLHAbsoluteCoords(pThis, trail.FLH, trail.IsOnTurret);
@@ -3913,7 +3941,7 @@ void TechnoExt::ExtData::UpdateGattlingOverloadDamage()
 				}
 			}
 
-			if (Is_Unit(pThis) && pThis->IsAlive && pThis->IsVoxel())
+			if (pThis->WhatAmI() == UnitClass::AbsID && pThis->IsAlive && pThis->IsVoxel())
 			{
 				double const nBase = ScenarioClass::Instance->Random.RandomBool() ? 0.015 : 0.029999999;
 				double const nCopied_base = (ScenarioClass::Instance->Random.RandomFromMax(100) < 50) ? -nBase : nBase;
@@ -4024,7 +4052,7 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno,
 
 bool TechnoExt::IsInWarfactory(TechnoClass* pThis, bool bCheckNaval)
 {
-	if (!Is_Unit(pThis) || pThis->IsInAir())
+	if (pThis->WhatAmI() == UnitClass::AbsID || pThis->IsInAir())
 		return false;
 
 	//if (pThis->IsTethered)
@@ -4407,6 +4435,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->Convert_Deploy_Delay)
 		.Process(this->DoingUnloadFire)
 		.Process(this->CreatedFromAction)
+		.Process(this->WHAnimRemainingCreationInterval)
 #ifdef ENABLE_HOMING_MISSILE
 		.Process(this->MissileTargetTracker)
 #endif
@@ -4421,25 +4450,25 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 
 }
 
-bool TechnoExt::ExtData::InvalidateIgnorable(void* ptr)
+bool TechnoExt::ExtData::InvalidateIgnorable(AbstractClass* ptr)
 {
-	switch (GetVtableAddr(ptr))
+	switch (ptr->WhatAmI())
 	{
-	case AnimClass::vtable:
-	case HouseClass::vtable:
-	case BuildingClass::vtable:
-	case AircraftClass::vtable:
-	case UnitClass::vtable:
-	case InfantryClass::vtable:
-	case TemporalClass::vtable:
-	case SuperClass::vtable:
+	case AnimClass::AbsID:
+	case HouseClass::AbsID:
+	case BuildingClass::AbsID:
+	case AircraftClass::AbsID:
+	case UnitClass::AbsID:
+	case InfantryClass::AbsID:
+	case TemporalClass::AbsID:
+	case SuperClass::AbsID:
 		return false;
 	}
 
 	return true;
 }
 
-void TechnoExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
+void TechnoExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	if (auto& pShield = this->Shield)
 		pShield->InvalidatePointer(ptr, bRemoved);
@@ -4467,11 +4496,11 @@ DEFINE_HOOK(0x6F3260, TechnoClass_CTOR, 0x5)
 	GET(TechnoClass*, pItem, ESI);
 	TechnoExt::ExtMap.Allocate(pItem);
 
-	if (pItem->Owner) {
-		if (auto pHouse = HouseExt::ExtMap.Find(pItem->Owner)) {
-			pHouse->OwnedTechno.push_back(pItem);
-		}
-	}
+	//if (pItem->Owner) {
+	//	if (auto pHouse = HouseExt::ExtMap.Find(pItem->Owner)) {
+	//		pHouse->OwnedTechno.push_back(pItem);
+	//	}
+	//}
 
 	return 0;
 }
@@ -4507,7 +4536,7 @@ DEFINE_HOOK(0x70C264, TechnoClass_Save_Suffix, 0x5)
 DEFINE_HOOK(0x70783B, TechnoClass_Detach, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
-	GET(void*, target, EBP);
+	GET(AbstractClass*, target, EBP);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
 	//if (!Is_Techno(pThis))

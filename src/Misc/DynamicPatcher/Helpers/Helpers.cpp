@@ -57,7 +57,7 @@ void Helpers_DP::DrawBulletEffect(WeaponTypeClass* pWeapon, CoordStruct& sourceP
 		laserType.InnerColor = pWeapon->LaserInnerColor;
 		laserType.OuterColor = pWeapon->LaserOuterColor;
 		laserType.OuterSpread = pWeapon->LaserOuterSpread;
-		laserType.IsHouseColor = pWeapon->IsHouseColor; // house color will be 
+		laserType.IsHouseColor = pWeapon->IsHouseColor; // house color will be
 		laserType.Duration = pWeapon->LaserDuration;
 		/*
 		WeaponTypeExt ext = WeaponTypeExt.ExtMap.Find(pWeapon);
@@ -441,7 +441,7 @@ CoordStruct Helpers_DP::GetFLHAbsoluteCoords(TechnoClass* pTechno, const CoordSt
 	CoordStruct sourceOffset = turretOffset;
 	CoordStruct tempFLH = flh;
 
-	if (nextFrame && !Is_Building(pTechno))
+	if (nextFrame && pTechno->WhatAmI() != BuildingClass::AbsID)
 	{
 		if (FootClass* pFoot = (FootClass*)pTechno)
 		{
@@ -456,7 +456,7 @@ CoordStruct Helpers_DP::GetFLHAbsoluteCoords(TechnoClass* pTechno, const CoordSt
 	}
 	else
 	{
-		if (Is_Building(pTechno))
+		if (pTechno->WhatAmI() == BuildingClass::AbsID)
 		{
 			tempFLH.Z += Unsorted::LevelHeight;
 		}
@@ -479,8 +479,7 @@ CoordStruct Helpers_DP::GetFLHAbsoluteCoords(TechnoClass* pTechno, const CoordSt
 Vector3D<float> Helpers_DP::GetFLHOffset(Matrix3D& matrix3D, CoordStruct& flh)
 {
 	matrix3D.Translate(static_cast<float>(flh.X), static_cast<float>(flh.Y), static_cast<float>(flh.Z));
-	Vector3D<float> result;
-	Matrix3D::MatrixMultiply(result, &matrix3D, Vector3D<float>::Empty);
+	Vector3D<float> result = Matrix3D::MatrixMultiply(matrix3D, Vector3D<float>::Empty);
 	result.Y *= -1;
 	return result;
 }
@@ -493,7 +492,7 @@ void Helpers_DP::RotateMatrix3D(Matrix3D& matrix3D, TechnoClass* pTechno, bool i
 		{
 			DirStruct turretDir = nextFrame ? pTechno->SecondaryFacing.Next() : pTechno->SecondaryFacing.Current();
 
-			if (Is_Building(pTechno))
+			if (pTechno->WhatAmI() == BuildingClass::AbsID)
 			{
 				double turretRad = turretDir.GetRadian();
 				matrix3D.RotateZ(static_cast<float>(turretRad));
@@ -585,13 +584,13 @@ CoordStruct Helpers_DP::GetFLHAbsoluteCoords(ObjectClass* pObject, CoordStruct& 
 	else
 	{
 
-		switch (GetVtableAddr(pObject))
+		switch (pObject->WhatAmI())
 		{
-		case BulletClass::vtable:
+		case BulletClass::AbsID:
 			return GetFLHAbsoluteCoords(static_cast<BulletClass*>(pObject), flh, isOnTurret, flipY);
-		case AnimClass::vtable:
+		case AnimClass::AbsID:
 			return  GetFLHAbsoluteCoords(static_cast<AnimClass*>(pObject), flh, isOnTurret, flipY);
-		case VoxelAnimClass::vtable:
+		case VoxelAnimClass::AbsID:
 			return  GetFLHAbsoluteCoords(static_cast<VoxelAnimClass*>(pObject), flh, isOnTurret, flipY);
 		}
 
@@ -623,7 +622,7 @@ LocationMark Helpers_DP::GetRelativeLocation(ObjectClass* pOwner, OffsetData dat
 		}
 		else
 		{
-			if (Is_Bullet(pOwner))
+			if (pOwner->WhatAmI() == BulletClass::AbsID)
 			{
 				auto pBullet = static_cast<BulletClass*>(pOwner);
 				// 增加抛射体偏移值取下一帧所在实际位置
@@ -653,19 +652,19 @@ std::optional<DirStruct> Helpers_DP::GetRelativeDir(ObjectClass* pOwner, int dir
 			return Helpers_DP::GetDirectionRelative(static_cast<TechnoClass*>(pOwner),dir,isOnTurret);
 		}
 
-		switch (GetVtableAddr(pOwner))
+		switch (pOwner->WhatAmI())
 		{
-		case AnimClass::vtable:
-		{
-			//TODO
-			break;
-		}
-		case VoxelAnimClass::vtable:
+		case AnimClass::AbsID:
 		{
 			//TODO
 			break;
 		}
-		case BulletClass::vtable:
+		case VoxelAnimClass::AbsID:
+		{
+			//TODO
+			break;
+		}
+		case BulletClass::AbsID:
 		{
 			// 增加抛射体偏移值取下一帧所在实际位置
 			CoordStruct sourcePos = pOwner->Location;
@@ -696,7 +695,7 @@ DirStruct Helpers_DP::GetDirectionRelative(TechnoClass* pMaster, int dir, bool i
 			sourceDir = pLoco->Facing.Current();
 		}
 
-		if (isOnTurret || Is_Aircraft(pFoot))
+		if (isOnTurret || pFoot->WhatAmI() == AircraftClass::AbsID)
 		{
 			sourceDir = pMaster->GetRealFacing();
 		}
@@ -826,7 +825,7 @@ CoordStruct Helpers_DP::GetInaccurateOffset(float scatterMin, float scatterMax)
 		min = max;
 		max = temp;
 	}
-	
+
 	return Helpers_DP::RandomOffset(min, max);
 }
 
@@ -918,7 +917,7 @@ TechnoClass* Helpers_DP::CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* 
 				--Unsorted::ScenarioInit;
 			} else {
 
-				if (Is_BuildingType(pType)) {
+				if (pType->WhatAmI() == BuildingTypeClass::AbsID) {
 					if (!pCell->CanThisExistHere(pType->SpeedType, static_cast<BuildingTypeClass*>(pType), pHouse)) {
 						location = MapClass::Instance->GetRandomCoordsNear(location, 0, false);
 						pCell = MapClass::Instance->GetCellAt(location);
@@ -941,6 +940,7 @@ TechnoClass* Helpers_DP::CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* 
 
 				if (pTechno)
 				{
+					Debug::Log(__FUNCTION__" Called \n");
 					TechnoExt::HandleRemove(pTechno);
 				}
 			}
@@ -1085,7 +1085,7 @@ BulletClass* Helpers_DP::FireBullet(TechnoClass* pAttacker, AbstractClass* pTarg
 }
 
 void Helpers_DP::DrawWeaponAnim(WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, TechnoClass* pOwner, AbstractClass* pTarget)
-{ 
+{
 	if (!pWeapon)
 		return;
 

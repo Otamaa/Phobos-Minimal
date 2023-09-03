@@ -170,20 +170,15 @@ DEFINE_HOOK(0x7120D0, TechnoTypeClass_GetRepairCost_Building, 0x7)
 {
 	GET(TechnoTypeClass*, pThis, ECX);
 
-	int nVal = 1;
-	auto nStep = RulesClass::Instance->RepairStep;
-
-	if (pThis) {
-		if (auto const pBuildingType = type_cast<BuildingTypeClass*,false>(pThis)) {
-			nStep = BuildingTypeExt::ExtMap.Find(pBuildingType)->RepairStep.Get(nStep);
-		}
+	if (auto const pBuildingType = type_cast<BuildingTypeClass*>(pThis)) {
+		const int nStep = BuildingTypeExt::ExtMap.Find(pBuildingType)->RepairStep.Get(RulesClass::Instance->RepairStep);
 
 		const auto nCalc = int(((double)pThis->GetCost() / int((double)pThis->Strength / nStep)) * RulesClass::Instance->RepairPercent);
-		nVal = nVal <= 1 ? 1 : nVal;
+		R->EAX(nCalc <= 1 ? 1 : nCalc);
+		return 0x712119;
 	}
 
-	R->EAX(nVal);
-	return 0x712119;
+	return 0x0;
 }
 
 //RepairCost

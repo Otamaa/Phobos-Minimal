@@ -148,7 +148,7 @@ bool  GenericWarheadStateMachine::Save(PhobosStreamWriter& Stm) const
 		.Success();
 }
 
-void  GenericWarheadStateMachine::InvalidatePointer(void* ptr, bool remove)
+void  GenericWarheadStateMachine::InvalidatePointer(AbstractClass* ptr, bool remove)
 {
 	AnnounceInvalidPointer(Firer, ptr ,remove);
 }

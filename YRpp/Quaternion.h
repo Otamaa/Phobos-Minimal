@@ -33,7 +33,7 @@ public:
 	Quaternion Normalized(Quaternion rotation) { return rotation /= Norm(rotation); }
 	float Norm(const Quaternion& rotation) { return Math::sqrt(rotation.X * rotation.X + rotation.Y * rotation.Y + rotation.Z * rotation.Z + rotation.W * rotation.W); }
 	static float Dot(const Quaternion& A, const Quaternion& B) { return A.X * B.X + A.Y * B.Y + A.Z * B.Z + A.W * B.W; }
-	
+
 	void Scale(float s)
 	{
 		this->X = s * this->X;
@@ -54,11 +54,11 @@ public:
 	inline float Length2() const { return (X*X + Y*Y + Z*Z + W*W); }
 	inline float Length() const { return Math::sqrt(Length2()); }
 
-	//idk 
+	//idk
 	Quaternion* Func_645D60(Quaternion* B) const { JMP_THIS(0x645D60); }
 
 	static Quaternion* __fastcall Multiply(Quaternion* ret, Quaternion* A, Quaternion* B) { JMP_STD(0x645ED0); }
-	static Quaternion& Multiply(const Quaternion& that1, const Quaternion& that2)
+	static Quaternion Multiply(const Quaternion& that1, const Quaternion& that2)
 	{
 		float that2X = that2.X;
 		float that2Y = that2.Y;
@@ -93,14 +93,9 @@ public:
 	}
 
 	static Quaternion* __fastcall Func_646040(Quaternion* ret, Quaternion* A, Quaternion* B) { JMP_STD(0x646040); }
-	static Quaternion& Func_646040(const Quaternion& a, const Quaternion& b)
+	static Quaternion Func_646040(const Quaternion& a, const Quaternion& b)
 	{
-		Quaternion invertedquat;
-		invertedquat.X = -b.X;
-		invertedquat.Y = -b.Y;
-		invertedquat.Z = -b.Z;
-		invertedquat.W = b.W;
-		return Multiply(a, invertedquat);
+		return Multiply(a, { -b.X , -b.Y , -b.Z , b.W });
 	}
 
 	static Quaternion* __fastcall Conjugate(Quaternion* ret, Quaternion* A) { JMP_STD(0x646110); }
@@ -126,7 +121,7 @@ public:
 	}
 
 	static Quaternion* __fastcall FromAxis(Quaternion* ret, Vector3D<float>* vec, float phi) { JMP_STD(0x646480); }
-	static Quaternion& FromAxis(Vector3D<float>& a, float phi)
+	static Quaternion FromAxis(Vector3D<float>& a, float phi)
 	{
 		float y = a.Y;
 		float zz = a.Z;
@@ -140,12 +135,13 @@ public:
 		}
 
 		double s = Math::sin(phi * 0.5);
-		Quaternion sX;
-		sX.X = static_cast<float>(xx * s);
-		sX.Y = static_cast<float>(y * s);
-		sX.Z = static_cast<float>(zz * s);	
-		sX.W = static_cast<float>(Math::cos(phi * 0.5));
-		return sX;
+
+		return {
+			static_cast<float>(xx * s) ,
+			static_cast<float>(y * s) ,
+			static_cast<float>(zz * s) ,
+			static_cast<float>(Math::cos(phi * 0.5))
+		};
 	}
 
 	Quaternion& operator/=(const float rhs)
@@ -204,12 +200,12 @@ public:
 
 	Quaternion& operator*=(const Quaternion B)
 	{
-		Quaternion buffer;
-
-		buffer.W = W * B.W - X * B.X - Y * B.Y - Z * B.Z;
-		buffer.X = X * B.W + W * B.X + Y * B.Z - Z * B.Y;
-		buffer.Y = W * B.Y - X * B.Z + Y * B.W + Z * B.X;
-		buffer.Z = W * B.Z + X * B.Y - Y * B.X + Z * B.W;
+		Quaternion buffer {
+			X * B.W + W * B.X + Y * B.Z - Z * B.Y ,
+			W * B.Y - X * B.Z + Y * B.W + Z * B.X ,
+			W * B.Z + X * B.Y - Y * B.X + Z * B.W ,
+			W* B.W - X * B.X - Y * B.Y - Z * B.Z
+		};
 
 		*this = buffer;
 		return *this;
@@ -228,14 +224,12 @@ public:
 
 	Quaternion operator* (const Quaternion &B)
 	{
-		Quaternion buffer;
-
-		buffer.W = W * B.W - X * B.X - Y * B.Y - Z * B.Z;
-		buffer.X = W * B.X + X * B.W + Y * B.Z - Z * B.Y;
-		buffer.Y = W * B.Y + Y * B.W + Z * B.X - X * B.Z;
-		buffer.Z = W * B.Z + Z * B.W + X * B.Y - Y * B.X;
-
-		return(buffer);
+		return {
+			W* B.X + X * B.W + Y * B.Z - Z * B.Y ,
+			W* B.Y + Y * B.W + Z * B.X - X * B.Z ,
+			W* B.Z + Z * B.W + X * B.Y - Y * B.X ,
+			W* B.W - X * B.X - Y * B.Y - Z * B.Z
+		};
 	}
 
 	Quaternion operator* (float scl)
@@ -246,7 +240,6 @@ public:
 
 	Quaternion operator/ (const Quaternion& b)
 	{
-		auto inv = Inverse(b);
 		return (*this) * Inverse(b);
 	}
 
@@ -279,14 +272,12 @@ public:
 		float sy = Math::cos(y * 0.5f);
 		float sz = Math::cos(z * 0.5f);
 
-		Quaternion buffer;
-
-		buffer.X = cx * sy * sz + cy * cz * sx;
-		buffer.Y = cx * cz * sy - cy * sx * sz;
-		buffer.Z = cx * cy * sz - cz * sx * sy;
-		buffer.W = sx * sy * sz + cx * cy * cz;
-
-		return buffer;
+		return {
+			cx* sy* sz + cy * cz * sx ,
+			cx* cz* sy - cy * sx * sz ,
+			cx* cy* sz - cz * sx * sy ,
+			sx* sy* sz + cx * cy * cz
+		};
 	}
 
 	Quaternion Inverse(const Quaternion& rotation) { float n = Norm(rotation); return Conjugate(rotation) /= (n * n); }
@@ -326,13 +317,13 @@ public:
 			n2 = Math::sin((1 - alpha) * n4) * n5;
 			n1 = flag ? -Math::sin(alpha * n4) * n5 : Math::sin(alpha * n4) * n5;
 		}
-		Quaternion buffer;
-		auto A = *this;
 
-		buffer.X = (n2 * A.X) + (n1 * B.X);
-		buffer.Y = (n2 * A.Y) + (n1 * B.Y);
-		buffer.Z = (n2 * A.Z) + (n1 * B.Z);
-		buffer.W = (n2 * A.W) + (n1 * B.W);
+		Quaternion buffer {
+			(n2 * this->X) + (n1 * B.X) ,
+			(n2 * this->Y) + (n1 * B.Y) ,
+			(n2 * this->Z) + (n1 * B.Z) ,
+			(n2 * this->W) + (n1 * B.W)
+		};
 
 		return Normalized(buffer);
 	}

@@ -122,7 +122,7 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 				{
 					pTargetStr = static_cast<ObjectClass*>(pFirst->Target)->get_ID();
 				}
-				else if (Is_cell(pFirst->Target))
+				else if (pFirst->Target->WhatAmI() == CellClass::AbsID)
 				{
 					pTargetStr = "Cell";
 				}
@@ -160,7 +160,7 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 				const auto pTarget = static_cast<ObjectClass*>(pFoot->Target);
 				Append(buffer, "Target = %s, Dist = %d, Loc = (%d, %d)\n", pTarget->get_ID(), (pTarget->DistanceFrom(pFoot) / 256), pTarget->InlineMapCoords().X, pTarget->InlineMapCoords().Y);
 			}
-			else if (Is_cell(pFoot->Target))
+			else if (pFoot->Target->WhatAmI() == CellClass::AbsID)
 			{
 				const auto pTargetCell = static_cast<CellClass*>(pFoot->Target);
 				Append(buffer, "Target = Cell, Dist = %d, Loc = (%d, %d)\n", static_cast<int>(pTargetCell->GetCoords().DistanceFrom(pFoot->GetCoords()) / 256), pTargetCell->MapCoords.X, pTargetCell->MapCoords.Y);

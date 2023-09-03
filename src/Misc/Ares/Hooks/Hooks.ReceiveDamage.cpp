@@ -26,6 +26,13 @@
 
 #include <Ares_TechnoExt.h>
 
+DEFINE_DISABLE_HOOK(0x701A5C, TechnoClass_ReceiveDamage_IronCurtainFlash_ares)
+DEFINE_DISABLE_HOOK(0x71B99E, TerrainClass_ReceiveDamage_ForestFire_ares)
+DEFINE_DISABLE_HOOK(0x5185C8, InfantryClass_ReceiveDamage_InfDeath_ares)
+DEFINE_DISABLE_HOOK(0x5f53e5, ObjectClass_ReceiveDamage_Relative_ares)
+DEFINE_DISABLE_HOOK(0x5f5456, ObjectClass_ReceiveDamage_Culling_ares)
+DEFINE_DISABLE_HOOK(0x41668B, AircraftClass_ReceiveDamage_Survivours_ares)
+
 void ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 {
 	if (Unsorted::CurrentFrame % 15)
@@ -113,7 +120,7 @@ DEFINE_HOOK(0x5F53DB, ObjectClass_ReceiveDamage_Handled, 0xA)
 		pWHExt->ApplyRecalculateDistanceDamage(pObject, &args);
 	}
 
-	if (*args.Damage == 0 && Is_Building(pObject))
+	if (*args.Damage == 0 && pObject->WhatAmI() == BuildingClass::AbsID)
 	{
 		auto const pBld = static_cast<BuildingClass*>(pObject);
 
@@ -463,7 +470,7 @@ DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 
 	if (pWH->Psychedelic)
 	{
-		if (Is_Building(pThis))
+		if (pThis->WhatAmI() == BuildingClass::AbsID)
 			return RetUnaffected;
 
 		//This thing does ally check twice
@@ -553,6 +560,7 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 			if (!TechnoExt::EjectRandomly(pHijacker, pThis->Location, 144, Select))
 			{
 				pHijacker->RegisterDestruction(pKiller);
+				Debug::Log(__FUNCTION__" Hijacker Called \n");
 				TechnoExt::HandleRemove(pHijacker, pKiller, false, true);
 			}
 			else
@@ -600,6 +608,7 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 							if (!TechnoExt::EjectRandomly(pPilot, pThis->Location, 144, Select))
 							{
 								pPilot->RegisterDestruction(pKiller);
+								Debug::Log(__FUNCTION__" Pilot Called \n");
 								TechnoExt::HandleRemove(pPilot, pKiller, false, true);
 							}
 							else if (auto const pTag = pThis->AttachedTag)
@@ -625,6 +634,8 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 		if (passengerChance == 0)
 			return;
 
+		const auto what = pThis->WhatAmI();
+
 		// eject or kill all passengers
 		while (pThis->Passengers.GetFirstPassenger())
 		{
@@ -634,7 +645,7 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 			{
 				trySpawn = ScenarioClass::Instance->Random.RandomRanged(1, 100) <= passengerChance;
 			}
-			else if (passengerChance == -1 && Is_Unit(pThis))
+			else if (passengerChance == -1 && what == UnitClass::AbsID)
 			{
 				const Move occupation = pPassenger->IsCellOccupied(pThis->GetCell(), FacingType::None, -1, nullptr, true);
 				trySpawn = (occupation == Move::OK || occupation == Move::MovingBlock);
@@ -647,7 +658,8 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 
 			// kill passenger, if not spawned
 			pPassenger->RegisterDestruction(pKiller);
-			TechnoExt::HandleRemove(pPassenger, pKiller, false, true);
+			Debug::Log(__FUNCTION__" Passengers Called \n");
+			TechnoExt::HandleRemove(pPassenger, pKiller, false, false);
 		}
 	}
 }
@@ -739,8 +751,8 @@ DEFINE_HOOK(0x41660C, AircraftClass_ReceiveDamage_destroyed, 0x5)
 				auto pInvoker = args.Attacker ? args.Attacker->Owner :
 					(args.SourceHouse ? args.SourceHouse : nullptr);
 
-				if (pInvoker && !Is_House(pInvoker))
-					pInvoker = nullptr;
+				// if (pInvoker && !Is_House(pInvoker))
+				// 	pInvoker = nullptr;
 
 				AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, true);
 			}

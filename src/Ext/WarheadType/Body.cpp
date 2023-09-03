@@ -100,9 +100,13 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	this->TransactMoney.Read(exINI, pSection, "TransactMoney");
 	this->SplashList.Read(exINI, pSection, GameStrings::SplashList());
 	this->SplashList_PickRandom.Read(exINI, pSection, "SplashList.PickRandom");
+	this->SplashList_CreateAll.Read(exINI, pSection, "SplashList.CreateAll");
+	this->SplashList_CreationInterval.Read(exINI, pSection, "SplashList.CreationInterval");
 	this->RemoveDisguise.Read(exINI, pSection, "RemoveDisguise");
 	this->RemoveMindControl.Read(exINI, pSection, "RemoveMindControl");
 	this->AnimList_PickRandom.Read(exINI, pSection, "AnimList.PickRandom");
+	this->AnimList_CreateAll.Read(exINI, pSection, "AnimList.CreateAll");
+	this->AnimList_CreationInterval.Read(exINI, pSection, "AnimList.CreationInterval");
 	this->AnimList_ShowOnZeroDamage.Read(exINI, pSection, "AnimList.ShowOnZeroDamage");
 	this->DecloakDamagedTargets.Read(exINI, pSection, "DecloakDamagedTargets");
 	this->ShakeIsLocal.Read(exINI, pSection, "ShakeIsLocal");
@@ -707,65 +711,60 @@ bool WarheadTypeExt::ExtData::ApplyCulling(TechnoClass* pSource, ObjectClass* pT
 	return  nChance < 0 || ScenarioClass::Instance->Random.RandomFromMax(99) < nChance;
 }
 
+int NOINLINE GetRelativeValue(ObjectClass* pTarget, WarheadTypeExt::ExtData* pWHExt) {
+	auto const pWhat = pTarget->WhatAmI();
+
+	switch (pWhat)
+	{
+	case UnitClass::AbsID:
+	{
+		const auto pUnit = static_cast<UnitClass*>(pTarget);
+
+		if (pUnit->Type->ConsideredAircraft)
+			return pWHExt->RelativeDamage_AirCraft;
+		else if (pUnit->Type->Organic)
+			return pWHExt->RelativeDamage_Infantry;
+		else
+			return pWHExt->RelativeDamage_Unit;
+	}
+	case AircraftClass::AbsID:
+	{
+		if (static_cast<AircraftClass*>(pTarget)->Type->Organic)
+			return pWHExt->RelativeDamage_Infantry;
+		else
+			return pWHExt->RelativeDamage_AirCraft;
+	}
+	case BuildingClass::AbsID:
+		return pWHExt->RelativeDamage_Building;
+	case InfantryClass::AbsID:
+		return pWHExt->RelativeDamage_Infantry;
+	case TerrainClass::AbsID:
+		return pWHExt->RelativeDamage_Terrain;
+	}
+
+	return 0;
+}
+
 void WarheadTypeExt::ExtData::ApplyRelativeDamage(ObjectClass* pTarget, args_ReceiveDamage* pArgs) const
 {
 	if (!this->RelativeDamage)
 		return;
 
+	auto nRelativeVal = GetRelativeValue(pTarget, const_cast<WarheadTypeExt::ExtData*>(this));
+	if (nRelativeVal)
 	{
-		auto const pWhat = GetVtableAddr(pTarget);
-		int nRelativeVal = 0;
 
-		switch (pWhat)
-		{
-		case UnitClass::vtable:
-		{
-			const auto pUnit = static_cast<UnitClass*>(pTarget);
-
-			if (pUnit->Type->ConsideredAircraft)
-				nRelativeVal = RelativeDamage_AirCraft.Get();
-			else if (pUnit->Type->Organic)
-				nRelativeVal = RelativeDamage_Infantry.Get();
-			else
-				nRelativeVal = RelativeDamage_Unit.Get();
-		}
-		break;
-		case AircraftClass::vtable:
-		{
-			const auto pAir = static_cast<AircraftClass*>(pTarget);
-
-			if (pAir->Type->Organic)
-				nRelativeVal = RelativeDamage_Infantry.Get();
-			else
-				nRelativeVal = RelativeDamage_AirCraft.Get();
-		}
-		break;
-		case BuildingClass::vtable:
-			nRelativeVal = RelativeDamage_Building.Get();
-			break;
-		case InfantryClass::vtable:
-			nRelativeVal = RelativeDamage_Infantry.Get();
-			break;
-		case TerrainClass::vtable:
-			nRelativeVal = RelativeDamage_Terrain.Get();
-			break;
-		}
-
-		if (nRelativeVal)
-		{
-
-			if (nRelativeVal < 0)
-				nRelativeVal *= pTarget->Health / -100;
-			else
-				if (const auto pType = pTarget->GetType())
-					nRelativeVal *= pType->Strength / 100;
-		}
-
-		if (*pArgs->Damage < 0)
-			nRelativeVal = -nRelativeVal;
-
-		*pArgs->Damage = nRelativeVal;
+		if (nRelativeVal < 0)
+			nRelativeVal *= pTarget->Health / -100;
+		else
+			if (const auto pType = pTarget->GetType())
+				nRelativeVal *= pType->Strength / 100;
 	}
+
+	if (*pArgs->Damage < 0)
+		nRelativeVal = -nRelativeVal;
+
+	*pArgs->Damage = nRelativeVal;
 }
 
 bool WarheadTypeExt::ExtData::GoBerzerkFor(FootClass* pVictim, int* damage)
@@ -908,19 +907,17 @@ void WarheadTypeExt::DetonateAt(
 
 	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
 
-	if (pThis->NukeMaker)
-	{
-		if (!pTarget)
-		{
+	if (pThis->NukeMaker) {
+		if (!pTarget) {
 			Debug::Log("WarheadTypeExt::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
 			return;
 		}
 	}
 
-	if (pOwner && !Is_Techno(pOwner)) {
+	if (!pOwner) {
 		Debug::Log("WarheadTypeExt::DetonateAt[%s] delivering damage from unknown source [%x] !", pThis->get_ID(), pOwner);
-		pOwner = nullptr;
 	}
+
 	if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pType)->CreateBullet(pTarget, pOwner,
 		damage, pThis, 0, 0, pThis->Bright, true))
 	{
@@ -970,9 +967,13 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->SplashList)
 		.Process(this->SplashList_PickRandom)
+		.Process(this->SplashList_CreateAll)
+		.Process(this->SplashList_CreationInterval)
 		.Process(this->RemoveDisguise)
 		.Process(this->RemoveMindControl)
 		.Process(this->AnimList_PickRandom)
+		.Process(this->AnimList_CreateAll)
+		.Process(this->AnimList_CreationInterval)
 		.Process(this->AnimList_ShowOnZeroDamage)
 		.Process(this->DecloakDamagedTargets)
 		.Process(this->ShakeIsLocal)
@@ -1069,6 +1070,8 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->RevengeWeapon_MaxCount)
 
 		.Process(this->WasDetonatedOnAllMapObjects)
+		.Process(this->Splashed)
+		.Process(this->RemainingAnimCreationInterval)
 
 		.Process(this->NotHuman_DeathAnim)
 		.Process(this->IsNukeWarhead)
@@ -1217,16 +1220,16 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 
 bool WarheadTypeExt::ExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim)
 {
-	auto const absType = GetVtableAddr(pVictim);
+	auto const absType = pVictim->WhatAmI();
 	auto const pVictimType = pVictim->GetTechnoType();
 
 	if (SuppressDeathWeapon_Exclude.Contains(pVictimType) )
 		return false;
 
-	if (absType == UnitClass::vtable && !SuppressDeathWeapon_Vehicles)
+	if (absType == UnitClass::AbsID && !SuppressDeathWeapon_Vehicles)
 		return false;
 
-	if (absType == InfantryClass::vtable && !SuppressDeathWeapon_Infantry)
+	if (absType == InfantryClass::AbsID && !SuppressDeathWeapon_Infantry)
 		return false;
 
 	if(!SuppressDeathWeapon.Contains(pVictimType))
@@ -1264,7 +1267,7 @@ void WarheadTypeExt::ExtContainer::Clear()
 	WarheadTypeExt::IonBlastExt.clear();
 }
 
-//void WarheadTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
+//void WarheadTypeExt::ExtContainer::InvalidatePointer(AbstractClass* ptr, bool bRemoved) { }
 
 // =============================
 // container hooks

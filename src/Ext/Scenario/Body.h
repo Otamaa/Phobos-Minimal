@@ -47,6 +47,9 @@ public:
 		TintStruct CurrentTint_Hashes { -1,-1,-1 };
 		bool AdjustLightingFix { false };
 
+		bool ShowBriefing { false };
+		int BriefingTheme { -1 };
+
 		ExtData(ScenarioClass* OwnerObject) : Extension<ScenarioClass>(OwnerObject)
 		{ }
 
@@ -57,7 +60,7 @@ public:
 		void ReadVariables(const bool IsGlobal, CCINIClass* pINI);
 
 		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-	
+
 		void LoadBasicFromINIFile(CCINIClass* pINI);
 		void FetchVariables(ScenarioClass* pScen);
 

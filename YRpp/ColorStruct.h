@@ -113,11 +113,11 @@ struct ColorStruct
 
 	static inline ColorStruct Interpolate(const ColorStruct& from, const ColorStruct& towards, float amount)
 	{
-		ColorStruct tmp;
-		tmp.R = (BYTE)std::clamp(from.R * (1.0f - amount) + towards.R * amount, 0.0f, 255.0f);
-		tmp.G = (BYTE)std::clamp(from.G * (1.0f - amount) + towards.G * amount, 0.0f, 255.0f);
-		tmp.B = (BYTE)std::clamp(from.B * (1.0f - amount) + towards.B * amount, 0.0f, 255.0f);
-		return tmp;
+		return {
+			(BYTE)std::clamp(from.R * (1.0f - amount) + towards.R * amount, 0.0f, 255.0f) ,
+			(BYTE)std::clamp(from.G * (1.0f - amount) + towards.G * amount, 0.0f, 255.0f) ,
+			(BYTE)std::clamp(from.B * (1.0f - amount) + towards.B * amount, 0.0f, 255.0f)
+		};
 	}
 
 	ColorStruct* AdjustBrightness(const ColorStruct* towards, float amount)
@@ -281,6 +281,7 @@ struct BytePalette
 
 	bool operator==(const BytePalette& that) const { return std::memcmp(Entries, that.Entries, sizeof(Entries)) == 0; }
 	bool operator!=(const BytePalette& that) const { return std::memcmp(Entries, that.Entries, sizeof(Entries)) != 0; }
+
 	BytePalette& operator=(const BytePalette& that) {
 		JMP_THIS(0x6260D0);
 	}

@@ -289,7 +289,7 @@ DEFINE_HOOK(0x443C81, BuildingClass_ExitObject_InitialClonedHealth, 0x7)
 	if (pBuilding && pBuilding->Type->Cloning && pTechno)
 	{
 		const auto pClonedType = pTechno->GetTechnoType();
-		if (Is_Unit(pTechno)) {
+		if (pTechno->WhatAmI() == UnitClass::AbsID) {
 
 			auto const pFootTypeExt = TechnoTypeExt::ExtMap.Find(pClonedType);
 

@@ -2,16 +2,16 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 
-bool TeamExt::ExtData::InvalidateIgnorable(void* ptr) {
+bool TeamExt::ExtData::InvalidateIgnorable(AbstractClass* ptr) {
 
-	switch (GetVtableAddr(ptr))
+	switch (ptr->WhatAmI())
 	{
-	case BuildingClass::vtable:
-	case AircraftClass::vtable:
-	case UnitClass::vtable:
-	case InfantryClass::vtable:
-	case ScriptClass::vtable:
-	case SuperClass::vtable:
+	case BuildingClass::AbsID:
+	case AircraftClass::AbsID:
+	case UnitClass::AbsID:
+	case InfantryClass::AbsID:
+	case ScriptClass::AbsID:
+	case SuperClass::AbsID:
 	{
 		return false;
 	}
@@ -20,7 +20,7 @@ bool TeamExt::ExtData::InvalidateIgnorable(void* ptr) {
 	return true;
 }
 
-void TeamExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
+void TeamExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(TeamLeader, ptr , bRemoved);
 	AnnounceInvalidPointer(LastFoundSW, ptr);
@@ -483,7 +483,7 @@ DEFINE_HOOK(0x6EC55A, TeamClass_Save_Suffix, 0x5)
  DEFINE_HOOK(0x6EAE60, TeamClass_Detach, 0x7)
  {
  	GET(TeamClass*, pThis, ECX);
- 	GET_STACK(void*, target, 0x4);
+ 	GET_STACK(AbstractClass*, target, 0x4);
  	GET_STACK(bool, all, 0x8);
 
  	TeamExt::ExtMap.InvalidatePointerFor(pThis, target, true);

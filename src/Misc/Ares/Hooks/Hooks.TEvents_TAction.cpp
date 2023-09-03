@@ -29,6 +29,17 @@
 #include <Misc/AresData.h>
 #include <Ares_TechnoExt.h>
 
+DEFINE_DISABLE_HOOK(0x6E232E, ActionClass_PlayAnimAt_ares)
+
+DEFINE_DISABLE_HOOK(0x6DD176, TActionClass_CTOR_ares)
+DEFINE_DISABLE_HOOK(0x6E4761, TActionClass_SDDTOR_ares)
+DEFINE_DISABLE_HOOK(0x6E3E30, TActionClass_Save_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x6E3DB0, TActionClass_Load_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x6E3E29, TActionClass_Load_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x6E3E4A, TActionClass_Save_Suffix_ares)
+
+DEFINE_DISABLE_HOOK(0x6e1780, TActionClass_PlayAudioAtRandomWP_ares)
+
 DEFINE_OVERRIDE_HOOK(0x6DE0D3, TActionClass_Execute_MessageColor, 6)
 {
 	int idxColor = 0;
@@ -366,11 +377,11 @@ namespace TEventExt_dummy
 		if (!pType->Insignificant && !pType->DontScore)
 		{
 			HouseClass** const arr = pWho ? &pWho : HouseClass::Array->Items;
-			HouseClass** const nEnd = &arr[(pWho ? 1 : HouseClass::Array->Count)];
+			HouseClass** const nEnd = arr + (pWho ? 1 : HouseClass::Array->Count);
 
 			int i = args;
 
-			for (HouseClass** nPos = &arr[0]; nPos != nEnd; ++nPos)
+			for (HouseClass** nPos = arr; nPos != nEnd; ++nPos)
 			{
 				i -= (*nPos)->CountOwnedNow(pType);
 

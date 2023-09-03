@@ -64,7 +64,7 @@ public:
 			HouseClass* Invoker;
 		};
 
-		//void InvalidatePointer(void* ptr) {
+		//void InvalidatePointer(AbstractClass* ptr) {
 		//	for (auto first = &this->ArrFirst; first != &this->ArrLast; ++first) {
 		//		if ((*first)->Anim == ptr)
 		//			(*first)->Anim = nullptr;

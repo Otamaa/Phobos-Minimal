@@ -14,7 +14,7 @@ bool InRange(TechnoClass* pShooter, AbstractClass* pTarget, WeaponTypeClass* pWe
 
 void CustomWeaponManager::Update(TechnoClass* pAttacker)
 {
-	if (!pAttacker || !Is_Techno(pAttacker))
+	if (!pAttacker)
 		return;
 
 	if (!pAttacker->Target
@@ -177,7 +177,7 @@ TechnoClass* CustomWeaponManager::WhoIsShooter(TechnoClass* pAttacker) const
 	return pAttacker->Transporter ? pAttacker->Transporter: pAttacker;
 }
 
-void  CustomWeaponManager::InvalidatePointer(void* ptr, bool bRemoved)
+void  CustomWeaponManager::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	for (size_t i = 0; i < simulateBurstQueue.size(); ++i) {
 		auto& nQueue = simulateBurstQueue[i];
@@ -214,7 +214,7 @@ bool FireWeaponManager::FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAt
 	return CWeaponManager.FireCustomWeapon(pShooter, pAttacker, pTarget, pWeapon, flh, bulletSourcePos, rofMult, callback);
 }
 
-void FireWeaponManager::InvalidatePointer(void* ptr, bool bRemoved)
+void FireWeaponManager::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	for (size_t i = 0; i < DelayFires.size(); ++i) {
 		auto& nQueue = DelayFires[i];

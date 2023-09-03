@@ -86,6 +86,7 @@ public:
 	{
 		return { static_cast<short>(X + a.X), static_cast<short>(Y + a.Y) };
 	}
+
 	//addition
 	CellStruct& operator+=(const CellStruct& a)
 	{

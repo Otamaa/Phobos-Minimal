@@ -85,8 +85,8 @@ public:
 	}
 
 	// overrideable virtuals !
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
-	virtual bool InvalidateIgnorable(void* ptr) const = 0;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) { }
+	virtual bool InvalidateIgnorable(AbstractClass* ptr) const = 0;
 
 	virtual inline void SaveToStream(PhobosStreamWriter& Stm) {
 		Stm.Save(this->Initialized);
@@ -299,7 +299,7 @@ public :
 		this->SavingStream = nullptr;
 	}
 
-	void PointerGotInvalid(void* ptr, bool bRemoved) {
+	void PointerGotInvalid(AbstractClass* ptr, bool bRemoved) {
 		if (!this->InvalidateExtDataIgnorable(ptr))
 		{
 			this->InvalidatePointer(ptr, bRemoved);
@@ -310,7 +310,7 @@ public :
 
 protected:
 
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) { }
 	virtual bool InvalidateExtDataIgnorable(void* const ptr) const { return true; }
 
 public:

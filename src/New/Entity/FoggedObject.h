@@ -1,5 +1,5 @@
 #pragma once
-#ifdef ENABLE_FOGGED_OBJ
+
 #include <AbstractClass.h>
 #include <BuildingClass.h>
 
@@ -90,5 +90,4 @@ public:
 			int Height;
 		} SmudgeData;
 	};
-}
-;#endif
+};

@@ -274,7 +274,7 @@ DEFINE_OVERRIDE_HOOK(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
 	if (!pFocus || !pFocus->IsArmed() || !pSpawn || pFocus->IsCloseEnoughToAttackCoords(pSpawn->GetCoords()))
 	{
 		// disallow aircraft, or units considered as aircraft, or stuff not on map like parasites
-		if (!Is_Aircraft(pAttacker))
+		if (pAttacker->WhatAmI() != AircraftClass::AbsID)
 		{
 			if (auto pAttackerFoot = abstract_cast<FootClass*>(pAttacker))
 			{

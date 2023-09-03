@@ -40,8 +40,8 @@ DEFINE_HOOK(0x68BD60, ScenarioClass_Clear_All_Waypoints, 0x6)
 DEFINE_HOOK(0x68BD80, ScenarioClass_Is_Waypoint_Valid, 0x5)
 {
 	GET_STACK(int, nWaypoint, 0x4);
-	const auto& waypoints = ScenarioExt::Global()->Waypoints;
-	R->AL(nWaypoint >= 0 && waypoints.contains(nWaypoint) && waypoints.at(nWaypoint).IsValid());
+	const auto waypoints = &ScenarioExt::Global()->Waypoints;
+	R->AL(nWaypoint >= 0 && waypoints->contains(nWaypoint) && (*waypoints)[nWaypoint].IsValid());
 
 	return 0x68BDB3;
 }

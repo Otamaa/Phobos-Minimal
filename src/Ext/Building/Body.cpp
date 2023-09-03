@@ -20,9 +20,6 @@ void BuildingExt::ApplyLimboKill(ValueableVector<int>& LimboIDs, Valueable<Affec
 
 	for (const auto& pBuilding : pTargetHouse->Buildings)
 	{
-		if (!Is_Building(pBuilding)) // this somehow reading out of bound array ,..
-			break;
-
 		const auto pBuildingExt = BuildingExt::ExtMap.Find(pBuilding);
 
 		if (pBuildingExt->LimboID <= -1 || !LimboIDs.Contains(pBuildingExt->LimboID))
@@ -251,12 +248,12 @@ CoordStruct BuildingExt::GetCenterCoords(BuildingClass* pBuilding, bool includeB
 	return ret;
 }
 
-void BuildingExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
+void BuildingExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(CurrentAirFactory, ptr , bRemoved);
 }
 
-bool BuildingExt::ExtData::InvalidateIgnorable(void* ptr)
+bool BuildingExt::ExtData::InvalidateIgnorable(AbstractClass* ptr)
 {
 	switch (VTable::Get(ptr))
 	{
@@ -416,12 +413,14 @@ bool BuildingExt::HasFreeDocks(BuildingClass* pBuilding)
 
 bool BuildingExt::CanGrindTechno(BuildingClass* pBuilding, TechnoClass* pTechno)
 {
-	if (!Is_Infantry(pTechno) && !Is_Unit(pTechno))
+	const auto what = pTechno->WhatAmI();
+
+	if (what != InfantryClass::AbsID && what != UnitClass::AbsID)
 		return false;
 
 	if ((pBuilding->Type->InfantryAbsorb || pBuilding->Type->UnitAbsorb)
-		&& (Is_Infantry(pTechno) && !pBuilding->Type->InfantryAbsorb ||
-			Is_Unit(pTechno) && !pBuilding->Type->UnitAbsorb))
+		&& (what == InfantryClass::AbsID && !pBuilding->Type->InfantryAbsorb ||
+			what == UnitClass::AbsID && !pBuilding->Type->UnitAbsorb))
 	{
 		return false;
 	}
@@ -520,8 +519,9 @@ void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int
 	//	pBuilding->DiscoveredBy(pOwner);
 
 	if (!pBuilding->Type->Insignificant && !pBuilding->Type->DontScore)
-		pOwnerExt->AddToLimboTracking(pBuilding->Type);
+		pOwnerExt->LimboTechno.push_back(pBuilding);
 
+	pOwner->AddTracking(pBuilding);
 	pOwner->RegisterGain(pBuilding, false);
 	pOwner->UpdatePower();
 	pOwner->RecheckTechTree = true;
@@ -615,6 +615,7 @@ void BuildingExt::LimboKill(BuildingClass* pBuilding)
 	pTargetHouse->RecheckPower = true;
 	pTargetHouse->RecheckRadar = true;
 	pTargetHouse->Buildings.Remove(pBuilding);
+	static_assert(offsetof(HouseClass, Buildings) == 0x68, "ClassMember Shifted !");
 
 	pTargetHouse->RegisterLoss(pBuilding, false);
 	pTargetHouse->RemoveTracking(pBuilding);
@@ -630,7 +631,24 @@ void BuildingExt::LimboKill(BuildingClass* pBuilding)
 
 	if (pType->FactoryPlant)
 	{
-		pTargetHouse->FactoryPlants.Remove(pBuilding);
+		auto Remove = [](DynamicVectorClass<BuildingClass*>& vec , BuildingClass* item)
+		{
+			BuildingClass** end = vec.Items + vec.Count;
+
+			for (BuildingClass** find = vec.Items; find != end; ++find)
+			{
+				if ((*find) == item)
+				{
+					// move all the items from next to current pos
+					BuildingClass** next = find + 1;
+					std::memmove(find, next, (size_t)(sizeof(BuildingClass*) * std::distance(next, end)));
+					--vec.Count;
+				}
+			}
+		};
+
+		static_assert(offsetof(HouseClass, __FactoryPlants) == 0x140, "ClassMember Shifted !");
+		Remove(pTargetHouse->FactoryPlants, pBuilding);
 		pTargetHouse->CalculateCostMultipliers();
 	}
 
@@ -688,6 +706,7 @@ void BuildingExt::ExtData::Serialize(T& Stm)
 		.Process(this->OwnerBeforeRaid)
 		.Process(this->CashUpgradeTimers)
 		.Process(this->SensorArrayActiveCounter)
+		.Process(this->StartupCashDelivered)
 		;
 }
 

@@ -48,8 +48,8 @@ public:
 		ExtData(BulletClass* OwnerObject) : Extension<BulletClass>(OwnerObject) { }
 		virtual ~ExtData() = default;
 
-		void InvalidatePointer(void* ptr, bool bRemoved);
-		static bool InvalidateIgnorable(void* ptr);
+		void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
+		static bool InvalidateIgnorable(AbstractClass* ptr);
 
 		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
@@ -67,7 +67,7 @@ public:
 		ExtContainer();
 		~ExtContainer();
 
-		static bool InvalidateIgnorable(void* ptr)
+		static bool InvalidateIgnorable(AbstractClass* ptr)
 		{
 			switch (VTable::Get(ptr))
 			{
@@ -81,7 +81,7 @@ public:
 			}
 		}
 
-		static void InvalidatePointer(void* ptr, bool bRemoved)
+		static void InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 		{
 			AnnounceInvalidPointer(BulletExt::InRangeTempFirer, ptr, bRemoved);
 		}

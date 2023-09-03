@@ -306,7 +306,7 @@ public:
 			bool bMustAllocate = (pMem == nullptr);
 			if (!pMem)
 			{
-				pMem = GameCreateArray<T>(static_cast<size_t>(capacity));
+				pMem = GameCreateArray<T>((size_t)capacity);
 			}
 
 			this->IsInitialized = true;
@@ -507,64 +507,62 @@ public:
 		return -1;
 	}
 
-	bool ValidIndex(int index) const
+	bool __forceinline ValidIndex(int index) const
 	{
-		return static_cast<unsigned int>(index) < static_cast<unsigned int>(this->Count);
+		return static_cast<size_t>(index) < static_cast<size_t>(this->Count);
 	}
 
-	T GetItemOrDefault(int i) const
+	bool __forceinline ValidIndex(size_t index) const {
+		return index < static_cast<size_t>(this->Count);
+	}
+
+	T GetItemOrDefault(size_t i) const
 	{
 		return this->GetItemOrDefault(i, T());
 	}
 
-	T GetItemOrDefault(int i, T def) const
+	T GetItemOrDefault(size_t i, T def) const
 	{
-		if(i == -1)
+		if(!this->ValidIndex(i))
 			return def;
 
-		if (this->ValidIndex(i)) {
-			return this->Items[i];
-		}
-
-		return def;
+		return this->Items[i];
 	}
 
 	T* begin() const
 	{
-		return (&this->Items[0]);
+		return this->Items;
 	}
 
 	T* end() const
 	{
-		return (&this->Items[this->Count]);
+		return this->Items + this->Count;
 	}
 
 	T* front() const {
-		return begin();
+		return this->Items;
 	}
 
 	T* back() const {
-		return end() - 1;
+		return  this->Items + (this->Count - 1);
 	}
 
 	T* begin()
 	{
-		return (&this->Items[0]);
+		return this->Items;
 	}
 
 	T* end()
 	{
-		return (&this->Items[this->Count]);
+		return this->Items + this->Count;
 	}
 
 	bool Contains(T item) const
 	{
-		for (auto nPos = this->begin();
-			nPos != this->end();
-			++nPos) {
-
-			if ((*nPos) == item)
-				return true;
+		for (T* pos = this->Items;
+			pos != (this->Items + this->Count);
+			++pos) {
+			return (*pos) == item;
 		}
 
 		return false;
@@ -576,19 +574,20 @@ public:
 			return false;
 
 		this->Items[this->Count++] = std::move_if_noexcept(item);
+
 		return true;
 	}
 
-	bool Insert(int index, const T& object)
+	bool Insert(size_t index, const T& object)
 	{
-		if (!this->ValidIndex(index) || !this->IsValidArray()) {
+		if (!this->IsValidArray()) {
 			return false;
 		}
 
 		if (index < this->Count)
 		{
-			auto nDest = &this->Items[index + 1];
-			auto nSource = &this->Items[index];
+			T* nDest = this->Items + (index + 1);
+			T* nSource = this->Items + index;
 			std::memmove(nDest, nSource, (this->Count - index) * sizeof(T));
 		}
 
@@ -596,12 +595,6 @@ public:
 		++this->Count;
 
 		return true;
-	}
-
-	template <class... _Valty>
-	constexpr decltype(auto) emplace_back(_Valty&&... _Val) {
-		AddItem(T{ _Val... });
-		return *back();
 	}
 
 	bool AddUnique(const T& item)
@@ -616,12 +609,14 @@ public:
 			return false;
 		}
 
-		const auto nFind = (&this->Items[index]);
-		const auto nEnd = (&this->Items[this->Count]);
+		T* find = this->Items + index;
+		T* end = this->Items + this->Count;
+		T* next = this->Items + (index + 1);
 
-		if (nFind != nEnd) {
+		if (find != this->end()) {
+
 			// move all the items from next to current pos
-			std::memmove(nFind, nFind + 1, (size_t)(sizeof(T) * std::distance(nFind + 1, nEnd)));
+			std::memmove(find, next, (size_t)(sizeof(T) * std::distance(next, end)));
 			--this->Count;//decrease the count
 			return true;
 		}
@@ -631,13 +626,14 @@ public:
 
 	bool Remove(const T& item)
 	{
-		const auto  nEnd = (&this->Items[this->Count]);
-		for (auto nFind = (&this->Items[0]);
-			nFind != nEnd; ++nFind) {
-			if ((*nFind) == item) {
+		T* end = this->Items + this->Count;
+
+		for (T* find = this->Items; find != end; ++find) {
+			if ((*find) == item) {
 				// move all the items from next to current pos
-				std::memmove(nFind, nFind + 1, (size_t)(sizeof(T) * std::distance(nFind + 1, nEnd)));
-				--this->Count;//decrease the count
+				T* next = find + 1;
+				std::memmove(find, next, (size_t)(sizeof(T) * std::distance(next, end)));
+				--this->Count;
 				return true;
 			}
 		}
@@ -646,7 +642,7 @@ public:
 	}
 
 	bool FindAndRemove(const T& item) {
-		return this->RemoveItemAt(this->FindItemIndex(item));
+		return this->RemoveAt(this->FindItemIndex(item));
 	}
 
 	void Swap(DynamicVectorClass<T>& other) noexcept

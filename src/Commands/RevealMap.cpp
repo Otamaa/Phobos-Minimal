@@ -30,6 +30,40 @@ const wchar_t* RevealMapCommandClass::GetUIDescription() const
 #include <Misc/MapRevealer.h>
 #include <Misc/Ares/Hooks/AresNetEvent.h>
 
+static std::vector<std::vector<TechnoClass*>> DumpedTechno;
+void NOINLINE ClearDumped()
+{
+	DumpedTechno.clear();
+	DumpedTechno.resize(HouseClass::Array->Count);
+}
+
+void NOINLINE GrupDumped()
+{
+	for (size_t i = 0; i < DumpedTechno.size(); ++i)
+	{
+		for (auto pTechn : *TechnoClass::Array)
+		{
+
+			if (pTechn->Owner == HouseClass::Array->GetItem(i))
+			{
+				DumpedTechno[i].push_back(pTechn);
+			}
+		}
+	}
+}
+
+void NOINLINE DumpDumped()
+{
+	for (size_t i = 0; i < DumpedTechno.size(); ++i)
+	{
+		Debug::Log("Dumping Techno  For[%s]\n", HouseClass::Array->GetItem(i)->Type->ID);
+		for (auto const& data : DumpedTechno[i])
+		{
+			Debug::Log("Techno [%s]\n", data->get_ID());
+		}
+	}
+}
+
 void RevealMapCommandClass::Execute(WWKey eInput) const
 {
 	if (this->CheckDebugDeactivated())
@@ -40,6 +74,10 @@ void RevealMapCommandClass::Execute(WWKey eInput) const
 		return;
 
 	SW_Reveal::RevealMap(pPlayer->GetBaseCenter(), -1.0f, 0, pPlayer);
+
+	//ClearDumped();
+	//GrupDumped();
+	//DumpDumped();
 
 	//if(SessionClass::Instance->GameMode == GameMode::Internet || SessionClass::Instance->GameMode == GameMode::LAN )
 		//AresNetEvent::Handlers::RaiseRevealMap(pPlayer);

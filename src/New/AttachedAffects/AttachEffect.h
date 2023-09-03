@@ -73,7 +73,7 @@ private :
 
 public:
 
-	void InvalidatePointer(void* ptr, bool bRemoved)
+	void InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	{
 		AnnounceInvalidPointer(m_Source, ptr);
 		AnnounceInvalidPointer(m_SourceHouse, ptr);
@@ -81,7 +81,7 @@ public:
 
 	static std::vector<std::unique_ptr<AttachEffect>> Array;
 
-	static void PointerGotInvalid(void* ptr, bool bRemoved)
+	static void PointerGotInvalid(AbstractClass* ptr, bool bRemoved)
 	{
 		for (size_t i = 0; i < Array.size(); ++i)
 		{

@@ -42,7 +42,7 @@ public:
 	virtual ~SWStateMachine() = default;
 	virtual bool Finished() { return Clock.Completed(); }
 	virtual void Update() { }
-	virtual void InvalidatePointer(void* ptr, bool remove) { }
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) { }
 	virtual SWStateMachineIdentifier GetIdentifier() const = 0;
 	virtual const char* GetIdentifierStrings() const = 0;
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
@@ -68,7 +68,7 @@ public:
 public:
 
 	static void UpdateAll();
-	static void PointerGotInvalid(void* ptr, bool remove);
+	static void PointerGotInvalid(AbstractClass* ptr, bool remove);
 	static void Clear();
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
@@ -178,7 +178,7 @@ public:
 
 	virtual void Update();
 
-	virtual void InvalidatePointer(void* ptr, bool remove);
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove);
 
 	virtual SWStateMachineIdentifier GetIdentifier() const override
 	{
@@ -305,7 +305,7 @@ public:
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
 	void Fire();
-	virtual void InvalidatePointer(void* ptr, bool remove) override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override;
 
 protected:
 	int Deferment;
@@ -338,7 +338,7 @@ public:
 		return ActualDuration <= -1 ? false : Clock.Completed() && !Deferment && TimeToEnd;
 	}
 
-	virtual void InvalidatePointer(void* ptr, bool remove) override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override;
 
 	virtual ~CloneableLighningStormStateMachine()
 	{
@@ -468,7 +468,7 @@ public:
 	virtual bool Finished() override { return SWStateMachine::Finished() || MaxCountCounter <= 0; }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
-	virtual void InvalidatePointer(void* ptr, bool remove) override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override;
 
 protected:
 	TechnoClass* Firer;
@@ -516,7 +516,7 @@ public:
 
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
-	virtual void InvalidatePointer(void* ptr, bool remove) override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override;
 
 	void SentPayload();
 

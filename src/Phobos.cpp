@@ -197,10 +197,10 @@ void Phobos::Config::Read()
 	{
 		BYTE defaultspeed = (BYTE)Phobos::Config::CampaignDefaultGameSpeed;
 		// We overwrite the instructions that force GameSpeed to 2 (GS4)
-		//Patch::Apply_RAW(0x55D77A, sizeof(defaultspeed), &defaultspeed);
+		Patch::Apply_RAW(0x55D77A, sizeof(defaultspeed), &defaultspeed);
 
 		// when speed control is off. Doesn't need a hook.
-		//Patch::Apply_RAW(0x55D78D , sizeof(defaultspeed), &defaultspeed);
+		Patch::Apply_RAW(0x55D78D , sizeof(defaultspeed), &defaultspeed);
 	}
 
 	if (CCINIClass* pINI_UIMD = Phobos::OpenConfig(UIMD_FILENAME))
@@ -405,9 +405,9 @@ void InitAdminDebugMode()
 			 //this thing can cause game to lockup when loading data
 			//better disable it for release
 
-			/*const bool Detached =
+			//const bool Detached =
 				Phobos::DetachFromDebugger();
-
+			/*
 			if (Detached)
 			{
 				MessageBoxW(NULL,

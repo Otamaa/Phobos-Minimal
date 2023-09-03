@@ -53,9 +53,14 @@ public:
 
 		NullableVector<AnimTypeClass*> SplashList {};
 		Valueable<bool> SplashList_PickRandom { false };
+		Valueable<bool> SplashList_CreateAll { false };
+		Valueable<int> SplashList_CreationInterval { 0 };
+
 		Valueable<bool> RemoveDisguise { false };
 		Valueable<bool> RemoveMindControl { false };
 		Nullable<bool> AnimList_PickRandom { };
+		Valueable<bool> AnimList_CreateAll { false };
+		Valueable<int> AnimList_CreationInterval { 0 };
 		Valueable<bool> AnimList_ShowOnZeroDamage { false };
 		Valueable<bool> DecloakDamagedTargets { true };
 		Valueable<bool> ShakeIsLocal { false };
@@ -168,6 +173,8 @@ public:
 		Valueable<int> RevengeWeapon_MaxCount { -1 };
 
 		bool WasDetonatedOnAllMapObjects { false };
+		bool Splashed { false };
+		int RemainingAnimCreationInterval { 0 };
 
 		Nullable<AnimTypeClass*> NotHuman_DeathAnim { };
 

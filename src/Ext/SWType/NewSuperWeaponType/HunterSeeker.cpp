@@ -45,7 +45,7 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 			}
 
 			// create a hunter seeker
-			if (auto pHunter = GameCreate<UnitClass>(pType, pOwner))
+			if (auto pHunter = (UnitClass*)pType->CreateObject(pOwner))
 			{
 				TechnoExt::ExtMap.Find(pHunter)->LinkedSW = pThis;
 

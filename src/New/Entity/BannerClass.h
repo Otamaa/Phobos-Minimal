@@ -48,7 +48,7 @@ public:
 
 	void Render();
 
-	void InvalidatePointer(void* ptr) { };
+	void InvalidatePointer(AbstractClass* ptr) { };
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	bool Save(PhobosStreamWriter& Stm) const;

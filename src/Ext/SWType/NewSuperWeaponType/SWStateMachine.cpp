@@ -15,18 +15,15 @@ void SWStateMachine::UpdateAll()
 {
 	for (size_t i = 0; i < SWStateMachine::Array.size(); ++i) {
 		if (auto& pMachine = SWStateMachine::Array[i]) {
+			pMachine->Update();
 
-			if(!pMachine->Finished()){
-				pMachine->Update();
-			} else {
-				//Debug::Log("%s - [%s : %d] Finished , removing\n", pMachine->GetIdentifierStrings() , pMachine->Super->get_ID() , i);
-				SWStateMachine::Array.erase(SWStateMachine::Array.begin() + i);
-			}
+			if (pMachine->Finished())
+				SWStateMachine::Array.erase(SWStateMachine::Array.begin() + i, SWStateMachine::Array.end());
 		}
 	}
 }
 
-void SWStateMachine::PointerGotInvalid(void* ptr, bool remove)
+void SWStateMachine::PointerGotInvalid(AbstractClass* ptr, bool remove)
 {
 	for (auto& Machine : SWStateMachine::Array) {
 		if(Machine) {

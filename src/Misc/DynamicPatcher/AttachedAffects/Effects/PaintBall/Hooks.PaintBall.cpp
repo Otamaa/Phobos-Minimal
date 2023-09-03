@@ -19,7 +19,7 @@ DEFINE_HOOK(0x73C15F, UnitClass_DrawVXL_Colour, 0x7)
 //	GET(AnimClass*, pThis, ESI);
 //	GET(BuildingClass*, pBuilding, EAX);
 //
-//	if (!pBuilding) {		
+//	if (!pBuilding) {
 //		R->EAX(AnimExt::ExtMap.Find(pThis)->ParentBuilding);
 //	}
 //
@@ -97,7 +97,7 @@ DEFINE_HOOK(0x706640, TechnoClass_DrawVXL_Colour, 0x5)
 {
 	GET(TechnoClass* const, pOwnerObject, ECX);
 
-	if (Is_Building(pOwnerObject))
+	if (pOwnerObject->WhatAmI() == BuildingClass::AbsID)
 	{
 		auto pExt = TechnoExt::ExtMap.Find(pOwnerObject);
 

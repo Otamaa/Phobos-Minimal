@@ -28,7 +28,7 @@ public:
 	}
 
 	virtual int End() { return(Flush()); }
-	
+
 	virtual void Put_To(Pipe* pPipe)
 	{
 		if (this->ChainTo != pPipe)
@@ -73,7 +73,7 @@ class BufferPipe : public Pipe
 {
 public:
 	explicit BufferPipe() = delete;
-	explicit BufferPipe(void* pBuffer, size_t nLength) : Pipe {}, Buffer { pBuffer,nLength }
+	explicit BufferPipe(void* pBuffer, int nLength) : Pipe {}, Buffer { pBuffer,nLength }
 	{
 	}
 
@@ -113,7 +113,7 @@ class LCWPipe : public Pipe
 {
 public:
 	explicit LCWPipe() = delete;
-	explicit LCWPipe(BOOL bControl, size_t nBlockSize) : Pipe {}
+	explicit LCWPipe(BOOL bControl, int nBlockSize) : Pipe {}
 	{
 		this->Control = bControl;
 		this->SafetyMargin = nBlockSize / 0x80 + 1;

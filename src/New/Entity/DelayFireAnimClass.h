@@ -40,7 +40,7 @@
 //
 //	static void SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo);
 //
-//	virtual void InvalidatePointer(void* ptr, bool bDetach);
+//	virtual void InvalidatePointer(AbstractClass* ptr, bool bDetach);
 //	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 //	bool Save(PhobosStreamWriter& Stm) const;
 //

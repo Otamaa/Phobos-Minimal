@@ -71,8 +71,8 @@ public:
 
 	explicit DirStruct(const DirType dir) noexcept : Raw { 0 }
 	{ SetDir(dir); }
-	
-	explicit DirStruct(const DirType8 face) noexcept : 
+
+	explicit DirStruct(const DirType8 face) noexcept :
 		Raw { ((unsigned short)((unsigned char)face << 13 )) }
 	{ }
 
@@ -154,7 +154,7 @@ public:
 		if (bit <= 16u)
 			Raw = ((unsigned short)TranslateFixedPoint::Normal(bit, 16u, val));
 	}
-	
+
 	// If you want to divide it into 32 facings, as 32 has 5 bits
 	// then you should type <5> here.
 	// So does the others.

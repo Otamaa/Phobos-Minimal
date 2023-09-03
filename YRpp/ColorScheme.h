@@ -85,10 +85,10 @@ public:
 	void CreateLightConvert(const BytePalette& Pal1, const BytePalette& Pal2, const ColorStruct& BaseColor) const
 		{ JMP_THIS(0x68C860); }
 
-	bool IsSame(const ColorScheme* pColor) const 
+	bool IsSame(const ColorScheme* pColor) const
 		{  JMP_THIS(0x68C960); }
 
-	bool IsDifferent(const ColorScheme* pColor) const 
+	bool IsDifferent(const ColorScheme* pColor) const
 		{  JMP_THIS(0x68C990); }
 
 	//Constructor, Destructor

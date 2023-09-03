@@ -211,6 +211,29 @@ std::string GeneralUtils::ApplyTheaterSuffixToString(const std::string& str)
 }
 
 #pragma region Otamaa
+
+AnimTypeClass* GeneralUtils::GetAnimFacingFromVector(TechnoClass* pFirer, const Iterator<AnimTypeClass*> iter)
+{
+	return iter.GetItemAtOrDefault(GeneralUtils::GetAnimIndexFromFacing(pFirer, iter.size()),nullptr);
+}
+
+const int GeneralUtils::GetAnimIndexFromFacing(TechnoClass* pFirer, int nVectorSize)
+{
+	if (!pFirer || nVectorSize <= 0)
+		return -1;
+
+	int idx = 0;
+	int highest = Conversions::Int2Highest(nVectorSize);
+
+	if (highest >= 3)
+	{
+		unsigned int offset = 1U << (highest - 3);
+		idx = TranslateFixedPoint::Normal(16, highest, static_cast<WORD>(pFirer->GetRealFacing().Raw), offset);
+	}
+
+	return idx;
+}
+
 const int GeneralUtils::GetAnimIndexFromFacing(FootClass* pFoot, int nVectorSize)
 {
 	if (pFoot) {

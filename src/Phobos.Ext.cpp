@@ -133,12 +133,12 @@ struct ClearAction
 };
 
 // calls:
-// T::PointerGotInvalid(void*, bool)
-// T::ExtMap.PointerGotInvalid(void*, bool)
+// T::PointerGotInvalid(AbstractClass*, bool)
+// T::ExtMap.PointerGotInvalid(AbstractClass*, bool)
 struct InvalidatePointerAction
 {
 	template <typename T>
-	static void Process(void* ptr, bool removed)
+	static void Process(AbstractClass* ptr, bool removed)
 	{
 		if constexpr (HasExtMap<T>)
 		{
@@ -218,7 +218,7 @@ struct TypeRegistry
 		dispatch_void_mass_action<ClearAction>();
 	}
 
-	__forceinline static void InvalidatePointer(void* ptr, bool removed)
+	__forceinline static void InvalidatePointer(AbstractClass* ptr, bool removed)
 	{
 		dispatch_void_mass_action<InvalidatePointerAction>(ptr, removed);
 	}
@@ -259,7 +259,7 @@ private:
 
 HRESULT Phobos::SaveGameDataAfter(IStream* pStm)
 {
-	//Debug::Log("Finished saving the game\n");
+	Debug::Log("Finished saving the game\n");
 	return S_OK;
 }
 
@@ -267,7 +267,7 @@ void Phobos::LoadGameDataAfter(IStream* pStm)
 {
 	//clear the loadgame flag
 	Phobos::Otamaa::DoingLoadGame = false;
-	//Debug::Log("Finished loading the game\n");
+	Debug::Log("Finished loading the game\n");
 }
 
 #pragma region Hooks
@@ -356,6 +356,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	WeaponTypeExt::ExtMap.Clear();
 	WarheadTypeExt::ExtMap.Clear();
 	SuperWeaponSidebar::Clear();
+	FoggedObject::FoggedObjects.Clear();
 
 	return 0;
 }
@@ -455,6 +456,8 @@ DEFINE_HOOK(0x67D32C, SaveGame_Phobos_Global, 0x5)
 	if (!ret)
 		Debug::Log("[Phobos] Global SaveGame Failed !\n");
 
+	FoggedObject::SaveGlobal(pStm);
+
 	return 0;
 }
 
@@ -489,6 +492,8 @@ DEFINE_HOOK(0x67E826, LoadGame_Phobos_Global, 0x6)
 
 	if (!ret)
 		Debug::Log("[Phobos] Global LoadGame Failed !\n");
+
+	FoggedObject::LoadGlobal(pStm);
 
 	return 0;
 }

@@ -36,16 +36,16 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		void InvalidatePointer(void* ptr, bool bRemoved);
+		void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 
-		static bool InvalidateIgnorable(void* ptr) {
+		static bool InvalidateIgnorable(AbstractClass* ptr) {
 
-			switch (GetVtableAddr(ptr))
+			switch (ptr->WhatAmI())
 			{
-			case AircraftClass::vtable:
-			case BuildingClass::vtable:
-			case InfantryClass::vtable:
-			case UnitClass::vtable:
+			case AircraftClass::AbsID:
+			case BuildingClass::AbsID:
+			case InfantryClass::AbsID:
+			case UnitClass::AbsID:
 				return false;
 			}
 

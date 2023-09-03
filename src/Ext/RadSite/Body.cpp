@@ -7,7 +7,7 @@
 #include <Utilities/Macro.h>
 #include <Notifications.h>
 
-void RadSiteExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
+void RadSiteExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(TechOwner, ptr , bRemoved);
 	AnnounceInvalidPointer(HouseOwner, ptr);

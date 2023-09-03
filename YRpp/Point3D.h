@@ -21,28 +21,28 @@ public:
 	bool operator==(const Point3D& that) const { return X == that.X && Y == that.Y && Z == that.Z; }
 	bool operator!=(const Point3D& that) const { return X != that.X && Y != that.Y && Z != that.Z; }
 
-	Point3D operator+() const { return Point3D{+X, +Y, +Z};}
-	Point3D operator-() const { return Point3D{-X, -Y, -Z};}
+	Point3D operator+() const { return {+X, +Y, +Z};}
+	Point3D operator-() const { return {-X, -Y, -Z};}
 
-	Point3D operator+(const Point3D& that) const { return Point3D{X + that.X, Y + that.Y, Z + that.Z};}
+	Point3D operator+(const Point3D& that) const { return {X + that.X, Y + that.Y, Z + that.Z};}
 	Point3D& operator+=(const Point3D& that) { X += that.X; Y += that.Y; Z += that.Z; return *this; }
 
-	Point3D operator-(const Point3D& that) const { return Point3D{X - that.X, Y - that.Y, Z - that.Z};}
+	Point3D operator-(const Point3D& that) const { return {X - that.X, Y - that.Y, Z - that.Z};}
 	Point3D& operator-=(const Point3D& that) { X -= that.X; Y -= that.Y; Z -= that.Z; return *this; }
 
-	Point3D operator*(const Point3D& that) const { return Point3D{X * that.X, Y * that.Y, Z * that.Z};}
+	Point3D operator*(const Point3D& that) const { return {X * that.X, Y * that.Y, Z * that.Z};}
 	Point3D operator*=(const Point3D& that) { X *= that.X; Y *= that.Y; Z *= that.Z; return *this; }
-	Point3D operator*(int factor) const { return Point3D{X * factor, Y * factor, Z * factor};}
+	Point3D operator*(int factor) const { return {X * factor, Y * factor, Z * factor};}
 	Point3D& operator*=(int factor) { X *= factor; Y *= factor; Z *= factor; return *this; }
 
-	Point3D operator%(const Point3D& that) const { return Point3D{X / that.X, Y / that.Y, Z / that.Z};}
+	Point3D operator%(const Point3D& that) const { return {X / that.X, Y / that.Y, Z / that.Z};}
 	Point3D operator%=(const Point3D& that) { X /= that.X; Y /= that.Y; Z /= that.Z; return *this; }
-	Point3D operator%(int factor) const { return Point3D{X / factor, Y / factor, Z / factor};}
+	Point3D operator%(int factor) const { return {X / factor, Y / factor, Z / factor};}
 	Point3D& operator%=(int factor) { X /= factor; Y /= factor; Z /= factor; return *this; }
 
-	Point3D operator&(const Point3D& that) const { return Point3D{X & that.X, Y & that.Y, Z & that.Z};}
+	Point3D operator&(const Point3D& that) const { return {X & that.X, Y & that.Y, Z & that.Z};}
 	Point3D operator&=(const Point3D& that) { X &= that.X; Y &= that.Y; Z &= that.Z; return *this; }
-	Point3D operator&(int factor) const { return Point3D{X & factor, Y & factor, Z & factor};}
+	Point3D operator&(int factor) const { return {X & factor, Y & factor, Z & factor};}
 	Point3D& operator&=(int factor) { X &= factor; Y &= factor; Z &= factor; return *this; }
 
 	inline bool IsValid() const { return *this != (Point3D::Empty); }

@@ -25,6 +25,8 @@
 #include <Notifications.h>
 #include <algorithm>
 
+DEFINE_DISABLE_HOOK(0x763226, WaveClass_DTOR_ares)
+
 namespace AresCreateWave
 {
 	WaveColorData TempColor;
@@ -191,7 +193,7 @@ DEFINE_OVERRIDE_HOOK(0x75F38F, WaveClass_DamageCell_SelectWeapon, 0x6)
 }
 
  /*
- *	YES , this fuckery is removing WaveClass::WaveAI function call for later , replace it with boolean , 
+ *	YES , this fuckery is removing WaveClass::WaveAI function call for later , replace it with boolean ,
 	so it can be done after all data set is completed !
  */
 DEFINE_HOOK(0x75EBC5, WaveClass_CTOR_AllowWaveUpdate, 0x7)
@@ -202,7 +204,7 @@ DEFINE_HOOK(0x75EBC5, WaveClass_CTOR_AllowWaveUpdate, 0x7)
 }
 
 /*
-	FUCKING WW DOING THESE INSIDE THE CONSTRUCTOR ,.. 
+	FUCKING WW DOING THESE INSIDE THE CONSTRUCTOR ,..
 	that mean some Ext variable not yer executed , and when i try to use the data it wont work
 	need to move those to separate function after data set done ,..
 */
@@ -326,7 +328,7 @@ DEFINE_HOOK(0x75F415, WaveClass_DamageCell_FixNoHouseOwner, 0x6)
 	GET_STACK(int, nDamage, STACK_OFFS(0x18, 0x4));
 	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0x18, 0x8));
 
-	if (const auto pTechnoVictim = generic_cast<TechnoClass*>(pVictim)){ 
+	if (const auto pTechnoVictim = generic_cast<TechnoClass*>(pVictim)){
 		if (pTechnoVictim->IsSinking || pTechnoVictim->IsCrashing)
 			return 0x75F432;
 

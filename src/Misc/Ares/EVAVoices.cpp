@@ -108,7 +108,7 @@ DEFINE_OVERRIDE_HOOK(0x7531CF, VoxClass_DeleteAll, 5)
 	while(Array.Count) {
 		// destroy backwards instead of forwards
 		auto const pVox = static_cast<VoxClass2*>(Array[Array.Count - 1]);
-		GameDelete(pVox);
+		GameDelete<true, false>(pVox);
 	}
 
 	return 0x753240;

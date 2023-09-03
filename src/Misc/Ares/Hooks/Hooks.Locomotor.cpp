@@ -24,6 +24,9 @@
 #include <Locomotor/JumpjetLocomotionClass.h>
 #include <Locomotor/HoverLocomotionClass.h>
 
+DEFINE_DISABLE_HOOK(0x4B5F9E, DropPodLocomotionClass_ILocomotion_Process_Report_ares)
+DEFINE_DISABLE_HOOK(0x4B619F, DropPodLocomotionClass_ILocomotion_MoveTo_AtmosphereEntry_ares)
+
 DEFINE_OVERRIDE_HOOK(0x718275 ,TeleportLocomotionClass_MakeRoom, 9)
 {
 	LEA_STACK(CoordStruct*, pCoord, 0x3C);
@@ -135,8 +138,8 @@ DEFINE_OVERRIDE_HOOK(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_Update
 			// update the target's position, considering units in tunnels
 			auto crd = pTarget->GetCoords();
 
-			const auto abs = GetVtableAddr(pTarget);
-			if (abs == UnitClass::vtable || abs == InfantryClass::vtable) {
+			const auto abs = pTarget->WhatAmI();
+			if (abs == UnitClass::AbsID || abs == InfantryClass::AbsID) {
 				const auto pFoot = static_cast<FootClass* const>(pObject);
 				if (pFoot->TubeIndex >= 0) {
 					crd = pFoot->CurrentMechPos;

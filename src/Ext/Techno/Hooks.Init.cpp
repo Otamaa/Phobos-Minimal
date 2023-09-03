@@ -20,12 +20,16 @@ DEFINE_HOOK(0x6F42ED, TechnoClass_Init_Early, 0xA)
 	if (!pType)
 		return 0x0;
 
+	if (!pType->Insignificant && !pType->DontScore && pThis->Owner) {
+		HouseExt::ExtMap.Find(pThis->Owner)->LimboTechno.push_back(pThis);
+	}
+
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
 
-	AircraftDiveFunctional::Init(pExt, pTypeExt);
+	//AircraftDiveFunctional::Init(pExt, pTypeExt);
 
-	if (Is_Aircraft(pThis))
+	if (pTypeExt->AttachtoType == AircraftTypeClass::AbsID)
 	{
 		if (pTypeExt->MyFighterData.Enable)
 		{

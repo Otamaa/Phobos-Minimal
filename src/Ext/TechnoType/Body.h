@@ -62,7 +62,7 @@ public:
 #endif
 
 	public:
-
+		AbstractType AttachtoType { AbstractType::None };
 		Valueable<bool> HealthBar_Hide { false };
 		Valueable<CSFText> UIDescription {};
 		Valueable<bool> LowSelectionPriority { false };
@@ -120,6 +120,7 @@ public:
 		Valueable<int> Death_Countdown { 0 };
 		Valueable<KillMethod> Death_Method { KillMethod::Explode };
 		Valueable<bool> Death_WithMaster { false };
+		Valueable<bool> Death_IfChangeOwnership { false };
 
 		ValueableVector<TechnoTypeClass*> AutoDeath_Nonexist {};
 		Valueable<AffectedHouse> AutoDeath_Nonexist_House { AffectedHouse::Owner };
@@ -385,6 +386,7 @@ public:
 
 		ValueableIdx<VoxClass> Eva_Complete { -1 };
 		ValueableIdx<VocClass> VoiceCreate { -1 };
+		Valueable<bool> VoiceCreate_Instant { false };
 		Valueable<bool>CreateSound_Enable { true };
 
 		Valueable<bool> SlaveFreeSound_Enable { true };
@@ -590,6 +592,12 @@ public:
 		Valueable<double> ForceShield_Modifier { 1.0 };
 		Valueable<int> Survivors_PilotCount { -1 }; //!< Defines the number of pilots inside this vehicle if Crewed=yes; maximum number of pilots who can survive. Defaults to 0 if Crewed=no; defaults to 1 if Crewed=yes. // NOTE: Flag in INI is called Survivor.Pilots
 		std::vector<InfantryTypeClass*> Survivors_Pilots {};
+
+		Nullable<int> Ammo_AddOnDeploy { };
+		Valueable<int> Ammo_AutoDeployMinimumAmount { -1 };
+		Valueable<int> Ammo_AutoDeployMaximumAmount { -1 };
+		Valueable<int> Ammo_DeployUnlockMinimumAmount { -1 };
+		Valueable<int> Ammo_DeployUnlockMaximumAmount { -1 };
 
 		// berserk
 		Nullable<double> BerserkROFMultiplier { };
@@ -856,6 +864,9 @@ public:
 		const char* GetSelectionGroupID() const;
 
 		bool IsGenericPrerequisite() const;
+
+		void ApplyTurretOffset(Matrix3D* mtx, double factor);
+
 	private:
 		template <typename T>
 		void Serialize(T& Stm);

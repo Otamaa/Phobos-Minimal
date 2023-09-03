@@ -293,7 +293,7 @@ void VerticalLaserClass::OnUpdateAll()
 	}
 }
 
-void VerticalLaserClass::PointerGotInvalid(void* ptr, bool bDetach) {
+void VerticalLaserClass::PointerGotInvalid(AbstractClass* ptr, bool bDetach) {
 
 	for (auto const& pData : Array) {
 		if (pData->Owner == ptr)

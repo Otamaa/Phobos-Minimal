@@ -19,6 +19,9 @@
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/BuildingType/Body.h>
 
+DEFINE_DISABLE_HOOK(0x46A5B2, BulletClass_Shrapnel_WeaponType1_ares)
+DEFINE_DISABLE_HOOK(0x46AA27, BulletClass_Shrapnel_WeaponType2_ares)
+
 DEFINE_OVERRIDE_HOOK(0x469467, BulletClass_DetonateAt_CanTemporalTarget, 0x5)
 {
 	GET(TechnoClass* const, Target, ECX);
@@ -46,11 +49,11 @@ DEFINE_OVERRIDE_HOOK(0x4692A2, BulletClass_DetonateAt_RaiseAttackedByHouse, 0x6)
 DEFINE_OVERRIDE_HOOK(0x4693B0, BulletClass_DetonateAt_Overpower, 0x6)
 {
 	GET(TechnoClass* const, pT, ECX);
-	switch (GetVtableAddr(pT))
+	switch (pT->WhatAmI())
 	{
-	case InfantryClass::vtable:
-	case UnitClass::vtable:
-	case BuildingClass::vtable:
+	case InfantryClass::AbsID:
+	case UnitClass::AbsID:
+	case BuildingClass::AbsID:
 		return 0x4693BC;
 	default:
 		return 0x469AA4;
@@ -426,6 +429,8 @@ DEFINE_HOOK(0x46837F, BulletClass_DrawSHP_SetAnimPalette, 6)
 	return 0x0;
 }
 
+#include <Ext/Techno/Body.h>
+
 DEFINE_OVERRIDE_HOOK(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
 {
 	enum { Continue = 0x469D06, NukeWarheadExtras = 0x469CAF };
@@ -435,8 +440,16 @@ DEFINE_OVERRIDE_HOOK(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
 	LEA_STACK(CoordStruct*, XYZ, 0x64);
 
 	const auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+	bool createdAnim = false;
 
-	if (AnimClass* Anim = GameCreate<AnimClass>(AnimType, XYZ, 0, 1, (AnimFlag)0x2600, -15, false))
+	int creationInterval = pWarheadExt->Splashed ?
+			pWarheadExt->SplashList_CreationInterval : pWarheadExt->AnimList_CreationInterval;
+
+	int* remainingInterval = &pWarheadExt->RemainingAnimCreationInterval;
+	if (creationInterval > 0 && pThis->Owner)
+			remainingInterval = &TechnoExt::ExtMap.Find(pThis->Owner)->WHAnimRemainingCreationInterval;
+
+	if (creationInterval < 1 || *remainingInterval <= 0)
 	{
 		HouseClass* pInvoker = nullptr ;
 		HouseClass* pVictim = nullptr;
@@ -447,29 +460,49 @@ DEFINE_OVERRIDE_HOOK(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
 
 		if (const auto pTech = pThis->Owner) {
 			pInvoker = pThis->Owner->GetOwningHouse();
-			if (auto const pAnimExt = AnimExt::ExtMap.Find(Anim))
-				pAnimExt->Invoker = pTech;
 
 		} else {
 			if (auto const pBulletExt = BulletExt::ExtMap.Find(pThis))
 				pInvoker = pBulletExt->Owner;
 		}
 
-		if (Anim->Type->MakeInfantry > -1)
-		{
-			AnimExt::SetAnimOwnerHouseKind(Anim, pInvoker, pVictim);
-		}
-		else
-		{
-			AnimExt::SetAnimOwnerHouseKind(Anim, pInvoker, pVictim, pInvoker);
-		}
+		auto types = make_iterator_single(AnimType);
 
-	}else if (pWarheadExt->IsNukeWarhead.Get())
+		if (pWarheadExt->SplashList_CreateAll && pWarheadExt->Splashed)
+			types = pWarheadExt->SplashList.GetElements(RulesClass::Instance->SplashList);
+		else if (pWarheadExt->AnimList_CreateAll && !pWarheadExt->Splashed)
+			types = pWarheadExt->OwnerObject()->AnimList;
+
+			for (auto pType : types)
+			{
+				if (!pType)
+					continue;
+
+					if (auto const pAnim = GameCreate<AnimClass>(pType, XYZ, 0, 1, (AnimFlag)0x2600, -15, false))
+					{
+						createdAnim = true;
+
+						if (const auto pTech = pThis->Owner) {
+							if (auto const pAnimExt = AnimExt::ExtMap.Find(pAnim))
+								pAnimExt->Invoker = pTech;
+						}
+
+						if (pAnim->Type->MakeInfantry > -1)
+						{
+							AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pVictim);
+						}
+						else
+						{
+							AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pVictim, pInvoker);
+						}
+					}
+			}
+	}else
 	{
-		return NukeWarheadExtras;
+		(*remainingInterval)--;
 	}
 
-	return Continue;
+	return (createdAnim && pWarheadExt->IsNukeWarhead.Get()) ? NukeWarheadExtras : Continue;
 }
 
 DEFINE_OVERRIDE_HOOK(0x46670F, BulletClass_Update_PreImpactAnim, 6)

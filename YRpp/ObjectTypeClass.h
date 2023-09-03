@@ -150,10 +150,18 @@ public:
 	PROTECTED_PROPERTY(BYTE, align_23E[2]);
 	int            LineTrailColorDecrement;
 
-	IndexClass<MainVoxelIndexKey, VoxelCacheStruct*> VoxelMainCache;
-	IndexClass<TurretWeaponVoxelIndexKey, VoxelCacheStruct*> VoxelTurretWeaponCache;
-	IndexClass<ShadowVoxelIndexKey, VoxelCacheStruct*> VoxelShadowCache;
-	IndexClass<TurretBarrelVoxelIndexKey, VoxelCacheStruct*> VoxelTurretBarrelCache;
+	union
+	{
+		struct VoxelCaches
+		{
+			IndexClass<MainVoxelIndexKey, VoxelCacheStruct*> Main;
+			IndexClass<TurretWeaponVoxelIndexKey, VoxelCacheStruct*> TurretWeapon;
+			IndexClass<ShadowVoxelIndexKey, VoxelCacheStruct*> Shadow;
+			IndexClass<TurretBarrelVoxelIndexKey, VoxelCacheStruct*> TurretBarrel;
+		} VoxelCaches;
+
+		IndexClass<int, int> VoxelCaches_[4];
+	};
 };
 //#pragma pack(pop)
 

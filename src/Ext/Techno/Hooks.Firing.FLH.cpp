@@ -37,7 +37,7 @@ DEFINE_HOOK(0x6F3B37, TechnoClass_Transform_6F3AD0_BurstFLH_1, 0x7)
 
 	std::pair<bool, CoordStruct> nResult = TechnoExt::GetBurstFLH(pThis, weaponIndex);
 
-	if (!nResult.first && Is_Infantry(pThis)) {
+	if (!nResult.first && pThis->WhatAmI() == InfantryClass::AbsID) {
 		nResult = TechnoExt::GetInfantryFLH(reinterpret_cast<InfantryClass*>(pThis), weaponIndex);
 	}
 

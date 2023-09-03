@@ -94,7 +94,7 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, bool
 		pTeamData->TeamLeader = ScriptExt::FindTheTeamLeader(pTeam);
 	}
 
-	if (!pTeamData->TeamLeader || !Is_Techno(pTeamData->TeamLeader) || bAircraftsWithoutAmmo)
+	if (!pTeamData->TeamLeader || bAircraftsWithoutAmmo)
 	{
 
 		pTeamData->IdxSelectedObjectFromAIList = -1;
@@ -128,7 +128,7 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, bool
 	TechnoTypeClass * pLeaderUnitType = pTeamData->TeamLeader->GetTechnoType();
 	TechnoClass* pFocus = abstract_cast<TechnoClass*>(pTeam->Focus);
 
-	if ((!pFocus || !Is_Techno(pFocus)) && !bAircraftsWithoutAmmo)
+	if (!pFocus && !bAircraftsWithoutAmmo)
 	{
 		// This part of the code is used for picking a new target.
 		int targetMask = scriptArgument;

@@ -1387,6 +1387,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_AnyInhibitor.Read(exINI, pSection, "SW.AnyInhibitor");
 	this->SW_Designators.Read(exINI, pSection, "SW.Designators");
 	this->SW_AnyDesignator.Read(exINI, pSection, "SW.AnyDesignator");
+	this->ShowDesignatorRange.Read(exINI, pSection, "ShowDesignatorRange");
 
 	//Enemy Inhibitors
 	this->SW_Suppressors.Read(exINI, pSection, "SW.Suppressors");
@@ -1680,7 +1681,7 @@ void SWTypeExt::ExtData::ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, co
 	if (!MapClass::Instance->IsWithinUsableArea(nDest))
 		Debug::Log("SW[%s] Lauch Outside Usable Map Area [%d . %d]! \n", this->Get()->ID , nDest.X , nDest.Y);
 
-	if (!pFirer || !Is_Techno(pFirer))
+	if (!pFirer)
 		Debug::Log("SW[%s] ApplyDetonate without Firer!\n", this->Get()->ID);
 
 	if (const auto pWeapon = this->Detonate_Weapon.Get())
@@ -2040,6 +2041,7 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SW_AnyInhibitor)
 		.Process(this->SW_Designators)
 		.Process(this->SW_AnyDesignator)
+		.Process(this->ShowDesignatorRange)
 		.Process(this->SW_RangeMinimum)
 		.Process(this->SW_RangeMaximum)
 		.Process(this->SW_RequiredHouses)
@@ -2652,17 +2654,17 @@ void SuperWeaponSidebar::DrawBordeBar(BarPos pos, Point2D* pLoc)
 
 SWTypeExt::ExtContainer SWTypeExt::ExtMap;
 
-void SWTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved)
+void SWTypeExt::ExtContainer::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(SWTypeExt::TempSuper, ptr);
 	AnnounceInvalidPointer(SWTypeExt::LauchData, ptr);
 }
 
-bool SWTypeExt::ExtContainer::InvalidateIgnorable(void* ptr)
+bool SWTypeExt::ExtContainer::InvalidateIgnorable(AbstractClass* ptr)
 {
-	switch (GetVtableAddr(ptr))
+	switch (ptr->WhatAmI())
 	{
-	case SuperClass::vtable:
+	case SuperClass::AbsID:
 		return false;
 	}
 

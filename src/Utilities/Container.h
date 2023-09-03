@@ -15,6 +15,7 @@
 #include "Stream.h"
 #include "Swizzle.h"
 
+class AbstractClass;
 static constexpr size_t AbstractExtOffset = 0x18;
 
 template <class T>
@@ -32,15 +33,15 @@ concept CanLoadFromINIFile =
 
 template <typename T>
 concept PointerInvalidationSubscribable =
-	requires (void* ptr, bool removed) { T::InvalidatePointer(ptr, removed); };
+	requires (AbstractClass* ptr, bool removed) { T::InvalidatePointer(ptr, removed); };
 
 template <typename T>
 concept ThisPointerInvalidationSubscribable =
-	requires (T t, void* ptr, bool removed) { t.InvalidatePointer(ptr, removed); };
+	requires (T t, AbstractClass* ptr, bool removed) { t.InvalidatePointer(ptr, removed); };
 
 template <typename T>
 concept PointerInvalidationIgnorAble =
-	requires (void* ptr) { T::InvalidateIgnorable(ptr); };
+	requires (AbstractClass* ptr) { T::InvalidateIgnorable(ptr); };
 
 //template <typename T>
 //concept ThisPointerInvalidationIgnorAble =
@@ -295,10 +296,10 @@ public:
 		//}
 	}
 
-	void InvalidatePointerFor(base_type_ptr key, void* const ptr, bool bRemoved)
+	void InvalidatePointerFor(base_type_ptr key, AbstractClass* const ptr, bool bRemoved)
 	{
 		if constexpr (ThisPointerInvalidationSubscribable<T>){
-			if (Phobos::Otamaa::ExeTerminated)
+			if (Phobos::Otamaa::ExeTerminated || !ptr)
 				return;
 
 			extension_type_ptr Extptr = this->TryFind(key);

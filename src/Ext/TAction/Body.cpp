@@ -220,11 +220,8 @@ bool TActionExt::DrawAnimWithin(TActionClass* pThis, HouseClass* pHouse, ObjectC
 		{
 			do
 			{
-				Vector3D<float> vect { v29 * 1.0f, nDimension * 1.0f, 0.0f };
-				Vector3D<float> Vec3Dresult {};
-				Matrix3D::MatrixMultiply(Vec3Dresult, &TacticalClass::Instance->IsoTransformMatrix, vect);
-				auto nCoord = CoordStruct { (int)Vec3Dresult.X , (int)Vec3Dresult.Y , 0 };
-				GameCreate<AnimClass>(pAnimType, nCoord);
+				Vector3D<float> Vec3Dresult = Matrix3D::MatrixMultiply(TacticalClass::Instance->IsoTransformMatrix, { v29 * 1.0f, nDimension * 1.0f, 0.0f });
+				GameCreate<AnimClass>(pAnimType, CoordStruct{ (int)Vec3Dresult.X , (int)Vec3Dresult.Y , 0 });
 				nDimension += nShpWidth_;
 			}
 			while (nDimension < v33);
@@ -349,9 +346,7 @@ CoordStruct* GetSomething(CoordStruct* a1)
 	auto v2 = 30 * MapRect.Height;
 	auto vect_X = ScenarioClass::Instance->Random.RandomFromMax((60 * MapRect.Width) - v1 / 2);
 	auto vect_Y = (v2 / 2 + ScenarioClass::Instance->Random.RandomFromMax(v2));
-	Vector3D<float> vect { (float)vect_X, (float)vect_Y, 0.0f };
-	Vector3D<float> Vec3Dresult { };
-	Matrix3D::MatrixMultiply(Vec3Dresult, &TacticalClass::Instance->IsoTransformMatrix, vect);
+	Vector3D<float> Vec3Dresult = Matrix3D::MatrixMultiply(TacticalClass::Instance->IsoTransformMatrix, { (float)vect_X, (float)vect_Y, 0.0f });
 	a1->Z = 0;
 	a1->X = (int)Vec3Dresult.X;
 	a1->Y = (int)Vec3Dresult.Y;
@@ -450,7 +445,9 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 		break;
 	case PhobosTriggerAction::SetNextMission:
 		ret = TActionExt::SetNextMission(pThis, pHouse, pObject, pTrigger, args.plocation);
-		break;;
+		break;
+	case PhobosTriggerAction::DumpVariables:
+		return TActionExt::DumpVariables(pThis, pHouse, pObject, pTrigger, args.plocation);
 	case PhobosTriggerAction::ToggleMCVRedeploy:
 		ret = TActionExt::ToggleMCVRedeploy(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
@@ -1051,6 +1048,28 @@ bool TActionExt::ScoreCampaignTheme(TActionClass* pThis, HouseClass* pHouse, Obj
 bool TActionExt::SetNextMission(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	ScenarioExt::Global()->NextMission = pThis->Text;
+
+	return true;
+}
+
+bool TActionExt::DumpVariables(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const auto fileName = (pThis->Param3 != 0) ? "globals.ini" : "locals.ini";
+	auto pINI = GameCreate<CCINIClass>();
+	auto pFile = GameCreate<CCFileClass>(fileName);
+
+	if (pFile->Exists())
+		pINI->ReadCCFile(pFile);
+	else
+		pFile->CreateFileA();
+
+	const auto variables = ScenarioExt::GetVariables(pThis->Param3 != 0);
+	std::for_each(variables->begin(), variables->end(), [&](const auto& variable) {
+		pINI->WriteInteger(ScenarioClass::Instance()->FileName, variable.second.Name, variable.second.Value, false);
+	});
+
+	pINI->WriteCCFile(pFile);
+	pFile->Close();
 
 	return true;
 }

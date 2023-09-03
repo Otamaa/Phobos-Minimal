@@ -139,67 +139,47 @@ int HouseClass::CountOwnedNow(const TechnoTypeClass* const pItem) const {
 	case AbstractType::BuildingType:
 		return this->CountOwnedNow(
 			static_cast<BuildingTypeClass const*>(pItem));
-
 	case AbstractType::UnitType:
 		return this->CountOwnedNow(
 			static_cast<UnitTypeClass const*>(pItem));
-
 	case AbstractType::InfantryType:
 		return this->CountOwnedNow(
 			static_cast<InfantryTypeClass const*>(pItem));
-
 	case AbstractType::AircraftType:
 		return this->CountOwnedNow(
 			static_cast<AircraftTypeClass const*>(pItem));
-
 	default:
-		__assume(0);
+		return 0;
 	}
 }
 
-int HouseClass::CountOwnedAndPresent(const TechnoTypeClass* const pItem) const {
+int HouseClass::CountOwnedAndPresent(TechnoTypeClass* pItem) const {
 	switch(pItem->WhatAmI()) {
 	case AbstractType::BuildingType:
-		return this->CountOwnedAndPresent(
-			static_cast<BuildingTypeClass const*>(pItem));
-
+		return this->CountOwnedAndPresent((BuildingTypeClass*)pItem);
 	case AbstractType::UnitType:
-		return this->CountOwnedAndPresent(
-			static_cast<UnitTypeClass const*>(pItem));
-
+		return this->CountOwnedAndPresent((UnitTypeClass*)pItem);
 	case AbstractType::InfantryType:
-		return this->CountOwnedAndPresent(
-			static_cast<InfantryTypeClass const*>(pItem));
-
+		return this->CountOwnedAndPresent((InfantryTypeClass*)pItem);
 	case AbstractType::AircraftType:
-		return this->CountOwnedAndPresent(
-			static_cast<AircraftTypeClass const*>(pItem));
-
+		return this->CountOwnedAndPresent((AircraftTypeClass*)pItem);
 	default:
-		__assume(0);
+		return 0;
 	}
 }
 
-int HouseClass::CountOwnedEver(TechnoTypeClass const* const pItem) const {
+int HouseClass::CountOwnedEver(TechnoTypeClass* pItem) const {
 	switch(pItem->WhatAmI()) {
 	case AbstractType::BuildingType:
-		return this->CountOwnedEver(
-			static_cast<BuildingTypeClass const*>(pItem));
-
+		return this->CountOwnedEver((BuildingTypeClass*)pItem);
 	case AbstractType::UnitType:
-		return this->CountOwnedEver(
-			static_cast<UnitTypeClass const*>(pItem));
-
+		return this->CountOwnedEver((UnitTypeClass*)pItem);
 	case AbstractType::InfantryType:
-		return this->CountOwnedEver(
-			static_cast<InfantryTypeClass const*>(pItem));
-
+		return this->CountOwnedEver((InfantryTypeClass*)pItem);
 	case AbstractType::AircraftType:
-		return this->CountOwnedEver(
-			static_cast<AircraftTypeClass const*>(pItem));
-
+		return this->CountOwnedEver((AircraftTypeClass*)pItem);
 	default:
-		__assume(0);
+		return 0;
 	}
 }
 

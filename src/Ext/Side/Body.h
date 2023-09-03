@@ -62,6 +62,8 @@ public:
 #else
 		ValueableIdx<int> EVAIndex { -1 };
 #endif
+		Valueable<int> BriefingTheme { -1 };;
+
 		ExtData(SideClass* OwnerObject) : Extension<SideClass>(OwnerObject)
 		{ }
 

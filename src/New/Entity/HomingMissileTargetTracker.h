@@ -18,7 +18,7 @@ public:
 	void AI();
 	AbstractClass* AsAbstract() const;
 
-	void InvalidatePointer(void* ptr, bool bDetach);
+	void InvalidatePointer(AbstractClass* ptr, bool bDetach);
 
 	bool Load(PhobosStreamReader& stm, bool registerForChange);
 	bool Save(PhobosStreamWriter& stm) const;

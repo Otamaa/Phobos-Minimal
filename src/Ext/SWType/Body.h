@@ -153,6 +153,7 @@ public:
 
 		ValueableVector<TechnoTypeClass*> SW_Designators {};
 		Valueable<bool> SW_AnyDesignator { false };
+		Valueable<bool> ShowDesignatorRange { true };
 
 		//Enemy Inhibitors
 		ValueableVector<TechnoTypeClass*> SW_Suppressors {};
@@ -540,8 +541,8 @@ public:
 		ExtContainer();
 		~ExtContainer();
 
-		static void InvalidatePointer(void* ptr, bool bRemoved);
-		static  bool InvalidateIgnorable(void* ptr);
+		static void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
+		static  bool InvalidateIgnorable(AbstractClass* ptr);
 		static bool LoadGlobals(PhobosStreamReader& Stm);
 		static bool SaveGlobals(PhobosStreamWriter& Stm);
 		static void Clear();

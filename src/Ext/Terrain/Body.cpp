@@ -3,7 +3,7 @@
 #include <Ext/TerrainType/Body.h>
 #include <Ext/Cell/Body.h>
 
-void TerrainExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
+void TerrainExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	if (this->LighSource.get() == ptr) {
 		this->LighSource = nullptr;

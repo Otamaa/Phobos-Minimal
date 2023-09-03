@@ -39,6 +39,7 @@ void CellExt::ExtData::Serialize(T& Stm) {
 
 	Stm
 		.Process(this->Initialized)
+		.Process(this->FoggedObjects)
 		;
 }
 
@@ -50,16 +51,11 @@ CellExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
-/* loading this from save causing performance issues for some reason :s*/
 
 //DEFINE_HOOK(0x47BDA1, CellClass_CTOR, 0x5)
 //{
 //	GET(CellClass*, pItem, ESI);
-////#ifdef ENABLE_NEWHOOKS
-//	CellExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-////#else
-////	CellExt::ExtMap.FindOrAllocate(pItem);
-////#endif
+//	CellExt::ExtMap.Allocate(pItem);
 //	return 0;
 //}
 //

@@ -179,13 +179,14 @@ DEFINE_HOOK(0x4DABBC, ObjectClass_WasFallingDown, 0x6)
 {
 	GET(ObjectClass*, pThis, ESI);
 
-	if (!pThis || pThis->IsFallingDown)
+	if (pThis->IsFallingDown)
 		return 0x0;
 
-	if (Is_Aircraft(pThis) || pThis->AbstractFlags & AbstractFlags::Techno)
+	if (((pThis->AbstractFlags & AbstractFlags::Techno) == AbstractFlags::None) || pThis->WhatAmI() == AircraftClass::AbsID )
 		return 0x0;
 
-	if (auto const pTechno = static_cast<TechnoClass*>(pThis))
+	auto const pTechno = static_cast<TechnoClass*>(pThis);
+
 	{
 		auto const pExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
 

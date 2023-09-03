@@ -138,51 +138,72 @@ DEFINE_HOOK(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 }
 #include <Commands/ToggleDesignatorRange.h>
 
-// PR #1124
-DEFINE_HOOK(0x6DC2BA, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x6)
+DEFINE_HOOK(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 {
-	GET(SuperWeaponTypeClass*, pSuperType, EDI);
-	GET(int, someval, EAX);
+	if (!ToggleDesignatorRangeCommandClass::ShowDesignatorRange || Unsorted::CurrentSWType == -1)
+		return 0;
 
-	R->Stack(0x1A, R->CL());
-	R->Stack(0x15, 0);
-	R->Stack(0x16, 0);
-	R->Stack(0x24, someval);
-
-	const DWORD ret_value = someval <= 0 ? 0x6DC3AB : 0x6DC2D4;
-
-	if (!ToggleDesignatorRangeCommandClass::ShowDesignatorRange)
-		return ret_value;
-
+	const auto pSuperType = SuperWeaponTypeClass::Array()->GetItem(Unsorted::CurrentSWType);
 	const auto pExt = SWTypeExt::ExtMap.Find(pSuperType);
 
-	if (pExt->SW_Designators.empty() || !HouseClass::CurrentPlayer || !HouseClass::CurrentPlayer->IsControlledByHuman_())
-		return ret_value;
+	if (!pExt->ShowDesignatorRange)
+		return 0;
 
-	for (const auto pCurrentTechno : HouseExt::ExtMap.Find(HouseClass::CurrentPlayer)->OwnedTechno)
+	for (const auto pCurrentTechno : *TechnoClass::Array)
 	{
 		const auto pCurrentTechnoType = pCurrentTechno->GetTechnoType();
-		const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pCurrentTechnoType);
+		const auto pOwner = pCurrentTechno->Owner;
 
 		if (!pCurrentTechno->IsAlive
 			|| pCurrentTechno->InLimbo
-			|| !pExt->SW_Designators.Contains(pCurrentTechnoType))
+			|| !pExt->SW_Designators.Contains(pCurrentTechnoType)
+			|| !((pOwner == HouseClass::CurrentPlayer)
+				|| EnumFunctions::CanTargetHouse(AffectedHouse::Enemies, HouseClass::CurrentPlayer, pOwner)))
 		{
 			continue;
 		}
 
-		const CoordStruct coords = pCurrentTechno->GetCenterCoords();
+		const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pCurrentTechnoType);
+
+		const float radius = float((pOwner == HouseClass::CurrentPlayer
+			? pTechnoTypeExt->DesignatorRange
+			: pTechnoTypeExt->InhibitorRange).Get(pCurrentTechnoType->Sight));
+
+		CoordStruct coords = pCurrentTechno->GetCenterCoords();
+		coords.Z = MapClass::Instance->GetCellFloorHeight(coords);
 		Draw_Radial_Indicator(false,
-			true,
-			coords,
-			pCurrentTechno->Owner->Color,
-			(float)(pTechnoTypeExt->DesignatorRange.Get(pCurrentTechnoType->Sight)),
-			false,
-			true);
+		true,
+		coords,
+		pCurrentTechno->Owner->Color,
+		radius,
+		false,
+		true);
 	}
 
-	return ret_value;
+	return 0;
 }
+
+#include <Conversions.h>
+#include <TranslateFixedPoints.h>
+
+//DEFINE_HOOK(0x44D51F, BuildingClass_Mission_Missile_EMPulse_FireAnim, 0xA)
+//{
+//	GET(BuildingClass*, pThis, ESI);
+//
+//	if (WeaponTypeClass* pWeapon = pThis->GetWeapon(0)->WeaponType) {
+//		if (AnimTypeClass* pAnimType = GeneralUtils::GetAnimFacingFromVector(pThis, pWeapon->Anim)) {
+//
+//			CoordStruct FLH;
+//			pThis->GetFLH(&FLH, 0, pThis->GetCenterCoords());
+//
+//			auto pAnim = GameCreate<AnimClass>(pAnimType, FLH);
+//			pAnim->SetOwnerObject(pThis);
+//			pAnim->Owner = pThis->Owner;
+//		}
+//	}
+//
+//	return 0;
+//}
 
 #ifndef Replace_SW
 #pragma warning( push )
@@ -202,6 +223,7 @@ DEFINE_DISABLE_HOOK(0x6CE8EA, SuperWeaponTypeClass_Save_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x6CEE50, SuperWeaponTypeClass_LoadFromINI_ares)
 DEFINE_DISABLE_HOOK(0x6CEE43, SuperWeaponTypeClass_LoadFromINIB_ares)
 DEFINE_DISABLE_HOOK(0x4F9004, HouseClass_Update_TrySWFire_ares)
+DEFINE_DISABLE_HOOK(0x44cb4c, BuildingClass_Mi_Missile_NukeTakeOff_ares)
 #pragma warning( pop )
 
 DEFINE_OVERRIDE_HOOK(0x41F0F1, AITriggerClass_IC_Ready, 0xA)

@@ -125,6 +125,9 @@ public:
 		bool DoingUnloadFire { false };
 
 		bool CreatedFromAction { false };
+
+		int WHAnimRemainingCreationInterval { 0 };
+
 		ExtData(TechnoClass* OwnerObject) : Extension<TechnoClass>(OwnerObject)
 		{ }
 
@@ -133,8 +136,8 @@ public:
 			GameDelete<true, true>(MyOriginalTemporal);
 		}
 
-		void InvalidatePointer(void* ptr, bool bRemoved);
-		static bool InvalidateIgnorable(void* ptr);
+		void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
+		static bool InvalidateIgnorable(AbstractClass* ptr);
 
 		ShieldClass* GetShield() const {
 			return this->Shield.get();
@@ -167,6 +170,8 @@ public:
 		void UpdateLaserTrails();
 		//
 		void UpdateAircraftOpentopped();
+
+		void DepletedAmmoActions();
 
 		bool IsInterceptor();
 		void CreateInitialPayload(bool forced = false);

@@ -3,6 +3,7 @@
 #include <Utilities/SavegameDef.h>
 #include <Utilities/Constructs.h>
 
+class AbstractClass;
 class ObjectClass;
 class AlphaShapeClass;
 class PhobosGlobal
@@ -28,7 +29,7 @@ public:
 	~PhobosGlobal() = default;
 
 	static void Clear();
-	static void PointerGotInvalid(void* ptr, bool removed);
+	static void PointerGotInvalid(AbstractClass* ptr, bool removed);
 
 	static void Init() {
 		GlobalObject = std::make_unique<PhobosGlobal>();

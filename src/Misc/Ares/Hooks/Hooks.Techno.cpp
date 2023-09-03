@@ -126,8 +126,8 @@ DEFINE_OVERRIDE_HOOK(0x707A47, TechnoClass_PointerGotInvalid_LastTarget, 0xA)
 	return 0;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x6FCF53, TechnoClass_SetTarget_Burst, 0x6, 6FCF61)
-//DEFINE_JUMP(LJMP, 0x6FCF53, 0x6FCF61);
+//DEFINE_OVERRIDE_SKIP_HOOK(0x6FCF53, TechnoClass_SetTarget_Burst, 0x6, 6FCF61)
+DEFINE_JUMP(LJMP, 0x6FCF53, 0x6FCF61);
 
 DEFINE_OVERRIDE_HOOK_AGAIN(0x717855, TechnoTypeClass_UpdatePalette_Reset, 0x6)
 DEFINE_OVERRIDE_HOOK(0x717823, TechnoTypeClass_UpdatePalette_Reset, 0x6)

@@ -368,16 +368,3 @@ DEFINE_HOOK(0x442A2A, BuildingClass_ReceiveDamage_RotateVsAircraft, 0x6)
 //
 //	return 0x4A7507;
 //}
-
-
- //Patches TechnoClass::Kill_Cargo/KillPassengers (push ESI -> push EBP)
- //Fixes recursive passenger kills not being accredited
- //to proper techno but to their transports
-DEFINE_HOOK(0x707CF2, TechnoClass_KillCargo_FixKiller, 0x8)
-{
-	GET(TechnoClass*, pKiller, EBP);
-	GET(TechnoClass*, pCargo, ESI);
-
-	pCargo->KillCargo(pKiller);
-	return 0x707CFA;
-}

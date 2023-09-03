@@ -82,7 +82,7 @@ DEFINE_HOOK(0x62A074, ParasiteClass_AI_DamagingAction, 0x6)
 	pThis->DamageDeliveryTimer.Start(pWeapon->ROF);
 	pThis->SuppressionTimer.Start(pWarhead->Paralyzes);
 
-	if (Is_Infantry(pThis->Victim)
+	if (pThis->Victim->WhatAmI() == InfantryClass::AbsID
 		&& !WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->Parasite_TreatInfantryAsVehicle
 		.Get(static_cast<InfantryClass*>(pThis->Victim)->Type->Cyborg)) {
 		return ReceiveDamage;
@@ -121,33 +121,33 @@ DEFINE_HOOK(0x62A16A, ParasiteClass_AI_DisableRocking, 0x5)
 		return DealDamage;
 
 	return (WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->Parasite_DisableRocking.Get())
-			|| Is_Infantry(pThis->Victim)
+			|| pThis->Victim->WhatAmI() == InfantryClass::AbsID
 		? DealDamage : Continue;
 }
 
-DEFINE_HOOK(0x62A222, ParasiteClass_AI_DealDamage, 0x6)
-{
-	enum { SkipDamaging = 0x62A24D , VictimTakeDamage = 0x0 };
+ DEFINE_HOOK(0x62A222, ParasiteClass_AI_DealDamage, 0x6)
+ {
+ 	enum { SkipDamaging = 0x62A24D , VictimTakeDamage = 0x0 };
 
-	GET(ParasiteClass*, pThis, ESI);
-	GET(WeaponTypeClass* const, pWeapon, EDI);
+ 	GET(ParasiteClass*, pThis, ESI);
+ 	GET(WeaponTypeClass* const, pWeapon, EDI);
 
-	auto const pWarheadTypeExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
+ 	auto const pWarheadTypeExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
 
-	if (pWarheadTypeExt->Parasite_Damaging_Chance.isset()
-		&& ScenarioClass::Instance->Random.RandomDouble() >=
-		abs(pWarheadTypeExt->Parasite_Damaging_Chance.Get())
-		) {
-		return SkipDamaging;
-	}
+ 	if (pWarheadTypeExt->Parasite_Damaging_Chance.isset()
+ 		&& ScenarioClass::Instance->Random.RandomDouble() >=
+ 		abs(pWarheadTypeExt->Parasite_Damaging_Chance.Get())
+ 		) {
+ 		return SkipDamaging;
+ 	}
 
-	if (auto const pInvestationWP = pWarheadTypeExt->Parasite_InvestationWP.Get(nullptr)) {
-		WeaponTypeExt::DetonateAt(pInvestationWP,pThis->Victim, pThis->Owner , true , nullptr);
-		return SkipDamaging;
-	}
+ 	if (auto const pInvestationWP = pWarheadTypeExt->Parasite_InvestationWP.Get(nullptr)) {
+ 		WeaponTypeExt::DetonateAt(pInvestationWP,pThis->Victim, pThis->Owner , true , nullptr);
+ 		return SkipDamaging;
+ 	}
 
-	return VictimTakeDamage;
-}
+ 	return VictimTakeDamage;
+ }
 
 DEFINE_HOOK_AGAIN(0x62A399, ParasiteClass_ExitUnit_ExitSound, 0x9) //ParasiteClass_Detach
 DEFINE_HOOK(0x62A735, ParasiteClass_ExitUnit_ExitSound, 0xA) //ParasiteClass_Uninfect

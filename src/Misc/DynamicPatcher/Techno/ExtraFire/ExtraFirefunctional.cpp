@@ -8,52 +8,50 @@
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
 #include <Misc/DynamicPatcher/CustomWeapon/CustomWeapon.h>
 
-static std::pair<std::vector<WeaponTypeClass*>, CoordStruct> GetWeaponAndFLH(TechnoClass* pThis, ExtraFireData nExtraFireData, int nWeaponIdx)
+static Iterator<WeaponTypeClass*> GetWeaponAndFLH(TechnoClass* pThis, const ExtraFireData& nExtraFireData, int nWeaponIdx , CoordStruct& selectedFLh)
 {
 	auto const pType = pThis->GetTechnoType();
 
-	if (auto pTransporter = pThis->Transporter)
-	{
-		if (auto const pTrasTypeExt = TechnoTypeExt::ExtMap.Find(pTransporter->GetTechnoType()))
-		{
-			const auto& pTransExtraFire = pTrasTypeExt->MyExtraFireData;
-			nExtraFireData.AttachedFLH = pTransExtraFire.AttachedFLH;
-		}
+	ExtraFireData::FLHData* ptrFlhData = nullptr;
+
+	if (auto pTransporter = pThis->Transporter) {
+		ptrFlhData = TechnoTypeExt::ExtMap.Find(pTransporter->GetTechnoType())->MyExtraFireData.AttachedFLH.AsPointer();
+	} else {
+		ptrFlhData = nExtraFireData.AttachedFLH.AsPointer();
 	}
+
+	const bool IsElite = pThis->Veterancy.IsElite();
 
 	if (pType->WeaponCount > 0)
 	{
-		if (pThis->Veterancy.IsElite() ?
+		if (IsElite ?
 			nExtraFireData.AttachedWeapon.EliteWeaponX.empty() :
 			nExtraFireData.AttachedWeapon.WeaponX.empty())
-			return { {} , CoordStruct::Empty };
+			return {};
 
-		if ((pThis->Veterancy.IsElite() ?
+		if ((IsElite ?
 			nExtraFireData.AttachedWeapon.EliteWeaponX.size() :
 			nExtraFireData.AttachedWeapon.WeaponX.size())
 			< (size_t)nWeaponIdx)
-			return { {} , CoordStruct::Empty };
+			return {};
 
-		CoordStruct nFLH {};
-
-		if (!(!pThis->Veterancy.IsElite() ?
-			nExtraFireData.AttachedFLH.WeaponXFLH.empty() :
-			nExtraFireData.AttachedFLH.EliteWeaponXFLH.empty()))
+		if (!(!IsElite ?
+			(ptrFlhData)->WeaponXFLH.empty() :
+			(ptrFlhData)->EliteWeaponXFLH.empty()))
 		{
-			if (!((!pThis->Veterancy.IsElite() ?
-				nExtraFireData.AttachedFLH.WeaponXFLH.size() :
-				nExtraFireData.AttachedFLH.EliteWeaponXFLH.size())
+			if (!((!IsElite?
+				(ptrFlhData)->WeaponXFLH.size() :
+				(ptrFlhData)->EliteWeaponXFLH.size())
 				< (size_t)nWeaponIdx))
 			{
-				nFLH = (!pThis->Veterancy.IsElite() ?
-					nExtraFireData.AttachedFLH.WeaponXFLH :
-					nExtraFireData.AttachedFLH.EliteWeaponXFLH)[nWeaponIdx];
+				selectedFLh = *((!IsElite ?
+					(ptrFlhData)->WeaponXFLH :
+					(ptrFlhData)->EliteWeaponXFLH).begin() + nWeaponIdx);
 			}
 		}
 
-		return { (pThis->Veterancy.IsElite() ?
-			nExtraFireData.AttachedWeapon.EliteWeaponX :
-			nExtraFireData.AttachedWeapon.WeaponX)[nWeaponIdx],nFLH };
+		const auto selected =  (IsElite ? nExtraFireData.AttachedWeapon.EliteWeaponX : nExtraFireData.AttachedWeapon.WeaponX).begin() + nWeaponIdx;
+		return make_iterator(selected->data(), selected->size());
 	}
 	else
 	{
@@ -61,40 +59,35 @@ static std::pair<std::vector<WeaponTypeClass*>, CoordStruct> GetWeaponAndFLH(Tec
 		{
 		case 0:
 		{
-			if (pThis->Veterancy.IsElite() ?
+			if (IsElite ?
 				nExtraFireData.AttachedWeapon.ElitePrimaryWeapons.empty() :
 				nExtraFireData.AttachedWeapon.PrimaryWeapons.empty()
 				)
-				return { {} , CoordStruct::Empty };
+				return {};
 
-			return { (pThis->Veterancy.IsElite() ?
-					nExtraFireData.AttachedWeapon.ElitePrimaryWeapons :
-					nExtraFireData.AttachedWeapon.PrimaryWeapons) ,
-					(pThis->Veterancy.IsElite() ?
-					nExtraFireData.AttachedFLH.ElitePrimaryWeaponFLH :
-					nExtraFireData.AttachedFLH.PrimaryWeaponFLH)
-			};
+			selectedFLh = (IsElite ? (ptrFlhData)->ElitePrimaryWeaponFLH : (ptrFlhData)->PrimaryWeaponFLH).Get();
+			const std::vector<WeaponTypeClass*>* vec = &(IsElite ? nExtraFireData.AttachedWeapon.ElitePrimaryWeapons : nExtraFireData.AttachedWeapon.PrimaryWeapons);
+			return make_iterator(vec->data(), vec->size());
 		}
-		break;
 		case 1:
 		{
-			if (pThis->Veterancy.IsElite() ?
+			if (IsElite ?
 				nExtraFireData.AttachedWeapon.EliteSecondaryWeapons.empty() :
 				nExtraFireData.AttachedWeapon.SecondaryWeapons.empty())
-				return { {} , CoordStruct::Empty };
+				return {};
 
-			return { (pThis->Veterancy.IsElite() ?
-			nExtraFireData.AttachedWeapon.EliteSecondaryWeapons :
-			nExtraFireData.AttachedWeapon.SecondaryWeapons) ,(pThis->Veterancy.IsElite() ?
-				nExtraFireData.AttachedFLH.EliteSecondaryWeaponFLH :
-				nExtraFireData.AttachedFLH.SecondaryWeaponFLH)
-			};
+			selectedFLh = (pThis->Veterancy.IsElite() ?
+				(ptrFlhData)->EliteSecondaryWeaponFLH :
+				(ptrFlhData)->SecondaryWeaponFLH);
+
+			const std::vector<WeaponTypeClass*>* vec = &(IsElite ? nExtraFireData.AttachedWeapon.EliteSecondaryWeapons : nExtraFireData.AttachedWeapon.SecondaryWeapons);
+			return make_iterator(vec->data(), vec->size());
 		}
 		break;
 		}
 	}
 
-	return { {} , CoordStruct::Empty };
+	return {};
 }
 
 void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, int nWeaponIdx)
@@ -107,9 +100,10 @@ void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, 
 
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 	const auto& nExtraFireData = pTypeExt->MyExtraFireData;
-	auto [nSelectedWeapon, nFLH] = GetWeaponAndFLH(pThis, nExtraFireData, nWeaponIdx);
+	CoordStruct nFLH = CoordStruct::Empty;
+	const auto nSelectedWeapon=  GetWeaponAndFLH(pThis, nExtraFireData, nWeaponIdx , nFLH);
 
-	if (nSelectedWeapon.empty())
+	if (!nSelectedWeapon)
 		return;
 
 	const auto ROF = TechnoExt::GetROFMult(pThis);
@@ -120,8 +114,7 @@ void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, 
 		}
 	}
 
-	for (auto const& pWeapon : nSelectedWeapon)
-	{
+	std::for_each(nSelectedWeapon.begin() , nSelectedWeapon.end() ,[&](WeaponTypeClass* pWeapon){
 		bool bFire = true;
 		int nRof = 0;
 		if (auto const pWeaponTypeExt = WeaponTypeExt::ExtMap.Find(pWeapon))
@@ -144,6 +137,5 @@ void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, 
 
 		if (bFire)
 			pExt->MyWeaponManager.FireCustomWeapon(pThis, pThis, pTarget, pWeapon, nFLH, CoordStruct::Empty, ROF);
-
-	}
+	});
 }

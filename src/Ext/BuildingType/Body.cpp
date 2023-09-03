@@ -25,17 +25,17 @@ bool BuildingTypeExt::ExtData::CanBeOccupiedBy(InfantryClass* whom)
 	return this->AllowedOccupiers.empty() || this->AllowedOccupiers.Contains(whom->Type);
 }
 
-int BuildingTypeExt::BuildLimitRemaining(HouseClass const* pHouse, BuildingTypeClass const* pItem)
+int BuildingTypeExt::BuildLimitRemaining(HouseClass* pHouse, BuildingTypeClass* pItem)
 {
 	const auto BuildLimit = pItem->BuildLimit;
 
 	if (BuildLimit >= 0)
-		return BuildLimit - BuildingTypeExt::GetUpgradesAmount(const_cast<BuildingTypeClass*>(pItem), const_cast<HouseClass*>(pHouse));
+		return BuildLimit - BuildingTypeExt::GetUpgradesAmount(pItem, pHouse);
 	else
 		return -BuildLimit - pHouse->CountOwnedEver(pItem);
 }
 
-int BuildingTypeExt::CheckBuildLimit(HouseClass const* pHouse, BuildingTypeClass const* pItem, bool includeQueued)
+int BuildingTypeExt::CheckBuildLimit(HouseClass* pHouse, BuildingTypeClass* pItem, bool includeQueued)
 {
 	enum { NotReached = 1, ReachedPermanently = -1, ReachedTemporarily = 0 };
 
@@ -343,6 +343,7 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, Hou
 	if (pHouseExt->Building_BuildSpeedBonusCounter.empty())
 		return fFactor;
 
+	const auto what = pWhat->WhatAmI();
 	for (const auto& [pBldType, nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
 	{
 		if (auto const pExt = BuildingTypeExt::ExtMap.TryFind(pBldType))
@@ -351,18 +352,18 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, Hou
 				continue;
 
 			auto nBonus = 0.000;
-			switch (GetVtableAddr(pWhat))
+			switch (what)
 			{
-			case AircraftTypeClass::vtable:
+			case AircraftTypeClass::AbsID:
 				nBonus = pExt->SpeedBonus.SpeedBonus_Aircraft;
 				break;
-			case BuildingTypeClass::vtable:
+			case BuildingTypeClass::AbsID:
 				nBonus = pExt->SpeedBonus.SpeedBonus_Building;
 				break;
-			case UnitTypeClass::vtable:
+			case UnitTypeClass::AbsID:
 				nBonus = pExt->SpeedBonus.SpeedBonus_Unit;
 				break;
-			case InfantryTypeClass::vtable:
+			case InfantryTypeClass::AbsID:
 				nBonus = pExt->SpeedBonus.SpeedBonus_Infantry;
 				break;
 			default:
@@ -397,8 +398,7 @@ int BuildingTypeExt::GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass*
 	auto checkUpgrade = [pHouse, pBuilding, &result, &isUpgrade](BuildingTypeClass* pTPowersUp)
 	{
 		isUpgrade = true;
-		for (auto const& pBld : pHouse->Buildings)
-		{
+		for (auto const& pBld : pHouse->Buildings) {
 			if (pBld->Type == pTPowersUp)
 			{
 				for (auto const& pUpgrade : pBld->Upgrades)

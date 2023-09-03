@@ -5,10 +5,7 @@
 
 void AircraftPutDataFunctional::OnPut(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt, CoordStruct* pCoord)
 {
-	if (!pExt->Get()->Owner)
-		return;
-
-	if (!Is_Aircraft(pExt->Get()))
+	if (!pExt->Get()->Owner || pExt->Get()->WhatAmI() != AircraftClass::AbsID)
 		return;
 
 	auto const pTechno = (AircraftClass*)pExt->Get();
@@ -30,6 +27,7 @@ void AircraftPutDataFunctional::OnPut(TechnoExt::ExtData* pExt, TechnoTypeExt::E
 				{
 					pTechno->Owner->TransactMoney(pType->Cost);
 					pTechno->Limbo();
+					Debug::Log(__FUNCTION__" Called \n");
 					TechnoExt::HandleRemove(pTechno , nullptr , false , false);
 
 					return;

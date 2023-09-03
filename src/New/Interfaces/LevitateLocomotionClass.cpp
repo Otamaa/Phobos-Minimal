@@ -797,7 +797,7 @@ bool LevitateLocomotionClass::IsAdjentCellEligible(CoordStruct nArgsCoord)
 			break;
 
 		if (pObj->IsAlive && pObj->IsOnMap)
-			bObjectIsFoot = Is_Foot(pObj);
+			bObjectIsFoot = (pObj->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None;
 
 		pObj = pObj->NextObject;
 	}
@@ -815,7 +815,7 @@ bool __stdcall LevitateLocomotionClass::Process()
 	//	this->DoPhase1();
 	//	break;
 	//case 1u:
-	//	this->DoPhase2(); //done 
+	//	this->DoPhase2(); //done
 	//	break;
 	//case 2u:
 	//	this->DoPhase3(); //done

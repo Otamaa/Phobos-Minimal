@@ -85,7 +85,7 @@ void TrailsManager::Construct(T* pOwner, bool IsConverted) { }
 template<>
 void TrailsManager::Construct(TechnoClass* pOwner, bool IsConverted)
 {
-	if (!pOwner || Is_Building(pOwner) || TrailType::Array.empty())
+	if (!pOwner || pOwner->WhatAmI() == BuildingClass::AbsID || TrailType::Array.empty())
 		return;
 
 	const auto pClassType = pOwner->GetTechnoType();
@@ -246,7 +246,7 @@ void TrailsManager::AI(T* pOwner)
 template<>
 void TrailsManager::AI(TechnoClass* pOwner)
 {
-	if (!pOwner || Is_Building(pOwner))
+	if (!pOwner || pOwner->WhatAmI() == BuildingClass::AbsID)
 		return;
 
 	const auto pExt = TechnoExt::ExtMap.Find((TechnoClass*)pOwner);
@@ -343,7 +343,7 @@ void TrailsManager::AI(ParticleClass* pOwner)
 
 	if (!pExt || pExt->Trails.empty())
 		return;
-		
+
 	CoordStruct location = (pOwner)->GetCoords();
 
 	for (auto& pTrails : pExt->Trails)
@@ -364,7 +364,7 @@ void TrailsManager::Hide(T* pOwner)
 template<>
 void TrailsManager::Hide(TechnoClass* pOwner)
 {
-	if (!pOwner || Is_Building(pOwner))
+	if (!pOwner || pOwner->WhatAmI() == BuildingClass::AbsID)
 		return;
 
 	const auto pExt = TechnoExt::ExtMap.Find((TechnoClass*)pOwner);
@@ -440,7 +440,7 @@ void TrailsManager::CleanUp(T* pOwner)
 template<>
 void TrailsManager::CleanUp(TechnoClass* pOwner)
 {
-	if (!pOwner || Is_Building(pOwner))
+	if (!pOwner || pOwner->WhatAmI() == BuildingClass::AbsID)
 		return;
 
 	const auto  pExt = TechnoExt::ExtMap.Find(pOwner);

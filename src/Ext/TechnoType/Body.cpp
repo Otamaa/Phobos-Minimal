@@ -59,13 +59,14 @@ void TechnoTypeExt::ExtData::Initialize()
 	this->SellSound = RulesClass::Instance->SellSound;
 	auto Eva_ready = GameStrings::EVA_ConstructionComplete();
 	auto Eva_sold = GameStrings::EVA_StructureSold() ;
+	this->AttachtoType =  Get()->WhatAmI();
 
-	if (!Is_BuildingType(Get()))
+	if (this->AttachtoType != BuildingTypeClass::AbsID)
 	{
 		Eva_ready = GameStrings::EVA_UnitReady();
 		Eva_sold = GameStrings::EVA_UnitSold();
 
-		if (Is_AircraftType(Get()))
+		if (this->AttachtoType == AircraftTypeClass::AbsID)
 		{
 			this->CustomMissileTrailerAnim = AnimTypeClass::Find(GameStrings::V3TRAIL());
 			this->CustomMissileTakeoffAnim = AnimTypeClass::Find(GameStrings::V3TAKEOFF());
@@ -80,6 +81,12 @@ void TechnoTypeExt::ExtData::Initialize()
 
 	this->Eva_Complete = VoxClass::FindIndexById(Eva_ready);
 	this->EVA_Sold = VoxClass::FindIndexById(Eva_sold);
+}
+
+void TechnoTypeExt::ExtData::ApplyTurretOffset(Matrix3D* mtx, double factor)
+{
+	const auto offs = this->TurretOffset.GetEx();
+	mtx->Translate((float)(offs->X * factor), (float)(offs->Y * factor), (float)(offs->Z * factor));
 }
 
 AnimTypeClass* TechnoTypeExt::GetSinkAnim(TechnoClass* pThis)
@@ -159,17 +166,19 @@ bool TechnoTypeExt::HasSelectionGroupID(ObjectTypeClass* pType, const std::strin
 
 bool TechnoTypeExt::ExtData::IsCountedAsHarvester() const
 {
-	const auto pThis = this->Get();
+	if(!this->Harvester_Counted.isset()) {
+		if(this->Get()->Enslaves){
+			return true;
+		}
 
-	if (!pThis)
-		return false;
+		if (const auto pUnit = specific_cast<UnitTypeClass*>(this->Get())){
+			if(pUnit->Harvester || pUnit->Enslaves){
+				return true;
+			}
+		}
+	}
 
-	UnitTypeClass* pUnit = nullptr;
-
-	if (Is_UnitType(pThis))
-		pUnit = static_cast<UnitTypeClass*>(pThis);
-	return this->Harvester_Counted.
-		Get(pThis->Enslaves || (pUnit && (pUnit->Harvester || pUnit->Enslaves)));
+	return this->Harvester_Counted;
 }
 
 void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection,
@@ -294,6 +303,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		this->Death_WithMaster.Read(exINI, pSection, "Death.WithSlaveOwner");
 		this->Slaved_ReturnTo.Read(exINI, pSection, "Slaved.ReturnTo");
+		this->Death_IfChangeOwnership.Read(exINI, pSection, "Death.IfChangeOwnership");
 
 		this->ShieldType.Read(exINI, pSection, "ShieldType");
 		this->CameoPriority.Read(exINI, pSection, "CameoPriority");
@@ -496,6 +506,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		} else {
 			this->VoiceCreate.Read(exINI, pSection, "VoiceCreate");
 		}
+
+		this->VoiceCreate_Instant.Read(exINI, pSection, "VoiceCreate.Instant");
 
 		this->SlaveFreeSound_Enable.Read(exINI, pSection, "SlaveFreeSound.Enable");
 		this->SlaveFreeSound.Read(exINI, pSection, "SlaveFreeSound");
@@ -955,8 +967,14 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 			}
 		}
 
+		this->Ammo_AddOnDeploy.Read(exINI, pSection, "Ammo.AddOnDeploy");
+		this->Ammo_AutoDeployMinimumAmount.Read(exINI, pSection, "Ammo.AutoDeployMinimumAmount");
+		this->Ammo_AutoDeployMaximumAmount.Read(exINI, pSection, "Ammo.AutoDeployMaximumAmount");
+		this->Ammo_DeployUnlockMinimumAmount.Read(exINI, pSection, "Ammo.DeployUnlockMinimumAmount");
+		this->Ammo_DeployUnlockMaximumAmount.Read(exINI, pSection, "Ammo.DeployUnlockMaximumAmount");
+
 #pragma region AircraftOnly
-		if (Is_AircraftType(pThis))
+		if (this->AttachtoType == AircraftTypeClass::AbsID)
 		{
 			this->CrashSpinLevelRate.Read(exINI, pSection, "CrashSpin.LevelRate");
 			this->CrashSpinVerticalRate.Read(exINI, pSection, "CrashSpin.VerticalRate");
@@ -1220,7 +1238,7 @@ void TechnoTypeExt::ExtData::AdjustCrushProperties()
 			this->CrushLevel.Elite = this->CrushLevel.Veteran;
 	}
 	if (!pThis->Crusher && (this->CrushLevel.Rookie > 0 || this->CrushLevel.Veteran > 0 || this->CrushLevel.Elite > 0) &&
-		Is_UnitType(pThis))
+		this->AttachtoType == UnitTypeClass::AbsID)
 		pThis->Crusher = true;
 
 	if (this->CrushableLevel.Rookie <= 0)
@@ -1271,6 +1289,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
+		.Process(this->AttachtoType)
 		.Process(this->HealthBar_Hide)
 		.Process(this->UIDescription)
 		.Process(this->LowSelectionPriority)
@@ -1327,6 +1346,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->Death_WithMaster)
 		.Process(this->Slaved_ReturnTo)
+		.Process(this->Death_IfChangeOwnership)
 
 		.Process(this->ShieldType)
 		.Process(this->WarpOut)
@@ -1545,6 +1565,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->Eva_Complete)
 		.Process(this->VoiceCreate)
+		.Process(this->VoiceCreate_Instant)
 		.Process(this->CreateSound_Enable)
 
 		.Process(this->SlaveFreeSound_Enable)
@@ -1732,6 +1753,11 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->ForceShield_Modifier)
 		.Process(this->Survivors_PilotCount)
 		.Process(this->Survivors_Pilots)
+		.Process(this->Ammo_AddOnDeploy)
+		.Process(this->Ammo_AutoDeployMinimumAmount)
+		.Process(this->Ammo_AutoDeployMaximumAmount)
+		.Process(this->Ammo_DeployUnlockMinimumAmount)
+		.Process(this->Ammo_DeployUnlockMaximumAmount)
 		.Process(this->BerserkROFMultiplier)
 		.Process(this->Refinery_UseStorage)
 		.Process(this->VHPscan_Value)

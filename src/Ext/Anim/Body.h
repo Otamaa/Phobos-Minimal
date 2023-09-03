@@ -34,8 +34,8 @@ public:
 		ExtData(base_type* OwnerObject) : Extension<AnimClass>(OwnerObject) {}
 		virtual ~ExtData() override = default;
 
-		void InvalidatePointer(void* ptr, bool bRemoved);
-		static bool InvalidateIgnorable(void* ptr);
+		void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
+		static bool InvalidateIgnorable(AbstractClass* ptr);
 		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 

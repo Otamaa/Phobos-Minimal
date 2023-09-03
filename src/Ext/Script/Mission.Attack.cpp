@@ -177,7 +177,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 		pTeamData->TeamLeader = ScriptExt::FindTheTeamLeader(pTeam);
 	}
 
-	if (!pTeamData->TeamLeader  || !Is_Techno(pTeamData->TeamLeader) || bAircraftsWithoutAmmo || (pacifistTeam && !agentMode))
+	if (!pTeamData->TeamLeader  || bAircraftsWithoutAmmo || (pacifistTeam && !agentMode))
 	{
 		pTeamData->IdxSelectedObjectFromAIList = -1;
 		if (pTeamData->WaitNoTargetAttempts != 0)
@@ -481,7 +481,7 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, Distanc
 	bool unitWeaponsHaveAA = false;
 	bool unitWeaponsHaveAG = false;
 
-	if (!pTechno || !Is_Techno(pTechno))
+	if (!pTechno)
 		return nullptr;
 
 	auto pTechnoType = pTechno->GetTechnoType();
@@ -1423,7 +1423,7 @@ void ScriptExt::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, 
 void ScriptExt::CheckUnitTargetingCapabilities(TechnoClass* pTechno, bool& hasAntiGround, bool& hasAntiAir, bool agentMode)
 {
 
-	if (!pTechno || !pTechno->IsAlive || !Is_Techno(pTechno))
+	if (!pTechno || !pTechno->IsAlive)
 		return;
 
 	const auto&[pWeaponPrimary, pWeaponSecondary] = ScriptExt::GetWeapon(pTechno);
@@ -1438,7 +1438,7 @@ void ScriptExt::CheckUnitTargetingCapabilities(TechnoClass* pTechno, bool& hasAn
 bool ScriptExt::IsUnitArmed(TechnoClass* pTechno)
 {
 
-	if (!pTechno || !pTechno->IsAlive || !Is_Techno(pTechno))
+	if (!pTechno || !pTechno->IsAlive)
 		return false;
 
 	const auto pWeapons = ScriptExt::GetWeapon(pTechno);

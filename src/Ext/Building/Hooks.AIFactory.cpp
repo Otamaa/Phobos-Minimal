@@ -184,7 +184,9 @@ void HouseExt::ExtData::UpdateVehicleProduction()
 
 		for (auto currentMember : taskForceMembers)
 		{
-			if (!Is_UnitType(currentMember) ||
+			const auto what = currentMember->WhatAmI();
+
+			if (what != UnitTypeClass::AbsID ||
 				(skipGround && !currentMember->Naval) ||
 				(skipNaval && currentMember->Naval))
 				continue;

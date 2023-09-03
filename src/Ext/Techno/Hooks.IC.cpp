@@ -116,15 +116,15 @@ DEFINE_HOOK(0x4DEAEE, TechnoClass_IronCurtain_Flags, 0x6)
 				pSource
 			)
 		);
-		
+
 	}break;
 	default:
 	{
-		if (!pType->Organic && !Is_Infantry(pThis))
+		if (!pType->Organic && pThis->WhatAmI() != InfantryClass::AbsID)
 			return MakeInvunlnerable;
 		else
 			goto Kill;
-		
+
 	}break;
 	}
 

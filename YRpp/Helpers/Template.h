@@ -86,10 +86,8 @@ void AnnounceInvalidPointer(std::vector<T>& elem, void* ptr, bool removed) {
 	if (!removed)
 		return;
 
-	for (size_t i = 0; i < elem.size(); i++)
-	{
-		if (elem[i] == ptr)
-		{
+	for(size_t i = 0; i < elem.size(); ++i) {
+		if(ptr == elem[i]) {
 			elem.erase(elem.begin() + i);
 		}
 	}
@@ -98,8 +96,9 @@ void AnnounceInvalidPointer(std::vector<T>& elem, void* ptr, bool removed) {
 template<typename T>
 void AnnounceInvalidPointer(std::vector<T>& elem, void* ptr) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
-	for (size_t i = 0; i < elem.size(); i++) {
-		if (elem[i] == ptr) {
+
+	for(size_t i = 0; i < elem.size(); ++i) {
+		if(ptr == elem[i]) {
 			elem.erase(elem.begin() + i);
 		}
 	}

@@ -2,9 +2,11 @@
 
 #include <YRPP.h>
 
-class NOVTABLE Straw
+class Straw
 {
 public:
+	static inline constexpr DWORD vtable = 0x7E61F0;
+
 	explicit Straw() = default;
 
 	virtual ~Straw()
@@ -48,6 +50,8 @@ public:
 
 	void Get_From(Straw& pipe) { Get_From(&pipe); }
 
+public:
+
 	Straw* ChainTo { nullptr };
 	Straw* ChainFrom { nullptr };
 
@@ -60,12 +64,11 @@ class BufferStraw : public Straw
 {
 public:
 	explicit BufferStraw() = delete;
-	explicit BufferStraw(void* pBuffer, size_t nLength) : Straw {}, Buffer { pBuffer,nLength }
-	{ 
-	}
+	explicit BufferStraw(void* pBuffer, int nLength) : Straw {}, Buffer { pBuffer,nLength }
+	{ }
 
-	virtual ~BufferStraw() override final
-	{
+	virtual ~BufferStraw() override final {
+		JMP_THIS(0x4AEC30);
 	}
 
 	virtual int Get(void* pBuffer, int slen) override final
@@ -80,13 +83,15 @@ public:
 			}
 
 			if (slen > 0)
-				memcpy(pBuffer, (char*)this->Buffer.Buffer + this->Index, slen);
+				CRT::memcpy(pBuffer, (char*)this->Buffer.Buffer + this->Index, slen);
 
 			this->Index += slen;
 			return slen;
 		}
 		return 0;
 	}
+
+public:
 
 	MemoryBuffer Buffer;
 	int Index {0};
@@ -99,6 +104,8 @@ private:
 class LCWStraw : public Straw
 {
 public:
+	static constexpr inline DWORD vtable = 0x7ECF44l;
+
 	explicit LCWStraw() = delete;
 	explicit LCWStraw(BOOL bControl, size_t nBlockSize) : Straw {}
 	{
@@ -113,18 +120,19 @@ public:
 			this->Buffer2 = YRMemory::Allocate(this->BlockSize + this->SafetyMargin);
 	}
 
-	virtual ~LCWStraw() override final
-	{
-		YRMemory::Deallocate(this->Buffer);
-		if (this->Buffer2)
-			YRMemory::Deallocate(this->Buffer2);
+	virtual ~LCWStraw() override final {
+		JMP_THIS(0x5525F0);
 	}
 
-	virtual int Get(void* pBuffer, int slen) override final
-	{
+	virtual int Get(void* pBuffer, int slen) override final {
 		JMP_THIS(0x552490);
 	}
 
+	void Destroy() {
+		JMP_THIS(0x552450);
+	}
+
+public:
 	BOOL Control;
 	int Counter;
 	void* Buffer;

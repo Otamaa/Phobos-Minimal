@@ -624,12 +624,10 @@ public:
 	// I don't want to talk about these
 	// read the code <_<
 
-	// RegisterGain
-	void AddCounters_OwnedNow(TechnoClass const* const pItem,bool ownerChange)
+	void AddCounters_OwnedNow(TechnoClass const* const pItem)
 	{ JMP_THIS(0x4FF700); }
 
-	// RegisterLoss
-	void SubCounters_OwnedNow(TechnoClass const* const pItem, bool keepTiberium)
+	void SubCounters_OwnedNow(TechnoClass const* const pItem)
 	{ JMP_THIS(0x4FF550); }
 
 	//  Count owned now
@@ -652,29 +650,29 @@ public:
 	}
 
 	// RegisterGain
-	void AddCounters_OwnedPresent(const TechnoClass* pItem)
+	void AddCounters_OwnedPresent(const TechnoClass* pItem , bool ownerChange)
 	{ JMP_THIS(0x502A80); }
 
 	// RegisterLoss
-	void SubCounters_OwnedPresent(const TechnoClass* pItem)
+	void SubCounters_OwnedPresent(const TechnoClass* pItem , bool keepTiberium)
 	{ JMP_THIS(0x5025F0); }
 
 	// Count owned and present
-	int CountOwnedAndPresent(TechnoTypeClass const* pItem) const;
+	int CountOwnedAndPresent(TechnoTypeClass* pItem) const;
 
-	int CountOwnedAndPresent(BuildingTypeClass const* const pItem) const {
+	int CountOwnedAndPresent(BuildingTypeClass* pItem) const {
 		return this->ActiveBuildingTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedAndPresent(AircraftTypeClass const* const pItem) const {
+	int CountOwnedAndPresent(AircraftTypeClass* pItem) const {
 		return this->ActiveAircraftTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedAndPresent(InfantryTypeClass const* const pItem) const {
+	int CountOwnedAndPresent(InfantryTypeClass* pItem) const {
 		return this->ActiveInfantryTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedAndPresent(UnitTypeClass const* const pItem) const {
+	int CountOwnedAndPresent(UnitTypeClass* pItem) const {
 		return this->ActiveUnitTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
@@ -682,26 +680,26 @@ public:
 	{ JMP_THIS(0x4FB6B0); }
 
 	// Count owned ever
-	int CountOwnedEver(TechnoTypeClass const* pItem) const;
+	int CountOwnedEver(TechnoTypeClass* pItem) const;
 
-	int CountOwnedEver(BuildingTypeClass const* const pItem) const {
+	int CountOwnedEver(BuildingTypeClass* pItem) const {
 		return this->FactoryProducedBuildingTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedEver(AircraftTypeClass const* const pItem) const {
+	int CountOwnedEver(AircraftTypeClass* pItem) const {
 		return this->FactoryProducedAircraftTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedEver(InfantryTypeClass const* const pItem) const {
+	int CountOwnedEver(InfantryTypeClass* pItem) const {
 		return this->FactoryProducedInfantryTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedEver(UnitTypeClass const* const pItem) const {
+	int CountOwnedEver(UnitTypeClass* pItem) const {
 		return this->FactoryProducedUnitTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
 
-	bool HasFromSecretLab(const TechnoTypeClass* const pItem) const {
+	bool HasFromSecretLab(TechnoTypeClass* pItem) const {
 		for(const auto& pLab : this->SecretLabs) {
 			if(pLab->GetSecretProduction() == pItem) {
 				return true;
@@ -710,16 +708,16 @@ public:
 		return false;
 	}
 
-	bool HasAllStolenTech(const TechnoTypeClass* const pItem) const {
+	bool HasAllStolenTech(TechnoTypeClass* pItem) const {
 		if(pItem->RequiresStolenAlliedTech && !this->Side0TechInfiltrated) { return false; }
 		if(pItem->RequiresStolenSovietTech && !this->Side1TechInfiltrated) { return false; }
 		if(pItem->RequiresStolenThirdTech && !this->Side2TechInfiltrated) { return false; }
 		return true;
 	}
 
-	bool HasFactoryForObject(const TechnoTypeClass* const pItem) const {
-		auto const abs = pItem->WhatAmI();
-		auto const naval = pItem->Naval;
+	bool HasFactoryForObject(TechnoTypeClass* pItem) const {
+		const auto abs = pItem->WhatAmI();
+		const auto naval = pItem->Naval;
 		for(auto const& pBld : this->Buildings) {
 			auto pType = pBld->Type;
 			if(pType->Factory == abs && pType->Naval == naval) {

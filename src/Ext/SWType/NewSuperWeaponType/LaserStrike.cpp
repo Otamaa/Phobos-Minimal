@@ -298,7 +298,7 @@ bool LaserStrikeStateMachine::Save(PhobosStreamWriter& Stm) const
 		.Success();
 }
 
-void LaserStrikeStateMachine::InvalidatePointer(void* ptr, bool remove)
+void LaserStrikeStateMachine::InvalidatePointer(AbstractClass* ptr, bool remove)
 {
 	AnnounceInvalidPointer(Firer, ptr, remove);
 }

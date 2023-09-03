@@ -38,7 +38,7 @@ public:
 	static std::vector<VerticalLaserClass*> Array;
 	static void Clear();
 	static void OnUpdateAll();
-	static void PointerGotInvalid(void* ptr, bool bDetach);
+	static void PointerGotInvalid(AbstractClass* ptr, bool bDetach);
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 };

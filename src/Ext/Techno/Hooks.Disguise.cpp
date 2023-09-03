@@ -22,8 +22,9 @@ DEFINE_HOOK(0x6F421C, TechnoClass_Init_PermaDisguise_DefaultDisguise, 0x6)
 	GET(TechnoClass*, pThis, ESI);
 
 	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto what = pThis->WhatAmI();
 
-	if (Is_Unit(pThis) && pExt->TankDisguiseAsTank.Get())
+	if (what == UnitClass::AbsID && pExt->TankDisguiseAsTank.Get())
 	{
 		pThis->Disguised = false;
 		pThis->DisguisedAsHouse = nullptr;
@@ -31,7 +32,7 @@ DEFINE_HOOK(0x6F421C, TechnoClass_Init_PermaDisguise_DefaultDisguise, 0x6)
 		return 0x6F424B;
 	}
 
-	if (Is_Infantry(pThis)) {
+	if (what == InfantryClass::AbsID) {
 		if (const auto pDisguiseType = TechnoExt::SetInfDefaultDisguise(pThis, pType)) {
 
 			pThis->Disguise = pDisguiseType;
@@ -177,7 +178,7 @@ DEFINE_HOOK(0x7466D8, UnitClass_DesguiseAs_AsAnotherUnit, 0xA)
 	if (!pObjectT || pObjectT->IsDisguised())
 		return 0x0;
 
-	if (!Is_Unit(pObjectT) || !TechnoTypeExt::ExtMap.Find(pThis->Type)
+	if (pObjectT->WhatAmI() != UnitClass::AbsID || !TechnoTypeExt::ExtMap.Find(pThis->Type)
 		->TankDisguiseAsTank.Get())
 		return 0x0;
 

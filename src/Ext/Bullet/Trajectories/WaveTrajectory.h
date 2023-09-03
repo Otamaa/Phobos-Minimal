@@ -13,7 +13,7 @@ public:
 	{ }
 
 	virtual ~WaveTrajectoryType() = default;
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
@@ -35,7 +35,7 @@ public:
 	{ }
 
 	virtual ~WaveTrajectory() = default;
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 

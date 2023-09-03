@@ -634,7 +634,7 @@ bool CloneableLighningStormStateMachine::Start(CellStruct& cell, int nDuration, 
 	return ret;
 }
 
-void CloneableLighningStormStateMachine::InvalidatePointer(void* ptr, bool remove)
+void CloneableLighningStormStateMachine::InvalidatePointer(AbstractClass* ptr, bool remove)
 {
 	AnnounceInvalidPointer(Invoker, ptr, remove);
 	AnnounceInvalidPointer(CloudsPresent, ptr);

@@ -99,10 +99,11 @@ bool NOINLINE FindSameTunnel(BuildingClass* pTunnel)
 
 void NOINLINE KillFootClass(FootClass* pFoot, TechnoClass* pKiller)
 {
-	if (!pFoot || !Is_Techno(pFoot) || !pFoot->IsAlive)
+	if (!pFoot || !pFoot->IsAlive)
 		return;
 
 	pFoot->RegisterDestruction(pKiller);
+	Debug::Log(__FUNCTION__" Called \n");
 	TechnoExt::HandleRemove(pFoot, pKiller, false, false);
 }
 
@@ -199,9 +200,11 @@ NOINLINE std::vector<int>* PopulatePassangerPIPData(TechnoClass* pThis, TechnoTy
 					nSize = 1;
 
 				int nPip = 1;
-				if (Is_Infantry(pPassenger))
+				const auto what = pPassenger->WhatAmI();
+
+				if (what == InfantryClass::AbsID)
 					nPip = (int)(static_cast<InfantryTypeClass*>(pPassengerType)->Pip);
-				else if (Is_Unit(pPassenger))
+				else if (what == UnitClass::AbsID)
 					nPip = 5;
 
 				//fetch first cargo size and change the pip
@@ -231,11 +234,12 @@ NOINLINE std::vector<int>* PopulatePassangerPIPData(TechnoClass* pThis, TechnoTy
 			for (size_t i = 0; i < pTunnelData->Vector.size(); ++i)
 			{
 				auto const& pContent = pTunnelData->Vector[i];
+				const auto what = pContent->WhatAmI();
 
 				int nPip = 1;
-				if (Is_Infantry(pContent))
+				if (what == InfantryClass::AbsID)
 					nPip = (int)(static_cast<InfantryClass*>(pContent)->Type->Pip);
-				else if (Is_Unit(pContent))
+				else if (what == UnitClass::AbsID)
 					nPip = 4;
 
 				PipData[i] = nPip;
@@ -265,10 +269,12 @@ NOINLINE std::vector<int>* PopulatePassangerPIPData(TechnoClass* pThis, TechnoTy
 			if (nSize <= 0)
 				nSize = 1;
 
+			const auto what = pPassenger->WhatAmI();
+
 			int nPip = 1;
-			if (Is_Infantry(pPassenger))
+			if (what == InfantryClass::AbsID)
 				nPip = (int)(static_cast<InfantryTypeClass*>(pPassengerType)->Pip);
-			else if (Is_Unit(pPassenger))
+			else if (what == UnitClass::AbsID)
 				nPip = 5;
 
 			//fetch first cargo size and change the pip

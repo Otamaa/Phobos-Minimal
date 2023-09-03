@@ -6,13 +6,14 @@
 
 void TurretAngle::OnPut(TechnoClass* pTechno, CoordStruct* pCoord, DirType dirType)
 {
-	
 
 }
 
 void TurretAngle::OnPut(CoordStruct* pCoord, DirType dirType)
 {
-	if ((Is_Unit(OwnerObject) || Is_Building(OwnerObject)) && Data->Enable && hasTurret)
+	const auto what = OwnerObject->WhatAmI();
+
+	if ((what == UnitClass::AbsID || what == BuildingClass::AbsID) && Data->Enable && hasTurret)
 	{
 		DirStruct bodyDir = OwnerObject->PrimaryFacing.Current();
 
@@ -31,7 +32,9 @@ void TurretAngle::OnPut(CoordStruct* pCoord, DirType dirType)
 
 void TurretAngle::OnUpdate()
 {
-	if ((Is_Unit(OwnerObject) || Is_Building(OwnerObject)) && Data->Enable && hasTurret)
+	const auto what = OwnerObject->WhatAmI();
+
+	if ((what == UnitClass::AbsID || what == BuildingClass::AbsID) && Data->Enable && hasTurret)
 	{
 		CoordStruct sourcePos = OwnerObject->GetCoords();
 		DirStruct bodyDir = OwnerObject->PrimaryFacing.Current();
@@ -264,7 +267,8 @@ void TurretAngle::TurnToRight(int turretAngle, int bodyDirIndex, const DirStruct
 bool TurretAngle::TryTurnBodyToAngle(const DirStruct& targetDir, int bodyDirIndex, int bodyTargetDelta)
 {
 	const auto pFoot = static_cast<FootClass*>(OwnerObject);
-	const bool isMoving = Is_Building(OwnerObject) ? false : Is_Foot(pFoot) ? pFoot->Locomotor->Is_Moving() && pFoot->GetCurrentSpeed()  > 0 : false;
+	const auto what = OwnerObject->WhatAmI();
+	const bool isMoving = what == BuildingClass::AbsID ? false : pFoot->Locomotor->Is_Moving() && pFoot->GetCurrentSpeed() > 0;
 
 	if (!isMoving && !OwnerObject->PrimaryFacing.Is_Rotating())
 	{

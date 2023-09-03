@@ -241,7 +241,7 @@ bool HouseExt::GetParadropContent(HouseClass* pHouse, Iterator<TechnoTypeClass*>
 	return (Types && Num);
 }
 
-bool HouseExt::ExtData::InvalidateIgnorable(void* ptr)
+bool HouseExt::ExtData::InvalidateIgnorable(AbstractClass* ptr)
 {
 	switch (VTable::Get(ptr))
 	{
@@ -258,22 +258,22 @@ bool HouseExt::ExtData::InvalidateIgnorable(void* ptr)
 
 }
 
-void HouseExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
+void HouseExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	if (ptr == nullptr)
 		return;
 
-	AnnounceInvalidPointer(OwnedTechno, ptr , bRemoved);
+	//AnnounceInvalidPointer(OwnedTechno, ptr , bRemoved);
 	AnnounceInvalidPointer(Factory_BuildingType, ptr, bRemoved);
 	AnnounceInvalidPointer(Factory_InfantryType, ptr, bRemoved);
 	AnnounceInvalidPointer(Factory_VehicleType, ptr, bRemoved);
 	AnnounceInvalidPointer(Factory_NavyType, ptr, bRemoved);
 	AnnounceInvalidPointer(Factory_AircraftType, ptr, bRemoved);
 	AnnounceInvalidPointer(ActiveTeams, ptr);
+	AnnounceInvalidPointer(LimboTechno, ptr, bRemoved);
 
-	if (!AutoDeathObjects.empty() && bRemoved) {
-		AutoDeathObjects.erase(reinterpret_cast<TechnoClass*>(ptr));
-	}
+	if(bRemoved)
+		AutoDeathObjects.erase((TechnoClass*)ptr);
 
 	for (auto& nTun : Tunnels)
 		AnnounceInvalidPointer(nTun.Vector , ptr , bRemoved);
@@ -700,104 +700,102 @@ void HouseExt::ExtData::UpdateAutoDeathObjects()
 			continue;
 		}
 
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
 
 		if(!pExt->Death_Countdown.Completed())
 			continue;
 
 		Debug::Log("HouseExt::ExtData::UpdateAutoDeathObject -  Killing Techno[%x - %s] ! \n", pThis, pThis->get_ID());
 		if (auto const pBuilding = specific_cast<BuildingClass*>(pThis)) {
-			auto const pBldExt = BuildingExt::ExtMap.Find(pBuilding);
-
-			if (pBldExt && pBldExt->LimboID != -1) {
-				this->RemoveFromLimboTracking(pBuilding->Type);
+			if (BuildingExt::ExtMap.Find(pBuilding)->LimboID != -1) {
+				//this->RemoveFromLimboTracking(pBuilding->Type);
 				BuildingExt::LimboKill(pBuilding);
 				continue;
 			}
 		}
 
-		TechnoExt::KillSelf(pThis, nMethod, true , pTypeExt->AutoDeath_VanishAnimation);
+		TechnoExt::KillSelf(pThis, nMethod, true , TechnoTypeExt::ExtMap.Find(pExt->Type)->AutoDeath_VanishAnimation);
 	}
 }
 
-void HouseExt::ExtData::AddToLimboTracking(TechnoTypeClass* pTechnoType)
-{
-	if (pTechnoType)
-	{
-		int arrayIndex = pTechnoType->GetArrayIndex();
+//void HouseExt::ExtData::AddToLimboTracking(TechnoTypeClass* pTechnoType)
+//{
+//	if (pTechnoType)
+//	{
+//		int arrayIndex = pTechnoType->GetArrayIndex();
+//
+//		switch (pTechnoType->WhatAmI())
+//			// I doubt those in LimboDelete being really necessary, they're gonna be updated either next frame or after uninit anyway
+//		{
+//		case AbstractType::AircraftType:
+//			this->LimboAircraft.Increment(arrayIndex);
+//			break;
+//		case AbstractType::BuildingType:
+//			this->LimboBuildings.Increment(arrayIndex);
+//			break;
+//		case AbstractType::InfantryType:
+//			this->LimboInfantry.Increment(arrayIndex);
+//			break;
+//		case AbstractType::UnitType:
+//			this->LimboVehicles.Increment(arrayIndex);
+//			break;
+//		default:
+//			break;
+//		}
+//	}
+//}
+//
+//void HouseExt::ExtData::RemoveFromLimboTracking(TechnoTypeClass* pTechnoType)
+//{
+//	if (pTechnoType)
+//	{
+//		int arrayIndex = pTechnoType->GetArrayIndex();
+//
+//		switch (pTechnoType->WhatAmI())
+//		{
+//		case AbstractType::AircraftType:
+//			this->LimboAircraft.Decrement(arrayIndex);
+//			break;
+//		case AbstractType::BuildingType:
+//			this->LimboBuildings.Decrement(arrayIndex);
+//			break;
+//		case AbstractType::InfantryType:
+//			this->LimboInfantry.Decrement(arrayIndex);
+//			break;
+//		case AbstractType::UnitType:
+//			this->LimboVehicles.Decrement(arrayIndex);
+//			break;
+//		default:
+//			break;
+//		}
+//	}
+//}
+//
+//int HouseExt::ExtData::CountOwnedPresentAndLimboed(TechnoTypeClass* pTechnoType)
+//{
+//	int count = this->OwnerObject()->CountOwnedAndPresent(pTechnoType);
+//	int arrayIndex = pTechnoType->GetArrayIndex();
+//
+//	switch (pTechnoType->WhatAmI())
+//	{
+//	case AbstractType::AircraftType:
+//		count += this->LimboAircraft.GetItemCount(arrayIndex);
+//		break;
+//	case AbstractType::BuildingType:
+//		count += this->LimboBuildings.GetItemCount(arrayIndex);
+//		break;
+//	case AbstractType::InfantryType:
+//		count += this->LimboInfantry.GetItemCount(arrayIndex);
+//		break;
+//	case AbstractType::UnitType:
+//		count += this->LimboVehicles.GetItemCount(arrayIndex);
+//		break;
+//	default:
+//		break;
+//	}
+//
+//	return count;
+//}
 
-		switch (pTechnoType->WhatAmI())
-			// I doubt those in LimboDelete being really necessary, they're gonna be updated either next frame or after uninit anyway
-		{
-		case AbstractType::AircraftType:
-			this->LimboAircraft.Increment(arrayIndex);
-			break;
-		case AbstractType::BuildingType:
-			this->LimboBuildings.Increment(arrayIndex);
-			break;
-		case AbstractType::InfantryType:
-			this->LimboInfantry.Increment(arrayIndex);
-			break;
-		case AbstractType::UnitType:
-			this->LimboVehicles.Increment(arrayIndex);
-			break;
-		default:
-			break;
-		}
-	}
-}
-
-void HouseExt::ExtData::RemoveFromLimboTracking(TechnoTypeClass* pTechnoType)
-{
-	if (pTechnoType)
-	{
-		int arrayIndex = pTechnoType->GetArrayIndex();
-
-		switch (pTechnoType->WhatAmI())
-		{
-		case AbstractType::AircraftType:
-			this->LimboAircraft.Decrement(arrayIndex);
-			break;
-		case AbstractType::BuildingType:
-			this->LimboBuildings.Decrement(arrayIndex);
-			break;
-		case AbstractType::InfantryType:
-			this->LimboInfantry.Decrement(arrayIndex);
-			break;
-		case AbstractType::UnitType:
-			this->LimboVehicles.Decrement(arrayIndex);
-			break;
-		default:
-			break;
-		}
-	}
-}
-
-int HouseExt::ExtData::CountOwnedPresentAndLimboed(TechnoTypeClass* pTechnoType)
-{
-	int count = this->OwnerObject()->CountOwnedAndPresent(pTechnoType);
-	int arrayIndex = pTechnoType->GetArrayIndex();
-
-	switch (pTechnoType->WhatAmI())
-	{
-	case AbstractType::AircraftType:
-		count += this->LimboAircraft.GetItemCount(arrayIndex);
-		break;
-	case AbstractType::BuildingType:
-		count += this->LimboBuildings.GetItemCount(arrayIndex);
-		break;
-	case AbstractType::InfantryType:
-		count += this->LimboInfantry.GetItemCount(arrayIndex);
-		break;
-	case AbstractType::UnitType:
-		count += this->LimboVehicles.GetItemCount(arrayIndex);
-		break;
-	default:
-		break;
-	}
-
-	return count;
-}
 // =============================
 // load / save
 
@@ -834,13 +832,8 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		.Process(this->SWLastIndex)
 		.Process(this->Batteries)
 		.Process(this->Factories_HouseTypes)
-		.Process(this->OwnedTechno)
+		.Process(this->LimboTechno)
 		.Process(this->AvaibleDocks)
-
-		.Process(this->LimboAircraft)
-		.Process(this->LimboBuildings)
-		.Process(this->LimboInfantry)
-		.Process(this->LimboVehicles)
 		;
 }
 

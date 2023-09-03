@@ -63,7 +63,7 @@ void TechnoExt::InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType)
 
 	pExt->PaintBallState = std::make_unique<PaintBall>();
 
-	if (!Is_Building(pThis))
+	if (pThis->WhatAmI() != BuildingClass::AbsID)
 	{
 		if (!pTypeExt->LaserTrailData.empty() && !pExt->Type->Invisible)
 			pExt->LaserTrails.reserve(pTypeExt->LaserTrailData.size());

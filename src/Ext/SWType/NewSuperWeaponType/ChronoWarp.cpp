@@ -420,7 +420,7 @@ void ChronoWarpStateMachine::Update()
 	}
 }
 
-void ChronoWarpStateMachine::InvalidatePointer(void* ptr, bool remove)
+void ChronoWarpStateMachine::InvalidatePointer(AbstractClass* ptr, bool remove)
 {
 	if (remove) {
 		for (int i = 0; i < this->Buildings.Count; ++i) {

@@ -550,7 +550,7 @@ HouseClass* BulletExt::GetHouse(BulletClass* const pThis)
 	return BulletExt::ExtMap.Find(pThis)->Owner;
 }
 
-bool BulletExt::ExtData::InvalidateIgnorable(void* ptr)
+bool BulletExt::ExtData::InvalidateIgnorable(AbstractClass* ptr)
 {
 	switch (VTable::Get(ptr))
 	{
@@ -566,7 +566,7 @@ bool BulletExt::ExtData::InvalidateIgnorable(void* ptr)
 
 }
 
-void BulletExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved) {
+void BulletExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved) {
 
 	AnnounceInvalidPointer(Owner , ptr);
 	AnnounceInvalidPointer(NukeSW, ptr);

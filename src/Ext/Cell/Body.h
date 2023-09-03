@@ -5,7 +5,7 @@
 #include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 
-//#include <New/Entity/FoggedObject.h>
+#include <New/Entity/FoggedObject.h>
 
 class CellExt
 {
@@ -19,15 +19,8 @@ public:
 
 	public:
 
-		//std::vector<TerrainClass*> AttachedTerrain;
-		//int NewPowerups;
-		//DynamicVectorClass<FoggedObject*> FoggedObjects;
-		//<RadSiteClass*> PlacedRadSite;
+		DynamicVectorClass<FoggedObject*> FoggedObjects {};
 		ExtData(CellClass* OwnerObject) : Extension<CellClass>(OwnerObject)
-			//, AttachedTerrain {  }
-			//, PlacedRadSite { }
-			//, NewPowerups {-1}
-			//, FoggedObjects { }
 		{ }
 
 		virtual ~ExtData() override = default;

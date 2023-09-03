@@ -12,18 +12,18 @@ void  WaveExt::ExtData::InitWeaponData()
 
 	auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(this->Weapon);
 
-	switch (GetVtableAddr(this->Get()->Target))
+	switch (this->Get()->Target->WhatAmI())
 	{
-	case UnitClass::vtable:
+	case UnitClass::AbsID:
 		this->ReverseAgainstTarget = pWeaponExt->Wave_Reverse[0];
 		break;
-	case AircraftClass::vtable:
+	case AircraftClass::AbsID:
 		this->ReverseAgainstTarget = pWeaponExt->Wave_Reverse[1];
 		break;
-	case BuildingClass::vtable:
+	case BuildingClass::AbsID:
 		this->ReverseAgainstTarget = pWeaponExt->Wave_Reverse[2];
 		break;
-	case InfantryClass::vtable:
+	case InfantryClass::AbsID:
 		this->ReverseAgainstTarget = pWeaponExt->Wave_Reverse[3];
 		break;
 	default:

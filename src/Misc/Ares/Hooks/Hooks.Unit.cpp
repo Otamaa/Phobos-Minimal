@@ -56,9 +56,10 @@ DEFINE_OVERRIDE_HOOK(0x73F7DD, UnitClass_IsCellOccupied_Bib, 0x8)
 // #1171643: keep the last passenger if this is a gunner, not just
 // when it has multiple turrets. gattling and charge turret is no
 // longer affected by this.
-DEFINE_OVERRIDE_HOOK(0x73D81E, UnitClass_Mi_Unload_LastPassenger, 0x5)
+DEFINE_DISABLE_HOOK(0x73D81E, UnitClass_Mi_Unload_LastPassenger_ares);
+DEFINE_HOOK(0x73D81C, UnitClass_Mi_Unload_LastPassenger, 0x7)
 {
-	GET(UnitClass*, pThis, ECX);
+	GET(UnitClass*, pThis, ESI);
 	R->EAX(pThis->GetTechnoType()->Gunner);
 	return 0x73D823;
 }
@@ -828,8 +829,8 @@ DEFINE_OVERRIDE_HOOK(0x74031A, UnitClass_GetActionOnObject_NoManualEnter, 6)
 	return enterable ? 0x740324u : 0x74037Au;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x6F7FC5, TechnoClass_CanAutoTargetObject_Heal, 7, 6F7FDF)
-//DEFINE_JUMP(LJMP, 0x6F7FC5, 0x6F7FDF);
+DEFINE_DISABLE_HOOK(0x6F7FC5, TechnoClass_CanAutoTargetObject_Heal_ares) //, 7, 6F7FDF)
+DEFINE_JUMP(LJMP, 0x6F7FC5, 0x6F7FDF);
 
 DEFINE_OVERRIDE_HOOK_AGAIN(0x6F8F1F, TechnoClass_FindTargetType_Heal, 6)
 DEFINE_OVERRIDE_HOOK(0x6F8EE3, TechnoClass_FindTargetType_Heal, 6)
@@ -998,7 +999,9 @@ DEFINE_OVERRIDE_HOOK(0x51E710, InfantryClass_GetActionOnObject_Heal, 7)
 		return NextCheck;
 	}
 
-	const size_t nCursor = nCursorShield != -1 ? (size_t)nCursorShield : (pThatType->Organic || Is_Infantry(pThat)) ? 90 : 91;
+	const size_t nCursor = nCursorShield != -1 ? (size_t)nCursorShield :
+		(pThatType->Organic || pThat->WhatAmI() == InfantryClass::AbsID) ? 90 : 91;
+
 	//TODO : properly port this
 	AresData::SetMouseCursorAction(nCursor, Action::Heal, false);
 	return DoActionHeal;
@@ -1035,7 +1038,9 @@ DEFINE_OVERRIDE_HOOK(0x73FDBD, UnitClass_GetActionOnObject_Heal, 5)
 	if(ret)
 		return DoActionSelect;
 
-	size_t nCursor = nCursorSelected != -1 ? (size_t)nCursorSelected : (pThatType->Organic || Is_Infantry(pThat)) ? 90 : 91;
+	size_t nCursor = nCursorSelected != -1 ? (size_t)nCursorSelected :
+		(pThatType->Organic || pThat->WhatAmI() == InfantryClass::AbsID) ? 90 : 91;
+
 	//TODO : properly port this
 	AresData::SetMouseCursorAction(nCursor, Action::GRepair, false);
 
@@ -1381,7 +1386,7 @@ DEFINE_OVERRIDE_HOOK(0x6F4A1D, TechnoClass_DiscoveredBy_Prereqs, 6)
 
 	auto const pType = pThis->GetTechnoType();
 
-	if (!Is_Building(pThis) && TechnoTypeExt::ExtMap.Find(pType)->IsGenericPrerequisite())
+	if (pThis->WhatAmI() != BuildingClass::AbsID && TechnoTypeExt::ExtMap.Find(pType)->IsGenericPrerequisite())
 	{
 		pThis->Owner->RecheckTechTree = true;
 	}
@@ -1396,7 +1401,7 @@ DEFINE_OVERRIDE_HOOK(0x7015EB, TechnoClass_ChangeOwnership_Prereqs, 7)
 
 	auto const pType = pThis->GetTechnoType();
 
-	if (!Is_Building(pThis) && TechnoTypeExt::ExtMap.Find(pType)->IsGenericPrerequisite())
+	if (pThis->WhatAmI() != BuildingClass::AbsID && TechnoTypeExt::ExtMap.Find(pType)->IsGenericPrerequisite())
 	{
 		pThis->Owner->RecheckTechTree = true;
 		pNewOwner->RecheckTechTree = true;

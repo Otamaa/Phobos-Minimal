@@ -283,6 +283,7 @@ DWORD NOINLINE TechnoClass_AI_TemporalTargetingMe_Fix(REGISTERS* R ,AbstractType
 			if (pThis->IsAlive)
 			{
 				pThis->Limbo();
+				Debug::Log(__FUNCTION__" Called \n");
 				TechnoExt::HandleRemove(pThis, nullptr, true, false);
 			}
 			else
@@ -441,7 +442,7 @@ DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
 		NeedUpdate = true;
 	}
 
-	if (Is_Building(pThis) && NeedUpdate)
+	if (pThis->WhatAmI() == BuildingClass::AbsID && NeedUpdate)
 		BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->LighningNeedUpdate = true;
 
 	return 0;
@@ -839,12 +840,12 @@ DEFINE_HOOK(0x718B29, LocomotionClass_SomethingWrong_ReceiveDamage_UseCurrentHP,
 	return R->Origin() + 0x6;
 }
 
-DEFINE_HOOK(0x6FDDD4, TechnoClass_FireAt_Suicide_UseCurrentHP, 0x6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	R->ECX(pThis->GetType()->Strength);
-	return 0x6FDDDA;
-}
+// DEFINE_HOOK(0x6FDDD4, TechnoClass_FireAt_Suicide_UseCurrentHP, 0x6)
+// {
+// 	GET(TechnoClass* const, pThis, ESI);
+// 	R->ECX(pThis->GetType()->Strength);
+// 	return 0x6FDDDA;
+// }
 
 DEFINE_HOOK(0x70BC6F, TechnoClass_UpdateRigidBodyKinematics_KillFlipped, 0xA)
 {
@@ -857,35 +858,35 @@ DEFINE_HOOK(0x70BC6F, TechnoClass_UpdateRigidBodyKinematics_KillFlipped, 0xA)
 	return 0x70BCA4;
 }
 
-DEFINE_HOOK(0x4425C0, BuildingClass_ReceiveDamage_MaybeKillRadioLinks, 0x6)
-{
-	GET(TechnoClass* const, pRadio, EDI);
+// DEFINE_HOOK(0x4425C0, BuildingClass_ReceiveDamage_MaybeKillRadioLinks, 0x6)
+// {
+// 	GET(TechnoClass* const, pRadio, EDI);
+//
+// 	pRadio->ReceiveDamage(&pRadio->GetType()->Strength, 0, RulesClass::Instance->C4Warhead,
+// 		nullptr, true, true, nullptr);
+//
+// 	return 0x4425F4;
+// }
 
-	pRadio->ReceiveDamage(&pRadio->GetType()->Strength, 0, RulesClass::Instance->C4Warhead,
-		nullptr, true, true, nullptr);
+// DEFINE_HOOK(0x501477, HouseClass_IHouse_AllToHunt_KillMCInsignificant, 0xA)
+// {
+// 	GET(TechnoClass* const, pItem, ESI);
+//
+// 	pItem->ReceiveDamage(&pItem->GetType()->Strength, 0, RulesClass::Instance->C4Warhead,
+// 		nullptr, true, true, nullptr);
+//
+// 	return 0x50150E;
+// }
 
-	return 0x4425F4;
-}
-
-DEFINE_HOOK(0x501477, HouseClass_IHouse_AllToHunt_KillMCInsignificant, 0xA)
-{
-	GET(TechnoClass* const, pItem, ESI);
-
-	pItem->ReceiveDamage(&pItem->GetType()->Strength, 0, RulesClass::Instance->C4Warhead,
-		nullptr, true, true, nullptr);
-
-	return 0x50150E;
-}
-
-DEFINE_HOOK(0x7187D2, TeleportLocomotionClass_7187A0_IronCurtainFuckMeUp, 0x8)
-{
-	GET(FootClass* const, pOwner, ECX);
-
-	pOwner->ReceiveDamage(&pOwner->GetType()->Strength, 0, RulesClass::Instance->C4Warhead,
-		nullptr, true, false, nullptr);
-
-	return 0x71880A;
-}
+// DEFINE_HOOK(0x7187D2, TeleportLocomotionClass_7187A0_IronCurtainFuckMeUp, 0x8)
+// {
+// 	GET(FootClass* const, pOwner, ECX);
+//
+// 	pOwner->ReceiveDamage(&pOwner->GetType()->Strength, 0, RulesClass::Instance->C4Warhead,
+// 		nullptr, true, false, nullptr);
+//
+// 	return 0x71880A;
+// }
 
 // Check WaterBound when setting rally points / undeploying instead of just Naval.
 DEFINE_HOOK(0x4438B4, BuildingClass_SetRallyPoint_Naval, 0x6)

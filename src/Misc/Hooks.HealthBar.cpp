@@ -164,7 +164,7 @@ namespace DrawHeathData
 		else
 			IMPL_SNPRNINTF(nBuffer, sizeof(nBuffer), "%d%s", (int)(pThis->GetHealthPercentage() * 100.0), "%");
 
-		auto const bIsBuilding = Is_Building(pThis);
+		auto const bIsBuilding = pThis->WhatAmI() == BuildingClass::AbsID;
 
 		{
 			// coord calculation is not really right !
@@ -231,7 +231,7 @@ namespace DrawHeathData
 	{
 		auto const&[pType , pOwner]= TechnoExt::GetDisguiseType(pThis, false, true);
 		LightConvertClass* pTechConvert = pThis->GetRemapColour();
-		const bool bIsInfantry = Is_Infantry(pThis);
+		const bool bIsInfantry = pThis->WhatAmI() == InfantryClass::AbsID;
 		bool IsDisguised = false;
 
 		if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer)) {
@@ -390,7 +390,7 @@ namespace DrawHeathData
 	{
 		if (pThis->IsIronCurtained())
 		{
-			if (Is_Building(pThis))
+			if (pThis->WhatAmI() == BuildingClass::AbsID)
 				DrawBar_Building(pThis, iLength, pLocation, pBound, pThis->ProtectType != ProtectTypes::ForceShield ? 2 : 3, 0, 0);
 			else
 				DrawdBar_Other(pThis, iLength, pLocation, pBound, 18, 0);
@@ -431,7 +431,7 @@ DEFINE_HOOK(0x6F683C, TechnoClass_DrawBar_Foot, 0x7)
 	GET_STACK(Point2D*, pLocation, STACK_OFFS(0x4C, -0x4));
 	GET_STACK(RectangleStruct*, pBound, STACK_OFFS(0x4C, -0x8));
 
-	const int iLength = Is_Infantry(pThis) ? 8 : 17;
+	const int iLength = pThis->WhatAmI() == InfantryClass::AbsID ? 8 : 17;
 
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 	if (const auto pShieldData = pExt->Shield.get()) {

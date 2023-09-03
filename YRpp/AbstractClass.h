@@ -1,39 +1,39 @@
 #pragma once
 #include <Helpers/VTable.h>
 
-#define GetVtableAddr(var) (VTable::Get(var))
-
-#define Is_Aircraft(var) (GetVtableAddr(var) == AircraftClass::vtable)
-#define Is_Infantry(var) (GetVtableAddr(var) == InfantryClass::vtable)
-#define Is_Building(var) (GetVtableAddr(var) == BuildingClass::vtable)
-#define Is_Unit(var) (GetVtableAddr(var) == UnitClass::vtable)
-
-#define Is_Foot(var) (Is_Aircraft(var) || Is_Infantry(var) || Is_Unit(var))
-#define Is_Techno(var) (Is_Foot(var) || Is_Building(var))
-#define Is_House(var) (GetVtableAddr(var) == HouseClass::vtable)
-#define Is_HouseType(var) (GetVtableAddr(var) == HouseTypeClass::vtable)
-
-#define Is_Terrain(var) (GetVtableAddr(var) == TerrainClass::vtable)
-#define Is_TerrainType(var) (GetVtableAddr(var) == TerrainTypeClass::vtable)
-
-#define Is_Bullet(var) (GetVtableAddr(var) == BulletClass::vtable)
-#define Is_BulletType(var) (GetVtableAddr(var) == BulletTypeClass::vtable)
-
-#define Is_Cell(var) (GetVtableAddr(var) == CellClass::vtable)
-#define Is_cell(var) (GetVtableAddr(var) == CellClass::vtable)
-
-#define Is_SW(var) (GetVtableAddr(var) == SuperClass::vtable)
-#define Is_SWType(var) (GetVtableAddr(var) == SuperWeaponTypeClass::vtable)
-
-#define Is_Anim(var) (GetVtableAddr(var) == AnimClass::vtable)
-#define Is_AnimType(var) (GetVtableAddr(var) == AnimTypeClass::vtable)
-
-#define Is_AircraftType(var) (GetVtableAddr(var) == AircraftTypeClass::vtable)
-#define Is_InfantryType(var) (GetVtableAddr(var) == InfantryTypeClass::vtable)
-#define Is_BuildingType(var) (GetVtableAddr(var) == BuildingTypeClass::vtable)
-#define Is_UnitType(var) (GetVtableAddr(var) == UnitTypeClass::vtable)
-
-#define Is_TechnoType(var) (Is_AircraftType(var) || Is_InfantryType(var) || Is_BuildingType(var) || Is_UnitType(var))
+//#define GetVtableAddr(var) (VTable::Get(var))
+//
+//#define Is_Aircraft(var) (GetVtableAddr(var) == AircraftClass::vtable)
+//#define Is_Infantry(var) (GetVtableAddr(var) == InfantryClass::vtable)
+//#define Is_Building(var) (GetVtableAddr(var) == BuildingClass::vtable)
+//#define Is_Unit(var) (GetVtableAddr(var) == UnitClass::vtable)
+//
+//#define Is_Foot(var) (Is_Aircraft(var) || Is_Infantry(var) || Is_Unit(var))
+//#define Is_Techno(var) (Is_Foot(var) || Is_Building(var))
+//#define Is_House(var) (GetVtableAddr(var) == HouseClass::vtable)
+//#define Is_HouseType(var) (GetVtableAddr(var) == HouseTypeClass::vtable)
+//
+//#define Is_Terrain(var) (GetVtableAddr(var) == TerrainClass::vtable)
+//#define Is_TerrainType(var) (GetVtableAddr(var) == TerrainTypeClass::vtable)
+//
+//#define Is_Bullet(var) (GetVtableAddr(var) == BulletClass::vtable)
+//#define Is_BulletType(var) (GetVtableAddr(var) == BulletTypeClass::vtable)
+//
+//#define Is_Cell(var) (GetVtableAddr(var) == CellClass::vtable)
+//#define Is_cell(var) (GetVtableAddr(var) == CellClass::vtable)
+//
+//#define Is_SW(var) (GetVtableAddr(var) == SuperClass::vtable)
+//#define Is_SWType(var) (GetVtableAddr(var) == SuperWeaponTypeClass::vtable)
+//
+//#define Is_Anim(var) (GetVtableAddr(var) == AnimClass::vtable)
+//#define Is_AnimType(var) (GetVtableAddr(var) == AnimTypeClass::vtable)
+//
+//#define Is_AircraftType(var) (GetVtableAddr(var) == AircraftTypeClass::vtable)
+//#define Is_InfantryType(var) (GetVtableAddr(var) == InfantryTypeClass::vtable)
+//#define Is_BuildingType(var) (GetVtableAddr(var) == BuildingTypeClass::vtable)
+//#define Is_UnitType(var) (GetVtableAddr(var) == UnitTypeClass::vtable)
+//
+//#define Is_TechnoType(var) (Is_AircraftType(var) || Is_InfantryType(var) || Is_BuildingType(var) || Is_UnitType(var))
 
 
 #include <Interface/IRTTITypeInfo.h>
@@ -76,6 +76,8 @@ class CRCEngine;
 
 struct StorageClass final
 {
+	static constexpr inline size_t  Count = 0x4u;
+
 	double GetStoragePercentage(int total) const
 	{
 		return (double)this->GetTotalAmount() / (double)total;
@@ -89,9 +91,9 @@ struct StorageClass final
 	float GetTotalAmount() const
 	{ //JMP_THIS(0x6C9650);
 		float amounttotal = 0.0f;
-		for (auto const& nTib :this->Tiberiums) {
-			amounttotal += nTib;
-		}
+
+		for(size_t i = 0; i < Count; ++i)
+			amounttotal += this->Tiberiums[i];
 
 		return amounttotal;
 	}
@@ -131,7 +133,7 @@ struct StorageClass final
 	int GetHighestStorageIdx() const
 	{
 		int nIdx = 0;
-		for (int p = 0; p < 4; p++)
+		for (int p = 0; p < Count; p++)
 			nIdx += (this->Tiberiums[nIdx] < this->Tiberiums[p]) * (p - nIdx);
 
 		return nIdx;

@@ -12,7 +12,7 @@ public:
 	ArtilleryTrajectoryType() : PhobosTrajectoryType(TrajectoryFlag::Artillery){ }
 	virtual ~ArtilleryTrajectoryType() = default;
 
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 	virtual bool Read(CCINIClass* const pINI, const char* pSection) override;
@@ -34,7 +34,7 @@ public:
 	{}
 	virtual ~ArtilleryTrajectory() = default;
 
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) {}
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) {}
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 

@@ -84,7 +84,7 @@ DEFINE_HOOK(0x6FE562, TechnoClass_FireAt_BurstRandomTarget, 0x6)
 
 	if (!candidates.empty()) {
 		// Pick one new target from the list of targets inside the weapon range
-		pBullet->Target = candidates.at(ScenarioClass::Instance->Random.RandomFromMax(candidates.size() - 1));
+		pBullet->Target = candidates[ScenarioClass::Instance->Random.RandomFromMax(candidates.size() - 1)];
 	}
 
 	return 0;
@@ -247,7 +247,7 @@ DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_Middle, 0x6)
 	GET_BASE(int, weaponIndex, 0xC);
 
 	//TechnoClass_FireAt_ToggleLaserWeaponIndex
-	if (Is_Building(pThis) && pWeaponType->IsLaser)
+	if (pThis->WhatAmI() == BuildingClass::AbsID && pWeaponType->IsLaser)
 	{
 		auto const pExt = TechnoExt::ExtMap.Find(pThis);
 
@@ -360,7 +360,7 @@ DEFINE_HOOK(0x7012C0, TechnoClass_WeaponRange, 0x8) //4
 		}
 	}
 
-	if (result == 0 && Is_Aircraft(pThis) && pThisType->OpenTopped)
+	if (result == 0 && pThis->WhatAmI() == AircraftClass::AbsID && pThisType->OpenTopped)
 	{
 		result = pThisType->GuardRange;
 		if (result == 0)

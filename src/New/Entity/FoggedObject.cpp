@@ -1,5 +1,5 @@
 #include "FoggedObject.h"
-#ifdef ENABLE_FOGGED_OBJ
+
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Cell/Body.h>
 
@@ -337,14 +337,14 @@ void FoggedObject::RenderAsBuilding(const RectangleStruct& viewRect) const
 			pVXLDrawer->Location = Location;
 			pVXLDrawer->TurretAnimFrame = BuildingData.TurretAnimFrame;
 
-			auto const primaryDir = BuildingData.PrimaryFacing.current();
+			auto const primaryDir = BuildingData.PrimaryFacing.Current();
 			int turretFacing = 0;
 			int barrelFacing = 0;
 			if (pType->TurretVoxel.HVA)
 				turretFacing = BuildingData.TurretAnimFrame % pType->TurretVoxel.HVA->FrameCount;
 			if (pType->BarrelVoxel.HVA)
 				barrelFacing = BuildingData.TurretAnimFrame % pType->BarrelVoxel.HVA->FrameCount;
-			int val32 = primaryDir.value32();
+			int val32 = primaryDir.Getvalue32();
 			int turretExtra = ((unsigned char)turretFacing << 16) | val32;
 			int barrelExtra = ((unsigned char)barrelFacing << 16) | val32;
 
@@ -352,8 +352,8 @@ void FoggedObject::RenderAsBuilding(const RectangleStruct& viewRect) const
 			{
 				Matrix3D matrixturret;
 				matrixturret.MakeIdentity();
-				matrixturret.RotateZ(static_cast<float>(primaryDir.get_radian()));
-				TechnoTypeExt::ApplyTurretOffset(pType, &matrixturret, 0.125);
+				matrixturret.RotateZ(static_cast<float>(primaryDir.GetRadian()));
+				TechnoTypeExt::ExtMap.Find(pType)->ApplyTurretOffset(&matrixturret, 0.125);
 
 				Vector3D<float> negativevector = { -matrixturret.Row[0].W ,-matrixturret.Row[1].W,-matrixturret.Row[2].W };
 				Vector3D<float> vector = { matrixturret.Row[0].W ,matrixturret.Row[1].W,matrixturret.Row[2].W };
@@ -363,7 +363,7 @@ void FoggedObject::RenderAsBuilding(const RectangleStruct& viewRect) const
 					matrixturret.TranslateX(-BuildingData.TurretRecoil.TravelSoFar);
 					turretExtra = -1;
 				}
-				Matrix3D::MatrixMultiply(&matrixturret, &Matrix3D::VoxelDefaultMatrix, &matrixturret);
+				Matrix3D::MatrixMultiply(&matrixturret, &Game::VoxelDefaultMatrix(), &matrixturret);
 
 				bool bDrawBarrel = pType->BarrelVoxel.VXL && pType->BarrelVoxel.HVA;
 				if (bDrawBarrel)
@@ -374,9 +374,9 @@ void FoggedObject::RenderAsBuilding(const RectangleStruct& viewRect) const
 						matrixbarrel.TranslateX(-BuildingData.BarrelRecoil.TravelSoFar);
 						barrelExtra = -1;
 					}
-					matrixbarrel.RotateY(-static_cast<float>(BuildingData.BarrelFacing.current().get_radian()));
+					matrixbarrel.RotateY(-static_cast<float>(BuildingData.BarrelFacing.Current().GetRadian()));
 					matrixbarrel.Translate(vector);
-					matrixbarrel = Matrix3D::MatrixMultiply(Matrix3D::VoxelDefaultMatrix, matrixbarrel);
+					matrixbarrel = Matrix3D::MatrixMultiply(Game::VoxelDefaultMatrix(), matrixbarrel);
 				}
 
 				int facetype = (((((*(unsigned int*)&primaryDir) >> 13) + 1) >> 1) & 3);
@@ -384,22 +384,22 @@ void FoggedObject::RenderAsBuilding(const RectangleStruct& viewRect) const
 				{
 					if (bDrawBarrel)
 						pVXLDrawer->DrawVoxel(BuildingData.Type->BarrelVoxel, 0, (short)turretExtra,
-							BuildingData.Type->VoxelCaches[3], viewRect, turretPoint, matrixbarrel,
+							BuildingData.Type->VoxelCaches_[3], viewRect, turretPoint, matrixbarrel,
 							pCell->Intensity_Normal, 0, 0);
 
 					pVXLDrawer->DrawVoxel(BuildingData.Type->TurretVoxel, turretFacing, (short)turretExtra,
-						BuildingData.Type->VoxelCaches[1], viewRect, turretPoint, matrixturret,
+						BuildingData.Type->VoxelCaches_[1], viewRect, turretPoint, matrixturret,
 						pCell->Intensity_Normal, 0, 0);
 				}
 				else
 				{
 					pVXLDrawer->DrawVoxel(BuildingData.Type->TurretVoxel, turretFacing, (short)turretExtra,
-						BuildingData.Type->VoxelCaches[1], viewRect, turretPoint, matrixturret,
+						BuildingData.Type->VoxelCaches_[1], viewRect, turretPoint, matrixturret,
 						pCell->Intensity_Normal, 0, 0);
 
 					if (bDrawBarrel)
 						pVXLDrawer->DrawVoxel(BuildingData.Type->BarrelVoxel, 0, (short)turretExtra,
-							BuildingData.Type->VoxelCaches[3], viewRect, turretPoint, matrixbarrel,
+							BuildingData.Type->VoxelCaches_[3], viewRect, turretPoint, matrixbarrel,
 							pCell->Intensity_Normal, 0, 0);
 				}
 			}
@@ -410,12 +410,12 @@ void FoggedObject::RenderAsBuilding(const RectangleStruct& viewRect) const
 				Vector3D<float> negativevector = { -matrixbarrel.Row[0].W ,-matrixbarrel.Row[1].W,-matrixbarrel.Row[2].W };
 				Vector3D<float> vector = { matrixbarrel.Row[0].W ,matrixbarrel.Row[1].W,matrixbarrel.Row[2].W };
 				matrixbarrel.Translate(negativevector);
-				matrixbarrel.RotateZ(static_cast<float>(BuildingData.PrimaryFacing.current().get_radian()));
-				matrixbarrel.RotateY(-static_cast<float>(BuildingData.BarrelFacing.current().get_radian()));
+				matrixbarrel.RotateZ(static_cast<float>(BuildingData.PrimaryFacing.Current().GetRadian()));
+				matrixbarrel.RotateY(-static_cast<float>(BuildingData.BarrelFacing.Current().GetRadian()));
 				matrixbarrel.Translate(vector);
-				matrixbarrel = Matrix3D::MatrixMultiply(Matrix3D::VoxelDefaultMatrix, matrixbarrel);
+				matrixbarrel = Matrix3D::MatrixMultiply(Game::VoxelDefaultMatrix(), matrixbarrel);
 				pVXLDrawer->DrawVoxel(BuildingData.Type->BarrelVoxel, barrelFacing, (short)barrelExtra,
-					BuildingData.Type->VoxelCaches[3], viewRect, turretPoint, matrixbarrel,
+					BuildingData.Type->VoxelCaches_[3], viewRect, turretPoint, matrixbarrel,
 					pCell->Intensity_Normal, 0, 0);
 			}
 		}
@@ -524,29 +524,3 @@ void FoggedObject::RenderAsTerrain(const RectangleStruct& viewRect) const
 				ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 	}
 }
-
-DEFINE_HOOK(0x67D32C, Put_All_FoggedObjects, 0x5)
-{
-	GET(IStream*, pStm, ESI);
-
-	FoggedObject::SaveGlobal(pStm);
-
-	return 0;
-}
-
-DEFINE_HOOK(0x67E826, Decode_All_FoggedObjects, 0x6)
-{
-	GET(IStream*, pStm, ESI);
-
-	FoggedObject::LoadGlobal(pStm);
-
-	return 0;
-}
-
-DEFINE_HOOK(0x685659, Clear_Scenario_FoggedObjects, 0xA)
-{
-	FoggedObject::FoggedObjects.Clear();
-
-	return 0;
-}
-#endif

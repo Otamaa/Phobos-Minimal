@@ -217,7 +217,7 @@ struct TechnoExperienceData
 					if (auto pAnim = GameCreate<AnimClass>(Promoted_PlayAnim, pExpReceiver->Location, 0, 1, 0x600u, 0, 0)){
 						pAnim->SetOwnerObject(pExpReceiver);
 
-						if (Is_Building(pExpReceiver))
+						if (pExpReceiver->WhatAmI() == BuildingClass::AbsID)
 							pAnim->ZAdjust = -1024;
 					}
 				}

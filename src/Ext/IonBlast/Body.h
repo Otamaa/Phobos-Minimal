@@ -40,7 +40,7 @@
 //		virtual ~ExtData() = default;
 //		virtual size_t Size() const { return sizeof(*this); }
 //
-//		virtual void InvalidatePointer(void* ptr, bool bRemoved)
+//		virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 //		{
 //			AnnounceInvalidPointer(AttachedWarheadData, ptr);
 //			AnnounceInvalidPointer(IonHouseOwner, ptr);

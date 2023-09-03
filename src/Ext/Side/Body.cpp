@@ -187,6 +187,7 @@ void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->ParachuteAnim.Read(exINI, pSection, "Parachute.Anim", true);
 
 	this->EVAIndex.Read(exINI, pSection, "EVA.Tag");
+	this->BriefingTheme = pINI->ReadTheme(pSection, "BriefingTheme", this->BriefingTheme);
 }
 
 // =============================

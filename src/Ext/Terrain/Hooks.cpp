@@ -165,16 +165,15 @@ DEFINE_HOOK(0x5F4FEF, ObjectClass_Put_RegisterLogic_Terrain, 0x6)
 		return FurtherCheck;
 	}
 
-	if (!pType->IsLogic)
+	if (!pType->IsLogic) {
 		return NoUpdate;
+	}
 
-	if (Is_TerrainType(pType))
-	{
+	if (pType->WhatAmI() == TerrainTypeClass::AbsID) {
 		auto const pTerrainType = static_cast<TerrainTypeClass* const>(pType);
 		if (!pTerrainType->SpawnsTiberium
 			&& !pTerrainType->IsFlammable
-			&& !pTerrainType->IsAnimated)
-		{
+			&& !pTerrainType->IsAnimated) {
 			return NoUpdate;
 		}
 	}

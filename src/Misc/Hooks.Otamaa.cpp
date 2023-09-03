@@ -257,7 +257,7 @@ DEFINE_HOOK(0x6FF394, TechnoClass_FireAt_FeedbackAnim, 0x8)
 		if (auto pFeedBackAnim = GameCreate<AnimClass>(pAnimType, nCoord))
 		{
 			AnimExt::SetAnimOwnerHouseKind(pFeedBackAnim, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false);
-			if (!Is_Building(pThis))
+			if (pThis->WhatAmI() != BuildingClass::AbsID)
 				pFeedBackAnim->SetOwnerObject(pThis);
 		}
 	}
@@ -283,7 +283,7 @@ DEFINE_HOOK(0x6FF3CD, TechnoClass_FireAt_AnimOwner, 0x7)
 
 	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false);
 
-	return Is_Building(pThis) ? AdjustCoordsForBuilding : Goto2NdCheck;
+	return pThis->WhatAmI() == BuildingClass::AbsID ? AdjustCoordsForBuilding : Goto2NdCheck;
 }
 
 #pragma region WallTower
@@ -1319,7 +1319,7 @@ DEFINE_HOOK(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 
 	GET(TechnoClass* const, pThis, ESI);
 
-	if (Is_Building(pThis))
+	if (pThis->WhatAmI() == BuildingClass::AbsID)
 	{
 		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->LimboID != -1)
 		{
@@ -2120,7 +2120,7 @@ DEFINE_HOOK(0x6D912B, TacticalClass_Render_BuildingInLimboDeliveryA, 0x9)
 
 	GET(TechnoClass* const, pTechno, ESI);
 
-	if (Is_Building(pTechno))
+	if (pTechno->WhatAmI() == BuildingClass::AbsID)
 	{
 		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pTechno))->LimboID != -1)
 		{
@@ -2137,7 +2137,7 @@ DEFINE_HOOK(0x6D966A, TacticalClass_Render_BuildingInLimboDeliveryB, 0x9)
 
 	GET(TechnoClass* const, pTechno, EBX);
 
-	if (Is_Building(pTechno))
+	if (pTechno->WhatAmI() == BuildingClass::AbsID)
 	{
 		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pTechno))->LimboID != -1)
 		{
@@ -2227,7 +2227,7 @@ DEFINE_HOOK(0x73AED4, UnitClass_PCP_DamageSelf_C4WarheadAnimCheck, 0x8)
 	GET(AnimClass*, pAllocatedMem, ESI);
 	GET(LandType const, nLand, EBX);
 
-	auto nLoc = pThis->Location;
+	CoordStruct nLoc = pThis->Location;
 	if (auto const pC4AnimType = MapClass::SelectDamageAnimation(pThis->Health, RulesClass::Instance->C4Warhead, nLand, nLoc))
 	{
 		pAllocatedMem->AnimClass::AnimClass(pC4AnimType, nLoc, 0, 1, 0x2600, -15, false);
@@ -2244,6 +2244,9 @@ DEFINE_HOOK(0x73AED4, UnitClass_PCP_DamageSelf_C4WarheadAnimCheck, 0x8)
 
 void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
 {
+	if (!pTechno)
+		return;
+
 	const auto pType = pTechno->GetTechnoType();
 	const auto nMax = pType->GetPipMax();
 
@@ -2254,7 +2257,7 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
 	Point2D nOffs {};
-	const auto pBuilding = Is_Building(pTechno) ? static_cast<BuildingClass*>(pTechno) : nullptr;
+	const auto pBuilding = pTechno->WhatAmI() == BuildingClass::AbsID ? static_cast<BuildingClass*>(pTechno) : nullptr;
 	const auto pShape = pBuilding ?
 		pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP()) : pTypeExt->PipShapes02.Get(FileSystem::PIPS2_SHP());
 
@@ -2283,14 +2286,19 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 		{
 			case 0 :
 				FrameIdx = pTypeExt->Riparius_FrameIDx.Get(5);
+				break;
 			case 1 :
 				FrameIdx = pTypeExt->Cruentus_FrameIDx.Get(2);
+				break;
 			case 2:
 				FrameIdx = pTypeExt->Vinifera_FrameIDx.Get(2);
+				break;
 			case 3:
 				FrameIdx = pTypeExt->Aboreus_FrameIDx.Get(2);
+				break;
 			default:
 				FrameIdx = 2;
+				break;
 		}
 
 		Amounts[i] = { amount , FrameIdx };
@@ -2600,7 +2608,7 @@ DEFINE_HOOK(0x6F8721, TechnoClass_EvalObject_VHPScan, 0x7)
 	break;
 	case NewVHPScan::Non_Infantry:
 	{
-		if (!pTechnoTarget || Is_Infantry(pTechnoTarget))
+		if (!pTechnoTarget || pTechnoTarget->WhatAmI() == InfantryClass::AbsID)
 		{
 			*pRiskValue = 0;
 		}
@@ -2783,10 +2791,16 @@ DEFINE_HOOK(0x4FB7CA, HouseClass_RegisterJustBuild_CreateSound_PlayerOnly, 0x6) 
 	{
 		const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
 
-		if(pTechnoTypeExt->VoiceCreate >= 0 )
-			pTechno->QueueVoice(pTechnoTypeExt->VoiceCreate);
+		if(pTechnoTypeExt->VoiceCreate >= 0 ){
 
-		//VocClass::PlayAt(pTechnoTypeExt->VoiceCreate, pTechno->Location);
+			if(!pTechnoTypeExt->VoiceCreate_Instant)
+				pTechno->QueueVoice(pTechnoTypeExt->VoiceCreate);
+			else
+			{
+				if(pThis->IsControlledByHuman_() && !pThis->IsCurrentPlayerObserver())
+					VocClass::PlayAt(pTechnoTypeExt->VoiceCreate, pTechno->Location);
+			}
+		}
 
 		if (!pTechnoTypeExt->CreateSound_Enable.Get())
 			return ReturnNoVoiceCreate;
@@ -2805,7 +2819,7 @@ DEFINE_HOOK(0x6A8E25, SidebarClass_StripClass_AI_Building_EVA_ConstructionComple
 {
 	GET(TechnoClass* const, pTech, ESI);
 
-	if (pTech && Is_Building(pTech)
+	if (pTech && pTech->WhatAmI() == BuildingClass::AbsID
 	 && pTech->Owner
 	 && pTech->Owner->ControlledByPlayer()) {
 		VoxClass::PlayIndex(TechnoTypeExt::ExtMap.Find(pTech->GetTechnoType())->Eva_Complete.Get());
@@ -2838,14 +2852,21 @@ DEFINE_HOOK(0x6A8E25, SidebarClass_StripClass_AI_Building_EVA_ConstructionComple
 // 	return 0x518BA0;
 // }
 
+// this using enum , not boolean afaik
+//  so far i know
+//	-1 None
+//	2 FootMethod
+//  1 BuildingMethod
+//	0 prohibited
 //TODO : Add PerTechnoOverride
-DEFINE_HOOK(0x639DD8, TechnoClass_PlanningManager_DecideEligible, 0x5)
-{
-	enum { CanUse = 0x639DDD, ContinueCheck = 0x639E03 };
-	GET(TechnoClass* const, pThis, ESI);
-	return Is_Foot(pThis)
-		? CanUse : ContinueCheck;
-}
+//DEFINE_JUMP(LJMP, 0x639DE5, 0x639DF9);
+//DEFINE_HOOK(0x639DD8, TechnoClass_PlanningManager_DecideEligible, 0x5)
+//{
+//	enum { CanUse =   , ContinueCheck = 0x639E03 };
+//	GET(TechnoClass* const, pThis, ESI);
+//	return ((pThis->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None)
+//		? CanUse : ContinueCheck;
+//}
 
 DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6)
 {
@@ -3332,13 +3353,6 @@ DEFINE_HOOK(0x708F77, TechnoClass_ResponseToSelect_BugFixes, 0x5)
 //	return 0x0;
 //}
 
-DEFINE_HOOK(0x6D7A4F, TacticalClass_DrawPixelEffects_FullFogged, 0x6)
-{
-	GET(CellClass* const, pCell, ESI);
-
-	return pCell->IsFogged() ? 0x6D7BB8 : 0x0;
-}
-
 DEFINE_HOOK(0x6EE17E, MoveCrameraToWaypoint_CancelFollowTarget, 0x8)
 {
 	DisplayClass::Instance->FollowAnObject(nullptr);
@@ -3732,7 +3746,7 @@ DEFINE_OVERRIDE_HOOK(0x6FCA30, TechnoClass_GetFireError_DecloakToFire, 6)
 	if (pThis->CloakState == CloakState::Uncloaked)
 		return 0x6FCA5E;
 
-	if (!pWeapon->DecloakToFire && Is_Aircraft(pThis))
+	if (!pWeapon->DecloakToFire && pThis->WhatAmI() == AircraftClass::AbsID)
 		return 0x6FCA4F;
 
 	return pThis->CloakState == CloakState::Cloaked ? 0x6FCA4F : 0x6FCA5E;
@@ -4146,271 +4160,6 @@ DEFINE_HOOK(0x7008E5, TechnoClass_WhatAction_FixGetCellAtCallTwice, 0x9)
 	return 0x7008FB;
 }
 
-#ifdef FOW_HOOKS
-// MapClass_RevealShroud as Xkein said
-DEFINE_HOOK(0x4ADFF0, DisplayClass_All_To_Look_Ground, 0x5)
-{
-	// GET(DisplayClass*, pDisplay, ECX);
-	GET_STACK(DWORD, dwUnk, 0x4);
-	GET_STACK(DWORD, dwUnk2, 0x8);
-
-	for (auto pTechno : *TechnoClass::Array)
-	{
-		if (!pTechno)
-			continue;
-
-		if (!dwUnk || !Is_Building(pTechno))
-		{
-			if (pTechno->GetTechnoType()->RevealToAll ||
-				(
-					pTechno->DiscoveredByCurrentPlayer &&
-					pTechno->Owner == HouseClass::CurrentPlayer() ||
-					pTechno->Owner->IsHumanPlayer ||
-					pTechno->Owner->IsInPlayerControl
-					) ||
-				(
-					pTechno->Owner == HouseClass::CurrentPlayer() ||
-					HouseClass::CurrentPlayer()->ArrayIndex != -1 &&
-					pTechno->Owner->IsAlliedWith_(HouseClass::CurrentPlayer())
-					))
-			{
-				pTechno->See(0, dwUnk2);
-				if (pTechno->IsInAir())
-				{
-
-					auto coord = pTechno->GetCoords();
-					MapClass::Instance->RevealArea3(
-						&coord,
-						pTechno->LastSightRange - 3,
-						pTechno->LastSightRange + 3,
-						false
-					);
-				}
-			}
-		}
-	}
-
-	return 0x4AE0A5;
-}
-
-DEFINE_HOOK(0x577EBF, MapClass_Reveal, 0x6)
-{
-	GET(CellClass*, pCell, EAX);
-
-	pCell->ShroudCounter = 0;
-	pCell->GapsCoveringThisCell = 0;
-	pCell->AltFlags |= (AltCellFlags)0x18u;
-	pCell->Flags |= (CellFlags)0x3u;
-	pCell->CleanFog();
-
-	return 0x577EE9;
-}
-
-DEFINE_HOOK(0x586683, CellClass_DiscoverTechno, 0x8)
-{
-	GET(TechnoClass*, pTechno, EAX);
-	GET(CellClass*, pCell, ESI);
-	GET_STACK(HouseClass*, pHouse, STACK_OFFS(0x18, -0x8));
-
-	bool bDiscovered = false;
-	if (pTechno)
-		bDiscovered = pTechno->DiscoveredBy(pHouse);
-	if (auto const pJumpjet = pCell->Jumpjet)
-		bDiscovered |= pJumpjet->DiscoveredBy(pHouse);
-	R->EAX(bDiscovered);
-
-	return 0x586696;
-}
-
-DEFINE_HOOK(0x4FC1FF, HouseClass_AcceptDefeat_CleanShroudFog, 0x6)
-{
-	GET(HouseClass*, pHouse, ESI);
-
-	MapClass::Instance->Reveal(pHouse);
-
-	return 0x4FC214;
-}
-
-DEFINE_HOOK(0x6B8E7A, ScenarioClass_LoadSpecialFlags, 0x5)
-{
-	GET(ScenarioClass*, pScenario, ESI);
-
-	pScenario->SpecialFlags.StructEd.FogOfWar =
-		RulesClass::Instance->FogOfWar || R->EAX() || GameModeOptionsClass::Instance->FogOfWar;
-
-	R->ECX(pScenario);
-	return 0x6B8E8B;
-}
-
-DEFINE_HOOK(0x686C03, SetScenarioFlags_FogOfWar, 0x6)
-{
-	GET(ScenarioFlags, SFlags, EAX);
-
-	SFlags.FogOfWar = RulesClass::Instance->FogOfWar || GameModeOptionsClass::Instance->FogOfWar;
-	R->EDX<int>(*reinterpret_cast<int*>(&SFlags)); // stupid!
-
-	return 0x686C0E;
-}
-
-DEFINE_HOOK(0x5F4B3E, ObjectClass_DrawIfVisible, 0x6)
-{
-	GET(ObjectClass*, pObject, ESI);
-
-	enum { Skip = 0x5F4B7F, SkipWithDrawn = 0x5F4D06, DefaultProcess = 0x5F4B48 };
-
-	if (pObject->InLimbo)
-		return Skip;
-
-	if (!ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar)
-		return DefaultProcess;
-
-	if (pObject->WhatAmI() == AbstractType::Cell)
-		return DefaultProcess;
-
-	auto coord = pObject->GetCoords();
-	if (!MapClass::Instance->IsLocationFogged(coord))
-		return DefaultProcess;
-
-	pObject->NeedsRedraw = false;
-	return SkipWithDrawn;
-}
-
-DEFINE_HOOK(0x6F5190, TechnoClass_DrawExtras_CheckFog, 0x6)
-{
-	GET(TechnoClass*, pTechno, ECX);
-
-	auto coord = pTechno->GetCoords();
-
-	return MapClass::Instance->IsLocationFogged(coord)
-		? 0x6F5EEC : 0;
-}
-
-DEFINE_HOOK(0x48049E, CellClass_DrawTileAndSmudge_CheckFog, 0x6)
-{
-	GET(CellClass*, pCell, ESI);
-
-	return (pCell->SmudgeTypeIndex == -1 || pCell->IsFogged()) ?
-		0x4804FB : 0x4804A4;
-}
-
-DEFINE_HOOK(0x6D6EDA, TacticalClass_Overlay_CheckFog_1, 0xA)
-{
-	GET(CellClass*, pCell, EAX);
-
-	return (pCell->OverlayTypeIndex == -1 || pCell->IsFogged()) ?
-		0x6D7006 : 0x6D6EE4;
-}
-
-DEFINE_HOOK(0x6D70BC, TacticalClass_Overlay_CheckFog_2, 0xA)
-{
-	GET(CellClass*, pCell, EAX);
-
-	return (pCell->OverlayTypeIndex == -1 || pCell->IsFogged()) ?
-		0x6D71A4 : 0x6D70C6;
-}
-
-DEFINE_HOOK(0x71CC8C, TerrainClass_DrawIfVisible, 0x6)
-{
-	GET(TerrainClass*, pTerrain, EDI);
-
-	auto coord = pTerrain->GetCoords();
-
-	return (pTerrain->InLimbo || MapClass::Instance->IsLocationFogged(coord)) ?
-		0x71CD8D : 0x71CC9A;
-}
-
-bool FC IsLocFogged(MapClass* pThis, DWORD, CoordStruct* pCoord)
-{
-	const auto pCell = pThis->GetCellAt(pCoord);
-
-	if (pCell->Flags & CellFlags::EdgeRevealed)
-	{
-		return false;
-	}
-
-	return((pCell->GetNeighbourCell(3u)->Flags & CellFlags::EdgeRevealed) == CellFlags::Empty);
-}
-
-DEFINE_JUMP(LJMP, 0x5865E0, GET_OFFSET(IsLocFogged))
-
-DEFINE_HOOK(0x4ACE3C, MapClass_TryReshroudCell_SetCopyFlag, 0x6)
-{
-	GET(CellClass*, pCell, EAX);
-
-	auto oldfield = (unsigned int)pCell->AltFlags;
-	pCell->AltFlags = (AltCellFlags)(oldfield & 0xFFFFFFEF);
-
-	auto nIndex = TacticalClass::Instance->GetOcclusion(pCell->MapCoords, false);
-
-	if (((oldfield & 0x10) != 0 || pCell->Visibility != nIndex) && nIndex >= 0 && pCell->Visibility >= -1)
-	{
-		pCell->AltFlags |= (AltCellFlags)8u;
-		pCell->Visibility = nIndex;
-	}
-
-	TacticalClass::Instance->RegisterCellAsVisible(pCell);
-
-	return 0x4ACE57;
-}
-
-DEFINE_HOOK(0x4A9CA0, MapClass_RevealFogShroud, 0x8)
-{
-	GET(MapClass*, pMap, ECX);
-	GET_STACK(CellStruct*, pLocation, 0x4);
-	GET_STACK(HouseClass*, pHouse, 0x8);
-	GET_STACK(bool, bUnk, 0xC);
-
-	auto const pCell = pMap->GetCellAt(*pLocation);
-
-	//if (bUnk) {
-	//	pCell->IncreaseShroudCounter();
-	//} else {
-	//	pCell->ReduceShroudCounter();
-	//}
-
-	bool bFlag = bool(pCell->Flags & CellFlags::EdgeRevealed);
-	bool bReturn = !bFlag || (pCell->AltFlags & AltCellFlags::Clear);
-	bool bTemp = bReturn;
-
-	pCell->Flags = CellFlags((unsigned int)pCell->Flags & 0xFFFFFFFF | 2);
-	pCell->AltFlags = AltCellFlags((unsigned int)pCell->AltFlags & 0xFFFFFFDF | 8);
-
-	char nOcclusion = TacticalClass::Instance->GetOcclusion(*pLocation, false);
-	char nVisibility = pCell->Visibility;
-	if (nOcclusion != nVisibility)
-	{
-		nVisibility = nOcclusion;
-		bReturn = true;
-		pCell->Visibility = nOcclusion;
-	}
-	if (nVisibility == -1)
-		pCell->AltFlags |= AltCellFlags(0x10u);
-	char nFoggedOcclusion = TacticalClass::Instance->GetOcclusion(*pLocation, true);
-	char nFoggedness = pCell->Foggedness;
-	if (nFoggedOcclusion != nFoggedness)
-	{
-		nFoggedness = nFoggedOcclusion;
-		bReturn = true;
-		pCell->Foggedness = nFoggedOcclusion;
-	}
-	if (nFoggedness == -1)
-		pCell->Flags |= CellFlags(1u);
-
-	if (bReturn)
-	{
-		TacticalClass::Instance->RegisterCellAsVisible(pCell);
-		pMap->RevealCheck(pCell, pHouse, bTemp);
-	}
-	if (!bFlag && ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar)
-		pCell->CleanFog();
-
-	R->AL(bReturn);
-
-	return 0x4A9DC6;
-}
-
-#endif
-
 // Various call of TechnoClass::SetOwningHouse not respecting overloaded 2nd args fix !
 
 bool __fastcall InfantryClass_SetOwningHouse(InfantryClass* const pThis, DWORD, HouseClass* pNewOwner, bool bAnnounce)
@@ -4466,7 +4215,7 @@ DEFINE_HOOK(0x7225F3, TiberiumClass_Spread_nullptrheap, 0x7)
 
 //skip vanilla TurretOffset read
 //DEFINE_SKIP_HOOK(0x715876,TechnoTypeClass_ReadINI_SkipTurretOffs, 0x6 , 71589A);
-DEFINE_JUMP(LJMP, 0x715876, 0x71589A);
+//DEFINE_JUMP(LJMP, 0x715876, 0x71589A);
 
 DEFINE_HOOK(0x508F82, HouseClass_AI_checkSpySat_IncludeUpgrades, 0x6)
 {
@@ -4641,11 +4390,12 @@ DEFINE_HOOK(0x709B79, TechnoClass_DrawPip_Spawner, 0x6)
 	}
 
 	int currentSpawnsCount = pThis->SpawnManager->CountDockedSpawns();
-	auto const pipOffset = pTypeExt->SpawnsPipOffset.Get();
-	Point2D position = { offset->X + pipOffset.X, offset->Y + pipOffset.Y };
-	const Point2D& size = isBuilding ?
-	pTypeExt->SpawnsPipSize.Get(RulesExt::Global()->Pips_Generic_Buildings_Size) :
-	pTypeExt->SpawnsPipSize.Get(RulesExt::Global()->Pips_Generic_Size);
+	Point2D position { offset->X + pTypeExt->SpawnsPipOffset->X, offset->Y + pTypeExt->SpawnsPipOffset->Y };
+	const Point2D size = pTypeExt->SpawnsPipSize.Get(
+		isBuilding ?
+		RulesExt::Global()->Pips_Generic_Buildings_Size :
+		RulesExt::Global()->Pips_Generic_Size
+	);
 
 	for (int i = 0; i < maxSpawnsCount; i++)
 	{
@@ -4708,7 +4458,7 @@ DEFINE_HOOK(0x5194EF, InfantryClass_DrawIt_InAir_NoShadow, 5)
 DEFINE_HOOK(0x746AFF, UnitClass_Disguise_Update_MoveToClear, 0xA)
 {
 	GET(UnitClass*, pThis, ESI);
-	return pThis->Disguise && Is_Unit(pThis->Disguise) ? 0x746A9C : 0;
+	return pThis->Disguise && pThis->Disguise->WhatAmI() == UnitClass::AbsID ? 0x746A9C : 0;
 }
 
 // DEFINE_HOOK(0x746B6B, UnitClass_Disguise_FullName , 7)
@@ -4749,7 +4499,7 @@ DEFINE_HOOK(0x4D423A, FootClass_MissionMove_SubterraneanResourceGatherer, 0x6)
 	GET(FootClass*, pThis, ESI);
 
 	const auto pType = pThis->GetTechnoType();
-	if (Is_Unit(pThis) && pType->IsSubterranean && pType->ResourceGatherer)
+	if (pThis->WhatAmI() == UnitClass::AbsID && pType->IsSubterranean && pType->ResourceGatherer)
 	{
 		pThis->QueueMission(Mission::Harvest, false);
 	}
@@ -4921,15 +4671,15 @@ DEFINE_HOOK(0x444159, BuildingClass_KickoutUnit_WeaponFactory_Rubble, 0x6)
 //	return 0x0;
 //}
 
-//DEFINE_HOOK(0x4431D3, BuildingClass_Destroyed_removeLog, 0x5)
-//{
-//	GET(InfantryClass*, pThis, ESI);
-//	GET_STACK(int, nData, 0x8C - 0x70);
-//
-//	R->EBP(--nData);
-//	R->EDX(pThis->Type);
-//	return 0x4431EB;
-//}
+DEFINE_HOOK(0x4431D3, BuildingClass_Destroyed_removeLog, 0x5)
+{
+	GET(InfantryClass*, pThis, ESI);
+	GET_STACK(int, nData, 0x8C - 0x70);
+
+	R->EBP(--nData);
+	R->EDX(pThis->Type);
+	return 0x4431EB;
+}
 
 //443292
 //44177E
@@ -5009,7 +4759,7 @@ DEFINE_HOOK(0x6F6BD6, TechnoClass_Limbo_UpdateAfterHouseCounter, 0xA)
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
 
 	//only update the SW once the techno is really not present
-	if (pThis->Owner && !Is_Building(pThis) && !pTypeExt->Linked_SW.empty() && pThis->Owner->CountOwnedAndPresent(pExt->Type) <= 0)
+	if (pThis->Owner && pThis->WhatAmI() != BuildingClass::AbsID && !pTypeExt->Linked_SW.empty() && pThis->Owner->CountOwnedAndPresent(pExt->Type) <= 0)
 		pThis->Owner->UpdateSuperWeaponsOwned();
 
 	return 0x0;
@@ -5055,8 +4805,9 @@ DEFINE_HOOK(0x6E9696, TeamClass_ChangeHouse_nullptrresult, 0x9)
 
 	const auto pHouse = HouseClass::FindByCountryIndex(args);
 	if (!pHouse){
+		const auto nonestr =  GameStrings::NoneStr();
 		Debug::FatalErrorAndExit("[%s - %x] Team [%s - %x] ChangeHouse cannot find House by country idx [%d]\n",
-			pThis->Owner ? pThis->Owner->get_ID() : GameStrings::NoneStr() , pThis->Owner ,
+			pThis->Owner ? pThis->Owner->get_ID() : nonestr , pThis->Owner ,
 			pThis->get_ID() , pThis , args);
 	}
 
@@ -5076,13 +4827,14 @@ DEFINE_HOOK(0x4686FA, BulletClass_Unlimbo_MissingTargetPointer, 0x6)
 	return 0x0;
 }
 
-std::string hex(uint32_t n, uint8_t d)
-{
-	std::string s(d, '0');
-	for (int i = d - 1; i >= 0; i--, n >> 4)
-		s[i] = "0123456789ABCDEF"[n & 0xFF];
-	return s;
-}
+//std::string hex(uint32_t n, uint8_t d)
+//{
+//	std::string s(d, '0');
+//	const char arr[] = ("0123456789ABCDEF");
+//	for (int i = d - 1; i >= 0; i--, n >> 4)
+//		s[i] = arr[(n & 0xFF) < sizeof(arr) ? (n & 0xFF) : sizeof(arr)];
+//	return s;
+//}
 
 //DEFINE_HOOK(0x4179AA, AircraftClass_EnterIdleMode_AlreadiHasDestination, 0x6)
 //{
@@ -5475,11 +5227,7 @@ DEFINE_HOOK(0x6F91EC, TechnoClass_GreatestThreat_DeadTechnoInsideTracker, 0x6)
 
 void __fastcall DrawRadialIndicator(ObjectClass* pObj, DWORD)
 {
-	if (!pObj || !Is_Techno(pObj))
-		return;
-
-	const auto pTechno = static_cast<TechnoClass*>(pObj);
-
+	if(const auto pTechno = generic_cast<TechnoClass*>(pObj))
 	{
 
 		const auto pType = pTechno->GetTechnoType();
@@ -5527,17 +5275,29 @@ DEFINE_JUMP(VTABLE, 0x7F5DA0, GET_OFFSET(DrawRadialIndicator))
 DEFINE_JUMP(VTABLE, 0x7EB188, GET_OFFSET(DrawRadialIndicator))
 
 
-DEFINE_HOOK(0x71AAFD, TemporalClass_Update_OwnerEnterIdleMode_vtablecheck, 0x5)
+//DEFINE_HOOK(0x71AAFD, TemporalClass_Update_OwnerEnterIdleMode_vtablecheck, 0x5)
+//{
+//	GET(TechnoClass*, pOwner,ECX);
+//	GET(TemporalClass*, pTemp, ESI);
+//
+//	if (!Is_Techno(pOwner)){
+//		pTemp->Owner = nullptr;
+//		return 0x71AB08;
+//	}
+//
+//	return 0x0;
+//}
+
+//Patches TechnoClass::Kill_Cargo/KillPassengers (push ESI -> push EBP)
+//Fixes recursive passenger kills not being accredited
+//to proper techno but to their transports
+DEFINE_HOOK(0x707CF2, TechnoClass_KillCargo_FixKiller, 0x8)
 {
-	GET(TechnoClass*, pOwner,ECX);
-	GET(TemporalClass*, pTemp, ESI);
+	GET(TechnoClass*, pKiller, EBP);
+	GET(TechnoClass*, pCargo, ESI);
 
-	if (!Is_Techno(pOwner)){
-		pTemp->Owner = nullptr;
-		return 0x71AB08;
-	}
-
-	return 0x0;
+	pCargo->KillCargo(pKiller);
+	return 0x707CFA;
 }
 
 //int InfantryClass_Mission_Harvest(InfantryClass* pThis)

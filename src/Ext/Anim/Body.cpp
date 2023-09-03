@@ -148,7 +148,7 @@ DWORD AnimExt::DealDamageDelay(AnimClass* pThis)
 	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 	const int delay = pTypeExt->Damage_Delay.Get();
 	TechnoClass* const pInvoker = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker);
-	const double damageMultiplier = (pThis->OwnerObject && Is_Terrain(pThis->OwnerObject)) ? 5.0 : 1.0;
+	const double damageMultiplier = (pThis->OwnerObject && pThis->OwnerObject->WhatAmI() == TerrainClass::AbsID) ? 5.0 : 1.0;
 
 	bool adjustAccum = false;
 	double damage = 0;
@@ -321,7 +321,7 @@ AbstractClass* AnimExt::GetTarget(AnimClass* pThis)
 	return nullptr;
 }
 
-bool AnimExt::ExtData::InvalidateIgnorable(void* ptr)
+bool AnimExt::ExtData::InvalidateIgnorable(AbstractClass* ptr)
 {
 	switch (VTable::Get(ptr))
 	{
@@ -336,7 +336,7 @@ bool AnimExt::ExtData::InvalidateIgnorable(void* ptr)
 	return true;
 }
 
-void AnimExt::ExtData::InvalidatePointer(void* const ptr, bool bRemoved)
+void AnimExt::ExtData::InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(this->Invoker, ptr , bRemoved);
 	AnnounceInvalidPointer(this->ParentBuilding, ptr, bRemoved);

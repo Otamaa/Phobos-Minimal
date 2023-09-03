@@ -15,6 +15,7 @@
 #include "SpiralTrajectory.h"
 #include "VerticalTrajectory.h"
 #include "WaveTrajectory.h"
+#include "ArcingTrajectory.h"
 
 bool PhobosTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 {
@@ -84,6 +85,9 @@ bool PhobosTrajectoryType::UpdateType(std::unique_ptr<PhobosTrajectoryType>& pTy
 		pType = (std::make_unique<WaveTrajectoryType>());
 	}
 	break;
+	case TrajectoryFlag::Arcing:
+		pType = (std::make_unique<ArcingTrajectoryType>());
+		break;
 	default:
 		pType.release();
 		return false;
@@ -97,7 +101,7 @@ void PhobosTrajectoryType::CreateType(std::unique_ptr<PhobosTrajectoryType>& pTy
 	if (!pINI->GetKey(pSection, pKey))
 		return;
 
-	static std::array<const char*, (size_t)TrajectoryFlag::Count> TrajectoryTypeToSrings
+	static constexpr std::array<const char*, (size_t)TrajectoryFlag::Count> TrajectoryTypeToSrings
 	{ {
 		{"Straight"} ,
 		{"Bombard"} ,
@@ -107,6 +111,7 @@ void PhobosTrajectoryType::CreateType(std::unique_ptr<PhobosTrajectoryType>& pTy
 		{"Meteor"} ,
 		{"Spiral"} ,
 		{"Wave"} ,
+		{"Arcing" },
 	 }
 	};
 
@@ -122,7 +127,7 @@ void PhobosTrajectoryType::CreateType(std::unique_ptr<PhobosTrajectoryType>& pTy
 			}
 		}
 	}
-		
+
 	if (pType && pType->Flag == nFlag)
 		return;
 	else
@@ -143,7 +148,7 @@ void PhobosTrajectoryType::CreateType(std::unique_ptr<PhobosTrajectoryType>& pTy
 			}
 		}
 	}
-		
+
 }
 
 void PhobosTrajectoryType::ProcessFromStream(PhobosStreamReader& Stm, std::unique_ptr<PhobosTrajectoryType>& pType)
@@ -252,6 +257,9 @@ bool PhobosTrajectory::UpdateType(BulletClass* pBullet, std::unique_ptr<PhobosTr
 	case TrajectoryFlag::Wave:
 		pTraj = std::make_unique<WaveTrajectory>(pBullet, pType);
 		break;
+	case TrajectoryFlag::Arcing:
+		pTraj = std::make_unique<ArcingTrajectory>(pBullet, pType);
+		break;
 	default:
 		pTraj.release();
 		return false;
@@ -317,6 +325,10 @@ void PhobosTrajectory::ProcessFromStream(PhobosStreamReader& Stm, std::unique_pt
 
 		case TrajectoryFlag::Wave:
 			pTraj = std::make_unique<WaveTrajectory>();
+			break;
+
+		case TrajectoryFlag::Arcing:
+			pTraj = std::make_unique<ArcingTrajectory>();
 			break;
 
 		default:

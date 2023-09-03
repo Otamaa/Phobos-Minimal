@@ -26,6 +26,121 @@
 
 #include <Ares_TechnoExt.h>
 
+// support oil derrick logic on building upgrades
+DEFINE_OVERRIDE_HOOK(0x4409F4, BuildingClass_Put_ProduceCash, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(BuildingClass*, pToUpgrade, EDI);
+
+	auto pExt = BuildingExt::ExtMap.Find(pToUpgrade);
+
+	if (auto delay = pThis->Type->ProduceCashDelay) {
+
+		switch (pToUpgrade->UpgradeLevel - 1)
+		{
+		case 0:
+			pExt->CashUpgradeTimers[0].Start(delay);
+			break;
+		case 1:
+			pExt->CashUpgradeTimers[1].Start(delay);
+			break;
+		case 2:
+			pExt->CashUpgradeTimers[2].Start(delay);
+			break;
+		default:
+			break;
+		}
+	}
+
+	AresData::SetFactoryPlans(pThis);
+	return 0;
+}
+
+
+DEFINE_OVERRIDE_HOOK(0x4482BD, BuildingClass_ChangeOwnership_ProduceCash, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(HouseClass*, pNewOwner, EBX);
+
+	int produceAmount = 0;
+	auto pExt = BuildingExt::ExtMap.Find(pThis);
+	bool& StartupCashDelivered = pExt->StartupCashDelivered;
+
+
+	std::array<std::pair<BuildingTypeClass*, CDTimerClass*>, 4u> Timers
+	{{
+	 { pThis->Type , &pThis->CashProductionTimer },
+	 { pThis->Upgrades[0] ,&pExt->CashUpgradeTimers[0] },
+	 { pThis->Upgrades[1] ,&pExt->CashUpgradeTimers[1] },
+	 { pThis->Upgrades[2] ,&pExt->CashUpgradeTimers[2] },
+	 }};
+
+	for (auto&[bld , timer] : Timers) {
+		if (bld) {
+			if (bld->ProduceCashStartup || bld->ProduceCashAmount) {
+
+				if(!StartupCashDelivered){
+					produceAmount += bld->ProduceCashStartup;
+				}
+
+				if (bld->ProduceCashDelay){
+					timer->Start(bld->ProduceCashDelay + 1);
+				}
+			}
+		}
+	}
+
+	if (produceAmount && !pNewOwner->Type->MultiplayPassive) {
+		StartupCashDelivered = true;
+
+		pNewOwner->TransactMoney(produceAmount);
+		if (ShowMoneyAmount(pThis->Type)) {
+			pThis->align_154->TechnoValueAmount += produceAmount;
+		}
+	}
+
+	return 0x4482FC;
+}
+
+DEFINE_OVERRIDE_HOOK(0x43FD2C, BuildingClass_Update_ProduceCash, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	int produceAmount = 0;
+	auto pExt = BuildingExt::ExtMap.Find(pThis);
+
+	std::array<std::pair<BuildingTypeClass*, CDTimerClass*>, 4u> Timers
+	{{
+	 { pThis->Type , &pThis->CashProductionTimer },
+	 { pThis->Upgrades[0] ,&pExt->CashUpgradeTimers[0] },
+	 { pThis->Upgrades[1] ,&pExt->CashUpgradeTimers[1] },
+	 { pThis->Upgrades[2] ,&pExt->CashUpgradeTimers[2] },
+	}};
+
+	for (auto& [pbld, timer] : Timers)
+	{
+		if (pbld) {
+
+			if(pbld->ProduceCashDelay > 0) {
+				if(timer->GetTimeLeft() == 1) {
+					timer->Start(pbld->ProduceCashDelay + 1);
+					produceAmount += pbld->ProduceCashAmount;
+				}
+			}
+		}
+	}
+
+	if (produceAmount && !pThis->Owner->Type->MultiplayPassive && pThis->IsPowerOnline())
+	{
+		pThis->Owner->TransactMoney(produceAmount);
+		if (ShowMoneyAmount(pThis->Type)) {
+			pThis->align_154->TechnoValueAmount += produceAmount;
+		}
+	}
+
+	return 0x43FDD6;
+}
+
 // #1156943: they check for type, and for the instance, yet
 // the Log call uses the values as if nothing happened.
 DEFINE_OVERRIDE_HOOK(0x4430E8, BuildingClass_Destroyed_SurvivourLog, 0x6)
@@ -1604,7 +1719,7 @@ DEFINE_OVERRIDE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
 
 	const auto nAresREsult = AresData::PrereqValidate(pThis, pItem, buildLimitOnly, includeInProduction);
 
-	if (Is_BuildingType(pItem))
+	if (pItem->WhatAmI() == BuildingTypeClass::AbsID)
 	{
 		const auto pBuilding = static_cast<BuildingTypeClass* const>(pItem);
 		if (!BuildingTypeExt::ExtMap.Find(pBuilding)->PowersUp_Buildings.empty())
@@ -2184,100 +2299,3 @@ DEFINE_OVERRIDE_HOOK(0x43FB6D , BuildingClass_Update_LaserFencePost, 6)
 
 	return 0x0;
 }
-
-/*
-static void UpdateFactoriesPlant(BuildingClass* pThis)
-{
-	auto types = pThis->GetTypes().begin();
-
-	while ( !*types || !*((*types)->TechnoTypeExt + 0x320) ) {
-	   if ( ++types == pThis->GetTypes().end() )
-		return;
-	}
-
-	HouseExt::ExtMap.Find(pThis->Owner)->Factories_HouseTypes.push_back(TechnoExt::ExtMap.Find(pThis)->OriginalHouseType);
-}
-// support oil derrick logic on building upgrades
-DEFINE_OVERRIDE_HOOK(0x4409F4, BuildingClass_Put_ProduceCash, 6)
-{
-	GET(BuildingClass*, pThis, ESI);
-	GET(BuildingClass*, pToUpgrade, EDI);
-
-	auto pExt = BuildingExt::ExtMap.Find(pToUpgrade);
-
-	if (auto delay = pThis->Type->ProduceCashDelay)
-	{
-		pExt->CashUpgradeTimers[pToUpgrade->UpgradeLevel - 1].Start(delay);
-	}
-
-
-
-	// this one need to be accessed direcly
-	// it doing push on the type vector
-	// BuildingExt::ExtData::UpdateFactoryPlans(v1);
-	return 0;
-}
-
-DEFINE_OVERRIDE_HOOK(0x43FD2C, BuildingClass_Update_ProduceCash, 6)
-{
-	GET(BuildingClass*, pThis, ESI);
-	auto pExt = BuildingExt::ExtMap.Find(pThis);
-
-	auto Process = [](BuildingClass* pBld, BuildingTypeClass* pType, CDTimerClass& timer)
-	{
-		if (timer.GetTimeLeft() == 1)
-		{
-			timer.Start(pType->ProduceCashDelay);
-
-			if (!pBld->Owner->Type->MultiplayPassive && pBld->IsPowerOnline())
-			{
-				//Display the funds here
-				pBld->Owner->TransactMoney(pType->ProduceCashAmount);
-			}
-		}
-	};
-
-	Process(pThis, pThis->Type, pThis->CashProductionTimer);
-
-	for (size_t i = 0; i < 3; ++i)
-	{
-		if (const auto& pUpgrade = pThis->Upgrades[i])
-		{
-			Process(pThis, pUpgrade, pExt->CashUpgradeTimers[i]);
-		}
-	}
-
-	return 0x43FDD6;
-}
-
-DEFINE_OVERRIDE_HOOK(0x4482BD, BuildingClass_ChangeOwnership_ProduceCash, 6)
-{
-	GET(BuildingClass*, pThis, ESI);
-	GET(HouseClass*, pNewOwner, EBX);
-	auto pExt = BuildingExt::ExtMap.Find(pThis);
-
-	auto Process = [](HouseClass* pOwner, BuildingTypeClass* pType, CDTimerClass& timer)
-	{
-		if (pType->ProduceCashStartup)
-		{
-			//Display the funds here
-			pOwner->TransactMoney(pType->ProduceCashStartup);
-			timer.Start(pType->ProduceCashDelay);
-		}
-	};
-
-	Process(pNewOwner, pThis->Type, pThis->CashProductionTimer);
-
-
-	for (size_t i = 0; i < 3; ++i)
-	{
-		if (const auto& pUpgrade = pThis->Upgrades[i])
-		{
-			Process(pNewOwner, pUpgrade, pExt->CashUpgradeTimers[i]);
-		}
-	}
-
-	return 0x4482FC;
-}
-
-*/

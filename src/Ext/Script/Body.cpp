@@ -1554,24 +1554,24 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 void ScriptExt::SkipNextAction(TeamClass* pTeam, int successPercentage = 0)
 {
 	// This team has no units! END
-	if (!pTeam)
-	{
-		// This action finished
-		pTeam->StepCompleted = true;
-		const auto&[curAct, curArg] = pTeam->CurrentScript->GetCurrentAction();
-		const auto&[nextAct, nextArg] = pTeam->CurrentScript->GetNextAction();
-		ScriptExt::Log("AI Scripts - SkipNextAction: [%s] [%s] (line: %d) Jump to next line: %d = %d,%d -> (No team members alive)\n",
-			pTeam->Type->ID,
-			pTeam->CurrentScript->Type->ID,
-			pTeam->CurrentScript->CurrentMission,
-			curAct,
-			curArg,
-			pTeam->CurrentScript->CurrentMission + 1,
-			nextAct,
-			nextArg);
-
-		return;
-	}
+	//if (!pTeam)
+	//{
+	//	// This action finished
+	//	pTeam->StepCompleted = true;
+	//	const auto&[curAct, curArg] = pTeam->CurrentScript->GetCurrentAction();
+	//	const auto&[nextAct, nextArg] = pTeam->CurrentScript->GetNextAction();
+	//	ScriptExt::Log("AI Scripts - SkipNextAction: [%s] [%s] (line: %d) Jump to next line: %d = %d,%d -> (No team members alive)\n",
+	//		pTeam->Type->ID,
+	//		pTeam->CurrentScript->Type->ID,
+	//		pTeam->CurrentScript->CurrentMission,
+	//		curAct,
+	//		curArg,
+	//		pTeam->CurrentScript->CurrentMission + 1,
+	//		nextAct,
+	//		nextArg);
+	//
+	//	return;
+	//}
 
 	if (successPercentage < 0 || successPercentage > 100)
 		successPercentage = pTeam->CurrentScript->GetCurrentAction().Argument;
@@ -2110,7 +2110,7 @@ void ScriptExt::SetAbortActionAfterSuccessKill(TeamClass* pTeam, int enable = -1
 
 bool ScriptExt::IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrAbsorbed)
 {
-	if (!pTechno || !Is_Techno(pTechno) || !pTechno->Owner)
+	if (!pTechno || !pTechno->Owner)
 		return false;
 
 	bool isAvailable = pTechno->IsAlive && pTechno->Health > 0 && !pTechno->InLimbo && pTechno->IsOnMap;

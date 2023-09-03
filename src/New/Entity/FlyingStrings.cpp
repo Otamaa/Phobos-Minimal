@@ -191,7 +191,8 @@ void FlyingStrings::UpdateAll()
 			}
 		}
 
-		if (Unsorted::CurrentFrame > dataItem.CreationFrame + Duration || Unsorted::CurrentFrame < dataItem.CreationFrame)
+		if (Unsorted::CurrentFrame > dataItem.CreationFrame + Duration || Unsorted::CurrentFrame < dataItem.CreationFrame){
 			Data.erase(Data.begin() + i);
+		}
 	}
 }

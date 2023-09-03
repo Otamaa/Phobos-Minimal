@@ -164,7 +164,7 @@ DEFINE_OVERRIDE_HOOK(0x415CA6, AircraftClass_Paradrop_Units, 0x6)
 	GET(AircraftClass*, A, EDI);
 	GET(FootClass*, P, ESI);
 
-	if (Is_Unit(P))
+	if (P->WhatAmI() == UnitClass::AbsID)
 	{
 		const CoordStruct SrcXYZ = A->GetCoords();
 		LEA_STACK(CoordStruct*, XYZ, 0x20);
@@ -194,7 +194,7 @@ DEFINE_OVERRIDE_HOOK(0x6B783B, SpawnManagerClass_Update_SpawnHigh, 0x5)
 {
 	GET(SpawnManagerClass*, pThis, ESI);
 
-	R->EAX(pThis->Owner->GetHeight() > 0 
+	R->EAX(pThis->Owner->GetHeight() > 0
 		? (AbstractClass*)pThis->Owner->GetCell() : (AbstractClass*)pThis->Owner);
 
 	return 0;

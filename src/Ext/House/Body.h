@@ -85,22 +85,17 @@ public:
 		int SWLastIndex { -1 };
 		std::vector<SuperClass*> Batteries {};
 		std::vector<HouseTypeClass*> Factories_HouseTypes {};
-		std::vector<TechnoClass*> OwnedTechno {};
+		std::vector<TechnoClass*> LimboTechno {};
 
 		int AvaibleDocks { 0 };
-
-		CounterClass LimboAircraft {};  // Currently owned aircraft in limbo
-		CounterClass LimboBuildings {}; // Currently owned buildings in limbo
-		CounterClass LimboInfantry {};  // Currently owned infantry in limbo
-		CounterClass LimboVehicles {};  // Currently owned vehicles in limbo
 
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override = default;
 
-		void InvalidatePointer(void* ptr, bool bRemoved);
-		static bool InvalidateIgnorable(void* ptr);
+		void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
+		static bool InvalidateIgnorable(AbstractClass* ptr);
 
 		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
@@ -113,9 +108,9 @@ public:
 		void UpdateShotCountB(SuperWeaponTypeClass* pFor);
 		LauchData GetShotCount(SuperWeaponTypeClass* pFor);
 
-		void AddToLimboTracking(TechnoTypeClass* pTechnoType);
-		void RemoveFromLimboTracking(TechnoTypeClass* pTechnoType);
-		int CountOwnedPresentAndLimboed(TechnoTypeClass* pTechnoType);
+		//void AddToLimboTracking(TechnoTypeClass* pTechnoType);
+		//void RemoveFromLimboTracking(TechnoTypeClass* pTechnoType);
+		//int CountOwnedPresentAndLimboed(TechnoTypeClass* pTechnoType);
 
 		static SuperClass* IsSuperAvail(int nIdx , HouseClass* pHouse);
 	private:

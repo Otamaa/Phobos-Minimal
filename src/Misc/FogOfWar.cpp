@@ -20,7 +20,7 @@
 
 DEFINE_HOOK(0x6B8E7A, ScenarioClass_LoadSpecialFlags, 0x5)
 {
-	ScenarioClass::Instance->SpecialFlags.FogOfWar =
+	ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar =
 		RulesClass::Instance->FogOfWar || R->EAX() || GameModeOptionsClass::Instance->FogOfWar;
 
 	R->ECX(R->EDI());
@@ -44,7 +44,7 @@ DEFINE_HOOK(0x5F4B3E, ObjectClass_DrawIfVisible, 0x6)
 	if (pThis->InLimbo)
 		return 0x5F4B7F;
 
-	if (!ScenarioClass::Instance->SpecialFlags.FogOfWar)
+	if (!ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar)
 		return 0x5F4B48;
 
 	switch (GetVtableAddr(pThis))
@@ -105,19 +105,33 @@ DEFINE_HOOK(0x4804A4, CellClass_DrawTile_DrawSmudgeIfVisible, 0x6)
 	return pThis->IsFogged() ? 0x4804FB : 0;
 }
 
-DEFINE_HOOK(0x5865E2, MapClass_IsLocationFogged, 0x3)
+bool __fastcall IsLocFogged(MapClass* pThis, DWORD, CoordStruct* pCoord)
 {
-	GET_STACK(CoordStruct*, pCoord, 0x4);
+	const auto pCell = pThis->GetCellAt(pCoord);
 
-	MapRevealer revealer(*pCoord);
-	auto pCell = MapClass::Instance->GetCellAt(revealer.Base());
+	if (pCell->Flags & CellFlags::EdgeRevealed)
+	{
+		return false;
+	}
 
-	R->EAX(pCell->Flags & CellFlags::EdgeRevealed ?
-		false :
-		!(pCell->GetNeighbourCell(FACING_SE)->Flags & CellFlags::EdgeRevealed));
-
-	return 0;
+	return((pCell->GetNeighbourCell(FacingType::SouthEast)->Flags & CellFlags::EdgeRevealed) == CellFlags::Empty);
 }
+
+DEFINE_JUMP(LJMP, 0x5865E0, GET_OFFSET(IsLocFogged))
+
+// DEFINE_HOOK(0x5865E2, MapClass_IsLocationFogged, 0x3)
+// {
+// 	GET_STACK(CoordStruct*, pCoord, 0x4);
+//
+// 	MapRevealer revealer(*pCoord);
+// 	auto pCell = MapClass::Instance->GetCellAt(revealer.Base());
+//
+// 	R->EAX(pCell->Flags & CellFlags::EdgeRevealed ?
+// 		false :
+// 		!(pCell->GetNeighbourCell(FacingType::SouthEast)->Flags & CellFlags::EdgeRevealed));
+//
+// 	return 0;
+// }
 
 DEFINE_HOOK(0x6D7A4F, TacticalClass_DrawPixelEffects_FullFogged, 0x6)
 {
@@ -240,7 +254,7 @@ DEFINE_HOOK(0x486A70, CellClass_FogCell, 0x5)
 {
 	GET(CellClass*, pThis, ECX);
 
-	if (ScenarioClass::Instance->SpecialFlags.FogOfWar)
+	if (ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar)
 	{
 		auto location = pThis->MapCoords;
 		for (int i = 1; i < 15; i += 2)
@@ -334,7 +348,16 @@ DEFINE_HOOK(0x457AA0, BuildingClass_FreezeInFog, 0x5)
 	return 0x457C80;
 }
 
-// 486C50 = CellClass_ClearFoggedObjects, 6 Dumplcate
+//DEFINE_HOOK(0x486C50, CellClass_ClearFoggedObjects, 6)
+//{
+//	for (int i = 0; i < FoggedObject::FoggedObjects.Count; ++i) {
+//		if (auto pObj = FoggedObject::FoggedObjects[i]) {
+//			GameDelete<true, false>(pObj);
+//			FoggedObject::FoggedObjects[i] = nullptr;
+//		}
+//	}
+//	FoggedObject::FoggedObjects.Clear();
+//}
 
 DEFINE_HOOK(0x70076E, TechnoClass_GetCursorOverCell_OverFog, 0x5)
 {
@@ -373,7 +396,7 @@ DEFINE_HOOK(0x51F95F, InfantryClass_GetCursorOverCell_OverFog, 0x6)
 
 	do
 	{
-		if (!ScenarioClass::Instance->SpecialFlags.FogOfWar || !bFog)
+		if (!ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar || !bFog)
 			break;
 
 		for (const auto pObject : CellExt::ExtMap.Find(pCell)->FoggedObjects)
@@ -469,7 +492,7 @@ DEFINE_HOOK(0x4ADFF0, MapClass_RevealMapShroud, 0x5)
 		if (pTechno->WhatAmI() != AbstractType::Building || !bHideBuilding)
 		{
 			if (pTechno->GetTechnoType()->RevealToAll ||
-				pTechno->DiscoveredByPlayer && pTechno->Owner->ControlledByPlayer() ||
+				pTechno->DiscoveredByCurrentPlayer && pTechno->Owner->ControlledByPlayer() ||
 				RulesClass::Instance->AllyReveal && pTechno->Owner->IsAlliedWith_(HouseClass::CurrentPlayer))
 			{
 				pTechno->See(0, bFog);
@@ -519,7 +542,7 @@ DEFINE_HOOK(0x4FC1FF, HouseClass_PlayerDefeated_MapReveal, 0x6)
 {
 	GET(HouseClass*, pHouse, ESI);
 
-	*reinterpret_cast<int*>(0xA8B538) = 1;
+	Unsorted::MuteSWLaunches = 1;
 	MapClass::Instance->Reveal(pHouse);
 
 	return 0x4FC214;

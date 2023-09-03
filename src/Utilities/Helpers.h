@@ -233,10 +233,11 @@ namespace Helpers {
 			ret.reserve(set.size());
 			set.for_each([&](TechnoClass* pTechno) {
 
+				const auto what = pTechno->WhatAmI();
+
 				// ignore buildings that are not visible, like ambient light posts
-				if (Is_Building(pTechno)) {
-					auto const pBuilding = static_cast<const BuildingClass*>(pTechno);
-					if (pBuilding->Type->InvisibleInGame) {
+				if (what == BuildingClass::AbsID) {
+					if (static_cast<const BuildingClass*>(pTechno)->Type->InvisibleInGame) {
 						return;
 					}
 				}
@@ -246,7 +247,7 @@ namespace Helpers {
 				auto dist = target.DistanceFrom(coords);
 
 				// reduce the distance for flying aircraft
-				if (Is_Aircraft(pTechno) && pTechno->IsInAir()) {
+				if (what == AircraftClass::AbsID && pTechno->IsInAir()) {
 					dist *= 0.5;
 				}
 
@@ -286,9 +287,10 @@ namespace Helpers {
 			HelperedVector<TechnoClass*> ret;
 			ret.reserve(set.size());
 			set.for_each([&](TechnoClass* pTechno) {
+				const auto what = pTechno->WhatAmI();
 
 				// ignore buildings that are not visible, like ambient light posts
-				if (Is_Building(pTechno)) {
+				if (what == BuildingClass::AbsID) {
 					auto const pBuilding = static_cast<const BuildingClass*>(pTechno);
 					if (pBuilding->Type->InvisibleInGame) {
 						return;
@@ -300,7 +302,7 @@ namespace Helpers {
 				auto dist = target.DistanceFrom(coords);
 
 				// reduce the distance for flying aircraft
-				if (Is_Aircraft(pTechno) && pTechno->IsInAir()) {
+				if (what == AircraftClass::AbsID && pTechno->IsInAir()) {
 					dist *= 0.5;
 				}
 
