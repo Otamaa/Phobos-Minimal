@@ -39,6 +39,7 @@ public:
 
 		Nullable<AnimTypeClass*> ParachuteAnim {};
 		Valueable<bool> StartInMultiplayer_WithConst { false };
+		ValueableVector<BuildingTypeClass*> Powerplants {};
 
 		ExtData(HouseTypeClass* OwnerObject) : Extension<HouseTypeClass>(OwnerObject)
 		{ }
@@ -50,6 +51,10 @@ public:
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 		void InheritSettings(HouseTypeClass* pThis);
+
+		Iterator<BuildingTypeClass*> GetPowerplants() const;
+		Iterator<BuildingTypeClass*> GetDefaultPowerplants() const;
+
 	private:
 		template <typename T>
 		void Serialize(T& Stm);

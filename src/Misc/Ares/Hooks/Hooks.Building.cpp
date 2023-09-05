@@ -26,6 +26,89 @@
 
 #include <Ares_TechnoExt.h>
 
+DEFINE_OVERRIDE_HOOK(0x459ed0, BuildingClass_GetUIName, 6)
+{
+	GET(BuildingClass*, pBld, ECX);
+
+	if (HouseClass::CurrentPlayer)
+	{
+		const auto pBldOWner = pBld->Owner;
+		if (HouseClass::CurrentPlayer->IsObserver()
+			|| HouseClass::CurrentPlayer == pBldOWner
+			|| HouseClass::CurrentPlayer->IsAlliedWith(pBldOWner)
+			|| pBld->DisplayProductionTo.Contains(HouseClass::CurrentPlayer->ArrayIndex))
+		{
+			R->EAX(pBld->Type->UIName);
+			return 0x459ED9;
+		}
+
+	}
+
+	auto Type = pBld->Type;
+	if (TechnoTypeExt::ExtMap.Find(pBld->Type)->Fake_Of.isset())
+		Type = (BuildingTypeClass*)TechnoTypeExt::ExtMap.Find(pBld->Type)->Fake_Of.Get();
+
+	R->EAX(Type->UIName);
+	return 0x459ED9;
+}
+
+DEFINE_OVERRIDE_HOOK(0x44e2b0, BuildingClass_Mi_Unload_LargeGap, 6)
+{
+	GET(BuildingClass*, pBld, EBP);
+
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pBld->Type);
+
+	if(!pTypeExt->SuperGapRadiusInCells)
+		return 0x44E371;
+
+	const bool notCharged = !pBld->GapSuperCharged && pBld->IsPowerOnline();
+
+	if (pBld->GapSuperCharged != notCharged)
+	{
+		pBld->DestroyGap();
+		pBld->HasExtraPowerDrain = notCharged;
+		pBld->GapSuperCharged = notCharged;
+		pBld->GapRadius = (notCharged ? pTypeExt->GapRadiusInCells : pTypeExt->SuperGapRadiusInCells).Get();
+		pBld->Owner->RecheckPower = true;
+		pBld->CreateGap();
+	}
+
+	return 0x44E371;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4566d5, BuildingClass_GetRangeOfRadial_LargeGap, 6)
+{
+	GET(BuildingClass*, pBld, ESI);
+
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pBld->Type);
+	R->EAX((pBld->GapSuperCharged ? pTypeExt->SuperGapRadiusInCells : pTypeExt->GapRadiusInCells).Get());
+	return 0x456745;
+}
+
+DEFINE_OVERRIDE_HOOK(0x44840B, BuildingClass_ChangeOwnership_Tech, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(HouseClass*, pNewOwner, EBX);
+
+	if (pThis->Owner != pNewOwner)
+	{
+		const auto pExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+		const auto color = HouseClass::CurrentPlayer->ColorSchemeIndex;
+
+		if (pThis->Owner->ControlledByPlayer()) {
+			VoxClass::PlayIndex(pExt->LostEvaEvent);
+			pExt->MessageLost->PrintAsMessage(color);
+		}
+
+		if (pNewOwner->ControlledByPlayer()) {
+			VoxClass::PlayIndex(pThis->Type->CaptureEvaEvent);
+			pExt->MessageCapture->PrintAsMessage(color);
+		}
+	}
+
+	return 0x44848F;
+}
+
 // support oil derrick logic on building upgrades
 DEFINE_OVERRIDE_HOOK(0x4409F4, BuildingClass_Put_ProduceCash, 6)
 {
@@ -271,8 +354,8 @@ DEFINE_OVERRIDE_HOOK(0x4430E8, BuildingClass_Demolish_LogCrash, 0x6)
 }
 
 // bugfix #231: DestroyAnims don't remap and cause reconnection errors
-DEFINE_OVERRIDE_SKIP_HOOK(0x441D25, BuildingClass_Destroy, 0xA, 441D37);
-//DEFINE_JUMP(LJMP, 0x441D25, 0x441D37);
+DEFINE_DISABLE_HOOK(0x441D25, BuildingClass_Destroy_ares)//, 0xA, 441D37);
+DEFINE_JUMP(LJMP, 0x441D25, 0x441D37);
 
 DEFINE_OVERRIDE_HOOK(0x451E40, BuildingClass_DestroyNthAnim_Destroy, 0x7)
 {
@@ -350,8 +433,8 @@ DEFINE_OVERRIDE_HOOK(0x444D26, BuildingClass_KickOutUnit_ArmoryExitBug, 0x6)
 	return 0x444D2C;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x4449DF, BuildingClass_KickOutUnit_PreventClone, 0x6, 444A53)
-//DEFINE_JUMP(LJMP, 0x4449DF, 0x444A53);
+DEFINE_DISABLE_HOOK(0x4449DF, BuildingClass_KickOutUnit_PreventClone_ares)//, 0x6, 444A53)
+DEFINE_JUMP(LJMP, 0x4449DF, 0x444A53);
 
 DEFINE_OVERRIDE_HOOK(0x44266B, BuildingClass_ReceiveDamage_Destroyed, 0x6)
 {
@@ -501,12 +584,12 @@ DEFINE_OVERRIDE_HOOK(0x451A54, BuildingClass_PlayAnim_NeedsEngineer, 0x6)
 	return 0x451A5A;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x441163, BuildingClass_Put_DontSpawnSpotlight, 0x6, 441196)
-//DEFINE_JUMP(LJMP, 0x441163, 0x441196);
-DEFINE_OVERRIDE_SKIP_HOOK(0x451132, BuildingClass_ProcessAnims_SuperWeaponsB, 0x6, 451145)
-//DEFINE_JUMP(LJMP, 0x451132, 0x451145);
-DEFINE_OVERRIDE_SKIP_HOOK(0x44656D, BuildingClass_Place_SuperWeaponAnimsB, 0x6, 446580)
-//DEFINE_JUMP(LJMP, 0x44656D, 0x446580);
+DEFINE_DISABLE_HOOK(0x441163, BuildingClass_Put_DontSpawnSpotlight_ares)//, 0x6, 441196)
+DEFINE_JUMP(LJMP, 0x441163, 0x441196);
+DEFINE_DISABLE_HOOK(0x451132, BuildingClass_ProcessAnims_SuperWeaponsB_ares)//, 0x6, 451145)
+DEFINE_JUMP(LJMP, 0x451132, 0x451145);
+DEFINE_DISABLE_HOOK(0x44656D, BuildingClass_Place_SuperWeaponAnimsB_ares)//, 0x6, 446580)
+DEFINE_JUMP(LJMP, 0x44656D, 0x446580);
 
 // EMP'd power plants don't produce power
 DEFINE_OVERRIDE_HOOK(0x44E855, BuildingClass_PowerProduced_EMP, 0x6)
@@ -1721,24 +1804,36 @@ DEFINE_OVERRIDE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
 	GET_STACK(bool const, buildLimitOnly, 0x8);
 	GET_STACK(bool const, includeInProduction, 0xC);
 
-	const auto nAresREsult = AresData::PrereqValidate(pThis, pItem, buildLimitOnly, includeInProduction);
+	auto nResult = AresData::PrereqValidate(pThis, pItem, buildLimitOnly, includeInProduction);
 
-	if (pItem->WhatAmI() == BuildingTypeClass::AbsID)
-	{
+	if (pItem->WhatAmI() == BuildingTypeClass::AbsID) {
 		const auto pBuilding = static_cast<BuildingTypeClass* const>(pItem);
-		if (!BuildingTypeExt::ExtMap.Find(pBuilding)->PowersUp_Buildings.empty())
-		{
-			if (nAresREsult == CanBuildResult::Buildable)
-			{
-				R->EAX(BuildingTypeExt::CheckBuildLimit(pThis, pBuilding, includeInProduction));
-				return 0x4F8361;
+		if (!BuildingTypeExt::ExtMap.Find(pBuilding)->PowersUp_Buildings.empty()) {
+			if (nResult == CanBuildResult::Buildable) {
+				nResult = (CanBuildResult)BuildingTypeExt::CheckBuildLimit(pThis, pBuilding, includeInProduction);
 			}
 		}
 	}
 
-	R->EAX(nAresREsult);
+	//if (nResult == CanBuildResult::Unbuildable)
+	//	nResult = CanBuildResult::TemporarilyUnbuildable;
+
+	R->EAX(nResult);
 	return 0x4F8361;
 }
+
+//CanBuildResult __fastcall StripClass_DrawIt_HouseClass_CanBuild(HouseClass* pThis , DWORD ,TechnoTypeClass* pProduct, bool buildLimitOnly, bool allowIfInProduction)
+//{
+//	auto nResult = pThis->CanBuild(pProduct , buildLimitOnly , allowIfInProduction);
+//
+//	if(nResult == CanBuildResult::Unbuildable)
+//		nResult = CanBuildResult::TemporarilyUnbuildable;
+//
+//	return nResult;
+//}
+//
+//DEFINE_JUMP(CALL , 0x6AA781 , GET_OFFSET(StripClass_DrawIt_HouseClass_CanBuild))
+//DEFINE_JUMP(CALL , 0x6A97D2, GET_OFFSET(StripClass_DrawIt_HouseClass_CanBuild))
 
 DEFINE_OVERRIDE_HOOK(0x6F64CB, TechnoClass_DrawHealthBar_FirestormWall, 6)
 {

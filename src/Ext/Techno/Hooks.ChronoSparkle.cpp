@@ -11,7 +11,7 @@ void PlayChronoSparkleAnim(TechnoClass* pTechno, CoordStruct* pLoc, int X_Offs =
 	const auto pSparkle = RulesClass::Instance->ChronoSparkle1;
 	if (!pSparkle)
 		return;
-	
+
 	CoordStruct nLoc { pLoc->X + X_Offs , pLoc->Y + X_Offs  , pLoc->Z };
 
 	if (auto pAnim = GameCreate<AnimClass>(pSparkle, nLoc, 0, 1, AnimFlag(0x600), false, false))
@@ -76,9 +76,9 @@ DEFINE_HOOK(0x4403D4, BuildingClass_AI_ChronoSparkle, 0x6)
 				if (!((Unsorted::CurrentFrame + i) % RulesExt::Global()->ChronoSparkleDisplayDelay))
 				{
 					auto offset =  TacticalClass::Instance->ApplyMatrix_Pixel(
-						(pType->MaxNumberOccupants <= 10 ? 
-						pType->MuzzleFlash[i] : 
-						BuildingTypeExt::ExtMap.Find(pType)->OccupierMuzzleFlashes.at(i))
+						(pType->MaxNumberOccupants <= 10 ?
+						pType->MuzzleFlash[i] :
+						BuildingTypeExt::ExtMap.Find(pType)->OccupierMuzzleFlashes[i])
 					);
 
 					auto coords = pThis->GetRenderCoords();

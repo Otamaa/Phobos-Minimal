@@ -232,6 +232,8 @@ public:
 		Nullable<Mission> EMPAIRecoverMission { };
 		ValueableIdx<ColorScheme> TimerBlinkColorScheme { 5 };
 
+		bool AllowBypassBuildLimit[3] = { false };
+
 		AircraftPutDataRules MyPutData { };
 
 		ExtData(RulesClass* OwnerObject) : Extension<RulesClass>(OwnerObject)

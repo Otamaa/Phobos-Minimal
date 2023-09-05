@@ -58,31 +58,27 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 		GET_STACK(int, amount, 0xC);
 
 		const auto pCell = MapClass::Instance->GetCellAt(location);
+
 		if (!pCell)
 			return Handled;
 
-		if (!pThis)
-		{
-
+		if (!pThis) {
 			const auto pDefault = RadTypeClass::Find(RADIATION_SECTION);
-			auto const it = std::find_if(RadSiteClass::Array->begin(), RadSiteClass::Array->end(),
+			auto const it = RadSiteClass::Array->find_if([=](auto const pSite) {
+				 auto const pRadExt = RadSiteExt::ExtMap.Find(pSite);
+				 if (pRadExt->Type != pDefault)
+					 return false;
 
-			[=](auto const pSite)
- {
-	 auto const pRadExt = RadSiteExt::ExtMap.Find(pSite);
-	 if (pRadExt->Type != pDefault)
-		 return false;
+				 if (pSite->BaseCell != location)
+					 return false;
 
-	 if (pSite->BaseCell != location)
-		 return false;
+				 if (spread != pSite->Spread)
+					 return false;
 
-	 if (spread != pSite->Spread)
-		 return false;
+				 if (pThis->WeaponType != pRadExt->Weapon)
+					 return false;
 
-	 if (pThis->WeaponType != pRadExt->Weapon)
-		 return false;
-
-	 return true;
+				 return true;
 			});
 
 			if (it != RadSiteClass::Array->end())
@@ -132,29 +128,28 @@ DEFINE_HOOK(0x5213B4, InfantryClass_AIDeployment_CheckRad, 0x7)
 				const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 				const auto currentCoord = pThis->InlineMapCoords();
 
-				auto const it = std::find_if(RadSiteClass::Array->begin(), RadSiteClass::Array->end(),
-					[=](auto const pPair)
-					{
-						auto const pRadExt = RadSiteExt::ExtMap.Find(pPair);
+				auto const it = RadSiteClass::Array->find_if([=](auto const pPair)
+				{
+					auto const pRadExt = RadSiteExt::ExtMap.Find(pPair);
 
-						if (pRadExt->Type != pWeaponExt->RadType)
-							return false;
+					if (pRadExt->Type != pWeaponExt->RadType)
+						return false;
 
-						if (pPair->BaseCell != currentCoord)
-							return false;
+					if (pPair->BaseCell != currentCoord)
+						return false;
 
-						if (static_cast<int>(pWeapon->Warhead->CellSpread) != pPair->Spread)
-							return false;
+					if (static_cast<int>(pWeapon->Warhead->CellSpread) != pPair->Spread)
+						return false;
 
-						if (pWeapon != pRadExt->Weapon)
-							return false;
+					if (pWeapon != pRadExt->Weapon)
+						return false;
 
-						if (pRadExt->TechOwner)
-							return pRadExt->TechOwner == pThis;
+					if (pRadExt->TechOwner)
+						return pRadExt->TechOwner == pThis;
 
-						return true;
+					return true;
 
-					});
+				});
 
 				if (it != RadSiteClass::Array->end())
 				{

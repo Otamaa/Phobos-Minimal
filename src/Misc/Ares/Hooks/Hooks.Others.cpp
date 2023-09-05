@@ -74,8 +74,8 @@ DEFINE_OVERRIDE_HOOK(0x421798, AlphaShapeClass_SDDTOR_Anims, 0x6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x565215, MapClass_CTOR_NoInit_Crates, 0x6, 56522D)
-//DEFINE_JUMP(LJMP, 0x565215, 0x56522D);
+DEFINE_DISABLE_HOOK(0x565215, MapClass_CTOR_NoInit_Crates_ares)//, 0x6, 56522D)
+DEFINE_JUMP(LJMP, 0x565215, 0x56522D);
 
 int squared(Point2D a, Point2D b)
 {
@@ -155,8 +155,8 @@ DEFINE_OVERRIDE_HOOK(0x4892BE, DamageArea_NullDamage, 0x6)
 	return ContinueFunction;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x6AD0ED, Game_AllowSinglePlay, 0x5, 6AD16C);
-//DEFINE_JUMP(LJMP, 0x6AD0ED, 0x6AD16C);
+DEFINE_DISABLE_HOOK(0x6AD0ED, Game_AllowSinglePlay_ares)//, 0x5, 6AD16C);
+DEFINE_JUMP(LJMP, 0x6AD0ED, 0x6AD16C);
 
 DEFINE_OVERRIDE_HOOK(0x437CCC, BSurface_DrawSHPFrame1_Buffer, 0x8)
 {
@@ -334,8 +334,8 @@ DEFINE_OVERRIDE_HOOK(0x4C6DDB, Networking_RespondToEvent_Selling, 0x8)
 }
 
 // #895374: skip the code that removes the crates (size 7)
-DEFINE_OVERRIDE_SKIP_HOOK(0x483BF1, CellClass_Load_Crates, 0x7, 483BFE)
-//DEFINE_JUMP(LJMP, 0x483BF1, 0x483BFE);
+DEFINE_DISABLE_HOOK(0x483BF1, CellClass_Load_Crates_ares)//, 0x7, 483BFE)
+DEFINE_JUMP(LJMP, 0x483BF1, 0x483BFE);
 
 DEFINE_OVERRIDE_HOOK(0x49F5C0, CopyProtection_IsLauncherRunning, 0x8)
 {
@@ -571,9 +571,12 @@ DEFINE_HOOK(0x720A58 , ThemeClass_AI_DisableLog,0x6)
 	return 0x720A69;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x615BD3, Handle_Static_Messages_LoopingMovie, 0x5, 615BE0)
-DEFINE_OVERRIDE_SKIP_HOOK(0x78997B, sub_789960_RemoveWOLResolutionCheck, 0x5, 789A58)
-DEFINE_OVERRIDE_SKIP_HOOK(0x4BA61B, DSurface_CTOR_SkipVRAM, 0x6, 4BA623)
+DEFINE_DISABLE_HOOK(0x615BD3, Handle_Static_Messages_LoopingMovie_ares)//, 0x5, 615BE0)
+DEFINE_JUMP(LJMP, 0x615BD3, 0x615BE0);
+DEFINE_DISABLE_HOOK(0x78997B, sub_789960_RemoveWOLResolutionCheck_ares)//, 0x5, 789A58)
+DEFINE_JUMP(LJMP, 0x78997B, 0x789A58);
+DEFINE_DISABLE_HOOK(0x4BA61B, DSurface_CTOR_SkipVRAM_ares)//, 0x6, 4BA623)
+DEFINE_JUMP(LJMP, 0x4BA61B, 0x4BA623);
 
 DEFINE_OVERRIDE_HOOK(0x74A884, VoxelAnimClass_UpdateBounce_Damage, 0x6)
 {
@@ -637,8 +640,8 @@ DEFINE_OVERRIDE_HOOK(0x547043, IsometricTileTypeClass_ReadFromFile, 0x6)
 }
 
 // skip the entire method, we handle it ourselves
-DEFINE_OVERRIDE_SKIP_HOOK(0x53AF40, PsyDom_Update, 6, 53B060)
-//DEFINE_JUMP(LJMP, 0x53AF40, 0x53B060);
+DEFINE_DISABLE_HOOK(0x53AF40, PsyDom_Update_ares)//, 6, 53B060)
+DEFINE_JUMP(LJMP, 0x53AF40, 0x53B060);
 
 DEFINE_HOOK(0x65EA43, SendReinforcement_Opentopped, 0x6)
 {
@@ -1672,10 +1675,10 @@ DEFINE_OVERRIDE_HOOK(0x70DA95, TechnoClass_RadarTrackingUpdate_AnnounceDetected,
 	return 0x70DADC;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x6BB9DD, WinMain_LogGameClasses, 5, 6BBE2B)
-//DEFINE_JUMP(LJMP, 0x6BB9DD, 0x6BBE2B);
-DEFINE_OVERRIDE_SKIP_HOOK(0x70CAD8, TechnoClass_DealParticleDamage_DontDestroyCliff, 9, 70CB30)
-//DEFINE_JUMP(LJMP, 0x70CAD8, 0x70CB30);
+DEFINE_DISABLE_HOOK(0x6BB9DD, WinMain_LogGameClasses_ares)//, 5, 6BBE2B)
+DEFINE_JUMP(LJMP, 0x6BB9DD, 0x6BBE2B);
+DEFINE_DISABLE_HOOK(0x70CAD8, TechnoClass_DealParticleDamage_DontDestroyCliff_ares)//, 9, 70CB30)
+DEFINE_JUMP(LJMP, 0x70CAD8, 0x70CB30);
 
 DEFINE_OVERRIDE_HOOK(0x70CBB0, TechnoClass_DealParticleDamage_AmbientDamage, 6)
 {
@@ -1708,18 +1711,6 @@ DEFINE_OVERRIDE_HOOK(0x6FB5F0, TechnoClass_DeleteGap_Optimize, 6)
 	return 0x6FB69E;
 }
 
-
-//DEFINE_OVERRIDE_HOOK_AGAIN(0x6FB4A3 , TechnoClass_CreateGap_LargeGap, 7)
-//DEFINE_OVERRIDE_HOOK(0x6FB1B5, TechnoClass_CreateGap_LargeGap, 7)
-//{
-//	GET(TechnoClass*, pThis, ESI);
-//	GET(TechnoTypeClass*, pType, EAX);
-//	// ares change this to read from ext instead
-//	// since this one is `char` so it cant store bigger number i assume
-//	pThis->GapRadius = pType->GapRadiusInCells;
-//	return R->Origin() + 0xD;
-//}
-
 DEFINE_OVERRIDE_HOOK(0x6FB306, TechnoClass_CreateGap_Optimize, 6)
 {
 	GET(CellClass*, pCell, EAX);
@@ -1739,12 +1730,12 @@ DEFINE_OVERRIDE_HOOK(0x6FB306, TechnoClass_CreateGap_Optimize, 6)
 }
 
 // bugfix #187: Westwood idiocy
-DEFINE_OVERRIDE_SKIP_HOOK(0x531726, Game_BulkDataInit_MultipleDataInitFix1, 5, 53173A)
-//DEFINE_JUMP(LJMP, 0x531726, 0x53173A);
+DEFINE_DISABLE_HOOK(0x531726, Game_BulkDataInit_MultipleDataInitFix1_ares) //, 5, 53173A)
+DEFINE_JUMP(LJMP, 0x531726, 0x53173A);
 
 // bugfix #187: Westwood idiocy
-DEFINE_OVERRIDE_SKIP_HOOK(0x53173F, Game_BulkDataInit_MultipleDataInitFix2, 5, 531749)
-//DEFINE_JUMP(LJMP, 0x53173F, 0x531749);
+DEFINE_DISABLE_HOOK(0x53173F, Game_BulkDataInit_MultipleDataInitFix2_ares)//, 5, 531749)
+DEFINE_JUMP(LJMP, 0x53173F, 0x531749);
 
 //this hook taking a lot of time , i guess because of UnitTypeClass::InitOneTimeData thing
 // DEFINE_OVERRIDE_HOOK(0x531726, Game_BulkDataInit_MultipleDataInitFix, 5)
@@ -1831,35 +1822,34 @@ DEFINE_OVERRIDE_HOOK(0x67E74A, LoadGame_EarlyLoadSides, 5)
 	return 0;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x67F281, LoadGame_LateSkipSides, 7, 67F2BF)
-//DEFINE_JUMP(LJMP, 0x67F281, 0x67F2BF);
-// ==============================
+DEFINE_DISABLE_HOOK(0x67F281, LoadGame_LateSkipSides_ares) //, 7, 67F2BF)
+DEFINE_JUMP(LJMP, 0x67F281, 0x67F2BF);
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x5A5C6A, MapSeedClass_Generate_PlacePavedRoads_RoadEndNE, 9, 5A5CC8)
-//DEFINE_JUMP(LJMP, 0x5A5C6A, 0x5A5CC8);
+DEFINE_DISABLE_HOOK(0x5A5C6A, MapSeedClass_Generate_PlacePavedRoads_RoadEndNE_ares) //, 9, 5A5CC8)
+DEFINE_JUMP(LJMP, 0x5A5C6A, 0x5A5CC8);
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x5A5D6F, MapSeedClass_Generate_PlacePavedRoads_RoadEndSW, 9, 5A5DB8)
-//DEFINE_JUMP(LJMP, 0x5A5D6F, 0x5A5DB8);
+DEFINE_DISABLE_HOOK(0x5A5D6F, MapSeedClass_Generate_PlacePavedRoads_RoadEndSW_ares) //, 9, 5A5DB8)
+DEFINE_JUMP(LJMP, 0x5A5D6F, 0x5A5DB8);
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x5A5F6A, MapSeedClass_Generate_PlacePavedRoads_RoadEndNW, 8, 5A5FF8)
-//DEFINE_JUMP(LJMP, 0x5A5F6A, 0x5A5FF8);
+DEFINE_DISABLE_HOOK(0x5A5F6A, MapSeedClass_Generate_PlacePavedRoads_RoadEndNW_ares) //, 8, 5A5FF8)
+DEFINE_JUMP(LJMP, 0x5A5F6A, 0x5A5FF8);
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x5A6464, MapSeedClass_Generate_PlacePavedRoads_RoadEndSE, 9, 5A64AD)
-//DEFINE_JUMP(LJMP, 0x5A6464, 0x5A64AD);
+DEFINE_DISABLE_HOOK(0x5A6464, MapSeedClass_Generate_PlacePavedRoads_RoadEndSE_ares) //, 9, 5A64AD)
+DEFINE_JUMP(LJMP, 0x5A6464, 0x5A64AD);
 
-// ==============================
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x59000E, RMG_FixPavedRoadEnd_Bridges_North, 5, 590087)
-//DEFINE_JUMP(LJMP, 0x59000E, 0x590087);
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x5900F7, RMG_FixPavedRoadEnd_Bridges_South, 5, 59015E)
-//DEFINE_JUMP(LJMP, 0x5900F7, 0x59015E);
+DEFINE_DISABLE_HOOK(0x59000E, RMG_FixPavedRoadEnd_Bridges_North) //, 5, 590087)
+DEFINE_JUMP(LJMP, 0x59000E, 0x590087);
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x58FCC6, RMG_FixPavedRoadEnd_Bridges_West, 5, 58FD2A)
-//DEFINE_JUMP(LJMP, 0x58FCC6, 0x58FD2A);
+DEFINE_DISABLE_HOOK(0x5900F7, RMG_FixPavedRoadEnd_Bridges_South) //, 5, 59015E)
+DEFINE_JUMP(LJMP, 0x5900F7, 0x59015E);
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x58FBDD, RMG_FixPavedRoadEnd_Bridges_East, 5, 58FC55)
-//DEFINE_JUMP(LJMP, 0x58FBDD, 0x58FC55);
+DEFINE_DISABLE_HOOK(0x58FCC6, RMG_FixPavedRoadEnd_Bridges_West) //, 5, 58FD2A)
+DEFINE_JUMP(LJMP, 0x58FCC6, 0x58FD2A);
+
+DEFINE_DISABLE_HOOK(0x58FBDD, RMG_FixPavedRoadEnd_Bridges_East) //, 5, 58FC55)
+DEFINE_JUMP(LJMP, 0x58FBDD, 0x58FC55);
 
 DEFINE_OVERRIDE_HOOK(0x58FA51, RMG_PlaceWEBridge, 6)
 {
@@ -3775,11 +3765,11 @@ DEFINE_OVERRIDE_HOOK(0x6BED08, Game_Terminate_Mouse, 7)
 	return 0x6BED34;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x56017A, OptionsDlg_WndProc_RemoveResLimit, 0x5, 560183)
-//DEFINE_JUMP(LJMP, 0x56017A, 0x560183);
+DEFINE_DISABLE_HOOK(0x56017A, OptionsDlg_WndProc_RemoveResLimit_ares)//, 0x5, 560183)
+DEFINE_JUMP(LJMP, 0x56017A, 0x560183);
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x5601E3, OptionsDlg_WndProc_RemoveHiResCheck, 0x9, 5601FC)
-//DEFINE_JUMP(LJMP, 0x5601E3, 0x5601FC);
+DEFINE_DISABLE_HOOK(0x5601E3, OptionsDlg_WndProc_RemoveHiResCheck_ares)//, 0x9, 5601FC)
+DEFINE_JUMP(LJMP, 0x5601E3, 0x5601FC);
 
 #include <Ext/HouseType/Body.h>
 
@@ -4528,37 +4518,30 @@ DEFINE_OVERRIDE_HOOK(0x4893BA, DamageArea_DamageAir, 9)
  	DynamicVectorClass<DamageGroup**> target(DefaultSize, bufferTarget);
  	target.Reserve(groups.Count);
 
- 	for (auto& group : groups)
- 	{
+ 	for (auto& group : groups) {
  		// group could have been cleared by previous iteration.
  		// only handle if has not been handled already.
- 		if (group && handled.AddUnique(group->Target))
- 		{
+ 		if (group && handled.AddUnique(group->Target)) {
  			target.Count = 0;
 
  			// collect all slots containing damage groups for this target
- 			std::for_each(&group, groups.end(), [group, &target](DamageGroup*& item)
-  {
- 	 if (item && item->Target == group->Target)
- 	 {
- 		 target.AddItem(&item);
- 	 }
+ 			std::for_each(&group, groups.end(), [group, &target](DamageGroup*& item) {
+ 			 if (item && item->Target == group->Target) {
+ 					target.AddItem(&item);
+ 				}
  			});
 
  			// if more than allowed, sort them and remove the ones further away
- 			if (target.Count > MaxAffect)
- 			{
+ 			if (target.Count > MaxAffect) {
  				Helpers::Alex::selectionsort(
  					target.begin(), target.begin() + MaxAffect, target.end(),
- 					[](DamageGroup** a, DamageGroup** b)
- 				{
- 					return (*a)->Distance < (*b)->Distance;
- 				});
+ 					[](DamageGroup** a, DamageGroup** b) {
+ 						return (*a)->Distance < (*b)->Distance;
+ 					});
 
- 				std::for_each(target.begin() + MaxAffect, target.end(), [](DamageGroup** ppItem)
-  {
- 	 GameDelete(*ppItem);
- 	 *ppItem = nullptr;
+				target.for_each([](DamageGroup** ppItem) {
+ 					GameDelete(*ppItem);
+ 					*ppItem = nullptr;
  				});
  			}
  		}
@@ -4657,12 +4640,12 @@ DEFINE_OVERRIDE_HOOK(0x489562, DamageArea_DestroyCliff, 9)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x48A507, SelectDamageAnimation_FixNegatives, 5)
+DEFINE_OVERRIDE_HOOK(0x48a4f9, SelectDamageAnimation_FixNegatives, 6)
 {
 	GET(int, Damage, EDI);
 	Damage = abs(Damage);
 	R->EDI(Damage);
-	return 0;
+	return Damage ? 0x48A4FF : 0x48A618;
 }
 
 // drain affecting only the drained power plant

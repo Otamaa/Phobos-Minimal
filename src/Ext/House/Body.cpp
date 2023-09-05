@@ -305,9 +305,7 @@ int HouseExt::TotalHarvesterCount(HouseClass* pThis)
 
 	int result = 0;
 
-	std::for_each(TechnoTypeClass::Array->begin(), TechnoTypeClass::Array->end(),
-	[&result, pThis](TechnoTypeClass* techno)
-	{
+	TechnoTypeClass::Array->for_each([&result, pThis](TechnoTypeClass* techno) {
 		if (TechnoTypeExt::ExtMap.Find(techno)->IsCountedAsHarvester()) {
 			result += pThis->CountOwnedAndPresent(techno);
 		}
@@ -715,6 +713,124 @@ void HouseExt::ExtData::UpdateAutoDeathObjects()
 
 		TechnoExt::KillSelf(pThis, nMethod, true , TechnoTypeExt::ExtMap.Find(pExt->Type)->AutoDeath_VanishAnimation);
 	}
+}
+
+BuildLimitStatus HouseExt::CheckBuildLimit(
+	HouseClass const* const pHouse, TechnoTypeClass* pItem,
+	bool const includeQueued)
+{
+	int BuildLimit = pItem->BuildLimit;
+	int Remaining = HouseExt::BuildLimitRemaining(pHouse, pItem);
+	if (BuildLimit > 0)
+	{
+		if (Remaining <= 0)
+		{
+			return (includeQueued && FactoryClass::FindByOwnerAndProduct(pHouse, pItem))
+				? BuildLimitStatus::NotReached
+				: BuildLimitStatus::ReachedPermanently
+				;
+		}
+	}
+	return (Remaining > 0)
+		? BuildLimitStatus::NotReached
+		: BuildLimitStatus::ReachedTemporarily
+		;
+}
+
+signed int HouseExt::BuildLimitRemaining(
+	HouseClass const* const pHouse, TechnoTypeClass* pItem)
+{
+	auto const BuildLimit = pItem->BuildLimit;
+	if (BuildLimit >= 0)
+	{
+		return BuildLimit - HouseExt::CountOwnedNowTotal(pHouse, pItem);
+	}
+	else
+	{
+		return -BuildLimit - pHouse->CountOwnedEver(pItem);
+	}
+}
+
+int HouseExt::CountOwnedNowTotal(
+	HouseClass const* const pHouse, TechnoTypeClass* pItem)
+{
+	int index = -1;
+	int sum = 0;
+	const BuildingTypeClass* pBType = nullptr;
+	const UnitTypeClass* pUType = nullptr;
+	const InfantryTypeClass* pIType = nullptr;
+	const char* pPowersUp = nullptr;
+
+	switch (pItem->WhatAmI())
+	{
+	case AbstractType::BuildingType:
+		pBType = static_cast<BuildingTypeClass const*>(pItem);
+		pPowersUp = pBType->PowersUpBuilding;
+		if (pPowersUp[0])
+		{
+			if (auto const pTPowersUp = BuildingTypeClass::Find(pPowersUp))
+			{
+				for (auto const& pBld : pHouse->Buildings)
+				{
+					if (pBld->Type == pTPowersUp)
+					{
+						for (auto const& pUpgrade : pBld->Upgrades)
+						{
+							if (pUpgrade == pBType)
+							{
+								++sum;
+							}
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			sum = pHouse->CountOwnedNow(pBType);
+			if (auto const pUndeploy = pBType->UndeploysInto)
+			{
+				sum += pHouse->CountOwnedNow(pUndeploy);
+			}
+		}
+		break;
+
+	case AbstractType::UnitType:
+		pUType = static_cast<UnitTypeClass const*>(pItem);
+		sum = pHouse->CountOwnedNow(pUType);
+		if (auto const pDeploy = pUType->DeploysInto)
+		{
+			sum += pHouse->CountOwnedNow(pDeploy);
+		}
+		break;
+
+	case AbstractType::InfantryType:
+		pIType = static_cast<InfantryTypeClass const*>(pItem);
+		sum = pHouse->CountOwnedNow(pIType);
+		if (pIType->VehicleThief)
+		{
+			index = pIType->ArrayIndex;
+			for (auto const& pUnit : *UnitClass::Array)
+			{
+				if (pUnit->HijackerInfantryType == index
+					&& pUnit->Owner == pHouse)
+				{
+					++sum;
+				}
+			}
+		}
+		break;
+
+	case AbstractType::AircraftType:
+		sum = pHouse->CountOwnedNow(
+			static_cast<AircraftTypeClass const*>(pItem));
+		break;
+
+	default:
+		break;
+	}
+
+	return sum;
 }
 
 //void HouseExt::ExtData::AddToLimboTracking(TechnoTypeClass* pTechnoType)

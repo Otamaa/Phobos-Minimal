@@ -544,6 +544,17 @@ public:
 		return *this;
 	}
 
+	template<bool check = true>
+	void __forceinline PrintAsMessage(int colorScheme) const {
+
+		if constexpr (check) {
+			if (this->empty())
+				return;
+		}
+
+		MessageListClass::Instance->PrintMessage(this->Text, RulesClass::Instance->MessageDelay, colorScheme);
+	}
+
 	operator const wchar_t* () const {
 		return this->Text;
 	}

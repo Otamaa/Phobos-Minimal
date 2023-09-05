@@ -126,7 +126,7 @@ DEFINE_OVERRIDE_HOOK(0x707A47, TechnoClass_PointerGotInvalid_LastTarget, 0xA)
 	return 0;
 }
 
-//DEFINE_OVERRIDE_SKIP_HOOK(0x6FCF53, TechnoClass_SetTarget_Burst, 0x6, 6FCF61)
+DEFINE_DISABLE_HOOK(0x6FCF53, TechnoClass_SetTarget_Burst_ares)//, 0x6, 6FCF61)
 DEFINE_JUMP(LJMP, 0x6FCF53, 0x6FCF61);
 
 DEFINE_OVERRIDE_HOOK_AGAIN(0x717855, TechnoTypeClass_UpdatePalette_Reset, 0x6)
@@ -193,8 +193,8 @@ DEFINE_OVERRIDE_HOOK(0x6FA2C7, TechnoClass_Update_DrawHidden, 0x8)
 	return !disallowed ? 0u : 0x6FA30Cu;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x6FFF9E, TechnoClass_GetActionOnObject_IvanBombsB, 0x5, 700006)
-//DEFINE_JUMP(LJMP, 0x6FFF9E, 0x700006);
+DEFINE_DISABLE_HOOK(0x6FFF9E, TechnoClass_GetActionOnObject_IvanBombsB_ares)//, 0x5, 700006)
+DEFINE_JUMP(LJMP, 0x6FFF9E, 0x700006);
 
 DEFINE_OVERRIDE_HOOK(0x6FF2D1, TechnoClass_FireAt_Facings, 0x6)
 {

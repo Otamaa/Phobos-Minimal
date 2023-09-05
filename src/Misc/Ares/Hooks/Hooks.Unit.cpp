@@ -64,11 +64,11 @@ DEFINE_HOOK(0x73D81C, UnitClass_Mi_Unload_LastPassenger, 0x7)
 	return 0x73D823;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x7388EB, UnitClass_ActionOnObject_IvanBombs, 0x6, 7388FD)
-//DEFINE_JUMP(LJMP, 0x7388EB, 0x7388FD);
+DEFINE_DISABLE_HOOK(0x7388EB, UnitClass_ActionOnObject_IvanBombs_ares)//, 0x6, 7388FD)
+DEFINE_JUMP(LJMP, 0x7388EB, 0x7388FD);
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x73C733, UnitClass_DrawSHP_SkipTurretedShadow, 7, 73C7AC)
-//DEFINE_JUMP(LJMP, 0x73C733, 0x73C7AC);
+DEFINE_DISABLE_HOOK(0x73C733, UnitClass_DrawSHP_SkipTurretedShadow_ares)//, 7, 73C7AC)
+DEFINE_JUMP(LJMP, 0x73C733, 0x73C7AC);
 
 DEFINE_OVERRIDE_HOOK(0x741206, UnitClass_CanFire, 0x6)
 {
@@ -578,8 +578,8 @@ DEFINE_OVERRIDE_HOOK(0x73DBF9, UnitClass_Mi_Unload_Decactivated, 5)
 }
 
 #include <SlaveManagerClass.h>
-DEFINE_OVERRIDE_SKIP_HOOK(0x73E66D, UnitClass_Mi_Harvest_SkipDock, 6, 73E6CF);
-//DEFINE_JUMP(LJMP, 0x73E66D, 0x73E6CF);
+DEFINE_DISABLE_HOOK(0x73E66D, UnitClass_Mi_Harvest_SkipDock_ares)//, 6, 73E6CF);
+DEFINE_JUMP(LJMP, 0x73E66D, 0x73E6CF);
 
 DEFINE_OVERRIDE_HOOK(0x6AF748, SlaveManagerClass_UpdateSlaves_SlaveScan, 6)
 {

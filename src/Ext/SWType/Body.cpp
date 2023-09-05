@@ -1066,8 +1066,7 @@ AffectedHouse SWTypeExt::ExtData::GetRelation(HouseClass* pFirer, HouseClass* pH
 
 void SWTypeExt::ExtData::PrintMessage(const CSFText& message, HouseClass* pFirer)
 {
-	if (message.empty())
-	{
+	if (message.empty()) {
 		return;
 	}
 
@@ -1095,7 +1094,7 @@ void SWTypeExt::ExtData::PrintMessage(const CSFText& message, HouseClass* pFirer
 	}
 
 	// print the message
-	MessageListClass::Instance->PrintMessage(message, RulesClass::Instance->MessageDelay, color);
+	message.PrintAsMessage<false>(color);
 }
 
 Iterator<TechnoClass*> SWTypeExt::ExtData::GetPotentialAITargets(HouseClass* pTarget) const
@@ -1830,20 +1829,19 @@ bool SWTypeExt::ExtData::IsAvailable(HouseClass* pHouse)
 
 	const auto& Aux = this->SW_AuxBuildings;
 	// If building Not Exist
-	if (!Aux.empty() && std::none_of(Aux.begin(), Aux.end(), IsBuildingPresent)) {
+	if (!Aux.empty() && Aux.None_Of(IsBuildingPresent)) {
 		return false;
 	}
 
 	const auto& Neg = this->SW_NegBuildings;
 	// If building Exist
-	if (!Neg.empty() && std::any_of(Neg.begin(), Neg.end(), IsBuildingPresent)) {
+	if (!Neg.empty() && Neg.Any_Of(IsBuildingPresent)) {
 		return false;
 	}
 
 	const auto& AuxT = this->Aux_Techno;
 	int count = 0;
-	if (!AuxT.empty() && std::none_of(AuxT.begin(), AuxT.end(),
-		[pHouse, &count](TechnoTypeClass* pType)
+	if (!AuxT.empty() && AuxT.None_Of([pHouse, &count](TechnoTypeClass* pType)
 		{
 			if (pType)
 			{

@@ -62,7 +62,10 @@ public:
 #else
 		ValueableIdx<int> EVAIndex { -1 };
 #endif
-		Valueable<int> BriefingTheme { -1 };;
+		Valueable<int> BriefingTheme { -1 };
+
+		NullableVector<BuildingTypeClass*> BaseDefenses {};
+		NullableVector<int> BaseDefenseCounts {};
 
 		ExtData(SideClass* OwnerObject) : Extension<SideClass>(OwnerObject)
 		{ }
@@ -89,6 +92,12 @@ public:
 
 		Iterator<int> GetParaDropNum() const;
 		Iterator<int> GetDefaultParaDropNum() const;
+
+		Iterator<int> GetBaseDefenseCounts() const;
+		Iterator<int> GetDefaultBaseDefenseCounts() const;
+
+		Iterator<BuildingTypeClass*> GetBaseDefenses() const;
+		Iterator<BuildingTypeClass*> GetDefaultBaseDefenses() const;
 
 	private:
 		template <typename T>

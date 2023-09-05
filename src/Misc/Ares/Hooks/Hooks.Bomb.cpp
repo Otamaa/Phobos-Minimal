@@ -121,8 +121,8 @@ namespace Funcs
 	}
 };
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x438FD7 , BombListClass_Plant_AttachSound, 7 , 439022);
-//DEFINE_JUMP(LJMP, 0x438FD7, 0x439022);
+DEFINE_DISABLE_HOOK(0x438FD7 , BombListClass_Plant_AttachSound_ares)//, 7 , 439022);
+DEFINE_JUMP(LJMP, 0x438FD7, 0x439022);
 
 DEFINE_OVERRIDE_HOOK(0x438A00, BombClass_GetCurrentFrame, 6)
 {

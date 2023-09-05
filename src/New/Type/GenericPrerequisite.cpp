@@ -4,6 +4,8 @@
 
 #include <CCINIClass.h>
 
+#include <Ext/TechnoType/Body.h>
+
 Enumerable<GenericPrerequisite>::container_t Enumerable<GenericPrerequisite>::Array;
 
 const char* Enumerable<GenericPrerequisite>::GetMainSection()
@@ -24,8 +26,8 @@ void GenericPrerequisite::Parse(CCINIClass* pINI, const char* section, const cha
 		Vec.clear();
 
 		char* context = nullptr;
-		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); 
-			cur; 
+		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
+			cur;
 			cur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
 			int idx = BuildingTypeClass::FindIndexById(cur);
@@ -211,8 +213,7 @@ bool Prereqs::HouseOwnsAny(HouseClass const* const pHouse, const DynamicVectorCl
 
 bool Prereqs::ListContainsSpecific(const BTypeIter& List, int const Index)
 {
-	auto const pItem = BuildingTypeClass::Array->Items[Index];
-	return List.contains(pItem);
+	return List.contains(BuildingTypeClass::Array->Items[Index]);
 }
 
 bool Prereqs::ListContainsGeneric(const BTypeIter& List, int const Index)
@@ -241,7 +242,7 @@ bool Prereqs::ListContainsPrereq(const BTypeIter& List, int Index)
 		;
 }
 
-bool Prereqs::ListContainsAll(const BTypeIter& List, const DynamicVectorClass<int>& Requirements)
+bool Prereqs::ListContainsAll(const BTypeIter& List, const IntIter& Requirements)
 {
 	for (const auto& index : Requirements)
 	{
@@ -262,5 +263,25 @@ bool Prereqs::ListContainsAny(const BTypeIter& List, const DynamicVectorClass<in
 			return true;
 		}
 	}
+	return false;
+}
+
+bool Prereqs::PrerequisitesListed(Prereqs::BTypeIter const& List, TechnoTypeClass* pItem)
+{
+	if (!pItem)
+	{
+		return false;
+	}
+
+	auto const pData = TechnoTypeExt::ExtMap.Find(pItem);
+
+	for (const auto& list : pData->Prerequisite)
+	{
+		if (Prereqs::ListContainsAll(List, list))
+		{
+			return true;
+		}
+	}
+
 	return false;
 }

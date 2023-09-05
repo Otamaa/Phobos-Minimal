@@ -20,6 +20,7 @@ void HouseTypeExt::ExtData::InheritSettings(HouseTypeClass* pThis)
 			this->CanBeDriven = ParentData->CanBeDriven;
 			this->ParachuteAnim = ParentData->ParachuteAnim;
 			this->StartInMultiplayer_WithConst = ParentData->StartInMultiplayer_WithConst;
+			this->Powerplants = ParentData->Powerplants;
 		}
 	}
 
@@ -67,6 +68,36 @@ void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr
 
 	this->ParachuteAnim.Read(exINI, pSection, "Parachute.Anim" , true);
 	this->StartInMultiplayer_WithConst.Read(exINI, pSection, "StartInMultiplayer.WithConst");
+	this->Powerplants.Read(exINI, pSection, "AI.PowerPlants", true);
+}
+
+Iterator<BuildingTypeClass*> HouseTypeExt::ExtData::GetPowerplants() const
+{
+	if (!this->Powerplants.empty()) {
+		return this->Powerplants;
+	}
+
+	return this->GetDefaultPowerplants();
+}
+
+Iterator<BuildingTypeClass*> HouseTypeExt::ExtData::GetDefaultPowerplants() const
+{
+	BuildingTypeClass** ppPower = nullptr;
+	switch (this->OwnerObject()->SideIndex)
+	{
+	case 0:
+		ppPower = &RulesClass::Instance->GDIPowerPlant;
+		break;
+	case 1:
+		ppPower = &RulesClass::Instance->NodRegularPower;
+		break;
+	case 2:
+		ppPower = &RulesClass::Instance->ThirdPowerPlant;
+		break;
+	}
+
+	size_t count = (ppPower && *ppPower) ? 1u : 0u;
+	return { ppPower, count };
 }
 
 template <typename T>
@@ -94,6 +125,7 @@ void  HouseTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->NewTeamsSelector_NavalCategoryPercentage)
 		.Process(this->ParachuteAnim)
 		.Process(this->StartInMultiplayer_WithConst)
+		.Process(this->Powerplants)
 		;
 }
 

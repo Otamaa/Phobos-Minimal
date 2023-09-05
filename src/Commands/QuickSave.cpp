@@ -67,7 +67,7 @@ void QuickSaveCommandClass::Execute(WWKey eInput) const
 		wcscat_s(fDescription, L" - ");
 		wcscat_s(fDescription, GeneralUtils::LoadStringUnlessMissing("TXT_QUICKSAVE_SUFFIX", L"Quicksaved"));
 		bool Status = ScenarioClass::SaveGame(fName, fDescription);
-	
+
 		WWMouseClass::Instance->ShowCursor();
 
 		if (pUI)

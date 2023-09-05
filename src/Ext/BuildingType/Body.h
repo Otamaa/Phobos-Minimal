@@ -305,6 +305,13 @@ public:
 		Valueable<bool> CloningFacility { false };
 		Valueable<bool> Factory_ExplicitOnly { false };
 
+		ValueableIdx<VoxClass> LostEvaEvent { -1 };
+		Valueable<CSFText> MessageCapture {};
+		Valueable<CSFText> MessageLost {};
+
+		ValueableVector<int> AIBuildCounts {};
+		ValueableVector<int> AIExtraCounts {};
+
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject) { }
 		virtual ~ExtData() override = default;
 

@@ -72,7 +72,7 @@ void BulletExt::ApplyAirburst(BulletClass* pThis)
 			const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
 
 			// fill with technos in range
-			std::for_each(TechnoClass::Array->begin(), TechnoClass::Array->end(), [&](TechnoClass* pTechno) {
+			TechnoClass::Array->for_each([&](TechnoClass* pTechno) {
 				if (pWHExt->CanDealDamage(pTechno, false, !pExt->Splits_TargetingUseVerses.Get())) {
 					 if ((!pExt->RetargetOwner.Get() && pTechno == pBulletOwner))
 						 return;
@@ -585,8 +585,7 @@ void BulletExt::ExtData::ApplyRadiationToCell(CoordStruct const& nCoord, int Spr
 	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 	const auto pRadType = pWeaponExt->RadType.Get(RadTypeClass::Array[0].get());
 
-		auto const it = std::find_if(RadSiteClass::Array->begin(), RadSiteClass::Array->end(),
-			[=](auto const pSite) {
+		auto const it = RadSiteClass::Array->find_if([=](RadSiteClass* const pSite) {
 
 				auto const pRadExt = RadSiteExt::ExtMap.Find(pSite);
 				if (pRadExt->Type != pRadType)

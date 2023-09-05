@@ -127,14 +127,64 @@ Iterator<int> SideExt::ExtData::GetDefaultParaDropNum() const
 	//return SovParaDropNum would be correct, but Ares < 0.6 does this:
 	return RulesClass::Instance->AllyParaDropNum;
 }
+
 Iterator<int> SideExt::ExtData::GetParaDropNum() const
 {
-	if (this->ParaDropTypes.HasValue() && this->ParaDropNum.HasValue())
-	{
+	if (this->ParaDropTypes.HasValue() && this->ParaDropNum.HasValue()) {
 		return this->ParaDropNum;
 	}
 
 	return this->GetDefaultParaDropNum();
+}
+
+Iterator<int> SideExt::ExtData::GetBaseDefenseCounts() const
+{
+	if (this->BaseDefenseCounts.HasValue()) {
+		return this->BaseDefenseCounts;
+	}
+
+	return this->GetDefaultBaseDefenseCounts();
+}
+
+Iterator<int> SideExt::ExtData::GetDefaultBaseDefenseCounts() const
+{
+	switch (this->ArrayIndex)
+	{
+	case 0:
+		return RulesClass::Instance->AlliedBaseDefenseCounts;
+	case 1:
+		return RulesClass::Instance->SovietBaseDefenseCounts;
+	case 2:
+		return RulesClass::Instance->ThirdBaseDefenseCounts;
+	default:
+		//return Iterator<int>(); would be correct, but Ares < 0.5 does this:
+		return RulesClass::Instance->AlliedBaseDefenseCounts;
+	}
+}
+
+Iterator<BuildingTypeClass*> SideExt::ExtData::GetBaseDefenses() const
+{
+	if (this->BaseDefenses.HasValue()) {
+		return this->BaseDefenses;
+	}
+
+	return this->GetDefaultBaseDefenses();
+}
+
+Iterator<BuildingTypeClass*> SideExt::ExtData::GetDefaultBaseDefenses() const
+{
+	switch (this->ArrayIndex)
+	{
+	case 0:
+		return RulesClass::Instance->AlliedBaseDefenses;
+	case 1:
+		return RulesClass::Instance->SovietBaseDefenses;
+	case 2:
+		return RulesClass::Instance->ThirdBaseDefenses;
+	default:
+		//return Iterator<BuildingTypeClass*>(); would be correct, but Ares < 0.5 does this:
+		return RulesClass::Instance->AlliedBaseDefenses;
+	}
 }
 
 void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
@@ -188,6 +238,9 @@ void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->EVAIndex.Read(exINI, pSection, "EVA.Tag");
 	this->BriefingTheme = pINI->ReadTheme(pSection, "BriefingTheme", this->BriefingTheme);
+
+	this->BaseDefenseCounts.Read(exINI, pSection, "AI.BaseDefenseCounts");
+	this->BaseDefenses.Read(exINI, pSection, "AI.BaseDefenses", true);
 }
 
 // =============================
@@ -239,6 +292,10 @@ void SideExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->ParachuteAnim)
 		.Process(this->EVAIndex)
+		.Process(this->BriefingTheme)
+
+		.Process(this->BaseDefenses)
+		.Process(this->BaseDefenseCounts)
 		;
 }
 

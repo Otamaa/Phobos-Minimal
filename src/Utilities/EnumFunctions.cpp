@@ -473,7 +473,7 @@ bool EnumFunctions::CanTargetHouse(AffectedHouse const &flags, HouseClass* owner
 	return (flags & AffectedHouse::Enemies) != AffectedHouse::None;
 }
 
-bool EnumFunctions::IsCellEligible(CellClass* const pCell, AffectedTarget const& allowed, bool explicitEmptyCells)
+bool EnumFunctions::IsCellEligible(CellClass* const pCell, AffectedTarget const& allowed, bool explicitEmptyCells, bool considerBridgesLand)
 {
 	if (explicitEmptyCells)
 	{
@@ -485,7 +485,7 @@ bool EnumFunctions::IsCellEligible(CellClass* const pCell, AffectedTarget const&
 
 	if (allowed & AffectedTarget::AllCells)
 	{
-		if (pCell->LandType == LandType::Water && !pCell->ContainsBridge()) // check whether it supports water
+		if (pCell->LandType == LandType::Water && (!considerBridgesLand || !pCell->ContainsBridge())) // check whether it supports water
 			return (allowed & AffectedTarget::Water) != AffectedTarget::None;
 		else                                    // check whether it supports non-water
 			return (allowed & AffectedTarget::Land) != AffectedTarget::None;
@@ -556,13 +556,13 @@ bool EnumFunctions::IsTechnoEligibleB(TechnoClass* const pTechno, AffectedTarget
 	return false;
 }
 
-bool EnumFunctions::AreCellAndObjectsEligible(CellClass* const pCell, AffectedTarget  const& allowed, AffectedHouse const&  allowedHouses, HouseClass* owner, bool explicitEmptyCells, bool considerAircraftSeparately)
+bool EnumFunctions::AreCellAndObjectsEligible(CellClass* const pCell, AffectedTarget  const& allowed, AffectedHouse const&  allowedHouses, HouseClass* owner, bool explicitEmptyCells, bool considerAircraftSeparately, bool allowBridges)
 {
 	if (!pCell)
 		return false;
 
 	auto object = pCell->FirstObject;
-	bool eligible = EnumFunctions::IsCellEligible(pCell, allowed, explicitEmptyCells);
+	bool eligible = EnumFunctions::IsCellEligible(pCell, allowed, explicitEmptyCells , allowBridges);
 
 	while (true)
 	{

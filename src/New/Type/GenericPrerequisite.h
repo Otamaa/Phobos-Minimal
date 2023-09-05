@@ -29,6 +29,7 @@ class Prereqs
 {
 public:
 	using BTypeIter = Iterator<BuildingTypeClass*>;
+	using IntIter = Iterator<int>;
 
 	static bool HouseOwnsGeneric(HouseClass const* pHouse, int Index);
 	static bool HouseOwnsSpecific(HouseClass const* pHouse, int Index);
@@ -41,6 +42,8 @@ public:
 	static bool ListContainsSpecific(const BTypeIter& List, int Index);
 	static bool ListContainsPrereq(const BTypeIter& List, int Index);
 
-	static bool ListContainsAll(const BTypeIter& List, const DynamicVectorClass<int>& Requirements);
+	static bool ListContainsAll(const BTypeIter& List, const IntIter& Requirements);
 	static bool ListContainsAny(const BTypeIter& List, const DynamicVectorClass<int>& Requirements);
+
+	static bool PrerequisitesListed(Prereqs::BTypeIter const& List, TechnoTypeClass* pItem);
 };

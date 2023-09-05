@@ -658,6 +658,16 @@ public:
 	}
 
 	template <typename Func>
+	auto find_if(Func&& act) const {
+		return std::find_if(this->begin(), this->end(), std::forward<Func>(act));
+	}
+
+	template <typename Func>
+	auto find_if(Func&& act) {
+		return std::find_if(this->begin(), this->end(), std::forward<Func>(act));
+	}
+
+	template <typename Func>
 	void for_each(Func&& act) const {
 		std::for_each(this->begin(), this->end(), std::forward<Func>(act));
 	}

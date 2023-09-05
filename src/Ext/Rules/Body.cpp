@@ -147,6 +147,19 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->Infantry_DefaultDigitalDisplayTypes.Read(iniEX, GameStrings::AudioVisual, "Infantry.DefaultDigitalDisplayTypes");
 	pData->Vehicles_DefaultDigitalDisplayTypes.Read(iniEX, GameStrings::AudioVisual, "Vehicles.DefaultDigitalDisplayTypes");
 	pData->Aircraft_DefaultDigitalDisplayTypes.Read(iniEX, GameStrings::AudioVisual, "Aircraft.DefaultDigitalDisplayTypes");
+
+
+	if (pINI->ReadString("GlobalControls", "AllowBypassBuildLimit", "", Phobos::readBuffer))
+	{
+		bool temp[3] = {};
+		int read = Parser<bool, 3>::Parse(Phobos::readBuffer, temp);
+
+		for (int i = 0; i < read; ++i)
+		{
+			int diffIdx = 2 - i; // remapping so that HouseClass::AIDifficulty can be used as an index
+			pData->AllowBypassBuildLimit[diffIdx] = temp[i];
+		}
+	}
 }
 
 DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
@@ -650,6 +663,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->AnimRemapDefaultColorScheme)
 		.Process(this->EMPAIRecoverMission)
 		.Process(this->TimerBlinkColorScheme)
+		.Process(this->AllowBypassBuildLimit)
 		;
 
 	MyPutData.Serialize(Stm);

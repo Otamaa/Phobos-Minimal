@@ -25,6 +25,13 @@ struct TunnelData
 	int MaxCap { 1 };
 };
 
+//TODO : validate check
+enum class BuildLimitStatus {
+	ReachedPermanently = -1, // remove cameo
+	ReachedTemporarily = 0, // black out cameo
+	NotReached = 1, // don't do anything
+};
+
 class HouseExt
 {
 public:
@@ -208,6 +215,11 @@ public:
 		auto const index = FindBuildableIndex(pHouse, idxParent, items, start);
 		return index < items.size() ? items[index] : nullptr;
 	}
+
+	static int CountOwnedNowTotal(HouseClass const* pHouse, TechnoTypeClass* pItem);
+	static signed int BuildLimitRemaining(HouseClass const* pHouse, TechnoTypeClass* pItem);
+	static BuildLimitStatus CheckBuildLimit(HouseClass const* pHouse, TechnoTypeClass* pItem, bool includeQueued);
+
 
 	static TunnelData* GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx);
 	static TunnelData* GetTunnelVector(BuildingTypeClass* pBld, HouseClass* pHouse);

@@ -798,7 +798,7 @@ public:
 	CoordStruct      LastSightCoords;
 	int              LastSightRange;
 	int              LastSightHeight;
-	BYTE             GapSuperCharged; // GapGenerator, when SuperGapRadiusInCells != GapRadiusInCells, you can deploy the gap to boost radius
+	bool             GapSuperCharged; // GapGenerator, when SuperGapRadiusInCells != GapRadiusInCells, you can deploy the gap to boost radius
 	BYTE             GeneratingGap; // is currently generating gap
 	int              GapRadius;
 	BYTE             BeingWarpedOut; // is being warped by CLEG used , for 70C5B0
@@ -964,6 +964,8 @@ public:
 // due to desync problem , i started to do these , to really make sure the class member at correct place
 // without need to see the dll on IDA manually
 
+static_assert(offsetof(TechnoClass, GeneratingGap) == 0x269, "ClassMember Shifted !");
+static_assert(offsetof(TechnoClass, GapSuperCharged) == 0x268, "ClassMember Shifted !");
 static_assert(offsetof(TechnoClass, unknown_34C) == 0x34C, "ClassMember Shifted !");
 //static_assert(offsetof(TechnoClass, IsALoaner) == 0x3D4, "ClassMember Shifted !");
 //static_assert(offsetof(TechnoClass, IsLocked) == 0x3D5, "ClassMember Shifted !");

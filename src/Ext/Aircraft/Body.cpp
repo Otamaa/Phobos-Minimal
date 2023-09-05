@@ -26,7 +26,7 @@ void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, Aircra
 {
 	if (!pTarget)
 		return;
-	
+
 	AircraftExt::FireBurst(pThis, pTarget, shotNumber, pThis->SelectWeapon(pTarget));
 }
 

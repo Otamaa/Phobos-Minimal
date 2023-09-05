@@ -29,9 +29,8 @@ DEFINE_HOOK(0x4511D6, BuildingClass_AnimationAI_SellBuildup, 0x7)
 
 	GET(BuildingClass*, pThis, ESI);
 
-	auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
-
-	return pTypeExt->SellBuildupLength == pThis->Animation.Value ? Continue : Skip;
+	return BuildingTypeExt::ExtMap.Find(pThis->Type)->SellBuildupLength == pThis->Animation.Value
+		? Continue : Skip;
 }
 
 DEFINE_HOOK(0x739717, UnitClass_TryToDeploy_Transfer, 0x8)
@@ -105,7 +104,7 @@ DEFINE_HOOK(0x44224F, BuildingClass_ReceiveDamage_DamageSelf, 0x5)
 
 	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0x9C, -0x4));
 
-	auto const pWHExt = WarheadTypeExt::ExtMap.Find(args.WH);
+	const auto pWHExt = WarheadTypeExt::ExtMap.Find(args.WH);
 	return pWHExt->AllowDamageOnSelf.isset() && pWHExt->AllowDamageOnSelf.Get() ?
 	SkipCheck : Continue;
 }
@@ -114,6 +113,7 @@ DEFINE_HOOK(0x440B4F, BuildingClass_Unlimbo_SetShouldRebuild, 0x5)
 {
     enum { ContinueCheck = 0x440B58, ShouldNotRebuild = 0x440B81 };
 	GET(BuildingClass* const, pThis, ESI);
+
 	if(SessionClass::IsCampaign())
 	{
 		if(!pThis->BeingProduced)

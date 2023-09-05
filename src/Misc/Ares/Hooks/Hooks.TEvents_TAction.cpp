@@ -37,7 +37,12 @@ DEFINE_DISABLE_HOOK(0x6E3E30, TActionClass_Save_Prefix_ares)
 DEFINE_DISABLE_HOOK(0x6E3DB0, TActionClass_Load_Prefix_ares)
 DEFINE_DISABLE_HOOK(0x6E3E29, TActionClass_Load_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x6E3E4A, TActionClass_Save_Suffix_ares)
-
+DEFINE_DISABLE_HOOK(0x71e7f8, TEventClass_CTOR_ares)
+DEFINE_DISABLE_HOOK(0x71f8c0, TEventClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x71f92b, TEventClass_Load_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x71f930, TEventClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x71f94a, TEventClass_Save_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x71faa6, TEventClass_SDDTOR_ares)
 DEFINE_DISABLE_HOOK(0x6e1780, TActionClass_PlayAudioAtRandomWP_ares)
 
 DEFINE_OVERRIDE_HOOK(0x6DE0D3, TActionClass_Execute_MessageColor, 6)

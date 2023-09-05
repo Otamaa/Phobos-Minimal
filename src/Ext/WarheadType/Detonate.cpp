@@ -480,20 +480,19 @@ void WarheadTypeExt::ExtData::InterceptBullets(TechnoClass* pOwner, WeaponTypeCl
 	}
 	else
 	{
-		std::for_each(BulletClass::Array->begin(), BulletClass::Array->end(), [&](BulletClass* pTargetBullet)
- {
-	 if (pTargetBullet)
-	 {
-		 const auto pBulletExt = BulletExt::ExtMap.Find(pTargetBullet);
-		 if (pBulletExt->CurrentStrength > 0 && !pTargetBullet->InLimbo)
-		 {
-			 auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pTargetBullet->Type);
-			 // Cells don't know about bullets that may or may not be located on them so it has to be this way.
-			 if (pBulletTypeExt->Interceptable &&
-				 pTargetBullet->Location.DistanceFrom(coords) <= (cellSpread * Unsorted::LeptonsPerCell))
-				 BulletExt::InterceptBullet(pTargetBullet, pOwner, pWeapon);
-		 }
-	 }
+		BulletClass::Array->for_each([&](BulletClass* pTargetBullet) {
+			if (pTargetBullet)
+			 {
+				 const auto pBulletExt = BulletExt::ExtMap.Find(pTargetBullet);
+				 if (pBulletExt->CurrentStrength > 0 && !pTargetBullet->InLimbo)
+				 {
+					 auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pTargetBullet->Type);
+					 // Cells don't know about bullets that may or may not be located on them so it has to be this way.
+					 if (pBulletTypeExt->Interceptable &&
+						 pTargetBullet->Location.DistanceFrom(coords) <= (cellSpread * Unsorted::LeptonsPerCell))
+						 BulletExt::InterceptBullet(pTargetBullet, pOwner, pWeapon);
+				 }
+			 }
 		});
 	}
 }
@@ -558,16 +557,15 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 	{
 		if (this->BigGap)
 		{
-			std::for_each(HouseClass::Array->begin(), HouseClass::Array->end(), [&](HouseClass* pOtherHouse)
- {
-	 if (pOtherHouse->IsControlledByHuman() &&	  // Not AI
-		 !HouseExt::IsObserverPlayer(pOtherHouse) &&		  // Not Observer
-		 !pOtherHouse->Defeated &&			  // Not Defeated
-		 pOtherHouse != pHouse &&			  // Not pThisHouse
-		 !pHouse->IsAlliedWith_(pOtherHouse))   // Not Allied
-	 {
-		 pOtherHouse->ReshroudMap();
-	 }
+			HouseClass::Array->for_each([&](HouseClass* pOtherHouse) {
+				 if (pOtherHouse->IsControlledByHuman() &&	  // Not AI
+					 !HouseExt::IsObserverPlayer(pOtherHouse) &&		  // Not Observer
+					 !pOtherHouse->Defeated &&			  // Not Defeated
+					 pOtherHouse != pHouse &&			  // Not pThisHouse
+					 !pHouse->IsAlliedWith_(pOtherHouse))   // Not Allied
+				 {
+					 pOtherHouse->ReshroudMap();
+				 }
 			});
 		}
 

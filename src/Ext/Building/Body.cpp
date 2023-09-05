@@ -123,8 +123,10 @@ void BuildingExt::ExtData::UpdateAutoSellTimer()
 
 			const double nValue = pRulesExt->AI_AutoSellHealthRatio[pThis->Owner->GetCorrectAIDifficultyIndex()];
 
-			if (nValue > 0.0 && pThis->GetHealthPercentage() <= nValue)
+			if (nValue > 0.0 && pThis->GetHealthPercentage() <= nValue){
 				pThis->Sell(-1);
+				return;
+			}
 		}
 
 		if (AutoSellTimer.Completed()) {
@@ -201,16 +203,13 @@ bool BuildingExt::ExtData::RubbleYell(bool beingRepaired)
 	}
 }
 
+//unused ?
 bool BuildingExt::HandleInfiltrate(BuildingClass* pBuilding, HouseClass* pInfiltratorHouse)
 {
-	auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
-
-	if (!pTypeExt->SpyEffect_Custom)
+	if (!BuildingTypeExt::ExtMap.Find(pBuilding->Type)->SpyEffect_Custom)
 		return false;
 
-	const auto pVictimHouse = pBuilding->Owner;
-
-	if (pInfiltratorHouse->IsAlliedWith_(pVictimHouse))
+	if (pInfiltratorHouse->IsAlliedWith_(pBuilding->Owner))
 		return true;
 
 	return true;
@@ -219,6 +218,7 @@ bool BuildingExt::HandleInfiltrate(BuildingClass* pBuilding, HouseClass* pInfilt
 bool BuildingExt::ExtData::HasSuperWeapon(const int index, const bool withUpgrades) const
 {
 	const auto pThis = this->Get();
+
 	for (auto i = 0; i < this->Type->GetSuperWeaponCount(); ++i) {
 		if (this->Type->GetSuperWeaponIndex(i, pThis->Owner) == index) {
 			return true;
@@ -255,9 +255,9 @@ void BuildingExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 
 bool BuildingExt::ExtData::InvalidateIgnorable(AbstractClass* ptr)
 {
-	switch (VTable::Get(ptr))
+	switch (ptr->WhatAmI())
 	{
-	case BuildingClass::vtable:
+	case BuildingClass::AbsID:
 		return false;
 	}
 
@@ -484,16 +484,8 @@ void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int
 	auto const pOwnerExt = HouseExt::ExtMap.Find(pOwner);
 
 	// BuildLimit check goes before creation
-	if (pType->BuildLimit > 0)
-	{
-		int sum = pOwner->CountOwnedNow(pType);
-
-		// copy Ares' deployable units x build limit fix
-		if (auto const pUndeploy = pType->UndeploysInto)
-			sum += pOwner->CountOwnedNow(pUndeploy);
-
-		if (sum >= pType->BuildLimit)
-			return;
+	if (HouseExt::CheckBuildLimit(pOwner, pType , true) != BuildLimitStatus::NotReached) {
+		return;
 	}
 
 	BuildingClass* pBuilding = static_cast<BuildingClass*>(pType->CreateObject(pOwner));

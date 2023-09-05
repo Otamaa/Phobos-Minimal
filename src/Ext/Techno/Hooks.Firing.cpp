@@ -430,6 +430,71 @@ DEFINE_HOOK(0x6FC815, TechnoClass_CanFire_CellTargeting, 0x6)
 		LandTargetingCheck : SkipLandTargetingCheck;
 }
 
+#pragma region WallWeaponStuff
+
+NOINLINE WeaponStruct* TechnoClass_GetWeaponAgainstWallWrapper(TechnoClass* pThis) {
+	auto const weaponPrimary = pThis->GetWeapon(0);
+
+	if (!weaponPrimary->WeaponType->Warhead->Wall) {
+		auto const weaponSecondary = pThis->GetWeapon(1);
+
+		if (weaponSecondary
+			&& weaponSecondary->WeaponType
+			&& weaponSecondary->WeaponType->Warhead->Wall
+			 && !TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->NoSecondaryWeaponFallback) {
+			return weaponSecondary;
+		}
+	}
+
+	return weaponPrimary;
+}
+
+DEFINE_HOOK(0x51C1F1, InfantryClass_CanEnterCell_GetWeapon_WallWeapon, 0x7) {
+	GET(TechnoClass*, pThis, EBP);
+	R->EAX(TechnoClass_GetWeaponAgainstWallWrapper(pThis));
+	return 0x51C1FE;
+}
+
+DEFINE_HOOK(0x73F495 , UnitClass_CanEnterCell_GetWeapon_WallWeapon, 0x6) {
+	GET(TechnoClass*, pThis, EBX);
+	R->EAX(TechnoClass_GetWeaponAgainstWallWrapper(pThis));
+	return 0x73F4A1;
+}
+
+DEFINE_HOOK(0x70095A, TechnoClass_WhatAction_GetWeapon_WallWeapon, 0x6) {
+	GET(TechnoClass*, pThis, ESI);
+	R->EAX(TechnoClass_GetWeaponAgainstWallWrapper(pThis));
+	return 0;
+}
+
+namespace CellEvalTemp {
+	int weaponIndex;
+}
+
+DEFINE_HOOK(0x6F8C9D, TechnoClass_EvaluateCell_SetContext, 0x7) {
+	GET(int, weaponIndex, EAX);
+
+	CellEvalTemp::weaponIndex = weaponIndex;
+
+	return 0;
+}
+
+DEFINE_HOOK(0x6F8CDF, TechnoClass_EvaluateCell_GetWeapon, 0xA)
+{
+	GET(TechnoClass*, pThis, ESI);
+	R->EAX(pThis->GetWeapon(CellEvalTemp::weaponIndex));
+	return 0x6F8CE9;
+}
+
+DEFINE_HOOK(0x6F8DCC, TechnoClass_EvaluateCell_GetWeaponRange, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	R->EAX(pThis->GetWeaponRange(CellEvalTemp::weaponIndex));
+	return 0x6F8DD8;
+}
+
+#pragma endregion
+
 //DEFINE_HOOK(0x6FDDC0, TechnoClass_FireAt_DropPassenger, 0x6)
 //{
 //	GET(TechnoClass*, pThis, ESI);

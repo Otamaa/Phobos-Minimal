@@ -17,6 +17,7 @@ void BuildingTypeExt::ExtData::Initialize()
 {
 	this->OccupierMuzzleFlashes.reserve(((BuildingTypeClass*)this->Type->Get())->MaxNumberOccupants);
 	this->DockPoseDir.reserve(((BuildingTypeClass*)this->Type->Get())->NumberOfDocks);
+	this->LostEvaEvent = VoxClass::FindIndexById(GameStrings::EVA_TechBuildingLost());
 }
 
 bool BuildingTypeExt::ExtData::CanBeOccupiedBy(InfantryClass* whom)
@@ -687,6 +688,14 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->AbandonedSound.Read(exINI, pSection, "AbandonedSound");
 		this->CloningFacility.Read(exINI, pSection, "CloningFacility");
 		this->Factory_ExplicitOnly.Read(exINI, pSection, "Factory.ExplicitOnly");
+
+
+		this->LostEvaEvent.Read(exINI, pSection, "LostEvaEvent");
+		this->MessageCapture.Read(exINI, pSection, "Message.Capture");
+		this->MessageLost.Read(exINI, pSection, "Message.Lost");
+
+		this->AIBuildCounts.Read(exINI, pSection, "AIBuildCounts");
+		this->AIExtraCounts.Read(exINI, pSection, "AIExtraCounts");
 	}
 #pragma endregion
 
@@ -904,6 +913,12 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->AbandonedSound)
 		.Process(this->CloningFacility)
 		.Process(this->Factory_ExplicitOnly)
+
+		.Process(this->LostEvaEvent)
+		.Process(this->MessageCapture)
+		.Process(this->MessageLost)
+		.Process(this->AIBuildCounts)
+		.Process(this->AIExtraCounts)
 		;
 }
 

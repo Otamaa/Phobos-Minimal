@@ -371,21 +371,21 @@ DEFINE_OVERRIDE_HOOK(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 		HouseExt::ExtData* pData = HouseExt::ExtMap.Find(pOwner);
 		TechnoClass* pTechno = pFactory->Object;
 
-		switch ((((DWORD*)pTechno)[0]))
+	switch (pTechno->WhatAmI())
 	{
-	case BuildingClass::vtable:
+	case BuildingClass::AbsID:
 			pData->Factory_BuildingType = nullptr;
 		break;
-	case UnitClass::vtable:
+	case UnitClass::AbsID:
 		if (!pTechno->GetTechnoType()->Naval)
 				pData->Factory_VehicleType = nullptr;
 		else
 				pData->Factory_NavyType = nullptr;
 		break;
-	case InfantryClass::vtable:
+	case InfantryClass::AbsID:
 			pData->Factory_InfantryType = nullptr;
 		break;
-	case AircraftClass::vtable:
+	case AircraftClass::AbsID:
 			pData->Factory_AircraftType = nullptr;
 		break;
 	}
@@ -405,7 +405,7 @@ DEFINE_OVERRIDE_HOOK(0x4502F4, BuildingClass_Update_Factory, 0x6)
 
 	auto pRules = RulesExt::Global();
 	HouseExt::ExtData* pData = HouseExt::ExtMap.Find(pOwner);
-	const  auto&[curFactory , block , type] = GetFactory(pThis->Type->Factory, pThis->Type->Naval, pData);
+	const auto&[curFactory , block , type] = GetFactory(pThis->Type->Factory, pThis->Type->Naval, pData);
 
 	if (!curFactory) {
 		Game::RaiseError(E_POINTER);

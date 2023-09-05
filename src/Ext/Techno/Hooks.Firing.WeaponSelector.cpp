@@ -48,9 +48,24 @@ DEFINE_HOOK(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
 
 	if (const auto pCell = specific_cast<CellClass*>(pTarget))
 	{
-		if (pThis->GetWeapon(1)->WeaponType &&
-		 !EnumFunctions::IsCellEligible(pCell, WeaponTypeExt::ExtMap.Find(pThis->GetWeapon(0)->WeaponType)->CanTarget.Get(), true))
+		auto const pWeaponPrimary = pThis->GetWeapon(0)->WeaponType;
+		auto const pWeaponSecondary = pThis->GetWeapon(1)->WeaponType;
+		const auto pPrimaryExt = WeaponTypeExt::ExtMap.Find(pWeaponPrimary);
+
+		if (pWeaponSecondary && !EnumFunctions::IsCellEligible(pCell, pPrimaryExt->CanTarget, true, true))
+		{
 			return Secondary;
+		}
+		else if (pCell->OverlayTypeIndex != -1)
+		{
+			auto const pOverlayType = OverlayTypeClass::Array()->GetItem(pCell->OverlayTypeIndex);
+
+			if (pOverlayType->Wall && pCell->OverlayData >> 4 != pOverlayType->DamageLevels && !pWeaponPrimary->Warhead->Wall &&
+				pWeaponSecondary && pWeaponSecondary->Warhead->Wall && !TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->NoSecondaryWeaponFallback)
+			{
+				return Secondary;
+			}
+		}
 	}
 
 	return 0;
@@ -157,7 +172,7 @@ int PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno, AbstractClas
 
 	if (auto const pSecondExt = WeaponTypeExt::ExtMap.TryFind(pWeaponTwo))
 	{
-		if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pSecondExt->CanTarget, true)) ||
+		if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pSecondExt->CanTarget, true , true)) ||
 			(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pSecondExt->CanTarget) ||
 				!EnumFunctions::CanTargetHouse(pSecondExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner))))
 		{
@@ -170,7 +185,7 @@ int PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno, AbstractClas
 			if (!allowFallback && (!allowAAFallback || !secondaryIsAA) && !TechnoExt::CanFireNoAmmoWeapon(pThis, 1))
 				return weaponIndexOne;
 
-			if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pFirstExt->CanTarget, true)) ||
+			if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pFirstExt->CanTarget, true , true)) ||
 				(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pFirstExt->CanTarget) ||
 					!EnumFunctions::CanTargetHouse(pFirstExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner))))
 			{

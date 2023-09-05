@@ -299,6 +299,7 @@ struct GameStrings
 	GAMEMD_STR(EVA_SelectTarget, 0x83FB78);
 	GAMEMD_STR(EVA_LightningStormCreated, 0x828080);
 	GAMEMD_STR(EVA_CannotDeployHere, 0x82012C);
+	GAMEMD_STR(EVA_TechBuildingLost, 0x818FC4);
 
 	//...
 

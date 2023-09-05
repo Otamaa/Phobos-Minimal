@@ -185,7 +185,7 @@ void TechnoExt::ProcessDigitalDisplays(TechnoClass* pThis)
 	const bool isBuilding = What == AbstractType::Building;
 	const bool isInfantry = What == AbstractType::Infantry;
 
-	std::vector<DigitalDisplayTypeClass*> DisplayTypes {};
+	HelperedVector<DigitalDisplayTypeClass*> DisplayTypes {};
 
 	if (!GetDisplayTypeData(DisplayTypes, pThis, pType, length))
 		return;
@@ -195,7 +195,7 @@ void TechnoExt::ProcessDigitalDisplays(TechnoClass* pThis)
 
 	const bool IsCurPlayerObserver = HouseClass::IsCurrentPlayerObserver();
 
-	std::for_each(DisplayTypes.begin(), DisplayTypes.end(), [&](DigitalDisplayTypeClass* pDisplayType) {
+	DisplayTypes.for_each([&](DigitalDisplayTypeClass* pDisplayType) {
 
 		if (IsCurPlayerObserver && !pDisplayType->VisibleToHouses_Observer)
 			return;
@@ -614,7 +614,7 @@ void TechnoExt::ExtData::CreateInitialPayload(bool forced)
 		}
 
 		// if there are no nums, index gets huge and invalid, which means 1
-		auto const idxPayloadNum = std::min(i + 1, sizePayloadNum) - 1;
+		auto const idxPayloadNum = MinImpl(i + 1, sizePayloadNum) - 1;
 		auto const payloadNum = (idxPayloadNum < sizePayloadNum)
 			? pTypeExt->InitialPayload_Nums[idxPayloadNum] : 1;
 
@@ -625,7 +625,7 @@ void TechnoExt::ExtData::CreateInitialPayload(bool forced)
 			pTypeExt->InitialPayload_AddToTransportTeam[idxPayloadNum] : false;
 
 		// never fill in more than allowed
-		auto const count = std::min(payloadNum, freeSlots);
+		auto const count = MinImpl(payloadNum, freeSlots);
 		freeSlots -= count;
 
 		for (auto j = 0; j < count; ++j)
@@ -1022,8 +1022,9 @@ AreaFireReturnFlag TechnoExt::ApplyAreaFire(TechnoClass* pThis, CellClass*& pTar
 			const int rand = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
 			CellStruct const tgtPos = pTargetCell->MapCoords + adjacentCells.at((i + rand) % size);
 			CellClass* const tgtCell = MapClass::Instance->GetCellAt(tgtPos);
+			bool allowBridges = tgtCell && tgtCell->ContainsBridge() && (pThis->OnBridge || tgtCell->Level + CellClass::BridgeLevels == pThis->GetCell()->Level);
 
-			if (EnumFunctions::AreCellAndObjectsEligible(tgtCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), pThis->Owner, true))
+			if (EnumFunctions::AreCellAndObjectsEligible(tgtCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), pThis->Owner, true , allowBridges))
 			{
 				pTargetCell = tgtCell;
 				return AreaFireReturnFlag::Continue;
@@ -1034,14 +1035,17 @@ AreaFireReturnFlag TechnoExt::ApplyAreaFire(TechnoClass* pThis, CellClass*& pTar
 	}
 	case AreaFireTarget::Self:
 	{
-		if (!EnumFunctions::AreCellAndObjectsEligible(pThis->GetCell(), pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), nullptr, false))
+		if (!EnumFunctions::AreCellAndObjectsEligible(pThis->GetCell(), pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), nullptr, false, pThis->OnBridge))
 			return AreaFireReturnFlag::DoNotFire;
 
 		return AreaFireReturnFlag::SkipSetTarget;
 	}
 	default:
 	{
-		if (!EnumFunctions::AreCellAndObjectsEligible(pTargetCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), nullptr, false))
+		auto pCell = pTargetCell;
+		bool allowBridges = pCell && pCell->ContainsBridge() && (pThis->OnBridge || pCell->Level + CellClass::BridgeLevels == pThis->GetCell()->Level);
+
+		if (!EnumFunctions::AreCellAndObjectsEligible(pTargetCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), nullptr, false , allowBridges))
 			return AreaFireReturnFlag::DoNotFire;
 	}
 	}
@@ -1148,7 +1152,7 @@ bool TechnoExt::CheckCellAllowFiring(CellClass* pCell, WeaponTypeClass* pWeapon)
 {
 	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 
-	if (pCell && !EnumFunctions::IsCellEligible(pCell, pWeaponExt->CanTarget, true))
+	if (pCell && !EnumFunctions::IsCellEligible(pCell, pWeaponExt->CanTarget, true , true))
 	{
 		return false;
 	}
@@ -4014,7 +4018,7 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno,
 
 	if (auto const pSecondExt = WeaponTypeExt::ExtMap.TryFind(pWeaponTwo))
 	{
-		if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pSecondExt->CanTarget, true)) ||
+		if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pSecondExt->CanTarget, true , true)) ||
 			(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pSecondExt->CanTarget) ||
 				!EnumFunctions::CanTargetHouse(pSecondExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner))))
 		{
@@ -4027,7 +4031,7 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno,
 			if (!allowFallback && (!allowAAFallback || !secondaryIsAA) && !TechnoExt::CanFireNoAmmoWeapon(pThis, 1))
 				return weaponIndexOne;
 
-			if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pFirstExt->CanTarget, true)) ||
+			if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pFirstExt->CanTarget, true , true)) ||
 				(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pFirstExt->CanTarget) ||
 					!EnumFunctions::CanTargetHouse(pFirstExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner))))
 			{
