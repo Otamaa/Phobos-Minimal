@@ -441,7 +441,7 @@ public:
 
 		// Ares 0.1
 		ValueableIdxVector<TheaterTypeClass> Prerequisite_RequiredTheaters {};
-		std::vector<ValueableVector<int>> Prerequisite {};
+		std::vector<ValueableVector<int>> Prerequisites {};
 		Valueable<int> Prerequisite_Lists { 1 };
 		ValueableVector<int> Prerequisite_Negative {};
 

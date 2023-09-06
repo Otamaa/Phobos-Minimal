@@ -46,7 +46,7 @@ void TechnoTypeExt::ExtData::Initialize()
 	FireSelf_ROF_RedHeath.reserve(3);
 	DisguiseDisAllowed.reserve(10);
 	Prerequisite_RequiredTheaters.reserve(7);
-	Prerequisite.reserve(10);
+	Prerequisites.reserve(10);
 	Prerequisite_Negative.reserve(10);
 	TargetLaser_WeaponIdx.reserve(TechnoTypeClass::MaxWeapons);
 	PassengersWhitelist.reserve(10);
@@ -598,24 +598,23 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 #pragma region Prereq
 
-		//TODO : PrerequisiteOverride
-
 		this->Prerequisite_RequiredTheaters.Read(exINI, pSection, "Prerequisite.RequiredTheaters");
 
 		// subtract the default list, get tag (not less than 0), add one back
-		const auto nRead = pINI->ReadInteger(pSection, "Prerequisite.Lists", static_cast<int>(this->Prerequisite.size()) - 1);
+		const auto nRead = pINI->ReadInteger(pSection, "Prerequisite.Lists", static_cast<int>(this->Prerequisites.size()) - 1);
 
-		this->Prerequisite.resize(static_cast<size_t>(MaxImpl(nRead, 0) + 1));
-		GenericPrerequisite::Parse(pINI, pSection, "Prerequisite", this->Prerequisite[0]);
+		this->Prerequisites.resize(static_cast<size_t>(MaxImpl(nRead, 0) + 1));
+		GenericPrerequisite::Parse(pINI, pSection, "Prerequisite", this->Prerequisites[0]);
 
 		char flag[256];
-		for (auto i = 0u; i < this->Prerequisite.size(); ++i) {
+		for (size_t i = 0u; i < this->Prerequisites.size(); ++i) {
 			IMPL_SNPRNINTF(flag, sizeof(flag), "Prerequisite.List%u", i);
-			GenericPrerequisite::Parse(pINI, pSection, flag, this->Prerequisite[i]);
+			GenericPrerequisite::Parse(pINI, pSection, flag, this->Prerequisites[i]);
 		}
 
 		// Prerequisite.Negative with Generic Prerequistes support
 		GenericPrerequisite::Parse(pINI, pSection, "Prerequisite.Negative", this->Prerequisite_Negative);
+		GenericPrerequisite::Parse(pINI, pSection, "PrerequisiteOverride", pThis->PrerequisiteOverride);
 
 #pragma endregion Prereq
 
@@ -1620,7 +1619,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Unit_AI_AlternateType)
 
 		.Process(this->Prerequisite_RequiredTheaters)
-		.Process(this->Prerequisite)
+		.Process(this->Prerequisites)
 		.Process(this->Prerequisite_Lists)
 		.Process(this->Prerequisite_Negative)
 		.Process(this->ConsideredNaval)

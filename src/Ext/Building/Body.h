@@ -48,9 +48,9 @@ public:
 
 		CDTimerClass CashUpgradeTimers[3] {};
 		int SensorArrayActiveCounter { 0 };
-		bool StartupCashDelivered { false };
+		std::vector<bool> StartupCashDelivered {};
 
-		ExtData(BuildingClass* OwnerObject) : Extension<BuildingClass>(OwnerObject)	{ }
+		ExtData(BuildingClass* OwnerObject) : Extension<BuildingClass>(OwnerObject){ }
 		virtual ~ExtData() override = default;
 
 		void InvalidatePointer(AbstractClass* ptr, bool bRemoved);

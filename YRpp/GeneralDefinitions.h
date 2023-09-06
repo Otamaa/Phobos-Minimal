@@ -1158,7 +1158,7 @@ enum class Powerup : unsigned int {
 	Pod = 18
 };
 
-enum class Prerequisite : int
+enum class Prerequisites : int
 {
 	Proc = -6,
 	Tech = -5,

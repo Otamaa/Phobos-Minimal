@@ -341,7 +341,7 @@ public:
 	int             AirstrikeRechargeTime;
 	int             EliteAirstrikeRechargeTime;
 	int             TechLevel;
-	TypeList<int> Prerequisite;
+	TypeList<int> Prerequisites;
 	TypeList<int> PrerequisiteOverride;
 	int             ThreatPosed;
 	int             Points;

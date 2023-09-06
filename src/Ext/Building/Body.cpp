@@ -725,6 +725,8 @@ DEFINE_HOOK(0x43BCBD, BuildingClass_CTOR, 0x6)
 		if (pTypeExt && !pTypeExt->DamageFire_Offs.empty()) {
 			pExt->DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
 		}
+
+		pExt->StartupCashDelivered.resize(HouseClass::Array->Count);
 	}
 
 	return 0;

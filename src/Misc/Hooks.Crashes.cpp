@@ -80,12 +80,12 @@ DEFINE_HOOK(0x70CD29, TechnoClass_Coef_CheckTarget, 0x6)
 	return pTarget ? 0x0 : 0x70CD39;
 }
 
-struct ScenStruct {
-	DynamicVectorClass<CellStruct> CellVector;
-};
-
 DEFINE_HOOK(0x5D6BF1, MultiplayerGameMode_SetBaseSpawnCell_CheckAvail, 0x5)
 {
+	struct ScenStruct {
+		DynamicVectorClass<CellStruct> CellVector;
+	};
+
 	GET(ScenStruct*, pScenStruct, EAX);
 
 	//std::vector<std::tuple<HouseClass*, int , bool>> UnAssigned;

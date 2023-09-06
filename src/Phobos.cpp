@@ -405,9 +405,9 @@ void InitAdminDebugMode()
 			 //this thing can cause game to lockup when loading data
 			//better disable it for release
 
-			//const bool Detached =
+			const bool Detached =
 				Phobos::DetachFromDebugger();
-			/*
+
 			if (Detached)
 			{
 				MessageBoxW(NULL,
@@ -428,7 +428,7 @@ void InitAdminDebugMode()
 
 				L"Press OK to continue YR execution.",
 				L"Debugger Notice", MB_OK);
-			}*/
+			}
 #endif
 		}
 	}

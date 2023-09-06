@@ -564,9 +564,8 @@ DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 
 	if (pItem)
 	{
-		if (pItem->Fetch_ID() == -2) {
-			Debug::Log("Anim[%x] With some weird ID\n", pItem);
-			return 0x0;
+		if (pItem->Fetch_ID() == -2 && pItem->Type) {
+			Debug::Log("Anim[%s - %x] With some weird ID\n", pItem->Type->ID , pItem);
 		}
 
 		if(!pItem->Type) {

@@ -19,6 +19,7 @@ public:
 
 	static void AddDefaults();
 	static void Parse(CCINIClass* pINI, const char* section, const char* key, ValueableVector<int>& Vec);
+	static void Parse(CCINIClass* pINI, const char* section, const char* key, DynamicVectorClass<int>& Vec);
 	static void LoadFromINIList_New(CCINIClass* pINI, bool bDebug = false);
 
 	ValueableVector<int> Prereqs;
@@ -28,8 +29,16 @@ public:
 class Prereqs
 {
 public:
-	using BTypeIter = Iterator<BuildingTypeClass*>;
-	using IntIter = Iterator<int>;
+	using BTypeIter = std::pair<BuildingTypeClass**, int>;
+	using IntIter = std::pair<int* , int>;
+
+	static inline bool IterContains(BuildingTypeClass** items, int size, BuildingTypeClass* other)
+	{
+		return std::any_of(items, items + size, [&](BuildingTypeClass* item)
+		{
+			return item == other;
+		});
+	}
 
 	static bool HouseOwnsGeneric(HouseClass const* pHouse, int Index);
 	static bool HouseOwnsSpecific(HouseClass const* pHouse, int Index);
@@ -38,12 +47,12 @@ public:
 	static bool HouseOwnsAll(HouseClass const* pHouse, const DynamicVectorClass<int>& list);
 	static bool HouseOwnsAny(HouseClass const* pHouse, const DynamicVectorClass<int>& list);
 
-	static bool ListContainsGeneric(const BTypeIter& List, int Index);
-	static bool ListContainsSpecific(const BTypeIter& List, int Index);
-	static bool ListContainsPrereq(const BTypeIter& List, int Index);
+	static bool ListContainsGeneric(BuildingTypeClass** items, int size, int Index);
+	static bool ListContainsSpecific(BuildingTypeClass** items, int size, int Index);
+	static bool ListContainsPrereq(BuildingTypeClass** items, int size, int Index);
 
-	static bool ListContainsAll(const BTypeIter& List, const IntIter& Requirements);
-	static bool ListContainsAny(const BTypeIter& List, const DynamicVectorClass<int>& Requirements);
+	static bool ListContainsAll(BuildingTypeClass** items, int size, int* intitems, int intsize);
+	static bool ListContainsAny(BuildingTypeClass** items, int size, const DynamicVectorClass<int>& Requirements);
 
-	static bool PrerequisitesListed(Prereqs::BTypeIter const& List, TechnoTypeClass* pItem);
+	static bool PrerequisitesListed(BuildingTypeClass** items , int size , TechnoTypeClass* pItem);
 };

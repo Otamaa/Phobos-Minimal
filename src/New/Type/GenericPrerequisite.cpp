@@ -46,6 +46,38 @@ void GenericPrerequisite::Parse(CCINIClass* pINI, const char* section, const cha
 	}
 }
 
+void GenericPrerequisite::Parse(CCINIClass* pINI, const char* section, const char* key, DynamicVectorClass<int>& Vec)
+{
+	if (pINI->ReadString(section, key, Phobos::readDefval, Phobos::readBuffer))
+	{
+		Vec.Clear();
+
+		char* context = nullptr;
+		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
+			cur;
+			cur = strtok_s(nullptr, Phobos::readDelims, &context))
+		{
+			int idx = BuildingTypeClass::FindIndexById(cur);
+			if (idx > -1)
+			{
+				Vec.AddItem(idx);
+			}
+			else
+			{
+				idx = GenericPrerequisite::FindIndexById(cur);
+				if (idx > -1)
+				{
+					Vec.AddItem(-1 - idx);
+				}
+				else
+				{
+					Debug::INIParseFailed(section, key, cur, "Expect valid GenericPrerequisite data");
+				}
+			}
+		}
+	}
+}
+
 void GenericPrerequisite::LoadFromINI(CCINIClass* pINI)
 {
 	const char* section = GenericPrerequisite::GetMainSection();
@@ -97,6 +129,10 @@ void GenericPrerequisite::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 	if (!pINI)
 		return;
 
+	for(auto& defaultItem : Array) { //load all the default data first
+		defaultItem->LoadFromINI(pINI);
+	}
+
 	const char* pSection = GetMainSection();
 
 	if (!pINI->GetSection(pSection))
@@ -110,13 +146,16 @@ void GenericPrerequisite::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 	if (pkeyCount > (int)Array.size())
 		Array.reserve(pkeyCount);
 
-	for (int i = 0; i < pkeyCount; ++i)
-	{
+	for (int i = 0; i < pkeyCount; ++i) { //load for all keys
+
 		const auto pKeyHere = pINI->GetKeyName(pSection, i);
-		if (auto const pAlloc = Find(pKeyHere))
-			pAlloc->LoadFromINI(pINI);
-		else
-			Allocate(pKeyHere)->LoadFromINI(pINI);
+
+		auto pAlready = Find(pKeyHere);
+
+		if (!pAlready)
+			pAlready = Allocate(pKeyHere);
+
+		pAlready->LoadFromINI(pINI);
 	}
 }
 
@@ -153,24 +192,24 @@ bool Prereqs::HouseOwnsSpecific(HouseClass const* const pHouse, int const Index)
 	if (*pPowerup)
 	{
 		auto const pCore = BuildingTypeClass::Find(pPowerup);
-		if (!pCore || pHouse->ActiveBuildingTypes.GetItemCount(pCore->ArrayIndex) < 1)
-		{
+
+		if (!pCore || pHouse->ActiveBuildingTypes.GetItemCount(pCore->ArrayIndex) < 1) {
 			return false;
 		}
+
 		for (auto const& pBld : pHouse->Buildings)
 		{
-			if (pBld->Type != pCore)
-			{
+			const auto Types = pBld->GetTypes();
+
+			if (Types[0] != pCore) {
 				continue;
 			}
-			for (const auto& pUpgrade : pBld->Upgrades)
-			{
-				if (pUpgrade == pType)
-				{
-					return true;
-				}
+
+			if(Types[1] == pType || Types[2] == pType || Types[3] == pType) {
+				return true;
 			}
 		}
+
 		return false;
 	}
 	else
@@ -189,44 +228,37 @@ bool Prereqs::HouseOwnsPrereq(HouseClass const* const pHouse, int const Index)
 
 bool Prereqs::HouseOwnsAll(HouseClass const* const pHouse, const DynamicVectorClass<int>& list)
 {
-	for (const auto& index : list)
-	{
-		if (!Prereqs::HouseOwnsPrereq(pHouse, index))
-		{
+	for (const auto index : list) {
+		if (!Prereqs::HouseOwnsPrereq(pHouse, index)) {
 			return false;
 		}
 	}
+
 	return true;
 }
 
 bool Prereqs::HouseOwnsAny(HouseClass const* const pHouse, const DynamicVectorClass<int>& list)
 {
-	for (const auto& index : list)
-	{
-		if (Prereqs::HouseOwnsPrereq(pHouse, index))
-		{
+	for (const auto index : list) {
+		if (Prereqs::HouseOwnsPrereq(pHouse, index)) {
 			return true;
 		}
 	}
 	return false;
 }
 
-bool Prereqs::ListContainsSpecific(const BTypeIter& List, int const Index)
+bool Prereqs::ListContainsSpecific(BuildingTypeClass** items, int size, int const Index)
 {
-	return List.contains(BuildingTypeClass::Array->Items[Index]);
+	return Prereqs::IterContains(items, size,BuildingTypeClass::Array->Items[Index]);
 }
 
-bool Prereqs::ListContainsGeneric(const BTypeIter& List, int const Index)
+bool Prereqs::ListContainsGeneric(BuildingTypeClass** items, int size, int const Index)
 {
 	// hack - POWER is -1 , this way converts to 0, and onwards
 	auto const idxPrereq = static_cast<unsigned int>(-1 - Index);
-	if (idxPrereq < GenericPrerequisite::Array.size())
-	{
-		const auto& dvc = GenericPrerequisite::Array[idxPrereq]->Prereqs;
-		for (const auto& index : dvc)
-		{
-			if (Prereqs::ListContainsSpecific(List, index))
-			{
+	if (idxPrereq < GenericPrerequisite::Array.size()) {
+		for (const auto& index : GenericPrerequisite::Array[idxPrereq]->Prereqs) {
+			if (Prereqs::ListContainsSpecific(items, size, index)) {
 				return true;
 			}
 		}
@@ -234,51 +266,42 @@ bool Prereqs::ListContainsGeneric(const BTypeIter& List, int const Index)
 	return false;
 }
 
-bool Prereqs::ListContainsPrereq(const BTypeIter& List, int Index)
+bool Prereqs::ListContainsPrereq(BuildingTypeClass** items, int size, int Index)
 {
 	return Index < 0
-		? Prereqs::ListContainsGeneric(List, Index)
-		: Prereqs::ListContainsSpecific(List, Index)
+		? Prereqs::ListContainsGeneric(items, size, Index)
+		: Prereqs::ListContainsSpecific(items, size, Index)
 		;
 }
 
-bool Prereqs::ListContainsAll(const BTypeIter& List, const IntIter& Requirements)
+bool NOINLINE Prereqs::ListContainsAll(BuildingTypeClass** items, int size, int* intitems, int intsize)
 {
-	for (const auto& index : Requirements)
-	{
-		if (!Prereqs::ListContainsPrereq(List, index))
-		{
+	const auto end = intitems + intsize;
+
+	for (auto begin = intitems; begin != end; ++begin) {
+		if (!Prereqs::ListContainsPrereq(items, size, *begin)) {
 			return false;
 		}
 	}
+
 	return true;
 }
 
-bool Prereqs::ListContainsAny(const BTypeIter& List, const DynamicVectorClass<int>& Requirements)
+bool Prereqs::ListContainsAny(BuildingTypeClass** items, int size, const DynamicVectorClass<int>& Requirements)
 {
-	for (const auto& index : Requirements)
-	{
-		if (Prereqs::ListContainsPrereq(List, index))
-		{
+	for (const auto index : Requirements) {
+		if (Prereqs::ListContainsPrereq(items, size, index)) {
 			return true;
 		}
 	}
+
 	return false;
 }
 
-bool Prereqs::PrerequisitesListed(Prereqs::BTypeIter const& List, TechnoTypeClass* pItem)
+bool Prereqs::PrerequisitesListed(BuildingTypeClass** items, int size, TechnoTypeClass* pItem)
 {
-	if (!pItem)
-	{
-		return false;
-	}
-
-	auto const pData = TechnoTypeExt::ExtMap.Find(pItem);
-
-	for (const auto& list : pData->Prerequisite)
-	{
-		if (Prereqs::ListContainsAll(List, list))
-		{
+	for(auto& prereq : TechnoTypeExt::ExtMap.Find(pItem)->Prerequisites) {
+		if (Prereqs::ListContainsAll(items , size,  prereq.data() , prereq.size() )) {
 			return true;
 		}
 	}

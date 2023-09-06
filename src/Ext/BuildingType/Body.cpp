@@ -697,7 +697,6 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->AIBuildCounts.Read(exINI, pSection, "AIBuildCounts");
 		this->AIExtraCounts.Read(exINI, pSection, "AIExtraCounts");
 		this->LandingDir.Read(exINI, pSection, "LandingDir");
-
 	}
 #pragma endregion
 

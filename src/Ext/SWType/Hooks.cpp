@@ -2651,8 +2651,9 @@ DEFINE_OVERRIDE_HOOK(0x6A9A2A, StripClass_Draw_Main, 6)
 
 	ConvertClass* pResult = nullptr;
 	if (pTechno) {
-		pResult = TechnoTypeExt::ExtMap.Find(pTechno)->
-			CameoPal->GetConvert<PaletteManager::Mode::Default>();
+		if(auto pPal = TechnoTypeExt::ExtMap.TryFind(pTechno)->CameoPal) {
+			pResult = pPal->GetConvert<PaletteManager::Mode::Default>();
+		}
 	}
 	else
 		pResult = SWConvert;

@@ -314,7 +314,7 @@ public:
 
 		Nullable<DirType8> LandingDir {};
 
-		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject) { }
+		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject) {}
 		virtual ~ExtData() override = default;
 
 		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

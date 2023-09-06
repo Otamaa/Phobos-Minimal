@@ -228,6 +228,7 @@ DEFINE_OVERRIDE_HOOK(0x5054B0, HouseClass_GenerateAIBuildList_EnsureSanity, 6)
 	// check will log potential problems and thou shalt RTFLog
 	return 0;
 }
+
 DEFINE_OVERRIDE_HOOK(0x505360, HouseClass_PrerequisitesForTechnoTypeAreListed, 5)
 {
 	//GET(HouseClass *, pHouse, ECX);
@@ -236,8 +237,7 @@ DEFINE_OVERRIDE_HOOK(0x505360, HouseClass_PrerequisitesForTechnoTypeAreListed, 5
 	GET_STACK(DynamicVectorClass<BuildingTypeClass*> *, pBuildingsToCheck, 0x8);
 	GET_STACK(int, pListCount, 0xC);
 
-	auto it = Prereqs::BTypeIter(pBuildingsToCheck->Items, pListCount);
-	R->EAX(Prereqs::PrerequisitesListed(it, pItem));
+	R->EAX(Prereqs::PrerequisitesListed(pBuildingsToCheck->Items, pListCount , pItem));
 
 	return 0x505486;
 }

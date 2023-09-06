@@ -157,6 +157,227 @@ DEFINE_OVERRIDE_HOOK(0x44840B, BuildingClass_ChangeOwnership_Tech, 6)
 	return 0x44848F;
 }
 
+/*
+
+		struct ProduceCashDataType
+		{
+			BuildingTypeClass* OwnerObject { nullptr };
+			Valueable<unsigned int> ProduceCashBudget { 0 };
+			Valueable<bool> IsStartupCashOneTime { false };
+			Valueable<bool> IsResetBudgetOnCapture { false };
+
+			void Read(INI_EX& parser, const char* section)
+			{
+				ProduceCashBudget.Read(parser, section,  "ProduceCashBudget");
+				IsStartupCashOneTime.Read(parser, section, "ProduceCashStartupOneTime");
+				IsResetBudgetOnCapture.Read(parser, section, "ProduceCashResetOnCapture");
+			}
+
+			bool Load(PhobosStreamReader& stm, bool registerForChange)
+			{
+				return Serialize(stm);
+			}
+			bool Save(PhobosStreamWriter& stm) const
+			{
+				return const_cast<ProduceCashDataType*>(this)->Serialize(stm);
+			}
+
+		private:
+			template <typename T>
+			bool Serialize(T& stm)
+			{
+				return stm
+					.Process(OwnerObject)
+					.Process(ProduceCashBudget)
+					.Process(IsStartupCashOneTime)
+					.Process(IsResetBudgetOnCapture)
+					.Success();
+			}
+
+		} AdditionalProduceCashData {};
+
+
+//these based on vinifera source
+// additional data , including the upgrades
+// the function placement is kind a  weird later since you need to do stuffs for `Upgrades` too
+// not just the main building
+struct ProduceCashData
+{
+	static constexpr inline size_t count = 0x4;
+	std::array<int, count> CurrentProduceCashBudget {};
+	std::array<bool, count> IsCaptureOneTimeCashGiven {};
+	std::array<bool, count> IsBudgetDepleted {};
+
+	ProduceCashData() = delete;
+
+	ProduceCashData(BuildingClass* ownerObject)
+	{
+		auto FromType = ownerObject->GetTypes();
+
+		for (size_t i = 0; i < count; ++i)
+		{
+
+			if (auto pType = FromType[i])
+			{
+				CurrentProduceCashBudget[i] = BuildingTypeExt::ExtMap.Find(pType)->AdditionalProduceCashData.ProduceCashBudget;
+			}
+		}
+	}
+
+	~ProduceCashData() = default;
+
+	static void AI(BuildingClass* pBld)
+	{
+		auto pExt = BuildingExt::ExtMap.Find(pBld);
+		auto additionaldata = &pExt->ProduceCashAdditionalData;
+		std::array<std::pair<BuildingTypeClass*, CDTimerClass*>, 4u> Timers
+		{ {
+		 { pBld->Type , &pBld->CashProductionTimer },
+		 { pBld->Upgrades[0] ,&pExt->CashUpgradeTimers[0] },
+		 { pBld->Upgrades[1] ,&pExt->CashUpgradeTimers[1] },
+		 { pBld->Upgrades[2] ,&pExt->CashUpgradeTimers[2] },
+		} };
+
+		for (size_t i = 0; i < count; ++i)
+		{
+			if (auto pType = Timers[i].first)
+			{
+				if (!additionaldata->IsBudgetDepleted[i] && (pType->ProduceCashAmount != 0))
+				{
+					if (pType->Powered)
+					{
+						if (Timers[i].second->IsTicking() && !pBld->IsPowerOnline())
+							Timers[i].second->Pause();
+
+						if (!Timers[i].second->IsTicking() && pBld->IsPowerOnline())
+							Timers[i].second->Resume();
+					}
+
+					if (Timers[i].second->IsTicking() && Timers[i].second->Expired())
+					{
+						if (!pBld->Owner->Type->MultiplayPassive)
+						{
+							int amount = pType->ProduceCashAmount;
+
+							if (additionaldata->CurrentProduceCashBudget[i] > 0)
+							{
+
+								if (additionaldata->CurrentProduceCashBudget[i] != -1)
+								{
+									additionaldata->CurrentProduceCashBudget[i] -= MaxImpl(0, amount);
+								}
+
+								if (additionaldata->CurrentProduceCashBudget[i] <= 0)
+								{
+									additionaldata->IsBudgetDepleted[i] = true;
+									additionaldata->CurrentProduceCashBudget[i] = -1;
+								}
+							}
+
+							if (!additionaldata->IsBudgetDepleted[i] && amount != 0)
+							{
+								pBld->Owner->TransactMoney(amount);
+							}
+						}
+
+						//should reset ?
+						//idk , there is only start
+						Timers[i].second->Start(pType->ProduceCashDelay + 1);
+					}
+				}
+			}
+		}
+	}
+
+	static void Captured(BuildingClass* pBld, HouseClass* pNewOwner)
+	{
+		if (pBld->Owner->Type->MultiplayPassive)
+		{
+			auto pExt = BuildingExt::ExtMap.Find(pBld);
+			auto additionaldata = &pExt->ProduceCashAdditionalData;
+			std::array<std::pair<BuildingTypeClass*, CDTimerClass*>, 4u> Timers
+			{ {
+			 { pBld->Type , &pBld->CashProductionTimer },
+			 { pBld->Upgrades[0] ,&pExt->CashUpgradeTimers[0] },
+			 { pBld->Upgrades[1] ,&pExt->CashUpgradeTimers[1] },
+			 { pBld->Upgrades[2] ,&pExt->CashUpgradeTimers[2] },
+			} };
+
+			for (size_t i = 0; i < count; ++i)
+			{
+				if (auto pType = Timers[i].first)
+				{
+					const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pType);
+
+					if (pType->ProduceCashStartup > 0)
+					{
+						if (!additionaldata->IsCaptureOneTimeCashGiven[i])
+						{
+							pNewOwner->TransactMoney(pType->ProduceCashStartup);
+						}
+
+						if (pTypeExt->AdditionalProduceCashData.IsStartupCashOneTime)
+						{
+							additionaldata->IsCaptureOneTimeCashGiven[i] = true;
+						}
+
+						Timers[i].second->Start(pType->ProduceCashDelay + 1);
+					}
+
+					if (pTypeExt->AdditionalProduceCashData.IsResetBudgetOnCapture)
+					{
+						if (pTypeExt->AdditionalProduceCashData.ProduceCashBudget > 0)
+						{
+							additionaldata->CurrentProduceCashBudget[i] = pTypeExt->AdditionalProduceCashData.ProduceCashBudget;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	//handle the Upgrades
+	static void Unlimbo(BuildingClass* pBld)
+	{
+
+	}
+
+	//handle the main building case
+	//TODO : all function is still packed here
+	// need to move !
+	static void GrandOpening(BuildingClass* pBld)
+	{
+		auto pExt = BuildingExt::ExtMap.Find(pBld);
+		auto additionaldata = &pExt->ProduceCashAdditionalData;
+		std::array<std::pair<BuildingTypeClass*, CDTimerClass*>, 4u> Timers
+		{ {
+		 { pBld->Type , &pBld->CashProductionTimer },
+		 { pBld->Upgrades[0] ,&pExt->CashUpgradeTimers[0] },
+		 { pBld->Upgrades[1] ,&pExt->CashUpgradeTimers[1] },
+		 { pBld->Upgrades[2] ,&pExt->CashUpgradeTimers[2] },
+		} };
+
+		for (size_t i = 0; i < count; ++i)
+		{
+			if (auto pType = Timers[i].first)
+			{
+				if (pType->ProduceCashAmount != 0)
+				{
+					Timers[i].second->Start(pType->ProduceCashDelay + 1);
+				}
+
+				const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pType);
+
+				if (pTypeExt->AdditionalProduceCashData.ProduceCashBudget > 0)
+				{
+					additionaldata->CurrentProduceCashBudget[i] = pTypeExt->AdditionalProduceCashData.ProduceCashBudget;
+				}
+			}
+		}
+	}
+
+};
+
 // support oil derrick logic on building upgrades
 DEFINE_OVERRIDE_HOOK(0x4409F4, BuildingClass_Put_ProduceCash, 6)
 {
@@ -186,6 +407,7 @@ DEFINE_OVERRIDE_HOOK(0x4409F4, BuildingClass_Put_ProduceCash, 6)
 	AresData::SetFactoryPlans(pThis);
 	return 0;
 }
+*/
 
 DEFINE_OVERRIDE_HOOK(0x4482BD, BuildingClass_ChangeOwnership_ProduceCash, 6)
 {
@@ -194,7 +416,6 @@ DEFINE_OVERRIDE_HOOK(0x4482BD, BuildingClass_ChangeOwnership_ProduceCash, 6)
 
 	int startup = 0;
 	auto pExt = BuildingExt::ExtMap.Find(pThis);
-	bool& StartupCashDelivered = pExt->StartupCashDelivered;
 
 	std::array<std::pair<BuildingTypeClass*, CDTimerClass*>, 4u> Timers
 	{{
@@ -208,9 +429,7 @@ DEFINE_OVERRIDE_HOOK(0x4482BD, BuildingClass_ChangeOwnership_ProduceCash, 6)
 		if (bld) {
 			if (bld->ProduceCashStartup || bld->ProduceCashAmount) {
 
-				if(!StartupCashDelivered){
-					startup += bld->ProduceCashStartup;
-				}
+				startup += bld->ProduceCashStartup;
 
 				if (bld->ProduceCashDelay){
 					timer->Start(bld->ProduceCashDelay + 1);
@@ -219,12 +438,13 @@ DEFINE_OVERRIDE_HOOK(0x4482BD, BuildingClass_ChangeOwnership_ProduceCash, 6)
 		}
 	}
 
-	if (startup && !pNewOwner->Type->MultiplayPassive) {
-		StartupCashDelivered = true;
+	if (startup) {
 
-		pNewOwner->TransactMoney(startup);
-		if (ShowMoneyAmount(pThis->Type)) {
-			pThis->align_154->TechnoValueAmount += startup;
+		if(!pNewOwner->Type->MultiplayPassive){
+			pNewOwner->TransactMoney(startup);
+			if (ShowMoneyAmount(pThis->Type)) {
+				pThis->align_154->TechnoValueAmount += startup;
+			}
 		}
 	}
 
