@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <Helpers/Concepts.h>
 
 template<typename T>
 struct HelperedVector : public std::vector<T>
@@ -30,7 +31,7 @@ struct HelperedVector : public std::vector<T>
 		if constexpr (direct_comparable<T>) {
 			return std::find_if(this->begin(), this->end(), [item](const auto item_here) { return item_here == item; });
 		} else {
-			return std::find(this->begin(), this->end(), other);
+			return std::find(this->begin(), this->end(), item);
 		}
 	}
 
@@ -38,7 +39,7 @@ struct HelperedVector : public std::vector<T>
 		if constexpr (direct_comparable<T>) {
 			return std::find_if(this->begin(), this->end(), [item](const auto item_here) { return item_here == item; });
 		} else {
-			return std::find(this->begin(), this->end(), other);
+			return std::find(this->begin(), this->end(), item);
 		}
 	}
 
@@ -47,7 +48,7 @@ struct HelperedVector : public std::vector<T>
 	}
 
 	int index_of(const T& other) const {
-		const auto iter = this->find(other);
+		auto iter = this->find(other);
 		return iter != this->end() ? std::distance(this->begin(), iter) : -1;
 	}
 

@@ -548,10 +548,10 @@ void NewSWType::Init()
 		RegSW(SW_DropPod, AresNewSuperType::DropPod)
 		RegSW(SW_EMPulse, AresNewSuperType::EMPulse)
 		RegSW(SW_Battery, AresNewSuperType::Battery)
-		RegSW(SW_EMPField, AresNewSuperType::EMPField)
-		RegSW(SW_IonCannon, AresNewSuperType::IonCannon)
-		RegSW(SW_MeteorShower, AresNewSuperType::MeteorShower)
-		RegSW(SW_LaserStrike , AresNewSuperType::LaserStrike)
+		//RegSW(SW_EMPField, AresNewSuperType::EMPField)
+		//RegSW(SW_IonCannon, AresNewSuperType::IonCannon)
+		//RegSW(SW_MeteorShower, AresNewSuperType::MeteorShower)
+		//RegSW(SW_LaserStrike , AresNewSuperType::LaserStrike)
 #undef RegSW
 }
 
@@ -589,7 +589,7 @@ SuperWeaponType NewSWType::GetHandledType(SuperWeaponType nType)
 {
 	const auto It = std::find_if(Array.begin(), Array.end(),
 		[&](const auto& Item) {
-			return Item->HandleThisType(nType);
+			return Item && Item->HandleThisType(nType);
 		}
 	);
 
@@ -611,6 +611,10 @@ SuperWeaponType NewSWType::FindFromTypeID(const char* pType)
 {
 	const auto It = std::find_if(Array.begin(), Array.end(),
 		[pType](const std::unique_ptr<NewSWType>& item) {
+
+			if (!item)
+				return false;
+
 			for (const auto& Id : item->GetTypeString()) {
 				//ares usin strcmp , so i just follow it here
 				if (IS_SAME_STR_N(Id, pType)) {

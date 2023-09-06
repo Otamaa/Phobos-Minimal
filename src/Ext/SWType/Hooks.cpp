@@ -85,6 +85,30 @@ DEFINE_HOOK(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
 	return 0x6CEAA0;
 }
 
+#include <Conversions.h>
+#include <TranslateFixedPoints.h>
+#include <Commands/ToggleDesignatorRange.h>
+
+#ifndef Replace_SW
+#pragma warning( push )
+#pragma warning (disable : 4245)
+#pragma warning (disable : 4838)
+DEFINE_DISABLE_HOOK(0x6CEE96, SuperWeaponTypeClass_FindIndex_ares)
+DEFINE_DISABLE_HOOK(0x46B371, BulletClass_NukeMaker_ares)
+DEFINE_DISABLE_HOOK(0x44C9FF, BuildingClass_Mi_Missile_PsiWarn_6_ares)
+DEFINE_DISABLE_HOOK(0x46b423, BulletClass_NukeMaker_PropagateSW_ares)
+DEFINE_DISABLE_HOOK(0x6CE6F6, SuperWeaponTypeClass_CTOR_ares)
+DEFINE_DISABLE_HOOK(0x6CEFE0, SuperWeaponTypeClass_SDDTOR_ares)
+DEFINE_DISABLE_HOOK(0x6CE8D0, SuperWeaponTypeClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x6CE800, SuperWeaponTypeClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x6CE8BE, SuperWeaponTypeClass_Load_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x6CE8EA, SuperWeaponTypeClass_Save_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x6CEE50, SuperWeaponTypeClass_LoadFromINI_ares)
+DEFINE_DISABLE_HOOK(0x6CEE43, SuperWeaponTypeClass_LoadFromINIB_ares)
+DEFINE_DISABLE_HOOK(0x4F9004, HouseClass_Update_TrySWFire_ares)
+DEFINE_DISABLE_HOOK(0x44cb4c, BuildingClass_Mi_Missile_NukeTakeOff_ares)
+#pragma warning( pop )
+
 DEFINE_HOOK(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 {
 	GET(SuperWeaponTypeClass*, pThis, EBP);
@@ -136,7 +160,6 @@ DEFINE_HOOK(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 
 	return 0x6CECEF;
 }
-#include <Commands/ToggleDesignatorRange.h>
 
 DEFINE_HOOK(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 {
@@ -182,49 +205,6 @@ DEFINE_HOOK(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 
 	return 0;
 }
-
-#include <Conversions.h>
-#include <TranslateFixedPoints.h>
-
-//DEFINE_HOOK(0x44D51F, BuildingClass_Mission_Missile_EMPulse_FireAnim, 0xA)
-//{
-//	GET(BuildingClass*, pThis, ESI);
-//
-//	if (WeaponTypeClass* pWeapon = pThis->GetWeapon(0)->WeaponType) {
-//		if (AnimTypeClass* pAnimType = GeneralUtils::GetAnimFacingFromVector(pThis, pWeapon->Anim)) {
-//
-//			CoordStruct FLH;
-//			pThis->GetFLH(&FLH, 0, pThis->GetCenterCoords());
-//
-//			auto pAnim = GameCreate<AnimClass>(pAnimType, FLH);
-//			pAnim->SetOwnerObject(pThis);
-//			pAnim->Owner = pThis->Owner;
-//		}
-//	}
-//
-//	return 0;
-//}
-
-#ifndef Replace_SW
-#pragma warning( push )
-#pragma warning (disable : 4245)
-#pragma warning (disable : 4838)
-DEFINE_DISABLE_HOOK(0x6CEE96, SuperWeaponTypeClass_FindIndex_ares)
-DEFINE_DISABLE_HOOK(0x46B371, BulletClass_NukeMaker_ares)
-DEFINE_DISABLE_HOOK(0x44C9FF, BuildingClass_Mi_Missile_PsiWarn_6_ares)
-DEFINE_DISABLE_HOOK(0x46b423, BulletClass_NukeMaker_PropagateSW_ares)
-DEFINE_DISABLE_HOOK(0x4C78D6, Networking_RespondToEvent_SpecialPlace_ares)
-DEFINE_DISABLE_HOOK(0x6CE6F6, SuperWeaponTypeClass_CTOR_ares)
-DEFINE_DISABLE_HOOK(0x6CEFE0, SuperWeaponTypeClass_SDDTOR_ares)
-DEFINE_DISABLE_HOOK(0x6CE8D0, SuperWeaponTypeClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x6CE800, SuperWeaponTypeClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x6CE8BE, SuperWeaponTypeClass_Load_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x6CE8EA, SuperWeaponTypeClass_Save_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x6CEE50, SuperWeaponTypeClass_LoadFromINI_ares)
-DEFINE_DISABLE_HOOK(0x6CEE43, SuperWeaponTypeClass_LoadFromINIB_ares)
-DEFINE_DISABLE_HOOK(0x4F9004, HouseClass_Update_TrySWFire_ares)
-DEFINE_DISABLE_HOOK(0x44cb4c, BuildingClass_Mi_Missile_NukeTakeOff_ares)
-#pragma warning( pop )
 
 DEFINE_OVERRIDE_HOOK(0x41F0F1, AITriggerClass_IC_Ready, 0xA)
 {
@@ -925,8 +905,7 @@ DEFINE_OVERRIDE_HOOK(0x6CB920, SuperClass_ClickFire, 5)
 				// remove this SW
 				pThis->OneTime = false;
 				return ret(pThis->Lose());
-			}
-
+			}else
 			if (pType->ManualControl)
 			{
 				// set recharge timer, then pause
@@ -935,13 +914,10 @@ DEFINE_OVERRIDE_HOOK(0x6CB920, SuperClass_ClickFire, 5)
 				pThis->RechargeTimer.Start(time);
 				pThis->RechargeTimer.Pause();
 
-				return ret(false);
-			}
-
+			}else
 			if (!pType->PreClick && !pType->PostClick)
 			{
 				pThis->StopPreclickAnim(isPlayer);
-				return ret(false);
 			}
 
 			return ret(false);
@@ -1240,7 +1216,7 @@ DEFINE_OVERRIDE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
 
 #include <EventClass.h>
 
-DEFINE_HOOK(0x4C78D6, Networking_RespondToEvent_SpecialPlace, 8)
+DEFINE_OVERRIDE_HOOK(0x4C78D6, Networking_RespondToEvent_SpecialPlace, 8)
 {
 	//GET(CellStruct*, pCell, EDX);
 	//GET(int, Checksum, EAX);
@@ -1754,6 +1730,7 @@ DEFINE_HOOK(0x44CA97, BuildingClass_MI_Missile_CreateBullet, 0x6)
 	return SetRate;
 
 }
+
 
 DEFINE_OVERRIDE_HOOK(0x48A59A, MapClass_SelectDamageAnimation_LightningWarhead, 5)
 {
@@ -2603,6 +2580,58 @@ DEFINE_OVERRIDE_HOOK(0x44019D, BuildingClass_Update_Battery, 6)
 	return 0x0;
 }
 
+#include <Ext/HouseType/Body.h>
+
+bool NOINLINE CameoIsElite(TechnoTypeClass* pType , HouseClass* pHouse) {
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if(!pType->AltCameo && !pTypeExt->AltCameoPCX.GetSurface())
+		return false;
+
+	const auto pCountry = pHouse->Type;
+	switch(pType->WhatAmI()) {
+	case AbstractType::InfantryType:
+	{
+		if(pHouse->BarracksInfiltrated && !pType->Naval && pType->Trainable) {
+			return true;
+		}
+
+		return pCountry->VeteranInfantry.FindItemIndex(static_cast<InfantryTypeClass*>(pType)) != -1;
+
+	}
+	case AbstractType::UnitType:
+	{
+		if(pHouse->WarFactoryInfiltrated && !pType->Naval && pType->Trainable) {
+			return true;
+		} else if(Is_NavalYardSpied(pHouse) && pType->Naval && pType->Trainable) {
+			return true;
+		}
+
+		return pCountry->VeteranUnits.Contains((UnitTypeClass*)pType);
+	}
+	case AbstractType::AircraftType:
+	{
+		if(Is_AirfieldSpied(pHouse) && pType->Trainable) {
+			return true;
+		}
+
+		return pCountry->VeteranAircraft.Contains((AircraftTypeClass*)(pType));
+	}
+	case AbstractType::BuildingType:
+	{
+		if(auto const pItem = pType->UndeploysInto) {
+			return pCountry->VeteranUnits.Contains((UnitTypeClass*)(pItem));
+		}else if (Is_BuildingProductionSpied(pHouse) && pType->Trainable) {
+			return true;
+		}
+
+		return HouseTypeExt::ExtMap.Find(pCountry)->VeteranBuildings.Contains((BuildingTypeClass*)(pType));
+	}
+	}
+
+	return false;
+}
+
 ConvertClass* SWConvert = nullptr;
 BSurface* CameoPCXSurface = nullptr;
 
@@ -2620,7 +2649,14 @@ DEFINE_OVERRIDE_HOOK(0x6A9A2A, StripClass_Draw_Main, 6)
 {
 	GET_STACK(TechnoTypeClass*, pTechno, 0x6C);
 
-	const ConvertClass* pResult = pTechno ? GetCameoSHPConvert(pTechno) : SWConvert;
+	ConvertClass* pResult = nullptr;
+	if (pTechno) {
+		pResult = TechnoTypeExt::ExtMap.Find(pTechno)->
+			CameoPal->GetConvert<PaletteManager::Mode::Default>();
+	}
+	else
+		pResult = SWConvert;
+
 
 	R->EDX(pResult ? pResult : FileSystem::CAMEO_PAL());
 	return 0x6A9A30;
@@ -2637,10 +2673,11 @@ DEFINE_OVERRIDE_HOOK(0x6A980A, StripClass_Draw_TechnoType_PCX, 8)
 {
 	GET(TechnoTypeClass*, pType, EBX);
 
-	auto const eliteCameo = AresData::TechnoTypeExt_CameoIsElite(pType, HouseClass::CurrentPlayer)
-		&& GetCameoPCXSurfaceElite(pType);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto const eliteCameo = CameoIsElite(pType, HouseClass::CurrentPlayer)
+		&& pTypeExt->AltCameoPCX.GetSurface();
 
-	CameoPCXSurface = eliteCameo ? GetCameoPCXSurfaceElite(pType) : GetCameoPCXSurface(pType);
+	CameoPCXSurface = eliteCameo ? pTypeExt->AltCameoPCX.GetSurface() : pTypeExt->CameoPCX.GetSurface();
 
 	return 0;
 }
@@ -2672,7 +2709,7 @@ DEFINE_OVERRIDE_HOOK(0x712045, TechnoTypeClass_GetCameo, 5)
 {
 	GET(TechnoTypeClass*, pThis, ECX);
 
-	R->EAX(AresData::TechnoTypeExt_CameoIsElite(pThis, HouseClass::CurrentPlayer)
+	R->EAX(CameoIsElite(pThis, HouseClass::CurrentPlayer)
 		? pThis->AltCameo : pThis->Cameo);
 	return 0x7120C6;
 }

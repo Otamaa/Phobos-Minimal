@@ -973,9 +973,15 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->Ammo_DeployUnlockMinimumAmount.Read(exINI, pSection, "Ammo.DeployUnlockMinimumAmount");
 		this->Ammo_DeployUnlockMaximumAmount.Read(exINI, pSection, "Ammo.DeployUnlockMaximumAmount");
 
+		this->ImmuneToWeb.Read(exINI, pSection, "ImmuneToWeb");
+		this->Webby_Anims.Read(exINI, pSection, "Webby.Anims");
+		this->Webby_Modifier.Read(exINI, pSection, "Webby.Modifier");
+		this->Webby_Duration_Variation.Read(exINI, pSection, "Webby.DurationVariation");
+
 #pragma region AircraftOnly
 		if (this->AttachtoType == AircraftTypeClass::AbsID)
 		{
+			this->LandingDir.Read(exINI, pSection, "LandingDir");
 			this->CrashSpinLevelRate.Read(exINI, pSection, "CrashSpin.LevelRate");
 			this->CrashSpinVerticalRate.Read(exINI, pSection, "CrashSpin.VerticalRate");
 
@@ -1125,6 +1131,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->MySpawnSupportFLH.Read(exArtINI, pArtSection);
 		this->Trails.Read(exArtINI, pArtSection, true);
 
+		this->CameoPCX.Read(exArtINI.GetINI(), pArtSection, "CameoPCX");
+		this->AltCameoPCX.Read(exArtINI.GetINI(), pArtSection, "AltCameoPCX");
+		this->CameoPal.Read(exArtINI, pArtSection, "CameoPalette");
 	}
 }
 
@@ -1758,6 +1767,10 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Ammo_AutoDeployMaximumAmount)
 		.Process(this->Ammo_DeployUnlockMinimumAmount)
 		.Process(this->Ammo_DeployUnlockMaximumAmount)
+		.Process(this->ImmuneToWeb)
+		.Process(this->Webby_Anims)
+		.Process(this->Webby_Modifier)
+		.Process(this->Webby_Duration_Variation)
 		.Process(this->BerserkROFMultiplier)
 		.Process(this->Refinery_UseStorage)
 		.Process(this->VHPscan_Value)
@@ -1887,6 +1900,10 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->EMP_Modifier)
 		.Process(this->EMP_Threshold)
 		.Process(this->PoweredBy)
+
+		.Process(this->CameoPCX)
+		.Process(this->AltCameoPCX)
+		.Process(this->CameoPal)
 #pragma endregion
 		;
 

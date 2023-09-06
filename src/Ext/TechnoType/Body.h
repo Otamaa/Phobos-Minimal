@@ -842,6 +842,16 @@ public:
 
 		ValueableVector<BuildingTypeClass*> PoweredBy {};  //!< The buildingtype this unit is powered by or NULL.
 
+		Valueable<bool> ImmuneToWeb { false };
+		NullableVector<AnimTypeClass*> Webby_Anims {};
+		Valueable<double> Webby_Modifier { 1.0 };
+		Nullable<int> Webby_Duration_Variation { 0 };
+
+		PhobosPCXFile CameoPCX {};
+		PhobosPCXFile AltCameoPCX {};
+		Valueable<PaletteManager*> CameoPal {};  //CustomPalette::PaletteMode::Default
+		Nullable<int> LandingDir {};
+
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 		{
 			AttachedEffect.Owner = OwnerObject;

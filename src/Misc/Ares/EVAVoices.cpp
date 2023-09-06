@@ -13,6 +13,7 @@ std::vector<const char*> EVAVoices::Types;
 
 int EVAVoices::FindIndexById(const char* type)
 {
+	Debug::Log("[Phobos] Find EVAVoices Index by ID [%s]\n", type);
 	// the default values
 	if (!CRT::strcmpi(type, GameStrings::Allied()))
 	{
@@ -52,6 +53,7 @@ void EVAVoices::RegisterType(const char* type)
 	}
 }
 
+#ifndef disable_eva_hooks
 // replace the complete ini loading function
 DEFINE_OVERRIDE_HOOK(0x753000, VoxClass_CreateFromINIList, 6)
 {
@@ -188,3 +190,4 @@ DEFINE_OVERRIDE_HOOK(0x7534e0 , VoxClass_SetEVAIndex , 5)
 
 	return 0x7534F3;
 }
+#endif

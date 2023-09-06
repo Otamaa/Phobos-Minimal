@@ -4,13 +4,14 @@
 #include <Helpers/Macro.h>
 #include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
+#include <Ext/Object/Body.h>
 
 class ParticleSystemClass;
 class AnimExt
 {
 public:
 
-	class ExtData final : public Extension<AnimClass>
+	class ExtData final : public Extension<AnimClass> , public ObjectExt::ExtData
 	{
 	public:
 		using base_type = AnimClass;
@@ -24,14 +25,17 @@ public:
 		bool OwnerSet { false };
 		bool AllowCreateUnit { false };
 
-		// This is a failsafe that is only set if this is a building animation 
+		// This is a failsafe that is only set if this is a building animation
 		// and the building is not on same cell as the animation.
 		BuildingClass* ParentBuilding { nullptr };
 
 		UniqueParticleSystemClassPtr AttachedSystem {};
 		CoordStruct CreateUnitLocation {};
 
-		ExtData(base_type* OwnerObject) : Extension<AnimClass>(OwnerObject) {}
+		ExtData(base_type* OwnerObject) : Extension<AnimClass>(OwnerObject)
+			, ObjectExt::ExtData {}
+		{}
+
 		virtual ~ExtData() override = default;
 
 		void InvalidatePointer(AbstractClass* ptr, bool bRemoved);

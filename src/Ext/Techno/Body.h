@@ -27,13 +27,16 @@
 #include <Utilities/BuildingBrackedPositionData.h>
 
 #include <Ares_TechnoExt.h>
+
+#include <Ext/Object/Body.h>
+
 class BulletClass;
 class TechnoTypeClass;
 class REGISTERS;
 class TechnoExt
 {
 public:
-	class ExtData : public Extension<TechnoClass>
+	class ExtData : public Extension<TechnoClass>, public ObjectExt::ExtData
 	{
 	public:
 		static constexpr size_t Canary = 0x55555555;
@@ -128,12 +131,20 @@ public:
 
 		int WHAnimRemainingCreationInterval { 0 };
 
+		//====
+		bool IsWebbed { false };
+		AnimClass* WebbedAnim { nullptr };
+
 		ExtData(TechnoClass* OwnerObject) : Extension<TechnoClass>(OwnerObject)
+			, ObjectExt::ExtData {}
 		{ }
 
 		virtual ~ExtData() override
 		{
 			GameDelete<true, true>(MyOriginalTemporal);
+
+			if (WebbedAnim && WebbedAnim->IsAlive)
+				GameDelete<true, false>(WebbedAnim);
 		}
 
 		void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
@@ -284,6 +295,7 @@ private:
 	static bool IsParasiteImmune(TechnoClass* pThis);
 	static bool IsUnwarpable(TechnoClass* pThis);
 	static bool IsBountyHunter(TechnoClass* pThis);
+	static bool IsWebImmune(TechnoClass* pThis);
 
 	static bool HasAbility(TechnoClass* pThis , PhobosAbilityType nType);
 	static bool HasImmunity(TechnoClass* pThis, int nType);
@@ -302,6 +314,7 @@ private:
 	static bool IsParasiteImmune(Rank vet, TechnoClass* pThis);
 	static bool IsUnwarpable(Rank vet, TechnoClass* pThis);
 	static bool IsBountyHunter(Rank vet, TechnoClass* pThis);
+	static bool IsWebImmune(Rank vet, TechnoClass* pThis);
 
 	static bool HasAbility(Rank vet , TechnoClass* pThis, PhobosAbilityType nType);
 	static bool HasImmunity(Rank vet, TechnoClass* pThis, int nType);

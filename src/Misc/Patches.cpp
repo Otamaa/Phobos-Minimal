@@ -192,7 +192,7 @@ void BlittersFix::Apply() //C3 Z-aware SHP translucency fixes
 
 void PoseDirOverride::Apply()
 {
-	Patch::Apply_RAW(0x41B7BE,{ 
+	Patch::Apply_RAW(0x41B7BE,{
 		0x8B, 0xC0,  // mov    eax , eax
 		0x90 // nop
 	});

@@ -147,7 +147,6 @@ DEFINE_OVERRIDE_HOOK(0x505C95, HouseClass_GenerateAIBuildList_CountExtra, 7)
 	return 0;
 }
 
-
 /**
  * moved the fix for #917 here - check a house's ability to handle base plan
  * before it actually tries to generate a base plan, not at game start (we have

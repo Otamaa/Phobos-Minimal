@@ -655,6 +655,8 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 	if (!this->CanTargetHouse(pHouse, pTarget))
 		return;
 
+	this->applyWebby(pTarget , pHouse, pOwner);
+
 	if (!this->LimboKill_IDs.empty()) {
 		BuildingExt::ApplyLimboKill(this->LimboKill_IDs, this->LimboKill_Affected, pTarget->Owner, pHouse);
 	}

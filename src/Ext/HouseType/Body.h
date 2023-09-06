@@ -41,6 +41,7 @@ public:
 		Valueable<bool> StartInMultiplayer_WithConst { false };
 		ValueableVector<BuildingTypeClass*> Powerplants {};
 
+		ValueableVector<BuildingTypeClass*> VeteranBuildings {};
 		ExtData(HouseTypeClass* OwnerObject) : Extension<HouseTypeClass>(OwnerObject)
 		{ }
 

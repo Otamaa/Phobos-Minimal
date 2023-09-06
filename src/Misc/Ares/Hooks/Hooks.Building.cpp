@@ -26,6 +26,55 @@
 
 #include <Ares_TechnoExt.h>
 
+int GetImageFrameIndex(BuildingClass* pThis)
+{
+	BuildingTypeExt::ExtData* pData = BuildingTypeExt::ExtMap.Find(pThis->Type);
+
+	if (pData->Firestorm_Wall)
+	{
+		return static_cast<int>(pThis->FirestormWallFrame);
+
+		/* this is the code the game uses to calculate the firewall's frame number when you place/remove sections... should be a good base for trench frames
+
+			int frameIdx = 0;
+			CellClass *Cell = this->GetCell();
+			for(int direction = 0; direction <= 7; direction += 2) {
+				if(BuildingClass *B = Cell->GetNeighbourCell(direction)->GetBuilding()) {
+					if(B->IsAlive && !B->InLimbo) {
+						frameIdx |= (1 << (direction >> 1));
+					}
+				}
+			}
+
+		*/
+	}
+
+	if (pData->IsTrench > -1)
+	{
+		return 0;
+	}
+
+	return -1;
+}
+
+// frame to draw
+DEFINE_OVERRIDE_HOOK(0x43EFB3, BuildingClass_GetStaticImageFrame, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	if (pThis->GetCurrentMission() != Mission::Construction)
+	{
+		auto FrameIdx = GetImageFrameIndex(pThis);
+
+		if (FrameIdx != -1)
+		{
+			R->EAX(FrameIdx);
+			return 0x43EFC3;
+		}
+	}
+	return 0x43EFC6;
+}
+
 DEFINE_OVERRIDE_HOOK(0x459ed0, BuildingClass_GetUIName, 6)
 {
 	GET(BuildingClass*, pBld, ECX);
@@ -41,7 +90,6 @@ DEFINE_OVERRIDE_HOOK(0x459ed0, BuildingClass_GetUIName, 6)
 			R->EAX(pBld->Type->UIName);
 			return 0x459ED9;
 		}
-
 	}
 
 	auto Type = pBld->Type;
@@ -139,16 +187,14 @@ DEFINE_OVERRIDE_HOOK(0x4409F4, BuildingClass_Put_ProduceCash, 6)
 	return 0;
 }
 
-
 DEFINE_OVERRIDE_HOOK(0x4482BD, BuildingClass_ChangeOwnership_ProduceCash, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(HouseClass*, pNewOwner, EBX);
 
-	int produceAmount = 0;
+	int startup = 0;
 	auto pExt = BuildingExt::ExtMap.Find(pThis);
 	bool& StartupCashDelivered = pExt->StartupCashDelivered;
-
 
 	std::array<std::pair<BuildingTypeClass*, CDTimerClass*>, 4u> Timers
 	{{
@@ -163,7 +209,7 @@ DEFINE_OVERRIDE_HOOK(0x4482BD, BuildingClass_ChangeOwnership_ProduceCash, 6)
 			if (bld->ProduceCashStartup || bld->ProduceCashAmount) {
 
 				if(!StartupCashDelivered){
-					produceAmount += bld->ProduceCashStartup;
+					startup += bld->ProduceCashStartup;
 				}
 
 				if (bld->ProduceCashDelay){
@@ -173,12 +219,12 @@ DEFINE_OVERRIDE_HOOK(0x4482BD, BuildingClass_ChangeOwnership_ProduceCash, 6)
 		}
 	}
 
-	if (produceAmount && !pNewOwner->Type->MultiplayPassive) {
+	if (startup && !pNewOwner->Type->MultiplayPassive) {
 		StartupCashDelivered = true;
 
-		pNewOwner->TransactMoney(produceAmount);
+		pNewOwner->TransactMoney(startup);
 		if (ShowMoneyAmount(pThis->Type)) {
-			pThis->align_154->TechnoValueAmount += produceAmount;
+			pThis->align_154->TechnoValueAmount += startup;
 		}
 	}
 

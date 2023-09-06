@@ -378,14 +378,14 @@ bool SWTypeExt::ExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 			if (Flag == SWTargetFlags::AllowEmpty)
 			{
 				if(pThis->Owner->IsControlledByHuman_() && !pExt->SW_AutoFire && pExt->SW_ManualFire) {
-					DisplayClass::Instance->CurrentBuilding = nullptr;
-					DisplayClass::Instance->CurrentBuildingType = nullptr;
-					DisplayClass::Instance->unknown_11AC = static_cast<DWORD>(-1);
+					Unsorted::CurrentBuilding = nullptr;
+					Unsorted::CurrentBuildingType = nullptr;
+					Unsorted::unknown_11AC = static_cast<DWORD>(-1);
 					DisplayClass::Instance->SetRepairMode(0);
 					DisplayClass::Instance->SetSellMode(0);
-					DisplayClass::Instance->PowerToggleMode = false;
-					DisplayClass::Instance->PlanningMode = false;
-					DisplayClass::Instance->PlaceBeaconMode = false;
+					Unsorted::PowerToggleMode = false;
+					Unsorted::PlanningMode = false;
+					Unsorted::PlaceBeaconMode = false;
 					MapClass::UnselectAll();
 				}
 
@@ -1150,7 +1150,7 @@ bool SWTypeExt::ExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStr
 
 	const auto pData = SWTypeExt::ExtMap.Find(pSuper->Type); //newer data
 
-	if (pSuper->Granted || pData->CanFire(pOwner))
+	if (pSuper->OneTime || pData->CanFire(pOwner))
 		pOwner->RecheckTechTree = true;
 
 	const auto curSuperIdx = pOwner->Supers.FindItemIndex(pSuper);
@@ -1229,9 +1229,10 @@ bool SWTypeExt::ExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStr
 		// special cased, but they can't auto-fire anyhow.
 		if (pOwner->IsCurrentPlayer())
 		{
-			if (curSuperIdx == Unsorted::CurrentSWType || (flags & SuperWeaponFlags::PostClick))
+			auto& curSw = Unsorted::CurrentSWType();
+			if (curSuperIdx == curSw || (flags & SuperWeaponFlags::PostClick))
 			{
-				Unsorted::CurrentSWType = -1;
+				curSw = -1;
 			}
 		}
 
@@ -1271,13 +1272,12 @@ bool SWTypeExt::ExtData::Activate(SuperClass* pSuper, CellStruct const cell, boo
 		return false;
 
 	//Debug::Log(__FUNCTION__" for [%s] - Owner[%s] AfterSWLauch \n", pExt->get_ID(), pOwner->get_ID());
+	std::pair<SuperClass*, CellStruct> nPass { pSuper, cell };
 
 	for (int i = 0; i < pOwner->RelatedTags.Count; ++i)
 	{
 		if (auto pTag = pOwner->RelatedTags.GetItem(i))
 		{
-			std::pair<SuperClass*, CellStruct> nPass { pSuper, cell };
-
 			pTag->RaiseEvent(TriggerEvent(AresTriggerEvents::SuperNearWaypoint), nullptr, CellStruct::Empty, false, &nPass);
 		}
 	}
@@ -1292,7 +1292,6 @@ bool SWTypeExt::ExtData::Activate(SuperClass* pSuper, CellStruct const cell, boo
 	//Debug::Log(__FUNCTION__" for [%s] - Owner[%s] After SuperActivated  \n", pExt->get_ID(), pOwner->get_ID());
 
 	return true;
-
 }
 
 bool SWTypeExt::ExtData::Deactivate(SuperClass* pSuper, CellStruct const cell, bool const isPlayer)

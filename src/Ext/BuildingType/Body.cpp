@@ -696,6 +696,8 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 
 		this->AIBuildCounts.Read(exINI, pSection, "AIBuildCounts");
 		this->AIExtraCounts.Read(exINI, pSection, "AIExtraCounts");
+		this->LandingDir.Read(exINI, pSection, "LandingDir");
+
 	}
 #pragma endregion
 
@@ -743,6 +745,20 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 #endif
 		this->BuildUp_UseNormalLIght.Read(exArtINI, pArtSection, "Buildup.UseNormalLight");
 		this->RubblePalette.Read(exArtINI, pArtSection, "Rubble.Palette");
+
+		if (pThis->Helipad)
+		{
+			char keyDock[0x40] = { '\0' };
+			BuildingTypeExt::ExtMap.Find(pThis)->DockPoseDir.resize(pThis->NumberOfDocks);
+
+			for (int i = 0; i < pThis->NumberOfDocks; ++i)
+			{
+				sprintf_s(keyDock, "DockingPoseDir%d", i);
+				Valueable<DirType8> dummyDock { DirType8::North };
+				dummyDock.Read(exArtINI, pArtSection, keyDock);
+				BuildingTypeExt::ExtMap.Find(pThis)->DockPoseDir[i] = dummyDock.Get();
+			}
+		}
 #pragma endregion
 	}
 }
@@ -919,6 +935,7 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->MessageLost)
 		.Process(this->AIBuildCounts)
 		.Process(this->AIExtraCounts)
+		.Process(this->LandingDir)
 		;
 }
 

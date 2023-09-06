@@ -3,6 +3,7 @@
 #include <Memory.h>
 
 #include <algorithm>
+#include <Helpers/Concepts.h>
 
 struct __declspec(align(4)) DummyDynamicVectorClass
 {
@@ -428,12 +429,15 @@ public:
 //=== DynamicVectorClass =================================================
 //========================================================================
 
+//TODO : unify the naming !
 template <typename T>
 class DynamicVectorClass : public VectorClass<T>
 {
 public:
-	constexpr DynamicVectorClass() noexcept = default;
 	static const ArrayType Type = ArrayType::DynamicVector;
+
+#pragma region constructorandoperators
+	constexpr DynamicVectorClass() noexcept = default;
 
 	explicit DynamicVectorClass(int capacity, T* pMem = nullptr)
 		: VectorClass<T>(capacity, pMem)
@@ -472,7 +476,9 @@ public:
 		DynamicVectorClass<T>(std::move(other)).Swap(*this);
 		return *this;
 	}
+#pragma endregion
 
+#pragma region virtuals
 	virtual bool SetCapacity(int capacity, T* pMem = nullptr) override
 	{
 		bool bRet = VectorClass<T>::SetCapacity(capacity, pMem);
@@ -497,38 +503,12 @@ public:
 			return 0;
 		}
 
-		for (int i = 0; i < this->Count; i++) {
-			if (this->Items[i] == item)
-			{
-				return i;
-			}
-		}
-
-		return -1;
+		T* iter = this->Find(item);
+		return iter != this->end() ?  std::distance(this->begin() , iter) : -1;
 	}
+#pragma endregion
 
-	bool __forceinline ValidIndex(int index) const
-	{
-		return static_cast<size_t>(index) < static_cast<size_t>(this->Count);
-	}
-
-	bool __forceinline ValidIndex(size_t index) const {
-		return index < static_cast<size_t>(this->Count);
-	}
-
-	T GetItemOrDefault(size_t i) const
-	{
-		return this->GetItemOrDefault(i, T());
-	}
-
-	T GetItemOrDefault(size_t i, T def) const
-	{
-		if(!this->ValidIndex(i))
-			return def;
-
-		return this->Items[i];
-	}
-
+#pragma region iteratorpointer
 	T* begin() const
 	{
 		return this->Items;
@@ -556,16 +536,35 @@ public:
 	{
 		return this->Items + this->Count;
 	}
+#pragma endregion
+
+#pragma region Funcs
+	bool __forceinline ValidIndex(int index) const
+	{
+		return static_cast<size_t>(index) < static_cast<size_t>(this->Count);
+	}
+
+	bool __forceinline ValidIndex(size_t index) const
+	{
+		return index < static_cast<size_t>(this->Count);
+	}
+
+	T GetItemOrDefault(size_t i) const
+	{
+		return this->GetItemOrDefault(i, T());
+	}
+
+	T GetItemOrDefault(size_t i, T def) const
+	{
+		if (!this->ValidIndex(i))
+			return def;
+
+		return this->Items[i];
+	}
 
 	bool Contains(const T& item) const
 	{
-		for (T* pos = this->Items;
-			pos != (this->Items + this->Count);
-			++pos) {
-			return (*pos) == item;
-		}
-
-		return false;
+		return this->Find(item) != this->end();
 	}
 
 	bool AddItem(T item)
@@ -599,8 +598,7 @@ public:
 
 	bool AddUnique(const T& item)
 	{
-		int idx = this->FindItemIndex(item);
-		return idx < 0 && this->AddItem(item);
+		return !this->Contains(item) && this->AddItem(item);
 	}
 
 	bool RemoveAt(int index)
@@ -627,15 +625,14 @@ public:
 	bool Remove(const T& item)
 	{
 		T* end = this->Items + this->Count;
+		T* iter = this->Find(item);
 
-		for (T* find = this->Items; find != end; ++find) {
-			if ((*find) == item) {
-				// move all the items from next to current pos
-				T* next = find + 1;
-				std::memmove(find, next, (size_t)(sizeof(T) * std::distance(next, end)));
-				--this->Count;
-				return true;
-			}
+		if(iter != this->end())
+		{
+			T* next = iter + 1;
+			std::memmove(iter, next, (size_t)(sizeof(T) * std::distance(next, end)));
+			--this->Count;
+			return true;
 		}
 
 		return false;
@@ -657,6 +654,16 @@ public:
 		return static_cast<size_t>(Count);
 	}
 
+	T* Find(const T& item) const {
+		if constexpr (direct_comparable<T>) {
+			return this->find_if([item](const auto item_here) { return item_here == item; });
+		} else {
+			return std::find(this->begin(), this->end(), item);
+		}
+	}
+#pragma endregion
+
+#pragma region WrappedSTD
 	template <typename Func>
 	auto find_if(Func&& act) const {
 		return std::find_if(this->begin(), this->end(), std::forward<Func>(act));
@@ -696,6 +703,7 @@ public:
 	bool any_of(func&& fn) {
 		return std::any_of(this->begin(), this->end(), std::forward<func>(fn));
 	}
+#pragma endregion
 
 public:
 	int Count { 0 };

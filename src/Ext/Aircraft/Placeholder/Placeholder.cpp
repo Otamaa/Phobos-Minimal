@@ -1,45 +1,3 @@
-#include "Body.h"
-/*
-* disable due to some radio contact bug , that can use aircraft to dock using wrong facing
-*/
-DEFINE_HOOK(0x464A21, BuildingTypeClass_ReadFromINI_Dock, 0x5)
-{
-	GET(BuildingTypeClass*, pThis, EBP);
-	GET(int, nIDX, ESI);
-
-	if (pThis->Helipad)
-	{
-		char key[0x40] = { '\0' };
-		sprintf_s(key, "DockingPoseDir%d", nIDX);
-		BuildingTypeExt::ExtMap.Find(pThis)->DockPoseDir.emplace_back(CCINIClass::INI_Art->ReadInteger(pThis->ImageFile, key, 0));
-	}
-
-	return 0x0;
-}
-
-static DirStruct GetPoseDir(BuildingClass* pBld, AircraftClass* pAir, int nDefault)
-{
-	int nDIr = nDefault;
-
-	if (pBld)
-	{
-		const int nIdx = pBld->FindLinkIndex(pAir);
-		const auto pExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
-		if (!pExt->DockPoseDir.empty() && nIdx != -1)
-			nDIr = abs(pExt->DockPoseDir[nIdx]);
-	}
-
-	if (nDIr <= 7)
-	{
-		DirStruct nDirRet { static_cast<DirType>(nDIr << 5) };
-		return nDirRet;
-	}
-	else
-	{
-		DirStruct nDirRet { static_cast<int>(nDIr) * 255 };
-		return nDirRet;
-	}
-}
 
 #include <AircraftTrackerClass.h>
 
@@ -48,7 +6,8 @@ DEFINE_HOOK(0x446FA2, BuildingClass_GrandOpening_PoseDir, 0x6)
 	GET(BuildingClass*, pThis, EBP);
 	GET(AircraftClass*, pAir, ESI);
 	pThis->SendCommand(RadioCommand::RequestTether, pAir);
-	pAir->SecondaryFacing.Set_Current(GetPoseDir(pThis, pAir, 0));
+	const DirStruct
+		pAir->SecondaryFacing.Set_Current();
 
 	if (pThis->GetHeight() > 0)
 		AircraftTrackerClass::Instance->Add(pThis);
@@ -66,23 +25,23 @@ DEFINE_HOOK(0x444014, BuildingClass_ExitObject_PoseDir_A, 0x5)
 	pThis->SendCommand(RadioCommand::RequestTether, pAir);
 	pAir->SetLocation(pThis->GetDockCoords(pAir));
 	pAir->DockedTo = pThis;
-	pAir->SecondaryFacing.Set_Current(GetPoseDir(pThis, pAir, 0));
+	pAir->SecondaryFacing.Set_Current(GetPoseDir(pThis, pAir, DirType::North));
 
-	if (pAir->GetHeight() > 0)
-		AircraftTrackerClass::Instance->Add(pAir);
+	//if (pAir->GetHeight() > 0)
+	//	AircraftTrackerClass::Instance->Add(pAir);
 
 	return 0x444053;
 }
 
-DEFINE_HOOK(0x443FD8, BuildingClass_ExitObject_AircraftTracker, 0x8)
-{
-	GET(AircraftClass*, pAir, ESI);
-
-	if (pAir->GetHeight() > 0)
-		AircraftTrackerClass::Instance->Add(pAir);
-
-	return 0x0;
-}
+//DEFINE_HOOK(0x443FD8, BuildingClass_ExitObject_AircraftTracker, 0x8)
+//{
+//	GET(AircraftClass*, pAir, ESI);
+//
+//	if (pAir->GetHeight() > 0)
+//		AircraftTrackerClass::Instance->Add(pAir);
+//
+//	return 0x0;
+//}
 
 #else
 DEFINE_HOOK(0x444053, BuildingClass_ExitObject_PoseDir_A, 0x6)
@@ -181,7 +140,7 @@ DEFINE_HOOK(0x444053, BuildingClass_ExitObject_PoseDir_A, 0x6)
 // what ?
 DEFINE_HOOK(0x443FD8, BuildingClass_ExitObject_PoseDir_B, 0x8)
 {
-	enum { RetCreationFail  = 0x444EDE, RetCreationSucceeded = 0x443FE0 };
+	enum { RetCreationFail = 0x444EDE, RetCreationSucceeded = 0x443FE0 };
 
 	GET(BuildingClass*, pThis, ESI);
 	GET(AircraftClass*, pAir, EBP);
@@ -189,10 +148,10 @@ DEFINE_HOOK(0x443FD8, BuildingClass_ExitObject_PoseDir_B, 0x8)
 	if (R->AL())
 	{
 		pAir->DockedTo = pThis;
-		pAir->SecondaryFacing.Set_Current(GetPoseDir(pThis, pAir, 0));
+		pAir->SecondaryFacing.Set_Current(GetPoseDir(pThis, pAir, DirType::North));
 
-		if (pAir->GetHeight() > 0)
-			AircraftClass::AircraftTracker_4134A0(pAir);
+		//if (pAir->GetHeight() > 0)
+		//	AircraftClass::AircraftTracker_4134A0(pAir);
 
 		return RetCreationSucceeded;
 	}
@@ -200,30 +159,35 @@ DEFINE_HOOK(0x443FD8, BuildingClass_ExitObject_PoseDir_B, 0x8)
 	return RetCreationFail;
 }
 
-DEFINE_HOOK(0x41B780, IFlyControl_LandDirection_InRadioContact , 0x5)
-{
-	enum { SetFromCurrent = 0x41B7A7, SetFromValue = 0x41B7BC};
 
-	//GET_STACK(IFlyControl*, pFly, 0x4);
-	GET(AircraftClass*, pAircraft, ESI);
-	GET(TechnoClass*, pContact, EAX);
-
-	if (const auto pBld = specific_cast<BuildingClass*>(pContact)) {
-
-		const auto pExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
-		const auto nIdx = pBld->FindLinkIndex(pAircraft);
-
-		if (!pExt->DockPoseDir.empty() && nIdx != -1) {
-			R->EAX(abs(pExt->DockPoseDir[nIdx]));
-			return SetFromValue; //we return here , similar to Rules->PoseDir
-		}
-	}
-
-	//original game code , this can be return 0 , but i prefer doing it this way !
-	const auto nRaw = pContact->PrimaryFacing.Current().Raw;
-	R->EAX(&nRaw); // this will be depointer later
-	return SetFromCurrent;
-}
+//DEFINE_HOOK(0x41B780, IFlyControl_LandDirection_InRadioContact , 0x5)
+//{
+//	enum { SetFromCurrent = 0x41B7A7, SetFromValue = 0x41B7BC};
+//
+//	//GET_STACK(IFlyControl*, pFly, 0x4);
+//	GET(AircraftClass*, pAircraft, ESI);
+//	GET(TechnoClass*, pContact, EAX);
+//
+//	if (const auto pBld = specific_cast<BuildingClass*>(pContact)) {
+//
+//		const auto pExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+//		const auto nIdx = pBld->FindLinkIndex(pAircraft);
+//
+//		if (!pExt->DockPoseDir.empty() && nIdx != -1) {
+//			R->EAX(pExt->DockPoseDir[nIdx]);
+//			return SetFromValue; //we return here , similar to Rules->PoseDir
+//		}
+//	}
+//	else if (TechnoTypeExt::ExtMap.Find(pAircraft->Type))
+//	{
+//
+//	}
+//
+//	//original game code , this can be return 0 , but i prefer doing it this way !
+//	const auto nRaw = pContact->PrimaryFacing.Current().Raw;
+//	R->EAX(&nRaw); // this will be depointer later
+//	return SetFromCurrent;
+//}
 
 //DEFINE_HOOK(0x41B793, IFlyControl_LandDirection_SomeCond, 0x8)
 //{
@@ -237,11 +201,11 @@ DEFINE_HOOK(0x41B780, IFlyControl_LandDirection_InRadioContact , 0x5)
 //	return 0x41B797;
 //}
 
-DEFINE_HOOK(0x41B7B7, IFlyControl_LandDirection_PoseDir, 0x5)
-{
-	R->EAX(abs(RulesClass::Instance->PoseDir));
-	return 0x41B7BC;
-}
+//DEFINE_HOOK(0x41B7B7, IFlyControl_LandDirection_PoseDir, 0x5)
+//{
+//	R->EAX(abs(RulesClass::Instance->PoseDir));
+//	return 0x41B7BC;
+//}
 
 //DEFINE_HOOK(0x4CFA07, FlyLocomotionClass_LandingFacing, 0x5)
 //{

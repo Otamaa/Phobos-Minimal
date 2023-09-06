@@ -337,6 +337,12 @@ public:
 		NullableIdx<VocClass> CanRemoveParasytes_ReportSound { };
 		Nullable<AnimTypeClass*> CanRemoveParasytes_KickOut_Anim { nullptr };
 
+		Valueable<bool> Webby { false };
+		ValueableVector<AnimTypeClass*> Webby_Anims {};
+		Valueable<int> Webby_Duration { 0 };
+		Valueable<int> Webby_Cap { -1 };
+		Valueable<int> Webby_Duration_Variation { 0 };
+
 		ExtData(WarheadTypeClass* OwnerObject) : Extension<WarheadTypeClass>(OwnerObject)
 			, AttachedEffect { OwnerObject }
 		{
@@ -369,6 +375,7 @@ public:
 		void ApplyAttachTag(TechnoClass* pTarget);
 		void ApplyDirectional(BulletClass* pBullet, TechnoClass* pTarget);
 
+		void applyWebby(TechnoClass* pTarget , HouseClass* pKillerHouse , TechnoClass* pKillerTech);
 		//Otamaa
 		void applyTransactMoney(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct const& coords);
 		void applyStealMoney(TechnoClass* const Owner, TechnoClass* const Target);
@@ -393,8 +400,8 @@ public:
 		void ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs);
 		void ApplyRecalculateDistanceDamage(ObjectClass* pVictim, args_ReceiveDamage* pArgs);
 		void ApplyRevengeWeapon(TechnoClass* pTarget);
-		bool ApplyCulling(TechnoClass* pSource, ObjectClass* pTarget) const;
-		void ApplyRelativeDamage(ObjectClass* pTarget, args_ReceiveDamage* pArgs) const;
+		bool applyCulling(TechnoClass* pSource, ObjectClass* pTarget) const;
+		void applyRelativeDamage(ObjectClass* pTarget, args_ReceiveDamage* pArgs) const;
 		bool GoBerzerkFor(FootClass* pVictim, int* damage);
 		bool ApplySuppressDeathWeapon(TechnoClass* pVictim);
 

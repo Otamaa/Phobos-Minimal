@@ -111,7 +111,7 @@ DEFINE_HOOK(0x5F53DB, ObjectClass_ReceiveDamage_Handled, 0xA)
 
 	ApplyHitAnim(pObject, &args);
 
-	pWHExt->ApplyRelativeDamage(pObject, &args);
+	pWHExt->applyRelativeDamage(pObject, &args);
 
 	if (!bIgnoreDefenses)
 	{
@@ -135,7 +135,7 @@ DEFINE_HOOK(0x5F53DB, ObjectClass_ReceiveDamage_Handled, 0xA)
 
 	if (!bIgnoreDefenses && args.Attacker && *args.Damage > 0)
 	{
-		if (pWHExt->ApplyCulling(args.Attacker, pObject))
+		if (pWHExt->applyCulling(args.Attacker, pObject))
 			*args.Damage = pObject->Health;
 	}
 

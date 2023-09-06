@@ -34,9 +34,7 @@
 
 #include <ArrayClasses.h>
 #include <vector>
-
-template<typename T>
-concept direct_comparable = std::is_pointer<T>::value || std::is_integral<T>::value || std::equality_comparable<T>;
+#include <Helpers/Concepts.h>
 
 template<typename T>
 class Iterator {

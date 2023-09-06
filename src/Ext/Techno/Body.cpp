@@ -556,6 +556,16 @@ bool TechnoExt::IsBountyHunter(TechnoClass* pThis)
 	return HasAbility(pThis, PhobosAbilityType::BountyHunter);
 }
 
+bool TechnoExt::IsWebImmune(TechnoClass* pThis)
+{
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (pTypeExt->ImmuneToWeb)
+		return true;
+
+	return HasAbility(pThis, PhobosAbilityType::WebbyImmune);
+}
+
 bool TechnoExt::ExtData::IsInterceptor()
 {
 	auto const pThis = this->Get();
@@ -889,6 +899,16 @@ bool TechnoExt::IsBountyHunter(Rank vet, TechnoClass* pThis)
 		return true;
 
 	return HasAbility(vet, pThis, PhobosAbilityType::BountyHunter);
+}
+
+bool TechnoExt::IsWebImmune(Rank vet, TechnoClass* pThis)
+{
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (pTypeExt->ImmuneToWeb)
+		return true;
+
+	return HasAbility(vet, pThis, PhobosAbilityType::WebbyImmune);
 }
 
 bool TechnoExt::HasAbility(Rank vet, TechnoClass* pThis, PhobosAbilityType nType)
@@ -4441,6 +4461,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 #ifdef ENABLE_HOMING_MISSILE
 		.Process(this->MissileTargetTracker)
 #endif
+		.Process(this->WebbedAnim)
 		;
 	//should put this inside techo ext , ffs
 
@@ -4449,7 +4470,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 	this->MyDiveData.Serialize(Stm);
 	//this->MyJJData.Serialize(Stm);
 	this->MySpawnSuport.Serialize(Stm);
-
+	ObjectExt::ExtData::Serialize(Stm);
 }
 
 bool TechnoExt::ExtData::InvalidateIgnorable(AbstractClass* ptr)
@@ -4480,6 +4501,7 @@ void TechnoExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(LinkedSW, ptr);
 	AnnounceInvalidPointer(OriginalPassengerOwner, ptr);
 	AnnounceInvalidPointer(LastAttacker, ptr , bRemoved);
+
 #ifdef ENABLE_HOMING_MISSILE
 	if (MissileTargetTracker)
 		MissileTargetTracker->InvalidatePointer(ptr, bRemoved);
@@ -4558,6 +4580,9 @@ DEFINE_HOOK(0x710443, TechnoClass_AnimPointerExpired_PhobosAdd, 6)
 	{
 		if (auto& pShield = pExt->Shield)
 			pShield->InvalidatePointer(pAnim, false);
+
+		if (pExt->WebbedAnim == pAnim)
+			pExt->WebbedAnim = nullptr;
 	}
 
 	return 0x0;

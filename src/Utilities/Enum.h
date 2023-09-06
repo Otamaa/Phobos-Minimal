@@ -195,6 +195,7 @@ enum class PhobosAbilityType : int
 	Assaulter = 13,
 	ParasiteImmune = 14 ,
 	BountyHunter = 15,
+	WebbyImmune = 16,
 
 	count
 };

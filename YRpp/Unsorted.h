@@ -840,6 +840,12 @@ namespace Unsorted
 
 	static constexpr constant_ptr<ColorPacker, 0x8A0DD0> ColorPackData {};
 	static constexpr reference<int, 0x8809A0> CurrentSWType {};
+    static constexpr reference<bool, 0x88099A> PowerToggleMode {};
+    static constexpr reference<bool, 0x88099B> PlanningMode {};
+    static constexpr reference<bool, 0x88099C> PlaceBeaconMode {};
+	static constexpr reference<DWORD , 0x880994> unknown_11AC {};
+	static constexpr reference<void*, 0x880990> CurrentBuildingType {};
+	static constexpr reference<void*, 0x88098C> CurrentBuilding {};
 
 	static constexpr const int except_txt_length = 0xFFFF;
 	static constexpr constant_ptr<char, 0x8A3A08> except_txt_content {};

@@ -6,6 +6,7 @@
 #include <BuildingClass.h>
 
 #include <Ext/Anim/Body.h>
+#include <Ext/Techno/Body.h>
 
 #include <FootClass.h>
 
@@ -13,55 +14,152 @@
 
 #include <Misc/PhobosGlobal.h>
 
-/*
-*	Otamaa : Nedd storage for `AlphaShapeClass` pointer for later check
-*			 ObjectClass 0x28 seems used by something also
-*			 Ext cant be implemented without changing everything too ..
-*/
+#define new_s
+
+#ifndef new_s
+PhobosMap<ObjectClass*, AlphaShapeClass*> AlphaExt {};
+#endif
 #pragma warning( push )
 #pragma warning (disable : 4245)
 #pragma warning (disable : 4838)
-//DEFINE_DISABLE_HOOK(0x5F3D65, ObjectClass_DTOR_ares)
-//DEFINE_DISABLE_HOOK(0x421730, AlphaShapeClass_SDDTOR_ares)
-//DEFINE_DISABLE_HOOK(0x420960, AlphaShapeClass_CTOR_ares)
+DEFINE_DISABLE_HOOK(0x420960, AlphaShapeClass_CTOR_ares)
+DEFINE_DISABLE_HOOK(0x421730, AlphaShapeClass_SDDTOR_ares)
 #pragma warning( pop )
+
+
+void NOINLINE ReplaceAlpha(ObjectClass* pOject, AlphaShapeClass* pNew)
+{
+#ifdef new_s
+	if (!pOject)
+		return;
+
+	if ((pOject->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None) {
+
+		if(auto pTechnoExt = TechnoExt::ExtMap.Find((TechnoClass*)pOject)) {
+
+			//remove old alpha
+			if(pTechnoExt->AttachedAlpha) {
+				GameDelete<true, false>(pTechnoExt->AttachedAlpha);
+				pTechnoExt->AttachedAlpha = nullptr;
+			}
+
+			pTechnoExt->AttachedAlpha = pNew;
+		}
+	}
+	else if (pOject->WhatAmI() == AnimClass::AbsID)
+	{
+		if (auto pAnimExt = AnimExt::ExtMap.Find((AnimClass*)pOject)) {
+
+			//remove old alpha
+			if (pAnimExt->AttachedAlpha)
+			{
+				GameDelete<true, false>(pAnimExt->AttachedAlpha);
+				pAnimExt->AttachedAlpha = nullptr;
+			}
+
+			pAnimExt->AttachedAlpha = pNew;
+		}
+	}
+#else
+
+	if(auto pAlpha = AlphaExt.get_or_default(pOject))
+		GameDelete<true, false>(pAlpha);
+
+	AlphaExt[pOject] = pNew;
+#endif
+}
+
+void NOINLINE RemoveAlpha(TechnoClass* pTech)
+{
+	auto pTechnoExt = TechnoExt::ExtMap.Find(pTech);
+
+	//remove old alpha
+	if (pTechnoExt && pTechnoExt->AttachedAlpha)
+	{
+		GameDelete<true, false>(pTechnoExt->AttachedAlpha);
+		pTechnoExt->AttachedAlpha = nullptr;
+	}
+}
+
+void NOINLINE RemoveAplha(ObjectClass* pOject)
+{
+#ifdef new_s
+
+	if (!pOject)
+		return;
+
+	if ((pOject->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
+	{
+		RemoveAlpha((TechnoClass*)pOject);
+	}
+	else if (pOject->WhatAmI() == AnimClass::AbsID)
+	{
+		if(auto pAnimExt = AnimExt::ExtMap.Find((AnimClass*)pOject)){
+
+			//remove old alpha
+			if (pAnimExt->AttachedAlpha) {
+				GameDelete<true, false>(pAnimExt->AttachedAlpha);
+				pAnimExt->AttachedAlpha = nullptr;
+			}
+		}
+	}
+#else
+	if (auto pAlpha = AlphaExt.get_or_default(pOject))
+		GameDelete<true, false>(pAlpha);
+#endif
+}
+
+NOINLINE AlphaShapeClass* GetAlpha(ObjectClass* pOject)
+{
+#ifdef new_s
+	if ((pOject->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
+	{
+		if(const auto pExt = TechnoExt::ExtMap.Find((TechnoClass*)pOject))
+			return pExt->AttachedAlpha;
+	}
+	else if (pOject->WhatAmI() == AnimClass::AbsID)
+	{
+		if (const auto pExt = AnimExt::ExtMap.Find((AnimClass*)pOject))
+			return pExt->AttachedAlpha;
+	}
+
+	return nullptr;
+
+#else
+	return AlphaExt.get_or_default(pOject);
+#endif
+}
 
 DEFINE_OVERRIDE_HOOK(0x420960, AlphaShapeClass_CTOR, 5)
 {
 	GET_STACK(ObjectClass*, pSource, 0x4);
-	GET(AlphaShapeClass*, pAlpha, ECX);
+	GET(AlphaShapeClass*, pThis, ECX);
 
-	if (auto pOldAlpha = PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pSource))
-	{
-		GameDelete(pOldAlpha);
-		// pSource is erased from map
-	}
+	ReplaceAlpha(pSource, pThis);
 
-	PhobosGlobal::Instance()->ObjectLinkedAlphas[pSource] = pAlpha;
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x421730, AlphaShapeClass_SDDTOR, 8)
-{
-	GET(AlphaShapeClass*, pAlpha, ECX);
-	PhobosGlobal::Instance()->ObjectLinkedAlphas.erase(pAlpha->AttachedTo);
-	return 0;
-}
+//DEFINE_OVERRIDE_HOOK(0x421730, AlphaShapeClass_SDDTOR, 8)
+//{
+//	GET(AlphaShapeClass*, pAlpha, ECX);
+//	AlphaExt.erase(pAlpha->AttachedTo);
+//	return 0;
+//}
 
 DEFINE_OVERRIDE_HOOK(0x5F3D65, ObjectClass_DTOR, 6)
 {
 	GET(ObjectClass*, pThis, ESI);
 
-	if (auto pAlpha = PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pThis)) {
-		GameDelete(pAlpha);
-		// pThis is erased from map
-	}
-
+	RemoveAplha(pThis);
 	return 0;
 }
 
 void NOINLINE UpdateObjectAlpha(ObjectClass* pSource)
 {
+	if (!pSource->IsAlive)
+		return;
+
 	ObjectTypeClass* pSourceType = pSource->GetType();
 
 	if (!pSourceType) {
@@ -79,11 +177,11 @@ void NOINLINE UpdateObjectAlpha(ObjectClass* pSource)
 	Point2D off = { ScreenArea.X - (pImage->Width / 2), ScreenArea.Y - (pImage->Height / 2) };
 	Point2D xy;
 
-	if (AlphaShapeClass* pAlpha_ = PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pSource))
+	if (AlphaShapeClass* pAlpha_ = GetAlpha(pSource))
 	{
 		if (pSource->InLimbo || !pSource->IsAlive)
 		{
-			GameDelete(pAlpha_);
+			RemoveAplha(pSource);
 			return;
 		}
 
@@ -129,7 +227,7 @@ void NOINLINE UpdateObjectAlpha(ObjectClass* pSource)
 		{
 			if(pTechno->Deactivated)
 			{
-				GameDelete(pAlpha_);
+				RemoveAlpha(pTechno);
 				return;
 			}
 
@@ -137,13 +235,11 @@ void NOINLINE UpdateObjectAlpha(ObjectClass* pSource)
 			{
 				if (pBld->GetCurrentMission() != Mission::Construction && !pBld->IsPowerOnline())
 				{
-					GameDelete(pAlpha_);
+					RemoveAlpha(pBld);
 					return;
 				}
 			}
 		}
-
-
 	}
 	else
 	{

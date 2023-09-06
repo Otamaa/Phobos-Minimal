@@ -21,6 +21,7 @@ void HouseTypeExt::ExtData::InheritSettings(HouseTypeClass* pThis)
 			this->ParachuteAnim = ParentData->ParachuteAnim;
 			this->StartInMultiplayer_WithConst = ParentData->StartInMultiplayer_WithConst;
 			this->Powerplants = ParentData->Powerplants;
+			this->VeteranBuildings = ParentData->VeteranBuildings;
 		}
 	}
 
@@ -69,6 +70,7 @@ void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr
 	this->ParachuteAnim.Read(exINI, pSection, "Parachute.Anim" , true);
 	this->StartInMultiplayer_WithConst.Read(exINI, pSection, "StartInMultiplayer.WithConst");
 	this->Powerplants.Read(exINI, pSection, "AI.PowerPlants", true);
+	this->VeteranBuildings.Read(exINI, pSection, "VeteranBuildings", true);
 }
 
 Iterator<BuildingTypeClass*> HouseTypeExt::ExtData::GetPowerplants() const
@@ -126,6 +128,7 @@ void  HouseTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->ParachuteAnim)
 		.Process(this->StartInMultiplayer_WithConst)
 		.Process(this->Powerplants)
+		.Process(this->VeteranBuildings)
 		;
 }
 

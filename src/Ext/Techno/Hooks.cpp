@@ -27,6 +27,18 @@
 
 #include <Misc/AresData.h>
 
+DEFINE_HOOK(0x518FBC, InfantryClass_DrawIt_DontRenderSHP, 0x6)
+{
+	enum { SkipDrawCode = 0x5192B5 };
+
+	GET(InfantryClass*, pThis, EBP);
+
+	if (TechnoExt::ExtMap.Find(pThis)->IsWebbed && pThis->ParalysisTimer.GetTimeLeft() > 0)
+		return SkipDrawCode;
+
+	return 0;
+}
+
 DEFINE_HOOK(0x4483C0, BuildingClass_SetOwningHouse_MuteSound, 0x6)
 {
 	GET(BuildingClass* const, pThis, ESI);

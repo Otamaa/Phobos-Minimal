@@ -31,7 +31,8 @@ std::array<const char* const, (size_t)PhobosAbilityType::count> EnumFunctions::P
 	{ "ABDUCTORIMMUNE" } ,
 	{ "ASSAULTER" } ,
 	{ "PARASITEIMMUNE" } ,
-	{ "BOUNTYHUNTER" }
+	{ "BOUNTYHUNTER" } ,
+	{ "WEBIMMUNE" }
  }
 };
 

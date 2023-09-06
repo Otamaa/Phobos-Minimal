@@ -59,6 +59,26 @@ DEFINE_HOOK(0x728E5F, TunnelLocomotionClass_Process_RestoreAnims, 0x7)
 	return 0;
 }
 
+void UpdateWebbed(FootClass* pThis)
+{
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
+
+	if (!pExt->IsWebbed)
+		return;
+
+	if (auto pInf = specific_cast<InfantryClass*>(pThis)){
+		if (pInf->ParalysisTimer.Completed()) {
+
+			pExt->IsWebbed = false;
+
+			if (pExt->WebbedAnim) {
+				pExt->WebbedAnim->UnInit();
+				pExt->WebbedAnim = nullptr;
+			}
+		}
+	}
+}
+
 DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 {
 	enum { retDead = 0x6FB004 , Continue = 0x0};
@@ -251,6 +271,7 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 	auto pExt = TechnoExt::ExtMap.Find(pThis);
 
 	 DriveDataFunctional::AI(pExt);
+	 UpdateWebbed(pThis);
 
 	if (IsMovingNow)
 	{

@@ -2715,7 +2715,7 @@ DEFINE_HOOK(0x629BB2, ParasiteClass_UpdateSquiddy_Culling, 0x8)
 
 	enum { ApplyDamage = 0x629D19, GainExperience = 0x629BF3, SkipGainExperience = 0x629C5D };
 
-	if (!WarheadTypeExt::ExtMap.Find(pWH)->ApplyCulling(pThis->Owner, pThis->Victim))
+	if (!WarheadTypeExt::ExtMap.Find(pWH)->applyCulling(pThis->Owner, pThis->Victim))
 		return ApplyDamage;
 
 	return pThis->Owner && pThis->Owner->Owner && pThis->Owner->Owner->IsAlliedWith_(pThis->Victim)

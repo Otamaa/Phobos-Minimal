@@ -4,6 +4,7 @@
 #include <HouseClass.h>
 
 #include <Utilities/EnumFunctions.h>
+#include <Ext/Anim/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <New/Type/ArmorTypeClass.h>
@@ -413,6 +414,12 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	this->CanRemoveParasytes_ReportSound.Read(exINI, pSection, "CanRemoveParasytes.ReportSound");
 	this->CanRemoveParasytes_KickOut_Anim.Read(exINI, pSection, "CanRemoveParasytes.KickOut.Anim");
 
+	this->Webby.Read(exINI, pSection, "Webby");
+	this->Webby_Anims.Read(exINI, pSection, "Webby.Anims");
+	this->Webby_Duration.Read(exINI, pSection, "Webby.Duration");
+	this->Webby_Cap.Read(exINI, pSection, "Webby.Cap");
+	this->Webby_Duration_Variation.Read(exINI, pSection, "Webby.DurationVariation");
+
 #pragma endregion
 
 	if (this->InflictLocomotor && pThis->Locomotor == _GUID())
@@ -681,7 +688,98 @@ bool WarheadTypeExt::ExtData::CanTargetHouse(HouseClass* pHouse, TechnoClass* pT
 	return true;
 }
 
-bool WarheadTypeExt::ExtData::ApplyCulling(TechnoClass* pSource, ObjectClass* pTarget) const
+void WarheadTypeExt::ExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKillerHouse, TechnoClass* pKillerTech)
+{
+	if (!this->Webby || this->Webby_Duration == 0)
+		return;
+
+	if (auto pInf = specific_cast<InfantryClass*>(pTarget))
+	{
+		if (TechnoExt::IsWebImmune(pInf))
+			return;
+
+		const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pInf->Type);
+		const auto pAnim = pTechnoTypeExt->Webby_Anims.GetElements(this->Webby_Anims);
+
+		if (pAnim.empty())
+			return;
+
+		const auto durVar = pTechnoTypeExt->Webby_Duration_Variation.Get(this->Webby_Duration_Variation);
+
+		// duration modifier
+		int duration = this->Webby_Duration;
+		int durMin = this->Webby_Duration - durVar;
+		int durMax = this->Webby_Duration + durVar;
+
+
+		int getDur = ScenarioClass::Instance->Random.RandomRanged(durMin, durMax);
+
+		if (getDur > 0)
+			getDur *= pTechnoTypeExt->Webby_Modifier;
+
+		// get the values
+		auto pExt = TechnoExt::ExtMap.Find(pInf);
+		int oldValue = (!pExt->IsWebbed || pInf->ParalysisTimer.Expired() ? 0 : pInf->ParalysisTimer.GetTimeLeft());
+		int newValue = Helpers::Alex::getCappedDuration(oldValue, duration, this->Webby_Cap);
+
+		// update according to oldval
+		if (oldValue <= 0)
+		{
+			// start effect?
+			if (newValue > 0)
+			{
+				if (pInf->Locomotor && pInf->Locomotor->Is_Moving())
+					pInf->Locomotor->Stop_Moving();
+
+				pExt->IsWebbed = true;
+				pInf->ParalysisTimer.Start(newValue);
+
+				if(!pExt->WebbedAnim) {
+					AnimTypeClass* pAnimType = pAnim[ScenarioClass::Instance->Random.RandomFromMax(pAnim.size() - 1)];
+					pExt->WebbedAnim = GameCreate<AnimClass>(pAnimType, pInf->Location, 0, 1, 0x600, 0, false);
+					pExt->WebbedAnim->SetOwnerObject(pInf);
+					AnimExt::SetAnimOwnerHouseKind(pExt->WebbedAnim, pKillerHouse, pInf->Owner, pKillerTech, false);
+				} else {
+					AnimExt::SetAnimOwnerHouseKind(pExt->WebbedAnim, pKillerHouse, pInf->Owner, pKillerTech, false);
+				}
+			}
+		}
+		else
+		{
+			// is already on.
+			if (newValue > 0)
+			{
+				// set new length and reset the anim ownership
+				pInf->ParalysisTimer.Start(newValue);
+
+				if(pExt->WebbedAnim)
+					AnimExt::SetAnimOwnerHouseKind(pExt->WebbedAnim, pKillerHouse, pInf->Owner, pKillerTech, false);
+				else
+				{
+					AnimTypeClass* pAnimType = pAnim[ScenarioClass::Instance->Random.RandomFromMax(pAnim.size() - 1)];
+					pExt->WebbedAnim = GameCreate<AnimClass>(pAnimType, pInf->Location, 0, 1, 0x600, 0, false);
+					pExt->WebbedAnim->SetOwnerObject(pInf);
+					AnimExt::SetAnimOwnerHouseKind(pExt->WebbedAnim, pKillerHouse, pInf->Owner, pKillerTech, false);
+				}
+			}
+			else //turn off
+			{
+				if (pExt->IsWebbed){
+					pExt->IsWebbed = false;
+					pInf->ParalysisTimer.Stop();
+				}
+
+				if (pExt->WebbedAnim)
+				{
+					pExt->WebbedAnim->UnInit();
+					pExt->WebbedAnim = nullptr;
+				}
+			}
+		}
+	}
+}
+
+bool WarheadTypeExt::ExtData::applyCulling(TechnoClass* pSource, ObjectClass* pTarget) const
 {
 	auto const pThis = OwnerObject();
 
@@ -745,7 +843,7 @@ int NOINLINE GetRelativeValue(ObjectClass* pTarget, WarheadTypeExt::ExtData* pWH
 	return 0;
 }
 
-void WarheadTypeExt::ExtData::ApplyRelativeDamage(ObjectClass* pTarget, args_ReceiveDamage* pArgs) const
+void WarheadTypeExt::ExtData::applyRelativeDamage(ObjectClass* pTarget, args_ReceiveDamage* pArgs) const
 {
 	if (!this->RelativeDamage)
 		return;
@@ -1208,6 +1306,12 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->CanRemoveParasytes_KickOut_Paralysis)
 		.Process(this->CanRemoveParasytes_ReportSound)
 		.Process(this->CanRemoveParasytes_KickOut_Anim)
+
+		.Process(this->Webby)
+		.Process(this->Webby_Anims)
+		.Process(this->Webby_Duration)
+		.Process(this->Webby_Cap)
+		.Process(this->Webby_Duration_Variation)
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 

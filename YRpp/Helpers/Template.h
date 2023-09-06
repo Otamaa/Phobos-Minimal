@@ -61,7 +61,7 @@ public:
 
 // invalid pointers
 
-template<typename T> requires NotAVec<T>
+template<typename T>
 void AnnounceInvalidPointer(T &elem, void *ptr) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
 	if(ptr == static_cast<void*>(elem)) {
@@ -69,7 +69,7 @@ void AnnounceInvalidPointer(T &elem, void *ptr) {
 	}
 }
 
-template<typename T> requires NotAVec<T>
+template<typename T>
 void AnnounceInvalidPointer(T& elem, void* ptr , bool removed) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
 	if (removed && ptr == static_cast<void*>(elem)) {
