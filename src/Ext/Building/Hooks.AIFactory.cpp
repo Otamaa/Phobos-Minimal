@@ -113,7 +113,8 @@ void GetTypeToProduce(HouseClass* pThis, int& ProducingTypeIndex)
 	{
 		auto const TT = TType::Array->Items[static_cast<int>(i)];
 		int CurrentValue = Values[i];
-		if (CurrentValue <= 0 || pThis->CanBuild(TT, false, false) == CanBuildResult::Unbuildable
+		if (CurrentValue <= 0
+			|| pThis->CanBuild(TT, false, false) == CanBuildResult::Unbuildable
 			|| TT->GetActualCost(pThis) > pThis->Available_Money())
 		{
 			continue;

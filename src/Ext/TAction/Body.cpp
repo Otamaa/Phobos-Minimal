@@ -63,7 +63,7 @@ bool TActionExt::MessageForSpecifiedHouse(TActionClass* pThis, HouseClass* pHous
 		}
 
 		if (housesListIdx.size() > 0)
-			houseIdx = housesListIdx.at(ScenarioClass::Instance->Random.RandomRanged(0, housesListIdx.size() - 1));
+			houseIdx = housesListIdx[(ScenarioClass::Instance->Random.RandomFromMax(housesListIdx.size() - 1))];
 		else
 			return true;
 	}
@@ -986,7 +986,7 @@ bool TActionExt::RandomTriggerEnable(TActionClass* pThis, HouseClass* pHouse, Ob
 	if (!nPools.contains(iPoolID) || !nPools.count(iPoolID))
 		return true;
 
-	auto& nPool = nPools.at(iPoolID);
+	auto& nPool = nPools[iPoolID];
 
 	if (nPool.empty())
 		return true;
@@ -1018,7 +1018,7 @@ bool TActionExt::RandomTriggerRemove(TActionClass* pThis, HouseClass* pHouse, Ob
 	if (!nPools.contains(iPoolID) || !nPools.count(iPoolID))
 		return true;
 
-	auto& nPool = nPools.at(iPoolID);
+	auto& nPool = nPools[iPoolID];
 	auto const iter = std::find_if(nPool.begin(), nPool.end(),
 		[&](auto const pTrigger) { return pTrigger == pTarget; });
 

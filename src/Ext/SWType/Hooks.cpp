@@ -21,6 +21,16 @@
 #include "NewSuperWeaponType/Dominator.h"
 #pragma endregion
 
+DEFINE_HOOK(0x55AFB3, LogicClass_Update_Early, 0x6)
+{
+	SWStateMachine::UpdateAll();
+	for (auto pHouse : *HouseClass::Array)
+	{
+		HouseExt::ExtMap.Find(pHouse)->UpdateAutoDeathObjects();
+	}
+	return 0x0;
+}
+
 DEFINE_OVERRIDE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 {
 	GET(SuperClass* const, pSuper, ECX);

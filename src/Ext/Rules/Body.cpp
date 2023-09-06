@@ -148,7 +148,6 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->Vehicles_DefaultDigitalDisplayTypes.Read(iniEX, GameStrings::AudioVisual, "Vehicles.DefaultDigitalDisplayTypes");
 	pData->Aircraft_DefaultDigitalDisplayTypes.Read(iniEX, GameStrings::AudioVisual, "Aircraft.DefaultDigitalDisplayTypes");
 
-
 	if (pINI->ReadString("GlobalControls", "AllowBypassBuildLimit", "", Phobos::readBuffer))
 	{
 		bool temp[3] = {};

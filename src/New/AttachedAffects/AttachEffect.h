@@ -85,7 +85,7 @@ public:
 	{
 		for (size_t i = 0; i < Array.size(); ++i)
 		{
-			auto& pThis = Array.at(i);
+			auto& pThis = Array[i];
 
 			if (pThis->m_AttachedTo == ptr)
 				Array.erase(Array.begin() + i);

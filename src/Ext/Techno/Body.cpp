@@ -3849,24 +3849,24 @@ void TechnoExt::ExtData::UpdateAircraftOpentopped()
 
 void TechnoExt::ExtData::DepletedAmmoActions()
 {
-	auto const pThis = this->OwnerObject();
-	auto const pType = pThis->GetTechnoType();
-	if ((pThis->WhatAmI() != AbstractType::Unit) || (pType->Ammo <= 0))
+	const auto pUnit = abstract_cast<UnitClass*>(this->OwnerObject());
+
+	if (!pUnit || (pUnit->Type->Ammo <= 0) || !pUnit->Type->IsSimpleDeployer)
 		return;
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(Type);
-	auto const pUnit = abstract_cast<UnitClass*>(pThis);
-
-	if (!pUnit->Type->IsSimpleDeployer)
-		return;
 
 	const bool skipMinimum = pTypeExt->Ammo_AutoDeployMinimumAmount < 0;
-	const bool moreThanMinimum = pThis->Ammo >= pTypeExt->Ammo_AutoDeployMinimumAmount;
 	const bool skipMaximum = pTypeExt->Ammo_AutoDeployMaximumAmount < 0;
-	const bool lessThanMaximum = pThis->Ammo <= pTypeExt->Ammo_AutoDeployMaximumAmount;
+
+	if (skipMinimum && skipMaximum)
+		return;
+
+	const bool moreThanMinimum = pUnit->Ammo >= pTypeExt->Ammo_AutoDeployMinimumAmount;
+	const bool lessThanMaximum = pUnit->Ammo <= pTypeExt->Ammo_AutoDeployMaximumAmount;
 
 	if ((skipMinimum || moreThanMinimum) && (skipMaximum || lessThanMaximum))
-		pThis->QueueMission(Mission::Unload, true);
+		pUnit->QueueMission(Mission::Unload, true);
 }
 
 void TechnoExt::ExtData::UpdateLaserTrails()

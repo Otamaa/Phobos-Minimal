@@ -14,13 +14,17 @@ void UnitDeployConvertHelpers::RemoveDeploying(REGISTERS* R)
 	const bool canDeploy = pThis->CanDeploySlashUnload();
 
 	R->AL(canDeploy);
-
 	if (!canDeploy)
 		return;
 
 	const bool skipMinimum = pThisType->Ammo_DeployUnlockMinimumAmount < 0;
+	const bool skipMaximum = pThisType->Ammo_DeployUnlockMaximumAmount < 0;
+
+	if (skipMinimum && skipMaximum)
+		return;
+
+
 	const bool moreThanMinimum = pThis->Ammo >= pThisType->Ammo_DeployUnlockMinimumAmount;
-	const bool skipMaximum = pThisType->Ammo_AutoDeployMaximumAmount < 0;
 	const bool lessThanMaximum = pThis->Ammo <= pThisType->Ammo_DeployUnlockMaximumAmount;
 
 	if ((skipMinimum || moreThanMinimum) && (skipMaximum || lessThanMaximum))

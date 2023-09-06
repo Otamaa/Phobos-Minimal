@@ -29,16 +29,6 @@ public:
 class Prereqs
 {
 public:
-	using BTypeIter = std::pair<BuildingTypeClass**, int>;
-	using IntIter = std::pair<int* , int>;
-
-	static inline bool IterContains(BuildingTypeClass** items, int size, BuildingTypeClass* other)
-	{
-		return std::any_of(items, items + size, [&](BuildingTypeClass* item)
-		{
-			return item == other;
-		});
-	}
 
 	static bool HouseOwnsGeneric(HouseClass const* pHouse, int Index);
 	static bool HouseOwnsSpecific(HouseClass const* pHouse, int Index);

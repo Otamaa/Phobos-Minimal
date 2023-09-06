@@ -593,7 +593,7 @@ public:
 		Valueable<int> Survivors_PilotCount { -1 }; //!< Defines the number of pilots inside this vehicle if Crewed=yes; maximum number of pilots who can survive. Defaults to 0 if Crewed=no; defaults to 1 if Crewed=yes. // NOTE: Flag in INI is called Survivor.Pilots
 		std::vector<InfantryTypeClass*> Survivors_Pilots {};
 
-		Nullable<int> Ammo_AddOnDeploy { };
+		Valueable<int> Ammo_AddOnDeploy { 0 };
 		Valueable<int> Ammo_AutoDeployMinimumAmount { -1 };
 		Valueable<int> Ammo_AutoDeployMaximumAmount { -1 };
 		Valueable<int> Ammo_DeployUnlockMinimumAmount { -1 };

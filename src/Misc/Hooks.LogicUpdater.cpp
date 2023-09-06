@@ -209,6 +209,109 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
 	return 0x414DA8;
 }
 
+DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
+{
+	GET(FootClass*, pThis, ESI);
+	GET8(bool, IsMovingNow, AL);
+
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
+
+	 DriveDataFunctional::AI(pExt);
+	 UpdateWebbed(pThis);
+
+	if (IsMovingNow)
+	{
+		// LaserTrails update routine is in TechnoClass::AI hook because TechnoClass::Draw
+		// doesn't run when the object is off-screen which leads to visual bugs - Kerbiter
+		pExt->UpdateLaserTrails();
+
+		TrailsManager::AI(static_cast<TechnoClass*>(pThis));
+
+		return 0x4DA6A0;
+	}
+
+	return 0x4DA7B0;
+}
+
+// this updated after TechnoClass::AI
+// then check if the techno itself is still active/alive/present
+DEFINE_HOOK(0x43FE69, BuildingClass_AI_Add, 0xA)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	if (const auto pExt = BuildingExt::ExtMap.TryFind(pThis)) {
+		pExt->DisplayIncomeString();
+		pExt->UpdatePoweredKillSpawns();
+		pExt->UpdateAutoSellTimer();
+	}
+
+	return 0x0;
+}
+
+// Ares-hook jmp to this offset
+DEFINE_HOOK(0x71A88D, TemporalClass_AI_Add, 0x8) //0
+{
+	GET(TemporalClass*, pThis, ESI);
+
+	if (auto const pTarget = pThis->Target)
+	{
+		if (pTarget->IsMouseHovering)
+			pTarget->IsMouseHovering = false;
+
+		auto const pTargetExt = TechnoExt::ExtMap.Find(pTarget);
+
+		if (const auto pShieldData = pTargetExt->GetShield())
+		{
+			if (pShieldData->IsAvailable())
+				pShieldData->OnTemporalUpdate(pThis);
+		}
+
+		//pTargetExt->UpdateFireSelf();
+		//pTargetExt->UpdateRevengeWeapons();
+
+		if (auto pBldTarget = specific_cast<BuildingClass*>(pTarget))
+		{
+			auto pExt = BuildingExt::ExtMap.Find(pBldTarget);
+
+			std::array<std::pair<BuildingTypeClass*, CDTimerClass*>, 4u> Timers
+			{ {
+			{ pBldTarget->Type , &pBldTarget->CashProductionTimer },
+			{ pBldTarget->Upgrades[0] ,&pExt->CashUpgradeTimers[0] },
+			{ pBldTarget->Upgrades[1] ,&pExt->CashUpgradeTimers[1] },
+			 { pBldTarget->Upgrades[2] ,&pExt->CashUpgradeTimers[2] },
+			} };
+
+			for (auto& [pbld, timer] : Timers)
+			{
+				if (pbld)
+					timer->Pause();
+			}
+		}
+	}
+
+	// Recovering vanilla instructions that were broken by a hook call
+	return R->EAX<int>() <= 0 ? 0x71A895 : 0x71AB08;
+}
+
+//DEFINE_HOOK_AGAIN(0x6FAFFD, TechnoClass_LateUpdate,  7)
+//DEFINE_HOOK(0x6FAF7A, TechnoClass_LateUpdate, 7)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//
+//	return 0;
+//}
+
+//DEFINE_HOOK_AGAIN(0x44055D, TechnoClass_WarpUpdate , 6) //Building
+//DEFINE_HOOK_AGAIN(0x51BBDF, TechnoClass_WarpUpdate , 6) //Infantry
+//DEFINE_HOOK_AGAIN(0x736321, TechnoClass_WarpUpdate , 6) //Unit
+//DEFINE_HOOK(0x414CF2, TechnoClass_WarpUpdate ,6) //Aircraft
+//// If pObject.Is_Being_Warped() is ture, will skip Foot::AI and Techno::AI
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//	return 0;
+//}
+
+
 //DEFINE_HOOK(0x736479, UnitClass_AI_FootClass_AI, 0x7)
 //{
 //	GET(UnitClass*, pThis, ESI);
@@ -262,118 +365,6 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
 //	//return pThis->IsLocked ? 0x4DA677 : 0x4DA643;
 //	return 0;
 //}
-
-DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
-{
-	GET(FootClass*, pThis, ESI);
-	GET8(bool, IsMovingNow, AL);
-
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
-
-	 DriveDataFunctional::AI(pExt);
-	 UpdateWebbed(pThis);
-
-	if (IsMovingNow)
-	{
-		// LaserTrails update routine is in TechnoClass::AI hook because TechnoClass::Draw
-		// doesn't run when the object is off-screen which leads to visual bugs - Kerbiter
-		pExt->UpdateLaserTrails();
-
-		TrailsManager::AI(static_cast<TechnoClass*>(pThis));
-
-		return 0x4DA6A0;
-	}
-
-	return 0x4DA7B0;
-}
-
-// this updated after TechnoClass::AI
-// then check if the techno itself is still active/alive/present
-DEFINE_HOOK(0x43FE69, BuildingClass_AI_Add, 0xA)
-{
-	GET(BuildingClass*, pThis, ESI);
-
-	if (const auto pExt = BuildingExt::ExtMap.TryFind(pThis)) {
-		pExt->DisplayIncomeString();
-		pExt->UpdatePoweredKillSpawns();
-		pExt->UpdateAutoSellTimer();
-	}
-
-	return 0x0;
-}
-
-#include <Ext/SWType/NewSuperWeaponType/SWStateMachine.h>
-
-DEFINE_HOOK(0x55AFB3, LogicClass_Update_Early, 0x6)
-{
-	SWStateMachine::UpdateAll();
-	for (auto pHouse : *HouseClass::Array) {
-		HouseExt::ExtMap.Find(pHouse)->UpdateAutoDeathObjects();
-	}
-	return 0x0;
-}
-
-//DEFINE_HOOK_AGAIN(0x6FAFFD, TechnoClass_LateUpdate,  7)
-//DEFINE_HOOK(0x6FAF7A, TechnoClass_LateUpdate, 7)
-//{
-//	GET(TechnoClass*, pThis, ESI);
-//
-//	return 0;
-//}
-
-//DEFINE_HOOK_AGAIN(0x44055D, TechnoClass_WarpUpdate , 6) //Building
-//DEFINE_HOOK_AGAIN(0x51BBDF, TechnoClass_WarpUpdate , 6) //Infantry
-//DEFINE_HOOK_AGAIN(0x736321, TechnoClass_WarpUpdate , 6) //Unit
-//DEFINE_HOOK(0x414CF2, TechnoClass_WarpUpdate ,6) //Aircraft
-//// If pObject.Is_Being_Warped() is ture, will skip Foot::AI and Techno::AI
-//{
-//	GET(TechnoClass*, pThis, ESI);
-//	return 0;
-//}
-
-// Ares-hook jmp to this offset
-DEFINE_HOOK(0x71A88D, TemporalClass_AI_Add, 0x8) //0
-{
-	GET(TemporalClass*, pThis, ESI);
-
-	if (auto const pTarget = pThis->Target)
-	{
-		if (pTarget->IsMouseHovering)
-			pTarget->IsMouseHovering = false;
-
-		auto const pTargetExt = TechnoExt::ExtMap.Find(pTarget);
-
-		if (const auto pShieldData = pTargetExt->GetShield())
-		{
-			if (pShieldData->IsAvailable())
-				pShieldData->OnTemporalUpdate(pThis);
-		}
-
-		//pTargetExt->UpdateFireSelf();
-		//pTargetExt->UpdateRevengeWeapons();
-
-		if(auto pBldTarget = specific_cast<BuildingClass*>(pTarget))
-		{
-			auto pExt = BuildingExt::ExtMap.Find(pBldTarget);
-
-			std::array<std::pair<BuildingTypeClass*, CDTimerClass*>, 4u> Timers
-			{ {
-		 	{ pBldTarget->Type , &pBldTarget->CashProductionTimer },
-		 	{ pBldTarget->Upgrades[0] ,&pExt->CashUpgradeTimers[0] },
-		 	{ pBldTarget->Upgrades[1] ,&pExt->CashUpgradeTimers[1] },
-			 { pBldTarget->Upgrades[2] ,&pExt->CashUpgradeTimers[2] },
-			} };
-
-			for (auto& [pbld, timer] : Timers) {
-				if (pbld)
-				timer->Pause();
-			}
-		}
-	}
-
-	// Recovering vanilla instructions that were broken by a hook call
-	return R->EAX<int>() <= 0 ? 0x71A895 : 0x71AB08;
-}
 
 //
 //DEFINE_HOOK(0x55B5FB, LogicClass_AI_AfterEMPulse, 0x6)

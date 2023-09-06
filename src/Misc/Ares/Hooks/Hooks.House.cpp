@@ -115,7 +115,7 @@ DEFINE_OVERRIDE_HOOK(0x505C95, HouseClass_GenerateAIBuildList_CountExtra, 7)
 				if (idxDifficulty < pExt->AIExtraCounts.size())
 				{
 					auto const& max = pExt->AIExtraCounts[idxDifficulty];
-					count += Random.RandomRanged(0, std::max(max, 0));
+					count += Random.RandomFromMax(std::max(max, 0));
 				}
 
 				// account for the one that already exists

@@ -244,12 +244,17 @@ bool Prereqs::HouseOwnsAny(HouseClass const* const pHouse, const DynamicVectorCl
 			return true;
 		}
 	}
+
 	return false;
 }
 
 bool Prereqs::ListContainsSpecific(BuildingTypeClass** items, int size, int const Index)
 {
-	return Prereqs::IterContains(items, size,BuildingTypeClass::Array->Items[Index]);
+	const auto lookingfor = BuildingTypeClass::Array->Items[Index];
+
+	return std::any_of(items, items + size, [&](BuildingTypeClass* item) {
+		return item == lookingfor;
+	});
 }
 
 bool Prereqs::ListContainsGeneric(BuildingTypeClass** items, int size, int const Index)
