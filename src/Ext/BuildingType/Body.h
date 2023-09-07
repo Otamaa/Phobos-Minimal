@@ -265,7 +265,7 @@ public:
 
 		NullableIdx<VocClass> EnterBioReactorSound {};
 		NullableIdx<VocClass> LeaveBioReactorSound {};
-		ValueableVector<DirType8> DockPoseDir {};
+		ValueableVector<FacingType> DockPoseDir {};
 
 		Nullable<bool> EngineerRepairable {};
 
@@ -312,7 +312,7 @@ public:
 		ValueableVector<int> AIBuildCounts {};
 		ValueableVector<int> AIExtraCounts {};
 
-		Nullable<DirType8> LandingDir {};
+		Nullable<FacingType> LandingDir {};
 
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject) {}
 		virtual ~ExtData() override = default;

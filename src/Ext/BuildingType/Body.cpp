@@ -753,7 +753,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 			for (int i = 0; i < pThis->NumberOfDocks; ++i)
 			{
 				sprintf_s(keyDock, "DockingPoseDir%d", i);
-				Valueable<DirType8> dummyDock { DirType8::North };
+				Valueable<FacingType> dummyDock { FacingType::North };
 				dummyDock.Read(exArtINI, pArtSection, keyDock);
 				BuildingTypeExt::ExtMap.Find(pThis)->DockPoseDir[i] = dummyDock.Get();
 			}

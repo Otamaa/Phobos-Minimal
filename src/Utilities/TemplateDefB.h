@@ -242,7 +242,7 @@ namespace detail
 	}
 
 	template <>
-	inline bool read<DirType8>(DirType8& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	inline bool read<FacingType>(FacingType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		if (parser.ReadString(pSection, pKey) && detail::getresult(value,parser.value(), pSection , pKey)) {
 			return true;
@@ -288,24 +288,24 @@ namespace detail
 		return false;
 	}
 
-	template <>
-	inline bool read<FacingType>(FacingType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		int buffer;
-
-		if (parser.ReadInteger(pSection, pKey, &buffer))
-		{
-			if (buffer <= (int)FacingType::Count && buffer >= (int)FacingType::None)
-			{
-				value = static_cast<FacingType>(buffer);
-				return true;
-			}
-
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid FacingType (0-7 or -1).");
-		}
-
-		return false;
-	}
+	//template <>
+	//inline bool read<FacingType>(FacingType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	//{
+	//	int buffer;
+	//
+	//	if (parser.ReadInteger(pSection, pKey, &buffer))
+	//	{
+	//		if (buffer <= (int)FacingType::Count && buffer >= (int)FacingType::None)
+	//		{
+	//			value = static_cast<FacingType>(buffer);
+	//			return true;
+	//		}
+	//
+	//		Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid FacingType (0-7 or -1).");
+	//	}
+	//
+	//	return false;
+	//}
 
 	template <>
 	inline bool read<SpotlightAttachment>(SpotlightAttachment& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)

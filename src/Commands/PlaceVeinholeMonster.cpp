@@ -34,9 +34,10 @@ void PlaceVeinholeMonster::Execute(WWKey eInput) const
 
 	if (!created)
 	{
+		//rename DUMMYOLD -> VEINS from Ts to make veins working
 		CellStruct nPos = WWMouseClass::Instance->GetCellUnderCursor();
 
-		if (VeinholeMonsterClass::IsCellEligibleForVeinHole(nPos))
+	//	if (VeinholeMonsterClass::IsCellEligibleForVeinHole(nPos))
 		{
 			auto pCell = MapClass::Instance->TryGetCellAt(nPos);
 
@@ -47,7 +48,7 @@ void PlaceVeinholeMonster::Execute(WWKey eInput) const
 			for (int i = 0; i < 8; ++i)
 			{
 				auto v11 = pCell->GetAdjacentCell((FacingType)i);
-				v11->OverlayTypeIndex = 0x7E; //dummy image -> replaced with vein ? 
+				v11->OverlayTypeIndex = 0x7E; //dummy image -> replaced with vein ?
 				;
 				v11->OverlayData = 30u; //max it out
 				v11->RedrawForVeins();

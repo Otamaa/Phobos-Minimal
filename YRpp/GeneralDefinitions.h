@@ -867,21 +867,6 @@ enum class AltCellFlags : unsigned int
 
 MAKE_ENUM_FLAGS(AltCellFlags)
 
-enum class FacingType : char
-{
-	North = 0,
-	NorthEast = 1,
-	East = 2,
-	SouthEast = 3,
-	South = 4,
-	SouthWest = 5,
-	West = 6,
-	NorthWest = 7,
-
-	limit = 7,
-	Count = 8,
-	None = -1,
-};
 
 enum class CloakState : int {
 	Uncloaked = 0,

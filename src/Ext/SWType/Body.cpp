@@ -774,8 +774,7 @@ struct TargetingFuncs
 		auto index = info.Super->Type->ArrayIndex;
 		const auto& buildings = info.Owner->Buildings;
 		// Ares < 0.9 didn't check power
-		const auto it = std::find_if(buildings.begin(),
-			buildings.end(), [index, &info , checkLauchsite](BuildingClass* pBld)
+		const auto it = buildings.find_if([index, &info , checkLauchsite](BuildingClass* pBld)
 			{
 				auto const pExt = BuildingExt::ExtMap.Find(pBld);
 				const bool IsEligibleBuilding = !checkLauchsite ?

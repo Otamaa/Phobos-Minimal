@@ -169,7 +169,7 @@ DEFINE_OVERRIDE_HOOK(0x739B8A, UnitClass_SimpleDeploy_Facing, 0x6)
 		// not sure what is the bitfrom or bitto so it generate this result
 		// yes iam dum , iam sorry - otamaa
 		const auto nRulesDeployDir = ((((RulesClass::Instance->DeployDir) >> 4) + 1) >> 1) & 7;
-		const DirType8 nRaw = pTypeExt->DeployDir.isset() ? pTypeExt->DeployDir.Get() : (DirType8)nRulesDeployDir;
+		const FacingType nRaw = pTypeExt->DeployDir.isset() ? pTypeExt->DeployDir.Get() : (FacingType)nRulesDeployDir;
 		const auto nCurrent = (((((pThis->PrimaryFacing.Current().Raw) >> 12) + 1) >> 1) & 7);
 
 		if (nCurrent != (int)nRaw)

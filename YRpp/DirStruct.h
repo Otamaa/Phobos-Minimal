@@ -6,7 +6,7 @@
 #include <Fixed.h>
 #include <YRMath.h>
 
-enum class DirType8 : unsigned char
+enum class FacingType : char
 {
 	North = 0,
 	NorthEast = 1,
@@ -17,9 +17,13 @@ enum class DirType8 : unsigned char
 	West = 6,
 	NorthWest = 7,
 
+	limit = 7,
+	Count = 8,
 	Min = 0,
 	Max = 8,
+	None = -1,
 };
+
 
 enum class DirType32 : unsigned char
 {
@@ -72,7 +76,7 @@ public:
 	explicit DirStruct(const DirType dir) noexcept : Raw { 0 }
 	{ SetDir(dir); }
 
-	explicit DirStruct(const DirType8 face) noexcept :
+	explicit DirStruct(const FacingType face) noexcept :
 		Raw { ((unsigned short)((unsigned char)face << 13 )) }
 	{ }
 

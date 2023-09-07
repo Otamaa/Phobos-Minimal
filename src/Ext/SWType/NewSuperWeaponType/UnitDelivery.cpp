@@ -177,9 +177,13 @@ void UnitDeliveryStateMachine::PlaceUnits()
 
 			// place and set up
 			auto XYZ = pCell->GetCoordsWithBridge();
-			const unsigned char dir = !facingsize || i > facingsize ? MapClass::GetCellIndex(pCell->MapCoords) & 7u : (unsigned char)pData->SW_Deliverables_Facing[i];
-
-			if (Item->Unlimbo(XYZ, DirType((dir << 13) / 255)))
+			const unsigned short dir = !facingsize || i > facingsize ? MapClass::GetCellIndex(pCell->MapCoords) & 7u : (unsigned char)pData->SW_Deliverables_Facing[i];
+			/*
+			*	DirType -> Raw (<< 8)
+			*	FacingType -> Raw (<< 13)
+			*	FacingType -> DirType ( << 5 )
+			*/
+			if (Item->Unlimbo(XYZ, DirType((dir << 5))))
 			{
 				//Debug::Log("PlaceUnits for [%s] - Owner[%s] After Unlimbo[%s] \n", pData->get_ID(), pOwner->get_ID(), pType->ID);
 
@@ -195,7 +199,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 				}
 				else
 				{
-					if (pData->SW_DeliverableScatter && (pType->BalloonHover || pType->JumpJet))
+					if (pData->SW_DeliverableScatter.Get(pType->BalloonHover || pType->JumpJet))
 						Item->Scatter(CoordStruct::Empty, true, false);
 
 					if (Item->CurrentMission == Mission::Area_Guard && !IsPlayerControlled)

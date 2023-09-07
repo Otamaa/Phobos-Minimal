@@ -280,7 +280,7 @@ bool Prereqs::ListContainsPrereq(BuildingTypeClass** items, int size, int Index)
 		;
 }
 
-bool NOINLINE Prereqs::ListContainsAll(BuildingTypeClass** items, int size, int* intitems, int intsize)
+bool Prereqs::ListContainsAll(BuildingTypeClass** items, int size, int* intitems, int intsize)
 {
 	const auto end = intitems + intsize;
 

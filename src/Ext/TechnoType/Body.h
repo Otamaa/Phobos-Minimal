@@ -498,7 +498,7 @@ public:
 
 		Valueable<double> Promote_Vet_Exp { 0.0 };
 		Valueable<double> Promote_Elite_Exp { 0.0 };
-		Nullable<DirType8> DeployDir { };
+		Nullable<FacingType> DeployDir { };
 
 		ValueableVector<TechnoTypeClass*> PassengersWhitelist { };
 		ValueableVector<TechnoTypeClass*> PassengersBlacklist { };

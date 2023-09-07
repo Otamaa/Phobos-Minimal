@@ -2232,7 +2232,6 @@ DEFINE_HOOK(0x73AED4, UnitClass_PCP_DamageSelf_C4WarheadAnimCheck, 0x8)
 	{
 		pAllocatedMem->AnimClass::AnimClass(pC4AnimType, nLoc, 0, 1, 0x2600, -15, false);
 		AnimExt::SetAnimOwnerHouseKind(pAllocatedMem, nullptr, pThis->GetOwningHouse(), true);
-
 	}
 	else
 	{
@@ -2258,6 +2257,8 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 
 	Point2D nOffs {};
 	const auto pBuilding = pTechno->WhatAmI() == BuildingClass::AbsID ? static_cast<BuildingClass*>(pTechno) : nullptr;
+	const auto pUnit = pTechno->WhatAmI() == UnitClass::AbsID ? static_cast<UnitClass*>(pTechno) : nullptr;
+
 	const auto pShape = pBuilding ?
 		pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP()) : pTypeExt->PipShapes02.Get(FileSystem::PIPS2_SHP());
 
@@ -2277,17 +2278,21 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 	constexpr int maximumStorage = sizeof(pTechno->Tiberium.Tiberiums) / sizeof(float);
 	std::vector<std::pair<int , int>> Amounts(maximumStorage);
 
+	const bool isWeeder = pBuilding ? pBuilding->Type->Weeder : pUnit ? pUnit->Type->Weeder : false;
+
 	for (size_t i = 0; i < Amounts.size(); i++) {
 
 		int FrameIdx = 0;
 		int amount = int(pTechno->Tiberium.Tiberiums[i] / nStorage * nMax + 0.5);
 
-		switch (i)
+		if (!isWeeder)
 		{
-			case 0 :
+			switch (i)
+			{
+			case 0:
 				FrameIdx = pTypeExt->Riparius_FrameIDx.Get(5);
 				break;
-			case 1 :
+			case 1:
 				FrameIdx = pTypeExt->Cruentus_FrameIDx.Get(2);
 				break;
 			case 2:
@@ -2299,6 +2304,11 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 			default:
 				FrameIdx = 2;
 				break;
+			}
+		}
+		else
+		{
+			FrameIdx = 2; //idk ?
 		}
 
 		Amounts[i] = { amount , FrameIdx };
@@ -2321,7 +2331,7 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 
 			if (Amounts[index].first > 0) {
 				--Amounts[index].first;
-				frame = frames.empty() || index >= (frames.size() - 1) ?
+				frame = isWeeder || frames.empty() || index >= (frames.size() - 1) ?
 					(Amounts[index].second) : (frames[index + 1]);
 
 				break;
@@ -4539,6 +4549,54 @@ DEFINE_HOOK(0x486920, CellClass_TriggerVein_Precheck, 0x6)
 {
 	return RulesClass::Instance->VeinAttack ? 0x0 : 0x486A6B;
 }
+
+#ifdef debug_veinstest
+DEFINE_JUMP(LJMP, 0x4869AB, 0x4869CA);
+#endif
+
+//// 7384C3 ,7385BB UnitClass take damage func
+
+//TODO , rewrite this to take custom amount
+DEFINE_HOOK(0x73D4A4, UnitClass_Harvest_IncludeWeeder, 0x6)
+{
+	enum { retFalse = 0x73D5FE , retTrue = 0x73D4DA };
+	GET(UnitTypeClass*, pType, EDX);
+	GET(UnitClass*, pThis, ESI);
+	GET(CellClass*, pCell, EBP);
+	const bool canharvest = (pType->Harvester && pCell->LandType == LandType::Tiberium) || (pType->Weeder && pCell->LandType == LandType::Weeds);
+	const bool canStoreHarvest = pThis->GetStoragePercentage() < 1.0;
+
+	return canharvest && canStoreHarvest ? retTrue : retFalse;
+}
+
+DEFINE_HOOK(0x73E9A0, UnitClass_Mi_Harvest_IncludeWeeder_1, 6)
+{
+	GET(UnitTypeClass*, pType, EDX);
+	R->AL(pType->Harvester || pType->Weeder);
+	return 0x73E9A6;
+}
+
+DEFINE_HOOK(0x730E39, GuardCommandClass_IncludeWeeder, 0x6)
+{
+	GET(UnitTypeClass*, pType, ECX);
+	R->AL(pType->Harvester || pType->Weeder);
+	return 0x730E3F;
+}
+
+DEFINE_HOOK(0x736823, UnitClass_AI_IncludeWeeder, 0x6)
+{
+	GET(UnitTypeClass*, pType, EAX);
+	R->CL(pType->Harvester || pType->Weeder);
+	return 0x736829;
+}
+
+//this one dextroy special anim : 741C32
+//DEFINE_HOOK(0x73E005, UnitClass_Mi_Unload_PlayBuildingProductionAnim_IncludeWeeder, 0x6)
+//{
+//	GET(UnitTypeClass*, pType, ECX);
+//	R->AL(pType->Harvester || pType->Weeder);
+//	return 0x73E00B;
+//}
 
 // this thing do some placement check twice
 // this can be bad because the `GrowthLogic` data inside not inited properly !

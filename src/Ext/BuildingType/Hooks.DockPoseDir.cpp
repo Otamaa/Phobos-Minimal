@@ -1,8 +1,8 @@
 #include "Body.h"
 
-NOINLINE DirType8 GetPoseDir(AircraftClass* pAir , BuildingClass* pBld)
+NOINLINE FacingType GetPoseDir(AircraftClass* pAir , BuildingClass* pBld)
 {
-	DirType8 ret = (DirType8)TechnoTypeExt::ExtMap.Find(pAir->Type)->LandingDir.Get(RulesClass::Instance->PoseDir);
+	FacingType ret = (FacingType)TechnoTypeExt::ExtMap.Find(pAir->Type)->LandingDir.Get(RulesClass::Instance->PoseDir);
 
 	if (pBld || pAir->HasAnyLink())
 	{
@@ -14,8 +14,8 @@ NOINLINE DirType8 GetPoseDir(AircraftClass* pAir , BuildingClass* pBld)
 				}
 			}
 
-			if(!pBld && pAir->RadioLinks[0] && ret < DirType8::Min) { //spawner
-				return DirType8((((pAir->PrimaryFacing.Current().Raw >> 12) + 1) >> 1) & 7);
+			if(!pBld && pAir->RadioLinks[0] && ret < FacingType::Min) { //spawner
+				return FacingType((((pAir->PrimaryFacing.Current().Raw >> 12) + 1) >> 1) & 7);
 			}
 		}
 
@@ -24,9 +24,9 @@ NOINLINE DirType8 GetPoseDir(AircraftClass* pAir , BuildingClass* pBld)
 			const int nIdx = pBld->FindLinkIndex(pAir);
 			const auto dir = &pBldTypeExt->DockPoseDir;
 
-			if (nIdx <= -1 || (size_t)nIdx >= dir->size() || ret < DirType8::Min)
+			if (nIdx <= -1 || (size_t)nIdx >= dir->size() || ret < FacingType::Min)
 			{
-				return pBldTypeExt->LandingDir.Get(DirType8((((pBld->PrimaryFacing.Current().Raw >> 12) + 1) >> 1) & 7));
+				return pBldTypeExt->LandingDir.Get(FacingType((((pBld->PrimaryFacing.Current().Raw >> 12) + 1) >> 1) & 7));
 
 			}
 			else
@@ -34,11 +34,11 @@ NOINLINE DirType8 GetPoseDir(AircraftClass* pAir , BuildingClass* pBld)
 		}
 	}
 
-	if (!pAir->Type->AirportBound && ret < DirType8::Min) {
-		return DirType8((((pAir->PrimaryFacing.Current().Raw >> 12) + 1) >> 1) & 7);
+	if (!pAir->Type->AirportBound && ret < FacingType::Min) {
+		return FacingType((((pAir->PrimaryFacing.Current().Raw >> 12) + 1) >> 1) & 7);
 	}
 
-	return std::clamp(ret, DirType8::Min, DirType8::Max);
+	return FacingType((((((int)ret) >> 4) + 1) >> 1) & 7);
 }
 
 // replace the entire function
@@ -46,7 +46,7 @@ DEFINE_HOOK(0x41B760, IFlyControl_LandDirection, 0x6)
 {
 	GET_STACK(IFlyControl*, pThis, 0x4);
 
-	const DirType8 result = GetPoseDir(static_cast<AircraftClass*>(pThis), nullptr);
+	const FacingType result = GetPoseDir(static_cast<AircraftClass*>(pThis), nullptr);
 	R->EAX(result);
 	return 0x41B7C1;
 }
@@ -76,7 +76,7 @@ DEFINE_HOOK(0x444014, BuildingClass_ExitObject_PoseDir_AirportBound, 0x5)
 	pThis->SendCommand(RadioCommand::RequestTether, pAir);
 	pAir->SetLocation(pThis->GetDockCoords(pAir));
 	pAir->DockedTo = pThis;
-	DirType8 result = GetPoseDir(pAir, pThis);
+	FacingType result = GetPoseDir(pAir, pThis);
 	const DirStruct dir { result };
 	pAir->SecondaryFacing.Set_Current(dir);
 
