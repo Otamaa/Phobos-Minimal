@@ -548,10 +548,10 @@ void NewSWType::Init()
 		RegSW(SW_DropPod, AresNewSuperType::DropPod)
 		RegSW(SW_EMPulse, AresNewSuperType::EMPulse)
 		RegSW(SW_Battery, AresNewSuperType::Battery)
-		//RegSW(SW_EMPField, AresNewSuperType::EMPField)
-		//RegSW(SW_IonCannon, AresNewSuperType::IonCannon)
-		//RegSW(SW_MeteorShower, AresNewSuperType::MeteorShower)
-		//RegSW(SW_LaserStrike , AresNewSuperType::LaserStrike)
+		RegSW(SW_EMPField, AresNewSuperType::EMPField)
+		RegSW(SW_IonCannon, AresNewSuperType::IonCannon)
+		RegSW(SW_MeteorShower, AresNewSuperType::MeteorShower)
+		RegSW(SW_LaserStrike , AresNewSuperType::LaserStrike)
 #undef RegSW
 }
 
