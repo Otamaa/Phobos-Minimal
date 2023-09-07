@@ -235,6 +235,24 @@ namespace detail
 		return false;
 	}
 
+	template <>
+	inline bool getresult<DirType8>(DirType8& value, const std::string& parser, const char* pSection, const char* pKey, bool bAllocate)
+	{
+		int nBuffer = -1;
+		if (!parser.empty())
+		{
+			if (nBuffer >= (int)DirType8::Min && nBuffer <= (int)DirType8::Max)
+			{
+				value = (DirType8)nBuffer;
+				return true;
+			}
+
+			Debug::INIParseFailed(pSection, pKey, parser.c_str(), "Expected a DirType8 between 0 and 8");
+		}
+
+		return false;
+	}
+
 #pragma endregion
 
 	template <typename T>
@@ -1429,6 +1447,21 @@ namespace detail
 		{
 			LandType buffer;
 			if (getresult<LandType>(buffer, cur, pSection, pKey, allocate))
+				vector.push_back(buffer);
+		}
+	}
+
+	template <>
+	inline void parse_values(std::vector<DirType8>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		vector.clear();
+		char* context = nullptr;
+		for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
+			cur;
+			cur = strtok_s(nullptr, Phobos::readDelims, &context))
+		{
+			DirType8 buffer;
+			if (getresult<DirType8>(buffer, cur, pSection, pKey, allocate))
 				vector.push_back(buffer);
 		}
 	}

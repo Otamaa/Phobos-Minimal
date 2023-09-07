@@ -55,37 +55,39 @@ AresAudioHelper::FileStruct AresAudioHelper::GetFile(int const index)
 	}
 }
 
+// change done
 void AudioBag::Open(const char* fileBase) {
 	char filename[0x100];
 	_snprintf_s(filename, _TRUNCATE, "%s.idx", fileBase);
 
-	auto pIndex = UniqueGamePtr<CCFileClass>(GameCreate<CCFileClass>(filename));
+	CCFileClass pIndex { filename };
 
-	if(pIndex->Exists() && pIndex->Open(FileAccessMode::Read)) {
+	if(pIndex.Exists() && pIndex.Open(FileAccessMode::Read)) {
 		_snprintf_s(filename, _TRUNCATE, "%s.bag", fileBase);
 		auto pBag = UniqueGamePtr<CCFileClass>(GameCreate<CCFileClass>(filename));
 
-		if(pBag->Exists() && pBag->Open(FileAccessMode::Read)) {
-			AudioIDXHeader headerIndex;
+		AudioIDXHeader headerIndex;
+		if(pBag->Exists()
+			&& pBag->Open(FileAccessMode::Read)
+			&& pIndex.ReadBytes(&headerIndex,sizeof(headerIndex)) == sizeof(headerIndex)) {{
 
-			if(pIndex->Read(headerIndex)) {
 				std::vector<AudioIDXEntry> entries;
 
 				if(headerIndex.numSamples > 0) {
 					entries.resize(headerIndex.numSamples, {});
 
-					constexpr auto const Size = sizeof(AudioIDXEntry);
+					constexpr auto const IdxEntrysize = sizeof(AudioIDXEntry);
 
 					if(headerIndex.Magic == 1) {
 						for(auto& entry : entries) {
-							if(!pIndex->Read(entry, Size - 4)) {
+							if(!pIndex.ReadBytes(&entry, IdxEntrysize - 4)) {
 								return;
 							}
 							entry.ChunkSize = 0;
 						}
 					} else {
-						auto const headerSize = headerIndex.numSamples * Size;
-						if(!pIndex->Read(entries[0], static_cast<int>(headerSize))) {
+						auto const headerSize = headerIndex.numSamples * IdxEntrysize;
+						if(pIndex.ReadBytes(&entries[0], static_cast<int>(headerSize)) != headerSize) {
 							return;
 						}
 					}
@@ -99,6 +101,8 @@ void AudioBag::Open(const char* fileBase) {
 	}
 }
 
+
+// there is big changes here
 AudioIDXData* AudioLuggage::Create(const char* pPath) {
 	std::map<AudioIDXEntry, CCFileClass*> map;
 
@@ -109,6 +113,7 @@ AudioIDXData* AudioLuggage::Create(const char* pPath) {
 	}
 
 	auto ret = GameCreate<AudioIDXData>();
+	static_assert(sizeof(AudioIDXData) == 0x124);
 	ret->BagFile = nullptr; // this->Bags.front().file(); // not needed
 	ret->SampleCount = static_cast<int>(map.size());
 	ret->Samples = GameCreateArray<AudioIDXEntry>(map.size());

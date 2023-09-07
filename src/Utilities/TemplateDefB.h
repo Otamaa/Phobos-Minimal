@@ -244,16 +244,8 @@ namespace detail
 	template <>
 	inline bool read<DirType8>(DirType8& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		int nBuffer = -1;
-		if (parser.ReadInteger(pSection, pKey, &nBuffer))
-		{
-			if (nBuffer >= (int)DirType8::Min && nBuffer <= (int)DirType8::Max)
-			{
-				value = (DirType8)nBuffer;
-				return true;
-			}
-
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a DirType8 between 0 and 8");
+		if (parser.ReadString(pSection, pKey) && detail::getresult(value,parser.value(), pSection , pKey)) {
+			return true;
 		}
 
 		return false;

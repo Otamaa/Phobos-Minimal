@@ -722,7 +722,7 @@ DEFINE_OVERRIDE_HOOK(0x6CC2B0, SuperClass_NameReadiness, 5)
 
 	// complete rewrite of this method.
 
-	auto text = &pData->Text_Preparing;
+	Valueable<CSFText>* text = &pData->Text_Preparing;
 
 	if (pThis->IsOnHold)
 	{
@@ -759,7 +759,7 @@ DEFINE_OVERRIDE_HOOK(0x6CC2B0, SuperClass_NameReadiness, 5)
 		}
 	}
 
-	R->EAX(text->Get().empty() ? nullptr : text->Get().Text);
+	R->EAX((*text)->empty() ? nullptr : (*text)->Text);
 	return 0x6CC352;
 }
 

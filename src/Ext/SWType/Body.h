@@ -370,6 +370,7 @@ public:
 
 #pragma region Unit Delivery
 		ValueableVector<TechnoTypeClass*> SW_Deliverables  {};
+		ValueableVector<DirType8> SW_Deliverables_Facing {};
 		Valueable<bool> SW_DeliverBuildups { true };
 		Valueable<bool> SW_BaseNormal { true };
 		Valueable<OwnerHouseKind> SW_OwnerHouse{ OwnerHouseKind::Default  };

@@ -486,6 +486,7 @@
     <ClInclude Include="src\Misc\DynamicPatcher\Trails\TrailsManager.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Trails\TrailType.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Weapon\AttachFireData.h" />
+    <ClInclude Include="src\Misc\Hooks.Otamaa.h" />
     <ClInclude Include="src\Misc\MapRevealer.h" />
     <ClInclude Include="src\Misc\Patches.h" />
     <ClInclude Include="src\Misc\PhobosGlobal.h" />

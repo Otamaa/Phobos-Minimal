@@ -4,6 +4,7 @@
 #include <Misc/Ares/Hooks/Header.h>
 
 #include <Ares_TechnoExt.h>
+#include <Ext/Techno/Body.h>
 
 std::vector<const char*> SW_UnitDelivery::GetTypeString() const
 {
@@ -32,6 +33,7 @@ void SW_UnitDelivery::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 
 	INI_EX exINI(pINI);
 	pData->SW_Deliverables.Read(exINI, section, "Deliver.Types" , true);
+	pData->SW_Deliverables_Facing.Read(exINI, section, "Deliver.TypesFacing");
 	pData->SW_BaseNormal.Read(exINI, section, "Deliver.BaseNormal");
 	pData->SW_OwnerHouse.Read(exINI, section, "Deliver.Owner");
 	pData->SW_DeliverBuildups.Read(exINI, section, "Deliver.BuildUp");
@@ -85,12 +87,13 @@ void UnitDeliveryStateMachine::PlaceUnits()
 	const bool IsPlayerControlled = pOwner->IsControlledByHuman_();
 	const bool bBaseNormal = pData->SW_BaseNormal;
 	const bool bDeliverBuildup = pData->SW_DeliverBuildups;
+	const size_t facingsize = pData->SW_Deliverables_Facing.size();
 
 	//Debug::Log("PlaceUnits for [%s] - Owner[%s] \n", pData->get_ID(), pOwner->get_ID());
 	// create an instance of each type and place it
-	for (auto nPos = pData->SW_Deliverables.begin(); nPos != pData->SW_Deliverables.end(); ++nPos)
+	for (size_t i = 0; i < pData->SW_Deliverables.size(); ++i)
 	{
-		auto pType = *nPos;
+		auto pType = pData->SW_Deliverables[i];
 
 		if (!pType)
 			continue;
@@ -174,7 +177,9 @@ void UnitDeliveryStateMachine::PlaceUnits()
 
 			// place and set up
 			auto XYZ = pCell->GetCoordsWithBridge();
-			if (Item->Unlimbo(XYZ, DirType(MapClass::GetCellIndex(pCell->MapCoords) & 7u)))
+			const unsigned char dir = !facingsize || i > facingsize ? MapClass::GetCellIndex(pCell->MapCoords) & 7u : (unsigned char)pData->SW_Deliverables_Facing[i];
+
+			if (Item->Unlimbo(XYZ, DirType((dir << 13) / 255)))
 			{
 				//Debug::Log("PlaceUnits for [%s] - Owner[%s] After Unlimbo[%s] \n", pData->get_ID(), pOwner->get_ID(), pType->ID);
 
@@ -208,7 +213,9 @@ void UnitDeliveryStateMachine::PlaceUnits()
 			}
 			else
 			{
-				Item->UnInit();
+				Debug::Log(__FUNCTION__"\n");
+				TechnoExt::HandleRemove(Item, nullptr, true, true);
+				//Item->UnInit();
 			}
 		}
 	}

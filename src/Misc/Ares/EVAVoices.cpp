@@ -29,7 +29,7 @@ int EVAVoices::FindIndexById(const char* type)
 	}
 
 	// find all others
-	for (unsigned int i = 0; i < Types.size(); ++i)
+	for (size_t i = 0; i < Types.size(); ++i)
 	{
 		if (!CRT::strcmpi(type, Types[i]))
 		{
