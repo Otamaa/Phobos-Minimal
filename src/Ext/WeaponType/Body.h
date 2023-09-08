@@ -135,6 +135,7 @@ public:
 		ValueableVector<int> ExtraWarheads_DamageOverrides {};
 
 		Valueable<double> Burst_Retarget { 0.0 };
+		Nullable<bool> KickOutPassenger {};
 
 		ExtData(WeaponTypeClass* OwnerObject) : Extension<WeaponTypeClass>(OwnerObject)
 		{ }

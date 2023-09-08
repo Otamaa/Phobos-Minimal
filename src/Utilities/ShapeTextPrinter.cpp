@@ -1,28 +1,27 @@
 #include "ShapeTextPrinter.h"
 
 constexpr inline char* SignSequence { "/%$,.!?|" };
-constexpr inline int SignSequenceLength { std::char_traits<char>::length(SignSequence) };
+constexpr inline size_t SignSequenceLength { std::char_traits<char>::length(SignSequence) };
 
-int ShapeTextPrinter::GetSignIndex(const char sign)
+size_t ShapeTextPrinter::GetSignIndex(const char sign)
 {
-	return (std::find(SignSequence, SignSequence + SignSequenceLength, sign) - SignSequence);
+	char* end = SignSequence + SignSequenceLength;
+	char* iter = std::find(SignSequence, end , sign);
+	return iter != end ? std::distance(SignSequence, iter) : -1;
 }
 
 std::vector<int> ShapeTextPrinter::BuildFrames(const std::string& text, const int baseNumberFrame , const int baseSignFrame)
 {
 	std::vector<int> vFrames;
 
-	for (size_t i = 0; i < text.size(); i++)
-	{
+	for (const auto& item : text) {
+
 		int frame = 0;
 
-		if (isdigit(text[i]))
-		{
-			frame = baseNumberFrame + text[i] - '0';
-		}
-		else
-		{
-			int signIndex = GetSignIndex(text[i]);
+		if (isdigit(item)) {
+			frame = baseNumberFrame + item - '0';
+		} else {
+			const size_t signIndex = GetSignIndex(item);
 
 			if (signIndex < SignSequenceLength)
 				frame = baseSignFrame + signIndex;

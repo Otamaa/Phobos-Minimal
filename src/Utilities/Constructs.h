@@ -428,14 +428,14 @@ public:
 
 	PhobosPCXFile& operator = (const char* pFilename) {
 
-		if(strlen(pFilename) && pFilename[0]) {
+		if(strlen(pFilename) && *pFilename) {
 			this->filename = pFilename;
 			auto& data = this->filename.data();
 			_strlwr_s(data);
 
 			BSurface* pSource = PCX::Instance->GetSurface(this->filename);
 			if( !pSource && PCX::Instance->LoadFile(this->filename))
-				pSource = PCX::Instance->GetSurface(this->filename, nullptr);
+				pSource = PCX::Instance->GetSurface(this->filename);
 
 			this->Surface = pSource;
 		}

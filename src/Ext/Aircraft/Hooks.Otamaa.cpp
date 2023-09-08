@@ -3,6 +3,7 @@
 #include <Utilities/Macro.h>
 #include <Utilities/Enum.h>
 
+#include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/BulletType/Body.h>
 
@@ -22,16 +23,34 @@ DEFINE_JUMP(CALL, 0x4CD809, GET_OFFSET(TriggerCrashWeapon_Wrapper));
 //	return 0x4CD81D;
 //}
 
+#include <Ext/WeaponType/Body.h>
+bool IsFlyLoco(const ILocomotion* pLoco)
+{
+	return (((DWORD*)pLoco)[0] == FlyLocomotionClass::ILoco_vtable);
+}
+
 DEFINE_HOOK(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
 {
 	GET(AircraftClass*, pThis, EDI);
-	//GET_STACK(int, weaponIdx, STACK_OFFSET(0x7C, 0xC));
+	GET_BASE(int, nWeaponIdx, 0xC);
 
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
+	bool DropPassengers = pTypeExt->Paradrop_DropPassangers;
+
 	if (pThis->Passengers.FirstPassenger)
 	{
-		if (pTypeExt->Paradrop_DropPassangers.Get())
+		if (auto pWewapons = pThis->GetWeapon(nWeaponIdx))
+		{
+			if (pWewapons->WeaponType)
+			{
+				const auto pExt = WeaponTypeExt::ExtMap.Find(pWewapons->WeaponType);
+				if (pExt->KickOutPassenger.isset())
+					DropPassengers = pExt->KickOutPassenger; //#1151
+			}
+		}
+
+		if (DropPassengers)
 		{
 			pThis->DropOffParadropCargo();
 			return 0x415EFD;
@@ -39,12 +58,11 @@ DEFINE_HOOK(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
 	}
 
 	GET_BASE(AbstractClass*, pTarget, 0x8);
-	GET_BASE(int, nWeaponIdx, 0xC);
 
 	const auto pBullet = pThis->TechnoClass::Fire(pTarget, nWeaponIdx);
 
 	R->ESI(pBullet);
-	R->Stack(0x10 , pBullet);
+	R->Stack(0x10, pBullet);
 
 	if (!pBullet)
 		return 0x41659E;
@@ -55,7 +73,21 @@ DEFINE_HOOK(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
 		return 0x41631F;
 
 	if (!pBullet->Type->ROT)
+	{
+		if (IsFlyLoco(pThis->Locomotor.GetInterfacePtr()))
+		{
+			if (pBullet->Type->Cluster)
+				return 0x415F4D;
+
+			const auto pLocomotor = static_cast<FlyLocomotionClass*>(pThis->Locomotor.GetInterfacePtr());
+			const double currentSpeed = pThis->Type->Speed * pLocomotor->CurrentSpeed * TechnoExt::GetCurrentSpeedMultiplier(pThis);
+
+			R->EAX(int(currentSpeed));
+			return 0x415F5C;
+		}
+
 		return 0x415F4D;
+	}
 
 	return !(pBullet->Type->ROT == 1) ? 0x41631F : 0x4160CF;
 }

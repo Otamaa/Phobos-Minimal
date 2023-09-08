@@ -103,7 +103,7 @@ void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, 
 	CoordStruct nFLH = CoordStruct::Empty;
 	const auto nSelectedWeapon=  GetWeaponAndFLH(pThis, nExtraFireData, nWeaponIdx , nFLH);
 
-	if (!nSelectedWeapon)
+	if (nSelectedWeapon.empty())
 		return;
 
 	const auto ROF = TechnoExt::GetROFMult(pThis);

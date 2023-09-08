@@ -124,6 +124,14 @@ public:
 	};
 
 	template <typename T, typename TAlloc, typename... TArgs>
+	static inline T* CreateUnchecked(TAlloc& alloc, TArgs&&... args)
+	{
+		auto const ptr = std::allocator_traits<TAlloc>::allocate(alloc, 1);
+		std::allocator_traits<TAlloc>::construct(alloc, ptr, std::forward<TArgs>(args)...);
+		return ptr;
+	}
+
+	template <typename T, typename TAlloc, typename... TArgs>
 	static inline void ConstructAt(TAlloc& alloc, T* ptr , TArgs&&... args)  {
 		std::allocator_traits<TAlloc>::construct(alloc, ptr, std::forward<TArgs>(args)...);
 	};
@@ -151,16 +159,22 @@ public:
 	// construct vectors
 	template <typename T, typename TAlloc, typename... TArgs>
 	static inline T* CreateArray(TAlloc& alloc, size_t capacity, TArgs&&... args) {
+
 		auto const ptr = std::allocator_traits<TAlloc>::allocate(alloc, capacity);
-		if(capacity && !sizeof...(args) && std::is_scalar<T>::value) {
-			// set to 0
-			std::memset(ptr, 0, capacity * sizeof(T));
-		} else {
-			for(size_t i = 0; i < capacity; ++i) {
-				// use args... here. can't move args, because we need to reuse them
-				std::allocator_traits<TAlloc>::construct(alloc, &ptr[i], args...);
+
+		if (capacity)
+		{
+			if constexpr (!(sizeof...(args)))
+			{
+				std::memset(ptr, 0, capacity * sizeof(T));
+			} else {
+				for (size_t i = 0; i < capacity; ++i) {
+					// use args... here. can't move args, because we need to reuse them
+					std::allocator_traits<TAlloc>::construct(alloc, &ptr[i], args...);
+				}
 			}
 		}
+
 		return ptr;
 	}
 
@@ -168,19 +182,22 @@ public:
 	template <typename T, typename TAlloc, typename... TArgs>
 	static inline T* CreateArrayAt(TAlloc& alloc, T* ptr, size_t capacity, TArgs&&... args)
 	{
-		if (capacity && !sizeof...(args) && std::is_scalar<T>::value)
+		if (capacity)
 		{
-			// set to 0
-			std::memset(ptr, 0, capacity * sizeof(T));
-		}
-		else
-		{
-			for (size_t i = 0; i < capacity; ++i)
+			if constexpr (!(sizeof...(args)))
 			{
-				// use args... here. can't move args, because we need to reuse them
-				std::allocator_traits<TAlloc>::construct(alloc, &ptr[i], args...);
+				std::memset(ptr, 0, capacity * sizeof(T));
+			else
+			{
+				for (size_t i = 0; i < capacity; ++i)
+				{
+					// use args... here. can't move args, because we need to reuse them
+					std::allocator_traits<TAlloc>::construct(alloc, &ptr[i], args...);
+				}
+			}
 			}
 		}
+
 		return ptr;
 	}
 
@@ -202,6 +219,15 @@ public:
 };
 
 // helper methods as free functions.
+
+template <typename T, typename... TArgs>
+static inline T* GameCreateUnchecked(TArgs&&... args)
+{
+	static_assert(std::is_constructible<T, TArgs...>::value, "Cannot construct T from TArgs.");
+
+	GameAllocator<T> alloc;
+	return Memory::CreateUnchecked<T>(alloc, std::forward<TArgs>(args)...);
+}
 
 template <typename T, typename... TArgs>
 static inline T* GameCreate(TArgs&&... args) {

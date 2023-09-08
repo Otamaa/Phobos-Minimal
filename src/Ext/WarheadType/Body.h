@@ -343,6 +343,8 @@ public:
 		Valueable<int> Webby_Cap { -1 };
 		Valueable<int> Webby_Duration_Variation { 0 };
 
+		NullablePromotable<int> SelfHealing_CombatDelay { };
+
 		ExtData(WarheadTypeClass* OwnerObject) : Extension<WarheadTypeClass>(OwnerObject)
 			, AttachedEffect { OwnerObject }
 		{

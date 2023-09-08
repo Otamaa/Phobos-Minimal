@@ -16,7 +16,7 @@ AudioSampleData* AresAudioHelper::GetData(int const index)
 		if(loose.Size < 0) {
 			auto file = GetFile(index);
 			if(file.File && file.Allocated) {
-				GameDelete(file.File);
+				GameDelete<true , false>(file.File);
 				file.File = nullptr;
 			}
 		}
@@ -36,14 +36,13 @@ AresAudioHelper::FileStruct AresAudioHelper::GetFile(int const index)
 		char filename[0x100];
 		_snprintf_s(filename, _TRUNCATE, "%s.wav", pSampleName);
 
-		auto pFile = GameCreate<CCFileClass>(filename);
-
+		auto pFile = GameCreateUnchecked<CCFileClass>(filename);
 		if(pFile->Exists() && pFile->Open(FileAccessMode::Read)) {
 			if(loose.Size < 0 && Audio::ReadWAVFile(pFile, &loose.Data, &loose.Size)) {
 				loose.Offset = pFile->Seek(0, FileSeekMode::Current);
 			}
 		} else {
-			GameDelete(pFile);
+			GameDelete<true, false>(pFile);
 			pFile = nullptr;
 		}
 
@@ -64,7 +63,7 @@ void AudioBag::Open(const char* fileBase) {
 
 	if(pIndex.Exists() && pIndex.Open(FileAccessMode::Read)) {
 		_snprintf_s(filename, _TRUNCATE, "%s.bag", fileBase);
-		auto pBag = UniqueGamePtr<CCFileClass>(GameCreate<CCFileClass>(filename));
+		auto pBag = UniqueGamePtr<CCFileClass>(GameCreateUnchecked<CCFileClass>(filename));
 
 		AudioIDXHeader headerIndex;
 		if(pBag->Exists()
@@ -101,7 +100,6 @@ void AudioBag::Open(const char* fileBase) {
 	}
 }
 
-
 // there is big changes here
 AudioIDXData* AudioLuggage::Create(const char* pPath) {
 	std::map<AudioIDXEntry, CCFileClass*> map;
@@ -112,18 +110,18 @@ AudioIDXData* AudioLuggage::Create(const char* pPath) {
 		}
 	}
 
-	auto ret = GameCreate<AudioIDXData>();
-	static_assert(sizeof(AudioIDXData) == 0x124);
-	ret->BagFile = nullptr; // this->Bags.front().file(); // not needed
-	ret->SampleCount = static_cast<int>(map.size());
-	ret->Samples = GameCreateArray<AudioIDXEntry>(map.size());
+	auto ret = GameCreateUnchecked<AudioIDXData>();
+	//ret->BagFile = nullptr; // this->Bags.front().file(); // not needed
+	const int size = static_cast<int>(map.size());
+	ret->SampleCount = size;
+	ret->Samples = GameCreateArray<AudioIDXEntry>(size);
 
 	this->Files.clear();
-	this->Files.reserve(map.size());
+	this->Files.reserve(size);
 
 	auto pEntry = ret->Samples;
 
-	for(auto const& [entry ,pFiles] : map) {
+	for(const auto&[entry ,pFiles] : map) {
 		*pEntry++ = entry;
 		this->Files.push_back(pFiles);
 	}
@@ -136,7 +134,7 @@ AudioIDXData* AudioLuggage::Create(const char* pPath) {
 *			not sure what it is but seems crucial , because enabling these will lead to
 *			`Failed to prefill buffer` audio error
 */
-#ifdef DISABLE_AUDIO_OVERRIDE
+#ifndef DISABLE_AUDIO_OVERRIDE
 //NoChange
 // load more than one audio bag and index.
 // this replaces the entire old parser.

@@ -24,7 +24,7 @@ public:
 class ShapeTextPrinter
 {
 private:
-	static int GetSignIndex(const char sign);
+	static size_t GetSignIndex(const char sign);
 	static std::vector<int> BuildFrames(const std::string& text, const int baseNumberFrame, const int baseSignFrame);
 
 public:

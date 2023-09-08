@@ -190,6 +190,7 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 	this->ExtraWarheads_DamageOverrides.Read(exINI, pSection, "ExtraWarheads.DamageOverrides");
 
 	this->Burst_Retarget.Read(exINI, pSection, "Burst.Retarget");
+	this->KickOutPassenger.Read(exINI, pSection, "KickOutPassenger");
 }
 
 template <typename T>
@@ -284,6 +285,7 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->ExtraWarheads)
 		.Process(this->ExtraWarheads_DamageOverrides)
 		.Process(this->Burst_Retarget)
+		.Process(this->KickOutPassenger)
 		;
 
 	MyAttachFireDatas.Serialize(Stm);

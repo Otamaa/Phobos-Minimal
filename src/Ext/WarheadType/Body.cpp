@@ -420,6 +420,8 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	this->Webby_Cap.Read(exINI, pSection, "Webby.Cap");
 	this->Webby_Duration_Variation.Read(exINI, pSection, "Webby.DurationVariation");
 
+	this->SelfHealing_CombatDelay.Read(exINI, pSection, "VictimSelfHealing.%sCombatDelay");
+
 #pragma endregion
 
 	if (this->InflictLocomotor && pThis->Locomotor == _GUID())
@@ -1312,6 +1314,7 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Webby_Duration)
 		.Process(this->Webby_Cap)
 		.Process(this->Webby_Duration_Variation)
+		.Process(this->SelfHealing_CombatDelay)
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 

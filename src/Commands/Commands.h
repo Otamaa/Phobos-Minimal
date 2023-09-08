@@ -24,18 +24,6 @@ protected:
 
 };
 
-// will the templates ever stop? :D
-template <typename T>
-void Make() {
-	T* command = GameCreate<T>();
-	CommandClass::Array->AddItem(command);
-};
-
-template <typename T>
-void MakeCommand() {
-	T* command = GameCreate<T>();
-	CommandClass::Array->AddItem(command);
-};
 
 #define CATEGORY_TEAM StringTable::LoadString(GameStrings::TXT_TEAM())
 #define CATEGORY_INTERFACE StringTable::LoadString(GameStrings::TXT_INTERFACE())

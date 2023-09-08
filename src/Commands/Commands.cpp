@@ -17,8 +17,9 @@
 #include "ToggleDigitalDisplay.h"
 #include "ToggleDesignatorRange.h"
 
+
 #define Make(arg)\
-		Make<arg>();
+		CommandClass::Array->AddItem(GameCreateUnchecked<arg>());
 
 DEFINE_HOOK(0x533066, CommandClassCallback_Register, 0x6)
 {

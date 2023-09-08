@@ -1270,6 +1270,7 @@ DEFINE_HOOK(0x62A915, ParasiteClass_CanInfect_Parasiteable, 0xA)
 	return !pVictim->BunkerLinkedItem ? continuecheckB : returnfalse;
 }
 
+// replace the repair button fucntion to toggle power
 DEFINE_HOOK(0x6A78F6, SidebarClass_AI_RepairMode_ToggelPowerMode, 0x9)
 {
 	GET(SidebarClass* const, pThis, ESI);
@@ -1282,6 +1283,7 @@ DEFINE_HOOK(0x6A78F6, SidebarClass_AI_RepairMode_ToggelPowerMode, 0x9)
 	return 0x6A78FF;
 }
 
+// replace the repair button fucntion to toggle power
 DEFINE_HOOK(0x6A7AE1, SidebarClass_AI_DisableRepairButton_TogglePowerMode, 0x6)
 {
 	GET(SidebarClass* const, pThis, ESI);
@@ -1354,22 +1356,6 @@ DEFINE_HOOK(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 //	}
 //
 //	return 0x66328C;
-//}
-
-//DEFINE_HOOK(0x6FCF3E, TechnoClass_SetTarget_CheckAccessory , 0x6)
-//{
-//	GET(TechnoClass*, pThis, ESI);
-//	GET(AbstractClass*, pTarget, EDI);
-//
-//	if (auto pTargetFoot = generic_cast<FootClass*>(pTarget))
-//	{
-//		auto pExt = TechnoExt::ExtMap.Find(pTargetFoot);
-//		if (pExt->Accesory)
-//				pTarget = pExt->AccesoryOwner;
-//	}
-//
-//	pThis->Target = pTarget;
-//	return 0x6FCF44;
 //}
 
 //DEFINE_HOOK(0x70166E, TechnoClass_Captured, 0x6)

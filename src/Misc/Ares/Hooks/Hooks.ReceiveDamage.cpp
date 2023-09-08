@@ -353,9 +353,14 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 	{
 		if (IsAffected && IsDamaging)
 		{
-
+			const auto rank = pThis->Veterancy.GetRemainingLevel();
 			const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-			const auto amount = pTypeExt->SelfHealing_CombatDelay.Get(pThis);
+
+			const auto pWHExt = WarheadTypeExt::ExtMap.TryFind(pWarhead);
+			const auto fromTechno = pTypeExt->SelfHealing_CombatDelay.GetFromSpecificRank(rank);
+
+			const int amount = pWHExt  ? pWHExt->SelfHealing_CombatDelay.GetFromSpecificRank(rank)
+				->Get(fromTechno) : fromTechno;
 
 			//the timer will always restart
 			//not accumulated
@@ -370,7 +375,6 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 
 	if (pWarhead)
 	{
-
 		const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
 		const auto pHouse = pAttacker ? pAttacker->Owner : pAttacker_House;
 

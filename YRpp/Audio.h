@@ -3,6 +3,7 @@
 #include <CRT.h>
 #include <GeneralDefinitions.h>
 #include <Helpers/CompileTime.h>
+#include <Helpers/String.h>
 
 class RawFileClass;
 class CCFileClass;
@@ -63,19 +64,32 @@ struct SomeNodes {
 	}
 };
 
+
 struct AudioIDXEntry { // assert (IDXHeader.version != 1);
-	char Name[16];
+	FixedString<16> Name;
 	int Offset;
 	int Size;
 	unsigned int SampleRate;
 	unsigned int Flags;
 	unsigned int ChunkSize;
 
+	///AudioIDXEntry& operator = (const AudioIDXEntry& src) {
+	//	std::memcpy(this, &src, sizeof(*this));
+	//	return *this;
+	//}
+
+	//AudioIDXEntry& operator=(AudioIDXEntry other) {
+	//	std::memcpy(this, &other, sizeof(*this));
+	//	return *this;
+	//}
+
 	bool operator < (const AudioIDXEntry& rhs) const {
 		return CRT::strcmpi(this->Name, rhs.Name) < 0;
 	}
 };
-static_assert(sizeof(AudioIDXEntry) == 0x24, "Invalid Size!");
+
+static constexpr inline size_t AudioIDXEntry_Size = sizeof(AudioIDXEntry);
+static_assert(AudioIDXEntry_Size == 0x24, "Invalid Size!");
 
 struct AudioSampleData {
 	AudioSampleData() :
