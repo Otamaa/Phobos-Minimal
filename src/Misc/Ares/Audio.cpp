@@ -70,12 +70,12 @@ void AudioBag::Open(const char* fileBase) {
 			&& pBag->Open(FileAccessMode::Read)
 			&& pIndex.ReadBytes(&headerIndex,sizeof(headerIndex)) == sizeof(headerIndex)) {{
 
-				std::vector<AudioIDXEntry> entries;
+				std::vector<AudioIDXEntryB> entries;
 
 				if(headerIndex.numSamples > 0) {
 					entries.resize(headerIndex.numSamples, {});
 
-					constexpr auto const IdxEntrysize = sizeof(AudioIDXEntry);
+					constexpr auto const IdxEntrysize = sizeof(AudioIDXEntryB);
 
 					if(headerIndex.Magic == 1) {
 						for(auto& entry : entries) {
@@ -100,9 +100,16 @@ void AudioBag::Open(const char* fileBase) {
 	}
 }
 
+constexpr unsigned long mapCapacity()
+{
+	unsigned long cap = sizeof(std::pair<AudioIDXEntryB, CCFileClass*>);
+	return cap;
+}
+
+
 // there is big changes here
 AudioIDXData* AudioLuggage::Create(const char* pPath) {
-	std::map<AudioIDXEntry, CCFileClass*> map;
+	std::map<AudioIDXEntryB, CCFileClass*> map;
 
 	for(auto const& bag : this->Bags) {
 		for(auto const& entry : bag.entries()) {
@@ -114,7 +121,7 @@ AudioIDXData* AudioLuggage::Create(const char* pPath) {
 	//ret->BagFile = nullptr; // this->Bags.front().file(); // not needed
 	const int size = static_cast<int>(map.size());
 	ret->SampleCount = size;
-	ret->Samples = GameCreateArray<AudioIDXEntry>(size);
+	ret->Samples = GameCreateArray<AudioIDXEntryB>(size);
 
 	this->Files.clear();
 	this->Files.reserve(size);

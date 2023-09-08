@@ -14,8 +14,8 @@ public:
 	public:
 		AlphaShapeClass* AttachedAlpha { nullptr };
 
-		ExtData() {}
-		virtual ~ExtData() { GameDelete<true, true>(AttachedAlpha); }
+		ExtData() = default;
+		virtual ~ExtData() = default; //{ GameDelete<true, true>(AttachedAlpha); }
 
 	public:
 		template <typename T>

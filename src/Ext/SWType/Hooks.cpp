@@ -28,6 +28,37 @@ DEFINE_HOOK(0x55AFB3, LogicClass_Update_Early, 0x6)
 	{
 		HouseExt::ExtMap.Find(pHouse)->UpdateAutoDeathObjects();
 	}
+
+	//auto pCellbegin = MapClass::Instance->Cells.Items;
+	//auto pCellCount = MapClass::Instance->Cells.Capacity;
+	//auto pCellend = MapClass::Instance->Cells.Items + pCellCount;
+
+	//for (auto begin = pCellbegin; begin != pCellend; ++begin)
+	//{
+	//	if(auto pCell = *begin)
+	//	{
+	//		std::wstring pText((size_t)(0x18 + 1), L'#');
+	//		mbstowcs(&pText[0], std::to_string((int)pCell->Flags).c_str(), 0x18);
+	//
+	//		Point2D pixelOffset = Point2D::Empty;
+	//		int width = 0, height = 0;
+	//		BitFont::Instance->GetTextDimension(pText.c_str(), &width, &height, 120);
+	//		pixelOffset.X -= (width / 2);
+	//
+	//		auto pos = TacticalClass::Instance->CoordsToView(pCell->GetCoords());
+	//		pos += pixelOffset;
+	//		auto bound = DSurface::Temp->Get_Rect_WithoutBottomBar();
+	//
+	//		auto const pOWner = HouseClass::CurrentPlayer();
+	//
+	//		if (!(pos.X < 0 || pos.Y < 0 || pos.X > bound.Width || pos.Y > bound.Height))
+	//		{
+	//			Point2D tmp { 0,0 };
+	//			Fancy_Text_Print_Wide(tmp, pText.c_str(), DSurface::Temp(), bound, pos, ColorScheme::Array->GetItem(pOWner->ColorSchemeIndex), 0, TextPrintType::Center, 1);
+	//		}
+	//	}
+	//}
+
 	return 0x0;
 }
 
@@ -189,9 +220,9 @@ DEFINE_HOOK(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 
 		if (!pCurrentTechno->IsAlive
 			|| pCurrentTechno->InLimbo
-			|| !pExt->SW_Designators.Contains(pCurrentTechnoType)
-			|| !((pOwner == HouseClass::CurrentPlayer)
-				|| EnumFunctions::CanTargetHouse(AffectedHouse::Enemies, HouseClass::CurrentPlayer, pOwner)))
+			|| (pOwner != HouseClass::CurrentPlayer && pOwner->IsAlliedWith(HouseClass::CurrentPlayer))                  // Ally objects are never designators or inhibitors
+			|| (pOwner == HouseClass::CurrentPlayer && !pExt->SW_Designators.Contains(pCurrentTechnoType))               // Only owned objects can be designators
+			|| (!pOwner->IsAlliedWith(HouseClass::CurrentPlayer) && !pExt->SW_Inhibitors.Contains(pCurrentTechnoType)))  // Only enemy objects can be inhibitors
 		{
 			continue;
 		}

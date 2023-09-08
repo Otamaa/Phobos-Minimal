@@ -99,7 +99,7 @@ DEFINE_HOOK(0x415991, AircraftClass_Mission_Paradrop_Overfly_Radius, 0x6)
 	GET(AircraftClass* const, pThis, ESI);
 	GET(int, comparator, EAX);
 
-	const int nRadius = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->ParadropOverflRadius.Get(RulesClass::Instance->ParadropRadius);
+	const int nRadius = TechnoTypeExt::ExtMap.Find(pThis->Type)->ParadropOverflRadius.Get(RulesClass::Instance->ParadropRadius);
 	return comparator > nRadius ? ConditionMeet : ConditionFailed;
 }
 
@@ -110,7 +110,7 @@ DEFINE_HOOK(0x415934, AircraftClass_Mission_Paradrop_Approach_Radius, 0x6)
 	GET(AircraftClass* const, pThis, ESI);
 	GET(int, comparator, EAX);
 
-	const int nRadius = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->ParadropRadius.Get(RulesClass::Instance->ParadropRadius);
+	const int nRadius = TechnoTypeExt::ExtMap.Find(pThis->Type)->ParadropRadius.Get(RulesClass::Instance->ParadropRadius);
 	return  comparator <= nRadius ? ConditionMeet : ConditionFailed;
 }
 

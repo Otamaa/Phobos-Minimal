@@ -890,8 +890,8 @@ public:
 	BYTE			 IsTickedOff; //HasBeenAttacked //3D1
 	BYTE			 Cloakable; //3D2
 	BYTE			 IsPrimaryFactory; //3D3 IsLoaner
-	//BYTE			 IsALoaner; // 3D4
-	//BYTE			 IsLocked; // 3D5
+	BYTE			 IsALoaner; // 3D4
+	BYTE			 IsLocked; // 3D5
 	BYTE			 Spawned; // 3D6
 	BYTE             IsInPlayfield; // 3D7
 	DECLARE_PROPERTY(RecoilData, TurretRecoil);
@@ -967,8 +967,8 @@ public:
 static_assert(offsetof(TechnoClass, GeneratingGap) == 0x269, "ClassMember Shifted !");
 static_assert(offsetof(TechnoClass, GapSuperCharged) == 0x268, "ClassMember Shifted !");
 static_assert(offsetof(TechnoClass, unknown_34C) == 0x34C, "ClassMember Shifted !");
-//static_assert(offsetof(TechnoClass, IsALoaner) == 0x3D4, "ClassMember Shifted !");
-//static_assert(offsetof(TechnoClass, IsLocked) == 0x3D5, "ClassMember Shifted !");
+static_assert(offsetof(TechnoClass, IsALoaner) == 0x3D4, "ClassMember Shifted !");
+static_assert(offsetof(TechnoClass, IsLocked) == 0x3D5, "ClassMember Shifted !");
 //static_assert(offsetof(TechnoClass, byte_433) == 0x433, "ClassMember Shifted !");
 static_assert(offsetof(TechnoClass, OldTeam) == 0x434, "ClassMember Shifted !");
 static_assert(offsetof(TechnoClass, CountedAsOwnedSpecial) == 0x438, "ClassMember Shifted !");

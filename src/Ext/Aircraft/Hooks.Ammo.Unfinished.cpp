@@ -3,6 +3,10 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
 
+/*
+	Otamaa : almost there , just some weird incosistency with vanilla one need more test !
+*/
+
 int MissionAttack_Strafe(AircraftClass* pThis, bool CheckAmmo)
 {
 	if (auto pTarget = pThis->Target)
@@ -35,10 +39,10 @@ int MissionAttack_Strafe(AircraftClass* pThis, bool CheckAmmo)
 					pThis->Fire(pThis->Target, weaponIndex);
 				}
 			}
-			auto nTargetCoord = pTarget->GetCoords();
-			auto pTargetCell = Map.GetCellAt(nTargetCoord);
-			auto nThisCoord = pThis->Location;// pThis->GetCoords();
-			pTargetCell->ScatterContent(nThisCoord, true, false, false);
+
+
+			MapClass::Instance->GetCellAt(pTarget->GetCoords())
+				->ScatterContent(pThis->Location, true, false, false);
 			pThis->SetDestination(pTarget, true);
 
 			if (CheckAmmo)
@@ -122,32 +126,29 @@ int Mission_Attack(AircraftClass* pThis)
 	case AirAttackStatusIDB::AIR_ATT_PICK_ATTACK_LOCATION:
 	{
 		pThis->__DoingOverfly = 0;
-		if (pThis->unknown_bool_6C8)
+		if (pThis->loseammo_6c8)
 		{
-			pThis->unknown_bool_6C8 = 0;
-			pThis->Ammo = --pThis->Ammo;
+			pThis->loseammo_6c8 = 0;
+			--pThis->Ammo;
 		}
 
 		if (pThis->Target && pThis->Ammo)
 		{
-			pThis->SetDestination(pThis->GoodTargetLoc(pThis->Target), true);
+			pThis->SetDestination(pThis->GoodTargetLoc_(pThis->Target), true);
 			pThis->MissionStatus = pThis->Destination != 0 ? (int)AirAttackStatusIDB::AIR_ATT_FLY_TO_POSITION : (int)AirAttackStatusIDB::AIR_ATT_RETURN_TO_BASE;
 		}
 		else
 		{
-			if(!pThis->Ammo)
-				return  1;
-
 			pThis->MissionStatus = (int)AirAttackStatusIDB::AIR_ATT_RETURN_TO_BASE;
 		}
 
-		return int(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
+		return int(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioClass::Instance->Random.RandomFromMax(2);
 	}
 	case AirAttackStatusIDB::AIR_ATT_FLY_TO_POSITION:
 	{
-		if (pThis->unknown_bool_6C8)
+		if (pThis->loseammo_6c8)
 		{
-			pThis->unknown_bool_6C8 = 0;
+			pThis->loseammo_6c8 = 0;
 			--pThis->Ammo;
 		}
 
@@ -161,11 +162,13 @@ int Mission_Attack(AircraftClass* pThis)
 
 		if (pThis->Is_Strafe())
 		{
-			if (pThis->DistanceFrom(pThis->Target) < pThis->GetWeapon(pThis->SelectWeapon(pThis->Target))->WeaponType->Range)
+			//follow vanilla , get primary
+			if (pThis->DistanceFrom(pThis->Target) < pThis->GetWeapon(0)->WeaponType->Range)
 			{
 				pThis->MissionStatus = (int)AirAttackStatusIDB::AIR_ATT_FIRE_AT_TARGET0;
 				return 1;
 			}
+
 			pThis->SetDestination(pThis->Target, 1);
 		}
 		else
@@ -176,7 +179,7 @@ int Mission_Attack(AircraftClass* pThis)
 				return 1;
 			}
 
-			if (!pThis->Locomotor.get()->Is_Moving_Now())
+			if (!pThis->Locomotor->Is_Moving_Now())
 			{
 				pThis->MissionStatus = (int)AirAttackStatusIDB::AIR_ATT_FIRE_AT_TARGET0;
 				return 1;
@@ -189,42 +192,34 @@ int Mission_Attack(AircraftClass* pThis)
 			if (nDistance >= 512)
 			{
 				auto nCorrd = pThis->Destination->GetCoords();
-				auto nFLH = pThis->GetFLH(0, CoordStruct::Empty);
-				DirStruct nDirDef { DirType::North };
+				CoordStruct nFLH;
+				pThis->GetFLH(&nFLH ,0, CoordStruct::Empty);
+				DirStruct nDirDef { 0 };
 
-				if (nFLH.X == nCorrd.X && nFLH.Y == nCorrd.Y)
+				if (nFLH.X != nCorrd.X || nFLH.Y != nCorrd.Y)
 				{
-					nDirDef.Raw = 0;
+					nDirDef.SetRadian<65536>(Math::atan2(static_cast<double>(nFLH.Y - nCorrd.Y), static_cast<double>(nFLH.X - nCorrd.X)));
+					pThis->SecondaryFacing.Set_Desired(nDirDef);
 				}
-
-				nDirDef.SetRadian<65536>(Math::atan2(static_cast<double>(nFLH.Y - nCorrd.Y), static_cast<double>(nFLH.X - nCorrd.X)));
-				pThis->SecondaryFacing.Set_Desired(nDirDef);
-				return 1;
 			}
 			else
 			{
 				if (pThis->Ammo && pThis->Target) {
-					const auto v14 = pThis->GetDirectionOverObject(pThis->Target);
-					pThis->SecondaryFacing.Set_Desired(v14);
+					pThis->SecondaryFacing.Set_Desired(pThis->GetDirectionOverObject(pThis->Target));
 				}
 
-				if (nDistance >= 16)
-				{
-					return  1;
-				}
-				else
-				{
+				if (!(nDistance >= 16)) {
 					pThis->MissionStatus = (int)AirAttackStatusIDB::AIR_ATT_FIRE_AT_TARGET0;
 					pThis->SetDestination(0, true);
-					return  1;
 				}
 			}
 		}
 		else
 		{
 			pThis->MissionStatus = 1;
-			return  1;
 		}
+		return  1;
+
 	}
 	case AirAttackStatusIDB::AIR_ATT_FIRE_AT_TARGET0:
 	{
@@ -236,32 +231,32 @@ int Mission_Attack(AircraftClass* pThis)
 
 		if (!pThis->Is_Strafe())
 		{
-			auto const v23 = pThis->GetDirectionOverObject(pThis->Target);
+			const auto v23 = pThis->GetDirectionOverObject(pThis->Target);
 			pThis->PrimaryFacing.Set_Desired(v23);
 			pThis->SecondaryFacing.Set_Desired(v23);
 		}
 
-		auto v26 = pThis->SelectWeapon(pThis->Target);
-		auto pWeapon = pThis->GetWeapon(v26)->WeaponType;
+		const auto v26 = pThis->SelectWeapon(pThis->Target);
+		const auto pWeapon = pThis->GetWeapon(v26)->WeaponType;
+		const auto pRimaryWeapon = pThis->GetWeapon(0)->WeaponType;
 
 		switch (pThis->GetFireError(pThis->Target, v26, true))
 		{
 		case FireError::OK:
 		{
-			pThis->unknown_bool_6C8 = 1;
+			pThis->loseammo_6c8 = 1;
 
 			AircraftExt::FireBurst(pThis, pThis->Target, AircraftFireMode::FireAt, v26, pWeapon);
 
 			if(pThis->Target) { //Ares Untarget1
-				auto v34 = pThis->Target->GetCoords();
-				Map[v34]->ScatterContent(pThis->Location, 1, 0, 0);
+				MapClass::Instance->GetCellAt(pThis->Target->GetCoords())->ScatterContent(pThis->Location, 1, 0, 0);
 			}
 
 			if (pThis->Is_Strafe())
 			{
 				pThis->MissionStatus = (int)AirAttackStatusIDB::AIR_ATT_FIRE_AT_TARGET2;
 				pThis->__DoingOverfly = 1;
-				return pWeapon->ROF;
+				return pRimaryWeapon->ROF;
 			}
 
 			if (!pThis->Is_Locked())
@@ -272,7 +267,7 @@ int Mission_Attack(AircraftClass* pThis)
 
 			pThis->__DoingOverfly = 1;
 			pThis->MissionStatus = !(pThis->Ammo < 0) && !(pThis->Ammo == 0) ? (int)AirAttackStatusIDB::AIR_ATT_PICK_ATTACK_LOCATION : (int)AirAttackStatusIDB::AIR_ATT_RETURN_TO_BASE;
-			return pWeapon->ROF;
+			return pRimaryWeapon->ROF;
 		}
 		case FireError::FACING:
 		{
@@ -281,6 +276,7 @@ int Mission_Attack(AircraftClass* pThis)
 				pThis->MissionStatus = (int)AirAttackStatusIDB::AIR_ATT_RETURN_TO_BASE;
 				return 1;
 			}
+
 			if (!pThis->IsCloseEnoughToAttack(pThis->Target) || pThis->Is_Strafe())
 			{
 				pThis->MissionStatus = (int)AirAttackStatusIDB::AIR_ATT_PICK_ATTACK_LOCATION;
@@ -291,14 +287,10 @@ int Mission_Attack(AircraftClass* pThis)
 			}
 			else
 			{
-				pThis->MissionStatus = RulesGlobal->CurleyShuffle ? (int)AirAttackStatusIDB::AIR_ATT_PICK_ATTACK_LOCATION : (int)AirAttackStatusIDB::AIR_ATT_FIRE_AT_TARGET0;
+				pThis->MissionStatus = RulesClass::Instance->CurleyShuffle ? (int)AirAttackStatusIDB::AIR_ATT_PICK_ATTACK_LOCATION : (int)AirAttackStatusIDB::AIR_ATT_FIRE_AT_TARGET0;
 			}
 
-			if (!pThis->Is_Strafe())
-			{
-				return  1;
-			}
-			return 45;
+			return pThis->Is_Strafe() ? 45 : 1;
 		}
 		case FireError::REARM:
 			return 1;
@@ -333,23 +325,22 @@ int Mission_Attack(AircraftClass* pThis)
 			pThis->PrimaryFacing.Set_Desired(v41);
 			pThis->SecondaryFacing.Set_Desired(v41);
 
-			auto v44 = pThis->SelectWeapon(pThis->Target);
+			const auto v44 = pThis->SelectWeapon(pThis->Target);
 			switch (pThis->GetFireError(pThis->Target, v44, 1))
 			{
 			case FireError::OK:
 			{
 				AircraftExt::FireBurst(pThis, pThis->Target, AircraftFireMode::FireAt, v44);
 				if(pThis->Target) { //Ares Untarget 2
-					auto v48 = pThis->Target->GetCoords();
-					Map[v48]->ScatterContent(pThis->Location, 1, 0, 0);
+					MapClass::Instance->GetCellAt(pThis->Target->GetCoords())->ScatterContent(pThis->Location, 1, 0, 0);
 				}
 				if (!pThis->Ammo)
 				{
 					pThis->MissionStatus = (int)AirAttackStatusIDB::AIR_ATT_RETURN_TO_BASE;
 				}
 
-				pThis->MissionStatus = RulesGlobal->CurleyShuffle ? (int)AirAttackStatusIDB::AIR_ATT_PICK_ATTACK_LOCATION : (int)AirAttackStatusIDB::AIR_ATT_FIRE_AT_TARGET0;
-				return int(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
+				pThis->MissionStatus = RulesClass::Instance->CurleyShuffle ? (int)AirAttackStatusIDB::AIR_ATT_PICK_ATTACK_LOCATION : (int)AirAttackStatusIDB::AIR_ATT_FIRE_AT_TARGET0;
+				return int(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioClass::Instance->Random.RandomFromMax(2);
 			}
 			case FireError::FACING:
 			{
@@ -363,20 +354,22 @@ int Mission_Attack(AircraftClass* pThis)
 				}
 				else
 				{
-					pThis->MissionStatus = RulesGlobal->CurleyShuffle ? (int)AirAttackStatusIDB::AIR_ATT_PICK_ATTACK_LOCATION : (int)AirAttackStatusIDB::AIR_ATT_FIRE_AT_TARGET0;
+					pThis->MissionStatus = RulesClass::Instance->CurleyShuffle ? (int)AirAttackStatusIDB::AIR_ATT_PICK_ATTACK_LOCATION : (int)AirAttackStatusIDB::AIR_ATT_FIRE_AT_TARGET0;
 				}
 				if (!pThis->Is_Strafe())
 				{
-					return int(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
+					return int(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioClass::Instance->Random.RandomFromMax(2);
 				}
 
 				return 45;
 			}
 			case FireError::REARM:
-				return int(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
+				return int(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioClass::Instance->Random.RandomFromMax(2);
 			case FireError::CLOAKED:
+			{
 				pThis->Uncloak(false);
-				return int(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
+				return int(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioClass::Instance->Random.RandomFromMax(2);
+			}
 			default:
 			{
 				if (!pThis->Ammo)
@@ -385,14 +378,14 @@ int Mission_Attack(AircraftClass* pThis)
 				}
 				if (pThis->IsCloseEnoughToAttack(pThis->Target))
 				{
-					pThis->MissionStatus = RulesGlobal->CurleyShuffle ? (int)AirAttackStatusIDB::AIR_ATT_PICK_ATTACK_LOCATION : (int)AirAttackStatusIDB::AIR_ATT_FIRE_AT_TARGET0;
+					pThis->MissionStatus = RulesClass::Instance->CurleyShuffle ? (int)AirAttackStatusIDB::AIR_ATT_PICK_ATTACK_LOCATION : (int)AirAttackStatusIDB::AIR_ATT_FIRE_AT_TARGET0;
 				}
 				else
 				{
 					pThis->MissionStatus = (int)AirAttackStatusIDB::AIR_ATT_PICK_ATTACK_LOCATION;
 				}
 
-				return int(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
+				return int(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioClass::Instance->Random.RandomFromMax(2);
 			}
 			}
 		}
@@ -406,8 +399,8 @@ int Mission_Attack(AircraftClass* pThis)
 	{
 		if (pThis->Target)
 		{
-			auto v52 = pThis->SelectWeapon(pThis->Target);
-			auto pWeapon = pThis->SelectWeapon(pThis->Target);
+			const auto v52 = pThis->SelectWeapon(pThis->Target);
+			const auto pWeapon = pThis->SelectWeapon(pThis->Target);
 
 			switch (pThis->GetFireError(pThis->Target, v52, 1))
 			{
@@ -434,13 +427,12 @@ int Mission_Attack(AircraftClass* pThis)
 
 			AircraftExt::FireBurst(pThis, pThis->Target, AircraftFireMode::Strafe2, v52);
 			if (pThis->Target) { //Ares Untarget 3
-				auto v56 = pThis->Target->GetCoords();
-				Map[v56]->ScatterContent(pThis->Location, 1, 0, 0);
+				MapClass::Instance->GetCellAt(pThis->Target->GetCoords())->ScatterContent(pThis->Location, 1, 0, 0);
 				pThis->SetDestination(pThis->Target, 1);
 			}
 			pThis->MissionStatus = (int)AirAttackStatusIDB::AIR_ATT_FIRE_AT_TARGET3;
 
-			return pThis->GetWeapon(pWeapon)->WeaponType->ROF;
+			return pThis->GetWeapon(0)->WeaponType->ROF;
 		}
 		else
 		{
@@ -452,7 +444,7 @@ int Mission_Attack(AircraftClass* pThis)
 	{
 		if (pThis->Target)
 		{
-			auto v61 = pThis->SelectWeapon(pThis->Target);
+			const auto v61 = pThis->SelectWeapon(pThis->Target);
 			switch (pThis->GetFireError(pThis->Target, v61, 1))
 			{
 			case FireError::OK:
@@ -478,13 +470,12 @@ int Mission_Attack(AircraftClass* pThis)
 			AircraftExt::FireBurst(pThis, pThis->Target, AircraftFireMode::Strafe3, v61);
 
 			if(pThis->Target) { //Ares Untarget 4
-				auto v64 = pThis->Target->GetCoords();
-				Map[v64]->ScatterContent(pThis->Location, 1, 0, 0);
+				MapClass::Instance->GetCellAt(pThis->Target->GetCoords())->ScatterContent(pThis->Location, 1, 0, 0);
 				pThis->SetDestination(pThis->Target, 1);
 			}
 
 			pThis->MissionStatus = (int)AirAttackStatusIDB::AIR_ATT_FIRE_AT_TARGET4;
-			return pThis->GetWeapon(v61)->WeaponType->ROF;
+			return pThis->GetWeapon(0)->WeaponType->ROF;
 		}
 		else
 		{
@@ -496,7 +487,7 @@ int Mission_Attack(AircraftClass* pThis)
 	{
 		if (pThis->Target)
 		{
-			auto v69 = pThis->SelectWeapon(pThis->Target);
+			const auto v69 = pThis->SelectWeapon(pThis->Target);
 			switch (pThis->GetFireError(pThis->Target, v69, 1))
 			{
 			case FireError::OK:
@@ -521,12 +512,11 @@ int Mission_Attack(AircraftClass* pThis)
 
 			AircraftExt::FireBurst(pThis, pThis->Target, AircraftFireMode::Strafe4, v69);
 			if (pThis->Target) { //Ares Untarget 5
-				auto v72 = pThis->Target->GetCoords();
-				Map[v72]->ScatterContent(pThis->Location, 1, 0, 0);
+				MapClass::Instance->GetCellAt(pThis->Target->GetCoords())->ScatterContent(pThis->Location, 1, 0, 0);
 				pThis->SetDestination(pThis->Target, 1);
 			}
 			pThis->MissionStatus = (int)AirAttackStatusIDB::AIR_ATT_FIRE_AT_TARGET5;
-			return pThis->GetWeapon(v69)->WeaponType->ROF;
+			return pThis->GetWeapon(0)->WeaponType->ROF;
 		}
 		else
 		{
@@ -538,7 +528,7 @@ int Mission_Attack(AircraftClass* pThis)
 	{
 		if (pThis->Target)
 		{
-			auto v77 = pThis->SelectWeapon(pThis->Target);
+			const auto v77 = pThis->SelectWeapon(pThis->Target);
 			switch (pThis->GetFireError(pThis->Target, v77, 1))
 			{
 			case FireError::OK:
@@ -549,12 +539,11 @@ int Mission_Attack(AircraftClass* pThis)
 				AircraftExt::FireBurst(pThis, pThis->Target, AircraftFireMode::Strafe5, v77);
 
 				if (pThis->Target) { // Ares untarget 6
-					auto v81 = pThis->Target->GetCoords();
-					Map[v81]->ScatterContent(pThis->Location, 1, 0, 0);
+					MapClass::Instance->GetCellAt(pThis->Target->GetCoords())->ScatterContent(pThis->Location, 1, 0, 0);
 				}
 
 				pThis->MissionStatus = (int)AirAttackStatusIDB::AIR_ATT_FLY_TO_POSITION;
-				return (pThis->GetWeapon(v77)->WeaponType->Range + 0x400) / pThis->Type->Speed;
+				return (pThis->GetWeapon(0)->WeaponType->Range + 0x400) / pThis->Type->Speed;
 			}
 			default:
 			{
@@ -576,14 +565,16 @@ int Mission_Attack(AircraftClass* pThis)
 	case AirAttackStatusIDB::AIR_ATT_RETURN_TO_BASE:
 	{
 		pThis->__DoingOverfly = 0;
-		if (pThis->unknown_bool_6C8)
+
+		if (pThis->loseammo_6c8)
 		{
-			pThis->unknown_bool_6C8 = 0;
-			if (pThis->Ammo > 0)
-			{
+			pThis->loseammo_6c8 = 0;
+
+			if (pThis->Ammo > 0) {
 				--pThis->Ammo;
 			}
 		}
+
 		if (pThis->Ammo)
 		{
 			if (pThis->Target)
@@ -592,7 +583,7 @@ int Mission_Attack(AircraftClass* pThis)
 				return 1;
 			}
 		}
-		else if (pThis->IsLoaner || (pThis->Owner && pThis->Owner->IsControlledByCurrentPlayer()))
+		else if (pThis->IsALoaner || (pThis->Owner && pThis->Owner->IsControlledByCurrentPlayer()))
 		{
 			pThis->SetTarget(nullptr);
 		}
@@ -600,7 +591,7 @@ int Mission_Attack(AircraftClass* pThis)
 		auto v86 = pThis->Owner;
 		pThis->__DoingOverfly = 0;
 		auto v87 = v86 ? v86->GetCurrentEdge() : Edge::North;
-		auto v88 = Map.PickCellOnEdge(
+		auto v88 = MapClass::Instance->PickCellOnEdge(
 				  v87,
 				  CellStruct::Empty,
 				  CellStruct::Empty,
@@ -608,7 +599,7 @@ int Mission_Attack(AircraftClass* pThis)
 				  1,
 				  MovementZone::None);
 
-		pThis->SetDestination(Map[v88], true);
+		pThis->SetDestination(MapClass::Instance->GetCellAt(v88), true);
 		pThis->retreating_idle = 0;
 		if (pThis->Airstrike && pThis->Ammo > 0)
 		{
@@ -624,16 +615,16 @@ int Mission_Attack(AircraftClass* pThis)
 		}
 	}
 	default:
-		return int(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
+		return int(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioClass::Instance->Random.RandomFromMax(2);
 	}
 }
-//
-//DEFINE_HOOK(0x417FE0, Aircraft_MI_Attack, 0x6)
-//{
-//	GET(AircraftClass*, pThis, ECX);
-//	R->EAX(Mission_Attack(pThis));
-//	return 0x418D54;
-//}
+
+DEFINE_HOOK(0x417FE0, Aircraft_MI_Attack, 0x6)
+{
+	GET(AircraftClass*, pThis, ECX);
+	R->EAX(Mission_Attack(pThis));
+	return 0x418D54;
+}
 
 #ifdef SecondMode
 //Strafe4

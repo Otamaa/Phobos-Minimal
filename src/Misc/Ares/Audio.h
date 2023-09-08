@@ -13,6 +13,11 @@
 // below are guaranteed to be indexes. -AlexB
 auto constexpr MinimumAresSample = 0x10000;
 
+struct AudioIDXEntryB : public AudioIDXEntry
+{
+	int test;
+};
+
 class LooseAudioCache {
 public:
 	static LooseAudioCache Instance;
@@ -86,7 +91,7 @@ public:
 		return this->Bag.get();
 	}
 
-	const std::vector<AudioIDXEntry>& entries() const {
+	const std::vector<AudioIDXEntryB>& entries() const {
 		return this->Entries;
 	}
 
@@ -97,7 +102,7 @@ private:
 	using UniqueGamePtr = std::unique_ptr<T, GameDTORCaller>;
 
 	UniqueGamePtr<CCFileClass> Bag;
-	std::vector<AudioIDXEntry> Entries;
+	std::vector<AudioIDXEntryB> Entries;
 };
 
 // a collection of audio bags, get it?
