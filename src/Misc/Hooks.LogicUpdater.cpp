@@ -75,6 +75,8 @@ void UpdateWebbed(FootClass* pThis)
 				pExt->WebbedAnim->UnInit();
 				pExt->WebbedAnim = nullptr;
 			}
+
+			TechnoExt::RestoreLastTargetAndMissionAfterWebbed(pInf);
 		}
 	}
 }

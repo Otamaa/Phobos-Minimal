@@ -73,4 +73,24 @@ DEFINE_DISABLE_HOOK(0x6F407D, TechnoClass_Init_1_ares);
 DEFINE_DISABLE_HOOK(0x6F4103, TechnoClass_Init_2_ares);
 DEFINE_DISABLE_HOOK(0x65B5FB, RadSiteClass_Radiate_UnhardcodeSnow_ares)
 
+// still used by prism support thingy
+//DEFINE_DISABLE_HOOK(0x75e5c8, WarheadTypeClass_SDDTOR_ares)
+//DEFINE_DISABLE_HOOK(0x771ee9, WeaponTypeClass_CTOR_ares)
+//DEFINE_DISABLE_HOOK(0x7729b0, WeaponTypeClass_LoadFromINI_ares)
+//DEFINE_DISABLE_HOOK(0x7729c7, WeaponTypeClass_LoadFromINI_ares)
+//DEFINE_DISABLE_HOOK(0x7729d6, WeaponTypeClass_LoadFromINI_ares)
+//DEFINE_DISABLE_HOOK(0x772cd0, WeaponTypeClass_SaveLoad_Prefix_ares)
+//DEFINE_DISABLE_HOOK(0x772ea6, WeaponTypeClass_Load_Suffix_ares)
+//DEFINE_DISABLE_HOOK(0x772eb0, WeaponTypeClass_SaveLoad_Prefix_ares)
+//DEFINE_DISABLE_HOOK(0x772f8c, WeaponTypeClass_Save_ares)
+//DEFINE_DISABLE_HOOK(0x77311d, WeaponTypeClass_SDDTOR_ares)
+
+// still used by AE , EMP , ??
+//DEFINE_DISABLE_HOOK(0x75d1a9, WarheadTypeClass_CTOR_ares)
+//DEFINE_DISABLE_HOOK(0x75dea0, WarheadTypeClass_LoadFromINI_ares)
+//DEFINE_DISABLE_HOOK(0x75deaf, WarheadTypeClass_LoadFromINI_ares)
+//DEFINE_DISABLE_HOOK(0x75e0c0, WarheadTypeClass_SaveLoad_Prefix_ares)
+//DEFINE_DISABLE_HOOK(0x75e2ae, WarheadTypeClass_Load_Suffix_ares)
+//DEFINE_DISABLE_HOOK(0x75e2c0, WarheadTypeClass_SaveLoad_Prefix_ares)
+//DEFINE_DISABLE_HOOK(0x75e39c, WarheadTypeClass_Save_Suffix_ares)
 #pragma warning( pop )

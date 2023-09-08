@@ -3,6 +3,56 @@
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Helpers.h>
 
+void HouseTypeExt::ExtData::Initialize()
+{
+	const char* pID = this->OwnerObject()->ID;
+	constexpr static char const* const Countries[] = {
+	"Americans", "Alliance", "French", "Germans", "British", "Africans",
+	"Arabs", "Confederation", "Russians", "YuriCountry" };
+
+	const auto it = std::find_if(std::begin(Countries), std::end(Countries),
+		[=](const char* pCountry) { return !_strcmpi(pID, pCountry); });
+
+	const size_t index = it != std::end(Countries) ? std::distance(std::begin(Countries), it) : -1;
+
+	switch (index)
+	{
+	case 0: // USA
+		this->TauntFile =  "taunts\\tauam~~.wav";
+		break;
+	case 1: //Korea
+		this->TauntFile = "taunts\\tauko~~.wav";
+		break;
+	case 2: //France
+		this->TauntFile = "taunts\\taufr~~.wav";
+		break;
+	case 3: //Germany
+		this->TauntFile = "taunts\\tauge~~.wav";
+		break;
+	case 4: //United Kingdom
+		this->TauntFile = "taunts\\taubr~~.wav";
+		break;
+	case 5: //Libya
+		this->TauntFile = "taunts\\tauli~~.wav";
+		break;
+	case 6: //Iraq
+		this->TauntFile = "taunts\\tauir~~.wav";
+		break;
+	case 7: //Cuba
+		this->TauntFile = "taunts\\taucu~~.wav";
+		break;
+	case 8: //Russia
+		this->TauntFile = "taunts\\tauru~~.wav";
+		break;
+	case 9: //Yuri
+		this->TauntFile = "taunts\\tauyu~~.wav";
+		break;
+	default: //Unknown
+		this->TauntFile = "taunts\\tauam~~.wav";
+		break;
+	}
+}
+
 void HouseTypeExt::ExtData::InheritSettings(HouseTypeClass* pThis)
 {
 	if (auto ParentCountry = pThis->FindParentCountry()) {
@@ -22,6 +72,7 @@ void HouseTypeExt::ExtData::InheritSettings(HouseTypeClass* pThis)
 			this->StartInMultiplayer_WithConst = ParentData->StartInMultiplayer_WithConst;
 			this->Powerplants = ParentData->Powerplants;
 			this->VeteranBuildings = ParentData->VeteranBuildings;
+			this->TauntFile = ParentData->TauntFile;
 		}
 	}
 
@@ -71,6 +122,8 @@ void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr
 	this->StartInMultiplayer_WithConst.Read(exINI, pSection, "StartInMultiplayer.WithConst");
 	this->Powerplants.Read(exINI, pSection, "AI.PowerPlants", true);
 	this->VeteranBuildings.Read(exINI, pSection, "VeteranBuildings", true);
+
+	this->TauntFile.Read(pINI, pSection, "File.Taunt");
 }
 
 Iterator<BuildingTypeClass*> HouseTypeExt::ExtData::GetPowerplants() const
@@ -129,6 +182,7 @@ void  HouseTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->StartInMultiplayer_WithConst)
 		.Process(this->Powerplants)
 		.Process(this->VeteranBuildings)
+		.Process(this->TauntFile)
 		;
 }
 

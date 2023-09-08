@@ -744,6 +744,8 @@ void WarheadTypeExt::ExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKill
 				} else {
 					AnimExt::SetAnimOwnerHouseKind(pExt->WebbedAnim, pKillerHouse, pInf->Owner, pKillerTech, false);
 				}
+
+				TechnoExt::StoreLastTargetAndMissionAfterWebbed(pInf);
 			}
 		}
 		else
@@ -769,6 +771,7 @@ void WarheadTypeExt::ExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKill
 				if (pExt->IsWebbed){
 					pExt->IsWebbed = false;
 					pInf->ParalysisTimer.Stop();
+					TechnoExt::RestoreLastTargetAndMissionAfterWebbed(pInf);
 				}
 
 				if (pExt->WebbedAnim)

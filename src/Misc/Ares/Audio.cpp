@@ -5,6 +5,9 @@
 #include <VocClass.h>
 #include <Phobos.h>
 
+#include <Ext/HouseType/Body.h>
+#include <SessionClass.h>
+
 LooseAudioCache LooseAudioCache::Instance;
 AudioLuggage AudioLuggage::Instance;
 
@@ -100,12 +103,76 @@ void AudioBag::Open(const char* fileBase) {
 	}
 }
 
-constexpr unsigned long mapCapacity()
+// author : Richard Hodges
+// https://stackoverflow.com/questions/40973464/parse-replace-in-c-stdstring
+template<class...Args>
+std::string replace(const char* format, Args const&... args)
 {
-	unsigned long cap = sizeof(std::pair<AudioIDXEntryB, CCFileClass*>);
-	return cap;
+    // determine number of characters in output
+    size_t len = std::snprintf(nullptr, 0, format, args...);
+
+    // allocate buffer space
+    std::string result = std::string(std::size_t(len), ' ');
+
+    // write string into buffer. Note the +1 is allowing for the implicit trailing
+    // zero in a std::string
+    std::snprintf(&result[0], len + 1, format, args...);
+
+    return result;
+};
+
+bool NOINLINE PlayWavWrapper(int HouseTypeIdx , size_t SampleIdx)
+{
+	const auto pAudioStream = AudioStream::Instance();
+	if(!pAudioStream || Unsorted::ScenarioInit_Audio() || SampleIdx > 9 || HouseTypeIdx <= -1) {
+		return false;
+	}
+
+	const auto pExt = HouseTypeExt::ExtMap.Find(
+				HouseTypeClass::Array->Items[HouseTypeIdx]
+	);
+
+	std::string buffer = pExt->TauntFile;
+	const auto nPos = buffer.find("~~");
+
+	if (nPos != std::string::npos) {
+		//only set the 2 characters without the terminator string
+		std::string number = "0";
+		number += std::to_string(SampleIdx);
+		buffer.replace(nPos, 2, number);
+
+		Debug::Log("Country [%s] with Taunt Name at idx [%d - %s]\n",
+			pExt->OwnerObject()->ID, SampleIdx , buffer.c_str());
+	} else {
+		Debug::FatalErrorAndExit("Country [%s] Have Invalid Taunt Name Format [%s]\n",
+		pExt->OwnerObject()->ID, pExt->TauntFile.c_str());
+	}
+
+	return pAudioStream->PlayWAV(buffer.c_str(), false);
 }
 
+DEFINE_OVERRIDE_HOOK(0x752b70 , PlayTaunt , 5)
+{
+	GET(TauntDataStruct, data , ECX);
+	R->EAX(PlayWavWrapper(data.countryIdx, data.tauntIdx));
+	return 0x752C68;
+}
+
+DEFINE_OVERRIDE_HOOK(0x536438 , TauntCommandClass_Execute , 5)
+{
+   GET(TauntDataStruct, data , ECX);
+  const auto house =  NodeNameType::Array->Items[0]->Country;
+  R->Stack(0x4D , house);
+  PlayWavWrapper(house, data.tauntIdx);
+  return 0x53643D;
+}
+
+DEFINE_OVERRIDE_HOOK(0x48da3b , sub_48D1E0_PlayTaunt , 5)
+{
+	GET(TauntDataStruct, data , ECX);
+	PlayWavWrapper(GlobalPacketType::Instance->Command, data.tauntIdx);
+	return 0x48DAD3;
+}
 
 // there is big changes here
 AudioIDXData* AudioLuggage::Create(const char* pPath) {

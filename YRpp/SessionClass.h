@@ -59,6 +59,10 @@ static_assert(sizeof(NodeNameType) == 0x85);
 
 struct GlobalPacketType
 {
+	static constexpr reference<GlobalPacketType, 0xA8D671> const Instance {};
+
+public:
+
 	int Command;
 	char field_4;
 	char field_5;

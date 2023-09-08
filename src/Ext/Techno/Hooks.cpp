@@ -39,6 +39,26 @@ DEFINE_HOOK(0x518FBC, InfantryClass_DrawIt_DontRenderSHP, 0x6)
 	return 0;
 }
 
+DEFINE_HOOK(0x51AA49, InfantryClass_Assign_Destination_DisallowMoving, 0x6)
+{
+	GET(InfantryClass*, pThis, ECX);
+
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
+
+	if (pExt->IsWebbed && pThis->ParalysisTimer.HasTimeLeft()) {
+		if (pThis->Target) {
+			pThis->SetTarget(nullptr);
+			pThis->SetDestination(nullptr, false);
+			pThis->QueueMission(Mission::Sleep, false);
+		}
+
+		return 0x51B1D7;
+	}
+
+
+	return 0;
+}
+
 DEFINE_HOOK(0x4483C0, BuildingClass_SetOwningHouse_MuteSound, 0x6)
 {
 	GET(BuildingClass* const, pThis, ESI);
@@ -521,7 +541,7 @@ DEFINE_HOOK(0x4D9992, FootClass_PointerGotInvalid_Parasite, 0x7)
 	GET(FootClass*, pParasiteOwner, EAX);
 	GET(bool, bRemoved, EBX);
 
-	if (pParasiteOwner == pAbstract && (!pParasiteOwner->Health || !Make_Global<char>(0xA8ED5C)))
+	if (pParasiteOwner == pAbstract && (!pParasiteOwner->Health || !Game::InScenario2()))
 	{
 		pThis->ParasiteEatingMe = nullptr;
 		return SkipGameCode;
@@ -579,8 +599,7 @@ DEFINE_HOOK(0x70A36E, TechnoClass_DrawPips_Ammo, 0x6)
 	GET_STACK(SHPStruct*, pDefault, 0x74 - 0x48);
 
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	auto const pipOffset = pTypeExt->AmmoPipOffset.Get();
-	Point2D position = { offset->X + pipOffset.X, offset->Y  + pipOffset.Y};
+	Point2D position = { offset->X + pTypeExt->AmmoPipOffset->X, offset->Y  + pTypeExt->AmmoPipOffset->Y};
 	ConvertClass* pConvert = pTypeExt->AmmoPip_Palette ?
 		pTypeExt->AmmoPip_Palette->GetConvert<PaletteManager::Mode::Default>()
 		: FileSystem::PALETTE_PAL();

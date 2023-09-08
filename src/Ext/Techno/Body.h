@@ -134,6 +134,8 @@ public:
 		//====
 		bool IsWebbed { false };
 		AnimClass* WebbedAnim { nullptr };
+		AbstractClass* WebbyLastTarget { nullptr };
+		Mission WebbyLastMission { Mission::Sleep };
 
 		ExtData(TechnoClass* OwnerObject) : Extension<TechnoClass>(OwnerObject)
 			, ObjectExt::ExtData {}
@@ -362,4 +364,8 @@ private:
 	static void ProcessDigitalDisplays(TechnoClass* pThis);
 	static void GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType, int& value, int& maxValue);
 	static Iterator<DigitalDisplayTypeClass*> GetDisplayType(TechnoClass* pThis, TechnoTypeClass* pType, int& length);
+
+
+	static void RestoreLastTargetAndMissionAfterWebbed(InfantryClass* pThis);
+	static void StoreLastTargetAndMissionAfterWebbed(InfantryClass* pThis);
 };

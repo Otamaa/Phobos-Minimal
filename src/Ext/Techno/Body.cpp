@@ -360,6 +360,24 @@ void TechnoExt::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType
 	}
 }
 
+void TechnoExt::RestoreLastTargetAndMissionAfterWebbed(InfantryClass* pThis)
+{
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pTarget = std::exchange(pExt->WebbyLastTarget, nullptr);
+
+	if (pTarget)
+		pThis->Override_Mission(pExt->WebbyLastMission, pTarget, pTarget);
+	else
+		pThis->QueueMission(pThis->Owner->IsControlledByHuman_() ? Mission::Guard : Mission::Hunt ,true);
+}
+
+void TechnoExt::StoreLastTargetAndMissionAfterWebbed(InfantryClass* pThis)
+{
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
+	pExt->WebbyLastMission = pThis->GetCurrentMission();
+	pExt->WebbyLastTarget = pThis->Target;
+}
+
 void TechnoExt::StoreHijackerLastDisguiseData(InfantryClass* pThis, FootClass* pVictim)
 {
 	auto pExt = TechnoExt::ExtMap.Find(pVictim);
@@ -4458,10 +4476,13 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->DoingUnloadFire)
 		.Process(this->CreatedFromAction)
 		.Process(this->WHAnimRemainingCreationInterval)
+
 #ifdef ENABLE_HOMING_MISSILE
 		.Process(this->MissileTargetTracker)
 #endif
 		.Process(this->WebbedAnim)
+		.Process(this->WebbyLastTarget)
+		.Process(this->WebbyLastMission)
 		;
 	//should put this inside techo ext , ffs
 
@@ -4501,7 +4522,7 @@ void TechnoExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(LinkedSW, ptr);
 	AnnounceInvalidPointer(OriginalPassengerOwner, ptr);
 	AnnounceInvalidPointer(LastAttacker, ptr , bRemoved);
-
+	AnnounceInvalidPointer(WebbyLastTarget, ptr);
 #ifdef ENABLE_HOMING_MISSILE
 	if (MissileTargetTracker)
 		MissileTargetTracker->InvalidatePointer(ptr, bRemoved);

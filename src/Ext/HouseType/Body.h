@@ -42,6 +42,8 @@ public:
 		ValueableVector<BuildingTypeClass*> Powerplants {};
 
 		ValueableVector<BuildingTypeClass*> VeteranBuildings {};
+		PhobosFixedString<0x20> TauntFile {}; //Taunt filename format (should contain %d !!!)
+
 		ExtData(HouseTypeClass* OwnerObject) : Extension<HouseTypeClass>(OwnerObject)
 		{ }
 
@@ -52,6 +54,8 @@ public:
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 		void InheritSettings(HouseTypeClass* pThis);
+
+		void Initialize();
 
 		Iterator<BuildingTypeClass*> GetPowerplants() const;
 		Iterator<BuildingTypeClass*> GetDefaultPowerplants() const;
