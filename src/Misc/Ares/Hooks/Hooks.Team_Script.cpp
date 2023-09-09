@@ -220,14 +220,76 @@ bool ScriptExt_Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bTh
 	return false;
 }
 
+#include <Ext/Team/Body.h>
+#include <Ext/Script/Body.h>
+
 DEFINE_OVERRIDE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
 {
 	enum { ReturnFunc = 0x6E95AB, Continue = 0x0 };
 	GET(TeamClass*, pThis, ESI);
 	GET(ScriptActionNode*, pTeamMission, EAX);
 	GET_STACK(bool, bThirdArg, 0x10);
-	return ScriptExt_Handle(pThis, pTeamMission, bThirdArg)
-		? ReturnFunc : Continue;
+
+	if(ScriptExt_Handle(pThis, pTeamMission, bThirdArg))
+		return ReturnFunc;
+
+	auto pTeamData = TeamExt::ExtMap.Find(pThis);
+
+	// Force a line jump. This should support vanilla YR Actions
+	if (pTeamData->ForceJump_InitialCountdown > 0 && pTeamData->ForceJump_Countdown.Expired())
+	{
+		auto pScript = pThis->CurrentScript;
+
+		if (pTeamData->ForceJump_RepeatMode)
+		{
+			pScript->CurrentMission--;
+			pThis->Focus = nullptr;
+			pThis->QueuedFocus = nullptr;
+			const auto nextAction = pScript->GetNextAction();
+			Debug::Log("DEBUG: [%s] [%s](line: %d = %d,%d): Jump to the same line -> (Reason: Timed Jump loop)\n",
+				pThis->Type->ID,
+				pScript->Type->ID,
+				pScript->CurrentMission + 1,
+				nextAction.Action,
+				nextAction.Argument
+			);
+
+			if (pTeamData->ForceJump_InitialCountdown > 0)
+			{
+				pTeamData->ForceJump_Countdown.Start(pTeamData->ForceJump_InitialCountdown);
+				pTeamData->ForceJump_RepeatMode = true;
+			}
+		}
+		else
+		{
+			const auto& [curAct, curArgs] = pScript->GetCurrentAction();
+			const auto& [nextAct, nextArgs] = pScript->GetNextAction();
+
+			pTeamData->ForceJump_InitialCountdown = -1;
+			Debug::Log("DEBUG: [%s] [%s](line: %d = %d,%d): Jump to line: %d = %d,%d -> (Reason: Timed Jump)\n",
+				pThis->Type->ID,
+				pScript->Type->ID,
+				pScript->CurrentMission, curAct, curArgs,
+				pScript->CurrentMission + 1, nextAct, nextArgs
+			);
+		}
+
+		for (auto pUnit = pThis->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
+		{
+			if (ScriptExt::IsUnitAvailable(pUnit, true))
+			{
+				pUnit->EnterIdleMode(false, 1);
+			}
+		}
+
+		pThis->StepCompleted = true;
+	}
+	else
+	{
+		ScriptExt::ProcessScriptActions(pThis);
+	}
+
+	return Continue;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6EF8A1, TeamClass_GatherAtEnemyBase_Distance, 0x6)

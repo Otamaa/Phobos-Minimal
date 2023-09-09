@@ -377,7 +377,9 @@ DEFINE_OVERRIDE_HOOK(0x417CCB, AircraftClass_GetActionOnObject_Deactivated, 5)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_IvanBombsA, 5)
+DEFINE_DISABLE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_ares)
+
+DEFINE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_IvanBombsA, 5)
 {
 	GET(TechnoClass* const, pThis, ECX);
 	GET_STACK(ObjectClass*, pObject, 0x4);

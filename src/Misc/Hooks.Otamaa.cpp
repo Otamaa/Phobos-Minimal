@@ -70,6 +70,9 @@ DEFINE_HOOK(0x6FA2C7, TechnoClass_AI_DrawBehindAnim, 0x8) //was 4
 		if (BuildingExt::ExtMap.Find(pBld)->LimboID != -1)
 			return 0x6FA2D8;
 
+	if(pThis->InOpenToppedTransport)
+		return 0x6FA2D8;
+
 	const auto pType = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if(pType->IsDummy)
@@ -2631,27 +2634,6 @@ DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7)
 		? SkipWholeFunction : Continue;
 }
 
-DEFINE_HOOK(0x6F7261, TechnoClass_TargetingInRange_NavalBonus, 0x5)
-{
-	GET(int, nRangeBonus, EDI);
-	GET(TechnoClass* const, pThis, ESI);
-	GET(AbstractClass* const, pTarget, ECX);
-
-	if (auto const pFoot = abstract_cast<FootClass* const>(pTarget))
-	{
-		const auto pThisTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-		if (pFoot->GetTechnoType()->Naval && pThisTypeExt->NavalRangeBonus.isset())
-		{
-			const auto pFootCell = pFoot->GetCell();
-			if (pFootCell->LandType == LandType::Water && !pFootCell->ContainsBridge())
-				nRangeBonus += pThisTypeExt->NavalRangeBonus.Get();
-		}
-	}
-
-	R->EDI(nRangeBonus);
-	return 0x0;
-}
-
 CoordStruct* __fastcall UnitClass_GetFLH(UnitClass* pThis, DWORD, CoordStruct* buffer, int wepon, CoordStruct base)
 {
 	if (pThis->InOpenToppedTransport && pThis->Transporter)
@@ -3126,26 +3108,6 @@ DEFINE_HOOK(0x6FF4B0, TechnoClass_FireAt_TargetLaser, 0x5)
 
 	pThis->TargetLaserTimer.Start(pTypeExt->TargetLaser_Time.Get());
 	return 0x6FF4CC;
-}
-
-DEFINE_HOOK(0x4491D5, BuildingClass_ChangeOwnership_RegisterFunction, 0x6)
-{
-	GET(BuildingClass*, pThis, ESI);
-
-	if (pThis->Type->OrePurifier)
-		++pThis->Owner->NumOrePurifiers;
-
-	return 0x4491F1;
-}
-
-DEFINE_HOOK(0x448AB2, BuildingClass_ChangeOwnership_UnregisterFunction, 0x6)
-{
-	GET(BuildingClass*, pThis, ESI);
-
-	if (pThis->Type->OrePurifier)
-		--pThis->Owner->NumOrePurifiers;
-
-	return 0x448AC8;
 }
 
 DEFINE_HOOK(0x70FB50, TechnoClass_Bunkerable, 0x5)

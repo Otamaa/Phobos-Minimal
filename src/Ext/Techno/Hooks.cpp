@@ -71,18 +71,6 @@ DEFINE_HOOK(0x4483C0, BuildingClass_SetOwningHouse_MuteSound, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x73DE90, UnitClass_SimpleDeployer_TransferLaserTrails, 0x6)
-{
-	GET(UnitClass*, pUnit, ESI);
-
-	TechnoExt::InitializeLaserTrail(pUnit, true);
-	TrailsManager::Construct(static_cast<TechnoClass*>(pUnit), true);
-	//LineTrailExt::DeallocateLineTrail(pUnit);
-	//LineTrailExt::ConstructLineTrails(pUnit);
-
-	return 0;
-}
-
 DEFINE_HOOK(0x702E4E, TechnoClass_RegisterDestruction_SaveKillerInfo, 0x6)
 {
 	GET(TechnoClass*, pKiller, EDI);
@@ -156,26 +144,6 @@ DEFINE_HOOK(0x7098B9, TechnoClass_TargetSomethingNearby_AutoFire, 0x6)
 	}
 
 	return Continue;
-}
-
-DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_LaserTrails, 0x7)
-{
-	GET(TechnoClass*, pTechno, EDI);
-
-	const auto pTechnoExt = TechnoExt::ExtMap.Find(pTechno);
-
-	if (!pTechnoExt->LaserTrails.empty())
-	{
-		for (auto& pLaserTrail : pTechnoExt->LaserTrails)
-		{
-			pLaserTrail.Visible = false;
-			pLaserTrail.LastLocation.clear();
-		}
-	}
-
-	TrailsManager::Hide(pTechno);
-
-	return 0;
 }
 
 #include <Ext/Super/Body.h>
@@ -341,26 +309,6 @@ DEFINE_HOOK(0x443C81, BuildingClass_ExitObject_InitialClonedHealth, 0x7)
 	}
 
 	return 0;
-}
-
-DEFINE_HOOK(0x4D9F7B, FootClass_Sell, 0x6)
-{
-	enum { ReadyToVanish = 0x4D9FCB };
-
-	GET(FootClass*, pThis, ESI);
-
-	pThis->Owner->GiveMoney(pThis->GetRefund());
-
-	if (pThis->Owner->IsControlledByCurrentPlayer()) {
-		const auto pType = pThis->GetTechnoType();
-		VoxClass::PlayIndex(TechnoTypeExt::ExtMap.Find(pType)->EVA_Sold.Get());
-		VocClass::PlayGlobal(TechnoTypeExt::ExtMap.Find(pType)->SellSound.Get(), Panning::Center,1.0f);
-	}
-
-	//DisplayIncome
-	//FlyingStrings::AddMoneyString(money, pThis->Owner, RulesExt::Global()->DisplayIncome_Houses.Get(), pThis->Location);
-
-	return ReadyToVanish;
 }
 
 DEFINE_HOOK(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)

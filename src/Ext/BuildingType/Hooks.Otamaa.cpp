@@ -198,21 +198,6 @@ DEFINE_HOOK(0x7120D0, TechnoTypeClass_GetRepairCost_Building, 0x7)
 // 	return 0;
 // }
 
-DEFINE_HOOK(0x706389, TechnoClass_Draw_Object_NormalLight, 0x6) {
-	GET(TechnoClass*, pThis, ESI);
-
-	if (const auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
-		if ((pBuilding->CurrentMission == Mission::Construction)
-			&& pBuilding->BState == BStateType::Construction && pBuilding->Type->Buildup ) {
-			if (BuildingTypeExt::ExtMap.Find(pBuilding->Type)->BuildUp_UseNormalLIght.Get()) {
-				R->EBP(1000);
-			}
-		}
-	}
-
-	return 0x0;
-}
-
 DEFINE_HOOK(0x505F6C, HouseClass_GenerateAIBuildList_AIBuildInstead, 0x6)
 {
 	GET(HouseClass*, pHouse, ESI);

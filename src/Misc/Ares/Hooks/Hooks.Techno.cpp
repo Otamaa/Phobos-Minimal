@@ -186,12 +186,7 @@ DEFINE_OVERRIDE_HOOK(0x707b09, TechnoClass_PointerGotInvalid_ResetMindControl, 0
 }
 
 // #1415844: units in open-topped transports show behind anim
-DEFINE_OVERRIDE_HOOK(0x6FA2C7, TechnoClass_Update_DrawHidden, 0x8)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	auto const disallowed = pThis->InOpenToppedTransport;
-	return !disallowed ? 0u : 0x6FA30Cu;
-}
+DEFINE_DISABLE_HOOK(0x6FA2C7, TechnoClass_Update_DrawHidden_ares) //, 0x8)
 
 DEFINE_DISABLE_HOOK(0x6FFF9E, TechnoClass_GetActionOnObject_IvanBombsB_ares)//, 0x5, 700006)
 DEFINE_JUMP(LJMP, 0x6FFF9E, 0x700006);

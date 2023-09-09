@@ -2726,7 +2726,40 @@ DEFINE_OVERRIDE_HOOK(0x6A980A, StripClass_Draw_TechnoType_PCX, 8)
 
 DEFINE_OVERRIDE_HOOK(0x6A99F3, StripClass_Draw_SkipSHPForPCX, 6)
 {
-	return CameoPCXSurface != 0 ? 0x6A9A43 : 0;
+	if(CameoPCXSurface)
+		return 0x6A943;
+
+	GET_STACK(SHPStruct const*, pCameo, STACK_OFFS(0x48C, 0x444));
+
+	if (pCameo)
+	{
+		auto pCameoRef = pCameo->AsReference();
+		char pFilename[0x20];
+		strcpy_s(pFilename, RulesExt::Global()->MissingCameo.data());
+		_strlwr_s(pFilename);
+
+		if (!_stricmp(pCameoRef->Filename, GameStrings::XXICON_SHP())
+			&& (strstr(pFilename, ".pcx")))
+		{
+			BSurface* pCXSurf = nullptr;
+
+			if (PCX::Instance->LoadFile(pFilename))
+				pCXSurf = PCX::Instance->GetSurface(pFilename);
+
+			if (pCXSurf)
+			{
+				GET(int, destX, ESI);
+				GET(int, destY, EBP);
+
+				RectangleStruct bounds { destX, destY, 60, 48 };
+				PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, pCXSurf);
+
+				return 0x6A9A43; //skip drawing shp cameo
+			}
+		}
+	}
+
+	return 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6A9A43, StripClass_Draw_DrawPCX, 6)

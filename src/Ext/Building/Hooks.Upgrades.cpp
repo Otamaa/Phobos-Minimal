@@ -1,25 +1,5 @@
 #include "Body.h"
 
-DEFINE_HOOK(0x4409F4, BuildingClass_Put_Upgrade_Add, 0x6)
-{
-	GET(BuildingClass*, pThis, ESI);
-	//GET(BuildingClass*, pToUpgrade, EDI);
-
-	if (auto const pOwner = pThis->Owner)
-	{
-		if (pOwner->Type->MultiplayPassive)
-			return 0x0;
-
-		if (auto const pInfantrySelfHeal = pThis->Type->InfantryGainSelfHeal)
-			pOwner->InfantrySelfHeal += pInfantrySelfHeal;
-
-		if (auto const pUnitSelfHeal = pThis->Type->UnitsGainSelfHeal)
-			pOwner->UnitsSelfHeal += pUnitSelfHeal;
-	}
-
-	return 0;
-}
-
 DEFINE_HOOK(0x44AAD3 , BuildingClass_Mi_Selling_Upgrades, 9)
 {
 	GET(BuildingTypeClass*, pUpgrades, ECX);

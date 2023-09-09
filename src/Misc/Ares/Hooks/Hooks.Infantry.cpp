@@ -284,7 +284,7 @@ DEFINE_OVERRIDE_HOOK(0x51BD4C , InfantryClass_Update_BuildingBelow, 6)
 	return 0x51BD68;
 }
 
-DEFINE_OVERRIDE_HOOK(0x51CE9A, InfantryClass_Idle, 5)
+DEFINE_OVERRIDE_HOOK(0x51CE9A, InfantryClass_RandomAnim_IsCow, 5)
 {
 	GET(InfantryClass*, I, ESI);
 	const auto pData = InfantryTypeExt::ExtMap.Find(I->Type);

@@ -1,28 +1,6 @@
 #include "Body.h"
 #include "Trajectories/PhobosTrajectory.h"
 
-DEFINE_HOOK(0x468E9F, BulletClass_Logics_SnapOnTarget, 0x6) //C
-{
-	enum { NoSnap = 0x468FF4, ForceSnap = 0x468EC7 , Continue = 0x0 };
-
-	GET(BulletClass*, pThis, ESI);
-
-	if (pThis->Type->Inviso)
-	{
-		R->EAX(pThis->Type);
-		return ForceSnap;
-	}
-
-	auto const pExt = BulletExt::ExtMap.Find(pThis);
-	if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight &&
-		!pExt->SnappedToTarget)
-	{
-		return NoSnap;
-	}
-
-	return Continue;
-}
-
 DEFINE_HOOK(0x467CCA, BulletClass_AI_TargetSnapChecks, 0x6) //was C
 {
 	enum { SkipAirburstCheck = 0x467CDE, SkipSnapFunc = 0x467E53 };

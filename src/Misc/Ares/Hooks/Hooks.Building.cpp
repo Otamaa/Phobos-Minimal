@@ -405,6 +405,18 @@ DEFINE_OVERRIDE_HOOK(0x4409F4, BuildingClass_Put_ProduceCash, 6)
 		}
 	}
 
+	if (auto const pOwner = pThis->Owner)
+	{
+		if (pOwner->Type->MultiplayPassive)
+			return 0x0;
+
+		if (auto const pInfantrySelfHeal = pThis->Type->InfantryGainSelfHeal)
+			pOwner->InfantrySelfHeal += pInfantrySelfHeal;
+
+		if (auto const pUnitSelfHeal = pThis->Type->UnitsGainSelfHeal)
+			pOwner->UnitsSelfHeal += pUnitSelfHeal;
+	}
+
 	AresData::SetFactoryPlans(pThis);
 	return 0;
 }
@@ -608,16 +620,16 @@ DEFINE_OVERRIDE_HOOK(0x4566F9, BuildingClass_GetRangeOfRadial_SensorArray, 0x6)
 
 // #1156943: they check for type, and for the instance, yet
 // the Log call uses the values as if nothing happened.
-DEFINE_OVERRIDE_HOOK(0x4430E8, BuildingClass_Demolish_LogCrash, 0x6)
-{
-	GET(BuildingClass* const, pThis, EDI);
-	GET(InfantryClass* const, pInf, ESI);
-
-	R->EDX(pThis ? pThis->Type->Name : GameStrings::NoneStr());
-	R->EAX(pInf ? pInf->Type->Name : GameStrings::NoneStr());
-
-	return 0x4430FA;
-}
+// DEFINE_OVERRIDE_HOOK(0x4430E8, BuildingClass_Demolish_LogCrash, 0x6)
+// {
+// 	GET(BuildingClass* const, pThis, EDI);
+// 	GET(InfantryClass* const, pInf, ESI);
+//
+// 	R->EDX(pThis ? pThis->Type->Name : GameStrings::NoneStr());
+// 	R->EAX(pInf ? pInf->Type->Name : GameStrings::NoneStr());
+//
+// 	return 0x4430FA;
+// }
 
 // bugfix #231: DestroyAnims don't remap and cause reconnection errors
 DEFINE_DISABLE_HOOK(0x441D25, BuildingClass_Destroy_ares)//, 0xA, 441D37);
@@ -2222,7 +2234,7 @@ DEFINE_OVERRIDE_HOOK(0x445905, BuildingClass_Remove_Academy, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x448AB2, BuildingClass_ChangeOwnership_Remove_Academy, 6)
+DEFINE_OVERRIDE_HOOK(0x448AB2, BuildingClass_ChangeOwnership_UnregisterFunction, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -2231,10 +2243,13 @@ DEFINE_OVERRIDE_HOOK(0x448AB2, BuildingClass_ChangeOwnership_Remove_Academy, 6)
 		AresData::UpdateAcademy(pThis->Owner, pThis, false);
 	}
 
-	return 0;
+	if (pThis->Type->OrePurifier)
+		--pThis->Owner->NumOrePurifiers;
+
+	return 0x448AC8;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4491D5, BuildingClass_ChangeOwnership_Add_Academy, 6)
+DEFINE_OVERRIDE_HOOK(0x4491D5, BuildingClass_ChangeOwnership_RegisterFunction, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -2243,7 +2258,10 @@ DEFINE_OVERRIDE_HOOK(0x4491D5, BuildingClass_ChangeOwnership_Add_Academy, 6)
 		AresData::UpdateAcademy(pThis->Owner, pThis, true);
 	}
 
-	return 0;
+	if (pThis->Type->OrePurifier)
+		++pThis->Owner->NumOrePurifiers;
+
+	return 0x4491F1;
 }
 
 void KickOutHospitalArmory(BuildingClass* pThis)
@@ -2660,8 +2678,12 @@ DEFINE_OVERRIDE_HOOK(0x4524A3, BuildingClass_DisableThings, 6)
 // check every frame
 DEFINE_OVERRIDE_HOOK(0x43FE69, BuildingClass_Update_SensorArray, 0xA)
 {
-	GET(BuildingClass*, pBld, ESI);
-	UpdateSensorArray(pBld);
+	GET(BuildingClass*, pThis, ESI);
+	UpdateSensorArray(pThis);
+	const auto pExt = BuildingExt::ExtMap.Find(pThis);
+	pExt->DisplayIncomeString();
+	pExt->UpdatePoweredKillSpawns();
+	pExt->UpdateAutoSellTimer();
 	return 0;
 }
 

@@ -120,11 +120,7 @@ DEFINE_OVERRIDE_HOOK(0x514DFE, HoverLocomotionClass_ILocomotion_MoveTo_DeployToL
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x513EAA, HoverLocomotionClass_UpdateHover_DeployToLand, 0x5)
-{
-	GET(HoverLocomotionClass const* const, pLoco, ESI);
-	return pLoco->LinkedTo->InAir ? 0x513ECD : 0x0;
-}
+DEFINE_DISABLE_HOOK(0x513EAA, HoverLocomotionClass_UpdateHover_DeployToLand_ares)
 
 DEFINE_OVERRIDE_HOOK(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_UpdateTarget, 0x6)
 {

@@ -181,26 +181,32 @@ DEFINE_HOOK(0x48DBE0, TheaterTypeClass_FindIndex, 0x5)
 
 DEFINE_HOOK(0x54547F, IsometricTileTypeClass_ReadINI_SetPaletteISO, 0x6)
 {
-	auto& data = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->PaletteISO;
-	if (data)
-	{
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+
+	if (auto& data = pTheater->PaletteISO) {
 		R->ECX<char*>(data.data());
 		return 0x5454A2;
 	}
 
-	return 0x0;
+	//Isometric pal = ISO+Extension.pal
+	R->EAX((pTheater->IsometricTileTypeExtension ? pTheater->IsometricTileTypeExtension : pTheater->Extension).data());
+	return 0x545485;
+
 }
 
 DEFINE_HOOK(0x5454F0, IsometricTileTypeClass_ReadINI_TerrainControl, 0x6)
 {
-	auto& data = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->TerrainControl;
-	if (data)
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+
+	if (auto& data = pTheater->TerrainControl)
 	{
 		R->ECX<char*>(data.data());
 		return 0x545513;
 	}
 
-	return 0x0;
+	//Ini  file = ControlFilename+MD.ini
+	R->EDX(pTheater->ControlFileName.data());
+	return 0x5454F6;
 }
 
 DEFINE_HOOK(0x5452F2, IsometricTileTypeClass_TheaterType_Slope, 0x6)
@@ -208,22 +214,6 @@ DEFINE_HOOK(0x5452F2, IsometricTileTypeClass_TheaterType_Slope, 0x6)
 	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
 	R->EAX((pTheater->IsometricTileTypeExtension ? pTheater->IsometricTileTypeExtension : pTheater->Extension).data());
 	return 0x5452F8;
-}
-
-//Isometric pal = ISO+Extension.pal
-DEFINE_HOOK(0x54547F, IsometricTileTypeClass_TheaterType_ISOPal, 0x6)
-{
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
-	R->EAX((pTheater->IsometricTileTypeExtension ? pTheater->IsometricTileTypeExtension : pTheater->Extension).data());
-	return 0x545485;
-}
-
-//Ini  file = ControlFilename+MD.ini
-DEFINE_HOOK(0x5454F0, IsometricTileTypeClass_TheaterType_IniFile, 0x6)
-{
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
-	R->EDX(pTheater->ControlFileName.data());
-	return 0x5454F6;
 }
 
 //here theater index is multiplied by `sizeof(Theater)` !

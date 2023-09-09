@@ -235,21 +235,6 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 	return 0x4DA7B0;
 }
 
-// this updated after TechnoClass::AI
-// then check if the techno itself is still active/alive/present
-DEFINE_HOOK(0x43FE69, BuildingClass_AI_Add, 0xA)
-{
-	GET(BuildingClass*, pThis, ESI);
-
-	if (const auto pExt = BuildingExt::ExtMap.TryFind(pThis)) {
-		pExt->DisplayIncomeString();
-		pExt->UpdatePoweredKillSpawns();
-		pExt->UpdateAutoSellTimer();
-	}
-
-	return 0x0;
-}
-
 // Ares-hook jmp to this offset
 DEFINE_HOOK(0x71A88D, TemporalClass_AI_Add, 0x8) //0
 {

@@ -56,10 +56,15 @@ DEFINE_HOOK(0x513E8F, HoverLocomotionClass_513D20_HoverHeight2, 0x6)
 DEFINE_HOOK(0x513EAA, HoverLocomotionClass_513D20_HoverHeight3, 0x5)
 {
 	GET(HoverLocomotionClass* const, pLoco, ESI);
-	const auto height = GetHover(GetOwner(pLoco))->GetHeight();
-	_asm fild height;
-	R->EAX(RulesClass::Instance());
-	return 0x513EB5;
+
+	if(!pLoco->LinkedTo->InAir) {
+		const auto height = GetHover(GetOwner(pLoco))->GetHeight();
+		_asm fild height;
+		R->EAX(RulesClass::Instance());
+		return 0x513EB5;
+	}
+
+	return 0x513ECD;
 }
 
 DEFINE_HOOK(0x513ECD, HoverLocomotionClass_513D20_HoverHeight4, 0x6)

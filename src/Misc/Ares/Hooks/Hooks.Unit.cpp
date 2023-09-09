@@ -552,6 +552,11 @@ DEFINE_OVERRIDE_HOOK(0x73DE90, UnitClass_Mi_Unload_SimpleDeployer, 0x6)
 		pThis->Deployed = false;
 	}
 
+	TechnoExt::InitializeLaserTrail(pThis, true);
+	TrailsManager::Construct(static_cast<TechnoClass*>(pThis), true);
+	//LineTrailExt::DeallocateLineTrail(pUnit);
+	//LineTrailExt::ConstructLineTrails(pUnit);
+
 	return pThis->Locomotor.GetInterfacePtr()->Is_Moving_Now() ? 0x73E5B1 : 0x0;
 }
 

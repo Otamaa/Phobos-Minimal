@@ -40,7 +40,29 @@
 
 DEFINE_HOOK(0x46A290, BulletClass_Logics_Return, 0x5)
 {
+	GET(BulletClass*, pThis, ESI);
+	GET_BASE(CoordStruct*, coords, 0x8);
 	PhobosGlobal::Instance()->DetonateDamageArea = true;
+
+	if (pThis->WeaponType )
+	{
+		auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pThis->WeaponType);
+		int defaultDamage = pThis->WeaponType->Damage;
+
+		for (size_t i = 0; i < pWeaponExt->ExtraWarheads.size(); i++)
+		{
+			auto const pWH = pWeaponExt->ExtraWarheads[i];
+			auto const pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExt::ExtMap.Find(pThis)->Owner;
+			int damage = defaultDamage;
+
+			if (pWeaponExt->ExtraWarheads_DamageOverrides.size() > i)
+				damage = pWeaponExt->ExtraWarheads_DamageOverrides[i];
+
+			AbstractClass* pTarget = pThis->Target ? pThis->Target : MapClass::Instance->GetCellAt(coords);
+			WarheadTypeExt::DetonateAt(pWH, pThis->Target, *coords, pThis->Owner, damage , pOwner);
+		}
+	}
+
 	return 0;
 }
 

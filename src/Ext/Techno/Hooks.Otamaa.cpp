@@ -337,14 +337,14 @@ DEFINE_HOOK(0x4D42C4, FootClass_Mission_Patrol_IsCow, 0x6) //8
 	return Continue;
 }
 
-DEFINE_HOOK(0x51CE9A, InfantryClass_RandomAnim_IsCow, 0x5) //7
-{
-	GET(InfantryClass*, pThis, ESI);
-
-	R->EDI(R->EAX());
-	R->BL(InfantryTypeExt::ExtMap.Find(pThis->Type)->Is_Cow);
-	return 0x51CEAA;
-}
+// DEFINE_HOOK(0x51CE9A, InfantryClass_RandomAnim_IsCow, 0x5) //7
+// {
+// 	GET(InfantryClass*, pThis, ESI);
+//
+// 	R->EDI(R->EAX());
+// 	R->BL(InfantryTypeExt::ExtMap.Find(pThis->Type)->Is_Cow);
+// 	return 0x51CEAA;
+// }
 
 DEFINE_HOOK(0x4A7755, DiskLaserClass_Update_ChargedUpSound, 0x6) //B
 {

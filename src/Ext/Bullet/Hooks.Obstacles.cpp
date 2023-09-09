@@ -142,12 +142,29 @@ DEFINE_HOOK(0x468C86, BulletClass_ShouldExplode_Obstacles, 0xA)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x6F7261, TechnoClass_InRange_SetContext, 0x5)
+#include <Ext/TechnoType/Body.h>
+
+DEFINE_HOOK(0x6F7261, TechnoClass_InRange_Additionals, 0x5)
 {
-	GET(TechnoClass*, pThis, ESI);
+
+	GET(int, nRangeBonus, EDI);
+	GET(TechnoClass* const, pThis, ESI);
+	GET(AbstractClass* const, pTarget, ECX);
 
 	BulletExt::InRangeTempFirer = pThis;
 
+	if (auto const pFoot = abstract_cast<FootClass* const>(pTarget))
+	{
+		const auto pThisTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		if (pFoot->GetTechnoType()->Naval && pThisTypeExt->NavalRangeBonus.isset())
+		{
+			const auto pFootCell = pFoot->GetCell();
+			if (pFootCell->LandType == LandType::Water && !pFootCell->ContainsBridge())
+				nRangeBonus += pThisTypeExt->NavalRangeBonus.Get();
+		}
+	}
+
+	R->EDI(nRangeBonus);
 	return 0;
 }
 

@@ -408,9 +408,22 @@ DEFINE_HOOK(0x6C919F, StandaloneScore_SinglePlayerScoreDialog_ActualTime, 0x5)
 DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
 {
 	GET(TechnoClass* const, pThis, ESI);
-	GET(int const, nIntensity, EBP);
 	REF_STACK(int, nTintColor, STACK_OFFS(0x54, -0x2C));
 
+	BuildingClass* pBld = nullptr;
+	if(pThis->WhatAmI() == BuildingClass::AbsID )
+		pBld = (BuildingClass*)pThis;
+
+	if (pBld) {
+		if ((pBld->CurrentMission == Mission::Construction)
+			&& pBld->BState == BStateType::Construction && pBld->Type->Buildup ) {
+			if (BuildingTypeExt::ExtMap.Find(pBld->Type)->BuildUp_UseNormalLIght.Get()) {
+				R->EBP(1000);
+			}
+		}
+	}
+
+	GET(int const, nIntensity, EBP);
 	bool NeedUpdate = false;
 	if (pThis->IsIronCurtained())
 	{
@@ -442,8 +455,8 @@ DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
 		NeedUpdate = true;
 	}
 
-	if (pThis->WhatAmI() == BuildingClass::AbsID && NeedUpdate)
-		BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->LighningNeedUpdate = true;
+	if (pBld && NeedUpdate)
+		BuildingExt::ExtMap.Find(pBld)->LighningNeedUpdate = true;
 
 	return 0;
 }

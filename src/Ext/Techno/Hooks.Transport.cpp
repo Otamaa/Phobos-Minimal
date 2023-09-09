@@ -88,7 +88,7 @@ DEFINE_HOOK(0x701881, TechnoClass_ChangeHouse_Passenger_SyncOwner, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_SyncOwner, 0x7)
+DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(FootClass*, pPassenger, EDI);
@@ -96,9 +96,22 @@ DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_SyncOwner, 0x7)
 	if (pThis && pPassenger)
 	{
 		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		auto pTechnoExt = TechnoExt::ExtMap.Find(pPassenger);
 
 		if (pTypeExt->Passengers_SyncOwner && pTypeExt->Passengers_SyncOwner_RevertOnExit)
-			TechnoExt::ExtMap.Find(pPassenger)->OriginalPassengerOwner = pPassenger->Owner;
+			pTechnoExt->OriginalPassengerOwner = pPassenger->Owner;
+
+
+		if (!pTechnoExt->LaserTrails.empty())
+		{
+			for (auto& pLaserTrail : pTechnoExt->LaserTrails)
+			{
+				pLaserTrail.Visible = false;
+				pLaserTrail.LastLocation.clear();
+			}
+		}
+
+		TrailsManager::Hide((TechnoClass*)pPassenger);
 	}
 
 	return 0;
