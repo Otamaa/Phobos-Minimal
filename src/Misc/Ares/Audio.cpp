@@ -103,6 +103,19 @@ void AudioBag::Open(const char* fileBase) {
 	}
 }
 
+//only for testings
+//DEFINE_HOOK(0x536355, TauntCommandClass_IgnoreGameTypeA, 6)
+//{
+//	R->EAX(3);
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x5363A2, TauntCommandClass_IgnoreGameTypeB , 6)
+//{
+//	R->ECX(3);
+//	return 0x5363A8;
+//}
+
 // author : Richard Hodges
 // https://stackoverflow.com/questions/40973464/parse-replace-in-c-stdstring
 template<class...Args>
@@ -141,8 +154,8 @@ bool NOINLINE PlayWavWrapper(int HouseTypeIdx , size_t SampleIdx)
 		number += std::to_string(SampleIdx);
 		buffer.replace(nPos, 2, number);
 
-		Debug::Log("Country [%s] with Taunt Name at idx [%d - %s]\n",
-			pExt->OwnerObject()->ID, SampleIdx , buffer.c_str());
+		//Debug::Log("Country [%s] with Taunt Name at idx [%d - %s]\n",
+		//	pExt->OwnerObject()->ID, SampleIdx , buffer.c_str());
 	} else {
 		Debug::FatalErrorAndExit("Country [%s] Have Invalid Taunt Name Format [%s]\n",
 		pExt->OwnerObject()->ID, pExt->TauntFile.c_str());

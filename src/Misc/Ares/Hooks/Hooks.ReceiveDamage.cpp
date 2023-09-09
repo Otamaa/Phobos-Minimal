@@ -1107,27 +1107,6 @@ DEFINE_OVERRIDE_HOOK(0x7032B0, TechnoClass_RegisterLoss_Trigger, 0x6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4368C9, BuildingLightClass_Update_Trigger, 0x5)
-{
-	GET(TechnoClass*, pTechno, EAX);
-
-	if (pTechno->AttachedTag)
-	{
-		pTechno->AttachedTag->RaiseEvent(TriggerEvent::EnemyInSpotlight, pTechno, CellStruct::Empty, 0, 0);
-	}
-
-	if (pTechno->IsAlive)
-	{
-		if (pTechno->AttachedTag)
-		{
-			//66
-			pTechno->AttachedTag->RaiseEvent((TriggerEvent)AresTriggerEvents::EnemyInSpotlightNow, pTechno, CellStruct::Empty, 0, 0);
-		}
-	}
-
-	return 0x4368D9;
-}
-
 //DEFINE_HOOK(0x489A01, MapClass_DamageArea_LoopDamageGroups, 0x6)
 //{
 //	enum { AdvanceLoop = 0x489AC1 , SetStack1FTrue = 0x489ABC , Continue = 0x0};

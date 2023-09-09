@@ -192,7 +192,7 @@ public:
 	static bool IsObserverPlayer();
 	static bool IsObserverPlayer(HouseClass* pCur);
 
-	//static bool PrerequisitesMet(HouseClass* const pThis, TechnoTypeClass* const pItem, const Iterator<BuildingTypeClass*>& ownedBuildingTypes);
+	static bool PrerequisitesMet(HouseClass* const pThis, TechnoTypeClass* const pItem);
 	//static bool HasGenericPrerequisite(int idx, const Iterator<BuildingTypeClass*>& ownedBuildingTypes);
 	//static int FindGenericPrerequisite(const char* id);
 	static int GetHouseIndex(int param, TeamClass* pTeam, TActionClass* pTAction);

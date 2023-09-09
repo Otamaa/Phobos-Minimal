@@ -286,6 +286,7 @@ public:
 		Valueable<double> LightningRod_Modifier { 1.0 };
 		Nullable<bool> Returnable {};
 		Nullable<double> BuildupTime {};
+		Nullable<double> SellTime {};
 		NullableIdx<VocClass> SlamSound {};
 
 		Valueable<bool> Destroyed_CreateSmudge { true } ;
@@ -314,6 +315,7 @@ public:
 
 		Nullable<FacingType> LandingDir {};
 
+		int SellFrames { 0 };
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject) {}
 		virtual ~ExtData() override = default;
 

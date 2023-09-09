@@ -201,6 +201,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bugfix.Buffer.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bugfixes.Safeguard.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Building.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.BuildingLight.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.BuildngFoundation.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bullet.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Checksummer.cpp" />

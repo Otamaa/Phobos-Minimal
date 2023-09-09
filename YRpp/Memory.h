@@ -115,21 +115,10 @@ public:
 	// construct scalars
 	template <typename T, typename TAlloc, typename... TArgs>
 	static inline T* Create(TAlloc& alloc, TArgs&&... args) {
-		if(auto const ptr = std::allocator_traits<TAlloc>::allocate(alloc, 1)){
-			std::allocator_traits<TAlloc>::construct(alloc, ptr, std::forward<TArgs>(args)...);
-			return ptr;
-		}
-
-		return nullptr;
-	};
-
-	template <typename T, typename TAlloc, typename... TArgs>
-	static inline T* CreateUnchecked(TAlloc& alloc, TArgs&&... args)
-	{
 		auto const ptr = std::allocator_traits<TAlloc>::allocate(alloc, 1);
 		std::allocator_traits<TAlloc>::construct(alloc, ptr, std::forward<TArgs>(args)...);
 		return ptr;
-	}
+	};
 
 	template <typename T, typename TAlloc, typename... TArgs>
 	static inline void ConstructAt(TAlloc& alloc, T* ptr , TArgs&&... args)  {
@@ -187,6 +176,7 @@ public:
 			if constexpr (!(sizeof...(args)))
 			{
 				std::memset(ptr, 0, capacity * sizeof(T));
+			}
 			else
 			{
 				for (size_t i = 0; i < capacity; ++i)
@@ -194,7 +184,6 @@ public:
 					// use args... here. can't move args, because we need to reuse them
 					std::allocator_traits<TAlloc>::construct(alloc, &ptr[i], args...);
 				}
-			}
 			}
 		}
 
@@ -226,7 +215,7 @@ static inline T* GameCreateUnchecked(TArgs&&... args)
 	static_assert(std::is_constructible<T, TArgs...>::value, "Cannot construct T from TArgs.");
 
 	GameAllocator<T> alloc;
-	return Memory::CreateUnchecked<T>(alloc, std::forward<TArgs>(args)...);
+	return Memory::Create<T>(alloc, std::forward<TArgs>(args)...);
 }
 
 template <typename T, typename... TArgs>

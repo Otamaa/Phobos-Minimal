@@ -3621,11 +3621,6 @@ DEFINE_OVERRIDE_HOOK(0x41D5AE, AirstrikeClass_PointerGotInvalid_AirstrikeAbortSo
 	return 0x41D5E0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x436A2D, BuildingLightClass_PointerGotInvalid_OwnerCloak, 6)
-{
-	GET_STACK(bool, bRemoved, 0x10);
-	return bRemoved ? 0x0 : 0x436A33;
-}
 
 DEFINE_OVERRIDE_HOOK(0x43FE8E, BuildingClass_Update_Reload, 6)
 {

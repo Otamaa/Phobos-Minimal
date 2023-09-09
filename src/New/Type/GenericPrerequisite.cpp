@@ -238,6 +238,19 @@ bool Prereqs::HouseOwnsAll(HouseClass const* const pHouse, const DynamicVectorCl
 	return true;
 }
 
+bool Prereqs::HouseOwnsAll(HouseClass const* const pHouse, int* intitems, int intsize)
+{
+	const auto end = intitems + intsize;
+
+	for (auto find = intitems; find != end; ++find) {
+		if (!Prereqs::HouseOwnsPrereq(pHouse, *find)) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 bool Prereqs::HouseOwnsAny(HouseClass const* const pHouse, const DynamicVectorClass<int>& list)
 {
 	for (const auto index : list) {

@@ -46,16 +46,3 @@ DEFINE_HOOK(717890, TechnoTypeClass_SetWeaponTurretIndex, 8)
 	// it is mostlikely change since there is new super were added !
 
 // DEFINE_HOOK(6D4E79, TacticalClass_DrawOverlay_GraphicalText, 6) , hmm not now
-
-// [Ares.dll - 80][0x420960 = AlphaShapeClass_CTOR , 5] 
-// [Ares.dll - 89][0x421730 = AlphaShapeClass_SDDTOR , 8]
-// [Ares.dll - 103][0x423b0b = AnimClass_Update_AlphaLight , 6]
-
-// [Ares.dll - 147] [0x435820 = BuildingLightClass_CTOR, 6]
-// [Ares.dll - 148] [0x435bfa = BuildingLightClass_Draw_Start, 6]
-// [Ares.dll - 149] [0x435cd3 = BuildingLightClass_Draw_Spotlight, 6]
-// [Ares.dll - 150] [0x436072 = BuildingLightClass_Draw_430, 6]
-// [Ares.dll - 151] [0x4360d8 = BuildingLightClass_Draw_400, 6]
-// [Ares.dll - 152] [0x4360ff = BuildingLightClass_Draw_250, 6]
-// [Ares.dll - 153] [0x436459 = BuildingLightClass_Update, 6]
-// [Ares.dll - 156] [0x4370c0 = BuildingLightClass_SDDTOR, 10]

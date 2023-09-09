@@ -15,6 +15,21 @@ const DirStruct  BuildingTypeExt::DefaultJuggerFacing = DirStruct { 0x7FFF };
 
 void BuildingTypeExt::ExtData::Initialize()
 {
+	this->AIBuildInsteadPerDiff.reserve(3);
+	this->PowersUp_Buildings.reserve(3);
+	this->PowerPlantEnhancer_Buildings.reserve(8);
+	this->Grinding_AllowTypes.reserve(8);
+	this->Grinding_DisallowTypes.reserve(8);
+	this->DamageFireTypes.reserve(8);
+	this->OnFireTypes.reserve(8);
+	this->OnFireIndex.reserve(8);
+	this->DamageFire_Offs.reserve(8);
+	this->GarrisonAnim_idle.reserve(HouseTypeClass::Array->Count);
+	this->GarrisonAnim_ActiveOne.reserve(HouseTypeClass::Array->Count);
+	this->GarrisonAnim_ActiveTwo.reserve(HouseTypeClass::Array->Count);
+	this->GarrisonAnim_ActiveThree.reserve(HouseTypeClass::Array->Count);
+	this->GarrisonAnim_ActiveFour.reserve(HouseTypeClass::Array->Count);
+	this->Type = TechnoTypeExt::ExtMap.Find(this->Get());
 	this->OccupierMuzzleFlashes.reserve(((BuildingTypeClass*)this->Type->Get())->MaxNumberOccupants);
 	this->DockPoseDir.reserve(((BuildingTypeClass*)this->Type->Get())->NumberOfDocks);
 	this->LostEvaEvent = VoxClass::FindIndexById(GameStrings::EVA_TechBuildingLost());
@@ -666,6 +681,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->LightningRod_Modifier.Read(exINI, pSection, "LightningRod.Modifier");
 		this->Returnable.Read(exINI, pSection, "Returnable");
 		this->BuildupTime.Read(exINI, pSection, "BuildupTime");
+		this->SellTime.Read(exINI, pSection, "SellTime");
 		this->SlamSound.Read(exINI, pSection, "SlamSound");
 		this->Destroyed_CreateSmudge.Read(exINI, pSection, "Destroyed.CreateSmudge");
 
@@ -914,6 +930,7 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->LightningRod_Modifier)
 		.Process(this->Returnable)
 		.Process(this->BuildupTime)
+		.Process(this->SellTime)
 		.Process(this->SlamSound)
 		.Process(this->Destroyed_CreateSmudge)
 
@@ -935,6 +952,7 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->AIBuildCounts)
 		.Process(this->AIExtraCounts)
 		.Process(this->LandingDir)
+		.Process(this->SellFrames)
 		;
 }
 
@@ -957,24 +975,9 @@ BuildingTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x45E50C, BuildingTypeClass_CTOR, 0x6)
 {
 	GET(BuildingTypeClass*, pItem, EAX);
-	if (auto pExt = BuildingTypeExt::ExtMap.Allocate(pItem))
-	{
-		pExt->AIBuildInsteadPerDiff.reserve(3);
-		pExt->PowersUp_Buildings.reserve(3);
-		pExt->PowerPlantEnhancer_Buildings.reserve(8);
-		pExt->Grinding_AllowTypes.reserve(8);
-		pExt->Grinding_DisallowTypes.reserve(8);
-		pExt->DamageFireTypes.reserve(8);
-		pExt->OnFireTypes.reserve(8);
-		pExt->OnFireIndex.reserve(8);
-		pExt->DamageFire_Offs.reserve(8);
-		pExt->GarrisonAnim_idle.reserve(HouseTypeClass::Array->Count);
-		pExt->GarrisonAnim_ActiveOne.reserve(HouseTypeClass::Array->Count);
-		pExt->GarrisonAnim_ActiveTwo.reserve(HouseTypeClass::Array->Count);
-		pExt->GarrisonAnim_ActiveThree.reserve(HouseTypeClass::Array->Count);
-		pExt->GarrisonAnim_ActiveFour.reserve(HouseTypeClass::Array->Count);
-		pExt->Type = TechnoTypeExt::ExtMap.Find(pItem);
-	}
+
+	BuildingTypeExt::ExtMap.Allocate(pItem);
+
 	return 0;
 }
 
@@ -986,8 +989,7 @@ DEFINE_HOOK(0x45E707, BuildingTypeClass_DTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x465300, BuildingTypeClass_SaveLoad_Prefix, 0x5)
-DEFINE_HOOK(0x465010, BuildingTypeClass_SaveLoad_Prefix, 0x5)
+DEFINE_HOOK(0x465300, BuildingTypeClass_Save, 0x5)
 {
 	GET_STACK(BuildingTypeClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
@@ -997,13 +999,23 @@ DEFINE_HOOK(0x465010, BuildingTypeClass_SaveLoad_Prefix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x4652ED, BuildingTypeClass_Load_Suffix, 0x7)
+DEFINE_HOOK(0x465010, BuildingTypeClass_Load, 0x5)
+{
+	GET_STACK(BuildingTypeClass*, pItem, 0x4);
+	GET_STACK(IStream*, pStm, 0x8);
+
+	BuildingTypeExt::ExtMap.PrepareStream(pItem, pStm);
+
+	return 0;
+}
+
+DEFINE_HOOK(0x465151, BuildingTypeClass_Load_Suffix, 0x7)
 {
 	BuildingTypeExt::ExtMap.LoadStatic();
 	return 0;
 }
 
-DEFINE_HOOK(0x46536A, BuildingTypeClass_Save_Suffix, 0x7)
+DEFINE_HOOK(0x46531C, BuildingTypeClass_Save_Suffix, 0x6)
 {
 	BuildingTypeExt::ExtMap.SaveStatic();
 	return 0;

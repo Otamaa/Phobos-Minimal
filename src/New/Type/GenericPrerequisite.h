@@ -35,6 +35,7 @@ public:
 	static bool HouseOwnsPrereq(HouseClass const* pHouse, int Index);
 
 	static bool HouseOwnsAll(HouseClass const* pHouse, const DynamicVectorClass<int>& list);
+	static bool HouseOwnsAll(HouseClass const* pHouse, int* intitems, int intsize);
 	static bool HouseOwnsAny(HouseClass const* pHouse, const DynamicVectorClass<int>& list);
 
 	static bool ListContainsGeneric(BuildingTypeClass** items, int size, int Index);

@@ -377,6 +377,7 @@ struct ProduceCashData
 	}
 
 };
+*/
 
 // support oil derrick logic on building upgrades
 DEFINE_OVERRIDE_HOOK(0x4409F4, BuildingClass_Put_ProduceCash, 6)
@@ -407,7 +408,6 @@ DEFINE_OVERRIDE_HOOK(0x4409F4, BuildingClass_Put_ProduceCash, 6)
 	AresData::SetFactoryPlans(pThis);
 	return 0;
 }
-*/
 
 DEFINE_OVERRIDE_HOOK(0x4482BD, BuildingClass_ChangeOwnership_ProduceCash, 6)
 {
@@ -2056,6 +2056,7 @@ DEFINE_OVERRIDE_HOOK(0x741BDB, UnitClass_SetDestination_DockUnloadCell, 7)
 	R->EAX(Get::BuildingUnload(pThis));
 	return 0x741C28;
 }
+
 DEFINE_OVERRIDE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
 {
 	// int (TechnoTypeClass *item, bool BuildLimitOnly, bool includeQueued)
@@ -2450,43 +2451,59 @@ DEFINE_OVERRIDE_HOOK(0x441f2c ,BuildingClass_Destroy_KickOutOfRubble, 5)
 
 //there is 2 missing elemts here
 // it is seems not readed from ini but only stored on BuildingTypeExt::ExtData
-//void UpdateBuildupFrames(BuildingTypeClass* pThis)
-//{
-//	if (auto const pShp = pThis->Buildup)
-//	{
-//		auto const frames = pThis->Gate ?
-//			pThis->GateStages + 1 : pShp->Frames / 2;
-//
-//		auto const duration = (frames < 1) ?
-//			1 : static_cast<int>(BuildingTypeExt::ExtMap.Find(pThis)->BuildupTime.Get(
-//				RulesClass::Instance->BuildupTime) * 900.0 / frames);
-//
-//		pThis->BuildingAnimFrame[0].dwUnknown = 0;
-//		pThis->BuildingAnimFrame[0].FrameCount = frames;
-//		pThis->BuildingAnimFrame[0].FrameDuration = duration;
-//	}
-//}
-//
-//DEFINE_OVERRIDE_HOOK(0x465A48, BuildingTypeClass_GetBuildup_BuildupTime, 5)
-//{
-//	GET(BuildingTypeClass* const, pThis, ESI);
-//	UpdateBuildupFrames(pThis);
-//	return 0x465AAE;
-//}
-//
-//DEFINE_OVERRIDE_HOOK(0x45EAA5, BuildingTypeClass_LoadArt_BuildupTime, 6)
-//{
-//	GET(BuildingTypeClass* const, pThis, ESI);
-//	UpdateBuildupFrames(pThis);
-//	return 0x45EB3A;
-//}
-//
-//DEFINE_OVERRIDE_HOOK(0x45F2B4, BuildingTypeClass_Load2DArt_BuildupTime, 5)
-//{
-//	GET(BuildingTypeClass* const, pThis, EBP);
-//	UpdateBuildupFrames(pThis);
-//	return 0x45F310;
-//}
+void UpdateBuildupFrames(BuildingTypeClass* pThis)
+{
+	auto pExt = BuildingTypeExt::ExtMap.Find(pThis);
+
+	if(const auto pShp = pThis->Buildup) {
+
+		const auto frames = pThis->Gate ?
+			pThis->GateStages + 1 : pShp->Frames / 2;
+
+		const auto duration_build = pExt->BuildupTime.Get(RulesClass::Instance->BuildupTime);
+		const auto duration_sell = pExt->SellTime.Get(duration_build);
+
+		pExt->SellFrames = frames > 0 ? (int)(duration_sell / (double)frames * 900.0) : 1;
+		pThis->BuildingAnimFrame[0].dwUnknown = 0;
+		pThis->BuildingAnimFrame[0].FrameCount = frames;
+		pThis->BuildingAnimFrame[0].FrameDuration = frames > 0 ? (int)(duration_build / (double)frames * 900.0) : 1;
+	}
+}
+
+DEFINE_OVERRIDE_HOOK(0x465A48, BuildingTypeClass_GetBuildup_BuildupTime, 5)
+{
+	GET(BuildingTypeClass* const, pThis, ESI);
+	UpdateBuildupFrames(pThis);
+	return 0x465AAE;
+}
+
+DEFINE_OVERRIDE_HOOK(0x45EAA5, BuildingTypeClass_LoadArt_BuildupTime, 6)
+{
+	GET(BuildingTypeClass* const, pThis, ESI);
+	UpdateBuildupFrames(pThis);
+	return 0x45EB3A;
+}
+
+DEFINE_OVERRIDE_HOOK(0x45F2B4, BuildingTypeClass_Load2DArt_BuildupTime, 5)
+{
+	GET(BuildingTypeClass* const, pThis, EBP);
+	UpdateBuildupFrames(pThis);
+	return 0x45F310;
+}
+
+DEFINE_OVERRIDE_HOOK(0x447a63 , BuildingClass_QueueImageAnim_Sell , 3)
+{
+	GET(BuildingClass* const, pThis, ESI);
+	GET_BASE(int , frames , 8);
+
+	int FrameRes = frames;
+	if(pThis->CurrentMission == Mission::Selling)
+		FrameRes = BuildingTypeExt::ExtMap.Find(pThis->Type)->SellFrames;
+
+	R->EDI(pThis->Type);
+	R->EAX(frames);
+	 return 0x447A6C;
+}
 
 DEFINE_OVERRIDE_HOOK(0x459C03, BuildingClass_CanBeSelectedNow_MassSelectable, 6)
 {

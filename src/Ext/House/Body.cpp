@@ -10,6 +10,8 @@
 
 #include <ScenarioClass.h>
 
+#include <New/Type/GenericPrerequisite.h>
+
 std::vector<int> HouseExt::AIProduction_CreationFrames;
 std::vector<int> HouseExt::AIProduction_Values;
 std::vector<int> HouseExt::AIProduction_BestChoices;
@@ -22,6 +24,17 @@ int HouseExt::LastSlaveBalance = 0;
 
 CDTimerClass HouseExt::CloakEVASpeak;
 CDTimerClass HouseExt::SubTerraneanEVASpeak;
+
+bool HouseExt::PrerequisitesMet(HouseClass* const pThis, TechnoTypeClass* const pItem)
+{
+	for (auto& prereq : TechnoTypeExt::ExtMap.Find(pItem)->Prerequisites) {
+		if (Prereqs::HouseOwnsAll(pThis , prereq.data() , prereq.size())) {
+			return true;
+		}
+	}
+
+	return false;
+}
 
 void HouseExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {

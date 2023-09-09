@@ -22,6 +22,144 @@
 
 #include <New/Type/GenericPrerequisite.h>
 
+DEFINE_OVERRIDE_HOOK(0x508EBC, HouseClass_Radar_Update_CheckEligible, 6)
+{
+	enum { Eligible = 0, Jammed = 0x508F08 };
+	GET(BuildingClass*, Radar, EAX);
+
+	return (!RegisteredJammers(Radar).empty()
+					|| (Radar->EMPLockRemaining > 0))
+		? Jammed
+		: Eligible
+		;
+}
+
+DEFINE_OVERRIDE_HOOK(0x508F91, HouseClass_SpySat_Update_CheckEligible, 6)
+{
+	enum { Eligible = 0, Jammed = 0x508FF6 };
+	GET(BuildingClass*, SpySat, ECX);
+
+	return (!RegisteredJammers(SpySat).empty()
+					|| (SpySat->EMPLockRemaining > 0))
+		? Jammed
+		: Eligible
+		;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4FE782, HouseClass_AI_BaseConstructionUpdate_PickPowerplant, 6)
+{
+	GET(HouseClass* const, pThis, EBP);
+	auto const pExt = HouseTypeExt::ExtMap.Find(pThis->Type);
+
+	constexpr auto const DefaultSize = 10;
+	BuildingTypeClass* buffer[DefaultSize];
+	DynamicVectorClass<BuildingTypeClass*> Eligible(DefaultSize, buffer);
+
+	auto const it = pExt->GetPowerplants();
+	for (auto const& pPower : it) {
+		if (AresData::PrereqValidate(pThis, pPower, false, true) == CanBuildResult::Buildable && HouseExt::PrerequisitesMet(pThis, pPower)) {
+			Eligible.AddItem(pPower);
+		}
+	}
+
+	BuildingTypeClass* pResult = nullptr;
+	if (Eligible.Count > 0) {
+
+		if (Eligible.Count > 1)
+			pResult = Eligible[ScenarioClass::Instance->Random.RandomFromMax(Eligible.Count - 1)];
+		else
+			pResult = Eligible[0];
+
+	}
+	else if (!it.empty())
+	{
+		pResult = it.at(0);
+		Debug::Log("Country [%s] does not meet prerequisites for any possible power plant."
+					"Fall back to the first one (%s).\n", pThis->Type->ID, pResult->ID);
+	}
+	else
+	{
+		Debug::FatalErrorAndExit(
+			"Country [%s] did not find any powerplants it could construct!\n", pThis->Type->ID);
+	}
+
+	R->EDI(pResult);
+	return 0x4FE893;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4F8EBD, HouseClass_Update_HasBeenDefeated, 0)
+{
+	GET(HouseClass*, pThis, ESI);
+
+	if (KeepAlivesCount(pThis)) {
+		return 0x4F8F87;
+	}
+
+	auto Eligible = [pThis](FootClass* pFoot)
+		{
+			if (pFoot->Owner != pThis)
+			{
+				return false;
+			}
+			if (!pFoot->InLimbo)
+			{
+				return true;
+			}
+			return pFoot->ParasiteImUsing != nullptr;
+		};
+
+	if (GameModeOptionsClass::Instance->ShortGame)
+	{
+		for (auto pBaseUnit : RulesClass::Instance->BaseUnit)
+		{
+			if (pThis->OwnedUnitTypes[pBaseUnit->ArrayIndex])
+			{
+				return 0x4F8F87;
+			}
+		}
+	}
+	else
+	{
+		if (pThis->ActiveUnitTypes.Total)
+		{
+			for (auto pTechno : *UnitClass::Array)
+			{
+				if (Eligible(pTechno))
+				{
+					return 0x4F8F87;
+				}
+			}
+		}
+
+		if (pThis->ActiveInfantryTypes.Total)
+		{
+			for (auto pTechno : *InfantryClass::Array)
+			{
+				if (Eligible(pTechno))
+				{
+					return 0x4F8F87;
+				}
+			}
+		}
+
+		if (pThis->ActiveAircraftTypes.Total)
+		{
+			for (auto pTechno : *AircraftClass::Array)
+			{
+				if (Eligible(pTechno))
+				{
+					return 0x4F8F87;
+				}
+			}
+		}
+	}
+
+	pThis->DestroyAll();
+	pThis->AcceptDefeat();
+
+	return 0x4F8F87;
+}
+
 // this is checked right before the TeamClass is instantiated -
 // it does not mean the AI will abandon this team if another team wants BuildLimit'ed units at the same time
 DEFINE_OVERRIDE_HOOK(0x50965E, HouseClass_CanInstantiateTeam, 5)

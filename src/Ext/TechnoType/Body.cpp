@@ -784,6 +784,15 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->InitialPayload_AddToTransportTeam.Read(exINI, pSection, "InitialPayload.AddToTransportTeam");
 
 		this->HasSpotlight.Read(exINI, pSection, "HasSpotlight");
+		this->Spot_Height.Read(exINI, pSection, "Spotlight.StartHeight");
+		this->Spot_Distance.Read(exINI, pSection, "Spotlight.Distance");
+		this->Spot_AttachedTo.Read(exINI, pSection, "Spotlight.AttachedTo");
+		this->Spot_DisableR.Read(exINI, pSection, "Spotlight.DisableRed");
+		this->Spot_DisableG.Read(exINI, pSection, "Spotlight.DisableGreen");
+		this->Spot_DisableB.Read(exINI, pSection, "Spotlight.DisableBlue");
+		this->Spot_DisableColor.Read(exINI, pSection, "Spotlight.Color");
+		this->Spot_Reverse.Read(exINI, pSection, "Spotlight.IsInverted");
+
 		this->Crew_TechnicianChance.Read(exINI, pSection, "Crew.TechnicianChance");
 		this->Crew_EngineerChance.Read(exINI, pSection, "Crew.EngineerChance");
 		this->Saboteur.Read(exINI, pSection, "Saboteur");
@@ -1780,6 +1789,14 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SelfHealing_CombatDelay)
 		.Process(this->Bounty)
 		.Process(this->HasSpotlight)
+		.Process(this->Spot_Height)
+		.Process(this->Spot_Distance)
+		.Process(this->Spot_AttachedTo)
+		.Process(this->Spot_DisableR)
+		.Process(this->Spot_DisableG)
+		.Process(this->Spot_DisableB)
+		.Process(this->Spot_DisableColor)
+		.Process(this->Spot_Reverse)
 		.Process(this->CloakAllowed)
 		.Process(this->InitialPayload_Types)
 		.Process(this->InitialPayload_Nums)

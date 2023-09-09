@@ -719,7 +719,17 @@ public:
 		Promotable<int> SelfHealing_CombatDelay { 0 };
 
 		Valueable<bool> Bounty { false };
+
+		// spotlights
 		Valueable<bool> HasSpotlight { false };
+		Valueable<int> Spot_Height { 200 };
+		Valueable<int> Spot_Distance { 1024 };
+		Valueable<SpotlightAttachment> Spot_AttachedTo { SpotlightAttachment::Body };
+		Valueable<bool> Spot_DisableR { false };
+		Valueable<bool> Spot_DisableG { false };
+		Valueable<bool> Spot_DisableB { false };
+		Valueable<bool> Spot_DisableColor { false };
+		Valueable<bool> Spot_Reverse { false };
 
 		Nullable<int> Crew_TechnicianChance {};
 		Nullable<int> Crew_EngineerChance {};
