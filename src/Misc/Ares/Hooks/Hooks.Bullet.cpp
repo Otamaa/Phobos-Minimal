@@ -22,6 +22,26 @@
 DEFINE_DISABLE_HOOK(0x46A5B2, BulletClass_Shrapnel_WeaponType1_ares)
 DEFINE_DISABLE_HOOK(0x46AA27, BulletClass_Shrapnel_WeaponType2_ares)
 
+DEFINE_DISABLE_HOOK(0x4664ba, BulletClass_CTOR_ares)
+DEFINE_DISABLE_HOOK(0x4665e9, BulletClass_DTOR_ares)
+DEFINE_DISABLE_HOOK(0x46ae70, BulletClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x46af97, BulletClass_Load_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x46af9e, BulletClass_Load_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x46afb0, BulletClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x46afc4, BulletClass_Save_Suffix_ares)
+
+DEFINE_OVERRIDE_HOOK(0x5f4fe7, ObjectClass_Put, 8)
+{
+	GET(ObjectClass*, pThis, ESI);
+	GET(ObjectTypeClass*, pType, EBX);
+
+	if(auto pBullet = specific_cast<BulletClass*>(pThis)) {
+		BulletExt::ExtMap.Find(pBullet)->CreateAttachedSystem();
+	}
+
+	return pType ?  0x5F4FEF : 0x5F5210;
+}
+
 DEFINE_OVERRIDE_HOOK(0x469467, BulletClass_DetonateAt_CanTemporalTarget, 0x5)
 {
 	GET(TechnoClass* const, Target, ECX);

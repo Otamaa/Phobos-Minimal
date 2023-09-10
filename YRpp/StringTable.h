@@ -79,6 +79,7 @@ public:
 	static constexpr reference<CSFLabel*, 0xB1CF74u> const Labels{};
 	static constexpr reference<wchar_t**, 0xB1CF78u> const Values{};
 	static constexpr reference<char**, 0xB1CF7Cu> const ExtraValues{};
+	static constexpr reference<char , 0xB1BF38u, 4096u> const GlobalBuffer {};
 
 	static const wchar_t* __fastcall LoadString(
 		const char* pLabel,

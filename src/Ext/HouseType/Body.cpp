@@ -6,45 +6,55 @@
 void HouseTypeExt::ExtData::Initialize()
 {
 	const char* pID = this->OwnerObject()->ID;
-	constexpr static char const* const Countries[] = {
-	"Americans", "Alliance", "French", "Germans", "British", "Africans",
-	"Arabs", "Confederation", "Russians", "YuriCountry" };
 
-	const auto it = std::find_if(std::begin(Countries), std::end(Countries),
+	constexpr static char const* const countries[] = {
+		"Americans",
+		"Alliance",
+		"French",
+		"Germans",
+		"British",
+		"Africans",
+		"Arabs",
+		"Confederation",
+		"Russians",
+		"YuriCountry"
+	};
+
+	const auto it = std::find_if(std::begin(countries), std::end(countries),
 		[=](const char* pCountry) { return !_strcmpi(pID, pCountry); });
 
-	const size_t index = it != std::end(Countries) ? std::distance(std::begin(Countries), it) : -1;
+	const size_t index = it != std::end(countries) ? std::distance(std::begin(countries), it) : -1;
 
-	switch (index)
+	switch ((Countries)index)
 	{
-	case 0: // USA
+	case Countries::Americans: // USA
 		this->TauntFile =  "taunts\\tauam~~.wav";
 		break;
-	case 1: //Korea
+	case Countries::Alliance: //Korea
 		this->TauntFile = "taunts\\tauko~~.wav";
 		break;
-	case 2: //France
+	case Countries::French: //France
 		this->TauntFile = "taunts\\taufr~~.wav";
 		break;
-	case 3: //Germany
+	case Countries::Germans: //Germany
 		this->TauntFile = "taunts\\tauge~~.wav";
 		break;
-	case 4: //United Kingdom
+	case Countries::British: //United Kingdom
 		this->TauntFile = "taunts\\taubr~~.wav";
 		break;
-	case 5: //Libya
+	case Countries::Africans: //Libya
 		this->TauntFile = "taunts\\tauli~~.wav";
 		break;
-	case 6: //Iraq
+	case Countries::Arabs: //Iraq
 		this->TauntFile = "taunts\\tauir~~.wav";
 		break;
-	case 7: //Cuba
+	case Countries::Confederation: //Cuba
 		this->TauntFile = "taunts\\taucu~~.wav";
 		break;
-	case 8: //Russia
+	case Countries::Russians: //Russia
 		this->TauntFile = "taunts\\tauru~~.wav";
 		break;
-	case 9: //Yuri
+	case Countries::YuriCountry: //Yuri
 		this->TauntFile = "taunts\\tauyu~~.wav";
 		break;
 	default: //Unknown

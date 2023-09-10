@@ -188,6 +188,28 @@ void BulletExt::ApplyAirburst(BulletClass* pThis)
 	}
 }
 
+void BulletExt::ExtData::CreateAttachedSystem()
+{
+	auto pThis = this->Get();
+
+	if (!this->AttachedSystem)
+	{
+		if (auto pAttach = BulletTypeExt::ExtMap.Find(pThis->Type)->AttachedSystem)
+		{
+			const auto pOwner = pThis->Owner ? pThis->Owner->GetOwningHouse() : this->Owner;
+
+			this->AttachedSystem.reset(GameCreate<ParticleSystemClass>(
+				pAttach,
+				pThis->Location,
+				pThis->Owner,
+				pThis,
+				CoordStruct::Empty,
+				pOwner
+			));
+		}
+	}
+}
+
 VelocityClass BulletExt::GenerateVelocity(BulletClass* pThis, AbstractClass* pTarget, const int nSpeed, bool bCalculateSpeedFirst)
 {
 	VelocityClass velocity { 100.0 ,0.0,0.0 };
@@ -814,6 +836,7 @@ void BulletExt::ExtData::Serialize(T& Stm)
 		.Process(this->BounceAmount)
 		.Process(this->InitialBulletDir)
 		.Process(this->Trails)
+		.Process(this->AttachedSystem)
 		;
 
 	PhobosTrajectory::ProcessFromStream(Stm, this->Trajectory);

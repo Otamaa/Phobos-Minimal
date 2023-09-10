@@ -44,6 +44,7 @@ public:
 
 		std::vector<UniversalTrail> Trails {};
 		std::unique_ptr<PhobosTrajectory> Trajectory {};
+		UniqueParticleSystemClassPtr AttachedSystem {};
 
 		ExtData(BulletClass* OwnerObject) : Extension<BulletClass>(OwnerObject) { }
 		virtual ~ExtData() = default;
@@ -56,6 +57,9 @@ public:
 
 		void ApplyRadiationToCell(CoordStruct const& nCoord, int Spread, int RadLevel);
 		void InitializeLaserTrails();
+
+		void CreateAttachedSystem();
+
 
 	private:
 		template <typename T>

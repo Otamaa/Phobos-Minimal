@@ -19,6 +19,21 @@
 #define SDDTOR_NODELETE				0x00
 #define SDDTOR_DELETE				0x01
 
+enum class Countries : int
+{
+	None = -1,
+	Americans,
+	Alliance,
+	French,
+	Germans,
+	British,
+	Africans,
+	Arabs,
+	Confederation,
+	Russians,
+	YuriCountry
+};
+
 enum class AirAttackStatus
 {
 	ValidateAZ = 0,

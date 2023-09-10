@@ -1124,13 +1124,28 @@ DEFINE_HOOK(0x738467, UnitClass_TakeDamage_FixOnDestroyedSource, 0x6)
 	//return  ? Continue : ForceKill;
 }
 
-// Only first half of the colorschemes array gets adjusted thanks to the count being wrong, quick and dirty fix.
-DEFINE_HOOK(0x53AD97, IonStormClass_AdjustLighting_ColorCount, 0x6)
+// Fixes second half of Colors list not getting retinted correctly by map triggers, superweapons etc.
+#pragma region LightingColorSchemesFix
+
+namespace AdjustLightingTemp
 {
-	GET(int, colorSchemesCount, EAX);
-	R->EAX(colorSchemesCount * 2);
+	int colorSchemeCount = 0;
+}
+
+DEFINE_HOOK(0x53AD7D, IonStormClass_AdjustLighting_SetContext, 0x8)
+{
+	AdjustLightingTemp::colorSchemeCount = ColorScheme::GetNumberOfSchemes() * 2;
+
 	return 0;
 }
+
+int __fastcall NumberOfSchemes_Wrapper() {
+	return AdjustLightingTemp::colorSchemeCount;
+}
+
+DEFINE_JUMP(CALL, 0x53AD92, GET_OFFSET(NumberOfSchemes_Wrapper));
+
+#pragma endregion
 
 DEFINE_HOOK(0x4C780A, EventClass_Execute_DeployEvent_NoVoiceFix, 0x6)
 {

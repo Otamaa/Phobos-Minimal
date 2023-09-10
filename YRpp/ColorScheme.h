@@ -82,6 +82,9 @@ public:
 	static DynamicVectorClass<ColorScheme*>* __fastcall GeneratePalette(char* name)
 		{ JMP_STD(0x6263D0); }
 
+	static int __fastcall GetNumberOfSchemes()
+		{ JMP_STD(0x626C60); }
+
 	void CreateLightConvert(const BytePalette& Pal1, const BytePalette& Pal2, const ColorStruct& BaseColor) const
 		{ JMP_THIS(0x68C860); }
 
