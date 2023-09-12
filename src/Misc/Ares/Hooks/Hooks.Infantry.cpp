@@ -275,10 +275,12 @@ DEFINE_OVERRIDE_HOOK(0x51BD4C , InfantryClass_Update_BuildingBelow, 6)
 {
 	GET(BuildingClass*, pBld, EDI);
 
-	if(Is_Passable(pBld->Type))
+	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+
+	if(pTypeExt->IsPassable)
 		return 0x51BD7D;
 
-	if (BuildingTypeExt::ExtMap.Find(pBld->Type)->Firestorm_Wall)
+	if (pTypeExt->Firestorm_Wall)
 		return 0x51BD56;
 
 	return 0x51BD68;
@@ -331,12 +333,13 @@ DEFINE_OVERRIDE_HOOK(0x51C4C8, InfantryClass_IsCellOccupied, 6)
 	GET(BuildingClass* const, pBld, ESI);
 
 	enum { Impassable = 0x51C7D0, Ignore = 0x51C70F, NoDecision = 0x51C4EB, CheckFirestorm = 0x51C4D2 };
+	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
 
-	if (Is_Passable(pBld->Type)) {
+	if (pTypeExt->IsPassable) {
 		return Ignore;
 	}
 
-	if (BuildingTypeExt::ExtMap.Find(pBld->Type)->Firestorm_Wall) {
+	if (pTypeExt->Firestorm_Wall) {
 		return CheckFirestorm;
 	}
 

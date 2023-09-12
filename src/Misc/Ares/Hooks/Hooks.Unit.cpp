@@ -709,22 +709,24 @@ DEFINE_OVERRIDE_HOOK(0x74689B, UnitClass_Init_Academy, 6)
 		return 0x0;
 
 	const auto pType = pThis->Type;
-	if (pType->Trainable && pType->Naval && Is_NavalYardSpied(pThis->Owner))
+	const auto pHouseExt = HouseExt::ExtMap.Find(pThis->Owner);
+
+	if (pType->Trainable && pType->Naval && pHouseExt->Is_NavalYardSpied)
 	{
 		pThis->Veterancy.SetVeteran();
 	}
 
 	if (pType->ConsideredAircraft)
 	{
-		AresData::HouseExt_ExtData_ApplyAcademy(pThis->Owner, pThis, AbstractType::Aircraft);
+		HouseExt::ApplyAcademy(pThis->Owner, pThis, AbstractType::Aircraft);
 	}
 	else if (pType->Organic)
 	{
-		AresData::HouseExt_ExtData_ApplyAcademy(pThis->Owner, pThis, AbstractType::Infantry);
+		HouseExt::ApplyAcademy(pThis->Owner, pThis, AbstractType::Infantry);
 	}
 	else
 	{
-		AresData::HouseExt_ExtData_ApplyAcademy(pThis->Owner, pThis, AbstractType::Unit);
+		HouseExt::ApplyAcademy(pThis->Owner, pThis, AbstractType::Unit);
 	}
 
 	return 0;

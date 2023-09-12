@@ -8,100 +8,314 @@
 #include <Ext/HouseType/Body.h>
 #include <SessionClass.h>
 
-LooseAudioCache LooseAudioCache::Instance;
-AudioLuggage AudioLuggage::Instance;
-
-AudioSampleData* AresAudioHelper::GetData(int const index)
+struct FileStruct
 {
-	if(auto pFilename = ToLooseFile(index)) {
-		auto& loose = LooseAudioCache::Instance.GetData(pFilename);
+	int Size;
+	int Offset;
+	RawFileClass* File;
+	bool Allocated;
+};
 
-		if(loose.Size < 0) {
-			auto file = GetFile(index);
-			if(file.File && file.Allocated) {
-				GameDelete<true , false>(file.File);
-				file.File = nullptr;
-			}
-		}
+class LooseAudioCache
+{
+private:
+	static std::unique_ptr<LooseAudioCache> InternalData;
 
-		return &loose.Data;
+public:
+
+	struct LooseAudioFile
+	{
+		std::string wavName {};
+		int Offset { -1 };
+		int Size { -1 };
+		AudioSampleData Data {};
+	};
+
+	static void Allocate()
+	{
+		InternalData = std::make_unique<LooseAudioCache>();
 	}
 
-	return nullptr;
-}
+	static LooseAudioCache* Instance()
+	{
+		return InternalData.get();
+	}
 
-AresAudioHelper::FileStruct AresAudioHelper::GetFile(int const index)
-{
-	if(auto const pSampleName =  AresAudioHelper::ToLooseFile(index)) {
-		auto& loose = LooseAudioCache::Instance.GetData(pSampleName);
+	//not guarantee but will allocate new
+	uintptr_t GetPointerAsindex(const char* pFilename)
+	{
+		auto it = this->Files.find(pFilename);
+		if (it == this->Files.end()) {
+			it = this->Files.emplace(pFilename, LooseAudioFile()).first;
+		}
+
+		if (it->second.wavName.empty()) {
+			char filename[0x100];
+			_snprintf_s(filename, _TRUNCATE, "%s.wav", pFilename);
+			it->second.wavName = filename;
+		}
+
+		return (uintptr_t)it->first.c_str();
+	}
+
+	//not guarantee
+	FileStruct GetFileStructFromIndexOfRawPointer(uintptr_t rawptr) {
+		auto iter = this->Files.find(reinterpret_cast<const char*>(rawptr));
 
 		// Replace the construction of the RawFileClass with one of a CCFileClass
-		char filename[0x100];
-		_snprintf_s(filename, _TRUNCATE, "%s.wav", pSampleName);
+		auto pFile = GameCreate<CCFileClass>(iter->second.wavName.c_str());
 
-		auto pFile = GameCreateUnchecked<CCFileClass>(filename);
-		if(pFile->Exists() && pFile->Open(FileAccessMode::Read)) {
-			if(loose.Size < 0 && Audio::ReadWAVFile(pFile, &loose.Data, &loose.Size)) {
-				loose.Offset = pFile->Seek(0, FileSeekMode::Current);
+		if (pFile->Exists()) {
+			if( pFile->Open(FileAccessMode::Read)){
+				if (iter->second.Size < 0 && Audio::ReadWAVFile(pFile, &iter->second.Data, &iter->second.Size)) {
+						iter->second.Offset = pFile->Seek(0, FileSeekMode::Current);
+				}
 			}
-		} else {
-			GameDelete<true, false>(pFile);
+		}
+		else
+		{
+			GameDelete(pFile);
 			pFile = nullptr;
 		}
 
-		return { loose.Size, loose.Offset, pFile, true };
-	} else {
-		auto& sample = AudioIDXData::Instance->Samples[index];
-		auto const pFile = AudioLuggage::Instance.GetFile(index);
-		return { sample.Size, sample.Offset, pFile, false };
+		return { iter->second.Size, iter->second.Offset, pFile, true };
+	 }
+
+	 static FileStruct GetFileStructFromName(LooseAudioFile& cache , const char* name)
+	 {
+		 // Replace the construction of the RawFileClass with one of a CCFileClass
+
+		 auto pFile = GameCreate<CCFileClass>(cache.wavName.c_str());
+
+		 if (pFile->Exists() && pFile->Open(FileAccessMode::Read)) {
+			 if (cache.Size < 0 && Audio::ReadWAVFile(pFile, &cache.Data, &cache.Size)) {
+				 cache.Offset = pFile->Seek(0, FileSeekMode::Current);
+			 }
+		 }
+		 else
+		 {
+			 GameDelete(pFile);
+			 pFile = nullptr;
+		 }
+
+		 return { cache.Size, cache.Offset, pFile, true };
+	 }
+
+	 //not guarantee
+	 AudioSampleData* GetAudioSampleDataFromIndexOfRawPointer(uintptr_t rawptr)
+	 {
+		 auto iter = this->Files.find(reinterpret_cast<const char*>(rawptr));
+
+		 if (iter != this->Files.end())
+		 {
+			 if (iter->second.Size < 0)
+			 {
+				 auto file = GetFileStructFromName(iter->second , iter->first.c_str());
+				 if (file.File && file.Allocated)  {
+					 GameDelete(file.File);
+				 }
+			 }
+
+			 return &iter->second.Data;
+		 }
+
+		 return nullptr;
+	 }
+private:
+	std::map<std::string, LooseAudioFile> Files;
+};
+
+std::unique_ptr<LooseAudioCache> LooseAudioCache::InternalData;
+
+class AudioLuggage
+{
+	static std::unique_ptr<AudioLuggage> InternalData;
+public:
+
+	static void Allocate()
+	{
+		InternalData = std::make_unique<AudioLuggage>();
 	}
-}
 
-// change done
-void AudioBag::Open(const char* fileBase) {
-	char filename[0x100];
-	_snprintf_s(filename, _TRUNCATE, "%s.idx", fileBase);
+	static AudioLuggage* Instance()
+	{
+		return InternalData.get();
+	}
 
-	CCFileClass pIndex { filename };
+	class AudioBag
+	{
+	public:
 
-	if(pIndex.Exists() && pIndex.Open(FileAccessMode::Read)) {
-		_snprintf_s(filename, _TRUNCATE, "%s.bag", fileBase);
-		auto pBag = UniqueGamePtr<CCFileClass>(GameCreateUnchecked<CCFileClass>(filename));
+		AudioBag() = default;
 
-		AudioIDXHeader headerIndex;
-		if(pBag->Exists()
-			&& pBag->Open(FileAccessMode::Read)
-			&& pIndex.ReadBytes(&headerIndex,sizeof(headerIndex)) == sizeof(headerIndex)) {{
+		explicit AudioBag(const char* pFilename) : AudioBag() {
+			this->Open(pFilename);
+		}
 
-				std::vector<AudioIDXEntryB> entries;
+		AudioBag(AudioBag&& other) noexcept {
+			this->Entries = std::move(other.Entries);
+			this->Bag = std::move(other.Bag);
+		};
 
-				if(headerIndex.numSamples > 0) {
-					entries.resize(headerIndex.numSamples, {});
+	private:
+		void Open(const char* fileBase)
+		{
+			char filename[0x100];
+			_snprintf_s(filename, _TRUNCATE, "%s.idx", fileBase);
 
-					constexpr auto const IdxEntrysize = sizeof(AudioIDXEntryB);
+			CCFileClass pIndex { filename };
 
-					if(headerIndex.Magic == 1) {
-						for(auto& entry : entries) {
-							if(!pIndex.ReadBytes(&entry, IdxEntrysize - 4)) {
-								return;
+			if (pIndex.Exists() && pIndex.Open(FileAccessMode::Read))
+			{
+				_snprintf_s(filename, _TRUNCATE, "%s.bag", fileBase);
+				auto pBag = UniqueGamePtrB<CCFileClass>(GameCreateUnchecked<CCFileClass>(filename));
+
+				if (pBag->Exists()
+					&& pBag->Open(FileAccessMode::Read))
+				{
+					AudioIDXHeader headerIndex;
+					if(pIndex.ReadBytes(&headerIndex, sizeof(AudioIDXHeader)) == sizeof(AudioIDXHeader))
+					{
+						//std::vector<AudioIDXEntry> entries;
+
+						if (headerIndex.numSamples > 0)
+						{
+							this->Entries.resize(headerIndex.numSamples, {});
+
+							constexpr size_t const IdxEntrysize = sizeof(AudioIDXEntry);
+							constexpr size_t const readBytes = IdxEntrysize - 4;
+
+							if (headerIndex.Version == 1)
+							{
+								for (auto& entry : this->Entries)
+								{
+									if (pIndex.ReadBytes(&entry, readBytes) != readBytes)
+									{
+										return;
+									}
+									entry.ChunkSize = 0;
+								}
 							}
-							entry.ChunkSize = 0;
-						}
-					} else {
-						auto const headerSize = headerIndex.numSamples * IdxEntrysize;
-						if(pIndex.ReadBytes(&entries[0], static_cast<int>(headerSize)) != headerSize) {
-							return;
+							else
+							{
+								auto const headerSize = headerIndex.numSamples * IdxEntrysize;
+								if (pIndex.ReadBytes(&this->Entries[0], static_cast<int>(headerSize)) != headerSize)
+								{
+									return;
+								}
+							}
+
+							std::sort(this->Entries.begin(), this->Entries.end());
+							auto iter = std::find_if(this->Entries.begin(), this->Entries.end(), [](const AudioIDXEntry& ent) { return (CRT::strcmpi(ent.Name, "bconsela") == 0); });
+							if (iter != this->Entries.end())
+								Debug::Log("a\n");
 						}
 					}
-				}
 
-				std::sort(entries.begin(), entries.end());
-				this->Bag = std::move(pBag);
-				this->Entries = std::move(entries);
+					this->Bag = std::move(pBag);
+				}
 			}
 		}
+
+	public:
+		UniqueGamePtrB<CCFileClass> Bag; //big file that contains the audios
+		std::vector<AudioIDXEntry> Entries; //every audio data that sit inside the file above
+	};
+
+	AudioIDXData* Pack(const char* pPath = nullptr)
+	{
+		std::vector<std::pair<int, AudioIDXEntry>> map;
+
+		for (size_t i = 0; i < this->Bags.size(); ++i) {
+
+			if (!this->Bags[i].Bag.get())
+				continue;
+
+			for (const auto& ent : this->Bags[i].Entries) {
+				map.emplace_back(i , ent);
+			}
+		}
+
+		std::sort(map.begin(), map.end(), [](auto& left, auto& right) {
+			return left.second < right.second;
+		});
+
+		auto ret = GameCreateUnchecked<AudioIDXData>();
+		const int size = static_cast<int>(map.size());
+		ret->SampleCount = size;
+		ret->Samples = GameCreateArray<AudioIDXEntry>(size);
+
+		for (size_t i = 0; i < map.size(); ++i) {
+			std::memcpy(&ret->Samples[i], &map[i].second, sizeof(AudioIDXEntry));
+			//Debug::Log("Samples[%d] Name [%s]\n", i, ret->Samples[i].Name.data());
+			this->Files.emplace_back(map[i].first, this->Bags[map[i].first].Bag.get());
+		}
+
+
+		//AudioIDXEntry* test = static_cast<AudioIDXEntry*>(CRT::bsearch(
+		//	"bconsela",
+		//	ret->Samples,
+		//	size,
+		//	sizeof(AudioIDXEntry),
+		//	(int(__cdecl*)(const void*, const void*))CRT::strcmpi));
+		//
+		//auto iter = std::find_if(ret->Samples, ret->Samples + size, [](const AudioIDXEntry& item) {
+		//		Debug::Log("Samples Name [%s]\n", item.Name.data());
+		//		const auto res = CRT::strcmpi(item.Name.data(), "bconsela");
+		//		return (res == 0);
+		//
+		//});
+		//
+		//if (iter != (ret->Samples + size)) {
+		//	Debug::Log("Iter result [%d]\n", std::distance(ret->Samples, iter));
+		//}
+		//
+		//if(test) {
+		//	int idx = (test - ret->Samples) / sizeof(AudioIDXEntry);
+		//	Debug::Log("result %d\n", idx);
+		//}
+
+		return ret;
 	}
-}
+
+	void Append(const char* pFileBase) {
+		this->Bags.emplace_back(pFileBase);
+	}
+
+	bool GetFileStruct(FileStruct& file , int idx) {
+
+		//idx = idx * sizeof(AudioIDXEntry);
+
+		if (size_t(idx) > this->Files.size())
+			return false;
+
+		auto& sample = AudioIDXData::Instance->Samples[idx];
+		auto pFile = this->Files[idx].second;
+		file = { sample.Size, sample.Offset, pFile, false };
+		return true;
+	}
+
+	CCFileClass* GetFileFromIndex(int idx)
+	{
+		if (size_t(idx) < Files.size())
+			return this->Files[idx].second;
+
+		return nullptr;
+	}
+
+	size_t TotalSampleSizes() const {
+		return this->Files.size();
+	}
+
+private:
+
+	std::vector<AudioBag> Bags;
+
+	//contains linked real index of bags with files within
+	std::vector<std::pair<int , CCFileClass*>> Files;
+};
+
+std::unique_ptr<AudioLuggage> AudioLuggage::InternalData;
 
 //only for testings
 //DEFINE_HOOK(0x536355, TauntCommandClass_IgnoreGameTypeA, 6)
@@ -187,65 +401,60 @@ DEFINE_OVERRIDE_HOOK(0x48da3b , sub_48D1E0_PlayTaunt , 5)
 	return 0x48DAD3;
 }
 
-// there is big changes here
-AudioIDXData* AudioLuggage::Create(const char* pPath) {
-	std::map<AudioIDXEntryB, CCFileClass*> map;
+#ifndef DISABLE_AUDIO_OVERRIDE
 
-	for(auto const& bag : this->Bags) {
-		for(auto const& entry : bag.entries()) {
-			map[entry] = bag.file();
-		}
-	}
-
-	auto ret = GameCreateUnchecked<AudioIDXData>();
-	//ret->BagFile = nullptr; // this->Bags.front().file(); // not needed
-	const int size = static_cast<int>(map.size());
-	ret->SampleCount = size;
-	ret->Samples = GameCreateArray<AudioIDXEntryB>(size);
-
-	this->Files.clear();
-	this->Files.reserve(size);
-
-	auto pEntry = ret->Samples;
-
-	for(const auto&[entry ,pFiles] : map) {
-		*pEntry++ = entry;
-		this->Files.push_back(pFiles);
-	}
-
-	return ret;
+DEFINE_HOOK(0x406B10, Audio_InitPhobosAudio, 0x6) {
+	LooseAudioCache::Allocate();
+	AudioLuggage::Allocate();
+	return 0x0;
 }
 
-/*
-*	Otamaa : there quite some internal change that happen
-*			not sure what it is but seems crucial , because enabling these will lead to
-*			`Failed to prefill buffer` audio error
-*/
-#ifndef DISABLE_AUDIO_OVERRIDE
-//NoChange
 // load more than one audio bag and index.
 // this replaces the entire old parser.
 DEFINE_OVERRIDE_HOOK(0x4011C0, Audio_Load, 6)
 {
-	auto& luggage = AudioLuggage::Instance;
-
 	// audio.bag and ares.bag
-	luggage.Append(GameStrings::audio());
-	luggage.Append("ares");
+	AudioLuggage::Instance()->Append(GameStrings::audio());
+	AudioLuggage::Instance()->Append("ares");
 
 	// audio01.bag to audio99.bag
 	char buffer[0x100];
 	for(auto i = 1; i < 100; ++i) {
 		_snprintf_s(buffer, _TRUNCATE, "audio%02d", i);
-		luggage.Append(buffer);
+		AudioLuggage::Instance()->Append(buffer);
 	}
 
-	// generate index
-	R->EAX(luggage.Create());
+	// cram all luggage datas onto single AudioIdxData pointer
+	R->EAX(AudioLuggage::Instance()->Pack());
 	return 0x401578;
 }
 
-//NameChange
+DEFINE_OVERRIDE_HOOK(0x4016F0, IDXContainer_LoadSample, 6)
+{
+	GET(AudioIDXData* const, pThis, ECX);
+	GET(int const, index, EDX);
+
+	pThis->ClearCurrentSample();
+
+	FileStruct file;
+	if (!AudioLuggage::Instance()->GetFileStruct(file, index))
+		file = LooseAudioCache::Instance()->GetFileStructFromIndexOfRawPointer(index);
+
+	pThis->CurrentSampleFile = file.File;
+	pThis->CurrentSampleSize = file.Size;
+	if (file.Allocated)
+	{
+		pThis->ExternalFile = file.File;
+	}
+
+	auto const ret = file.File && file.Size
+		&& file.File->Seek(file.Offset, FileSeekMode::Set) == file.Offset;
+
+	R->EAX(ret);
+	return 0x4018B8;
+}
+
+// add saple is assemble an idex then put it onto some list
 DEFINE_OVERRIDE_HOOK(0x4064A0, VocClassData_AddSample, 0) // Complete rewrite of VocClass::AddSample
 {
 	GET(AudioEventClassTag*, pVoc, ECX);
@@ -262,11 +471,11 @@ DEFINE_OVERRIDE_HOOK(0x4064A0, VocClassData_AddSample, 0) // Complete rewrite of
 				++pSampleName;
 			}
 
-			auto idxSample = !AudioIDXData::Instance ? -1
+			auto idxSample = !AudioIDXData::Instance() ? -1
 				: AudioIDXData::Instance->FindSampleIndex(pSampleName);
 
 			if(idxSample == -1) {
-				idxSample = LooseAudioCache::Instance.GetIndex(pSampleName);
+				idxSample = LooseAudioCache::Instance()->GetPointerAsindex(pSampleName);
 			}
 
 			// Set sample index or string pointer
@@ -281,37 +490,17 @@ DEFINE_OVERRIDE_HOOK(0x4064A0, VocClassData_AddSample, 0) // Complete rewrite of
 	return 0x40651E;
 }
 
-//NoChange
-DEFINE_OVERRIDE_HOOK(0x4016F0, IDXContainer_LoadSample, 6)
-{
-	GET(AudioIDXData* const, pThis, ECX);
-	GET(int const, index, EDX);
-
-	pThis->ClearCurrentSample();
-
-	auto const file = AresAudioHelper::GetFile(index);
-	pThis->CurrentSampleFile = file.File;
-	pThis->CurrentSampleSize = file.Size;
-	if(file.Allocated) {
-		pThis->ExternalFile = file.File;
-	}
-
-	auto const ret = file.File && file.Size
-		&& file.File->Seek(file.Offset, FileSeekMode::Set) == file.Offset;
-
-	R->EAX(ret);
-	return 0x4018B8;
-}
-
-//NoChange
 DEFINE_OVERRIDE_HOOK(0x401640, AudioIndex_GetSampleInformation, 5)
 {
 	GET(const int, idxSample, EDX);
 	GET_STACK(AudioSampleData*, pAudioSample, 0x4);
 
-	if(auto const pData = AresAudioHelper::GetData(idxSample)) {
+	if ((size_t)idxSample < AudioLuggage::Instance()->TotalSampleSizes())
+		return 0x0;
+
+	if(auto const pData = LooseAudioCache::Instance()->GetAudioSampleDataFromIndexOfRawPointer(idxSample)) {
 		if(pData->SampleRate) {
-			*pAudioSample = *pData;
+			std::memcpy(pAudioSample, pData, sizeof(AudioSampleData));
 		} else {
 			pAudioSample->Data = 4;
 			pAudioSample->Format = 0;

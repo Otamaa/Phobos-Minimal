@@ -9,7 +9,7 @@ void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 	auto pThis = this->Get();
 	const char* pID = this->Get()->ID;
 
-	if (!pINI->GetSection(pID))
+	if (parseFailAddr)
 		return;
 
 	INI_EX exINI(pINI);

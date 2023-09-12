@@ -130,6 +130,8 @@ void SuperExt::ExtData::Serialize(T& Stm) {
 		.Process(this->Type)
 		.Process(this->Temp_CellStruct)
 		.Process(this->Temp_IsPlayer)
+		.Process(this->CameoFirstClickDone)
+		.Process(this->FirstClickAutoFireDone)
 		//.Process(this->Firer)
 		.Process(this->Statusses)
 		;

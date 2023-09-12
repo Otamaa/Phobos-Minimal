@@ -7,7 +7,7 @@
 
 int CSFLoader::CSFCount = 0;
 int CSFLoader::NextValueIndex = 0;
-std::unordered_map<std::string, CSFLoader::BiggerCFSString> CSFLoader::DynamicStrings;
+std::unordered_map<std::string, CSFLoader::BiggerCSFString> CSFLoader::DynamicStrings;
 
 void CSFLoader::LoadAdditionalCSF(const char* pFileName, bool ignoreLanguage)
 {

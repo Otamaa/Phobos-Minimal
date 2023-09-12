@@ -67,6 +67,8 @@ public:
 		NullableVector<BuildingTypeClass*> BaseDefenses {};
 		NullableVector<int> BaseDefenseCounts {};
 
+		Nullable<InfantryTypeClass*> Disguise {};
+
 		ExtData(SideClass* OwnerObject) : Extension<SideClass>(OwnerObject)
 		{ }
 
@@ -98,6 +100,10 @@ public:
 
 		Iterator<BuildingTypeClass*> GetBaseDefenses() const;
 		Iterator<BuildingTypeClass*> GetDefaultBaseDefenses() const;
+
+		InfantryTypeClass* GetDisguise() const;
+		InfantryTypeClass* GetDefaultDisguise() const;
+
 
 	private:
 		template <typename T>

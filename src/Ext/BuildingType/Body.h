@@ -100,6 +100,8 @@ public:
 
 	static std::vector<std::string> trenchKinds; //!< Vector of strings associating known trench names with IsTrench IDs. \sa IsTrench
 	static const DirStruct DefaultJuggerFacing;
+	static const Foundation CustomFoundation = static_cast<Foundation>(0x7F);
+	static const CellStruct FoundationEndMarker;
 
 	class ExtData final : public Extension<BuildingTypeClass>
 	{
@@ -316,6 +318,36 @@ public:
 		Nullable<FacingType> LandingDir {};
 
 		int SellFrames { 0 };
+
+		// foundations
+		bool IsCustom { false };
+		int CustomWidth { 0 };
+		int CustomHeight { 0 };
+		int OutlineLength { 0 };
+		std::vector<CellStruct> CustomData {};
+		std::vector<CellStruct> OutlineData {};
+		DynamicVectorClass<Point2D> FoundationRadarShape {};
+
+		// new secret lab
+		NullableVector<TechnoTypeClass*> Secret_Boons {};
+		Valueable<bool> Secret_RecalcOnCapture { false };
+
+		// academy
+		mutable OptionalStruct<bool> Academy {};
+		ValueableVector<TechnoTypeClass*> AcademyWhitelist {};
+		ValueableVector<TechnoTypeClass*> AcademyBlacklist {};
+		Valueable<double> AcademyInfantry { 0.0 };
+		Valueable<double> AcademyAircraft { 0.0 };
+		Valueable<double> AcademyVehicle { 0.0 };
+		Valueable<double> AcademyBuilding { 0.0 };
+
+		// degrading on low power
+		Nullable<int> DegradeAmount {};
+		Nullable<double> DegradePercentage {};
+
+		Valueable<bool> IsPassable { false };
+		Valueable<bool> ProduceCashDisplay { false };
+
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject) {}
 		virtual ~ExtData() override = default;
 
@@ -330,6 +362,13 @@ public:
 		int GetSuperWeaponIndex(int index) const;
 
 		bool CanBeOccupiedBy(InfantryClass* whom);
+
+		bool IsAcademy() const;
+
+		void UpdateFoundationRadarShape();
+
+		static bool IsFoundationEqual(BuildingTypeClass* pType1, BuildingTypeClass* pType2);
+
 	private:
 		template <typename T>
 		void Serialize(T& Stm);

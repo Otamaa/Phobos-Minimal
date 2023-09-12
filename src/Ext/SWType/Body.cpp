@@ -1172,7 +1172,7 @@ bool SWTypeExt::ExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStr
 	{
 		if (pData->SW_Power.isset() && pData->SW_Power.Get() != 0)
 		{
-			AuxPower(pOwner) += pData->SW_Power.Get();
+			pHouseExt->AuxPower += pData->SW_Power.Get();
 			pOwner->RecheckPower = true;
 		}
 	}
@@ -1307,7 +1307,7 @@ bool SWTypeExt::ExtData::Deactivate(SuperClass* pSuper, CellStruct const cell, b
 		{
 			if (pData->SW_Power.isset() && pData->SW_Power.Get() != 0)
 			{
-				AuxPower(pSuper->Owner) -= pData->SW_Power.Get();
+				HouseExt::ExtMap.Find(pSuper->Owner)->AuxPower -= pData->SW_Power.Get();
 				pSuper->Owner->RecheckPower = true;
 			}
 		}
@@ -1337,7 +1337,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 
-	if (!pINI->GetSection(pSection))
+	if (parseFailAddr)
 		return;
 
 	INI_EX exINI(pINI);

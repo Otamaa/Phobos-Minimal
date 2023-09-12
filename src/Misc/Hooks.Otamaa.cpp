@@ -2276,13 +2276,14 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 
 		if (!isWeeder)
 		{
+			//default pip : 5 = blue , 2 gold ?
 			switch (i)
 			{
 			case 0:
-				FrameIdx = pTypeExt->Riparius_FrameIDx.Get(5);
+				FrameIdx = pTypeExt->Riparius_FrameIDx.Get(2);
 				break;
 			case 1:
-				FrameIdx = pTypeExt->Cruentus_FrameIDx.Get(2);
+				FrameIdx = pTypeExt->Cruentus_FrameIDx.Get(5);
 				break;
 			case 2:
 				FrameIdx = pTypeExt->Vinifera_FrameIDx.Get(2);
@@ -2297,7 +2298,7 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 		}
 		else
 		{
-			FrameIdx = 2; //idk ?
+			FrameIdx = 1; //idk ?
 		}
 
 		Amounts[i] = { amount , FrameIdx };
@@ -2482,7 +2483,6 @@ enum class NewVHPScan : int
 	Locked = 7,
 	Non_Infantry = 8,
 
-
 	count
 };
 
@@ -2499,30 +2499,56 @@ constexpr std::array<const char*, (size_t)NewVHPScan::count> NewVHPScanToString
 	{ "Non-Infantry" }
 	} };
 
-DEFINE_HOOK(0x4775F4, CCINIClass_ReadVHPScan_new, 0x5)
-{
-	GET(const char* const, cur, ESI);
+//DEFINE_HOOK(0x4775F4, CCINIClass_ReadVHPScan_new, 0x5)
+//{
+//	GET(const char* const, cur, ESI);
+//
+//	int vHp = 0;
+//	for (int i = 0; i < (int)NewVHPScanToString.size(); ++i)
+//	{
+//		if (IS_SAME_STR_(cur, NewVHPScanToString[i]))
+//		{
+//			vHp = i;
+//			break;
+//		}
+//	}
+//
+//	R->EAX(vHp);
+//	return 0x4775E9;
+//}
+//
+//DEFINE_HOOK(0x4775B0, CCINIClass_ReadVHPScan_ReplaceArray, 0x7)
+//{
+//	int nIdx = R->EDI<int>();
+//	nIdx = (nIdx > (int)NewVHPScanToString.size() ? (int)NewVHPScanToString.size() : nIdx);
+//	R->EDX(NewVHPScanToString[nIdx]);
+//	return 0x4775B7;
+//}
 
-	int vHp = 0;
-	for (int i = 0; i < (int)NewVHPScanToString.size(); ++i)
-	{
-		if (IS_SAME_STR_(cur, NewVHPScanToString[i]))
-		{
-			vHp = i;
-			break;
+DEFINE_HOOK(0x477590, CCINIClass_ReadVHPScan_Replace, 0x6)
+{
+	GET(CCINIClass*, pThis, ECX);
+	GET_STACK(const char*, pSection, 0x4);
+	GET_STACK(const char*, pKey, 0x8);
+	GET_STACK(int, default_val, 0xC);
+
+	INI_EX exINI(pThis);
+
+	int vHp = default_val;
+
+	if (exINI.ReadString(pSection, pKey)) {
+		for (int i = 0; i < (int)NewVHPScanToString.size(); ++i) {
+			if (IS_SAME_STR_(exINI.value(), NewVHPScanToString[i])) {
+				R->EAX(i);
+				return 0x477613;
+			}
 		}
+
+		Debug::INIParseFailed(pSection, pKey, exINI.value(), "Expected valid VHPScan value");
 	}
 
 	R->EAX(vHp);
-	return 0x4775E9;
-}
-
-DEFINE_HOOK(0x4775B0, CCINIClass_ReadVHPScan_ReplaceArray, 0x7)
-{
-	int nIdx = R->EDI<int>();
-	nIdx = (nIdx > (int)NewVHPScanToString.size() ? (int)NewVHPScanToString.size() : nIdx);
-	R->EDX(NewVHPScanToString[nIdx]);
-	return 0x4775B7;
+	return 0x477613;
 }
 
 DEFINE_HOOK(0x6F8721, TechnoClass_EvalObject_VHPScan, 0x7)
@@ -3143,8 +3169,10 @@ DEFINE_HOOK(0x70FB50, TechnoClass_Bunkerable, 0x5)
 	return 0x70FBCA;
 }
 
+
 DEFINE_HOOK(0x40A5B3, AudioDriverStar_AnnoyingBufferLogDisable_A, 0x6)
 {
+	//AudioDriverChannelTag
 	GET(void*, pAudioChannelTag, EBX);
 	(*(uintptr_t*)((char*)pAudioChannelTag + 0x68)) = R->EAX();
 	return 0x40A5C4;

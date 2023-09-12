@@ -73,6 +73,15 @@ struct AudioIDXEntry { // assert (IDXHeader.version != 1);
 	unsigned int Flags;
 	unsigned int ChunkSize;
 
+	//AudioIDXEntry(AudioIDXEntry&& other) noexcept
+	//{
+	//	std::memcpy(this->Name, other.Name, 16u);
+	//	this->Offset = other.Offset;
+	//	this->Size = other.Size;
+	//	this->SampleRate = other.SampleRate;
+	//	this->Flags = other.Flags;
+	//	this->ChunkSize = other.ChunkSize;
+	//};
 	///AudioIDXEntry& operator = (const AudioIDXEntry& src) {
 	//	std::memcpy(this, &src, sizeof(*this));
 	//	return *this;

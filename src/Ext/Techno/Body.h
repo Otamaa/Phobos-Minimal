@@ -137,6 +137,7 @@ public:
 		AbstractClass* WebbyLastTarget { nullptr };
 		Mission WebbyLastMission { Mission::Sleep };
 
+		bool FreeUnitDone { false };
 		ExtData(TechnoClass* OwnerObject) : Extension<TechnoClass>(OwnerObject)
 			, ObjectExt::ExtData {}
 		{ }

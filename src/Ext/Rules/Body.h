@@ -234,6 +234,15 @@ public:
 
 		bool AllowBypassBuildLimit[3] = { false };
 
+		Valueable<bool> DegradeEnabled { false };
+		Nullable<double> DegradePercentage {};
+		Valueable<int> DegradeAmountNormal { 0 };
+		Valueable<int> DegradeAmountConsumer { 1 };
+
+		Valueable<bool> TogglePowerAllowed { false };
+		Valueable<int> TogglePowerDelay { 45 };
+		Valueable<int> TogglePowerIQ { -1 };
+
 		AircraftPutDataRules MyPutData { };
 
 		ExtData(RulesClass* OwnerObject) : Extension<RulesClass>(OwnerObject)

@@ -4145,10 +4145,12 @@ bool TechnoExt::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select,
 
 	if (const auto pBld = pCell->GetBuilding())
 	{
-		if (!Is_Passable(pBld->Type))
+		const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+
+		if (!pTypeExt->IsPassable)
 			return false;
 
-		if (BuildingTypeExt::ExtMap.Find(pBld->Type)->Firestorm_Wall &&
+		if (pTypeExt->Firestorm_Wall &&
 			pBld->Owner &&
 			pBld->Owner->FirestormActive)
 			return false;
@@ -4483,6 +4485,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->WebbedAnim)
 		.Process(this->WebbyLastTarget)
 		.Process(this->WebbyLastMission)
+		.Process(this->FreeUnitDone)
 		;
 	//should put this inside techo ext , ffs
 

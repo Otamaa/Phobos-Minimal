@@ -36,7 +36,7 @@ public:
 		std::vector<AnimClass*> DamageFireAnims { };
 		CDTimerClass AutoSellTimer { };
 		bool LighningNeedUpdate { false };
-		bool TogglePower_HasPower { false };
+		bool TogglePower_HasPower { true };
 		bool Silent { false };
 
 		OptionalStruct<int , true> C4Damage { };
@@ -49,6 +49,9 @@ public:
 		CDTimerClass CashUpgradeTimers[3] {};
 		int SensorArrayActiveCounter { 0 };
 		std::vector<bool> StartupCashDelivered {};
+		bool SecretLab_Placed { false };
+		bool AboutToChronoshift { false };
+		bool IsFromSW { false };
 
 		ExtData(BuildingClass* OwnerObject) : Extension<BuildingClass>(OwnerObject){ }
 		virtual ~ExtData() override = default;
@@ -93,4 +96,6 @@ public:
 
 	static int GetFirstSuperWeaponIndex(BuildingClass* pThis);
 	static SuperClass* GetFirstSuperWeapon(BuildingClass* pThis);
+	static void UpdateSecretLab(BuildingClass* pThis);
+	static bool ReverseEngineer(BuildingClass* pBuilding, TechnoClass* Victim);
 };

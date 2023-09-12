@@ -45,7 +45,6 @@ void TechnoTypeExt::ExtData::Initialize()
 	FireSelf_Weapon_RedHeath.reserve(3);
 	FireSelf_ROF_RedHeath.reserve(3);
 	DisguiseDisAllowed.reserve(10);
-	Prerequisite_RequiredTheaters.reserve(7);
 	Prerequisites.reserve(10);
 	Prerequisite_Negative.reserve(10);
 	TargetLaser_WeaponIdx.reserve(TechnoTypeClass::MaxWeapons);
@@ -235,7 +234,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 	const char* pSection = pThis->ID;
 	const char* pArtSection = pThis->ImageFile;
 
-	if (pINI->GetSection(pSection))
+	if (!parseFailAddr)
 	{
 		INI_EX exINI(pINI);
 		// survivors
@@ -598,7 +597,22 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 #pragma region Prereq
 
-		this->Prerequisite_RequiredTheaters.Read(exINI, pSection, "Prerequisite.RequiredTheaters");
+	if(pINI->ReadString(pSection, "Prerequisite.RequiredTheaters", "", Phobos::readBuffer)) {
+		this->Prerequisite_RequiredTheaters = 0;
+
+		char* context = nullptr;
+		for(char *cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
+			cur;
+			cur = strtok_s(nullptr, Phobos::readDelims, &context))
+		{
+			signed int idx = TheaterTypeClass::FindIndexById(cur);
+			if(idx != -1) {
+				this->Prerequisite_RequiredTheaters |= (1 << idx);
+			} else {
+				Debug::INIParseFailed(pSection, "Prerequisite.RequiredTheaters", cur);
+			}
+		}
+	}
 
 		// subtract the default list, get tag (not less than 0), add one back
 		const auto nRead = pINI->ReadInteger(pSection, "Prerequisite.Lists", static_cast<int>(this->Prerequisites.size()) - 1);
@@ -985,6 +999,34 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->Webby_Anims.Read(exINI, pSection, "Webby.Anims");
 		this->Webby_Modifier.Read(exINI, pSection, "Webby.Modifier");
 		this->Webby_Duration_Variation.Read(exINI, pSection, "Webby.DurationVariation");
+
+		// new secret lab
+		this->Secret_RequiredHouses
+			= pINI->ReadHouseTypesList(pSection, "SecretLab.RequiredHouses", this->Secret_RequiredHouses);
+
+		this->Secret_ForbiddenHouses
+			= pINI->ReadHouseTypesList(pSection, "SecretLab.ForbiddenHouses", this->Secret_ForbiddenHouses);
+
+		if (pINI->ReadString(pSection, "Prerequisite.StolenTechs", Phobos::readDefval, Phobos::readBuffer))
+		{
+			this->RequiredStolenTech.reset();
+
+			char* context = nullptr;
+			for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
+				cur;
+				cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
+				signed int idx = CRT::atoi(cur);
+				if (idx > -1 && idx < 32)
+				{
+					this->RequiredStolenTech.set(idx);
+				}
+				else if (idx != -1)
+				{
+					Debug::INIParseFailed(pSection, "Prerequisite.StolenTechs", cur, "Expected a number between 0 and 31 inclusive");
+				}
+			}
+		}
 
 #pragma region AircraftOnly
 		if (this->AttachtoType == AircraftTypeClass::AbsID)
@@ -1950,6 +1992,9 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SpawnsPipSize)
 		.Process(this->SpawnsPipOffset)
 		.Process(this->Insignia_Weapon)
+		.Process(this->Secret_RequiredHouses)
+		.Process(this->Secret_ForbiddenHouses)
+		.Process(this->RequiredStolenTech)
 		;
 }
 

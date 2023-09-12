@@ -2622,13 +2622,23 @@ DEFINE_OVERRIDE_HOOK(0x44019D, BuildingClass_Update_Battery, 6)
 }
 
 #include <Ext/HouseType/Body.h>
+#include <Misc/Ares/Hooks/Header.h>
 
-bool NOINLINE CameoIsElite(TechnoTypeClass* pType , HouseClass* pHouse) {
+NOINLINE BSurface* TechnoTypeExt_ExtData::GetPCXSurface(TechnoTypeClass* pType , HouseClass* pHouse)
+{
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto eliteCameo = TechnoTypeExt_ExtData::CameoIsElite(pType, pHouse);
+
+	return eliteCameo ? pTypeExt->AltCameoPCX.GetSurface() : pTypeExt->CameoPCX.GetSurface();
+}
+
+bool NOINLINE TechnoTypeExt_ExtData::CameoIsElite(TechnoTypeClass* pType , HouseClass* pHouse) {
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
-	if(!pType->AltCameo && !pTypeExt->AltCameoPCX.GetSurface())
+	if((!pType->AltCameo && !pTypeExt->AltCameoPCX.GetSurface()) || !pHouse)
 		return false;
 
+	const auto pHouseExt = HouseExt::ExtMap.Find(pHouse);
 	const auto pCountry = pHouse->Type;
 	switch(pType->WhatAmI()) {
 	case AbstractType::InfantryType:
@@ -2644,7 +2654,7 @@ bool NOINLINE CameoIsElite(TechnoTypeClass* pType , HouseClass* pHouse) {
 	{
 		if(pHouse->WarFactoryInfiltrated && !pType->Naval && pType->Trainable) {
 			return true;
-		} else if(Is_NavalYardSpied(pHouse) && pType->Naval && pType->Trainable) {
+		} else if(pHouseExt->Is_NavalYardSpied && pType->Naval && pType->Trainable) {
 			return true;
 		}
 
@@ -2652,7 +2662,7 @@ bool NOINLINE CameoIsElite(TechnoTypeClass* pType , HouseClass* pHouse) {
 	}
 	case AbstractType::AircraftType:
 	{
-		if(Is_AirfieldSpied(pHouse) && pType->Trainable) {
+		if(pHouseExt->Is_AirfieldSpied && pType->Trainable) {
 			return true;
 		}
 
@@ -2662,7 +2672,7 @@ bool NOINLINE CameoIsElite(TechnoTypeClass* pType , HouseClass* pHouse) {
 	{
 		if(auto const pItem = pType->UndeploysInto) {
 			return pCountry->VeteranUnits.Contains((UnitTypeClass*)(pItem));
-		}else if (Is_BuildingProductionSpied(pHouse) && pType->Trainable) {
+		}else if (pHouseExt->Is_ConstructionYardSpied && pType->Trainable) {
 			return true;
 		}
 
@@ -2715,11 +2725,7 @@ DEFINE_OVERRIDE_HOOK(0x6A980A, StripClass_Draw_TechnoType_PCX, 8)
 {
 	GET(TechnoTypeClass*, pType, EBX);
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-	auto const eliteCameo = CameoIsElite(pType, HouseClass::CurrentPlayer)
-		&& pTypeExt->AltCameoPCX.GetSurface();
-
-	CameoPCXSurface = eliteCameo ? pTypeExt->AltCameoPCX.GetSurface() : pTypeExt->CameoPCX.GetSurface();
+	CameoPCXSurface = TechnoTypeExt_ExtData::GetPCXSurface(pType , HouseClass::CurrentPlayer);
 
 	return 0;
 }
@@ -2727,7 +2733,7 @@ DEFINE_OVERRIDE_HOOK(0x6A980A, StripClass_Draw_TechnoType_PCX, 8)
 DEFINE_OVERRIDE_HOOK(0x6A99F3, StripClass_Draw_SkipSHPForPCX, 6)
 {
 	if(CameoPCXSurface)
-		return 0x6A943;
+		return 0x6A9A43;
 
 	GET_STACK(SHPStruct const*, pCameo, STACK_OFFS(0x48C, 0x444));
 
@@ -2784,7 +2790,7 @@ DEFINE_OVERRIDE_HOOK(0x712045, TechnoTypeClass_GetCameo, 5)
 {
 	GET(TechnoTypeClass*, pThis, ECX);
 
-	R->EAX(CameoIsElite(pThis, HouseClass::CurrentPlayer)
+	R->EAX(TechnoTypeExt_ExtData::CameoIsElite(pThis, HouseClass::CurrentPlayer)
 		? pThis->AltCameo : pThis->Cameo);
 	return 0x7120C6;
 }

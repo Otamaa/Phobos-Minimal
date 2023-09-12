@@ -23,6 +23,7 @@
 #include <Ext/Terrain/Body.h>
 #include <Ext/InfantryType/Body.h>
 #include <Ext/TeamType/Body.h>
+#include <Ext/HouseType/Body.h>
 
 #include <TerrainTypeClass.h>
 #include <Locomotor/HoverLocomotionClass.h>
@@ -2882,13 +2883,15 @@ DEFINE_OVERRIDE_HOOK(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 	GET(TechnoClass*, pTechno, EBP);
 	GET_STACK(RectangleStruct*, pRect, 0xA0);
 
-	if (auto pBld = abstract_cast<BuildingClass*>(pTechno))
+	if (auto pBld = specific_cast<BuildingClass*>(pTechno))
 	{
+		const auto pBldExt = BuildingExt::ExtMap.Find(pBld);
+
 		// allies and observers can always see by default
-		bool canSeeRepair = HouseClass::CurrentPlayer->IsAlliedWith_(pBld->Owner)
+		const bool canSeeRepair = HouseClass::CurrentPlayer->IsAlliedWith_(pBld->Owner)
 			|| HouseClass::IsCurrentPlayerObserver();
 
-		bool showRepair = FileSystem::WRENCH_SHP
+		const bool showRepair = FileSystem::WRENCH_SHP
 			&& pBld->IsBeingRepaired
 			// fixes the wrench playing over a temporally challenged building
 			&& !pBld->IsBeingWarpedOut()
@@ -2898,8 +2901,8 @@ DEFINE_OVERRIDE_HOOK(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 				&& RulesExt::Global()->EnemyWrench));
 
 		// display power off marker only for current player's buildings
-		bool showPower = FileSystem::POWEROFF_SHP
-			&& !ToggalePowerHasPower(pBld)
+		const bool showPower = FileSystem::POWEROFF_SHP
+			&& !pBldExt->TogglePower_HasPower
 			// only for owned buildings, but observers got magic eyes
 			&& (pBld->Owner->ControlledByPlayer() || HouseClass::IsCurrentPlayerObserver());
 
@@ -2957,29 +2960,6 @@ DEFINE_OVERRIDE_HOOK(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 	}
 
 	return 0x6F5347;
-}
-
-/// make temporal weapons play nice with power toggle.
-//// previously, power state was set to true unconditionally.
-DEFINE_OVERRIDE_HOOK(0x452287, BuildingClass_GoOnline_TogglePower, 6)
-{
-	GET(BuildingClass* const, pThis, ESI);
-	ToggalePowerHasPower(pThis) = true;
-	return 0;
-}
-
-DEFINE_OVERRIDE_HOOK(0x452393, BuildingClass_GoOffline_TogglePower, 7)
-{
-	GET(BuildingClass* const, pThis, ESI);
-	ToggalePowerHasPower(pThis) = false;
-	return 0;
-}
-
-DEFINE_OVERRIDE_HOOK(0x452210, BuildingClass_Enable_TogglePower, 7)
-{
-	GET(BuildingClass* const, pThis, ECX);
-	pThis->HasPower = ToggalePowerHasPower(pThis);
-	return 0x452217;
 }
 
 DEFINE_OVERRIDE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
@@ -3156,10 +3136,11 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 				auto pProdType = pFactory->Object->GetTechnoType();
 				const int nTotal = pFactory->CountTotal(pProdType);
 				Point2D DrawCameoLoc = { pLocation->X , pLocation->Y + 45 };
+				const auto pProdTypeExt = TechnoTypeExt::ExtMap.Find(pProdType);
 				RectangleStruct cameoRect {};
 
 				// support for pcx cameos
-				if (auto pPCX = GetCameoPCXSurface(pProdType))
+				if (auto pPCX = TechnoTypeExt_ExtData::GetPCXSurface(pProdType , pThis->Owner))
 				{
 					const int cameoWidth = 60;
 					const int cameoHeight = 48;
@@ -3181,8 +3162,12 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 					if (auto pCameo = pProdType->GetCameo())
 					{
 						cameoRect = { DrawCameoLoc.X, DrawCameoLoc.Y, pCameo->Width, pCameo->Height };
-						const auto pCustomConvert = GetCameoSHPConvert(pProdType);
-						DSurface::Temp->DrawSHP(pCustomConvert ? pCustomConvert : FileSystem::CAMEO_PAL(), pCameo, 0, &DrawCameoLoc, pBounds, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, nullptr, 0, 0, 0);
+
+						ConvertClass* pPal = FileSystem::CAMEO_PAL();
+						if (auto pManager = pProdTypeExt->CameoPal)
+							pPal = pManager->GetConvert<PaletteManager::Mode::Default>();
+
+						DSurface::Temp->DrawSHP(pPal, pCameo, 0, &DrawCameoLoc, pBounds, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, nullptr, 0, 0, 0);
 					}
 				}
 
@@ -3389,10 +3374,10 @@ DEFINE_OVERRIDE_HOOK(0x413FD2, AircraftClass_Init_Academy, 6)
 
 	if (pThis->Owner)
 	{
-		if (pThis->Type->Trainable && Is_AirfieldSpied(pThis->Owner))
+		if (pThis->Type->Trainable && HouseExt::ExtMap.Find(pThis->Owner)->Is_AirfieldSpied)
 			pThis->Veterancy.Veterancy = 1.0f;
 
-		AresData::HouseExt_ExtData_ApplyAcademy(pThis->Owner, pThis, AbstractType::Aircraft);
+		HouseExt::ApplyAcademy(pThis->Owner, pThis, AbstractType::Aircraft);
 
 	}
 
@@ -3405,7 +3390,7 @@ DEFINE_OVERRIDE_HOOK(0x517D51, InfantryClass_Init_Academy, 6)
 
 	if (pThis->Owner)
 	{
-		AresData::HouseExt_ExtData_ApplyAcademy(pThis->Owner, pThis, AbstractType::Infantry);
+		HouseExt::ApplyAcademy(pThis->Owner, pThis, AbstractType::Infantry);
 	}
 
 	return 0;
@@ -3418,22 +3403,15 @@ DEFINE_OVERRIDE_HOOK(0x442D1B, BuildingClass_Init_Academy, 6)
 	if (!pThis->Owner)
 		return 0x0;
 
-	const auto& vetBld = VeteranBuildings(pThis->Owner->Type);
-
-	for (auto nPos = vetBld.begin(); nPos != vetBld.end(); ++nPos)
-	{
-		if ((*nPos) == pThis->Type)
-		{
-			pThis->Veterancy.Veterancy = 1.0f;
-			break;
-		}
+	if(HouseTypeExt::ExtMap.Find(pThis->Owner->Type)->VeteranBuildings.Contains(pThis->Type)) {
+		pThis->Veterancy.Veterancy = 1.0f;
 	}
 
-	if (pThis->Type->Trainable && Is_BuildingProductionSpied(pThis->Owner))
+	if (pThis->Type->Trainable && HouseExt::ExtMap.Find(pThis->Owner)->Is_ConstructionYardSpied)
 		pThis->Veterancy.Veterancy = 1.0f;
 
 
-	AresData::HouseExt_ExtData_ApplyAcademy(pThis->Owner, pThis, AbstractType::Building);
+	HouseExt::ApplyAcademy(pThis->Owner, pThis, AbstractType::Building);
 
 	return 0;
 }
@@ -3635,7 +3613,7 @@ DEFINE_OVERRIDE_HOOK(0x43FE8E, BuildingClass_Update_Reload, 6)
 
 bool IsBaseNormal(BuildingClass* pBuilding)
 {
-	if (Is_FromSW(pBuilding))
+	if (BuildingExt::ExtMap.Find(pBuilding)->IsFromSW)
 		return true;
 
 	const auto pExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
@@ -3673,7 +3651,7 @@ DEFINE_OVERRIDE_HOOK(0x445A72, BuildingClass_Remove_AIBaseNormal, 6)
 DEFINE_OVERRIDE_HOOK(0x4A8FF5, MapClass_CanBuildingTypeBePlacedHere_Ignore, 5)
 {
 	GET(BuildingClass*, pBuilding, ESI);
-	return Is_FromSW(pBuilding) ? 0x4A8FFA : 0x0;
+	return BuildingExt::ExtMap.Find(pBuilding)->IsFromSW ? 0x4A8FFA : 0x0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x506306, HouseClass_FindPlaceToBuild_Evaluate, 6)
@@ -4963,7 +4941,7 @@ DEFINE_OVERRIDE_HOOK(0x44441A, BuildingClass_KickOutUnit_Clone_NavalUnit, 6)
 	return 0;
 }
 
-bool NOINLINE CanBeBuiltAt(TechnoTypeClass* pProduct , BuildingTypeClass* pFactoryType)
+bool TechnoTypeExt::CanBeBuiltAt(TechnoTypeClass* pProduct , BuildingTypeClass* pFactoryType)
 {
 	const auto pProductTypeExt = TechnoTypeExt::ExtMap.Find(pProduct);
 	const auto pBExt = BuildingTypeExt::ExtMap.Find(pFactoryType);
@@ -4981,7 +4959,7 @@ DEFINE_OVERRIDE_HOOK(0x4444E2, BuildingClass_KickOutUnit_FindAlternateKickout, 6
 	 && Tst->GetCurrentMission() == Mission::Guard
 	 && Tst->Type->Factory == Src->Type->Factory
 	 && Tst->Type->Naval == Src->Type->Naval
-	 && CanBeBuiltAt(Production->GetTechnoType() , Tst->Type)
+	 && TechnoTypeExt::CanBeBuiltAt(Production->GetTechnoType() , Tst->Type)
 	 && !Tst->Factory)
 	{
 		return 0x44451F;
@@ -6059,6 +6037,24 @@ DEFINE_OVERRIDE_HOOK(0x7177E0 , TechnoTypeClass_GetEliteWeapon, 0xB)
 	R->EAX(AresData::GetWeapon(pThis, idx, true));
 	return 0x7177F4;
 }
+
+DEFINE_DISABLE_HOOK(0x4E3792, HTExt_Unlimit1_ares)//, 0){ return 0x4E37AD; }
+DEFINE_JUMP(LJMP, 0x4E3792, 0x4E37AD);
+
+DEFINE_DISABLE_HOOK(0x4E3A9C, HTExt_Unlimit2_ares)//, 0){ return 0x4E3AA1; }
+DEFINE_JUMP(LJMP, 0x4E3A9C, 0x4E3AA1);
+
+DEFINE_DISABLE_HOOK(0x4E3F31, HTExt_Unlimit3_ares)//, 0){ return 0x4E3F4C; }
+DEFINE_JUMP(LJMP, 0x4E3F31, 0x4E3F4C);
+
+DEFINE_DISABLE_HOOK(0x4E412C, HTExt_Unlimit4_ares)//, 0){ return 0x4E4147; }
+DEFINE_JUMP(LJMP, 0x4E412C, 0x4E4147);
+
+DEFINE_DISABLE_HOOK(0x4E41A7, HTExt_Unlimit5_ares)//, 0){ return 0x4E41C3; }
+DEFINE_JUMP(LJMP, 0x4E41A7, 0x4E41C3);
+
+DEFINE_DISABLE_HOOK(0x55afb3, LogicClass_Update_ares)
+DEFINE_DISABLE_HOOK(0x679caf , RulesClass_LoadAfterTypeData_CompleteInitialization_ares)
 //DEFINE_OVERRIDE_HOOK(0x5d7048, MPGameMode_SpawnBaseUnit_BuildConst, 5)
 //{
 //	GET_STACK(HouseClass*, pHouse, 0x18);

@@ -17,6 +17,10 @@ public:
 	PhobosMap<ObjectClass*, AlphaShapeClass*> ObjectLinkedAlphas { };
 	int SpotHeight { 0 };
 
+	std::vector<CellStruct> TempFoundationData1 { };
+	std::vector<CellStruct> TempFoundationData2 { };
+	std::vector<CellStruct> TempCoveredCellsData { };
+
 public:
 	static bool SaveGlobals(PhobosStreamWriter& stm) { return PhobosGlobal::Instance()->Serialize(stm); }
 	static bool LoadGlobals(PhobosStreamReader& stm) { return PhobosGlobal::Instance()->Serialize(stm); }
@@ -35,7 +39,6 @@ public:
 		GlobalObject = std::make_unique<PhobosGlobal>();
 	}
 
-
 	template <typename T>
 	bool Serialize(T& stm)
 	{
@@ -43,6 +46,9 @@ public:
 			.Process(this->DetonateDamageArea)
 			.Process(this->ObjectLinkedAlphas)
 			.Process(this->SpotHeight)
+			.Process(this->TempFoundationData1)
+			.Process(this->TempFoundationData2)
+			.Process(this->TempCoveredCellsData)
 			.Success();
 	}
 };

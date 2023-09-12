@@ -56,7 +56,6 @@ public:
 		static constexpr size_t ExtOffset = 0x16098;
 
 	public:
-
 		PhobosMap<BuildingTypeClass*, int> PowerPlantEnhancerBuildings {};
 		PhobosMap<BuildingTypeClass*, int> Building_BuildSpeedBonusCounter {};
 
@@ -96,6 +95,17 @@ public:
 
 		int AvaibleDocks { 0 };
 
+		std::bitset<32> StolenTech { 0ull };
+		IndexBitfield<HouseClass*> RadarPersist {};
+		HelperedVector<HouseTypeClass*> FactoryOwners_GatheredPlansOf {};
+		HelperedVector<BuildingClass*> Academies {};
+		HelperedVector<TechnoTypeClass*> Reversed {};
+
+		bool Is_NavalYardSpied { false };
+		bool Is_AirfieldSpied { false };
+		bool Is_ConstructionYardSpied { false };
+		int AuxPower { 0 };
+
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 		{ }
 
@@ -119,6 +129,9 @@ public:
 		//void RemoveFromLimboTracking(TechnoTypeClass* pTechnoType);
 		//int CountOwnedPresentAndLimboed(TechnoTypeClass* pTechnoType);
 
+		void UpdateAcademy(BuildingClass* pAcademy, bool added);
+		void ApplyAcademy(TechnoClass* pTechno, AbstractType considerAs) const;
+
 		static SuperClass* IsSuperAvail(int nIdx , HouseClass* pHouse);
 	private:
 		bool UpdateHarvesterProduction();
@@ -134,6 +147,7 @@ public:
 
 		static bool LoadGlobals(PhobosStreamReader& Stm);
 		static bool SaveGlobals(PhobosStreamWriter& Stm);
+
 		void Clear()
 		{
 			AIProduction_CreationFrames.clear();
@@ -181,6 +195,7 @@ public:
 	static InfantryTypeClass* GetCrew(HouseClass* pHouse);
 	static InfantryTypeClass* GetEngineer(HouseClass* pHouse);
 	static InfantryTypeClass* GetTechnician(HouseClass* pHouse);
+	static InfantryTypeClass* GetDisguise(HouseClass* pHouse);
 	static AircraftTypeClass* GetParadropPlane(HouseClass* pHouse);
 	static AircraftTypeClass* GetSpyPlane(HouseClass* pHouse);
 	static UnitTypeClass* GetHunterSeeker(HouseClass* pHouse);
@@ -223,4 +238,20 @@ public:
 
 	static TunnelData* GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx);
 	static TunnelData* GetTunnelVector(BuildingTypeClass* pBld, HouseClass* pHouse);
+
+	static void UpdateFactoryPlans(BuildingClass* pBld);
+
+	static bool CheckFactoryOwners(HouseClass* pHouse, TechnoTypeClass* pItem);
+	static CanBuildResult PrereqValidate(HouseClass* pHouse, TechnoTypeClass* pItem, bool buildLimitOnly, bool includeQueued);
+	static std::pair<NewFactoryState, BuildingClass*> HasFactory(
+	HouseClass* pHouse,
+	TechnoTypeClass* pType,
+	bool bSkipAircraft,
+	bool requirePower,
+	bool bCheckCanBuild,
+	bool b7);
+
+	static RequirementStatus RequirementsMet(HouseClass* pHouse, TechnoTypeClass* pItem);
+	static void UpdateAcademy(HouseClass* pHouse , BuildingClass* pAcademy, bool added);
+	static void ApplyAcademy(HouseClass* pHouse ,TechnoClass* pTechno, AbstractType considerAs);
 };

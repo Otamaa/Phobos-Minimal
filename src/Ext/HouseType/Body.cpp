@@ -83,6 +83,7 @@ void HouseTypeExt::ExtData::InheritSettings(HouseTypeClass* pThis)
 			this->Powerplants = ParentData->Powerplants;
 			this->VeteranBuildings = ParentData->VeteranBuildings;
 			this->TauntFile = ParentData->TauntFile;
+			this->Degrades = ParentData->Degrades;
 		}
 	}
 
@@ -99,7 +100,7 @@ void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr
 		this->InheritSettings(pThis);
 	}
 
-	if (!pINI->GetSection(pSection))
+	if (parseFailAddr)
 		return;
 
 	INI_EX exINI(pINI);
@@ -134,6 +135,9 @@ void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr
 	this->VeteranBuildings.Read(exINI, pSection, "VeteranBuildings", true);
 
 	this->TauntFile.Read(pINI, pSection, "File.Taunt");
+
+	this->Degrades.Read(exINI, pSection, "Degrades");
+	this->Disguise.Read(exINI, pSection, "DefaultDisguise", true);
 }
 
 Iterator<BuildingTypeClass*> HouseTypeExt::ExtData::GetPowerplants() const
@@ -193,6 +197,8 @@ void  HouseTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Powerplants)
 		.Process(this->VeteranBuildings)
 		.Process(this->TauntFile)
+		.Process(this->Degrades)
+		.Process(this->Disguise)
 		;
 }
 

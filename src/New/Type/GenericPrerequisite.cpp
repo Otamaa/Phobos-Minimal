@@ -262,6 +262,19 @@ bool Prereqs::HouseOwnsAny(HouseClass const* const pHouse, const DynamicVectorCl
 	return false;
 }
 
+bool Prereqs::HouseOwnsAny(HouseClass const* const pHouse, int* intitems, int intsize)
+{
+	const auto end = intitems + intsize;
+
+	for (auto find = intitems; find != end; ++find) {
+		if (Prereqs::HouseOwnsPrereq(pHouse, *find)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 bool Prereqs::ListContainsSpecific(BuildingTypeClass** items, int size, int const Index)
 {
 	const auto lookingfor = BuildingTypeClass::Array->Items[Index];

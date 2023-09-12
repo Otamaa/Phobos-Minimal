@@ -368,50 +368,50 @@ bool AresData::ConvertTypeTo(TechnoClass* pFoot, TechnoTypeClass* pConvertTo)
 	return AresStdcall<ConvertTypeToID, bool, TechnoClass*, TechnoTypeClass*>()(pFoot, pConvertTo);
 }
 
-void AresData::SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller, const bool ISelect, const bool IgnoreDefenses)
-{
-	AresStdcall<SpawnSurvivorsID, void, FootClass*, TechnoClass*, bool, bool>()(pThis, pKiller, ISelect, IgnoreDefenses);
-}
+//void AresData::SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller, const bool ISelect, const bool IgnoreDefenses)
+//{
+//	AresStdcall<SpawnSurvivorsID, void, FootClass*, TechnoClass*, bool, bool>()(pThis, pKiller, ISelect, IgnoreDefenses);
+//}
 
 void AresData::RecalculateStat(TechnoClass* const pTechno)
 {
 	AresThiscall<RecalculateStatID, void,  void*>()((void*)pTechno->align_154);
 }
 
-bool AresData::ReverseEngineer(BuildingClass* const pBld, TechnoTypeClass* const pTechnoType)
-{
-	return AresStdcall<ReverseEngineerID, bool, BuildingClass* , TechnoTypeClass*>()(pBld , pTechnoType);
-}
-
-Action AresData::GetInfActionOverObject(InfantryClass* const pInf, BuildingClass* const pBld)
-{
-	return AresStdcall<GetInfActionOverObjectID, Action, InfantryClass*  , BuildingClass*>()(pInf, pBld);
-}
+//bool AresData::ReverseEngineer(BuildingClass* const pBld, TechnoTypeClass* const pTechnoType)
+//{
+//	return AresStdcall<ReverseEngineerID, bool, BuildingClass* , TechnoTypeClass*>()(pBld , pTechnoType);
+//}
+//
+//Action AresData::GetInfActionOverObject(InfantryClass* const pInf, BuildingClass* const pBld)
+//{
+//	return AresStdcall<GetInfActionOverObjectID, Action, InfantryClass*  , BuildingClass*>()(pInf, pBld);
+//}
 
 void AresData::SetMouseCursorAction(size_t CursorIdx, Action nAction, bool bShrouded)
 {
 	AresStdcall<SetMouseCursorActionID, void, size_t, Action, bool>()(CursorIdx , nAction , bShrouded);
 }
 
-CanBuildResult AresData::PrereqValidate(HouseClass* const pHouse, TechnoTypeClass* const pItem, bool const buildLimitOnly, bool const includeQueued)
-{
-	return AresStdcall<HouseCanBuildID, CanBuildResult, HouseClass* , TechnoTypeClass*, bool , bool>()(pHouse, pItem , buildLimitOnly , includeQueued);
-}
+//CanBuildResult AresData::PrereqValidate(HouseClass* const pHouse, TechnoTypeClass* const pItem, bool const buildLimitOnly, bool const includeQueued)
+//{
+//	return AresStdcall<HouseCanBuildID, CanBuildResult, HouseClass* , TechnoTypeClass*, bool , bool>()(pHouse, pItem , buildLimitOnly , includeQueued);
+//}
 
 bool AresData::SW_Activate(SuperClass* pSuper, CellStruct cell, bool isPlayer)
 {
 	return AresStdcall<SWActivateID, bool, SuperClass*, CellStruct, bool>()(pSuper, cell, isPlayer);
 }
 
-void AresData::TechnoExt_ExtData_DepositTiberium(TechnoClass* const pTechno, float const amount, float const bonus, int const idxType)
-{
-	AresThiscall<DepositTiberiumID, void, void* , float , float , int>()((void*)pTechno->align_154,amount , bonus , idxType);
-}
-
-void AresData::HouseExt_ExtData_ApplyAcademy(HouseClass* const pThis, TechnoClass* const pTarget, AbstractType Type)
-{
-	AresThiscall<ApplyAcademyID, void, void*, TechnoClass*, AbstractType>()(GetAresHouseExt(pThis), pTarget, Type);
-}
+//void AresData::TechnoExt_ExtData_DepositTiberium(TechnoClass* const pTechno, float const amount, float const bonus, int const idxType)
+//{
+//	AresThiscall<DepositTiberiumID, void, void* , float , float , int>()((void*)pTechno->align_154,amount , bonus , idxType);
+//}
+//
+//void AresData::HouseExt_ExtData_ApplyAcademy(HouseClass* const pThis, TechnoClass* const pTarget, AbstractType Type)
+//{
+//	AresThiscall<ApplyAcademyID, void, void*, TechnoClass*, AbstractType>()(GetAresHouseExt(pThis), pTarget, Type);
+//}
 
 VoxelStruct* AresData::GetTurretsVoxel(TechnoTypeClass* const pThis, int index)
 {
@@ -428,25 +428,25 @@ void AresData::TechnoTransferAffects(TechnoClass* const pFrom, TechnoClass* cons
 	AresStdcall<TechnoTransferAffectsID, void, TechnoClass*, TechnoClass*>()(pFrom, pTo);
 }
 
-bool AresData::IsGenericPrerequisite(TechnoTypeClass* const pThis)
-{
-	return AresThiscall<IsGenericPrerequisiteID, bool, void*>()(GetAresTechnoTypeExt(pThis));
-}
-
-int AresData::GetSelfHealAmount(TechnoClass* const pTechno)
-{
-	return AresThiscall<GetSelfHealAmountID, int, void*>()((void*)pTechno->align_154);
-}
+//bool AresData::IsGenericPrerequisite(TechnoTypeClass* const pThis)
+//{
+//	return AresThiscall<IsGenericPrerequisiteID, bool, void*>()(GetAresTechnoTypeExt(pThis));
+//}
+//
+//int AresData::GetSelfHealAmount(TechnoClass* const pTechno)
+//{
+//	return AresThiscall<GetSelfHealAmountID, int, void*>()((void*)pTechno->align_154);
+//}
 
 //bool AresData::IsOperated(TechnoClass* const pTechno)
 //{
 //	return AresThiscall<IsOperatedID, bool, void*>()(GetAresTechnoExt(pTechno));
 //}
 
-ConvertClass* AresData::GetBulletTypeConvert(BulletTypeClass* pThis)
-{
-	return AresThiscall<BulletTypeExtGetConvertID, ConvertClass*, void*>()(GetAresBulletTypeExt(pThis));
-}
+//ConvertClass* AresData::GetBulletTypeConvert(BulletTypeClass* pThis)
+//{
+//	return AresThiscall<BulletTypeExtGetConvertID, ConvertClass*, void*>()(GetAresBulletTypeExt(pThis));
+//}
 
 void AresData::WarheadTypeExt_ExtData_ApplyKillDriver(WarheadTypeClass* pThis, TechnoClass* const pAttacker, TechnoClass* const pVictim)
 {
@@ -458,46 +458,46 @@ void AresData::MouseCursorTypeLoadDefault()
 	AresStdcall<MouseCursorTypeLoadDefaultID, void>()();
 }
 
-AresFactoryStateRet* AresData::HouseExt_HasFactory(AresFactoryStateRet* nBuff, HouseClass const* const Owner, TechnoTypeClass const* const pType, bool bSkipAircraft, bool bRequirePower, bool bCheckCanBuild, bool a7)
-{
-	return AresStdcall<HouseExtHasFactoryID, AresFactoryStateRet*  , AresFactoryStateRet* , HouseClass const*, TechnoTypeClass const*, bool, bool , bool , bool>()(nBuff, Owner, pType , bSkipAircraft , bRequirePower , bCheckCanBuild , a7);
-}
+//AresFactoryStateRet* AresData::HouseExt_HasFactory(AresFactoryStateRet* nBuff, HouseClass const* const Owner, TechnoTypeClass const* const pType, bool bSkipAircraft, bool bRequirePower, bool bCheckCanBuild, bool a7)
+//{
+//	return AresStdcall<HouseExtHasFactoryID, AresFactoryStateRet*  , AresFactoryStateRet* , HouseClass const*, TechnoTypeClass const*, bool, bool , bool , bool>()(nBuff, Owner, pType , bSkipAircraft , bRequirePower , bCheckCanBuild , a7);
+//}
+//
+//int AresData::HouseExt_GetBuildLimitRemaining(HouseClass const* const Owner, TechnoTypeClass const* const pType)
+//{
+//	return AresStdcall<HouseExtGetBuildLimitRemainingID, int , HouseClass const*, TechnoTypeClass const*>()(Owner, pType);
+//}
 
-int AresData::HouseExt_GetBuildLimitRemaining(HouseClass const* const Owner, TechnoTypeClass const* const pType)
-{
-	return AresStdcall<HouseExtGetBuildLimitRemainingID, int , HouseClass const*, TechnoTypeClass const*>()(Owner, pType);
-}
+//int AresData::CallAresBuildingClass_Infiltrate(REGISTERS* R)
+//{
+//	if (AresDllHmodule != NULL) {
+//		CallHook Data = (CallHook)GetProcAddress(AresDllHmodule, "BuildingClass_Infiltrate");
+//		if (Data != NULL) {
+//			return (Data)(R);
+//		}
+//	}
+//
+//	return -1;
+//}
 
-int AresData::CallAresBuildingClass_Infiltrate(REGISTERS* R)
-{
-	if (AresDllHmodule != NULL) {
-		CallHook Data = (CallHook)GetProcAddress(AresDllHmodule, "BuildingClass_Infiltrate");
-		if (Data != NULL) {
-			return (Data)(R);
-		}
-	}
+//int NOINLINE AresData::CallAresArmorType_FindIndex(REGISTERS* R)
+//{
+//	if (AresDllHmodule != NULL)
+//	{
+//		CallHook Data = (CallHook)GetProcAddress(AresDllHmodule, "ArmorType_FindIndex");
+//		if (Data != NULL)
+//		{
+//			return (Data)(R);
+//		}
+//	}
+//
+//	return-1;
+//}
 
-	return -1;
-}
-
-int NOINLINE AresData::CallAresArmorType_FindIndex(REGISTERS* R)
-{
-	if (AresDllHmodule != NULL)
-	{
-		CallHook Data = (CallHook)GetProcAddress(AresDllHmodule, "ArmorType_FindIndex");
-		if (Data != NULL)
-		{
-			return (Data)(R);
-		}
-	}
-
-	return-1;
-}
-
-std::vector<FootClass*>* AresData::GetTunnelArray(BuildingTypeClass* const pBld, HouseClass* const pOwner)
-{
-	return AresThiscall<GetTunnelArrayID, std::vector<FootClass*>*, void* , HouseClass* const>()(GetAresBuildingTypeExt(pBld) , pOwner);
-}
+//std::vector<FootClass*>* AresData::GetTunnelArray(BuildingTypeClass* const pBld, HouseClass* const pOwner)
+//{
+//	return AresThiscall<GetTunnelArrayID, std::vector<FootClass*>*, void* , HouseClass* const>()(GetAresBuildingTypeExt(pBld) , pOwner);
+//}
 
 void AresData::UpdateAEData(AresTechnoExt::AEData* const pAE)
 {
@@ -514,17 +514,17 @@ void AresData::CPrismRemoveFromNetwork(cPrismForwarding* const pThis, bool bCeas
 	AresThiscall<CPrismRemoveFromNetworkID, void, cPrismForwarding* const , bool>()(pThis , bCease);
 }
 
-void  AresData::applyIonCannon(WarheadTypeClass* pWH, CoordStruct* pTarget){
-	AresThiscall<applyIonCannonID , void, void* , CoordStruct*>()(GetAresAresWarheadTypeExt(pWH) , pTarget);
-}
-
-bool AresData::applyPermaMC(WarheadTypeClass* pWH, HouseClass* pOwner, AbstractClass* pTarget) {
-	return AresThiscall<applyPermaMCID, bool, void*, HouseClass*, AbstractClass*>()(GetAresAresWarheadTypeExt(pWH), pOwner , pTarget);
-}
-
-void AresData::applyIC(WarheadTypeClass* pWH, CoordStruct* pTarget, HouseClass* pOwner, int Damage) {
-	AresThiscall<applyICID, void, void*, CoordStruct* , HouseClass*, int>()(GetAresAresWarheadTypeExt(pWH), pTarget , pOwner, Damage);
-}
+//void  AresData::applyIonCannon(WarheadTypeClass* pWH, CoordStruct* pTarget){
+//	AresThiscall<applyIonCannonID , void, void* , CoordStruct*>()(GetAresAresWarheadTypeExt(pWH) , pTarget);
+//}
+//
+//bool AresData::applyPermaMC(WarheadTypeClass* pWH, HouseClass* pOwner, AbstractClass* pTarget) {
+//	return AresThiscall<applyPermaMCID, bool, void*, HouseClass*, AbstractClass*>()(GetAresAresWarheadTypeExt(pWH), pOwner , pTarget);
+//}
+//
+//void AresData::applyIC(WarheadTypeClass* pWH, CoordStruct* pTarget, HouseClass* pOwner, int Damage) {
+//	AresThiscall<applyICID, void, void*, CoordStruct* , HouseClass*, int>()(GetAresAresWarheadTypeExt(pWH), pTarget , pOwner, Damage);
+//}
 
 void AresData::applyEMP(WarheadTypeClass* pWH, CoordStruct* pTarget, TechnoClass* pOwner) {
 	AresThiscall<applyEMPID, void, void*, CoordStruct* , TechnoClass*>()(GetAresAresWarheadTypeExt(pWH), pTarget , pOwner);
@@ -574,10 +574,10 @@ void AresData::FlyingStringsAdd(TechnoClass* pTech, bool bSomething)
 	AresThiscall<FlyingStringsAddID, void, void*, bool>()((void*)pTech->align_154, bSomething);
 }
 
-void AresData::CalculateBounty(TechnoClass* pThis, TechnoClass* pKiller)
-{
-	AresThiscall <CalculateBountyID, void, void*, TechnoClass*>()((void*)pThis->align_154, pKiller);
-}
+//void AresData::CalculateBounty(TechnoClass* pThis, TechnoClass* pKiller)
+//{
+//	AresThiscall <CalculateBountyID, void, void*, TechnoClass*>()((void*)pThis->align_154, pKiller);
+//}
 
 void AresData::SetSpotlight(TechnoClass* pThis, BuildingLightClass* pSpotlight)
 {
@@ -599,40 +599,40 @@ bool AresData::KillDriverCore(TechnoClass* pThis, HouseClass* pToHouse, TechnoCl
 	return AresThiscall<KillDriverCoreID, bool, void* ,HouseClass*, TechnoClass* , bool>()((void*)pThis->align_154, pToHouse , pKiller , removeVet);
 }
 
-void AresData::FireIronCurtain(TeamClass* pTeam, ScriptActionNode* pNode, bool ntrhd)
-{
-	AresStdcall<KillDriverCoreID, void, TeamClass*, ScriptActionNode* , bool>()(pTeam , pNode , ntrhd);
-}
+//void AresData::FireIronCurtain(TeamClass* pTeam, ScriptActionNode* pNode, bool ntrhd)
+//{
+//	AresStdcall<KillDriverCoreID, void, TeamClass*, ScriptActionNode* , bool>()(pTeam , pNode , ntrhd);
+//}
 
 void AresData::RespondToFirewall(HouseClass* pHouse, bool Active)
 {
 	AresThiscall<RespondToFirewallID, void, void*, bool>()(GetAresHouseExt(pHouse), Active);
 }
 
-int AresData::RequirementsMet(HouseClass* pHouse, TechnoTypeClass* pTech)
-{
-	return AresStdcall<RequirementsMetID, int, HouseClass*, TechnoTypeClass*>()(pHouse, pTech);
-}
-
-void AresData::UpdateAcademy(HouseClass* pThis, TechnoClass* pTechno, bool bAdded)
-{
-	AresThiscall<UpdateAcademyID, void, void*  , TechnoClass*, bool>()(GetAresHouseExt(pThis), pTechno , bAdded);
-}
-
-void* AresData::Ares_SWType_ExtMap_Find(SuperWeaponTypeClass* pType)
-{
-	return AresThiscall<ExtMapFindID, void*, DWORD , SuperWeaponTypeClass*>()(AresStaticInstanceFinal[2] ,pType);
-}
+//RequirementStatus AresData::RequirementsMet(HouseClass* pHouse, TechnoTypeClass* pTech)
+//{
+//	return AresStdcall<RequirementsMetID, RequirementStatus, HouseClass*, TechnoTypeClass*>()(pHouse, pTech);
+//}
+//
+//void AresData::UpdateAcademy(HouseClass* pThis, TechnoClass* pTechno, bool bAdded)
+//{
+//	AresThiscall<UpdateAcademyID, void, void*  , TechnoClass*, bool>()(GetAresHouseExt(pThis), pTechno , bAdded);
+//}
+//
+//void* AresData::Ares_SWType_ExtMap_Find(SuperWeaponTypeClass* pType)
+//{
+//	return AresThiscall<ExtMapFindID, void*, DWORD , SuperWeaponTypeClass*>()(AresStaticInstanceFinal[2] ,pType);
+//}
 
 void AresData::SetSWMouseCursorAction(size_t CursorIdx,  bool bShrouded , int nAction)
 {
 	AresStdcall<SetSWCursorID, void, size_t , bool , int>()(CursorIdx, bShrouded, nAction);
 }
 
-void AresData::BuildingExt_UpdateDisplayTo(BuildingClass* pFor)
-{
-	AresStdcall<UpdateDisplayToID, void, BuildingClass*>()(pFor);
-}
+//void AresData::BuildingExt_UpdateDisplayTo(BuildingClass* pFor)
+//{
+//	AresStdcall<UpdateDisplayToID, void, BuildingClass*>()(pFor);
+//}
 
 int* AresData::TechnoTypeExt_GetTurretWeaponIdx(TechnoTypeClass* pThis, int idx)
 {
@@ -644,11 +644,11 @@ bool AresData::TechnoTypeExt_CameoIsElite(TechnoTypeClass* pThis, HouseClass* Ow
 	return AresThiscall<CameoIsEliteID, bool, void*, HouseClass*>()(GetAresTechnoTypeExt(pThis), Owner);
 }
 
-Action AresData::TechnoExt_GetActionHijack(TechnoClass* pThis, TechnoClass* pTarget)
-{
-	return AresThiscall<GetActionHijackID, Action, void*, TechnoClass*>()((void*)pThis->align_154, pTarget);
-}
-
+//Action AresData::TechnoExt_GetActionHijack(TechnoClass* pThis, TechnoClass* pTarget)
+//{
+//	return AresThiscall<GetActionHijackID, Action, void*, TechnoClass*>()((void*)pThis->align_154, pTarget);
+//}
+//
 void AresData::AresNetEvent_Handlers_RespondToFirewallToggle(HouseClass* pFor, bool Activate)
 {
 	AresThiscall<NetEvent_RespondToFirewall, void, void*, bool>()(GetAresHouseExt(pFor), Activate);
@@ -658,6 +658,6 @@ WeaponStruct* AresData::GetWeapon(TechnoTypeClass* pType, int idx, bool Elite) {
 	return AresThiscall<TechnoTypeExt_GetWeaponTypeID, WeaponStruct*, void*, int , bool>()(GetAresTechnoTypeExt(pType), idx, Elite);
 }
 
-void AresData::SetFactoryPlans(BuildingClass* pBld) {
-	AresStdcall< BuildingExt_SetFactoryPlans, void, BuildingClass*>()(pBld);
-}
+//void AresData::SetFactoryPlans(BuildingClass* pBld) {
+//	AresStdcall< BuildingExt_SetFactoryPlans, void, BuildingClass*>()(pBld);
+//}

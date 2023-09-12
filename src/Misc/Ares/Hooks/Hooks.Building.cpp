@@ -25,6 +25,473 @@
 #include "Header.h"
 
 #include <Ares_TechnoExt.h>
+#include <Misc/PhobosGlobal.h>
+
+void UpdateTogglePower(HouseClass* pThis)
+{
+	auto pRulesExt = RulesExt::Global();
+
+	if (!pRulesExt->TogglePowerAllowed
+		|| pRulesExt->TogglePowerDelay <= 0
+		|| pRulesExt->TogglePowerIQ < 0
+		|| pRulesExt->TogglePowerIQ > pThis->IQLevel2
+		|| pThis->Buildings.Count == 0
+		|| pThis->IsBeingDrained
+		|| pThis->IsControlledByHuman_()
+		|| pThis->PowerBlackoutTimer.InProgress())
+	{
+		return;
+	}
+
+	if (Unsorted::CurrentFrame % pRulesExt->TogglePowerDelay == 0)
+	{
+		struct ExpendabilityStruct
+		{
+		private:
+			std::tuple<const int&, BuildingClass&> Tie() const
+			{
+				// compare with tie breaker to prevent desyncs
+				return std::tie(this->Value, *this->Building);
+			}
+
+		public:
+			bool operator < (const ExpendabilityStruct& rhs) const
+			{
+				return this->Tie() < rhs.Tie();
+			}
+
+			bool operator > (const ExpendabilityStruct& rhs) const
+			{
+				return this->Tie() > rhs.Tie();
+			}
+
+			BuildingClass* Building;
+			int Value;
+		};
+
+		// properties: the higher this value is, the more likely
+		// this building is turned off (expendability)
+		auto GetExpendability = [](BuildingClass* pBld) -> int
+			{
+				auto pType = pBld->Type;
+
+				// disable super weapons, because a defenseless base is
+				// worse than one without super weapons
+				if (pType->HasSuperWeapon())
+				{
+					return pType->PowerDrain * 20 / 10;
+				}
+
+				// non-base defenses should be disabled before going
+				// to the base defenses. but power intensive defenses
+				// might still evaluate worse
+				if (!pType->IsBaseDefense)
+				{
+					return pType->PowerDrain * 15 / 10;
+				}
+
+				// default case, use power
+				return pType->PowerDrain;
+			};
+
+		// create a list of all buildings that can be powered down
+		// and give each building an expendability value
+		std::vector<ExpendabilityStruct> Buildings;
+		Buildings.reserve(pThis->Buildings.Count);
+
+		const auto HasLowPower = pThis->HasLowPower();
+
+		for (auto pBld : pThis->Buildings)
+		{
+			auto pType = pBld->Type;
+			if (pType->CanTogglePower() && pType->PowerDrain > 0)
+			{
+				// if low power, we get buildings with StuffEnabled, if enough
+				// power, we look for builidings that are disabled
+				if (pBld->StuffEnabled == HasLowPower)
+				{
+					Buildings.emplace_back(ExpendabilityStruct { pBld, GetExpendability(pBld) });
+				}
+			}
+		}
+
+		int Surplus = pThis->PowerOutput - pThis->PowerDrain;
+
+		if (HasLowPower)
+		{
+			// most expendable building first
+			std::sort(Buildings.begin(), Buildings.end(), std::greater<>());
+
+			// turn off the expendable buildings until power is restored
+			for (const auto& item : Buildings)
+			{
+				auto Drain = item.Building->Type->PowerDrain;
+
+				item.Building->GoOffline();
+				Surplus += Drain;
+
+				if (Surplus >= 0)
+				{
+					break;
+				}
+			}
+		}
+		else
+		{
+			// least expendable building first
+			std::sort(Buildings.begin(), Buildings.end(), std::less<>());
+
+			// turn on as many of them as possible
+			for (const auto& item : Buildings)
+			{
+				auto Drain = item.Building->Type->PowerDrain;
+				if (Surplus - Drain >= 0)
+				{
+					item.Building->GoOnline();
+					Surplus -= Drain;
+				}
+			}
+		}
+	}
+}
+
+DEFINE_OVERRIDE_HOOK(0x69281E, DisplayClass_ChooseAction_TogglePower, 0xA) {
+	GET(TechnoClass*, pTarget, ESI);
+	REF_STACK(Action, action, STACK_OFFS(0x20, 0x10));
+
+	bool allowed = false;
+	action = Action::NoTogglePower;
+
+	if (auto pBld = abstract_cast<BuildingClass*>(pTarget))
+	{
+		auto pOwner = pBld->GetOwningHouse();
+
+		if (pOwner && pOwner->ControlledByPlayer())
+		{
+			if (pBld->CanBeSelected() && !pBld->IsStrange() && !pBld->IsBeingWarpedOut() && !pBld->IsUnderEMP())
+			{
+				if (pBld->Type->CanTogglePower())
+					action = Action::TogglePower;
+			}
+		}
+	}
+
+	return 0x69289B;
+}
+
+DWORD FoundationLength(CellStruct const* const pFoundation)
+{
+	auto pFCell = pFoundation;
+	while (*pFCell != BuildingTypeExt::FoundationEndMarker)
+	{
+		++pFCell;
+	}
+
+	// include the end marker
+	return static_cast<DWORD>(std::distance(pFoundation, pFCell + 1));
+}
+
+const std::vector<CellStruct>& GetCoveredCells(
+	BuildingClass* const pThis, CellStruct const mainCoords,
+	int const shadowHeight)
+{
+	auto const pFoundation = pThis->GetFoundationData(false);
+	auto const len = FoundationLength(pFoundation);
+
+	PhobosGlobal::Instance()->TempCoveredCellsData.clear();
+	PhobosGlobal::Instance()->TempCoveredCellsData.reserve(len * shadowHeight);
+
+	auto pFCell = pFoundation;
+
+	while (*pFCell != BuildingTypeExt::FoundationEndMarker)
+	{
+		auto actualCell = mainCoords + *pFCell;
+		for (auto i = shadowHeight; i > 0; --i)
+		{
+			PhobosGlobal::Instance()->TempCoveredCellsData.push_back(actualCell);
+			--actualCell.X;
+			--actualCell.Y;
+		}
+		++pFCell;
+	}
+
+	std::sort(PhobosGlobal::Instance()->TempCoveredCellsData.begin(),
+			  PhobosGlobal::Instance()->TempCoveredCellsData.end(),
+		[](const CellStruct& lhs, const CellStruct& rhs) -> bool
+	{
+		return lhs.X > rhs.X || lhs.X == rhs.X && lhs.Y > rhs.Y;
+	});
+
+	auto const it = std::unique(
+		PhobosGlobal::Instance()->TempCoveredCellsData.begin(),
+		PhobosGlobal::Instance()->TempCoveredCellsData.end());
+
+	PhobosGlobal::Instance()->TempCoveredCellsData.erase(it, PhobosGlobal::Instance()->TempCoveredCellsData.end());
+
+	return PhobosGlobal::Instance()->TempCoveredCellsData;
+}
+
+DEFINE_OVERRIDE_HOOK(0x656584, RadarClass_GetFoundationShape, 6)
+{
+	GET(RadarClass*, pThis, ECX);
+	GET(BuildingTypeClass*, pType, EAX);
+
+	const auto fnd = pType->Foundation;
+	const DynamicVectorClass<Point2D>* ret = fnd > Foundation::_0x0 ?
+		&BuildingTypeExt::ExtMap.Find(pType)->FoundationRadarShape :
+		&pThis->FoundationTypePixels[(int)fnd];
+
+	R->EAX(ret);
+	return 0x656595;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6563B0, RadarClass_UpdateFoundationShapes_Custom, 5)
+{
+	// update each building type foundation
+	for (auto const& pType : *BuildingTypeClass::Array) {
+		BuildingTypeExt::ExtMap.Find(pType)->UpdateFoundationRadarShape();
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x568565, MapClass_AddContentAt_Foundation_OccupyHeight, 5)
+{
+	GET(BuildingClass*, pThis, EDI);
+	GET(int, ShadowHeight, EBP);
+	GET_STACK(CellStruct*, MainCoords, 0x8B4);
+
+	auto const& AffectedCells = GetCoveredCells(
+		pThis, *MainCoords, ShadowHeight);
+
+	auto& Map = MapClass::Instance;
+
+	for (auto const& cell : AffectedCells)
+	{
+		if (auto pCell = Map->TryGetCellAt(cell))
+		{
+			++pCell->OccupyHeightsCoveringMe;
+		}
+	}
+
+	return 0x568697;
+}
+
+DEFINE_OVERRIDE_HOOK(0x568411, MapClass_AddContentAt_Foundation_P1, 0)
+{
+	GET(BuildingClass*, pThis, EDI);
+
+	R->EBP(pThis->GetFoundationData(false));
+
+	return 0x568432;
+}
+
+DEFINE_OVERRIDE_HOOK(0x568841, MapClass_RemoveContentAt_Foundation_P1, 0)
+{
+	GET(BuildingClass*, pThis, EDI);
+
+	R->EBP(pThis->GetFoundationData(false));
+
+	return 0x568862;
+}
+
+DEFINE_OVERRIDE_HOOK(0x568997, MapClass_RemoveContentAt_Foundation_OccupyHeight, 5)
+{
+	GET(BuildingClass*, pThis, EDX);
+	GET(int, ShadowHeight, EBP);
+	GET_STACK(CellStruct*, MainCoords, 0x8B4);
+
+	auto const& AffectedCells = GetCoveredCells(
+		pThis, *MainCoords, ShadowHeight);
+
+	auto& Map = MapClass::Instance;
+
+	for (auto const& cell : AffectedCells)
+	{
+		if (auto const pCell = Map->TryGetCellAt(cell))
+		{
+			if (pCell->OccupyHeightsCoveringMe > 0)
+			{
+				--pCell->OccupyHeightsCoveringMe;
+			}
+		}
+	}
+
+	return 0x568ADC;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4A8C77, DisplayClass_ProcessFoundation1_UnlimitBuffer, 5)
+{
+	GET_STACK(CellStruct const*, Foundation, 0x18);
+	GET(DisplayClass*, Display, EBX);
+
+	DWORD Len = FoundationLength(Foundation);
+
+	PhobosGlobal::Instance()->TempFoundationData1.assign(Foundation, Foundation + Len);
+
+	Display->CurrentFoundation_Data = PhobosGlobal::Instance()->TempFoundationData1.data();
+
+	auto const bounds = Display->FoundationBoundsSize(
+		PhobosGlobal::Instance()->TempFoundationData1.data());
+
+	R->Stack<CellStruct>(0x18, bounds);
+	R->EAX<CellStruct*>(R->lea_Stack<CellStruct*>(0x18));
+
+	return 0x4A8C9E;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4A8DD7, DisplayClass_ProcessFoundation2_UnlimitBuffer, 5)
+{
+	GET_STACK(CellStruct const*, Foundation, 0x18);
+	GET(DisplayClass*, Display, EBX);
+
+	DWORD Len = FoundationLength(Foundation);
+
+	PhobosGlobal::Instance()->TempFoundationData2.assign(Foundation, Foundation + Len);
+
+	Display->CurrentFoundationCopy_Data = PhobosGlobal::Instance()->TempFoundationData2.data();
+
+	auto const bounds = Display->FoundationBoundsSize(
+		PhobosGlobal::Instance()->TempFoundationData2.data());
+
+	R->Stack<CellStruct>(0x18, bounds);
+	R->EAX<CellStruct*>(R->lea_Stack<CellStruct*>(0x18));
+
+	return 0x4A8DFE;
+}
+
+DEFINE_OVERRIDE_HOOK(0x45ec90, BuildingTypeClass_GetFoundationWidth, 6)
+{
+	GET(BuildingTypeClass*, pThis, ECX);
+
+	if (pThis->Foundation == BuildingTypeExt::CustomFoundation) {
+		R->EAX(BuildingTypeExt::ExtMap.Find(pThis)->CustomWidth);
+		return 0x45EC9D;
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x45eca0, BuildingTypeClass_GetFoundationHeight, 6)
+{
+	GET(BuildingTypeClass*, pThis, ECX);
+
+	if (pThis->Foundation == BuildingTypeExt::CustomFoundation)
+	{
+		bool bIncludeBib = (R->Stack8(0x4) != 0);
+
+		int fH = BuildingTypeExt::ExtMap.Find(pThis)->CustomHeight;
+		if (bIncludeBib && pThis->Bib) {
+			++fH;
+		}
+
+		R->EAX(fH);
+		return 0x45ECDA;
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x45ECE0, BuildingTypeClass_GetMaxPips, 6)
+{
+	GET(BuildingTypeClass*, pThis, ECX);
+
+	if (pThis->Foundation == BuildingTypeExt::CustomFoundation) {
+		R->EAX(BuildingTypeExt::ExtMap.Find(pThis)->CustomWidth);
+		return 0x45ECED;
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x465550, BuildingTypeClass_GetFoundationOutline, 6)
+{
+	GET(BuildingTypeClass*, pThis, ECX);
+
+	if (pThis->Foundation == BuildingTypeExt::CustomFoundation) {
+		R->EAX(BuildingTypeExt::ExtMap.Find(pThis)->OutlineData.data());
+		return 0x46556D;
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x465d4a, BuildingTypeClass_IsUndeployable, 6)
+{
+	GET(BuildingTypeClass*, pThis, ECX);
+
+	if (pThis->Foundation != BuildingTypeExt::CustomFoundation)
+		return 0;
+
+	const auto pData = BuildingTypeExt::ExtMap.Find(pThis);
+	R->EAX(pData->CustomHeight == 1 && pData->CustomWidth == 1);
+	return 0x465D6D;
+}
+
+
+DEFINE_OVERRIDE_HOOK(0x464AF0, BuildingTypeClass_GetSizeInLeptons, 6)
+{
+	GET(BuildingTypeClass*, pThis, ECX);
+	if (pThis->Foundation == BuildingTypeExt::CustomFoundation)
+	{
+		GET_STACK(CoordStruct*, Coords, 0x4);
+		BuildingTypeExt::ExtData* pData = BuildingTypeExt::ExtMap.Find(pThis);
+
+		Coords->X = pData->CustomWidth * 256;
+		Coords->Y = pData->CustomHeight * 256;
+		Coords->Z = BuildingTypeClass::HeightInLeptons * pThis->Height;
+		R->EAX(Coords);
+		return 0x464B2C;
+	}
+	return 0;
+
+}
+
+DEFINE_OVERRIDE_HOOK(0x474E8E, INIClass_GetMovementZone, 5)
+{
+	GET_STACK(const char*, Section, 0x2C);
+	GET_STACK(const char*, Key, 0x30);
+	LEA_STACK(const char*, Value, 0x8);
+	Debug::INIParseFailed(Section, Key, Value);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x474DEE, INIClass_GetFoundation, 7)
+{
+	GET_STACK(const char*, Section, 0x2C);
+	GET_STACK(const char*, Key, 0x30);
+	LEA_STACK(const char*, Value, 0x8);
+
+	if (CRT::strcmpi(Value, "Custom") != 0) {
+		Debug::INIParseFailed(Section, Key, Value);
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x477007, INIClass_GetSpeedType, 8)
+{
+	if (R->EAX() == -1)
+	{
+		GET_STACK(const char*, Section, 0x8C);
+		GET_STACK(const char*, Key, 0x90);
+		LEA_STACK(const char*, Value, 0x8);
+		GET_STACK(DWORD, caller, 0x88);
+		/*
+			this func is called from TechnoTypeClass::LoadFromINI and UnitTypeClass::LoadFromINI
+			UnitTypeClass::CTOR initializes SpeedType to -1
+			UnitTypeClass::LoadFromINI overrides it to (this->Crusher ? Track : Wheel) just before reading its SpeedType
+			so we should not alert if we're responding to a TType read and our subject is a UnitType, or all VehicleTypes without an explicit ST declaration will get dinged
+		*/
+		if (caller != 0x7121E5u
+			|| !Helpers::Alex::is_any_of(R->EBP<TechnoTypeClass*>()->WhatAmI(),
+				AbstractType::UnitType, AbstractType::BuildingType))
+		{
+			Debug::INIParseFailed(Section, Key, Value);
+		}
+	}
+	return 0;
+}
 
 BuildingClass* CreateBuilding(
 	BuildingClass* pBuilding,
@@ -113,7 +580,7 @@ DEFINE_OVERRIDE_HOOK(0x519FAF, InfantryClass_UpdatePosition_EngineerRepairsFrien
 			TargetTypeExtData->RubbleIntactAnim
 		);
 
-		TechnoExt::HandleRemove(Target, nullptr, false, true);
+		TechnoExt::HandleRemove(Target, nullptr, false, false);
 
 		if (pRubble)
 		{
@@ -535,7 +1002,7 @@ DEFINE_OVERRIDE_HOOK(0x4409F4, BuildingClass_Put_ProduceCash, 6)
 			pOwner->UnitsSelfHeal += pUnitSelfHeal;
 	}
 
-	AresData::SetFactoryPlans(pThis);
+	HouseExt::UpdateFactoryPlans(pThis);
 	return 0;
 }
 
@@ -578,7 +1045,7 @@ DEFINE_OVERRIDE_HOOK(0x4482BD, BuildingClass_ChangeOwnership_ProduceCash, 6)
 		if (!pNewOwner->Type->MultiplayPassive)
 		{
 			pNewOwner->TransactMoney(startup);
-			if (ShowMoneyAmount(pThis->Type))
+			if (BuildingTypeExt::ExtMap.Find(pThis->Type)->ProduceCashDisplay)
 			{
 				pThis->align_154->TechnoValueAmount += startup;
 			}
@@ -626,7 +1093,7 @@ DEFINE_OVERRIDE_HOOK(0x43FD2C, BuildingClass_Update_ProduceCash, 6)
 	if (produceAmount && !pThis->Owner->Type->MultiplayPassive && pThis->IsPowerOnline())
 	{
 		pThis->Owner->TransactMoney(produceAmount);
-		if (ShowMoneyAmount(pThis->Type))
+		if (BuildingTypeExt::ExtMap.Find(pThis->Type)->ProduceCashDisplay)
 		{
 			pThis->align_154->TechnoValueAmount += produceAmount;
 		}
@@ -1125,7 +1592,7 @@ void AddPassengers(BuildingClass* const Grinder, TechnoClass* Vic)
 	{
 		const auto pType = nPass->GetTechnoType();
 
-		if (AresData::ReverseEngineer(Grinder, pType))
+		if (BuildingExt::ReverseEngineer(Grinder, Vic))
 		{
 			if (nPass->Owner && nPass->Owner->ControlledByPlayer())
 			{
@@ -1156,7 +1623,7 @@ DEFINE_OVERRIDE_HOOK(0x73A1BC, UnitClass_UpdatePosition_EnteredGrinder, 0x7)
 	//ReverseEngineer(Grinder, Vehicle);
 
 	// TODO : bring  ReverseEngineer in later
-	if (AresData::ReverseEngineer(Grinder, Vehicle->Type))
+	if (BuildingExt::ReverseEngineer(Grinder, Vehicle))
 	{
 		if (Vehicle->Owner && Vehicle->Owner->ControlledByPlayer())
 		{
@@ -1199,7 +1666,7 @@ DEFINE_OVERRIDE_HOOK(0x5198AD, InfantryClass_UpdatePosition_EnteredGrinder, 0x6)
 	//ReverseEngineer(Grinder, Infantry);
 
 	// TODO : bring  ReverseEngineer in later
-	if (AresData::ReverseEngineer(Grinder, Infantry->Type))
+	if (BuildingExt::ReverseEngineer(Grinder, Infantry))
 	{
 		if (Infantry->Owner->ControlledByPlayer())
 		{
@@ -1489,7 +1956,7 @@ struct AresBldExtStuffs
 			auto pHouse = pThis->Owner;
 			pHouse->RadarVisibleTo.Clear();
 
-			pHouse->RadarVisibleTo.data |= RadarPresist(pHouse).data;
+			pHouse->RadarVisibleTo.data |= HouseExt::ExtMap.Find(pHouse)->RadarPersist.data;
 
 			for (auto pBld : pHouse->Buildings)
 			{
@@ -1564,7 +2031,7 @@ struct AresBldExtStuffs
 
 		if (pTypeExt->SpyEffect_StolenTechIndex > -1)
 		{
-			StolenTechnoType(Enterer).set(static_cast<size_t>(pTypeExt->SpyEffect_StolenTechIndex));
+			HouseExt::ExtMap.Find(Enterer)->StolenTech.set(static_cast<size_t>(pTypeExt->SpyEffect_StolenTechIndex));
 			Enterer->RecheckTechTree = true;
 			if (evaForOwner)
 			{
@@ -1581,7 +2048,7 @@ struct AresBldExtStuffs
 		if (pTypeExt->SpyEffect_UnReverseEngineer)
 		{
 			Debug::Log("Undoing all Reverse Engineering achieved by house %ls\n", Owner->UIName);
-			ReverseEngineeredTechnoType(Owner).clear();
+			HouseExt::ExtMap.Find(Owner)->Reversed.clear();
 			Owner->RecheckTechTree = true;
 
 			if (evaForOwner || evaForEnterer)
@@ -1765,13 +2232,19 @@ struct AresBldExtStuffs
 		}
 
 		{
+			auto pEntererExt = HouseExt::ExtMap.Find(Enterer);
+
 			bool promotionStolen = false;
 			if (pTypeExt->SpyEffect_GainVeterancy)
 			{
 				switch (EnteredType->Factory)
 				{
 				case UnitTypeClass::AbsID:
-					Enterer->WarFactoryInfiltrated = true;
+					if (!EnteredType->Naval)
+						Enterer->WarFactoryInfiltrated = true;
+					else
+						pEntererExt->Is_NavalYardSpied = true;
+
 					promotionStolen = true;
 					break;
 				case InfantryTypeClass::AbsID:
@@ -1779,11 +2252,11 @@ struct AresBldExtStuffs
 					promotionStolen = true;
 					break;
 				case AircraftTypeClass::AbsID:
-					Is_AirfieldSpied(Enterer) = true;
+					pEntererExt->Is_AirfieldSpied = true;
 					promotionStolen = true;
 					break;
 				case BuildingTypeClass::AbsID:
-					Is_BuildingProductionSpied(Enterer) = true;
+					pEntererExt->Is_ConstructionYardSpied = true;
 					promotionStolen = true;
 					break;
 				default:
@@ -1794,7 +2267,7 @@ struct AresBldExtStuffs
 			{
 				if (pTypeExt->SpyEffect_AircraftVeterancy)
 				{
-					Is_AirfieldSpied(Enterer) = true;
+					pEntererExt->Is_AirfieldSpied = true;
 					promotionStolen = true;
 				}
 
@@ -1806,7 +2279,7 @@ struct AresBldExtStuffs
 
 				if (pTypeExt->SpyEffect_NavalVeterancy)
 				{
-					Is_NavalYardSpied(Enterer) = true;
+					pEntererExt->Is_NavalYardSpied = true;
 					promotionStolen = true;
 				}
 
@@ -1818,7 +2291,7 @@ struct AresBldExtStuffs
 
 				if (pTypeExt->SpyEffect_BuildingVeterancy)
 				{
-					Is_BuildingProductionSpied(Enterer) = true;
+					pEntererExt->Is_ConstructionYardSpied = true;
 					promotionStolen = true;
 				}
 			}
@@ -1871,7 +2344,7 @@ struct AresBldExtStuffs
 			*/
 			if (pTypeExt->SpyEffect_RevealRadarPersist)
 			{
-				RadarPresist(Owner).Add(Enterer);
+				HouseExt::ExtMap.Find(Owner)->RadarPersist.Add(Enterer);
 			}
 
 			EnteredBuilding->DisplayProductionTo.Add(Enterer);
@@ -2239,7 +2712,7 @@ DEFINE_OVERRIDE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
 	GET_STACK(bool const, buildLimitOnly, 0x8);
 	GET_STACK(bool const, includeInProduction, 0xC);
 
-	auto nResult = AresData::PrereqValidate(pThis, pItem, buildLimitOnly, includeInProduction);
+	auto nResult = HouseExt::PrereqValidate(pThis, pItem, buildLimitOnly, includeInProduction);
 
 	if (pItem->WhatAmI() == BuildingTypeClass::AbsID)
 	{
@@ -2291,13 +2764,12 @@ DEFINE_OVERRIDE_HOOK(0x73F7B0, UnitClass_IsCellOccupied, 6)
 		CheckFirestormActive = 0x73F7BA // check if the object owner has FirestromActive flag
 	};
 
-	if (Is_Passable(pBld->Type))
-	{
+	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+	if (pTypeExt->IsPassable) {
 		return Ignore;
 	}
 
-	if (BuildingTypeExt::ExtMap.Find(pBld->Type)->Firestorm_Wall)
-	{
+	if (pTypeExt->Firestorm_Wall) {
 		return CheckFirestormActive;
 	}
 
@@ -2327,7 +2799,7 @@ DEFINE_OVERRIDE_HOOK(0x709B4E, TechnoClass_DrawPipscale_SkipSkipTiberium, 6)
 DEFINE_OVERRIDE_HOOK(0x44F7A0, BuildingClass_UpdateDisplayTo, 6)
 {
 	GET(BuildingClass*, B, ECX);
-	AresData::BuildingExt_UpdateDisplayTo(B);
+	AresBldExtStuffs::UpdateDisplayTo(B);
 	return 0x44F813;
 }
 
@@ -2336,7 +2808,7 @@ DEFINE_OVERRIDE_HOOK(0x44161C, BuildingClass_Destroy_OldSpy1, 6)
 {
 	GET(BuildingClass*, B, ESI);
 	B->DisplayProductionTo.Clear();
-	AresData::BuildingExt_UpdateDisplayTo(B);
+	AresBldExtStuffs::UpdateDisplayTo(B);
 	return 0x4416A2;
 }
 
@@ -2349,7 +2821,7 @@ DEFINE_OVERRIDE_HOOK(0x448312, BuildingClass_ChangeOwnership_OldSpy1, 0xA)
 	if (B->DisplayProductionTo.Contains(newOwner))
 	{
 		B->DisplayProductionTo.Remove(newOwner);
-		AresData::BuildingExt_UpdateDisplayTo(B);
+		AresBldExtStuffs::UpdateDisplayTo(B);
 	}
 
 	return 0x4483A0;
@@ -2374,9 +2846,9 @@ DEFINE_OVERRIDE_HOOK(0x446366, BuildingClass_Place_Academy, 6)
 {
 	GET(BuildingClass*, pThis, EBP);
 
-	if (Is_Academy(pThis->Type) && pThis->Owner)
+	if (BuildingTypeExt::ExtMap.Find(pThis->Type)->IsAcademy() && pThis->Owner)
 	{
-		AresData::UpdateAcademy(pThis->Owner, pThis, true);
+		HouseExt::UpdateAcademy(pThis->Owner, pThis, true);
 	}
 
 	return 0;
@@ -2386,9 +2858,10 @@ DEFINE_OVERRIDE_HOOK(0x445905, BuildingClass_Remove_Academy, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	if (pThis->IsOnMap && Is_Academy(pThis->Type) && pThis->Owner)
+	if (pThis->IsOnMap &&
+		BuildingTypeExt::ExtMap.Find(pThis->Type)->IsAcademy() && pThis->Owner)
 	{
-		AresData::UpdateAcademy(pThis->Owner, pThis, false);
+		HouseExt::UpdateAcademy(pThis->Owner, pThis, false);
 	}
 
 	return 0;
@@ -2398,9 +2871,10 @@ DEFINE_OVERRIDE_HOOK(0x448AB2, BuildingClass_ChangeOwnership_UnregisterFunction,
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	if (pThis->IsOnMap && Is_Academy(pThis->Type) && pThis->Owner)
+	if (pThis->IsOnMap &&
+		BuildingTypeExt::ExtMap.Find(pThis->Type)->IsAcademy() && pThis->Owner)
 	{
-		AresData::UpdateAcademy(pThis->Owner, pThis, false);
+		HouseExt::UpdateAcademy(pThis->Owner, pThis, false);
 	}
 
 	if (pThis->Type->OrePurifier)
@@ -2413,9 +2887,10 @@ DEFINE_OVERRIDE_HOOK(0x4491D5, BuildingClass_ChangeOwnership_RegisterFunction, 6
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	if (Is_Academy(pThis->Type) && pThis->Owner)
+	if (BuildingTypeExt::ExtMap.Find(pThis->Type)->IsAcademy()
+		 && pThis->Owner)
 	{
-		AresData::UpdateAcademy(pThis->Owner, pThis, true);
+		HouseExt::UpdateAcademy(pThis->Owner, pThis, true);
 	}
 
 	if (pThis->Type->OrePurifier)
@@ -2458,11 +2933,13 @@ DEFINE_OVERRIDE_HOOK(0x446AAF, BuildingClass_Place_SkipFreeUnits, 6)
 	// only once.
 	GET(BuildingClass*, pBld, EBP);
 
+	auto pBldExt = TechnoExt::ExtMap.Find(pBld);
+
 	// skip handling free units
-	if (FreeUnitDone(pBld))
+	if (pBldExt->FreeUnitDone)
 		return 0x446FB6;
 
-	FreeUnitDone(pBld) = true;
+	pBldExt->FreeUnitDone = true;
 	return 0;
 }
 
@@ -2645,6 +3122,29 @@ void UpdateBuildupFrames(BuildingTypeClass* pThis)
 		pThis->BuildingAnimFrame[0].FrameCount = frames;
 		pThis->BuildingAnimFrame[0].FrameDuration = frames > 0 ? (int)(duration_build / (double)frames * 900.0) : 1;
 	}
+}
+
+void BuildingTypeExt::ExtData::CompleteInitialization()
+{
+	auto const pThis = this->Get();
+
+	// enforce same foundations for rubble/intact building pairs
+	if (this->RubbleDestroyed &&
+		!BuildingTypeExt::ExtData::IsFoundationEqual(pThis, this->RubbleDestroyed))
+	{
+		Debug::FatalErrorAndExit(
+			"BuildingType %s and its %s %s don't have the same foundation.",
+			pThis->ID, "Rubble.Destroyed", this->RubbleDestroyed->ID);
+	}
+	if (this->RubbleIntact &&
+		!BuildingTypeExt::ExtData::IsFoundationEqual(pThis, this->RubbleIntact))
+	{
+		Debug::FatalErrorAndExit(
+			"BuildingType %s and its %s %s don't have the same foundation.",
+			pThis->ID, "Rubble.Intact", this->RubbleIntact->ID);
+	}
+
+	UpdateBuildupFrames(pThis);
 }
 
 DEFINE_OVERRIDE_HOOK(0x465A48, BuildingTypeClass_GetBuildup_BuildupTime, 5)
@@ -2869,4 +3369,47 @@ DEFINE_OVERRIDE_HOOK(0x43FB6D, BuildingClass_Update_LaserFencePost, 6)
 		pThis->CreateEndPost(true);
 
 	return 0x0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x445F80, BuildingClass_Place, 5)
+{
+	GET(BuildingClass*, pThis, ECX);
+
+	if (pThis->Type->SecretLab) {
+		BuildingExt::UpdateSecretLab(pThis);
+	}
+
+	HouseExt::UpdateFactoryPlans(pThis);
+	return 0;
+}
+
+// make temporal weapons play nice with power toggle.
+// previously, power state was set to true unconditionally.
+DEFINE_OVERRIDE_HOOK(0x452287, BuildingClass_GoOnline_TogglePower, 6)
+{
+	GET(BuildingClass* const, pThis, ESI);
+	BuildingExt::ExtMap.Find(pThis)->TogglePower_HasPower = true;
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x452393, BuildingClass_GoOffline_TogglePower, 7)
+{
+	GET(BuildingClass* const, pThis, ESI);
+	BuildingExt::ExtMap.Find(pThis)->TogglePower_HasPower = false;
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x452210, BuildingClass_Enable_TogglePower, 7)
+{
+	GET(BuildingClass* const, pThis, ECX);
+	pThis->HasPower = BuildingExt::ExtMap.Find(pThis)->TogglePower_HasPower;
+	return 0x452217;
+}
+
+
+DEFINE_OVERRIDE_HOOK(0x4F8440, HouseClass_Update_TogglePower, 5)
+{
+	GET(HouseClass* const, pThis, ECX);
+	UpdateTogglePower(pThis);
+	return 0;
 }

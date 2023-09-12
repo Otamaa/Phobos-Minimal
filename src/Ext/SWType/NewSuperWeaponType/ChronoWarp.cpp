@@ -267,10 +267,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 			pBld->DisableTemporal();
 			pBld->UpdatePlacement(PlacementType::Redraw);
 
-			//TODO:
-			//auto const pBldExt = BuildingExt::ExtMap.Find(pBld);
-			//pBldExt->AboutToChronoshift = true;
-			Ares_AboutToChronoshift(pBld) = true;
+			BuildingExt::ExtMap.Find(pBld)->AboutToChronoshift = true;
 
 			// register for chronoshift
 			ChronoWarpStateMachine::ChronoWarpContainer Container(pBld, cellUnitTarget, pBld->Location, IsVehicle);
@@ -393,9 +390,7 @@ void ChronoWarpStateMachine::Update()
 			pBld->EnableTemporal();
 			pBld->UpdatePlacement(PlacementType::Redraw);
 
-			//auto const pBldExt = BuildingExt::ExtMap.Find(pBld);
-			//pBldExt->AboutToChronoshift = false;
-			Ares_AboutToChronoshift(pBld) = false; //TODO
+			BuildingExt::ExtMap.Find(pBld)->AboutToChronoshift = false;
 
 			if (!success)
 			{

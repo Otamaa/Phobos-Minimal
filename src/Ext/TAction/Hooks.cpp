@@ -80,7 +80,68 @@ DEFINE_HOOK(0x6E427D, TActionClass_CreateBuildingAt, 0x9)
 	return 0x6E42C1;
 }
 
+#pragma region RetintFix
 
+namespace RetintTemp
+{
+	bool UpdateLightSources = false;
+}
+
+// Bugfix, #issue 429: Retint map script disables RGB settings on light source
+// Author: secsome, Starkku
+DEFINE_HOOK_AGAIN(0x6E2F47, TActionClass_Retint_LightSourceFix, 0x3) // Blue
+DEFINE_HOOK_AGAIN(0x6E2EF7, TActionClass_Retint_LightSourceFix, 0x3) // Green
+DEFINE_HOOK(0x6E2EA7, TActionClass_Retint_LightSourceFix, 0x3) // Red
+{
+	// Flag the light sources to update, actually do it later and only once to prevent redundancy.
+	RetintTemp::UpdateLightSources = true;
+
+	return 0;
+}
+
+#include <Ext/Terrain/Body.h>
+
+// Update light sources if they have been flagged to be updated.
+DEFINE_HOOK(0x6D4455, Tactical_Render_UpdateLightSources, 0x8)
+{
+	if (RetintTemp::UpdateLightSources)
+	{
+		for (auto pBld : *BuildingClass::Array)
+		{
+			if (pBld->LightSource && pBld->LightSource->Activated)
+			{
+				pBld->LightSource->Activated = false;
+				pBld->LightSource->Activate();
+			}
+		}
+
+		for (auto pRadSite : *RadSiteClass::Array)
+		{
+			if (pRadSite->LightSource && pRadSite->LightSource->Activated)
+			{
+				pRadSite->LightSource->Activated = false;
+				pRadSite->LightSource->Activate();
+			}
+		}
+
+		for (auto pTerrain : *TerrainClass::Array)
+		{
+			auto pExt = TerrainExt::ExtMap.Find(pTerrain);
+
+			if (pExt->LighSource && pExt->LighSource->Activated)
+			{
+				pExt->LighSource->Activated = false;
+				pExt->LighSource->Activate();
+			}
+		}
+
+		RetintTemp::UpdateLightSources = false;
+	}
+
+	return 0;
+}
+
+#pragma endregion
 // Bugfix, #issue 429: Retint map script disables RGB settings on light source
 // Author: secsome
 //DEFINE_HOOK_AGAIN(0x6E2F47, TActionClass_Retint_LightSourceFix, 0x3) // Blue

@@ -187,6 +187,31 @@ Iterator<BuildingTypeClass*> SideExt::ExtData::GetDefaultBaseDefenses() const
 	}
 }
 
+InfantryTypeClass* SideExt::ExtData::GetDisguise() const
+{
+	if (this->Disguise.isset()) {
+		return this->Disguise;
+	}
+
+	return this->GetDefaultDisguise();
+}
+
+InfantryTypeClass* SideExt::ExtData::GetDefaultDisguise() const
+{
+	switch (this->ArrayIndex)
+	{
+	case 0:
+		return RulesClass::Instance->AlliedDisguise;
+	case 1:
+		return RulesClass::Instance->SovietDisguise;
+	case 2:
+		return RulesClass::Instance->ThirdDisguise;
+	default:
+		//return RulesClass::Instance->ThirdDisguise; would be correct, but Ares < 0.5 does this:
+		return RulesClass::Instance->AlliedDisguise;
+	}
+}
+
 void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->Get();
@@ -241,6 +266,8 @@ void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->BaseDefenseCounts.Read(exINI, pSection, "AI.BaseDefenseCounts");
 	this->BaseDefenses.Read(exINI, pSection, "AI.BaseDefenses", true);
+
+	this->Disguise.Read(exINI, pSection, "DefaultDisguise", true);
 }
 
 // =============================
@@ -296,6 +323,8 @@ void SideExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->BaseDefenses)
 		.Process(this->BaseDefenseCounts)
+
+		.Process(this->Disguise)
 		;
 }
 
