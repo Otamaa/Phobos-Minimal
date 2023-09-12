@@ -22,6 +22,7 @@
 
 #include <New/Type/GenericPrerequisite.h>
 
+
 DEFINE_OVERRIDE_HOOK(0x52267D, InfantryClass_GetDisguise_Disguise, 6)
 {
 	GET(HouseClass*, pHouse, EAX);
@@ -878,7 +879,7 @@ DEFINE_OVERRIDE_HOOK(0x508C7F, HouseClass_UpdatePower_Auxiliary, 6)
 {
 	GET(HouseClass*, pThis, ESI);
 
-	auto& curAux = HouseExt::ExtMap.Find(pThis)->AuxPower;
+	auto curAux = HouseExt::ExtMap.Find(pThis)->AuxPower;
 
 	int nAux_ = 0;
 	if (curAux >= 0)

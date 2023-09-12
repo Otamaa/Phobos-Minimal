@@ -204,11 +204,6 @@ public:
 									return;
 								}
 							}
-
-							std::sort(this->Entries.begin(), this->Entries.end());
-							auto iter = std::find_if(this->Entries.begin(), this->Entries.end(), [](const AudioIDXEntry& ent) { return (CRT::strcmpi(ent.Name, "bconsela") == 0); });
-							if (iter != this->Entries.end())
-								Debug::Log("a\n");
 						}
 					}
 
@@ -240,17 +235,16 @@ public:
 			return left.second < right.second;
 		});
 
-		auto ret = GameCreateUnchecked<AudioIDXData>();
+		AudioIDXData* Indexes = GameCreateUnchecked<AudioIDXData>();
 		const int size = static_cast<int>(map.size());
-		ret->SampleCount = size;
-		ret->Samples = GameCreateArray<AudioIDXEntry>(size);
+		Indexes->SampleCount = size;
+		Indexes->Samples = GameCreateArray<AudioIDXEntry>(size);
 
 		for (size_t i = 0; i < map.size(); ++i) {
-			std::memcpy(&ret->Samples[i], &map[i].second, sizeof(AudioIDXEntry));
+			std::memcpy(&Indexes->Samples[i], &map[i].second, sizeof(AudioIDXEntry));
 			//Debug::Log("Samples[%d] Name [%s]\n", i, ret->Samples[i].Name.data());
 			this->Files.emplace_back(map[i].first, this->Bags[map[i].first].Bag.get());
 		}
-
 
 		//AudioIDXEntry* test = static_cast<AudioIDXEntry*>(CRT::bsearch(
 		//	"bconsela",
@@ -275,7 +269,7 @@ public:
 		//	Debug::Log("result %d\n", idx);
 		//}
 
-		return ret;
+		return Indexes;
 	}
 
 	void Append(const char* pFileBase) {
@@ -283,9 +277,6 @@ public:
 	}
 
 	bool GetFileStruct(FileStruct& file , int idx) {
-
-		//idx = idx * sizeof(AudioIDXEntry);
-
 		if (size_t(idx) > this->Files.size())
 			return false;
 
@@ -356,7 +347,7 @@ bool NOINLINE PlayWavWrapper(int HouseTypeIdx , size_t SampleIdx)
 	}
 
 	const auto pExt = HouseTypeExt::ExtMap.Find(
-				HouseTypeClass::Array->Items[HouseTypeIdx]
+		HouseTypeClass::Array->Items[HouseTypeIdx]
 	);
 
 	std::string buffer = pExt->TauntFile;

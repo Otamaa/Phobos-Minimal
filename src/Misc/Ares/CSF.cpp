@@ -50,7 +50,7 @@ const wchar_t* CSFLoader::GetDynamicString(const char* pLabelName, const wchar_t
 	auto pData = &DynamicStrings[buff];
 
 	if(buff != "NOSTR:" && (!pData->Text|| !pData->Text[0])) {
-		swprintf_s(pData->Text, sizeof(pData->Text), pPattern, pDefault);
+		swprintf_s(pData->Text, sizeof(pData->Text) - 1, pPattern, pDefault);
 	}
 
 	return pData->Text;

@@ -51,12 +51,6 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 	return { currFactory  , block ,AbsType };
 }
 
-template <class TClass, class TType>
-void GetTypeToProduce(HouseClass* pThis, int& ProducingTypeIndex)
-{
-
-}
-
 void HouseExt::ExtData::UpdateVehicleProduction()
 {
 	auto pThis = this->Get();

@@ -162,13 +162,18 @@ DEFINE_OVERRIDE_HOOK(0x69281E, DisplayClass_ChooseAction_TogglePower, 0xA) {
 	bool allowed = false;
 	action = Action::NoTogglePower;
 
-	if (auto pBld = abstract_cast<BuildingClass*>(pTarget))
+	if (auto pBld = specific_cast<BuildingClass*>(pTarget))
 	{
 		auto pOwner = pBld->GetOwningHouse();
 
 		if (pOwner && pOwner->ControlledByPlayer())
 		{
-			if (pBld->CanBeSelected() && !pBld->IsStrange() && !pBld->IsBeingWarpedOut() && !pBld->IsUnderEMP())
+			if (pBld->CanBeSelected()
+				&& !pBld->IsStrange()
+				&& !pBld->IsBeingWarpedOut()
+				&& !pBld->IsUnderEMP()
+				&& !BuildingExt::ExtMap.Find(pBld)->AboutToChronoshift
+				)
 			{
 				if (pBld->Type->CanTogglePower())
 					action = Action::TogglePower;
@@ -2877,7 +2882,7 @@ DEFINE_OVERRIDE_HOOK(0x448AB2, BuildingClass_ChangeOwnership_UnregisterFunction,
 		HouseExt::UpdateAcademy(pThis->Owner, pThis, false);
 	}
 
-	if (pThis->Type->OrePurifier)
+	if (pThis->Type->OrePurifier && pThis->Owner)
 		--pThis->Owner->NumOrePurifiers;
 
 	return 0x448AC8;
@@ -2893,7 +2898,7 @@ DEFINE_OVERRIDE_HOOK(0x4491D5, BuildingClass_ChangeOwnership_RegisterFunction, 6
 		HouseExt::UpdateAcademy(pThis->Owner, pThis, true);
 	}
 
-	if (pThis->Type->OrePurifier)
+	if (pThis->Type->OrePurifier && pThis->Owner)
 		++pThis->Owner->NumOrePurifiers;
 
 	return 0x4491F1;
