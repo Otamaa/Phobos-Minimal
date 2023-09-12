@@ -204,6 +204,8 @@ public:
 									return;
 								}
 							}
+
+							std::sort(this->Entries.begin(), this->Entries.end());
 						}
 					}
 
@@ -219,7 +221,7 @@ public:
 
 	AudioIDXData* Pack(const char* pPath = nullptr)
 	{
-		std::vector<std::pair<int, AudioIDXEntry>> map;
+		std::map<AudioIDXEntry ,int> map;
 
 		for (size_t i = 0; i < this->Bags.size(); ++i) {
 
@@ -227,32 +229,35 @@ public:
 				continue;
 
 			for (const auto& ent : this->Bags[i].Entries) {
-				map.emplace_back(i , ent);
+				map[ent] = i;
 			}
 		}
 
-		std::sort(map.begin(), map.end(), [](auto& left, auto& right) {
-			return left.second < right.second;
-		});
+		//std::sort(map.begin(), map.end(), [](auto& left, auto& right) {
+		//	return left.first < right.first;
+		//});
 
 		AudioIDXData* Indexes = GameCreateUnchecked<AudioIDXData>();
 		const int size = static_cast<int>(map.size());
 		Indexes->SampleCount = size;
 		Indexes->Samples = GameCreateArray<AudioIDXEntry>(size);
 
-		for (size_t i = 0; i < map.size(); ++i) {
-			std::memcpy(&Indexes->Samples[i], &map[i].second, sizeof(AudioIDXEntry));
-			//Debug::Log("Samples[%d] Name [%s]\n", i, ret->Samples[i].Name.data());
-			this->Files.emplace_back(map[i].first, this->Bags[map[i].first].Bag.get());
+		auto pEntry = Indexes->Samples;
+		int i = 0;
+		for (auto const& [entry, indx] : map) {
+			std::memcpy(&Indexes->Samples[i], &entry, sizeof(AudioIDXEntry));
+			++i;
+			//Debug::Log("Samples[%d] Name [%s]\n", i, entry.Name.data());
+			this->Files.emplace_back(indx, this->Bags[indx].Bag.get());
 		}
 
 		//AudioIDXEntry* test = static_cast<AudioIDXEntry*>(CRT::bsearch(
 		//	"bconsela",
-		//	ret->Samples,
+		//	Indexes->Samples,
 		//	size,
 		//	sizeof(AudioIDXEntry),
 		//	(int(__cdecl*)(const void*, const void*))CRT::strcmpi));
-		//
+
 		//auto iter = std::find_if(ret->Samples, ret->Samples + size, [](const AudioIDXEntry& item) {
 		//		Debug::Log("Samples Name [%s]\n", item.Name.data());
 		//		const auto res = CRT::strcmpi(item.Name.data(), "bconsela");
@@ -265,7 +270,7 @@ public:
 		//}
 		//
 		//if(test) {
-		//	int idx = (test - ret->Samples) / sizeof(AudioIDXEntry);
+		//	int idx = (test - Indexes->Samples) / sizeof(AudioIDXEntry);
 		//	Debug::Log("result %d\n", idx);
 		//}
 
