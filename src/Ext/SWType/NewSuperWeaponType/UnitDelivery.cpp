@@ -4,7 +4,9 @@
 #include <Misc/Ares/Hooks/Header.h>
 
 #include <Ares_TechnoExt.h>
+
 #include <Ext/Techno/Body.h>
+#include <Ext/Building/Body.h>
 
 std::vector<const char*> SW_UnitDelivery::GetTypeString() const
 {
@@ -161,7 +163,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 			if (ItemBuilding)
 			{
 				if (!bBaseNormal)
-					Is_FromSW(ItemBuilding) = true;
+					BuildingExt::ExtMap.Find(ItemBuilding)->IsFromSW = true;
 
 				if(bDeliverBuildup)
 					ItemBuilding->QueueMission(Mission::Construction, false);

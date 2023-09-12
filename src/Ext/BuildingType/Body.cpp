@@ -12,6 +12,107 @@
 
 std::vector<std::string> BuildingTypeExt::trenchKinds;
 const DirStruct  BuildingTypeExt::DefaultJuggerFacing = DirStruct { 0x7FFF };
+const CellStruct BuildingTypeExt::FoundationEndMarker = { 0x7FFF, 0x7FFF };
+
+bool  BuildingTypeExt::ExtData::IsAcademy() const
+{
+	if (this->Academy.empty())
+	{
+		this->Academy = this->AcademyInfantry > 0.0
+			|| this->AcademyAircraft > 0.0
+			|| this->AcademyVehicle > 0.0
+			|| this->AcademyBuilding > 0.0;
+	}
+
+	return this->Academy;
+}
+
+void BuildingTypeExt::ExtData::UpdateFoundationRadarShape()
+{
+	this->FoundationRadarShape.Clear();
+
+	if (this->IsCustom)
+	{
+		auto pType = this->OwnerObject();
+		auto pRadar = RadarClass::Global();
+
+		int width = pType->GetFoundationWidth();
+		int height = pType->GetFoundationHeight(false);
+
+		// transform between cell length and pixels on radar
+		auto Transform = [](int length, double factor) -> int
+			{
+				double dblLength = length * factor + 0.5;
+				double minLength = (length == 1) ? 1.0 : 2.0;
+
+				if (dblLength < minLength)
+				{
+					dblLength = minLength;
+				}
+
+				return Game::F2I(dblLength);
+			};
+
+		// the transformed lengths
+		int pixelsX = Transform(width, pRadar->RadarSizeFactor);
+		int pixelsY = Transform(height, pRadar->RadarSizeFactor);
+
+		// heigth of the foundation tilted by 45�
+		int rows = pixelsX + pixelsY - 1;
+
+		// this draws a rectangle standing on an edge, getting
+		// wider for each line drawn. the start and end values
+		// are special-cased to not draw the pixels outside the
+		// foundation.
+		for (int i = 0; i < rows; ++i)
+		{
+			int start = -i;
+			if (i >= pixelsY)
+			{
+				start = i - 2 * pixelsY + 2;
+			}
+
+			int end = i;
+			if (i >= pixelsX)
+			{
+				end = 2 * pixelsX - i - 2;
+			}
+
+			// fill the line
+			for (int j = start; j <= end; ++j)
+			{
+				Point2D pixel = { j, i };
+				this->FoundationRadarShape.AddItem(pixel);
+			}
+		}
+	}
+}
+
+bool BuildingTypeExt::ExtData::IsFoundationEqual(BuildingTypeClass* pType1, BuildingTypeClass* pType2)
+{
+	// both types must be set and must have same foundation id
+	if (!pType1 || !pType2 || pType1->Foundation != pType2->Foundation) {
+		return false;
+	}
+
+	// non-custom foundations need no special handling
+	if (pType1->Foundation != BuildingTypeExt::CustomFoundation)
+	{
+		return true;
+	}
+
+	// custom foundation
+	auto const pExt1 = BuildingTypeExt::ExtMap.Find(pType1);
+	auto const pExt2 = BuildingTypeExt::ExtMap.Find(pType2);
+	const auto& data1 = pExt1->CustomData;
+	const auto& data2 = pExt2->CustomData;
+
+	// this works for any two foundations. it's linear with sorted ones
+	return pExt1->CustomWidth == pExt2->CustomWidth
+		&& pExt1->CustomHeight == pExt2->CustomHeight
+		&& std::is_permutation(
+			data1.begin(), data1.end(), data2.begin(), data2.end());
+}
 
 void BuildingTypeExt::ExtData::Initialize()
 {
@@ -466,7 +567,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		}
 	}
 
-	if (pINI->GetSection(pSection))
+	if (!parseFailAddr)
 	{
 		INI_EX exINI(pINI);
 
@@ -713,12 +814,139 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->AIBuildCounts.Read(exINI, pSection, "AIBuildCounts");
 		this->AIExtraCounts.Read(exINI, pSection, "AIExtraCounts");
 		this->LandingDir.Read(exINI, pSection, "LandingDir");
+
+		this->Secret_Boons.Read(exINI, pSection, "SecretLab.PossibleBoons");
+		this->Secret_RecalcOnCapture.Read(exINI, pSection, "SecretLab.GenerateOnCapture");
+
+		this->AcademyWhitelist.Read(exINI, pSection, "Academy.Types");
+		this->AcademyBlacklist.Read(exINI, pSection, "Academy.Ignore");
+		this->AcademyInfantry.Read(exINI, pSection, "Academy.InfantryVeterancy");
+		this->AcademyAircraft.Read(exINI, pSection, "Academy.AircraftVeterancy");
+		this->AcademyVehicle.Read(exINI, pSection, "Academy.VehicleVeterancy");
+		this->AcademyBuilding.Read(exINI, pSection, "Academy.BuildingVeterancy");
+		this->IsAcademy();
+
+		this->DegradeAmount.Read(exINI, pSection, "Degrade.Amount");
+		this->DegradePercentage.Read(exINI, pSection, "Degrade.Percentage");
+		this->IsPassable.Read(exINI, pSection, "IsPassable");
+		this->ProduceCashDisplay.Read(exINI, pSection, "ProduceCashDisplay");
 	}
 #pragma endregion
 
 	if (pArtINI->GetSection(pArtSection))
 	{
 		INI_EX exArtINI(pArtINI);
+
+		char strbuff[0x80];
+
+		if (this->IsCustom)
+		{
+			//Reset
+			pThis->Foundation = BuildingTypeExt::CustomFoundation;
+			pThis->FoundationData = this->CustomData.data();
+		}
+		else if (pArtINI->ReadString(pArtSection, "Foundation", "", strbuff) && IS_SAME_STR_(strbuff, "Custom"))
+		{
+			//Custom Foundation!
+			this->IsCustom = true;
+			pThis->Foundation = BuildingTypeExt::CustomFoundation;
+
+			//Load Width and Height
+			this->CustomWidth = pArtINI->ReadInteger(pArtSection, "Foundation.X", 0);
+			this->CustomHeight = pArtINI->ReadInteger(pArtSection, "Foundation.Y", 0);
+			auto outlineLength = pArtINI->ReadInteger(pArtSection, "FoundationOutline.Length", 0);
+
+			// at len < 10, things will end very badly for weapons factories
+			if (outlineLength < 10) {
+				outlineLength = 10;
+			}
+
+			//Allocate CellStruct array
+			const size_t dimension = this->CustomWidth * this->CustomHeight;
+
+			this->CustomData.assign(dimension + 1, CellStruct::Empty);
+			this->OutlineData.assign(outlineLength + 1, CellStruct::Empty);
+
+			pThis->FoundationData = this->CustomData.data();
+			pThis->FoundationOutside = this->OutlineData.data();
+
+			using Iter = std::vector<CellStruct>::iterator;
+
+			auto ParsePoint = [](Iter& cell, const char* str) -> void
+				{
+					int x = 0, y = 0;
+					switch (sscanf_s(str, "%d,%d", &x, &y))
+					{
+					case 0:
+						x = 0;
+						// fallthrough
+					case 1:
+						y = 0;
+					}
+					*cell++ = CellStruct { static_cast<short>(x), static_cast<short>(y) };
+				};
+
+			//Load FoundationData
+			auto itData = this->CustomData.begin();
+			char key[0x20];
+
+			for (size_t i = 0; i < dimension; ++i)
+			{
+				_snprintf_s(key, _TRUNCATE, "Foundation.%d", i);
+				if (pArtINI->ReadString(pArtSection, key, "", strbuff))
+				{
+					ParsePoint(itData, strbuff);
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			//Sort, remove dupes, add end marker
+			std::sort(this->CustomData.begin(), itData,
+			[](const CellStruct& lhs, const CellStruct& rhs) {
+				 if (lhs.Y != rhs.Y) {
+					 return lhs.Y < rhs.Y;
+				 }
+				 return lhs.X < lhs.X;
+			});
+
+			itData = std::unique(this->CustomData.begin(), itData);
+			*itData = FoundationEndMarker;
+			this->CustomData.erase(itData + 1, this->CustomData.end());
+
+			auto itOutline = this->OutlineData.begin();
+			for (int i = 0; i < outlineLength; ++i)
+			{
+				_snprintf_s(key, _TRUNCATE, "FoundationOutline.%d", i);
+				if (pArtINI->ReadString(pArtSection, key, "", strbuff))
+				{
+					ParsePoint(itOutline, strbuff);
+				}
+				else
+				{
+					//Set end vector
+					// can't break, some stupid functions access fixed offsets without checking if that offset is within the valid range
+					*itOutline++ = FoundationEndMarker;
+				}
+			}
+
+			//Set end vector
+			*itOutline = FoundationEndMarker;
+
+			//if (this->OutlineData.begin() == this->OutlineData.end()) {
+			//	Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. This breaks AI base building.\n",pArtSection);
+			//}
+			//else
+			//{
+			//	for (auto iter = this->OutlineData.begin(); iter->X || iter->Y; ++iter) {
+			//		if (++iter == this->OutlineData.end())
+			//			Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. This breaks AI base building.\n", pArtSection);
+			//
+			//	}
+			//}
+		}
 
 		if (pThis->MaxNumberOccupants > 10)
 		{
@@ -776,12 +1004,6 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		}
 #pragma endregion
 	}
-}
-
-void BuildingTypeExt::ExtData::CompleteInitialization()
-{
-	//auto const pThis = this->Get();
-	//UNREFERENCED_PARAMETER(pThis);
 }
 
 template <typename T>
@@ -953,6 +1175,26 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->AIExtraCounts)
 		.Process(this->LandingDir)
 		.Process(this->SellFrames)
+
+		.Process(this->IsCustom)
+		.Process(this->CustomWidth)
+		.Process(this->CustomHeight)
+		.Process(this->OutlineLength)
+		.Process(this->CustomData)
+		.Process(this->OutlineData)
+		.Process(this->FoundationRadarShape)
+		.Process(this->Secret_Boons)
+		.Process(this->Secret_RecalcOnCapture)
+		.Process(this->AcademyWhitelist)
+		.Process(this->AcademyBlacklist)
+		.Process(this->AcademyInfantry)
+		.Process(this->AcademyAircraft)
+		.Process(this->AcademyVehicle)
+		.Process(this->AcademyBuilding)
+		.Process(this->DegradeAmount)
+		.Process(this->DegradePercentage)
+		.Process(this->IsPassable)
+		.Process(this->ProduceCashDisplay)
 		;
 }
 

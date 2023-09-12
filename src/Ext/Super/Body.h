@@ -34,6 +34,8 @@ public:
 		SWTypeExt::ExtData* Type { nullptr };
 		bool Temp_IsPlayer { false };
 		CellStruct Temp_CellStruct { };
+		bool CameoFirstClickDone { false };
+		bool FirstClickAutoFireDone { false };
 		//TechnoClass* Firer { nullptr };
 		SWStatus Statusses { };
 

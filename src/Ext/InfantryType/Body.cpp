@@ -15,7 +15,7 @@ void InfantryTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 
 	INI_EX exINI(pINI);
 
-	if (!pINI->GetSection(pID))
+	if (parseFailAddr)
 		return;
 
 	this->Is_Deso.Read(exINI, pID,  "IsDesolator");

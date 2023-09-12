@@ -4,8 +4,6 @@
 
 DEFINE_HOOK(0x6870D7, ReadScenario_LoadingScreens, 0x5)
 {
-	enum { SkipGameCode = 0x6873AB };
-
 	LEA_STACK(CCINIClass*, pINI, STACK_OFFSET(0x174, -0x158));
 
 	auto const pScenario = ScenarioClass::Instance.get();
@@ -24,5 +22,5 @@ DEFINE_HOOK(0x6870D7, ReadScenario_LoadingScreens, 0x5)
 	pINI->ReadString(defaultsSection, "DefaultLS800BkgdPal", pScenario->LS800BkgdPal, pScenario->LS800BkgdPal, 64);
 	pINI->ReadString(scenarioName, "LS800BkgdPal", pScenario->LS800BkgdPal, pScenario->LS800BkgdPal, 64);
 
-	return SkipGameCode;
+	return 0x6873AB;
 }

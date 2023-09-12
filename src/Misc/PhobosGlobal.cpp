@@ -11,6 +11,10 @@ void PhobosGlobal::Clear()
 	// Just big enough to hold all types
 	std::memset(pInstance->BuildTimeDatas, 0, sizeof(pInstance->BuildTimeDatas));
 	pInstance->DetonateDamageArea = true;
+
+	pInstance->TempFoundationData1.clear();
+	pInstance->TempFoundationData2.clear();
+	pInstance->TempCoveredCellsData.clear();
 }
 
 void PhobosGlobal::PointerGotInvalid(AbstractClass* ptr, bool removed)

@@ -25,6 +25,325 @@ int HouseExt::LastSlaveBalance = 0;
 CDTimerClass HouseExt::CloakEVASpeak;
 CDTimerClass HouseExt::SubTerraneanEVASpeak;
 
+RequirementStatus HouseExt::RequirementsMet(
+	HouseClass* pHouse, TechnoTypeClass* pItem)
+{
+
+	if (pItem->Unbuildable) {
+		return RequirementStatus::Forbidden;
+	}
+
+	const auto pData = TechnoTypeExt::ExtMap.Find(pItem);
+	auto pHouseExt = HouseExt::ExtMap.Find(pHouse);
+
+	if (!(pData->Prerequisite_RequiredTheaters & (1 << static_cast<int>(ScenarioClass::Instance->Theater)))) {
+		return RequirementStatus::Forbidden;
+	}
+
+	if (Prereqs::HouseOwnsAny(pHouse, pData->Prerequisite_Negative.data() , pData->Prerequisite_Negative.size())) {
+		return RequirementStatus::Forbidden;
+	}
+
+	if (pHouseExt->Reversed.contains(pItem)) {
+		return RequirementStatus::Overridden;
+	}
+
+	if (pData->RequiredStolenTech.any()) {
+		if ((pHouseExt->StolenTech & pData->RequiredStolenTech) != pData->RequiredStolenTech) {
+			return RequirementStatus::Incomplete;
+		}
+	}
+
+	if (Prereqs::HouseOwnsAny(pHouse, pItem->PrerequisiteOverride)) {
+		return RequirementStatus::Overridden;
+	}
+
+	if (pHouse->HasFromSecretLab(pItem)) {
+		return RequirementStatus::Overridden;
+	}
+
+	if (pHouse->IsControlledByHuman_() && pItem->TechLevel == -1) {
+		return RequirementStatus::Incomplete;
+	}
+
+	if (!pHouse->HasAllStolenTech(pItem)) {
+		return RequirementStatus::Incomplete;
+	}
+
+	if (!pHouse->InRequiredHouses(pItem) || pHouse->InForbiddenHouses(pItem)) {
+		return RequirementStatus::Forbidden;
+	}
+
+	if (!HouseExt::CheckFactoryOwners(pHouse, pItem)) {
+		return RequirementStatus::Incomplete;
+	}
+
+	if (auto const pBldType = specific_cast<BuildingTypeClass const*>(pItem)) {
+		if (HouseExt::IsDisabledFromShell(pHouse, pBldType)) {
+			return RequirementStatus::Forbidden;
+		}
+	}
+
+	return (pHouse->TechLevel >= pItem->TechLevel) ?
+		RequirementStatus::Complete : RequirementStatus::Incomplete;
+}
+
+std::pair<NewFactoryState, BuildingClass*> HouseExt::HasFactory(
+	HouseClass* pHouse,
+	TechnoTypeClass* pType,
+	bool bSkipAircraft,
+	bool requirePower,
+	bool bCheckCanBuild,
+	bool b7)
+{
+
+	if (bCheckCanBuild && pHouse->CanBuild(pType, true, true) <= CanBuildResult::Unbuildable) {
+		return { NewFactoryState::NoFactory  , nullptr };
+	}
+
+	auto const nWhat = pType->WhatAmI();
+	auto const bitsOwners = pType->GetOwners();
+	auto const isNaval = pType->Naval;
+	auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
+	BuildingClass* pNonPrimaryBuilding = nullptr;
+	BuildingClass* pOfflineBuilding = nullptr;
+
+	for (auto const& pBld : pHouse->Buildings)
+	{
+
+		if (pBld->InLimbo
+			|| pBld->GetCurrentMission() == Mission::Selling
+			|| pBld->QueuedMission == Mission::Selling)
+		{
+			continue;
+		}
+
+		auto const pBType = pBld->Type;
+
+		if ((nWhat != pBType->Factory) || !pType->InOwners(bitsOwners))
+			continue;
+
+		if (!bSkipAircraft && (nWhat == AbstractType::AircraftType) && pBld->HasAnyLink())
+		{
+			if (!pBld->HasFreeLink())
+			{
+				continue;
+			}
+		}
+		else if ((nWhat == AbstractType::UnitType) && (pBType->Naval != isNaval))
+		{
+			continue;
+		}
+
+		if (TechnoTypeExt::CanBeBuiltAt(pType ,pBType))
+		{
+			if (requirePower && (!pBld->HasPower || pBld->Deactivated))
+			{
+				pOfflineBuilding = pBld;
+			}
+			else
+			{
+				pNonPrimaryBuilding = pBld;
+				if (pBld->IsPrimaryFactory)
+					return { NewFactoryState::Available_Primary , pNonPrimaryBuilding };
+
+				//do only single loop and use the pOfflineBuildingResult
+				if (b7)
+				{
+					break;
+				}
+			}
+		}
+	}
+
+	if (pNonPrimaryBuilding)
+	{
+		return { NewFactoryState::Available_Alternative  , pNonPrimaryBuilding };
+	}
+	else if (pOfflineBuilding)
+	{
+		return { NewFactoryState::Unpowered  , pOfflineBuilding };
+	}
+
+	return { NewFactoryState::NotFound , nullptr };
+}
+
+CanBuildResult HouseExt::PrereqValidate(
+	HouseClass* pHouse, TechnoTypeClass* pItem,
+	bool buildLimitOnly, bool includeQueued)
+{
+	const bool IsHuman = pHouse->IsControlledByHuman();
+
+	if (!buildLimitOnly)
+	{
+		const RequirementStatus ReqsMet = HouseExt::RequirementsMet(pHouse, pItem);
+
+		if (ReqsMet <= RequirementStatus::Incomplete){
+			return CanBuildResult::Unbuildable;
+		}
+
+		if (IsHuman && (ReqsMet == RequirementStatus::Complete)) {
+			if (!HouseExt::PrerequisitesMet(pHouse, pItem)) {
+				return CanBuildResult::Unbuildable;
+			}
+		}
+
+		const auto res = HouseExt::HasFactory(pHouse, pItem, true, true, false, true).first;
+
+		if (res <= NewFactoryState::NotFound)
+			return CanBuildResult::Unbuildable;
+
+		if (res <= NewFactoryState::Unpowered)
+			return CanBuildResult::TemporarilyUnbuildable;
+	}
+
+	if (!IsHuman && RulesExt::Global()->AllowBypassBuildLimit[pHouse->GetAIDifficultyIndex()]) {
+		return CanBuildResult::Buildable;
+	}
+
+	return static_cast<CanBuildResult>(HouseExt::CheckBuildLimit(pHouse, pItem, includeQueued));
+}
+
+bool HouseExt::CheckFactoryOwners(HouseClass* pHouse, TechnoTypeClass* pItem)
+{
+	auto const pExt = TechnoTypeExt::ExtMap.Find(pItem);
+	auto const pHouseExt = HouseExt::ExtMap.Find(pHouse);
+
+	if (!pExt->FactoryOwners.empty() || !pExt->FactoryOwners_Forbidden.empty())
+	{
+		for (auto const& pOwner : pExt->FactoryOwners)
+		{
+			if (!pHouseExt->FactoryOwners_GatheredPlansOf.contains(pOwner))
+				continue;
+
+			if (pExt->FactoryOwners_Forbidden.empty() || !pExt->FactoryOwners_Forbidden.Contains(pOwner))
+				return true;
+		}
+
+		for (auto const& pBld : pHouse->Buildings)
+		{
+			if (!pHouseExt->FactoryOwners_GatheredPlansOf.contains(pBld->align_154->OriginalHouseType))
+				continue;
+
+			if (pExt->FactoryOwners_Forbidden.empty() || !pExt->FactoryOwners_Forbidden.Contains(pBld->align_154->OriginalHouseType)) {
+				const auto pBldExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+
+				if (pBld->Type->Factory == pItem->WhatAmI() || pBldExt->Type->FactoryOwners_HasAllPlans)
+				{
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	return true;
+}
+
+void HouseExt::UpdateAcademy(HouseClass* pHouse , BuildingClass* pAcademy, bool added)
+{
+	HouseExt::ExtMap.Find(pHouse)->UpdateAcademy(pAcademy , added);
+}
+
+void HouseExt::ExtData::UpdateAcademy(BuildingClass* pAcademy, bool added)
+{
+	// check if added and there already, or removed and not there
+	auto it = this->Academies.find(pAcademy);
+	if (added == (it != this->Academies.end())) {
+		return;
+	}
+
+	// now this can be unconditional
+	if (added)
+	{
+		this->Academies.push_back(pAcademy);
+	}
+	else
+	{
+		this->Academies.erase(it);
+	}
+}
+
+void HouseExt::ApplyAcademy(HouseClass* pHouse ,TechnoClass* pTechno, AbstractType considerAs)
+{
+	HouseExt::ExtMap.Find(pHouse)->ApplyAcademy(pTechno , considerAs);
+}
+
+void HouseExt::ExtData::ApplyAcademy(
+	TechnoClass* const pTechno, AbstractType const considerAs) const
+{
+	// mutex in effect, ignore academies to fix preplaced order issues.
+	// also triggered in game for certain "conversions" like deploy
+	if (Unsorted::ScenarioInit) {
+		return;
+	}
+
+	auto const pType = pTechno->GetTechnoType();
+
+	// get the academy data for this type
+	Valueable<double> BuildingTypeExt::ExtData::* pmBonus = nullptr;
+	switch (considerAs)
+	{
+	case AbstractType::Infantry:
+		pmBonus = &BuildingTypeExt::ExtData::AcademyInfantry;
+		break;
+	case AbstractType::Aircraft:
+		pmBonus = &BuildingTypeExt::ExtData::AcademyAircraft;
+		break;
+	case AbstractType::Unit:
+		pmBonus = &BuildingTypeExt::ExtData::AcademyVehicle;
+		break;
+	default:
+		pmBonus = &BuildingTypeExt::ExtData::AcademyBuilding;
+		break;
+	}
+
+	auto veterancyBonus = 0.0;
+
+	// aggregate the bonuses
+	for (auto const& pBld : this->Academies)
+	{
+		auto const pExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+
+		auto const isWhitelisted = pExt->AcademyWhitelist.empty()
+			|| pExt->AcademyWhitelist.Contains(pType);
+
+		if (isWhitelisted && !pExt->AcademyBlacklist.Contains(pType))
+		{
+			const auto& data = pExt->*pmBonus;
+			veterancyBonus = MaxImpl(veterancyBonus, data.Get());
+		}
+	}
+
+	// apply the bonus
+	if (pType->Trainable)
+	{
+		auto& value = pTechno->Veterancy.Veterancy;
+		if (veterancyBonus > value)
+		{
+			value = static_cast<float>(MinImpl(
+				veterancyBonus, RulesClass::Instance->VeteranCap));
+		}
+	}
+}
+
+void HouseExt::UpdateFactoryPlans(BuildingClass* pBld)
+{
+	auto Types = pBld->GetTypes();
+	auto Types_c = Types.begin();
+	while (!*Types_c || !TechnoTypeExt::ExtMap.Find(*Types_c)->FactoryOwners_HaveAllPlans)
+	{
+		if (++Types_c == Types.end())
+			return;
+	}
+
+	auto pNewOwnerExt = HouseExt::ExtMap.Find(pBld->Owner);
+
+	if(!pNewOwnerExt->FactoryOwners_GatheredPlansOf.contains(pBld->align_154->OriginalHouseType))
+		pNewOwnerExt->FactoryOwners_GatheredPlansOf.push_back(pBld->align_154->OriginalHouseType);
+}
+
 bool HouseExt::PrerequisitesMet(HouseClass* const pThis, TechnoTypeClass* const pItem)
 {
 	for (auto& prereq : TechnoTypeExt::ExtMap.Find(pItem)->Prerequisites) {
@@ -161,6 +480,20 @@ InfantryTypeClass* HouseExt::GetTechnician(HouseClass* pHouse)
 	return RulesClass::Instance->Technician;
 }
 
+InfantryTypeClass* HouseExt::GetDisguise(HouseClass* pHouse)
+{
+	const auto pTypeExt = HouseTypeExt::ExtMap.TryFind(pHouse->Type);
+
+	if (pTypeExt && pTypeExt->Disguise.Get(nullptr))
+		return pTypeExt->Disguise;
+
+	if (const auto pSide = HouseExt::GetSide(pHouse)) {
+		return SideExt::ExtMap.Find(pSide)->GetDisguise();
+	}
+
+	return nullptr;
+}
+
 AircraftTypeClass* HouseExt::GetParadropPlane(HouseClass* pHouse)
 {
 	// tries to get the house's default plane and falls back to
@@ -284,6 +617,7 @@ void HouseExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(Factory_AircraftType, ptr, bRemoved);
 	AnnounceInvalidPointer(ActiveTeams, ptr);
 	AnnounceInvalidPointer<TechnoClass*>(LimboTechno, ptr, bRemoved);
+	AnnounceInvalidPointer<BuildingClass*>(Academies, ptr, bRemoved);
 
 	if(bRemoved)
 		AutoDeathObjects.erase((TechnoClass*)ptr);
@@ -732,22 +1066,29 @@ BuildLimitStatus HouseExt::CheckBuildLimit(
 	HouseClass const* const pHouse, TechnoTypeClass* pItem,
 	bool const includeQueued)
 {
-	int BuildLimit = pItem->BuildLimit;
-	int Remaining = HouseExt::BuildLimitRemaining(pHouse, pItem);
-	if (BuildLimit > 0)
+	if (pItem->BuildLimit < 0)
 	{
-		if (Remaining <= 0)
-		{
-			return (includeQueued && FactoryClass::FindByOwnerAndProduct(pHouse, pItem))
-				? BuildLimitStatus::NotReached
-				: BuildLimitStatus::ReachedPermanently
-				;
-		}
+		return (-(pItem->BuildLimit + pHouse->CountOwnedEver(pItem))) > 0
+			? BuildLimitStatus::NotReached
+			: BuildLimitStatus::ReachedTemporarily
+			;
 	}
-	return (Remaining > 0)
-		? BuildLimitStatus::NotReached
-		: BuildLimitStatus::ReachedTemporarily
-		;
+
+	const int remaining = pItem->BuildLimit - HouseExt::CountOwnedNowTotal(pHouse, pItem);
+
+	if (pItem->BuildLimit > 0 && remaining <= 0)
+	{
+		if (!includeQueued || pHouse->GetFactoryProducing(pItem))
+		{
+			return BuildLimitStatus::ReachedPermanently;
+		}
+
+		BuildLimitStatus::NotReached;
+	}
+
+	return remaining > 0 ?
+		BuildLimitStatus::NotReached
+		: BuildLimitStatus::ReachedTemporarily;
 }
 
 signed int HouseExt::BuildLimitRemaining(
@@ -963,6 +1304,18 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		.Process(this->Factories_HouseTypes)
 		.Process(this->LimboTechno)
 		.Process(this->AvaibleDocks)
+
+		.Process(this->StolenTech)
+		.Process(this->RadarPersist)
+		.Process(this->FactoryOwners_GatheredPlansOf)
+		.Process(this->Academies)
+		.Process(this->Reversed)
+
+
+		.Process(this->Is_NavalYardSpied)
+		.Process(this->Is_AirfieldSpied)
+		.Process(this->Is_ConstructionYardSpied)
+		.Process(this->AuxPower)
 		;
 }
 

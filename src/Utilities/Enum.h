@@ -34,6 +34,23 @@
 
 #include <GeneralDefinitions.h>
 
+enum class NewFactoryState : int
+{
+	NoFactory = 0, // there is no factory building for this
+	NotFound = 1, //
+	Unpowered = 2, //
+	Available_Alternative = 3, // Ares 3.0
+	Available_Primary = 4 // Ares 3.0
+};
+
+enum class RequirementStatus : int
+{
+	Forbidden = 1, // forbidden by special conditions (e.g. reqhouses) that's not likely to change in this session
+	Incomplete = 2, // missing something (approp factory)
+	Complete = 3, // OK
+	Overridden = 4, // magic condition met, bypass prereq check
+};
+
 enum class AresScripts : int
 {
 	AuxilarryPower = 65,

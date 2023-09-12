@@ -22,6 +22,93 @@
 
 #include <New/Type/GenericPrerequisite.h>
 
+DEFINE_OVERRIDE_HOOK(0x52267D, InfantryClass_GetDisguise_Disguise, 6)
+{
+	GET(HouseClass*, pHouse, EAX);
+
+	if (auto pDisguiose = HouseExt::GetDisguise(pHouse))
+	{
+		R->EAX<InfantryTypeClass*>(pDisguiose);
+		return 0x5226B7;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+DEFINE_OVERRIDE_HOOK_AGAIN(0x6F422F, Sides_Disguise, 6) // TechnoClass_Init
+DEFINE_OVERRIDE_HOOK(0x5227A3, Sides_Disguise, 6) // InfantryClass_SetDefaultDisguise
+{
+	GET(HouseClass*, pHouse, EAX);
+	InfantryClass* pThis = nullptr;
+	DWORD dwReturnAddress = 0;
+
+	if (R->Origin() == 0x5227A3)
+	{
+		pThis = R->ECX<InfantryClass*>();
+		dwReturnAddress = 0x5227EC;
+	}
+	else
+	{
+		pThis = R->ESI<InfantryClass*>();
+		dwReturnAddress = 0x6F4277;
+	}
+
+	if (auto pDisguise = HouseExt::GetDisguise(pHouse)) {
+		pThis->Disguise = pDisguise;
+		return dwReturnAddress;
+
+	} else {
+		return 0;
+	}
+}
+
+DEFINE_OVERRIDE_HOOK(0x4F8B08, HouseClass_Update_DamageDelay, 6)
+{
+	GET(HouseClass* const, pThis, ESI);
+
+	// timer used unconditionally to trigger checks
+	if (pThis->DamageDelayTimer.Completed())
+	{
+		auto const pType = pThis->Type;
+		auto const pTypeExt = HouseTypeExt::ExtMap.Find(pType);
+		auto const degrades = pTypeExt->Degrades.Get(!pType->MultiplayPassive);
+
+		auto const pRules = RulesClass::Instance();
+		pThis->DamageDelayTimer.Start(static_cast<int>(pRules->DamageDelay * 900));
+
+		// damage is only applied conditionally
+		auto const pRulesExt = RulesExt::Global();
+		if (degrades && pRulesExt->DegradeEnabled && pThis->HasLowPower())
+		{
+			auto const defaultPercentage = pRulesExt->DegradePercentage.Get(pRules->ConditionYellow);
+
+			for (auto const& pBld : pThis->Buildings)
+			{
+				auto const pBldType = pBld->Type;
+				auto const pBldTypeExt = BuildingTypeExt::ExtMap.Find(pBldType);
+
+				// get the default amount for this building
+				auto const& defaultAmount = pBldType->PowerDrain ?
+					pRulesExt->DegradeAmountConsumer : pRulesExt->DegradeAmountNormal;
+
+				// get the damage that applies to this building
+				auto damage = pBldTypeExt->DegradeAmount.Get(defaultAmount);
+				auto const percentage = pBldTypeExt->DegradePercentage.Get(defaultPercentage);
+
+				if (damage > 0 && pBld->GetHealthPercentage() > percentage)
+				{
+					pBld->ReceiveDamage(&damage, 0, pRules->C4Warhead, nullptr, false, false, nullptr);
+				}
+			}
+		}
+	}
+
+	// recreate the replaced instructions
+	return pThis->IsCurrentPlayer() ? 0x4F8B14u : 0x4F8DB1u;
+}
+
 DEFINE_OVERRIDE_HOOK(0x508EBC, HouseClass_Radar_Update_CheckEligible, 6)
 {
 	enum { Eligible = 0, Jammed = 0x508F08 };
@@ -57,7 +144,7 @@ DEFINE_OVERRIDE_HOOK(0x4FE782, HouseClass_AI_BaseConstructionUpdate_PickPowerpla
 
 	auto const it = pExt->GetPowerplants();
 	for (auto const& pPower : it) {
-		if (AresData::PrereqValidate(pThis, pPower, false, true) == CanBuildResult::Buildable && HouseExt::PrerequisitesMet(pThis, pPower)) {
+		if (HouseExt::PrereqValidate(pThis, pPower, false, true) == CanBuildResult::Buildable && HouseExt::PrerequisitesMet(pThis, pPower)) {
 			Eligible.AddItem(pPower);
 		}
 	}
@@ -388,9 +475,7 @@ DEFINE_OVERRIDE_HOOK(0x5F7900, ObjectTypeClass_FindFactory, 5)
 	GET_STACK(bool, bRequirePower, 0x8);
 	GET_STACK(bool, bCheckCanBuild, 0xC);
 
-	AresFactoryStateRet nBuffer;
-
-	AresData::HouseExt_HasFactory(&nBuffer ,
+	const auto nBuffer = HouseExt::HasFactory(
 	pHouse,
 	pThis,
 	bSkipAircraft,
@@ -398,8 +483,8 @@ DEFINE_OVERRIDE_HOOK(0x5F7900, ObjectTypeClass_FindFactory, 5)
 	bCheckCanBuild,
 	false);
 
-	R->EAX(nBuffer.state >= NewFactoryState::Available_Alternative ?
-		nBuffer.Factory : nullptr);
+	R->EAX(nBuffer.first >= NewFactoryState::Available_Alternative ?
+		nBuffer.second : nullptr);
 
 	return 0x5F7A89;
 }
@@ -408,21 +493,20 @@ DEFINE_OVERRIDE_HOOK(0x6AB312, SidebarClass_ProcessCameoClick_Power, 6)
 {
 	GET(TechnoClass*, pFactoryObject, ESI);
 
-	AresFactoryStateRet nBuffer;
-	AresData::HouseExt_HasFactory(&nBuffer,
-	pFactoryObject->GetOwningHouse(), pFactoryObject->GetTechnoType(), false, true, false, true);
+	const auto nBuffer = HouseExt::HasFactory(
+		pFactoryObject->GetOwningHouse(), pFactoryObject->GetTechnoType(), false, true, false, true);
 
-	if (nBuffer.state == NewFactoryState::Unpowered)
+	if (nBuffer.first == NewFactoryState::Unpowered)
 		return 0x6AB95A;
 
-	R->EAX(nBuffer.Factory);
+	R->EAX(nBuffer.second);
 	return 0x6AB320;
 }
 
 DEFINE_OVERRIDE_HOOK(0x50B370, HouseClass_ShouldDisableCameo, 5)
 {
-	GET(HouseClass const* const, pThis, ECX);
-	GET_STACK(TechnoTypeClass const* const, pType, 0x4);
+	GET(HouseClass*, pThis, ECX);
+	GET_STACK(TechnoTypeClass*, pType, 0x4);
 
 	auto ret = false;
 
@@ -482,11 +566,10 @@ DEFINE_OVERRIDE_HOOK(0x50B370, HouseClass_ShouldDisableCameo, 5)
 		}
 
 		// #1521738: to stay consistent, use the new method to calculate this
-		if (AresData::HouseExt_GetBuildLimitRemaining(pThis, pType) - queued <= 0)
+		if (HouseExt::BuildLimitRemaining(pThis, pType) - queued <= 0)
 		{ ret = true; } else {
-			AresFactoryStateRet state;
-			AresData::HouseExt_HasFactory(&state ,pThis, pType, true, true, false, true);
-			ret = (state.state < NewFactoryState::Available_Alternative);
+			const auto state = HouseExt::HasFactory(pThis, pType, true, true, false, true);
+			ret = (state.first < NewFactoryState::Available_Alternative);
 		}
 	}
 
@@ -795,7 +878,7 @@ DEFINE_OVERRIDE_HOOK(0x508C7F, HouseClass_UpdatePower_Auxiliary, 6)
 {
 	GET(HouseClass*, pThis, ESI);
 
-	auto& curAux = AuxPower(pThis);
+	auto& curAux = HouseExt::ExtMap.Find(pThis)->AuxPower;
 
 	int nAux_ = 0;
 	if (curAux >= 0)
@@ -946,4 +1029,29 @@ DEFINE_OVERRIDE_HOOK(0x4F8C23, HouseClass_Update_SilosNeededEVA, 5)
 	}
 
 	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x500CC5, HouseClass_InitFromINI_FixBufferLimits, 6)
+{
+	GET(HouseClass*, H, EBX);
+
+	if (H->UINameString[0])
+	{
+		const wchar_t* str = StringTable::LoadString(H->UINameString);
+		PhobosCRT::wstrCopy(H->UIName, str);
+	}
+	else
+	{
+		PhobosCRT::wstrCopy(H->UIName, H->Type->UIName);
+	}
+
+	//dropping this here, should be fine
+	const auto pParent = H->Type->FindParentCountry();
+	HouseTypeClass* pAdd = pParent ? pParent : H->Type;
+
+	if (!HouseExt::ExtMap.Find(H)->FactoryOwners_GatheredPlansOf.contains(pAdd)) {
+		HouseExt::ExtMap.Find(H)->FactoryOwners_GatheredPlansOf.push_back(pAdd);
+	}
+
+	return 0x500D0D;
 }

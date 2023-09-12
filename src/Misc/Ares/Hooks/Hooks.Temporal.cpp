@@ -497,7 +497,7 @@ bool NOINLINE Warpable(TechnoClass* pTarget)
 
 	if (pTarget->WhatAmI() == BuildingClass::AbsID)
 	{
-		if (Ares_AboutToChronoshift(pTarget))
+		if (BuildingExt::ExtMap.Find((BuildingClass*)pTarget)->AboutToChronoshift)
 		{
 			return false;
 		}

@@ -440,7 +440,7 @@ public:
 		Nullable<bool> ConsideredVehicle { };
 
 		// Ares 0.1
-		ValueableIdxVector<TheaterTypeClass> Prerequisite_RequiredTheaters {};
+		DWORD Prerequisite_RequiredTheaters { 0xFFFFFFFF};
 		std::vector<ValueableVector<int>> Prerequisites {};
 		Valueable<int> Prerequisite_Lists { 1 };
 		ValueableVector<int> Prerequisite_Negative {};
@@ -844,7 +844,7 @@ public:
 
 		Nullable<TechnoTypeClass*> ClonedAs {};
 		Valueable<bool> Cloneable { true };
-		ValueableVector<TechnoTypeClass*> ClonedAt {};
+		ValueableVector<BuildingTypeClass*> ClonedAt {};
 		ValueableVector<BuildingTypeClass const*> BuiltAt {};
 		Nullable<AnimTypeClass*> EMP_Sparkles {};
 		Valueable<double> EMP_Modifier { 1.0 };
@@ -861,6 +861,12 @@ public:
 		PhobosPCXFile AltCameoPCX {};
 		Valueable<PaletteManager*> CameoPal {};  //CustomPalette::PaletteMode::Default
 		Nullable<int> LandingDir {};
+
+		// new secret lab
+		DWORD Secret_RequiredHouses { 0xFFFFFFFF };
+		DWORD Secret_ForbiddenHouses { 0xFFFFFFFF };
+
+		std::bitset<32> RequiredStolenTech { 0ull };
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 		{
@@ -914,4 +920,6 @@ public:
 	static bool PassangersAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pPassanger);
 	static VoxelStruct* GetBarrelsVoxelData(TechnoTypeClass* const pThis, size_t const nIdx);
 	static VoxelStruct* GetTurretVoxelData(TechnoTypeClass* const pThis, size_t const nIdx);
+	static bool CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClass* pFactoryType);
+
 };

@@ -557,4 +557,5 @@ public:
 	static void CreateChronoAnim(SuperClass* pThis, const CoordStruct& Coords, AnimTypeClass* pAnimType);
 	static bool ChangeLighting(SuperWeaponTypeClass* pCustom = nullptr);
 	static LightingColor GetLightingColor(SuperWeaponTypeClass* pCustom = nullptr);
+
 };

@@ -82,7 +82,7 @@ bool ScriptExt_Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bTh
 		{
 		case AresScripts::AuxilarryPower:
 		{
-			AuxPower(pTeam->Owner) += pTeamMission->Argument;
+			HouseExt::ExtMap.Find(pTeam->Owner)->AuxPower += pTeamMission->Argument;
 			pTeam->Owner->RecheckPower = 1;
 			pTeam->StepCompleted = 1;
 			return true;

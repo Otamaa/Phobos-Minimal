@@ -673,7 +673,7 @@ namespace TEventExt_dummy
 					result = false;
 				else
 				{
-					auto const& nVec = ReverseEngineeredTechnoType(Args.Owner);
+					auto const& nVec = HouseExt::ExtMap.Find(Args.Owner)->Reversed;
 
 					result = std::any_of(nVec.begin(), nVec.end(), [&](TechnoTypeClass* pTech)
 						{ return pTech == TEventExt::ExtMap.Find(pThis)->GetTechnoType(); });
@@ -799,7 +799,7 @@ namespace TActionExt_dummy
 		if (!pDecidedHouse)
 			return false;
 
-		AuxPower(pDecidedHouse) += pAction->Value2;
+		HouseExt::ExtMap.Find(pDecidedHouse)->AuxPower += pAction->Value2;
 		pDecidedHouse->RecheckPower = true;
 		return true;
 	}

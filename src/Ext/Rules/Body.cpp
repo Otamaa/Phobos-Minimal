@@ -159,9 +159,13 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 			pData->AllowBypassBuildLimit[diffIdx] = temp[i];
 		}
 	}
+
+	for(auto pBld : *BuildingTypeClass::Array) {
+		BuildingTypeExt::ExtMap.Find(pBld)->CompleteInitialization();
+	}
 }
 
-DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
+DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 {	// create an array of crew for faster lookup
 	std::vector<InfantryTypeClass*> Crews(SideClass::Array->Count, nullptr);
 	for (int i = 0; i < SideClass::Array->Count; ++i)
@@ -170,7 +174,36 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	for (auto const pItem : *TechnoTypeClass::Array)
 	{
 		const auto isFoot = pItem->WhatAmI() != AbstractType::BuildingType;
-		auto pExt = TechnoTypeExt::ExtMap.Find(pItem);
+		const auto pExt = TechnoTypeExt::ExtMap.Find(pItem);
+
+		if(isFoot && !pExt->IsDummy && pItem->SpeedType == SpeedType::None) {
+			Debug::Log("[%s]SpeedType is invalid!\n",
+				pItem->ID);
+		}
+
+		if(isFoot && !pExt->IsDummy && pItem->MovementZone == MovementZone::None) {
+			Debug::Log("[%s]MovementZone is invalid!\n",
+				pItem->ID);
+		}
+
+		if(pItem->Passengers > 0 && pItem->SizeLimit < 1) {
+			Debug::Log("[%s]Passengers=%d and SizeLimit=%d!\n",
+				pItem->ID, pItem->Passengers, pItem->SizeLimit);
+		}
+
+		if(pItem->PoweredUnit && !pExt->PoweredBy.empty()) {
+			Debug::Log("[%s] uses both PoweredUnit=yes and PoweredBy=!\n", pItem->ID);
+			pItem->PoweredUnit = false;
+		}
+
+		if(auto const pPowersUnit = pItem->PowersUnit) {
+			auto const pExtraData = TechnoTypeExt::ExtMap.Find(pPowersUnit);
+			if(!pExtraData->PoweredBy.empty()) {
+				Debug::Log("[%s]PowersUnit=%s, but [%s] uses PoweredBy=!\n",
+					pItem->ID, pPowersUnit->ID, pPowersUnit->ID);
+				pItem->PowersUnit = nullptr;
+			}
+		}
 
 		// if empty, set survivor pilots to the corresponding side's Crew
 		{
@@ -183,12 +216,34 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			}
 		}
 
+		for(int k = static_cast<int>(pExt->ClonedAt.size()) - 1; k >= 0; --k) {
+			auto const pCloner = pExt->ClonedAt[k];
+			if(pCloner->Factory != AbstractType::None) {
+				pExt->ClonedAt.erase(pExt->ClonedAt.begin() + k);
+				Debug::Log("[%s]ClonedAt includes %s, but %s has Factory= settings. "
+					"This combination is not supported.\n(Protip: Factory= is "
+					"not what controls unit exit behaviour, WeaponsFactory= "
+					"and GDI/Nod/YuriBarracks= is.)\n", pItem->ID, pCloner->ID,
+					pCloner->ID);
+			}
+		}
+
 		if(isFoot) {
 			for (auto const pSuper : *SuperWeaponTypeClass::Array) {
 				auto pSuperExt = SWTypeExt::ExtMap.Find(pSuper);
 
 				if (!pSuperExt->Aux_Techno.empty() && pSuperExt->Aux_Techno.Contains(pItem))
 					pExt->Linked_SW.push_back(pSuper);
+			}
+		}
+		else
+		{
+			auto const pBItem = static_cast<BuildingTypeClass*>(pItem);
+			auto const pBExt = BuildingTypeExt::ExtMap.Find(pBItem);
+			if(pBExt->CloningFacility && pBItem->Factory != AbstractType::None) {
+				pBExt->CloningFacility = false;
+				Debug::Log("[%s] cannot have both CloningFacility= and Factory=.\n",
+				pItem->ID);
 			}
 		}
 	}
@@ -213,6 +268,48 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		});
 	});
 
+	for(auto const pBType : *BuildingTypeClass::Array) {
+		auto const techLevel = pBType->TechLevel;
+		if(techLevel < 0 || techLevel > RulesClass::Instance->TechLevel) {
+			continue;
+		}
+		if(pBType->BuildCat == BuildCat::DontCare) {
+			pBType->BuildCat = ((pBType->SuperWeapon != -1) || pBType->IsBaseDefense || pBType->Wall)
+				? BuildCat::Combat : BuildCat::Infrastructure;
+			auto const catName = (pBType->BuildCat == BuildCat::Combat)
+				? "Combat" : "Infrastructure";
+			Debug::Log("Building Type [%s] does not have a valid BuildCat set!\n"
+					   "It was reset to %s, but you should really specify it "
+				       "explicitly.\n", pBType->ID, catName);
+		}
+	}
+
+	for(auto const& pItem : *WeaponTypeClass::Array) {
+		constexpr auto const Msg =
+			"Weapon[%s] has no %s! This usually indicates one of two things:\n"
+			"- The weapon was created too late and its rules weren't read "
+			"(see WEEDGUY hack);\n- The weapon's name was misspelled.\n";
+
+		if(!pItem->Warhead) {
+			Debug::Log(Msg, pItem->ID, "Warhead");
+		}
+
+		if(!pItem->Projectile) {
+			Debug::Log(Msg, pItem->ID, "Projectile");
+		}
+	}
+
+	for(auto const& pConst : RulesClass::Instance->BuildConst) {
+		if(!pConst->AIBuildThis) {
+			Debug::Log("[AI]BuildConst= includes [%s], which doesn't have "
+				"AIBuildThis=yes!\n", pConst->ID);
+		}
+	}
+
+	if(OverlayTypeClass::Array->Count > 255) {
+		Debug::Log("Only 255 OverlayTypes are supported.\n");
+	}
+
 	return 0x0;
 }
 
@@ -225,13 +322,31 @@ void RulesExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
 	//Allocate Default bullet
-	//int len = pINI->GetKeyCount("Projectiles");
-	//for (int i = 0; i < len; ++i) {
-	//	const char* key = pINI->GetKeyName("Projectiles", i);
-	//	if (pINI->ReadString("Projectiles", key, "", Phobos::readBuffer)) {
-	//		BulletTypeClass::FindOrAllocate(Phobos::readBuffer);
+	constexpr std::array<const char*, 3u> sections =
+	{{
+		{ "WeaponTypes" } , { "Projectiles" } , { "Warheads" }
+	}};
+
+	//int lenw = pINI->GetKeyCount(sections[0]);
+	//for (int i = 0; i < lenw; ++i) {
+	//	const char *key = pINI->GetKeyName(sectionWeapon, i);
+	//	if (pINI->ReadString(sectionWeapon, key, Phobos::readDefval, Phobos::readBuffer)) {
+	//		WeaponTypeClass::FindOrAllocate(Phobos::readBuffer);
 	//	}
 	//}
+	int lenp = pINI->GetKeyCount(sections[1]);
+	for (int i = 0; i < lenp; ++i) {
+		const char* key = pINI->GetKeyName(sections[1], i);
+		if (pINI->ReadString(sections[1], key, Phobos::readDefval, Phobos::readBuffer)) {
+			BulletTypeClass::FindOrAllocate(Phobos::readBuffer);
+		}
+	}
+
+	if(pINI == CCINIClass::INI_Rules()){
+		for (auto& pSect : sections) {
+			Debug::Log("Reading [%s] with key count [%d]\n", pSect, pINI->GetKeyCount(pSect));
+		}
+	}
 
 	BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
 	GenericPrerequisite::LoadFromINIList_New(pINI);
@@ -239,6 +354,14 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	INI_EX exINI(pINI);
 
 #pragma region Otamaa
+	this->TogglePowerAllowed.Read(exINI, GENERAL_SECTION, "TogglePowerAllowed");
+	this->TogglePowerDelay.Read(exINI, GENERAL_SECTION, "TogglePowerDelay");
+	this->TogglePowerIQ.Read(exINI, "IQ", "TogglePower");
+
+	this->DegradeEnabled.Read(exINI, GENERAL_SECTION, "Degrade.Enabled");
+	this->DegradePercentage.Read(exINI, GENERAL_SECTION, "Degrade.Percentage");
+	this->DegradeAmountNormal.Read(exINI, GENERAL_SECTION, "Degrade.AmountNormal");
+	this->DegradeAmountConsumer.Read(exINI, GENERAL_SECTION, "Degrade.AmountConsumer");
 
 	this->AllowParallelAIQueues.Read(exINI, GLOBALCONTROLS_SECTION, "AllowParallelAIQueues");
 	this->ForbidParallelAIQueues_Infantry.Read(exINI, GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Infantry");
@@ -663,6 +786,15 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->EMPAIRecoverMission)
 		.Process(this->TimerBlinkColorScheme)
 		.Process(this->AllowBypassBuildLimit)
+
+		.Process(this->DegradeEnabled)
+		.Process(this->DegradePercentage)
+		.Process(this->DegradeAmountNormal)
+		.Process(this->DegradeAmountConsumer)
+
+		.Process(this->TogglePowerAllowed)
+		.Process(this->TogglePowerDelay)
+		.Process(this->TogglePowerIQ)
 		;
 
 	MyPutData.Serialize(Stm);
@@ -889,6 +1021,32 @@ void NAKED RulesClass_Process_SpecialWeapon_RemoveWHReadingDuplicate_RET() {
 
 DEFINE_HOOK(0x669193, RulesClass_Process_SpecialWeapon_RemoveWHReadingDuplicate, 0x9) {
 	return (int)RulesClass_Process_SpecialWeapon_RemoveWHReadingDuplicate_RET;
+}
+
+// Ensure entry not fail because of late instantiation
+// add more if needed , it will double the error log at some point but
+// it will take care some of missing stuffs that previousely loaded late
+DEFINE_HOOK(0x679C92, RulesClass_ReadObject_ReReadStuffs, 7)
+{
+	GET_STACK(CCINIClass*, pINI, 0xC + 0x4);
+
+	for (auto pWeapon : *WeaponTypeClass::Array) {
+		pWeapon->LoadFromINI(pINI);
+	}
+
+	for (auto pBullet : *BulletTypeClass::Array) {
+		pBullet->LoadFromINI(pINI);
+	}
+
+	for (auto pWarhead : *WarheadTypeClass::Array) {
+		pWarhead->LoadFromINI(pINI);
+	}
+
+	for (auto pAnims : *AnimTypeClass::Array) {
+		pAnims->LoadFromINI(pINI);
+	}
+
+	return 0x0;
 }
 
 //DEFINE_JUMP(LJMP, 0x66919B, 0x6691B7); // remove reading warhead from `SpecialWeapon`

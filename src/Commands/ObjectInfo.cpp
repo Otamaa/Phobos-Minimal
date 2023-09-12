@@ -340,6 +340,10 @@ void ObjectInfoCommandClass::Execute(WWKey eInput) const
 				if (const auto pOverlay = OverlayTypeClass::Array->GetItemOrDefault(nOverlay))
 				{
 					Append(buffer, "[%d]OverlayType is %s\n", nOverlay, pOverlay->ID);
+
+					const auto tibIdx = pCell->GetContainedTiberiumIndex();
+					if(tibIdx != -1)
+						Append(buffer, "[%d]TiberiumType is %s\n", tibIdx, TiberiumClass::Array->GetItem(tibIdx)->ID);
 				}
 
 				if (auto pTerrain = pCell->GetTerrain(false))

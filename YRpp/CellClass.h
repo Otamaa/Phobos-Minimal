@@ -260,6 +260,7 @@ public:
 		{ JMP_THIS(0x480510); }
 
 	// returns the tiberium's index in OverlayTypes
+	// return -1 if invalid
 	int GetContainedTiberiumIndex() const
 		{ JMP_THIS(0x485010); }
 

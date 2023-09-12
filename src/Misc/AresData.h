@@ -121,59 +121,50 @@ class cPrismForwarding
 //#define GetCloakSkipTimer(techno) (*(CDTimerClass*)(((char*)GetAresTechnoExt(techno)) + 0x44))
 
 // HouseExt
-#define Is_NavalYardSpied(var) (*(bool*)((char*)GetAresHouseExt(var) + 0x48))
-#define Is_AirfieldSpied(var) (*(bool*)((char*)GetAresHouseExt(var) + 0x49))
-#define Is_BuildingProductionSpied(var) (*(bool*)((char*)GetAresHouseExt(var) + 0x4A))
-#define RadarPresist(var) (*(IndexBitfield<HouseClass*>*)((char*)GetAresHouseExt(var) + 0x44))
-#define StolenTechnoType(var) (*(std::bitset<32>*)((char*)GetAresHouseExt(var) + 0x40))
-#define AuxPower(var) (*(int*)((char*)GetAresHouseExt(var) + 0xC))
-#define BatteryCount(var) (*(int*)((char*)GetAresHouseExt(var) + 0x10))
+//#define Is_NavalYardSpied(var) (*(bool*)((char*)GetAresHouseExt(var) + 0x48))
+//#define Is_AirfieldSpied(var) (*(bool*)((char*)GetAresHouseExt(var) + 0x49))
+//#define Is_BuildingProductionSpied(var) (*(bool*)((char*)GetAresHouseExt(var) + 0x4A))
+//#define RadarPresist(var) (*(IndexBitfield<HouseClass*>*)((char*)GetAresHouseExt(var) + 0x44))
+//#define StolenTechnoType(var) (*(std::bitset<32>*)((char*)GetAresHouseExt(var) + 0x40))
+//#define AuxPower(var) (*(int*)((char*)GetAresHouseExt(var) + 0xC))
+//#define BatteryCount(var) (*(int*)((char*)GetAresHouseExt(var) + 0x10))
 #define KeepAlivesCount(var) (*(int*)((char*)GetAresHouseExt(var) + 0x18))
 #define KeepAlivesBuildingCount(var) (*(int*)((char*)GetAresHouseExt(var) + 0x1C))
 
 // BldTypeExt
 //#define Is_FirestromWall(techno) (*(bool*)((char*)GetAresBuildingTypeExt(techno) + 0x5D))
-#define Is_Passable(techno) (*(bool*)((char*)GetAresBuildingTypeExt(techno) + 0x5E))
+//#define Is_Passable(techno) (*(bool*)((char*)GetAresBuildingTypeExt(techno) + 0x5E))
 //#define TunnelIdx(var) (*(int*)(((char*)GetAresBuildingTypeExt(var)) + 0x244))
-#define Is_Academy(var) (*(bool*)((char*)GetAresBuildingTypeExt(var) + 0x138))
-#define ShowMoneyAmount(var) (*(bool*)((char*)GetAresBuildingTypeExt(var) + 0x22E))
-//
+//#define Is_Academy(var) (*(bool*)((char*)GetAresBuildingTypeExt(var) + 0x138))
+//#define ShowMoneyAmount(var) (*(bool*)((char*)GetAresBuildingTypeExt(var) + 0x22E))
+
+//BuildingExt
 //#define OwnerBeforeRaid(var) (*(HouseClass**)(((char*)GetAresBuildingExt(var)) + 0x8))
-#define FreeUnitDone(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0xC))
-#define Ares_AboutToChronoshift(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0xD))
-#define Is_FromSW(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0xE))
-#define ToggalePowerHasPower(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0x51))
-#define ProduceCashTimers1(var) (*(CDTimerClass*)((char*)GetAresBuildingExt(var) + 0x54))
-#define ProduceCashTimers2(var) (*(CDTimerClass*)((char*)GetAresBuildingExt(var) + 0x60))
-#define ProduceCashTimers3(var) (*(CDTimerClass*)((char*)GetAresBuildingExt(var) + 0x6C))
+//#define FreeUnitDone(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0xC))
+//#define Ares_AboutToChronoshift(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0xD))
+//#define Is_FromSW(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0xE))
+//#define ToggalePowerHasPower(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0x51))
+//#define ProduceCashTimers1(var) (*(CDTimerClass*)((char*)GetAresBuildingExt(var) + 0x54))
+//#define ProduceCashTimers2(var) (*(CDTimerClass*)((char*)GetAresBuildingExt(var) + 0x60))
+//#define ProduceCashTimers3(var) (*(CDTimerClass*)((char*)GetAresBuildingExt(var) + 0x6C))
 
 //
-#define GetSelfHealingDleayAmount(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x4A8))
+//#define GetSelfHealingDleayAmount(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x4A8))
 #define GetNoSpawnAlt(var) (*(VoxelStruct**)(((char*)GetAresTechnoTypeExt(var)) + 0x1E0))
-#define GetCursorDeploy(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x590))
-#define GetCursorNoDeploy(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x594))
-#define GetCursorMove(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x5A0))
-#define GetCursorNoMove(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x5A4))
-#define GetCursorEnter(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x598))
-#define GetCursorNoEnter(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x59C))
-#define GetCameoPCXSurface(var) (*(BSurface**)(((char*)GetAresTechnoTypeExt(var)) + 0x228))
-#define GetCameoPCXSurfaceElite(var) (*(BSurface**)(((char*)GetAresTechnoTypeExt(var)) + 0x24C))
-#define GetCameoSHPConvert(var) (*(ConvertClass**)(((char*)GetAresTechnoTypeExt(var)) + 0x120))
+//#define GetCursorDeploy(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x590))
+//#define GetCursorNoDeploy(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x594))
+//#define GetCursorMove(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x5A0))
+//#define GetCursorNoMove(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x5A4))
+//#define GetCursorEnter(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x598))
+//#define GetCursorNoEnter(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x59C))
+//#define GetCameoPCXSurface(var) (*(BSurface**)(((char*)GetAresTechnoTypeExt(var)) + 0x228))
+//#define GetCameoPCXSurfaceElite(var) (*(BSurface**)(((char*)GetAresTechnoTypeExt(var)) + 0x24C))
+//#define GetCameoSHPConvert(var) (*(ConvertClass**)(((char*)GetAresTechnoTypeExt(var)) + 0x120))
 //
-#define Is_MaliciousWH(wh) (*(bool*)((((char*)GetAresAresWarheadTypeExt(wh)) + 0x75)))
-#define GetSonarDur(wh) (*(int*)(((char*)GetAresAresWarheadTypeExt(wh)) + 0xF8))
-#define GetDisableWeaponDur(wh) (*(int*)(((char*)GetAresAresWarheadTypeExt(wh)) + 0xFC))
-#define GetFlashDuration(wh) (*(int*)(((char*)GetAresAresWarheadTypeExt(wh)) + 0x100))
-
-enum class NewFactoryState
-{
-	NoFactory = 0, // there is no factory building for this
-	NotFound = 1, //
-	Unpowered = 2, //
-	Available_Alternative = 3, // Ares 3.0
-	Available_Primary = 4 // Ares 3.0
-};
-
+//#define Is_MaliciousWH(wh) (*(bool*)((((char*)GetAresAresWarheadTypeExt(wh)) + 0x75)))
+//#define GetSonarDur(wh) (*(int*)(((char*)GetAresAresWarheadTypeExt(wh)) + 0xF8))
+//#define GetDisableWeaponDur(wh) (*(int*)(((char*)GetAresAresWarheadTypeExt(wh)) + 0xFC))
+//#define GetFlashDuration(wh) (*(int*)(((char*)GetAresAresWarheadTypeExt(wh)) + 0x100))
 
 struct AresFactoryStateRet
 {
@@ -202,41 +193,41 @@ struct AresData
 
 	// here be known Ares functions
 	static bool ConvertTypeTo(TechnoClass* pFoot, TechnoTypeClass* pConvertTo);
-	static void SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller, const bool Select, const bool IgnoreDefenses);
+	//static void SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller, const bool Select, const bool IgnoreDefenses);
 	static void RecalculateStat(TechnoClass* const pTechno);
-	static bool ReverseEngineer(BuildingClass* const pBld, TechnoTypeClass* const pTechnoType);
-	static Action GetInfActionOverObject(InfantryClass* const pInf, BuildingClass* const pBld);
+	//static bool ReverseEngineer(BuildingClass* const pBld, TechnoTypeClass* const pTechnoType);
+	//static Action GetInfActionOverObject(InfantryClass* const pInf, BuildingClass* const pBld);
 	static void SetMouseCursorAction(size_t CursorIdx, Action nAction, bool bShrouded);
-	static CanBuildResult PrereqValidate(HouseClass* const pHouse, TechnoTypeClass* const pItem, bool const buildLimitOnly, bool const includeQueued);
+	//static CanBuildResult PrereqValidate(HouseClass* const pHouse, TechnoTypeClass* const pItem, bool const buildLimitOnly, bool const includeQueued);
 	static bool SW_Activate(SuperClass* pSuper, CellStruct cell, bool isPlayer);
-	static void TechnoExt_ExtData_DepositTiberium(TechnoClass* const pTechno, float const amount, float const bonus, int const idxType);
-	static void HouseExt_ExtData_ApplyAcademy(HouseClass* const pThis, TechnoClass* const pTarget, AbstractType Type);
+	//static void TechnoExt_ExtData_DepositTiberium(TechnoClass* const pTechno, float const amount, float const bonus, int const idxType);
+	//static void HouseExt_ExtData_ApplyAcademy(HouseClass* const pThis, TechnoClass* const pTarget, AbstractType Type);
 	static VoxelStruct* GetTurretsVoxel(TechnoTypeClass* const pThis, int index);
 	static VoxelStruct* GetBarrelsVoxel(TechnoTypeClass* const pThis, int index);
 	static void TechnoTransferAffects(TechnoClass* const pFrom, TechnoClass* const pTo);
-	static bool IsGenericPrerequisite(TechnoTypeClass* const pThis);
-	static int GetSelfHealAmount(TechnoClass* const pTechno);
+	//static bool IsGenericPrerequisite(TechnoTypeClass* const pThis);
+	//static int GetSelfHealAmount(TechnoClass* const pTechno);
 
 	//static bool IsOperated(TechnoClass* const pTechno);
 	//static bool IsPowered(TechnoClass* pThis);
 
-	static ConvertClass* GetBulletTypeConvert(BulletTypeClass* pThis);
+	//static ConvertClass* GetBulletTypeConvert(BulletTypeClass* pThis);
 	static void WarheadTypeExt_ExtData_ApplyKillDriver(WarheadTypeClass* pThis, TechnoClass* const pAttacker, TechnoClass* const pVictim);
 	static void MouseCursorTypeLoadDefault();
 
-	static AresFactoryStateRet* HouseExt_HasFactory(AresFactoryStateRet* nBuff, HouseClass const* const Owner, TechnoTypeClass const* const pType, bool bSkipAircraft, bool bRequirePower, bool bCheckCanBuild, bool a7);
-	static int HouseExt_GetBuildLimitRemaining(HouseClass const* const Owner, TechnoTypeClass const* const pType);
-	static int NOINLINE CallAresBuildingClass_Infiltrate(REGISTERS* R);
-	static int NOINLINE CallAresArmorType_FindIndex(REGISTERS* R);
+	//static AresFactoryStateRet* HouseExt_HasFactory(AresFactoryStateRet* nBuff, HouseClass const* const Owner, TechnoTypeClass const* const pType, bool bSkipAircraft, bool bRequirePower, bool bCheckCanBuild, bool a7);
+	//static int HouseExt_GetBuildLimitRemaining(HouseClass const* const Owner, TechnoTypeClass const* const pType);
+	//static int NOINLINE CallAresBuildingClass_Infiltrate(REGISTERS* R);
+	//static int NOINLINE CallAresArmorType_FindIndex(REGISTERS* R);
 
-	static std::vector<FootClass*>* GetTunnelArray(BuildingTypeClass* const pBld, HouseClass* const pOwner);
+	//static std::vector<FootClass*>* GetTunnelArray(BuildingTypeClass* const pBld, HouseClass* const pOwner);
 	static void UpdateAEData(AresTechnoExt::AEData* const pAE);
 	static void JammerClassUnjamAll(AresTechnoExt::JammerClass* const pJamm);
 	static void CPrismRemoveFromNetwork(cPrismForwarding* const pThis , bool bCease);
 
-	static void applyIonCannon(WarheadTypeClass* pWH, CoordStruct* pTarget);
-	static bool applyPermaMC(WarheadTypeClass* pWH, HouseClass* pOwner, AbstractClass* pTarget);
-	static void applyIC(WarheadTypeClass* pWH, CoordStruct* pTarget, HouseClass* pOwner, int Damage);
+	//static void applyIonCannon(WarheadTypeClass* pWH, CoordStruct* pTarget);
+	//static bool applyPermaMC(WarheadTypeClass* pWH, HouseClass* pOwner, AbstractClass* pTarget);
+	//static void applyIC(WarheadTypeClass* pWH, CoordStruct* pTarget, HouseClass* pOwner, int Damage);
 	static void applyEMP(WarheadTypeClass* pWH, CoordStruct* pTarget, TechnoClass* pOwner);
 	static void applyAE(WarheadTypeClass* pWH, CoordStruct* pTarget, HouseClass* pOwner);
 
@@ -251,30 +242,30 @@ struct AresData
 	static bool RemoveAE(AresTechnoExt::AEData* pAE);
 
 	static void FlyingStringsAdd(TechnoClass* pTech, bool bSomething);
-	static void CalculateBounty(TechnoClass* pThis, TechnoClass* pKiller);
+	//static void CalculateBounty(TechnoClass* pThis, TechnoClass* pKiller);
 	static void SetSpotlight(TechnoClass* pThis , BuildingLightClass* pSpotlight);
 
 	static bool IsDriverKillable(TechnoClass* pThis, double tresh);
 	static bool KillDriverCore(TechnoClass* pThis, HouseClass* pToHouse, TechnoClass* pKiller, bool removeVet);
-	static void FireIronCurtain(TeamClass* pTeam, ScriptActionNode* pNode , bool ntrhd);
+	//static void FireIronCurtain(TeamClass* pTeam, ScriptActionNode* pNode , bool ntrhd);
 	static void RespondToFirewall(HouseClass* pHouse, bool Active);
-	static int RequirementsMet(HouseClass* pHouse , TechnoTypeClass* pTech);
-	static void UpdateAcademy(HouseClass* pThis, TechnoClass* pTechno, bool bAdded);
+	//static RequirementStatus RequirementsMet(HouseClass* pHouse , TechnoTypeClass* pTech);
+	//static void UpdateAcademy(HouseClass* pThis, TechnoClass* pTechno, bool bAdded);
 
-	static void* Ares_SWType_ExtMap_Find(SuperWeaponTypeClass* pType);
+	//static void* Ares_SWType_ExtMap_Find(SuperWeaponTypeClass* pType);
 	static void SetSWMouseCursorAction(size_t CursorIdx, bool bShrouded, int nAction);
 
-	static void BuildingExt_UpdateDisplayTo(BuildingClass* pFor);
+	//static void BuildingExt_UpdateDisplayTo(BuildingClass* pFor);
 
 	static int* TechnoTypeExt_GetTurretWeaponIdx(TechnoTypeClass* pThis, int idx);
 	static bool TechnoTypeExt_CameoIsElite(TechnoTypeClass* pThis, HouseClass* Owner);
 
-	static Action TechnoExt_GetActionHijack(TechnoClass* pThis, TechnoClass* pTarget);
+	//static Action TechnoExt_GetActionHijack(TechnoClass* pThis, TechnoClass* pTarget);
 
 	static void AresNetEvent_Handlers_RespondToFirewallToggle(HouseClass* pFor, bool Activate);
 	static WeaponStruct* GetWeapon(TechnoTypeClass* pType, int idx, bool Elite);
 
-	static void SetFactoryPlans(BuildingClass* pBld);
+	//static void SetFactoryPlans(BuildingClass* pBld);
 };
 
 namespace AresMemory
@@ -398,14 +389,14 @@ struct AresDTORCaller
 
 #define Debug_bTrackParseErrors (*((bool*)(AresData::AresStaticInstanceFinal[3])))
 #define IsAnySFWActive (*((bool*)(AresData::AresStaticInstanceFinal[4])))
-#define EvaTypes (*((std::vector<const char*, AresMemory::AresAllocator<const char*>>*)(AresData::AresStaticInstanceFinal[5])))
+//#define EvaTypes (*((std::vector<const char*, AresMemory::AresAllocator<const char*>>*)(AresData::AresStaticInstanceFinal[5])))
 #define RegisteredJammers(techno) (*(PhobosMap<TechnoClass*, bool, AresMemory::AresAllocator<std::pair<TechnoClass*,bool>>>*)(((char*)GetAresBuildingExt(techno)) + 0x40))
 #define PrimsForwardingPtr(techno) (*(cPrismForwarding*)(((char*)GetAresBuildingExt(techno)) + 0x10))
 #define GetGunnerName(var) (*(std::vector<CSFText,AresMemory::AresAllocator<CSFText>>*)(((char*)GetAresTechnoTypeExt(var)) + 0xC8))
-#define GetPilotTypeVec(var) (*(std::vector<InfantryTypeClass*,AresMemory::AresAllocator<InfantryTypeClass*>>*)(((char*)GetAresTechnoTypeExt(var)) + 0x8))
-#define ReverseEngineeredTechnoType(var) (*(std::vector<TechnoTypeClass*,AresMemory::AresAllocator<TechnoTypeClass*>>*)((char*)GetAresHouseExt(var) + 0x34))
-#define VeteranBuildings(var) (*(std::vector<BuildingTypeClass*,AresMemory::AresAllocator<BuildingTypeClass*>>*)((char*)GetAresHouseTypeExt(var) + 0x15C))
-#define OverpoweredBuildingType(var) (*(std::vector<BuildingTypeClass*,AresMemory::AresAllocator<BuildingTypeClass*>>*)((char*)GetAresHouseExt(var) + 0x7C))
+//#define GetPilotTypeVec(var) (*(std::vector<InfantryTypeClass*,AresMemory::AresAllocator<InfantryTypeClass*>>*)(((char*)GetAresTechnoTypeExt(var)) + 0x8))
+//#define ReverseEngineeredTechnoType(var) (*(std::vector<TechnoTypeClass*,AresMemory::AresAllocator<TechnoTypeClass*>>*)((char*)GetAresHouseExt(var) + 0x34))
+//#define VeteranBuildings(var) (*(std::vector<BuildingTypeClass*,AresMemory::AresAllocator<BuildingTypeClass*>>*)((char*)GetAresHouseTypeExt(var) + 0x15C))
+//#define OverpoweredBuildingType(var) (*(std::vector<BuildingTypeClass*,AresMemory::AresAllocator<BuildingTypeClass*>>*)((char*)GetAresHouseExt(var) + 0x7C))
 //#define GetDefaultTargetingArrayValue() (*((std::array<const AITargetingModeInfo , (size_t)SuperWeaponAITargetingMode::count>*)(AresData::AresStaticInstanceFinal[6])))
 #define SW_Firewall_Type (*((SuperWeaponType*)(AresData::AresStaticInstanceFinal[7])))
 #define Ares_CurrentSWType (*((SuperWeaponTypeClass**)(AresData::AresStaticInstanceFinal[8])))

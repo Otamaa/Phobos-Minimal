@@ -10,6 +10,119 @@
 #include <New/Entity/FlyingStrings.h>
 #include <Misc/AresData.h>
 
+// Assigns a secret production option to the building.
+void BuildingExt::UpdateSecretLab(BuildingClass* pThis)
+{
+	auto pOwner = pThis->Owner;
+
+	if (!pOwner || pOwner->Type->MultiplayPassive) {
+		return;
+	}
+
+	auto pExt = BuildingExt::ExtMap.Find(pThis);
+	auto pType = pThis->Type;
+
+	// fixed item, no need to randomize
+	if (pType->SecretInfantry || pType->SecretUnit || pType->SecretBuilding)
+	{
+		Debug::Log("[Secret Lab] %s has a fixed boon.\n", pType->ID);
+		return;
+	}
+
+	auto pData = BuildingTypeExt::ExtMap.Find(pType);
+
+	// go on if not placed or always recalculate on capture
+	if (pExt->SecretLab_Placed && !pData->Secret_RecalcOnCapture) {
+		return;
+	}
+
+	std::vector<TechnoTypeClass*> Options;
+
+	auto AddToOptions = [pOwner, &Options](const Iterator<TechnoTypeClass*>& items)
+		{
+			auto OwnerBits = 1u << pOwner->Type->ArrayIndex;
+
+			for (const auto& Option : items)
+			{
+				auto pExt = TechnoTypeExt::ExtMap.Find(Option);
+
+				if ((pExt->Secret_RequiredHouses & OwnerBits) && !(pExt->Secret_ForbiddenHouses & OwnerBits))
+				{
+					switch (HouseExt::RequirementsMet(pOwner, Option))
+					{
+					case RequirementStatus::Forbidden:
+					case RequirementStatus::Incomplete:
+						Options.emplace_back(Option);
+					}
+				}
+			}
+		};
+
+	// generate a list of items
+	if (pData->Secret_Boons.HasValue())
+	{
+		AddToOptions(pData->Secret_Boons);
+	}
+	else
+	{
+		AddToOptions(make_iterator(RulesClass::Instance->SecretInfantry));
+		AddToOptions(make_iterator(RulesClass::Instance->SecretUnits));
+		AddToOptions(make_iterator(RulesClass::Instance->SecretBuildings));
+	}
+
+	// pick one of all eligible items
+	if (Options.size() > 0)
+	{
+		auto Result = Options[ScenarioClass::Instance->Random.RandomFromMax(Options.size() - 1)];
+		Debug::Log("[Secret Lab] rolled %s for %s\n", Result->ID, pType->ID);
+		pThis->SecretProduction = Result;
+		pExt->SecretLab_Placed = true;
+	}
+	else
+	{
+		Debug::Log("[Secret Lab] %s has no boons applicable to country [%s]!\n",
+			pType->ID, pOwner->Type->ID);
+	}
+}
+
+bool BuildingExt::ReverseEngineer(BuildingClass* pBuilding, TechnoClass* Victim)
+{
+	const auto pReverseData = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+	if (!pReverseData->ReverseEngineersVictims || !pBuilding->Owner) {
+		return false;
+	}
+
+	auto VictimType = Victim->GetTechnoType();
+	auto pVictimData = TechnoTypeExt::ExtMap.Find(VictimType);
+	auto VictimAs = pVictimData->ReversedAs.Get(VictimType);
+
+	if (!pVictimData->CanBeReversed || !VictimAs)
+		return false;
+
+	const auto pBldOwner = pBuilding->Owner;
+	auto pBldOwnerExt = HouseExt::ExtMap.Find(pBldOwner);
+
+	if (!pBldOwnerExt->Reversed.contains(VictimAs))
+	{
+		const bool WasBuildable =
+			HouseExt::PrereqValidate(pBldOwner, VictimType, false, true) == CanBuildResult::Buildable;
+
+		pBldOwnerExt->Reversed.push_back(VictimAs);
+
+		if (!WasBuildable) {
+
+			if (HouseExt::RequirementsMet(pBldOwner, VictimType) != RequirementStatus::Forbidden)
+			{
+				pBldOwner->RecheckTechTree = true;
+				return true;
+			}
+		}
+
+	}
+
+	return false;
+}
+
 void BuildingExt::ApplyLimboKill(ValueableVector<int>& LimboIDs, Valueable<AffectedHouse>& Affects, HouseClass* pTargetHouse, HouseClass* pAttackerHouse)
 {
 	if (!pAttackerHouse || !pTargetHouse || LimboIDs.empty())
@@ -318,7 +431,7 @@ void BuildingExt::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 	}
 
 	// Obtain a list of air factories for optimizing the comparisons
-	for (auto pBuilding : pOwner->Buildings)
+	for (auto& pBuilding : pOwner->Buildings)
 	{
 		if
 		(
@@ -327,7 +440,7 @@ void BuildingExt::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 			&& pBuilding->Health > 0
 			&& !pBuilding->InLimbo
 			&& !pBuilding->TemporalTargetingMe
-			&& !Ares_AboutToChronoshift(pBuilding)
+			&& !BuildingExt::ExtMap.Find(pBuilding)->AboutToChronoshift
 		)
 		{
 			if (!currFactory && pBuilding->Factory)
@@ -559,6 +672,14 @@ void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int
 	{
 		auto const pBuildingExt = BuildingExt::ExtMap.Find(pBuilding);
 
+		HouseExt::UpdateFactoryPlans(pBuilding);
+
+		if (BuildingTypeExt::ExtMap.Find(pType)->Academy)
+			HouseExt::ExtMap.Find(pOwner)->UpdateAcademy(pBuilding, true);
+
+		if (pType->SecretLab)
+			BuildingExt::UpdateSecretLab(pBuilding);
+
 		pBuildingExt->LimboID = ID;
 		pBuildingExt->TechnoExt->Shield.release();
 		pBuildingExt->TechnoExt->Trails.clear();
@@ -597,12 +718,15 @@ void BuildingExt::LimboKill(BuildingClass* pBuilding)
 
 	// Mandatory
 	pBuilding->InLimbo = true;
-	pBuilding->IsAlive = false;
+	//pBuilding->IsAlive = false;
 	pBuilding->IsOnMap = false;
 	pTargetHouse->UpdatePower();
 
 	if (!pTargetHouse->RecheckTechTree)
 		pTargetHouse->RecheckTechTree = true;
+
+	if(BuildingTypeExt::ExtMap.Find(pType)->Academy)
+		HouseExt::ExtMap.Find(pTargetHouse)->UpdateAcademy(pBuilding, false);
 
 	pTargetHouse->RecheckPower = true;
 	pTargetHouse->RecheckRadar = true;
@@ -664,7 +788,7 @@ void BuildingExt::LimboKill(BuildingClass* pBuilding)
 	pTargetHouse->UpdateSuperWeaponsUnavailable();
 
 	// Remove completely
-	TechnoExt::HandleRemove(pBuilding, nullptr, true, true);
+	TechnoExt::HandleRemove(pBuilding, nullptr, true, false);
 }
 
 // =============================
@@ -699,6 +823,9 @@ void BuildingExt::ExtData::Serialize(T& Stm)
 		.Process(this->CashUpgradeTimers)
 		.Process(this->SensorArrayActiveCounter)
 		.Process(this->StartupCashDelivered)
+		.Process(this->SecretLab_Placed)
+		.Process(this->AboutToChronoshift)
+		.Process(this->IsFromSW)
 		;
 }
 

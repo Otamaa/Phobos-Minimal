@@ -44,6 +44,9 @@ public:
 		ValueableVector<BuildingTypeClass*> VeteranBuildings {};
 		PhobosFixedString<0x20> TauntFile {}; //Taunt filename format (should contain %d !!!)
 
+		Nullable<bool> Degrades {};
+		Nullable<InfantryTypeClass*> Disguise {};
+
 		ExtData(HouseTypeClass* OwnerObject) : Extension<HouseTypeClass>(OwnerObject)
 		{ }
 

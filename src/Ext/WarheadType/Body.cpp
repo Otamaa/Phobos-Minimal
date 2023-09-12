@@ -61,7 +61,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 		);
 	}
 
-	if (!pINI->GetSection(pSection)) {
+	if (parseFailAddr) {
 		return;
 	}
 

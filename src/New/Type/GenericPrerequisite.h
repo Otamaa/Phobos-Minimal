@@ -37,6 +37,7 @@ public:
 	static bool HouseOwnsAll(HouseClass const* pHouse, const DynamicVectorClass<int>& list);
 	static bool HouseOwnsAll(HouseClass const* pHouse, int* intitems, int intsize);
 	static bool HouseOwnsAny(HouseClass const* pHouse, const DynamicVectorClass<int>& list);
+	static bool HouseOwnsAny(HouseClass const* pHouse, int* intitems, int intsize);
 
 	static bool ListContainsGeneric(BuildingTypeClass** items, int size, int Index);
 	static bool ListContainsSpecific(BuildingTypeClass** items, int size, int Index);
