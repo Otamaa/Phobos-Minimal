@@ -3171,7 +3171,7 @@ DEFINE_OVERRIDE_HOOK(0x45F2B4, BuildingTypeClass_Load2DArt_BuildupTime, 5)
 DEFINE_OVERRIDE_HOOK(0x447a63, BuildingClass_QueueImageAnim_Sell, 3)
 {
 	GET(BuildingClass* const, pThis, ESI);
-	GET_BASE(int, frames, 8);
+	GET_BASE(int, frames, 0x8);
 
 	if (pThis->CurrentMission == Mission::Selling)
 	{
@@ -3182,7 +3182,7 @@ DEFINE_OVERRIDE_HOOK(0x447a63, BuildingClass_QueueImageAnim_Sell, 3)
 		R->EAX(frames);
 	}
 
-	R->EDI(pThis->Type);
+	R->EDX(pThis->Type);
 	return 0x447A6C;
 }
 
