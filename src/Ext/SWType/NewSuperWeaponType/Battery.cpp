@@ -17,10 +17,11 @@ bool SW_Battery::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 	auto pHouseExt = HouseExt::ExtMap.Find(pThis->Owner);
 
 	//this check prevent same SW activated multiple times
-	if(!pHouseExt->Batteries.contains(pThis))
+	if(!pHouseExt->Batteries.contains(pThis)) {
 		pHouseExt->Batteries.push_back(pThis);
 
-	pThis->Owner->RecheckPower = true;
+		pThis->Owner->RecheckPower = true;
+	}
 	return true;
 }
 
@@ -28,8 +29,8 @@ void SW_Battery::Deactivate(SuperClass* pSW, CellStruct cell, bool isPlayer)
 {
 	auto pHouseExt = HouseExt::ExtMap.Find(pSW->Owner);
 
-	pHouseExt->Batteries.remove(pSW);
-	pSW->Owner->RecheckPower = true;
+	if(pHouseExt->Batteries.remove(pSW))
+		pSW->Owner->RecheckPower = true;
 }
 
 void SW_Battery::Initialize(SWTypeExt::ExtData* pData)
