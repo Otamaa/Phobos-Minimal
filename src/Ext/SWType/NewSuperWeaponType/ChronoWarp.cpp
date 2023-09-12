@@ -86,7 +86,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 
 		// differentiate between buildings and vehicle-type buildings
 		bool IsVehicle = false;
-		if (auto const pBld = abstract_cast<BuildingClass*>(pTechno))
+		if (auto const pBld = specific_cast<BuildingClass*>(pTechno))
 		{
 			// always ignore bridge repair huts
 			if (pBld->Type->BridgeRepairHut)
@@ -248,7 +248,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 			pFoot->ChronoWarpedByHouse = pThis->Owner;
 			pFoot->SetDestination(pCellUnitTarget, true);
 		}
-		else if (auto const pBld = abstract_cast<BuildingClass*>(pTechno))
+		else if (auto const pBld = specific_cast<BuildingClass*>(pTechno))
 		{
 			// begin the building chronoshift
 			pBld->RemoveFromTargetingAndTeam();
