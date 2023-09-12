@@ -242,11 +242,9 @@ public:
 		Indexes->SampleCount = size;
 		Indexes->Samples = GameCreateArray<AudioIDXEntry>(size);
 
-		auto pEntry = Indexes->Samples;
 		int i = 0;
 		for (auto const& [entry, indx] : map) {
-			std::memcpy(&Indexes->Samples[i], &entry, sizeof(AudioIDXEntry));
-			++i;
+			std::memcpy(&Indexes->Samples[i++], &entry, sizeof(AudioIDXEntry));
 			//Debug::Log("Samples[%d] Name [%s]\n", i, entry.Name.data());
 			this->Files.emplace_back(indx, this->Bags[indx].Bag.get());
 		}
@@ -282,21 +280,20 @@ public:
 	}
 
 	bool GetFileStruct(FileStruct& file , int idx) {
-		if (size_t(idx) > this->Files.size())
-			return false;
 
-		auto& sample = AudioIDXData::Instance->Samples[idx];
-		auto pFile = this->Files[idx].second;
-		file = { sample.Size, sample.Offset, pFile, false };
-		return true;
+		if (size_t(idx) < this->Files.size()) {
+			const auto sample = &AudioIDXData::Instance->Samples[idx];
+			file = { sample->Size, sample->Offset, this->Files[idx].second, false };
+			return true;
+		}
+
+		return false;
 	}
 
 	CCFileClass* GetFileFromIndex(int idx)
 	{
-		if (size_t(idx) < Files.size())
-			return this->Files[idx].second;
-
-		return nullptr;
+		return size_t(idx) < Files.size() ?
+			this->Files[idx].second : nullptr;
 	}
 
 	size_t TotalSampleSizes() const {

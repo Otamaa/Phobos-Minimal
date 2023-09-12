@@ -101,7 +101,7 @@ void UpdateTogglePower(HouseClass* pThis)
 
 		const auto HasLowPower = pThis->HasLowPower();
 
-		for (auto pBld : pThis->Buildings)
+		for (auto const& pBld : pThis->Buildings)
 		{
 			auto pType = pBld->Type;
 			if (pType->CanTogglePower() && pType->PowerDrain > 0)
@@ -222,10 +222,9 @@ const std::vector<CellStruct>& GetCoveredCells(
 
 	std::sort(PhobosGlobal::Instance()->TempCoveredCellsData.begin(),
 			  PhobosGlobal::Instance()->TempCoveredCellsData.end(),
-		[](const CellStruct& lhs, const CellStruct& rhs) -> bool
-	{
-		return lhs.X > rhs.X || lhs.X == rhs.X && lhs.Y > rhs.Y;
-	});
+		[](const CellStruct& lhs, const CellStruct& rhs) -> bool {
+			return lhs.X > rhs.X || lhs.X == rhs.X && lhs.Y > rhs.Y;
+		});
 
 	auto const it = std::unique(
 		PhobosGlobal::Instance()->TempCoveredCellsData.begin(),
@@ -440,7 +439,7 @@ DEFINE_OVERRIDE_HOOK(0x464AF0, BuildingTypeClass_GetSizeInLeptons, 6)
 	if (pThis->Foundation == BuildingTypeExt::CustomFoundation)
 	{
 		GET_STACK(CoordStruct*, Coords, 0x4);
-		BuildingTypeExt::ExtData* pData = BuildingTypeExt::ExtMap.Find(pThis);
+		const auto pData = BuildingTypeExt::ExtMap.Find(pThis);
 
 		Coords->X = pData->CustomWidth * 256;
 		Coords->Y = pData->CustomHeight * 256;
@@ -651,7 +650,7 @@ DEFINE_OVERRIDE_HOOK(0x43EFB3, BuildingClass_GetStaticImageFrame, 6)
 
 	if (pThis->GetCurrentMission() != Mission::Construction)
 	{
-		auto FrameIdx = GetImageFrameIndex(pThis);
+		const auto FrameIdx = GetImageFrameIndex(pThis);
 
 		if (FrameIdx != -1)
 		{

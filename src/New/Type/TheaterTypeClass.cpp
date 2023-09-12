@@ -272,6 +272,9 @@ DEFINE_OVERRIDE_HOOK(0x5F9070, ObjectTypeClass_Load2DArt, 6)
 	GET(ObjectTypeClass* const, pType, ECX);
 
 	auto const scenarioTheater = ScenarioClass::Instance->Theater;
+	if (scenarioTheater == TheaterType::None)
+		Debug::FatalError(__FUNCTION__" for [(%s) %s] Cannot Proceed With Negative theater Index! \n" , pType->ID ,pType->GetThisClassName());
+
 	auto const& TheaterData = TheaterTypeClass::FindFromTheaterType_NoCheck(scenarioTheater);
 
 	TechnoTypeExt::ExtData* pTypeData = nullptr;
@@ -403,6 +406,7 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 {
 	GET(TheaterType, nType, EDI);
 
+	Debug::Log("Init For Theater [%d]\n", nType);
 	ScenarioClass::Instance->Theater = nType;
 	typedef int(*wsprintfA_ptr)(LPSTR, LPCSTR, ...);
 	GET(wsprintfA_ptr, pFunc, EBP);

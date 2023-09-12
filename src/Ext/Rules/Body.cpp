@@ -171,19 +171,27 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	for (int i = 0; i < SideClass::Array->Count; ++i)
 		Crews[i] = SideExt::ExtMap.Find(SideClass::Array->Items[i])->GetCrew();
 
+	char buffer[0x30];
+	auto pINI = CCINIClass::INI_Rules();
+	INI_EX iniEX(pINI);
+
 	for (auto const pItem : *TechnoTypeClass::Array)
 	{
-		const auto isFoot = pItem->WhatAmI() != AbstractType::BuildingType;
-		const auto pExt = TechnoTypeExt::ExtMap.Find(pItem);
+		const auto what = pItem->WhatAmI();
+		const auto isFoot = what != AbstractType::BuildingType;
+		auto pExt = TechnoTypeExt::ExtMap.Find(pItem);
+
+		if (pExt->Fake_Of.Get(nullptr) && pExt->Fake_Of->WhatAmI() != what) {
+			Debug::Log("[%s] has fake of but it different type from it!\n", pItem->ID);
+			pExt->Fake_Of.Reset();
+		}
 
 		if(isFoot && !pExt->IsDummy && pItem->SpeedType == SpeedType::None) {
-			Debug::Log("[%s]SpeedType is invalid!\n",
-				pItem->ID);
+			Debug::Log("[%s]SpeedType is invalid!\n", pItem->ID);
 		}
 
 		if(isFoot && !pExt->IsDummy && pItem->MovementZone == MovementZone::None) {
-			Debug::Log("[%s]MovementZone is invalid!\n",
-				pItem->ID);
+			Debug::Log("[%s]MovementZone is invalid!\n", pItem->ID);
 		}
 
 		if(pItem->Passengers > 0 && pItem->SizeLimit < 1) {
@@ -197,8 +205,7 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		}
 
 		if(auto const pPowersUnit = pItem->PowersUnit) {
-			auto const pExtraData = TechnoTypeExt::ExtMap.Find(pPowersUnit);
-			if(!pExtraData->PoweredBy.empty()) {
+			if(!TechnoTypeExt::ExtMap.Find(pPowersUnit)->PoweredBy.empty()) {
 				Debug::Log("[%s]PowersUnit=%s, but [%s] uses PoweredBy=!\n",
 					pItem->ID, pPowersUnit->ID, pPowersUnit->ID);
 				pItem->PowersUnit = nullptr;
@@ -235,60 +242,60 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 				if (!pSuperExt->Aux_Techno.empty() && pSuperExt->Aux_Techno.Contains(pItem))
 					pExt->Linked_SW.push_back(pSuper);
 			}
-		}
-		else
-		{
-			auto const pBItem = static_cast<BuildingTypeClass*>(pItem);
-			auto const pBExt = BuildingTypeExt::ExtMap.Find(pBItem);
-			if(pBExt->CloningFacility && pBItem->Factory != AbstractType::None) {
-				pBExt->CloningFacility = false;
-				Debug::Log("[%s] cannot have both CloningFacility= and Factory=.\n",
-				pItem->ID);
-			}
-		}
-	}
 
-	char buffer[0x30];
-	auto pINI = CCINIClass::INI_Rules();
-	INI_EX iniEX(pINI);
-
-	InfantryTypeClass::Array->for_each([&](InfantryTypeClass* pInfType) {
-		WarheadTypeClass::Array->for_each([&](WarheadTypeClass* pWarhead) {
-			 if (auto const pExt = WarheadTypeExt::ExtMap.TryFind(pWarhead)) {
+			if(what == InfantryTypeClass::AbsID){
+				WarheadTypeClass::Array->for_each([&](WarheadTypeClass* pWarhead) {
+				 if (auto const pExt = WarheadTypeExt::ExtMap.TryFind(pWarhead)) {
 					Nullable<AnimTypeClass*> nBuffer {};
-					IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.InfDeathAnim", pInfType->ID);
+					IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.InfDeathAnim", pItem->ID);
 					 nBuffer.Read(iniEX, pWarhead->ID, buffer);
 
 					if (!nBuffer.isset() || !nBuffer.Get())
 						return;
 
 					//Debug::Log("Found specific InfDeathAnim for [WH : %s Inf : %s Anim %s]\n", pWarhead->ID, pInfType->ID, nBuffer->ID);
-					pExt->InfDeathAnims[pInfType->ArrayIndex] = nBuffer;
+					pExt->InfDeathAnims[((InfantryTypeClass*)pItem)->ArrayIndex] = nBuffer;
 			 }
-		});
-	});
-
-	for(auto const pBType : *BuildingTypeClass::Array) {
-		auto const techLevel = pBType->TechLevel;
-		if(techLevel < 0 || techLevel > RulesClass::Instance->TechLevel) {
-			continue;
+			});
+			}
 		}
-		if(pBType->BuildCat == BuildCat::DontCare) {
-			pBType->BuildCat = ((pBType->SuperWeapon != -1) || pBType->IsBaseDefense || pBType->Wall)
-				? BuildCat::Combat : BuildCat::Infrastructure;
-			auto const catName = (pBType->BuildCat == BuildCat::Combat)
-				? "Combat" : "Infrastructure";
-			Debug::Log("Building Type [%s] does not have a valid BuildCat set!\n"
-					   "It was reset to %s, but you should really specify it "
-				       "explicitly.\n", pBType->ID, catName);
+		else
+		{
+			auto const pBType = static_cast<BuildingTypeClass*>(pItem);
+			auto const pBExt = BuildingTypeExt::ExtMap.Find(pBType);
+
+			if(pBExt->CloningFacility && pBType->Factory != AbstractType::None) {
+				pBExt->CloningFacility = false;
+				Debug::Log("[%s] cannot have both CloningFacility= and Factory=.\n",
+				pItem->ID);
+			}
+
+			const auto  techLevel = pItem->TechLevel;
+
+			if (!(techLevel < 0 || techLevel > RulesClass::Instance->TechLevel))
+			{
+				if (pBType->BuildCat == BuildCat::DontCare)
+				{
+					pBType->BuildCat = ((pBType->SuperWeapon != -1) || pBType->IsBaseDefense || pBType->Wall)
+						? BuildCat::Combat : BuildCat::Infrastructure;
+
+					auto const catName = (pBType->BuildCat == BuildCat::Combat)
+						? "Combat" : "Infrastructure";
+
+					Debug::Log("Building Type [%s] does not have a valid BuildCat set!\n"
+							   "It was reset to %s, but you should really specify it "
+							   "explicitly.\n", pBType->ID, catName);
+				}
+			}
 		}
 	}
 
+	constexpr auto const Msg =
+		"Weapon[%s] has no %s! This usually indicates one of two things:\n"
+		"- The weapon was created too late and its rules weren't read "
+		"(see WEEDGUY hack);\n- The weapon's name was misspelled.\n";
+
 	for(auto const& pItem : *WeaponTypeClass::Array) {
-		constexpr auto const Msg =
-			"Weapon[%s] has no %s! This usually indicates one of two things:\n"
-			"- The weapon was created too late and its rules weren't read "
-			"(see WEEDGUY hack);\n- The weapon's name was misspelled.\n";
 
 		if(!pItem->Warhead) {
 			Debug::Log(Msg, pItem->ID, "Warhead");
@@ -334,6 +341,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	//		WeaponTypeClass::FindOrAllocate(Phobos::readBuffer);
 	//	}
 	//}
+
 	int lenp = pINI->GetKeyCount(sections[1]);
 	for (int i = 0; i < lenp; ++i) {
 		const char* key = pINI->GetKeyName(sections[1], i);
@@ -864,28 +872,28 @@ DEFINE_HOOK(0x675205, RulesClass_Save_Suffix, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x52C9C4, GameInit_ReReadStuffs, 0x6)
+DEFINE_HOOK(0x52C9C4, GameInit_SkipReadingStuffsTooEarly, 0x6)
 {
-	//AnimTypeClass::Array->ForEach([](AnimTypeClass* pType) {
-	//	pType->LoadFromINI(&CCINIClass::INI_Art());
-	//});
-
-	//BuildingTypeClass::Array->ForEach([](BuildingTypeClass* pType) {
-	//	pType->LoadFromINI(CCINIClass::INI_Rules());
-	//});
-
-	//SuperWeaponTypeClass::Array->ForEach([](SuperWeaponTypeClass* pType) {
-	//	pType->LoadFromINI(CCINIClass::INI_Rules());
-	//});
-
-	//WeaponTypeClass::Array->ForEach([](WeaponTypeClass* pType) {
-	//	pType->LoadFromINI(CCINIClass::INI_Rules());
-	//});
-
-	//WarheadTypeClass::Array->ForEach([](WarheadTypeClass* pType) {
-	//	pType->LoadFromINI(CCINIClass::INI_Rules());
-	//});
-
+//	//AnimTypeClass::Array->ForEach([](AnimTypeClass* pType) {
+//	//	pType->LoadFromINI(&CCINIClass::INI_Art());
+//	//});
+//
+//	//BuildingTypeClass::Array->ForEach([](BuildingTypeClass* pType) {
+//	//	pType->LoadFromINI(CCINIClass::INI_Rules());
+//	//});
+//
+//	//SuperWeaponTypeClass::Array->ForEach([](SuperWeaponTypeClass* pType) {
+//	//	pType->LoadFromINI(CCINIClass::INI_Rules());
+//	//});
+//
+//	//WeaponTypeClass::Array->ForEach([](WeaponTypeClass* pType) {
+//	//	pType->LoadFromINI(CCINIClass::INI_Rules());
+//	//});
+//
+//	//WarheadTypeClass::Array->ForEach([](WarheadTypeClass* pType) {
+//	//	pType->LoadFromINI(CCINIClass::INI_Rules());
+//	//});
+//
 	return 0x52CA37;
 }
 
@@ -1049,8 +1057,4 @@ DEFINE_HOOK(0x679C92, RulesClass_ReadObject_ReReadStuffs, 7)
 	return 0x0;
 }
 
-//DEFINE_JUMP(LJMP, 0x66919B, 0x6691B7); // remove reading warhead from `SpecialWeapon`
-//DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
-//{
-//	return 0x0;
-//}
+DEFINE_JUMP(LJMP, 0x66919B, 0x6691B7); // remove reading warhead from `SpecialWeapon`
