@@ -36,7 +36,7 @@ class REGISTERS;
 class TechnoExt
 {
 public:
-	class ExtData : public Extension<TechnoClass>, public ObjectExt::ExtData
+	class ExtData : public Extension<TechnoClass>
 	{
 	public:
 		static constexpr size_t Canary = 0x55555555;
@@ -139,7 +139,6 @@ public:
 
 		bool FreeUnitDone { false };
 		ExtData(TechnoClass* OwnerObject) : Extension<TechnoClass>(OwnerObject)
-			, ObjectExt::ExtData {}
 		{ }
 
 		virtual ~ExtData() override

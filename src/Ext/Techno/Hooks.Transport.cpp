@@ -95,16 +95,16 @@ DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
 
 	if (pThis && pPassenger)
 	{
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-		auto pTechnoExt = TechnoExt::ExtMap.Find(pPassenger);
+		auto const pTransTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		auto pPassExt = TechnoExt::ExtMap.Find(pPassenger);
+		auto const pPassTypeExt = TechnoTypeExt::ExtMap.Find(pPassenger->GetTechnoType());
 
-		if (pTypeExt->Passengers_SyncOwner && pTypeExt->Passengers_SyncOwner_RevertOnExit)
-			pTechnoExt->OriginalPassengerOwner = pPassenger->Owner;
+		if (pTransTypeExt->Passengers_SyncOwner && pTransTypeExt->Passengers_SyncOwner_RevertOnExit)
+			pPassExt->OriginalPassengerOwner = pPassenger->Owner;
 
-
-		if (!pTechnoExt->LaserTrails.empty())
+		if (!pPassExt->LaserTrails.empty())
 		{
-			for (auto& pLaserTrail : pTechnoExt->LaserTrails)
+			for (auto& pLaserTrail : pPassExt->LaserTrails)
 			{
 				pLaserTrail.Visible = false;
 				pLaserTrail.LastLocation.clear();
@@ -112,25 +112,39 @@ DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
 		}
 
 		TrailsManager::Hide((TechnoClass*)pPassenger);
+		auto const pOwnerExt = HouseExt::ExtMap.Find(pThis->Owner);
+
+		if (pPassenger->WhatAmI() != AbstractType::Aircraft && pPassExt->Type->Ammo > 0 && pPassTypeExt->ReloadInTransport) {
+			if(!pOwnerExt->OwnedTransportReloaders.contains(pThis))
+				pOwnerExt->OwnedTransportReloaders.push_back(pPassenger);
+		}
 	}
 
 	return 0;
 }
 
-DEFINE_HOOK(0x4DE67B, FootClass_LeaveTransport_SyncOwner, 0x8)
+DEFINE_HOOK(0x4DE67B, FootClass_LeaveTransport, 0x8)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(FootClass*, pPassenger, EBX);
 
 	if (pThis && pPassenger)
 	{
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-		auto const pExt = TechnoExt::ExtMap.Find(pPassenger);
+		auto const pTransTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		auto pPassExt = TechnoExt::ExtMap.Find(pPassenger);
+		auto const pPassTypeExt = TechnoTypeExt::ExtMap.Find(pPassenger->GetTechnoType());
 
-		if (pTypeExt->Passengers_SyncOwner && pTypeExt->Passengers_SyncOwner_RevertOnExit &&
-			pExt->OriginalPassengerOwner)
+		if (pTransTypeExt->Passengers_SyncOwner && pTransTypeExt->Passengers_SyncOwner_RevertOnExit &&
+			pPassExt->OriginalPassengerOwner)
 		{
-			pPassenger->SetOwningHouse(pExt->OriginalPassengerOwner, false);
+			pPassenger->SetOwningHouse(pPassExt->OriginalPassengerOwner, false);
+		}
+
+		if (pThis->WhatAmI() != AbstractType::Aircraft 
+				&& pPassExt->Type->Ammo > 0 &&  pPassTypeExt->ReloadInTransport)
+		{
+			auto const pOwnerExt = HouseExt::ExtMap.Find(pThis->Owner);
+			pOwnerExt->OwnedTransportReloaders.remove(pPassenger);
 		}
 	}
 

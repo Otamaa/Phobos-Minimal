@@ -35,28 +35,22 @@ void InfantryTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 
 	Valueable<WeaponTypeClass*> pWeaponReader { nullptr };
 	pWeaponReader.Read(exINI, pID, "Primary.CrawlWeapon", true);
-	this->CrawlingWeaponDatas[0].WeaponType = pWeaponReader.Get();
-	this->CrawlingWeaponDatas[0].BarrelLength = nPriData->BarrelLength;
-	this->CrawlingWeaponDatas[0].BarrelThickness = nPriData->BarrelThickness;
-	this->CrawlingWeaponDatas[0].TurretLocked = nPriData->TurretLocked;
+
+	WeaponStruct temp { pWeaponReader , nPriData->FLH , nPriData->BarrelLength, nPriData->BarrelThickness,  nPriData->TurretLocked };
+	std::memcpy(this->CrawlingWeaponDatas, &temp, sizeof(WeaponStruct));
 
 	pWeaponReader.Read(exINI, pID, "Primary.EliteCrawlWeapon", true);
-	this->CrawlingWeaponDatas[1].WeaponType = pWeaponReader.Get();
-	this->CrawlingWeaponDatas[1].BarrelLength = nPriEliteData->BarrelLength;
-	this->CrawlingWeaponDatas[1].BarrelThickness = nPriEliteData->BarrelThickness;
-	this->CrawlingWeaponDatas[1].TurretLocked = nPriEliteData->TurretLocked;
+	temp = { pWeaponReader , nPriEliteData->FLH , nPriEliteData->BarrelLength, nPriEliteData->BarrelThickness,  nPriEliteData->TurretLocked };
+	std::memcpy(this->CrawlingWeaponDatas + 1, &temp, sizeof(WeaponStruct));
 
 	pWeaponReader.Read(exINI, pID, "Secondary.CrawlWeapon", true);
-	this->CrawlingWeaponDatas[2].WeaponType = pWeaponReader.Get();
-	this->CrawlingWeaponDatas[2].BarrelLength = nSecData->BarrelLength;
-	this->CrawlingWeaponDatas[2].BarrelThickness = nSecData->BarrelThickness;
-	this->CrawlingWeaponDatas[2].TurretLocked = nSecData->TurretLocked;
+	temp = { pWeaponReader , nSecData->FLH , nSecData->BarrelLength, nSecData->BarrelThickness,  nSecData->TurretLocked };
+	std::memcpy(this->CrawlingWeaponDatas  + 2, &temp, sizeof(WeaponStruct));
+
 
 	pWeaponReader.Read(exINI, pID, "Secondary.EliteCrawlWeapon", true);
-	this->CrawlingWeaponDatas[3].WeaponType = pWeaponReader.Get();
-	this->CrawlingWeaponDatas[3].BarrelLength = nSecEliteData->BarrelLength;
-	this->CrawlingWeaponDatas[3].BarrelThickness = nSecEliteData->BarrelThickness;
-	this->CrawlingWeaponDatas[3].TurretLocked = nSecEliteData->TurretLocked;
+	temp = { pWeaponReader , nSecEliteData->FLH , nSecEliteData->BarrelLength, nSecEliteData->BarrelThickness,  nSecEliteData->TurretLocked };
+	std::memcpy(this->CrawlingWeaponDatas + 3, &temp, sizeof(WeaponStruct));
 }
 
 // =============================
@@ -128,8 +122,8 @@ DEFINE_HOOK(0x524B53, InfantryTypeClass_Load_Suffix, 0x5)
 
 //DEFINE_HOOK_AGAIN(0x524C59, InfantryTypeClass_Save_Suffix, 0x5)
 
-// Before :  0x524C50 , 0x5 
-// After : 0x524C52 , 0x7 
+// Before :  0x524C50 , 0x5
+// After : 0x524C52 , 0x7
 DEFINE_HOOK(0x524C52, InfantryTypeClass_Save_Suffix, 0x7)
 {
 	InfantryTypeExt::ExtMap.SaveStatic();

@@ -639,10 +639,10 @@ int* AresData::TechnoTypeExt_GetTurretWeaponIdx(TechnoTypeClass* pThis, int idx)
 	return AresThiscall<GetTurretWeaponIdxID, int*, void*, int>()(GetAresTechnoTypeExt(pThis) , idx);
 }
 
-bool AresData::TechnoTypeExt_CameoIsElite(TechnoTypeClass* pThis, HouseClass* Owner)
-{
-	return AresThiscall<CameoIsEliteID, bool, void*, HouseClass*>()(GetAresTechnoTypeExt(pThis), Owner);
-}
+//bool AresData::TechnoTypeExt_CameoIsElite(TechnoTypeClass* pThis, HouseClass* Owner)
+//{
+//	return AresThiscall<CameoIsEliteID, bool, void*, HouseClass*>()(GetAresTechnoTypeExt(pThis), Owner);
+//}
 
 //Action AresData::TechnoExt_GetActionHijack(TechnoClass* pThis, TechnoClass* pTarget)
 //{
@@ -654,9 +654,9 @@ void AresData::AresNetEvent_Handlers_RespondToFirewallToggle(HouseClass* pFor, b
 	AresThiscall<NetEvent_RespondToFirewall, void, void*, bool>()(GetAresHouseExt(pFor), Activate);
 }
 
-WeaponStruct* AresData::GetWeapon(TechnoTypeClass* pType, int idx, bool Elite) {
-	return AresThiscall<TechnoTypeExt_GetWeaponTypeID, WeaponStruct*, void*, int , bool>()(GetAresTechnoTypeExt(pType), idx, Elite);
-}
+//WeaponStruct* AresData::GetWeapon(TechnoTypeClass* pType, int idx, bool Elite) {
+//	return AresThiscall<TechnoTypeExt_GetWeaponTypeID, WeaponStruct*, void*, int , bool>()(GetAresTechnoTypeExt(pType), idx, Elite);
+//}
 
 //void AresData::SetFactoryPlans(BuildingClass* pBld) {
 //	AresStdcall< BuildingExt_SetFactoryPlans, void, BuildingClass*>()(pBld);

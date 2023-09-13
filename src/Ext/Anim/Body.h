@@ -11,7 +11,7 @@ class AnimExt
 {
 public:
 
-	class ExtData final : public Extension<AnimClass> , public ObjectExt::ExtData
+	class ExtData final : public Extension<AnimClass>
 	{
 	public:
 		using base_type = AnimClass;
@@ -33,7 +33,6 @@ public:
 		CoordStruct CreateUnitLocation {};
 
 		ExtData(base_type* OwnerObject) : Extension<AnimClass>(OwnerObject)
-			, ObjectExt::ExtData {}
 		{}
 
 		virtual ~ExtData() override = default;

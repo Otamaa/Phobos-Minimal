@@ -131,7 +131,7 @@ DEFINE_OVERRIDE_HOOK(0x421371, TacticalClass_UpdateAlphasInRectangle_ShouldDraw,
 
 	if (shouldDraw) {
 		if (const auto pTechno = abstract_cast<TechnoClass*>(pAlpha->AttachedTo)) {
-			shouldDraw = pTechno->VisualCharacter(VARIANT_TRUE, pTechno->Owner) == VisualType::Normal &&
+			shouldDraw = pTechno->IsAlive && pTechno->VisualCharacter(VARIANT_TRUE, pTechno->Owner) == VisualType::Normal &&
 				!pTechno->Disguised;
 		}
 	}

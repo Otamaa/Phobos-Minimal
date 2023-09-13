@@ -92,6 +92,7 @@ public:
 		HelperedVector<SuperClass*> Batteries {};
 		HelperedVector<HouseTypeClass*> Factories_HouseTypes {};
 		HelperedVector<TechnoClass*> LimboTechno {};
+		HelperedVector<TechnoClass*> OwnedTransportReloaders {};
 
 		int AvaibleDocks { 0 };
 
@@ -120,6 +121,7 @@ public:
 
 		void UpdateVehicleProduction();
 		void UpdateAutoDeathObjects();
+		void UpdateTransportReloaders();
 
 		void UpdateShotCount(SuperWeaponTypeClass* pFor);
 		void UpdateShotCountB(SuperWeaponTypeClass* pFor);

@@ -2905,17 +2905,21 @@ DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6)
 //	return CheckMission;
 //}
 
-// DEFINE_HOOK(0x51DF82, InfantryClass_FireAt_StartReloading, 0x6)
-// {
-// 	GET(InfantryClass*, pThis, ESI);
-// 	const auto pType = pThis->Type;
-//
-// 	if (pType->Ammo > 0 && pType->Ammo > pThis->Ammo && !pType->ManualReload
-// 		&& !pThis->ReloadTimer.HasStarted())
-// 		pThis->StartReloading();
-//
-// 	return 0;
-// }
+DEFINE_HOOK(0x51DF82, InfantryClass_FireAt_StartReloading, 0x6)
+{
+	GET(InfantryClass*, pThis, ESI);
+	const auto pType = pThis->Type;
+
+	if(pThis->Transporter) {
+		if (TechnoTypeExt::ExtMap.Find(pType)->ReloadInTransport
+			&& pType->Ammo > 0
+			&& pThis->Ammo < pType->Ammo
+		)
+			pThis->StartReloading();
+	}
+
+	return 0;
+}
 
 DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
 {

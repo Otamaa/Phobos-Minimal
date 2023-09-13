@@ -3619,6 +3619,7 @@ void TechnoExt::ExtData::UpdateType(TechnoTypeClass* currentType)
 {
 	auto const pThis = this->Get();
 	const auto pOldType = this->Type;
+	const auto pOldTypeExt = TechnoTypeExt::ExtMap.Find(pOldType);
 	this->Type = currentType;
 	auto const pTypeExtData = TechnoTypeExt::ExtMap.Find(currentType);
 
@@ -3693,6 +3694,15 @@ void TechnoExt::ExtData::UpdateType(TechnoTypeClass* currentType)
 	else if (pTypeExtData->MyGiftBoxData.Enable && !this->MyGiftBox)
 		GiftBoxFunctional::Init(this, pTypeExtData);*/
 
+
+	auto const oldrtti = pOldType->WhatAmI();
+
+	// Remove from limbo reloaders if no longer applicable
+	if (oldrtti != AbstractType::AircraftType && oldrtti != AbstractType::BuildingType
+		&& pOldType->Ammo > 0 && pOldTypeExt->ReloadInTransport && !pTypeExtData->ReloadInTransport)
+	{
+		HouseExt::ExtMap.Find(pThis->Owner)->OwnedTransportReloaders.remove(pThis);
+	}
 }
 
 void TechnoExt::ExtData::UpdateBuildingLightning()
@@ -4494,7 +4504,6 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 	this->MyDiveData.Serialize(Stm);
 	//this->MyJJData.Serialize(Stm);
 	this->MySpawnSuport.Serialize(Stm);
-	ObjectExt::ExtData::Serialize(Stm);
 }
 
 bool TechnoExt::ExtData::InvalidateIgnorable(AbstractClass* ptr)

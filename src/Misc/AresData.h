@@ -258,12 +258,12 @@ struct AresData
 	//static void BuildingExt_UpdateDisplayTo(BuildingClass* pFor);
 
 	static int* TechnoTypeExt_GetTurretWeaponIdx(TechnoTypeClass* pThis, int idx);
-	static bool TechnoTypeExt_CameoIsElite(TechnoTypeClass* pThis, HouseClass* Owner);
+	//static bool TechnoTypeExt_CameoIsElite(TechnoTypeClass* pThis, HouseClass* Owner);
 
 	//static Action TechnoExt_GetActionHijack(TechnoClass* pThis, TechnoClass* pTarget);
 
 	static void AresNetEvent_Handlers_RespondToFirewallToggle(HouseClass* pFor, bool Activate);
-	static WeaponStruct* GetWeapon(TechnoTypeClass* pType, int idx, bool Elite);
+	//static WeaponStruct* GetWeapon(TechnoTypeClass* pType, int idx, bool Elite);
 
 	//static void SetFactoryPlans(BuildingClass* pBld);
 };
@@ -393,6 +393,8 @@ struct AresDTORCaller
 #define RegisteredJammers(techno) (*(PhobosMap<TechnoClass*, bool, AresMemory::AresAllocator<std::pair<TechnoClass*,bool>>>*)(((char*)GetAresBuildingExt(techno)) + 0x40))
 #define PrimsForwardingPtr(techno) (*(cPrismForwarding*)(((char*)GetAresBuildingExt(techno)) + 0x10))
 #define GetGunnerName(var) (*(std::vector<CSFText,AresMemory::AresAllocator<CSFText>>*)(((char*)GetAresTechnoTypeExt(var)) + 0xC8))
+#define TurretWeapons(var) (*(std::vector<int,AresMemory::AresAllocator<int>>*)(((char*)GetAresTechnoTypeExt(var)) + 0xBC))
+
 //#define GetPilotTypeVec(var) (*(std::vector<InfantryTypeClass*,AresMemory::AresAllocator<InfantryTypeClass*>>*)(((char*)GetAresTechnoTypeExt(var)) + 0x8))
 //#define ReverseEngineeredTechnoType(var) (*(std::vector<TechnoTypeClass*,AresMemory::AresAllocator<TechnoTypeClass*>>*)((char*)GetAresHouseExt(var) + 0x34))
 //#define VeteranBuildings(var) (*(std::vector<BuildingTypeClass*,AresMemory::AresAllocator<BuildingTypeClass*>>*)((char*)GetAresHouseTypeExt(var) + 0x15C))

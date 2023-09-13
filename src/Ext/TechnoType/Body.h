@@ -868,6 +868,8 @@ public:
 
 		std::bitset<32> RequiredStolenTech { 0ull };
 
+		Valueable<bool> ReloadInTransport { false };
+
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 		{
 			AttachedEffect.Owner = OwnerObject;

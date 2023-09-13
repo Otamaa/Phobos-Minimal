@@ -618,6 +618,7 @@ void HouseExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(ActiveTeams, ptr);
 	AnnounceInvalidPointer<TechnoClass*>(LimboTechno, ptr, bRemoved);
 	AnnounceInvalidPointer<BuildingClass*>(Academies, ptr, bRemoved);
+	AnnounceInvalidPointer<TechnoClass*>(OwnedTransportReloaders, ptr, bRemoved);
 
 	if(bRemoved)
 		AutoDeathObjects.erase((TechnoClass*)ptr);
@@ -1187,6 +1188,14 @@ int HouseExt::CountOwnedNowTotal(
 	return sum;
 }
 
+void HouseExt::ExtData::UpdateTransportReloaders()
+{
+	for (auto const pTechno : this->OwnedTransportReloaders) {
+		if (pTechno->Transporter)
+			pTechno->Reload();
+	}
+}
+
 //void HouseExt::ExtData::AddToLimboTracking(TechnoTypeClass* pTechnoType)
 //{
 //	if (pTechnoType)
@@ -1303,6 +1312,7 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		.Process(this->Batteries)
 		.Process(this->Factories_HouseTypes)
 		.Process(this->LimboTechno)
+		.Process(this->OwnedTransportReloaders)
 		.Process(this->AvaibleDocks)
 
 		.Process(this->StolenTech)

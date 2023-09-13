@@ -2045,7 +2045,7 @@ DEFINE_OVERRIDE_HOOK(0x62D015, ParticleClass_Draw_Palette, 6)
 
 DEFINE_OVERRIDE_HOOK(0x62CDB6, ParticleClass_Update_Fire, 7)
 {
-	GET(ParticleClass*, pParticle, EBP);
+	GET(ParticleClass*, pParticle, ESI);
 	GET(ObjectClass*, pTarget, EDI);
 	GET(int, nDistance, ECX);
 	GET(int, nDamage, EDX);
@@ -2067,7 +2067,7 @@ DEFINE_OVERRIDE_HOOK(0x62CDB6, ParticleClass_Update_Fire, 7)
 	if (pAttacker == pTarget)
 		return 0x62CE09;
 
-	pTarget->ReceiveDamage(&nDamage, nDistance, pParticle->Type->Warhead, pAttacker, false, false, pOwner);
+	pTarget->ReceiveDamage(&nDamage, nDistance > 0 ? nDistance / 10 : nDistance, pParticle->Type->Warhead, pAttacker, false, false, pOwner);
 
 	return 0x62CE09;
 }
@@ -5981,11 +5981,11 @@ DEFINE_HOOK(0x6F3F88, TechnoClass_Init_1, 5)
 
 		for (auto i = 0; i < WeaponCount; ++i) {
 
-			if (auto const pWeapon = AresData::GetWeapon(pType, i, false)->WeaponType) {
+			if (auto const pWeapon = pType->GetWeapon(i)->WeaponType) {
 				CheckWeapon(pWeapon, i, "Weapon");
 			}
 
-			if (auto const pWeapon = AresData::GetWeapon(pType, i, true)->WeaponType) {
+			if (auto const pWeapon = pType->GetEliteWeapon(i)->WeaponType) {
 				CheckWeapon(pWeapon, i, "EliteWeapon");
 			}
 		}
@@ -6014,29 +6014,127 @@ DEFINE_HOOK(0x6F3F88, TechnoClass_Init_1, 5)
 	return 0x6F4212;
 }
 
-DEFINE_OVERRIDE_HOOK(0x7177C0, TechnoTypeClass_GetWeapon, 0xB)
-{
-	GET_STACK(int, idx, 0x4);
-	GET(TechnoTypeClass*, pThis, ECX);
-
-	if (idx < 18)
-		return 0x0;
-
-	R->EAX(AresData::GetWeapon(pThis, idx, false));
-	return 0x7177D4;
+WeaponStruct* GetWeapon(TechnoTypeClass* pType,size_t const idx , bool elite) {
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	return (elite ? pExt->AdditionalEliteWeaponDatas : pExt->AdditionalWeaponDatas).data() + idx;
 }
 
-DEFINE_OVERRIDE_HOOK(0x7177E0 , TechnoTypeClass_GetEliteWeapon, 0xB)
+void NOINLINE ReadWeaponStructDatas(TechnoTypeClass* pType, CCINIClass* pRules)
 {
-	GET_STACK(int, idx, 0x4);
-	GET(TechnoTypeClass*, pThis, ECX);
+	INI_EX iniEx(pRules);
+	INI_EX iniEX_art(CCINIClass::INI_Art());
 
-	if (idx < 18)
-		return 0x0;
+	const auto pSection = pType->ID;
+	const auto pSection_art = pType->ImageFile;
+	const size_t additionalamount = pType->WeaponCount - TechnoTypeClass::MaxWeapons >= 0 ? pType->WeaponCount - TechnoTypeClass::MaxWeapons : 0;
+	auto pExt = TechnoTypeExt::ExtMap.Find(pType);
 
-	R->EAX(AresData::GetWeapon(pThis, idx, true));
-	return 0x7177F4;
+	Debug::Log("Resize Additional Weapon [%s] [%d]\n", pSection, additionalamount);
+	if (IS_SAME_STR_("FV", pSection))
+		Debug::Log("aa");
+
+	pExt->AdditionalWeaponDatas.resize(additionalamount);
+	pExt->AdditionalEliteWeaponDatas.resize(additionalamount);
+
+	Debug::Log("After Resize Additional Weapon [%s] [%d- E %d]\n", pSection, pExt->AdditionalWeaponDatas.size() , pExt->AdditionalEliteWeaponDatas.size());
+
+	//changing vector allocation seems to be difficult here
+	//the compiler doesnt seems  to put appropriate function(s) needed to
+	//TurretWeapons(pType).resize(additionalamount  , -1);
+	//GetGunnerName(pType).resize(additionalamount);
+	constexpr size_t aa = sizeof(CSFText);
+	static_assert(aa == 0x24, "Invalid size");
+	char buffWep[0x40];
+	char buffWepElte[0x40];
+	char buffNext[0x40];
+	char buffNextElite[0x40];
+
+	for (int i = 0; i < pType->WeaponCount; ++i)
+	{
+		const auto NextIdx = i < TechnoTypeClass::MaxWeapons ? i : i - TechnoTypeClass::MaxWeapons;
+		Debug::Log("Next Weapon Idx for [%s] [%d]\n", pSection, NextIdx);
+
+		_snprintf_s(buffWep, sizeof(buffWep), "Weapon%d", i + 1);
+		Valueable<WeaponTypeClass*> buffWeapon_ {};
+		buffWeapon_.Read(iniEx, pSection, buffWep, true);
+
+		_snprintf_s(buffWepElte, sizeof(buffWepElte), "EliteWeapon%d", i + 1);
+		Valueable<WeaponTypeClass*> buffWeapon_N {};
+		buffWeapon_N.Read(iniEx, pSection, buffWepElte, true);
+
+		_snprintf_s(buffNext, sizeof(buffNext), "%sFLH", buffWep);
+		Valueable<CoordStruct> bufFLH_ {};
+		bufFLH_.Read(iniEX_art, pSection_art, buffNext);
+
+		_snprintf_s(buffNextElite, sizeof(buffNextElite), "%sFLH", buffWepElte);
+		Valueable<CoordStruct> bufFLH_N {};
+		bufFLH_N.Read(iniEX_art, pSection_art, buffNextElite);
+
+		_snprintf_s(buffNext, sizeof(buffNext), "%sBarrelLength", buffWep);
+		Valueable<int> bufBrlLngth_ {};
+		bufBrlLngth_.Read(iniEX_art, pSection_art, buffNext);
+
+		_snprintf_s(buffNextElite, sizeof(buffNextElite), "%sBarrelLength", buffWepElte);
+		Valueable<int> bufBrlLngth_N {};
+		bufBrlLngth_N.Read(iniEX_art, pSection_art, buffNextElite);
+
+		_snprintf_s(buffNext, sizeof(buffNext), "%sBarrelThickness", buffWep);
+		Valueable<int> bufBrlthic_ {};
+		bufBrlthic_.Read(iniEX_art, pSection_art, buffNext);
+
+		_snprintf_s(buffNextElite, sizeof(buffNextElite), "%sBarrelThickness", buffWepElte);
+		Valueable<int> bufBrlthic_N {};
+		bufBrlthic_N.Read(iniEX_art, pSection_art, buffNextElite);
+
+		_snprintf_s(buffNext, sizeof(buffNext), "%sTurretLocked", buffWep);
+		Valueable<bool> bufturrlck_ {};
+		bufturrlck_.Read(iniEX_art, pSection_art, buffNext);
+
+		_snprintf_s(buffNextElite, sizeof(buffNextElite), "%sTurretLocked", buffWepElte);
+		Valueable<bool> bufturrlck_N {};
+		bufturrlck_N.Read(iniEX_art, pSection_art, buffNextElite);
+
+		WeaponStruct temp { buffWeapon_ , bufFLH_.Get() , bufBrlLngth_, bufBrlthic_,  bufturrlck_ };
+		std::memcpy((i < TechnoTypeClass::MaxWeapons ? pType->Weapon : pExt->AdditionalWeaponDatas.data()) + NextIdx, &temp, sizeof(WeaponStruct));
+		WeaponStruct tempe { buffWeapon_N, bufFLH_N.Get(), bufBrlLngth_N, bufBrlthic_N, bufturrlck_N };
+		std::memcpy((i < TechnoTypeClass::MaxWeapons ? pType->EliteWeapon : pExt->AdditionalEliteWeaponDatas.data()) + NextIdx, &tempe, sizeof(WeaponStruct));
+
+	}
 }
+
+//DEFINE_OVERRIDE_HOOK(0x7128C0, TechnoTypeClass_LoadFromINI_Weapons1, 6)
+//{
+//	GET(TechnoTypeClass*, pThis, EBP);
+//	GET(CCINIClass*, pINI, ESI);
+//	ReadWeaponStructDatas(pThis, pINI);
+//	return 0x712A8F;
+//}
+
+DEFINE_DISABLE_HOOK(0x715B1F,TechnoTypeClass_LoadFromINI_Weapons2_ares) //, 6
+
+//DEFINE_OVERRIDE_HOOK(0x7177C0, TechnoTypeClass_GetWeapon, 0xB)
+//{
+//	GET_STACK(int, idx, 0x4);
+//	GET(TechnoTypeClass*, pThis, ECX);
+//
+//	if (idx < 18)
+//		return 0x0;
+//
+//	R->EAX(GetWeapon(pThis, idx, false));
+//	return 0x7177D4;
+//}
+
+//DEFINE_OVERRIDE_HOOK(0x7177E0 , TechnoTypeClass_GetEliteWeapon, 0xB)
+//{
+//	GET_STACK(int, idx, 0x4);
+//	GET(TechnoTypeClass*, pThis, ECX);
+//
+//	if (idx < 18)
+//		return 0x0;
+//
+//	R->EAX(GetWeapon(pThis, idx, true));
+//	return 0x7177F4;
+//}
 
 DEFINE_DISABLE_HOOK(0x4E3792, HTExt_Unlimit1_ares)//, 0){ return 0x4E37AD; }
 DEFINE_JUMP(LJMP, 0x4E3792, 0x4E37AD);

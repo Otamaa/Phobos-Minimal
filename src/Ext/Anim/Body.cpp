@@ -542,8 +542,6 @@ void AnimExt::ExtData::Serialize(T& Stm)
 		.Process(this->ParentBuilding)
 		.Process(this->CreateUnitLocation)
 		;
-
-	ObjectExt::ExtData::Serialize(Stm);
 }
 
 // =============================
