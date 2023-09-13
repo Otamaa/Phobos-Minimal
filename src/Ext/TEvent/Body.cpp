@@ -85,6 +85,7 @@ bool TEventExt::Occured(TEventClass* pThis, EventArgs const& args, bool& result)
 
 	switch ((PhobosTriggerEvent)pThis->EventKind)
 	{
+#pragma region LovalVariableManipulation
 	case PhobosTriggerEvent::LocalVariableGreaterThan:
 		result = TEventExt::VariableCheck<false, std::greater<int>>(pThis);
 		break;
@@ -193,8 +194,21 @@ bool TEventExt::Occured(TEventClass* pThis, EventArgs const& args, bool& result)
 	case PhobosTriggerEvent::GlobalVariableAndIsTrueGlobalVariable:
 		result = TEventExt::VariableCheckBinary<true, true, std::and_with<int>>(pThis);
 		break;
+#pragma endregion
+
+	/*
+	*	- PersistableFlag ?
+	*	- LogcNeed ?
+	*   - AttachFlags ?
+	*/
 	case PhobosTriggerEvent::ShieldBroken:
 		result = ShieldClass::TEventIsShieldBroken(args.Object);
+		break;
+	case PhobosTriggerEvent::HouseOwnsTechnoType:
+		result = TEventExt::HouseOwnsTechnoTypeTEvent(pThis);
+		break;
+	case PhobosTriggerEvent::HouseDoesntOwnTechnoType:
+		result = TEventExt::HouseDoesntOwnTechnoTypeTEvent(pThis);
 		break;
 	case PhobosTriggerEvent::HousesDestroyed:
 		result = TEventExt::HousesAreDestroyedTEvent(pThis);
@@ -239,6 +253,24 @@ bool TEventExt::VariableCheckBinary(TEventClass* pThis)
 	}
 
 	return false;
+}
+
+bool TEventExt::HouseOwnsTechnoTypeTEvent(TEventClass* pThis)
+{
+	auto pType = TechnoTypeClass::Find(pThis->String);
+	if (!pType)
+		return false;
+
+	auto pHouse = HouseClass::FindByIndex(pThis->Value);
+	if (!pHouse)
+		return false;
+
+	return pHouse->CountOwnedAndPresent(pType) > 0;
+}
+
+bool TEventExt::HouseDoesntOwnTechnoTypeTEvent(TEventClass* pThis)
+{
+	return !TEventExt::HouseOwnsTechnoTypeTEvent(pThis);
 }
 
 bool TEventExt::HousesAreDestroyedTEvent(TEventClass* pThis)

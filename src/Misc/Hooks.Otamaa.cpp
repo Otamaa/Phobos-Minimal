@@ -4762,17 +4762,27 @@ DEFINE_HOOK(0x6FA4E5, TechnoClass_AI_RecoilUpdate, 0x6)
 }
 
 //stop EMPulseCannon building finding target altho it cant fire automatically
-DEFINE_HOOK(0x445F00, BuildingClass_GreatestThreat_EMPulseCannon, 0x6)
-{
-	GET(BuildingClass*, pThis, ECX);
-
-	if (pThis->Type->EMPulseCannon) {
-		R->EAX(0);
-		return 0x445F6F;
-	}
-
-	return 0x0;
-}
+//DEFINE_HOOK(0x445F00, BuildingClass_GreatestThreat_EMPulseCannon, 0x6)
+//{
+//	GET(BuildingClass*, pThis, ECX);
+//
+//	if (pThis->Type->EMPulseCannon && !TechnoExt::ExtMap.Find(pThis)->LinkedSW) {
+//		R->EAX(0);
+//		return 0x445F6F;
+//	}
+//
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x44D584, BuildingClass_MI_Missile_ClearLinked, 0x6)
+//{
+//	GET(BuildingClass*, pThis, ECX);
+//
+//	if (TechnoExt::ExtMap.Find(pThis)->LinkedSW)
+//		TechnoExt::ExtMap.Find(pThis)->LinkedSW = nullptr;
+//
+//	return 0x0;
+//}
 
 //building abandon sound 458291
 //AbandonedSound
@@ -4860,6 +4870,18 @@ DEFINE_HOOK(0x4686FA, BulletClass_Unlimbo_MissingTargetPointer, 0x6)
 	if (!pThis->Target) {
 		Debug::FatalErrorAndExit("Bullet [%s - %x] Missing Target Pointer when Unlimbo !\n",
 			pThis->get_ID(), pThis);
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x65DD55, TeamClass_CreateGroub_MissingOwner, 0x9)
+{
+	GET(HouseClass*, pOwner, EAX);
+	GET(TeamTypeClass*, pType, EBX);
+
+	if (!pOwner) {
+		Debug::Log("Creating Team[%s] groub without proper Ownership may cause crash , Please check !\n" , pType->ID);
 	}
 
 	return 0x0;

@@ -21,24 +21,7 @@
 // DEFINE_HOOK(6FB757, TechnoClass_UpdateCloak, 8)
 
 /* TODO : Addition Weapon shenanegans , need to port whole TechnoClass::Update
-DEFINE_HOOK(717890, TechnoTypeClass_SetWeaponTurretIndex, 8)
-{
-	GET(TechnoTypeClass*, pThis, ECX);
-	GET_STACK(int, nTurIdx, 0x4);
-	GET_STACK(int, nWeaponIdx, 0x8);
 
-	if (nWeaponIdx < TechnoTypeClass::MaxWeapons)
-	{
-		pThis->TurretWeapon[nWeaponIdx] = nTurIdx;
-	}
-	else
-	{
-		auto const pExt = TechnoTypeExt::ExtMap.Find(pThis);
-		pExt->AdditionalTurrentWeapon[nWeaponIdx - TechnoTypeClass::MaxWeapons] = nTurIdx;
-	}
-
-	return 0x71789F;
-}
 */
 
 //TacticalClass_Draw_TimerVisibility  , the default value sometime initialized at NewSuper init function , and not readed from ini

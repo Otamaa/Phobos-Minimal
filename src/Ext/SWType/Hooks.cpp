@@ -980,7 +980,7 @@ DEFINE_OVERRIDE_HOOK(0x6CB920, SuperClass_ClickFire, 5)
 		auto const duration = int(pThis->GetRechargeTime()
 			- (left / pExt->GetChargeToDrainRatio()));
 		pThis->RechargeTimer.Start(duration);
-
+		pExt->Deactivate(pThis, *pCell, isPlayer);
 		return ret(false);
 	}
 

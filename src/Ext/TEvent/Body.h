@@ -51,8 +51,9 @@ enum PhobosTriggerEvent
 	GlobalVariableAndIsTrueGlobalVariable = 535,
 
 	ShieldBroken = 600,
-
-	HousesDestroyed = 601,
+	HouseOwnsTechnoType = 601,
+	HouseDoesntOwnTechnoType = 602,
+	HousesDestroyed = 603,
 
 	count
 };
@@ -102,4 +103,6 @@ public:
 	static ExtContainer ExtMap;
 
 	static bool HousesAreDestroyedTEvent(TEventClass* pThis);
+	static bool HouseOwnsTechnoTypeTEvent(TEventClass* pThis);
+	static bool HouseDoesntOwnTechnoTypeTEvent(TEventClass* pThis);
 };

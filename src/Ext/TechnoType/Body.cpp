@@ -2082,14 +2082,16 @@ DEFINE_HOOK(0x7162F0, TechnoTypeClass_SaveLoad_Prefix, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x716DAC, TechnoTypeClass_Load_Suffix, 0xA)
+// S/L very early so we properly trigger `Load3DArt` without need to reconstruct the ExtData !
+
+DEFINE_HOOK(0x716429, TechnoTypeClass_Load_Suffix, 0x6)
 {
 	TechnoTypeExt::ExtMap.LoadStatic();
 
 	return 0;
 }
 
-DEFINE_HOOK(0x717094, TechnoTypeClass_Save_Suffix, 0x5)
+DEFINE_HOOK(0x716DDE, TechnoTypeClass_Save_Suffix, 0x6)
 {
 	TechnoTypeExt::ExtMap.SaveStatic();
 
