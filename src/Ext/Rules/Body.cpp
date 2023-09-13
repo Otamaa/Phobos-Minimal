@@ -295,7 +295,7 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		"- The weapon was created too late and its rules weren't read "
 		"(see WEEDGUY hack);\n- The weapon's name was misspelled.\n";
 
-	for(auto const& pItem : *WeaponTypeClass::Array) {
+	for(auto pItem : *WeaponTypeClass::Array) {
 
 		if(!pItem->Warhead) {
 			Debug::Log(Msg, pItem->ID, "Warhead");
@@ -315,6 +315,13 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 	if(OverlayTypeClass::Array->Count > 255) {
 		Debug::Log("Only 255 OverlayTypes are supported.\n");
+	}
+
+	for (auto const pWH : *WarheadTypeClass::Array) {
+		const size_t versesSize = WarheadTypeExt::ExtMap.Find(pWH)->Verses.size();
+		if (versesSize < ArmorTypeClass::Array.size()) {
+			Debug::Log("Inconsistent verses size of [%s - %d] Warhead with ArmorType Array[%d]\n", pWH->ID, versesSize, ArmorTypeClass::Array.size());
+		}
 	}
 
 	return 0x0;

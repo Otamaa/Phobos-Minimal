@@ -89,7 +89,7 @@ public:
 	static constexpr reference<NamedValue<int>, 0x81B9B0u, 4u> const PipScaleTypeName {};
 	static constexpr reference<const char*, 0x81BA88, 13u> const MovementZonesToString {};
 	static constexpr reference<int, 0x7F4890, 40u> const BodyShapeStage {};
-	static constexpr reference<int, 0x7F4890, 8u> const BodyShapeStage_Force8 {}; //used by ares 
+	static constexpr reference<int, 0x7F4890, 8u> const BodyShapeStage_Force8 {}; //used by ares
 	static constexpr reference<const char* , 0x8463B8 ,18u> const AbilityTypeToStrings {};
 
 	//These is same with belows , just for confinient
@@ -187,16 +187,16 @@ public:
 
 	// weapon related
 
-	WeaponStruct* GetWeapon(size_t const index)
+	WeaponStruct* GetWeapon(int const index)
 	{ JMP_THIS(0x7177C0); }
 
-	WeaponStruct* GetEliteWeapon(size_t const index) const
+	WeaponStruct* GetEliteWeapon(int const index) const
 	{ JMP_THIS(0x7177E0); }
 
-	void SetTurretWeapon(size_t const indexA, size_t const indexWeapon) const
+	void SetTurretWeapon(int const indexA, int const indexWeapon) const
 	{ JMP_THIS(0x717890); }
 
-	int GetTurretWeapon(size_t const nIndex) const
+	int GetTurretWeapon(int const nIndex) const
 	{ JMP_THIS(0x7178B0); }
 
 	//Constructor

@@ -244,7 +244,7 @@ public:
 		Valueable<Point2D> RecalculateDistanceDamage_Display_Offset { Point2D::Empty };
 		Valueable<bool> RecalculateDistanceDamage_ProcessVerses { false };
 
-		AresAttachEffectTypeClass AttachedEffect;
+		AresAttachEffectTypeClass AttachedEffect {};
 		ValueableVector<WeaponTypeClass*> DetonatesWeapons {};
 		ValueableVector<int> LimboKill_IDs {};
 		Valueable<AffectedHouse> LimboKill_Affected { AffectedHouse::Owner };
@@ -346,8 +346,8 @@ public:
 		NullablePromotable<int> SelfHealing_CombatDelay { };
 
 		ExtData(WarheadTypeClass* OwnerObject) : Extension<WarheadTypeClass>(OwnerObject)
-			, AttachedEffect { OwnerObject }
 		{
+			AttachedEffect.Owner = OwnerObject;
 			this->EvaluateArmor(OwnerObject);
 		}
 

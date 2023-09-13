@@ -36,10 +36,8 @@ public:
 
 	bool Save(PhobosStreamWriter& Stm) const;
 
-	AresAttachEffectTypeClass(const AbstractTypeClass* pOwner) :
-		Owner { pOwner }
-	{ }
-
+	AresAttachEffectTypeClass() = default;
+	AresAttachEffectTypeClass(const AbstractTypeClass* pOwner) { Owner = pOwner;  }
 	~AresAttachEffectTypeClass() noexcept = default;
 
 	AresAttachEffectTypeClass(const AresAttachEffectTypeClass& other) = default;

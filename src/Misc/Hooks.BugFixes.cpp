@@ -90,7 +90,7 @@ DEFINE_HOOK(0x737D57, UnitClass_ReceiveDamage_DyingFix, 0x7)
 		if (pThis->IsAttackedByLocomotor && pThis->GetTechnoType()->Crashable)
 			pThis->IsAttackedByLocomotor = false;
 
-#ifndef COMPILE_PORTED_DP_FEATURES
+#ifdef COMPILE_PORTED_DP_FEATURES
 		if (!pThis->Type->Voxel)
 		{
 			if (pThis->Type->MaxDeathCounter > 0
@@ -104,8 +104,8 @@ DEFINE_HOOK(0x737D57, UnitClass_ReceiveDamage_DyingFix, 0x7)
 			{
 
 				pThis->Stun();
-				if (pThis->Locomotor.get()->Is_Moving_Now())
-					pThis->Locomotor.get()->Stop_Moving();
+				if (pThis->Locomotor->Is_Moving_Now())
+					pThis->Locomotor->Stop_Moving();
 
 				pThis->DeathFrameCounter = 1;
 			}

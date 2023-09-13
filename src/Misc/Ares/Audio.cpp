@@ -50,9 +50,8 @@ public:
 		}
 
 		if (it->second.wavName.empty()) {
-			char filename[0x100];
-			_snprintf_s(filename, _TRUNCATE, "%s.wav", pFilename);
-			it->second.wavName = filename;
+			it->second.wavName = pFilename;
+			it->second.wavName += ".wav";
 		}
 
 		return (uintptr_t)it->first.c_str();

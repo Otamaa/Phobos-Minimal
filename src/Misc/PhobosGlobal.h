@@ -20,7 +20,6 @@ public:
 	std::vector<CellStruct> TempFoundationData1 { };
 	std::vector<CellStruct> TempFoundationData2 { };
 	std::vector<CellStruct> TempCoveredCellsData { };
-
 public:
 	static bool SaveGlobals(PhobosStreamWriter& stm) { return PhobosGlobal::Instance()->Serialize(stm); }
 	static bool LoadGlobals(PhobosStreamReader& stm) { return PhobosGlobal::Instance()->Serialize(stm); }

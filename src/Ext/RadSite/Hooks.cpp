@@ -261,8 +261,14 @@ DEFINE_HOOK(0x43FB29, BuildingClass_AI_Radiation, 0x8)
 				if (damage == 0)
 					continue;
 
-				if (!pRadExt->ApplyRadiationDamage(pBuilding, damage, static_cast<int>(orDistance)))
+
+				switch (pRadExt->ApplyRadiationDamage(pBuilding, damage, static_cast<int>(orDistance)))
+				{
+				case RadSiteExt::ExtData::DamagingState::Dead:
 					return Dead;
+				default:
+					break;
+				}
 			}
 		}
 	}
@@ -372,8 +378,15 @@ DEFINE_HOOK(0x4DA554, FootClass_AI_ReplaceRadiationDamageProcessing, 0x5)
 			if (damage == 0)
 				continue;
 
-			if (!pRadExt->ApplyRadiationDamage(pThis, damage, static_cast<int>(orDistance)))
+			switch (pRadExt->ApplyRadiationDamage(pThis, damage, static_cast<int>(orDistance)))
+			{
+			case RadSiteExt::ExtData::DamagingState::Dead:
 				return SkipEverything;
+			case RadSiteExt::ExtData::DamagingState::Ignore:
+				return (CheckOtherState);
+			default:
+				break;
+			}
 		}
 
 		return (CheckOtherState);

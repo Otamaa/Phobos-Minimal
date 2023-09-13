@@ -230,6 +230,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Verses.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Veterancy.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Wave.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Weapons.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\Hooks.PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\ExtHooks\TechnoExt.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\FighterGuardArea\FighterAreaGuard.cpp" />

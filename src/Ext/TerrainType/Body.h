@@ -27,8 +27,8 @@ public:
 
 		Valueable<bool> IsPassable { false };
 		Valueable<bool> CanBeBuiltOn { false };
-		
-		Valueable<int> CrushableLevel;
+
+		Valueable<int> CrushableLevel {};
 
 		Valueable<bool> LightEnabled { false };
 		Nullable<int> LightVisibility { };
@@ -44,10 +44,10 @@ public:
 
 		Valueable<int> Bounty { 0 };
 
-		ExtData(TerrainTypeClass* OwnerObject) : 
-			Extension<TerrainTypeClass>(OwnerObject)
-			, CrushableLevel { OwnerObject->Crushable ? 10 : 0 }
-		{ }
+		ExtData(TerrainTypeClass* OwnerObject) : Extension<TerrainTypeClass>(OwnerObject)
+		{
+			 CrushableLevel = OwnerObject->Crushable ? 10 : 0;
+		}
 
 		virtual ~ExtData() override = default;
 

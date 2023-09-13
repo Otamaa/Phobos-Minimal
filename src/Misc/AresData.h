@@ -392,8 +392,8 @@ struct AresDTORCaller
 //#define EvaTypes (*((std::vector<const char*, AresMemory::AresAllocator<const char*>>*)(AresData::AresStaticInstanceFinal[5])))
 #define RegisteredJammers(techno) (*(PhobosMap<TechnoClass*, bool, AresMemory::AresAllocator<std::pair<TechnoClass*,bool>>>*)(((char*)GetAresBuildingExt(techno)) + 0x40))
 #define PrimsForwardingPtr(techno) (*(cPrismForwarding*)(((char*)GetAresBuildingExt(techno)) + 0x10))
-#define GetGunnerName(var) (*(std::vector<CSFText,AresMemory::AresAllocator<CSFText>>*)(((char*)GetAresTechnoTypeExt(var)) + 0xC8))
-#define TurretWeapons(var) (*(std::vector<int,AresMemory::AresAllocator<int>>*)(((char*)GetAresTechnoTypeExt(var)) + 0xBC))
+//#define GetGunnerName(var) (*(std::vector<CSFText,AresMemory::AresAllocator<CSFText>>*)(((char*)GetAresTechnoTypeExt(var)) + 0xC8))
+//#define TurretWeapons(var) (*(std::vector<int,AresMemory::AresAllocator<int>>*)(((char*)GetAresTechnoTypeExt(var)) + 0xBC))
 
 //#define GetPilotTypeVec(var) (*(std::vector<InfantryTypeClass*,AresMemory::AresAllocator<InfantryTypeClass*>>*)(((char*)GetAresTechnoTypeExt(var)) + 0x8))
 //#define ReverseEngineeredTechnoType(var) (*(std::vector<TechnoTypeClass*,AresMemory::AresAllocator<TechnoTypeClass*>>*)((char*)GetAresHouseExt(var) + 0x34))

@@ -32,21 +32,21 @@ DEFINE_OVERRIDE_HOOK(0x75DDCC, WarheadTypeClass_GetVerses_Skipvanilla, 0x7)
 	return 0x75DE98;
 }
 
-//void Debug(ObjectClass* pTarget, int nArmor, VersesData* pData, WarheadTypeClass* pWH, const char* pAdd , size_t arrSize )
-//{
-//	auto const pArmor = ArmorTypeClass::FindFromIndex(nArmor);
-//
-//	Debug::Log("[%s] WH[%d][%s] against [%d - %s] Flag :  FF %d , PA %d , RR %d [%fl] \n",
-//			pAdd,
-//			arrSize,
-//			pWH->get_ID(),
-//			nArmor,
-//			pArmor->Name.data(),
-//			pData->Flags.ForceFire,
-//			pData->Flags.PassiveAcquire,
-//			pData->Flags.Retaliate,
-//			pData->Verses);
-//}
+void Debug(ObjectClass* pTarget, int nArmor, VersesData* pData, WarheadTypeClass* pWH, const char* pAdd , size_t arrSize )
+{
+	auto const pArmor = ArmorTypeClass::FindFromIndex(nArmor);
+
+	Debug::Log("[%s] WH[%d][%s] against [%d - %s] Flag :  FF %d , PA %d , RR %d [%fl] \n",
+			pAdd,
+			arrSize,
+			pWH->get_ID(),
+			nArmor,
+			pArmor->Name.data(),
+			pData->Flags.ForceFire,
+			pData->Flags.PassiveAcquire,
+			pData->Flags.Retaliate,
+			pData->Verses);
+}
 
 DEFINE_OVERRIDE_HOOK(0x489235, GetTotalDamage_Verses, 0x8)
 {
@@ -55,6 +55,11 @@ DEFINE_OVERRIDE_HOOK(0x489235, GetTotalDamage_Verses, 0x8)
 	GET(int, nDamage, ECX);
 
 	const auto pExt = WarheadTypeExt::ExtMap.Find(pWH);
+
+
+	if (nArmor > ArmorTypeClass::Array.size())
+		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
+
 	const auto vsData = &pExt->Verses[nArmor];
 
 	R->EAX(static_cast<int>((nDamage * vsData->Verses)));
@@ -70,6 +75,10 @@ DEFINE_OVERRIDE_HOOK(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
 	GET(int, nArmor, EAX);
 
 	const auto pData = WarheadTypeExt::ExtMap.Find(pWH);
+
+	if (nArmor > ArmorTypeClass::Array.size())
+		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
+
 	const auto vsData = &pData->Verses[nArmor];
 
 	return vsData->Flags.PassiveAcquire  //|| !(vsData->Verses <= 0.02)
@@ -88,6 +97,9 @@ DEFINE_OVERRIDE_HOOK(0x6FCB6A, TechnoClass_CanFire_Verses, 0x7)
 
 	const auto pData = WarheadTypeExt::ExtMap.Find(pWH);
 	const auto vsData = &pData->Verses[nArmor];
+
+	if (nArmor > ArmorTypeClass::Array.size())
+		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
 
 	// i think there is no way for the techno know if it attack using force fire or not
 	if (vsData->Flags.ForceFire || vsData->Verses != 0.0)
@@ -117,6 +129,10 @@ DEFINE_OVERRIDE_HOOK(0x70CEA0, TechnoClass_EvalThreatRating_TargetWeaponWarhead_
 	GET(TechnoTypeClass*, pThisType, EBX);
 
 	const auto pData = WarheadTypeExt::ExtMap.Find(pTargetWH);
+
+	if ((int)pThisType->Armor > ArmorTypeClass::Array.size())
+		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
+
 	const auto vsData = &pData->Verses[(int)pThisType->Armor];
 
 	double nMult = 0.0;
@@ -140,6 +156,10 @@ DEFINE_OVERRIDE_HOOK(0x70CF45, TechnoClass_EvalThreatRating_ThisWeaponWarhead_Ve
 	GET_STACK(double, dCoeff, 0x30);
 
 	const auto pData = WarheadTypeExt::ExtMap.Find(pWH);
+
+	if (nArmor > ArmorTypeClass::Array.size())
+		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
+
 	const auto vsData = &pData->Verses[nArmor];
 
 	R->Stack(0x10, dCoeff * vsData->Verses + dmult);
@@ -160,6 +180,9 @@ DEFINE_OVERRIDE_HOOK(0x6F36E3, TechnoClass_SelectWeapon_Verses, 0x5)
 	GET_STACK(WeaponTypeClass*, pPrimary, 0x14); //primary
 
 	const int nArmor = (int)pTarget->GetTechnoType()->Armor;
+	if (nArmor > ArmorTypeClass::Array.size())
+		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
+
 	const auto vsData_Secondary = &WarheadTypeExt::ExtMap.Find(pSecondary->Warhead)->Verses[nArmor];
 
 	if (vsData_Secondary->Verses == 0.0)
@@ -178,6 +201,9 @@ DEFINE_OVERRIDE_HOOK(0x708AF7, TechnoClass_ShouldRetaliate_Verses, 0x7)
 	GET(int, nArmor, EAX);
 
 	const auto pData = WarheadTypeExt::ExtMap.Find(pWH);
+	if (nArmor > ArmorTypeClass::Array.size())
+		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
+
 	const auto vsData = &pData->Verses[nArmor];
 
 	return vsData->Flags.Retaliate //|| !(vsData->Verses <= 0.0099999998)

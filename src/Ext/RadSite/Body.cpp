@@ -130,6 +130,10 @@ const double RadSiteExt::ExtData::GetRadLevelAt(CellStruct const& cell)
 		? 0.0 : (nMax - nDistance) / nMax * currentLevel;
 }
 
+bool NOINLINE IsFiniteNumber(double x) {
+	return (x <= DBL_MAX && x >= -DBL_MAX);
+}
+
 const double RadSiteExt::ExtData::GetRadLevelAt(double distance)
 {
 	const auto pThis = this->Get();
@@ -140,31 +144,55 @@ const double RadSiteExt::ExtData::GetRadLevelAt(double distance)
 
 	const auto nMax = static_cast<double>(pThis->Spread);
 
-	return (distance > nMax)
+	if (!nMax && !distance)
+		return currentLevel;
+
+	const auto result =  (distance > nMax)
 		? 0.0 : (nMax - distance) / nMax * currentLevel;
 
+	//if (!IsFiniteNumber(result))
+	//	DebugBreak();
+
+	return result;
 }
 
 //return false mean it is already death
-const bool RadSiteExt::ExtData::ApplyRadiationDamage(TechnoClass* pTarget, int damage, int distance)
+const RadSiteExt::ExtData::DamagingState RadSiteExt::ExtData::ApplyRadiationDamage(TechnoClass* pTarget, int damage, int distance)
 {
 	const auto pWarhead = this->Type->GetWarhead();
 	if (!pTarget->IsAlive || pTarget->InLimbo || !pTarget->Health || pTarget->IsSinking || pTarget->IsCrashing)
-		return false;
+		return RadSiteExt::ExtData::DamagingState::Dead;
 
-	if (!this->Type->GetWarheadDetonate())
+	auto const pUnit = specific_cast<UnitClass*>(pTarget);
+
+	if ((pUnit && pUnit->DeathFrameCounter > 0))
+		return RadSiteExt::ExtData::DamagingState::Ignore;
+
 	{
-		HouseClass* const pOwner = this->TechOwner ? this->TechOwner->Owner : this->HouseOwner;
-		pTarget->ReceiveDamage(&damage, distance, pWarhead, this->TechOwner, false, true, pOwner);
-	}
-	else
-	{
-		auto const coords = pTarget->GetCoords();
-		HouseClass* const pOwner = this->TechOwner ? this->TechOwner->Owner : this->HouseOwner;
-		WarheadTypeExt::DetonateAt(pWarhead, pTarget, coords , this->TechOwner, damage , pOwner);
+		if (!this->Type->GetWarheadDetonate())
+		{
+			HouseClass* const pOwner = this->TechOwner ? this->TechOwner->Owner : this->HouseOwner;
+			const auto result = pTarget->ReceiveDamage(&damage, distance, pWarhead, this->TechOwner, false, true, pOwner);
+
+			if (result != DamageState::NowDead && result != DamageState::PostMortem)
+				return RadSiteExt::ExtData::DamagingState::Continue;
+			else if (result == DamageState::PostMortem)
+				return RadSiteExt::ExtData::DamagingState::Ignore;
+		}
+		else
+		{
+			auto const coords = pTarget->GetCoords();
+			HouseClass* const pOwner = this->TechOwner ? this->TechOwner->Owner : this->HouseOwner;
+			WarheadTypeExt::DetonateAt(pWarhead, pTarget, coords , this->TechOwner, damage , pOwner);
+
+			if ((pUnit && pUnit->DeathFrameCounter > 0))
+				return RadSiteExt::ExtData::DamagingState::Ignore;
+		}
 	}
 
-	return pTarget->IsAlive && !pTarget->InLimbo && pTarget->Health > 0 && !pTarget->IsSinking && !pTarget->IsCrashing;
+	const auto res =  pTarget->IsAlive && !pTarget->InLimbo && pTarget->Health > 0 && !pTarget->IsSinking && !pTarget->IsCrashing;
+
+	return res ? RadSiteExt::ExtData::DamagingState::Continue : RadSiteExt::ExtData::DamagingState::Dead;
 }
 
 // =============================

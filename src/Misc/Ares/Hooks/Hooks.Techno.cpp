@@ -435,25 +435,6 @@ DEFINE_OVERRIDE_HOOK(0x70CBDA, TechnoClass_DealParticleDamage, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x70DC70 , TechnoClass_SwitchGunner, 6)
-{
-	GET(TechnoClass*, pThis, ECX);
-	GET_STACK(int, nIdx, 0x4);
-
-	const auto pType = pThis->GetTechnoType();
-
-	if (!pType->IsChargeTurret)
-	{
-		if (nIdx < 0 || nIdx >= pType->WeaponCount)
-			nIdx = 0;
-
-		pThis->CurrentTurretNumber = *AresData::TechnoTypeExt_GetTurretWeaponIdx(pType, nIdx);
-		pThis->CurrentWeaponNumber = nIdx;
-	}
-
-	return 0x70DCDB;
-}
-
 DEFINE_OVERRIDE_HOOK_AGAIN(0x6FF860, TechnoClass_Fire_FSW, 8)
 DEFINE_OVERRIDE_HOOK(0x6FF008, TechnoClass_Fire_FSW, 8)
 {

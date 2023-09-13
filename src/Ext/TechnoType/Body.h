@@ -630,7 +630,7 @@ public:
 		FighterAreaGuardData MyFighterData { };
 		DamageSelfType DamageSelfData { };
 
-		AresAttachEffectTypeClass AttachedEffect { nullptr };
+		AresAttachEffectTypeClass AttachedEffect { };
 
 		Valueable<AnimTypeClass*> NoAmmoEffectAnim { nullptr };
 		Valueable<int> AttackFriendlies_WeaponIdx { -1 };

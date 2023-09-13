@@ -280,27 +280,41 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		//TODO : Tag name Change
 		this->Death_NoAmmo.Read(exINI, pSection, "Death.NoAmmo");
+		this->Death_NoAmmo.Read(exINI, pSection, "AutoDeath.OnAmmoDepletion");
 		this->Death_Countdown.Read(exINI, pSection, "Death.Countdown");
+		this->Death_Countdown.Read(exINI, pSection, "AutoDeath.AfterDelay");
 
 		Nullable<bool> Death_Peaceful;
 		Death_Peaceful.Read(exINI, pSection, "Death.Peaceful");
 
 		this->Death_Method.Read(exINI, pSection, "Death.Method");
+		this->Death_Method.Read(exINI, pSection, "AutoDeath.Behavior");
 
 		if (Death_Peaceful.isset())
 			this->Death_Method = Death_Peaceful.Get() ? KillMethod::Vanish : KillMethod::Explode;
 
 		this->AutoDeath_Nonexist.Read(exINI, pSection, "AutoDeath.Nonexist");
+		this->AutoDeath_Nonexist.Read(exINI, pSection, "AutoDeath.TechnosDontExist");
 		this->AutoDeath_Nonexist_Any.Read(exINI, pSection, "AutoDeath.Nonexist.Any");
+		this->AutoDeath_Nonexist_Any.Read(exINI, pSection, "AutoDeath.TechnosDontExist.Any");
 		this->AutoDeath_Nonexist_House.Read(exINI, pSection, "AutoDeath.Nonexist.House");
+		this->AutoDeath_Nonexist_House.Read(exINI, pSection, "AutoDeath.TechnosDontExist.House");
 		this->AutoDeath_Nonexist_AllowLimboed.Read(exINI, pSection, "AutoDeath.Nonexist.AllowLimboed");
+		this->AutoDeath_Nonexist_AllowLimboed.Read(exINI, pSection, "AutoDeath.TechnosDontExist.AllowLimboed");
+
 		this->AutoDeath_Exist.Read(exINI, pSection, "AutoDeath.Exist");
+		this->AutoDeath_Exist.Read(exINI, pSection, "AutoDeath.TechnosDontExist");
 		this->AutoDeath_Exist_Any.Read(exINI, pSection, "AutoDeath.Exist.Any");
+		this->AutoDeath_Exist_Any.Read(exINI, pSection, "AutoDeath.TechnosDontExist.Any");
 		this->AutoDeath_Exist_House.Read(exINI, pSection, "AutoDeath.Exist.House");
+		this->AutoDeath_Exist_House.Read(exINI, pSection, "AutoDeath.TechnosDontExist.House");
 		this->AutoDeath_Exist_AllowLimboed.Read(exINI, pSection, "AutoDeath.Exist.AllowLimboed");
+		this->AutoDeath_Exist_AllowLimboed.Read(exINI, pSection, "AutoDeath.TechnosDontExist.AllowLimboed");
 		this->AutoDeath_VanishAnimation.Read(exINI, pSection, "AutoDeath.VanishAnimation");
 
 		this->Death_WithMaster.Read(exINI, pSection, "Death.WithSlaveOwner");
+		this->Death_WithMaster.Read(exINI, pSection, "AutoDeath.WithSlaveOwner");
+
 		this->Slaved_ReturnTo.Read(exINI, pSection, "Slaved.ReturnTo");
 		this->Death_IfChangeOwnership.Read(exINI, pSection, "Death.IfChangeOwnership");
 
