@@ -160,6 +160,8 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 		}
 	}
 
+	pData->WallTowers.Read(iniEX , GENERAL_SECTION , "WallTowers");
+
 	for(auto pBld : *BuildingTypeClass::Array) {
 		BuildingTypeExt::ExtMap.Find(pBld)->CompleteInitialization();
 	}
@@ -416,7 +418,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->DrawTurretShadow.Read(exINI, AUDIOVISUAL_SECTION, "DrawTurretShadow");
 	this->AnimRemapDefaultColorScheme.Read(exINI, AUDIOVISUAL_SECTION, "AnimRemapDefaultColorScheme");
 
-	if (pThis->WallTower)
+	if (pThis->WallTower && !this->WallTowers.Contains(pThis->WallTower))
 		this->WallTowers.push_back(pThis->WallTower);
 
 #pragma endregion

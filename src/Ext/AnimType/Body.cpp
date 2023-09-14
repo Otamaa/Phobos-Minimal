@@ -192,7 +192,6 @@ void AnimTypeExt::CreateUnit_MarkCell(AnimClass* pThis)
 		isBridge = allowBridges && pCell->ContainsBridge();
 		int bridgeZ = isBridge ? CellClass::BridgeHeight : 0;
 
-		// TODO : this shit break when the unit on top of bridge
 		const int z = pTypeExt->CreateUnit_AlwaysSpawnOnGround ? INT32_MIN : Location.Z;
 		const auto nCellHeight = MapClass::Instance->GetCellFloorHeight(Location);
 		Location.Z = MaxImpl(nCellHeight + bridgeZ, z);
@@ -247,7 +246,7 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 			? ScenarioClass::Instance->Random.RandomRangedSpecific<DirType>(DirType::North, DirType::Max) : pTypeExt->CreateUnit_Facing.Get();
 
 		auto pCell = MapClass::Instance->GetCellAt(pAnimExt->CreateUnitLocation);
-		if (!pTypeExt->CreateUnit_ConsiderPathfinding.Get() || !pCell->GetBuilding())
+		if (!pTypeExt->CreateUnit_ConsiderPathfinding.Get() || !pCell->GetBuilding() || !pCell->ContainsBridge())
 		{
 			++Unsorted::ScenarioInit;
 			pTechno->Unlimbo(pAnimExt->CreateUnitLocation, resultingFacing);
@@ -307,6 +306,13 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 				{
 					pTechno->IsFallingDown = true;
 				}
+			}
+			else
+			{
+				pTechno->UpdatePlacement(PlacementType::Remove);
+				pTechno->OnBridge = pCell->ContainsBridge();
+				pTechno->UpdatePlacement(PlacementType::Put);
+				//pTechno->MarkForRedraw();
 			}
 
 			pTechno->QueueMission(pTypeExt->CreateUnit_Mission.Get(), false);

@@ -146,7 +146,7 @@ bool conductAbduction(WeaponTypeExt::ExtData* pData , TechnoClass* pOwner, Abstr
 
 	Target->OnBridge = false;
 	Target->NextObject = 0;
-
+	//Target->UpdatePlacement(PlacementType::Remove);
 	// because we are throwing away the locomotor in a split second, piggybacking
 	// has to be stopped. otherwise the object might remain in a weird state.
 	while (LocomotionClass::End_Piggyback(Target->Locomotor)) {};

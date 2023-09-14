@@ -421,8 +421,8 @@ DEFINE_HOOK(0x4FE648, HouseClss_AI_Building_WallTowers, 0x6)
 	if (nNodeBuilding == -1 || Nvec.empty())
 		return 0x4FE696;
 
-	return std::any_of(Nvec.begin(), Nvec.end(),
-		[&](BuildingTypeClass* const pWallTower) { return pWallTower->ArrayIndex == nNodeBuilding; })
+	return Nvec.Any_Of([&](BuildingTypeClass* const pWallTower) {
+		return pWallTower->ArrayIndex == nNodeBuilding; })
 		? 0x4FE656 : 0x4FE696;
 }
 
