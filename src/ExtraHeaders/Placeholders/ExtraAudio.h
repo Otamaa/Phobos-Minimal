@@ -113,24 +113,6 @@ struct __declspec(align(4)) STM_SBUFFER
 	int field_38;
 };
 
-struct LockTag
-{
-	int count;
-	int dbg_struct_type;
-};
-
-struct MemoryItemTag
-{
-	MemoryItemTag* next;
-	int dbg_struct_type;
-};
-
-struct MemoryPoolTag
-{
-	MemoryItemTag* next;
-	int dbg_struct_type;
-};
-
 struct __declspec(align(4)) AudioCacheTag
 {
 	AudioIDXData* idxdata;
@@ -546,79 +528,6 @@ struct AudioEventClassTag
 	int DecayCount;
 	int field_140;
 	int field_144;
-};
-
-struct __declspec(align(4)) AudioCacheItem
-{
-	_ListNode listnode;
-	LockTag locks;
-	void* itemindex;
-	int valid;
-	AudioSampleTag sampletag;
-	AudioCacheTag* cachetag;
-	AudioFormatTag format;
-	int dbg_struct_type;
-};
-
-struct AudioEventHandleTag;
-struct AudioEventTag
-{
-	int nodemaybe_0;
-	char field_4;
-	char field_5;
-	char field_6;
-	char field_7;
-	int field_8;
-	_ListNode listnode;
-	int bitfield;
-	DWORD sometype1;
-	int sometype2;
-	AudioEventClassTag* evclass;
-	AudioCacheItem* caches[32];
-	int cachecount;
-	int cacheentry;
-	AudioChannelTag* channeltag;
-	int field_B4;
-	AudioLevel volume;
-	AudioLevel audiolevel2;
-	AudioLevel pan;
-	char field_130;
-	char field_131;
-	char field_132;
-	char field_133;
-	int field_134;
-	int stamp;
-	int field_13C;
-	int field_140;
-	int field_144;
-	AudioSampleTag* sampletag;
-	int PitchShift;
-	int randlevelval2;
-	int priority_154;
-	DWORD pauses;
-	char field_15C;
-	char field_15D;
-	char field_15E;
-	char field_15F;
-	int randvals1_160[32];
-	int randvals1counter;
-	int loops_done;
-	int randvals2_1E8[32];
-	int randvals_268;
-	int randvals2counter;
-	int randvals_270;
-	int randval_274;
-	AudioEventHandleTag* eventhandletag;
-	int field_27C;
-};
-
-struct __declspec(align(4)) AudioEventHandleTag
-{
-	AudioEventTag* _AudioEventTag;
-	DWORD stamp;
-	AudioEventClassTag* eclass;
-	DWORD id;
-	int field_10;
 };
 
 struct __declspec(align(4)) imastruct

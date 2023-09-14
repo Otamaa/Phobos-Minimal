@@ -1661,7 +1661,9 @@ void TechnoExt::PutPassengersInCoords(TechnoClass* pTransporter, const CoordStru
 	//Only remove passengers from the Transporter if it succeeded
 	if (Placed)
 	{
+		pPassenger->UpdatePlacement(PlacementType::Remove);
 		pPassenger->OnBridge = MapClass::Instance->GetCellAt(nCoord)->ContainsBridgeEx();
+		pPassenger->UpdatePlacement(PlacementType::Put);
 		pPassenger->StopMoving();
 		pPassenger->SetDestination(nullptr, true);
 		pPassenger->SetTarget(nullptr);

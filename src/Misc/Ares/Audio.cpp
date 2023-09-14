@@ -184,7 +184,7 @@ public:
 							constexpr size_t const IdxEntrysize = sizeof(AudioIDXEntry);
 							constexpr size_t const readBytes = IdxEntrysize - 4;
 
-							if (headerIndex.Version == 1)
+							if (headerIndex.Magic == 1)
 							{
 								for (auto& entry : this->Entries)
 								{
@@ -206,6 +206,31 @@ public:
 
 							std::sort(this->Entries.begin(), this->Entries.end());
 						}
+
+						//for(auto& data : this->Entries)
+						//{
+						//	_snprintf_s(filename, _TRUNCATE, "%s.wav", data.Name.data());
+						//	CCFileClass wavfile { filename };
+						//	if (wavfile.Exists() && wavfile.Open(FileAccessMode::Read)) {
+						//
+						//		AudioSampleData sampledata {};
+						//		if (Audio::ReadWAVFile(&wavfile, &sampledata, &data.Size)) {
+						//
+						//			if (data.Flags == 2) {
+						//
+						//				if (sampledata.BytesPerSample == 2) {
+						//					data.Flags = 6;
+						//				}
+						//
+						//				if (sampledata.NumChannels == 2) {
+						//					data.Flags |= 1;
+						//				}
+						//
+						//				data.SampleRate = data.SampleRate;
+						//			}
+						//		}
+						//	}
+						//}
 					}
 
 					this->Bag = std::move(pBag);
@@ -278,10 +303,10 @@ public:
 		this->Bags.emplace_back(pFileBase);
 	}
 
-	bool GetFileStruct(FileStruct& file , int idx) {
+	bool GetFileStruct(FileStruct& file , int idx , AudioIDXEntry*& sample) {
 
 		if (size_t(idx) < this->Files.size()) {
-			const auto sample = &AudioIDXData::Instance->Samples[idx];
+			sample = &AudioIDXData::Instance->Samples[idx];
 			file = { sample->Size, sample->Offset, this->Files[idx].second, false };
 			return true;
 		}
@@ -393,7 +418,7 @@ DEFINE_OVERRIDE_HOOK(0x48da3b , sub_48D1E0_PlayTaunt , 5)
 	return 0x48DAD3;
 }
 
-#ifndef DISABLE_AUDIO_OVERRIDE
+#ifdef DISABLE_AUDIO_OVERRIDE
 
 DEFINE_HOOK(0x406B10, Audio_InitPhobosAudio, 0x6) {
 	LooseAudioCache::Allocate();
@@ -429,20 +454,18 @@ DEFINE_OVERRIDE_HOOK(0x4016F0, IDXContainer_LoadSample, 6)
 	pThis->ClearCurrentSample();
 
 	FileStruct file;
-	if (!AudioLuggage::Instance()->GetFileStruct(file, index))
+	AudioIDXEntry* ptr = nullptr;
+	if (!AudioLuggage::Instance()->GetFileStruct(file, index , ptr))
 		file = LooseAudioCache::Instance()->GetFileStructFromIndexOfRawPointer(index);
 
 	pThis->CurrentSampleFile = file.File;
 	pThis->CurrentSampleSize = file.Size;
-	if (file.Allocated)
-	{
+	if (file.Allocated) {
 		pThis->ExternalFile = file.File;
 	}
 
-	auto const ret = file.File && file.Size
-		&& file.File->Seek(file.Offset, FileSeekMode::Set) == file.Offset;
-
-	R->EAX(ret);
+	R->EAX(file.File && file.Size
+		&& file.File->Seek(file.Offset, FileSeekMode::Set) == file.Offset);
 	return 0x4018B8;
 }
 
@@ -471,8 +494,7 @@ DEFINE_OVERRIDE_HOOK(0x4064A0, VocClassData_AddSample, 0) // Complete rewrite of
 			}
 
 			// Set sample index or string pointer
-			pVoc->SampleIndex[pVoc->NumSamples] = idxSample;
-			++pVoc->NumSamples;
+			pVoc->SampleIndex[pVoc->NumSamples++] = idxSample;
 
 			// return true
 			R->EAX(1);
@@ -488,7 +510,11 @@ DEFINE_OVERRIDE_HOOK(0x401640, AudioIndex_GetSampleInformation, 5)
 	GET_STACK(AudioSampleData*, pAudioSample, 0x4);
 
 	if ((size_t)idxSample < AudioLuggage::Instance()->TotalSampleSizes())
+	{
+		//const auto& pIdx = AudioIDXData::Instance()->Samples[idxSample];
+		//Debug::Log("SampleInfo [%s]\n", pIdx.Name.data());
 		return 0x0;
+	}
 
 	if(auto const pData = LooseAudioCache::Instance()->GetAudioSampleDataFromIndexOfRawPointer(idxSample)) {
 		if(pData->SampleRate) {

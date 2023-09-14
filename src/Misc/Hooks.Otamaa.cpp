@@ -3174,24 +3174,6 @@ DEFINE_HOOK(0x70FB50, TechnoClass_Bunkerable, 0x5)
 }
 
 
-DEFINE_HOOK(0x40A5B3, AudioDriverStar_AnnoyingBufferLogDisable_A, 0x6)
-{
-	//AudioDriverChannelTag
-	GET(void*, pAudioChannelTag, EBX);
-	(*(uintptr_t*)((char*)pAudioChannelTag + 0x68)) = R->EAX();
-	return 0x40A5C4;
-}
-
-DEFINE_HOOK(0x40A554, AudioDriverStar_AnnoyingBufferLogDisable_B, 0x6)
-{
-	GET(void*, pAudioChannelTag, EBX);
-	LEA_STACK(DWORD*, ptr, STACK_OFFS(0x40, 0x28));
-	(*(uintptr_t*)((char*)pAudioChannelTag + 0x6C)) = R->EAX();
-	R->EDX(R->EAX());
-	R->EAX(ptr);
-	return 0x40A56C;
-}
-
 //#pragma optimize("", off )
 //DEFINE_HOOK(0x722FC2, TiberiumClass_Grow_Validate, 0x5)
 //{
@@ -4875,16 +4857,18 @@ DEFINE_HOOK(0x4686FA, BulletClass_Unlimbo_MissingTargetPointer, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x65DD55, TeamClass_CreateGroub_MissingOwner, 0x9)
+DEFINE_HOOK(0x65DD4E, TeamClass_CreateGroub_MissingOwner, 0x7)
 {
-	GET(HouseClass*, pOwner, EAX);
+	GET(TeamClass* , pCreated , ESI);
 	GET(TeamTypeClass*, pType, EBX);
 
-	if (!pOwner) {
+	const auto pHouse = pType->GetHouse();
+	if (!pHouse) {
 		Debug::Log("Creating Team[%s] groub without proper Ownership may cause crash , Please check !\n" , pType->ID);
 	}
 
-	return 0x0;
+	R->EAX(pHouse);
+	return 0x65DD55;
 }
 
 //std::string hex(uint32_t n, uint8_t d)
@@ -5359,6 +5343,295 @@ DEFINE_HOOK(0x707CF2, TechnoClass_KillCargo_FixKiller, 0x8)
 	pCargo->KillCargo(pKiller);
 	return 0x707CFA;
 }
+
+//DEFINE_HOOK(0x407B60, AudioStreamer_Open_LogFileName, 0x5)
+//{
+//	GET(const char*, pName, EDX);
+//	GET_STACK(uintptr_t, callerAddress, 0x0);
+//
+//	Debug::Log(__FUNCTION__"[%s] Caller: %08x \n", pName , callerAddress);
+//
+//	return 0x0;
+//}
+
+//#include <ExtraHeaders/Placeholders/ExtraAudio.h>
+#include <Audio.h>
+#include <DSound.h>
+
+struct _ListNode
+{
+	_ListNode* next;
+	_ListNode* prev;
+	int pri;
+};
+
+struct __declspec(align(4)) AudioFrameTag
+{
+	_ListNode nd;
+	DWORD Data;
+	DWORD Bytes;
+	AudioSampleTag* _AudioSampleTag;
+	int field_18;
+};
+
+struct __declspec(align(4)) imastruct
+{
+	DWORD Predicted;
+	DWORD Index;
+};
+
+struct AudioDriverChannelTag
+{
+
+	AudioSampleTag* AudioDriverChannelTag_noname_setup()
+	{
+		JMP_THIS(0x409C40);
+	}
+
+	static int __fastcall noname_prefil(AudioDriverChannelTag* a1, int a2) {
+		JMP_STD(0x409880);
+	}
+
+	AudioChannelTag* audiochannel;
+	int field_4;
+	int soundframesize2;
+	int soundframesizedivplaycursor;
+	LARGE_INTEGER audiogettimeresult;
+	LARGE_INTEGER audiogettimeresult2;
+	int frameData1;
+	int bytesInFrame1;
+	int frameData2;
+	int bytesInFrame2;
+	DWORD playcursor;
+	DWORD writecursor;
+	int buffersizeminusplaycursor;
+	int soundframesizetimes4;
+	int buffersize2;
+	AudioFormatTag audioformat;
+	IDirectSoundBuffer* soundriverpointer;
+	int dwBufferBytes;
+	int soundframesize1;
+	int decompression_func;
+	int decomptype;
+	int pendingdecomptype;
+	char* IMA_InBuffer;
+	int blocksize5;
+	int blocksize6;
+	DWORD somebuffer2;
+	int blocksize4;
+	WORD* IMA_OutBuffer;
+	int IMA_BitsProcessed;
+	DWORD somedecompcount;
+	int blocksize3;
+	int blocksizetimes4_plus128;
+	int Channels;
+	int decompwas0;
+	int blocksize1;
+	int ima_function;
+	imastruct imastruct[2];
+	int field_C4;
+	int field_C8;
+	int skip_drvCBNextFrame;
+	int somecount;
+	int soundframesize3;
+	int soundframesizedivplaycursor2;
+	int playcursor2;
+};
+
+struct AudioDriverTag
+{
+	int data;
+	int(__fastcall* openChannel)(AudioChannelTag*);
+	int(__fastcall* closeChannel)(AudioChannelTag*);
+	int(__fastcall* start)(AudioChannelTag*);
+	int(__fastcall* stop)(AudioChannelTag*);
+	int(__fastcall* pause)(AudioChannelTag*);
+	int(__fastcall* resume)(AudioChannelTag*);
+	int(__fastcall* check)(AudioChannelTag*);
+	int(__fastcall* update)(AudioChannelTag*);
+	int(__fastcall* queueIt)(AudioChannelTag*);
+	int(__fastcall* lock)(AudioChannelTag*);
+	int(__fastcall* unlock)(AudioChannelTag*);
+};
+
+struct AudioControlTag
+{
+	int Priority;
+	int Status;
+	int LoopCount;
+};
+
+struct AudioSystemTag;
+struct AudioDeviceTag;
+struct __declspec(align(4)) AudioSystemMasterTag
+{
+	char* Name;
+	int Id;
+	int Properties;
+	int flags;
+	int stamp;
+	signed int(__fastcall* load)(AudioSystemTag* AudioSystemTag);
+	void(__fastcall* unload)(AudioSystemTag* AudioSystemTag);
+	int(__fastcall* open)(AudioDeviceTag* AudioDeviceTag);
+	void(__fastcall* close)(AudioDeviceTag* AudioDeviceTag);
+	AudioDriverTag* _AudioDriverTag;
+};
+
+struct __declspec(align(4)) AudioSystemTag
+{
+	_ListNode nd;
+	AudioSystemMasterTag* master;
+	LockTag lock;
+	int numUnits;
+	AudioDeviceTag* unit[16];
+	int dbg_struct_type;
+};
+
+struct AudioServiceInfoTag
+{
+	long long serviceInterval;
+	long long mustServiceInterval;
+	long long lastInterval;
+	long long longestInterval;
+	long long longestReset;
+	long long lastServiceTime;
+	long long longestIntervalforPeriod;
+	long long periodStart;
+	long long periodInterval;
+	DWORD count;
+	DWORD missCount;
+	DWORD lastcount;
+	DWORD animPos;
+	int field_58;
+	int field_5C;
+};
+
+struct AudioDeviceTag
+{
+	_ListNode nd;
+	int flags;
+	LockTag lock;
+	AudioSystemTag* _AudioSystemTag;
+	int systemUnit;
+	int stamp;
+	AudioFormatTag Format;
+	AudioFormatTag DefaultFormat;
+	int field_64;
+	AudioAttribs Attribs;
+	AudioAttribs* GroupAttribs;
+	int Unit;
+	int channels;
+	int maxChannels;
+	_ListNode channelList;
+	LockTag channelAccess;
+	int(__fastcall* deviceHandler)(struct AudioDeviceTag*);
+	AudioServiceInfoTag attribsUpdate;
+	AudioServiceInfoTag mixerUpdate;
+	AudioDriverTag* _AudioDriverTag;
+	int data;
+	int frames;
+	int over_sample;
+	int frame_lag;
+	int dbg_struct_type;
+};
+
+class AudioChannelTag
+{
+public:
+	static int __fastcall AudioChannelSetFormat(AudioChannelTag* chan, AudioFormatTag* format)
+	{
+		JMP_STD(0x402800);
+	}
+
+	int AudioDriver_update()
+	{
+		JMP_THIS(0x40A6D0);
+	}
+
+	_ListNode nd;
+	int Type;
+	AudioAttribs ChannelAttribs;
+	AudioAttribs* SfxAttribs;
+	AudioAttribs* GroupAttribs;
+	AudioAttribs* CompAttribs;
+	AudioAttribs* FadeAttribs;
+	AudioControlTag Control;
+	AudioDeviceTag* Device;
+	int(__fastcall* CB_NextFrame)(AudioChannelTag*);
+	int(__fastcall* CB_NextSample)(AudioChannelTag*);
+	int(__fastcall* CB_SampleDone)(AudioChannelTag*);
+	int(__fastcall* CB_Stop)(AudioChannelTag*);
+	AudioEventTag* _AudioEventTag;
+	int UserField[4];
+	AudioDriverTag* _AudioDriverTag;
+	AudioAttribs attribs;
+	AudioDriverChannelTag* drvData;
+	int drvCBNextFrame;
+	int drvCBNextSample;
+	int drvCBSampleDone;
+	AudioSampleTag* sample;
+	AudioFrameTag* frame;
+	int frameData;
+	int bytesInFrame;
+	int bytesRemaining;
+	AudioFormatTag current_format;
+	int format_changed;
+	int drv_format_changed;
+	long long time_min_frame;
+	double time_buffer;
+	int field_1B4;
+	int field_1B8;
+	int field_1BC;
+};
+
+DEFINE_HOOK(0x40A5B3, AudioDriverStart_AnnoyingBufferLogDisable_A, 0x6)
+{
+	GET(AudioDriverChannelTag*, pAudioChannelTag, EBX);
+	pAudioChannelTag->dwBufferBytes = R->EAX<int>();
+	//Debug::Log("Sound frame size = %d bytes\n", pAudioChannelTag->dwBufferBytes);
+	return 0x40A5C4;
+}
+
+DEFINE_HOOK(0x40A554, AudioDriverStart_AnnoyingBufferLogDisable_B, 0x6)
+{
+	GET(AudioDriverChannelTag*, pAudioChannelTag, EBX);
+	LEA_STACK(DWORD*, ptr, STACK_OFFS(0x40, 0x28));
+	pAudioChannelTag->soundframesize1 = R->EAX();
+	//Debug::Log("Sound frame size = %d bytes\n", pAudioChannelTag->soundframesize1);
+	R->EDX(R->EAX());
+	R->EAX(ptr);
+	return 0x40A56C;
+}
+
+//DEFINE_HOOK(0x40A463, AudioDriverStart_NonamePrefill_PeekBuffer, 0x5)
+//{
+//	GET(AudioDriverChannelTag*, pTag, ECX);
+//
+//	if (!AudioDriverChannelTag::noname_prefil(pTag, pTag->dwBufferBytes)) {
+//		return 0x40A5CB //0x40A470
+//			;
+//	}
+//
+//	return 0x40A5CB ;
+//}
+
+//called always 0040276a
+//DEFINE_HOOK(0x40A340, AudioDriverStart_Log, 0x9)
+//{
+//	GET(AudioChannelTag*, pTag, ECX);
+//	GET_STACK(uintptr_t, callerAddress, 0x0);
+//
+//	Debug::Log(__FUNCTION__" [%x] , Caller: %08x \n", pTag ,callerAddress);
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x40A470, AudioDriverStart_Log_Failed, 0x5)
+//{
+//	GET(AudioDriverChannelTag* , pTag , EBX);
+//
+//	Debug::Log(__FUNCTION__" [%x]\n", pTag);
+//	return 0x0;
+//}
 
 //int InfantryClass_Mission_Harvest(InfantryClass* pThis)
 //{
