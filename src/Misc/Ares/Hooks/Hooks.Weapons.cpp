@@ -59,9 +59,9 @@ void NOINLINE LoadTurrets(TechnoTypeClass* pType, CCINIClass* pINI)
 			*result = read_buff;
 		}
 
-		if (*result < 0 || *result >= pType->TurretCount) {
+		if (*result < 0 || (pType->TurretCount > 0 && *result >= pType->TurretCount)) {
 			Debug::Log("Weapon %d on [%s] has an invalid turret index of %d.\n", i + 1, pSection, *result);
-			*result = 0; //avoid crash
+			//*result = 0; //avoid crash
 		}
 
 		_snprintf_s(buffer, 0x20u, "WeaponUIName%u", i + 1);
@@ -76,10 +76,10 @@ int* GetTurretWeaponIndex(TechnoTypeClass* pType, size_t idx)
 		return pType->TurretWeapon + idx;
 	}
 
-	const size_t resultidx = (idx - TechnoTypeClass::MaxWeapons);
+	const int resultidx = (idx - TechnoTypeClass::MaxWeapons);
 	const auto& vec = &TechnoTypeExt::ExtMap.Find(pType)->AdditionalTurrentWeapon;
 
-	if (resultidx < vec->size())
+	if ((size_t)resultidx < vec->size())
 		return vec->data() + resultidx;
 
 	Debug::Log("Techno[%s] Trying to get AdditionalTurretWeaponIndex with out of bound index[%d]\n", pType->ID, idx);
@@ -91,7 +91,7 @@ WeaponStruct*GetWeapon(TechnoTypeClass* pType, int const idx, bool elite)
 	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
 	const auto Vectors = &(elite ? pExt->AdditionalEliteWeaponDatas : pExt->AdditionalWeaponDatas);
 
-	if(idx < Vectors->size())
+	if((size_t)idx < Vectors->size())
 		return Vectors->data() + idx;
 
 	Debug::Log("Techno[%s] Trying to get AdditionalWeapon with out of bound index[%d]\n", pType->ID, idx);

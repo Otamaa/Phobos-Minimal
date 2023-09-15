@@ -1147,6 +1147,20 @@ DEFINE_JUMP(CALL, 0x53AD92, GET_OFFSET(NumberOfSchemes_Wrapper));
 
 #pragma endregion
 
+
+//// Set ShadeCount to 53 to initialize the palette fully shaded - this is required to make it not draw over shroud for some reason.
+DEFINE_HOOK(0x68C4C4, GenerateColorSpread_ShadeCountSet, 0x5)
+{
+	if (!Phobos::Config::ApplyShadeCountFix)
+		return 0x0;
+
+	//shade count
+	if (R->EDX<int>() == 1)
+		R->EDX(53);
+
+	return 0;
+}
+
 DEFINE_HOOK(0x4C780A, EventClass_Execute_DeployEvent_NoVoiceFix, 0x6)
 {
 	GET(TechnoClass* const, pThis, ESI);

@@ -47,6 +47,11 @@ struct HelperedVector : public std::vector<T>
 		return this->find(other) != this->end();
 	}
 
+	void push_back_unique(const T& other) {
+		if (!this->contains(other))
+			this->push_back(other);
+	}
+
 	int index_of(const T& other) const {
 		auto iter = this->find(other);
 		return iter != this->end() ? std::distance(this->begin(), iter) : -1;

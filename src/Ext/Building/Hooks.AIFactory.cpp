@@ -320,8 +320,10 @@ DEFINE_OVERRIDE_HOOK(0x4502F4, BuildingClass_Update_Factory, 0x6)
 	}
 	else if (!*curFactory)
 	{
-		if (!pThis->IsPrimaryFactory)
-			pThis->IsPrimaryFactory = true;
+		if(type != AircraftTypeClass::AbsID){
+			if (!pThis->IsPrimaryFactory)
+				pThis->IsPrimaryFactory = true;
+		}
 
 			*curFactory = pThis; //last check
 		return 0;
@@ -580,7 +582,7 @@ DEFINE_OVERRIDE_HOOK(0x4FF210, HouseClass_AI_AircraftProduction, 6)
 			const auto buildableResult = pThis->CanBuild(TT, false, false);
 
 			if(buildableResult == CanBuildResult::Unbuildable
-				|| TT->GetActualCost(pThis) > pThis->Available_Money())
+				||TT->GetActualCost(pThis) > pThis->Available_Money())
 			{
 				continue;
 			}

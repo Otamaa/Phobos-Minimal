@@ -108,11 +108,10 @@ DEFINE_HOOK(0x6F6BC9, TechnoClass_Limbo_AddTracking, 0x6)
 
 	if(pThis->IsAlive){
 		auto const pType = pThis->GetTechnoType();
+		auto pHouseExt = HouseExt::ExtMap.Find(pThis->Owner);
 
 		if (!pType->Insignificant && !pType->DontScore) {
-			auto& limboTechvec = HouseExt::ExtMap.Find(pThis->Owner)->LimboTechno;
-			if (!limboTechvec.contains(pThis))
-				limboTechvec.push_back(pThis);
+			pHouseExt->LimboTechno.push_back_unique(pThis);
 		}
 
 		auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
@@ -120,7 +119,7 @@ DEFINE_HOOK(0x6F6BC9, TechnoClass_Limbo_AddTracking, 0x6)
 		if (pThis->WhatAmI() != AbstractType::Aircraft && pThis->WhatAmI() != AbstractType::Building
 			&& pType->Ammo > 0 && pTypeExt->ReloadInTransport)
 		{
-			HouseExt::ExtMap.Find(pThis->Owner)->OwnedTransportReloaders.push_back(pThis);
+			pHouseExt->OwnedTransportReloaders.push_back_unique(pThis);
 		}
 	}
 

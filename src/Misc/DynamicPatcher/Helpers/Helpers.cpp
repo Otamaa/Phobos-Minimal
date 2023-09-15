@@ -1107,10 +1107,12 @@ void Helpers_DP::DrawWeaponAnim(WeaponTypeClass* pWeapon, CoordStruct& sourcePos
 
 		if (auto pAnimType = pWeapon->Anim.GetItem(index))
 		{
-			if (auto pAnim = GameCreate<AnimClass>(pAnimType, sourcePos))
-			{
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner ? pOwner->GetOwningHouse() : nullptr, pTarget ? pTarget->GetOwningHouse() : nullptr, pOwner, false);
-			}
+			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, sourcePos),
+				pOwner ? pOwner->GetOwningHouse() : nullptr,
+				pTarget ? pTarget->GetOwningHouse() : nullptr,
+				pOwner,
+				false
+			);
 		}
 	}
 }

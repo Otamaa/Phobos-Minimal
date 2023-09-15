@@ -3,6 +3,8 @@
 
 #include <Misc/AresData.h>
 
+#include <ParticleClass.h>
+
 DEFINE_OVERRIDE_HOOK(0x52BA78, _YR_GameInit_Pre, 5)
 {
 	TheaterTypeClass::LoadAllTheatersToArray();

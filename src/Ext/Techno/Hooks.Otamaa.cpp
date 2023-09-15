@@ -206,10 +206,12 @@ DEFINE_HOOK(0x4DABBC, ObjectClass_WasFallingDown, 0x6)
 			if (auto pDecidedAnim = GetLandingAnim())
 			{
 				auto const nCoord = pTechno->GetCoords();
-				if (auto pAnim = GameCreate<AnimClass>(pDecidedAnim, nCoord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0))
-				{
-					AnimExt::SetAnimOwnerHouseKind(pAnim, pTechno->GetOwningHouse(), nullptr, pTechno, false);
-				}
+				AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDecidedAnim, nCoord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0),
+					pTechno->GetOwningHouse(),
+					nullptr,
+					pTechno,
+					false
+				);
 			}
 		}
 	}
@@ -233,10 +235,12 @@ DEFINE_HOOK(0x4CE689, FlyLocomotionClass_TakeOffAnim, 0x5)
 		if (auto pDecidedAnim = TechnoTypeExt::ExtMap.Find(pAir->Type)->TakeOff_Anim.Get(RulesExt::Global()->Aircraft_TakeOffAnim.Get()))
 		{
 			auto const nCoord = pAir->GetCoords();
-			if (auto pAnim = GameCreate<AnimClass>(pDecidedAnim, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0))
-			{
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pAir->GetOwningHouse(), nullptr, pAir, false);
-			}
+			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDecidedAnim, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0),
+				pAir->GetOwningHouse(),
+				nullptr,
+				pAir,
+				false
+			);
 		}
 	}
 
@@ -268,10 +272,12 @@ DEFINE_HOOK(0x4CEB51, FlyLocomotionClass_LandingAnim, 0x8)
 
 		if (AnimTypeClass* pDecidedType = pFirst ? pFirst : GetDefaultType())
 		{
-			if (auto pAnim = GameCreate<AnimClass>(pDecidedType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0))
-			{
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pLinked->GetOwningHouse(), nullptr, pLinked, false);
-			}
+			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDecidedType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0),
+				pLinked->GetOwningHouse(),
+				nullptr,
+				pLinked,
+				false
+			);
 		}
 
 		return 0x4CEC5D;
@@ -369,12 +375,10 @@ DEFINE_HOOK(0x70FDC2, TechnoClass_Drain_LocalDrainAnim, 0x5) //A
 		if (auto const pAnimType = TechnoTypeExt::ExtMap.Find(Drainer->GetTechnoType())->DrainAnimationType.Get(RulesClass::Instance->DrainAnimationType))
 		{
 			auto const nCoord = Drainer->GetCoords();
-			if (auto const pDrainAnimCreated = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false))
-			{
-				AnimExt::SetAnimOwnerHouseKind(pDrainAnimCreated, Drainer->Owner, pVictim->Owner, Drainer, false);
-				R->EAX(pDrainAnimCreated);
-				return 0x70FE07;
-			}
+			auto const pDrainAnimCreated = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+			AnimExt::SetAnimOwnerHouseKind(pDrainAnimCreated, Drainer->Owner, pVictim->Owner, Drainer, false);
+			R->EAX(pDrainAnimCreated);
+			return 0x70FE07;
 		}
 	}
 

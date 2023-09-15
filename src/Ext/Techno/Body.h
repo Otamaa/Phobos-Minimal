@@ -252,7 +252,7 @@ private:
 
 	static void DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
 	static void DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
-	static void ApplyGainedSelfHeal(TechnoClass* pThis);
+	static void ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged);
 	static void ApplyDrainMoney(TechnoClass* pThis);
 	static void ResetDelayFireAnim(TechnoClass* pThis);
 

@@ -1539,10 +1539,11 @@ namespace AresHadleTunnelLocoStuffs
 		{
 			if (const auto pAnimType = (DugIN ? pExt->DigInAnim : pExt->DigOutAnim).Get(pRules->Dig))
 			{
-				if (auto pAnim = GameCreate<AnimClass>(pAnimType, pOwner->Location))
-				{
-					AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner->Owner, nullptr, false);
-				}
+				AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pOwner->Location),
+					pOwner->Owner,
+					nullptr,
+					false
+				);
 			}
 		}
 	}

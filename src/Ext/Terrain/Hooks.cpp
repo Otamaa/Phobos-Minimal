@@ -63,10 +63,12 @@ DEFINE_HOOK(0x71BB2C, TerrainClass_ReceiveDamage_NowDead_Add_light, 0x6)
 	const auto pAttackerHoue = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
 
 	if (auto const pAnimType = pTerrainExt->DestroyAnim.Get(nullptr)) {
-		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoords)) {
-			AnimExt::SetAnimOwnerHouseKind(pAnim, args.SourceHouse,
-				pThis->GetOwningHouse(), args.Attacker, false);
-		}
+		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nCoords),
+			args.SourceHouse,
+			pThis->GetOwningHouse(),
+			args.Attacker,
+			false
+		);
 	}
 
 	if (const auto nBounty = pTerrainExt->Bounty.Get()) {
@@ -132,10 +134,11 @@ DEFINE_HOOK(0x71B9BB, TerraiClass_ReceiveDamage_IsTiberiumSpawn, 0x5) //A
 
 	if (auto const pAnim = MapClass::SelectDamageAnimation(nDamage, pWH, MapClass::Instance->GetCellAt(pThis->Location)->LandType, pThis->Location))
 	{
-		if (const auto pAnimC = GameCreate<AnimClass>(pAnim, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, 0))
-		{
-			AnimExt::SetAnimOwnerHouseKind(pAnimC, nullptr, nullptr, false);
-		}
+		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, 0),
+			nullptr,
+			nullptr,
+			false
+		);
 	}
 
 	if (pTerrainTypeExt->AreaDamage)

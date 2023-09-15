@@ -9,7 +9,7 @@
 
 #include <Ext/Side/Body.h>
 
-std::vector<const char*> EVAVoices::Types;
+std::vector<std::string> EVAVoices::Types;
 
 int EVAVoices::FindIndexById(const char* type)
 {
@@ -31,7 +31,7 @@ int EVAVoices::FindIndexById(const char* type)
 	// find all others
 	for (size_t i = 0; i < Types.size(); ++i)
 	{
-		if (!CRT::strcmpi(type, Types[i]))
+		if (!CRT::strcmpi(type, Types[i].c_str()))
 		{
 			return static_cast<int>(i + 3);
 		}
@@ -46,10 +46,8 @@ void EVAVoices::RegisterType(const char* type)
 {
 	int index = EVAVoices::FindIndexById(type);
 
-	if (index < 0)
-	{
-		const char* copy = CRT::strdup(type);
-		Types.push_back(copy);
+	if (index < 0) {
+		Types.emplace_back(CRT::strdup(type));
 	}
 }
 
@@ -130,7 +128,7 @@ DEFINE_OVERRIDE_HOOK(0x752FDC, VoxClass_LoadFromINI, 5)
 
 	// put the filename in there. 8 chars max.
 	for(auto i = 0u; i < count; ++i) {
-		pINI->ReadString(pThis->Name, EVAVoices::Types[i], "", buffer);
+		pINI->ReadString(pThis->Name, EVAVoices::Types[i].c_str(), "", buffer);
 		PhobosCRT::strCopy(pThis->Voices[i].Name, buffer);
 	}
 

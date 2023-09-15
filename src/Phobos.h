@@ -147,6 +147,10 @@ struct Phobos final
 		static int CampaignDefaultGameSpeed;
 
 		static bool DigitalDisplay_Enable;
+
+		static bool ApplyShadeCountFix;
+
+		static bool SaveVariablesOnScenarioEnd;
 	};
 
 	struct Misc

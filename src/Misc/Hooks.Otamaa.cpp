@@ -154,8 +154,10 @@ static	void __fastcall DrawShape_VeinHole
  int ZShapeFrame, int XOffset, int YOffset
 )
 {
-	bool bUseTheaterPal = true;
-	CC_Draw_Shape(Surface, bUseTheaterPal ? FileSystem::THEATER_PAL() : Pal, SHP, FrameIndex, Position, Bounds, Flags, Remap, ZAdjust, ZGradientDescIndex, Brightness
+	if (auto pManager = RulesExt::Global()->VeinholePal)
+		Pal = pManager->GetConvert<PaletteManager::Mode::Temperate>();
+
+	CC_Draw_Shape(Surface, Pal, SHP, FrameIndex, Position, Bounds, Flags, Remap, ZAdjust, ZGradientDescIndex, Brightness
 	 , TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
 }
 
@@ -231,14 +233,13 @@ DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
 	//GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x1AC, 0x184));
 
 	//Eax is discarded anyway
-	if (auto pAnim = GameCreate<AnimClass>(pThis->Type->Trailer, pThis->Location, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false))
-	{
-		auto const pExt = BulletExt::ExtMap.Find(pThis);
-		AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner ? pThis->Owner->GetOwningHouse() :
-											(pExt->Owner) ? pExt->Owner : nullptr
-								, pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis->Owner, false);
-
-	}
+	auto const pExt = BulletExt::ExtMap.Find(pThis);
+	AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pThis->Type->Trailer, pThis->Location, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false),
+		pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt->Owner) ? pExt->Owner : nullptr,
+		pThis->Target ? pThis->Target->GetOwningHouse() : nullptr,
+		pThis->Owner,
+		false
+	);
 
 	return 0x4668BD;
 }
@@ -570,10 +571,13 @@ DEFINE_HOOK(0x738703, UnitClass_Explode_ExplodeAnim, 0x5)
 	GET(AnimTypeClass*, pExplType, EDI);
 	GET(UnitClass*, pThis, ESI);
 
-	if (pExplType)
-	{
-		if (auto pAnim = GameCreate<AnimClass>(pExplType, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false))
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
+	if (pExplType) {
+
+		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pExplType, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false),
+			pThis->GetOwningHouse(),
+			nullptr,
+			false
+		);
 	}
 
 	return 0x738748;
@@ -590,8 +594,11 @@ DEFINE_HOOK(0x4419A9, BuildingClass_Destroy_ExplodeAnim, 0x5)
 	CoordStruct nLoc { X , Y , Z + zAdd };
 	if (auto const pType = pThis->Type->Explosion.GetItem(ScenarioClass::Instance->Random.RandomFromMax(pThis->Type->Explosion.Count - 1))) {
 		const auto nDelay = ScenarioClass::Instance->Random.RandomFromMax(3);
-		if (auto pAnim = GameCreate<AnimClass>(pType, nLoc, nDelay, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false))
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
+		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, nLoc, nDelay, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false),
+			pThis->GetOwningHouse(),
+			nullptr,
+			false
+		);
 	}
 
 	R->Stack(0x20, nLoc.X);
@@ -608,8 +615,11 @@ DEFINE_HOOK(0x441AC4, BuildingClass_Destroy_Fire3Anim, 0x5)
 	if (auto pType = AnimTypeClass::Find("FIRE3"))
 	{
 		const auto nDelay = ScenarioClass::Instance->Random.RandomRanged(1, 3);
-		if (auto pAnim = GameCreate<AnimClass>(pType, pCoord, nDelay + 3, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false))
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
+		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pCoord, nDelay + 3, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false),
+			pThis->GetOwningHouse(),
+			nullptr,
+			false
+		);
 	}
 
 	return 0x441B1F;
@@ -652,9 +662,10 @@ DEFINE_HOOK(0x702484, TechnoClass_ReceiveDamage_AnimDebris, 0x6)
 	//well , the owner dies , so taking Invoker is not nessesary here ,..
 	pAnim->AnimClass::AnimClass(pType->DebrisAnims[nIdx], nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
 	AnimExt::SetAnimOwnerHouseKind(pAnim,
-	 args.Attacker ?
-	 args.Attacker->GetOwningHouse() : args.SourceHouse,
-	 pThis->GetOwningHouse(), false);
+	 	args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse,
+	 	pThis->GetOwningHouse(),
+		false
+	);
 
 	return 0x7024AF;
 }
@@ -2298,7 +2309,7 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 		}
 		else
 		{
-			FrameIdx = 1; //idk ?
+			FrameIdx = pTypeExt->Weeder_PipIndex.Get(1); //idk ?
 		}
 
 		Amounts[i] = { amount , FrameIdx };
@@ -2311,7 +2322,7 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 		const Iterator<int> orders ,
 		const ValueableVector<int>& frames)
 	{
-		int frame = frames.empty() ? 0 : frames[0];
+		int frame = isWeeder ? pTypeExt->Weeder_PipEmptyIndex.Get(0) : frames.empty() ? 0 : frames[0];
 
 		for (size_t i = 0; i < maximumStorage; i++)
 		{
@@ -2496,7 +2507,7 @@ constexpr std::array<const char*, (size_t)NewVHPScan::count> NewVHPScanToString
 	{ "Damage" },
 	{ "Value" },
 	{ "Locked" },
-	{ "Non-Infantry" }
+	{ "Non_Infantry" }
 	} };
 
 //DEFINE_HOOK(0x4775F4, CCINIClass_ReadVHPScan_new, 0x5)
@@ -4512,6 +4523,20 @@ DEFINE_HOOK(0x486920, CellClass_TriggerVein_Precheck, 0x6)
 	return RulesClass::Instance->VeinAttack ? 0x0 : 0x486A6B;
 }
 
+DEFINE_HOOK(0x4869AB, CellClass_TriggerVein_Weight, 0x6)
+{
+	GET(TechnoTypeClass*, pTechno, ESI);
+
+	if (pTechno->WhatAmI() == BuildingTypeClass::AbsID || !RulesExt::Global()->VeinsDamagingWeightTreshold.isset())
+		return 0x0;
+
+	if (pTechno->Weight <  RulesExt::Global()->VeinsDamagingWeightTreshold) {
+		return 0x486A55; //skip damaging
+	}
+
+	return 0x0;
+}
+
 #ifdef debug_veinstest
 DEFINE_JUMP(LJMP, 0x4869AB, 0x4869CA);
 #endif
@@ -4553,12 +4578,19 @@ DEFINE_HOOK(0x736823, UnitClass_AI_IncludeWeeder, 0x6)
 }
 
 //this one dextroy special anim : 741C32
-//DEFINE_HOOK(0x73E005, UnitClass_Mi_Unload_PlayBuildingProductionAnim_IncludeWeeder, 0x6)
-//{
-//	GET(UnitTypeClass*, pType, ECX);
-//	R->AL(pType->Harvester || pType->Weeder);
-//	return 0x73E00B;
-//}
+DEFINE_HOOK(0x73E005, UnitClass_Mi_Unload_PlayBuildingProductionAnim_IncludeWeeder, 0x6)
+{
+	GET(UnitTypeClass*, pType, ECX);
+	R->AL(pType->Harvester || (pType->Weeder && TechnoTypeExt::ExtMap.Find(pType)->Weeder_TriggerPreProductionBuildingAnim));
+	return 0x73E00B;
+}
+
+DEFINE_HOOK(0x741C32, UnitClass_AssignDestination_DestroyBuildingProductionAnim_IncludeWeeder, 0x6)
+{
+	GET(UnitTypeClass*, pType, ECX);
+	R->DL(pType->Harvester || (pType->Weeder && TechnoTypeExt::ExtMap.Find(pType)->Weeder_TriggerPreProductionBuildingAnim));
+	return 0x741C38;
+}
 
 // this thing do some placement check twice
 // this can be bad because the `GrowthLogic` data inside not inited properly !
@@ -4568,33 +4600,34 @@ DEFINE_HOOK(0x736823, UnitClass_AI_IncludeWeeder, 0x6)
 //}
 DEFINE_JUMP(LJMP, 0x74C688, 0x74C697);
 
-DEFINE_HOOK(0x5FC668, OverlayTypeClass_Mark_Veinholedummies, 0x7)
-{
-	GET(CellStruct*, pPos, EBX);
-
-	if (VeinholeMonsterClass::IsCellEligibleForVeinHole(pPos))
-	{
-		auto pCell = MapClass::Instance->GetCellAt(pPos);
-		//this dummy overlay placed so it can be replace later with real veins
-		for (int i = 0 ; i < 8; ++i)
-		{
-			auto v11 = pCell->GetAdjacentCell((FacingType)i);
-			v11->OverlayTypeIndex = 0x7E; //dummy image -> replaced with vein ?
-			;
-			v11->OverlayData = 30u; //max it out
-			v11->RedrawForVeins();
-			//v11->Flags |= CellFlags(0x80u); //what ?
-		}
-
-		pCell->OverlayTypeIndex = 0xA7; //VeiholeDummy -> used to place veinhole monster
-		pCell->OverlayData = 0;
-		++Unsorted::ScenarioInit();
-		GameCreate<VeinholeMonsterClass>(pPos);
-		--Unsorted::ScenarioInit();
-	}
-
-	return 0x5FD1FA;
-}
+//DEFINE_HOOK(0x5FC668, OverlayTypeClass_Mark_Veinholedummies, 0x7)
+//{
+//	GET(CellStruct*, pPos, EBX);
+//
+//	++Unsorted::ScenarioInit();
+//	const bool Allow = VeinholeMonsterClass::IsCellEligibleForVeinHole(pPos);
+//	--Unsorted::ScenarioInit();
+//
+//	if (Allow)
+//	{
+//		auto pCell = MapClass::Instance->GetCellAt(pPos);
+//
+//		for (int i = 0 ; i < 8; ++i)
+//		{
+//			auto v11 = pCell->GetAdjacentCell((FacingType)i);
+//			v11->OverlayTypeIndex = 126;
+//			v11->OverlayData = 48u;
+//			v11->RedrawForVeins();
+//		}
+//
+//		//pCell->OverlayTypeIndex = 167; //VeiholeDummy -> used to place veinhole monster
+//		//pCell->OverlayData = 0;
+//
+//		//GameCreate<VeinholeMonsterClass>(pPos);
+//	}
+//
+//	return 0x5FD1FA;
+//}
 
 DEFINE_HOOK(0x489671, MapClass_DamageArea_Veinhole, 0x6)
 {
@@ -5269,11 +5302,10 @@ DEFINE_HOOK(0x6F91EC, TechnoClass_GreatestThreat_DeadTechnoInsideTracker, 0x6)
 }
 
 
-void __fastcall DrawRadialIndicator(ObjectClass* pObj, DWORD)
+void __fastcall DrawRadialIndicator(ObjectClass* pObj ,DWORD , int somth)
 {
 	if(const auto pTechno = generic_cast<TechnoClass*>(pObj))
 	{
-
 		const auto pType = pTechno->GetTechnoType();
 		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
@@ -5284,7 +5316,7 @@ void __fastcall DrawRadialIndicator(ObjectClass* pObj, DWORD)
 			if (!pOwner)
 				return;
 
-			if (pOwner->ControlledByPlayer_())
+			if (pOwner->ControlledByPlayer_() || HouseClass::CurrentPlayer()->IsObserver())
 			{
 				int nRadius = 0;
 
@@ -5356,233 +5388,6 @@ DEFINE_HOOK(0x707CF2, TechnoClass_KillCargo_FixKiller, 0x8)
 
 //#include <ExtraHeaders/Placeholders/ExtraAudio.h>
 #include <Audio.h>
-#include <DSound.h>
-
-struct _ListNode
-{
-	_ListNode* next;
-	_ListNode* prev;
-	int pri;
-};
-
-struct __declspec(align(4)) AudioFrameTag
-{
-	_ListNode nd;
-	DWORD Data;
-	DWORD Bytes;
-	AudioSampleTag* _AudioSampleTag;
-	int field_18;
-};
-
-struct __declspec(align(4)) imastruct
-{
-	DWORD Predicted;
-	DWORD Index;
-};
-
-struct AudioDriverChannelTag
-{
-
-	AudioSampleTag* AudioDriverChannelTag_noname_setup()
-	{
-		JMP_THIS(0x409C40);
-	}
-
-	static int __fastcall noname_prefil(AudioDriverChannelTag* a1, int a2) {
-		JMP_STD(0x409880);
-	}
-
-	AudioChannelTag* audiochannel;
-	int field_4;
-	int soundframesize2;
-	int soundframesizedivplaycursor;
-	LARGE_INTEGER audiogettimeresult;
-	LARGE_INTEGER audiogettimeresult2;
-	int frameData1;
-	int bytesInFrame1;
-	int frameData2;
-	int bytesInFrame2;
-	DWORD playcursor;
-	DWORD writecursor;
-	int buffersizeminusplaycursor;
-	int soundframesizetimes4;
-	int buffersize2;
-	AudioFormatTag audioformat;
-	IDirectSoundBuffer* soundriverpointer;
-	int dwBufferBytes;
-	int soundframesize1;
-	int decompression_func;
-	int decomptype;
-	int pendingdecomptype;
-	char* IMA_InBuffer;
-	int blocksize5;
-	int blocksize6;
-	DWORD somebuffer2;
-	int blocksize4;
-	WORD* IMA_OutBuffer;
-	int IMA_BitsProcessed;
-	DWORD somedecompcount;
-	int blocksize3;
-	int blocksizetimes4_plus128;
-	int Channels;
-	int decompwas0;
-	int blocksize1;
-	int ima_function;
-	imastruct imastruct[2];
-	int field_C4;
-	int field_C8;
-	int skip_drvCBNextFrame;
-	int somecount;
-	int soundframesize3;
-	int soundframesizedivplaycursor2;
-	int playcursor2;
-};
-
-struct AudioDriverTag
-{
-	int data;
-	int(__fastcall* openChannel)(AudioChannelTag*);
-	int(__fastcall* closeChannel)(AudioChannelTag*);
-	int(__fastcall* start)(AudioChannelTag*);
-	int(__fastcall* stop)(AudioChannelTag*);
-	int(__fastcall* pause)(AudioChannelTag*);
-	int(__fastcall* resume)(AudioChannelTag*);
-	int(__fastcall* check)(AudioChannelTag*);
-	int(__fastcall* update)(AudioChannelTag*);
-	int(__fastcall* queueIt)(AudioChannelTag*);
-	int(__fastcall* lock)(AudioChannelTag*);
-	int(__fastcall* unlock)(AudioChannelTag*);
-};
-
-struct AudioControlTag
-{
-	int Priority;
-	int Status;
-	int LoopCount;
-};
-
-struct AudioSystemTag;
-struct AudioDeviceTag;
-struct __declspec(align(4)) AudioSystemMasterTag
-{
-	char* Name;
-	int Id;
-	int Properties;
-	int flags;
-	int stamp;
-	signed int(__fastcall* load)(AudioSystemTag* AudioSystemTag);
-	void(__fastcall* unload)(AudioSystemTag* AudioSystemTag);
-	int(__fastcall* open)(AudioDeviceTag* AudioDeviceTag);
-	void(__fastcall* close)(AudioDeviceTag* AudioDeviceTag);
-	AudioDriverTag* _AudioDriverTag;
-};
-
-struct __declspec(align(4)) AudioSystemTag
-{
-	_ListNode nd;
-	AudioSystemMasterTag* master;
-	LockTag lock;
-	int numUnits;
-	AudioDeviceTag* unit[16];
-	int dbg_struct_type;
-};
-
-struct AudioServiceInfoTag
-{
-	long long serviceInterval;
-	long long mustServiceInterval;
-	long long lastInterval;
-	long long longestInterval;
-	long long longestReset;
-	long long lastServiceTime;
-	long long longestIntervalforPeriod;
-	long long periodStart;
-	long long periodInterval;
-	DWORD count;
-	DWORD missCount;
-	DWORD lastcount;
-	DWORD animPos;
-	int field_58;
-	int field_5C;
-};
-
-struct AudioDeviceTag
-{
-	_ListNode nd;
-	int flags;
-	LockTag lock;
-	AudioSystemTag* _AudioSystemTag;
-	int systemUnit;
-	int stamp;
-	AudioFormatTag Format;
-	AudioFormatTag DefaultFormat;
-	int field_64;
-	AudioAttribs Attribs;
-	AudioAttribs* GroupAttribs;
-	int Unit;
-	int channels;
-	int maxChannels;
-	_ListNode channelList;
-	LockTag channelAccess;
-	int(__fastcall* deviceHandler)(struct AudioDeviceTag*);
-	AudioServiceInfoTag attribsUpdate;
-	AudioServiceInfoTag mixerUpdate;
-	AudioDriverTag* _AudioDriverTag;
-	int data;
-	int frames;
-	int over_sample;
-	int frame_lag;
-	int dbg_struct_type;
-};
-
-class AudioChannelTag
-{
-public:
-	static int __fastcall AudioChannelSetFormat(AudioChannelTag* chan, AudioFormatTag* format)
-	{
-		JMP_STD(0x402800);
-	}
-
-	int AudioDriver_update()
-	{
-		JMP_THIS(0x40A6D0);
-	}
-
-	_ListNode nd;
-	int Type;
-	AudioAttribs ChannelAttribs;
-	AudioAttribs* SfxAttribs;
-	AudioAttribs* GroupAttribs;
-	AudioAttribs* CompAttribs;
-	AudioAttribs* FadeAttribs;
-	AudioControlTag Control;
-	AudioDeviceTag* Device;
-	int(__fastcall* CB_NextFrame)(AudioChannelTag*);
-	int(__fastcall* CB_NextSample)(AudioChannelTag*);
-	int(__fastcall* CB_SampleDone)(AudioChannelTag*);
-	int(__fastcall* CB_Stop)(AudioChannelTag*);
-	AudioEventTag* _AudioEventTag;
-	int UserField[4];
-	AudioDriverTag* _AudioDriverTag;
-	AudioAttribs attribs;
-	AudioDriverChannelTag* drvData;
-	int drvCBNextFrame;
-	int drvCBNextSample;
-	int drvCBSampleDone;
-	AudioSampleTag* sample;
-	AudioFrameTag* frame;
-	int frameData;
-	int bytesInFrame;
-	int bytesRemaining;
-	AudioFormatTag current_format;
-	int format_changed;
-	int drv_format_changed;
-	long long time_min_frame;
-	double time_buffer;
-	int field_1B4;
-	int field_1B8;
-	int field_1BC;
-};
 
 DEFINE_HOOK(0x40A5B3, AudioDriverStart_AnnoyingBufferLogDisable_A, 0x6)
 {

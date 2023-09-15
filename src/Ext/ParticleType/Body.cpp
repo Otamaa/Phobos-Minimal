@@ -4,6 +4,18 @@ void ParticleTypeExt::ExtData::Initialize() {
 	LaserTrail_Types.reserve(2);
 }
 
+void ReadWinDirMult(std::array<Point2D, (size_t)FacingType::Count>& arr, INI_EX& exINI, const char* pID, const int* beginX , const int* beginY) {
+
+	char buff_wind[0x25];
+
+	for (size_t i = 0; i < arr.size(); ++i) {
+		Nullable<Point2D> ReadWind {};
+		_snprintf_s(buff_wind, sizeof(buff_wind) - 1, "WindDirectionMult%d", i);
+		ReadWind.Read(exINI, pID, buff_wind);
+		arr[i] = ReadWind.Get(Point2D { *(beginX + i) , *(beginY + i) });
+	}
+}
+
 void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->Get();
@@ -16,22 +28,44 @@ void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 
 	switch (pThis->BehavesLike)
 	{
-	case BehavesLike::Smoke:
-	{
+	case BehavesLike::Smoke: {
+		/*
+			WindFacingMult Smoke[at 0 - value(x:0, y : -2)]
+			WindFacingMult Smoke[at 1 - value(x:2, y : -2)]
+			WindFacingMult Smoke[at 2 - value(x:2, y : 0)]
+			WindFacingMult Smoke[at 3 - value(x:1, y : 2)]
+			WindFacingMult Smoke[at 4 - value(x:0, y : 2)]
+			WindFacingMult Smoke[at 5 - value(x:-2, y : 2)]
+			WindFacingMult Smoke[at 6 - value(x:-2, y : 0)]
+			WindFacingMult Smoke[at 7 - value(x:-2, y : -2)]
+		*/
 		this->DeleteWhenReachWater.Read(exINI, pID, "Smoke.DeleteWhenReachWater");
+		ReadWinDirMult(this->WindMult, exINI , pID, ParticleClass::SmokeWind_X.begin(), ParticleClass::SmokeWind_Y.begin());
 	}
 	break;
-	case BehavesLike::Fire:
-	{
+	case BehavesLike::Fire: {
 	//	this->ExpireAfterDamaging.Read(exINI, pID, "Fire.ExpireAfterDamaging");
 	//	this->DamagingAnim.Read(exINI, pID, "Fire.DamagingAnim");
 	}
 	break;
-	case BehavesLike::Railgun:
-	{ 
+	case BehavesLike::Railgun: {
 		this->ReadjustZ.Read(exINI, pID , "ReadjustZCoord");
 		break;
 	}
+	case BehavesLike::Gas: {
+		/*
+			WindFacingMult Gas[at 0 - value(x:0, y : -2)]
+			WindFacingMult Gas[at 1 - value(x:2, y : -2)]
+			WindFacingMult Gas[at 2 - value(x:2, y : 0)]
+			WindFacingMult Gas[at 3 - value(x:2, y : 2)]
+			WindFacingMult Gas[at 4 - value(x:0, y : 2)]
+			WindFacingMult Gas[at 5 - value(x:-2, y : 2)]
+			WindFacingMult Gas[at 6 - value(x:-2, y : 0)]
+			WindFacingMult Gas[at 7 - value(x:-2, y : -2)]
+		*/
+
+		ReadWinDirMult(this->WindMult, exINI, pID, ParticleClass::GasWind_X.begin(), ParticleClass::GasWind_Y.begin());
+	}break;
 	default:
 		break;
 	}
@@ -56,6 +90,7 @@ void ParticleTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Palette)
 		.Process(this->DamageRange)
 		.Process(this->DeleteWhenReachWater)
+		.Process(this->WindMult)
 		;
 
 	this->Trails.Serialize(Stm);

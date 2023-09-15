@@ -107,10 +107,11 @@ public:
 	static std::array<std::pair<const char* ,AffectPlayerType>, 5u> AffectPlayerType_ToStrings;
 	static std::array<const char*, 3u> SpotlightAttachment_ToStrings;
 	static std::array<const char*, 3u> ShowTimerType_ToStrings;
-	static std::array<const char*, (size_t)BountyValueOption::count> BountyValueOption_ToSrings;
+	static std::array<const char*, (size_t)BountyValueOption::count> BountyValueOption_ToStrings;
 
-	static std::array<const char*, (size_t)BuildingSelectBracketPosition::count> BuildingSelectBracketPosition_ToSrings;
-	static std::array<const char*, (size_t)DisplayInfoType::count> DisplayInfoType_ToSrings;
+	static std::array<const char*, (size_t)BuildingSelectBracketPosition::count> BuildingSelectBracketPosition_ToStrings;
+	static std::array<const char*, (size_t)DisplayInfoType::count> DisplayInfoType_ToStrings;
+	static std::array<const char*, (size_t)NewCrateType::count> NewCrateType_ToStrings;
 
 	static bool CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse);
 	static bool IsCellEligible(CellClass* const pCell, AffectedTarget const&  allowed, bool explicitEmptyCells = false, bool considerBridgesLand = false);

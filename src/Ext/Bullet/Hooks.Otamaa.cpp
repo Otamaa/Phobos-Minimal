@@ -112,10 +112,12 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 			{
 				if (auto const pAnimType = AnimDebris[ScenarioClass::Instance->Random(0, AnimDebris.size() - 1)])
 				{
-					if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoords))
-					{
-						AnimExt::SetAnimOwnerHouseKind(pAnim, pOWner, Victim, pThis->Owner, false);
-					}
+					AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nCoords),
+						pOWner,
+						Victim,
+						pThis->Owner,
+						false
+					);
 				}
 			}
 		}

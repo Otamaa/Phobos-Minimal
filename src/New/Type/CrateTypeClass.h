@@ -3,7 +3,7 @@
 
 #include <Utilities/Enumerable.h>
 #include <Utilities/Template.h>
-#include <Utilities/TemplateDef.h>
+#include <Utilities/TemplateDefB.h>
 #include <Utilities/GeneralUtils.h>
 
 class AnimTypeClass;
@@ -15,32 +15,20 @@ class CrateTypeClass final : public Enumerable<CrateTypeClass>
 {
 public:
 
-    Valueable<SuperWeaponTypeClass*> Super;
-	Valueable<WeaponTypeClass*> WeaponType;
-	Valueable<bool> SuperGrant;
-	Valueable<int> Chance;
-	Valueable<AnimTypeClass*> Anim;
-	Valueable<int> Type;
-	Valueable<bool> AllowWater;
-    ValueableIdx<VocClass> Sound;
-    ValueableIdx<VoxClass> Eva;
-	ValueableVector<UnitTypeClass*> Unit;
-    Valueable<int> MoneyMin;
-    Valueable<int> MoneyMax;
+	Valueable<SuperWeaponTypeClass*> Super { nullptr };
+	Valueable<WeaponTypeClass*> WeaponType { nullptr };
+	Valueable<bool> SuperGrant { false };
+	Valueable<int> Chance { 0 };
+	Valueable<AnimTypeClass*> Anim { nullptr };
+	Valueable<NewCrateType> Type { NewCrateType::Money };
+	Valueable<bool> AllowWater { false };
+	ValueableIdx<VocClass> Sound { -1 };
+    ValueableIdx<VoxClass> Eva { -1 };
+	ValueableVector<UnitTypeClass*> Unit { };
+    Valueable<int> MoneyMin { 0 };
+    Valueable<int> MoneyMax { 0 };
 
-    CrateTypeClass(const char* const pTitle): Enumerable<CrateTypeClass>(pTitle),
-        Super(nullptr),
-        WeaponType(nullptr),
-        Chance(0),
-        Anim(nullptr),
-        Type(3),
-        SuperGrant(false),
-        AllowWater(false),
-        Sound(-1),
-        Eva(-1),
-        Unit(),
-        MoneyMin(0),
-        MoneyMax(0)
+    CrateTypeClass(const char* const pTitle): Enumerable<CrateTypeClass>(pTitle)
     { }
 
 	virtual ~CrateTypeClass() override = default;

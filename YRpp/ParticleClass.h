@@ -16,6 +16,11 @@ class DECLSPEC_UUID("0E272DCC-9C0F-11D1-B709-00A024DDAFD1")
 public:
 	static const AbstractType AbsID = AbstractType::Particle;
 	static constexpr inline DWORD vtable = 0x7EF954;
+	static constexpr reference<int, 0x8366A4u, (size_t)FacingType::Count> const GasWind_X {};
+	static constexpr reference<int, 0x8366C4u, (size_t)FacingType::Count> const GasWind_Y {};
+
+	static constexpr reference<int, 0x836664u, (size_t)FacingType::Count> const SmokeWind_X {};
+	static constexpr reference<int, 0x836684u, (size_t)FacingType::Count> const SmokeWind_Y {};
 
 	//Static
 	static constexpr constant_ptr<DynamicVectorClass<ParticleClass*>, 0xA83DC8u> const Array{};
@@ -37,7 +42,7 @@ public:
 	virtual Layer InWhichLayer() const override JMP_THIS(0x62D770);
 	virtual CellStruct const* GetFoundationData(bool includeBib = false) const override JMP_THIS(0x62D710);
 	virtual bool UpdatePlacement(PlacementType value) override JMP_THIS(0x62D6F0);
-	
+
 	//ParticleClass
 	virtual int vt_entry_1E8() JMP_THIS(0x62D830);
 

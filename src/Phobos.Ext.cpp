@@ -46,6 +46,8 @@
 #include <New/Type/BannerTypeClass.h>
 #include <New/Type/TunnelTypeClass.h>
 #include <New/Type/DigitalDisplayTypeClass.h>
+#include <New/Type/GenericPrerequisite.h>
+#include <New/Type/CrateTypeClass.h>
 
 #pragma region OtamaaStuffs
 #include <Ext/Bomb/Body.h>
@@ -259,7 +261,7 @@ private:
 
 HRESULT Phobos::SaveGameDataAfter(IStream* pStm)
 {
-	Debug::Log("Finished saving the game\n");
+	Debug::Log("[Phobos] Finished saving the game\n");
 	return S_OK;
 }
 
@@ -267,7 +269,7 @@ void Phobos::LoadGameDataAfter(IStream* pStm)
 {
 	//clear the loadgame flag
 	Phobos::Otamaa::DoingLoadGame = false;
-	Debug::Log("Finished loading the game\n");
+	Debug::Log("[Phobos] Finished loading the game\n");
 }
 
 #pragma region Hooks
@@ -357,6 +359,8 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	WarheadTypeExt::ExtMap.Clear();
 	SuperWeaponSidebar::Clear();
 	FoggedObject::FoggedObjects.Clear();
+	GenericPrerequisite::Clear();
+	CrateTypeClass::Clear();
 
 	return 0;
 }
@@ -450,7 +454,9 @@ DEFINE_HOOK(0x67D32C, SaveGame_Phobos_Global, 0x5)
 		Process_Save<LaserTrailTypeClass>(pStm) &&
 		Process_Save<TunnelTypeClass>(pStm) &&
 		Process_Save<SWStateMachine>(pStm) &&
-		Process_Save<PhobosGlobal>(pStm)
+		Process_Save<PhobosGlobal>(pStm) &&
+		Process_Save<GenericPrerequisite>(pStm) &&
+		Process_Save<CrateTypeClass>(pStm)
 		;
 
 	if (!ret)
@@ -487,7 +493,9 @@ DEFINE_HOOK(0x67E826, LoadGame_Phobos_Global, 0x6)
 		Process_Load<LaserTrailTypeClass>(pStm) &&
 		Process_Load<TunnelTypeClass>(pStm) &&
 		Process_Load<SWStateMachine>(pStm) &&
-		Process_Load<PhobosGlobal>(pStm)
+		Process_Load<PhobosGlobal>(pStm) &&
+		Process_Load<GenericPrerequisite>(pStm) &&
+		Process_Load<CrateTypeClass>(pStm)
 		;
 
 	if (!ret)

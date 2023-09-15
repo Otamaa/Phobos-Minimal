@@ -11,6 +11,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Commands\PlaceVeinholeMonster.cpp" />
+    <ClCompile Include="src\Commands\SaveVariablesToFile.cpp" />
     <ClCompile Include="src\Commands\ShowAnimNames.cpp" />
     <ClCompile Include="src\Commands\RevealMap.cpp" />
     <ClCompile Include="src\Commands\CaptureObjects.cpp" />
@@ -30,6 +31,7 @@
     <ClCompile Include="src\Ext\Aircraft\Hooks.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\AITriggerType\Body.cpp" />
+    <ClCompile Include="src\Ext\AITriggerType\Hooks.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.AnimCreateUnit.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.Drawings.cpp" />
@@ -208,8 +210,10 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bullet.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Checksummer.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.CustomMissile.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.DamageArea.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Deactivated.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Foot.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Foundation.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.House.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Infantry.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.IonBlast.cpp" />
@@ -225,6 +229,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Temporal.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.TEvents_TAction.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Trajectory.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Tunnel.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Unit.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Verses.cpp" />
@@ -255,6 +260,7 @@
     <ClCompile Include="src\Misc\TextInput.cpp" />
     <ClCompile Include="src\New\Entity\FoggedObject.cpp" />
     <ClCompile Include="src\New\Interfaces\TestLocomotionClass.cpp" />
+    <ClCompile Include="src\New\Type\CrateTypeClass.cpp" />
     <ClCompile Include="src\New\Type\DigitalDisplayTypeClass.cpp" />
     <ClCompile Include="src\New\Type\GenericPrerequisite.cpp" />
     <ClCompile Include="src\New\Type\TheaterTypeClass.cpp" />
@@ -351,6 +357,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Commands\PlaceVeinholeMonster.h" />
+    <ClInclude Include="src\Commands\SaveVariablesToFile.h" />
     <ClInclude Include="src\Commands\ShowAnimNames.h" />
     <ClInclude Include="src\Commands\RevealMap.h" />
     <ClInclude Include="src\Commands\CaptureObjects.h" />
@@ -503,6 +510,7 @@
     <ClInclude Include="src\New\Entity\ShieldClass.h" />
     <ClInclude Include="src\New\Interfaces\Base.h" />
     <ClInclude Include="src\New\Interfaces\TestLocomotionClass.h" />
+    <ClInclude Include="src\New\Type\CrateTypeClass.h" />
     <ClInclude Include="src\New\Type\DigitalDisplayTypeClass.h" />
     <ClInclude Include="src\New\Type\GenericPrerequisite.h" />
     <ClInclude Include="src\New\Type\TunnelTypeClass.h" />
@@ -660,7 +668,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.22000.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>

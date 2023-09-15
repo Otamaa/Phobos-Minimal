@@ -85,10 +85,11 @@ void ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 			}
 
 			auto const nCoord = pTarget->GetCenterCoords() + nBuffer;
-			if (auto pAnimPlayed = GameCreate<AnimClass>(pAnimTypeDecided, nCoord))
-			{
-				AnimExt::SetAnimOwnerHouseKind(pAnimPlayed, args->Attacker ? args->Attacker->GetOwningHouse() : args->SourceHouse, pTarget->GetOwningHouse(), args->Attacker, false);
-			}
+			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimTypeDecided, nCoord),
+				args->Attacker ? args->Attacker->GetOwningHouse() : args->SourceHouse, pTarget->GetOwningHouse(),
+				args->Attacker,
+				false
+			);
 		}
 	}
 }
@@ -750,16 +751,14 @@ DEFINE_HOOK(0x41660C, AircraftClass_ReceiveDamage_destroyed, 0x5)
 			[ScenarioClass::Instance->Random.RandomFromMax(pThis->Type->Explosion.Count - 1)])
 		{
 			auto nCoord = pThis->GetTargetCoords();
-			if (auto pAnim = GameCreate<AnimClass>(pExp, nCoord))
-			{
-				auto pInvoker = args.Attacker ? args.Attacker->Owner :
-					(args.SourceHouse ? args.SourceHouse : nullptr);
-
 				// if (pInvoker && !Is_House(pInvoker))
 				// 	pInvoker = nullptr;
 
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, true);
-			}
+			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pExp, nCoord),
+				args.Attacker ? args.Attacker->Owner : (args.SourceHouse ? args.SourceHouse : nullptr),
+				pThis->Owner,
+				true
+			);
 		}
 	}
 

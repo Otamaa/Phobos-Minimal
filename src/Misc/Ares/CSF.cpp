@@ -56,6 +56,7 @@ const wchar_t* CSFLoader::GetDynamicString(const char* pLabelName, const wchar_t
 	return pData->Text;
 }
 
+#ifndef disable_CSF_hooks
 DEFINE_OVERRIDE_HOOK(0x7349cf, StringTable_ParseFile_Buffer, 7)
 {
 	LEA_STACK(CCFileClass*, pFile, 0x28);
@@ -223,3 +224,4 @@ DEFINE_OVERRIDE_HOOK(0x734EC2, CSF_LoadString_2, 7)
 
 	return 0x734F0F;
 }
+#endif

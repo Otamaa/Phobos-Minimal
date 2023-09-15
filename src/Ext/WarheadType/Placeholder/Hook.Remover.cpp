@@ -41,11 +41,11 @@ DEFINE_HOOK(0x70222E, TechnoClass_ReceiveDamage_Remove, 0xA)
 		if (auto pAnimType = pWHExt->Remover_Anim.Get())
 		{
 			auto nCoord = pThis->GetCoords();
-			if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord))
-			{
-				HouseClass* pAttack = pAttacker ? pAttacker->GetOwningHouse() : nullptr;
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pAttack, pThis->GetOwningHouse(), false);
-			}
+			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nCoord),
+				pAttacker ? pAttacker->GetOwningHouse() : nullptr,
+				pThis->GetOwningHouse(),
+				false
+				);
 		}
 
 		pThis->RegisterDestruction(pAttacker);

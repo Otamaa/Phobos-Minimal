@@ -1067,43 +1067,32 @@ BuildLimitStatus HouseExt::CheckBuildLimit(
 	HouseClass const* const pHouse, TechnoTypeClass* pItem,
 	bool const includeQueued)
 {
-	if (pItem->BuildLimit < 0)
-	{
-		return (-(pItem->BuildLimit + pHouse->CountOwnedEver(pItem))) > 0
-			? BuildLimitStatus::NotReached
-			: BuildLimitStatus::ReachedTemporarily
-			;
-	}
+	int BuildLimit = pItem->BuildLimit;
+	int Remaining = HouseExt::BuildLimitRemaining(pHouse, pItem);
 
-	const int remaining = pItem->BuildLimit - HouseExt::CountOwnedNowTotal(pHouse, pItem);
-
-	if (pItem->BuildLimit > 0 && remaining <= 0)
-	{
-		if (!includeQueued || pHouse->GetFactoryProducing(pItem))
-		{
-			return BuildLimitStatus::ReachedPermanently;
+	if (BuildLimit > 0) {
+		if (Remaining <= 0) {
+			return (includeQueued && FactoryClass::FindByOwnerAndProduct(pHouse, pItem))
+				? BuildLimitStatus::NotReached
+				: BuildLimitStatus::ReachedPermanently
+				;
 		}
-
-		BuildLimitStatus::NotReached;
 	}
 
-	return remaining > 0 ?
-		BuildLimitStatus::NotReached
-		: BuildLimitStatus::ReachedTemporarily;
+	return (Remaining > 0)
+		? BuildLimitStatus::NotReached
+		: BuildLimitStatus::ReachedTemporarily
+		;
 }
 
 signed int HouseExt::BuildLimitRemaining(
 	HouseClass const* const pHouse, TechnoTypeClass* pItem)
 {
 	auto const BuildLimit = pItem->BuildLimit;
-	if (BuildLimit >= 0)
-	{
-		return BuildLimit - HouseExt::CountOwnedNowTotal(pHouse, pItem);
-	}
-	else
-	{
-		return -BuildLimit - pHouse->CountOwnedEver(pItem);
-	}
+
+	return BuildLimit >= 0 ?
+		(BuildLimit - HouseExt::CountOwnedNowTotal(pHouse, pItem)) :
+		(-BuildLimit - pHouse->CountOwnedEver(pItem));
 }
 
 int HouseExt::CountOwnedNowTotal(

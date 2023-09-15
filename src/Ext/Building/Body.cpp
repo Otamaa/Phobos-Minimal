@@ -292,8 +292,11 @@ bool BuildingExt::ExtData::RubbleYell(bool beingRepaired)
 
 		if (pAnimType)
 		{
-			if (auto pAnim = GameCreate<AnimClass>(pAnimType, pBuilding->GetCoords()))
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, false);
+			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pBuilding->GetCoords()),
+				pOwner,
+				nullptr,
+				false
+			);
 		}
 
 		return true;

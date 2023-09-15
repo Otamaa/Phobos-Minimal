@@ -65,9 +65,13 @@ DEFINE_OVERRIDE_HOOK(0x66238A, RocketLocomotionClass_ILocomotion_Process_CustomM
 	const auto pExt = TechnoTypeExt::ExtMap.Find(pOwner->Type);
 
 	if (AnimTypeClass* pType = pExt->CustomMissileTakeoffAnim) {
-		if (auto pAnim = GameCreate<AnimClass>(pType, pOwner->Location, 2, 1, 0x600, -10, false)) {
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner->Owner, nullptr, pOwner, true);
-		}
+
+		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pOwner->Location, 2, 1, 0x600, -10, false),
+			pOwner->Owner,
+			nullptr,
+			pOwner,
+			true
+		);
 
 		return 0x6623F3;
 	}
@@ -84,9 +88,13 @@ DEFINE_OVERRIDE_HOOK(0x662512, RocketLocomotionClass_ILocomotion_Process_CustomM
 	const auto pExt = TechnoTypeExt::ExtMap.Find(pOwner->Type);
 
 	if (AnimTypeClass* pType = pExt->CustomMissileTakeoffAnim) {
-		if (auto pAnim = GameCreate<AnimClass>(pType, pOwner->Location, 2, 1, 0x600, -10, false)) {
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner->Owner, nullptr, pOwner, true);
-		}
+		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pOwner->Location, 2, 1, 0x600, -10, false),
+			pOwner->Owner,
+			nullptr,
+			pOwner,
+			true
+		);
+
 		return 0x66257B;
 	}
 
@@ -102,9 +110,13 @@ DEFINE_OVERRIDE_HOOK(0x6627E5, RocketLocomotionClass_ILocomotion_Process_CustomM
 	const auto pExt = TechnoTypeExt::ExtMap.Find(pOwner->Type);
 
 	if (AnimTypeClass* pType = pExt->CustomMissileTakeoffAnim) {
-		if (auto pAnim = GameCreate<AnimClass>(pType, pOwner->Location, 2, 1, 0x600, -10, false)) {
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner->Owner, nullptr, pOwner, true);
-		}
+		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pOwner->Location, 2, 1, 0x600, -10, false),
+			pOwner->Owner,
+			nullptr,
+			pOwner,
+			true
+		);
+
 		return 0x662849;
 	}
 
@@ -125,9 +137,12 @@ DEFINE_OVERRIDE_HOOK(0x662D85, RocketLocomotionClass_ILocomotion_Process_CustomM
 		pLocomotor->TrailerTimer.Start(pExt->CustomMissileTrailerSeparation);
 
 		if (AnimTypeClass* pType = pExt->CustomMissileTrailerAnim) {
-			if (auto pAnim = GameCreate<AnimClass>(pType, pOwner->Location)) {
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner->Owner, nullptr, pOwner, true);
-			}
+			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pOwner->Location),
+				pOwner->Owner,
+				nullptr,
+				pOwner,
+				true
+			);
 		}
 
 		return 0x662E16;
@@ -181,10 +196,12 @@ DEFINE_OVERRIDE_HOOK(0x663218, RocketLocomotionClass_Explode_CustomMissile2, 5)
 	const auto pCell = MapClass::Instance->GetCellAt(pCellStr);
 
 	if (auto pAnimType = MapClass::SelectDamageAnimation(nDamage, pWH, pCell->LandType, coords)) {
-		if (auto pAnim = GameCreate<AnimClass>(pAnimType, coords, 0, 1, 0x2600, -15)) {
-			const auto pTargetOwner = pOwner->Target ? pOwner->Target->GetOwningHouse() : nullptr;
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner->Owner, pTargetOwner, pOwner, true);
-		}
+		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coords, 0, 1, 0x2600, -15),
+			pOwner->Owner,
+			pOwner->Target ? pOwner->Target->GetOwningHouse() : nullptr,
+			pOwner,
+			true
+		);
 	}
 
 	MapClass::FlashbangWarheadAt(nDamage, pWH, coords, false);
@@ -284,9 +301,12 @@ DEFINE_HOOK(0x6B750B, SpawnManagerClass_Update_CustomMissilePreLauchAnim, 0x5)
 		return 0x0;
 	} else if (pTypeExt->IsCustomMissile) {
 		if(AnimTypeClass* pType = pTypeExt->CustomMissilePreLauchAnim) {
-			if (auto pAnim = GameCreate<AnimClass>(pType, pSpawned->Location, 2, 1, 0x600, -10, false)) {
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pSpawned->Owner, nullptr, pSpawned, true);
-			}
+			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pSpawned->Location, 2, 1, 0x600, -10, false),
+				pSpawned->Owner,
+				nullptr,
+				pSpawned,
+				true
+			);
 		}
 	}
 

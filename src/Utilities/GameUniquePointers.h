@@ -8,7 +8,7 @@ struct UninitAttachedSystem
 {
 	void operator() (ParticleSystemClass* pAnim) const
 	{
-		if (pAnim)
+		if (pAnim && pAnim->IsAlive)
 		{
 			pAnim->Owner = nullptr;
 			pAnim->UnInit();

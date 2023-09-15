@@ -30,7 +30,7 @@ public:
 		Nullable<bool> CreateUnit_RemapAnim { };
 		Valueable<bool> CreateUnit_RandomFacing { true };
 		Valueable<Mission> CreateUnit_Mission { Mission::Guard };
-		Valueable<OwnerHouseKind> CreateUnit_Owner { OwnerHouseKind::Victim };
+		Nullable<OwnerHouseKind> CreateUnit_Owner {};
 		Valueable<bool> CreateUnit_ConsiderPathfinding { false };
 		Nullable<AnimTypeClass*> CreateUnit_SpawnAnim { };
 		Valueable<bool> CreateUnit_AlwaysSpawnOnGround { true };
@@ -81,7 +81,7 @@ public:
 
 		Valueable<double> ConcurrentChance { 0.0 };
 		ValueableVector<AnimTypeClass*> ConcurrentAnim { };
-		Valueable<OwnerHouseKind> MakeInfantryOwner { OwnerHouseKind::Invoker };
+		Nullable<OwnerHouseKind> MakeInfantryOwner {};
 		Valueable<ParticleSystemTypeClass*> AttachedSystem {};
 		bool IsInviso { false };
 
@@ -99,6 +99,8 @@ public:
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 		void ValidateSpalshAnims();
+
+		OwnerHouseKind GetAnimOwnerHouseKind();
 	private:
 		template <typename T>
 		void Serialize(T& Stm);

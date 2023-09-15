@@ -14,6 +14,7 @@
 #include <New/Type/TunnelTypeClass.h>
 #include <New/Type/GenericPrerequisite.h>
 #include <New/Type/DigitalDisplayTypeClass.h>
+#include <New/Type/CrateTypeClass.h>
 
 //#include <Ext/TechnoType/Body.h>
 
@@ -105,6 +106,7 @@ void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	LaserTrailTypeClass::LoadFromINIList(&CCINIClass::INI_Art.get());
 	DigitalDisplayTypeClass::LoadFromINIList(pINI);
+	CrateTypeClass::LoadFromINIList(pINI);
 
 	Data->LoadBeforeTypeData(pThis, pINI);
 }
@@ -173,7 +175,7 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	for (int i = 0; i < SideClass::Array->Count; ++i)
 		Crews[i] = SideExt::ExtMap.Find(SideClass::Array->Items[i])->GetCrew();
 
-	char buffer[0x30];
+	char buffer[0x30] = {};
 	auto pINI = CCINIClass::INI_Rules();
 	INI_EX iniEX(pINI);
 
@@ -316,7 +318,7 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	}
 
 	if(OverlayTypeClass::Array->Count > 255) {
-		Debug::Log("Only 255 OverlayTypes are supported.\n");
+		Debug::Log("Reaching over 255 OverlayTypes!.\n");
 	}
 
 	for (auto const pWH : *WarheadTypeClass::Array) {
@@ -374,7 +376,9 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->TogglePowerAllowed.Read(exINI, GENERAL_SECTION, "TogglePowerAllowed");
 	this->TogglePowerDelay.Read(exINI, GENERAL_SECTION, "TogglePowerDelay");
 	this->TogglePowerIQ.Read(exINI, "IQ", "TogglePower");
-
+	this->GainSelfHealAllowMultiplayPassive.Read(exINI, GENERAL_SECTION, "GainSelfHealAllowMultiplayPassive");
+	this->VeinsDamagingWeightTreshold.Read(exINI, GENERAL_SECTION, "VeinsDamagingWeightTreshold");
+	this->VeinholePal.Read(exINI, GENERAL_SECTION, "VeinholePalette");
 	this->DegradeEnabled.Read(exINI, GENERAL_SECTION, "Degrade.Enabled");
 	this->DegradePercentage.Read(exINI, GENERAL_SECTION, "Degrade.Percentage");
 	this->DegradeAmountNormal.Read(exINI, GENERAL_SECTION, "Degrade.AmountNormal");
@@ -610,6 +614,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(Phobos::Otamaa::DisableCustomRadSite)
 		.Process(Phobos::Config::ShowTechnoNamesIsActive)
 		.Process(Phobos::Misc::CustomGS)
+		.Process(Phobos::Config::ApplyShadeCountFix)
 
 		.Process(this->Pips_Shield)
 		.Process(this->Pips_Shield_Buildings)
@@ -812,6 +817,9 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->TogglePowerAllowed)
 		.Process(this->TogglePowerDelay)
 		.Process(this->TogglePowerIQ)
+		.Process(this->GainSelfHealAllowMultiplayPassive)
+		.Process(this->VeinsDamagingWeightTreshold)
+		.Process(this->VeinholePal)
 		;
 
 	MyPutData.Serialize(Stm);

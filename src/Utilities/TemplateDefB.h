@@ -117,7 +117,7 @@ namespace detail
 	}
 
 	template <>
-	inline bool read(DamageDelayTargetFlag& value, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate)
+	inline bool read<DamageDelayTargetFlag>(DamageDelayTargetFlag& value, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate)
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
@@ -134,6 +134,26 @@ namespace detail
 			}
 
 			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid DamageDelayTargetFlag");
+		}
+
+		return false;
+	}
+
+	template <>
+	inline bool read<NewCrateType>(NewCrateType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			for (size_t i = 0; i < EnumFunctions::NewCrateType_ToStrings.size(); ++i)
+			{
+				if (IS_SAME_STR_(parser.value(), EnumFunctions::NewCrateType_ToStrings[i]))
+				{
+					value = (NewCrateType)i;
+					return true;
+				}
+			}
+
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a target zone scan type");
 		}
 
 		return false;
@@ -354,9 +374,9 @@ namespace detail
 		{
 			const auto pVal = parser.value();
 
-			for (size_t i = 0; i < EnumFunctions::BountyValueOption_ToSrings.size(); ++i)
+			for (size_t i = 0; i < EnumFunctions::BountyValueOption_ToStrings.size(); ++i)
 			{
-				if (IS_SAME_STR_(pVal, EnumFunctions::BountyValueOption_ToSrings[i]))
+				if (IS_SAME_STR_(pVal, EnumFunctions::BountyValueOption_ToStrings[i]))
 				{
 					value = (BountyValueOption)i;
 					return true;
@@ -376,8 +396,8 @@ namespace detail
 		{
 			const auto str = parser.value();
 
-			for (size_t i = 0; i < EnumFunctions::BuildingSelectBracketPosition_ToSrings.size(); ++i) {
-				if (IS_SAME_STR_(str, EnumFunctions::BuildingSelectBracketPosition_ToSrings[i])) {
+			for (size_t i = 0; i < EnumFunctions::BuildingSelectBracketPosition_ToStrings.size(); ++i) {
+				if (IS_SAME_STR_(str, EnumFunctions::BuildingSelectBracketPosition_ToStrings[i])) {
 					value = BuildingSelectBracketPosition(i);
 					return true;
 				}
@@ -396,8 +416,8 @@ namespace detail
 		{
 			auto str = parser.value();
 
-			for (size_t i = 0; i < EnumFunctions::DisplayInfoType_ToSrings.size(); ++i) {
-				if (IS_SAME_STR_(str, EnumFunctions::DisplayInfoType_ToSrings[i])) {
+			for (size_t i = 0; i < EnumFunctions::DisplayInfoType_ToStrings.size(); ++i) {
+				if (IS_SAME_STR_(str, EnumFunctions::DisplayInfoType_ToStrings[i])) {
 					value = DisplayInfoType(i);
 					return true;
 				}

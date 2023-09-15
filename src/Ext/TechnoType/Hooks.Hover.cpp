@@ -107,10 +107,12 @@ DEFINE_HOOK(0x514A32, HoverLocomotionClass_513D20_Anim, 0x5) //B
 			if (const auto pAnimType = GetHover(Linked)->GetAboveWaterAnim())
 			{
 				const auto nCoord = Linked->GetCoords();
-				if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord))
-				{
-					AnimExt::SetAnimOwnerHouseKind(pAnim, Linked->Owner, nullptr, Linked, false);
-				}
+				AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nCoord),
+					Linked->Owner,
+					nullptr,
+					Linked,
+					false
+				);
 			}
 		}
 	}

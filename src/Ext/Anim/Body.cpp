@@ -99,10 +99,12 @@ bool AnimExt::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight)
 
 			if (auto const pExpireAnim = pThis->Type->ExpireAnim)
 			{
-				if (auto pAnim = GameCreate<AnimClass>(pExpireAnim, pThis->Bounce.GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -30, 0))
-				{
-					AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, pTechOwner, false);
-				}
+				AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pExpireAnim, pThis->Bounce.GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -30, 0),
+					pOwner,
+					nullptr,
+					pTechOwner,
+					false
+				);
 			}
 		}
 		else
@@ -111,10 +113,12 @@ bool AnimExt::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight)
 			{
 				if (auto pSplashAnim = Helper::Otamaa::PickSplashAnim(pAnimTypeExt->SplashList, pAnimTypeExt->WakeAnim, pAnimTypeExt->SplashIndexRandom.Get(), pThis->Type->IsMeteor))
 				{
-					if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, pThis->GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, false))
-					{
-						AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, pTechOwner, false);
-					}
+					AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pSplashAnim, pThis->GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, false),
+						pOwner,
+						nullptr,
+						pTechOwner,
+						false
+					);
 				}
 			}
 			else
@@ -124,10 +128,12 @@ bool AnimExt::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight)
 				{
 					if (auto pSplashAnim = MapClass::SelectDamageAnimation(nDamage, pThis->Type->Warhead, pThis->GetCell()->LandType, pThis->GetCoords()))
 					{
-						if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, pThis->GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -30))
-						{
-							AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, pTechOwner, false);
-						}
+						AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pSplashAnim, pThis->GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -30),
+							pOwner,
+							nullptr,
+							pTechOwner,
+							false
+						);
 					}
 				}
 			}
@@ -358,115 +364,68 @@ void AnimExt::ExtData::CreateAttachedSystem()
 	if (pData->AttachedSystem->BehavesLike == BehavesLike::Smoke)
 		nLoc.Z += 100;
 
-	if (auto const pSystem = GameCreate<ParticleSystemClass>(pData->AttachedSystem.Get(), nLoc, pThis->GetCell(), pThis, CoordStruct::Empty, pThis->GetOwningHouse()))
-		this->AttachedSystem.reset(pSystem);
+	this->AttachedSystem.reset(GameCreate<ParticleSystemClass>(
+		pData->AttachedSystem.Get(),
+		nLoc,
+		pThis->GetCell(),
+		pThis,
+		CoordStruct::Empty,
+		pThis->GetOwningHouse()
+	));
 }
 
 //Modified from Ares
 const std::pair<bool, OwnerHouseKind> AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner)
 {
-	OwnerHouseKind set = OwnerHouseKind::Default;
-
 	if (!pAnim || !pAnim->Type)
-		return { false ,set };
+		return { false ,OwnerHouseKind::Default };
 
 	auto const pTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type);
-	if (pTypeExt->NoOwner)
-		// no we dont set the owner
-	// this return also will prevent Techno `Invoker` to be set !
-		return { false , set };
+	if (!pTypeExt->NoOwner) {
 
-	if (pTypeExt->CreateUnit)
-	{
-		if (const auto newOwner = HouseExt::GetHouseKind(pTypeExt->CreateUnit_Owner, true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim))
+		const auto Owner = pTypeExt->GetAnimOwnerHouseKind();
+
+		if (Owner == OwnerHouseKind::Invoker && !pInvoker || Owner == OwnerHouseKind::Victim && !pVictim)
+			return { false , OwnerHouseKind::Default };
+
+		const auto newOwner = HouseExt::GetHouseKind(Owner, true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim);
+
+		if (!pAnim->Owner || pAnim->Owner != newOwner)
 		{
 			pAnim->SetHouse(newOwner);
-
-			if (pTypeExt->CreateUnit_RemapAnim.Get(pTypeExt->RemapAnim) && !newOwner->Defeated)
-				pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
-
-			return { true , pTypeExt->CreateUnit_Owner };//yes
+			return { false , Owner };
 		}
 	}
-	else if (pAnim->Type->MakeInfantry > -1)
-	{
-		if (auto newOwner = HouseExt::GetHouseKind(pTypeExt->MakeInfantryOwner, true, nullptr, pInvoker, pVictim))
-		{
-			pAnim->SetHouse(newOwner);
-			pAnim->__lighting__celldraw_196 = false;
-
-			if (!newOwner->Defeated)
-				pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
-
-			return { true , pTypeExt->MakeInfantryOwner }; //yes return true
-		}
-	}
-
-	if (!pAnim->Owner && pInvoker)
-	{
-		pAnim->SetHouse(pInvoker);
-
-		if (pTypeExt->RemapAnim && !pInvoker->Defeated)
-			pAnim->LightConvert = ColorScheme::Array->Items[pInvoker->ColorSchemeIndex]->LightConvert;
-
-		set = OwnerHouseKind::Invoker;
-	}
-
-	return { true , set }; //yes return true
+	return { false , OwnerHouseKind::Default }; //yes return true
 }
 
 const std::pair<bool, OwnerHouseKind> AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, TechnoClass* pTechnoInvoker, bool defaultToVictimOwner)
 {
-	OwnerHouseKind set = OwnerHouseKind::Default;
-
 	if (!pAnim || !pAnim->Type)
-		return { false ,set };
+		return { false ,OwnerHouseKind::Default };
 
 	auto const pTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type);
-	if (pTypeExt->NoOwner)
-		// no we dont set the owner
-		// this return also will prevent Techno `Invoker` to be set !
-		return { false ,set };
 
-	if (auto const pAnimExt = AnimExt::ExtMap.Find(pAnim))
-		pAnimExt->Invoker = pTechnoInvoker;
+	if (!pTypeExt->NoOwner) {
 
-	if (pTypeExt->CreateUnit)
-	{
-		if (const auto newOwner = HouseExt::GetHouseKind(pTypeExt->CreateUnit_Owner, true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim))
+		if (auto const pAnimExt = AnimExt::ExtMap.Find(pAnim))
+			pAnimExt->Invoker = pTechnoInvoker;
+
+		const auto Owner = pTypeExt->GetAnimOwnerHouseKind();
+
+		if (Owner == OwnerHouseKind::Invoker && !pInvoker || Owner == OwnerHouseKind::Victim && !pVictim)
+			return { false , OwnerHouseKind::Default };
+
+		const auto newOwner = HouseExt::GetHouseKind(Owner, true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim);
+
+		if (!pAnim->Owner || pAnim->Owner != newOwner)
 		{
 			pAnim->SetHouse(newOwner);
-
-			if (pTypeExt->CreateUnit_RemapAnim.Get(pTypeExt->RemapAnim) && !newOwner->Defeated)
-				pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
-
-			return { true , pTypeExt->CreateUnit_Owner };//yes
-		}
-	}
-	else if(pAnim->Type->MakeInfantry > -1)
-	{
-		if (auto newOwner = HouseExt::GetHouseKind(pTypeExt->MakeInfantryOwner, true, nullptr, pInvoker, pVictim))
-		{
-			pAnim->SetHouse(newOwner);
-			pAnim->__lighting__celldraw_196 = false;
-
-			if (!newOwner->Defeated)
-				pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
-
-			return { true , pTypeExt->MakeInfantryOwner }; //yes return true
+			return { false , Owner };
 		}
 	}
 
-	if (!pAnim->Owner && pInvoker) {
-		pAnim->SetHouse(pInvoker);
-
-		if (pTypeExt->RemapAnim && !pInvoker->Defeated)
-			pAnim->LightConvert = ColorScheme::Array->Items[pInvoker->ColorSchemeIndex]->LightConvert;
-
-		set = OwnerHouseKind::Invoker;
-	}
-
-	return { true , set }; //yes return true
+	return { false , OwnerHouseKind::Default };
 }
 
 TechnoClass* AnimExt::GetTechnoInvoker(AnimClass* pThis, bool DealthByOwner)

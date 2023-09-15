@@ -239,10 +239,12 @@ DEFINE_HOOK(0x438761, BombClass_Detonate_Handle, 0x7)
 
 	if (auto pAnimType = MapClass::Instance->SelectDamageAnimation(nDamage, pBombWH, pCell->LandType, coords))
 	{
-		if (auto pAnim = GameCreate<AnimClass>(pAnimType, coords, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, false))
-		{
-			AnimExt::SetAnimOwnerHouseKind(pAnim, OwningHouse, pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis->Owner, false);
-		}
+		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coords, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, false),
+			OwningHouse,
+			pThis->Target ? pThis->Target->GetOwningHouse() : nullptr,
+			pThis->Owner,
+			false
+		);
 	}
 
 	return 0x438857;

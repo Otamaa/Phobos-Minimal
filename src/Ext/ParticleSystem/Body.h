@@ -33,6 +33,7 @@ public:
 		std::vector<ParticleDatas> PreCalculatedParticlesData { };
 		std::vector<ParticleDatas> SomeArray_b { };
 		ParticleTypeClass* AdditionalHeldType { nullptr };
+
 		ExtData(ParticleSystemClass* OwnerObject) : Extension<base_type> { OwnerObject }
 		{ }
 

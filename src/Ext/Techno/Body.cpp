@@ -1713,10 +1713,12 @@ void TechnoExt::PutPassengersInCoords(TechnoClass* pTransporter, const CoordStru
 
 		if (pAnimToPlay)
 		{
-			if (auto pAnim = GameCreate<AnimClass>(pAnimToPlay, nDest))
-			{
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pTransporter->GetOwningHouse(), nullptr, pTransporter, false);
-			}
+			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimToPlay, nDest),
+				pTransporter->GetOwningHouse(),
+				nullptr,
+				pTransporter,
+				false
+			);
 		}
 
 		if (pPassenger->CurrentMission != Mission::Guard)
@@ -1745,12 +1747,13 @@ void TechnoExt::SyncIronCurtainStatus(TechnoClass* pFrom, TechnoClass* pTo)
 
 void TechnoExt::PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker)
 {
-	if (pAnim && pInvoker)
-	{
-		if (auto pCreated = GameCreate<AnimClass>(pAnim, pInvoker->Location))
-		{
-			AnimExt::SetAnimOwnerHouseKind(pCreated, pInvoker->GetOwningHouse(), nullptr, pInvoker, false);
-		}
+	if (pAnim && pInvoker) {
+		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, pInvoker->Location),
+			pInvoker->GetOwningHouse(),
+			nullptr,
+			pInvoker,
+			false
+		);
 	}
 }
 
@@ -2975,10 +2978,11 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 
 		if (pVanishAnim && !pThis->InLimbo && (pThis->Location.IsValid() && pThis->InlineMapCoords().IsValid()))
 		{
-			if (auto const pAnim = GameCreate<AnimClass>(pVanishAnim, pThis->GetCoords()))
-			{
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, true);
-			}
+			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pVanishAnim, pThis->GetCoords()),
+				pThis->GetOwningHouse(),
+				nullptr,
+				 true
+			);
 		}
 
 		pThis->Stun();
@@ -3142,87 +3146,85 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 	return false;
 }
 
-void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
+void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged)
 {
-	TechnoTypeClass* pType = pThis->GetTechnoType();
-	const int healthDeficit = pType->Strength - pThis->Health;
 
-	if (pThis->Health && healthDeficit > 0)
+	TechnoTypeClass* pType = pThis->GetTechnoType();
+
+	if (pThis->Health)
 	{
 		const auto pWhat = pThis->WhatAmI();
 		const bool isBuilding = pWhat == AbstractType::Building;
-		const bool isOrganic = pWhat == AbstractType::Infantry || (pWhat == AbstractType::Unit && pType->Organic);
-		const auto defaultSelfHealType = isBuilding ? SelfHealGainType::None : isOrganic ? SelfHealGainType::Infantry : SelfHealGainType::Units;
-		bool applyHeal = false;
-		int amount = 0;
+		const int healthDeficit = pType->Strength - pThis->Health;
+		const bool allow = !RulesExt::Global()->GainSelfHealAllowMultiplayPassive && (pThis->Owner && pThis->Owner->Type->MultiplayPassive);
 
-		switch (TechnoTypeExt::ExtMap.Find(pType)->SelfHealGainType.Get(defaultSelfHealType))
-		{
-		case SelfHealGainType::Infantry:
-		{
-			if (!pThis->Owner->InfantrySelfHeal)
-				return;
+		if(healthDeficit > 0 && allow) {
 
-			const int count = RulesExt::Global()->InfantryGainSelfHealCap.isset() ?
-				std::clamp(pThis->Owner->InfantrySelfHeal, 1, RulesExt::Global()->InfantryGainSelfHealCap.Get()) :
-				pThis->Owner->InfantrySelfHeal;
+			const bool isOrganic = pWhat == AbstractType::Infantry || (pWhat == AbstractType::Unit && pType->Organic);
+			const auto defaultSelfHealType = isBuilding ? SelfHealGainType::None : isOrganic ? SelfHealGainType::Infantry : SelfHealGainType::Units;
+			bool applyHeal = false;
+			int amount = 0;
 
-			amount = RulesClass::Instance->SelfHealInfantryAmount * count;
-
-			if (!(Unsorted::CurrentFrame % RulesClass::Instance->SelfHealInfantryFrames) && amount)
-				applyHeal = true;
-		}
-		break;
-		case SelfHealGainType::Units:
-		{
-			if (!pThis->Owner->UnitsSelfHeal)
-				return;
-
-			const int count = RulesExt::Global()->UnitsGainSelfHealCap.isset() ?
-				std::clamp(pThis->Owner->UnitsSelfHeal, 1, RulesExt::Global()->UnitsGainSelfHealCap.Get()) :
-				pThis->Owner->UnitsSelfHeal;
-
-			amount = RulesClass::Instance->SelfHealUnitAmount * count;
-
-			if (!(Unsorted::CurrentFrame % RulesClass::Instance->SelfHealUnitFrames) && amount)
-				applyHeal = true;
-		}
-		break;
-		default:
-			return;
-		}
-
-		if (applyHeal && amount)
-		{
-			if (amount >= healthDeficit)
-				amount = healthDeficit;
-
-			if (Phobos::Debug_DisplayDamageNumbers)
-				FlyingStrings::AddNumberString(amount, pThis->Owner, AffectedHouse::All, Drawing::DefaultColors[(int)DefaultColorList::White], pThis->Location, Point2D::Empty, false, L"");
-
-			const bool wasDamaged = pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
-
-			pThis->Health += amount;
-
-			if (wasDamaged && (pThis->GetHealthPercentage() > RulesClass::Instance->ConditionYellow
-				|| pThis->GetHeight() < -10))
+			switch (TechnoTypeExt::ExtMap.Find(pType)->SelfHealGainType.Get(defaultSelfHealType))
 			{
-				if (isBuilding)
-				{
-					const auto pBuilding = static_cast<BuildingClass*>(pThis);
-					pBuilding->UpdatePlacement(PlacementType::Redraw);
-					pBuilding->ToggleDamagedAnims(false);
-				}
+			case SelfHealGainType::Infantry:
+			{
+				if (!pThis->Owner->InfantrySelfHeal)
+					return;
 
-				if (pWhat == AbstractType::Unit || isBuilding)
-				{
-					if (auto& dmgParticle = pThis->DamageParticleSystem)
-					{
-						//GameDelete<true,false>(dmgParticle);
-						dmgParticle->UnInit();
-						dmgParticle = nullptr;
-					}
-				}
+				const int count = RulesExt::Global()->InfantryGainSelfHealCap.isset() ?
+					std::clamp(pThis->Owner->InfantrySelfHeal, 1, RulesExt::Global()->InfantryGainSelfHealCap.Get()) :
+					pThis->Owner->InfantrySelfHeal;
+
+				amount = RulesClass::Instance->SelfHealInfantryAmount * count;
+
+				if (!(Unsorted::CurrentFrame % RulesClass::Instance->SelfHealInfantryFrames) && amount)
+					applyHeal = true;
+			}
+			break;
+			case SelfHealGainType::Units:
+			{
+				if (!pThis->Owner->UnitsSelfHeal)
+					return;
+
+				const int count = RulesExt::Global()->UnitsGainSelfHealCap.isset() ?
+					std::clamp(pThis->Owner->UnitsSelfHeal, 1, RulesExt::Global()->UnitsGainSelfHealCap.Get()) :
+					pThis->Owner->UnitsSelfHeal;
+
+				amount = RulesClass::Instance->SelfHealUnitAmount * count;
+
+				if (!(Unsorted::CurrentFrame % RulesClass::Instance->SelfHealUnitFrames) && amount)
+					applyHeal = true;
+			}
+			break;
+			default:
+				return;
+			}
+
+			if (applyHeal && amount)
+			{
+				if (amount >= healthDeficit)
+					amount = healthDeficit;
+
+				if (Phobos::Debug_DisplayDamageNumbers)
+					FlyingStrings::AddNumberString(amount, pThis->Owner, AffectedHouse::All, Drawing::DefaultColors[(int)DefaultColorList::White], pThis->Location, Point2D::Empty, false, L"");
+
+				pThis->Health += amount;
+			}
+		}
+
+		if (wasDamaged && (pThis->GetHealthPercentage() > RulesClass::Instance->ConditionYellow
+			|| pThis->GetHeight() < -10))
+		{
+			if (isBuilding) {
+				const auto pBuilding = static_cast<BuildingClass*>(pThis);
+				pBuilding->UpdatePlacement(PlacementType::Redraw);
+				pBuilding->ToggleDamagedAnims(false);
+			}
+
+			if (auto& dmgParticle = pThis->DamageParticleSystem) {
+				dmgParticle->UnInit();
+				dmgParticle = nullptr;
 			}
 		}
 	}
@@ -3262,6 +3264,9 @@ void TechnoExt::ApplyDrainMoney(TechnoClass* pThis)
 
 void TechnoExt::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 {
+	if (!RulesExt::Global()->GainSelfHealAllowMultiplayPassive && (pThis->Owner && pThis->Owner->Type->MultiplayPassive))
+		return;
+
 	bool drawPip = false;
 	bool isInfantryHeal = false;
 	int selfHealFrames = 0;
@@ -3278,7 +3283,7 @@ void TechnoExt::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rectang
 	const bool isOrganic = pWhat == InfantryClass::AbsID
 		|| (pThis->GetTechnoType()->Organic && (pWhat == UnitClass::AbsID));
 
-	if (pThis->Owner->InfantrySelfHeal > 0 && (hasInfantrySelfHeal || isOrganic))
+	if (pThis->Owner->InfantrySelfHeal > 0 && (hasInfantrySelfHeal || (isOrganic && !hasUnitSelfHeal)))
 	{
 		drawPip = true;
 		selfHealFrames = RulesClass::Instance->SelfHealInfantryFrames;

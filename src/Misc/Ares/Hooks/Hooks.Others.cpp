@@ -40,7 +40,6 @@
 DEFINE_DISABLE_HOOK(0x41BE80, ObjectClass_DrawRadialIndicator_ares)
 DEFINE_DISABLE_HOOK(0x6FC339, TechnoClass_GetFireError_OpenToppedGunnerTemporal_ares)
 
-
 DEFINE_OVERRIDE_HOOK(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
 {
 	GET(FactoryClass*, pThis, ESI);
@@ -135,26 +134,6 @@ DEFINE_OVERRIDE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 0)
 //	R->EAX(1);
 //	return 0x6E2387;
 //}
-
-DEFINE_OVERRIDE_HOOK(0x4892BE, DamageArea_NullDamage, 0x6)
-{
-	enum
-	{
-		DeleteDamageAreaVector = 0x48A4B7,
-		ContinueFunction = 0x4892DD,
-	};
-
-	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
-	GET(int, Damage, ESI);
-
-	if (!pWarhead
-		|| ((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x20) != 0)
-		|| !Damage && !WarheadTypeExt::ExtMap.Find(pWarhead)->AllowZeroDamage)
-		return DeleteDamageAreaVector;
-
-	R->ESI(pWarhead);
-	return ContinueFunction;
-}
 
 DEFINE_DISABLE_HOOK(0x6AD0ED, Game_AllowSinglePlay_ares)//, 0x5, 6AD16C);
 DEFINE_JUMP(LJMP, 0x6AD0ED, 0x6AD16C);
@@ -354,55 +333,6 @@ DEFINE_OVERRIDE_HOOK(0x49F7A0, CopyProtection_CheckProtectedData, 0x8)
 {
 	R->AL(1);
 	return 0x49F8A7;
-}
-
-// create enumerator
-DEFINE_OVERRIDE_HOOK(0x4895B8, DamageArea_CellSpread1, 0x6)
-{
-	REF_STACK(CellSpreadEnumerator*, pIter, STACK_OFFS(0xE0, 0xB4));
-	GET(int, spread, EAX);
-
-	pIter = nullptr;
-
-	if (spread < 0)
-		return 0x4899DA;
-
-	pIter = new CellSpreadEnumerator(spread);
-
-	return *pIter ? 0x4895C3 : 0x4899DA;
-}
-
-// apply the current value
-DEFINE_OVERRIDE_HOOK(0x4895C7, DamageArea_CellSpread2, 0x8)
-{
-	GET_STACK(CellSpreadEnumerator*, pIter, STACK_OFFS(0xE0, 0xB4));
-
-	auto& offset = **pIter;
-	R->DX(offset.X);
-	R->AX(offset.Y);
-
-	return 0x4895D7;
-}
-
-// advance and delete if done
-DEFINE_OVERRIDE_HOOK(0x4899BE, DamageArea_CellSpread3, 0x8)
-{
-	REF_STACK(CellSpreadEnumerator*, pIter, STACK_OFFS(0xE0, 0xB4));
-	REF_STACK(int, index, STACK_OFFS(0xE0, 0xD0));
-
-	// reproduce skipped instruction
-	index++;
-
-	// advance iterator
-	if (++*pIter)
-	{
-		return 0x4895C0;
-	}
-
-	// all done. delete and go on
-	delete pIter;
-
-	return 0x4899DA;
 }
 
 DEFINE_OVERRIDE_HOOK(0x699C1C, Game_ParsePKTs_ClearFile, 0x7)
@@ -941,15 +871,6 @@ DEFINE_HOOK(0x6F5190, TechnoClass_DrawIt_Add, 0x6)
 #include <Ext/Super/Body.h>
 #include <Ext/Techno/Body.h>
 
-DEFINE_OVERRIDE_HOOK(0x48A2D9, MapClass_DamageArea_ExplodesThreshold, 6)
-{
-	GET(OverlayTypeClass*, pOverlay, EAX);
-	GET_STACK(int, damage, 0x24);
-
-	return pOverlay->Explodes && damage >= RulesExt::Global()->OverlayExplodeThreshold
-		? 0x48A2E7 : 0x48A433;
-}
-
 DEFINE_OVERRIDE_HOOK(0x738749, UnitClass_Destroy_TiberiumExplosive, 6)
 {
 	GET(const UnitClass* const, pThis, ESI);
@@ -978,8 +899,11 @@ DEFINE_OVERRIDE_HOOK(0x738749, UnitClass_Destroy_TiberiumExplosive, 6)
 
 					if (auto pAnim = RulesExt::Global()->Tiberium_ExplosiveAnim)
 					{
-						if (auto pA = GameCreate<AnimClass>(pAnim, crd, 0, 1, AnimFlag(0x2600), -15, false))
-							AnimExt::SetAnimOwnerHouseKind(pA, pThis->Owner, nullptr, false);
+						AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, crd, 0, 1, AnimFlag(0x2600), -15, false),
+							pThis->Owner,
+							nullptr,
+							false
+						);
 					}
 				}
 			}
@@ -1146,14 +1070,6 @@ DEFINE_OVERRIDE_HOOK(0x489270, CellChainReact, 5)
 		}
 	}
 
-	return 0;
-}
-
-// hook up the area damage delivery with chain reactions
-DEFINE_OVERRIDE_HOOK(0x48964F, MapClassDamageArea_CellChainReaction, 5)
-{
-	GET(CellClass*, pCell, EBX);
-	pCell->ChainReaction();
 	return 0;
 }
 
@@ -1454,13 +1370,12 @@ DEFINE_OVERRIDE_HOOK(0x6FA743, TechnoClass_Update_SelfHeal, 0xA)
 
 	// this replaces the call to pThis->ShouldSelfHealOneStep()
 	const auto nAmount = GetSelfHealAmount(pThis);
-
-	if (nAmount > 0 || nAmount != 0)
-	{
+	bool wasDamaged = pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
+	if (nAmount > 0 || nAmount != 0) {
 		pThis->Health += nAmount;
 	}
 
-	TechnoExt::ApplyGainedSelfHeal(pThis);
+	TechnoExt::ApplyGainedSelfHeal(pThis , wasDamaged);
 
 	return SkipAnySelfHeal;
 }
@@ -1477,11 +1392,9 @@ DEFINE_OVERRIDE_HOOK(0x6FAD49, TechnoClass_Update_SparkParticles, 8) // breaks t
 	if(auto it = pExt->ParticleSystems_DamageSparks.GetElements(pType->DamageParticleSystems)){
 		auto allowAny = pExt->ParticleSystems_DamageSparks.HasValue();
 
-		for (auto pSystem : it)
-		{
-			if (allowAny || pSystem->BehavesLike == BehavesLike::Spark)
-			{
-			Systems.AddItem(pSystem);
+		for (auto pSystem : it) {
+			if (allowAny || pSystem->BehavesLike == BehavesLike::Spark) {
+				Systems.AddItem(pSystem);
 			}
 		}
 	}
@@ -3501,7 +3414,7 @@ DEFINE_OVERRIDE_HOOK(0x41946B, AircraftClass_ReceivedRadioCommand_QueryEnterAsPa
 
 #include <Commands/ToggleRadialIndicatorDrawMode.h>
 
-DEFINE_HOOK(0x6DBE33, TacticalClass_DrawLinesOrCircles, 0x6)
+DEFINE_HOOK(0x6DBE35, TacticalClass_DrawLinesOrCircles, 0x9)
 {
 	if (!ToggleRadialIndicatorDrawModeClass::ShowForAll)
 	{
@@ -3510,11 +3423,11 @@ DEFINE_HOOK(0x6DBE33, TacticalClass_DrawLinesOrCircles, 0x6)
 		if(!intCurObjcount)
 			return 0x6DBE74;
 
-		ObjectClass::CurrentObjects->for_each([](ObjectClass* pObj)	{
+		for (auto const pObj : ObjectClass::CurrentObjects()) {
 			if (pObj && pObj->GetType() && pObj->GetType()->HasRadialIndicator) {
 				pObj->DrawRadialIndicator(1);
 			}
-		});
+		}
 	}
 	else
 	{
@@ -4366,153 +4279,6 @@ DEFINE_OVERRIDE_HOOK(0x621B80, DSurface_FillRectWithColor, 5)
 		return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x489E9F, DamageArea_BridgeAbsoluteDestroyer, 5)
-{
-	GET(WarheadTypeClass*, pWH, EBX);
-	GET(WarheadTypeClass*, pIonCannonWH, EDI);
-	R->Stack(0x13, WarheadTypeExt::ExtMap.Find(pWH)->BridgeAbsoluteDestroyer.Get(pWH == pIonCannonWH));
-	return 0x489EA4;
-}
-
-DEFINE_OVERRIDE_HOOK(0x489FD8, DamageArea_BridgeAbsoluteDestroyer2, 6)
-{
-	return R->Stack<bool>(0xF) ? 0x48A004 : 0x489FE0;
-}
-
-DEFINE_OVERRIDE_HOOK(0x48A15D, DamageArea_BridgeAbsoluteDestroyer3, 6)
-{
-	return R->Stack<bool>(0xF) ? 0x48A188 : 0x48A165;
-}
-
-DEFINE_OVERRIDE_HOOK(0x48A229, DamageArea_BridgeAbsoluteDestroyer4, 6)
-{
-	return  R->Stack<bool>(0xF) ? 0x48A250 : 0x48A231;
-}
-
-DEFINE_OVERRIDE_HOOK(0x48A283, DamageArea_BridgeAbsoluteDestroyer5, 6)
-{
-	return R->Stack<bool>(0xF) ? 0x48A2AA : 0x48A28B;
-}
-
-DEFINE_OVERRIDE_HOOK(0x4A76ED, DiskLaserClass_Update_Anim, 7)
-{
-	GET(DiskLaserClass* const, pThis, ESI);
-	REF_STACK(CoordStruct, coords, STACK_OFFS(0x54, 0x1C));
-
-	auto const pWarhead = pThis->Weapon->Warhead;
-
-	if (RulesExt::Global()->DiskLaserAnimEnabled)
-	{
-		auto const pType = MapClass::SelectDamageAnimation(
-			pThis->Damage, pWarhead, LandType::Clear, coords);
-
-		if (pType)
-		{
-			// Otamaa Added
-			if (auto pAnim = GameCreate<AnimClass>(pType, coords))
-				pAnim->Owner = pThis->Owner->GetOwningHouse();
-		}
-	}
-
-	MapClass::FlashbangWarheadAt(pThis->Damage, pWarhead, coords);
-
-	return 0;
-}
-
-DEFINE_OVERRIDE_HOOK(0x4893BA, DamageArea_DamageAir, 9)
-{
-	GET(const CoordStruct* const, pCoords, EDI);
-	GET(WarheadTypeClass*, pWarhead, ESI);
-	GET(int const, heightFloor, EAX);
-	GET_STACK(const CellClass*, pCell, STACK_OFFS(0xE0, 0xC0));
-
-	int heightAboveGround = pCoords->Z - heightFloor;
-
-	// consider explosions on and over bridges
-	if (heightAboveGround > CellClass::BridgeHeight
-		&& pCell->ContainsBridge()
-		&& RulesExt::Global()->DamageAirConsiderBridges)
-	{
-		heightAboveGround -= CellClass::BridgeHeight;
-	}
-
-	// damage units in air if detonation is above a threshold
-	auto const pExt = WarheadTypeExt::ExtMap.Find(pWarhead);
-	auto const damageAir = heightAboveGround > pExt->DamageAirThreshold;
-
-	return damageAir ? 0x4893C3u : 0x48955Eu;
-}
-
-// #895990: limit the number of times a warhead with
-// CellSpread will hit the same object for each hit
- DEFINE_OVERRIDE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
- {
- 	struct DamageGroup
- 	{
- 		ObjectClass* Target;
- 		int Distance;
- 	};
-
- 	REF_STACK(DynamicVectorClass<DamageGroup*>, groups, STACK_OFFS(0xE0, 0xA8));
- 	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
-
- 	auto pExt = WarheadTypeExt::ExtMap.Find(pWarhead);
- 	const int MaxAffect = pExt->CellSpread_MaxAffect;
-
- 	if (MaxAffect < 0)
- 	{
- 		return 0;
- 	}
-
- 	constexpr auto const DefaultSize = 1000;
- 	ObjectClass* bufferHandled[DefaultSize];
- 	DynamicVectorClass<ObjectClass*> handled(DefaultSize, bufferHandled);
- 	handled.Reserve(groups.Count);
-
- 	DamageGroup** bufferTarget[DefaultSize];
- 	DynamicVectorClass<DamageGroup**> target(DefaultSize, bufferTarget);
- 	target.Reserve(groups.Count);
-
- 	for (auto& group : groups) {
- 		// group could have been cleared by previous iteration.
- 		// only handle if has not been handled already.
- 		if (group && handled.AddUnique(group->Target)) {
- 			target.Count = 0;
-
- 			// collect all slots containing damage groups for this target
- 			std::for_each(&group, groups.end(), [group, &target](DamageGroup*& item) {
- 			 if (item && item->Target == group->Target) {
- 					target.AddItem(&item);
- 				}
- 			});
-
- 			// if more than allowed, sort them and remove the ones further away
- 			if (target.Count > MaxAffect) {
- 				Helpers::Alex::selectionsort(
- 					target.begin(), target.begin() + MaxAffect, target.end(),
- 					[](DamageGroup** a, DamageGroup** b) {
- 						return (*a)->Distance < (*b)->Distance;
- 					});
-
-				target.for_each([](DamageGroup** ppItem) {
- 					GameDelete(*ppItem);
- 					*ppItem = nullptr;
- 				});
- 			}
- 		}
- 	}
-
- 	// move all the empty ones to the back, then remove them
- 	auto const end = std::remove_if(groups.begin(), groups.end(), [](DamageGroup* pGroup)
-  {
- 	 return pGroup == nullptr;
- 	});
-
- 	auto const validCount = std::distance(groups.begin(), end);
- 	groups.Count = validCount;
-
- 	return 0;
- }
 
 DEFINE_OVERRIDE_HOOK(0x4ABFBE, DisplayClass_LeftMouseButtonUp_ExecPowerToggle, 7)
 {
@@ -4580,17 +4346,28 @@ DEFINE_OVERRIDE_HOOK(0x483D94, CellClass_UpdatePassability, 6)
 	return pTypeExt->Firestorm_Wall ? 0x483D9E : 0x483DB0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x489562, DamageArea_DestroyCliff, 9)
-{
-	GET(CellClass* const, pCell, EAX);
 
-	if (pCell->Tile_Is_DestroyableCliff())
+DEFINE_OVERRIDE_HOOK(0x4A76ED, DiskLaserClass_Update_Anim, 7)
+{
+	GET(DiskLaserClass* const, pThis, ESI);
+	REF_STACK(CoordStruct, coords, STACK_OFFS(0x54, 0x1C));
+
+	auto const pWarhead = pThis->Weapon->Warhead;
+
+	if (RulesExt::Global()->DiskLaserAnimEnabled)
 	{
-		if (ScenarioClass::Instance->Random.PercentChance(RulesClass::Instance->CollapseChance))
+		auto const pType = MapClass::SelectDamageAnimation(
+			pThis->Damage, pWarhead, LandType::Clear, coords);
+
+		if (pType)
 		{
-			MapClass::Instance->DestroyCliff(pCell);
+			// Otamaa Added
+			if (auto pAnim = GameCreate<AnimClass>(pType, coords))
+				pAnim->Owner = pThis->Owner->GetOwningHouse();
 		}
 	}
+
+	MapClass::FlashbangWarheadAt(pThis->Damage, pWarhead, coords);
 
 	return 0;
 }

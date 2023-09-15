@@ -460,8 +460,11 @@ DEFINE_HOOK(0x7037F7, TechnoClass_Cloak_CloakAnim, 0x5)
 
 	if (const auto pAnimType = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->CloakAnim.Get(RulesExt::Global()->CloakAnim))
 	{
-		if (const auto pAnim = GameCreate<AnimClass>(pAnimType, pThis->GetCoords()))
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner, nullptr, false);
+		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pThis->GetCoords()),
+			pThis->Owner,
+			nullptr,
+			false
+		);
 	}
 
 	return 0;
@@ -473,8 +476,11 @@ DEFINE_HOOK(0x70374F, TechnoClass_Uncloak_DecloakAnim, 0x5)
 
 	if (const auto pAnimType = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->DecloakAnim.Get(RulesExt::Global()->DecloakAnim))
 	{
-		if (const auto pAnim = GameCreate<AnimClass>(pAnimType, pThis->GetCoords()))
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner, nullptr, false);
+		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pThis->GetCoords()),
+			pThis->Owner,
+			nullptr,
+			false
+		);
 	}
 
 	return 0;

@@ -16,7 +16,7 @@
 #include "ToggleRadialIndicatorDrawMode.h"
 #include "ToggleDigitalDisplay.h"
 #include "ToggleDesignatorRange.h"
-
+#include "SaveVariablesToFile.h"
 
 #define Make(arg)\
 		CommandClass::Array->AddItem(GameCreateUnchecked<arg>());
@@ -39,6 +39,7 @@ DEFINE_HOOK(0x533066, CommandClassCallback_Register, 0x6)
 	Make(ToggleRadialIndicatorDrawModeClass);
 	Make(ToggleDigitalDisplayCommandClass);
 	Make(ToggleDesignatorRangeCommandClass);
+	Make(SaveVariablesToFileCommandClass);
 	Make(FrameStepCommandClass<1>); // Single step in
 	Make(FrameStepCommandClass<5>); // Speed 1
 	Make(FrameStepCommandClass<10>); // Speed 2

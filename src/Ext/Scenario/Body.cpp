@@ -4,6 +4,25 @@ IStream* ScenarioExt::g_pStm = nullptr;
 bool ScenarioExt::CellParsed = false;
 std::unique_ptr< ScenarioExt::ExtData>  ScenarioExt::Data = nullptr;
 
+void ScenarioExt::SaveVariablesToFile(bool isGlobal)
+{
+	const auto fileName = isGlobal ? "globals.ini" : "locals.ini";
+
+	auto pINI = GameCreate<CCINIClass>();
+	auto pFile = GameCreate<CCFileClass>(fileName);
+
+	if (pFile->Exists())
+		pINI->ReadCCFile(pFile);
+	else
+		pFile->CreateFileA();
+
+	for (const auto& variable : *ScenarioExt::GetVariables(isGlobal))
+		pINI->WriteInteger(ScenarioClass::Instance()->FileName, variable.second.Name, variable.second.Value, false);
+
+	pINI->WriteCCFile(pFile);
+	pFile->Close();
+}
+
 std::map<int, ExtendedVariable>* ScenarioExt::GetVariables(bool IsGlobal)
 {
 	if (IsGlobal)

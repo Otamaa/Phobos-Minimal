@@ -35,9 +35,20 @@ void PlaceVeinholeMonster::Execute(WWKey eInput) const
 	if (!created)
 	{
 		//rename DUMMYOLD -> VEINS from Ts to make veins working
+		/* idx 126
+		* [VEINS]
+			Image=VEINS
+			Name=Tiberium Veins
+			RadarColor=0,0,92
+			IsVeins=true
+			Land=Weeds
+		*
+		*
+		*/
 		CellStruct nPos = WWMouseClass::Instance->GetCellUnderCursor();
 
-	//	if (VeinholeMonsterClass::IsCellEligibleForVeinHole(nPos))
+		++Unsorted::ScenarioInit();
+		if (VeinholeMonsterClass::IsCellEligibleForVeinHole(nPos))
 		{
 			auto pCell = MapClass::Instance->TryGetCellAt(nPos);
 
@@ -48,20 +59,21 @@ void PlaceVeinholeMonster::Execute(WWKey eInput) const
 			for (int i = 0; i < 8; ++i)
 			{
 				auto v11 = pCell->GetAdjacentCell((FacingType)i);
-				v11->OverlayTypeIndex = 0x7E; //dummy image -> replaced with vein ?
+				v11->OverlayTypeIndex = 178//VEINHOLEDUMMY
+					; //dummy for spawning veins ?
 				;
-				v11->OverlayData = 30u; //max it out
+				v11->OverlayData = 0u; //max it out
 				v11->RedrawForVeins();
 			}
 
-			pCell->OverlayTypeIndex = 0xA7; //VeiholeDummy -> used to place veinhole monster
+			pCell->OverlayTypeIndex = 167; //USELESS -> replace with VEINHOLE
 			pCell->OverlayData = 0;
-			++Unsorted::ScenarioInit();
-			auto pVein = GameCreate<VeinholeMonsterClass>(&nPos);
-			--Unsorted::ScenarioInit();
-			created = true;
 
+			auto pVein = GameCreate<VeinholeMonsterClass>(&nPos);
 			pVein->RegisterAffectedCells();
+
+			created = true;
 		}
+		--Unsorted::ScenarioInit();
 	}
 }

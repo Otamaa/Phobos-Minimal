@@ -41,9 +41,8 @@ const std::vector<CellStruct>& GetCoveredCells(
 
 	std::sort(PhobosGlobal::Instance()->TempCoveredCellsData.begin(),
 			  PhobosGlobal::Instance()->TempCoveredCellsData.end(),
-		[](const CellStruct& lhs, const CellStruct& rhs) -> bool
- {
-	 return lhs.X > rhs.X || lhs.X == rhs.X && lhs.Y > rhs.Y;
+		[](const CellStruct& lhs, const CellStruct& rhs) -> bool {
+			 return lhs.X > rhs.X || lhs.X == rhs.X && lhs.Y > rhs.Y;
 		});
 
 	auto const it = std::unique(
@@ -72,7 +71,7 @@ DEFINE_OVERRIDE_HOOK(0x656584, RadarClass_GetFoundationShape, 6)
 DEFINE_OVERRIDE_HOOK(0x6563B0, RadarClass_UpdateFoundationShapes_Custom, 5)
 {
 	// update each building type foundation
-	for (auto const& pType : *BuildingTypeClass::Array)
+	for (auto pType : *BuildingTypeClass::Array)
 	{
 		BuildingTypeExt::ExtMap.Find(pType)->UpdateFoundationRadarShape();
 	}

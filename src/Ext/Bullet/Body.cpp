@@ -545,10 +545,12 @@ bool BulletExt::ApplyMCAlternative(BulletClass* pThis)
 
 		if (const auto pAnimType = MapClass::SelectDamageAnimation(animDamage, pAltWarhead, nLandType, pTarget->Location))
 		{
-			if (auto pAnim = GameCreate<AnimClass>(pAnimType, pTarget->Location))
-			{
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner->Owner, pTarget->Owner, pThis->Owner, false);
-			}
+			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pTarget->Location),
+				pThis->Owner->Owner,
+				pTarget->Owner,
+				pThis->Owner,
+				false
+			);
 		}
 
 		return true;
@@ -581,6 +583,7 @@ bool BulletExt::ExtData::InvalidateIgnorable(AbstractClass* ptr)
 	case UnitClass::vtable:
 	case AircraftClass::vtable:
 	case HouseClass::vtable:
+	case ParticleSystemClass::vtable:
 		return false;
 	}
 
@@ -595,6 +598,9 @@ void BulletExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved) {
 
 	if (auto& pTraj = Trajectory)
 		pTraj->InvalidatePointer(ptr, bRemoved);
+
+	if (this->AttachedSystem.get() == ptr)
+		this->AttachedSystem.reset(nullptr);
  }
 
 void BulletExt::ExtData::ApplyRadiationToCell(CoordStruct const& nCoord, int Spread, int RadLevel)

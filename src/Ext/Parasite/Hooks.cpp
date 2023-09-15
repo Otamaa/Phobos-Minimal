@@ -60,9 +60,12 @@ DEFINE_HOOK(0x62A13F, ParasiteClass_AI_WeaponAnim, 0x5)
 	GET(AnimTypeClass* const, pAnimType, EBP);
 	LEA_STACK(CoordStruct*, pStack, STACK_OFFS(0x4C, 0x18));
 
-	if (auto pAnim = GameCreate<AnimClass>(pAnimType, pStack,0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 , 0 , 0)) {
-		AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner ? pThis->Owner->GetOwningHouse() : nullptr, pThis->Victim ? pThis->Victim->GetOwningHouse() : nullptr, pThis->Owner, false);
-	}
+	AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pStack,0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 , 0 , 0), 
+		pThis->Owner ? pThis->Owner->GetOwningHouse() : nullptr,
+		pThis->Victim ? pThis->Victim->GetOwningHouse() : nullptr,
+		pThis->Owner,
+		false
+	);
 
 	return 0x62A16A;
 }

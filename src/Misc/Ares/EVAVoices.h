@@ -3,6 +3,7 @@
 #include <VoxClass.h>
 
 #include <vector>
+#include <string>
 
 struct VoxFile
 {
@@ -33,5 +34,5 @@ public:
 	// adds the EVA type only if it doesn't exist
 	static void RegisterType(const char* type);
 
-	static std::vector<const char*> Types;
+	static std::vector<std::string> Types;
 };

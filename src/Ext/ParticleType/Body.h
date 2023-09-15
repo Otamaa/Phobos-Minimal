@@ -26,6 +26,9 @@ public:
 		Valueable<double> DamageRange { 0.0 };
 		Valueable<bool> DeleteWhenReachWater { false };
 
+		std::array<Point2D, (size_t)FacingType::Count> WindMult {};
+
+
 		ExtData(ParticleTypeClass* OwnerObject) : Extension<ParticleTypeClass>(OwnerObject)
 		{ }
 

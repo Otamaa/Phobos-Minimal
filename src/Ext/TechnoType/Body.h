@@ -869,7 +869,10 @@ public:
 		std::bitset<32> RequiredStolenTech { 0ull };
 
 		Valueable<bool> ReloadInTransport { false };
+		Valueable<bool> Weeder_TriggerPreProductionBuildingAnim { false };
 
+		Nullable<int> Weeder_PipIndex { };
+		Nullable<int> Weeder_PipEmptyIndex { };
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 		{
 			AttachedEffect.Owner = OwnerObject;

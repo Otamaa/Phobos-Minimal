@@ -58,9 +58,7 @@ bool AresTrajectoryHelper::IsCliffHit(
 	CellClass const* const pSource, CellClass const* const pBefore,
 	CellClass const* const pAfter)
 {
-	auto const levelAfter = pAfter->GetLevel();
-	return levelAfter - pBefore->GetLevel() >= CellClass::BridgeLevels
-		&& levelAfter - pSource->GetLevel() > 0;
+	return pAfter->GetLevelFrom(pBefore) >= CellClass::BridgeLevels && pAfter->GetLevelFrom(pSource) > 0;
 }
 
 bool AresTrajectoryHelper::IsWallHit(
@@ -73,9 +71,8 @@ bool AresTrajectoryHelper::IsWallHit(
 		{
 			if (pSource->Level <= pTarget->Level)
 			{
-				auto const& index = pCheck->WallOwnerIndex;
 				return !RulesClass::Instance->AlliedWallTransparency
-					|| !HouseClass::Array->Items[index]->IsAlliedWith_(pOwner);
+					|| !HouseClass::Array->Items[pCheck->WallOwnerIndex]->IsAlliedWith_(pOwner);
 			}
 		}
 	}
@@ -124,7 +121,7 @@ bool AresTrajectoryHelper::IsBuildingHit(
 			}
 
 			auto const floor = MapClass::Instance->GetCellFloorHeight(crdCur);
-			return crdCur.Z <= floor + solidHeight * 256;
+			return crdCur.Z <= floor + (solidHeight << 8);
 		}
 	}
 
@@ -150,26 +147,16 @@ CellClass* AresTrajectoryHelper::GetObstacle(
 {
 	auto const cellCur = CellClass::Coord2Cell(crdCur);
 	auto const pCellCur = MapClass::Instance->GetCellAt(cellCur);
+	auto const isHit = pType->SubjectToCliffs
+		&& AresTrajectoryHelper::IsCliffHit(pCellSource, pCellBullet, pCellCur)
 
-	auto const IsCliffHit = [=]()
-		{
-			return pType->SubjectToCliffs
-				&& AresTrajectoryHelper::IsCliffHit(pCellSource, pCellBullet, pCellCur);
-		};
+		|| pType->SubjectToWalls
+		&& AresTrajectoryHelper::IsWallHit(pCellSource, pCellCur, pCellTarget, pOwner)
 
-	auto const IsWallHit = [=]()
-		{
-			return pType->SubjectToWalls
-				&& AresTrajectoryHelper::IsWallHit(pCellSource, pCellCur, pCellTarget, pOwner);
-		};
+		|| pTypeExt && pTypeExt->SubjectToSolid
+		&& AresTrajectoryHelper::IsBuildingHit(pSource, pTarget, crdCur, pOwner)
 
-	auto const IsBuildingHit = [=]()
-		{
-			return pTypeExt->SubjectToSolid
-				&& AresTrajectoryHelper::IsBuildingHit(pSource, pTarget, crdCur, pOwner);
-		};
-
-	auto const isHit = IsCliffHit() || IsWallHit() || IsBuildingHit();
+	;
 
 	return isHit ? pCellCur : nullptr;
 }
@@ -199,7 +186,7 @@ CellClass* AresTrajectoryHelper::FindFirstObstacle(
 		auto pCellCur = pCellSrc;
 		for (size_t i = 0; i < maxDelta; ++i)
 		{
-			if (auto const pCell = GetObstacle(pCellSrc, pCellTarget, pSource,
+			if (auto const pCell = AresTrajectoryHelper::GetObstacle(pCellSrc, pCellTarget, pSource,
 				pTarget, pCellCur, crdCur, pType, pTypeExt, pOwner))
 			{
 				return pCell;
@@ -221,7 +208,7 @@ CellClass* AresTrajectoryHelper::FindFirstImpenetrableObstacle(
 	auto const pProjectile = pWeapon->Projectile;
 	auto const pProjectileExt = BulletTypeExt::ExtMap.Find(pProjectile);
 
-	if (auto const pCell = FindFirstObstacle(
+	if (auto const pCell = AresTrajectoryHelper::FindFirstObstacle(
 		crdSrc, crdTarget, pSource, pTarget, pProjectile, pProjectileExt,
 		pOwner))
 	{
@@ -267,7 +254,7 @@ DEFINE_OVERRIDE_HOOK(0x468BE2, BulletClass_ShouldDetonate_Obstacle, 6)
 		auto const pCellTarget = Map->GetCellAt(pThis->TargetCoords);
 		auto const pCellLast = Map->GetCellAt(pThis->LastMapCoords);
 
-		auto const pOwner = pThis->Owner ? pThis->Owner->Owner : nullptr;
+		auto const pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExt::ExtMap.Find(pThis)->Owner;
 
 		if (AresTrajectoryHelper::GetObstacle(
 			pCellSource, pCellTarget, pThis->Owner, pThis->Target, pCellLast,

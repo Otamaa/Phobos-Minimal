@@ -83,9 +83,11 @@ void DamageSelfState::PlayWHAnim(ObjectClass* pObj, int realDamage, WarheadTypeC
 
 	if (auto pWHAnimType = MapClass::SelectDamageAnimation(realDamage, pWH, landType, location))
 	{
-		if (auto pWHAnim = GameCreate<AnimClass>(pWHAnimType, location)) {
-			AnimExt::SetAnimOwnerHouseKind(pWHAnim, pObj->GetOwningHouse(), nullptr, false);
-		}
+		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pWHAnimType, location),
+			pObj->GetOwningHouse(),
+			nullptr,
+			false
+		);
 	}
 }
 

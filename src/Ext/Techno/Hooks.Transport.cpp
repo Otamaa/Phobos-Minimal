@@ -115,8 +115,7 @@ DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
 		auto const pOwnerExt = HouseExt::ExtMap.Find(pThis->Owner);
 
 		if (pPassenger->WhatAmI() != AbstractType::Aircraft && pPassExt->Type->Ammo > 0 && pPassTypeExt->ReloadInTransport) {
-			if(!pOwnerExt->OwnedTransportReloaders.contains(pThis))
-				pOwnerExt->OwnedTransportReloaders.push_back(pPassenger);
+			pOwnerExt->OwnedTransportReloaders.push_back_unique(pPassenger);
 		}
 	}
 
@@ -140,11 +139,10 @@ DEFINE_HOOK(0x4DE67B, FootClass_LeaveTransport, 0x8)
 			pPassenger->SetOwningHouse(pPassExt->OriginalPassengerOwner, false);
 		}
 
-		if (pThis->WhatAmI() != AbstractType::Aircraft 
+		if (pThis->WhatAmI() != AbstractType::Aircraft
 				&& pPassExt->Type->Ammo > 0 &&  pPassTypeExt->ReloadInTransport)
 		{
-			auto const pOwnerExt = HouseExt::ExtMap.Find(pThis->Owner);
-			pOwnerExt->OwnedTransportReloaders.remove(pPassenger);
+			HouseExt::ExtMap.Find(pThis->Owner)->OwnedTransportReloaders.remove(pPassenger);
 		}
 	}
 
@@ -190,6 +188,6 @@ DEFINE_HOOK(0x710552, TechnoClass_SetOpenTransportCargoTarget_ShareTarget, 0x6)
 	GET_STACK(AbstractClass* const, pTarget, STACK_OFFSET(0x8, 0x4));
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	return pTarget && !pTypeExt->OpenTopped_ShareTransportTarget 
+	return pTarget && !pTypeExt->OpenTopped_ShareTransportTarget
 		? ReturnFromFunction : Continue;
 }

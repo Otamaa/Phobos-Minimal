@@ -21,27 +21,21 @@
 
 DEFINE_HOOK(0x4232E2, AnimClass_DrawIt_AltPalette, 0x6)
 {
-	enum { SkipGameCode = 0x4232EA };
+	enum { SkipGameCode = 0x4232EA  , SetAltPaletteLightConvert = 0x4232F0 };
 
 	GET(AnimClass*, pThis, ESI);
 
-	int schemeIndex = pThis->Owner ? pThis->Owner->ColorSchemeIndex - 1 : RulesExt::Global()->AnimRemapDefaultColorScheme;
-	schemeIndex += AnimTypeExt::ExtMap.Find(pThis->Type)->AltPalette_ApplyLighting ? 1 : 0;
-	auto const scheme = ColorScheme::Array->Items[schemeIndex];
+	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	int schemeIndex = RulesExt::Global()->AnimRemapDefaultColorScheme;
 
-	R->ECX(scheme);
+	if (((pTypeExt->CreateUnit && pTypeExt->CreateUnit_RemapAnim.Get(pTypeExt->RemapAnim)) || pTypeExt->RemapAnim) && pThis->Owner) {
+		schemeIndex = pThis->Owner->ColorSchemeIndex - 1;
+	}
+
+	schemeIndex += pTypeExt->AltPalette_ApplyLighting ? 1 : 0;
+	R->ECX(ColorScheme::Array->Items[schemeIndex]);
+
 	return SkipGameCode;
-}
-
-// Set ShadeCount to 53 to initialize the palette fully shaded - this is required to make it not draw over shroud for some reason.
-DEFINE_HOOK(0x68C4C4, GenerateColorSpread_ShadeCountSet, 0x5)
-{
-	GET(int, shadeCount, EDX);
-
-	if (shadeCount == 1)
-		R->EDX(53);
-
-	return 0;
 }
 
 DEFINE_HOOK(0x422CAB, AnimClass_DrawIt_XDrawOffset, 0x5)

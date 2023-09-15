@@ -88,6 +88,9 @@ bool Phobos::Config::ShowTechnoNamesIsActive = false;
 
 bool Phobos::Config::DigitalDisplay_Enable = false;
 
+bool Phobos::Config::ApplyShadeCountFix = true;
+bool Phobos::Config::SaveVariablesOnScenarioEnd = false;
+
 std::string Phobos::AppIconPath;
 char Phobos::AppName[0x40] = "";
 
@@ -343,6 +346,9 @@ void Phobos::Config::Read()
 		{
 			BlittersFix::Apply();
 		}
+
+		Phobos::Config::SaveVariablesOnScenarioEnd = pINI->ReadBool(GENERAL_SECTION, "SaveVariablesOnScenarioEnd", Phobos::Config::SaveVariablesOnScenarioEnd);
+		Phobos::Config::ApplyShadeCountFix = pINI->ReadBool(AUDIOVISUAL_SECTION, "ApplyShadeCountFix", Phobos::Config::ApplyShadeCountFix);
 
 		if (pINI->ReadBool(GENERAL_SECTION, "SkirmishUnlimitedColors", false))
 		{

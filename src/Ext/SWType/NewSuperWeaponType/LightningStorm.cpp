@@ -487,8 +487,12 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 					auto const rnd = ScenarioClass::Instance->Random.Random();
 					auto const pAnimType = it.at(rnd % it.size());
 
-					if(auto pAnim = GameCreate<AnimClass>(pAnimType, coords))
-						AnimExt::SetAnimOwnerHouseKind(pAnim, Super->Owner, nullptr, Invoker, false);
+					AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coords),
+						Super->Owner,
+						nullptr,
+						Invoker,
+						false
+					);
 				}
 			}
 		}

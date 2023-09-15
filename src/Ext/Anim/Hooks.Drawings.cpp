@@ -3,6 +3,14 @@
 
 // Draw Tiled !
 #ifndef UsePhobosOne
+//ConvertClass* Convert = nullptr;
+//DEFINE_HOOK(0x42366D, AnimClass_DrawIt_Tiled_FetchBeforeChange, 0x6) {
+//	GET_STACK(ConvertClass*, pConvert, 0x110 - 0xE0);
+//	Convert = pConvert;
+//	return 0x0;
+//
+//}
+
 DEFINE_HOOK(0x4236F0, AnimClass_DrawIt_Tiled_Palette, 0x6)
 {
 	GET(AnimClass* const, pThis, ESI);

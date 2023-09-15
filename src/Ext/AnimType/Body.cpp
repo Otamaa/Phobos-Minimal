@@ -381,6 +381,23 @@ void AnimTypeExt::ExtData::ValidateSpalshAnims()
 	}
 }
 
+OwnerHouseKind AnimTypeExt::ExtData::GetAnimOwnerHouseKind() {
+
+	if (this->CreateUnit && !this->CreateUnit_Owner.isset())
+		return OwnerHouseKind::Victim;
+
+	if(this->Get()->MakeInfantry > -1 && !this->MakeInfantryOwner.isset())
+		return OwnerHouseKind::Invoker;
+
+	if (this->CreateUnit_Owner.isset())
+		return this->CreateUnit_Owner;
+
+	if(this->MakeInfantryOwner.isset())
+		return this->MakeInfantryOwner;
+
+	return OwnerHouseKind::Invoker;
+}
+
 template <typename T>
 void AnimTypeExt::ExtData::Serialize(T& Stm)
 {

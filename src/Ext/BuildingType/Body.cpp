@@ -830,6 +830,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->DegradePercentage.Read(exINI, pSection, "Degrade.Percentage");
 		this->IsPassable.Read(exINI, pSection, "IsPassable");
 		this->ProduceCashDisplay.Read(exINI, pSection, "ProduceCashDisplay");
+
 	}
 #pragma endregion
 

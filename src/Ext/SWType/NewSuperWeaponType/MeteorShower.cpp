@@ -47,8 +47,12 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 				if (AnimTypeClass* anim = ScenarioClass::Instance->Random.PercentChance(pData->MeteorKindChance) ?
 					large_meteor : small_meteor)
 				{
-					if (auto pAnim = GameCreate<AnimClass>(anim, nwhere))
-						AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner, nullptr, pFirer, false);
+					AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(anim, nwhere),
+						pThis->Owner,
+						nullptr,
+						pFirer,
+						false
+					);
 				}
 			}
 

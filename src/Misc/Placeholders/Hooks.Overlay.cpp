@@ -10,7 +10,7 @@
 #include <Utilities/Macro.h>
 #include <Utilities/Debug.h>
 
-#ifndef ENABLE_TOMSOnOVERLAYWRAPPER
+#ifdef ENABLE_TOMSOnOVERLAYWRAPPER
 static int Isotile_LoadFile_Wrapper(IsometricTileTypeClass* pTile)
 {
 	bool available = false;
@@ -81,7 +81,8 @@ struct OverlayByteReader
 
 	~OverlayByteReader()
 	{
-		YRMemory::Deallocate(pBuffer);
+		if(pBuffer)
+			YRMemory::Deallocate(pBuffer);
 	}
 
 	bool IsAvailable() const { return uuLength > 0; }

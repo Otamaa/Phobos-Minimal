@@ -103,10 +103,12 @@ DEFINE_OVERRIDE_HOOK(0x4B5EB0, DropPodLocomotionClass_ILocomotion_Process_Smoke,
 	{
 		if (AnimTypeClass* pType = pExt->LinkedSW ? SWTypeExt::ExtMap.Find(pExt->LinkedSW->Type)->Droppod_Trailer :  RulesExt::Global()->DropPodTrailer)
 		{
-			if (auto pAnim = GameCreate<AnimClass>(pType, Coords))
-			{
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pFoot->Owner, nullptr, pFoot, false);
-			}
+			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, Coords),
+				pFoot->Owner,
+				nullptr,
+				pFoot,
+				false
+			);
 		}
 	}
 
@@ -133,8 +135,12 @@ DEFINE_HOOK(0x4B5CF1, DropPodLocomotionClass_Process_DroppodPuff, 0x5)
 
 	if (auto pAnimType = pExt->LinkedSW ? SWTypeExt::ExtMap.Find(pExt->LinkedSW->Type)->Droppod_Puff : RulesClass::Instance->DropPodPuff)
 	{
-		if (auto pAnim = GameCreate<AnimClass>(pAnimType, pCoord, 0, 1, AnimFlag(0x600), 0, 0))
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pFoot->Owner, nullptr, pFoot, false);
+		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pCoord, 0, 1, AnimFlag(0x600), 0, 0),
+			pFoot->Owner,
+			nullptr,
+			pFoot,
+			false
+		);
 	}
 
 	const auto nDroppod = pExt->LinkedSW ?
@@ -146,8 +152,12 @@ DEFINE_HOOK(0x4B5CF1, DropPodLocomotionClass_Process_DroppodPuff, 0x5)
 	//TS random it with the lpvtable ? idk
 	if (auto pAnimType = nDroppod[ScenarioClass::Instance->Random.RandomFromMax(nDroppod.size() - 1)])
 	{
-		if (auto pAnim = GameCreate<AnimClass>(pAnimType, pCoord, 0, 1, AnimFlag(0x600), 0, 0))
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pFoot->Owner, nullptr, pFoot, false);
+		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pCoord, 0, 1, AnimFlag(0x600), 0, 0),
+			pFoot->Owner,
+			nullptr,
+			pFoot,
+			false
+		);
 	}
 
 	//original game code
@@ -182,8 +192,11 @@ DEFINE_HOOK(0x4B619F, DropPodLocomotionClass_MoveTo_AtmosphereEntry, 0x5)
 
 	if (auto pAnimType = pExt->LinkedSW ? SWTypeExt::ExtMap.Find(pExt->LinkedSW->Type)->Droppod_AtmosphereEntry : RulesClass::Instance->AtmosphereEntry)
 	{
-		if (auto pAnim = GameCreate<AnimClass>(pAnimType, pCoord, 0, 1, AnimFlag(0x600), 0, 0))
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pLoco->Owner->Owner, nullptr, pLoco->Owner, false);
+		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pCoord, 0, 1, AnimFlag(0x600), 0, 0),
+			pLoco->Owner->Owner,
+			nullptr,
+			pLoco->Owner,
+			false);
 	}
 
 	return 0x4B61D6;

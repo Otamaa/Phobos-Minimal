@@ -57,7 +57,7 @@ DEFINE_OVERRIDE_HOOK(0x489235, GetTotalDamage_Verses, 0x8)
 	const auto pExt = WarheadTypeExt::ExtMap.Find(pWH);
 
 
-	if (nArmor > ArmorTypeClass::Array.size())
+	if ((size_t)nArmor > ArmorTypeClass::Array.size())
 		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
 
 	const auto vsData = &pExt->Verses[nArmor];
@@ -76,7 +76,7 @@ DEFINE_OVERRIDE_HOOK(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
 
 	const auto pData = WarheadTypeExt::ExtMap.Find(pWH);
 
-	if (nArmor > ArmorTypeClass::Array.size())
+	if ((size_t)nArmor > ArmorTypeClass::Array.size())
 		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
 
 	const auto vsData = &pData->Verses[nArmor];
@@ -98,7 +98,7 @@ DEFINE_OVERRIDE_HOOK(0x6FCB6A, TechnoClass_CanFire_Verses, 0x7)
 	const auto pData = WarheadTypeExt::ExtMap.Find(pWH);
 	const auto vsData = &pData->Verses[nArmor];
 
-	if (nArmor > ArmorTypeClass::Array.size())
+	if ((size_t)nArmor > ArmorTypeClass::Array.size())
 		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
 
 	// i think there is no way for the techno know if it attack using force fire or not
@@ -157,7 +157,7 @@ DEFINE_OVERRIDE_HOOK(0x70CF45, TechnoClass_EvalThreatRating_ThisWeaponWarhead_Ve
 
 	const auto pData = WarheadTypeExt::ExtMap.Find(pWH);
 
-	if (nArmor > ArmorTypeClass::Array.size())
+	if ((size_t)nArmor > ArmorTypeClass::Array.size())
 		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
 
 	const auto vsData = &pData->Verses[nArmor];
@@ -180,7 +180,7 @@ DEFINE_OVERRIDE_HOOK(0x6F36E3, TechnoClass_SelectWeapon_Verses, 0x5)
 	GET_STACK(WeaponTypeClass*, pPrimary, 0x14); //primary
 
 	const int nArmor = (int)pTarget->GetTechnoType()->Armor;
-	if (nArmor > ArmorTypeClass::Array.size())
+	if ((size_t)nArmor > ArmorTypeClass::Array.size())
 		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
 
 	const auto vsData_Secondary = &WarheadTypeExt::ExtMap.Find(pSecondary->Warhead)->Verses[nArmor];
@@ -201,7 +201,7 @@ DEFINE_OVERRIDE_HOOK(0x708AF7, TechnoClass_ShouldRetaliate_Verses, 0x7)
 	GET(int, nArmor, EAX);
 
 	const auto pData = WarheadTypeExt::ExtMap.Find(pWH);
-	if (nArmor > ArmorTypeClass::Array.size())
+	if ((size_t)nArmor > ArmorTypeClass::Array.size())
 		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
 
 	const auto vsData = &pData->Verses[nArmor];

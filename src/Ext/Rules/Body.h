@@ -243,6 +243,11 @@ public:
 		Valueable<int> TogglePowerDelay { 45 };
 		Valueable<int> TogglePowerIQ { -1 };
 
+		Valueable<bool> GainSelfHealAllowMultiplayPassive { false };
+
+		Nullable<double> VeinsDamagingWeightTreshold {};
+		Valueable<PaletteManager*> VeinholePal {};
+
 		AircraftPutDataRules MyPutData { };
 
 		ExtData(RulesClass* OwnerObject) : Extension<RulesClass>(OwnerObject)

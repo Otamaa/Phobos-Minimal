@@ -61,9 +61,12 @@ namespace Helper
 					{
 						for (int k = nAmount[nIndex]; k > 0; --k)
 						{
-							if (auto pAnimCreated = GameCreate<AnimClass>(pMultipleSelected, Where)) {
-								AnimExt::SetAnimOwnerHouseKind(pAnimCreated, pOwner, nullptr, pInvoker, false) ;
-							}
+							AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pMultipleSelected, Where),
+								pOwner,
+								nullptr,
+								pInvoker,
+								false
+							) ;
 						}
 					}
 				};

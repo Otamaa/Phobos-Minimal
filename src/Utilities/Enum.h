@@ -33,6 +33,11 @@
 #pragma once
 
 #include <GeneralDefinitions.h>
+enum class NewCrateType : int {
+	Money, Super, Weapon, Units
+
+	, count
+};
 
 enum class NewFactoryState : int
 {

@@ -1043,6 +1043,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		}
 
 		this->ReloadInTransport.Read(exINI, pSection, "ReloadInTransport");
+		this->Weeder_TriggerPreProductionBuildingAnim.Read(exINI, pSection, "Weeder.TriggerPreProductionBuildingAnim");
+		this->Weeder_PipIndex.Read(exINI, pSection, "Weeder.PipIndex");
+		this->Weeder_PipEmptyIndex.Read(exINI, pSection, "Weeder.PipEmptyIndex");
 
 #pragma region AircraftOnly
 		if (this->AttachtoType == AircraftTypeClass::AbsID)
@@ -2012,6 +2015,9 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Secret_ForbiddenHouses)
 		.Process(this->RequiredStolenTech)
 		.Process(this->ReloadInTransport)
+		.Process(this->Weeder_TriggerPreProductionBuildingAnim)
+		.Process(this->Weeder_PipIndex)
+		.Process(this->Weeder_PipEmptyIndex)
 		;
 }
 

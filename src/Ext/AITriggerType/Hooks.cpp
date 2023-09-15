@@ -8,7 +8,7 @@
 static bool CheckPrereq(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pHouse2)
 {
 	if (const auto pItem = pThis->ConditionObject)
-		return HouseExt::PrereqValidate(pHouse2, pItem, false, true) == 1;
+		return HouseExt::PrereqValidate(pHouse2, pItem, false, true) == CanBuildResult::Buildable;
 
 	return false;
 }

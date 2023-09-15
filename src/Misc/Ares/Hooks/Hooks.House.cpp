@@ -22,6 +22,40 @@
 
 #include <New/Type/GenericPrerequisite.h>
 
+DEFINE_OVERRIDE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
+{
+	// int (TechnoTypeClass *item, bool BuildLimitOnly, bool includeQueued)
+/* return
+	 1 - cameo shown
+	 0 - cameo not shown
+	-1 - cameo greyed out
+ */
+
+	GET(HouseClass* const, pThis, ECX);
+	GET_STACK(TechnoTypeClass* const, pItem, 0x4);
+	GET_STACK(bool const, buildLimitOnly, 0x8);
+	GET_STACK(bool const, includeInProduction, 0xC);
+
+	auto nResult = HouseExt::PrereqValidate(pThis, pItem, buildLimitOnly, includeInProduction);
+
+	if (pItem->WhatAmI() == BuildingTypeClass::AbsID)
+	{
+		const auto pBuilding = static_cast<BuildingTypeClass* const>(pItem);
+		if (!BuildingTypeExt::ExtMap.Find(pBuilding)->PowersUp_Buildings.empty())
+		{
+			if (nResult == CanBuildResult::Buildable)
+			{
+				nResult = (CanBuildResult)BuildingTypeExt::CheckBuildLimit(pThis, pBuilding, includeInProduction);
+			}
+		}
+	}
+
+	//if (nResult == CanBuildResult::Unbuildable)
+	//	nResult = CanBuildResult::TemporarilyUnbuildable;
+
+	R->EAX(nResult);
+	return 0x4F8361;
+}
 
 DEFINE_OVERRIDE_HOOK(0x52267D, InfantryClass_GetDisguise_Disguise, 6)
 {
@@ -140,7 +174,7 @@ DEFINE_OVERRIDE_HOOK(0x4FE782, HouseClass_AI_BaseConstructionUpdate_PickPowerpla
 	auto const pExt = HouseTypeExt::ExtMap.Find(pThis->Type);
 
 	constexpr auto const DefaultSize = 10;
-	BuildingTypeClass* buffer[DefaultSize];
+	BuildingTypeClass* buffer[DefaultSize] = {};
 	DynamicVectorClass<BuildingTypeClass*> Eligible(DefaultSize, buffer);
 
 	auto const it = pExt->GetPowerplants();

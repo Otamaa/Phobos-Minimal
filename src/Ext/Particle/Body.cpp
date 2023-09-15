@@ -17,6 +17,7 @@ void ParticleExt::ExtData::Serialize(T& Stm)
 		.Process(this->Initialized)
 		.Process(this->LaserTrails)
 		.Process(this->Trails)
+
 		;
 }
 

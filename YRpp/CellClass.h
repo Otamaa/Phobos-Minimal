@@ -394,12 +394,14 @@ public:
 	ObjectClass* GetContentB() const
 	{ return (this->ContainsBridgeEx()) ? this->AltObject : this->FirstObject; }
 
-	int GetLevel() const
-		{ return this->Level + (this->ContainsBridge() ? BridgeLevels : 0); }
+	int GetLevelFrom(CellClass const* const	pSource) const
+	{ return (this->Level + (((unsigned int)this->Flags >> 6) & 4) - (((unsigned int)pSource->Flags >> 6) & 4) - pSource->Level); }
 
-	static CoordStruct Cell2Coord(const CellStruct &cell, int z = 0)
-	{
-		return { cell.X * 256 + 128  , cell.Y * 256 + 128 ,z};
+	int GetLevel() const
+	{ return this->Level + (this->ContainsBridge() ? BridgeLevels : 0); }
+
+	static CoordStruct Cell2Coord(const CellStruct &cell, int z = 0) {
+		return { (cell.X * 256) + 128  , cell.Y * 256 + 128 ,z };
 	}
 
 	static CellStruct Coord2Cell(const CoordStruct &crd)

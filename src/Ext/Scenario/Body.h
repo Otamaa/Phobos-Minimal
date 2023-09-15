@@ -91,5 +91,7 @@ public:
 		Allocate(ScenarioClass::Instance);
 	}
 
+	static void SaveVariablesToFile(bool isGlobal);
+
 	static std::map<int, ExtendedVariable>* GetVariables(bool IsGlobal);
 };

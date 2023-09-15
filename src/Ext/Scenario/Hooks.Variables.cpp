@@ -4,6 +4,28 @@
 
 #include <TagClass.h>
 
+DEFINE_HOOK(0x685670, DoWin_SaveVariables, 0x5)
+{
+	if (Phobos::Config::SaveVariablesOnScenarioEnd)
+	{
+		ScenarioExt::SaveVariablesToFile(false);
+		ScenarioExt::SaveVariablesToFile(true);
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x685DC0, DoLose_SaveVariables, 0x5)
+{
+	if (Phobos::Config::SaveVariablesOnScenarioEnd)
+	{
+		ScenarioExt::SaveVariablesToFile(false);
+		ScenarioExt::SaveVariablesToFile(true);
+	}
+
+	return 0;
+}
+
 DEFINE_HOOK(0x689910, ScenarioClass_SetLocalToByID, 0x5)
 {
 	GET_STACK(const int, nIndex, 0x4);

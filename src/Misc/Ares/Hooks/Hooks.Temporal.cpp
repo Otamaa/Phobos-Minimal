@@ -127,10 +127,12 @@ bool conductAbduction(WeaponTypeExt::ExtData* pData , TechnoClass* pOwner, Abstr
 
 	// if we have an abducting animation, play it
 	if (auto pAnimType = pData->Abductor_AnimType) {
-		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nTargetCoords)) {
-			AnimExt::SetAnimOwnerHouseKind(pAnim, Attacker->Owner , Target->Owner, Attacker, false);
-
-		}
+		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nTargetCoords),
+			Attacker->Owner ,
+			Target->Owner,
+			Attacker,
+			false
+		);
 	}
 
 	Target->Locomotor->Force_Track(-1, CoordStruct::Empty);
@@ -350,9 +352,12 @@ DEFINE_HOOK(0x71A8BD, TemporalClass_Update_WarpAway, 5)
 	const auto pTarget = pThis->Target;
 
 	if(auto pAnimType = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->Temporal_WarpAway.Get(RulesClass::Instance()->WarpAway)) {
-		if(auto pAnim = GameCreate<AnimClass>(pAnimType,pTarget->Location ,0,1, AnimFlag(0x600),0,0)) {
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner ? pThis->Owner->Owner : nullptr, pTarget ? pTarget->Owner : nullptr, pThis->Owner, false);
-		}
+		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType,pTarget->Location ,0,1, AnimFlag(0x600),0,0),
+			pThis->Owner ? pThis->Owner->Owner : nullptr,
+			pTarget ? pTarget->Owner : nullptr,
+			pThis->Owner,
+			false
+		);
 	}
 
 	return 0x71A90E;

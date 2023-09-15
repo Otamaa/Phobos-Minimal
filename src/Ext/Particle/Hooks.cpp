@@ -47,3 +47,21 @@ DEFINE_HOOK(0x62CE86, ParticleClass_AI, 0x7) // F , this is the end, here's the 
 	return 0;
 }
 //#endif
+
+DEFINE_HOOK(0x62D301, ParticleClass_SmokeDirection_AI_WinDirMult, 0x6)
+{
+	GET(int, facing, EAX);
+	GET(ParticleClass*, pThis, ESI);
+	R->ECX(ParticleTypeExt::ExtMap.Find(pThis->Type)->WindMult[facing].X);
+	R->EAX(ParticleTypeExt::ExtMap.Find(pThis->Type)->WindMult[facing].Y);
+	return 0x62D30D;
+}
+
+DEFINE_HOOK(0x62D44A, ParticleClass_GasDirection_AI_WinDirMult, 0x6)
+{
+	GET(int, facing, EAX);
+	GET(ParticleClass*, pThis, ESI);
+	R->ECX(ParticleTypeExt::ExtMap.Find(pThis->Type)->WindMult[facing].X);
+	R->EAX(ParticleTypeExt::ExtMap.Find(pThis->Type)->WindMult[facing].Y);
+	return 0x62D456;
+}
