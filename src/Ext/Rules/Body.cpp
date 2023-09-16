@@ -150,6 +150,8 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->Vehicles_DefaultDigitalDisplayTypes.Read(iniEX, GameStrings::AudioVisual, "Vehicles.DefaultDigitalDisplayTypes");
 	pData->Aircraft_DefaultDigitalDisplayTypes.Read(iniEX, GameStrings::AudioVisual, "Aircraft.DefaultDigitalDisplayTypes");
 
+	pData->Veinhole_Warhead.Read(iniEX, COMBATDAMAGE_SECTION , "VeinholeWarhead");
+
 	if (pINI->ReadString("GlobalControls", "AllowBypassBuildLimit", "", Phobos::readBuffer))
 	{
 		bool temp[3] = {};
@@ -188,6 +190,16 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		if (pExt->Fake_Of.Get(nullptr) && pExt->Fake_Of->WhatAmI() != what) {
 			Debug::Log("[%s] has fake of but it different type from it!\n", pItem->ID);
 			pExt->Fake_Of.Reset();
+		}
+
+		if (pExt->ClonedAs.Get(nullptr) && pExt->ClonedAs->WhatAmI() != what) {
+			Debug::Log("[%s] has CloneAs but it different type from it!\n", pItem->ID);
+			pExt->ClonedAs.Reset();
+		}
+
+		if (pExt->ReversedAs.Get(nullptr) && pExt->ReversedAs->WhatAmI() != what) {
+			Debug::Log("[%s] has ReversedAs but it different type from it!\n", pItem->ID);
+			pExt->ReversedAs.Reset();
 		}
 
 		if(isFoot && !pExt->IsDummy && pItem->SpeedType == SpeedType::None) {
@@ -425,6 +437,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	if (pThis->WallTower && !this->WallTowers.Contains(pThis->WallTower))
 		this->WallTowers.push_back(pThis->WallTower);
 
+	this->Veins_PerCellAmount.Read(exINI, GENERAL_SECTION, "VeinsPerCellStorageAmount");
 #pragma endregion
 
 	detail::ParseVector(exINI, this->AITargetTypesLists, "AITargetTypes");
@@ -820,6 +833,8 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->GainSelfHealAllowMultiplayPassive)
 		.Process(this->VeinsDamagingWeightTreshold)
 		.Process(this->VeinholePal)
+		.Process(this->Veinhole_Warhead)
+		.Process(this->Veins_PerCellAmount)
 		;
 
 	MyPutData.Serialize(Stm);

@@ -4543,6 +4543,13 @@ DEFINE_JUMP(LJMP, 0x4869AB, 0x4869CA);
 
 //// 7384C3 ,7385BB UnitClass take damage func
 
+DEFINE_HOOK(0x73D4F1, UnitClass_Harvest_VeinsStorageAmount, 0x6)
+{
+	GET(UnitClass*, pThis, ESI);
+	pThis->Tiberium.AddAmount(RulesExt::Global()->Veins_PerCellAmount, 0);
+	return 0x73D502;
+}
+
 //TODO , rewrite this to take custom amount
 DEFINE_HOOK(0x73D4A4, UnitClass_Harvest_IncludeWeeder, 0x6)
 {

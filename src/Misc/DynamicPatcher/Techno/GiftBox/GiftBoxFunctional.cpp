@@ -77,7 +77,7 @@ void GiftBoxFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTy
 
 		if (pTypeExt->MyGiftBoxData.Destroy)
 		{
-			auto nDamage = (pExt->Get()->Health + 1);
+			auto nDamage = (pExt->Type->Strength);
 			pExt->Get()->ReceiveDamage(&nDamage, 0, RulesClass::Instance->C4Warhead, nullptr, false,
 				!pTypeExt->Get()->Crewed, nullptr);
 
@@ -107,7 +107,6 @@ void GiftBoxFunctional::TakeDamage(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtD
 		(!OpenDisallowed(pExt->Get())) &&
 		pTypeExt->MyGiftBoxData.OpenWhenHealthPercent.isset())
 	{
-		// 计算血量百分比是否达到开启条件
 		double healthPercent = pExt->Get()->GetHealthPercentage();
 		if (healthPercent <= pTypeExt->MyGiftBoxData.OpenWhenHealthPercent.Get())
 		{
@@ -161,11 +160,9 @@ void GetGifts(const GiftBoxData& nData, std::vector<TechnoTypeClass*>& nOut)
 
 			for (int i = 0; i < times; i++)
 			{
-				// 选出类型的序号
 				int index = 0;
-				// 产生标靶
 				const int p = ScenarioClass::Instance->Random.RandomFromMax(flag);
-				// 检查命中
+
 				for (auto const& [point, idx] : targetPad)
 				{
 					Point2D tKey = point;
@@ -175,7 +172,7 @@ void GetGifts(const GiftBoxData& nData, std::vector<TechnoTypeClass*>& nOut)
 						index = idx;
 					}
 				}
-				// 计算概率
+
 				if (Helpers_DP::Bingo(nData.Chances, index))
 				{
 					nOut.push_back(nData.Gifts[index]);
@@ -195,7 +192,7 @@ void GetGifts(const GiftBoxData& nData, std::vector<TechnoTypeClass*>& nOut)
 
 				for (int i = 0; i < times; i++)
 				{
-					// 计算概率
+
 					if (Helpers_DP::Bingo(nData.Chances, (index)))
 					{
 						nOut.push_back(id);
@@ -273,8 +270,7 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 
 				if (pOwner->IsSelected)
 				{
-					auto const feedback = Unsorted::MoveFeedback();
-					Unsorted::MoveFeedback() = false;
+					auto const feedback = std::exchange(Unsorted::MoveFeedback() , false);
 					pGift->Select();
 					Unsorted::MoveFeedback() = feedback;
 				}

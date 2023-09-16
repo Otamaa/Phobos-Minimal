@@ -223,10 +223,10 @@ public:
 		DynamicVectorClass<CellStruct> *vecCoords, byte *housesSatisfied)
 		{ JMP_THIS(0x5D6890); }
 
-	virtual bool SpawnBaseUnits(HouseClass *House, DWORD* dwUnused)
+	virtual bool SpawnBaseUnits(HouseClass *House, int* AmountToSpend)
 		{ JMP_THIS(0x5D7030); }
 
-	virtual bool GenerateStartingUnits(HouseClass *House, int &AmountToSpend)
+	virtual bool GenerateStartingUnits(HouseClass *House, int* AmountToSpend)
 		{ JMP_THIS(0x5D70F0); }
 
 protected:
@@ -259,6 +259,7 @@ public:
 	bool MustAlly;
 };
 
+static_assert(sizeof(MPGameModeClass) == 0x40, "Invalid Size!");
 
 class NOVTABLE MPBattleClass : public MPGameModeClass
 {
@@ -285,6 +286,7 @@ protected:
 	//FACTORY(0x7EEEBC);
 };
 
+static_assert(sizeof(MPBattleClass) == 0x40, "Invalid Size!");
 
 class NOVTABLE MPManBattleClass : public MPGameModeClass
 {
@@ -309,6 +311,7 @@ protected:
 	//FACTORY(0x7EEEB0);
 };
 
+static_assert(sizeof(MPManBattleClass) == 0x40, "Invalid Size!");
 
 class NOVTABLE MPFreeForAllClass : public MPGameModeClass
 {
@@ -348,6 +351,7 @@ protected:
 	//FACTORY(0x7EEE8C);
 };
 
+static_assert(sizeof(MPFreeForAllClass) == 0x40, "Invalid Size!");
 
 class NOVTABLE MPMegawealthClass : public MPGameModeClass
 {
@@ -369,6 +373,7 @@ protected:
 	{ }
 };
 
+static_assert(sizeof(MPMegawealthClass) == 0x40, "Invalid Size!");
 
 class NOVTABLE MPUnholyAllianceClass : public MPGameModeClass
 {
@@ -385,7 +390,7 @@ class NOVTABLE MPUnholyAllianceClass : public MPGameModeClass
 	virtual bool vt_entry_18()
 		{ JMP_THIS(0x5CB430); }
 
-	virtual bool SpawnBaseUnits(HouseClass *House, DWORD dwUnused)
+	virtual bool SpawnBaseUnits(HouseClass *House, int* AmountToSpend)
 		{ JMP_THIS(0x5CB440); }
 
 	/*
@@ -405,6 +410,7 @@ protected:
 	//FACTORY(0x7EEE98);
 };
 
+static_assert(sizeof(MPUnholyAllianceClass) == 0x40, "Invalid Size!");
 
 class NOVTABLE MPSiegeClass : public MPGameModeClass
 {
@@ -433,7 +439,7 @@ class NOVTABLE MPSiegeClass : public MPGameModeClass
 	virtual void CreateMPTeams(DynamicVectorClass<MPTeam> *vecTeams)
 		{ JMP_THIS(0x5CA9B0); }
 
-	virtual bool SpawnBaseUnits(HouseClass *House, DWORD dwUnused)
+	virtual bool SpawnBaseUnits(HouseClass *House, int* AmountToSpend)
 		{ JMP_THIS(0x5CAA50); }
 
 	/*
@@ -452,6 +458,8 @@ protected:
 	{ }
 	//FACTORY(0x7EEEA4);
 };
+
+static_assert(sizeof(MPSiegeClass) == 0x40, "Invalid Size!");
 
 struct MPlayerScoreType
 {

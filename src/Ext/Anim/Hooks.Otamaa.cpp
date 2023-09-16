@@ -12,6 +12,58 @@
 
 #include <Memory.h>
 
+void ApplyVeinsDamage(AnimClass* pThis ,int VeinDamage , WarheadTypeClass* VeinWarhead)
+{
+	if (pThis->Type->IsVeins && VeinWarhead)
+	{
+		auto coord = pThis->GetCoords();
+		auto pCoorCell = MapClass::Instance->GetCellAt(coord);
+		auto pFirst = pCoorCell->FirstObject;
+
+		if (!pFirst
+			|| pFirst->GetHeight() > 0
+			|| pCoorCell->OverlayTypeIndex != 12
+			|| pCoorCell->OverlayData < 0x30u
+			|| pCoorCell->Level
+			)
+		{
+			pThis->__ToDelete_197 = true; // wut
+		}
+
+		if ((Unsorted::CurrentFrame & 1) == 0 && pFirst)
+		{
+			for (auto pFist_ = pFirst; pFist_; pFist_->NextObject)
+			{
+				if (auto pTechno = generic_cast<TechnoClass*>(pFist_))
+				{
+
+					if (!pTechno->IsAlive || pTechno->Health <= 0 || pTechno->InLimbo)
+						continue;
+
+					const auto pType = pTechno->GetTechnoType();
+					if ( (!RulesExt::Global()->VeinsDamagingWeightTreshold.isset() || pType->Weight >= RulesExt::Global()->VeinsDamagingWeightTreshold)
+						&& !pType->ImmuneToVeins
+						&& !pTechno->HasAbility(AbilityType::VeinProof)
+						&& pTechno->GetHeight() <= 5
+						)
+					{
+						pFist_->ReceiveDamage(&VeinDamage, 0, VeinWarhead, nullptr, false, false, nullptr);
+					}
+				}
+			}
+		}
+
+	}
+}
+
+DEFINE_HOOK(0x4243BC, AnimClass_AI_Veins, 0x6)
+{
+	GET(AnimClass*, pThis, ESI);
+	ApplyVeinsDamage(pThis, RulesClass::Instance->VeinDamage, RulesExt::Global()->Veinhole_Warhead);
+	return 0x0;
+}
+
+
 DEFINE_HOOK(0x685078, Generate_OreTwinkle_Anims, 0x7)
 {
 	GET(CellClass* const, location, ESI);

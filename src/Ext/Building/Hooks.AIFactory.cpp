@@ -600,6 +600,32 @@ DEFINE_OVERRIDE_HOOK(0x4FF210, HouseClass_AI_AircraftProduction, 6)
 			}
 		}
 
+		const int Dockercount = std::count_if(pThis->Buildings.begin(), pThis->Buildings.end(), [](BuildingClass* pBld)
+		{
+			const auto pExt = BuildingExt::ExtMap.Find(pBld);
+			if (pExt->AboutToChronoshift || pExt->LimboID >= 0)
+				return false;
+
+			const bool forbidden = (!pBld->IsAlive || pBld->GetCurrentMission() == Mission::Selling || pBld->QueuedMission == Mission::Selling ||
+				pBld->Health <= 0 || pBld->InLimbo);
+
+			if (forbidden)
+				return false;
+
+			if (pBld->Type->Factory == AircraftTypeClass::AbsID) {
+				if (BuildingExt::HasFreeDocks(pBld))
+					return true;
+			}
+
+			return false;
+		});
+
+		if (!Dockercount) {
+			pThis->ProducingAircraftTypeIndex = -1;
+			R->EAX(15);
+			return 0x4FF534;
+		}
+
 		auto const AIDiff = static_cast<int>(pThis->GetAIDifficultyIndex());
 		auto EarliestOdds = 0.01 * RulesClass::Instance->FillEarliestTeamProbability[AIDiff];
 		if (EarliestOdds <= ScenarioClass::Instance->Random.RandomDouble())

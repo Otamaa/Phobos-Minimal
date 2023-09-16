@@ -597,82 +597,83 @@ bool BuildingExt::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pTechn
 
 void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID)
 {
-	auto const pOwnerExt = HouseExt::ExtMap.Find(pOwner);
-
-	// BuildLimit check goes before creation
-	if (HouseExt::CheckBuildLimit(pOwner, pType , true) != BuildLimitStatus::NotReached) {
-		return;
-	}
-
-	BuildingClass* pBuilding = static_cast<BuildingClass*>(pType->CreateObject(pOwner));
-	if (!pBuilding)
-	{
-		Debug::Log("Fail to Create Limbo Object[%s] ! \n", pType->get_ID());
-		return;
-	}
-
-	// All of these are mandatory
-	pBuilding->InLimbo = false;
-	pBuilding->IsAlive = true;
-	pBuilding->IsOnMap = true;
-
-	//const auto pCell = MapClass::Instance->TryGetCellAt(pBuilding->Location);
-
-	// For reasons beyond my comprehension, the discovery logic is checked for certain logics like power drain/output in singleplayer only.
-	// This code replicates how DiscoveredBy() is called in BuildingClass::Unlimbo() - Starkku
-	//if (!pBuilding->DiscoveredByCurrentPlayer && (pCell && (pCell->AltFlags & AltCellFlags::NoFog) != AltCellFlags(0)) || SessionClass::Instance->GameMode == GameMode::Campaign)
-	//	pBuilding->DiscoveredBy(HouseClass::CurrentPlayer);
-
-	//if (!pOwner->IsControlledByHuman())
-	//	pBuilding->DiscoveredBy(pOwner);
-
-	if (!pBuilding->Type->Insignificant && !pBuilding->Type->DontScore)
-		pOwnerExt->LimboTechno.push_back(pBuilding);
-
-	pOwner->AddTracking(pBuilding);
-	pOwner->RegisterGain(pBuilding, false);
-	pOwner->UpdatePower();
-	pOwner->RecheckTechTree = true;
-	pOwner->RecheckPower = true;
-	pOwner->RecheckRadar = true;
-	pOwner->Buildings.AddItem(pBuilding);
-	pOwner->ActiveBuildingTypes.Increment(pBuilding->Type->ArrayIndex);
-
-	// Different types of building logics
-	if (pType->ConstructionYard)
-		pOwner->ConYards.AddItem(pBuilding); // why would you do that????
-
-	if (pType->SecretLab)
-		pOwner->SecretLabs.AddItem(pBuilding);
-
-	if (pType->FactoryPlant)
-	{
-		pOwner->FactoryPlants.AddItem(pBuilding);
-		pOwner->CalculateCostMultipliers();
-	}
-
-	if (pType->OrePurifier)
-		pOwner->NumOrePurifiers++;
-
-	if (!pOwner->Type->MultiplayPassive)
-	{
-		if (auto const pInfantrySelfHeal = pType->InfantryGainSelfHeal)
-			pOwner->InfantrySelfHeal += pInfantrySelfHeal;
-
-		if (auto const pUnitSelfHeal = pType->UnitsGainSelfHeal)
-			pOwner->UnitsSelfHeal += pUnitSelfHeal;
-	}
-
-	// BuildingClass::Place is where Ares hooks secret lab expansion
-	// pTechnoBuilding->Place(false);
-	// even with it no bueno yet, plus new issues
-	// probably should just port it from Ares 0.A and be done
-
-	pOwner->UpdateSuperWeaponsUnavailable();
-
 	// LimboKill init
 	if (ID != -1)
 	{
+		auto const pOwnerExt = HouseExt::ExtMap.Find(pOwner);
+
+		// BuildLimit check goes before creation
+		if (HouseExt::CheckBuildLimit(pOwner, pType , true) != BuildLimitStatus::NotReached) {
+			Debug::Log("Fail to Create Limbo Object[%s] because of BuildLimit ! \n", pType->get_ID());
+			return;
+		}
+
+		BuildingClass* pBuilding = static_cast<BuildingClass*>(pType->CreateObject(pOwner));
+		if (!pBuilding)
+		{
+			Debug::Log("Fail to Create Limbo Object[%s] ! \n", pType->get_ID());
+			return;
+		}
+
+		// All of these are mandatory
+		pBuilding->InLimbo = false;
+		pBuilding->IsAlive = true;
+		pBuilding->IsOnMap = true;
+
+		//const auto pCell = MapClass::Instance->TryGetCellAt(pBuilding->Location);
+
+		// For reasons beyond my comprehension, the discovery logic is checked for certain logics like power drain/output in singleplayer only.
+		// This code replicates how DiscoveredBy() is called in BuildingClass::Unlimbo() - Starkku
+		//if (!pBuilding->DiscoveredByCurrentPlayer && (pCell && (pCell->AltFlags & AltCellFlags::NoFog) != AltCellFlags(0)) || SessionClass::Instance->GameMode == GameMode::Campaign)
+		//	pBuilding->DiscoveredBy(HouseClass::CurrentPlayer);
+
+		//if (!pOwner->IsControlledByHuman())
+		//	pBuilding->DiscoveredBy(pOwner);
+
+		if (!pBuilding->Type->Insignificant && !pBuilding->Type->DontScore)
+			pOwnerExt->LimboTechno.push_back(pBuilding);
+
+		pOwner->AddTracking(pBuilding);
+		pOwner->RegisterGain(pBuilding, false);
+		pOwner->UpdatePower();
+		pOwner->RecheckTechTree = true;
+		pOwner->RecheckPower = true;
+		pOwner->RecheckRadar = true;
+		pOwner->Buildings.AddItem(pBuilding);
+		pOwner->ActiveBuildingTypes.Increment(pBuilding->Type->ArrayIndex);
+
+		// Different types of building logics
+		if (pType->ConstructionYard)
+			pOwner->ConYards.AddItem(pBuilding); // why would you do that????
+
+		if (pType->SecretLab)
+			pOwner->SecretLabs.AddItem(pBuilding);
+
+		if (pType->FactoryPlant)
+		{
+			pOwner->FactoryPlants.AddItem(pBuilding);
+			pOwner->CalculateCostMultipliers();
+		}
+
+		if (pType->OrePurifier)
+			pOwner->NumOrePurifiers++;
+
+		if (!pOwner->Type->MultiplayPassive)
+		{
+			if (auto const pInfantrySelfHeal = pType->InfantryGainSelfHeal)
+				pOwner->InfantrySelfHeal += pInfantrySelfHeal;
+
+			if (auto const pUnitSelfHeal = pType->UnitsGainSelfHeal)
+				pOwner->UnitsSelfHeal += pUnitSelfHeal;
+		}
+
+		// BuildingClass::Place is where Ares hooks secret lab expansion
+		// pTechnoBuilding->Place(false);
+		// even with it no bueno yet, plus new issues
+		// probably should just port it from Ares 0.A and be done
+
+		pOwner->UpdateSuperWeaponsUnavailable();
+
 		auto const pBuildingExt = BuildingExt::ExtMap.Find(pBuilding);
 
 		HouseExt::UpdateFactoryPlans(pBuilding);

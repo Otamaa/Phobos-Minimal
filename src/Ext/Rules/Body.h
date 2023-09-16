@@ -247,6 +247,8 @@ public:
 
 		Nullable<double> VeinsDamagingWeightTreshold {};
 		Valueable<PaletteManager*> VeinholePal {};
+		Valueable<WarheadTypeClass*> Veinhole_Warhead { nullptr };
+		Valueable<float> Veins_PerCellAmount { 1.0f };
 
 		AircraftPutDataRules MyPutData { };
 

@@ -6,26 +6,22 @@ void GiftBoxData::Read(INI_EX& parser, const char* pSection)
 	if (!Gifts.empty())
 	{
 		Enable = true;
-		auto const nBaseSize = (int)Gifts.size();
-		Nums.clear();
-		Nums.resize(nBaseSize);
+		Nums.resize(Gifts.size() ,1);
 
-		auto const pNumKey = "GiftBox.Nums";
-
-		std::fill(Nums.begin(), Nums.end(), 1);
-
-		if (parser.ReadString(pSection, pNumKey))
+		if (parser.ReadString(pSection, "GiftBox.Nums"))
 		{
-			int nCount = 0;
+			size_t nCount = 0;
 			char* context = nullptr;
-			for (char* cur = CRT::strtok(parser.value(), Phobos::readDelims, &context); cur; cur = CRT::strtok(nullptr, Phobos::readDelims, &context))
+			for (char* cur = CRT::strtok(parser.value(), Phobos::readDelims, &context);
+				cur;
+				cur = CRT::strtok(nullptr, Phobos::readDelims, &context))
 			{
 
 				int buffer = 1;
 				if (Parser<int>::TryParse(cur, &buffer))
 					Nums[nCount] = buffer;
 
-				if (++nCount >= nBaseSize)
+				if (++nCount >= Nums.size())
 					break;
 			}
 		}

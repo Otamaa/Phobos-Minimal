@@ -1046,7 +1046,6 @@ void HouseExt::ExtData::UpdateAutoDeathObjects()
 			continue;
 		}
 
-
 		if(!pExt->Death_Countdown.Completed())
 			continue;
 
@@ -1068,14 +1067,22 @@ BuildLimitStatus HouseExt::CheckBuildLimit(
 	bool const includeQueued)
 {
 	int BuildLimit = pItem->BuildLimit;
-	int Remaining = HouseExt::BuildLimitRemaining(pHouse, pItem);
+	int Remaining = 0;
 
-	if (BuildLimit > 0) {
-		if (Remaining <= 0) {
-			return (includeQueued && FactoryClass::FindByOwnerAndProduct(pHouse, pItem))
-				? BuildLimitStatus::NotReached
-				: BuildLimitStatus::ReachedPermanently
-				;
+	if (BuildLimit < 0)
+	{
+		Remaining = -(BuildLimit + pHouse->CountOwnedEver(pItem));
+	}
+	else
+	{
+		Remaining = BuildLimit - HouseExt::CountOwnedNowTotal(pHouse, pItem);
+
+		if (Remaining > 0 && Remaining <= 0)
+		{
+			if (!includeQueued || !FactoryClass::FindByOwnerAndProduct(pHouse, pItem))
+				return BuildLimitStatus::ReachedPermanently;
+
+			return BuildLimitStatus::NotReached;
 		}
 	}
 
@@ -1090,9 +1097,11 @@ signed int HouseExt::BuildLimitRemaining(
 {
 	auto const BuildLimit = pItem->BuildLimit;
 
-	return BuildLimit >= 0 ?
-		(BuildLimit - HouseExt::CountOwnedNowTotal(pHouse, pItem)) :
-		(-BuildLimit - pHouse->CountOwnedEver(pItem));
+	if (BuildLimit < 0) {
+		return -(BuildLimit + pHouse->CountOwnedEver(pItem));
+	} else {
+		return BuildLimit - HouseExt::CountOwnedNowTotal(pHouse, pItem);
+	}
 }
 
 int HouseExt::CountOwnedNowTotal(

@@ -3641,20 +3641,32 @@ DEFINE_JUMP(LJMP, 0x5601E3, 0x5601FC);
 
 #include <Ext/HouseType/Body.h>
 
-int GetValue(TechnoClass* pVictim, TechnoTypeClass* pVictimType, BountyValueOption nOpt)
+int GetValue(TechnoClass* pVictim, TechnoClass* pKiller)
 {
-	switch (nOpt)
+	int Value = 0;
+	const auto pKillerTypeExt = TechnoTypeExt::ExtMap.Find(pKiller->GetTechnoType());
+	const auto pVictimTypeExt = TechnoTypeExt::ExtMap.Find(pVictim->GetTechnoType());
+
+	switch (pKillerTypeExt->Bounty_Value_Option.Get(RulesExt::Global()->Bounty_Value_Option))
 	{
 	case BountyValueOption::Cost:
-		return pVictimType->GetCost();
+		Value = pVictimTypeExt->Get()->GetCost();
 		break;
 	case BountyValueOption::Soylent:
-		return pVictim->GetRefund();
+		Value = pVictim->GetRefund();
 		break;
 	default:
-		return TechnoTypeExt::ExtMap.Find(pVictimType)->Bounty_Value.Get(pVictim);
+		Value = pVictimTypeExt->Bounty_Value.Get(pVictim);
 		break;
 	}
+
+	if (Value == 0)
+		return 0;
+
+	const double nVicMult = pVictimTypeExt->Bounty_Value_mult.Get(pVictim);
+	const double nMult = pKillerTypeExt->BountyBonusmult.Get(pKiller);
+
+	return int(Value * nVicMult * nMult);
 }
 
 void GiveBounty(TechnoClass* pVictim, TechnoClass* pKiller)
@@ -3678,36 +3690,28 @@ void GiveBounty(TechnoClass* pVictim, TechnoClass* pKiller)
 		if (!pKillerTypeExt->BountyDissallow.empty() && pKillerTypeExt->BountyDissallow.Contains(pVictimType))
 			return;
 
-		if (!pKiller->Owner->IsAlliedWith_(pVictim))
-		{
+		if (!pKiller->Owner->IsAlliedWith_(pVictim)) {
+
 			const auto pRulesGlobal = RulesExt::Global();
 
-			if (!pKillerTypeExt->Bounty_IgnoreEnablers && !pRulesGlobal->Bounty_Enablers.empty())
-			{
-				for (auto const& pBTypes : pRulesGlobal->Bounty_Enablers)
-				{
-					if (!(pKiller->Owner->OwnedBuildingTypes.GetItemCount(pBTypes->ArrayIndex) > 0))
-					{
+			if (!pKillerTypeExt->Bounty_IgnoreEnablers && !pRulesGlobal->Bounty_Enablers.empty()) {
+				for (auto const& pBTypes : pRulesGlobal->Bounty_Enablers) {
+					if (!(pKiller->Owner->OwnedBuildingTypes.GetItemCount(pBTypes->ArrayIndex) > 0)) {
 						return;
 					}
 				}
 			}
 
-			const auto pVictimTypeExt = TechnoTypeExt::ExtMap.Find(pVictimType);
-			const double nVicMult = pVictimTypeExt->Bounty_Value_mult.Get(pVictim);
-			const double nMult = pKillerTypeExt->BountyBonusmult.Get(pKiller);
-			const auto nValueType = pKillerTypeExt->Bounty_Value_Option.Get(pRulesGlobal->Bounty_Value_Option);
-			const int nValueResult = GetValue(pVictim, pVictimType, nValueType);
-			const int nValue = int(nValueResult * nVicMult * nMult);
+			const int nValueResult = GetValue(pVictim, pKiller);
 
-			if (nValue != 0 && pKiller->Owner->AbleToTransactMoney(nValue))
+			if (nValueResult != 0 && pKiller->Owner->AbleToTransactMoney(nValueResult))
 			{
 				if (pKillerTypeExt->Bounty_Display.Get(pRulesGlobal->Bounty_Display))
 				{
 					if (pKillerTypeExt->Get()->MissileSpawn && pKiller->SpawnOwner)
 						pKiller = pKiller->SpawnOwner;
 
-					pKiller->align_154->TechnoValueAmount += nValue;
+					pKiller->align_154->TechnoValueAmount += nValueResult;
 				}
 			}
 		}
@@ -4301,11 +4305,11 @@ HashData GetINIChecksums()
 	HashData nBuffer;
 	if (SessionClass::Instance->GameMode != GameMode::LAN)
 	{
-		nBuffer = { CCINIClass::RulesHash.get() , CCINIClass::ArtHash.get() ,  CCINIClass::AIHash.get() };
+		nBuffer = { CCINIClass::RulesHash() , CCINIClass::ArtHash() ,  CCINIClass::AIHash() };
 	}
 	else
 	{
-		nBuffer = { CCINIClass::RulesHash_Internet.get() , CCINIClass::ArtHash_Internet.get() ,  CCINIClass::AIHash_Internet.get() };
+		nBuffer = { CCINIClass::RulesHash_Internet() , CCINIClass::ArtHash_Internet() ,  CCINIClass::AIHash_Internet() };
 	}
 
 	if (!nBuffer.Rules)
@@ -4320,17 +4324,18 @@ HashData GetINIChecksums()
 	return nBuffer;
 }
 
-//DEFINE_OVERRIDE_HOOK(0x52E9AA, Frontend_WndProc_Checksum, 5)
-//{
-//	if (SessionClass::Instance->GameMode == GameMode::LAN || SessionClass::Instance->GameMode == GameMode::Internet)
-//	{
-//		auto nHashes = GetINIChecksums();
-//		Debug::Log("Rules checksum: %08X\n", nHashes.Rules);
-//		Debug::Log("Art checksum: %08X\n", nHashes.Art);
-//		Debug::Log("AI checksum: %08X\n", nHashes.AI);
-//	}
-//	return 0;
-//}
+DEFINE_OVERRIDE_HOOK(0x52E9AA, Frontend_WndProc_Checksum, 5)
+{
+	if (SessionClass::Instance->GameMode == GameMode::LAN || SessionClass::Instance->GameMode == GameMode::Internet)
+	{
+		auto nHashes = GetINIChecksums();
+		Debug::Log("Rules checksum: %08X\n", nHashes.Rules);
+		Debug::Log("Art checksum: %08X\n", nHashes.Art);
+		Debug::Log("AI checksum: %08X\n", nHashes.AI);
+	}
+
+	return 0;
+}
 
 DEFINE_OVERRIDE_HOOK(0x480534, CellClass_AttachesToNeighbourOverlay, 5)
 {
@@ -4346,7 +4351,6 @@ DEFINE_OVERRIDE_HOOK(0x483D94, CellClass_UpdatePassability, 6)
 	return pTypeExt->Firestorm_Wall ? 0x483D9E : 0x483DB0;
 }
 
-
 DEFINE_OVERRIDE_HOOK(0x4A76ED, DiskLaserClass_Update_Anim, 7)
 {
 	GET(DiskLaserClass* const, pThis, ESI);
@@ -4359,11 +4363,13 @@ DEFINE_OVERRIDE_HOOK(0x4A76ED, DiskLaserClass_Update_Anim, 7)
 		auto const pType = MapClass::SelectDamageAnimation(
 			pThis->Damage, pWarhead, LandType::Clear, coords);
 
-		if (pType)
-		{
-			// Otamaa Added
-			if (auto pAnim = GameCreate<AnimClass>(pType, coords))
-				pAnim->Owner = pThis->Owner->GetOwningHouse();
+		if (pType) {
+			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, coords),
+				pThis->Owner->Owner,
+				pThis->Target ? pThis->Target->Owner : nullptr,
+				false,
+				pThis->Owner
+			);
 		}
 	}
 
@@ -4519,30 +4525,30 @@ DEFINE_OVERRIDE_HOOK(0x519D9C, InfantryClass_UpdatePosition_MultiEngineer, 5)
 
 //Wrong register ?
 // game crash here , ugh
-//DEFINE_OVERRIDE_HOOK(0x5D6F61, MPGameModeClass_CreateStartingUnits_BaseCenter, 8)
-//{
-//	GET(MPGameModeClass*, pMode, ECX);
-//	GET(HouseClass*, pHouse, ESI);
-//	GET(DWORD*, pSomething, EAX);
-//
-//	*pSomething = R->EBP();
-//	CellStruct nBase = pHouse->BaseSpawnCell;
-//
-//	if(!pMode->SpawnBaseUnits(pHouse, pSomething))
-//		return 0x5D701B;
-//
-//	pHouse->ConYards.for_each([](BuildingClass* pConyards) {
-//		pConyards->QueueMission(Mission::Construction, true);
-//		++Unsorted::ScenarioInit();
-//		pConyards->EnterIdleMode(false, 1);
-//		--Unsorted::ScenarioInit();
-//	});
-//
-//	if (!nBase.IsValid())
-//		pHouse->BaseSpawnCell = nBase;
-//
-//	return 0x5D6F77;
-//}
+DEFINE_OVERRIDE_HOOK(0x5D6F61, MPGameModeClass_CreateStartingUnits_BaseCenter, 8)
+{
+	GET(MPGameModeClass*, pMode, ECX);
+	GET(HouseClass*, pHouse, ESI);
+	GET(int*, AmountToSpend, EAX);
+
+	*AmountToSpend = R->EBP<int>();
+	CellStruct nBase = pHouse->BaseSpawnCell;
+
+	if(!pMode->SpawnBaseUnits(pHouse, AmountToSpend))
+		return 0x5D701B;
+
+	pHouse->ConYards.for_each([](BuildingClass* pConyards) {
+		pConyards->QueueMission(Mission::Construction, true);
+		++Unsorted::ScenarioInit();
+		pConyards->EnterIdleMode(false, 1);
+		--Unsorted::ScenarioInit();
+	});
+
+	if (!nBase.IsValid())
+		pHouse->BaseSpawnCell = nBase;
+
+	return 0x5D6F77;
+}
 
 DEFINE_OVERRIDE_HOOK(0x687C56, INIClass_ReadScenario_ResetLogStatus, 5)
 {
@@ -4573,15 +4579,16 @@ DEFINE_OVERRIDE_HOOK(0x5f5add, ObjectClass_SpawnParachuted_Animation, 6)
 bool CloneBuildingEligible(BuildingClass* pBuilding)
 {
 	if (pBuilding->InLimbo ||
-	!pBuilding->IsAlive ||
-	pBuilding->IsPowerOnline() ||
-	pBuilding->TemporalTargetingMe ||
-	pBuilding->IsBeingWarpedOut()
-
-)
-	{
+		!pBuilding->IsAlive ||
+		pBuilding->IsPowerOnline() ||
+		pBuilding->TemporalTargetingMe ||
+		pBuilding->IsBeingWarpedOut() ||
+		BuildingExt::ExtMap.Find(pBuilding)->AboutToChronoshift ||
+		BuildingExt::ExtMap.Find(pBuilding)->LimboID != -1
+	) {
 		return false;
 	}
+
 	return true;
 }
 
@@ -4606,16 +4613,12 @@ void KickOutClones(BuildingClass* pFactory , TechnoClass* const Production)
 
 	const auto ProductionType = Production->GetTechnoType();
 	const auto ProductionTypeData = TechnoTypeExt::ExtMap.Find(ProductionType);
-	const auto ProductionTypeAs = ProductionTypeData->ClonedAs.Get(ProductionType);
 
 	if (!ProductionTypeData->Cloneable) {
 		return;
 	}
 
-	if (ProductionType->WhatAmI() != ProductionTypeAs->WhatAmI()) {
-		return;
-	}
-
+	const auto ProductionTypeAs = ProductionTypeData->ClonedAs.Get(ProductionType);
 	auto const FactoryOwner = pFactory->Owner;
 	auto const& CloningSources = ProductionTypeData->ClonedAt;
 	auto const IsUnit = (FactoryType->Factory != InfantryTypeClass::AbsID);
@@ -4809,7 +4812,7 @@ public:
 		if (Techno->EMPLockRemaining > 0)
 		{
 			// crash all spawned units that are visible. else, they'd land somewhere else.
-			for (auto pSpawn : pSM->SpawnedNodes)
+			for (const auto& pSpawn : pSM->SpawnedNodes)
 			{
 				// kill every spawned unit that is in the air. exempt missiles.
 				if (pSpawn->IsSpawnMissile == FALSE && pSpawn->Unit)
@@ -5788,50 +5791,51 @@ DEFINE_JUMP(LJMP, 0x4E41A7, 0x4E41C3);
 
 DEFINE_DISABLE_HOOK(0x55afb3, LogicClass_Update_ares)
 DEFINE_DISABLE_HOOK(0x679caf , RulesClass_LoadAfterTypeData_CompleteInitialization_ares)
-//DEFINE_OVERRIDE_HOOK(0x5d7048, MPGameMode_SpawnBaseUnit_BuildConst, 5)
-//{
-//	GET_STACK(HouseClass*, pHouse, 0x18);
-//
-//	auto pHouseType = pHouse->Type;
-//
-//	if (!HouseTypeExt::ExtMap.Find(pHouseType)->StartInMultiplayer_WithConst)
-//		return 0;
-//
-//	auto idxParentCountry = HouseClass::FindIndexByName(pHouseType->ParentCountry);
-//	auto v7 = HouseExt::FindBuildable(pHouse, idxParentCountry, make_iterator(RulesClass::Instance->BuildConst), 0);
-//
-//	if (!v7) {
-//		Debug::Log("House of country [%s] cannot build anything from [General]BuildConst=.\n", pHouse->Type->ID);
-//		return 0x5D70DB;
-//	}
-//
-//	auto pBld = (BuildingClass*)v7->CreateObject(pHouse);
-//	if (!pBld)
-//		return 0x5D70DB;
-//
-//	pBld->ForceMission(Mission::Guard);
-//
-//	if (v7->GetFoundationWidth() > 2 || v7->GetFoundationHeight(0) > 2)
-//	{
-//		--pHouse->BaseSpawnCell.X;
-//		--pHouse->BaseSpawnCell.Y;
-//	}
-//
-//	if (!pHouse->IsControlledByHuman_())
-//	{
-//		pHouse->Func_505180();
-//		CellStruct base = pHouse->GetBaseCenter();
-//
-//		pHouse->Base.Center = base;
-//		pHouse->Base.BaseNodes.Items->MapCoords = base;
-//		pHouse->Production = 1;
-//		pHouse->AITriggersActive = true;
-//	}
-//
-//	R->EAX(pBld);
-//	R->EDI(pHouse);
-//	return 0x5D707E;
-//}
+DEFINE_OVERRIDE_HOOK(0x5d7048, MPGameMode_SpawnBaseUnit_BuildConst, 5)
+{
+	GET_STACK(HouseClass*, pHouse, 0x18);
+
+	auto pHouseType = pHouse->Type;
+
+	if (!HouseTypeExt::ExtMap.Find(pHouseType)->StartInMultiplayer_WithConst)
+		return 0;
+
+	auto idxParentCountry = HouseClass::FindIndexByName(pHouseType->ParentCountry);
+	const auto v7 = HouseExt::FindBuildable(pHouse, idxParentCountry, make_iterator(RulesClass::Instance->BuildConst), 0);
+
+	if (!v7) {
+		Debug::Log("House of country [%s] cannot build anything from [General]BuildConst=.\n", pHouse->Type->ID);
+		return 0x5D70DB;
+	}
+
+	const auto pBld = (BuildingClass*)v7->CreateObject(pHouse);
+
+	if (!pBld)
+		return 0x5D70DB;
+
+	pBld->ForceMission(Mission::Guard);
+
+	if (v7->GetFoundationWidth() > 2 || v7->GetFoundationHeight(0) > 2)
+	{
+		--pHouse->BaseSpawnCell.X;
+		--pHouse->BaseSpawnCell.Y;
+	}
+
+	if (!pHouse->IsControlledByHuman_())
+	{
+		pHouse->Func_505180();
+		CellStruct base = pHouse->GetBaseCenter();
+
+		pHouse->Base.Center = base;
+		pHouse->Base.BaseNodes.Items->MapCoords = base;
+		pHouse->Production = 1;
+		pHouse->AITriggersActive = true;
+	}
+
+	R->EAX(pBld);
+	R->EDI(pHouse);
+	return 0x5D707E;
+}
 
 //DEFINE_HOOK(0x4CAD00, FastMath_Cos_Replace, 0xA)
 //{
