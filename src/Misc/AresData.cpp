@@ -539,15 +539,15 @@ void AresData::applyAE(WarheadTypeClass* pWH, CoordStruct* pTarget, HouseClass* 
 // 	AresThiscall<EvalRaidStatusID, void, void*>()(GetAresBuildingExt(pBuilding));
 // }
 
-bool AresData::IsActiveFirestormWall(BuildingClass* pBuilding, HouseClass* pOwner)
-{
-	return AresStdcall<IsActiveFirestormWallID, bool, BuildingClass* , HouseClass* >()(pBuilding , pOwner);
-}
+//bool AresData::IsActiveFirestormWall(BuildingClass* pBuilding, HouseClass* pOwner)
+//{
+//	return AresStdcall<IsActiveFirestormWallID, bool, BuildingClass* , HouseClass* >()(pBuilding , pOwner);
+//}
 
-bool AresData::ImmolateVictim(BuildingClass* pBuilding, FootClass* pTarget, bool Destroy)
-{
-	return AresThiscall<ImmolateVictimID, bool, void*, FootClass*, bool>()(GetAresBuildingExt(pBuilding), pTarget , Destroy);
-}
+//bool AresData::ImmolateVictim(BuildingClass* pBuilding, FootClass* pTarget, bool Destroy)
+//{
+//	return AresThiscall<ImmolateVictimID, bool, void*, FootClass*, bool>()(GetAresBuildingExt(pBuilding), pTarget , Destroy);
+//}
 
 //void AresData::DisableEMPEffect(TechnoClass* pTechno)
 //{

@@ -718,6 +718,10 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	void DetachSpecificSpawnee(HouseClass* NewSpawneeOwner);
 	void FreeSpecificSlave(HouseClass* Affector);
 
+	void DrawBehindMark(Point2D* pos , RectangleStruct* rect) const {
+		JMP_THIS(0x70F1D0);
+	}
+
 	//Constructor
 	TechnoClass(HouseClass* pOwner) noexcept
 		: TechnoClass(noinit_t())

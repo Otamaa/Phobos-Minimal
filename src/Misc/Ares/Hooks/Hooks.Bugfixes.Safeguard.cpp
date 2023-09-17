@@ -6,9 +6,31 @@
 #include <Helpers/Macro.h>
 #include <Base/Always.h>
 #include <TriggerTypeClass.h>
-
+#include <IsometricTileTypeClass.h>
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
+
+
+DEFINE_OVERRIDE_HOOK(0x547043, IsometricTileTypeClass_ReadFromFile, 0x6)
+{
+	GET(int, FileSize, EBX);
+	GET(IsometricTileTypeClass*, pTileType, ESI);
+
+	if (FileSize == 0)
+	{
+		if (strlen(pTileType->ID) > 9)
+		{
+			Debug::FatalErrorAndExit("Maximum allowed length for tile names, excluding the extension, is 9 characters.\n"
+					"The tileset using filename '%s' exceeds this limit - the game cannot proceed.", pTileType->ID);
+		}
+		else
+		{
+			Debug::FatalErrorAndExit("The tileset '%s' contains a file that could not be loaded for some reason - make sure the file exists.", pTileType->ID);
+		}
+	}
+
+	return 0;
+}
 
 DEFINE_OVERRIDE_HOOK(0x41088D, AbstractTypeClass_CTOR_IDTooLong, 0x6)
 {

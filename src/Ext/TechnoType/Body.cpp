@@ -82,6 +82,14 @@ void TechnoTypeExt::ExtData::Initialize()
 	this->EVA_Sold = VoxClass::FindIndexById(Eva_sold);
 }
 
+bool TechnoTypeExt::CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClass* pFactoryType)
+{
+	const auto pProductTypeExt = TechnoTypeExt::ExtMap.Find(pProduct);
+	const auto pBExt = BuildingTypeExt::ExtMap.Find(pFactoryType);
+	return (pProductTypeExt->BuiltAt.empty() && !pBExt->Factory_ExplicitOnly)
+		|| pProductTypeExt->BuiltAt.Contains(pFactoryType);
+}
+
 void TechnoTypeExt::ExtData::ApplyTurretOffset(Matrix3D* mtx, double factor)
 {
 	const auto offs = this->TurretOffset.GetEx();
@@ -1046,6 +1054,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->Weeder_TriggerPreProductionBuildingAnim.Read(exINI, pSection, "Weeder.TriggerPreProductionBuildingAnim");
 		this->Weeder_PipIndex.Read(exINI, pSection, "Weeder.PipIndex");
 		this->Weeder_PipEmptyIndex.Read(exINI, pSection, "Weeder.PipEmptyIndex");
+		this->CanBeDriven.Read(exINI, pSection, "CanBeDriven");
 
 #pragma region AircraftOnly
 		if (this->AttachtoType == AircraftTypeClass::AbsID)
@@ -2018,6 +2027,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Weeder_TriggerPreProductionBuildingAnim)
 		.Process(this->Weeder_PipIndex)
 		.Process(this->Weeder_PipEmptyIndex)
+
+		.Process(this->CanBeDriven)
 		;
 }
 

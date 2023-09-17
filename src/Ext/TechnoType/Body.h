@@ -873,6 +873,8 @@ public:
 
 		Nullable<int> Weeder_PipIndex { };
 		Nullable<int> Weeder_PipEmptyIndex { };
+		Valueable<bool> CanBeDriven { true };
+
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 		{
 			AttachedEffect.Owner = OwnerObject;

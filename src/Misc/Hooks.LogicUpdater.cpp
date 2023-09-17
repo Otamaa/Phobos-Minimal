@@ -72,6 +72,7 @@ void UpdateWebbed(FootClass* pThis)
 			pExt->IsWebbed = false;
 
 			if (pExt->WebbedAnim) {
+				pExt->WebbedAnim->TimeToDie = true;
 				pExt->WebbedAnim->UnInit();
 				pExt->WebbedAnim = nullptr;
 			}

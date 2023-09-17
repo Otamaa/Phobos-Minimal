@@ -72,6 +72,17 @@ struct SystemTimer
 	operator long() const { return timeGetTime() >> 4; }
 };
 
+class MSTimer
+{
+public:
+	MSTimer() { timeBeginPeriod(1); }
+	~MSTimer() { timeEndPeriod(1); }
+
+	long operator () () const { return timeGetTime(); }
+	operator long() const { return timeGetTime(); }
+};
+
+
 //used for timed events, time measured in frames!
 template<TimerType Clock>
 class TimerClass
@@ -170,10 +181,14 @@ public:
 
 using CDTimerClass = TimerClass<FrameTimer>;
 using SystemTimerClass = TimerClass<SystemTimer>;
+using MSTimerClass = TimerClass<MSTimer>;
+
 static_assert(offsetof(CDTimerClass, TimeLeft) == 0x8);
 static_assert(offsetof(SystemTimerClass, TimeLeft) == 0x8);
-static_assert(sizeof(SystemTimerClass) == 0xC, "Invalid Size !");
+static_assert(offsetof(MSTimerClass, TimeLeft) == 0x8);
 static_assert(sizeof(CDTimerClass) == 0xC, "Invalid Size !");
+static_assert(sizeof(SystemTimerClass) == 0xC, "Invalid Size !");
+static_assert(sizeof(MSTimerClass) == 0xC, "Invalid Size !");
 
 class RepeatableTimerStruct : public CDTimerClass
 {

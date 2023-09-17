@@ -2624,65 +2624,6 @@ DEFINE_OVERRIDE_HOOK(0x44019D, BuildingClass_Update_Battery, 6)
 #include <Ext/HouseType/Body.h>
 #include <Misc/Ares/Hooks/Header.h>
 
-NOINLINE BSurface* TechnoTypeExt_ExtData::GetPCXSurface(TechnoTypeClass* pType , HouseClass* pHouse)
-{
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-	const auto eliteCameo = TechnoTypeExt_ExtData::CameoIsElite(pType, pHouse);
-
-	return eliteCameo ? pTypeExt->AltCameoPCX.GetSurface() : pTypeExt->CameoPCX.GetSurface();
-}
-
-bool NOINLINE TechnoTypeExt_ExtData::CameoIsElite(TechnoTypeClass* pType , HouseClass* pHouse) {
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-
-	if((!pType->AltCameo && !pTypeExt->AltCameoPCX.GetSurface()) || !pHouse)
-		return false;
-
-	const auto pHouseExt = HouseExt::ExtMap.Find(pHouse);
-	const auto pCountry = pHouse->Type;
-	switch(pType->WhatAmI()) {
-	case AbstractType::InfantryType:
-	{
-		if(pHouse->BarracksInfiltrated && !pType->Naval && pType->Trainable) {
-			return true;
-		}
-
-		return pCountry->VeteranInfantry.FindItemIndex(static_cast<InfantryTypeClass*>(pType)) != -1;
-
-	}
-	case AbstractType::UnitType:
-	{
-		if(pHouse->WarFactoryInfiltrated && !pType->Naval && pType->Trainable) {
-			return true;
-		} else if(pHouseExt->Is_NavalYardSpied && pType->Naval && pType->Trainable) {
-			return true;
-		}
-
-		return pCountry->VeteranUnits.Contains((UnitTypeClass*)pType);
-	}
-	case AbstractType::AircraftType:
-	{
-		if(pHouseExt->Is_AirfieldSpied && pType->Trainable) {
-			return true;
-		}
-
-		return pCountry->VeteranAircraft.Contains((AircraftTypeClass*)(pType));
-	}
-	case AbstractType::BuildingType:
-	{
-		if(auto const pItem = pType->UndeploysInto) {
-			return pCountry->VeteranUnits.Contains((UnitTypeClass*)(pItem));
-		}else if (pHouseExt->Is_ConstructionYardSpied && pType->Trainable) {
-			return true;
-		}
-
-		return HouseTypeExt::ExtMap.Find(pCountry)->VeteranBuildings.Contains((BuildingTypeClass*)(pType));
-	}
-	}
-
-	return false;
-}
-
 ConvertClass* SWConvert = nullptr;
 BSurface* CameoPCXSurface = nullptr;
 

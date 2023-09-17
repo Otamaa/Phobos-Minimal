@@ -4167,7 +4167,7 @@ bool TechnoExt::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select,
 		if (!pTypeExt->IsPassable)
 			return false;
 
-		if (pTypeExt->Firestorm_Wall &&
+		if (pBld->Type->FirestormWall &&
 			pBld->Owner &&
 			pBld->Owner->FirestormActive)
 			return false;

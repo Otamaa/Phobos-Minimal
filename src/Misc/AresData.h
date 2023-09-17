@@ -232,8 +232,8 @@ struct AresData
 	static void applyAE(WarheadTypeClass* pWH, CoordStruct* pTarget, HouseClass* pOwner);
 
 	//static void EvalRaidStatus(BuildingClass* pBuilding);
-	static bool IsActiveFirestormWall(BuildingClass* pBuilding , HouseClass* pOwner);
-	static bool ImmolateVictim(BuildingClass* pBuilding , FootClass* pTarget , bool Destroy);
+	//static bool IsActiveFirestormWall(BuildingClass* pBuilding , HouseClass* pOwner);
+	//static bool ImmolateVictim(BuildingClass* pBuilding , FootClass* pTarget , bool Destroy);
 
 	//static void DisableEMPEffect(TechnoClass* pTechno);
 	static bool CloakDisallowed(TechnoClass* pTechno, bool allowPassive);

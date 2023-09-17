@@ -29,6 +29,12 @@
 		JMP(address);\
 	}
 
+#define WWMATH_PI 3.14159265358979323846f // Holds the value for PI. Only up to 16 significant figures.
+
+#ifndef DEG_TO_RADF
+#define DEG_TO_RADF(x) (((float)x) * WWMATH_PI / 180.0f)
+#endif
+
 namespace Math
 {
 	constexpr auto const Pif = 3.1415927f;

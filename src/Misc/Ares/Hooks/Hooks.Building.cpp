@@ -332,55 +332,6 @@ DEFINE_OVERRIDE_HOOK(0x519FAF, InfantryClass_UpdatePosition_EngineerRepairsFrien
 	return Target->Type->Repairable ? 0 : 0x519FB9;
 }
 
-int GetImageFrameIndex(BuildingClass* pThis)
-{
-	BuildingTypeExt::ExtData* pData = BuildingTypeExt::ExtMap.Find(pThis->Type);
-
-	if (pData->Firestorm_Wall)
-	{
-		return static_cast<int>(pThis->FirestormWallFrame);
-
-		/* this is the code the game uses to calculate the firewall's frame number when you place/remove sections... should be a good base for trench frames
-
-			int frameIdx = 0;
-			CellClass *Cell = this->GetCell();
-			for(int direction = 0; direction <= 7; direction += 2) {
-				if(BuildingClass *B = Cell->GetNeighbourCell(direction)->GetBuilding()) {
-					if(B->IsAlive && !B->InLimbo) {
-						frameIdx |= (1 << (direction >> 1));
-					}
-				}
-			}
-
-		*/
-	}
-
-	if (pData->IsTrench > -1)
-	{
-		return 0;
-	}
-
-	return -1;
-}
-
-// frame to draw
-DEFINE_OVERRIDE_HOOK(0x43EFB3, BuildingClass_GetStaticImageFrame, 6)
-{
-	GET(BuildingClass*, pThis, ESI);
-
-	if (pThis->GetCurrentMission() != Mission::Construction)
-	{
-		const auto FrameIdx = GetImageFrameIndex(pThis);
-
-		if (FrameIdx != -1)
-		{
-			R->EAX(FrameIdx);
-			return 0x43EFC3;
-		}
-	}
-	return 0x43EFC6;
-}
-
 DEFINE_OVERRIDE_HOOK(0x459ed0, BuildingClass_GetUIName, 6)
 {
 	GET(BuildingClass*, pBld, ECX);
@@ -2244,7 +2195,7 @@ struct AresBldExtStuffs
 
 // Fixing this wont change anything unless i change
 // everything that reference this function , for fuck sake
-//DEFINE_OVERRIDE_HOOK(0x4440378, BuildingClass_Update_FirestormWall, 6)
+//DEFINE_OVERRIDE_HOOK(0x440378, BuildingClass_Update_FirestormWall, 6)
 //{
 //	GET(BuildingClass* const, pThis, ESI);
 //
@@ -2435,36 +2386,6 @@ DEFINE_OVERRIDE_HOOK(0x741BDB, UnitClass_SetDestination_DockUnloadCell, 7)
 //DEFINE_JUMP(CALL , 0x6AA781 , GET_OFFSET(StripClass_DrawIt_HouseClass_CanBuild))
 //DEFINE_JUMP(CALL , 0x6A97D2, GET_OFFSET(StripClass_DrawIt_HouseClass_CanBuild))
 
-DEFINE_OVERRIDE_HOOK(0x6F64CB, TechnoClass_DrawHealthBar_FirestormWall, 6)
-{
-	GET(BuildingClass* const, pThis, ESI);
-	return BuildingTypeExt::ExtMap.Find(pThis->Type)->Firestorm_Wall ? 0x6F6832u : 0u;
-}
-
-DEFINE_OVERRIDE_HOOK(0x73F7B0, UnitClass_IsCellOccupied, 6)
-{
-	GET(BuildingClass* const, pBld, ESI);
-
-	enum
-	{
-		Impassable = 0x73FCD0, // return Move_No
-		Ignore = 0x73FA87, // check next object
-		NoDecision = 0x73F7D3, // check other
-		CheckFirestormActive = 0x73F7BA // check if the object owner has FirestromActive flag
-	};
-
-	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
-	if (pTypeExt->IsPassable) {
-		return Ignore;
-	}
-
-	if (pTypeExt->Firestorm_Wall) {
-		return CheckFirestormActive;
-	}
-
-	return NoDecision;
-}
-
 // the game specifically hides tiberium building pips. allow them, but
 // take care they don't show up for the original game
 DEFINE_OVERRIDE_HOOK(0x709B4E, TechnoClass_DrawPipscale_SkipSkipTiberium, 6)
@@ -2648,7 +2569,7 @@ DEFINE_OVERRIDE_HOOK(0x449518, BuildingClass_IsSellable_FirestormWall, 6)
 	//GET(BuildingClass*, pThis, ESI);
 
 	GET(BuildingTypeClass*, pType, ECX);
-	return BuildingTypeExt::ExtMap.Find(pType)->Firestorm_Wall ? CheckHouseFireWallActive : ReturnFalse;
+	return pType->FirestormWall ? CheckHouseFireWallActive : ReturnFalse;
 }
 
 DEFINE_OVERRIDE_HOOK(0x44E550, BuildingClass_Mi_Open_GateDown, 6)
@@ -2793,67 +2714,24 @@ DEFINE_OVERRIDE_HOOK(0x441f2c, BuildingClass_Destroy_KickOutOfRubble, 5)
 	return 0x0;
 }
 
-void UpdateBuildupFrames(BuildingTypeClass* pThis)
-{
-	auto pExt = BuildingTypeExt::ExtMap.Find(pThis);
-
-	if (const auto pShp = pThis->Buildup)
-	{
-
-		const auto frames = pThis->Gate ?
-			pThis->GateStages + 1 : pShp->Frames / 2;
-
-		const auto duration_build = pExt->BuildupTime.Get(RulesClass::Instance->BuildupTime);
-		const auto duration_sell = pExt->SellTime.Get(duration_build);
-
-		pExt->SellFrames = frames > 0 ? (int)(duration_sell / (double)frames * 900.0) : 1;
-		pThis->BuildingAnimFrame[0].dwUnknown = 0;
-		pThis->BuildingAnimFrame[0].FrameCount = frames;
-		pThis->BuildingAnimFrame[0].FrameDuration = frames > 0 ? (int)(duration_build / (double)frames * 900.0) : 1;
-	}
-}
-
-void BuildingTypeExt::ExtData::CompleteInitialization()
-{
-	auto const pThis = this->Get();
-
-	// enforce same foundations for rubble/intact building pairs
-	if (this->RubbleDestroyed &&
-		!BuildingTypeExt::ExtData::IsFoundationEqual(pThis, this->RubbleDestroyed))
-	{
-		Debug::FatalErrorAndExit(
-			"BuildingType %s and its %s %s don't have the same foundation.",
-			pThis->ID, "Rubble.Destroyed", this->RubbleDestroyed->ID);
-	}
-	if (this->RubbleIntact &&
-		!BuildingTypeExt::ExtData::IsFoundationEqual(pThis, this->RubbleIntact))
-	{
-		Debug::FatalErrorAndExit(
-			"BuildingType %s and its %s %s don't have the same foundation.",
-			pThis->ID, "Rubble.Intact", this->RubbleIntact->ID);
-	}
-
-	UpdateBuildupFrames(pThis);
-}
-
 DEFINE_OVERRIDE_HOOK(0x465A48, BuildingTypeClass_GetBuildup_BuildupTime, 5)
 {
 	GET(BuildingTypeClass*, pThis, ESI);
-	UpdateBuildupFrames(pThis);
+	BuildingTypeExt::UpdateBuildupFrames(pThis);
 	return 0x465AAE;
 }
 
 DEFINE_OVERRIDE_HOOK(0x45EAA5, BuildingTypeClass_LoadArt_BuildupTime, 6)
 {
 	GET(BuildingTypeClass*, pThis, ESI);
-	UpdateBuildupFrames(pThis);
+	BuildingTypeExt::UpdateBuildupFrames(pThis);
 	return 0x45EB3A;
 }
 
 DEFINE_OVERRIDE_HOOK(0x45F2B4, BuildingTypeClass_Load2DArt_BuildupTime, 5)
 {
 	GET(BuildingTypeClass*, pThis, EBP);
-	UpdateBuildupFrames(pThis);
+	BuildingTypeExt::UpdateBuildupFrames(pThis);
 	return 0x45F310;
 }
 

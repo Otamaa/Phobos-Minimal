@@ -14,6 +14,8 @@
 
 #include <Misc/PhobosGlobal.h>
 
+#include <Notifications.h>
+
 void UpdateAlphaShape(ObjectClass* pSource)
 {
 	ObjectTypeClass* pSourceType = pSource->GetType();
@@ -103,6 +105,25 @@ void UpdateAlphaShape(ObjectClass* pSource)
 	}
 }
 
+
+DEFINE_OVERRIDE_HOOK(0x420A71, AlphaShapeClass_CTOR_Anims, 0x5)
+{
+	GET(AlphaShapeClass*, pThis, ESI);
+
+	if (pThis->AttachedTo && pThis->AttachedTo->WhatAmI() == AnimClass::AbsID)
+	{
+		PointerExpiredNotification::NotifyInvalidAnim->Add(pThis);
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x421798, AlphaShapeClass_SDDTOR_Anims, 0x6)
+{
+	GET(AlphaShapeClass*, pThis, ESI);
+	PointerExpiredNotification::NotifyInvalidAnim->Remove(pThis);
+	return 0;
+}
 
 DEFINE_OVERRIDE_HOOK(0x421730, AlphaShapeClass_SDDTOR, 8)
 {

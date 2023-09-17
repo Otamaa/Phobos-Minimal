@@ -88,6 +88,48 @@ void BuildingTypeExt::ExtData::UpdateFoundationRadarShape()
 	}
 }
 
+void BuildingTypeExt::UpdateBuildupFrames(BuildingTypeClass* pThis)
+{
+	auto pExt = BuildingTypeExt::ExtMap.Find(pThis);
+
+	if (const auto pShp = pThis->Buildup)
+	{
+		const auto frames = pThis->Gate ?
+			pThis->GateStages + 1 : pShp->Frames / 2;
+
+		const auto duration_build = pExt->BuildupTime.Get(RulesClass::Instance->BuildupTime);
+		const auto duration_sell = pExt->SellTime.Get(duration_build);
+
+		pExt->SellFrames = frames > 0 ? (int)(duration_sell / (double)frames * 900.0) : 1;
+		pThis->BuildingAnimFrame[0].dwUnknown = 0;
+		pThis->BuildingAnimFrame[0].FrameCount = frames;
+		pThis->BuildingAnimFrame[0].FrameDuration = frames > 0 ? (int)(duration_build / (double)frames * 900.0) : 1;
+	}
+}
+
+void BuildingTypeExt::ExtData::CompleteInitialization()
+{
+	auto const pThis = this->Get();
+
+	// enforce same foundations for rubble/intact building pairs
+	if (this->RubbleDestroyed &&
+		!BuildingTypeExt::ExtData::IsFoundationEqual(pThis, this->RubbleDestroyed))
+	{
+		Debug::FatalErrorAndExit(
+			"BuildingType %s and its %s %s don't have the same foundation.",
+			pThis->ID, "Rubble.Destroyed", this->RubbleDestroyed->ID);
+	}
+	if (this->RubbleIntact &&
+		!BuildingTypeExt::ExtData::IsFoundationEqual(pThis, this->RubbleIntact))
+	{
+		Debug::FatalErrorAndExit(
+			"BuildingType %s and its %s %s don't have the same foundation.",
+			pThis->ID, "Rubble.Intact", this->RubbleIntact->ID);
+	}
+
+	BuildingTypeExt::UpdateBuildupFrames(pThis);
+}
+
 bool BuildingTypeExt::ExtData::IsFoundationEqual(BuildingTypeClass* pType1, BuildingTypeClass* pType2)
 {
 	// both types must be set and must have same foundation id
@@ -376,7 +418,7 @@ bool BuildingTypeExt::IsLinkable(BuildingTypeClass* pThis)
 {
 	const auto pExt = BuildingTypeExt::ExtMap.Find(pThis);
 
-	return pExt->Firestorm_Wall || pExt->IsTrench >= 0;
+	return pThis->FirestormWall || pExt->IsTrench >= 0;
 }
 
 int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse)
@@ -802,6 +844,10 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 
 		this->BunkerRaidable.Read(exINI, pSection, "Bunker.Raidable");
 		this->Firestorm_Wall.Read(exINI, pSection, "Firestorm.Wall");
+
+		if(!pThis->FirestormWall && this->Firestorm_Wall)
+			pThis->FirestormWall = this->Firestorm_Wall;
+
 		this->AbandonedSound.Read(exINI, pSection, "AbandonedSound");
 		this->CloningFacility.Read(exINI, pSection, "CloningFacility");
 		this->Factory_ExplicitOnly.Read(exINI, pSection, "Factory.ExplicitOnly");

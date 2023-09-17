@@ -17,9 +17,9 @@ public:
 	{
 		CellClass* pObstacleCell = nullptr;
 
-		if (SubjectToObstacles(pBulletType))
+		if (BulletObstacleHelper::SubjectToObstacles(pBulletType))
 		{
-			if (SubjectToTerrain(pCurrentCell, pBulletType, isTargetingCheck))
+			if (BulletObstacleHelper::SubjectToTerrain(pCurrentCell, pBulletType, isTargetingCheck))
 				pObstacleCell = pCurrentCell;
 		}
 
@@ -29,7 +29,7 @@ public:
 	static CellClass* FindFirstObstacle(CoordStruct const& pSourceCoords, CoordStruct const& pTargetCoords, AbstractClass const* const pSource,
 		AbstractClass const* const pTarget, HouseClass* pOwner, BulletTypeClass* pBulletType, bool isTargetingCheck = false)
 	{
-		if (SubjectToObstacles(pBulletType))
+		if (BulletObstacleHelper::SubjectToObstacles(pBulletType))
 		{
 			auto sourceCell = CellClass::Coord2Cell(pSourceCoords);
 			auto const pSourceCell = MapClass::Instance->GetCellAt(sourceCell);
@@ -45,7 +45,7 @@ public:
 
 			for (size_t i = 0; i < maxDelta + isTargetingCheck; ++i)
 			{
-				if (auto const pCell = GetObstacle(pSourceCell, pTargetCell, pCellCur, crdCur, pSource, pTarget, pOwner, pBulletType, isTargetingCheck))
+				if (auto const pCell = BulletObstacleHelper::GetObstacle(pSourceCell, pTargetCell, pCellCur, crdCur, pSource, pTarget, pOwner, pBulletType, isTargetingCheck))
 					return pCell;
 
 				crdCur += step;
@@ -60,7 +60,7 @@ public:
 		AbstractClass const* const pTarget, HouseClass* pOwner, WeaponTypeClass* pWeapon, bool isTargetingCheck = false)
 	{
 		// Does not currently need further checks.
-		return FindFirstObstacle(pSourceCoords, pTargetCoords, pSource, pTarget, pOwner, pWeapon->Projectile, isTargetingCheck);
+		return BulletObstacleHelper::FindFirstObstacle(pSourceCoords, pTargetCoords, pSource, pTarget, pOwner, pWeapon->Projectile, isTargetingCheck);
 	}
 
 	static bool SubjectToObstacles(BulletTypeClass* pBulletType)
@@ -90,33 +90,33 @@ public:
 
 // Hooks
 
-DEFINE_HOOK(0x4688A9, BulletClass_Unlimbo_Obstacles, 0x6)
-{
-	enum { SkipGameCode = 0x468A3F, Continue = 0x4688BD };
+ DEFINE_HOOK(0x4688A9, BulletClass_Unlimbo_Obstacles, 0x6)
+ {
+ 	enum { SkipGameCode = 0x468A3F, Continue = 0x4688BD };
 
-	GET(BulletClass*, pThis, EBX);
-	GET(CoordStruct const* const, sourceCoords, EDI);
-	REF_STACK(CoordStruct const, targetCoords, STACK_OFFSET(0x54, -0x10));
+ 	GET(BulletClass*, pThis, EBX);
+ 	GET(CoordStruct const* const, sourceCoords, EDI);
+ 	REF_STACK(CoordStruct const, targetCoords, STACK_OFFSET(0x54, -0x10));
 
-	if (pThis->Type->Inviso)
-	{
-		auto const pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExt::ExtMap.Find(pThis)->Owner;
-		const auto pObstacleCell = BulletObstacleHelper::FindFirstObstacle(*sourceCoords, targetCoords, pThis->Owner, pThis->Target, pOwner, pThis->Type, false);
+ 	if (pThis->Type->Inviso)
+ 	{
+ 		auto const pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExt::ExtMap.Find(pThis)->Owner;
+ 		const auto pObstacleCell = BulletObstacleHelper::FindFirstObstacle(*sourceCoords, targetCoords, pThis->Owner, pThis->Target, pOwner, pThis->Type, false);
 
-		if (pObstacleCell)
-		{
-			pThis->SetLocation(pObstacleCell->GetCoords());
-			pThis->Speed = 0;
-			pThis->Velocity = {0,0,0};
+ 		if (pObstacleCell)
+ 		{
+ 			pThis->SetLocation(pObstacleCell->GetCoords());
+ 			pThis->Speed = 0;
+ 			pThis->Velocity = {0,0,0};
 
-			return SkipGameCode;
-		}
+ 			return SkipGameCode;
+ 		}
 
-		return Continue;
-	}
+ 		return Continue;
+ 	}
 
-	return 0;
-}
+ 	return 0;
+ }
 
 DEFINE_HOOK(0x468C86, BulletClass_ShouldExplode_Obstacles, 0xA)
 {

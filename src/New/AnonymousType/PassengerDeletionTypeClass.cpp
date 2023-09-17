@@ -34,6 +34,7 @@ PassengerDeletionTypeClass::PassengerDeletionTypeClass(TechnoTypeClass* pOwnerTy
 	, Anim {}
 {
 }
+
 void PassengerDeletionTypeClass::LoadFromINI(CCINIClass* pINI, const char* pSection)
 {
 	INI_EX exINI(pINI);

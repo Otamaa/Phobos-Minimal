@@ -139,6 +139,25 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	if (!Data->DropPodTrailer)
 		Data->DropPodTrailer = AnimTypeClass::Find(GameStrings::SMOKEY());
 
+	pData->FirestormActiveAnim.Read(iniEX, AUDIOVISUAL_SECTION, "FirestormActiveAnim");
+	pData->FirestormIdleAnim.Read(iniEX, AUDIOVISUAL_SECTION, "FirestormIdleAnim");
+	pData->FirestormGroundAnim.Read(iniEX, AUDIOVISUAL_SECTION, "FirestormGroundAnim");
+	pData->FirestormAirAnim.Read(iniEX, AUDIOVISUAL_SECTION, "FirestormAirAnim");
+	pData->FirestormWarhead.Read(iniEX, COMBATDAMAGE_SECTION, "FirestormWarhead");
+	pData->DamageToFirestormDamageCoefficient.Read(iniEX, GENERAL_SECTION, "DamageToFirestormDamageCoefficient");
+
+	if(!pData->FirestormActiveAnim)
+		pData->FirestormActiveAnim = AnimTypeClass::Find("GAFSDF_A");
+
+	if (!pData->FirestormIdleAnim)
+		pData->FirestormIdleAnim = AnimTypeClass::Find("FSIDLE");
+
+	if (!pData->FirestormGroundAnim)
+		pData->FirestormGroundAnim = AnimTypeClass::Find("FSGRND");
+
+	if (!pData->FirestormAirAnim)
+		pData->FirestormAirAnim = AnimTypeClass::Find("FSAIR");
+
 	pData->Bounty_Enablers.Read(iniEX, GENERAL_SECTION, "BountyEnablers");
 	pData->Bounty_Display.Read(iniEX, AUDIOVISUAL_SECTION, "BountyDisplay");
 	pData->CloakAnim.Read(iniEX, AUDIOVISUAL_SECTION, "CloakAnim");
@@ -438,6 +457,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 		this->WallTowers.push_back(pThis->WallTower);
 
 	this->Veins_PerCellAmount.Read(exINI, GENERAL_SECTION, "VeinsPerCellStorageAmount");
+	this->MultipleFactoryCap.Read(exINI, GENERAL_SECTION);
 #pragma endregion
 
 	detail::ParseVector(exINI, this->AITargetTypesLists, "AITargetTypes");
@@ -835,6 +855,14 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->VeinholePal)
 		.Process(this->Veinhole_Warhead)
 		.Process(this->Veins_PerCellAmount)
+
+		.Process(this->FirestormActiveAnim)
+		.Process(this->FirestormIdleAnim)
+		.Process(this->FirestormGroundAnim)
+		.Process(this->FirestormAirAnim)
+		.Process(this->FirestormWarhead)
+		.Process(this->DamageToFirestormDamageCoefficient)
+		.Process(this->MultipleFactoryCap)
 		;
 
 	MyPutData.Serialize(Stm);

@@ -54,14 +54,14 @@ void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 	}
 	case BehavesLike::Gas: {
 		/*
-			WindFacingMult Gas[at 0 - value(x:0, y : -2)]
-			WindFacingMult Gas[at 1 - value(x:2, y : -2)]
-			WindFacingMult Gas[at 2 - value(x:2, y : 0)]
-			WindFacingMult Gas[at 3 - value(x:2, y : 2)]
-			WindFacingMult Gas[at 4 - value(x:0, y : 2)]
-			WindFacingMult Gas[at 5 - value(x:-2, y : 2)]
-			WindFacingMult Gas[at 6 - value(x:-2, y : 0)]
-			WindFacingMult Gas[at 7 - value(x:-2, y : -2)]
+			[at 0 - value(x:0, y : -2)]
+			[at 1 - value(x:2, y : -2)]
+			[at 2 - value(x:2, y : 0)]
+			[at 3 - value(x:2, y : 2)]
+			[at 4 - value(x:0, y : 2)]
+			[at 5 - value(x:-2, y : 2)]
+			[at 6 - value(x:-2, y : 0)]
+			[at 7 - value(x:-2, y : -2)]
 		*/
 
 		ReadWinDirMult(this->WindMult, exINI, pID, ParticleClass::GasWind_X.begin(), ParticleClass::GasWind_Y.begin());

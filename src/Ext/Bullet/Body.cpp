@@ -15,7 +15,7 @@
 #include "Trajectories/PhobosTrajectory.h"
 
 #include <Utilities/Macro.h>
-//#include <Lib/gcem/gcem.hpp>
+#include <Lib/gcem/gcem.hpp>
 
 TechnoClass* BulletExt::InRangeTempFirer;
 

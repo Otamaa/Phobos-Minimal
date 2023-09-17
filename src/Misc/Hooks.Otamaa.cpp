@@ -60,27 +60,27 @@ DEFINE_HOOK(0x687AF4, CCINIClass_InitializeStuffOnMap_AdjustAircrafts, 0x5)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6FA2C7, TechnoClass_AI_DrawBehindAnim, 0x8) //was 4
+DEFINE_HOOK(0x6FA2CF, TechnoClass_AI_DrawBehindAnim, 0x9) //was 4
 {
-	GET(TechnoClass* const, pThis, ESI);
-	GET_STACK(Point2D, nPoint, STACK_OFFS(0x78, 0x50));
-	GET_STACK(RectangleStruct, nBound, STACK_OFFS(0x78, 0x50));
+	GET(TechnoClass*, pThis, ESI);
+	GET(Point2D*, pPoint, ECX);
+	GET(RectangleStruct*, pBound, EAX);
 
 	if (const auto pBld = specific_cast<BuildingClass*>(pThis))
 		if (BuildingExt::ExtMap.Find(pBld)->LimboID != -1)
-			return 0x6FA2D8;
+			return 0x6FA30C;
 
 	if(pThis->InOpenToppedTransport)
-		return 0x6FA2D8;
+		return 0x6FA30C;
 
 	const auto pType = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if(pType->IsDummy)
-		return 0x6FA2D8;
+		return 0x6FA30C;
 
-	pThis->DrawBehind(&nPoint, &nBound);
+	pThis->DrawBehindMark(pPoint, pBound);
 
-	return 0x6FA2D8;
+	return 0x6FA30C;
 }
 
 //DEFINE_HOOK(0x6EE606, TeamClass_TMission_Move_To_Own_Building_index, 0x7)
@@ -4651,15 +4651,16 @@ DEFINE_HOOK(0x489671, MapClass_DamageArea_Veinhole, 0x6)
 
 		for (auto pMonster : *VeinholeMonsterClass::Array)
 		{
-			if (!pMonster->InLimbo && (pMonster->MonsterCell.DistanceFromI(pCell->MapCoords) <= 0))
-				pMonster->ReceiveDamage(&nDamage,
+			if (!pMonster->InLimbo && pMonster->IsAlive && (pMonster->MonsterCell.DistanceFromI(pCell->MapCoords) <= 0))
+				if (pMonster->ReceiveDamage(&nDamage,
 					pCenter->DistanceFromI(CellClass::Cell2Coord(pMonster->MonsterCell)),
 					pWarhead,
 					pSource,
 					false,
 					false,
 					pSource && !pHouse ? pSource->Owner : pHouse
-				);
+				) == DamageState::NowDead)
+					Debug::Log("Veinhole at Destroyed!\n");
 
 		}
 	}
@@ -4888,10 +4889,15 @@ DEFINE_HOOK(0x6E9696, TeamClass_ChangeHouse_nullptrresult, 0x9)
 DEFINE_HOOK(0x4686FA, BulletClass_Unlimbo_MissingTargetPointer, 0x6)
 {
 	GET(BulletClass*, pThis, EBX);
+	GET_BASE(CoordStruct*, pUnlimboCoords, 0x8);
 
 	if (!pThis->Target) {
-		Debug::FatalErrorAndExit("Bullet [%s - %x] Missing Target Pointer when Unlimbo !\n",
+		Debug::Log("Bullet [%s - %x] Missing Target Pointer when Unlimbo! , Fallback To CreationCoord to Prevent Crash\n",
 			pThis->get_ID(), pThis);
+
+		pThis->Target = MapClass::Instance->GetCellAt(pUnlimboCoords);
+		R->EAX(pUnlimboCoords);
+		return 0x46870A;
 	}
 
 	return 0x0;
@@ -4909,6 +4915,41 @@ DEFINE_HOOK(0x65DD4E, TeamClass_CreateGroub_MissingOwner, 0x7)
 
 	R->EAX(pHouse);
 	return 0x65DD55;
+}
+
+DEFINE_HOOK(0x415302, AircraftClass_MissionUnload_IsDropship, 0x8)
+{
+	GET(AircraftClass*, pThis, ESI);
+
+	if (pThis->Destination) {
+		if (pThis->Type->IsDropship) {
+			CellStruct nCell = CellStruct::Empty;
+			if (pThis->Destination->WhatAmI() != CellClass::AbsID) {
+				if (auto pTech = generic_cast<TechnoClass*>(pThis)) {
+					nCell = CellClass::Coord2Cell(pTech->GetCoords());
+					if (nCell.IsValid()) {
+						if (auto pCell = MapClass::Instance->GetCellAt(nCell)) {
+							for (auto pOccupy = pCell->FirstObject;
+								pOccupy;
+								pOccupy = pOccupy->NextObject) {
+								if (pOccupy->WhatAmI() == AbstractType::Building) {
+									pThis->SetDestination(pThis->GoodLandingZone_(), true);
+								} else {
+									pOccupy->Scatter(pThis->GetCoords(), true, true);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			return 0x41531B;
+		}
+	}
+
+	return 0x41530C;
 }
 
 //std::string hex(uint32_t n, uint8_t d)
@@ -5309,6 +5350,172 @@ DEFINE_HOOK(0x6F91EC, TechnoClass_GreatestThreat_DeadTechnoInsideTracker, 0x6)
 }
 
 
+/**
+ *  Draw a radial to the screen.
+ *
+ *  @authors: CCHyper
+ */
+
+static void Tactical_Draw_Radial(
+	bool draw_indicator,
+	bool animate,
+	Coordinate center_coord,
+	ColorStruct color,
+	float radius,
+	bool concentric,
+	bool round)
+{
+	if (round)
+	{
+		radius = std::round(radius);
+	}
+
+	int size;
+
+	if (concentric)
+	{
+		size = (int)radius;
+	}
+	else
+	{
+		size = (int)((radius + 0.5) / Math::sqrt(2.0) * double(Unsorted::CellWidthInPixels)); // should be cell size global?
+	}
+
+	Point2D center_pixel {};
+	TacticalClass::Instance->CoordsToClient(&center_coord, &center_pixel);
+
+	center_pixel.X += DSurface::ViewBounds().X;
+	center_pixel.Y += DSurface::ViewBounds().Y;
+
+	RectangleStruct draw_area(
+		center_pixel.Y - size / 2,
+		center_pixel.X - size,
+		size * 2,
+		size
+	);
+
+	RectangleStruct intersect = draw_area.IntersectWith(DSurface::ViewBounds());
+	if (!intersect.IsValid())
+	{
+		return;
+	}
+
+	ColorStruct draw_color = color;
+
+	if (animate)
+	{
+		draw_color.Adjust(50, ColorStruct(0, 0, 0));
+	}
+
+	unsigned ellipse_color = DSurface::RGB_To_Pixel(draw_color.R, draw_color.G, draw_color.B);
+
+	/**
+	 *  Draw the main radial ellipse, then draw one slightly smaller to give a thicker impression.
+	 */
+	DSurface::Temp->Draw_Ellipse(center_pixel, size, size / 2, DSurface::ViewBounds(), ellipse_color);
+	DSurface::Temp->Draw_Ellipse(center_pixel, size - 1, size / 2 - 1, DSurface::ViewBounds(), ellipse_color);
+
+	/**
+	 *  Draw the sweeping indicator line.
+	 */
+	if (!draw_indicator)
+	{
+		return;
+	}
+
+	double d_size = (double)size;
+	double size_half = (double)size / 2;
+
+	/**
+	   *  The alpha values for the lines (producing the fall-off effect).
+	   */
+	static const double _line_alpha[] = {
+		//0.05, 0.20, 0.40, 1.0                     // original values.
+		0.05, 0.10, 0.20, 0.40, 0.60, 0.80, 1.0     // new values.
+	};
+
+	static const int _rate = 50;
+
+	for (size_t i = 0; i < ARRAY_SIZE(_line_alpha); ++i)
+	{
+
+		static int _offset = 0;
+		static MSTimerClass sweep_rate(_rate);
+
+		if (sweep_rate.Expired())
+		{
+			sweep_rate = _rate;
+			++_offset;
+		}
+
+		float angle_offset = float((_offset + i) * 0.05);
+		int angle_increment = int(angle_offset / DEG_TO_RADF(360));
+		float angle = angle_offset - (angle_increment * DEG_TO_RADF(360));
+
+		Point2D line_start {};
+		Point2D line_end {};
+
+		if (std::fabs(angle - DEG_TO_RADF(90)) < 0.001)
+		{
+
+			line_start = center_pixel;
+			line_end = Point2D(center_pixel.X, int(center_pixel.Y + (-size_half)));
+
+		}
+		else if (std::fabs(angle - DEG_TO_RADF(270)) < 0.001)
+		{
+
+			line_start = center_pixel;
+			line_end = Point2D(center_pixel.X, int(center_pixel.Y + size_half));
+
+		}
+		else
+		{
+
+			double angle_tan = Math::tan(angle);
+			double xdist = Math::sqrt(1.0 / ((angle_tan * angle_tan) / (size_half * size_half) + 1.0 / (d_size * d_size)));
+			double ydist = Math::sqrt((1.0 - (xdist * xdist) / (d_size * d_size)) * (size_half * size_half));
+
+			if (angle > DEG_TO_RADF(90) && angle < DEG_TO_RADF(270))
+			{
+				xdist = -xdist;
+			}
+
+			if (angle < DEG_TO_RADF(180))
+			{
+				ydist = -ydist;
+			}
+
+			line_start = center_pixel;
+			line_end = Point2D(int(center_pixel.X + xdist), int(center_pixel.Y + ydist));
+
+		}
+
+		line_start.X -= DSurface::ViewBounds().X;
+		line_start.Y -= DSurface::ViewBounds().Y;
+
+		line_end.X -= DSurface::ViewBounds().X;
+		line_end.Y -= DSurface::ViewBounds().Y;
+
+		bool enable_red_channel = false;
+		bool enable_green_channel = true;
+		bool enable_blue_channel = false;
+
+		DSurface::Temp->DrawSubtractiveLine_AZ(DSurface::ViewBounds(),
+										line_start,
+										line_end,
+										draw_color,
+										-500,
+										-500,
+										false,
+										enable_red_channel,
+										enable_green_channel,
+										enable_blue_channel,
+										(float)_line_alpha[i]);
+
+	}
+}
+
 void __fastcall DrawRadialIndicator(ObjectClass* pObj ,DWORD , int somth)
 {
 	if(const auto pTechno = generic_cast<TechnoClass*>(pObj))
@@ -5344,7 +5551,7 @@ void __fastcall DrawRadialIndicator(ObjectClass* pObj ,DWORD , int somth)
 				{
 					auto nCoord = pTechno->GetCoords();
 					const auto Color = pTypeExt->RadialIndicatorColor.Get(pOwner->Color);
-					Draw_Radial_Indicator(false, true, nCoord, Color, (nRadius * 1.0f), false, true);
+					Tactical_Draw_Radial(false, true, nCoord, Color, (nRadius * 1.0f), false, true);
 				}
 			}
 		}
@@ -5415,6 +5622,25 @@ DEFINE_HOOK(0x40A554, AudioDriverStart_AnnoyingBufferLogDisable_B, 0x6)
 	return 0x40A56C;
 }
 
+DEFINE_HOOK(0x442991, BuildingClass_ReceiveDamage_ReturnFire_EMPulseCannon, 0x6) {
+	GET(BuildingClass*, pThis, ESI);
+	return pThis->Type->EMPulseCannon || pThis->Type->NukeSilo ? 0x442A95 : 0x0;
+}
+
+DEFINE_HOOK(0x442A08, BuildingClass_ReceiveDamage_ReturnFire, 0x5)
+{
+	enum { SetTarget = 0x442A34, RandomFacing = 0x442A41 };
+
+	GET(TechnoClass*, pAttacker, EBP);
+	GET(BuildingClass*, pThis, ESI);
+
+	const bool def = BuildingTypeExt::ExtMap.Find(pThis->Type)->PlayerReturnFire.Get(
+		pAttacker->WhatAmI() == AircraftClass::AbsID ||
+		(pThis->Owner->ControlledByPlayer_() && !RulesClass::Instance->PlayerReturnFire)
+	);
+
+	return !def ? SetTarget : RandomFacing;
+}
 //DEFINE_HOOK(0x40A463, AudioDriverStart_NonamePrefill_PeekBuffer, 0x5)
 //{
 //	GET(AudioDriverChannelTag*, pTag, ECX);

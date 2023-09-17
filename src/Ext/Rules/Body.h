@@ -13,6 +13,7 @@
 
 #include <Misc/DynamicPatcher/Techno/AircraftPut/AircraftPutDataRules.h>
 
+#include <New/AnonymousType/MultipleFactoryCaps.h>
 
 class AnimTypeClass;
 class MouseCursor;
@@ -249,6 +250,16 @@ public:
 		Valueable<PaletteManager*> VeinholePal {};
 		Valueable<WarheadTypeClass*> Veinhole_Warhead { nullptr };
 		Valueable<float> Veins_PerCellAmount { 1.0f };
+
+		// firestorm
+		Valueable<AnimTypeClass*> FirestormActiveAnim {};
+		Valueable<AnimTypeClass*> FirestormIdleAnim {};
+		Valueable<AnimTypeClass*> FirestormGroundAnim {};
+		Valueable<AnimTypeClass*> FirestormAirAnim;
+		Nullable<WarheadTypeClass*> FirestormWarhead {};
+		Valueable<double> DamageToFirestormDamageCoefficient {};
+
+		MultipleFactoryCaps MultipleFactoryCap {};
 
 		AircraftPutDataRules MyPutData { };
 

@@ -271,21 +271,6 @@ DEFINE_OVERRIDE_HOOK(0x51E3B0, InfantryClass_GetActionOnObject_EMP, 0x7)
 DEFINE_DISABLE_HOOK(0x5200D7, InfantryClass_UpdatePanic_DontReload_ares)//, 0x6, 52010B)
 DEFINE_JUMP(LJMP, 0x5200D7, 0x52010B);
 
-DEFINE_OVERRIDE_HOOK(0x51BD4C , InfantryClass_Update_BuildingBelow, 6)
-{
-	GET(BuildingClass*, pBld, EDI);
-
-	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
-
-	if(pTypeExt->IsPassable)
-		return 0x51BD7D;
-
-	if (pTypeExt->Firestorm_Wall)
-		return 0x51BD56;
-
-	return 0x51BD68;
-}
-
 DEFINE_OVERRIDE_HOOK(0x51CE9A, InfantryClass_RandomAnim_IsCow, 5)
 {
 	GET(InfantryClass*, I, ESI);
@@ -326,24 +311,6 @@ DEFINE_OVERRIDE_HOOK(0x629804, ParasiteClass_UpdateSquiddy, 9)
 	GET(ParasiteClass*, pThis, ESI);
 	R->EAX(pThis->Owner->GetWeapon(pThis->Owner->align_154->idxSlot_Parasite));
 	return 0x62980D;
-}
-
-DEFINE_OVERRIDE_HOOK(0x51C4C8, InfantryClass_IsCellOccupied, 6)
-{
-	GET(BuildingClass* const, pBld, ESI);
-
-	enum { Impassable = 0x51C7D0, Ignore = 0x51C70F, NoDecision = 0x51C4EB, CheckFirestorm = 0x51C4D2 };
-	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
-
-	if (pTypeExt->IsPassable) {
-		return Ignore;
-	}
-
-	if (pTypeExt->Firestorm_Wall) {
-		return CheckFirestorm;
-	}
-
-	return NoDecision;
 }
 
 // #1283638: ivans cannot enter grinders; they get an attack cursor. if the

@@ -19,6 +19,9 @@
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/BuildingType/Body.h>
 
+#pragma warning( push )
+#pragma warning (disable : 4245)
+#pragma warning (disable : 4838)
 DEFINE_DISABLE_HOOK(0x46A5B2, BulletClass_Shrapnel_WeaponType1_ares)
 DEFINE_DISABLE_HOOK(0x46AA27, BulletClass_Shrapnel_WeaponType2_ares)
 
@@ -29,6 +32,7 @@ DEFINE_DISABLE_HOOK(0x46af97, BulletClass_Load_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x46af9e, BulletClass_Load_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x46afb0, BulletClass_SaveLoad_Prefix_ares)
 DEFINE_DISABLE_HOOK(0x46afc4, BulletClass_Save_Suffix_ares)
+#pragma warning( pop )
 
 DEFINE_OVERRIDE_HOOK(0x5f4fe7, ObjectClass_Put, 8)
 {

@@ -776,8 +776,8 @@ static void Fill_Triangle_Top(Surface& surface, Point2D& point1, Point2D& point2
 		point2 = point3;
 		point3 = temp;
 	}
-	float a = ((point2.X - point1.X) / (point2.Y - point1.Y));
-	float b = ((point3.X - point1.X) / (point3.Y - point1.Y));
+	float a = (float(point2.X - point1.X) / float(point2.Y - point1.Y));
+	float b = (float(point3.X - point1.X) / float(point3.Y - point1.Y));
 	float left = point1.X;
 	float right = point1.X;
 	for (int idy = point1.Y; idy <= point2.Y; ++idy)
@@ -801,8 +801,8 @@ static void Fill_Triangle_Bottom(Surface& surface, Point2D& point1, Point2D& poi
 		point2 = point1;
 		point1 = temp;
 	}
-	float a = ((point3.X - point1.X) / (point3.Y - point1.Y));
-	float b = ((point3.X - point2.X) / (point3.Y - point2.Y));
+	float a = (float(point3.X - point1.X) / float(point3.Y - point1.Y));
+	float b = (float(point3.X - point2.X) / float(point3.Y - point2.Y));
 	float left = point3.X;
 	float right = point3.X;
 	for (int idy = point3.Y; idy > point2.Y; --idy)

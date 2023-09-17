@@ -1031,7 +1031,6 @@ DEFINE_OVERRIDE_HOOK(0x4F8F54, HouseClass_Update_SlaveMinerCheck, 6)
 	return 0x4F8F75;
 }
 
-
 //0x4F8C97
 DEFINE_OVERRIDE_HOOK(0x4F8C97, HouseClass_Update_BuildConst, 6)
 {

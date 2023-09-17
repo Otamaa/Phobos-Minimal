@@ -68,43 +68,7 @@ DEFINE_HOOK(0x442A2A, BuildingClass_ReceiveDamage_RotateVsAircraft, 0x6)
 
 //#endif
 //
-//DEFINE_HOOK(0x415302, AircraftClass_MissionUnload_IsDropship, 0x8)
-//{
-//	GET(AircraftClass*, pThis, ESI);
-//
-//	if (pThis->Destination) {
-//		if (pThis->Type->IsDropship) {
-//			CellStruct nCell = CellStruct::Empty;
-//			if (pThis->SelectNavalTargeting(pThis->Destination) != 11) {
-//				if (auto pTech = pThis->Destination->AsTechno()) {
-//					auto nCoord = pTech->GetCoords();
-//					nCell = CellClass::Coord2Cell(nCoord);
-//
-//					if (nCell != CellStruct::Empty) {
-//						if (auto pCell = Map[nCell]) {
-//							for (auto pOccupy = pCell->FirstObject;
-//								pOccupy;
-//								pOccupy = pOccupy->NextObject) {
-//								if (pOccupy->WhatAmI() == AbstractType::Building) {
-//									auto pGoodLZ = pThis->GoodLandingZone();
-//									pThis->SetDestination(pGoodLZ, true);
-//								}
-//								else {
-//									nCoord = pThis->GetCoords();
-//									pOccupy->Scatter(nCoord, true, true);
-//								}
-//							}
-//						}
-//					}
-//				}
-//			}
-//		} else {
-//			return 0x41531B;
-//		}
-//	}
-//
-//	return 0x41530C;
-//}
+
 
 //DEFINE_HOOK(0x4CD8C9, FlyLocomotionClass_Movement_AI_DisableTSExp, 0x9)
 //{

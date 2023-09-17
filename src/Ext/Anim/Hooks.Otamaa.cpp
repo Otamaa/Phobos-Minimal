@@ -14,6 +14,7 @@
 
 void ApplyVeinsDamage(AnimClass* pThis ,int VeinDamage , WarheadTypeClass* VeinWarhead)
 {
+	//causing game to lock up atm
 	if (pThis->Type->IsVeins && VeinWarhead)
 	{
 		auto coord = pThis->GetCoords();
@@ -47,22 +48,22 @@ void ApplyVeinsDamage(AnimClass* pThis ,int VeinDamage , WarheadTypeClass* VeinW
 						&& pTechno->GetHeight() <= 5
 						)
 					{
-						pFist_->ReceiveDamage(&VeinDamage, 0, VeinWarhead, nullptr, false, false, nullptr);
+						int dmg = VeinDamage;
+						pFist_->ReceiveDamage(&dmg, 0, VeinWarhead, nullptr, false, false, nullptr);
+						Debug::Log("VeinAnim[%x] Damaging[%s - %x]\n", pThis, pTechno->get_ID(), pTechno);
 					}
 				}
 			}
 		}
-
 	}
 }
 
-DEFINE_HOOK(0x4243BC, AnimClass_AI_Veins, 0x6)
-{
-	GET(AnimClass*, pThis, ESI);
-	ApplyVeinsDamage(pThis, RulesClass::Instance->VeinDamage, RulesExt::Global()->Veinhole_Warhead);
-	return 0x0;
-}
-
+//DEFINE_HOOK(0x4243BC, AnimClass_AI_Veins, 0x6)
+//{
+//	GET(AnimClass*, pThis, ESI);
+//	ApplyVeinsDamage(pThis, RulesClass::Instance->VeinDamage, RulesExt::Global()->Veinhole_Warhead);
+//	return 0x0;
+//}
 
 DEFINE_HOOK(0x685078, Generate_OreTwinkle_Anims, 0x7)
 {

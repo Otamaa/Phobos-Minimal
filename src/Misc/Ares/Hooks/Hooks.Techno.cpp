@@ -451,27 +451,17 @@ DEFINE_OVERRIDE_HOOK(0x6FF008, TechnoClass_Fire_FSW, 8)
 		: R->EBX<BulletClass*>()
 		;
 
-	if (!Bullet->Type->IgnoresFirestorm)
-	{
+	if (!Bullet->Type->IgnoresFirestorm) {
 		return 0;
 	}
 
-	//	check the path of the projectile to see if there are any firestormed cells along the way
-	//	if so, redirect the proj to the nearest one so it crashes
-	//	this is technically only necessary for invisible projectiles which don't move to the target
-	//	- the BulletClass::Update hook above wouldn't work for them
-
-	// screw having two code paths
-
 	auto const crd = MapClass::Instance->FindFirstFirestorm(src, tgt, Bullet->Owner->Owner);
 
-	if (crd != CoordStruct::Empty)
+	if (crd.IsValid())
 	{
 		auto const pCell = MapClass::Instance->GetCellAt(crd);
 		Bullet->Target = pCell->GetContent();
 		Bullet->Owner->ShouldLoseTargetNow = 1;
-		//		Bullet->Owner->SetTarget(nullptr);
-		//		Bullet->Owner->Scatter(0xB1CFE8, 1, 0);
 	}
 
 	return 0;
