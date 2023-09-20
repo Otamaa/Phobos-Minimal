@@ -606,8 +606,12 @@ DEFINE_OVERRIDE_HOOK(0x4FF210, HouseClass_AI_AircraftProduction, 6)
 			if (pExt->AboutToChronoshift || pExt->LimboID >= 0)
 				return false;
 
-			const bool forbidden = (!pBld->IsAlive || pBld->GetCurrentMission() == Mission::Selling || pBld->QueuedMission == Mission::Selling ||
-				pBld->Health <= 0 || pBld->InLimbo);
+			const bool forbidden = (!pBld->IsAlive
+				|| pBld->GetCurrentMission() == Mission::Selling
+				|| pBld->QueuedMission == Mission::Selling
+				|| pBld->Health <= 0
+				|| pBld->InLimbo
+				);
 
 			if (forbidden)
 				return false;

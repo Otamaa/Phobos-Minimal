@@ -3148,7 +3148,6 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 
 void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged)
 {
-
 	TechnoTypeClass* pType = pThis->GetTechnoType();
 
 	if (pThis->Health)

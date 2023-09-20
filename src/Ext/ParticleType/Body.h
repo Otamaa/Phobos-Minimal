@@ -28,6 +28,7 @@ public:
 
 		std::array<Point2D, (size_t)FacingType::Count> WindMult {};
 
+		Valueable<PartialVector2D<int>> Gas_DriftSpeed { {2, -2} };
 
 		ExtData(ParticleTypeClass* OwnerObject) : Extension<ParticleTypeClass>(OwnerObject)
 		{ }

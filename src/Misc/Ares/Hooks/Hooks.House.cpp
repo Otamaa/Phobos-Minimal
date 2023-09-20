@@ -22,6 +22,16 @@
 
 #include <New/Type/GenericPrerequisite.h>
 
+#include "Header.h"
+
+
+DEFINE_OVERRIDE_HOOK(0x4F8440, HouseClass_Update_TogglePower, 5)
+{
+	GET(HouseClass* const, pThis, ECX);
+	AresHouseExt::UpdateTogglePower(pThis);
+	return 0;
+}
+
 DEFINE_OVERRIDE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
 {
 	// int (TechnoTypeClass *item, bool BuildLimitOnly, bool includeQueued)
@@ -35,25 +45,9 @@ DEFINE_OVERRIDE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
 	GET_STACK(TechnoTypeClass* const, pItem, 0x4);
 	GET_STACK(bool const, buildLimitOnly, 0x8);
 	GET_STACK(bool const, includeInProduction, 0xC);
+	//GET_STACK(DWORD , caller , 0x0);
 
-	auto nResult = HouseExt::PrereqValidate(pThis, pItem, buildLimitOnly, includeInProduction);
-
-	if (pItem->WhatAmI() == BuildingTypeClass::AbsID)
-	{
-		const auto pBuilding = static_cast<BuildingTypeClass* const>(pItem);
-		if (!BuildingTypeExt::ExtMap.Find(pBuilding)->PowersUp_Buildings.empty())
-		{
-			if (nResult == CanBuildResult::Buildable)
-			{
-				nResult = (CanBuildResult)BuildingTypeExt::CheckBuildLimit(pThis, pBuilding, includeInProduction);
-			}
-		}
-	}
-
-	//if (nResult == CanBuildResult::Unbuildable)
-	//	nResult = CanBuildResult::TemporarilyUnbuildable;
-
-	R->EAX(nResult);
+	R->EAX(HouseExt::PrereqValidate(pThis, pItem, buildLimitOnly, includeInProduction));
 	return 0x4F8361;
 }
 
@@ -156,17 +150,17 @@ DEFINE_OVERRIDE_HOOK(0x508EBC, HouseClass_Radar_Update_CheckEligible, 6)
 		;
 }
 
-DEFINE_OVERRIDE_HOOK(0x508F91, HouseClass_SpySat_Update_CheckEligible, 6)
-{
-	enum { Eligible = 0, Jammed = 0x508FF6 };
-	GET(BuildingClass*, SpySat, ECX);
-
-	return (!RegisteredJammers(SpySat).empty()
-					|| (SpySat->EMPLockRemaining > 0))
-		? Jammed
-		: Eligible
-		;
-}
+DEFINE_DISABLE_HOOK(0x508F91, HouseClass_SpySat_Update_CheckEligible_ares) //, 6)
+//{
+//	enum { Eligible = 0, Jammed = 0x508FF6 };
+//	GET(BuildingClass*, SpySat, ECX);
+//
+//	return (!RegisteredJammers(SpySat).empty()
+//					|| (SpySat->EMPLockRemaining > 0))
+//		? Jammed
+//		: Eligible
+//		;
+//}
 
 DEFINE_OVERRIDE_HOOK(0x4FE782, HouseClass_AI_BaseConstructionUpdate_PickPowerplant, 6)
 {
@@ -407,82 +401,12 @@ DEFINE_OVERRIDE_HOOK(0x505C95, HouseClass_GenerateAIBuildList_CountExtra, 7)
 	return 0;
 }
 
-/**
- * moved the fix for #917 here - check a house's ability to handle base plan
- * before it actually tries to generate a base plan, not at game start (we have
- * no idea what houses at game start are supposed to be able to do base
- * planning, so mission maps fuck up)
- */
-bool CheckBasePlanSanity(HouseClass* const pThis)
-{
-	// this shouldn't happen, but you never know
-	if (pThis->IsControlledByHuman_() || pThis->IsNeutral()) {
-		return true;
-	}
-
-	auto AllIsWell = true;
-
-	auto const pRules = RulesClass::Instance();
-	auto const pType = pThis->Type;
-
-	auto const errorMsg = "AI House[%x] of country [%s] cannot build any object in "
-		"%s. The AI ain't smart enough for that.\n";
-
-	// if you don't have a base unit buildable, how did you get to base
-	// planning? only through crates or map actions, so have to validate base
-	// unit in other situations
-	auto const idxParent = pType->FindParentCountryIndex();
-	auto const canBuild = pRules->BaseUnit.any_of([pThis, idxParent](UnitTypeClass const* const pItem) {
-		return pThis->CanExpectToBuild(pItem, idxParent);
-	});
-
-	if (!canBuild)
-	{
-		AllIsWell = false;
-		Debug::Log(errorMsg, pType->ID, "BaseUnit");
-	}
-
-	auto CheckList = [pThis, pType, idxParent, errorMsg, &AllIsWell](
-		Iterator<BuildingTypeClass const*> const list,
-		const char* const ListName) -> void
-		{
-			if (!HouseExt::FindBuildable(pThis, idxParent, list))
-			{
-				AllIsWell = false;
-				Debug::Log(errorMsg, pThis , pType->ID, ListName);
-			}
-		};
-
-	// commented out lists that do not cause a crash, according to testers
-	//CheckList(make_iterator(pRules->Shipyard), "Shipyard");
-	CheckList(make_iterator(pRules->BuildPower), "BuildPower");
-	CheckList(make_iterator(pRules->BuildRefinery), "BuildRefinery");
-	CheckList(make_iterator(pRules->BuildWeapons), "BuildWeapons");
-	//CheckList(make_iterator(pRules->BuildConst), "BuildConst");
-	//CheckList(make_iterator(pRules->BuildBarracks), "BuildBarracks");
-	//CheckList(make_iterator(pRules->BuildTech), "BuildTech");
-	//CheckList(make_iterator(pRules->BuildRadar), "BuildRadar");
-	//CheckList(make_iterator(pRules->ConcreteWalls), "ConcreteWalls");
-	//CheckList(make_iterator(pRules->BuildDummy), "BuildDummy");
-	//CheckList(make_iterator(pRules->BuildNavalYard), "BuildNavalYard");
-
-
-	CheckList(HouseTypeExt::ExtMap.Find(pType)->GetPowerplants(), "Powerplants");
-
-	//auto const pSide = SideClass::Array->GetItemOrDefault(pType->SideIndex);
-	//if(auto const pSideExt = SideExt::ExtMap.Find(pSide)) {
-	//	CheckList(make_iterator(pSideExt->BaseDefenses), "Base Defenses");
-	//}
-
-	return AllIsWell;
-}
-
 // #917 - validate build list before it needs to be generated
 DEFINE_OVERRIDE_HOOK(0x5054B0, HouseClass_GenerateAIBuildList_EnsureSanity, 6)
 {
 	GET(HouseClass* const, pThis, ECX);
 
-	CheckBasePlanSanity(pThis);
+	AresHouseExt::CheckBasePlanSanity(pThis);
 
 	// allow the list to be generated even if it will crash the game - sanity
 	// check will log potential problems and thou shalt RTFLog
@@ -1081,11 +1005,7 @@ DEFINE_OVERRIDE_HOOK(0x500CC5, HouseClass_InitFromINI_FixBufferLimits, 6)
 
 	//dropping this here, should be fine
 	const auto pParent = H->Type->FindParentCountry();
-	HouseTypeClass* pAdd = pParent ? pParent : H->Type;
-
-	if (!HouseExt::ExtMap.Find(H)->FactoryOwners_GatheredPlansOf.contains(pAdd)) {
-		HouseExt::ExtMap.Find(H)->FactoryOwners_GatheredPlansOf.push_back(pAdd);
-	}
+	HouseExt::ExtMap.Find(H)->FactoryOwners_GatheredPlansOf.push_back_unique(pParent ? pParent : H->Type);
 
 	return 0x500D0D;
 }

@@ -7,6 +7,7 @@
 #include <Base/Always.h>
 
 #include <HouseClass.h>
+#include <SlaveManagerClass.h>
 #include <Utilities/Debug.h>
 
 #include <Ext/TechnoType/Body.h>
@@ -16,13 +17,14 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/Anim/Body.h>
+#include <Ext/BuildingType/Body.h>
 
 #include <WWKeyboardClass.h>
 #include <Conversions.h>
 #include <Locomotor/TunnelLocomotionClass.h>
 
 #include <Misc/AresData.h>
-#include <Ares_TechnoExt.h>
+#include "Header.h"
 
 // TODO : require complete port of More IFV turrents
 // 746B89 = UnitClass_GetUIName, 8
@@ -429,75 +431,23 @@ DEFINE_OVERRIDE_HOOK(0x718871, TeleportLocomotionClass_UnfreezeObject_SinkOrSwim
 	return 0x7188B1;
 }
 
-#include <Misc/AresData.h>
-
-void DepositTiberium(TechnoClass* pThis, float const amount, float const bonus, int const idxType)
-{
-	const auto pHouse = pThis->GetOwningHouse();
-	const auto pTiberium = TiberiumClass::Array->GetItem(idxType);
-	auto value = 0;
-
-	// always put the purified money on the bank account. otherwise ore purifiers
-	// would fill up storage with tiberium that doesn't exist. this is consistent with
-	// the original YR, because old GiveTiberium put it on the bank anyhow, despite its name.
-	if (bonus > 0.0)
-	{
-		value += int(bonus * pTiberium->Value * pHouse->Type->IncomeMult);
-	}
-
-	// also add the normal tiberium to the global account?
-	if (amount > 0.0)
-	{
-		auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-		if (!pExt->Refinery_UseStorage)
-		{
-			value += int(amount * pTiberium->Value * pHouse->Type->IncomeMult);
-		}
-		else
-		{
-			pHouse->GiveTiberium(amount, idxType);
-		}
-	}
-
-	// deposit
-	if (value > 0)
-	{
-		pHouse->GiveMoney(value);
-	}
-}
-
-void RefineTiberium(TechnoClass* pThis, float const amount, int const idxType)
-{
-
-	auto const pHouse = pThis->GetOwningHouse();
-
-	// get the number of applicable purifiers
-	auto purifiers = pHouse->NumOrePurifiers;
-	if (!pHouse->IsHumanPlayer && SessionClass::Instance->GameMode != GameMode::Campaign)
-	{
-		purifiers += RulesClass::Instance->AIVirtualPurifiers.GetItem(pHouse->GetAIDifficultyIndex());
-	}
-
-	// bonus amount (in tiberium)
-	auto const purified = purifiers * RulesClass::Instance->PurifierBonus * amount;
-
-	// add the tiberium to the house's credits
-	DepositTiberium(pThis, amount, purified, idxType);
-}
-
 DEFINE_OVERRIDE_HOOK(0x73E4A2, UnitClass_Mi_Unload_Storage, 0x6)
 {
 	// because a value gets pushed to the stack in an inconvenient
 	// location, we do our stuff and then mess with the stack so
 	// the original functions do nothing any more.
 	GET(BuildingClass* const, pBld, EDI);
-	GET(int const, idxTiberium, EBP);
+	GET(int, idxTiberium, EBP);
 	REF_STACK(float, amountRaw, 0x1C);
 	REF_STACK(float, amountPurified, 0x34);
 
-	DepositTiberium(pBld, amountRaw, amountPurified, idxTiberium);
-	//AresData::TechnoExt_ExtData_DepositTiberium(pBld, amountRaw, amountPurified, idxTiberium);
-	amountPurified = amountRaw = 0.0f;
+	TechnoExt_ExtData::DepositTiberium(pBld,
+	 amountRaw,
+	 BuildingTypeExt::GetPurifierBonusses(pBld->Owner) * amountRaw,
+	 idxTiberium
+	 );
+
+	amountPurified = 0.0f; //disable next function
 
 	return 0;
 }
@@ -514,7 +464,7 @@ DEFINE_OVERRIDE_HOOK(0x508D4A, HouseClass_UpdatePower_LocalDrain2, 6)
 
 DEFINE_OVERRIDE_HOOK(0x522D75, InfantryClass_Slave_UnloadAt_Storage, 6)
 {
-	GET(TechnoClass* const, pBld, EAX);
+	GET(TechnoClass* const, pSlaveMiner, EAX);
 	GET(int const, idxTiberium, ESI);
 	GET(StorageClass* const, pTiberium, EBP);
 
@@ -525,7 +475,7 @@ DEFINE_OVERRIDE_HOOK(0x522D75, InfantryClass_Slave_UnloadAt_Storage, 6)
 
 	if (amount > 0.0)
 	{
-		RefineTiberium(pBld, amount, idxTiberium);
+		TechnoExt_ExtData::RefineTiberium(pSlaveMiner, amount, idxTiberium);
 
 		// register for refinery smoke
 		R->BL(1);
@@ -582,7 +532,6 @@ DEFINE_OVERRIDE_HOOK(0x73DBF9, UnitClass_Mi_Unload_Decactivated, 5)
 	return 0;
 }
 
-#include <SlaveManagerClass.h>
 DEFINE_DISABLE_HOOK(0x73E66D, UnitClass_Mi_Harvest_SkipDock_ares)//, 6, 73E6CF);
 DEFINE_JUMP(LJMP, 0x73E66D, 0x73E6CF);
 
@@ -850,34 +799,6 @@ DEFINE_OVERRIDE_HOOK(0x6F8EE3, TechnoClass_FindTargetType_Heal, 6)
 	return 0x6F8F25;
 }
 
-bool NOINLINE FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget , WeaponTypeClass* pWeapon)
-{
-	const auto nRulesGreen = RulesClass::Instance->ConditionGreen;
-	const auto pThatTechnoExt = TechnoExt::ExtMap.Find(pTarget);
-	const auto pThatShield = pThatTechnoExt->GetShield();
-
-	if (pThatShield && pThatShield->IsActive())
-	{
-		if (!pThatShield->CanBePenetrated(pWeapon->Warhead))
-		{
-			if (pThatShield->GetType()->CanBeHealed)
-			{
-				const bool IsFullHP = pThatShield->GetHealthRatio() >= nRulesGreen;
-				if (!IsFullHP) {
-					return true;
-				} else {
-					if(pThatShield->GetType()->PassthruNegativeDamage)
-						return !(pTarget->GetHealthPercentage_() >= nRulesGreen);
-				}
-			}
-
-			return false;
-		}
-	}
-
-	return !(pTarget->GetHealthPercentage_() >= nRulesGreen);
-}
-
 DEFINE_OVERRIDE_HOOK(0x51C913, InfantryClass_CanFire_Heal, 7)
 {
 	enum { retFireIllegal = 0x51C939 , retContinue = 0x51C947 };
@@ -891,7 +812,7 @@ DEFINE_OVERRIDE_HOOK(0x51C913, InfantryClass_CanFire_Heal, 7)
 		return retFireIllegal;
 	}
 
-	return FiringAllowed(pThis , pThatTechno, pThis->GetWeapon(nWeaponIdx)->WeaponType) ?
+	return  TechnoExt_ExtData::FiringAllowed(pThis , pThatTechno, pThis->GetWeapon(nWeaponIdx)->WeaponType) ?
 		retContinue : retFireIllegal;
 
 }
@@ -903,7 +824,7 @@ DEFINE_OVERRIDE_HOOK(0x741113, UnitClass_CanFire_Heal, 0xA)
 	GET(TechnoClass*, pThatTechno, EDI);
 	GET_STACK(int , nWeaponIdx , STACK_OFFSET(0x1C , 0x8));
 
-	return !pThatTechno->IsIronCurtained() && FiringAllowed(pThis, pThatTechno , pThis->GetWeapon(nWeaponIdx)->WeaponType ) ?
+	return !pThatTechno->IsIronCurtained() && TechnoExt_ExtData::FiringAllowed(pThis, pThatTechno , pThis->GetWeapon(nWeaponIdx)->WeaponType ) ?
 		retContinue : retFireIllegal ;
 }
 
@@ -921,55 +842,9 @@ DEFINE_HOOK(0x6F7F4F, TechnoClass_EvalObject_NegativeDamage, 0x7)
 			retFalse : ContinueCheck;
 	}
 
-	return !pThatTechno->IsIronCurtained() && FiringAllowed(pThis,pThatTechno ,pThis->GetWeapon(pThis->SelectWeapon(pThatTechno))->WeaponType) ?
+	return !pThatTechno->IsIronCurtained() && TechnoExt_ExtData::FiringAllowed(pThis,pThatTechno ,pThis->GetWeapon(pThis->SelectWeapon(pThatTechno))->WeaponType) ?
 		 ContinueCheck : retFalse;
 
-}
-
-std::pair<bool , int> NOINLINE HealActionProhibited(bool CheckKeyPress,TechnoClass* pTarget ,WeaponTypeClass* pWeapon)
-{
-	const auto pThatTechnoExt = TechnoExt::ExtMap.Find(pTarget);
-	const auto pThatShield = pThatTechnoExt->GetShield();
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
-
-	if (CheckKeyPress) {
-		if (WWKeyboardClass::Instance->IsForceMoveKeyPressed())
-			return {true , -1};
-	}
-
-	if (pThatShield && pThatShield->IsActive())
-	{
-		const auto pShieldType = pThatShield->GetType();
-
-		if (pWHExt->GetVerses(pShieldType->Armor).Verses <= 0.0) {
-			return { true , -1 };
-		}
-
-		if (!pThatShield->CanBePenetrated(pWeapon->Warhead))
-		{
-			if (pShieldType->CanBeHealed)
-			{
-				const bool IsFullHp = pThatShield->GetHealthRatio() >= RulesClass::Instance->ConditionGreen;
-
-				if (!IsFullHp) {
-					return { false ,  pShieldType->HealCursorType.Get(-1) };
-				}else {
-
-					if (pThatShield->GetType()->PassthruNegativeDamage)
-						return { pTarget->IsFullHP() , -1 };
-					else
-						return { true , -1 };
-				}
-			}
-
-			return { true , -1 };
-		}
-	}
-
-	if (pWHExt->GetVerses(pThatTechnoExt->Type->Armor).Verses <= 0.0)
-		return { true , -1 };
-
-	return { pTarget->IsFullHP() , -1 };
 }
 
 DEFINE_OVERRIDE_HOOK(0x51E710, InfantryClass_GetActionOnObject_Heal, 7)
@@ -994,7 +869,7 @@ DEFINE_OVERRIDE_HOOK(0x51E710, InfantryClass_GetActionOnObject_Heal, 7)
 
 	const auto pWeapon = pThis->GetWeapon(pThis->SelectWeapon(pThatTechno))->WeaponType;
 	const auto pThatType = pThatTechno->GetTechnoType();
-	const auto&[ret ,nCursorShield] = HealActionProhibited(true ,pThatTechno, pWeapon);
+	const auto&[ret ,nCursorShield] = TechnoExt_ExtData::HealActionProhibited(true ,pThatTechno, pWeapon);
 
 	if (ret) {
 		if (const auto pBuilding = specific_cast<BuildingClass*>(pThatTechno)) {
@@ -1039,7 +914,7 @@ DEFINE_OVERRIDE_HOOK(0x73FDBD, UnitClass_GetActionOnObject_Heal, 5)
 	}
 
 	auto pThatType = pThat->GetTechnoType();
-	const auto& [ret, nCursorSelected] = HealActionProhibited(false, pThatTechno,
+	const auto& [ret, nCursorSelected] = TechnoExt_ExtData::HealActionProhibited(false, pThatTechno,
 			    pThis->GetWeapon(pThis->SelectWeapon(pThat))->WeaponType);
 
 	if(ret)
@@ -1054,23 +929,13 @@ DEFINE_OVERRIDE_HOOK(0x73FDBD, UnitClass_GetActionOnObject_Heal, 5)
 	return DoActionGRepair;//0x73FE08;
 }
 
-NOINLINE UnitTypeClass* GetUnitTypeImage(UnitClass* const pThis)
-{
-	const auto pData = TechnoTypeExt::ExtMap.Find(pThis->Type);
-	if (pData->WaterImage && !pThis->OnBridge && pThis->GetCell()->LandType == LandType::Water && !pThis->IsAttackedByLocomotor) {
-		return pData->WaterImage;
-	}
-
-	return nullptr;
-}
-
 DEFINE_OVERRIDE_HOOK_AGAIN(0x73C69D, UnitClass_DrawSHP_ChangeType1, 6)
 DEFINE_OVERRIDE_HOOK_AGAIN(0x73C702, UnitClass_DrawSHP_ChangeType1, 6)
 DEFINE_OVERRIDE_HOOK(0x73C655, UnitClass_DrawSHP_ChangeType1, 6)
 {
 	GET(UnitClass*, U, EBP);
 
-	if (UnitTypeClass* pCustomType = GetUnitTypeImage(U))
+	if (UnitTypeClass* pCustomType = TechnoExt_ExtData::GetUnitTypeImage(U))
 	{
 		R->ECX<UnitTypeClass*>(pCustomType);
 		return R->Origin() + 6;
@@ -1085,7 +950,7 @@ DEFINE_OVERRIDE_HOOK(0x73C5FC, UnitClass_DrawSHP_WaterType, 6)
 
 	SHPStruct* Image = U->GetImage();
 
-	if (UnitTypeClass* pCustomType = GetUnitTypeImage(U))
+	if (UnitTypeClass* pCustomType = TechnoExt_ExtData::GetUnitTypeImage(U))
 	{
 		Image = pCustomType->GetImage();
 	}
@@ -1097,36 +962,6 @@ DEFINE_OVERRIDE_HOOK(0x73C5FC, UnitClass_DrawSHP_WaterType, 6)
 	}
 
 	return 0x73CE00;
-}
-
-#include <Utilities/Cast.h>
-
-NOINLINE TechnoTypeClass* GetImage(FootClass* pThis)
-{
-	if (const auto pUnit = specific_cast<UnitClass*>(pThis))
-	{
-		TechnoTypeClass* Image = pUnit->Type;
-
-		if (UnitTypeClass* const pCustomType = GetUnitTypeImage(pUnit))
-		{
-			Image = pCustomType;
-		}
-
-		if (pUnit->Deployed && pUnit->Type->UnloadingClass)
-		{
-			Image = pUnit->Type->UnloadingClass;
-		}
-
-		if (!pUnit->IsClearlyVisibleTo(HouseClass::CurrentPlayer)) {
-			if (auto pDisUnit = type_cast<UnitTypeClass*>(pUnit->GetDisguise(true))) {
-				Image = pDisUnit;
-			}
-		}
-
-		return Image;
-	}
-
-	return pThis->GetTechnoType();
 }
 
 DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
@@ -1146,10 +981,10 @@ DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 	if (!pThis->IsAlive)
 		return 0x0;
 
-	auto pType = GetImage(pThis);
+	auto pType = TechnoExt_ExtData::GetImage(pThis);
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 	const auto tur = pType->Gunner || pType->IsChargeTurret
-		? AresData::GetTurretsVoxel(pType, pThis->CurrentTurretNumber)
+		? TechnoTypeExt::GetTurretsVoxel(pType, pThis->CurrentTurretNumber)
 		: &pType->TurretVoxel;
 
 	if (pTypeExt->TurretShadow.Get(RulesExt::Global()->DrawTurretShadow) && tur->VXL && tur->HVA)
@@ -1170,7 +1005,7 @@ DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 		pThis->DrawVoxelShadow(tur, 0, angle, 0, a4, &a3, &mtx, a9, pSurface, pos);
 
 		const auto bar = pType->ChargerBarrels ?
-			AresData::GetBarrelsVoxel(pType, pThis->CurrentTurretNumber)
+			TechnoTypeExt::GetBarrelsVoxel(pType, pThis->CurrentTurretNumber)
 			: &pType->BarrelVoxel;
 
 		if (bar->VXL && bar->HVA)
@@ -1202,7 +1037,7 @@ DEFINE_OVERRIDE_HOOK(0x73B4A0, UnitClass_DrawVXL_WaterType, 9)
 
 	ObjectTypeClass* Image = U->Type;
 
-	if (UnitTypeClass* const pCustomType = GetUnitTypeImage(U)) {
+	if (UnitTypeClass* const pCustomType = TechnoExt_ExtData::GetUnitTypeImage(U)) {
 		Image = pCustomType;
 	}
 
@@ -1525,36 +1360,11 @@ DEFINE_OVERRIDE_HOOK(0x413ffa , AircraftClass_Init_TurretROT , 6)
 	return 0x414000;
 }
 
-namespace AresHadleTunnelLocoStuffs
-{
-	void Handle(FootClass* pOwner, bool DugIN = false, bool PlayAnim = false)
-	{
-		const auto pExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
-		const auto pRules = RulesClass::Instance();
-		const auto nSound = (DugIN ? pExt->DigInSound : pExt->DigOutSound).Get(pRules->DigSound);
-
-		VocClass::PlayIndexAtPos(nSound, pOwner->Location);
-
-		if (PlayAnim)
-		{
-			if (const auto pAnimType = (DugIN ? pExt->DigInAnim : pExt->DigOutAnim).Get(pRules->Dig))
-			{
-				AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pOwner->Location),
-					pOwner->Owner,
-					nullptr,
-					false
-				);
-			}
-		}
-	}
-
-}
-
 DEFINE_OVERRIDE_HOOK(0x728EF0, TunnelLocomotionClass_ILocomotion_Process_Dig, 5)
 {
 	GET(FootClass*, pFoot, EAX);
 
-	AresHadleTunnelLocoStuffs::Handle(pFoot, true, true);
+	TechnoExt_ExtData::HandleTunnelLocoStuffs(pFoot, true, true);
 	return 0x728F74;
 }
 
@@ -1565,7 +1375,7 @@ DEFINE_OVERRIDE_HOOK(0x7292CF, TunnelLocomotionClass_sub_7291F0_Dig, 8)
 	GET(int, nTimeLeft, EAX);
 
 	pTimer->Start(nTimeLeft);
-	AresHadleTunnelLocoStuffs::Handle(pThis->LinkedTo, true, true);
+	TechnoExt_ExtData::HandleTunnelLocoStuffs(pThis->LinkedTo, true, true);
 	return 0x729365;
 
 }
@@ -1574,7 +1384,7 @@ DEFINE_OVERRIDE_HOOK(0x7293DA, TunnelLocomotionClass_sub_729370_Dig, 6)
 {
 	GET(FootClass*, pFoot, ECX);
 
-	AresHadleTunnelLocoStuffs::Handle(pFoot, true, true);
+	TechnoExt_ExtData::HandleTunnelLocoStuffs(pFoot, true, true);
 	return 0x72945E;
 }
 
@@ -1582,7 +1392,7 @@ DEFINE_OVERRIDE_HOOK(0x7297C4, TunnelLocomotionClass_sub_729580_Dig, 6)
 {
 	GET(FootClass*, pFoot, EAX);
 
-	AresHadleTunnelLocoStuffs::Handle(pFoot, false, false);
+	TechnoExt_ExtData::HandleTunnelLocoStuffs(pFoot, false, false);
 	return 0x7297F3;
 }
 
@@ -1590,7 +1400,7 @@ DEFINE_OVERRIDE_HOOK(0x7299A9, TunnelLocomotionClass_sub_7298F0_Dig, 5)
 {
 	GET(TunnelLocomotionClass*, pThis, ESI);
 
-	AresHadleTunnelLocoStuffs::Handle(pThis->LinkedTo, false, true);
+	TechnoExt_ExtData::HandleTunnelLocoStuffs(pThis->LinkedTo, false, true);
 	return 0x729A34;
 }
 
@@ -1598,7 +1408,7 @@ DEFINE_OVERRIDE_HOOK(0x72920C, TunnelLocomotionClass_Turning, 9)
 {
 	GET(TunnelLocomotionClass*, pThis, ESI);
 
-	if (pThis->_CoordsNow.X || pThis->_CoordsNow.Y || pThis->_CoordsNow.Z)
+	if (pThis->_CoordsNow.IsValid())
 		return 0;
 
 	pThis->State = TunnelLocomotionClass::State::DUG_OUT;

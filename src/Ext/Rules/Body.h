@@ -260,6 +260,7 @@ public:
 		Valueable<double> DamageToFirestormDamageCoefficient {};
 
 		MultipleFactoryCaps MultipleFactoryCap {};
+		Nullable<int> CloakHeight {};
 
 		AircraftPutDataRules MyPutData { };
 

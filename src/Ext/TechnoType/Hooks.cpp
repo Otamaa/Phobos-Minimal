@@ -40,11 +40,26 @@ DEFINE_HOOK(0x6F64A0, TechnoClass_DrawHealthBar_Hide, 0x5)
 
 	GET(TechnoClass*, pThis, ECX);
 
-	if (const auto pUnit = specific_cast<UnitClass*>(pThis))
+	const auto what = pThis->WhatAmI();
+
+	if(what == UnitClass::AbsID) {
+		const auto pUnit = (UnitClass*)pThis;
+
 		if (pUnit->DeathFrameCounter > 0)
 			return DoNotDraw;
+	}
 
-	if ((TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->HealthBar_Hide.Get()) || pThis->TemporalTargetingMe || pThis->IsSinking)
+	if(what == BuildingClass::AbsID) {
+		const auto pBld = (BuildingClass*)pThis;
+
+		if(pBld->Type->FirestormWall)
+			return DoNotDraw;
+	}
+
+	if ((TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->HealthBar_Hide.Get())
+		|| pThis->TemporalTargetingMe
+		|| pThis->IsSinking
+	)
 		return DoNotDraw;
 
 	return Draw;

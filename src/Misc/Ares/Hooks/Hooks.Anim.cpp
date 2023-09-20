@@ -24,6 +24,8 @@
 
 #include <Notifications.h>
 
+#include "Header.h"
+
 DEFINE_DISABLE_HOOK(0x425002, AnimClass_Expired_SpawnsParticle_ares)
 
 DEFINE_OVERRIDE_HOOK(0x424538, AnimClass_AI_DamageDelay, 0x6)
@@ -132,41 +134,23 @@ DEFINE_OVERRIDE_HOOK(0x42513F, AnimClass_Expired_ScorchFlamer, 0x7)
 
 	CoordStruct crd = pThis->GetCoords();
 
-	auto SpawnAnim = [&crd](AnimTypeClass* pType, int dist)
-	{
-		if (!pType)
-		{
-			return static_cast<AnimClass*>(nullptr);
-		}
-
-		CoordStruct crdAnim = crd;
-		if (dist > 0)
-		{
-			const auto crdNear = MapClass::GetRandomCoordsNear(crd, dist, false);
-			crdAnim = MapClass::PickInfantrySublocation(crdNear, true);
-		}
-
-		const auto count = ScenarioClass::Instance->Random.RandomRanged(1, 2);
-		return GameCreate<AnimClass>(pType, crdAnim, 0, count, 0x600u, 0, false);
-	};
-
 	if (pType->Flamer)
 	{
 		// always create at least one small fire
-		if (auto const pAnim1 = SpawnAnim(RulesClass::Instance->SmallFire, 64))
+		if (auto const pAnim1 = TechnoExt_ExtData::SpawnAnim(crd, RulesClass::Instance->SmallFire, 64))
 			AnimExt::SetAnimOwnerHouseKind(pAnim1, pAnim1->Owner, nullptr);
 
 		// 50% to create another small fire
 		if (ScenarioClass::Instance->Random.RandomFromMax(99) < 50)
 		{
-			if (auto const pAnim2 = SpawnAnim(RulesClass::Instance->SmallFire, 160))
+			if (auto const pAnim2 = TechnoExt_ExtData::SpawnAnim(crd, RulesClass::Instance->SmallFire, 160))
 				AnimExt::SetAnimOwnerHouseKind(pAnim2, pAnim2->Owner, nullptr);
 		}
 
 		// 50% chance to create a large fire
 		if (ScenarioClass::Instance->Random.RandomFromMax(99) < 50)
 		{
-			if (auto const pAnim3 = SpawnAnim(RulesClass::Instance->LargeFire, 112))
+			if (auto const pAnim3 = TechnoExt_ExtData::SpawnAnim(crd, RulesClass::Instance->LargeFire, 112))
 				AnimExt::SetAnimOwnerHouseKind(pAnim3, pAnim3->Owner, nullptr);
 		}
 
@@ -185,7 +169,7 @@ DEFINE_OVERRIDE_HOOK(0x42513F, AnimClass_Expired_ScorchFlamer, 0x7)
 			case LandType::Rock:
 				break;
 			default:
-				if (auto pAnim = SpawnAnim(RulesClass::Instance->SmallFire, 0))
+				if (auto pAnim = TechnoExt_ExtData::SpawnAnim(crd, RulesClass::Instance->SmallFire, 0))
 				{
 					if (pThis->OwnerObject)
 					{

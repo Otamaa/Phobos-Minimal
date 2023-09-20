@@ -461,6 +461,11 @@ public:
 		Valueable<bool> Generic_Warhead_Detonate { false };
 #pragma endregion
 
+		Valueable<bool> UseWeeds { false };
+		Valueable<int> UseWeeds_Amount { RulesClass::Instance->WeedCapacity };
+		Valueable<bool> UseWeeds_StorageTimer { false };
+		Valueable<int> UseWeeds_ReadinessAnimationPercentage { 90 };
+
 		ExtData(SuperWeaponTypeClass* OwnerObject) : Extension<SuperWeaponTypeClass>(OwnerObject)
 		{}
 

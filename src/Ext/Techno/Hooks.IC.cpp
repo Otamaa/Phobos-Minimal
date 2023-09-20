@@ -102,7 +102,6 @@ DEFINE_HOOK(0x4DEAEE, TechnoClass_IronCurtain_Flags, 0x6)
 	}
 	case IronCurtainFlag::Kill:
 	{
-	Kill:
 		R->EAX
 		(
 			pThis->ReceiveDamage
@@ -120,10 +119,21 @@ DEFINE_HOOK(0x4DEAEE, TechnoClass_IronCurtain_Flags, 0x6)
 	}break;
 	default:
 	{
-		if (!pType->Organic && pThis->WhatAmI() != InfantryClass::AbsID)
+		if (!pType->Organic || pThis->WhatAmI() != InfantryClass::AbsID)
 			return MakeInvunlnerable;
 		else
-			goto Kill;
+		{
+			R->EAX (
+			pThis->ReceiveDamage (
+				&pThis->Health,
+				0,
+				pTypeExt->IronCurtain_KillWarhead.Get(RulesClass::Instance->C4Warhead),
+				nullptr,
+				true,
+				false,
+				pSource
+			));
+		}
 
 	}break;
 	}

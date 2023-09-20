@@ -69,8 +69,8 @@ public:
 	PROTECTED_PROPERTY(BYTE, align_B3);
 	int RefCount;
 	double ColorSpeedResult;
-	DECLARE_PROPERTY(CoordStruct, GasCoord);
-	DECLARE_PROPERTY(Vector3D<float>, VelocitySmoke);
+	DECLARE_PROPERTY(CoordStruct, GasVelocity);
+	DECLARE_PROPERTY(Vector3D<float>, SmokeVelocity);
 	DECLARE_PROPERTY(CoordStruct, CoordStructD8);
 	float Velocity;
 	DECLARE_PROPERTY(CoordStruct, gapE8);

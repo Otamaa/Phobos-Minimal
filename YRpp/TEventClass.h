@@ -3,6 +3,8 @@
 #include <AbstractClass.h>
 #include <ProgressTimer.h>
 
+#include <EventArgs.h>
+
 //forward declarations
 class SuperClass;
 class TechnoClass;
@@ -87,14 +89,4 @@ public:
 	int               Value;
 	char		      String[0x1C];
 	HouseClass*       House;
-};
-
-struct EventArgs
-{
-	TriggerEvent EventType;
-	HouseClass* Owner;
-	ObjectClass* Object;
-	CDTimerClass* ActivationFrame;
-	bool* isRepeating;
-	AbstractClass* Source;
 };

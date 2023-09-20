@@ -53,8 +53,7 @@ DEFINE_HOOK(0x458623, BuildingClass_KillOccupiers_Replace_MuzzleFix, 0x7)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	if (pThis->Type->MaxNumberOccupants > 10)
-	{
+	if (pThis->Type->MaxNumberOccupants > 10) {
 		GET(int, nFiringIndex, EDI);
 		R->ECX(BuildingTypeExt::GetOccupyMuzzleFlash(pThis, nFiringIndex));
 	}

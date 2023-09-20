@@ -654,7 +654,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 	auto const pTargetTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
 	bool buildingIsConsideredVehicle = false;
 
-	if (pTargetTypeExt->IsDummy.Get())
+	if (pTargetTypeExt->IsDummy)
 		return false;
 
 	bool IsBuilding = false;

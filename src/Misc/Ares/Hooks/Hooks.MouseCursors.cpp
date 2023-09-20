@@ -76,9 +76,9 @@
 51E488 = InfantryClass_GetActionOnObject2, 5
 */
 
-// need to handle more stuffs before finalize this 
-// everything tested working as it should , other than S/L 
-// keep this away untill i finish the major SW stuffs ported 
+// need to handle more stuffs before finalize this
+// everything tested working as it should , other than S/L
+// keep this away untill i finish the major SW stuffs ported
 
 class MouseClassExt final : public MouseClass
 {
@@ -94,7 +94,7 @@ class MouseClassExt final : public MouseClass
 		if (nMouse >= MouseCursorType::count)
 			nMouse = MouseCursorType::SpyPlane;
 
-		return &MouseCursor::DefaultCursorsB[(int)nMouse];
+		return MouseCursor::DefaultCursorsB.begin() + (size_t)nMouse;
 	}
 
 public:
@@ -130,7 +130,7 @@ public:
 			}
 		}
 
-		return int(OutOfRange ? 
+		return int(OutOfRange ?
 		MouseCursorType::AttackOutOfRange : MouseCursorType::Attack);
 	}
 #pragma endregion
@@ -200,7 +200,7 @@ public:
 	{
 		return GetCursorData(mouse)->GetMouseFrame(wsmall) + this->MouseCursorCurrentFrame;
 	}
-	
+
 	//5BDB90 - Not a vtable
 	int _Get_Mouse_Frame(MouseCursorType mouse, bool wsmall = false) const
 	{
@@ -227,7 +227,7 @@ public:
 
 	static MouseCursorType ValidateCursorType(Action nAction)
 	{
-		if (MouseClassExt::CursorIdx.contains(nAction)  
+		if (MouseClassExt::CursorIdx.contains(nAction)
 			&& MouseClassExt::CursorIdx[nAction].first != MouseCursorType::Default) {
 			return MouseClassExt::CursorIdx[nAction].first;
 		}
@@ -427,7 +427,7 @@ static_assert(sizeof(MouseClassExt) == sizeof(MouseClass), "Invalid Size !");
 
 //std::unordered_map<Action, std::pair<MouseCursorType, bool>> MouseClassExt::CursorIdx;
 //
-////ares reset their cursor here 
+////ares reset their cursor here
 //DEFINE_HOOK(0x5BDDC0, MouseClass_Update_Replace, 0x5)
 //{
 //	GET(MouseClassExt*, pMouse, ECX);

@@ -25,272 +25,8 @@
 
 #include <Helpers/Enumerators.h>
 
-struct PipDrawData
-{
-	int PipIdx;
-	int DrawCount;
+#include "Header.h"
 
-	PipDrawData() :PipIdx { 0 }
-		, DrawCount { 1 }
-	{
-	}
-
-	PipDrawData(int nIdx, int nDrawCount) :PipIdx { nIdx }, DrawCount { nDrawCount }
-	{ }
-
-	bool operator==(const PipDrawData& nSec)
-	{
-		return false;
-	}
-
-	bool operator !=(const PipDrawData& nSec)
-	{
-		return !(*this == nSec);
-	}
-
-	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{
-		return
-			Stm
-			.Process(PipIdx)
-			.Process(DrawCount)
-			.Success()
-			;
-	}
-
-	bool Save(PhobosStreamWriter& Stm) const
-	{
-		return
-			Stm
-			.Process(PipIdx)
-			.Process(DrawCount)
-			.Success()
-			;
-	}
-};
-
-bool NOINLINE FindSameTunnel(BuildingClass* pTunnel)
-{
-	const auto pOwner = pTunnel->Owner;
-	if(!pOwner)
-		return false;
-
-	//found new building
-	return pOwner->Buildings.any_of([pTunnel](BuildingClass* pBld)
-	{
-		if (pTunnel != pBld && pBld->Health > 0 && !pBld->InLimbo && pBld->IsOnMap)
-		{
-			if (BuildingExt::ExtMap.Find(pBld)->LimboID != -1)
-				return false;
-
-			const auto nCurMission = pBld->CurrentMission;
-			if (nCurMission != Mission::Construction && nCurMission != Mission::Selling)
-			{
-				if (BuildingTypeExt::ExtMap.Find(pBld->Type)->TunnelType == BuildingTypeExt::ExtMap.Find(pTunnel->Type)->TunnelType)
-				{
-					return true;
-				}
-			}
-		}
-
-		return false;
-	});
-}
-
-void NOINLINE KillFootClass(FootClass* pFoot, TechnoClass* pKiller)
-{
-	if (!pFoot || !pFoot->IsAlive)
-		return;
-
-	pFoot->RegisterDestruction(pKiller);
-	Debug::Log(__FUNCTION__" Called \n");
-	TechnoExt::HandleRemove(pFoot, pKiller, false, false);
-}
-
-void NOINLINE DestroyTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, TechnoClass* pKiller)
-{
-	if (pTunnelData->empty() || FindSameTunnel(pTunnel))
-		return;
-
-	for (auto pFoot : *pTunnelData) {
-		KillFootClass(pFoot, pKiller);
-	}
-
-	pTunnelData->clear();
-}
-
-void NOINLINE EnterTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, FootClass* pFoot)
-{
-	pFoot->SetTarget(nullptr);
-	pFoot->OnBridge = false;
-	pFoot->unknown_C4 = 0;
-	pFoot->GattlingValue = 0;
-	pFoot->SetGattlingStage(0);
-
-	if (auto const pCapturer = pFoot->MindControlledBy)
-	{
-		if (const auto pCmanager = pCapturer->CaptureManager)
-		{
-			pCmanager->FreeUnit(pFoot);
-		}
-	}
-
-	if (!pFoot->Limbo())
-	{
-		Debug::Log("Techno[%s] Trying to enter Tunnel[%s] but failed ! \n", pFoot->get_ID(), pTunnel->get_ID());
-		return;
-	}
-
-	VocClass::PlayIndexAtPos(pTunnel->Type->EnterTransportSound, pTunnel->Location);
-
-	pFoot->Undiscover();
-
-	if (pFoot->GetCurrentMission() == Mission::Hunt)
-		pFoot->AbortMotion();
-
-	pTunnelData->push_back(pFoot);
-}
-
-bool NOINLINE CanEnterTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, FootClass* pEnterer)
-{
-	if (pEnterer->SendCommand(RadioCommand::QueryCanEnter, pTunnel) != RadioCommand::AnswerPositive)
-		return false;
-
-	EnterTunnel(pTunnelData, pTunnel, pEnterer);
-	return true;
-}
-
-static std::vector<int> PipData;
-
-NOINLINE std::vector<int>* PopulatePassangerPIPData(TechnoClass* pThis, TechnoTypeClass* pType, bool& Fail)
-{
-	int nPassangersTotal = pType->GetPipMax();
-	if (nPassangersTotal < 0)
-		nPassangersTotal = 0;
-
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-	const auto pBld = specific_cast<BuildingClass*>(pThis);
-
-	PipData.clear();
-
-	if (pBld)
-	{
-		const TunnelData* pTunnelData = HouseExt::GetTunnelVector(pBld->Type, pThis->Owner);
-		const bool Absorber = pBld->Absorber();
-
-		if (!pTunnelData)
-		{
-			if (pThis->Passengers.NumPassengers > nPassangersTotal)
-			{
-				Fail = true;
-				return &PipData;
-			}
-
-			PipData.resize(nPassangersTotal);
-
-			int nCargoSize = 0;
-			for (auto pPassenger = pThis->Passengers.GetFirstPassenger();
-				pPassenger;
-				pPassenger = generic_cast<FootClass*>(pPassenger->NextObject))
-			{
-				const auto pPassengerType = pPassenger->GetTechnoType();
-
-				auto nSize = !Absorber ? (int)pPassengerType->Size : 1;
-				if (nSize <= 0)
-					nSize = 1;
-
-				int nPip = 1;
-				const auto what = pPassenger->WhatAmI();
-
-				if (what == InfantryClass::AbsID)
-					nPip = (int)(static_cast<InfantryTypeClass*>(pPassengerType)->Pip);
-				else if (what == UnitClass::AbsID)
-					nPip = 5;
-
-				//fetch first cargo size and change the pip
-				PipData[nCargoSize] = nPip;
-				for (int i = nSize - 1; i > 0; --i)
-				{ //check if the extra size is there and increment it to
-			   // total size
-					PipData[nCargoSize + i] = 3;     //set extra size to pip index 3
-				}
-
-				nCargoSize += nSize;
-			}
-
-			return &PipData;
-		}
-		else
-		{
-			const int nTotal = pTunnelData->MaxCap > nPassangersTotal ? nPassangersTotal : pTunnelData->MaxCap;
-			PipData.resize(nTotal);
-
-			if ((int)pTunnelData->Vector.size() > nTotal)
-			{
-				Fail = true;
-				return &PipData;
-			}
-
-			for (size_t i = 0; i < pTunnelData->Vector.size(); ++i)
-			{
-				auto const& pContent = pTunnelData->Vector[i];
-				const auto what = pContent->WhatAmI();
-
-				int nPip = 1;
-				if (what == InfantryClass::AbsID)
-					nPip = (int)(static_cast<InfantryClass*>(pContent)->Type->Pip);
-				else if (what == UnitClass::AbsID)
-					nPip = 4;
-
-				PipData[i] = nPip;
-			}
-
-			return &PipData;
-		}
-	}
-	else
-	{
-		if (pThis->Passengers.NumPassengers > nPassangersTotal)
-		{
-			Fail = true;
-			return &PipData;
-		}
-
-		PipData.resize(nPassangersTotal);
-
-		int nCargoSize = 0;
-		for (auto pPassenger = pThis->Passengers.GetFirstPassenger();
-			pPassenger;
-			pPassenger = generic_cast<FootClass*>(pPassenger->NextObject))
-		{
-			const auto pPassengerType = pPassenger->GetTechnoType();
-
-			auto nSize = pTypeExt->Passengers_BySize.Get() ? (int)pPassengerType->Size : 1;
-			if (nSize <= 0)
-				nSize = 1;
-
-			const auto what = pPassenger->WhatAmI();
-
-			int nPip = 1;
-			if (what == InfantryClass::AbsID)
-				nPip = (int)(static_cast<InfantryTypeClass*>(pPassengerType)->Pip);
-			else if (what == UnitClass::AbsID)
-				nPip = 5;
-
-			//fetch first cargo size and change the pip
-			PipData[nCargoSize] = nPip;
-			for (int i = nSize - 1; i > 0; --i)
-			{ //check if the extra size is there and increment it to
-		   // total size
-				PipData[nCargoSize + i] = 3;     //set extra size to pip index 3
-			}
-
-			nCargoSize += nSize;
-		}
-
-		return &PipData;
-	}
-}
 
 DEFINE_OVERRIDE_HOOK(0x709D38, TechnoClass_DrawPipscale_Passengers, 7)
 {
@@ -310,7 +46,7 @@ DEFINE_OVERRIDE_HOOK(0x709D38, TechnoClass_DrawPipscale_Passengers, 7)
 	Point2D nPos = { nPosX ,nPosY };
 	int nForGunner = 0;
 	bool fail = false;
-	const auto pData = PopulatePassangerPIPData(pThis, pType, fail);
+	const auto pData = TunnelFuncs::PopulatePassangerPIPData(pThis, pType, fail);
 
 	if (fail)
 		return 0x70A083;
@@ -351,38 +87,13 @@ DEFINE_OVERRIDE_HOOK(0x709D38, TechnoClass_DrawPipscale_Passengers, 7)
 	return 0x70A4EC;
 }
 
-std::pair<bool, FootClass*> NOINLINE UnlimboOne(std::vector<FootClass*>* pVector, BuildingClass* pTunnel, DWORD Where)
-{
-	auto pPassenger = *std::prev(pVector->end());
-	auto nCoord = pTunnel->GetCoords();
-
-	const auto nBldFacing = ((((short)pTunnel->PrimaryFacing.Current().Raw >> 7) + 1) >> 1);
-
-	pPassenger->OnBridge = pTunnel->OnBridge;
-	pPassenger->SetLocation(nCoord);
-
-	++Unsorted::ScenarioInit();
-	bool Succeeded = pPassenger->Unlimbo(nCoord, (DirType)nBldFacing);
-	--Unsorted::ScenarioInit();
-
-	pVector->pop_back();
-
-	if (Succeeded)
-	{
-		pPassenger->Scatter(CoordStruct::Empty, true, false);
-		return { true,  pPassenger };
-	}
-
-	return { false,  pPassenger };
-}
-
 DEFINE_OVERRIDE_HOOK(0x442DF2, BuildingClass_Demolish_Tunnel, 6)
 {
 	GET_STACK(AbstractClass*, pKiller, 0x90);
 	GET(BuildingClass*, pTarget, EDI);
 
 	if (auto pTunnelData = HouseExt::GetTunnelVector(pTarget->Type, pTarget->Owner))
-		DestroyTunnel(&pTunnelData->Vector, pTarget, generic_cast<TechnoClass*>(pKiller));
+		TunnelFuncs::DestroyTunnel(&pTunnelData->Vector, pTarget, generic_cast<TechnoClass*>(pKiller));
 
 	return 0;
 }
@@ -393,7 +104,7 @@ DEFINE_OVERRIDE_HOOK(0x71A995, TemporalClass_Update_Tunnel, 5)
 	GET(BuildingClass*, pTarget, EBP);
 
 	if (const auto pTunnelData = HouseExt::GetTunnelVector(pTarget->Type, pTarget->Owner))
-		DestroyTunnel(&pTunnelData->Vector, pTarget, pThis->Owner);
+		TunnelFuncs::DestroyTunnel(&pTunnelData->Vector, pTarget, pThis->Owner);
 
 	return 0;
 }
@@ -415,7 +126,7 @@ DEFINE_OVERRIDE_HOOK(0x73A23F, UnitClass_UpdatePosition_Tunnel, 0x6)
 	if (!pTunnelData)
 		return Nothing;
 
-	return CanEnterTunnel(&pTunnelData->Vector, pTarget, pThis) ?
+	return TunnelFuncs::CanEnterTunnel(&pTunnelData->Vector, pTarget, pThis) ?
 		Entered : FailedToEnter;
 }
 
@@ -478,12 +189,12 @@ DEFINE_HOOK(0x7014B9, TechnoClass_SetOwningHouse_Tunnel, 0x6)
 
 		const auto nTunnelVec = HouseExt::GetTunnelVector(pBuilding->Type, pThis->Owner);
 
-		if (!nTunnelVec || FindSameTunnel(pBuilding))
+		if (!nTunnelVec || TunnelFuncs::FindSameTunnel(pBuilding))
 			return 0x0;
 
 		for (auto nPos = nTunnelVec->Vector.begin();
 			nPos != nTunnelVec->Vector.end(); ++nPos) {
-			KillFootClass(*nPos, nullptr);
+			TunnelFuncs::KillFootClass(*nPos, nullptr);
 		}
 
 		nTunnelVec->Vector.clear();
@@ -501,7 +212,7 @@ DEFINE_OVERRIDE_HOOK(0x44A37F, BuildingClass_Mi_Selling_Tunnel_TryToPlacePasseng
 
 	const auto nTunnelVec = HouseExt::GetTunnelVector(pThis->Type, pThis->Owner);
 
-	if (!nTunnelVec || FindSameTunnel(pThis))
+	if (!nTunnelVec || TunnelFuncs::FindSameTunnel(pThis))
 		return 0x0;
 
 	int nOffset = 0;
@@ -510,10 +221,10 @@ DEFINE_OVERRIDE_HOOK(0x44A37F, BuildingClass_Mi_Selling_Tunnel_TryToPlacePasseng
 	while (std::begin(nTunnelVec->Vector) != std::end(nTunnelVec->Vector))
 	{
 		nOffset++;
-		auto const& [status, pPtr] = UnlimboOne(&nTunnelVec->Vector, pThis, (nCell.X + CellArr[nOffset % nDev].X) | ((nCell.Y + CellArr[nOffset % nDev].Y) << 16));
+		auto const& [status, pPtr] = TunnelFuncs::UnlimboOne(&nTunnelVec->Vector, pThis, (nCell.X + CellArr[nOffset % nDev].X) | ((nCell.Y + CellArr[nOffset % nDev].Y) << 16));
 		if (!status)
 		{
-			KillFootClass(pPtr, nullptr);
+			TunnelFuncs::KillFootClass(pPtr, nullptr);
 		}
 	}
 
@@ -522,88 +233,6 @@ DEFINE_OVERRIDE_HOOK(0x44A37F, BuildingClass_Mi_Selling_Tunnel_TryToPlacePasseng
 	return 0x0;
 }
 
-bool NOINLINE UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel, bool silent = false)
-{
-	const auto facing = (((((short)pTunnel->PrimaryFacing.Current().Raw + 0x8000) >> 12) + 1) >> 1);
-	const auto Loc = pTunnel->GetMapCoords();
-
-	int nOffset = 0;
-	bool IsLessThanseven = true;
-	bool Succeeded = false;
-	CellStruct nResult;
-	CellClass* CurrentAdj = nullptr;
-	CellClass* NextCell = nullptr;
-	size_t nFacing = 0;
-
-	//TODO Fix these loop
-	for (int i = 0;; ++i)
-	{
-		nFacing = (facing + i) & 7;
-		const CellStruct tmpCoords = CellSpread::AdjacentCell[nFacing];
-		nResult = tmpCoords + Loc;
-		CellStruct next = tmpCoords + tmpCoords + Loc;
-
-		CurrentAdj = MapClass::Instance->GetCellAt(nResult);
-		NextCell = MapClass::Instance->GetCellAt(next);
-
-		const auto nLevel = pTunnel->GetCellLevel();
-		const auto nOccupyResult = pFoot->IsCellOccupied(CurrentAdj, (FacingType)nFacing, nLevel, nullptr, true);
-		const auto nNextnOccupyResult = pFoot->IsCellOccupied(NextCell, (FacingType)nFacing, nLevel, nullptr, true);
-
-		if ((!(int)nNextnOccupyResult) &&
-			(!IsLessThanseven || (!(int)nOccupyResult)) &&
-			(CurrentAdj->Flags & CellFlags::BridgeHead) == CellFlags::Empty)
-			break;
-
-		IsLessThanseven = i == 7 ? false : true;
-
-		++nOffset;
-
-		if (nOffset >= 16)
-			return false;
-	}
-
-	const auto pFootType = pFoot->GetTechnoType();
-	++Unsorted::ScenarioInit();
-
-	CoordStruct nResultC = CellClass::Cell2Coord(nResult);
-	if (pFoot->WhatAmI() == AbstractType::Infantry)
-	{
-		nResultC = MapClass::Instance->PickInfantrySublocation(nResultC, false);
-	}
-	else
-	{
-		const auto nNearby = MapClass::Instance->NearByLocation(nResult, pFootType->SpeedType, -1, MovementZone::None, false, 1, 1, false, false, false, true, CellStruct::Empty, false, false);
-		nResultC = CellClass::Cell2Coord(nNearby);
-	}
-
-	Succeeded = pFoot->Unlimbo(nResultC, DirType(32 * (nFacing & 0x3FFFFFF)));
-	--Unsorted::ScenarioInit();
-
-	if (Succeeded)
-	{
-		if (!silent)
-			VocClass::PlayIndexAtPos(pTunnel->Type->LeaveTransportSound, pTunnel->Location);
-
-		pFoot->QueueMission(Mission::Move, false);
-		pFoot->SetDestination(IsLessThanseven ? NextCell : CurrentAdj, true);
-		return true;
-	}
-
-	KillFootClass(pFoot, nullptr);
-	return false;
-}
-
-void NOINLINE HandleUnload(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel)
-{
-	auto nPos = pTunnelData->end();
-
-	if (pTunnelData->begin() != nPos)
-	{
-		if(UnloadOnce(*std::prev(nPos), pTunnel))
-			pTunnelData->pop_back();
-	}
-}
 
 DEFINE_OVERRIDE_HOOK(0x44D8A7, BuildingClass_Mi_Unload_Tunnel, 6)
 {
@@ -613,7 +242,7 @@ DEFINE_OVERRIDE_HOOK(0x44D8A7, BuildingClass_Mi_Unload_Tunnel, 6)
 	if (!nTunnelVec || nTunnelVec->Vector.empty())
 		return 0x0;
 
-	HandleUnload(&nTunnelVec->Vector, pThis);
+	TunnelFuncs::HandleUnload(&nTunnelVec->Vector, pThis);
 	return 0x44DC84;
 }
 
@@ -847,7 +476,7 @@ DEFINE_OVERRIDE_HOOK(0x51A2AD, InfantryClass_UpdatePosition_Tunnel, 9)
 
 	if (const auto nTunnelVec = HouseExt::GetTunnelVector(pBld->Type, pBld->Owner))
 	{
-		return CanEnterTunnel(&nTunnelVec->Vector, pBld, pThis) ? CanEnter : CannotEnter;
+		return TunnelFuncs::CanEnterTunnel(&nTunnelVec->Vector, pBld, pThis) ? CanEnter : CannotEnter;
 	}
 
 	return Nothing;

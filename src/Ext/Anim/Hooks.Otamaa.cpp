@@ -23,22 +23,24 @@ void ApplyVeinsDamage(AnimClass* pThis ,int VeinDamage , WarheadTypeClass* VeinW
 
 		if (!pFirst
 			|| pFirst->GetHeight() > 0
-			|| pCoorCell->OverlayTypeIndex != 12
+			|| pCoorCell->OverlayTypeIndex != 126
 			|| pCoorCell->OverlayData < 0x30u
-			|| pCoorCell->Level
+			|| pCoorCell->SlopeIndex
 			)
 		{
 			pThis->__ToDelete_197 = true; // wut
 		}
 
-		if ((Unsorted::CurrentFrame & 1) == 0 && pFirst)
+		if (Unsorted::CurrentFrame % 2 == 0 && pFirst)
 		{
 			for (auto pFist_ = pFirst; pFist_; pFist_->NextObject)
 			{
 				if (auto pTechno = generic_cast<TechnoClass*>(pFist_))
 				{
-
 					if (!pTechno->IsAlive || pTechno->Health <= 0 || pTechno->InLimbo)
+						continue;
+
+					if (pTechno->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pTechno)->DeathFrameCounter > 0)
 						continue;
 
 					const auto pType = pTechno->GetTechnoType();

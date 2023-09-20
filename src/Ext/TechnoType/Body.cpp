@@ -106,30 +106,33 @@ double TechnoTypeExt::GetTunnelSpeed(TechnoClass* pThis, RulesClass* pRules)
 	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->Tunnel_Speed.Get(pRules->TunnelSpeed);
 }
 
-VoxelStruct* TechnoTypeExt::GetBarrelsVoxelData(TechnoTypeClass* const pThis, size_t const nIdx)
+VoxelStruct* TechnoTypeExt::GetBarrelsVoxel(TechnoTypeClass* const pThis, int const nIdx)
 {
 	if (nIdx < TechnoTypeClass::MaxWeapons)
-		return &pThis->ChargerBarrels[nIdx];
+		return pThis->ChargerBarrels + nIdx;
 
 	const auto nAdditional = (nIdx - TechnoTypeClass::MaxWeapons);
-	if (nAdditional > TechnoTypeExt::ExtMap.Find(pThis)->BarrelImageData.size())
-		Debug::FatalErrorAndExit(__FUNCTION__" [%s] Size[%s] Is Bigger than BarrelData ! \n", pThis->ID, nAdditional);
 
-	return &TechnoTypeExt::ExtMap.Find(pThis)->BarrelImageData
-		[nAdditional];
+	if ((size_t)nAdditional >= TechnoTypeExt::ExtMap.Find(pThis)->BarrelImageData.size()) {
+		Debug::FatalErrorAndExit(__FUNCTION__" [%s] Size[%s] Is Bigger than BarrelData ! \n", pThis->ID, nAdditional);
+		return nullptr;
+	}
+
+	return TechnoTypeExt::ExtMap.Find(pThis)->BarrelImageData.data() +
+		nAdditional;
 }
 
-VoxelStruct* TechnoTypeExt::GetTurretVoxelData(TechnoTypeClass* const pThis, size_t const nIdx)
+VoxelStruct* TechnoTypeExt::GetTurretsVoxel(TechnoTypeClass* const pThis, int const nIdx)
 {
 	if (nIdx < TechnoTypeClass::MaxWeapons)
-		return &pThis->ChargerTurrets[nIdx];
+		return pThis->ChargerTurrets + nIdx;
 
 	const auto nAdditional = (nIdx - TechnoTypeClass::MaxWeapons);
-	if (nAdditional > TechnoTypeExt::ExtMap.Find(pThis)->TurretImageData.size())
+	if ((size_t)nAdditional >= TechnoTypeExt::ExtMap.Find(pThis)->TurretImageData.size()) {
 		Debug::FatalErrorAndExit(__FUNCTION__" [%s] Size[%d]  Is Bigger than TurretData ! \n", pThis->ID, nAdditional);
-
-	return &TechnoTypeExt::ExtMap.Find(pThis)->TurretImageData
-		[nAdditional];
+		return nullptr;
+	}
+	return TechnoTypeExt::ExtMap.Find(pThis)->TurretImageData.data() + nAdditional;
 }
 
 // Ares 0.A source
@@ -186,6 +189,57 @@ bool TechnoTypeExt::ExtData::IsCountedAsHarvester() const
 	}
 
 	return this->Harvester_Counted;
+}
+
+//DO NOT USE !
+void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis,
+	INI_EX& exArtINI,
+	const char* pArtSection,
+	ColletiveCoordStructVectorData& nFLH,
+	ColletiveCoordStructVectorData& nEFlh,
+	const char** pPrefixTag)
+{
+	char tempBuffer[0x40];
+	char tempBufferFLH[0x40];
+
+	bool parseMultiWeapons = pThis->TurretCount > 0 && pThis->WeaponCount > 0;
+	auto weaponCount = parseMultiWeapons ? pThis->WeaponCount : 2;
+
+	for (size_t g = 0; g < nFLH.size(); ++g) {
+		nFLH[g]->resize(weaponCount);
+		nEFlh[g]->resize(weaponCount);
+	}
+
+	for (int i = 0; i < weaponCount; i++)
+	{
+		for (int j = 0; j < INT_MAX; j++)
+		{
+			for(size_t k = 0; k < nFLH.size(); ++k){
+
+				const auto pPrefixTagRes = *(pPrefixTag + k);
+
+				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "%sWeapon%d", pPrefixTagRes, i + 1);
+				auto prefix = parseMultiWeapons ? tempBuffer : i > 0 ? "%sSecondaryFire" : "%sPrimaryFire";
+				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), prefix, pPrefixTagRes);
+
+				IMPL_SNPRNINTF(tempBufferFLH, sizeof(tempBufferFLH), "%sFLH.Burst%d", tempBuffer, j);
+				Nullable<CoordStruct> FLH { };
+				FLH.Read(exArtINI, pArtSection, tempBufferFLH);
+
+				IMPL_SNPRNINTF(tempBufferFLH, sizeof(tempBufferFLH), "Elite%sFLH.Burst%d", tempBuffer, j);
+				Nullable<CoordStruct> eliteFLH { };
+				eliteFLH.Read(exArtINI, pArtSection, tempBufferFLH);
+
+				if (FLH.isset() && !eliteFLH.isset())
+					eliteFLH = FLH;
+				else if (!FLH.isset() && !eliteFLH.isset())
+					break; // this break thing is actually making stuffs harder , lmao
+
+				(*nFLH[k])[i].push_back(FLH.Get());
+				(*nEFlh[k])[i].push_back(eliteFLH.Get());
+			}
+		}
+	}
 }
 
 void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection,
@@ -630,7 +684,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 			signed int idx = TheaterTypeClass::FindIndexById(cur);
 			if(idx != -1) {
 				this->Prerequisite_RequiredTheaters |= (1 << idx);
-			} else {
+			} else if (!GameStrings::IsBlank(cur)) {
 				Debug::INIParseFailed(pSection, "Prerequisite.RequiredTheaters", cur);
 			}
 		}
@@ -654,26 +708,6 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 #pragma endregion Prereq
 
-		char tempBuffer[0x40];
-
-		if (pThis->Gunner && this->Insignia_Weapon.empty())
-		{
-			const int weaponCount = pThis->WeaponCount;
-			this->Insignia_Weapon.resize(weaponCount);
-
-			for (int i = 0; i < weaponCount; i++)
-			{
-				auto& Data = this->Insignia_Weapon[i];
-				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Insignia.Weapon%d.%s", i + 1, "%s");
-				Data.Shapes.Read(exINI, pSection, tempBuffer);
-
-				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "InsigniaFrame.Weapon%d.%s", i + 1, "%s");
-				Data.Frame.Read(exINI, pSection, tempBuffer);
-
-				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "InsigniaFrames.Weapon%d", i + 1);
-				Data.Frames.Read(exINI, pSection, tempBuffer);
-			}
-		}
 
 		this->AttachedEffect.Read(exINI);
 		this->NoAmmoEffectAnim.Read(exINI, pSection, "NoAmmoEffectAnim", true);
@@ -764,8 +798,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		this->DigInSound.Read(exINI, pSection, "DigInSound");
 		this->DigOutSound.Read(exINI, pSection, "DigOutSound");
-		this->DigInAnim.Read(exINI, pSection, "DigInAnim");
-		this->DigOutAnim.Read(exINI, pSection, "DigOutAnim");
+		this->DigInAnim.Read(exINI, pSection, "DigIn");
+		this->DigOutAnim.Read(exINI, pSection, "DigOut");
 
 		this->EVA_UnitLost.Read(exINI, pSection, "EVA.Lost");
 
@@ -1056,6 +1090,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->Weeder_PipEmptyIndex.Read(exINI, pSection, "Weeder.PipEmptyIndex");
 		this->CanBeDriven.Read(exINI, pSection, "CanBeDriven");
 
+		this->CloakPowered.Read(exINI, pSection, "Cloakable.Powered");
+		this->CloakDeployed.Read(exINI, pSection, "Cloakable.Deployed");
+
 #pragma region AircraftOnly
 		if (this->AttachtoType == AircraftTypeClass::AbsID)
 		{
@@ -1193,6 +1230,12 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		//LineTrailData::LoadFromINI(this->LineTrailData, exArtINI, pArtSection);
 
+		// change the size on techno type and add more entry
+		//ColletiveCoordStructVectorData nFLH = { &WeaponBurstFLHs  , &DeployedWeaponBurstFLHs , &CrouchedWeaponBurstFLHs };
+		//ColletiveCoordStructVectorData nEFLH = { &EliteWeaponBurstFLHs  , &EliteDeployedWeaponBurstFLHs , &EliteCrouchedWeaponBurstFLHs };
+		//const char* tags[sizeof(ColletiveCoordStructVectorData) / sizeof(void*)] = { Phobos::readDefval  , "Deployed" , "Prone" };
+		//TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, nFLH, nEFLH, tags);
+
 		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, WeaponBurstFLHs, EliteWeaponBurstFLHs, "");
 		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, DeployedWeaponBurstFLHs, EliteDeployedWeaponBurstFLHs, "Deployed");
 		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, CrouchedWeaponBurstFLHs, EliteCrouchedWeaponBurstFLHs, "Prone");
@@ -1230,7 +1273,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_EvaluateSomeVariables(CCINIClass* p
 
 }
 
-void ImageStatusses::ReadVoxel(ImageStatusses& arg0, const char* const nKey, bool a4)
+ImageStatusses ImageStatusses::ReadVoxel(const char* const nKey, bool a4)
 {
 	char buffer[0x60];
 	IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.VXL", nKey);
@@ -1243,58 +1286,26 @@ void ImageStatusses::ReadVoxel(ImageStatusses& arg0, const char* const nKey, boo
 		IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.HVA", nKey);
 		CCFileClass  CCFileH { buffer };
 
-		if (CCFileH.Open(FileAccessMode::Read))
-		{
+		if (CCFileH.Open(FileAccessMode::Read)) {
 			pLoadedHVA = GameCreate<MotLib>(&CCFileH);
 		}
 
-		CCFileH.Close();
-		CCFileH.~CCFileClass();
 		if (!pLoadedHVA || pLoadedVXL->LoadFailed || pLoadedHVA->LoadedFailed)
 		{
-			arg0 = { {nullptr , nullptr} , false };
-
 			GameDelete<true, true>(pLoadedHVA);
-			GameDelete<true, false>(pLoadedVXL);
+			GameDelete<true, true>(pLoadedVXL);
+
+			return { {nullptr , nullptr} , false };
+
 		}
 		else
 		{
 			pLoadedHVA->Scale(pLoadedVXL->TailerData[pLoadedVXL->HeaderData->limb_number].HVAMultiplier);
-			arg0 = { {pLoadedVXL , pLoadedHVA }, true };
+			return { {pLoadedVXL , pLoadedHVA }, true };
 		}
 	}
-	else
-	{
-		arg0 = { {nullptr , nullptr} , a4 };
-	}
 
-	CCFileV.Close();
-	CCFileV.~CCFileClass();
-}
-
-void TechnoTypeExt::InitImageData(ImageVector& nVec, size_t size)
-{
-	if (size <= 0)
-		return;
-
-	nVec.resize(size);
-}
-
-void TechnoTypeExt::ClearImageData(ImageVector& nVec, size_t pos)
-{
-	if (nVec.empty())
-		return;
-
-	if (pos >= 0 && pos < nVec.size())
-	{
-		for (auto i = (nVec.begin() + pos); i != nVec.end(); ++i)
-		{
-			GameDelete<true, true>((*i).HVA);
-			(*i).HVA = nullptr;
-			GameDelete<true, true>((*i).VXL);
-			(*i).VXL = nullptr;
-		}
-	}
+	return { {nullptr , nullptr} , a4 };
 }
 
 void TechnoTypeExt::ExtData::AdjustCrushProperties()
@@ -1793,9 +1804,9 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->FallRate_ParachuteMax)
 		.Process(this->FallRate_NoParachuteMax)
 
-		.Process(this->BarrelImageData)
-		.Process(this->TurretImageData)
-		.Process(this->SpawnAltData)
+		//.Process(this->BarrelImageData)
+		//.Process(this->TurretImageData)
+		//.Process(this->SpawnAltData)
 		.Process(this->WeaponUINameX)
 		.Process(this->NoShadowSpawnAlt)
 
@@ -2029,27 +2040,9 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Weeder_PipEmptyIndex)
 
 		.Process(this->CanBeDriven)
+		.Process(this->CloakPowered)
+		.Process(this->CloakDeployed)
 		;
-}
-
-bool TechnoTypeExt::ExtData::LaserTrailDataEntry::Load(PhobosStreamReader& stm, bool registerForChange)
-{
-	return this->Serialize(stm);
-}
-
-bool TechnoTypeExt::ExtData::LaserTrailDataEntry::Save(PhobosStreamWriter& stm) const
-{
-	return const_cast<LaserTrailDataEntry*>(this)->Serialize(stm);
-}
-
-template <typename T>
-bool TechnoTypeExt::ExtData::LaserTrailDataEntry::Serialize(T& stm)
-{
-	return stm
-		.Process(idxType)
-		.Process(FLH)
-		.Process(IsOnTurret)
-		.Success();
 }
 
 double TechnoTypeExt::TurretMultiOffsetDefaultMult = 1.0;
@@ -2059,8 +2052,45 @@ double TechnoTypeExt::TurretMultiOffsetOneByEightMult = 0.125;
 // container
 TechnoTypeExt::ExtContainer TechnoTypeExt::ExtMap;
 
-TechnoTypeExt::ExtContainer::ExtContainer() : Container("TechnoTypeClass") { }
+TechnoTypeExt::ExtContainer::ExtContainer() : Container("TechnoTypeClass"), Map {} { }
 TechnoTypeExt::ExtContainer::~ExtContainer() = default;
+
+bool TechnoTypeExt::ExtContainer::Load(TechnoTypeClass* key, IStream* pStm)
+{
+	// this really shouldn't happen
+	if (!key)
+	{
+		//Debug::Log("[LoadKey] Attempted for a null pointer! WTF!\n");
+		return false;
+	}
+
+	auto Iter = TechnoTypeExt::ExtMap.Map.find(key);
+
+	if (Iter == TechnoTypeExt::ExtMap.Map.end()) {
+		Iter = TechnoTypeExt::ExtMap.Map.emplace(key, std::make_unique<TechnoTypeExt::ExtData>(key)).first;
+	}
+
+	this->ClearExtAttribute(key);
+	this->SetExtAttribute(key, Iter->second.get());
+
+	PhobosByteStream loader { 0 };
+	if (!loader.ReadBlockFromStream(pStm))
+	{
+		//Debug::Log("[LoadKey] Failed to read data from save stream?!\n");
+		return false;
+	}
+
+	PhobosStreamReader reader { loader };
+	if (reader.Expect(TechnoTypeExt::ExtData::Canary)
+		&& reader.RegisterChange(Iter->second.get()))
+	{
+		Iter->second->LoadFromStream(reader);
+		if (reader.ExpectEndOfBlock())
+			return true;
+	}
+
+	return false;
+}
 
 // =============================
 // container hooks
@@ -2068,7 +2098,16 @@ TechnoTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x711835, TechnoTypeClass_CTOR, 0x5)
 {
 	GET(TechnoTypeClass* , pItem, ESI);
-	TechnoTypeExt::ExtMap.Allocate(pItem);
+
+	auto Iter = TechnoTypeExt::ExtMap.Map.find(pItem);
+
+	if (Iter == TechnoTypeExt::ExtMap.Map.end()) {
+		Iter = TechnoTypeExt::ExtMap.Map.emplace(pItem, std::make_unique<TechnoTypeExt::ExtData>(pItem)).first;
+	}
+
+	TechnoTypeExt::ExtMap.ClearExtAttribute(pItem);
+	TechnoTypeExt::ExtMap.SetExtAttribute(pItem, Iter->second.get());
+
 	return 0;
 }
 
@@ -2082,8 +2121,7 @@ DEFINE_HOOK(0x711AE0, TechnoTypeClass_DTOR, 0x5)
 	//TechnoTypeExt::ClearImageData(pExt->TurretImageData);
 	//GameDelete<true, true>(pExt->SpawnAltData.VXL);
 	//GameDelete<true, true>(pExt->SpawnAltData.HVA);
-
-	TechnoTypeExt::ExtMap.Remove(pItem);
+	TechnoTypeExt::ExtMap.ClearExtAttribute(pItem);
 
 	return 0;
 }

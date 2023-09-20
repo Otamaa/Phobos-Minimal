@@ -1250,3 +1250,12 @@ DEFINE_HOOK(0x6D9781, Tactical_RenderLayers_DrawInfoTipAndSpiedSelection, 0x5)
 	return 0;
 }
 #pragma endregion DrawInfoTipAndSpiedSelection
+
+#include <VeinholeMonsterClass.h>
+
+DEFINE_HOOK(0x5349A5, Map_ClearVectors_Veinhole, 0x5)
+{
+	VeinholeMonsterClass::DeleteAll();
+	VeinholeMonsterClass::DeleteVeinholeGrowthData();
+	return 0;
+}

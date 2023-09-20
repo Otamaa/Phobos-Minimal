@@ -1,5 +1,6 @@
 #pragma once
 #include <EventClass.h>
+#include <TargetClass.h>
 
 class HouseClass;
 class BuildingClass;
@@ -32,9 +33,7 @@ public:
 
 	struct TrenchRedirectClick
 	{
-		TrenchRedirectClick(CellStruct* target , BuildingClass* source)
-			: TargetCell { target } , Source { source }
-		{ }
+		TrenchRedirectClick(CellStruct* target, BuildingClass* source);
 
 		static inline constexpr size_t size() { return sizeof(TrenchRedirectClick); }
 		static inline constexpr EventType AsEventType() {

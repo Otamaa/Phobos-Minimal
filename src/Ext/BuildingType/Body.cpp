@@ -202,14 +202,15 @@ int BuildingTypeExt::CheckBuildLimit(HouseClass* pHouse, BuildingTypeClass* pIte
 	const int Remaining = BuildingTypeExt::BuildLimitRemaining(pHouse, pItem);
 
 	if (BuildLimit >= 0 && Remaining <= 0)
-		return (includeQueued && FactoryClass::FindByOwnerAndProduct(pHouse, pItem)) ? NotReached : ReachedPermanently;
+		return (includeQueued && pHouse->GetFactoryProducing(pItem)) ? NotReached : ReachedPermanently;
 
 	return Remaining > 0 ? NotReached : ReachedTemporarily;
 }
 
 Point2D* BuildingTypeExt::GetOccupyMuzzleFlash(BuildingClass* pThis, int nOccupyIdx)
 {
-	return &BuildingTypeExt::ExtMap.Find(pThis->Type)->OccupierMuzzleFlashes[nOccupyIdx];
+	return BuildingTypeExt::ExtMap.Find(pThis->Type)
+		->OccupierMuzzleFlashes.data() + nOccupyIdx;
 }
 
 void BuildingTypeExt::DisplayPlacementPreview()
@@ -365,24 +366,19 @@ int BuildingTypeExt::GetBuildingAnimTypeIndex(BuildingClass* pThis, const Buildi
 				switch (nSlot)
 				{
 				case BuildingAnimSlot::Active:
-					if (!pBuildingExt->GarrisonAnim_ActiveOne.empty())
-						pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveOne.get_or_default(nIndex);
+					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveOne.get_or_default(nIndex);
 					break;
 				case BuildingAnimSlot::ActiveTwo:
-					if (!pBuildingExt->GarrisonAnim_ActiveTwo.empty())
-						pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveTwo.get_or_default(nIndex);
+					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveTwo.get_or_default(nIndex);
 					break;
 				case BuildingAnimSlot::ActiveThree:
-					if (!pBuildingExt->GarrisonAnim_ActiveThree.empty())
-						pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveThree.get_or_default(nIndex);
+					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveThree.get_or_default(nIndex);
 					break;
 				case BuildingAnimSlot::ActiveFour:
-					if (!pBuildingExt->GarrisonAnim_ActiveFour.empty())
-						pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveFour.get_or_default(nIndex);
+					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveFour.get_or_default(nIndex);
 					break;
 				case BuildingAnimSlot::Idle:
-					if (!pBuildingExt->GarrisonAnim_idle.empty())
-						pDecidedAnim = pBuildingExt->GarrisonAnim_idle.get_or_default(nIndex);
+					pDecidedAnim = pBuildingExt->GarrisonAnim_idle.get_or_default(nIndex);
 					break;
 				}
 
@@ -440,9 +436,47 @@ int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHou
 	return static_cast<int>(std::round(pBuilding->GetPowerOutput() * fFactor)) + nAmount;
 }
 
+float NOINLINE BuildingTypeExt::GetPurifierBonusses(HouseClass* pHouse)
+{
+	//removing the counter reference
+	// Unit unload , 73E437 done
+	// inf storage Ai , 522DD9 done
+	// limbo 1 , 44591F done
+	// Grand open , 44637C done
+	// Captured1 , 448AC2 done
+	// Captured2 , 4491EB done
+	float fFactor = 0.00f;
+
+	if (!pHouse || pHouse->Defeated || pHouse->IsNeutral() || HouseExt::IsObserverPlayer(pHouse))
+		return 0.00f;
+
+	auto pHouseExt = HouseExt::ExtMap.Find(pHouse);
+
+	if (pHouseExt->Building_OrePurifiersCounter.empty())
+		return 0.00f;
+
+	// purifier bonus only applicable outside campaign
+	// the bonus is using default rules value
+	const bool Eligible = SessionClass::Instance->GameMode != GameMode::Campaign;
+	const int bonusCount = !Eligible ? 0 : RulesClass::Instance->AIVirtualPurifiers[pHouse->GetAIDifficultyIndex()];
+	const float bonusAI = RulesClass::Instance->PurifierBonus * bonusCount; //virtual purifier using rules value
+
+	for (const auto& [pBldType, nCount] : pHouseExt->Building_OrePurifiersCounter)
+	{
+		const auto pExt = BuildingTypeExt::ExtMap.Find(pBldType);
+		const auto bonusses = pExt->PurifierBonus.Get(RulesClass::Instance->PurifierBonus);
+
+		if (bonusses > 0.00f) {
+			fFactor += (bonusses * nCount);
+		}
+	}
+
+	return (fFactor > 0.00f) ? fFactor + bonusAI : 0.00f ;
+}
+
 double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseClass* pOwner)
 {
-	double fFactor = 1.0;
+	double fFactor = 0.0;
 
 	if (!pWhat || !pOwner || pOwner->Defeated || pOwner->IsNeutral() || HouseExt::IsObserverPlayer(pOwner))
 		return fFactor;
@@ -457,7 +491,7 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 
 	for (const auto& [pBldType, nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
 	{
-		if (auto const pExt = BuildingTypeExt::ExtMap.TryFind(pBldType))
+		auto const pExt = BuildingTypeExt::ExtMap.Find(pBldType);
 		{
 			if (!pExt->SpeedBonus.AffectedType.empty() && !pExt->SpeedBonus.AffectedType.Contains(pType))
 				continue;
@@ -505,6 +539,9 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, Hou
 	const auto what = pWhat->WhatAmI();
 	for (const auto& [pBldType, nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
 	{
+		if (pBldType->PowerDrain && pOwner->HasLowPower())
+			continue;
+
 		if (auto const pExt = BuildingTypeExt::ExtMap.TryFind(pBldType))
 		{
 			if (!pExt->SpeedBonus.AffectedType.empty() && !pExt->SpeedBonus.AffectedType.Contains(pWhat))
@@ -780,8 +817,6 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 
 		this->CanC4_AllowZeroDamage.Read(exINI, pSection, "CanC4.AllowZeroDamage");
 		this->C4_Modifier.Read(exINI, pSection, "C4Modifier");
-		this->DockUnload_Cell.Read(exINI, pSection, "DockUnloadCell");
-		this->DockUnload_Facing.Read(exINI, pSection, "DockUnloadFacing");
 
 		// relocated the solid tag from artmd to rulesmd
 		this->Solid_Height.Read(exINI, pSection, "SolidHeight");
@@ -852,7 +887,6 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->CloningFacility.Read(exINI, pSection, "CloningFacility");
 		this->Factory_ExplicitOnly.Read(exINI, pSection, "Factory.ExplicitOnly");
 
-
 		this->LostEvaEvent.Read(exINI, pSection, "LostEvaEvent");
 		this->MessageCapture.Read(exINI, pSection, "Message.Capture");
 		this->MessageLost.Read(exINI, pSection, "Message.Lost");
@@ -864,6 +898,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->Secret_Boons.Read(exINI, pSection, "SecretLab.PossibleBoons");
 		this->Secret_RecalcOnCapture.Read(exINI, pSection, "SecretLab.GenerateOnCapture");
 
+		this->Academy.clear();
 		this->AcademyWhitelist.Read(exINI, pSection, "Academy.Types");
 		this->AcademyBlacklist.Read(exINI, pSection, "Academy.Ignore");
 		this->AcademyInfantry.Read(exINI, pSection, "Academy.InfantryVeterancy");
@@ -877,6 +912,13 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->IsPassable.Read(exINI, pSection, "IsPassable");
 		this->ProduceCashDisplay.Read(exINI, pSection, "ProduceCashDisplay");
 
+		this->Storage_ActiveAnimations.Read(exINI, pSection, "Storage.ActiveAnimations");
+
+		this->PurifierBonus.Read(exINI, pSection, "PurifierBonus");
+		this->PurifierBonus_RequirePower.Read(exINI, pSection, "PurifierBonus.RequirePower");
+		this->FactoryPlant_RequirePower.Read(exINI, pSection, "FactoryPlant.RequirePower");
+		this->SpySat_RequirePower.Read(exINI, pSection, "SpySat.RequirePower");
+		this->Cloning_RequirePower.Read(exINI, pSection, "Cloning.RequirePower");
 	}
 #pragma endregion
 
@@ -939,7 +981,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 
 			for (size_t i = 0; i < dimension; ++i)
 			{
-				_snprintf_s(key, _TRUNCATE, "Foundation.%d", i);
+				_snprintf_s(key, sizeof(key), "Foundation.%d", i);
 				if (pArtINI->ReadString(pArtSection, key, "", strbuff))
 				{
 					ParsePoint(itData, strbuff);
@@ -966,7 +1008,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 			auto itOutline = this->OutlineData.begin();
 			for (int i = 0; i < outlineLength; ++i)
 			{
-				_snprintf_s(key, _TRUNCATE, "FoundationOutline.%d", i);
+				_snprintf_s(key, sizeof(key), "FoundationOutline.%d", i);
 				if (pArtINI->ReadString(pArtSection, key, "", strbuff))
 				{
 					ParsePoint(itOutline, strbuff);
@@ -1043,13 +1085,16 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 
 			for (int i = 0; i < pThis->NumberOfDocks; ++i)
 			{
-				sprintf_s(keyDock, "DockingPoseDir%d", i);
+				_snprintf_s(keyDock, sizeof(keyDock), "DockingPoseDir%d", i);
 				Valueable<FacingType> dummyDock { FacingType::North };
 				dummyDock.Read(exArtINI, pArtSection, keyDock);
 				BuildingTypeExt::ExtMap.Find(pThis)->DockPoseDir[i] = dummyDock.Get();
 			}
 		}
 #pragma endregion
+
+		this->DockUnload_Cell.Read(exArtINI, pArtSection, "DockUnloadCell");
+		this->DockUnload_Facing.Read(exArtINI, pArtSection, "DockUnloadFacing");
 	}
 }
 
@@ -1242,6 +1287,11 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DegradePercentage)
 		.Process(this->IsPassable)
 		.Process(this->ProduceCashDisplay)
+		.Process(this->PurifierBonus)
+		.Process(this->PurifierBonus_RequirePower)
+		.Process(this->FactoryPlant_RequirePower)
+		.Process(this->SpySat_RequirePower)
+		.Process(this->Cloning_RequirePower)
 		;
 }
 

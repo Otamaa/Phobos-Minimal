@@ -22,6 +22,10 @@ DEFINE_HOOK(0x44AAD3 , BuildingClass_Mi_Selling_Upgrades, 9)
 	return 0;
 }
 
+// DEFINE_HOOK(0x44590B, BuildingClass_Limbo_OrePurifier, 0x6) {
+// 	return 0x44594;
+// }
+
 DEFINE_HOOK(0x445A9F, BuildingClass_Remove_Upgrades, 0x8)
 {
 	GET(BuildingClass*, pThis, ESI);

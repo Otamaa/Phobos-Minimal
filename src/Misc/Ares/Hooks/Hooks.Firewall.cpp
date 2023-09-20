@@ -32,17 +32,19 @@ DEFINE_OVERRIDE_HOOK(0x445355, BuildingClass_KickOutUnit_Firewall, 6)
 }
 
 // placement linking
-DEFINE_OVERRIDE_HOOK(0x6D5455, sub_6D5030, 6)
+DEFINE_OVERRIDE_HOOK(0x6D5455, TacticalClass_DrawPlacement_IsLInkable, 6)
 {
 	GET(BuildingTypeClass* const, pType, EAX);
-	return BuildingTypeExt::IsLinkable(pType) ? 0x6D545Fu : 0x6D54A9u;
+	return BuildingTypeExt::IsLinkable(pType) ?
+		0x6D545Fu : 0x6D54A9u;
 }
 
 // placement linking
-DEFINE_OVERRIDE_HOOK(0x6D5A5C, sub_6D59D0, 6)
+DEFINE_OVERRIDE_HOOK(0x6D5A5C, TacticalClass_DrawPlacement_FireWall_IsLInkable, 6)
 {
 	GET(BuildingTypeClass* const, pType, EDX);
-	return BuildingTypeExt::IsLinkable(pType) ? 0x6D5A66u : 0x6D5A75u;
+	return BuildingTypeExt::IsLinkable(pType) ?
+		0x6D5A66u : 0x6D5A75u;
 }
 
 // frame to draw
@@ -155,29 +157,39 @@ DEFINE_OVERRIDE_HOOK(0x440378, BuildingClass_Update_FirestormWall, 6)
 DEFINE_OVERRIDE_HOOK(0x51BD4C, InfantryClass_Update_BuildingBelow, 6)
 {
 	GET(BuildingClass*, pBld, EDI);
+	enum {
+		canPass = 0x51BD7D,
+		checkHouseFirewallActive = 0x51BD56 ,
+		cannotPass = 0x51BD68
+	};
 
 	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
 
 	if (pTypeExt->IsPassable)
-		return 0x51BD7D;
+		return canPass;
 
 	if (pBld->Type->FirestormWall)
-		return 0x51BD56;
+		return checkHouseFirewallActive;
 
-	return 0x51BD68;
+	return cannotPass;
 }
 
 DEFINE_OVERRIDE_HOOK(0x51C4C8, InfantryClass_IsCellOccupied, 6)
 {
 	GET(BuildingClass* const, pBld, ESI);
 
-	enum { Impassable = 0x51C7D0, Ignore = 0x51C70F, NoDecision = 0x51C4EB, CheckFirestorm = 0x51C4D2 };
+	enum {
+
+		Impassable = 0x51C7D0,
+		Ignore = 0x51C70F,
+		NoDecision = 0x51C4EB,
+		CheckFirestorm = 0x51C4D2
+	};
 
 	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
 
 	if (pTypeExt->IsPassable)
 		return Ignore;
-
 
 	if (pBld->Type->FirestormWall)
 		return CheckFirestorm;
@@ -185,11 +197,7 @@ DEFINE_OVERRIDE_HOOK(0x51C4C8, InfantryClass_IsCellOccupied, 6)
 	return NoDecision;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6F64CB, TechnoClass_DrawHealthBar_FirestormWall, 6)
-{
-	GET(BuildingClass* const, pThis, ESI);
-	return pThis->Type->FirestormWall ? 0x6F6832u : 0u;
-}
+DEFINE_DISABLE_HOOK(0x6F64CB, TechnoClass_DrawHealthBar_FirestormWall_ares) //, 6)
 
 DEFINE_OVERRIDE_HOOK(0x73F7B0, UnitClass_IsCellOccupied, 6)
 {
@@ -238,7 +246,7 @@ DEFINE_OVERRIDE_HOOK(0x4DA53E, FootClass_Update_AresAddition, 6)
 		{
 			if (pThis->Health > 0 && pThis->Health < pType->Strength)
 			{
-
+				bool wasDamaged = pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
 				auto const pCell = pThis->GetCell();
 
 				if (pCell->LandType == LandType::Tiberium)
@@ -259,9 +267,20 @@ DEFINE_OVERRIDE_HOOK(0x4DA53E, FootClass_Update_AresAddition, 6)
 						if (!(Unsorted::CurrentFrame % int(delay * 900.0)))
 						{
 							pThis->Health += health;
-							if (pThis->Health > pType->Strength)
-							{
+
+							if (pThis->Health > pType->Strength) {
 								pThis->Health = pType->Strength;
+							}
+
+							if (wasDamaged
+								&& (pThis->GetHealthPercentage() > RulesClass::Instance->ConditionYellow
+								|| pThis->GetHeight() < -10))
+							{
+								if (auto& dmgParticle = pThis->DamageParticleSystem)
+								{
+									dmgParticle->UnInit();
+									dmgParticle = nullptr;
+								}
 							}
 						}
 					}
@@ -304,12 +323,9 @@ DEFINE_OVERRIDE_HOOK(0x467B94, BulletClass_Update_Ranged, 7)
 
 		if (auto const pBld = pCell->GetBuilding())
 		{
-			const auto pFSWh = RulesExt::Global()->FirestormWarhead;
-			auto const pBulletOwner = pThis->Owner ? pThis->Owner->Owner : BulletExt::ExtMap.Find(pThis)->Owner;
-
-			HouseClass* pOwner = nullptr;
-			if (!WarheadTypeExt::ExtMap.Find(pFSWh)->CanAffectHouse(pBld->Owner, pBulletOwner))
-				pOwner = pBulletOwner;
+			HouseClass* pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExt::ExtMap.Find(pThis)->Owner;
+			if (WarheadTypeExt::ExtMap.Find(RulesExt::Global()->FirestormWarhead)->CanAffectHouse(pBld->Owner, pOwner))
+				pOwner =  nullptr; // clear the pointer if can affect the bullet owner
 
 			if (FirewallFunctions::IsActiveFirestormWall(pBld, pOwner))
 			{

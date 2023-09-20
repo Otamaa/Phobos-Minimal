@@ -554,15 +554,15 @@ void AresData::applyAE(WarheadTypeClass* pWH, CoordStruct* pTarget, HouseClass* 
 //	AresStdcall<DisableEMPAffectID, void, TechnoClass*>()(pTechno);
 //}
 
-bool AresData::CloakDisallowed(TechnoClass* pTechno, bool allowPassive)
-{
-	return AresThiscall<CloakDisallowedID, bool, void*, bool>()((void*)pTechno->align_154, allowPassive);
-}
+//bool AresData::CloakDisallowed(TechnoClass* pTechno, bool allowPassive)
+//{
+//	return AresThiscall<CloakDisallowedID, bool, void*, bool>()((void*)pTechno->align_154, allowPassive);
+//}
 
-bool AresData::CloakAllowed(TechnoClass* pTechno)
-{
-	return AresThiscall<CloadAllowedID, bool, void*>()((void*)pTechno->align_154);
-}
+//bool AresData::CloakAllowed(TechnoClass* pTechno)
+//{
+//	return AresThiscall<CloadAllowedID, bool, void*>()((void*)pTechno->align_154);
+//}
 
 bool AresData::RemoveAE(AresTechnoExt::AEData* pAE)
 {
@@ -579,10 +579,10 @@ void AresData::FlyingStringsAdd(TechnoClass* pTech, bool bSomething)
 //	AresThiscall <CalculateBountyID, void, void*, TechnoClass*>()((void*)pThis->align_154, pKiller);
 //}
 
-void AresData::SetSpotlight(TechnoClass* pThis, BuildingLightClass* pSpotlight)
-{
-	AresThiscall<SetSpotlightID, void, void*, BuildingLightClass*>()((void*)pThis->align_154, pSpotlight);
-}
+// void AresData::SetSpotlight(TechnoClass* pThis, BuildingLightClass* pSpotlight)
+// {
+// 	AresThiscall<SetSpotlightID, void, void*, BuildingLightClass*>()((void*)pThis->align_154, pSpotlight);
+// }
 
 //bool AresData::IsPowered(TechnoClass* pThis)
 //{
@@ -634,10 +634,10 @@ void AresData::SetSWMouseCursorAction(size_t CursorIdx,  bool bShrouded , int nA
 //	AresStdcall<UpdateDisplayToID, void, BuildingClass*>()(pFor);
 //}
 
-int* AresData::TechnoTypeExt_GetTurretWeaponIdx(TechnoTypeClass* pThis, int idx)
-{
-	return AresThiscall<GetTurretWeaponIdxID, int*, void*, int>()(GetAresTechnoTypeExt(pThis) , idx);
-}
+//int* AresData::TechnoTypeExt_GetTurretWeaponIdx(TechnoTypeClass* pThis, int idx)
+//{
+//	return AresThiscall<GetTurretWeaponIdxID, int*, void*, int>()(GetAresTechnoTypeExt(pThis) , idx);
+//}
 
 //bool AresData::TechnoTypeExt_CameoIsElite(TechnoTypeClass* pThis, HouseClass* Owner)
 //{

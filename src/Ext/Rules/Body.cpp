@@ -190,6 +190,17 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	}
 }
 
+static bool NOINLINE IsVanillaDummy(const char* ID) {
+	static constexpr const char* exception[] = { "DeathDummy" };
+
+	for (auto const& gameDummy : exception) {
+		if (CRT::strcmpi(ID, gameDummy) == 0)
+			return true;
+	}
+
+	return false;
+}
+
 DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 {	// create an array of crew for faster lookup
 	std::vector<InfantryTypeClass*> Crews(SideClass::Array->Count, nullptr);
@@ -205,37 +216,50 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		const auto what = pItem->WhatAmI();
 		const auto isFoot = what != AbstractType::BuildingType;
 		auto pExt = TechnoTypeExt::ExtMap.Find(pItem);
+		const auto myClassName = pItem->GetThisClassName();
+		bool WeederAndHarvesterWarning = false;
+
+		if (pItem->Strength == 0) {
+
+			if(!IsVanillaDummy(pItem->ID)){
+				Debug::Log("TechnoType[%s - %s] , registered with 0 strength"
+					", this mostlikely because this technotype has no rules entry"
+					" or it is suppose to be an dummy\n", pItem->ID, myClassName);
+			}
+
+			pExt->IsDummy = true;
+		}
 
 		if (pExt->Fake_Of.Get(nullptr) && pExt->Fake_Of->WhatAmI() != what) {
-			Debug::Log("[%s] has fake of but it different type from it!\n", pItem->ID);
+			Debug::Log("[%s - %s] has fake of but it different ClassType from it!\n", pItem->ID , myClassName);
 			pExt->Fake_Of.Reset();
 		}
 
 		if (pExt->ClonedAs.Get(nullptr) && pExt->ClonedAs->WhatAmI() != what) {
-			Debug::Log("[%s] has CloneAs but it different type from it!\n", pItem->ID);
+			Debug::Log("[%s - %s] has CloneAs but it different ClassType from it!\n", pItem->ID, myClassName);
 			pExt->ClonedAs.Reset();
 		}
 
 		if (pExt->ReversedAs.Get(nullptr) && pExt->ReversedAs->WhatAmI() != what) {
-			Debug::Log("[%s] has ReversedAs but it different type from it!\n", pItem->ID);
+			Debug::Log("[%s - %s] has ReversedAs but it different ClassType from it!\n", pItem->ID, pItem->ID, myClassName);
 			pExt->ReversedAs.Reset();
 		}
 
 		if(isFoot && !pExt->IsDummy && pItem->SpeedType == SpeedType::None) {
-			Debug::Log("[%s]SpeedType is invalid!\n", pItem->ID);
+			Debug::Log("[%s - %s]SpeedType is invalid!\n", pItem->ID, myClassName);
 		}
 
 		if(isFoot && !pExt->IsDummy && pItem->MovementZone == MovementZone::None) {
-			Debug::Log("[%s]MovementZone is invalid!\n", pItem->ID);
+			Debug::Log("[%s - %s]MovementZone is invalid!\n", pItem->ID, myClassName);
 		}
 
 		if(pItem->Passengers > 0 && pItem->SizeLimit < 1) {
-			Debug::Log("[%s]Passengers=%d and SizeLimit=%d!\n",
-				pItem->ID, pItem->Passengers, pItem->SizeLimit);
+			Debug::Log("[%s - %s]Passengers=%d and SizeLimit=%d!\n",
+				pItem->ID, myClassName, pItem->Passengers, pItem->SizeLimit);
 		}
 
 		if(pItem->PoweredUnit && !pExt->PoweredBy.empty()) {
-			Debug::Log("[%s] uses both PoweredUnit=yes and PoweredBy=!\n", pItem->ID);
+			Debug::Log("[%s - %s] uses both PoweredUnit=yes and PoweredBy=!\n", pItem->ID, myClassName);
 			pItem->PoweredUnit = false;
 		}
 
@@ -271,6 +295,7 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		}
 
 		if(isFoot) {
+
 			for (auto const pSuper : *SuperWeaponTypeClass::Array) {
 				auto pSuperExt = SWTypeExt::ExtMap.Find(pSuper);
 
@@ -290,13 +315,25 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 					//Debug::Log("Found specific InfDeathAnim for [WH : %s Inf : %s Anim %s]\n", pWarhead->ID, pInfType->ID, nBuffer->ID);
 					pExt->InfDeathAnims[((InfantryTypeClass*)pItem)->ArrayIndex] = nBuffer;
-			 }
-			});
+				 }
+				});
+			}
+
+			if (what == UnitTypeClass::AbsID) {
+				const auto pUnit = (UnitTypeClass*)pItem;
+
+				if (pUnit->Harvester && pUnit->Weeder)
+					WeederAndHarvesterWarning = true;
 			}
 		}
 		else
 		{
-			auto const pBType = static_cast<BuildingTypeClass*>(pItem);
+			auto const pBType = (BuildingTypeClass*)pItem;
+
+			if(pBType->Refinery && pBType->Weeder){
+				WeederAndHarvesterWarning = true;
+			}
+
 			auto const pBExt = BuildingTypeExt::ExtMap.Find(pBType);
 
 			if(pBExt->CloningFacility && pBType->Factory != AbstractType::None) {
@@ -322,6 +359,10 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 							   "explicitly.\n", pBType->ID, catName);
 				}
 			}
+		}
+
+		if (WeederAndHarvesterWarning) {
+			Debug::Log("Please choose between Weeder or (Refinery / Harvester) for [%s - %s] both cant be used at same time\n", pItem->ID, myClassName);
 		}
 	}
 
@@ -458,6 +499,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	this->Veins_PerCellAmount.Read(exINI, GENERAL_SECTION, "VeinsPerCellStorageAmount");
 	this->MultipleFactoryCap.Read(exINI, GENERAL_SECTION);
+
 #pragma endregion
 
 	detail::ParseVector(exINI, this->AITargetTypesLists, "AITargetTypes");
@@ -597,6 +639,8 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->Bounty_Value_Option.Read(exINI, GENERAL_SECTION, "BountyRewardOption");
 	this->EMPAIRecoverMission.Read(exINI, COMBATDAMAGE_SECTION, "EMPAIRecoverMission");
 	this->TimerBlinkColorScheme.Read(exINI, GameStrings::AudioVisual, "TimerBlinkColorScheme");
+
+	this->CloakHeight.Read(exINI, GENERAL_SECTION, "CloakHeight");
 }
 
 void RulesExt::LoadEarlyOptios(RulesClass* pThis, CCINIClass* pINI)
@@ -863,6 +907,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->FirestormWarhead)
 		.Process(this->DamageToFirestormDamageCoefficient)
 		.Process(this->MultipleFactoryCap)
+		.Process(this->CloakHeight)
 		;
 
 	MyPutData.Serialize(Stm);

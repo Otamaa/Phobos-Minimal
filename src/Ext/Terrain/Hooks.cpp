@@ -176,7 +176,8 @@ DEFINE_HOOK(0x5F4FEF, ObjectClass_Put_RegisterLogic_Terrain, 0x6)
 		auto const pTerrainType = static_cast<TerrainTypeClass* const>(pType);
 		if (!pTerrainType->SpawnsTiberium
 			&& !pTerrainType->IsFlammable
-			&& !pTerrainType->IsAnimated) {
+			&& !pTerrainType->IsAnimated
+			&& !pTerrainType->IsVeinhole) {
 			return NoUpdate;
 		}
 	}

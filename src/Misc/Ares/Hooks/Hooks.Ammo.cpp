@@ -19,43 +19,7 @@
 #include <WWKeyboardClass.h>
 #include <Conversions.h>
 
-#pragma region Funcs
-int GetAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapon)
-{
-	const auto pExt = WeaponTypeExt::ExtMap.Find(pWeapon);
-
-	for (int i = pExt->Ammo; i > 0; --i)
-		pThis->DecreaseAmmo();
-
-	return pExt->Ammo;
-}
-
-void DecreaseAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapon)
-{
-	const auto pType = pThis->GetTechnoType();
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-
-	if (GetAmmo(pThis, pWeapon) > 0) {
-		if (pThis->WhatAmI() != AircraftClass::AbsID) {
-			if (pTypeExt->NoAmmoWeapon > -1 && pTypeExt->NoAmmoEffectAnim) {
-				const auto pCurWeapon = pThis->GetWeapon(pTypeExt->NoAmmoWeapon);
-				if (pThis->Ammo <= pTypeExt->NoAmmoAmount && pCurWeapon->WeaponType != pWeapon) {
-					if (auto pAnim = GameCreate<AnimClass>(pTypeExt->NoAmmoEffectAnim.Get(), pThis->Location)) {
-						pAnim->SetOwnerObject(pThis);
-						pAnim->SetHouse(pThis->Owner);
-					}
-				}
-			}
-		}
-
-		if (pThis->WhatAmI() == BuildingClass::AbsID) {
-			const auto Ammo = reinterpret_cast<BuildingClass*>(pThis)->Type->Ammo;
-			if (Ammo > 0 && pThis->Ammo < Ammo)
-				pThis->StartReloading();
-		}
-	}
-}
-#pragma endregion
+#include "Header.h"
 
 //weapons can take more than one round of ammo
 DEFINE_OVERRIDE_HOOK(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
@@ -86,7 +50,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF656, TechnoClass_Fire_Ammo, 0xA)
 	GET(TechnoClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const, pWeapon, EBX);
 
-	DecreaseAmmo(pThis, pWeapon);
+	TechnoExt_ExtData::DecreaseAmmo(pThis, pWeapon);
 
 	return 0x6FF660;
 }

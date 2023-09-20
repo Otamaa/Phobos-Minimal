@@ -226,9 +226,9 @@ void LevitateLocomotionClass::DirtoSomething(double dValue)
 	const auto pSys = GameCreate<ParticleSystemClass>(ParticleSystemTypeClass::Find("GasPuffSys"), nCenter);
 	auto nEmpty = CoordStruct { 0,0,0 };
 	const auto pParticle = pSys->SpawnHeldParticle(&nCenter, &nEmpty);
-	pParticle->GasCoord.X = (int)(nCos * -16.0);
-	pParticle->GasCoord.Y = (int)(nSin * 16.0);
-	pParticle->GasCoord.Z = -12;
+	pParticle->GasVelocity.X = (int)(nCos * -16.0);
+	pParticle->GasVelocity.Y = (int)(nSin * 16.0);
+	pParticle->GasVelocity.Z = -12;
 	CurrentSpeed = Characteristic.Drag;
 	State = 1;
 }

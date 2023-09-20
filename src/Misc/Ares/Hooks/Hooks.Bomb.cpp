@@ -28,101 +28,20 @@
 #include <Notifications.h>
 #include <algorithm>
 
+#include "Header.h"
+
+#pragma warning( push )
+#pragma warning (disable : 4245)
+#pragma warning (disable : 4838)
 DEFINE_DISABLE_HOOK(0x4393F2, BombClass_SDDTOR_removeUnused1_ares)
 DEFINE_DISABLE_HOOK(0x438843, BombClass_Detonate_removeUnused2_ares)
 DEFINE_DISABLE_HOOK(0x438799, BombClass_Detonate_removeUnused3_ares)
 DEFINE_DISABLE_HOOK(0x6FCBAD, TechnoClass_GetObjectActivityState_IvanBomb_ares)
 DEFINE_DISABLE_HOOK(0x438e86, BombListClass_Plant_AllTechnos_ares)
 
-namespace Funcs
-{
-	void PlantBomb(TechnoClass* pSource, ObjectClass* pTarget, WeaponTypeClass* pWeapon)
-	{
-		// ensure target isn't rigged already
-		if (pTarget && !pTarget->AttachedBomb)
-		{
-			const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
-			const auto pTechno = generic_cast<TechnoClass*>(pTarget);
-
-			//https://bugs.launchpad.net/ares/+bug/1591335
-			if (pTechno && !pWHExt->CanDealDamage(pTechno))
-				return;
-
-			BombListClass::Instance->Plant(pSource, pTarget);
-
-			// if target has a bomb, planting was successful
-			if (auto pBomb = pTarget->AttachedBomb)
-			{
-				const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
-				BombExt::ExtMap.Find(pBomb)->Weapon = pWeaponExt;
-				pBomb->DetonationFrame = Unsorted::CurrentFrame + pWeaponExt->Ivan_Delay.Get(RulesClass::Instance->IvanTimedDelay);
-				pBomb->TickSound = pWeaponExt->Ivan_TickingSound.Get(RulesClass::Instance->BombTickingSound);
-
-				const auto IsAlly = pSource->Owner && pSource->Owner->IsAlliedWith_(pTarget);
-
-				pBomb->Type = BombType((!IsAlly && pWeaponExt->Ivan_DeathBomb) || (IsAlly && pWeaponExt->Ivan_DeathBombOnAllies));
-
-				if (pSource->Owner && pSource->Owner->ControlledByPlayer())
-				{
-					VocClass::PlayIndexAtPos(pWeaponExt->Ivan_AttachSound.Get(RulesClass::Instance->BombAttachSound)
-					, pBomb->Target->Location);
-				}
-			}
-		}
-	}
-
-	bool CanDetonate(TechnoClass* pThis, ObjectClass* pThat)
-	{
-		if (pThis == pThat && ObjectClass::CurrentObjects->Count == 1)
-		{
-			if (const auto pBomb = pThis->AttachedBomb)
-			{
-				if(!pBomb->OwnerHouse)
-					return false;
-
-				if (pBomb->OwnerHouse->ControlledByPlayer())
-				{
-					const auto pData = BombExt::ExtMap.Find(pBomb);
-					const bool bCanDetonateDeathBomb =
-						pData->Weapon->Ivan_CanDetonateDeathBomb.Get(RulesClass::Instance->CanDetonateDeathBomb);
-					const bool bCanDetonateTimeBomb =
-						pData->Weapon->Ivan_CanDetonateTimeBomb.Get(RulesClass::Instance->CanDetonateTimeBomb);
-
-					if (pBomb->Type == BombType::DeathBomb ?
-						bCanDetonateDeathBomb : bCanDetonateTimeBomb)
-						return true;
-				}
-			}
-		}
-
-		return false;
-	}
-
-	Action GetAction(TechnoClass* pThis, ObjectClass* pThat)
-	{
-		if(!pThat)
-			return Action::None;
-
-		if (CanDetonate(pThis, pThat))
-			return Action::Detonate;
-
-		if (pThis == pThat && ObjectClass::CurrentObjects->Count == 1)
-		{
-			if (pThat->AbstractFlags & AbstractFlags::Techno)
-			{
-				if (pThis->Owner && pThis->Owner->IsAlliedWith_(pThat) && pThat->IsSelectable())
-				{
-					return Action::Select;
-				}
-			}
-		}
-
-		return Action::None;
-	}
-};
-
 DEFINE_DISABLE_HOOK(0x438FD7 , BombListClass_Plant_AttachSound_ares)//, 7 , 439022);
 DEFINE_JUMP(LJMP, 0x438FD7, 0x439022);
+#pragma warning( pop )
 
 DEFINE_OVERRIDE_HOOK(0x438A00, BombClass_GetCurrentFrame, 6)
 {
@@ -290,7 +209,7 @@ DEFINE_OVERRIDE_HOOK(0x46934D, IvanBombs_Spread, 6)
 				return 0x469AA4;
 
 			// single target
-			Funcs::PlantBomb(pOwner, (ObjectClass*)pBullet->Target, pWeapon);
+			TechnoExt_ExtData::PlantBomb(pOwner, (ObjectClass*)pBullet->Target, pWeapon);
 		}
 		else
 		{
@@ -300,7 +219,7 @@ DEFINE_OVERRIDE_HOOK(0x46934D, IvanBombs_Spread, 6)
 			CellSpreadIterator<ObjectClass>{}(CellClass::Coord2Cell(tgtCoords),
 			static_cast<int>(pBullet->WH->CellSpread),
 			[pOwner, pWeapon](ObjectClass* pTechno) {
-				Funcs::PlantBomb(pOwner, pTechno, pWeapon);
+				TechnoExt_ExtData::PlantBomb(pOwner, pTechno, pWeapon);
 				return true;
 			});
 		}
@@ -333,7 +252,7 @@ DEFINE_OVERRIDE_HOOK(0x447218, BuildingClass_GetActionOnObject_Deactivated, 6)
 	GET_STACK(ObjectClass*, pThat, 0x1C);
 
 	if (pThis->Deactivated) {
-		R->EAX(Funcs::GetAction(pThis, pThat));
+		R->EAX(TechnoExt_ExtData::GetAction(pThis, pThat));
 		return 0x447273;
 	}
 
@@ -346,7 +265,7 @@ DEFINE_OVERRIDE_HOOK(0x73FD5A, UnitClass_GetActionOnObject_Deactivated, 5)
 	GET_STACK(ObjectClass*, pThat, 0x20);
 
 	if (pThis->Deactivated) {
-		R->EAX(Funcs::GetAction(pThis, pThat));
+		R->EAX(TechnoExt_ExtData::GetAction(pThis, pThat));
 		return 0x73FD72;
 	}
 
@@ -359,7 +278,7 @@ DEFINE_OVERRIDE_HOOK(0x51E440, InfantryClass_GetActionOnObject_Deactivated, 8)
 	GET_STACK(ObjectClass*, pThat, 0x3C);
 
 	if (pThis->Deactivated) {
-		R->EAX(Funcs::GetAction(pThis, pThat));
+		R->EAX(TechnoExt_ExtData::GetAction(pThis, pThat));
 		return 0x51E458;
 	}
 
@@ -372,7 +291,7 @@ DEFINE_OVERRIDE_HOOK(0x417CCB, AircraftClass_GetActionOnObject_Deactivated, 5)
 	GET_STACK(ObjectClass*, pThat, 0x20);
 
 	if (pThis->Deactivated) {
-		R->EAX(Funcs::GetAction(pThis, pThat));
+		R->EAX(TechnoExt_ExtData::GetAction(pThis, pThat));
 		return 0x417CDF;
 	}
 
@@ -386,7 +305,7 @@ DEFINE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_IvanBombsA, 5)
 	GET(TechnoClass* const, pThis, ECX);
 	GET_STACK(ObjectClass*, pObject, 0x4);
 
-	if (Funcs::CanDetonate(pThis, pObject)) {
+	if (TechnoExt_ExtData::CanDetonate(pThis, pObject)) {
 		R->EAX(Action::Detonate);
 		return 0x7005EF;
 	}

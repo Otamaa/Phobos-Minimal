@@ -655,8 +655,8 @@ void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int
 			pOwner->CalculateCostMultipliers();
 		}
 
-		if (pType->OrePurifier)
-			pOwner->NumOrePurifiers++;
+		//if (pType->OrePurifier)
+		//	pOwner->NumOrePurifiers++;
 
 		if (!pOwner->Type->MultiplayPassive)
 		{
@@ -666,11 +666,6 @@ void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int
 			if (auto const pUnitSelfHeal = pType->UnitsGainSelfHeal)
 				pOwner->UnitsSelfHeal += pUnitSelfHeal;
 		}
-
-		// BuildingClass::Place is where Ares hooks secret lab expansion
-		// pTechnoBuilding->Place(false);
-		// even with it no bueno yet, plus new issues
-		// probably should just port it from Ares 0.A and be done
 
 		pOwner->UpdateSuperWeaponsUnavailable();
 
@@ -772,8 +767,8 @@ void BuildingExt::LimboKill(BuildingClass* pBuilding)
 		pTargetHouse->CalculateCostMultipliers();
 	}
 
-	if (pType->OrePurifier)
-		pTargetHouse->NumOrePurifiers--;
+	//if (pType->OrePurifier)
+	//	pTargetHouse->NumOrePurifiers--;
 
 	if (auto const pInfantrySelfHeal = pType->InfantryGainSelfHeal)
 	{

@@ -234,7 +234,7 @@ DEFINE_OVERRIDE_HOOK(0x51DF27, InfantryClass_Remove_Teleport, 0x6)
 	GET(InfantryClass* const, pThis, ECX);
 
 	if (pThis->Type->Teleporter) {
-		auto pLoco = pThis->Locomotor.GetInterfacePtr();
+		const auto pLoco = pThis->Locomotor.GetInterfacePtr();
 
 		if (VTable::Get(pLoco) == TeleportLocomotionClass::ILoco_vtable) {
 			static_cast<TeleportLocomotionClass*>(pLoco)->LastCoords = CoordStruct::Empty;

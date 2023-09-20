@@ -19,6 +19,17 @@ struct VoxelStruct
 	VoxLib* VXL;
 	MotLib* HVA;
 
+	VoxelStruct() = default;
+
+	VoxelStruct(VoxLib* pVxl, MotLib* pHva) :
+	 VXL { pVxl } , HVA { pHva }
+	{}
+
+	~VoxelStruct() {
+		GameDelete<true,true>(VXL);
+		GameDelete<true,true>(HVA);
+	}
+
 	bool operator == (const VoxelStruct& nWeap) const {
 		return VXL == nWeap.VXL && HVA == nWeap.HVA;
 	}

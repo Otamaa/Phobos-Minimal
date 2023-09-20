@@ -1520,6 +1520,11 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Aux_Techno.Read(exINI, pSection, "SW.AuxTechnos");
 	this->SW_Lauchsites.Read(exINI, pSection, "SW.LaunchSites");
 
+	this->UseWeeds.Read(exINI, pSection, "UseWeeds");
+	this->UseWeeds_Amount.Read(exINI, pSection, "UseWeeds.Amount");
+	this->UseWeeds_StorageTimer.Read(exINI, pSection, "UseWeeds.StorageTimer");
+	this->UseWeeds_ReadinessAnimationPercentage.Read(exINI, pSection, "UseWeeds.ReadinessAnimationPercentage");
+
 	// initialize the NewSWType that handles this SWType.
 	if (auto pNewSWType = NewSWType::GetNewSWType(this))
 	{
@@ -2312,6 +2317,11 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 #pragma region GenericWarheadSW
 		.Process(this->Generic_Warhead_Detonate)
 #pragma endregion
+
+		.Process(this->UseWeeds)
+		.Process(this->UseWeeds_Amount)
+		.Process(this->UseWeeds_StorageTimer)
+		.Process(this->UseWeeds_ReadinessAnimationPercentage)
 		;
 
 }

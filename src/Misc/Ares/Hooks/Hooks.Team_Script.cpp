@@ -33,7 +33,8 @@
 
 #include <Notifications.h>
 #include <strsafe.h>
-#include <Ares_TechnoExt.h>
+
+#include "Header.h"
 
 DEFINE_OVERRIDE_HOOK(0x65DBB3, TeamTypeClass_CreateInstance_Plane, 5)
 {
@@ -41,183 +42,6 @@ DEFINE_OVERRIDE_HOOK(0x65DBB3, TeamTypeClass_CreateInstance_Plane, 5)
 	R->ECX(HouseExt::GetParadropPlane(pFoot->Owner));
 	++Unsorted::ScenarioInit();
 	return 0x65DBD0;
-}
-
-bool ScriptExt_Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bThirdArd)
-{
-	switch (pTeamMission->Action)
-	{
-	case TeamMissionType::Garrison_building:
-	{
-		FootClass* pCur = nullptr;
-		if (auto pFirst = pTeam->FirstUnit)
-		{
-			auto pNext = pFirst->NextTeamMember;
-			do
-			{
-				pFirst->align_154->TakeVehicleMode = false;
-
-				if (pFirst->GarrisonStructure())
-					pTeam->RemoveMember(pFirst, -1, 1);
-
-				pCur = pNext;
-
-				if (pNext)
-					pNext = pNext->NextTeamMember;
-
-				pFirst = pCur;
-
-			}
-			while (pCur);
-		}
-
-		pTeam->StepCompleted = 1;
-		return true;
-	}
-	}
-
-	if (pTeamMission->Action >= TeamMissionType::count)
-	{
-		switch ((AresScripts)pTeamMission->Action)
-		{
-		case AresScripts::AuxilarryPower:
-		{
-			HouseExt::ExtMap.Find(pTeam->Owner)->AuxPower += pTeamMission->Argument;
-			pTeam->Owner->RecheckPower = 1;
-			pTeam->StepCompleted = 1;
-			return true;
-		}
-		case AresScripts::KillDrivers:
-		{
-			const auto pToHouse = HouseExt::FindSpecial();
-			FootClass* pCur = nullptr;
-			if (auto pFirst = pTeam->FirstUnit)
-			{
-				auto pNext = pFirst->NextTeamMember;
-				do
-				{
-					if (pFirst->Health > 0 && pFirst->IsAlive && pFirst->IsOnMap && !pFirst->InLimbo)
-					{
-						if (!pFirst->align_154->Is_DriverKilled && AresData::IsDriverKillable(pFirst, 1.0))
-						{
-							AresData::KillDriverCore(pFirst, pToHouse, nullptr, false);
-						}
-					}
-
-					pCur = pNext;
-
-					if (pNext)
-						pNext = pNext->NextTeamMember;
-
-					pFirst = pCur;
-
-				}
-				while (pCur);
-			}
-
-			pTeam->StepCompleted = 1;
-			return true;
-		}
-		case AresScripts::TakeVehicles:
-		{
-			FootClass* pCur = nullptr;
-			if (auto pFirst = pTeam->FirstUnit)
-			{
-				auto pNext = pFirst->NextTeamMember;
-				do
-				{
-					pFirst->align_154->TakeVehicleMode = true;
-
-					if (pFirst->GarrisonStructure())
-						pTeam->RemoveMember(pFirst, -1, 1);
-
-					pCur = pNext;
-
-					if (pNext)
-						pNext = pNext->NextTeamMember;
-
-					pFirst = pCur;
-
-				}
-				while (pCur);
-			}
-
-			pTeam->StepCompleted = 1;
-			return true;
-		}
-		case AresScripts::ConvertType:
-		{
-			FootClass* pCur = nullptr;
-			if (auto pFirst = pTeam->FirstUnit)
-			{
-				auto pNext = pFirst->NextTeamMember;
-				do
-				{
-					const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pFirst->GetTechnoType());
-					if (pTypeExt->Convert_Script)
-					{
-						AresData::ConvertTypeTo(pFirst, pTypeExt->Convert_Script);
-					}
-
-					pCur = pNext;
-
-					if (pNext)
-						pNext = pNext->NextTeamMember;
-
-					pFirst = pCur;
-
-				}
-				while (pCur);
-			}
-
-			pTeam->StepCompleted = 1;
-			return true;
-		}
-		case AresScripts::SonarReveal:
-		{
-			const auto nDur = pTeamMission->Argument;
-			for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
-			{
-				auto& nSonarTime = pUnit->align_154->CloakSkipTimer;
-				if (nDur > nSonarTime.GetTimeLeft())
-				{
-					nSonarTime.Start(nDur);
-				}
-				else if (nDur <= 0)
-				{
-					if (nDur == 0)
-					{
-						nSonarTime.Stop();
-					}
-				}
-			}
-
-			pTeam->StepCompleted = 1;
-			return true;
-		}
-		case AresScripts::DisableWeapons:
-		{
-			const auto nDur = pTeamMission->Argument;
-			for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
-			{
-				auto& nTimer = pUnit->align_154->DisableWeaponTimer;
-				if (nDur > nTimer.GetTimeLeft())
-				{
-					nTimer.Start(nDur);
-				}
-				else if (nDur <= 0 && nDur == 0)
-				{
-					nTimer.Stop();
-				}
-			}
-
-			pTeam->StepCompleted = 1;
-			return true;
-		}
-		}
-	}
-
-	return false;
 }
 
 #include <Ext/Team/Body.h>
@@ -230,7 +54,7 @@ DEFINE_OVERRIDE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
 	GET(ScriptActionNode*, pTeamMission, EAX);
 	GET_STACK(bool, bThirdArg, 0x10);
 
-	if(ScriptExt_Handle(pThis, pTeamMission, bThirdArg))
+	if(AresScriptExt::Handle(pThis, pTeamMission, bThirdArg))
 		return ReturnFunc;
 
 	auto pTeamData = TeamExt::ExtMap.Find(pThis);

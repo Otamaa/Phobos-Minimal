@@ -137,8 +137,61 @@ DEFINE_HOOK(0x465D40, BuildingTypeClass_IsUndeployable_ConsideredVehicle, 0x6)
 
 	GET(BuildingTypeClass*, pThis, ECX);
 
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis);
-	R->EAX(pExt->ConsideredVehicle.Get(pThis->UndeploysInto && pThis->Foundation == Foundation::_1x1));
+	const auto pBldExt = BuildingTypeExt::ExtMap.Find(pThis);
+	const bool IsCustomEligible = pThis->Foundation == BuildingTypeExt::CustomFoundation
+			&& pBldExt->CustomHeight == 1 && pBldExt->CustomWidth == 1;
+
+	const bool FoundationEligible = IsCustomEligible || pThis->Foundation == Foundation::_1x1;
+
+	R->EAX(pBldExt->Type->ConsideredVehicle.Get(pThis->UndeploysInto && FoundationEligible));
 	return ReturnFromFunction;
 }
 
+DEFINE_HOOK(0x445FD6, BuildingTypeClass_GrandOpening_StorageActiveAnimations, 0x6)
+{
+	GET(BuildingClass*, pBuilding, EBP);
+
+	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+
+	if (pTypeExt->Storage_ActiveAnimations.Get(pBuilding->Type->Refinery || pBuilding->Type->Weeder))
+	{
+		R->EAX(pBuilding->Type->Weeder ?
+			int(4 * pBuilding->Owner->OwnedWeed.GetTotalAmount() / RulesClass::Instance->WeedCapacity) :
+			int(4 * pBuilding->Tiberium.GetTotalAmount() / pBuilding->Type->Storage)
+		);
+		return 0x446016;
+	}
+
+	return 0x446183;
+}
+
+DEFINE_HOOK(0x450D9C, BuildingTypeClass_AI_Anims_IncludeWeeder_1, 0x6)
+{
+	GET(BuildingClass*, pBuilding, ESI);
+
+	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+
+	if (pTypeExt->Storage_ActiveAnimations.Get(pBuilding->Type->Refinery || pBuilding->Type->Weeder))
+	{
+		R->EAX(pBuilding->Type->Weeder ?
+			int(4 * pBuilding->Owner->OwnedWeed.GetTotalAmount() / RulesClass::Instance->WeedCapacity) :
+			int(4 * pBuilding->Tiberium.GetTotalAmount() / pBuilding->Type->Storage)
+		);
+
+		return 0x450DDC;
+	}
+
+	return 0x450F9E;
+}
+
+DEFINE_HOOK(0x450E12, BuildingTypeClass_AI_Anims_IncludeWeede_2, 0x7)
+{
+	GET(BuildingClass*, pBuilding, ESI);
+
+	R->EAX(pBuilding->Type->Weeder ?
+		int(4 * pBuilding->Owner->OwnedWeed.GetTotalAmount() / RulesClass::Instance->WeedCapacity) :
+		int(4 * pBuilding->Tiberium.GetTotalAmount() / pBuilding->Type->Storage)
+	);
+
+	return 0x450E3E;
+}

@@ -76,7 +76,6 @@ DEFINE_OVERRIDE_HOOK(0x75FA29, WaveClass_Draw_Colors, 0x6)
 	GET(WaveClass*, pThis, ESI);
 	AresCreateWave::TempColor = WaveExt::GetWaveColor(pThis);
 	return 0x0;
-
 }
 
 DEFINE_OVERRIDE_HOOK(0x760F50, WaveClass_Update, 0x6)

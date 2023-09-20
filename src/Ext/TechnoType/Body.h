@@ -5,6 +5,9 @@
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDefB.h>
 
+#include <New/InsigniaData.h>
+#include <New/LaserTrailDataEntry.h>
+
 #include <New/Type/ShieldTypeClass.h>
 #include <New/Type/LaserTrailTypeClass.h>
 #include <New/Type/HoverTypeClass.h>
@@ -37,7 +40,7 @@ struct ImageStatusses
 	VoxelStruct Images;
 	bool Loaded;
 
-	static void ReadVoxel(ImageStatusses& arg0, const char* const nKey, bool a4);
+	static ImageStatusses ReadVoxel(const char* const nKey, bool a4);
 
 };
 
@@ -47,9 +50,7 @@ class TechnoTypeExt
 {
 public:
 	using ImageVector = std::vector<VoxelStruct>;
-
-	static void InitImageData(ImageVector& nVec, size_t size = 1);
-	static void ClearImageData(ImageVector& nVec, size_t pos = 0);
+	using ColletiveCoordStructVectorData = std::array<std::vector<std::vector<CoordStruct>>*, 3u>;
 
 	class ExtData : public Extension<TechnoTypeClass>
 	{
@@ -199,38 +200,6 @@ public:
 		Valueable<bool> Passengers_SyncOwner_RevertOnExit { true };
 
 		Valueable<bool> Aircraft_DecreaseAmmo { true };
-
-		struct LaserTrailDataEntry
-		{
-			int idxType;
-			CoordStruct FLH;
-			bool IsOnTurret;
-
-			bool Load(PhobosStreamReader& stm, bool registerForChange);
-			bool Save(PhobosStreamWriter& stm) const;
-
-			// For some Fcking unknown reason `emplace_back` doesnt knowh the default contructor for this
-			LaserTrailDataEntry(int nIdx, const CoordStruct& nFlh, bool OnTur) :
-				idxType { nIdx }
-				, FLH { nFlh }
-				, IsOnTurret { OnTur }
-			{
-			}
-
-			LaserTrailDataEntry() :
-				idxType { -1 }
-				, FLH { 0,0,0 }
-				, IsOnTurret { false }
-			{
-			}
-
-			//virtual ~LaserTrailDataEntry() = default;
-			~LaserTrailDataEntry() = default;
-
-		private:
-			template <typename T>
-			bool Serialize(T& stm);
-		};
 
 		ValueableVector<LaserTrailDataEntry> LaserTrailData {};
 		Valueable<CSFText> EnemyUIName {};
@@ -647,34 +616,6 @@ public:
 		Nullable<Point2D> SpawnsPipSize { };
 		Valueable<Point2D> SpawnsPipOffset { { 0,0 } };
 
-		struct InsigniaData
-		{
-			Promotable<SHPStruct*> Shapes { nullptr };
-			Promotable<int> Frame { -1 };
-			Valueable<Point3D> Frames { { -1, -1, -1 } };
-
-			inline bool Load(PhobosStreamReader& stm, bool registerForChange)
-			{
-				return this->Serialize(stm);
-			}
-
-			inline bool Save(PhobosStreamWriter& stm) const
-			{
-				return const_cast<InsigniaData*>(this)->Serialize(stm);
-			}
-
-		private:
-			template <typename T>
-			inline bool Serialize(T& stm)
-			{
-				return stm
-					.Process(Shapes)
-					.Process(Frame)
-					.Process(Frames)
-					.Success();
-			}
-		};
-
 		std::vector<InsigniaData> Insignia_Weapon {};
 
 		Valueable<int> VHPscan_Value { 2 };
@@ -875,6 +816,9 @@ public:
 		Nullable<int> Weeder_PipEmptyIndex { };
 		Valueable<bool> CanBeDriven { true };
 
+		Valueable<bool> CloakPowered { false };
+		Valueable<bool> CloakDeployed { false };
+
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 		{
 			AttachedEffect.Owner = OwnerObject;
@@ -908,6 +852,14 @@ public:
 	class ExtContainer final : public Container<TechnoTypeExt::ExtData>
 	{
 	public:
+		std::unordered_map<TechnoTypeClass*, std::unique_ptr<TechnoTypeExt::ExtData>> Map;
+
+		virtual bool Load(TechnoTypeClass* key, IStream* pStm);
+
+		void Clear() {
+			this->Map.clear();
+		}
+
 		ExtContainer();
 		~ExtContainer();
 	};
@@ -920,13 +872,14 @@ public:
 	static const char* GetSelectionGroupID(ObjectTypeClass* pType);
 
 	static void GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection, std::vector<std::vector<CoordStruct>>& nFLH, std::vector<std::vector<CoordStruct>>& nEFlh, const char* pPrefixTag);
+	static void GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection, TechnoTypeExt::ColletiveCoordStructVectorData& nFLH, TechnoTypeExt::ColletiveCoordStructVectorData& nEFlh, const char** pPrefixTag);
 	static void GetFLH(INI_EX& exArtINI, const char* pArtSection, Nullable<CoordStruct>& nFlh, Nullable<CoordStruct>& nEFlh, const char* pFlag);
 	static bool HasSelectionGroupID(ObjectTypeClass* pType, const std::string& pID);
 	static AnimTypeClass* GetSinkAnim(TechnoClass* pThis);
 	static double GetTunnelSpeed(TechnoClass* pThis, RulesClass* pRules);
 	static bool PassangersAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pPassanger);
-	static VoxelStruct* GetBarrelsVoxelData(TechnoTypeClass* const pThis, size_t const nIdx);
-	static VoxelStruct* GetTurretVoxelData(TechnoTypeClass* const pThis, size_t const nIdx);
+	static VoxelStruct* GetBarrelsVoxel(TechnoTypeClass* const pThis, int const nIdx);
+	static VoxelStruct* GetTurretsVoxel(TechnoTypeClass* const pThis, int const nIdx);
 	static bool CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClass* pFactoryType);
 
 };

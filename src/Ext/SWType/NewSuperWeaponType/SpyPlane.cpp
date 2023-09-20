@@ -21,6 +21,11 @@ bool SW_SpyPlane::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 	{
 		if (CellClass* pTarget = MapClass::Instance->GetCellAt(Coords))
 		{
+			const auto Default = HouseExt::GetSpyPlane(pThis->Owner);
+
+			if (Default && Default->Strength == 0)
+				return false; // bail
+
 			const auto& PlaneIdxes = pData->SpyPlanes_TypeIndex;
 			const auto& PlaneCounts = pData->SpyPlanes_Count;
 			const auto& PlaneMissions = pData->SpyPlanes_Mission;
@@ -28,7 +33,6 @@ bool SW_SpyPlane::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 
 			const auto IsEmpty = PlaneIdxes.empty();
 			const size_t nSize = IsEmpty ? 1 : PlaneIdxes.size();
-			const auto Default = HouseExt::GetSpyPlane(pThis->Owner);
 
 			for (auto idx = 0u; idx < nSize; idx++)
 			{

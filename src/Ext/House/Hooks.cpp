@@ -15,7 +15,6 @@ DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 	const auto pHouseExt = HouseExt::ExtMap.Find(pThis);
 
 	pHouseExt->PowerPlantEnhancerBuildings.clear();
-	pHouseExt->Building_BuildSpeedBonusCounter.clear();
 
 	// This pre-iterating ensure our process to be done in O(NM) instead of O(N^2),
 	// as M should be much less than N, this will be a great improvement. - secsome
@@ -26,6 +25,14 @@ DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 			bool PowerChecked = false;
 			bool HasPower = false;
 
+			if (pBld->GetCurrentMission() == Mission::Selling || pBld->QueuedMission == Mission::Selling)
+				continue;
+
+			if (pBld->TemporalTargetingMe
+				|| BuildingExt::ExtMap.Find(pBld)->AboutToChronoshift
+				|| pBld->IsBeingWarpedOut())
+				continue;
+
 			for(auto const pType : pBld->GetTypes()){
 
 				if (!pType)
@@ -33,9 +40,9 @@ DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 
 				if (!PowerChecked)
 				{
-					HasPower = pBld->HasPower
-						&& !pBld->IsUnderEMP()
-						&& (pBld->align_154->Is_Operated || TechnoExt_ExtData::IsOperated(pBld));
+					HasPower = pBld->HasPower && !pBld->IsUnderEMP()
+						&& (pBld->align_154->Is_Operated || TechnoExt_ExtData::IsOperated(pBld))
+						;
 
 					PowerChecked = true;
 				}
@@ -48,9 +55,6 @@ DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 					{
 						++pHouseExt->PowerPlantEnhancerBuildings[pType];
 					}
-
-					if (pExt->SpeedBonus.Enabled)
-						++pHouseExt->Building_BuildSpeedBonusCounter[pType];
 				}
 			}
 		}
@@ -70,14 +74,14 @@ DEFINE_HOOK(0x508CF2, HouseClass_UpdatePower_PowerOutput, 0x7)
 	return 0x508D07;
 }
 
-DEFINE_HOOK(0x4F844B, HouseClass_Update, 0x6)
-{
-	GET(HouseClass* const, pThis, ESI);
-
-	//HouseExt::ExtMap.Find(pThis)->UpdateAutoDeathObjects();
-
-	return 0;
-}
+//DEFINE_HOOK(0x4F844B, HouseClass_Update, 0x6)
+//{
+//	GET(HouseClass* const, pThis, ESI);
+//
+//
+//
+//	return 0;
+//}
 
 #pragma region LimboTracking
 

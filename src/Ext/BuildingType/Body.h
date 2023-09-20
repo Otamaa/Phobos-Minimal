@@ -11,87 +11,14 @@
 
 #include <Ext/TechnoType/Body.h>
 
+#include <New/AnonymousType/BuildSpeedBonus.h>
+
 #include <New/Type/TunnelTypeClass.h>
 #include <New/Type/CursorTypeClass.h>
 
 enum class BunkerSoundMode : int
 {
 	Up, Down
-};
-
-struct BuildSpeedBonus
-{
-	bool Enabled { false };
-	double SpeedBonus_Aircraft { 0.000 };
-	double SpeedBonus_Building { 0.000 };
-	double SpeedBonus_Infantry { 0.000 };
-	double SpeedBonus_Unit { 0.000 };
-	ValueableVector<TechnoTypeClass*> AffectedType { };
-
-	void Read(INI_EX& parser, const char* pSection)
-	{
-		Nullable<double> nBuff {};
-		nBuff.Read(parser, pSection, "BuildSpeedBonus.Aircraft");
-
-		if (nBuff.isset() && nBuff.Get() != 0.000)
-		{
-			Enabled = true;
-			SpeedBonus_Aircraft = nBuff.Get();
-		}
-
-		nBuff.Reset();
-		nBuff.Read(parser, pSection, "BuildSpeedBonus.Building");
-
-		if (nBuff.isset() && nBuff.Get() != 0.000)
-		{
-			Enabled = true;
-			SpeedBonus_Building = nBuff.Get();
-		}
-
-		nBuff.Reset();
-		nBuff.Read(parser, pSection, "BuildSpeedBonus.Infantry");
-
-		if (nBuff.isset() && nBuff.Get() != 0.000)
-		{
-			Enabled = true;
-			SpeedBonus_Infantry = nBuff.Get();
-		}
-
-		nBuff.Reset();
-		nBuff.Read(parser, pSection, "BuildSpeedBonus.Unit");
-
-		if (nBuff.isset() && nBuff.Get() != 0.000)
-		{
-			Enabled = true;
-			SpeedBonus_Unit = nBuff.Get();
-		}
-
-		if (Enabled)
-			AffectedType.Read(parser, pSection, "BuildSpeedBonus.AffectedTypes");
-	}
-
-	bool Load(PhobosStreamReader& stm, bool registerForChange)
-	{
-		return Serialize(stm);
-	}
-	bool Save(PhobosStreamWriter& stm) const
-	{
-		return const_cast<BuildSpeedBonus*>(this)->Serialize(stm);
-	}
-
-private:
-	template <typename T>
-	bool Serialize(T& stm)
-	{
-		return stm
-			.Process(Enabled)
-			.Process(SpeedBonus_Aircraft)
-			.Process(SpeedBonus_Building)
-			.Process(SpeedBonus_Infantry)
-			.Process(SpeedBonus_Unit)
-			.Process(AffectedType)
-			.Success();
-	}
 };
 
 class BuildingTypeExt
@@ -348,6 +275,14 @@ public:
 		Valueable<bool> IsPassable { false };
 		Valueable<bool> ProduceCashDisplay { false };
 
+		Nullable<bool> Storage_ActiveAnimations {};
+		Nullable<float> PurifierBonus {};
+		Valueable<bool> PurifierBonus_RequirePower { true };
+
+		Valueable<bool> FactoryPlant_RequirePower { true };
+		Valueable<bool> SpySat_RequirePower { true };
+		Valueable<bool> Cloning_RequirePower { true };
+
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject) {}
 		virtual ~ExtData() override = default;
 
@@ -404,6 +339,7 @@ public:
 	// Short check: Is the building of a linkable kind at all?
 	static bool IsLinkable(BuildingTypeClass* pThis);
 	static int GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse);
+	static float GetPurifierBonusses(HouseClass* pHouse);
 	static double GetExternalFactorySpeedBonus(TechnoClass* pWhat);
 	static double GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseClass* pOwner);
 	static double GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, HouseClass* pOwner);

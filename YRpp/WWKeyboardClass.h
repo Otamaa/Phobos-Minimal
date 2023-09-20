@@ -1,5 +1,6 @@
 #pragma once
 #include <GeneralDefinitions.h>
+#include <GameModeOptionsClass.h>
 
 class WWKeyboardClass
 {
@@ -72,20 +73,9 @@ public:
 	bool IsKeyPressed(int key) const
 		{ JMP_THIS(0x54F5C0); }
 
-	bool IsForceFireKeyPressed() const {
-		return this->IsKeyPressed(GameOptionsClass::Instance->KeyForceFire1)
-			|| this->IsKeyPressed(GameOptionsClass::Instance->KeyForceFire2);
-	}
-
-	bool IsForceMoveKeyPressed() const {
-		return this->IsKeyPressed(GameOptionsClass::Instance->KeyForceMove1)
-			|| this->IsKeyPressed(GameOptionsClass::Instance->KeyForceMove2);
-	}
-
-	bool IsForceSelectKeyPressed() const {
-		return this->IsKeyPressed(GameOptionsClass::Instance->KeyForceSelect1)
-			|| this->IsKeyPressed(GameOptionsClass::Instance->KeyForceSelect2);
-	}
+	bool IsForceFireKeyPressed() const;
+	bool IsForceMoveKeyPressed() const;
+	bool IsForceSelectKeyPressed() const;
 
 public:
     int MouseQX;

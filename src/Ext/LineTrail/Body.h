@@ -17,34 +17,7 @@ public:
 	bool operator!=(const LineTrailData& that) const { return !(*this == that); }
 	operator bool() const { return LineTrailColor != ColorStruct{ 0,0,0 };}
 
-	static void LoadFromINI(std::vector<LineTrailData>& nVec, INI_EX &parser, const char* pSection)
-	{
-		if (!pSection)
-			return;
-
-		char tempBuffer[0x55];
-
-		for (int i = 0; ; ++i)
-		{
-			Nullable<ColorStruct> tempColor;
-			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LineTrail%dColor", i);
-			tempColor.Read(parser, pSection, tempBuffer);
-
-			if (!tempColor.isset() || tempColor.Get() == ColorStruct{ 0,0,0 })
-				break;
-
-			Valueable<CoordStruct> tempflh;
-			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LineTrail%dFLH", i);
-			tempflh.Read(parser, pSection, tempBuffer);
-
-			Valueable<int> tempDecrement;
-			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LineTrail%dColorDecrement", i);
-			tempDecrement.Read(parser, pSection, tempBuffer);
-
-			nVec.emplace_back(tempflh.Get(), tempColor.Get(), tempDecrement.Get());
-		}
-	}
-
+	void LoadFromINI(INI_EX& parser, const char* pSection);
 };
 
 class LineTrailExt
@@ -63,13 +36,13 @@ public:
 	//Override Color 0x5F51A3
 	static const ColorStruct OverrideColor(ColorStruct nColorInput)
 	{
-		auto nColorOverrider = RulesClass::Instance->LineTrailColorOverride;
+		ColorStruct* nColorOverrider = &RulesClass::Instance->LineTrailColorOverride;
 
 		ColorStruct nColorBuffer{ 0,0,0 };
 
-		nColorBuffer.R = nColorOverrider.R ? nColorOverrider.R : nColorInput.R;
-		nColorBuffer.G = nColorOverrider.G ? nColorOverrider.G : nColorInput.G;
-		nColorBuffer.B = nColorOverrider.B ? nColorOverrider.B : nColorInput.B;
+		nColorBuffer.R = nColorOverrider->R ? nColorOverrider->R : nColorInput.R;
+		nColorBuffer.G = nColorOverrider->G ? nColorOverrider->G : nColorInput.G;
+		nColorBuffer.B = nColorOverrider->B ? nColorOverrider->B : nColorInput.B;
 
 		return nColorBuffer;
 	}

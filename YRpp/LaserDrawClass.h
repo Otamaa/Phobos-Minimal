@@ -17,6 +17,10 @@ public:
 	static constexpr constant_ptr<DynamicVectorClass<LaserDrawClass*>, 0xABC878u> const Array{};
 	static constexpr reference2D<Point2D, 0xABC7F8u, 8, 2> const DrawDatas{};
 
+	static void __fastcall DrawAll() {
+		JMP_STD(0x550240);
+	}
+
 	//Constructor, Destructor
 	LaserDrawClass(const CoordStruct& source, const CoordStruct& target, const ColorStruct& innerColor,
 		const ColorStruct& outerColor, const ColorStruct& outerSpread, int duration)

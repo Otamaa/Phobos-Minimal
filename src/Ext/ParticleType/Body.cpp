@@ -65,6 +65,7 @@ void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		*/
 
 		ReadWinDirMult(this->WindMult, exINI, pID, ParticleClass::GasWind_X.begin(), ParticleClass::GasWind_Y.begin());
+		this->Gas_DriftSpeed.Read(exINI, pID, "Gas.DriftSpeed");
 	}break;
 	default:
 		break;
@@ -91,6 +92,7 @@ void ParticleTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DamageRange)
 		.Process(this->DeleteWhenReachWater)
 		.Process(this->WindMult)
+		.Process(this->Gas_DriftSpeed)
 		;
 
 	this->Trails.Serialize(Stm);

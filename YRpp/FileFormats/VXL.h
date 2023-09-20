@@ -39,15 +39,28 @@ public:
 		, HeaderData{ nullptr }
 		, TailerData{ nullptr }
 		, BodyData{ nullptr }
-	{  
+	{
 		if (!this->ReadFile(Source , UseContainedPalette))
 			LoadFailed = true;
 	}
 
 	~VoxLib() noexcept {
-		GameDelete(HeaderData);
-		GameDelete(TailerData);
-		GameDelete(BodyData);
+
+		if (HeaderData) {
+			YRMemory::Deallocate(HeaderData);
+			HeaderData = nullptr;
+		}
+
+
+		if(TailerData) {
+			YRMemory::Deallocate(TailerData);
+			TailerData = nullptr;
+		}
+
+		if(BodyData) {
+			YRMemory::Deallocate(BodyData);
+			BodyData = nullptr;
+		}
 	}
 
 	static constexpr reference<Point3D , 0xB2D5E0u> const ClippingMax {};

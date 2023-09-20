@@ -455,10 +455,18 @@ std::array<const char*, (size_t)DisplayInfoType::count> EnumFunctions::DisplayIn
 	{ "cloakdisable" }
 }
 };
+
 std::array<const char*, (size_t)NewCrateType::count> EnumFunctions::NewCrateType_ToStrings
 {{
 	{ "Money" }, { "Super" }, { "Weapon" }, { "Units" }
  }};
+
+std::array<const char*, 6u> EnumFunctions::DamageState_to_srings
+{
+{
+	"Unaffected", "Unchanged", "NowYellow", "NowRed", "NowDead", "PostMortem"
+}
+};
 
 bool EnumFunctions::CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse)
 {

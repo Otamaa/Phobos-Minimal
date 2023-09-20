@@ -32,226 +32,6 @@
 
 #include "Header.h"
 #include <Ares_TechnoExt.h>
-
-bool conductAbduction(WeaponTypeExt::ExtData* pData , TechnoClass* pOwner, AbstractClass* pTarget, CoordStruct nTargetCoords) {
-
-	// ensuring a few base parameters
-	if (!pData->Abductor || !pOwner || !pTarget) {
-		return false;
-	}
-
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pData->OwnerObject()->Warhead);
-	const auto Target = abstract_cast<FootClass*>(pTarget);
-
-	if (!Target) {
-		// the target was not a valid passenger type
-		return false;
-	}
-
-	if (nTargetCoords == CoordStruct::Empty)
-		nTargetCoords = pTarget->GetCoords();
-
-	const auto Attacker = pOwner;
-	const auto TargetType = Target->GetTechnoType();
-	const auto AttackerType = Attacker->GetTechnoType();
-
-	if (!pWHExt->CanAffectHouse(Attacker->Owner, Target->GetOwningHouse())) {
-		return false;
-	}
-
-	if (!TechnoExt::IsAbductable(Attacker, pData->OwnerObject() , Target)) {
-		return false;
-	}
-
-	//if it's owner meant to be changed, do it here
-	HouseClass* pDesiredOwner = Attacker->Owner ? Attacker->Owner : HouseExt::FindSpecial();
-
-	//if it's owner meant to be changed, do it here
-	if((pData->Abductor_ChangeOwner && !TechnoExt::IsPsionicsImmune(Target)))
-		Target->SetOwningHouse(pDesiredOwner);
-
-	// if we ended up here, the target is of the right type, and the attacker can take it
-	// so we abduct the target...
-
-	Target->StopMoving();
-	Target->SetDestination(nullptr, true); // Target->UpdatePosition(int) ?
-	Target->SetTarget(nullptr);
-	Target->CurrentTargets.Clear(); // Target->ShouldLoseTargetNow ?
-	Target->SetFocus(nullptr);
-	Target->QueueMission(Mission::Sleep, true);
-	Target->unknown_C4 = 0; // don't ask
-	Target->unknown_5A0 = 0;
-	Target->CurrentGattlingStage = 0;
-	Target->SetCurrentWeaponStage(0);
-
-	// the team should not wait for me
-	if (Target->BelongsToATeam()) {
-		Target->Team->LiberateMember(Target);
-	}
-
-	// if this unit is being mind controlled, break the link
-	if (const auto MindController = Target->MindControlledBy) {
-		if (const auto MC = MindController->CaptureManager) {
-			MC->FreeUnit(Target);
-		}
-	}
-
-	// if this unit is a mind controller, break the link
-	if (Target->CaptureManager) {
-		Target->CaptureManager->FreeAll();
-	}
-
-	// if this unit is currently in a state of temporal flux, get it back to our time-frame
-	if (Target->TemporalTargetingMe) {
-		Target->TemporalTargetingMe->Detach();
-	}
-
-	//if the target is spawned, detach it from it's spawner
-	Target->DetachSpecificSpawnee(pDesiredOwner);
-
-	// if the unit is a spawner, kill the spawns
-	if (Target->SpawnManager) {
-		Target->SpawnManager->KillNodes();
-		Target->SpawnManager->ResetTarget();
-	}
-
-	//if the unit is a slave, it should be freed
-	Target->FreeSpecificSlave(pDesiredOwner);
-
-	// If the unit is a SlaveManager, free the slaves
-	if (auto pSlaveManager = Target->SlaveManager) {
-		pSlaveManager->Killed(Attacker);
-		pSlaveManager->ZeroOutSlaves();
-		Target->SlaveManager->Owner = Target;
-	}
-
-	// if we have an abducting animation, play it
-	if (auto pAnimType = pData->Abductor_AnimType) {
-		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nTargetCoords),
-			Attacker->Owner ,
-			Target->Owner,
-			Attacker,
-			false
-		);
-	}
-
-	Target->Locomotor->Force_Track(-1, CoordStruct::Empty);
-	CoordStruct coordsUnitSource = Target->GetCoords();
-	Target->Locomotor->Mark_All_Occupation_Bits(0);
-	Target->MarkAllOccupationBits(coordsUnitSource);
-	Target->ClearPlanningTokens(nullptr);
-	Target->Flashing.DurationRemaining = 0;
-
-	if (!Target->Limbo()) {
-		Debug::Log("Abduction: Target unit %p (%s) could not be removed.\n", Target, Target->get_ID());
-	}
-
-	Target->OnBridge = false;
-	Target->NextObject = 0;
-	//Target->UpdatePlacement(PlacementType::Remove);
-	// because we are throwing away the locomotor in a split second, piggybacking
-	// has to be stopped. otherwise the object might remain in a weird state.
-	while (LocomotionClass::End_Piggyback(Target->Locomotor)) {};
-
-	// throw away the current locomotor and instantiate
-	// a new one of the default type for this unit.
-	if (auto NewLoco = LocomotionClass::CreateInstance(TargetType->Locomotor)) {
-		Target->Locomotor = std::move(NewLoco);
-		Target->Locomotor->Link_To_Object(Target);
-	}
-
-	// handling for Locomotor weapons: since we took this unit from the Magnetron
-	// in an unfriendly way, set these fields here to unblock the unit
-	if (Target->IsAttackedByLocomotor || Target->IsLetGoByLocomotor) {
-		Target->IsAttackedByLocomotor = false;
-		Target->IsLetGoByLocomotor = false;
-	}
-
-	Target->Transporter = Attacker;
-	if (AttackerType->OpenTopped && Target->Owner->IsAlliedWith_(Attacker)) {
-		Attacker->EnteredOpenTopped(Target);
-	}
-
-	if (Attacker->WhatAmI() == BuildingClass::AbsID) {
-		Target->Absorbed = true;
-	}
-
-	Attacker->AddPassenger(Target);
-	Attacker->Undiscover();
-
-	if (auto v29 = Target->AttachedTag)
-		v29->RaiseEvent(TriggerEvent(AresTriggerEvents::Abducted_ByHouse), Target, CellStruct::Empty, false, Attacker);
-
-	if (Target->IsAlive) {
-		if (auto v30 = Target->AttachedTag)
-			v30->RaiseEvent(TriggerEvent(AresTriggerEvents::Abducted), Target, CellStruct::Empty, false, nullptr);
-	}
-
-	if (auto v31 = Attacker->AttachedTag)
-		v31->RaiseEvent(TriggerEvent(AresTriggerEvents::AbductSomething_OfHouse), Attacker, CellStruct::Empty, false, Target->GetOwningHouse());// pTarget->Owner
-
-	if (Attacker->IsAlive)
-	{
-		if (auto v32 = Attacker->AttachedTag)
-			v32->RaiseEvent(TriggerEvent(AresTriggerEvents::AbductSomething), Attacker, CellStruct::Empty, false, nullptr);
-	}
-
-	return true;
-}
-
-bool applyOccupantDamage(BulletClass* pThis)
-{
-	auto const pBuilding = specific_cast<BuildingClass*>(pThis->Target);
-
-	// if that pointer is null, something went wrong
-	if (!pBuilding) {
-		return false;
-	}
-
-	auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
-	auto const pBldTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
-
-	auto const occupants = pBuilding->Occupants.Count;
-	auto const& passThrough = pBldTypeExt->UCPassThrough;
-
-	if (!occupants || !passThrough) {
-		return false;
-	}
-
-	auto& Random = ScenarioClass::Instance->Random;
-	if (pTypeExt->SubjectToTrenches && Random.RandomDouble() >= passThrough) {
-		return false;
-	}
-
-	auto const idxPoorBastard = Random.RandomFromMax(occupants - 1);
-	auto const pPoorBastard = pBuilding->Occupants[idxPoorBastard];
-
-	auto const& fatalRate = pBldTypeExt->UCFatalRate;
-	if (fatalRate > 0.0 && Random.RandomDouble() < fatalRate)
-	{
-		pPoorBastard->Destroyed(pThis->Owner);
-		pPoorBastard->UnInit();
-		pBuilding->Occupants.RemoveAt(idxPoorBastard);
-		pBuilding->UpdateThreatInCell(pBuilding->GetCell());
-	}
-	else
-	{
-		auto const& multiplier = pBldTypeExt->UCDamageMultiplier.Get();
-		auto adjustedDamage = static_cast<int>(std::ceil(pThis->Health * multiplier));
-		pPoorBastard->ReceiveDamage(&adjustedDamage, 0, pThis->WH, pThis->Owner, false, true, pThis->GetOwningHouse());
-	}
-
-	if (pBuilding->FiringOccupantIndex >= pBuilding->GetOccupantCount()) {
-		pBuilding->FiringOccupantIndex = 0;
-	}
-
-	// if the last occupant was killed and this building was raided,
-	// it needs to be returned to its owner. (Bug #700)
-	TechnoExt_ExtData::EvalRaidStatus(pBuilding);
-
-	return true;
-}
-
 #include <Misc/PhobosGlobal.h>
 
 DEFINE_OVERRIDE_HOOK(0x46920B, BulletClass_Detonate, 6)
@@ -286,7 +66,7 @@ DEFINE_OVERRIDE_HOOK(0x46920B, BulletClass_Detonate, 6)
 	 WarheadTypeExt::CreateIonBlast(pWarhead, coords);
 
 	bool targetStillOnMap = true;
-	if (snapped && pWeaponExt && conductAbduction(pWeaponExt, pThis->Owner, pThis->Target, coords)) {
+	if (snapped && pWeaponExt && AresWPWHExt::conductAbduction(pThis->WeaponType, pThis->Owner, pThis->Target, coords)) {
 		// ..and neuter the bullet, since it's not supposed to hurt the prisoner after the abduction
 		pThis->Health = 0;
 		pThis->DamageMultiplier = 0;
@@ -304,7 +84,7 @@ DEFINE_OVERRIDE_HOOK(0x46920B, BulletClass_Detonate, 6)
 		AresData::applyEMP(pWarhead, &coords, pThis->Owner);
 		AresData::applyAE(pWarhead, &coords, pOwnerHouse);
 
-		if (snapped && applyOccupantDamage(pThis)) {
+		if (snapped && AresWPWHExt::applyOccupantDamage(pThis)) {
 			// ..and neuter the bullet, since it's not supposed to hurt the prisoner after the abduction
 			pThis->Health = 0;
 			pThis->DamageMultiplier = 0;
@@ -330,7 +110,7 @@ DEFINE_OVERRIDE_HOOK(0x71AAAC, TemporalClass_Update_Abductor, 6)
 	auto const pWeapon = pThis->Owner->GetWeapon(nWeaponIDx)->WeaponType;
 	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 
-	return pWeaponExt->Abductor_Temporal && conductAbduction(pWeaponExt , pOwner, pThis->Target , CoordStruct::Empty)
+	return pWeaponExt->Abductor_Temporal && AresWPWHExt::conductAbduction(pWeapon, pOwner, pThis->Target , CoordStruct::Empty)
 		? 0x71AAD5 : 0x0;
 }
 
@@ -384,39 +164,11 @@ DEFINE_OVERRIDE_HOOK(0x71A917, TemporalClass_Update_Erase, 5)
 	return 0x71A97D;
 }
 
-int NOINLINE GetWarpPerStep(TemporalClass* pThis, int nStep)
-{
-	int nAddStep = 0;
-	int nStepR = 0;
-
-	if (!pThis)
-		return 0;
-
-	for (TemporalClass* pTemp = pThis; pTemp; pTemp = pTemp->PrevTemporal)
-	{
-		if (nStep > 50)
-			break;
-
-		++nStep;
-		auto const pWeapon = pTemp->Owner->GetWeapon(pTemp->Owner->align_154->idxSlot_Warp)->WeaponType;
-
-		//if (auto const pTarget = pTemp->Target)
-		//	nStepR = MapClass::GetTotalDamage(pWeapon->Damage, pWeapon->Warhead, pTarget->GetTechnoType()->Armor, 0);
-		//else
-			nStepR = pWeapon->Damage;
-
-		nAddStep += nStepR;
-		pTemp->WarpPerStep = nStepR;
-	}
-
-	return nAddStep;
-}
-
 DEFINE_OVERRIDE_HOOK(0x71AB10, TemporalClass_GetWarpPerStep, 6)
 {
 	GET_STACK(int, nStep, 0x4);
 	GET(TemporalClass*, pThis, ESI);
-	R->EAX(GetWarpPerStep(pThis, nStep));
+	R->EAX(TechnoExt_ExtData::GetWarpPerStep(pThis, nStep));
 	return 0x71AB57;
 }
 
@@ -492,37 +244,10 @@ DEFINE_OVERRIDE_HOOK(0x71AFB2, TemporalClass_Fire_HealthFactor, 5)
 	return 0x71AFB7;
 }
 
-bool NOINLINE Warpable(TechnoClass* pTarget)
-{
-	if (!pTarget || pTarget->IsSinking || pTarget->IsCrashing || pTarget->IsIronCurtained())
-		return false;
-
-	if (TechnoExt::IsUnwarpable(pTarget))
-		return false;
-
-	if (pTarget->WhatAmI() == BuildingClass::AbsID)
-	{
-		if (BuildingExt::ExtMap.Find((BuildingClass*)pTarget)->AboutToChronoshift)
-		{
-			return false;
-		}
-	}
-	else
-	{
-		if (TechnoExt::IsInWarfactory(pTarget , true))
-			return false;
-
-		if (TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTarget)))
-			return false;
-	}
-
-	return true;
-}
-
 DEFINE_OVERRIDE_HOOK(0x71AE50, TemporalClass_CanWarpTarget, 8)
 {
 	GET_STACK(TechnoClass*, pTarget, 0x4);
-	R->EAX(Warpable(pTarget));
+	R->EAX(TechnoExt_ExtData::Warpable(pTarget));
 	return 0x71AF19;
 }
 

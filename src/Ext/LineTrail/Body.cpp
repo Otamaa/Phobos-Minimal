@@ -139,6 +139,34 @@ DEFINE_HOOK(0x5F515D, ObjectClass_UnLimbo_ConstructLineTrail, 0x6)
 	return EndFunc;
 }
 
+void LineTrailData::LoadFromINI(INI_EX& parser, const char* pSection)
+{
+	if (!pSection)
+		return;
+
+	char tempBuffer[0x55];
+
+	for (int i = 0; ; ++i)
+	{
+		Nullable<ColorStruct> tempColor;
+		IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LineTrail%dColor", i);
+		tempColor.Read(parser, pSection, tempBuffer);
+
+		if (!tempColor.isset() || tempColor.Get() == ColorStruct { 0,0,0 })
+			break;
+
+		Valueable<CoordStruct> tempflh;
+		IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LineTrail%dFLH", i);
+		tempflh.Read(parser, pSection, tempBuffer);
+
+		Valueable<int> tempDecrement;
+		IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LineTrail%dColorDecrement", i);
+		tempDecrement.Read(parser, pSection, tempBuffer);
+
+		this->emplace_back(tempflh.Get(), tempColor.Get(), tempDecrement.Get());
+	}
+}
+
 DEFINE_HOOK(0x556B39, LineTrail_DTOR, 0x6)
 {
 	GET(LineTrail*, pThis, ECX);

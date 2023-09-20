@@ -311,6 +311,7 @@ struct GameStrings
 	//..
 
 	// Hardcoded Names
+	GAMEMD_STR(Anim_FIRE3, 0x818E00u);
 	GAMEMD_STR(Anim_RING1, 0x8182F0u);
 	GAMEMD_STR(Anim_INVISO, 0x8182F8u);
 	GAMEMD_STR(XXICON, 0x844530u);

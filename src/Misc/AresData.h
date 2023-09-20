@@ -236,14 +236,14 @@ struct AresData
 	//static bool ImmolateVictim(BuildingClass* pBuilding , FootClass* pTarget , bool Destroy);
 
 	//static void DisableEMPEffect(TechnoClass* pTechno);
-	static bool CloakDisallowed(TechnoClass* pTechno, bool allowPassive);
-	static bool CloakAllowed(TechnoClass* pTechno);
+	//static bool CloakDisallowed(TechnoClass* pTechno, bool allowPassive);
+	//static bool CloakAllowed(TechnoClass* pTechno);
 
 	static bool RemoveAE(AresTechnoExt::AEData* pAE);
 
 	static void FlyingStringsAdd(TechnoClass* pTech, bool bSomething);
 	//static void CalculateBounty(TechnoClass* pThis, TechnoClass* pKiller);
-	static void SetSpotlight(TechnoClass* pThis , BuildingLightClass* pSpotlight);
+	//static void SetSpotlight(TechnoClass* pThis , BuildingLightClass* pSpotlight);
 
 	static bool IsDriverKillable(TechnoClass* pThis, double tresh);
 	static bool KillDriverCore(TechnoClass* pThis, HouseClass* pToHouse, TechnoClass* pKiller, bool removeVet);
@@ -257,7 +257,7 @@ struct AresData
 
 	//static void BuildingExt_UpdateDisplayTo(BuildingClass* pFor);
 
-	static int* TechnoTypeExt_GetTurretWeaponIdx(TechnoTypeClass* pThis, int idx);
+	//static int* TechnoTypeExt_GetTurretWeaponIdx(TechnoTypeClass* pThis, int idx);
 	//static bool TechnoTypeExt_CameoIsElite(TechnoTypeClass* pThis, HouseClass* Owner);
 
 	//static Action TechnoExt_GetActionHijack(TechnoClass* pThis, TechnoClass* pTarget);

@@ -104,7 +104,7 @@ public:
 	{  JMP_STD(0x74E100); }
 
 	//called 687A80
-	static void __fastcall InitVeiGrowhData(bool bAllocate = true)
+	static void __fastcall InitVeinGrowhData(bool bAllocate = true)
 	{ JMP_STD(0x74DE90); }
 
 	static bool __fastcall IsCellEligibleForVeinHole(CellStruct& nWhere)
@@ -131,14 +131,17 @@ public:
 	static void __fastcall DrawAll()
 	{ JMP_STD(0x74D430); }
 
-	static void __fastcall UpdateAll()
-	{
-		for (auto const& pVeins : *Array())
-		{
-			if (!pVeins->InLimbo)
-				pVeins->Update();
-		}
-	}
+	static void __fastcall DeleteAll()
+	{ JMP_STD(0x74D760); }
+
+	static void __fastcall DeleteVeinholeGrowthData()
+	{ JMP_STD(0x74E880); }
+
+	static void __fastcall LoadVeinholeArt(int idxTheatre)
+	{ JMP_STD(0x74D450); }
+
+	static void __cdecl UpdateAllVeinholes()
+	{ JMP_STD(0x74CDF0); }
 
 	VeinholeMonsterClass(CellStruct* pWhere) noexcept
 		: VeinholeMonsterClass(noinit_t())
@@ -150,19 +153,19 @@ protected:
 public:
 
 	DECLARE_PROPERTY(VeinholeLogic, GrowthLogic);
-	DWORD State;
-	DamageState DamageState;
-	DWORD ___dwordD0Gas;
-	BYTE ___byteD4timerstate;
-	CDTimerClass Timer_1;
-	int GasTimerStart;
-	DWORD ___dwordE8Gas;
-	CDTimerClass Timer_2;
+	int CurrentState;
+	int NextState;
+	int  MonsterFrameIdx;
+	bool  IsAnimationUpToDate;
+	CDTimerClass UpdateAnimationFrameTimer;
+	int AnimationUpdatePeriod;
+	int MonsterFrameIdxChange;
+	CDTimerClass UpdateStateTimer;
 	CellStruct MonsterCell;
 	int ShapeFrame;
 	bool SkipDraw;
-	BYTE ToPuffGas;
-	DWORD CurrentGrowthCount2;
+	bool  ToPuffGas;
+	int VeinCount;
 };
 
 static_assert(sizeof(VeinholeMonsterClass) == 0x108, "Invalid size."); //264

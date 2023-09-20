@@ -464,6 +464,9 @@ public:
 	double GetStoragePercentage()
 		{ JMP_THIS(0x4F6E70); }
 
+	double GetWeedStoragePercentage()
+		{ JMP_THIS(0x4F9750); }
+
 	// no LostThreatNode() , this gets called also when node building dies! BUG
 	void AcquiredThreatNode()
 		{ JMP_THIS(0x509130); }

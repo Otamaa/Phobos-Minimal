@@ -24,6 +24,8 @@
 #include <Locomotor/JumpjetLocomotionClass.h>
 #include <Locomotor/HoverLocomotionClass.h>
 
+#include "Header.h"
+
 DEFINE_DISABLE_HOOK(0x4B5F9E, DropPodLocomotionClass_ILocomotion_Process_Report_ares)
 DEFINE_DISABLE_HOOK(0x4B619F, DropPodLocomotionClass_ILocomotion_MoveTo_AtmosphereEntry_ares)
 
@@ -41,7 +43,7 @@ DEFINE_OVERRIDE_HOOK(0x718275 ,TeleportLocomotionClass_MakeRoom, 9)
 
 	for (auto pObj = pCell->GetContentB(); pObj; pObj = pObj->NextObject)
 	{
-		auto bObjIsInfantry = pObj->WhatAmI() == AbstractType::Infantry;
+		const auto bObjIsInfantry = pObj->WhatAmI() == AbstractType::Infantry;
 		bool bIsImmune = pObj->IsIronCurtained();
 		auto pType = pObj->GetTechnoType();
 		const auto pTypeExt = TechnoTypeExt::ExtMap.TryFind(pType);
@@ -218,132 +220,12 @@ DEFINE_OVERRIDE_HOOK(0x4CCB84, FlyLocomotionClass_ILocomotion_Process_HunterSeek
 	return 0;
 }
 
-bool NOINLINE AcquireHunterSeekerTarget(TechnoClass* pThis)  {
-
-	if (!pThis->Target) {
-		std::vector<TechnoClass*> preferredTargets;
-		std::vector<TechnoClass*> randomTargets;
-
-		// defaults if SW isn't set
-		auto pOwner = pThis->GetOwningHouse();
-		SWTypeExt::ExtData* pSWExt = nullptr;
-		auto canPrefer = true;
-
-		// check the hunter seeker SW
-		if (auto const pSuper =
-#ifndef Replace_SW
-			TechnoExt::ExtMap.Find(pThis)->LinkedSW
-#else
-			pThis->align_154->AttachedSuperWeapon
-#endif
-			) {
-			pOwner = pSuper->Owner;
-			pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type);
-			canPrefer = !pSWExt->HunterSeeker_RandomOnly;
-		}
-
-		auto const isHumanControlled = pOwner->IsControlledByHuman_();
-		auto const mode = SessionClass::Instance->GameMode;
-
-		// the AI in multiplayer games only attacks its favourite enemy
-		auto const pFavouriteEnemy = HouseClass::Array->GetItemOrDefault(pOwner->EnemyHouseIndex);
-		auto const favouriteEnemyOnly = (mode != GameMode::Campaign
-			&& pFavouriteEnemy && !isHumanControlled);
-
-		for (auto const& i : *TechnoClass::Array) {
-
-			// is the house ok?
-			if (favouriteEnemyOnly) {
-				if (i->Owner != pFavouriteEnemy) {
-					continue;
-				}
-			}
-			else if (!pSWExt && pOwner->IsAlliedWith_(i->Owner)) {
-				// default without SW
-				continue;
-			}
-			else if (pSWExt && !pSWExt->IsHouseAffected(pOwner, i->Owner)) {
-				// use SW
-				continue;
-			}
-
-			// techno ineligible
-			if (i->Health < 0 || i->InLimbo || !i->IsAlive) {
-				continue;
-			}
-
-			if (i->IsIronCurtained())
-				continue;
-
-			if(auto pBuilding = specific_cast<BuildingClass*>(i)) {
-				const auto pExt = BuildingExt::ExtMap.Find(pBuilding);
-				if(pExt->LimboID != -1)
-				   continue;
-			}
-
-			// type prevents this being a target
-			auto const pType = i->GetTechnoType();
-
-			if (pType->Invisible || !pType->LegalTarget) {
-				continue;
-			}
-
-			// is type to be ignored?
-			auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
-			if (pExt->HunterSeekerIgnore) {
-				continue;
-			}
-
-			// harvester truce
-			if (ScenarioClass::Instance->SpecialFlags.StructEd.HarvesterImmune) {
-				if (auto const pUnitType = abstract_cast<UnitTypeClass*>(pType)) {
-					if (pUnitType->Harvester) {
-						continue;
-					}
-				}
-			}
-
-			// allow to exclude certain techno types
-			if (pSWExt && !pSWExt->IsTechnoAffected(i)) {
-				continue;
-			}
-
-			// in multiplayer games, non-civilian targets are preferred
-			// for human players
-			auto const isPreferred = mode != GameMode::Campaign && isHumanControlled
-				&& !i->Owner->Type->MultiplayPassive && canPrefer;
-
-			// add to the right list
-			if (isPreferred) {
-				preferredTargets.push_back(i);
-			}
-			else {
-				randomTargets.push_back(i);
-			}
-		}
-
-		auto const& targets = !preferredTargets.empty() ? preferredTargets : randomTargets;
-
-		if (auto const count = static_cast<int>(targets.size())) {
-			auto const index = ScenarioClass::Instance->Random.RandomFromMax(count - 1);
-			auto const& pTarget = targets[index];
-
-			// that's our target
-			pThis->SetTarget(pTarget);
-			return true;
-		}
-	}
-
-	return false;
-}
 
 DEFINE_OVERRIDE_HOOK(0x4CFE80, FlyLocomotionClass_ILocomotion_AcquireHunterSeekerTarget, 5)
 {
 	GET_STACK(ILocomotion* const, pThis, 0x4);
-	auto const pLoco = static_cast<FlyLocomotionClass*>(pThis);
-
 	// replace the entire function
-	AcquireHunterSeekerTarget(pLoco->LinkedTo);
+	TechnoExt_ExtData::AcquireHunterSeekerTarget(static_cast<FlyLocomotionClass*>(pThis)->LinkedTo);
 
 	return 0x4D016F;
 }
@@ -357,7 +239,7 @@ DEFINE_OVERRIDE_HOOK(0x4B99A2, DropshipLoadout_WriteUnit, 0xA)
 	LEA_STACK(Point2D*, BaseCoords, STACK_OFFS(0x164, 0x14C));
 	LEA_STACK(Point2D*, AltCoords, STACK_OFFS(0x164, 0x144));
 
-	const size_t StringLen = 256;
+	constexpr size_t StringLen = 256;
 
 	wchar_t pName[StringLen];
 	wchar_t pArmor[StringLen];
@@ -462,8 +344,7 @@ DEFINE_OVERRIDE_HOOK(0x4CF3D0, FlyLocomotionClass_sub_4CEFB0_HunterSeeker, 7)
 
 					// set the descending flight level
 					auto level = int(lerp) - floor;
-					if (level < 10)
-					{
+					if (level < 10) {
 						level = 10;
 					}
 
@@ -586,12 +467,7 @@ DEFINE_OVERRIDE_HOOK(0x4CDE64, FlyLocomotionClass_sub_4CD600_HunterSeeker_Ascent
 		}
 	}
 
-	if (ret > max)
-	{
-		ret = max;
-	}
-
-	R->EAX(ret);
+	R->EAX(MinImpl(ret , max));
 	return 0x4CDE8F;
 }
 
@@ -603,15 +479,8 @@ DEFINE_OVERRIDE_HOOK(0x4CDF54, FlyLocomotionClass_sub_4CD600_HunterSeeker_Descen
 	auto const pType = pObject->GetTechnoType();
 	auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
 
-	if (pType->HunterSeeker)
-	{
-		auto ret = pExt->HunterSeekerDescentSpeed.Get(RulesExt::Global()->HunterSeekerDescentSpeed);
-		if (max < ret)
-		{
-			ret = max;
-		}
-
-		R->ECX(ret);
+	if (pType->HunterSeeker) {
+		R->ECX(MinImpl(max , pExt->HunterSeekerDescentSpeed.Get(RulesExt::Global()->HunterSeekerDescentSpeed)));
 		return 0x4CDF81;
 	}
 

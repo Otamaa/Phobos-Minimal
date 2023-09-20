@@ -3,56 +3,7 @@
 
 #include <Misc/PhobosGlobal.h>
 
-DWORD FoundationLength(CellStruct const* const pFoundation)
-{
-	auto pFCell = pFoundation;
-	while (*pFCell != BuildingTypeExt::FoundationEndMarker)
-	{
-		++pFCell;
-	}
-
-	// include the end marker
-	return static_cast<DWORD>(std::distance(pFoundation, pFCell + 1));
-}
-
-const std::vector<CellStruct>& GetCoveredCells(
-	BuildingClass* const pThis, CellStruct const mainCoords,
-	int const shadowHeight)
-{
-	auto const pFoundation = pThis->GetFoundationData(false);
-	auto const len = FoundationLength(pFoundation);
-
-	PhobosGlobal::Instance()->TempCoveredCellsData.clear();
-	PhobosGlobal::Instance()->TempCoveredCellsData.reserve(len * shadowHeight);
-
-	auto pFCell = pFoundation;
-
-	while (*pFCell != BuildingTypeExt::FoundationEndMarker)
-	{
-		auto actualCell = mainCoords + *pFCell;
-		for (auto i = shadowHeight; i > 0; --i)
-		{
-			PhobosGlobal::Instance()->TempCoveredCellsData.push_back(actualCell);
-			--actualCell.X;
-			--actualCell.Y;
-		}
-		++pFCell;
-	}
-
-	std::sort(PhobosGlobal::Instance()->TempCoveredCellsData.begin(),
-			  PhobosGlobal::Instance()->TempCoveredCellsData.end(),
-		[](const CellStruct& lhs, const CellStruct& rhs) -> bool {
-			 return lhs.X > rhs.X || lhs.X == rhs.X && lhs.Y > rhs.Y;
-		});
-
-	auto const it = std::unique(
-		PhobosGlobal::Instance()->TempCoveredCellsData.begin(),
-		PhobosGlobal::Instance()->TempCoveredCellsData.end());
-
-	PhobosGlobal::Instance()->TempCoveredCellsData.erase(it, PhobosGlobal::Instance()->TempCoveredCellsData.end());
-
-	return PhobosGlobal::Instance()->TempCoveredCellsData;
-}
+#include "Header.h"
 
 DEFINE_OVERRIDE_HOOK(0x656584, RadarClass_GetFoundationShape, 6)
 {
@@ -85,18 +36,14 @@ DEFINE_OVERRIDE_HOOK(0x568565, MapClass_AddContentAt_Foundation_OccupyHeight, 5)
 	GET(int, ShadowHeight, EBP);
 	GET_STACK(CellStruct*, MainCoords, 0x8B4);
 
-	auto const& AffectedCells = GetCoveredCells(
+	auto const AffectedCells = CustomFoundation::GetCoveredCells(
 		pThis, *MainCoords, ShadowHeight);
 
-	auto& Map = MapClass::Instance;
-
-	for (auto const& cell : AffectedCells)
-	{
-		if (auto pCell = Map->TryGetCellAt(cell))
-		{
+	std::for_each(AffectedCells->begin(), AffectedCells->end(), [](CellStruct const& cell) {
+		if (auto pCell = MapClass::Instance->TryGetCellAt(cell)) {
 			++pCell->OccupyHeightsCoveringMe;
 		}
-	}
+	});
 
 	return 0x568697;
 }
@@ -125,21 +72,14 @@ DEFINE_OVERRIDE_HOOK(0x568997, MapClass_RemoveContentAt_Foundation_OccupyHeight,
 	GET(int, ShadowHeight, EBP);
 	GET_STACK(CellStruct*, MainCoords, 0x8B4);
 
-	auto const& AffectedCells = GetCoveredCells(
+	auto const& AffectedCells = CustomFoundation::GetCoveredCells(
 		pThis, *MainCoords, ShadowHeight);
 
-	auto& Map = MapClass::Instance;
-
-	for (auto const& cell : AffectedCells)
-	{
-		if (auto const pCell = Map->TryGetCellAt(cell))
-		{
-			if (pCell->OccupyHeightsCoveringMe > 0)
-			{
-				--pCell->OccupyHeightsCoveringMe;
-			}
+	std::for_each(AffectedCells->begin(), AffectedCells->end(), [](CellStruct const& cell) {
+		if (auto pCell = MapClass::Instance->TryGetCellAt(cell)) {
+			--pCell->OccupyHeightsCoveringMe;
 		}
-	}
+	});
 
 	return 0x568ADC;
 }
@@ -149,7 +89,7 @@ DEFINE_OVERRIDE_HOOK(0x4A8C77, DisplayClass_ProcessFoundation1_UnlimitBuffer, 5)
 	GET_STACK(CellStruct const*, Foundation, 0x18);
 	GET(DisplayClass*, Display, EBX);
 
-	DWORD Len = FoundationLength(Foundation);
+	DWORD Len = CustomFoundation::FoundationLength(Foundation);
 
 	PhobosGlobal::Instance()->TempFoundationData1.assign(Foundation, Foundation + Len);
 
@@ -169,7 +109,7 @@ DEFINE_OVERRIDE_HOOK(0x4A8DD7, DisplayClass_ProcessFoundation2_UnlimitBuffer, 5)
 	GET_STACK(CellStruct const*, Foundation, 0x18);
 	GET(DisplayClass*, Display, EBX);
 
-	DWORD Len = FoundationLength(Foundation);
+	DWORD Len = CustomFoundation::FoundationLength(Foundation);
 
 	PhobosGlobal::Instance()->TempFoundationData2.assign(Foundation, Foundation + Len);
 
@@ -244,17 +184,7 @@ DEFINE_OVERRIDE_HOOK(0x465550, BuildingTypeClass_GetFoundationOutline, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x465d4a, BuildingTypeClass_IsUndeployable, 6)
-{
-	GET(BuildingTypeClass*, pThis, ECX);
-
-	if (pThis->Foundation != BuildingTypeExt::CustomFoundation)
-		return 0;
-
-	const auto pData = BuildingTypeExt::ExtMap.Find(pThis);
-	R->EAX(pData->CustomHeight == 1 && pData->CustomWidth == 1);
-	return 0x465D6D;
-}
+DEFINE_DISABLE_HOOK(0x465d4a, BuildingTypeClass_IsUndeployable_ares) //, 6)
 
 DEFINE_OVERRIDE_HOOK(0x464AF0, BuildingTypeClass_GetSizeInLeptons, 6)
 {

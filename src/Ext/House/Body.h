@@ -58,6 +58,7 @@ public:
 	public:
 		PhobosMap<BuildingTypeClass*, int> PowerPlantEnhancerBuildings {};
 		PhobosMap<BuildingTypeClass*, int> Building_BuildSpeedBonusCounter {};
+		PhobosMap<BuildingTypeClass*, int> Building_OrePurifiersCounter {};
 
 		bool ForceOnlyTargetHouseEnemy { false };
 		int ForceOnlyTargetHouseEnemyMode { -1 };

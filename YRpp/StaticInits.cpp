@@ -30,6 +30,8 @@
 #include <CCINIClass.h>
 #include <Surface.h>
 
+#include <WWKeyboardClass.h>
+
 const CoordStruct CoordStruct::Empty = { 0,0,0 };
 const ColorStruct ColorStruct::Empty = { 0,0,0 };
 const Color16Struct Color16Struct::Empty = { 0,0,0 };
@@ -68,6 +70,23 @@ std::array< ColorStruct, (size_t)DefaultColorList::count> Drawing::DefaultColors
 //ALIAS(BombListClass , BombList , 0x87F5D8u)
 //#pragma endregion
 
+bool WWKeyboardClass::IsForceFireKeyPressed() const
+{
+	return this->IsKeyPressed(GameOptionsClass::Instance->KeyForceFire1)
+		|| this->IsKeyPressed(GameOptionsClass::Instance->KeyForceFire2);
+}
+
+bool WWKeyboardClass::IsForceMoveKeyPressed() const
+{
+	return this->IsKeyPressed(GameOptionsClass::Instance->KeyForceMove1)
+		|| this->IsKeyPressed(GameOptionsClass::Instance->KeyForceMove2);
+}
+
+bool WWKeyboardClass::IsForceSelectKeyPressed() const
+{
+	return this->IsKeyPressed(GameOptionsClass::Instance->KeyForceSelect1)
+		|| this->IsKeyPressed(GameOptionsClass::Instance->KeyForceSelect2);
+}
 void SlaveManagerClass::ZeroOutSlaves() {
 	for(const auto& pNode : this->SlaveNodes) {
 		if(auto pSlave = pNode->Slave) {

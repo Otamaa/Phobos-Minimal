@@ -195,6 +195,7 @@
     <ClCompile Include="src\Misc\Ares\Audio.cpp" />
     <ClCompile Include="src\Misc\Ares\CSF.cpp" />
     <ClCompile Include="src\Misc\Ares\EVAVoices.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\AresNetEvent.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\AresTrajectoryHelper.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Header.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hook.Init.cpp" />
@@ -236,6 +237,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Unit.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Verses.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Veterancy.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.VXLArtData.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Wave.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Weapons.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\Hooks.PaintBall.cpp" />
@@ -260,9 +262,12 @@
     <ClCompile Include="src\Misc\RetryDialog.cpp" />
     <ClCompile Include="src\Misc\Selection.cpp" />
     <ClCompile Include="src\Misc\TextInput.cpp" />
+    <ClCompile Include="src\New\AnonymousType\BuildSpeedBonus.cpp" />
     <ClCompile Include="src\New\Entity\FoggedObject.cpp" />
     <ClCompile Include="src\New\AnonymousType\MultipleFactoryCaps.cpp" />
+    <ClCompile Include="src\New\InsigniaData.cpp" />
     <ClCompile Include="src\New\Interfaces\TestLocomotionClass.cpp" />
+    <ClCompile Include="src\New\LaserTrailDataEntry.cpp" />
     <ClCompile Include="src\New\Type\CrateTypeClass.cpp" />
     <ClCompile Include="src\New\Type\DigitalDisplayTypeClass.cpp" />
     <ClCompile Include="src\New\Type\GenericPrerequisite.cpp" />
@@ -505,6 +510,7 @@
     <ClInclude Include="src\Misc\PhobosGlobal.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />
     <ClInclude Include="src\New\AnonymousType\AresAttachEffectTypeClass.h" />
+    <ClInclude Include="src\New\AnonymousType\BuildSpeedBonus.h" />
     <ClInclude Include="src\New\AnonymousType\PassengerDeletionTypeClass.h" />
     <ClInclude Include="src\New\Entity\DelayFireAnimClass.h" />
     <ClInclude Include="src\New\Entity\ElectricBoltClass.h" />
@@ -513,8 +519,10 @@
     <ClInclude Include="src\New\Entity\LauchSWData.h" />
     <ClInclude Include="src\New\AnonymousType\MultipleFactoryCaps.h" />
     <ClInclude Include="src\New\Entity\ShieldClass.h" />
+    <ClInclude Include="src\New\InsigniaData.h" />
     <ClInclude Include="src\New\Interfaces\Base.h" />
     <ClInclude Include="src\New\Interfaces\TestLocomotionClass.h" />
+    <ClInclude Include="src\New\LaserTrailDataEntry.h" />
     <ClInclude Include="src\New\Type\CrateTypeClass.h" />
     <ClInclude Include="src\New\Type\DigitalDisplayTypeClass.h" />
     <ClInclude Include="src\New\Type\GenericPrerequisite.h" />
@@ -596,6 +604,7 @@
     <ClInclude Include="src\Utilities\VectorHelper.h" />
     <ClInclude Include="src\Utilities\VersesData.h" />
     <ClInclude Include="YRpp\GameTextManager.h" />
+    <ClInclude Include="YRpp\Timers.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\version.rc" />
@@ -645,7 +654,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
+      <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <SDLCheck>
       </SDLCheck>
@@ -673,7 +682,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.22000.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>

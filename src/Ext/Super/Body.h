@@ -14,10 +14,8 @@ struct SWStatus
 	bool PowerSourced; //1
 	bool Charging;
 
-	void reset() {
-		Available = false;
-		PowerSourced = false;
-		Charging = false;
+	void __forceinline reset() {
+		std::memset(this, 0, sizeof(SWStatus));
 	}
 };
 

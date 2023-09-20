@@ -120,7 +120,7 @@ DEFINE_OVERRIDE_HOOK(0x752FDC, VoxClass_LoadFromINI, 5)
 	GET(VoxClass2* const, pThis, ESI);
 	GET(CCINIClass* const, pINI, EBP);
 
-	char buffer[0x20];
+	char buffer[0xA];
 
 	// make way for all filenames
 	auto const count = EVAVoices::Types.size();
@@ -139,9 +139,7 @@ DEFINE_OVERRIDE_HOOK(0x752FDC, VoxClass_LoadFromINI, 5)
 DEFINE_OVERRIDE_HOOK(0x7528E8, VoxClass_PlayEVASideSpecific, 5)
 {
 	GET(VoxClass* const, pVox, EBP);
-	auto const ret = pVox->GetFilename();
-
-	R->EDI(ret);
+	R->EDI(pVox->GetFilename());
 	return 0x752901;
 }
 
@@ -151,7 +149,7 @@ DEFINE_OVERRIDE_HOOK(0x753380, VoxClass_GetFilename, 5)
 	GET(VoxClass2* const, pThis, ECX);
 	auto const index = VoxClass::EVAIndex();
 
-	const char* ret = "";
+	const char* ret = Phobos::readDefval;
 	switch(index)
 	{
 	case -1:
@@ -180,8 +178,7 @@ DEFINE_OVERRIDE_HOOK(0x7534e0 , VoxClass_SetEVAIndex , 5)
 {	GET(int ,side , ECX);
 
 	if (auto pSide = SideClass::Array->GetItemOrDefault(side)) {
-		int idx = SideExt::ExtMap.Find(pSide)->EVAIndex;
-		VoxClass::EVAIndex = idx;
+		VoxClass::EVAIndex = SideExt::ExtMap.Find(pSide)->EVAIndex;
 	} else {
 		VoxClass::EVAIndex = -1;
 	}

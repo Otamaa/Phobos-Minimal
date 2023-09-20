@@ -20,19 +20,22 @@ public:
 
 	{ }
 
-	MotLib(CCFileClass* Source) noexcept 
+	MotLib(CCFileClass* Source) noexcept
 		: LoadedFailed { false }
 		, LayerCount { 0 }
 		, FrameCount { 0 }
-		, Matrixes{ nullptr } 
-	{ 
+		, Matrixes{ nullptr }
+	{
 		if (!this->ReadFile(Source)) {
 			this->LoadedFailed = 1;
-		}	
+		}
 	}
 
 	~MotLib() noexcept {
-		GameDelete(Matrixes);
+		if(Matrixes) {
+			YRMemory::Deallocate(Matrixes);
+			Matrixes = nullptr;
+		}
 	}
 
 	// 0 for valid, non 0 for invalid
