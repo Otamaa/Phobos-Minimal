@@ -257,11 +257,10 @@ DEFINE_OVERRIDE_HOOK(0x6F826E, TechnoClass_CanAutoTargetObject_CivilianEnemy, 0x
 	// if the potential target is attacking an allied object, consider it an enemy
 	// to not allow civilians to overrun a player
 	if (const auto pTargetTarget = abstract_cast<TechnoClass*>(pTarget->Target)) {
-		const auto pOwner = pThis->Owner;
-		if (pOwner->IsAlliedWith_(pTargetTarget)) {
+		if (pThis->Owner->IsAlliedWith_(pTargetTarget)) {
 			const auto pData = RulesExt::Global();
 
-			if (pOwner->IsControlledByHuman() ?
+			if (pThis->Owner->IsControlledByHuman() ?
 				pData->AutoRepelPlayer : pData->AutoRepelAI) {
 				return ConsiderEnemy;
 			}
@@ -432,37 +431,5 @@ DEFINE_OVERRIDE_HOOK(0x70CBDA, TechnoClass_DealParticleDamage, 6)
 {
 	GET(TechnoClass*, pSource, EDX);
 	R->Stack<HouseClass*>(0xC, pSource->Owner);
-	return 0;
-}
-
-DEFINE_OVERRIDE_HOOK_AGAIN(0x6FF860, TechnoClass_Fire_FSW, 8)
-DEFINE_OVERRIDE_HOOK(0x6FF008, TechnoClass_Fire_FSW, 8)
-{
-	REF_STACK(CoordStruct const, src, 0x44);
-	REF_STACK(CoordStruct const, tgt, 0x88);
-
-	if (!IsAnySFWActive)
-	{
-		return 0;
-	}
-
-	auto const Bullet = R->Origin() == 0x6FF860
-		? R->EDI<BulletClass*>()
-		: R->EBX<BulletClass*>()
-		;
-
-	if (!Bullet->Type->IgnoresFirestorm) {
-		return 0;
-	}
-
-	auto const crd = MapClass::Instance->FindFirstFirestorm(src, tgt, Bullet->Owner->Owner);
-
-	if (crd.IsValid())
-	{
-		auto const pCell = MapClass::Instance->GetCellAt(crd);
-		Bullet->Target = pCell->GetContent();
-		Bullet->Owner->ShouldLoseTargetNow = 1;
-	}
-
 	return 0;
 }

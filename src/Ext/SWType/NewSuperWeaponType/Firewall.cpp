@@ -1,12 +1,12 @@
 #include "Firewall.h"
 
 #include <Misc/AresData.h>
+#include <Misc/Ares/Hooks/Header.h>
 
-//TODO : set some static var of AresData
-// since FW not yet reimplement ,we need to make sure ares stuffs set properly here !
+SuperWeaponType SW_Firewall::FirewallType = SuperWeaponType::Invalid;
 
 SW_Firewall::~SW_Firewall() {
-	SW_Firewall_Type = SuperWeaponType::Invalid;
+	SW_Firewall::FirewallType = SuperWeaponType::Invalid;
 }
 
 std::vector<const char*> SW_Firewall::GetTypeString() const
@@ -26,7 +26,7 @@ bool SW_Firewall::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 	if (!pThis->Granted)
 		return false;
 
-	AresData::RespondToFirewall(pThis->Owner, true);
+	AresHouseExt::SetFirestormState(pThis->Owner, true);
 
 	if (IsPlayer) {
 		pThis->Owner->RecheckTechTree = true;
@@ -37,7 +37,7 @@ bool SW_Firewall::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 
 void SW_Firewall::Deactivate(SuperClass* pThis, CellStruct cell, bool isPlayer)
 {
-	AresData::RespondToFirewall(pThis->Owner, false);
+	AresHouseExt::SetFirestormState(pThis->Owner, false);
 
 	if (isPlayer) {
 		pThis->Owner->RecheckTechTree = true;

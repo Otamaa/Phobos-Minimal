@@ -22,6 +22,8 @@ int HouseExt::LastGrindingBlanceInf = 0;
 int HouseExt::LastHarvesterBalance = 0;
 int HouseExt::LastSlaveBalance = 0;
 
+bool HouseExt::IsAnyFirestormActive = false;
+
 CDTimerClass HouseExt::CloakEVASpeak;
 CDTimerClass HouseExt::SubTerraneanEVASpeak;
 
@@ -1333,6 +1335,7 @@ bool HouseExt::ExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 		.Process(HouseExt::LastGrindingBlanceInf)
 		.Process(HouseExt::LastHarvesterBalance)
 		.Process(HouseExt::LastSlaveBalance)
+		.Process(HouseExt::IsAnyFirestormActive)
 		.Success();
 }
 
@@ -1343,6 +1346,7 @@ bool HouseExt::ExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 		.Process(HouseExt::LastGrindingBlanceInf)
 		.Process(HouseExt::LastHarvesterBalance)
 		.Process(HouseExt::LastSlaveBalance)
+		.Process(HouseExt::IsAnyFirestormActive)
 		.Success();
 }
 

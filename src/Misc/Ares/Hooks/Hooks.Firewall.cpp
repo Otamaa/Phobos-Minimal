@@ -3,6 +3,7 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/Tiberium/Body.h>
+#include <Ext/SWType/NewSuperWeaponType/Firewall.h>
 
 #include <Misc/AresData.h>
 
@@ -75,7 +76,7 @@ DEFINE_OVERRIDE_HOOK(0x5880A0, MapClass_FindFirstFirestorm, 6)
 
 	*pOutBuffer = CoordStruct::Empty;
 
-	if (IsAnySFWActive && *pStart != *pEnd)
+	if (HouseExt::IsAnyFirestormActive && *pStart != *pEnd)
 	{
 		auto const start = CellClass::Coord2Cell(*pStart);
 		auto const end = CellClass::Coord2Cell(*pEnd);
@@ -117,7 +118,7 @@ DEFINE_OVERRIDE_HOOK(0x4423E7, BuildingClass_ReceiveDamage_FSW, 5)
 
 		if (amount > 0)
 		{
-			auto const index = SW_Firewall_Type;
+			auto const index = SW_Firewall::FirewallType;
 
 			if (auto const pSuper = pThis->Owner->FindSuperWeapon(index))
 			{
@@ -228,7 +229,7 @@ DEFINE_OVERRIDE_HOOK(0x4DA53E, FootClass_Update_AresAddition, 6)
 
 	auto const pType = pThis->GetTechnoType();
 
-	if (IsAnySFWActive) {
+	if (HouseExt::IsAnyFirestormActive) {
 		if (pThis->IsAlive && !pThis->InLimbo && !pThis->InOpenToppedTransport && !pType->IgnoresFirestorm) {
 			if (auto const pBld = pThis->GetCell()->GetBuilding()) {
 				if (FirewallFunctions::IsActiveFirestormWall(pBld, nullptr)) {
@@ -317,7 +318,7 @@ DEFINE_OVERRIDE_HOOK(0x467B94, BulletClass_Update_Ranged, 7)
 	pThis->SetLocation(CrdNew);
 
 	// firestorm wall check
-	if (IsAnySFWActive && !pThis->Type->IgnoresFirestorm)
+	if (HouseExt::IsAnyFirestormActive && !pThis->Type->IgnoresFirestorm)
 	{
 		auto const pCell = MapClass::Instance->GetCellAt(CrdNew);
 
@@ -375,4 +376,33 @@ DEFINE_OVERRIDE_HOOK(0x4688BD, BulletClass_SetMovement_Obstacle, 6)
 	}
 
 	return 0x468A3F;
+}
+
+DEFINE_OVERRIDE_HOOK_AGAIN(0x6FF860, TechnoClass_Fire_FSW, 8)
+DEFINE_OVERRIDE_HOOK(0x6FF008, TechnoClass_Fire_FSW, 8)
+{
+	REF_STACK(CoordStruct const, src, 0x44);
+	REF_STACK(CoordStruct const, tgt, 0x88);
+
+	if (!HouseExt::IsAnyFirestormActive) {
+		return 0;
+	}
+
+	auto const Bullet = R->Origin() == 0x6FF860
+		? R->EDI<BulletClass*>()
+		: R->EBX<BulletClass*>()
+		;
+
+	if (!Bullet->Type->IgnoresFirestorm) {
+		return 0;
+	}
+
+	auto const crd = MapClass::Instance->FindFirstFirestorm(src, tgt, Bullet->Owner->Owner);
+
+	if (crd.IsValid()) {
+		Bullet->Target = MapClass::Instance->GetCellAt(crd)->GetContent();
+		Bullet->Owner->ShouldLoseTargetNow = 1;
+	}
+
+	return 0;
 }

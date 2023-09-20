@@ -404,7 +404,8 @@ struct AresHouseExt
 {
 	static bool CheckBasePlanSanity(HouseClass* const pThis);
 	static void UpdateTogglePower(HouseClass* pThis);
-
+	static bool UpdateAnyFirestormActive(bool const lastChange);
+	static void SetFirestormState(HouseClass* pHouse, bool const active);
 };
 
 struct CustomFoundation

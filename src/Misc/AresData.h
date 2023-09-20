@@ -199,11 +199,11 @@ struct AresData
 	//static Action GetInfActionOverObject(InfantryClass* const pInf, BuildingClass* const pBld);
 	static void SetMouseCursorAction(size_t CursorIdx, Action nAction, bool bShrouded);
 	//static CanBuildResult PrereqValidate(HouseClass* const pHouse, TechnoTypeClass* const pItem, bool const buildLimitOnly, bool const includeQueued);
-	static bool SW_Activate(SuperClass* pSuper, CellStruct cell, bool isPlayer);
+	//static bool SW_Activate(SuperClass* pSuper, CellStruct cell, bool isPlayer);
 	//static void TechnoExt_ExtData_DepositTiberium(TechnoClass* const pTechno, float const amount, float const bonus, int const idxType);
 	//static void HouseExt_ExtData_ApplyAcademy(HouseClass* const pThis, TechnoClass* const pTarget, AbstractType Type);
-	static VoxelStruct* GetTurretsVoxel(TechnoTypeClass* const pThis, int index);
-	static VoxelStruct* GetBarrelsVoxel(TechnoTypeClass* const pThis, int index);
+	//static VoxelStruct* GetTurretsVoxel(TechnoTypeClass* const pThis, int index);
+	//static VoxelStruct* GetBarrelsVoxel(TechnoTypeClass* const pThis, int index);
 	static void TechnoTransferAffects(TechnoClass* const pFrom, TechnoClass* const pTo);
 	//static bool IsGenericPrerequisite(TechnoTypeClass* const pThis);
 	//static int GetSelfHealAmount(TechnoClass* const pTechno);
@@ -248,7 +248,7 @@ struct AresData
 	static bool IsDriverKillable(TechnoClass* pThis, double tresh);
 	static bool KillDriverCore(TechnoClass* pThis, HouseClass* pToHouse, TechnoClass* pKiller, bool removeVet);
 	//static void FireIronCurtain(TeamClass* pTeam, ScriptActionNode* pNode , bool ntrhd);
-	static void RespondToFirewall(HouseClass* pHouse, bool Active);
+	//static void RespondToFirewall(HouseClass* pHouse, bool Active);
 	//static RequirementStatus RequirementsMet(HouseClass* pHouse , TechnoTypeClass* pTech);
 	//static void UpdateAcademy(HouseClass* pThis, TechnoClass* pTechno, bool bAdded);
 
@@ -262,7 +262,7 @@ struct AresData
 
 	//static Action TechnoExt_GetActionHijack(TechnoClass* pThis, TechnoClass* pTarget);
 
-	static void AresNetEvent_Handlers_RespondToFirewallToggle(HouseClass* pFor, bool Activate);
+	//static void AresNetEvent_Handlers_RespondToFirewallToggle(HouseClass* pFor, bool Activate);
 	//static WeaponStruct* GetWeapon(TechnoTypeClass* pType, int idx, bool Elite);
 
 	//static void SetFactoryPlans(BuildingClass* pBld);
@@ -388,7 +388,7 @@ struct AresDTORCaller
 };
 
 #define Debug_bTrackParseErrors (*((bool*)(AresData::AresStaticInstanceFinal[3])))
-#define IsAnySFWActive (*((bool*)(AresData::AresStaticInstanceFinal[4])))
+//#define IsAnySFWActive (*((bool*)(AresData::AresStaticInstanceFinal[4])))
 //#define EvaTypes (*((std::vector<const char*, AresMemory::AresAllocator<const char*>>*)(AresData::AresStaticInstanceFinal[5])))
 #define RegisteredJammers(techno) (*(PhobosMap<TechnoClass*, bool, AresMemory::AresAllocator<std::pair<TechnoClass*,bool>>>*)(((char*)GetAresBuildingExt(techno)) + 0x40))
 #define PrimsForwardingPtr(techno) (*(cPrismForwarding*)(((char*)GetAresBuildingExt(techno)) + 0x10))
@@ -400,7 +400,7 @@ struct AresDTORCaller
 //#define VeteranBuildings(var) (*(std::vector<BuildingTypeClass*,AresMemory::AresAllocator<BuildingTypeClass*>>*)((char*)GetAresHouseTypeExt(var) + 0x15C))
 //#define OverpoweredBuildingType(var) (*(std::vector<BuildingTypeClass*,AresMemory::AresAllocator<BuildingTypeClass*>>*)((char*)GetAresHouseExt(var) + 0x7C))
 //#define GetDefaultTargetingArrayValue() (*((std::array<const AITargetingModeInfo , (size_t)SuperWeaponAITargetingMode::count>*)(AresData::AresStaticInstanceFinal[6])))
-#define SW_Firewall_Type (*((SuperWeaponType*)(AresData::AresStaticInstanceFinal[7])))
+//#define SW_Firewall_Type (*((SuperWeaponType*)(AresData::AresStaticInstanceFinal[7])))
 #define Ares_CurrentSWType (*((SuperWeaponTypeClass**)(AresData::AresStaticInstanceFinal[8])))
 // remember , this only 3 elements , otherwise it will bleed to something else
 #define Ares_EboltColors1 (*((int*)(AresData::AresStaticInstanceFinal[9])))

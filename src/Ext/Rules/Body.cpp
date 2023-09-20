@@ -211,7 +211,7 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	auto pINI = CCINIClass::INI_Rules();
 	INI_EX iniEX(pINI);
 
-	for (auto const pItem : *TechnoTypeClass::Array)
+	for (auto pItem : *TechnoTypeClass::Array)
 	{
 		const auto what = pItem->WhatAmI();
 		const auto isFoot = what != AbstractType::BuildingType;
@@ -296,11 +296,12 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 		if(isFoot) {
 
-			for (auto const pSuper : *SuperWeaponTypeClass::Array) {
-				auto pSuperExt = SWTypeExt::ExtMap.Find(pSuper);
-
-				if (!pSuperExt->Aux_Techno.empty() && pSuperExt->Aux_Techno.Contains(pItem))
-					pExt->Linked_SW.push_back(pSuper);
+			for (auto pSuper : *SuperWeaponTypeClass::Array) {
+				const auto pSuperExt = SWTypeExt::ExtMap.Find(pSuper);
+				if (!pSuperExt->Aux_Techno.empty() && pSuperExt->Aux_Techno.Contains(pItem)) {
+					if(pExt->Linked_SW.Find(pSuper) == pExt->Linked_SW.end())
+						pExt->Linked_SW.push_back(pSuper);
+				}
 			}
 
 			if(what == InfantryTypeClass::AbsID){

@@ -525,7 +525,7 @@ void NewSWType::Init()
 	if (NewSWTypeInited)
 		return;
 
-	SW_Firewall_Type = SuperWeaponType((int)AresNewSuperType::Firestorm + (int)SuperWeaponType::count);
+	SW_Firewall::FirewallType = SuperWeaponType((int)AresNewSuperType::Firestorm + (int)SuperWeaponType::count);
 
 	NewSWTypeInited = true;
 #define RegSW(name ,type) Register(std::make_unique<name>(), type);

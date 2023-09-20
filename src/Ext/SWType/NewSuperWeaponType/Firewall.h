@@ -13,4 +13,5 @@ public:
 	virtual void Deactivate(SuperClass* pThis, CellStruct cell, bool isPlayer) override;
 	virtual void LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI) override;
 
+	static SuperWeaponType FirewallType;
 };

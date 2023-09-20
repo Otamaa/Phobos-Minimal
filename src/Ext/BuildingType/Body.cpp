@@ -436,15 +436,16 @@ int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHou
 	return static_cast<int>(std::round(pBuilding->GetPowerOutput() * fFactor)) + nAmount;
 }
 
-float NOINLINE BuildingTypeExt::GetPurifierBonusses(HouseClass* pHouse)
+float BuildingTypeExt::GetPurifierBonusses(HouseClass* pHouse)
 {
-	//removing the counter reference
-	// Unit unload , 73E437 done
-	// inf storage Ai , 522DD9 done
-	// limbo 1 , 44591F done
-	// Grand open , 44637C done
-	// Captured1 , 448AC2 done
-	// Captured2 , 4491EB done
+	/*removing the counter reference
+	 Unit unload , 73E437 done
+	 inf storage Ai , 522DD9 done
+	 limbo 1 , 44591F done
+	 Grand open , 44637C done
+	 Captured1 , 448AC2 done
+	 Captured2 , 4491EB done*/
+
 	float fFactor = 0.00f;
 
 	if (!pHouse || pHouse->Defeated || pHouse->IsNeutral() || HouseExt::IsObserverPlayer(pHouse))
@@ -455,11 +456,12 @@ float NOINLINE BuildingTypeExt::GetPurifierBonusses(HouseClass* pHouse)
 	if (pHouseExt->Building_OrePurifiersCounter.empty())
 		return 0.00f;
 
-	// purifier bonus only applicable outside campaign
+	// AI VirtualPurifiers only applicable outside campaign
 	// the bonus is using default rules value
 	const bool Eligible = SessionClass::Instance->GameMode != GameMode::Campaign;
 	const int bonusCount = !Eligible ? 0 : RulesClass::Instance->AIVirtualPurifiers[pHouse->GetAIDifficultyIndex()];
-	const float bonusAI = RulesClass::Instance->PurifierBonus * bonusCount; //virtual purifier using rules value
+	//virtual purifier using rules value
+	const float bonusAI = RulesClass::Instance->PurifierBonus * bonusCount;
 
 	for (const auto& [pBldType, nCount] : pHouseExt->Building_OrePurifiersCounter)
 	{
@@ -910,6 +912,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->DegradeAmount.Read(exINI, pSection, "Degrade.Amount");
 		this->DegradePercentage.Read(exINI, pSection, "Degrade.Percentage");
 		this->IsPassable.Read(exINI, pSection, "IsPassable");
+		this->ProduceCashDisplay.Read(exINI, pSection, "ProduceCashProclaim");
 		this->ProduceCashDisplay.Read(exINI, pSection, "ProduceCashDisplay");
 
 		this->Storage_ActiveAnimations.Read(exINI, pSection, "Storage.ActiveAnimations");

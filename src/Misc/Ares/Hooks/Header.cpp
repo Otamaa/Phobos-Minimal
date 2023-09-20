@@ -3246,7 +3246,7 @@ void FirewallFunctions::UpdateFirewallLinks(BuildingClass* pThis)
 
 bool FirewallFunctions::IsActiveFirestormWall(BuildingClass* const pBuilding, HouseClass const* const pIgnore)
 {
-	if (IsAnySFWActive && pBuilding && pBuilding->Owner != pIgnore && pBuilding->Owner->FirestormActive)
+	if (HouseExt::IsAnyFirestormActive && pBuilding && pBuilding->Owner != pIgnore && pBuilding->Owner->FirestormActive)
 	{
 		if (!pBuilding->InLimbo && pBuilding->IsAlive)
 		{
@@ -4732,10 +4732,10 @@ std::pair<LogicNeedType, bool> AresTActionExt::GetMode(AresNewTriggerAction nAct
 
 bool AresTActionExt::ActivateFirestorm(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
 {
-	if (pHouse->FirestormActive)
-	{
-		AresData::RespondToFirewall(pHouse, true);
+	if (pHouse->FirestormActive) {
+		AresHouseExt::SetFirestormState(pHouse, true);
 	}
+
 	return true;
 }
 
@@ -4743,7 +4743,7 @@ bool AresTActionExt::DeactivateFirestorm(TActionClass* pAction, HouseClass* pHou
 {
 	if (pHouse->FirestormActive)
 	{
-		AresData::RespondToFirewall(pHouse, false);
+		AresHouseExt::SetFirestormState(pHouse, false);
 	}
 	return true;
 }
@@ -6100,6 +6100,48 @@ void AresHouseExt::UpdateTogglePower(HouseClass* pThis)
 			}
 		}
 	}
+}
+
+bool AresHouseExt::UpdateAnyFirestormActive(bool const lastChange)
+{
+	HouseExt::IsAnyFirestormActive = lastChange;
+
+	// if last change activated one, there is at least one. else...
+	if (!lastChange) {
+		for (auto const& pHouse : *HouseClass::Array) {
+			if (pHouse->FirestormActive) {
+				HouseExt::IsAnyFirestormActive = true;
+				break;
+			}
+		}
+	}
+
+	return HouseExt::IsAnyFirestormActive;
+}
+
+void AresHouseExt::SetFirestormState(HouseClass* pHouse , bool const active)
+{
+	if (pHouse->FirestormActive == active) {
+		return;
+	}
+
+	pHouse->FirestormActive = active;
+	UpdateAnyFirestormActive(active);
+
+	DynamicVectorClass<CellStruct> AffectedCoords;
+
+	for (auto const& pBld : pHouse->Buildings)
+	{
+		if (pBld->Type->FirestormWall)
+		{
+			FirewallFunctions::UpdateFirewall(pBld , true);
+			auto const temp = pBld->GetMapCoords();
+			AffectedCoords.AddItem(temp);
+		}
+	}
+
+	MapClass::Instance->Update_Pathfinding_1();
+	MapClass::Instance->Update_Pathfinding_2(AffectedCoords);
 }
 
 #pragma endregion

@@ -2053,11 +2053,6 @@ BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 		if (pBld && pBld->IsAlive && !pBld->InLimbo && pBld->IsOnMap) {
 			const bool IsLimboDelivered = BuildingExt::ExtMap.Find(pBld)->LimboID != -1;
 
-			if (!IsLimboDelivered && IsCurrentPlayer
-				&& !pBld->DiscoveredByCurrentPlayer
-				&& SessionClass::Instance->GameMode == GameMode::Campaign)
-				continue;
-
 			if (pBld->GetCurrentMission() == Mission::Selling || pBld->QueuedMission == Mission::Selling)
 				continue;
 
@@ -2088,7 +2083,13 @@ BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 				//only pick first spysat
 				const bool IsSpySatPowered = pExt->SpySat_RequirePower ? !PowerDown : true;
 				if (!Spysat && (*begin)->SpySat && !Jammered && IsSpySatPowered)
-					Spysat = pBld;
+				{
+					if (IsLimboDelivered || (IsCurrentPlayer
+						&& !pBld->DiscoveredByCurrentPlayer
+						&& SessionClass::Instance->GameMode == GameMode::Campaign))
+						Spysat = pBld;
+
+				}
 
 				// add eligible building
 				if (pExt->SpeedBonus.Enabled)

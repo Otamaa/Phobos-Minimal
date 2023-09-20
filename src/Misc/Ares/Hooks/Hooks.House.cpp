@@ -963,7 +963,7 @@ DEFINE_OVERRIDE_HOOK(0x4F8C97, HouseClass_Update_BuildConst, 6)
 	enum { NotifyLowPower = 0x4F8D02, Skip = 0x4F8DB1 };
 
 	// disable FSW on low power
-	AresData::RespondToFirewall(pThis, false);
+	AresHouseExt::SetFirestormState(pThis, false);
 
 	// should play low power EVA for more than three BuildConst items
 	for (auto const& pItem : RulesClass::Instance->BuildConst) {

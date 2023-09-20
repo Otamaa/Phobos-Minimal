@@ -170,6 +170,7 @@ public:
 	};
 
 	static ExtContainer ExtMap;
+	static bool IsAnyFirestormActive;
 
 	static int ActiveHarvesterCount(HouseClass* pThis);
 	static int TotalHarvesterCount(HouseClass* pThis);

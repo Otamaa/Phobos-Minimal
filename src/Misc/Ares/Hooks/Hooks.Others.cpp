@@ -2406,16 +2406,14 @@ DEFINE_OVERRIDE_HOOK(0x6F6F20, TechnoClass_Put_BuildingLight, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	auto pTypeData = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-
-	auto const pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
 
 	//only update the SW if really needed it
-	if (pThis->Owner && pThis->WhatAmI() != BuildingClass::AbsID && !pTypeExt->Linked_SW.empty() && pThis->Owner->CountOwnedAndPresent(pExt->Type) >= 1)
+	if (pThis->Owner && pThis->WhatAmI() != BuildingClass::AbsID && !pTypeExt->Linked_SW.empty())
 		pThis->Owner->UpdateSuperWeaponsUnavailable();
 
-	if (pTypeData->HasSpotlight)
+	if (pTypeExt->HasSpotlight)
 	{
 		TechnoExt_ExtData::SetSpotlight(pThis, GameCreate<BuildingLightClass>(pThis));
 	}
