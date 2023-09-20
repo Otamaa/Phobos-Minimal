@@ -345,6 +345,12 @@ public:
 
 		NullablePromotable<int> SelfHealing_CombatDelay { };
 
+		Valueable<bool> KillDriver { false };
+		Valueable<double> KillDriver_KillBelowPercent { 1.00 };
+		Valueable<OwnerHouseKind> KillDriver_Owner { OwnerHouseKind::Special };
+		Valueable<bool> KillDriver_ResetVeterancy { false };
+		Valueable<double> KillDriver_Chance { 100.0 };
+
 		ExtData(WarheadTypeClass* OwnerObject) : Extension<WarheadTypeClass>(OwnerObject)
 		{
 			AttachedEffect.Owner = OwnerObject;

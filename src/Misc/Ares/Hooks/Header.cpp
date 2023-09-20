@@ -2747,6 +2747,169 @@ BuildingClass* TechnoExt_ExtData::CreateBuilding(
 	return pRet;
 };
 
+bool TechnoExt_ExtData::IsDriverKillable(TechnoClass* pThis, double KillBelowPercent)
+{
+	const auto what = pThis->WhatAmI();
+	if (what != UnitClass::AbsID && what != AircraftClass::AbsID)
+		return false;
+
+	if (what == AircraftClass::AbsID) {
+		const auto pAir = (AircraftClass*)pThis;
+
+		if (pAir->Type->AirportBound || pAir->Type->Dock.Count)
+			return false;
+	}
+
+	if (pThis->BeingWarpedOut || pThis->IsIronCurtained() || TechnoExt::IsInWarfactory(pThis, false))
+		return false;
+
+	const auto pType = pThis->GetTechnoType();
+
+	if (pType->Natural || pType->Organic)
+		return false;
+
+	const auto pThisTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const bool protecteddriver = TechnoExt::IsDriverKillProtected(pThis);
+
+	const double maxKillHealth = MinImpl(
+		pThisTypeExt->ProtectedDriver_MinHealth.Get(
+			protecteddriver ? 0.0 : 1.0),
+		KillBelowPercent);
+
+	if (pThis->GetHealthPercentage() > maxKillHealth)
+		return false;
+
+	return true;
+}
+
+void TechnoExt_ExtData::ApplyKillDriver(TechnoClass* pTarget, TechnoClass* pKiller, HouseClass* pToOwner, bool ResetVet, Mission passiveMission)
+{
+	if (!pTarget || (pTarget->AbstractFlags & AbstractFlags::Foot) == AbstractFlags::None)
+		return;
+
+	if (pTarget->Owner == pToOwner) {
+		return;
+	}
+
+	pTarget->align_154->Is_DriverKilled = pToOwner->Type->MultiplayPassive;
+
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pTarget->GetTechnoType());
+
+	if (pTarget->Passengers.GetFirstPassenger())
+	{
+		if (pTypeExt->Operator_Any)
+		{
+			// kill first passenger
+			auto const pPassenger = pTarget->Passengers.RemoveFirstPassenger();
+			pPassenger->RegisterDestruction(pKiller);
+			pPassenger->UnInit();
+
+		}
+		else if (!pTypeExt->Operators.empty())
+		{
+			// find the driver cowardly hiding among the passengers, then kill him
+			for (NextObject passenger(pTarget->Passengers.GetFirstPassenger()); passenger; ++passenger)
+			{
+				auto const pPassenger = static_cast<FootClass*>(*passenger);
+
+				if (pTypeExt->Operators.Contains(pPassenger->GetTechnoType()))
+				{
+					pTarget->Passengers.RemovePassenger(pPassenger);
+					pPassenger->RegisterDestruction(pKiller);
+					pPassenger->UnInit();
+					break;
+				}
+			}
+		}
+
+		// if passengers remain in the vehicle, operator-using or not, they should leave
+		if (pTarget->Passengers.GetFirstPassenger())
+		{
+			TechnoExt::EjectPassengers((FootClass*)pTarget, -1);
+		}
+	}
+
+	if (ResetVet)
+		pTarget->Veterancy.Reset();
+
+	pTarget->HijackerInfantryType = -1;
+
+	// If this unit is driving under influence, we have to free it first
+	if (auto const pController = pTarget->MindControlledBy)
+	{
+		if (auto const pCaptureManager = pController->CaptureManager)
+		{
+			pCaptureManager->FreeUnit(pTarget);
+		}
+	}
+
+	pTarget->MindControlledByAUnit = false;
+	pTarget->MindControlledByHouse = nullptr;
+
+	// remove the mind-control ring anim
+	if (pTarget->MindControlRingAnim)
+	{
+		pTarget->MindControlRingAnim->TimeToDie = true;
+		pTarget->MindControlRingAnim->UnInit();
+		pTarget->MindControlRingAnim = nullptr;
+	}
+
+	// If this unit mind controls stuff, we should free the controllees, since they still belong to the previous owner
+	if (pTarget->CaptureManager)
+	{
+		pTarget->CaptureManager->FreeAll();
+	}
+
+	// This unit will be freed of its duties
+	if (auto const pFoot = abstract_cast<FootClass*>(pTarget))
+	{
+		if (pFoot->BelongsToATeam())
+		{
+			pFoot->Team->LiberateMember(pFoot);
+		}
+	}
+
+	// If this unit spawns stuff, we should kill the spawns, since they still belong to the previous owner
+	if (auto const pSpawnManager = pTarget->SpawnManager)
+	{
+		pSpawnManager->KillNodes();
+		pSpawnManager->ResetTarget();
+	}
+
+	if (auto const pSlaveManager = pTarget->SlaveManager)
+	{
+		pSlaveManager->Killed(pKiller);
+		pSlaveManager->ZeroOutSlaves();
+		pSlaveManager->Owner = pTarget;
+		if (pToOwner->Type->MultiplayPassive)
+		{
+			pSlaveManager->SuspendWork();
+		}
+		else
+		{
+			pSlaveManager->ResumeWork();
+		}
+	}
+
+	// Hand over to a different house
+	pTarget->SetOwningHouse(pToOwner);
+
+	if (pToOwner->Type->MultiplayPassive) {
+		pTarget->QueueMission(passiveMission, true);
+	}
+
+	pTarget->SetTarget(nullptr);
+	pTarget->SetDestination(nullptr, false);
+
+	if (auto firstTag = pTarget->AttachedTag)
+		firstTag->SpringEvent((TriggerEvent)AresTriggerEvents::DriverKilled_ByHouse, pTarget, CellStruct::Empty, false, pKiller->Owner);
+
+	if (pTarget->IsAlive) {
+		if (auto pSecTag = pTarget->AttachedTag)
+			pSecTag->SpringEvent((TriggerEvent)AresTriggerEvents::DriverKiller, pTarget, CellStruct::Empty, false ,nullptr);
+	}
+
+}
 #pragma endregion
 
 #pragma region TechnoExperienceData
@@ -4326,9 +4489,10 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 				{
 					if (pFirst->Health > 0 && pFirst->IsAlive && pFirst->IsOnMap && !pFirst->InLimbo)
 					{
-						if (!pFirst->align_154->Is_DriverKilled && AresData::IsDriverKillable(pFirst, 1.0))
+						if (!pFirst->align_154->Is_DriverKilled
+							&& TechnoExt_ExtData::IsDriverKillable(pFirst , 1.0))
 						{
-							AresData::KillDriverCore(pFirst, pToHouse, nullptr, false);
+							TechnoExt_ExtData::ApplyKillDriver(pFirst, nullptr, pToHouse, false , Mission::Harmless);
 						}
 					}
 
@@ -4695,6 +4859,29 @@ bool AresWPWHExt::applyOccupantDamage(BulletClass* pThis)
 
 	return true;
 }
+
+void AresWPWHExt::applyKillDriver(WarheadTypeClass* pWH, TechnoClass* pKiller, TechnoClass* pVictim)
+{
+	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH);
+
+	if (!pKiller || !pWHExt->KillDriver || !pVictim)
+		return;
+
+	if (!pWHExt->CanAffectHouse(pKiller->Owner , pVictim->Owner))
+		return;
+
+	if (!TechnoExt_ExtData::IsDriverKillable(pVictim, pWHExt->KillDriver_KillBelowPercent))
+		return;
+
+	if (ScenarioClass::Instance->Random.RandomDouble() <= pWHExt->KillDriver_Chance)
+	{
+		HouseClass* Owner = HouseExt::GetHouseKind(pWHExt->KillDriver_Owner, false, nullptr, pKiller->Owner, pVictim->Owner);
+		if(!Owner)
+			Owner = HouseExt::FindSpecial();
+
+		TechnoExt_ExtData::ApplyKillDriver(pVictim, pKiller, Owner, pWHExt->KillDriver_ResetVeterancy , Mission::Harmless);
+	}
+}
 #pragma endregion
 
 #pragma region AresTActionExt
@@ -4772,9 +4959,10 @@ bool AresTActionExt::KillDriversOf(TActionClass* pAction, HouseClass* pHouse, Ob
 		{
 			if (pUnit->AttachedTag && pUnit->AttachedTag->ContainsTrigger(pTrigger))
 			{
-				if (!pUnit->align_154->Is_DriverKilled && AresData::IsDriverKillable(pUnit, 1.0))
+				if (!pUnit->align_154->Is_DriverKilled
+					&& TechnoExt_ExtData::IsDriverKillable(pUnit, 1.0))
 				{
-					AresData::KillDriverCore(pUnit, pDecidedHouse, nullptr, false);
+					TechnoExt_ExtData::ApplyKillDriver(pUnit, nullptr, pDecidedHouse, false , Mission::Harmless);
 				}
 			}
 		}
@@ -4787,8 +4975,8 @@ bool AresTActionExt::SetEVAVoice(TActionClass* pAction, HouseClass* pHouse, Obje
 {
 	auto nValue = pAction->Value;
 	const auto& nEvas = EVAVoices::Types;
-	if ((size_t)nValue >= nEvas.size())
-	{
+
+	if ((size_t)nValue < nEvas.size()) {
 		return false;
 	}
 
@@ -5345,7 +5533,7 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs const Args, bool& r
 				}
 				case AresTriggerEvents::UnderEMP_ByHouse:
 				{
-					if (Args.Source && ((HouseClass*)(Args.Source))->ArrayIndex == pThis->Value)
+					if (Args.Source && ((TechnoClass*)(Args.Source))->Owner->ArrayIndex == pThis->Value)
 					{
 						result = pTechno->EMPLockRemaining > 0;
 						return true;
@@ -5359,7 +5547,7 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs const Args, bool& r
 				}
 				case AresTriggerEvents::RemoveEMP_ByHouse:
 				{
-					if (Args.Source && ((HouseClass*)(Args.Source))->ArrayIndex == pThis->Value)
+					if (Args.Source && ((TechnoClass*)(Args.Source))->Owner->ArrayIndex == pThis->Value)
 					{
 						result = pTechno->EMPLockRemaining <= 0;
 						return true;
@@ -5389,7 +5577,7 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs const Args, bool& r
 			result = generic_cast<FootClass*>(Args.Object)
 				&& pThis->EventKind == Args.EventType
 				&& Args.Source
-				&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
+				&& ((TechnoClass*)Args.Source)->Owner->ArrayIndex == pThis->Value;
 
 			break;
 		}
@@ -5405,7 +5593,7 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs const Args, bool& r
 			result = generic_cast<FootClass*>(Args.Object)
 				&& pThis->EventKind == Args.EventType
 				&& Args.Source
-				&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
+				&& ((TechnoClass*)Args.Source)->Owner->ArrayIndex == pThis->Value;
 
 			break;
 		}

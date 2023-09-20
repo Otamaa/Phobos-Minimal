@@ -448,10 +448,10 @@ void AresData::TechnoTransferAffects(TechnoClass* const pFrom, TechnoClass* cons
 //	return AresThiscall<BulletTypeExtGetConvertID, ConvertClass*, void*>()(GetAresBulletTypeExt(pThis));
 //}
 
-void AresData::WarheadTypeExt_ExtData_ApplyKillDriver(WarheadTypeClass* pThis, TechnoClass* const pAttacker, TechnoClass* const pVictim)
-{
-	AresThiscall<ApplyKillDriverID, ConvertClass*, void* , TechnoClass* , TechnoClass*>()(GetAresAresWarheadTypeExt(pThis) , pAttacker , pVictim);
-}
+//void AresData::WarheadTypeExt_ExtData_ApplyKillDriver(WarheadTypeClass* pThis, TechnoClass* const pAttacker, TechnoClass* const pVictim)
+//{
+//	AresThiscall<ApplyKillDriverID, ConvertClass*, void* , TechnoClass* , TechnoClass*>()(GetAresAresWarheadTypeExt(pThis) , pAttacker , pVictim);
+//}
 
 void AresData::MouseCursorTypeLoadDefault()
 {
@@ -589,15 +589,15 @@ void AresData::FlyingStringsAdd(TechnoClass* pTech, bool bSomething)
 //	return AresThiscall<IsPoweredID, bool, void*>()(GetAresTechnoExt(pThis));
 //}
 
-bool AresData::IsDriverKillable(TechnoClass* pThis, double tresh)
-{
-	return AresThiscall<IsDriverKillableID, bool, void* , double>()((void*)pThis->align_154, tresh);
-}
+//bool AresData::IsDriverKillable(TechnoClass* pThis, double tresh)
+//{
+//	return AresThiscall<IsDriverKillableID, bool, void* , double>()((void*)pThis->align_154, tresh);
+//}
 
-bool AresData::KillDriverCore(TechnoClass* pThis, HouseClass* pToHouse, TechnoClass* pKiller, bool removeVet)
-{
-	return AresThiscall<KillDriverCoreID, bool, void* ,HouseClass*, TechnoClass* , bool>()((void*)pThis->align_154, pToHouse , pKiller , removeVet);
-}
+//bool AresData::KillDriverCore(TechnoClass* pThis, HouseClass* pToHouse, TechnoClass* pKiller, bool removeVet)
+//{
+//	return AresThiscall<KillDriverCoreID, bool, void* ,HouseClass*, TechnoClass* , bool>()((void*)pThis->align_154, pToHouse , pKiller , removeVet);
+//}
 
 //void AresData::FireIronCurtain(TeamClass* pTeam, ScriptActionNode* pNode, bool ntrhd)
 //{

@@ -1313,7 +1313,13 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(DamageTextPerArmor)
 
 #endif
-		.Process(PaintBallDuration)
+		.Process(this->PaintBallDuration)
+
+		.Process(this->KillDriver)
+		.Process(this->KillDriver_KillBelowPercent)
+		.Process(this->KillDriver_Owner)
+		.Process(this->KillDriver_ResetVeterancy)
+		.Process(this->KillDriver_Chance)
 		;
 
 	PaintBallData.Serialize(Stm);

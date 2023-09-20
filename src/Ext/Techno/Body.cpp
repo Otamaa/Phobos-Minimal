@@ -584,6 +584,16 @@ bool TechnoExt::IsWebImmune(TechnoClass* pThis)
 	return HasAbility(pThis, PhobosAbilityType::WebbyImmune);
 }
 
+bool TechnoExt::IsDriverKillProtected(TechnoClass* pThis)
+{
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (pTypeExt->ProtectedDriver)
+		return true;
+
+	return HasAbility(pThis, PhobosAbilityType::Protected_Driver);
+}
+
 bool TechnoExt::ExtData::IsInterceptor()
 {
 	auto const pThis = this->Get();
@@ -927,6 +937,16 @@ bool TechnoExt::IsWebImmune(Rank vet, TechnoClass* pThis)
 		return true;
 
 	return HasAbility(vet, pThis, PhobosAbilityType::WebbyImmune);
+}
+
+bool TechnoExt::IsDriverKillProtected(Rank vet, TechnoClass* pThis)
+{
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (pTypeExt->ProtectedDriver)
+		return true;
+
+	return HasAbility(vet, pThis, PhobosAbilityType::Protected_Driver);
 }
 
 bool TechnoExt::HasAbility(Rank vet, TechnoClass* pThis, PhobosAbilityType nType)
@@ -4229,6 +4249,30 @@ bool TechnoExt::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select,
 	}
 
 	return true;
+}
+
+void TechnoExt::EjectPassengers(FootClass* pThis, int howMany)
+{
+	if (howMany < 0)
+	{
+		howMany = pThis->Passengers.NumPassengers;
+	}
+
+	auto const openTopped = pThis->GetTechnoType()->OpenTopped;
+
+	for (int i = 0; i < howMany && pThis->Passengers.FirstPassenger; ++i)
+	{
+		FootClass* passenger = pThis->RemoveFirstPassenger();
+		if (!EjectRandomly(passenger, pThis->Location, 128, false))
+		{
+			passenger->RegisterDestruction(nullptr);
+			passenger->UnInit();
+		}
+		else if (openTopped)
+		{
+			pThis->ExitedOpenTopped(passenger);
+		}
+	}
 }
 
 bool TechnoExt::EjectRandomly(FootClass* pEjectee, CoordStruct const& location, int distance, bool select, std::optional<bool> InAir)

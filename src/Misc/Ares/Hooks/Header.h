@@ -174,6 +174,10 @@ struct TechnoExt_ExtData
 		int strength,
 		AnimTypeClass* pAnimType
 		);
+
+	static bool IsDriverKillable(TechnoClass* pThis, double KillBelowPercent);
+
+	static void ApplyKillDriver(TechnoClass* pTarget, TechnoClass* pKiller, HouseClass* pToOwner, bool ResetVet, Mission passiveMission);
 };
 
 struct TechnoTypeExt_ExtData
@@ -342,7 +346,7 @@ struct AresWPWHExt
 	);
 
 	static bool applyOccupantDamage(BulletClass* pThis);
-
+	static void applyKillDriver(WarheadTypeClass* pWH , TechnoClass* pKiller, TechnoClass* pVictim);
 };
 
 struct AresTActionExt

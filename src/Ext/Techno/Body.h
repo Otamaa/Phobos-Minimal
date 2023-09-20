@@ -271,6 +271,7 @@ private:
 	static std::pair<TechnoTypeClass*,HouseClass*> GetDisguiseType(TechnoClass* pTarget , bool CheckHouse , bool CheckVisibility, bool bVisibleResult = false);
 
 	static CoordStruct PassengerKickOutLocation(TechnoClass* pThis, FootClass* pPassenger, int maxAttempts = 1);
+	static void EjectPassengers(FootClass* pThis, int howMany);
 	// Return false if the `location` is invalid
 	static bool EjectRandomly(FootClass* pEjectee, CoordStruct const& location, int distance, bool select, std::optional<bool> InAir = std::nullopt);
 	// Always Make Sure `CoordStruct` is valid before using this
@@ -298,6 +299,7 @@ private:
 	static bool IsUnwarpable(TechnoClass* pThis);
 	static bool IsBountyHunter(TechnoClass* pThis);
 	static bool IsWebImmune(TechnoClass* pThis);
+	static bool IsDriverKillProtected(TechnoClass* pThis);
 
 	static bool HasAbility(TechnoClass* pThis , PhobosAbilityType nType);
 	static bool HasImmunity(TechnoClass* pThis, int nType);
@@ -317,6 +319,7 @@ private:
 	static bool IsUnwarpable(Rank vet, TechnoClass* pThis);
 	static bool IsBountyHunter(Rank vet, TechnoClass* pThis);
 	static bool IsWebImmune(Rank vet, TechnoClass* pThis);
+	static bool IsDriverKillProtected(Rank vet, TechnoClass* pThis);
 
 	static bool HasAbility(Rank vet , TechnoClass* pThis, PhobosAbilityType nType);
 	static bool HasImmunity(Rank vet, TechnoClass* pThis, int nType);

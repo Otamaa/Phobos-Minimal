@@ -212,7 +212,7 @@ struct AresData
 	//static bool IsPowered(TechnoClass* pThis);
 
 	//static ConvertClass* GetBulletTypeConvert(BulletTypeClass* pThis);
-	static void WarheadTypeExt_ExtData_ApplyKillDriver(WarheadTypeClass* pThis, TechnoClass* const pAttacker, TechnoClass* const pVictim);
+	//static void WarheadTypeExt_ExtData_ApplyKillDriver(WarheadTypeClass* pThis, TechnoClass* const pAttacker, TechnoClass* const pVictim);
 	static void MouseCursorTypeLoadDefault();
 
 	//static AresFactoryStateRet* HouseExt_HasFactory(AresFactoryStateRet* nBuff, HouseClass const* const Owner, TechnoTypeClass const* const pType, bool bSkipAircraft, bool bRequirePower, bool bCheckCanBuild, bool a7);
@@ -245,8 +245,8 @@ struct AresData
 	//static void CalculateBounty(TechnoClass* pThis, TechnoClass* pKiller);
 	//static void SetSpotlight(TechnoClass* pThis , BuildingLightClass* pSpotlight);
 
-	static bool IsDriverKillable(TechnoClass* pThis, double tresh);
-	static bool KillDriverCore(TechnoClass* pThis, HouseClass* pToHouse, TechnoClass* pKiller, bool removeVet);
+	//static bool IsDriverKillable(TechnoClass* pThis, double tresh);
+//	static bool KillDriverCore(TechnoClass* pThis, HouseClass* pToHouse, TechnoClass* pKiller, bool removeVet);
 	//static void FireIronCurtain(TeamClass* pTeam, ScriptActionNode* pNode , bool ntrhd);
 	//static void RespondToFirewall(HouseClass* pHouse, bool Active);
 	//static RequirementStatus RequirementsMet(HouseClass* pHouse , TechnoTypeClass* pTech);

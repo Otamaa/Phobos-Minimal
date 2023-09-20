@@ -1092,6 +1092,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		this->CloakPowered.Read(exINI, pSection, "Cloakable.Powered");
 		this->CloakDeployed.Read(exINI, pSection, "Cloakable.Deployed");
+		this->ProtectedDriver.Read(exINI, pSection, "ProtectedDriver");
+		this->ProtectedDriver_MinHealth.Read(exINI, pSection, "ProtectedDriver.MinHealth");
 
 #pragma region AircraftOnly
 		if (this->AttachtoType == AircraftTypeClass::AbsID)
@@ -2042,6 +2044,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->CanBeDriven)
 		.Process(this->CloakPowered)
 		.Process(this->CloakDeployed)
+		.Process(this->ProtectedDriver)
+		.Process(this->ProtectedDriver_MinHealth)
 		;
 }
 

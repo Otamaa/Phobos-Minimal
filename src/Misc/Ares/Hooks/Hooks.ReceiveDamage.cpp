@@ -315,8 +315,7 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 
 		if (bCond1 && bCond2)
 		{
-
-			AresData::WarheadTypeExt_ExtData_ApplyKillDriver(pWarhead, pAttacker, pThis);
+			AresWPWHExt::applyKillDriver(pWarhead, pAttacker, pThis);
 
 			if (pWHExt->Sonar_Duration > 0)
 			{
