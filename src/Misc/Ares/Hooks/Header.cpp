@@ -4973,17 +4973,11 @@ bool AresTActionExt::KillDriversOf(TActionClass* pAction, HouseClass* pHouse, Ob
 
 bool AresTActionExt::SetEVAVoice(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
 {
-	auto nValue = pAction->Value;
-	const auto& nEvas = EVAVoices::Types;
-
-	if ((size_t)nValue < nEvas.size()) {
+	if (pAction->Value >= (int)EVAVoices::Types.size()) {
 		return false;
 	}
 
-	if (nValue < -1)
-		nValue = -1;
-
-	VoxClass::EVAIndex = nValue;
+	VoxClass::EVAIndex = MaxImpl(pAction->Value, -1);
 	return true;
 }
 

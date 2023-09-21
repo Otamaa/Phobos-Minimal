@@ -3903,10 +3903,14 @@ DEFINE_HOOK(0x6F3F88, TechnoClass_Init_1, 5)
 	pThis->SlaveManager = pSlaveManager;
 	pThis->Airstrike = pAirstrike;
 
-	const auto pHouseType = pThis->Owner->Type;
-	const auto pParentHouseType = pHouseType->FindParentCountry();
-	pData->OriginalHouseType = pParentHouseType ? pParentHouseType : pHouseType;
-
+	if(auto pOwner = pThis->Owner){
+		const auto pHouseType = pOwner->Type;
+		const auto pParentHouseType = pHouseType->FindParentCountry();
+		pData->OriginalHouseType = pParentHouseType ? pParentHouseType : pHouseType;
+	}
+	else {
+		Debug::Log("Techno[%s] Init Without any ownership!\n", pType->ID);
+	}
 	// if override is in effect, do not create initial payload.
 	// this object might have been deployed, undeployed, ...
 	if (Unsorted::ScenarioInit && Unsorted::CurrentFrame) {

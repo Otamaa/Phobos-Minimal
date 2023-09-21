@@ -3903,7 +3903,7 @@ void TechnoExt::ExtData::UpdateAircraftOpentopped()
 
 void TechnoExt::ExtData::DepletedAmmoActions()
 {
-	const auto pUnit = abstract_cast<UnitClass*>(this->OwnerObject());
+	const auto pUnit = specific_cast<UnitClass*>(this->OwnerObject());
 
 	if (!pUnit || (pUnit->Type->Ammo <= 0) || !pUnit->Type->IsSimpleDeployer)
 		return;

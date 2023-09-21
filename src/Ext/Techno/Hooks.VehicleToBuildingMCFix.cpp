@@ -90,8 +90,8 @@ DEFINE_HOOK(0x449E2E, BuildingClass_Mi_Selling_CreateUnit, 0x6)
 
 DEFINE_HOOK(0x7396AD, UnitClass_Deploy_CreateBuilding, 0x6)
 {
-	GET(UnitClass*, pUnit, EBP);
-	R->EDX<HouseClass*>(pUnit->GetOriginalOwner());
+	GET(UnitClass*, pThis, EBP);
+	R->EDX<HouseClass*>(pThis->GetOriginalOwner());
 
 	return 0x7396B3;
 }

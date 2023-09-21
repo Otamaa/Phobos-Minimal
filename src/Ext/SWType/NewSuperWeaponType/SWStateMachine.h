@@ -217,7 +217,13 @@ public:
 		this->Deferment = pData->SW_Deferment.Get(0);
 
 		// make the game happy
-		PsyDom::Owner = pSuper->Owner;
+		if (!pSuper->Owner) {
+			Debug::Log("Psydom[%s] Firing Without Ownership!\n", pSuper->Type->ID);
+			PsyDom::Owner = HouseExt::FindSpecial();
+		}else{
+			PsyDom::Owner = pSuper->Owner;
+		}
+
 		PsyDom::Coords = XY;
 		PsyDom::Anim = nullptr;
 	};

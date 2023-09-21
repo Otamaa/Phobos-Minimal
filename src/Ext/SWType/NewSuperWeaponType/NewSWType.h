@@ -46,6 +46,8 @@ struct TargetingData
 		, NeedsLaunchSite { false}
 		, NeedsDesignator { false }
 		, NeedsAttractors { false }
+		, NeedsSupressors { false }
+		, NeedsInhibitors { false }
 		, LaunchSites {}
 		, Designators {}
 		, Inhibitors {}
@@ -72,9 +74,11 @@ struct TargetingData
 	SWTypeExt::ExtData* TypeExt;
 	HouseClass* Owner;
 	bool NeedsLaunchSite;
-	bool NeedsDesignator;
 
+	bool NeedsDesignator;
 	bool NeedsAttractors;
+	bool NeedsSupressors;
+	bool NeedsInhibitors;
 
 	HelperedVector<LaunchSite> LaunchSites;
 	HelperedVector<RangedItem> Designators;

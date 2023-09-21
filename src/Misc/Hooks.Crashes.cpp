@@ -74,6 +74,47 @@ DEFINE_HOOK(0x70CE90, TechnoClass_Coef_checkForTechno, 0x6)
 //DEFINE_SKIP_HOOK(0x5F5896, TechnoClass_Mark_RemoveUnused, 0x5, 5F58E1);
 DEFINE_JUMP(LJMP, 0x5F5896, 0x5F58E1);
 
+// //uhh , unit without ownership should not allowed to deploy to prevent this kind of stupid crashes ,..
+// DEFINE_HOOK(0x739698, UnitClass_TryToDeploy_Verify, 0x5)
+// {
+// 	GET(UnitClass*, pThis, EBP);
+//
+// 	if (pThis->Owner) {
+// 		R->EAX<void*>(YRMemory::Allocate(sizeof(BuildingClass)));
+// 	} else {
+// 		Debug::Log("Unit[%s] Trying to undeploy but missing Ownership!\n", pThis->Type->ID);
+// 		R->EAX<void*>(nullptr);
+// 	}
+//
+// 	return 0x7396A5;
+// }
+
+DEFINE_HOOK(0x6F49D2, TechnoClass_Reveal_ThisOwnerMissing, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	if (auto pOwner = pThis->Owner) {
+		pOwner->RecheckPower = true;
+		pOwner->RecheckRadar = true;
+	}
+
+	pThis->DiscoveredByCurrentPlayer = true;
+
+	if (!pThis->IsOwnedByCurrentPlayer)
+	{
+		if (!Unsorted::ScenarioInit)
+		{
+			if (auto pTag = pThis->AttachedTag)
+				pTag->SpringEvent(TriggerEvent::DiscoveredByPlayer, pThis, CellStruct::Empty, false, nullptr);
+		}
+
+		if (pThis->Owner)
+			pThis->Owner->DiscoveredByPlayer = true;
+	}
+
+	return 0x6F497E;
+}
+
 DEFINE_HOOK(0x70CD29, TechnoClass_Coef_CheckTarget, 0x6)
 {
 	GET(ObjectClass*, pTarget, ESI);
@@ -139,13 +180,24 @@ DEFINE_HOOK(0x70F820, TechnoClass_GetOriginalOwner_ValidateCaptureManager, 0x6)
 {
 	GET(TechnoClass* const, pThis, ECX);
 
-	if (pThis->MindControlledBy && pThis->MindControlledBy->CaptureManager) {
+	if (pThis->MindControlledBy && pThis->MindControlledBy->CaptureManager)
+	{
 		R->EAX(pThis->MindControlledBy);
 		return 0x70F82A;
 	}
 
-	return pThis->MindControlledByAUnit
-		? 0x70F841 : 0x70F837;
+	HouseClass* pOwner = pThis->Owner;
+
+	if (pThis->MindControlledByHouse) {
+		pOwner = pThis->OriginallyOwnedByHouse;
+	}
+
+	if (pThis->MindControlledByAUnit && pThis->OriginallyOwnedByHouse) {
+		pOwner= pThis->OriginallyOwnedByHouse; //idk ,.. just fuck it
+	}
+
+	R->EAX(pOwner);
+	return 0x70F84E;
 }
 
 DEFINE_HOOK(0x65DC11, Do_Reinforcement_ValidateHouse, 0x6)

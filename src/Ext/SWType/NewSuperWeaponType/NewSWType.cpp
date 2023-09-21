@@ -67,7 +67,7 @@ bool NewSWType::CanFireAt(TargetingData const& data, CellStruct const& cell, boo
 		return false;
 	}
 
-	if (data.Inhibitors.any_of
+	if (data.NeedsInhibitors && data.Inhibitors.any_of
 		([cell](TargetingData::RangedItem const& site) {
 			auto const distance = cell.DistanceFromSquared(site.Center);
 			return distance <= site.RangeSqr;
@@ -77,7 +77,7 @@ bool NewSWType::CanFireAt(TargetingData const& data, CellStruct const& cell, boo
 	}
 
 	//Enemy Inhibitors
-	if (data.Suppressors.any_of
+	if (data.NeedsSupressors && data.Suppressors.any_of
 		([cell](TargetingData::RangedItem const& site) {
 			auto const distance = cell.DistanceFromSquared(site.Center);
 			return distance <= site.RangeSqr;
@@ -93,7 +93,7 @@ bool NewSWType::IsDesignator(const SWTypeExt::ExtData* pData, HouseClass* pOwner
 {
 	if (pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo && !pTechno->Deactivated)
 	{
-		if (pTechno->GetOwningHouse() == pOwner)
+		if (pTechno->Owner == pOwner)
 		{
 			return pData->SW_AnyDesignator
 				|| pData->SW_Designators.Contains(pTechno->GetTechnoType());
@@ -200,7 +200,7 @@ bool NewSWType::IsAttractor(const SWTypeExt::ExtData* pData, HouseClass* pOwner,
 {
 	if (pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo && !pTechno->Deactivated)
 	{
-		if (!pTechno->GetOwningHouse()->IsAlliedWith_(pOwner))
+		if (pTechno->Owner != pOwner && !pTechno->Owner->IsAlliedWith_(pOwner))
 		{
 			return pData->SW_AnyAttractor
 				|| pData->SW_Attractors.Contains(pTechno->GetTechnoType());
@@ -394,11 +394,11 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExt::ExtD
 
 	data->NeedsDesignator = (!pData->SW_Designators.empty() || pData->SW_AnyDesignator);
 	data->NeedsAttractors = (!pData->SW_Attractors.empty() || pData->SW_AnyAttractor);
-	const bool NeedInhibitors = (!pData->SW_Inhibitors.empty() || pData->SW_AnyInhibitor);
-	const bool NeedSupressors = (!pData->SW_Suppressors.empty() || pData->SW_AnySuppressor);
+	data->NeedsInhibitors = (!pData->SW_Inhibitors.empty() || pData->SW_AnyInhibitor);
+	data->NeedsSupressors = (!pData->SW_Suppressors.empty() || pData->SW_AnySuppressor);
 
 	//check everything at once
-	if (data->NeedsDesignator || data->NeedsAttractors || NeedInhibitors || NeedSupressors)
+	if (data->NeedsDesignator || data->NeedsAttractors || data->NeedsInhibitors || data->NeedsSupressors)
 	{
 		TechnoClass::Array->for_each([&](TechnoClass* pTechno) {
 			if (!(pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo && !pTechno->Deactivated))
@@ -416,7 +416,7 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExt::ExtD
 			const auto pType = pTechno->GetTechnoType();
 			const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
 
-			// get designator data
+			// Designator : providing the SW targeting eligibility for SW firer
 			if (data->NeedsDesignator && this->IsDesignator(pData, pOwner, pTechno))
 			{
 				// get the designator's center
@@ -427,7 +427,7 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExt::ExtD
 				}
 			}
 
-			// get Enemy Designator data
+			// Attractors : providing the SW targeting eligibility for SW firer from enemy ?
 			if (data->NeedsAttractors && this->IsAttractor(pData, pOwner, pTechno)) {
 
 				// get the designator's center
@@ -439,8 +439,8 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExt::ExtD
 				}
 			}
 
-			// get inhibitor data
-			if (NeedInhibitors && this->IsInhibitor(pData, pOwner, pTechno)) {
+			// Inhibitors : checking enemy building , protect player from enemy super
+			if (data->NeedsInhibitors && this->IsInhibitor(pData, pOwner, pTechno)) {
 
 				// get the inhibitor's center
 				auto const range = pExt->InhibitorRange.Get(pType->Sight);
@@ -451,8 +451,8 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExt::ExtD
 				}
 			}
 
-			// get Enemy Inhibitors data
-			if (NeedSupressors && this->IsSuppressor(pData, pOwner, pTechno)) {
+			// Supressors : checking ally building , protect enemy from player super
+			if (data->NeedsSupressors && this->IsSuppressor(pData, pOwner, pTechno)) {
 				// get the Suppressor's center
 
 				auto const range = pExt->SuppressorRange.Get(pType->Sight);

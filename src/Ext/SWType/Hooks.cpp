@@ -2569,6 +2569,7 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 				// remove old permanent mind control anim
 				if (pTechno->MindControlRingAnim)
 				{
+					pTechno->MindControlRingAnim->TimeToDie = true;
 					pTechno->MindControlRingAnim->UnInit();
 					pTechno->MindControlRingAnim = nullptr;
 				}
