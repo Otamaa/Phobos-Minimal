@@ -219,19 +219,21 @@ bool HouseExt::CheckFactoryOwners(HouseClass* pHouse, TechnoTypeClass* pItem)
 
 	if (!pExt->FactoryOwners.empty() || !pExt->FactoryOwners_Forbidden.empty())
 	{
-		for (auto const& pOwner : pExt->FactoryOwners)
-		{
-			if (!pHouseExt->FactoryOwners_GatheredPlansOf.contains(pOwner))
-				continue;
+		if(!pHouseExt->FactoryOwners_GatheredPlansOf.empty()) {
+			for (auto const& pOwner : pExt->FactoryOwners)
+			{
+				if (!pHouseExt->FactoryOwners_GatheredPlansOf.contains(pOwner))
+					continue;
 
-			if (pExt->FactoryOwners_Forbidden.empty() || !pExt->FactoryOwners_Forbidden.Contains(pOwner))
-				return true;
+				if (pExt->FactoryOwners_Forbidden.empty() || !pExt->FactoryOwners_Forbidden.Contains(pOwner))
+					return true;
+			}
 		}
 
 		const auto whatItem = pItem->WhatAmI();
 		for (auto const& pBld : pHouse->Buildings)
 		{
-			if (!pHouseExt->FactoryOwners_GatheredPlansOf.contains(pBld->align_154->OriginalHouseType))
+			if (!pExt->FactoryOwners.Contains(pBld->align_154->OriginalHouseType))
 				continue;
 
 			if (pExt->FactoryOwners_Forbidden.empty() || !pExt->FactoryOwners_Forbidden.Contains(pBld->align_154->OriginalHouseType)) {

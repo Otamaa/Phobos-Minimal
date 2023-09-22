@@ -44,6 +44,58 @@ int StraightTrajectory::GetVelocityZ()
 	return velocity;
 }
 
+int StraightTrajectory::GetFirerZPosition()
+{
+	auto coords = AttachedTo->SourceCoords;
+
+	if (AttachedTo->Owner) {
+		if (auto const pCell = AttachedTo->Owner->GetCell())
+			coords = pCell->GetCoordsWithBridge();
+	}
+
+	return coords.Z;
+}
+
+int StraightTrajectory::GetTargetZPosition()
+{
+	auto coords = AttachedTo->TargetCoords;
+
+	if (AttachedTo->Target) {
+		if (auto const pCell = MapClass::Instance()->TryGetCellAt(AttachedTo->Target->GetCoords()))
+			coords = pCell->GetCoordsWithBridge();
+	}
+
+	return coords.Z;
+}
+
+// Should bullet detonate based on elevation conditions.
+bool StraightTrajectory::ElevationDetonationCheck()
+{
+	auto const location = AttachedTo->Location;
+	auto const target = AttachedTo->TargetCoords;
+
+	// Special case - detonate if it is on same cell as target and lower or at same level as it and beneath the cell floor.
+	if (AttachedTo->GetCell() == MapClass::Instance->TryGetCellAt(AttachedTo->TargetCoords)
+		&& AttachedTo->Location.Z <= AttachedTo->TargetCoords.Z
+		&& AttachedTo->Location.Z < MapClass::Instance->GetCellFloorHeight(AttachedTo->TargetCoords))
+	{
+		return true;
+	}
+
+	bool sourceObjectAboveTarget = this->FirerZPosition > this->TargetZPosition;
+	bool sourceCoordAboveTarget = AttachedTo->SourceCoords.Z > AttachedTo->TargetCoords.Z;
+
+	// If it is not coming from above then no.
+	if (!sourceObjectAboveTarget || !sourceCoordAboveTarget)
+		return false;
+
+	// If it is not currently above or at target then no.
+	if (AttachedTo->Location.Z >= AttachedTo->TargetCoords.Z)
+		return false;
+
+	return true;
+}
+
 bool StraightTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 {
 	if (!this->PhobosTrajectoryType::Read(pINI, pSection))
@@ -61,12 +113,20 @@ bool StraightTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 
 bool StraightTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	return PhobosTrajectory::Load(Stm, RegisterForChange);
+	return PhobosTrajectory::Load(Stm, RegisterForChange) &&
+	Stm
+		.Process(this->FirerZPosition, RegisterForChange)
+		.Process(this->TargetZPosition, RegisterForChange)
+		;
 }
 
 bool StraightTrajectory::Save(PhobosStreamWriter& Stm) const
 {
-	return PhobosTrajectory::Save(Stm);
+	return PhobosTrajectory::Save(Stm)  &&
+	Stm
+		.Process(this->FirerZPosition)
+		.Process(this->TargetZPosition)
+		;
 }
 
 void StraightTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
@@ -74,21 +134,8 @@ void StraightTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity
 	auto const type = this->GetTrajectoryType();
 	auto const pBullet = this->AttachedTo;
 	this->DetonationDistance = type->DetonationDistance.Get(type->SDetonationDistance.Get());
-	
-	if (type->PassThrough.Get())
-	{
-		pBullet->TargetCoords.X = INT_MAX;
-		pBullet->TargetCoords.Y = INT_MAX;
-		pBullet->TargetCoords.Z = INT_MAX;
-	}
-	else
-	{
-		this->SetInaccurate();
-
-		pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
-		pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
-		pBullet->Velocity.Z = this->GetVelocityZ();
-	}
+	this->FirerZPosition = this->GetFirerZPosition();
+	this->TargetZPosition = this->GetTargetZPosition();
 
 	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Magnitude();
 }
@@ -141,29 +188,14 @@ TrajectoryCheckReturnType StraightTrajectory::OnAITargetCoordCheck(CoordStruct& 
 	auto const pBullet = this->AttachedTo;
 	auto const type = this->GetTrajectoryType();
 
-	if (!type->PassThrough)
+	if (type->PassThrough)
 	{
-		int bulletX = pBullet->Location.X / Unsorted::LeptonsPerCell;
-		int bulletY = pBullet->Location.Y / Unsorted::LeptonsPerCell;
-		int targetX = pBullet->TargetCoords.X / Unsorted::LeptonsPerCell;
-		int targetY = pBullet->TargetCoords.Y / Unsorted::LeptonsPerCell;
-
-		if (bulletX == targetX && bulletY == targetY && pBullet->GetHeight() < 2 * Unsorted::LevelHeight)
-			return TrajectoryCheckReturnType::Detonate; // Detonate projectile.
-
-		if (pBullet->Location.Z < pBullet->TargetCoords.Z)
+		if (this->FirerZPosition > this->TargetZPosition && pBullet->Location.Z <= pBullet->TargetCoords.Z)
 			return TrajectoryCheckReturnType::Detonate; // Detonate projectile.
 	}
-	else
+	else if (this->ElevationDetonationCheck())
 	{
-		bool isAboveTarget = false;
-
-		if ((pBullet->Owner && pBullet->Owner->Location.Z > pBullet->TargetCoords.Z) || 
-			(!pBullet->Owner && pBullet->SourceCoords.Z > pBullet->TargetCoords.Z))
-			isAboveTarget = true;
-
-		if (isAboveTarget && pBullet->Location.Z <= pBullet->TargetCoords.Z)
-			return TrajectoryCheckReturnType::Detonate; // Detonate projectile.*/
+		return TrajectoryCheckReturnType::Detonate; // Detonate projectile.
 	}
 
 	return TrajectoryCheckReturnType::SkipGameCheck; // Bypass game checks entirely.

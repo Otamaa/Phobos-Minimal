@@ -188,12 +188,10 @@ DEFINE_HOOK(0x70F820, TechnoClass_GetOriginalOwner_ValidateCaptureManager, 0x6)
 
 	HouseClass* pOwner = pThis->Owner;
 
-	if (pThis->MindControlledByHouse) {
+	if ((pThis->MindControlledByHouse || pThis->MindControlledByAUnit)
+		&& pThis->OriginallyOwnedByHouse) { // chek this first before assign it
+											// game crash will occur if this return nullptr
 		pOwner = pThis->OriginallyOwnedByHouse;
-	}
-
-	if (pThis->MindControlledByAUnit && pThis->OriginallyOwnedByHouse) {
-		pOwner= pThis->OriginallyOwnedByHouse; //idk ,.. just fuck it
 	}
 
 	R->EAX(pOwner);

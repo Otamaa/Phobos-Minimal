@@ -96,6 +96,8 @@ enum FunctionIndices : int
 	TechnoTypeExt_GetWeaponTypeID = 56,
 
 	BuildingExt_SetFactoryPlans = 57,
+
+	AttachedAffect_UpdateType = 58,
 	count
 };
 
@@ -303,6 +305,8 @@ bool AresData::Init()
 
 		0x003E810, //TechnoTypeExt::GetWeapon
 		0x00454B0, //BuildingExt::SetFactoryPlans
+
+		0x0059690, //AttachedAffect_UpdateType
 	};
 
 	static constexpr DWORD AAresCustomPaletteReadTable[AresCustomPaletteReadCount] = {
@@ -502,6 +506,11 @@ void AresData::MouseCursorTypeLoadDefault()
 void AresData::UpdateAEData(AresTechnoExt::AEData* const pAE)
 {
 	AresThiscall<UpdateAEDataID, void, AresTechnoExt::AEData* const>()(pAE);
+}
+
+void AresData::RemoveAEType(AresTechnoExt::AEData* const pAE, TechnoTypeClass* pNewType)
+{
+	AresThiscall<AttachedAffect_UpdateType, void, AresTechnoExt::AEData* const , TechnoTypeClass*>()(pAE , pNewType);
 }
 
 void AresData::JammerClassUnjamAll(AresTechnoExt::JammerClass* const pJamm)

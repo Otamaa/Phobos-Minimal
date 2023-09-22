@@ -75,7 +75,7 @@ class cPrismForwarding
 // becarefull when doing operation that involve those , it can result on undefine behaviour
 
 //TODO : port these
-//#define GetAresTechnoExt(var) (void*)(*(uintptr_t*)((char*)var + 0x154))
+#define GetAresTechnoExt(var) (void*)(*(uintptr_t*)((char*)var + 0x154))
 #define GetAresBuildingExt(var)  (void*)(*(uintptr_t*)((char*)var + 0x71C))
 #define GetAresHouseExt(var)  (void*)(*(uintptr_t*)((char*)var + 0x16084))
 #define GetAresHouseTypeExt(var)  (void*)(*(uintptr_t*)((char*)var + 0xC4))
@@ -110,7 +110,7 @@ class cPrismForwarding
 //#define AE_SpeedMult(techno) (*(double*)(((char*)GetAresTechnoExt(techno)) + 0x90))
 //#define AE_ROF(techno) (*(double*)(((char*)GetAresTechnoExt(techno)) + 0x78))
 
-#define GetAEData(techno) (*(AEData*)(((char*)GetAresTechnoExt(techno)) + 0x20))
+//#define GetAEData(techno) (*(AresTechnoExt::AEData*)(((char*)GetAresTechnoExt(techno)) + 0x20))
 
 //#define TakeVehicleMode(techno) (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0xB0))
 //#define AltOccupy_HasValue(techno)  (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0x9A))
@@ -150,7 +150,7 @@ class cPrismForwarding
 
 //
 //#define GetSelfHealingDleayAmount(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x4A8))
-#define GetNoSpawnAlt(var) (*(VoxelStruct**)(((char*)GetAresTechnoTypeExt(var)) + 0x1E0))
+//#define GetNoSpawnAlt(var) (*(VoxelStruct**)(((char*)GetAresTechnoTypeExt(var)) + 0x1E0))
 //#define GetCursorDeploy(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x590))
 //#define GetCursorNoDeploy(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x594))
 //#define GetCursorMove(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x5A0))
@@ -222,6 +222,8 @@ struct AresData
 
 	//static std::vector<FootClass*>* GetTunnelArray(BuildingTypeClass* const pBld, HouseClass* const pOwner);
 	static void UpdateAEData(AresTechnoExt::AEData* const pAE);
+	static void RemoveAEType(AresTechnoExt::AEData* const pAE, TechnoTypeClass* pNewType);
+
 	static void JammerClassUnjamAll(AresTechnoExt::JammerClass* const pJamm);
 	static void CPrismRemoveFromNetwork(cPrismForwarding* const pThis , bool bCease);
 
@@ -284,7 +286,8 @@ namespace AresMemory
 
 	static NOINLINE void* AresAllocateChecked(size_t sz)
 	{
-		if (auto const ptr = AresAllocate(sz)) {
+		if (auto const ptr = AresAllocate(sz))
+		{
 			return ptr;
 		}
 		exit(static_cast<int>(0x30000000u | sz));
@@ -303,16 +306,18 @@ namespace AresMemory
 		constexpr bool operator == (const AresAllocator&) const noexcept { return true; }
 		constexpr bool operator != (const AresAllocator&) const noexcept { return false; }
 
-		[[nodiscard]] T* allocate(size_t n) {
-        	if (n > std::numeric_limits<size_t>::max() / sizeof(T))
-            	throw std::bad_array_new_length();
+		[[nodiscard]] T* allocate(size_t n)
+		{
+			if (n > std::numeric_limits<size_t>::max() / sizeof(T))
+				throw std::bad_array_new_length();
 
-        		if (auto p = static_cast<T*>(AresAllocate(n * sizeof(T)))) {
-            		return p;
-       	 		}
+			if (auto p = static_cast<T*>(AresAllocate(n * sizeof(T))))
+			{
+				return p;
+			}
 
-       	 	throw std::bad_alloc();
-   		}
+			throw std::bad_alloc();
+		}
 
 		void destroy(T* const ptr) const noexcept
 		{

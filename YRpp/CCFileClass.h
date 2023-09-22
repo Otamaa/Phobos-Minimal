@@ -192,7 +192,7 @@ public:
 		: RawFileClass(noinit_t())
 	{ JMP_THIS(0x65CA80); }
 
-	RawFileClass() : 
+	RawFileClass() :
 		FileClass(noinit_t()),
 		FileAccess(FileAccessMode::Read),
 		FilePointer(0),
@@ -438,7 +438,7 @@ protected:
 
 	//Properties
 public:
-	MemoryBuffer Buffer;
+	DECLARE_PROPERTY(MemoryBuffer , Buffer);
 	DWORD Position;	// unknown_64;
 	DWORD Availablility;	// unknown_68;
 

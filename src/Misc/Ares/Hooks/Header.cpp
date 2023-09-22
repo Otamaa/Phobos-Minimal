@@ -1936,24 +1936,23 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 	}
 
 	const auto what = pSource->WhatAmI();
-	auto pOwner = pSource;
-	if (what == AnimClass::AbsID)
-	{
+	ObjectClass* pOwner = pSource;
+
+	if (what == AnimClass::AbsID) {
 		const auto pAnim = (AnimClass*)pSource;
-		if (pAnim->OwnerObject)
-		{
+		if (pAnim->OwnerObject) {
 			pOwner = pAnim->OwnerObject;
 		}
 	}
 
-	Point2D off { (pImage->Width + 1) / -2,(pImage->Height + 1) / -2 };
+	Point2D off { (pImage->Width + 1) / -2, (pImage->Height + 1) / -2 };
 
-	if (pOwner && pOwner->AbstractFlags & AbstractFlags::Foot)
-	{
+	if (pOwner && (pOwner->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None) {
 		const auto pFoot = (FootClass*)pOwner;
-		if (pFoot->LastMapCoords != pFoot->CurrentMapCoords)
-		{
-			auto XYZ = CellClass::Cell2Coord(pFoot->LastMapCoords);
+
+		if (pFoot->CurrentMapCoords != pFoot->LastMapCoords) {
+
+			CoordStruct XYZ = CellClass::Cell2Coord(pFoot->LastMapCoords);
 			Point2D xyTL {};
 			TacticalClass::Instance->CoordsToClient(&XYZ, &xyTL);
 
@@ -1972,8 +1971,8 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 	bool Inactive = false;
 	ObjectTypeClass* pDisguise = nullptr;
 
-	if (pSource->InLimbo || (pSource->AbstractFlags & AbstractFlags::Techno)
-		&& (!((TechnoClass*)pSource)->Deactivated
+	if (pSource->InLimbo || ((pSource->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
+		&& (((TechnoClass*)pSource)->Deactivated
 			|| ((TechnoClass*)pSource)->CloakState == CloakState::Cloaked
 			|| pSource->GetHeight() < -10
 			|| pSource->IsDisguised() && (pDisguise = pSource->GetDisguise(true)) && pDisguise->WhatAmI() == AbstractType::TerrainType
@@ -2910,6 +2909,159 @@ void TechnoExt_ExtData::ApplyKillDriver(TechnoClass* pTarget, TechnoClass* pKill
 	}
 
 }
+
+std::pair<TechnoTypeClass* , AbstractType> NOINLINE GetOriginalType(TechnoClass* pThis ,TechnoTypeClass* pToType) {
+	switch (pThis->WhatAmI())
+	{
+	case AbstractType::Infantry:
+		return { ((InfantryClass*)pThis)->Type , AbstractType::InfantryType };
+	case AbstractType::Unit:
+		return { ((UnitClass*)pThis)->Type, AbstractType::UnitType };
+	case AbstractType::Aircraft:
+		return { ((AircraftClass*)pThis)->Type, AbstractType::AircraftType };
+	default:
+		Debug::Log("%s is not FootClass, conversion not allowed\n", pToType->ID);
+		return { nullptr, AbstractType::None };
+	}
+}
+
+void NOINLINE SetType(TechnoClass* pThis, TechnoTypeClass* pToType)
+{
+	switch (pThis->WhatAmI())
+	{
+	case AbstractType::Infantry:
+		((InfantryClass*)pThis)->Type = (InfantryTypeClass*)pToType;
+		break;
+	case AbstractType::Unit:
+		((UnitClass*)pThis)->Type = (UnitTypeClass*)pToType;
+		break;
+	case AbstractType::Aircraft:
+		((AircraftClass*)pThis)->Type = (AircraftTypeClass*)pToType;
+		break;
+	default:
+		break;
+	}
+}
+bool TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* pToType)
+{
+#ifndef New_func
+
+	const auto& [prevType, rtti] = GetOriginalType(pThis, pToType);
+
+	if (!prevType)
+		return false;
+
+	Debug::Log("Attempt to convert TechnoType[%s] to [%s]\n", prevType->ID, pToType->ID);
+
+	if (pToType->WhatAmI() != rtti)
+	{
+		Debug::Log("Incompatible types between %s and %s\n", prevType->ID, pToType->ID);
+		return false;
+	}
+
+	// Detach CLEG targeting
+	if (pThis->TemporalImUsing && pThis->TemporalImUsing->Target)
+		pThis->TemporalImUsing->Detach();
+
+	HouseClass* const pOwner = pThis->Owner;
+
+	// Remove tracking of old techno
+	if (!pThis->InLimbo)
+		pOwner->RegisterLoss(pThis, false);
+
+	pOwner->RemoveTracking(pThis);
+
+	const int oldHealth = pThis->Health;
+
+	SetType(pThis, pToType);
+
+	// Readjust health according to percentage
+	pThis->SetHealthPercentage((double)(oldHealth) / (double)prevType->Strength);
+	pThis->EstimatedHealth = pThis->Health;
+
+	// Add tracking of new techno
+	pOwner->AddTracking(pThis);
+	if (!pThis->InLimbo)
+		pOwner->RegisterGain(pThis, false);
+
+	pOwner->RecheckTechTree = true;
+	pThis->align_154->Is_Operated = false;
+
+	AresData::RemoveAEType(&pThis->align_154->AEDatas, prevType);
+	TechnoExt_ExtData::RecalculateStat(pThis);
+
+	// Adjust ammo
+	pThis->Ammo = MinImpl(pThis->Ammo, pToType->Ammo);
+
+	BuildingLightClass* pSpot = nullptr;
+
+	if (TechnoTypeExt::ExtMap.Find(pToType)->HasSpotlight) {
+		pSpot = GameCreate<BuildingLightClass>(pThis);
+	}
+
+	TechnoExt_ExtData::SetSpotlight(pThis, pSpot);
+	pThis->PrimaryFacing.Set_ROT(pToType->ROT);
+	pThis->SecondaryFacing.Set_ROT(TechnoTypeExt::ExtMap.Find(pToType)->TurretRot.Get(pToType->ROT));
+
+	// because we are throwing away the locomotor in a split second, piggybacking
+	// has to be stopped. otherwise the object might remain in a weird state.
+	// throw the piggybacked loco
+	while (LocomotionClass::End_Piggyback(((FootClass*)pThis)->Locomotor));
+
+	// replace the original locomotor to new one
+	if (prevType->Locomotor != pToType->Locomotor) {
+
+		// throw away the current locomotor and instantiate
+		// a new one of the default type for this unit.
+		if (auto newLoco = LocomotionClass::CreateInstance(pToType->Locomotor))
+		{
+			newLoco->Link_To_Object(pThis);
+			((FootClass*)pThis)->Locomotor = std::move(newLoco);
+		}
+	}
+
+	if (pToType->BalloonHover && pToType->DeployToLand && prevType->Locomotor != CLSIDs::Jumpjet() && pToType->Locomotor == CLSIDs::Jumpjet())
+		((FootClass*)pThis)->Locomotor->Move_To(pThis->Location);
+
+	return true;
+#else
+	return AresData::ConvertTypeTo(pThis, pToType);
+#endif
+}
+
+void TechnoExt_ExtData::RecalculateStat(TechnoClass* pThis)
+{
+#ifndef New_funcs
+	double ROF_Mult = 1.0;
+	double FP_Mult = pThis->align_154->AE_FirePowerMult;
+	double Armor_Mult = pThis->align_154->AE_ArmorMult;
+	double Speed_Mult = pThis->align_154->AE_SpeedMult;
+	bool Cloak = pThis->CanICloakByDefault() || pThis->align_154->AE_Cloak;
+
+
+	for (auto begin = pThis->align_154->AEDatas.first; begin != pThis->align_154->AEDatas.end; ++begin)
+	{
+		//the class aligment is different , so it probably broke something
+		ROF_Mult *= begin->Type->ROFMultiplier;
+		FP_Mult *= begin->Type->FirepowerMultiplier;
+		Speed_Mult *= begin->Type->SpeedMultiplier;
+		Armor_Mult *= begin->Type->ArmorMultiplier;
+		Cloak |= begin->Type->Cloakable;
+	}
+
+	pThis->FirepowerMultiplier = FP_Mult;
+	pThis->ArmorMultiplier = Armor_Mult;
+	pThis->align_154->AE_ROF = ROF_Mult;
+	pThis->Cloakable = Cloak;
+
+	if (pThis->AbstractFlags & AbstractFlags::Foot) {
+		((FootClass*)pThis)->SpeedMultiplier = Speed_Mult;
+	}
+#else
+	AresData::RecalculateStat(pThis);
+#endif
+}
+
 #pragma endregion
 
 #pragma region TechnoExperienceData
@@ -3089,7 +3241,7 @@ void TechnoExperienceData::PromoteImmedietely(TechnoClass* pExpReceiver, bool bS
 				Promoted_PlayAnim = pTypeExt->Promote_Elite_Anim;
 			}
 
-			if (pNewType && AresData::ConvertTypeTo(pExpReceiver, pNewType) && promoteExp != 0.0)
+			if (pNewType && TechnoExt_ExtData::ConvertToType(pExpReceiver, pNewType) && promoteExp != 0.0)
 			{
 				newRank = pExpReceiver->Veterancy.AddAndGetRank(promoteExp);
 			}
@@ -3116,7 +3268,7 @@ void TechnoExperienceData::PromoteImmedietely(TechnoClass* pExpReceiver, bool bS
 				}
 			}
 
-			AresData::RecalculateStat(pExpReceiver);
+			TechnoExt_ExtData::RecalculateStat(pExpReceiver);
 		}
 
 		pExpReceiver->CurrentRanking = newRank;
@@ -4395,7 +4547,7 @@ bool AresPoweredUnit::PowerDown()
 
 bool AresPoweredUnit::Update()
 {
-	if ((Unsorted::CurrentFrame - this->LastScan) < 15)
+	if ((Unsorted::CurrentFrame - this->LastScan) < ScanInterval)
 	{
 		return true;
 	}
@@ -4407,7 +4559,18 @@ bool AresPoweredUnit::Update()
 		return true;
 	}
 
+	const auto curMission = pTechno->CurrentMission;
 	this->LastScan = Unsorted::CurrentFrame;
+
+	if (curMission == Mission::Selling || curMission == Mission::Construction)
+		return true;
+
+	const auto queueMission = pTechno->QueuedMission;
+
+	if (queueMission == Mission::Selling || queueMission == Mission::Construction)
+		return true;
+
+
 	auto const pOwner = pTechno->Owner;
 	auto const hasPower = this->IsPoweredBy(pOwner);
 
@@ -4432,6 +4595,97 @@ bool AresPoweredUnit::Update()
 
 #pragma endregion
 
+#pragma region AresJammer
+
+void AresJammer::Update()
+{
+	// we don't want to scan & crunch numbers every frame - this limits it to ScanInterval frames
+	if ((Unsorted::CurrentFrame - this->LastScan) < this->ScanInterval) {
+		return;
+	}
+
+	// save the current frame for future reference
+	this->LastScan = Unsorted::CurrentFrame;
+
+	// walk through all buildings
+	for (auto const curBuilding : *BuildingClass::Array)
+	{
+		// for each jammable building ...
+		if (this->IsEligible(curBuilding))
+		{
+			// ...check if it's in range, and jam or unjam based on that
+			if (this->InRangeOf(curBuilding))
+			{
+				this->Jam(curBuilding);
+			}
+			else
+			{
+				this->Unjam(curBuilding);
+			}
+		}
+	}
+}
+
+//! \param TargetBuilding The building whose eligibility to check.
+bool AresJammer::IsEligible(BuildingClass* TargetBuilding)
+{
+	/* Current requirements for being eligible:
+		- not an ally (includes ourselves)
+		- either a radar or a spysat
+	*/
+	return !this->AttachedToObject->Owner->IsAlliedWith(TargetBuilding->Owner)
+		&& (TargetBuilding->Type->Radar || TargetBuilding->Type->SpySat);
+}
+
+//! \param TargetBuilding The building to check the distance to.
+bool AresJammer::InRangeOf(BuildingClass* TargetBuilding)
+{
+	auto const pExt = TechnoTypeExt::ExtMap.Find(this->AttachedToObject->GetTechnoType());
+	auto const& JammerLocation = this->AttachedToObject->Location;
+	auto const JamRadiusInLeptons = 256.0 * pExt->RadarJamRadius;
+
+	return TargetBuilding->Location.DistanceFrom(JammerLocation) <= JamRadiusInLeptons;
+}
+
+//! \param TargetBuilding The building to jam.
+void AresJammer::Jam(BuildingClass* TargetBuilding)
+{
+	//Using map ? , so it can keep item unique i presume ?
+	auto& jammMap = RegisteredJammers(TargetBuilding);
+
+	jammMap.insert(this->AttachedToObject, true);
+
+	if (jammMap.size() == 1) {
+		TargetBuilding->Owner->RecheckRadar = true;
+	}
+
+	this->Registered = true;
+}
+
+//! \param TargetBuilding The building to unjam.
+void AresJammer::Unjam(BuildingClass* TargetBuilding)
+{
+	//Using map ? , so it can keep item unique i presume ?
+	auto& jammMap = RegisteredJammers(TargetBuilding);
+
+	if (jammMap.erase(this->AttachedToObject)) {
+		if (jammMap.empty()) {
+			TargetBuilding->Owner->RecheckRadar = true;
+		}
+	}
+}
+
+void AresJammer::UnjamAll()
+{
+	if (this->Registered) {
+		this->Registered = false;
+		for (auto const item : *BuildingClass::Array) {
+			this->Unjam(item);
+		}
+	}
+}
+
+#pragma endregion
 #pragma region AresScriptExt
 
 bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bThirdArd)
@@ -4548,7 +4802,7 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 					const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pFirst->GetTechnoType());
 					if (pTypeExt->Convert_Script)
 					{
-						AresData::ConvertTypeTo(pFirst, pTypeExt->Convert_Script);
+						TechnoExt_ExtData::ConvertToType(pFirst, pTypeExt->Convert_Script);
 					}
 
 					pCur = pNext;

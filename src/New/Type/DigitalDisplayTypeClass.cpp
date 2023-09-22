@@ -89,7 +89,7 @@ void DigitalDisplayTypeClass::DisplayText(Point2D& position, int length, int val
 
 	double ratio = static_cast<double>(value) / maxValue;
 	COLORREF color = Drawing::RGB_To_Int(this->Text_Color.Get(ratio));
-	RectangleStruct rect = DSurface::Composite->Get_Rect();
+	RectangleStruct rect = DSurface::Composite->Get_Rect_WithoutBottomBar();
 	const int textHeight = 12;
 	const int pipsHeight = hasShield ? 4 : 0;
 
@@ -171,7 +171,7 @@ void DigitalDisplayTypeClass::DisplayShape(Point2D& position, int length, int va
 		spacing
 	);
 
-	RectangleStruct rect = DSurface::Composite->Get_Rect();
+	RectangleStruct rect = DSurface::Composite->Get_Rect_WithoutBottomBar();
 	ShapeTextPrinter::PrintShape(valueString.c_str(), shapeTextPrintData, &position, &rect, DSurface::Composite);
 }
 

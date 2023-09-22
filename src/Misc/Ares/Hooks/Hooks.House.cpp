@@ -24,6 +24,82 @@
 
 #include "Header.h"
 
+bool KeepThisAlive(HouseClass* pHouse, TechnoClass* pTech, AbstractType what, uint8_t keep)
+{
+	const auto pType = pTech->GetTechnoType();
+
+	const Nullable<bool>* result = &TechnoTypeExt::ExtMap.Find(pType)->KeepAlive;
+
+	bool ret = true;
+	bool defaultKeppAlive = false;
+
+	if (pType->Insignificant || pType->DontScore) {
+		ret = false;
+	} else {
+		defaultKeppAlive = what == BuildingClass::AbsID;
+	}
+
+	if (result->Get(defaultKeppAlive)) {
+		const int add = 2 * keep + 1;
+		KeepAlivesCount(pHouse) += add;
+		if (what == BuildingClass::AbsID)
+			KeepAlivesBuildingCount(pHouse) += add;
+	}
+
+	return ret;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4ff563, HouseClass_RegisterTechnoLoss_StatCounters_KeepAlive, 6)
+{
+	GET(TechnoClass*, pTech, ESI);
+	GET(HouseClass*, pThis, EDI);
+	const auto what = pTech->WhatAmI();
+	const bool Keep = KeepThisAlive(pThis, pTech, what, 0);
+	R->EAX(what);
+	return Keep ? 0x4FF596 : 0x4FF6CE;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4ff71b, HouseClass_RegisterTechnoGain_StatCounters_KeepAlive, 6)
+{
+	GET(TechnoClass*, pTech, ESI);
+	GET(HouseClass*, pThis, EDI);
+	const auto what = pTech->WhatAmI();
+	const bool Keep = KeepThisAlive(pThis, pTech, what, 1u);
+	R->EAX(what);
+	return Keep ? 0x4FF748 : 0x4FF8C6;
+}
+
+DEFINE_OVERRIDE_HOOK(0x688B37, MPGameModeClass_CreateStartingUnits_B, 5)
+{
+	enum { hasBaseUnit = 0x688B75, hasNoBaseUnit = 0x688C09 };
+
+	GET_STACK(HouseClass *, pHouse, 0x10);
+
+	const int idxParent = pHouse->Type->FindParentCountryIndex();
+
+	if(const auto Item =
+		HouseExt::FindOwned(pHouse , idxParent , make_iterator(RulesClass::Instance->BaseUnit))) {
+		R->ESI<UnitClass*>((UnitClass*)Item->CreateObject(pHouse));
+		R->EBP(0);
+		R->EDI<HouseClass*>(pHouse);
+		return hasBaseUnit;
+	}
+
+	Debug::Log("House of country [%s] cannot build anything from [General]BaseUnit=.\n", pHouse->Type->ID);
+	return hasNoBaseUnit;
+}
+
+DEFINE_OVERRIDE_HOOK(0x5D721A, MPGameMode_CreateStartingUnits, 5)
+{
+	GET_STACK(int, UnitCount, 0x40);
+	GET_STACK(HouseClass*, pHouse, 0x4C);
+
+	if(!UnitCount) {
+		Debug::Log("House of country [%s] cannot build anything from [General]BaseUnit=.\n", pHouse->Type->ID);
+	}
+
+	return 0;
+}
 
 DEFINE_OVERRIDE_HOOK(0x4F8440, HouseClass_Update_TogglePower, 5)
 {

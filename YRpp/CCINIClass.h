@@ -29,33 +29,38 @@ public:
 
 	class INIEntry : public Node<INIEntry>
 	{
-		public:
-			virtual ~INIEntry() {}
-
-			char* Key;
-			char* Value;
-			INIComment* Comments;
-			char* CommentString;
-			int PreIndentCursor;
-			int PostIndentCursor;
-			int CommentCursor;
+	public:
+		char* Key;
+		char* Value;
+		INIComment* Comments;
+		char* CommentString;
+		int PreIndentCursor;
+		int PostIndentCursor;
+		int CommentCursor;
 	};
 	static_assert(sizeof(INIEntry) == 0x28, "Invalid size.");
 
 	class INISection : public Node<INISection>
 	{
-		public:
-			using CheckedEntries = IndexClass <unsigned int, INIEntry*>;
-
-			virtual ~INISection() {}
-
-			char* Name;
-			List<INIEntry*> Entries;
-			CheckedEntries EntryIndex;
-			INIComment* Comments;
+	public:
+		char* Name;
+		List<INIEntry*> Entries;
+		IndexClass<unsigned int, INIEntry*> EntryIndex;
+		INIComment* Comments;
 	};
 	static_assert(sizeof(INISection) == 0x44, "Invalid size.");
 
+
+public:
+	using IndexType = IndexClass<int, INISection*>;
+
+	char* CurrentSectionName;
+	INISection* CurrentSection;
+	DECLARE_PROPERTY(List<INISection>, Sections);
+	DECLARE_PROPERTY(IndexType, SectionIndex); // <CRCValue of the Name, Pointer to the section>
+	INIComment* LineComments;
+
+public:
 	INIClass()
 		{ JMP_THIS(0x535AA0); }
 
@@ -63,7 +68,8 @@ protected:
 	INIClass(bool) { }
 
 public:
-	virtual ~INIClass() RX;
+
+	virtual ~INIClass();
 
 	void Reset()
 		{ JMP_THIS(0x526B00); }
@@ -386,15 +392,6 @@ public:
 	bool WriteTime(const char* pSection, const char* pKey, int nValue)
 		{ JMP_THIS(0x52A940); }
 	//Properties
-
-public:
-	using IndexType = IndexClass<int, INISection*>;
-
-	char* CurrentSectionName;
-	INISection* CurrentSection;
-	DECLARE_PROPERTY(List<INISection>, Sections);
-	DECLARE_PROPERTY(IndexType, SectionIndex); // <CRCValue of the Name, Pointer to the section>
-	INIComment* LineComments;
 };
 static_assert(sizeof(INIClass) == 0x40);//64
 
@@ -407,7 +404,7 @@ class CCINIClass : public INIClass
 public:
 	//STATIC
 	static constexpr inline DWORD vtable = 0x7E1AF4;
-	
+
 	static constexpr reference<DWORD, 0xB77E00u> const RulesHash{};
 	static constexpr reference<DWORD, 0xB77E04u> const ArtHash{};
 	static constexpr reference<DWORD, 0xB77E08u> const AIHash{};
@@ -434,7 +431,7 @@ public:
 		VTable::Set(this, vtable);
 	}
 
-	virtual ~CCINIClass() RX;
+	virtual ~CCINIClass() = default;
 
 	static CCINIClass* LoadINIFile(const char* pFileName)
 	{
@@ -483,7 +480,7 @@ public:
 	DWORD GetCRC()
 		{ JMP_THIS(0x476D80); }
 
-	//Most of them are inlined 
+	//Most of them are inlined
 #define FINDORMAKETYPE(C,addr) C* ##C##_FindOrMake(const char* pSection, const char* pKey , C* pDefault) { JMP_THIS(addr); }
 
 	FINDORMAKETYPE(AircraftTypeClass, 0x67BD30u)

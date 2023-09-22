@@ -176,6 +176,7 @@ void BuildingTypeExt::ExtData::Initialize()
 	this->OccupierMuzzleFlashes.reserve(((BuildingTypeClass*)this->Type->Get())->MaxNumberOccupants);
 	this->DockPoseDir.reserve(((BuildingTypeClass*)this->Type->Get())->NumberOfDocks);
 	this->LostEvaEvent = VoxClass::FindIndexById(GameStrings::EVA_TechBuildingLost());
+	this->PrismForwarding.Initialize(this->OwnerObject());
 }
 
 bool BuildingTypeExt::ExtData::CanBeOccupiedBy(InfantryClass* whom)
@@ -922,6 +923,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->FactoryPlant_RequirePower.Read(exINI, pSection, "FactoryPlant.RequirePower");
 		this->SpySat_RequirePower.Read(exINI, pSection, "SpySat.RequirePower");
 		this->Cloning_RequirePower.Read(exINI, pSection, "Cloning.RequirePower");
+		this->PrismForwarding.LoadFromINIFile(pThis, pINI);
 	}
 #pragma endregion
 
@@ -1107,6 +1109,7 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 	Stm
 		.Process(this->Initialized)
 		.Process(this->Type)
+		.Process(this->PrismForwarding)
 		.Process(this->PowersUp_Owner)
 		.Process(this->PowersUp_Buildings)
 		.Process(this->PowerPlantEnhancer_Buildings)

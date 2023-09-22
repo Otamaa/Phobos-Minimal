@@ -86,7 +86,7 @@ DEFINE_HOOK(0x468E9F, BulletClass_Explode_TargetSnapChecks2, 0x6) //was C
 	return 0;
 }
 
-DEFINE_HOOK(0x468D3F, BulletClass_IsForcedToExplode_AirTarget, 0x8)
+DEFINE_HOOK(0x468D3F, BulletClass_ShouldExplode_AirTarget, 0x8)
 {
 	enum { DontExplode = 0x468D73 , Contine = 0x0 };
 

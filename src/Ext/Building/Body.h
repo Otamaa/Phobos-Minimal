@@ -12,6 +12,8 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/BuildingType/Body.h>
 
+#include <Misc/Ares/Hooks/Classes/PrismForwarding.h>
+
 class BuildingExt
 {
 public:
@@ -25,6 +27,7 @@ public:
 	public:
 		BuildingTypeExt::ExtData* Type { nullptr };
 		TechnoExt::ExtData* TechnoExt { nullptr };
+		PrismForwarding PrismForwarding {};
 		bool DeployedTechno { false };
 		int LimboID { -1 };
 		int GrindingWeapon_LastFiredFrame { 0 };
@@ -53,7 +56,12 @@ public:
 		bool AboutToChronoshift { false };
 		bool IsFromSW { false };
 
-		ExtData(BuildingClass* OwnerObject) : Extension<BuildingClass>(OwnerObject){ }
+		PhobosMap<TechnoClass*, bool> RegisteredJammers { };
+
+		ExtData(BuildingClass* OwnerObject) : Extension<BuildingClass>(OwnerObject){
+			this->PrismForwarding.Owner = OwnerObject;
+		}
+
 		virtual ~ExtData() override = default;
 
 		void InvalidatePointer(AbstractClass* ptr, bool bRemoved);

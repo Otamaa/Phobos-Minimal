@@ -70,6 +70,28 @@ std::array< ColorStruct, (size_t)DefaultColorList::count> Drawing::DefaultColors
 //ALIAS(BombListClass , BombList , 0x87F5D8u)
 //#pragma endregion
 
+INIClass::~INIClass()
+{
+	this->Clear(nullptr, nullptr);
+
+	auto find = this->LineComments;
+	if (this->LineComments)
+	{
+		do
+		{
+			auto cur = std::exchange(find, find->Next);
+			if (cur->Value)
+				CRT::free(cur->Value);
+
+			YRMemory::Deallocate(cur);
+		}
+		while (find);
+	}
+
+	this->Sections.UnlinkAll();
+	this->SectionIndex.~IndexClass<int, INISection*>();
+}
+
 bool WWKeyboardClass::IsForceFireKeyPressed() const
 {
 	return this->IsKeyPressed(GameOptionsClass::Instance->KeyForceFire1)

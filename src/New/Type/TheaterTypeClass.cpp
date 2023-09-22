@@ -66,23 +66,7 @@ bool TheaterTypeClass::IsDefaultTheater()
 
 CCINIClass* TheaterTypeClass::GetConfigINI()
 {
-	const auto nFileName = "Theaters.ini";
 
-	if (CCINIClass* pINI = GameCreate<CCINIClass>())
-	{
-		if (auto pTheaterIni = GameCreate<CCFileClass>(nFileName))
-		{
-			if (pTheaterIni->Exists())
-			{
-				pINI->ReadCCFile(pTheaterIni);
-				return pINI;
-			}
-			else
-			{
-				Debug::Log("%s not found!\n", nFileName);
-			}
-		}
-	}
 
 	return nullptr;
 }
@@ -91,27 +75,29 @@ void TheaterTypeClass::LoadAllTheatersToArray()
 {
 	TheaterTypeClass::AddDefaults();
 
-	if (auto pINI = GetConfigINI())
-	{
-		const char* pSection = TheaterTypeClass::GetMainSection();
-		if (pINI->GetSection(pSection))
-		{
-			const auto nKeyCount = pINI->GetKeyCount(pSection);
+	const auto filename = "Theaters.ini";
+	CCFileClass file { filename };
 
-			for (int i = 0; i < nKeyCount; ++i)
-			{
-				if (pINI->ReadString(pSection, pINI->GetKeyName(pSection, i), "", Phobos::readBuffer))
-				{
+	if (file.Exists()) {
+		CCINIClass ini {};
+		ini.ReadCCFile(&file);
+		const char* pSection = TheaterTypeClass::GetMainSection();
+		if (ini.GetSection(pSection)) {
+			for (int i = 0; i < ini.GetKeyCount(pSection); ++i) {
+				if (ini.ReadString(pSection,
+					ini.GetKeyName(pSection, i),
+					Phobos::readDefval,
+					Phobos::readBuffer)
+					) {
 					if (auto pTheater = FindOrAllocate(Phobos::readBuffer))
-						pTheater->LoadFromINI(pINI);
+						pTheater->LoadFromINI(&ini);
 					else
 						Debug::Log("Error Reading %s \"%s\".\n", pSection, Phobos::readBuffer);
 				}
 			}
 		}
-
-		GameDelete<true, false>(pINI);
-		pINI = nullptr;
+	} else {
+		Debug::Log("%s not found!\n", filename);
 	}
 }
 

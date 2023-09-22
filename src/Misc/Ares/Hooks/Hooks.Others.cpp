@@ -2023,7 +2023,7 @@ DEFINE_OVERRIDE_HOOK(0x48294F, CellClass_CrateBeingCollected_Cloak2, 7)
 {
 	GET(TechnoClass*, Unit, EDX);
 	Unit->align_154->AE_Cloak = true;
-	AresData::RecalculateStat(Unit);
+	TechnoExt_ExtData::RecalculateStat(Unit);
 	return 0x482956;
 }
 
@@ -2035,7 +2035,7 @@ DEFINE_OVERRIDE_HOOK(0x482E57, CellClass_CrateBeingCollected_Armor2, 6)
 	if (Unit->align_154->AE_ArmorMult == 1.0)
 	{
 		Unit->align_154->AE_ArmorMult = Pow_ArmorMultiplier;
-		AresData::RecalculateStat(Unit);
+		TechnoExt_ExtData::RecalculateStat(Unit);
 		R->AL(Unit->GetOwningHouse()->IsInPlayerControl);
 		return 0x482E89;
 	}
@@ -2053,7 +2053,7 @@ DEFINE_OVERRIDE_HOOK(0x48303A, CellClass_CrateBeingCollected_Speed2, 6)
 	if (Unit->align_154->AE_SpeedMult == 1.0)
 	{
 		Unit->align_154->AE_SpeedMult = Pow_SpeedMultiplier;
-		AresData::RecalculateStat(Unit);
+		TechnoExt_ExtData::RecalculateStat(Unit);
 		R->CL(Unit->GetOwningHouse()->IsInPlayerControl);
 		return 0x483078;
 	}
@@ -2068,7 +2068,7 @@ DEFINE_OVERRIDE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 	if (Unit->align_154->AE_FirePowerMult == 1.0)
 	{
 		Unit->align_154->AE_FirePowerMult = Pow_FirepowerMultiplier;
-		AresData::RecalculateStat(Unit);
+		TechnoExt_ExtData::RecalculateStat(Unit);
 		R->AL(Unit->GetOwningHouse()->IsInPlayerControl);
 		return 0x483258;
 	}
@@ -2277,75 +2277,27 @@ DEFINE_OVERRIDE_HOOK(0x4D718C, FootClass_Put_InitialPayload, 6)
 }
 
 // temporal per-slot
-// DEFINE_OVERRIDE_HOOK(0x71A84E, TemporalClass_UpdateA, 5)
-// {
-// 	GET(TemporalClass* const, pThis, ESI);
-//
-// 	// it's not guaranteed that there is a target
-// 	if (auto const pTarget = pThis->Target)
-// 	{
-// 		if (auto nJammer = std::exchange(pTarget->align_154->RadarJammerUptr, nullptr))
-// 		{
-// 			AresData::JammerClassUnjamAll(nJammer);
-// 			AresMemory::Delete(nJammer);
-// 		}
-//
-// 		//AttachEffect handling under Temporal
-// 		AresData::UpdateAEData(&pTarget->align_154->AEDatas);
-// 	}
-//
-// 	pThis->WarpRemaining -= pThis->GetWarpPerStep(0);
-//
-// 	R->EAX(pThis->WarpRemaining);
-// 	return 0x71A88D;
-// }
-
-DEFINE_OVERRIDE_HOOK(0x71AF76, TemporalClass_Fire_PrismForwardAndWarpable, 9)
+DEFINE_OVERRIDE_HOOK(0x71A84E, TemporalClass_UpdateA, 5)
 {
-	GET(TechnoClass* const, pThis, EDI);
+	GET(TemporalClass* const, pThis, ESI);
 
-	// bugfix #874 B: Temporal warheads affect Warpable=no units
-	// it has been checked: this is warpable. free captured and destroy spawned units.
-	if (pThis->SpawnManager)
+	// it's not guaranteed that there is a target
+	if (auto const pTarget = pThis->Target)
 	{
-		pThis->SpawnManager->KillNodes();
+		if (auto pJammer = std::exchange(pTarget->align_154->RadarJammerUptr, nullptr))
+		{
+			AresData::JammerClassUnjamAll(pJammer);
+			AresMemory::Delete(pJammer);
+		}
+
+		//AttachEffect handling under Temporal
+		AresData::UpdateAEData(&pTarget->align_154->AEDatas);
 	}
 
-	if (pThis->CaptureManager)
-	{
-		pThis->CaptureManager->FreeAll();
-	}
+	pThis->WarpRemaining -= pThis->GetWarpPerStep(0);
 
-	// prism forward
-	if (pThis->WhatAmI() == BuildingClass::AbsID)
-	{
-		AresData::CPrismRemoveFromNetwork(&PrimsForwardingPtr(static_cast<BuildingClass*>(pThis)), true);
-	}
-
-	return 0;
-}
-
-DEFINE_OVERRIDE_HOOK(0x4424EF, BuildingClass_ReceiveDamage_PrismForward, 6)
-{
-	GET(BuildingClass* const, pThis, ESI);
-	AresData::CPrismRemoveFromNetwork(&PrimsForwardingPtr(pThis), true);
-	return 0;
-}
-
-DEFINE_OVERRIDE_HOOK(0x454B3D, BuildingClass_UpdatePowered_PrismForward, 6)
-{
-	GET(BuildingClass* const, pThis, ESI);
-	// this building just realised it needs to go offline
-	// it unregistered itself from powered unit controls but hasn't done anything else yet
-	AresData::CPrismRemoveFromNetwork(&PrimsForwardingPtr(pThis), true);
-	return 0;
-}
-
-DEFINE_OVERRIDE_HOOK(0x44EBF0, BuildingClass_Disappear_PrismForward, 5)
-{
-	GET(BuildingClass* const, pThis, ECX);
-	AresData::CPrismRemoveFromNetwork(&PrimsForwardingPtr(pThis), true);
-	return 0;
+	R->EAX(pThis->WarpRemaining);
+	return 0x71A88D;
 }
 
 // replace the cloak checking functions to include checks for new features

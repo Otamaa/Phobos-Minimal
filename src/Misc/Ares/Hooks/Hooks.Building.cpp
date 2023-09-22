@@ -1682,16 +1682,6 @@ DEFINE_OVERRIDE_HOOK(0x44D8A1, BuildingClass_UnloadPassengers_Unload, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x447113, BuildingClass_Sell_PrismForward, 6)
-{
-	GET(BuildingClass* const, pThis, ESI);
-
-	// #754 - evict Hospital/Armory contents
-	TechnoExt_ExtData::KickOutHospitalArmory(pThis);
-	AresData::CPrismRemoveFromNetwork(&PrimsForwardingPtr(pThis), true);
-	return 0x0;
-}
-
 DEFINE_OVERRIDE_HOOK(0x446AAF, BuildingClass_Place_SkipFreeUnits, 6)
 {
 	// allow free units and non-separate aircraft to be created

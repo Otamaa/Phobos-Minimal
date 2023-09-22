@@ -1,11 +1,16 @@
 #pragma once
 
 #include <GeneralDefinitions.h>
+#include <Memory.h>
+
+#include <vector>
 
 class AbstractClass;
+class AbstractTypeClass;
 class TechnoClass;
 class BuildingClass;
 class AnimClass;
+class AnimTypeClass;
 class BuildingLightClass;
 class SuperClass;
 class HouseClass;
@@ -32,6 +37,7 @@ public:
 
 	class JammerClass
 	{
+	public:
 		int LastScan;							//!< Frame number when the last scan was performed.
 		TechnoClass* AttachedToObject;			//!< Pointer to game object this jammer is on
 		bool Registered;						//!< Did I jam anything at all? Used to skip endless unjam calls.
@@ -51,45 +57,47 @@ public:
 
 	struct AEData
 	{
-		struct AE
+		struct AEType
 		{
-			struct DataHere
-			{
-				BYTE Daaa[0x11];
-				BYTE last;
-			};
-			DataHere* unk0; //pointer to type ?
+			AbstractTypeClass* Owner;
+			int Duration;
+			BYTE Cumulative;
+			BYTE ForceDecloak;
+			BYTE DiscardOnEntry;
+			BYTE gap;
+			AnimTypeClass* AnimType;
+			BYTE AnimResetOnReapply;
+			BYTE TemporalHidesAnim;
+			BYTE PenetratesIC;
+			BYTE gap13[5];
+			double FirepowerMultiplier;
+			double ArmorMultiplier;
+			double ROFMultiplier;
+			double SpeedMultiplier;
+			BYTE Cloakable;
+			BYTE gap39[3];
+			int Delay;
+			int InitialDelay;
+		};
+
+		struct AEInternal
+		{
+			AEType* Type;
 			AnimClass* Anim;
 			int Duration;
 			HouseClass* Invoker;
 		};
+		static_assert(sizeof(AEInternal) == 0x10, "InvalidSize!");
 
-		//void InvalidatePointer(AbstractClass* ptr) {
-		//	for (auto first = &this->ArrFirst; first != &this->ArrLast; ++first) {
-		//		if ((*first)->Anim == ptr)
-		//			(*first)->Anim = nullptr;
-		//	}
-		//}
-
-		//static void Update(AEData& data)
-		//{
-		//	if(!data.NeedToRecreateAnim) {
-		//		data.NeedToRecreateAnim = true;
-		//		for (auto first = &data.ArrFirst; first != &data.ArrLast; ++first) {
-		//			if ((*first)->unk0->last) {
-		//				if (auto pAnim = std::exchange((*first)->Anim, nullptr)) {
-		//					pAnim->UnInit();
-		//				}
-		//			}
-		//		}
-		//	}
-		//}
-
-		AE* ArrFirst;
-		AE* ArrLast;
-		AE* ArrEnd;
+		// using std array will cause this to break ,..
+		AEInternal* first;
+		AEInternal* last;
+		AEInternal* end;
 		int Delay;
-		bool NeedToRecreateAnim;
+		BYTE NeedToRecreateAnim;
+		BYTE Isset;
+		BYTE Gap_AE_1;
+		BYTE Gap_AE_2;
 	};
 	static_assert(sizeof(AEData) == 0x14, "InvalidSize!");
 
@@ -125,6 +133,9 @@ public:
 	DWORD pad[2] { 0 };
 };
 
+static_assert(offsetof(AresTechnoExt, AEDatas) == 0x20, "ClassMember Shifted !");
+static_assert(offsetof(AresTechnoExt, MyOriginalTemporal) == 0x34, "ClassMember Shifted !");
+static_assert(offsetof(AresTechnoExt, AE_ROF) == 0x78, "ClassMember Shifted !");
 static_assert(offsetof(AresTechnoExt, GarrisonedIn) == 0xC, "ClassMember Shifted !");
 static_assert(offsetof(AresTechnoExt, EMPSparkleAnim) == 0x10, "ClassMember Shifted !");
 static_assert(offsetof(AresTechnoExt, Is_DriverKilled) == 0x9C, "ClassMember Shifted !");

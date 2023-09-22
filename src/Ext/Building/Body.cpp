@@ -541,13 +541,14 @@ bool BuildingExt::CanGrindTechno(BuildingClass* pBuilding, TechnoClass* pTechno)
 		return false;
 	}
 
+	if(pBuilding->Owner->IsAlliedWith_(pTechno))
 	{
 		const auto pExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
 
 		if (pBuilding->Owner == pTechno->Owner && !pExt->Grinding_AllowOwner.Get())
 			return false;
 
-		if (pBuilding->Owner != pTechno->Owner && pBuilding->Owner->IsAlliedWith_(pTechno) && !pExt->Grinding_AllowAllies.Get())
+		if (pBuilding->Owner != pTechno->Owner && !pExt->Grinding_AllowAllies.Get())
 			return false;
 
 		auto const pTechnoType = pTechno->GetTechnoType();
@@ -557,9 +558,11 @@ bool BuildingExt::CanGrindTechno(BuildingClass* pBuilding, TechnoClass* pTechno)
 
 		if (!pExt->Grinding_DisallowTypes.empty() && pExt->Grinding_DisallowTypes.Contains(pTechnoType))
 			return false;
+
+		return true;
 	}
 
-	return true;
+	return false;
 }
 
 bool BuildingExt::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pTechno, int nRefundAmounts)
@@ -801,6 +804,7 @@ void BuildingExt::ExtData::Serialize(T& Stm)
 		.Process(this->OwnerObject()->LightSource)
 		.Process(this->Type)
 		.Process(this->TechnoExt)
+		.Process(this->PrismForwarding)
 		.Process(this->DeployedTechno)
 		.Process(this->LimboID)
 		.Process(this->GrindingWeapon_LastFiredFrame)
@@ -825,6 +829,7 @@ void BuildingExt::ExtData::Serialize(T& Stm)
 		.Process(this->SecretLab_Placed)
 		.Process(this->AboutToChronoshift)
 		.Process(this->IsFromSW)
+		.Process(this->RegisteredJammers)
 		;
 }
 

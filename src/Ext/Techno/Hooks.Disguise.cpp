@@ -52,7 +52,7 @@ DEFINE_HOOK(0x7467CA , UnitClass_CantTarget_Disguise, 0x5)
 
 bool NOINLINE CanBlinkDisguise(TechnoClass* pTechno , HouseClass* pCurPlayer)
 {
-	if(!pCurPlayer->IsObserver()) {
+	if(pCurPlayer && !pCurPlayer->IsObserver()) {
 		return  EnumFunctions::CanTargetHouse(
 			RulesExt::Global()->DisguiseBlinkingVisibility,pTechno->Owner, pCurPlayer);
 	}

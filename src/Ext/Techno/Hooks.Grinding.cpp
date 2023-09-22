@@ -85,7 +85,7 @@ DEFINE_HOOK(0x51F0AF, InfantryClass_WhatAction_Grinding, 0x5)
 		if (pBuilding->Type->Grinding
 			&& pThis->Owner->IsControlledByCurrentPlayer()
 			&& !pBuilding->IsBeingWarpedOut()
-			&& pThis->Owner->IsAlliedWith_(pTarget)
+			&& (pThis->Owner->IsAlliedWith_(pTarget) && pBuilding->Owner != pThis->Owner)
 			&& (BuildingTypeExt::ExtMap.Find(pBuilding->Type)->Grinding_AllowAllies || action == Action::Select))
 		{
 			action = BuildingExt::CanGrindTechno(pBuilding, pThis) ? Action::Repair : Action::NoEnter;
@@ -109,7 +109,12 @@ DEFINE_HOOK(0x51E63A, InfantryClass_WhatAction_Grinding_Engineer, 0x6)
 		const bool canBeGrinded = pBuilding->Type->Grinding && BuildingExt::CanGrindTechno(pBuilding, pThis);
 		Action ret = canBeGrinded ? Action::Repair : Action::NoGRepair;
 
-		if(ret == Action::NoGRepair && (pBuilding->Type->InfantryAbsorb || BuildingTypeExt::ExtMap.Find(pBuilding->Type)->TunnelType != -1)){
+		if(ret == Action::NoGRepair &&
+			(pBuilding->Type->InfantryAbsorb
+			|| BuildingTypeExt::ExtMap.Find(pBuilding->Type)->TunnelType != -1
+			|| pBuilding->Type->Hospital && pThis->GetHealthStatus() != HealthState::Green
+			|| pBuilding->Type->Armory && pThis->Type->Trainable
+		  )){
 			ret = pThis->SendCommand(RadioCommand::QueryCanEnter, pTarget) == RadioCommand::AnswerPositive ?
 				Action::Enter : Action::NoEnter;
 		}
@@ -155,6 +160,8 @@ DEFINE_HOOK(0x740134, UnitClass_WhatAction_Grinding, 0x9) //0
 
 	return Continue;
 }
+
+#pragma region PosGrind
 
 DEFINE_HOOK(0x4DFABD, FootClass_Try_Grinding_CheckIfAllowed, 0x8)
 {
@@ -281,3 +288,5 @@ DEFINE_HOOK(0x522E4F, InfantryClass_SlaveGiveMoney_CheckBalanceAfter, 0x6)
 
 	return 0;
 }
+
+#pragma endregion

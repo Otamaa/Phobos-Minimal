@@ -12,6 +12,7 @@
 #include <Utilities/Enum.h>
 
 #include <vector>
+#include <New/AnonymousType/AresAttachEffectTypeClass.h>
 
 enum class AresHijackActionResult
 {
@@ -176,8 +177,11 @@ struct TechnoExt_ExtData
 		);
 
 	static bool IsDriverKillable(TechnoClass* pThis, double KillBelowPercent);
-
 	static void ApplyKillDriver(TechnoClass* pTarget, TechnoClass* pKiller, HouseClass* pToOwner, bool ResetVet, Mission passiveMission);
+	static bool ConvertToType(TechnoClass* pThis, TechnoTypeClass* pToType);
+
+	//TODO , this is actually using AE data,.. but i dont know the internal structure yet
+	static void RecalculateStat(TechnoClass* pThis);
 };
 
 struct TechnoTypeExt_ExtData
@@ -248,10 +252,38 @@ public:
 
 class AresPoweredUnit : public AresTechnoExt::PoweredUnitClass
 {
+	static constexpr int ScanInterval = 15;
+
 	bool IsPoweredBy(HouseClass* const pOwner) const;
 	void PowerUp();
 	bool PowerDown();
 	bool Update();
+
+	//TODO: S/L
+};
+
+class AresJammer : public AresTechnoExt::JammerClass
+{
+	static constexpr int ScanInterval = 30;
+
+	bool InRangeOf(BuildingClass*);		//!< Calculates if the jammer is in range of this building.
+	bool IsEligible(BuildingClass*);		//!< Checks if this building can/should be jammed.
+
+	void Jam(BuildingClass*);				//!< Attempts to jam the given building. (Actually just registers the Jammer with it, the jamming happens in a hook.)
+	void Unjam(BuildingClass*);			//!< Attempts to unjam the given building. (Actually just unregisters the Jammer with it, the unjamming happens in a hook.)
+
+public:
+	AresJammer(TechnoClass* GameObject) : AresTechnoExt::JammerClass {}
+	{ this->AttachedToObject = GameObject; }
+
+	~AresJammer() {
+		this->UnjamAll();
+	}
+
+	void UnjamAll();						//!< Unregisters this Jammer on all structures.
+	void Update();							//!< Updates this Jammer's status on all eligible structures.
+
+	//TODO: S/L
 };
 
 class AresBlitter

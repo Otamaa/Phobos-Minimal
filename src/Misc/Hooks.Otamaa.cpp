@@ -3414,3 +3414,25 @@ DEFINE_HOOK(0x55B4E1, LogicClass_Update_Veinhole, 0x5)
 	VeinholeMonsterClass::UpdateAllVeinholes();
 	return 0;
 }
+
+//DEFINE_HOOK(0x525703, INIClass_DTOR_DeleteComments, 0x9)
+//{
+//	GET(INIClass*, pThis, ESI);
+//
+//	if(pThis->LineComments) {
+//		do {
+//			const auto next = pThis->LineComments->Next;
+//			if (pThis->LineComments->Value)
+//				CRT::free(pThis->LineComments->Value);
+//
+//			YRMemory::Deallocate(pThis->LineComments);
+//			pThis->LineComments = next;
+//		}
+//		while (pThis->LineComments);
+//	}
+//
+//	YRMemory::Deallocate(pThis->SectionIndex.IndexTable);
+//
+//	return 0x52570C;
+//	return 0x0;
+//}

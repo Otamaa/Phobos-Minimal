@@ -146,7 +146,7 @@ public:
 	virtual void Init_For_House() override JMP_THIS(0x6A5840);
 
 	//SidebarClass
-	virtual bool vt_entry_D8(int nUnknown) R0;
+	virtual bool Activate(int control = 1) JMP_THIS(0x6A7D70);
 
 	//Non-virtual
 

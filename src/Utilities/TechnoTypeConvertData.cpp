@@ -1,6 +1,6 @@
 #include "TechnoTypeConvertData.h"
 
-#include <Misc/AresData.h>
+#include <Misc/Ares/Hooks/Header.h>
 #include <Utilities/Debug.h>
 
 void TechnoTypeConvertData::ApplyConvert(const std::vector<TechnoTypeConvertData>& nPairs , HouseClass * pHouse, TechnoClass * pTarget, AnimTypeClass* SucceededAnim)
@@ -20,7 +20,7 @@ void TechnoTypeConvertData::ApplyConvert(const std::vector<TechnoTypeConvertData
 
 		if (pFrom == pCurType)
 		{
-			const auto bConvertStatus = AresData::ConvertTypeTo(pTarget, pTo);
+			const auto bConvertStatus = TechnoExt_ExtData::ConvertToType(pTarget, pTo);
 
 			if (!bConvertStatus)
 				Debug::Log("Failed to ConvertType From[%x] To [%s]!\n" , pFrom->ID, pTo->ID);

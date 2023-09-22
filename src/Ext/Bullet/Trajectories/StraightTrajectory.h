@@ -26,6 +26,9 @@ class StraightTrajectory final : public PhobosTrajectory
 {
 public:
 
+	int FirerZPosition { 0 };
+	int TargetZPosition { 0 };
+
 	StraightTrajectory() : PhobosTrajectory { TrajectoryFlag::Straight }
 	{ }
 
@@ -49,4 +52,7 @@ public:
 
 private:
 	int GetVelocityZ();
+	int GetFirerZPosition();
+	int GetTargetZPosition();
+	bool ElevationDetonationCheck();
 };

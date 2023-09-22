@@ -38,9 +38,9 @@ public:
 	virtual void Init_IO() RX;
 	virtual void GetInputAndUpdate(DWORD& outKeyCode, int& outMouseX, int& outMouseY) RX;
 	virtual void Update(const int& keyCode, const Point2D& mouseCoords) RX;
-	virtual bool SetButtons(GadgetClass* pGadget) R0;
-	virtual bool AddButton(GadgetClass* pGadget) R0;
-	virtual bool RemoveButton(GadgetClass* pGadget) R0;
+	virtual bool SetButtons(GadgetClass* pGadget) JMP_THIS(0x4D43F0);
+	virtual bool AddButton(GadgetClass* pGadget) JMP_THIS(0x4F4410);
+	virtual bool RemoveButton(GadgetClass* pGadget) JMP_THIS(0x4F4450);
 	virtual void MarkNeedsRedraw(int dwUnk) RX;
 	virtual void DrawOnTop() RX;
 	virtual void Draw(DWORD dwUnk) RX;

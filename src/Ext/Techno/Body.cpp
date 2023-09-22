@@ -125,7 +125,7 @@ Iterator<DigitalDisplayTypeClass*> GetDisplayType(TechnoClass* pThis, TechnoType
 	return make_iterator(RulesExt::Global()->Buildings_DefaultDigitalDisplayTypes);
 }
 
-bool GetDisplayTypeData(std::vector<DigitalDisplayTypeClass*>& ret , TechnoClass* pThis , TechnoTypeClass* pType, int& length)
+bool GetDisplayTypeData(std::vector<DigitalDisplayTypeClass*>* ret , TechnoClass* pThis , TechnoTypeClass* pType, int& length)
 {
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
@@ -138,23 +138,23 @@ bool GetDisplayTypeData(std::vector<DigitalDisplayTypeClass*>& ret , TechnoClass
 			const auto pBuildingType = static_cast<BuildingTypeClass*>(pType);
 			const int height = pBuildingType->GetFoundationHeight(false);
 			length = height * 7 + height / 2;
-			ret = RulesExt::Global()->Buildings_DefaultDigitalDisplayTypes;
+			ret = &RulesExt::Global()->Buildings_DefaultDigitalDisplayTypes;
 			return true;
 		}
 		case AbstractType::Infantry:
 		{
 			length = 8;
-			ret = (RulesExt::Global()->Infantry_DefaultDigitalDisplayTypes);
+			ret = &(RulesExt::Global()->Infantry_DefaultDigitalDisplayTypes);
 			return true;
 		}
 		case AbstractType::Unit:
 		{
-			ret = (RulesExt::Global()->Vehicles_DefaultDigitalDisplayTypes);
+			ret = &(RulesExt::Global()->Vehicles_DefaultDigitalDisplayTypes);
 			return true;
 		}
 		case AbstractType::Aircraft:
 		{
-			ret = (RulesExt::Global()->Aircraft_DefaultDigitalDisplayTypes);
+			ret = &(RulesExt::Global()->Aircraft_DefaultDigitalDisplayTypes);
 			return true;
 		}
 		default:
@@ -165,7 +165,7 @@ bool GetDisplayTypeData(std::vector<DigitalDisplayTypeClass*>& ret , TechnoClass
 		}
 	}
 
-	ret = (pTypeExt->DigitalDisplayTypes);
+	ret = &(pTypeExt->DigitalDisplayTypes);
 	return true;
 }
 
@@ -187,10 +187,7 @@ void TechnoExt::ProcessDigitalDisplays(TechnoClass* pThis)
 
 	HelperedVector<DigitalDisplayTypeClass*> DisplayTypes {};
 
-	if (!GetDisplayTypeData(DisplayTypes, pThis, pType, length))
-		return;
-
-	if (DisplayTypes.empty())
+	if (!GetDisplayTypeData(&DisplayTypes, pThis, pType, length) || DisplayTypes.empty())
 		return;
 
 	const bool IsCurPlayerObserver = HouseClass::IsCurrentPlayerObserver();

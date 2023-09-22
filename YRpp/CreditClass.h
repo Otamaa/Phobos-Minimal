@@ -24,3 +24,4 @@ public :
 };
 
 static_assert(sizeof(CreditClass) == 0x10, "Invalid Size !");
+typedef CreditClass TabDataClass ;

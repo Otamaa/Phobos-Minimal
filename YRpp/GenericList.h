@@ -19,7 +19,7 @@ public:
 		return *this;
 	}
 
-	void Unlink()
+	void __forceinline Unlink()
 	{
 		if (this->IsValid())
 		{
@@ -65,7 +65,9 @@ public:
 		FirstNode.Link(&LastNode);
 	}
 
-	virtual ~GenericList() { }
+	virtual ~GenericList() {
+		this->UnlinkAll();
+	}
 
 	GenericNode* First() const { return FirstNode.Next(); }
 	GenericNode* Last() const { return LastNode.Prev(); }
@@ -73,7 +75,10 @@ public:
 	void AddHead(GenericNode* pNode) { FirstNode.Link(pNode); }
 	void AddTail(GenericNode* pNode) { LastNode.Prev()->Link(pNode); }
 	void Delete() { while (this->FirstNode.Next()->IsValid()) GameDelete(this->FirstNode.Next()); }
-
+	void __forceinline UnlinkAll() {
+		this->FirstNode.Unlink();
+		this->LastNode.Unlink();
+	}
 protected:
 	GenericNode FirstNode;
 	GenericNode LastNode;
@@ -88,8 +93,6 @@ template<class T>
 class Node : public GenericNode
 {
 public:
-	virtual ~Node(){ }
-
 	List<T>* MainList() const { return (List<T> *)GenericNode::MainList(); }
 	T* Next() const { return (T*)GenericNode::Next(); }
 	T* Prev() const { return (T*)GenericNode::Prev(); }
@@ -100,7 +103,8 @@ template<class T>
 class List : public GenericList
 {
 public:
-	virtual ~List(){ }
+
+	virtual ~List<T>() override { this->UnlinkAll(); }
 
 	T* First() const { return (T*)GenericList::First(); }
 	T* Last() const { return (T*)GenericList::Last(); }

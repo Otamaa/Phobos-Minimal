@@ -22,7 +22,18 @@ public:
 	std::vector<CellStruct> TempCoveredCellsData { };
 public:
 	static bool SaveGlobals(PhobosStreamWriter& stm) { return PhobosGlobal::Instance()->Serialize(stm); }
-	static bool LoadGlobals(PhobosStreamReader& stm) { return PhobosGlobal::Instance()->Serialize(stm); }
+	static bool LoadGlobals(PhobosStreamReader& stm) {
+
+		if(PhobosGlobal::Instance()->Serialize(stm)){
+
+			MouseClass::Instance->CurrentFoundation_Data = Instance()->TempFoundationData1.data();
+			MouseClass::Instance->CurrentFoundationCopy_Data = Instance()->TempFoundationData2.data();
+
+			return true;
+		}
+
+		return false;
+	}
 
 	inline static PhobosGlobal* Instance() {
 		return GlobalObject.get();

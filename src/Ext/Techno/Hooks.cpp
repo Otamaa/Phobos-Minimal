@@ -281,6 +281,8 @@ DEFINE_HOOK(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x6) //0x8
 	//	return 0x0;
 }
 
+#include <Misc/Ares/Hooks/Header.h>
+
 DEFINE_HOOK(0x443C81, BuildingClass_ExitObject_InitialClonedHealth, 0x7)
 {
 	GET(BuildingClass*, pBuilding, ESI);
@@ -294,7 +296,7 @@ DEFINE_HOOK(0x443C81, BuildingClass_ExitObject_InitialClonedHealth, 0x7)
 			auto const pFootTypeExt = TechnoTypeExt::ExtMap.Find(pClonedType);
 
 			if (pFootTypeExt->Unit_AI_AlternateType.isset() && pFootTypeExt->Unit_AI_AlternateType.Get() != pFootTypeExt->Get())
-				if (!AresData::ConvertTypeTo(static_cast<FootClass*>(pTechno), pFootTypeExt->Unit_AI_AlternateType))
+				if (!TechnoExt_ExtData::ConvertToType(pTechno, pFootTypeExt->Unit_AI_AlternateType))
 					Debug::Log("Unit AI AlternateType Conversion failed ! \n");
 		}
 

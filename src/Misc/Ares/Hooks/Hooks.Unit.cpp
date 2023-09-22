@@ -492,7 +492,7 @@ DEFINE_OVERRIDE_HOOK(0x73DE90, UnitClass_Mi_Unload_SimpleDeployer, 0x6)
 
 	if (pThis->Deployed
 		&& pTypeExt->Convert_Deploy
-		&& AresData::ConvertTypeTo(pThis, pTypeExt->Convert_Deploy))
+		&& TechnoExt_ExtData::ConvertToType(pThis, pTypeExt->Convert_Deploy))
 	{
 		if(pTypeExt->Convert_Deploy_Delay > 0)
 			TechnoExt::ExtMap.Find(pThis)->Convert_Deploy_Delay

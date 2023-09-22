@@ -91,13 +91,15 @@ bool NewSWType::CanFireAt(TargetingData const& data, CellStruct const& cell, boo
 
 bool NewSWType::IsDesignator(const SWTypeExt::ExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const
 {
-	if (pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo && !pTechno->Deactivated)
+	if (pTechno->IsAlive
+		&& pTechno->Health
+		&& !pTechno->InLimbo
+		&& !pTechno->Deactivated
+		&& pTechno->GetOwningHouse() == pOwner
+		)
 	{
-		if (pTechno->Owner == pOwner)
-		{
-			return pData->SW_AnyDesignator
-				|| pData->SW_Designators.Contains(pTechno->GetTechnoType());
-		}
+		return pData->SW_AnyDesignator
+			|| pData->SW_Designators.Contains(pTechno->GetTechnoType());
 	}
 
 	return false;
@@ -198,13 +200,10 @@ bool NewSWType::IsInhibitorEligible(const SWTypeExt::ExtData* pData, HouseClass*
 
 bool NewSWType::IsAttractor(const SWTypeExt::ExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const
 {
-	if (pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo && !pTechno->Deactivated)
+	if (pTechno->Owner != pOwner && pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo)
 	{
-		if (pTechno->Owner != pOwner && !pTechno->Owner->IsAlliedWith_(pOwner))
-		{
-			return pData->SW_AnyAttractor
-				|| pData->SW_Attractors.Contains(pTechno->GetTechnoType());
-		}
+		return pData->SW_AnyAttractor
+			|| pData->SW_Attractors.Contains(pTechno->GetTechnoType());
 	}
 
 	return false;
@@ -250,7 +249,7 @@ bool NewSWType::IsSuppressor(const SWTypeExt::ExtData* pData, HouseClass* pOwner
 {
 	if (pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo && !pTechno->Deactivated)
 	{
-		if (pOwner->IsAlliedWith_(pTechno))
+		if (!pOwner->IsAlliedWith_(pTechno))
 		{
 			if (auto pBld = abstract_cast<BuildingClass*>(pTechno))
 			{
@@ -401,7 +400,8 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExt::ExtD
 	if (data->NeedsDesignator || data->NeedsAttractors || data->NeedsInhibitors || data->NeedsSupressors)
 	{
 		TechnoClass::Array->for_each([&](TechnoClass* pTechno) {
-			if (!(pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo && !pTechno->Deactivated))
+
+			if (!pTechno->IsAlive) // if it is already gone , it is gone
 				return;
 
 			auto center = pTechno->GetCoords();

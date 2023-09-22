@@ -211,6 +211,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.BuildngFoundation.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bullet.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Checksummer.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.CopyProtection.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.CustomMissile.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.DamageArea.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Deactivated.cpp" />
@@ -222,6 +223,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.IonBlast.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Locomotor.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.MouseCursors.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Movies.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Networking.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Others.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Perf.cpp" />
@@ -240,6 +242,8 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.VXLArtData.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Wave.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Weapons.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Classes\PrismForwarding.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Classes\PrismForwardingData.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\Hooks.PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\ExtHooks\TechnoExt.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\FighterGuardArea\FighterAreaGuard.cpp" />
@@ -383,6 +387,7 @@
     <ClInclude Include="src\Commands\ToggleDesignatorRange.h" />
     <ClInclude Include="src\Commands\ToggleDigitalDisplay.h" />
     <ClInclude Include="src\Commands\ToggleRadialIndicatorDrawMode.h" />
+    <ClInclude Include="src\ExtraHeaders\AStarClass.h" />
     <ClInclude Include="src\Ext\Abstract\Body.h" />
     <ClInclude Include="src\Ext\AITriggerType\Body.h" />
     <ClInclude Include="src\Ext\Bomb\Body.h" />
@@ -458,6 +463,8 @@
     <ClInclude Include="src\Misc\Ares\Hooks\AresNetEvent.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\AresTrajectoryHelper.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\Header.h" />
+    <ClInclude Include="src\Misc\Ares\Hooks\Classes\PrismForwarding.h" />
+    <ClInclude Include="src\Misc\Ares\Hooks\Classes\PrismForwardingData.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintBall.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintballType.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\CustomWeapon\CustomWeapon.h" />

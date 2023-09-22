@@ -16,6 +16,8 @@
 #include <New/Type/TunnelTypeClass.h>
 #include <New/Type/CursorTypeClass.h>
 
+#include <Misc/Ares/Hooks/Classes/PrismForwardingData.h>
+
 enum class BunkerSoundMode : int
 {
 	Up, Down
@@ -40,6 +42,8 @@ public:
 	public:
 
 		TechnoTypeExt::ExtData* Type { nullptr };
+
+		PrismForwardingData PrismForwarding {};
 
 		Valueable<AffectedHouse> PowersUp_Owner { AffectedHouse::Owner };
 		ValueableVector<BuildingTypeClass*> PowersUp_Buildings {};

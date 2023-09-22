@@ -97,7 +97,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 	{
 		auto pType = pData->SW_Deliverables[i];
 
-		if (!pType)
+		if (!pType || pType->Strength == 0)
 			continue;
 
 		auto Item = static_cast<TechnoClass*>(pType->CreateObject(pOwner));

@@ -821,6 +821,7 @@ public:
 
 		Valueable<bool> ProtectedDriver { false }; //!< Whether the driver of this vehicle cannot be killed, i.e. whether this vehicle is immune to KillDriver. Request #733.
 		Nullable<double> ProtectedDriver_MinHealth { }; //!< The health level the unit has to be below so the driver can be killed
+		Nullable<bool> KeepAlive { };
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 		{
