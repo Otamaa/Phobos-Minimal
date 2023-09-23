@@ -3219,7 +3219,7 @@ DEFINE_OVERRIDE_HOOK(0x51E7BF, InfantryClass_GetActionOnObject_CanCapture, 6)
 	if (nResult == AresHijackActionResult::Drive && InputManagerClass::Instance->IsForceFireKeyPressed())
 		return DontCapture;
 
-	AresData::SetMouseCursorAction(92, Action::Capture, false);
+	MouseCursorFuncs::SetMouseCursorAction(92, Action::Capture, false);
 	return Capture;
 }
 
@@ -3576,7 +3576,7 @@ DEFINE_OVERRIDE_HOOK(0x51E5E1, InfantryClass_GetActionOnObject_MultiEngineerB, 7
 
 	// use a dedicated cursor
 	if (ret == Action::Damage) {
-		AresData::SetMouseCursorAction(RulesExt::Global()->EngineerDamageCursor, Action::Damage, false);
+		MouseCursorFuncs::SetMouseCursorAction(RulesExt::Global()->EngineerDamageCursor, Action::Damage, false);
 	}
 
 	// return our action

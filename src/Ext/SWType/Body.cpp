@@ -13,6 +13,8 @@
 #include <Utilities/EnumFunctions.h>
 
 #include <Misc/AresData.h>
+#include <Misc/Ares/Hooks/Header.h>
+
 #include <Misc/PhobosToolTip.h>
 
 #include <Notifications.h>
@@ -36,6 +38,7 @@
 bool SWTypeExt::Handled = false;
 SuperClass* SWTypeExt::TempSuper = nullptr;
 SuperClass* SWTypeExt::LauchData = nullptr;
+SuperWeaponTypeClass* SWTypeExt::CurrentSWType = nullptr;
 
 //TODO re-evaluate these , since the default array seems not contains what the documentation table says,..
 std::array<const AITargetingModeInfo, (size_t)SuperWeaponAITargetingMode::count> SWTypeExt::AITargetingModes =
@@ -70,11 +73,11 @@ std::array<const AITargetingModeInfo, (size_t)SuperWeaponAITargetingMode::count>
 
 SWTypeExt::ExtData::~ExtData()
 {
-	SuperWeaponTypeClass* pCopy = Ares_CurrentSWType;
-	if (this->Get() == Ares_CurrentSWType)
+	SuperWeaponTypeClass* pCopy = SWTypeExt::CurrentSWType;
+	if (this->Get() == SWTypeExt::CurrentSWType)
 		pCopy = nullptr;
 
-	Ares_CurrentSWType = pCopy;
+	SWTypeExt::CurrentSWType = pCopy;
 };
 
 bool SWTypeExt::ExtData::IsTypeRedirected() const
@@ -103,10 +106,11 @@ void SWTypeExt::ExtData::Initialize()
 	this->EVA_InsufficientFunds = VoxClass::FindIndexById(GameStrings::EVA_InsufficientFunds);
 	this->EVA_SelectTarget = VoxClass::FindIndexById(GameStrings::EVA_SelectTarget);
 
-	if (auto pNewSWType = NewSWType::GetNewSWType(this))
-	{
-		this->Get()->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	if (auto pNewSWType = NewSWType::GetNewSWType(this)) {
 		pNewSWType->Initialize(this);
+
+		if(this->Get()->Action != Action::None)
+			this->Get()->Action = Action(AresNewActionType::SuperWeaponAllowed);
 	}
 
 	this->LastAction = this->Get()->Action;
@@ -150,17 +154,16 @@ Action NOINLINE SWTypeExt::ExtData::GetAction(SuperWeaponTypeClass* pSuper, Cell
 
 	if (!bCanFire)
 	{
-		Ares_CurrentSWType = nullptr;
+		SWTypeExt::CurrentSWType = nullptr;
 		Cursor = pExt->NoCursorType;
 	}
 	else
 	{
-		Ares_CurrentSWType = pSuper;
+		SWTypeExt::CurrentSWType = pSuper;
 		Cursor = pExt->CursorType;
 	}
 
-
-	AresData::SetSWMouseCursorAction(Cursor, pExt->SW_FireToShroud, -1);
+	MouseCursorFuncs::SetSuperWeaponCursorAction(Cursor, (Action)result , pExt->SW_FireToShroud);
 	return (Action)result;
 }
 
@@ -2681,7 +2684,7 @@ bool SWTypeExt::ExtContainer::InvalidateIgnorable(AbstractClass* ptr)
 bool SWTypeExt::ExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
 	const bool First = Stm
-		.Process(Ares_CurrentSWType)
+		.Process(SWTypeExt::CurrentSWType)
 		.Process(SWTypeExt::TempSuper)
 		.Process(SWTypeExt::Handled)
 		.Process(SWTypeExt::LauchData)
@@ -2693,7 +2696,7 @@ bool SWTypeExt::ExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 bool SWTypeExt::ExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
 	const bool First = Stm
-		.Process(Ares_CurrentSWType)
+		.Process(SWTypeExt::CurrentSWType)
 		.Process(SWTypeExt::TempSuper)
 		.Process(SWTypeExt::Handled)
 		.Process(SWTypeExt::LauchData)

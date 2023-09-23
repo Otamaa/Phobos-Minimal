@@ -28,7 +28,7 @@ enum FunctionIndices : int
 	RecalculateStatID = 2,
 	ReverseEngineerID = 3,
 	GetInfActionOverObjectID = 4,
-	SetMouseCursorActionID = 5,
+	SetMouseCursorActionID = 5, //0x058AB0
 	HouseCanBuildID = 6,
 	SWActivateID = 7,
 	DepositTiberiumID = 8,
@@ -83,7 +83,7 @@ enum FunctionIndices : int
 	RequirementsMetID = 48,
 
 	UpdateAcademyID = 49,
-	SetSWCursorID = 50,
+	SetSWCursorID = 50, //0x058AD0
 	UpdateDisplayToID = 51,
 
 	GetTurretWeaponIdxID = 52,

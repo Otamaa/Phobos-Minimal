@@ -11,6 +11,7 @@ std::vector<const char*> SW_GenericWarhead::GetTypeString() const
 
 void SW_GenericWarhead::Initialize(SWTypeExt::ExtData* pData)
 {
+	pData->OwnerObject()->Action = Action(AresNewActionType::SuperWeaponAllowed);
 	pData->SW_RadarEvent = false;
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::Offensive;
 }

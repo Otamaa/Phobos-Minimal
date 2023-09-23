@@ -1259,11 +1259,11 @@ DEFINE_OVERRIDE_HOOK(0x51EE6B, InfantryClass_GetActionOnObject_Saboteur, 6)
 			{
 			case Action::Move:
 			{
-				AresData::SetMouseCursorAction(pTypeExt->Cursor_Spy, Action::Capture, 0);
+				MouseCursorFuncs::SetMouseCursorAction(pTypeExt->Cursor_Spy, Action::Capture, 0);
 				break;
 			}
 			case Action::NoMove:
-				AresData::SetMouseCursorAction(pTypeExt->Cursor_Sabotage, Action::Capture, 0);
+				MouseCursorFuncs::SetMouseCursorAction(pTypeExt->Cursor_Sabotage, Action::Capture, 0);
 				break;
 			case Action::None:
 				return Notinfiltratable;
@@ -1292,7 +1292,7 @@ DEFINE_OVERRIDE_HOOK(0x51E635, InfantryClass_GetActionOnObject_EngineerOverFrien
 
 	if ((pData->RubbleIntact || pData->RubbleIntactRemove) && pTarget->Owner->IsAlliedWith_(pThis))
 	{
-		AresData::SetMouseCursorAction(90u, Action::GRepair, false);
+		MouseCursorFuncs::SetMouseCursorAction(90u, Action::GRepair, false);
 		R->EAX(Action::GRepair);
 		return SkipAll;
 	}

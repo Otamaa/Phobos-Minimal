@@ -885,7 +885,7 @@ DEFINE_OVERRIDE_HOOK(0x51E710, InfantryClass_GetActionOnObject_Heal, 7)
 		(pThatType->Organic || pThat->WhatAmI() == InfantryClass::AbsID) ? 90 : 91;
 
 	//TODO : properly port this
-	AresData::SetMouseCursorAction(nCursor, Action::Heal, false);
+	MouseCursorFuncs::SetMouseCursorAction(nCursor, Action::Heal, false);
 	return DoActionHeal;
 }
 
@@ -924,7 +924,7 @@ DEFINE_OVERRIDE_HOOK(0x73FDBD, UnitClass_GetActionOnObject_Heal, 5)
 		(pThatType->Organic || pThat->WhatAmI() == InfantryClass::AbsID) ? 90 : 91;
 
 	//TODO : properly port this
-	AresData::SetMouseCursorAction(nCursor, Action::GRepair, false);
+	MouseCursorFuncs::SetMouseCursorAction(nCursor, Action::GRepair, false);
 
 	return DoActionGRepair;//0x73FE08;
 }

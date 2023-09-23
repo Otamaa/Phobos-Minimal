@@ -81,7 +81,9 @@ bool SW_SonarPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 }
 
 void SW_SonarPulse::Initialize(SWTypeExt::ExtData* pData)
-{	// some defaults
+{
+	pData->OwnerObject()->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	// some defaults
 	pData->SW_RadarEvent = false;
 
 	pData->Sonar_Delay = 60;

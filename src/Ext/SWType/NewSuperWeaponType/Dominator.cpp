@@ -47,6 +47,7 @@ bool SW_PsychicDominator::AbortFire(SuperClass* pSW, bool IsPlayer)
 
 void SW_PsychicDominator::Initialize(SWTypeExt::ExtData* pData)
 {
+	pData->OwnerObject()->Action = Action::PsychicDominator;
 	// Defaults to PsychicDominator values
 	pData->Dominator_FirstAnimHeight = 750;
 	pData->Dominator_SecondAnimHeight = 0;

@@ -409,7 +409,7 @@ struct AresDTORCaller
 //#define OverpoweredBuildingType(var) (*(std::vector<BuildingTypeClass*,AresMemory::AresAllocator<BuildingTypeClass*>>*)((char*)GetAresHouseExt(var) + 0x7C))
 //#define GetDefaultTargetingArrayValue() (*((std::array<const AITargetingModeInfo , (size_t)SuperWeaponAITargetingMode::count>*)(AresData::AresStaticInstanceFinal[6])))
 //#define SW_Firewall_Type (*((SuperWeaponType*)(AresData::AresStaticInstanceFinal[7])))
-#define Ares_CurrentSWType (*((SuperWeaponTypeClass**)(AresData::AresStaticInstanceFinal[8])))
+//#define Ares_CurrentSWType (*((SuperWeaponTypeClass**)(AresData::AresStaticInstanceFinal[8])))
 // remember , this only 3 elements , otherwise it will bleed to something else
 //#define Ares_EboltColors1 (*((int*)(AresData::AresStaticInstanceFinal[9])))
 //#define Ares_EboltColors2 (*((int*)(AresData::AresStaticInstanceFinal[10])))

@@ -14,6 +14,14 @@ std::vector<const char*> SW_Firewall::GetTypeString() const
 	return { "Firestorm" };
 }
 
+
+void SW_Firewall::Initialize(SWTypeExt::ExtData* pData)
+{
+	pData->OwnerObject()->Action = Action::None;
+	pData->OwnerObject()->UseChargeDrain = true;
+	pData->SW_RadarEvent = false;
+};
+
 void SW_Firewall::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 {
 	pData->OwnerObject()->Action = Action::None;

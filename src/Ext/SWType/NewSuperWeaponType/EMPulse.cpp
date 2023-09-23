@@ -63,6 +63,7 @@ bool SW_EMPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 
 void SW_EMPulse::Initialize(SWTypeExt::ExtData* pData)
 {
+	pData->OwnerObject()->Action = Action(AresNewActionType::SuperWeaponAllowed);
 	pData->SW_RangeMaximum = -1.0;
 	pData->SW_RangeMinimum = 0.0;
 	pData->SW_MaxCount = 1;

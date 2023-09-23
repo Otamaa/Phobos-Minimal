@@ -26,6 +26,7 @@ bool SW_UnitDelivery::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 
 void SW_UnitDelivery::Initialize(SWTypeExt::ExtData* pData)
 {
+	pData->OwnerObject()->Action = Action(AresNewActionType::SuperWeaponAllowed);
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::ParaDrop;
 }
 

@@ -26,6 +26,7 @@ bool SW_LaserStrike::Activate(SuperClass* pThis, const CellStruct& Coords, bool 
 
 void SW_LaserStrike::Initialize(SWTypeExt::ExtData* pData)
 {
+	pData->OwnerObject()->Action = Action(AresNewActionType::SuperWeaponAllowed);
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::Nuke;
 }
 

@@ -92,6 +92,7 @@ bool SW_NuclearMissile::Activate(SuperClass* const pThis, const CellStruct& Coor
 
 void SW_NuclearMissile::Initialize(SWTypeExt::ExtData* pData)
 {
+	pData->OwnerObject()->Action = Action::Nuke;
 	// default values for the original Nuke
 	pData->Nuke_Payload = WeaponTypeClass::FindOrAllocate(GameStrings::NukePayload); //use for nuke pointing down
 	//SW->WeaponType = used for nuke pointing up !

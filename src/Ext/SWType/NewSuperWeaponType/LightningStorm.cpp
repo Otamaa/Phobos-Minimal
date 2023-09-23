@@ -65,6 +65,7 @@ bool SW_LightningStorm::AbortFire(SuperClass* pSW, bool IsPlayer)
 
 void SW_LightningStorm::Initialize(SWTypeExt::ExtData* pData)
 {
+	pData->OwnerObject()->Action = Action::LightningStorm;
 	// Defaults to Lightning Storm values
 	pData->Weather_DebrisMin = 2;
 	pData->Weather_DebrisMax = 4;

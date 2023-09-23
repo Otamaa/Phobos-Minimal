@@ -33,6 +33,7 @@ void SW_Reveal::Deactivate(SuperClass* pThis, CellStruct cell, bool isPlayer)
 
 void SW_Reveal::Initialize(SWTypeExt::ExtData* pData)
 {
+	pData->OwnerObject()->Action = Action::PsychicReveal;
 	pData->SW_RadarEvent = false;
 
 	pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_PsychicRevealReady);

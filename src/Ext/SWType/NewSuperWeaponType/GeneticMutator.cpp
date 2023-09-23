@@ -79,7 +79,8 @@ bool SW_GeneticMutator::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 }
 
 void SW_GeneticMutator::Initialize(SWTypeExt::ExtData* pData)
-{ 
+{
+	pData->OwnerObject()->Action = Action::GeneticConverter;
 	// Defaults to Genetic Mutator values
 	pData->SW_AnimHeight = 5;
 

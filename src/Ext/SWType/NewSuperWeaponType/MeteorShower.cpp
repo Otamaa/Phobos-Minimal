@@ -89,6 +89,7 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 
 void SW_MeteorShower::Initialize(SWTypeExt::ExtData* pData)
 {
+	pData->OwnerObject()->Action = Action(AresNewActionType::SuperWeaponAllowed);
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::LightningStorm;
 	pData->SW_RadarEvent = false;
 	pData->MeteorSmall = AnimTypeClass::Find(GameStrings::METSMALL);

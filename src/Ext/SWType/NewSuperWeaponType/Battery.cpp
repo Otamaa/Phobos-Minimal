@@ -51,6 +51,10 @@ void SW_Battery::LoadFromINI(SWTypeExt::ExtData * pData,CCINIClass * pINI)
 
 	if(!pData->SW_Power.isset())
 		pData->SW_Power.Read(exINI, pSection, "Battery.Power");
+
+	pData->OwnerObject()->Action = Action::None;
+	pData->OwnerObject()->UseChargeDrain = true;
+	pData->SW_RadarEvent = false;
 }
 
 bool SW_Battery::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const

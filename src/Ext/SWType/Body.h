@@ -555,6 +555,8 @@ public:
 	};
 
 	static ExtContainer ExtMap;
+	static SuperWeaponTypeClass* CurrentSWType;
+
 	static void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID);
 	static void WeightedRollsHandler(std::vector<int>& nResult, Valueable<double>& RandomBuffer, const ValueableVector<float>& rolls, const ValueableVector<ValueableVector<int>>& weights, size_t size);
 	static void Launch(SuperClass* pFired , HouseClass* pHouse, SWTypeExt::ExtData* pLauncherTypeExt, int pLaunchedType, const CellStruct& cell, bool IsPlayer);

@@ -94,13 +94,20 @@ DEFINE_HOOK(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
 
 	INI_EX exINI(pINI);
 	const auto pSection = pThis->ID;
+	Nullable<CursorTypeClass*> Cursor {};
+	Nullable<CursorTypeClass*> NoCursor {};
+
+	Cursor.Read(exINI, pSection, "Cursor");
+	NoCursor.Read(exINI, pSection, "NoCursor");
+
 	if (exINI.ReadString(pSection, "Action"))
 	{
 		bool found = false;
-		for (int i = 0; i < (int)SuperWeaponTypeClass::ActionTypeName.c_size(); ++i)
-		{
-			if (IS_SAME_STR_(SuperWeaponTypeClass::ActionTypeName[i], exINI.value()))
-			{
+
+		//there is no way to tell how this shit suppose to work without properly checking
+		//so this one is kind a hack to allow it
+		for (int i = 0; i < (int)SuperWeaponTypeClass::ActionTypeName.c_size(); ++i) {
+			if (IS_SAME_STR_(SuperWeaponTypeClass::ActionTypeName[i], exINI.value())) {
 				result = ((Action)(i));
 				found = true;
 			}
@@ -112,11 +119,10 @@ DEFINE_HOOK(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
 			found = true;
 		}
 
-		//if (!found && NewSWType::FindFromTypeID(exINI.value()) != SuperWeaponType::Invalid)
-		//{
-		//	result = Action(AresNewActionType::SuperWeaponAllowed);
-		//	found = true;
-		//}
+		if (!found && NewSWType::FindFromTypeID(exINI.value()) != SuperWeaponType::Invalid) {
+			result = Action(AresNewActionType::SuperWeaponAllowed);
+			found = true;
+		}
 
 		SWTypeExt::ExtMap.Find(pThis)->LastAction = result;
 	}
@@ -645,7 +651,7 @@ DEFINE_OVERRIDE_HOOK(0x4AC20C, DisplayClass_LeftMouseButtonUp, 7)
 		return 0x4AC294;
 	}
 
-	R->EAX(Ares_CurrentSWType);
+	R->EAX(SWTypeExt::CurrentSWType);
 	return 0x4AC21C;
 }
 
@@ -671,7 +677,7 @@ DEFINE_OVERRIDE_HOOK(0x653B3A, RadarClass_GetMouseAction_CustomSWAction, 7)
 	const auto nResult = SWTypeExt::ExtData::GetAction(SuperWeaponTypeClass::Array->GetItem(Unsorted::CurrentSWType), &MapCoords);
 
 	if (nResult == Action::None)
-		return NothingToDo;
+		return NothingToDo; //vanilla action
 
 	R->ESI(nResult);
 	return CheckOtherCases;

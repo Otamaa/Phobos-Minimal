@@ -62,6 +62,7 @@ bool SW_SpyPlane::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 
 void SW_SpyPlane::Initialize(SWTypeExt::ExtData* pData)
 {
+	pData->OwnerObject()->Action = Action::SpyPlane;
 	// Defaults to Spy Plane values
 	pData->SW_RadarEvent = false;
 

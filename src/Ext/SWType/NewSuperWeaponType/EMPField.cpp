@@ -21,6 +21,7 @@ bool SW_EMPField::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 
 void SW_EMPField::Initialize(SWTypeExt::ExtData* pData)
 {
+	pData->OwnerObject()->Action = Action(AresNewActionType::SuperWeaponAllowed);
 	pData->SW_RadarEvent = false;
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::IronCurtain;
 	pData->CursorType = int(MouseCursorType::Attack);

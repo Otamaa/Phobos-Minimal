@@ -24,6 +24,7 @@ bool SW_IonCannon::Activate(SuperClass* pThis, const CellStruct& Coords, bool Is
 
 void SW_IonCannon::Initialize(SWTypeExt::ExtData* pData)
 {
+	pData->OwnerObject()->Action = Action(AresNewActionType::SuperWeaponAllowed);
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::Nuke;
 	pData->IonCannon_BeamHeight = 750;
 	pData->IonCannon_BlastHeight = 0;

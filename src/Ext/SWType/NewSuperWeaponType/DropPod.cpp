@@ -21,6 +21,8 @@ bool SW_DropPod::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 
 void SW_DropPod::Initialize(SWTypeExt::ExtData* pData)
 {
+	pData->OwnerObject()->Action = Action(AresNewActionType::SuperWeaponAllowed);
+
 	pData->EVA_Detected = VoxClass::FindIndexById("EVA_DropPodDetected");
 	pData->EVA_Ready = VoxClass::FindIndexById("EVA_DropPodReady");
 	pData->EVA_Activated = VoxClass::FindIndexById("EVA_DropPodActivated");

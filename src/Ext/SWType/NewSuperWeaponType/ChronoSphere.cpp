@@ -86,6 +86,7 @@ void SW_ChronoSphere::Initialize(SWTypeExt::ExtData* pData)
 
 	pData->SW_AffectsTarget = SuperWeaponTarget::Infantry | SuperWeaponTarget::Unit;
 	pData->CursorType = (int)MouseCursorType::Chronosphere;
+	pData->OwnerObject()->Action = Action::ChronoSphere;
 }
 
 void SW_ChronoSphere::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)

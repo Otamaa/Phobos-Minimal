@@ -315,10 +315,10 @@ DEFINE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_IvanBombsA, 5)
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
 	// Cursor Move
-	AresData::SetMouseCursorAction(pTypeExt->Cursor_Move.Get(), Action::Move, false);
+	MouseCursorFuncs::SetMouseCursorAction(pTypeExt->Cursor_Move.Get(), Action::Move, false);
 
 	// Cursor NoMove
-	AresData::SetMouseCursorAction(pTypeExt->Cursor_NoMove.Get(), Action::NoMove, false);
+	MouseCursorFuncs::SetMouseCursorAction(pTypeExt->Cursor_NoMove.Get(), Action::NoMove, false);
 
 	if(!pObject)
 		return 0x0;
@@ -327,12 +327,12 @@ DEFINE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_IvanBombsA, 5)
 	{
 		auto pTargetTypeExt = TechnoTypeExt::ExtMap.Find(pTargetType);
 		// Cursor Enter
-		AresData::SetMouseCursorAction(pTargetTypeExt->Cursor_Enter.Get(), Action::Repair, false);
-		AresData::SetMouseCursorAction(pTargetTypeExt->Cursor_Enter.Get(), Action::Enter, false);
+		MouseCursorFuncs::SetMouseCursorAction(pTargetTypeExt->Cursor_Enter.Get(), Action::Repair, false);
+		MouseCursorFuncs::SetMouseCursorAction(pTargetTypeExt->Cursor_Enter.Get(), Action::Enter, false);
 		//
 
 		// Cursor NoEnter
-		AresData::SetMouseCursorAction(pTargetTypeExt->Cursor_NoEnter.Get(), Action::NoEnter, false);
+		MouseCursorFuncs::SetMouseCursorAction(pTargetTypeExt->Cursor_NoEnter.Get(), Action::NoEnter, false);
 	}
 
 	return 0x0;

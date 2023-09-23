@@ -28,9 +28,11 @@ bool SW_ParaDrop::Activate(SuperClass* const pThis, const CellStruct& Coords, bo
 
 void SW_ParaDrop::Initialize(SWTypeExt::ExtData* pData)
 {
+	pData->OwnerObject()->Action = Action::ParaDrop;
 	// default for american paradrop
 	if (pData->Get()->Type == SuperWeaponType::AmerParaDrop)
 	{
+		pData->OwnerObject()->Action = Action::AmerParaDrop;
 		// the American paradrop will be the same for every country,
 		// thus we use the SW's default here.
 		auto& nData = pData->ParaDropDatas[pData->Get()];

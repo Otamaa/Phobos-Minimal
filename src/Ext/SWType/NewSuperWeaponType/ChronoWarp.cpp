@@ -294,7 +294,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 
 void SW_ChronoWarp::Initialize(SWTypeExt::ExtData* pData)
 { 	// Every other thing will be read in the ChronoSphere.
-
+	pData->OwnerObject()->Action = Action::ChronoWarp;
 	pData->CursorType = (int)MouseCursorType::Chronosphere;
 }
 

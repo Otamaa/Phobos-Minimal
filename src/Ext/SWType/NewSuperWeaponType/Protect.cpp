@@ -121,6 +121,7 @@ void SW_Protect::Initialize(SWTypeExt::ExtData* pData)
 
 	if (type == SuperWeaponType::ForceShield)
 	{
+		pData->OwnerObject()->Action = Action::ForceShield;
 		// force shield
 		pData->Protect_IsForceShield = true;
 		pData->SW_RadarEvent = false;
@@ -139,6 +140,7 @@ void SW_Protect::Initialize(SWTypeExt::ExtData* pData)
 	}
 	else
 	{
+		pData->OwnerObject()->Action = Action::IronCurtain;
 		// iron curtain and protect
 		pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_IronCurtainReady);
 		pData->EVA_Detected = VoxClass::FindIndexById(GameStrings::EVA_IronCurtainDetected);
