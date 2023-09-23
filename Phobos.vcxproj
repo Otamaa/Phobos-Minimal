@@ -244,6 +244,8 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Weapons.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Classes\PrismForwarding.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Classes\PrismForwardingData.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hook.RadBeam.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hook.Prism.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\Hooks.PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\ExtHooks\TechnoExt.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\FighterGuardArea\FighterAreaGuard.cpp" />

@@ -192,9 +192,9 @@ struct AresData
 	static void UnInit();
 
 	// here be known Ares functions
-	static bool ConvertTypeTo(TechnoClass* pFoot, TechnoTypeClass* pConvertTo);
+	//static bool ConvertTypeTo(TechnoClass* pFoot, TechnoTypeClass* pConvertTo);
 	//static void SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller, const bool Select, const bool IgnoreDefenses);
-	static void RecalculateStat(TechnoClass* const pTechno);
+	//static void RecalculateStat(TechnoClass* const pTechno);
 	//static bool ReverseEngineer(BuildingClass* const pBld, TechnoTypeClass* const pTechnoType);
 	//static Action GetInfActionOverObject(InfantryClass* const pInf, BuildingClass* const pBld);
 	static void SetMouseCursorAction(size_t CursorIdx, Action nAction, bool bShrouded);
@@ -224,13 +224,13 @@ struct AresData
 	static void UpdateAEData(AresTechnoExt::AEData* const pAE);
 	static void RemoveAEType(AresTechnoExt::AEData* const pAE, TechnoTypeClass* pNewType);
 
-	static void JammerClassUnjamAll(AresTechnoExt::JammerClass* const pJamm);
-	static void CPrismRemoveFromNetwork(cPrismForwarding* const pThis , bool bCease);
+	//static void JammerClassUnjamAll(AresTechnoExt::JammerClass* const pJamm);
+	//static void CPrismRemoveFromNetwork(cPrismForwarding* const pThis , bool bCease);
 
 	//static void applyIonCannon(WarheadTypeClass* pWH, CoordStruct* pTarget);
 	//static bool applyPermaMC(WarheadTypeClass* pWH, HouseClass* pOwner, AbstractClass* pTarget);
 	//static void applyIC(WarheadTypeClass* pWH, CoordStruct* pTarget, HouseClass* pOwner, int Damage);
-	static void applyEMP(WarheadTypeClass* pWH, CoordStruct* pTarget, TechnoClass* pOwner);
+	//static void applyEMP(WarheadTypeClass* pWH, CoordStruct* pTarget, TechnoClass* pOwner);
 	static void applyAE(WarheadTypeClass* pWH, CoordStruct* pTarget, HouseClass* pOwner);
 
 	//static void EvalRaidStatus(BuildingClass* pBuilding);
@@ -298,13 +298,10 @@ namespace AresMemory
 	{
 		using value_type = T;
 
-		constexpr AresAllocator() noexcept = default;
+		AresAllocator() noexcept = default;
 
 		template <typename U>
 		constexpr AresAllocator(const AresAllocator<U>&) noexcept { }
-
-		constexpr bool operator == (const AresAllocator&) const noexcept { return true; }
-		constexpr bool operator != (const AresAllocator&) const noexcept { return false; }
 
 		[[nodiscard]] T* allocate(size_t n)
 		{
@@ -362,6 +359,12 @@ namespace AresMemory
 
 }
 
+template<class T, class U>
+bool operator==(const AresMemory::AresAllocator<T>&, const AresMemory::AresAllocator<U>&) { return true; }
+
+template<class T, class U>
+bool operator!=(const AresMemory::AresAllocator<T>&, const AresMemory::AresAllocator<U>&) { return false; }
+
 struct AresDeleter
 {
 	template <typename T>
@@ -396,7 +399,7 @@ struct AresDTORCaller
 //#define IsAnySFWActive (*((bool*)(AresData::AresStaticInstanceFinal[4])))
 //#define EvaTypes (*((std::vector<const char*, AresMemory::AresAllocator<const char*>>*)(AresData::AresStaticInstanceFinal[5])))
 #define RegisteredJammers(techno) (*(PhobosMap<TechnoClass*, bool, AresMemory::AresAllocator<std::pair<TechnoClass*,bool>>>*)(((char*)GetAresBuildingExt(techno)) + 0x40))
-#define PrimsForwardingPtr(techno) (*(cPrismForwarding*)(((char*)GetAresBuildingExt(techno)) + 0x10))
+//#define PrimsForwardingPtr(techno) (*(cPrismForwarding*)(((char*)GetAresBuildingExt(techno)) + 0x10))
 //#define GetGunnerName(var) (*(std::vector<CSFText,AresMemory::AresAllocator<CSFText>>*)(((char*)GetAresTechnoTypeExt(var)) + 0xC8))
 //#define TurretWeapons(var) (*(std::vector<int,AresMemory::AresAllocator<int>>*)(((char*)GetAresTechnoTypeExt(var)) + 0xBC))
 
@@ -408,8 +411,8 @@ struct AresDTORCaller
 //#define SW_Firewall_Type (*((SuperWeaponType*)(AresData::AresStaticInstanceFinal[7])))
 #define Ares_CurrentSWType (*((SuperWeaponTypeClass**)(AresData::AresStaticInstanceFinal[8])))
 // remember , this only 3 elements , otherwise it will bleed to something else
-#define Ares_EboltColors1 (*((int*)(AresData::AresStaticInstanceFinal[9])))
-#define Ares_EboltColors2 (*((int*)(AresData::AresStaticInstanceFinal[10])))
-#define Ares_EboltColors3 (*((int*)(AresData::AresStaticInstanceFinal[11])))
-#define Ares_EboltMap (*((const std::vector<std::pair<EBolt*, AresExtension<WeaponTypeClass*>*>, AresMemory::AresAllocator<std::pair<EBolt*, AresExtension<WeaponTypeClass*>*>>>*)(AresData::AresStaticInstanceFinal[12])))
+//#define Ares_EboltColors1 (*((int*)(AresData::AresStaticInstanceFinal[9])))
+//#define Ares_EboltColors2 (*((int*)(AresData::AresStaticInstanceFinal[10])))
+//#define Ares_EboltColors3 (*((int*)(AresData::AresStaticInstanceFinal[11])))
+//#define Ares_EboltMap (*((const std::vector<std::pair<EBolt*, AresExtension<WeaponTypeClass*>*>, AresMemory::AresAllocator<std::pair<EBolt*, AresExtension<WeaponTypeClass*>*>>>*)(AresData::AresStaticInstanceFinal[12])))
 #define Ares_IsShuttingDown (*((bool*)(AresData::AresStaticInstanceFinal[12])))

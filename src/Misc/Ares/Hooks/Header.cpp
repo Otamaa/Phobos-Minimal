@@ -3723,6 +3723,23 @@ int FirewallFunctions::GetImageFrameIndex(BuildingClass* pThis)
 
 #pragma region AresEMPulse
 
+void AresEMPulse::CreateEMPulse(WarheadTypeClass* pWarhead, const CoordStruct& Target, TechnoClass* Firer)
+{
+	if (!pWarhead) {
+		return;
+	}
+
+	// set of affected objects. every object can be here only once.
+	auto const items = Helpers::Alex::getCellSpreadItems(
+		Target, pWarhead->CellSpread, true);
+
+	// affect each object
+	for (const auto& pItem : items)
+	{
+		deliverEMPDamage(pItem, Firer, pWarhead);
+	}
+}
+
 void AresEMPulse::Destroy(TechnoClass* pTechno, TechnoClass* pKiller, HouseClass* pKillerHouse, WarheadTypeClass* pWarhead)
 {
 	if (!pKillerHouse && pKiller)

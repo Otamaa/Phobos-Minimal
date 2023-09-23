@@ -1,5 +1,6 @@
 
 #include "Header.h"
+#include <Misc/AresData.h>
 
 #include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
@@ -8,39 +9,36 @@
 
 void WeaponTypeExt::FireRadBeam(TechnoClass* pFirer, WeaponTypeClass* pWeapon, CoordStruct& source, CoordStruct& target)
 {
-	/*
-		if (auto const supportRadBeam = RadBeam::Allocate(RadBeamType::RadBeam))
-			{
-				supportRadBeam->SetCoordsSource(sourceXYZ);
-				supportRadBeam->SetCoordsTarget(targetXYZ);
-				if (supportWeaponData->Beam_IsHouseColor)
-				{
-					supportRadBeam->Color = pThis->Owner->LaserColor;
-				}
-				else
-				{
-					supportRadBeam->Color = supportWeaponData->GetBeamColor();
-				}
-				supportRadBeam->Period = supportWeaponData->Beam_Duration;
-				supportRadBeam->Amplitude = supportWeaponData->Beam_Amplitude;
-				//Debug::DumpObj((byte *)supportRadBeam, sizeof(RadBeam));
-			}
-	*/
+	if (auto const supportRadBeam = RadBeam::Allocate(RadBeamType::RadBeam))
+	{
+		const auto pExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+
+		supportRadBeam->SetCoordsSource(source);
+		supportRadBeam->SetCoordsTarget(target);
+
+		if (pExt->Beam_IsHouseColor) {
+			supportRadBeam->Color = pFirer->Owner->LaserColor;
+		} else {
+			supportRadBeam->Color = pExt->GetBeamColor();
+		}
+
+		supportRadBeam->Period = pExt->Beam_Duration;
+		supportRadBeam->Amplitude = pExt->Beam_Amplitude;
+	}
 }
 
 void WeaponTypeExt::FireEbolt(TechnoClass* pFirer, WeaponTypeClass* pWeapon, CoordStruct& source, CoordStruct& target, int idx)
 {
-	/*
-				if (auto const supportEBolt = WeaponTypeExt::CreateBolt(supportWeaponData))
-			{
-				//supportEBolt->Owner = pThis;
-				auto const pBuildingExt = TechnoExt::GetExtData(pThis);
-				pBuildingExt->MyBolt = supportEBolt;
-				supportEBolt->WeaponSlot = idxSupport;
-				supportEBolt->AlternateColor = supportWeapon->IsAlternateColor;
-				supportEBolt->Fire(sourceXYZ, targetXYZ, 0); //messing with 3rd arg seems to make bolts more jumpy, and parts of them disappear
-			}
-	*/
+	if (auto const supportEBolt = WeaponTypeExt::CreateBolt(pWeapon))
+	{
+		const auto pExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+		supportEBolt->Owner = pFirer;
+		pFirer->align_154->MyBolt = supportEBolt;
+		supportEBolt->WeaponSlot = idx;
+		supportEBolt->AlternateColor = pWeapon->IsAlternateColor;
+		supportEBolt->Fire(source, target, 0); //messing with 3rd arg seems to make bolts more jumpy, and parts of them disappear
+	}
+
 }
 
 DEFINE_OVERRIDE_HOOK(0x44B2FE, BuildingClass_Mi_Attack_IsPrism, 6)
@@ -243,13 +241,23 @@ DEFINE_OVERRIDE_HOOK(0x44ABD0, BuildingClass_FireLaser, 5)
 		{
 			if (supportWeapon->IsHouseColor)
 			{
-				LaserBeam = GameCreate<LaserDrawClass>(sourceXYZ, targetXYZ, pThis->Owner->LaserColor, CoordStruct::Empty, CoordStruct::Empty, supportWeapon->LaserDuration);
+				LaserBeam = GameCreate<LaserDrawClass>(sourceXYZ,
+					targetXYZ,
+					pThis->Owner->LaserColor,
+					ColorStruct::Empty,
+					ColorStruct::Empty,
+					supportWeapon->LaserDuration
+				);
 			}
 			else
 			{
-				LaserBeam = GameCreate<LaserDrawClass>(sourceXYZ, targetXYZ,
-					supportWeapon->LaserInnerColor, supportWeapon->LaserOuterColor, supportWeapon->LaserOuterSpread,
-					supportWeapon->LaserDuration);
+				LaserBeam = GameCreate<LaserDrawClass>(sourceXYZ,
+					targetXYZ,
+					supportWeapon->LaserInnerColor,
+					supportWeapon->LaserOuterColor,
+					supportWeapon->LaserOuterSpread,
+					supportWeapon->LaserDuration
+				);
 			}
 			if (LaserBeam)
 			{
@@ -265,34 +273,45 @@ DEFINE_OVERRIDE_HOOK(0x44ABD0, BuildingClass_FireLaser, 5)
 				}
 			}
 		}
+
 		//IsRadBeam
 		if (supportWeapon->IsRadBeam) {
-			auto target = targetXYZ;
+			CoordStruct target = targetXYZ;
 			WeaponTypeExt::FireRadBeam(pThis, supportWeapon, sourceXYZ, target);
 		}
+
 		//IsElectricBolt
 		if (supportWeapon->IsElectricBolt)
 		{
-			auto target = targetXYZ;
+			CoordStruct target = targetXYZ;
 			WeaponTypeExt::FireEbolt(pThis, supportWeapon, sourceXYZ, target, idxSupport);
 		}
+
 		//Report
 		if (supportWeapon->Report.Count > 0)
 		{
-			auto const ReportIndex = ScenarioClass::Instance->Random.RandomRanged(0, supportWeapon->Report.Count - 1);
+			auto const ReportIndex = ScenarioClass::Instance->Random.RandomFromMax(supportWeapon->Report.Count - 1);
 			auto const SoundArrayIndex = supportWeapon->Report.GetItem(ReportIndex);
 			if (SoundArrayIndex != -1)
 			{
 				VocClass::PlayAt(SoundArrayIndex, sourceXYZ, nullptr);
 			}
 		}
+
 		//ROF
 		pThis->ReloadTimer.Start(supportWeapon->ROF);
 	}
 	else
 	{
 		//just the default support beam
-		LaserBeam = GameCreate<LaserDrawClass>(sourceXYZ, targetXYZ, pThis->Owner->LaserColor, CoordStruct::Empty, CoordStruct::Empty, RulesClass::Instance->PrismSupportDuration);
+		LaserBeam = GameCreate<LaserDrawClass>(sourceXYZ,
+			targetXYZ,
+			pThis->Owner->LaserColor,
+			ColorStruct::Empty,
+			ColorStruct::Empty,
+			RulesClass::Instance->PrismSupportDuration
+		);
+
 		if (LaserBeam)
 		{
 			LaserBeam->IsHouseColor = true;
@@ -403,8 +422,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF4DE, TechnoClass_Fire_IsLaser, 6)
 DEFINE_OVERRIDE_HOOK(0x4424EF, BuildingClass_ReceiveDamage_PrismForward, 6)
 {
 	GET(BuildingClass* const, pThis, ESI);
-	auto const pData = BuildingExt::ExtMap.Find(pThis);
-	pData->PrismForwarding.RemoveFromNetwork(true);
+	BuildingExt::ExtMap.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);
 	return 0;
 }
 
@@ -414,9 +432,7 @@ DEFINE_OVERRIDE_HOOK(0x447113, BuildingClass_Sell_PrismForward, 6)
 
 	// #754 - evict Hospital/Armory contents
 	TechnoExt_ExtData::KickOutHospitalArmory(pThis);
-	auto const pData = BuildingExt::ExtMap.Find(pThis);
-
-	pData->PrismForwarding.RemoveFromNetwork(true);
+	BuildingExt::ExtMap.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);
 	return 0;
 }
 
@@ -468,7 +484,7 @@ DEFINE_OVERRIDE_HOOK(0x448277, BuildingClass_ChangeOwner_PrismForwardAndLeaveBom
 	pData->PrismForwarding.RemoveFromNetwork(false);
 
 	// #305: remove all jammers. will be restored with the next update.
-	pData->RegisteredJammers.clear();
+	RegisteredJammers(pThis).clear();//
 
 	return LeaveBomb;
 }
@@ -492,8 +508,7 @@ DEFINE_OVERRIDE_HOOK(0x71AF76, TemporalClass_Fire_PrismForwardAndWarpable, 9)
 	// prism forward
 	if (auto const pBld = specific_cast<BuildingClass*>(pThis))
 	{
-		auto const pData = BuildingExt::ExtMap.Find(pBld);
-		pData->PrismForwarding.RemoveFromNetwork(true);
+		BuildingExt::ExtMap.Find(pBld)->PrismForwarding.RemoveFromNetwork(true);
 	}
 	return 0;
 }
@@ -506,8 +521,7 @@ DEFINE_OVERRIDE_HOOK(0x70FD9A, TechnoClass_Drain_PrismForward, 6)
 	{ // else we're already being drained, nothing to do
 		if (auto const pBld = specific_cast<BuildingClass*>(pDrainee))
 		{
-			auto const pData = BuildingExt::ExtMap.Find(pBld);
-			pData->PrismForwarding.RemoveFromNetwork(true);
+			BuildingExt::ExtMap.Find(pBld)->PrismForwarding.RemoveFromNetwork(true);
 		}
 	}
 	return 0;
@@ -518,15 +532,13 @@ DEFINE_OVERRIDE_HOOK(0x454B3D, BuildingClass_UpdatePowered_PrismForward, 6)
 	GET(BuildingClass* const, pThis, ESI);
 	// this building just realised it needs to go offline
 	// it unregistered itself from powered unit controls but hasn't done anything else yet
-	auto const pData = BuildingExt::ExtMap.Find(pThis);
-	pData->PrismForwarding.RemoveFromNetwork(true);
+	BuildingExt::ExtMap.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);
 	return 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x44EBF0, BuildingClass_Disappear_PrismForward, 5)
 {
 	GET(BuildingClass* const, pThis, ECX);
-	auto const pData = BuildingExt::ExtMap.Find(pThis);
-	pData->PrismForwarding.RemoveFromNetwork(true);
+	BuildingExt::ExtMap.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);
 	return 0;
 }

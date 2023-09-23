@@ -829,7 +829,7 @@ void BuildingExt::ExtData::Serialize(T& Stm)
 		.Process(this->SecretLab_Placed)
 		.Process(this->AboutToChronoshift)
 		.Process(this->IsFromSW)
-		.Process(this->RegisteredJammers)
+		//.Process(this->RegisteredJammers)
 		;
 }
 

@@ -4,6 +4,17 @@
 
 #include <Misc/AresData.h>
 
+DEFINE_OVERRIDE_HOOK(0x6FD469, TechnoClass_FireEBolt, 9)
+{
+	//GET(TechnoClass*, pThis, EDI);
+	GET_STACK(WeaponTypeClass*, pWeapon, STACK_OFFS(0x30, -0x8));
+
+	R->EAX(WeaponTypeExt::CreateBolt(pWeapon));
+	R->ESI(0);
+
+	return 0x6FD480;
+}
+
 DEFINE_HOOK(0x6FD5FC, TechnoClass_CreateEbolt_UnnessesaryData, 0xA)
 {
 	GET(UnitClass*, pThis, ESI);
@@ -22,18 +33,6 @@ namespace BoltTemp
 	const WeaponTypeExt::ExtData* pType = nullptr;
 }
 
-//DEFINE_HOOK(0x6FD494, TechnoClass_FireEBolt_SetExtMap_AfterAres, 0x7)
-//{
-//	GET_STACK(WeaponTypeClass*, pWeapon, STACK_OFFS(0x30, -0x8));
-//	GET(EBolt* const, pBolt, EAX);
-//
-//	if (pWeapon) {
-//		WeaponTypeExt::boltWeaponTypeExt[pBolt] =  WeaponTypeExt::ExtMap.Find(pWeapon);
-//	}
-//
-//	return 0;
-//}
-
 inline unsigned inline_02(ConvertClass* pConvert , int idx)
 {
 	switch (pConvert->BytesPerPixel)
@@ -46,53 +45,52 @@ inline unsigned inline_02(ConvertClass* pConvert , int idx)
 	};
 }
 
+int boltColor1;
+int boltColor2;
+int boltColor3;
+
 DEFINE_OVERRIDE_HOOK(0x4C1F33, EBolt_Draw_Colors, 7)
 {
 	GET(EBolt*, pThis, ECX);
 	GET_BASE(int, nColorIdx, 0x20);
 
-	auto& data1 = Ares_EboltColors1;
-	auto& data2 = Ares_EboltColors2;
-	auto& data3 = Ares_EboltColors3;
-	const auto& nMap = Ares_EboltMap;
+	auto& data1 = boltColor1;
+	auto& data2 = boltColor2;
+	auto& data3 = boltColor3;
+	const auto& nMap = WeaponTypeExt::boltWeaponTypeExt;
 
 	const auto nFirst = FileSystem::PALETTE_PAL()->inline_02(nColorIdx);
 	const auto nSec = FileSystem::PALETTE_PAL()->inline_02(15);
 	data1 = data2 = nFirst;
 	data3 = nSec;
 
-	AresExtension<WeaponTypeClass*>* pAresExt = nullptr;
-	const auto Iter = std::find_if(nMap.begin(), nMap.end(), [pThis](auto const& pair) { return pair.first == pThis; });
-	if (Iter != nMap.end()) {
-		pAresExt = Iter->second;
-	}
+	auto pWeaponExt = nMap.get_or_default(pThis);
 
-	if (pAresExt)
+	if (pWeaponExt)
 	{
-		const auto pData = WeaponTypeExt::ExtMap.Find(pAresExt->AttachedToObject);
-		BoltTemp::pType = pData;
+		BoltTemp::pType = pWeaponExt;
 
-		const auto& clr1 = pData->Bolt_Color1;
+		const auto& clr1 = pWeaponExt->Bolt_Color1;
 		if (clr1.isset()) { data1 = Drawing::ColorStructToWord(clr1.Get()); }
 
-		const auto& clr2 = pData->Bolt_Color2;
+		const auto& clr2 = pWeaponExt->Bolt_Color2;
 		if (clr2.isset()) { data2 = Drawing::ColorStructToWord(clr2.Get()); }
 
-		const auto& clr3 = pData->Bolt_Color3;
+		const auto& clr3 = pWeaponExt->Bolt_Color3;
 		if (clr3.isset()) { data3 = Drawing::ColorStructToWord(clr3.Get()); }
 	}
 
 	return 0x4C1F66;
 }
 
-//DEFINE_HOOK(0x4C2951, EBolt_DTOR, 0x5)
-//{
-//	GET(EBolt* const, pBolt, ECX);
-//
-//	WeaponTypeExt::boltWeaponTypeExt.erase(pBolt);
-//
-//	return 0;
-//}
+DEFINE_HOOK(0x4C2951, EBolt_DTOR, 0x5)
+{
+	GET(EBolt* const, pBolt, ECX);
+
+	WeaponTypeExt::boltWeaponTypeExt.erase(pBolt);
+
+	return 0;
+}
 
 DEFINE_HOOK(0x4C24E4, Ebolt_DrawFist_Disable, 0x8)
 {
@@ -140,18 +138,47 @@ DEFINE_HOOK(0x4C26EE, Ebolt_DrawThird_Disable, 0x8)
 
 DEFINE_OVERRIDE_HOOK(0x4C24BE, EBolt_Draw_Color1, 5)
 {
-	R->EAX(Ares_EboltColors1);
+	R->EAX(boltColor1);
 	return 0x4C24E4;
 }
 
 DEFINE_OVERRIDE_HOOK(0x4C25CB, EBolt_Draw_Color2, 5)
 {
-	R->Stack<int>(0x18, Ares_EboltColors2);
+	R->Stack<int>(0x18, boltColor2);
 	return 0x4C25FD;
 }
 
 DEFINE_OVERRIDE_HOOK(0x4C26CF, EBolt_Draw_Color3, 5)
 {
-	R->EAX(Ares_EboltColors3);
+	R->EAX(boltColor3);
 	return 0x4C26EE;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4C2AFF, EBolt_Fire_Particles, 5)
+{
+	GET(EBolt*, pThis, ESI);
+
+	auto pParticleSys = RulesClass::Instance->DefaultSparkSystem;
+
+	if (auto pData = WeaponTypeExt::boltWeaponTypeExt.get_or_default(pThis))
+	{
+		if (!pData->Bolt_ParticleSys_Enabled)
+		{
+			// because ESI got pop-ed early , and this weirdass assembly code
+			// this nessesary
+			R->EAX(0);
+			return 0x4C2B0C;
+		}
+
+		if (pData->Bolt_ParticleSys.isset())
+			pParticleSys = pData->Bolt_ParticleSys.Get();
+	}
+
+	if (pParticleSys)
+		GameCreate<ParticleSystemClass>(pParticleSys, pThis->Point2, nullptr, pThis->Owner, CoordStruct::Empty, pThis->Owner ? pThis->Owner->GetOwningHouse() : nullptr);
+
+	// because ESI got pop-ed early , and this weirdass assembly code
+	// this nessesary
+	R->EAX(0);
+	return 0x4C2B0C;
 }

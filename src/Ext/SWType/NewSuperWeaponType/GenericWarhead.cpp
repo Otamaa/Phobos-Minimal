@@ -116,7 +116,7 @@ void GenericWarheadStateMachine::SentPayload()
 		auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
 		WarheadTypeExt::CreateIonBlast(pWarhead, detonationCoords);
 		pWHExt->applyIronCurtain(detonationCoords, this->Super->Owner, damage);
-		AresData::applyEMP(pWarhead, &detonationCoords, Firer);
+		WarheadTypeExt::applyEMP(pWarhead, detonationCoords, Firer);
 		AresData::applyAE(pWarhead, &detonationCoords, this->Super->Owner);
 
 		MapClass::DamageArea(detonationCoords, damage, Firer, pWarhead, pWarhead->Tiberium, this->Super->Owner);

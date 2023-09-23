@@ -479,4 +479,6 @@ public:
 		);
 
 	static void CreateIonBlast(WarheadTypeClass* pThis, const CoordStruct& coords);
+
+	static void applyEMP(WarheadTypeClass* pWH, const CoordStruct& coords, TechnoClass* source);
 };

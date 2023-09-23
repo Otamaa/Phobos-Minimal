@@ -228,6 +228,7 @@ class AresEMPulse
 {
 public:
 
+	static void CreateEMPulse(WarheadTypeClass* pWarhead, const CoordStruct& Target, TechnoClass* Firer);
 	static void Destroy(TechnoClass* pTechno, TechnoClass* pKiller, HouseClass* pKillerHouse, WarheadTypeClass* pWarhead);
 	static AnimTypeClass* GetSparkleAnimType(TechnoClass const* const pTechno);
 	static void announceAttack(TechnoClass* Techno);

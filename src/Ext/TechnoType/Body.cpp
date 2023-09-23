@@ -2053,6 +2053,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->KeepAlive)
 		.Process(this->SpawnDistanceFromTarget)
 		.Process(this->SpawnHeight)
+
 		;
 }
 

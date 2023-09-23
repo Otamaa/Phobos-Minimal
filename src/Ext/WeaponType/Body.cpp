@@ -191,6 +191,27 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 	this->Burst_Retarget.Read(exINI, pSection, "Burst.Retarget");
 	this->KickOutPassenger.Read(exINI, pSection, "KickOutPassenger");
+
+	this->Beam_Duration.Read(exINI, pSection, "Beam.Duration");
+	this->Beam_Amplitude.Read(exINI, pSection, "Beam.Amplitude");
+	this->Beam_IsHouseColor.Read(exINI, pSection, "Beam.IsHouseColor");
+	this->Beam_Color.Read(exINI, pSection, "Beam.Color");
+
+	this->Bolt_ParticleSys_Enabled.Read(exINI, pSection, "Bolt.DisableParticleSystems");
+}
+
+ColorStruct WeaponTypeExt::ExtData::GetBeamColor() const
+{
+	const auto pThis = this->OwnerObject();
+
+	auto defaultcolor = RulesClass::Instance->RadColor;
+	if (pThis->IsRadBeam || pThis->IsRadEruption) {
+		if (pThis->Warhead && pThis->Warhead->Temporal) {
+			defaultcolor = RulesClass::Instance->ChronoBeamColor;
+		}
+	}
+
+	return this->Beam_Color.Get(defaultcolor);
 }
 
 template <typename T>
@@ -286,6 +307,13 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->ExtraWarheads_DamageOverrides)
 		.Process(this->Burst_Retarget)
 		.Process(this->KickOutPassenger)
+
+		.Process(this->Beam_Color)
+		.Process(this->Beam_Duration)
+		.Process(this->Beam_Amplitude)
+		.Process(this->Beam_IsHouseColor)
+
+		.Process(this->Bolt_ParticleSys_Enabled)
 		;
 
 	MyAttachFireDatas.Serialize(Stm);
@@ -375,6 +403,24 @@ void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords
 		BulletExt::DetonateAt(pBullet, pTarget, pOwner, coords , HouseInveoker);
 	}
 }
+
+EBolt* WeaponTypeExt::CreateBolt(WeaponTypeClass* pWeapon)
+{
+	return WeaponTypeExt::CreateBolt(WeaponTypeExt::ExtMap.Find(pWeapon));
+}
+
+EBolt* WeaponTypeExt::CreateBolt(WeaponTypeExt::ExtData* pWeapon)
+{
+	auto ret = GameCreate<EBolt>();
+
+	if (ret && pWeapon)
+	{
+		WeaponTypeExt::boltWeaponTypeExt[ret] = pWeapon;
+	}
+
+	return ret;
+}
+
 // =============================
 // container
 WeaponTypeExt::ExtContainer WeaponTypeExt::ExtMap;

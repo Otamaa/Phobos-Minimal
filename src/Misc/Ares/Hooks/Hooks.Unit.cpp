@@ -1158,6 +1158,9 @@ DEFINE_OVERRIDE_HOOK(0x739956, DeploysInto_UndeploysInto_SyncStatuses, 0x6) //Un
 	GET(TechnoClass*, pFrom, EBP);
 	GET(TechnoClass*, pTo, EBX);
 
+	// attahed bomb
+	// ae
+	// original owner
 	AresData::TechnoTransferAffects(pFrom, pTo);
 	TechnoExt::TransferMindControlOnDeploy(pFrom, pTo);
 	ShieldClass::SyncShieldToAnother(pFrom, pTo);

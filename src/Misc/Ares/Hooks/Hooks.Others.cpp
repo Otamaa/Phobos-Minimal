@@ -2286,7 +2286,7 @@ DEFINE_OVERRIDE_HOOK(0x71A84E, TemporalClass_UpdateA, 5)
 	{
 		if (auto pJammer = std::exchange(pTarget->align_154->RadarJammerUptr, nullptr))
 		{
-			AresData::JammerClassUnjamAll(pJammer);
+			((AresJammer*)pJammer)->UnjamAll();
 			AresMemory::Delete(pJammer);
 		}
 
@@ -2759,20 +2759,6 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 	return 0x43E8F2;
 }
 
-DEFINE_OVERRIDE_HOOK(0x70FD9A, TechnoClass_Drain_PrismForward, 6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(TechnoClass* const, pDrainee, EDI);
-	if (pDrainee->DrainingMe != pThis)
-	{ // else we're already being drained, nothing to do
-		if (auto const pBld = specific_cast<BuildingClass*>(pDrainee))
-		{
-			AresData::CPrismRemoveFromNetwork(&PrimsForwardingPtr(pBld), true);
-		}
-	}
-	return 0;
-}
-
 DEFINE_OVERRIDE_HOOK(0x452218, BuildingClass_Enable_Temporal_Factories, 6)
 {
 	GET(BuildingClass*, pThis, ECX);
@@ -2914,9 +2900,8 @@ DEFINE_OVERRIDE_HOOK(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
-	if (auto pJammer = pThis->align_154->RadarJammerUptr)
-	{
-		AresData::JammerClassUnjamAll(pJammer);
+	if (auto pJammer = pThis->align_154->RadarJammerUptr) {
+		((AresJammer*)pJammer)->UnjamAll();
 	}
 
 	if (pThis->align_154->TechnoValueAmount != 0)

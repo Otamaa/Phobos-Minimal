@@ -1037,6 +1037,17 @@ void WarheadTypeExt::CreateIonBlast(WarheadTypeClass* pThis, const CoordStruct& 
 		IonBlastExt.insert(pIon, pExt);
 	}
 }
+
+#include <Misc/Ares/Hooks/Header.h>
+
+void WarheadTypeExt::applyEMP(WarheadTypeClass* pWH, const CoordStruct& coords, TechnoClass* source) {
+	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH);
+
+	if (pWHExt->EMP_Duration)
+		AresEMPulse::CreateEMPulse(pWH, coords, source);
+
+}
+
 // =============================
 // load / save
 

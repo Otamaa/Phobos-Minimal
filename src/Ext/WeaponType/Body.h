@@ -137,6 +137,13 @@ public:
 		Valueable<double> Burst_Retarget { 0.0 };
 		Nullable<bool> KickOutPassenger {};
 
+		Nullable<ColorStruct> Beam_Color {};
+		Valueable<int> Beam_Duration { 15 };
+		Valueable<double> Beam_Amplitude { 40.0 };
+		Valueable<bool> Beam_IsHouseColor { false };
+
+		Valueable<bool> Bolt_ParticleSys_Enabled { true };
+
 		ExtData(WeaponTypeClass* OwnerObject) : Extension<WeaponTypeClass>(OwnerObject)
 		{ }
 
@@ -156,6 +163,8 @@ public:
 			return this->ProjectileRange.Get();
 		}
 
+		ColorStruct GetBeamColor() const;
+
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
@@ -173,6 +182,7 @@ public:
 		{
 			return Stm
 				.Process(nOldCircumference)
+				.Process(boltWeaponTypeExt)
 				.Success();
 		}
 
@@ -180,6 +190,7 @@ public:
 		{
 			return Stm
 				.Process(nOldCircumference)
+				.Process(boltWeaponTypeExt)
 				.Success();
 		}
 
@@ -197,6 +208,9 @@ public:
 	static void DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, bool AddDamage, HouseClass* HouseInveoker);
 	static void DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker);
 	static void DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, AbstractClass* pTarget, TechnoClass* pOwner, int damage , bool AddDamage, HouseClass* HouseInveoker);
+
+	static EBolt* CreateBolt(WeaponTypeClass* pWeapon);
+	static EBolt* CreateBolt(WeaponTypeExt::ExtData* pWeapon = nullptr);
 
 	static void FireRadBeam(TechnoClass* pFirer, WeaponTypeClass* pWeapon, CoordStruct& source, CoordStruct& target);
 	static void FireEbolt(TechnoClass* pFirer, WeaponTypeClass* pWeapon, CoordStruct& source, CoordStruct& target , int idx);

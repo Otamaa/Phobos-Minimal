@@ -367,20 +367,20 @@ void AresData::UnInit()
 	//	FreeLibrary(AresDllHmodule);
 }
 
-bool AresData::ConvertTypeTo(TechnoClass* pFoot, TechnoTypeClass* pConvertTo)
-{
-	return AresStdcall<ConvertTypeToID, bool, TechnoClass*, TechnoTypeClass*>()(pFoot, pConvertTo);
-}
+//bool AresData::ConvertTypeTo(TechnoClass* pFoot, TechnoTypeClass* pConvertTo)
+//{
+//	return AresStdcall<ConvertTypeToID, bool, TechnoClass*, TechnoTypeClass*>()(pFoot, pConvertTo);
+//}
 
 //void AresData::SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller, const bool ISelect, const bool IgnoreDefenses)
 //{
 //	AresStdcall<SpawnSurvivorsID, void, FootClass*, TechnoClass*, bool, bool>()(pThis, pKiller, ISelect, IgnoreDefenses);
 //}
 
-void AresData::RecalculateStat(TechnoClass* const pTechno)
-{
-	AresThiscall<RecalculateStatID, void,  void*>()((void*)pTechno->align_154);
-}
+//void AresData::RecalculateStat(TechnoClass* const pTechno)
+//{
+//	AresThiscall<RecalculateStatID, void,  void*>()((void*)pTechno->align_154);
+//}
 
 //bool AresData::ReverseEngineer(BuildingClass* const pBld, TechnoTypeClass* const pTechnoType)
 //{
@@ -513,15 +513,15 @@ void AresData::RemoveAEType(AresTechnoExt::AEData* const pAE, TechnoTypeClass* p
 	AresThiscall<AttachedAffect_UpdateType, void, AresTechnoExt::AEData* const , TechnoTypeClass*>()(pAE , pNewType);
 }
 
-void AresData::JammerClassUnjamAll(AresTechnoExt::JammerClass* const pJamm)
-{
-	AresThiscall<JammerclassUnjamAllID, void, AresTechnoExt::JammerClass* const>()(pJamm);
-}
+//void AresData::JammerClassUnjamAll(AresTechnoExt::JammerClass* const pJamm)
+//{
+//	AresThiscall<JammerclassUnjamAllID, void, AresTechnoExt::JammerClass* const>()(pJamm);
+//}
 
-void AresData::CPrismRemoveFromNetwork(cPrismForwarding* const pThis, bool bCease)
-{
-	AresThiscall<CPrismRemoveFromNetworkID, void, cPrismForwarding* const , bool>()(pThis , bCease);
-}
+//void AresData::CPrismRemoveFromNetwork(cPrismForwarding* const pThis, bool bCease)
+//{
+//	AresThiscall<CPrismRemoveFromNetworkID, void, cPrismForwarding* const , bool>()(pThis , bCease);
+//}
 
 //void  AresData::applyIonCannon(WarheadTypeClass* pWH, CoordStruct* pTarget){
 //	AresThiscall<applyIonCannonID , void, void* , CoordStruct*>()(GetAresAresWarheadTypeExt(pWH) , pTarget);
@@ -535,9 +535,9 @@ void AresData::CPrismRemoveFromNetwork(cPrismForwarding* const pThis, bool bCeas
 //	AresThiscall<applyICID, void, void*, CoordStruct* , HouseClass*, int>()(GetAresAresWarheadTypeExt(pWH), pTarget , pOwner, Damage);
 //}
 
-void AresData::applyEMP(WarheadTypeClass* pWH, CoordStruct* pTarget, TechnoClass* pOwner) {
-	AresThiscall<applyEMPID, void, void*, CoordStruct* , TechnoClass*>()(GetAresAresWarheadTypeExt(pWH), pTarget , pOwner);
-}
+//void AresData::applyEMP(WarheadTypeClass* pWH, CoordStruct* pTarget, TechnoClass* pOwner) {
+//	AresThiscall<applyEMPID, void, void*, CoordStruct* , TechnoClass*>()(GetAresAresWarheadTypeExt(pWH), pTarget , pOwner);
+//}
 
 void AresData::applyAE(WarheadTypeClass* pWH, CoordStruct* pTarget, HouseClass* pOwner) {
 	AresThiscall<applyAEID, void, void*, CoordStruct* , HouseClass*>()(GetAresAresWarheadTypeExt(pWH), pTarget , pOwner);
