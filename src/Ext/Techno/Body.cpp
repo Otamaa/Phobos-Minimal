@@ -14,6 +14,7 @@
 
 #include <New/Entity/FlyingStrings.h>
 
+#include <Ext/Aircraft/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/Bullet/Body.h>
@@ -1393,10 +1394,7 @@ void TechnoExt::SendPlane(AircraftTypeClass* Aircraft, size_t Amount, HouseClass
 		if (pTarget)
 			pPlane->SetTarget(pTarget);
 
-		bool UnLimboSucceeded = false;
-		++Unsorted::ScenarioInit;
-		UnLimboSucceeded = pPlane->Unlimbo(CellClass::Cell2Coord(nCell), DirType::North);
-		--Unsorted::ScenarioInit;
+		bool UnLimboSucceeded = AircraftExt::PlaceReinforcementAircraft(pPlane , nCell);
 
 		if (!UnLimboSucceeded)
 		{

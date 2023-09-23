@@ -3036,7 +3036,7 @@ void TechnoExt_ExtData::RecalculateStat(TechnoClass* pThis)
 	double FP_Mult = pThis->align_154->AE_FirePowerMult;
 	double Armor_Mult = pThis->align_154->AE_ArmorMult;
 	double Speed_Mult = pThis->align_154->AE_SpeedMult;
-	bool Cloak = pThis->CanICloakByDefault() || pThis->align_154->AE_Cloak;
+	BYTE Cloak = (BYTE)pThis->CanICloakByDefault() | pThis->align_154->AE_Cloak;
 
 
 	for (auto begin = pThis->align_154->AEDatas.first; begin != pThis->align_154->AEDatas.end; ++begin)
@@ -3055,6 +3055,10 @@ void TechnoExt_ExtData::RecalculateStat(TechnoClass* pThis)
 	pThis->Cloakable = Cloak;
 
 	if (pThis->AbstractFlags & AbstractFlags::Foot) {
+
+		//if (Speed_Mult < 1.0 && TechnoExt::IsInWarfactory(pThis))
+		//	Speed_Mult = 1.0; //negate all speed bonusses when it is still in warfactory
+
 		((FootClass*)pThis)->SpeedMultiplier = Speed_Mult;
 	}
 #else

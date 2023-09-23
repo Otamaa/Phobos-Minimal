@@ -1,9 +1,5 @@
 #include <Syringe.h>
 
-#pragma warning( push )
-#pragma warning (disable : 4245)
-#pragma warning (disable : 4838)
-
 //DEFINE_DISABLE_HOOK(0x424538, Ares_AnimClass_Update_DamageDelay)
 //DEFINE_DISABLE_HOOK(0x451A28, BuildingClass_PlayAnim_Destroy_replaceDestructorcall_ares)
 //DEFINE_DISABLE_HOOK(0x451E40, BuildingClass_DestroyNthAnim_Destroy_replaceDestructorcall_ares)
@@ -93,4 +89,3 @@ DEFINE_DISABLE_HOOK(0x65B5FB, RadSiteClass_Radiate_UnhardcodeSnow_ares)
 //DEFINE_DISABLE_HOOK(0x75e2ae, WarheadTypeClass_Load_Suffix_ares)
 //DEFINE_DISABLE_HOOK(0x75e2c0, WarheadTypeClass_SaveLoad_Prefix_ares)
 //DEFINE_DISABLE_HOOK(0x75e39c, WarheadTypeClass_Save_Suffix_ares)
-#pragma warning( pop )

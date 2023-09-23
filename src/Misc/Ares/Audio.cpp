@@ -138,13 +138,13 @@ public:
 		void Open(const char* fileBase)
 		{
 			char filename[0x100];
-			_snprintf_s(filename, _TRUNCATE, "%s.idx", fileBase);
+			_snprintf_s(filename, sizeof(filename), "%s.idx", fileBase);
 
 			CCFileClass pIndex { filename };
 
 			if (pIndex.Exists() && pIndex.Open(FileAccessMode::Read))
 			{
-				_snprintf_s(filename, _TRUNCATE, "%s.bag", fileBase);
+				_snprintf_s(filename, sizeof(filename), "%s.bag", fileBase);
 				auto pBag = UniqueGamePtrB<CCFileClass>(GameCreateUnchecked<CCFileClass>(filename));
 
 				if (pBag->Exists()
@@ -183,31 +183,6 @@ public:
 
 							std::sort(this->Entries.begin(), this->Entries.end());
 						}
-
-						//for(auto& data : this->Entries)
-						//{
-						//	_snprintf_s(filename, _TRUNCATE, "%s.wav", data.Name.data());
-						//	CCFileClass wavfile { filename };
-						//	if (wavfile.Exists() && wavfile.Open(FileAccessMode::Read)) {
-						//
-						//		AudioSampleData sampledata {};
-						//		if (Audio::ReadWAVFile(&wavfile, &sampledata, &data.Size)) {
-						//
-						//			if (data.Flags == 2) {
-						//
-						//				if (sampledata.BytesPerSample == 2) {
-						//					data.Flags = 6;
-						//				}
-						//
-						//				if (sampledata.NumChannels == 2) {
-						//					data.Flags |= 1;
-						//				}
-						//
-						//				data.SampleRate = data.SampleRate;
-						//			}
-						//		}
-						//	}
-						//}
 					}
 
 					this->Bag = std::move(pBag);
@@ -227,9 +202,19 @@ public:
 		for (size_t i = 0; i < this->Bags.size(); ++i) {
 			if (this->Bags[i].Bag.get()) {
 				for (const auto& ent : this->Bags[i].Entries) {
-					auto& data = map[ent];
-					data.first = i;
-					data.second = this->Bags[i].Bag.get();
+					auto find = map.find(ent);
+
+					//no entry , put one
+					if (find == map.end()) {
+						map.emplace(ent, std::make_pair(i , this->Bags[i].Bag.get())).first;
+					}
+					else
+					{
+						//update the data with the new one
+						auto node = map.extract(find);
+						node.key().update(ent);
+						map.insert(std::move(node));
+					}
 				}
 			}
 		}
@@ -241,8 +226,17 @@ public:
 
 		int i = 0;
 		for (auto const& [entry, data] : map) {
+			//Debug::Log("Samples[%d] Name [%s][%d , %d , %d ,  %d , %d]\n",
+			//	i,
+			//	entry.Name,
+			//	entry.Offset,
+			//	entry.Size,
+			//	entry.SampleRate,
+			//	entry.Flags,
+			//	entry.ChunkSize
+			//);
 			std::memcpy(&Indexes->Samples[i++], &entry, sizeof(AudioIDXEntry));
-			//Debug::Log("Samples[%d] Name [%s]\n", i, entry.Name.data());
+
 			this->Files.push_back(data);
 		}
 
@@ -368,7 +362,7 @@ DEFINE_OVERRIDE_HOOK(0x48da3b , sub_48D1E0_PlayTaunt , 5)
 	return 0x48DAD3;
 }
 
-#ifdef DISABLE_AUDIO_OVERRIDE
+#ifndef DISABLE_AUDIO_OVERRIDE
 
 //DEFINE_HOOK(0x406B10, Audio_InitPhobosAudio, 0x6) {
 //	LooseAudioCache::Allocate();
@@ -388,7 +382,7 @@ DEFINE_OVERRIDE_HOOK(0x4011C0, Audio_Load, 6)
 	// audio01.bag to audio99.bag
 	char buffer[0x100];
 	for(auto i = 1; i < 100; ++i) {
-		_snprintf_s(buffer, _TRUNCATE, "audio%02d", i);
+		_snprintf_s(buffer, sizeof(buffer), "audio%02d", i);
 		instance.Append(buffer);
 	}
 
@@ -454,6 +448,21 @@ DEFINE_OVERRIDE_HOOK(0x4064A0, VocClassData_AddSample, 0) // Complete rewrite of
 
 	return 0x40651E;
 }
+
+//DEFINE_HOOK(0x409880, AudioDriverChannelTag_NoNamePrefill, 0x5)
+//{
+//	GET(int, bufferSize, EDX);
+//	GET_STACK(uintptr_t, addr, 0x0);
+//
+//	Debug::Log(__FUNCTION__"[0X%x] bufferSize [%d]\n", addr, bufferSize);
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x409C32, AudioDriverChannelTag_NoNamePrefill_ret, 0x7)
+//{
+//	Debug::Log(__FUNCTION__" return [%d]\n", R->EAX<int>());
+//	return 0x0;
+//}
 
 DEFINE_OVERRIDE_HOOK(0x401640, AudioIndex_GetSampleInformation, 5)
 {

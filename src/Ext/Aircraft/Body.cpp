@@ -10,6 +10,34 @@
 
 #include <AircraftClass.h>
 
+// Spy plane, airstrike etc.
+bool AircraftExt::PlaceReinforcementAircraft(AircraftClass* pThis, CellStruct edgeCell)
+{
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto coords = CellClass::Cell2Coord(edgeCell);
+	coords.Z = 0;
+	AbstractClass* pTarget = nullptr;
+
+	if (pTypeExt->SpawnDistanceFromTarget.isset())
+	{
+		pTarget = pThis->Target ? pThis->Target : pThis->Destination;
+
+		if (pTarget)
+			coords = GeneralUtils::CalculateCoordsFromDistance(CellClass::Cell2Coord(edgeCell), pTarget->GetCoords(), pTypeExt->SpawnDistanceFromTarget.Get());
+	}
+
+	++Unsorted::ScenarioInit;
+	bool result = pThis->Unlimbo(coords, DirType::North);
+	--Unsorted::ScenarioInit;
+
+	pThis->SetHeight(pTypeExt->SpawnHeight.Get(pThis->Type->GetFlightLevel()));
+
+	if (pTarget)
+		pThis->PrimaryFacing.Set_Desired(pThis->GetDirectionOverObject(pTarget));
+
+	return result;
+}
+
 void AircraftExt::TriggerCrashWeapon(AircraftClass* pThis, int nMult)
 {
 	const auto pType = pThis->GetTechnoType();

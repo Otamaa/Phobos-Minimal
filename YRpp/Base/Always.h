@@ -124,3 +124,8 @@ typedef union {
 
 #define LessOrEqualTo(a, b) (a <= b) ? (a) : (b);
 #define MoreOrEqualTo(a, b) (a >= b) ? (a) : (b);
+
+#define PRAGMA(X)					 _Pragma(#X)
+#define PRAGMA_DISABLEWARNING()      PRAGMA(warning(push))
+#define PRAGMA_DISABLEWARNING_S(x)   PRAGMA(warning(disable : x))
+#define PRAGMA_DISABLEWARNING_POP()	 PRAGMA(warning(pop))

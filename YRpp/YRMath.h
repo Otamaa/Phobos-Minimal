@@ -89,6 +89,10 @@ namespace Math
 	constexpr const double PI_BYSIXTEEN = Math::Pi / 16;
 	constexpr const double BinaryAngleMagic = -(360.0 / (65535 - 1)) * Pi / 180.0;
 
+	// Game degrees to radians coefficient, called 'binary angle magic' by some.
+	constexpr auto const GameDegreesToRadiansCoefficient = -(360.0 / (65535 - 1)) * Pi / 180.0;
+	constexpr auto const GameDegrees90 = 0X3FFF;
+
 	 MATH_FUNC(sqrt,	 0x4CAC40);
 	 MATH_FUNC(sin,	 0x4CACB0);
 	 MATH_FUNC(cos,	 0x4CAD00);

@@ -25,6 +25,9 @@ enum class PhobosTriggerAction : unsigned int
 	//#844
 	ToggleMCVRedeploy = 510,
 
+	//#1164
+	UndeployToWaypoint = 511,
+
 	//#658
 	RandomTriggerPut = 12000,
 	RandomTriggerRemove = 12001,
@@ -157,6 +160,8 @@ public:
 	ACTION_FUNC(UnInitTechno);
 	ACTION_FUNC(GameDeleteTechno);
 	ACTION_FUNC(LightningStormStrikeAtObject);
+
+	ACTION_FUNC(UndeployToWaypoint);
 
 #undef ACTION_FUNC
 };

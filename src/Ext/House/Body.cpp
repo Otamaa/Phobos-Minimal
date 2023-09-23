@@ -693,13 +693,7 @@ CellClass* HouseExt::GetEnemyBaseGatherCell(HouseClass* pTargetHouse, HouseClass
 	const int deltaX = currentCoords.X - targetBaseCoords.X;
 	const int deltaY = targetBaseCoords.Y - currentCoords.Y;
 	const int distance = (RulesClass::Instance->AISafeDistance + extraDistance) * Unsorted::LeptonsPerCell;
-
-	const double atan = Math::atan2((double)deltaY, (double)deltaX);
-	const double radians = (((atan - Math::HalfPi) * (1.0 / Math::BinaryAngleMagic)) - 0X3FFF) * Math::BinaryAngleMagic;
-	const int x = static_cast<int>(targetBaseCoords.X + Math::cos(radians) * distance);
-	const int y = static_cast<int>(targetBaseCoords.Y - Math::sin(radians) * distance);
-
-	auto newCoords = CoordStruct { x, y, targetBaseCoords.Z };
+	auto newCoords = GeneralUtils::CalculateCoordsFromDistance(currentCoords, targetBaseCoords, distance);
 	auto cellStruct = CellClass::Coord2Cell(newCoords);
 	cellStruct = MapClass::Instance->NearByLocation(cellStruct, speedTypeZone, -1, MovementZone::Normal, false, 3, 3, false, false, false, true, cellStruct, false, false);
 

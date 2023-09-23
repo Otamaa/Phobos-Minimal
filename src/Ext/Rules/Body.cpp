@@ -230,6 +230,13 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			pExt->IsDummy = true;
 		}
 
+		if (pItem->DebrisTypes.Count > 0 && pItem->DebrisMaximums.Count < pItem->DebrisTypes.Count) {
+			Debug::Log("TechnoType[%s - %s] DebrisMaximums items count is less than"
+			"DebrisTypes items count it will fail when the index counter reached DebrisMaximus items count\n"
+			, pItem->ID, myClassName
+			);
+		}
+
 		if (pExt->Fake_Of.Get(nullptr) && pExt->Fake_Of->WhatAmI() != what) {
 			Debug::Log("[%s - %s] has fake of but it different ClassType from it!\n", pItem->ID , myClassName);
 			pExt->Fake_Of.Reset();
@@ -323,8 +330,10 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			if (what == UnitTypeClass::AbsID) {
 				const auto pUnit = (UnitTypeClass*)pItem;
 
-				if (pUnit->Harvester && pUnit->Weeder)
+				if (pUnit->Harvester && pUnit->Weeder) {
 					WeederAndHarvesterWarning = true;
+					pUnit->Weeder = false;
+				}
 			}
 		}
 		else
@@ -333,6 +342,7 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 			if(pBType->Refinery && pBType->Weeder){
 				WeederAndHarvesterWarning = true;
+				pBType->Weeder = false;
 			}
 
 			auto const pBExt = BuildingTypeExt::ExtMap.Find(pBType);

@@ -83,7 +83,7 @@ struct SomeNodes {
 
 
 struct AudioIDXEntry { // assert (IDXHeader.version != 1);
-	FixedString<16> Name;
+	char Name[16];
 	int Offset;
 	int Size;
 	unsigned int SampleRate;
@@ -111,6 +111,20 @@ struct AudioIDXEntry { // assert (IDXHeader.version != 1);
 
 	bool operator < (const AudioIDXEntry& rhs) const {
 		return CRT::strcmpi(this->Name, rhs.Name) < 0;
+	}
+
+	bool operator==(const AudioIDXEntry& other) const {
+		return CRT::strcmpi(this->Name, other.Name) == 0;
+	}
+
+	// update the properties of the entry
+	// without messing arount with the name pointer
+	void update(const AudioIDXEntry& other) {
+		this->Offset = other.Offset;
+		this->Size = other.Size;
+		this->SampleRate = other.SampleRate;
+		this->Flags = other.Flags;
+		this->ChunkSize = other.ChunkSize;
 	}
 };
 

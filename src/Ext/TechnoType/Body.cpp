@@ -1099,6 +1099,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 #pragma region AircraftOnly
 		if (this->AttachtoType == AircraftTypeClass::AbsID)
 		{
+			this->SpawnDistanceFromTarget.Read(exINI, pSection, "SpawnDistanceFromTarget");
+			this->SpawnHeight.Read(exINI, pSection, "SpawnHeight");
+
 			this->LandingDir.Read(exINI, pSection, "LandingDir");
 			this->CrashSpinLevelRate.Read(exINI, pSection, "CrashSpin.LevelRate");
 			this->CrashSpinVerticalRate.Read(exINI, pSection, "CrashSpin.VerticalRate");
@@ -2048,6 +2051,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->ProtectedDriver)
 		.Process(this->ProtectedDriver_MinHealth)
 		.Process(this->KeepAlive)
+		.Process(this->SpawnDistanceFromTarget)
+		.Process(this->SpawnHeight)
 		;
 }
 

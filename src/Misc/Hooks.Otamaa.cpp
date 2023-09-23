@@ -3023,11 +3023,19 @@ void __fastcall DrawRadialIndicator(ObjectClass* pObj ,DWORD , int somth)
 		if (pType->HasRadialIndicator && pTypeExt->AlwayDrawRadialIndicator.Get(!pTechno->Deactivated))
 		{
 			const auto pOwner = pTechno->Owner;
+			ColorStruct defColor = pType->RadialColor;
+			bool Draw = true;
 
-			if (!pOwner)
-				return;
+			if (pOwner) {
 
-			if (pOwner->ControlledByPlayer_() || HouseClass::CurrentPlayer()->IsObserver())
+				if(!pOwner->ControlledByPlayer_()){
+					 Draw = false;
+				}
+
+				defColor = pOwner->Color;
+			}
+
+			if (HouseClass::CurrentPlayer()->IsObserver() || Draw)
 			{
 				int nRadius = 0;
 
@@ -3047,7 +3055,7 @@ void __fastcall DrawRadialIndicator(ObjectClass* pObj ,DWORD , int somth)
 				if (nRadius > 0)
 				{
 					auto nCoord = pTechno->GetCoords();
-					const auto Color = pTypeExt->RadialIndicatorColor.Get(pOwner->Color);
+					const auto Color = pTypeExt->RadialIndicatorColor.Get(defColor);
 					Tactical_Draw_Radial(false, true, nCoord, Color, (nRadius * 1.0f), false, true);
 				}
 			}

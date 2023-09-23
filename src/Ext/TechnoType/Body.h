@@ -823,6 +823,9 @@ public:
 		Nullable<double> ProtectedDriver_MinHealth { }; //!< The health level the unit has to be below so the driver can be killed
 		Nullable<bool> KeepAlive { };
 
+		Nullable<Leptons> SpawnDistanceFromTarget { };
+		Nullable<int> SpawnHeight { };
+
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 		{
 			AttachedEffect.Owner = OwnerObject;

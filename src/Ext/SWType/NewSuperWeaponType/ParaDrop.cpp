@@ -2,6 +2,7 @@
 
 #include <Utilities/Helpers.h>
 #include <Ext/House/Body.h>
+#include <Ext/Aircraft/Body.h>
 
 std::vector<const char*> SW_ParaDrop::GetTypeString() const
 {
@@ -311,11 +312,7 @@ void SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, AircraftTy
 
 	pPlane->QueueMission(Mission::ParadropApproach, false);
 
-	auto const spawn_crd = CellClass::Cell2Coord(spawn_cell);
-
-	++Unsorted::ScenarioInit;
-	auto const bSpawned = pPlane->Unlimbo(spawn_crd, DirType::North);
-	--Unsorted::ScenarioInit;
+	auto const bSpawned = AircraftExt::PlaceReinforcementAircraft(pPlane, spawn_cell);
 
 	if (!bSpawned)
 	{

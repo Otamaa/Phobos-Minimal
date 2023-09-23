@@ -418,10 +418,10 @@ declhook(hook, funcname##_DEBUG_HOOK__LOG_, size)
 
 #define DEFINE_OVERRIDE_HOOK(hook,funcname,size) \
 decl_override_hook(hook, funcname, size) \
-EXPORT_FUNC(funcname)
+EXPORT_FUNC(funcname)\
 
 #define DEFINE_OVERRIDE_HOOK_AGAIN(hook, funcname, size) \
-decl_override_hook(hook, funcname, size)
+decl_override_hook(hook, funcname, size)\
 
 #else
 
@@ -443,7 +443,11 @@ decl_override_hook(hook, funcname##_DEBUG_HOOK__LOG_, size)
 #endif
 
 #define DEFINE_DISABLE_HOOK(hook,funcname) \
+PRAGMA_DISABLEWARNING()\
+PRAGMA_DISABLEWARNING_S(4245)\
+PRAGMA_DISABLEWARNING_S(4838)\
 decl_override_hook(hook, funcname, -1) \
+PRAGMA_DISABLEWARNING_POP()
 
 #define DEFINE_OVERRIDE_SKIP_HOOK(hook,funcname,size,ret)\
 DEFINE_OVERRIDE_HOOK(hook,funcname,size){ return 0x ##ret## ;}
