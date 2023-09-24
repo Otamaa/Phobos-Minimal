@@ -101,9 +101,7 @@ DEFINE_HOOK(0x5BDC00, MouseClass_Get_Mouse_Hotspot_Replace, 0x5)
 	GET_STACK(Point2D*, pRet, 0x4);
 	GET_STACK(MouseCursorType, mouse, 0x8);
 
-	const auto nResult = pMouse->_Get_Mouse_Hotspot(mouse);
-	pRet->X = nResult.X;
-	pRet->Y = nResult.Y;
+	*pRet = pMouse->_Get_Mouse_Hotspot(mouse);
 	R->EAX(pRet);
 	return 0x5BDC77;
 }
@@ -142,14 +140,12 @@ DEFINE_OVERRIDE_HOOK(0x4AB35A, DisplayClass_SetAction_CustomCursor, 0x6)
 		// doesnt work with `Deployed` techno
 		auto const& nObjectVect = ObjectClass::CurrentObjects();
 
-		if (pTarget && nObjectVect.Count == 1 && (nObjectVect[0]->AbstractFlags & AbstractFlags::Techno)) {
-			if (!static_cast<TechnoClass*>(nObjectVect[0])->IsCloseEnoughToAttack(pTarget)) {
-					//if too far from the target
-					MouseClassExt::InsertMappedAction(
-						MouseCursorType::NoEnter
-						, Action::Attack, false);
-			}
 
+		if (pTarget && nObjectVect.Count == 1 && (nObjectVect.Items[0]->AbstractFlags & AbstractFlags::Techno)) {
+			const auto pTechno = static_cast<TechnoClass*>(nObjectVect[0]);
+			const auto weaponidx = pTechno->SelectWeapon(pTarget);
+			if(!pTechno->IsCloseEnough(pTarget, weaponidx))
+				MouseClassExt::ByWeapon(pTechno, weaponidx, true);
 		} else {
 				nAction = Action::Harvest;
 		}

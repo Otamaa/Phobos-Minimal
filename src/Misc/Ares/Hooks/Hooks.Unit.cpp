@@ -431,26 +431,57 @@ DEFINE_OVERRIDE_HOOK(0x718871, TeleportLocomotionClass_UnfreezeObject_SinkOrSwim
 	return 0x7188B1;
 }
 
-DEFINE_OVERRIDE_HOOK(0x73E4A2, UnitClass_Mi_Unload_Storage, 0x6)
+#include <Ext/Building/Body.h>
+
+DEFINE_HOOK(0x73E46D , UnitClass_Mi_Unload_replace , 0x6)
 {
+	GET(BuildingClass* const, pBld, EDI);
+	GET(UnitClass* , pThis , ESI);
+	GET(int, idxTiberium, EBP);
+	REF_STACK(float, amountRaw, 0x80 - 0x68);
+	REF_STACK(float, amountPurified, 0x80 - 0x50);
+
+	if(pBld->Type->Weeder) {
+		pBld->Owner->GiveWeed((int)amountRaw ,idxTiberium);
+		pThis->Animation.Value = 0;
+	}else
+	{
+		TechnoExt_ExtData::DepositTiberium(pBld,
+	 	amountRaw,
+	 	BuildingTypeExt::GetPurifierBonusses(pBld->Owner) * amountRaw,
+		idxTiberium
+	 	);
+		pThis->Animation.Value = 0;
+
+		if (BuildingTypeExt::ExtMap.Find(pBld->Type)->Refinery_DisplayDumpedMoneyAmount) {
+			BuildingExt::ExtMap.Find(pBld)->AccumulatedIncome +=
+				pBld->Owner->Available_Money() - HouseExt::LastHarvesterBalance;
+		}
+
+	}
+
+	return 0x73E539;
+}
+
+DEFINE_DISABLE_HOOK(0x73E4A2, UnitClass_Mi_Unload_Storage_ares) //, 0x6)
+//{
 	// because a value gets pushed to the stack in an inconvenient
 	// location, we do our stuff and then mess with the stack so
 	// the original functions do nothing any more.
-	GET(BuildingClass* const, pBld, EDI);
-	GET(int, idxTiberium, EBP);
-	REF_STACK(float, amountRaw, 0x1C);
-	REF_STACK(float, amountPurified, 0x34);
+	// GET(BuildingClass* const, pBld, EDI);
+	// GET(int, idxTiberium, EBP);
+	// REF_STACK(float, amountRaw, 0x1C);
+	// REF_STACK(float, amountPurified, 0x34);
 
-	TechnoExt_ExtData::DepositTiberium(pBld,
-	 amountRaw,
-	 BuildingTypeExt::GetPurifierBonusses(pBld->Owner) * amountRaw,
-	 idxTiberium
-	 );
+	// TechnoExt_ExtData::DepositTiberium(pBld,
+	//  amountRaw,
+	//  BuildingTypeExt::GetPurifierBonusses(pBld->Owner) * amountRaw,
+	//  idxTiberium
+	//  );
 
-	amountPurified = 0.0f; //disable next function
 
-	return 0;
-}
+	//return 0x0;
+//}
 
 // sanitize the power output
 DEFINE_OVERRIDE_HOOK(0x508D4A, HouseClass_UpdatePower_LocalDrain2, 6)
@@ -475,7 +506,9 @@ DEFINE_OVERRIDE_HOOK(0x522D75, InfantryClass_Slave_UnloadAt_Storage, 6)
 
 	if (amount > 0.0)
 	{
-		TechnoExt_ExtData::RefineTiberium(pSlaveMiner, amount, idxTiberium);
+		TechnoExt_ExtData::DepositTiberium(pSlaveMiner, amount,
+			BuildingTypeExt::GetPurifierBonusses(pSlaveMiner->Owner) * amount,
+			idxTiberium);
 
 		// register for refinery smoke
 		R->BL(1);

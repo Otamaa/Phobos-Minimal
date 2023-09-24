@@ -785,18 +785,19 @@ DEFINE_OVERRIDE_HOOK(0x4F9610, HouseClass_GiveTiberium_Storage, 0xA)
 		// don't change, old values are needed for silo update
 		const auto lastStorage = int(pThis->OwnedTiberium.GetTotalAmount());
 		const auto lastTotalStorage = pThis->TotalStorage;
+		const auto curStorage = lastTotalStorage - lastStorage;
+		float rest = 0.0f;
 
 		// this is the upper limit for stored tiberium
-		if (amount > lastTotalStorage - lastStorage)
-		{
-			amount = float(lastTotalStorage - lastStorage);
+		if (amount > curStorage) {
+			rest = amount - curStorage;
+			amount = float(curStorage);
 		}
 
 		// go through all buildings and fill them up until all is in there
 		for (auto const& pBuilding : pThis->Buildings)
 		{
-			if (amount <= 0.0)
-			{
+			if (amount <= 0.0) {
 				break;
 			}
 
@@ -805,21 +806,26 @@ DEFINE_OVERRIDE_HOOK(0x4F9610, HouseClass_GiveTiberium_Storage, 0xA)
 			{
 				// put as much tiberium into this silo
 				auto freeSpace = storage - pBuilding->Tiberium.GetTotalAmount();
-				if (freeSpace > 0.0)
-				{
-					if (freeSpace > amount)
-					{
+
+				if (freeSpace > 0.0) {
+					if (freeSpace > amount) {
 						freeSpace = amount;
 					}
 
 					pBuilding->Tiberium.AddAmount(freeSpace, idxType);
 					pThis->OwnedTiberium.AddAmount(freeSpace, idxType);
-
 					amount -= freeSpace;
 				}
 			}
 		}
 
+		amount += rest;
+
+		//no free space , just give the money ,..
+		if(amount > 0.0) {
+			auto const pTib = TiberiumClass::Array->GetItem(idxType);
+			pThis->Balance += int(amount * pTib->Value * pThis->Type->IncomeMult);
+		}
 		// redraw silos
 		pThis->UpdateAllSilos(lastStorage, lastTotalStorage);
 	}

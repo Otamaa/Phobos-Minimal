@@ -246,18 +246,20 @@ DEFINE_HOOK(0x73E3DB, UnitClass_Mission_Unload_NoteBalanceBefore, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x73E4D0, UnitClass_Mission_Unload_CheckBalanceAfter, 0xA)
-{
-	GET(HouseClass* const, pHouse, EBX);
-	GET(BuildingClass* const, pDock, EDI);
 
-	if(BuildingTypeExt::ExtMap.Find(pDock->Type)->Refinery_DisplayDumpedMoneyAmount){
-		BuildingExt::ExtMap.Find(pDock)->AccumulatedIncome +=
-			pHouse->Available_Money() - HouseExt::LastHarvesterBalance;
-	}
-
-	return 0;
-}
+//moved to the dumping hook
+//DEFINE_HOOK(0x73E4D0, UnitClass_Mission_Unload_CheckBalanceAfter, 0xA)
+//{
+//	GET(HouseClass* const, pHouse, EBX);
+//	GET(BuildingClass* const, pDock, EDI);
+//
+//	if(BuildingTypeExt::ExtMap.Find(pDock->Type)->Refinery_DisplayDumpedMoneyAmount){
+//		BuildingExt::ExtMap.Find(pDock)->AccumulatedIncome +=
+//			pHouse->Available_Money() - HouseExt::LastHarvesterBalance;
+//	}
+//
+//	return 0;
+//}
 
 DEFINE_HOOK(0x522D50, InfantryClass_SlaveGiveMoney_RecordBalanceBefore, 0x5)
 {

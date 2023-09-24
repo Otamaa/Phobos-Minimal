@@ -2048,6 +2048,7 @@ BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 	pHouseExt->Building_BuildSpeedBonusCounter.clear();
 	pHouseExt->Building_OrePurifiersCounter.clear();
 	//==========================
+	const bool LowpOwerHouse = pThis->HasLowPower();
 
 	for (auto const& pBld : pThis->Buildings) {
 		if (pBld && pBld->IsAlive && !pBld->InLimbo && pBld->IsOnMap) {
@@ -2068,7 +2069,7 @@ BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 			for (auto begin = pTypes.begin(); begin != pTypes.end() && *begin; ++begin) {
 
 				const auto pExt = BuildingTypeExt::ExtMap.Find(*begin);
-				const bool IsFactoryPowered = pExt->FactoryPlant_RequirePower ? !PowerDown : true;
+				const bool IsFactoryPowered = pExt->FactoryPlant_RequirePower ? !PowerDown && !((*begin)->PowerDrain && LowpOwerHouse) : true;
 
 				//recalculate the multiplier
 				if ((*begin)->FactoryPlant && IsFactoryPowered)
@@ -2081,21 +2082,19 @@ BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 				}
 
 				//only pick first spysat
-				const bool IsSpySatPowered = pExt->SpySat_RequirePower ? !PowerDown : true;
-				if (!Spysat && (*begin)->SpySat && !Jammered && IsSpySatPowered)
-				{
-					if (IsLimboDelivered || (IsCurrentPlayer
-						&& !pBld->DiscoveredByCurrentPlayer
-						&& SessionClass::Instance->GameMode == GameMode::Campaign))
+				const bool IsSpySatPowered = pExt->SpySat_RequirePower ? !PowerDown && !((*begin)->PowerDrain && LowpOwerHouse) : true;
+				if (!Spysat && (*begin)->SpySat && !Jammered && IsSpySatPowered) {
+					const bool IsDiscovered = pBld->DiscoveredByCurrentPlayer && SessionClass::Instance->GameMode == GameMode::Campaign;
+					if (IsLimboDelivered || !IsCurrentPlayer || SessionClass::Instance->GameMode != GameMode::Campaign || IsDiscovered) {
 						Spysat = pBld;
-
+					}
 				}
 
 				// add eligible building
 				if (pExt->SpeedBonus.Enabled)
 					++pHouseExt->Building_BuildSpeedBonusCounter[(*begin)];
 
-				const bool IsPurifierRequirePower = pExt->PurifierBonus_RequirePower ? !PowerDown : true;
+				const bool IsPurifierRequirePower = pExt->PurifierBonus_RequirePower ? !PowerDown && !((*begin)->PowerDrain && LowpOwerHouse) : true;
 				// add eligible purifier
 				if ((*begin)->OrePurifier && IsPurifierRequirePower)
 					++pHouseExt->Building_OrePurifiersCounter[(*begin)];
