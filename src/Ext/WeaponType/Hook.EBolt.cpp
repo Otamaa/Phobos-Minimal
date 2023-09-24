@@ -83,7 +83,7 @@ DEFINE_OVERRIDE_HOOK(0x4C1F33, EBolt_Draw_Colors, 7)
 	return 0x4C1F66;
 }
 
-DEFINE_HOOK(0x4C2951, EBolt_DTOR, 0x5)
+DEFINE_OVERRIDE_HOOK(0x4C2951, EBolt_DTOR, 0x5)
 {
 	GET(EBolt* const, pBolt, ECX);
 

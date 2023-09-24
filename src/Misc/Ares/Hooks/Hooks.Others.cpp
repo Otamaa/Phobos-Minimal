@@ -2324,34 +2324,33 @@ DEFINE_OVERRIDE_HOOK(0x6FBDC0, TechnoClass_ShouldBeCloaked, 5)
 	return 0x6FBF93;
 }
 
-// DEFINE_OVERRIDE_HOOK(0x6F6AC9, TechnoClass_Remove_Early, 6)
-// {
-// 	GET(TechnoClass*, pThis, ESI);
-//
-// 	// if the removed object is a radar jammer, unjam all jammed radars
-// 	if (auto pRJ = std::exchange(pThis->align_154->RadarJammerUptr, nullptr))
-// 	{
-// 		AresData::JammerClassUnjamAll(pRJ);
-// 		AresMemory::Delete(pRJ);
-// 	}
-//
-// 	// #617 powered units
-// 	if (auto pPower = std::exchange(pThis->align_154->PoweredUnitUptr, nullptr))
-// 	{
-// 		AresMemory::Delete(pPower);
-// 	}
-//
-// 	//#1573, #1623, #255 attached effects
-// 	if (AresData::RemoveAE(&pThis->align_154->AEDatas))
-// 		AresData::RecalculateStat(pThis);
-//
-// 	if (pThis->align_154->TechnoValueAmount != 0)
-// 	{
-// 		AresData::FlyingStringsAdd(pThis, true);
-// 	}
-//
-// 	return pThis->InLimbo ? 0x6F6C93u : 0x6F6AD5u;
-// }
+DEFINE_OVERRIDE_HOOK(0x6F6AC9, TechnoClass_Remove_Early, 6)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	// if the removed object is a radar jammer, unjam all jammed radars
+	if (auto pRJ = std::exchange(pThis->align_154->RadarJammerUptr, nullptr))
+	{
+		((AresJammer*)pRJ)->UnjamAll();
+		AresMemory::Delete(pRJ);
+	}
+
+	// #617 powered units
+	if (auto pPower = std::exchange(pThis->align_154->PoweredUnitUptr, nullptr))
+	{
+		AresMemory::Delete(pPower);
+	}
+
+	//#1573, #1623, #255 attached effects
+	if (AresData::RemoveAE(&pThis->align_154->AEDatas))
+		TechnoExt_ExtData::RecalculateStat(pThis);
+
+	if (pThis->align_154->TechnoValueAmount != 0) {
+		AresData::FlyingStringsAdd(pThis, true);
+	}
+
+	return pThis->InLimbo ? 0x6F6C93u : 0x6F6AD5u;
+}
 
 DEFINE_OVERRIDE_HOOK_AGAIN(0x6F6D0E, TechnoClass_Put_BuildingLight, 7)
 DEFINE_OVERRIDE_HOOK(0x6F6F20, TechnoClass_Put_BuildingLight, 6)

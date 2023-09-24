@@ -128,7 +128,10 @@ struct ColorStruct
 		return this;
 	}
 
-	ColorStruct* Lerp(ColorStruct& lower, ColorStruct& upper, float adjust) const
+	ColorStruct* Lerp(const ColorStruct& lower, const ColorStruct& upper, float adjust) const
+	{ JMP_THIS(0x661020); }
+
+	ColorStruct* Lerp(ColorStruct* lower, ColorStruct* upper, float adjust) const
 	{ JMP_THIS(0x661020); }
 
 	uintptr_t ToInit() const

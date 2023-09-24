@@ -30,9 +30,6 @@
 
 #include "Header.h"
 
-#pragma warning( push )
-#pragma warning (disable : 4245)
-#pragma warning (disable : 4838)
 DEFINE_DISABLE_HOOK(0x4393F2, BombClass_SDDTOR_removeUnused1_ares)
 DEFINE_DISABLE_HOOK(0x438843, BombClass_Detonate_removeUnused2_ares)
 DEFINE_DISABLE_HOOK(0x438799, BombClass_Detonate_removeUnused3_ares)
@@ -41,7 +38,6 @@ DEFINE_DISABLE_HOOK(0x438e86, BombListClass_Plant_AllTechnos_ares)
 
 DEFINE_DISABLE_HOOK(0x438FD7 , BombListClass_Plant_AttachSound_ares)//, 7 , 439022);
 DEFINE_JUMP(LJMP, 0x438FD7, 0x439022);
-#pragma warning( pop )
 
 DEFINE_OVERRIDE_HOOK(0x438A00, BombClass_GetCurrentFrame, 6)
 {

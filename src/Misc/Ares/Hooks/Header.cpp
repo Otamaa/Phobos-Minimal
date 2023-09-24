@@ -404,7 +404,6 @@ void TechnoTypeExt_ExtData::ReadWeaponStructDatas(TechnoTypeClass* pType, CCINIC
 
 		_snprintf(bufferWeapon, sizeof(bufferWeapon), "EliteWeapon%u", i + 1);
 
-		//=================================Normal============================//
 		detail::read(data->WeaponType, iniEx, pSection, bufferWeapon + 5, true);
 		detail::read(data_e->WeaponType, iniEx, pSection, bufferWeapon, true);
 
@@ -767,12 +766,12 @@ int TechnoExt_ExtData::GetVictimBountyValue(TechnoClass* pVictim, TechnoClass* p
 
 bool TechnoExt_ExtData::KillerAllowedToEarnBounty(TechnoClass* pKiller , TechnoClass* pVictim)
 {
-	if (!pKiller || !pKiller || !pKiller->Owner || !pVictim->Owner || !TechnoExt::IsBountyHunter(pKiller))
+	if (!pKiller || !pVictim || !pKiller->Owner || !pVictim->Owner || !TechnoExt::IsBountyHunter(pKiller))
 		return false;
 
 	const auto pHouseTypeExt = HouseTypeExt::ExtMap.TryFind(pVictim->Owner->Type);
 
-	if (!pHouseTypeExt || !pHouseTypeExt->GivesBounty)
+	if (pHouseTypeExt && !pHouseTypeExt->GivesBounty)
 		return false;
 
 	const auto pKillerTypeExt = TechnoTypeExt::ExtMap.Find(pKiller->GetTechnoType());
@@ -3015,6 +3014,7 @@ bool TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* pToTy
 #endif
 }
 
+#pragma optimize("", off )
 void TechnoExt_ExtData::RecalculateStat(TechnoClass* pThis)
 {
 #ifndef New_funcs
@@ -3025,7 +3025,7 @@ void TechnoExt_ExtData::RecalculateStat(TechnoClass* pThis)
 	BYTE Cloak = (BYTE)pThis->CanICloakByDefault() | pThis->align_154->AE_Cloak;
 
 
-	for (auto begin = pThis->align_154->AEDatas.first; begin != pThis->align_154->AEDatas.end; ++begin)
+	for (auto begin = pThis->align_154->AEDatas.first; begin != pThis->align_154->AEDatas.last; ++begin)
 	{
 		//the class aligment is different , so it probably broke something
 		ROF_Mult *= begin->Type->ROFMultiplier;
@@ -3051,6 +3051,7 @@ void TechnoExt_ExtData::RecalculateStat(TechnoClass* pThis)
 	AresData::RecalculateStat(pThis);
 #endif
 }
+#pragma optimize("", on)
 
 #pragma endregion
 
@@ -4693,6 +4694,7 @@ void AresJammer::UnjamAll()
 }
 
 #pragma endregion
+
 #pragma region AresScriptExt
 
 bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bThirdArd)

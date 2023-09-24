@@ -75,7 +75,7 @@ struct ParticleSystemExt_ExtData
 				auto const nHalfCap = nCap / 2;
 				auto const nRandCap = nRand.RandomFromMax(nHalfCap);
 				const auto nSize = (size_t)(nHalfCap + nRandCap);
-				pThis->PreCalculatedParticlesData.resize(nSize);
+				pThis->PreCalculatedParticlesData.reserve(nSize);
 
 				for (size_t i = nSize; i > 0; --i)
 				{
