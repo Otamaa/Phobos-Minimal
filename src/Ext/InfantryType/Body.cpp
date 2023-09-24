@@ -14,9 +14,8 @@ void InfantryTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 	const char* pID = this->Get()->ID;
 
 	INI_EX exINI(pINI);
-
-	if (parseFailAddr)
-		return;
+	INI_EX iniEX_art(CCINIClass::INI_Art());
+	const auto pSection_art = this->Get()->ImageFile;
 
 	this->Is_Deso.Read(exINI, pID,  "IsDesolator");
 	this->Is_Cow.Read(exINI, pID, "IsCow");
@@ -28,29 +27,48 @@ void InfantryTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 	this->HideWhenDeployAnimPresent.Read(exINI, pID, "Deploy.HideWhenDeployAnimPresent");
 	this->DeathBodies_UseDieSequenceAsIndex.Read(exINI, pID, "DeathBodies.UseDieSequenceAsIndex");
 
-	auto const nPriData = this->Get()->GetWeapon(0);
-	auto const nPriEliteData = this->Get()->GetEliteWeapon(0);
-	auto const nSecData = this->Get()->GetWeapon(1);
-	auto const nSecEliteData = this->Get()->GetEliteWeapon(1);
+	// TODO , this stupid parsing thing
+	//auto const nPriData = this->Get()->GetWeapon(0);
+	//auto const nPriEliteData = this->Get()->GetEliteWeapon(0);
+	//auto const nSecData = this->Get()->GetWeapon(1);
+	//auto const nSecEliteData = this->Get()->GetEliteWeapon(1);
 
-	Valueable<WeaponTypeClass*> pWeaponReader { nullptr };
-	pWeaponReader.Read(exINI, pID, "Primary.CrawlWeapon", true);
+	//((Valueable<WeaponTypeClass*>)this->CrawlingWeaponDatas[0].WeaponType)
+	//	.Read(exINI, pID, "Primary.CrawlWeapon", true);
 
-	WeaponStruct temp { pWeaponReader , nPriData->FLH , nPriData->BarrelLength, nPriData->BarrelThickness,  nPriData->TurretLocked };
-	std::memcpy(this->CrawlingWeaponDatas, &temp, sizeof(WeaponStruct));
+	//Nullable<CoordStruct> bufFLH_N {};
+	//bufFLH_N.Read(iniEX_art, pSection_art, "Primary.CrawlWeaponFLH");
+	//this->CrawlingWeaponDatas[0].FLH = bufFLH_N.Get(nPriData->FLH);
 
-	pWeaponReader.Read(exINI, pID, "Primary.EliteCrawlWeapon", true);
-	temp = { pWeaponReader , nPriEliteData->FLH , nPriEliteData->BarrelLength, nPriEliteData->BarrelThickness,  nPriEliteData->TurretLocked };
-	std::memcpy(this->CrawlingWeaponDatas + 1, &temp, sizeof(WeaponStruct));
+	//Nullable<int> bufBrlLngth_N {};
+	//bufBrlLngth_N.Read(iniEX_art, pSection_art, "Primary.CrawlWeaponBarrelLength");
+	//this->CrawlingWeaponDatas[0].BarrelLength = bufBrlLngth_N.Get(nPriData->BarrelLength);
 
-	pWeaponReader.Read(exINI, pID, "Secondary.CrawlWeapon", true);
-	temp = { pWeaponReader , nSecData->FLH , nSecData->BarrelLength, nSecData->BarrelThickness,  nSecData->TurretLocked };
-	std::memcpy(this->CrawlingWeaponDatas  + 2, &temp, sizeof(WeaponStruct));
+	//Nullable<int> bufBrlthic_N {};
+	//bufBrlthic_N.Read(iniEX_art, pSection_art, "Primary.CrawlWeaponBarrelThickness");
+	//this->CrawlingWeaponDatas[0].BarrelThickness = bufBrlthic_N.Get(nPriData->BarrelThickness);
+
+	//Nullable<bool> bufturrlck_N {};
+	//bufturrlck_N.Read(iniEX_art, pSection_art, "Primary.CrawlWeaponTurretLocked");
+	//this->CrawlingWeaponDatas[0].TurretLocked = bufturrlck_N.Get(nPriData->TurretLocked);
+
+	////==================================================================================================//
+	//Nullable<WeaponTypeClass*> buffWeapon_N {};
+	//buffWeapon_N.Read(exINI, pID, "Primary.EliteCrawlWeapon", true);
+	//this->CrawlingWeaponDatas[1].WeaponType = buffWeapon_N.Get(this->CrawlingWeaponDatas[0].WeaponType);
+
+	//pWeaponReader.Read(exINI, pID, "Primary.EliteCrawlWeapon", true);
+	//temp = { pWeaponReader , nPriEliteData->FLH , nPriEliteData->BarrelLength, nPriEliteData->BarrelThickness,  nPriEliteData->TurretLocked };
+	//std::memcpy(this->CrawlingWeaponDatas + 1, &temp, sizeof(WeaponStruct));
+
+	//pWeaponReader.Read(exINI, pID, "Secondary.CrawlWeapon", true);
+	//temp = { pWeaponReader , nSecData->FLH , nSecData->BarrelLength, nSecData->BarrelThickness,  nSecData->TurretLocked };
+	//std::memcpy(this->CrawlingWeaponDatas  + 2, &temp, sizeof(WeaponStruct));
 
 
-	pWeaponReader.Read(exINI, pID, "Secondary.EliteCrawlWeapon", true);
-	temp = { pWeaponReader , nSecEliteData->FLH , nSecEliteData->BarrelLength, nSecEliteData->BarrelThickness,  nSecEliteData->TurretLocked };
-	std::memcpy(this->CrawlingWeaponDatas + 3, &temp, sizeof(WeaponStruct));
+	//pWeaponReader.Read(exINI, pID, "Secondary.EliteCrawlWeapon", true);
+	//temp = { pWeaponReader , nSecEliteData->FLH , nSecEliteData->BarrelLength, nSecEliteData->BarrelThickness,  nSecEliteData->TurretLocked };
+	//std::memcpy(this->CrawlingWeaponDatas + 3, &temp, sizeof(WeaponStruct));
 }
 
 // =============================

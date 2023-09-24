@@ -1091,9 +1091,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 			for (int i = 0; i < pThis->NumberOfDocks; ++i)
 			{
 				_snprintf_s(keyDock, sizeof(keyDock), "DockingPoseDir%d", i);
-				Valueable<FacingType> dummyDock { FacingType::North };
-				dummyDock.Read(exArtINI, pArtSection, keyDock);
-				BuildingTypeExt::ExtMap.Find(pThis)->DockPoseDir[i] = dummyDock.Get();
+				detail::read(BuildingTypeExt::ExtMap.Find(pThis)->DockPoseDir[i], exArtINI, pArtSection, keyDock, false);
 			}
 		}
 #pragma endregion

@@ -1482,7 +1482,6 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	ValueableIdx<VoxClass> EVA_Impatient { -1 };
 	EVA_Impatient.Read(exINI, pSection, "EVA.Impatient");
 	pThis->ImpatientVoice = EVA_Impatient.Get();
-
 	this->EVA_InsufficientFunds.Read(exINI, pSection, "EVA.InsufficientFunds");
 	this->EVA_SelectTarget.Read(exINI, pSection, "EVA.SelectTarget");
 

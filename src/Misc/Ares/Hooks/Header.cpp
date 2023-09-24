@@ -391,7 +391,6 @@ void TechnoTypeExt_ExtData::ReadWeaponStructDatas(TechnoTypeClass* pType, CCINIC
 
 	//Debug::Log("After Resize Additional Weapon [%s] [%d- E %d]\n", pSection, pExt->AdditionalWeaponDatas.size() , pExt->AdditionalEliteWeaponDatas.size());
 
-
 	for (int i = 0; i < pType->WeaponCount; ++i)
 	{
 		const int NextIdx = i < TechnoTypeClass::MaxWeapons ? i : i - TechnoTypeClass::MaxWeapons;
@@ -400,52 +399,39 @@ void TechnoTypeExt_ExtData::ReadWeaponStructDatas(TechnoTypeClass* pType, CCINIC
 		char buffer[0x40];
 		char bufferWeapon[0x40];
 
-		//=================================Normal============================//
-		_snprintf(bufferWeapon, sizeof(bufferWeapon), "Weapon%u", i + 1);
-		Valueable<WeaponTypeClass*> buffWeapon_ {};
-		buffWeapon_.Read(iniEx, pSection, bufferWeapon, true);
+		auto data = (i < TechnoTypeClass::MaxWeapons ? pType->Weapon : pExt->AdditionalWeaponDatas.data()) + NextIdx;
+		auto data_e = (i < TechnoTypeClass::MaxWeapons ? pType->EliteWeapon : pExt->AdditionalEliteWeaponDatas.data()) + NextIdx;
 
-		_snprintf(buffer, sizeof(buffer), "%sFLH", bufferWeapon);
-		Valueable<CoordStruct> bufFLH_ {};
-		bufFLH_.Read(iniEX_art, pSection_art, buffer);
-
-		_snprintf(buffer, sizeof(buffer), "%sBarrelLength", bufferWeapon);
-		Valueable<int> bufBrlLngth_ {};
-		bufBrlLngth_.Read(iniEX_art, pSection_art, buffer);
-
-		_snprintf(buffer, sizeof(buffer), "%sBarrelThickness", bufferWeapon);
-		Valueable<int> bufBrlthic_ {};
-		bufBrlthic_.Read(iniEX_art, pSection_art, buffer);
-
-		_snprintf(buffer, sizeof(buffer), "%sTurretLocked", bufferWeapon);
-		Valueable<bool> bufturrlck_ {};
-		bufturrlck_.Read(iniEX_art, pSection_art, buffer);
-
-		//=================================Elite============================//
 		_snprintf(bufferWeapon, sizeof(bufferWeapon), "EliteWeapon%u", i + 1);
-		Nullable<WeaponTypeClass*> buffWeapon_N {};
-		buffWeapon_N.Read(iniEx, pSection, bufferWeapon, true);
 
+		//=================================Normal============================//
+		detail::read(data->WeaponType, iniEx, pSection, bufferWeapon + 5, true);
+		detail::read(data_e->WeaponType, iniEx, pSection, bufferWeapon, true);
+
+		if (!data_e->WeaponType)
+			data_e->WeaponType = data->WeaponType;
+
+		Nullable<CoordStruct> dummy_FLH {};
 		_snprintf(buffer, sizeof(buffer), "%sFLH", bufferWeapon);
-		Nullable<CoordStruct> bufFLH_N {};
-		bufFLH_N.Read(iniEX_art, pSection_art, buffer);
+		detail::read(data->FLH, iniEX_art, pSection_art, buffer + 5, false);
+		dummy_FLH.Read(iniEX_art, pSection_art, buffer, false);
+		data_e->FLH = dummy_FLH.Get(data->FLH);
 
+		Nullable<int> dummy_BarrelLength {};
 		_snprintf(buffer, sizeof(buffer), "%sBarrelLength", bufferWeapon);
-		Nullable<int> bufBrlLngth_N {};
-		bufBrlLngth_N.Read(iniEX_art, pSection_art, buffer);
+		detail::read(data->BarrelLength, iniEX_art, pSection_art, buffer + 5, false);
+		dummy_BarrelLength.Read(iniEX_art, pSection_art, buffer, false);
+		data_e->BarrelLength = dummy_BarrelLength.Get(data->BarrelLength);
 
+		Nullable<int> dummy_BarrelThickness {};
 		_snprintf(buffer, sizeof(buffer), "%sBarrelThickness", bufferWeapon);
-		Nullable<int> bufBrlthic_N {};
-		bufBrlthic_N.Read(iniEX_art, pSection_art, buffer);
+		detail::read(data->BarrelThickness, iniEX_art, pSection_art, buffer + 5, false);
+		data_e->BarrelThickness = dummy_BarrelThickness.Get(data->BarrelThickness);
 
+		Nullable<int> dummy_TurretLocked {};
 		_snprintf(buffer, sizeof(buffer), "%sTurretLocked", bufferWeapon);
-		Nullable<bool> bufturrlck_N {};
-		bufturrlck_N.Read(iniEX_art, pSection_art, buffer);
-
-		WeaponStruct temp { buffWeapon_ , bufFLH_.Get() , bufBrlLngth_, bufBrlthic_,  bufturrlck_ };
-		WeaponStruct tempe { buffWeapon_N.Get(buffWeapon_), bufFLH_N.Get(bufFLH_), bufBrlLngth_N.Get(bufBrlLngth_), bufBrlthic_N.Get(bufBrlthic_), bufturrlck_N.Get(bufturrlck_) };
-		std::memcpy((i < TechnoTypeClass::MaxWeapons ? pType->Weapon : pExt->AdditionalWeaponDatas.data()) + NextIdx, &temp, sizeof(WeaponStruct));
-		std::memcpy((i < TechnoTypeClass::MaxWeapons ? pType->EliteWeapon : pExt->AdditionalEliteWeaponDatas.data()) + NextIdx, &tempe, sizeof(WeaponStruct));
+		detail::read(data->TurretLocked, iniEX_art, pSection_art, buffer + 5, false);
+		data_e->TurretLocked = dummy_TurretLocked.Get(data->TurretLocked);
 	}
 }
 
@@ -1814,7 +1800,7 @@ bool TechnoExt_ExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 		{
 
 			// techno ineligible
-			if (i->Health < 0 || i->InLimbo || !i->IsAlive)
+			if (i->Health < 0 || i->InLimbo || !i->IsAlive || i->CloakState == CloakState::Cloaked)
 			{
 				continue;
 			}
@@ -4096,7 +4082,7 @@ bool AresEMPulse::thresholdExceeded(TechnoClass* Victim)
 
 bool AresEMPulse::isEligibleEMPTarget(TechnoClass* const pTarget, HouseClass* const pSourceHouse, WarheadTypeClass* pWarhead)
 {
-	if (WarheadTypeExt::ExtMap.Find(pWarhead)->CanTargetHouse(pSourceHouse, pTarget))
+	if (!WarheadTypeExt::ExtMap.Find(pWarhead)->CanTargetHouse(pSourceHouse, pTarget))
 	{
 		return false;
 	}
