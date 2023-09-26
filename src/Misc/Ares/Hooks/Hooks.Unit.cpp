@@ -472,14 +472,14 @@ DEFINE_DISABLE_HOOK(0x73E4A2, UnitClass_Mi_Unload_Storage_ares) //, 0x6)
 	// GET(int, idxTiberium, EBP);
 	// REF_STACK(float, amountRaw, 0x1C);
 	// REF_STACK(float, amountPurified, 0x34);
-
+//
 	// TechnoExt_ExtData::DepositTiberium(pBld,
 	//  amountRaw,
 	//  BuildingTypeExt::GetPurifierBonusses(pBld->Owner) * amountRaw,
 	//  idxTiberium
 	//  );
-
-
+	//
+	//
 	//return 0x0;
 //}
 
@@ -1586,26 +1586,131 @@ DEFINE_OVERRIDE_HOOK(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
 	 ? 0x700DCE : 0x700E59;
 }
 
-
-// this code somewhat broke targeting
-// it created identically like ares but not working as expected , duh
-DEFINE_OVERRIDE_HOOK(0x6FA361, TechnoClass_Update_LoseTarget, 5)
+DEFINE_OVERRIDE_HOOK(0x7384BD, UnitClass_ReceiveDamage_OreMinerUnderAttack, 6)
 {
-	GET(TechnoClass* const, pThis, ESI);
-	GET(HouseClass* const, pHouse, EDI);
+	GET_STACK(WarheadTypeClass*, WH, STACK_OFFS(0x44, -0xC));
+	return WH && !WarheadTypeExt::ExtMap.Find(WH)->Malicious ? 0x738535u : 0u;
+}
 
-	const bool BLRes = R->BL();
-	const HouseClass* pOwner = !BLRes ? pThis->Owner : pHouse ;
-	bool IsAlly = false;
-	if (const auto pTechTarget = generic_cast<TechnoClass*>(pThis->Target)) {
-		if(const auto pTargetHouse = pTechTarget->GetOwningHouse()) {
-			if(pOwner->IsAlliedWith_(pTargetHouse))
-				IsAlly = true;
+DEFINE_OVERRIDE_HOOK(0x738749, UnitClass_Destroy_TiberiumExplosive, 6)
+{
+	GET(const UnitClass* const, pThis, ESI);
+
+	if (RulesClass::Instance->TiberiumExplosive
+		&& !pThis->Type->Weeder
+		&& !ScenarioClass::Instance->SpecialFlags.StructEd.HarvesterImmune
+		&& pThis->Tiberium.GetTotalAmount() > 0.0f)
+	{
+		// multiply the amounts with their powers and sum them up
+		int morePower = 0;
+		for (int i = 0; i < TiberiumClass::Array->Count; ++i)
+		{
+			morePower += int(pThis->Tiberium.Tiberiums[i] * TiberiumClass::Array->Items[i]->Power);
+		}
+
+		if (morePower > 0)
+		{
+
+			CoordStruct crd = pThis->GetCoords();
+			if (auto pWH = RulesExt::Global()->Tiberium_ExplosiveWarhead)
+			{
+				MapClass::DamageArea(crd, morePower, const_cast<UnitClass*>(pThis), pWH, pWH->Tiberium, pThis->Owner);
+			}
+
+			if (auto pAnim = RulesExt::Global()->Tiberium_ExplosiveAnim)
+			{
+				AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, crd, 0, 1, AnimFlag(0x2600), -15, false),
+					pThis->Owner,
+					nullptr,
+					false
+				);
+			}
 		}
 	}
 
-	enum { RetNotAlly = 0x6FA472 , RetAlly = 0x6FA39D};
-	const bool IsNegDamage = (pThis->CombatDamage() < 0);
+	return 0x7387C4;
+}
 
-	return IsAlly == IsNegDamage ? RetNotAlly : RetAlly;
+DEFINE_OVERRIDE_HOOK(0x736135, UnitClass_Update_Deactivated, 6)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	// don't sparkle on EMP, Operator, ....
+	return TechnoExt_ExtData::IsPowered(pThis)
+		? 0x7361A9 : 0;
+}
+
+// merge two small visceroids into one large visceroid
+DEFINE_OVERRIDE_HOOK(0x739F21, UnitClass_UpdatePosition_Visceroid, 6)
+{
+	GET(UnitClass*, pThis, EBP);
+
+	if (!pThis->Destination
+		|| pThis->Destination->WhatAmI() != UnitClass::AbsID
+		|| !RulesClass::Instance->LargeVisceroid
+		|| RulesClass::Instance->LargeVisceroid->Strength <= 0
+		|| !TechnoExt_ExtData::IsUnitAlive(pThis))
+		return 0x0;
+
+	UnitClass* pDest = static_cast<UnitClass*>(pThis->Destination);
+
+	// fleshbag erotic
+	if (pThis->Type->SmallVisceroid && pDest->Type->SmallVisceroid && TechnoExt_ExtData::IsUnitAlive(pDest))
+	{
+		// nice to meat you!
+		if (CellClass::Coord2Cell(pThis->GetCoords()) == CellClass::Coord2Cell(pDest->GetCoords()))
+		{
+			// two become one
+			pDest->Type = RulesClass::Instance->LargeVisceroid;
+			pDest->Health = RulesClass::Instance->LargeVisceroid->Strength;
+			pDest->EstimatedHealth = pDest->Health;
+			pDest->Target = nullptr;
+			pDest->Destination = nullptr;
+			pDest->Stun();
+
+			pDest->IsSelected = pThis->IsSelected;
+
+			CellClass* pCell = MapClass::Instance->GetCellAt(pDest->LastMapCoords);
+			pDest->UpdateThreatInCell(pCell);
+			pDest->QueueMission(Mission::Guard, true);
+
+			Debug::Log(__FUNCTION__" Executed!\n");
+			TechnoExt::HandleRemove(pThis, nullptr, false, false);
+			return 0x73B0A5;
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_DISABLE_HOOK(0x73C143, UnitClass_DrawVXL_Deactivated_ares)
+DEFINE_HOOK(0x73C141, UnitClass_DrawVXL_Deactivated, 7)
+{
+	GET(UnitClass*, pThis, EBP);
+	REF_STACK(int, Value, 0x1E0);
+
+	const auto pRules = RulesExt::Global();
+	double factor = 1.0;
+
+	if (pThis->IsUnderEMP())
+	{
+		factor = pRules->DeactivateDim_EMP;
+	}
+	else if (pThis->IsDeactivated())
+	{
+		// use the operator check because it is more
+		// efficient than the powered check.
+		if (TechnoExt_ExtData::IsOperatedB(pThis))
+		{
+			factor = pRules->DeactivateDim_Powered;
+		}
+		else
+		{
+			factor = pRules->DeactivateDim_Operator;
+		}
+	}
+
+	Value = int(Value * factor);
+
+	return 0x73C15F;
 }

@@ -17,25 +17,21 @@ int MultipleFactoryCaps::Get(AbstractType abs, bool naval) const
 	case AbstractType::Unit:
 	case AbstractType::UnitType:
 		return naval ? this->AbsUnitNaval : this->AbsUnit;
-		break;
 	case AbstractType::Aircraft:
 	case AbstractType::AircraftType:
 		return this->AbsAircraft;
-		break;
+
 	case AbstractType::Building:
 	case AbstractType::BuildingType:
 		return this->AbsBuilding;
-		break;
 	case AbstractType::Infantry:
 	case AbstractType::InfantryType:
 		return this->AbsInf;
-		break;
 	default:
-		break;
+		return 0;
 	}
-
-	return 0;
 }
+
 #pragma region(save/load)
 
 template <class T>

@@ -15,8 +15,84 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 
+#include "Header.h"
+
 DEFINE_DISABLE_HOOK(0x414D36, AircraftClass_Update_DontloseTargetInAir_ares)//, 0x5 , 414D4D)
 DEFINE_JUMP(LJMP,0x414D36 ,0x414D4D);
+
+DEFINE_OVERRIDE_HOOK(0x415085, AircraftClass_Update_DamageSmoke, 7)
+{
+	GET(AircraftClass*, pThis, ESI);
+	auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (pThis->GetHealthPercentage() < RulesClass::Instance->ConditionRed)
+	{
+		if (pThis->GetHeight() > 0)
+		{
+			if (AnimTypeClass* pType = pExt->SmokeAnim)
+			{
+				const int chance = ((pThis->Health > 0) ? pExt->SmokeChanceRed : pExt->SmokeChanceDead).Get();
+
+				if (ScenarioClass::Instance->Random.RandomFromMax(99) < chance)
+				{
+					if (auto pAnim = GameCreate<AnimClass>(pType, pThis->Location))
+						pAnim->Owner = pThis->GetOwningHouse();
+				}
+			}
+		}
+	}
+
+	return 0x41512C;
+}
+
+DEFINE_OVERRIDE_HOOK(0x417D75, AircraftClass_GetActionOnObject_CanTote, 5)
+{
+	GET(AircraftClass*, pCarryall, ESI);
+	GET(UnitClass*, pTarget, EDI);
+
+	return (TechnoTypeExt_ExtData::CarryallCanLift(pCarryall->Type, pTarget))
+		? 0u
+		: 0x417DF6u
+		;
+}
+
+DEFINE_OVERRIDE_HOOK(0x416E37, AircraftClass_Mi_MoveCarryall_CanTote, 5)
+{
+	GET(AircraftClass*, pCarryall, ESI);
+	GET(UnitClass*, pTarget, EDI);
+
+	return (TechnoTypeExt_ExtData::CarryallCanLift(pCarryall->Type, pTarget))
+		? 0u
+		: 0x416EC9u
+		;
+}
+
+DEFINE_OVERRIDE_HOOK(0x41949F, AircraftClass_ReceivedRadioCommand_SpecificPassengers, 6)
+{
+	GET(AircraftClass* const, pThis, ESI);
+	GET_STACK(TechnoClass const* const, pSender, 0x14);
+
+	enum { Allowed = 0x41945Fu, Disallowed = 0x41951Fu };
+
+	auto const pType = pThis->Type;
+
+	if (pThis->Passengers.NumPassengers >= pType->Passengers)
+	{
+		return Disallowed;
+	}
+
+	auto const pSenderType = pSender->GetTechnoType();
+
+	return TechnoTypeExt::PassangersAllowed(pType, pSenderType) ? Allowed : Disallowed;
+}
+
+DEFINE_OVERRIDE_HOOK(0x41946B, AircraftClass_ReceivedRadioCommand_QueryEnterAsPassenger_KillDriver, 6)
+{
+	// prevent units from getting the enter cursor on transports
+	// with killed drivers.
+	GET(TechnoClass*, pThis, ESI);
+	return (pThis->align_154->Is_DriverKilled ? 0x4190DDu : 0u);
+}
 
 DEFINE_OVERRIDE_HOOK(0x416CF4, AircraftClass_Carryall_Unload_Guard, 0x5)
 {

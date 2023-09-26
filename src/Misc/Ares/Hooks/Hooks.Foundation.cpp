@@ -5,6 +5,11 @@
 
 #include "Header.h"
 
+DEFINE_DISABLE_HOOK(0x465d4a, BuildingTypeClass_IsUndeployable_ares) //, 6)
+
+// there is bug with WF that causing unit stuck
+// seems the bib is not correct in the old code ?
+#ifdef ENABLE_FOUNDATIONHOOK
 DEFINE_OVERRIDE_HOOK(0x656584, RadarClass_GetFoundationShape, 6)
 {
 	GET(RadarClass*, pThis, ECX);
@@ -184,7 +189,6 @@ DEFINE_OVERRIDE_HOOK(0x465550, BuildingTypeClass_GetFoundationOutline, 6)
 	return 0;
 }
 
-DEFINE_DISABLE_HOOK(0x465d4a, BuildingTypeClass_IsUndeployable_ares) //, 6)
 
 DEFINE_OVERRIDE_HOOK(0x464AF0, BuildingTypeClass_GetSizeInLeptons, 6)
 {
@@ -218,3 +222,4 @@ DEFINE_OVERRIDE_HOOK(0x474DEE, INIClass_GetFoundation, 7)
 
 	return 0;
 }
+#endif

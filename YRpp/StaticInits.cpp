@@ -163,7 +163,6 @@ double ObjectClass::GetHealthPercentage() const
 	return (double)this->Health / (double)this->GetType()->Strength;
 }
 
-
 int HouseClass::GetSpawnPosition()
 {
 	for (int i = 0; i < HouseClass::MaxPlayers; i++)

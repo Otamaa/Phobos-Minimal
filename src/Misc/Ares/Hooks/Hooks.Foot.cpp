@@ -9,13 +9,68 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 
+#include <Ext/Techno/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
+#include <Ext/Tiberium/Body.h>
+
+#include"Header.h"
 
 #include <New/Type/ArmorTypeClass.h>
+
+DEFINE_OVERRIDE_HOOK(0x4DFE00, FootClass_GarrisonStructure_TakeVehicle, 6)
+{
+	GET(FootClass*, pThis, ECX);
+
+	if (!pThis->align_154->TakeVehicleMode)
+		return 0x0;
+
+	R->EAX(TechnoExt_ExtData::FindAndTakeVehicle(pThis));
+	return 0x4DFF3E;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4D718C, FootClass_Put_InitialPayload, 6)
+{
+	GET(FootClass* const, pThis, ESI);
+
+	if (pThis->WhatAmI() != AbstractType::Infantry)
+	{
+		TechnoExt::ExtMap.Find(pThis)->CreateInitialPayload();
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4D98C0, FootClass_Destroyed_PlayEvent, 0xA)
+{
+	enum { Skip = 0x4D9918 };
+	GET(FootClass*, pThis, ECX);
+	//GET_STACK(ObjectClass*, pKiller, 0x4);
+
+	const auto pType = pThis->GetTechnoType();
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+
+	if (pExt->SupressEVALost
+		|| pType->DontScore
+		|| pType->Insignificant
+		|| pType->Spawned
+		|| !pThis->Owner
+		|| !pThis->Owner->ControlledByPlayer()
+	)
+	{
+		return Skip;
+	}
+
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (RadarEventClass::Create(RadarEventType::UnitLost, pThis->GetMapCoords()))
+		VoxClass::PlayIndex(pTypeExt->EVA_UnitLost, -1, -1);
+
+	return Skip;
+}
 
 DEFINE_HOOK(0x4D5776, FootClass_ApproachTarget_Passive, 0x6)
 {
@@ -238,4 +293,54 @@ DEFINE_OVERRIDE_HOOK(0x518744, InfantryClass_ReceiveDamage_ElectricDeath, 6)
 
 	R->EDX(El);
 	return 0x51874D;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4D85E4, FootClass_UpdatePosition_TiberiumDamage, 9)
+{
+	GET(FootClass*, pThis, ESI);
+
+	if (!pThis->IsAlive)
+		return 0x0;
+
+	int damage = 0;
+	WarheadTypeClass* pWarhead = nullptr;
+	int transmogrify = RulesClass::Instance->TiberiumTransmogrify;
+
+	if (RulesExt::Global()->Tiberium_DamageEnabled && pThis->GetHeight() <= RulesClass::Instance->HoverHeight)
+	{
+		TechnoTypeClass* pType = pThis->GetTechnoType();
+		TechnoTypeExt::ExtData* pExt = TechnoTypeExt::ExtMap.Find(pType);
+
+		// default is: infantry can be damaged, others cannot
+		const bool enabled = (pThis->WhatAmI() != InfantryClass::AbsID);
+
+		if (!pExt->TiberiumProof.Get(enabled) && !pThis->HasAbility(AbilityType::TiberiumProof))
+		{
+			if (pThis->Health > 0)
+			{
+				if (auto pTiberium = TiberiumClass::Array->GetItemOrDefault(pThis->GetCell()->GetContainedTiberiumIndex()))
+				{
+					auto pTibExt = TiberiumExt::ExtMap.Find(pTiberium);
+
+					pWarhead = pTibExt->GetWarhead();
+					damage = pTibExt->GetDamage();
+
+					transmogrify = pExt->TiberiumTransmogrify.Get(transmogrify);
+				}
+			}
+		}
+	}
+
+	if (damage != 0 && pWarhead)
+	{
+		CoordStruct crd = pThis->GetCoords();
+
+		if (pThis->ReceiveDamage(&damage, 0, pWarhead, nullptr, false, false, nullptr) == DamageState::NowDead)
+		{
+			TechnoExt_ExtData::SpawnVisceroid(crd, RulesClass::Instance->SmallVisceroid, transmogrify, false);
+			return 0x4D8F29;
+		}
+	}
+
+	return 0;
 }

@@ -18,6 +18,7 @@
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <Ext/InfantryType/Body.h>
+#include <Ext/HouseType/Body.h>
 
 #include <Misc/AresData.h>
 
@@ -25,6 +26,430 @@
 #include "Header.h"
 
 #include <Misc/PhobosGlobal.h>
+
+DEFINE_DISABLE_HOOK(0x679caf, RulesClass_LoadAfterTypeData_CompleteInitialization_ares)
+
+DEFINE_OVERRIDE_HOOK(0x446EE2, BuildingClass_Place_InitialPayload, 6)
+{
+	GET(BuildingClass* const, pThis, EBP);
+	TechnoExt::ExtMap.Find(pThis)->CreateInitialPayload();
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x44D760, BuildingClass_Destroyed_UnitLost, 7)
+{
+	GET(BuildingClass*, pThis, ECX);
+	GET_STACK(ObjectClass*, pKiller, 0x4);
+
+	const auto pType = pThis->Type;
+	auto pTechnoExt = TechnoExt::ExtMap.Find(pThis);
+
+	if (pTechnoExt->SupressEVALost
+		|| pType->DontScore
+		|| pType->Insignificant
+		|| !pThis->Owner
+		|| !pThis->Owner->IsControlledByHuman())
+	{
+		return 0x44D7C9;
+	}
+
+	VoxClass::PlayIndex(TechnoTypeExt::ExtMap.Find(pType)->EVA_UnitLost);
+
+	if (pKiller)
+	{
+		CoordStruct nDest = pThis->GetDestination();
+		RadarEventClass::Create(CellClass::Coord2Cell(nDest));
+	}
+
+	return 0x44D7C9;
+}
+
+DEFINE_OVERRIDE_HOOK(0x451330, BuildingClass_GetCrewCount, 0xA)
+{
+	GET(BuildingClass*, pThis, ECX);
+
+	int count = 0;
+
+	if (!pThis->NoCrew && pThis->Type->Crewed)
+	{
+		auto pHouse = pThis->Owner;
+
+		// get the divisor
+		int divisor = HouseExt::GetSurvivorDivisor(pHouse);
+
+		if (divisor > 0)
+		{
+			// if captured, less survivors
+			if (pThis->HasBeenCaptured)
+			{
+				divisor *= 2;
+			}
+
+			// value divided by "cost per survivor"
+			count = pThis->Type->GetRefund(pHouse, 0) / divisor;
+
+			// clamp between 1 and 5
+			if (count < 1)
+			{
+				count = 1;
+			}
+			if (count > 5)
+			{
+				count = 5;
+			}
+		}
+	}
+
+	R->EAX(count);
+	return 0x4513CD;
+}
+
+DEFINE_OVERRIDE_HOOK(0x44EB10, BuildingClass_GetCrew, 9)
+{
+	GET(BuildingClass*, pThis, ECX);
+
+	// YR defaults to 25 for buildings producing buildings
+	R->EAX(TechnoExt_ExtData::GetBuildingCrew(pThis, TechnoTypeExt::ExtMap.Find(pThis->Type)->
+		Crew_EngineerChance.Get((pThis->Type->Factory == BuildingTypeClass::AbsID) ? 25 : 0)));
+
+	return 0x44EB5B;
+}
+
+DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
+{
+	GET(BuildingClass*, pThis, ECX);
+	GET_STACK(Point2D*, pLocation, 0x4);
+	GET_STACK(RectangleStruct*, pBounds, 0x8);
+
+	auto pType = pThis->Type;
+
+	if (!pThis->IsSelected || !HouseClass::CurrentPlayer)
+		return 0x43E8F2;
+
+	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pType);
+
+	// helpers (with support for the new spy effect)
+	const bool bAllied = pThis->Owner->IsAlliedWith_(HouseClass::CurrentPlayer);
+	const bool IsObserver = HouseClass::CurrentPlayer->IsObserver();
+	const bool bReveal = pTypeExt->SpyEffect_RevealProduction && pThis->DisplayProductionTo.Contains(HouseClass::CurrentPlayer);
+
+	// show building or house state
+	if (bAllied || IsObserver || bReveal)
+	{
+		Point2D DrawExtraLoc = { pLocation->X , pLocation->Y };
+		pThis->DrawExtraInfo(DrawExtraLoc, pLocation, pBounds);
+
+		// display production cameo
+		if (IsObserver || bReveal)
+		{
+			const auto pFactory = pThis->Owner->IsControlledByHuman_() ?
+				pThis->Owner->GetPrimaryFactory(pType->Factory, pType->Naval, BuildCat::DontCare)
+				: pThis->Factory;
+
+			if (pFactory && pFactory->Object)
+			{
+				auto pProdType = pFactory->Object->GetTechnoType();
+				const int nTotal = pFactory->CountTotal(pProdType);
+				Point2D DrawCameoLoc = { pLocation->X , pLocation->Y + 45 };
+				const auto pProdTypeExt = TechnoTypeExt::ExtMap.Find(pProdType);
+				RectangleStruct cameoRect {};
+
+				// support for pcx cameos
+				if (auto pPCX = TechnoTypeExt_ExtData::GetPCXSurface(pProdType, pThis->Owner))
+				{
+					const int cameoWidth = 60;
+					const int cameoHeight = 48;
+
+					RectangleStruct cameoBounds = { 0, 0, pPCX->Width, pPCX->Height };
+					RectangleStruct DefcameoBounds = { 0, 0, cameoWidth, cameoHeight };
+					RectangleStruct destRect = { DrawCameoLoc.X - cameoWidth / 2, DrawCameoLoc.Y - cameoHeight / 2, cameoWidth , cameoHeight };
+
+					if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds))
+					{
+						cameoRect = destRect;
+						AresPcxBlit<WORD> blithere((0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft) | (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft));
+						Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &blithere, 0, 3, 1000, 0);
+					}
+				}
+				else
+				{
+					// old shp cameos, fixed palette
+					if (auto pCameo = pProdType->GetCameo())
+					{
+						cameoRect = { DrawCameoLoc.X, DrawCameoLoc.Y, pCameo->Width, pCameo->Height };
+
+						ConvertClass* pPal = FileSystem::CAMEO_PAL();
+						if (auto pManager = pProdTypeExt->CameoPal)
+							pPal = pManager->GetConvert<PaletteManager::Mode::Default>();
+
+						DSurface::Temp->DrawSHP(pPal, pCameo, 0, &DrawCameoLoc, pBounds, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, nullptr, 0, 0, 0);
+					}
+				}
+
+				//auto nColorInt = pThis->Owner->Color.ToInit();//0x63DAD0
+				//DSurface::Temp->Draw_Rect(cameoRect, (COLORREF)nColorInt);
+				//Point2D DrawTextLoc = { DrawCameoLoc.X - 20 , DrawCameoLoc.Y - 20 };
+				//std::wstring pFormat = std::to_wstring(nTotal);
+				//pFormat += L"X";
+				//RectangleStruct nTextDimension;
+				//Drawing::GetTextDimensions(&nTextDimension, pFormat.c_str(), DrawTextLoc, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, 4, 2);
+				//auto nIntersect = Drawing::Intersect(nTextDimension, cameoRect);
+
+				//DSurface::Temp->Fill_Rect(nIntersect, (COLORREF)0);
+				//DSurface::Temp->Draw_Rect(nIntersect, (COLORREF)nColorInt);
+
+				//Point2D nRet;
+				//Simple_Text_Print_Wide(&nRet, pFormat.c_str(), DSurface::Temp.get(), &cameoRect, &DrawTextLoc, (COLORREF)nColorInt, (COLORREF)0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, true);
+			}
+		}
+	}
+
+	return 0x43E8F2;
+}
+
+DEFINE_OVERRIDE_HOOK(0x452218, BuildingClass_Enable_Temporal_Factories, 6)
+{
+	GET(BuildingClass*, pThis, ECX);
+	TechnoExt_ExtData::UpdateFactoryQueues(pThis);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x442D1B, BuildingClass_Init_Academy, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	if (!pThis->Owner)
+		return 0x0;
+
+	if (HouseTypeExt::ExtMap.Find(pThis->Owner->Type)->VeteranBuildings.Contains(pThis->Type))
+	{
+		pThis->Veterancy.Veterancy = 1.0f;
+	}
+
+	if (pThis->Type->Trainable && HouseExt::ExtMap.Find(pThis->Owner)->Is_ConstructionYardSpied)
+		pThis->Veterancy.Veterancy = 1.0f;
+
+
+	HouseExt::ApplyAcademy(pThis->Owner, pThis, AbstractType::Building);
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x43FE8E, BuildingClass_Update_Reload, 6)
+{
+	GET(BuildingClass*, B, ESI);
+	BuildingTypeClass* BType = B->Type;
+	if (!BType->Hospital && !BType->Armory)
+	{ // TODO: rethink this
+		B->Reload();
+	}
+	return 0x43FEBE;
+}
+
+DEFINE_OVERRIDE_HOOK(0x440C08, BuildingClass_Put_AIBaseNormal, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	R->EAX(TechnoExt_ExtData::IsBaseNormal(pThis));
+	return 0x440C2C;
+}
+
+DEFINE_OVERRIDE_HOOK(0x456370, BuildingClass_UnmarkBaseSpace_AIBaseNormal, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	R->EAX(TechnoExt_ExtData::IsBaseNormal(pThis));
+	return 0x456394;
+}
+
+DEFINE_OVERRIDE_HOOK(0x445A72, BuildingClass_Remove_AIBaseNormal, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	R->EAX(TechnoExt_ExtData::IsBaseNormal(pThis));
+	return 0x445A94;
+}
+
+DEFINE_OVERRIDE_HOOK(0x442974, BuildingClass_ReceiveDamage_Malicious, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET_STACK(WarheadTypeClass*, pWH, 0xA8);
+
+	BuildingExt::ExtMap.Find(pThis)->ReceiveDamageWarhead = pWH;
+	pThis->BuildingUnderAttack();
+
+	return 0x442980;
+}
+
+// replaces the UnitReload handling and makes each docker independent of all
+// others. this means planes don't have to wait one more ReloadDelay because
+// the first docker triggered repair mission while the other dockers arrive
+// too late and need to be put to sleep first.
+DEFINE_OVERRIDE_HOOK(0x44C844, BuildingClass_MissionRepair_Reload, 6)
+{
+	GET(BuildingClass* const, pThis, EBP);
+	auto const pExt = BuildingExt::ExtMap.Find(pThis);
+
+	// ensure there are enough slots
+	pExt->DockReloadTimers.resize(pThis->RadioLinks.Capacity, -1);
+
+	// update all dockers, check if there's
+	// at least one needing more attention
+	bool keep_reloading = false;
+	for (auto i = 0; i < pThis->RadioLinks.Capacity; ++i)
+	{
+		if (auto const pLink = pThis->GetNthLink(i))
+		{
+
+			auto const SendCommand = [=](RadioCommand command)
+				{
+					return pThis->SendCommand(command, pLink) == RadioCommand::AnswerPositive;
+				};
+
+			// check if reloaded and repaired already
+			auto const pLinkType = pLink->GetTechnoType();
+			auto done = SendCommand(RadioCommand::QueryReadiness)
+				&& pLink->Health == pLinkType->Strength;
+
+			if (!done)
+			{
+				// check if docked
+				auto const miss = pLink->GetCurrentMission();
+				if (miss == Mission::Enter
+					|| !SendCommand(RadioCommand::QueryMoving))
+				{
+					continue;
+				}
+
+				keep_reloading = true;
+
+				// make the unit sleep first
+				if (miss != Mission::Sleep)
+				{
+					pLink->QueueMission(Mission::Sleep, false);
+					continue;
+				}
+
+				// check whether the timer completed
+				auto const last_timer = pExt->DockReloadTimers[i];
+				if (last_timer > Unsorted::CurrentFrame)
+				{
+					continue;
+				}
+
+				// set the next frame
+				auto const pLinkExt = TechnoTypeExt::ExtMap.Find(pLinkType);
+				auto const defaultRate = RulesClass::Instance->ReloadRate;
+				auto const rate = pLinkExt->ReloadRate.Get(defaultRate);
+				auto const frames = static_cast<int>(rate * 900);
+				pExt->DockReloadTimers[i] = Unsorted::CurrentFrame + frames;
+
+				// only reload if the timer was not outdated
+				if (last_timer != Unsorted::CurrentFrame)
+				{
+					continue;
+				}
+
+				// reload and repair, return true if both failed
+				done = !SendCommand(RadioCommand::RequestReload)
+					&& !SendCommand(RadioCommand::RequestRepair);
+			}
+
+			if (done)
+			{
+				pLink->EnterIdleMode(false, 1);
+				pLink->ForceMission(Mission::Guard);
+				pLink->ProceedToNextPlanningWaypoint();
+
+				pExt->DockReloadTimers[i] = -1;
+			}
+		}
+	}
+
+	if (keep_reloading)
+	{
+		// update each frame
+		R->EAX(1);
+	}
+	else
+	{
+		pThis->QueueMission(Mission::Guard, false);
+		R->EAX(3);
+	}
+
+	return 0x44C968;
+}
+
+DEFINE_OVERRIDE_HOOK(0x444DBC, BuildingClass_KickOutUnit_Infantry, 5)
+{
+	GET(TechnoClass*, Production, EDI);
+	GET(BuildingClass*, Factory, ESI);
+
+	// turn it off
+	--Unsorted::ScenarioInit;
+
+	TechnoExt_ExtData::KickOutClones(Factory, Production);
+
+	// turn it back on so the game can turn it off again
+	++Unsorted::ScenarioInit;
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4445F6, BuildingClass_KickOutUnit_Clone_NonNavalUnit, 5)
+{
+	GET(TechnoClass*, Production, EDI);
+	GET(BuildingClass*, Factory, ESI);
+
+	// turn it off
+	--Unsorted::ScenarioInit;
+
+	TechnoExt_ExtData::KickOutClones(Factory, Production);
+
+	// turn it back on so the game can turn it off again
+	++Unsorted::ScenarioInit;
+
+	return 0x444971;
+}
+
+DEFINE_OVERRIDE_HOOK(0x44441A, BuildingClass_KickOutUnit_Clone_NavalUnit, 6)
+{
+	GET(TechnoClass*, Production, EDI);
+	GET(BuildingClass*, Factory, ESI);
+
+	TechnoExt_ExtData::KickOutClones(Factory, Production);
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4444E2, BuildingClass_KickOutUnit_FindAlternateKickout, 6)
+{
+	GET(BuildingClass*, Src, ESI);
+	GET(BuildingClass*, Tst, EBP);
+	GET(TechnoClass*, Production, EDI);
+
+	if (Src != Tst
+	 && Tst->GetCurrentMission() == Mission::Guard
+	 && Tst->Type->Factory == Src->Type->Factory
+	 && Tst->Type->Naval == Src->Type->Naval
+	 && TechnoTypeExt::CanBeBuiltAt(Production->GetTechnoType(), Tst->Type)
+	 && !Tst->Factory)
+	{
+		return 0x44451F;
+	}
+
+	return 0x444508;
+}
+
+// copy the remaining EMP duration to the unit when undeploying a building.
+DEFINE_OVERRIDE_HOOK(0x44A04C, BuildingClass_Unload_CopyEMPDuration, 6)
+{
+	GET(TechnoClass*, pBuilding, EBP);
+	GET(TechnoClass*, pUnit, EBX);
+
+	// reuse the EMP duration of the deployed/undeployed Techno.
+	pUnit->EMPLockRemaining = pBuilding->EMPLockRemaining;
+	AresEMPulse::UpdateSparkleAnim(pUnit, pBuilding);
+
+	return 0;
+}
 
 DEFINE_OVERRIDE_HOOK(0x69281E, DisplayClass_ChooseAction_TogglePower, 0xA) {
 	GET(TechnoClass*, pTarget, ESI);

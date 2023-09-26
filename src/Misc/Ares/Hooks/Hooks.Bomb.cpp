@@ -39,6 +39,14 @@ DEFINE_DISABLE_HOOK(0x438e86, BombListClass_Plant_AllTechnos_ares)
 DEFINE_DISABLE_HOOK(0x438FD7 , BombListClass_Plant_AttachSound_ares)//, 7 , 439022);
 DEFINE_JUMP(LJMP, 0x438FD7, 0x439022);
 
+// #896027: do not announce pointers as expired to bombs
+// if the pointed to object is staying in-game.
+DEFINE_OVERRIDE_HOOK(0x725961, AnnounceInvalidPointer_BombCloak, 0x6)
+{
+	GET(bool, remove, EDI);
+	return remove ? 0 : 0x72596C;
+}
+
 DEFINE_OVERRIDE_HOOK(0x438A00, BombClass_GetCurrentFrame, 6)
 {
 	GET(BombClass*, pThis, ECX);

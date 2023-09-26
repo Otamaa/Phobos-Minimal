@@ -12,6 +12,9 @@
 //DEFINE_DISABLE_HOOK(0x615BD3, Handle_Static_Messages_LoopingMovie_ares)
 
 
+DEFINE_DISABLE_HOOK(0x41BE80, ObjectClass_DrawRadialIndicator_ares)
+DEFINE_DISABLE_HOOK(0x6FC339, TechnoClass_GetFireError_OpenToppedGunnerTemporal_ares)
+
 DEFINE_DISABLE_HOOK(0x6F5388, TechnoClass_DrawExtras_Submerged_ares)
 DEFINE_DISABLE_HOOK(0x468379, BulletClass_DrawSHP_SetAnimPalette_ares)
 
@@ -45,40 +48,43 @@ DEFINE_DISABLE_HOOK(0x47C8AB, CellClass_CanThisExistHere_GateOnWall_ares)
 
 DEFINE_DISABLE_HOOK(0x52CA37, InitGame_Delay_ares)
 
-DEFINE_DISABLE_HOOK(0x42784B, AnimTypeClass_CTOR_ares)
-DEFINE_DISABLE_HOOK(0x428EA8, AnimTypeClass_SDDTOR_ares)
-DEFINE_DISABLE_HOOK(0x428970, AnimTypeClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x428800, AnimTypeClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x42892C, AnimTypeClass_Load_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x428958, AnimTypeClass_Load_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x42898A, AnimTypeClass_Save_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x4287E9, AnimTypeClass_LoadFromINI_ares)
-DEFINE_DISABLE_HOOK(0x4287DC, AnimTypeClass_LoadFromINI_ares)
-DEFINE_DISABLE_HOOK(0x721876, TiberiumClass_CTOR_ares)
-DEFINE_DISABLE_HOOK(0x72193A, TiberiumClass_DTOR_ares)
-DEFINE_DISABLE_HOOK(0x7220D0, TiberiumClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x721E80, TiberiumClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x72208C, TiberiumClass_Load_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x72212C, TiberiumClass_Save_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x721CDC, TiberiumClass_LoadFromINI_ares)
-DEFINE_DISABLE_HOOK(0x721CE9, TiberiumClass_LoadFromINI_ares)
-DEFINE_DISABLE_HOOK(0x721C7B, TiberiumClass_LoadFromINI_ares)
+//DEFINE_DISABLE_HOOK(0x42784B, AnimTypeClass_CTOR_ares)
+//DEFINE_DISABLE_HOOK(0x428EA8, AnimTypeClass_SDDTOR_ares)
+//DEFINE_DISABLE_HOOK(0x428970, AnimTypeClass_SaveLoad_Prefix_ares)
+//DEFINE_DISABLE_HOOK(0x428800, AnimTypeClass_SaveLoad_Prefix_ares)
+//DEFINE_DISABLE_HOOK(0x42892C, AnimTypeClass_Load_Suffix_ares)
+//DEFINE_DISABLE_HOOK(0x428958, AnimTypeClass_Load_Suffix_ares)
+//DEFINE_DISABLE_HOOK(0x42898A, AnimTypeClass_Save_Suffix_ares)
+//DEFINE_DISABLE_HOOK(0x4287E9, AnimTypeClass_LoadFromINI_ares)
+//DEFINE_DISABLE_HOOK(0x4287DC, AnimTypeClass_LoadFromINI_ares)
+
+//DEFINE_DISABLE_HOOK(0x721876, TiberiumClass_CTOR_ares)
+//DEFINE_DISABLE_HOOK(0x72193A, TiberiumClass_DTOR_ares)
+//DEFINE_DISABLE_HOOK(0x7220D0, TiberiumClass_SaveLoad_Prefix_ares)
+//DEFINE_DISABLE_HOOK(0x721E80, TiberiumClass_SaveLoad_Prefix_ares)
+//DEFINE_DISABLE_HOOK(0x72208C, TiberiumClass_Load_Suffix_ares)
+//DEFINE_DISABLE_HOOK(0x72212C, TiberiumClass_Save_Suffix_ares)
+//DEFINE_DISABLE_HOOK(0x721CDC, TiberiumClass_LoadFromINI_ares)
+//DEFINE_DISABLE_HOOK(0x721CE9, TiberiumClass_LoadFromINI_ares)
+//DEFINE_DISABLE_HOOK(0x721C7B, TiberiumClass_LoadFromINI_ares)
+
 DEFINE_DISABLE_HOOK(0x5F4FF9, ObjectClass_Put_IsFlammable_ares)
 
 DEFINE_DISABLE_HOOK(0x6F407D, TechnoClass_Init_1_ares);
 DEFINE_DISABLE_HOOK(0x6F4103, TechnoClass_Init_2_ares);
 DEFINE_DISABLE_HOOK(0x65B5FB, RadSiteClass_Radiate_UnhardcodeSnow_ares)
 
-// still used by prism support thingy
-DEFINE_DISABLE_HOOK(0x771ee9, WeaponTypeClass_CTOR_ares)
-DEFINE_DISABLE_HOOK(0x7729b0, WeaponTypeClass_LoadFromINI_ares)
-DEFINE_DISABLE_HOOK(0x7729c7, WeaponTypeClass_LoadFromINI_ares)
-DEFINE_DISABLE_HOOK(0x7729d6, WeaponTypeClass_LoadFromINI_ares)
-DEFINE_DISABLE_HOOK(0x772cd0, WeaponTypeClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x772ea6, WeaponTypeClass_Load_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x772eb0, WeaponTypeClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x772f8c, WeaponTypeClass_Save_ares)
-DEFINE_DISABLE_HOOK(0x77311d, WeaponTypeClass_SDDTOR_ares)
+DEFINE_DISABLE_HOOK(0x55afb3, LogicClass_Update_ares)
+
+//DEFINE_DISABLE_HOOK(0x771ee9, WeaponTypeClass_CTOR_ares)
+//DEFINE_DISABLE_HOOK(0x7729b0, WeaponTypeClass_LoadFromINI_ares)
+//DEFINE_DISABLE_HOOK(0x7729c7, WeaponTypeClass_LoadFromINI_ares)
+//DEFINE_DISABLE_HOOK(0x7729d6, WeaponTypeClass_LoadFromINI_ares)
+//DEFINE_DISABLE_HOOK(0x772cd0, WeaponTypeClass_SaveLoad_Prefix_ares)
+//DEFINE_DISABLE_HOOK(0x772ea6, WeaponTypeClass_Load_Suffix_ares)
+//DEFINE_DISABLE_HOOK(0x772eb0, WeaponTypeClass_SaveLoad_Prefix_ares)
+//DEFINE_DISABLE_HOOK(0x772f8c, WeaponTypeClass_Save_ares)
+//DEFINE_DISABLE_HOOK(0x77311d, WeaponTypeClass_SDDTOR_ares)
 
 // still used by AE ,
 //DEFINE_DISABLE_HOOK(0x75d1a9, WarheadTypeClass_CTOR_ares)

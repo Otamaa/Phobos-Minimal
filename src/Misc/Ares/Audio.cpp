@@ -362,6 +362,40 @@ DEFINE_OVERRIDE_HOOK(0x48da3b , sub_48D1E0_PlayTaunt , 5)
 	return 0x48DAD3;
 }
 
+#include <ThemeClass.h>
+// skip theme log lines
+DEFINE_DISABLE_HOOK(0x720C42, Theme_PlaySong_DisableStopLog_ares) // skip Theme::Stop
+DEFINE_HOOK(0x720C3C, Theme_PlaySong_DisableStopLog, 0x6) // skip Theme::PlaySong
+{
+	GET(ThemeClass*, pThis, ESI);
+	R->ECX(pThis->Stream);
+	return 0x720C4D;
+}
+
+DEFINE_DISABLE_HOOK(0x720DE8, ThemeClass_PlaySong_DisablePlaySongLog_ares)
+DEFINE_HOOK(0x720DBF, ThemeClass_PlaySong_DisablePlaySongLog, 0x5)
+{
+	GET(ThemeClass*, pThis, ESI);
+	R->AL(pThis->IsScoreRepeat);
+	return 0x720DF3;
+}
+
+DEFINE_DISABLE_HOOK(0x720F37, ThemeClass_Stop_DisableStopLog_ares)
+DEFINE_HOOK(0x720F2E, ThemeClass_Stop_DisableStopLog, 0x9)
+{
+	GET(ThemeClass*, pThis, ESI);
+	R->ECX(pThis->Stream);
+	return 0x720F42;
+}
+
+DEFINE_DISABLE_HOOK(0x720A61, skip_Theme_AI_ares)
+DEFINE_HOOK(0x720A58, ThemeClass_AI_DisableLog, 0x6)
+{
+	GET(ThemeClass*, pThis, ESI);
+	pThis->QueuedTheme = R->EAX<int>();
+	return 0x720A69;
+}
+
 #ifndef DISABLE_AUDIO_OVERRIDE
 
 //DEFINE_HOOK(0x406B10, Audio_InitPhobosAudio, 0x6) {

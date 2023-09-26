@@ -107,27 +107,14 @@ void TheaterTypeClass::AddDefaults()
 	{
 		Array.reserve(Theater::Array.size());
 
-		for (size_t i = 0; i < Theater::Array.size(); ++i)
-		{
-			auto pTheater = Allocate(Theater::Array[i].Identifier);
+		for (size_t i = 0; i < Theater::Array.size(); ++i) {
 			Debug::Log("Allocating Default Theater [%s] ! \n", Theater::Array[i].Identifier);
-			pTheater->UIName = Theater::Array[i].UIName;
-			pTheater->ControlFileName = Theater::Array[i].ControlFileName;
-			pTheater->ArtFileName = Theater::Array[i].ArtFileName;
-			pTheater->Extension = Theater::Array[i].Extension;
-			pTheater->PaletteFileName = Theater::Array[i].PaletteFileName;
-			pTheater->MMExtension = Theater::Array[i].MMExtension;
-			pTheater->Letter = Theater::Array[i].Letter;
-			pTheater->IsArctic = i == (size_t)TheaterType::Snow;
-			const bool bDisallowed = i == (size_t)TheaterType::NewUrban || i == (size_t)TheaterType::Lunar;
-			pTheater->IsAllowedInMapGenerator = !bDisallowed;
-			pTheater->LowRadarBrightness1 = Theater::Array[i].RadarTerrainBrightness;
-			pTheater->HighRadarBrightness = Theater::Array[i].RadarTerrainBrightnessAtMaxLevel;
-			pTheater->unknown_float_60 = Theater::Array[i].unknown_float_60;
-			pTheater->unknown_float_64 = Theater::Array[i].unknown_float_64;
-			pTheater->unknown_int_68 = Theater::Array[i].unknown_int_68;
-			pTheater->unknown_int_6C = Theater::Array[i].unknown_int_6C;
-			pTheater->FallbackTheaterExtension = Theater::Array[0].Extension;
+			AllocateWithDefault(
+				Theater::Array[i].Identifier ,
+				Theater::Array[i] ,
+				i == (size_t)TheaterType::Snow ,
+				!(i == (size_t)TheaterType::NewUrban || i == (size_t)TheaterType::Lunar)
+			);
 		}
 	}
 }

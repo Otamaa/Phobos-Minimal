@@ -21,3 +21,20 @@ void PhobosGlobal::PointerGotInvalid(AbstractClass* ptr, bool removed)
 {
 
 }
+
+bool PhobosGlobal::SaveGlobals(PhobosStreamWriter& stm) { return PhobosGlobal::Instance()->Serialize(stm); }
+bool PhobosGlobal::LoadGlobals(PhobosStreamReader& stm)
+{
+
+	if (PhobosGlobal::Instance()->Serialize(stm))
+	{
+
+#ifdef ENABLE_FOUNDATIONHOOK
+		MouseClass::Instance->CurrentFoundation_Data = Instance()->TempFoundationData1.data();
+		MouseClass::Instance->CurrentFoundationCopy_Data = Instance()->TempFoundationData2.data();
+#endif
+		return true;
+	}
+
+	return false;
+}

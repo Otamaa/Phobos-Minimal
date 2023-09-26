@@ -45,6 +45,12 @@ DEFINE_DISABLE_HOOK(0x71f94a, TEventClass_Save_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x71faa6, TEventClass_SDDTOR_ares)
 DEFINE_DISABLE_HOOK(0x6e1780, TActionClass_PlayAudioAtRandomWP_ares)
 
+DEFINE_OVERRIDE_HOOK(0x6E20D8, TActionClass_DestroyAttached_Loop, 0x5)
+{
+	GET(int, nLoopVal, EAX);
+	return nLoopVal < 4 ? 0x6E20E0 : 0x0;
+}
+
 DEFINE_OVERRIDE_HOOK(0x6DE0D3, TActionClass_Execute_MessageColor, 6)
 {
 	int idxColor = 0;

@@ -13,6 +13,7 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/WarheadType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/HouseType/Body.h>
@@ -49,24 +50,106 @@ bool KeepThisAlive(HouseClass* pHouse, TechnoClass* pTech, AbstractType what, ui
 	return ret;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4ff563, HouseClass_RegisterTechnoLoss_StatCounters_KeepAlive, 6)
+// break short game ?
+//DEFINE_OVERRIDE_HOOK(0x4ff563, HouseClass_RegisterTechnoLoss_StatCounters_KeepAlive, 6)
+//{
+//	GET(TechnoClass*, pTech, ESI);
+//	GET(HouseClass*, pThis, EDI);
+//	const auto what = pTech->WhatAmI();
+//	const bool Keep = KeepThisAlive(pThis, pTech, what, 0);
+//	R->EAX(what);
+//	return Keep ? 0x4FF596 : 0x4FF6CE;
+//}
+//
+//DEFINE_OVERRIDE_HOOK(0x4ff71b, HouseClass_RegisterTechnoGain_StatCounters_KeepAlive, 6)
+//{
+//	GET(TechnoClass*, pTech, ESI);
+//	GET(HouseClass*, pThis, EDI);
+//	const auto what = pTech->WhatAmI();
+//	const bool Keep = KeepThisAlive(pThis, pTech, what, 1u);
+//	R->EAX(what);
+//	return Keep ? 0x4FF748 : 0x4FF8C6;
+//}
+
+DEFINE_OVERRIDE_HOOK(0x506306, HouseClass_FindPlaceToBuild_Evaluate, 6)
 {
-	GET(TechnoClass*, pTech, ESI);
-	GET(HouseClass*, pThis, EDI);
-	const auto what = pTech->WhatAmI();
-	const bool Keep = KeepThisAlive(pThis, pTech, what, 0);
-	R->EAX(what);
-	return Keep ? 0x4FF596 : 0x4FF6CE;
+	GET(BuildingTypeClass*, pBuilding, EDX);
+	auto pEXt = BuildingTypeExt::ExtMap.Find(pBuilding);
+	R->CL(pEXt->AIInnerBase.Get(pBuilding->CloakGenerator));
+	return 0x50630C;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4ff71b, HouseClass_RegisterTechnoGain_StatCounters_KeepAlive, 6)
+DEFINE_OVERRIDE_HOOK(0x4F94A5, HouseClass_BuildingUnderAttack, 6)
 {
-	GET(TechnoClass*, pTech, ESI);
-	GET(HouseClass*, pThis, EDI);
-	const auto what = pTech->WhatAmI();
-	const bool Keep = KeepThisAlive(pThis, pTech, what, 1u);
-	R->EAX(what);
-	return Keep ? 0x4FF748 : 0x4FF8C6;
+	GET(BuildingClass*, pSource, ESI);
+
+	if (auto pWh = std::exchange(BuildingExt::ExtMap.Find(pSource)->ReceiveDamageWarhead, nullptr))
+	{
+		if (!WarheadTypeExt::ExtMap.Find(pWh)->Malicious)
+		{
+			return 0x4F95D4;
+		}
+	}
+
+	return 0;
+}
+
+// drain affecting only the drained power plant
+DEFINE_OVERRIDE_HOOK(0x508D32, HouseClass_UpdatePower_LocalDrain1, 5)
+{
+	GET(HouseClass*, pThis, ESI);
+	GET(BuildingClass*, pBld, EDI);
+
+	bool fullDrain = true;
+
+	auto output = pBld->GetPowerOutput();
+
+	if (output > 0)
+	{
+		auto pBldTypeExt = TechnoTypeExt::ExtMap.Find(pBld->Type);
+		auto pDrainTypeExt = TechnoTypeExt::ExtMap.Find(pBld->DrainingMe->GetTechnoType());
+
+		// local, if any of the participants in the drain is local
+		if (pBldTypeExt->Drain_Local || pDrainTypeExt->Drain_Local)
+		{
+			fullDrain = false;
+
+			// use the sign to select min or max.
+			// 0 means no change (maximum of 0 and a positive value)
+			auto limit = [](int value, int limit)
+				{
+					if (limit <= 0)
+					{
+						return MaxImpl(value, -limit);
+					}
+					else
+					{
+						return MinImpl(value, limit);
+					}
+				};
+
+			// drains the entire output of this building by default
+			// (the local output). building has the last word though.
+			auto drain = limit(output, pDrainTypeExt->Drain_Amount);
+			drain = limit(drain, pBldTypeExt->Drain_Amount);
+
+			if (drain > 0)
+			{
+				pThis->PowerOutput -= drain;
+			}
+		}
+	}
+
+	return fullDrain ? 0 : 0x508D37;
+}
+
+// replaced the entire function, to have one centralized implementation
+DEFINE_OVERRIDE_HOOK(0x5051E0, HouseClass_FirstBuildableFromArray, 5)
+{
+	GET(HouseClass*, pThis, ECX);
+	GET_STACK(const DynamicVectorClass<BuildingTypeClass*>*const, pList, 0x4);
+	R->EAX(HouseExt::FindBuildable(pThis, pThis->Type->FindParentCountryIndex(), make_iterator(*pList)));
+	return 0x505300;
 }
 
 DEFINE_OVERRIDE_HOOK(0x688B37, MPGameModeClass_CreateStartingUnits_B, 5)

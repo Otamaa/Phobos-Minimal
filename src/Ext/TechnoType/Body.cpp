@@ -1003,6 +1003,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->Cloneable.Read(exINI, pSection, "Cloneable");
 		this->ClonedAt.Read(exINI, pSection, "ClonedAt", true);
 		this->ClonedAs.Read(exINI, pSection, "ClonedAs", true);
+		this->AI_ClonedAs.Read(exINI, pSection, "AI.ClonedAs", true);
 		this->BuiltAt.Read(exINI, pSection, "BuiltAt");
 		this->EMP_Sparkles.Read(exINI, pSection, "EMP.Sparkles");
 		this->EMP_Modifier.Read(exINI, pSection, "EMP.Modifier");
@@ -1994,10 +1995,10 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->IsBomb)
 		.Process(this->ParachuteAnim)
 
-		.Process(this->ClonedAs)
 		.Process(this->Cloneable)
 		.Process(this->ClonedAt)
 		.Process(this->ClonedAs)
+		.Process(this->AI_ClonedAs)
 		.Process(this->BuiltAt)
 		.Process(this->EMP_Sparkles)
 		.Process(this->EMP_Modifier)

@@ -15,18 +15,20 @@ struct DoStruct
 };
 
 //static_assert(sizeof(DoStruct) == 0x4);
+struct DoInfoSound
+{
+	int StartFrame { 0 };
+	int Index { -1 };
+};
 
 struct DoInfoStruct
 {
-	int StartFrame; //8
-	int CountFrames; //12
-	int FacingMultiplier; //16
-	DoTypeFacing Facing; //20
-	int SoundCount; //24
-	int Sound1StartFrame; //28
-	int Sound1Index; // 32,  VocClass
-	int Sound2StartFrame; //36
-	int Sound2Index; // 40 ,VocClass
+	int StartFrame { 0 }; //8
+	int CountFrames { 0 }; //12
+	int FacingMultiplier { 0 }; //16
+	DoTypeFacing Facing { DoTypeFacing::None }; //20
+	int SoundCount { 0 }; //24
+	DoInfoSound SoundData[2] {};
 };
 
 //static_assert(sizeof(DoInfoStruct) == 0x24);
@@ -34,21 +36,44 @@ struct DoInfoStruct
 
 struct DoControls
 {
+	constexpr void __forceinline Initialize()
+	{
+		for (auto at = this->begin(); at != this->end(); ++at)
+		{
+			at->StartFrame = 0;
+			at->CountFrames = 0;
+			at->FacingMultiplier = 0;
+			at->Facing = DoTypeFacing::None;
+			at->SoundCount = 0;
+			at->SoundData[0].Index = -1;
+			at->SoundData[0].StartFrame = 0;
+			at->SoundData[1].Index = -1;
+			at->SoundData[1].StartFrame = 0;
+		}
+	}
+
 	static inline constexpr int MaxCount = 42;
 	static constexpr reference<DoStruct, 0x7EAF7Cu, MaxCount> const MasterArray { };
 	static constexpr reference<const char*, 0x8255C8u, MaxCount> const DoType_toStr { };
+
+	static const char* GetSequenceName(DoType sequence) {
+		return DoType_toStr[(int)sequence];
+	}
 
 	DoInfoStruct GetSequence(DoType sequence) const {
 		return this->Data[(int)sequence];
 	}
 
-	DoInfoStruct GetSequence(DoType sequence) {
+	DoInfoStruct& GetSequence(DoType sequence) {
 		return this->Data[(int)sequence];
 	}
 
-	static DoStruct& GetSequenceData(DoType sequence) {
-		return MasterArray[(int)sequence];
+	static DoStruct* GetSequenceData(DoType sequence) {
+		return MasterArray.begin() + (int)sequence;
 	}
+
+	constexpr DoInfoStruct* begin() { return std::begin(Data); }
+	constexpr DoInfoStruct* end() { return std::end(Data); }
 
 	DoInfoStruct Data[MaxCount];
 };

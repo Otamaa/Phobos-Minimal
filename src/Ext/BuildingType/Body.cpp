@@ -81,8 +81,7 @@ void BuildingTypeExt::ExtData::UpdateFoundationRadarShape()
 			// fill the line
 			for (int j = start; j <= end; ++j)
 			{
-				Point2D pixel = { j, i };
-				this->FoundationRadarShape.AddItem(pixel);
+				this->FoundationRadarShape.EmpalaceItem(j, i);
 			}
 		}
 	}
@@ -119,6 +118,7 @@ void BuildingTypeExt::ExtData::CompleteInitialization()
 			"BuildingType %s and its %s %s don't have the same foundation.",
 			pThis->ID, "Rubble.Destroyed", this->RubbleDestroyed->ID);
 	}
+
 	if (this->RubbleIntact &&
 		!BuildingTypeExt::ExtData::IsFoundationEqual(pThis, this->RubbleIntact))
 	{

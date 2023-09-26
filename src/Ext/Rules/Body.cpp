@@ -243,8 +243,13 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		}
 
 		if (pExt->ClonedAs.Get(nullptr) && pExt->ClonedAs->WhatAmI() != what) {
-			Debug::Log("[%s - %s] has CloneAs but it different ClassType from it!\n", pItem->ID, myClassName);
+			Debug::Log("[%s - %s] has ClonedAs but it different ClassType from it!\n", pItem->ID, myClassName);
 			pExt->ClonedAs.Reset();
+		}
+
+		if (pExt->AI_ClonedAs.Get(nullptr) && pExt->AI_ClonedAs->WhatAmI() != what) {
+			Debug::Log("[%s - %s] has AI.ClonedAs but it different ClassType from it!\n", pItem->ID, myClassName);
+			pExt->AI_ClonedAs.Reset();
 		}
 
 		if (pExt->ReversedAs.Get(nullptr) && pExt->ReversedAs->WhatAmI() != what) {

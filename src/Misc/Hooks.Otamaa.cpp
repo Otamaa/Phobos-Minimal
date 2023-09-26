@@ -329,7 +329,7 @@ DEFINE_HOOK(0x47C89C, CellClass_CanThisExistHere_SomethingOnWall, 0x6)
 	return Status;
 }
 
-DEFINE_HOOK(0x4FE546, BuildingClass_AI_WallTowers, 0x6)
+DEFINE_HOOK(0x4FE546, HouseClass_BuildingClass_AI_WallTowers, 0x6)
 {
 	GET(BuildingTypeClass* const, pThis, EAX);
 	const auto& Nvec = RulesExt::Global()->WallTowers;
@@ -630,6 +630,7 @@ DEFINE_HOOK(0x6F8260, TechnoClass_EvalObject_LegalTarget_AI, 0x6)
 		SetAL = 0x6F8266,
 	};
 
+	GET(TechnoClass* const , pThis , EDI);
 	GET(TechnoClass* const, pTarget, ESI);
 	GET(TechnoTypeClass* const, pTargetType, EBP);
 
@@ -637,7 +638,7 @@ DEFINE_HOOK(0x6F8260, TechnoClass_EvalObject_LegalTarget_AI, 0x6)
 
 	if (pTypeExt->AI_LegalTarget.isset())
 	{
-		if (pTarget->Owner && pTarget->Owner->IsControlledByHuman())
+		if (pThis->Owner && pThis->Owner->IsControlledByHuman_())
 			return Continue;
 
 		return pTypeExt->AI_LegalTarget.Get() ?
@@ -2313,10 +2314,30 @@ DEFINE_HOOK(0x481180, CellClass_GetInfantrySubPos_InvalidCellPointer, 0x5)
 	return retContinue;
 }
 
-DEFINE_HOOK(0x520E75, InfantryClass_SequenceAI_PreventOutOfBoundArrayRead, 0x6)
+DEFINE_HOOK(0x520E75, InfantryClass_SequenceAI_Sounds, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
-	return (int)pThis->SequenceAnim == -1 ? 0x520EF4 : 0x0;
+
+	const int doType = (int)pThis->SequenceAnim;
+
+	// out of bound read fix
+	if (doType == -1)
+		return 0x520EF4;
+
+	const auto pSeq = &pThis->Type->Sequence->Data[doType];
+
+	for (int i = 0; i < pSeq->SoundCount; ++i) {
+		for (auto at = pSeq->SoundData; at != (&pSeq->SoundData[2]); ++at) {
+			if (pThis->Animation.HasChanged && at->Index != -1) {
+				const int count = pSeq->CountFrames < 1 ? 1 : pSeq->CountFrames;
+				if (pThis->Animation.Value % count == at->StartFrame) {
+					VoxClass::PlayAtPos(at->Index, &pThis->Location);
+				}
+			}
+		}
+	}
+
+	return 0x520EF4;
 }
 
 DEFINE_HOOK(0x5194EF, InfantryClass_DrawIt_InAir_NoShadow, 5)
@@ -3078,6 +3099,103 @@ DEFINE_HOOK(0x707CF2, TechnoClass_KillCargo_FixKiller, 0x8)
 
 	pCargo->KillCargo(pKiller);
 	return 0x707CFA;
+}
+
+#include <Commands/ShowTeamLeader.h>
+
+DEFINE_HOOK(0x6D47A6, TacticalClass_Render_Techno, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	// if(auto pTargetTech = generic_cast<ObjectClass*>(pThis))
+	// 		Drawing::DrawLinesTo(pTargetTech->GetRenderCoords(), pThis->Location, pThis->Owner->LaserColor);
+
+	if (pThis->InLimbo)
+		return 0x0;
+
+	if (auto const pOwner = pThis->SlaveOwner)
+	{
+		if (!pOwner->IsSelected)
+			return 0x0;
+
+		Drawing::DrawLinesTo(pOwner->GetRenderCoords(), pThis->Location, pOwner->Owner->Color);
+	}
+
+	if (Phobos::Otamaa::IsAdmin)
+	{
+		if (auto const pOwner = pThis->SpawnOwner)
+		{
+			if (!pOwner->IsSelected)
+				return 0x0;
+
+			Drawing::DrawLinesTo(pOwner->GetRenderCoords(), pThis->Location, pOwner->Owner->Color);
+		}
+	}
+
+	if (ShowTeamLeaderCommandClass::IsActivated())
+	{
+		if (auto const pFoot = generic_cast<FootClass*>(pThis))
+		{
+			if (!pFoot->BelongsToATeam())
+				return 0x0;
+
+			if (auto pTeam = pFoot->Team)
+			{
+				if (auto const pTeamLeader = pTeam->FetchLeader())
+				{
+
+					if (pTeamLeader != pFoot)
+						Drawing::DrawLinesTo(pTeamLeader->GetRenderCoords(), pThis->Location, pTeamLeader->Owner->Color);
+				}
+			}
+		}
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x6F5190, TechnoClass_DrawIt_Add, 0x6)
+{
+	GET(TechnoClass*, pThis, ECX);
+	GET_STACK(Point2D*, pLocation, 0x4);
+	GET_STACK(RectangleStruct*, pBound, 0x8);
+
+	auto DrawTheStuff = [&pLocation, &pThis, &pBound](const wchar_t* pFormat)
+		{
+			auto nPoint = *pLocation;
+			//DrawingPart
+			RectangleStruct nTextDimension;
+			Drawing::GetTextDimensions(&nTextDimension, pFormat, nPoint, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, 4, 2);
+			auto nIntersect = Drawing::Intersect(nTextDimension, *pBound);
+			auto nColorInt = pThis->Owner->Color.ToInit();//0x63DAD0
+
+			DSurface::Temp->Fill_Rect(nIntersect, (COLORREF)0);
+			DSurface::Temp->Draw_Rect(nIntersect, (COLORREF)nColorInt);
+			Point2D nRet;
+			Simple_Text_Print_Wide(&nRet, pFormat, DSurface::Temp.get(), pBound, &nPoint, (COLORREF)nColorInt, (COLORREF)0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, true);
+		};
+
+	if (ShowTeamLeaderCommandClass::IsActivated())
+	{
+		if (auto const pFoot = generic_cast<FootClass*>(pThis))
+		{
+			if (auto pTeam = pFoot->Team)
+			{
+				if (auto const pTeamLeader = pTeam->FetchLeader())
+				{
+					if (pTeamLeader == pThis)
+					{
+						DrawTheStuff(L"Team Leader");
+					}
+				}
+			}
+		}
+	}
+
+	//if(pThis->IsTethered)
+	//	DrawTheStuff(L"IsTethered");
+
+	return 0x0;
 }
 
 //DEFINE_HOOK(0x407B60, AudioStreamer_Open_LogFileName, 0x5)

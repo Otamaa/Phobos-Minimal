@@ -46,4 +46,6 @@ public:
 	};
 
 	static ExtContainer ExtMap;
+
+	static std::pair<TechnoClass*, HouseClass*> GetOwnership(ParticleClass* pThis);
 };

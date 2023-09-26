@@ -199,6 +199,10 @@
     <ClCompile Include="src\Misc\Ares\Hooks\AresTrajectoryHelper.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Header.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hook.Init.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Classes\PrismForwarding.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Classes\PrismForwardingData.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hook.Prism.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hook.RadBeam.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Aircraft.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Alpha.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Ammo.cpp" />
@@ -242,10 +246,6 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.VXLArtData.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Wave.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Weapons.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Classes\PrismForwarding.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Classes\PrismForwardingData.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hook.RadBeam.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hook.Prism.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\Hooks.PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\ExtHooks\TechnoExt.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\FighterGuardArea\FighterAreaGuard.cpp" />
@@ -613,7 +613,6 @@
     <ClInclude Include="src\Utilities\VectorHelper.h" />
     <ClInclude Include="src\Utilities\VersesData.h" />
     <ClInclude Include="YRpp\GameTextManager.h" />
-    <ClInclude Include="YRpp\Timers.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\version.rc" />

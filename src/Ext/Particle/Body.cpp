@@ -1,9 +1,41 @@
 #include "Body.h"
 
-#include "../ParticleType/Body.h"
+#include "Ext/Bullet/Body.h"
+#include "Ext/ParticleType/Body.h"
 #include <Utilities/Macro.h>
 
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
+
+std::pair<TechnoClass*, HouseClass*> ParticleExt::GetOwnership(ParticleClass* pThis)
+{
+
+	TechnoClass* pAttacker = nullptr;
+	HouseClass* pOwner = nullptr;
+	BulletClass* pBullet = nullptr;
+
+	if (auto const pSystem = pThis->ParticleSystem)
+	{
+		if (auto pSystemOwner = pSystem->Owner)
+		{
+			if (((pSystemOwner->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None))
+				pAttacker = static_cast<TechnoClass*>(pSystemOwner);
+			else if (pSystemOwner->WhatAmI() == BulletClass::AbsID)
+			{
+				pBullet = static_cast<BulletClass*>(pSystemOwner);
+				pAttacker = static_cast<BulletClass*>(pSystemOwner)->Owner;
+			}
+
+		}
+
+		if (pAttacker)
+			pOwner = pAttacker->GetOwningHouse();
+		else if (pBullet)
+			pOwner = BulletExt::ExtMap.Find(pBullet)->Owner;
+	}
+
+	return { pAttacker , pOwner };
+}
+
 
 // =============================
 // load / save

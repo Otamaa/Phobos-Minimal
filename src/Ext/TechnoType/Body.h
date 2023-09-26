@@ -784,6 +784,7 @@ public:
 		Valueable<AnimTypeClass*> ParachuteAnim { nullptr };
 
 		Nullable<TechnoTypeClass*> ClonedAs {};
+		Nullable<TechnoTypeClass*> AI_ClonedAs {};
 		Valueable<bool> Cloneable { true };
 		ValueableVector<BuildingTypeClass*> ClonedAt {};
 		ValueableVector<BuildingTypeClass const*> BuiltAt {};

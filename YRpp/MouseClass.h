@@ -10,7 +10,6 @@ public:
 
 	static inline constexpr size_t DefaultCursorsCount = (size_t)MouseCursorType::count;
 	static constexpr reference<MouseCursor, 0x82D028u, (size_t)MouseCursorType::count> const DefaultCursors{};
-	static constexpr reference<MouseCursor, 0x82D028u, (size_t)MouseCursorType::count> const DefaultCursorsB {};
 
 	static MouseCursor& GetDefaultCursor(MouseCursorType cursor)
 		{ return DefaultCursors[static_cast<int>(cursor)]; }
@@ -65,6 +64,15 @@ public:
 		SmallFrameCount(miniCount), X(hotX), Y(hotY)
 	{ }
 
+	MouseCursor(const MouseCursor& other) : StartFrame(other.StartFrame)
+		, FrameCount(other.FrameCount)
+		, FrameRate(other.FrameRate)
+		, SmallFrame(other.SmallFrame)
+		, SmallFrameCount(other.SmallFrameCount)
+		, X(other.X)
+		, Y(other.Y)
+	{ }
+
 	~MouseCursor() noexcept = default;
 
 public:
@@ -96,6 +104,11 @@ struct MouseCursorDataStruct
 	{ }
 
 	~MouseCursorDataStruct() noexcept = default;
+
+	MouseCursorDataStruct& operator=(const MouseCursorDataStruct& other) {
+		std::memcpy(this, &other, sizeof(*this));
+		return *this;
+	}
 
 public:
 	MouseCursor OriginalData {};

@@ -352,6 +352,8 @@ public:
 
 	virtual int FindItemIndex(const T& item) const
 	{
+		static_assert(direct_comparable<T>, "Missing equality operator !");
+
 		if (!this->IsInitialized)
 		{
 			return 0;
@@ -567,12 +569,27 @@ public:
 		return this->Find(item) != this->end();
 	}
 
-	bool AddItem(T item)
+	bool AddItem(T&& item)
 	{
 		if (!this->IsValidArray())
 			return false;
 
 		this->Items[this->Count++] = std::move_if_noexcept(item);
+
+		return true;
+	}
+
+	template< class... Args >
+	void EmpalaceItem(Args&&... args) {
+		AddItem(T(std::forward<Args>(args)...));
+	}
+
+	bool AddItem(const T& item)
+	{
+		if (!this->IsValidArray())
+			return false;
+
+		this->Items[this->Count++] = item;
 
 		return true;
 	}

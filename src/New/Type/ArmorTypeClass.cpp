@@ -20,6 +20,7 @@ ArmorTypeClass::ArmorTypeClass(const char* const pTitle) : Enumerable<ArmorTypeC
 , PA_Tag {}
 , HitAnim_Tag {}
 {
+	//generate related tag when allocated to avoid using SNPRINTF , it lagging the game when huge amount of armor readed
 	char buffer[0x100];
 	IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s", pTitle);
 	BaseTag = buffer;

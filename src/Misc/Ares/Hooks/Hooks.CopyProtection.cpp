@@ -2,6 +2,28 @@
 
 bool NoCD = true;
 
+// this douchebag blows your base up when it thinks you're cheating
+DEFINE_OVERRIDE_SKIP_HOOK(0x55CFDF, CopyProtection_DontBlowMeUp, 0, 55D059);
+//DEFINE_JUMP(LJMP, 0x55CFDF, 0x55D059);
+
+DEFINE_OVERRIDE_HOOK(0x49F5C0, CopyProtection_IsLauncherRunning, 0x8)
+{
+	R->AL(1);
+	return 0x49F61A;
+}
+
+DEFINE_OVERRIDE_HOOK(0x49F620, CopyProtection_NotifyLauncher, 0x5)
+{
+	R->AL(1);
+	return 0x49F733;
+}
+
+DEFINE_OVERRIDE_HOOK(0x49F7A0, CopyProtection_CheckProtectedData, 0x8)
+{
+	R->AL(1);
+	return 0x49F8A7;
+}
+
 DEFINE_OVERRIDE_HOOK(0x47AE36, _YR_CDFileClass_SetFileName, 8)
 {
 	GET(void*, CDControl, EAX);

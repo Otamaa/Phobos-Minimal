@@ -56,7 +56,6 @@
 
 #include "AresNetEvent.h"
 
-
 static constexpr std::array<std::pair<const char*, const char*>, 17u> const SubName =
 { {
 	{"NormalTurretWeapon" , "NormalTurretIndex"},
@@ -1202,7 +1201,14 @@ void TechnoExt_ExtData::KickOutClones(BuildingClass* pFactory, TechnoClass* cons
 		return;
 	}
 
-	const auto ProductionTypeAs = ProductionTypeData->ClonedAs.Get(ProductionType);
+	const auto isPlayer = pFactory->Owner->IsControlledByHuman_();
+
+	auto ProductionTypeAs = ProductionType;
+	if(!isPlayer && ProductionTypeData->AI_ClonedAs.isset())
+		ProductionTypeAs = ProductionTypeData->AI_ClonedAs;
+	else if (ProductionTypeData->ClonedAs.isset())
+		ProductionTypeAs = ProductionTypeData->ClonedAs;
+
 	auto const FactoryOwner = pFactory->Owner;
 	auto const& CloningSources = ProductionTypeData->ClonedAt;
 	auto const IsUnit = (FactoryType->Factory != InfantryTypeClass::AbsID);
@@ -1799,7 +1805,7 @@ bool TechnoExt_ExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 		{
 
 			// techno ineligible
-			if (i->Health < 0 || i->InLimbo || !i->IsAlive || i->CloakState == CloakState::Cloaked)
+			if (i->Health < 0 || i->InLimbo || !i->IsAlive)
 			{
 				continue;
 			}
@@ -1824,16 +1830,14 @@ bool TechnoExt_ExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 			// type prevents this being a target
 			auto const pType = i->GetTechnoType();
 
-			if (pType->Invisible || !pType->LegalTarget)
-			{
-				continue;
-			}
-
 			// is type to be ignored?
 			auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
 
-			if (pExt->HunterSeekerIgnore)
-			{
+			if (pType->Invisible
+			|| (pExt->AI_LegalTarget.isset() && !isHumanControlled && !pExt->AI_LegalTarget.Get())
+			|| !pType->LegalTarget
+			|| pExt->HunterSeekerIgnore
+			) {
 				continue;
 			}
 
@@ -1886,16 +1890,16 @@ bool TechnoExt_ExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 			}
 		}
 
-		auto const& targets = !preferredTargets.empty() ? preferredTargets : randomTargets;
+		auto const targets = &(preferredTargets.size() > 0 ? preferredTargets : randomTargets);
 
-		if (auto const count = static_cast<int>(targets.size()))
+		if (auto const count = targets->size())
 		{
 
 			// that's our target
 			pThis->SetTarget
-			(targets[count > 1 ?
-				0 : ScenarioClass::Instance->Random.RandomFromMax(count - 1)
-			]);
+			(*(targets->data() + (size_t(count == 1 ?
+				0 : ScenarioClass::Instance->Random.RandomFromMax(count - 1)))
+			));
 			return true;
 		}
 	}
@@ -2715,7 +2719,7 @@ BuildingClass* TechnoExt_ExtData::CreateBuilding(
 
 		if (!res)
 		{
-			TechnoExt::HandleRemove(pRet, nullptr, true, true);
+			TechnoExt::HandleRemove(pRet, nullptr, true, false);
 			pRet = nullptr;
 		}
 	}
@@ -3014,7 +3018,6 @@ bool TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* pToTy
 #endif
 }
 
-#pragma optimize("", off )
 void TechnoExt_ExtData::RecalculateStat(TechnoClass* pThis)
 {
 #ifndef New_funcs
@@ -3051,7 +3054,69 @@ void TechnoExt_ExtData::RecalculateStat(TechnoClass* pThis)
 	AresData::RecalculateStat(pThis);
 #endif
 }
-#pragma optimize("", on)
+
+int TechnoExt_ExtData::GetSelfHealAmount(TechnoClass* pThis) {
+
+	auto const pType = pThis->GetTechnoType();
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
+
+	if (pType->SelfHealing || pThis->HasAbility(AbilityType::SelfHeal))
+	{
+		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+		if (pExt->SelfHealing_CombatDelay.GetTimeLeft())
+			return 0x0;
+
+		const auto rate = pTypeExt->SelfHealing_Rate.Get(
+			RulesClass::Instance->RepairRate);
+
+		const auto frames = MaxImpl(int(rate * 900.0), 1);
+
+		if (Unsorted::CurrentFrame % frames == 0)
+		{
+			const auto strength = pType->Strength;
+
+			const auto percent = pTypeExt->SelfHealing_Max.Get(pThis);
+			const auto maxHealth = std::clamp(int(percent * strength), 1, strength);
+			const auto health = pThis->Health;
+
+			if (health < maxHealth)
+			{
+				const auto amount = pTypeExt->SelfHealing_Amount.Get(pThis);
+				return std::clamp(amount, 0, maxHealth - health);
+			}
+		}
+	}
+
+	return 0;
+}
+
+void TechnoExt_ExtData::SpawnVisceroid(CoordStruct& crd, UnitTypeClass* pType, int chance, bool ignoreTibDeathToVisc) {
+
+	bool created = false;
+
+	// create a small visceroid if available and the cell is free
+	// dont create if `pType` is 0 strength because it is not properly listed
+	if (ignoreTibDeathToVisc || ScenarioClass::Instance->TiberiumDeathToVisceroid || (pType && pType->Strength > 0))
+	{
+		const auto pCell = MapClass::Instance->GetCellAt(crd);
+
+		if (!(pCell->OccupationFlags & 0x20) && ScenarioClass::Instance->Random.RandomFromMax(99) < chance)
+		{
+			if (auto pVisc = (UnitClass*)pType->CreateObject(HouseExt::FindNeutral()))
+			{
+				++Unsorted::ScenarioInit;
+				created = pVisc->Unlimbo(crd, DirType::North);
+				--Unsorted::ScenarioInit;
+
+				if (!created)
+				{
+					TechnoExt::HandleRemove(pVisc, nullptr, true, true);
+				}
+			}
+		}
+	}
+}
 
 #pragma endregion
 
@@ -6701,19 +6766,17 @@ void CustomFoundation::GetDisplayRect(RectangleStruct& a1, CellStruct* a2)
 
 #pragma region MouseClassExt
 
-const MouseCursor* MouseClassExt::GetCursorData(MouseCursorType nMouse)
+NOINLINE const MouseCursor*  MouseClassExt::GetCursorData(MouseCursorType nMouse)
 {
-	if (!CursorTypeClass::Array.empty())
-	{
-		return CursorTypeClass::FindFromIndex((int)nMouse)->CursorData.GetEx()
-			;
+	if (!CursorTypeClass::Array.empty()) {
+		return CursorTypeClass::Array[(int)nMouse]->CursorData.GetEx() ;
 	}
 
 	// if the custom cursor array is empty , then fix then index
 	if (nMouse >= MouseCursorType::count)
 		nMouse = MouseCursorType::SpyPlane;
 
-	return MouseCursor::DefaultCursorsB.begin() + (size_t)nMouse;
+     return MouseCursor::DefaultCursors.begin() + (size_t)nMouse;
 }
 
 const MouseCursor* MouseClassExt::GetCursorDataFromRawAction(Action nAction)

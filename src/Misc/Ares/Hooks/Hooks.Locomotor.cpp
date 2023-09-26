@@ -26,6 +26,20 @@
 
 #include "Header.h"
 
+//DEFINE_HOOK(0x7079A1, TechnoClass_Detach_HunterSeeker, 0x6)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//	GET(void*, comparator, EBP);
+//
+//	if (!pThis->GetTechnoType()->HunterSeeker || (pThis->AbstractFlags & AbstractFlags::Foot) == AbstractFlags::None)
+//		return 0x0;
+//
+//	if (pThis->Target == comparator)
+//		((FootClass*)pThis)->Locomotor->Acquire_Hunter_Seeker_Target();
+//
+//	return 0x0;
+//}
+
 DEFINE_DISABLE_HOOK(0x4B5F9E, DropPodLocomotionClass_ILocomotion_Process_Report_ares)
 DEFINE_DISABLE_HOOK(0x4B619F, DropPodLocomotionClass_ILocomotion_MoveTo_AtmosphereEntry_ares)
 
@@ -131,6 +145,7 @@ DEFINE_OVERRIDE_HOOK(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_Update
 	const auto pType = pObject->GetTechnoType();
 
 	if (pType->HunterSeeker) {
+
 		if (const auto pTarget = pObject->Target) {
 
 			// update the target's position, considering units in tunnels
@@ -158,6 +173,10 @@ DEFINE_OVERRIDE_HOOK(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_Update
 			DirStruct const tmp(double(crdSource.Y - crd.Y), double(crd.X - crdSource.X));
 			pObject->PrimaryFacing.Set_Current(tmp);
 			pObject->SecondaryFacing.Set_Current(tmp);
+		}
+		else
+		{
+			pThis->Acquire_Hunter_Seeker_Target();
 		}
 	}
 
@@ -197,7 +216,7 @@ DEFINE_OVERRIDE_HOOK(0x4CCB84, FlyLocomotionClass_ILocomotion_Process_HunterSeek
 {
 	GET(ILocomotion* const, pThis, ESI);
 	auto const pLoco = static_cast<FlyLocomotionClass*>(pThis);
-	const auto pObject = pLoco->LinkedTo;
+	const auto pObject = pLoco->Owner ? pLoco->Owner : pLoco->LinkedTo;
 	const auto pType = pObject->GetTechnoType();
 
 	if (pType->HunterSeeker) {
@@ -220,12 +239,14 @@ DEFINE_OVERRIDE_HOOK(0x4CCB84, FlyLocomotionClass_ILocomotion_Process_HunterSeek
 	return 0;
 }
 
-
 DEFINE_OVERRIDE_HOOK(0x4CFE80, FlyLocomotionClass_ILocomotion_AcquireHunterSeekerTarget, 5)
 {
 	GET_STACK(ILocomotion* const, pThis, 0x4);
+
+	const auto pFly = static_cast<FlyLocomotionClass*>(pThis);
+
 	// replace the entire function
-	TechnoExt_ExtData::AcquireHunterSeekerTarget(static_cast<FlyLocomotionClass*>(pThis)->LinkedTo);
+	TechnoExt_ExtData::AcquireHunterSeekerTarget(pFly->Owner ? pFly->Owner : pFly->LinkedTo);
 
 	return 0x4D016F;
 }
@@ -312,7 +333,10 @@ DEFINE_OVERRIDE_HOOK(0x4CF3D0, FlyLocomotionClass_sub_4CEFB0_HunterSeeker, 7)
 
 	if (pType->HunterSeeker)
 	{
-		if (auto const pTarget = pObject->Target)
+		//target was invalidated , use the moving dest
+		if (const auto pTarget =
+			pObject->Target ? pObject->Target : MapClass::Instance->TryGetCellAt(pThis->MovingDestination)
+			)
 		{
 			auto const DetonateProximity = pExt->HunterSeekerDetonateProximity.Get(RulesExt::Global()->HunterSeekerDetonateProximity);
 			auto const DescendProximity = pExt->HunterSeekerDescendProximity.Get(RulesExt::Global()->HunterSeekerDescendProximity);
@@ -405,28 +429,28 @@ DEFINE_OVERRIDE_HOOK(0x4CF3D0, FlyLocomotionClass_sub_4CEFB0_HunterSeeker, 7)
 			}
 			else
 			{
-				// close enough to detonate
-				if (auto const pTechno = abstract_cast<TechnoClass*>(pTarget))
-				{
-					auto const pWeapon = pObject->GetPrimaryWeapon()->WeaponType;
+				auto const pWeapon = pObject->GetPrimaryWeapon()->WeaponType;
 
-					// damage the target
-					auto damage = pWeapon->Damage;
-					pTechno->ReceiveDamage(&damage, 0, pWeapon->Warhead, pObject, true, true, nullptr);
+				// damage
+				auto damage = pWeapon->Damage;
 
-					// damage the hunter seeker
-					damage = pWeapon->Damage;
-					pObject->ReceiveDamage(&damage, 0, pWeapon->Warhead, nullptr, true, true, nullptr);
-
-					// damage the map
-					auto const crd2 = pObject->GetCoords();
-					MapClass::FlashbangWarheadAt(pWeapon->Damage, RulesClass::Instance->C4Warhead, crd2);
-					MapClass::DamageArea(crd2, pWeapon->Damage, pObject, pWeapon->Warhead, true, nullptr);
-
-					// return 0
-					R->EBX(0);
-					return 0x4CF5F2;
+				//if the target exist , damage the target
+				if (auto const pTechno = abstract_cast<TechnoClass*>(pTarget)) {
+					pTechno->ReceiveDamage(&damage, 0, pWeapon->Warhead, pObject, true, true, pObject->Owner);
 				}
+
+				// damage the hunter seeker regardless the target state
+				damage = pWeapon->Damage;
+				pObject->ReceiveDamage(&damage, 0, pWeapon->Warhead, nullptr, true, true, nullptr);
+
+				// damage the map
+				auto const crd2 = pObject->GetCoords();
+				//WeaponTypeExt::DetonateAt(pWeapon, crd2, pObject, true, pObject->Owner);
+				MapClass::FlashbangWarheadAt(pWeapon->Damage, RulesClass::Instance->C4Warhead, crd2);
+				MapClass::DamageArea(crd2, pWeapon->Damage, pObject, pWeapon->Warhead, true, pObject->Owner);
+
+				R->EBX(0);
+				return 0x4CF5F2;
 			}
 		}
 	}
@@ -467,7 +491,12 @@ DEFINE_OVERRIDE_HOOK(0x4CDE64, FlyLocomotionClass_sub_4CD600_HunterSeeker_Ascent
 		}
 	}
 
-	R->EAX(MinImpl(ret , max));
+	if (ret > max)
+	{
+		ret = max;
+	}
+
+	R->EAX(ret);
 	return 0x4CDE8F;
 }
 
@@ -480,7 +509,12 @@ DEFINE_OVERRIDE_HOOK(0x4CDF54, FlyLocomotionClass_sub_4CD600_HunterSeeker_Descen
 	auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
 
 	if (pType->HunterSeeker) {
-		R->ECX(MinImpl(max , pExt->HunterSeekerDescentSpeed.Get(RulesExt::Global()->HunterSeekerDescentSpeed)));
+		auto ret = pExt->HunterSeekerDescentSpeed.Get(RulesExt::Global()->HunterSeekerDescentSpeed);
+		if (max < ret) {
+			ret = max;
+		}
+
+		R->ECX(ret);
 		return 0x4CDF81;
 	}
 

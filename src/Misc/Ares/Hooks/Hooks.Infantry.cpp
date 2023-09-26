@@ -21,23 +21,283 @@
 #include <Misc/AresData.h>
 #include <Ares_TechnoExt.h>
 
+#include "Header.h"
+
+
+DEFINE_OVERRIDE_HOOK(0x51E5E1, InfantryClass_GetActionOnObject_MultiEngineerB, 7)
+{
+	GET(BuildingClass*, pBld, ECX);
+	Action ret = TechnoExt_ExtData::GetEngineerEnterEnemyBuildingAction(pBld);
+
+	// use a dedicated cursor
+	if (ret == Action::Damage)
+	{
+		MouseCursorFuncs::SetMouseCursorAction(RulesExt::Global()->EngineerDamageCursor, Action::Damage, false);
+	}
+
+	// return our action
+	R->EAX(ret);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x519D9C, InfantryClass_UpdatePosition_MultiEngineer, 5)
+{
+	GET(InfantryClass*, pEngi, ESI);
+	GET(BuildingClass*, pBld, EDI);
+
+	// damage or capture
+	Action action = TechnoExt_ExtData::GetEngineerEnterEnemyBuildingAction(pBld);
+
+	if (action == Action::Damage)
+	{
+		int Damage = int(std::ceil(pBld->Type->Strength * RulesExt::Global()->EngineerDamage));
+		pBld->ReceiveDamage(&Damage, 0, RulesClass::Global()->C4Warhead, pEngi, true, false, pEngi->Owner);
+		return 0x51A010;
+	}
+
+	return 0x519EAA;
+}
+
+DEFINE_OVERRIDE_HOOK(0x471C96, CaptureManagerClass_CanCapture, 0xA)
+{
+	// this is a complete rewrite, because it might be easier to change
+	// this in a central place than spread all over the source code.
+	enum
+	{
+		Allowed = 0x471D2E, // this can be captured
+		Disallowed = 0x471D35 // can't be captured
+	};
+
+	GET(CaptureManagerClass*, pThis, ECX);
+	GET(TechnoClass*, pTarget, ESI);
+	TechnoClass* pCapturer = pThis->Owner;
+
+	// target exists and doesn't belong to capturing player
+	if (!pTarget || pTarget->Owner == pCapturer->Owner)
+	{
+		return Disallowed;
+	}
+
+	// generally not capturable
+	if (TechnoExt::IsPsionicsImmune(pTarget))
+	{
+		return Disallowed;
+	}
+
+	// disallow capturing bunkered units
+	if (pTarget->BunkerLinkedItem && pTarget->BunkerLinkedItem->WhatAmI() == AbstractType::Unit)
+	{
+		return Disallowed;
+	}
+
+	// TODO: extend this for mind-control priorities
+	if (pTarget->IsMindControlled() || pTarget->MindControlledByHouse)
+	{
+		return Disallowed;
+	}
+
+	// free slot? (move on if infinite or single slot which will be freed if used)
+	if (!pThis->InfiniteMindControl && pThis->MaxControlNodes != 1 && pThis->ControlNodes.Count >= pThis->MaxControlNodes)
+	{
+		return Disallowed;
+	}
+
+	// currently disallowed
+	auto mission = pTarget->CurrentMission;
+	if (pTarget->IsIronCurtained() || mission == Mission::Selling || mission == Mission::Construction)
+	{
+		return Disallowed;
+	}
+
+	// driver killed. has no mind.
+	if (pTarget->align_154->Is_DriverKilled)
+	{
+		return Disallowed;
+	}
+
+	// passed all tests
+	return Allowed;
+}
+
+DEFINE_OVERRIDE_HOOK(0x51DF38, InfantryClass_Remove, 0xA)
+{
+	GET(InfantryClass*, pThis, ESI);
+
+	if (auto pGarrison = pThis->align_154->GarrisonedIn)
+	{
+		if (!pGarrison->Occupants.Remove(pThis))
+		{
+			Debug::Log("Infantry %s was garrisoned in building %s, but building didn't find it. WTF?",
+				pThis->Type->ID, pGarrison->Type->ID);
+		}
+	}
+
+	pThis->align_154->GarrisonedIn = nullptr;
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x51DFFD, InfantryClass_Put, 5)
+{
+	GET(InfantryClass*, pThis, EDI);
+	pThis->align_154->GarrisonedIn = nullptr;
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x518434, InfantryClass_ReceiveDamage_SkipDeathAnim, 7)
+{
+	GET(InfantryClass*, pThis, ESI);
+	//GET_STACK(ObjectClass *, pAttacker, 0xE0);
+
+	// there is not InfantryExt ExtMap yet!
+	// too much space would get wasted since there is only four bytes worth of data we need to store per object
+	// so those four bytes get stashed in Techno Map instead. they will get their own map if there's ever enough data to warrant it
+
+	return pThis->align_154->GarrisonedIn ? 0x5185F1 : 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x517D51, InfantryClass_Init_Academy, 6)
+{
+	GET(InfantryClass*, pThis, ESI);
+
+	if (pThis->Owner)
+	{
+		HouseExt::ApplyAcademy(pThis->Owner, pThis, AbstractType::Infantry);
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x51E7BF, InfantryClass_GetActionOnObject_CanCapture, 6)
+{
+	enum
+	{
+		Capture = 0x51E84B,  // the game will return an Enter cursor no questions asked
+		DontCapture = 0x51E85A, // the game will assume this is not a VehicleThief and will check for other cursors normally
+		Select = 0x51E7EF, // select target instead of ordering this
+		DontMindMe = 0, // the game will check if this is a VehicleThief
+	};
+
+	GET(InfantryClass*, pSelected, EDI);
+	GET(ObjectClass*, pTarget, ESI);
+
+	TechnoClass* pTechnoTarget = generic_cast<TechnoClass*>(pTarget);
+
+	if (!pTechnoTarget)
+		return DontCapture;
+
+	const auto pSelectedType = pSelected->Type;
+	if (!pSelectedType->VehicleThief && !TechnoTypeExt::ExtMap.Find(pSelectedType)->CanDrive)
+		return DontCapture;
+
+	if (pTechnoTarget->GetTechnoType()->IsTrain)
+		return Select;
+
+	//const auto nResult = (AresHijackActionResult)AresData::TechnoExt_GetActionHijack(pSelected, pTechnoTarget);
+	const auto nResult = TechnoExt_ExtData::GetActionHijack(pSelected, pTechnoTarget);
+	if (nResult == AresHijackActionResult::None)
+		return DontCapture;
+
+	if (nResult == AresHijackActionResult::Drive && InputManagerClass::Instance->IsForceFireKeyPressed())
+		return DontCapture;
+
+	MouseCursorFuncs::SetMouseCursorAction(92, Action::Capture, false);
+	return Capture;
+}
+
+// the hijacker is close to the target. capture.
+DEFINE_OVERRIDE_HOOK(0x5203F7, InfantryClass_UpdateVehicleThief_Hijack, 5)
+{
+	enum { GoOn = 0x5206A1, Stop = 0x520473 };
+
+	GET(InfantryClass*, pThis, ESI);
+	GET(FootClass*, pTarget, EDI);
+	TechnoExt::ExtData* pExt = TechnoExt::ExtMap.Find(pThis);
+
+	bool finalize = TechnoExt_ExtData::PerformActionHijack(pThis, pTarget);
+	if (finalize)
+	{
+		// manually deinitialize this infantry
+		if (pThis->IsAlive)
+			pThis->UnInit();
+	}
+	return finalize ? Stop : GoOn;
+}
+
+// change all the special things infantry do, like vehicle thief, infiltration,
+// bridge repair, enter transports or bio reactors, ...
+DEFINE_OVERRIDE_HOOK(0x519675, InfantryClass_UpdatePosition_BeforeInfantrySpecific, 0xA)
+{
+	// called after FootClass:UpdatePosition has been called and before
+	// all specific infantry handling takes place.
+	enum
+	{
+		Return = 0x51AA01, // skip the original logic
+		Destroy = 0x51A010, // uninits this infantry and returns
+		Handle = 0 // resume the original function
+	} DoWhat = Handle;
+
+	GET(InfantryClass*, pThis, ESI);
+
+	if (pThis)
+	{
+		// steal vehicles / reclaim KillDriver'd units using CanDrive
+		if (pThis->CurrentMission == Mission::Capture)
+		{
+			if (TechnoClass* pDest = generic_cast<TechnoClass*>(pThis->Destination))
+			{
+				// this is the possible target we stand on
+				CellClass* pCell = pThis->GetCell();
+				TechnoClass* pTarget = pCell->GetUnit(pThis->OnBridge);
+				if (!pTarget)
+				{
+					pTarget = pCell->GetAircraft(pThis->OnBridge);
+					if (!pTarget)
+					{
+						pTarget = pCell->GetBuilding();
+						if (pTarget && !pTarget->IsStrange())
+						{
+							return 0;
+						}
+					}
+				}
+
+				// reached its destination?
+				if (pTarget && pTarget == pDest)
+				{
+					// reached the target. capture.
+					DoWhat = TechnoExt_ExtData::PerformActionHijack(pThis, pTarget) ? Destroy : Return;
+				}
+			}
+		}
+	}
+
+	return DoWhat;
+}
+
+// update the vehicle thief's destination. needed to follow a
+// target without the requirement to also enable Thief=yes.
+DEFINE_OVERRIDE_HOOK(0x5202F9, InfantryClass_UpdateVehicleThief_Check, 6)
+{
+	GET(InfantryClass*, pThis, ESI);
+
+	// good old WW checks for Thief. idiots.
+	if (!pThis->Type->VehicleThief)
+	{
+		// also allow for drivers, because vehicles may still drive around. usually they are not.
+		if (!TechnoTypeExt::ExtMap.Find(pThis->Type)->CanDrive)
+		{
+			return 0x5206A1;
+		}
+	}
+
+	return 0x52030D;
+}
+
 DEFINE_OVERRIDE_HOOK(0x523932, InfantryTypeClass_CTOR_Initialize, 8)
 {
 	GET(InfantryTypeClass*, pItem, ESI)
-
-	for (auto& nSeq : pItem->Sequence->Data)
-	{
-		nSeq.StartFrame = 0;
-		nSeq.CountFrames = 0;
-		nSeq.FacingMultiplier = 0;
-		nSeq.Facing = DoTypeFacing(-1);
-		nSeq.SoundCount = 0;
-		nSeq.Sound1StartFrame = 0;
-		nSeq.Sound1Index = -1;
-		nSeq.Sound2StartFrame = 0;
-		nSeq.Sound2Index = -1;
-	}
-
+	pItem->Sequence->Initialize();
 	return 0x523970;
 }
 

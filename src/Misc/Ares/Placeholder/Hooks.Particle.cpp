@@ -13,49 +13,54 @@ static void* AresExtMap_Find(void* const key)
 
 struct ParticleExt_
 {
-	enum class Behave : int {
+	enum class Behave : int
+	{
 		None = 0,
 		One = 1,
-		Two = 2 ,
+		Two = 2,
 		Three = 3
 	};
 
-	struct ExtData {
+	struct ExtData
+	{
 		ParticleSystemClass* OwnerObject;
 		InitState Init;
 		Behave What;
 		ParticleTypeClass* HeldType;
 
-		struct Movement {
+		struct Movement
+		{
 			Vector3D<float> vel;
 			Vector3D<float> velB;
 			DWORD A;
 			float ColorFactor;
-			DWORD C;
+			int C; //counter for the color change update
 			DWORD DecreasedSomething;
-			BYTE Empty;
+			BYTE Empty; //state counter
 			ColorStruct Colors;
 		};
 		static_assert(sizeof(Movement) == 0x2C, "Invalid Size");
-		std::vector<Movement> MovementData;
+		std::vector<Movement> OtherParticleData;
 
-		struct Draw {
-			Vector3D<int> vel;
+		struct Draw
+		{
+			CoordStruct vel;
 			Vector3D<float> velB;
 			DWORD A;
 			int ImageFrame;
 			DWORD C;
 			ParticleTypeClass* LinkedParticleType;
 			BYTE Transparancy;
-			BYTE DeleteOnStateLimit;
+			BYTE DeleteOnStateLimit; //state counter
 			BYTE byte30;
 			BYTE byte31;
 		};
+		static_assert(sizeof(Draw) == 0x2C, "Invalid Size");
+		std::vector<Draw> SmokeData;
 
-		std::vector<Draw> DrawData;
 
-
-		void Alloc() {
+		void NOINLINE Alloc()
+		{
 
 			if (auto pType = OwnerObject->Type)
 			{
@@ -97,10 +102,11 @@ struct ParticleExt_
 			}
 		}
 
-		void UpdateLocations(){
+		void NOINLINE UpdateLocations()
+		{
 			auto const Gravity = RulesClass::Instance->Gravity;
 
-			for (auto& Data : this->MovementData)
+			for (auto& Data : this->OtherParticleData)
 			{
 				if (--Data.DecreasedSomething <= 0)
 				{
@@ -153,25 +159,29 @@ struct ParticleExt_
 			}
 		}
 
-		void UpdateState() {
+		void NOINLINE UpdateState()
+		{
 
-			auto iter = std::remove_if(this->MovementData.begin(), this->MovementData.end(), [](const auto& data) {
-				return data.Empty;
+			auto iter = std::remove_if(this->OtherParticleData.begin(), this->OtherParticleData.end(), [](const auto& data)
+ {
+	 return data.Empty;
 			});
-			this->MovementData.erase(iter);
+			this->OtherParticleData.erase(iter);
 
-			auto iterDraw = std::remove_if(this->DrawData.begin(), this->DrawData.end(), [](const auto& data) {
-				return data.DeleteOnStateLimit;
+			auto iterDraw = std::remove_if(this->SmokeData.begin(), this->SmokeData.end(), [](const auto& data)
+ {
+	 return data.DeleteOnStateLimit;
 			});
 
-			this->DrawData.erase(iterDraw);
+			this->SmokeData.erase(iterDraw);
 		}
 
-		void UpdateColor() {
+		void NOINLINE  UpdateColor()
+		{
 
 			const auto pHeldType = this->HeldType;
 
-			for (auto& Data : this->MovementData)
+			for (auto& Data : this->OtherParticleData)
 			{
 				const auto v6 = ScenarioClass::Instance->Random.RandomDouble() + pHeldType->ColorSpeed + Data.ColorFactor;
 				double v7 = 1.0;
@@ -193,7 +203,7 @@ struct ParticleExt_
 			}
 		}
 
-		void Update_Behave_One()
+		void NOINLINE  Update_Behave_One()
 		{
 			const auto pOwner = this->OwnerObject;
 			const auto SparkSpawnFrames = pOwner->SparkSpawnFrames;
@@ -218,14 +228,14 @@ struct ParticleExt_
 					pOwner->SpotlightRadius = spotRadius_dec;
 				}
 				else
-				if (first_randDouble < 0.6)
-				{
-					int spotRadius_inc = pOwner->SpotlightRadius + 3;
-					if (spotRadius_inc > 41)
-						spotRadius_inc = 41;
+					if (first_randDouble < 0.6)
+					{
+						int spotRadius_inc = pOwner->SpotlightRadius + 3;
+						if (spotRadius_inc > 41)
+							spotRadius_inc = 41;
 
-					pOwner->SpotlightRadius = spotRadius_inc;
-				}
+						pOwner->SpotlightRadius = spotRadius_inc;
+					}
 
 				const auto pType = pOwner->Type;
 				if (!SparkSpawnNeg1 || pType->SpawnSparkPercentage > random->RandomDouble())
@@ -239,7 +249,7 @@ struct ParticleExt_
 					const auto randomHalfCap = random->RandomFromMax(halfcap);
 					const auto resize = halfcap + randomHalfCap;
 
-					this->MovementData.reserve(resize);
+					this->OtherParticleData.reserve(resize);
 
 					for (int i = resize; i > 0; --i)
 					{
@@ -260,7 +270,7 @@ struct ParticleExt_
 							nVelsC.Z = idkHere * nSpawnDir.Z;
 						}
 
-						auto Data = &this->MovementData.emplace_back();
+						auto Data = &this->OtherParticleData.emplace_back();
 						Data->velB = (nVelsC * nVelsMag);
 						Data->vel.X = (float)pOwner->Location.X;
 						Data->vel.Y = (float)pOwner->Location.Y;
@@ -304,11 +314,11 @@ struct ParticleExt_
 			this->UpdateColor();
 		}
 
-		void Update_Behave_Two()
+		void NOINLINE  Update_Behave_Two()
 		{
 			auto const pOwnerObj = this->OwnerObject;
 			auto const pOwnerObjType = pOwnerObj->Type;
-			if (!pOwnerObj->TimeToDie && this->MovementData.begin() == this->MovementData.end())
+			if (!pOwnerObj->TimeToDie && this->OtherParticleData.begin() == this->OtherParticleData.end())
 			{
 				pOwnerObj->TimeToDie = true;
 				auto const nDifferenct = (pOwnerObj->Location - pOwnerObj->TargetCoords);
@@ -343,7 +353,7 @@ struct ParticleExt_
 				const auto nMovementPerturbationCoefficient = pOwnerObjType->MovementPerturbationCoefficient;
 				const auto nVelocityPerturbationCoefficient = pOwnerObjType->VelocityPerturbationCoefficient;
 				const size_t nDecidedsize = (size_t)(pOwnerObjType->ParticlesPerCoord * nMagSquared);
-				this->MovementData.resize(nDecidedsize);
+				this->OtherParticleData.resize(nDecidedsize);
 
 				if (nDecidedsize > 0)
 				{
@@ -378,9 +388,9 @@ struct ParticleExt_
 						const auto nRand_Double5 = ScenarioClass::Instance->Random.RandomDouble();
 						const auto nRand_Double6 = ScenarioClass::Instance->Random.RandomDouble();
 						CoordStruct nMovementDummy {};
-						nMovementDummy.X = (nRand_Double4 * nMovementPerturbationCoefficient) + nResult.X;
-						nMovementDummy.Y = (nRand_Double5 * nMovementPerturbationCoefficient) + nResult.Y;
-						nMovementDummy.Z = (nRand_Double6 * nMovementPerturbationCoefficient) + nResult.Z;
+						nMovementDummy.X = int((nRand_Double4 * nMovementPerturbationCoefficient) + nResult.X);
+						nMovementDummy.Y = int((nRand_Double5 * nMovementPerturbationCoefficient) + nResult.Y);
+						nMovementDummy.Z = int((nRand_Double6 * nMovementPerturbationCoefficient) + nResult.Z);
 						const auto nMag = nMovementDummy.MagnitudeSquared();
 						Vector3D<float> nVelsC {};
 
@@ -402,7 +412,7 @@ struct ParticleExt_
 						if (nMovementPerturbationCoefficientneg > nVelocityPerturbationCoefficient_copy)
 							nVal = nMovementPerturbationCoefficientneg;
 
-						auto Data = &this->MovementData.emplace_back();
+						auto Data = &this->OtherParticleData.emplace_back();
 						Data->velB = nVelsC;
 						Data->vel = nDummy_d;
 						Data->A = nVel + nVal;
@@ -443,15 +453,110 @@ struct ParticleExt_
 			}
 		}
 
-		void Update_Behave_Three()
+		void NOINLINE UpdateWindDirection()
+		{
+			if ((Unsorted::CurrentFrame() & 1) != 0)
+			{
+				auto rand = &ScenarioClass::Instance->Random;
+
+				for (auto& smoke : this->SmokeData)
+				{
+					if (!rand->RandomFromMax(3))
+					{
+						Point2D velXY { smoke.vel.X , smoke.vel.Y };
+						auto randDir = rand->RandomRanged(-1, 1);
+
+						if (rand->RandomBool())
+							velXY.X += randDir;
+						else
+							velXY.Y += randDir;
+
+						velXY.X = std::clamp(velXY.X, -5, 5);
+						velXY.Y = std::clamp(velXY.Y, -5, 5);
+					}
+				}
+
+				for (auto& smoke : this->SmokeData)
+				{
+					auto pLink = smoke.LinkedParticleType;
+					if (smoke.ImageFrame < pLink->EndStateAI)
+					{
+						if (!((smoke.A + pLink->MaxEC - smoke.C) % (smoke.A % 2 + pLink->StateAIAdvance)
+							|| (smoke.ImageFrame = smoke.ImageFrame + 1, smoke.ImageFrame + 1 < pLink->EndStateAI)))
+						{
+							if (pLink->DeleteOnStateLimit)
+								smoke.DeleteOnStateLimit = 1;
+						}
+					}
+
+					if (smoke.velB.Z > 3.0)
+						smoke.velB.Z = int((float)smoke.velB.Z - pLink->Deacc);
+
+					if (--smoke.C <= 0)
+						smoke.DeleteOnStateLimit = 1;
+				}
+
+				auto WindDir = RulesClass::Instance->WindDirection;
+				auto dirX = ParticleClass::GasWind_X[WindDir];
+				auto dirY = ParticleClass::GasWind_Y[WindDir];
+
+				for (auto& smoke : this->SmokeData)
+				{
+					const auto LinkedWind = smoke.LinkedParticleType->WindEffect;
+					CoordStruct velCpy = smoke.vel;
+					smoke.vel.X += smoke.velB.X + LinkedWind * dirX;
+					smoke.vel.Y += smoke.velB.Y + LinkedWind * dirY;
+					smoke.vel.Z += smoke.velB.Z;
+
+					const auto pCell = MapClass::Instance->GetCellAt(velCpy);
+
+					if (pCell->ContainsBridge()) {
+						int z = pCell->GetFloorHeight({ velCpy.X , velCpy.Y});
+
+						if (velCpy.Z < z) {
+							z -= 260;
+							if (z >= velCpy.Z) {
+								smoke.DeleteOnStateLimit = true;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		void NOINLINE  Update_Behave_Three()
 		{
 			//this one waay to complex to digest atm
 			//too much code about moving  the vectors
 			//possible that probably sorting stuffs
 			//or maybe empalace/ensert/etc ,//
+
+			auto const pOwnerObj = this->OwnerObject;
+			auto const pOwnerObjType = pOwnerObj->Type;
+			auto const pOwnerObj_Owner = pOwnerObj->Owner;
+
+			if (pOwnerObj_Owner && pOwnerObj_Owner->AbstractFlags & AbstractFlags::Techno)
+			{
+				auto coords = pOwnerObj_Owner->GetCoords();
+				CoordStruct SpawnDistance = coords + pOwnerObj->SpawnDistanceToOwner;
+				pOwnerObj->SetLocation(SpawnDistance);
+			}
+
+			this->UpdateWindDirection();
+			auto rand = &ScenarioClass::Instance->Random;
+			//back cannot be used ,..
+			size_t distance = std::distance(std::prev(this->SmokeData.end()) , this->SmokeData.begin());
+
+			if (distance)
+			{
+				for (size_t i = distance; i > 0; --i)
+				{
+
+				}
+			}
 		}
 
-		bool UpdateHandled()
+		bool NOINLINE  UpdateHandled()
 		{
 			switch (this->What)
 			{
@@ -465,7 +570,7 @@ struct ParticleExt_
 				this->Update_Behave_Three();
 				break;
 			default:
-				return 0;
+				return false;
 			}
 
 			const auto pOwner = this->OwnerObject;
@@ -476,31 +581,33 @@ struct ParticleExt_
 			if (pOwner->IsAlive
 				&& pOwner->TimeToDie
 				&& !pOwner->Particles.Count
-				&& this->MovementData.empty()
-				&& this->DrawData.empty())
+				&& this->OtherParticleData.empty()
+				&& this->SmokeData.empty())
 			{
 				pOwner->Limbo();
 				pOwner->IsAlive = false;
 				AbstractClass::Array2->AddItem(pOwner);
 			}
+
+			return true;
 		}
 
 		//the color adjusting is not right it seems
 		//need investigation
-		void UpdateInAir_Main(bool stopDrawing)
+		void NOINLINE  UpdateInAir_Main(bool stopDrawing)
 		{
 			const auto pHeldType = this->HeldType;
 			ColorStruct** color = pHeldType ? (ColorStruct**)pHeldType->ColorList.Items : nullptr;
+			auto& rect = DSurface::ViewBounds;
 
-			for (auto& movement : this->MovementData)
+			for (auto& movement : this->OtherParticleData)
 			{
-				CoordStruct Coord = {(int)movement.vel.X ,(int)movement.vel.Y ,(int)movement.vel.Z };
+				CoordStruct Coord = { (int)movement.vel.X ,(int)movement.vel.Y ,(int)movement.vel.Z };
 
 				if (!stopDrawing || !MapClass::Instance->IsWithinUsableArea(Coord))
 				{
 					Point2D outClient;
 					TacticalClass::Instance->CoordsToClient(&Coord, &outClient);
-					auto& rect = DSurface::ViewBounds;
 
 					const auto y_copy = rect->Y + outClient.Y;
 					outClient.Y += rect->Y;
@@ -533,7 +640,8 @@ struct ParticleExt_
 								ColorStruct emp {};
 								emp.Lerp(*(color + idx + 3), selected, movement.ColorFactor);
 
-								if ((uint16_t)buff >= 127u) {
+								if ((uint16_t)buff >= 127u)
+								{
 									DSurface::Temp->Put_Pixel(outClient, DSurface::RGBA_To_Pixel(emp.R, emp.G, emp.B));
 								}
 								else
@@ -551,21 +659,57 @@ struct ParticleExt_
 				}
 			}
 
-
-			for (auto& draw : this->DrawData)
+			for (auto& draw : this->SmokeData)
 			{
 				const auto linked = draw.LinkedParticleType;
 				if (const auto image = linked->GetImage())
 				{
 					const auto offs = -15 - TacticalClass::AdjustForZ(draw.vel.Z);
+					Point2D outClient;
+					TacticalClass::Instance->CoordsToClient(&draw.vel, &outClient);
+					DWORD drawingFlag = 0x2E00;
+					outClient.Y += rect->X;
+					if (GameOptionsClass::Instance->GameSpeed == 2)
+					{
+						int trans = draw.Transparancy;
+						if (trans == 25)
+						{
+							drawingFlag = 0x2E02;
+						}
+						else if (trans == 50)
+						{
+							drawingFlag = 0x2E04;
+						}
+						else if (trans >= 75u)
+						{
+							drawingFlag = 0x2E06;
+						}
 
+						auto pal = FileSystem::ANIM_PAL();
+						DSurface::Temp->DrawSHP(
+							pal,
+							image,
+							draw.ImageFrame,
+							&outClient,
+							&rect,
+							(BlitterFlags)drawingFlag,
+							0,
+							offs,
+							2,
+							1000,
+							0,
+							0,
+							0,
+							0,
+							0
+						);
+					}
 				}
 			}
 		}
 	};
 
-
-	static void UpdateInAir()
+	static void NOINLINE  UpdateInAir()
 	{
 		if (ParticleSystemClass::Array->Count && GameOptionsClass::Instance->GameSpeed && RulesExt::DetailsCurrentlyEnabled())
 		{
@@ -579,6 +723,7 @@ struct ParticleExt_
 			}
 		}
 	}
+
 	static std::unordered_map<ParticleSystemClass*, std::unique_ptr<ExtData>> Map;
 
 	static ExtData* Find(ParticleSystemClass* pFind)
@@ -588,7 +733,9 @@ struct ParticleExt_
 	}
 };
 
-DEFINE_OVERRIDE_HOOK(0x6D9427 , TacticalClass_DrawUnits_ParticleSystems, 9)
+std::unordered_map<ParticleSystemClass*, std::unique_ptr<ParticleExt_::ExtData>> ParticleExt_::Map;
+
+DEFINE_OVERRIDE_HOOK(0x6D9427, TacticalClass_DrawUnits_ParticleSystems, 9)
 {
 	GET(Layer, layer, EAX);
 
@@ -614,7 +761,7 @@ DEFINE_OVERRIDE_HOOK(0x62E2AD, ParticleSystemClass_Draw, 6)
 	if (pThisType->ParticleCap)
 	{
 		const auto pExt = ParticleExt_::Find(pThis);
-		R->ECX(pThis->Particles.Count + pExt->MovementData.size());
+		R->ECX(pThis->Particles.Count + pExt->OtherParticleData.size());
 	}
 	else
 	{
@@ -622,6 +769,15 @@ DEFINE_OVERRIDE_HOOK(0x62E2AD, ParticleSystemClass_Draw, 6)
 	}
 
 	return 0x62E2B3;
+}
+
+DEFINE_OVERRIDE_HOOK(0x62FD60, ParticleSystemClass_Update, 9)
+{
+	GET(ParticleSystemClass*, pThis, ECX);
+
+	const bool Handled = ParticleExt_::Find(pThis)->UpdateHandled();
+
+	return Handled ? 0x62FE43 : 0;
 }
 /*
 ; \Ext\ParticleSystem\Body.cpp
@@ -632,42 +788,10 @@ DEFINE_OVERRIDE_HOOK(0x62E2AD, ParticleSystemClass_Draw, 6)
 630088 = ParticleSystemClass_Load_Suffix, 5
 6300F3 = ParticleSystemClass_Save_Suffix, 6
 ; \Ext\ParticleSystem\Hooks.cpp
-62FD60 = ParticleSystemClass_Update, 9
-62E2AD = ParticleSystemClass_Draw, 6
 
 
-72590E = AnnounceInvalidPointer_Particle, 9
-; \Ext\ParticleType\Body.cpp
-644DBB = ParticleTypeClass_CTOR, 5
-645A3B = ParticleTypeClass_SDDTOR, 7
-6457A0 = ParticleTypeClass_SaveLoad_Prefix, 5
-645660 = ParticleTypeClass_SaveLoad_Prefix, 7
-64578C = ParticleTypeClass_Load_Suffix, 5
-64580A = ParticleTypeClass_Save_Suffix, 7
-645405 = ParticleTypeClass_LoadFromINI, 5
-; \Ext\ParticleType\Hooks.cpp
-62D015 = ParticleClass_Draw_Palette, 6
-62C23D = ParticleClass_Update_Gas_DamageRange, 6
 */
-struct AresParticleExtData
-{
-	ParticleSystemClass* OwnerObject;
-	InitState State;
-	int Type;
-	ParticleTypeClass* HoldType;
-	/*	std::vector<T> usually compiled like these
-	* struct std_vector_T // size 0xC
-	* {
-	*	 T* first;
-	*	 T* last;
-	*    T* end;
-	* }
-	*/
-	std::vector<ParticleDatas> DataA; //stored state data
-	std::vector<ParticleDatas> DataB; //stored state data (only used on gas)
-};
-//the alloc size doesnt match the class size for some reason ?
-//static_assert(sizeof(AresParticleExtData) == 64);
+
 
 //DEFINE_HOOK(0x62FD60, ParticleSystemClass_Update, 9)
 //{

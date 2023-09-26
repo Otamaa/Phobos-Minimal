@@ -39,7 +39,7 @@ std::array<const char*, (size_t)NewMouseCursorType::count> CursorTypeClass::NewM
 }
 };
 
-std::array<MouseCursor, (size_t)NewMouseCursorType::count> CursorTypeClass::NewMouseCursorTypeData
+std::array<const MouseCursor, (size_t)NewMouseCursorType::count> CursorTypeClass::NewMouseCursorTypeData
 {
 {
 		{ 239,10,4,-1,-1,MouseHotSpotX::Center , MouseHotSpotY::Middle } ,
@@ -63,12 +63,15 @@ const char* Enumerable<CursorTypeClass>::GetMainSection()
 
 void CursorTypeClass::AddDefaults()
 {
-	for (int i = 0; i < (int)MouseCursorTypeToStrings.size(); ++i) {
-		Allocate(MouseCursorTypeToStrings[i])->CursorData = MouseCursor::DefaultCursors[i];
+	if (!Array.empty())
+		return;
+
+	for (size_t i = 0; i < MouseCursorTypeToStrings.size(); ++i) {
+		AllocateWithDefault(MouseCursorTypeToStrings[i], MouseCursor::DefaultCursors[i]);
 	}
 
-	for (int a = 0; a < (int)NewMouseCursorTypeToStrings.size(); ++a) {
-		Allocate(NewMouseCursorTypeToStrings[a])->CursorData = CursorTypeClass::NewMouseCursorTypeData[a];
+	for (size_t a = 0; a < NewMouseCursorTypeToStrings.size(); ++a) {
+		AllocateWithDefault(NewMouseCursorTypeToStrings[a], CursorTypeClass::NewMouseCursorTypeData[a]);
 	}
 }
 
@@ -82,7 +85,7 @@ void CursorTypeClass::LoadFromINI(CCINIClass* pINI)
 	INI_EX exINI { pINI };
 	auto const pSection = this->GetMainSection();
 
-	CursorData.Read(exINI, pSection, pKey);
+	this->CursorData.Read(exINI, pSection, pKey);
 }
 
 void CursorTypeClass::LoadFromStream(PhobosStreamReader& Stm)
@@ -97,8 +100,7 @@ void CursorTypeClass::SaveToStream(PhobosStreamWriter& Stm)
 
 void CursorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 {
-	if(Array.empty())
-		CursorTypeClass::AddDefaults();
+	CursorTypeClass::AddDefaults();
 
 	if (!pINI)
 		return;

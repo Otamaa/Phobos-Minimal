@@ -1418,6 +1418,7 @@ enum class DoType : int {
 //MAKE_ENUM_FLAGS(DoType);
 
 enum class DoTypeFacing : int {
+	None = -1,
 	N = 0,
 	NE = 1,
 	E = 2,

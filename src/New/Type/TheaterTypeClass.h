@@ -15,7 +15,7 @@
 class TheaterTypeClass final : public Enumerable<TheaterTypeClass>
 {
 public:
-	TheaterTypeClass(const char* const pTitle = NONE_STR) :
+	TheaterTypeClass(const char* const pTitle) :
 		Enumerable<TheaterTypeClass>(pTitle),
 		UIName(),
 		ControlFileName("X"),
@@ -41,7 +41,6 @@ public:
 		ExpansionMDMix(),
 		SuffixMix(),
 		DataMix(),
-
 		TerrainTypeExtension(),
 		SmudgeTypeExtension(),
 		AnimTypeExtension(),
@@ -49,8 +48,43 @@ public:
 		IsometricTileTypeExtension(),
 		BuildingTypeExtension(),
 		FallbackTheaterExtension()
-	{ UIName = "Name:<none>"; }
+	{}
 
+	TheaterTypeClass(const char* const pTitle, const Theater& theater ,bool IsArtic , bool AllowMapGen) : Enumerable<TheaterTypeClass>(pTitle),
+		UIName(),
+		ControlFileName(theater.ControlFileName),
+		ArtFileName(theater.ArtFileName),
+		PaletteFileName(theater.PaletteFileName),
+		Extension(theater.Extension),
+		MMExtension(theater.MMExtension),
+		Letter(theater.Letter),
+		IsArctic(IsArtic),
+		IsAllowedInMapGenerator(AllowMapGen),
+		LowRadarBrightness1(theater.RadarTerrainBrightness),
+		HighRadarBrightness(theater.RadarTerrainBrightnessAtMaxLevel),
+		unknown_float_60(theater.unknown_float_60),
+		unknown_float_64(theater.unknown_float_64),
+		unknown_int_68(theater.unknown_int_68),
+		unknown_int_6C(theater.unknown_int_6C),
+		PaletteUnit(),
+		PaletteISO(),
+		TerrainControl(),
+		PaletteOverlay(),
+		RootMix(),
+		RootMixMD(),
+		ExpansionMDMix(),
+		SuffixMix(),
+		DataMix(),
+		TerrainTypeExtension(),
+		SmudgeTypeExtension(),
+		AnimTypeExtension(),
+		OverlayTypeExtension(),
+		IsometricTileTypeExtension(),
+		BuildingTypeExtension(),
+		FallbackTheaterExtension(Theater::Array[0].Extension)
+	{
+		UIName = theater.UIName;
+	}
 	virtual ~TheaterTypeClass() override = default;
 	virtual void LoadFromStream(PhobosStreamReader& Stm);
 
@@ -63,6 +97,10 @@ public:
 	static TheaterTypeClass* FindFromTheaterType(TheaterType nType);
 	static TheaterTypeClass* FindFromTheaterType_NoCheck(TheaterType nType) {
 		return Array[(int)nType].get();
+	}
+
+	static void AllocateWithDefault(const char* Title, const Theater& theater, bool IsArtic, bool AllowMapGen) {
+		Array.push_back(std::move(std::make_unique<TheaterTypeClass>(Title, theater , IsArtic , AllowMapGen)));
 	}
 
 	// no !
