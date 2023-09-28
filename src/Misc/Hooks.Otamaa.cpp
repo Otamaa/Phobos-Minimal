@@ -3540,6 +3540,129 @@ DEFINE_HOOK(0x55B4E1, LogicClass_Update_Veinhole, 0x5)
 	return 0;
 }
 
+DEFINE_HOOK(0x711F60, TechnoTypeClass_GetSoylent_Disable, 0x8)
+{
+	GET(TechnoTypeClass*, pThis, ECX);
+
+	if (TechnoTypeExt::ExtMap.Find(pThis)->Soylent_Zero) {
+		R->EAX(0);
+		return 0x712036;
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x4FAD64, HouseClass_SpecialWeapon_Update, 0x7)
+{
+	GET(HouseClass*, pThis, EDI);
+	GET(BuildingClass*, pThat, ESI);
+
+	return pThis->IsAlliedWith(pThat->Owner) ? 0x4FADD9 : 0x4FAD9E;
+}
+
+DEFINE_HOOK(0x50A23A, HouseClass_Target_Dominator, 0x6)
+{
+	GET(HouseClass*, pThis, EDI);
+	GET(TechnoClass*, pThat, ESI);
+
+	return pThis->IsAlliedWith(pThat->Owner) ? 0x50A292 : 0x50A278;
+}
+
+DEFINE_HOOK(0x50A04B, HouseClass_Target_GenericMutator, 0x7)
+{
+	GET(HouseClass*, pThis, EBX);
+	GET(TechnoClass*, pThat, ESI);
+
+	return pThis->IsAlliedWith(pThat->Owner) ? 0x50A096 : 0x50A087;
+}
+
+
+DEFINE_HOOK(0x5094F9, HouseClass_AdjustThreats, 0x6)
+{
+	return R->EBX<HouseClass*>()->IsAlliedWith(R->ESI<HouseClass*>()) ? 0x5095B6 : 0x509532;
+}
+
+DEFINE_HOOK(0x4F9432, HouseClass_Attacked, 0x6)
+{
+	return R->EDI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x4F9474 : 0x4F9478;
+}
+
+DEFINE_HOOK(0x4FBD1C, HouseClass_DoesEnemyBuildingExist, 0x6)
+{
+	return R->ESI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x4FBD57 : 0x4FBD47;
+}
+
+DEFINE_HOOK(0x5003BA, HouseClass_FindJuicyTarget, 0x6)
+{
+	return R->EDI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x5003F7 : 0x5004B1;
+}
+
+struct Phobos_DoControls {
+	std::string Name;
+	DoInfoStruct Data;
+};
+
+void ReadSequence(std::vector<Phobos_DoControls>& Desig, InfantryTypeClass* pInf ,CCINIClass* pINI)
+{
+	INI_EX IniEX(pINI);
+
+	if (pINI->GetString(pInf->ImageFile, "Sequence", Phobos::readBuffer) > 0)
+	{
+		for (int i = 0; i < DoControls::MaxCount; ++i)
+		{
+			if (pINI->GetString(pInf->ImageFile, DoControls::DoType_toStr[i], Phobos::readBuffer))
+			{
+				auto& data = Desig.emplace_back();
+				data.Name = DoControls::DoType_toStr[i];
+
+				char bufferFacing[3];
+				sscanf(Phobos::readBuffer, "%d,%d,%d,%s",
+					&data.Data.StartFrame,
+					&data.Data.CountFrames,
+					&data.Data.FacingMultiplier,
+					bufferFacing
+					);
+
+				if(*bufferFacing && strlen(bufferFacing)) {
+					for (size_t i = 0; i < EnumFunctions::FacingType_to_strings.size(); ++i) {
+						if (!_strcmpi(EnumFunctions::FacingType_to_strings[i], bufferFacing)) {
+							data.Data.Facing = DoTypeFacing(i);
+						}
+					}
+				}
+
+				char bufferSounds[0x100];
+				if (pINI->GetString(pInf->ImageFile, (data.Name + "Sounds").c_str(), bufferSounds) > 0)
+				{
+					auto v7 = strtok(bufferSounds, " ,\t");
+					while (v7)
+					{
+						auto v8 = atoi(v7);
+						auto v9 = strtok(0, " ,\t");
+						if (!v9)
+						{
+							break;
+						}
+
+						data.Data.SoundCount = v8;
+
+						auto v10 = VocClass::FindIndexById(v9);
+						v7 = strtok(0, " ,\t");
+						if (v10 != -1)
+						{
+							for (auto at = data.Data.SoundData;
+								at != std::end(data.Data.SoundData);
+								++at) {
+								at->Index = v10;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 //DEFINE_HOOK(0x525703, INIClass_DTOR_DeleteComments, 0x9)
 //{
 //	GET(INIClass*, pThis, ESI);

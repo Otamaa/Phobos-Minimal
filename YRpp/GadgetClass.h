@@ -103,13 +103,18 @@ class NOVTABLE TextLabelClass : public GadgetClass
 
 	virtual bool Draw(bool bForced) override JMP_THIS(0x72A4A0);
 
+	//TextLabelClass
+	virtual void SetText(wchar_t* pText) JMP_THIS(0x72A660);
+
 	void Set_Text(wchar_t *a2) {
 	  this->Text = a2;
 	}
 
-	TextLabelClass(int txt, int x, int y, int ColorSchemeIndex, TextPrintType style) noexcept
+	TextLabelClass(wchar_t* txt, int x, int y, int ColorSchemeIndex, TextPrintType style) noexcept
 		: TextLabelClass(noinit_t()) { JMP_THIS(0x72A440); }
 
+	TextLabelClass(wchar_t* txt, Point2D point, int ColorSchemeIndex, TextPrintType style) noexcept
+		: TextLabelClass(noinit_t()) { JMP_THIS(0x72A440); }
 protected:
 	explicit __forceinline TextLabelClass(noinit_t)  noexcept
 		: GadgetClass(noinit_t())

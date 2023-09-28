@@ -1194,7 +1194,10 @@ DEFINE_OVERRIDE_HOOK(0x739956, DeploysInto_UndeploysInto_SyncStatuses, 0x6) //Un
 	// attahed bomb
 	// ae
 	// original owner
-	AresData::TechnoTransferAffects(pFrom, pTo);
+	TechnoExt_ExtData::TransferIvanBomb(pFrom , pTo);
+	AresAE::TransferAttachedEffects(pFrom , pTo);
+	TechnoExt_ExtData::TransferOriginalOwner(pFrom , pTo);
+	//AresData::TechnoTransferAffects(pFrom, pTo);
 	TechnoExt::TransferMindControlOnDeploy(pFrom, pTo);
 	ShieldClass::SyncShieldToAnother(pFrom, pTo);
 	TechnoExt::SyncIronCurtainStatus(pFrom, pTo);

@@ -484,7 +484,7 @@ DEFINE_OVERRIDE_HOOK(0x6F6AC9, TechnoClass_Remove_Early, 6)
 	}
 
 	//#1573, #1623, #255 attached effects
-	if (AresData::RemoveAE(&pThis->align_154->AEDatas))
+	if (AresAE::Remove(&TechnoExt::ExtMap.Find(pThis)->AeData))
 		TechnoExt_ExtData::RecalculateStat(pThis);
 
 	if (pThis->align_154->TechnoValueAmount != 0)

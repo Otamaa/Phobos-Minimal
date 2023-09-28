@@ -734,7 +734,7 @@ void WarheadTypeExt::ExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKill
 				pExt->IsWebbed = true;
 				pInf->ParalysisTimer.Start(newValue);
 				AnimTypeClass* pAnimType = pAnim[ScenarioClass::Instance->Random.RandomFromMax(pAnim.size() - 1)];
-				pExt->WebbedAnim = GameCreate<AnimClass>(pAnimType, pInf->Location, 0, 1, 0x600, 0, false);
+				pExt->WebbedAnim.reset(GameCreate<AnimClass>(pAnimType, pInf->Location, 0, 1, 0x600, 0, false));
 				pExt->WebbedAnim->SetOwnerObject(pInf);
 				AnimExt::SetAnimOwnerHouseKind(pExt->WebbedAnim, pKillerHouse, pInf->Owner, pKillerTech, false);
 				TechnoExt::StoreLastTargetAndMissionAfterWebbed(pInf);
@@ -750,7 +750,7 @@ void WarheadTypeExt::ExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKill
 
 				if (!pExt->WebbedAnim) {
 					AnimTypeClass* pAnimType = pAnim[ScenarioClass::Instance->Random.RandomFromMax(pAnim.size() - 1)];
-					pExt->WebbedAnim = GameCreate<AnimClass>(pAnimType, pInf->Location, 0, 1, 0x600, 0, false);
+					pExt->WebbedAnim.reset(GameCreate<AnimClass>(pAnimType, pInf->Location, 0, 1, 0x600, 0, false));
 					pExt->WebbedAnim->SetOwnerObject(pInf);
 					AnimExt::SetAnimOwnerHouseKind(pExt->WebbedAnim, pKillerHouse, pInf->Owner, pKillerTech, false);
 				} else {
@@ -766,9 +766,7 @@ void WarheadTypeExt::ExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKill
 				}
 
 				if (pExt->WebbedAnim) {
-					pExt->WebbedAnim->TimeToDie = true;
-					pExt->WebbedAnim->UnInit();
-					pExt->WebbedAnim = nullptr;
+					pExt->WebbedAnim.reset(nullptr);
 				}
 			}
 		}

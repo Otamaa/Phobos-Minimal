@@ -6,11 +6,11 @@
 void TerrainExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	if (this->LighSource.get() == ptr) {
-		this->LighSource = nullptr;
+		this->LighSource.release();
 	}
 
 	if (this->AttachedAnim == ptr) {
-		this->AttachedAnim = nullptr;
+		this->AttachedAnim.release();
 	}
 }
 
@@ -60,32 +60,20 @@ void TerrainExt::ExtData::InitializeAnim()
 		{
 			auto const Coords = this->Get()->GetCoords();
 
-			if (const auto pAnim = GameCreate<AnimClass>(pAnimType, Coords)) {
-				AttachedAnim = pAnim;
-			}
+			AttachedAnim.reset(GameCreate<AnimClass>(pAnimType, Coords));
 		}
 	}
 }
 
 void TerrainExt::ExtData::ClearAnim()
 {
-	if (AttachedAnim) {
-
-		if (AttachedAnim->Type)
-		{
-			//GameDelete<true,false>(AttachedAnim);
-			AttachedAnim->TimeToDie = true;
-			AttachedAnim->UnInit();
-		}
-
-		AttachedAnim = nullptr;
-	}
+	AttachedAnim.reset(nullptr);
 }
 
 //called when it Dtor ed , for more optimal
 void TerrainExt::ExtData::ClearLightSource()
 {
-	LighSource.release();
+	LighSource.reset(nullptr);
 }
 
 void TerrainExt::Unlimbo(TerrainClass* pThis, CoordStruct* pCoord)
@@ -185,8 +173,6 @@ DEFINE_HOOK(0x71B824, TerrainClass_DTOR, 0x5)
 	}
 
 	if(auto pExt = TerrainExt::ExtMap.TryFind(pItem)) {
-		pExt->ClearLightSource();
-		pExt->ClearAnim();
 		delete pExt;
 		TerrainExt::ExtMap.ClearExtAttribute(pItem);
 		//PointerExpiredNotification::NotifyInvalidObject->Remove(pItem);

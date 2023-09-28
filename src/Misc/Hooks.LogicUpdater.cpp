@@ -72,9 +72,7 @@ void UpdateWebbed(FootClass* pThis)
 			pExt->IsWebbed = false;
 
 			if (pExt->WebbedAnim) {
-				pExt->WebbedAnim->TimeToDie = true;
-				pExt->WebbedAnim->UnInit();
-				pExt->WebbedAnim = nullptr;
+				pExt->WebbedAnim.reset(nullptr);
 			}
 
 			TechnoExt::RestoreLastTargetAndMissionAfterWebbed(pInf);
@@ -82,7 +80,9 @@ void UpdateWebbed(FootClass* pThis)
 	}
 }
 
-DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
+#include <Misc/Ares/Hooks/Header.h>
+
+DEFINE_OVERRIDE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 {
 	enum { retDead = 0x6FB004 , Continue = 0x0};
 
@@ -90,6 +90,8 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 
 	if (!pThis || !pThis->IsAlive)
 		return retDead;
+
+	TechnoExt_ExtData::Ares_technoUpdate(pThis);
 
 	//type may already change ,..
 	auto const pType = pThis->GetTechnoType();

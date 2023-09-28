@@ -86,3 +86,15 @@ public:
 };
 
 static_assert(sizeof(ParticleSystemClass) == 0x100);
+
+struct UninitAttachedSystem
+{
+	void operator() (ParticleSystemClass* pAnim) const
+	{
+		if (pAnim && pAnim->IsAlive)
+		{
+			pAnim->Owner = nullptr;
+			pAnim->UnInit();
+		}
+	}
+};

@@ -82,7 +82,7 @@ DEFINE_OVERRIDE_HOOK(0x46920B, BulletClass_Detonate, 6)
 		auto const damage = pThis->WeaponType ? pThis->WeaponType->Damage : 0;
 		pWHExt->applyIronCurtain(coords, pOwnerHouse, damage);
 		WarheadTypeExt::applyEMP(pWarhead, coords, pThis->Owner);
-		AresData::applyAE(pWarhead, &coords, pOwnerHouse);
+		AresAE::applyAttachedEffect(pWarhead, coords, pOwnerHouse);
 
 		if (snapped && AresWPWHExt::applyOccupantDamage(pThis)) {
 			// ..and neuter the bullet, since it's not supposed to hurt the prisoner after the abduction

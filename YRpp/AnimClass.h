@@ -190,3 +190,15 @@ public:
 	DECLARE_PROPERTY(AudioController, Audio4);
 };
 static_assert(sizeof(AnimClass) == (0x1C8), "Invalid size.");
+
+struct UninitAnim
+{
+	void operator() (AnimClass* pAnim) const
+	{
+		if (pAnim && pAnim->Type)
+		{
+			pAnim->TimeToDie = true;
+			pAnim->UnInit();
+		}
+	}
+};

@@ -1275,8 +1275,7 @@ DEFINE_OVERRIDE_HOOK(0x71A84E, TemporalClass_UpdateA, 5)
 			AresMemory::Delete(pJammer);
 		}
 
-		//AttachEffect handling under Temporal
-		AresData::UpdateAEData(&pTarget->align_154->AEDatas);
+		AresAE::UpdateTempoal(&TechnoExt::ExtMap.Find(pTarget)->AeData , pTarget);
 	}
 
 	pThis->WarpRemaining -= pThis->GetWarpPerStep(0);

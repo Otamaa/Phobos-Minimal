@@ -197,6 +197,7 @@
     <ClCompile Include="src\Misc\Ares\EVAVoices.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\AresNetEvent.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\AresTrajectoryHelper.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Classes\AttachedAffects.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Header.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hook.Init.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Classes\PrismForwarding.cpp" />
@@ -464,6 +465,7 @@
     <ClInclude Include="src\Misc\Ares\EVAVoices.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\AresNetEvent.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\AresTrajectoryHelper.h" />
+    <ClInclude Include="src\Misc\Ares\Hooks\Classes\AttachedAffects.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\Header.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\Classes\PrismForwarding.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\Classes\PrismForwardingData.h" />

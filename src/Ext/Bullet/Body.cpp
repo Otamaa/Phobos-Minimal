@@ -600,7 +600,7 @@ void BulletExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved) {
 		pTraj->InvalidatePointer(ptr, bRemoved);
 
 	if (this->AttachedSystem.get() == ptr)
-		this->AttachedSystem.reset(nullptr);
+		this->AttachedSystem.release();
  }
 
 void BulletExt::ExtData::ApplyRadiationToCell(CoordStruct const& nCoord, int Spread, int RadLevel)

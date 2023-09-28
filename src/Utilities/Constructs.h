@@ -56,35 +56,102 @@
 #include "Savegame.h"
 #include "Debug.h"
 
-template<typename T>
-using Scope = std::unique_ptr<T>;
-template<typename T, typename ... Args>
-constexpr Scope<T> CreateScope(Args&& ... args)
-{
-	return std::make_unique<T>(std::forward<Args>(args)...);
-}
-
-template<typename T>
-using Ref = std::shared_ptr<T>;
-template<typename T, typename ... Args>
-constexpr Ref<T> CreateRef(Args&& ... args)
-{
-	return std::make_shared<T>(std::forward<Args>(args)...);
-}
-
-//doesnt work with array !
-//make new one !
-template<typename T , typename... TArgs>
-UniqueGamePtr<T> Make_UniqueGamePtr(TArgs&&... args)
-{
-	static_assert(std::is_constructible<T, TArgs...>::value, "Cannot construct T from TArgs.");
-	GameAllocator<T> alloc;
-	auto ptr = Memory::Create<T>(alloc, std::forward<TArgs>(args)...);
-	return { ptr , GameDeleter() };
-}
-
 template <typename T>
 using UniqueDLLPtr = std::unique_ptr<T, DLLDeleter>;
+
+// owns a resource. not copyable, but movable.
+template <typename T, typename Deleter, T Default = T()>
+struct Handle
+{
+	constexpr Handle() noexcept = default;
+
+	constexpr explicit Handle(T value) noexcept
+		: Value(value)
+	{
+	}
+
+	Handle(const Handle&) = delete;
+
+	constexpr Handle(Handle&& other) noexcept
+		: Value(other.release())
+	{
+	}
+
+	~Handle() noexcept
+	{
+		if (this->Value != Default)
+		{
+			Deleter {}(this->Value);
+		}
+	}
+
+	Handle& operator = (const Handle&) = delete;
+
+	Handle& operator = (Handle&& other) noexcept
+	{
+		this->reset(other.release());
+		return *this;
+	}
+
+	constexpr explicit operator bool() const noexcept
+	{
+		return this->Value != Default;
+	}
+
+	constexpr operator T () const noexcept
+	{
+		return this->Value;
+	}
+
+	constexpr T get() const noexcept
+	{
+		return this->Value;
+	}
+
+	constexpr T operator->() const noexcept {
+		return get();
+	}
+
+	T release() noexcept
+	{
+		return std::exchange(this->Value, Default);
+	}
+
+	void reset(T value) noexcept
+	{
+		Handle(this->Value);
+		this->Value = value;
+	}
+
+	void clear() noexcept
+	{
+		Handle(std::move(*this));
+	}
+
+	void swap(Handle& other) noexcept
+	{
+		using std::swap;
+		swap(this->Value, other.Value);
+	}
+
+	friend void swap(Handle& lhs, Handle& rhs) noexcept
+	{
+		lhs.swap(rhs);
+	}
+
+	bool load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		return Savegame::ReadPhobosStream(Stm, this->Value, RegisterForChange);
+	}
+
+	bool save(PhobosStreamWriter& Stm) const
+	{
+		return Savegame::WritePhobosStream(Stm, this->Value);
+	}
+
+private:
+	T Value { Default };
+};
 
 class TheaterSpecificSHP
 {
@@ -144,8 +211,8 @@ public:
 	};
 
 	PaletteMode Mode{ PaletteMode::Default };
-	UniqueGamePtrB<ConvertClass> Convert{ nullptr };
-	UniqueGamePtr<BytePalette> Palette{ nullptr };
+	Handle<ConvertClass* , UninitConvert> Convert { nullptr };
+	UniqueGamePtr<BytePalette> Palette { nullptr };
 
 	CustomPalette() = default;
 	explicit CustomPalette(PaletteMode mode) noexcept : Mode(mode) {};
@@ -674,78 +741,4 @@ private:
 
 	T Value{};
 	bool HasValue{ false };
-};
-
-// owns a resource. not copyable, but movable.
-template <typename T, typename Deleter, T Default = T()>
-struct Handle {
-	constexpr Handle() noexcept = default;
-
-	constexpr explicit Handle(T value) noexcept
-		: Value(value)
-	{ }
-
-	Handle(const Handle&) = delete;
-
-	constexpr Handle(Handle&& other) noexcept
-		: Value(other.release())
-	{ }
-
-	~Handle() noexcept {
-		if (this->Value != Default) {
-			Deleter{}(this->Value);
-		}
-	}
-
-	Handle& operator = (const Handle&) = delete;
-
-	Handle& operator = (Handle&& other) noexcept {
-		this->reset(other.release());
-		return *this;
-	}
-
-	constexpr explicit operator bool() const noexcept {
-		return this->Value != Default;
-	}
-
-	constexpr operator T () const noexcept {
-		return this->Value;
-	}
-
-	constexpr T get() const noexcept {
-		return this->Value;
-	}
-
-	T release() noexcept {
-		return std::exchange(this->Value, Default);
-	}
-
-	void reset(T value) noexcept {
-		Handle(this->Value);
-		this->Value = value;
-	}
-
-	void clear() noexcept {
-		Handle(std::move(*this));
-	}
-
-	void swap(Handle& other) noexcept {
-		using std::swap;
-		swap(this->Value, other.Value);
-	}
-
-	friend void swap(Handle& lhs, Handle& rhs) noexcept {
-		lhs.swap(rhs);
-	}
-
-	bool load(PhobosStreamReader& Stm, bool RegisterForChange) {
-		return Savegame::ReadPhobosStream(Stm, this->Value, RegisterForChange);
-	}
-
-	bool save(PhobosStreamWriter& Stm) const {
-		return Savegame::WritePhobosStream(Stm, this->Value);
-	}
-
-private:
-	T Value{ Default };
 };

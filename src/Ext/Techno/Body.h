@@ -28,6 +28,8 @@
 
 #include <Ares_TechnoExt.h>
 
+#include <Misc/Ares/Hooks/Classes/AttachedAffects.h>
+
 #include <Ext/Object/Body.h>
 
 class BulletClass;
@@ -109,7 +111,6 @@ public:
 		SpawnSupport MySpawnSuport { };
 		std::unique_ptr<FighterAreaGuard> MyFighterData { };
 
-		UniqueGamePtr<AnimClass> AttachedAnim { };
 		bool KillActionCalled { false };
 		CDTimerClass WarpedOutDelay { };
 		OptionalStruct<bool, true> AltOccupation { }; // if the unit marks cell occupation flags, this is set to whether it uses the "high" occupation members
@@ -133,11 +134,13 @@ public:
 
 		//====
 		bool IsWebbed { false };
-		AnimClass* WebbedAnim { nullptr };
+		Handle<AnimClass*, UninitAnim> WebbedAnim { nullptr };
 		AbstractClass* WebbyLastTarget { nullptr };
 		Mission WebbyLastMission { Mission::Sleep };
 
 		bool FreeUnitDone { false };
+		AresAEData AeData {};
+
 		ExtData(TechnoClass* OwnerObject) : Extension<TechnoClass>(OwnerObject)
 		{ }
 
@@ -145,8 +148,7 @@ public:
 		{
 			GameDelete<true, true>(MyOriginalTemporal);
 
-			if (WebbedAnim && WebbedAnim->IsAlive)
-				GameDelete<true, false>(WebbedAnim);
+			WebbedAnim.reset(nullptr);
 		}
 
 		void InvalidatePointer(AbstractClass* ptr, bool bRemoved);

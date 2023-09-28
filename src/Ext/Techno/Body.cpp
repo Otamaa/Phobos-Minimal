@@ -4502,7 +4502,6 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->Attempt)
 		.Process(this->ReceiveDamageMultiplier)
 		.Process(this->SkipLowDamageCheck)
-		.Process(this->AttachedAnim)
 		.Process(this->KillActionCalled)
 		.Process(this->WarpedOutDelay)
 		.Process(this->AltOccupation)
@@ -4541,6 +4540,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->WebbyLastTarget)
 		.Process(this->WebbyLastMission)
 		.Process(this->FreeUnitDone)
+		.Process(this->AeData)
 		;
 	//should put this inside techo ext , ffs
 
@@ -4660,7 +4660,9 @@ DEFINE_HOOK(0x710443, TechnoClass_AnimPointerExpired_PhobosAdd, 6)
 			pShield->InvalidatePointer(pAnim, false);
 
 		if (pExt->WebbedAnim == pAnim)
-			pExt->WebbedAnim = nullptr;
+			pExt->WebbedAnim.release();
+
+		pExt->AeData.InvalidatePointer(pAnim, pThis);
 	}
 
 	return 0x0;

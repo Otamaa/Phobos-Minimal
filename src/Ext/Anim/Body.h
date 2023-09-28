@@ -29,7 +29,7 @@ public:
 		// and the building is not on same cell as the animation.
 		BuildingClass* ParentBuilding { nullptr };
 
-		UniqueParticleSystemClassPtr AttachedSystem {};
+		Handle<ParticleSystemClass*, UninitAttachedSystem> AttachedSystem {};
 		CoordStruct CreateUnitLocation {};
 
 		ExtData(base_type* OwnerObject) : Extension<AnimClass>(OwnerObject)

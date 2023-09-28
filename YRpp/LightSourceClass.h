@@ -88,3 +88,11 @@ public:
 	int LightVisibility;
 	bool Activated;
 };
+
+struct UninitLightSource
+{
+	void operator() (LightSourceClass* pConvert) const
+	{
+		GameDelete<true, true>(pConvert);
+	}
+};

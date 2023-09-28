@@ -4,6 +4,8 @@
 #include <Ext/WarheadType/Body.h>
 #include <Misc/AresData.h>
 
+#include <Misc/Ares/Hooks/Classes/AttachedAffects.h>
+
 std::vector<const char*> SW_GenericWarhead::GetTypeString() const
 {
 	return { "GenericWarhead" };
@@ -118,7 +120,8 @@ void GenericWarheadStateMachine::SentPayload()
 		WarheadTypeExt::CreateIonBlast(pWarhead, detonationCoords);
 		pWHExt->applyIronCurtain(detonationCoords, this->Super->Owner, damage);
 		WarheadTypeExt::applyEMP(pWarhead, detonationCoords, Firer);
-		AresData::applyAE(pWarhead, &detonationCoords, this->Super->Owner);
+		AresAE::applyAttachedEffect(pWarhead, detonationCoords, this->Super->Owner);
+		//AresData::applyAE(pWarhead, { &detonationCoords, this->Super->Owner });
 
 		MapClass::DamageArea(detonationCoords, damage, Firer, pWarhead, pWarhead->Tiberium, this->Super->Owner);
 

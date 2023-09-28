@@ -54,6 +54,8 @@ enum class RequirementStatus : int
 	Incomplete = 2, // missing something (approp factory)
 	Complete = 3, // OK
 	Overridden = 4, // magic condition met, bypass prereq check
+	//Complete_Display = 5,
+	//Incomplete_Display = 6,
 };
 
 enum class AresScripts : int

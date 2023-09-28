@@ -172,6 +172,15 @@ DEFINE_OVERRIDE_HOOK(0x4DAA68, FootClass_Update_MoveSound, 0x6)
 {
 	GET(FootClass* const, pThis, ESI);
 
+	const auto pType = pThis->GetTechnoType();
+
+	if(pType->IdleRate && TechnoTypeExt::ExtMap.Find(pType)->NoIdleSound) {
+		if(!pThis->Locomotor->Is_Moving_Now()) {
+			pThis->__MovingSoundDelay = 0;
+			return 0x4DAB3C;
+		}
+	}
+
 	if (pThis->__PlayingMovingSound) {
 		return 0x4DAAEE;
 	}

@@ -427,10 +427,10 @@ void AresData::SetMouseCursorAction(size_t CursorIdx, Action nAction, bool bShro
 //	return AresThiscall<GetBarrelsVoxelID, VoxelStruct*, void*, int>()(GetAresTechnoTypeExt(pThis), index);
 //}
 
-void AresData::TechnoTransferAffects(TechnoClass* const pFrom, TechnoClass* const pTo)
-{
-	AresStdcall<TechnoTransferAffectsID, void, TechnoClass*, TechnoClass*>()(pFrom, pTo);
-}
+//void AresData::TechnoTransferAffects(TechnoClass* const pFrom, TechnoClass* const pTo)
+//{
+//	AresStdcall<TechnoTransferAffectsID, void, TechnoClass*, TechnoClass*>()(pFrom, pTo);
+//}
 
 //bool AresData::IsGenericPrerequisite(TechnoTypeClass* const pThis)
 //{
@@ -503,15 +503,15 @@ void AresData::MouseCursorTypeLoadDefault()
 //	return AresThiscall<GetTunnelArrayID, std::vector<FootClass*>*, void* , HouseClass* const>()(GetAresBuildingTypeExt(pBld) , pOwner);
 //}
 
-void AresData::UpdateAEData(AresTechnoExt::AEData* const pAE)
-{
-	AresThiscall<UpdateAEDataID, void, AresTechnoExt::AEData* const>()(pAE);
-}
+//void AresData::UpdateAEData(AresTechnoExt::AEData* const pAE)
+//{
+//	AresThiscall<UpdateAEDataID, void, AresTechnoExt::AEData* const>()(pAE);
+//}
 
-void AresData::RemoveAEType(AresTechnoExt::AEData* const pAE, TechnoTypeClass* pNewType)
-{
-	AresThiscall<AttachedAffect_UpdateType, void, AresTechnoExt::AEData* const , TechnoTypeClass*>()(pAE , pNewType);
-}
+//void AresData::RemoveAEType(AresTechnoExt::AEData* const pAE, TechnoTypeClass* pNewType)
+//{
+//	AresThiscall<AttachedAffect_UpdateType, void, AresTechnoExt::AEData* const , TechnoTypeClass*>()(pAE , pNewType);
+//}
 
 //void AresData::JammerClassUnjamAll(AresTechnoExt::JammerClass* const pJamm)
 //{
@@ -539,9 +539,9 @@ void AresData::RemoveAEType(AresTechnoExt::AEData* const pAE, TechnoTypeClass* p
 //	AresThiscall<applyEMPID, void, void*, CoordStruct* , TechnoClass*>()(GetAresAresWarheadTypeExt(pWH), pTarget , pOwner);
 //}
 
-void AresData::applyAE(WarheadTypeClass* pWH, CoordStruct* pTarget, HouseClass* pOwner) {
-	AresThiscall<applyAEID, void, void*, CoordStruct* , HouseClass*>()(GetAresAresWarheadTypeExt(pWH), pTarget , pOwner);
-}
+//void AresData::applyAE(WarheadTypeClass* pWH, const DataBundle data) {
+//	AresThiscall<applyAEID, void, void*, DataBundle>()(GetAresAresWarheadTypeExt(pWH), data);
+//}
 
 // void AresData::EvalRaidStatus(BuildingClass* pBuilding)
 // {
@@ -573,10 +573,10 @@ void AresData::applyAE(WarheadTypeClass* pWH, CoordStruct* pTarget, HouseClass* 
 //	return AresThiscall<CloadAllowedID, bool, void*>()((void*)pTechno->align_154);
 //}
 
-bool AresData::RemoveAE(AresTechnoExt::AEData* pAE)
-{
-	return AresThiscall<RemoveAEID, bool , AresTechnoExt::AEData*>()(pAE);
-}
+//bool AresData::RemoveAE(AresTechnoExt::AEData* pAE)
+//{
+//	return AresThiscall<RemoveAEID, bool , AresTechnoExt::AEData*>()(pAE);
+//}
 
 void AresData::FlyingStringsAdd(TechnoClass* pTech, bool bSomething)
 {

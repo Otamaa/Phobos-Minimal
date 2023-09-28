@@ -13,8 +13,8 @@ public:
 	};
 
 	FixedString<32> CachedName;
-	UniqueGamePtrB<ConvertClass> Convert_Temperate;
-	UniqueGamePtrB<ConvertClass> Convert;
+	Handle<ConvertClass* , UninitConvert> Convert_Temperate;
+	Handle<ConvertClass*, UninitConvert> Convert;
 	UniqueGamePtr<BytePalette> Palette;
 	DynamicVectorClass<ColorScheme*>* ColorschemeDataVector;
 

@@ -2735,6 +2735,22 @@ BuildingClass* TechnoExt_ExtData::CreateBuilding(
 	return pRet;
 };
 
+void TechnoExt_ExtData::Destroy(TechnoClass* pTechno, TechnoClass* pKiller, HouseClass* pKillerHouse, WarheadTypeClass* pWarhead)
+{
+	if (!pKillerHouse && pKiller)
+	{
+		pKillerHouse = pKiller->Owner;
+	}
+
+	if (!pWarhead)
+	{
+		pWarhead = RulesClass::Instance->C4Warhead;
+	}
+
+	int health = pTechno->Health;
+	pTechno->ReceiveDamage(&health, 0, pWarhead, pKiller, true, false, pKillerHouse);
+}
+
 bool TechnoExt_ExtData::IsDriverKillable(TechnoClass* pThis, double KillBelowPercent)
 {
 	const auto what = pThis->WhatAmI();
@@ -2976,8 +2992,9 @@ bool TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* pToTy
 	pOwner->RecheckTechTree = true;
 	pThis->align_154->Is_Operated = false;
 
-	AresData::RemoveAEType(&pThis->align_154->AEDatas, prevType);
-	TechnoExt_ExtData::RecalculateStat(pThis);
+	AresAE::RemoveSpecific(&TechnoExt::ExtMap.Find(pThis)->AeData, pThis, prevType);
+	//AresData::RemoveAEType(&pThis->align_154->AEDatas, prevType);
+	//TechnoExt_ExtData::RecalculateStat(pThis);
 
 	// Adjust ammo
 	pThis->Ammo = MinImpl(pThis->Ammo, pToType->Ammo);
@@ -3020,7 +3037,7 @@ bool TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* pToTy
 
 void TechnoExt_ExtData::RecalculateStat(TechnoClass* pThis)
 {
-#ifndef New_funcs
+#ifdef New_funcs
 	double ROF_Mult = 1.0;
 	double FP_Mult = pThis->align_154->AE_FirePowerMult;
 	double Armor_Mult = pThis->align_154->AE_ArmorMult;
@@ -3051,7 +3068,8 @@ void TechnoExt_ExtData::RecalculateStat(TechnoClass* pThis)
 		((FootClass*)pThis)->SpeedMultiplier = Speed_Mult;
 	}
 #else
-	AresData::RecalculateStat(pThis);
+	//AresData::RecalculateStat(pThis);
+	AresAE::RecalculateStat(&TechnoExt::ExtMap.Find(pThis)->AeData, pThis);
 #endif
 }
 
@@ -3115,6 +3133,195 @@ void TechnoExt_ExtData::SpawnVisceroid(CoordStruct& crd, UnitTypeClass* pType, i
 				}
 			}
 		}
+	}
+}
+
+void TechnoExt_ExtData::TransferOriginalOwner(TechnoClass* pFrom, TechnoClass* pTo)
+{
+	pFrom->align_154->OriginalHouseType = pTo->align_154->OriginalHouseType;
+}
+
+void TechnoExt_ExtData::TransferIvanBomb(TechnoClass* From, TechnoClass* To)
+{
+	if (auto Bomb = From->AttachedBomb)
+	{
+		From->AttachedBomb = nullptr;
+		Bomb->Target = To;
+		To->AttachedBomb = Bomb;
+		To->BombVisible = From->BombVisible;
+		// if there already was a bomb attached to target unit, it's gone now...
+		// it shouldn't happen though, this is used for (un)deploying objects only
+	}
+}
+
+void NOINLINE UpdateType(TechnoClass* pThis, TechnoTypeExt::ExtData* pOldTypeExt)
+{
+	if (pOldTypeExt->Convert_Water || pOldTypeExt->Convert_Land)
+	{
+		TechnoTypeClass* Convert = pOldTypeExt->Convert_Land;
+		CellClass* pCell = pThis->GetCell();
+		if (pCell && (pCell->LandType == LandType::Water || pCell->LandType == LandType::Beach))
+			Convert = pOldTypeExt->Convert_Water;
+
+		if (Convert && pOldTypeExt->Get() != Convert)
+			TechnoExt_ExtData::ConvertToType(pThis, Convert);
+	}
+}
+
+void NOINLINE UpdatePassengerTurrent(TechnoClass* pThis, TechnoTypeExt::ExtData* pTypeData)
+{
+	const auto pType = pTypeData->OwnerObject();
+	if (pTypeData->PassengerTurret)
+	{
+		// 18 = 1 8 = A H = Adolf Hitler. Clearly we can't allow it to come to that.
+		auto const passengerNumber = MinImpl(pThis->Passengers.NumPassengers, pType->WeaponCount);
+		pThis->CurrentTurretNumber = MinImpl(passengerNumber, pType->TurretCount - 1);
+	}
+}
+
+void NOINLINE UpdatePoweredBy(TechnoClass* pThis, TechnoTypeExt::ExtData* pTypeData)
+{
+	if (!pTypeData->PoweredBy.empty())
+	{
+
+		if (!pThis->align_154->PoweredUnitUptr)
+		{
+			pThis->align_154->PoweredUnitUptr = AresMemory::Create<AresTechnoExt::PoweredUnitClass>();
+			pThis->align_154->PoweredUnitUptr->Powered = true;
+			pThis->align_154->PoweredUnitUptr->Techno = pThis;
+		}
+
+		if (!((AresPoweredUnit*)pThis->align_154->PoweredUnitUptr)->Update())
+		{
+			TechnoExt_ExtData::Destroy(pThis, nullptr, nullptr, nullptr);
+		}
+	}
+}
+
+void NOINLINE UpdateBuildingOperation(TechnoExt::ExtData* pData, TechnoTypeExt::ExtData* pTypeData)
+{
+	auto const pThis = pData->OwnerObject();
+
+	if (pThis->align_154->Is_Operated && pThis->WhatAmI() == BuildingClass::AbsID)
+	{
+		if (pThis->Deactivated
+			&& pThis->IsPowerOnline()
+			&& !pThis->IsUnderEMP()
+			&& TechnoExt_ExtData::IsPowered(pThis)
+			)
+		{
+			pThis->Reactivate();
+			pThis->Owner->RecheckTechTree = true; // #885
+		}
+	}
+	else
+	{
+		auto const pBuildingBelow = pThis->GetCell()->GetBuilding();
+		auto const buildingBelowIsMe = pThis == pBuildingBelow;
+
+		if (!pBuildingBelow || (buildingBelowIsMe && pBuildingBelow->IsPowerOnline()))
+		{
+			bool Override = false;
+			if (auto const pFoot = abstract_cast<FootClass*>(pThis))
+			{
+				if (!pBuildingBelow)
+				{
+					// immobile, though not disabled. like hover tanks after
+					// a repair depot has been sold or warped away.
+					Override = ((BYTE)pFoot->Locomotor->Is_Powered() == pThis->Deactivated);
+				}
+			}
+
+			if (TechnoExt_ExtData::IsOperatedB(pThis))
+			{ // either does have an operator or doesn't need one, so...
+				if (Override || (pThis->Deactivated && !pThis->IsUnderEMP() && TechnoExt_ExtData::IsPowered(pThis)))
+				{ // ...if it's currently off, turn it on! (oooh baby)
+					pThis->Reactivate();
+					if (buildingBelowIsMe)
+					{
+						pThis->Owner->RecheckTechTree = true; // #885
+					}
+				}
+			}
+			else
+			{ // doesn't have an operator, so...
+				if (!pThis->Deactivated)
+				{ // ...if it's not off yet, turn it off!
+					pThis->Deactivate();
+					if (buildingBelowIsMe)
+					{
+						pThis->Owner->RecheckTechTree = true; // #885
+					}
+				}
+			}
+		}
+	}
+}
+
+void NOINLINE UpdateRadarJammer(TechnoExt::ExtData* pData, TechnoTypeExt::ExtData* pTypeData)
+{
+	auto const pThis = pData->OwnerObject();
+
+	// prevent disabled units from driving around.
+	if (pThis->Deactivated)
+	{
+		if (auto const pUnit = specific_cast<UnitClass*>(pThis))
+		{
+			if (pUnit->Locomotor->Is_Moving() && pUnit->Destination && !pThis->LocomotorSource)
+			{
+				pUnit->SetDestination(nullptr, true);
+				pUnit->StopMoving();
+			}
+		}
+
+		// dropping Radar Jammers (#305) here for now; should check if another TechnoClass::Update hook might be better ~Ren
+		if (auto pJam = (AresJammer*)pThis->align_154->RadarJammerUptr)
+		{ // RadarJam should only be non-null if the object is an active radar jammer
+			pJam->UnjamAll();
+		}
+	}
+	else
+	{
+		// dropping Radar Jammers (#305) here for now; should check if another TechnoClass::Update hook might be better ~Ren
+		if (pTypeData->RadarJamRadius)
+		{
+			if (!pThis->align_154->RadarJammerUptr)
+			{
+				pThis->align_154->RadarJammerUptr = AresMemory::Create<AresTechnoExt::JammerClass>();
+				pThis->align_154->RadarJammerUptr->AttachedToObject = pThis;
+			}
+
+			((AresJammer*)pThis->align_154->RadarJammerUptr)->Update();
+		}
+	}
+}
+
+#include "Classes/AttachedAffects.h"
+
+void TechnoExt_ExtData::Ares_technoUpdate(TechnoClass* pThis)
+{
+	const auto pOldType = pThis->GetTechnoType();
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
+
+	auto pOldTypeExt = TechnoTypeExt::ExtMap.Find(pOldType);
+
+	UpdateType(pThis, pOldTypeExt);
+	UpdatePassengerTurrent(pThis, pOldTypeExt);
+	UpdatePoweredBy(pThis, pOldTypeExt);
+	AresAE::Update(&pExt->AeData, pThis);
+	UpdateBuildingOperation(pExt, pOldTypeExt);
+	UpdateRadarJammer(pExt, pOldTypeExt);
+
+	if (pThis->align_154->TechnoValueAmount)
+		AresData::FlyingStringsAdd(pThis, false);
+
+	const auto pFoot = generic_cast<FootClass*>(pThis);
+
+	if (pFoot && pExt->IsDriverKilled && pThis->CurrentMission != Mission::Harmless && !pFoot->IsAttackedByLocomotor)
+	{
+		pThis->SetTarget(nullptr);
+		pThis->EnterIdleMode(false, 1);
+		pThis->QueueMission(Mission::Harmless, true);
 	}
 }
 

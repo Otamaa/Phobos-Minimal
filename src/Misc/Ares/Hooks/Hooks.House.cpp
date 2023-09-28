@@ -630,6 +630,20 @@ DEFINE_OVERRIDE_HOOK(0x50B370, HouseClass_ShouldDisableCameo, 5)
 
 	if (pType)
 	{
+		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+		// there is some another stupid bug
+		// where if the building already queueed and paused
+		// then you remove the prereq thing , the timer wont restart
+		// it make it odd
+		// also doing this check every frame is kind a weird ,..
+		//if(!pTypeExt->Prerequisite_Display.empty()
+		//	&& HouseExt::PrereqValidate(pThis, pType , false , false ) == CanBuildResult::TemporarilyUnbuildable)
+		//{
+		//	R->EAX(true);
+		//	return 0x50B669;
+		//}
+
 		auto const abs = pType->WhatAmI();
 		auto const pFactory = pThis->GetPrimaryFactory(
 			abs, pType->Naval, BuildCat::DontCare);

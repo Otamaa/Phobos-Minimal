@@ -468,6 +468,13 @@ std::array<const char*, 6u> EnumFunctions::DamageState_to_srings
 }
 };
 
+std::array<const char*, 8u> EnumFunctions::FacingType_to_strings
+{
+{
+	"N" , "NE", "E" , "SE", "S", "SW", "W", "NW",
+}
+};
+
 bool EnumFunctions::CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse)
 {
 	if (flags == AffectedHouse::All)

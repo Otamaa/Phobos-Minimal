@@ -23,8 +23,8 @@ public:
 
 	public:
 
-		UniqueGamePtrB<LightSourceClass> LighSource { };
-		AnimClass* AttachedAnim { nullptr };
+		Handle<LightSourceClass* , UninitLightSource> LighSource {};
+		Handle<AnimClass* ,UninitAnim> AttachedAnim {};
 
 		ExtData(TerrainClass* OwnerObject) : Extension<TerrainClass>(OwnerObject)
 		{ }

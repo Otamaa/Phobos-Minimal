@@ -316,6 +316,12 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		this->ImmuneToEMP.Read(exINI, pSection, "ImmuneToEMP");
 
+		detail::read<bool>(pThis->Unbuildable, exINI, pSection, "Unbuildable", false);
+		this->HumanUnbuildable.Read(exINI, pSection, "HumanUnbuildable");
+		this->NoIdleSound.Read(exINI, pSection, "NoIdleSound");
+		this->Soylent_Zero.Read(exINI, pSection, "Soylent.Zero");
+		this->Prerequisite_Power.Read(exINI, pSection, "Prerequisite.Power");
+
 		this->Interceptor.Read(exINI, pSection, "Interceptor");
 		this->Interceptor_CanTargetHouses.Read(exINI, pSection, "Interceptor.CanTargetHouses");
 		this->Interceptor_GuardRange.Read(exINI, pSection, "Interceptor.%sGuardRange");
@@ -704,6 +710,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		// Prerequisite.Negative with Generic Prerequistes support
 		GenericPrerequisite::Parse(pINI, pSection, "Prerequisite.Negative", this->Prerequisite_Negative);
+		GenericPrerequisite::Parse(pINI, pSection, "Prerequisite.Display", this->Prerequisite_Display);
 		GenericPrerequisite::Parse(pINI, pSection, "PrerequisiteOverride", pThis->PrerequisiteOverride);
 
 #pragma endregion Prereq
@@ -766,6 +773,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->Convert_Deploy.Read(exINI, pSection, "Convert.Deploy");
 		this->Convert_Deploy_Delay.Read(exINI, pSection, "Convert.DeployDelay");
 		this->Convert_Script.Read(exINI, pSection, "Convert.Script");
+		this->Convert_Water.Read(exINI, pSection, "Convert.Water");
+		this->Convert_Land.Read(exINI, pSection, "Convert.Land");
+
 		this->Harvester_LongScan.Read(exINI, pSection, "Harvester.LongScan");
 		this->Harvester_ShortScan.Read(exINI, pSection, "Harvester.ShortScan");
 		this->Harvester_ScanCorrection.Read(exINI, pSection, "Harvester.ScanCorrection");
@@ -1719,6 +1729,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Prerequisites)
 		.Process(this->Prerequisite_Lists)
 		.Process(this->Prerequisite_Negative)
+		.Process(this->Prerequisite_Display)
 		.Process(this->ConsideredNaval)
 		.Process(this->ConsideredVehicle)
 
@@ -1795,6 +1806,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Convert_Deploy)
 		.Process(this->Convert_Deploy_Delay)
 		.Process(this->Convert_Script)
+		.Process(this->Convert_Water)
+		.Process(this->Convert_Land)
 		.Process(this->Harvester_LongScan)
 		.Process(this->Harvester_ShortScan)
 		.Process(this->Harvester_ScanCorrection)
@@ -2054,7 +2067,11 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->KeepAlive)
 		.Process(this->SpawnDistanceFromTarget)
 		.Process(this->SpawnHeight)
-
+		.Process(this->HumanUnbuildable)
+		.Process(this->NoIdleSound)
+		.Process(this->Soylent_Zero)
+		.Process(this->Prerequisite_Power)
+		.Process(this->PassengerTurret)
 		;
 }
 

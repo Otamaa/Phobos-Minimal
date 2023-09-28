@@ -348,7 +348,7 @@ void AnimExt::ExtData::InvalidatePointer(AbstractClass* const ptr, bool bRemoved
 	AnnounceInvalidPointer(this->ParentBuilding, ptr, bRemoved);
 
 	if (this->AttachedSystem.get() == ptr)
-		this->AttachedSystem.reset(nullptr);
+		this->AttachedSystem.release();
 }
 
 void AnimExt::ExtData::CreateAttachedSystem()

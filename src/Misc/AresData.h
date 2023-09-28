@@ -204,7 +204,7 @@ struct AresData
 	//static void HouseExt_ExtData_ApplyAcademy(HouseClass* const pThis, TechnoClass* const pTarget, AbstractType Type);
 	//static VoxelStruct* GetTurretsVoxel(TechnoTypeClass* const pThis, int index);
 	//static VoxelStruct* GetBarrelsVoxel(TechnoTypeClass* const pThis, int index);
-	static void TechnoTransferAffects(TechnoClass* const pFrom, TechnoClass* const pTo);
+	//static void TechnoTransferAffects(TechnoClass* const pFrom, TechnoClass* const pTo);
 	//static bool IsGenericPrerequisite(TechnoTypeClass* const pThis);
 	//static int GetSelfHealAmount(TechnoClass* const pTechno);
 
@@ -221,17 +221,22 @@ struct AresData
 	//static int NOINLINE CallAresArmorType_FindIndex(REGISTERS* R);
 
 	//static std::vector<FootClass*>* GetTunnelArray(BuildingTypeClass* const pBld, HouseClass* const pOwner);
-	static void UpdateAEData(AresTechnoExt::AEData* const pAE);
-	static void RemoveAEType(AresTechnoExt::AEData* const pAE, TechnoTypeClass* pNewType);
+	//static void UpdateAEData(AresTechnoExt::AEData* const pAE);
+	//static void RemoveAEType(AresTechnoExt::AEData* const pAE, TechnoTypeClass* pNewType);
 
 	//static void JammerClassUnjamAll(AresTechnoExt::JammerClass* const pJamm);
 	//static void CPrismRemoveFromNetwork(cPrismForwarding* const pThis , bool bCease);
 
+	//struct DataBundle
+	//{
+	//	CoordStruct* pTarget;
+	//	HouseClass* pOwner;
+	//};
 	//static void applyIonCannon(WarheadTypeClass* pWH, CoordStruct* pTarget);
 	//static bool applyPermaMC(WarheadTypeClass* pWH, HouseClass* pOwner, AbstractClass* pTarget);
 	//static void applyIC(WarheadTypeClass* pWH, CoordStruct* pTarget, HouseClass* pOwner, int Damage);
 	//static void applyEMP(WarheadTypeClass* pWH, CoordStruct* pTarget, TechnoClass* pOwner);
-	static void applyAE(WarheadTypeClass* pWH, CoordStruct* pTarget, HouseClass* pOwner);
+	//static void applyAE(WarheadTypeClass* pWH, const DataBundle data);
 
 	//static void EvalRaidStatus(BuildingClass* pBuilding);
 	//static bool IsActiveFirestormWall(BuildingClass* pBuilding , HouseClass* pOwner);
@@ -241,7 +246,7 @@ struct AresData
 	//static bool CloakDisallowed(TechnoClass* pTechno, bool allowPassive);
 	//static bool CloakAllowed(TechnoClass* pTechno);
 
-	static bool RemoveAE(AresTechnoExt::AEData* pAE);
+	//static bool RemoveAE(AresTechnoExt::AEData* pAE);
 
 	static void FlyingStringsAdd(TechnoClass* pTech, bool bSomething);
 	//static void CalculateBounty(TechnoClass* pThis, TechnoClass* pKiller);

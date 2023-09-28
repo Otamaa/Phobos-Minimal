@@ -6,6 +6,24 @@
 
 namespace detail
 {
+	template<>
+	inline bool read<DoTypeFacing>(DoTypeFacing& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			for (size_t i = 0; i < EnumFunctions::FacingType_to_strings.size(); ++i) {
+				if (!_strcmpi(EnumFunctions::FacingType_to_strings[i], parser.c_str())) {
+					value = DoTypeFacing(i);
+					return true;
+				}
+			}
+
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected valid DoTypeFacing value");
+		}
+
+		return false;
+	}
+
 	template <>
 	inline bool read<AffectPlayerType>(AffectPlayerType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{

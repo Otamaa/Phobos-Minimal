@@ -44,7 +44,7 @@ public:
 
 		std::vector<UniversalTrail> Trails {};
 		std::unique_ptr<PhobosTrajectory> Trajectory {};
-		UniqueParticleSystemClassPtr AttachedSystem {};
+		Handle<ParticleSystemClass*, UninitAttachedSystem> AttachedSystem {};
 
 		ExtData(BulletClass* OwnerObject) : Extension<BulletClass>(OwnerObject) { }
 		virtual ~ExtData() = default;

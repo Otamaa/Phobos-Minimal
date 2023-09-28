@@ -158,3 +158,11 @@ public:
 };
 
 static_assert(sizeof(LightConvertClass) == 0x1B4);
+
+struct UninitConvert
+{
+	void operator() (ConvertClass* pConvert) const
+	{
+		GameDelete<true, true>(pConvert);
+	}
+};

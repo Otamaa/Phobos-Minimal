@@ -230,6 +230,11 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			pExt->IsDummy = true;
 		}
 
+		if (pExt->AIIonCannonValue.HasValue() && pExt->AIIonCannonValue.size() < 3) {
+			for(size_t i = 0; i < (3 - pExt->AIIonCannonValue.size()); ++i)
+				pExt->AIIonCannonValue.push_back(0);
+		}
+
 		if (pItem->DebrisTypes.Count > 0 && pItem->DebrisMaximums.Count < pItem->DebrisTypes.Count) {
 			Debug::Log("TechnoType[%s - %s] DebrisMaximums items count is less than"
 			"DebrisTypes items count it will fail when the index counter reached DebrisMaximus items count\n"
@@ -413,6 +418,14 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		const size_t versesSize = WarheadTypeExt::ExtMap.Find(pWH)->Verses.size();
 		if (versesSize < ArmorTypeClass::Array.size()) {
 			Debug::Log("Inconsistent verses size of [%s - %d] Warhead with ArmorType Array[%d]\n", pWH->ID, versesSize, ArmorTypeClass::Array.size());
+		}
+	}
+
+	for (size_t i = 1; i < ShieldTypeClass::Array.size(); ++i) {
+		if (auto& pShield = ShieldTypeClass::Array[i]) {
+			if(pShield->Strength == 0){
+				Debug::Log("[%s]ShieldType is not valid because Strength is 0.\n", pShield->Name.data());
+			}
 		}
 	}
 

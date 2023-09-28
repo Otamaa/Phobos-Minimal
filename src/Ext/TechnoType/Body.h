@@ -413,6 +413,7 @@ public:
 		std::vector<ValueableVector<int>> Prerequisites {};
 		Valueable<int> Prerequisite_Lists { 1 };
 		ValueableVector<int> Prerequisite_Negative {};
+		ValueableVector<int> Prerequisite_Display {};
 
 		Nullable<int> Riparius_FrameIDx { };
 		Nullable<int> Cruentus_FrameIDx { };
@@ -484,6 +485,8 @@ public:
 		Valueable<TechnoTypeClass*> Convert_Deploy { nullptr };
 		Valueable<int> Convert_Deploy_Delay { -1 };
 		Valueable<TechnoTypeClass*> Convert_Script { nullptr };
+		Valueable<TechnoTypeClass*> Convert_Water { nullptr };
+		Valueable<TechnoTypeClass*> Convert_Land { nullptr };
 
 		Nullable<Leptons> Harvester_LongScan { };
 		Nullable<Leptons> Harvester_ShortScan { };
@@ -826,6 +829,14 @@ public:
 
 		Nullable<Leptons> SpawnDistanceFromTarget { };
 		Nullable<int> SpawnHeight { };
+
+		Valueable<bool> HumanUnbuildable { false };
+		Valueable<bool> NoIdleSound { false };
+		Valueable<bool> Soylent_Zero { false };
+
+		Nullable<int> Prerequisite_Power {};
+
+		Valueable<bool> PassengerTurret { false };
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 		{

@@ -176,6 +176,7 @@ struct TechnoExt_ExtData
 		AnimTypeClass* pAnimType
 		);
 
+	static void Destroy(TechnoClass* pTechno, TechnoClass* pKiller, HouseClass* pKillerHouse, WarheadTypeClass* pWarhead);
 	static bool IsDriverKillable(TechnoClass* pThis, double KillBelowPercent);
 	static void ApplyKillDriver(TechnoClass* pTarget, TechnoClass* pKiller, HouseClass* pToOwner, bool ResetVet, Mission passiveMission);
 	static bool ConvertToType(TechnoClass* pThis, TechnoTypeClass* pToType);
@@ -185,6 +186,9 @@ struct TechnoExt_ExtData
 	static int GetSelfHealAmount(TechnoClass* pThis);
 	static void SpawnVisceroid(CoordStruct& crd, UnitTypeClass* pType, int chance, bool ignoreTibDeathToVisc);
 
+	static void TransferOriginalOwner(TechnoClass* pFrom, TechnoClass* pTo);
+	static void TransferIvanBomb(TechnoClass* From, TechnoClass* To);
+	static void Ares_technoUpdate(TechnoClass* pThis);
 };
 
 struct TechnoTypeExt_ExtData
@@ -256,6 +260,8 @@ public:
 
 class AresPoweredUnit : public AresTechnoExt::PoweredUnitClass
 {
+public:
+
 	static constexpr int ScanInterval = 15;
 
 	bool IsPoweredBy(HouseClass* const pOwner) const;
@@ -268,6 +274,8 @@ class AresPoweredUnit : public AresTechnoExt::PoweredUnitClass
 
 class AresJammer : public AresTechnoExt::JammerClass
 {
+public:
+
 	static constexpr int ScanInterval = 30;
 
 	bool InRangeOf(BuildingClass*);		//!< Calculates if the jammer is in range of this building.
@@ -277,8 +285,8 @@ class AresJammer : public AresTechnoExt::JammerClass
 	void Unjam(BuildingClass*);			//!< Attempts to unjam the given building. (Actually just unregisters the Jammer with it, the unjamming happens in a hook.)
 
 public:
-	AresJammer(TechnoClass* GameObject) : AresTechnoExt::JammerClass {}
-	{ this->AttachedToObject = GameObject; }
+	//AresJammer(TechnoClass* GameObject) : AresTechnoExt::JammerClass {}
+	//{ this->AttachedToObject = GameObject; }
 
 	~AresJammer() {
 		this->UnjamAll();

@@ -31,13 +31,20 @@ RequirementStatus HouseExt::RequirementsMet(
 	HouseClass* pHouse, TechnoTypeClass* pItem)
 {
 
-	//(0u != ((1 << pHouse->Type->ArrayIndex2) & pItem->GetOwners()))
+	const auto pData = TechnoTypeExt::ExtMap.Find(pItem);
+	auto pHouseExt = HouseExt::ExtMap.Find(pHouse);
+
 	if (pItem->Unbuildable) {
 		return RequirementStatus::Forbidden;
 	}
 
-	const auto pData = TechnoTypeExt::ExtMap.Find(pItem);
-	auto pHouseExt = HouseExt::ExtMap.Find(pHouse);
+	bool IsHuman = false;
+
+	if (pHouse->IsControlledByHuman_()) {
+		IsHuman = true;
+		if(pData->HumanUnbuildable || pItem->TechLevel == -1)
+			return RequirementStatus::Forbidden;
+	}
 
 	if (!(pData->Prerequisite_RequiredTheaters & (1 << static_cast<int>(ScenarioClass::Instance->Theater)))) {
 		return RequirementStatus::Forbidden;
@@ -65,10 +72,6 @@ RequirementStatus HouseExt::RequirementsMet(
 		return RequirementStatus::Overridden;
 	}
 
-	if (pHouse->IsControlledByHuman_() && pItem->TechLevel == -1) {
-		return RequirementStatus::Incomplete;
-	}
-
 	if (!pHouse->HasAllStolenTech(pItem)) {
 		return RequirementStatus::Incomplete;
 	}
@@ -87,8 +90,24 @@ RequirementStatus HouseExt::RequirementsMet(
 		}
 	}
 
+	//if(IsHuman && !HouseExt::PrerequisitesMet(pHouse, pItem))
+	//	return RequirementStatus::Incomplete;
+
+	if (pData->Prerequisite_Power.isset())
+	{
+		if (pData->Prerequisite_Power <= 0) {
+			if (-pData->Prerequisite_Power > pHouse->PowerOutput)
+				return RequirementStatus::Incomplete;
+		}
+		else if (pData->Prerequisite_Power > pHouse->PowerOutput - pHouse->PowerDrain)
+		{
+			return RequirementStatus::Incomplete;
+		}
+	}
+
 	return (pHouse->TechLevel >= pItem->TechLevel) ?
 		RequirementStatus::Complete : RequirementStatus::Incomplete;
+
 }
 
 std::pair<NewFactoryState, BuildingClass*> HouseExt::HasFactory(
@@ -181,14 +200,27 @@ CanBuildResult HouseExt::PrereqValidate(
 	if (!buildLimitOnly)
 	{
 		const RequirementStatus ReqsMet = HouseExt::RequirementsMet(pHouse, pItem);
+		const auto pItemExt = TechnoTypeExt::ExtMap.Find(pItem);
 
-		if (ReqsMet <= RequirementStatus::Incomplete){
+		if (ReqsMet <= RequirementStatus::Incomplete) {
+
+			//if (ReqsMet == RequirementStatus::Incomplete  &&
+			//	!pItemExt->Prerequisite_Display.empty())
+			//{
+			//	if (Prereqs::HouseOwnsAll(pHouse,
+			//		pItemExt->Prerequisite_Display.data(),
+			//		pItemExt->Prerequisite_Display.size())
+			//	)
+			//	{
+			//		return CanBuildResult::TemporarilyUnbuildable;
+			//	}
+			//}
+
 			return CanBuildResult::Unbuildable;
 		}
 
-		if (IsHuman && (ReqsMet == RequirementStatus::Complete)) {
+		if (IsHuman && ReqsMet == RequirementStatus::Complete) {
 			if (!HouseExt::PrerequisitesMet(pHouse, pItem)) {
-				//Debug::Log_WithBool(!debug, "GEOREP 2 Prerequisite met[%d]\n", (int)ReqsMet);
 				return CanBuildResult::Unbuildable;
 			}
 		}
