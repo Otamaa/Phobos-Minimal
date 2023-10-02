@@ -428,6 +428,7 @@ void TeamExt::ExtData::Serialize(T& Stm)
 		.Process(this->OnlyTargetHouseEnemyMode)
 
 		.Process(this->PreviousScript)
+		.Process(this->BridgeRepairHuts)
 		;
 }
 

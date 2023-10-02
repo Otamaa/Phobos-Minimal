@@ -1361,23 +1361,23 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->LimboDelivery_IDs.Read(exINI, pSection, "LimboDelivery.IDs");
 	this->LimboDelivery_RollChances.Read(exINI, pSection, "LimboDelivery.RollChances");
 
-	char tempBuffer[0x30];
+	char tempBuffer[0x30] {};
 	for (size_t i = 0; ; ++i)
 	{
-		ValueableVector<int> weights;
+		ValueableVector<int> weights {};
 		IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LimboDelivery.RandomWeights%d", i);
 		weights.Read(exINI, pSection, tempBuffer);
 
 		if (weights.empty())
 			break;
 
-		this->LimboDelivery_RandomWeightsData.push_back(weights);
+		this->LimboDelivery_RandomWeightsData.push_back(std::move(weights));
 	}
 
-	ValueableVector<int> weights;
-	weights.Read(exINI, pSection, "LimboDelivery.RandomWeights");
+	std::vector<int> weights {};
+	detail::parse_values<int>(weights, exINI, pSection, "LimboDelivery.RandomWeights");
 	if (!weights.empty())
-		this->LimboDelivery_RandomWeightsData[0] = weights;
+		this->LimboDelivery_RandomWeightsData[0] = std::move(weights);
 
 	this->LimboKill_Affected.Read(exINI, pSection, "LimboKill.Affected");
 	this->LimboKill_IDs.Read(exINI, pSection, "LimboKill.IDs");

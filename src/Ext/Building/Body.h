@@ -56,7 +56,7 @@ public:
 		bool AboutToChronoshift { false };
 		bool IsFromSW { false };
 
-		//PhobosMap<TechnoClass*, bool> RegisteredJammers { };
+		PhobosMap<TechnoClass*, bool> RegisteredJammers { };
 
 		ExtData(BuildingClass* OwnerObject) : Extension<BuildingClass>(OwnerObject){
 			this->PrismForwarding.Owner = OwnerObject;

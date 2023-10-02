@@ -543,36 +543,59 @@ AircraftTypeClass* HouseExt::GetParadropPlane(HouseClass* pHouse)
 	// tries to get the house's default plane and falls back to
 	// the sides default plane.
 	const auto pTypeExt = HouseTypeExt::ExtMap.TryFind(pHouse->Type);
+	AircraftTypeClass* pRest = nullptr;
 
 	if (pTypeExt && pTypeExt->ParaDropPlane.Get(nullptr)) {
-		return pTypeExt->ParaDropPlane;
+		pRest =  pTypeExt->ParaDropPlane;
 	}
 
-	int iPlane = -1;
-	if (const auto pSide = HouseExt::GetSide(pHouse)) {
-		iPlane = SideExt::ExtMap.Find(pSide)->ParaDropPlane;
+	if(!pRest) {
+		int iPlane = -1;
+		if (const auto pSide = HouseExt::GetSide(pHouse)) {
+			iPlane = SideExt::ExtMap.Find(pSide)->ParaDropPlane;
+		}
+
+		// didn't help. default to the PDPlane like the game does.
+
+		pRest =
+		AircraftTypeClass::Array->GetItemOrDefault(iPlane , RulesExt::Global()->DefaultParaPlane);
 	}
 
-	// didn't help. default to the PDPlane like the game does.
+	if(pRest && pRest->Strength == 0 )
+		Debug::FatalError("Invalid Paradrop Plane[%s]" , pRest->ID);
+	else if (!pRest)
+		Debug::FatalError("Invalid Paradrop Plane");
 
-	return AircraftTypeClass::Array->GetItemOrDefault(iPlane , RulesExt::Global()->DefaultParaPlane);
+	return pRest;
 }
 
 AircraftTypeClass* HouseExt::GetSpyPlane(HouseClass* pHouse)
 {
+	AircraftTypeClass* pRest = nullptr;
+
 	const auto pTypeExt = HouseTypeExt::ExtMap.TryFind(pHouse->Type);
 	if (pTypeExt && pTypeExt->SpyPlane.Get(nullptr)) {
-		return pTypeExt->SpyPlane;
+		pRest = pTypeExt->SpyPlane;
 	}
 
-	if (const auto pSide = HouseExt::GetSide(pHouse)) {
-		const auto pSideExt = SideExt::ExtMap.Find(pSide);
+	if(!pRest) {
+		if (const auto pSide = HouseExt::GetSide(pHouse)) {
+			const auto pSideExt = SideExt::ExtMap.Find(pSide);
 
-		if(pSideExt->SpyPlane.Get(nullptr))
-			return pSideExt->SpyPlane;
+			if(pSideExt->SpyPlane.Get(nullptr))
+				pRest = pSideExt->SpyPlane;
+		}
 	}
 
-	return AircraftTypeClass::Find(GameStrings::SPYP);
+	if(!pRest)
+		pRest = AircraftTypeClass::Find(GameStrings::SPYP);
+
+	if(pRest && pRest->Strength == 0 )
+		Debug::FatalError("Invalid Spy Plane[%s]" , pRest->ID);
+	else if (!pRest)
+		Debug::FatalError("Invalid Spy Plane");
+
+	return pRest;
 }
 
 UnitTypeClass* HouseExt::GetHunterSeeker(HouseClass* pHouse)

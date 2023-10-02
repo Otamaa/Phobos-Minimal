@@ -72,7 +72,7 @@ FoggedObject::FoggedObject(BuildingClass* pBld, bool IsVisible) noexcept
 		{
 			pAnimData->AnimType = pAnim->Type;
 			pAnimData->AnimFrame = pAnim->Animation.Value + pAnimData->AnimType->Start;
-			pAnimData->ZAdjust = pAnim->ZAdjust + pAnimData->AnimType->YDrawOffset - TacticalClass::AdjustForZ(pAnim->Location.Z);
+			pAnimData->ZAdjust = pAnim->ZAdjust + pAnimData->AnimType->YDrawOffset - Game::AdjustHeight(pAnim->Location.Z);
 			pAnimData->ZAdjust -= pAnimData->AnimType->Flat ? 3 : 2;
 			++pAnimData;
 
@@ -294,7 +294,7 @@ void FoggedObject::RenderAsBuilding(const RectangleStruct& viewRect) const
 		int height = point.Y + pSHP->Height / 2;
 		if (rect.Height > height)
 			rect.Height = height;
-		int ZAdjust = -2 - TacticalClass::AdjustForZ(Location.Z);
+		int ZAdjust = -2 - Game::AdjustHeight(Location.Z);
 		int Intensity = pCell->Intensity_Normal + pType->ExtraLight;
 		if (rect.Height > 0)
 		{
@@ -486,7 +486,7 @@ void FoggedObject::RenderAsTerrain(const RectangleStruct& viewRect) const
 	auto pCell = MapClass::Instance->GetCellAt(Location);
 	if (auto pSHP = TerrainData.Type->GetImage())
 	{
-		int nZAdjust = -TacticalClass::AdjustForZ(Location.Z);
+		int nZAdjust = -Game::AdjustHeight(Location.Z);
 		Point2D point;
 		TacticalClass::Instance->CoordsToClient(Location, &point);
 		point.X += DSurface::ViewBounds->X - viewRect.X;

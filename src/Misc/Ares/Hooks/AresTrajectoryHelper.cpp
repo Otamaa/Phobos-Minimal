@@ -14,7 +14,7 @@ bool AresTrajectoryHelper::IsCliffHit(
 	CellClass const* const pSource, CellClass const* const pBefore,
 	CellClass const* const pAfter)
 {
-	return pAfter->GetLevelFrom(pBefore) >= CellClass::BridgeLevels && pAfter->GetLevelFrom(pSource) > 0;
+	return pAfter->GetLevelFrom(pBefore) >= Unsorted::BridgeLevels && pAfter->GetLevelFrom(pSource) > 0;
 }
 
 bool AresTrajectoryHelper::IsWallHit(

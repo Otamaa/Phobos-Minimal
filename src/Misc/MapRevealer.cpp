@@ -20,12 +20,12 @@ bool MapRevealer::IsCellAvailable(const CellStruct& cell) const
 bool MapRevealer::CheckLevel(const CellStruct& offset, int level) const
 {
 	auto const cellLevel = this->Base() + offset + GetRelation(offset) - this->CellOffset;
-	return MapClass::Instance->GetCellAt(cellLevel)->Level < level + CellClass::BridgeLevels;
+	return MapClass::Instance->GetCellAt(cellLevel)->Level < level + Unsorted::BridgeLevels;
 }
 
 CellStruct MapRevealer::TranslateBaseCell(const CoordStruct& coords) const
 {
-	auto const adjust = (TacticalClass::AdjustForZ(coords.Z) / -30) << 8;
+	auto const adjust = (Game::AdjustHeight(coords.Z) / -30) << 8;
 	auto const baseCoords = coords + CoordStruct { adjust, adjust, 0 };
 	return CellClass::Coord2Cell(baseCoords);
 }

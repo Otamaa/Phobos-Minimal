@@ -3,6 +3,11 @@
 
 #include <Ext/TechnoType/Body.h>
 
+struct Phobos_DoControls
+{
+	static void ReadSequence(std::vector<DoInfoStruct>& Desig, InfantryTypeClass* pInf, CCINIClass* pINI);
+};
+
 class InfantryTypeExt
 {
 public:
@@ -25,6 +30,7 @@ public:
 		Valueable<bool> HideWhenDeployAnimPresent { false };
 		Valueable<bool> DeathBodies_UseDieSequenceAsIndex { false };
 		WeaponStruct CrawlingWeaponDatas[4] {};
+		std::vector<DoInfoStruct> Sequences{};
 
 		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
 		{ }

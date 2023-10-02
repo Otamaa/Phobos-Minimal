@@ -331,7 +331,7 @@ DEFINE_HOOK(0x4DA554, FootClass_AI_ReplaceRadiationDamageProcessing, 0x5)
 	const auto nLoc = pThis->InlineMapCoords();
 	auto const pUnit = specific_cast<UnitClass*>(pThis);
 
-	R->BL(false);
+	//R->BL(false);
 
 	if ((pUnit && pUnit->DeathFrameCounter > 0) || !RadSiteClass::Array->Count)
 		return (CheckOtherState);

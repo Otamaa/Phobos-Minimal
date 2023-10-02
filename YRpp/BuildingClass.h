@@ -323,6 +323,9 @@ public:
 		return { this->Type , this->Upgrades[0] , this->Upgrades[1] , this->Upgrades[2] };
 	};
 
+	void KickAllOccupants(bool missionHunt, bool donotKill) const {
+		JMP_THIS(0x457DE0);
+	}
 	//Constructor
 	BuildingClass(BuildingTypeClass* pType, HouseClass* pOwner) noexcept
 		: BuildingClass(noinit_t())

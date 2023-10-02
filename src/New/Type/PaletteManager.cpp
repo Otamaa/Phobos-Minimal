@@ -16,8 +16,8 @@ PaletteManager::PaletteManager(const char* const pTitle) : Enumerable<PaletteMan
 void PaletteManager::Clear_Internal()
 {
 	this->Palette.release();
-	this->Convert_Temperate.release();
-	this->Convert.release();
+	this->Convert_Temperate.clear();
+	this->Convert.clear();
 	this->ColorschemeDataVector = nullptr;
 
 	//if (this->ColorschemeDataVector)

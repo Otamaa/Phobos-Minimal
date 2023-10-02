@@ -543,10 +543,12 @@ DEFINE_OVERRIDE_HOOK(0x73DE90, UnitClass_Mi_Unload_SimpleDeployer, 0x6)
 	return pThis->Locomotor.GetInterfacePtr()->Is_Moving_Now() ? 0x73E5B1 : 0x0;
 }
 
+#include <Ext/CaptureManager/Body.h>
+
 // do not order deactivated units to move
 DEFINE_OVERRIDE_HOOK(0x73DBF9, UnitClass_Mi_Unload_Decactivated, 5)
 {
-	GET(FootClass*, pUnloadee, EDI);
+	GET(UnitClass*, pUnloadee, EDI);
 	LEA_STACK(CellStruct**, ppCell, 0x0);
 	LEA_STACK(CellStruct*, pPosition, 0x1C);
 
@@ -561,6 +563,27 @@ DEFINE_OVERRIDE_HOOK(0x73DBF9, UnitClass_Mi_Unload_Decactivated, 5)
 	{
 		*ppCell = pPosition;
 	}
+
+	//auto pTypeExt = TechnoTypeExt::ExtMap.Find(pUnloadee->Type);
+	//if(!pTypeExt->Operators.empty() || pTypeExt->Operator_Any)
+	//{
+	//	auto pCapturer = pUnloadee->MindControlledBy;
+	//	if(pCapturer && pCapturer->CaptureManager)
+	//	{
+	//		if(auto pOriginal = pCapturer->CaptureManager->GetOriginalOwner(pUnloadee))
+	//		{
+	//			++Unsorted::ScenarioInit();
+	//			CaptureExt::FreeUnit(pCapturer->CaptureManager,pUnloadee,true);
+	//			pUnloadee->SetOwningHouse(pOriginal,false);
+	//			CaptureExt::CaptureUnit(pCapturer->CaptureManager , pUnloadee ,false ,true , pUnloadee->MindControlRingAnim->Type);
+	//			--Unsorted::ScenarioInit();
+	//		}
+	//	}
+	//	else
+	//	{
+	//		//transfer the anim
+	//	}
+	//}
 
 	return 0;
 }

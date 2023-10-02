@@ -63,8 +63,7 @@ DEFINE_OVERRIDE_HOOK(0x5F3D65, ObjectClass_DTOR, 6)
 {
 	GET(ObjectClass*, pThis, ESI);
 
-	if (auto pAlpha = PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pThis))
-	{
+	if (auto pAlpha = PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pThis)) {
 		GameDelete<true, false>(pAlpha);
 		// pThis is erased from map
 	}

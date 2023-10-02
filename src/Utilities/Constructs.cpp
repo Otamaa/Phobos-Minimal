@@ -107,7 +107,7 @@ bool CustomPalette::LoadFromName(const char* PaletteName)
 
 void CustomPalette::Clear()
 {
-	this->Convert.reset(nullptr);
+	this->Convert.clear();
 	this->Palette = nullptr;
 }
 

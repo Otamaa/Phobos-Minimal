@@ -484,8 +484,7 @@ DEFINE_OVERRIDE_HOOK(0x6F6AC9, TechnoClass_Remove_Early, 6)
 	}
 
 	//#1573, #1623, #255 attached effects
-	if (AresAE::Remove(&TechnoExt::ExtMap.Find(pThis)->AeData))
-		TechnoExt_ExtData::RecalculateStat(pThis);
+	AresAE::Remove(&TechnoExt::ExtMap.Find(pThis)->AeData , pThis);
 
 	if (pThis->align_154->TechnoValueAmount != 0)
 	{
@@ -1325,7 +1324,7 @@ DEFINE_HOOK(0x7441B0, UnitClass_MarkOccupationBits, 0x6)
 	GET_STACK(CoordStruct*, pCrd, 0x4);
 
 	CellClass* pCell = MapClass::Instance->GetCellAt(pCrd);
-	int height = MapClass::Instance->GetCellFloorHeight(pCrd) + CellClass::BridgeHeight;
+	int height = MapClass::Instance->GetCellFloorHeight(pCrd) + Unsorted::BridgeHeight;
 	bool alt = (pCrd->Z >= height && pCell->ContainsBridge());
 
 	// remember which occupation bit we set
@@ -1352,7 +1351,7 @@ DEFINE_HOOK(0x744210, UnitClass_UnmarkOccupationBits, 0x5)
 	enum { obNormal = 1, obAlt = 2 };
 
 	CellClass* pCell = MapClass::Instance->GetCellAt(pCrd);
-	int height = MapClass::Instance->GetCellFloorHeight(pCrd) + CellClass::BridgeHeight;
+	int height = MapClass::Instance->GetCellFloorHeight(pCrd) + Unsorted::BridgeHeight;
 	int alt = (pCrd->Z >= height) ? obAlt : obNormal;
 
 	// also clear the last occupation bit, if set

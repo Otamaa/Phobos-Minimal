@@ -1683,10 +1683,8 @@ DEFINE_OVERRIDE_HOOK(0x51EE6B, InfantryClass_GetActionOnObject_Saboteur, 6)
 			switch (GetiInfiltrateActionResult(pThis, pBldObject))
 			{
 			case Action::Move:
-			{
 				MouseCursorFuncs::SetMouseCursorAction(pTypeExt->Cursor_Spy, Action::Capture, 0);
 				break;
-			}
 			case Action::NoMove:
 				MouseCursorFuncs::SetMouseCursorAction(pTypeExt->Cursor_Sabotage, Action::Capture, 0);
 				break;
@@ -1762,7 +1760,9 @@ bool ApplyC4ToBuilding(InfantryClass* const pThis, BuildingClass* const pBuildin
 	const auto pInfext = InfantryTypeExt::ExtMap.Find(pThis->Type);
 
 	if (pBuilding->IsIronCurtained() || pBuilding->IsBeingWarpedOut()
-		|| pBuilding->GetCurrentMission() == Mission::Selling)
+		|| pBuilding->GetCurrentMission() == Mission::Selling
+		|| BuildingExt::ExtMap.Find(pBuilding)->AboutToChronoshift
+		)
 	{
 		pThis->AbortMotion();
 		pThis->Uncloak(false);
@@ -2139,7 +2139,7 @@ DEFINE_OVERRIDE_HOOK(0x449518, BuildingClass_IsSellable_FirestormWall, 6)
 	//GET(BuildingClass*, pThis, ESI);
 
 	GET(BuildingTypeClass*, pType, ECX);
-	return pType->FirestormWall ? CheckHouseFireWallActive : ReturnFalse;
+	return BuildingTypeExt::ExtMap.Find(pType)->Firestorm_Wall ? CheckHouseFireWallActive : ReturnFalse;
 }
 
 DEFINE_OVERRIDE_HOOK(0x44E550, BuildingClass_Mi_Open_GateDown, 6)

@@ -69,7 +69,6 @@ void TechnoTypeExt::ExtData::Initialize()
 		{
 			this->CustomMissileTrailerAnim = AnimTypeClass::Find(GameStrings::V3TRAIL());
 			this->CustomMissileTakeoffAnim = AnimTypeClass::Find(GameStrings::V3TAKEOFF());
-			this->SmokeAnim = AnimTypeClass::Find(GameStrings::SGRYSMK1());
 		}
 
 		this->EVA_UnitLost = VoxClass::FindIndexById(GameStrings::EVA_UnitLost());
@@ -199,8 +198,8 @@ void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis,
 	ColletiveCoordStructVectorData& nEFlh,
 	const char** pPrefixTag)
 {
-	char tempBuffer[0x40];
-	char tempBufferFLH[0x40];
+	char tempBuffer[0x40] {};
+	char tempBufferFLH[0x40] {};
 
 	bool parseMultiWeapons = pThis->TurretCount > 0 && pThis->WeaponCount > 0;
 	auto weaponCount = parseMultiWeapons ? pThis->WeaponCount : 2;
@@ -245,8 +244,8 @@ void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis,
 void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection,
 	std::vector<std::vector<CoordStruct>>& nFLH, std::vector<std::vector<CoordStruct>>& nEFlh, const char* pPrefixTag)
 {
-	char tempBuffer[0x40];
-	char tempBufferFLH[0x40];
+	char tempBuffer[0x40] {};
+	char tempBufferFLH[0x40] {};
 
 	bool parseMultiWeapons = pThis->TurretCount > 0 && pThis->WeaponCount > 0;
 	auto weaponCount = parseMultiWeapons ? pThis->WeaponCount : 2;
@@ -282,7 +281,7 @@ void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const
 
 void TechnoTypeExt::GetFLH(INI_EX& exArtINI, const char* pArtSection, Nullable<CoordStruct>& nFlh, Nullable<CoordStruct>& nEFlh, const char* pFlag)
 {
-	char tempBuffer[0x40];
+	char tempBuffer[0x40] {};
 	IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "%sFLH", pFlag);
 	nFlh.Read(exArtINI, pArtSection, tempBuffer);
 	IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Elite%sFLH", pFlag);
@@ -352,7 +351,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->Death_Countdown.Read(exINI, pSection, "Death.Countdown");
 		this->Death_Countdown.Read(exINI, pSection, "AutoDeath.AfterDelay");
 
-		Nullable<bool> Death_Peaceful;
+		Nullable<bool> Death_Peaceful {};
 		Death_Peaceful.Read(exINI, pSection, "Death.Peaceful");
 
 		this->Death_Method.Read(exINI, pSection, "Death.Method");
@@ -973,6 +972,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->Bounty_Value_Option.Read(exINI, pSection, "Bounty.RewardOption");
 		this->Bounty_Value_mult.Read(exINI, pSection, "Bounty.%sValueMult");
 
+		this->Bounty_ReceiveSound.Read(exINI, pSection, "Bounty.ReceiveSound");
+
 		this->DeathWeapon_CheckAmmo.Read(exINI, pSection, "DeathWeapon.CheckAmmo");
 		this->Initial_DriverKilled.Read(exINI, pSection, "Initial.DriverKilled");
 
@@ -1040,7 +1041,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		this->PoweredBy.Read(exINI, pSection, "PoweredBy");
 
-		char Survivor_buffer[256];
+		char Survivor_buffer[256] {};
 		for (int i = 0; i < SideClass::Array->Count; ++i)
 		{
 			IMPL_SNPRNINTF(Survivor_buffer,sizeof(Survivor_buffer), "Survivor.Side%d", i);
@@ -1191,24 +1192,24 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->TurretShadow.Read(exArtINI, pArtSection, "TurretShadow");
 		this->ShadowIndices.Read(exArtINI, pArtSection, "ShadowIndices");
 
-		char tempBuffer[0x40];
-		char HitCoord_tempBuffer[0x20];
-		char alternateFLHbuffer[0x40];
+		char tempBuffer[0x40] {};
+		char HitCoord_tempBuffer[0x20] {};
+		char alternateFLHbuffer[0x40] {};
 
 		for (size_t i = 0; ; ++i)
 		{
-			NullableIdx<LaserTrailTypeClass> trail;
+			NullableIdx<LaserTrailTypeClass> trail {};
 			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.Type", i);
 			trail.Read(exArtINI, pArtSection, tempBuffer);
 
 			if (!trail.isset())
 				break;
 
-			Valueable<CoordStruct> flh;
+			Valueable<CoordStruct> flh {};
 			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.FLH", i);
 			flh.Read(exArtINI, pArtSection, tempBuffer);
 
-			Valueable<bool> isOnTurret;
+			Valueable<bool> isOnTurret {};
 			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.IsOnTurret", i);
 			isOnTurret.Read(exArtINI, pArtSection, tempBuffer);
 
@@ -1217,7 +1218,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		for (size_t i = 5; ; ++i)
 		{
-			Nullable<CoordStruct> alternateFLH;
+			Nullable<CoordStruct> alternateFLH {};
 			IMPL_SNPRNINTF(alternateFLHbuffer, sizeof(alternateFLHbuffer), "AlternateFLH%u", i);
 			alternateFLH.Read(exArtINI, pArtSection, alternateFLHbuffer);
 
@@ -1229,7 +1230,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		for (size_t i = 0; ; ++i)
 		{
-			Nullable<CoordStruct> nHitBuff;
+			Nullable<CoordStruct> nHitBuff {};
 			IMPL_SNPRNINTF(HitCoord_tempBuffer, sizeof(HitCoord_tempBuffer), "HitCoordOffset%d", i);
 			nHitBuff.Read(exArtINI, pArtSection, HitCoord_tempBuffer);
 
@@ -1292,7 +1293,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_EvaluateSomeVariables(CCINIClass* p
 
 ImageStatusses ImageStatusses::ReadVoxel(const char* const nKey, bool a4)
 {
-	char buffer[0x60];
+	char buffer[0x60] {};
 	IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.VXL", nKey);
 	CCFileClass CCFileV { buffer };
 
@@ -1313,7 +1314,6 @@ ImageStatusses ImageStatusses::ReadVoxel(const char* const nKey, bool a4)
 			GameDelete<true, true>(pLoadedVXL);
 
 			return { {nullptr , nullptr} , false };
-
 		}
 		else
 		{
@@ -1951,6 +1951,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->Bounty_Display)
 		.Process(this->Bounty_Value)
+		.Process(this->Bounty_ReceiveSound)
 		.Process(this->Bounty_Value_Option)
 		.Process(this->Bounty_Value_mult)
 

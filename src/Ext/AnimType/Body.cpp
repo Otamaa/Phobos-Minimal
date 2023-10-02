@@ -138,7 +138,7 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		if (!LaunchWhat_Dummy.isset() || !LaunchWhat_Dummy.Get())
 			break;
 
-		LauchSWData nData;
+		LauchSWData nData {};
 		if (!nData.Read(exINI, pID, i, LaunchWhat_Dummy))
 			break;
 
@@ -190,7 +190,7 @@ void AnimTypeExt::CreateUnit_MarkCell(AnimClass* pThis)
 			return;
 
 		isBridge = allowBridges && pCell->ContainsBridge();
-		int bridgeZ = isBridge ? CellClass::BridgeHeight : 0;
+		int bridgeZ = isBridge ? Unsorted::BridgeHeight : 0;
 
 		const int z = pTypeExt->CreateUnit_AlwaysSpawnOnGround ? INT32_MIN : Location.Z;
 		const auto nCellHeight = MapClass::Instance->GetCellFloorHeight(Location);

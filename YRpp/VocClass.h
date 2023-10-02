@@ -107,11 +107,14 @@ public:
 	static void __fastcall PlayAt(int n, const CoordStruct &coords, AudioController* pCtrl = nullptr)
 		{ JMP_STD(0x7509E0); }
 
-	// calls the one above ^ - probably sanity checks and whatnot
-	static VocAudioStruct* __fastcall PlayIndexAtPos(int n, const CoordStruct &coords, int a3 = 0)
+	// calls `PlayAt` - with sanity check
+	static VocAudioStruct* __fastcall PlayIndexAtPos(int n, const CoordStruct& coords, int a3 = 0)
 		{ JMP_STD(0x750E20); }
 
-	static VocAudioStruct* __fastcall PlayIndexAtPos(int n, const CoordStruct &coords,  AudioController* pCtrl)
+	static VocAudioStruct* __fastcall PlayIndexAtPos(int n, const CoordStruct& coords,  AudioController* pCtrl)
+		{ JMP_STD(0x750E20); }
+
+	static VocAudioStruct* __fastcall PlayIndexAtPos(int n, const CoordStruct* coords, AudioController* pCtrl)
 		{ JMP_STD(0x750E20); }
 	//Properties
 

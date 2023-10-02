@@ -37,11 +37,12 @@ bool KeepThisAlive(HouseClass* pHouse, TechnoClass* pTech, AbstractType what, ui
 	if (pType->Insignificant || pType->DontScore) {
 		ret = false;
 	} else {
+		ret = true;
 		defaultKeppAlive = what == BuildingClass::AbsID;
 	}
 
 	if (result->Get(defaultKeppAlive)) {
-		const int add = 2 * keep + 1;
+		const int add = 2 * keep - 1;
 		KeepAlivesCount(pHouse) += add;
 		if (what == BuildingClass::AbsID)
 			KeepAlivesBuildingCount(pHouse) += add;
@@ -51,25 +52,25 @@ bool KeepThisAlive(HouseClass* pHouse, TechnoClass* pTech, AbstractType what, ui
 }
 
 // break short game ?
-//DEFINE_OVERRIDE_HOOK(0x4ff563, HouseClass_RegisterTechnoLoss_StatCounters_KeepAlive, 6)
-//{
-//	GET(TechnoClass*, pTech, ESI);
-//	GET(HouseClass*, pThis, EDI);
-//	const auto what = pTech->WhatAmI();
-//	const bool Keep = KeepThisAlive(pThis, pTech, what, 0);
-//	R->EAX(what);
-//	return Keep ? 0x4FF596 : 0x4FF6CE;
-//}
-//
-//DEFINE_OVERRIDE_HOOK(0x4ff71b, HouseClass_RegisterTechnoGain_StatCounters_KeepAlive, 6)
-//{
-//	GET(TechnoClass*, pTech, ESI);
-//	GET(HouseClass*, pThis, EDI);
-//	const auto what = pTech->WhatAmI();
-//	const bool Keep = KeepThisAlive(pThis, pTech, what, 1u);
-//	R->EAX(what);
-//	return Keep ? 0x4FF748 : 0x4FF8C6;
-//}
+DEFINE_OVERRIDE_HOOK(0x4ff563, HouseClass_RegisterTechnoLoss_StatCounters_KeepAlive, 6)
+{
+	GET(TechnoClass*, pTech, ESI);
+	GET(HouseClass*, pThis, EDI);
+	const auto what = pTech->WhatAmI();
+	const bool Keep = KeepThisAlive(pThis, pTech, what, 0);
+	R->EAX(what);
+	return Keep ? 0x4FF596 : 0x4FF6CE;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4ff71b, HouseClass_RegisterTechnoGain_StatCounters_KeepAlive, 6)
+{
+	GET(TechnoClass*, pTech, ESI);
+	GET(HouseClass*, pThis, EDI);
+	const auto what = pTech->WhatAmI();
+	const bool Keep = KeepThisAlive(pThis, pTech, what, 1u);
+	R->EAX(what);
+	return Keep ? 0x4FF748 : 0x4FF8C6;
+}
 
 DEFINE_OVERRIDE_HOOK(0x506306, HouseClass_FindPlaceToBuild_Evaluate, 6)
 {
@@ -302,7 +303,7 @@ DEFINE_OVERRIDE_HOOK(0x508EBC, HouseClass_Radar_Update_CheckEligible, 6)
 	enum { Eligible = 0, Jammed = 0x508F08 };
 	GET(BuildingClass*, Radar, EAX);
 
-	return (!RegisteredJammers(Radar).empty()
+	return (!BuildingExt::ExtMap.Find(Radar)->RegisteredJammers.empty()
 					|| (Radar->EMPLockRemaining > 0))
 		? Jammed
 		: Eligible

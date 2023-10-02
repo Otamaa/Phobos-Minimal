@@ -167,7 +167,7 @@ DEFINE_OVERRIDE_HOOK(0x71A917, TemporalClass_Update_Erase, 5)
 DEFINE_OVERRIDE_HOOK(0x71AB10, TemporalClass_GetWarpPerStep, 6)
 {
 	GET_STACK(int, nStep, 0x4);
-	GET(TemporalClass*, pThis, ESI);
+	GET(TemporalClass*, pThis, ECX);
 	R->EAX(TechnoExt_ExtData::GetWarpPerStep(pThis, nStep));
 	return 0x71AB57;
 }

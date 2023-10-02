@@ -71,23 +71,20 @@ DEFINE_HOOK(0x70CE90, TechnoClass_Coef_checkForTechno, 0x6)
 }
 #endif
 
+//DEFINE_HOOK(0x7431EE, UnitClass_GreatestThreat_GattlingWeaponError, 0x9)
+//{
+//	GET(UnitClass*, pThis, ESI);
+//
+//	const auto pWpi = pThis->GetCurrentGattlingStage();
+//	const auto pWps = pThis->GetWeapon(pWpi);
+//
+//	if (!pWps || !pWps->WeaponType)
+//		Debug::Log("WTF Techno[%s] Trying to find weaponIdx [%d] but it nullptr ?\n" , pThis->Type->ID, pWpi);
+//
+//	R->EAX(pWps);
+//	return 0x7431F7;
+//}
 
-#pragma optimize("", off )
-DEFINE_HOOK(0x7431EE, UnitClass_GreatestThreat_GattlingWeaponError, 0x9)
-{
-	GET(UnitClass*, pThis, ESI);
-
-	const auto pWpi = pThis->GetCurrentGattlingStage();
-	const auto pWps = pThis->GetWeapon(pWpi);
-
-	if (!pWps || !pWps->WeaponType)
-		Debug::Log("WTF Techno[%s] Trying to find weaponIdx [%d] but it nullptr ?\n" , pThis->Type->ID, pWpi);
-
-	R->EAX(pWps);
-	return 0x7431F7;
-}
-
-#pragma optimize("", on )
 //DEFINE_SKIP_HOOK(0x5F5896, TechnoClass_Mark_RemoveUnused, 0x5, 5F58E1);
 DEFINE_JUMP(LJMP, 0x5F5896, 0x5F58E1);
 
@@ -106,31 +103,31 @@ DEFINE_JUMP(LJMP, 0x5F5896, 0x5F58E1);
 // 	return 0x7396A5;
 // }
 
-DEFINE_HOOK(0x6F49D2, TechnoClass_Reveal_ThisOwnerMissing, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-
-	if (auto pOwner = pThis->Owner) {
-		pOwner->RecheckPower = true;
-		pOwner->RecheckRadar = true;
-	}
-
-	pThis->DiscoveredByCurrentPlayer = true;
-
-	if (!pThis->IsOwnedByCurrentPlayer)
-	{
-		if (!Unsorted::ScenarioInit)
-		{
-			if (auto pTag = pThis->AttachedTag)
-				pTag->SpringEvent(TriggerEvent::DiscoveredByPlayer, pThis, CellStruct::Empty, false, nullptr);
-		}
-
-		if (pThis->Owner)
-			pThis->Owner->DiscoveredByPlayer = true;
-	}
-
-	return 0x6F497E;
-}
+//DEFINE_HOOK(0x6F49D2, TechnoClass_Reveal_ThisOwnerMissing, 0x6)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//
+//	if (auto pOwner = pThis->Owner) {
+//		pOwner->RecheckPower = true;
+//		pOwner->RecheckRadar = true;
+//	}
+//
+//	pThis->DiscoveredByCurrentPlayer = true;
+//
+//	if (!pThis->IsOwnedByCurrentPlayer)
+//	{
+//		if (!Unsorted::ScenarioInit)
+//		{
+//			if (auto pTag = pThis->AttachedTag)
+//				pTag->SpringEvent(TriggerEvent::DiscoveredByPlayer, pThis, CellStruct::Empty, false, nullptr);
+//		}
+//
+//		if (pThis->Owner)
+//			pThis->Owner->DiscoveredByPlayer = true;
+//	}
+//
+//	return 0x6F497E;
+//}
 
 DEFINE_HOOK(0x70CD29, TechnoClass_Coef_CheckTarget, 0x6)
 {

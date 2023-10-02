@@ -719,26 +719,59 @@ DEFINE_OVERRIDE_HOOK(0x5F57B5, ObjectClass_ReceiveDamage_Trigger, 0x6)
 {
 	GET(ObjectClass*, pObject, ESI);
 	GET(ObjectClass*, pAttacker, EDI);
+	GET(DamageState , state , EBP);
 
-	if (R->EBP<DamageState>() != DamageState::NowDead && pObject->IsAlive)
+	if(state != DamageState::NowDead)
 	{
-		auto v3 = pObject->AttachedTag;
-		if (!v3 || (v3->RaiseEvent(TriggerEvent::AttackedByAnybody, pObject, CellStruct::Empty, false, pAttacker), pObject->IsAlive))
+		if(pObject->IsAlive)
 		{
-			if (auto v4 = pObject->AttachedTag)
-				v4->RaiseEvent(TriggerEvent::AttackedByHouse, pObject, CellStruct::Empty, false, pAttacker);
+			if(auto pFirstTag = pObject->AttachedTag) {
+				pFirstTag->RaiseEvent(
+					TriggerEvent::AttackedByAnybody,
+					pObject,
+					CellStruct::Empty,
+					false,
+					pAttacker
+					);
+			}
+		}
+
+		if(pObject->IsAlive)
+		{
+			if(auto pSecondTag = pObject->AttachedTag) {
+				pSecondTag->RaiseEvent(
+					TriggerEvent::AttackedByHouse,
+					pObject,
+					CellStruct::Empty,
+					false,
+					pAttacker
+				);
+			}
 		}
 	}
 
-	if (pObject->IsAlive)
-	{
-		auto pFirstTag = pObject->AttachedTag;
-		//84
-		if (!pFirstTag || (pFirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::AttackedOrDestroyedByHouse, pObject, CellStruct::Empty, false, pAttacker), pObject->IsAlive))
-		{
-			if (auto pSecondTag = pObject->AttachedTag)
-				// 83
-				pSecondTag->RaiseEvent((TriggerEvent)AresTriggerEvents::AttackedOrDestroyedByAnybody, pObject, CellStruct::Empty, false, pAttacker);
+	if(pObject->IsAlive) {
+		if(auto pFirstTag = pObject->AttachedTag) {
+			pFirstTag->RaiseEvent(
+			(TriggerEvent)AresTriggerEvents::AttackedOrDestroyedByHouse,
+			pObject,
+			CellStruct::Empty,
+			false,
+			pAttacker
+			);
+		}
+	}
+
+	if(pObject->IsAlive) {
+		if(auto pSecondTag = pObject->AttachedTag) {
+			pSecondTag->RaiseEvent(
+				(TriggerEvent)AresTriggerEvents::AttackedOrDestroyedByAnybody,
+				pObject,
+				CellStruct::Empty,
+				false,
+				pAttacker
+			);
+
 		}
 	}
 

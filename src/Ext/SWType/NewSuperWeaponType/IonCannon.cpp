@@ -206,7 +206,6 @@ bool IonCannonStateMachine::Save(PhobosStreamWriter& Stm) const
 void IonCannonStateMachine::Fire()
 {
 	const auto pData = this->GetTypeExtData();
-	HouseClass* pFirer = this->Owner;
 	CellStruct cell = this->Coords;
 	auto pNewData = pData->GetNewSWType();
 	CellClass* pTarget = MapClass::Instance->GetCellAt(cell);

@@ -688,7 +688,7 @@ public:
 		// smoke when damaged
 		Nullable<int> SmokeChanceRed {};
 		Nullable<int> SmokeChanceDead {};
-		Valueable<AnimTypeClass*> SmokeAnim { nullptr };
+		Nullable<AnimTypeClass*> SmokeAnim { };
 
 		Nullable<bool> CarryallAllowed {};
 		Nullable<int> CarryallSizeLimit {};
@@ -732,6 +732,7 @@ public:
 
 		Nullable<bool> Bounty_Display { };
 		Promotable<int> Bounty_Value { 0 };
+		ValueableIdx<VocClass> Bounty_ReceiveSound {};
 
 		ValueableVector<TechnoTypeClass*> BountyAllow {};
 		ValueableVector<TechnoTypeClass*> BountyDissallow {};
@@ -743,7 +744,7 @@ public:
 		bool RecheckTechTreeWhenDie { false };
 		ValueableVector<SuperWeaponTypeClass*> Linked_SW {};
 
-		Valueable<bool> CanDrive { false }; //!< Whether this TechnoType can act as the driver of vehicles whose driver has been killed. Request #733.
+		Nullable<bool> CanDrive { }; //!< Whether this TechnoType can act as the driver of vehicles whose driver has been killed. Request #733.
 		ValueableVector<TechnoTypeClass*> Operators {};
 		Valueable<bool> Operator_Any { false };
 		Nullable<bool> AlwayDrawRadialIndicator { };

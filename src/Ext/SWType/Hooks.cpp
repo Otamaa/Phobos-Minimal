@@ -94,11 +94,11 @@ DEFINE_HOOK(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
 
 	INI_EX exINI(pINI);
 	const auto pSection = pThis->ID;
-	Nullable<CursorTypeClass*> Cursor {};
-	Nullable<CursorTypeClass*> NoCursor {};
+	//Nullable<CursorTypeClass*> Cursor {};
+	//Nullable<CursorTypeClass*> NoCursor {};
 
-	Cursor.Read(exINI, pSection, "Cursor");
-	NoCursor.Read(exINI, pSection, "NoCursor");
+	//Cursor.Read(exINI, pSection, "Cursor");
+	//NoCursor.Read(exINI, pSection, "NoCursor");
 
 	if (exINI.ReadString(pSection, "Action"))
 	{

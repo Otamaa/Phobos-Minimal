@@ -622,7 +622,7 @@ struct ParticleExt_
 						if ((uint16_t)buff)
 						{
 							int ZBuff = *reinterpret_cast<uint16_t*>((ZBuffer::Instance->GetBuffer(outClient.X, outClient.Y - ZBuffer::Instance->Area.Y)));
-							int Zadjust = TacticalClass::AdjustForZ(Coord.Z);
+							int Zadjust = Game::AdjustHeight(Coord.Z);
 
 							if ((uint16_t)(LOWORD(ZBuffer::Instance->Area.Y) + LOWORD(ZBuffer::Instance->MaxValue) - LOWORD(outClient.Y)) - Zadjust - 50 < ZBuff)
 							{
@@ -664,7 +664,7 @@ struct ParticleExt_
 				const auto linked = draw.LinkedParticleType;
 				if (const auto image = linked->GetImage())
 				{
-					const auto offs = -15 - TacticalClass::AdjustForZ(draw.vel.Z);
+					const auto offs = -15 - Game::AdjustHeight(draw.vel.Z);
 					Point2D outClient;
 					TacticalClass::Instance->CoordsToClient(&draw.vel, &outClient);
 					DWORD drawingFlag = 0x2E00;

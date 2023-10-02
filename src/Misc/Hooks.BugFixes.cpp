@@ -274,7 +274,13 @@ DWORD NOINLINE TechnoClass_AI_TemporalTargetingMe_Fix(REGISTERS* R ,AbstractType
 		// Also check for vftable here to guarantee the TemporalClass not being destoryed already.
 		if (IsTemporalptrValid(pThis->TemporalTargetingMe))
 		{
-			pThis->TemporalTargetingMe->Update();
+			if(pThis->TemporalTargetingMe->Owner)
+				pThis->TemporalTargetingMe->Update();
+			else
+			{
+				GameDelete<true, false>(pThis->TemporalTargetingMe);
+				pThis->TemporalTargetingMe = nullptr;
+			}
 		}
 		else // It should had being warped out, delete this object
 		{

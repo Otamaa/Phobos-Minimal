@@ -52,7 +52,7 @@ DEFINE_HOOK(0x6F64A0, TechnoClass_DrawHealthBar_Hide, 0x5)
 	if(what == BuildingClass::AbsID) {
 		const auto pBld = (BuildingClass*)pThis;
 
-		if(pBld->Type->FirestormWall)
+		if(BuildingTypeExt::ExtMap.Find(pBld->Type)->Firestorm_Wall)
 			return DoNotDraw;
 	}
 

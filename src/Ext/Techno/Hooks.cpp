@@ -453,6 +453,11 @@ DEFINE_HOOK(0x701DFF, TechnoClass_ReceiveDamage_AfterObjectClassCall, 0x7)
 
 	GiftBoxFunctional::TakeDamage(TechnoExt::ExtMap.Find(pThis), TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()), pWH, damageState);
 
+	if(damageState != DamageState::PostMortem && !pThis->IsAlive) {
+		R->EAX(DamageState::NowDead);
+		return 0x702688;
+	}
+
 	return 0;
 }
 

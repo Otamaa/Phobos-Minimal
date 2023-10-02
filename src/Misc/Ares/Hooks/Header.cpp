@@ -811,6 +811,9 @@ void TechnoExt_ExtData::GiveBounty(TechnoClass* pVictim, TechnoClass* pKiller)
 			if (pKillerTypeExt->Get()->MissileSpawn && pKiller->SpawnOwner)
 				pKiller = pKiller->SpawnOwner;
 
+			if(pKillerTypeExt->Bounty_ReceiveSound != -1)
+				VocClass::PlayAt(pKillerTypeExt->Bounty_ReceiveSound, pKiller->Location);
+
 			pKiller->Owner->TransactMoney(nValueResult);
 			pKiller->align_154->TechnoValueAmount += nValueResult;
 		}
@@ -829,7 +832,7 @@ AresHijackActionResult TechnoExt_ExtData::GetActionHijack(InfantryClass* pThis, 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
 	// this can't steal vehicles
-	if (!pType->VehicleThief && !pTypeExt->CanDrive)
+	if (!pType->VehicleThief && !pTypeExt->CanDrive.Get(RulesExt::Global()->CanDrive))
 	{
 		return AresHijackActionResult::None;
 	}
@@ -898,7 +901,7 @@ AresHijackActionResult TechnoExt_ExtData::GetActionHijack(InfantryClass* pThis, 
 	const auto specialOwned = pHouseTypeExt->CanBeDriven.Get(pTarget->Owner->Type->MultiplayPassive);
 	const auto pTargetTypeExt = TechnoTypeExt::ExtMap.Find(pTargetType);
 
-	if (specialOwned && pTypeExt->CanDrive && pTargetTypeExt->CanBeDriven)
+	if (specialOwned && pTypeExt->CanDrive.Get(RulesExt::Global()->CanDrive) && pTargetTypeExt->CanBeDriven)
 	{
 		return AresHijackActionResult::Drive;
 	}
@@ -1078,7 +1081,7 @@ bool TechnoExt_ExtData::FindAndTakeVehicle(FootClass* pThis)
 		return false;
 
 	const auto pExt = TechnoTypeExt::ExtMap.Find(pInf->Type);
-	if (!pInf->Type->VehicleThief && !pExt->CanDrive)
+	if (!pInf->Type->VehicleThief && !pExt->CanDrive.Get(RulesExt::Global()->CanDrive))
 		return false;
 
 	const auto nDistanceMax = ScenarioClass::Instance->Random.RandomFromMax(128);
@@ -1909,7 +1912,16 @@ bool TechnoExt_ExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 
 void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 {
-	if (!pSource)
+	if (!pSource || !pSource->IsAlive)
+		return;
+
+	const auto vtable = VTable::Get(pSource);
+
+	if (vtable != AnimClass::vtable
+		&& vtable != UnitClass::vtable
+		&& vtable != InfantryClass::vtable
+		&& vtable != BuildingClass::vtable
+		&& vtable != AircraftClass::vtable)
 		return;
 
 	ObjectTypeClass* pSourceType = pSource->GetType();
@@ -1969,10 +1981,8 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 			)
 	)
 	{
-		if (auto pAlpha = PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pSource))
-		{
+		if (auto pAlpha = PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pSource)) {
 			GameDelete<true, false>(pAlpha);
-			// pSource is erased from map
 		}
 	}
 	else
@@ -2699,7 +2709,11 @@ BuildingClass* TechnoExt_ExtData::CreateBuilding(
 
 	if (!remove)
 	{
-		auto pOwner = HouseExt::GetHouseKind(owner, true, pBuilding->Owner);
+		HouseClass* designated =
+			//pBuilding->Type->CanBeOccupied && pBuilding->Occupants.Count != 0 ? HouseExt::FindCivilianSide() :
+			pBuilding->Owner;
+
+		auto pOwner = HouseExt::GetHouseKind(owner, true, designated);
 		pRet = static_cast<BuildingClass*>(pNewType->CreateObject(pOwner));
 
 		if (strength <= -1 && strength >= -100)
@@ -2947,10 +2961,9 @@ void NOINLINE SetType(TechnoClass* pThis, TechnoTypeClass* pToType)
 		break;
 	}
 }
-bool TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* pToType)
-{
-#ifndef New_func
 
+bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* pToType)
+{
 	const auto& [prevType, rtti] = GetOriginalType(pThis, pToType);
 
 	if (!prevType)
@@ -2996,6 +3009,53 @@ bool TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* pToTy
 	//AresData::RemoveAEType(&pThis->align_154->AEDatas, prevType);
 	//TechnoExt_ExtData::RecalculateStat(pThis);
 
+	// remove previous line trail
+	GameDelete<true, true>(pThis->LineTrailer);
+
+	// create new one if new type require it
+	if (pToType->UseLineTrail)
+	{
+		pThis->LineTrailer = GameCreate<LineTrail>();
+
+		if (RulesClass::Instance->LineTrailColorOverride != ColorStruct::Empty)
+		{
+			pThis->LineTrailer->Color = RulesClass::Instance->LineTrailColorOverride;
+		}
+		else
+		{
+			pThis->LineTrailer->Color = pToType->LineTrailColor;
+		}
+
+		pThis->LineTrailer->SetDecrement(pToType->LineTrailColorDecrement);
+		pThis->LineTrailer->Owner = pThis;
+	}
+
+	// replace spawner type and some properties
+	if (auto pSpawnManager = pThis->SpawnManager)
+	{
+		// this check is special for `SupportWeapon`
+		// since it not using the type data spawner
+		// it using the custom made
+		// make sure it wont cause any problem here ,..
+		if (prevType->Spawns)
+		{
+			if(pSpawnManager->SpawnType != pToType->Spawns)
+				pSpawnManager->SpawnType = pToType->Spawns;
+
+			if (pToType->SpawnsNumber > 0)
+				pSpawnManager->SpawnCount = pToType->SpawnsNumber;
+
+			if(pToType->SpawnRegenRate > 0)
+				pSpawnManager->RegenRate = pToType->SpawnRegenRate;
+
+			if(pToType->SpawnReloadRate > 0)
+				pSpawnManager->ReloadRate = pToType->SpawnReloadRate;
+		}
+	}
+
+	if (pThis->IsDisguised() && prevType->DisguiseWhenStill != pToType->DisguiseWhenStill)
+		pThis->ClearDisguise();
+
 	// Adjust ammo
 	pThis->Ammo = MinImpl(pThis->Ammo, pToType->Ammo);
 
@@ -3030,9 +3090,6 @@ bool TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* pToTy
 		((FootClass*)pThis)->Locomotor->Move_To(pThis->Location);
 
 	return true;
-#else
-	return AresData::ConvertTypeTo(pThis, pToType);
-#endif
 }
 
 void TechnoExt_ExtData::RecalculateStat(TechnoClass* pThis)
@@ -3174,7 +3231,7 @@ void NOINLINE UpdatePassengerTurrent(TechnoClass* pThis, TechnoTypeExt::ExtData*
 	if (pTypeData->PassengerTurret)
 	{
 		// 18 = 1 8 = A H = Adolf Hitler. Clearly we can't allow it to come to that.
-		auto const passengerNumber = MinImpl(pThis->Passengers.NumPassengers, pType->WeaponCount);
+		auto const passengerNumber = MinImpl(pThis->Passengers.NumPassengers, pType->WeaponCount - 1);
 		pThis->CurrentTurretNumber = MinImpl(passengerNumber, pType->TurretCount - 1);
 	}
 }
@@ -3317,7 +3374,12 @@ void TechnoExt_ExtData::Ares_technoUpdate(TechnoClass* pThis)
 
 	const auto pFoot = generic_cast<FootClass*>(pThis);
 
-	if (pFoot && pExt->IsDriverKilled && pThis->CurrentMission != Mission::Harmless && !pFoot->IsAttackedByLocomotor)
+	if (pFoot
+		&& pFoot->align_154->Is_DriverKilled
+		&& pThis->CurrentMission != Mission::Harmless
+		&& !pFoot->IsAttackedByLocomotor
+		&& ScenarioClass::Instance->Random.RandomBool()
+		)
 	{
 		pThis->SetTarget(nullptr);
 		pThis->EnterIdleMode(false, 1);
@@ -3647,14 +3709,16 @@ DWORD FirewallFunctions::GetFirewallFlags(BuildingClass* pThis)
 {
 	auto pCell = MapClass::Instance->GetCellAt(pThis->Location);
 	DWORD flags = 0;
-	for (size_t direction = 0; direction < 8; direction += 2)
-	{
-		auto pNeighbour = pCell->GetNeighbourCell((FacingType)direction);
-		if (auto pBld = pNeighbour->GetBuilding())
-		{
-			if (pBld->Type->FirestormWall && pBld->Owner == pThis->Owner && !pBld->InLimbo && pBld->IsAlive)
-			{
-				flags |= 1 << (direction >> 1);
+	for (size_t direction = 0; direction < 8; direction += 2) {
+		if(auto pNeighbour = pCell->GetNeighbourCell((FacingType)direction)) {
+			if (auto pBld = pNeighbour->GetBuilding()) {
+				if (BuildingTypeExt::ExtMap.Find(pBld->Type)->Firestorm_Wall
+					&& pBld->Owner == pThis->Owner
+					&& !pBld->InLimbo
+					&& pBld->IsAlive
+				) {
+					flags |= 1 << (direction >> 1);
+				}
 			}
 		}
 	}
@@ -3735,11 +3799,6 @@ bool FirewallFunctions::ImmolateVictim(TechnoClass* pThis, ObjectClass* const pV
 
 void FirewallFunctions::UpdateFirewall(BuildingClass* pThis, bool const changedState)
 {
-	if (!pThis->Type->FirestormWall)
-	{
-		return;
-	}
-
 	auto const active = pThis->Owner->FirestormActive;
 
 	if (!changedState)
@@ -3749,7 +3808,7 @@ void FirewallFunctions::UpdateFirewall(BuildingClass* pThis, bool const changedS
 
 		// (0b0101 || 0b1010) == part of a straight line
 		auto const connections = pThis->FirestormWallFrame & 0xF;
-		if (active && Unsorted::CurrentFrame & 7 && !Anim
+		if (active && (Unsorted::CurrentFrame & 7) && !Anim
 			&& connections != 0b0101 && connections != 0b1010
 			&& (ScenarioClass::Instance->Random.Random() & 0xF) == 0)
 		{
@@ -3789,7 +3848,9 @@ void FirewallFunctions::UpdateFirewall(BuildingClass* pThis, bool const changedS
 		}
 		else if (Anim)
 		{
+			Anim->TimeToDie = true;
 			Anim->UnInit();
+			Anim = nullptr;
 		}
 	}
 
@@ -3801,11 +3862,10 @@ void FirewallFunctions::UpdateFirewall(BuildingClass* pThis, bool const changedS
 
 void FirewallFunctions::UpdateFirewallLinks(BuildingClass* pThis)
 {
-	if (pThis->Type->FirestormWall)
+	if (BuildingTypeExt::ExtMap.Find(pThis->Type)->Firestorm_Wall)
 	{
 		// update this
-		if (!pThis->InLimbo && pThis->IsAlive)
-		{
+		if (!pThis->InLimbo && pThis->IsAlive) {
 			FirewallFunctions::UpdateFirewall(pThis, true);
 		}
 
@@ -3813,10 +3873,11 @@ void FirewallFunctions::UpdateFirewallLinks(BuildingClass* pThis)
 		auto const pCell = MapClass::Instance->GetCellAt(pThis->Location);
 		for (size_t i = 0u; i < 8; i += 2)
 		{
-			auto const pNeighbour = pCell->GetNeighbourCell((FacingType)i);
-			if (auto const pBld = pNeighbour->GetBuilding())
-			{
-				FirewallFunctions::UpdateFirewall(pThis, true);
+			if(auto const pNeighbour = pCell->GetNeighbourCell((FacingType)i)){
+				if (auto const pBld = pNeighbour->GetBuilding()) {
+					if (BuildingTypeExt::ExtMap.Find(pBld->Type)->Firestorm_Wall)
+						FirewallFunctions::UpdateFirewall(pBld, true);
+				}
 			}
 		}
 	}
@@ -3828,7 +3889,7 @@ bool FirewallFunctions::IsActiveFirestormWall(BuildingClass* const pBuilding, Ho
 	{
 		if (!pBuilding->InLimbo && pBuilding->IsAlive)
 		{
-			return pBuilding->Type->FirestormWall;
+			return BuildingTypeExt::ExtMap.Find(pBuilding->Type)->Firestorm_Wall;
 		}
 	}
 
@@ -3855,7 +3916,8 @@ bool FirewallFunctions::canLinkTo(BuildingClass* currentBuilding, BuildingClass*
 	BuildingTypeExt::ExtData* targetTypeExtData = BuildingTypeExt::ExtMap.Find(targetBuilding->Type);
 
 	// Firewalls
-	if (currentBuilding->Type->FirestormWall && targetBuilding->Type->FirestormWall)
+	if (BuildingTypeExt::ExtMap.Find(currentBuilding->Type)->Firestorm_Wall
+		&& 	BuildingTypeExt::ExtMap.Find(targetBuilding->Type)->Firestorm_Wall)
 	{
 		return true;
 	}
@@ -3922,7 +3984,7 @@ void FirewallFunctions::BuildLines(BuildingClass* theBuilding, CellStruct select
 
 			if (CellClass* cell = MapClass::Instance->GetCellAt(cellToBuildOn))
 			{
-				if (BuildingClass* tempBuilding = specific_cast<BuildingClass*>(theBuilding->Type->CreateObject(buildingOwner)))
+				if (BuildingClass* tempBuilding = (BuildingClass*)(theBuilding->Type->CreateObject(buildingOwner)))
 				{
 					CoordStruct coordBuffer = CellClass::Cell2Coord(cellToBuildOn);
 
@@ -3951,7 +4013,7 @@ int FirewallFunctions::GetImageFrameIndex(BuildingClass* pThis)
 {
 	BuildingTypeExt::ExtData* pData = BuildingTypeExt::ExtMap.Find(pThis->Type);
 
-	if (pThis->Type->FirestormWall)
+	if (pData->Firestorm_Wall)
 	{
 		return static_cast<int>(pThis->FirestormWallFrame);
 
@@ -3970,12 +4032,7 @@ int FirewallFunctions::GetImageFrameIndex(BuildingClass* pThis)
 		*/
 	}
 
-	if (pData->IsTrench > -1)
-	{
-		return 0;
-	}
-
-	return -1;
+	return (pData->IsTrench >= 0) - 1;
 }
 
 #pragma endregion
@@ -4890,8 +4947,16 @@ void AresJammer::Update()
 	// walk through all buildings
 	for (auto const curBuilding : *BuildingClass::Array)
 	{
+		if (this->AttachedToObject->Owner->IsAlliedWith(curBuilding->Owner))
+			continue;
+
 		// for each jammable building ...
-		if (this->IsEligible(curBuilding))
+		bool Eligible = false;
+		for (auto pType : curBuilding->GetTypes()) {
+			Eligible = pType && (pType->Radar || pType->SpySat);
+		}
+
+		if (Eligible)
 		{
 			// ...check if it's in range, and jam or unjam based on that
 			if (this->InRangeOf(curBuilding))
@@ -4907,15 +4972,15 @@ void AresJammer::Update()
 }
 
 //! \param TargetBuilding The building whose eligibility to check.
-bool AresJammer::IsEligible(BuildingClass* TargetBuilding)
-{
-	/* Current requirements for being eligible:
-		- not an ally (includes ourselves)
-		- either a radar or a spysat
-	*/
-	return !this->AttachedToObject->Owner->IsAlliedWith(TargetBuilding->Owner)
-		&& (TargetBuilding->Type->Radar || TargetBuilding->Type->SpySat);
-}
+//bool AresJammer::IsEligible(BuildingClass* TargetBuilding)
+//{
+//	/* Current requirements for being eligible:
+//		- not an ally (includes ourselves)
+//		- either a radar or a spysat
+//	*/
+//	return !this->AttachedToObject->Owner->IsAlliedWith(TargetBuilding->Owner)
+//		&& (TargetBuilding->Type->Radar || TargetBuilding->Type->SpySat);
+//}
 
 //! \param TargetBuilding The building to check the distance to.
 bool AresJammer::InRangeOf(BuildingClass* TargetBuilding)
@@ -4931,7 +4996,7 @@ bool AresJammer::InRangeOf(BuildingClass* TargetBuilding)
 void AresJammer::Jam(BuildingClass* TargetBuilding)
 {
 	//Using map ? , so it can keep item unique i presume ?
-	auto& jammMap = RegisteredJammers(TargetBuilding);
+	auto& jammMap = BuildingExt::ExtMap.Find(TargetBuilding)->RegisteredJammers;
 
 	jammMap.insert(this->AttachedToObject, true);
 
@@ -4946,7 +5011,7 @@ void AresJammer::Jam(BuildingClass* TargetBuilding)
 void AresJammer::Unjam(BuildingClass* TargetBuilding)
 {
 	//Using map ? , so it can keep item unique i presume ?
-	auto& jammMap = RegisteredJammers(TargetBuilding);
+	auto& jammMap = BuildingExt::ExtMap.Find(TargetBuilding)->RegisteredJammers;
 
 	if (jammMap.erase(this->AttachedToObject)) {
 		if (jammMap.empty()) {
@@ -5540,7 +5605,7 @@ bool AresTActionExt::LauchhNuke(TActionClass* pAction, HouseClass* pHouse, Objec
 	nCoord.Z = MapClass::Instance->GetCellFloorHeight(nCoord);
 
 	if (MapClass::Instance->GetCellAt(nCoord)->ContainsBridge())
-		nCoord.Z += CellClass::BridgeHeight;
+		nCoord.Z += Unsorted::BridgeHeight;
 
 	SW_NuclearMissile::DropNukeAt(nullptr, nCoord, nullptr, pHouse, pFind);
 
@@ -5644,7 +5709,7 @@ bool AresTActionExt::MeteorStrike(TActionClass* pAction, HouseClass* pHouse, Obj
 	nCoord.Z = MapClass::Instance->GetCellFloorHeight(nCoord);
 
 	if (MapClass::Instance->GetCellAt(nCoord)->ContainsBridge())
-		nCoord.Z += CellClass::BridgeHeight;
+		nCoord.Z += Unsorted::BridgeHeight;
 
 	const auto amount = MeteorAddAmount[pAction->Value % MeteorAddAmount.size()] + ScenarioClass::Instance->Random.Random() % 3;
 	if (amount <= 0)
@@ -5692,7 +5757,7 @@ bool AresTActionExt::PlayAnimAt(TActionClass* pAction, HouseClass* pHouse, Objec
 		nCoord.Z = MapClass::Instance->GetCellFloorHeight(nCoord);
 
 		if (MapClass::Instance->GetCellAt(nCoord)->ContainsBridge())
-			nCoord.Z += CellClass::BridgeHeight;
+			nCoord.Z += Unsorted::BridgeHeight;
 
 		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0))
 		{
@@ -6849,7 +6914,7 @@ void AresHouseExt::SetFirestormState(HouseClass* pHouse , bool const active)
 
 	for (auto const& pBld : pHouse->Buildings)
 	{
-		if (pBld->Type->FirestormWall)
+		if (BuildingTypeExt::ExtMap.Find(pBld->Type)->Firestorm_Wall)
 		{
 			FirewallFunctions::UpdateFirewall(pBld , true);
 			auto const temp = pBld->GetMapCoords();

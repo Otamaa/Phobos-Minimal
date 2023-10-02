@@ -72,7 +72,7 @@ void UpdateWebbed(FootClass* pThis)
 			pExt->IsWebbed = false;
 
 			if (pExt->WebbedAnim) {
-				pExt->WebbedAnim.reset(nullptr);
+				pExt->WebbedAnim.clear();
 			}
 
 			TechnoExt::RestoreLastTargetAndMissionAfterWebbed(pInf);

@@ -126,11 +126,11 @@ DEFINE_OVERRIDE_HOOK(0x4893BA, DamageArea_DamageAir, 9)
 	int heightAboveGround = pCoords->Z - heightFloor;
 
 	// consider explosions on and over bridges
-	if (heightAboveGround > CellClass::BridgeHeight
+	if (heightAboveGround > Unsorted::BridgeHeight
 		&& pCell->ContainsBridge()
 		&& RulesExt::Global()->DamageAirConsiderBridges)
 	{
-		heightAboveGround -= CellClass::BridgeHeight;
+		heightAboveGround -= Unsorted::BridgeHeight;
 	}
 
 	// damage units in air if detonation is above a threshold

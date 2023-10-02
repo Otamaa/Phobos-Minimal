@@ -568,7 +568,7 @@ bool BulletExt::IsReallyAlive(BulletClass* pThis)
 HouseClass* BulletExt::GetHouse(BulletClass* const pThis)
 {
 	if (pThis->Owner) {
-		return pThis->Owner->GetOwningHouse();
+		return pThis->Owner->Owner;
 	}
 
 	return BulletExt::ExtMap.Find(pThis)->Owner;

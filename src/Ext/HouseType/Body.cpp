@@ -95,7 +95,9 @@ void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 
-	if (!this->SettingsInherited && *pThis->ParentCountry && IS_SAME_STR_(pThis->ParentCountry, pThis->ID))
+	if (!this->SettingsInherited
+		&& *pThis->ParentCountry
+		&& IS_SAME_STR_(pThis->ParentCountry, pThis->ID))
 	{
 		this->InheritSettings(pThis);
 	}
@@ -214,7 +216,6 @@ bool HouseTypeExt::ExtContainer::Load(HouseTypeClass* pThis, IStream* pStm)
 	HouseTypeExt::ExtData* pData = this->LoadKey(pThis, pStm);
 	return pData != nullptr;
 };
-
 
 // =============================
 // container hooks

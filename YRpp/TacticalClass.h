@@ -97,8 +97,8 @@ public:
 		{ JMP_THIS(0x6D1FE0); }
 
 	// convert xyz height to xy height?
-	static int __fastcall AdjustForZ(int Height)
-		{ JMP_STD(0x6D20E0); }
+	//static int __fastcall AdjustForZ(int Height)
+	//{ JMP_STD(0x6D20E0); }
 
 	static void __fastcall PrintTimer(int arg1, ColorScheme* scheme, int interval, const wchar_t* string, LARGE_INTEGER* pBlinkTimer, bool* pBlinkState)
 		{ JMP_STD(0x6D4B50); }

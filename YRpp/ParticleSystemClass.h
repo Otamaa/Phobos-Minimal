@@ -96,5 +96,7 @@ struct UninitAttachedSystem
 			pAnim->Owner = nullptr;
 			pAnim->UnInit();
 		}
+
+		pAnim = nullptr;
 	}
 };

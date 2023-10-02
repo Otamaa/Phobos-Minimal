@@ -60,17 +60,15 @@ DEFINE_OVERRIDE_HOOK(0x53CC63, IonBlastClass_Update_Beam, 6)
 		else
 			pBlast = pWHExt->Ion_Blast.Get(RulesClass::Instance->IonBlast);
 
-		auto nLocb = nLoc;
-		nLocb.Z += 5;
+		auto animCoord = nLoc;
+		animCoord.Z += 5;
 
-		if (pBlast)
-		{
-			GameCreate<AnimClass>(pBlast, nLocb);
+		if (pBlast) {
+			GameCreate<AnimClass>(pBlast, animCoord);
 		}
 
-		if (auto pBeam = pWHExt->Ion_Beam.Get(RulesClass::Instance->IonBeam))
-		{
-			GameCreate<AnimClass>(pBlast, nLoc);
+		if (auto pBeam = pWHExt->Ion_Beam.Get(RulesClass::Instance->IonBeam)) {
+			GameCreate<AnimClass>(pBeam, animCoord);
 		}
 
 		if (auto pIonWH = pWHExt->Ion_WH.Get(RulesClass::Instance->IonCannonWarhead))
@@ -79,13 +77,13 @@ DEFINE_OVERRIDE_HOOK(0x53CC63, IonBlastClass_Update_Beam, 6)
 
 			if (pCell->ContainsBridge())
 			{
-				auto nLocC = nLoc;
-				nLocC.Z += 416;
+				auto BridgeCoord = nLoc;
+				BridgeCoord.Z += Unsorted::BridgeHeight;
 
-				MapClass::DamageArea(nLocC, nDamage, nullptr, pIonWH, true, nullptr);
+				MapClass::DamageArea(BridgeCoord, nDamage, nullptr, pIonWH, pIonWH->Tiberium, nullptr);
 			}
 
-			MapClass::DamageArea(nLoc, nDamage, nullptr, pIonWH, true, nullptr);
+			MapClass::DamageArea(nLoc, nDamage, nullptr, pIonWH, pIonWH->Tiberium, nullptr);
 			MapClass::FlashbangWarheadAt(nDamage, pIonWH, nLoc);
 		}
 

@@ -23,6 +23,7 @@ struct Game
 {
 	// the magic checksum for version validation - linked in StaticInits
 	static constexpr reference<DWORD, 0x83D560u> const Savegame_Magic {};
+	static constexpr reference<double, 0xB0CD48u> const GameMagicValue_ {};
 
 	static constexpr reference<DynamicVectorClass<ULONG>, 0xB0BC88u> const ClassFactories {};
 
@@ -146,6 +147,10 @@ struct Game
 		CALL(0x7C5F00);
 	}
 
+	static int __forceinline AdjustHeight(int height)  {
+		return F2I((double)height * GameMagicValue_() + ((double)(height >= Unsorted::HeightMax)) + 0.5);
+	}
+
 	// the game's own rounding function
 	// infamous for true'ing (F2I(-5.00) == -4.00)
 	static int F2I(double val)
@@ -237,8 +242,8 @@ struct Game
 	{ JMP_STD(0x6ABC60); }
 
 	// convert xyz height to xy height?
-	static int __fastcall AdjustForZ(int Height) //ZDepth_Adjust_For_Height
-	{ JMP_STD(0x6D20E0); }
+	//static int __fastcall AdjustForZ(int Height) //ZDepth_Adjust_For_Height
+	//{ JMP_STD(0x6D20E0); }
 
 	static void __fastcall WriteMapFiles(const char* pFilename, int bArgs = false)
 	{ JMP_STD(0x687CE0); }
@@ -255,8 +260,8 @@ struct Game
 	static int __fastcall CellStructToIdx(CellStruct* pCell)
 	{ JMP_STD(0x42B1C0); }
 
-	static int __fastcall ZDepthAdjust(int nZ)
-	{ JMP_STD(0x6D20E0); }
+	//static int __fastcall ZDepthAdjust(int nZ)
+	//{ JMP_STD(0x6D20E0); }
 
 	static DirStruct* GetDirOver(DirStruct* nBuff, CoordStruct* coord1, CoordStruct* coord2)
 	{ JMP_REG_THIS_(nBuff, 0x4265B0); }

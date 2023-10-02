@@ -98,7 +98,7 @@ DEFINE_OVERRIDE_HOOK(0x4239F0, AnimClass_UpdateBounce_Damage, 0x8)
 
 	if (nDist < nRadius) {
 		auto nDamage = (int)pType->Damage;
-		pObj->ReceiveDamage(&nDamage, TacticalClass::AdjustForZ(nDist), pType->Warhead,
+		pObj->ReceiveDamage(&nDamage, Game::AdjustHeight(nDist), pType->Warhead,
 					  pInvoker, false, false, pInvoker ? pInvoker->Owner : pThis->Owner);
 	}
 

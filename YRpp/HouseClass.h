@@ -969,6 +969,10 @@ public:
 		return nBuffer;
 	}
 
+	double GetSpeedMult(TechnoTypeClass* pWho) const {
+		JMP_THIS(0x50C050);
+	}
+
 	//Constructor
 	HouseClass(HouseTypeClass* pCountry) noexcept
 		: HouseClass(noinit_t())

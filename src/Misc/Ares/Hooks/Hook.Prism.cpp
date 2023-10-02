@@ -219,15 +219,8 @@ DEFINE_OVERRIDE_HOOK(0x44ABD0, BuildingClass_FireLaser, 5)
 	CoordStruct sourceXYZ;
 	pThis->GetFLH(&sourceXYZ ,0, CoordStruct::Empty);
 
-	int idxSupport = -1;
-	if (pThis->Veterancy.IsElite())
-	{
-		idxSupport = pTypeData->PrismForwarding.EliteSupportWeaponIndex;
-	}
-	else
-	{
-		idxSupport = pTypeData->PrismForwarding.SupportWeaponIndex;
-	}
+	const int idxSupport = pThis->Veterancy.IsElite()  ?
+		pTypeData->PrismForwarding.EliteSupportWeaponIndex : pTypeData->PrismForwarding.SupportWeaponIndex ;
 
 	auto const supportWeapon = (idxSupport != -1)
 		? pType->Weapon[idxSupport].WeaponType : nullptr;
@@ -259,6 +252,7 @@ DEFINE_OVERRIDE_HOOK(0x44ABD0, BuildingClass_FireLaser, 5)
 					supportWeapon->LaserDuration
 				);
 			}
+
 			if (LaserBeam)
 			{
 				LaserBeam->IsHouseColor = supportWeapon->IsHouseColor;
@@ -362,15 +356,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF4DE, TechnoClass_Fire_IsLaser, 6)
 		{
 
 			//default thickness for buildings. this was 3 for PrismType (rising to 5 for supported prism) but no idea what it was for non-PrismType - setting to 3 for all BuildingTypes now.
-			if (Thickness == -1)
-			{
-				pLaser->Thickness = 3;
-			}
-			else
-			{
-				pLaser->Thickness = Thickness;
-			}
-
+			pLaser->Thickness = Thickness == -1 ? 3 : Thickness;
 			auto const pBldTypeData = BuildingTypeExt::ExtMap.Find(pBld->Type);
 
 			if (pBldTypeData->PrismForwarding.CanAttack())
@@ -446,7 +432,7 @@ DEFINE_OVERRIDE_HOOK(0x448277, BuildingClass_ChangeOwner_PrismForwardAndLeaveBom
 	// #754 - evict Hospital/Armory contents
 	TechnoExt_ExtData::KickOutHospitalArmory(pThis);
 
-	auto const pData = BuildingExt::ExtMap.Find(pThis);
+	auto pData = BuildingExt::ExtMap.Find(pThis);
 	auto const pTypeData = BuildingTypeExt::ExtMap.Find(pThis->Type);
 
 	// the first and the last tower have to be allied to this
@@ -484,7 +470,7 @@ DEFINE_OVERRIDE_HOOK(0x448277, BuildingClass_ChangeOwner_PrismForwardAndLeaveBom
 	pData->PrismForwarding.RemoveFromNetwork(false);
 
 	// #305: remove all jammers. will be restored with the next update.
-	RegisteredJammers(pThis).clear();//
+	pData->RegisteredJammers.clear();//
 
 	return LeaveBomb;
 }

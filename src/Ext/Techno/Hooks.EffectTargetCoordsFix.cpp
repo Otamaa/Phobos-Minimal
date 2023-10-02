@@ -49,7 +49,7 @@ DEFINE_HOOK(0x70C6AF, TechnoClass_Railgun_TargetCoords, 0x6)
 		auto const pCell = static_cast<CellClass*>(pTarget);
 		pCell->GetCoords(pBuffer);
 		if (pCell->ContainsBridge()) {
-			pBuffer->Z += CellClass::BridgeHeight;
+			pBuffer->Z += Unsorted::BridgeHeight;
 		}
 
 		break;

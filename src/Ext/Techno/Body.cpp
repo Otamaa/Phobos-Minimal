@@ -40,6 +40,7 @@
 
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
+#include <Misc/Ares/Hooks/Header.h>
 
 #include <memory>
 #include <Ares_TechnoExt.h>
@@ -1078,7 +1079,7 @@ AreaFireReturnFlag TechnoExt::ApplyAreaFire(TechnoClass* pThis, CellClass*& pTar
 			const int rand = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
 			CellStruct const tgtPos = pTargetCell->MapCoords + adjacentCells.at((i + rand) % size);
 			CellClass* const tgtCell = MapClass::Instance->GetCellAt(tgtPos);
-			bool allowBridges = tgtCell && tgtCell->ContainsBridge() && (pThis->OnBridge || tgtCell->Level + CellClass::BridgeLevels == pThis->GetCell()->Level);
+			bool allowBridges = tgtCell && tgtCell->ContainsBridge() && (pThis->OnBridge || (tgtCell->Level + Unsorted::BridgeLevels) == pThis->GetCell()->Level);
 
 			if (EnumFunctions::AreCellAndObjectsEligible(tgtCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), pThis->Owner, true , allowBridges))
 			{
@@ -1099,7 +1100,7 @@ AreaFireReturnFlag TechnoExt::ApplyAreaFire(TechnoClass* pThis, CellClass*& pTar
 	default:
 	{
 		auto pCell = pTargetCell;
-		bool allowBridges = pCell && pCell->ContainsBridge() && (pThis->OnBridge || pCell->Level + CellClass::BridgeLevels == pThis->GetCell()->Level);
+		bool allowBridges = pCell && pCell->ContainsBridge() && (pThis->OnBridge || (pCell->Level + Unsorted::BridgeLevels) == pThis->GetCell()->Level);
 
 		if (!EnumFunctions::AreCellAndObjectsEligible(pTargetCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), nullptr, false , allowBridges))
 			return AreaFireReturnFlag::DoNotFire;
@@ -3230,15 +3231,97 @@ void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged)
 		if (wasDamaged && (pThis->GetHealthPercentage() > RulesClass::Instance->ConditionYellow
 			|| pThis->GetHeight() < -10))
 		{
+			bool Rubbled = false;
+
 			if (isBuilding) {
+
 				const auto pBuilding = static_cast<BuildingClass*>(pThis);
-				pBuilding->UpdatePlacement(PlacementType::Redraw);
-				pBuilding->ToggleDamagedAnims(false);
+				//const auto pExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+
+				// restore rubble after reaching green health ?
+				// not sure if this good implementation
+				// maybe better to put it somewhere on update function ,..
+				//if(pThis->GetHealthPercentage() >= RulesClass::Instance->ConditionGreen
+				//	&& (pExt->RubbleIntact || pExt->RubbleIntactRemove))
+				//{
+				//	auto pRubble = TechnoExt_ExtData::CreateBuilding(pBuilding,
+				//				pExt->RubbleIntactRemove,
+				//				pExt->RubbleIntact,
+				//				pExt->RubbleIntactOwner,
+				//				pExt->RubbleIntactStrength,
+				//				pExt->RubbleIntactAnim
+				//				);
+				//
+				//	if (pRubble)
+				//	{
+				//		const bool wasSelected = pBuilding->IsSelected;
+				//		Rubbled = true;
+				//
+				//		if(pExt->TunnelType != -1 || pBuilding->Absorber() || pBuilding->Type->CanBeOccupied)
+				//		{
+				//			CellStruct Cell = pThis->GetMapCoords();
+				//			if(auto pData = HouseExt::GetTunnelVector(pBuilding->Type , pBuilding->Owner)) {
+				//				if (!pData->Vector.empty() && !TunnelFuncs::FindSameTunnel(pBuilding))
+				//				{
+				//					int nOffset = 0;
+				//					auto nPos = pData->Vector.end();
+				//
+				//					while (std::begin(pData->Vector) != std::end(pData->Vector))
+				//					{
+				//						nOffset++;
+				//						const auto Offs = CellSpread::CellOfssets[nOffset % CellSpread::CellOfssets.size()];
+				//						auto const& [status, pPtr] = TunnelFuncs::UnlimboOne(&pData->Vector, pBuilding, (Cell.X + Offs.X) | ((Cell.Y + Offs.Y) << 16));
+				//						if (!status)
+				//						{
+				//							TunnelFuncs::KillFootClass(pPtr, nullptr);
+				//						}
+				//					}
+				//
+				//					pData->Vector.clear();
+				//				}
+				//
+				//			}else
+				//			if(pBuilding->Absorber())
+				//			{
+				//				for(auto pFirst = pBuilding->Passengers.GetFirstPassenger();
+				//						 pFirst;
+				//						pFirst = generic_cast<FootClass*>(pFirst->NextObject)
+				//				){
+				//					pRubble->KickOutUnit(pFirst, Cell);
+				//				}
+				//			}
+				//			else
+				//			if(pBuilding->Type->CanBeOccupied && pBuilding->Occupants.Count != 0) {
+				//				pBuilding->KickAllOccupants(false , false);
+				//				if ( pBuilding->Owner->IsControlledByCurrentPlayer() )
+				//				{
+				//					auto idx = pExt->AbandonedSound.Get(RulesClass::Instance->BuildingAbandonedSound);
+				//					if(RadarEventClass::Create(RadarEventType::GarrisonAbandoned , Cell))
+				//						VoxClass::Play(GameStrings::EVA_StructureAbandoned());
+				//				}
+				//			}
+				//		}
+				//
+				//		if (wasSelected) {
+				//			pRubble->Select();
+				//		}
+				//
+				//		TechnoExt::HandleRemove(pBuilding, nullptr, false, false);
+				//	}
+				//}
+				//else
+				{
+					pBuilding->UpdatePlacement(PlacementType::Redraw);
+					pBuilding->ToggleDamagedAnims(false);
+				}
+
 			}
 
-			if (auto& dmgParticle = pThis->DamageParticleSystem) {
-				dmgParticle->UnInit();
-				dmgParticle = nullptr;
+			if(!Rubbled) {
+				if (auto& dmgParticle = pThis->DamageParticleSystem) {
+					dmgParticle->UnInit();
+					dmgParticle = nullptr;
+				}
 			}
 		}
 	}
@@ -3644,23 +3727,23 @@ void TechnoExt::ExtData::UpdateType(TechnoTypeClass* currentType)
 	this->Type = currentType;
 	auto const pTypeExtData = TechnoTypeExt::ExtMap.Find(currentType);
 
-	if (auto pSpawnManager = pThis->SpawnManager)
-	{
-		if (currentType->Spawns && pSpawnManager->SpawnType != currentType->Spawns)
-		{
-			pSpawnManager->SpawnType = currentType->Spawns;
-
-			if (currentType->SpawnsNumber > 0)
-				pSpawnManager->SpawnCount = currentType->SpawnsNumber;
-
-			pSpawnManager->RegenRate = currentType->SpawnRegenRate;
-			pSpawnManager->ReloadRate = currentType->SpawnReloadRate;
-		}
-	}
+	//if (auto pSpawnManager = pThis->SpawnManager)
+	//{
+	//	if (currentType->Spawns && pSpawnManager->SpawnType != currentType->Spawns)
+	//	{
+	//		pSpawnManager->SpawnType = currentType->Spawns;
+	//
+	//		if (currentType->SpawnsNumber > 0)
+	//			pSpawnManager->SpawnCount = currentType->SpawnsNumber;
+	//
+	//		pSpawnManager->RegenRate = currentType->SpawnRegenRate;
+	//		pSpawnManager->ReloadRate = currentType->SpawnReloadRate;
+	//	}
+	//}
 
 	// https://bugs.launchpad.net/ares/+bug/1891753
-	if (pThis->IsDisguised() && pOldType->DisguiseWhenStill && !currentType->DisguiseWhenStill)
-		pThis->ClearDisguise();
+	//if (pThis->IsDisguised() && pOldType->DisguiseWhenStill && !currentType->DisguiseWhenStill)
+	//	pThis->ClearDisguise();
 
 	//else if(currentType->Spawns && currentType->SpawnsNumber > 0)
 	//{
@@ -4181,7 +4264,7 @@ bool TechnoExt::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select,
 		if (!pTypeExt->IsPassable)
 			return false;
 
-		if (pBld->Type->FirestormWall &&
+		if (pTypeExt->Firestorm_Wall &&
 			pBld->Owner &&
 			pBld->Owner->FirestormActive)
 			return false;
@@ -4490,7 +4573,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->DeployFireTimer)
 		.Process(this->DisableWeaponTimer)
 		.Process(this->RevengeWeapons)
-		.Process(this->IsDriverKilled)
+		//.Process(this->IsDriverKilled)
 		.Process(this->GattlingDmageDelay)
 		.Process(this->GattlingDmageSound)
 		.Process(this->AircraftOpentoppedInitEd)
@@ -4641,18 +4724,28 @@ DEFINE_HOOK(0x70783B, TechnoClass_Detach, 0x6)
 	GET(AbstractClass*, target, EBP);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
-	//if (!Is_Techno(pThis))
-	//	Debug::Log("TechnoClass_Detach Called with gargabage ptr[%x] !\n", pThis);
+	auto pAresExt = pThis->align_154;
+
+	if(target == pAresExt->BuildingLight)
+		pAresExt->BuildingLight = nullptr;
+
+	if(target == pAresExt->GarrisonedIn)
+		pAresExt->GarrisonedIn = nullptr;
 
 	TechnoExt::ExtMap.InvalidatePointerFor(pThis, target, all);
 
 	return pThis->BeingManipulatedBy == target ? 0x707843 : 0x707849;
 }
 
-DEFINE_HOOK(0x710443, TechnoClass_AnimPointerExpired_PhobosAdd, 6)
+DEFINE_OVERRIDE_HOOK(0x710415, TechnoClass_AnimPointerExpired_add, 6)
 {
 	GET(AnimClass*, pAnim, EAX);
 	GET(TechnoClass*, pThis, ECX);
+
+	auto pAresExt = pThis->align_154;
+
+	if(pAnim == pAresExt->EMPSparkleAnim)
+		pAresExt->EMPSparkleAnim = nullptr;
 
 	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 	{

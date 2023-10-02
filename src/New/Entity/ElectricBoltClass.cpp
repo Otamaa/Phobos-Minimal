@@ -142,7 +142,7 @@ void ElectricBoltClass::Plot_Bolt(CoordStruct& start, CoordStruct& end)
 		std::vector<CoordStruct> end_coords(BoltCount, end);
 		std::vector<CoordStruct> working_coords(BoltCount, CoordStruct::Empty);
 
-		int deviation_values[6];
+		int deviation_values[6] {};
 
 		bool init_deviation_values = true;
 		int plot_index = 0;
@@ -284,8 +284,8 @@ void ElectricBoltClass::Draw_Bolts()
 
 		RectangleStruct nRect = DSurface::ViewBounds();
 
-		int start_z = data.StartZ - Game::AdjustForZ(data.Start.Z) - 2;
-		int end_z = data.EndZ - Game::AdjustForZ(data.End.Z) - 2;
+		int start_z = data.StartZ - Game::AdjustHeight(data.Start.Z) - 2;
+		int end_z = data.EndZ - Game::AdjustHeight(data.End.Z) - 2;
 
 		unsigned color = DSurface::RGBA_To_Pixel(data.Color.R, data.Color.G, data.Color.B);
 

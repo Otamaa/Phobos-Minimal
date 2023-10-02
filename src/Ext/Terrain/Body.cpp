@@ -67,13 +67,13 @@ void TerrainExt::ExtData::InitializeAnim()
 
 void TerrainExt::ExtData::ClearAnim()
 {
-	AttachedAnim.reset(nullptr);
+	AttachedAnim.clear();
 }
 
 //called when it Dtor ed , for more optimal
 void TerrainExt::ExtData::ClearLightSource()
 {
-	LighSource.reset(nullptr);
+	LighSource.clear();
 }
 
 void TerrainExt::Unlimbo(TerrainClass* pThis, CoordStruct* pCoord)

@@ -415,7 +415,7 @@ bool BuildingTypeExt::IsLinkable(BuildingTypeClass* pThis)
 {
 	const auto pExt = BuildingTypeExt::ExtMap.Find(pThis);
 
-	return pThis->FirestormWall || pExt->IsTrench >= 0;
+	return pExt->Firestorm_Wall || pExt->IsTrench >= 0;
 }
 
 int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse)
@@ -883,8 +883,10 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->BunkerRaidable.Read(exINI, pSection, "Bunker.Raidable");
 		this->Firestorm_Wall.Read(exINI, pSection, "Firestorm.Wall");
 
-		if(!pThis->FirestormWall && this->Firestorm_Wall)
-			pThis->FirestormWall = this->Firestorm_Wall;
+		//if (!pThis->FirestormWall && this->Firestorm_Wall)
+		//	pThis->FirestormWall = this->Firestorm_Wall;
+		//else if (!this->Firestorm_Wall && pThis->FirestormWall)
+		//	this->Firestorm_Wall = pThis->FirestormWall;
 
 		this->AbandonedSound.Read(exINI, pSection, "AbandonedSound");
 		this->CloningFacility.Read(exINI, pSection, "CloningFacility");
@@ -931,7 +933,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 	{
 		INI_EX exArtINI(pArtINI);
 
-		char strbuff[0x80];
+		char strbuff[0x80] {};
 
 		if (this->IsCustom)
 		{
@@ -973,7 +975,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 					{
 					case 0:
 						x = 0;
-						// fallthrough
+					[[fallthrough]];
 					case 1:
 						y = 0;
 					}

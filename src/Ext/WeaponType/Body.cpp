@@ -43,7 +43,7 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		data.Disabled.resize(nCount);
 
 		auto disabled = data.Disabled.begin();
-		char buffer_bolt[0x30];
+		char buffer_bolt[0x30] {};
 		for (int i = 0; i < nCount; ++i)
 		{
 			Valueable<bool> boltDisable_dummy {};
@@ -103,6 +103,7 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 	this->Burst_FireWithinSequence.Read(exINI, pSection, "Burst.FireWithinSequence");
 	this->ROF_RandomDelay.Read(exINI, pSection, "ROF.RandomDelay");
 	this->OmniFire_TurnToTarget.Read(exINI, pSection, "OmniFire.TurnToTarget");
+
 #pragma region Otamaa
 	this->Ylo.Read(exINI, pSection, GameStrings::ShakeYlo());
 	this->Yhi.Read(exINI, pSection, GameStrings::ShakeYhi());
@@ -208,14 +209,13 @@ ColorStruct WeaponTypeExt::ExtData::GetBeamColor() const
 {
 	const auto pThis = this->OwnerObject();
 
-	auto defaultcolor = RulesClass::Instance->RadColor;
 	if (pThis->IsRadBeam || pThis->IsRadEruption) {
 		if (pThis->Warhead && pThis->Warhead->Temporal) {
-			defaultcolor = RulesClass::Instance->ChronoBeamColor;
+			this->Beam_Color.Get(RulesClass::Instance->ChronoBeamColor);
 		}
 	}
 
-	return this->Beam_Color.Get(defaultcolor);
+	return this->Beam_Color.Get(RulesClass::Instance->RadColor);
 }
 
 template <typename T>

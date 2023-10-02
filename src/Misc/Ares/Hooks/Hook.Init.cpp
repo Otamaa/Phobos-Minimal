@@ -21,7 +21,7 @@ DEFINE_OVERRIDE_HOOK(0x52BA78, _YR_GameInit_Pre, 5)
 	// animate the engineer damage cursor
 	MouseCursor::GetCursor(MouseCursorType::Detonate).FrameRate = 4;
 
-	AresData::MouseCursorTypeLoadDefault();
+	//AresData::MouseCursorTypeLoadDefault();
 
 	//Load the default regardless
 	CursorTypeClass::AddDefaults();

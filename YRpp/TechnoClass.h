@@ -323,7 +323,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	virtual void DecreaseAmmo() RX;
 	virtual void AddPassenger(FootClass* pPassenger) RX;
 	virtual bool CanDisguiseAs(AbstractClass*pTarget) const R0;
-	virtual bool TargetAndEstimateDamage(DWORD dwUnk, DWORD dwUnk2) R0;
+	virtual bool TargetAndEstimateDamage(CoordStruct* coord, ThreatType threat) R0;
 	virtual void Stun() RX;//DWORD vt_entry_3A0() R0;
 	virtual bool TriggersCellInset(AbstractClass *pTarget) R0; //6F7660
 	virtual bool IsCloseEnough(AbstractClass *pTarget, int idxWeapon) const R0; //6F77B0  InRangeWpIdx

@@ -3,36 +3,30 @@
 
 DEFINE_HOOK(0x469008, BulletClass_Explode_Cluster, 0x8)
 {
-	enum { SkipGameCode = 0x469091 };
-
 	GET(BulletClass*, pThis, ESI);
 	GET_STACK(CoordStruct, origCoords, (0x3C - 0x30));
-	LEA_STACK(CoordStruct*, pCoordBuffer, (0x3C - 0xC));
 
 	if (pThis->Type->Cluster > 0)
 	{
-		auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
-		{
-			const int min = pTypeExt->Cluster_Scatter_Min.Get(BulletTypeExt::DefaultBulletScatterMin);
-			const int max = pTypeExt->Cluster_Scatter_Max.Get(BulletTypeExt::DefaultBulletScatterMax);
+		const auto pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
+		const int min = pTypeExt->Cluster_Scatter_Min.Get(BulletTypeExt::DefaultBulletScatterMin);
+		const int max = pTypeExt->Cluster_Scatter_Max.Get(BulletTypeExt::DefaultBulletScatterMax);
+		CoordStruct coord = origCoords;
 
-			for (int i = 0; i < pThis->Type->Cluster; i++)
-			{
-				pThis->Detonate(origCoords);
+		for (int i = 0; i < pThis->Type->Cluster; i++) {
 
-				if (!BulletExt::IsReallyAlive(pThis))
-					break;
+			pThis->Detonate(coord);
 
-				const int distance = ScenarioClass::Instance->Random.RandomRanged(min, max);
-				auto const pNew = MapClass::GetRandomCoordsNear(pCoordBuffer, origCoords, distance, false);
-				origCoords = *pNew;
-			}
+			if (!BulletExt::IsReallyAlive(pThis))
+				break;
 
-			return SkipGameCode;
+			const int distance = ScenarioClass::Instance->Random.RandomRanged(min, max);
+			const bool center = ScenarioClass::Instance->Random.RandomBool();
+			coord = MapClass::GetRandomCoordsNear(coord, distance, center);
 		}
 	}
 
-	return 0x0;
+	return 0x469091;
 }
 
 int GetScatterResult(BulletClass* pThis

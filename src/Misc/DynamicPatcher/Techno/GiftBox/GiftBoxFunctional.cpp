@@ -84,6 +84,7 @@ void GiftBoxFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTy
 			return;
 		}
 
+		if(pExt->Get()->IsAlive)
 		{
 			auto const nDelay = pTypeExt->MyGiftBoxData.DelayMax == 0 ?
 				pTypeExt->MyGiftBoxData.Delay :

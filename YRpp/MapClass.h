@@ -453,6 +453,9 @@ public:
 	bool CoordinatesLegal(const CellStruct& cell) const
 		{ JMP_THIS(0x568300); }
 
+	bool CoordinatesLegal(CellStruct* pCell) const
+		{ JMP_THIS(0x568300); }
+
 	CellClass* MapClass_findnearbyshroud_580BC0(int arg0) const 
 		{ JMP_THIS(0x580BC0); }
 

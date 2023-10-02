@@ -184,7 +184,7 @@ DEFINE_HOOK(0x424807, AnimClass_AI_Next, 0x6) //was 8
 		const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 
 		if (pExt->AttachedSystem && pExt->AttachedSystem->Type != pTypeExt->AttachedSystem.Get())
-			pExt->AttachedSystem.reset(nullptr);
+			pExt->AttachedSystem.clear();
 
 		if (!pExt->AttachedSystem && pTypeExt->AttachedSystem)
 			pExt->CreateAttachedSystem();

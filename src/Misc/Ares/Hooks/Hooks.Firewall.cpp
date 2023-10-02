@@ -5,6 +5,9 @@
 #include <Ext/Tiberium/Body.h>
 #include <Ext/SWType/NewSuperWeaponType/Firewall.h>
 
+#include <Ext/Bullet/Body.h>
+#include <Ext/WarheadType/Body.h>
+
 #include <Misc/AresData.h>
 
 #include "Header.h"
@@ -32,7 +35,6 @@ DEFINE_OVERRIDE_HOOK(0x445355, BuildingClass_KickOutUnit_Firewall, 6)
 	return 0;
 }
 
-// placement linking
 DEFINE_OVERRIDE_HOOK(0x6D5455, TacticalClass_DrawPlacement_IsLInkable, 6)
 {
 	GET(BuildingTypeClass* const, pType, EAX);
@@ -40,7 +42,6 @@ DEFINE_OVERRIDE_HOOK(0x6D5455, TacticalClass_DrawPlacement_IsLInkable, 6)
 		0x6D545Fu : 0x6D54A9u;
 }
 
-// placement linking
 DEFINE_OVERRIDE_HOOK(0x6D5A5C, TacticalClass_DrawPlacement_FireWall_IsLInkable, 6)
 {
 	GET(BuildingTypeClass* const, pType, EDX);
@@ -53,17 +54,17 @@ DEFINE_OVERRIDE_HOOK(0x43EFB3, BuildingClass_GetStaticImageFrame, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	if (pThis->GetCurrentMission() != Mission::Construction)
-	{
-		const auto FrameIdx = FirewallFunctions::GetImageFrameIndex(pThis);
+	if (pThis->GetCurrentMission() == Mission::Construction)
+		return 0x43EFC6;
 
-		if (FrameIdx != -1)
-		{
-			R->EAX(FrameIdx);
-			return 0x43EFC3;
-		}
+	const auto FrameIdx = FirewallFunctions::GetImageFrameIndex(pThis);
+
+	if (FrameIdx < 0) {
+		return 0x43EFC6;
 	}
-	return 0x43EFC6;
+
+	R->EAX(FrameIdx);
+	return 0x43EFC3;
 }
 
 DEFINE_OVERRIDE_HOOK(0x5880A0, MapClass_FindFirstFirestorm, 6)
@@ -102,7 +103,7 @@ DEFINE_OVERRIDE_HOOK(0x5880A0, MapClass_FindFirstFirestorm, 6)
 DEFINE_OVERRIDE_HOOK(0x483D94, CellClass_UpdatePassability, 6)
 {
 	GET(BuildingClass* const, pBuilding, ESI);
-	return pBuilding->Type->FirestormWall ? 0x483D9E : 0x483DB0;
+	return BuildingTypeExt::ExtMap.Find(pBuilding->Type)->Firestorm_Wall ? 0x483D9E : 0x483DB0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x4423E7, BuildingClass_ReceiveDamage_FSW, 5)
@@ -169,7 +170,7 @@ DEFINE_OVERRIDE_HOOK(0x51BD4C, InfantryClass_Update_BuildingBelow, 6)
 	if (pTypeExt->IsPassable)
 		return canPass;
 
-	if (pBld->Type->FirestormWall)
+	if (pTypeExt->Firestorm_Wall)
 		return checkHouseFirewallActive;
 
 	return cannotPass;
@@ -192,7 +193,7 @@ DEFINE_OVERRIDE_HOOK(0x51C4C8, InfantryClass_IsCellOccupied, 6)
 	if (pTypeExt->IsPassable)
 		return Ignore;
 
-	if (pBld->Type->FirestormWall)
+	if (pTypeExt->Firestorm_Wall)
 		return CheckFirestorm;
 
 	return NoDecision;
@@ -217,7 +218,7 @@ DEFINE_OVERRIDE_HOOK(0x73F7B0, UnitClass_IsCellOccupied, 6)
 	if (pTypeExt->IsPassable)
 		return Ignore;
 
-	if (pBld->Type->FirestormWall)
+	if (pTypeExt->Firestorm_Wall)
 		return CheckFirestormActive;
 
 	return NoDecision;
@@ -292,9 +293,6 @@ DEFINE_OVERRIDE_HOOK(0x4DA53E, FootClass_Update_AresAddition, 6)
 
 	return 0;
 }
-
-#include <Ext/Bullet/Body.h>
-#include <Ext/WarheadType/Body.h>
 
 DEFINE_OVERRIDE_HOOK(0x467B94, BulletClass_Update_Ranged, 7)
 {

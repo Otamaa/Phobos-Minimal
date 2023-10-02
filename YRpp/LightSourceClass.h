@@ -94,5 +94,6 @@ struct UninitLightSource
 	void operator() (LightSourceClass* pConvert) const
 	{
 		GameDelete<true, true>(pConvert);
+		pConvert = nullptr;
 	}
 };

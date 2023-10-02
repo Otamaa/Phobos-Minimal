@@ -2,6 +2,69 @@
 
 #include <Ext/Infantry/Body.h>
 
+void Phobos_DoControls::ReadSequence(std::vector<DoInfoStruct>& Desig, InfantryTypeClass* pInf, CCINIClass* pINI)
+{
+	INI_EX IniEX(pINI);
+
+	char section[0x100] {};
+	if (pINI->GetString(pInf->ImageFile, "Sequence", section) > 0) {
+		Desig.resize(DoControls::MaxCount);
+
+		for (int i = 0; i < DoControls::MaxCount; ++i) {
+			char sequenceData[0x100] {};
+			if (pINI->GetString(section, DoControls::DoType_toStr[i], sequenceData) > 0) {
+				auto& data = Desig[i];
+				std::string basename = DoControls::DoType_toStr[i];
+
+				char bufferFacing[4] {};
+				if(sscanf(sequenceData, "%d,%d,%d,%s",
+					&data.StartFrame,
+					&data.CountFrames,
+					&data.FacingMultiplier,
+					bufferFacing
+				) > 3){
+					for (size_t i = 0; i < EnumFunctions::FacingType_to_strings.size(); ++i)
+					{
+						if (!_strcmpi(EnumFunctions::FacingType_to_strings[i], bufferFacing))
+						{
+							data.Facing = DoTypeFacing(i);
+						}
+					}
+				}
+
+				char bufferSounds[0x100] {};
+				if (pINI->GetString(section, (basename + "Sounds").c_str(), bufferSounds) > 0)
+				{
+					auto v7 = strtok(bufferSounds, " ,\t");
+					while (v7)
+					{
+						auto v8 = atoi(v7);
+						auto v9 = strtok(0, " ,\t");
+						if (!v9)
+						{
+							break;
+						}
+
+						data.SoundCount = v8;
+
+						auto v10 = VocClass::FindIndexById(v9);
+						v7 = strtok(0, " ,\t");
+						if (v10 != -1)
+						{
+							for (auto at = data.SoundData;
+								at != std::end(data.SoundData);
+								++at)
+							{
+								at->Index = v10;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 void InfantryTypeExt::ExtData::Initialize()
 {
 	const auto pID = this->Get()->ID;
@@ -69,6 +132,8 @@ void InfantryTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 	//pWeaponReader.Read(exINI, pID, "Secondary.EliteCrawlWeapon", true);
 	//temp = { pWeaponReader , nSecEliteData->FLH , nSecEliteData->BarrelLength, nSecEliteData->BarrelThickness,  nSecEliteData->TurretLocked };
 	//std::memcpy(this->CrawlingWeaponDatas + 3, &temp, sizeof(WeaponStruct));
+
+	//Phobos_DoControls::ReadSequence(this->Sequences, this->Get(), iniEX_art.GetINI());
 }
 
 // =============================

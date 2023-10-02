@@ -29,4 +29,8 @@ namespace Unsorted
 
 	static inline constexpr int PixelLeptonWidth = LeptonsPerCell / CellWidthInPixels;
 	static inline constexpr int PixelLeptonHeight = LeptonsPerCell / CellHeightInPixels;
+
+	static inline constexpr int HeightMax = 728;
+	static inline constexpr int BridgeLevels = 4;
+	static inline constexpr int BridgeHeight = BridgeLevels * LevelHeight;
 };

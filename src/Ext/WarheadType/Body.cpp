@@ -248,7 +248,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 
 	for (auto const& ArmorType : ArmorTypeClass::Array)
 	{
-		Nullable<AnimTypeClass*> pAnimReaded;
+		Nullable<AnimTypeClass*> pAnimReaded {};
 		pAnimReaded.Read(exINI, pSection, ArmorType->HitAnim_Tag.data(), true);
 
 		if(pAnimReaded.isset() && pAnimReaded != nullptr)
@@ -355,17 +355,18 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	this->Malicious.Read(exINI, pSection, "Malicious");
 	this->PreImpact_Moves.Read(exINI, pSection, "PreImpactAnim.Moves");
 	this->Launchs.clear();
+
+	char nBuff[0x80] {};
 	for (size_t i = 0; ; ++i)
 	{
-		char nBuff[0x80];
-		Nullable<SuperWeaponTypeClass*> LaunchWhat_Dummy { };
+		Nullable<SuperWeaponTypeClass*> LaunchWhat_Dummy {};
 		IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.Type", i);
 		LaunchWhat_Dummy.Read(exINI, pSection, nBuff, true);
 
 		if (!LaunchWhat_Dummy.isset() || !LaunchWhat_Dummy.Get())
 			break;
 
-		LauchSWData nData;
+		LauchSWData nData {};
 		if (!nData.Read(exINI, pSection, i, LaunchWhat_Dummy))
 			break;
 
@@ -421,6 +422,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	this->Webby_Duration_Variation.Read(exINI, pSection, "Webby.DurationVariation");
 
 	this->SelfHealing_CombatDelay.Read(exINI, pSection, "VictimSelfHealing.%sCombatDelay");
+	this->ApplyModifiersOnNegativeDamage.Read(exINI, pSection, "ApplyModifiersOnNegativeDamage");
 
 #pragma endregion
 
@@ -573,16 +575,15 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, b
 {
 	if (pTechno)
 	{
-		const auto pType = pTechno->GetTechnoType();
-
 		if (pTechno->InLimbo
-			|| !pTechno->IsOnMap
 			|| !pTechno->IsAlive
 			|| !pTechno->Health
 			|| pTechno->IsSinking
-			|| !pType
+			|| pTechno->IsCrashing
 			)
 			return false;
+
+		const auto pType = pTechno->GetTechnoType();
 
 		if (pType->Immune)
 			return false;
@@ -661,7 +662,7 @@ FullMapDetonateResult WarheadTypeExt::ExtData::EligibleForFullMapDetonation(Tech
 	if (!EnumFunctions::IsTechnoEligibleB(pTechno, this->DetonateOnAllMapObjects_AffectTargets))
 		return FullMapDetonateResult::TargetNotEligible;
 
-	if (!CanDealDamage(pTechno, false, !this->DetonateOnAllMapObjects_RequireVerses.Get()))
+	if (!this->CanDealDamage(pTechno, false, !this->DetonateOnAllMapObjects_RequireVerses.Get()))
 		return FullMapDetonateResult::TargetNotDamageable;
 
 	auto const pType = pTechno->GetTechnoType();
@@ -766,7 +767,7 @@ void WarheadTypeExt::ExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKill
 				}
 
 				if (pExt->WebbedAnim) {
-					pExt->WebbedAnim.reset(nullptr);
+					pExt->WebbedAnim.clear();
 				}
 			}
 		}
@@ -1329,6 +1330,7 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->KillDriver_Owner)
 		.Process(this->KillDriver_ResetVeterancy)
 		.Process(this->KillDriver_Chance)
+		.Process(this->ApplyModifiersOnNegativeDamage)
 		;
 
 	PaintBallData.Serialize(Stm);

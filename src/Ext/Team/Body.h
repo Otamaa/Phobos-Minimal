@@ -50,6 +50,7 @@ public:
 		int OnlyTargetHouseEnemyMode { -1 };
 
 		ScriptClass* PreviousScript { nullptr };
+		std::vector<BuildingClass*> BridgeRepairHuts {};
 
 		ExtData(TeamClass* OwnerObject) : Extension<TeamClass>(OwnerObject)
 

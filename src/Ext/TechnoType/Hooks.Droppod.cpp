@@ -93,8 +93,9 @@ DEFINE_HOOK(0x4B641D, DroppodLocomotionClass_IPiggy_EndPiggyback, 7)
 
 DEFINE_OVERRIDE_HOOK(0x4B5EB0, DropPodLocomotionClass_ILocomotion_Process_Smoke, 6)
 {
+	GET(DropPodLocomotionClass*, pDroppod, EDI);
 	GET(FootClass*, pFoot, ESI);
-	REF_STACK(const CoordStruct, Coords, 0x34);
+	LEA_STACK(CoordStruct*, pCoords, 0x40 - 0xC);
 
 	const auto pExt = TechnoExt::ExtMap.Find(pFoot);
 
@@ -103,7 +104,7 @@ DEFINE_OVERRIDE_HOOK(0x4B5EB0, DropPodLocomotionClass_ILocomotion_Process_Smoke,
 	{
 		if (AnimTypeClass* pType = pExt->LinkedSW ? SWTypeExt::ExtMap.Find(pExt->LinkedSW->Type)->Droppod_Trailer :  RulesExt::Global()->DropPodTrailer)
 		{
-			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, Coords),
+			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pCoords , 0 ,1,(AnimFlag)0x600, 0 , false),
 				pFoot->Owner,
 				nullptr,
 				pFoot,
@@ -114,8 +115,39 @@ DEFINE_OVERRIDE_HOOK(0x4B5EB0, DropPodLocomotionClass_ILocomotion_Process_Smoke,
 
 	if (const auto pWeapon = pExt->LinkedSW ? SWTypeExt::ExtMap.Find(pExt->LinkedSW->Type)->Droppod_Weapon : RulesClass::Instance->DropPodWeapon)
 	{
-		R->ESI(pWeapon);
-		return 0x4B5F14;
+		if (!(Unsorted::CurrentFrame % 3))
+		{
+			// Please dont ask , see the binary yourself ,.. (-Otamaa)
+			CoordStruct nDest = *reinterpret_cast<CoordStruct*>(((uintptr_t)(pDroppod)) + 0x1C);
+
+			auto pCell = MapClass::Instance->GetCellAt(nDest);
+			auto pCellTechno = pCell->FindTechnoNearestTo(Point2D::Empty, false, nullptr);
+
+			if(!pCellTechno || !pFoot->Owner->IsAlliedWith(pCellTechno))
+			{
+				auto coordDest = MapClass::GetRandomCoordsNear(nDest, 85, false);
+
+				if (pWeapon->Report.Count > 0) {
+					VocClass::PlayIndexAtPos(ScenarioClass::Instance->Random.RandomFromMax(pWeapon->Report.Count - 1), pCoords , nullptr);
+				}
+
+				if(pWeapon->Warhead) {
+					MapClass::DamageArea(coordDest, 2 * pWeapon->Damage, pFoot, pWeapon->Warhead, pWeapon->Warhead->Tiberium, pFoot->Owner);
+
+					if (auto pWeaponAnimType = MapClass::SelectDamageAnimation(2 * pWeapon->Damage, pWeapon->Warhead, LandType::Clear, coordDest))
+					{
+						auto zAdjust = Game::AdjustHeight(coordDest.Z);
+
+						AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pWeaponAnimType, coordDest, 0, 1, (AnimFlag)0x2600, zAdjust, false),
+							pFoot->Owner,
+							pCellTechno ? pCellTechno->Owner : nullptr,
+							pFoot,
+							false
+						);
+					}
+				}
+			}
+		}
 	}
 
 	return 0x4B602D;
@@ -202,9 +234,9 @@ DEFINE_HOOK(0x4B619F, DropPodLocomotionClass_MoveTo_AtmosphereEntry, 0x5)
 	return 0x4B61D6;
 }
 
-DEFINE_HOOK(0x4B5F7E, DropPodLocomotionClass_ILocomotion_Process_Report, 0x6)
-{
-	// do not divide by zero
-	GET(int const, count, EBP);
-	return count ? 0 : 0x4B5FAD;
-}
+//DEFINE_HOOK(0x4B5F7E, DropPodLocomotionClass_ILocomotion_Process_Report, 0x6)
+//{
+//	// do not divide by zero
+//	GET(int const, count, EBP);
+//	return count ? 0 : 0x4B5FAD;
+//}

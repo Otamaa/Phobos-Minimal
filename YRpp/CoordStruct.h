@@ -164,7 +164,7 @@ public:
 	{ return (X != nThat.X || Y != nThat.Y || Z != nThat.Z); }
 
 	double Magnitude_() const
-	{ return Math::sqrt(MagnitudeSquared()); }
+	{ return std::sqrt(MagnitudeSquared()); }
 
 	double Magnitude() const
 	{ return Math::sqrt(MagnitudeSquared()); }
@@ -193,6 +193,9 @@ public:
 	int Length() const {
 		JMP_THIS(0x41C380);
 	}
+
+	double DistanceFrom_(const CoordStruct& nThat) const
+	{ return (*this - nThat).Magnitude_(); }
 
 	double DistanceFrom(const CoordStruct& nThat) const
 	{ return (*this - nThat).Magnitude(); }

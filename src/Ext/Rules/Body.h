@@ -262,6 +262,9 @@ public:
 		MultipleFactoryCaps MultipleFactoryCap {};
 		Nullable<int> CloakHeight {};
 
+		Valueable<bool> CanDrive { false };
+
+		AnimTypeClass* DefaultAircraftDamagedSmoke { nullptr };
 		AircraftPutDataRules MyPutData { };
 
 		ExtData(RulesClass* OwnerObject) : Extension<RulesClass>(OwnerObject)

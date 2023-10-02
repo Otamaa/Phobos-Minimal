@@ -70,8 +70,6 @@ public:
 	static constexpr inline DWORD vtable = 0x7E4EEC;
 
 	// the height of a bridge in leptons
-	static inline constexpr int BridgeLevels = 4;
-	static inline constexpr int BridgeHeight = BridgeLevels * Unsorted::LevelHeight;
 	static constexpr constant_ptr<CellClass,0xABDC50u> const Instance{};
 	static constexpr reference<CoordStruct , 0x89E9F0u , 5u> const StoppingCoords{};
 	static constexpr reference<const char* const, 0x81DA28u , 12u> const LandTypeToStrings {};
@@ -398,7 +396,7 @@ public:
 	{ return (this->Level + (((unsigned int)this->Flags >> 6) & 4) - (((unsigned int)pSource->Flags >> 6) & 4) - pSource->Level); }
 
 	int GetLevel() const
-	{ return this->Level + (this->ContainsBridge() ? BridgeLevels : 0); }
+	{ return this->Level + (this->ContainsBridge() ? Unsorted::BridgeLevels : 0); }
 
 	static CoordStruct Cell2Coord(const CellStruct &cell, int z = 0) {
 		return { (cell.X * 256) + 128  , cell.Y * 256 + 128 ,z };
@@ -415,7 +413,7 @@ public:
 	CoordStruct FixHeight(CoordStruct crd) const
 	{
 		if(this->ContainsBridge()) {
-			crd.Z += BridgeHeight;
+			crd.Z += Unsorted::BridgeHeight;
 		}
 		return crd;
 	}

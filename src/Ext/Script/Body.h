@@ -111,8 +111,8 @@ enum class PhobosScripts : unsigned int
 
 	JumpBackToPreviousScript = 134,
 
-	RepairDestroyedBridge = 10104,
-	ChronoshiftToEnemyBase = 10105, //was 10104
+	RepairDestroyedBridge = 10105,
+	ChronoshiftToEnemyBase = 10104,
 
 	// Variables
 	LocalVariableSet = 500,
@@ -319,6 +319,8 @@ public:
 
 	//
 	static void JumpBackToPreviousScript(TeamClass* pTeam);
+
+	static void RepairDestroyedBridge(TeamClass* pTeam, int mode);
 
 	static std::pair<WeaponTypeClass*, WeaponTypeClass*> GetWeapon(TechnoClass* pTechno);
 private:

@@ -23,21 +23,23 @@ DEFINE_JUMP(LJMP,0x414D36 ,0x414D4D);
 DEFINE_OVERRIDE_HOOK(0x415085, AircraftClass_Update_DamageSmoke, 7)
 {
 	GET(AircraftClass*, pThis, ESI);
+
 	auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-	if (pThis->GetHealthPercentage() < RulesClass::Instance->ConditionRed)
-	{
-		if (pThis->GetHeight() > 0)
-		{
-			if (AnimTypeClass* pType = pExt->SmokeAnim)
-			{
-				const int chance = ((pThis->Health > 0) ? pExt->SmokeChanceRed : pExt->SmokeChanceDead).Get();
+	AnimTypeClass* pType = pExt->SmokeAnim.Get(RulesExt::Global()->DefaultAircraftDamagedSmoke);
+	if(!pType)
+		return 0x41512C;
 
-				if (ScenarioClass::Instance->Random.RandomFromMax(99) < chance)
-				{
-					if (auto pAnim = GameCreate<AnimClass>(pType, pThis->Location))
-						pAnim->Owner = pThis->GetOwningHouse();
-				}
+	const int chance = (pThis->Health > 0) ? pExt->SmokeChanceRed.Get(10) : pExt->SmokeChanceDead.Get(80);
+
+	if(chance <= 0 )
+		return 0x41512C;
+
+	if (pThis->GetHealthPercentage() < RulesClass::Instance->ConditionRed) {
+		if (pThis->GetHeight() > 0) {
+			if (ScenarioClass::Instance->Random.RandomFromMax(99) < chance) {
+				if (auto pAnim = GameCreate<AnimClass>(pType, pThis->Location))
+					pAnim->Owner = pThis->GetOwningHouse();
 			}
 		}
 	}

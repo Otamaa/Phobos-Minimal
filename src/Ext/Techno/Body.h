@@ -72,7 +72,7 @@ public:
 
 		std::vector<TimedWarheadValue<WeaponTypeClass*>> RevengeWeapons {};
 
-		bool IsDriverKilled { false };
+		//bool IsDriverKilled { false };
 		int GattlingDmageDelay { -1 };
 		bool GattlingDmageSound { false };
 		bool AircraftOpentoppedInitEd { false };
@@ -148,7 +148,7 @@ public:
 		{
 			GameDelete<true, true>(MyOriginalTemporal);
 
-			WebbedAnim.reset(nullptr);
+			WebbedAnim.clear();
 		}
 
 		void InvalidatePointer(AbstractClass* ptr, bool bRemoved);

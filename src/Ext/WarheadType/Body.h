@@ -351,6 +351,7 @@ public:
 		Valueable<bool> KillDriver_ResetVeterancy { false };
 		Valueable<double> KillDriver_Chance { 100.0 };
 
+		Valueable<bool> ApplyModifiersOnNegativeDamage { false };
 		ExtData(WarheadTypeClass* OwnerObject) : Extension<WarheadTypeClass>(OwnerObject)
 		{
 			AttachedEffect.Owner = OwnerObject;

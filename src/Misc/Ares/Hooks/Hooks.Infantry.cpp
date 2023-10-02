@@ -187,7 +187,8 @@ DEFINE_OVERRIDE_HOOK(0x51E7BF, InfantryClass_GetActionOnObject_CanCapture, 6)
 		return DontCapture;
 
 	const auto pSelectedType = pSelected->Type;
-	if (!pSelectedType->VehicleThief && !TechnoTypeExt::ExtMap.Find(pSelectedType)->CanDrive)
+	if (!pSelectedType->VehicleThief
+		&& !TechnoTypeExt::ExtMap.Find(pSelectedType)->CanDrive.Get(RulesExt::Global()->CanDrive))
 		return DontCapture;
 
 	if (pTechnoTarget->GetTechnoType()->IsTrain)

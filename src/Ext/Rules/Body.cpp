@@ -121,42 +121,13 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	INI_EX iniEX(pINI);
 	auto pData = RulesExt::Global();
 
-	if (!Data->ElectricDeath)
-		Data->ElectricDeath = AnimTypeClass::Find("ELECTRO");
-
-	if (!Data->DefaultParaPlane)
-		Data->DefaultParaPlane = AircraftTypeClass::Find(GameStrings::PDPLANE());
-
-	Data->DefaultVeinParticle = ParticleTypeClass::Find(GameStrings::GASCLUDM1());
-	Data->DefaultSquidAnim = AnimTypeClass::Find(GameStrings::SQDG());
-
-	if (!Data->CarryAll_LandAnim)
-		Data->CarryAll_LandAnim = AnimTypeClass::Find(GameStrings::CARYLAND());
-
-	if (!Data->DropShip_LandAnim)
-		Data->DropShip_LandAnim = AnimTypeClass::Find(GameStrings::DROPLAND());
-
-	if (!Data->DropPodTrailer)
-		Data->DropPodTrailer = AnimTypeClass::Find(GameStrings::SMOKEY());
-
+	pData->DefaultAircraftDamagedSmoke = AnimTypeClass::Find(GameStrings::SGRYSMK1());
 	pData->FirestormActiveAnim.Read(iniEX, AUDIOVISUAL_SECTION, "FirestormActiveAnim");
 	pData->FirestormIdleAnim.Read(iniEX, AUDIOVISUAL_SECTION, "FirestormIdleAnim");
 	pData->FirestormGroundAnim.Read(iniEX, AUDIOVISUAL_SECTION, "FirestormGroundAnim");
 	pData->FirestormAirAnim.Read(iniEX, AUDIOVISUAL_SECTION, "FirestormAirAnim");
 	pData->FirestormWarhead.Read(iniEX, COMBATDAMAGE_SECTION, "FirestormWarhead");
 	pData->DamageToFirestormDamageCoefficient.Read(iniEX, GENERAL_SECTION, "DamageToFirestormDamageCoefficient");
-
-	if(!pData->FirestormActiveAnim)
-		pData->FirestormActiveAnim = AnimTypeClass::Find("GAFSDF_A");
-
-	if (!pData->FirestormIdleAnim)
-		pData->FirestormIdleAnim = AnimTypeClass::Find("FSIDLE");
-
-	if (!pData->FirestormGroundAnim)
-		pData->FirestormGroundAnim = AnimTypeClass::Find("FSGRND");
-
-	if (!pData->FirestormAirAnim)
-		pData->FirestormAirAnim = AnimTypeClass::Find("FSAIR");
 
 	pData->Bounty_Enablers.Read(iniEX, GENERAL_SECTION, "BountyEnablers");
 	pData->Bounty_Display.Read(iniEX, AUDIOVISUAL_SECTION, "BountyDisplay");
@@ -191,7 +162,7 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 }
 
 static bool NOINLINE IsVanillaDummy(const char* ID) {
-	static constexpr const char* exception[] = { "DeathDummy" };
+	static constexpr const char* exception[] = { "DeathDummy" , "WEEDGUY" , "YDUM" };
 
 	for (auto const& gameDummy : exception) {
 		if (CRT::strcmpi(ID, gameDummy) == 0)
@@ -242,7 +213,7 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			);
 		}
 
-		if (pExt->Fake_Of.Get(nullptr) && pExt->Fake_Of->WhatAmI() != what) {
+		if ( pExt->Fake_Of.Get(nullptr) && pExt->Fake_Of->WhatAmI() != what) {
 			Debug::Log("[%s - %s] has fake of but it different ClassType from it!\n", pItem->ID , myClassName);
 			pExt->Fake_Of.Reset();
 		}
@@ -468,12 +439,24 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 		}
 	}
 
+	//Load All the default value here
 	BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
 	GenericPrerequisite::LoadFromINIList_New(pINI);
-
+	this->ElectricDeath = AnimTypeClass::FindOrAllocate("ELECTRO");
+	this->DefaultParaPlane = AircraftTypeClass::FindOrAllocate(GameStrings::PDPLANE());
+	this->DefaultVeinParticle = ParticleTypeClass::FindOrAllocate(GameStrings::GASCLUDM1());
+	this->DefaultSquidAnim = AnimTypeClass::FindOrAllocate(GameStrings::SQDG());
+	this->CarryAll_LandAnim = AnimTypeClass::FindOrAllocate(GameStrings::CARYLAND());
+	this->DropShip_LandAnim = AnimTypeClass::FindOrAllocate(GameStrings::DROPLAND());
+	this->DropPodTrailer = AnimTypeClass::FindOrAllocate(GameStrings::SMOKEY());
+	this->FirestormActiveAnim = AnimTypeClass::FindOrAllocate("GAFSDF_A");
+	this->FirestormIdleAnim = AnimTypeClass::FindOrAllocate("FSIDLE");
+	this->FirestormGroundAnim = AnimTypeClass::FindOrAllocate("FSGRND");
+	this->FirestormAirAnim = AnimTypeClass::FindOrAllocate("FSAIR");
 	INI_EX exINI(pINI);
 
 #pragma region Otamaa
+	this->CanDrive.Read(exINI, GENERAL_SECTION, "EveryoneCanDrive");
 	this->TogglePowerAllowed.Read(exINI, GENERAL_SECTION, "TogglePowerAllowed");
 	this->TogglePowerDelay.Read(exINI, GENERAL_SECTION, "TogglePowerDelay");
 	this->TogglePowerIQ.Read(exINI, "IQ", "TogglePower");
@@ -937,6 +920,9 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->DamageToFirestormDamageCoefficient)
 		.Process(this->MultipleFactoryCap)
 		.Process(this->CloakHeight)
+
+		.Process(this->CanDrive)
+		.Process(this->DefaultAircraftDamagedSmoke)
 		;
 
 	MyPutData.Serialize(Stm);
@@ -1166,8 +1152,8 @@ DEFINE_HOOK(0x669193, RulesClass_Process_SpecialWeapon_RemoveWHReadingDuplicate,
 }
 
 // Ensure entry not fail because of late instantiation
-// add more if needed , it will double the error log at some point but
-// it will take care some of missing stuffs that previousely loaded late
+// add more if needed , it will double the error log at some point
+// but it will take care some of missing stuffs that previousely loaded late
 DEFINE_HOOK(0x679C92, RulesClass_ReadObject_ReReadStuffs, 7)
 {
 	GET_STACK(CCINIClass*, pINI, 0xC + 0x4);

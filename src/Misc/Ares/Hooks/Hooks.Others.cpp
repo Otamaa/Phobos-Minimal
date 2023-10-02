@@ -456,7 +456,7 @@ DEFINE_OVERRIDE_HOOK(0x74A884, VoxelAnimClass_UpdateBounce_Damage, 0x6)
 
 		if (nDist < nRadius)
 		{
-			pObj->ReceiveDamage(&pType->Damage, TacticalClass::AdjustForZ(nDist), pType->Warhead, pInvoker, false, false, pInvoker ? pInvoker->Owner : nullptr);
+			pObj->ReceiveDamage(&pType->Damage, Game::AdjustHeight(nDist), pType->Warhead, pInvoker, false, false, pInvoker ? pInvoker->Owner : nullptr);
 		}
 	}
 
@@ -1067,7 +1067,7 @@ DEFINE_OVERRIDE_HOOK(0x62C23D, ParticleClass_Update_Gas_DamageRange, 6)
 		auto nDamge = pThis->Type->Damage;
 		auto nX = abs(pThis->Location.X - pItem->Location.X);
 		auto nY = abs(pThis->Location.Y - pItem->Location.Y);
-		int nDistance = Game::AdjustForZ(nX + nY);
+		int nDistance = Game::AdjustHeight(nX + nY);
 		pItem->ReceiveDamage(&nDamge, nDistance, pThis->Type->Warhead, pAttacker, false, false, pOwner);
 	}
 
@@ -1434,7 +1434,7 @@ DEFINE_OVERRIDE_HOOK(0x4A76ED, DiskLaserClass_Update_Anim, 7)
 
 		if (pType) {
 			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, coords),
-				pThis->Owner->Owner,
+				pThis->Owner ? pThis->Owner->Owner : nullptr,
 				pThis->Target ? pThis->Target->Owner : nullptr,
 				false,
 				pThis->Owner

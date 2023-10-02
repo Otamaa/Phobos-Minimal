@@ -316,7 +316,7 @@ void AresAE::TransferAttachedEffects(TechnoClass* From, TechnoClass* To)
 
 void NOINLINE AresAE::ClearAnim()
 {
-	this->Anim.reset(nullptr);
+	this->Anim.clear();
 }
 
 void NOINLINE AresAE::ReplaceAnim(TechnoClass* pTechno, AnimClass* pNewAnim)

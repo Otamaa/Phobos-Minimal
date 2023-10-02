@@ -108,10 +108,10 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 		if (!pManager->InfiniteMindControl)
 		{
 			if (pManager->MaxControlNodes == 1 && pManager->ControlNodes.Count == 1)
-				CaptureExt::FreeUnit(pManager, pManager->ControlNodes[0]->Unit);
+				CaptureExt::FreeUnit(pManager, pManager->ControlNodes[0]->Unit , bSilent);
 			else if (pManager->ControlNodes.Count == pManager->MaxControlNodes)
 				if (bRemoveFirst)
-					CaptureExt::FreeUnit(pManager, pManager->ControlNodes[0]->Unit);
+					CaptureExt::FreeUnit(pManager, pManager->ControlNodes[0]->Unit , bSilent);
 		}
 
 		if (auto pControlNode = GameCreate<ControlNode>(pTarget, pTarget->Owner, RulesClass::Instance->MindControlAttackLineFrames))

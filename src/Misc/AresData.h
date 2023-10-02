@@ -403,7 +403,7 @@ struct AresDTORCaller
 #define Debug_bTrackParseErrors (*((bool*)(AresData::AresStaticInstanceFinal[3])))
 //#define IsAnySFWActive (*((bool*)(AresData::AresStaticInstanceFinal[4])))
 //#define EvaTypes (*((std::vector<const char*, AresMemory::AresAllocator<const char*>>*)(AresData::AresStaticInstanceFinal[5])))
-#define RegisteredJammers(techno) (*(PhobosMap<TechnoClass*, bool, AresMemory::AresAllocator<std::pair<TechnoClass*,bool>>>*)(((char*)GetAresBuildingExt(techno)) + 0x40))
+//#define RegisteredJammers(techno) (*(PhobosMap<TechnoClass*, bool, AresMemory::AresAllocator<std::pair<TechnoClass*,bool>>>*)(((char*)GetAresBuildingExt(techno)) + 0x40))
 //#define PrimsForwardingPtr(techno) (*(cPrismForwarding*)(((char*)GetAresBuildingExt(techno)) + 0x10))
 //#define GetGunnerName(var) (*(std::vector<CSFText,AresMemory::AresAllocator<CSFText>>*)(((char*)GetAresTechnoTypeExt(var)) + 0xC8))
 //#define TurretWeapons(var) (*(std::vector<int,AresMemory::AresAllocator<int>>*)(((char*)GetAresTechnoTypeExt(var)) + 0xBC))

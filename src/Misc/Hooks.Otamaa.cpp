@@ -831,7 +831,7 @@ DEFINE_HOOK(0x4DA64D, FootClass_Update_IsInPlayField, 0x6)
 	return pType->BalloonHover || pType->JumpJet ? 0x4DA655 : 0x4DA677;
 }
 
-DEFINE_HOOK(0x51D45B, InfantryClass_Scatter_Process, 0x6)
+DEFINE_HOOK(0x51D43F, InfantryClass_Scatter_Process, 0x6)
 {
 	GET(InfantryClass* const, pThis, ESI);
 
@@ -2051,21 +2051,23 @@ BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 	//==========================
 	const bool LowpOwerHouse = pThis->HasLowPower();
 
+
 	for (auto const& pBld : pThis->Buildings) {
 		if (pBld && pBld->IsAlive && !pBld->InLimbo && pBld->IsOnMap) {
-			const bool IsLimboDelivered = BuildingExt::ExtMap.Find(pBld)->LimboID != -1;
+			const auto pExt = BuildingExt::ExtMap.Find(pBld);
+			const bool IsLimboDelivered = pExt->LimboID != -1;
 
 			if (pBld->GetCurrentMission() == Mission::Selling || pBld->QueuedMission == Mission::Selling)
 				continue;
 
 			if (pBld->TemporalTargetingMe
-				|| BuildingExt::ExtMap.Find(pBld)->AboutToChronoshift
+				|| pExt->AboutToChronoshift
 				|| pBld->IsBeingWarpedOut())
 				continue;
 
 			const bool PowerDown = !pBld->IsPowerOnline(); // check power
 			const auto pTypes = pBld->GetTypes(); // building types include upgrades
-			const bool Jammered = !RegisteredJammers(pBld).empty();  // is this building jammed
+			const bool Jammered = !pExt->RegisteredJammers.empty();  // is this building jammed
 
 			for (auto begin = pTypes.begin(); begin != pTypes.end() && *begin; ++begin) {
 
@@ -2324,20 +2326,21 @@ DEFINE_HOOK(0x520E75, InfantryClass_SequenceAI_Sounds, 0x6)
 	if (doType == -1)
 		return 0x520EF4;
 
-	const auto pSeq = &pThis->Type->Sequence->Data[doType];
-
-	for (int i = 0; i < pSeq->SoundCount; ++i) {
-		for (auto at = pSeq->SoundData; at != (&pSeq->SoundData[2]); ++at) {
-			if (pThis->Animation.HasChanged && at->Index != -1) {
-				const int count = pSeq->CountFrames < 1 ? 1 : pSeq->CountFrames;
-				if (pThis->Animation.Value % count == at->StartFrame) {
-					VoxClass::PlayAtPos(at->Index, &pThis->Location);
-				}
-			}
-		}
-	}
-
-	return 0x520EF4;
+	//const auto pSeq = &pThis->Type->Sequence->Data[doType];
+	//
+	//for (int i = 0; i < pSeq->SoundCount; ++i) {
+	//	for (auto at = pSeq->SoundData; at != (&pSeq->SoundData[2]); ++at) {
+	//		if (pThis->Animation.HasChanged && at->Index != -1) {
+	//			const int count = pSeq->CountFrames < 1 ? 1 : pSeq->CountFrames;
+	//			if (pThis->Animation.Value % count == at->StartFrame) {
+	//				VoxClass::PlayAtPos(at->Index, &pThis->Location);
+	//			}
+	//		}
+	//	}
+	//}
+	//
+	//return 0x520EF4;
+	return 0x0;
 }
 
 DEFINE_HOOK(0x5194EF, InfantryClass_DrawIt_InAir_NoShadow, 5)
@@ -2866,7 +2869,6 @@ DEFINE_HOOK(0x6F91EC, TechnoClass_GreatestThreat_DeadTechnoInsideTracker, 0x6)
 	return 0x0;//contunye
 }
 
-
 /**
  *  Draw a radial to the screen.
  *
@@ -3250,7 +3252,6 @@ DEFINE_HOOK(0x442A08, BuildingClass_ReceiveDamage_ReturnFire, 0x5)
 	return !def ? SetTarget : RandomFacing;
 }
 
-
 #include <Commands/ToggleRadialIndicatorDrawMode.h>
 
 DEFINE_HOOK(0x6DBE35, TacticalClass_DrawLinesOrCircles, 0x9)
@@ -3515,7 +3516,6 @@ void Debug_Draw_Facings()
 		style);
 }
 
-
 DEFINE_HOOK(0x6D4656, TacticalClass_Render_Veinhole, 0x5)
 {
 	VeinholeMonsterClass::DrawAll();
@@ -3576,7 +3576,6 @@ DEFINE_HOOK(0x50A04B, HouseClass_Target_GenericMutator, 0x7)
 	return pThis->IsAlliedWith(pThat->Owner) ? 0x50A096 : 0x50A087;
 }
 
-
 DEFINE_HOOK(0x5094F9, HouseClass_AdjustThreats, 0x6)
 {
 	return R->EBX<HouseClass*>()->IsAlliedWith(R->ESI<HouseClass*>()) ? 0x5095B6 : 0x509532;
@@ -3597,90 +3596,208 @@ DEFINE_HOOK(0x5003BA, HouseClass_FindJuicyTarget, 0x6)
 	return R->EDI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x5003F7 : 0x5004B1;
 }
 
-struct Phobos_DoControls {
-	std::string Name;
-	DoInfoStruct Data;
-};
-
-void ReadSequence(std::vector<Phobos_DoControls>& Desig, InfantryTypeClass* pInf ,CCINIClass* pINI)
+DEFINE_HOOK(0x4DB1A0, FootClass_GetMovementSpeed_FixSpeedMultStuck, 0x6)
 {
-	INI_EX IniEX(pINI);
+	GET(FootClass*, pThis, ECX);
 
-	if (pINI->GetString(pInf->ImageFile, "Sequence", Phobos::readBuffer) > 0)
-	{
-		for (int i = 0; i < DoControls::MaxCount; ++i)
-		{
-			if (pINI->GetString(pInf->ImageFile, DoControls::DoType_toStr[i], Phobos::readBuffer))
-			{
-				auto& data = Desig.emplace_back();
-				data.Name = DoControls::DoType_toStr[i];
+	const auto pType = pThis->GetTechnoType();
+	const auto pOwner = pThis->Owner;
+	const auto houseSpeed = pOwner->GetSpeedMult(pType);
+	const auto maxSpeed = pThis->GetDefaultSpeed();
+	auto thisMult = pThis->SpeedMultiplier;
 
-				char bufferFacing[3];
-				sscanf(Phobos::readBuffer, "%d,%d,%d,%s",
-					&data.Data.StartFrame,
-					&data.Data.CountFrames,
-					&data.Data.FacingMultiplier,
-					bufferFacing
-					);
+	//prevent unit in warfactory stuck
+	if (thisMult < 0.0001 && TechnoExt::IsInWarfactory(pThis, false)) {
+		Debug::Log("Foot[%s] with negative speed mult inside warfactory ,restoring speedmult\n", pType->ID);
+		thisMult = 1.0;
+	}
 
-				if(*bufferFacing && strlen(bufferFacing)) {
-					for (size_t i = 0; i < EnumFunctions::FacingType_to_strings.size(); ++i) {
-						if (!_strcmpi(EnumFunctions::FacingType_to_strings[i], bufferFacing)) {
-							data.Data.Facing = DoTypeFacing(i);
-						}
-					}
-				}
+	double result = maxSpeed * houseSpeed * thisMult;
 
-				char bufferSounds[0x100];
-				if (pINI->GetString(pInf->ImageFile, (data.Name + "Sounds").c_str(), bufferSounds) > 0)
-				{
-					auto v7 = strtok(bufferSounds, " ,\t");
-					while (v7)
-					{
-						auto v8 = atoi(v7);
-						auto v9 = strtok(0, " ,\t");
-						if (!v9)
-						{
-							break;
-						}
+	if (pThis->HasAbility(AbilityType::Faster)) {
+		result *= RulesClass::Instance->VeteranSpeed;
+	}
 
-						data.Data.SoundCount = v8;
+	int speedResult = (int)(result * pThis->SpeedPercentage);
 
-						auto v10 = VocClass::FindIndexById(v9);
-						v7 = strtok(0, " ,\t");
-						if (v10 != -1)
-						{
-							for (auto at = data.Data.SoundData;
-								at != std::end(data.Data.SoundData);
-								++at) {
-								at->Index = v10;
-							}
-						}
-					}
-				}
-			}
+	if(pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->FlagHouseIndex != -1){
+		speedResult /= 2;
+	}
+
+	R->EAX((int)speedResult);
+	return 0x4DB23D;
+}
+
+DEFINE_HOOK(0x6EBB86, TeamClass_MoveToFocus_IsInStray, 0x6)
+{
+	GET(FootClass*, pFoot, ESI);
+	GET(TeamClass*, pThis, EBP);
+
+	if (pFoot->GetHeight() > 0 && pFoot->WhatAmI() == UnitClass::AbsID && pThis->Target) {
+		auto nCoord = pFoot->GetCoords();
+		auto nCoord_target = pThis->Target->GetCoords();
+		R->EAX((int)nCoord_target.DistanceFrom_(nCoord));
+	}
+	else
+		R->EAX(pFoot->DistanceFrom(pThis->SpawnCell));
+
+	return 0x6EBB91;
+}
+
+DEFINE_HOOK(0x6EBE69, TeamClass_MoveToFocus_SetDestination, 0xA)
+{
+	GET(FootClass*, pFoot, ESI);
+
+	auto const pType = pFoot->GetTechnoType();
+
+	return (pType->BalloonHover
+		|| (pType->WhatAmI() == UnitTypeClass::AbsID
+			&& static_cast<UnitTypeClass*>(pType)->JumpJet
+			&& static_cast<UnitTypeClass*>(pType)->IsSimpleDeployer)) ?
+		0x6EBE9C : 0x6EBE82;
+}
+
+DEFINE_HOOK(0x6EBEDB, TeamClass_MoveToFocus_BalloonHover, 0xA)
+{
+	GET(FootClass*, pFoot, ESI);
+
+	auto const pType = pFoot->GetTechnoType();
+
+	return (pType->BalloonHover
+		|| (pType->WhatAmI() == UnitTypeClass::AbsID
+			&& static_cast<UnitTypeClass*>(pType)->JumpJet
+			&& static_cast<UnitTypeClass*>(pType)->IsSimpleDeployer)) ?
+
+		0x6EBEEF : 0x6EBEFF;
+}
+
+DEFINE_HOOK(0x71F1A2, TEventClass_HasOccured_DestroyedAll, 6)
+{
+	GET(HouseClass*, pHouse, ESI);
+
+	if (pHouse->ActiveInfantryTypes.GetTotal() <= 0) {
+		for (auto& bld : pHouse->Buildings) {
+			if(bld->Type->CanBeOccupied && bld->Occupants.Count > 0)
+				return 0x71F163;
 		}
+	}
+
+	return 0x71F1B1;
+}
+
+DEFINE_HOOK(0x6DEA37 , TAction_Execute_Win, 6)
+{
+	GET(TActionClass*, pThis, ESI);
+
+	if (HouseClass::Index_IsMP(pThis->Value))
+	{
+		const auto pHouse_ = pThis->Value == 8997 ?
+			HouseClass::CurrentPlayer() : HouseClass::FindByIndex(pThis->Value);
+
+		auto pHouseBegin = HouseClass::Array->begin();
+		auto pHouseEnd = HouseClass::Array->end();
+
+		if (HouseClass::Array->begin() != pHouseEnd)
+		{
+			do
+			{
+				auto v7 = *pHouseBegin;
+				if (pHouse_->ArrayIndex == (*pHouseBegin)->ArrayIndex
+					|| pHouse_->ArrayIndex != -1 && ((1 << pHouse_->ArrayIndex) & v7->Allies.data) != 0)
+					v7->Win(false);
+
+				++pHouseBegin;
+			}
+			while (pHouseBegin != pHouseEnd);
+		}
+
+		return  0x6DEA58;
+	}
+	else
+	{
+		if (pThis->Value == HouseClass::CurrentPlayer()->Type->ArrayIndex2)
+			HouseClass::CurrentPlayer()->Win(false);
+		else
+			HouseClass::CurrentPlayer()->Lose(false);
+
+		return 0x6DEA58;
 	}
 }
 
-//DEFINE_HOOK(0x525703, INIClass_DTOR_DeleteComments, 0x9)
+DEFINE_HOOK(0x4D54DD, FootClass_Mi_Hunt_NoPath, 6)
+{
+	GET(FootClass*, pThis, ESI);
+
+	const auto pOwner = pThis->Owner;
+	if (!pOwner->IsControlledByHuman_()
+		&& !(Unsorted::CurrentFrame() % 450)
+		&& pThis->CurrentMapCoords == pThis->LastMapCoords
+		&& !pThis->GetTechnoType()->ResourceGatherer
+		)
+	{
+		pThis->SetDestination(nullptr, true);
+		pThis->SetTarget(nullptr);
+		pThis->TargetAndEstimateDamage(&pThis->Location, ThreatType::Range);
+	}
+
+	return 0x0;
+}
+
+//DEFINE_HOOK(0x4DEFF1 , FootClass_FindNearestBuildingOfType_OverFlowFix, 8)
 //{
-//	GET(INIClass*, pThis, ESI);
+//	GET(FootClass*, pFoot, EDI);
+//	GET(BuildingClass*, pDock, ESI);
+//	GET(int*, pDest, EBX);
 //
-//	if(pThis->LineComments) {
-//		do {
-//			const auto next = pThis->LineComments->Next;
-//			if (pThis->LineComments->Value)
-//				CRT::free(pThis->LineComments->Value);
+//	const int distance = pFoot ? int(pFoot->GetCoords().DistanceFrom_(pDock->GetCoords())) : 0;
 //
-//			YRMemory::Deallocate(pThis->LineComments);
-//			pThis->LineComments = next;
-//		}
-//		while (pThis->LineComments);
+//	if (*pDest == -1 || distance > *pDest || pFoot->IsTeamLeader)
+//	{
+//		R->Stack(0x14, pFoot);
+//		*pDest = distance;
 //	}
 //
-//	YRMemory::Deallocate(pThis->SectionIndex.IndexTable);
-//
-//	return 0x52570C;
-//	return 0x0;
+//	return 0x4DF014;
 //}
+
+DEFINE_HOOK(0x4CD747, FlyLocomotionClass_UpdateMoving_OutOfMap, 6)
+{
+	GET(DisplayClass*, pDisplay, ECX);
+	GET(FlyLocomotionClass*, pLoco, ESI);
+	GET_STACK(int, height, 0x58);
+	GET(CellStruct*, pCell, EAX);
+
+	if(pDisplay->CoordinatesLegal(pCell))
+		return 0x4CD751;
+
+	pDisplay->RemoveObject(pLoco->Owner);
+	pLoco->Owner->SetHeight(height);
+	pDisplay->SubmitObject(pLoco->Owner);
+
+	return 0x4CD797;
+}
+
+DEFINE_HOOK(0x4CED12 , FlyLocomotionClass_UpdateLanding_Finish, 8)
+{
+	if (R->EDI<int>() <= 104)
+		return 0;
+
+	R->ESI<FlyLocomotionClass*>()->IsTakingOff = false;
+	R->Stack(0x13, 1);
+
+	return 0x4CED2D;
+}
+
+int __fastcall UnitClass_MI_Open_(UnitClass* pThis)
+{
+	return 450;
+}
+
+DEFINE_JUMP(VTABLE , 0x7F5EC4 , GET_OFFSET(UnitClass_MI_Open_))
+
+int __fastcall InfantryClass_MI_Open_(InfantryClass* pThis)
+{
+	return 450;
+}
+
+DEFINE_JUMP(VTABLE , 0x7EB2AC , GET_OFFSET(InfantryClass_MI_Open_))

@@ -200,5 +200,6 @@ struct UninitAnim
 			pAnim->TimeToDie = true;
 			pAnim->UnInit();
 		}
+		pAnim = nullptr;
 	}
 };

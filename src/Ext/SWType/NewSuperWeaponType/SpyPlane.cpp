@@ -23,9 +23,6 @@ bool SW_SpyPlane::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 		{
 			const auto Default = HouseExt::GetSpyPlane(pThis->Owner);
 
-			if (Default && Default->Strength == 0)
-				return false; // bail
-
 			const auto& PlaneIdxes = pData->SpyPlanes_TypeIndex;
 			const auto& PlaneCounts = pData->SpyPlanes_Count;
 			const auto& PlaneMissions = pData->SpyPlanes_Mission;
@@ -39,8 +36,12 @@ bool SW_SpyPlane::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 				const int Amount = idx >= PlaneCounts.size() ? 1 : PlaneCounts[idx];
 				const Mission Mission = idx >= PlaneMissions.size() ? Mission::SpyplaneApproach : PlaneMissions[idx];
 				const Rank Rank = idx >= PlaneRank.size() ? Rank::Rookie : PlaneRank[idx];
+				const auto Plane = IsEmpty ? Default : PlaneIdxes[idx];
 
-				TechnoExt::SendPlane(IsEmpty ? Default : PlaneIdxes[idx],
+				if (!Plane || Plane->Strength == 0)
+					continue;
+
+				TechnoExt::SendPlane(Plane,
 					Amount,
 					pThis->Owner,
 					Rank,
