@@ -26,5 +26,6 @@ public:
 			.Process(FlightLevel)
 			.Process(PullUpAfterFire)
 			;
+		//Stm.RegisterChange(this);
 	}
 };

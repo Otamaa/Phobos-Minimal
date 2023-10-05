@@ -19,5 +19,7 @@ public:
 			.Process(spawnFireOnceDelay)
 			.Process(spawnFireFlag)
 			;
+
+		//Stm.RegisterChange(this);
 	}
 };

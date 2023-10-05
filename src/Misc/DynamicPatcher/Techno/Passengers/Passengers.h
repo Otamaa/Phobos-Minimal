@@ -21,5 +21,7 @@ public:
 			.Process(MobileFire)
 			.Process(SameFire)
 			;
+
+		//Stm.RegisterChange(this);
 	}
 };

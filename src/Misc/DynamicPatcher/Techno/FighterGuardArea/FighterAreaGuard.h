@@ -63,6 +63,7 @@ struct FighterAreaGuard
 			.Process(isAreaGuardReloading)
 			.Process(areaGuardTargetCheckRof)
 			.Success()
+			//&& Stm.RegisterChange(this)
 			;
 	}
 };

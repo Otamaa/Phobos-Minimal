@@ -46,5 +46,7 @@ struct CommonProperties
 			.Process(DeactiveWhenCivilian)
 			.Process(Who)
 			;
+
+		//Stm.RegisterChange(this); // announce this type
 	}
 };

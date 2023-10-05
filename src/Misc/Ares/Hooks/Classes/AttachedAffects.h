@@ -56,12 +56,13 @@ private:
 	template <typename T>
 	bool Serialize(T& Stm)
 	{
-		Stm
+		return Stm
 			.Process(Type)
 			.Process(Anim)
 			.Process(Duration)
 			.Process(Invoker)
-			.Success();
+			.Success()
+			&& Stm.RegisterChange(this) // announce this type
 			;
 	}
 
@@ -83,7 +84,30 @@ struct AresAEData
 	~AresAEData() = default;
 	AresAEData() = default;
 
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		return this->Serialize(Stm);
+	}
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{
+		return const_cast<AresAEData*>(this)->Serialize(Stm);
+	}
+
 private:
 	AresAEData(const AresAEData& other) = delete;
 	AresAEData& operator=(const AresAEData& other) = delete;
+
+	template <typename T>
+	bool Serialize(T& Stm)
+	{
+		return Stm
+			.Process(Data)
+			.Process(InitialDelay)
+			.Process(NeedToRecreateAnim)
+			.Process(Isset)
+			.Success()
+			//&& Stm.RegisterChange(this)
+			; // announce this type
+	}
 };

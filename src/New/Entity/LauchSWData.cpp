@@ -84,5 +84,6 @@ bool LauchSWData::Serialize(T& Stm)
 		.Process(LaunchSW_DisplayMoney_Offset)
 		.Process(LauchhSW_Owner)
 		.Success()
-		;
+		//&& Stm.RegisterChange(this)
+		; // announce this type
 }

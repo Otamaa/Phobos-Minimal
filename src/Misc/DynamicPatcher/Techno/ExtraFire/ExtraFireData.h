@@ -30,6 +30,8 @@ struct ExtraFireData
 				.Process(EliteSecondaryWeaponFLH)
 				.Process(WeaponXFLH)
 				.Process(EliteWeaponXFLH);
+
+			//Stm.RegisterChange(this);
 		}
 	};
 
@@ -54,6 +56,8 @@ struct ExtraFireData
 				.Process(WeaponX)
 				.Process(EliteWeaponX)
 				;
+
+			//Stm.RegisterChange(this);
 		}
 	};
 
@@ -70,6 +74,8 @@ struct ExtraFireData
 		//Debug::Log("Loading Element From ExtraFireData ! \n");
 		AttachedFLH.Serialize(Stm);
 		AttachedWeapon.Serialize(Stm);
+
+		//Stm.RegisterChange(this);
 	}
 
 };

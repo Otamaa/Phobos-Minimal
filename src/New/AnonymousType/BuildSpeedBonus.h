@@ -32,6 +32,8 @@ private:
 			.Process(SpeedBonus_Infantry)
 			.Process(SpeedBonus_Unit)
 			.Process(AffectedType)
-			.Success();
+			.Success()
+			//&& stm.RegisterChange(this)
+			; // announce this type
 	}
 };

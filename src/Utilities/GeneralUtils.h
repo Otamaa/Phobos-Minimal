@@ -391,7 +391,7 @@ public:
 
 
 	// Calculates a new coordinates based on current & target coordinates within specified distance (can be negative to switch the direction) in leptons.
-	static CoordStruct GeneralUtils::CalculateCoordsFromDistance(CoordStruct currentCoords, CoordStruct targetCoords, int distance)
+	static CoordStruct CalculateCoordsFromDistance(CoordStruct currentCoords, CoordStruct targetCoords, int distance)
 	{
 		int deltaX = currentCoords.X - targetCoords.X;
 		int deltaY = targetCoords.Y - currentCoords.Y;

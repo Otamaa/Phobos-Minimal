@@ -159,7 +159,7 @@ DEFINE_HOOK(0x6CBEF4, SuperClass_AnimStage_UseWeeds, 0x6)
 
 		if (pExt->UseWeeds_StorageTimer)
 		{
-			int progress = static_cast<int>(54.0 * pSuper->Owner->OwnedWeed.GetTotalAmount() / pExt->UseWeeds_Amount);
+			int progress = int(54.0 * pSuper->Owner->OwnedWeed.GetTotalAmount() / (double)pExt->UseWeeds_Amount);
 			if (progress > 54)
 				progress = 54;
 			R->EAX(progress);
@@ -199,7 +199,7 @@ DEFINE_HOOK(0x6CBD2C, SuperClass_AI_UseWeeds, 0x6)
 			return Charged;
 		}
 
-		if (pSuper->Owner->OwnedWeed.GetTotalAmount() >= pExt->UseWeeds_ReadinessAnimationPercentage / 100.0 * pExt->UseWeeds_Amount)
+		if (pSuper->Owner->OwnedWeed.GetTotalAmount() >= pExt->UseWeeds_ReadinessAnimationPercentage / (100.0 * pExt->UseWeeds_Amount))
 		{
 			pSuper->RechargeTimer.Start(15); // The end is nigh!
 		}
@@ -414,7 +414,7 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 				}
 				else
 				{
-					int rechargeTime = pSuper->GetRechargeTime();
+					double rechargeTime = (double)pSuper->GetRechargeTime();
 					double timeLeft = (double)pSuper->RechargeTimer.GetTimeLeft();
 
 					if ((1.0 - RulesClass::Instance->AIMinorSuperReadyPercent) < (timeLeft / rechargeTime))

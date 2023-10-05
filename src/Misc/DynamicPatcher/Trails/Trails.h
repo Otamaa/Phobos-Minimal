@@ -238,6 +238,7 @@ private:
 		.Process(OnLandTypes)
 		.Process(OnTileTypes)
 		.Success()
+			//&& Stm.RegisterChange(this)
 			;
 	}
 };

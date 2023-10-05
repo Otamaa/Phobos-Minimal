@@ -53,7 +53,9 @@ public:
 			.Process(this->PrismChargeDelay)
 			.Process(this->ModifierReserve)
 			.Process(this->DamageReserve)
-			.Success();
+			.Success()
+				&& Stm.RegisterChange(this)
+			;
 	}
 
 	bool Save(PhobosStreamWriter& Stm) const
@@ -67,6 +69,8 @@ public:
 			.Process(this->PrismChargeDelay)
 			.Process(this->ModifierReserve)
 			.Process(this->DamageReserve)
-			.Success();
+			.Success()
+				&& Stm.RegisterChange(this)
+			;
 	}
 };

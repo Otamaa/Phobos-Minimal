@@ -51,5 +51,7 @@ public:
 			.Process(OpenWhenHealthPercent)
 			.Process(CheckPathfind)
 			;
+
+		//Stm.RegisterChange(this);
 	}
 };

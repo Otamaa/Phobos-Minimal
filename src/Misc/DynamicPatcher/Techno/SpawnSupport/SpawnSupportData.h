@@ -22,6 +22,8 @@ public:
 			.Process(SpawnHitFLH)
 			.Process(EliteSpawnHitFLH)
 			;
+
+		//Stm.RegisterChange(this);
 	}
 };
 
@@ -52,5 +54,7 @@ public:
 			.Process(FireOnce)
 			.Process(Delay)
 			;
+
+		//Stm.RegisterChange(this);
 	}
 };

@@ -75,6 +75,7 @@ private:
 			.Process(this->Delay)
 			.Process(this->DelayTimer)
 			.Success()
+			//&& Stm.RegisterChange(this);
 			;
 	}
 

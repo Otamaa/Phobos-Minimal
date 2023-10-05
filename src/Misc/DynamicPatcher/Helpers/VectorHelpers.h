@@ -22,8 +22,8 @@ namespace Helpers_DP_Vec
 
 	static Quaternion FromToRotation(Vector3D<float>& fromDirection, Vector3D<float>& toDirection)
 	{
-		auto from = fromDirection.Normalize();
-		auto to = toDirection.Normalize();
+		auto from = fromDirection.pow();
+		auto to = toDirection.pow();
 		auto dot = from.Dot(to);
 		Quaternion ret {};
 
@@ -40,7 +40,7 @@ namespace Helpers_DP_Vec
 		{
 			normal = Cross({ 1.0f, 0.0f, 0.0f}, from);
 
-			if (normal.Magnitude() < 0.000001)
+			if (normal.Length() < 0.000001)
 				normal = Cross({ 0.0f, 1.0f, 0.0f}, from);
 
 			normal = Normalize(normal);

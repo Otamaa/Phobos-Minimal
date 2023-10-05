@@ -30,5 +30,7 @@ public:
 			.Process(ToDir)
 			.Process(Facing)
 			;
+
+		// Stm.RegisterChange(this);
 	}
 };

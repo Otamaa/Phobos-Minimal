@@ -43,7 +43,9 @@ bool MultipleFactoryCaps::Serialize(T& stm)
 		.Process(this->AbsInf)
 		.Process(this->AbsAircraft)
 		.Process(this->AbsBuilding)
-		.Success();
+		.Success()
+		//&& stm.RegisterChange(this)
+		; // announce this type
 }
 
 bool MultipleFactoryCaps::Load(PhobosStreamReader& stm, bool registerForChange)

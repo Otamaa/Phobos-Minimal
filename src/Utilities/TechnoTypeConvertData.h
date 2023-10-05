@@ -31,6 +31,8 @@ struct TechnoTypeConvertData
 			.Process(this->From)
 			.Process(this->To)
 			.Process(this->Eligible)
-			.Success();
+			.Success()
+			//&& stm.RegisterChange(this)
+			; // announce this type
 	}
 };

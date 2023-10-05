@@ -61,5 +61,7 @@ public:
 			.Process(Delay)
 			.Process(CanDive)
 			;
+
+		//Stm.RegisterChange(this);
 	}
 };

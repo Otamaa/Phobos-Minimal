@@ -40,6 +40,8 @@ struct FighterAreaGuardData
 			.Process(Clockwise)
 			.Process(Randomwise)
 			;
+
+		//Stm.RegisterChange(this);
 	}
 };
 #endif

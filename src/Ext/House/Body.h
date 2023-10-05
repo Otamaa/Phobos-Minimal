@@ -17,12 +17,46 @@ struct LauchData
 		++Count;
 		LastFrame = Unsorted::CurrentFrame();
 	}
+
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{ return Serialize(Stm); }
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<LauchData*>(this)->Serialize(Stm); }
+
+	template <typename T>
+	bool Serialize(T& Stm)
+	{
+		return Stm
+			.Process(LastFrame)
+			.Process(Count)
+			.Success()
+			//&& Stm.RegisterChange(this)
+			; // announce this type
+	}
 };
 
 struct TunnelData
 {
 	std::vector<FootClass*> Vector {};
 	int MaxCap { 1 };
+
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{ return Serialize(Stm); }
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<TunnelData*>(this)->Serialize(Stm); }
+
+	template <typename T>
+	bool Serialize(T& Stm)
+	{
+		return Stm
+			.Process(Vector)
+			.Process(MaxCap)
+			.Success()
+			//&& Stm.RegisterChange(this)
+			; // announce this type
+	}
 };
 
 //TODO : validate check

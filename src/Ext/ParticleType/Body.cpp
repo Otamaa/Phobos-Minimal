@@ -125,7 +125,7 @@ DEFINE_HOOK(0x645A42, ParticleTypeClass_SDDTOR, 0xA)
 }
 
 DEFINE_HOOK_AGAIN(0x6457A0, ParticleTypeClass_SaveLoad_Prefix, 0x5)
-DEFINE_HOOK(0x645660, ParticleTypeClass_SaveLoad_Prefix, 0x5)
+DEFINE_HOOK(0x645660, ParticleTypeClass_SaveLoad_Prefix, 0x7)
 {
 	GET_STACK(ParticleTypeClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
@@ -141,7 +141,7 @@ DEFINE_HOOK(0x64578C, ParticleTypeClass_Load_Suffix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x64580A, ParticleTypeClass_Save_Suffix, 0x5)
+DEFINE_HOOK(0x64580A, ParticleTypeClass_Save_Suffix, 0x7)
 {
 	ParticleTypeExt::ExtMap.SaveStatic();
 	return 0;

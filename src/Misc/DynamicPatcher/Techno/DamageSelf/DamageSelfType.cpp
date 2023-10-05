@@ -6,43 +6,21 @@
 
 void DamageSelfType::Read(INI_EX& parser, const char* pSection)
 {
-	Valueable<bool> Enabled { false };
-	Enabled.Read(parser, pSection, "SelfDamaging");
-	Enable = Enabled.Get();
+	detail::read(Enable , parser , pSection, "SelfDamaging");
 
-	if (Enable)
-	{
-		Valueable<bool> DeactiveWhenCivilian_ { true };
-		DeactiveWhenCivilian_.Read(parser, pSection, "SelfDamaging.DeactiveWhenCivilian");
-		DeactiveWhenCivilian = DeactiveWhenCivilian_.Get();
+	if (Enable) {
 
-		Valueable<WarheadTypeClass*> nWHDumMy { RulesClass::Instance->C4Warhead };
-		nWHDumMy.Read(parser, pSection, "SelfDamaging.Warhead");
-		Warhead = nWHDumMy.Get();
+		detail::read(DeactiveWhenCivilian, parser, pSection, "SelfDamaging.DeactiveWhenCivilian");
+		detail::read(Warhead, parser, pSection, "SelfDamaging.Warhead");
+		if (!Warhead)
+			Warhead = RulesClass::Instance->C4Warhead;
 
-		Valueable<int> nIntDummy { Damage };
-		nIntDummy.Read(parser, pSection, "SelfDamaging.Damage");
-		Damage = nIntDummy.Get();
-
-		nIntDummy = ROF;
-		nIntDummy.Read(parser, pSection, "SelfDamaging.ROF");
-		ROF = nIntDummy.Get();
-
-		Valueable<bool> nBoolDummy { PlayWarheadAnim };
-		nBoolDummy.Read(parser, pSection, "SelfDamaging.WarheadAnim");
-		PlayWarheadAnim = nIntDummy.Get();
-
-		nBoolDummy = IgnoreArmor;
-		nBoolDummy.Read(parser, pSection, "SelfDamaging.IgnoreArmor");
-		IgnoreArmor = nIntDummy.Get();
-
-		nBoolDummy = Decloak;
-		nBoolDummy.Read(parser, pSection, "SelfDamaging.Decloak");
-		Decloak = nIntDummy.Get();
-
-		Valueable<KillMethod> nKillType { Type };
-		nKillType.Read(parser, pSection, "SelfDamaging.KillType");
-		Type = nKillType.Get();
+		detail::read(Damage, parser, pSection, "SelfDamaging.Damage");
+		detail::read(ROF, parser, pSection, "SelfDamaging.ROF");
+		detail::read(PlayWarheadAnim, parser, pSection, "SelfDamaging.WarheadAnim");
+		detail::read(IgnoreArmor, parser, pSection, "SelfDamaging.IgnoreArmor");
+		detail::read(Decloak, parser, pSection, "SelfDamaging.Decloak");
+		detail::read(Type, parser, pSection, "SelfDamaging.KillType");
 	}
 }
 

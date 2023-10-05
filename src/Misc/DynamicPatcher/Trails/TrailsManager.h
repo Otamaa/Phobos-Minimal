@@ -6,11 +6,11 @@
 class ObjectClass;
 struct TrailData
 {
-	int CurrentType { 0 };
-	std::vector<LandType> OnLand {  };
-	std::vector<TileType> OnTileTypes {  };
-	CoordStruct FLHs { 0,0,0 };
-	bool Onturrents { false };
+	int CurrentType;
+	std::vector<LandType> OnLand;
+	std::vector<TileType> OnTileTypes;
+	CoordStruct FLHs;
+	bool Onturrents;
 
 	TrailData() noexcept = default;
 
@@ -36,7 +36,7 @@ struct TrailData
 			.Process(OnTileTypes)
 			.Process(FLHs)
 			.Process(Onturrents)
-			.Success()
+			.Success() //&& Stm.RegisterChange(this)
 			;
 	}
 
@@ -49,7 +49,7 @@ struct TrailData
 			.Process(OnTileTypes)
 			.Process(FLHs)
 			.Process(Onturrents)
-			.Success()
+			.Success() //&& Stm.RegisterChange(this)
 			;
 	}
 
@@ -86,12 +86,10 @@ struct TrailsReader
 
 	void Read(INI_EX& nParser, const char* pSection, bool IsForTechno)
 	{
-		char tempBuffer[0x50];
-
 		if (TrailType::Array.empty())
 			return;
 
-		size_t nTotal = 0;
+		char tempBuffer[0x50] {};
 		for (size_t i = 0; ; ++i)
 		{
 			NullableIdx <TrailType> trail;
@@ -101,36 +99,23 @@ struct TrailsReader
 			if (!trail.isset() || trail == -1)
 				break;
 
-			Valueable<CoordStruct> flh;
-			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.FLH", i);
-			flh.Read(nParser, pSection, tempBuffer);
+			CurrentData.emplace_back();
+			auto& Back = CurrentData.back();
 
-			Nullable<bool> isOnTurret {};
+			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.FLH", i);
+			detail::read(Back.FLHs, nParser, pSection, tempBuffer);
+
 			if (IsForTechno) {
 				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.IsOnTurret", i);
-				isOnTurret.Read(nParser, pSection, tempBuffer);
+				detail::read(Back.Onturrents, nParser, pSection, tempBuffer);
 			}
 
-			ValueableVector<LandType> land;
 			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.OnLands", i);
-			land.Read(nParser, pSection, tempBuffer);
+			detail::parse_values(Back.OnLand, nParser, pSection, tempBuffer);
 
-			ValueableVector<TileType> nTiles;
 			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.OnTiles", i);
-			nTiles.Read(nParser, pSection, tempBuffer);
-
-			CurrentData.emplace_back(trail.Get(),flh.Get(),isOnTurret.Get(false));
-			auto &Back = CurrentData.back();
-			Back.OnLand.assign(land.begin(), land.end());
-			Back.OnTileTypes.assign(nTiles.begin(), nTiles.end());
-
-			++nTotal;
+			detail::parse_values(Back.OnTileTypes, nParser, pSection, tempBuffer);
 		}
-
-		if (nTotal > 0)
-			CurrentData.resize(nTotal);
-		else
-			CurrentData.clear();
 	}
 
 	template <typename T>
@@ -139,6 +124,8 @@ struct TrailsReader
 		Stm
 			.Process(CurrentData)
 			;
+
+		//Stm.RegisterChange(this);
 	}
 
 };

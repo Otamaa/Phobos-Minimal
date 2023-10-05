@@ -77,5 +77,7 @@ bool Anchor::Serialize(T& stm)
 	return stm
 		.Process(this->Horizontal)
 		.Process(this->Vertical)
-		.Success();
+		.Success()
+		//&& stm.RegisterChange(this)
+		; // announce this type
 }

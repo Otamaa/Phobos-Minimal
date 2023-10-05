@@ -76,6 +76,7 @@ public:
 					.Process(Empty)
 					.Process(Colors)
 					.Success()
+					//&& Stm.RegisterChange(this)
 					;
 			}
 		};
@@ -122,6 +123,7 @@ public:
 					.Process(byte30)
 					.Process(byte31)
 					.Success()
+					//&& Stm.RegisterChange(this)
 					;
 			}
 		};

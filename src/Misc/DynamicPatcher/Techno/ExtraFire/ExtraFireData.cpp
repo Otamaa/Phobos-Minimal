@@ -8,7 +8,7 @@ void ExtraFireData::ReadRules(INI_EX& parserRules, const char* pSection_rules)
 	detail::ReadVectorsAlloc(AttachedWeapon.ElitePrimaryWeapons, parserRules, pSection_rules, "ExtraFire.ElitePrimary");
 	detail::ReadVectorsAlloc(AttachedWeapon.EliteSecondaryWeapons, parserRules, pSection_rules, "ExtraFire.EliteSecondary");
 
-	char nBuff[0x200];
+	char nBuff[0x200] {};
 	int nSize = 0;
 	AttachedWeapon.WeaponX.clear();
 	AttachedWeapon.EliteWeaponX.clear();
@@ -21,9 +21,8 @@ void ExtraFireData::ReadRules(INI_EX& parserRules, const char* pSection_rules)
 			break;
 
 		++nSize;
-		std::vector<WeaponTypeClass*> Extra_WPN;
-		detail::parse_Alloc_values<WeaponTypeClass*>(Extra_WPN, parserRules, pSection_rules, nBuff, true);
-		AttachedWeapon.WeaponX.push_back(Extra_WPN);
+		AttachedWeapon.WeaponX.emplace_back();
+		detail::parse_Alloc_values<WeaponTypeClass*>(AttachedWeapon.WeaponX.back(), parserRules, pSection_rules, nBuff, true);
 	}
 
 	if (!AttachedWeapon.WeaponX.empty())
@@ -39,9 +38,7 @@ void ExtraFireData::ReadRules(INI_EX& parserRules, const char* pSection_rules)
 				continue;
 			}
 
-			std::vector<WeaponTypeClass*> Extra_WPNE;
-			detail::parse_Alloc_values<WeaponTypeClass*>(Extra_WPNE, parserRules, pSection_rules, nBuff, true);
-			AttachedWeapon.EliteWeaponX[b] = Extra_WPNE;
+			detail::parse_Alloc_values<WeaponTypeClass*>(AttachedWeapon.EliteWeaponX[b], parserRules, pSection_rules, nBuff, true);
 		}
 	}
 

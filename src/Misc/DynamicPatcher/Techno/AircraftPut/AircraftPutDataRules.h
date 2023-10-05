@@ -20,5 +20,7 @@ public :
 			.Process(RemoveIfNoDocks)
 			.Process(ForceOffset)
 			;
+
+		//Stm.RegisterChange(this);
 	}
 };

@@ -60,7 +60,6 @@ public:
 
 		void CreateAttachedSystem();
 
-
 	private:
 		template <typename T>
 		void Serialize(T& Stm);

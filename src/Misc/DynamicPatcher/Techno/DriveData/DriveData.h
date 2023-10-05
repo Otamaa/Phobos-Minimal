@@ -19,6 +19,7 @@ public:
 			.Process(nState)
 			.Process(LastMission)
 			.Success()
+			//&& Stm.RegisterChange(this)
 			;
 	}
 
@@ -28,6 +29,7 @@ public:
 			.Process(nState)
 			.Process(LastMission)
 			.Success()
+			//&& Stm.RegisterChange(this)
 			;
 	}
 
@@ -38,6 +40,7 @@ public:
 			.Process(nState)
 			.Process(LastMission)
 			.Success()
+			//&& Stm.RegisterChange(this)
 			;
 	}
 };

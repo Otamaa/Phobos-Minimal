@@ -17,6 +17,24 @@ struct SWStatus
 	void __forceinline reset() {
 		std::memset(this, 0, sizeof(SWStatus));
 	}
+
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{ return Serialize(Stm); }
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<SWStatus*>(this)->Serialize(Stm); }
+
+	template <typename T>
+	bool Serialize(T& Stm)
+	{
+		return Stm
+			.Process(Available)
+			.Process(PowerSourced)
+			.Process(Charging)
+			.Success()
+			//&& Stm.RegisterChange(this)
+			; // announce this type
+	}
 };
 
 class SuperExt

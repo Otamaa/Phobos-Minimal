@@ -707,19 +707,38 @@ void NOINLINE ParticleSystemExt::ExtData::UpdateInAir()
 
 //#pragma optimize("", on )
 
-#ifndef TEST
+#ifndef PARTICLESTUFFSOVERRIDE
 
-DEFINE_HOOK(0x62EE3F, ParticleClass_SmokeAI_ZeroRadius, 0x6)
-{
-	GET(ParticleTypeClass*, pType, EDX);
-	const auto radius = pType->Radius >> 3;
+//;\Ext\ParticleSystem\Body.cpp
+DEFINE_DISABLE_HOOK(0x62DF05, ParticleSystemClass_CTOR_ares)
+DEFINE_DISABLE_HOOK(0x62E26B, ParticleSystemClass_DTOR_ares)
+DEFINE_DISABLE_HOOK(0x630090, ParticleSystemClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x62FF20, ParticleSystemClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x630088, ParticleSystemClass_Load_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x6300F3, ParticleSystemClass_Save_Suffix_ares)
 
-	if (radius == 0)
-		Debug::FatalError("[%s] Particle with 0 raius , please fix !\n", pType->ID);
+//;\Ext\ParticleType\Body.cpp
+DEFINE_DISABLE_HOOK(0x644DBB, ParticleTypeClass_CTOR_ares)
+DEFINE_DISABLE_HOOK(0x645A3B, ParticleTypeClass_SDDTOR_ares)
+DEFINE_DISABLE_HOOK(0x6457A0, ParticleTypeClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x645660, ParticleTypeClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x64578C, ParticleTypeClass_Load_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x64580A, ParticleTypeClass_Save_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x645405, ParticleTypeClass_LoadFromINI_ares)
 
-	R->EAX(radius);
-	return 0x62EE48;
-}
+//;\Ext\ParticleType\Hooks.cpp
+
+//DEFINE_HOOK(0x62EE3F, ParticleClass_SmokeAI_ZeroRadius, 0x6)
+//{
+//	GET(ParticleTypeClass*, pType, EDX);
+//	const auto radius = pType->Radius >> 3;
+//
+//	if (radius == 0)
+//		Debug::FatalError("[%s] Particle with 0 raius , please fix !\n", pType->ID);
+//
+//	R->EAX(radius);
+//	return 0x62EE48;
+//}
 
 DEFINE_OVERRIDE_HOOK(0x6D9427, TacticalClass_DrawUnits_ParticleSystems, 9)
 {

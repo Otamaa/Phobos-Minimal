@@ -14,26 +14,13 @@ void PaintballType::Read(INI_EX& parser, const char* pSection)
 
 	Color = nBuffColor.Get();
 
-	Valueable<float> nBuffFloat { BrightMultiplier };
-	nBuffFloat = std::clamp(nBuffFloat.Get(), 0.0f, 2.0f);
-	nBuffFloat.Read(parser, pSection, "PaintBall.BrightMult");
-	BrightMultiplier = nBuffFloat.Get();
+	detail::read(BrightMultiplier, parser, pSection, "PaintBall.BrightMult", false);
+	BrightMultiplier = std::clamp(BrightMultiplier, 0.0f, 2.0f);
 
-	Valueable<bool> nBuffBool { Accumulate };
-	nBuffBool.Read(parser, pSection, "PaintBall.Accumulate");
-	Accumulate = nBuffBool.Get();
-
-	nBuffBool = IgnoreFog;
-	nBuffBool.Read(parser, pSection, "PaintBall.IgnoreFog");
-	IgnoreFog = nBuffBool.Get();
-
-	nBuffBool = IgnoreShroud;
-	nBuffBool.Read(parser, pSection, "PaintBall.IgnoreShroud");
-	IgnoreShroud = nBuffBool.Get();
-
-	nBuffBool = Override;
-	nBuffBool.Read(parser, pSection, "PaintBall.OverrideSameAffect");
-	Override = nBuffBool.Get();
+	detail::read(Accumulate, parser, pSection, "PaintBall.Accumulate" , false);
+	detail::read(IgnoreFog, parser, pSection, "PaintBall.IgnoreFog", false);
+	detail::read(IgnoreShroud, parser, pSection, "PaintBall.IgnoreShroud", false);
+	detail::read(Override, parser, pSection, "PaintBall.OverrideSameAffect", false);
 }
 
 void PaintBall::Enable(int duration, WarheadTypeClass* pAffector, const PaintballType& data)

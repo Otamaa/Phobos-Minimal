@@ -63,6 +63,7 @@ private:
 			.Process(Delta)
 			.Process(DeltaZ)
 			.Success()
+			//&& Stm.RegisterChange(this)
 			;
 	}
 

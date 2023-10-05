@@ -76,7 +76,8 @@ public:
 			.Process(IgnoreArmor)
 			.Process(Decloak)
 			.Process(Type)
-			.Success()
+			.Success() 
+			//&& Stm.RegisterChange(this)
 			;
 	}
 };
@@ -161,6 +162,7 @@ public:
 			.Process(Data)
 			.Process(DelayTimer)
 			.Success()
+			//&& Stm.RegisterChange(this)
 			;
 	}
 };

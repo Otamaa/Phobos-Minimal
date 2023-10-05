@@ -95,7 +95,7 @@ void RadSiteExt::ExtData::Add(int amount)
 {
 	const auto pThis = this->Get();
 	pThis->Deactivate();
-	const auto nInput = ((pThis->RadLevel * pThis->RadTimeLeft) / pThis->RadDuration) + amount;
+	const auto nInput = int(double(pThis->RadLevel * pThis->RadTimeLeft) / (double)pThis->RadDuration) + amount;
 	pThis->RadLevel = nInput;
 	const auto nInput_2 = nInput * this->Type->GetDurationMultiple();
 	pThis->RadDuration = nInput_2;
@@ -125,6 +125,9 @@ const double RadSiteExt::ExtData::GetRadLevelAt(CellStruct const& cell)
 
 	const auto nMax = static_cast<double>(pThis->Spread);
 	const auto nDistance = cell.DistanceFrom(pThis->BaseCell);
+
+	if (!nMax && !nDistance)
+		return currentLevel;
 
 	return (nDistance > nMax)
 		? 0.0 : (nMax - nDistance) / nMax * currentLevel;

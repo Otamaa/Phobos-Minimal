@@ -249,7 +249,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.VXLArtData.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Wave.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Weapons.cpp" />
-    <ClCompile Include="src\Misc\Ares\Placeholder\Hooks.Particle.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Particle.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\Hooks.PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\ExtHooks\TechnoExt.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\FighterGuardArea\FighterAreaGuard.cpp" />
@@ -483,7 +483,6 @@
     <ClInclude Include="src\Misc\DynamicPatcher\Helpers\Helpers.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Helpers\PhysicsHelper.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Helpers\RadialFire.h" />
-    <ClInclude Include="src\Misc\DynamicPatcher\Helpers\VectorHelpers.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Others\DamageText.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Others\TextHandler.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Others\TextManager.h" />
@@ -619,8 +618,6 @@
     <ClInclude Include="src\Utilities\VectorHelper.h" />
     <ClInclude Include="src\Utilities\VersesData.h" />
     <ClInclude Include="YRpp\GameTextManager.h" />
-    <ClInclude Include="YRpp\SWRange.h" />
-    <ClInclude Include="YRpp\VelocityClass.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\version.rc" />

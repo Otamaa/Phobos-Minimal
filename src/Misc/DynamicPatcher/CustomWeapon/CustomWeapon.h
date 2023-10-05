@@ -41,7 +41,7 @@ struct CustomWeaponManager
 		return Stm
 			.Process(simulateBurstQueue)
 			.Success()
-			&& Stm.RegisterChange(this);
+			//&& Stm.RegisterChange(this)
 			;
 	}
 };
@@ -64,7 +64,7 @@ struct FireWeaponManager
 	//FireWeaponManager() = default;
 	//~FireWeaponManager() = default;
 
-	void Init() { 
+	void Init() {
 		// DelayFires.reserve(100);
 		// CWeaponManager.reserve(100);
 	}
@@ -91,6 +91,9 @@ struct FireWeaponManager
 		return Stm
 			.Process(DelayFires)
 			.Process(CWeaponManager)
+			.Success()
+			//&& Stm.RegisterChange(this)
 			;
+		;
 	}
 };

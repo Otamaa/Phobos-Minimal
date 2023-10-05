@@ -1603,3 +1603,34 @@ DEFINE_OVERRIDE_HOOK(0x52BB64, Expand_MIX_Deorg, 5)
 	R->AL(1);
 	return 0x52BB69;
 }
+
+//[01:25:38] SyringeDebugger::HandleException: Ares.dll [0x5d6d9a , MPGameModeClass_CreateStartingUnits_UnitCost , 6]
+//[01:25 : 38] SyringeDebugger::HandleException: Ares.dll[0x5d7163, MPGameMode_SpawnStartingUnits_Types, 8]
+
+void FormulateCost(std::vector<TechnoTypeClass*>& types, TechnoTypeClass** items, int count, int houseidx)
+{
+	const auto end = items + count;
+	for (auto find = items; find != end; ++find)
+	{
+		if ((*find)->AllowedToStartInMultiplayer)
+		{
+			if ((*find)->InOwners(houseidx) && ((*find))->TechLevel <= Game::TechLevel())
+			{
+				types.push_back(*find);
+			}
+		}
+	}
+}
+
+
+void GetCost()
+{
+	std::vector<TechnoTypeClass*> types;
+
+	FormulateCost(types, (TechnoTypeClass**)UnitTypeClass::Array->Items, UnitTypeClass::Array->Count, 0);
+	FormulateCost(types, (TechnoTypeClass**)InfantryTypeClass::Array->Items, InfantryTypeClass::Array->Count, 0);
+
+	for (auto& base : RulesClass::Instance->BaseUnit) {
+
+	}
+}

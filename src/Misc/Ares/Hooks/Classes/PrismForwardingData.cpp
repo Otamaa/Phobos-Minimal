@@ -136,7 +136,8 @@ bool PrismForwardingData::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 		.Process(this->BreakSupport)
 		.Process(this->SupportWeaponIndex)
 		.Process(this->EliteSupportWeaponIndex)
-		.Success();
+		.Success() //&& Stm.RegisterChange(this)
+		;
 }
 
 bool PrismForwardingData::Save(PhobosStreamWriter& Stm) const
@@ -156,5 +157,6 @@ bool PrismForwardingData::Save(PhobosStreamWriter& Stm) const
 		.Process(this->BreakSupport)
 		.Process(this->SupportWeaponIndex)
 		.Process(this->EliteSupportWeaponIndex)
-		.Success();
+		.Success() //&& Stm.RegisterChange(this)
+		;
 }

@@ -26,6 +26,8 @@ public:
 			.Process(Facing)
 			.Process(Forward)
 			;
+
+		//Stm.RegisterChange(this);
 	}
 
 };

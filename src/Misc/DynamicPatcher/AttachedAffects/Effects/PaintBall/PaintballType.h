@@ -27,6 +27,7 @@ struct PaintballType
 			;
 
 		CommonData.Serialize(Stm);
+		//Stm.RegisterChange(this); // announce this type
 	}
 
 };

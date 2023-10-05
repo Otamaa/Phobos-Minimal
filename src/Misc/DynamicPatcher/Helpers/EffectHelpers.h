@@ -67,7 +67,8 @@ public:
 			.Process(IsSupported)
 			.Process(Fade)
 			.Success()
-			;
+			//&& Stm.RegisterChange(this)
+		;
 	}
 };
 
@@ -115,7 +116,8 @@ public:
 			.Process(Period)
 			.Process(Amplitude)
 			.Success()
-			;
+			//&& Stm.RegisterChange(this)
+		;
 	}
 };
 
@@ -167,7 +169,8 @@ public:
 			.Process(Color2_disable)
 			.Process(Color3_disable)
 			.Success()
-			;
+		//	&& Stm.RegisterChange(this)
+		;
 	}
 };
 

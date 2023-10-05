@@ -1149,6 +1149,34 @@ namespace Savegame
 		}
 	};
 
+	template <typename T , size_t size>
+	struct Savegame::PhobosStreamObject<std::array<T, size>>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, std::array<T, size>& Value, bool RegisterForChange) const
+		{
+			std::memset(Value.data(), 0, sizeof(T) * size);
+
+			for (auto ix = 0u; ix < size; ++ix) {
+				if (!Savegame::ReadPhobosStream(Stm, Value[ix], RegisterForChange)) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const std::array<T, size>& Value) const
+		{
+			for (const auto& item : Value) {
+				if (!Savegame::WritePhobosStream(Stm, item)) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+	};
+
 	template <typename TKey, typename TValue>
 	struct Savegame::PhobosStreamObject<std::unordered_map<TKey, TValue>>
 	{
