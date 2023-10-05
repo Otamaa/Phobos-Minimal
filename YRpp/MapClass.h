@@ -19,8 +19,15 @@ struct GroundType
 	char Build; // Can build on this terrain?
 public:
 
-	static constexpr reference<GroundType, 0x89EA40u, 12u> Array {};
+	static constexpr reference<GroundType, 0x89EA40u, 12u> const Array {};
 
+	static __forceinline GroundType* Get(LandType land) {
+		return &Array[(int)land];
+	}
+
+	static __forceinline float GetCost(LandType land, SpeedType speed) {
+		return Get(land)->Cost[(int)speed];
+	}
 };
 static_assert(sizeof(GroundType) == 0x24, "Invalid Size !");
 
@@ -143,7 +150,7 @@ struct TrajectoryHelper
 class LayerClass : public DynamicVectorClass<ObjectClass*>
 {
 public:
-	virtual bool AddObject(ObjectClass* pObject, bool sorted) 
+	virtual bool AddObject(ObjectClass* pObject, bool sorted)
 		{ JMP_THIS(0x5519B0); }
 
 	virtual void RemoveAll()
@@ -182,12 +189,15 @@ public:
 };
 static_assert(sizeof(LogicClass) == 0x18, "Invalid Size !");
 
+#include <Dimensions.h>
+
 class NOVTABLE MapClass : public GScreenClass
 {
 public:
 	//Static
-	static constexpr reference<short, 0x87F914u> const MapCellWidth{};
-	static constexpr reference<short, 0x87F918u> const MapCellHeight{};
+	//static constexpr reference<int, 0x87F914u> const MapCellWidth{};
+	//static constexpr reference<int, 0x87F918u> const MapCellHeight{};
+	static constexpr reference<Dimensions , 0x87F914u> const MapCellDimension {};
 
 	static constexpr constant_ptr<MapClass, 0x87F7E8u> const Instance{};
 	static constexpr reference<CellClass, 0xABDC50u> const InvalidCell{};
@@ -240,7 +250,7 @@ public:
 	{ JMP_THIS(0x5657A0); }
 
 	//Non-virtuals
-	
+
 	// Get cellclasspointe with cellstruct Pointer but it will return nullptr if invalid !
 	CellClass* TryGetCellAt(const CellStruct& MapCoords) const {
 		int idx = GetCellIndex(MapCoords);
@@ -363,7 +373,7 @@ public:
 	static AnimTypeClass * __fastcall SelectDamageAnimation
 		(int Damage, WarheadTypeClass *WH, LandType LandType, const CoordStruct& coords)
 			{ JMP_STD(0x48A4F0); }
-	
+
 	static AnimTypeClass* __fastcall SelectDamageAnimation
 	(int Damage, WarheadTypeClass* WH, LandType LandType, CoordStruct* pCoords)
 		{ JMP_STD(0x48A4F0); }
@@ -456,7 +466,7 @@ public:
 	bool CoordinatesLegal(CellStruct* pCell) const
 		{ JMP_THIS(0x568300); }
 
-	CellClass* MapClass_findnearbyshroud_580BC0(int arg0) const 
+	CellClass* MapClass_findnearbyshroud_580BC0(int arg0) const
 		{ JMP_THIS(0x580BC0); }
 
 // ====================================

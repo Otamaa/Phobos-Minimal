@@ -1519,11 +1519,7 @@ DEFINE_HOOK(0x629BB2, ParasiteClass_UpdateSquiddy_Culling, 0x8)
 DEFINE_HOOK(0x51A2EF, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
 {
 	GET(BuildingClass* const, pBuilding, EDI);
-
-	const auto nSound = BuildingTypeExt::ExtMap.Find(pBuilding->Type)
-		->EnterBioReactorSound.Get(RulesClass::Instance->EnterBioReactorSound);
-
-	VocClass::PlayIndexAtPos(nSound, pBuilding->GetCoords(), 0);
+	VocClass::PlayIndexAtPos(pBuilding->Type->EnterBioReactorSound, pBuilding->GetCoords(), 0);
 
 	return 0x51A30F;
 }
@@ -1531,12 +1527,7 @@ DEFINE_HOOK(0x51A2EF, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
 DEFINE_HOOK(0x44DBBC, InfantryClass_PCP_Leave_Bio_Reactor_Sound, 0x7)
 {
 	GET(BuildingClass* const, pThis, EBP);
-
-	const auto nSound = BuildingTypeExt::ExtMap.Find(pThis->Type)
-		->LeaveBioReactorSound.Get(RulesClass::Instance->LeaveBioReactorSound);
-
-	VocClass::PlayIndexAtPos(nSound, pThis->GetCoords(), 0);
-
+	VocClass::PlayIndexAtPos(pThis->Type->LeaveBioReactorSound, pThis->GetCoords(), 0);
 	return 0x44DBDA;
 }
 
@@ -2532,9 +2523,9 @@ DEFINE_HOOK(0x489671, MapClass_DamageArea_Veinhole, 0x6)
 
 		if (VeinholeMonsterClass* pMonster = VeinholeMonsterClass::GetVeinholeMonsterFrom(&pCell->MapCoords))
 		{
-			if (!pMonster->InLimbo && pMonster->IsAlive && (pMonster->MonsterCell.DistanceFromI(pCell->MapCoords) <= 0))
+			if (!pMonster->InLimbo && pMonster->IsAlive && ((int)pMonster->MonsterCell.DistanceFrom(pCell->MapCoords) <= 0))
 				if (pMonster->ReceiveDamage(&nDamage,
-					pCenter->DistanceFromI(CellClass::Cell2Coord(pMonster->MonsterCell)),
+					(int)pCenter->DistanceFrom(CellClass::Cell2Coord(pMonster->MonsterCell)),
 					pWarhead,
 					pSource,
 					false,
@@ -3035,61 +3026,65 @@ static void Tactical_Draw_Radial(
 	}
 }
 
-void __fastcall DrawRadialIndicator(ObjectClass* pObj ,DWORD , int somth)
+class ObjectClassExt : public ObjectClass
 {
-	if(const auto pTechno = generic_cast<TechnoClass*>(pObj))
+public:
+	static void __fastcall _DrawFootRadialIndicator(ObjectClass* pThis , DWORD ,int val)
 	{
-		const auto pType = pTechno->GetTechnoType();
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-
-		if (pType->HasRadialIndicator && pTypeExt->AlwayDrawRadialIndicator.Get(!pTechno->Deactivated))
+		if (auto pTechno = generic_cast<TechnoClass*>(pThis))
 		{
-			const auto pOwner = pTechno->Owner;
-			ColorStruct defColor = pType->RadialColor;
-			bool Draw = true;
+			auto pType = pTechno->GetTechnoType();
+			auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
-			if (pOwner) {
-
-				if(!pOwner->ControlledByPlayer_()){
-					 Draw = false;
-				}
-
-				defColor = pOwner->Color;
-			}
-
-			if (HouseClass::CurrentPlayer()->IsObserver() || Draw)
+			if (pType->HasRadialIndicator && pTypeExt->AlwayDrawRadialIndicator.Get(!pTechno->Deactivated))
 			{
-				int nRadius = 0;
-
-				if (pTypeExt->RadialIndicatorRadius.isset())
-					nRadius = pTypeExt->RadialIndicatorRadius.Get();
-				else if (pType->GapGenerator)
-					nRadius = pTypeExt->GapRadiusInCells.Get();
-				else
+				if (HouseClass::IsCurrentPlayerObserver() || (pTechno->Owner && pTechno->Owner->ControlledByPlayer_()))
 				{
-					const auto pWeapons = pTechno->GetPrimaryWeapon();
-					if (!WeaponStruct::IsValid(pWeapons) || pWeapons->WeaponType->Range <= 0)
-						return;
+					int nRadius = 0;
 
-					nRadius = pWeapons->WeaponType->Range.ToCell();
-				}
+					if (pTypeExt->RadialIndicatorRadius.isset())
+						nRadius = pTypeExt->RadialIndicatorRadius.Get();
+					else if (pType->GapGenerator)
+						nRadius = pTypeExt->GapRadiusInCells.Get();
+					else
+					{
+						const auto pWeapons = pTechno->GetPrimaryWeapon();
+						if (!pWeapons || pWeapons->WeaponType->Range <= 0)
+							return;
 
-				if (nRadius > 0)
-				{
-					auto nCoord = pTechno->GetCoords();
-					const auto Color = pTypeExt->RadialIndicatorColor.Get(defColor);
-					Tactical_Draw_Radial(false, true, nCoord, Color, (nRadius * 1.0f), false, true);
+						nRadius = pWeapons->WeaponType->Range.ToCell();
+					}
+
+					if (nRadius > 0)
+					{
+						ColorStruct* Color = pTypeExt->RadialIndicatorColor.isset() ? pTypeExt->RadialIndicatorColor.GetEx() : &pTechno->Owner->Color;
+
+						if (*Color != ColorStruct::Empty) {
+							auto nCoord = pTechno->GetCoords();
+							Tactical_Draw_Radial(false, true, nCoord, *Color, (nRadius * 1.0f), false, true);
+						}
+					}
 				}
 			}
 		}
 	}
-}
+};
+
 
 //7F5DA0 unit
 //7EB188 inf
 //7E3FEC bld
-DEFINE_JUMP(VTABLE, 0x7F5DA0, GET_OFFSET(DrawRadialIndicator))
-DEFINE_JUMP(VTABLE, 0x7EB188, GET_OFFSET(DrawRadialIndicator))
+//DEFINE_HOOK(0x41BE80, ObjectClass_DrawRadialIndicator, 0x3)
+//{
+//	GET(ObjectClass*, pThis, ECX);
+//	GET_STACK(int, var, 0x4);
+//	ObjectClassExt::_DrawFootRadialIndicator(pThis ,0,var);
+//	return 0x0;
+//}
+
+//DEFINE_JUMP(LJMP, 0x41BE80 ,GET_OFFSET(ObjectClassExt::_DrawFootRadialIndicator))
+DEFINE_JUMP(VTABLE, 0x7F5DA0, GET_OFFSET(ObjectClassExt::_DrawFootRadialIndicator))
+DEFINE_JUMP(VTABLE, 0x7EB188, GET_OFFSET(ObjectClassExt::_DrawFootRadialIndicator))
 
 //Patches TechnoClass::Kill_Cargo/KillPassengers (push ESI -> push EBP)
 //Fixes recursive passenger kills not being accredited
@@ -3263,7 +3258,7 @@ DEFINE_HOOK(0x6DBE35, TacticalClass_DrawLinesOrCircles, 0x9)
 		if (!intCurObjcount)
 			return 0x6DBE74;
 
-		for (auto const pObj : ObjectClass::CurrentObjects())
+		for (auto pObj : ObjectClass::CurrentObjects())
 		{
 			if (pObj && pObj->GetType() && pObj->GetType()->HasRadialIndicator)
 			{
@@ -3608,7 +3603,7 @@ DEFINE_HOOK(0x4DB1A0, FootClass_GetMovementSpeed_FixSpeedMultStuck, 0x6)
 
 	//prevent unit in warfactory stuck
 	if (thisMult < 0.0001 && TechnoExt::IsInWarfactory(pThis, false)) {
-		Debug::Log("Foot[%s] with negative speed mult inside warfactory ,restoring speedmult\n", pType->ID);
+		Debug::Log("Foot[%s] with negative or zero speed mult inside warfactory ,restoring speedmult\n", pType->ID);
 		thisMult = 1.0;
 	}
 
@@ -3636,7 +3631,7 @@ DEFINE_HOOK(0x6EBB86, TeamClass_MoveToFocus_IsInStray, 0x6)
 	if (pFoot->GetHeight() > 0 && pFoot->WhatAmI() == UnitClass::AbsID && pThis->Target) {
 		auto nCoord = pFoot->GetCoords();
 		auto nCoord_target = pThis->Target->GetCoords();
-		R->EAX((int)nCoord_target.DistanceFrom_(nCoord));
+		R->EAX((int)nCoord_target.DistanceFrom(nCoord));
 	}
 	else
 		R->EAX(pFoot->DistanceFrom(pThis->SpawnCell));
@@ -3801,3 +3796,42 @@ int __fastcall InfantryClass_MI_Open_(InfantryClass* pThis)
 }
 
 DEFINE_JUMP(VTABLE , 0x7EB2AC , GET_OFFSET(InfantryClass_MI_Open_))
+
+DEFINE_HOOK(0x6F7D90, TechnoClass_Threat_Forbidden, 0x6)
+{
+	GET(ObjectClass*, pTarget, ESI);
+
+	if (pTarget->InLimbo || !pTarget->IsAlive)
+		return 0x6F894F;
+
+	if(const auto pTechno = generic_cast<TechnoClass*>(pTarget)) {
+
+		if(pTechno->IsCrashing || pTechno->IsSinking)
+			return 0x6F894F;
+
+		switch (pTechno->WhatAmI())
+		{
+		case AbstractType::Building:{
+			const auto pBld = (BuildingClass*)pTarget;
+
+			if (BuildingExt::ExtMap.Find(pBld)->LimboID != -1)
+				return 0x6F894F;
+
+			break;
+		}
+		case AbstractType::Unit:{
+
+			const auto pUnit = (UnitClass*)pTarget;
+
+			if (pUnit->DeathFrameCounter > 0)
+				return 0x6F894F;
+
+			break;
+		}
+		default:
+			break;
+		}
+	}
+
+	return 0x6F7D9E;
+}

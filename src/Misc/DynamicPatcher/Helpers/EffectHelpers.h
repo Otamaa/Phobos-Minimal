@@ -354,7 +354,7 @@ public:
 
 	static void DrawParticle(ParticleSystemTypeClass* psType, CoordStruct& sourcePos, AbstractClass* pTarget, TechnoClass* pOwner, CoordStruct& targetPos, HouseClass* pOwnerHouse)
 	{
-		if(psType->BehavesLike == BehavesLike::Smoke)
+		if(psType->BehavesLike == ParticleSystemTypeBehavesLike::Smoke)
 			sourcePos.Z += 100;
 
 		GameCreate<ParticleSystemClass>(psType, sourcePos, pTarget, pOwner, targetPos, pOwnerHouse);

@@ -19,8 +19,9 @@ public:
 	static constexpr reference<TypeList<ParticleSystemTypeClass*>, 0x7F4F9Cu> const TypeListArray{};
 	static constexpr reference<const char*, 0x836EE0, 5u> const BehavesString {};
 
-	static BehavesLike __fastcall GetBehave(const char* behaveID) JMP_STD(0x644850);
-	static const char* GetBehaveName(BehavesLike nBhv) { return BehavesString[(int)nBhv]; }
+	static ParticleSystemTypeBehavesLike __fastcall GetBehave(const char* behaveID) JMP_STD(0x644850);
+	static const char* GetBehaveName(ParticleSystemTypeBehavesLike nBhv) { return BehavesString[(int)nBhv]; }
+
 
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<ParticleSystemTypeClass*>, 0xA83D68u> const Array {};
@@ -82,7 +83,7 @@ public:
 	int      SpawnRadius;
 	float    SpawnCutoff;
 	float    SpawnTranslucencyCutoff;
-	BehavesLike BehavesLike;
+	ParticleSystemTypeBehavesLike BehavesLike;
 	int      Lifetime;
 	Vector3D<float> SpawnDirection;
 	double   ParticlesPerCoord;

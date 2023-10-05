@@ -329,7 +329,7 @@ void SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, AircraftTy
 		// find the nearest cell the paradrop troopers can land on
 		// the movement zone etc is checked within first types of the passanger
 		CellClass* pDest = pTarget;
-		bool allowBridges = GroundType::Array[static_cast<int>(LandType::Clear)].Cost[static_cast<int>(pType->SpeedType)] > 0.0;
+		bool allowBridges = GroundType::GetCost(LandType::Clear,pType->SpeedType) > 0.0;
 		bool isBridge = allowBridges && pDest->ContainsBridge();
 
 		while (!pDest->IsClearToMove(pType->SpeedType, 0, 0, (int)MovementZone::None, pType->MovementZone, -1, isBridge)) {

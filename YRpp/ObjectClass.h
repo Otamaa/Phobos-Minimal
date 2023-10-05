@@ -33,8 +33,6 @@ public:
 
 	//global arrays
 	static constexpr reference<DynamicVectorClass<ObjectClass*>, 0xA8ECB8u> const CurrentObjects{};
-	static constexpr reference<DynamicVectorClass<ObjectClass*>*, 0x87F778u> const Logics{};
-	static constexpr constant_ptr<DynamicVectorClass<ObjectClass*>, 0x8A0360u> const ObjectsInLayers {};
 
 	//IUnknown
 	//virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override R0;

@@ -29,36 +29,58 @@ void HouseTypeExt::ExtData::Initialize()
 	{
 	case Countries::Americans: // USA
 		this->TauntFile =  "taunts\\tauam~~.wav";
+		this->LoadScreenPalette = "mplsu.pal";
+		this->LoadScreenBackground = "ls%sustates.shp";
 		break;
 	case Countries::Alliance: //Korea
 		this->TauntFile = "taunts\\tauko~~.wav";
+		this->LoadScreenPalette = "mplsk.pal";
+		this->LoadScreenBackground = "ls%skorea.shp";
 		break;
 	case Countries::French: //France
 		this->TauntFile = "taunts\\taufr~~.wav";
+		this->LoadScreenPalette = "mplsf.pal";
+		this->LoadScreenBackground = "ls%sfrance.shp";
 		break;
 	case Countries::Germans: //Germany
 		this->TauntFile = "taunts\\tauge~~.wav";
+		this->LoadScreenPalette = "mplsg.pal";
+		this->LoadScreenBackground = "ls%sgermany.shp";
 		break;
 	case Countries::British: //United Kingdom
 		this->TauntFile = "taunts\\taubr~~.wav";
+		this->LoadScreenPalette = "mplsuk.pal";
+		this->LoadScreenBackground = "ls%sukingdom.shp";
 		break;
 	case Countries::Africans: //Libya
 		this->TauntFile = "taunts\\tauli~~.wav";
+		this->LoadScreenPalette = "mplsl.pal";
+		this->LoadScreenBackground = "ls%slibya.shp";
 		break;
 	case Countries::Arabs: //Iraq
 		this->TauntFile = "taunts\\tauir~~.wav";
+		this->LoadScreenPalette = "mplsi.pal";
+		this->LoadScreenBackground = "ls%siraq.shp";
 		break;
 	case Countries::Confederation: //Cuba
 		this->TauntFile = "taunts\\taucu~~.wav";
+		this->LoadScreenPalette = "mplsc.pal";
+		this->LoadScreenBackground = "ls%scuba.shp";
 		break;
 	case Countries::Russians: //Russia
 		this->TauntFile = "taunts\\tauru~~.wav";
+		this->LoadScreenPalette = "mplsr.pal";
+		this->LoadScreenBackground = "ls%srussia.shp";
 		break;
 	case Countries::YuriCountry: //Yuri
 		this->TauntFile = "taunts\\tauyu~~.wav";
+		this->LoadScreenPalette = "mpyls.pal";
+		this->LoadScreenBackground = "ls%syuri.shp";
 		break;
 	default: //Unknown
 		this->TauntFile = "taunts\\tauam~~.wav";
+		this->LoadScreenPalette = "mplsobs.pal";
+		this->LoadScreenBackground = "ls%sobs.shp";
 		break;
 	}
 }
@@ -84,6 +106,10 @@ void HouseTypeExt::ExtData::InheritSettings(HouseTypeClass* pThis)
 			this->VeteranBuildings = ParentData->VeteranBuildings;
 			this->TauntFile = ParentData->TauntFile;
 			this->Degrades = ParentData->Degrades;
+
+			this->LoadScreenBackground = ParentData->LoadScreenBackground;
+			this->LoadScreenPalette = ParentData->LoadScreenPalette;
+
 		}
 	}
 
@@ -140,6 +166,9 @@ void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr
 
 	this->Degrades.Read(exINI, pSection, "Degrades");
 	this->Disguise.Read(exINI, pSection, "DefaultDisguise", true);
+
+	this->LoadScreenBackground.Read(pINI, pSection, "File.LoadScreen");
+	this->LoadScreenPalette.Read(pINI, pSection, "File.LoadScreenPAL");
 }
 
 Iterator<BuildingTypeClass*> HouseTypeExt::ExtData::GetPowerplants() const
@@ -201,6 +230,9 @@ void  HouseTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->TauntFile)
 		.Process(this->Degrades)
 		.Process(this->Disguise)
+
+		.Process(this->LoadScreenBackground)
+		.Process(this->LoadScreenPalette)
 		;
 }
 

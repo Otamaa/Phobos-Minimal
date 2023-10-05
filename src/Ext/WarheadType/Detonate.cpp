@@ -116,12 +116,6 @@ void WarheadTypeExt::ExtData::applyIronCurtain(const CoordStruct& coords, HouseC
 		// affect each object
 		for (auto curTechno : items)
 		{
-			// don't protect the dead
-			if (!curTechno || curTechno->InLimbo || !curTechno->IsAlive || !curTechno->Health)
-			{
-				continue;
-			}
-
 			// affects enemies or allies respectively?
 			if (!this->CanAffectHouse(curTechno->Owner, Owner))
 			{
@@ -531,7 +525,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 	VocClass::PlayIndexAtPos(Sound, coords);
 	if (!this->DetonateParticleSystem.empty()) {
 		for (auto const& pSys : this->DetonateParticleSystem) {
-			GameCreate<ParticleSystemClass>(pSys, coords, nullptr, pOwner, CoordStruct::Empty, pHouse);
+			GameCreate<ParticleSystemClass>(pSys, coords, nullptr, nullptr, CoordStruct::Empty, pHouse);
 		}
 	}
 
@@ -872,7 +866,7 @@ void WarheadTypeExt::ExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget
 		const int idx = this->Get()->EMEffect || this->Crit_AnimList_PickRandom.Get(this->AnimList_PickRandom) ?
 			ScenarioClass::Instance->Random.RandomFromMax(this->Crit_AnimList.size() - 1) : 0;
 
-		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Crit_AnimList[idx], pTarget->Location), 
+		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Crit_AnimList[idx], pTarget->Location),
 			pHouse,
 			pTarget->GetOwningHouse(),
 			pOwner,

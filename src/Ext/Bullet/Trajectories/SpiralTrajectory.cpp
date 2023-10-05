@@ -76,7 +76,7 @@ void SpiralTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
 	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
 	pBullet->Velocity.Z = static_cast<double>(pBullet->TargetCoords.Z - pBullet->SourceCoords.Z);
-	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Magnitude();
+	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Length();
 }
 
 bool SpiralTrajectory::OnAI()

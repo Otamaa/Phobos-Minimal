@@ -173,8 +173,11 @@ public:
 	inline Point2D Left_Center() const { return { X, (Y + Height) / 2 }; }
 	inline Point2D Center_Right() const { return { Width, (Y + Height) / 2 }; }
 
-	int &operator[](int index) { return (&X)[index]; }
-	const int &operator[](int index) const { return (&X)[index]; }
+	inline int& operator[](int i) { return (&X)[i]; }
+	inline const int& operator[](int i) const { return (&X)[i]; }
+
+	inline int& At(int i) { return (&X)[i]; }
+	inline const int& At(int i) const { return (&X)[i]; }
 
 	static const RectangleStruct Union(const RectangleStruct &rect1, const RectangleStruct &rect2)
 	{

@@ -531,7 +531,7 @@ DEFINE_OVERRIDE_HOOK(0x702894, TechnoClass_ReceiveDamage_SmokeParticles, 6)
 
 	for (const auto pSystem : it)
 	{
-		if (allowAny || pSystem->BehavesLike == BehavesLike::Smoke)
+		if (allowAny || pSystem->BehavesLike == ParticleSystemTypeBehavesLike::Smoke)
 		{
 			Systems.AddItem(pSystem);
 		}

@@ -90,7 +90,7 @@ void MapRevealer::RevealImpl(const CoordStruct& coords, int const radius, HouseC
 
 			if (this->IsCellAvailable(cell))
 			{
-				if (std::abs(offset.X) <= static_cast<int>(spread) && offset.MagnitudeSquared() < spread_limit_sqr)
+				if (std::abs(offset.X) <= static_cast<int>(spread) && offset.pow() < spread_limit_sqr)
 				{
 					if (!checkLevel || this->CheckLevel(offset, level))
 					{

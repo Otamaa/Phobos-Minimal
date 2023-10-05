@@ -137,7 +137,7 @@ void StraightTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity
 	this->FirerZPosition = this->GetFirerZPosition();
 	this->TargetZPosition = this->GetTargetZPosition();
 
-	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Magnitude();
+	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Length();
 }
 
 bool StraightTrajectory::OnAI()

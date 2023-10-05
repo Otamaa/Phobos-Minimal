@@ -74,7 +74,7 @@ public:
 	int    MinZVelocity;
 	int    ZVelocityRange;
 	double ColorSpeed;
-	TypeList<RGBClass*> ColorList;
+	TypeList<ColorStruct> ColorList;
 	ColorStruct StartColor1;
 	ColorStruct StartColor2;
 	int    MaxDC;
@@ -96,8 +96,8 @@ public:
 	BYTE   Translucent25State;
 	BYTE   Translucent50State;
 	bool   Normalized;
-	ParticleTypeClass* NextParticle;
-	BehavesLike BehavesLike;
+	int	   NextParticle;
+	ParticleTypeBehavesLike BehavesLike;
 
 };
 

@@ -132,7 +132,7 @@ public:
 				CoordStruct targetPos = LastLocation.get();
 				int distance = Type->Distance;
 
-				if (sourcePos.DistanceFromI(targetPos) > distance || forceDraw)
+				if ((int)sourcePos.DistanceFrom(targetPos) > distance || forceDraw)
 				{
 					if ((CanDraw() && CheckVertical(sourcePos, targetPos)) || forceDraw)
 					{

@@ -20,73 +20,6 @@
 //typedef AbstractClass* TARGET;
 
 class Fixed;
-struct SWRange {
-	SWRange() : WidthOrRange(-1.0f), Height(-1) { }
-	SWRange(float widthOrRange, int height) : WidthOrRange(widthOrRange), Height(height) {}
-	SWRange(int widthOrRange, int height) : WidthOrRange((float)widthOrRange), Height(height) {}
-	SWRange(int widthOrRange) : WidthOrRange((float)widthOrRange), Height(-1) {}
-
-	~SWRange() = default;
-
-	SWRange(const SWRange& other) = default;
-	SWRange& operator=(const SWRange& other) = default;
-
-	float range() const {
-		return this->WidthOrRange;
-	}
-
-	int width() const {
-		return static_cast<int>(this->WidthOrRange);
-	}
-
-	int height() const {
-		return this->Height;
-	}
-
-	bool empty() const {
-		return this->WidthOrRange < 0.0
-			&& this->Height < 0;
-	}
-
-public:
-
-	float WidthOrRange;
-	int Height;
-};
-
-
-// the velocities along the axes, or something like that
-class VelocityClass final : public Vector3D<double>
-{
-public:
-	//scalar multiplication
-	VelocityClass operator*(double r) const
-	{
-		return {
-			static_cast<double>(X * r),
-			static_cast<double>(Y * r),
-			static_cast<double>(Z * r) };
-	}
-
-	VelocityClass operator-(const VelocityClass& a) const {
-		return { X - a.X, Y - a.Y, Z - a.Z };
-	}
-
-	DirStruct* GetDirectionFromXY(DirStruct* pRetDir)
-	{ JMP_THIS(0x41C2E0); }
-
-	void SetIfZeroXY()
-	{ JMP_THIS(0x41C460); }
-
-	double DistanceXY()
-	{ return MagnitudeXY(); }
-
-	double Distance()
-	{ return Magnitude(); }
-
-	void Func_5B2A30(Fixed* pFixed)
-	{ JMP_THIS(0x5B2A30);}
-};
 
 struct BasePlanningCell {
 	int Weight;
@@ -146,7 +79,7 @@ public:
 
 	constexpr size_t size() const { return count; }
 
-	T at(int Index) const { return Data[Index]; }
+	const T& at(int Index) const { return Data[Index]; }
 	T& operator[](int nIdx) { return Data[nIdx]; }
-	T operator[](int nIdx) const { return Data[nIdx]; }
+	const T& operator[](int nIdx) const { return Data[nIdx]; }
 };

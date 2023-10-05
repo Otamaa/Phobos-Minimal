@@ -103,7 +103,7 @@ void LevitateLocomotionClass::DoPhase1()
 		if (pTargetT->IsAlive && pTargetT->IsOnMap)
 		{
 			const auto nTargetCoord = pTargetT->GetCoords();;
-			if (LinkedTo->GetCoords().DistanceFromIXY(pTargetT->GetCoords()) < 128)
+			if ((int)LinkedTo->GetCoords().DistanceFromXY(pTargetT->GetCoords()) < 128)
 			{
 				this->AccelerationDurationNegSinus = 0.0;
 				this->AccelerationDurationCosinus = 0.0;
@@ -317,7 +317,7 @@ void LevitateLocomotionClass::DoPhase4()
 		{
 			if (pTargetT->IsAlive && pTargetT->IsOnMap)
 			{
-				if (LinkedTo->GetCoords().DistanceFromIXY(pTargetT->GetCoords()) < 128)
+				if ((int)LinkedTo->GetCoords().DistanceFromXY(pTargetT->GetCoords()) < 128)
 				{
 					this->AccelerationDurationNegSinus = 0.0;
 					this->AccelerationDurationCosinus = 0.0;
@@ -360,7 +360,7 @@ void LevitateLocomotionClass::DoPhase4()
 		}
 
 		const auto nDist_Loc = LinkedTo->Destination->GetCoords();
-		if (LinkedTo->GetCoords().DistanceFromIXY(nDist_Loc) < 128)
+		if ((int)LinkedTo->GetCoords().DistanceFromXY(nDist_Loc) < 128)
 		{
 			this->AccelerationDurationNegSinus = 0.0;
 			this->AccelerationDurationCosinus = 0.0;
@@ -386,7 +386,7 @@ void LevitateLocomotionClass::DoPhase4()
 void LevitateLocomotionClass::DoPhase5(CoordStruct coord)
 {
 	GameDebugLog::Log(__FUNCTION__" Called !  \n");
-	if (coord.DistanceFromIXY(LinkedTo->GetCoords()) >= 128)
+	if ((int)coord.DistanceFromXY(LinkedTo->GetCoords()) >= 128)
 	{
 		if (this->IsLessSameThanProximityDistance(coord))
 		{
@@ -438,7 +438,7 @@ void LevitateLocomotionClass::DoPhase6()
 	{
 		if (pTargetT->IsAlive && pTargetT->IsOnMap)
 		{
-			if (LinkedTo->GetCoords().DistanceFromIXY(pTargetT->GetCoords()) < 128)
+			if ((int)LinkedTo->GetCoords().DistanceFromXY(pTargetT->GetCoords()) < 128)
 			{
 				this->AccelerationDurationNegSinus = 0.0;
 				this->AccelerationDurationCosinus = 0.0;
@@ -472,7 +472,7 @@ void LevitateLocomotionClass::DoPhase6()
 	{
 		if (pDestT->IsAlive && pDestT->IsOnMap)
 		{
-			if (!(LinkedTo->GetCoords().DistanceFromIXY(pDestT->GetCoords()) < 128))
+			if (!((int)LinkedTo->GetCoords().DistanceFromXY(pDestT->GetCoords()) < 128))
 			{
 				auto nTargetCoord = pDestT->GetCoords();
 				if (LevitateLocomotionClass::IsMoreThanProximityDistance(nTargetCoord))
@@ -502,7 +502,7 @@ void LevitateLocomotionClass::DoPhase7()
 	const auto nCoord = LinkedTo->GetCenterCoords();
 	const auto nCoordCell = CellClass::Coord2Cell(nCoord);
 	const auto nCoordCellToCoord = CoordStruct { nCoordCell.X , nCoordCell.Y , nCoord.Z };
-	const auto nDistance = nCoordCellToCoord.DistanceFromIXY(LinkedTo->GetCoords());
+	const auto nDistance = (int)nCoordCellToCoord.DistanceFromXY(LinkedTo->GetCoords());
 
 	if (nDistance < 5)
 	{

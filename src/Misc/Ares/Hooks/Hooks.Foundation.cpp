@@ -9,7 +9,23 @@ DEFINE_DISABLE_HOOK(0x465d4a, BuildingTypeClass_IsUndeployable_ares) //, 6)
 
 // there is bug with WF that causing unit stuck
 // seems the bib is not correct in the old code ?
-#ifdef ENABLE_FOUNDATIONHOOK
+#ifndef ENABLE_FOUNDATIONHOOK
+
+DEFINE_DISABLE_HOOK(0x43bcbd, BuildingClass_CTOR_ares)
+DEFINE_DISABLE_HOOK(0x43c022, BuildingClass_DTOR_ares)
+DEFINE_DISABLE_HOOK(0x453e20, BuildingClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x45417e, BuildingClass_Load_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x454190, BuildingClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x454244, BuildingClass_Save_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x45e50c, BuildingTypeClass_CTOR_ares)
+DEFINE_DISABLE_HOOK(0x45e707, BuildingTypeClass_DTOR_ares)
+DEFINE_DISABLE_HOOK(0x464a49, BuildingTypeClass_LoadFromINI_ares)
+DEFINE_DISABLE_HOOK(0x464a56, BuildingTypeClass_LoadFromINI_ares)
+DEFINE_DISABLE_HOOK(0x465010, BuildingTypeClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x4652ed, BuildingTypeClass_Load_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x465300, BuildingTypeClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x46536a, BuildingTypeClass_Save_Suffix_ares)
+
 DEFINE_OVERRIDE_HOOK(0x656584, RadarClass_GetFoundationShape, 6)
 {
 	GET(RadarClass*, pThis, ECX);
@@ -82,6 +98,7 @@ DEFINE_OVERRIDE_HOOK(0x568997, MapClass_RemoveContentAt_Foundation_OccupyHeight,
 
 	std::for_each(AffectedCells->begin(), AffectedCells->end(), [](CellStruct const& cell) {
 		if (auto pCell = MapClass::Instance->TryGetCellAt(cell)) {
+			if(pCell->OccupyHeightsCoveringMe > 0)
 			--pCell->OccupyHeightsCoveringMe;
 		}
 	});

@@ -367,6 +367,7 @@ CoordStruct BuildingExt::GetCenterCoords(BuildingClass* pBuilding, bool includeB
 void BuildingExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(CurrentAirFactory, ptr , bRemoved);
+	AnnounceInvalidPointer<TechnoClass*>(RegisteredJammers, ptr, bRemoved);
 }
 
 bool BuildingExt::ExtData::InvalidateIgnorable(AbstractClass* ptr)

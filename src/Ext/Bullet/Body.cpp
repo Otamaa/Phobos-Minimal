@@ -216,7 +216,7 @@ VelocityClass BulletExt::GenerateVelocity(BulletClass* pThis, AbstractClass* pTa
 	//inline get Direction from 2 coords
 	CoordStruct const nCenter = pTarget->GetCoords();
 	DirStruct const dir_fromXY((double)(pThis->Location.Y - nCenter.Y), (double)(pThis->Location.X - nCenter.X));
-	double const nFirstMag = velocity.MagnitudeXY();
+	double const nFirstMag = velocity.LengthXY();
 	double const radians_fromXY = dir_fromXY.GetRadian();
 	double const sin_rad = Math::sin(radians_fromXY);
 	double const cos_rad = Math::cos(radians_fromXY);
@@ -228,10 +228,10 @@ VelocityClass BulletExt::GenerateVelocity(BulletClass* pThis, AbstractClass* pTa
 
 	if (!bCalculateSpeedFirst)
 	{
-		double const nSecMag = velocity.MagnitudeXY();
+		double const nSecMag = velocity.LengthXY();
 		DirStruct const dir_forZ(velocity.Z, nSecMag);
 		double const radians_foZ = dir_forZ.GetRadian();
-		double const nThirdMag = velocity.MagnitudeXY();
+		double const nThirdMag = velocity.LengthXY();
 
 		if (radians_foZ != 0.0)
 		{
@@ -248,19 +248,19 @@ VelocityClass BulletExt::GenerateVelocity(BulletClass* pThis, AbstractClass* pTa
 			velocity.X = 100.0;
 		}
 
-		const double nFullMag = velocity.Magnitude();
+		const double nFullMag = velocity.Length();
 		const double nDevidedBySpeed = nSpeed / nFullMag;
 		velocity *= nDevidedBySpeed;
 	}
 	else
 	{
-		const double nFullMag = velocity.Magnitude();
+		const double nFullMag = velocity.Length();
 		const double nDevidedBySpeed = nSpeed / nFullMag;
 		velocity *= nDevidedBySpeed;
-		double const nSecMag = velocity.MagnitudeXY();
+		double const nSecMag = velocity.LengthXY();
 		DirStruct const dir_forZ(velocity.Z, nSecMag);
 		double const radians_foZ = dir_forZ.GetRadian();
-		double const nThirdMag = velocity.MagnitudeXY();
+		double const nThirdMag = velocity.LengthXY();
 
 		if (radians_foZ != 0.0)
 		{

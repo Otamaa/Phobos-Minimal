@@ -456,6 +456,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	INI_EX exINI(pINI);
 
 #pragma region Otamaa
+	this->AIDetectDisguise_Percent.Read(exINI, GENERAL_SECTION, "AIDisguiseDetectionPercent");
 	this->CanDrive.Read(exINI, GENERAL_SECTION, "EveryoneCanDrive");
 	this->TogglePowerAllowed.Read(exINI, GENERAL_SECTION, "TogglePowerAllowed");
 	this->TogglePowerDelay.Read(exINI, GENERAL_SECTION, "TogglePowerDelay");
@@ -923,6 +924,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->CanDrive)
 		.Process(this->DefaultAircraftDamagedSmoke)
+		.Process(this->AIDetectDisguise_Percent)
 		;
 
 	MyPutData.Serialize(Stm);

@@ -51,12 +51,6 @@ void AresAE::applyAttachedEffect(WarheadTypeClass* pWH, const CoordStruct& coord
 		// affect each object
 		for (const auto curTechno : items)
 		{
-			// don't attach to dead
-			if (!curTechno || curTechno->InLimbo || !curTechno->IsAlive || !curTechno->Health)
-			{
-				continue;
-			}
-
 			if (Source && !pWHExt->CanAffectHouse(curTechno->Owner, Source))
 			{
 				continue;

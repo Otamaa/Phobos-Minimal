@@ -26,6 +26,9 @@ public:
 	bool operator<(const Point2DBYTE& that) const { return X < that.X || X == that.X && Y < that.Y; }
 	bool operator<=(const Point2DBYTE& that) const { return X <= that.X || X == that.X && Y <= that.Y; }
 
+	Point2DBYTE operator-(const Point2DBYTE& that) const { return {BYTE(X - that.X), BYTE(Y - that.Y)};}
+	Point2DBYTE& operator-=(const Point2DBYTE& that) { X -= that.X; Y -= that.Y; return *this; }
+
 	inline bool IsValid() const { return *this != (Point2DBYTE::Empty); }
 
 	explicit operator DWORD() const {
@@ -38,14 +41,27 @@ public:
 		return (DWORD)(*this);
 	}
 
-public:
-	const int DistanceFrom(Point2DBYTE const& nThat) {
-		return abs((nThat.X - X) * (nThat.X - X)) + abs((nThat.Y - Y) * (nThat.Y - Y));
+//=============================Most cases================================================
+	/*
+		MagnitudeSquared = pow
+	*/
+	inline double pow() const {
+		return (double)std::pow(X,2) + (double)std::pow(Y,2);
 	}
 
-	int Length() const {
-		return static_cast<int>(Math::sqrt(static_cast<double>(this->X * this->X + this->Y * this->Y)));
+	inline double Length() const {
+		return std::sqrt(this->pow());
 	}
+
+	inline double DistanceFrom(const Point2DBYTE& that) const{
+		return (that - *this).Length();
+	}
+
+	inline double DistanceFromSquared(const Point2DBYTE& that) const {
+		return (that - *this).pow();
+	}
+
+public:
 
 	BYTE X, Y;
 };

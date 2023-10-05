@@ -50,6 +50,8 @@
 #include <FootClass.h>
 #include <VocClass.h>
 #include <VoxClass.h>
+#include <VelocityClass.h>
+#include <SWRange.h>
 
 #include <FileFormats/_Loader.h>
 #include <Helpers/Enumerators.h>

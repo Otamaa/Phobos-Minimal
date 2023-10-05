@@ -74,7 +74,7 @@ DEFINE_HOOK(0x62B897, ParticleClass_CTOR_RailgunCoordAdjust, 0x5)
 	const auto pParticleTypeExt = ParticleTypeExt::ExtMap.Find(pThis->Type);
 
 	if(pParticleSys
-	&& pParticleSys->Type->BehavesLike == BehavesLike::Railgun){
+	&& pParticleSys->Type->BehavesLike == ParticleSystemTypeBehavesLike::Railgun){
 		GET(CoordStruct*, pCoordBase, EDI);
 		LEA_STACK(CoordStruct* , pCoord, 0x10);
 

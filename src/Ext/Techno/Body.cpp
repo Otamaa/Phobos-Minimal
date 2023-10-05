@@ -1549,7 +1549,7 @@ void TechnoExt::UpdateMCOverloadDamage(TechnoClass* pOwner)
 					auto const nRamdomX = ScenarioClass::Instance->Random.RandomRanged(-200, 200);
 					auto nLoc = pOwner->Location;
 
-					if (pParticle->BehavesLike == BehavesLike::Smoke)
+					if (pParticle->BehavesLike == ParticleSystemTypeBehavesLike::Smoke)
 						nLoc.Z += 100;
 
 					CoordStruct nParticleCoord { pOwner->Location.X + nRamdomX, nRandomY + pOwner->Location.Y, nLoc };
@@ -4087,7 +4087,7 @@ void TechnoExt::ExtData::UpdateGattlingOverloadDamage()
 					auto const nRamdomX = ScenarioClass::Instance->Random(-200, 200);
 					auto nLoc = pThis->Location;
 
-					if (pParticle->BehavesLike == BehavesLike::Smoke)
+					if (pParticle->BehavesLike == ParticleSystemTypeBehavesLike::Smoke)
 						nLoc.Z += 100;
 
 					CoordStruct nParticleCoord { pThis->Location.X + nRamdomX, nRandomY + pThis->Location.Y, pThis->Location.Z + 100 };

@@ -1055,4 +1055,4 @@ public:
 	};
 };
 
-//static_assert(sizeof(Matrix3D) == 0x30u);
+static_assert(sizeof(Matrix3D) == 0x30u);

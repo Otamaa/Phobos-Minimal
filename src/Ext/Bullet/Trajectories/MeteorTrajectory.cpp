@@ -66,7 +66,7 @@ void MeteorTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - SourceLocation.X);
 	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - SourceLocation.Y);
 	pBullet->Velocity.Z = static_cast<double>(pBullet->TargetCoords.Z - SourceLocation.Z);
-	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Magnitude();
+	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Length();
 }
 
 bool MeteorTrajectory::OnAI()

@@ -196,8 +196,6 @@ public:
 
 		Valueable<PaletteManager*> RubblePalette {}; //CustomPalette::PaletteMode::Temperates
 
-		NullableIdx<VocClass> EnterBioReactorSound {};
-		NullableIdx<VocClass> LeaveBioReactorSound {};
 		ValueableVector<FacingType> DockPoseDir {};
 
 		Nullable<bool> EngineerRepairable {};

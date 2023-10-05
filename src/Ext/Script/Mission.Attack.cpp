@@ -151,7 +151,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 
 			if (pFoot->WhatAmI() == AbstractType::Aircraft
 				&& !pFoot->IsInAir()
-				&& static_cast<AircraftTypeClass*>(pTechnoType)->AirportBound
+				&& static_cast<const AircraftTypeClass*>(pTechnoType)->AirportBound
 				&& pFoot->Ammo < pTechnoType->Ammo)
 			{
 				bAircraftsWithoutAmmo = true;
@@ -161,7 +161,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 
 			if (pFoot->WhatAmI() == AbstractType::Infantry)
 			{
-				auto const pTypeInf = static_cast<InfantryTypeClass*>(pTechnoType);
+				auto const pTypeInf = static_cast<const InfantryTypeClass*>(pTechnoType);
 
 				// Any Team member (infantry) is a special agent? If yes ignore some checks based on Weapons.
 				if ((pTypeInf->Agent && pTypeInf->Infiltrate) || pTypeInf->Engineer)
@@ -292,7 +292,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 
 						if (pFoot->WhatAmI() == AbstractType::Infantry)
 						{
-							auto const pInfantryType = static_cast<InfantryTypeClass*>(pTechnoType);
+							auto const pInfantryType = static_cast<const InfantryTypeClass*>(pTechnoType);
 
 							// Spy case
 							if (pInfantryType && pInfantryType->Infiltrate && pInfantryType->Agent && pFoot->GetCurrentMission() != Mission::Enter)
@@ -378,7 +378,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 
 					// Aircraft case 1
 					if ((pFoot->WhatAmI() == AbstractType::Aircraft
-						&& static_cast<AircraftTypeClass*>(pTechnoType)->AirportBound)
+						&& static_cast<const AircraftTypeClass*>(pTechnoType)->AirportBound)
 						&& pFoot->Ammo > 0
 						&& (pFoot->Target != pFocus && !pFoot->InAir))
 					{
@@ -422,7 +422,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 
 					// Tanya / Commando C4 case
 					if ((pFoot->WhatAmI() == AbstractType::Infantry
-						&& static_cast<InfantryTypeClass*>(pTechnoType)->C4
+						&& static_cast<const InfantryTypeClass*>(pTechnoType)->C4
 						|| pFoot->HasAbility(AbilityType::C4)) && pFoot->GetCurrentMission() != Mission::Sabotage)
 					{
 						pFoot->QueueMission(Mission::Sabotage, true);
@@ -485,6 +485,9 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, Distanc
 
 	auto pTechnoType = pTechno->GetTechnoType();
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
+	auto const AIDifficulty = static_cast<int>(pTechno->Owner->GetAIDifficultyIndex());
+	auto const DisguiseDetectionValue = pTypeExt->DetectDisguise_Percent.GetEx(RulesExt::Global()->AIDetectDisguise_Percent)->At(AIDifficulty);
+	auto const detectionValue = (int)std::round(DisguiseDetectionValue * 100.0);
 
 	// Generic method for targeting
 	for (int i = 0; i < TechnoClass::Array->Count; i++)
@@ -523,6 +526,11 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, Distanc
 		// Stealth ground unit check
 		if (object->CloakState == CloakState::Cloaked && !objectType->Naval)
 			continue;
+
+		if (pTechnoType->DetectDisguise && object->IsDisguised() && detectionValue > 0) {
+			if (ScenarioClass::Instance->Random.PercentChance(detectionValue))
+				continue;
+		}
 
 		// Submarines aren't a valid target
 		if (object->CloakState == CloakState::Cloaked
@@ -718,17 +726,17 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 			{
 			case UnitClass::AbsID:
 			{
-				const auto pType = static_cast<UnitClass*>(pTechno)->Type;
+				const auto pType = static_cast<const UnitClass*>(pTechno)->Type;
 				return pType->Harvester || pType->Weeder;
 			}
 			case BuildingClass::AbsID:
 			{
-				const auto pBldHere = static_cast<BuildingClass*>(pTechno);
+				const auto pBldHere = static_cast<const BuildingClass*>(pTechno);
 				return pBldHere->SlaveManager && pTechnoType->ResourceGatherer && pBldHere->Type->Enslaves;
 			}
 			case InfantryClass::AbsID:
 			{
-				const auto pInfHere = static_cast<InfantryClass*>(pTechno);
+				const auto pInfHere = static_cast<const InfantryClass*>(pTechno);
 				return pInfHere->Type->Slaved && pInfHere->SlaveOwner && pTechnoType->ResourceGatherer;
 			}
 			}

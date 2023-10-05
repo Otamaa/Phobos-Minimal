@@ -649,6 +649,12 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		}
 	}
 
+	if (pThis->UnitRepair && pThis->Factory == AbstractType::AircraftType) {
+		Debug::FatalErrorAndExit(
+			"BuildingType [%s] has both UnitRepair=yes and Factory=AircraftType.\n"
+			"This combination causes Internal Errors and other unwanted behaviour.", pSection);
+	}
+
 	if (!parseFailAddr)
 	{
 		INI_EX exINI(pINI);
@@ -778,9 +784,6 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->BuildingPlacementGrid_Shape.Read(exINI, pSection, "BuildingPlacementGrid.Shape");
 		this->SpeedBonus.Read(exINI, pSection);
 		this->RadialIndicator_Visibility.Read(exINI, pSection, "RadialIndicatorVisibility");
-
-		this->EnterBioReactorSound.Read(exINI, pSection, GameStrings::EnterBioReactorSound());
-		this->LeaveBioReactorSound.Read(exINI, pSection, GameStrings::LeaveBioReactorSound());
 
 		this->SpyEffect_Custom.Read(exINI, pSection, "SpyEffect.Custom");
 		this->SpyEffect_VictimSuperWeapon.Read(exINI, pSection, "SpyEffect.VictimSuperWeapon");
@@ -940,6 +943,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 			//Reset
 			pThis->Foundation = BuildingTypeExt::CustomFoundation;
 			pThis->FoundationData = this->CustomData.data();
+			pThis->FoundationOutside = this->OutlineData.data();
 		}
 		else if (pArtINI->ReadString(pArtSection, "Foundation", "", strbuff) && IS_SAME_STR_(strbuff, "Custom"))
 		{
@@ -1031,17 +1035,18 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 			//Set end vector
 			*itOutline = FoundationEndMarker;
 
-			//if (this->OutlineData.begin() == this->OutlineData.end()) {
-			//	Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. This breaks AI base building.\n",pArtSection);
-			//}
-			//else
-			//{
-			//	for (auto iter = this->OutlineData.begin(); iter->X || iter->Y; ++iter) {
-			//		if (++iter == this->OutlineData.end())
-			//			Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. This breaks AI base building.\n", pArtSection);
-			//
-			//	}
-			//}
+			if (this->CustomData.begin() == this->CustomData.end()) {
+				Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. This breaks AI base building.\n",pArtSection);
+			}
+			else
+			{
+				auto iter = this->CustomData.begin();
+				while (iter->X || iter->Y) {
+					if (++iter == this->CustomData.end())
+						Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. This breaks AI base building.\n", pArtSection);
+
+				}
+			}
 		}
 
 		if (pThis->MaxNumberOccupants > 10)
@@ -1231,8 +1236,6 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->AIBaseNormal)
 		.Process(this->AIInnerBase)
 		.Process(this->RubblePalette)
-		.Process(this->EnterBioReactorSound)
-		.Process(this->LeaveBioReactorSound)
 		.Process(this->DockPoseDir)
 		.Process(this->EngineerRepairable)
 		.Process(this->IsTrench)

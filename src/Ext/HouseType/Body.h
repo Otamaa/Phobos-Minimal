@@ -47,6 +47,8 @@ public:
 		Nullable<bool> Degrades {};
 		Nullable<InfantryTypeClass*> Disguise {};
 
+		PhobosFixedString<0x20> LoadScreenBackground {};
+		PhobosFixedString<0x20> LoadScreenPalette {};
 		ExtData(HouseTypeClass* OwnerObject) : Extension<HouseTypeClass>(OwnerObject)
 		{ }
 

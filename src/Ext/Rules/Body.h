@@ -265,6 +265,8 @@ public:
 		Valueable<bool> CanDrive { false };
 
 		AnimTypeClass* DefaultAircraftDamagedSmoke { nullptr };
+		Valueable<PartialVector3D<double>> AIDetectDisguise_Percent { { 1.0 , 1.0 , 1.0} };
+
 		AircraftPutDataRules MyPutData { };
 
 		ExtData(RulesClass* OwnerObject) : Extension<RulesClass>(OwnerObject)

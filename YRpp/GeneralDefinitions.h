@@ -763,7 +763,7 @@ enum class SpotlightFlags : unsigned int {
 };
 MAKE_ENUM_FLAGS(SpotlightFlags)
 
-enum class BehavesLike : int {
+enum class ParticleTypeBehavesLike : int {
 	Smoke = 0,
 	Gas = 1,
 	Fire = 2,
@@ -772,7 +772,7 @@ enum class BehavesLike : int {
 };
 
 //ParticleSystemTypeClass->HoldsWhat, almost, but not entirely, unlike eBehavesLike above
-enum class ParticleSystemHoldsWhat : int
+enum class ParticleSystemTypeBehavesLike : int
 {
 	Gas = 0,
 	Smoke = 1,

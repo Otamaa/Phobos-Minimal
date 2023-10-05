@@ -187,181 +187,115 @@ namespace Helpers {
 			http://modenc.renegadeprojects.com/CellSpread.
 
 			\param coords The location the projectile detonated.
-			\param spread The range to find items in.
+			\param spread(in leptons) The range to find items in.
 			\param includeInAir Include items that are currently InAir.
 
 			\author AlexB
 			\date 2010-06-28
 		*/
-		__forceinline std::vector<TechnoClass*> getCellSpreadItems(
+		template<class T = TechnoClass>
+		__forceinline std::vector<T*> getCellSpreadItems(
 			CoordStruct const& coords, double const spread,
-			bool const includeInAir = false)
+			bool const includeInAir = false , bool allowLimbo = false)
 		{
-			// set of possibly affected objects. every object can be here only once.
-			DistinctCollector<TechnoClass*> set;
+			std::vector<T*> set;
+			const auto range = static_cast<size_t>(spread + 0.99);
 
-			// the quick way. only look at stuff residing on the very cells we are affecting.
-			auto const cellCoords = MapClass::Instance->GetCellAt(coords)->MapCoords;
-			auto const range = static_cast<size_t>(spread + 0.99);
-			for (CellSpreadEnumerator it(range); it; ++it) {
-				auto const pCell = MapClass::Instance->GetCellAt(*it + cellCoords);
-				for (NextObject obj(pCell->GetContent()); obj; ++obj) {
-					if (auto const pTechno = abstract_cast<TechnoClass*>(*obj)) {
-						set.insert(pTechno);
-					}
-				}
-			}
+			if(range > CellSpreadEnumerator::Max || includeInAir) {
 
-			// flying objects are not included normally
-			if (includeInAir) {
 				// the not quite so fast way. skip everything not in the air.
-				TechnoClass::Array->for_each([&](TechnoClass* pTechno) {
-					if (pTechno->Health <= 0 || !pTechno->IsAlive || pTechno->IsCrashing || pTechno->IsSinking)
+				T::Array->for_each([&](T* pTechno) {
+
+					if (!allowLimbo && pTechno->InLimbo)
 						return;
 
-					if (pTechno->GetHeight() > 0) {
-						// rough estimation
-						if (pTechno->Location.DistanceFrom(coords) <= spread * 256) {
-							set.insert(pTechno);
+					if (pTechno->Health <= 0
+						|| !pTechno->IsAlive
+						|| pTechno->IsCrashing
+						|| pTechno->IsSinking
+						|| pTechno->TemporalTargetingMe
+						)
+						return;
+
+					auto target = pTechno->GetCoords();
+					auto dist = target.DistanceFrom(coords);
+					auto what = pTechno->WhatAmI();
+
+					// ignore buildings that are not visible, like ambient light posts
+					if constexpr (T::AbsDerivateID != FootClass::AbsDerivateID){
+						if (what == BuildingClass::AbsID) {
+							const auto pBld = static_cast<const BuildingClass*>(pTechno);
+							if (pBld->Type->InvisibleInGame) {
+								return;
+							}
 						}
+					}
+
+					if (what == UnitClass::AbsID) {
+						if(static_cast<const UnitClass*>(pTechno)->DeathFrameCounter > 0) {
+							return;
+						}
+					}
+
+					if (includeInAir) {
+						if (pTechno->GetHeight() > 0
+							|| what == AircraftClass::AbsID && pTechno->IsInAir()) {
+							// rough estimation
+							dist *= 0.5;
+						}
+					}
+
+					if (dist <= spread * 256) {
+						set.push_back(pTechno);
 					}
 				});
 			}
+			else
+			{
+				// the quick way. only look at stuff residing on the very cells we are affecting.
+				auto const cellCoords = MapClass::Instance->GetCellAt(coords)->MapCoords;
 
-			// look closer. the final selection. put all affected items in a vector.
-			HelperedVector<TechnoClass*> ret;
-			ret.reserve(set.size());
-			set.for_each([&](TechnoClass* pTechno) {
+				for (CellSpreadEnumerator it(range); it; ++it)
+				{
+					auto const pCell = MapClass::Instance->GetCellAt(*it + cellCoords);
+					for (NextObject obj(pCell->GetContent()); obj; ++obj)
+					{
+						if (auto const pTechno = generic_cast<T*>(*obj))
+						{
+							if (!allowLimbo && pTechno->InLimbo)
+								continue;
 
-				const auto what = pTechno->WhatAmI();
+							if (pTechno->Health <= 0
+								|| !pTechno->IsAlive
+								|| pTechno->IsCrashing
+								|| pTechno->IsSinking
+								|| pTechno->TemporalTargetingMe
+								)
+								continue;
 
-				// ignore buildings that are not visible, like ambient light posts
-				if (what == BuildingClass::AbsID) {
-					if (static_cast<const BuildingClass*>(pTechno)->Type->InvisibleInGame) {
-						return;
-					}
-				}
+							auto what = pTechno->WhatAmI();
 
-				// get distance from impact site
-				auto const target = pTechno->GetCoords();
-				auto dist = target.DistanceFrom(coords);
+							if constexpr (T::AbsDerivateID != FootClass::AbsDerivateID) {
+								if (what == BuildingClass::AbsID) {
+									if (static_cast<const BuildingClass*>(pTechno)->Type->InvisibleInGame) {
+										continue;
+									}
+								}
+							}
 
-				// reduce the distance for flying aircraft
-				if (what == AircraftClass::AbsID && pTechno->IsInAir()) {
-					dist *= 0.5;
-				}
+							if (what == UnitClass::AbsID) {
+								if (static_cast<const UnitClass*>(pTechno)->DeathFrameCounter > 0) {
+									continue;
+								}
+							}
 
-				// this is good
-				if (!(dist <= spread * 256)) {
-					return;
-				}
-
-				ret.push_back(pTechno);
-			});
-
-			return ret;
-		}
-
-		__forceinline std::vector<TechnoClass*> getItemsInRangeOf(
-			CoordStruct const& coords, double const spread,
-			bool const includeInAir = false)
-		{
-			// set of possibly affected objects. every object can be here only once.
-			DistinctCollector<TechnoClass*> set;
-
-			// the not quite so fast way. skip everything not in the air.
-			TechnoClass::Array->for_each([&](TechnoClass* pTechno) {
-				if (pTechno->Health <= 0 || !pTechno->IsAlive || pTechno->IsCrashing || pTechno->IsSinking)
-					return;
-
-				if (!includeInAir && pTechno->GetHeight() > 0)
-					return;
-
-				// rough estimation
-				if (pTechno->Location.DistanceFrom(coords) <= spread * Unsorted::LeptonsPerCell) {
-					set.insert(pTechno);
-				}
-			});
-
-			// look closer. the final selection. put all affected items in a vector.
-			HelperedVector<TechnoClass*> ret;
-			ret.reserve(set.size());
-			set.for_each([&](TechnoClass* pTechno) {
-				const auto what = pTechno->WhatAmI();
-
-				// ignore buildings that are not visible, like ambient light posts
-				if (what == BuildingClass::AbsID) {
-					auto const pBuilding = static_cast<const BuildingClass*>(pTechno);
-					if (pBuilding->Type->InvisibleInGame) {
-						return;
-					}
-				}
-
-				// get distance from impact site
-				auto const target = pTechno->GetCoords();
-				auto dist = target.DistanceFrom(coords);
-
-				// reduce the distance for flying aircraft
-				if (what == AircraftClass::AbsID && pTechno->IsInAir()) {
-					dist *= 0.5;
-				}
-
-				// this is good
-				if (!(dist <= spread * Unsorted::LeptonsPerCell)) {
-					return;
-				}
-
-				ret.push_back(pTechno);
-			});
-
-			return ret;
-		}
-
-		template<bool includeInAir = false, typename Func>
-		__forceinline FootClass* getCellSpreadItems_Foot(
-			CoordStruct const& coords, double const spread, Func&& action)
-		{
-			// set of possibly affected objects. every object can be here only once.
-			DistinctCollector<FootClass*> set;
-
-			// the quick way. only look at stuff residing on the very cells we are affecting.
-			auto const cellCoords = MapClass::Instance->GetCellAt(coords)->MapCoords;
-			auto const range = static_cast<size_t>(spread + 0.99);
-			for (CellSpreadEnumerator it(range); it; ++it) {
-				auto const pCell = MapClass::Instance->GetCellAt(*it + cellCoords);
-				for (NextObject obj(pCell->GetContent()); obj; ++obj) {
-					if (auto const pTechno = abstract_cast<FootClass*>(*obj)) {
-						set.insert(pTechno);
-					}
-				}
-			}
-
-			// flying objects are not included normally
-			if constexpr (includeInAir) {
-				// the not quite so fast way. skip everything not in the air.
-				FootClass::Array->for_each([&](FootClass* pTechno) {
-					if (pTechno->Health <= 0 || !pTechno->IsAlive || pTechno->IsCrashing || pTechno->IsSinking)
-						return;
-
-					if (pTechno->GetHeight() > 0) {
-						// rough estimation
-						if (pTechno->Location.DistanceFrom(coords) <= spread * 256) {
-							set.insert(pTechno);
+							set.push_back(pTechno);
 						}
 					}
-				});
-			}
-
-			for (auto nBegin = set.begin(); nBegin != set.end(); ++nBegin) {
-				// this is good
-				const auto pFoot = (*nBegin);
-
-				if (action(pFoot)) {
-					return pFoot;
 				}
 			}
 
-			return nullptr;
+			return set;
 		}
 
 		//! Invokes an action for every cell or every object contained on the cells.

@@ -13,12 +13,12 @@ public:
 	static const CellStruct Empty;
 	static const CellStruct DefaultUnloadCell;
 
-	inline bool SimilarTo(const CellStruct& a) const {return (X == a.X && Y == a.Y); }
-	inline bool DifferTo(const CellStruct& a)const { return (X != a.X || Y != a.Y); }
-	inline bool IsValid() const { return this->DifferTo(CellStruct::Empty); }
+	__forceinline bool SimilarTo(const CellStruct& a) const {return (X == a.X && Y == a.Y); }
+	__forceinline bool DifferTo(const CellStruct& a)const { return (X != a.X || Y != a.Y); }
+	__forceinline bool IsValid() const { return this->DifferTo(CellStruct::Empty); }
 
 	//equality
-	inline bool operator==(const CellStruct& a) const {
+	__forceinline bool operator==(const CellStruct& a) const {
 		return (X == a.X && Y == a.Y);
 	}
 
@@ -40,32 +40,6 @@ public:
 		CellStruct nBuffer;
 		std::memcpy(&nBuffer, &nVal, sizeof(int));
 		return nBuffer;
-	}
-
-	double Magnitude()
-	{
-		return Math::sqrt(MagnitudeSquared());
-	}
-
-	//magnitude squared
-	double MagnitudeSquared() const {
-		return static_cast<double>(X) * X + static_cast<double>(Y) * Y;
-	}
-
-	//distance from another vector
-	double DistanceFrom(const CellStruct& a) const
-	{
-		return (a - *this).Magnitude();
-	}
-
-	int DistanceFromI(const CellStruct& a) const
-	{
-		return int((a - *this).Magnitude());
-	}
-	//distance from another vector, squared
-	double DistanceFromSquared(const CellStruct& a) const
-	{
-		return (a - *this).MagnitudeSquared();
 	}
 
 	//substraction
@@ -94,34 +68,24 @@ public:
 		Y += a.Y;
 		return *this;
 	}
-
-	//and do sqrt when needed only
-	template<bool T = false>
-	double DistanceFromAutoMethod(const CellStruct& a) const {
-		return Distance(a, std::bool_constant<T>::type());
+//=============================Most cases================================================
+	/*
+		MagnitudeSquared = pow
+	*/
+	inline double pow() const {
+		return (double)std::pow(X,2) + (double)std::pow(Y,2);
 	}
 
-	short Length() const {
-		return static_cast<short>(Math::sqrt(static_cast<double>(X) * static_cast<double>(X) + static_cast<double>(Y) * static_cast<double>(Y)));
+	inline double Length() const {
+		return std::sqrt(this->pow());
 	}
 
-private:
-	double Distance(const CellStruct& b, const std::true_type) {
-		CellStruct buffer = *this;
-		const double x_diff = abs(static_cast<double>(buffer.X - b.X));
-		const double y_diff = abs(static_cast<double>(buffer.Y - b.Y));
-
-		if (x_diff > y_diff)
-		{
-			return (y_diff / 2) + x_diff;
-		}
-		else
-		{
-			return (x_diff / 2) + y_diff;
-		}
+	inline double DistanceFrom(const CellStruct& that) const{
+		return (that - *this).Length();
 	}
 
-	double Distance(const CellStruct& a, const std::false_type) {
-		return (a - *this).Magnitude();
+	inline double DistanceFromSquared(const CellStruct& that) const {
+		return (that - *this).pow();
 	}
+
 };

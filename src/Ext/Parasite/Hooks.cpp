@@ -12,6 +12,7 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/TerrainType/Body.h>
 
 #include <Utilities/GeneralUtils.h>
 
@@ -21,6 +22,38 @@
 // Parasite Able To target friendly
 // Parasite not removed when heal
 // Parasite Gain victim control instead of damaging
+
+DEFINE_HOOK(0x62AB88, ParasiteClass_PassableTerrain, 0x5)
+{
+	enum { SkipGameCode = 0x62ABA5, ReturnZero = 0x62ABA0 };
+
+	GET(ParasiteClass*, pThis, ESI);
+
+	const auto pTerrain = [](CellClass* pCell)->TerrainClass* {
+		for (ObjectClass* pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject)
+		{
+			const auto pTerrain = specific_cast<TerrainClass*>(pObject);
+
+			if (pTerrain && !TerrainTypeExt::ExtMap.Find(pTerrain->Type)->IsPassable)
+				return pTerrain;
+		}
+
+		return nullptr;
+	}(pThis->Victim->GetCell());
+
+	return pTerrain ? ReturnZero : SkipGameCode;
+}
+
+DEFINE_HOOK(0x62ABB6, ParasiteClass_LandCost, 0x5)
+{
+	enum { ContinueIn = 0x62ABC5, Skip = 0x62AC0F };
+
+	GET(ParasiteClass*, pThis, ESI);
+	GET(LandType, land, EAX);
+
+	return GroundType::GetCost(land , pThis->Owner->GetTechnoType()->SpeedType) > 0.0
+		? Skip : ContinueIn;
+}
 
 DEFINE_HOOK(0x629FE4, ParasiteClass_IsGrapplingAttack, 0x5)
 {
@@ -45,7 +78,7 @@ DEFINE_HOOK(0x62A0D3, ParasiteClass_AI_Particle, 0x5)
 	if (auto pParticle = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->Parasite_ParticleSys.Get(RulesClass::Instance->DefaultSparkSystem))
 	{
 		auto nLocHere = *pCoord;
-		if(pParticle->BehavesLike == BehavesLike::Smoke)
+		if(pParticle->BehavesLike == ParticleSystemTypeBehavesLike::Smoke)
 			nLocHere.Z += 100;
 
 		GameCreate<ParticleSystemClass>(pParticle, nLocHere, pThis->Victim , pThis->Owner ,CoordStruct::Empty , pThis->Owner->Owner);
@@ -60,7 +93,7 @@ DEFINE_HOOK(0x62A13F, ParasiteClass_AI_WeaponAnim, 0x5)
 	GET(AnimTypeClass* const, pAnimType, EBP);
 	LEA_STACK(CoordStruct*, pStack, STACK_OFFS(0x4C, 0x18));
 
-	AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pStack,0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 , 0 , 0), 
+	AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pStack,0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 , 0 , 0),
 		pThis->Owner ? pThis->Owner->GetOwningHouse() : nullptr,
 		pThis->Victim ? pThis->Victim->GetOwningHouse() : nullptr,
 		pThis->Owner,

@@ -5,7 +5,7 @@
 #pragma once
 
 #include <ObjectClass.h>
-#include <GeneralStructures.h>
+#include <VelocityClass.h>
 #include <BulletTypeClass.h>
 
 class TechnoClass;

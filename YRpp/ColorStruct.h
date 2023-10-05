@@ -75,10 +75,10 @@ struct ColorStruct
 
 	inline explicit ColorStruct(WORD const color);
 
-	bool operator == (ColorStruct const rhs) const
+	__forceinline bool operator == (ColorStruct const rhs) const
 	{ return R == rhs.R && G == rhs.G && B == rhs.B; }
 
-	bool operator != (ColorStruct const rhs) const
+	__forceinline bool operator != (ColorStruct const rhs) const
 	{ return !(*this == rhs); }
 
 	__forceinline bool operator!() const
@@ -111,12 +111,21 @@ struct ColorStruct
 	ColorStruct* Adjust_Brightness(ColorStruct* color, float adjust)
 	{ JMP_THIS(0x661190); }
 
-	static inline ColorStruct Interpolate(const ColorStruct& from, const ColorStruct& towards, float amount)
+	static inline ColorStruct Interpolate(const ColorStruct& from, const ColorStruct& towards, double amount)
 	{
 		return {
-			(BYTE)std::clamp(from.R * (1.0f - amount) + towards.R * amount, 0.0f, 255.0f) ,
-			(BYTE)std::clamp(from.G * (1.0f - amount) + towards.G * amount, 0.0f, 255.0f) ,
-			(BYTE)std::clamp(from.B * (1.0f - amount) + towards.B * amount, 0.0f, 255.0f)
+			std::clamp<BYTE>((BYTE)(from.R * (1.0 - amount) + towards.R * amount), 0u, 255u) ,
+			std::clamp<BYTE>((BYTE)(from.G * (1.0 - amount) + towards.G * amount), 0u, 255u) ,
+			std::clamp<BYTE>((BYTE)(from.B * (1.0 - amount) + towards.B * amount), 0u, 255u)
+		};
+	}
+
+	static inline ColorStruct Interpolate(const ColorStruct* from, const ColorStruct* towards, double amount)
+	{
+		return {
+			std::clamp<BYTE>((BYTE)(from->R * (1.0 - amount) + towards->R * amount), 0u, 255u) ,
+			std::clamp<BYTE>((BYTE)(from->G * (1.0 - amount) + towards->G * amount), 0u, 255u) ,
+			std::clamp<BYTE>((BYTE)(from->B * (1.0 - amount) + towards->B * amount), 0u, 255u)
 		};
 	}
 

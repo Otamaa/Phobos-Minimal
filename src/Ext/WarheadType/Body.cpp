@@ -605,6 +605,12 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, b
 		{
 			if (TechnoExt::IsChronoDelayDamageImmune(pFoot))
 				return false;
+
+			if (pFoot->WhatAmI() == UnitClass::AbsID) {
+				if (static_cast<const UnitClass*>(pFoot)->DeathFrameCounter > 0) {
+					return false;
+				}
+			}
 		}
 
 		if (pTechno->IsBeingWarpedOut())

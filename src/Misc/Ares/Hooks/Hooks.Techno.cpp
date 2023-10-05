@@ -197,7 +197,7 @@ DEFINE_OVERRIDE_HOOK(0x6FAD49, TechnoClass_Update_SparkParticles, 8) // breaks t
 
 		for (auto pSystem : it)
 		{
-			if (allowAny || pSystem->BehavesLike == BehavesLike::Spark)
+			if (allowAny || pSystem->BehavesLike == ParticleSystemTypeBehavesLike::Spark)
 			{
 				Systems.AddItem(pSystem);
 			}

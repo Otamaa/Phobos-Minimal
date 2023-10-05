@@ -76,7 +76,7 @@ public:
 	CoordStruct TargetCoords;
 	ObjectClass* Owner;
 	AbstractClass* Target; // CellClass or TechnoClass
-	int          SpawnFrames; //from ParSysTypeClass
+	float          SpawnFrames; //from ParSysTypeClass
 	int          Lifetime; //from ParSysTypeClass
 	int          SparkSpawnFrames; //from ParSysTypeClass
 	int          SpotlightRadius; //defaults to 29

@@ -163,370 +163,56 @@ public:
 	bool operator!=(const CoordStruct& nThat) const
 	{ return (X != nThat.X || Y != nThat.Y || Z != nThat.Z); }
 
-	double Magnitude_() const
-	{ return std::sqrt(MagnitudeSquared()); }
-
-	double Magnitude() const
-	{ return Math::sqrt(MagnitudeSquared()); }
-
-	int MagnitudeInt() const
-	{ return static_cast<int>(Magnitude() * 0.00390625);}
-
 	//vector multiplication
 	CoordStruct operator*(const CoordStruct& a) const
 	{
 		return { X * a.X , Y * a.Y , Z * a.Z };
 	}
 
-	double MagnitudeSquared() const {
-		return static_cast<double>(X) * X
-			+ static_cast<double>(Y) * Y
-			+ static_cast<double>(Z) * Z;
-	}
-
-	double MagnitudeSquaredXY() const
-	{
-		return static_cast<double>(X) * X
-			+ static_cast<double>(Y) * Y;
-	}
-
-	int Length() const {
-		JMP_THIS(0x41C380);
-	}
-
-	double DistanceFrom_(const CoordStruct& nThat) const
-	{ return (*this - nThat).Magnitude_(); }
-
-	double DistanceFrom(const CoordStruct& nThat) const
-	{ return (*this - nThat).Magnitude(); }
-
-	inline int DistanceFromI(const CoordStruct& nThat) const
-	{ return static_cast<int>((*this - nThat).Magnitude()); }
-
-	double DistanceFromXY(const CoordStruct& nThat) const
-	{ return (*this - nThat).MagnitudeSquaredXY(); }
-
-	inline int DistanceFromIXY(const CoordStruct& nThat) const
-	{ return static_cast<int>((*this - nThat).MagnitudeSquaredXY()); }
-
 	static const  CoordStruct Empty;
-
-	CoordStruct Lerp(const CoordStruct& nThat, float t)
-	{
-		return {
-			static_cast<int>(((double)this->X * (1.0f - (double)t)) + ((double)nThat.X * t)) ,
-			static_cast<int>(((double)this->Y * (1.0f - (double)t)) + ((double)nThat.Y * t)) ,
-			static_cast<int>(((double)this->Z * (1.0f - (double)t)) + ((double)nThat.Z * t))
-		};
-	}
-
-	CoordStruct Mid(const CoordStruct& nThat)
-	{
-		return {
-			(this->X - nThat.X) / 2 ,
-			(this->Y - nThat.Y) / 2 ,
-			0
-		};
-	}
-
-	CoordStruct Mid()
-	{
-		return {
-			(this->X) / 2 ,
-			(this->Y) / 2 ,
-			0
-		};
-	}
-
-	CoordStruct Snap()
-	{
-		// Convert coord to cell, and back again to get the absolute position.
-		int cellX = this->X / 256;
-		int cellY = this->Y / 256;
-
-		CoordStruct tmp { cellX * 256  , cellY * 256 , this->Z };
-
-		// Snap coord to cell center.
-		tmp.X += 256 / 2;
-		tmp.Y += 256 / 2;
-
-		return tmp;
-	}
-
-	CoordStruct Fraction()
-	{
-		return { (this->X % 256)  , (this->Y % 256),  0 };
-	}
-
-	CoordStruct Whole()
-	{
-		return { (this->X / 256) * 256  , (this->Y / 256) * 256 , 0 };
-	}
 
 	inline int& operator[](int i) { return (&X)[i]; }
 	inline const int& operator[](int i) const { return (&X)[i]; }
 
-	CoordStruct CrossProduct(const CoordStruct& nThat) const
-	{
-		return
-		{
-			Y * nThat.Z - Z * nThat.Y,
-			Z * nThat.X - X * nThat.Z,
-			X * nThat.Y - Y * nThat.X
-		};
+	inline int& At(int i) { return (&X)[i]; }
+	inline const int& At(int i) const { return (&X)[i]; }
+
+//=============================Special cases=========================================
+	inline double powXY() const {
+		return (double)std::pow(X,2) + (double)std::pow(Y,2);
 	}
 
-	bool IsCollinearTo(const CoordStruct& nThat) const
-	{ return CrossProduct(nThat).MagnitudeSquared() == 0.0; }
-
-	double FindScalar(const CoordStruct& nThat) const
-	{
-		double r = static_cast<double>(nThat.X) / static_cast<double>(X);
-		if ((static_cast<int>(r * Y) == nThat.Y) && (static_cast<int>(r * Z) == nThat.Z))
-		{
-			return r;
-		}
-		else
-		{
-			//the vectors are not collinear, return NaN!
-			unsigned long NaN[2] = { 0xFFFFFFFF,0x7FFFFFFF };
-			return *reinterpret_cast<double*>(NaN);
-		}
+	inline double LengthXY() const {
+		return std::sqrt(this->powXY());
 	}
 
-	double Angle(const CoordStruct& nThat) const
-	{
-		double Mag = (nThat).Magnitude();
-		double MagT = this->Magnitude();
-		double Dot = static_cast<double>((this->X * nThat.X) + (this->Y * nThat.Y) + (this->Z * nThat.Z));
-		double v = Dot / (Mag * MagT);
-
-		v = fmax(v, -1.0);
-		v = fmin(v, 1.0);
-
-		return Math::acos(v);
+	inline double DistanceFromXY(const CoordStruct& that) const{
+		return (that - *this).LengthXY();
 	}
 
-	CoordStruct Max(const CoordStruct& nThat)
-	{
-		double x = X > nThat.X ? X : nThat.X;
-		double y = Y > nThat.Y ? Y : nThat.Y;
-		//swapped ?
-		double z = Z > nThat.Z ? nThat.Z : Z;
-
-		return { static_cast<int>(x) , static_cast<int>(y) , static_cast<int>(z) };
+	inline double DistanceFromSquaredXY(const CoordStruct& that) const {
+		return (that - *this).powXY();
 	}
 
-	CoordStruct MoveTowards(CoordStruct& nThat, double maxDistanceDelta)
-	{
-		CoordStruct d = (nThat - *this);
-		double m = d.Magnitude();
-		return (m < maxDistanceDelta || m == 0)  ?
-			nThat : *this += (d *= maxDistanceDelta * m);
+//=============================Most cases================================================
+	/*
+		MagnitudeSquared = pow
+	*/
+	inline double pow() const {
+		return (double)std::pow(X,2) + (double)std::pow(Y,2) + (double)std::pow(Z,2);
 	}
 
-	double Dot(const CoordStruct& nThat)
-	{ return X * nThat.X + Y * nThat.Y + Z * nThat.Z; }
-
-	CoordStruct Reject(const CoordStruct& nThat)
-	{ return *this - Project(nThat); }
-
-	CoordStruct Reflect(const CoordStruct& nThat) {
-		auto nData = (*this - 2);
-		auto nProj = Project(nThat);
-		return { nData.X * nProj.X ,  nData.Y * nProj.Y  ,  nData.Z * nProj.Z };
+	inline double Length() const {
+		return std::sqrt(this->pow());
 	}
 
-	CoordStruct Project(const CoordStruct& nThat) {
-		double m = nThat.Magnitude();
-		double res = Dot(nThat) / (m * m);
-		return { static_cast<int>(nThat.X * res), static_cast<int>(nThat.Y * res), static_cast<int>(nThat.Z * res) };
+	inline double DistanceFrom(const CoordStruct& that) const{
+		return (that - *this).Length();
 	}
 
-	void Scale(const CoordStruct& nThat)
-	{ *this * nThat; }
-
-	bool Equal_Within_Epsilon(const CoordStruct& nThat, double epsilon)
-	{ return ((abs(X - nThat.X) < epsilon) && (abs(Y - nThat.Y) < epsilon) && (abs(Z - nThat.Z) < epsilon)); }
-
-	int Cross_Product_X(const CoordStruct& nThat)
-	{ return Y * nThat.Z - Z * nThat.Y;}
-
-	int Cross_Product_Y(const CoordStruct& nThat)
-	{ return Z * nThat.X - X * nThat.Z;}
-
-	int Cross_Product_Z(const CoordStruct& nThat)
-	{ return X * nThat.Y - Y * nThat.X; }
-
-	CoordStruct Normalize()
-	{
-		CoordStruct buffer {0,0,0};
-		double len2 = static_cast<double>(X * X + Y * Y + Z * Z);
-
-		if (len2 != 0.0)
-		{
-			double oolen = static_cast<double>(Math::Q_invsqrt(static_cast<float>(len2)));
-			buffer.X = X*oolen;
-			buffer.Y = Y*oolen;
-			buffer.Z = Z*oolen;
-		}
-
-		return buffer;
+	inline double DistanceFromSquared(const CoordStruct& that) const {
+		return (that - *this).pow();
 	}
-
-	double Quick_distance(const CoordStruct& nThat) const
-	{
-		double max = abs(static_cast<double>(X - nThat.X));
-		double mid = abs(static_cast<double>(Y - nThat.Y));
-		double min = abs(static_cast<double>(Z - nThat.Z));
-		double tmp;
-
-		if (max < mid)
-		{
-			tmp = max;
-			max = mid;
-			mid = tmp;
-		}
-
-		if (max < min)
-		{
-			tmp = max;
-			max = min;
-			min = tmp;
-		}
-
-		if (mid < min)
-		{
-			tmp = mid;
-			mid = min;
-			min = mid;
-		}
-
-		return max + (11.0 / 32.0) * mid + (1.0 / 4.0) * min;
-	}
-
-	void Swap(CoordStruct& nThat)
-	{
-		CoordStruct tmp(*this);
-		*this = nThat;
-		nThat = tmp;
-	}
-
-	void Update_Min(const CoordStruct& nThat)
-	{
-		if (nThat.X < X) X = nThat.X;
-		if (nThat.Y < Y) Y = nThat.Y;
-		if (nThat.Z < Z) Z = nThat.Z;
-	}
-
-	void Update_Max(const CoordStruct& nThat)
-	{
-		if (nThat.X > X) X = nThat.X;
-		if (nThat.Y > Y) Y = nThat.Y;
-		if (nThat.Z > Z) Z = nThat.Z;
-	}
-
-	void Cap_Absolute_To(const CoordStruct& nThat)
-	{
-		if (X > 0)
-		{
-			if (nThat.X < X)
-			{
-				X = nThat.X;
-			}
-		}
-		else
-		{
-			if (-nThat.X > X)
-			{
-				X = -nThat.X;
-			}
-		}
-
-		if (Y > 0)
-		{
-			if (nThat.Y < Y)
-			{
-				Y = nThat.Y;
-			}
-		}
-		else
-		{
-			if (-nThat.Y > Y)
-			{
-				Y = -nThat.Y;
-			}
-		}
-
-		if (Z > 0)
-		{
-			if (nThat.Z < Z)
-			{
-				Z = nThat.Z;
-			}
-		}
-		else
-		{
-			if (-nThat.Z > Z)
-			{
-				Z = -nThat.Z;
-			}
-		}
-	}
-
-	void Rotate_X(double angle)
-	{ Rotate_X(Math::sin(angle), Math::cos(angle)); }
-
-	void Rotate_X(double s_angle, double c_angle)
-	{
-		double tmp_y = static_cast<double>(Y);
-		double tmp_z = static_cast<double>(Z);
-
-		Y = c_angle * tmp_y - s_angle * tmp_z;
-		Z = s_angle * tmp_y + c_angle * tmp_z;
-	}
-
-	void Rotate_Y(double angle)
-	{ Rotate_X(Math::sin(angle), Math::cos(angle)); }
-
-	void Rotate_Y(double s_angle, double c_angle)
-	{
-		double tmp_x = static_cast<double>(X);
-		double tmp_z = static_cast<double>(Z);
-
-		X = c_angle * tmp_x + s_angle * tmp_z;
-		Z = -s_angle * tmp_x + c_angle * tmp_z;
-	}
-
-	void Rotate_Z(double angle)
-	{ Rotate_X(Math::sin(angle), Math::cos(angle)); }
-
-	void Rotate_Z(double s_angle, double c_angle)
-	{
-		double tmp_x = static_cast<double>(X);
-		double tmp_y = static_cast<double>(Y);
-
-		X = c_angle * tmp_x - s_angle * tmp_y;
-		Y = s_angle * tmp_x + c_angle * tmp_y;
-	}
-
-	int Find_X_At_Y(int y, const CoordStruct& nThat)
-	{ return (X + ((y - Y) * ((nThat.X - X) / (nThat.Y - Y)))); }
-
-	int Find_X_At_Z(int z, const CoordStruct& nThat)
-	{ return (X + ((z - Z) * ((nThat.X - X) / (nThat.Z - Z)))); }
-
-	int Find_Y_At_X(int x, const CoordStruct& nThat)
-	{ return (Y + ((x - X) * ((nThat.Y - Y) / (nThat.X - X)))); }
-
-	int Find_Y_At_Z(int z, const CoordStruct& nThat)
-	{ return (Y + ((z - Z) * ((nThat.Y - Y) / (nThat.Z - Z)))); }
-
-	int Find_Z_At_X(int x, const CoordStruct& nThat)
-	{ return (Z + ((x - X) * ((nThat.Z - Z) / (nThat.X - X))));}
-
-	int Find_Z_At_Y(int y, const CoordStruct& nThat)
-	{ return (Z + ((y - Y) * ((nThat.Z - Z) / (nThat.Y - Y)))); }
 
 };
 

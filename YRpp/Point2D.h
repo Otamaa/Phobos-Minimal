@@ -74,16 +74,25 @@ public:
 
 	inline bool IsValid() const { return *this != (Point2D::Empty); }
 
-	const int DistanceFrom(Point2D const& nThat)
-	{
-		return abs((nThat.X - X) * (nThat.X - X)) + abs((nThat.Y - Y) * (nThat.Y - Y));
+//=============================Most cases================================================
+	/*
+		MagnitudeSquared = pow
+	*/
+	inline double pow() const {
+		return (double)std::pow(X,2) + (double)std::pow(Y,2);
 	}
 
-	int Length() const
-	{
-		return static_cast<int>(Math::sqrt(static_cast<double>((X * X) + (Y * Y))));
+	inline double Length() const {
+		return std::sqrt(this->pow());
 	}
 
+	inline double DistanceFrom(const Point2D& that) const{
+		return (that - *this).Length();
+	}
+
+	inline double DistanceFromSquared(const Point2D& that) const {
+		return (that - *this).pow();
+	}
 public:
 
 	int X, Y;

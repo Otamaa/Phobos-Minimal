@@ -361,7 +361,7 @@ void AnimExt::ExtData::CreateAttachedSystem()
 
 	auto nLoc = pThis->Location;
 
-	if (pData->AttachedSystem->BehavesLike == BehavesLike::Smoke)
+	if (pData->AttachedSystem->BehavesLike == ParticleSystemTypeBehavesLike::Smoke)
 		nLoc.Z += 100;
 
 	this->AttachedSystem.reset(GameCreate<ParticleSystemClass>(

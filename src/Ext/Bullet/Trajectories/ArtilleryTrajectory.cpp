@@ -39,7 +39,7 @@ bool ArtilleryTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 
 bool ArtilleryTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	return PhobosTrajectory::Load(Stm, RegisterForChange) && 
+	return PhobosTrajectory::Load(Stm, RegisterForChange) &&
 	Stm
 		.Process(this->InitialTargetLocation)
 		.Process(this->InitialSourceLocation)
@@ -94,7 +94,7 @@ void ArtilleryTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocit
 	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
 	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
 	pBullet->Velocity.Z = static_cast<double>(pBullet->TargetCoords.Z - pBullet->SourceCoords.Z);
-	pBullet->Velocity *= (this->GetTrajectorySpeed() / pBullet->Velocity.Magnitude());
+	pBullet->Velocity *= (this->GetTrajectorySpeed() / pBullet->Velocity.Length());
 }
 
 void ArtilleryTrajectory::OnAIPreDetonate() { }

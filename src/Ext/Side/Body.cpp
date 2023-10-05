@@ -11,18 +11,53 @@ void SideExt::ExtData::Initialize() {
 	{ //Soviets
 		this->EVAIndex = 1;
 		this->MessageTextColorIndex = 11;
-
+		this->SidebarYuriFileNames = false;
+		this->ToolTipTextColor = ColorStruct(255, 255, 0);
 	}
 	else if (IS_SAME_STR_(pID, "ThirdSide"))
 	{ //Yuri
 		this->EVAIndex = 2;
 		this->MessageTextColorIndex = 25;
-
+		this->SidebarYuriFileNames = true;
+		this->ToolTipTextColor = ColorStruct(255, 255, 0);
 	}
 	else
 	{ //Allies or any other country
 		this->EVAIndex = 0;
 		this->MessageTextColorIndex = 21;
+		this->SidebarYuriFileNames = false;
+		this->ToolTipTextColor = ColorStruct(164, 210, 255);
+	}
+
+	switch (this->ArrayIndex)
+	{
+	case 0: // Allied
+		this->ScoreMultiplayBackground = "MPASCRNL.SHP";
+		this->ScoreMultiplayPalette = "MPASCRN.PAL";
+
+		this->ScoreCampaignBackground = "ASCRBKMD.SHP";
+		this->ScoreCampaignTransition = "ASCRTMD.SHP";
+		this->ScoreCampaignAnimation = "ASCRAMD.SHP";
+		this->ScoreCampaignPalette = "ASCORE.PAL";
+		break;
+	case 1: // Soviet
+		this->ScoreMultiplayBackground = "MPSSCRNL.SHP";
+		this->ScoreMultiplayPalette = "MPSSCRN.PAL";
+
+		this->ScoreCampaignBackground = "SSCRBKMD.SHP";
+		this->ScoreCampaignTransition = "SSCRTMD.SHP";
+		this->ScoreCampaignAnimation = "SSCRAMD.SHP";
+		this->ScoreCampaignPalette = "SSCORE.PAL";
+		break;
+	default: // Yuri and others
+		this->ScoreMultiplayBackground = "MPYSCRNL.SHP";
+		this->ScoreMultiplayPalette = "MPYSCRN.PAL";
+
+		this->ScoreCampaignBackground = "SYCRBKMD.SHP";
+		this->ScoreCampaignTransition = "SYCRTMD.SHP";
+		this->ScoreCampaignAnimation = "SYCRAMD.SHP";
+		this->ScoreCampaignPalette = "YSCORE.PAL";
+		break;
 	}
 };
 
@@ -268,6 +303,14 @@ void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->BaseDefenses.Read(exINI, pSection, "AI.BaseDefenses", true);
 
 	this->Disguise.Read(exINI, pSection, "DefaultDisguise", true);
+
+	this->SidebarYuriFileNames.Read(exINI, pSection, "Sidebar.YuriFileNames");
+	this->ToolTipTextColor.Read(exINI, pSection, "ToolTipColor");
+
+	this->ScoreCampaignBackground.Read(pINI, pSection, "CampaignScore.Background");
+	this->ScoreCampaignTransition.Read(pINI, pSection, "CampaignScore.Transition");
+	this->ScoreCampaignAnimation.Read(pINI, pSection, "CampaignScore.Animation");
+	this->ScoreCampaignPalette.Read(pINI, pSection, "CampaignScore.Palette");
 }
 
 // =============================
@@ -325,6 +368,17 @@ void SideExt::ExtData::Serialize(T& Stm)
 		.Process(this->BaseDefenseCounts)
 
 		.Process(this->Disguise)
+
+		.Process(this->SidebarYuriFileNames)
+		.Process(this->ToolTipTextColor)
+
+		.Process(this->ScoreMultiplayBackground)
+		.Process(this->ScoreMultiplayPalette)
+
+		.Process(this->ScoreCampaignBackground)
+		.Process(this->ScoreCampaignTransition)
+		.Process(this->ScoreCampaignAnimation)
+		.Process(this->ScoreCampaignPalette)
 		;
 }
 

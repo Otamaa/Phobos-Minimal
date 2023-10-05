@@ -74,7 +74,7 @@ void ElectricBoltClass::Create(CoordStruct const& start, CoordStruct const& end,
 	if (pSys)
 	{
 		auto nLoc = particleSysCoordFlip ? start : end;
-		if (pSys->BehavesLike == BehavesLike::Smoke)
+		if (pSys->BehavesLike == ParticleSystemTypeBehavesLike::Smoke)
 			nLoc.Z += 100;
 
 		GameCreate<ParticleSystemClass>(pSys, nLoc);
@@ -94,7 +94,7 @@ void ElectricBoltClass::Create(CoordStruct const& start, CoordStruct const& end,
 	 */
 	if(pSys){
 		auto nLoc = particleSysCoordFlip ? start : end;
-		if(pSys->BehavesLike == BehavesLike::Smoke)
+		if(pSys->BehavesLike == ParticleSystemTypeBehavesLike::Smoke)
 			nLoc.Z += 100;
 
 		GameCreate<ParticleSystemClass>(pSys, nLoc);

@@ -69,6 +69,17 @@ public:
 
 		Nullable<InfantryTypeClass*> Disguise {};
 
+		Valueable<bool> SidebarYuriFileNames { false };
+		Valueable<ColorStruct> ToolTipTextColor {};
+
+		PhobosFixedString<0x20> ScoreMultiplayBackground {};
+		PhobosFixedString<0x20> ScoreMultiplayPalette {};
+
+		PhobosFixedString<0x20> ScoreCampaignBackground {};
+		PhobosFixedString<0x20> ScoreCampaignTransition {};
+		PhobosFixedString<0x20> ScoreCampaignAnimation {};
+		PhobosFixedString<0x20> ScoreCampaignPalette {};
+
 		ExtData(SideClass* OwnerObject) : Extension<SideClass>(OwnerObject)
 		{ }
 

@@ -169,7 +169,7 @@ void AnimTypeExt::CreateUnit_MarkCell(AnimClass* pThis)
 
 		auto pCell = pThis->GetCell();
 
-		bool allowBridges = GroundType::Array[static_cast<int>(LandType::Clear)].Cost[static_cast<int>(pUnit->SpeedType)] > 0.0;
+		bool allowBridges = GroundType::GetCost(LandType::Clear , pUnit->SpeedType) > 0.0;
 		bool isBridge = allowBridges && pCell->ContainsBridge();
 
 		if (pTypeExt->CreateUnit_ConsiderPathfinding

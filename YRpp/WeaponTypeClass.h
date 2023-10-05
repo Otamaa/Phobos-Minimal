@@ -57,8 +57,9 @@ public:
 	int GetWeaponSpeed(int range) const
 	{ JMP_THIS(0x773070); }
 
+	// using dll sqrt and int rounding , be carefull
 	int GetWeaponSpeed(CoordStruct const& sourcePos, CoordStruct const& targetPos) const {
-		return GetWeaponSpeed(sourcePos.DistanceFromI(targetPos));
+		return GetWeaponSpeed((int)sourcePos.DistanceFrom(targetPos));
 	}
 
 	bool IsWallDestroyer(OverlayTypeClass* pWhat) const

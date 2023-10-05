@@ -60,14 +60,14 @@ void RadSiteExt::ExtData::CreateLight()
 	const auto nTintFactor = this->Type->GetTintFactor();
 	const auto nRadLevelFactor = pThis->RadLevel * this->Type->GetLightFactor();
 	const auto nLightFactor = std::clamp(nRadLevelFactor , 1.0 , 2000.0 );
-	const auto nDuration = pThis->RadDuration;
+	const auto nDuration = (double)pThis->RadDuration;
 
 	pThis->RadLevelTimer.Start(nLevelDelay);
 	pThis->RadLightTimer.Start(nLightDelay);
-	pThis->Intensity = static_cast<int>(nLightFactor);
-	pThis->LevelSteps = nDuration / nLevelDelay;
-	pThis->IntensitySteps = nDuration / nLightDelay;
-	pThis->IntensityDecrement = (int)(nLightFactor) / (nDuration / nLightDelay);
+	pThis->Intensity = int(nLightFactor);
+	pThis->LevelSteps = int(nDuration / (double)nLevelDelay);
+	pThis->IntensitySteps = int(nDuration / (double)nLightDelay);
+	pThis->IntensityDecrement = int(nLightFactor / (nDuration / (double)nLightDelay));
 	const TintStruct nTintBuffer { nRadcolor  , nTintFactor };
 
 	pThis->Tint = nTintBuffer;

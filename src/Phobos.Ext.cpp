@@ -32,6 +32,7 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/ParticleSystem/Body.h>
+#include <Ext/ParticleSystemType/Body.h>
 
 //#include <Misc/TriggerMPOwner.h>
 

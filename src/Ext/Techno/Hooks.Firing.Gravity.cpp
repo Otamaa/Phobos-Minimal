@@ -74,13 +74,13 @@ DEFINE_HOOK(0x6FF031, TechnoClass_FireAt_ReverseVelocityWhileGravityIsZero, 0xA)
 		pBullet->Velocity *= -1;
 		if (pBulletTypeExt->Gravity_HeightFix)
 		{
-			const auto speed = pBullet->Velocity.Magnitude();
+			const auto speed = pBullet->Velocity.Length();
 
 			pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
 			pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
 			pBullet->Velocity.Z = static_cast<double>(pBullet->TargetCoords.Z - pBullet->SourceCoords.Z);
 
-			const auto magnitude = pBullet->Velocity.Magnitude();
+			const auto magnitude = pBullet->Velocity.Length();
 			pBullet->Velocity *= speed / magnitude;
 		}
 	}

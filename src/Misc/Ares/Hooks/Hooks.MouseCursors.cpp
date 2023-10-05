@@ -140,12 +140,12 @@ DEFINE_OVERRIDE_HOOK(0x4AB35A, DisplayClass_SetAction_CustomCursor, 0x6)
 		// doesnt work with `Deployed` techno
 		auto const& nObjectVect = ObjectClass::CurrentObjects();
 
-
 		if (pTarget && nObjectVect.Count == 1 && (nObjectVect.Items[0]->AbstractFlags & AbstractFlags::Techno)) {
 			const auto pTechno = static_cast<TechnoClass*>(nObjectVect[0]);
 			const auto weaponidx = pTechno->SelectWeapon(pTarget);
-			if(!pTechno->IsCloseEnough(pTarget, weaponidx))
-				MouseClassExt::ByWeapon(pTechno, weaponidx, true);
+			if(!pTechno->IsCloseEnough(pTarget, weaponidx)) {
+				MouseCursorFuncs::SetMouseCursorAction(MouseClassExt::ByWeapon(pTechno, weaponidx, true), Action::Attack, false);
+			}
 		} else {
 				nAction = Action::Harvest;
 		}

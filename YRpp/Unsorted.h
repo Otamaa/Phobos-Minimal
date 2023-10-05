@@ -148,7 +148,7 @@ struct Game
 	}
 
 	static int __forceinline AdjustHeight(int height)  {
-		return F2I((double)height * GameMagicValue_() + ((double)(height >= Unsorted::HeightMax)) + 0.5);
+		return F2I((double)height * Unsorted::GameMagicNumbr_ + ((double)(height >= Unsorted::HeightMax)) + 0.5);
 	}
 
 	// the game's own rounding function

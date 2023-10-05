@@ -28,7 +28,7 @@ void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 
 	switch (pThis->BehavesLike)
 	{
-	case BehavesLike::Smoke: {
+	case ParticleTypeBehavesLike::Smoke: {
 		/*
 			WindFacingMult Smoke[at 0 - value(x:0, y : -2)]
 			WindFacingMult Smoke[at 1 - value(x:2, y : -2)]
@@ -43,16 +43,16 @@ void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		ReadWinDirMult(this->WindMult, exINI , pID, ParticleClass::SmokeWind_X.begin(), ParticleClass::SmokeWind_Y.begin());
 	}
 	break;
-	case BehavesLike::Fire: {
+	case ParticleTypeBehavesLike::Fire: {
 	//	this->ExpireAfterDamaging.Read(exINI, pID, "Fire.ExpireAfterDamaging");
 	//	this->DamagingAnim.Read(exINI, pID, "Fire.DamagingAnim");
 	}
 	break;
-	case BehavesLike::Railgun: {
+	case ParticleTypeBehavesLike::Railgun: {
 		this->ReadjustZ.Read(exINI, pID , "ReadjustZCoord");
 		break;
 	}
-	case BehavesLike::Gas: {
+	case ParticleTypeBehavesLike::Gas: {
 		/*
 			[at 0 - value(x:0, y : -2)]
 			[at 1 - value(x:2, y : -2)]
@@ -77,6 +77,7 @@ void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 
 	this->Palette.Read(exINI, pID, "CustomPalette");
 	this->DamageRange.Read(exINI, pID, "DamageRange");
+
 }
 
 // =============================
@@ -93,6 +94,7 @@ void ParticleTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DeleteWhenReachWater)
 		.Process(this->WindMult)
 		.Process(this->Gas_DriftSpeed)
+
 		;
 
 	this->Trails.Serialize(Stm);

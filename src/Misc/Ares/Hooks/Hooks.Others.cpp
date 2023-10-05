@@ -58,10 +58,6 @@ DEFINE_OVERRIDE_HOOK(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
 DEFINE_DISABLE_HOOK(0x565215, MapClass_CTOR_NoInit_Crates_ares)//, 0x6, 56522D)
 DEFINE_JUMP(LJMP, 0x565215, 0x56522D);
 
-int squared(Point2D a, Point2D b)
-{
-	return (int)(std::sqrt((CoordStruct { a.X , a.Y, 0 } - CoordStruct { b.X, b.Y, 0 }).MagnitudeSquared()));
-}
 
 DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 0)
 {
@@ -73,7 +69,7 @@ DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 0)
 	{
 		const auto nThisCoord = pThis->GetCoords();
 		const auto nThatCoord = pThat->GetCoords();
-		nResult = squared({ nThisCoord.X , nThisCoord.Y }, { nThatCoord.X, nThatCoord.Y });
+		nResult = (int)nThisCoord.DistanceFromXY(nThatCoord);
 	}
 
 	R->EAX(nResult);
@@ -85,7 +81,7 @@ DEFINE_OVERRIDE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 0)
 	GET(AbstractClass*, pThis, ECX);
 	auto const nThisCoord = pThis->GetCoords();
 	GET_STACK(CoordStruct*, pThatCoord, 0x4);
-	R->EAX(squared({ nThisCoord.X , nThisCoord.Y }, { pThatCoord->X,  pThatCoord->Y }));
+	R->EAX((int)nThisCoord.DistanceFromXY(*pThatCoord));
 	return 0x5F659B;
 }
 
@@ -1055,12 +1051,6 @@ DEFINE_OVERRIDE_HOOK(0x62C23D, ParticleClass_Update_Gas_DamageRange, 6)
 
 	for (const auto pItem : pVec)
 	{
-		if (pItem->Health <= 0 || !pItem->IsAlive || pItem->InLimbo)
-			continue;
-
-		if (pItem->IsSinking || pItem->IsCrashing || pItem->TemporalTargetingMe)
-			continue;
-
 		if (pItem->WhatAmI() != BuildingClass::AbsID && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pItem)))
 			continue;
 
@@ -1601,3 +1591,15 @@ DEFINE_OVERRIDE_HOOK(0x5d7048, MPGameMode_SpawnBaseUnit_BuildConst, 5)
 
 DEFINE_DISABLE_HOOK(0x62CDE8, ParticleClass_Update_Fire_ares) //, 5)
 DEFINE_DISABLE_HOOK(0x62C2ED, ParticleClass_Update_Gas_ares) //, 6)
+
+DEFINE_OVERRIDE_HOOK(0x6BD7E3, Expand_MIX_Reorg, 5)
+{
+	MixFileClass::Bootstrap();
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x52BB64, Expand_MIX_Deorg, 5)
+{
+	R->AL(1);
+	return 0x52BB69;
+}

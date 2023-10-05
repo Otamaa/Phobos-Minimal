@@ -756,8 +756,8 @@ struct TargetingFuncs
 			{
 				do
 				{
-					nBuffer.X = (short)nRand.RandomFromMax(MapClass::MapCellWidth);
-					nBuffer.Y = (short)nRand.RandomFromMax(MapClass::MapCellHeight);
+					nBuffer.X = (short)nRand.RandomFromMax(MapClass::MapCellDimension->Width);
+					nBuffer.Y = (short)nRand.RandomFromMax(MapClass::MapCellDimension->Height);
 
 				}
 				while (!MapClass::Instance->CoordinatesLegal(nBuffer));
@@ -1738,6 +1738,12 @@ void SWTypeExt::ExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, co
 				if (pTargetFoot->Health <= 0 || !pTargetFoot->IsAlive || pTargetFoot->IsCrashing || pTargetFoot->IsSinking)
 					continue;
 
+				if (pTargetFoot->WhatAmI() == UnitClass::AbsID) {
+					if (static_cast<const UnitClass*>(pTargetFoot)->DeathFrameCounter > 0) {
+						continue;
+					}
+				}
+
 				TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTargetFoot , this->Convert_SucceededAnim);
 			}
 		}
@@ -1745,12 +1751,9 @@ void SWTypeExt::ExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, co
 		{
 			const auto pCellptr = MapClass::Instance->GetCellAt(*pCell);
 			const auto range = this->GetNewSWType()->GetRange(this);
-			auto vecTechno = Helpers::Alex::getItemsInRangeOf(pCellptr->GetCoordsWithBridge(), range.WidthOrRange, true);
+			auto vecTechno = Helpers::Alex::getCellSpreadItems<FootClass>(pCellptr->GetCoordsWithBridge(), range.WidthOrRange, true);
 
 			for(auto pTargetFoot : vecTechno) {
-				if (pTargetFoot->Health <= 0 || !pTargetFoot->IsAlive || pTargetFoot->IsCrashing || pTargetFoot->IsSinking)
-					continue;
-
 				TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTargetFoot, this->Convert_SucceededAnim);
 			}
 		}

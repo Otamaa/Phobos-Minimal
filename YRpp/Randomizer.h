@@ -61,16 +61,30 @@ public:
 	int operator()(int nMin, int nMax)
 	{ return RandomRanged(nMin, nMax); }
 
+	/*
+	*	Param :
+	*	int Percent
+	*	Return :
+	*	True = if percent less than random 0 - 99
+	*	False = if percent more than random 0 - 99
+	*/
 	bool PercentChance(int percent)
 	{ return RandomRanged(0,99) < percent; }
 
+	/*
+	*	Param :
+	*	double chance
+	*	Return :
+	*	True = if chanche less than RandomDouble() result
+	*	False = if chance more than RandomDouble() result
+	*/
 	bool PercentChance(double dChance)
 	{ return RandomDouble() < dChance; }
 
 	double RandomDouble()
-	{ return RandomRanged(1, INT_MAX) / (double)((unsigned int)INT_MAX + 1); }
+	{ return RandomRanged(1, INT_MAX) * 4.656612873077393e-10; }
 
-	double GameRandomDouble() 
+	double GameRandomDouble()
 	{ return RandomRanged(1, INT_MAX) * INT_MAX_GAME(); }
 
 	double GameRandomDouble_Closest()
@@ -109,7 +123,7 @@ protected:
 	explicit Random3Class(unsigned seed1 , unsigned seed2 ) noexcept {
 		JMP_THIS(0x65C890);
 	}
-	
+
 public:
 	operator int() { return operator()(); }
 

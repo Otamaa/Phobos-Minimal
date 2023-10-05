@@ -54,7 +54,7 @@ void VerticalTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity
 	pBullet->Velocity.X = 0;
 	pBullet->Velocity.Y = 0;
 	pBullet->Velocity.Z = static_cast<double>(this->Height - pBullet->SourceCoords.Z);
-	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Magnitude();
+	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Length();
 }
 
 bool VerticalTrajectory::OnAI()

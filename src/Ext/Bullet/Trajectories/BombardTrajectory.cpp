@@ -63,14 +63,14 @@ void BombardTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 		pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
 		pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
 		pBullet->Velocity.Z = static_cast<double>(this->Height - pBullet->SourceCoords.Z);
-		pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Magnitude();
+		pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Length();
 	}
 	else
 	{
 		pBullet->Velocity.X = 0.0;
 		pBullet->Velocity.Y = 0.0;
 		pBullet->Velocity.Z = static_cast<double>(this->Height - pBullet->SourceCoords.Z);
-		pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Magnitude();
+		pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Length();
 	}
 }
 

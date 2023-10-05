@@ -47,5 +47,43 @@ public:
 
 	inline bool IsValid() const { return *this != (Point3D::Empty); }
 
+//=============================Special cases=========================================
+	inline double powXY() const {
+		return (double)std::pow(X,2) + (double)std::pow(Y,2);
+	}
+
+	inline double LengthXY() const {
+		return std::sqrt(this->powXY());
+	}
+
+	inline double DistanceFromXY(const Point3D& that) const{
+		return (that - *this).LengthXY();
+	}
+
+	inline double DistanceFromSquaredXY(const Point3D& that) const {
+		return (that - *this).powXY();
+	}
+
+//=============================Most cases================================================
+	/*
+		MagnitudeSquared = pow
+	*/
+	inline double pow() const {
+		return (double)std::pow(X,2) + (double)std::pow(Y,2) + (double)std::pow(Z,2);
+	}
+
+	inline double Length() const {
+		return std::sqrt(this->pow());
+	}
+
+	inline double DistanceFrom(const Point3D& that) const{
+		return (that - *this).Length();
+	}
+
+	inline double DistanceFromSquared(const Point3D& that) const {
+		return (that - *this).pow();
+	}
+
+public:
 	int X, Y, Z;
 };

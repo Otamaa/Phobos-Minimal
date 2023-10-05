@@ -256,7 +256,7 @@ public:
 	}
 
 	float& operator[](int i) { JMP_THIS(0x645D00); }
-	const float & operator[](int i) const { JMP_THIS(0x645D10); }
+	const float& operator[](int i) const { JMP_THIS(0x645D10); }
 
 	Quaternion operator-() const { return { -X, -Y, -Z, W }; }
 	Quaternion operator+() const { return *this; }

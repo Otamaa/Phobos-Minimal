@@ -72,8 +72,8 @@ struct WeaponStruct
 		return !(*this == nWeap);
 	}
 
-	static bool __cdecl IsValid(WeaponStruct* WpStructe)
-	{ JMP_STD(0x70E240); }
+	//static bool __cdecl IsValid(WeaponStruct* WpStructe)
+	//{ JMP_STD(0x70E240); }
 
 };
 static_assert(sizeof(WeaponStruct) == 0x1C, "Invalid size.");

@@ -347,7 +347,7 @@ DEFINE_OVERRIDE_HOOK(0x4CF3D0, FlyLocomotionClass_sub_4CEFB0_HunterSeeker, 7)
 			crd -= pThis->MovingDestination;
 			crd.Z = 0;
 
-			auto const dist = int(crd.Magnitude());
+			auto const dist = int(crd.Length());
 
 			if (dist >= DetonateProximity)
 			{

@@ -1090,24 +1090,25 @@ bool TechnoExt_ExtData::FindAndTakeVehicle(FootClass* pThis)
 	//it seems Ares one do multiple item comparison before doing hijack ?
 	//cant really get right decomp result or maybe just me that not understand ,..
 	//these should work fine for now ,..
-	if (const auto It = Helpers::Alex::getCellSpreadItems_Foot(pThis->Location, pInf->Type->Sight,
-		[&](FootClass* pFoot)
-		{
-			if (pFoot == pThis || pFoot->WhatAmI() != UnitClass::AbsID)
-				return false;
+	auto its = Helpers::Alex::getCellSpreadItems<FootClass>(pThis->Location, (double)pInf->Type->Sight,false,false);
+	auto it = std::find_if(its.begin() , its.end() , [&](FootClass* pFoot){
+		if (pFoot == pThis || pFoot->WhatAmI() != UnitClass::AbsID)
+			return false;
 
-			return pThis->Location.DistanceFrom(pFoot->Location) <= nDistanceMax && GetActionHijack(pInf, pFoot) != AresHijackActionResult::None;
+		if(GetActionHijack(pInf, pFoot) == AresHijackActionResult::None)
+			return false;
 
-		}))
-	{
+		return true;
+	});
 
+	if(it != its.end()){
 		pThis->align_154->TakeVehicleMode = true;
 		pThis->ShouldGarrisonStructure = true;
-		if (pThis->Target != It || pThis->CurrentMission != Mission::Capture)
+		if (pThis->Target != *it || pThis->CurrentMission != Mission::Capture)
 		{
-			pThis->SetDestination(It, true);
-			pThis->QueueMission(Mission::Capture, true);
-			return true;
+				pThis->SetDestination(*it, true);
+				pThis->QueueMission(Mission::Capture, true);
+				return true;
 		}
 	}
 
@@ -1977,7 +1978,7 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 			|| ((TechnoClass*)pSource)->CloakState == CloakState::Cloaked
 			|| pSource->GetHeight() < -10
 			|| pSource->IsDisguised() && (pDisguise = pSource->GetDisguise(true)) && pDisguise->WhatAmI() == AbstractType::TerrainType
-			|| what == BuildingClass::AbsID && pSource->GetCurrentMission() != Mission::Construction && !((BuildingClass*)pSource)->IsPowerOnline()
+			|| what == BuildingClass::AbsID && (pSource->GetCurrentMission() != Mission::Construction && !((BuildingClass*)pSource)->IsPowerOnline() || BuildingExt::ExtMap.Find(((BuildingClass*)pSource))->LimboID != -1)
 			)
 	)
 	{
@@ -1996,8 +1997,8 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 			(xyTL.Y + off.Y + ScreenArea.Y));
 			--Unsorted::ScenarioInit;
 			TacticalClass::Instance->RegisterDirtyArea({
-			xyTL.X - off.X,
-			xyTL.Y - off.Y,
+			xyTL.X + off.X,
+			xyTL.Y + off.Y,
 			pImage->Width,
 			pImage->Height },
 			true);
@@ -4165,7 +4166,6 @@ void AresEMPulse::updateRadarBlackout(BuildingClass* const pBuilding)
 {
 	for (auto pType : pBuilding->GetTypes())
 	{
-
 		if (!pType)
 			continue;
 
@@ -4953,7 +4953,10 @@ void AresJammer::Update()
 		// for each jammable building ...
 		bool Eligible = false;
 		for (auto pType : curBuilding->GetTypes()) {
-			Eligible = pType && (pType->Radar || pType->SpySat);
+			if (pType && (pType->Radar || pType->SpySat)) {
+				Eligible = true;
+				break;
+			}
 		}
 
 		if (Eligible)
@@ -4998,7 +5001,7 @@ void AresJammer::Jam(BuildingClass* TargetBuilding)
 	//Using map ? , so it can keep item unique i presume ?
 	auto& jammMap = BuildingExt::ExtMap.Find(TargetBuilding)->RegisteredJammers;
 
-	jammMap.insert(this->AttachedToObject, true);
+	jammMap.push_back_unique(this->AttachedToObject);
 
 	if (jammMap.size() == 1) {
 		TargetBuilding->Owner->RecheckRadar = true;
@@ -5013,7 +5016,7 @@ void AresJammer::Unjam(BuildingClass* TargetBuilding)
 	//Using map ? , so it can keep item unique i presume ?
 	auto& jammMap = BuildingExt::ExtMap.Find(TargetBuilding)->RegisteredJammers;
 
-	if (jammMap.erase(this->AttachedToObject)) {
+	if (jammMap.remove(this->AttachedToObject)) {
 		if (jammMap.empty()) {
 			TargetBuilding->Owner->RecheckRadar = true;
 		}
@@ -6256,7 +6259,7 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs const Args, bool& r
 			{
 				const auto nCell = ScenarioClass::Instance->GetWaypointCoords(pThis->Value);
 				CellStruct nDesired = { ((PackedDatas*)Args.Source)->Cell.X - nCell.X ,((PackedDatas*)Args.Source)->Cell.Y - nCell.Y };
-				if (nDesired.MagnitudeSquared() <= 5.0)
+				if (nDesired.pow() <= 5.0)
 				{
 					result = true;
 					break;

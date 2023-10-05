@@ -1107,6 +1107,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->ProtectedDriver.Read(exINI, pSection, "ProtectedDriver");
 		this->ProtectedDriver_MinHealth.Read(exINI, pSection, "ProtectedDriver.MinHealth");
 		this->KeepAlive.Read(exINI, pSection, "KeepAlive");
+		this->DetectDisguise_Percent.Read(exINI, pSection, "DetectDisguise.Percent");
 
 #pragma region AircraftOnly
 		if (this->AttachtoType == AircraftTypeClass::AbsID)
@@ -2073,6 +2074,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Soylent_Zero)
 		.Process(this->Prerequisite_Power)
 		.Process(this->PassengerTurret)
+		.Process(this->DetectDisguise_Percent)
 		;
 }
 
@@ -2146,12 +2148,6 @@ DEFINE_HOOK(0x711AE0, TechnoTypeClass_DTOR, 0x5)
 {
 	GET(TechnoTypeClass*, pItem, ECX);
 
-	//const auto pExt = TechnoTypeExt::ExtMap.Find(pItem);
-	// these not yet impelented
-	//TechnoTypeExt::ClearImageData(pExt->BarrelImageData);
-	//TechnoTypeExt::ClearImageData(pExt->TurretImageData);
-	//GameDelete<true, true>(pExt->SpawnAltData.VXL);
-	//GameDelete<true, true>(pExt->SpawnAltData.HVA);
 	TechnoTypeExt::ExtMap.ClearExtAttribute(pItem);
 
 	return 0;

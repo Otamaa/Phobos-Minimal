@@ -839,6 +839,8 @@ public:
 
 		Valueable<bool> PassengerTurret { false };
 
+		Nullable<PartialVector3D<double>> DetectDisguise_Percent {};
+
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 		{
 			AttachedEffect.Owner = OwnerObject;
