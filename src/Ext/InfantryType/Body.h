@@ -50,8 +50,7 @@ public:
 	class ExtContainer final : public Container<InfantryTypeExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(InfantryTypeExt::ExtData, "InfantryTypeClass");
 	};
 
 	static ExtContainer ExtMap;

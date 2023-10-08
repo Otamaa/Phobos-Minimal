@@ -226,7 +226,7 @@ DEFINE_OVERRIDE_HOOK(0x4753F0, ArmorType_FindIndex, 0xA)
 	int nResult = fallback;
 	char buf[0x64];
 
-	if (pINI->ReadString(Section, Key, Phobos::readDefval, buf)) {
+	if (pINI->ReadString(Section, Key, Phobos::readDefval, buf) > 0) {
 
 		nResult = ArmorTypeClass::FindIndexById(buf);
 

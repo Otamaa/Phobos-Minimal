@@ -160,8 +160,6 @@ void InfantryTypeExt::ExtData::Serialize(T& Stm)
 // =============================
 // container
 InfantryTypeExt::ExtContainer InfantryTypeExt::ExtMap;
-InfantryTypeExt::ExtContainer::ExtContainer() : Container("InfantryTypeClass") { }
-InfantryTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks

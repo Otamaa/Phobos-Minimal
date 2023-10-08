@@ -217,6 +217,12 @@ public:
 		return this->Value;
 	}
 
+	// return a copy of the value instead
+	// this can be used to fill an vector after reading
+	T GetCopy() const noexcept{
+		return this->Value;
+	}
+
 	T* GetEx() noexcept
 	{
 		return &this->Value;
@@ -337,6 +343,10 @@ public:
 	noexcept(noexcept(T { r }) && noexcept(T { v }) && noexcept(T { e })) :
 		Rookie(r), Veteran(v), Elite(e) { }
 
+	Promotable(const Promotable&) = default;
+	Promotable(Promotable&&) = default;
+	Promotable& operator=(const Promotable& other) = default;
+
 	~Promotable() = default;
 
 	void SetAll(const T& val) {
@@ -406,13 +416,10 @@ public:
 	using value_type = T;
 	using base_type = std::remove_pointer_t<T>;
 
-	ValueableVector() noexcept = default;
-	ValueableVector(size_t Reserve) noexcept : std::vector<T>()
-	{
-		this->reserve(Reserve);
-	}
+	//ValueableVector() noexcept = default;
+	//ValueableVector(size_t Reserve) = delete;
 
-	~ValueableVector() = default;
+	//~ValueableVector() = default;
 
 	inline void Read(INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate = false);
 
@@ -547,8 +554,8 @@ class NullableVector : public ValueableVector<T>
 protected:
 	bool hasValue { false };
 public:
-	NullableVector() noexcept = default;
-	~NullableVector() = default;
+	//NullableVector() noexcept = default;
+	//~NullableVector() = default;
 	inline void Read(INI_EX& parser, const char* pSection, const char* pKey , bool allocate = false);
 
 	bool HasValue() const noexcept
@@ -649,6 +656,11 @@ public:
 	}
 
 	~Damageable() = default;
+
+	Damageable(const Damageable&) = default;
+	Damageable(Damageable&&) = default;
+	Damageable& operator=(const Damageable& other) = default;
+
 	inline void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr , bool Alloc = false);
 
 	const T* GetEx(TechnoClass* pTechno) const noexcept
@@ -715,6 +727,11 @@ public:
 	}
 
 	~HealthOnFireData() = default;
+
+	HealthOnFireData(const HealthOnFireData&) = default;
+	HealthOnFireData(HealthOnFireData&&) = default;
+	HealthOnFireData& operator=(const HealthOnFireData& other) = default;
+
 	inline bool Get(HealthState const& nState) const noexcept
 	{
 		return (nState == HealthState::Green && GreenOnFire)
@@ -730,6 +747,9 @@ public:
 template<typename T>
 class DamageableVector
 {
+	DamageableVector(const DamageableVector&) = delete;
+	DamageableVector(DamageableVector&&) = delete;
+	DamageableVector& operator=(const DamageableVector& other) = delete;
 public:
 	ValueableVector<T> BaseValue {};
 	NullableVector<T> ConditionYellow {};
@@ -807,6 +827,9 @@ ReadList: like gattling, remove last char if it is '.'
 template <typename T>
 class PromotableVector
 {
+	PromotableVector(const PromotableVector&) = delete;
+	PromotableVector(PromotableVector&&) = delete;
+	PromotableVector& operator=(const PromotableVector& other) = delete;
 public:
 	static T Default;
 
@@ -873,6 +896,10 @@ public:
 	AffectedHouse ApplyToHouses  { AffectedHouse::None };
 	WarheadTypeClass* SourceWarhead { };
 
+	TimedWarheadValue(const TimedWarheadValue&) = default;
+	TimedWarheadValue(TimedWarheadValue&&) = default;
+	TimedWarheadValue& operator=(const TimedWarheadValue& other) = default;
+
 	TimedWarheadValue() = default;
 
 	TimedWarheadValue(T const& value, int duration, AffectedHouse applyToHouses, WarheadTypeClass* sourceWarhead) :
@@ -917,6 +944,9 @@ public:
 	{
 	}
 
+	NullablePromotable(const NullablePromotable&) = default;
+	NullablePromotable(NullablePromotable&&) = default;
+	NullablePromotable& operator=(const NullablePromotable& other) = default;
 	~NullablePromotable() = default;
 
 	void SetAll(const T& val)

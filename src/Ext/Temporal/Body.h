@@ -33,9 +33,7 @@ public:
 	class ExtContainer final : public Container<TemporalExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
-
+		CONSTEXPR_NOCOPY_CLASS(TemporalExt::ExtData, "TemporaClass");
 	};
 
 	static ExtContainer ExtMap;

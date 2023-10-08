@@ -35,8 +35,7 @@ public:
 	class ExtContainer final : public Container<OverlayTypeExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(OverlayTypeExt::ExtData, "OverlayTypeClass");
 	};
 
 	static ExtContainer ExtMap;

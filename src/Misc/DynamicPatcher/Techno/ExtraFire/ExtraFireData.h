@@ -14,7 +14,7 @@ struct ExtraFireData
 		Nullable<CoordStruct> EliteSecondaryWeaponFLH { };
 
 		ValueableVector<CoordStruct> WeaponXFLH { };
-		NullableVector<CoordStruct> EliteWeaponXFLH { };
+		ValueableVector<CoordStruct> EliteWeaponXFLH { };
 
 		FLHData* AsPointer() const{
 			return const_cast<FLHData*>(this);

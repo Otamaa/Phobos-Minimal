@@ -162,9 +162,6 @@ void WaveExt::ExtData::Serialize(T& Stm)
 // container
 WaveExt::ExtContainer WaveExt::ExtMap;
 
-WaveExt::ExtContainer::ExtContainer() : Container("WaveClass") {}
-WaveExt::ExtContainer::~ExtContainer() = default;
-
 // =============================
 // container hooks
 //

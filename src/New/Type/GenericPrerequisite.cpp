@@ -21,7 +21,7 @@ GenericPrerequisite::~GenericPrerequisite() = default;
 
 void GenericPrerequisite::Parse(CCINIClass* pINI, const char* section, const char* key, ValueableVector<int>& Vec)
 {
-	if (pINI->ReadString(section, key, Phobos::readDefval, Phobos::readBuffer))
+	if (pINI->ReadString(section, key, Phobos::readDefval, Phobos::readBuffer) > 0)
 	{
 		Vec.clear();
 
@@ -48,7 +48,7 @@ void GenericPrerequisite::Parse(CCINIClass* pINI, const char* section, const cha
 
 void GenericPrerequisite::Parse(CCINIClass* pINI, const char* section, const char* key, DynamicVectorClass<int>& Vec)
 {
-	if (pINI->ReadString(section, key, Phobos::readDefval, Phobos::readBuffer))
+	if (pINI->ReadString(section, key, Phobos::readDefval, Phobos::readBuffer) > 0)
 	{
 		Vec.Clear();
 

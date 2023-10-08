@@ -59,6 +59,8 @@ const wchar_t* Phobos::UI::PowerBlackoutLabel = L"";
 const wchar_t* Phobos::UI::TimeLabel;
 const wchar_t* Phobos::UI::HarvesterLabel;
 const wchar_t* Phobos::UI::PercentLabel;
+const wchar_t* Phobos::UI::BuidingRadarJammedLabel;
+
 bool Phobos::UI::ShowPowerDelta = false;
 double Phobos::UI::PowerDelta_ConditionYellow = 0.75;
 double Phobos::UI::PowerDelta_ConditionRed = 1.0;
@@ -123,7 +125,7 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 	{
 		const auto pArg = ppArgs[i];
 
-		if (_stricmp(pArg, "-Icon") == 0)
+		if (IMPL_STRCMP(pArg, "-Icon") == 0)
 		{
 			Phobos::AppIconPath = ppArgs[++i];
 		}
@@ -157,7 +159,7 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		}
 		*/
 #ifndef ENABLE_NEWHOOKS
-		if (_stricmp(pArg, "-b=" _STR(BUILD_NUMBER)) == 0)
+		if (IMPL_STRCMP(pArg, "-b=" _STR(BUILD_NUMBER)) == 0)
 		{
 			Phobos::Config::HideWarning = true;
 		}
@@ -236,6 +238,9 @@ void Phobos::Config::Read()
 
 			pINI_UIMD->ReadString(TOOLTIPS_SECTION, "PercentLabel", NONE_STR, Phobos::readBuffer);
 			Phobos::UI::PercentLabel = GeneralUtils::LoadStringOrDefault(Phobos::readBuffer, L"\u231a"); // ⌚
+
+			pINI_UIMD->ReadString(TOOLTIPS_SECTION, "RadarJammedLabel", NONE_STR, Phobos::readBuffer);
+			Phobos::UI::BuidingRadarJammedLabel = GeneralUtils::LoadStringOrDefault(Phobos::readBuffer, L"Radar Jammed");
 		}
 
 		// Sidebar

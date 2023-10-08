@@ -524,7 +524,7 @@ public:
 
 	bool Read(INIClass* pINI, const char* pSection, const char* pKey, const char* pDefault = "") {
 		char buffer[Capacity];
-		if (pINI->ReadString(pSection, pKey, pDefault, buffer)) {
+		if (pINI->ReadString(pSection, pKey, pDefault, buffer)  > 0) {
 			*this = buffer;
 
 			if (this->filename && !this->Surface) {

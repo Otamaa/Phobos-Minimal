@@ -43,9 +43,6 @@ ScriptActionNode NOINLINE ScriptExt::GetSpecificAction(ScriptClass* pScript, int
 // container
 ScriptExt::ExtContainer ScriptExt::ExtMap;
 
-ScriptExt::ExtContainer::ExtContainer() : Container("ScriptClass") { }
-ScriptExt::ExtContainer::~ExtContainer() = default;
-
 #define stringify( name ) #name
 
 NOINLINE const char* ToStrings(PhobosScripts from)

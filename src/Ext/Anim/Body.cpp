@@ -507,8 +507,6 @@ void AnimExt::ExtData::Serialize(T& Stm)
 // container
 
 AnimExt::ExtContainer AnimExt::ExtMap;
-AnimExt::ExtContainer::ExtContainer() : Container("AnimClass") { }
-AnimExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // hooks

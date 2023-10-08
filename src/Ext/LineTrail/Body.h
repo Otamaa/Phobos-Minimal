@@ -15,6 +15,7 @@ public:
 
 	bool operator==(const LineTrailData& that) const { return LineTrailFLH == that.LineTrailFLH || LineTrailColor == that.LineTrailColor || LineTrailColorDecrement == that.LineTrailColorDecrement; }
 	bool operator!=(const LineTrailData& that) const { return !(*this == that); }
+
 	operator bool() const { return LineTrailColor != ColorStruct{ 0,0,0 };}
 
 	void LoadFromINI(INI_EX& parser, const char* pSection);

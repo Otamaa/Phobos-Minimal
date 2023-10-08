@@ -99,8 +99,8 @@ struct TrailsReader
 			if (!trail.isset() || trail == -1)
 				break;
 
-			CurrentData.emplace_back();
-			auto& Back = CurrentData.back();
+			auto& Back = CurrentData.emplace_back();
+			Back.CurrentType = trail;
 
 			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.FLH", i);
 			detail::read(Back.FLHs, nParser, pSection, tempBuffer);
@@ -111,10 +111,10 @@ struct TrailsReader
 			}
 
 			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.OnLands", i);
-			detail::parse_values(Back.OnLand, nParser, pSection, tempBuffer);
+			detail::ReadVectors(Back.OnLand, nParser, pSection, tempBuffer);
 
 			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.OnTiles", i);
-			detail::parse_values(Back.OnTileTypes, nParser, pSection, tempBuffer);
+			detail::ReadVectors(Back.OnTileTypes, nParser, pSection, tempBuffer);
 		}
 	}
 

@@ -126,9 +126,6 @@ void TerrainExt::ExtData::Serialize(T& Stm)
 // container
 TerrainExt::ExtContainer TerrainExt::ExtMap;
 
-TerrainExt::ExtContainer::ExtContainer() : Container("TerrainClass") { }
-TerrainExt::ExtContainer::~ExtContainer() = default;
-
 // container hooks
 #include <Notifications.h>
 

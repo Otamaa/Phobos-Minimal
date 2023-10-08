@@ -127,11 +127,10 @@ public:
 		HelperedVector<SuperClass*> Batteries {};
 		HelperedVector<HouseTypeClass*> Factories_HouseTypes {};
 		HelperedVector<TechnoClass*> LimboTechno {};
-		HelperedVector<TechnoClass*> OwnedTransportReloaders {};
 
 		int AvaibleDocks { 0 };
 
-		std::bitset<32> StolenTech { 0ull };
+		std::bitset<32> StolenTech {};
 		IndexBitfield<HouseClass*> RadarPersist {};
 		HelperedVector<HouseTypeClass*> FactoryOwners_GatheredPlansOf {};
 		HelperedVector<BuildingClass*> Academies {};
@@ -177,10 +176,11 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<HouseExt::ExtData> {
+	class ExtContainer final : public Container<HouseExt::ExtData>
+	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(HouseExt::ExtData, "HouseClass");
+	public:
 
 		static bool LoadGlobals(PhobosStreamReader& Stm);
 		static bool SaveGlobals(PhobosStreamWriter& Stm);

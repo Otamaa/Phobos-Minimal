@@ -123,6 +123,8 @@ struct Phobos final
 		static const wchar_t* TimeLabel;
 		static const wchar_t* HarvesterLabel;
 		static const wchar_t* PercentLabel;
+
+		static const wchar_t* BuidingRadarJammedLabel;
 	};
 
 	struct Config

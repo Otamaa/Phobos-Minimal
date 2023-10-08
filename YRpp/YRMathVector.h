@@ -16,12 +16,13 @@ public:
 	//no constructor, so this class stays aggregate and can be initialized using the curly braces {}
 	T X, Y;
 
-	Vector2D& operator=(const Vector2D& v)
-	{
-		X = v.X;
-		Y = v.Y;
-		return *this;
-	}
+	//Vector2D& operator=(const Vector2D& v)
+	//{
+	//	X = v.X;
+	//	Y = v.Y;
+	//	return *this;
+	//}
+
 	//operator overloads
 	//addition
 	Vector2D operator+(const Vector2D& a) const
@@ -101,7 +102,7 @@ public:
 	}
 
 	inline double DistanceFrom(const Vector2D<T>& that) const{
-		return (that - *this).Length();
+		return (*this - that).Length();
 	}
 
 	inline double DistanceFromSquared(const Vector2D<T>& that) const {
@@ -273,14 +274,14 @@ public:
 
 	inline bool IsValid() const { return *this != (Vector4D<T>::Empty); }
 
-	inline Vector4D& operator=(const Vector4D &v)
-	{
-		X = v.X;
-		Y = v.Y;
-		Z = v.Z;
-		W = v.W;
-		return *this;
-	}
+	//inline Vector4D& operator=(const Vector4D &v)
+	//{
+	//	X = v.X;
+	//	Y = v.Y;
+	//	Z = v.Z;
+	//	W = v.W;
+	//	return *this;
+	//}
 
 	inline Vector4D &operator+=(const Vector4D &v)
 	{

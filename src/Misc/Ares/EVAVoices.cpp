@@ -15,15 +15,15 @@ int EVAVoices::FindIndexById(const char* type)
 {
 	Debug::Log("[Phobos] Find EVAVoices Index by ID [%s]\n", type);
 	// the default values
-	if (!CRT::strcmpi(type, GameStrings::Allied()))
+	if (IS_SAME_STR_(type, GameStrings::Allied()))
 	{
 		return 0;
 	}
-	else if (!CRT::strcmpi(type, GameStrings::Russian()))
+	else if (IS_SAME_STR_(type, GameStrings::Russian()))
 	{
 		return 1;
 	}
-	else if (!CRT::strcmpi(type, GameStrings::Yuri()))
+	else if (IS_SAME_STR_(type, GameStrings::Yuri()))
 	{
 		return 2;
 	}
@@ -31,7 +31,7 @@ int EVAVoices::FindIndexById(const char* type)
 	// find all others
 	for (size_t i = 0; i < Types.size(); ++i)
 	{
-		if (!CRT::strcmpi(type, Types[i].c_str()))
+		if (IS_SAME_STR_(type, Types[i].c_str()))
 		{
 			return static_cast<int>(i + 3);
 		}
@@ -47,7 +47,7 @@ void EVAVoices::RegisterType(const char* type)
 	int index = EVAVoices::FindIndexById(type);
 
 	if (index < 0) {
-		Types.emplace_back(CRT::strdup(type));
+		Types.emplace_back(_strdup(type));
 	}
 }
 
@@ -70,7 +70,7 @@ DEFINE_OVERRIDE_HOOK(0x753000, VoxClass_CreateFromINIList, 6)
 
 		for(auto i = 0; i < count; ++i) {
 			auto const pKey = pINI->GetKeyName(pSection, i);
-			if(pINI->ReadString(pSection, pKey, "", buffer)) {
+			if(pINI->ReadString(pSection, pKey, "", buffer) > 0) {
 				EVAVoices::RegisterType(buffer);
 			}
 		}
@@ -84,7 +84,7 @@ DEFINE_OVERRIDE_HOOK(0x753000, VoxClass_CreateFromINIList, 6)
 
 		for(auto i = 0; i < count; ++i) {
 			auto const pKey = pINI->GetKeyName(pSection2, i);
-			if(pINI->ReadString(pSection2, pKey, "", buffer)) {
+			if(pINI->ReadString(pSection2, pKey, "", buffer) > 0) {
 
 				// find or allocate done manually
 				VoxClass* pVox = VoxClass::Find(buffer);
@@ -128,8 +128,8 @@ DEFINE_OVERRIDE_HOOK(0x752FDC, VoxClass_LoadFromINI, 5)
 
 	// put the filename in there. 8 chars max.
 	for(auto i = 0u; i < count; ++i) {
-		pINI->ReadString(pThis->Name, EVAVoices::Types[i].c_str(), "", buffer);
-		PhobosCRT::strCopy(pThis->Voices[i].Name, buffer);
+		if(pINI->ReadString(pThis->Name, EVAVoices::Types[i].c_str(), "", buffer) > 0)
+			PhobosCRT::strCopy(pThis->Voices[i].Name, buffer);
 	}
 
 	return 0;

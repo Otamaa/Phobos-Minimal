@@ -112,11 +112,6 @@ DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
 		}
 
 		TrailsManager::Hide((TechnoClass*)pPassenger);
-		auto const pOwnerExt = HouseExt::ExtMap.Find(pThis->Owner);
-
-		if (pPassenger->WhatAmI() != AbstractType::Aircraft && pPassExt->Type->Ammo > 0 && pPassTypeExt->ReloadInTransport) {
-			pOwnerExt->OwnedTransportReloaders.push_back_unique(pPassenger);
-		}
 	}
 
 	return 0;
@@ -137,12 +132,6 @@ DEFINE_HOOK(0x4DE67B, FootClass_LeaveTransport, 0x8)
 			pPassExt->OriginalPassengerOwner)
 		{
 			pPassenger->SetOwningHouse(pPassExt->OriginalPassengerOwner, false);
-		}
-
-		if (pThis->WhatAmI() != AbstractType::Aircraft
-				&& pPassExt->Type->Ammo > 0 &&  pPassTypeExt->ReloadInTransport)
-		{
-			HouseExt::ExtMap.Find(pThis->Owner)->OwnedTransportReloaders.remove(pPassenger);
 		}
 	}
 

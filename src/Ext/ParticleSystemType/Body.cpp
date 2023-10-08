@@ -1,5 +1,23 @@
 #include "Body.h"
 
+void ReadFacingDirMult(std::array<Point2D, (size_t)FacingType::Count>& arr, INI_EX& exINI, const char* pID, const int* beginX, const int* beginY)
+{
+	char buff_wind[0x25];
+
+	for (size_t i = 0; i < arr.size(); ++i)
+	{
+		Nullable<Point2D> ReadWind {};
+		IMPL_SNPRNINTF(buff_wind, sizeof(buff_wind) - 1, "FacingDirectionMult%d", i);
+		ReadWind.Read(exINI, pID, buff_wind);
+
+		if(!ReadWind.isset()) {
+			arr[i].X = *(beginX + i);
+			arr[i].Y = *(beginY + i);
+		}else
+			arr[i] = ReadWind.Get();
+	}
+}
+
 void ParticleSystemTypeExt::ExtData::Initialize() {
 }
 
@@ -12,7 +30,16 @@ void ParticleSystemTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool pars
 		return;
 
 	INI_EX exINI(pINI);
-
+	switch (pThis->BehavesLike)
+	{
+	case ParticleSystemTypeBehavesLike::Fire:
+	{
+		ReadFacingDirMult(this->FacingMult, exINI, pID, ParticleSystemClass::FireWind_X.begin(), ParticleSystemClass::FireWind_Y.begin());
+	}
+	break;
+	default:
+		break;
+	}
 	this->ApplyOptimization.Read(exINI, pID, "ApplyOptimization");
 }
 
@@ -23,14 +50,13 @@ void ParticleSystemTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->ApplyOptimization)
+		.Process(this->FacingMult)
 		;
 }
 
 // =============================
 // container
 ParticleSystemTypeExt::ExtContainer ParticleSystemTypeExt::ExtMap;
-ParticleSystemTypeExt::ExtContainer::ExtContainer() : Container("ParticleSystemTypeClass") {}
-ParticleSystemTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks

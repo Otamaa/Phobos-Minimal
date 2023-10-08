@@ -107,6 +107,9 @@ double TechnoTypeExt::GetTunnelSpeed(TechnoClass* pThis, RulesClass* pRules)
 
 VoxelStruct* TechnoTypeExt::GetBarrelsVoxel(TechnoTypeClass* const pThis, int const nIdx)
 {
+	if (nIdx == -1)/// ??
+		return pThis->ChargerBarrels;
+
 	if (nIdx < TechnoTypeClass::MaxWeapons)
 		return pThis->ChargerBarrels + nIdx;
 
@@ -123,6 +126,9 @@ VoxelStruct* TechnoTypeExt::GetBarrelsVoxel(TechnoTypeClass* const pThis, int co
 
 VoxelStruct* TechnoTypeExt::GetTurretsVoxel(TechnoTypeClass* const pThis, int const nIdx)
 {
+	if (nIdx == -1)/// ??
+		return pThis->ChargerTurrets;
+
 	if (nIdx < TechnoTypeClass::MaxWeapons)
 		return pThis->ChargerTurrets + nIdx;
 
@@ -244,8 +250,8 @@ void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis,
 void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection,
 	std::vector<std::vector<CoordStruct>>& nFLH, std::vector<std::vector<CoordStruct>>& nEFlh, const char* pPrefixTag)
 {
-	char tempBuffer[0x40] {};
-	char tempBufferFLH[0x40] {};
+	char tempBuffer[0x40] { "/0" };
+	char tempBufferFLH[0x40] { "/0" };
 
 	bool parseMultiWeapons = pThis->TurretCount > 0 && pThis->WeaponCount > 0;
 	auto weaponCount = parseMultiWeapons ? pThis->WeaponCount : 2;
@@ -264,17 +270,20 @@ void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const
 			Nullable<CoordStruct> FLH { };
 			FLH.Read(exArtINI, pArtSection, tempBufferFLH);
 
+			if (!FLH.isset()) //early break
+				break;
+
 			IMPL_SNPRNINTF(tempBufferFLH, sizeof(tempBufferFLH), "Elite%sFLH.Burst%d", tempBuffer, j);
 			Nullable<CoordStruct> eliteFLH { };
 			eliteFLH.Read(exArtINI, pArtSection, tempBufferFLH);
 
-			if (FLH.isset() && !eliteFLH.isset())
-				eliteFLH = FLH;
-			else if (!FLH.isset() && !eliteFLH.isset())
-				break;
+			CoordStruct Flh = FLH.Get();
+			nFLH[i].emplace_back(Flh);
 
-			nFLH[i].push_back(FLH.Get());
-			nEFlh[i].push_back(eliteFLH.Get());
+			if (eliteFLH.isset())
+				Flh = eliteFLH.Get();
+
+			nEFlh[i].emplace_back(Flh);
 		}
 	}
 };
@@ -286,6 +295,9 @@ void TechnoTypeExt::GetFLH(INI_EX& exArtINI, const char* pArtSection, Nullable<C
 	nFlh.Read(exArtINI, pArtSection, tempBuffer);
 	IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Elite%sFLH", pFlag);
 	nEFlh.Read(exArtINI, pArtSection, tempBuffer);
+
+	if (!nEFlh.isset() && nFlh.isset())
+		nEFlh = nFlh;
 }
 
 void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
@@ -581,7 +593,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		this->Eva_Complete.Read(exINI, pSection, "EVA.Complete");
 
-		if (exINI.ReadString(pSection, "VoiceCreated")) {
+		if (exINI.ReadString(pSection, "VoiceCreated") > 0) {
 			this->VoiceCreate = VocClass::FindIndexById(exINI.c_str());
 		} else {
 			this->VoiceCreate.Read(exINI, pSection, "VoiceCreate");
@@ -678,7 +690,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 #pragma region Prereq
 
-	if(pINI->ReadString(pSection, "Prerequisite.RequiredTheaters", "", Phobos::readBuffer)) {
+	if(pINI->ReadString(pSection, "Prerequisite.RequiredTheaters", "", Phobos::readBuffer) > 0) {
 		this->Prerequisite_RequiredTheaters = 0;
 
 		char* context = nullptr;
@@ -789,11 +801,6 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->FallRate_ParachuteMax.Read(exINI, pSection, "FallRate.ParachuteMax");
 		this->FallRate_NoParachuteMax.Read(exINI, pSection, "FallRate.NoParachuteMax");
 
-		// Dont need to be SL ?
-		//const bool Eligible = pThis->TurretCount >= TechnoTypeClass::MaxWeapons;
-		//TechnoTypeExt::InitImageData(this->BarrelImageData, Eligible ? (pThis->TurretCount - TechnoTypeClass::MaxWeapons) + 1 : 0);
-		//TechnoTypeExt::InitImageData(this->TurretImageData, Eligible ? (pThis->TurretCount - TechnoTypeClass::MaxWeapons) + 1 : 0);
-
 		this->NoShadowSpawnAlt.Read(exINI, pSection, "NoShadowSpawnAlt");
 
 		this->OmniCrusher_Aggressive.Read(exINI, pSection, "OmniCrusher.Aggressive");
@@ -804,6 +811,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->CrushFireDeathWeapon.Read(exINI, pSection, "CrushFireDeathWeaponChance.%s");
 		this->CrushDamage.Read(exINI, pSection, "CrushDamage.%s");
 		this->CrushDamageWarhead.Read(exINI, pSection, "CrushDamage.Warhead");
+		this->CrushDamagePlayWHAnim.Read(exINI, pSection, "CrushDamage.PlayWarheadAnim");
 
 		this->DigInSound.Read(exINI, pSection, "DigInSound");
 		this->DigOutSound.Read(exINI, pSection, "DigOutSound");
@@ -943,7 +951,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->ExtraPower_Amount.Read(exINI, pSection, "ExtraPower.Amount");
 		this->CanDrive.Read(exINI, pSection, "CanDrive");
 
-		if (exINI.ReadString(pSection, "Operator"))
+		if (exINI.ReadString(pSection, "Operator") > 0)
 		{ // try to read the flag
 			this->Operators.clear();
 			this->Operator_Any = (IS_SAME_STR_N(exINI.value(), "_ANY_")); // set whether this type accepts all operators
@@ -1019,42 +1027,27 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->EMP_Sparkles.Read(exINI, pSection, "EMP.Sparkles");
 		this->EMP_Modifier.Read(exINI, pSection, "EMP.Modifier");
 
-		if (pINI->ReadString(pSection, "EMP.Threshold", "inair", Phobos::readBuffer))
+		if (pINI->ReadString(pSection, "EMP.Threshold", "inair", Phobos::readBuffer) > 0)
 		{
-			if (CRT::strcmpi(Phobos::readBuffer, "inair") == 0)
-			{
+			if (IS_SAME_STR_(Phobos::readBuffer, "inair")) {
 				this->EMP_Threshold = -1;
-			}
-			else if ((CRT::strcmpi(Phobos::readBuffer, "yes") == 0) || (CRT::strcmpi(Phobos::readBuffer, "true") == 0))
-			{
-				this->EMP_Threshold = 1;
-			}
-			else if ((CRT::strcmpi(Phobos::readBuffer, "no") == 0) || (CRT::strcmpi(Phobos::readBuffer, "false") == 0))
-			{
-				this->EMP_Threshold = 0;
-			}
-			else
-			{
-				this->EMP_Threshold = pINI->ReadInteger(pSection, "EMP.Threshold", this->EMP_Threshold);
+			} else {
+
+				bool ret;
+				if (Parser<bool, 1>::Parse(Phobos::readBuffer, &ret)) {
+					this->EMP_Threshold = (int)ret;
+				} else if(!Parser<int, 1>::Parse(Phobos::readBuffer , &this->EMP_Threshold)) {
+					Debug::INIParseFailed(pSection, "EMP.Treshold", Phobos::readBuffer, "[Phobos] Invalid value");
+				}
 			}
 		}
 
 		this->PoweredBy.Read(exINI, pSection, "PoweredBy");
 
 		char Survivor_buffer[256] {};
-		for (int i = 0; i < SideClass::Array->Count; ++i)
-		{
+		for (int i = 0; i < SideClass::Array->Count; ++i) {
 			IMPL_SNPRNINTF(Survivor_buffer,sizeof(Survivor_buffer), "Survivor.Side%d", i);
-			if (pINI->ReadString(pSection, Survivor_buffer, Phobos::readDefval, Phobos::readBuffer))
-			{
-				if ((this->Survivors_Pilots[i] = InfantryTypeClass::Find(Phobos::readBuffer)) == nullptr)
-				{
-					if (!GameStrings::IsBlank(Phobos::readBuffer))
-					{
-						Debug::INIParseFailed(pSection, Survivor_buffer, Phobos::readBuffer);
-					}
-				}
-			}
+			detail::read(this->Survivors_Pilots[i], exINI, pSection, Survivor_buffer);
 		}
 
 		this->Ammo_AddOnDeploy.Read(exINI, pSection, "Ammo.AddOnDeploy");
@@ -1075,7 +1068,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->Secret_ForbiddenHouses
 			= pINI->ReadHouseTypesList(pSection, "SecretLab.ForbiddenHouses", this->Secret_ForbiddenHouses);
 
-		if (pINI->ReadString(pSection, "Prerequisite.StolenTechs", Phobos::readDefval, Phobos::readBuffer))
+		if (pINI->ReadString(pSection, "Prerequisite.StolenTechs", Phobos::readDefval, Phobos::readBuffer) > 0)
 		{
 			this->RequiredStolenTech.reset();
 
@@ -1084,7 +1077,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 				cur;
 				cur = strtok_s(nullptr, Phobos::readDelims, &context))
 			{
-				signed int idx = CRT::atoi(cur);
+				signed int idx = std::atoi(cur);
 				if (idx > -1 && idx < 32)
 				{
 					this->RequiredStolenTech.set(idx);
@@ -1108,6 +1101,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->ProtectedDriver_MinHealth.Read(exINI, pSection, "ProtectedDriver.MinHealth");
 		this->KeepAlive.Read(exINI, pSection, "KeepAlive");
 		this->DetectDisguise_Percent.Read(exINI, pSection, "DetectDisguise.Percent");
+		this->PassengerTurret.Read(exINI, pSection, "PassengerTurret");
 
 #pragma region AircraftOnly
 		if (this->AttachtoType == AircraftTypeClass::AbsID)
@@ -1186,16 +1180,15 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		if (!this->TurretOffset.isset())
 		{
 			//put ddedfault single value inside
-			PartialVector3D<int> nRes { pThis->TurretOffset , 0 ,0 , 1 };
-			this->TurretOffset = nRes;
+			this->TurretOffset = PartialVector3D<int>{ pThis->TurretOffset , 0 ,0 , 1 };
 		}
 
 		this->TurretShadow.Read(exArtINI, pArtSection, "TurretShadow");
 		this->ShadowIndices.Read(exArtINI, pArtSection, "ShadowIndices");
 
-		char tempBuffer[0x40] {};
-		char HitCoord_tempBuffer[0x20] {};
-		char alternateFLHbuffer[0x40] {};
+		char tempBuffer[0x40] { "/0" };
+		char HitCoord_tempBuffer[0x20] { "/0" };
+		char alternateFLHbuffer[0x40] { "/0" };
 
 		for (size_t i = 0; ; ++i)
 		{
@@ -1206,15 +1199,15 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 			if (!trail.isset())
 				break;
 
-			Valueable<CoordStruct> flh {};
+			auto data = &this->LaserTrailData.emplace_back();
+			data->idxType = trail;
+
 			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.FLH", i);
-			flh.Read(exArtINI, pArtSection, tempBuffer);
+			detail::read(data->FLH , exArtINI, pArtSection, tempBuffer );
 
-			Valueable<bool> isOnTurret {};
 			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.IsOnTurret", i);
-			isOnTurret.Read(exArtINI, pArtSection, tempBuffer);
+			detail::read(data->IsOnTurret , exArtINI, pArtSection, tempBuffer );
 
-			this->LaserTrailData.emplace_back(trail.Get(), flh.Get(), isOnTurret.Get());
 		}
 
 		for (size_t i = 5; ; ++i)
@@ -1226,7 +1219,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 			if (!alternateFLH.isset())
 				break;
 
-			this->AlternateFLHs.push_back(alternateFLH.Get());
+			this->AlternateFLHs.emplace_back(alternateFLH.Get());
 		}
 
 		for (size_t i = 0; ; ++i)
@@ -1238,7 +1231,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 			if (!nHitBuff.isset())
 				break;
 
-			this->HitCoordOffset.push_back(nHitBuff);
+			this->HitCoordOffset.emplace_back(nHitBuff);
 		}
 
 		this->HitCoordOffset_Random.Read(exArtINI, pArtSection, "HitCoordOffset.Random");
@@ -1256,8 +1249,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		//TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, nFLH, nEFLH, tags);
 
 		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, WeaponBurstFLHs, EliteWeaponBurstFLHs, "");
-		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, DeployedWeaponBurstFLHs, EliteDeployedWeaponBurstFLHs, "Deployed");
-		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, CrouchedWeaponBurstFLHs, EliteCrouchedWeaponBurstFLHs, "Prone");
+		//TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, DeployedWeaponBurstFLHs, EliteDeployedWeaponBurstFLHs, "Deployed");
+		//TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, CrouchedWeaponBurstFLHs, EliteCrouchedWeaponBurstFLHs, "Prone");
 
 		TechnoTypeExt::GetFLH(exArtINI, pArtSection, PronePrimaryFireFLH, E_PronePrimaryFireFLH, "PronePrimaryFire");
 		TechnoTypeExt::GetFLH(exArtINI, pArtSection, ProneSecondaryFireFLH, E_ProneSecondaryFireFLH, "ProneSecondaryFire");
@@ -1840,6 +1833,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->CrushFireDeathWeapon)
 		.Process(this->CrushDamage)
 		.Process(this->CrushDamageWarhead)
+		.Process(this->CrushDamagePlayWHAnim)
 		.Process(this->CrushRange)
 		.Process(this->DigInSound)
 		.Process(this->DigOutSound)
@@ -2084,9 +2078,6 @@ double TechnoTypeExt::TurretMultiOffsetOneByEightMult = 0.125;
 // =============================
 // container
 TechnoTypeExt::ExtContainer TechnoTypeExt::ExtMap;
-
-TechnoTypeExt::ExtContainer::ExtContainer() : Container("TechnoTypeClass"), Map {} { }
-TechnoTypeExt::ExtContainer::~ExtContainer() = default;
 
 bool TechnoTypeExt::ExtContainer::Load(TechnoTypeClass* key, IStream* pStm)
 {

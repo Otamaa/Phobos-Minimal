@@ -184,7 +184,7 @@ struct TechnoExt_ExtData
 	static void RecalculateStat(TechnoClass* pThis);
 
 	static int GetSelfHealAmount(TechnoClass* pThis);
-	static void SpawnVisceroid(CoordStruct& crd, UnitTypeClass* pType, int chance, bool ignoreTibDeathToVisc);
+	static void SpawnVisceroid(CoordStruct& crd, UnitTypeClass* pType, int chance, bool ignoreTibDeathToVisc , HouseClass* Owner);
 
 	static void TransferOriginalOwner(TechnoClass* pFrom, TechnoClass* pTo);
 	static void TransferIvanBomb(TechnoClass* From, TechnoClass* To);

@@ -418,8 +418,7 @@ NOINLINE TunnelData* HouseExt::GetTunnelVector(HouseClass* pHouse, size_t nTunne
 	auto pHouseExt = HouseExt::ExtMap.Find(pHouse);
 
 	while (pHouseExt->Tunnels.size() < TunnelTypeClass::Array.size()) {
-		pHouseExt->Tunnels.emplace_back(TunnelData{});
-		pHouseExt->Tunnels.back().MaxCap = TunnelTypeClass::Array[nTunnelIdx]->Passengers;
+		pHouseExt->Tunnels.emplace_back().MaxCap = TunnelTypeClass::Array[nTunnelIdx]->Passengers;
 	}
 
 	return pHouseExt->Tunnels.data() + nTunnelIdx;
@@ -685,7 +684,6 @@ void HouseExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(ActiveTeams, ptr);
 	AnnounceInvalidPointer<TechnoClass*>(LimboTechno, ptr, bRemoved);
 	AnnounceInvalidPointer<BuildingClass*>(Academies, ptr, bRemoved);
-	AnnounceInvalidPointer<TechnoClass*>(OwnedTransportReloaders, ptr, bRemoved);
 
 	if(bRemoved)
 		AutoDeathObjects.erase((TechnoClass*)ptr);
@@ -1240,9 +1238,17 @@ int HouseExt::CountOwnedNowTotal(
 
 void HouseExt::ExtData::UpdateTransportReloaders()
 {
-	for (auto const pTechno : this->OwnedTransportReloaders) {
-		if (pTechno->Transporter)
-			pTechno->Reload();
+	for(auto& pTech : this->LimboTechno) {
+
+		if(pTech->IsAlive
+			&& pTech->WhatAmI() != AircraftClass::AbsID
+			&& pTech->WhatAmI() != BuildingClass::AbsID
+			&& pTech->Transporter) {
+				const auto pType = pTech->GetTechnoType();
+			if (pType->Ammo > 0 && TechnoTypeExt::ExtMap.Find(pTech->GetTechnoType())->ReloadInTransport) {
+				pTech->Reload();
+			}
+		}
 	}
 }
 
@@ -1363,7 +1369,6 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		.Process(this->Batteries)
 		.Process(this->Factories_HouseTypes)
 		.Process(this->LimboTechno)
-		.Process(this->OwnedTransportReloaders)
 		.Process(this->AvaibleDocks)
 
 		.Process(this->StolenTech)
@@ -1405,8 +1410,6 @@ bool HouseExt::ExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 // container
 
 HouseExt::ExtContainer HouseExt::ExtMap;
-HouseExt::ExtContainer::ExtContainer() : Container("HouseClass") { }
-HouseExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks

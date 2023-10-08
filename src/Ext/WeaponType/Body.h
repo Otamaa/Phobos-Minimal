@@ -175,8 +175,8 @@ public:
 	class ExtContainer final :public Container<WeaponTypeExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(WeaponTypeExt::ExtData, "WeaponTypeClass");
+	public:
 
 		static bool LoadGlobals(PhobosStreamReader& Stm)
 		{

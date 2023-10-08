@@ -392,6 +392,9 @@ public:
 	ObjectClass* GetContentB() const
 	{ return (this->ContainsBridgeEx()) ? this->AltObject : this->FirstObject; }
 
+	ObjectClass* GetContent(int z) const
+	{ return this->ContainsBridge() || z >= (Unsorted::LevelHeight * (this->Level + 4)) ? this->AltObject : this->FirstObject; }
+
 	int GetLevelFrom(CellClass const* const	pSource) const
 	{ return (this->Level + (((unsigned int)this->Flags >> 6) & 4) - (((unsigned int)pSource->Flags >> 6) & 4) - pSource->Level); }
 

@@ -81,6 +81,3 @@ DEFINE_HOOK(0x688210, AssignHouses_ComputerHouses, 0x5)
 
 	return 0x688252;
 }
-
-// Skips checking the gamemode or who the player is when assigning houses
-DEFINE_JUMP(LJMP, 0x44F8CB, 0x44F8E1)

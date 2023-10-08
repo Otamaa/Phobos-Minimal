@@ -21,8 +21,7 @@ void ExtraFireData::ReadRules(INI_EX& parserRules, const char* pSection_rules)
 			break;
 
 		++nSize;
-		AttachedWeapon.WeaponX.emplace_back();
-		detail::parse_Alloc_values<WeaponTypeClass*>(AttachedWeapon.WeaponX.back(), parserRules, pSection_rules, nBuff, true);
+		detail::parse_Alloc_values<WeaponTypeClass*>(AttachedWeapon.WeaponX.emplace_back(), parserRules, pSection_rules, nBuff, true);
 	}
 
 	if (!AttachedWeapon.WeaponX.empty())
@@ -75,12 +74,12 @@ void ExtraFireData::ReadArt(INI_EX& parserArt, const char* pSection_Art)
 			break;
 
 		++nSize;
-		AttachedFLH.WeaponXFLH.push_back(nBuffRead_);
+		AttachedFLH.WeaponXFLH.emplace_back(nBuffRead_);
 	}
 
 	if (!AttachedFLH.WeaponXFLH.empty())
 	{
-		AttachedFLH.EliteWeaponXFLH.reserve(nSize);
+		AttachedFLH.EliteWeaponXFLH.resize(nSize);
 
 		for (int i = 0; i < nSize; i++)
 		{

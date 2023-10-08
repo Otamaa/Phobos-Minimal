@@ -34,8 +34,7 @@ public:
 	class ExtContainer final : public Container<CaptureExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(CaptureExt::ExtData, "CaptureManagerClass");
 	};
 
 	static ExtContainer ExtMap;

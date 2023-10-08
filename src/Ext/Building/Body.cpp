@@ -52,7 +52,10 @@ void BuildingExt::UpdateSecretLab(BuildingClass* pThis)
 					{
 					case RequirementStatus::Forbidden:
 					case RequirementStatus::Incomplete:
-						Options.emplace_back(Option);
+						Options.push_back(Option);
+						break;
+					default:
+						break;
 					}
 				}
 			}
@@ -634,9 +637,7 @@ void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int
 		//if (!pOwner->IsControlledByHuman())
 		//	pBuilding->DiscoveredBy(pOwner);
 
-		if (!pBuilding->Type->Insignificant && !pBuilding->Type->DontScore)
-			pOwnerExt->LimboTechno.push_back(pBuilding);
-
+		pOwnerExt->LimboTechno.push_back(pBuilding);
 		pOwner->AddTracking(pBuilding);
 		pOwner->RegisterGain(pBuilding, false);
 		pOwner->UpdatePower();
@@ -728,14 +729,16 @@ void BuildingExt::LimboKill(BuildingClass* pBuilding)
 	if (!pTargetHouse->RecheckTechTree)
 		pTargetHouse->RecheckTechTree = true;
 
+	auto pOwnerExt = HouseExt::ExtMap.Find(pTargetHouse);
+
 	if(BuildingTypeExt::ExtMap.Find(pType)->Academy)
-		HouseExt::ExtMap.Find(pTargetHouse)->UpdateAcademy(pBuilding, false);
+		pOwnerExt->UpdateAcademy(pBuilding, false);
 
 	pTargetHouse->RecheckPower = true;
 	pTargetHouse->RecheckRadar = true;
 	pTargetHouse->Buildings.Remove(pBuilding);
 	static_assert(offsetof(HouseClass, Buildings) == 0x68, "ClassMember Shifted !");
-
+	pOwnerExt->LimboTechno.remove(pBuilding);
 	pTargetHouse->RegisterLoss(pBuilding, false);
 	pTargetHouse->RemoveTracking(pBuilding);
 
@@ -837,8 +840,6 @@ void BuildingExt::ExtData::Serialize(T& Stm)
 // =============================
 // container
 BuildingExt::ExtContainer BuildingExt::ExtMap;
-BuildingExt::ExtContainer::ExtContainer() : Container("BuildingClass") { }
-BuildingExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks

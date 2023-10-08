@@ -1,5 +1,15 @@
 /*
-	ParticleSystemTypes are initialized by INI files.
+; **************************************************************************
+; ************************ Particle Systems ********************************
+; **************************************************************************
+; *** Particle Systems ***
+;
+; HoldsWhat = type of particle (see below) that this system manages (required)
+; Spawns = does this system spawn particles by itself (def = no)
+; SpawnFrames = number of frames to wait before spawning another particle
+; ParticleCap = maximum number of particles that can be in this system
+
+; this is the global psych gas system
 */
 
 #pragma once
@@ -58,6 +68,10 @@ public:
 	//ObjectTypeClass
 	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords, HouseClass* pOwner) override { return false; }
 	virtual ObjectClass* CreateObject(HouseClass* owner) override { return nullptr; }
+
+	static ParticleSystemTypeBehavesLike __fastcall BehavesFromString(const char* pStr) {
+		JMP_STD(0x644850);
+	}
 
 	//Constructor
 	ParticleSystemTypeClass(const char* pID) noexcept

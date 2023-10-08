@@ -157,7 +157,7 @@ bool GeneralUtils::ApplyTheaterSuffixToString(char* str)
 {
 	str = _strlwr(str);
 
-	if (auto pSuffix = CRT::strstr(str, "~~~"))
+	if (auto pSuffix = strstr(str, "~~~"))
 	{
 		std::string pTheater =
 			TheaterTypeClass::FindFromTheaterType(ScenarioClass::Instance->Theater)->Extension.c_str();

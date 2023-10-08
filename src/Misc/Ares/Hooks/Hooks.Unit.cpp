@@ -1402,6 +1402,13 @@ DEFINE_OVERRIDE_HOOK(0x7418AA, UnitClass_CrushCell_CrushDamage, 6)
 
 			pThis->ReceiveDamage(
 				&damage, 0, pWarhead, nullptr, false, false, nullptr);
+			if (pVictimTypeExt->CrushDamagePlayWHAnim) {
+				auto loc = pVictim->GetCoords();
+				if (auto pAnimType = MapClass::SelectDamageAnimation(damage, pWarhead, pThis->GetCell()->LandType, loc)) {
+					AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, loc),
+						pThis->Owner, pVictim->GetOwningHouse(), pThis, false);
+				}
+			}
 		}
 	}
 

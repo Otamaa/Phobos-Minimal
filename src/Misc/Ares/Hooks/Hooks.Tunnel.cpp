@@ -304,7 +304,7 @@ DEFINE_OVERRIDE_HOOK(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_
 
 		const auto pTunnelData = HouseExt::GetTunnelVector(pBldType, pThisBld->Owner);
 
-		if (((int)pTunnelData->Vector.size() > pTunnelData->MaxCap)
+		if (((int)pTunnelData->Vector.size() >= pTunnelData->MaxCap)
 			|| (pBldType->SizeLimit < pRectpType->Size))
 		{
 			R->EBX(pBldType);

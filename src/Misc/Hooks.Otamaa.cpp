@@ -1327,7 +1327,7 @@ DEFINE_HOOK(0x477590, CCINIClass_ReadVHPScan_Replace, 0x6)
 
 	int vHp = default_val;
 
-	if (exINI.ReadString(pSection, pKey)) {
+	if (exINI.ReadString(pSection, pKey) > 0) {
 		for (int i = 0; i < (int)NewVHPScanToString.size(); ++i) {
 			if (IS_SAME_STR_(exINI.value(), NewVHPScanToString[i])) {
 				R->EAX(i);
@@ -2040,8 +2040,7 @@ BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 	pHouseExt->Building_BuildSpeedBonusCounter.clear();
 	pHouseExt->Building_OrePurifiersCounter.clear();
 	//==========================
-	const bool LowpOwerHouse = pThis->HasLowPower();
-
+	//const bool LowpOwerHouse = pThis->HasLowPower();
 
 	for (auto const& pBld : pThis->Buildings) {
 		if (pBld && pBld->IsAlive && !pBld->InLimbo && pBld->IsOnMap) {
@@ -2056,14 +2055,16 @@ BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 				|| pBld->IsBeingWarpedOut())
 				continue;
 
-			const bool PowerDown = !pBld->IsPowerOnline(); // check power
+			const bool Online = pBld->IsPowerOnline(); // check power
 			const auto pTypes = pBld->GetTypes(); // building types include upgrades
 			const bool Jammered = !pExt->RegisteredJammers.empty();  // is this building jammed
 
 			for (auto begin = pTypes.begin(); begin != pTypes.end() && *begin; ++begin) {
 
 				const auto pExt = BuildingTypeExt::ExtMap.Find(*begin);
-				const bool IsFactoryPowered = pExt->FactoryPlant_RequirePower ? !PowerDown && !((*begin)->PowerDrain && LowpOwerHouse) : true;
+				//const auto Powered_ = pBld->IsOverpowered || (!PowerDown && !((*begin)->PowerDrain && LowpOwerHouse));
+
+				const bool IsFactoryPowered = !pExt->FactoryPlant_RequirePower || Online;
 
 				//recalculate the multiplier
 				if ((*begin)->FactoryPlant && IsFactoryPowered)
@@ -2076,7 +2077,7 @@ BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 				}
 
 				//only pick first spysat
-				const bool IsSpySatPowered = pExt->SpySat_RequirePower ? !PowerDown && !((*begin)->PowerDrain && LowpOwerHouse) : true;
+				const bool IsSpySatPowered = !pExt->SpySat_RequirePower || Online;
 				if (!Spysat && (*begin)->SpySat && !Jammered && IsSpySatPowered) {
 					const bool IsDiscovered = pBld->DiscoveredByCurrentPlayer && SessionClass::Instance->GameMode == GameMode::Campaign;
 					if (IsLimboDelivered || !IsCurrentPlayer || SessionClass::Instance->GameMode != GameMode::Campaign || IsDiscovered) {
@@ -2085,10 +2086,10 @@ BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 				}
 
 				// add eligible building
-				if (pExt->SpeedBonus.Enabled)
+				if (pExt->SpeedBonus.Enabled && Online)
 					++pHouseExt->Building_BuildSpeedBonusCounter[(*begin)];
 
-				const bool IsPurifierRequirePower = pExt->PurifierBonus_RequirePower ? !PowerDown && !((*begin)->PowerDrain && LowpOwerHouse) : true;
+				const bool IsPurifierRequirePower = !pExt->PurifierBonus_RequirePower || Online;
 				// add eligible purifier
 				if ((*begin)->OrePurifier && IsPurifierRequirePower)
 					++pHouseExt->Building_OrePurifiersCounter[(*begin)];
@@ -3835,3 +3836,139 @@ DEFINE_HOOK(0x6F7D90, TechnoClass_Threat_Forbidden, 0x6)
 
 	return 0x6F7D9E;
 }
+
+DEFINE_HOOK(0x73730E, UnitClass_Visceroid_HealthCheckRestore, 0x6)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	if (!pThis->Destination && !pThis->Locomotor.GetInterfacePtr()->Is_Moving())
+	{
+		if (pThis->IsRedHP() && (pThis->Type->TiberiumHeal || pThis->HasAbility(AbilityType::TiberiumHeal))) {
+
+			if (pThis->GetCell()->LandType != LandType::Tiberium) {
+				// search tiberium and abort current mission
+				pThis->MoveToTiberium(pThis->Type->Sight, false);
+
+				if (pThis->Destination) {
+					if (pThis->ShouldLoseTargetNow)
+						pThis->SetTarget(nullptr);
+
+					pThis->unknown_int_6D4 = -1;
+					pThis->QueueMission(Mission::Move, false);
+					pThis->NextMission();
+				}
+
+			} else {
+				pThis->unknown_int_6D4 = -1;
+				pThis->QueueMission(Mission::Area_Guard, false);
+				pThis->NextMission();
+				return 0x73741F;
+			}
+		}
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x73666A, UnitClass_AI_Viscerid_ZeroStrength, 0x6)
+{
+	GET(UnitClass*, pThis, ESI);
+	GET(UnitTypeClass*, pType, EAX);
+	return pType->Strength <= 0 || pThis->DeathFrameCounter > 0 ? 0x736685 : 0x0;
+}
+
+//DEFINE_HOOK(0x4F9A56, HouseClass_IsAlliedWith_OffendingPtrIsNotHouse, 0x6)
+//{
+//	GET(HouseClass*, pThis, EAX);
+//	GET(HouseClass*, pOffender, ECX);
+//
+//	if (!pOffender || VTable::Get(pOffender) != HouseClass::vtable){
+//		GET_STACK(unsigned int, callerAddress, 0x0);
+//		Debug::Log("[%08x]Trying to get Ally from Invalid House Pointer[%08x]!\n", callerAddress, pOffender);
+//		return 0x4F9A8A;
+//	}
+//
+//	return pThis == pOffender ? 0x4F9A5E : 0x4F9A63;
+//}
+
+DEFINE_HOOK(0x43B150, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x6)
+{
+	GET(TechnoClass*, pThis, ECX);
+
+	if(!pThis
+		|| !pThis->IsAlive
+		|| pThis->IsCrashing
+		|| pThis->IsSinking
+		|| (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->DeathFrameCounter > 0))
+	{
+		R->AL(false);
+		return 0x43B4B0;
+	}
+
+	if (!pThis->Owner || VTable::Get(pThis->Owner) != HouseClass::vtable) {
+		Debug::Log("Techno[%s] , Trying to use sensor with invalid[%08x] house!\n", pThis->get_ID() , pThis->Owner);
+		pThis->Owner = HouseExt::FindSpecial();
+	}
+
+	return 0x0;
+}
+
+// Gives player houses names based on their spawning spot
+
+int NOINLINE GetPlayerPosByName(const char* pName)
+{
+	if (!*pName || !strlen(pName))
+		return -1;
+
+	if (IS_SAME_STR_(GameStrings::PlayerAt_A(), pName))
+		return 0;
+
+	if (IS_SAME_STR_(GameStrings::PlayerAt_B(), pName))
+		return 1;
+
+	if (IS_SAME_STR_(GameStrings::PlayerAt_C(), pName))
+		return 2;
+
+	if (IS_SAME_STR_(GameStrings::PlayerAt_D(), pName))
+		return 3;
+
+	if (IS_SAME_STR_(GameStrings::PlayerAt_E(), pName))
+		return 4;
+
+	if (IS_SAME_STR_(GameStrings::PlayerAt_F(), pName))
+		return 5;
+
+	if (IS_SAME_STR_(GameStrings::PlayerAt_G(), pName))
+		return 6;
+
+	if (IS_SAME_STR_(GameStrings::PlayerAt_H(), pName))
+		return 7;
+
+	return -1;
+}
+
+DEFINE_HOOK_AGAIN(0x74330D, TechnoClass_FromINI_CreateForHouse ,0x7)
+DEFINE_HOOK_AGAIN(0x41B17B, TechnoClass_FromINI_CreateForHouse, 0x7)
+DEFINE_HOOK_AGAIN(0x51FB6B , TechnoClass_FromINI_CreateForHouse, 0x7)
+DEFINE_HOOK(0x44F8A6, TechnoClass_FromINI_CreateForHouse, 0x7)
+{
+	GET(const char*, pHouseName, EAX);
+
+	const int startingPoints = GetPlayerPosByName(pHouseName);
+	int idx = -1;
+
+	if(startingPoints == -1){
+		idx = HouseClass::FindIndexByName(pHouseName);
+	} else {
+		idx = ScenarioClass::Instance->HouseIndices[startingPoints];
+	}
+
+	if (idx == -1)
+		Debug::Log("Failed To fetch house index by name of [%s]\n", pHouseName);
+
+	R->EAX(idx);
+	return R->Origin() + 0x7;
+}
+
+// Skips checking the gamemode or who the player is when assigning houses
+DEFINE_JUMP(LJMP, 0x44F8CB, 0x44F8E1)

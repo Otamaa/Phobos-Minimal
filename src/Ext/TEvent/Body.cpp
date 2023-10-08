@@ -309,9 +309,6 @@ bool TEventExt::HousesAreDestroyedTEvent(TEventClass* pThis)
 // container
 TEventExt::ExtContainer TEventExt::ExtMap;
 
-TEventExt::ExtContainer::ExtContainer() : Container("TEventClass") { }
-TEventExt::ExtContainer::~ExtContainer() = default;
-
 // =============================
 // container hooks
 //

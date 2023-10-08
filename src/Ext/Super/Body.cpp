@@ -141,9 +141,6 @@ void SuperExt::ExtData::Serialize(T& Stm) {
 // container
 SuperExt::ExtContainer SuperExt::ExtMap;
 
-SuperExt::ExtContainer::ExtContainer() : Container("SuperClass") { }
-SuperExt::ExtContainer::~ExtContainer() = default;
-
 // =============================
 // container hooks
 

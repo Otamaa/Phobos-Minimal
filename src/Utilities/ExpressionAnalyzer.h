@@ -86,7 +86,7 @@ public:
 					{
 						std::string _operator;
 						_operator.push_back(stackOperator.top());
-						words.push_back({ _operator, true, false });
+						words.emplace_back(_operator, true, false );
 						stackOperator.pop();
 					}
 					stackOperator.emplace(op);

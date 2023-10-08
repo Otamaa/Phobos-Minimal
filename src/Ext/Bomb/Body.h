@@ -32,9 +32,7 @@ class BombExt
 	class ExtContainer final : public Container<BombExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
-
+		CONSTEXPR_NOCOPY_CLASS(BombExt::ExtData, "BombClass");
 	};
 
 	static ExtContainer ExtMap;

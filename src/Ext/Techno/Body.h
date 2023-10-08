@@ -30,8 +30,6 @@
 
 #include <Misc/Ares/Hooks/Classes/AttachedAffects.h>
 
-#include <Ext/Object/Body.h>
-
 class BulletClass;
 class TechnoTypeClass;
 class REGISTERS;
@@ -200,11 +198,9 @@ private:
 	};
 
 	class ExtContainer final : public Container<TechnoExt::ExtData>
-
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(TechnoExt::ExtData, "TechnoClass");
 	};
 
 	static ExtContainer ExtMap;

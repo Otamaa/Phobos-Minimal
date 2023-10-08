@@ -521,6 +521,7 @@ public:
 		Promotable<float> CrushFireDeathWeapon { 0.0f };
 		Promotable<int> CrushDamage { 0 };
 		Nullable<WarheadTypeClass*> CrushDamageWarhead { };
+		Valueable<bool> CrushDamagePlayWHAnim  { false };
 		NullablePromotable<Leptons> CrushRange { };
 
 		NullableIdx<VocClass> DigInSound { };
@@ -726,7 +727,7 @@ public:
 
 		Valueable<float> ShadowScale  { -1.0f };
 
-		NullableVector<int> AIIonCannonValue {};
+		Nullable<PartialVector3D<int>> AIIonCannonValue {};
 		mutable OptionalStruct<bool, true> GenericPrerequisite {};
 		Nullable<int> ExtraPower_Amount {};
 
@@ -812,7 +813,7 @@ public:
 		DWORD Secret_RequiredHouses { 0xFFFFFFFF };
 		DWORD Secret_ForbiddenHouses { 0xFFFFFFFF };
 
-		std::bitset<32> RequiredStolenTech { 0ull };
+		std::bitset<32> RequiredStolenTech {};
 
 		Valueable<bool> ReloadInTransport { false };
 		Valueable<bool> Weeder_TriggerPreProductionBuildingAnim { false };
@@ -882,8 +883,16 @@ public:
 			this->Map.clear();
 		}
 
-		ExtContainer();
-		~ExtContainer();
+		ExtContainer() : Container<TechnoTypeExt::ExtData> { "TechnoTypeClass" }
+			, Map {}
+		{ }
+
+		virtual ~ExtContainer() override = default;
+
+	private:
+		ExtContainer(const ExtContainer&) = delete;
+		ExtContainer(ExtContainer&&) = delete;
+		ExtContainer& operator=(const ExtContainer& other) = delete;
 	};
 
 	static ExtContainer ExtMap;

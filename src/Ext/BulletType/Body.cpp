@@ -145,7 +145,7 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		this->AirburstSpread.Read(exINI, pSection, "AirburstSpread");
 		this->RetargetAccuracy.Read(exINI, pSection, "RetargetAccuracy");
-		this->RetargetOwner.Read(exINI, pSection, "RetargetOwner");
+		this->RetargetOwner.Read(exINI, pSection, "RetargetSelf");
 		this->Splits.Read(exINI, pSection, "Splits");
 		this->AroundTarget.Read(exINI, pSection, "AroundTarget");
 		this->AirburstWeapons.Read(exINI, pSection, "AirburstWeapons");
@@ -273,8 +273,6 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 // =============================
 // container
 BulletTypeExt::ExtContainer BulletTypeExt::ExtMap;
-BulletTypeExt::ExtContainer::ExtContainer() : Container("BulletTypeClass") { }
-BulletTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks

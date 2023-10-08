@@ -89,8 +89,7 @@ public:
 	class ExtContainer final : public Container<SuperExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(SuperExt::ExtData, "SuperClass");
 	};
 
 	static void UpdateSuperWeaponStatuses(HouseClass* pHouse);

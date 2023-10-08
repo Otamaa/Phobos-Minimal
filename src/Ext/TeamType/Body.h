@@ -37,8 +37,7 @@ public:
 	class ExtContainer final : public Container<TeamTypeExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(TeamTypeExt::ExtData, "TeamTypeClass");
 	};
 
 	static ExtContainer ExtMap;

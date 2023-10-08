@@ -190,8 +190,6 @@ void CaptureExt::ExtData::Serialize(T& Stm) {
 // =============================
 // container
 CaptureExt::ExtContainer CaptureExt::ExtMap;
-CaptureExt::ExtContainer::ExtContainer() : Container("CaptureManagerClass") { };
-CaptureExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks

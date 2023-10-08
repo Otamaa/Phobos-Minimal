@@ -84,7 +84,7 @@ DEFINE_HOOK(0x6918A0, ScriptTypeClass_LoadFromINI, 0x5)
 			CRT::sprintf(buffer, "%d", i);
 			CRT::strtrim(buffer);
 
-			if (pINI->ReadString(pThis->ID, buffer, "", Phobos::readBuffer)) {
+			if (pINI->ReadString(pThis->ID, buffer, "", Phobos::readBuffer) > 0) {
 
 				ScriptActionNode nBuffer { Phobos::readBuffer };
 

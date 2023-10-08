@@ -91,8 +91,8 @@ public:
 	class ExtContainer final : public Container<TActionExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(TActionExt::ExtData, "TActionClass");
+	public:
 
 		void Clear() {
 			RandomTriggerPool.clear();

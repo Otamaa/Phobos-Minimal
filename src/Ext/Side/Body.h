@@ -124,8 +124,7 @@ public:
 	class ExtContainer final : public Container<SideExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(SideExt::ExtData, "SideClass");
 	};
 
 	static ExtContainer ExtMap;

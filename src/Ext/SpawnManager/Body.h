@@ -31,8 +31,7 @@ public:
 	class ExtContainer final : public Container<SpawnManagerExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(SpawnManagerExt::ExtData, "SpawnManagerClass");
 	};
 
 	static ExtContainer ExtMap;

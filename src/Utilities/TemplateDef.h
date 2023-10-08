@@ -156,7 +156,7 @@ namespace detail
 				return true;
 			}
 
-			for (size_t i = 0; i < EnumFunctions::TileType_ToStrings.size(); ++i) {
+			for (size_t i = 1; i < EnumFunctions::TileType_ToStrings.size(); ++i) {
 				if (IS_SAME_STR_(parser.c_str(), EnumFunctions::TileType_ToStrings[i])) {
 					value = TileType(i);
 					return true;
@@ -1376,6 +1376,7 @@ namespace detail
 		return false;
 	}
 
+	//WARNING : this not checking for read first , make sure before using it !
 	template <typename T>
 	inline void parse_values(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
 	{
@@ -1397,7 +1398,7 @@ namespace detail
 	template <typename T>
 	inline void ReadVectors(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
 	{
-		static_assert(std::is_pointer<T>::value, "Pointer Required !");
+		//static_assert(std::is_pointer<T>::value, "Pointer Required !");
 
 		if (parser.ReadString(pSection, pKey))
 		{
@@ -1416,6 +1417,7 @@ namespace detail
 		}
 	}
 
+	//WARNING : this not checking for read first , make sure before using it !
 	template <typename T>
 	inline void parse_Alloc_values(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
 	{
@@ -1438,6 +1440,7 @@ namespace detail
 		}
 	}
 
+	//WARNING : this not checking for read first , make sure before using it !
 	template <>
 	inline void parse_values(std::vector<LandType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{

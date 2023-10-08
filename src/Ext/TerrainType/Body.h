@@ -85,8 +85,7 @@ public:
 
 	class ExtContainer final : public Container<TerrainTypeExt::ExtData> {
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(TerrainTypeExt::ExtData, "TerrainTypeClass");
 	};
 
 	static ExtContainer ExtMap;

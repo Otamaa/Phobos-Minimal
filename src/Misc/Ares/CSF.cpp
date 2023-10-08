@@ -35,7 +35,7 @@ void CSFLoader::LoadAdditionalCSF(const char* pFileName, bool ignoreLanguage)
 					std::sort(StringTable::Labels(), StringTable::Labels() + StringTable::LabelCount(),
 						[](const CSFLabel& lhs, const CSFLabel& rhs)
 					{
-						return CRT::strcmpi(lhs.Name, rhs.Name) < 0;
+						return IMPL_STRCMPI(lhs.Name, rhs.Name) < 0;
 					});
 				}
 			}
@@ -45,11 +45,12 @@ void CSFLoader::LoadAdditionalCSF(const char* pFileName, bool ignoreLanguage)
 
 const wchar_t* CSFLoader::GetDynamicString(const char* pLabelName, const wchar_t* pPattern, const char* pDefault)
 {
-	std::string buff { pLabelName };
+	if (IS_SAME_STR_(pLabelName, "NOSTR:"))
+		return L"";
 
-	auto pData = &DynamicStrings[buff];
+	auto pData = &DynamicStrings[pLabelName];
 
-	if(buff != "NOSTR:" && (!pData->Text|| !pData->Text[0])) {
+	if((!pData->Text|| !pData->Text[0])) {
 		swprintf_s(pData->Text, 101u, pPattern, pDefault);
 	}
 
@@ -78,7 +79,6 @@ DEFINE_OVERRIDE_HOOK(0x7349cf, StringTable_ParseFile_Buffer, 7)
 
 		if (IsAllocated)
 			YRMemory::Deallocate(tempPtr);
-
 	}
 
 	return 0x0;
@@ -89,7 +89,6 @@ DEFINE_OVERRIDE_HOOK(0x7346D0, CSF_LoadBaseFile, 6)
 {
 	StringTable::IsLoaded = true;
 	CSFLoader::CSFCount = 0;
-
 	return 0;
 }
 
@@ -186,13 +185,13 @@ DEFINE_OVERRIDE_HOOK(0x6BD886, CSF_LoadExtraFiles, 5)
 	if (language)
 		res = language->Letter;
 
-	char fname[32];
-	_snprintf_s(fname, _TRUNCATE, "ares_%s.csf", res);
+	char fname[32] {};
+	IMPL_SNPRNINTF(fname, sizeof(fname), "ares_%s.csf", res);
 	CSFLoader::LoadAdditionalCSF(fname);
 
 	for (int idx = 0; idx < 100; ++idx)
 	{
-		_snprintf_s(fname, _TRUNCATE, "stringtable%02d.csf", idx);
+		IMPL_SNPRNINTF(fname, sizeof(fname), "stringtable%02d.csf", idx);
 		CSFLoader::LoadAdditionalCSF(fname);
 	}
 

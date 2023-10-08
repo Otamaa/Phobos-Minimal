@@ -386,9 +386,6 @@ void SideExt::ExtData::Serialize(T& Stm)
 // container
 SideExt::ExtContainer SideExt::ExtMap;
 
-SideExt::ExtContainer::ExtContainer() : Container("SideClass") { }
-SideExt::ExtContainer::~ExtContainer() = default;
-
 // =============================
 // container hooks
 

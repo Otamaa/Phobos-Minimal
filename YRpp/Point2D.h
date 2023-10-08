@@ -5,15 +5,15 @@ class Point2D
 public:
 	static const Point2D Empty;
 
-	Point2D& operator=(const Point2D& that)
-	{
-		if (this != &that)
-		{
-			X = that.X;
-			Y = that.Y;
-		}
-		return *this;
-	}
+	//Point2D& operator=(const Point2D& that)
+	//{
+	//	if (this != &that)
+	//	{
+	//		X = that.X;
+	//		Y = that.Y;
+	//	}
+	//	return *this;
+	//}
 
 	bool operator==(const Point2D& that) const { return X == that.X && Y == that.Y; }
 	bool operator!=(const Point2D& that) const { return X != that.X && Y != that.Y; }

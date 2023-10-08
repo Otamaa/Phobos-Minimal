@@ -19,6 +19,11 @@ public:
 		, BaseExtraFrame { baseExtraFrame }
 		, Spacing { spacing }
 	{ }
+
+	~ShapeTextPrintData() = default;
+	ShapeTextPrintData(const ShapeTextPrintData&) = default;
+	ShapeTextPrintData(ShapeTextPrintData&&) = default;
+	ShapeTextPrintData& operator=(const ShapeTextPrintData& other) = default;
 };
 
 class ShapeTextPrinter

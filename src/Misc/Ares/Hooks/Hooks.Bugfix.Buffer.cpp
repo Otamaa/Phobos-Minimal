@@ -250,7 +250,7 @@ DEFINE_OVERRIDE_HOOK(0x66D55E, Buf_General, 6)
 
 	detail::ParseVector<TerrainTypeClass*, true>(pRules->DefaultMirageDisguises, exINI, section, GameStrings::DefaultMirageDisguises, "Expect valid TerrainType");
 
-	if (pINI->ReadString(section, GameStrings::WallTower, nullptr, Phobos::readBuffer))
+	if (pINI->ReadString(section, GameStrings::WallTower, nullptr, Phobos::readBuffer) > 0)
 	{
 		if (const auto pBuilding = BuildingTypeClass::FindOrAllocate(Phobos::readBuffer))
 		{

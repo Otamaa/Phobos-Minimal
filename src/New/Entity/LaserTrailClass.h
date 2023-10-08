@@ -52,6 +52,7 @@ public:
 
 	LaserTrailClass(const LaserTrailClass& other) = default;
 	LaserTrailClass& operator=(const LaserTrailClass& other) = default;
+	LaserTrailClass(LaserTrailClass&&) = default;
 
 	bool Update(CoordStruct const& location);
 	void FixZLoc(bool forWho);

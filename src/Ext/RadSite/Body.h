@@ -70,8 +70,7 @@ public:
 	class ExtContainer final : public Container<RadSiteExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(RadSiteExt::ExtData, "RadSiteClass");
 	};
 
 	static ExtContainer ExtMap;

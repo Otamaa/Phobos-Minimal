@@ -10,9 +10,14 @@ void ReadWinDirMult(std::array<Point2D, (size_t)FacingType::Count>& arr, INI_EX&
 
 	for (size_t i = 0; i < arr.size(); ++i) {
 		Nullable<Point2D> ReadWind {};
-		_snprintf_s(buff_wind, sizeof(buff_wind) - 1, "WindDirectionMult%d", i);
+		IMPL_SNPRNINTF(buff_wind, sizeof(buff_wind) - 1, "WindDirectionMult%d", i);
 		ReadWind.Read(exINI, pID, buff_wind);
-		arr[i] = ReadWind.Get(Point2D { *(beginX + i) , *(beginY + i) });
+
+		if(!ReadWind.isset()) {
+			arr[i].X = *(beginX + i);
+			arr[i].Y = *(beginY + i);
+		}else
+			arr[i] = ReadWind.Get();
 	}
 }
 
@@ -45,7 +50,8 @@ void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 	break;
 	case ParticleTypeBehavesLike::Fire: {
 	//	this->ExpireAfterDamaging.Read(exINI, pID, "Fire.ExpireAfterDamaging");
-	//	this->DamagingAnim.Read(exINI, pID, "Fire.DamagingAnim");
+		this->Fire_DamagingAnim.Read(exINI, pID, "Fire.DamagingAnim");
+
 	}
 	break;
 	case ParticleTypeBehavesLike::Railgun: {
@@ -66,6 +72,10 @@ void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 
 		ReadWinDirMult(this->WindMult, exINI, pID, ParticleClass::GasWind_X.begin(), ParticleClass::GasWind_Y.begin());
 		this->Gas_DriftSpeed.Read(exINI, pID, "Gas.DriftSpeed");
+		this->Transmogrify.Read(exINI, pID, "Gas.Transmogrify");
+		this->TransmogrifyChance.Read(exINI, pID, "Gas.TransmogrifyChance");
+		this->TransmogrifyType.Read(exINI, pID, "Gas.TransmogrifyType", true);
+		this->TransmogrifyOwner.Read(exINI, pID, "Gas.TransmogrifyOwner");
 	}break;
 	default:
 		break;
@@ -94,7 +104,11 @@ void ParticleTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DeleteWhenReachWater)
 		.Process(this->WindMult)
 		.Process(this->Gas_DriftSpeed)
-
+		.Process(this->Transmogrify)
+		.Process(this->TransmogrifyChance)
+		.Process(this->TransmogrifyType)
+		.Process(this->TransmogrifyOwner)
+		.Process(this->Fire_DamagingAnim)
 		;
 
 	this->Trails.Serialize(Stm);
@@ -103,8 +117,6 @@ void ParticleTypeExt::ExtData::Serialize(T& Stm)
 // =============================
 // container
 ParticleTypeExt::ExtContainer ParticleTypeExt::ExtMap;
-ParticleTypeExt::ExtContainer::ExtContainer() : Container("ParticleTypeClass") {}
-ParticleTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks

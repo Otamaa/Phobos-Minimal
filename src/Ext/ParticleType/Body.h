@@ -29,6 +29,12 @@ public:
 		std::array<Point2D, (size_t)FacingType::Count> WindMult {};
 
 		Valueable<PartialVector2D<int>> Gas_DriftSpeed { {2, -2} };
+		Valueable<bool> Transmogrify { false };
+		Valueable<int> TransmogrifyChance { -1 };
+		Valueable<UnitTypeClass*> TransmogrifyType { nullptr };
+		Valueable<OwnerHouseKind> TransmogrifyOwner { OwnerHouseKind::Neutral };
+
+		Valueable<bool> Fire_DamagingAnim { false };
 
 		ExtData(ParticleTypeClass* OwnerObject) : Extension<ParticleTypeClass>(OwnerObject)
 		{ }
@@ -48,8 +54,7 @@ public:
 	class ExtContainer final : public Container<ParticleTypeExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(ParticleTypeExt::ExtData, "ParticleTypeClass");
 	};
 
 	static ExtContainer ExtMap;

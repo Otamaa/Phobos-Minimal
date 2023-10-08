@@ -274,7 +274,7 @@ void TechnoTypeExt_ExtData::LoadTurrets(TechnoTypeClass* pType, CCINIClass* pINI
 	pExt->WeaponUINameX.resize(weaponCount);
 	pExt->Insignia_Weapon.resize(weaponCount);
 
-	char buffer[0x100u];
+	char buffer[0x100u] {};
 	//read default
 	for (size_t i = 0; i < SubName.size(); ++i)
 	{
@@ -307,7 +307,7 @@ void TechnoTypeExt_ExtData::LoadTurrets(TechnoTypeClass* pType, CCINIClass* pINI
 		++Data_
 	)
 	{
-		_snprintf_s(buffer, sizeof(buffer), "WeaponTurretIndex%u", i + 1);
+		IMPL_SNPRNINTF(buffer, sizeof(buffer), "WeaponTurretIndex%u", i + 1);
 		Nullable<int> read_buff {};
 
 		read_buff.Read(iniEx, pSection, buffer);
@@ -326,17 +326,17 @@ void TechnoTypeExt_ExtData::LoadTurrets(TechnoTypeClass* pType, CCINIClass* pINI
 			//*result = 0; //avoid crash
 		}
 
-		_snprintf_s(buffer, sizeof(buffer), "WeaponUIName%u", i + 1);
-		if (iniEx.ReadString(pSection, buffer))
+		IMPL_SNPRNINTF(buffer, sizeof(buffer), "WeaponUIName%u", i + 1);
+		if (iniEx.ReadString(pSection, buffer) > 0)
 			*CSF_ = iniEx.c_str();
 
-		_snprintf_s(buffer, sizeof(buffer), "Insignia.Weapon%u.%s", i + 1, "%s");
+		IMPL_SNPRNINTF(buffer, sizeof(buffer), "Insignia.Weapon%u.%s", i + 1, "%s");
 		(*Data_).Shapes.Read(iniEx, pSection, buffer);
 
-		_snprintf_s(buffer, sizeof(buffer), "InsigniaFrame.Weapon%u.%s", i + 1, "%s");
+		IMPL_SNPRNINTF(buffer, sizeof(buffer), "InsigniaFrame.Weapon%u.%s", i + 1, "%s");
 		(*Data_).Frame.Read(iniEx, pSection, buffer);
 
-		_snprintf_s(buffer, sizeof(buffer), "InsigniaFrames.Weapon%u", i + 1);
+		IMPL_SNPRNINTF(buffer, sizeof(buffer), "InsigniaFrames.Weapon%u", i + 1);
 		(*Data_).Frames.Read(iniEx, pSection, buffer);
 	}
 }
@@ -1163,7 +1163,7 @@ bool TechnoExt_ExtData::CloneBuildingEligible(BuildingClass* pBuilding , bool re
 	if (pBuilding->InLimbo ||
 		!pBuilding->IsAlive ||
 		!pBuilding->IsOnMap ||
-		 (requirePower &&!pBuilding->IsPowerOnline()) ||
+		 (!requirePower || pBuilding->IsPowerOnline()) ||
 		pBuilding->TemporalTargetingMe ||
 		pBuilding->IsBeingWarpedOut() ||
 		BuildingExt::ExtMap.Find(pBuilding)->AboutToChronoshift ||
@@ -3167,19 +3167,19 @@ int TechnoExt_ExtData::GetSelfHealAmount(TechnoClass* pThis) {
 	return 0;
 }
 
-void TechnoExt_ExtData::SpawnVisceroid(CoordStruct& crd, UnitTypeClass* pType, int chance, bool ignoreTibDeathToVisc) {
+void TechnoExt_ExtData::SpawnVisceroid(CoordStruct& crd, UnitTypeClass* pType, int chance, bool ignoreTibDeathToVisc, HouseClass* Owner) {
 
 	bool created = false;
 
 	// create a small visceroid if available and the cell is free
 	// dont create if `pType` is 0 strength because it is not properly listed
-	if (ignoreTibDeathToVisc || ScenarioClass::Instance->TiberiumDeathToVisceroid || (pType && pType->Strength > 0))
+	if (ignoreTibDeathToVisc && pType && pType->Strength > 0)
 	{
 		const auto pCell = MapClass::Instance->GetCellAt(crd);
 
 		if (!(pCell->OccupationFlags & 0x20) && ScenarioClass::Instance->Random.RandomFromMax(99) < chance)
 		{
-			if (auto pVisc = (UnitClass*)pType->CreateObject(HouseExt::FindNeutral()))
+			if (auto pVisc = (UnitClass*)pType->CreateObject(Owner))
 			{
 				++Unsorted::ScenarioInit;
 				created = pVisc->Unlimbo(crd, DirType::North);
@@ -3232,7 +3232,7 @@ void NOINLINE UpdatePassengerTurrent(TechnoClass* pThis, TechnoTypeExt::ExtData*
 	if (pTypeData->PassengerTurret)
 	{
 		// 18 = 1 8 = A H = Adolf Hitler. Clearly we can't allow it to come to that.
-		auto const passengerNumber = MinImpl(pThis->Passengers.NumPassengers, pType->WeaponCount - 1);
+		auto const passengerNumber = MinImpl(pThis->Passengers.NumPassengers, TechnoTypeClass::MaxWeapons - 1);
 		pThis->CurrentTurretNumber = MinImpl(passengerNumber, pType->TurretCount - 1);
 	}
 }
@@ -6982,7 +6982,7 @@ const std::vector<CellStruct>* CustomFoundation::GetCoveredCells(
 
 	PhobosGlobal::Instance()->TempCoveredCellsData.erase(it, PhobosGlobal::Instance()->TempCoveredCellsData.end());
 
-	return&PhobosGlobal::Instance()->TempCoveredCellsData;
+	return &PhobosGlobal::Instance()->TempCoveredCellsData;
 }
 
 void CustomFoundation::GetDisplayRect(RectangleStruct& a1, CellStruct* a2)

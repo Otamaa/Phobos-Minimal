@@ -226,8 +226,7 @@ public:
 
 	class ExtContainer final : public Container<ScriptExt::ExtData> {
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(ScriptExt::ExtData, "ScriptClass");
 	};
 
 	static ExtContainer ExtMap;

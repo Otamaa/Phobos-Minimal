@@ -59,8 +59,6 @@ void ParasiteExt::ExtData::Serialize(T& Stm) {
 // =============================
 // container
 ParasiteExt::ExtContainer ParasiteExt::ExtMap;
-ParasiteExt::ExtContainer::ExtContainer() : Container("ParasiteClass") { };
-ParasiteExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks

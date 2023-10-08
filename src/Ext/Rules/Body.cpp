@@ -142,7 +142,7 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	pData->Veinhole_Warhead.Read(iniEX, COMBATDAMAGE_SECTION , "VeinholeWarhead");
 
-	if (pINI->ReadString("GlobalControls", "AllowBypassBuildLimit", "", Phobos::readBuffer))
+	if (pINI->ReadString("GlobalControls", "AllowBypassBuildLimit", "", Phobos::readBuffer) > 0)
 	{
 		bool temp[3] = {};
 		int read = Parser<bool, 3>::Parse(Phobos::readBuffer, temp);
@@ -165,7 +165,7 @@ static bool NOINLINE IsVanillaDummy(const char* ID) {
 	static constexpr const char* exception[] = { "DeathDummy" , "WEEDGUY" , "YDUM" };
 
 	for (auto const& gameDummy : exception) {
-		if (CRT::strcmpi(ID, gameDummy) == 0)
+		if (IS_SAME_STR_(ID, gameDummy))
 			return true;
 	}
 
@@ -201,14 +201,14 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			pExt->IsDummy = true;
 		}
 
-		if (pExt->AIIonCannonValue.HasValue() && pExt->AIIonCannonValue.size() < 3) {
-			for(size_t i = 0; i < (3 - pExt->AIIonCannonValue.size()); ++i)
-				pExt->AIIonCannonValue.push_back(0);
-		}
+		// if (pExt->AIIonCannonValue.HasValue() && pExt->AIIonCannonValue.size() < 3) {
+		// 	for(size_t i = 0; i < (3 - pExt->AIIonCannonValue.size()); ++i)
+		// 		pExt->AIIonCannonValue.push_back(0);
+		// }
 
 		if (pItem->DebrisTypes.Count > 0 && pItem->DebrisMaximums.Count < pItem->DebrisTypes.Count) {
 			Debug::Log("TechnoType[%s - %s] DebrisMaximums items count is less than"
-			"DebrisTypes items count it will fail when the index counter reached DebrisMaximus items count\n"
+			" DebrisTypes items count it will fail when the index counter reached DebrisMaximus items count\n"
 			, pItem->ID, myClassName
 			);
 		}
@@ -428,7 +428,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	int lenp = pINI->GetKeyCount(sections[1]);
 	for (int i = 0; i < lenp; ++i) {
 		const char* key = pINI->GetKeyName(sections[1], i);
-		if (pINI->ReadString(sections[1], key, Phobos::readDefval, Phobos::readBuffer)) {
+		if (pINI->ReadString(sections[1], key, Phobos::readDefval, Phobos::readBuffer) > 0) {
 			BulletTypeClass::FindOrAllocate(Phobos::readBuffer);
 		}
 	}

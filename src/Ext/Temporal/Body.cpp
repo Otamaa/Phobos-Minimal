@@ -20,9 +20,6 @@ void TemporalExt::ExtData::Serialize(T& Stm) {
 // container
 TemporalExt::ExtContainer TemporalExt::ExtMap;
 
-TemporalExt::ExtContainer::ExtContainer() : Container("TemporalClass") { };
-TemporalExt::ExtContainer::~ExtContainer() = default;
-
 // =============================
 // container hooks
 

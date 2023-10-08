@@ -114,8 +114,6 @@ void TiberiumExt::ExtData::Serialize(T& Stm)
 }
 
 TiberiumExt::ExtContainer TiberiumExt::ExtMap;
-TiberiumExt::ExtContainer::ExtContainer() : Container("TiberiumClass") {}
-TiberiumExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks

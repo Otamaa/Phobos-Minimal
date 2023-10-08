@@ -4,8 +4,8 @@
 #include <Ext/WarheadType/Body.h>
 
 NOINLINE HouseClass*  __fastcall BombExt::GetOwningHouse(BombClass* pThis, void*)
-{ 
-	return pThis->OwnerHouse; 
+{
+	return pThis->OwnerHouse;
 }
 
 void __fastcall BombExt::InvalidatePointer(BombClass* pThis, void*, void* const ptr, bool removed){ }
@@ -25,8 +25,7 @@ void BombExt::ExtData::Serialize(T& Stm) {
 // =============================
 // container
 BombExt::ExtContainer BombExt::ExtMap;
-BombExt::ExtContainer::ExtContainer() : Container("BombClass") { };
-BombExt::ExtContainer::~ExtContainer() = default;
+
 
 // =============================
 // container hooks

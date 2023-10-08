@@ -544,8 +544,8 @@ public:
 	class ExtContainer final : public Container<SWTypeExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(SWTypeExt::ExtData, "SuperWeaponTypeClass");
+	public:
 
 		static void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 		static  bool InvalidateIgnorable(AbstractClass* ptr);

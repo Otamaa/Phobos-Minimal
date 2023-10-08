@@ -21,6 +21,19 @@ struct BoltData
 	int count;
 	std::vector<ColorStruct> ColorData;
 	std::vector<bool> Disabled;
+
+	BoltData() = default;
+	~BoltData() = default;
+
+	BoltData(int count) : count { count }
+	{
+		ColorData.resize(count);
+		Disabled.resize(count);
+	}
+
+	BoltData(const BoltData&) = default;
+	BoltData(BoltData&&) = default;
+	BoltData& operator=(const BoltData& other) = default;
 };
 
 struct LineDrawDataStruct
@@ -56,7 +69,7 @@ public:
 		DrawFrame {-1},
 		Random { 0 },
 		Data {}
-	{ 
+	{
 		Data.count = EBOLT_DEFAULT_SEGMENT_LINES;
 		for (int i = 0; i < EBOLT_DEFAULT_SEGMENT_LINES; ++i)
 			Data.ColorData.push_back(DefaultColor[i]);
@@ -71,17 +84,17 @@ public:
 		IterationCount { EBOLT_DEFAULT_INTERATIONS },
 		LineSegmentCount { EBOLT_DEFAULT_LINE_SEGEMENTS },
 		LineDrawList {},
-		DrawFrame { -1 }, 
+		DrawFrame { -1 },
 		Random { 0 },
 		Data { nData }
 	{ }
 
 	ElectricBoltClass
-		(CoordStruct const& start, 
-		 CoordStruct const& end, 
-		 ColorStruct const& col1, 
-		 ColorStruct const& col2, 
-		 ColorStruct const& col3, 
+		(CoordStruct const& start,
+		 CoordStruct const& end,
+		 ColorStruct const& col1,
+		 ColorStruct const& col2,
+		 ColorStruct const& col3,
 		 bool col1_disable,
 		 bool col2_disable,
 		 bool col3_disable,
@@ -115,8 +128,8 @@ public:
 	}
 
 	void Draw_It();
-	static void Create(CoordStruct const& start, CoordStruct const& end, 
-		ColorStruct const& col1, ColorStruct const& col2, ColorStruct const& col3, 
+	static void Create(CoordStruct const& start, CoordStruct const& end,
+		ColorStruct const& col1, ColorStruct const& col2, ColorStruct const& col3,
 		bool col1_disable = false,  bool col2_disable = false, bool col3_disable = false,
 		int z_adjust = 0, ParticleSystemTypeClass* pSys = nullptr, bool particleSysCoordFlip = false);
 	static void Create(CoordStruct const& start, CoordStruct const& end, const BoltData& nData, int z_adjust, ParticleSystemTypeClass* pSys = nullptr, bool particleSysCoordFlip = false);

@@ -62,9 +62,10 @@ struct MultiBoolFixedArray
 
 	void Reset()
 	{
-		std::memset(Datas, 0, sizeof(Datas));
+		std::memset(Datas, 0, sizeof(bool) * Amount);
 	}
 
 protected:
 	bool Datas[Amount] { false };
+
 };

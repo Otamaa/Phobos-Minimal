@@ -84,4 +84,12 @@ public:
 		EliteSupportWeaponIndex(-1)
 	{
 	}
+
+	~PrismForwardingData() = default;
+
+public:
+
+	PrismForwardingData(const PrismForwardingData&) = delete;
+	PrismForwardingData& operator = (const PrismForwardingData&) = delete;
+	PrismForwardingData& operator = (PrismForwardingData&&) = delete;
 };

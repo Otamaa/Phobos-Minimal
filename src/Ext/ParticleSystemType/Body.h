@@ -17,6 +17,7 @@ public:
 	public:
 
 		Valueable<bool> ApplyOptimization { true };
+		std::array<Point2D, (size_t)FacingType::Count> FacingMult {};
 
 		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
 		{ }
@@ -36,8 +37,7 @@ public:
 	class ExtContainer final : public Container<ParticleSystemTypeExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(ParticleSystemTypeExt::ExtData, "ParticleSystemTypeClass");
 	};
 
 	static ExtContainer ExtMap;

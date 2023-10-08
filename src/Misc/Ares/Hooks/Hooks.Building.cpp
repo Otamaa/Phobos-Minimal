@@ -297,11 +297,9 @@ DEFINE_OVERRIDE_HOOK(0x44C844, BuildingClass_MissionRepair_Reload, 6)
 	{
 		if (auto const pLink = pThis->GetNthLink(i))
 		{
-
-			auto const SendCommand = [=](RadioCommand command)
-				{
-					return pThis->SendCommand(command, pLink) == RadioCommand::AnswerPositive;
-				};
+			auto const SendCommand = [=](RadioCommand command) {
+				return pThis->SendCommand(command, pLink) == RadioCommand::AnswerPositive;
+			};
 
 			// check if reloaded and repaired already
 			auto const pLinkType = pLink->GetTechnoType();

@@ -25,6 +25,9 @@ public:
 
 	static int FindOrAllocateIndex(const char* Title)
 	{
+		if (!*Title || !strlen(Title))
+			return -1;
+
 		const auto nResult = FindIndexById(Title);
 
 		if (nResult < 0)
@@ -38,6 +41,9 @@ public:
 
 	static int FindIndexById(const char* Title)
 	{
+		if (!*Title || !strlen(Title))
+			return -1;
+
 		for (auto pos = Array.begin();
 			pos != Array.end();
 			++pos) {
@@ -76,8 +82,8 @@ public:
 	// With Idx validation ,return to the first item if Idx is invalid
 	static T* FindFromIndexFix(int Idx)
 	{
-		const auto aIdx = Idx > (int)Array.size() || Idx < 0 ? 0 : Idx;
-		return Array[static_cast<size_t>(aIdx)].get();
+		const auto aIdx = size_t(Idx) > Array.size() ? 0 : Idx;
+		return Array[aIdx].get();
 	}
 
 	static T* Allocate(const char* Title)
@@ -93,6 +99,9 @@ public:
 
 	static T* FindOrAllocate(const char* Title)
 	{
+		if (!*Title || !strlen(Title))
+			return nullptr;
+
 		if (T* find = Find(Title))
 			return find;
 
@@ -119,7 +128,7 @@ public:
 
 		for (int i = 0; i < pKeyCount; ++i) {
 			if (pINI->ReadString(section, pINI->GetKeyName(section, i),
-				Phobos::readDefval, Phobos::readBuffer)) {
+				Phobos::readDefval, Phobos::readBuffer) > 0) {
 				FindOrAllocate(Phobos::readBuffer);
 			}
 		}
@@ -151,7 +160,7 @@ public:
 
 		for (int i = 0; i < pKeyCount; ++i) {
 			if (pINI->ReadString(section, pINI->GetKeyName(section, i),
-				Phobos::readDefval, Phobos::readBuffer)) {
+				Phobos::readDefval, Phobos::readBuffer)  > 0) {
 
 				if (auto const pFind = Find(Phobos::readBuffer)) {
 					pFind->LoadFromINI(pINI);

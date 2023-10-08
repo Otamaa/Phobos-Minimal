@@ -542,8 +542,8 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, Hou
 	const auto what = pWhat->WhatAmI();
 	for (const auto& [pBldType, nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
 	{
-		if (pBldType->PowerDrain && pOwner->HasLowPower())
-			continue;
+		//if (pBldType->PowerDrain && pOwner->HasLowPower())
+		//	continue;
 
 		if (auto const pExt = BuildingTypeExt::ExtMap.TryFind(pBldType))
 		{
@@ -629,7 +629,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 	const char* pArtSection = pThis->ImageFile;
 	auto pArtINI = &CCINIClass::INI_Art();
 
-	if (pINI->ReadString(pSection, "IsTrench", "", Phobos::readBuffer))
+	if (pINI->ReadString(pSection, "IsTrench", "", Phobos::readBuffer) > 0)
 	{
 		/*  Find the name in the list of kinds; if the list is empty, distance is 0, if the item isn't in
 			the list, the index is the current list's size(); if the returned iterator is beyond the list,
@@ -945,15 +945,16 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 			pThis->FoundationData = this->CustomData.data();
 			pThis->FoundationOutside = this->OutlineData.data();
 		}
-		else if (pArtINI->ReadString(pArtSection, "Foundation", "", strbuff) && IS_SAME_STR_(strbuff, "Custom"))
+		else if ((pArtINI->ReadString(pArtSection, "Foundation", "", strbuff) > 0 ) && IS_SAME_STR_(strbuff, "Custom"))
 		{
 			//Custom Foundation!
 			this->IsCustom = true;
 			pThis->Foundation = BuildingTypeExt::CustomFoundation;
 
 			//Load Width and Height
-			this->CustomWidth = pArtINI->ReadInteger(pArtSection, "Foundation.X", 0);
-			this->CustomHeight = pArtINI->ReadInteger(pArtSection, "Foundation.Y", 0);
+			detail::read(this->CustomWidth, exArtINI, pArtSection, "Foundation.X");
+			detail::read(this->CustomHeight, exArtINI, pArtSection, "Foundation.Y");
+
 			auto outlineLength = pArtINI->ReadInteger(pArtSection, "FoundationOutline.Length", 0);
 
 			// at len < 10, things will end very badly for weapons factories
@@ -967,40 +968,30 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 			this->CustomData.assign(dimension + 1, CellStruct::Empty);
 			this->OutlineData.assign(outlineLength + 1, CellStruct::Empty);
 
-			pThis->FoundationData = this->CustomData.data();
-			pThis->FoundationOutside = this->OutlineData.data();
-
-			using Iter = std::vector<CellStruct>::iterator;
-
-			auto ParsePoint = [](Iter& cell, const char* str) -> void
-				{
-					int x = 0, y = 0;
-					switch (sscanf_s(str, "%d,%d", &x, &y))
-					{
-					case 0:
-						x = 0;
-					[[fallthrough]];
-					case 1:
-						y = 0;
-					}
-					*cell++ = CellStruct { static_cast<short>(x), static_cast<short>(y) };
-				};
+			//using Iter = std::vector<CellStruct>::iterator;
+			//
+			//auto ParsePoint = [](Iter& cell, const char* str) -> void
+			//	{
+			//		int x = 0, y = 0;
+			//		switch (sscanf_s(str, "%d,%d", &x, &y))
+			//		{
+			//		case 0:
+			//			x = 0;
+			//		[[fallthrough]];
+			//		case 1:
+			//			y = 0;
+			//		}
+			//		*cell++ = CellStruct { static_cast<short>(x), static_cast<short>(y) };
+			//	};
 
 			//Load FoundationData
 			auto itData = this->CustomData.begin();
-			char key[0x20];
+			char key[0x20] {};
 
-			for (size_t i = 0; i < dimension; ++i)
-			{
-				_snprintf_s(key, sizeof(key), "Foundation.%d", i);
-				if (pArtINI->ReadString(pArtSection, key, "", strbuff))
-				{
-					ParsePoint(itData, strbuff);
-				}
-				else
-				{
+			for (size_t i = 0; i < dimension; ++i) {
+				IMPL_SNPRNINTF(key, sizeof(key), "Foundation.%d", i);
+				if(!detail::read((*itData++), exArtINI, pArtSection, key))
 					break;
-				}
 			}
 
 			//Sort, remove dupes, add end marker
@@ -1017,15 +1008,9 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 			this->CustomData.erase(itData + 1, this->CustomData.end());
 
 			auto itOutline = this->OutlineData.begin();
-			for (int i = 0; i < outlineLength; ++i)
-			{
-				_snprintf_s(key, sizeof(key), "FoundationOutline.%d", i);
-				if (pArtINI->ReadString(pArtSection, key, "", strbuff))
-				{
-					ParsePoint(itOutline, strbuff);
-				}
-				else
-				{
+			for (int i = 0; i < outlineLength; ++i) {
+				IMPL_SNPRNINTF(key, sizeof(key), "FoundationOutline.%d", i);
+				if (!detail::read((*itOutline++), exArtINI, pArtSection, key)) {
 					//Set end vector
 					// can't break, some stupid functions access fixed offsets without checking if that offset is within the valid range
 					*itOutline++ = FoundationEndMarker;
@@ -1047,12 +1032,14 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 
 				}
 			}
+
+			pThis->FoundationData = this->CustomData.data();
+			pThis->FoundationOutside = this->OutlineData.data();
 		}
 
 		if (pThis->MaxNumberOccupants > 10)
 		{
-			char tempMuzzleBuffer[32];
-			this->OccupierMuzzleFlashes.clear();
+			char tempMuzzleBuffer[32] {};
 			this->OccupierMuzzleFlashes.resize(pThis->MaxNumberOccupants);
 
 			for (int i = 0; i < pThis->MaxNumberOccupants; ++i)
@@ -1084,21 +1071,22 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 			if (!nFire_offs.isset())
 				break;
 
-			this->DamageFire_Offs.push_back(nFire_offs.Get());
+			this->DamageFire_Offs.emplace_back(nFire_offs.Get());
 		}
 #endif
 		this->BuildUp_UseNormalLIght.Read(exArtINI, pArtSection, "Buildup.UseNormalLight");
 		this->RubblePalette.Read(exArtINI, pArtSection, "Rubble.Palette");
 
+		this->DockPoseDir.clear();
 		if (pThis->Helipad)
 		{
 			char keyDock[0x40] = { '\0' };
-			BuildingTypeExt::ExtMap.Find(pThis)->DockPoseDir.resize(pThis->NumberOfDocks);
+			this->DockPoseDir.resize(pThis->NumberOfDocks);
 
 			for (int i = 0; i < pThis->NumberOfDocks; ++i)
 			{
-				_snprintf_s(keyDock, sizeof(keyDock), "DockingPoseDir%d", i);
-				detail::read(BuildingTypeExt::ExtMap.Find(pThis)->DockPoseDir[i], exArtINI, pArtSection, keyDock, false);
+				IMPL_SNPRNINTF(keyDock, sizeof(keyDock), "DockingPoseDir%d", i);
+				detail::read(this->DockPoseDir[i], exArtINI, pArtSection, keyDock, false);
 			}
 		}
 #pragma endregion
@@ -1314,8 +1302,6 @@ bool BuildingTypeExt::ExtContainer::Load(BuildingTypeClass* pThis, IStream* pStm
 // =============================
 // container
 BuildingTypeExt::ExtContainer BuildingTypeExt::ExtMap;
-BuildingTypeExt::ExtContainer::ExtContainer() : Container("BuildingTypeClass") { }
-BuildingTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks

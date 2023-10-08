@@ -436,9 +436,6 @@ void TeamExt::ExtData::Serialize(T& Stm)
 // container
 TeamExt::ExtContainer TeamExt::ExtMap;
 
-TeamExt::ExtContainer::ExtContainer() : Container("TeamClass") { }
-TeamExt::ExtContainer::~ExtContainer() = default;
-
 // =============================
 // container hooks
 

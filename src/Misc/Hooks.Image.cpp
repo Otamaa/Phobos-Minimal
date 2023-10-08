@@ -12,7 +12,7 @@
 void ReplaceImageInfantry(InfantryTypeClass* pType)
 {
 	char nameBuffer[0x19];
-	if (CCINIClass::INI_Art->ReadString(pType->ImageFile, GameStrings::Image(), 0, nameBuffer, 0x19) != 0)
+	if (CCINIClass::INI_Art->ReadString(pType->ImageFile, GameStrings::Image(), 0, nameBuffer, 0x19) > 0)
 	{
 		//Debug::Log("[Phobos] Replacing image for %s with %s.\n", pType->ImageFile, nameBuffer);
 		char filename[0x105];
@@ -24,7 +24,7 @@ void ReplaceImageInfantry(InfantryTypeClass* pType)
 void ReplaceImageUnit(UnitTypeClass* pType)
 {
 	char nameBuffer[0x19];
-	if (CCINIClass::INI_Art->ReadString(pType->ImageFile, GameStrings::Image(), 0, nameBuffer, 0x19) != 0)
+	if (CCINIClass::INI_Art->ReadString(pType->ImageFile, GameStrings::Image(), 0, nameBuffer, 0x19) > 0)
 	{
 		//Debug::Log("[Phobos] Replacing image for %s with %s.\n", pType->ImageFile, nameBuffer);
 		if (pType->Voxel)
@@ -47,7 +47,7 @@ void ReplaceImageUnit(UnitTypeClass* pType)
 void ReplaceImageAircraft(AircraftTypeClass* pType)
 {
 	char nameBuffer[0x19];
-	if (CCINIClass::INI_Art->ReadString(pType->ImageFile, GameStrings::Image(), 0, nameBuffer, 0x19) != 0)
+	if (CCINIClass::INI_Art->ReadString(pType->ImageFile, GameStrings::Image(), 0, nameBuffer, 0x19) > 0)
 	{
 		if (pType->Voxel)
 		{

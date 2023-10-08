@@ -30,7 +30,7 @@ void ImmunityTypeClass::LoadFromINIList(CCINIClass * pINI, bool bDebug)
 	for (int i = 0; i < pKeyCount; ++i)
 	{
 		if (pINI->ReadString(section, pINI->GetKeyName(section, i),
-			Phobos::readDefval, Phobos::readBuffer))
+			Phobos::readDefval, Phobos::readBuffer) > 0)
 		{
 			if (!Find(Phobos::readBuffer))
 			{

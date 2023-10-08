@@ -531,9 +531,13 @@ struct TargetingFuncs
 
 					const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
 
-					int value = !pTypeExt->AIIonCannonValue.HasValue() ?
-						pTechno->GetIonCannonValue(info.Owner->AIDifficulty) :
-						make_iterator(pTypeExt->AIIonCannonValue).at((int)info.Owner->AIDifficulty);
+					int value = 0;
+
+					if(pTypeExt->AIIonCannonValue.isset()) {
+						value = pTypeExt->AIIonCannonValue->At(info.Owner->GetAIDifficultyIndex());
+					}else {
+						value = pTechno->GetIonCannonValue(info.Owner->AIDifficulty);
+					}
 
 					// cloak options
 					if (cloak != CloakHandling::AgnosticToCloak)
@@ -1375,7 +1379,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	}
 
 	std::vector<int> weights {};
-	detail::parse_values<int>(weights, exINI, pSection, "LimboDelivery.RandomWeights");
+	detail::ReadVectors(weights, exINI, pSection, "LimboDelivery.RandomWeights");
 	if (!weights.empty())
 		this->LimboDelivery_RandomWeightsData[0] = std::move(weights);
 
@@ -2712,9 +2716,6 @@ void SWTypeExt::ExtContainer::Clear()
 	SWTypeExt::LauchData = nullptr;
 	SWTypeExt::TempSuper = nullptr;
 }
-
-SWTypeExt::ExtContainer::ExtContainer() : Container("SuperWeaponTypeClass") { }
-SWTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks

@@ -136,20 +136,7 @@ DEFINE_HOOK(0x6F6BC9, TechnoClass_Limbo_AddTracking, 0x6)
 	GET(TechnoClass* const, pThis, ESI);
 
 	if(pThis->IsAlive){
-		auto const pType = pThis->GetTechnoType();
-		auto pHouseExt = HouseExt::ExtMap.Find(pThis->Owner);
-
-		if (!pType->Insignificant && !pType->DontScore) {
-			pHouseExt->LimboTechno.push_back_unique(pThis);
-		}
-
-		auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-
-		if (pThis->WhatAmI() != AbstractType::Aircraft && pThis->WhatAmI() != AbstractType::Building
-			&& pType->Ammo > 0 && pTypeExt->ReloadInTransport)
-		{
-			pHouseExt->OwnedTransportReloaders.push_back_unique(pThis);
-		}
+		HouseExt::ExtMap.Find(pThis->Owner)->LimboTechno.push_back_unique(pThis);
 	}
 
 	return 0;
@@ -158,21 +145,7 @@ DEFINE_HOOK(0x6F6BC9, TechnoClass_Limbo_AddTracking, 0x6)
 DEFINE_HOOK(0x6F6D85, TechnoClass_Unlimbo_RemoveTracking, 0x6)
 {
 	GET(TechnoClass* const, pThis, ESI);
-
-	auto const pType = pThis->GetTechnoType();
-
-	if (!pType->Insignificant && !pType->DontScore) {
-		HouseExt::ExtMap.Find(pThis->Owner)->LimboTechno.remove(pThis);
-	}
-
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-
-	if (pThis->WhatAmI() != AbstractType::Aircraft && pThis->WhatAmI() != AbstractType::Building
-		&& pType->Ammo > 0 && pTypeExt->ReloadInTransport)
-	{
-		HouseExt::ExtMap.Find(pThis->Owner)->OwnedTransportReloaders.remove(pThis);
-	}
-
+	HouseExt::ExtMap.Find(pThis->Owner)->LimboTechno.remove(pThis);
 	return 0;
 }
 
@@ -193,7 +166,7 @@ DEFINE_HOOK(0x7015C9, TechnoClass_Captured_UpdateTracking, 0x6)
 		TechnoExt::KillSelf(pThis, nMethod, pTypeExt->AutoDeath_VanishAnimation);
 	}
 
-	if (pThis->InLimbo && !pType->Insignificant && !pType->DontScore) {
+	if (pThis->InLimbo) {
 		pOldOwnerExt->LimboTechno.remove(pThis);
 
 		if (pThis->IsAlive)
@@ -208,20 +181,6 @@ DEFINE_HOOK(0x7015C9, TechnoClass_Captured_UpdateTracking, 0x6)
 		if(pThis->IsAlive)
 			pNewOwnerExt->AutoDeathObjects.insert(pThis, Item->second);
 	}
-
-	if (pThis->InLimbo && pThis->WhatAmI() != AbstractType::Aircraft && pThis->WhatAmI() != AbstractType::Building
-		&& pType->Ammo > 0 && pTypeExt->ReloadInTransport)
-	{
-		pOldOwnerExt->OwnedTransportReloaders.remove(pThis);
-		if (pThis->IsAlive)
-			pNewOwnerExt->OwnedTransportReloaders.push_back(pThis);
-	}
-
-	//const auto iter = std::find_if(pOldOwnerExt->OwnedTechno.begin(), pOldOwnerExt->OwnedTechno.end(), [pThis](TechnoClass* pItem) { return pItem == pThis; });
-	//if (iter != pOldOwnerExt->OwnedTechno.end())
-	//	pOldOwnerExt->OwnedTechno.erase(iter);
-
-	//pNewOwnerExt->OwnedTechno.push_back(pThis);
 
 	return 0;
 }

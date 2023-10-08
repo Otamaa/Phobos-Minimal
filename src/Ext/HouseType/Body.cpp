@@ -21,7 +21,7 @@ void HouseTypeExt::ExtData::Initialize()
 	};
 
 	const auto it = std::find_if(std::begin(countries), std::end(countries),
-		[=](const char* pCountry) { return !_strcmpi(pID, pCountry); });
+		[=](const char* pCountry) { return IS_SAME_STR_(pID, pCountry); });
 
 	const size_t index = it != std::end(countries) ? std::distance(std::begin(countries), it) : -1;
 
@@ -106,6 +106,7 @@ void HouseTypeExt::ExtData::InheritSettings(HouseTypeClass* pThis)
 			this->VeteranBuildings = ParentData->VeteranBuildings;
 			this->TauntFile = ParentData->TauntFile;
 			this->Degrades = ParentData->Degrades;
+			this->StartInMultiplayer_Types = ParentData->StartInMultiplayer_Types;
 
 			this->LoadScreenBackground = ParentData->LoadScreenBackground;
 			this->LoadScreenPalette = ParentData->LoadScreenPalette;
@@ -144,6 +145,10 @@ void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr
 
 	// remove all types that cannot paradrop
 	Helpers::Alex::remove_non_paradroppables(this->ParaDropTypes, pSection, "ParaDrop.Types");
+
+	this->StartInMultiplayer_Types.Read(exINI, pSection, "StartInMultiplayer.Types", true);
+
+	Helpers::Alex::remove_non_paradroppables(this->StartInMultiplayer_Types, pSection, "ParaDrop.Types");
 
 	this->ParaDropNum.Read(exINI, pSection, "ParaDrop.Num");
 	this->GivesBounty.Read(exINI, pSection, "GivesBounty");
@@ -230,7 +235,7 @@ void  HouseTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->TauntFile)
 		.Process(this->Degrades)
 		.Process(this->Disguise)
-
+		.Process(this->StartInMultiplayer_Types)
 		.Process(this->LoadScreenBackground)
 		.Process(this->LoadScreenPalette)
 		;
@@ -240,8 +245,6 @@ void  HouseTypeExt::ExtData::Serialize(T& Stm)
 // container
 
 HouseTypeExt::ExtContainer HouseTypeExt::ExtMap;
-HouseTypeExt::ExtContainer::ExtContainer() : Container("HouseTypeClass") { }
-HouseTypeExt::ExtContainer::~ExtContainer() = default;
 
 bool HouseTypeExt::ExtContainer::Load(HouseTypeClass* pThis, IStream* pStm)
 {

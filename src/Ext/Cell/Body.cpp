@@ -46,8 +46,6 @@ void CellExt::ExtData::Serialize(T& Stm) {
 // =============================
 // container
 CellExt::ExtContainer CellExt::ExtMap;
-CellExt::ExtContainer::ExtContainer() : Container("CellClass") { };
-CellExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks

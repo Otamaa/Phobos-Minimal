@@ -16,9 +16,6 @@ void ScriptTypeExt::ExtData::Serialize(T& Stm)
 // container
 ScriptTypeExt::ExtContainer ScriptTypeExt::ExtMap;
 
-ScriptTypeExt::ExtContainer::ExtContainer() : Container("ScriptTypeClass") { }
-ScriptTypeExt::ExtContainer::~ExtContainer() = default;
-
 // =============================
 // container hooks
 //

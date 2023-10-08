@@ -53,9 +53,6 @@ void VoxelAnimTypeExt::ExtData::Serialize(T& Stm)
 // container
 VoxelAnimTypeExt::ExtContainer VoxelAnimTypeExt::ExtMap;
 
-VoxelAnimTypeExt::ExtContainer::ExtContainer() : Container("VoxelVoxelAnimTypeClass") {}
-VoxelAnimTypeExt::ExtContainer::~ExtContainer() = default;
-
 DEFINE_HOOK(0x74AF5C, VoxelAnimTypeClass_CTOR, 0x7)
 {
 	GET(VoxelAnimTypeClass*, pItem, ESI);

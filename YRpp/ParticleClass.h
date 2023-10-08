@@ -46,12 +46,31 @@ public:
 	//ParticleClass
 	virtual int vt_entry_1E8() JMP_THIS(0x62D830);
 
+	void BehaviourUpdate() const {
+		JMP_THIS(0x62CE40);
+	}
+
+	void BehaviourCoordUpdate() const {
+		JMP_THIS(0x62D5E0);
+	}
+
 	//Constructor
 	ParticleClass(
-		ParticleTypeClass* pParticleType, CoordStruct* pCrd1,
-		CoordStruct* pCrd2, ParticleSystemClass* pParticleSystem) noexcept
+		ParticleTypeClass* pParticleType,
+		CoordStruct* pCrd1,
+		CoordStruct* pCrd2,
+		ParticleSystemClass* pParticleSystem) noexcept
 		: ParticleClass(noinit_t())
 	{ JMP_THIS(0x62B5E0); }
+
+	ParticleClass(
+	ParticleTypeClass* pParticleType,
+		const CoordStruct& Crd1,
+		const CoordStruct& pCrd2,
+		ParticleSystemClass* pParticleSystem) noexcept
+		: ParticleClass(noinit_t()) {
+		JMP_THIS(0x62B5E0);
+	}
 
 protected:
 	explicit __forceinline ParticleClass(noinit_t) noexcept

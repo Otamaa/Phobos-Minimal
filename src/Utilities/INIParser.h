@@ -37,6 +37,10 @@
 #include <Phobos.h>
 #include <CCINIClass.h>
 
+#ifdef CHECK_
+#include <Utilities/Debug.h>
+#endif
+
 class INI_EX {
 	CCINIClass* IniFile;
 
@@ -112,16 +116,23 @@ public:
 	}
 
 	// basic string reader
-	size_t ReadString(const char* pSection, const char* pKey) {
-		auto const res = IniFile->ReadString(
+	int ReadString(const char* pSection, const char* pKey) {
+		const int ret = IniFile->ReadString(
 			pSection, pKey, Phobos::readDefval, this->value(), this->max_size());
-		return static_cast<size_t>(res);
+
+#ifdef CHECK_
+		if (ret > 0 && (!*Phobos::readBuffer || !strlen(Phobos::readBuffer))) {
+			Debug::Log("ReadString returning empty strings![%s][%s]\n ,", pSection, pKey);
+			DebugBreak();
+		}
+#endif
+		return ret;
 	}
 
 	// parser template
 	template <typename T, size_t Count>
 	bool Read(const char* pSection, const char* pKey, T* pBuffer) {
-		if (this->ReadString(pSection, pKey)) {
+		if (this->ReadString(pSection, pKey) > 0) {
 			return Parser<T, Count>::Parse(this->value(), pBuffer) == Count;
 		}
 		return false;
@@ -130,11 +141,11 @@ public:
 	template <typename T, size_t Count>
 	size_t ReadAndCount(const char* pSection, const char* pKey, T* pBuffer)
 	{
-		if (this->ReadString(pSection, pKey)) {
+		if (this->ReadString(pSection, pKey) > 0) {
 			return Parser<T, Count>::Parse(this->value(), pBuffer);
 		}
 
-		return 0;
+		return 0u;
 	}
 
 	// helpers

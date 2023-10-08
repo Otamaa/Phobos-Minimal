@@ -50,8 +50,7 @@ void BulletExt::ApplyAirburst(BulletClass* pThis)
 		const CellStruct cellDest = CellClass::Coord2Cell(crdDest);
 
 		// create a list of cluster targets
-		std::vector<AbstractClass*> targets;
-		targets.reserve(cluster);
+		DynamicVectorClass<AbstractClass*> targets;
 
 		if (!pExt->Splits.Get())
 		{
@@ -60,12 +59,12 @@ void BulletExt::ApplyAirburst(BulletClass* pThis)
 			// fill target list with cells around the target
 			CellRangeIterator<CellClass>{}(cellDest, pExt->AirburstSpread.Get(),
 			[&targets](CellClass* const pCell) -> bool {
-				 targets.push_back(pCell);
+				 targets.AddItem(pCell);
 				 return true;
 			});
 
 			// we want as many as we get, not more, not less
-			cluster = (int)targets.size();
+			cluster = (int)targets.Size();
 		}
 		else
 		{
@@ -74,7 +73,7 @@ void BulletExt::ApplyAirburst(BulletClass* pThis)
 			// fill with technos in range
 			TechnoClass::Array->for_each([&](TechnoClass* pTechno) {
 				if (pWHExt->CanDealDamage(pTechno, false, !pExt->Splits_TargetingUseVerses.Get())) {
-					 if ((!pExt->RetargetOwner.Get() && pTechno == pBulletOwner))
+					 if (!pTechno->IsInPlayfield || !pTechno->IsOnMap || (!pExt->RetargetOwner.Get() && pTechno == pBulletOwner))
 						 return;
 
 					 //if (!EnumFunctions::IsCellEligible(pTarget->GetCell(), pExt->Splits_Affects))
@@ -90,10 +89,10 @@ void BulletExt::ApplyAirburst(BulletClass* pThis)
 							 return;
 
 						const CoordStruct crdTechno = pTechno->GetCoords();
-						if (crdDest.DistanceFrom(crdTechno) < pExt->Splits_Range.Get()
+						if (crdDest.DistanceFrom(crdTechno) < pExt->Splits_Range
 						 && ((!pTechno->IsInAir() && pWeapon->Projectile->AG)
 							 || (pTechno->IsInAir() && pWeapon->Projectile->AA))) {
-							 targets.push_back(pTechno);
+							 targets.AddItem(pTechno);
 						}
 					 }
 				}
@@ -105,18 +104,18 @@ void BulletExt::ApplyAirburst(BulletClass* pThis)
 				const int nMinRange = pExt->Splits_RandomCellUseHarcodedRange.Get() ? 3 : pWeapon->MinimumRange / Unsorted::LeptonsPerCell;
 				const int nMaxRange = pExt->Splits_RandomCellUseHarcodedRange.Get() ? 3 : pWeapon->Range / Unsorted::LeptonsPerCell;
 
-				while ((int)targets.size() < (cluster))
+				while ((int)targets.Size() < (cluster))
 				{
 					int x = random.RandomRanged(-nMinRange, nMaxRange);
 					int y = random.RandomRanged(-nMinRange, nMaxRange);
 
-					CellStruct cell { static_cast<short>(cellDest.X + x), static_cast<short>(cellDest.Y + y) };
-					targets.push_back(MapClass::Instance->GetCellAt(cell));
+					CellStruct cell { static_cast<short>(x + cellDest.X), static_cast<short>(cellDest.Y + y) };
+					targets.AddItem(MapClass::Instance->GetCellAt(cell));
 				}
 			}
 			else
 			{
-				cluster = targets.size();
+				cluster = targets.Size();
 			}
 		}
 
@@ -134,7 +133,7 @@ void BulletExt::ApplyAirburst(BulletClass* pThis)
 			else if (!pTarget || pExt->RetargetAccuracy < random.RandomDouble())
 			{
 				// select another target randomly
-				int index = random.RandomFromMax(targets.size() - 1);
+				int index = random.RandomFromMax(targets.Size() - 1);
 				pTarget = targets[index];
 
 				// firer would hit itself
@@ -142,13 +141,13 @@ void BulletExt::ApplyAirburst(BulletClass* pThis)
 				{
 					if (random.RandomDouble() > 0.5)
 					{
-						index = random.RandomFromMax(targets.size() - 1);
+						index = random.RandomFromMax(targets.Size() - 1);
 						pTarget = targets[index];
 					}
 				}
 
 				// remove this target from the list
-				targets.erase(targets.begin() + index);
+				targets.RemoveAt(index);
 			}
 
 			if (pTarget)
@@ -169,7 +168,7 @@ void BulletExt::ApplyAirburst(BulletClass* pThis)
 					auto const flatSpeed = cos_factor * pBullet->Speed;
 
 					pBullet->MoveTo(pThis->Location,
-						{ cos_rad * flatSpeed,sin_rad * flatSpeed, static_cast<double>(-pBullet->Speed) });
+						{ cos_rad * flatSpeed ,sin_rad * flatSpeed , static_cast<double>(-pBullet->Speed) });
 
 					auto sourcePos = pThis->Location;
 					auto targetPos = pTarget->GetCoords();
@@ -851,8 +850,6 @@ void BulletExt::ExtData::Serialize(T& Stm)
 // =============================
 // container
 BulletExt::ExtContainer BulletExt::ExtMap;
-BulletExt::ExtContainer::ExtContainer() : Container("BulletClass") { }
-BulletExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks

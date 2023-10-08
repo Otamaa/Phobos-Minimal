@@ -26,21 +26,23 @@ void PrismForwardingData::Initialize(BuildingTypeClass* pThis)
 void PrismForwardingData::LoadFromINIFile(BuildingTypeClass* pThis, CCINIClass* pINI)
 {
 	const char* pID = pThis->ID;
-	if (pINI->ReadString(pID, "PrismForwarding", "", Phobos::readBuffer))
+	if (pINI->ReadString(pID, "PrismForwarding", "", Phobos::readBuffer) > 0)
 	{
-		if ((CRT::strcmpi(Phobos::readBuffer, "yes") == 0) || (CRT::strcmpi(Phobos::readBuffer, "true") == 0))
+		if ((IS_SAME_STR_(Phobos::readBuffer, "yes"))
+			|| (IS_SAME_STR_(Phobos::readBuffer, "true")))
 		{
 			this->Enabled = EnabledState::Yes;
 		}
-		else if (CRT::strcmpi(Phobos::readBuffer, "forward") == 0)
+		else if (IS_SAME_STR_(Phobos::readBuffer, "forward"))
 		{
 			this->Enabled = EnabledState::Forward;
 		}
-		else if (CRT::strcmpi(Phobos::readBuffer, "attack") == 0)
+		else if (IS_SAME_STR_(Phobos::readBuffer, "attack"))
 		{
 			this->Enabled = EnabledState::Attack;
 		}
-		else if ((CRT::strcmpi(Phobos::readBuffer, "no") == 0) || (CRT::strcmpi(Phobos::readBuffer, "false")) == 0)
+		else if ((IS_SAME_STR_(Phobos::readBuffer, "no"))
+			|| (IS_SAME_STR_(Phobos::readBuffer, "false")))
 		{
 			this->Enabled = EnabledState::No;
 		}
@@ -77,7 +79,7 @@ void PrismForwardingData::LoadFromINIFile(BuildingTypeClass* pThis, CCINIClass* 
 		auto const ReadSupportWeapon = [=, &exINI]
 		(Valueable<int>& pSetting, const char* const pKey, bool const elite)
 			{
-				if (exINI.ReadString(pID, pKey))
+				if (exINI.ReadString(pID, pKey) > 0)
 				{
 					if (auto const pWeapon = WeaponTypeClass::FindOrAllocate(exINI.value()))
 					{
@@ -136,7 +138,7 @@ bool PrismForwardingData::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 		.Process(this->BreakSupport)
 		.Process(this->SupportWeaponIndex)
 		.Process(this->EliteSupportWeaponIndex)
-		.Success() //&& Stm.RegisterChange(this)
+		.Success() && Stm.RegisterChange(this)
 		;
 }
 
@@ -157,6 +159,6 @@ bool PrismForwardingData::Save(PhobosStreamWriter& Stm) const
 		.Process(this->BreakSupport)
 		.Process(this->SupportWeaponIndex)
 		.Process(this->EliteSupportWeaponIndex)
-		.Success() //&& Stm.RegisterChange(this)
+		.Success() && Stm.RegisterChange(this)
 		;
 }

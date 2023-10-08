@@ -125,15 +125,13 @@ public:
 		return { xy.X ,xy.Y , Width, Height };
 	}
 
-	inline void Reset_Position() { X = 0; Y = 0; }
+	__forceinline void Reset_Position() { X = 0; Y = 0; }
 
 	void Move(int x, int y) { X += x; Y += y; }
 	void Move(const Point2D &point) { X += point.X; Y += point.Y; }
 
-	inline int Size() const { return Width * Height; }
-
-	bool IsValid() const { return Width > 0 && Height > 0; }
-
+	__forceinline int Size() const { return Width * Height; }
+	__forceinline bool IsValid() const { return Width > 0 && Height > 0; }
 	__forceinline bool IsWithin(const RectangleStruct &rect) const { return (rect.X >= X && rect.X < (X + Width)) && (rect.Width >= Y && rect.Width < (Y + Height)); }
 	__forceinline bool IsWithin(int x, int y) const { return (x >= X && x < (X + Width)) && (y >= Y && y < (Y + Height)); }
 	__forceinline bool IsWithin(const Point2D &point) const { return (point.X >= X && point.X < (X + Width)) && (point.Y >= Y && point.Y < (Y + Height)); }
@@ -236,8 +234,9 @@ public:
 		return r;
 	}
 
-	int X, Y, Width, Height;
+public:
 
+	int X, Y, Width, Height;
 };
 
 //typedef RectangleStruct Rect;

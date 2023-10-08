@@ -96,8 +96,7 @@ public:
 	class ExtContainer final : public Container<TEventExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(TEventExt::ExtData, "TEventClass");
 	};
 
 	static ExtContainer ExtMap;

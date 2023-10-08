@@ -1312,25 +1312,19 @@ bool TechnoExt::TargetTechnoShieldAllowFiring(TechnoClass* pTarget, WeaponTypeCl
 bool TechnoExt::IsAbductable(TechnoClass* pThis, WeaponTypeClass* pWeapon, FootClass* pFoot)
 {
 
-	if (pFoot->InLimbo ||
-	pFoot->IsIronCurtained() ||
-	pFoot->IsSinking ||
-	!pFoot->IsAlive ||
-	pFoot->align_154->Is_DriverKilled)
-	{
+	if (!pFoot->IsAlive || pFoot->InLimbo || pFoot->IsIronCurtained() || pFoot->IsSinking  || pFoot->align_154->Is_DriverKilled) {
 		return false;
 	}
 
 	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 
 	//Don't abduct the target if it has more life then the abducting percent
-	if (pWeaponExt->Abductor_AbductBelowPercent < pFoot->GetHealthPercentage())
-	{
+
+	if (pWeaponExt->Abductor_AbductBelowPercent < pFoot->GetHealthPercentage()) {
 		return false;
 	}
 
-	if (pWeaponExt->Abductor_MaxHealth > 0 && pWeaponExt->Abductor_MaxHealth < pFoot->Health)
-	{
+	if (pWeaponExt->Abductor_MaxHealth > 0 && pWeaponExt->Abductor_MaxHealth < pFoot->Health) {
 		return false;
 	}
 
@@ -1338,6 +1332,9 @@ bool TechnoExt::IsAbductable(TechnoClass* pThis, WeaponTypeClass* pWeapon, FootC
 		return false;
 
 	if (!TechnoExt::IsEligibleSize(pThis, pFoot))
+		return false;
+
+	if (!TechnoTypeExt::PassangersAllowed(pThis->GetTechnoType(), pFoot->GetTechnoType()))
 		return false;
 
 	return true;
@@ -3099,7 +3096,11 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 				{
 					if(allowLimbo) {
 						for (const auto& limbo : HouseExt::ExtMap.Find(pHouse)->LimboTechno) {
-							if (limbo->GetTechnoType() == pType)
+							if (!limbo->IsAlive)
+								continue;
+
+							const auto limboType = limbo->GetTechnoType();
+							if (!limboType->Insignificant && !limboType->DontScore && limboType== pType)
 								return true;
 						}
 					}
@@ -3797,16 +3798,6 @@ void TechnoExt::ExtData::UpdateType(TechnoTypeClass* currentType)
 		this->MyGiftBox.reset(nullptr);
 	else if (pTypeExtData->MyGiftBoxData.Enable && !this->MyGiftBox)
 		GiftBoxFunctional::Init(this, pTypeExtData);*/
-
-
-	auto const oldrtti = pOldType->WhatAmI();
-
-	// Remove from limbo reloaders if no longer applicable
-	if (oldrtti != AbstractType::AircraftType && oldrtti != AbstractType::BuildingType
-		&& pOldType->Ammo > 0 && pOldTypeExt->ReloadInTransport && !pTypeExtData->ReloadInTransport)
-	{
-		HouseExt::ExtMap.Find(pThis->Owner)->OwnedTransportReloaders.remove(pThis);
-	}
 }
 
 void TechnoExt::ExtData::UpdateBuildingLightning()
@@ -4670,8 +4661,6 @@ void TechnoExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 }
 
 TechnoExt::ExtContainer TechnoExt::ExtMap;
-TechnoExt::ExtContainer::ExtContainer() : Container("TechnoClass") { }
-TechnoExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks

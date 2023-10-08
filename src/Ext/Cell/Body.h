@@ -36,8 +36,7 @@ public:
 	class ExtContainer final : public Container<CellExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(CellExt::ExtData, "CellClass");
 	};
 
 	static ExtContainer ExtMap;

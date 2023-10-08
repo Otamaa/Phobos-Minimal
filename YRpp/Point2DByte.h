@@ -7,15 +7,15 @@ class Point2DBYTE
 public:
 	static const Point2DBYTE Empty;
 
-	Point2DBYTE& operator=(const Point2DBYTE& that)
-	{
-		if (this != &that)
-		{
-			X = that.X;
-			Y = that.Y;
-		}
-		return *this;
-	}
+	//Point2DBYTE& operator=(const Point2DBYTE& that)
+	//{
+	//	if (this != &that)
+	//	{
+	//		X = that.X;
+	//		Y = that.Y;
+	//	}
+	//	return *this;
+	//}
 
 	bool operator==(const Point2DBYTE& that) const { return X == that.X && Y == that.Y; }
 	bool operator!=(const Point2DBYTE& that) const { return X != that.X && Y != that.Y; }

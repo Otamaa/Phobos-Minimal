@@ -346,7 +346,7 @@ DEFINE_OVERRIDE_HOOK(0x4D85E4, FootClass_UpdatePosition_TiberiumDamage, 9)
 
 		if (pThis->ReceiveDamage(&damage, 0, pWarhead, nullptr, false, false, nullptr) == DamageState::NowDead)
 		{
-			TechnoExt_ExtData::SpawnVisceroid(crd, RulesClass::Instance->SmallVisceroid, transmogrify, false);
+			TechnoExt_ExtData::SpawnVisceroid(crd, RulesClass::Instance->SmallVisceroid, transmogrify, ScenarioClass::Instance->TiberiumDeathToVisceroid , HouseExt::FindNeutral());
 			return 0x4D8F29;
 		}
 	}

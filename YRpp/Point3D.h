@@ -7,16 +7,16 @@ class Point3D
 public:
 	static const Point3D Empty;
 
-	Point3D& operator=(const Point3D& that)
-	{
-		if (this != &that)
-		{
-			X = that.X;
-			Y = that.Y;
-			Z = that.Z;
-		}
-		return *this;
-	}
+	//Point3D& operator=(const Point3D& that)
+	//{
+	//	if (this != &that)
+	//	{
+	//		X = that.X;
+	//		Y = that.Y;
+	//		Z = that.Z;
+	//	}
+	//	return *this;
+	//}
 
 	bool operator==(const Point3D& that) const { return X == that.X && Y == that.Y && Z == that.Z; }
 	bool operator!=(const Point3D& that) const { return X != that.X && Y != that.Y && Z != that.Z; }

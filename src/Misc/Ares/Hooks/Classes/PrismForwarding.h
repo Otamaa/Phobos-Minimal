@@ -9,7 +9,7 @@ class PrismForwarding
 public:
 
 	BuildingClass* Owner;
-	DynamicVectorClass<PrismForwarding*> Senders;		//the prism towers that are forwarding to this one
+	HelperedVector<PrismForwarding*> Senders;		//the prism towers that are forwarding to this one
 	PrismForwarding* SupportTarget;			//what tower am I sending to?
 	int PrismChargeDelay;					//current delay charge
 	double ModifierReserve;					//current modifier reservoir
@@ -27,6 +27,7 @@ public:
 
 	~PrismForwarding() {
 		this->RemoveFromNetwork(true);
+		this->Senders.clear();
 	}
 
 	BuildingClass* GetOwner() const;
@@ -45,7 +46,6 @@ public:
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
 		// support pointer to this type
-		Stm.RegisterChange(this);
 		return Stm
 			.Process(this->Owner, RegisterForChange)
 			.Process(this->Senders, RegisterForChange)
@@ -53,15 +53,13 @@ public:
 			.Process(this->PrismChargeDelay)
 			.Process(this->ModifierReserve)
 			.Process(this->DamageReserve)
-			.Success()
-				&& Stm.RegisterChange(this)
+			.Success() && Stm.RegisterChange(this)
 			;
 	}
 
 	bool Save(PhobosStreamWriter& Stm) const
 	{
 		// remember this object address
-		Stm.RegisterChange(this);
 		return Stm
 			.Process(this->Owner)
 			.Process(this->Senders)
@@ -69,8 +67,12 @@ public:
 			.Process(this->PrismChargeDelay)
 			.Process(this->ModifierReserve)
 			.Process(this->DamageReserve)
-			.Success()
-				&& Stm.RegisterChange(this)
+			.Success() && Stm.RegisterChange(this)
 			;
 	}
+
+public:
+	PrismForwarding(const PrismForwarding&) = delete;
+	PrismForwarding& operator = (const PrismForwarding&) = delete;
+	PrismForwarding& operator = (PrismForwarding&&) = delete;
 };

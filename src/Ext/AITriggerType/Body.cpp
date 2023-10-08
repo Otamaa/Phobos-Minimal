@@ -8,8 +8,6 @@
 // =============================
 // container
 AITriggerTypeExt::ExtContainer AITriggerTypeExt::ExtMap;
-AITriggerTypeExt::ExtContainer::ExtContainer() : Container("AITriggerTypeClass") { }
-AITriggerTypeExt::ExtContainer::~ExtContainer() = default;
 
 void AITriggerTypeExt::ProcessCondition(AITriggerTypeClass* pAITriggerType, HouseClass* pHouse, int type, int condition)
 {

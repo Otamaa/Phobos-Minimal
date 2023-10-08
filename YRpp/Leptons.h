@@ -8,6 +8,10 @@ struct Leptons
 	explicit Leptons(const int value) noexcept : value(value) { }
 	explicit Leptons(double velue) noexcept : value(int(velue * Unsorted::d_LeptonsPerCell)) { }
 
+	Leptons(const Leptons&) = default;
+	Leptons(Leptons&&) = default;
+	Leptons&operator=(const Leptons& other) = default;
+
 	operator int() const
 	{ return this->value; }
 

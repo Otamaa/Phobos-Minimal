@@ -232,8 +232,7 @@ DEFINE_OVERRIDE_HOOK(0x474DEE, INIClass_GetFoundation, 7)
 	GET_STACK(const char*, Key, 0x30);
 	LEA_STACK(const char*, Value, 0x8);
 
-	if (CRT::strcmpi(Value, "Custom") != 0)
-	{
+	if (!IS_SAME_STR_(Value, "Custom")) {
 		Debug::INIParseFailed(Section, Key, Value);
 	}
 

@@ -5,7 +5,6 @@
 #include <ParticleTypeClass.h>
 #include <ParticleClass.h>
 
-
 void NOINLINE ParticleSystemExt::ExtData::InitializeConstants()
 {
 	if (auto pType = OwnerObject()->Type)
@@ -61,8 +60,6 @@ void ParticleSystemExt::ExtData::Serialize(T& Stm)
 // =============================
 // container
 ParticleSystemExt::ExtContainer ParticleSystemExt::ExtMap;
-ParticleSystemExt::ExtContainer::ExtContainer() : Container("ParticleSystemClass") { }
-ParticleSystemExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks

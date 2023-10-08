@@ -100,7 +100,7 @@ public:
 	}
 
 	static void AllocateWithDefault(const char* Title, const Theater& theater, bool IsArtic, bool AllowMapGen) {
-		Array.push_back(std::move(std::make_unique<TheaterTypeClass>(Title, theater , IsArtic , AllowMapGen)));
+		Array.emplace_back(std::make_unique<TheaterTypeClass>(Title, theater , IsArtic , AllowMapGen));
 	}
 
 	// no !

@@ -66,7 +66,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	}
 
 	// writing custom verses parser just because
-	if (exINI.ReadString(pSection, GameStrings::Verses()))
+	if (exINI.ReadString(pSection, GameStrings::Verses()) > 0)
 	{
 		int idx = 0;
 		char* context = nullptr;
@@ -366,11 +366,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 		if (!LaunchWhat_Dummy.isset() || !LaunchWhat_Dummy.Get())
 			break;
 
-		LauchSWData nData {};
-		if (!nData.Read(exINI, pSection, i, LaunchWhat_Dummy))
-			break;
-
-		this->Launchs.push_back(std::move(nData));
+		this->Launchs.emplace_back().Read(exINI, pSection, i, LaunchWhat_Dummy);
 	}
 
 	this->Conventional_IgnoreUnits.Read(exINI, pSection, "Conventional.IgnoreUnits");
@@ -1368,9 +1364,6 @@ bool WarheadTypeExt::ExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim)
 // =============================
 // container
 WarheadTypeExt::ExtContainer WarheadTypeExt::ExtMap;
-
-WarheadTypeExt::ExtContainer::ExtContainer() : Container("WarheadTypeClass") { }
-WarheadTypeExt::ExtContainer::~ExtContainer() = default;
 
 bool WarheadTypeExt::ExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {

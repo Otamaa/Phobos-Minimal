@@ -83,14 +83,23 @@ public:
 		ValueableVector<AnimTypeClass*> ConcurrentAnim { };
 		Nullable<OwnerHouseKind> MakeInfantryOwner {};
 		Valueable<ParticleSystemTypeClass*> AttachedSystem {};
+
 		bool IsInviso { false };
 
 		Valueable<bool> RemapAnim { false };
 		//AnimSpawnerDatas SpawnerDatas;
 
 		Valueable<bool> AltPalette_ApplyLighting { false };
+
 		ExtData(AnimTypeClass* OwnerObject) : Extension<AnimTypeClass> { OwnerObject } { }
-		virtual ~ExtData() override = default;
+		virtual ~ExtData() override
+		{
+			ConcurrentAnim.clear();
+			Launchs.clear();
+			SpawnsMultiple_amouts.clear();
+			SpawnsMultiple.clear();
+			SplashList.clear();
+		}
 
 		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 		void Initialize();
@@ -104,13 +113,17 @@ public:
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
+
+	private:
+		ExtData(const ExtData&) = delete;
+		ExtData& operator = (const ExtData&) = delete;
+		ExtData& operator = (ExtData&&) = delete;
 	};
 
 	class ExtContainer final : public Container<AnimTypeExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(AnimTypeExt::ExtData, "AnimTypeClass");
 	};
 
 	static ExtContainer ExtMap;

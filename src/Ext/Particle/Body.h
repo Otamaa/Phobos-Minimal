@@ -41,8 +41,7 @@ public:
 	class ExtContainer final : public Container<ParticleExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(ParticleExt::ExtData, "ParticleClass");
 	};
 
 	static ExtContainer ExtMap;

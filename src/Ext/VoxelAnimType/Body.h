@@ -56,8 +56,7 @@ public:
 	class ExtContainer final : public Container<VoxelAnimTypeExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(VoxelAnimTypeExt::ExtData, "VoxelAnimTypeClass");
 	};
 
 	static ExtContainer ExtMap;

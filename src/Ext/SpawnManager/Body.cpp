@@ -17,9 +17,6 @@ void SpawnManagerExt::ExtData::Serialize(T& Stm) {
 // container
 SpawnManagerExt::ExtContainer SpawnManagerExt::ExtMap;
 
-SpawnManagerExt::ExtContainer::ExtContainer() : Container("SpawnManagerClass") { };
-SpawnManagerExt::ExtContainer::~ExtContainer() = default;
-
 // =============================
 // container hooks
 //

@@ -353,31 +353,28 @@ DEFINE_OVERRIDE_HOOK(0x5200C1, InfantryClass_UpdatePanic_Doggie, 0x6)
 
 	const auto pType = pThis->Type;
 
-	if (!pType->Doggie) {
-		return 0;
-	}
-
-	// if panicking badly, lay down on tiberium
-	if (pThis->PanicDurationLeft >= RulesExt::Global()->DoggiePanicMax) {
-		if (!pThis->Destination && !pThis->Locomotor.GetInterfacePtr()->Is_Moving())		{
-			if (pThis->GetCell()->LandType == LandType::Tiberium) {
-				// is on tiberium. just lay down
-				pThis->PlayAnim(DoType::Down);
-			} else if (!pThis->InLimbo) {
-				// search tiberium and abort current mission
-				pThis->MoveToTiberium(16, false);
-
-				if (pThis->Destination) {
-					pThis->SetTarget(nullptr);
-					pThis->QueueMission(Mission::Move, false);
-					pThis->NextMission();
+	if (pType->Doggie) {
+		// if panicking badly, lay down on tiberium
+		if (pThis->PanicDurationLeft >= RulesExt::Global()->DoggiePanicMax) {
+			if (!pThis->Destination && !pThis->Locomotor.GetInterfacePtr()->Is_Moving())		{
+				if (pThis->GetCell()->LandType == LandType::Tiberium) {
+					// is on tiberium. just lay down
+					pThis->PlayAnim(DoType::Down);
+				} else if (!pThis->InLimbo) {
+					// search tiberium and abort current mission
+					pThis->MoveToTiberium(16, false);
+					if (pThis->Destination) {
+						pThis->SetTarget(nullptr);
+						pThis->QueueMission(Mission::Move, false);
+						pThis->NextMission();
+					}
 				}
 			}
 		}
 	}
 
-	if (!pType->Fearless) {
-	 --pThis->PanicDurationLeft;
+	if (!(pType->Fearless || pThis->HasAbility(AbilityType::Fearless))) {
+	 	--pThis->PanicDurationLeft;
 	}
 
 	return 0x52025A;

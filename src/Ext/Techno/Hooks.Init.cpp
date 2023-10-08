@@ -20,7 +20,7 @@ DEFINE_HOOK(0x6F42ED, TechnoClass_Init_Early, 0xA)
 	if (!pType)
 		return 0x0;
 
-	if (!pType->Insignificant && !pType->DontScore && pThis->Owner) {
+	if (pThis->Owner) {
 		HouseExt::ExtMap.Find(pThis->Owner)->LimboTechno.push_back(pThis);
 	}
 

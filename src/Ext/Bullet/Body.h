@@ -65,10 +65,11 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<BulletExt::ExtData> {
+	class ExtContainer final : public Container<BulletExt::ExtData>
+	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(BulletExt::ExtData, "BulletClass");
+	public:
 
 		static bool InvalidateIgnorable(AbstractClass* ptr)
 		{

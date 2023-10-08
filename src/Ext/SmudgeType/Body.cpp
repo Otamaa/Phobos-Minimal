@@ -29,9 +29,6 @@ void SmudgeTypeExt::ExtData::Serialize(T& Stm)
 // container
 SmudgeTypeExt::ExtContainer SmudgeTypeExt::ExtMap;
 
-SmudgeTypeExt::ExtContainer::ExtContainer() : Container("SmudgeTypeClass") { }
-SmudgeTypeExt::ExtContainer::~ExtContainer() = default;
-
 // =============================
 // container hooks
 //

@@ -314,9 +314,8 @@ public:
 	class ExtContainer final : public Container<BuildingTypeExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
-
+		CONSTEXPR_NOCOPY_CLASS(BuildingTypeExt::ExtData, "BuildingTypeClass");
+	public:
 		virtual bool Load(BuildingTypeClass* pThis, IStream* pStm) override;
 
 		static bool LoadGlobals(PhobosStreamReader& Stm)

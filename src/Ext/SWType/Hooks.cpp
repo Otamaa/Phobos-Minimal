@@ -100,7 +100,7 @@ DEFINE_HOOK(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
 	//Cursor.Read(exINI, pSection, "Cursor");
 	//NoCursor.Read(exINI, pSection, "NoCursor");
 
-	if (exINI.ReadString(pSection, "Action"))
+	if (exINI.ReadString(pSection, "Action") > 0)
 	{
 		bool found = false;
 
@@ -258,7 +258,7 @@ DEFINE_HOOK(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 	INI_EX exINI(pINI);
 	const auto pSection = pThis->ID;
 
-	if (exINI.ReadString(pSection, GameStrings::Type()))
+	if (exINI.ReadString(pSection, GameStrings::Type()) > 0)
 	{
 		for (int i = 0; i < (int)SuperWeaponTypeClass::SuperweaponTypeName.c_size(); ++i)
 		{
@@ -279,7 +279,7 @@ DEFINE_HOOK(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 		}
 	}
 
-	if (exINI.ReadString(pSection, GameStrings::PreDependent()))
+	if (exINI.ReadString(pSection, GameStrings::PreDependent()) > 0)
 	{
 		for (int i = 0; i < (int)SuperWeaponTypeClass::SuperweaponTypeName.c_size(); ++i)
 		{

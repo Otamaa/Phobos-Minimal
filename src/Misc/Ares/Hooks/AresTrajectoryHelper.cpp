@@ -28,7 +28,7 @@ bool AresTrajectoryHelper::IsWallHit(
 			if (pSource->Level <= pTarget->Level)
 			{
 				return !RulesClass::Instance->AlliedWallTransparency
-					|| !HouseClass::Array->Items[pCheck->WallOwnerIndex]->IsAlliedWith_(pOwner);
+					|| (pCheck->WallOwnerIndex != -1 && !HouseClass::Array->Items[pCheck->WallOwnerIndex]->IsAlliedWith_(pOwner));
 			}
 		}
 	}

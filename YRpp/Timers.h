@@ -50,7 +50,12 @@ public:
 		this->TimeLeft = other.TimeLeft;
 	}
 
-	TimerClass& operator=(const TimerClass& other) = default;
+	TimerClass& operator=(const TimerClass& other)
+	{
+		this->StartTime = other.StartTime;
+		this->TimeLeft = other.TimeLeft;
+		return *this;
+	}
 
 	void Start(int duration)
 	{

@@ -50,8 +50,7 @@ public:
 	class ExtContainer final : public Container<AITriggerTypeExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(AITriggerTypeExt::ExtData, "AITriggerTypeClass");
 	};
 
 	static ExtContainer ExtMap;

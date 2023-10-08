@@ -441,8 +441,8 @@ public:
 	class ExtContainer final : public Container<WarheadTypeExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(WarheadTypeExt::ExtData, "WarheadTypeClass");
+	public:
 
 		static bool LoadGlobals(PhobosStreamReader& Stm);
 		static bool SaveGlobals(PhobosStreamWriter& Stm);

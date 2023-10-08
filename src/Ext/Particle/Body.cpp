@@ -8,7 +8,6 @@
 
 std::pair<TechnoClass*, HouseClass*> ParticleExt::GetOwnership(ParticleClass* pThis)
 {
-
 	TechnoClass* pAttacker = nullptr;
 	HouseClass* pOwner = nullptr;
 	BulletClass* pBullet = nullptr;
@@ -56,8 +55,6 @@ void ParticleExt::ExtData::Serialize(T& Stm)
 // =============================
 // container
 ParticleExt::ExtContainer ParticleExt::ExtMap;
-ParticleExt::ExtContainer::ExtContainer() : Container("ParticleClass") { }
-ParticleExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks

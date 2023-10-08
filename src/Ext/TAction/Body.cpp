@@ -40,9 +40,6 @@ void TActionExt::ExtData::Serialize(T& Stm)
 // container
 TActionExt::ExtContainer TActionExt::ExtMap;
 
-TActionExt::ExtContainer::ExtContainer() : Container("TActionClass") { };
-TActionExt::ExtContainer::~ExtContainer() = default;
-
 //==============================
 
 bool TActionExt::UndeployToWaypoint(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)

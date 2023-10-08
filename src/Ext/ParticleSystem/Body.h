@@ -4,18 +4,6 @@
 
 #include <ParticleSystemClass.h>
 
-struct ParticleDatas
-{
-	Vector3D<float> vel;
-	Vector3D<float> velB;
-	float A;
-	float B;
-	float C;
-	int MaxEC;
-	BYTE Empty;
-	ColorStruct Colors;
-};
-
 class ParticleClass;
 class ParticleTypeClass;
 class ParticleSystemExt
@@ -130,6 +118,17 @@ public:
 		static_assert(sizeof(Draw) == 0x2C, "Invalid Size");
 		HelperedVector<Draw> SmokeData { };
 
+		ExtData(ParticleSystemClass* OwnerObject) : Extension<base_type> { OwnerObject }
+		{
+			this->InitializeConstants();
+		}
+
+		virtual ~ExtData() override = default;
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+		void InitializeConstants();
+
+
 		void UpdateLocations();
 		void UpdateState();
 		void UpdateColor();
@@ -142,16 +141,6 @@ public:
 
 		static void UpdateInAir();
 
-		ExtData(ParticleSystemClass* OwnerObject) : Extension<base_type> { OwnerObject }
-		{
-			this->InitializeConstants();
-		}
-
-		virtual ~ExtData() override = default;
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-		void InitializeConstants();
-
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
@@ -160,8 +149,7 @@ public:
 	class ExtContainer final : public Container<ParticleSystemExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(ParticleSystemExt::ExtData, "ParticleSystemClass");
 	};
 
 	static ExtContainer ExtMap;

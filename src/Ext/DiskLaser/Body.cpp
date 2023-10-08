@@ -16,8 +16,6 @@ void DiskLaserExt::ExtData::Serialize(T& Stm)
 // container
 
 DiskLaserExt::ExtContainer DiskLaserExt::ExtMap;
-DiskLaserExt::ExtContainer::ExtContainer() : Container("DiskLaserClass") { };
-DiskLaserExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks

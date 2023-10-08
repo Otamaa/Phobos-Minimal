@@ -34,9 +34,6 @@ void TeamTypeExt::ExtData::Serialize(T& Stm)
 // container
 TeamTypeExt::ExtContainer TeamTypeExt::ExtMap;
 
-TeamTypeExt::ExtContainer::ExtContainer() : Container("TeamTypeClass") { }
-TeamTypeExt::ExtContainer::~ExtContainer() = default;
-
 // =============================
 // container hooks
 //ToDo : Check Size !

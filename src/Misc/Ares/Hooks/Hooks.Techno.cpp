@@ -664,10 +664,11 @@ DEFINE_OVERRIDE_HOOK(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 	if (auto pBld = specific_cast<BuildingClass*>(pTechno))
 	{
 		const auto pBldExt = BuildingExt::ExtMap.Find(pBld);
+		const auto isObserver = HouseClass::IsCurrentPlayerObserver();
 
 		// allies and observers can always see by default
 		const bool canSeeRepair = HouseClass::CurrentPlayer->IsAlliedWith_(pBld->Owner)
-			|| HouseClass::IsCurrentPlayerObserver();
+			|| isObserver;
 
 		const bool showRepair = FileSystem::WRENCH_SHP
 			&& pBld->IsBeingRepaired
@@ -680,9 +681,10 @@ DEFINE_OVERRIDE_HOOK(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 
 		// display power off marker only for current player's buildings
 		const bool showPower = FileSystem::POWEROFF_SHP
-			&& (!pBldExt->TogglePower_HasPower || (pBld->Type->PowerDrain && pBld->Owner->HasLowPower()))
+			&& (!pBldExt->TogglePower_HasPower || (!pBld->IsPowerOnline()))
 			// only for owned buildings, but observers got magic eyes
-			&& (pBld->Owner->ControlledByPlayer() || HouseClass::IsCurrentPlayerObserver());
+			&& ((pBld->GetCurrentMission() != Mission::Selling) && (pBld->GetCurrentMission() != Mission::Construction))
+			&& (pBld->Owner->ControlledByPlayer() || isObserver);
 
 		// display any?
 		if (showPower || showRepair)
@@ -713,11 +715,7 @@ DEFINE_OVERRIDE_HOOK(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 
 				// animation display speed
 				// original frame calculation: ((currentframe%speed)*6)/(speed-1)
-				int speed = GameOptionsClass::Instance->GetAnimSpeed(14) / 4;
-				if (speed < 2)
-				{
-					speed = 2;
-				}
+				const int speed = MaxImpl(GameOptionsClass::Instance->GetAnimSpeed(14) / 4, 2);
 
 				// draw the markers
 				if (showRepair)
@@ -810,6 +808,9 @@ DEFINE_OVERRIDE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 				DrawTheStuff(StringTable::LoadString((pType->GetFoundationWidth() != 1) ?
 					GameStrings::TXT_PRIMARY() : GameStrings::TXT_PRI()));
 			}
+
+			if(!BuildingExt::ExtMap.Find(pBuilding)->RegisteredJammers.empty())
+				DrawTheStuff(Phobos::UI::BuidingRadarJammedLabel);
 		}
 	}
 

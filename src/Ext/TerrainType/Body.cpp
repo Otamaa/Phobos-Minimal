@@ -10,12 +10,12 @@ void TerrainTypeExt::ExtData::Initialize()
 
 int TerrainTypeExt::ExtData::GetTiberiumGrowthStage()
 {
-	return GeneralUtils::GetRangedRandomOrSingleValue(this->SpawnsTiberium_GrowthStage.Get());
+	return GeneralUtils::GetRangedRandomOrSingleValue(this->SpawnsTiberium_GrowthStage);
 }
 
 int TerrainTypeExt::ExtData::GetCellsPerAnim()
 {
-	return GeneralUtils::GetRangedRandomOrSingleValue(this->SpawnsTiberium_CellsPerAnim.Get());
+	return GeneralUtils::GetRangedRandomOrSingleValue(this->SpawnsTiberium_CellsPerAnim);
 }
 
 void TerrainTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
@@ -109,9 +109,6 @@ void TerrainTypeExt::Remove(TerrainClass* pTerrain)
 // =============================
 // container
 TerrainTypeExt::ExtContainer TerrainTypeExt::ExtMap;
-
-TerrainTypeExt::ExtContainer::ExtContainer() : Container("TerrainTypeClass") { }
-TerrainTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks

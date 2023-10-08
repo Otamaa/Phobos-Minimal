@@ -169,21 +169,21 @@ DEFINE_OVERRIDE_HOOK(0x688B37, MPGameModeClass_CreateStartingUnits_B, 5)
 		return hasBaseUnit;
 	}
 
-	Debug::Log("House of country [%s] cannot build anything from [General]BaseUnit=.\n", pHouse->Type->ID);
+	Debug::Log(__FUNCTION__" House of country [%s] cannot build anything from [General]BaseUnit=.\n", pHouse->Type->ID);
 	return hasNoBaseUnit;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5D721A, MPGameMode_CreateStartingUnits, 5)
-{
-	GET_STACK(int, UnitCount, 0x40);
-	GET_STACK(HouseClass*, pHouse, 0x4C);
-
-	if(!UnitCount) {
-		Debug::Log("House of country [%s] cannot build anything from [General]BaseUnit=.\n", pHouse->Type->ID);
-	}
-
-	return 0;
-}
+// DEFINE_OVERRIDE_HOOK(0x5D721A, MPGameMode_CreateStartingUnits, 5)
+// {
+// 	GET_STACK(int, UnitCount, 0x40);
+// 	GET_STACK(HouseClass*, pHouse, 0x4C);
+//
+// 	if(!UnitCount) {
+// 		Debug::Log(__FUNCTION__" House of country [%s] cannot build anything from [General]BaseUnit=.\n", pHouse->Type->ID);
+// 	}
+//
+// 	return 0;
+// }
 
 DEFINE_OVERRIDE_HOOK(0x4F8440, HouseClass_Update_TogglePower, 5)
 {

@@ -276,8 +276,7 @@ public:
 	class ExtContainer final : public Container<WaveExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(WaveExt::ExtData, "WaveClass");
 	};
 
 	static ExtContainer ExtMap;

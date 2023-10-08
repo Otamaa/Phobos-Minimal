@@ -115,15 +115,15 @@ void PhobosTrajectoryType::CreateType(std::unique_ptr<PhobosTrajectoryType>& pTy
 	 }
 	};
 
-	pINI->ReadString(pSection, pKey, "", Phobos::readBuffer);
-
 	TrajectoryFlag nFlag = TrajectoryFlag::Invalid;
 
-	if (!GameStrings::IsBlank(Phobos::readBuffer)) {
-		for (size_t i = 0; i < TrajectoryTypeToSrings.size(); ++i) {
-			if (IS_SAME_STR_(Phobos::readBuffer, TrajectoryTypeToSrings[i])) {
-				nFlag = static_cast<TrajectoryFlag>(i);
-				break;
+	if(pINI->ReadString(pSection, pKey, "", Phobos::readBuffer)  > 0) {
+		if (!GameStrings::IsBlank(Phobos::readBuffer)) {
+			for (size_t i = 0; i < TrajectoryTypeToSrings.size(); ++i) {
+				if (IS_SAME_STR_(Phobos::readBuffer, TrajectoryTypeToSrings[i])) {
+					nFlag = static_cast<TrajectoryFlag>(i);
+					break;
+				}
 			}
 		}
 	}

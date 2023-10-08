@@ -89,12 +89,14 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SpawnsMultiple.Read(exINI, pID, "SpawnsMultiple", true);
 	this->SpawnsMultiple_Random.Read(exINI, pID, "SpawnsMultiple.Random");
 
+	this->SpawnsMultiple_amouts.clear();
+
 	if (!this->SpawnsMultiple.empty())
 	{
 		auto const nBaseSize = (int)this->SpawnsMultiple.size();
 		this->SpawnsMultiple_amouts.resize(nBaseSize, 1);
 
-		if (exINI.ReadString(pID, "SpawnsMultiple.Amount"))
+		if (exINI.ReadString(pID, "SpawnsMultiple.Amount") > 0)
 		{
 			int nCount = 0;
 			char* context = nullptr;
@@ -138,11 +140,7 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		if (!LaunchWhat_Dummy.isset() || !LaunchWhat_Dummy.Get())
 			break;
 
-		LauchSWData nData {};
-		if (!nData.Read(exINI, pID, i, LaunchWhat_Dummy))
-			break;
-
-		this->Launchs.push_back(std::move(nData));
+		this->Launchs.emplace_back().Read(exINI, pID, i, LaunchWhat_Dummy);
 	}
 
 	this->RemapAnim.Read(exINI, pID, "RemapAnim");
@@ -465,8 +463,6 @@ void AnimTypeExt::ExtData::Serialize(T& Stm)
 }
 
 AnimTypeExt::ExtContainer AnimTypeExt::ExtMap;
-AnimTypeExt::ExtContainer::ExtContainer() : Container("AnimTypeClass") { }
-AnimTypeExt::ExtContainer::~ExtContainer() = default;
 
 DEFINE_HOOK(0x42784B, AnimTypeClass_CTOR, 0x5)
 {

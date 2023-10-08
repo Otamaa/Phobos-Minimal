@@ -16,7 +16,7 @@ public:
 
 	bool Read(INIClass* pINI, const char* pSection, const char* pKey, const char* pDefault = "")
 	{
-		if (pINI->ReadString(pSection, pKey, pDefault, Phobos::readBuffer, FixedString<Capacity>::Size))
+		if (pINI->ReadString(pSection, pKey, pDefault, Phobos::readBuffer, FixedString<Capacity>::Size) > 0)
 		{
 			if (!GameStrings::IsBlank(Phobos::readBuffer))
 			{

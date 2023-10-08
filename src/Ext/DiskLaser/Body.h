@@ -28,8 +28,7 @@ public:
 	class ExtContainer final : public Container<DiskLaserExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(DiskLaserExt::ExtData, "DiskLaserClass");
 	};
 
 	static ExtContainer ExtMap;

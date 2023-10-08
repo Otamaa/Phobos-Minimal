@@ -1,5 +1,23 @@
 /*
-	ParticleTypes are initialized by INI files.
+; **************************************************************************
+; *************************** Particles ************************************
+; **************************************************************************
+; *** Particles ***
+;
+; Image = Imagelist to use for particle
+; Persistent = Does this particle stick around; should always be yes
+; MaxDC = How many frames go by before this particle damages the things near it? (def = 0)
+; MaxEC = How many frames does this object last (def = 0)
+; Damage = How much damage does it do (def = 0)
+; Warhead = What warhead to use for damage purposes (def = WARHEAD_NONE)
+; StartFrame = what frame of image to start on? (def = 0)
+; NumLoopFrames = how many frames form a single loop? (def = 1)
+; WindEffect = to what degree does the wind affect his particle, 0 = not at all, 5 = a lot (def = 0)
+; Velocity = speed at which particle travels (def = 0.0)
+; Radius = how big is this particle? (used for attract/repel)
+;
+; BehavesLike, DeleteOnStateLimit, EndStateAI, StateAIAdvance are things that
+; shouldn't be messed with
 */
 
 #pragma once
@@ -19,6 +37,7 @@ public:
 
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<ParticleTypeClass*>, 0xA83D98u> const Array {};
+	static constexpr reference<const char*, 0x8370BC, 5u> const BehavesString {};
 
 	IMPL_Find(ParticleTypeClass)
 
@@ -51,6 +70,10 @@ public:
 	//ObjectTypeClass
 	virtual bool SpawnAtMapCoords(CellStruct* cell, HouseClass* pOwner) override JMP_THIS(0x645930); //return false
 	virtual ObjectClass* CreateObject(HouseClass* owner) override JMP_THIS(0x645940);	//return nullptr
+
+	static ParticleSystemTypeBehavesLike __fastcall BehavesFromString(const char* pStr) {
+		JMP_STD(0x6458D0);
+	}
 
 	//Constructor
 	ParticleTypeClass(const char* pID) noexcept

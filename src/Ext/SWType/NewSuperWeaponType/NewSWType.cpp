@@ -609,6 +609,9 @@ NewSWType* NewSWType::GetNewSWType(const SWTypeExt::ExtData* pData)
 
 SuperWeaponType NewSWType::FindFromTypeID(const char* pType)
 {
+	if(!*pType || !strlen(pType))
+		return SuperWeaponType::Invalid;
+
 	const auto It = std::find_if(Array.begin(), Array.end(),
 		[pType](const std::unique_ptr<NewSWType>& item) {
 

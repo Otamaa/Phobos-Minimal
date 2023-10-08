@@ -31,8 +31,6 @@ void OverlayTypeExt::ExtData::Serialize(T& Stm)
 // =============================
 // container
 OverlayTypeExt::ExtContainer OverlayTypeExt::ExtMap;
-OverlayTypeExt::ExtContainer::ExtContainer() : Container("OverlayTypeClass") { }
-OverlayTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks

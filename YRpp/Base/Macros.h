@@ -111,4 +111,4 @@
 classname() = delete;\
 classname(const classname&) = delete;\
 classname(classname&&) = delete; \
-classname& operator=(const classname& other) = delete; 
+classname& operator=(const classname& other) = delete;

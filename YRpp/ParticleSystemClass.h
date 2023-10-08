@@ -20,6 +20,9 @@ public:
 	static constexpr constant_ptr<DynamicVectorClass<ParticleSystemClass*>, 0xA80208u> const Array{};
 	static constexpr reference<ParticleSystemClass*, 0xA8ED78u> Instance{};
 
+	static constexpr reference<int, 0x836704u, (size_t)FacingType::Count> const FireWind_X {};
+	static constexpr reference<int, 0x836724u, (size_t)FacingType::Count> const FireWind_Y {};
+
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x6301A0);
 

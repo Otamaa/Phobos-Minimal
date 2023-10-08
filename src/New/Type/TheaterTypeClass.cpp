@@ -87,7 +87,7 @@ void TheaterTypeClass::LoadAllTheatersToArray()
 				if (ini.ReadString(pSection,
 					ini.GetKeyName(pSection, i),
 					Phobos::readDefval,
-					Phobos::readBuffer)
+					Phobos::readBuffer)  > 0
 					) {
 					if (auto pTheater = FindOrAllocate(Phobos::readBuffer))
 						pTheater->LoadFromINI(&ini);

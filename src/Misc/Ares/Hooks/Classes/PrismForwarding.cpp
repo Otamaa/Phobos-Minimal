@@ -40,8 +40,8 @@ int PrismForwarding::AcquireSlaves_MultiStage(PrismForwarding* TargetTower, int 
 	else
 	{
 		// do not think of using iterators or a ranged-for here. Senders grows and might reallocate.
-		for (int senderIdx = 0; senderIdx < TargetTower->Senders.Count; ++senderIdx) {
-			countSlaves += this->AcquireSlaves_MultiStage(TargetTower->Senders[senderIdx], stage - 1, chain + 1, NetworkSize, LongestChain);
+		for (auto& sender : TargetTower->Senders) {
+			countSlaves += this->AcquireSlaves_MultiStage(sender, stage - 1, chain + 1, NetworkSize, LongestChain);
 		}
 	}
 
@@ -258,8 +258,7 @@ void PrismForwarding::SetChargeDelay_Get(int chain, int endChain, int LongestCha
 	else
 	{
 		//ascend to the next chain
-		for (auto const& SenderTower : this->Senders)
-		{
+		for (auto& SenderTower : this->Senders) {
 			SenderTower->SetChargeDelay_Get(chain + 1, endChain, LongestChain, LongestCDelay, LongestFDelay);
 		}
 	}
@@ -271,8 +270,8 @@ void PrismForwarding::SetChargeDelay_Set(int chain, DWORD const* LongestCDelay, 
 
 	this->PrismChargeDelay = (LongestFDelay[chain] - pTargetTower->DelayBeforeFiring) + LongestCDelay[chain];
 	pTargetTower->SupportingPrisms = (LongestChain - chain);
-	if (this->PrismChargeDelay == 0)
-	{
+
+	if (this->PrismChargeDelay == 0) {
 		//no delay, so start animations now
 		if (pTargetTower->Type->GetBuildingAnim(BuildingAnimSlot::Special).Anim[0])
 		{ //only if it actually has a special anim
@@ -280,8 +279,8 @@ void PrismForwarding::SetChargeDelay_Set(int chain, DWORD const* LongestCDelay, 
 			pTargetTower->PlayNthAnim(BuildingAnimSlot::Special);
 		}
 	}
-	for (auto const& Sender : this->Senders)
-	{
+
+	for (auto& Sender : this->Senders) {
 		Sender->SetChargeDelay_Set(chain + 1, LongestCDelay, LongestFDelay, LongestChain);
 	}
 }
@@ -304,12 +303,8 @@ void PrismForwarding::RemoveFromNetwork(bool bCease)
 	this->SetSupportTarget(nullptr);
 
 	//finally, remove all the preceding slaves from the network
-	for (auto senderIdx = this->Senders.Count; senderIdx; --senderIdx)
-	{
-		if (auto const& NextTower = this->Senders[senderIdx - 1])
-		{
-			NextTower->RemoveFromNetwork(false);
-		}
+	for (int senderIdx = ((int)this->Senders.size()) - 1; senderIdx > 0; --senderIdx) {
+		this->Senders[senderIdx]->RemoveFromNetwork(false);
 	}
 }
 
@@ -323,7 +318,7 @@ void PrismForwarding::SetSupportTarget(PrismForwarding* pTargetTower)
 	// if the target tower is already set, disconnect it by removing it from the old target tower's sender list
 	if (auto const pOldTarget = this->SupportTarget)
 	{
-		if (!pOldTarget->Senders.Remove(this))
+		if (!pOldTarget->Senders.remove(this))
 		{
 			Debug::Log("PrismForwarding::SetSupportTarget: Old target tower (%p) did not consider this tower (%p) as its sender.\n",
 				pOldTarget->GetOwner(), this->GetOwner());
@@ -333,41 +328,28 @@ void PrismForwarding::SetSupportTarget(PrismForwarding* pTargetTower)
 	this->SupportTarget = pTargetTower;
 
 	// set the new tower as support target
-	if (pTargetTower)
-	{
-		if (pTargetTower->Senders.FindItemIndex(this) == -1)
-		{
-			pTargetTower->Senders.AddItem(this);
-		}
-		else
-		{
-			Debug::Log("PrismForwarding::SetSupportTarget: Tower (%p) is already in new target tower's (%p) sender list.\n",
-				this->GetOwner(), pTargetTower->GetOwner());
-		}
+	if (pTargetTower) {
+		pTargetTower->Senders.push_back_unique(this);
 	}
 }
 
 void PrismForwarding::RemoveAllSenders()
 {
 	// disconnect all sender towers from their support target, which is me
-	for (auto senderIdx = this->Senders.Count; senderIdx; senderIdx--)
-	{
-		if (auto const& NextTower = this->Senders[senderIdx - 1])
-		{
-			NextTower->SetSupportTarget(nullptr);
-		}
+	for (auto senderIdx = ((int)this->Senders.size()) - 1; senderIdx > 0; senderIdx--) {
+		this->Senders[senderIdx]->SetSupportTarget(nullptr);
 	}
 
 	// log if not all senders could be removed
-	if (this->Senders.Count)
+	if (this->Senders.size())
 	{
 		Debug::Log("PrismForwarding::RemoveAllSenders: Tower (%p) still has %d senders after removal completed.\n",
-			this->GetOwner(), this->Senders.Count);
+			this->GetOwner(), this->Senders.size());
 
-		for (auto i = 0; i < this->Senders.Count; ++i) {
+		for (size_t i = 0; i < this->Senders.size(); ++i) {
 			Debug::Log("Sender %03d: %p\n", i, this->Senders[i]->GetOwner());
 		}
 
-		this->Senders.Clear();
+		this->Senders.clear();
 	}
 }

@@ -75,8 +75,7 @@ public:
 	class ExtContainer final : public Container<TiberiumExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(TiberiumExt::ExtData, "TiberiumClass");
 	};
 
 	static ExtContainer ExtMap;

@@ -4,7 +4,6 @@
 #include <Helpers/Macro.h>
 #include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
-#include <Ext/Object/Body.h>
 
 class ParticleSystemClass;
 class AnimExt
@@ -33,7 +32,7 @@ public:
 		CoordStruct CreateUnitLocation {};
 
 		ExtData(base_type* OwnerObject) : Extension<AnimClass>(OwnerObject)
-		{}
+		{ }
 
 		virtual ~ExtData() override = default;
 
@@ -51,8 +50,7 @@ public:
 	class ExtContainer final : public Container<AnimExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(AnimExt::ExtData, "AnimClass");
 	};
 
 	static ExtContainer ExtMap;

@@ -47,8 +47,11 @@ public:
 		Nullable<bool> Degrades {};
 		Nullable<InfantryTypeClass*> Disguise {};
 
+		ValueableVector<TechnoTypeClass*> StartInMultiplayer_Types {};
+
 		PhobosFixedString<0x20> LoadScreenBackground {};
 		PhobosFixedString<0x20> LoadScreenPalette {};
+
 		ExtData(HouseTypeClass* OwnerObject) : Extension<HouseTypeClass>(OwnerObject)
 		{ }
 
@@ -73,9 +76,9 @@ public:
 	class ExtContainer final : public Container<HouseTypeExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(HouseTypeExt::ExtData, "HouseTypeClass");
 
+	public:
 		virtual bool Load(HouseTypeClass* pThis, IStream* pStm) override;
 	};
 

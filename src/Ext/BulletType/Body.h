@@ -150,8 +150,7 @@ public:
 
 	class ExtContainer final : public Container<BulletTypeExt::ExtData> {
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(BulletTypeExt::ExtData, "BulletTypeClass");
 	};
 
 	static ExtContainer ExtMap;

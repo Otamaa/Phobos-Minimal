@@ -33,8 +33,7 @@ public:
 	class ExtContainer final : public Container<ParasiteExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(ParasiteExt::ExtData, "ParasiteClass");
 	};
 
 	static ExtContainer ExtMap;

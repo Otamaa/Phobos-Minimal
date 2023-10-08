@@ -44,8 +44,7 @@ static bool CheckAndContruct(Tbase* pClass, TbaseType* pClassType, bool Clear = 
 			bool OnTurrent = false;
 			if constexpr (IsTechno) OnTurrent = pTrails.Onturrents;
 
-			pExt->Trails.emplace_back(pType, pTrails.FLHs, OnTurrent);
-			auto& pBackTrail = pExt->Trails.back();
+			auto& pBackTrail = pExt->Trails.emplace_back(pType, pTrails.FLHs, OnTurrent);
 			pBackTrail.OnLandTypes = pTrails.OnLand;
 			pBackTrail.OnTileTypes = pTrails.OnTileTypes;
 		}

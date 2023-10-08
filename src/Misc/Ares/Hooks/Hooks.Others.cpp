@@ -39,6 +39,20 @@
 #include "Header.h"
 #include <Ares_TechnoExt.h>
 
+DEFINE_OVERRIDE_HOOK(0x62A020, ParasiteClass_Update, 0xA)
+{
+	GET(TechnoClass*, pOwner, ECX);
+	R->EAX(pOwner->GetWeapon(pOwner->align_154->idxSlot_Parasite));
+	return 0x62A02A;
+}
+
+DEFINE_OVERRIDE_HOOK(0x62A7B1, Parasite_ExitUnit, 9)
+{
+	GET(TechnoClass*, pOwner, ECX);
+	R->EAX(pOwner->GetWeapon(pOwner->align_154->idxSlot_Parasite));
+	return 0x62A7BA;
+}
+
 DEFINE_OVERRIDE_HOOK(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
 {
 	GET(FactoryClass*, pThis, ESI);
@@ -193,7 +207,7 @@ DEFINE_OVERRIDE_HOOK(0x4748A0, INIClass_GetPipIdx, 0x7)
 	GET_STACK(const char*, pKey, 0x8);
 	GET_STACK(int, fallback, 0xC);
 
-	if (pINI->ReadString(pSection, pKey, Phobos::readDefval, Phobos::readBuffer))
+	if (pINI->ReadString(pSection, pKey, Phobos::readDefval, Phobos::readBuffer) > 0)
 	{
 		int nbuffer;
 		if (Parser<int>::TryParse(Phobos::readBuffer, &nbuffer))
@@ -203,7 +217,6 @@ DEFINE_OVERRIDE_HOOK(0x4748A0, INIClass_GetPipIdx, 0x7)
 		}
 		else
 		{
-
 			// find the pip value with the name specified
 			for (const auto& data : TechnoTypeClass::PipsTypeName)
 			{
@@ -550,27 +563,6 @@ DEFINE_OVERRIDE_HOOK(0x6B72F9, SpawnManagerClass_Update_Buildings, 0x5)
 		|| !pOwner
 		|| pOwner->WhatAmI() == BuildingClass::AbsID)
 		? 0x6B735C : 0x6B72FE;
-}
-
-// causing cresh without all system intact ?
-DEFINE_OVERRIDE_HOOK(0x72590E, AnnounceInvalidPointer_Particle, 0x9)
-{
-	GET(AbstractType, nWhat, EBX);
-
-	if (nWhat == AbstractType::Particle)
-	{
-		GET(ParticleClass*, pThis, ESI);
-
-		if (auto pSys = pThis->ParticleSystem)
-		{
-			pSys->Particles.Remove(pThis);
-		}
-
-		return 0x725C08;
-	}
-
-	return nWhat == AbstractType::ParticleSystem ?
-		0x725917 : 0x7259DA;
 }
 
 DEFINE_OVERRIDE_HOOK(0x725A1F, AnnounceInvalidPointer_SkipBehind, 0x5)
@@ -1013,115 +1005,6 @@ DEFINE_OVERRIDE_HOOK(0x4B769B, ScenarioClass_GenerateDropshipLoadout, 5)
 #include <Ext/ParticleType/Body.h>
 #include <Ext/Particle/Body.h>
 
-DEFINE_OVERRIDE_HOOK(0x62C2C2, ParticleClass_Update_Gas_Damage, 6)
-{
- 	GET(ParticleClass*, pParticle, EBP);
- 	GET(ObjectClass*, pTarget, ESI);
- 	GET(int, nDistance, ECX);
-
- 	if (pTarget->InLimbo)
- 		return 0x62C309;
-
- 	if (auto pTechno = generic_cast<TechnoClass*>(pTarget))
- 	{
- 		if (pTechno->IsSinking || pTechno->IsCrashing || pTechno->TemporalTargetingMe)
- 			return 0x62C309;
-
- 		if (pTechno->WhatAmI() != BuildingClass::AbsID && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTechno)))
- 			return 0x62C309;
- 	}
-
- 	auto const& [pAttacker, pOwner] = ParticleExt::GetOwnership(pParticle);
- 	int nDamage = pParticle->Type->Damage;
- 	pTarget->ReceiveDamage(&nDamage, nDistance, pParticle->Type->Warhead, pAttacker, false, false, pOwner);
-
-	return 0x62C309;
-}
-
-DEFINE_OVERRIDE_HOOK(0x62C23D, ParticleClass_Update_Gas_DamageRange, 6)
-{
-	GET(ParticleClass*, pThis, EBP);
-	auto pTypeExt = ParticleTypeExt::ExtMap.Find(pThis->Type);
-
-	if (pTypeExt->DamageRange.Get() <= 0.0)
-		return 0x0;
-
-	const auto pVec = Helpers::Alex::getCellSpreadItems(pThis->Location, std::ceil(pTypeExt->DamageRange.Get()));
-	const auto& [pAttacker, pOwner] = ParticleExt::GetOwnership(pThis);
-
-	for (const auto pItem : pVec)
-	{
-		if (pItem->WhatAmI() != BuildingClass::AbsID && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pItem)))
-			continue;
-
-		auto nDamge = pThis->Type->Damage;
-		auto nX = abs(pThis->Location.X - pItem->Location.X);
-		auto nY = abs(pThis->Location.Y - pItem->Location.Y);
-		int nDistance = Game::AdjustHeight(nX + nY);
-		pItem->ReceiveDamage(&nDamge, nDistance, pThis->Type->Warhead, pAttacker, false, false, pOwner);
-	}
-
-	return 0x62C313;
-}
-
-DEFINE_OVERRIDE_HOOK(0x62D015, ParticleClass_Draw_Palette, 6)
-{
-	GET(ParticleClass*, pThis, EDI);
-
-	ConvertClass* pConvert = FileSystem::ANIM_PAL();
-	const auto pTypeExt = ParticleTypeExt::ExtMap.Find(pThis->Type);
-	if (const auto pConvertData = pTypeExt->Palette)
-	{
-		pConvert = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
-	}
-
-	R->EDX(pConvert);
-	return 0x62D01B;
-}
-
-DEFINE_OVERRIDE_HOOK(0x62CDB6, ParticleClass_Update_Fire, 7)
-{
-	GET(ParticleClass*, pParticle, ESI);
-	GET(ObjectClass*, pTarget, EDI);
-	GET(int, nDistance, ECX);
-	GET(int, nDamage, EDX);
-
-	if (pTarget->InLimbo || pTarget->Health <= 0 || !pTarget->IsAlive)
-		return 0x62CE09;
-
-	if (auto pTechno = generic_cast<TechnoClass*>(pTarget))
-	{
-		if (pTechno->IsSinking || pTechno->IsCrashing || pTechno->TemporalTargetingMe)
-			return 0x62CE09;
-
-		if (pTechno->WhatAmI() != BuildingClass::AbsID && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTechno)))
-			return 0x62CE09;
-	}
-
-	auto const& [pAttacker, pOwner] = ParticleExt::GetOwnership(pParticle);
-
-	if (pAttacker == pTarget)
-		return 0x62CE09;
-
-	pTarget->ReceiveDamage(&nDamage, nDistance > 0 ? nDistance / 10 : nDistance, pParticle->Type->Warhead, pAttacker, false, false, pOwner);
-
-	return 0x62CE09;
-}
-
-DEFINE_OVERRIDE_HOOK(0x62A020, ParasiteClass_Update, 0xA)
-{
-	GET(TechnoClass*, pOwner, ECX);
-	R->EAX(pOwner->GetWeapon(pOwner->align_154->idxSlot_Parasite));
-	return 0x62A02A;
-}
-
-DEFINE_OVERRIDE_HOOK(0x62A7B1, Parasite_ExitUnit, 9)
-{
-	GET(TechnoClass*, pOwner, ECX);
-	R->EAX(pOwner->GetWeapon(pOwner->align_154->idxSlot_Parasite));
-	return 0x62A7BA;
-}
-
 DEFINE_OVERRIDE_HOOK(0x48248D, CellClass_CrateBeingCollected_MoneyRandom, 6)
 {
 	GET(int, nCur, EAX);
@@ -1519,7 +1402,7 @@ DEFINE_OVERRIDE_HOOK(0x5D705E, MPGameMode_SpawnBaseUnit_BaseUnit, 6)
 	if(pBaseUnit)
 		return hasBaseUnit;
 
-	Debug::Log("House of country [%s] cannot build anything from [General]BaseUnit=.\n", pHouse->Type->ID);
+	Debug::Log(__FUNCTION__" House of country [%s] cannot build anything from [General]BaseUnit=.\n", pHouse->Type->ID);
 	return hasNoBaseUnit;
 }
 
@@ -1556,7 +1439,7 @@ DEFINE_OVERRIDE_HOOK(0x5d7048, MPGameMode_SpawnBaseUnit_BuildConst, 5)
 	const auto v7 = HouseExt::FindBuildable(pHouse, idxParentCountry, make_iterator(RulesClass::Instance->BuildConst), 0);
 
 	if (!v7) {
-		Debug::Log("House of country [%s] cannot build anything from [General]BuildConst=.\n", pHouse->Type->ID);
+		Debug::Log(__FUNCTION__" House of country [%s] cannot build anything from [General]BuildConst=.\n", pHouse->Type->ID);
 		return 0x5D70DB;
 	}
 
@@ -1589,9 +1472,6 @@ DEFINE_OVERRIDE_HOOK(0x5d7048, MPGameMode_SpawnBaseUnit_BuildConst, 5)
 	return 0x5D707E;
 }
 
-DEFINE_DISABLE_HOOK(0x62CDE8, ParticleClass_Update_Fire_ares) //, 5)
-DEFINE_DISABLE_HOOK(0x62C2ED, ParticleClass_Update_Gas_ares) //, 6)
-
 DEFINE_OVERRIDE_HOOK(0x6BD7E3, Expand_MIX_Reorg, 5)
 {
 	MixFileClass::Bootstrap();
@@ -1607,7 +1487,9 @@ DEFINE_OVERRIDE_HOOK(0x52BB64, Expand_MIX_Deorg, 5)
 //[01:25:38] SyringeDebugger::HandleException: Ares.dll [0x5d6d9a , MPGameModeClass_CreateStartingUnits_UnitCost , 6]
 //[01:25 : 38] SyringeDebugger::HandleException: Ares.dll[0x5d7163, MPGameMode_SpawnStartingUnits_Types, 8]
 
-void FormulateCost(std::vector<TechnoTypeClass*>& types, TechnoTypeClass** items, int count, int houseidx)
+//StartInMultiplayerUnitCost
+
+void FormulateTypeList(std::vector<TechnoTypeClass*>& types, TechnoTypeClass** items, int count, int houseidx)
 {
 	const auto end = items + count;
 	for (auto find = items; find != end; ++find)
@@ -1622,13 +1504,50 @@ void FormulateCost(std::vector<TechnoTypeClass*>& types, TechnoTypeClass** items
 	}
 }
 
+int GetTotalCost(const Nullable<int>& fixed, std::vector<TechnoTypeClass*>& types)
+{
+	if (GameModeOptionsClass::Instance->UnitCount <= 0)
+		return 0;
 
-void GetCost()
+	int totalCost = 0;
+	if (fixed.isset()) {
+		totalCost = fixed;
+	}else{
+		int total_ = 0;
+		for (auto& tech : types)
+		{
+			total_ += tech->GetCost();
+		}
+
+		int what = !types.size() ? 1 : types.size();
+		totalCost = (total_ + (what >> 1)) / what;
+
+	}
+
+	return totalCost * GameModeOptionsClass::Instance->UnitCount;
+}
+
+void GetTypeList()
 {
 	std::vector<TechnoTypeClass*> types;
 
-	FormulateCost(types, (TechnoTypeClass**)UnitTypeClass::Array->Items, UnitTypeClass::Array->Count, 0);
-	FormulateCost(types, (TechnoTypeClass**)InfantryTypeClass::Array->Items, InfantryTypeClass::Array->Count, 0);
+	DWORD idx = 0u;
+	for (auto pHouse : *HouseClass::Array) {
+		if (!pHouse->Type->MultiplayPassive) {
+
+			const auto& data = HouseTypeExt::ExtMap.Find(pHouse->Type)->StartInMultiplayer_Types;
+			if (!data.empty()) {
+				types.assign(data.begin(), data.end());
+			}
+			else
+			{
+				idx |= 1 << pHouse->Type->ArrayIndex;
+			}
+		}
+	}
+
+	FormulateTypeList(types, (TechnoTypeClass**)UnitTypeClass::Array->Items, UnitTypeClass::Array->Count, idx);
+	FormulateTypeList(types, (TechnoTypeClass**)InfantryTypeClass::Array->Items, InfantryTypeClass::Array->Count, idx);
 
 	for (auto& base : RulesClass::Instance->BaseUnit) {
 

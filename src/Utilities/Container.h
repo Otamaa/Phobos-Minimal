@@ -119,16 +119,16 @@ private:
 
 	base_type_ptr SavingObject;
 	IStream* SavingStream;
-	FixedString<0x100> Name;
+	std::string Name;
 	//std::unordered_map<base_type_ptr, extension_type_ptr> Map;
 
 public:
 
-	explicit Container(const char* pName) : SavingObject { nullptr }
+	constexpr explicit Container(const char* pName) : SavingObject { nullptr }
 		, SavingStream { nullptr }
+		, Name { pName }
 		//Map { }
 	{
-		Name = pName;
 	}
 
 	virtual ~Container() = default;
@@ -457,7 +457,15 @@ protected:
 	}
 
 private:
-	Container(const Container&) = delete;
-	Container& operator = (const Container&) = delete;
-	Container& operator = (Container&&) = delete;
+	Container<T>(const Container<T>&) = delete;
+	Container<T>& operator = (const Container<T>&) = delete;
+	Container<T>& operator = (Container<T>&&) = delete;
 };
+
+#define CONSTEXPR_NOCOPY_CLASS(containerT , name)\
+constexpr ExtContainer() : Container<containerT> { ##name## } {}\
+virtual ~ExtContainer() override = default;\
+private:\
+ExtContainer(const ExtContainer&) = delete;\
+ExtContainer(ExtContainer&&) = delete; \
+ExtContainer& operator=(const ExtContainer& other) = delete;

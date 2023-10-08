@@ -21,9 +21,6 @@ public:
 		}
 	}
 
-	//AresAE() = default;
-	//~AresAE() = default;
-
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
 		return this->Serialize(Stm);
@@ -48,11 +45,8 @@ public:
 	static void RecalculateStat(AresAEData* ae, TechnoClass* pThis);
 	static void applyAttachedEffect(WarheadTypeClass* pWH, const CoordStruct& coords, HouseClass* Source);
 
-
-	//AresAE(const AresAE& other) = default;
-	//AresAE& operator=(const AresAE& other) = default;
-
 private:
+
 	template <typename T>
 	bool Serialize(T& Stm)
 	{
@@ -95,8 +89,9 @@ struct AresAEData
 	}
 
 private:
-	AresAEData(const AresAEData& other) = delete;
-	AresAEData& operator=(const AresAEData& other) = delete;
+	AresAEData(const AresAEData& other)=delete;
+	AresAEData&operator=(const AresAEData& other)=delete;
+	AresAEData&operator=(AresAEData&&)=delete;
 
 	template <typename T>
 	bool Serialize(T& Stm)

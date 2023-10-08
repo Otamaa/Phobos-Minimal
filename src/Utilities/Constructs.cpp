@@ -44,7 +44,7 @@ bool CustomPalette::Read(
 	CCINIClass* pINI, const char* pSection, const char* pKey,
 	const char* pDefault)
 {
-	if (pINI->ReadString(pSection, pKey, pDefault, Phobos::readBuffer)) {
+	if (pINI->ReadString(pSection, pKey, pDefault, Phobos::readBuffer) > 0) {
 		//dont init anything if it is empty
 		if (GeneralUtils::IsValidString(Phobos::readBuffer))
 		{
@@ -152,13 +152,13 @@ bool CustomPalette::CreateFromBytePalette(BytePalette nBytePal)
 
 bool TheaterSpecificSHP::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
-	if (parser.ReadString(pSection, pKey))
+	if (parser.ReadString(pSection, pKey) > 0)
 	{
 		auto pValue = parser.value();
 		GeneralUtils::ApplyTheaterSuffixToString(pValue);
 
 		std::string Result = pValue;
-		if (!CRT::strstr(pValue, ".shp"))
+		if (!strstr(pValue, ".shp"))
 			Result += ".shp";
 
 		if (auto const pImage = FileSystem::LoadSHPFile(Result.c_str()))

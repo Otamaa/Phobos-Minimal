@@ -121,9 +121,12 @@ public:
 
 	class AudioBag
 	{
+		AudioBag(const AudioBag&) = delete;
+		AudioBag& operator=(const AudioBag& other) = delete;
 	public:
 
 		AudioBag() = default;
+		~AudioBag() = default;
 
 		explicit AudioBag(const char* pFilename) : AudioBag() {
 			this->Open(pFilename);
@@ -137,14 +140,14 @@ public:
 	private:
 		void Open(const char* fileBase)
 		{
-			char filename[0x100];
-			_snprintf_s(filename, sizeof(filename), "%s.idx", fileBase);
+			char filename[0x100] {};
+			IMPL_SNPRNINTF(filename, sizeof(filename), "%s.idx", fileBase);
 
 			CCFileClass pIndex { filename };
 
 			if (pIndex.Exists() && pIndex.Open(FileAccessMode::Read))
 			{
-				_snprintf_s(filename, sizeof(filename), "%s.bag", fileBase);
+				IMPL_SNPRNINTF(filename, sizeof(filename), "%s.bag", fileBase);
 				auto pBag = UniqueGamePtrB<CCFileClass>(GameCreateUnchecked<CCFileClass>(filename));
 
 				if (pBag->Exists()
@@ -304,7 +307,7 @@ std::string replace(const char* format, Args const&... args)
 
     // write string into buffer. Note the +1 is allowing for the implicit trailing
     // zero in a std::string
-    std::snprintf(&result[0], len + 1, format, args...);
+	IMPL_SNPRNINTF(&result[0], len + 1, format, args...);
 
     return result;
 };
@@ -416,7 +419,7 @@ DEFINE_OVERRIDE_HOOK(0x4011C0, Audio_Load, 6)
 	// audio01.bag to audio99.bag
 	char buffer[0x100];
 	for(auto i = 1; i < 100; ++i) {
-		_snprintf_s(buffer, sizeof(buffer), "audio%02d", i);
+		IMPL_SNPRNINTF(buffer, sizeof(buffer), "audio%02d", i);
 		instance.Append(buffer);
 	}
 

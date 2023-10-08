@@ -37,28 +37,22 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 	if (Bolt_Count.isset())
 	{
 		const int nCount = Bolt_Count.Get();
-		BoltData data {};
-		data.count = nCount;
-		data.ColorData.resize(nCount);
-		data.Disabled.resize(nCount);
+		BoltData data { nCount };
 
 		auto disabled = data.Disabled.begin();
 		char buffer_bolt[0x30] {};
 		for (int i = 0; i < nCount; ++i)
 		{
-			Valueable<bool> boltDisable_dummy {};
-
+			bool temp {};
 			IMPL_SNPRNINTF(buffer_bolt, sizeof(buffer_bolt), "Bolt.Disable%d", i + 1);
-			boltDisable_dummy.Read(exINI, pSection, buffer_bolt);
-			data.Disabled[i] = boltDisable_dummy.Get();
+			detail::read<bool>(temp, exINI, pSection, buffer_bolt);
+			data.Disabled[i] = temp;
 
-			Valueable<ColorStruct> boltColor_dummy {};
 			IMPL_SNPRNINTF(buffer_bolt, sizeof(buffer_bolt), "Bolt.Color%d", i + 1);
-			boltColor_dummy.Read(exINI, pSection, buffer_bolt);
-			data.ColorData[i] = boltColor_dummy.Get();
+			detail::read(data.ColorData[i], exINI, pSection, buffer_bolt);
 		}
 
-		this->WeaponBolt_Data = std::move(data);
+		this->WeaponBolt_Data = data;
 	}
 	else
 	{
@@ -133,10 +127,9 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 	this->RockerPitch.Read(exINI, pSection, "RockerPitch");
 
-	if (this->RockerPitch > 0.0f)
-	{
-		this->RockerPitch = 1.0f;
-		this->RockerPitch = this->RockerPitch.Get() * (Math::PI / 2);
+	if (this->RockerPitch > 0.0f) {
+		constexpr auto halfpi = (Math::PI / 2);
+		this->RockerPitch = 1.0f * halfpi;
 	}
 
 	this->MyAttachFireDatas.Read(exINI, pSection);
@@ -428,9 +421,6 @@ EBolt* WeaponTypeExt::CreateBolt(WeaponTypeExt::ExtData* pWeapon)
 // =============================
 // container
 WeaponTypeExt::ExtContainer WeaponTypeExt::ExtMap;
-
-WeaponTypeExt::ExtContainer::ExtContainer() : Container("WeaponTypeClass") { }
-WeaponTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks

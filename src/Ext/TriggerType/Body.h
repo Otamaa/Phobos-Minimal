@@ -36,8 +36,7 @@ public:
 	class ExtContainer final : public Container<TriggerTypeExt::ExtData>
 	{
 	public:
-		ExtContainer();
-		~ExtContainer();
+		CONSTEXPR_NOCOPY_CLASS(TriggerTypeExt::ExtData, "TriggerTypeClass");
 	};
 
 	static ExtContainer ExtMap;

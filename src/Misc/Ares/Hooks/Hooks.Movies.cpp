@@ -70,13 +70,9 @@ void MoviesList::LoadListFromINI()
 		{
 			char buffer[0x20];
 			auto const pKey = ini.GetKeyName("Movies", i);
-			if (int len = ini.ReadString("Movies", pKey, Phobos::readDefval, buffer))
-			{
-				if (!this->FindMovie(buffer))
-				{
-					this->Array.emplace_back();
-					auto& item = this->Array.back();
-					item.FilenameBuffer.assign(buffer, buffer + len);
+			if (int len = ini.ReadString("Movies", pKey, Phobos::readDefval, buffer)) {
+				if (!this->FindMovie(buffer)) {
+					this->Array.emplace_back().FilenameBuffer.assign(buffer, buffer + len);
 				}
 			}
 		}

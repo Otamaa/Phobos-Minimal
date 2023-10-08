@@ -219,9 +219,6 @@ void RadSiteExt::ExtData::Serialize(T& Stm)
 // container
 RadSiteExt::ExtContainer RadSiteExt::ExtMap;
 
-RadSiteExt::ExtContainer::ExtContainer() : Container("RadSiteClass") { };
-RadSiteExt::ExtContainer::~ExtContainer() = default;
-
 // =============================
 // container hooks
 
