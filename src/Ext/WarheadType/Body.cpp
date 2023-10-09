@@ -356,7 +356,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	this->PreImpact_Moves.Read(exINI, pSection, "PreImpactAnim.Moves");
 	this->Launchs.clear();
 
-	char nBuff[0x80] {};
+	char nBuff[0x80];
 	for (size_t i = 0; ; ++i)
 	{
 		Nullable<SuperWeaponTypeClass*> LaunchWhat_Dummy {};

@@ -185,7 +185,7 @@ DEFINE_OVERRIDE_HOOK(0x6BD886, CSF_LoadExtraFiles, 5)
 	if (language)
 		res = language->Letter;
 
-	char fname[32] {};
+	char fname[32];
 	IMPL_SNPRNINTF(fname, sizeof(fname), "ares_%s.csf", res);
 	CSFLoader::LoadAdditionalCSF(fname);
 

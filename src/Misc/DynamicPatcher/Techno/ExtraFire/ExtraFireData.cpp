@@ -74,7 +74,7 @@ void ExtraFireData::ReadArt(INI_EX& parserArt, const char* pSection_Art)
 			break;
 
 		++nSize;
-		AttachedFLH.WeaponXFLH.emplace_back(nBuffRead_);
+		AttachedFLH.WeaponXFLH.push_back(nBuffRead_);
 	}
 
 	if (!AttachedFLH.WeaponXFLH.empty())

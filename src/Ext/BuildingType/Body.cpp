@@ -936,7 +936,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 	{
 		INI_EX exArtINI(pArtINI);
 
-		char strbuff[0x80] {};
+		char strbuff[0x80];
 
 		if (this->IsCustom)
 		{
@@ -986,7 +986,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 
 			//Load FoundationData
 			auto itData = this->CustomData.begin();
-			char key[0x20] {};
+			char key[0x20];
 
 			for (size_t i = 0; i < dimension; ++i) {
 				IMPL_SNPRNINTF(key, sizeof(key), "Foundation.%d", i);
@@ -1039,7 +1039,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 
 		if (pThis->MaxNumberOccupants > 10)
 		{
-			char tempMuzzleBuffer[32] {};
+			char tempMuzzleBuffer[32];
 			this->OccupierMuzzleFlashes.resize(pThis->MaxNumberOccupants);
 
 			for (int i = 0; i < pThis->MaxNumberOccupants; ++i)
@@ -1071,7 +1071,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 			if (!nFire_offs.isset())
 				break;
 
-			this->DamageFire_Offs.emplace_back(nFire_offs.Get());
+			this->DamageFire_Offs.push_back(nFire_offs.Get());
 		}
 #endif
 		this->BuildUp_UseNormalLIght.Read(exArtINI, pArtSection, "Buildup.UseNormalLight");
@@ -1080,7 +1080,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->DockPoseDir.clear();
 		if (pThis->Helipad)
 		{
-			char keyDock[0x40] = { '\0' };
+			char keyDock[0x40];
 			this->DockPoseDir.resize(pThis->NumberOfDocks);
 
 			for (int i = 0; i < pThis->NumberOfDocks; ++i)

@@ -70,14 +70,14 @@ DEFINE_HOOK(0x6FE562, TechnoClass_FireAt_BurstRandomTarget, 0x6)
 
 		if (pWeapon->OmniFire) {
 			if(distanceFromAttacker <= rangemax)
-				candidates.emplace_back(pTarget);
+				candidates.push_back(pTarget);
 		}
 		else
 		{
 			int distanceFromOriginalTarget = pTarget->DistanceFrom(originalTarget);
 
 			if (distanceFromAttacker <= rangemax && distanceFromOriginalTarget <= rangemax) {
-				candidates.emplace_back(pTarget);
+				candidates.push_back(pTarget);
 			}
 		}
 	}

@@ -68,7 +68,7 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	Nullable<bool> Damage_TargetInvoker {};
 	Damage_TargetInvoker.Read(exINI, pID, "Damage.TargetInvoker");
-	if (Damage_TargetInvoker.isset())
+	if (Damage_TargetInvoker.isset() && Damage_TargetInvoker.Get())
 		this->Damage_TargetFlag = DamageDelayTargetFlag::Invoker;
 
 	this->MakeInfantryOwner.Read(exINI, pID, "MakeInfantryOwner");
@@ -104,7 +104,7 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 				cur;
 				cur = strtok_s(nullptr, Phobos::readDelims, &context))
 			{
-				int buffer;
+				int buffer { 1 };
 				if (Parser<int>::TryParse(cur, &buffer))
 					this->SpawnsMultiple_amouts[nCount] = buffer;
 

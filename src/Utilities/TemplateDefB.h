@@ -4,6 +4,13 @@
 
 #include "TemplateDef.h"
 
+std::string __forceinline trim(const char* source) {
+    std::string s(source);
+    s.erase(0,s.find_first_not_of(" \n\r\t"));
+    s.erase(s.find_last_not_of(" \n\r\t")+1);
+    return s;
+}
+
 namespace detail
 {
 	template<>
@@ -473,21 +480,21 @@ namespace detail
 			for (char* cur = strtok_s(IniEx.value(), Delims, &context);
 				cur; cur = strtok_s(nullptr, Delims, &context))
 			{
-				const auto res = CRT::strtrim(cur);
+				auto res = trim(cur);
 
 				T buffer = nullptr;
 				if constexpr (!Alloc)
-					buffer = baseType::Find(res);
+					buffer = baseType::Find(res.c_str());
 				else
-					buffer = baseType::FindOrAllocate(res);
+					buffer = baseType::FindOrAllocate(res.c_str());
 
 				if (bVerbose)
-					Debug::Log("ParseVector DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, i, res);
+					Debug::Log("ParseVector DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, i, res.c_str());
 
 				if (buffer) {
 					nVecDest[i].push_back(buffer);
 				}else if (bDebug && !GameStrings::IsBlank(cur)) {
-					Debug::Log("ParseVector DEBUG: [%s][%d]: Error parsing [%s]\n", pSection, i, res);
+					Debug::Log("ParseVector DEBUG: [%s][%d]: Error parsing [%s]\n", pSection, i, res.c_str());
 				}
 			}
 		}
@@ -516,13 +523,13 @@ namespace detail
 				cur;
 				cur = strtok_s(nullptr, Delims, &context))
 			{
-				const auto res = CRT::strtrim(cur);
+					auto res = trim(cur);
 
-				if (res && res[0] && strlen(res))
-					nVecDest[i].push_back(res);
+				if (!res.empty())
+					nVecDest[i].push_back(res.c_str());
 
 				if (bVerbose)
-					Debug::Log("ParseVector DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, i, cur);
+					Debug::Log("ParseVector DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, i, res.c_str());
 			}
 		}
 	}

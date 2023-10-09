@@ -963,7 +963,7 @@ void ScriptExt::LoadIntoTransports(TeamClass* pTeam)
 			&& pUnit->Passengers.NumPassengers < pType->Passengers
 			&& pUnit->Passengers.GetTotalSize() < pType->Passengers)
 		{
-			transports.emplace_back(pUnit);
+			transports.push_back(pUnit);
 		}
 	}
 

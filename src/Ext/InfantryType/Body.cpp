@@ -6,17 +6,17 @@ void Phobos_DoControls::ReadSequence(std::vector<DoInfoStruct>& Desig, InfantryT
 {
 	INI_EX IniEX(pINI);
 
-	char section[0x100] {};
+	char section[0x100];
 	if (pINI->GetString(pInf->ImageFile, "Sequence", section) > 0) {
 		Desig.resize(DoControls::MaxCount);
 
 		for (int i = 0; i < DoControls::MaxCount; ++i) {
-			char sequenceData[0x100] {};
+			char sequenceData[0x100];
 			if (pINI->GetString(section, DoControls::DoType_toStr[i], sequenceData) > 0) {
 				auto& data = Desig[i];
 				std::string basename = DoControls::DoType_toStr[i];
 
-				char bufferFacing[4] {};
+				char bufferFacing[4];
 				if(sscanf(sequenceData, "%d,%d,%d,%s",
 					&data.StartFrame,
 					&data.CountFrames,
@@ -32,7 +32,7 @@ void Phobos_DoControls::ReadSequence(std::vector<DoInfoStruct>& Desig, InfantryT
 					}
 				}
 
-				char bufferSounds[0x100] {};
+				char bufferSounds[0x100];
 				if (pINI->GetString(section, (basename + "Sounds").c_str(), bufferSounds) > 0)
 				{
 					auto v7 = strtok(bufferSounds, " ,\t");

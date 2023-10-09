@@ -3642,7 +3642,7 @@ void TechnoExt::ExtData::UpdateFireSelf()
 			else
 				ROF = FireSelf_ROF->at(p);
 
-			FireSelf_Count.emplace_back(ROF);
+			FireSelf_Count.push_back(ROF);
 		}
 	}
 

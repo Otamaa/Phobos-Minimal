@@ -274,7 +274,7 @@ void TechnoTypeExt_ExtData::LoadTurrets(TechnoTypeClass* pType, CCINIClass* pINI
 	pExt->WeaponUINameX.resize(weaponCount);
 	pExt->Insignia_Weapon.resize(weaponCount);
 
-	char buffer[0x100u] {};
+	char buffer[0x100u];
 	//read default
 	for (size_t i = 0; i < SubName.size(); ++i)
 	{

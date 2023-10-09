@@ -204,8 +204,8 @@ void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis,
 	ColletiveCoordStructVectorData& nEFlh,
 	const char** pPrefixTag)
 {
-	char tempBuffer[0x40] {};
-	char tempBufferFLH[0x40] {};
+	char tempBuffer[0x40];
+	char tempBufferFLH[0x40];
 
 	bool parseMultiWeapons = pThis->TurretCount > 0 && pThis->WeaponCount > 0;
 	auto weaponCount = parseMultiWeapons ? pThis->WeaponCount : 2;
@@ -250,8 +250,8 @@ void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis,
 void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection,
 	std::vector<std::vector<CoordStruct>>& nFLH, std::vector<std::vector<CoordStruct>>& nEFlh, const char* pPrefixTag)
 {
-	char tempBuffer[0x40] { "/0" };
-	char tempBufferFLH[0x40] { "/0" };
+	char tempBuffer[0x40];
+	char tempBufferFLH[0x40];
 
 	bool parseMultiWeapons = pThis->TurretCount > 0 && pThis->WeaponCount > 0;
 	auto weaponCount = parseMultiWeapons ? pThis->WeaponCount : 2;
@@ -278,19 +278,19 @@ void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const
 			eliteFLH.Read(exArtINI, pArtSection, tempBufferFLH);
 
 			CoordStruct Flh = FLH.Get();
-			nFLH[i].emplace_back(Flh);
+			nFLH[i].push_back(Flh);
 
 			if (eliteFLH.isset())
 				Flh = eliteFLH.Get();
 
-			nEFlh[i].emplace_back(Flh);
+			nEFlh[i].push_back(Flh);
 		}
 	}
 };
 
 void TechnoTypeExt::GetFLH(INI_EX& exArtINI, const char* pArtSection, Nullable<CoordStruct>& nFlh, Nullable<CoordStruct>& nEFlh, const char* pFlag)
 {
-	char tempBuffer[0x40] {};
+	char tempBuffer[0x40];
 	IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "%sFLH", pFlag);
 	nFlh.Read(exArtINI, pArtSection, tempBuffer);
 	IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Elite%sFLH", pFlag);
@@ -1044,7 +1044,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		this->PoweredBy.Read(exINI, pSection, "PoweredBy");
 
-		char Survivor_buffer[256] {};
+		char Survivor_buffer[256];
 		for (int i = 0; i < SideClass::Array->Count; ++i) {
 			IMPL_SNPRNINTF(Survivor_buffer,sizeof(Survivor_buffer), "Survivor.Side%d", i);
 			detail::read(this->Survivors_Pilots[i], exINI, pSection, Survivor_buffer);
@@ -1186,28 +1186,28 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->TurretShadow.Read(exArtINI, pArtSection, "TurretShadow");
 		this->ShadowIndices.Read(exArtINI, pArtSection, "ShadowIndices");
 
-		char tempBuffer[0x40] { "/0" };
-		char HitCoord_tempBuffer[0x20] { "/0" };
-		char alternateFLHbuffer[0x40] { "/0" };
+		char tempBuffer[0x40];
+		char HitCoord_tempBuffer[0x20];
+		char alternateFLHbuffer[0x40];
 
 		for (size_t i = 0; ; ++i)
 		{
-			NullableIdx<LaserTrailTypeClass> trail {};
 			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.Type", i);
-			trail.Read(exArtINI, pArtSection, tempBuffer);
+			if (exArtINI->ReadString(pArtSection, tempBuffer, Phobos::readDefval, Phobos::readBuffer) <= 0)
+				break;
 
-			if (!trail.isset())
+			int def;
+			if (!Parser<LaserTrailTypeClass,1>::TryParseIndex(Phobos::readBuffer, &def))
 				break;
 
 			auto data = &this->LaserTrailData.emplace_back();
-			data->idxType = trail;
+			data->idxType = def;
 
 			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.FLH", i);
 			detail::read(data->FLH , exArtINI, pArtSection, tempBuffer );
 
 			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.IsOnTurret", i);
 			detail::read(data->IsOnTurret , exArtINI, pArtSection, tempBuffer );
-
 		}
 
 		for (size_t i = 5; ; ++i)
@@ -1219,7 +1219,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 			if (!alternateFLH.isset())
 				break;
 
-			this->AlternateFLHs.emplace_back(alternateFLH.Get());
+			this->AlternateFLHs.push_back(alternateFLH.Get());
 		}
 
 		for (size_t i = 0; ; ++i)
@@ -1231,7 +1231,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 			if (!nHitBuff.isset())
 				break;
 
-			this->HitCoordOffset.emplace_back(nHitBuff);
+			this->HitCoordOffset.push_back(nHitBuff);
 		}
 
 		this->HitCoordOffset_Random.Read(exArtINI, pArtSection, "HitCoordOffset.Random");
@@ -1249,8 +1249,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		//TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, nFLH, nEFLH, tags);
 
 		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, WeaponBurstFLHs, EliteWeaponBurstFLHs, "");
-		//TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, DeployedWeaponBurstFLHs, EliteDeployedWeaponBurstFLHs, "Deployed");
-		//TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, CrouchedWeaponBurstFLHs, EliteCrouchedWeaponBurstFLHs, "Prone");
+		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, DeployedWeaponBurstFLHs, EliteDeployedWeaponBurstFLHs, "Deployed");
+		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, CrouchedWeaponBurstFLHs, EliteCrouchedWeaponBurstFLHs, "Prone");
 
 		TechnoTypeExt::GetFLH(exArtINI, pArtSection, PronePrimaryFireFLH, E_PronePrimaryFireFLH, "PronePrimaryFire");
 		TechnoTypeExt::GetFLH(exArtINI, pArtSection, ProneSecondaryFireFLH, E_ProneSecondaryFireFLH, "ProneSecondaryFire");
@@ -1287,7 +1287,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_EvaluateSomeVariables(CCINIClass* p
 
 ImageStatusses ImageStatusses::ReadVoxel(const char* const nKey, bool a4)
 {
-	char buffer[0x60] {};
+	char buffer[0x60];
 	IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.VXL", nKey);
 	CCFileClass CCFileV { buffer };
 

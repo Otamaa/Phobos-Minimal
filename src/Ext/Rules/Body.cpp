@@ -144,7 +144,7 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	if (pINI->ReadString("GlobalControls", "AllowBypassBuildLimit", "", Phobos::readBuffer) > 0)
 	{
-		bool temp[3] = {};
+		bool temp[3];
 		int read = Parser<bool, 3>::Parse(Phobos::readBuffer, temp);
 
 		for (int i = 0; i < read; ++i)
@@ -178,7 +178,7 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	for (int i = 0; i < SideClass::Array->Count; ++i)
 		Crews[i] = SideExt::ExtMap.Find(SideClass::Array->Items[i])->GetCrew();
 
-	char buffer[0x30] = {};
+	char buffer[0x30];
 	auto pINI = CCINIClass::INI_Rules();
 	INI_EX iniEX(pINI);
 

@@ -89,7 +89,7 @@ struct TrailsReader
 		if (TrailType::Array.empty())
 			return;
 
-		char tempBuffer[0x50] {};
+		char tempBuffer[0x50];
 		for (size_t i = 0; ; ++i)
 		{
 			NullableIdx <TrailType> trail;

@@ -25,9 +25,6 @@ public:
 
 	static int FindOrAllocateIndex(const char* Title)
 	{
-		if (!*Title || !strlen(Title))
-			return -1;
-
 		const auto nResult = FindIndexById(Title);
 
 		if (nResult < 0)
@@ -41,14 +38,11 @@ public:
 
 	static int FindIndexById(const char* Title)
 	{
-		if (!*Title || !strlen(Title))
-			return -1;
-
 		for (auto pos = Array.begin();
 			pos != Array.end();
 			++pos) {
 			if (IS_SAME_STR_((*pos)->Name.data(), Title)) {
-				return std::distance(Array.begin() , pos);
+				return std::distance(Array.begin(), pos);
 			}
 		}
 
@@ -67,10 +61,14 @@ public:
 
 	static int FindIndexFromType(T* pType)
 	{
-		if (!pType)
-			return -1;
+		if (pType) {
+			for (size_t i = 0; i < Array.size(); ++i) {
+				if (Array[i].get() == pType)
+					return i;
+			}
+		}
 
-		return FindIndexById(pType->Name.data());
+		return -1;
 	}
 
 	// Warning : no Idx validation !
@@ -82,8 +80,7 @@ public:
 	// With Idx validation ,return to the first item if Idx is invalid
 	static T* FindFromIndexFix(int Idx)
 	{
-		const auto aIdx = size_t(Idx) > Array.size() ? 0 : Idx;
-		return Array[aIdx].get();
+		return Array[size_t(Idx) > Array.size() ? 0 : Idx].get();
 	}
 
 	static T* Allocate(const char* Title)
@@ -94,14 +91,11 @@ public:
 
 	static void AllocateNoCheck(const char* Title)
 	{
-		Array.push_back(std::move(std::make_unique<T>(Title)));
+		Array.emplace_back(std::make_unique<T>(Title));
 	}
 
 	static T* FindOrAllocate(const char* Title)
 	{
-		if (!*Title || !strlen(Title))
-			return nullptr;
-
 		if (T* find = Find(Title))
 			return find;
 
@@ -121,20 +115,18 @@ public:
 		if (!pINI->GetSection(section))
 			return;
 
-		auto const pKeyCount = pINI->GetKeyCount(section);
-
-		if (!pKeyCount)
-			return;
-
-		for (int i = 0; i < pKeyCount; ++i) {
+		for (int i = 0; i < pINI->GetKeyCount(section); ++i)
+		{
 			if (pINI->ReadString(section, pINI->GetKeyName(section, i),
-				Phobos::readDefval, Phobos::readBuffer) > 0) {
+				Phobos::readDefval, Phobos::readBuffer) > 0)
+			{
 				FindOrAllocate(Phobos::readBuffer);
 			}
 		}
 	}
 
-	static void ReadListFromINI(CCINIClass* pINI, bool bDebug = false) {
+	static void ReadListFromINI(CCINIClass* pINI, bool bDebug = false)
+	{
 		for (auto& pItem : Array)
 			pItem->LoadFromINI(pINI);
 	}
@@ -154,19 +146,20 @@ public:
 		if (!pKeyCount)
 			return;
 
-		if (pKeyCount > (int)Array.size()) {
+		if (pKeyCount > (int)Array.size())
+		{
 			Array.reserve(pKeyCount);
 		}
 
-		for (int i = 0; i < pKeyCount; ++i) {
+		for (int i = 0; i < pKeyCount; ++i)
+		{
 			if (pINI->ReadString(section, pINI->GetKeyName(section, i),
-				Phobos::readDefval, Phobos::readBuffer)  > 0) {
+				Phobos::readDefval, Phobos::readBuffer) > 0)
+			{
 
-				if (auto const pFind = Find(Phobos::readBuffer)) {
+				if (auto const pFind = FindOrAllocate(Phobos::readBuffer))
+				{
 					pFind->LoadFromINI(pINI);
-				}
-				else {
-					Allocate(Phobos::readBuffer)->LoadFromINI(pINI);
 				}
 			}
 		}
@@ -217,18 +210,19 @@ public:
 
 	static const char* GetMainSection();
 
-	Enumerable(const char* Title)
-	{
-		Name = Title;
-	}
+	Enumerable(const char* Title) : Name { Title }
+	{ }
 
 	virtual ~Enumerable() = default;
-
 	virtual void LoadFromINI(CCINIClass* pINI) { }
-
 	virtual void LoadFromStream(PhobosStreamReader& Stm) = 0;
-
 	virtual void SaveToStream(PhobosStreamWriter& Stm) = 0;
 
+
+public:
 	FixedString<32> Name;
+
+private:
+	Enumerable<T>&operator=(Enumerable<T> const& value) = default;
+	Enumerable<T>&operator=(Enumerable<T>&& value) = default;
 };

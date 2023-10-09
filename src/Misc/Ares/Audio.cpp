@@ -140,7 +140,7 @@ public:
 	private:
 		void Open(const char* fileBase)
 		{
-			char filename[0x100] {};
+			char filename[0x100];
 			IMPL_SNPRNINTF(filename, sizeof(filename), "%s.idx", fileBase);
 
 			CCFileClass pIndex { filename };

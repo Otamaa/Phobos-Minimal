@@ -903,7 +903,7 @@ int HouseExt::GetHouseIndex(int param, TeamClass* pTeam = nullptr, TActionClass*
 					&& !HouseExt::IsObserverPlayer(pHouse)
 					&& !pHouse->Type->MultiplayPassive)
 				{
-					housesListIdx.emplace_back(pHouse);
+					housesListIdx.push_back(pHouse);
 				}
 			}
 
@@ -930,7 +930,7 @@ int HouseExt::GetHouseIndex(int param, TeamClass* pTeam = nullptr, TActionClass*
 					&& !pHouse->Defeated
 					&& !HouseExt::IsObserverPlayer(pHouse))
 				{
-					housesListIdx.emplace_back(pHouse);
+					housesListIdx.push_back(pHouse);
 				}
 			}
 

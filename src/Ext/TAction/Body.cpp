@@ -605,7 +605,7 @@ bool TActionExt::PlayAudioAtRandomWP(TActionClass* pThis, HouseClass* pHouse, Ob
 	for (auto const& [idx, cell] : ScenarioExt::Global()->Waypoints)
 	{
 		if (pScen->IsDefinedWaypoint(idx))
-			waypoints.emplace_back(cell);
+			waypoints.push_back(cell);
 	}
 
 	if (!waypoints.empty())
@@ -846,7 +846,7 @@ NOINLINE HouseClass* GetPlayerAt(int param, HouseClass* const pOwnerHouse = null
 					&& !HouseExt::IsObserverPlayer(pHouse)
 					&& !pHouse->Type->MultiplayPassive)
 				{
-					housesListIdx.emplace_back(pHouse);
+					housesListIdx.push_back(pHouse);
 				}
 			}
 
@@ -875,7 +875,7 @@ NOINLINE HouseClass* GetPlayerAt(int param, HouseClass* const pOwnerHouse = null
 					&& !pHouse->Defeated
 					&& !HouseExt::IsObserverPlayer(pHouse))
 				{
-					housesListIdx.emplace_back(pHouse);
+					housesListIdx.push_back(pHouse);
 				}
 			}
 

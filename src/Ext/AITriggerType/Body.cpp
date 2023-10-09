@@ -108,7 +108,7 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 
 		//parse first string
 		char* context = nullptr;
-		char* cur[3];
+		char* cur[3] {};
 		cur[0] = strtok_s(thisAICondition[0].data(), Phobos::readDelims, &context);
 		int j = 0;
 		while (cur[j])
@@ -135,7 +135,7 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 			int Number = -1;
 			TechnoTypeClass* TechnoType;
 
-			char* cur2[5];
+			char* cur2[5] {};
 			cur2[0] = strtok_s(thisAICondition[i].data(), Phobos::readDelims, &context);
 			int k = 0;
 			while (cur2[k])

@@ -2162,7 +2162,7 @@ void NOINLINE PromotableVector<T>::ReadList(INI_EX& parser, const char* pSection
 		}
 	}
 
-	char flag[0x40] = { '\0' };
+	char flag[0x40];
 
 	for (int i = 0;; i++)
 	{
@@ -2185,7 +2185,7 @@ void NOINLINE PromotableVector<T>::ReadList(INI_EX& parser, const char* pSection
 		if (!value.isset())
 			break;
 
-		this->Base.emplace_back(value.Get());
+		this->Base.push_back(value.Get());
 	}
 
 	int size = static_cast<int>(this->Base.size());

@@ -1365,7 +1365,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->LimboDelivery_IDs.Read(exINI, pSection, "LimboDelivery.IDs");
 	this->LimboDelivery_RollChances.Read(exINI, pSection, "LimboDelivery.RollChances");
 
-	char tempBuffer[0x30] {};
+	char tempBuffer[0x30];
 	for (size_t i = 0; ; ++i)
 	{
 		ValueableVector<int> weights {};
@@ -1375,13 +1375,13 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		if (weights.empty())
 			break;
 
-		this->LimboDelivery_RandomWeightsData.push_back(std::move(weights));
+		this->LimboDelivery_RandomWeightsData.push_back(weights);
 	}
 
 	std::vector<int> weights {};
 	detail::ReadVectors(weights, exINI, pSection, "LimboDelivery.RandomWeights");
 	if (!weights.empty())
-		this->LimboDelivery_RandomWeightsData[0] = std::move(weights);
+		this->LimboDelivery_RandomWeightsData[0] = weights;
 
 	this->LimboKill_Affected.Read(exINI, pSection, "LimboKill.Affected");
 	this->LimboKill_IDs.Read(exINI, pSection, "LimboKill.IDs");
@@ -1608,7 +1608,7 @@ std::vector<int> SWTypeExt::ExtData::WeightedRollsHandler(std::vector<float>* ro
 		// If modder provides more weights than there are objects and we hit one of these, ignore it
 		// otherwise add
 		if (size_t(index) < size)
-			nResult.emplace_back(index);
+			nResult.push_back(index);
 	}
 
 	return nResult;

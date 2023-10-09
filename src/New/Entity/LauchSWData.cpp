@@ -7,7 +7,7 @@ bool LauchSWData::Read(INI_EX& exINI, const char* pID, int Prefix, SuperWeaponTy
 	if (!pReaded)
 		return false;
 
-	char nBuff[0x80] { "/0" };
+	char nBuff[0x80];
 	LaunchWhat = pReaded->ArrayIndex;
 
 	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.WaitForCharge", Prefix);

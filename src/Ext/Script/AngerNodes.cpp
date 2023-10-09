@@ -193,7 +193,7 @@ void ScriptExt::SetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int mode = 
 
 		if (random)
 		{
-			objectsList.emplace_back(angerNode.House);
+			objectsList.push_back(angerNode.House);
 		}
 		else
 		{
@@ -891,7 +891,7 @@ void ScriptExt::AggroHouse(TeamClass* pTeam, int index = -1)
 			&& !angerNode.House->Type->MultiplayPassive
 			&& !angerNode.House->IsObserver())
 		{
-			objectsList.emplace_back(angerNode.House);
+			objectsList.push_back(angerNode.House);
 		}
 	}
 
@@ -903,7 +903,7 @@ void ScriptExt::AggroHouse(TeamClass* pTeam, int index = -1)
 			&& !pTeam->Owner->IsObserver()
 			&& !pTeam->Owner->IsControlledByHuman())
 		{
-			objectsList.emplace_back(pTeam->Owner);
+			objectsList.push_back(pTeam->Owner);
 		}
 	}
 

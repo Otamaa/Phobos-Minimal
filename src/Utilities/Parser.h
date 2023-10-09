@@ -190,6 +190,17 @@ public:
 		}
 		return false;
 	}
+
+	static bool TryParseIndex(const char* pValue, int* outValue)
+	{
+		// non-specialized: read AbstractTypes
+		const auto type = BaseType::FindIndexById(pValue);
+		if (type != -1) {
+			*outValue = type;
+			return true;
+		}
+		return false;
+	}
 };
 
 // Specializations
@@ -203,17 +214,17 @@ inline bool Parser<bool>::TryParse(const char* pValue, OutType* outValue) {
 	case '1':
 	case 'T':
 	case 'Y':
-	{ 
+	{
 		*outValue = true;
 		return true;
 	}
 	case '0':
 	case 'F':
 	case 'N':
-	{ 
+	{
 		*outValue = false;
 		return true;
-	}	
+	}
 	}
 
 	return false;

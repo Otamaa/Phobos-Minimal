@@ -40,6 +40,10 @@ struct FixedString {
 	*  case a pointer is passed.
 	*/
 	FixedString& operator= (FixedString const& value) noexcept = default;
+	//{
+	//	std::memcpy(this, &value, sizeof(T) * Size);
+	//	return *this;
+	//}
 
 	// assignt char to designated value without checking !
 	void assign(const T* const value) noexcept {

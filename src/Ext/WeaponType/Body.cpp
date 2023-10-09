@@ -40,7 +40,7 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		BoltData data { nCount };
 
 		auto disabled = data.Disabled.begin();
-		char buffer_bolt[0x30] {};
+		char buffer_bolt[0x30];
 		for (int i = 0; i < nCount; ++i)
 		{
 			bool temp {};
