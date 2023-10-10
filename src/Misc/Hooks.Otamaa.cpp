@@ -1242,7 +1242,7 @@ void DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRe
 
 	for (int i = 0; i < nMax; i++)
 	{
-		const auto nSpawnMax = pTechno->SpawnManager->CountDockedSpawns();
+		const auto nSpawnMax = pTechno->SpawnManager ? pTechno->SpawnManager->CountDockedSpawns() : 0;
 
 		Point2D nPointHere { nOffs.X + nPoints->X  , nOffs.Y + nPoints->Y };
 		CC_Draw_Shape(
@@ -2064,7 +2064,7 @@ BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 				const auto pExt = BuildingTypeExt::ExtMap.Find(*begin);
 				//const auto Powered_ = pBld->IsOverpowered || (!PowerDown && !((*begin)->PowerDrain && LowpOwerHouse));
 
-				const bool IsFactoryPowered = !pExt->FactoryPlant_RequirePower || Online;
+				const bool IsFactoryPowered =  !(*begin)->Powered || !pExt->FactoryPlant_RequirePower || Online;
 
 				//recalculate the multiplier
 				if ((*begin)->FactoryPlant && IsFactoryPowered)
@@ -2077,7 +2077,7 @@ BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 				}
 
 				//only pick first spysat
-				const bool IsSpySatPowered = !pExt->SpySat_RequirePower || Online;
+				const bool IsSpySatPowered = !(*begin)->Powered || !pExt->SpySat_RequirePower || Online;
 				if (!Spysat && (*begin)->SpySat && !Jammered && IsSpySatPowered) {
 					const bool IsDiscovered = pBld->DiscoveredByCurrentPlayer && SessionClass::Instance->GameMode == GameMode::Campaign;
 					if (IsLimboDelivered || !IsCurrentPlayer || SessionClass::Instance->GameMode != GameMode::Campaign || IsDiscovered) {
@@ -2089,7 +2089,7 @@ BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 				if (pExt->SpeedBonus.Enabled && Online)
 					++pHouseExt->Building_BuildSpeedBonusCounter[(*begin)];
 
-				const bool IsPurifierRequirePower = !pExt->PurifierBonus_RequirePower || Online;
+				const bool IsPurifierRequirePower = !(*begin)->Powered || !pExt->PurifierBonus_RequirePower || Online;
 				// add eligible purifier
 				if ((*begin)->OrePurifier && IsPurifierRequirePower)
 					++pHouseExt->Building_OrePurifiersCounter[(*begin)];
@@ -3773,16 +3773,16 @@ DEFINE_HOOK(0x4CD747, FlyLocomotionClass_UpdateMoving_OutOfMap, 6)
 	return 0x4CD797;
 }
 
-DEFINE_HOOK(0x4CED12 , FlyLocomotionClass_UpdateLanding_Finish, 8)
-{
-	if (R->EDI<int>() <= 104)
-		return 0;
-
-	R->ESI<FlyLocomotionClass*>()->IsTakingOff = false;
-	R->Stack(0x13, 1);
-
-	return 0x4CED2D;
-}
+//DEFINE_HOOK(0x4CED12 , FlyLocomotionClass_UpdateLanding_Finish, 8)
+//{
+//	if (R->EDI<int>() <= 104)
+//		return 0;
+//
+//	R->ESI<FlyLocomotionClass*>()->IsTakingOff = false;
+//	R->Stack(0x13, 1);
+//
+//	return 0x4CED2D;
+//}
 
 int __fastcall UnitClass_MI_Open_(UnitClass* pThis)
 {
@@ -3905,11 +3905,6 @@ DEFINE_HOOK(0x43B150, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x6)
 		return 0x43B4B0;
 	}
 
-	if (!pThis->Owner || VTable::Get(pThis->Owner) != HouseClass::vtable) {
-		Debug::Log("Techno[%s] , Trying to use sensor with invalid[%08x] house!\n", pThis->get_ID() , pThis->Owner);
-		pThis->Owner = HouseExt::FindSpecial();
-	}
-
 	return 0x0;
 }
 
@@ -3972,3 +3967,27 @@ DEFINE_HOOK(0x44F8A6, TechnoClass_FromINI_CreateForHouse, 0x7)
 
 // Skips checking the gamemode or who the player is when assigning houses
 DEFINE_JUMP(LJMP, 0x44F8CB, 0x44F8E1)
+
+DEFINE_HOOK(0x73745C , UnitClass_ReceiveRadio_Parasited_WantRide , 0xA)
+{
+	GET(UnitClass* , pThis ,ESI);
+	enum { negativemessage = 0x73746A , continueChecks = 0x737476};
+
+	if(pThis->IsBeingWarpedOut()
+		|| (pThis->ParasiteEatingMe && pThis->ParasiteEatingMe->ParasiteImUsing->GrappleAnim))
+		return negativemessage;
+
+	return continueChecks;
+}
+
+DEFINE_HOOK(0x7375B6 , UnitClass_ReceiveRadio_Parasited_CanLoad , 0xA)
+{
+	GET(UnitClass* , pThis ,ESI);
+	enum { staticmessage = 0x7375C4 , continueChecks = 0x7375D0};
+
+	if(pThis->IsBeingWarpedOut()
+		|| (pThis->ParasiteEatingMe && pThis->ParasiteEatingMe->ParasiteImUsing->GrappleAnim))
+		return staticmessage;
+
+	return continueChecks;
+}

@@ -14,26 +14,40 @@ public:
 		Datas = (MapSurfaceData*)YRMemory::Allocate(sizeof(MapSurfaceData) * nCount);
 		States = (bool*)YRMemory::Allocate(sizeof(bool) * nCount);
 		std::memset(States, 0, sizeof(bool) * nCount);
-		Heap = GameCreate<PointerHeapClass<MapSurfaceData>>(nCount);
+		Heap = GameCreate<PointerHeapClass<MapSurfaceData*>>(nCount);
 	}
 
 	//74E8A0
 	void Deconstruct()
 	{
-	    GameDelete<true ,true>(Heap);
+		GameDelete<true, true>(Heap);
 		Heap = nullptr;
-		GameDelete<false, true>(Datas);
-		Datas = nullptr;
-		GameDelete<false, true>(States);
-		States = nullptr;
+
+		if (Datas)
+		{
+			YRMemory::Deallocate(Datas);
+			Datas = nullptr;
+		}
+
+		if (States)
+		{
+			YRMemory::Deallocate(States);
+			States = nullptr;
+		}
 		Count = 0;
 	}
 
 	int Count;
-	PointerHeapClass<MapSurfaceData>* Heap;
+	PointerHeapClass<MapSurfaceData*>* Heap;
 	MapSurfaceData* Datas;
 	CDTimerClass Timer;
 	bool* States;
+
+private:
+	VeinholeLogic(const VeinholeLogic&) = default;
+	VeinholeLogic(VeinholeLogic&&) = default;
+	VeinholeLogic& operator=(const VeinholeLogic& other) = default;
+
 };
 
 class DECLSPEC_UUID("5192D06A-C632-11D2-B90B-006008C809ED")

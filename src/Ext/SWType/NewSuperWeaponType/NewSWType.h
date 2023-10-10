@@ -89,6 +89,10 @@ struct TargetingData
 	//Enemy Designator
 	HelperedVector<RangedItem> Suppressors;
 
+private:
+	TargetingData(const TargetingData&) = delete;
+	TargetingData(TargetingData&&) = delete;
+	TargetingData& operator=(const TargetingData& other) = delete;
 };
 
 class NewSWType
@@ -104,6 +108,11 @@ class NewSWType
 	AresNewSuperType TypeIndex { AresNewSuperType(-1) };
 
 public:
+
+	NewSWType() = default;
+	NewSWType(const NewSWType&) = default;
+	NewSWType(NewSWType&&) = default;
+	NewSWType& operator=(const NewSWType& other) = default;
 
 	virtual ~NewSWType() = default;
 
@@ -167,5 +176,6 @@ public:
 	static SuperWeaponType GetHandledType(SuperWeaponType nType);
 	static NewSWType* GetNewSWType(const SWTypeExt::ExtData* pData);
 	static SuperWeaponType FindFromTypeID(const char* pType);
+
 
 };

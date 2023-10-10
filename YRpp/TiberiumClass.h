@@ -35,13 +35,13 @@ public:
 	{
 		Datas = (MapSurfaceData*)YRMemory::Allocate(sizeof(MapSurfaceData) * nCount);
 		States = (bool*)YRMemory::Allocate(sizeof(bool) * nCount);
-
-		Heap = GameCreate<TPriorityQueueClass<MapSurfaceData>>(nCount);
+		std::memset(States, 0, sizeof(bool) * nCount);
+		Heap = GameCreate<TPriorityQueueClass<MapSurfaceData*>>(nCount);
 	}
 
-	void KillFootClass()
+	void Decontruct()
 	{
-		GameDelete<true>(Heap);
+		GameDelete<true , true>(Heap);
 		Heap = nullptr;
 
 		if (Datas)
@@ -55,13 +55,19 @@ public:
 			YRMemory::Deallocate(States);
 			States = nullptr;
 		}
+		Count = 0;
 	}
 
 	int Count;
-	TPriorityQueueClass<MapSurfaceData>* Heap;
+	TPriorityQueueClass<MapSurfaceData*>* Heap;
 	bool* States;
 	MapSurfaceData* Datas;
 	CDTimerClass Timer;
+
+private:
+	TiberiumLogic(const TiberiumLogic&) = default;
+	TiberiumLogic(TiberiumLogic&&) = default;
+	TiberiumLogic&operator=(const TiberiumLogic& other) = default;
 };
 //static_assert(sizeof(TiberiumLogic) == 0x14, "Invalid Size !");
 
@@ -123,7 +129,7 @@ public:
 	static void __stdcall sub_722D00() JMP_STD(0x722D00);
 	static void __stdcall sub_722E50() JMP_STD(0x722E50);
 
-	static int FindIndex(int idxOverlayType) {
+	static int __fastcall FindIndex(int idxOverlayType) {
 		SET_REG32(ecx, idxOverlayType);
 		CALL(0x5FDD20);
 	}

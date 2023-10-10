@@ -405,16 +405,18 @@ DEFINE_OVERRIDE_HOOK(0x62A2F8, ParasiteClass_PointerGotInvalid, 0x6)
 		allowed = true;
 	}
 
-	if (allowed && Owner->GetHeight() > 200)
+	if (allowed)
 	{
-		*XYZ = Owner->Location;
-		Owner->IsFallingDown = Owner->IsABomb = true;
+		if(Owner->GetHeight() > 200){
+			*XYZ = Owner->Location;
+			Owner->IsFallingDown = Owner->IsABomb = true;
+		}else if (Owner->GetHeight() < 0) //inside ground
+			*XYZ = CoordStruct::Empty;
 	}
 
 	CoordStruct result = *XYZ;
-	CellStruct result_cell = CellClass::Coord2Cell(result);
 
-	if (result == CoordStruct::Empty || result_cell == CellStruct::Empty) {
+	if (result == CoordStruct::Empty || CellClass::Coord2Cell(result) == CellStruct::Empty) {
 		Debug::Log("Parasite[%x : %s] With Invalid Location ! , Removing ! \n", Parasite, Parasite->Owner->get_ID());
 		TechnoExt::HandleRemove(Parasite->Owner, nullptr, false, false);
 		Parasite->Victim = nullptr;

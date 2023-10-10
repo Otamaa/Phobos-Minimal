@@ -71,6 +71,12 @@ public:
 			;
 	}
 
+	void InvalidatePointer(AbstractClass* ptr, bool bRemove)
+	{
+		if (bRemove && this->SupportTarget && this->SupportTarget->Owner == ptr)
+			this->SupportTarget = nullptr;
+	}
+
 public:
 	PrismForwarding(const PrismForwarding&) = delete;
 	PrismForwarding& operator = (const PrismForwarding&) = delete;

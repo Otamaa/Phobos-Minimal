@@ -84,45 +84,49 @@ struct StorageClass final
 	}
 
 	float GetAmount(int index) const
-	{ //JMP_THIS(0x6C9680);
-		return this->Tiberiums[index];
+	{
+		JMP_THIS(0x6C9680);
+		//return this->Tiberiums[index];
 	}
 
 	float GetTotalAmount() const
-	{ //JMP_THIS(0x6C9650);
-		float amounttotal = 0.0f;
-
-		for(size_t i = 0; i < Count; ++i)
-			amounttotal += this->Tiberiums[i];
-
-		return amounttotal;
+	{
+		JMP_THIS(0x6C9650);
+		//float amounttotal = 0.0f;
+		//
+		//for(size_t i = 0; i < Count; ++i)
+		//	amounttotal += this->Tiberiums[i];
+		//
+		//return amounttotal;
 	}
 
 	float AddAmount(float amount, int index)
-	{ //JMP_THIS(0x6C9690);
-	   float result = amount + this->Tiberiums[index];
-   		this->Tiberiums[index] = result;
-    	return result;
+	{
+		JMP_THIS(0x6C9690);
+	   //float result = amount + this->Tiberiums[index];
+   	   //this->Tiberiums[index] = result;
+	   //return result;
 	}
 
 	float RemoveAmount(float amount, int index)
-	{ //JMP_THIS(0x6C96B0);
-		float result = 0.0f;
-		float v4 = 0.0f;
+	{
+		JMP_THIS(0x6C96B0);
+		//float result = 0.0f;
+		//float v4 = 0.0f;
 
-	    if ( this->Tiberiums[index] >= amount )
-   		{
-        	result = amount;
-        	v4 = this->Tiberiums[index] - amount;
-    	}
-    	else
-    	{
-        	result = this->Tiberiums[index];
-        	v4 = result - result;
-    	}
+	    //if ( this->Tiberiums[index] >= amount )
+   		//{
+     //   	result = amount;
+     //   	v4 = this->Tiberiums[index] - amount;
+    	//}
+    	//else
+    	//{
+     //   	result = this->Tiberiums[index];
+     //   	v4 = result - result;
+    	//}
 
-    	this->Tiberiums[index] = v4;
-    	return result;
+    	//this->Tiberiums[index] = v4;
+    	//return result;
 	}
 
 	int GetTotalValue() const
@@ -137,6 +141,10 @@ struct StorageClass final
 			nIdx += (this->Tiberiums[nIdx] < this->Tiberiums[p]) * (p - nIdx);
 
 		return nIdx;
+	}
+
+	int GEtFirstUsedSlot() const {
+		JMP_THIS(0x6C9820);
 	}
 
 	StorageClass operator+(StorageClass& that) const { JMP_THIS(0x6C96E0); }

@@ -267,6 +267,10 @@ public:
 		AnimTypeClass* DefaultAircraftDamagedSmoke { nullptr };
 		Valueable<PartialVector3D<double>> AIDetectDisguise_Percent { { 1.0 , 1.0 , 1.0} };
 
+		Valueable<bool> DisplayIncome { false };
+		Valueable<bool> DisplayIncome_AllowAI { true };
+		Valueable<AffectedHouse> DisplayIncome_Houses { AffectedHouse::All };
+
 		AircraftPutDataRules MyPutData { };
 
 		ExtData(RulesClass* OwnerObject) : Extension<RulesClass>(OwnerObject)

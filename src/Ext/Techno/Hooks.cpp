@@ -283,35 +283,18 @@ DEFINE_HOOK(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x6) //0x8
 
 #include <Misc/Ares/Hooks/Header.h>
 
-DEFINE_HOOK(0x443C81, BuildingClass_ExitObject_InitialClonedHealth, 0x7)
-{
-	GET(BuildingClass*, pBuilding, ESI);
-	GET(TechnoClass*, pTechno, EDI);
-
-	if (pBuilding && pBuilding->Type->Cloning && pTechno)
-	{
-		const auto pClonedType = pTechno->GetTechnoType();
-		if (pTechno->WhatAmI() == UnitClass::AbsID) {
-
-			auto const pFootTypeExt = TechnoTypeExt::ExtMap.Find(pClonedType);
-
-			if (pFootTypeExt->Unit_AI_AlternateType.isset() && pFootTypeExt->Unit_AI_AlternateType.Get() != pFootTypeExt->Get())
-				if (!TechnoExt_ExtData::ConvertToType(pTechno, pFootTypeExt->Unit_AI_AlternateType))
-					Debug::Log("Unit AI AlternateType Conversion failed ! \n");
-		}
-
-		const auto& nStr =  TechnoTypeExt::ExtMap.Find(pBuilding->Type)->InitialStrength_Cloning;
-		if (nStr.isset())
-		{
-			const auto rStr = GeneralUtils::GetRangedRandomOrSingleValue(nStr.Get());
-			const int strength = std::clamp(static_cast<int>(pClonedType->Strength * rStr), 1, pClonedType->Strength);
-			pTechno->Health = strength;
-			pTechno->EstimatedHealth = strength;
-		}
-	}
-
-	return 0;
-}
+// DEFINE_HOOK(0x443C81, BuildingClass_ExitObject_InitialClonedHealth, 0x7)
+// {
+// 	GET(BuildingClass*, pBuilding, ESI);
+// 	GET(TechnoClass*, pTechno, EDI);
+//
+// 	if (pBuilding && pBuilding->Type->Cloning && pTechno)
+// 	{
+//
+// 	}
+//
+// 	return 0;
+// }
 
 DEFINE_HOOK(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 {

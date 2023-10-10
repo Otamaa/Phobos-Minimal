@@ -676,13 +676,11 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->Grinding_DisallowTypes.Read(exINI, pSection, "Grinding.DisallowTypes");
 		this->Grinding_Sound.Read(exINI, pSection, "Grinding.Sound");
 		this->Grinding_Weapon.Read(exINI, pSection, "Grinding.Weapon", true);
-		this->Grinding_DisplayRefund.Read(exINI, pSection, "Grinding.DisplayRefund");
-		this->Grinding_DisplayRefund_Houses.Read(exINI, pSection, "Grinding.DisplayRefund.Houses");
-		this->Grinding_DisplayRefund_Offset.Read(exINI, pSection, "Grinding.DisplayRefund.Offset");
 		this->Grinding_PlayDieSound.Read(exINI, pSection, "Grinding.PlayDieSound");
 
-		this->Refinery_DisplayDumpedMoneyAmount.Read(exINI, pSection, "Refinery.DisplayDumpedTiberiumCost");
-		this->Refinery_DisplayRefund_Offset.Read(exINI, pSection, "Refinery.DisplayDumpedTiberiumCostOffset");
+		this->DisplayIncome.Read(exINI, pSection, "DisplayIncome");
+		this->DisplayIncome_Houses.Read(exINI, pSection, "DisplayIncome.Houses");
+		this->DisplayIncome_Offset.Read(exINI, pSection, "DisplayIncome.Offset");
 
 		// Ares SuperWeapons tag
 		auto const& pArray = SuperWeaponTypeClass::Array;
@@ -1119,14 +1117,8 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Grinding_DisallowTypes)
 		.Process(this->Grinding_Sound)
 		.Process(this->Grinding_Weapon)
-		.Process(this->Grinding_DisplayRefund)
-		.Process(this->Grinding_DisplayRefund_Houses)
-		.Process(this->Grinding_DisplayRefund_Offset)
 		.Process(this->Grinding_PlayDieSound)
 
-
-		.Process(this->Refinery_DisplayDumpedMoneyAmount)
-		.Process(this->Refinery_DisplayRefund_Offset)
 
 		.Process(this->PlacementPreview_Remap)
 		.Process(this->PlacementPreview_Palette)
@@ -1289,6 +1281,9 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->FactoryPlant_RequirePower)
 		.Process(this->SpySat_RequirePower)
 		.Process(this->Cloning_RequirePower)
+		.Process(this->DisplayIncome)
+		.Process(this->DisplayIncome_Houses)
+		.Process(this->DisplayIncome_Offset)
 		;
 }
 

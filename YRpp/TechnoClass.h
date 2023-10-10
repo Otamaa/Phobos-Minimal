@@ -338,7 +338,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	virtual BulletClass* Fire(AbstractClass* pTarget, int nWeaponIndex) JMP_THIS(0x6FDD50);
 	virtual void Guard() RX; // clears target and destination and puts in guard mission
 	virtual bool SetOwningHouse(HouseClass* pHouse, bool announce = true)JMP_THIS(0x7014A0);
-	virtual void vt_entry_3D8(DWORD dwUnk, DWORD dwUnk2, DWORD dwUnk3) RX;
+	virtual void RockByValue(Point3D* Points, float bFactor = 1.5f, bool bHalf = false) RX;
 	virtual bool Crash(ObjectClass *Killer) R0;
 	virtual bool IsAreaFire() const R0;
 	virtual int IsNotSprayAttack() const R0;
@@ -355,7 +355,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	virtual void UpdateCloak(bool bUnk = 1) RX;
 	virtual void CreateGap() RX;
 	virtual void DestroyGap() RX;
-	virtual void RockByValue(Point3D* Points, float bFactor = 1.5f, bool bHalf = false) RX;//virtual void vt_entry_41C() RX;
+	virtual void RckingAI() RX;//virtual void vt_entry_41C() RX;
 	virtual void Sensed() RX;
 	virtual void Reload() RX;
 	virtual void vt_entry_428() RX;

@@ -28,11 +28,8 @@ class SWStateMachine
 	static std::vector<std::unique_ptr<SWStateMachine>> Array;
 
 public:
-	SWStateMachine()
-		: Type(nullptr), Super(nullptr), Coords(), Clock()
-	{
-	}
 
+	SWStateMachine() = default;
 	SWStateMachine(int Duration, CellStruct XY, SuperClass* pSuper, NewSWType* pSWType)
 		: Type(pSWType), Super(pSuper), Coords(XY)
 	{
@@ -40,6 +37,7 @@ public:
 	}
 
 	virtual ~SWStateMachine() = default;
+
 	virtual bool Finished() { return Clock.Completed(); }
 	virtual void Update() { }
 	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) { }
@@ -78,6 +76,11 @@ protected:
 	SuperClass* Super;
 	CellStruct Coords;
 	CDTimerClass Clock;
+
+private:
+	SWStateMachine(const SWStateMachine&) = delete;
+	SWStateMachine(SWStateMachine&&) = delete;
+	SWStateMachine& operator=(const SWStateMachine& other) = delete;
 };
 
 class UnitDeliveryStateMachine : public SWStateMachine

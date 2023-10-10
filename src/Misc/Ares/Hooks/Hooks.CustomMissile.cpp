@@ -344,21 +344,23 @@ DEFINE_OVERRIDE_HOOK(0x6B7D50, SpawnManagerClass_CountDockedSpawns, 0x6)
 	GET(SpawnManagerClass*, pThis, ECX);
 
 	int nCur = 0;
-	for (auto const& pNode : pThis->SpawnedNodes)
-	{
-		const auto nStatus = pNode->Status;
-		const auto nEligible =
-			nStatus == SpawnNodeStatus::Idle
-			|| nStatus == SpawnNodeStatus::Reloading
-			|| nStatus == SpawnNodeStatus::Dead
-			// spawn timer should be updated somewhere ?
-			&& pNode->NodeSpawnTimer.IsNotActive();
-
-		if (nEligible)
+	if(pThis) { // some function call this without checking , so here it is the check
+		for (auto const& pNode : pThis->SpawnedNodes)
 		{
-			++nCur;
-		}
+			const auto nStatus = pNode->Status;
+			const auto nEligible =
+				nStatus == SpawnNodeStatus::Idle
+				|| nStatus == SpawnNodeStatus::Reloading
+				|| nStatus == SpawnNodeStatus::Dead
+				// spawn timer should be updated somewhere ?
+				&& pNode->NodeSpawnTimer.IsNotActive();
 
+			if (nEligible)
+			{
+				++nCur;
+			}
+
+		}
 	}
 
 	R->EAX(nCur);

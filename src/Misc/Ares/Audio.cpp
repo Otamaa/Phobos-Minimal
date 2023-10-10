@@ -16,46 +16,66 @@ struct FileStruct
 	bool Allocated;
 };
 
+struct LooseAudioFile
+{
+	std::string wavName {};
+	int Offset { -1 };
+	int Size { -1 };
+	AudioSampleData Data {};
+};
+
 class LooseAudioCache
 {
 public:
-	static LooseAudioCache Instance;
+	static std::vector<std::unique_ptr<LooseAudioCache>> Array;
 
-	struct LooseAudioFile
+	static int FindOrAllocateIndex(const char* Title)
 	{
-		std::string wavName {};
-		int Offset { -1 };
-		int Size { -1 };
-		AudioSampleData Data {};
-	};
+		const auto nResult = FindIndexById(Title);
 
-	//not guarantee but will allocate new
-	uintptr_t GetPointerAsindex(const char* pFilename)
-	{
-		auto it = this->Files.find(pFilename);
-		if (it == this->Files.end()) {
-			it = this->Files.emplace(pFilename, LooseAudioFile()).first;
+		if (nResult < 0)
+		{
+			AllocateNoCheck(Title);
+			return Array.size() - 1;
 		}
 
-		if (it->second.wavName.empty()) {
-			it->second.wavName = pFilename;
-			it->second.wavName += ".wav";
-		}
-
-		return (uintptr_t)it->first.c_str();
+		return nResult;
 	}
 
-	//not guarantee
-	FileStruct GetFileStructFromIndexOfRawPointer(uintptr_t rawptr) {
-		auto iter = this->Files.find(reinterpret_cast<const char*>(rawptr));
+	static int FindIndexById(const char* Title)
+	{
+		for (auto pos = Array.begin();
+			pos != Array.end();
+			++pos) {
+			if (IS_SAME_STR_((*pos)->Name.data(), Title)) {
+				return std::distance(Array.begin(), pos);
+			}
+		}
+
+		return -1;
+	}
+
+	static void AllocateNoCheck(const char* Title)
+	{
+		Array.emplace_back(std::make_unique<LooseAudioCache>(Title));
+	}
+
+	static inline LooseAudioCache* Find(int idx)
+	{
+		return Array[idx].get();
+	}
+
+	static 	FileStruct GetFileStructFromIndex(int idx)
+	{
+		auto iter = Find(idx);
 
 		// Replace the construction of the RawFileClass with one of a CCFileClass
-		auto pFile = GameCreate<CCFileClass>(iter->second.wavName.c_str());
+		auto pFile = GameCreate<CCFileClass>(iter->WavName.c_str());
 
 		if (pFile->Exists()) {
-			if( pFile->Open(FileAccessMode::Read)){
-				if (iter->second.Size < 0 && Audio::ReadWAVFile(pFile, &iter->second.Data, &iter->second.Size)) {
-						iter->second.Offset = pFile->Seek(0, FileSeekMode::Current);
+			if (pFile->Open(FileAccessMode::Read)) {
+				if (iter->Data.Size < 0 && Audio::ReadWAVFile(pFile, &iter->Data.Data, &iter->Data.Size)) {
+					iter->Data.Offset = pFile->Seek(0, FileSeekMode::Current);
 				}
 			}
 		}
@@ -65,54 +85,46 @@ public:
 			pFile = nullptr;
 		}
 
-		return { iter->second.Size, iter->second.Offset, pFile, true };
-	 }
+		return { iter->Data.Size, iter->Data.Offset, pFile, true };
+	}
 
-	 static FileStruct GetFileStructFromName(LooseAudioFile& cache , const char* name)
-	 {
-		 // Replace the construction of the RawFileClass with one of a CCFileClass
+	static AudioSampleData* GetAudioSampleDataFromIndex(int idx)
+	{
+		const auto iter = Find(idx);
 
-		 auto pFile = GameCreate<CCFileClass>(cache.wavName.c_str());
+		if (iter)
+		{
+			if (iter->Data.Size < 0)
+			{
+				auto file = GetFileStructFromIndex(idx);
+				if (file.File && file.Allocated) {
+					GameDelete(file.File);
+				}
+			}
 
-		 if (pFile->Exists() && pFile->Open(FileAccessMode::Read)) {
-			 if (cache.Size < 0 && Audio::ReadWAVFile(pFile, &cache.Data, &cache.Size)) {
-				 cache.Offset = pFile->Seek(0, FileSeekMode::Current);
-			 }
-		 }
-		 else
-		 {
-			 GameDelete(pFile);
-			 pFile = nullptr;
-		 }
+			return &iter->Data.Data;
+		}
 
-		 return { cache.Size, cache.Offset, pFile, true };
-	 }
+		return nullptr;
+	}
 
-	 //not guarantee
-	 AudioSampleData* GetAudioSampleDataFromIndexOfRawPointer(uintptr_t rawptr)
-	 {
-		 auto iter = this->Files.find(reinterpret_cast<const char*>(rawptr));
+	LooseAudioCache(const char* Title) : Name { Title }, WavName { Title }, Data {}
+	{
+		WavName += ".wav";
+	}
 
-		 if (iter != this->Files.end())
-		 {
-			 if (iter->second.Size < 0)
-			 {
-				 auto file = GetFileStructFromName(iter->second , iter->first.c_str());
-				 if (file.File && file.Allocated)  {
-					 GameDelete(file.File);
-				 }
-			 }
-
-			 return &iter->second.Data;
-		 }
-
-		 return nullptr;
-	 }
+	~LooseAudioCache() = default;
 private:
-	std::map<std::string, LooseAudioFile> Files;
+	std::string Name;
+	std::string WavName;
+	LooseAudioFile Data;
+
+	LooseAudioCache(const LooseAudioCache&) = default;
+	LooseAudioCache(LooseAudioCache&&) = default;
+	LooseAudioCache& operator=(const LooseAudioCache& other) = default;
 };
 
-LooseAudioCache LooseAudioCache::Instance;
+std::vector<std::unique_ptr<LooseAudioCache>> LooseAudioCache::Array;
 
 class AudioLuggage
 {
@@ -281,19 +293,6 @@ private:
 
 AudioLuggage AudioLuggage::Instance;
 
-//only for testings
-//DEFINE_HOOK(0x536355, TauntCommandClass_IgnoreGameTypeA, 6)
-//{
-//	R->EAX(3);
-//	return 0;
-//}
-//
-//DEFINE_HOOK(0x5363A2, TauntCommandClass_IgnoreGameTypeB , 6)
-//{
-//	R->ECX(3);
-//	return 0x5363A8;
-//}
-
 // author : Richard Hodges
 // https://stackoverflow.com/questions/40973464/parse-replace-in-c-stdstring
 template<class...Args>
@@ -438,7 +437,7 @@ DEFINE_OVERRIDE_HOOK(0x4016F0, IDXContainer_LoadSample, 6)
 	FileStruct file;
 	AudioIDXEntry* ptr = nullptr;
 	if (!AudioLuggage::Instance.GetFileStruct(file, index , ptr))
-		file = LooseAudioCache::Instance.GetFileStructFromIndexOfRawPointer(index);
+		file = LooseAudioCache::GetFileStructFromIndex(index - pThis->SampleCount);
 
 	pThis->CurrentSampleFile = file.File;
 	pThis->CurrentSampleSize = file.Size;
@@ -457,6 +456,9 @@ DEFINE_OVERRIDE_HOOK(0x4064A0, VocClassData_AddSample, 0) // Complete rewrite of
 	GET(AudioEventClassTag*, pVoc, ECX);
 	GET(const char*, pSampleName, EDX);
 
+	if (!AudioIDXData::Instance())
+		Debug::FatalError("AudioIDXData is missing!\n");
+
 	if(pVoc->NumSamples == 0x20) {
 		// return false
 		R->EAX(0);
@@ -468,11 +470,10 @@ DEFINE_OVERRIDE_HOOK(0x4064A0, VocClassData_AddSample, 0) // Complete rewrite of
 				++pSampleName;
 			}
 
-			auto idxSample = !AudioIDXData::Instance() ? -1
-				: AudioIDXData::Instance->FindSampleIndex(pSampleName);
+			auto idxSample = AudioIDXData::Instance->FindSampleIndex(pSampleName);
 
 			if(idxSample == -1) {
-				idxSample = LooseAudioCache::Instance.GetPointerAsindex(pSampleName);
+				idxSample = LooseAudioCache::FindOrAllocateIndex(pSampleName) + AudioIDXData::Instance->SampleCount;
 			}
 
 			// Set sample index or string pointer
@@ -486,20 +487,6 @@ DEFINE_OVERRIDE_HOOK(0x4064A0, VocClassData_AddSample, 0) // Complete rewrite of
 	return 0x40651E;
 }
 
-//DEFINE_HOOK(0x409880, AudioDriverChannelTag_NoNamePrefill, 0x5)
-//{
-//	GET(int, bufferSize, EDX);
-//	GET_STACK(uintptr_t, addr, 0x0);
-//
-//	Debug::Log(__FUNCTION__"[0X%x] bufferSize [%d]\n", addr, bufferSize);
-//	return 0x0;
-//}
-//
-//DEFINE_HOOK(0x409C32, AudioDriverChannelTag_NoNamePrefill_ret, 0x7)
-//{
-//	Debug::Log(__FUNCTION__" return [%d]\n", R->EAX<int>());
-//	return 0x0;
-//}
 
 DEFINE_OVERRIDE_HOOK(0x401640, AudioIndex_GetSampleInformation, 5)
 {
@@ -513,7 +500,7 @@ DEFINE_OVERRIDE_HOOK(0x401640, AudioIndex_GetSampleInformation, 5)
 		return 0x0;
 	}
 
-	if(auto const pData = LooseAudioCache::Instance.GetAudioSampleDataFromIndexOfRawPointer(idxSample)) {
+	if(auto const pData = LooseAudioCache::GetAudioSampleDataFromIndex(idxSample - AudioIDXData::Instance->SampleCount)) {
 		if(pData->SampleRate) {
 			std::memcpy(pAudioSample, pData, sizeof(AudioSampleData));
 		} else {

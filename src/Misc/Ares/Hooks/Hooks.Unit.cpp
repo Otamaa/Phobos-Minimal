@@ -453,10 +453,8 @@ DEFINE_HOOK(0x73E46D , UnitClass_Mi_Unload_replace , 0x6)
 	 	);
 		pThis->Animation.Value = 0;
 
-		if (BuildingTypeExt::ExtMap.Find(pBld->Type)->Refinery_DisplayDumpedMoneyAmount) {
-			BuildingExt::ExtMap.Find(pBld)->AccumulatedIncome +=
-				pBld->Owner->Available_Money() - HouseExt::LastHarvesterBalance;
-		}
+		BuildingExt::ExtMap.Find(pBld)->AccumulatedIncome +=
+			pBld->Owner->Available_Money() - HouseExt::LastHarvesterBalance;
 
 	}
 
@@ -493,29 +491,70 @@ DEFINE_OVERRIDE_HOOK(0x508D4A, HouseClass_UpdatePower_LocalDrain2, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x522D75, InfantryClass_Slave_UnloadAt_Storage, 6)
+#include <New/Entity/FlyingStrings.h>
+
+DEFINE_HOOK(0x522D50, InfantryClass_StorageAI_Handle, 0x5)
 {
-	GET(TechnoClass* const, pSlaveMiner, EAX);
-	GET(int const, idxTiberium, ESI);
-	GET(StorageClass* const, pTiberium, EBP);
+	GET(InfantryClass*, pThis, ECX);
+	GET_STACK(TechnoClass* const, pDest, 0x4);
 
-	// replaces the inner loop and stores
-	// one tiberium type at a time
-	auto const amount = pTiberium->GetAmount(idxTiberium);
-	pTiberium->RemoveAmount(amount, idxTiberium);
+	auto storage = &pThis->Tiberium;
+	bool updateSmoke = false;
+	int balanceBefore = pThis->Owner->Available_Money();
 
-	if (amount > 0.0)
+	for (int i = storage->GEtFirstUsedSlot(); i != -1; i = storage->GEtFirstUsedSlot())
 	{
-		TechnoExt_ExtData::DepositTiberium(pSlaveMiner, amount,
-			BuildingTypeExt::GetPurifierBonusses(pSlaveMiner->Owner) * amount,
-			idxTiberium);
+		auto const amount = storage->GetAmount(i);
+		storage->RemoveAmount(amount, i);
 
-		// register for refinery smoke
-		R->BL(1);
+		if (amount > 0.0)
+		{
+			TechnoExt_ExtData::DepositTiberium(pThis, amount,
+				BuildingTypeExt::GetPurifierBonusses(pThis->Owner) * amount,
+				i);
+
+			// register for refinery smoke
+			updateSmoke = true;
+		}
 	}
 
-	return 0x522E38;
+	if (updateSmoke)
+	{
+		pThis->UpdateRefinerySmokeSystems();
+
+		int money = pThis->Owner->Available_Money() - balanceBefore;
+		const auto what = pDest->WhatAmI();
+
+		if (what == BuildingClass::AbsID) {
+			BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pDest))->AccumulatedIncome += money;
+		}
+		else if (what == UnitClass::AbsID && money)
+		{
+			auto pUnit = static_cast<UnitClass*>(pDest);
+
+			if (pUnit->Type->DeploysInto) {
+				const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pUnit->Type->DeploysInto);
+
+				if (pTypeExt->DisplayIncome.Get(RulesExt::Global()->DisplayIncome)) {
+					if (pThis->Owner->IsControlledByHuman() || RulesExt::Global()->DisplayIncome_AllowAI) {
+						FlyingStrings::AddMoneyString(
+						money,
+						money,
+						pThis,
+						pTypeExt->DisplayIncome_Houses.Get(RulesExt::Global()->DisplayIncome_Houses),
+						pThis->GetCoords(),
+						pTypeExt->DisplayIncome_Offset
+						);
+					}
+				}
+			}
+		}
+	}
+
+	return 0x522E61;
 }
+
+DEFINE_DISABLE_HOOK(0x522D75, InfantryClass_Slave_UnloadAt_Storage_ares)
 
 DEFINE_OVERRIDE_HOOK(0x73DE90, UnitClass_Mi_Unload_SimpleDeployer, 0x6)
 {

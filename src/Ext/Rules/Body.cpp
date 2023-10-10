@@ -455,6 +455,11 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->FirestormAirAnim = AnimTypeClass::FindOrAllocate("FSAIR");
 	INI_EX exINI(pINI);
 
+
+	this->DisplayIncome.Read(exINI, GameStrings::AudioVisual, "DisplayIncome");
+	this->DisplayIncome_Houses.Read(exINI, GameStrings::AudioVisual, "DisplayIncome.Houses");
+	this->DisplayIncome_AllowAI.Read(exINI, GameStrings::AudioVisual, "DisplayIncome.AllowAI");
+
 #pragma region Otamaa
 	this->AIDetectDisguise_Percent.Read(exINI, GENERAL_SECTION, "AIDisguiseDetectionPercent");
 	this->CanDrive.Read(exINI, GENERAL_SECTION, "EveryoneCanDrive");
@@ -925,6 +930,10 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->CanDrive)
 		.Process(this->DefaultAircraftDamagedSmoke)
 		.Process(this->AIDetectDisguise_Percent)
+
+		.Process(this->DisplayIncome)
+		.Process(this->DisplayIncome_AllowAI)
+		.Process(this->DisplayIncome_Houses)
 		;
 
 	MyPutData.Serialize(Stm);

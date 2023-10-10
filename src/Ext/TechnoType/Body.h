@@ -403,7 +403,6 @@ public:
 		Promotable<int> Survivors_PassengerChance { -1 };
 		Nullable<CoordStruct> Spawner_SpawnOffsets { };
 		Valueable<bool> Spawner_SpawnOffsets_OverrideWeaponFLH { false };
-		Nullable<UnitTypeClass*> Unit_AI_AlternateType { };
 
 		Nullable<bool> ConsideredNaval { };
 		Nullable<bool> ConsideredVehicle { };

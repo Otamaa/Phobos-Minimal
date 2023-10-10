@@ -317,6 +317,7 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 		}
 		else
 		{
+			Debug::Log(__FUNCTION__" Called \n");
 			TechnoExt::HandleRemove(pTechno);
 		}
 	}

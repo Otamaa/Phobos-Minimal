@@ -172,14 +172,23 @@ SuperClass* BuildingExt::GetFirstSuperWeapon(BuildingClass* pThis)
 
 void BuildingExt::ExtData::DisplayIncomeString()
 {
-	if (Unsorted::CurrentFrame % 15 == 0)
+	if (this->Type->DisplayIncome.Get(RulesExt::Global()->DisplayIncome) &&
+		this->AccumulatedIncome && Unsorted::CurrentFrame % 15 == 0)
 	{
+		if(!RulesExt::Global()->DisplayIncome_AllowAI && !this->Get()->Owner->IsControlledByHuman())
+		{
+			this->AccumulatedIncome = 0;
+			return;
+		}
+
+
 		FlyingStrings::AddMoneyString(
 			this->AccumulatedIncome,
 			this->AccumulatedIncome,
-			this->Get(), AffectedHouse::All,
+			this->Get(),
+			this->Type->DisplayIncome_Houses.Get(RulesExt::Global()->DisplayIncome_Houses),
 			this->Get()->GetRenderCoords(),
-			this->Type->Refinery_DisplayRefund_Offset
+			this->Type->DisplayIncome_Offset
 		);
 
 		this->AccumulatedIncome = 0;
@@ -371,6 +380,8 @@ void BuildingExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(CurrentAirFactory, ptr , bRemoved);
 	AnnounceInvalidPointer<TechnoClass*>(RegisteredJammers, ptr, bRemoved);
+
+	this->PrismForwarding.InvalidatePointer(ptr, bRemoved);
 }
 
 bool BuildingExt::ExtData::InvalidateIgnorable(AbstractClass* ptr)
@@ -578,12 +589,7 @@ bool BuildingExt::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pTechn
 		if (!pTechno)
 			return false;
 
-		if (nRefundAmounts
-			&& pTypeExt->Grinding_DisplayRefund
-			&& EnumFunctions::CanTargetHouse(pTypeExt->Grinding_DisplayRefund_Houses, pBuilding->Owner, HouseClass::CurrentPlayer))
-		{
-			pExt->AccumulatedGrindingRefund += nRefundAmounts;
-		}
+		pExt->AccumulatedIncome += nRefundAmounts;
 
 		if (pTypeExt->Grinding_Weapon.isset()
 			&& Unsorted::CurrentFrame >= pExt->GrindingWeapon_LastFiredFrame + pTypeExt->Grinding_Weapon.Get()->ROF)
@@ -794,6 +800,7 @@ void BuildingExt::LimboKill(BuildingClass* pBuilding)
 	pTargetHouse->UpdateSuperWeaponsUnavailable();
 
 	// Remove completely
+	Debug::Log(__FUNCTION__" Called \n");
 	TechnoExt::HandleRemove(pBuilding, nullptr, true, false);
 }
 
@@ -813,7 +820,6 @@ void BuildingExt::ExtData::Serialize(T& Stm)
 		.Process(this->LimboID)
 		.Process(this->GrindingWeapon_LastFiredFrame)
 		.Process(this->CurrentAirFactory)
-		.Process(this->AccumulatedGrindingRefund)
 		.Process(this->AccumulatedIncome)
 		.Process(this->IsCreatedFromMapFile)
 		.Process(this->DamageFireAnims)

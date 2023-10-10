@@ -92,14 +92,7 @@ public:
 		Valueable<bool> AltPalette_ApplyLighting { false };
 
 		ExtData(AnimTypeClass* OwnerObject) : Extension<AnimTypeClass> { OwnerObject } { }
-		virtual ~ExtData() override
-		{
-			ConcurrentAnim.clear();
-			Launchs.clear();
-			SpawnsMultiple_amouts.clear();
-			SpawnsMultiple.clear();
-			SplashList.clear();
-		}
+		virtual ~ExtData() override = default;
 
 		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 		void Initialize();

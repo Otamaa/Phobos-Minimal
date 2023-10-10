@@ -681,7 +681,7 @@ DEFINE_OVERRIDE_HOOK(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 
 		// display power off marker only for current player's buildings
 		const bool showPower = FileSystem::POWEROFF_SHP
-			&& (!pBldExt->TogglePower_HasPower || (!pBld->IsPowerOnline()))
+			&& (!pBldExt->TogglePower_HasPower)
 			// only for owned buildings, but observers got magic eyes
 			&& ((pBld->GetCurrentMission() != Mission::Selling) && (pBld->GetCurrentMission() != Mission::Construction))
 			&& (pBld->Owner->ControlledByPlayer() || isObserver);

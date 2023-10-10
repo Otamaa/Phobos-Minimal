@@ -267,14 +267,14 @@ void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const
 			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), prefix, pPrefixTag);
 
 			IMPL_SNPRNINTF(tempBufferFLH, sizeof(tempBufferFLH), "%sFLH.Burst%d", tempBuffer, j);
-			Nullable<CoordStruct> FLH { };
+			Nullable<CoordStruct> FLH;
 			FLH.Read(exArtINI, pArtSection, tempBufferFLH);
 
 			if (!FLH.isset()) //early break
 				break;
 
 			IMPL_SNPRNINTF(tempBufferFLH, sizeof(tempBufferFLH), "Elite%sFLH.Burst%d", tempBuffer, j);
-			Nullable<CoordStruct> eliteFLH { };
+			Nullable<CoordStruct> eliteFLH;
 			eliteFLH.Read(exArtINI, pArtSection, tempBufferFLH);
 
 			CoordStruct Flh = FLH.Get();
@@ -661,7 +661,6 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->TankDisguiseAsTank.Read(exINI, pSection, "Disguise.AsTank"); // code disabled , crash
 		this->DisguiseDisAllowed.Read(exINI, pSection, "Disguise.Allowed");  // code disabled , crash
 		this->ChronoDelay_Immune.Read(exINI, pSection, "ChronoDelay.Immune");
-		this->Unit_AI_AlternateType.Read(exINI, pSection, "AIAlternateType");
 
 		this->Riparius_FrameIDx.Read(exINI, pSection, "Storage0FrameIdx");
 		this->Cruentus_FrameIDx.Read(exINI, pSection, "Storage1FrameIdx");
@@ -1717,7 +1716,6 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->PoseDir)
 		.Process(this->Firing_IgnoreGravity)
 		.Process(this->Survivors_PassengerChance)
-		.Process(this->Unit_AI_AlternateType)
 
 		.Process(this->Prerequisite_RequiredTheaters)
 		.Process(this->Prerequisites)

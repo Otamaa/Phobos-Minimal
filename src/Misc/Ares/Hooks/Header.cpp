@@ -1163,7 +1163,6 @@ bool TechnoExt_ExtData::CloneBuildingEligible(BuildingClass* pBuilding , bool re
 	if (pBuilding->InLimbo ||
 		!pBuilding->IsAlive ||
 		!pBuilding->IsOnMap ||
-		 (!requirePower || pBuilding->IsPowerOnline()) ||
 		pBuilding->TemporalTargetingMe ||
 		pBuilding->IsBeingWarpedOut() ||
 		BuildingExt::ExtMap.Find(pBuilding)->AboutToChronoshift ||
@@ -1173,15 +1172,27 @@ bool TechnoExt_ExtData::CloneBuildingEligible(BuildingClass* pBuilding , bool re
 		return false;
 	}
 
+	if (pBuilding->Type->Powered && requirePower && !pBuilding->IsPowerOnline())
+		return false;
+
 	return true;
 }
 
 void TechnoExt_ExtData::KickOutClone(BuildingClass* pBuilding, TechnoTypeClass* ProductionType, HouseClass* FactoryOwner)
 {
 	auto Clone = static_cast<TechnoClass*>(ProductionType->CreateObject(FactoryOwner));
-	if (pBuilding->KickOutUnit(Clone, CellStruct::Empty) != KickOutResult::Succeeded)
-	{
-		Clone->UnInit();
+
+	const auto& nStr = TechnoTypeExt::ExtMap.Find(pBuilding->Type)->InitialStrength_Cloning;
+	if (nStr.isset()) {
+		const auto rStr = GeneralUtils::GetRangedRandomOrSingleValue(nStr);
+		const int strength = std::clamp(static_cast<int>(ProductionType->Strength * rStr), 1, ProductionType->Strength);
+		Clone->Health = strength;
+		Clone->EstimatedHealth = strength;
+	}
+
+	if (pBuilding->KickOutUnit(Clone, CellStruct::Empty) != KickOutResult::Succeeded) {
+		Debug::Log(__FUNCTION__" Called \n");
+		TechnoExt::HandleRemove(Clone, nullptr, false , false);
 	}
 }
 
@@ -2734,6 +2745,7 @@ BuildingClass* TechnoExt_ExtData::CreateBuilding(
 
 		if (!res)
 		{
+			Debug::Log(__FUNCTION__" Called \n");
 			TechnoExt::HandleRemove(pRet, nullptr, true, false);
 			pRet = nullptr;
 		}
@@ -3187,6 +3199,7 @@ void TechnoExt_ExtData::SpawnVisceroid(CoordStruct& crd, UnitTypeClass* pType, i
 
 				if (!created)
 				{
+					Debug::Log(__FUNCTION__" Called \n");
 					TechnoExt::HandleRemove(pVisc, nullptr, true, true);
 				}
 			}
@@ -4229,7 +4242,7 @@ bool AresEMPulse::isCurrentlyEMPImmune(WarheadTypeClass* pWarhead, TechnoClass* 
 	}
 
 	// objects currently doing some time travel are exempt
-	if (Target->BeingWarpedOut)
+	if (Target->IsBeingWarpedOut())
 	{
 		return true;
 	}
@@ -4294,24 +4307,19 @@ bool AresEMPulse::isEMPImmune(TechnoClass* Target, HouseClass* SourceHouse)
 bool AresEMPulse::isEMPTypeImmune(TechnoClass* Target)
 {
 	auto pType = Target->GetTechnoType();
-	if (!pType->TypeImmune)
-	{
+	if (!pType->TypeImmune) {
 		return false;
 	}
 
-	auto isElite = Target->Veterancy.IsElite();
-	auto const& Weapons = *(isElite ? &pType->EliteWeapon : &pType->Weapon);
+	const int WeaponCount = pType->TurretCount <= 0 ? 2 : pType->WeaponCount;
 
-	// find an emp weapon.
-	for (auto const& Weapon : Weapons)
-	{
-		if (auto pWeaponType = Weapon.WeaponType)
-		{
+	for (auto i = 0; i < WeaponCount; ++i) {
+
+		if (auto pWeaponType = Target->GetWeapon(i)->WeaponType) {
 			auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pWeaponType->Warhead);
-			if (pWarheadExt->EMP_Duration != 0)
-			{
-				// this unit can fire emps and type immunity
-				// grants it to never be affected.
+			if (pWarheadExt->EMP_Duration != 0) {
+					// this unit can fire emps and type immunity
+					// grants it to never be affected.
 				return true;
 			}
 		}

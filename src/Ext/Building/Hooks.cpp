@@ -78,25 +78,25 @@ DEFINE_HOOK(0x449ADA, BuildingClass_MissionConstruction_DeployToFireFix, 0x6) //
 	return 0x449AE8;
 }
 
-DEFINE_HOOK(0x43FE73, BuildingClass_AI_FlyingStrings, 0x6)
-{
-	GET(BuildingClass*, pThis, ESI);
-
-	if (Unsorted::CurrentFrame % 15 != 0)
-		return 0;
-
-	auto const pExt = BuildingExt::ExtMap.Find(pThis);
-	if (pExt->AccumulatedGrindingRefund) {
-		FlyingStrings::AddMoneyString(true,
-			pExt->AccumulatedGrindingRefund,
-			pThis, AffectedHouse::All,
-			pThis->GetRenderCoords(),
-			pExt->Type->Grinding_DisplayRefund_Offset);
-		pExt->AccumulatedGrindingRefund = 0;
-	}
-
-	return 0;
-}
+// DEFINE_HOOK(0x43FE73, BuildingClass_AI_FlyingStrings, 0x6)
+// {
+// 	GET(BuildingClass*, pThis, ESI);
+//
+// 	if (Unsorted::CurrentFrame % 15 != 0)
+// 		return 0;
+//
+// 	auto const pExt = BuildingExt::ExtMap.Find(pThis);
+// 	if (pExt->AccumulatedGrindingRefund) {
+// 		FlyingStrings::AddMoneyString(true,
+// 			pExt->AccumulatedGrindingRefund,
+// 			pThis, AffectedHouse::All,
+// 			pThis->GetRenderCoords(),
+// 			pExt->Type->Grinding_DisplayRefund_Offset);
+// 		pExt->AccumulatedGrindingRefund = 0;
+// 	}
+//
+// 	return 0;
+// }
 
 DEFINE_HOOK(0x44224F, BuildingClass_ReceiveDamage_DamageSelf, 0x5)
 {

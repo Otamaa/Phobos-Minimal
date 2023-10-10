@@ -65,13 +65,8 @@ public:
 		ValueableVector<TechnoTypeClass*> Grinding_DisallowTypes {};
 		NullableIdx<VocClass> Grinding_Sound {};
 		Nullable<WeaponTypeClass*> Grinding_Weapon {};
-		Valueable<bool> Grinding_DisplayRefund { false };
-		Valueable<AffectedHouse> Grinding_DisplayRefund_Houses { AffectedHouse::All };
-		Valueable<Point2D> Grinding_DisplayRefund_Offset { {0, 0} };
-		Valueable<bool> Grinding_PlayDieSound { false };
 
-		Valueable<bool> Refinery_DisplayDumpedMoneyAmount { false };
-		Valueable<Point2D> Refinery_DisplayRefund_Offset { {0, 0} };
+		Valueable<bool> Grinding_PlayDieSound { false };
 
 		Nullable<bool> PlacementPreview_Show {};
 		Nullable<Theater_SHPStruct*> PlacementPreview_Shape {};
@@ -284,6 +279,10 @@ public:
 		Valueable<bool> FactoryPlant_RequirePower { true };
 		Valueable<bool> SpySat_RequirePower { true };
 		Valueable<bool> Cloning_RequirePower { true };
+
+		Nullable<bool> DisplayIncome {};
+		Nullable<AffectedHouse> DisplayIncome_Houses {};
+		Valueable<Point2D> DisplayIncome_Offset {};
 
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject) {}
 		virtual ~ExtData() override = default;

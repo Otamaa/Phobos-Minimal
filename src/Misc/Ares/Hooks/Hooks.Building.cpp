@@ -550,6 +550,7 @@ DEFINE_OVERRIDE_HOOK(0x519FAF, InfantryClass_UpdatePosition_EngineerRepairsFrien
 			TargetTypeExtData->RubbleIntactAnim
 		);
 
+		Debug::Log(__FUNCTION__" Called \n");
 		TechnoExt::HandleRemove(Target, nullptr, false, false);
 
 		if (pRubble)

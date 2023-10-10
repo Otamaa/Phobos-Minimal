@@ -261,34 +261,34 @@ DEFINE_HOOK(0x73E3DB, UnitClass_Mission_Unload_NoteBalanceBefore, 0x6)
 //	return 0;
 //}
 
-DEFINE_HOOK(0x522D50, InfantryClass_SlaveGiveMoney_RecordBalanceBefore, 0x5)
-{
-	GET_STACK(TechnoClass* const, slaveMiner, 0x4);
-	HouseExt::LastSlaveBalance = slaveMiner->Owner->Available_Money();
-	return 0;
-}
-
-DEFINE_HOOK(0x522E4F, InfantryClass_SlaveGiveMoney_CheckBalanceAfter, 0x6)
-{
-	GET_STACK(TechnoClass* const, slaveMiner, STACK_OFFSET(0x18, 0x4));
-
-	int money = slaveMiner->Owner->Available_Money() - HouseExt::LastSlaveBalance;
-
-	if (auto pBld = specific_cast<BuildingClass*>(slaveMiner)) {
-		if (BuildingTypeExt::ExtMap.Find(pBld->Type)->Refinery_DisplayDumpedMoneyAmount) {
-			BuildingExt::ExtMap.Find(pBld)->AccumulatedIncome += money;
-		}
-	}
-	else if (auto pBldTypeExt = BuildingTypeExt::ExtMap.Find(slaveMiner->GetTechnoType()->DeploysInto))
-	{
-		if (pBldTypeExt->Refinery_DisplayDumpedMoneyAmount.Get())
-		{
-			FlyingStrings::AddMoneyString(money, money, slaveMiner, AffectedHouse::All
-				, slaveMiner->Location, pBldTypeExt->Refinery_DisplayRefund_Offset);
-		}
-	}
-
-	return 0;
-}
+//DEFINE_HOOK(0x522D50, InfantryClass_SlaveGiveMoney_RecordBalanceBefore, 0x5)
+//{
+//	GET_STACK(TechnoClass* const, slaveMiner, 0x4);
+//	HouseExt::LastSlaveBalance = slaveMiner->Owner->Available_Money();
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x522E4F, InfantryClass_SlaveGiveMoney_CheckBalanceAfter, 0x6)
+//{
+//	GET_STACK(TechnoClass* const, slaveMiner, STACK_OFFSET(0x18, 0x4));
+//
+//	int money = slaveMiner->Owner->Available_Money() - HouseExt::LastSlaveBalance;
+//
+//	if (auto pBld = specific_cast<BuildingClass*>(slaveMiner)) {
+//		if (BuildingTypeExt::ExtMap.Find(pBld->Type)->Refinery_DisplayDumpedMoneyAmount) {
+//			BuildingExt::ExtMap.Find(pBld)->AccumulatedIncome += money;
+//		}
+//	}
+//	else if (auto pBldTypeExt = BuildingTypeExt::ExtMap.Find(slaveMiner->GetTechnoType()->DeploysInto))
+//	{
+//		if (pBldTypeExt->Refinery_DisplayDumpedMoneyAmount.Get())
+//		{
+//			FlyingStrings::AddMoneyString(money, money, slaveMiner, AffectedHouse::All
+//				, slaveMiner->Location, pBldTypeExt->Refinery_DisplayRefund_Offset);
+//		}
+//	}
+//
+//	return 0;
+//}
 
 #pragma endregion
