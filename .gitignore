@@ -366,3 +366,4 @@ FodyWeavers.xsd
 *.rar
 /Build
 /Syringe
+/Phobos.tlog
