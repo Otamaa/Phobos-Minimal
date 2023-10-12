@@ -20,9 +20,6 @@ DEFINE_OVERRIDE_HOOK(0x436459, BuildingLightClass_Update, 6)
 		DirStruct Facing;
 		switch (pTypeData->Spot_AttachedTo)
 		{
-		case SpotlightAttachment::Barrel:
-			Facing = Owner->BarrelFacing.Current();
-			break;
 		case SpotlightAttachment::Turret:
 			Facing = Owner->SecondaryFacing.Current();
 			break;
@@ -74,7 +71,7 @@ DEFINE_OVERRIDE_HOOK(0x435820, BuildingLightClass_CTOR, 6)
 DEFINE_OVERRIDE_HOOK(0x436072, BuildingLightClass_Draw_430, 6)
 {
 	int lightamount = 0;
-	if (Height > 0)
+	if (Height >= 0)
 		lightamount = Height;
 
 	R->EAX(R->EBX<int>() + lightamount);
@@ -137,21 +134,22 @@ DEFINE_OVERRIDE_HOOK(0x435cd3, BuildingLightClass_Draw_Spotlight, 6)
 	TechnoTypeExt::ExtData* pTypeData = TechnoTypeExt::ExtMap.Find(Owner->GetTechnoType());
 
 	SpotlightFlags Flags = SpotlightFlags::None;
-	if (pTypeData->Spot_DisableColor)
-	{
+	if (pTypeData->Spot_DisableColor) {
 		Flags |= SpotlightFlags::NoColor;
-	}
-	if (pTypeData->Spot_DisableR)
-	{
-		Flags |= SpotlightFlags::NoRed;
-	}
-	if (pTypeData->Spot_DisableG)
-	{
-		Flags |= SpotlightFlags::NoGreen;
-	}
-	if (pTypeData->Spot_DisableB)
-	{
-		Flags |= SpotlightFlags::NoBlue;
+
+	} else {
+		if (pTypeData->Spot_DisableR)
+		{
+			Flags |= SpotlightFlags::NoRed;
+		}
+		if (pTypeData->Spot_DisableG)
+		{
+			Flags |= SpotlightFlags::NoGreen;
+		}
+		if (pTypeData->Spot_DisableB)
+		{
+			Flags |= SpotlightFlags::NoBlue;
+		}
 	}
 
 	Spot->DisableFlags = Flags;

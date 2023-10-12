@@ -798,7 +798,9 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->SpyEffect_RevealRadar.Read(exINI, pSection, "SpyEffect.RevealRadar");
 		this->SpyEffect_RevealRadarPersist.Read(exINI, pSection, "SpyEffect.KeepRadar");
 		this->SpyEffect_GainVeterancy.Read(exINI, pSection, "SpyEffect.UnitVeterancy");
-		this->SpyEffect_StolenTechIndex.Read(exINI, pSection, "SpyEffect.StolenTechIndex");
+		std::vector<int> SpyEffect_StolenTechIndex {};
+		detail::parse_values(SpyEffect_StolenTechIndex, exINI, pSection, "SpyEffect.StolenTechIndex");
+
 		this->SpyEffect_PowerOutageDuration.Read(exINI, pSection, "SpyEffect.PowerOutageDuration");
 		this->SpyEffect_StolenMoneyAmount.Read(exINI, pSection, "SpyEffect.StolenMoneyAmount");
 		this->SpyEffect_StolenMoneyPercentage.Read(exINI, pSection, "SpyEffect.StolenMoneyPercentage");
@@ -813,10 +815,22 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->SpyEffect_AircraftVeterancy.Read(exINI, pSection, "SpyEffect.AircraftVeterancy");
 		this->SpyEffect_BuildingVeterancy.Read(exINI, pSection, "SpyEffect.BuildingVeterancy");
 
-		if (this->SpyEffect_StolenTechIndex >= 32)
-		{
-			Debug::Log("BuildingType %s has a SpyEffect.StolenTechIndex of %d. The value has to be less than 32.\n", pSection, this->SpyEffect_StolenTechIndex.Get());
-			this->SpyEffect_StolenTechIndex = -1;
+		auto pos = SpyEffect_StolenTechIndex.begin();
+		const auto end = SpyEffect_StolenTechIndex.end();
+
+		if(pos != end) {
+			this->SpyEffect_StolenTechIndex_result.reset();
+			do{
+				if ((*pos) > -1 && (*pos) < 32)
+				{
+					this->SpyEffect_StolenTechIndex_result.set((*pos));
+				}
+				else if ((*pos) != -1)
+				{
+					Debug::Log("BuildingType %s has a SpyEffect.StolenTechIndex of %d. The value has to be less than 32.\n", pSection, (*pos));
+				}
+
+			}while(++pos != end);
 		}
 
 		this->CanC4_AllowZeroDamage.Read(exINI, pSection, "CanC4.AllowZeroDamage");
@@ -1193,7 +1207,7 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SpyEffect_RevealRadarPersist)
 		.Process(this->SpyEffect_GainVeterancy)
 		.Process(this->SpyEffect_UnReverseEngineer)
-		.Process(this->SpyEffect_StolenTechIndex)
+		.Process(this->SpyEffect_StolenTechIndex_result)
 		.Process(this->SpyEffect_StolenMoneyAmount)
 		.Process(this->SpyEffect_StolenMoneyPercentage)
 		.Process(this->SpyEffect_PowerOutageDuration)

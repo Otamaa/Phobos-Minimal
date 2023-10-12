@@ -85,6 +85,7 @@ public:
 	MouseHotSpotX X { MouseHotSpotX::Center };
 	MouseHotSpotY Y { MouseHotSpotY::Middle };
 };
+static inline constexpr size_t MouseCursorClassSize = sizeof(MouseCursor);
 
 struct MouseCursorDataStruct
 {

@@ -15,6 +15,34 @@
 
 #include <EventClass.h>
 
+DEFINE_OVERRIDE_HOOK(0x6ab773, SelectClass_ProcessInput_ProduceUnsuspended, 10)
+{
+	GET(EventClass*, pEvent, EAX);
+	GET_STACK(DWORD, flag, 0xB8);
+
+	for (int i = (4 * (flag & 1)) | 1); i > 0; --i)
+	{
+		if (EventClass::OutList->Count < 128)
+		{
+			BYTE v8[sizeof(EventClass)];
+			std::memcpy(v8, pEvent, sizeof(EventClass));//make copy of currentEvent
+			//put the event back onto list ?
+			auto list = &EventClass::OutList->List[EventClass::OutList->Tail];
+			std::memcpy(list, v8, 0x6Cu);
+			//modify some data on it ?
+			*reinterpret_cast<BYTE*>(list + 0x6Cu) = v8[94];
+			*reinterpret_cast<BYTE*>(list + 0x6Cu + 2u) = v8[96];
+
+			EventClass::OutList->Timings[EventClass::OutList->Tail] = static_cast<int>(Imports::TimeGetTime.get()());
+
+			++EventClass::OutList->Count;
+			EventClass::OutList->Tail = (EventClass::OutList->Tail + 1) & 127;
+		}
+	}
+
+	return 0x6AB7CC;
+}
+
 DEFINE_OVERRIDE_HOOK(0x64C314, sub_64BDD0_PayloadSize2, 0x8)
 {
 	GET(uint8_t, nSize, ESI);
@@ -51,7 +79,6 @@ DEFINE_OVERRIDE_HOOK(0x64B704, sub_64B660_PayloadSize, 0x8)
 
 	return (nSize == 0x1Fu) ? 0x64B710 : 0x64B71D;
 }
-
 
 // #666: Trench Traversal - check if traversal is possible & cursor display
 DEFINE_OVERRIDE_HOOK(0x44725F, BuildingClass_GetActionOnObject_TargetABuilding, 5)

@@ -291,12 +291,17 @@ public:
 
 	bool IsAlliedWith_(ObjectClass const* pObject) const
 	{
-		return pObject && this->IsAlliedWith_(pObject->GetOwningHouse());
+		return this->IsAlliedWith_((AbstractClass*)pObject);
+	}
+
+	bool IsAlliedWith_(TechnoClass const* pTechno) const
+	{
+		return this->IsAlliedWith_(pTechno->Owner);
 	}
 
 	bool IsAlliedWith_(AbstractClass const* pAbstract) const
 	{
-		return this->IsAlliedWith_(abstract_cast<const ObjectClass*>(pAbstract));
+		return this->IsAlliedWith_(pAbstract->GetOwningHouse());
 	}
 
 	bool IsAlliedWith(int idxHouse) const

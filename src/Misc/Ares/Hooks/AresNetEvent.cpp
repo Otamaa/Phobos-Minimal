@@ -24,7 +24,7 @@ void AresNetEvent::TrenchRedirectClick::Raise(BuildingClass* Source, CellStruct*
 	}
 
 	TrenchRedirectClick Datas { Target , Source };
-	memcpy(&Event.Data.SpaceGap, &Datas, TrenchRedirectClick::size());
+	memcpy(&Event.Data.nothing, &Datas, TrenchRedirectClick::size());
 
 	//the data is an array containing 2 stuffs
 	EventClass::AddEvent(Event);
@@ -32,7 +32,7 @@ void AresNetEvent::TrenchRedirectClick::Raise(BuildingClass* Source, CellStruct*
 
 void AresNetEvent::TrenchRedirectClick::Respond(EventClass* Event)
 {
-	TargetClass* ID = reinterpret_cast<TargetClass*>(Event->Data.SpaceGap.Data);
+	TargetClass* ID = reinterpret_cast<TargetClass*>(Event->Data.nothing.Data);
 	if (CellClass* pTargetCell = ID->As_Cell())
 	{
 		++ID;
@@ -80,7 +80,7 @@ void AresNetEvent::ResponseTime2::Raise()
 	Event.HouseIndex = (char)HouseClass::CurrentPlayer->ArrayIndex;
 	Event.Frame = currentFrame + Game::Network::MaxAhead;
 	ResponseTime2 dataToSend { 10 ,20 };
-	memcpy(&Event.Data.SpaceGap, &dataToSend, size());
+	memcpy(&Event.Data.nothing, &dataToSend, size());
 
 	if (EventClass::AddEvent(Event))
 		Debug::Log("test");
@@ -91,8 +91,8 @@ void AresNetEvent::ResponseTime2::Respond(EventClass* Event)
 	if (SessionClass::IsSingleplayer())
 		return;
 
-	char MaxAhead = Event->Data.SpaceGap.Data[0];
-	uint8_t LatencyLevel = Event->Data.SpaceGap.Data[1];
+	char MaxAhead = Event->Data.nothing.Data[0];
+	uint8_t LatencyLevel = Event->Data.nothing.Data[1];
 
 	if (MaxAhead == 0)
 	{

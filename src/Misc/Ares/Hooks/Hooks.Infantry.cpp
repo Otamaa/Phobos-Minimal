@@ -85,7 +85,7 @@ DEFINE_OVERRIDE_HOOK(0x471C96, CaptureManagerClass_CanCapture, 0xA)
 	}
 
 	// disallow capturing bunkered units
-	if (pTarget->BunkerLinkedItem && pTarget->BunkerLinkedItem->WhatAmI() == AbstractType::Unit)
+	if (pTarget->BunkerLinkedItem)
 	{
 		return Disallowed;
 	}

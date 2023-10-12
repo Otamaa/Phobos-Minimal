@@ -681,7 +681,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
+      <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <SDLCheck>
       </SDLCheck>
@@ -709,7 +709,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>

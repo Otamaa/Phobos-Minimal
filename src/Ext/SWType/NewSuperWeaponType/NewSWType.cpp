@@ -145,19 +145,19 @@ bool NewSWType::IsInhibitor(const SWTypeExt::ExtData* pData, HouseClass* pOwner,
 {
 	if (pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo && !pTechno->Deactivated)
 	{
-		if (!pOwner->IsAlliedWith_(pTechno))
-		{
-			if (auto pBld = abstract_cast<BuildingClass*>(pTechno))
-			{
-				if (!pBld->IsPowerOnline())
-				{
-					return false;
-				}
-			}
-
-			return pData->SW_AnyInhibitor
-				|| pData->SW_Inhibitors.Contains(pTechno->GetTechnoType());
+		if (pOwner && pOwner->IsAlliedWith_(pTechno)) {
+			return false;
 		}
+
+		if (auto pBld = abstract_cast<BuildingClass*>(pTechno)) {
+			if (!pBld->IsPowerOnline()) {
+				return false;
+			}
+		}
+
+		return pData->SW_AnyInhibitor
+				|| pData->SW_Inhibitors.Contains(pTechno->GetTechnoType());
+
 	}
 
 	return false;
@@ -249,19 +249,17 @@ bool NewSWType::IsSuppressor(const SWTypeExt::ExtData* pData, HouseClass* pOwner
 {
 	if (pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo && !pTechno->Deactivated)
 	{
-		if (!pOwner->IsAlliedWith_(pTechno))
-		{
-			if (auto pBld = abstract_cast<BuildingClass*>(pTechno))
-			{
-				if (!pBld->IsPowerOnline())
-				{
-					return false;
-				}
-			}
-
-			return pData->SW_AnySuppressor
-				|| pData->SW_Suppressors.Contains(pTechno->GetTechnoType());
+		if (pOwner && pOwner->IsAlliedWith_(pTechno)) {
+			return false;
 		}
+
+		if (auto pBld = abstract_cast<BuildingClass*>(pTechno)) {
+			if (!pBld->IsPowerOnline())
+			{ return false; }
+		}
+
+		return pData->SW_AnySuppressor
+				|| pData->SW_Suppressors.Contains(pTechno->GetTechnoType());
 	}
 
 	return false;

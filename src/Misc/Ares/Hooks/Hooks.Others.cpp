@@ -646,9 +646,9 @@ DEFINE_OVERRIDE_HOOK(0x489270, CellChainReact, 5)
 {
 	GET(CellStruct*, cell, ECX);
 
-	const auto pCell = MapClass::Instance->GetCellAt(*cell);
+	const auto pCell = MapClass::Instance->GetCellAt(cell);
 
-	if (pCell->OverlayData <= 0)
+	if (pCell->OverlayTypeIndex <= 0)
 		return 0x0;
 
 	TiberiumClass* pTib = TiberiumClass::Array->GetItemOrDefault(pCell->GetContainedTiberiumIndex());
@@ -658,15 +658,13 @@ DEFINE_OVERRIDE_HOOK(0x489270, CellChainReact, 5)
 
 	OverlayTypeClass* pOverlay = OverlayTypeClass::Array->GetItemOrDefault(pCell->OverlayTypeIndex);
 
-	if (!pOverlay || !pOverlay->ChainReaction)
+	if (!pOverlay || !pOverlay->ChainReaction || pCell->OverlayData <= 1u)
 		return 0x0;
-
-	CoordStruct crd = pCell->GetCoords();
 
 	if (ScenarioClass::Instance->Random.RandomFromMax(99) <
 		(RulesExt::Global()->ChainReact_Multiplier * pCell->OverlayData))
 	{
-		bool wasFullGrown = (pCell->OverlayData >= 11);
+		const bool wasFullGrown = (pCell->OverlayData >= 11);
 
 		unsigned char delta = pCell->OverlayData / 2;
 		int damage = pTib->Power * delta;
@@ -677,16 +675,17 @@ DEFINE_OVERRIDE_HOOK(0x489270, CellChainReact, 5)
 
 		// get the warhead
 		auto pExt = TiberiumExt::ExtMap.Find(pTib);
-		auto pWarhead = pExt->GetExplosionWarhead();
+		CoordStruct crd = pCell->GetCoords();
 
-		// create an explosion
-		if (auto pType = MapClass::SelectDamageAnimation(4 * damage, pWarhead, pCell->LandType, crd))
-		{
-			GameCreate<AnimClass>(pType, crd, 0, 1, 0x600, 0);
+		if(auto pWarhead = pExt->GetExplosionWarhead()) {
+			// create an explosion
+			if (auto pType = MapClass::SelectDamageAnimation(4 * damage, pWarhead, pCell->LandType, crd)) {
+				GameCreate<AnimClass>(pType, crd, 0, 1, 0x600, 0);
+			}
+
+			// damage the area, without affecting tiberium
+			MapClass::DamageArea(crd, damage, nullptr, pWarhead, false, nullptr);
 		}
-
-		// damage the area, without affecting tiberium
-		MapClass::DamageArea(crd, damage, nullptr, pWarhead, false, nullptr);
 
 		// spawn some animation on the neighbour cells
 		if (auto pType = AnimTypeClass::Find(GameStrings::Anim_INVISO()))
@@ -695,7 +694,7 @@ DEFINE_OVERRIDE_HOOK(0x489270, CellChainReact, 5)
 			{
 				auto pNeighbour = pCell->GetNeighbourCell((FacingType)i);
 
-				if (pNeighbour->GetContainedTiberiumIndex() != -1 && pNeighbour->OverlayData > 2)
+				if (pNeighbour->GetContainedTiberiumIndex() != -1 && pNeighbour->OverlayData > 2u)
 				{
 					if (ScenarioClass::Instance->Random.RandomFromMax(99) < RulesExt::Global()->ChainReact_SpreadChance)
 					{

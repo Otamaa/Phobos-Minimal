@@ -59,7 +59,6 @@ void PrismForwardingData::LoadFromINIFile(BuildingTypeClass* pThis, CCINIClass* 
 		this->SupportModifier.Read(exINI, pID, "PrismForwarding.SupportModifier");
 		this->DamageAdd.Read(exINI, pID, "PrismForwarding.DamageAdd");
 		this->ToAllies.Read(exINI, pID, "PrismForwarding.ToAllies");
-		this->MyHeight.Read(exINI, pID, "PrismForwarding.MyHeight");
 		this->BreakSupport.Read(exINI, pID, "PrismForwarding.BreakSupport");
 		this->Intensity.Read(exINI, pID, "PrismForwarding.Intensity");
 		this->ChargeDelay.Read(exINI, pID, "PrismForwarding.ChargeDelay");
@@ -131,7 +130,6 @@ bool PrismForwardingData::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 		.Process(this->MaxNetworkSize)
 		.Process(this->SupportModifier)
 		.Process(this->DamageAdd)
-		.Process(this->MyHeight)
 		.Process(this->Intensity)
 		.Process(this->ChargeDelay)
 		.Process(this->ToAllies)
@@ -152,7 +150,7 @@ bool PrismForwardingData::Save(PhobosStreamWriter& Stm) const
 		.Process(this->MaxNetworkSize)
 		.Process(this->SupportModifier)
 		.Process(this->DamageAdd)
-		.Process(this->MyHeight)
+
 		.Process(this->Intensity)
 		.Process(this->ChargeDelay)
 		.Process(this->ToAllies)

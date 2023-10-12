@@ -3988,3 +3988,21 @@ DEFINE_HOOK(0x7375B6 , UnitClass_ReceiveRadio_Parasited_CanLoad , 0xA)
 
 	return continueChecks;
 }
+
+//DEFINE_HOOK(0x4C762A, EventClass_Execute_Idle, 0x6)
+//{
+//	GET(TechnoClass*, pTech, ESI);
+//
+//	if(pTech->GetHeight() > 0 && !pTech->IsInAir()){
+//		if (auto pBld = pTech->GetCell()->GetBuilding()) {
+//			if (BuildingTypeExt::ExtMap.Find(pBld->Type)->Firestorm_Wall)
+//				// this can be possible fix
+//				// but the satter not really desirable
+//				// which make techno still stand on top of the firestrom wall
+//				// idk , need more deep fix i guess
+//				pTech->Scatter(pTech->Location, true, true);
+//		}
+//	}
+//
+//	return 0x0;
+//}

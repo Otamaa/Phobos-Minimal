@@ -1626,7 +1626,7 @@ Action NOINLINE GetiInfiltrateActionResult(InfantryClass* pInf, BuildingClass* p
 	auto const pInfType = pInf->Type;
 	auto const pBldType = pBuilding->Type;
 
-	if ((pInfType->Thief || pInf->HasAbility(AbilityType::C4)) && pBldType->CanC4)
+	if ((pInfType->C4 || pInf->HasAbility(AbilityType::C4)) && pBldType->CanC4)
 		return Action::Self_Deploy;
 
 	const bool IsAgent = pInfType->Agent;
@@ -1664,10 +1664,8 @@ DEFINE_OVERRIDE_HOOK(0x7004AD, TechnoClass_GetActionOnObject_Saboteur, 0x6)
 
 DEFINE_OVERRIDE_HOOK(0x51EE6B, InfantryClass_GetActionOnObject_Saboteur, 6)
 {
-	enum
-	{
-		infiltratable = 0x51EEEDu
-		, Notinfiltratable = 0x51F04E
+	enum {
+		infiltratable = 0x51EEEDu , Notinfiltratable = 0x51F04Eu
 	};
 
 	GET(InfantryClass*, pThis, EDI);
@@ -1675,7 +1673,7 @@ DEFINE_OVERRIDE_HOOK(0x51EE6B, InfantryClass_GetActionOnObject_Saboteur, 6)
 
 	if (auto pBldObject = specific_cast<BuildingClass*>(pObject))
 	{
-		if (!pThis->Owner->IsAlliedWith_(pBldObject))
+		if (pThis->Owner && !pThis->Owner->IsAlliedWith_(pBldObject))
 		{
 			const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBldObject->Type);
 
@@ -1743,8 +1741,7 @@ DEFINE_OVERRIDE_HOOK(0x51B2CB, InfantryClass_SetTarget_Saboteur, 0x6)
 	GET(InfantryClass*, pThis, ESI);
 	GET(ObjectClass* const, pTarget, EDI);
 
-	if (const auto pBldObject = specific_cast<BuildingClass*>(pTarget))
-	{
+	if (const auto pBldObject = specific_cast<BuildingClass*>(pTarget)) {
 		const auto nResult = GetiInfiltrateActionResult(pThis, pBldObject);
 
 		if (nResult == Action::Move || nResult == Action::NoMove || nResult == Action::Enter)
@@ -2029,8 +2026,14 @@ DEFINE_OVERRIDE_HOOK(0x448312, BuildingClass_ChangeOwnership_OldSpy1, 0xA)
 DEFINE_OVERRIDE_HOOK(0x455DA0, BuildingClass_IsFactory_CloningFacility, 6)
 {
 	GET(BuildingClass*, pThis, ECX);
-	return BuildingTypeExt::ExtMap.Find(pThis->Type)->CloningFacility.Get()
-		? 0x455DCD : 0x0;
+
+	const auto what = pThis->Type->Factory;
+
+	if(what == AircraftTypeClass::AbsID
+		|| BuildingTypeExt::ExtMap.Find(pThis->Type)->CloningFacility)
+		return 0x455DCD;
+
+	return 0x0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x4444B3, BuildingClass_KickOutUnit_NoAlternateKickout, 6)

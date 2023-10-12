@@ -71,7 +71,10 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 	Append(buffer, "Owner = %s (%s), ", pFoot->Owner->get_ID(), pFoot->Owner->PlainName);
 	Append(buffer, "Loc = (%d, %d), ", nFootMapCoords.X, nFootMapCoords.Y);
 	Append(buffer, "Current Mission = %d (%s)\n", pFoot->CurrentMission, MissionClass::MissionToString(pFoot->CurrentMission));
-	Append(buffer, "sp = %fl, fp = %fl , am = %fl , DKilled= %d ,", pFoot->SpeedMultiplier, pFoot->FirepowerMultiplier, pFoot->ArmorMultiplier, (*(bool*)((char*)pFoot->align_154 + 0x9C)));
+	Append(buffer, "sp = %fl, fp = %fl , am = %fl ", pFoot->SpeedMultiplier, pFoot->FirepowerMultiplier, pFoot->ArmorMultiplier);
+	if (pFoot->WhatAmI() != InfantryClass::AbsID)
+		Append(buffer, ", DKilled= %d , ", TechnoExt::ExtMap.Find(pFoot)->Is_DriverKilled);
+
 	Append(buffer, "Grp = %d, RectA = %d, RectB = %d\n", pFoot->Group, (int)pFoot->RecruitableA, (int)pFoot->RecruitableB);
 
 	if (pFoot->BelongsToATeam())

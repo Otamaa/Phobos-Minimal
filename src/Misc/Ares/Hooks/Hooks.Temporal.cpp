@@ -126,21 +126,23 @@ DEFINE_OVERRIDE_HOOK(0x71AA52, TemporalClass_Update_AnnounceInvalidPointer, 0x8)
 DEFINE_HOOK(0x71A8BD, TemporalClass_Update_WarpAway, 5)
 {
 	GET(TemporalClass*, pThis, ESI);
+
+	//inside `pTarget` check
 	const auto nWeaponIDx = TechnoExt::ExtMap.Find(pThis->Owner)->idxSlot_Warp;
 	auto const pWeapon = pThis->Owner->GetWeapon(nWeaponIDx)->WeaponType;
 
 	const auto pTarget = pThis->Target;
 
 	if(auto pAnimType = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->Temporal_WarpAway.Get(RulesClass::Instance()->WarpAway)) {
-		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType,pTarget->Location ,0,1, AnimFlag(0x600),0,0),
+		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pTarget->Location ,0,1, AnimFlag(0x600),0,0),
 			pThis->Owner ? pThis->Owner->Owner : nullptr,
-			pTarget ? pTarget->Owner : nullptr,
+			pTarget->Owner,
 			pThis->Owner,
 			false
 		);
 	}
 
-	return 0x71A90E;
+	return 0x71A906;
 }
 
 // bugfix #379: Temporal friendly kills give veterancy

@@ -71,15 +71,6 @@ void SW_ChronoSphere::Initialize(SWTypeExt::ExtData* pData)
 	pData->SW_AnimVisibility = AffectedHouse::Team;
 	pData->SW_AnimHeight = 5;
 
-	pData->Chronosphere_KillOrganic = true;
-	pData->Chronosphere_KillTeleporters = false;
-	pData->Chronosphere_AffectIronCurtain = false;
-	pData->Chronosphere_AffectUnwarpable = true;
-	pData->Chronosphere_AffectUndeployable = false;
-	pData->Chronosphere_AffectBuildings = false;
-	pData->Chronosphere_BlowUnplaceable = true;
-	pData->Chronosphere_ReconsiderBuildings = true;
-
 	pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_ChronosphereReady);
 	pData->EVA_Detected = VoxClass::FindIndexById(GameStrings::EVA_ChronosphereDetected);
 	pData->EVA_Activated = VoxClass::FindIndexById(GameStrings::EVA_ChronosphereActivated);
@@ -106,7 +97,7 @@ void SW_ChronoSphere::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 
 	pData->Chronosphere_BlastSrc.Read(exINI, section, "Chronosphere.BlastSrc");
 	pData->Chronosphere_BlastDest.Read(exINI, section, "Chronosphere.BlastDest");
-
+	pData->Chronosphere_KillCargo.Read(exINI, section, "Chronosphere.KillCargo");
 	// reconstruct the original value, then re-read (otherwise buildings will be affected if
 	// the SW section is defined in game mode inis or maps without restating SW.AffectsTarget)
 	if (!pData->Chronosphere_AffectBuildings) {

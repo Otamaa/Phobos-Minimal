@@ -2136,6 +2136,7 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Chronosphere_BlowUnplaceable)
 		.Process(this->Chronosphere_ReconsiderBuildings)
 		.Process(this->Chronosphere_Delay)
+		.Process(this->Chronosphere_KillCargo)
 
 		.Process(this->SW_Deferment)
 

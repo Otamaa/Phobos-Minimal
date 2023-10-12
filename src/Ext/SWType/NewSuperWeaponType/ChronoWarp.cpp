@@ -14,6 +14,32 @@ SuperWeaponFlags SW_ChronoWarp::Flags(const SWTypeExt::ExtData* pData) const
 	return SuperWeaponFlags::NoAnim | SuperWeaponFlags::NoEvent | SuperWeaponFlags::PostClick;
 }
 
+void KillCargo(TechnoClass* pTech , HouseClass* killer)
+{
+	if(auto pBuilding = specific_cast<BuildingClass*>(pTech)) {
+		for(auto& pOcc : pBuilding->Occupants) {
+			pOcc->RegisterKill(killer);
+			pOcc->UnInit();
+				TechnoExt::ExtMap.Find(pOcc)->GarrisonedIn = nullptr;
+			}
+		pBuilding->Occupants.Count = 0;
+	}
+
+	const auto pFoot = generic_cast<FootClass*>(pTech);
+
+	while(pTech->Passengers.GetFirstPassenger())
+	{
+		FootClass* pPassenger = pFoot ? pFoot->RemoveFirstPassenger() : pTech->Passengers.RemoveFirstPassenger();
+
+		if(pPassenger->Team)
+			pPassenger->Team->RemoveMember(pPassenger);
+
+		KillCargo(pPassenger , killer);
+		pPassenger->RegisterKill(killer);
+		pPassenger->UnInit();
+	}
+}
+
 bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	// get the previous super weapon
@@ -89,7 +115,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 		if (auto const pBld = specific_cast<BuildingClass*>(pTechno))
 		{
 			// always ignore bridge repair huts
-			if (pBld->Type->BridgeRepairHut)
+			if (pBld->Type->BridgeRepairHut || pBld->Type->InvisibleInGame)
 			{
 				return true;
 			}
@@ -180,12 +206,12 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 		// disconnect bunker and contents
 		if (pTechno->BunkerLinkedItem)
 		{
-			if (auto const pBunkerLink = abstract_cast<BuildingClass*>(pTechno->BunkerLinkedItem))
+			if (auto const pBunkerLink = specific_cast<BuildingClass*>(pTechno->BunkerLinkedItem))
 			{
 				// unit will be destroyed or chronoported. in every case the bunker will be empty.
 				pBunkerLink->ClearBunker();
 			}
-			else if (auto const pBunker = abstract_cast<BuildingClass*>(pTechno))
+			else if (auto const pBunker = specific_cast<BuildingClass*>(pTechno))
 			{
 				// the bunker leaves...
 				pBunker->UnloadBunker();
@@ -194,7 +220,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 		}
 
 		// building specific preparations
-		if (auto const pBld = abstract_cast<BuildingClass*>(pTechno))
+		if (auto const pBld = specific_cast<BuildingClass*>(pTechno))
 		{
 			// tell all linked units to get off
 			pBld->SendToEachLink(RadioCommand::RequestRedraw);
@@ -221,6 +247,9 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 		// get the cells and coordinates
 		auto const coordsUnitSource = pTechno->GetCoords();
 		auto const cellUnitTarget = pTechno->GetCell()->MapCoords - pSource->ChronoMapCoords + Coords;
+
+		if(pSourceSWExt->Chronosphere_KillCargo)
+			KillCargo(pTechno , false);
 
 		if (auto const pFoot = abstract_cast<FootClass*>(pTechno))
 		{

@@ -1026,7 +1026,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->EMP_Sparkles.Read(exINI, pSection, "EMP.Sparkles");
 		this->EMP_Modifier.Read(exINI, pSection, "EMP.Modifier");
 
-		if (pINI->ReadString(pSection, "EMP.Threshold", "inair", Phobos::readBuffer) > 0)
+		if (pINI->ReadString(pSection, "EMP.Threshold", Phobos::readDefval, Phobos::readBuffer) > 0)
 		{
 			if (IS_SAME_STR_(Phobos::readBuffer, "inair")) {
 				this->EMP_Threshold = -1;

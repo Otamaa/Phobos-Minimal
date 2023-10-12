@@ -93,9 +93,9 @@ public:
 		Valueable<bool> SpyEffect_RevealRadarPersist { false };
 		Valueable<bool> SpyEffect_GainVeterancy { false };
 		Valueable<bool> SpyEffect_UnReverseEngineer { false };
-		Valueable<int> SpyEffect_StolenTechIndex { -1 };
+		std::bitset<32> SpyEffect_StolenTechIndex_result {};
 		Valueable<int> SpyEffect_StolenMoneyAmount { 0 };
-		Valueable<int> SpyEffect_StolenMoneyPercentage { 0 };
+		Valueable<float> SpyEffect_StolenMoneyPercentage { 0 };
 		Valueable<int> SpyEffect_PowerOutageDuration { 0 };
 		Valueable<int> SpyEffect_SabotageDelay { 0 };
 		Valueable<SuperWeaponTypeClass*> SpyEffect_SuperWeapon { nullptr };

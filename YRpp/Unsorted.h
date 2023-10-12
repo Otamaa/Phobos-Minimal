@@ -761,11 +761,7 @@ public:
 
 	~MovieInfo() {
 		if (this->Name) {
-			if constexpr (Deleter::DeleterType == DeleterType::GameDeleter || Deleter::DeleterType == DeleterType::DllDeleter) {
-				Deleter()(const_cast<char*>(this->Name));
-			} else {
-				Deleter()(const_cast<char*>(this->Name));
-			}
+			Deleter()(const_cast<char*>(this->Name));
 		}
 	}
 

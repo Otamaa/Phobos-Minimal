@@ -824,7 +824,7 @@ void TechnoExt_ExtData::GiveBounty(TechnoClass* pVictim, TechnoClass* pKiller)
 
 AresHijackActionResult TechnoExt_ExtData::GetActionHijack(InfantryClass* pThis, TechnoClass* const pTarget)
 {
-	if (!pThis || !pTarget || !pThis->IsAlive || !pTarget->IsAlive)
+	if (!pThis || !pTarget || !pThis->IsAlive || !pTarget->IsAlive || pTarget->IsIronCurtained())
 		return AresHijackActionResult::None;
 
 	if (pThis->WhatAmI() != InfantryClass::AbsID)
@@ -1770,8 +1770,10 @@ void TechnoExt_ExtData::doTraverseTo(BuildingClass* currentBuilding, BuildingCla
 	// depending on Westwood's handling, this could explode when Size > 1 units are involved...but don't tell the users that
 	while (currentBuilding->Occupants.Count && (targetBuilding->Occupants.Count < targetBuildingType->MaxNumberOccupants))
 	{
-		targetBuilding->Occupants.AddItem(currentBuilding->Occupants.GetItem(0));
-		currentBuilding->Occupants.RemoveAt(0); // maybe switch Add/Remove if the game gets pissy about multiple of them walking around
+		auto item = currentBuilding->Occupants.Items[0];
+		targetBuilding->Occupants.AddItem(item);
+		TechnoExt::ExtMap.Find(item)->GarrisonedIn = targetBuilding;
+		currentBuilding->Occupants.Remove(item); // maybe switch Add/Remove if the game gets pissy about multiple of them walking around
 	}
 
 	// fix up firing index, as decrementing the source occupants can invalidate it
@@ -1820,12 +1822,14 @@ bool TechnoExt_ExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 
 		for (auto i : *TechnoClass::Array)
 		{
-
 			// techno ineligible
-			if (i->Health < 0 || i->InLimbo || !i->IsAlive)
+			if (i->Health < 0 || i->InLimbo || !i->IsAlive  || i->IsCrashing || i->IsSinking)
 			{
 				continue;
 			}
+
+			if (!MapClass::Instance->IsWithinUsableArea(i->GetCoords()))
+				continue;
 
 			if (!i->Location.IsValid() || !i->InlineMapCoords().IsValid())
 				continue;
@@ -1842,6 +1846,12 @@ bool TechnoExt_ExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 
 				if (pExt->LimboID >= 0 || pBuilding->Type->InvisibleInGame)
 					continue;
+			} else {
+				if (what == UnitClass::AbsID) {
+					if (((UnitClass*)i)->DeathFrameCounter > 0)
+						continue;
+
+				}
 			}
 
 			// type prevents this being a target
@@ -2257,19 +2267,19 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 		effectApplied = true;
 	}
 
-	if (pTypeExt->SpyEffect_StolenTechIndex > -1)
+	if (pTypeExt->SpyEffect_StolenTechIndex_result.any())
 	{
-		HouseExt::ExtMap.Find(Enterer)->StolenTech.set(static_cast<size_t>(pTypeExt->SpyEffect_StolenTechIndex));
+		HouseExt::ExtMap.Find(Enterer)->StolenTech |= pTypeExt->SpyEffect_StolenTechIndex_result;
 		Enterer->RecheckTechTree = true;
-		if (evaForOwner)
-		{
+		if (evaForOwner) {
 			VoxClass::Play(GameStrings::EVA_TechnologyStolen);
 		}
-		if (evaForEnterer)
-		{
+
+		if (evaForEnterer) {
 			VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
 			VoxClass::Play(GameStrings::EVA_NewTechAcquired);
 		}
+
 		effectApplied = true;
 	}
 
@@ -2437,9 +2447,9 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 		{
 			bounty = pTypeExt->SpyEffect_StolenMoneyAmount;
 		}
-		else if (pTypeExt->SpyEffect_StolenMoneyPercentage > 0)
+		else if (pTypeExt->SpyEffect_StolenMoneyPercentage > 0.0f)
 		{
-			bounty = available * pTypeExt->SpyEffect_StolenMoneyPercentage;
+			bounty = int(available * pTypeExt->SpyEffect_StolenMoneyPercentage);
 		}
 
 		if (bounty > 0)
@@ -3617,7 +3627,7 @@ void TechnoExperienceData::PromoteImmedietely(TechnoClass* pExpReceiver, bool bS
 				newRank = pExpReceiver->Veterancy.AddAndGetRank(promoteExp);
 			}
 
-			if (!bSilent && pExpReceiver->Owner->IsControlledByHuman_())
+			if (!bSilent && pExpReceiver->Owner->ControlledByPlayer_())
 			{
 				VocClass::PlayIndexAtPos(sound, (pExpReceiver->Transporter ? pExpReceiver->Transporter : pExpReceiver)->Location, nullptr);
 				VoxClass::PlayIndex(eva);
@@ -4440,9 +4450,19 @@ bool AresEMPulse::thresholdExceeded(TechnoClass* Victim)
 	auto const pData = TechnoTypeExt::ExtMap.Find(Victim->GetTechnoType());
 	if (pData->EMP_Threshold != 0 && Victim->EMPLockRemaining > (std::abs(pData->EMP_Threshold)))
 	{
-		if (pData->EMP_Threshold > 0 || (Victim->IsInAir() && !Victim->Parachute))
-		{
+		if (pData->EMP_Threshold > 0) {
 			return true;
+		}else
+		{
+			FootClass* pFoot = nullptr;
+			bool InAir = Victim->IsInAir();
+
+			if(Victim->AbstractFlags & AbstractFlags::Foot) {
+				pFoot = (FootClass*)Victim;
+			}
+
+			return InAir && !Victim->Parachute && !Victim->IsCrashing
+			&&(!pFoot || !pFoot->IsLetGoByLocomotor || !pFoot->IsAttackedByLocomotor);
 		}
 	}
 
@@ -4580,7 +4600,7 @@ bool AresEMPulse::EnableEMPEffect(TechnoClass* const pVictim, ObjectClass* const
 	{
 		// crash flying aircraft
 		auto const pAircraft = static_cast<AircraftClass*>(pVictim);
-		if (pAircraft->GetHeight() > 0)
+		if (pAircraft->GetHeight() > 0 && !pAircraft->IsLetGoByLocomotor && !pAircraft->IsAttackedByLocomotor)
 		{
 			return true;
 		}
@@ -4598,6 +4618,9 @@ bool AresEMPulse::EnableEMPEffect(TechnoClass* const pVictim, ObjectClass* const
 	// remove the unit from its team
 	if (auto const pFoot = abstract_cast<FootClass*>(pVictim))
 	{
+		if(pFoot->LocomotorTarget)
+			pFoot->LocomotorImblued(true);
+
 		if (pFoot->BelongsToATeam())
 		{
 			pFoot->Team->LiberateMember(pFoot);
@@ -4732,7 +4755,7 @@ bool AresEMPulse::EnableEMPEffect2(TechnoClass* const pVictim)
 	{
 		// crash flying aircraft
 		auto const pAircraft = static_cast<AircraftClass*>(pVictim);
-		if (pAircraft->GetHeight() > 0)
+		if (pAircraft->GetHeight() > 0 && !pAircraft->IsLetGoByLocomotor && !pAircraft->IsAttackedByLocomotor)
 		{
 			return true;
 		}
@@ -4753,6 +4776,9 @@ bool AresEMPulse::EnableEMPEffect2(TechnoClass* const pVictim)
 		// remove the unit from its team
 		if (auto const pFoot = abstract_cast<FootClass*>(pVictim))
 		{
+			if(pFoot->LocomotorTarget)
+				pFoot->LocomotorImblued(true);
+
 			if (pFoot->BelongsToATeam())
 			{
 				pFoot->Team->LiberateMember(pFoot);
@@ -4775,10 +4801,7 @@ bool AresEMPulse::EnableEMPEffect2(TechnoClass* const pVictim)
 		if (abs == AbstractType::Building)
 		{
 			pVictim->Focus = pFocus;
-		}
-
-		if (abstract_cast<FootClass*>(pVictim))
-		{
+		}else {
 			pVictim->QueueMission(Mission::Sleep, true);
 		}
 
@@ -4986,7 +5009,7 @@ void AresJammer::Update()
 	// walk through all buildings
 	for (auto const curBuilding : *BuildingClass::Array)
 	{
-		if (this->AttachedToObject->Owner->IsAlliedWith(curBuilding->Owner))
+		if (this->AttachedToObject->Owner->IsAlliedWith_(curBuilding->Owner))
 			continue;
 
 		// for each jammable building ...

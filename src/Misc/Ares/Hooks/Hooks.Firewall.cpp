@@ -158,6 +158,7 @@ DEFINE_OVERRIDE_HOOK(0x440378, BuildingClass_Update_FirestormWall, 6)
 
 DEFINE_OVERRIDE_HOOK(0x51BD4C, InfantryClass_Update_BuildingBelow, 6)
 {
+	GET(InfantryClass*, pThis, EDI);
 	GET(BuildingClass*, pBld, EDI);
 	enum {
 		canPass = 0x51BD7D,
@@ -178,6 +179,7 @@ DEFINE_OVERRIDE_HOOK(0x51BD4C, InfantryClass_Update_BuildingBelow, 6)
 
 DEFINE_OVERRIDE_HOOK(0x51C4C8, InfantryClass_IsCellOccupied, 6)
 {
+	GET(InfantryClass* const, pThis , EBP);
 	GET(BuildingClass* const, pBld, ESI);
 
 	enum {
@@ -203,6 +205,7 @@ DEFINE_DISABLE_HOOK(0x6F64CB, TechnoClass_DrawHealthBar_FirestormWall_ares) //, 
 
 DEFINE_OVERRIDE_HOOK(0x73F7B0, UnitClass_IsCellOccupied, 6)
 {
+	GET(UnitClass* const , pThis , EBX);
 	GET(BuildingClass* const, pBld, ESI);
 
 	enum

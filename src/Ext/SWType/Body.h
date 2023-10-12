@@ -267,6 +267,7 @@ public:
 		Valueable<bool> Chronosphere_BlowUnplaceable { true };
 		Valueable<bool> Chronosphere_ReconsiderBuildings { false };
 		Nullable<int> Chronosphere_Delay {};
+		Valueable<bool> Chronosphere_KillCargo { false };
 #pragma endregion
 
 #pragma region Psychic Dominator

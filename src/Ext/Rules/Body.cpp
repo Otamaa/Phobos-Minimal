@@ -216,7 +216,7 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			Debug::RegisterParserError();
 		}
 
-		if ( pExt->Fake_Of.Get(nullptr) && pExt->Fake_Of->WhatAmI() != what) {
+		if (pExt->Fake_Of.Get(nullptr) && pExt->Fake_Of->WhatAmI() != what) {
 			Debug::Log("[%s - %s] has fake of but it different ClassType from it!\n", pItem->ID , myClassName);
 			pExt->Fake_Of.Reset();
 			Debug::RegisterParserError();

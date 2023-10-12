@@ -4120,11 +4120,8 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno,
 
 bool TechnoExt::IsInWarfactory(TechnoClass* pThis, bool bCheckNaval)
 {
-	if (pThis->WhatAmI() == UnitClass::AbsID || pThis->IsInAir())
+	if (pThis->WhatAmI() != UnitClass::AbsID || pThis->IsInAir() || !pThis->IsTethered)
 		return false;
-
-	//if (pThis->IsTethered)
-	//	return true;
 
 	auto const pContact = pThis->GetNthLink();
 

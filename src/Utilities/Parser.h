@@ -234,7 +234,7 @@ template<>
 inline bool Parser<int>::TryParse(const char* pValue, OutType* outValue) {
 	const char* pFmt = nullptr;
 	if (*pValue == '$') {
-		pFmt = "$%d";
+		pFmt = "$%x";
 	}
 	else if (tolower(static_cast<unsigned char>(pValue[strlen(pValue) - 1])) == 'h') {
 		pFmt = "%xh";

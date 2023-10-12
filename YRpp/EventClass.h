@@ -62,10 +62,11 @@ union EventData
 {
 	EventData() { }
 
-	struct
+	struct nothing
 	{
 		char Data[0x68];
-	} SpaceGap; // Just a space gap to align the struct
+	} nothing;
+	static_assert(sizeof(nothing) == 0x68);
 
 	struct unkData
 	{
@@ -74,27 +75,34 @@ union EventData
 		BYTE Delay;
 		BYTE ExtraData[0x61];
 	} unkData;
+	static_assert(sizeof(unkData) == 0x68);
 
-	struct
+	struct Animation
 	{
 		int ID; // Anim ID
 		int AnimOwner; // House ID
 		CellStruct Location;
+		BYTE ExtraData[0x5C];
 	} Animation;
+	static_assert(sizeof(Animation) == 0x68);
 
-	struct
+	struct FrameInfo
 	{
 		BYTE CRC;
 		WORD CommandCount;
 		BYTE Delay;
+		BYTE ExtraData[0x64];
 	} FrameInfo;
+	static_assert(sizeof(FrameInfo) == 0x68);
 
-	struct
+	struct Target
 	{
 		TargetClass Whom;
+		BYTE ExtraData[0x63];
 	} Target;
+	static_assert(sizeof(Target) == 0x68);
 
-	struct
+	struct MegaMission
 	{
 		TargetClass Whom;
 		BYTE Mission; // Mission but should be byte
@@ -103,9 +111,11 @@ union EventData
 		TargetClass Destination;
 		TargetClass Follow;
 		bool IsPlanningEvent;
+		BYTE ExtraData[0x51];
 	} MegaMission;
+	static_assert(sizeof(MegaMission) == 0x68);
 
-	struct
+	struct MegaMission_F
 	{
 		TargetClass Whom;
 		BYTE Mission;
@@ -113,49 +123,64 @@ union EventData
 		TargetClass Destination;
 		int Speed;
 		int MaxSpeed;
+		BYTE ExtraData[0x50];
 	} MegaMission_F; // Seems unused in YR?
+	static_assert(sizeof(MegaMission_F) == 0x68);
 
-	struct
+	struct Production
 	{
 		int RTTI_ID;
 		int Heap_ID;
 		int IsNaval;
+		BYTE ExtraData[0x5C];
 	} Production;
+	static_assert(sizeof(Production) == 0x68);
 
-	struct
+	struct Unknown_LongLong
 	{
-		int Unknown_0;
-		long long Data;
-		int Unknown_C;
+		int Unknown_0; //4
+		long long Data; //8
+		int Unknown_C; //4
+		BYTE ExtraData[0x58];
 	} Unknown_LongLong;
+	//static inline constexpr size_t TotalSizeOfAdditinalData_1 = sizeof(EventData::Unknown_LongLong);
+	static_assert(sizeof(Unknown_LongLong) == 0x68);
 
-	struct
+	struct Unknown_Tuple
 	{
 		int Unknown_0;
 		int Unknown_4;
 		int Data;
 		int Unknown_C;
+		BYTE ExtraData[0x58];
 	} Unknown_Tuple;
+	static_assert(sizeof(Unknown_Tuple) == 0x68);
 
-	struct
+	struct Place
 	{
 		AbstractType RTTIType;
 		int HeapID;
 		int IsNaval;
 		CellStruct Location;
+		BYTE ExtraData[0x58];
 	} Place;
+	static_assert(sizeof(Place) == 0x68);
 
-	struct
+	struct SpecialPlace
 	{
 		int ID;
 		CellStruct Location;
+		BYTE ExtraData[0x60];
 	} SpecialPlace;
+	static_assert(sizeof(SpecialPlace) == 0x68);
 
-	struct
+	struct Specific
 	{
 		AbstractType RTTIType;
 		int ID;
+		BYTE ExtraData[0x60];
 	} Specific;
+	static_assert(sizeof(Specific) == 0x68);
 
 };
 
@@ -324,6 +349,17 @@ public:
 	};
 
 };
+
+struct EventClassMainData
+{
+	EventType Type;
+	bool IsExecuted;
+	char HouseIndex; // '-1' stands for not a valid house
+	uint32_t Frame;
+};
 #pragma pack(pop)
 
-static_assert(sizeof(EventClass) == 111);
+static inline constexpr size_t TotalSizeOfMaindata = sizeof(EventClassMainData);
+static inline constexpr size_t TotalSizeOfAdditinalData = sizeof(EventData);
+
+static_assert(sizeof(EventClass) == (TotalSizeOfMaindata + TotalSizeOfAdditinalData));

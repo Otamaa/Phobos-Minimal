@@ -1364,8 +1364,8 @@ DEFINE_OVERRIDE_HOOK(0x4C78D6, Networking_RespondToEvent_SpecialPlace, 8)
 	GET(EventClass*, pEvent, ESI);
 	GET(HouseClass*, pHouse, EDI);
 
-	const auto& [Idx, Loc] = pEvent->Data.SpecialPlace;
-	const auto pSuper = pHouse->Supers.Items[Idx];
+	const auto& specialplace = pEvent->Data.SpecialPlace;
+	const auto pSuper = pHouse->Supers.Items[specialplace.ID];
 	const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
 
 	if (pExt->SW_UseAITargeting)
@@ -1384,7 +1384,7 @@ DEFINE_OVERRIDE_HOOK(0x4C78D6, Networking_RespondToEvent_SpecialPlace, 8)
 	}
 	else
 	{
-		pHouse->Fire_SW(Idx, Loc);
+		pHouse->Fire_SW(specialplace.ID, specialplace.Location);
 	}
 
 	return 0x4C78F8;
@@ -2584,12 +2584,21 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 				if (AnimTypeClass* pAnimType = pData->Dominator_ControlAnim.Get(RulesClass::Instance->PermaControlledAnimationType))
 				{
 					CoordStruct animCoords = pTechno->GetCoords();
-					animCoords.Z += pType->MindControlRingOffset;
-					pTechno->MindControlRingAnim = GameCreate<AnimClass>(pAnimType, animCoords);
-					if (pTechno->MindControlRingAnim)
+					bool Isbuilding = false;
+
+					if(pTechno->WhatAmI() != BuildingClass::AbsID)
+						animCoords.Z += pType->MindControlRingOffset;
+					else
 					{
-						pTechno->MindControlRingAnim->SetOwnerObject(pTechno);
+						Isbuilding = true;
+						animCoords.Z += ((BuildingClass*)pTechno)->Type->Height;
 					}
+
+					pTechno->MindControlRingAnim = GameCreate<AnimClass>(pAnimType, animCoords);
+					pTechno->MindControlRingAnim->SetOwnerObject(pTechno);
+
+					if(Isbuilding)
+						pTechno->MindControlRingAnim->ZAdjust = -1024;
 				}
 
 				// add to the other newly captured minions.

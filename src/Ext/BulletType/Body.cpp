@@ -187,6 +187,11 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->AnimLength.Read(exINI, pThis->ID, "AnimLength");
 		this->Arcing_AllowElevationInaccuracy.Read(exINI, pSection, "Arcing.AllowElevationInaccuracy");
 		this->AttachedSystem.Read(exINI, pSection, "AttachedSystem");
+
+		if (this->AttachedSystem && this->AttachedSystem->BehavesLike != ParticleSystemTypeBehavesLike::Smoke) {
+			Debug::Log("Bullet[%s] With AttachedSystem[%s] is not BehavesLike=Smoke!\n", pSection, this->AttachedSystem->ID);
+			Debug::RegisterParserError();
+		}
 	}
 
 	if (pArtInI && pArtInI->GetSection(pArtSection)){
