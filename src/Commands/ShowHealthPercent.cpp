@@ -15,7 +15,7 @@ const wchar_t* ShowHealthPercentCommandClass::GetUIName() const
 
 const wchar_t* ShowHealthPercentCommandClass::GetUICategory() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_INTERFACE", L"Interface");
+	return CATEGORY_INTERFACE;
 }
 
 const wchar_t* ShowHealthPercentCommandClass::GetUIDescription() const

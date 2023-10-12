@@ -1,7 +1,5 @@
 #include <Phobos.h>
 
-bool NoCD = true;
-
 // this douchebag blows your base up when it thinks you're cheating
 DEFINE_OVERRIDE_SKIP_HOOK(0x55CFDF, CopyProtection_DontBlowMeUp, 0, 55D059);
 //DEFINE_JUMP(LJMP, 0x55CFDF, 0x55D059);
@@ -28,7 +26,7 @@ DEFINE_OVERRIDE_HOOK(0x47AE36, _YR_CDFileClass_SetFileName, 8)
 {
 	GET(void*, CDControl, EAX);
 
-	if (!CDControl || NoCD)
+	if (!CDControl || Phobos::Otamaa::NoCD)
 	{
 		return 0x47AEF0;
 	}
@@ -39,7 +37,7 @@ DEFINE_OVERRIDE_HOOK(0x47B026, _YR_FileFindOpen, 8)
 {
 	GET(void*, CDControl, EBX);
 
-	if (!CDControl || NoCD)
+	if (!CDControl || Phobos::Otamaa::NoCD)
 	{
 		return 0x47B0AE;
 	}
@@ -48,7 +46,7 @@ DEFINE_OVERRIDE_HOOK(0x47B026, _YR_FileFindOpen, 8)
 
 DEFINE_OVERRIDE_HOOK(0x4A80D0, CD_AlwaysFindYR, 6)
 {
-	if (NoCD)
+	if (Phobos::Otamaa::NoCD)
 	{
 		R->EAX(2);
 		return 0x4A8265;
@@ -58,7 +56,7 @@ DEFINE_OVERRIDE_HOOK(0x4A80D0, CD_AlwaysFindYR, 6)
 
 DEFINE_OVERRIDE_HOOK(0x4790E0, CD_AlwaysAvailable, 7)
 {
-	if (NoCD)
+	if (Phobos::Otamaa::NoCD)
 	{
 		R->AL(1);
 		return 0x479109;
@@ -68,7 +66,7 @@ DEFINE_OVERRIDE_HOOK(0x4790E0, CD_AlwaysAvailable, 7)
 
 DEFINE_OVERRIDE_HOOK(0x479110, CD_NeverAsk, 5)
 {
-	if (NoCD)
+	if (Phobos::Otamaa::NoCD)
 	{
 		R->AL(1);
 		return 0x4791EA;

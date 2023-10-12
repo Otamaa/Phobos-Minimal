@@ -55,7 +55,7 @@ DEFINE_OVERRIDE_HOOK(0x4370c0, BuildingLightClass_SDDTOR, 0xA)
 	GET(BuildingLightClass*, pThis, ECX);
 
 	if (auto pTech = pThis->OwnerObject)
-		pTech->align_154->BuildingLight = pThis;
+		TechnoExt::ExtMap.Find(pTech)->BuildingLight = nullptr;
 
 	return 0;
 }
@@ -66,7 +66,7 @@ DEFINE_OVERRIDE_HOOK(0x435820, BuildingLightClass_CTOR, 6)
 	GET(BuildingLightClass*, pThis, ECX);
 
 	if (pTech)
-		pTech->align_154->BuildingLight = pThis;
+		TechnoExt::ExtMap.Find(pTech)->BuildingLight = pThis;
 
 	return 0;
 }

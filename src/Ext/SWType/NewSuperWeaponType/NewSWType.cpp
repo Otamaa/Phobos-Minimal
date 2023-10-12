@@ -368,11 +368,6 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExt::ExtD
 {
 	auto data = std::make_unique<TargetingData>(pData, pOwner);
 
-	if (!data){
-		Debug::Log("Failed To Create TargetingData For [%s][%s] \n", pData->get_ID(), pOwner->get_ID());
-		return {};
-	}
-
 	// get launchsite data
 	auto const& [minRange, MaxRange] = this->GetLaunchSiteRange(pData);
 
@@ -605,6 +600,11 @@ NewSWType* NewSWType::GetNewSWType(const SWTypeExt::ExtData* pData)
 		pData->HandledType : pData->OwnerObject()->Type;
 
 	return iDx >= SuperWeaponType::count ? NewSWType::GetNthItem(iDx) : nullptr;
+}
+
+NewSWType* NewSWType::GetNewSWType(const SuperClass* pSuper)
+{
+	return NewSWType::GetNewSWType(SWTypeExt::ExtMap.Find(pSuper->Type));
 }
 
 SuperWeaponType NewSWType::FindFromTypeID(const char* pType)

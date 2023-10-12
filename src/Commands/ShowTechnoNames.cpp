@@ -20,7 +20,7 @@ const wchar_t* ShowTechnoNameCommandClass::GetUIName() const
 
 const wchar_t* ShowTechnoNameCommandClass::GetUICategory() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DEVELOPMENT", L"Development");
+	return CATEGORY_DEVELOPMENT;
 }
 
 const wchar_t* ShowTechnoNameCommandClass::GetUIDescription() const

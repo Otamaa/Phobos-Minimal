@@ -406,20 +406,25 @@ struct TargetingInfo
 	TargetingInfo(SuperClass* pSuper) :
 		Super(pSuper),
 		Owner(pSuper->Owner),
-		TypeExt(SWTypeExt::ExtMap.Find(pSuper->Type)),
-		NewType(NewSWType::GetNewSWType(SWTypeExt::ExtMap.Find(pSuper->Type)))
+		TypeExt(nullptr),
+		NewType(nullptr)
 	{
+		this->TypeExt = SWTypeExt::ExtMap.Find(pSuper->Type);
+		this->NewType = NewSWType::GetNewSWType(this->TypeExt);
+		this->Data = this->NewType->GetTargetingData(this->TypeExt, pSuper->Owner);
 	}
+
+	~TargetingInfo() = default;
 
 	bool CanFireAt(const CellStruct& cell, bool manual = false) const
 	{
 		return this->NewType->CanFireAt(*this->Data, cell, manual);
 	}
 
-	void GetData() const
-	{
-		this->Data = this->NewType->GetTargetingData(this->TypeExt, this->Owner);
-	}
+	// void GetData() const
+	// {
+	// 	this->Data = this->NewType->GetTargetingData(this->TypeExt, this->Owner);
+	// }
 
 public:
 	SuperClass* Super;
@@ -427,6 +432,11 @@ public:
 	SWTypeExt::ExtData* TypeExt;
 	NewSWType* NewType;
 	std::unique_ptr<const TargetingData> mutable Data;
+
+private:
+	TargetingInfo(const TargetingInfo&) = default;
+	TargetingInfo(TargetingInfo&&) = default;
+	TargetingInfo&operator=(const TargetingInfo& other) = default;
 };
 
 struct TargetingFuncs
@@ -910,10 +920,7 @@ struct TargetingFuncs
 
 TargetResult SWTypeExt::ExtData::PickSuperWeaponTarget(SuperClass* pSuper)
 {
-	TargetingInfo info(pSuper);
-
-	if (!info.Data)
-		info.GetData();
+	const TargetingInfo info(pSuper);
 
 	switch (info.TypeExt->GetAITargetingPreference())
 	{

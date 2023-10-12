@@ -7,8 +7,6 @@
 
 #include <DirStruct.h>
 
-#include <Ares_TechnoExt.h>
-
 #include <Utilities/Enum.h>
 
 #include <vector>
@@ -189,6 +187,7 @@ struct TechnoExt_ExtData
 	static void TransferOriginalOwner(TechnoClass* pFrom, TechnoClass* pTo);
 	static void TransferIvanBomb(TechnoClass* From, TechnoClass* To);
 	static void Ares_technoUpdate(TechnoClass* pThis);
+	static void Ares_AddMoneyStrings(TechnoClass* pThis, bool forcedraw);
 };
 
 struct TechnoTypeExt_ExtData
@@ -256,46 +255,6 @@ public:
 	static void DisableEMPEffect(TechnoClass* const pVictim);
 	static bool EnableEMPEffect2(TechnoClass* const pVictim);
 	static void DisableEMPEffect2(TechnoClass* const pVictim);
-};
-
-class AresPoweredUnit : public AresTechnoExt::PoweredUnitClass
-{
-public:
-
-	static constexpr int ScanInterval = 15;
-
-	bool IsPoweredBy(HouseClass* const pOwner) const;
-	void PowerUp();
-	bool PowerDown();
-	bool Update();
-
-	//TODO: S/L
-};
-
-class AresJammer : public AresTechnoExt::JammerClass
-{
-public:
-
-	static constexpr int ScanInterval = 30;
-
-	bool InRangeOf(BuildingClass*);		//!< Calculates if the jammer is in range of this building.
-	//bool IsEligible(BuildingClass*);		//!< Checks if this building can/should be jammed.
-
-	void Jam(BuildingClass*);				//!< Attempts to jam the given building. (Actually just registers the Jammer with it, the jamming happens in a hook.)
-	void Unjam(BuildingClass*);			//!< Attempts to unjam the given building. (Actually just unregisters the Jammer with it, the unjamming happens in a hook.)
-
-public:
-	//AresJammer(TechnoClass* GameObject) : AresTechnoExt::JammerClass {}
-	//{ this->AttachedToObject = GameObject; }
-
-	~AresJammer() {
-		this->UnjamAll();
-	}
-
-	void UnjamAll();						//!< Unregisters this Jammer on all structures.
-	void Update();							//!< Updates this Jammer's status on all eligible structures.
-
-	//TODO: S/L
 };
 
 class AresBlitter

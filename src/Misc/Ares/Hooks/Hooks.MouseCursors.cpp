@@ -156,6 +156,22 @@ DEFINE_OVERRIDE_HOOK(0x4AB35A, DisplayClass_SetAction_CustomCursor, 0x6)
 }
 #endif
 
+
+//void DrawMouseShape(WWMouseClass* pMouse, Surface* pSurface, Point2D offs)
+//{
+//	if (pMouse->Image && pSurface && FileSystem::MOUSE_PAL())
+//	{
+//		int width = pMouse->MouseBuffRect.Width;
+//		int height = pMouse->MouseBuffRect.Height;
+//		int x = offs.X + pMouse->MouseBuffRect.X;
+//		int Y = offs.Y + pMouse->MouseBuffRect.Y;
+//		auto imageframe = pMouse->Image->GetPixels(pMouse->ImageFrameIndex);
+//		BSurface surf {width , height , 1 , (void*)imageframe};
+//
+//		if(pSurface == pMouse->sc)
+//	}
+//}
+
 DEFINE_OVERRIDE_HOOK(0x6929FC, DisplayClass_ChooseAction_CanSell, 7)
 {
 	GET(TechnoClass*, Target, ESI);

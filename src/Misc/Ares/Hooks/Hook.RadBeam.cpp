@@ -19,7 +19,7 @@ DEFINE_OVERRIDE_HOOK(0x6FD64A, TechnoClass_FireRadBeam1, 6)
 		Rad->Color = RulesClass::Instance->RadColor;
 	}
 
-	Techno->align_154->idxSlot_Beam = idxWeapon;
+	TechnoExt::ExtMap.Find(Techno)->idxSlot_Beam = idxWeapon;
 
 	R->Stack<int>(0x0, idxWeapon);
 	return 0;

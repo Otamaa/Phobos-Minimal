@@ -39,17 +39,26 @@
 #include "Header.h"
 #include <Ares_TechnoExt.h>
 
+DEFINE_DISABLE_HOOK(0x6d4684, TacticalClass_Draw_FlyingStrings_ares)
+DEFINE_DISABLE_HOOK(0x7258d0, AnnounceInvalidPointer_ares)
+DEFINE_DISABLE_HOOK(0x533058, CommandClassCallback_Register_ares)
+
+DEFINE_OVERRIDE_HOOK(0x52C5E0 , Ares_NOLOGO , 0x7)
+{
+	return Phobos::Otamaa::NoLogo ? 0x52C5F3 : 0x0;
+}
+
 DEFINE_OVERRIDE_HOOK(0x62A020, ParasiteClass_Update, 0xA)
 {
 	GET(TechnoClass*, pOwner, ECX);
-	R->EAX(pOwner->GetWeapon(pOwner->align_154->idxSlot_Parasite));
+	R->EAX(pOwner->GetWeapon(TechnoExt::ExtMap.Find(pOwner)->idxSlot_Parasite));
 	return 0x62A02A;
 }
 
 DEFINE_OVERRIDE_HOOK(0x62A7B1, Parasite_ExitUnit, 9)
 {
 	GET(TechnoClass*, pOwner, ECX);
-	R->EAX(pOwner->GetWeapon(pOwner->align_154->idxSlot_Parasite));
+	R->EAX(pOwner->GetWeapon(TechnoExt::ExtMap.Find(pOwner)->idxSlot_Parasite));
 	return 0x62A7BA;
 }
 
@@ -1050,26 +1059,26 @@ DEFINE_OVERRIDE_HOOK(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 DEFINE_OVERRIDE_HOOK(0x481C6C, CellClass_CrateBeingCollected_Armor1, 6)
 {
 	GET(TechnoClass*, Unit, EDI);
-	return (Unit->align_154->AE_ArmorMult == 1.0) ? 0x481D52 : 0x481C86;
+	return (TechnoExt::ExtMap.Find(Unit)->AE_ArmorMult == 1.0) ? 0x481D52 : 0x481C86;
 }
 
 DEFINE_OVERRIDE_HOOK(0x481CE1, CellClass_CrateBeingCollected_Speed1, 6)
 {
 	GET(FootClass*, Unit, EDI);
-	return (Unit->align_154->AE_SpeedMult == 1.0) ? 0x481D52 : 0x481C86;
+	return (TechnoExt::ExtMap.Find(Unit)->AE_SpeedMult == 1.0) ? 0x481D52 : 0x481C86;
 }
 
 DEFINE_OVERRIDE_HOOK(0x481D0E, CellClass_CrateBeingCollected_Firepower1, 6)
 {
 	GET(TechnoClass*, Unit, EDI);
-	return (Unit->align_154->AE_FirePowerMult == 1.0) ? 0x481D52 : 0x481C86;
+	return (TechnoExt::ExtMap.Find(Unit)->AE_FirePowerMult == 1.0) ? 0x481D52 : 0x481C86;
 }
 
 DEFINE_OVERRIDE_HOOK(0x481D3D, CellClass_CrateBeingCollected_Cloak1, 6)
 {
 	GET(TechnoClass*, Unit, EDI);
 
-	if (Unit->CanICloakByDefault() || Unit->align_154->AE_Cloak)
+	if (Unit->CanICloakByDefault() || TechnoExt::ExtMap.Find(Unit)->AE_Cloak)
 	{
 		return 0x481C86;
 	}
@@ -1083,7 +1092,7 @@ DEFINE_OVERRIDE_HOOK(0x481D3D, CellClass_CrateBeingCollected_Cloak1, 6)
 DEFINE_OVERRIDE_HOOK(0x48294F, CellClass_CrateBeingCollected_Cloak2, 7)
 {
 	GET(TechnoClass*, Unit, EDX);
-	Unit->align_154->AE_Cloak = true;
+	TechnoExt::ExtMap.Find(Unit)->AE_Cloak = true;
 	TechnoExt_ExtData::RecalculateStat(Unit);
 	return 0x482956;
 }
@@ -1093,9 +1102,9 @@ DEFINE_OVERRIDE_HOOK(0x482E57, CellClass_CrateBeingCollected_Armor2, 6)
 	GET(TechnoClass*, Unit, ECX);
 	GET_STACK(double, Pow_ArmorMultiplier, 0x20);
 
-	if (Unit->align_154->AE_ArmorMult == 1.0)
+	if (TechnoExt::ExtMap.Find(Unit)->AE_ArmorMult == 1.0)
 	{
-		Unit->align_154->AE_ArmorMult = Pow_ArmorMultiplier;
+		TechnoExt::ExtMap.Find(Unit)->AE_ArmorMult = Pow_ArmorMultiplier;
 		TechnoExt_ExtData::RecalculateStat(Unit);
 		R->AL(Unit->GetOwningHouse()->IsInPlayerControl);
 		return 0x482E89;
@@ -1111,9 +1120,9 @@ DEFINE_OVERRIDE_HOOK(0x48303A, CellClass_CrateBeingCollected_Speed2, 6)
 	// removed aircraft check
 	// these originally not allow those to gain speed mult
 
-	if (Unit->align_154->AE_SpeedMult == 1.0)
+	if (TechnoExt::ExtMap.Find(Unit)->AE_SpeedMult == 1.0)
 	{
-		Unit->align_154->AE_SpeedMult = Pow_SpeedMultiplier;
+		TechnoExt::ExtMap.Find(Unit)->AE_SpeedMult = Pow_SpeedMultiplier;
 		TechnoExt_ExtData::RecalculateStat(Unit);
 		R->CL(Unit->GetOwningHouse()->IsInPlayerControl);
 		return 0x483078;
@@ -1126,9 +1135,9 @@ DEFINE_OVERRIDE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 	GET(TechnoClass*, Unit, ECX);
 	GET_STACK(double, Pow_FirepowerMultiplier, 0x20);
 
-	if (Unit->align_154->AE_FirePowerMult == 1.0)
+	if (TechnoExt::ExtMap.Find(Unit)->AE_FirePowerMult == 1.0)
 	{
-		Unit->align_154->AE_FirePowerMult = Pow_FirepowerMultiplier;
+		TechnoExt::ExtMap.Find(Unit)->AE_FirePowerMult = Pow_FirepowerMultiplier;
 		TechnoExt_ExtData::RecalculateStat(Unit);
 		R->AL(Unit->GetOwningHouse()->IsInPlayerControl);
 		return 0x483258;
@@ -1144,12 +1153,7 @@ DEFINE_OVERRIDE_HOOK(0x71A84E, TemporalClass_UpdateA, 5)
 	// it's not guaranteed that there is a target
 	if (auto const pTarget = pThis->Target)
 	{
-		if (auto pJammer = std::exchange(pTarget->align_154->RadarJammerUptr, nullptr))
-		{
-			((AresJammer*)pJammer)->UnjamAll();
-			AresMemory::Delete(pJammer);
-		}
-
+		TechnoExt::ExtMap.Find(pTarget)->RadarJammer.reset(nullptr);
 		AresAE::UpdateTempoal(&TechnoExt::ExtMap.Find(pTarget)->AeData , pTarget);
 	}
 
@@ -1366,6 +1370,8 @@ DEFINE_OVERRIDE_HOOK(0x687C56, INIClass_ReadScenario_ResetLogStatus, 5)
 {
 	// reset this so next scenario startup log is cleaner
 	Debug_bTrackParseErrors = false;
+	Phobos::Otamaa::TrackParserErrors = false;
+
 	return 0;
 }
 

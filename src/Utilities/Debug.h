@@ -32,6 +32,12 @@ public:
 	static void FatalError(const char* Message, ...);
 	[[noreturn]] static void FatalErrorAndExit(ExitCode nExitCode, const char* pFormat, ...);
 
+	static void RegisterParserError() {
+		if (Phobos::Otamaa::TrackParserErrors) {
+			Phobos::Otamaa::ParserErrorDetected = true;
+		}
+	}
+
 #pragma region Otamaa
 	static void DumpStack(const char* function, REGISTERS* R, size_t len, int startAt = 0);
 	static void DumpObj(void const* data, size_t len);

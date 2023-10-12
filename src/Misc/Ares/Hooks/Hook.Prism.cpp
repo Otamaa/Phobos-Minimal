@@ -33,7 +33,6 @@ void WeaponTypeExt::FireEbolt(TechnoClass* pFirer, WeaponTypeClass* pWeapon, Coo
 	{
 		const auto pExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 		supportEBolt->Owner = pFirer;
-		pFirer->align_154->MyBolt = supportEBolt;
 		supportEBolt->WeaponSlot = idx;
 		supportEBolt->AlternateColor = pWeapon->IsAlternateColor;
 		supportEBolt->Fire(source, target, 0); //messing with 3rd arg seems to make bolts more jumpy, and parts of them disappear
@@ -223,7 +222,7 @@ DEFINE_OVERRIDE_HOOK(0x44ABD0, BuildingClass_FireLaser, 5)
 		pTypeData->PrismForwarding.EliteSupportWeaponIndex : pTypeData->PrismForwarding.SupportWeaponIndex ;
 
 	auto const supportWeapon = (idxSupport != -1)
-		? pType->Weapon[idxSupport].WeaponType : nullptr;
+		? pType->GetWeapon(idxSupport)->WeaponType : nullptr;
 
 	LaserDrawClass* LaserBeam = nullptr;
 	if (supportWeapon)

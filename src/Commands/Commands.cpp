@@ -18,10 +18,18 @@
 #include "ToggleDesignatorRange.h"
 #include "SaveVariablesToFile.h"
 
+#include <Misc/Ares/Hooks/Commands/AIBasePlan.h>
+#include <Misc/Ares/Hooks/Commands/AIControl.h>
+#include <Misc/Ares/Hooks/Commands/DumpMemory.h>
+#include <Misc/Ares/Hooks/Commands/DumpTypes.h>
+#include <Misc/Ares/Hooks/Commands/FPSCounter.h>
+#include <Misc/Ares/Hooks/Commands/MapSnapshot.h>
+#include <Misc/Ares/Hooks/Commands/TogglePower.h>
+
 #define Make(arg)\
 		CommandClass::Array->AddItem(GameCreateUnchecked<arg>());
 
-DEFINE_HOOK(0x533066, CommandClassCallback_Register, 0x6)
+DEFINE_HOOK(0x532150, CommandClassCallback_Register, 5)
 {
 	Make(PlaceVeinholeMonster);
 	Make(RevealMapCommandClass);
@@ -46,7 +54,19 @@ DEFINE_HOOK(0x533066, CommandClassCallback_Register, 0x6)
 	Make(FrameStepCommandClass<15>); // Speed 3
 	Make(FrameStepCommandClass<30>); // Speed 4
 	Make(FrameStepCommandClass<60>); // Speed 5
-	return 0;
+
+	Make(AIBasePlanCommandClass);
+
+	if (Phobos::Otamaa::AllowAIControl)
+		Make(AIControlCommandClass);
+
+	Make(MemoryDumperCommandClass);
+	Make(DumperTypesCommandClass);
+	Make(FPSCounterCommandClass);
+	Make(MapSnapshotCommandClass);
+	Make(TogglePowerCommandClass);
+
+	return 0x0;
 }
 
 #undef Make

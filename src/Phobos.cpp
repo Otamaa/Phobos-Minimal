@@ -3,7 +3,6 @@
 #ifdef ENABLE_CLR
 #include <Scripting/CLR.h>
 #endif
-#include "Phobos_ECS.h"
 
 #include <CCINIClass.h>
 #include <Unsorted.h>
@@ -18,7 +17,6 @@
 #include <Misc/AresData.h>
 #include <Misc/Patches.h>
 
-#include "Phobos.Threads.h"
 #include <Misc/PhobosGlobal.h>
 
 #include <Dbghelp.h>
@@ -104,6 +102,13 @@ bool Phobos::Otamaa::IsAdmin = false;
 bool Phobos::Otamaa::ShowHealthPercentEnabled = false;
 bool Phobos::Otamaa::ExeTerminated = true;
 bool Phobos::Otamaa::DoingLoadGame = false;
+bool Phobos::Otamaa::AllowAIControl = false;
+bool Phobos::Otamaa::OutputMissingStrings = false;
+bool Phobos::Otamaa::StrictParser = false;
+bool Phobos::Otamaa::ParserErrorDetected = false;
+bool Phobos::Otamaa::TrackParserErrors = false;
+bool Phobos::Otamaa::NoLogo = false;
+bool Phobos::Otamaa::NoCD = false;
 
 bool Phobos::EnableConsole = false;
 
@@ -118,52 +123,40 @@ DWORD TLS_Thread::dwTlsIndex_SHPDRaw_2;
 
 void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 {
-	//std::vector<std::string_view> args(ppArgs, std::next(ppArgs, static_cast<std::ptrdiff_t>(nNumArgs)));
-
 	// > 1 because the exe path itself counts as an argument, too!
 	for (int i = 1; i < nNumArgs; i++)
 	{
 		const auto pArg = ppArgs[i];
+		Debug::Log("args %s\n", pArg);
 
-		if (IMPL_STRCMP(pArg, "-Icon") == 0)
+		if (IS_SAME_STR_(pArg, "-Icon"))
 		{
 			Phobos::AppIconPath = ppArgs[++i];
 		}
-
-		/*
-		if (_stricmp(pArg, "-Console") == 0)
+		else if (IS_SAME_STR_(pArg, "-AI-CONTROL"))
 		{
-			Phobos::EnableConsole = true;
+			Phobos::Otamaa::AllowAIControl = true;
 		}
-
-		if (!_stricmp(pArg, "-Name"))
+		else if (IS_SAME_STR_(pArg, "-LOG-CSF"))
 		{
-			char nBuff[0x800] = "";
-			strcpy_s(nBuff, ppArgs[++i]);
-			if (auto v7 = strstr(nBuff, "\""))
-			{
-				strcpy_s(nBuff, v7 + 1);
-				strcat_s(nBuff, " ");
-				for (auto b = &ppArgs[++i]; !strstr(*b, "\""); b = &ppArgs[i])
-				{
-					strcat_s(nBuff, *b);
-					strcat_s(nBuff, " ");
-					++b;
-				}
-
-				*strstr(ppArgs[i], "\"") = 0;
-				strcat_s(nBuff, ppArgs[i]);
-			}
-
-			strcpy_s(Phobos::AppName, 64, nBuff);
+			Phobos::Otamaa::OutputMissingStrings = true;
 		}
-		*/
-#ifndef ENABLE_NEWHOOKS
-		if (IMPL_STRCMP(pArg, "-b=" _STR(BUILD_NUMBER)) == 0)
+		else if (IS_SAME_STR_(pArg, "-STRICT"))
+		{
+			Phobos::Otamaa::StrictParser = true;
+		}
+		else if (IS_SAME_STR_(pArg, "-NOLOGO"))
+		{
+			Phobos::Otamaa::NoLogo = true;
+		}
+		else if (IS_SAME_STR_(pArg, "-CD"))
+		{
+			Phobos::Otamaa::NoCD = true;
+		}
+		else if (IS_SAME_STR_(pArg, "-b=" _STR(BUILD_NUMBER)))
 		{
 			Phobos::Config::HideWarning = true;
 		}
-#endif
 	}
 
 	Debug::Log("Initialized Phobos " PRODUCT_VERSION "\n");
@@ -408,6 +401,7 @@ void InitAdminDebugMode()
 		if (IS_SAME_STR_(Phobos::Otamaa::PCName, ADMIN_STR))
 		{
 			Phobos::Otamaa::IsAdmin = true;
+
 #ifndef COMPILE_PORTED_DP_FEATURES
 			Phobos::EnableConsole = true;
 #endif

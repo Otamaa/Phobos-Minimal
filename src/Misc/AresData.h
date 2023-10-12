@@ -49,15 +49,15 @@ struct DataBundleDetonate
 	void* ptr;
 };
 
-class cPrismForwarding
-{
-	void* Owner;  //Ares BuildingExtData
-	DynamicVectorClass<cPrismForwarding*> Senders;		//the prism towers that are forwarding to this one
-	cPrismForwarding* SupportTarget;			//what tower am I sending to?
-	int PrismChargeDelay;					//current delay charge
-	double ModifierReserve;					//current modifier reservoir
-	int DamageReserve;
-};
+//class cPrismForwarding
+//{
+//	void* Owner;  //Ares BuildingExtData
+//	DynamicVectorClass<cPrismForwarding*> Senders;		//the prism towers that are forwarding to this one
+//	cPrismForwarding* SupportTarget;			//what tower am I sending to?
+//	int PrismChargeDelay;					//current delay charge
+//	double ModifierReserve;					//current modifier reservoir
+//	int DamageReserve;
+//};
 
 //struct EMPulse
 //{
@@ -128,8 +128,8 @@ class cPrismForwarding
 //#define StolenTechnoType(var) (*(std::bitset<32>*)((char*)GetAresHouseExt(var) + 0x40))
 //#define AuxPower(var) (*(int*)((char*)GetAresHouseExt(var) + 0xC))
 //#define BatteryCount(var) (*(int*)((char*)GetAresHouseExt(var) + 0x10))
-#define KeepAlivesCount(var) (*(int*)((char*)GetAresHouseExt(var) + 0x18))
-#define KeepAlivesBuildingCount(var) (*(int*)((char*)GetAresHouseExt(var) + 0x1C))
+//#define KeepAlivesCount(var) (*(int*)((char*)GetAresHouseExt(var) + 0x18))
+//#define KeepAlivesBuildingCount(var) (*(int*)((char*)GetAresHouseExt(var) + 0x1C))
 
 // BldTypeExt
 //#define Is_FirestromWall(techno) (*(bool*)((char*)GetAresBuildingTypeExt(techno) + 0x5D))
@@ -181,7 +181,7 @@ struct AresData
 	static DWORD AresMemAllocAddrFinal;
 
 	//number of static instance
-	static constexpr int AresStaticInstanceCount = 14;
+	static constexpr int AresStaticInstanceCount = 16;
 	//number of call for `CustomPalette::ReadFromINI`
 	static constexpr int AresCustomPaletteReadCount = 5;
 
@@ -197,7 +197,7 @@ struct AresData
 	//static void RecalculateStat(TechnoClass* const pTechno);
 	//static bool ReverseEngineer(BuildingClass* const pBld, TechnoTypeClass* const pTechnoType);
 	//static Action GetInfActionOverObject(InfantryClass* const pInf, BuildingClass* const pBld);
-	static void SetMouseCursorAction(size_t CursorIdx, Action nAction, bool bShrouded);
+	//static void SetMouseCursorAction(size_t CursorIdx, Action nAction, bool bShrouded);
 	//static CanBuildResult PrereqValidate(HouseClass* const pHouse, TechnoTypeClass* const pItem, bool const buildLimitOnly, bool const includeQueued);
 	//static bool SW_Activate(SuperClass* pSuper, CellStruct cell, bool isPlayer);
 	//static void TechnoExt_ExtData_DepositTiberium(TechnoClass* const pTechno, float const amount, float const bonus, int const idxType);
@@ -213,7 +213,7 @@ struct AresData
 
 	//static ConvertClass* GetBulletTypeConvert(BulletTypeClass* pThis);
 	//static void WarheadTypeExt_ExtData_ApplyKillDriver(WarheadTypeClass* pThis, TechnoClass* const pAttacker, TechnoClass* const pVictim);
-	static void MouseCursorTypeLoadDefault();
+	//static void MouseCursorTypeLoadDefault();
 
 	//static AresFactoryStateRet* HouseExt_HasFactory(AresFactoryStateRet* nBuff, HouseClass const* const Owner, TechnoTypeClass const* const pType, bool bSkipAircraft, bool bRequirePower, bool bCheckCanBuild, bool a7);
 	//static int HouseExt_GetBuildLimitRemaining(HouseClass const* const Owner, TechnoTypeClass const* const pType);
@@ -248,7 +248,7 @@ struct AresData
 
 	//static bool RemoveAE(AresTechnoExt::AEData* pAE);
 
-	static void FlyingStringsAdd(TechnoClass* pTech, bool bSomething);
+	//static void FlyingStringsAdd(TechnoClass* pTech, bool bSomething);
 	//static void CalculateBounty(TechnoClass* pThis, TechnoClass* pKiller);
 	//static void SetSpotlight(TechnoClass* pThis , BuildingLightClass* pSpotlight);
 
@@ -260,7 +260,7 @@ struct AresData
 	//static void UpdateAcademy(HouseClass* pThis, TechnoClass* pTechno, bool bAdded);
 
 	//static void* Ares_SWType_ExtMap_Find(SuperWeaponTypeClass* pType);
-	static void SetSWMouseCursorAction(size_t CursorIdx, bool bShrouded, int nAction);
+	//static void SetSWMouseCursorAction(size_t CursorIdx, bool bShrouded, int nAction);
 
 	//static void BuildingExt_UpdateDisplayTo(BuildingClass* pFor);
 
@@ -421,3 +421,5 @@ struct AresDTORCaller
 //#define Ares_EboltColors3 (*((int*)(AresData::AresStaticInstanceFinal[11])))
 //#define Ares_EboltMap (*((const std::vector<std::pair<EBolt*, AresExtension<WeaponTypeClass*>*>, AresMemory::AresAllocator<std::pair<EBolt*, AresExtension<WeaponTypeClass*>*>>>*)(AresData::AresStaticInstanceFinal[12])))
 #define Ares_IsShuttingDown (*((bool*)(AresData::AresStaticInstanceFinal[12])))
+#define Ares_FPSCounter (*((bool*)(AresData::AresStaticInstanceFinal[14])))
+#define Ares_DebugLog (*((bool*)(AresData::AresStaticInstanceFinal[15])))

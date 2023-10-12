@@ -171,6 +171,13 @@ struct Phobos final
 		static bool ShowHealthPercentEnabled;
 		static bool ExeTerminated;
 		static bool DoingLoadGame;
+		static bool AllowAIControl;
+		static bool OutputMissingStrings;
+		static bool StrictParser;
+		static bool ParserErrorDetected;
+		static bool TrackParserErrors;
+		static bool NoLogo;
+		static bool NoCD;
 	};
 
 	struct Defines

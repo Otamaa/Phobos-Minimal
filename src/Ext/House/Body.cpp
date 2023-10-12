@@ -265,10 +265,12 @@ bool HouseExt::CheckFactoryOwners(HouseClass* pHouse, TechnoTypeClass* pItem)
 		const auto whatItem = pItem->WhatAmI();
 		for (auto const& pBld : pHouse->Buildings)
 		{
-			if (!pExt->FactoryOwners.Contains(pBld->align_154->OriginalHouseType))
+			auto pBldExt = TechnoExt::ExtMap.Find(pBld);
+
+			if (!pExt->FactoryOwners.Contains(pBldExt->OriginalHouseType))
 				continue;
 
-			if (pExt->FactoryOwners_Forbidden.empty() || !pExt->FactoryOwners_Forbidden.Contains(pBld->align_154->OriginalHouseType)) {
+			if (pExt->FactoryOwners_Forbidden.empty() || !pExt->FactoryOwners_Forbidden.Contains(pBldExt->OriginalHouseType)) {
 				const auto pBldExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
 
 				if (pBld->Type->Factory == whatItem || pBldExt->Type->FactoryOwners_HasAllPlans)
@@ -382,10 +384,8 @@ void HouseExt::UpdateFactoryPlans(BuildingClass* pBld)
 			return;
 	}
 
-	auto pNewOwnerExt = HouseExt::ExtMap.Find(pBld->Owner);
-
-	if(!pNewOwnerExt->FactoryOwners_GatheredPlansOf.contains(pBld->align_154->OriginalHouseType))
-		pNewOwnerExt->FactoryOwners_GatheredPlansOf.push_back(pBld->align_154->OriginalHouseType);
+	HouseExt::ExtMap.Find(pBld->Owner)->FactoryOwners_GatheredPlansOf
+		.push_back_unique(TechnoExt::ExtMap.Find(pBld)->OriginalHouseType);
 }
 
 bool HouseExt::PrerequisitesMet(HouseClass* const pThis, TechnoTypeClass* const pItem)
@@ -408,6 +408,8 @@ void HouseExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	INI_EX exINI(pINI);
 	exINI.Read3Bool(pSection, "RepairBaseNodes", this->RepairBaseNodes);
+
+	this->Degrades.Read(exINI, pSection, "Degrades");
 }
 
 NOINLINE TunnelData* HouseExt::GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx)
@@ -1339,6 +1341,7 @@ void HouseExt::ExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
+		.Process(this->Degrades)
 		.Process(this->PowerPlantEnhancerBuildings)
 		.Process(this->Building_BuildSpeedBonusCounter)
 		.Process(this->Building_OrePurifiersCounter)
@@ -1381,6 +1384,8 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		.Process(this->Is_AirfieldSpied)
 		.Process(this->Is_ConstructionYardSpied)
 		.Process(this->AuxPower)
+		.Process(this->KeepAliveCount)
+		.Process(this->KeepAliveBuildingCount)
 		;
 }
 

@@ -2,6 +2,7 @@
 
 #include "Commands.h"
 #include <Utilities/Debug.h>
+#include <Utilities/GeneralUtils.h>
 
 class FrameByFrameCommandClass : public PhobosCommandClass
 {

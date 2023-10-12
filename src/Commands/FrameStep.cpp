@@ -1,9 +1,7 @@
 #include "FrameStep.h"
 
-#include <Utilities/GeneralUtils.h>
 #include <SessionClass.h>
 #include <TacticalClass.h>
-#include <Utilities/GeneralUtils.h>
 
 size_t FrameByFrameCommandClass::FrameStepCount = 0;
 bool FrameByFrameCommandClass::FrameStep = false;

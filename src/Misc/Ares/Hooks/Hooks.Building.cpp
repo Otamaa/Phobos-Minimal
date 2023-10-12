@@ -969,7 +969,7 @@ DEFINE_OVERRIDE_HOOK(0x4482BD, BuildingClass_ChangeOwnership_ProduceCash, 6)
 			pNewOwner->TransactMoney(startup);
 			if (BuildingTypeExt::ExtMap.Find(pThis->Type)->ProduceCashDisplay)
 			{
-				pThis->align_154->TechnoValueAmount += startup;
+				TechnoExt::ExtMap.Find(pThis)->TechnoValueAmount += startup;
 			}
 		}
 	}
@@ -1017,7 +1017,7 @@ DEFINE_OVERRIDE_HOOK(0x43FD2C, BuildingClass_Update_ProduceCash, 6)
 		pThis->Owner->TransactMoney(produceAmount);
 		if (BuildingTypeExt::ExtMap.Find(pThis->Type)->ProduceCashDisplay)
 		{
-			pThis->align_154->TechnoValueAmount += produceAmount;
+			TechnoExt::ExtMap.Find(pThis)->TechnoValueAmount += produceAmount;
 		}
 	}
 
@@ -2343,7 +2343,7 @@ DEFINE_OVERRIDE_HOOK(0x52297F, InfantryClass_GarrisonBuilding_OccupierEntered, 5
 	GET(InfantryClass*, pInf, ESI);
 	GET(BuildingClass*, pBld, EBP);
 
-	pInf->align_154->GarrisonedIn = pBld;
+	TechnoExt::ExtMap.Find(pInf)->GarrisonedIn = pBld;
 	//pInf->Target = nullptr; //reset targeting
 
 	auto buildingExtData = BuildingExt::ExtMap.Find(pBld);

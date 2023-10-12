@@ -187,5 +187,25 @@ struct _VTABLE
 	_ALLOCATE_DYNAMIC_PATCH(name, offset, sizeof(data), &data);
 #pragma endregion Dynamic Patch
 
+#define DEFINE_VARIABLE_PATCH(offset, name, ...)                     \
+namespace VARIABLE_PATCH##offset                                     \
+{                                                                    \
+	const byte data[] = {__VA_ARGS__};                               \
+	const patch_decl patch = { offset, sizeof(data), (byte*)data };  \
+};                                                                   \
+namespace VARIABLE_PATCH                                             \
+{                                                                    \
+	const patch_decl* name = &VARIABLE_PATCH##offset::patch;         \
+};
+
+#define DEFINE_VARIABLE_LJMP(from, to ,name)						\
+namespace VARIABLE_PATCH##from  {									\
+	const ljmp_decl data = {LJMP_LETTER, to-from-5};				\
+	const patch_decl patch = { from, 5, (byte*)&data };				\
+};																	\
+namespace VARIABLE_PATCH {											\
+	const patch_decl* name = &VARIABLE_PATCH##from::patch;			\
+};
+
 #pragma endregion Macros
 #pragma endregion Patch Macros

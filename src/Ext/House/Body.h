@@ -90,6 +90,8 @@ public:
 		static constexpr size_t ExtOffset = 0x16098;
 
 	public:
+		Nullable<bool> Degrades {};
+
 		PhobosMap<BuildingTypeClass*, int> PowerPlantEnhancerBuildings {};
 		PhobosMap<BuildingTypeClass*, int> Building_BuildSpeedBonusCounter {};
 		PhobosMap<BuildingTypeClass*, int> Building_OrePurifiersCounter {};
@@ -140,6 +142,9 @@ public:
 		bool Is_AirfieldSpied { false };
 		bool Is_ConstructionYardSpied { false };
 		int AuxPower { 0 };
+
+		int KeepAliveCount { 0 };
+		int KeepAliveBuildingCount { 0 };
 
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 		{ }

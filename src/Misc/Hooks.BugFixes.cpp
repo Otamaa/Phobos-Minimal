@@ -685,7 +685,6 @@ DEFINE_HOOK(0x65DF81, TeamTypeClass_CreateMembers_LoadOntoTransport, 0x7)
 	GET(FootClass* const, pTransport, ESI);
 	GET(TeamClass* const, pTeam, EBP);
 
-	TechnoExt::ExtMap.Find(pTransport)->CreatedFromAction = true;
 	const bool isTransportOpenTopped = pTransport->GetTechnoType()->OpenTopped;
 	FootClass* pGunner = nullptr;
 
@@ -700,11 +699,6 @@ DEFINE_HOOK(0x65DF81, TeamTypeClass_CreateMembers_LoadOntoTransport, 0x7)
 				pTransport->EnteredOpenTopped(pNext);
 
 			pNext->SetLocation(pTransport->Location);
-
-			if (pNext->WhatAmI() != InfantryClass::AbsID && pNext->Passengers.NumPassengers <= 0)
-			{
-				TechnoExt::ExtMap.Find(pNext)->CreatedFromAction = true;
-			}
 		}
 	}
 

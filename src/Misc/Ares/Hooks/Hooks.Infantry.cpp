@@ -110,7 +110,7 @@ DEFINE_OVERRIDE_HOOK(0x471C96, CaptureManagerClass_CanCapture, 0xA)
 	}
 
 	// driver killed. has no mind.
-	if (pTarget->align_154->Is_DriverKilled)
+	if (TechnoExt::ExtMap.Find(pTarget)->Is_DriverKilled)
 	{
 		return Disallowed;
 	}
@@ -123,7 +123,7 @@ DEFINE_OVERRIDE_HOOK(0x51DF38, InfantryClass_Remove, 0xA)
 {
 	GET(InfantryClass*, pThis, ESI);
 
-	if (auto pGarrison = pThis->align_154->GarrisonedIn)
+	if (auto pGarrison = TechnoExt::ExtMap.Find(pThis)->GarrisonedIn)
 	{
 		if (!pGarrison->Occupants.Remove(pThis))
 		{
@@ -132,7 +132,7 @@ DEFINE_OVERRIDE_HOOK(0x51DF38, InfantryClass_Remove, 0xA)
 		}
 	}
 
-	pThis->align_154->GarrisonedIn = nullptr;
+	TechnoExt::ExtMap.Find(pThis)->GarrisonedIn = nullptr;
 
 	return 0;
 }
@@ -140,7 +140,7 @@ DEFINE_OVERRIDE_HOOK(0x51DF38, InfantryClass_Remove, 0xA)
 DEFINE_OVERRIDE_HOOK(0x51DFFD, InfantryClass_Put, 5)
 {
 	GET(InfantryClass*, pThis, EDI);
-	pThis->align_154->GarrisonedIn = nullptr;
+	TechnoExt::ExtMap.Find(pThis)->GarrisonedIn = nullptr;
 	return 0;
 }
 
@@ -153,7 +153,7 @@ DEFINE_OVERRIDE_HOOK(0x518434, InfantryClass_ReceiveDamage_SkipDeathAnim, 7)
 	// too much space would get wasted since there is only four bytes worth of data we need to store per object
 	// so those four bytes get stashed in Techno Map instead. they will get their own map if there's ever enough data to warrant it
 
-	return pThis->align_154->GarrisonedIn ? 0x5185F1 : 0;
+	return TechnoExt::ExtMap.Find(pThis)->GarrisonedIn ? 0x5185F1 : 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x517D51, InfantryClass_Init_Academy, 6)
@@ -567,7 +567,7 @@ DEFINE_OVERRIDE_HOOK(0x5215f9, InfantryClass_UpdateDeployment_Deso1, 6)
 DEFINE_OVERRIDE_HOOK(0x629804, ParasiteClass_UpdateSquiddy, 9)
 {
 	GET(ParasiteClass*, pThis, ESI);
-	R->EAX(pThis->Owner->GetWeapon(pThis->Owner->align_154->idxSlot_Parasite));
+	R->EAX(pThis->Owner->GetWeapon(TechnoExt::ExtMap.Find(pThis->Owner)->idxSlot_Parasite));
 	return 0x62980D;
 }
 

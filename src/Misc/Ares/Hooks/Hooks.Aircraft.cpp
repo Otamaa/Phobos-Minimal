@@ -10,6 +10,7 @@
 #include <Utilities/Debug.h>
 #include <Misc/AresData.h>
 
+#include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
@@ -93,7 +94,7 @@ DEFINE_OVERRIDE_HOOK(0x41946B, AircraftClass_ReceivedRadioCommand_QueryEnterAsPa
 	// prevent units from getting the enter cursor on transports
 	// with killed drivers.
 	GET(TechnoClass*, pThis, ESI);
-	return (pThis->align_154->Is_DriverKilled ? 0x4190DDu : 0u);
+	return (TechnoExt::ExtMap.Find(pThis)->Is_DriverKilled ? 0x4190DDu : 0u);
 }
 
 DEFINE_OVERRIDE_HOOK(0x416CF4, AircraftClass_Carryall_Unload_Guard, 0x5)

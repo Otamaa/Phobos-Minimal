@@ -271,6 +271,8 @@ public:
 		Valueable<bool> DisplayIncome_AllowAI { true };
 		Valueable<AffectedHouse> DisplayIncome_Houses { AffectedHouse::All };
 
+		Valueable<double> DisplayCreditsDelay { 0.02 };
+
 		AircraftPutDataRules MyPutData { };
 
 		ExtData(RulesClass* OwnerObject) : Extension<RulesClass>(OwnerObject)

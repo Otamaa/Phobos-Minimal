@@ -25,7 +25,7 @@ DEFINE_OVERRIDE_HOOK(0x4DFE00, FootClass_GarrisonStructure_TakeVehicle, 6)
 {
 	GET(FootClass*, pThis, ECX);
 
-	if (!pThis->align_154->TakeVehicleMode)
+	if (!TechnoExt::ExtMap.Find(pThis)->TakeVehicleMode)
 		return 0x0;
 
 	R->EAX(TechnoExt_ExtData::FindAndTakeVehicle(pThis));

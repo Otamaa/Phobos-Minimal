@@ -26,13 +26,15 @@
 
 #include <Utilities/BuildingBrackedPositionData.h>
 
-#include <Ares_TechnoExt.h>
+#include <Misc/Ares/Hooks/Classes/AresPoweredUnit.h>
+#include <Misc/Ares/Hooks/Classes/AresJammer.h>
 
 #include <Misc/Ares/Hooks/Classes/AttachedAffects.h>
 
 class BulletClass;
 class TechnoTypeClass;
 class REGISTERS;
+struct BurstFLHBundle;
 class TechnoExt
 {
 public:
@@ -42,11 +44,44 @@ public:
 		static constexpr size_t Canary = 0x55555555;
 		using base_type = TechnoClass;
 		//static constexpr size_t ExtOffset = 0x4FC;
+		//static constexpr size_t ExtOffset = 0x154; //ares
 		static constexpr size_t ExtOffset = 0x34C;
 
 	public:
 		TechnoTypeClass* Type { nullptr };
 		OptionalStruct<AbstractType, true> AbsType {};
+
+		double AE_ROF { 1.0 };
+		double AE_FirePowerMult { 1.0 };
+		double AE_ArmorMult { 1.0 };
+		double AE_SpeedMult { 1.0 };
+		BYTE AE_Cloak { false };
+
+		BYTE idxSlot_Wave { 0 }; //5
+		BYTE idxSlot_Beam { 0 }; //6
+		BYTE idxSlot_Warp { 0 }; //7
+		BYTE idxSlot_Parasite { 0 }; //8
+		BuildingClass* GarrisonedIn { 0 }; //C
+		Handle<AnimClass*, UninitAnim> EMPSparkleAnim { };
+		Mission EMPLastMission { 0 }; //
+
+		std::unique_ptr<AresPoweredUnit> PoweredUnit {};
+		std::unique_ptr<AresJammer> RadarJammer {};
+
+		BuildingLightClass* BuildingLight { 0 };
+
+		HouseTypeClass* OriginalHouseType { 0 };
+		CDTimerClass CloakSkipTimer {}; //
+		int HijackerHealth { 0 };
+		HouseClass* HijackerOwner { 0 };
+		float HijackerVeterancy { 0.0f };
+		BYTE Is_SurvivorsDone { 0 };
+		BYTE Is_DriverKilled { 0 };
+		BYTE Is_Operated { 0 };
+		BYTE Is_UnitLostMuted { 0 };
+		BYTE TakeVehicleMode { 0 };
+		int TechnoValueAmount { 0 };
+		int Pos { };
 		std::unique_ptr<ShieldClass> Shield {};
 		std::vector<LaserTrailClass> LaserTrails {};
 		bool ReceiveDamage { false };
@@ -58,62 +93,54 @@ public:
 		AnimTypeClass* MindControlRingAnimType { nullptr };
 		OptionalStruct<int, false> DamageNumberOffset {};
 		OptionalStruct<int, true> CurrentLaserWeaponIndex {};
+
 		// Used for Passengers.SyncOwner.RevertOnExit instead of TechnoClass::InitialOwner / OriginallyOwnedByHouse,
 		// as neither is guaranteed to point to the house the TechnoClass had prior to entering transport and cannot be safely overridden.
 		HouseClass* OriginalPassengerOwner { nullptr };
-		UniqueGamePtr<AnimClass> DelayedFire_Anim {};
-		int DelayedFire_Anim_LoopCount { 1 };
-		int DelayedFire_DurationTimer { 0 };
+
 		bool IsInTunnel { false };
 		CDTimerClass DeployFireTimer {};
 		CDTimerClass DisableWeaponTimer {};
 
 		std::vector<TimedWarheadValue<WeaponTypeClass*>> RevengeWeapons {};
 
-		//bool IsDriverKilled { false };
 		int GattlingDmageDelay { -1 };
 		bool GattlingDmageSound { false };
 		bool AircraftOpentoppedInitEd { false };
 
-		std::vector<int> FireSelf_Count {};
 		CDTimerClass EngineerCaptureDelay {};
+
 		bool FlhChanged { false };
-		//std::vector<LineTrail*> TechnoLineTrail {};
 		bool IsMissisleSpawn { false };
-		TechnoClass* LastAttacker { nullptr };
-		int Attempt { 5 };
 		OptionalStruct<double , true> ReceiveDamageMultiplier {};
 		bool SkipLowDamageCheck { false };
 
 		bool aircraftPutOffsetFlag { false };
 		bool aircraftPutOffset { false };
-		bool VirtualUnit { false };
-		bool IsMissileHoming { false };
 		bool SkipVoice { false };
 
-		CoordStruct HomingTargetLocation { 0,0,0 };
 		PhobosMap<WeaponTypeClass*, CDTimerClass> ExtraWeaponTimers {};
+
 		std::vector<UniversalTrail> Trails {};
 		std::unique_ptr<GiftBox> MyGiftBox {};
 		std::unique_ptr<PaintBall> PaintBallState {};
 		std::unique_ptr<DamageSelfState> DamageSelfState {};
+
 		int CurrentWeaponIdx { -1 };
 
-#ifdef ENABLE_HOMING_MISSILE
-		HomingMissileTargetTracker* MissileTargetTracker { nullptr };
-#endif
 		FireWeaponManager MyWeaponManager { };
 		DriveData MyDriveData { };
 		AircraftDive MyDiveData { };
-		//JJFacingToTarget MyJJData { };
+
 		SpawnSupport MySpawnSuport { };
+
 		std::unique_ptr<FighterAreaGuard> MyFighterData { };
 
-		bool KillActionCalled { false };
 		CDTimerClass WarpedOutDelay { };
+
 		OptionalStruct<bool, true> AltOccupation { }; // if the unit marks cell occupation flags, this is set to whether it uses the "high" occupation members
 		TemporalClass* MyOriginalTemporal { nullptr };
-		Armor CurrentArmor { Armor::None };
+
 		bool SupressEVALost { false };
 		CDTimerClass SelfHealing_CombatDelay { };
 		bool PayloadCreated { false };
@@ -124,15 +151,12 @@ public:
 		HouseClass* HijackerLastDisguiseHouse { nullptr };
 
 		CDTimerClass Convert_Deploy_Delay { };
-		bool DoingUnloadFire { false };
-
-		bool CreatedFromAction { false };
 
 		int WHAnimRemainingCreationInterval { 0 };
 
 		//====
 		bool IsWebbed { false };
-		Handle<AnimClass*, UninitAnim> WebbedAnim { nullptr };
+		Handle<AnimClass*, UninitAnim> WebbedAnim { };
 		AbstractClass* WebbyLastTarget { nullptr };
 		Mission WebbyLastMission { Mission::Sleep };
 
@@ -173,11 +197,9 @@ public:
 		void UpdateType(TechnoTypeClass* currentType);
 		void UpdateBuildingLightning();
 		void UpdateInterceptor();
-		void UpdateFireSelf();
 		void UpdateMobileRefinery();
 		void UpdateMCRangeLimit();
 		void UpdateSpawnLimitRange();
-		void UpdateDelayFireAnim();
 		void UpdateRevengeWeapons();
 
 		void UpdateLaserTrails();
@@ -252,7 +274,6 @@ private:
 	static void DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
 	static void ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged);
 	static void ApplyDrainMoney(TechnoClass* pThis);
-	static void ResetDelayFireAnim(TechnoClass* pThis);
 
 	static void DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
 	static void DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pType, int iLength, Point2D* pLocation, RectangleStruct* pBound, bool isInfantry , bool IsDisguised);
@@ -342,7 +363,7 @@ private:
 
 	static bool IsReallyTechno(TechnoClass* pThis);
 
-	static const std::vector<std::vector<CoordStruct>>* PickFLHs(TechnoClass* pThis);
+	static const BurstFLHBundle* PickFLHs(TechnoClass* pThis , int weaponidx);
 	static const Nullable<CoordStruct>* GetInfrantyCrawlFLH(InfantryClass* pThis, int weaponIndex);
 	static const Armor GetTechnoArmor(TechnoClass* pThis, WarheadTypeClass* pWarhead);
 

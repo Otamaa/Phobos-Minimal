@@ -5,7 +5,7 @@
 
 #include <Misc/AresData.h>
 
-#include <Ares_TechnoExt.h>
+#include <Ext/Techno/Body.h>
 #include <Ext/House/Body.h>
 #include <Utilities/GeneralUtils.h>
 #include <Misc/Ares/Hooks/AresNetEvent.h>
@@ -24,7 +24,7 @@ const wchar_t* CaptureObjectsCommandClass::GetUIName() const
 
 const wchar_t* CaptureObjectsCommandClass::GetUICategory() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DEVELOPMENT", L"Development");
+	return CATEGORY_DEVELOPMENT;
 }
 
 const wchar_t* CaptureObjectsCommandClass::GetUIDescription() const
@@ -59,9 +59,8 @@ void CaptureObjectsCommandClass::Execute(WWKey eInput) const
 			}
 			else
 			{
-
-				if (techno->align_154->Is_DriverKilled)
-					techno->align_154->Is_DriverKilled = false;
+				if (TechnoExt::ExtMap.Find(techno)->Is_DriverKilled)
+					TechnoExt::ExtMap.Find(techno)->Is_DriverKilled = false;
 
 				techno->SetOwningHouse(pToOwner, false);
 			}

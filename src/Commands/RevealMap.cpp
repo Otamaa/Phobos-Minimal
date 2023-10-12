@@ -5,6 +5,7 @@
 
 #include <Ext/House/Body.h>
 #include <Ext/SWType/NewSuperWeaponType/Reveal.h>
+#include <Utilities/GeneralUtils.h>
 
 const char* RevealMapCommandClass::GetName() const
 {
@@ -18,7 +19,7 @@ const wchar_t* RevealMapCommandClass::GetUIName() const
 
 const wchar_t* RevealMapCommandClass::GetUICategory() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DEVELOPMENT", L"Development");
+	return CATEGORY_DEVELOPMENT;
 }
 
 const wchar_t* RevealMapCommandClass::GetUIDescription() const

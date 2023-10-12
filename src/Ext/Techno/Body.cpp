@@ -36,7 +36,6 @@
 #include <Utilities/Cast.h>
 #include <Utilities/Macro.h>
 #include <Utilities/LocomotionCast.h>
-#include <Phobos_ECS.h>
 
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
@@ -332,7 +331,7 @@ void TechnoExt::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType
 	}
 	case DisplayInfoType::DisableWeapon:
 	{
-		auto& nTimer = pThis->align_154->DisableWeaponTimer;
+		auto& nTimer = pExt->DisableWeaponTimer;
 		if (nTimer.TimeLeft == 0 && nTimer.StartTime == -1)
 			return;
 
@@ -342,7 +341,7 @@ void TechnoExt::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType
 	}
 	case DisplayInfoType::CloakDisable :
 	{
-		auto& nTimer = pThis->align_154->CloakSkipTimer;
+		auto& nTimer = pExt->CloakSkipTimer;
 		if (nTimer.TimeLeft == 0 && nTimer.StartTime == -1)
 			return;
 
@@ -686,8 +685,7 @@ void TechnoExt::ExtData::CreateInitialPayload(bool forced)
 				{
 					pBld->Occupants.AddItem(pPayload);
 					auto const pCell = pThis->GetCell();
-					//TODO:
-					pPayload->align_154->GarrisonedIn = pBld;
+					TechnoExt::ExtMap.Find(pPayload)->GarrisonedIn = pBld;
 					pThis->UpdateThreatInCell(pCell);
 				}
 				else
@@ -1312,7 +1310,12 @@ bool TechnoExt::TargetTechnoShieldAllowFiring(TechnoClass* pTarget, WeaponTypeCl
 bool TechnoExt::IsAbductable(TechnoClass* pThis, WeaponTypeClass* pWeapon, FootClass* pFoot)
 {
 
-	if (!pFoot->IsAlive || pFoot->InLimbo || pFoot->IsIronCurtained() || pFoot->IsSinking  || pFoot->align_154->Is_DriverKilled) {
+	if (!pFoot->IsAlive
+		|| pFoot->InLimbo
+		|| pFoot->IsIronCurtained()
+		|| pFoot->IsSinking
+		|| pFoot->IsCrashing
+		|| TechnoExt::ExtMap.Find(pFoot)->Is_DriverKilled) {
 		return false;
 	}
 
@@ -1787,59 +1790,36 @@ double TechnoExt::GetDamageMult(TechnoClass* pSouce, bool ForceDisable)
 	return nFirstMult * pSouce->FirepowerMultiplier * nSecondMult; ;
 }
 
-const std::vector<std::vector<CoordStruct>>* TechnoExt::PickFLHs(TechnoClass* pThis)
+const BurstFLHBundle* TechnoExt::PickFLHs(TechnoClass* pThis, int weaponidx)
 {
 	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	const auto pInf = specific_cast<InfantryClass*>(pThis);
-	//const auto pUnit = specific_cast<UnitClass*>(pThis);
 
-	if (pThis->Veterancy.IsElite())
-	{
-		if (pInf)
-		{
-			if (pInf->IsDeployed() && !pExt->EliteDeployedWeaponBurstFLHs.empty())
-				return &pExt->EliteDeployedWeaponBurstFLHs;
-			else if (pInf->Crawling && !pExt->EliteCrouchedWeaponBurstFLHs.empty())
-				return &pExt->EliteCrouchedWeaponBurstFLHs;
-		}
+	const std::vector<BurstFLHBundle>* res = pThis->WhatAmI() == InfantryClass::AbsID ? ((InfantryClass*)pThis)->IsDeployed() && !pExt->DeployedWeaponBurstFLHs.empty() ?
+		&pExt->DeployedWeaponBurstFLHs : &pExt->CrouchedWeaponBurstFLHs : &pExt->WeaponBurstFLHs;
 
-		return &pExt->EliteWeaponBurstFLHs;
-	}
-	else
-	{
-		if (pInf)
-		{
-			if (pInf->IsDeployed() && !pExt->DeployedWeaponBurstFLHs.empty())
-				return &pExt->DeployedWeaponBurstFLHs;
-			else if (pInf->Crawling && !pExt->CrouchedWeaponBurstFLHs.empty())
-				return &pExt->CrouchedWeaponBurstFLHs;
-		}
+	if (res->empty() || res->size() <= (size_t)weaponidx)
+		return nullptr;
 
-
-		return &pExt->WeaponBurstFLHs;
-	}
+	return &(*res)[weaponidx];
 }
 
 std::pair<bool, CoordStruct> TechnoExt::GetBurstFLH(TechnoClass* pThis, int weaponIndex)
 {
-	bool FLHFound = false;
-	CoordStruct FLH = CoordStruct::Empty;
-
 	if (!pThis || weaponIndex < 0)
-		return { FLHFound , FLH };
+		return { false ,  CoordStruct::Empty };
 
-	const auto pickedFLHs = PickFLHs(pThis);
+	const auto pickedFLHs = PickFLHs(pThis ,weaponIndex);
 
-	if (!pickedFLHs->empty())
-	{
-		if ((int)(*pickedFLHs)[weaponIndex].size() > pThis->CurrentBurstIndex)
-		{
-			FLHFound = true;
-			FLH = (*pickedFLHs)[weaponIndex][pThis->CurrentBurstIndex];
-		}
+	if(!pickedFLHs)
+		return  { false ,  CoordStruct::Empty };
+
+	const std::vector<CoordStruct>* selected = (pThis->Veterancy.IsElite() ? &pickedFLHs->EFlh : &pickedFLHs->Flh);
+
+	if (!selected->empty() && (int)selected->size() > pThis->CurrentBurstIndex) {
+		return { true , (*selected)[pThis->CurrentBurstIndex] };
 	}
 
-	return { FLHFound , FLH };
+	return { false , CoordStruct::Empty };
 }
 
 const Nullable<CoordStruct>* TechnoExt::GetInfrantyCrawlFLH(InfantryClass* pThis, int weaponIndex)
@@ -2860,19 +2840,6 @@ void TechnoExt::ExtData::UpdateEatPassengers()
 	}
 }
 
-void TechnoExt::ExtData::UpdateDelayFireAnim()
-{
-	auto const pThis = this->Get();
-
-	if (TechnoExt::IsAlive(pThis) && pThis->Target || pThis->GetCurrentMission() == Mission::Attack)
-		return;
-
-	pThis->DiskLaserTimer.Start(pThis->DiskLaserTimer.GetTimeLeft() + 5);
-
-	// Reset Delayed fire animation
-	TechnoExt::ResetDelayFireAnim(pThis);
-}
-
 bool NOINLINE TechnoExt::CanFireNoAmmoWeapon(TechnoClass* pThis, int weaponIndex)
 {
 	if (pThis->GetTechnoType()->Ammo > 0)
@@ -3622,50 +3589,6 @@ std::pair<const std::vector<WeaponTypeClass*>*, const std::vector<int>*> TechnoE
 
 }
 
-void TechnoExt::ExtData::UpdateFireSelf()
-{
-	const auto pThis = this->Get();
-
-	auto const& [FireSelf_Weapon, FireSelf_ROF] = TechnoExt::ExtData::GetFireSelfData();
-
-	if (!FireSelf_Weapon || !FireSelf_ROF || FireSelf_Weapon->empty() || FireSelf_ROF->empty()) return;
-
-	if (FireSelf_Count.size() < FireSelf_Weapon->size())
-	{
-		const int p = int(FireSelf_Count.size());
-		while (FireSelf_Count.size() < FireSelf_Weapon->size())
-		{
-			int ROF = 10;
-
-			if (p >= (int)FireSelf_ROF->size())
-				ROF = FireSelf_Weapon->at(p)->ROF;
-			else
-				ROF = FireSelf_ROF->at(p);
-
-			FireSelf_Count.push_back(ROF);
-		}
-	}
-
-	for (int i = 0; i < (int)FireSelf_Count.size(); i++)
-	{
-		FireSelf_Count[i]--;
-		if (FireSelf_Count[i] > 0) continue;
-		else
-		{
-			int ROF = 10;
-
-			if (i >= (int)FireSelf_ROF->size())
-				ROF = FireSelf_Weapon->at(i)->ROF;
-			else
-				ROF = FireSelf_ROF->at(i);
-
-			FireSelf_Count[i] = ROF;
-
-			WeaponTypeExt::DetonateAt(FireSelf_Weapon->at(i), pThis, pThis, true, nullptr);
-		}
-	}
-}
-
 void TechnoExt::ExtData::UpdateOnTunnelEnter()
 {
 	if (!this->IsInTunnel)
@@ -4378,19 +4301,6 @@ bool TechnoExt::ReplaceArmor(REGISTERS* R, TechnoClass* pTarget, WeaponTypeClass
 	return false;
 }
 
-void TechnoExt::ResetDelayFireAnim(TechnoClass* pThis)
-{
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
-
-	if (pExt->DelayedFire_Anim)
-	{
-		pExt->DelayedFire_Anim.reset(nullptr);
-	}
-
-	pExt->DelayedFire_Anim_LoopCount = 1;
-
-}
-
 int TechnoExt::GetInitialStrength(TechnoTypeClass* pType, int nHP)
 {
 	return TechnoTypeExt::ExtMap.Find(pType)->InitialStrength.Get(nHP);
@@ -4546,9 +4456,36 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->Initialized)
 		.Process(this->Type)
 		.Process(this->AbsType)
+		.Process(this->AE_ROF)
+		.Process(this->AE_FirePowerMult)
+		.Process(this->AE_ArmorMult)
+		.Process(this->AE_SpeedMult)
+		.Process(this->AE_Cloak)
+		.Process(this->idxSlot_Wave)
+		.Process(this->idxSlot_Beam)
+		.Process(this->idxSlot_Warp)
+		.Process(this->idxSlot_Parasite)
+		.Process(this->GarrisonedIn)
+		.Process(this->EMPSparkleAnim)
+		.Process(this->EMPLastMission)
+		.Process(this->PoweredUnit)
+		.Process(this->RadarJammer)
+		.Process(this->BuildingLight)
+		.Process(this->OriginalHouseType)
+		.Process(this->CloakSkipTimer)
+		.Process(this->HijackerHealth)
+		.Process(this->HijackerOwner)
+		.Process(this->HijackerVeterancy)
+		.Process(this->Is_SurvivorsDone)
+		.Process(this->Is_DriverKilled)
+		.Process(this->Is_Operated)
+		.Process(this->Is_UnitLostMuted)
+		.Process(this->TakeVehicleMode)
+		.Process(this->TechnoValueAmount)
 		.Process(this->Shield)
 		.Process(this->LaserTrails)
 		.Process(this->ReceiveDamage)
+		.Process(this->LastKillWasTeamTarget)
 		.Process(this->PassengerDeletionTimer)
 		.Process(this->CurrentShieldType)
 		.Process(this->LastWarpDistance)
@@ -4557,45 +4494,32 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->DamageNumberOffset)
 		.Process(this->CurrentLaserWeaponIndex)
 		.Process(this->OriginalPassengerOwner)
-		.Process(this->DelayedFire_Anim)
-		.Process(this->DelayedFire_Anim_LoopCount)
-		.Process(this->DelayedFire_DurationTimer)
 		.Process(this->IsInTunnel)
 		.Process(this->DeployFireTimer)
 		.Process(this->DisableWeaponTimer)
 		.Process(this->RevengeWeapons)
-		//.Process(this->IsDriverKilled)
 		.Process(this->GattlingDmageDelay)
 		.Process(this->GattlingDmageSound)
 		.Process(this->AircraftOpentoppedInitEd)
-		.Process(this->FireSelf_Count)
 		.Process(this->EngineerCaptureDelay)
 		.Process(this->FlhChanged)
 		.Process(this->IsMissisleSpawn)
-		.Process(this->LastAttacker)
-		.Process(this->Attempt)
 		.Process(this->ReceiveDamageMultiplier)
 		.Process(this->SkipLowDamageCheck)
-		.Process(this->KillActionCalled)
-		.Process(this->WarpedOutDelay)
-		.Process(this->AltOccupation)
-		.Process(this->MyOriginalTemporal)
-
 		.Process(this->aircraftPutOffsetFlag)
 		.Process(this->aircraftPutOffset)
-		.Process(this->VirtualUnit)
-		.Process(this->IsMissileHoming)
 		.Process(this->SkipVoice)
-		.Process(this->HomingTargetLocation)
 		.Process(this->ExtraWeaponTimers)
 		.Process(this->Trails)
 		.Process(this->MyGiftBox)
 		.Process(this->PaintBallState)
 		.Process(this->DamageSelfState)
 		.Process(this->CurrentWeaponIdx)
-		.Process(this->CurrentArmor)
-		.Process(this->SupressEVALost)
 		.Process(this->MyFighterData)
+		.Process(this->WarpedOutDelay)
+		.Process(this->AltOccupation)
+		.Process(this->MyOriginalTemporal)
+		.Process(this->SupressEVALost)
 		.Process(this->SelfHealing_CombatDelay)
 		.Process(this->PayloadCreated)
 		.Process(this->LinkedSW)
@@ -4603,13 +4527,8 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->HijackerLastDisguiseType)
 		.Process(this->HijackerLastDisguiseHouse)
 		.Process(this->Convert_Deploy_Delay)
-		.Process(this->DoingUnloadFire)
-		.Process(this->CreatedFromAction)
 		.Process(this->WHAnimRemainingCreationInterval)
-
-#ifdef ENABLE_HOMING_MISSILE
-		.Process(this->MissileTargetTracker)
-#endif
+		.Process(this->IsWebbed)
 		.Process(this->WebbedAnim)
 		.Process(this->WebbyLastTarget)
 		.Process(this->WebbyLastMission)
@@ -4652,12 +4571,9 @@ void TechnoExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 
 	AnnounceInvalidPointer(LinkedSW, ptr);
 	AnnounceInvalidPointer(OriginalPassengerOwner, ptr);
-	AnnounceInvalidPointer(LastAttacker, ptr , bRemoved);
+	AnnounceInvalidPointer(GarrisonedIn, ptr , bRemoved);
 	AnnounceInvalidPointer(WebbyLastTarget, ptr);
-#ifdef ENABLE_HOMING_MISSILE
-	if (MissileTargetTracker)
-		MissileTargetTracker->InvalidatePointer(ptr, bRemoved);
-#endif
+	AnnounceInvalidPointer(BuildingLight, ptr);
 }
 
 TechnoExt::ExtContainer TechnoExt::ExtMap;
@@ -4669,13 +4585,6 @@ DEFINE_HOOK(0x6F3260, TechnoClass_CTOR, 0x5)
 {
 	GET(TechnoClass*, pItem, ESI);
 	TechnoExt::ExtMap.Allocate(pItem);
-
-	//if (pItem->Owner) {
-	//	if (auto pHouse = HouseExt::ExtMap.Find(pItem->Owner)) {
-	//		pHouse->OwnedTechno.push_back(pItem);
-	//	}
-	//}
-
 	return 0;
 }
 
@@ -4713,14 +4622,6 @@ DEFINE_HOOK(0x70783B, TechnoClass_Detach, 0x6)
 	GET(AbstractClass*, target, EBP);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
-	auto pAresExt = pThis->align_154;
-
-	if(target == pAresExt->BuildingLight)
-		pAresExt->BuildingLight = nullptr;
-
-	if(target == pAresExt->GarrisonedIn)
-		pAresExt->GarrisonedIn = nullptr;
-
 	TechnoExt::ExtMap.InvalidatePointerFor(pThis, target, all);
 
 	return pThis->BeingManipulatedBy == target ? 0x707843 : 0x707849;
@@ -4731,13 +4632,11 @@ DEFINE_OVERRIDE_HOOK(0x710415, TechnoClass_AnimPointerExpired_add, 6)
 	GET(AnimClass*, pAnim, EAX);
 	GET(TechnoClass*, pThis, ECX);
 
-	auto pAresExt = pThis->align_154;
-
-	if(pAnim == pAresExt->EMPSparkleAnim)
-		pAresExt->EMPSparkleAnim = nullptr;
-
 	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 	{
+		if (pExt->EMPSparkleAnim.get() == pAnim)
+			pExt->EMPSparkleAnim.release();
+
 		if (auto& pShield = pExt->Shield)
 			pShield->InvalidatePointer(pAnim, false);
 

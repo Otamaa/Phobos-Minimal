@@ -441,6 +441,8 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 	// caused by reading the section while only certain flags from it are needed
 	// and before other global lists are initialized
 	Debug_bTrackParseErrors = true;
+	Phobos::Otamaa::TrackParserErrors = true;
+
 	Game::SetProgress(8);
 	R->EBX(pTheater->ControlFileName.data());
 	R->Stack(STACK_OFFS(0x6C, 0x58), pTheater->Extension.data());

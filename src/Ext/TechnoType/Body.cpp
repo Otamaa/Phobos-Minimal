@@ -248,7 +248,7 @@ void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis,
 }
 
 void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection,
-	std::vector<std::vector<CoordStruct>>& nFLH, std::vector<std::vector<CoordStruct>>& nEFlh, const char* pPrefixTag)
+	std::vector<BurstFLHBundle>& nFLH, const char* pPrefixTag)
 {
 	char tempBuffer[0x40];
 	char tempBufferFLH[0x40];
@@ -256,7 +256,6 @@ void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const
 	bool parseMultiWeapons = pThis->TurretCount > 0 && pThis->WeaponCount > 0;
 	auto weaponCount = parseMultiWeapons ? pThis->WeaponCount : 2;
 	nFLH.resize(weaponCount);
-	nEFlh.resize(weaponCount);
 
 	for (int i = 0; i < weaponCount; i++)
 	{
@@ -278,12 +277,13 @@ void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const
 			eliteFLH.Read(exArtINI, pArtSection, tempBufferFLH);
 
 			CoordStruct Flh = FLH.Get();
-			nFLH[i].push_back(Flh);
+			CoordStruct Flh_e = FLH.Get();
+			nFLH[i].Flh.push_back(Flh);
 
 			if (eliteFLH.isset())
-				Flh = eliteFLH.Get();
+				Flh_e = eliteFLH.Get();
 
-			nEFlh[i].push_back(Flh);
+			nFLH[i].EFlh.push_back(Flh_e);
 		}
 	}
 };
@@ -1247,9 +1247,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		//const char* tags[sizeof(ColletiveCoordStructVectorData) / sizeof(void*)] = { Phobos::readDefval  , "Deployed" , "Prone" };
 		//TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, nFLH, nEFLH, tags);
 
-		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, WeaponBurstFLHs, EliteWeaponBurstFLHs, "");
-		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, DeployedWeaponBurstFLHs, EliteDeployedWeaponBurstFLHs, "Deployed");
-		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, CrouchedWeaponBurstFLHs, EliteCrouchedWeaponBurstFLHs, "Prone");
+		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, WeaponBurstFLHs, "");
+		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, DeployedWeaponBurstFLHs, "Deployed");
+		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, CrouchedWeaponBurstFLHs, "Prone");
 
 		TechnoTypeExt::GetFLH(exArtINI, pArtSection, PronePrimaryFireFLH, E_PronePrimaryFireFLH, "PronePrimaryFire");
 		TechnoTypeExt::GetFLH(exArtINI, pArtSection, ProneSecondaryFireFLH, E_ProneSecondaryFireFLH, "ProneSecondaryFire");
@@ -1477,7 +1477,6 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->NotHuman_RandomDeathSequence)
 		.Process(this->DefaultDisguise)
 		.Process(this->WeaponBurstFLHs)
-		.Process(this->EliteWeaponBurstFLHs)
 		.Process(this->PassengerDeletionType)
 
 		.Process(this->OpenTopped_RangeBonus)
@@ -1567,9 +1566,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->EVA_Sold)
 
 		.Process(this->CrouchedWeaponBurstFLHs)
-		.Process(this->EliteCrouchedWeaponBurstFLHs)
 		.Process(this->DeployedWeaponBurstFLHs)
-		.Process(this->EliteDeployedWeaponBurstFLHs)
 
 		.Process(this->AlternateFLHs)
 		.Process(this->Spawner_SpawnOffsets)
@@ -2089,11 +2086,12 @@ bool TechnoTypeExt::ExtContainer::Load(TechnoTypeClass* key, IStream* pStm)
 	auto Iter = TechnoTypeExt::ExtMap.Map.find(key);
 
 	if (Iter == TechnoTypeExt::ExtMap.Map.end()) {
-		Iter = TechnoTypeExt::ExtMap.Map.emplace(key, std::make_unique<TechnoTypeExt::ExtData>(key)).first;
+		auto ptr = new TechnoTypeExt::ExtData(key);
+		Iter = TechnoTypeExt::ExtMap.Map.emplace(key, ptr).first;
 	}
 
 	this->ClearExtAttribute(key);
-	this->SetExtAttribute(key, Iter->second.get());
+	this->SetExtAttribute(key, Iter->second);
 
 	PhobosByteStream loader { 0 };
 	if (!loader.ReadBlockFromStream(pStm))
@@ -2104,7 +2102,7 @@ bool TechnoTypeExt::ExtContainer::Load(TechnoTypeClass* key, IStream* pStm)
 
 	PhobosStreamReader reader { loader };
 	if (reader.Expect(TechnoTypeExt::ExtData::Canary)
-		&& reader.RegisterChange(Iter->second.get()))
+		&& reader.RegisterChange(Iter->second))
 	{
 		Iter->second->LoadFromStream(reader);
 		if (reader.ExpectEndOfBlock())
@@ -2124,11 +2122,12 @@ DEFINE_HOOK(0x711835, TechnoTypeClass_CTOR, 0x5)
 	auto Iter = TechnoTypeExt::ExtMap.Map.find(pItem);
 
 	if (Iter == TechnoTypeExt::ExtMap.Map.end()) {
-		Iter = TechnoTypeExt::ExtMap.Map.emplace(pItem, std::make_unique<TechnoTypeExt::ExtData>(pItem)).first;
+		auto ptr = new TechnoTypeExt::ExtData(pItem);
+		Iter = TechnoTypeExt::ExtMap.Map.emplace(pItem, ptr).first;
 	}
 
 	TechnoTypeExt::ExtMap.ClearExtAttribute(pItem);
-	TechnoTypeExt::ExtMap.SetExtAttribute(pItem, Iter->second.get());
+	TechnoTypeExt::ExtMap.SetExtAttribute(pItem, Iter->second);
 
 	return 0;
 }
@@ -2138,6 +2137,7 @@ DEFINE_HOOK(0x711AE0, TechnoTypeClass_DTOR, 0x5)
 	GET(TechnoTypeClass*, pItem, ECX);
 
 	TechnoTypeExt::ExtMap.ClearExtAttribute(pItem);
+	TechnoTypeExt::ExtMap.Map.erase(pItem);
 
 	return 0;
 }

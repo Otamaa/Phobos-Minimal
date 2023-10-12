@@ -196,6 +196,8 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 				Debug::Log("TechnoType[%s - %s] , registered with 0 strength"
 					", this mostlikely because this technotype has no rules entry"
 					" or it is suppose to be an dummy\n", pItem->ID, myClassName);
+
+				Debug::RegisterParserError();
 			}
 
 			pExt->IsDummy = true;
@@ -211,44 +213,53 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			" DebrisTypes items count it will fail when the index counter reached DebrisMaximus items count\n"
 			, pItem->ID, myClassName
 			);
+			Debug::RegisterParserError();
 		}
 
 		if ( pExt->Fake_Of.Get(nullptr) && pExt->Fake_Of->WhatAmI() != what) {
 			Debug::Log("[%s - %s] has fake of but it different ClassType from it!\n", pItem->ID , myClassName);
 			pExt->Fake_Of.Reset();
+			Debug::RegisterParserError();
 		}
 
 		if (pExt->ClonedAs.Get(nullptr) && pExt->ClonedAs->WhatAmI() != what) {
 			Debug::Log("[%s - %s] has ClonedAs but it different ClassType from it!\n", pItem->ID, myClassName);
 			pExt->ClonedAs.Reset();
+			Debug::RegisterParserError();
 		}
 
 		if (pExt->AI_ClonedAs.Get(nullptr) && pExt->AI_ClonedAs->WhatAmI() != what) {
 			Debug::Log("[%s - %s] has AI.ClonedAs but it different ClassType from it!\n", pItem->ID, myClassName);
 			pExt->AI_ClonedAs.Reset();
+			Debug::RegisterParserError();
 		}
 
 		if (pExt->ReversedAs.Get(nullptr) && pExt->ReversedAs->WhatAmI() != what) {
 			Debug::Log("[%s - %s] has ReversedAs but it different ClassType from it!\n", pItem->ID, pItem->ID, myClassName);
 			pExt->ReversedAs.Reset();
+			Debug::RegisterParserError();
 		}
 
 		if(isFoot && !pExt->IsDummy && pItem->SpeedType == SpeedType::None) {
 			Debug::Log("[%s - %s]SpeedType is invalid!\n", pItem->ID, myClassName);
+			Debug::RegisterParserError();
 		}
 
 		if(isFoot && !pExt->IsDummy && pItem->MovementZone == MovementZone::None) {
 			Debug::Log("[%s - %s]MovementZone is invalid!\n", pItem->ID, myClassName);
+			Debug::RegisterParserError();
 		}
 
 		if(pItem->Passengers > 0 && pItem->SizeLimit < 1) {
 			Debug::Log("[%s - %s]Passengers=%d and SizeLimit=%d!\n",
 				pItem->ID, myClassName, pItem->Passengers, pItem->SizeLimit);
+			Debug::RegisterParserError();
 		}
 
 		if(pItem->PoweredUnit && !pExt->PoweredBy.empty()) {
 			Debug::Log("[%s - %s] uses both PoweredUnit=yes and PoweredBy=!\n", pItem->ID, myClassName);
 			pItem->PoweredUnit = false;
+			Debug::RegisterParserError();
 		}
 
 		if(auto const pPowersUnit = pItem->PowersUnit) {
@@ -256,6 +267,7 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 				Debug::Log("[%s]PowersUnit=%s, but [%s] uses PoweredBy=!\n",
 					pItem->ID, pPowersUnit->ID, pPowersUnit->ID);
 				pItem->PowersUnit = nullptr;
+				Debug::RegisterParserError();
 			}
 		}
 
@@ -279,6 +291,7 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 					"not what controls unit exit behaviour, WeaponsFactory= "
 					"and GDI/Nod/YuriBarracks= is.)\n", pItem->ID, pCloner->ID,
 					pCloner->ID);
+				Debug::RegisterParserError();
 			}
 		}
 
@@ -349,12 +362,14 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 					Debug::Log("Building Type [%s] does not have a valid BuildCat set!\n"
 							   "It was reset to %s, but you should really specify it "
 							   "explicitly.\n", pBType->ID, catName);
+					Debug::RegisterParserError();
 				}
 			}
 		}
 
 		if (WeederAndHarvesterWarning) {
 			Debug::Log("Please choose between Weeder or (Refinery / Harvester) for [%s - %s] both cant be used at same time\n", pItem->ID, myClassName);
+			Debug::RegisterParserError();
 		}
 	}
 
@@ -367,10 +382,12 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 		if(!pItem->Warhead) {
 			Debug::Log(Msg, pItem->ID, "Warhead");
+			Debug::RegisterParserError();
 		}
 
 		if(!pItem->Projectile) {
 			Debug::Log(Msg, pItem->ID, "Projectile");
+			Debug::RegisterParserError();
 		}
 	}
 
@@ -389,6 +406,7 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		const size_t versesSize = WarheadTypeExt::ExtMap.Find(pWH)->Verses.size();
 		if (versesSize < ArmorTypeClass::Array.size()) {
 			Debug::Log("Inconsistent verses size of [%s - %d] Warhead with ArmorType Array[%d]\n", pWH->ID, versesSize, ArmorTypeClass::Array.size());
+			Debug::RegisterParserError();
 		}
 	}
 
@@ -396,8 +414,15 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		if (auto& pShield = ShieldTypeClass::Array[i]) {
 			if(pShield->Strength == 0){
 				Debug::Log("[%s]ShieldType is not valid because Strength is 0.\n", pShield->Name.data());
+				Debug::RegisterParserError();
 			}
 		}
+	}
+
+	if (Phobos::Otamaa::StrictParser && Phobos::Otamaa::ParserErrorDetected) {
+		Debug::FatalErrorAndExit(
+			"One or more errors were detected while parsing the INI files.\r\n"
+			"Please review the contents of the debug log and correct them.");
 	}
 
 	return 0x0;
@@ -461,6 +486,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->DisplayIncome_AllowAI.Read(exINI, GameStrings::AudioVisual, "DisplayIncome.AllowAI");
 
 #pragma region Otamaa
+	this->DisplayCreditsDelay.Read(exINI, AUDIOVISUAL_SECTION, "DisplayCreditsDelay");
 	this->AIDetectDisguise_Percent.Read(exINI, GENERAL_SECTION, "AIDisguiseDetectionPercent");
 	this->CanDrive.Read(exINI, GENERAL_SECTION, "EveryoneCanDrive");
 	this->TogglePowerAllowed.Read(exINI, GENERAL_SECTION, "TogglePowerAllowed");
@@ -934,6 +960,8 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->DisplayIncome)
 		.Process(this->DisplayIncome_AllowAI)
 		.Process(this->DisplayIncome_Houses)
+
+		.Process(this->DisplayCreditsDelay)
 		;
 
 	MyPutData.Serialize(Stm);

@@ -760,15 +760,11 @@ public:
 	MovieInfo() : Name(nullptr) { }
 
 	~MovieInfo() {
-
-		if constexpr (Deleter::DeleterType == DeleterType::GameDeleter || Deleter::DeleterType == DeleterType::DllDeleter)
-		{
-			Deleter(const_cast<char*>(this->Name));
-		}
-		else
-		{
-			if (this->Name) {
-				Deleter(const_cast<char*>(this->Name));
+		if (this->Name) {
+			if constexpr (Deleter::DeleterType == DeleterType::GameDeleter || Deleter::DeleterType == DeleterType::DllDeleter) {
+				Deleter()(const_cast<char*>(this->Name));
+			} else {
+				Deleter()(const_cast<char*>(this->Name));
 			}
 		}
 	}

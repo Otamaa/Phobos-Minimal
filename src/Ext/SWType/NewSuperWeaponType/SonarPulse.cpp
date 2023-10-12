@@ -3,7 +3,7 @@
 #include <Utilities/Helpers.h>
 #include <Misc/AresData.h>
 
-#include <Ares_TechnoExt.h>
+#include <Ext/Techno/Body.h>
 
 std::vector<const char*> SW_SonarPulse::GetTypeString() const
 {
@@ -36,7 +36,7 @@ bool SW_SonarPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 			return true;
 		}
 
-		auto& nTime = pTechno->align_154->CloakSkipTimer;
+		auto& nTime = TechnoExt::ExtMap.Find(pTechno)->CloakSkipTimer;
 
 		auto const delay = MaxImpl(
 			nTime.GetTimeLeft(), pData->Sonar_Delay.Get());

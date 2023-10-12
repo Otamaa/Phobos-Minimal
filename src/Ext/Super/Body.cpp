@@ -63,7 +63,7 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 										{
 											HasPower = pBld->HasPower
 												&& !pBld->IsUnderEMP()
-												&& (pBld->align_154->Is_Operated || TechnoExt_ExtData::IsOperated(pBld));
+												&& (TechnoExt::ExtMap.Find(pBld)->Is_Operated || TechnoExt_ExtData::IsOperated(pBld));
 
 											PowerChecked = true;
 										}

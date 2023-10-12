@@ -17,7 +17,7 @@ const wchar_t* PlaceVeinholeMonster::GetUIName() const
 
 const wchar_t* PlaceVeinholeMonster::GetUICategory() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DEVELOPMENT", L"Development");
+	return CATEGORY_DEVELOPMENT;
 }
 
 const wchar_t* PlaceVeinholeMonster::GetUIDescription() const

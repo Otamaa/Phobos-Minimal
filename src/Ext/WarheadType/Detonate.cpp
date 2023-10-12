@@ -296,7 +296,7 @@ bool WarheadTypeExt::ExtData::applyPermaMC(HouseClass* const Owner, AbstractClas
 		TechnoExt::IsPsionicsImmune(pTargetTechno))
 		return false;
 
-	if (pTargetTechno->align_154->Is_DriverKilled)
+	if (TechnoExt::ExtMap.Find(pTargetTechno)->Is_DriverKilled)
 		return false;
 
 	const auto pType = pTargetTechno->GetTechnoType();

@@ -6,8 +6,8 @@ class CDDriveManagerClass
 {
 public:
 	//Static
-	static CDDriveManagerClass* Global()
-		{ return *((CDDriveManagerClass**)0x89E414); }
+	static constexpr reference<CDDriveManagerClass*, 0x89E414u> const Instance_unknown {}; //???
+	static constexpr reference<CDDriveManagerClass, 0xA8E8E8> const Instance {};
 
 protected:
 	//CTOR
@@ -40,9 +40,9 @@ public:
 	static constexpr reference<bool, 0x89E3A0> const IsLocal { };
 
 
-	virtual bool ForceAvailable(int disk) R0;
-	virtual bool InsertCDDialog(int disk) R0;
-	virtual void SwapToDisk(int disk) RX;
+	virtual bool ForceAvailable(int cdNumber) JMP_THIS(0x4790E0);
+	virtual bool InsertCDDialog() JMP_THIS(0x479110);
+	virtual void SwapToDisk() JMP_THIS(4791F0);
 
 public:
 

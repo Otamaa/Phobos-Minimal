@@ -106,7 +106,7 @@ DEFINE_OVERRIDE_HOOK(0x71AAAC, TemporalClass_Update_Abductor, 6)
 	GET(TemporalClass*, pThis, ESI);
 
 	const auto pOwner = pThis->Owner;
-	const auto nWeaponIDx = pThis->Owner->align_154->idxSlot_Warp;
+	const auto nWeaponIDx = TechnoExt::ExtMap.Find(pThis->Owner)->idxSlot_Warp;
 	auto const pWeapon = pThis->Owner->GetWeapon(nWeaponIDx)->WeaponType;
 	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 
@@ -126,7 +126,7 @@ DEFINE_OVERRIDE_HOOK(0x71AA52, TemporalClass_Update_AnnounceInvalidPointer, 0x8)
 DEFINE_HOOK(0x71A8BD, TemporalClass_Update_WarpAway, 5)
 {
 	GET(TemporalClass*, pThis, ESI);
-	const auto nWeaponIDx = pThis->Owner->align_154->idxSlot_Warp;
+	const auto nWeaponIDx = TechnoExt::ExtMap.Find(pThis->Owner)->idxSlot_Warp;
 	auto const pWeapon = pThis->Owner->GetWeapon(nWeaponIDx)->WeaponType;
 
 	const auto pTarget = pThis->Target;
@@ -151,7 +151,7 @@ DEFINE_OVERRIDE_HOOK(0x71A917, TemporalClass_Update_Erase, 5)
 	GET(TemporalClass*, pThis, ESI);
 
 	auto pOwner = pThis->Owner;
-	auto const pWeapon = pThis->Owner->GetWeapon(pThis->Owner->align_154->idxSlot_Warp)->WeaponType;
+	auto const pWeapon = pThis->Owner->GetWeapon(TechnoExt::ExtMap.Find(pThis->Owner)->idxSlot_Warp)->WeaponType;
 	auto pOwnerExt = TechnoExt::ExtMap.Find(pOwner);
 	auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
 
@@ -189,7 +189,7 @@ DEFINE_HOOK(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)
 		auto nTotal = pThis->GetWarpPerStep();
 		if (nTotal)
 		{
-			auto const pWeapon = pThis->Owner->GetWeapon(pThis->Owner->align_154->idxSlot_Warp)->WeaponType;
+			auto const pWeapon = pThis->Owner->GetWeapon(TechnoExt::ExtMap.Find(pThis->Owner)->idxSlot_Warp)->WeaponType;
 
 			if (auto const Warhead = pWeapon->Warhead)
 			{
@@ -234,7 +234,7 @@ DEFINE_OVERRIDE_HOOK(0x71AFB2, TemporalClass_Fire_HealthFactor, 5)
 	GET(TemporalClass*, pThis, ESI);
 	GET(int, nStreght, EAX);
 
-	auto const pWeapon = pThis->Owner->GetWeapon(pThis->Owner->align_154->idxSlot_Warp)->WeaponType;;
+	auto const pWeapon = pThis->Owner->GetWeapon(TechnoExt::ExtMap.Find(pThis->Owner)->idxSlot_Warp)->WeaponType;;
 	const auto pWarhead = pWeapon->Warhead;
 	const auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pWarhead);
 	const auto nCalc = (int)(((1.0 - pTarget->Health) / pTarget->GetTechnoType()->Strength) * pWarheadExt->Temporal_HealthFactor.Get());
@@ -283,7 +283,7 @@ DEFINE_HOOK(0x71AFD0 , TemporalClass_Logic_Unit_OreMinerUnderAttack, 0x5)
 
 	if(auto pTarget = (UnitClass*)pThis->Target) {
 		if(pTarget->Type->Harvester) {
-			const auto nWeaponIDx = pThis->Owner->align_154->idxSlot_Warp;
+			const auto nWeaponIDx = TechnoExt::ExtMap.Find(pThis->Owner)->idxSlot_Warp;
 			auto const pWeapon = pThis->Owner->GetWeapon(nWeaponIDx)->WeaponType;
 			const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
 
@@ -305,7 +305,7 @@ DEFINE_HOOK(0x71B0AE, TemporalClass_Logic_Building_UnderAttack, 0x7)
 	GET(BuildingClass*, pBld, EDI);
 
 	BuildingExt::ExtMap.Find(pBld)->ReceiveDamageWarhead =
-		pThis->Owner->GetWeapon(pThis->Owner->align_154->idxSlot_Warp)
+		pThis->Owner->GetWeapon(TechnoExt::ExtMap.Find(pThis->Owner)->idxSlot_Warp)
 			 ->WeaponType->Warhead;
 
 	return 0x0;

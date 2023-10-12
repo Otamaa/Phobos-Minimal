@@ -16,7 +16,7 @@ const wchar_t* ToggleRadialIndicatorDrawModeClass::GetUIName() const
 
 const wchar_t* ToggleRadialIndicatorDrawModeClass::GetUICategory() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_INTERFACE", L"Interface");
+	return CATEGORY_INTERFACE;
 }
 
 const wchar_t* ToggleRadialIndicatorDrawModeClass::GetUIDescription() const

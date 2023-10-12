@@ -66,7 +66,7 @@ DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 				if (!PowerChecked)
 				{
 					HasPower = pBld->HasPower && !pBld->IsUnderEMP()
-						&& (pBld->align_154->Is_Operated || TechnoExt_ExtData::IsOperated(pBld))
+						&& (TechnoExt::ExtMap.Find(pBld)->Is_Operated || TechnoExt_ExtData::IsOperated(pBld))
 						;
 
 					PowerChecked = true;

@@ -2527,7 +2527,7 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 				}
 
 				// ignore units with no drivers
-				if (pTechno->align_154->Is_DriverKilled)
+				if (TechnoExt::ExtMap.Find(pTechno)->Is_DriverKilled)
 				{
 					return true;
 				}

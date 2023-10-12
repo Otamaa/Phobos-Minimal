@@ -44,6 +44,32 @@ struct ImageStatusses
 
 };
 
+struct BurstFLHBundle
+{
+	std::vector<CoordStruct> Flh;
+	std::vector<CoordStruct> EFlh;
+};
+
+template <>
+struct Savegame::PhobosStreamObject<BurstFLHBundle>
+{
+	bool ReadFromStream(PhobosStreamReader& Stm, BurstFLHBundle& Value, bool RegisterForChange) const
+	{
+		return Stm
+			.Process(Value.Flh, RegisterForChange)
+			.Process(Value.EFlh, RegisterForChange)
+			.Success();
+	};
+
+	bool WriteToStream(PhobosStreamWriter& Stm, const BurstFLHBundle& Value) const
+	{
+		return Stm
+			.Process(Value.Flh)
+			.Process(Value.EFlh)
+			.Success();
+	};
+};
+
 class Matrix3D;
 class DigitalDisplayTypeClass;
 class TechnoTypeExt
@@ -154,8 +180,7 @@ public:
 		ValueableVector<int> OreGathering_Tiberiums {};
 		ValueableVector<int> OreGathering_FramesPerDir {};
 
-		std::vector<std::vector<CoordStruct>> WeaponBurstFLHs {};
-		std::vector<std::vector<CoordStruct>> EliteWeaponBurstFLHs {};
+		std::vector<BurstFLHBundle> WeaponBurstFLHs {};
 
 		Valueable<bool> DestroyAnim_Random { true };
 		Valueable<bool> NotHuman_RandomDeathSequence { false };
@@ -232,10 +257,8 @@ public:
 		Nullable<CoordStruct> E_DeployedPrimaryFireFLH {};
 		Nullable<CoordStruct> E_DeployedSecondaryFireFLH {};
 
-		std::vector<std::vector<CoordStruct>> CrouchedWeaponBurstFLHs {};
-		std::vector<std::vector<CoordStruct>> EliteCrouchedWeaponBurstFLHs {};
-		std::vector<std::vector<CoordStruct>> DeployedWeaponBurstFLHs {};
-		std::vector<std::vector<CoordStruct>> EliteDeployedWeaponBurstFLHs {};
+		std::vector<BurstFLHBundle> CrouchedWeaponBurstFLHs {};
+		std::vector<BurstFLHBundle> DeployedWeaponBurstFLHs {};
 		std::vector<CoordStruct> AlternateFLHs {};
 
 		Nullable<bool> IronCurtain_SyncDeploysInto {};
@@ -874,13 +897,13 @@ public:
 	class ExtContainer final : public Container<TechnoTypeExt::ExtData>
 	{
 	public:
-		std::unordered_map<TechnoTypeClass*, std::unique_ptr<TechnoTypeExt::ExtData>> Map;
+		std::unordered_map<TechnoTypeClass*, TechnoTypeExt::ExtData*> Map;
 
 		virtual bool Load(TechnoTypeClass* key, IStream* pStm);
 
-		void Clear() {
-			this->Map.clear();
-		}
+		//void Clear() {
+		//	this->Map.clear();
+		//}
 
 		ExtContainer() : Container<TechnoTypeExt::ExtData> { "TechnoTypeClass" }
 			, Map {}
@@ -901,7 +924,7 @@ public:
 	// Ares 0.A
 	static const char* GetSelectionGroupID(ObjectTypeClass* pType);
 
-	static void GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection, std::vector<std::vector<CoordStruct>>& nFLH, std::vector<std::vector<CoordStruct>>& nEFlh, const char* pPrefixTag);
+	static void GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection, std::vector<BurstFLHBundle>& nFLH, const char* pPrefixTag);
 	static void GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection, TechnoTypeExt::ColletiveCoordStructVectorData& nFLH, TechnoTypeExt::ColletiveCoordStructVectorData& nEFlh, const char** pPrefixTag);
 	static void GetFLH(INI_EX& exArtINI, const char* pArtSection, Nullable<CoordStruct>& nFlh, Nullable<CoordStruct>& nEFlh, const char* pFlag);
 	static bool HasSelectionGroupID(ObjectTypeClass* pType, const std::string& pID);

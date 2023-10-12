@@ -319,7 +319,7 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 
 			if (pWHExt->Sonar_Duration > 0)
 			{
-				auto& nSonarTime = pThis->align_154->CloakSkipTimer;
+				auto& nSonarTime = TechnoExt::ExtMap.Find(pThis)->CloakSkipTimer;
 				if (pWHExt->Sonar_Duration > nSonarTime.GetTimeLeft())
 				{
 					nSonarTime.Start(pWHExt->Sonar_Duration);
@@ -334,7 +334,7 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 
 			if (pWHExt->DisableWeapons_Duration > 0)
 			{
-				auto& nTimer = pThis->align_154->DisableWeaponTimer;
+				auto& nTimer = TechnoExt::ExtMap.Find(pThis)->DisableWeaponTimer;
 				if (pWHExt->DisableWeapons_Duration > nTimer.GetTimeLeft())
 				{
 					nTimer.Start(pWHExt->DisableWeapons_Duration);

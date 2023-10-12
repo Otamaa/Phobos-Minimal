@@ -175,6 +175,7 @@ public:
 	static NewSWType* GetNthItem(SuperWeaponType i);
 	static SuperWeaponType GetHandledType(SuperWeaponType nType);
 	static NewSWType* GetNewSWType(const SWTypeExt::ExtData* pData);
+	static NewSWType* GetNewSWType(const SuperClass* pSuper);
 	static SuperWeaponType FindFromTypeID(const char* pType);
 
 

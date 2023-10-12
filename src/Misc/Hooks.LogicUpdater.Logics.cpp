@@ -25,7 +25,6 @@
 #include <New/Entity/FlyingStrings.h>
 #include <New/Entity/VerticalLaserClass.h>
 #include <New/Entity/HomingMissileTargetTracker.h>
-#include <Phobos_ECS.h>
 
 void TechnoExt::ExtData::InitFunctionEvents()
 {
@@ -48,14 +47,11 @@ void TechnoExt::ExtData::InitFunctionEvents()
 void TechnoExt::InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType)
 {
 	auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
 	pExt->Type = pType;
-
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
+	pExt->AbsType = pThis->WhatAmI();
 	pExt->CurrentShieldType = pTypeExt->ShieldType;
-	//if(IS_SAME_STR_(pType->ID , "YHARV"))
-	//	Debug::Log("Inited YHARD with shield [%s] ! \n" , pTypeExt->ShieldType);
-
-	//LineTrailExt::ConstructLineTrails(pThis);
 
 	pExt->IsMissisleSpawn = (RulesClass::Instance->V3Rocket.Type == pExt->Type ||
 	 pExt->Type == RulesClass::Instance->DMisl.Type || pExt->Type == RulesClass::Instance->CMisl.Type
@@ -63,15 +59,12 @@ void TechnoExt::InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType)
 
 	pExt->PaintBallState = std::make_unique<PaintBall>();
 
-	if (pThis->WhatAmI() != BuildingClass::AbsID)
+	if (pExt->AbsType != BuildingClass::AbsID)
 	{
 		if (!pTypeExt->LaserTrailData.empty() && !pExt->Type->Invisible)
 			pExt->LaserTrails.reserve(pTypeExt->LaserTrailData.size());
 
 		TechnoExt::InitializeLaserTrail(pThis, false);
-
-
 		TrailsManager::Construct(pThis);
-
 	}
 }

@@ -285,9 +285,7 @@ DEFINE_OVERRIDE_HOOK(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
 {
 	enum { FireRange = 0x6FC0DF, ContinueCheck = 0x0 };
 	GET(TechnoClass*, pThis, ESI);
-	//const auto pExt = TechnoExt::ExtMap.Find(pThis);
-	//restored it to use ares one , until Script and TEvent/TAction fully ported !
-	return pThis->align_154->DisableWeaponTimer /*pExt->DisableWeaponTimer*/.InProgress()
+	return TechnoExt::ExtMap.Find(pThis)->DisableWeaponTimer.InProgress()
 		? FireRange : ContinueCheck;
 }
 
@@ -295,35 +293,35 @@ DEFINE_OVERRIDE_HOOK(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
 DEFINE_OVERRIDE_HOOK(0x730EE5, StopCommandClass_Execute_Berzerk, 6)
 {
 	GET(TechnoClass*, pTechno, ESI);
-	return pTechno->Berzerk || pTechno->align_154->Is_DriverKilled ? 0x730EF7 : 0;
+	return pTechno->Berzerk || TechnoExt::ExtMap.Find(pTechno)->Is_DriverKilled ? 0x730EF7 : 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6F3283, TechnoClass_CanScatter_KillDriver, 8)
 {
 	// prevent units with killed drivers from scattering when attacked.
 	GET(TechnoClass*, pThis, ESI);
-	return (pThis->align_154->Is_DriverKilled ? 0x6F32C5u : 0u);
+	return (TechnoExt::ExtMap.Find(pThis)->Is_DriverKilled ? 0x6F32C5u : 0u);
 }
 
 DEFINE_OVERRIDE_HOOK(0x7091D6, TechnoClass_CanPassiveAquire_KillDriver, 6)
 {
 	// prevent units with killed drivers from looking for victims.
 	GET(TechnoClass*, pThis, ESI);
-	return (pThis->align_154->Is_DriverKilled ? 0x70927Du : 0u);
+	return (TechnoExt::ExtMap.Find(pThis)->Is_DriverKilled ? 0x70927Du : 0u);
 }
 
 DEFINE_OVERRIDE_HOOK(0x6F6A58, TechnoClass_DrawHealthBar_HidePips_KillDriver, 6)
 {
 	// prevent player from seeing pips on transports with killed drivers.
 	GET(TechnoClass*, pThis, ESI);
-	return pThis->align_154->Is_DriverKilled ? 0x6F6AB6u : 0u;
+	return TechnoExt::ExtMap.Find(pThis)->Is_DriverKilled ? 0x6F6AB6u : 0u;
 }
 
 DEFINE_OVERRIDE_HOOK(0x7087EB, TechnoClass_ShouldRetaliate_KillDriver, 6)
 {
 	// prevent units with killed drivers from retaliating.
 	GET(TechnoClass*, pThis, ESI);
-	return (pThis->align_154->Is_DriverKilled ? 0x708B17u : 0u);
+	return (TechnoExt::ExtMap.Find(pThis)->Is_DriverKilled ? 0x708B17u : 0u);
 }
 
 DEFINE_OVERRIDE_HOOK(0x73758A, UnitClass_ReceivedRadioCommand_QueryEnterAsPassenger_KillDriver, 6)
@@ -331,7 +329,7 @@ DEFINE_OVERRIDE_HOOK(0x73758A, UnitClass_ReceivedRadioCommand_QueryEnterAsPassen
 	// prevent units from getting the enter cursor on transports
 	// with killed drivers.
 	GET(TechnoClass*, pThis, ESI);
-	return pThis->align_154->Is_DriverKilled ? 0x73761Fu : 0u;
+	return TechnoExt::ExtMap.Find(pThis)->Is_DriverKilled ? 0x73761Fu : 0u;
 }
 
 DEFINE_OVERRIDE_HOOK(0x70DEBA, TechnoClass_UpdateGattling_Cycle, 6)
@@ -370,7 +368,7 @@ DEFINE_OVERRIDE_HOOK(0x70DEBA, TechnoClass_UpdateGattling_Cycle, 6)
 DEFINE_OVERRIDE_HOOK(0x71810D, TeleportLocomotionClass_ILocomotion_MoveTo_Deactivated, 6)
 {
 	GET(FootClass*, pFoot, ECX);
-	return (!pFoot->Deactivated && pFoot->Locomotor.GetInterfacePtr()->Is_Powered() && !pFoot->align_154->Is_DriverKilled)
+	return (!pFoot->Deactivated && pFoot->Locomotor.GetInterfacePtr()->Is_Powered() && !TechnoExt::ExtMap.Find(pFoot)->Is_DriverKilled)
 		? 0 : 0x71820F;
 }
 
@@ -384,7 +382,7 @@ DEFINE_OVERRIDE_HOOK(0x7188F2, TeleportLocomotionClass_Unwarp_SinkJumpJets, 7)
 	{
 		if (UnitClass* pUnit = specific_cast<UnitClass*>(pTechno[3]))
 		{
-			if (pUnit->Deactivated || pUnit->align_154->Is_DriverKilled)
+			if (pUnit->Deactivated || TechnoExt::ExtMap.Find(pUnit)->Is_DriverKilled)
 			{
 				// this thing does not float
 				R->BL(0);
@@ -846,7 +844,7 @@ DEFINE_OVERRIDE_HOOK(0x53C450, TechnoClass_CanBePermaMC, 5)
 		if (!TechnoExt::IsPsionicsImmune(pThis) && !TechnoExt->Type->BalloonHover)
 		{
 			// KillDriver check
-			if (!pThis->align_154->Is_DriverKilled)
+			if (!TechnoExt::ExtMap.Find(pThis)->Is_DriverKilled)
 			{
 				bDisaalow = 1;
 			}
@@ -1654,7 +1652,7 @@ DEFINE_OVERRIDE_HOOK(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
 	|| pThis->IsUnderEMP()
 	|| pThis->IsWarpingIn()
 	|| pThis->IsFallingDown
-	|| pThis->align_154->Is_DriverKilled
+	|| TechnoExt::ExtMap.Find(pThis)->Is_DriverKilled
 	 ? 0x700DCE : 0x700E59;
 }
 

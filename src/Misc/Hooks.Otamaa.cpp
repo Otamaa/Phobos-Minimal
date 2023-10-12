@@ -731,14 +731,11 @@ DEFINE_HOOK(0x6FDE05, TechnoClass_FireAt_End, 0x5)
 
 	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 
-	if (TechnoExt::ExtMap.Find(pThis)->DelayedFire_DurationTimer <= 0)
-	{
-		//this may crash the game , since the object got deleted after killself ,..
-		if (pWeaponExt->RemoveTechnoAfterFiring.Get())
-			TechnoExt::KillSelf(pThis, KillMethod::Vanish);
-		else if (pWeaponExt->DestroyTechnoAfterFiring.Get())
-			TechnoExt::KillSelf(pThis, KillMethod::Explode);
-	}
+	//this may crash the game , since the object got deleted after killself ,..
+	if (pWeaponExt->RemoveTechnoAfterFiring.Get())
+		TechnoExt::KillSelf(pThis, KillMethod::Vanish);
+	else if (pWeaponExt->DestroyTechnoAfterFiring.Get())
+		TechnoExt::KillSelf(pThis, KillMethod::Explode);
 
 	return 0;
 }

@@ -16,7 +16,6 @@ enum class ProtectTypes : int
 	IronCurtain , ForceShield
 };
 
-class AresTechnoExt;
 //forward declarations
 class AirstrikeClass;
 class AnimClass;
@@ -755,7 +754,7 @@ public:
 	int              TurretAnimFrame;
 	HouseClass*      InitialOwner; // only set in ctor
 	DECLARE_PROPERTY(VeterancyStruct, Veterancy);
-	AresTechnoExt*			 align_154;
+	DWORD			 align_154;
 	double           ArmorMultiplier;
 	double           FirepowerMultiplier;
 	DECLARE_PROPERTY(CDTimerClass, IdleActionTimer); // MOO

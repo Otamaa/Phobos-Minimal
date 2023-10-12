@@ -25,6 +25,14 @@
 
 #include "Header.h"
 
+DEFINE_DISABLE_HOOK(0x4f6532, HouseClass_CTOR_ares)
+DEFINE_DISABLE_HOOK(0x4f7371, HouseClass_DTOR_ares)
+DEFINE_DISABLE_HOOK(0x50114d, HouseClass_InitFromINI_ares)
+DEFINE_DISABLE_HOOK(0x503040, HouseClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x504069, HouseClass_Load_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x504080, HouseClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x5046de, HouseClass_Save_Suffix_ares)
+
 bool KeepThisAlive(HouseClass* pHouse, TechnoClass* pTech, AbstractType what, uint8_t keep)
 {
 	const auto pType = pTech->GetTechnoType();
@@ -43,9 +51,9 @@ bool KeepThisAlive(HouseClass* pHouse, TechnoClass* pTech, AbstractType what, ui
 
 	if (result->Get(defaultKeppAlive)) {
 		const int add = 2 * keep - 1;
-		KeepAlivesCount(pHouse) += add;
+		HouseExt::ExtMap.Find(pHouse)->KeepAliveCount += add;
 		if (what == BuildingClass::AbsID)
-			KeepAlivesBuildingCount(pHouse) += add;
+			HouseExt::ExtMap.Find(pHouse)->KeepAliveBuildingCount += add;
 	}
 
 	return ret;
@@ -261,8 +269,9 @@ DEFINE_OVERRIDE_HOOK(0x4F8B08, HouseClass_Update_DamageDelay, 6)
 	if (pThis->DamageDelayTimer.Completed())
 	{
 		auto const pType = pThis->Type;
+		auto const pExt = HouseExt::ExtMap.Find(pThis);
 		auto const pTypeExt = HouseTypeExt::ExtMap.Find(pType);
-		auto const degrades = pTypeExt->Degrades.Get(!pType->MultiplayPassive);
+		auto const degrades = pTypeExt->Degrades.Get(pExt->Degrades.Get(!pType->MultiplayPassive));
 
 		auto const pRules = RulesClass::Instance();
 		pThis->DamageDelayTimer.Start(static_cast<int>(pRules->DamageDelay * 900));
@@ -367,7 +376,7 @@ DEFINE_OVERRIDE_HOOK(0x4F8EBD, HouseClass_Update_HasBeenDefeated, 0)
 {
 	GET(HouseClass*, pThis, ESI);
 
-	if (KeepAlivesCount(pThis)) {
+	if (HouseExt::ExtMap.Find(pThis)->KeepAliveCount) {
 		return 0x4F8F87;
 	}
 

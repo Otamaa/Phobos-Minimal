@@ -16,7 +16,7 @@ const wchar_t* ShowTeamLeaderCommandClass::GetUIName() const
 
 const wchar_t* ShowTeamLeaderCommandClass::GetUICategory() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DEVELOPMENT", L"Development");
+	return CATEGORY_DEVELOPMENT;
 }
 
 const wchar_t* ShowTeamLeaderCommandClass::GetUIDescription() const

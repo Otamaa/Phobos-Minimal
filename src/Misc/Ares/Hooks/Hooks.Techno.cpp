@@ -24,6 +24,13 @@
 
 #include <Conversions.h>
 
+DEFINE_DISABLE_HOOK(0x6f3260, TechnoClass_CTOR_ares)
+DEFINE_DISABLE_HOOK(0x6f4500, TechnoClass_DTOR_ares)
+DEFINE_DISABLE_HOOK(0x70bf50, TechnoClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x70c249, TechnoClass_Load_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x70c250, TechnoClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x70c264, TechnoClass_Save_Suffix_ares)
+
 DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 {
 	GET(TechnoClass*, pThis, ECX);
@@ -154,7 +161,7 @@ DEFINE_OVERRIDE_HOOK(0x6FA743, TechnoClass_Update_SelfHeal, 0xA)
 	GET(TechnoClass* const, pThis, ESI);
 
 	// prevent crashing and sinking technos from self-healing
-	if (pThis->InLimbo || pThis->IsCrashing || pThis->IsSinking || pThis->align_154->Is_DriverKilled)
+	if (pThis->InLimbo || pThis->IsCrashing || pThis->IsSinking || TechnoExt::ExtMap.Find(pThis)->Is_DriverKilled)
 	{
 		return SkipAnySelfHeal;
 	}
@@ -471,24 +478,16 @@ DEFINE_OVERRIDE_HOOK(0x6F6AC9, TechnoClass_Remove_Early, 6)
 	GET(TechnoClass*, pThis, ESI);
 
 	// if the removed object is a radar jammer, unjam all jammed radars
-	if (auto pRJ = std::exchange(pThis->align_154->RadarJammerUptr, nullptr))
-	{
-		((AresJammer*)pRJ)->UnjamAll();
-		AresMemory::Delete(pRJ);
-	}
-
+	TechnoExt::ExtMap.Find(pThis)->RadarJammer.reset(nullptr);
 	// #617 powered units
-	if (auto pPower = std::exchange(pThis->align_154->PoweredUnitUptr, nullptr))
-	{
-		AresMemory::Delete(pPower);
-	}
+	TechnoExt::ExtMap.Find(pThis)->PoweredUnit.reset(nullptr);
+
 
 	//#1573, #1623, #255 attached effects
 	AresAE::Remove(&TechnoExt::ExtMap.Find(pThis)->AeData , pThis);
 
-	if (pThis->align_154->TechnoValueAmount != 0)
-	{
-		AresData::FlyingStringsAdd(pThis, true);
+	if (TechnoExt::ExtMap.Find(pThis)->TechnoValueAmount != 0) {
+		TechnoExt_ExtData::Ares_AddMoneyStrings(pThis, true);
 	}
 
 	return pThis->InLimbo ? 0x6F6C93u : 0x6F6AD5u;
@@ -518,7 +517,7 @@ DEFINE_OVERRIDE_HOOK(0x6FD0BF, TechnoClass_GetROF_AttachEffect, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	const auto nRof = pThis->align_154->AE_ROF;
+	const auto nRof = TechnoExt::ExtMap.Find(pThis)->AE_ROF;
 	__asm { fmul nRof };
 	return 0x0;
 }
@@ -890,13 +889,13 @@ DEFINE_OVERRIDE_HOOK(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
-	if (auto pJammer = pThis->align_154->RadarJammerUptr)
+	if (auto& pJammer = TechnoExt::ExtMap.Find(pThis)->RadarJammer)
 	{
-		((AresJammer*)pJammer)->UnjamAll();
+		pJammer->UnjamAll();
 	}
 
-	if (pThis->align_154->TechnoValueAmount != 0)
-		AresData::FlyingStringsAdd(pThis, true);
+	if (TechnoExt::ExtMap.Find(pThis)->TechnoValueAmount != 0)
+		TechnoExt_ExtData::Ares_AddMoneyStrings(pThis, true);
 
 	return 0;
 }
@@ -932,7 +931,7 @@ DEFINE_OVERRIDE_HOOK(0x6FAF0D, TechnoClass_Update_EMPLock, 6)
 			if (!pThis->Deactivated && AresEMPulse::IsDeactivationAdvisable(pThis))
 			{
 				// update the current mission
-				pThis->align_154->EMPLastMission = pThis->CurrentMission;
+				TechnoExt::ExtMap.Find(pThis)->EMPLastMission = pThis->CurrentMission;
 				pThis->Deactivate();
 			}
 		}
@@ -945,7 +944,6 @@ DEFINE_HOOK(0x6F3F88, TechnoClass_Init_1, 5)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	auto const pType = pThis->GetTechnoType();
-	auto const pData = pThis->align_154;
 
 	CaptureManagerClass* pCapturer = nullptr;
 	ParasiteClass* pParasite = nullptr;
@@ -1010,7 +1008,7 @@ DEFINE_HOOK(0x6F3F88, TechnoClass_Init_1, 5)
 	{
 		const auto pHouseType = pOwner->Type;
 		const auto pParentHouseType = pHouseType->FindParentCountry();
-		pData->OriginalHouseType = pParentHouseType ? pParentHouseType : pHouseType;
+		TechnoExt::ExtMap.Find(pThis)->OriginalHouseType = pParentHouseType ? pParentHouseType : pHouseType;
 	}
 	else
 	{

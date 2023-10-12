@@ -7,10 +7,11 @@
 void NOINLINE AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 {
 	double ROF_Mult = 1.0;
-	double FP_Mult = pThis->align_154->AE_FirePowerMult;
-	double Armor_Mult = pThis->align_154->AE_ArmorMult;
-	double Speed_Mult = pThis->align_154->AE_SpeedMult;
-	BYTE Cloak = (BYTE)pThis->CanICloakByDefault() | pThis->align_154->AE_Cloak;
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
+	double FP_Mult = pExt->AE_FirePowerMult;
+	double Armor_Mult = pExt->AE_ArmorMult;
+	double Speed_Mult = pExt->AE_SpeedMult;
+	BYTE Cloak = (BYTE)pThis->CanICloakByDefault() | pExt->AE_Cloak;
 
 	for (const auto& ae : ae->Data)
 	{
@@ -24,7 +25,7 @@ void NOINLINE AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 
 	pThis->FirepowerMultiplier = FP_Mult;
 	pThis->ArmorMultiplier = Armor_Mult;
-	pThis->align_154->AE_ROF = ROF_Mult;
+	pExt->AE_ROF = ROF_Mult;
 	pThis->Cloakable = Cloak;
 
 	if (pThis->AbstractFlags & AbstractFlags::Foot)

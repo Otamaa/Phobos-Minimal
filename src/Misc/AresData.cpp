@@ -341,6 +341,9 @@ bool AresData::Init()
 		0x0C2E14, //Ebolt - Ext map
 
 		0x0C1C64, //Ares_Shuttingdown
+
+		0x0C1C59, //Ares_FPSCounter
+		0x0C1C78, //Ares_DebugLog
 	};
 
 	for (int a = 0; a < FunctionIndices::count; a++)
@@ -392,10 +395,10 @@ void AresData::UnInit()
 //	return AresStdcall<GetInfActionOverObjectID, Action, InfantryClass*  , BuildingClass*>()(pInf, pBld);
 //}
 
-void AresData::SetMouseCursorAction(size_t CursorIdx, Action nAction, bool bShrouded)
-{
-	AresStdcall<SetMouseCursorActionID, void, size_t, Action, bool>()(CursorIdx , nAction , bShrouded);
-}
+//void AresData::SetMouseCursorAction(size_t CursorIdx, Action nAction, bool bShrouded)
+//{
+//	AresStdcall<SetMouseCursorActionID, void, size_t, Action, bool>()(CursorIdx , nAction , bShrouded);
+//}
 
 //CanBuildResult AresData::PrereqValidate(HouseClass* const pHouse, TechnoTypeClass* const pItem, bool const buildLimitOnly, bool const includeQueued)
 //{
@@ -457,10 +460,10 @@ void AresData::SetMouseCursorAction(size_t CursorIdx, Action nAction, bool bShro
 //	AresThiscall<ApplyKillDriverID, ConvertClass*, void* , TechnoClass* , TechnoClass*>()(GetAresAresWarheadTypeExt(pThis) , pAttacker , pVictim);
 //}
 
-void AresData::MouseCursorTypeLoadDefault()
-{
-	AresStdcall<MouseCursorTypeLoadDefaultID, void>()();
-}
+//void AresData::MouseCursorTypeLoadDefault()
+//{
+//	AresStdcall<MouseCursorTypeLoadDefaultID, void>()();
+//}
 
 //AresFactoryStateRet* AresData::HouseExt_HasFactory(AresFactoryStateRet* nBuff, HouseClass const* const Owner, TechnoTypeClass const* const pType, bool bSkipAircraft, bool bRequirePower, bool bCheckCanBuild, bool a7)
 //{
@@ -578,10 +581,10 @@ void AresData::MouseCursorTypeLoadDefault()
 //	return AresThiscall<RemoveAEID, bool , AresTechnoExt::AEData*>()(pAE);
 //}
 
-void AresData::FlyingStringsAdd(TechnoClass* pTech, bool bSomething)
-{
-	AresThiscall<FlyingStringsAddID, void, void*, bool>()((void*)pTech->align_154, bSomething);
-}
+//void AresData::FlyingStringsAdd(TechnoClass* pTech, bool bSomething)
+//{
+//	AresThiscall<FlyingStringsAddID, void, void*, bool>()((void*)pTech->align_154, bSomething);
+//}
 
 //void AresData::CalculateBounty(TechnoClass* pThis, TechnoClass* pKiller)
 //{
@@ -633,10 +636,10 @@ void AresData::FlyingStringsAdd(TechnoClass* pTech, bool bSomething)
 //	return AresThiscall<ExtMapFindID, void*, DWORD , SuperWeaponTypeClass*>()(AresStaticInstanceFinal[2] ,pType);
 //}
 
-void AresData::SetSWMouseCursorAction(size_t CursorIdx,  bool bShrouded , int nAction)
-{
-	AresStdcall<SetSWCursorID, void, size_t , bool , int>()(CursorIdx, bShrouded, nAction);
-}
+//void AresData::SetSWMouseCursorAction(size_t CursorIdx,  bool bShrouded , int nAction)
+//{
+//	AresStdcall<SetSWCursorID, void, size_t , bool , int>()(CursorIdx, bShrouded, nAction);
+//}
 
 //void AresData::BuildingExt_UpdateDisplayTo(BuildingClass* pFor)
 //{
