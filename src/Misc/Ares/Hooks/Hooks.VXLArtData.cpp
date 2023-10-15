@@ -86,7 +86,7 @@ DEFINE_OVERRIDE_HOOK(0x5F887B, ObjectTypeClass_Load3DArt_Barrels, 6)
 			return 0x5F8A60;
 
 		const auto pKey = !i ? "%sBARL" : "%sBARL%d";
-		_snprintf(Buffer, sizeof(Buffer), pKey, pThis->ImageFile, i);
+		IMPL_SNPRNINTF(Buffer, sizeof(Buffer), pKey, pThis->ImageFile, i);
 
 		//if (i > (pTypeExt->TurretImageData.size() + TechnoTypeClass::MaxWeapons)) {
 		//	Debug::Log("Reading Barrel [%d] for [%s] Which is More than array size ! \n", i, pThis->ImageFile);
@@ -140,7 +140,7 @@ DEFINE_OVERRIDE_HOOK(0x5F865F, ObjectTypeClass_Load3DArt_Turrets, 6)
 			return 0x5F8844;
 
 		const auto pKey = !i ? "%sTUR" : "%sTUR%d";
-		_snprintf(Buffer, sizeof(Buffer), pKey, pThis->ImageFile, i);
+		IMPL_SNPRNINTF(Buffer, sizeof(Buffer), pKey, pThis->ImageFile, i);
 
 		//if (i > (pTypeExt->TurretImageData.size() + TechnoTypeClass::MaxWeapons)) {
 		//	Debug::Log("Reading Turrent [%d] for [%s] Which is More than array size ! \n", i, pThis->ImageFile);

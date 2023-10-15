@@ -9,15 +9,12 @@ void ReadWinDirMult(std::array<Point2D, (size_t)FacingType::Count>& arr, INI_EX&
 	char buff_wind[0x25];
 
 	for (size_t i = 0; i < arr.size(); ++i) {
-		Nullable<Point2D> ReadWind;
 		IMPL_SNPRNINTF(buff_wind, sizeof(buff_wind) - 1, "WindDirectionMult%d", i);
-		ReadWind.Read(exINI, pID, buff_wind);
 
-		if(!ReadWind.isset()) {
+		if(!detail::read(arr[i], exINI, pID, buff_wind)) {
 			arr[i].X = *(beginX + i);
 			arr[i].Y = *(beginY + i);
-		}else
-			arr[i] = ReadWind.Get();
+		}
 	}
 }
 

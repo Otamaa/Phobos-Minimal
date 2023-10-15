@@ -66,9 +66,8 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Warhead_Detonate.Read(exINI, pID, "Warhead.Detonate");
 	this->Damage_TargetFlag.Read(exINI, pID, "Damage.TargetFlag");
 
-	Nullable<bool> Damage_TargetInvoker;
-	Damage_TargetInvoker.Read(exINI, pID, "Damage.TargetInvoker");
-	if (Damage_TargetInvoker.isset() && Damage_TargetInvoker.Get())
+	bool Damage_TargetInvoker;
+	if (detail::read(Damage_TargetInvoker , exINI, pID, "Damage.TargetInvoker") && Damage_TargetInvoker)
 		this->Damage_TargetFlag = DamageDelayTargetFlag::Invoker;
 
 	this->MakeInfantryOwner.Read(exINI, pID, "MakeInfantryOwner");
@@ -133,11 +132,10 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	for (size_t i = 0; ; ++i)
 	{
 		char nBuff[0x30];
-		Nullable<SuperWeaponTypeClass*> LaunchWhat_Dummy;
+		SuperWeaponTypeClass* LaunchWhat_Dummy;
 		IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.Type", i);
-		LaunchWhat_Dummy.Read(exINI, pID, nBuff, true);
 
-		if (!LaunchWhat_Dummy.isset() || !LaunchWhat_Dummy.Get())
+		if (!detail::read(LaunchWhat_Dummy , exINI, pID, nBuff, true) || !LaunchWhat_Dummy)
 			break;
 
 		this->Launchs.emplace_back().Read(exINI, pID, i, LaunchWhat_Dummy);

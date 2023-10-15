@@ -310,15 +310,12 @@ void TechnoTypeExt_ExtData::LoadTurrets(TechnoTypeClass* pType, CCINIClass* pINI
 	)
 	{
 		IMPL_SNPRNINTF(buffer, sizeof(buffer), "WeaponTurretIndex%u", i + 1);
-		Nullable<int> read_buff {};
-
-		read_buff.Read(iniEx, pSection, buffer);
+		int read_buff;
 		int* result = i < 18 ?
 			pType->TurretWeapon + i :
 			pExt->AdditionalTurrentWeapon.data() + (i - TechnoTypeClass::MaxWeapons);
 
-		if (read_buff.isset() && read_buff >= 0)
-		{
+		if (detail::read(read_buff , iniEx, pSection, buffer) && read_buff >= 0) {
 			*result = read_buff;
 		}
 
@@ -406,32 +403,33 @@ void TechnoTypeExt_ExtData::ReadWeaponStructDatas(TechnoTypeClass* pType, CCINIC
 		_snprintf(bufferWeapon, sizeof(bufferWeapon), "EliteWeapon%u", i + 1);
 
 		detail::read(data->WeaponType, iniEx, pSection, bufferWeapon + 5, true);
-		detail::read(data_e->WeaponType, iniEx, pSection, bufferWeapon, true);
 
-		if (!data_e->WeaponType)
+		if (!detail::read(data_e->WeaponType, iniEx, pSection, bufferWeapon, true))
 			data_e->WeaponType = data->WeaponType;
 
-		Nullable<CoordStruct> dummy_FLH {};
 		_snprintf(buffer, sizeof(buffer), "%sFLH", bufferWeapon);
 		detail::read(data->FLH, iniEX_art, pSection_art, buffer + 5, false);
-		dummy_FLH.Read(iniEX_art, pSection_art, buffer, false);
-		data_e->FLH = dummy_FLH.Get(data->FLH);
 
-		Nullable<int> dummy_BarrelLength {};
+		if (!detail::read(data_e->FLH, iniEX_art, pSection_art, buffer, false))
+			data_e->FLH = data->FLH;
+
 		_snprintf(buffer, sizeof(buffer), "%sBarrelLength", bufferWeapon);
 		detail::read(data->BarrelLength, iniEX_art, pSection_art, buffer + 5, false);
-		dummy_BarrelLength.Read(iniEX_art, pSection_art, buffer, false);
-		data_e->BarrelLength = dummy_BarrelLength.Get(data->BarrelLength);
 
-		Nullable<int> dummy_BarrelThickness {};
+		if(!detail::read(data_e->BarrelLength, iniEX_art, pSection_art, buffer))
+			data_e->BarrelLength = data->BarrelLength;
+
 		_snprintf(buffer, sizeof(buffer), "%sBarrelThickness", bufferWeapon);
 		detail::read(data->BarrelThickness, iniEX_art, pSection_art, buffer + 5, false);
-		data_e->BarrelThickness = dummy_BarrelThickness.Get(data->BarrelThickness);
 
-		Nullable<int> dummy_TurretLocked {};
+		if(!detail::read(data_e->BarrelThickness, iniEX_art, pSection_art, buffer))
+			data_e->BarrelThickness = data->BarrelThickness;
+
 		_snprintf(buffer, sizeof(buffer), "%sTurretLocked", bufferWeapon);
 		detail::read(data->TurretLocked, iniEX_art, pSection_art, buffer + 5, false);
-		data_e->TurretLocked = dummy_TurretLocked.Get(data->TurretLocked);
+
+		if(!detail::read(data_e->TurretLocked, iniEX_art, pSection_art, buffer))
+			data_e->TurretLocked = data->TurretLocked;
 	}
 }
 

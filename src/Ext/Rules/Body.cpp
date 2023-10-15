@@ -286,11 +286,11 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			if(what == InfantryTypeClass::AbsID){
 				WarheadTypeClass::Array->for_each([&](WarheadTypeClass* pWarhead) {
 				 if (auto const pExt = WarheadTypeExtContainer::Instance.TryFind(pWarhead)) {
-					Nullable<AnimTypeClass*> nBuffer {};
-					IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.InfDeathAnim", pItem->ID);
-					 nBuffer.Read(iniEX, pWarhead->ID, buffer);
 
-					if (!nBuffer.isset() || !nBuffer.Get())
+					AnimTypeClass* nBuffer;
+					IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.InfDeathAnim", pItem->ID);
+
+					if (!detail::read(nBuffer , iniEX, pWarhead->ID, buffer) || !nBuffer)
 						return;
 
 					//Debug::Log("Found specific InfDeathAnim for [WH : %s Inf : %s Anim %s]\n", pWarhead->ID, pInfType->ID, nBuffer->ID);
@@ -378,6 +378,7 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 	if(OverlayTypeClass::Array->Count > 255) {
 		Debug::Log("Reaching over 255 OverlayTypes!.\n");
+		Debug::RegisterParserError();
 	}
 
 	for (auto const pWH : *WarheadTypeClass::Array) {

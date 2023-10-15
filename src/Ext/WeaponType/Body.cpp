@@ -31,17 +31,14 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->DiskLaser_Circumference = (int)(this->DiskLaser_Radius * Math::Pi * 2);
 	}
 
-	Nullable<int> Bolt_Count;
-	Bolt_Count.Read(exINI, pSection, "Bolt.Count");
-
-	if (Bolt_Count.isset())
+	int Bolt_Count;
+	if (detail::read(Bolt_Count , exINI, pSection, "Bolt.Count") && Bolt_Count > 0)
 	{
-		const int nCount = Bolt_Count.Get();
-		BoltData data { nCount };
+		BoltData data { Bolt_Count };
 
 		auto disabled = data.Disabled.begin();
 		char buffer_bolt[0x30];
-		for (int i = 0; i < nCount; ++i)
+		for (int i = 0; i < Bolt_Count; ++i)
 		{
 			bool temp {};
 			IMPL_SNPRNINTF(buffer_bolt, sizeof(buffer_bolt), "Bolt.Disable%d", i + 1);

@@ -714,31 +714,17 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		auto GetGarrisonAnim = [&exINI, pSection](
 			PhobosMap<int, AnimTypeClass*>& nVec, const char* pBaseFlag, bool bAllocate = true, bool bParseDebug = false)
 		{
+			nVec.clear();
 			char tempBuffer[0x55];
 			for (int i = 0; i < HouseTypeClass::Array()->Count; ++i)
 			{
-				Nullable<AnimTypeClass*> nBuffer;
+				AnimTypeClass* nBuffer;
 				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "%s%d", pBaseFlag, i);
 
-				if (bParseDebug)
-					Debug::Log("GetGarrisonAnim for [%s]=%s idx[%d] \n", pSection, tempBuffer, i);
-
-				nBuffer.Read(exINI, pSection, tempBuffer, bAllocate);
-
-				if (!nBuffer.isset())
+				if (!detail::read(nBuffer , exINI, pSection, tempBuffer, bAllocate) || !nBuffer)
 					continue;
 
-				nVec[i] = nBuffer.Get();
-			}
-
-			if (!nVec.empty())
-			{
-				//remove invalid items to keep memory clean !
-				for (auto const& [nIdx, pAnimType] : nVec)
-				{
-					if (!pAnimType)
-						nVec.erase(nIdx);
-				}
+				nVec[i] = nBuffer;
 			}
 		};
 
@@ -1052,16 +1038,12 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		if (pThis->MaxNumberOccupants > 10)
 		{
 			char tempMuzzleBuffer[32];
+			this->OccupierMuzzleFlashes.clear();
 			this->OccupierMuzzleFlashes.resize(pThis->MaxNumberOccupants);
 
-			for (int i = 0; i < pThis->MaxNumberOccupants; ++i)
-			{
-				Nullable<Point2D> nMuzzleLocation;
+			for (int i = 0; i < pThis->MaxNumberOccupants; ++i) {
 				IMPL_SNPRNINTF(tempMuzzleBuffer, sizeof(tempMuzzleBuffer), "%s%d", GameStrings::MuzzleFlash(), i);
-				nMuzzleLocation.Read(exArtINI, pArtSection, tempMuzzleBuffer);
-
-				if (nMuzzleLocation.isset())
-					this->OccupierMuzzleFlashes[i] = nMuzzleLocation.Get();
+				detail::read(this->OccupierMuzzleFlashes[i], exArtINI, pArtSection, tempMuzzleBuffer);
 			}
 		}
 
@@ -1076,14 +1058,12 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		char tempFire_OffsBuffer[0x25];
 		for (int i = 0;; ++i)
 		{
-			Nullable<Point2D> nFire_offs;
+			Point2D nFire_offs;
 			IMPL_SNPRNINTF(tempFire_OffsBuffer, sizeof(tempFire_OffsBuffer), "%s%d", GameStrings::DamageFireOffset(), i);
-			nFire_offs.Read(exArtINI, pArtSection, tempFire_OffsBuffer);
-
-			if (!nFire_offs.isset())
+			if (!detail::read(nFire_offs , exArtINI, pArtSection, tempFire_OffsBuffer))
 				break;
 
-			this->DamageFire_Offs.push_back(nFire_offs.Get());
+			this->DamageFire_Offs.push_back(nFire_offs);
 		}
 #endif
 		this->BuildUp_UseNormalLIght.Read(exArtINI, pArtSection, "Buildup.UseNormalLight");
