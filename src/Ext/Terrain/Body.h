@@ -50,10 +50,6 @@ public:
 
 	void InitializeLightSource();
 	void InitializeAnim();
-	void ClearLightSource();
-	void ClearAnim();
-
-	void Uninitialize() { }
 
 private:
 	template <typename T>
@@ -62,7 +58,6 @@ private:
 public:
 
 	static void Unlimbo(TerrainClass* pThis, CoordStruct* pCoord);
-	static void CleanUp(TerrainClass* pThis);
 };
 
 class TerrainExtContainer final : public Container<TerrainExtData>

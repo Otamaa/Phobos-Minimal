@@ -29,7 +29,7 @@ void TerrainExtData::InitializeLightSource()
 			return;
 
 		auto Tint = TypeData->GetLightTint();
-		auto Coords = this->AttachedAnim->GetCoords();
+		auto Coords = this->AttachedToObject->GetCoords();
 
 		if (const auto light = GameCreate<LightSourceClass>(Coords, nVisibility, TypeData->GetLightIntensity(), Tint))
 		{
@@ -65,17 +65,6 @@ void TerrainExtData::InitializeAnim()
 	}
 }
 
-void TerrainExtData::ClearAnim()
-{
-	AttachedAnim.clear();
-}
-
-//called when it Dtor ed , for more optimal
-void TerrainExtData::ClearLightSource()
-{
-	LighSource.clear();
-}
-
 void TerrainExtData::Unlimbo(TerrainClass* pThis, CoordStruct* pCoord)
 {
 	if (!pThis || !pThis->Type)
@@ -97,17 +86,6 @@ void TerrainExtData::Unlimbo(TerrainClass* pThis, CoordStruct* pCoord)
 		TerrainExt->InitializeAnim();
 	}
 
-}
-
-void TerrainExtData::CleanUp(TerrainClass* pThis)
-{
-	if (!pThis)
-		return;
-
-	if(auto const TerrainExt = TerrainExtContainer::Instance.Find(pThis)) {
-		TerrainExt->ClearLightSource();
-		TerrainExt->ClearAnim();
-	}
 }
 
 // =============================

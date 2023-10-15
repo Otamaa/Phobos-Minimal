@@ -146,7 +146,6 @@ DEFINE_HOOK(0x468C86, BulletClass_ShouldExplode_Obstacles, 0xA)
 
 DEFINE_HOOK(0x6F7261, TechnoClass_InRange_Additionals, 0x5)
 {
-
 	GET(int, nRangeBonus, EDI);
 	GET(TechnoClass* const, pThis, ESI);
 	GET(AbstractClass* const, pTarget, ECX);
@@ -168,7 +167,7 @@ DEFINE_HOOK(0x6F7261, TechnoClass_InRange_Additionals, 0x5)
 
 DEFINE_HOOK(0x6F7647, TechnoClass_InRange_Obstacles, 0x5)
 {
-	GET(TechnoClass*, pThis, EDI);
+	GET_STACK(TechnoClass*, pThis, 0xC);
 	GET_BASE(WeaponTypeClass*, pWeapon, 0x10);
 	GET(CoordStruct const* const, pSourceCoords, ESI);
 	REF_STACK(CoordStruct const, targetCoords, STACK_OFFSET(0x3C, -0x1C));

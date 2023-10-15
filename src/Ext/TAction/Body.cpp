@@ -1000,9 +1000,8 @@ void TActionExt::RecreateLightSources()
  {
 	 if (nPair->IsAlive && !nPair->InLimbo)
 	 {
-		 const  auto pExt = TerrainExtContainer::Instance.Find(nPair);
-		 pExt->ClearLightSource();
-		 pExt->InitializeLightSource();
+		 TerrainExtContainer::Instance.Find(nPair)->LighSource.reset(nullptr);
+		 TerrainExtContainer::Instance.Find(nPair)->InitializeLightSource();
 	 }
 	});
 
