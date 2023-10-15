@@ -3782,19 +3782,19 @@ DEFINE_HOOK(0x4CD747, FlyLocomotionClass_UpdateMoving_OutOfMap, 6)
 //	return 0x4CED2D;
 //}
 
-int __fastcall UnitClass_MI_Open_(UnitClass* pThis)
-{
-	return 450;
-}
-
-DEFINE_JUMP(VTABLE , 0x7F5EC4 , GET_OFFSET(UnitClass_MI_Open_))
-
-int __fastcall InfantryClass_MI_Open_(InfantryClass* pThis)
-{
-	return 450;
-}
-
-DEFINE_JUMP(VTABLE , 0x7EB2AC , GET_OFFSET(InfantryClass_MI_Open_))
+//int __fastcall UnitClass_MI_Open_(UnitClass* pThis)
+//{
+//	return 450;
+//}
+//
+//DEFINE_JUMP(VTABLE , 0x7F5EC4 , GET_OFFSET(UnitClass_MI_Open_))
+//
+//int __fastcall InfantryClass_MI_Open_(InfantryClass* pThis)
+//{
+//	return 450;
+//}
+//
+//DEFINE_JUMP(VTABLE , 0x7EB2AC , GET_OFFSET(InfantryClass_MI_Open_))
 
 DEFINE_HOOK(0x6F7D90, TechnoClass_Threat_Forbidden, 0x6)
 {

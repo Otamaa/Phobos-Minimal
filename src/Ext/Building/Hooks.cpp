@@ -184,14 +184,14 @@ DEFINE_HOOK(0x450D9C, BuildingTypeClass_AI_Anims_IncludeWeeder_1, 0x6)
 	return 0x450F9E;
 }
 
-DEFINE_HOOK(0x450E12, BuildingTypeClass_AI_Anims_IncludeWeede_2, 0x7)
-{
-	GET(BuildingClass*, pBuilding, ESI);
-
-	R->EAX(pBuilding->Type->Weeder ?
-		int(4 * pBuilding->Owner->OwnedWeed.GetTotalAmount() / RulesClass::Instance->WeedCapacity) :
-		int(4 * pBuilding->Tiberium.GetTotalAmount() / pBuilding->Type->Storage)
-	);
-
-	return 0x450E3E;
-}
+// DEFINE_HOOK(0x450E12, BuildingTypeClass_AI_Anims_IncludeWeede_2, 0x7)
+// {
+// 	GET(BuildingClass*, pBuilding, ESI);
+//
+// 	R->EAX(pBuilding->Type->Weeder ?
+// 		int(4 * pBuilding->Owner->OwnedWeed.GetTotalAmount() / RulesClass::Instance->WeedCapacity) :
+// 		int(4 * pBuilding->Tiberium.GetTotalAmount() / pBuilding->Type->Storage)
+// 	);
+//
+// 	return 0x450E3E;
+// }
