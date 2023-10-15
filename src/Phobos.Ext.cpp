@@ -353,7 +353,6 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	WeaponTypeExtContainer::Instance.Clear();
 	WarheadTypeExtContainer::Instance.Clear();
 	SuperWeaponSidebar::Clear();
-	FoggedObject::FoggedObjects.Clear();
 	GenericPrerequisite::Clear();
 	CrateTypeClass::Clear();
 
@@ -456,8 +455,6 @@ DEFINE_HOOK(0x67D32C, SaveGame_Phobos_Global, 0x5)
 	if (!ret)
 		Debug::Log("[Phobos] Global SaveGame Failed !\n");
 
-	FoggedObject::SaveGlobal(pStm);
-
 	return 0;
 }
 
@@ -493,8 +490,6 @@ DEFINE_HOOK(0x67E826, LoadGame_Phobos_Global, 0x6)
 
 	if (!ret)
 		Debug::Log("[Phobos] Global LoadGame Failed !\n");
-
-	FoggedObject::LoadGlobal(pStm);
 
 	return 0;
 }

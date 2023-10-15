@@ -1,6 +1,9 @@
 #pragma once
 
 #include <Helpers/CompileTime.h>
+#include <CellStruct.h>
+#include <Timers.h>
+
 
 class Powerups {
 	public:
@@ -23,4 +26,8 @@ class Powerups {
 
 	// index into AnimTypeClass::Array
 	static constexpr reference<int, 0x81DAD8u, 19u> const Anims{};
+
+	CDTimerClass CrateTimer;
+	CellStruct Location;
 };
+static_assert(sizeof(Powerups) == 0x10, "Invalid Size !");

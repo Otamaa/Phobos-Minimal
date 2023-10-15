@@ -1137,6 +1137,29 @@ enum class PipScale : unsigned int {
 	MindControl = 5
 };
 
+enum class PowerupEffects : unsigned char
+ {
+	Money = 0,
+	Unit = 1,
+	HealBase = 2,
+	Cloak = 3,
+	Explosion = 4,
+	Napalm = 5,
+	Squad = 6,
+	Darkness = 7,
+	Reveal = 8,
+	Armor = 9,
+	Speed = 10,
+	Firepower = 11,
+	ICBM = 12,
+	Invulnerability = 13,
+	Veteran = 14,
+	IonStorm = 15,
+	Gas = 16,
+	Tiberium = 17,
+	Pod = 18
+};
+
 enum class Powerup : unsigned int {
 	Money = 0,
 	Unit = 1,

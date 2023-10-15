@@ -1,6 +1,6 @@
 #include "Body.h"
 
-TiberiumClass* CellExt::GetTiberium(CellClass* pCell)
+TiberiumClass* CellExtData::GetTiberium(CellClass* pCell)
 {
 	if (pCell->OverlayTypeIndex != -1)
 		if (const auto pTiberium = TiberiumClass::Array->GetItemOrDefault(TiberiumClass::FindIndex(pCell->OverlayTypeIndex)))
@@ -9,7 +9,7 @@ TiberiumClass* CellExt::GetTiberium(CellClass* pCell)
 	return nullptr;
 }
 
-int CellExt::GetOverlayIndex(CellClass* pCell, TiberiumClass* pTiberium)
+int CellExtData::GetOverlayIndex(CellClass* pCell, TiberiumClass* pTiberium)
 {
 	if (pTiberium) {
 		return (pCell->SlopeIndex > 0) ?
@@ -20,7 +20,7 @@ int CellExt::GetOverlayIndex(CellClass* pCell, TiberiumClass* pTiberium)
 	return 0;
 }
 
-int CellExt::GetOverlayIndex(CellClass* pCell)
+int CellExtData::GetOverlayIndex(CellClass* pCell)
 {
 	if (pCell->OverlayTypeIndex != -1) {
 		if (const auto pTiberium = TiberiumClass::Array->GetItemOrDefault(TiberiumClass::FindIndex(pCell->OverlayTypeIndex))) {
@@ -34,53 +34,53 @@ int CellExt::GetOverlayIndex(CellClass* pCell)
 
 // ============================ =
 // load / save
-//template <typename T>
-//void CellExt::ExtData::Serialize(T& Stm) {
-//
-//	Stm
-//		.Process(this->Initialized)
-//		.Process(this->FoggedObjects)
-//		;
-//}
+template <typename T>
+void CellExtData::Serialize(T& Stm) {
+
+	Stm
+		.Process(this->Initialized)
+		.Process(this->NewPowerups)
+		;
+}
 
 // =============================
 // container
-//CellExt::ExtContainer CellExt::ExtMap;
+CellExtContainer CellExtContainer::Instance;
 
 // =============================
 // container hooks
 
-//DEFINE_HOOK(0x47BDA1, CellClass_CTOR, 0x5)
-//{
-//	GET(CellClass*, pItem, ESI);
-//	CellExt::ExtMap.Allocate(pItem);
-//	return 0;
-//}
-//
-//DEFINE_HOOK(0x47BB60, CellClass_DTOR, 0x6)
-//{
-//	GET(CellClass*, pItem, ECX);
-//	CellExt::ExtMap.Remove(pItem);
-//	return 0;
-//}
-//
-//DEFINE_HOOK_AGAIN(0x483C10, CellClass_SaveLoad_Prefix, 0x5)
-//DEFINE_HOOK(0x4839F0, CellClass_SaveLoad_Prefix, 0x7)
-//{
-//	GET_STACK(CellClass*, pItem, 0x4);
-//	GET_STACK(IStream*, pStm, 0x8);
-//	CellExt::ExtMap.PrepareStream(pItem, pStm);
-//	return 0;
-//}
-//
-//DEFINE_HOOK(0x483C00, CellClass_Load_Suffix, 0x5)
-//{
-//	CellExt::ExtMap.LoadStatic();
-//	return 0;
-//}
-//
-//DEFINE_HOOK(0x483C79, CellClass_Save_Suffix, 0x6)
-//{
-//	CellExt::ExtMap.SaveStatic();
-//	return 0;
-//}
+DEFINE_HOOK(0x47BDA1, CellClass_CTOR, 0x5)
+{
+	GET(CellClass*, pItem, ESI);
+	CellExtContainer::Instance.Allocate(pItem);
+	return 0;
+}
+
+DEFINE_HOOK(0x47BB60, CellClass_DTOR, 0x6)
+{
+	GET(CellClass*, pItem, ECX);
+	CellExtContainer::Instance.Remove(pItem);
+	return 0;
+}
+
+DEFINE_HOOK_AGAIN(0x483C10, CellClass_SaveLoad_Prefix, 0x5)
+DEFINE_HOOK(0x4839F0, CellClass_SaveLoad_Prefix, 0x7)
+{
+	GET_STACK(CellClass*, pItem, 0x4);
+	GET_STACK(IStream*, pStm, 0x8);
+	CellExtContainer::Instance.PrepareStream(pItem, pStm);
+	return 0;
+}
+
+DEFINE_HOOK(0x483C00, CellClass_Load_Suffix, 0x5)
+{
+	CellExtContainer::Instance.LoadStatic();
+	return 0;
+}
+
+DEFINE_HOOK(0x483C79, CellClass_Save_Suffix, 0x6)
+{
+	CellExtContainer::Instance.SaveStatic();
+	return 0;
+}

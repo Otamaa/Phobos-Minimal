@@ -4050,6 +4050,322 @@ DEFINE_HOOK(0x5FF93F, SpotlightClass_Draw_OutOfboundSurfaceArrayFix, 0x7)
 	return 0x0;
 }
 
+#include <Ext/Cell/Body.h>
+
+//TODO : another place to reset ?
+// this one address not really convincing ,..
+/*
+DEFINE_HOOK(0x56C1D3, MapClass_RemoveCrate_Override, 7)
+{
+	GET(CellClass*, pThis, EBX);
+
+	if(auto pExt = CellExtContainer::Instance.Find(pThis))
+		pExt->NewPowerups = -1;
+
+	return 0;
+}
+
+DEFINE_HOOK(0x56BFBE, MapClass_PlaceCrate_Override, 7)
+{
+	LEA_STACK(CellStruct*, pos, 0x18);
+	GET_STACK(int, OverlayData, 0x1C);
+
+	auto CellExt = CellExtContainer::Instance.Find(MapClass::Instance->GetCellAt(pos));
+
+	if (!CellExt)
+		return 0x0;
+
+	//ugly XD
+	//20 is random , dont occupy that
+	//custom powerup
+	const auto NewPowerUp = OverlayData > 20 ? (OverlayData - 20) : (-1);
+	//original powerup
+	OverlayData = OverlayData > 20 ? 20 : OverlayData;
+	OverlayData = OverlayData == 19 ? 0 : OverlayData; //19 is empty replace it with money instead
+
+	//18,6,15,13 absolute crate replace to speed
+  //  OverlayData = OverlayData == 13 || OverlayData == 18 || OverlayData == 6 || OverlayData == 15 ? 10 : OverlayData;
+
+	CellExt->AttachedToObject->OverlayData = (unsigned char)(OverlayData);
+	CellExt->NewPowerups = NewPowerUp;
+
+	Debug::Log("MapClass_PlaceCrate_Override NewPowerUps [%d] Original PowerUps[%d] cell NewPowerups [%d] \n", NewPowerUp, OverlayData, CellExt->NewPowerups);
+	return 0x56BFFF; //return true;
+}
+
+DEFINE_HOOK(0x481ACE, CellHasPowerUp_Override, 5)
+{
+	GET(CellClass*, pThis, ESI);
+
+	enum {
+		keeproll = 0x481AD3, SpawnSpesific = 0x481B22
+	};
+
+	const auto CellExt = CellExtContainer::Instance.TryFind(pThis);
+
+	if (CellExt && CellExt->NewPowerups > -1)
+	{
+		Debug::Log("CellHasPowerUp_Override Original PowerUps [%d] cell NewPowerups [%d] \n", pThis->OverlayData, CellExt->NewPowerups);
+
+		R->EBX(PowerupEffects::Darkness);//force spawn Darkness
+		return SpawnSpesific;
+	} else if(pThis->OverlayData < 19u) {
+	   R->EBX(pThis->OverlayData);
+		return SpawnSpesific;
+	}
+
+	return keeproll;
+}
+
+DEFINE_HOOK(0x73844A, UnitClass_ReceiveDamage_PlaceCrate_override, 6)
+{
+	GET(CellStruct, Where, EAX);
+	GET(UnitClass*, pthis, ESI);
+
+	const auto CrateType = abs(TechnoTypeExt::ExtMap.Find(pthis->GetTechnoType())->CrateType);
+	const auto Success = CrateStufs::Place_Crate(Where, (PowerupEffects)CrateType);
+	Debug::Log("Unit[%s] to crate [%d] X [%d] Y[%d] succes [%d]\n", pthis->Type->ID, CrateType, Where.X, Where.Y, Success);
+	return 0x738457;
+}
+
+DEFINE_HOOK(0x442215, BuildingTypeClass_Destroy_PlaceCrate_override, 7)
+{
+	GET(BuildingTypeClass*, pBldType, EDX);
+	GET(BuildingClass *, Building, EBX);
+
+	const auto CrateType = abs(TechnoTypeExt::ExtMap.Find((pBldType))->CrateType);
+	const auto Success = CrateStufs::Place_Crate(Building->GetMapCoords(), (PowerupEffects)CrateType);
+	Debug::Log("Building[%s] to crate [%d] succes ? [%d] \n", pBldType->ID, CrateType, Success);
+	R->AL(Success);
+
+	return 0x442226;
+}
+
+//Shroud easy to handle without breaking everything else
+//jump goes to the end of the function because need to replace the animation
+//for more fit with the stuffs
+DEFINE_HOOK(481F87, CellClass_CrateCollected_Shroud_Override, 7)
+{
+	if (CrateTypeClass::Array.empty())
+	{
+		Debug::Log("CrateType is empty return 0 \n");
+		return 0;
+	}
+
+	GET(TechnoClass*, Collector, EAX);
+
+	bool pass = false;//return default
+
+	if (auto const pHouse = Collector->Owner)
+	{
+		auto& CrateType = CrateTypeClass::Array;
+		//accesing thru Powerups::Anim causing access violation crash
+		auto Powerups_Animarray = reinterpret_cast<int*>(0x81DAD8);
+
+		CellStruct BufferCellStruct = { 0,0 };
+		BufferCellStruct.X = static_cast<short>(R->EDX());
+		BufferCellStruct.Y = static_cast<short>(R->ECX());
+
+		auto Cell = MapClass::Instance->TryGetCellAt(BufferCellStruct);
+		auto height = MapClass::Instance->GetCellFloorHeight(CellClass::Cell2Coord(BufferCellStruct));
+		auto animCoord = CellClass::Cell2Coord(BufferCellStruct, 200 + height);
+
+		auto& Randomizer = ScenarioClass::Instance->Random;
+		auto& Rules = RulesClass::Instance;
+		auto dice = Randomizer.RandomRanged(0, CrateType.size() - 1); //Pick  random from array
+		auto pickedupDice = Randomizer.RandomRanged(0, Rules->CrateMaximum);
+
+		//chance 0 cause crash fix
+		bool allowspawn = abs(CrateType[dice]->Chance.Get()) < pickedupDice && abs(CrateType[dice]->Chance.Get()) > 0;
+
+		if (CellExt::ExtMap.Find(Cell)->NewPowerups > -1)
+		{
+			dice = abs(CellExt::ExtMap.Find(Cell)->NewPowerups);
+			dice = dice - 1;
+			Debug::Log("Crate type Check cell which to spawn [%d]\n", dice);
+			allowspawn = true; //forced
+		}
+		bool LandTypeEligible = false;
+		auto type = CrateType[dice]->Type.Get();
+		auto pType = CrateType[dice]->Anim.Get();
+		auto pSound = CrateType[dice]->Sound.Get();
+		auto pEva = CrateType[dice]->Eva.Get();
+		bool NotObserver = !pHouse->IsObserver() && !pHouse->IsPlayerObserver();
+		auto isWater = Cell->LandType == LandType::Water && Cell->Tile_Is_Water() && Cell->Tile_Is_Wet();
+		LandTypeEligible = (CrateType[dice]->AllowWater && isWater) || !isWater;
+
+		if (allowspawn && LandTypeEligible)
+		{
+			switch (type)
+			{
+			case 1: //Super Weapon
+			{
+				auto SWIDX = CrateType[dice]->Super.Get();
+				auto pSuper = pHouse->Supers.GetItem(SWIDX);
+
+				if (CrateType[dice]->SuperGrant.Get())
+				{
+					if (pSuper->Grant(true, NotObserver, false))
+					{
+						if (NotObserver && pHouse == HouseClass::Player)
+						{
+							if (MouseClass::Instance->AddCameo(AbstractType::Special, SWIDX))
+								MouseClass::Instance->RepaintSidebar(1);
+						}
+					}
+				}
+				else
+				{
+					//Abused By AI ?
+					pSuper->IsCharged = true;
+					pSuper->Launch(Cell->MapCoords, true);
+
+				}
+				pass = true;
+			}
+			break;
+			case 2: //Weapon
+			{
+				auto Weapon = CrateType[dice]->WeaponType.Get();
+				if (Weapon && (!Weapon->Warhead->MindControl || !Weapon->LimboLaunch))
+				{
+					if (auto pBulletC = Weapon->Projectile->CreateBullet(Cell, Collector, Weapon->Damage, Weapon->Warhead, Weapon->Speed, Weapon->Bright))
+					{
+						pBulletC->SetWeaponType(Weapon);
+						pBulletC->SetLocation(CellClass::Cell2Coord(BufferCellStruct));
+						if (Weapon->Projectile->ShrapnelCount > 0)
+							pBulletC->Shrapnel();
+						pBulletC->Detonate(CellClass::Cell2Coord(BufferCellStruct));
+						pBulletC->Remove();
+						pBulletC->UnInit();
+
+						pass = true;
+					}
+				}
+			}
+			break;
+			case 3: //case 3 is overrided reshroud
+			{
+				if (!pType)
+					pType = AnimTypeClass::Array->GetItem(Powerups_Animarray[7]);
+				MapClass::Instance->Reshroud(pHouse);
+				pass = true;
+			}
+			break;
+			case 4: //random Unit
+			{
+				if (auto Unit = CrateType[dice]->Unit.GetElements())
+				{
+					auto const pUnit = static_cast<TechnoClass*>(Unit.at(Randomizer.Random() % Unit.size())->CreateObject(pHouse));
+
+					auto TrygeteligibleArea = TechnoExt::GetPutLocation(CellClass::Cell2Coord(BufferCellStruct), 6); //try to not get stuck
+					auto facing = static_cast<short>(Randomizer.RandomRanged(0, 255));
+					++Unsorted::IKnowWhatImDoing;
+					auto succes = pUnit->Put(TrygeteligibleArea, facing);
+					--Unsorted::IKnowWhatImDoing;
+
+					if (!succes)
+					{
+						GameDelete(pUnit);
+					}
+					else
+					{
+						if (!pUnit->InLimbo)
+						{
+							pUnit->NeedsRedraw = true;
+							pUnit->Update();
+							pUnit->QueueMission(Mission::Guard, 1);
+							pUnit->NextMission();
+						}
+
+						if (NotObserver)
+							pHouse->RecheckTechTree = true;
+
+						pass = true;
+					}
+				}
+			}
+			break;
+			case 5: //Money
+			{
+				if (!pType)
+					pType = AnimTypeClass::Array->GetItem(Powerups_Animarray[0]);
+				if (!pSound)
+					pSound = Rules->CrateMoneySound;
+
+				auto MoneyMin = abs(CrateType[dice]->MoneyMin.Get());
+				auto MoneyMax = abs(CrateType[dice]->MoneyMax.Get());
+				if (MoneyMax > MoneyMin)
+				{
+					pHouse->GiveMoney(Randomizer.RandomRanged(MoneyMin, MoneyMax));
+					pass = true;
+				}
+			}
+			break;
+			case 6: //Heall All
+			{
+				if (!pType)
+					pType = AnimTypeClass::Array->GetItem(Powerups_Animarray[2]);
+				if (!pSound)
+					pSound = Rules->HealCrateSound;
+
+				for (auto const& pTechno : *TechnoClass::Array)
+				{
+					bool Allowed = !pTechno->InLimbo || !pTechno->TemporalTargetingMe || !pTechno->IsSinking || !pTechno->IsCrashing;
+
+					if (pTechno->Owner == pHouse && pTechno->IsAlive && Allowed)
+					{
+						auto damage = (pTechno->GetTechnoType()->Strength * pTechno->Health) * -1;
+
+						pTechno->ReceiveDamage(&damage, 0, Rules->C4Warhead, Collector, true, true, pHouse);
+						pTechno->Flash(100);
+					}
+				}
+
+				pass = true;
+			}
+			break;
+			default:
+				break;
+			}
+
+			if (pass)
+			{
+				if (pType)
+					if (auto anim = GameCreate<AnimClass>(pType, animCoord))
+						anim->Owner = pHouse;
+
+				if (pSound)
+					VocClass::PlayAt(pSound, animCoord, nullptr);
+
+				if (pEva && pHouse->ControlledByPlayer() && NotObserver)
+					VoxClass::PlayAtPos(pEva, &animCoord);
+			}
+		}
+		else
+		{
+			return 0x481AD3; //reroll it instead
+			//reroll may cause game to freeze if only Shroud crate is activated (chance > 0)
+			//need atlast 2 (Shroud + other)
+			//Possible doubling Score for multiplayer play which is undesirable side affects
+
+			// Send money instead
+			//if (!pType)
+			//	pType = AnimTypeClass::Array->GetItem(Powerups_Animarray[0]);
+			//	  if (!pSound)
+			//		  pSound = Rules->CrateMoneySound;
+			//
+			//	  pHouse->GiveMoney(Rules->SoloCrateMoney);
+			//
+			//	  pass = true;
+		}
+
+	}
+
+	return pass ? 0x483389 : 0x0;
+}
+*/
+
 //DEFINE_HOOK(0x4C762A, EventClass_Execute_Idle, 0x6)
 //{
 //	GET(TechnoClass*, pTech, ESI);

@@ -84,7 +84,6 @@ public:
 	//static constexpr size_t ExtOffset = 0x35C;
 	static constexpr size_t ExtOffset = 0xDF4;
 
-
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
 public:

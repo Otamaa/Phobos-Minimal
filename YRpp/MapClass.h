@@ -6,6 +6,7 @@
 #include <AnimTypeClass.h>
 #include <Interface/IGameMap.h>
 #include <SpecificStructures.h>
+#include <Powerups.h>
 
 class BulletTypeClass;
 class ObjectClass;
@@ -39,15 +40,6 @@ struct CrackedIceStruct
 	CellStruct Pos;
 	int CrackingAtFrames; // cracking frame?
 };
-
-//Powerup crates
-struct Crate
-{
-	//Properties
-	CDTimerClass CrateTimer;
-	CellStruct Location;
-};
-static_assert(sizeof(Crate) == 0x10, "Invalid Size !");
 
 struct CellLevelPassabilityStruct
 {
@@ -604,7 +596,7 @@ public:
 	void BuildingToWall(CellStruct const& cell, HouseClass* pHouse, BuildingTypeClass* pBldType)
 		{ JMP_THIS(0x588750); }
 
-	bool Place_Crate(CellStruct cell, int idxCrate)
+	bool Place_Crate(CellStruct cell, PowerupEffects crateType)
 		{ JMP_THIS(0x56BEC0); }
 
 	bool Remove_Crate(CellStruct* where)
@@ -713,7 +705,7 @@ public:
 	int MaxWidth;
 	int MaxHeight;
 	int MaxNumCells;
-	Crate Crates [0x100];
+	Powerups Crates [0x100];
 	BOOL Redraws;
 	DynamicVectorClass<CellStruct> TaggedCells;
 };

@@ -16,7 +16,7 @@ DEFINE_HOOK(0x47FDF9, CellClass_GetOverlayShadowRect, 0xA)
 	GET(OverlayTypeClass*, pOverlay, ESI);
 
 	if (pOverlay->Tiberium)
-		pOverlay = OverlayTypeClass::Array->GetItem(CellExt::GetOverlayIndex(pThis));
+		pOverlay = OverlayTypeClass::Array->GetItem(CellExtData::GetOverlayIndex(pThis));
 
 	R->EBX(pOverlay->GetImage());
 
@@ -38,7 +38,7 @@ DEFINE_HOOK(0x6D7A46, TacticalClass_DrawPixelFX_Tiberium, 0x7)
 
 	bool bDraw = false;
 
-	if (const auto pTiberium = CellExt::GetTiberium(pCell)) {
+	if (const auto pTiberium = CellExtData::GetTiberium(pCell)) {
 		if (TiberiumExtExtContainer::Instance.Find(pTiberium)->EnablePixelFXAnim)
 			bDraw = pTiberium->Value;
 	}
@@ -51,7 +51,7 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8) // B
 {
 	GET(CellClass*, pThis, ESI);
 
-	const auto pTiberium = CellExt::GetTiberium(pThis);
+	const auto pTiberium = CellExtData::GetTiberium(pThis);
 
 	if (!pTiberium)
 		return 0x47FB86;
@@ -72,7 +72,7 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8) // B
 	GET_STACK(Point2D, nPos, 0x14);
 	GET(RectangleStruct*, pBound, EBP);
 
-	auto nIndex = CellExt::GetOverlayIndex(pThis, pTiberium);
+	auto nIndex = CellExtData::GetOverlayIndex(pThis, pTiberium);
 	const auto pShape = OverlayTypeClass::Array->GetItem(nIndex)->GetImage();
 
 	if (!pShape)
