@@ -13,7 +13,7 @@
 //public:
 //	~IonBlastExt() = default;
 //	IonBlastExt() noexcept { IonBlastExt::ExtData(); }
-//	IonBlastExt(IonBlastClass* pIon, WarheadTypeExt::ExtData* pWhExt, HouseClass* pOwner, TechnoClass* pTechno) noexcept
+//	IonBlastExt(IonBlastClass* pIon, WarheadTypeExtData* pWhExt, HouseClass* pOwner, TechnoClass* pTechno) noexcept
 //	{ IonExtMap.insert(pIon, std::make_unique<IonBlastExt::ExtData>(pWhExt, pOwner, pTechno)); }
 //
 //	//similar to ExtDataContainer, handle the real data
@@ -21,7 +21,7 @@
 //	{
 //	public:
 //
-//		WarheadTypeExt::ExtData* AttachedWarheadData;
+//		WarheadTypeExtData* AttachedWarheadData;
 //		HouseClass* IonHouseOwner;
 //		TechnoClass* TechnoOwner;
 //
@@ -31,7 +31,7 @@
 //			AttachedWarheadData(nullptr)
 //		{ }
 //
-//		ExtData(WarheadTypeExt::ExtData* pWhExt, HouseClass* pOwner, TechnoClass* pTechno) noexcept :
+//		ExtData(WarheadTypeExtData* pWhExt, HouseClass* pOwner, TechnoClass* pTechno) noexcept :
 //			TechnoOwner(pTechno),
 //			IonHouseOwner(pOwner),
 //			AttachedWarheadData(pWhExt)

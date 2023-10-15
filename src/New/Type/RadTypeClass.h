@@ -55,27 +55,27 @@ public:
 
 	bool GetWarheadDetonate() const
 	{
-		return this->RadWarhead_Detonate.Get(RulesExt::Global()->RadWarhead_Detonate);
+		return this->RadWarhead_Detonate.Get(RulesExtData::Instance()->RadWarhead_Detonate);
 	}
 
 	bool GetHasOwner(const Nullable<bool>&nOwner) const
 	{
-		return nOwner.Get(this->RadHasOwner.Get(RulesExt::Global()->RadHasOwner));
+		return nOwner.Get(this->RadHasOwner.Get(RulesExtData::Instance()->RadHasOwner));
 	}
 
 	bool GetHasInvoker(const Nullable<bool>& nOwner) const
 	{
-		return nOwner.Get(this->RadHasInvoker.Get(RulesExt::Global()->RadHasInvoker));
+		return nOwner.Get(this->RadHasInvoker.Get(RulesExtData::Instance()->RadHasInvoker));
 	}
 
 	bool GetHasOwner() const
 	{
-		return (this->RadHasOwner.Get(RulesExt::Global()->RadHasOwner));
+		return (this->RadHasOwner.Get(RulesExtData::Instance()->RadHasOwner));
 	}
 
 	bool GetHasInvoker() const
 	{
-		return (this->RadHasInvoker.Get(RulesExt::Global()->RadHasInvoker));
+		return (this->RadHasInvoker.Get(RulesExtData::Instance()->RadHasInvoker));
 	}
 
 	ColorStruct GetColor() const
@@ -95,7 +95,7 @@ public:
 
 	int GetBuildingApplicationDelay() const
 	{
-		return abs(this->BuildingApplicationDelay.Get(RulesExt::Global()->RadApplicationDelay_Building.Get()));
+		return abs(this->BuildingApplicationDelay.Get(RulesExtData::Instance()->RadApplicationDelay_Building.Get()));
 	}
 
 	int GetLevelMax()  const

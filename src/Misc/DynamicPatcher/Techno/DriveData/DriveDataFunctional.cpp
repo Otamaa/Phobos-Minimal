@@ -1,11 +1,11 @@
 #include "DriveDataFunctional.h"
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
 
-void DriveDataFunctional::AI(TechnoExt::ExtData* pThis)
+void DriveDataFunctional::AI(TechnoExtData* pThis)
 {
-	auto pTechno = pThis->Get();
+	auto pTechno = pThis->AttachedToObject;
 
-	if (!TechnoExt::IsActive(pTechno))
+	if (!TechnoExtData::IsActive(pTechno))
 		return;
 
 	Mission const mission = pTechno->CurrentMission;

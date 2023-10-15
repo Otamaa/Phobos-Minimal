@@ -16,7 +16,7 @@ DEFINE_HOOK(0x452678, BuildingClass_CanUpgrade_UpgradeBuildings, 0x6) //8
 	GET_STACK(BuildingTypeClass*, pUpgrade, 0xC);
 	GET(HouseClass*, pUpgradeOwner, EAX);
 
-	if (BuildingTypeExt::CanUpgrade(pBuilding, pUpgrade, pUpgradeOwner))
+	if (BuildingTypeExtData::CanUpgrade(pBuilding, pUpgrade, pUpgradeOwner))
 	{
 		R->EAX(pBuilding->Type->PowersUpToLevel);
 		return Continue;
@@ -32,7 +32,7 @@ DEFINE_HOOK(0x4408EB, BuildingClass_Unlimbo_UpgradeBuildings, 0x6) //A
 	GET(BuildingClass*, pBuilding, EDI);
 	GET(BuildingClass*, pUpgrade, ESI);
 
-	if (BuildingTypeExt::CanUpgrade(pBuilding, pUpgrade->Type, pUpgrade->Owner))
+	if (BuildingTypeExtData::CanUpgrade(pBuilding, pUpgrade->Type, pUpgrade->Owner))
 	{
 		R->EBX(pUpgrade->Type);
 		pUpgrade->SetOwningHouse(pBuilding->Owner, false);

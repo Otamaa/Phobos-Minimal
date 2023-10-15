@@ -14,7 +14,7 @@
 // just un-init it and replace it with nullptr is enough
 namespace DamageFireAnims
 {
-	void HandleRemoveAsExt(BuildingExt::ExtData* pExt)
+	void HandleRemoveAsExt(BuildingExtData* pExt)
 	{
 		if (!pExt)
 			return;
@@ -30,12 +30,12 @@ namespace DamageFireAnims
 	}
 
 	void HandleRemove(BuildingClass* pThis) {
-		auto pExt = BuildingExt::ExtMap.Find(pThis);
+		auto pExt = BuildingExtContainer::Instance.Find(pThis);
 		HandleRemoveAsExt(pExt);
 	}
 
 	void HandleInvalidPtr(BuildingClass* pThis, void* ptr) {
-		auto const pExt = BuildingExt::ExtMap.Find(pThis);
+		auto const pExt = BuildingExtContainer::Instance.Find(pThis);
 		if (!pExt)
 			return;
 
@@ -49,7 +49,7 @@ namespace DamageFireAnims
 	void Construct(BuildingClass* pThis)
 	{
 		const auto pType = pThis->Type;
-		const auto pExt = BuildingExt::ExtMap.Find(pThis);
+		const auto pExt = BuildingExtContainer::Instance.Find(pThis);
 		const auto pTypeext = pExt->Type;
 
 		HandleRemoveAsExt(pExt);
@@ -159,7 +159,7 @@ DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)
 
 	if (args.WH->Sparky)
 	{
-		auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+		auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 		const bool Onfire = pTypeExt->HealthOnfire.Get(pThis->GetHealthStatus());
 		auto const pFireType = pTypeExt->OnFireTypes.GetElements(RulesClass::Instance->OnFire);
 
@@ -181,7 +181,7 @@ DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)
 							const auto pKiller = args.Attacker;
 							const auto Invoker = (pKiller) ? pKiller->Owner : args.SourceHouse;
 
-							AnimExt::SetAnimOwnerHouseKind(pAnim, Invoker, pThis->Owner, pKiller, false);
+							AnimExtData::SetAnimOwnerHouseKind(pAnim, Invoker, pThis->Owner, pKiller, false);
 						}
 					}
 				};

@@ -39,7 +39,7 @@
 DEFINE_OVERRIDE_HOOK(0x65DBB3, TeamTypeClass_CreateInstance_Plane, 5)
 {
 	GET(FootClass*, pFoot, EBP);
-	R->ECX(HouseExt::GetParadropPlane(pFoot->Owner));
+	R->ECX(HouseExtData::GetParadropPlane(pFoot->Owner));
 	++Unsorted::ScenarioInit();
 	return 0x65DBD0;
 }
@@ -57,7 +57,7 @@ DEFINE_OVERRIDE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
 	if(AresScriptExt::Handle(pThis, pTeamMission, bThirdArg))
 		return ReturnFunc;
 
-	auto pTeamData = TeamExt::ExtMap.Find(pThis);
+	auto pTeamData = TeamExtContainer::Instance.Find(pThis);
 
 	// Force a line jump. This should support vanilla YR Actions
 	if (pTeamData->ForceJump_InitialCountdown > 0 && pTeamData->ForceJump_Countdown.Expired())
@@ -100,7 +100,7 @@ DEFINE_OVERRIDE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
 
 		for (auto pUnit = pThis->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 		{
-			if (ScriptExt::IsUnitAvailable(pUnit, true))
+			if (ScriptExtData::IsUnitAvailable(pUnit, true))
 			{
 				pUnit->EnterIdleMode(false, 1);
 			}
@@ -110,7 +110,7 @@ DEFINE_OVERRIDE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
 	}
 	else
 	{
-		ScriptExt::ProcessScriptActions(pThis);
+		ScriptExtData::ProcessScriptActions(pThis);
 	}
 
 	return Continue;
@@ -136,8 +136,8 @@ DEFINE_OVERRIDE_HOOK(0x6EFB69, TeamClass_GatherAtFriendlyBase_Distance, 0x6)
 	GET(RulesClass*, pRules, ECX);
 	//Debug::Log("%s", std::format("{} Function With Type {} ! \n", __FUNCTION__, pTeam->Type->ID).c_str());
 	//const auto pTeamExt = TeamTypeExt::ExtMap.Find(pTeam->Type);
-	//R->EDX(pTeamExt->AI_FriendlyDistance.Get(RulesExt::Global()->AIFriendlyDistance.Get(RulesClass::Instance->AISafeDistance)) + pTeamM->Argument);
-	R->EDX(RulesExt::Global()->AIFriendlyDistance.Get(pRules->AISafeDistance) + pTeamM->Argument);
+	//R->EDX(pTeamExt->AI_FriendlyDistance.Get(RulesExtData::Instance()->AIFriendlyDistance.Get(RulesClass::Instance->AISafeDistance)) + pTeamM->Argument);
+	R->EDX(RulesExtData::Instance()->AIFriendlyDistance.Get(pRules->AISafeDistance) + pTeamM->Argument);
 	return 0x6EFB6F;
 }
 
@@ -149,7 +149,7 @@ DEFINE_OVERRIDE_HOOK(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
 	GET(AbstractClass*, pAttacker, EBP);
 
 	// get ot if global option is off
-	if (!RulesExt::Global()->TeamRetaliate)
+	if (!RulesExtData::Instance()->TeamRetaliate)
 	{
 		return 0x6EB47A;
 	}

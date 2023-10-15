@@ -65,20 +65,20 @@ void Phobos_DoControls::ReadSequence(std::vector<DoInfoStruct>& Desig, InfantryT
 	}
 }
 
-void InfantryTypeExt::ExtData::Initialize()
+void InfantryTypeExtData::Initialize()
 {
-	const auto pID = this->Get()->ID;
+	const auto pID = this->AttachedToObject->ID;
 	this->Is_Deso = IS_SAME_STR_(pID, GameStrings::DESO());
 	this->Is_Cow = IS_SAME_STR_(pID, GameStrings::COW());
 }
 
-void InfantryTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+void InfantryTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
-	const char* pID = this->Get()->ID;
+	const char* pID = this->AttachedToObject->ID;
 
 	INI_EX exINI(pINI);
 	INI_EX iniEX_art(CCINIClass::INI_Art());
-	const auto pSection_art = this->Get()->ImageFile;
+	const auto pSection_art = this->AttachedToObject->ImageFile;
 
 	this->Is_Deso.Read(exINI, pID,  "IsDesolator");
 	this->Is_Cow.Read(exINI, pID, "IsCow");
@@ -140,7 +140,7 @@ void InfantryTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 // load / save
 
 template <typename T>
-void InfantryTypeExt::ExtData::Serialize(T& Stm)
+void InfantryTypeExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
@@ -159,7 +159,7 @@ void InfantryTypeExt::ExtData::Serialize(T& Stm)
 
 // =============================
 // container
-InfantryTypeExt::ExtContainer InfantryTypeExt::ExtMap;
+InfantryTypeExtContainer InfantryTypeExtContainer::Instance;
 
 // =============================
 // container hooks
@@ -167,15 +167,15 @@ InfantryTypeExt::ExtContainer InfantryTypeExt::ExtMap;
 DEFINE_HOOK(0x523970, InfantryTypeClass_CTOR, 0x5)
 {
 	GET(InfantryTypeClass*, pItem, ESI);
-	if(auto pExt = InfantryTypeExt::ExtMap.Allocate(pItem))
-		pExt->Type = TechnoTypeExt::ExtMap.Find(pItem);
+	if(auto pExt = InfantryTypeExtContainer::Instance.Allocate(pItem))
+		pExt->Type = TechnoTypeExtContainer::Instance.Find(pItem);
 	return 0;
 }
 
 DEFINE_HOOK(0x5239D0, InfantryTypeClass_DTOR, 0x5)
 {
 	GET(InfantryTypeClass* const, pItem, ESI);
-	InfantryTypeExt::ExtMap.Remove(pItem);
+	InfantryTypeExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 
@@ -184,14 +184,14 @@ DEFINE_HOOK(0x524B60, InfantryTypeClass_SaveLoad_Prefix, 0x5)
 {
 	GET_STACK(InfantryTypeClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
-	InfantryTypeExt::ExtMap.PrepareStream(pItem, pStm);
+	InfantryTypeExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
 }
 
 DEFINE_HOOK(0x524B53, InfantryTypeClass_Load_Suffix, 0x5)
 {
-	InfantryTypeExt::ExtMap.LoadStatic();
+	InfantryTypeExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
@@ -207,7 +207,7 @@ DEFINE_HOOK(0x524B53, InfantryTypeClass_Load_Suffix, 0x5)
 // After : 0x524C52 , 0x7
 DEFINE_HOOK(0x524C52, InfantryTypeClass_Save_Suffix, 0x7)
 {
-	InfantryTypeExt::ExtMap.SaveStatic();
+	InfantryTypeExtContainer::Instance.SaveStatic();
 	return 0;
 }
 
@@ -216,6 +216,6 @@ DEFINE_HOOK(0x52473F, InfantryTypeClass_LoadFromINI, 0x5)
 {
 	GET(InfantryTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0xD0);
-	InfantryTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x52474E);
+	InfantryTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x52474E);
 	return 0;
 }

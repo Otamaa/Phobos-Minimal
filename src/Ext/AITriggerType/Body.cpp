@@ -88,7 +88,7 @@ bool AITriggerTypeExt::ReadCustomizableAICondition(HouseClass* pHouse, int pickM
 
 void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerType, HouseClass* pHouse, int condition)
 {
-	auto& AIConditionsLists = RulesExt::Global()->AIConditionsLists;
+	auto& AIConditionsLists = RulesExtData::Instance()->AIConditionsLists;
 
 	int essentialRequirementsCount = -1;
 	int leastOptionalRequirementsCount = -1;

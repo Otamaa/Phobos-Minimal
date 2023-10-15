@@ -13,7 +13,7 @@ DEFINE_HOOK(0x4666F7, BulletClass_AI_Trajectories, 0x6)
 
 	if (!pThis->SpawnNextAnim)
 	{
-		if (auto& pTraj = BulletExt::ExtMap.Find(pThis)->Trajectory)
+		if (auto& pTraj = BulletExtContainer::Instance.Find(pThis)->Trajectory)
 			return pTraj->OnAI() ? Detonate : 0x0;
 	}
 
@@ -24,7 +24,7 @@ DEFINE_HOOK(0x467E53, BulletClass_AI_PreDetonation_Trajectories, 0x6)
 {
 	GET(BulletClass*, pThis, EBP);
 
-	if (auto& pTraj = BulletExt::ExtMap.Find(pThis)->Trajectory)
+	if (auto& pTraj = BulletExtContainer::Instance.Find(pThis)->Trajectory)
 		pTraj->OnAIPreDetonate();
 
 	return 0;
@@ -78,7 +78,7 @@ DEFINE_HOOK(0x46745C, BulletClass_AI_Position_Trajectories, 0x7)
 	LEA_STACK(VelocityClass*, pSpeed, STACK_OFFS(0x1AC, 0x11C));
 	LEA_STACK(VelocityClass*, pPosition, STACK_OFFS(0x1AC, 0x144));
 
-	if (auto& pTraj = BulletExt::ExtMap.Find(pThis)->Trajectory)
+	if (auto& pTraj = BulletExtContainer::Instance.Find(pThis)->Trajectory)
 		pTraj->OnAIVelocity(pSpeed, pPosition);
 
 	return 0;
@@ -91,7 +91,7 @@ DEFINE_HOOK(0x4677D3, BulletClass_AI_TargetCoordCheck_Trajectories, 0x5)
 	GET(BulletClass*, pThis, EBP);
 	REF_STACK(CoordStruct, coords, STACK_OFFS(0x1A8, 0x184));
 
-	if (auto& pTraj = BulletExt::ExtMap.Find(pThis)->Trajectory)
+	if (auto& pTraj = BulletExtContainer::Instance.Find(pThis)->Trajectory)
 	{
 		switch (pTraj->OnAITargetCoordCheck(coords))
 		{
@@ -116,7 +116,7 @@ DEFINE_HOOK(0x467927, BulletClass_AI_TechnoCheck_Trajectories, 0x5)
 	GET(BulletClass*, pThis, EBP);
 	GET(TechnoClass*, pTechno, ESI);
 
-	if (auto& pTraj = BulletExt::ExtMap.Find(pThis)->Trajectory)
+	if (auto& pTraj = BulletExtContainer::Instance.Find(pThis)->Trajectory)
 	{
 		switch (pTraj->OnAITechnoCheck(pTechno))
 		{
@@ -142,8 +142,8 @@ DEFINE_HOOK(0x468B72, BulletClass_Unlimbo_Trajectories, 0x5)
 
 	PhobosTrajectory::CreateInstance(pThis, pCoord, pVelocity);
 
-	//if (WarheadTypeExt::ExtMap.Find(pThis->WH)->DirectionalArmor) {
-	//	BulletExt::ExtMap.Find(pThis)->InitialBulletDir = DirStruct(Math::atan2(static_cast<double>(pThis->SourceCoords.Y - pThis->TargetCoords.Y), static_cast<double>(pThis->TargetCoords.X - pThis->SourceCoords.X)));
+	//if (WarheadTypeExtContainer::Instance.Find(pThis->WH)->DirectionalArmor) {
+	//	BulletExtContainer::Instance.Find(pThis)->InitialBulletDir = DirStruct(Math::atan2(static_cast<double>(pThis->SourceCoords.Y - pThis->TargetCoords.Y), static_cast<double>(pThis->TargetCoords.X - pThis->SourceCoords.X)));
 	//}
 
 	return 0;

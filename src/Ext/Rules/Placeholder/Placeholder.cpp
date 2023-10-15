@@ -5,7 +5,7 @@ INI_EX iniEX(pINI);
 
 InfantryTypeClass::Array->for_each([&](InfantryTypeClass* pInfType) {
 	WarheadTypeClass::Array->for_each([&](WarheadTypeClass* pWarhead) {
-		if (auto const pExt = WarheadTypeExt::ExtMap.TryFind(pWarhead))
+		if (auto const pExt = WarheadTypeExtContainer::Instance.TryFind(pWarhead))
 		{
 			Nullable<AnimTypeClass*> nBuffer {};
 			IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.InfDeathAnim", pInfType->ID);
@@ -22,7 +22,7 @@ InfantryTypeClass::Array->for_each([&](InfantryTypeClass* pInfType) {
 
 //for (auto pType : *TechnoTypeClass::Array)
 //{
-//	if (auto pTypeExt = TechnoTypeExt::ExtMap.TryFind(pType)){
+//	if (auto pTypeExt = TechnoTypeExtContainer::Instance.TryFind(pType)){
 //
 //		char Temp_[0x80];
 //		pTypeExt->SpecificExpFactor.clear();

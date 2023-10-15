@@ -14,80 +14,69 @@
 
 #include <Misc/Ares/Hooks/Classes/PrismForwarding.h>
 
-class BuildingExt
+class BuildingExtData final
 {
 public:
-	class ExtData final : public Extension<BuildingClass>
+	static constexpr size_t Canary = 0x87654321;
+	using base_type = BuildingClass;
+	//static constexpr size_t ExtOffset = 0x6FC;
+
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+
+public:
+	BuildingTypeExtData* Type { nullptr };
+	TechnoExtData* TechnoExt { nullptr };
+	PrismForwarding PrismForwarding {};
+	bool DeployedTechno { false };
+	int LimboID { -1 };
+	int GrindingWeapon_LastFiredFrame { 0 };
+	BuildingClass* CurrentAirFactory { nullptr };
+	int AccumulatedGrindingRefund { 0 };
+	int AccumulatedIncome { 0 };
+	bool IsCreatedFromMapFile { false };
+
+	std::vector<AnimClass*> DamageFireAnims { };
+	CDTimerClass AutoSellTimer { };
+	bool LighningNeedUpdate { false };
+	bool TogglePower_HasPower { true };
+	bool Silent { false };
+
+	OptionalStruct<int, true> C4Damage { };
+	HouseClass* C4Owner { nullptr };
+	WarheadTypeClass* C4Warhead { nullptr };
+	WarheadTypeClass* ReceiveDamageWarhead { nullptr };
+	std::vector<int> DockReloadTimers {};
+	HouseClass* OwnerBeforeRaid { nullptr };
+
+	CDTimerClass CashUpgradeTimers[3] {};
+	int SensorArrayActiveCounter { 0 };
+	std::vector<bool> StartupCashDelivered {};
+	bool SecretLab_Placed { false };
+	bool AboutToChronoshift { false };
+	bool IsFromSW { false };
+
+	HelperedVector<TechnoClass*> RegisteredJammers { };
+
+	BuildingExtData(base_type* OwnerObject) noexcept
 	{
-	public:
-		static constexpr size_t Canary = 0x87654321;
-		using base_type = BuildingClass;
-		//static constexpr size_t ExtOffset = 0x6FC;
+		this->AttachedToObject = OwnerObject;
+		this->PrismForwarding.Owner = OwnerObject;
+	}
 
-	public:
-		BuildingTypeExt::ExtData* Type { nullptr };
-		TechnoExt::ExtData* TechnoExt { nullptr };
-		PrismForwarding PrismForwarding {};
-		bool DeployedTechno { false };
-		int LimboID { -1 };
-		int GrindingWeapon_LastFiredFrame { 0 };
-		BuildingClass* CurrentAirFactory { nullptr };
-		int AccumulatedGrindingRefund { 0 };
-		int AccumulatedIncome { 0 };
-		bool IsCreatedFromMapFile { false };
+	~BuildingExtData() noexcept = default;
 
-		std::vector<AnimClass*> DamageFireAnims { };
-		CDTimerClass AutoSellTimer { };
-		bool LighningNeedUpdate { false };
-		bool TogglePower_HasPower { true };
-		bool Silent { false };
+	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
+	static bool InvalidateIgnorable(AbstractClass* ptr);
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-		OptionalStruct<int , true> C4Damage { };
-		HouseClass* C4Owner { nullptr };
-		WarheadTypeClass* C4Warhead { nullptr };
-		WarheadTypeClass* ReceiveDamageWarhead { nullptr };
-		std::vector<int> DockReloadTimers {};
-		HouseClass* OwnerBeforeRaid { nullptr };
+	bool HasSuperWeapon(int index, bool withUpgrades) const;
+	bool RubbleYell(bool beingRepaired);
 
-		CDTimerClass CashUpgradeTimers[3] {};
-		int SensorArrayActiveCounter { 0 };
-		std::vector<bool> StartupCashDelivered {};
-		bool SecretLab_Placed { false };
-		bool AboutToChronoshift { false };
-		bool IsFromSW { false };
-
-		HelperedVector<TechnoClass*> RegisteredJammers { };
-
-		ExtData(BuildingClass* OwnerObject) : Extension<BuildingClass>(OwnerObject){
-			this->PrismForwarding.Owner = OwnerObject;
-		}
-
-		virtual ~ExtData() override = default;
-
-		void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-		static bool InvalidateIgnorable(AbstractClass* ptr);
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-		bool HasSuperWeapon(int index, bool withUpgrades) const;
-		bool RubbleYell(bool beingRepaired);
-
-		void DisplayIncomeString();
-		void UpdatePoweredKillSpawns();
-		void UpdateAutoSellTimer();
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public Container<BuildingExt::ExtData>
-	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(BuildingExt::ExtData, "BuildingClass");
-	};
-
-	static ExtContainer ExtMap;
+	void DisplayIncomeString();
+	void UpdatePoweredKillSpawns();
+	void UpdateAutoSellTimer();
 
 	static void StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType);
 	static void UpdatePrimaryFactoryAI(BuildingClass* pThis);
@@ -99,10 +88,22 @@ public:
 	static bool HandleInfiltrate(BuildingClass* pBuilding, HouseClass* pInfiltratorHouse);
 	static void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID);
 	static void LimboKill(BuildingClass* pBld);
-	static void ApplyLimboKill(ValueableVector<int>& LimboIDs,Valueable<AffectedHouse>& Affects , HouseClass* pTargetHouse , HouseClass* pAttackerHouse);
+	static void ApplyLimboKill(ValueableVector<int>& LimboIDs, Valueable<AffectedHouse>& Affects, HouseClass* pTargetHouse, HouseClass* pAttackerHouse);
 
 	static int GetFirstSuperWeaponIndex(BuildingClass* pThis);
 	static SuperClass* GetFirstSuperWeapon(BuildingClass* pThis);
 	static void UpdateSecretLab(BuildingClass* pThis);
 	static bool ReverseEngineer(BuildingClass* pBuilding, TechnoClass* Victim);
+
+private:
+	template <typename T>
+	void Serialize(T& Stm);
+};
+
+class BuildingExtContainer final : public Container<BuildingExtData>
+{
+public:
+	static BuildingExtContainer Instance;
+
+	CONSTEXPR_NOCOPY_CLASSB(BuildingExtContainer , BuildingExtData, "BuildingClass");
 };

@@ -6,6 +6,7 @@
 class DiskLaserExt
 {
 public:
+	/*
 	class ExtData final : public Extension<DiskLaserClass>
 	{
 	public:
@@ -32,4 +33,5 @@ public:
 	};
 
 	static ExtContainer ExtMap;
+	*/
 };

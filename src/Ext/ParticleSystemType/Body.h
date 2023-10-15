@@ -5,40 +5,39 @@
 #include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 
-class ParticleSystemTypeExt
+class ParticleSystemTypeExtData final
 {
 public:
-	class ExtData final : public Extension<ParticleSystemTypeClass>
+	static constexpr size_t Canary = 0xEAEEEEEE;
+	using base_type = ParticleSystemTypeClass;
+
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+public:
+
+	Valueable<bool> ApplyOptimization { true };
+	std::array<Point2D, (size_t)FacingType::Count> FacingMult {};
+
+	ParticleSystemTypeExtData(base_type* OwnerObject) noexcept
 	{
-	public:
-		static constexpr size_t Canary = 0xEAEEEEEE;
-		using base_type = ParticleSystemTypeClass;
+		AttachedToObject = OwnerObject;
+	}
 
-	public:
+	~ParticleSystemTypeExtData() noexcept = default;
 
-		Valueable<bool> ApplyOptimization { true };
-		std::array<Point2D, (size_t)FacingType::Count> FacingMult {};
+	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
-		{ }
+private:
+	template <typename T>
+	void Serialize(T& Stm);
+};
 
-		virtual ~ExtData() override  = default;
+class ParticleSystemTypeExtContainer final : public Container<ParticleSystemTypeExtData>
+{
+public:
+	static ParticleSystemTypeExtContainer Instance;
 
-		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-		void Initialize();
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public Container<ParticleSystemTypeExt::ExtData>
-	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(ParticleSystemTypeExt::ExtData, "ParticleSystemTypeClass");
-	};
-
-	static ExtContainer ExtMap;
+	CONSTEXPR_NOCOPY_CLASSB(ParticleSystemTypeExtContainer, ParticleSystemTypeExtData, "ParticleSystemTypeClass");
 };

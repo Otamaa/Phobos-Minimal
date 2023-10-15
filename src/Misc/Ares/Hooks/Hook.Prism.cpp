@@ -7,11 +7,11 @@
 
 #include <Ext/WeaponType/Body.h>
 
-void WeaponTypeExt::FireRadBeam(TechnoClass* pFirer, WeaponTypeClass* pWeapon, CoordStruct& source, CoordStruct& target)
+void WeaponTypeExtData::FireRadBeam(TechnoClass* pFirer, WeaponTypeClass* pWeapon, CoordStruct& source, CoordStruct& target)
 {
 	if (auto const supportRadBeam = RadBeam::Allocate(RadBeamType::RadBeam))
 	{
-		const auto pExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+		const auto pExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
 		supportRadBeam->SetCoordsSource(source);
 		supportRadBeam->SetCoordsTarget(target);
@@ -27,11 +27,11 @@ void WeaponTypeExt::FireRadBeam(TechnoClass* pFirer, WeaponTypeClass* pWeapon, C
 	}
 }
 
-void WeaponTypeExt::FireEbolt(TechnoClass* pFirer, WeaponTypeClass* pWeapon, CoordStruct& source, CoordStruct& target, int idx)
+void WeaponTypeExtData::FireEbolt(TechnoClass* pFirer, WeaponTypeClass* pWeapon, CoordStruct& source, CoordStruct& target, int idx)
 {
-	if (auto const supportEBolt = WeaponTypeExt::CreateBolt(pWeapon))
+	if (auto const supportEBolt = WeaponTypeExtData::CreateBolt(pWeapon))
 	{
-		const auto pExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+		const auto pExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 		supportEBolt->Owner = pFirer;
 		supportEBolt->WeaponSlot = idx;
 		supportEBolt->AlternateColor = pWeapon->IsAlternateColor;
@@ -49,11 +49,11 @@ DEFINE_OVERRIDE_HOOK(0x44B2FE, BuildingClass_Mi_Attack_IsPrism, 6)
 	enum { IsPrism = 0x44B310, IsNotPrism = 0x44B630, IsCustomPrism = 0x44B6D6 };
 
 	auto const pMasterType = pThis->Type;
-	auto const pMasterTypeData = BuildingTypeExt::ExtMap.Find(pMasterType);
+	auto const pMasterTypeData = BuildingTypeExtContainer::Instance.Find(pMasterType);
 
 	if (pMasterTypeData->PrismForwarding.CanAttack())
 	{
-		auto const pMasterData = BuildingExt::ExtMap.Find(pThis);
+		auto const pMasterData = BuildingExtContainer::Instance.Find(pThis);
 
 		if (pThis->PrismStage == PrismChargeState::Idle)
 		{
@@ -119,7 +119,7 @@ DEFINE_OVERRIDE_HOOK(0x447FAE, BuildingClass_GetFireError_PrismForward, 6)
 	{
 		//if this is a slave prism tower, then it might still be able to become a master tower at this time
 		auto const pType = pThis->Type;
-		auto const pTypeData = BuildingTypeExt::ExtMap.Find(pType);
+		auto const pTypeData = BuildingTypeExtContainer::Instance.Find(pType);
 		if (pTypeData->PrismForwarding.CanAttack())
 		{
 			//is a prism tower
@@ -142,7 +142,7 @@ DEFINE_OVERRIDE_HOOK(0x4503F0, BuildingClass_Update_Prism, 9)
 	auto const PrismStage = pThis->PrismStage;
 	if (PrismStage != PrismChargeState::Idle)
 	{
-		auto const pData = BuildingExt::ExtMap.Find(pThis);
+		auto const pData = BuildingExtContainer::Instance.Find(pThis);
 		if (pData->PrismForwarding.PrismChargeDelay <= 0)
 		{
 			--pThis->DelayBeforeFiring;
@@ -152,8 +152,8 @@ DEFINE_OVERRIDE_HOOK(0x4503F0, BuildingClass_Update_Prism, 9)
 				{
 					if (auto pTarget = pData->PrismForwarding.SupportTarget)
 					{
-						auto const pTargetData = BuildingExt::ExtMap.Find(pTarget->Owner);
-						auto const pTypeData = BuildingTypeExt::ExtMap.Find(pType);
+						auto const pTargetData = BuildingExtContainer::Instance.Find(pTarget->Owner);
+						auto const pTypeData = BuildingTypeExtContainer::Instance.Find(pType);
 						//slave firing
 						pTargetData->PrismForwarding.ModifierReserve +=
 							(pTypeData->PrismForwarding.GetSupportModifier() + pData->PrismForwarding.ModifierReserve);
@@ -170,7 +170,7 @@ DEFINE_OVERRIDE_HOOK(0x4503F0, BuildingClass_Update_Prism, 9)
 						{
 							if (auto const LaserBeam = pThis->Fire(Target, pThis->PrismTargetCoords.X))
 							{
-								auto const pTypeData = BuildingTypeExt::ExtMap.Find(pType);
+								auto const pTypeData = BuildingTypeExtContainer::Instance.Find(pType);
 
 								//apparently this is divided by 256 elsewhere
 								LaserBeam->DamageMultiplier = static_cast<int>((pData->PrismForwarding.ModifierReserve + 100) * 256) / 100;
@@ -213,7 +213,7 @@ DEFINE_OVERRIDE_HOOK(0x44ABD0, BuildingClass_FireLaser, 5)
 	REF_STACK(CoordStruct const, targetXYZ, 0x4);
 
 	auto const pType = pThis->Type;
-	auto const pTypeData = BuildingTypeExt::ExtMap.Find(pType);
+	auto const pTypeData = BuildingTypeExtContainer::Instance.Find(pType);
 
 	CoordStruct sourceXYZ;
 	pThis->GetFLH(&sourceXYZ ,0, CoordStruct::Empty);
@@ -227,7 +227,7 @@ DEFINE_OVERRIDE_HOOK(0x44ABD0, BuildingClass_FireLaser, 5)
 	LaserDrawClass* LaserBeam = nullptr;
 	if (supportWeapon)
 	{
-		auto const supportWeaponData = WeaponTypeExt::ExtMap.Find(supportWeapon);
+		auto const supportWeaponData = WeaponTypeExtContainer::Instance.Find(supportWeapon);
 		//IsLaser
 		if (supportWeapon->IsLaser)
 		{
@@ -270,14 +270,14 @@ DEFINE_OVERRIDE_HOOK(0x44ABD0, BuildingClass_FireLaser, 5)
 		//IsRadBeam
 		if (supportWeapon->IsRadBeam) {
 			CoordStruct target = targetXYZ;
-			WeaponTypeExt::FireRadBeam(pThis, supportWeapon, sourceXYZ, target);
+			WeaponTypeExtData::FireRadBeam(pThis, supportWeapon, sourceXYZ, target);
 		}
 
 		//IsElectricBolt
 		if (supportWeapon->IsElectricBolt)
 		{
 			CoordStruct target = targetXYZ;
-			WeaponTypeExt::FireEbolt(pThis, supportWeapon, sourceXYZ, target, idxSupport);
+			WeaponTypeExtData::FireEbolt(pThis, supportWeapon, sourceXYZ, target, idxSupport);
 		}
 
 		//Report
@@ -344,7 +344,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF4DE, TechnoClass_Fire_IsLaser, 6)
 
 	auto const idxWeapon = R->Base<int>(0xC); // don't use stack offsets - function uses on-the-fly stack realignments which mean offsets are not constants
 
-	auto const pData = WeaponTypeExt::ExtMap.Find(pFiringWeaponType);
+	auto const pData = WeaponTypeExtContainer::Instance.Find(pFiringWeaponType);
 	int const Thickness = pData->Laser_Thickness;
 
 	if (auto const pBld = abstract_cast<BuildingClass*>(pThis))
@@ -356,7 +356,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF4DE, TechnoClass_Fire_IsLaser, 6)
 
 			//default thickness for buildings. this was 3 for PrismType (rising to 5 for supported prism) but no idea what it was for non-PrismType - setting to 3 for all BuildingTypes now.
 			pLaser->Thickness = Thickness == -1 ? 3 : Thickness;
-			auto const pBldTypeData = BuildingTypeExt::ExtMap.Find(pBld->Type);
+			auto const pBldTypeData = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 
 			if (pBldTypeData->PrismForwarding.CanAttack())
 			{
@@ -407,7 +407,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF4DE, TechnoClass_Fire_IsLaser, 6)
 DEFINE_OVERRIDE_HOOK(0x4424EF, BuildingClass_ReceiveDamage_PrismForward, 6)
 {
 	GET(BuildingClass* const, pThis, ESI);
-	BuildingExt::ExtMap.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);
+	BuildingExtContainer::Instance.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);
 	return 0;
 }
 
@@ -417,7 +417,7 @@ DEFINE_OVERRIDE_HOOK(0x447113, BuildingClass_Sell_PrismForward, 6)
 
 	// #754 - evict Hospital/Armory contents
 	TechnoExt_ExtData::KickOutHospitalArmory(pThis);
-	BuildingExt::ExtMap.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);
+	BuildingExtContainer::Instance.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);
 	return 0;
 }
 
@@ -431,8 +431,8 @@ DEFINE_OVERRIDE_HOOK(0x448277, BuildingClass_ChangeOwner_PrismForwardAndLeaveBom
 	// #754 - evict Hospital/Armory contents
 	TechnoExt_ExtData::KickOutHospitalArmory(pThis);
 
-	auto pData = BuildingExt::ExtMap.Find(pThis);
-	auto const pTypeData = BuildingTypeExt::ExtMap.Find(pThis->Type);
+	auto pData = BuildingExtContainer::Instance.Find(pThis);
+	auto const pTypeData = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 
 	// the first and the last tower have to be allied to this
 	if (pTypeData->PrismForwarding.ToAllies)
@@ -493,7 +493,7 @@ DEFINE_OVERRIDE_HOOK(0x71AF76, TemporalClass_Fire_PrismForwardAndWarpable, 9)
 	// prism forward
 	if (auto const pBld = specific_cast<BuildingClass*>(pThis))
 	{
-		BuildingExt::ExtMap.Find(pBld)->PrismForwarding.RemoveFromNetwork(true);
+		BuildingExtContainer::Instance.Find(pBld)->PrismForwarding.RemoveFromNetwork(true);
 	}
 	return 0;
 }
@@ -506,7 +506,7 @@ DEFINE_OVERRIDE_HOOK(0x70FD9A, TechnoClass_Drain_PrismForward, 6)
 	{ // else we're already being drained, nothing to do
 		if (auto const pBld = specific_cast<BuildingClass*>(pDrainee))
 		{
-			BuildingExt::ExtMap.Find(pBld)->PrismForwarding.RemoveFromNetwork(true);
+			BuildingExtContainer::Instance.Find(pBld)->PrismForwarding.RemoveFromNetwork(true);
 		}
 	}
 	return 0;
@@ -517,13 +517,13 @@ DEFINE_OVERRIDE_HOOK(0x454B3D, BuildingClass_UpdatePowered_PrismForward, 6)
 	GET(BuildingClass* const, pThis, ESI);
 	// this building just realised it needs to go offline
 	// it unregistered itself from powered unit controls but hasn't done anything else yet
-	BuildingExt::ExtMap.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);
+	BuildingExtContainer::Instance.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);
 	return 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x44EBF0, BuildingClass_Disappear_PrismForward, 5)
 {
 	GET(BuildingClass* const, pThis, ECX);
-	BuildingExt::ExtMap.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);
+	BuildingExtContainer::Instance.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);
 	return 0;
 }

@@ -42,7 +42,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF449, TechnoClass_Fire_SonicWave, 5)
 	REF_STACK(CoordStruct const, crdSrc, 0x44);
 	REF_STACK(CoordStruct const, crdTgt, 0x88);
 
-	pThis->Wave = WaveExt::Create(crdSrc, crdTgt, pThis, WaveType::Sonic, pTarget, pSource);
+	pThis->Wave = WaveExtData::Create(crdSrc, crdTgt, pThis, WaveType::Sonic, pTarget, pSource);
 	return 0x6FF48A;
 }
 
@@ -55,7 +55,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF5F5, TechnoClass_Fire_OtherWaves, 6)
 	REF_STACK(CoordStruct const, crdSrc, 0x44);
 	REF_STACK(CoordStruct const, crdTgt, 0x88);
 
-	auto const pData = WeaponTypeExt::ExtMap.Find(pSource);
+	auto const pData = WeaponTypeExtContainer::Instance.Find(pSource);
 
 	if (!pData->IsWave() || pThis->Wave)
 		return 0x6FF656;
@@ -67,14 +67,14 @@ DEFINE_OVERRIDE_HOOK(0x6FF5F5, TechnoClass_Fire_OtherWaves, 6)
 		nType = pData->Wave_IsBigLaser
 		? WaveType::BigLaser : WaveType::Laser;
 
-	pThis->Wave = WaveExt::Create(crdSrc, crdTgt, pThis, nType, pTarget, pSource);
+	pThis->Wave = WaveExtData::Create(crdSrc, crdTgt, pThis, nType, pTarget, pSource);
 	return 0x6FF656;
 }
 
 DEFINE_OVERRIDE_HOOK(0x75FA29, WaveClass_Draw_Colors, 0x6)
 {
 	GET(WaveClass*, pThis, ESI);
-	AresCreateWave::TempColor = WaveExt::GetWaveColor(pThis);
+	AresCreateWave::TempColor = WaveExtData::GetWaveColor(pThis);
 	return 0x0;
 }
 
@@ -82,7 +82,7 @@ DEFINE_OVERRIDE_HOOK(0x760F50, WaveClass_Update, 0x6)
 {
 	GET(WaveClass*, pThis, ECX);
 
-	const auto pData = WaveExt::ExtMap.Find(pThis);
+	const auto pData = WaveExtContainer::Instance.Find(pThis);
 
 	if (pData->Weapon && pData->Weapon->AmbientDamage) {
 		CoordStruct coords;
@@ -136,7 +136,7 @@ DEFINE_OVERRIDE_HOOK(0x760BC2, WaveClass_Draw2, 0x9)
 	GET(WaveClass*, Wave, EBX);
 	GET(WORD*, dest, EBP);
 
-	return (WaveExt::ModifyWaveColor(*dest, *dest, Wave->LaserIntensity, Wave, &AresCreateWave::TempColor))
+	return (WaveExtData::ModifyWaveColor(*dest, *dest, Wave->LaserIntensity, Wave, &AresCreateWave::TempColor))
 		? 0x760CAFu
 		: 0u
 		;
@@ -147,7 +147,7 @@ DEFINE_OVERRIDE_HOOK(0x760DE2, WaveClass_Draw3, 0x9)
 	GET(WaveClass*, Wave, EBX);
 	GET(WORD*, dest, EDI);
 
-	return (WaveExt::ModifyWaveColor(*dest, *dest, Wave->LaserIntensity, Wave, &AresCreateWave::TempColor))
+	return (WaveExtData::ModifyWaveColor(*dest, *dest, Wave->LaserIntensity, Wave, &AresCreateWave::TempColor))
 		? 0x760ECBu
 		: 0u
 		;
@@ -159,7 +159,7 @@ DEFINE_OVERRIDE_HOOK(0x75EE57, WaveClass_Draw_Sonic, 0x7)
 	GET(WORD*, src, EDI);
 	GET(DWORD, offset, ECX);
 
-	return (WaveExt::ModifyWaveColor(src[offset], *src, R->ESI(), Wave, &AresCreateWave::TempColor))
+	return (WaveExtData::ModifyWaveColor(src[offset], *src, R->ESI(), Wave, &AresCreateWave::TempColor))
 		? 0x75EF1Cu
 		: 0u
 		;
@@ -171,7 +171,7 @@ DEFINE_OVERRIDE_HOOK(0x7601FB, WaveClass_Draw_Magnetron2, 0xB)
 	GET(WORD*, src, EBX);
 	GET(DWORD, offset, ECX);
 
-	return (WaveExt::ModifyWaveColor(src[offset], *src, R->EBP(), Wave, &AresCreateWave::TempColor))
+	return (WaveExtData::ModifyWaveColor(src[offset], *src, R->EBP(), Wave, &AresCreateWave::TempColor))
 		? 0x760285u
 		: 0u
 		;
@@ -187,7 +187,7 @@ DEFINE_OVERRIDE_HOOK(0x75F38F, WaveClass_DamageCell_SelectWeapon, 0x6)
 {
 	GET(WaveClass*, pWave, EBP);
 	R->EDI(R->EAX());
-	R->EBX(WaveExt::ExtMap.Find(pWave)->Weapon);
+	R->EBX(WaveExtContainer::Instance.Find(pWave)->Weapon);
 	return 0x75F39D;
 }
 
@@ -198,7 +198,7 @@ DEFINE_OVERRIDE_HOOK(0x75F38F, WaveClass_DamageCell_SelectWeapon, 0x6)
 DEFINE_HOOK(0x75EBC5, WaveClass_CTOR_AllowWaveUpdate, 0x7)
 {
 	GET(WaveClass*, Wave, ESI);
-	WaveExt::ExtMap.Find(Wave)->CanDoUpdate = true;
+	WaveExtContainer::Instance.Find(Wave)->CanDoUpdate = true;
 	return 0x75EBCC;
 }
 
@@ -220,7 +220,7 @@ DEFINE_OVERRIDE_HOOK(0x762B62, WaveClass_WaveAI , 0x6)
 		return 0x762C40;
 	}
 
-	const auto pData = WaveExt::ExtMap.Find(Wave);
+	const auto pData = WaveExtContainer::Instance.Find(Wave);
 
 	if (Wave->Type == WaveType::Magnetron)
 	{
@@ -338,6 +338,6 @@ DEFINE_HOOK(0x75F415, WaveClass_DamageCell_FixNoHouseOwner, 0x6)
 	}
 
 	//pVictim->ReceiveDamage(&nDamage, 0, pWarhead, pTechnoOwner, false, false, pTechnoOwner->Owner);
-	WarheadTypeExt::DetonateAt(pWarhead, pVictim, pCell->GetCoordsWithBridge(), pThis->Owner, nDamage);
+	WarheadTypeExtData::DetonateAt(pWarhead, pVictim, pCell->GetCoordsWithBridge(), pThis->Owner, nDamage);
 	return 0x75F432;
 }

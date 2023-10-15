@@ -11,17 +11,21 @@ std::vector<const char*> SW_DropPod::GetTypeString() const
 bool SW_DropPod::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	SuperWeaponTypeClass* pSW = pThis->Type;
-	auto pData = SWTypeExt::ExtMap.Find(pSW);
+	auto pData = SWTypeExtContainer::Instance.Find(pSW);
 
 	const auto nDeferement = pData->SW_Deferment.Get(-1);
 
-	this->newStateMachine(nDeferement < 0 ? 20 : nDeferement, Coords, pThis);
+	if (nDeferement <= 0)
+		DroppodStateMachine::SendDroppods(pThis, pData, this, Coords);
+	else
+		this->newStateMachine(nDeferement < 0 ? 20 : nDeferement, Coords, pThis);
+
 	return true;
 }
 
-void SW_DropPod::Initialize(SWTypeExt::ExtData* pData)
+void SW_DropPod::Initialize(SWTypeExtData* pData)
 {
-	pData->OwnerObject()->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	pData->AttachedToObject->Action = Action(AresNewActionType::SuperWeaponAllowed);
 
 	pData->EVA_Detected = VoxClass::FindIndexById("EVA_DropPodDetected");
 	pData->EVA_Ready = VoxClass::FindIndexById("EVA_DropPodReady");
@@ -40,13 +44,13 @@ void SW_DropPod::Initialize(SWTypeExt::ExtData* pData)
 	for (auto const Pod : RulesClass::Instance->DropPod)
 		pData->Droppod_GroundPodAnim.push_back(Pod);
 
-	pData->Droppod_Trailer = RulesExt::Global()->DropPodTrailer;
+	pData->Droppod_Trailer = RulesExtData::Instance()->DropPodTrailer;
 	pData->Droppod_AtmosphereEntry = RulesClass::Instance->AtmosphereEntry;
 }
 
-void SW_DropPod::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
+void SW_DropPod::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
-	const char* section = pData->Get()->ID;
+	const char* section = pData->AttachedToObject->ID;
 
 	INI_EX exINI(pINI);
 	pData->DropPod_Minimum.Read(exINI, section, "DropPod.Minimum");
@@ -78,7 +82,7 @@ void SW_DropPod::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->Droppod_AtmosphereEntry.Read(exINI, section, "DropPod.AtmosphereEntry");
 }
 
-bool SW_DropPod::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+bool SW_DropPod::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
 	if (!this->IsLaunchsiteAlive(pBuilding))
 		return false;
@@ -93,15 +97,13 @@ void DroppodStateMachine::Update()
 {
 	if (this->Finished())
 	{
-		this->SendDroppods();
+		this->SendDroppods(this->Super , this->GetTypeExtData() , this->Type , this->Coords);
 	}
 }
 
-void DroppodStateMachine::SendDroppods()
+void DroppodStateMachine::SendDroppods(SuperClass* pSuper, SWTypeExtData* pData, NewSWType* pNewType, const CellStruct& loc)
 {
-	auto pData = GetTypeExtData();
-
-	pData->PrintMessage(pData->Message_Activate, this->Super->Owner);
+	pData->PrintMessage(pData->Message_Activate, pSuper->Owner);
 
 	auto const sound = pData->SW_ActivationSound.Get(-1);
 	if (sound != -1) {
@@ -111,22 +113,22 @@ void DroppodStateMachine::SendDroppods()
 	// collect the options
 	const auto& Types = !pData->DropPod_Types.empty()
 		? pData->DropPod_Types
-		: RulesExt::Global()->DropPodTypes;
+		: RulesExtData::Instance()->DropPodTypes;
 
 	// quick way out
 	if (Types.empty()) {
 		return;
 	}
 
-	int cMin = pData->DropPod_Minimum.Get(RulesExt::Global()->DropPodMinimum);
-	int cMax = pData->DropPod_Maximum.Get(RulesExt::Global()->DropPodMaximum);
+	int cMin = pData->DropPod_Minimum.Get(RulesExtData::Instance()->DropPodMinimum);
+	int cMax = pData->DropPod_Maximum.Get(RulesExtData::Instance()->DropPodMaximum);
 
-	DroppodStateMachine::PlaceUnits(Super, pData->DropPod_Veterancy.Get(), Types, cMin, cMax, Coords , false);
+	DroppodStateMachine::PlaceUnits(pSuper, pData->DropPod_Veterancy.Get(), Types, cMin, cMax, loc, false);
 }
 
 void DroppodStateMachine::PlaceUnits(SuperClass* pSuper , double veterancy , Iterator<TechnoTypeClass*> const Types, int cMin ,int cMax , const CellStruct& Coords, bool retries)
 {
-	const auto pData = SWTypeExt::ExtMap.Find(pSuper->Type);
+	const auto pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
 	// three times more tries than units to place.
 	const int count = ScenarioClass::Instance->Random.RandomRanged(cMin, cMax);
 	CellStruct cell = Coords;
@@ -140,7 +142,7 @@ void DroppodStateMachine::PlaceUnits(SuperClass* pSuper , double veterancy , Ite
 			// get a random type from the list and create an instance
 			TechnoTypeClass* pType = Types[needRandom ? ScenarioClass::Instance->Random.RandomFromMax(Types.size() - 1) : 0];
 
-			if (!pType || pType->WhatAmI() == BuildingTypeClass::AbsID)
+			if (!pType || pType->Strength <= 0 || pType->WhatAmI() == BuildingTypeClass::AbsID)
 			{
 				continue;
 			}
@@ -162,8 +164,8 @@ void DroppodStateMachine::PlaceUnits(SuperClass* pSuper , double veterancy , Ite
 			CoordStruct crd = CellClass::Cell2Coord(tmpCell);
 
 			// let the locomotor take care of the rest
-			TechnoExt::ExtMap.Find(pFoot)->LinkedSW = pSuper;
-			if (TechnoExt::CreateWithDroppod(pFoot, crd)) {
+			TechnoExtContainer::Instance.Find(pFoot)->LinkedSW = pSuper;
+			if (TechnoExtData::CreateWithDroppod(pFoot, crd)) {
 				status = true;
 			} else {
 				--retrycount;

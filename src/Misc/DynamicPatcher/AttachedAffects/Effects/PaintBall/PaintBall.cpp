@@ -173,7 +173,7 @@ void PaintBall::Update(TechnoClass* pThis)
 	{
 		if (pThis->WhatAmI() == BuildingClass::AbsID)
 		{
-				BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->LighningNeedUpdate = true;
+				BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis))->LighningNeedUpdate = true;
 		}
 
 	}

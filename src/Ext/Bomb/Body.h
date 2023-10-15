@@ -5,38 +5,39 @@
 #include <Ext/WeaponType/Body.h>
 
 class WeaponTypeClass;
-class BombExt
+class BombExtData final
 {
-	public:
-	class ExtData final : public Extension<BombClass>
-	{
-	public:
-		static constexpr size_t Canary = 0x87659781;
-		using base_type = BombClass;
+public:
+	static constexpr size_t Canary = 0x87659781;
+	using base_type = BombClass;
 
-	public:
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+public:
 
-		WeaponTypeExt::ExtData* Weapon { nullptr };
+	WeaponTypeExtData* Weapon { nullptr };
 
-		ExtData(BombClass* OwnerObject) : Extension<BombClass>(OwnerObject){ }
-		virtual ~ExtData() override = default;
+	BombExtData(base_type* OwnerObject) noexcept {
+		AttachedToObject = OwnerObject;
+	}
 
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	~BombExtData() noexcept = default;
 
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public Container<BombExt::ExtData>
-	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(BombExt::ExtData, "BombClass");
-	};
-
-	static ExtContainer ExtMap;
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	static HouseClass* __fastcall GetOwningHouse(BombClass* pThis, void*);
 	static void __fastcall InvalidatePointer(BombClass* pThis, void*, void* const ptr, bool removed);
+
+private:
+	template <typename T>
+	void Serialize(T& Stm);
+};
+
+class BombExtContainer final : public Container<BombExtData>
+{
+public:
+	static BombExtContainer Instance;
+
+	CONSTEXPR_NOCOPY_CLASSB(BombExtContainer, BombExtData, "BombClass");
 };

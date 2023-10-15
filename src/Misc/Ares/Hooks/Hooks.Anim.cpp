@@ -37,7 +37,7 @@ DEFINE_OVERRIDE_HOOK(0x424538, AnimClass_AI_DamageDelay, 0x6)
 	if (pThis->InLimbo)
 		return CheckIsAlive;
 
-	return AnimExt::DealDamageDelay(pThis);
+	return AnimExtData::DealDamageDelay(pThis);
 }
 
 DEFINE_OVERRIDE_HOOK(0x4232CE, AnimClass_Draw_SetPalette, 6)
@@ -45,7 +45,7 @@ DEFINE_OVERRIDE_HOOK(0x4232CE, AnimClass_Draw_SetPalette, 6)
 	GET(AnimClass*, pThis, ESI);
 	//GET(AnimTypeClass*, AnimType, EAX);
 
-	const auto pData = AnimTypeExt::ExtMap.TryFind(pThis->Type);
+	const auto pData = AnimTypeExtContainer::Instance.TryFind(pThis->Type);
 
 	if (pData ) {
 		if(const auto pConvertData = pData->Palette) {
@@ -91,8 +91,8 @@ DEFINE_OVERRIDE_HOOK(0x4239F0, AnimClass_UpdateBounce_Damage, 0x8)
 		return DoNotDealDamage;
 
 	const auto nCoord = pThis->Bounce.GetCoords();
-	const auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pType);
-	TechnoClass* const pInvoker = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker);
+	const auto pAnimTypeExt = AnimTypeExtContainer::Instance.Find(pType);
+	TechnoClass* const pInvoker = AnimExtData::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker);
 	const auto nLoc = pObj->Location;
 	const auto nDist = abs(nLoc.Y - nCoord.Y) + abs(nLoc.X - nCoord.X);
 
@@ -138,20 +138,20 @@ DEFINE_OVERRIDE_HOOK(0x42513F, AnimClass_Expired_ScorchFlamer, 0x7)
 	{
 		// always create at least one small fire
 		if (auto const pAnim1 = TechnoExt_ExtData::SpawnAnim(crd, RulesClass::Instance->SmallFire, 64))
-			AnimExt::SetAnimOwnerHouseKind(pAnim1, pAnim1->Owner, nullptr);
+			AnimExtData::SetAnimOwnerHouseKind(pAnim1, pAnim1->Owner, nullptr);
 
 		// 50% to create another small fire
 		if (ScenarioClass::Instance->Random.RandomFromMax(99) < 50)
 		{
 			if (auto const pAnim2 = TechnoExt_ExtData::SpawnAnim(crd, RulesClass::Instance->SmallFire, 160))
-				AnimExt::SetAnimOwnerHouseKind(pAnim2, pAnim2->Owner, nullptr);
+				AnimExtData::SetAnimOwnerHouseKind(pAnim2, pAnim2->Owner, nullptr);
 		}
 
 		// 50% chance to create a large fire
 		if (ScenarioClass::Instance->Random.RandomFromMax(99) < 50)
 		{
 			if (auto const pAnim3 = TechnoExt_ExtData::SpawnAnim(crd, RulesClass::Instance->LargeFire, 112))
-				AnimExt::SetAnimOwnerHouseKind(pAnim3, pAnim3->Owner, nullptr);
+				AnimExtData::SetAnimOwnerHouseKind(pAnim3, pAnim3->Owner, nullptr);
 		}
 
 	}

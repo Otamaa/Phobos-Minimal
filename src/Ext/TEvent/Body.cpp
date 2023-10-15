@@ -18,7 +18,7 @@
 // load / save
 
 template <typename T>
-void TEventExt::ExtData::Serialize(T& Stm)
+void TEventExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
@@ -53,11 +53,11 @@ namespace std
 
 	\date 2012-05-09, 2013-02-09
 */
-TechnoTypeClass* TEventExt::ExtData::GetTechnoType()
+TechnoTypeClass* TEventExtData::GetTechnoType()
 {
 	if (this->TechnoType.empty())
 	{
-		const char* eventTechno = this->OwnerObject()->String;
+		const char* eventTechno = this->AttachedToObject->String;
 		TechnoTypeClass* pType = TechnoTypeClass::Find(eventTechno);
 
 		if (!pType)
@@ -71,7 +71,7 @@ TechnoTypeClass* TEventExt::ExtData::GetTechnoType()
 	return this->TechnoType;
 }
 
-bool TEventExt::Occured(TEventClass* pThis, EventArgs const& args, bool& result)
+bool TEventExtData::Occured(TEventClass* pThis, EventArgs const& args, bool& result)
 {
 	//int iEvent = args.EventType; // not used here ,.. ares using it compare
 	//HouseClass* pHouse = args.Owner;
@@ -87,112 +87,112 @@ bool TEventExt::Occured(TEventClass* pThis, EventArgs const& args, bool& result)
 	{
 #pragma region LovalVariableManipulation
 	case PhobosTriggerEvent::LocalVariableGreaterThan:
-		result = TEventExt::VariableCheck<false, std::greater<int>>(pThis);
+		result = TEventExtData::VariableCheck<false, std::greater<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::LocalVariableLessThan:
-		result = TEventExt::VariableCheck<false, std::less<int>>(pThis);
+		result = TEventExtData::VariableCheck<false, std::less<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::LocalVariableEqualsTo:
-		result = TEventExt::VariableCheck<false, std::equal_to<int>>(pThis);
+		result = TEventExtData::VariableCheck<false, std::equal_to<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsTo:
-		result = TEventExt::VariableCheck<false, std::greater_equal<int>>(pThis);
+		result = TEventExtData::VariableCheck<false, std::greater_equal<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::LocalVariableLessThanOrEqualsTo:
-		result = TEventExt::VariableCheck<false, std::less_equal<int>>(pThis);
+		result = TEventExtData::VariableCheck<false, std::less_equal<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::LocalVariableAndIsTrue:
-		result = TEventExt::VariableCheck<false, std::and_with<int>>(pThis);
+		result = TEventExtData::VariableCheck<false, std::and_with<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::GlobalVariableGreaterThan:
-		result = TEventExt::VariableCheck<true, std::greater<int>>(pThis);
+		result = TEventExtData::VariableCheck<true, std::greater<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::GlobalVariableLessThan:
-		result = TEventExt::VariableCheck<true, std::less<int>>(pThis);
+		result = TEventExtData::VariableCheck<true, std::less<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::GlobalVariableEqualsTo:
-		result = TEventExt::VariableCheck<true, std::equal_to<int>>(pThis);
+		result = TEventExtData::VariableCheck<true, std::equal_to<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsTo:
-		result = TEventExt::VariableCheck<true, std::greater_equal<int>>(pThis);
+		result = TEventExtData::VariableCheck<true, std::greater_equal<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsTo:
-		result = TEventExt::VariableCheck<true, std::less_equal<int>>(pThis);
+		result = TEventExtData::VariableCheck<true, std::less_equal<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::GlobalVariableAndIsTrue:
-		result = TEventExt::VariableCheck<true, std::and_with<int>>(pThis);
+		result = TEventExtData::VariableCheck<true, std::and_with<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::LocalVariableGreaterThanLocalVariable:
-		result = TEventExt::VariableCheckBinary<false, false, std::greater<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<false, false, std::greater<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::LocalVariableLessThanLocalVariable:
-		result = TEventExt::VariableCheckBinary<false, false, std::less<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<false, false, std::less<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::LocalVariableEqualsToLocalVariable:
-		result = TEventExt::VariableCheckBinary<false, false, std::equal_to<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<false, false, std::equal_to<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsToLocalVariable:
-		result = TEventExt::VariableCheckBinary<false, false, std::greater_equal<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<false, false, std::greater_equal<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::LocalVariableLessThanOrEqualsToLocalVariable:
-		result = TEventExt::VariableCheckBinary<false, false, std::less_equal<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<false, false, std::less_equal<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::LocalVariableAndIsTrueLocalVariable:
-		result = TEventExt::VariableCheckBinary<false, false, std::and_with<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<false, false, std::and_with<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::GlobalVariableGreaterThanLocalVariable:
-		result = TEventExt::VariableCheckBinary<false, true, std::greater<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<false, true, std::greater<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::GlobalVariableLessThanLocalVariable:
-		result = TEventExt::VariableCheckBinary<false, true, std::less<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<false, true, std::less<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::GlobalVariableEqualsToLocalVariable:
-		result = TEventExt::VariableCheckBinary<false, true, std::equal_to<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<false, true, std::equal_to<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsToLocalVariable:
-		result = TEventExt::VariableCheckBinary<false, true, std::greater_equal<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<false, true, std::greater_equal<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsToLocalVariable:
-		result = TEventExt::VariableCheckBinary<false, true, std::less_equal<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<false, true, std::less_equal<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::GlobalVariableAndIsTrueLocalVariable:
-		result = TEventExt::VariableCheckBinary<false, true, std::and_with<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<false, true, std::and_with<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::LocalVariableGreaterThanGlobalVariable:
-		result = TEventExt::VariableCheckBinary<true, false, std::greater<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<true, false, std::greater<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::LocalVariableLessThanGlobalVariable:
-		result = TEventExt::VariableCheckBinary<true, false, std::less<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<true, false, std::less<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::LocalVariableEqualsToGlobalVariable:
-		result = TEventExt::VariableCheckBinary<true, false, std::equal_to<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<true, false, std::equal_to<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsToGlobalVariable:
-		result = TEventExt::VariableCheckBinary<true, false, std::greater_equal<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<true, false, std::greater_equal<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::LocalVariableLessThanOrEqualsToGlobalVariable:
-		result = TEventExt::VariableCheckBinary<true, false, std::less_equal<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<true, false, std::less_equal<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::LocalVariableAndIsTrueGlobalVariable:
-		result = TEventExt::VariableCheckBinary<true, false, std::and_with<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<true, false, std::and_with<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::GlobalVariableGreaterThanGlobalVariable:
-		result = TEventExt::VariableCheckBinary<true, true, std::greater<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<true, true, std::greater<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::GlobalVariableLessThanGlobalVariable:
-		result = TEventExt::VariableCheckBinary<true, true, std::less<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<true, true, std::less<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::GlobalVariableEqualsToGlobalVariable:
-		result = TEventExt::VariableCheckBinary<true, true, std::equal_to<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<true, true, std::equal_to<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsToGlobalVariable:
-		result = TEventExt::VariableCheckBinary<true, true, std::greater_equal<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<true, true, std::greater_equal<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsToGlobalVariable:
-		result = TEventExt::VariableCheckBinary<true, true, std::less_equal<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<true, true, std::less_equal<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::GlobalVariableAndIsTrueGlobalVariable:
-		result = TEventExt::VariableCheckBinary<true, true, std::and_with<int>>(pThis);
+		result = TEventExtData::VariableCheckBinary<true, true, std::and_with<int>>(pThis);
 		break;
 #pragma endregion
 
@@ -205,13 +205,13 @@ bool TEventExt::Occured(TEventClass* pThis, EventArgs const& args, bool& result)
 		result = ShieldClass::TEventIsShieldBroken(args.Object);
 		break;
 	case PhobosTriggerEvent::HouseOwnsTechnoType:
-		result = TEventExt::HouseOwnsTechnoTypeTEvent(pThis);
+		result = TEventExtData::HouseOwnsTechnoTypeTEvent(pThis);
 		break;
 	case PhobosTriggerEvent::HouseDoesntOwnTechnoType:
-		result = TEventExt::HouseDoesntOwnTechnoTypeTEvent(pThis);
+		result = TEventExtData::HouseDoesntOwnTechnoTypeTEvent(pThis);
 		break;
 	case PhobosTriggerEvent::HousesDestroyed:
-		result = TEventExt::HousesAreDestroyedTEvent(pThis);
+		result = TEventExtData::HousesAreDestroyedTEvent(pThis);
 		break;
 	default:
 		return false;
@@ -221,9 +221,9 @@ bool TEventExt::Occured(TEventClass* pThis, EventArgs const& args, bool& result)
 }
 
 template<bool IsGlobal, class _Pr>
-bool TEventExt::VariableCheck(TEventClass* pThis)
+bool TEventExtData::VariableCheck(TEventClass* pThis)
 {
-	const auto nVar = ScenarioExt::GetVariables(IsGlobal);
+	const auto nVar = ScenarioExtData::GetVariables(IsGlobal);
 	auto itr = nVar->find(pThis->Value);
 
 	if (itr != nVar->end())
@@ -237,9 +237,9 @@ bool TEventExt::VariableCheck(TEventClass* pThis)
 }
 
 template<bool IsSrcGlobal, bool IsGlobal, class _Pr>
-bool TEventExt::VariableCheckBinary(TEventClass* pThis)
+bool TEventExtData::VariableCheckBinary(TEventClass* pThis)
 {
-	const auto nVar = ScenarioExt::GetVariables(IsGlobal);
+	const auto nVar = ScenarioExtData::GetVariables(IsGlobal);
 	const auto itr = nVar->find(pThis->Value);
 
 	if (itr != nVar->end())
@@ -255,7 +255,7 @@ bool TEventExt::VariableCheckBinary(TEventClass* pThis)
 	return false;
 }
 
-bool TEventExt::HouseOwnsTechnoTypeTEvent(TEventClass* pThis)
+bool TEventExtData::HouseOwnsTechnoTypeTEvent(TEventClass* pThis)
 {
 	auto pType = TechnoTypeClass::Find(pThis->String);
 	if (!pType)
@@ -268,16 +268,16 @@ bool TEventExt::HouseOwnsTechnoTypeTEvent(TEventClass* pThis)
 	return pHouse->CountOwnedNow(pType) > 0;
 }
 
-bool TEventExt::HouseDoesntOwnTechnoTypeTEvent(TEventClass* pThis)
+bool TEventExtData::HouseDoesntOwnTechnoTypeTEvent(TEventClass* pThis)
 {
-	return !TEventExt::HouseOwnsTechnoTypeTEvent(pThis);
+	return !TEventExtData::HouseOwnsTechnoTypeTEvent(pThis);
 }
 
-bool TEventExt::HousesAreDestroyedTEvent(TEventClass* pThis)
+bool TEventExtData::HousesAreDestroyedTEvent(TEventClass* pThis)
 {
 	const int nIdxVariable = pThis->Value; //atoi(pThis->String);
 
-	const auto& nHouseList = RulesExt::Global()->AIHousesLists;
+	const auto& nHouseList = RulesExtData::Instance()->AIHousesLists;
 
 	if (nHouseList.empty() || (size_t)nIdxVariable >= nHouseList.size())
 	{
@@ -295,7 +295,7 @@ bool TEventExt::HousesAreDestroyedTEvent(TEventClass* pThis)
 
 	for (auto pTechno : *TechnoClass::Array)
 	{
-		if (ScriptExt::IsUnitAvailable(pTechno, false))
+		if (ScriptExtData::IsUnitAvailable(pTechno, false))
 		{
 			if (pTechno->Owner && housesList.contains(pTechno->Owner->Type))
 				return false;
@@ -307,7 +307,7 @@ bool TEventExt::HousesAreDestroyedTEvent(TEventClass* pThis)
 
 // =============================
 // container
-TEventExt::ExtContainer TEventExt::ExtMap;
+TEventExtContainer TEventExtContainer::Instance;
 
 // =============================
 // container hooks
@@ -317,7 +317,7 @@ DEFINE_HOOK(0x71E7F8, TEventClass_CTOR, 5)
 {
 	GET(TEventClass*, pItem, ESI);
 
-	TEventExt::ExtMap.Allocate(pItem);
+	TEventExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
@@ -325,7 +325,7 @@ DEFINE_HOOK_AGAIN(0x71FAA6, TEventClass_SDDTOR, 0x6) // Factory
 DEFINE_HOOK(0x71E856, TEventClass_SDDTOR, 0x6)
 {
 	GET(TEventClass*, pItem, ESI);
-	TEventExt::ExtMap.Remove(pItem);
+	TEventExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 
@@ -335,20 +335,20 @@ DEFINE_HOOK(0x71F8C0, TEventClass_SaveLoad_Prefix, 0x5)
 	GET_STACK(TEventClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 
-	TEventExt::ExtMap.PrepareStream(pItem, pStm);
+	TEventExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
 }
 
 DEFINE_HOOK(0x71F92B, TEventClass_Load_Suffix, 0x5)
 {
-	TEventExt::ExtMap.LoadStatic();
+	TEventExtContainer::Instance.LoadStatic();
 	return 0x0;
 }
 
 DEFINE_HOOK(0x71F94A, TEventClass_Save_Suffix, 0x5)
 {
-	TEventExt::ExtMap.SaveStatic();
+	TEventExtContainer::Instance.SaveStatic();
 	return 0x0;
 }
 
@@ -362,7 +362,7 @@ DEFINE_HOOK(0x71F94A, TEventClass_Save_Suffix, 0x5)
 //		pThis->TeamType = nullptr;
 //	}
 //
-//	TEventExt::ExtMap.InvalidatePointerFor(pThis, pTarget, bRemoved);
+//	TEventExtContainer::Instance.InvalidatePointerFor(pThis, pTarget, bRemoved);
 //
 //	return 0x71F81D;
 //}

@@ -233,7 +233,7 @@ DEFINE_OVERRIDE_HOOK(0x5F9634, ObjectTypeClass_LoadFromINI, 6)
 	if (TechnoTypeClass* const pTechnoType = type_cast<TechnoTypeClass* const>(pType))
 	{
 		INI_EX exINI(pINI);
-		TechnoTypeExt::ExtMap.Find(pTechnoType)->AlternateTheaterArt.Read(exINI, pType->ID, "AlternateTheaterArt");
+		TechnoTypeExtContainer::Instance.Find(pTechnoType)->AlternateTheaterArt.Read(exINI, pType->ID, "AlternateTheaterArt");
 	}
 
 	return 0;
@@ -248,13 +248,13 @@ DEFINE_OVERRIDE_HOOK(0x5F9070, ObjectTypeClass_Load2DArt, 6)
 	if (scenarioTheater == TheaterType::None)
 		Debug::FatalError(__FUNCTION__" for [(%s) %s] Cannot Proceed With Negative theater Index! \n" , pType->ID ,pType->GetThisClassName());
 
-	auto const& TheaterData = TheaterTypeClass::FindFromTheaterType_NoCheck(scenarioTheater);
-
-	TechnoTypeExt::ExtData* pTypeData = nullptr;
+	auto const TheaterData = TheaterTypeClass::FindFromTheaterType_NoCheck(scenarioTheater);
+	const auto what = pType->WhatAmI();
+	TechnoTypeExtData* pTypeData = nullptr;
 
 	if (TechnoTypeClass* const pThisTechno = type_cast<TechnoTypeClass* const>(pType))
 	{
-		pTypeData = TechnoTypeExt::ExtMap.Find(pThisTechno);
+		pTypeData = TechnoTypeExtContainer::Instance.Find(pThisTechno);
 	}
 
 	char basename[MAX_PATH];
@@ -313,7 +313,7 @@ DEFINE_OVERRIDE_HOOK(0x5F9070, ObjectTypeClass_Load2DArt, 6)
 	pType->Image = nullptr;
 	pType->ImageAllocated = false;
 
-	const auto what = pType->WhatAmI();
+
 	// what? it's what the game does, evidently those load somewhere else
 	const bool IsTerrainOrSmudge = what == SmudgeTypeClass::AbsID|| what == TerrainTypeClass::AbsID;
 
@@ -333,7 +333,7 @@ DEFINE_OVERRIDE_HOOK(0x5F9070, ObjectTypeClass_Load2DArt, 6)
 
 	if (const auto pShp = pType->Image)
 	{
-		auto const& size = std::max(pShp->Width, pShp->Height);
+		auto const size = std::max(pShp->Width, pShp->Height);
 		pType->MaxDimension = std::max(size, static_cast<short>(8));
 	}
 

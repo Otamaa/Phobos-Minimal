@@ -8,6 +8,7 @@
 class ParasiteExt
 {
 public:
+	/*
 	class ExtData final : public Extension<ParasiteClass>
 	{
 	public:
@@ -37,4 +38,5 @@ public:
 	};
 
 	static ExtContainer ExtMap;
+	*/
 };

@@ -15,7 +15,7 @@ static Iterator<WeaponTypeClass*> GetWeaponAndFLH(TechnoClass* pThis, const Extr
 	ExtraFireData::FLHData* ptrFlhData = nullptr;
 
 	if (auto pTransporter = pThis->Transporter) {
-		ptrFlhData = TechnoTypeExt::ExtMap.Find(pTransporter->GetTechnoType())->MyExtraFireData.AttachedFLH.AsPointer();
+		ptrFlhData = TechnoTypeExtContainer::Instance.Find(pTransporter->GetTechnoType())->MyExtraFireData.AttachedFLH.AsPointer();
 	} else {
 		ptrFlhData = nExtraFireData.AttachedFLH.AsPointer();
 	}
@@ -96,9 +96,9 @@ void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, 
 		return;
 
 	auto const pType = pThis->GetTechnoType();
-	auto const pExt = TechnoExt::ExtMap.Find(pThis);
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	const auto& nExtraFireData = pTypeExt->MyExtraFireData;
 	CoordStruct nFLH = CoordStruct::Empty;
 	const auto nSelectedWeapon=  GetWeaponAndFLH(pThis, nExtraFireData, nWeaponIdx , nFLH);
@@ -106,7 +106,7 @@ void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, 
 	if (nSelectedWeapon.empty())
 		return;
 
-	const auto ROF = TechnoExt::GetROFMult(pThis);
+	const auto ROF = TechnoExtData::GetROFMult(pThis);
 
 	if (nFLH == CoordStruct::Empty) {
 		if(auto const pWPStr = pThis->GetWeapon(nWeaponIdx)) {
@@ -117,7 +117,7 @@ void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, 
 	std::for_each(nSelectedWeapon.begin() , nSelectedWeapon.end() ,[&](WeaponTypeClass* pWeapon){
 		bool bFire = true;
 		int nRof = 0;
-		if (auto const pWeaponTypeExt = WeaponTypeExt::ExtMap.Find(pWeapon))
+		if (auto const pWeaponTypeExt = WeaponTypeExtContainer::Instance.Find(pWeapon))
 		{
 			const auto& fireData = pWeaponTypeExt->MyAttachFireDatas;
 

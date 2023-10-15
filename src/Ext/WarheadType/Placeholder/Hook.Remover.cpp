@@ -12,7 +12,7 @@ DEFINE_HOOK(0x416619, AircraftClass_ReceiveDamage_Remove, 0x6)
 {
 	GET_STACK(WarheadTypeClass*, pWarhead, 0x24);
 
-	auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+	auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
 	if (pWHExt->Remover.Get())
 	{
 		R->AL(false);
@@ -28,7 +28,7 @@ DEFINE_HOOK(0x70222E, TechnoClass_ReceiveDamage_Remove, 0xA)
 	GET_STACK(WarheadTypeClass*, pWarhead, 0xD0);
 	GET_STACK(TechnoClass*, pAttacker, 0xD4);
 
-	auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+	auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
 
 	if (pWHExt->Remover.Get())
 	{
@@ -41,7 +41,7 @@ DEFINE_HOOK(0x70222E, TechnoClass_ReceiveDamage_Remove, 0xA)
 		if (auto pAnimType = pWHExt->Remover_Anim.Get())
 		{
 			auto nCoord = pThis->GetCoords();
-			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nCoord),
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nCoord),
 				pAttacker ? pAttacker->GetOwningHouse() : nullptr,
 				pThis->GetOwningHouse(),
 				false
@@ -61,7 +61,7 @@ DEFINE_HOOK(0x442651, BuildingClass_ReceiveDamage_Remove, 0xB)
 	GET_STACK(WarheadTypeClass*, pWarhead, 0xA8);
 	GET_STACK(TechnoClass*, pAttacker, 0xAC);
 
-	auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+	auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
 
 	if (pWHExt->Remover.Get())
 	{
@@ -92,7 +92,7 @@ DEFINE_HOOK(0x442651, BuildingClass_ReceiveDamage_Remove, 0xB)
 DEFINE_HOOK(0x5181B5, InfantryClass_ReceiveDamage_Remove, 0xA)
 {
 	GET_STACK(WarheadTypeClass*, pWarhead, 0xDC);
-	auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+	auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
 	return pWHExt->Remover.Get() ? 0x518619 : 0x0;
 }
 
@@ -102,7 +102,7 @@ DEFINE_HOOK(0x737D9C, UnitClass_ReceiveDamage_Remove, 0x6)
 	GET_STACK(WarheadTypeClass*, pWarhead, 0x50);
 	GET_STACK(TechnoClass*, pAttacker, 0x54);
 
-	auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+	auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
 	if (pWHExt->Remover.Get())
 	{
 		pThis->Destroyed(pAttacker);

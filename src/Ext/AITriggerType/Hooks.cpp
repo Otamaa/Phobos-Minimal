@@ -8,13 +8,13 @@
 static bool CheckPrereq(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pHouse2)
 {
 	if (const auto pItem = pThis->ConditionObject)
-		return HouseExt::PrereqValidate(pHouse2, pItem, false, true) == CanBuildResult::Buildable;
+		return HouseExtData::PrereqValidate(pHouse2, pItem, false, true) == CanBuildResult::Buildable;
 
 	return false;
 }
 
 static bool CheckBridgeCondition(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pHouse2) {
-	if (auto const pCiv = HouseClass::FindBySideIndex(RulesExt::Global()->CivilianSideIndex)) {
+	if (auto const pCiv = HouseClass::FindBySideIndex(RulesExtData::Instance()->CivilianSideIndex)) {
 		return pCiv->Buildings.any_of([](BuildingClass* const pBld) {
 			return pBld->Type->BridgeRepairHut && pBld->Type->Repairable && MapClass::Instance->IsBrideRepairNeeded(pBld->InlineMapCoords());
 		});

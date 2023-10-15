@@ -3,12 +3,12 @@
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
 #include <Utilities/Helpers.h>
 
-void AircraftPutDataFunctional::OnPut(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt, CoordStruct* pCoord)
+void AircraftPutDataFunctional::OnPut(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt, CoordStruct* pCoord)
 {
-	if (!pExt->Get()->Owner || pExt->Get()->WhatAmI() != AircraftClass::AbsID)
+	if (!pExt->AttachedToObject->Owner || pExt->AttachedToObject->WhatAmI() != AircraftClass::AbsID)
 		return;
 
-	auto const pTechno = (AircraftClass*)pExt->Get();
+	auto const pTechno = (AircraftClass*)pExt->AttachedToObject;
 
 	if (!pTechno->Spawned)
 	{
@@ -28,7 +28,7 @@ void AircraftPutDataFunctional::OnPut(TechnoExt::ExtData* pExt, TechnoTypeExt::E
 					pTechno->Owner->TransactMoney(pType->Cost);
 					pTechno->Limbo();
 					Debug::Log(__FUNCTION__" Called \n");
-					TechnoExt::HandleRemove(pTechno , nullptr , false , false);
+					TechnoExtData::HandleRemove(pTechno , nullptr , false , false);
 
 					return;
 				}
@@ -60,7 +60,7 @@ void AircraftPutDataFunctional::OnPut(TechnoExt::ExtData* pExt, TechnoTypeExt::E
 	}
 }
 
-void AircraftPutDataFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
+void AircraftPutDataFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 {
 	if (!pExt || !pExt->aircraftPutOffset)
 		return;
@@ -68,7 +68,7 @@ void AircraftPutDataFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtD
 	if (auto const nOffset = GetOffset(pTypeExt->MyPutData))
 	{
 		pExt->aircraftPutOffset = false;
-		auto const pTechno = pExt->Get();
+		auto const pTechno = pExt->AttachedToObject;
 
 		CoordStruct location = pTechno->Location;
 		CoordStruct pos = location + nOffset;
@@ -83,17 +83,17 @@ void AircraftPutDataFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtD
 
 CoordStruct AircraftPutDataFunctional::GetOffset(AircraftPutData& nData)
 {
-	auto const nOffset = nData.PosOffset.Get(RulesExt::Global()->MyPutData.PosOffset.Get());
+	auto const nOffset = nData.PosOffset.Get(RulesExtData::Instance()->MyPutData.PosOffset.Get());
 
 	return { nOffset.X * 256 ,nOffset.Y * 256 , nOffset.Z * 256 };
 }
 
 bool AircraftPutDataFunctional::IsForceOffset(AircraftPutData& nData)
 {
-	return nData.ForceOffset.Get(RulesExt::Global()->MyPutData.ForceOffset.Get());
+	return nData.ForceOffset.Get(RulesExtData::Instance()->MyPutData.ForceOffset.Get());
 }
 
 bool AircraftPutDataFunctional::RemoveIfNoDock(AircraftPutData& nData)
 {
-	return nData.RemoveIfNoDocks.Get(RulesExt::Global()->MyPutData.RemoveIfNoDocks.Get());
+	return nData.RemoveIfNoDocks.Get(RulesExtData::Instance()->MyPutData.RemoveIfNoDocks.Get());
 }

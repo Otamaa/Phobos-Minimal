@@ -97,6 +97,7 @@ HouseClass* TriggerTypeExt::ResolveHouseParam(int const param, HouseClass* const
 
 // =============================
 // container
+/*
 TriggerTypeExt::ExtContainer TriggerTypeExt::ExtMap;
 
 DEFINE_HOOK(0x726DE6, TriggerTypeClass_CTOR, 6)
@@ -142,4 +143,4 @@ DEFINE_HOOK(0x727C94, TriggerTypeClass_Save_Suffix, 6)
 	}
 
 	return 0x727C9A;
-}
+}*/

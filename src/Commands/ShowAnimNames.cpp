@@ -49,7 +49,7 @@ void ShowAnimNameCommandClass::AI()
 {
 	if (IsActivated())
 	{
-		auto const pCiv = HouseExt::FindCivilianSide();
+		auto const pCiv = HouseExtData::FindCivilianSide();
 
 		for (auto pTech : *AnimClass::Array())
 		{

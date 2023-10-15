@@ -14,7 +14,7 @@
 #include <Ext/Cell/Body.h>
 
 namespace TerrainTypeTemp {
-	TerrainTypeExt::ExtData* pCurrentExt = nullptr;
+	TerrainTypeExtData* pCurrentExt = nullptr;
 }
 
 DEFINE_HOOK(0x71C84D, TerrainClass_AI_Animated, 0x6)
@@ -33,7 +33,7 @@ DEFINE_HOOK(0x71C84D, TerrainClass_AI_Animated, 0x6)
 					if (pThis->Type->SpawnsTiberium && MapClass::Instance->IsValid(pThis->Location)) {
 						if (auto const pCell = MapClass::Instance->GetCellAt(pThis->Location)) {
 							int cellCount = 1;
-							auto const pTypeExt = TerrainTypeExt::ExtMap.Find(pThis->Type);
+							auto const pTypeExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
 
 							{
 								cellCount = pTypeExt->GetCellsPerAnim();
@@ -122,12 +122,12 @@ DEFINE_HOOK(0x47C065, CellClass_CellColor_TerrainRadarColor, 0x6)
 		}
 		else
 		{
-			auto const pTerrainExt = TerrainTypeExt::ExtMap.Find(pTerrain->Type);
+			auto const pTerrainExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
 
 			if (pTerrainExt->MinimapColor.isset())
 			{
 				const auto& color = pTerrainExt->MinimapColor;
-			
+
 				arg0->R = color->R;
 				arg0->G = color->G;
 				arg0->B = color->B;

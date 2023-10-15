@@ -8,75 +8,80 @@
 #include <Utilities/GeneralUtils.h>
 
 class AnimTypeClass;
-class TiberiumExt
+
+class TiberiumExtData final
 {
 public:
-	class ExtData final : public Extension<TiberiumClass>
+	static constexpr size_t Canary = 0xB16B00B5;
+	using base_type = TiberiumClass;
+
+	//Dont forget to remove this if ares one re-enabled
+	//static constexpr size_t ExtOffset = 0xAC;
+
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+public:
+	Valueable<PaletteManager*> Palette {}; //CustomPalette::PaletteMode::Temperate
+	Nullable<AnimTypeClass*> OreTwinkle {};
+	Nullable<int> OreTwinkleChance {};
+	Nullable<int> Ore_TintLevel {};
+	Nullable<ColorStruct> MinimapColor {};
+	Valueable<bool> EnableLighningFix { true };
+	Valueable<bool> UseNormalLight { true };
+	Valueable<bool> EnablePixelFXAnim { true };
+
+	Nullable<int> Damage {};
+	Nullable<WarheadTypeClass*> Warhead {};
+
+	Nullable<int> Heal_Step {};
+	Nullable<int> Heal_IStep {};
+	Nullable<int> Heal_UStep {};
+	Nullable<double> Heal_Delay {};
+
+	Nullable<WarheadTypeClass*> ExplosionWarhead {};
+	Nullable<int> ExplosionDamage {};
+
+	Valueable<int> DebrisChance { 33 };
+
+	TiberiumExtData(base_type* OwnerObject) noexcept
 	{
-	public:
-		static constexpr size_t Canary = 0xB16B00B5;
-		using base_type = TiberiumClass;
+		this->AttachedToObject = OwnerObject;
+	}
 
-		//Dont forget to remove this if ares one re-enabled
-		//static constexpr size_t ExtOffset = 0xAC;
+	~TiberiumExtData() noexcept = default;
 
-	public:
-		Valueable<PaletteManager*> Palette {}; //CustomPalette::PaletteMode::Temperate
-		Nullable<AnimTypeClass*> OreTwinkle {};
-		Nullable<int> OreTwinkleChance {};
-		Nullable<int> Ore_TintLevel {};
-		Nullable<ColorStruct> MinimapColor {};
-		Valueable<bool> EnableLighningFix { true };
-		Valueable<bool> UseNormalLight { true };
-		Valueable<bool> EnablePixelFXAnim { true };
+	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	void Initialize() { } //Init After INI Read
 
-		Nullable<int> Damage {};
-		Nullable<WarheadTypeClass*> Warhead {};
-
-		Nullable<int> Heal_Step {};
-		Nullable<int> Heal_IStep {};
-		Nullable<int> Heal_UStep {};
-		Nullable<double> Heal_Delay {};
-
-		Nullable<WarheadTypeClass*> ExplosionWarhead {};
-		Nullable<int> ExplosionDamage {};
-
-		Valueable<int> DebrisChance {33};
-
-		ExtData(TiberiumClass* OwnerObject) : Extension<TiberiumClass>(OwnerObject) { }
-		virtual ~ExtData() override = default;
-
-		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-		void Initialize() { } //Init After INI Read
-
-		inline AnimTypeClass* GetTwinkleAnim() const {
-			return this->OreTwinkle.Get(RulesClass::Instance->OreTwinkle);
-		}
-
-		inline int GetTwinkleChance() const {
-			return this->OreTwinkleChance.Get(RulesClass::Instance->OreTwinkleChance);
-		}
-
-		double GetHealDelay() const;
-		int GetHealStep(TechnoClass* pTechno) const;
-		int GetDamage() const;
-		WarheadTypeClass* GetWarhead() const;
-		WarheadTypeClass* GetExplosionWarhead() const;
-		int GetExplosionDamage() const;
-		int GetDebrisChance() const;
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public Container<TiberiumExt::ExtData>
+	inline AnimTypeClass* GetTwinkleAnim() const
 	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(TiberiumExt::ExtData, "TiberiumClass");
-	};
+		return this->OreTwinkle.Get(RulesClass::Instance->OreTwinkle);
+	}
 
-	static ExtContainer ExtMap;
+	inline int GetTwinkleChance() const
+	{
+		return this->OreTwinkleChance.Get(RulesClass::Instance->OreTwinkleChance);
+	}
+
+	double GetHealDelay() const;
+	int GetHealStep(TechnoClass* pTechno) const;
+	int GetDamage() const;
+	WarheadTypeClass* GetWarhead() const;
+	WarheadTypeClass* GetExplosionWarhead() const;
+	int GetExplosionDamage() const;
+	int GetDebrisChance() const;
+
+private:
+	template <typename T>
+	void Serialize(T& Stm);
+};
+
+class TiberiumExtExtContainer final : public Container<TiberiumExtData>
+{
+public:
+	static TiberiumExtExtContainer Instance;
+
+	CONSTEXPR_NOCOPY_CLASSB(TiberiumExtExtContainer, TiberiumExtData, "TiberiumClass");
 };

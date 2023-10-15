@@ -62,7 +62,7 @@ void BannerClass::RenderCSF(int x, int y)
 	wchar_t text[25];
 	wchar_t text2[269];
 
-	auto& variables = ScenarioExt::Global()->Variables[this->IsGlobalVariable != 0];
+	auto& variables = ScenarioExtData::Instance()->Variables[this->IsGlobalVariable != 0];
 	auto itr = variables.find(this->Variable);
 	if (itr != variables.end())
 	{

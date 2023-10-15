@@ -2,7 +2,7 @@
 #include <Helpers/IteratorIdx.h>
 #include <Misc/Otamaa/Misc/DynamicPatcher/Helpers/Helpers.h>
 
-void AttackBeaconFunctional::AI(TechnoExt::ExtData* pExt , TechnoTypeExt::ExtData* pTypeExt)
+void AttackBeaconFunctional::AI(TechnoExtData* pExt , TechnoTypeExtData* pTypeExt)
 {
 	if (!pExt || pTypeExt)
 		return;
@@ -97,7 +97,7 @@ void AttackBeaconFunctional::AI(TechnoExt::ExtData* pExt , TechnoTypeExt::ExtDat
 
 				// recruit one
 				pTarget->SetTarget(pBeacon);
-				if (auto const pTargetExt = TechnoExt::ExtMap.Find(pTarget))
+				if (auto const pTargetExt = TechnoExtContainer::Instance.Find(pTarget))
 				{
 					pTargetExt->AnotherData.Recuited = true;
 				}			
@@ -106,7 +106,7 @@ void AttackBeaconFunctional::AI(TechnoExt::ExtData* pExt , TechnoTypeExt::ExtDat
 	}
 }
 
-void AttackBeaconFunctional::OnFire(TechnoExt::ExtData* pExt, AbstractClass* pTarget, int nWeapon)
+void AttackBeaconFunctional::OnFire(TechnoExtData* pExt, AbstractClass* pTarget, int nWeapon)
 {
 	if (pExt->AnotherData.Recuited)
 	{

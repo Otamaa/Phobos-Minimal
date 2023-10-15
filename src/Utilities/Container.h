@@ -32,6 +32,11 @@ concept CanLoadFromINIFile =
 	requires (T t , CCINIClass* pINI, bool parseFailAddr) { t.LoadFromINIFile(pINI, parseFailAddr); };
 
 template <typename T>
+concept CanLoadFromRulesFile =
+	requires (T t, CCINIClass * pINI) { t.LoadFromRulesFile(pINI); };
+
+
+template <typename T>
 concept PointerInvalidationSubscribable =
 	requires (AbstractClass* ptr, bool removed) { T::InvalidatePointer(ptr, removed); };
 
@@ -63,43 +68,43 @@ template <typename T>
 concept CanThisSaveToStream =
 	requires (T t, PhobosStreamWriter & stm) { t.SaveToStream(stm); };
 
-template <typename T>
-class Extension
-{
-	T* AttachedToObject;
-public:
-	InitState Initialized;
-
-	static const DWORD Canary;
-
-	explicit Extension(T* const OwnerObject) : AttachedToObject { OwnerObject }
-		, Initialized { InitState::Blank }
-	{
-	}
-
-	virtual ~Extension() = default;
-
-	inline const InitState GetInitStatus() const
-	{
-		return this->Initialized;
-	}
-
-	// the object this Extension expands
-	inline T* const& Get() const
-	{
-		return this->AttachedToObject;
-	}
-
-	inline T* const& OwnerObject() const
-	{
-		return this->AttachedToObject;
-	}
-
-private:
-	Extension(const Extension&) = delete;
-	Extension& operator = (const Extension&) = delete;
-	Extension& operator = (Extension&&) = delete;
-};
+//template <typename T>
+//class Extension
+//{
+//	T* AttachedToObject;
+//public:
+//	InitState Initialized;
+//
+//	static const DWORD Canary;
+//
+//	explicit Extension(T* const OwnerObject) : AttachedToObject { OwnerObject }
+//		, Initialized { InitState::Blank }
+//	{
+//	}
+//
+//	virtual ~Extension() = default;
+//
+//	inline const InitState GetInitStatus() const
+//	{
+//		return this->Initialized;
+//	}
+//
+//	// the object this Extension expands
+//	inline T* const& Get() const
+//	{
+//		return this->AttachedToObject;
+//	}
+//
+//	inline T* const& OwnerObject() const
+//	{
+//		return this->AttachedToObject;
+//	}
+//
+//private:
+//	Extension(const Extension&) = delete;
+//	Extension& operator = (const Extension&) = delete;
+//	Extension& operator = (Extension&&) = delete;
+//};
 
 template <class T>
 concept HasOffset = requires(T) { T::ExtOffset; };
@@ -262,29 +267,43 @@ public:
 		{
 			if (extension_type_ptr ptr = this->TryFind(key))
 			{
-				if (!pINI)
-				{
+				if (!pINI) {
 					Debug::Log("[%s] LoadFrom INI Called WithInvalid CCINIClass ptr ! \n", typeid(T).name());
 					return;
 				}
 
-				const auto InitStateData = ptr->Initialized;
+				switch (ptr->Initialized) {
+					case InitState::Blank:
+					{
+						if constexpr (Initable<T>)
+							ptr->Initialize();
 
-				if (InitStateData == InitState::Blank)
-				{
-					if constexpr (Initable<T>)
-						ptr->Initialize();
+						ptr->Initialized = InitState::Inited;
 
-					ptr->Initialized = InitState::Inited;
-					ptr->LoadFromINIFile(pINI, parseFailAddr);
-					ptr->Initialized = InitState::Ruled;
-				}
+						if constexpr (CanLoadFromRulesFile<T>) {
+							if (pINI == CCINIClass::INI_Rules) {
+								ptr->LoadFromRulesFile(pINI);
+							}
+						}
 
-				const InitState nInitStateNegOne = InitState((int)InitStateData - 1);
-
-				if (nInitStateNegOne == InitState::Blank || nInitStateNegOne == InitState::Constanted) {
-					ptr->LoadFromINIFile(pINI, parseFailAddr);
-					ptr->Initialized = InitState::Ruled;
+						//Load from rules INI File
+						ptr->LoadFromINIFile(pINI, parseFailAddr);
+						ptr->Initialized = InitState::Ruled;
+					}
+					break;
+					case InitState::Ruled:
+					case InitState::Constanted:
+					{
+						//load anywhere other than rules
+						ptr->LoadFromINIFile(pINI, parseFailAddr);
+						//this function can be called again multiple time but without need to re-init the data
+						ptr->Initialized = InitState::Ruled;
+					}
+					break;
+					{
+					default:
+						break;
+					}
 				}
 			}
 		}
@@ -469,3 +488,11 @@ private:\
 ExtContainer(const ExtContainer&) = delete;\
 ExtContainer(ExtContainer&&) = delete; \
 ExtContainer& operator=(const ExtContainer& other) = delete;
+
+#define CONSTEXPR_NOCOPY_CLASSB(containerName , containerT , name)\
+constexpr containerName() : Container<containerT> { ##name## } {}\
+virtual ~containerName() override = default;\
+private:\
+containerName(const containerName&) = delete;\
+containerName(containerName&&) = delete; \
+containerName& operator=(const containerName& other) = delete;

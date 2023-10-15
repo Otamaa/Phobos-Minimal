@@ -151,7 +151,7 @@ bool ArtilleryTrajectory::OnAI()
 
 	if (!this->Init)
 	{
-		const auto pExt = BulletExt::ExtMap.Find(pBullet);
+		const auto pExt = BulletExtContainer::Instance.Find(pBullet);
 
 		pExt->LaserTrails.clear();
 		pExt->Trails.clear();
@@ -178,7 +178,7 @@ bool ArtilleryTrajectory::OnAI()
 	const double closeEnough = pBullet->TargetCoords.DistanceFrom(pBullet->Location);
 	if (closeEnough < 100)
 	{
-		auto pBulletExt = BulletExt::ExtMap.Find(pBullet);
+		auto pBulletExt = BulletExtContainer::Instance.Find(pBullet);
 
 		if (!pBulletExt->LaserTrails.empty())
 			pBulletExt->LaserTrails.clear();
@@ -195,7 +195,7 @@ bool ArtilleryTrajectory::OnAI()
 void ArtilleryTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition)
 {
 	auto const pBullet = AttachedTo;
-	pSpeed->Z += BulletTypeExt::GetAdjustedGravity(pBullet->Type); // We don't want to take the gravity into account
+	pSpeed->Z += BulletTypeExtData::GetAdjustedGravity(pBullet->Type); // We don't want to take the gravity into account
 }
 
 TrajectoryCheckReturnType ArtilleryTrajectory::OnAITargetCoordCheck(CoordStruct& coords)

@@ -59,8 +59,8 @@ public:
 		}
 	}
 
-	SWTypeExt::ExtData * GetTypeExtData() {
-		return SWTypeExt::ExtMap.Find(Super->Type);
+	SWTypeExtData * GetTypeExtData() {
+		return SWTypeExtContainer::Instance.Find(Super->Type);
 	}
 
 public:
@@ -136,7 +136,7 @@ public:
 		return "SWStateMachine::Droppod";
 	}
 
-	void SendDroppods();
+	static void SendDroppods(SuperClass* pSuper, SWTypeExtData* pData, NewSWType* pNewType, const CellStruct& loc);
 
 	static void PlaceUnits(SuperClass* pSuper, double veterancy, Iterator<TechnoTypeClass*> const Types, int cMin, int cMax, const CellStruct& Coords ,bool retries);
 
@@ -216,13 +216,13 @@ public:
 		PsyDom::Status = PsychicDominatorStatus::FirstAnim;
 
 		// the initial deferment
-		SWTypeExt::ExtData* pData = SWTypeExt::ExtMap.Find(pSuper->Type);
+		SWTypeExtData* pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
 		this->Deferment = pData->SW_Deferment.Get(0);
 
 		// make the game happy
 		if (!pSuper->Owner) {
 			Debug::Log("Psydom[%s] Firing Without Ownership!\n", pSuper->Type->ID);
-			PsyDom::Owner = HouseExt::FindSpecial();
+			PsyDom::Owner = HouseExtData::FindSpecial();
 		}else{
 			PsyDom::Owner = pSuper->Owner;
 		}
@@ -285,7 +285,7 @@ public:
 		Firer(pFirer)
 	{
 		// the initial deferment
-		SWTypeExt::ExtData* pData = SWTypeExt::ExtMap.Find(pSuper->Type);
+		SWTypeExtData* pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
 		this->Deferment = pData->SW_Deferment.Get(0);
 	};
 
@@ -527,7 +527,7 @@ public:
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override;
 
-	void SentPayload();
+	static void SentPayload(TechnoClass* pFirer ,SuperClass* pSuper , SWTypeExtData* pData , NewSWType* pNewType, const CellStruct& loc);
 
 protected:
 	TechnoClass* Firer;

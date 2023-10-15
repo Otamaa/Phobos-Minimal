@@ -91,7 +91,7 @@ DEFINE_OVERRIDE_HOOK(0x442DF2, BuildingClass_Demolish_Tunnel, 6)
 	GET_STACK(AbstractClass*, pKiller, 0x90);
 	GET(BuildingClass*, pTarget, EDI);
 
-	if (auto pTunnelData = HouseExt::GetTunnelVector(pTarget->Type, pTarget->Owner))
+	if (auto pTunnelData = HouseExtData::GetTunnelVector(pTarget->Type, pTarget->Owner))
 		TunnelFuncs::DestroyTunnel(&pTunnelData->Vector, pTarget, generic_cast<TechnoClass*>(pKiller));
 
 	return 0;
@@ -102,7 +102,7 @@ DEFINE_OVERRIDE_HOOK(0x71A995, TemporalClass_Update_Tunnel, 5)
 	GET(TemporalClass*, pThis, ESI);
 	GET(BuildingClass*, pTarget, EBP);
 
-	if (const auto pTunnelData = HouseExt::GetTunnelVector(pTarget->Type, pTarget->Owner))
+	if (const auto pTunnelData = HouseExtData::GetTunnelVector(pTarget->Type, pTarget->Owner))
 		TunnelFuncs::DestroyTunnel(&pTunnelData->Vector, pTarget, pThis->Owner);
 
 	return 0;
@@ -121,7 +121,7 @@ DEFINE_OVERRIDE_HOOK(0x73A23F, UnitClass_UpdatePosition_Tunnel, 0x6)
 	if (pThis->Destination != pTarget)
 		return Nothing;
 
-	const auto pTunnelData = HouseExt::GetTunnelVector(pTarget->Type, pTarget->Owner);
+	const auto pTunnelData = HouseExtData::GetTunnelVector(pTarget->Type, pTarget->Owner);
 	if (!pTunnelData)
 		return Nothing;
 
@@ -134,7 +134,7 @@ DEFINE_OVERRIDE_HOOK(0x73F606, UnitClass_IsCellOccupied_Tunnel, 0x6)
 	GET(BuildingClass*, pBuilding, ESI);
 
 	bool canbeDestination = pBuilding->Type->UnitAbsorb;
-	const auto pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+	const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 
 	if (!canbeDestination)
 		canbeDestination = pBuildingTypeExt->TunnelType >= 0;
@@ -147,7 +147,7 @@ DEFINE_OVERRIDE_HOOK(0x741CE5, UnitClass_SetDestination_Tunnel, 0x6)
 	GET(BuildingClass*, pBuilding, ESI);
 
 	bool canbeDestination = pBuilding->Type->UnitAbsorb;
-	const auto pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+	const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 
 	if (!canbeDestination)
 		canbeDestination = pBuildingTypeExt->TunnelType >= 0;
@@ -164,7 +164,7 @@ DEFINE_OVERRIDE_HOOK(0x43C716, BuildingClass_ReceivedRadioCommand_RequestComplet
 		DoNothing = 0x0,
 	};
 
-	return BuildingTypeExt::ExtMap.Find(pThis->Type)->TunnelType > -1
+	return BuildingTypeExtContainer::Instance.Find(pThis->Type)->TunnelType > -1
 		? ProcessTechnoClassRadio : DoNothing;
 }
 
@@ -174,7 +174,7 @@ DEFINE_OVERRIDE_HOOK(0x44731C, BuildingClass_GetActionOnObject_Tunnel, 6)
 	GET(BuildingClass*, pThis, ESI);
 
 	bool FindSameTunnel = false;
-	if (const auto nTunnelVec = HouseExt::GetTunnelVector(pThis->Type, pThis->Owner))
+	if (const auto nTunnelVec = HouseExtData::GetTunnelVector(pThis->Type, pThis->Owner))
 		FindSameTunnel = !nTunnelVec->Vector.empty();
 
 	return FindSameTunnel ? RetActionSelf : Nothing;
@@ -186,7 +186,7 @@ DEFINE_HOOK(0x7014B9, TechnoClass_SetOwningHouse_Tunnel, 0x6)
 
 	if (auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
 
-		const auto nTunnelVec = HouseExt::GetTunnelVector(pBuilding->Type, pThis->Owner);
+		const auto nTunnelVec = HouseExtData::GetTunnelVector(pBuilding->Type, pThis->Owner);
 
 		if (!nTunnelVec || TunnelFuncs::FindSameTunnel(pBuilding))
 			return 0x0;
@@ -209,7 +209,7 @@ DEFINE_OVERRIDE_HOOK(0x44A37F, BuildingClass_Mi_Selling_Tunnel_TryToPlacePasseng
 	GET(CellStruct, nCell, EDX);
 	GET_STACK(int, nDev, 0x30);
 
-	const auto nTunnelVec = HouseExt::GetTunnelVector(pThis->Type, pThis->Owner);
+	const auto nTunnelVec = HouseExtData::GetTunnelVector(pThis->Type, pThis->Owner);
 
 	if (!nTunnelVec || TunnelFuncs::FindSameTunnel(pThis))
 		return 0x0;
@@ -235,7 +235,7 @@ DEFINE_OVERRIDE_HOOK(0x44A37F, BuildingClass_Mi_Selling_Tunnel_TryToPlacePasseng
 DEFINE_OVERRIDE_HOOK(0x44D8A7, BuildingClass_Mi_Unload_Tunnel, 6)
 {
 	GET(BuildingClass*, pThis, EBP);
-	const auto nTunnelVec = HouseExt::GetTunnelVector(pThis->Type, pThis->Owner);
+	const auto nTunnelVec = HouseExtData::GetTunnelVector(pThis->Type, pThis->Owner);
 
 	if (!nTunnelVec || nTunnelVec->Vector.empty())
 		return 0x0;
@@ -267,7 +267,7 @@ DEFINE_OVERRIDE_HOOK(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_
 		return RetRadioNegative;
 
 	const auto pBldType = pThisBld->Type;
-	const auto pBldTypeExt = BuildingTypeExt::ExtMap.Find(pBldType);
+	const auto pBldTypeExt = BuildingTypeExtContainer::Instance.Find(pBldType);
 	const auto pRectpType = pRecpt->GetTechnoType();
 
 	const bool isAmphibious = pRectpType->MovementZone == MovementZone::Amphibious
@@ -279,7 +279,7 @@ DEFINE_OVERRIDE_HOOK(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_
 
 	if ((pRectpType->BalloonHover || pRectpType->JumpJet)
 		|| !pThisBld->HasPower
-		|| !TechnoTypeExt::PassangersAllowed(pBldType, pRectpType)
+		|| !TechnoTypeExtData::PassangersAllowed(pBldType, pRectpType)
 		)
 		return RetRadioNegative;
 
@@ -302,7 +302,7 @@ DEFINE_OVERRIDE_HOOK(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_
 		if (pThisBld->IsMindControlled())
 			return RetRadioNegative;
 
-		const auto pTunnelData = HouseExt::GetTunnelVector(pBldType, pThisBld->Owner);
+		const auto pTunnelData = HouseExtData::GetTunnelVector(pBldType, pThisBld->Owner);
 
 		if (((int)pTunnelData->Vector.size() >= pTunnelData->MaxCap)
 			|| (pBldType->SizeLimit < pRectpType->Size))
@@ -345,13 +345,13 @@ DEFINE_OVERRIDE_HOOK(0x51ED8E, InfantryClass_GetActionOnObject_Tunnel, 6)
 	GET(ObjectClass*, pTarget, ESI);
 	GET(TechnoTypeClass*, pTargetType, EAX);
 
-	if (pTargetType->Passengers > 0 && !TechnoTypeExt::ExtMap.Find(pTargetType)->NoManualEnter)
+	if (pTargetType->Passengers > 0 && !TechnoTypeExtContainer::Instance.Find(pTargetType)->NoManualEnter)
 		return CanEnter;
 
 	bool Enterable = false;
 	if (const auto pBuildingTarget = specific_cast<BuildingClass*>(pTarget))
 	{
-		Enterable = BuildingTypeExt::ExtMap.Find(pBuildingTarget->Type)->TunnelType >= 0;
+		Enterable = BuildingTypeExtContainer::Instance.Find(pBuildingTarget->Type)->TunnelType >= 0;
 	}
 
 	return Enterable ? CanEnter :
@@ -365,7 +365,7 @@ DEFINE_OVERRIDE_HOOK(0x51A2AD, InfantryClass_UpdatePosition_Tunnel, 9)
 	GET(InfantryClass*, pThis, ESI);
 	GET(BuildingClass*, pBld, EDI);
 
-	if (const auto nTunnelVec = HouseExt::GetTunnelVector(pBld->Type, pBld->Owner))
+	if (const auto nTunnelVec = HouseExtData::GetTunnelVector(pBld->Type, pBld->Owner))
 	{
 		return TunnelFuncs::CanEnterTunnel(&nTunnelVec->Vector, pBld, pThis) ? CanEnter : CannotEnter;
 	}
@@ -387,6 +387,6 @@ DEFINE_OVERRIDE_HOOK(0x44351A, BuildingClass_ActionOnObject_Tunnel, 6)
 	if (pThis->Absorber())
 		return MissionUnload;
 
-	return BuildingTypeExt::ExtMap.Find(pType)->TunnelType >= 0 ?
+	return BuildingTypeExtContainer::Instance.Find(pType)->TunnelType >= 0 ?
 		MissionUnload : CheckOccupant;
 }

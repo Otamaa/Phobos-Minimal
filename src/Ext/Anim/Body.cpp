@@ -15,13 +15,13 @@
 #include <ColorScheme.h>
 #include <SmudgeTypeClass.h>
 
-//std::vector<CellClass*> AnimExt::AnimCellUpdater::Marked;
-void AnimExt::OnInit(AnimClass* pThis, CoordStruct* pCoord)
+//std::vector<CellClass*> AnimExtData::AnimCellUpdater::Marked;
+void AnimExtData::OnInit(AnimClass* pThis, CoordStruct* pCoord)
 {
 	if (!pThis->Type)
 		return;
 
-	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (pTypeExt->ConcurrentChance.Get() >= 1.0 && !pTypeExt->ConcurrentAnim.empty()) {
 		if (ScenarioClass::Instance->Random.RandomDouble() <= pTypeExt->ConcurrentChance.Get()) {
@@ -45,13 +45,13 @@ void AnimExt::OnInit(AnimClass* pThis, CoordStruct* pCoord)
 	//}
 }
 
-bool AnimExt::OnMiddle_SpawnParticle(AnimClass* pThis, CellClass* pCell, Point2D nOffs)
+bool AnimExtData::OnMiddle_SpawnParticle(AnimClass* pThis, CellClass* pCell, Point2D nOffs)
 {
 	const auto pType = pThis->Type;
 	if (!pType)
 		return false;
 
-	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pType);
 
 	if (pTypeExt->SpawnCrater.Get(pThis->GetHeight() < 30))
 	{
@@ -82,15 +82,15 @@ bool AnimExt::OnMiddle_SpawnParticle(AnimClass* pThis, CellClass* pCell, Point2D
 	return true;
 }
 
-bool AnimExt::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight)
+bool AnimExtData::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight)
 {
 	if (!pThis->Type)
 		return false;
 
-	auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	auto const pAnimTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 
 	{
-		TechnoClass* const pTechOwner = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker);
+		TechnoClass* const pTechOwner = AnimExtData::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker);
 		auto const pOwner = !pThis->Owner && pTechOwner ? pTechOwner->Owner : pThis->Owner;
 
 		if (!LandIsWater || EligibleHeight)
@@ -99,7 +99,7 @@ bool AnimExt::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight)
 
 			if (auto const pExpireAnim = pThis->Type->ExpireAnim)
 			{
-				AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pExpireAnim, pThis->Bounce.GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -30, 0),
+				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pExpireAnim, pThis->Bounce.GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -30, 0),
 					pOwner,
 					nullptr,
 					pTechOwner,
@@ -113,7 +113,7 @@ bool AnimExt::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight)
 			{
 				if (auto pSplashAnim = Helper::Otamaa::PickSplashAnim(pAnimTypeExt->SplashList, pAnimTypeExt->WakeAnim, pAnimTypeExt->SplashIndexRandom.Get(), pThis->Type->IsMeteor))
 				{
-					AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pSplashAnim, pThis->GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, false),
+					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pSplashAnim, pThis->GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, false),
 						pOwner,
 						nullptr,
 						pTechOwner,
@@ -128,7 +128,7 @@ bool AnimExt::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight)
 				{
 					if (auto pSplashAnim = MapClass::SelectDamageAnimation(nDamage, pThis->Type->Warhead, pThis->GetCell()->LandType, pThis->GetCoords()))
 					{
-						AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pSplashAnim, pThis->GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -30),
+						AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pSplashAnim, pThis->GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -30),
 							pOwner,
 							nullptr,
 							pTechOwner,
@@ -143,17 +143,17 @@ bool AnimExt::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight)
 	return true;
 }
 
-DWORD AnimExt::DealDamageDelay(AnimClass* pThis)
+DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
 {
 	enum { SkipDamage = 0x42465D, CheckIsActive = 0x42464C };
 
 	if (!pThis->Type)
 		return CheckIsActive;
 
-	const auto pExt = AnimExt::ExtMap.Find(pThis);
-	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	const auto pExt = AnimExtContainer::Instance.Find(pThis);
+	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 	const int delay = pTypeExt->Damage_Delay.Get();
-	TechnoClass* const pInvoker = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker);
+	TechnoClass* const pInvoker = AnimExtData::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker);
 	const double damageMultiplier = (pThis->OwnerObject && pThis->OwnerObject->WhatAmI() == TerrainClass::AbsID) ? 5.0 : 1.0;
 
 	bool adjustAccum = false;
@@ -206,7 +206,7 @@ DWORD AnimExt::DealDamageDelay(AnimClass* pThis)
 
 	if (auto const pWeapon = pTypeExt->Weapon.Get(nullptr))
 	{
-		AbstractClass* pTarget = AnimExt::GetTarget(pThis);
+		AbstractClass* pTarget = AnimExtData::GetTarget(pThis);
 		// use target loc instead of anim loc , it doesnt work well with bridges
 		//auto pBullet = pWeapon->Projectile->CreateBullet(pTarget, pInvoker, nDamageResult, pWeapon->Warhead, pWeapon->Speed, pWeapon->Bright);
 		//pBullet->SetWeaponType(pWeapon);
@@ -215,20 +215,20 @@ DWORD AnimExt::DealDamageDelay(AnimClass* pThis)
 		//pBullet->Explode(true);
 		//pBullet->UnInit();
 
-		WeaponTypeExt::DetonateAt(pWeapon, nCoord, pTarget, pInvoker, appliedDamage, pTypeExt->Damage_ConsiderOwnerVeterancy.Get(), pOwner);
+		WeaponTypeExtData::DetonateAt(pWeapon, nCoord, pTarget, pInvoker, appliedDamage, pTypeExt->Damage_ConsiderOwnerVeterancy.Get(), pOwner);
 	}
 	else
 	{
 		auto const pWarhead = pThis->Type->Warhead ? pThis->Type->Warhead :
 			!pTypeExt->IsInviso ? RulesClass::Instance->FlameDamage2 : RulesClass::Instance->C4Warhead;
 
-		const auto nDamageResult = static_cast<int>(appliedDamage * TechnoExt::GetDamageMult(pInvoker, !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
+		const auto nDamageResult = static_cast<int>(appliedDamage * TechnoExtData::GetDamageMult(pInvoker, !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
 
 		if (pTypeExt->Warhead_Detonate.Get())
 		{
-			AbstractClass* pTarget = AnimExt::GetTarget(pThis);
+			AbstractClass* pTarget = AnimExtData::GetTarget(pThis);
 			// use target loc instead of anim loc , it doesnt work well with bridges
-			WarheadTypeExt::DetonateAt(pWarhead, pTarget , pTarget ? pTarget->GetCoords() : nCoord, pInvoker, nDamageResult , pOwner);
+			WarheadTypeExtData::DetonateAt(pWarhead, pTarget , pTarget ? pTarget->GetCoords() : nCoord, pInvoker, nDamageResult , pOwner);
 
 		} else {
 
@@ -240,17 +240,17 @@ DWORD AnimExt::DealDamageDelay(AnimClass* pThis)
 	return CheckIsActive;
 }
 
-bool AnimExt::OnMiddle(AnimClass* pThis)
+bool AnimExtData::OnMiddle(AnimClass* pThis)
 {
 	const auto pType = pThis->Type;
 	if (!pType)
 		return false;
 
-	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pType);
 
 	{
 		auto pAnimTypeExt = pTypeExt;
-		const auto pObject = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
+		const auto pObject = AnimExtData::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
 		const auto pHouse = !pThis->Owner && pObject ? pObject->Owner : pThis->Owner;
 		const auto nCoord = pThis->GetCoords();
 
@@ -290,10 +290,10 @@ bool AnimExt::OnMiddle(AnimClass* pThis)
 	return true;
 }
 
-AbstractClass* AnimExt::GetTarget(AnimClass* pThis)
+AbstractClass* AnimExtData::GetTarget(AnimClass* pThis)
 {
 	auto const pType = pThis->Type;
-	auto const pTypeExt = AnimTypeExt::ExtMap.Find(pType);
+	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pType);
 
 	if (!pTypeExt->Damage_TargetFlag.isset()) {
 		return pThis->GetCell();
@@ -319,7 +319,7 @@ AbstractClass* AnimExt::GetTarget(AnimClass* pThis)
 	}
 	case DamageDelayTargetFlag::Invoker:
 	{
-		if(auto const pExt = AnimExt::ExtMap.Find(pThis))
+		if(auto const pExt = AnimExtContainer::Instance.Find(pThis))
 			return pExt->Invoker;
 	}
 	}
@@ -327,7 +327,7 @@ AbstractClass* AnimExt::GetTarget(AnimClass* pThis)
 	return nullptr;
 }
 
-bool AnimExt::ExtData::InvalidateIgnorable(AbstractClass* ptr)
+bool AnimExtData::InvalidateIgnorable(AbstractClass* ptr)
 {
 	switch (VTable::Get(ptr))
 	{
@@ -342,7 +342,7 @@ bool AnimExt::ExtData::InvalidateIgnorable(AbstractClass* ptr)
 	return true;
 }
 
-void AnimExt::ExtData::InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+void AnimExtData::InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(this->Invoker, ptr , bRemoved);
 	AnnounceInvalidPointer(this->ParentBuilding, ptr, bRemoved);
@@ -351,10 +351,10 @@ void AnimExt::ExtData::InvalidatePointer(AbstractClass* const ptr, bool bRemoved
 		this->AttachedSystem.release();
 }
 
-void AnimExt::ExtData::CreateAttachedSystem()
+void AnimExtData::CreateAttachedSystem()
 {
-	const auto pThis = this->Get();
-	const auto pData = AnimTypeExt::ExtMap.TryFind(pThis->Type);
+	const auto pThis = this->AttachedToObject;
+	const auto pData = AnimTypeExtContainer::Instance.TryFind(pThis->Type);
 
 	if (!pData || !pData->AttachedSystem || this->AttachedSystem)
 		return;
@@ -375,12 +375,12 @@ void AnimExt::ExtData::CreateAttachedSystem()
 }
 
 //Modified from Ares
-const std::pair<bool, OwnerHouseKind> AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner)
+const std::pair<bool, OwnerHouseKind> AnimExtData::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner)
 {
 	if (!pAnim || !pAnim->Type)
 		return { false ,OwnerHouseKind::Default };
 
-	auto const pTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type);
+	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pAnim->Type);
 	if (!pTypeExt->NoOwner) {
 
 		const auto Owner = pTypeExt->GetAnimOwnerHouseKind();
@@ -388,7 +388,7 @@ const std::pair<bool, OwnerHouseKind> AnimExt::SetAnimOwnerHouseKind(AnimClass* 
 		if (Owner == OwnerHouseKind::Invoker && !pInvoker || Owner == OwnerHouseKind::Victim && !pVictim)
 			return { false , OwnerHouseKind::Default };
 
-		const auto newOwner = HouseExt::GetHouseKind(Owner, true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim);
+		const auto newOwner = HouseExtData::GetHouseKind(Owner, true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim);
 
 		if (!pAnim->Owner || pAnim->Owner != newOwner)
 		{
@@ -399,16 +399,16 @@ const std::pair<bool, OwnerHouseKind> AnimExt::SetAnimOwnerHouseKind(AnimClass* 
 	return { false , OwnerHouseKind::Default }; //yes return true
 }
 
-const std::pair<bool, OwnerHouseKind> AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, TechnoClass* pTechnoInvoker, bool defaultToVictimOwner)
+const std::pair<bool, OwnerHouseKind> AnimExtData::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, TechnoClass* pTechnoInvoker, bool defaultToVictimOwner)
 {
 	if (!pAnim || !pAnim->Type)
 		return { false ,OwnerHouseKind::Default };
 
-	auto const pTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type);
+	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pAnim->Type);
 
 	if (!pTypeExt->NoOwner) {
 
-		if (auto const pAnimExt = AnimExt::ExtMap.Find(pAnim))
+		if (auto const pAnimExt = AnimExtContainer::Instance.Find(pAnim))
 			pAnimExt->Invoker = pTechnoInvoker;
 
 		const auto Owner = pTypeExt->GetAnimOwnerHouseKind();
@@ -416,7 +416,7 @@ const std::pair<bool, OwnerHouseKind> AnimExt::SetAnimOwnerHouseKind(AnimClass* 
 		if (Owner == OwnerHouseKind::Invoker && !pInvoker || Owner == OwnerHouseKind::Victim && !pVictim)
 			return { false , OwnerHouseKind::Default };
 
-		const auto newOwner = HouseExt::GetHouseKind(Owner, true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim);
+		const auto newOwner = HouseExtData::GetHouseKind(Owner, true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim);
 
 		if (!pAnim->Owner || pAnim->Owner != newOwner)
 		{
@@ -428,12 +428,12 @@ const std::pair<bool, OwnerHouseKind> AnimExt::SetAnimOwnerHouseKind(AnimClass* 
 	return { false , OwnerHouseKind::Default };
 }
 
-TechnoClass* AnimExt::GetTechnoInvoker(AnimClass* pThis, bool DealthByOwner)
+TechnoClass* AnimExtData::GetTechnoInvoker(AnimClass* pThis, bool DealthByOwner)
 {
 	if (!DealthByOwner)
 		return nullptr;
 
-	auto const pExt = AnimExt::ExtMap.Find(pThis);
+	auto const pExt = AnimExtContainer::Instance.Find(pThis);
 	if (pExt && pExt->Invoker)
 		return pExt->Invoker;
 
@@ -457,12 +457,12 @@ TechnoClass* AnimExt::GetTechnoInvoker(AnimClass* pThis, bool DealthByOwner)
 	return nullptr;
 }
 
-Layer __fastcall AnimExt::GetLayer_patch(AnimClass* pThis, void* _)
+Layer __fastcall AnimExtData::GetLayer_patch(AnimClass* pThis, void* _)
 {
 	if (!pThis->OwnerObject)
 		return pThis->Type ? pThis->Type->Layer : Layer::Air;
 
-	const auto pExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	const auto pExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (!pExt || !pExt->Layer_UseObjectLayer.isset())
 		return Layer::Ground;
@@ -487,7 +487,7 @@ Layer __fastcall AnimExt::GetLayer_patch(AnimClass* pThis, void* _)
 // load / save
 
 template <typename T>
-void AnimExt::ExtData::Serialize(T& Stm)
+void AnimExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
@@ -506,7 +506,7 @@ void AnimExt::ExtData::Serialize(T& Stm)
 // =============================
 // container
 
-AnimExt::ExtContainer AnimExt::ExtMap;
+AnimExtContainer AnimExtContainer::Instance;
 
 // =============================
 // hooks
@@ -529,7 +529,7 @@ DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 		}
 	}
 
-	if (auto pExt = AnimExt::ExtMap.Allocate(pItem)) {
+	if (auto pExt = AnimExtContainer::Instance.Allocate(pItem)) {
 		pExt->CreateAttachedSystem();
 	}
 
@@ -539,7 +539,7 @@ DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 DEFINE_HOOK(0x422A52, AnimClass_DTOR, 0x6)
 {
 	GET(AnimClass* const, pItem, ESI);
-	AnimExt::ExtMap.Remove(pItem);
+	AnimExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 
@@ -548,7 +548,7 @@ DEFINE_HOOK(0x4253B0, AnimClass_SaveLoad_Prefix, 0x5)
 {
 	GET_STACK(AnimClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
-	AnimExt::ExtMap.PrepareStream(pItem, pStm);
+	AnimExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
 }
@@ -557,13 +557,13 @@ DEFINE_HOOK_AGAIN(0x425391, AnimClass_Load_Suffix, 0x7)
 DEFINE_HOOK_AGAIN(0x4253A2, AnimClass_Load_Suffix, 0x7)
 DEFINE_HOOK(0x425358, AnimClass_Load_Suffix, 0x7)
 {
-	AnimExt::ExtMap.LoadStatic();
+	AnimExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
 DEFINE_HOOK(0x4253FF, AnimClass_Save_Suffix, 0x5)
 {
-	AnimExt::ExtMap.SaveStatic();
+	AnimExtContainer::Instance.SaveStatic();
 	return 0;
 }
 
@@ -573,7 +573,7 @@ DEFINE_HOOK(0x4253FF, AnimClass_Save_Suffix, 0x5)
 //	GET(void*, target, EDI);
 //	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 //
-//	AnimExt::ExtMap.InvalidatePointerFor(pThis, target, all);
+//	AnimExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
 //
 //	R->EBX(0);
 //	return pThis->OwnerObject == target && target ? 0x425174 : 0x4251A3;
@@ -581,9 +581,9 @@ DEFINE_HOOK(0x4253FF, AnimClass_Save_Suffix, 0x5)
 
 void __fastcall AnimClass_Detach_Wrapper(AnimClass* pThis, DWORD, AbstractClass* target, bool all)
 {
-	AnimExt::ExtMap.InvalidatePointerFor(pThis, target, all);
+	AnimExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
 	pThis->AnimClass::PointerExpired(target, all);
 }
 
 DEFINE_JUMP(VTABLE, 0x7E337C, GET_OFFSET(AnimClass_Detach_Wrapper));
-DEFINE_JUMP(VTABLE, 0x7E3390, GET_OFFSET(AnimExt::GetOwningHouse_Wrapper));
+DEFINE_JUMP(VTABLE, 0x7E3390, GET_OFFSET(AnimExtData::GetOwningHouse_Wrapper));

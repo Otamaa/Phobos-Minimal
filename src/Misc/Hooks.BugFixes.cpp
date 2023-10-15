@@ -184,7 +184,7 @@ DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
 				if (auto pVoxAnim = GameCreate<VoxelAnimClass>(pType->DebrisTypes.GetItem(currentIndex),
 					&nCoords, pThis->Owner))
 				{
-					if (auto pExt = VoxelAnimExt::ExtMap.FindOrAllocate(pVoxAnim))
+					if (auto pExt = VoxelAnimExtContainer::Instance.FindOrAllocate(pVoxAnim))
 						pExt->Invoker = pThis;
 				}
 			}
@@ -290,7 +290,7 @@ DWORD NOINLINE TechnoClass_AI_TemporalTargetingMe_Fix(REGISTERS* R ,AbstractType
 			{
 				pThis->Limbo();
 				Debug::Log(__FUNCTION__" Called \n");
-				TechnoExt::HandleRemove(pThis, nullptr, true, false);
+				TechnoExtData::HandleRemove(pThis, nullptr, true, false);
 			}
 			else
 			{
@@ -342,7 +342,7 @@ DEFINE_HOOK(0x41EB43, AITriggerTypeClass_Condition_SupportPowersup, 0x7)		//AITr
 	GET(int const, idxBld, EBP);
 
 	const auto pType = BuildingTypeClass::Array->Items[idxBld];
-	int count = BuildingTypeExt::GetUpgradesAmount(pType, pHouse);
+	int count =BuildingTypeExtData::GetUpgradesAmount(pType, pHouse);
 
 	if (count == -1)
 		count = pHouse->ActiveBuildingTypes.GetItemCount(idxBld);
@@ -391,7 +391,7 @@ DEFINE_HOOK(0x480552, CellClass_AttachesToNeighbourOverlay_Gate, 0x7)
 						return Attachable;
 					else if ((RulesClass::Instance->NSGates.FindItemIndex(pBType) != -1) && (state == 0 || state == 4))
 						return Attachable;
-					else if (RulesExt::Global()->WallTowers.Contains(pBType))
+					else if (RulesExtData::Instance()->WallTowers.Contains(pBType))
 						return Attachable;
 				}
 			}
@@ -423,7 +423,7 @@ DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
 	if (pBld) {
 		if ((pBld->CurrentMission == Mission::Construction)
 			&& pBld->BState == BStateType::Construction && pBld->Type->Buildup ) {
-			if (BuildingTypeExt::ExtMap.Find(pBld->Type)->BuildUp_UseNormalLIght.Get()) {
+			if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->BuildUp_UseNormalLIght.Get()) {
 				R->EBP(1000);
 			}
 		}
@@ -462,7 +462,7 @@ DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
 	}
 
 	if (pBld && NeedUpdate)
-		BuildingExt::ExtMap.Find(pBld)->LighningNeedUpdate = true;
+		BuildingExtContainer::Instance.Find(pBld)->LighningNeedUpdate = true;
 
 	return 0;
 }
@@ -504,7 +504,7 @@ DEFINE_HOOK(0x4CDA6F, FlyLocomotionClass_MovementAI_SpeedModifiers, 0x9)
 	if (const auto pLinked = pThis->LinkedTo)
 	{
 		const double currentSpeed = pLinked->GetTechnoType()->Speed * pThis->CurrentSpeed *
-			TechnoExt::GetCurrentSpeedMultiplier(pLinked);
+			TechnoExtData::GetCurrentSpeedMultiplier(pLinked);
 
 		R->EAX(int(currentSpeed));
 		return 0x4CDA78;
@@ -520,7 +520,7 @@ DEFINE_HOOK(0x4CE4B3, FlyLocomotionClass_4CE4B0_SpeedModifiers, 0x6)
 	if (const auto pLinked = pThis->LinkedTo)
 	{
 		const double currentSpeed = pLinked->GetTechnoType()->Speed * pThis->CurrentSpeed *
-			TechnoExt::GetCurrentSpeedMultiplier(pLinked);
+			TechnoExtData::GetCurrentSpeedMultiplier(pLinked);
 
 		R->EAX(int(currentSpeed));
 		return 0x4CE4BF;
@@ -651,17 +651,17 @@ DEFINE_HOOK(0x456776, BuildingClass_DrawRadialIndicator_Visibility, 0x6)
 	enum { ContinueDraw = 0x456789, DoNotDraw = 0x456962 };
 	GET(BuildingClass* const, pThis, ESI);
 
-	if (HouseExt::IsObserverPlayer())
+	if (HouseExtData::IsObserverPlayer())
 	{
 		return ContinueDraw;
 	}
 
-	if (BuildingExt::ExtMap.Find(pThis)->LimboID != -1)
+	if (BuildingExtContainer::Instance.Find(pThis)->LimboID != -1)
 	{
 		return DoNotDraw;
 	}
 
-	const auto pBldTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+	const auto pBldTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (pBldTypeExt->RadialIndicator_Visibility.isset())
 	{
@@ -736,7 +736,7 @@ DEFINE_HOOK(0x440EBB, BuildingClass_Unlimbo_NaturalParticleSystem_CampaignSkip, 
 {
 	enum { DoNotCreateParticle = 0x440F61 };
 	GET(BuildingClass* const, pThis, ESI);
-	return BuildingExt::ExtMap.Find(pThis)->IsCreatedFromMapFile ? DoNotCreateParticle : 0;
+	return BuildingExtContainer::Instance.Find(pThis)->IsCreatedFromMapFile ? DoNotCreateParticle : 0;
 }
 
 // Ares didn't have something like 0x7397E4 in its UnitDelivery code
@@ -744,7 +744,7 @@ DEFINE_HOOK(0x44FBBF, CreateBuildingFromINIFile_AfterCTOR_BeforeUnlimbo, 0x8)
 {
 	GET(BuildingClass* const, pBld, ESI);
 
-	if (auto pExt = BuildingExt::ExtMap.Find(pBld))
+	if (auto pExt = BuildingExtContainer::Instance.Find(pBld))
 		pExt->IsCreatedFromMapFile = true;
 
 	return 0;
@@ -771,7 +771,7 @@ DEFINE_HOOK(0x56BD8B, MapClass_PlaceRandomCrate_Sampling, 0x5)
 		return SkipSpawn;
 
 	const bool isWater = pCell->LandType == LandType::Water;
-	if (isWater && RulesExt::Global()->Crate_LandOnly.Get())
+	if (isWater && RulesExtData::Instance()->Crate_LandOnly.Get())
 		return SkipSpawn;
 
 	cell = MapClass::Instance->NearByLocation(pCell->MapCoords,
@@ -791,7 +791,7 @@ DEFINE_HOOK(0x4FD1CD, HouseClass_RecalcCenter_LimboDelivery, 0x6)
 
 	GET(BuildingClass* const, pBuilding, ESI);
 
-	if (BuildingExt::ExtMap.Find(pBuilding)->LimboID != -1)
+	if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1)
 		return R->Origin() == 0x4FD1CD ? SkipBuilding1 : SkipBuilding2;
 
 	return 0;
@@ -951,7 +951,7 @@ DEFINE_HOOK(0x44643E, BuildingClass_Place_SuperAnim, 0x6)
 
 	if (pSuper->RechargeTimer.StartTime == 0 &&
 		pSuper->RechargeTimer.TimeLeft == 0 &&
-		!SWTypeExt::ExtMap.Find(pSuper->Type)->SW_InitialReady)
+		!SWTypeExtContainer::Instance.Find(pSuper->Type)->SW_InitialReady)
 	{
 		R->ECX(pThis);
 		return UseSuperAnimOne;
@@ -969,7 +969,7 @@ DEFINE_HOOK(0x451033, BuildingClass_AnimationAI_SuperAnim, 0x6)
 
 	if (pSuper->RechargeTimer.StartTime == 0
 		&& pSuper->RechargeTimer.TimeLeft == 0
-		&& !SWTypeExt::ExtMap.Find(pSuper->Type)->SW_InitialReady)
+		&& !SWTypeExtContainer::Instance.Find(pSuper->Type)->SW_InitialReady)
 		return SkipSuperAnimCode;
 
 	return 0;
@@ -1235,7 +1235,7 @@ DEFINE_HOOK(0x6D9781, Tactical_RenderLayers_DrawInfoTipAndSpiedSelection, 0x5)
 
 	const auto pBuilding = specific_cast<BuildingClass*>(pThis);
 
-	if (pBuilding && pBuilding->IsSelected && pBuilding->IsOnMap && BuildingExt::ExtMap.Find(pBuilding)->LimboID <= -1)
+	if (pBuilding && pBuilding->IsSelected && pBuilding->IsOnMap && BuildingExtContainer::Instance.Find(pBuilding)->LimboID <= -1)
 	{
 		const int foundationHeight = pBuilding->Type->GetFoundationHeight(0);
 		const int typeHeight = pBuilding->Type->Height;

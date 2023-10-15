@@ -8,7 +8,7 @@ void RandCheck::Exec() {
 	if (!pCurPlayer || !HouseClass::Array->Count)
 		return;
 
-	const auto pCurHouseExt = HouseExt::ExtMap.Find(pCurPlayer);
+	const auto pCurHouseExt = HouseExtContainer::Instance.Find(pCurPlayer);
 
 	if (!pCurHouseExt)
 		return;
@@ -23,7 +23,7 @@ void RandCheck::Exec() {
 		if (!pHouse->IsControlledByCurrentPlayer())
 			continue;
 
-		if (const auto pExt = HouseExt::ExtMap.Find(pHouse)) {
+		if (const auto pExt = HouseExtContainer::Instance.Find(pHouse)) {
 			nCache[pExt->RandomNumber] = pHouse->ArrayIndex ;
 		}
 	}

@@ -6,9 +6,9 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/WarheadType/Body.h>
 
-// Contains ScriptExt::Mission_Attack and its helper functions.
+// Contains ScriptExtData::Mission_Attack and its helper functions.
 
-void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode calcThreatMode, int attackAITargetType = -1, int idxAITargetTypeItem = -1)
+void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode calcThreatMode, int attackAITargetType = -1, int idxAITargetTypeItem = -1)
 {
 	auto pScript = pTeam->CurrentScript;
 	// This is the target type
@@ -29,11 +29,11 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 	//TechnoClass* pFocus = nullptr;
 	bool agentMode = false;
 	bool pacifistTeam = true;
-	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 
 	if (!pTeamData) {
 		pTeam->StepCompleted = true;
-		ScriptExt::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: ExtData found)\n",
+		ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: ExtData found)\n",
 			pTeam->Type->ID, pScript->Type->ID,
 			pScript->CurrentMission,
 			curAct,
@@ -67,7 +67,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 
 		// This action finished
 		pTeam->StepCompleted = true;
-		ScriptExt::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No team members alive)\n",
+		ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No team members alive)\n",
 			pTeam->Type->ID,
 			pScript->Type->ID,
 			pScript->CurrentMission,
@@ -83,7 +83,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 
 	auto pFocus = abstract_cast<TechnoClass*>(pTeam->Focus);
 
-	if (!ScriptExt::IsUnitAvailable(pFocus, true))
+	if (!ScriptExtData::IsUnitAvailable(pFocus, true))
 	{
 		pTeam->Focus = nullptr;
 		pFocus = nullptr;
@@ -91,14 +91,14 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 
 	for (auto pFoot = pTeam->FirstUnit; pFoot; pFoot = pFoot->NextTeamMember)
 	{
-		auto pKillerTechnoData = TechnoExt::ExtMap.Find(pFoot);
+		auto pKillerTechnoData = TechnoExtContainer::Instance.Find(pFoot);
 
 		if (pKillerTechnoData->LastKillWasTeamTarget)
 		{
 			// Time for Team award check! (if set any)
 			if (pTeamData->NextSuccessWeightAward > 0)
 			{
-				ScriptExt::IncreaseCurrentTriggerWeight(pTeam, false, pTeamData->NextSuccessWeightAward);
+				ScriptExtData::IncreaseCurrentTriggerWeight(pTeam, false, pTeamData->NextSuccessWeightAward);
 				pTeamData->NextSuccessWeightAward = 0;
 			}
 
@@ -113,7 +113,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 				for (auto pFootTeam = pTeam->FirstUnit; pFootTeam; pFootTeam = pFootTeam->NextTeamMember)
 				{
 					// Let's reset all Team Members objective
-					auto pKillerTeamUnitData = TechnoExt::ExtMap.Find(pFootTeam);
+					auto pKillerTeamUnitData = TechnoExtContainer::Instance.Find(pFootTeam);
 					pKillerTeamUnitData->LastKillWasTeamTarget = false;
 
 					if (pFootTeam->WhatAmI() == AbstractType::Aircraft)
@@ -128,7 +128,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 
 				// This action finished
 				pTeam->StepCompleted = true;
-				ScriptExt::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Force the jump to next line: %d = %d,%d (This action wont repeat)\n",
+				ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Force the jump to next line: %d = %d,%d (This action wont repeat)\n",
 					pTeam->Type->ID,
 					pScript->Type->ID,
 					pScript->CurrentMission,
@@ -145,7 +145,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 
 	for (auto pFoot = pTeam->FirstUnit; pFoot; pFoot = pFoot->NextTeamMember)
 	{
-		if (ScriptExt::IsUnitAvailable(pFoot, true))
+		if (ScriptExtData::IsUnitAvailable(pFoot, true))
 		{
 			auto const pTechnoType = pFoot->GetTechnoType();
 
@@ -157,7 +157,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 				bAircraftsWithoutAmmo = true;
 			}
 
-			pacifistTeam &= !ScriptExt::IsUnitArmed(pFoot);
+			pacifistTeam &= !ScriptExtData::IsUnitArmed(pFoot);
 
 			if (pFoot->WhatAmI() == AbstractType::Infantry)
 			{
@@ -171,9 +171,9 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 	}
 
 	// Find the Leader
-	if (!ScriptExt::IsUnitAvailable(pTeamData->TeamLeader, true))
+	if (!ScriptExtData::IsUnitAvailable(pTeamData->TeamLeader, true))
 	{
-		pTeamData->TeamLeader = ScriptExt::FindTheTeamLeader(pTeam);
+		pTeamData->TeamLeader = ScriptExtData::FindTheTeamLeader(pTeam);
 	}
 
 	if (!pTeamData->TeamLeader  || bAircraftsWithoutAmmo || (pacifistTeam && !agentMode))
@@ -188,7 +188,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 
 		// This action finished
 		pTeam->StepCompleted = true;
-		ScriptExt::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No Leader found | Exists Aircrafts without ammo | Team members have no weapons)\n",
+		ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No Leader found | Exists Aircrafts without ammo | Team members have no weapons)\n",
 			pTeam->Type->ID,
 			pScript->Type->ID,
 			pScript->CurrentMission,
@@ -204,7 +204,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 	auto pLeaderUnitType = pTeamData->TeamLeader->GetTechnoType();
 	bool leaderWeaponsHaveAG = false;
 	bool leaderWeaponsHaveAA = false;
-	ScriptExt::CheckUnitTargetingCapabilities(pTeamData->TeamLeader, leaderWeaponsHaveAG, leaderWeaponsHaveAA, agentMode);
+	ScriptExtData::CheckUnitTargetingCapabilities(pTeamData->TeamLeader, leaderWeaponsHaveAG, leaderWeaponsHaveAA, agentMode);
 
 	// Special case: a Leader with OpenTopped tag
 	if (pLeaderUnitType->OpenTopped && pTeamData->TeamLeader->Passengers.NumPassengers > 0)
@@ -214,7 +214,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 			auto const passenger = abstract_cast<FootClass*>(*obj);
 			bool passengerWeaponsHaveAG = false;
 			bool passengerWeaponsHaveAA = false;
-			ScriptExt::CheckUnitTargetingCapabilities(passenger, passengerWeaponsHaveAG, passengerWeaponsHaveAA, agentMode);
+			ScriptExtData::CheckUnitTargetingCapabilities(passenger, passengerWeaponsHaveAG, passengerWeaponsHaveAA, agentMode);
 
 			leaderWeaponsHaveAG |= passengerWeaponsHaveAG;
 			leaderWeaponsHaveAA |= passengerWeaponsHaveAA;
@@ -227,19 +227,19 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 
 		// Favorite Enemy House case. If set, AI will focus against that House
 		HouseClass* enemyHouse = nullptr;
-		const auto pHouseExt = HouseExt::ExtMap.Find(pTeam->Owner);
+		const auto pHouseExt = HouseExtContainer::Instance.Find(pTeam->Owner);
 		const bool onlyTargetHouseEnemy = pHouseExt->ForceOnlyTargetHouseEnemyMode != -1 ?
-		pHouseExt->ForceOnlyTargetHouseEnemy : pTeam->Type->OnlyTargetHouseEnemy;
+		pHouseExt->m_ForceOnlyTargetHouseEnemy : pTeam->Type->OnlyTargetHouseEnemy;
 
 		if (onlyTargetHouseEnemy && pTeamData->TeamLeader->Owner->EnemyHouseIndex >= 0)
 			enemyHouse = HouseClass::Array->GetItem(pTeamData->TeamLeader->Owner->EnemyHouseIndex);
 
 		int targetMask = scriptArgument;
-		auto selectedTarget = ScriptExt::GreatestThreat(pTeamData->TeamLeader, targetMask, calcThreatMode, enemyHouse, attackAITargetType, idxAITargetTypeItem, agentMode);
+		auto selectedTarget = ScriptExtData::GreatestThreat(pTeamData->TeamLeader, targetMask, calcThreatMode, enemyHouse, attackAITargetType, idxAITargetTypeItem, agentMode);
 
 		if (selectedTarget)
 		{
-			ScriptExt::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Leader [%s] (UID: %lu) selected [%s] (UID: %lu) as target.\n",
+			ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Leader [%s] (UID: %lu) selected [%s] (UID: %lu) as target.\n",
 				pTeam->Type->ID,
 				pScript->Type->ID,
 				pScript->CurrentMission,
@@ -257,7 +257,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 
 			for (auto pFoot = pTeam->FirstUnit; pFoot; pFoot = pFoot->NextTeamMember)
 			{
-				if (ScriptExt::IsUnitAvailable(pFoot, false) && ScriptExt::IsUnitAvailable(selectedTarget, true))
+				if (ScriptExtData::IsUnitAvailable(pFoot, false) && ScriptExtData::IsUnitAvailable(selectedTarget, true))
 				{
 					auto const pTechnoType = pFoot->GetTechnoType();
 
@@ -336,7 +336,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 
 			// This action finished
 			pTeam->StepCompleted = true;
-			ScriptExt::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d (Leader [%s] (UID: %lu) can't find a new target)\n",
+			ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d (Leader [%s] (UID: %lu) can't find a new target)\n",
 				pTeam->Type->ID,
 				pScript->Type->ID,
 				pScript->CurrentMission,
@@ -354,7 +354,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 	else
 	{
 		// This part of the code is used for updating the "Attack" mission in each team unit
-		if (!ScriptExt::IsUnitAvailable(pFocus, true))
+		if (!ScriptExtData::IsUnitAvailable(pFocus, true))
 		{
 			pTeam->Focus = nullptr;
 			pFocus = nullptr;
@@ -366,13 +366,13 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 
 		if ( !pFocus->GetTechnoType()->Immune
 			&& (isAirOK || isGroundOK)
-			&& (!pTeamData->TeamLeader->Owner->IsAlliedWith(pFocus) || ScriptExt::IsUnitMindControlledFriendly(pTeamData->TeamLeader->Owner, pFocus)))
+			&& (!pTeamData->TeamLeader->Owner->IsAlliedWith(pFocus) || ScriptExtData::IsUnitMindControlledFriendly(pTeamData->TeamLeader->Owner, pFocus)))
 		{
 			bool bForceNextAction = false;
 
 			for (auto pFoot = pTeam->FirstUnit; pFoot && !bForceNextAction; pFoot = pFoot->NextTeamMember)
 			{
-				if (ScriptExt::IsUnitAvailable(pFoot, true))
+				if (ScriptExtData::IsUnitAvailable(pFoot, true))
 				{
 					auto const pTechnoType = pFoot->GetTechnoType();
 
@@ -452,7 +452,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 			{
 				pTeamData->IdxSelectedObjectFromAIList = -1;
 				pTeam->StepCompleted = true;
-				ScriptExt::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Jump to NEXT line: %d = %d,%d (Naval is unable to target ground)\n",
+				ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Jump to NEXT line: %d = %d,%d (Naval is unable to target ground)\n",
 					pTeam->Type->ID,
 					pScript->Type->ID,
 					pScript->CurrentMission,
@@ -472,7 +472,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode
 	}
 }
 
-TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, DistanceMode calcThreatMode, HouseClass* onlyTargetThisHouseEnemy = nullptr, int attackAITargetType = -1, int idxAITargetTypeItem = -1, bool agentMode = false)
+TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, DistanceMode calcThreatMode, HouseClass* onlyTargetThisHouseEnemy = nullptr, int attackAITargetType = -1, int idxAITargetTypeItem = -1, bool agentMode = false)
 {
 
 	TechnoClass* bestObject = nullptr;
@@ -484,16 +484,16 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, Distanc
 		return nullptr;
 
 	auto pTechnoType = pTechno->GetTechnoType();
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 	auto const AIDifficulty = static_cast<int>(pTechno->Owner->GetAIDifficultyIndex());
-	auto const DisguiseDetectionValue = pTypeExt->DetectDisguise_Percent.GetEx(RulesExt::Global()->AIDetectDisguise_Percent)->At(AIDifficulty);
+	auto const DisguiseDetectionValue = pTypeExt->DetectDisguise_Percent.GetEx(RulesExtData::Instance()->AIDetectDisguise_Percent)->At(AIDifficulty);
 	auto const detectionValue = (int)std::round(DisguiseDetectionValue * 100.0);
 
 	// Generic method for targeting
 	for (int i = 0; i < TechnoClass::Array->Count; i++)
 	{
 		auto object = TechnoClass::Array->GetItem(i);
-		if (!ScriptExt::IsUnitAvailable(object, true) || object == pTechno)
+		if (!ScriptExtData::IsUnitAvailable(object, true) || object == pTechno)
 			continue;
 
 		if (object->Spawned)
@@ -554,18 +554,18 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, Distanc
 			continue;
 
 		// Check map zone
-		if (!TechnoExt::AllowedTargetByZone(pTechno, object, pTypeExt->TargetZoneScanType, weaponType))
+		if (!TechnoExtData::AllowedTargetByZone(pTechno, object, pTypeExt->TargetZoneScanType, weaponType))
 			continue;
 
 		if (!objectType->Immune
 			&& !object->TemporalTargetingMe
 			&& !object->BeingWarpedOut
 			&& object->Owner != pTechno->Owner
-			&& (!pTechno->Owner->IsAlliedWith(object) || ScriptExt::IsUnitMindControlledFriendly(pTechno->Owner, object)))
+			&& (!pTechno->Owner->IsAlliedWith(object) || ScriptExtData::IsUnitMindControlledFriendly(pTechno->Owner, object)))
 		{
 			double value = 0;
 
-			if (ScriptExt::EvaluateObjectWithMask(object, method, attackAITargetType, idxAITargetTypeItem, pTechno))
+			if (ScriptExtData::EvaluateObjectWithMask(object, method, attackAITargetType, idxAITargetTypeItem, pTechno))
 			{
 				CellStruct newCell;
 				newCell.X = (short)object->Location.X;
@@ -649,17 +649,17 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, Distanc
 	return bestObject;
 }
 
-bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attackAITargetType = -1, int idxAITargetTypeItem = -1, TechnoClass* pTeamLeader = nullptr)
+bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attackAITargetType = -1, int idxAITargetTypeItem = -1, TechnoClass* pTeamLeader = nullptr)
 {
 
-	if (!ScriptExt::IsUnitAvailable(pTechno , false) || !ScriptExt::IsUnitAvailable(pTeamLeader, false))
+	if (!ScriptExtData::IsUnitAvailable(pTechno , false) || !ScriptExtData::IsUnitAvailable(pTeamLeader, false))
 		return false;
 
 	//if (pTechno->Spawned)
 	//	return false;
 
 	TechnoTypeClass* pTechnoType = pTechno->GetTechnoType();
-	auto const pTargetTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
+	auto const pTargetTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 	bool buildingIsConsideredVehicle = false;
 
 	if (pTargetTypeExt->IsDummy)
@@ -670,7 +670,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 	{
 		IsBuilding = true;
 
-		if (BuildingExt::ExtMap.Find(pBuilding)->LimboID != -1)
+		if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1)
 			return false;
 
 		buildingIsConsideredVehicle = pBuilding->Type->IsUndeployable();
@@ -680,7 +680,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 	UnitTypeClass* pTypeUnit = whatTech == AbstractType::Unit ? static_cast<UnitTypeClass*>(pTechnoType) : nullptr;
 
 	// Special case: validate target if is part of a technos list in [AITargetTypes] section
-	const auto& nAITargetTypes = RulesExt::Global()->AITargetTypesLists;
+	const auto& nAITargetTypes = RulesExtData::Instance()->AITargetTypesLists;
 	if (attackAITargetType >= 0 && !nAITargetTypes.empty() && (size_t)attackAITargetType < nAITargetTypes.size()) {
 		const auto nVec = make_iterator(nAITargetTypes[attackAITargetType]);
 		return nVec.contains(pTechnoType);
@@ -705,7 +705,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 
 			if (auto pBld = specific_cast<BuildingClass*>(pTechno))
 			{
-				const auto pBldExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+				const auto pBldExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 
 				return !(pBld->Type->Artillary
 					|| pBld->Type->TickTank
@@ -759,7 +759,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 
 			if (auto pBld = specific_cast<BuildingClass*>(pTechno))
 			{
-				const auto pExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+				const auto pExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 				return (pBld->Type->Artillary
 				|| pBld->Type->TickTank
 				|| pBld->Type->ICBMLauncher
@@ -809,14 +809,14 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 				return std::any_of(curtargetiter.begin(), curtargetiter.end(),
 				[pTeamLeader](AbstractClass* pTarget) {
 				const auto pTech = abstract_cast<TechnoClass*>(pTarget);
-				 return ScriptExt::IsUnitAvailable(pTech , true) && pTech->GetOwningHouse() == pTeamLeader->Owner;
+				 return ScriptExtData::IsUnitAvailable(pTech , true) && pTech->GetOwningHouse() == pTeamLeader->Owner;
 				});
 			}
 
 			// Then check if this possible target is too near of the Team Leader
 			const auto distanceToTarget = pTeamLeader->DistanceFrom(pTechno) / 256.0;
-			const auto pWeaponPrimary = TechnoExt::GetCurrentWeapon(pTechno);
-			const auto pWeaponSecondary = TechnoExt::GetCurrentWeapon(pTechno , true);
+			const auto pWeaponPrimary = TechnoExtData::GetCurrentWeapon(pTechno);
+			const auto pWeaponSecondary = TechnoExtData::GetCurrentWeapon(pTechno , true);
 			const bool primaryCheck = pWeaponPrimary && distanceToTarget <= (pWeaponPrimary->Range / 256.0 * 4.0);
 			const bool secondaryCheck = pWeaponSecondary && distanceToTarget <= (pWeaponSecondary->Range / 256.0 * 4.0);
 			const bool guardRangeCheck = pTeamLeader->GetTechnoType()->GuardRange > 0 && distanceToTarget <= (pTeamLeader->GetTechnoType()->GuardRange / 256.0 * 2.0);
@@ -901,18 +901,18 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 	{
 		if (!pTechno->Owner->IsNeutral())
 		{
-			auto const& [WeaponType1, WeaponType2] = ScriptExt::GetWeapon(pTechno);
+			auto const& [WeaponType1, WeaponType2] = ScriptExtData::GetWeapon(pTechno);
 
 			bool CanMC = false;
 			if (WeaponType1)
 			{
-				auto pWHExt = WarheadTypeExt::ExtMap.Find(WeaponType1->Warhead);
+				auto pWHExt = WarheadTypeExtContainer::Instance.Find(WeaponType1->Warhead);
 				CanMC = pWHExt && pWHExt->PermaMC.Get() || WeaponType1->Warhead->MindControl;
 			}
 
 			if (!CanMC && WeaponType2)
 			{
-				auto pWHExt = WarheadTypeExt::ExtMap.Find(WeaponType2->Warhead);
+				auto pWHExt = WarheadTypeExtContainer::Instance.Find(WeaponType2->Warhead);
 				CanMC = pWHExt && pWHExt->PermaMC.Get() || WeaponType2->Warhead->MindControl;
 			}
 
@@ -943,7 +943,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 		if (!pTechno->Owner->IsNeutral())
 		{
 			const auto pTypeBuilding = specific_cast<BuildingTypeClass*>(pTechnoType);
-			const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
+			const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 
 			return ((pTechnoTypeExt
 				&& (pTechnoTypeExt->RadarJamRadius > 0
@@ -1072,7 +1072,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 					if (!type)
 						continue;
 
-					if (auto typeExt = BuildingTypeExt::ExtMap.Find(const_cast<BuildingTypeClass*>(type)))
+					if (auto typeExt = BuildingTypeExtContainer::Instance.Find(const_cast<BuildingTypeClass*>(type)))
 					{
 						if (typeExt->GetSuperWeaponCount() > 0)
 							return true;
@@ -1090,7 +1090,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 		{
 			if (auto pTypeBuilding = specific_cast<BuildingTypeClass*>(pTechnoType))
 			{
-				if (const auto pFake = TechnoTypeExt::ExtMap.Find(pTypeBuilding)->Fake_Of.Get(nullptr))
+				if (const auto pFake = TechnoTypeExtContainer::Instance.Find(pTypeBuilding)->Fake_Of.Get(nullptr))
 				{
 					if (pFake->WhatAmI() == BuildingTypeClass::AbsID)
 					{
@@ -1138,7 +1138,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 	case 29:
 	{
 		// Radar Jammer
-		const auto pTypeTechnoExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
+		const auto pTypeTechnoExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 
 		return (!pTechno->Owner->IsNeutral() &&
 			(pTypeTechnoExt && (pTypeTechnoExt->RadarJamRadius > 0)));
@@ -1146,7 +1146,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 	case 30:
 	{
 		// Inhibitor
-		const auto pTypeTechnoExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
+		const auto pTypeTechnoExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 
 		return (!pTechno->Owner->IsNeutral()
 			&& (pTypeTechnoExt
@@ -1175,7 +1175,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 
 			if (auto pTypeBuilding = specific_cast<BuildingTypeClass*>(pTechnoType))
 			{
-				const auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pTypeBuilding);
+				const auto pBuildingExt = BuildingTypeExtContainer::Instance.Find(pTypeBuilding);
 				return (pTypeBuilding->Artillary
 					|| pTypeBuilding->TickTank
 					|| pBuildingExt->IsJuggernaut
@@ -1193,7 +1193,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 			return false;
 
 		const auto pBuilding = static_cast<BuildingClass*>(pTechno);
-		const auto pBldExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+		const auto pBldExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 		// Capturable Structure or Repair Hut
 		return pBldExt->EngineerRepairable.Get(pBuilding->Type->Capturable)
 			|| (pBuilding->Type->BridgeRepairHut && pBuilding->Type->Repairable)
@@ -1242,7 +1242,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 			if (buildingIsConsideredVehicle)
 				return false;
 
-			auto const pBtypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+			auto const pBtypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 
 			return !(
 				pBuilding->Type->Artillary
@@ -1307,7 +1307,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 			return false;
 
 		if (!pTechno->Owner->IsNeutral()) {
-			return TechnoTypeExt::ExtMap.Find(pTechnoType)->IsHero.Get();
+			return TechnoTypeExtContainer::Instance.Find(pTechnoType)->IsHero.Get();
 		}
 
 		return false;
@@ -1317,26 +1317,26 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 	return false;
 }
 
-void ScriptExt::Mission_Attack_List(TeamClass* pTeam, bool repeatAction, DistanceMode calcThreatMode, int attackAITargetType)
+void ScriptExtData::Mission_Attack_List(TeamClass* pTeam, bool repeatAction, DistanceMode calcThreatMode, int attackAITargetType)
 {
 
-	TeamExt::ExtMap.Find(pTeam)->IdxSelectedObjectFromAIList = -1;
+	TeamExtContainer::Instance.Find(pTeam)->IdxSelectedObjectFromAIList = -1;
 	const auto& [curAct, curArg] = pTeam->CurrentScript->GetCurrentAction();
 
 	if (attackAITargetType < 0)
 		attackAITargetType = curArg;
 
-	const auto& targetList = RulesExt::Global()->AITargetTypesLists;
+	const auto& targetList = RulesExtData::Instance()->AITargetTypesLists;
 	if (!targetList.empty()
 		&& (size_t)attackAITargetType < targetList.size()
 		&& !targetList[attackAITargetType].empty())
 	{
-		ScriptExt::Mission_Attack(pTeam, repeatAction, calcThreatMode, attackAITargetType, -1);
+		ScriptExtData::Mission_Attack(pTeam, repeatAction, calcThreatMode, attackAITargetType, -1);
 		return;
 	}
 
 	pTeam->StepCompleted = true;
-	ScriptExt::Log("AI Scripts - Mission_Attack_List: [%s] [%s] (line: %d = %d,%d) Failed to get the list index [AITargetTypes][%d]! out of bound: %d\n",
+	ScriptExtData::Log("AI Scripts - Mission_Attack_List: [%s] [%s] (line: %d = %d,%d) Failed to get the list index [AITargetTypes][%d]! out of bound: %d\n",
 		pTeam->Type->ID,
 		pTeam->CurrentScript->Type->ID,
 		pTeam->CurrentScript->CurrentMission,
@@ -1346,30 +1346,30 @@ void ScriptExt::Mission_Attack_List(TeamClass* pTeam, bool repeatAction, Distanc
 		targetList.size());
 }
 
-void ScriptExt::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, DistanceMode calcThreatMode, int attackAITargetType)
+void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, DistanceMode calcThreatMode, int attackAITargetType)
 {
 
 	auto pScript = pTeam->CurrentScript;
 	std::vector<int> validIndexes;
-	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	const auto& [curAct, curArgs] = pTeam->CurrentScript->GetCurrentAction();
 
 	if (attackAITargetType < 0)
 		attackAITargetType = curArgs;
 
-	if(attackAITargetType >= 0 && (size_t)attackAITargetType < RulesExt::Global()->AITargetTypesLists.size()) {
+	if(attackAITargetType >= 0 && (size_t)attackAITargetType < RulesExtData::Instance()->AITargetTypesLists.size()) {
 
-		if (pTeamData->IdxSelectedObjectFromAIList >= 0 && (size_t)pTeamData->IdxSelectedObjectFromAIList < RulesExt::Global()->AITargetTypesLists[attackAITargetType].size()) {
-			ScriptExt::Mission_Attack(pTeam, repeatAction, calcThreatMode, attackAITargetType, pTeamData->IdxSelectedObjectFromAIList);
+		if (pTeamData->IdxSelectedObjectFromAIList >= 0 && (size_t)pTeamData->IdxSelectedObjectFromAIList < RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].size()) {
+			ScriptExtData::Mission_Attack(pTeam, repeatAction, calcThreatMode, attackAITargetType, pTeamData->IdxSelectedObjectFromAIList);
 			return;
 		}
 
-		if (!RulesExt::Global()->AITargetTypesLists[attackAITargetType].empty())
+		if (!RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].empty())
 		{
 			// Finding the objects from the list that actually exists in the map
 			TechnoClass::Array->for_each([&](TechnoClass* pTechno) {
 
-				if (!ScriptExt::IsUnitAvailable(pTechno, true))
+				if (!ScriptExtData::IsUnitAvailable(pTechno, true))
 					return;
 
 				//if (pTechno->Spawned)
@@ -1379,12 +1379,12 @@ void ScriptExt::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, 
 				{
 					bool found = false;
 
-					for (auto j = 0u; j < RulesExt::Global()->AITargetTypesLists[attackAITargetType].size() && !found; j++)
+					for (auto j = 0u; j < RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].size() && !found; j++)
 					{
 						auto const pFirstUnit = pTeam->FirstUnit;
 
-						if (pTechnoType == RulesExt::Global()->AITargetTypesLists[attackAITargetType][j] && (!pFirstUnit->Owner->IsAlliedWith(pTechno)
-								|| ScriptExt::IsUnitMindControlledFriendly(pFirstUnit->Owner, pTechno)))
+						if (pTechnoType == RulesExtData::Instance()->AITargetTypesLists[attackAITargetType][j] && (!pFirstUnit->Owner->IsAlliedWith(pTechno)
+								|| ScriptExtData::IsUnitMindControlledFriendly(pFirstUnit->Owner, pTechno)))
 						{
 							validIndexes.push_back(j);
 							found = true;
@@ -1398,7 +1398,7 @@ void ScriptExt::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, 
 				const int idxSelectedObject = validIndexes[ScenarioClass::Instance->Random.RandomFromMax(validIndexes.size() - 1)];
 				pTeamData->IdxSelectedObjectFromAIList = idxSelectedObject;
 
-				ScriptExt::Log("AI Scripts - AttackListRandom: [%s] [%s] (line: %d = %d,%d) Picked a random Techno from the list index [AITargetTypes][%d][%d] = %s\n",
+				ScriptExtData::Log("AI Scripts - AttackListRandom: [%s] [%s] (line: %d = %d,%d) Picked a random Techno from the list index [AITargetTypes][%d][%d] = %s\n",
 					pTeam->Type->ID,
 					pTeam->CurrentScript->Type->ID,
 					pScript->CurrentMission,
@@ -1406,9 +1406,9 @@ void ScriptExt::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, 
 					curArgs,
 					attackAITargetType,
 					idxSelectedObject,
-					RulesExt::Global()->AITargetTypesLists[attackAITargetType][idxSelectedObject]->ID);
+					RulesExtData::Instance()->AITargetTypesLists[attackAITargetType][idxSelectedObject]->ID);
 
-				ScriptExt::Mission_Attack(pTeam, repeatAction, calcThreatMode, attackAITargetType, idxSelectedObject);
+				ScriptExtData::Mission_Attack(pTeam, repeatAction, calcThreatMode, attackAITargetType, idxSelectedObject);
 				return;
 			}
 		}
@@ -1416,7 +1416,7 @@ void ScriptExt::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, 
 
 	// This action finished
 	pTeam->StepCompleted = true;
-	ScriptExt::Log("AI Scripts - AttackListRandom: [%s] [%s] (line: %d = %d,%d) Failed to pick a random Techno from the list index [AITargetTypes][%d]! Valid Technos in the list: %d\n",
+	ScriptExtData::Log("AI Scripts - AttackListRandom: [%s] [%s] (line: %d = %d,%d) Failed to pick a random Techno from the list index [AITargetTypes][%d]! Valid Technos in the list: %d\n",
 		pTeam->Type->ID,
 		pTeam->CurrentScript->Type->ID,
 		pScript->CurrentMission,
@@ -1427,13 +1427,13 @@ void ScriptExt::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, 
 	);
 }
 
-void ScriptExt::CheckUnitTargetingCapabilities(TechnoClass* pTechno, bool& hasAntiGround, bool& hasAntiAir, bool agentMode)
+void ScriptExtData::CheckUnitTargetingCapabilities(TechnoClass* pTechno, bool& hasAntiGround, bool& hasAntiAir, bool agentMode)
 {
 
 	if (!pTechno || !pTechno->IsAlive)
 		return;
 
-	const auto&[pWeaponPrimary, pWeaponSecondary] = ScriptExt::GetWeapon(pTechno);
+	const auto&[pWeaponPrimary, pWeaponSecondary] = ScriptExtData::GetWeapon(pTechno);
 
 	if ((pWeaponPrimary && pWeaponPrimary->Projectile->AA) || (pWeaponSecondary && pWeaponSecondary->Projectile->AA))
 		hasAntiAir = true;
@@ -1442,17 +1442,17 @@ void ScriptExt::CheckUnitTargetingCapabilities(TechnoClass* pTechno, bool& hasAn
 		hasAntiGround = true;
 }
 
-bool ScriptExt::IsUnitArmed(TechnoClass* pTechno)
+bool ScriptExtData::IsUnitArmed(TechnoClass* pTechno)
 {
 
 	if (!pTechno || !pTechno->IsAlive)
 		return false;
 
-	const auto pWeapons = ScriptExt::GetWeapon(pTechno);
+	const auto pWeapons = ScriptExtData::GetWeapon(pTechno);
 	return pWeapons.first || pWeapons.second;
 }
 
-bool ScriptExt::IsUnitMindControlledFriendly(HouseClass* pHouse, TechnoClass* pTechno)
+bool ScriptExtData::IsUnitMindControlledFriendly(HouseClass* pHouse, TechnoClass* pTechno)
 {
 	return pHouse->IsAlliedWith(pTechno) && pTechno->IsMindControlled() && !pHouse->IsAlliedWith(pTechno->MindControlledBy);
 }

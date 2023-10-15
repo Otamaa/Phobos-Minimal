@@ -4,21 +4,21 @@
 // =============================
 // load / save
 
-template <typename T>
-void TemporalExt::ExtData::Serialize(T& Stm) {
-	//Debug::Log("Processing Element From TemporalExt ! \n");
-
-	Stm
-		.Process(this->Initialized)
-		.Process(this->Weapon)
-
-		;
-
-}
+//template <typename T>
+//void TemporalExt::ExtData::Serialize(T& Stm) {
+//	//Debug::Log("Processing Element From TemporalExt ! \n");
+//
+//	Stm
+//		.Process(this->Initialized)
+//		.Process(this->Weapon)
+//
+//		;
+//
+//}
 
 // =============================
 // container
-TemporalExt::ExtContainer TemporalExt::ExtMap;
+//TemporalExt::ExtContainer TemporalExt::ExtMap;
 
 // =============================
 // container hooks

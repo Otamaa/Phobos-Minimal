@@ -15,7 +15,7 @@ DEFINE_OVERRIDE_HOOK(0x436459, BuildingLightClass_Update, 6)
 
 	if (Owner && Owner->WhatAmI() != AbstractType::Building)
 	{
-		TechnoTypeExt::ExtData* pTypeData = TechnoTypeExt::ExtMap.Find(Owner->GetTechnoType());
+		TechnoTypeExtData* pTypeData = TechnoTypeExtContainer::Instance.Find(Owner->GetTechnoType());
 		CoordStruct Loc = Owner->Location;
 		DirStruct Facing;
 		switch (pTypeData->Spot_AttachedTo)
@@ -52,7 +52,7 @@ DEFINE_OVERRIDE_HOOK(0x4370c0, BuildingLightClass_SDDTOR, 0xA)
 	GET(BuildingLightClass*, pThis, ECX);
 
 	if (auto pTech = pThis->OwnerObject)
-		TechnoExt::ExtMap.Find(pTech)->BuildingLight = nullptr;
+		TechnoExtContainer::Instance.Find(pTech)->BuildingLight = nullptr;
 
 	return 0;
 }
@@ -63,7 +63,7 @@ DEFINE_OVERRIDE_HOOK(0x435820, BuildingLightClass_CTOR, 6)
 	GET(BuildingLightClass*, pThis, ECX);
 
 	if (pTech)
-		TechnoExt::ExtMap.Find(pTech)->BuildingLight = pThis;
+		TechnoExtContainer::Instance.Find(pTech)->BuildingLight = pThis;
 
 	return 0;
 }
@@ -121,7 +121,7 @@ DEFINE_OVERRIDE_HOOK(0x435bfa, BuildingLightClass_Draw_Start, 6)
 		return 0x4361BC;
 	}
 
-	Height = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType())->Spot_Height;
+	Height = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType())->Spot_Height;
 	return 0x435C52;
 }
 
@@ -131,7 +131,7 @@ DEFINE_OVERRIDE_HOOK(0x435cd3, BuildingLightClass_Draw_Spotlight, 6)
 	GET(BuildingLightClass*, BL, ESI);
 
 	TechnoClass* Owner = BL->OwnerObject;
-	TechnoTypeExt::ExtData* pTypeData = TechnoTypeExt::ExtMap.Find(Owner->GetTechnoType());
+	TechnoTypeExtData* pTypeData = TechnoTypeExtContainer::Instance.Find(Owner->GetTechnoType());
 
 	SpotlightFlags Flags = SpotlightFlags::None;
 	if (pTypeData->Spot_DisableColor) {

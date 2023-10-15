@@ -36,7 +36,7 @@ public:
 		Datas = (MapSurfaceData*)YRMemory::Allocate(sizeof(MapSurfaceData) * nCount);
 		States = (bool*)YRMemory::Allocate(sizeof(bool) * nCount);
 		std::memset(States, 0, sizeof(bool) * nCount);
-		Heap = GameCreate<TPriorityQueueClass<MapSurfaceData*>>(nCount);
+		Heap = GameCreate<TPriorityQueueClass<MapSurfaceData>>(nCount);
 	}
 
 	void Decontruct()
@@ -59,7 +59,7 @@ public:
 	}
 
 	int Count;
-	TPriorityQueueClass<MapSurfaceData*>* Heap;
+	TPriorityQueueClass<MapSurfaceData>* Heap;
 	bool* States;
 	MapSurfaceData* Datas;
 	CDTimerClass Timer;

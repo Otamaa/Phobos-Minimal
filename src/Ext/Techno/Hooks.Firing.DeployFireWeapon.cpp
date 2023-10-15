@@ -53,7 +53,7 @@ DEFINE_HOOK(0x6FF925, TechnoClass_FireaAt_FireOnce, 0xA)
 			&& pThis->CurrentMission == Mission::Unload
 		)
 		{
-			TechnoExt::ExtMap.Find(pUnit)->DeployFireTimer.Start(pWeapon->ROF);
+			TechnoExtContainer::Instance.Find(pUnit)->DeployFireTimer.Start(pWeapon->ROF);
 		}
 	}
 
@@ -66,11 +66,11 @@ DEFINE_HOOK(0x73DCEF, UnitClass_Mission_Unload_DeployFire, 0x6)
 
 	GET(UnitClass*, pThis, ESI);
 
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	if (!pExt->DeployFireTimer.InProgress())
 	{
-		auto const nWeapIdx = TechnoExt::GetDeployFireWeapon(pThis);
+		auto const nWeapIdx = TechnoExtData::GetDeployFireWeapon(pThis);
 		auto pTarget = pThis->GetCell();
 		pThis->SetTarget(pTarget);
 
@@ -100,7 +100,7 @@ DEFINE_HOOK(0x741288, UnitClass_CanFire_DeployFire_DoNotErrorFacing, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (pThis->Type->DeployFire
 		&& !pThis->Type->IsSimpleDeployer
@@ -125,7 +125,7 @@ DEFINE_HOOK(0x4C77E4, EventClass_Execute_UnitDeployFire, 0x6)
 	/// Do not execute deploy command if the vehicle has only just fired its once-firing deploy weapon.
 	if (pUnit && pUnit->Type->DeployFire
 		&& !pUnit->Type->IsSimpleDeployer
-		&& TechnoExt::ExtMap.Find(pThis)->DeployFireTimer.InProgress())
+		&& TechnoExtContainer::Instance.Find(pThis)->DeployFireTimer.InProgress())
 	{
 		return DoNotExecute;
 	}

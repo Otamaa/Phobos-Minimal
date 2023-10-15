@@ -14,74 +14,71 @@ struct ExtendedVariable
 	int Value;
 };
 
-class ScenarioExt
+class ScenarioExtData final
 {
+private:
+	static std::unique_ptr<ScenarioExtData> Data;
 public:
+	static constexpr size_t Canary = 0xABCD1595;
+	using base_type = ScenarioClass;
 
-	static IStream* g_pStm;
-	static bool CellParsed;
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+public:
+	std::map<int, CellStruct> Waypoints { };
+	std::map<int, ExtendedVariable> Local_Variables { }; // 0 for local, 1 for global
+	std::map<int, ExtendedVariable> Global_Variables { };
 
-	class ExtData final : public Extension<ScenarioClass>
+	Nullable<FixedString<0x1F>> ParTitle { };
+	Nullable<FixedString<0x1F>> ParMessage { };
+
+	Nullable<FixedString<0x20>> ScoreCampaignTheme { };
+	Nullable<FixedString<0x104>> NextMission { };
+
+	LightingStruct DefaultNormalLighting { {1000,1000,1000},0,0 };
+	int DefaultAmbientOriginal { 0 };
+	int DefaultAmbientCurrent { 0 };
+	int DefaultAmbientTarget { 0 };
+	TintStruct CurrentTint_Tiles { -1,-1,-1 };
+	TintStruct CurrentTint_Schemes { -1,-1,-1 };
+	TintStruct CurrentTint_Hashes { -1,-1,-1 };
+	bool AdjustLightingFix { false };
+
+	bool ShowBriefing { false };
+	int BriefingTheme { -1 };
+
+	ScenarioExtData(base_type* OwnerObject) noexcept
 	{
-	public:
-		static constexpr size_t Canary = 0xABCD1595;
-		using base_type = ScenarioClass;
+		AttachedToObject = OwnerObject;
+	}
 
-	public:
-		std::map<int, CellStruct> Waypoints { };
-		std::map<int, ExtendedVariable> Local_Variables { }; // 0 for local, 1 for global
-		std::map<int, ExtendedVariable> Global_Variables { };
+	~ScenarioExtData() noexcept = default;
 
-		Nullable<FixedString<0x1F>> ParTitle { };
-		Nullable<FixedString<0x1F>> ParMessage { };
+	void SetVariableToByID(const bool IsGlobal, int nIndex, char bState);
+	void GetVariableStateByID(const bool IsGlobal, int nIndex, char* pOut);
+	void ReadVariables(const bool IsGlobal, CCINIClass* pINI);
 
-		Nullable<FixedString<0x20>> ScoreCampaignTheme { };
-		Nullable<FixedString<0x104>> NextMission { };
+	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 
-		LightingStruct DefaultNormalLighting { {1000,1000,1000},0,0 };
-		int DefaultAmbientOriginal { 0 };
-		int DefaultAmbientCurrent { 0 };
-		int DefaultAmbientTarget { 0 };
-		TintStruct CurrentTint_Tiles { -1,-1,-1 };
-		TintStruct CurrentTint_Schemes { -1,-1,-1 };
-		TintStruct CurrentTint_Hashes { -1,-1,-1 };
-		bool AdjustLightingFix { false };
+	void LoadBasicFromINIFile(CCINIClass* pINI);
+	void FetchVariables(ScenarioClass* pScen);
 
-		bool ShowBriefing { false };
-		int BriefingTheme { -1 };
-
-		ExtData(ScenarioClass* OwnerObject) : Extension<ScenarioClass>(OwnerObject)
-		{ }
-
-		virtual ~ExtData() override = default;
-
-		void SetVariableToByID(const bool IsGlobal, int nIndex, char bState);
-		void GetVariableStateByID(const bool IsGlobal, int nIndex, char* pOut);
-		void ReadVariables(const bool IsGlobal, CCINIClass* pINI);
-
-		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-
-		void LoadBasicFromINIFile(CCINIClass* pINI);
-		void FetchVariables(ScenarioClass* pScen);
-
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 private:
-	static std::unique_ptr<ExtData> Data;
+	template <typename T>
+	void Serialize(T& Stm);
 public:
+	static IStream* g_pStm;
+	static bool CellParsed;
 
 	static void Allocate(ScenarioClass* pThis);
 	static void Remove(ScenarioClass* pThis);
 
-	static void LoadFromINIFile(ScenarioClass* pThis, CCINIClass* pINI);
+	static void s_LoadFromINIFile(ScenarioClass* pThis, CCINIClass* pINI);
 
-	static ExtData* Global()
+	static ScenarioExtData* Instance()
 	{
 		return Data.get();
 	}

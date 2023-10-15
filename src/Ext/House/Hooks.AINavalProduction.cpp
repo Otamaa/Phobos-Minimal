@@ -22,7 +22,7 @@ DEFINE_HOOK(0x4FB6FC, HouseClass_JustBuilt_NavalProductionFix, 0x6)
 
 	if (pUnitType->Naval)
 	{
-		HouseExt::ExtMap.Find(pThis)->LastBuiltNavalVehicleType = ID;
+		HouseExtContainer::Instance.Find(pThis)->LastBuiltNavalVehicleType = ID;
 		return SkipGameCode;
 	}
 
@@ -37,7 +37,7 @@ DEFINE_HOOK(0x71F003, TEventClass_Execute_NavalProductionFix, 0x6)
 	GET(HouseClass* const, pHouse, EAX);
 
 	if (pHouse->LastBuiltVehicleType != pThis->Value &&
-		HouseExt::ExtMap.Find(pHouse)->LastBuiltNavalVehicleType != pThis->Value)
+		HouseExtContainer::Instance.Find(pHouse)->LastBuiltNavalVehicleType != pThis->Value)
 	{
 		return Skip;
 	}
@@ -54,7 +54,7 @@ DEFINE_HOOK(0x444113, BuildingClass_ExitObject_NavalProductionFix1, 0x6)
 
 	if (pObject->WhatAmI() == UnitClass::AbsID && pObject->GetTechnoType()->Naval)
 	{
-		HouseExt::ExtMap.Find(pHouse)->ProducingNavalUnitTypeIndex = -1;
+		HouseExtContainer::Instance.Find(pHouse)->ProducingNavalUnitTypeIndex = -1;
 		ExitObjectTemp::ProducingUnitIndex = pHouse->ProducingUnitTypeIndex;
 	}
 
@@ -115,7 +115,7 @@ DEFINE_HOOK(0x450319, BuildingClass_AI_Factory_NavalProductionFix, 0x6)
 
 	case AbstractType::Unit:
 	case AbstractType::UnitType:
-		index = !pThis->Type->Naval ? pHouse->ProducingUnitTypeIndex : HouseExt::ExtMap.Find(pHouse)->ProducingNavalUnitTypeIndex;
+		index = !pThis->Type->Naval ? pHouse->ProducingUnitTypeIndex : HouseExtContainer::Instance.Find(pHouse)->ProducingNavalUnitTypeIndex;
 
 		if (index >= 0)
 			pTechnoType = UnitTypeClass::Array->GetItem(index);
@@ -135,7 +135,7 @@ DEFINE_HOOK(0x4CA0A1, FactoryClass_Abandon_NavalProductionFix, 0x5)
 
 	if (pThis->Object->WhatAmI() == UnitClass::AbsID && pThis->Object->GetTechnoType()->Naval)
 	{
-		HouseExt::ExtMap.Find(pThis->Owner)->ProducingNavalUnitTypeIndex = -1;
+		HouseExtContainer::Instance.Find(pThis->Owner)->ProducingNavalUnitTypeIndex = -1;
 		return SkipUnitTypeCheck;
 	}
 
@@ -148,7 +148,7 @@ DEFINE_HOOK(0x4F91A4, HouseClass_AI_BuildingProductionCheck, 0x6)
 
 	GET(HouseClass* const, pThis, ESI);
 
-	auto const pExt = HouseExt::ExtMap.Find(pThis);
+	auto const pExt = HouseExtContainer::Instance.Find(pThis);
 
 	bool cantBuild = pThis->ProducingUnitTypeIndex == -1 && pThis->ProducingInfantryTypeIndex == -1 &&
 		pThis->ProducingAircraftTypeIndex == -1 && pExt->ProducingNavalUnitTypeIndex == -1;
@@ -176,7 +176,7 @@ DEFINE_HOOK(0x4FE0A3, HouseClass_AI_RaiseMoney_NavalProductionFix, 0x6)
 {
 	GET(HouseClass* const, pThis, ESI);
 
-	if (auto const pExt = HouseExt::ExtMap.Find(pThis))
+	if (auto const pExt = HouseExtContainer::Instance.Find(pThis))
 		pExt->ProducingNavalUnitTypeIndex = -1;
 
 	return 0;

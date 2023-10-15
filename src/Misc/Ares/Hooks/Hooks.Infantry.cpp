@@ -32,7 +32,7 @@ DEFINE_OVERRIDE_HOOK(0x51E5E1, InfantryClass_GetActionOnObject_MultiEngineerB, 7
 	// use a dedicated cursor
 	if (ret == Action::Damage)
 	{
-		MouseCursorFuncs::SetMouseCursorAction(RulesExt::Global()->EngineerDamageCursor, Action::Damage, false);
+		MouseCursorFuncs::SetMouseCursorAction(RulesExtData::Instance()->EngineerDamageCursor, Action::Damage, false);
 	}
 
 	// return our action
@@ -50,7 +50,7 @@ DEFINE_OVERRIDE_HOOK(0x519D9C, InfantryClass_UpdatePosition_MultiEngineer, 5)
 
 	if (action == Action::Damage)
 	{
-		int Damage = int(std::ceil(pBld->Type->Strength * RulesExt::Global()->EngineerDamage));
+		int Damage = int(std::ceil(pBld->Type->Strength * RulesExtData::Instance()->EngineerDamage));
 		pBld->ReceiveDamage(&Damage, 0, RulesClass::Global()->C4Warhead, pEngi, true, false, pEngi->Owner);
 		return 0x51A010;
 	}
@@ -79,7 +79,7 @@ DEFINE_OVERRIDE_HOOK(0x471C96, CaptureManagerClass_CanCapture, 0xA)
 	}
 
 	// generally not capturable
-	if (TechnoExt::IsPsionicsImmune(pTarget))
+	if (TechnoExtData::IsPsionicsImmune(pTarget))
 	{
 		return Disallowed;
 	}
@@ -110,7 +110,7 @@ DEFINE_OVERRIDE_HOOK(0x471C96, CaptureManagerClass_CanCapture, 0xA)
 	}
 
 	// driver killed. has no mind.
-	if (TechnoExt::ExtMap.Find(pTarget)->Is_DriverKilled)
+	if (TechnoExtContainer::Instance.Find(pTarget)->Is_DriverKilled)
 	{
 		return Disallowed;
 	}
@@ -123,7 +123,7 @@ DEFINE_OVERRIDE_HOOK(0x51DF38, InfantryClass_Remove, 0xA)
 {
 	GET(InfantryClass*, pThis, ESI);
 
-	if (auto pGarrison = TechnoExt::ExtMap.Find(pThis)->GarrisonedIn)
+	if (auto pGarrison = TechnoExtContainer::Instance.Find(pThis)->GarrisonedIn)
 	{
 		if (!pGarrison->Occupants.Remove(pThis))
 		{
@@ -132,7 +132,7 @@ DEFINE_OVERRIDE_HOOK(0x51DF38, InfantryClass_Remove, 0xA)
 		}
 	}
 
-	TechnoExt::ExtMap.Find(pThis)->GarrisonedIn = nullptr;
+	TechnoExtContainer::Instance.Find(pThis)->GarrisonedIn = nullptr;
 
 	return 0;
 }
@@ -140,7 +140,7 @@ DEFINE_OVERRIDE_HOOK(0x51DF38, InfantryClass_Remove, 0xA)
 DEFINE_OVERRIDE_HOOK(0x51DFFD, InfantryClass_Put, 5)
 {
 	GET(InfantryClass*, pThis, EDI);
-	TechnoExt::ExtMap.Find(pThis)->GarrisonedIn = nullptr;
+	TechnoExtContainer::Instance.Find(pThis)->GarrisonedIn = nullptr;
 	return 0;
 }
 
@@ -153,7 +153,7 @@ DEFINE_OVERRIDE_HOOK(0x518434, InfantryClass_ReceiveDamage_SkipDeathAnim, 7)
 	// too much space would get wasted since there is only four bytes worth of data we need to store per object
 	// so those four bytes get stashed in Techno Map instead. they will get their own map if there's ever enough data to warrant it
 
-	return TechnoExt::ExtMap.Find(pThis)->GarrisonedIn ? 0x5185F1 : 0;
+	return TechnoExtContainer::Instance.Find(pThis)->GarrisonedIn ? 0x5185F1 : 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x517D51, InfantryClass_Init_Academy, 6)
@@ -162,7 +162,7 @@ DEFINE_OVERRIDE_HOOK(0x517D51, InfantryClass_Init_Academy, 6)
 
 	if (pThis->Owner)
 	{
-		HouseExt::ApplyAcademy(pThis->Owner, pThis, AbstractType::Infantry);
+		HouseExtData::ApplyAcademy(pThis->Owner, pThis, AbstractType::Infantry);
 	}
 
 	return 0;
@@ -188,7 +188,7 @@ DEFINE_OVERRIDE_HOOK(0x51E7BF, InfantryClass_GetActionOnObject_CanCapture, 6)
 
 	const auto pSelectedType = pSelected->Type;
 	if (!pSelectedType->VehicleThief
-		&& !TechnoTypeExt::ExtMap.Find(pSelectedType)->CanDrive.Get(RulesExt::Global()->CanDrive))
+		&& !TechnoTypeExtContainer::Instance.Find(pSelectedType)->CanDrive.Get(RulesExtData::Instance()->CanDrive))
 		return DontCapture;
 
 	if (pTechnoTarget->GetTechnoType()->IsTrain)
@@ -213,7 +213,7 @@ DEFINE_OVERRIDE_HOOK(0x5203F7, InfantryClass_UpdateVehicleThief_Hijack, 5)
 
 	GET(InfantryClass*, pThis, ESI);
 	GET(FootClass*, pTarget, EDI);
-	TechnoExt::ExtData* pExt = TechnoExt::ExtMap.Find(pThis);
+	TechnoExtData* pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	bool finalize = TechnoExt_ExtData::PerformActionHijack(pThis, pTarget);
 	if (finalize)
@@ -286,7 +286,7 @@ DEFINE_OVERRIDE_HOOK(0x5202F9, InfantryClass_UpdateVehicleThief_Check, 6)
 	if (!pThis->Type->VehicleThief)
 	{
 		// also allow for drivers, because vehicles may still drive around. usually they are not.
-		if (!TechnoTypeExt::ExtMap.Find(pThis->Type)->CanDrive)
+		if (!TechnoTypeExtContainer::Instance.Find(pThis->Type)->CanDrive)
 		{
 			return 0x5206A1;
 		}
@@ -355,7 +355,7 @@ DEFINE_OVERRIDE_HOOK(0x5200C1, InfantryClass_UpdatePanic_Doggie, 0x6)
 
 	if (pType->Doggie) {
 		// if panicking badly, lay down on tiberium
-		if (pThis->PanicDurationLeft >= RulesExt::Global()->DoggiePanicMax) {
+		if (pThis->PanicDurationLeft >= RulesExtData::Instance()->DoggiePanicMax) {
 			if (!pThis->Destination && !pThis->Locomotor.GetInterfacePtr()->Is_Moving())		{
 				if (pThis->GetCell()->LandType == LandType::Tiberium) {
 					// is on tiberium. just lay down
@@ -532,7 +532,7 @@ DEFINE_JUMP(LJMP, 0x5200D7, 0x52010B);
 DEFINE_OVERRIDE_HOOK(0x51CE9A, InfantryClass_RandomAnim_IsCow, 5)
 {
 	GET(InfantryClass*, I, ESI);
-	const auto pData = InfantryTypeExt::ExtMap.Find(I->Type);
+	const auto pData = InfantryTypeExtContainer::Instance.Find(I->Type);
 
 	// don't play idle when paralyzed
 	if (I->IsUnderEMP())
@@ -549,25 +549,25 @@ DEFINE_OVERRIDE_HOOK(0x51CE9A, InfantryClass_RandomAnim_IsCow, 5)
 DEFINE_OVERRIDE_HOOK(0x51F76D, InfantryClass_Unload, 5)
 {
 	GET(InfantryClass*, I, ESI);
-	return InfantryTypeExt::ExtMap.Find(I->Type)->Is_Deso ? 0x51F77Du : 0x51F792u;
+	return InfantryTypeExtContainer::Instance.Find(I->Type)->Is_Deso ? 0x51F77Du : 0x51F792u;
 }
 
 DEFINE_OVERRIDE_HOOK(0x52138c, InfantryClass_UpdateDeployment_Deso2, 6)
 {
 	GET(InfantryClass*, I, ESI);
-	return InfantryTypeExt::ExtMap.Find(I->Type)->Is_Deso ? 0x52139A : 0x5214B9;
+	return InfantryTypeExtContainer::Instance.Find(I->Type)->Is_Deso ? 0x52139A : 0x5214B9;
 }
 
 DEFINE_OVERRIDE_HOOK(0x5215f9, InfantryClass_UpdateDeployment_Deso1, 6)
 {
 	GET(InfantryClass*, I, ESI);
-	return InfantryTypeExt::ExtMap.Find(I->Type)->Is_Deso ? 0x5216B6 : 0x52160D;
+	return InfantryTypeExtContainer::Instance.Find(I->Type)->Is_Deso ? 0x5216B6 : 0x52160D;
 }
 
 DEFINE_OVERRIDE_HOOK(0x629804, ParasiteClass_UpdateSquiddy, 9)
 {
 	GET(ParasiteClass*, pThis, ESI);
-	R->EAX(pThis->Owner->GetWeapon(TechnoExt::ExtMap.Find(pThis->Owner)->idxSlot_Parasite));
+	R->EAX(pThis->Owner->GetWeapon(TechnoExtContainer::Instance.Find(pThis->Owner)->idxSlot_Parasite));
 	return 0x62980D;
 }
 

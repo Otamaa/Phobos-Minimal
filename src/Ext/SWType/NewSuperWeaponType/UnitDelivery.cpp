@@ -16,7 +16,7 @@ std::vector<const char*> SW_UnitDelivery::GetTypeString() const
 bool SW_UnitDelivery::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	SuperWeaponTypeClass* pSW = pThis->Type;
-	SWTypeExt::ExtData* pData = SWTypeExt::ExtMap.Find(pSW);
+	SWTypeExtData* pData = SWTypeExtContainer::Instance.Find(pSW);
 
 	const int deferment = pData->SW_Deferment.Get(-1);
 	this->newStateMachine(deferment < 0 ? 20 : deferment, Coords, pThis);
@@ -24,13 +24,13 @@ bool SW_UnitDelivery::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 	return true;
 }
 
-void SW_UnitDelivery::Initialize(SWTypeExt::ExtData* pData)
+void SW_UnitDelivery::Initialize(SWTypeExtData* pData)
 {
-	pData->OwnerObject()->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	pData->AttachedToObject->Action = Action(AresNewActionType::SuperWeaponAllowed);
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::ParaDrop;
 }
 
-void SW_UnitDelivery::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
+void SW_UnitDelivery::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
 	const char* section = pData->get_ID();
 
@@ -43,7 +43,7 @@ void SW_UnitDelivery::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->SW_DeliverableScatter.Read(exINI, section, "Deliver.Scatter");
 }
 
-bool SW_UnitDelivery::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+bool SW_UnitDelivery::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
 	if (!this->IsLaunchsiteAlive(pBuilding))
 		return false;
@@ -60,7 +60,7 @@ void UnitDeliveryStateMachine::Update()
 	{
 		CoordStruct coords = CellClass::Cell2Coord(this->Coords);
 
-		const auto pData = SWTypeExt::ExtMap.Find(this->Super->Type);
+		const auto pData = SWTypeExtContainer::Instance.Find(this->Super->Type);
 
 		pData->PrintMessage(pData->Message_Activate, this->Super->Owner);
 
@@ -78,7 +78,7 @@ void UnitDeliveryStateMachine::Update()
 //center as close as they can.
 void UnitDeliveryStateMachine::PlaceUnits()
 {
-	const auto pData = SWTypeExt::ExtMap.Find(this->Super->Type);
+	const auto pData = SWTypeExtContainer::Instance.Find(this->Super->Type);
 
 	// some mod using this for an dummy SW , just skip everything if the SW_Deliverables
 	// is empty
@@ -86,7 +86,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 		return;
 
 	// get the house the units will belong to
-	const auto pOwner = HouseExt::GetHouseKind(pData->SW_OwnerHouse, false, this->Super->Owner);
+	const auto pOwner = HouseExtData::GetHouseKind(pData->SW_OwnerHouse, false, this->Super->Owner);
 	const bool IsPlayerControlled = pOwner->IsControlledByHuman_();
 	const bool bBaseNormal = pData->SW_BaseNormal;
 	const bool bDeliverBuildup = pData->SW_DeliverBuildups;
@@ -164,7 +164,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 			if (ItemBuilding)
 			{
 				if (!bBaseNormal)
-					BuildingExt::ExtMap.Find(ItemBuilding)->IsFromSW = true;
+					BuildingExtContainer::Instance.Find(ItemBuilding)->IsFromSW = true;
 
 				if(bDeliverBuildup)
 					ItemBuilding->QueueMission(Mission::Construction, false);
@@ -221,7 +221,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 			else
 			{
 				Debug::Log(__FUNCTION__"\n");
-				TechnoExt::HandleRemove(Item, nullptr, true, true);
+				TechnoExtData::HandleRemove(Item, nullptr, true, true);
 				//Item->UnInit();
 			}
 		}

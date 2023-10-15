@@ -38,7 +38,7 @@ DEFINE_HOOK(0x469150, BulletClass_Logics_ApplyRadiation, 0x5)
 		GET(WeaponTypeClass*, pWeapon, ECX);
 		GET(int, nAmount, EDI);
 
-		BulletExt::ExtMap.Find(pThis)->ApplyRadiationToCell(*pCoords, static_cast<int>(pWeapon->Warhead->CellSpread), nAmount);
+		BulletExtContainer::Instance.Find(pThis)->ApplyRadiationToCell(*pCoords, static_cast<int>(pWeapon->Warhead->CellSpread), nAmount);
 
 		return Handled;
 	}
@@ -65,7 +65,7 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 		if (!pThis) {
 			const auto pDefault = RadTypeClass::Find(RADIATION_SECTION);
 			auto const it = RadSiteClass::Array->find_if([=](auto const pSite) {
-				 auto const pRadExt = RadSiteExt::ExtMap.Find(pSite);
+				 auto const pRadExt = RadSiteExtContainer::Instance.Find(pSite);
 				 if (pRadExt->Type != pDefault)
 					 return false;
 
@@ -92,16 +92,16 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 					nAmount = nMax - nCurrent;
 				}
 
-				RadSiteExt::ExtMap.Find((*it))->Add(nAmount);
+				RadSiteExtContainer::Instance.Find((*it))->Add(nAmount);
 				return Handled;
 			}
 
-			RadSiteExt::CreateInstance(pCell->GetCoordsWithBridge(), spread, amount, nullptr, nullptr);
+			RadSiteExtData::CreateInstance(pCell->GetCoordsWithBridge(), spread, amount, nullptr, nullptr);
 
 		}
 		else
 		{
-			BulletExt::ExtMap.Find(pThis)->ApplyRadiationToCell(pCell->GetCoordsWithBridge(), spread, amount);
+			BulletExtContainer::Instance.Find(pThis)->ApplyRadiationToCell(pCell->GetCoordsWithBridge(), spread, amount);
 		}
 
 		return Handled;
@@ -125,12 +125,12 @@ DEFINE_HOOK(0x5213B4, InfantryClass_AIDeployment_CheckRad, 0x7)
 		{
 			if (const auto pWeapon = pWeaponStruct->WeaponType)
 			{
-				const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+				const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 				const auto currentCoord = pThis->InlineMapCoords();
 
 				auto const it = RadSiteClass::Array->find_if([=](auto const pPair)
 				{
-					auto const pRadExt = RadSiteExt::ExtMap.Find(pPair);
+					auto const pRadExt = RadSiteExtContainer::Instance.Find(pPair);
 
 					if (pRadExt->Type != pWeaponExt->RadType)
 						return false;
@@ -153,7 +153,7 @@ DEFINE_HOOK(0x5213B4, InfantryClass_AIDeployment_CheckRad, 0x7)
 
 				if (it != RadSiteClass::Array->end())
 				{
-					radLevel = static_cast<int>(RadSiteExt::ExtMap.Find((*it))->GetRadLevelAt(currentCoord));
+					radLevel = static_cast<int>(RadSiteExtContainer::Instance.Find((*it))->GetRadLevelAt(currentCoord));
 				}
 
 				weaponRadLevel = pWeapon->RadLevel;
@@ -207,7 +207,7 @@ DEFINE_HOOK(0x43FB29, BuildingClass_AI_Radiation, 0x8)
 	if (!pBuilding->IsAlive)
 		return Continue;
 
-	const auto pExt = BuildingExt::ExtMap.Find(pBuilding);
+	const auto pExt = BuildingExtContainer::Instance.Find(pBuilding);
 
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 	{
@@ -215,7 +215,7 @@ DEFINE_HOOK(0x43FB29, BuildingClass_AI_Radiation, 0x8)
 			return Continue;
 
 		if (pBuilding->InLimbo ||
-			TechnoExt::IsRadImmune(pBuilding))
+			TechnoExtData::IsRadImmune(pBuilding))
 			return Continue;
 
 		if (pExt->LimboID != -1)
@@ -239,7 +239,7 @@ DEFINE_HOOK(0x43FB29, BuildingClass_AI_Radiation, 0x8)
 			// Loop for each different radiation stored in the RadSites container
 			for (auto pRadSite : *RadSiteClass::Array())
 			{
-				const auto pRadExt = RadSiteExt::ExtMap.Find(pRadSite);
+				const auto pRadExt = RadSiteExtContainer::Instance.Find(pRadSite);
 
 				// Check the distance, if not in range, just skip this one
 				const double orDistance = pRadSite->BaseCell.DistanceFrom(nLoc);
@@ -264,7 +264,7 @@ DEFINE_HOOK(0x43FB29, BuildingClass_AI_Radiation, 0x8)
 
 				switch (pRadExt->ApplyRadiationDamage(pBuilding, damage, static_cast<int>(orDistance)))
 				{
-				case RadSiteExt::ExtData::DamagingState::Dead:
+				case RadSiteExtData::DamagingState::Dead:
 					return Dead;
 				default:
 					break;
@@ -296,12 +296,12 @@ DEFINE_HOOK(0x4DA554, FootClass_AI_ReplaceRadiationDamageProcessing, 0x5)
 
 	GET(FootClass* const, pThis, ESI);
 
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	if (pThis->SpawnOwner && !pExt->IsMissisleSpawn)
 	{
 		auto pSpawnTechnoType = pThis->SpawnOwner->GetTechnoType();
-		auto pSpawnTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pSpawnTechnoType);
+		auto pSpawnTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pSpawnTechnoType);
 
 		if (const auto pTargetTech = abstract_cast<TechnoClass*>(pThis->Target))
 		{
@@ -345,10 +345,10 @@ DEFINE_HOOK(0x4DA554, FootClass_AI_ReplaceRadiationDamageProcessing, 0x5)
 	if (pThis->GetTechnoType()->Immune || pThis->IsIronCurtained())
 		return (CheckOtherState);
 
-	if (pThis->IsBeingWarpedOut() || TechnoExt::IsChronoDelayDamageImmune(pThis))
+	if (pThis->IsBeingWarpedOut() || TechnoExtData::IsChronoDelayDamageImmune(pThis))
 		return (CheckOtherState);
 
-	if (TechnoExt::IsRadImmune(pThis))
+	if (TechnoExtData::IsRadImmune(pThis))
 		return (CheckOtherState);
 
 	if (!Phobos::Otamaa::DisableCustomRadSite)
@@ -356,7 +356,7 @@ DEFINE_HOOK(0x4DA554, FootClass_AI_ReplaceRadiationDamageProcessing, 0x5)
 		// Loop for each different radiation stored in the RadSites container
 		for (auto pRadSite : *RadSiteClass::Array())
 		{
-			const auto pRadExt = RadSiteExt::ExtMap.Find(pRadSite);
+			const auto pRadExt = RadSiteExtContainer::Instance.Find(pRadSite);
 			// Check the distance, if not in range, just skip this one
 			const double orDistance = pRadSite->BaseCell.DistanceFrom(nLoc);
 			if (static_cast<int>(orDistance) > pRadSite->Spread)
@@ -380,9 +380,9 @@ DEFINE_HOOK(0x4DA554, FootClass_AI_ReplaceRadiationDamageProcessing, 0x5)
 
 			switch (pRadExt->ApplyRadiationDamage(pThis, damage, static_cast<int>(orDistance)))
 			{
-			case RadSiteExt::ExtData::DamagingState::Dead:
+			case RadSiteExtData::DamagingState::Dead:
 				return SkipEverything;
-			case RadSiteExt::ExtData::DamagingState::Ignore:
+			case RadSiteExtData::DamagingState::Ignore:
 				return (CheckOtherState);
 			default:
 				break;
@@ -397,7 +397,7 @@ DEFINE_HOOK(0x4DA554, FootClass_AI_ReplaceRadiationDamageProcessing, 0x5)
 
 #define GET_RADSITE(reg, value)\
 	GET(RadSiteClass* const, pThis, reg);\
-	auto output = RadSiteExt::ExtMap.Find(pThis)->Type->## value ##;
+	auto output = RadSiteExtContainer::Instance.Find(pThis)->Type->## value ##;
 
 DEFINE_HOOK(0x65B843, RadSiteClass_AI_LevelDelay, 0x6)
 {
@@ -448,5 +448,5 @@ DEFINE_HOOK(0x65BB67, RadSite_Deactivate, 0x6)
 	return Continue;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F0858, GET_OFFSET(RadSiteExt::GetAltCoords_Wrapper));
-DEFINE_JUMP(VTABLE, 0x7F0868, GET_OFFSET(RadSiteExt::GetAltCoords_Wrapper));
+DEFINE_JUMP(VTABLE, 0x7F0858, GET_OFFSET(RadSiteExtData::GetAltCoords_Wrapper));
+DEFINE_JUMP(VTABLE, 0x7F0868, GET_OFFSET(RadSiteExtData::GetAltCoords_Wrapper));

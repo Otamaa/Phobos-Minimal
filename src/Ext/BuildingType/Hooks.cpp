@@ -32,7 +32,7 @@ DEFINE_HOOK(0x44043D, BuildingClass_AI_Temporaled_Chronosparkle_MuzzleFix, 0x8)
 
 	if (pThis->Type->MaxNumberOccupants > 10) {
 		GET(int, nFiringIndex, EBX);
-		R->EAX(BuildingTypeExt::GetOccupyMuzzleFlash(pThis,nFiringIndex));
+		R->EAX(BuildingTypeExtData::GetOccupyMuzzleFlash(pThis,nFiringIndex));
 	}
 
 	return 0;
@@ -43,7 +43,7 @@ DEFINE_HOOK(0x45387A, BuildingClass_FireOffset_Replace_MuzzleFix, 0x6) // A
 	GET(BuildingClass*, pThis, ESI);
 
 	if (pThis->Type->MaxNumberOccupants > 10) {
-		R->EDX(BuildingTypeExt::GetOccupyMuzzleFlash(pThis, pThis->FiringOccupantIndex));
+		R->EDX(BuildingTypeExtData::GetOccupyMuzzleFlash(pThis, pThis->FiringOccupantIndex));
 	}
 
 	return 0;
@@ -55,7 +55,7 @@ DEFINE_HOOK(0x458623, BuildingClass_KillOccupiers_Replace_MuzzleFix, 0x7)
 
 	if (pThis->Type->MaxNumberOccupants > 10) {
 		GET(int, nFiringIndex, EDI);
-		R->ECX(BuildingTypeExt::GetOccupyMuzzleFlash(pThis, nFiringIndex));
+		R->ECX(BuildingTypeExtData::GetOccupyMuzzleFlash(pThis, nFiringIndex));
 	}
 
 	return 0;
@@ -63,13 +63,13 @@ DEFINE_HOOK(0x458623, BuildingClass_KillOccupiers_Replace_MuzzleFix, 0x7)
 
 DEFINE_HOOK(0x6D528A, TacticalClass_DrawPlacement_PlacementPreview, 0x6)
 {
-	BuildingTypeExt::DisplayPlacementPreview();
+	BuildingTypeExtData::DisplayPlacementPreview();
 	return 0x0;
 }
 
 DEFINE_HOOK(0x47EFAE, CellClass_Draw_It_MakePlacementGridTranparent, 0x6)
 {
 	LEA_STACK(BlitterFlags*, blitFlags, STACK_OFFS(0x68, 0x58));
-	*blitFlags |= EnumFunctions::GetTranslucentLevel(RulesExt::Global()->PlacementGrid_TranslucentLevel);
+	*blitFlags |= EnumFunctions::GetTranslucentLevel(RulesExtData::Instance()->PlacementGrid_TranslucentLevel);
 	return 0;
 }

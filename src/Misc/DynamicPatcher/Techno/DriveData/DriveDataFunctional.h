@@ -3,5 +3,5 @@
 
 struct DriveDataFunctional
 {
-	static void AI(TechnoExt::ExtData* pthis);
+	static void AI(TechnoExtData* pthis);
 };

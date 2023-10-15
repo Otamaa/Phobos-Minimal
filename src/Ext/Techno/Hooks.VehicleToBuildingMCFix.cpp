@@ -11,9 +11,9 @@
 #include <Ext/CaptureManager/Body.h>
 #include <Ext/WarheadType/Body.h>
 
-void TechnoExt::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClass* pTechnoTo)
+void TechnoExtData::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClass* pTechnoTo)
 {
-	if (!pTechnoTo || TechnoExt::IsPsionicsImmune(pTechnoTo))
+	if (!pTechnoTo || TechnoExtData::IsPsionicsImmune(pTechnoTo))
 		return;
 
 	const auto pBld = specific_cast<BuildingClass*>(pTechnoTo);
@@ -81,7 +81,7 @@ DEFINE_HOOK(0x449E2E, BuildingClass_Mi_Selling_CreateUnit, 0x6)
 
 	// Remember MC ring animation.
 	if (pStructure->IsMindControlled()) {
-		auto const pTechnoExt = TechnoExt::ExtMap.Find(pStructure);
+		auto const pTechnoExt = TechnoExtContainer::Instance.Find(pStructure);
 		pTechnoExt->UpdateMindControlAnim();
 	}
 

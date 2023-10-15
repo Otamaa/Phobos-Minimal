@@ -9,6 +9,7 @@
 class SHPRefExt
 {
 public:
+	/*
 	class ExtData final : public Extension<SHPReference>
 	{
 	public:
@@ -35,6 +36,5 @@ public:
 		~ExtContainer();
 	};
 
-	static ExtContainer ExtMap;
-
+	static ExtContainer ExtMap;*/
 };

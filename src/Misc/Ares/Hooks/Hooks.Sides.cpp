@@ -6,7 +6,7 @@ DWORD MixFileYuriFiles(REGISTERS* R, DWORD dwReturnAddress1, DWORD dwReturnAddre
 	GET(ScenarioClass*, pScen, EAX);
 
 	if (SideClass* pSide = SideClass::Array->GetItemOrDefault(pScen->PlayerSideIndex)) {
-		return SideExt::ExtMap.Find(pSide)->SidebarYuriFileNames
+		return SideExtContainer::Instance.Find(pSide)->SidebarYuriFileNames
 			? dwReturnAddress1
 			: dwReturnAddress2
 			;
@@ -31,7 +31,7 @@ DEFINE_OVERRIDE_HOOK(0x72F440, Game_InitializeToolTipColor, 0xA)
 	GET(int, idxSide, ECX);
 
 	if (SideClass* pSide = SideClass::Array->GetItemOrDefault(idxSide)) {
-		CCToolTip::ToolTipTextColor = SideExt::ExtMap.Find(pSide)->ToolTipTextColor;
+		CCToolTip::ToolTipTextColor = SideExtContainer::Instance.Find(pSide)->ToolTipTextColor;
 		return 0x72F495;
 	}
 
@@ -42,7 +42,7 @@ DEFINE_OVERRIDE_HOOK(0x72D730, Game_LoadMultiplayerScoreAssets, 5)
 {
 	GET(const int, idxSide, ECX);
 	auto pSide = SideClass::Array->GetItemOrDefault(idxSide);
-	auto pExt = SideExt::ExtMap.Find(pSide);
+	auto pExt = SideExtContainer::Instance.Find(pSide);
 
 	auto& AlreadyLoaded = *reinterpret_cast<bool*>(0xB0FBB8);
 
@@ -71,7 +71,7 @@ DEFINE_OVERRIDE_HOOK(0x72D300, Game_LoadCampaignScoreAssets, 5)
 {
 	GET(const int, idxSide, ECX);
 	auto pSide = SideClass::Array->GetItemOrDefault(idxSide);
-	auto pExt = SideExt::ExtMap.Find(pSide);
+	auto pExt = SideExtContainer::Instance.Find(pSide);
 
 	auto& AlreadyLoaded = *reinterpret_cast<bool*>(0xB0FBAC);
 
@@ -107,10 +107,10 @@ DEFINE_OVERRIDE_HOOK(0x72B690, LoadScreenPal_Load, 0)
 {
 	GET(int, n, EDI);
 
-	HouseTypeExt::ExtData* pData = nullptr;
+	HouseTypeExtData* pData = nullptr;
 	if (auto pThis = HouseTypeClass::Array->GetItemOrDefault(n))
 	{
-		pData = HouseTypeExt::ExtMap.Find(pThis);
+		pData = HouseTypeExtContainer::Instance.Find(pThis);
 	}
 
 	const char* pPALFile = nullptr;

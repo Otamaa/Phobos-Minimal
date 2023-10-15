@@ -8,6 +8,7 @@
 class ConvertExt
 {
 public:
+	/*
 	class ExtData final : public Extension<ConvertClass>
 	{
 	public:
@@ -38,4 +39,5 @@ public:
 	};
 
 	static ExtContainer ExtMap;
+	*/
 };

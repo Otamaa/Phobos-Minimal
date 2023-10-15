@@ -4,18 +4,18 @@
 // =============================
 // load / save
 
-template <typename T>
-void DiskLaserExt::ExtData::Serialize(T& Stm)
-{
-	Stm
-		.Process(this->Initialized)
-		;
-}
+//template <typename T>
+//void DiskLaserExt::ExtData::Serialize(T& Stm)
+//{
+//	Stm
+//		.Process(this->Initialized)
+//		;
+//}
 
 // =============================
 // container
 
-DiskLaserExt::ExtContainer DiskLaserExt::ExtMap;
+//DiskLaserExt::ExtContainer DiskLaserExt::ExtMap;
 
 // =============================
 // container hooks

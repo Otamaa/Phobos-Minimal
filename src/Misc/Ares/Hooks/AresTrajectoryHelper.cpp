@@ -3,7 +3,7 @@
 #include <Ext/BuildingType/Body.h>
 
 bool  AresTrajectoryHelper::SubjectToAnything(
-	BulletTypeClass const* pType, BulletTypeExt::ExtData const* pTypeExt)
+	BulletTypeClass const* pType, BulletTypeExtData const* pTypeExt)
 {
 	return pType->SubjectToCliffs
 		|| pType->SubjectToWalls
@@ -52,7 +52,7 @@ bool AresTrajectoryHelper::IsBuildingHit(
 		}
 
 		// does the building let allies through?
-		auto const isTransparent = RulesExt::Global()->AlliedSolidTransparency
+		auto const isTransparent = RulesExtData::Instance()->AlliedSolidTransparency
 			&& pBld->Owner->IsAlliedWith_(pOwner);
 
 		if (isTransparent)
@@ -68,7 +68,7 @@ bool AresTrajectoryHelper::IsBuildingHit(
 			return false;
 		}
 
-		auto const pBldTypeExt = BuildingTypeExt::ExtMap.Find(pBldType);
+		auto const pBldTypeExt = BuildingTypeExtContainer::Instance.Find(pBldType);
 		if (int solidHeight = pBldTypeExt->Solid_Height)
 		{
 			if (solidHeight < 0)
@@ -98,7 +98,7 @@ CellClass* AresTrajectoryHelper::GetObstacle(
 	CellClass const* const pCellSource, CellClass const* const pCellTarget,
 	AbstractClass const* const pSource, AbstractClass const* const pTarget,
 	CellClass const* const pCellBullet, CoordStruct const& crdCur,
-	BulletTypeClass const* const pType, BulletTypeExt::ExtData const* pTypeExt,
+	BulletTypeClass const* const pType, BulletTypeExtData const* pTypeExt,
 	HouseClass const* const pOwner)
 {
 	auto const cellCur = CellClass::Coord2Cell(crdCur);
@@ -121,7 +121,7 @@ CellClass* AresTrajectoryHelper::FindFirstObstacle(
 	CoordStruct const& crdSrc, CoordStruct const& crdTarget,
 	AbstractClass const* const pSource, AbstractClass const* const pTarget,
 	BulletTypeClass const* const pType,
-	BulletTypeExt::ExtData const* const pTypeExt,
+	BulletTypeExtData const* const pTypeExt,
 	HouseClass const* const pOwner)
 {
 	if (AresTrajectoryHelper::SubjectToAnything(pType, pTypeExt))
@@ -162,7 +162,7 @@ CellClass* AresTrajectoryHelper::FindFirstImpenetrableObstacle(
 	WeaponTypeClass const* const pWeapon, HouseClass const* const pOwner)
 {
 	auto const pProjectile = pWeapon->Projectile;
-	auto const pProjectileExt = BulletTypeExt::ExtMap.Find(pProjectile);
+	auto const pProjectileExt = BulletTypeExtContainer::Instance.Find(pProjectile);
 
 	if (auto const pCell = AresTrajectoryHelper::FindFirstObstacle(
 		crdSrc, crdTarget, pSource, pTarget, pProjectile, pProjectileExt,
@@ -180,7 +180,7 @@ CellClass* AresTrajectoryHelper::FindFirstImpenetrableObstacle(
 			// only willingfully fire through enemy buildings
 			if (!pOwner->IsAlliedWith_(pBld))
 			{
-				auto const pBldTypeExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+				auto const pBldTypeExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 
 				// penetrable if warhead level is at least equal to building level
 				if (pProjectileExt->Solid_Level >= pBldTypeExt->Solid_Level)

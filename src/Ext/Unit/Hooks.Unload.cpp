@@ -10,7 +10,7 @@ void UnitDeployConvertHelpers::RemoveDeploying(REGISTERS* R)
 {
 	GET(UnitClass*, pThis, ESI);
 
-	auto const pThisType = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto const pThisType = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	const bool canDeploy = pThis->CanDeploySlashUnload();
 
 	R->AL(canDeploy);
@@ -55,7 +55,7 @@ DEFINE_HOOK(0x730C70, DeployClass_Execute_RemoveDeploying, 0xA)
 DEFINE_HOOK(0x739C70, UnitClass_ToggleDeployState_ChangeAmmo, 0xA) // deploying
 {
 	GET(UnitClass*, pThis, ESI);
-	auto const pThisExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto const pThisExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (pThis->Deployed && !pThis->Deploying && pThisExt->Ammo_AddOnDeploy)
 	{
@@ -68,7 +68,7 @@ DEFINE_HOOK(0x739C70, UnitClass_ToggleDeployState_ChangeAmmo, 0xA) // deploying
 DEFINE_HOOK(0x739E6E, UnitClass_ToggleSimpleDeploy_ChangeAmmo, 0xA) // undeploying
 {
 	GET(UnitClass*, pThis, ESI);
-	auto const pThisExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto const pThisExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (pThis->Deployed && !pThis->Deploying && pThisExt->Ammo_AddOnDeploy)
 	{
@@ -83,7 +83,7 @@ DEFINE_HOOK(0x73DE78, UnitClass_Unload_ChangeAmmo, 0x6) // converters
 {
 	GET(UnitClass*, pThis, ESI);
 
-	auto const pThisExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto const pThisExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (pThis->Type->IsSimpleDeployer && pThisExt->Ammo_AddOnDeploy && (pThis->Type->UnloadingClass == nullptr))
 	{

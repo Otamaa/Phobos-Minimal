@@ -10,7 +10,7 @@ DEFINE_HOOK(0x457C90, BuildingClass_IronCuratin, 0x6)
 {
 	GET(BuildingClass*, pThis, ECX);
 	GET_STACK(HouseClass*, pSource, 0x8);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	if (pTypeExt->IronCurtain_Affect.isset())
 	{
@@ -34,7 +34,7 @@ DEFINE_HOOK(0x4DEAEE, FootClass_IronCurtain, 0x6)
 	GET(FootClass*, pThis, ECX);
 	GET_STACK(HouseClass*, pSource, STACK_OFFS(0x10, -0x8));
 	const TechnoTypeClass* pType = pThis->GetTechnoType();
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	IronCurtainAffects ironAffect = IronCurtainAffects::Affect;
 
@@ -43,7 +43,7 @@ DEFINE_HOOK(0x4DEAEE, FootClass_IronCurtain, 0x6)
 		if (pTypeExt->IronCurtain_Affect.isset())
 			ironAffect = pTypeExt->IronCurtain_Affect.Get();
 		else
-			ironAffect = RulesExt::Global()->IronCurtainToOrganic.Get();
+			ironAffect = RulesExtData::Instance()->IronCurtainToOrganic.Get();
 	}
 	else
 	{
@@ -88,7 +88,7 @@ DEFINE_HOOK(0x4DEAEE, TechnoClass_IronCurtain_Flags, 0x6)
 	GET_STACK(HouseClass*, pSource, STACK_OFFSET(0x10, 0x8));
 
 	enum { MakeInvunlnerable = 0x4DEB38, SkipGameCode = 0x4DEBA2 };
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	switch (EnumFunctions::GetICFlagResult(pTypeExt->IronCurtain_Effect.Get()))
 	{

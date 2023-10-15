@@ -1,5 +1,6 @@
 #include "Body.h"
 
+/*
 void SHPRefExt::ExtData::Initialize()
 {
 	//TODO : WTF ?
@@ -46,13 +47,13 @@ void SHPRefExt::ExtData::Initialize()
 	//}
 
 }
-
+*/
 // =============================
 // container
-SHPRefExt::ExtContainer SHPRefExt::ExtMap;
+//SHPRefExt::ExtContainer SHPRefExt::ExtMap;
 
-SHPRefExt::ExtContainer::ExtContainer() : Container("SHPReference") { }
-SHPRefExt::ExtContainer::~ExtContainer() = default;
+//SHPRefExt::ExtContainer::ExtContainer() : Container("SHPReference") { }
+//SHPRefExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks

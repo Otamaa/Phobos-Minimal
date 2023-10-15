@@ -31,12 +31,12 @@ enum class SonicBeamSinePatternType : int
 struct SonicBeamDrawingData
 {
 	bool Calculate_Sonic_Beam_Tables(
-		SonicBeamSurfacePatternType SonicBeamSurfacePattern ,
-		SonicBeamSinePatternType SonicBeamSinePattern ,
-		double SonicBeamSineDuration ,
-		double SonicBeamSineAmplitude ,
+		SonicBeamSurfacePatternType SonicBeamSurfacePattern,
+		SonicBeamSinePatternType SonicBeamSinePattern,
+		double SonicBeamSineDuration,
+		double SonicBeamSineAmplitude,
 		double SonicBeamOffset
-		)
+	)
 	{
 		if (!this->SonicBeamTablesCalculated)
 		{
@@ -113,7 +113,7 @@ struct SonicBeamDrawingData
 		*	@authors: CCHyper, tomsons26(additional research by askhati and Morton)
 		*/
 
-	void Draw_Sonic_Beam_Pixel(WaveClass* pThis, int a1, int a2, int a3, WORD* buffer ,
+	void Draw_Sonic_Beam_Pixel(WaveClass* pThis, int a1, int a2, int a3, WORD* buffer,
 		SonicBeamSurfacePatternType SonicBeamSurfacePattern,
 		SonicBeamSinePatternType SonicBeamSinePattern,
 		double SonicBeamSineDuration,
@@ -129,7 +129,7 @@ struct SonicBeamDrawingData
 		 */
 		if (!SonicBeamTablesCalculated)
 		{
-			Calculate_Sonic_Beam_Tables(SonicBeamSurfacePattern , SonicBeamSinePattern , SonicBeamSineDuration , SonicBeamSineAmplitude , SonicBeamOffset);
+			Calculate_Sonic_Beam_Tables(SonicBeamSurfacePattern, SonicBeamSinePattern, SonicBeamSineDuration, SonicBeamSineAmplitude, SonicBeamOffset);
 		}
 
 		/**
@@ -192,7 +192,7 @@ struct SonicBeamDrawingData
 			color_g += (int)(float(nPixel.G) * SonicBeamAlpha);
 			color_b += (int)(float(nPixel.B) * SonicBeamAlpha);
 
-			result.R = (BYTE)std::clamp(color_r + ((alpha * nPixel.R) / 256), 0 ,255);
+			result.R = (BYTE)std::clamp(color_r + ((alpha * nPixel.R) / 256), 0, 255);
 			result.G = (BYTE)std::clamp(color_g + ((alpha * nPixel.G) / 256), 0, 255);
 			result.B = (BYTE)std::clamp(color_b + ((alpha * nPixel.B) / 256), 0, 255);
 
@@ -224,67 +224,71 @@ struct SonicBeamDrawingData
 	int SonicBeamIntensityTable[14] {};
 };
 
-
 class WeaponTypeClass;
-class WaveExt
+
+class WaveExtData final
 {
 public:
-	class ExtData final : public Extension<WaveClass>
+	static constexpr size_t Canary = 0xAABAAAAC;
+	using base_type = WaveClass;
+
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+public:
+
+	WeaponTypeClass* Weapon { nullptr };
+	int WeaponIdx { -1 };
+	bool ReverseAgainstTarget { false };
+	CoordStruct SourceCoord { };
+	bool CanDoUpdate { false };
+
+	/// vinivera
+	/*
+	bool SonicBeamIsClear { false };
+	double SonicBeamAlpha { 0.5 };
+	double SonicBeamSineDuration { 0.125 };
+	double SonicBeamSineAmplitude { 12.0 };
+	double SonicBeamOffset { 0.49 };
+	SonicBeamSurfacePatternType SonicBeamSurfacePattern { SonicBeamSurfacePatternType::CIRCLE };
+	SonicBeamSinePatternType SonicBeamSinePattern { SonicBeamSurfacePatternType::CIRCLE };
+	Vector3D<double> SonicBeamStartPinLeft { -30.0, -100.0, 0.0 };
+	Vector3D<double> SonicBeamStartPinRight { -30.0, 100.0, 0.0 };
+	Vector3D<double> SonicBeamEndPinLeft { 30.0, -100.0, 0.0 };
+	Vector3D<double> SonicBeamEndPinRight { 30.0, 100.0, 0.0 };
+	*/
+
+	WaveExtData(base_type* OwnerObject) noexcept
 	{
-	public:
-		static constexpr size_t Canary = 0xAABAAAAC;
-		using base_type = WaveClass;
+		this->AttachedToObject = OwnerObject;
+	}
 
-	public:
+	~WaveExtData() noexcept = default;
 
-		WeaponTypeClass* Weapon { nullptr };
-		int WeaponIdx { -1 };
-		bool ReverseAgainstTarget { false };
-		CoordStruct SourceCoord { };
-		bool CanDoUpdate { false };
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-		/// vinivera
-		/*
-		bool SonicBeamIsClear { false };
-		double SonicBeamAlpha { 0.5 };
-		double SonicBeamSineDuration { 0.125 };
-		double SonicBeamSineAmplitude { 12.0 };
-		double SonicBeamOffset { 0.49 };
-		SonicBeamSurfacePatternType SonicBeamSurfacePattern { SonicBeamSurfacePatternType::CIRCLE };
-		SonicBeamSinePatternType SonicBeamSinePattern { SonicBeamSurfacePatternType::CIRCLE };
-		Vector3D<double> SonicBeamStartPinLeft { -30.0, -100.0, 0.0 };
-		Vector3D<double> SonicBeamStartPinRight { -30.0, 100.0, 0.0 };
-		Vector3D<double> SonicBeamEndPinLeft { 30.0, -100.0, 0.0 };
-		Vector3D<double> SonicBeamEndPinRight { 30.0, 100.0, 0.0 };
-		*/
+	void InitWeaponData();
+	void SetWeaponType(WeaponTypeClass* pWeapon, int nIdx);
 
-		ExtData(WaveClass* OwnerObject) : Extension<WaveClass>(OwnerObject)
-		{ }
+private:
 
-		virtual ~ExtData() override = default;
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	template <typename T>
+	void Serialize(T& Stm);
 
-		void InitWeaponData();
-		void SetWeaponType(WeaponTypeClass* pWeapon, int nIdx);
+public:
 
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public Container<WaveExt::ExtData>
-	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(WaveExt::ExtData, "WaveClass");
-	};
-
-	static ExtContainer ExtMap;
-
-	static WaveClass* Create(CoordStruct nFrom, CoordStruct nTo, TechnoClass* pOwner, WaveType nType, AbstractClass* pTarget, WeaponTypeClass* pWeapon , bool FromSourceCoord = false);
+	static WaveClass* Create(CoordStruct nFrom, CoordStruct nTo, TechnoClass* pOwner, WaveType nType, AbstractClass* pTarget, WeaponTypeClass* pWeapon, bool FromSourceCoord = false);
 	static bool ModifyWaveColor(WORD const src, WORD& dest, int const intensity, WaveClass* const pWave, WaveColorData const* colorDatas);
 	static Point3D GetIntent(WeaponTypeClass* pWeapon);
 	static ColorStruct GetColor(WeaponTypeClass* pWeapon, WaveClass* pWave);
 	static WaveColorData GetWaveColor(WaveClass* pWave);
-
 };
+
+class WaveExtContainer final : public Container<WaveExtData>
+{
+public:
+	static WaveExtContainer Instance;
+
+	CONSTEXPR_NOCOPY_CLASSB(WaveExtContainer, WaveExtData, "WaveClass");
+};
+

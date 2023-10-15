@@ -13,99 +13,52 @@
 #include "Trajectories/PhobosTrajectory.h"
 
 class TechnoClass;
-class BulletExt
+class BulletExtData final
 {
 public:
-	static TechnoClass* InRangeTempFirer;
+	static constexpr size_t Canary = 0x2A2A2A2A;
+	using base_type = BulletClass;
 
-	class ExtData final : public Extension<BulletClass>
-	{
-	public:
-		static constexpr size_t Canary = 0x2A2A2A2A;
-		using base_type = BulletClass;
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+public:
+	int CurrentStrength { 0 };
+	bool IsInterceptor { false };
+	InterceptedStatus InterceptedStatus { InterceptedStatus::None };
+	bool Intercepted_Detonate { true };
+	std::vector<LaserTrailClass> LaserTrails {};
+	bool SnappedToTarget { false };
+	SuperWeaponTypeClass* NukeSW { nullptr };
 
-	public:
-		int CurrentStrength { 0 };
-		bool IsInterceptor { false };
-		InterceptedStatus InterceptedStatus { InterceptedStatus::None };
-		bool Intercepted_Detonate { true };
-		std::vector<LaserTrailClass> LaserTrails {};
-		bool SnappedToTarget { false };
-		SuperWeaponTypeClass* NukeSW { nullptr };
+	bool BrightCheckDone { false };
+	HouseClass* Owner { nullptr };
 
-		bool BrightCheckDone { false };
-		HouseClass* Owner { nullptr };
+	bool Bouncing { false };
+	ObjectClass* LastObject { nullptr };
+	int BounceAmount { 0 };
+	std::vector<LineTrail*> BulletTrails {};
+	OptionalStruct<DirStruct, true> InitialBulletDir {};
 
-		bool Bouncing { false };
-		ObjectClass* LastObject { nullptr };
-		int BounceAmount { 0 };
-		std::vector<LineTrail*> BulletTrails {};
-		OptionalStruct<DirStruct ,true> InitialBulletDir {};
+	std::vector<UniversalTrail> Trails {};
+	std::unique_ptr<PhobosTrajectory> Trajectory {};
+	Handle<ParticleSystemClass*, UninitAttachedSystem> AttachedSystem {};
 
-		std::vector<UniversalTrail> Trails {};
-		std::unique_ptr<PhobosTrajectory> Trajectory {};
-		Handle<ParticleSystemClass*, UninitAttachedSystem> AttachedSystem {};
+	BulletExtData(base_type* OwnerObject) noexcept {
+		AttachedToObject = OwnerObject;
+	}
 
-		ExtData(BulletClass* OwnerObject) : Extension<BulletClass>(OwnerObject) { }
-		virtual ~ExtData() = default;
+	~BulletExtData() noexcept = default;
 
-		void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-		static bool InvalidateIgnorable(AbstractClass* ptr);
+	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
+	static bool InvalidateIgnorable(AbstractClass* ptr);
 
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-		void ApplyRadiationToCell(CoordStruct const& nCoord, int Spread, int RadLevel);
-		void InitializeLaserTrails();
+	void ApplyRadiationToCell(CoordStruct const& nCoord, int Spread, int RadLevel);
+	void InitializeLaserTrails();
 
-		void CreateAttachedSystem();
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public Container<BulletExt::ExtData>
-	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(BulletExt::ExtData, "BulletClass");
-	public:
-
-		static bool InvalidateIgnorable(AbstractClass* ptr)
-		{
-			switch (VTable::Get(ptr))
-			{
-			case BuildingClass::vtable:
-			case InfantryClass::vtable:
-			case UnitClass::vtable:
-			case AircraftClass::vtable:
-				return false;
-			default:
-				return true;
-			}
-		}
-
-		static void InvalidatePointer(AbstractClass* ptr, bool bRemoved)
-		{
-			AnnounceInvalidPointer(BulletExt::InRangeTempFirer, ptr, bRemoved);
-		}
-
-		static bool LoadGlobals(PhobosStreamReader& Stm)
-		{
-			return Stm
-				.Process(BulletExt::InRangeTempFirer)
-				.Success();
-		}
-
-		static bool SaveGlobals(PhobosStreamWriter& Stm)
-		{
-			return Stm
-				.Process(BulletExt::InRangeTempFirer)
-				.Success();
-		}
-	};
-
-	static ExtContainer ExtMap;
+	void CreateAttachedSystem();
 
 	static void InterceptBullet(BulletClass* pThis, TechnoClass* pSource, WeaponTypeClass* pWeapon);
 	static void DetonateAt(BulletClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, CoordStruct nCoord = CoordStruct::Empty, HouseClass* pBulletOwner = nullptr);
@@ -122,4 +75,15 @@ public:
 	static bool ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pTarget, bool checkOwner = true);
 	static void ApplyShrapnel(BulletClass* pThis);
 	static void ApplyAirburst(BulletClass* pThis);
+private:
+	template <typename T>
+	void Serialize(T& Stm);
+};
+
+class BulletExtContainer final : public Container<BulletExtData>
+{
+public:
+	static BulletExtContainer Instance;
+
+	CONSTEXPR_NOCOPY_CLASSB(BulletExtContainer, BulletExtData, "BulletClass");
 };

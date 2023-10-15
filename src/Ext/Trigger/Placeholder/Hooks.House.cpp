@@ -94,7 +94,7 @@ DEFINE_HOOK(0x726538, TriggerClass_RaiseEvent_ReplaceHouse, 0x5)
 	if (houseIdxMapper.count(idx))
 	{
 		HouseClass* pHouse = HouseClass::FindByIndex(houseIdxMapper[idx]);
-		R->EAX(pHouse == nullptr ? HouseExt::FindSpecial() : pHouse);
+		R->EAX(pHouse == nullptr ? HouseExtData::FindSpecial() : pHouse);
 	}
 
 	return 0;
@@ -110,7 +110,7 @@ DEFINE_HOOK(0x7265F7, TriggerClass_FireActions_ReplaceHouse, 0x6)
 	if (houseIdxMapper.count(idx))
 	{
 		HouseClass* pHouse = HouseClass::FindByIndex(houseIdxMapper[idx]);
-		R->EAX(pHouse == nullptr ? HouseExt::FindSpecial() : pHouse);
+		R->EAX(pHouse == nullptr ? HouseExtData::FindSpecial() : pHouse);
 
 		return 0x726602;
 	}

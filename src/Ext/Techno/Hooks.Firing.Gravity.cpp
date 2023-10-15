@@ -7,7 +7,7 @@ DEFINE_HOOK(0x6F7481, TechnoClass_Targeting_ApplyGravity, 0x6)
 {
 	GET(WeaponTypeClass* const, pWeaponType, EDX);
 
-	auto const nGravity = BulletTypeExt::GetAdjustedGravity(pWeaponType->Projectile);
+	auto const nGravity = BulletTypeExtData::GetAdjustedGravity(pWeaponType->Projectile);
 	__asm { fld nGravity };
 
 	return 0x6F74A4;
@@ -20,7 +20,7 @@ DEFINE_HOOK(0x44D074, BuildingClass_Mission_Missile_ApplyGravity, 0x6)
 {
 	GET(WeaponTypeClass* const, pWeaponType, EBP);
 
-	auto const nGravity = BulletTypeExt::GetAdjustedGravity(pWeaponType->Projectile);
+	auto const nGravity = BulletTypeExtData::GetAdjustedGravity(pWeaponType->Projectile);
 	__asm { fld nGravity };
 
 	switch (R->Origin())
@@ -41,7 +41,7 @@ DEFINE_HOOK(0x6FDAA6, TechnoClass_FireAngle_6FDA00_ApplyGravity, 0x5)
 {
 	GET(WeaponTypeClass* const, pWeaponType, EDI);
 
-	auto const nGravity = BulletTypeExt::GetAdjustedGravity(pWeaponType->Projectile);
+	auto const nGravity = BulletTypeExtData::GetAdjustedGravity(pWeaponType->Projectile);
 	__asm { fld nGravity };
 
 	return 0x6FDACE;
@@ -51,7 +51,7 @@ DEFINE_HOOK(0x6FECB2, TechnoClass_FireAt_ApplyGravity, 0x6)
 {
 	GET(BulletTypeClass* const, pType, EAX);
 
-	auto const nGravity = BulletTypeExt::GetAdjustedGravity(pType);
+	auto const nGravity = BulletTypeExtData::GetAdjustedGravity(pType);
 	__asm { fld nGravity };
 
 	return 0x6FECD1;
@@ -62,8 +62,8 @@ DEFINE_HOOK(0x6FF031, TechnoClass_FireAt_ReverseVelocityWhileGravityIsZero, 0xA)
 	GET(BulletClass*, pBullet, EBX);
 	//GET(TechnoClass*, pThis, ESI);
 
-	auto const pBulletExt = BulletExt::ExtMap.Find(pBullet);
-	auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pBullet->Type);
+	auto const pBulletExt = BulletExtContainer::Instance.Find(pBullet);
+	auto const pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pBullet->Type);
 
 	if (pBulletExt->Trajectory &&
 		pBulletExt->Trajectory->Flag != TrajectoryFlag::Invalid)
@@ -85,7 +85,7 @@ DEFINE_HOOK(0x6FF031, TechnoClass_FireAt_ReverseVelocityWhileGravityIsZero, 0xA)
 		}
 	}
 
-	//auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	//auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 	//if (!pExt->Aircraft_DecreaseAmmo.Get() && pThis->WhatAmI() == AbstractType::Aircraft)
 	//{
 	//	auto nAmmo = --pThis->Ammo;

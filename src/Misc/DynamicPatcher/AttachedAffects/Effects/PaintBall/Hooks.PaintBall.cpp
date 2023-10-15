@@ -6,7 +6,7 @@ DEFINE_HOOK(0x73C15F, UnitClass_DrawVXL_Colour, 0x7)
 {
 	GET(UnitClass* const, pOwnerObject, EBP);
 
-	auto pExt = TechnoExt::ExtMap.Find(pOwnerObject);
+	auto pExt = TechnoExtContainer::Instance.Find(pOwnerObject);
 	if (pExt->PaintBallState.get())
 		pExt->PaintBallState->DrawVXL_Paintball(pOwnerObject, R, false);
 
@@ -20,7 +20,7 @@ DEFINE_HOOK(0x73C15F, UnitClass_DrawVXL_Colour, 0x7)
 //	GET(BuildingClass*, pBuilding, EAX);
 //
 //	if (!pBuilding) {
-//		R->EAX(AnimExt::ExtMap.Find(pThis)->ParentBuilding);
+//		R->EAX(AnimExtContainer::Instance.Find(pThis)->ParentBuilding);
 //	}
 //
 //	return 0;
@@ -31,7 +31,7 @@ DEFINE_HOOK(0x73C15F, UnitClass_DrawVXL_Colour, 0x7)
 //	enum { SkipGameCode = 0x423525 };
 //	GET(AnimClass*, pThis, ESI);
 //
-//	auto const pBuilding = AnimExt::ExtMap.Find(pThis)->ParentBuilding;
+//	auto const pBuilding = AnimExtContainer::Instance.Find(pThis)->ParentBuilding;
 //
 //	const RulesClass* rules = RulesClass::Instance;
 //
@@ -46,12 +46,12 @@ DEFINE_HOOK(0x73C15F, UnitClass_DrawVXL_Colour, 0x7)
 //	GET(int, tintColor, EBP);
 //	GET(AnimClass*, pThis, ESI);
 //
-//	auto const pBuilding = AnimExt::ExtMap.Find(pThis)->ParentBuilding;
+//	auto const pBuilding = AnimExtContainer::Instance.Find(pThis)->ParentBuilding;
 //
 //	if (!pBuilding)
 //		return 0;
 //
-//	tintColor |= TechnoExt::GetCustomTintColor(pBuilding);
+//	tintColor |= TechnoExtData::GetCustomTintColor(pBuilding);
 //
 //	R->EBP(tintColor);
 //
@@ -69,7 +69,7 @@ DEFINE_HOOK(0x423630, AnimClass_Draw_It, 0x6)
 
 		if (pBuilding && pBuilding->IsAlive && !pBuilding->Type->Invisible)
 		{
-			const auto pExt = TechnoExt::ExtMap.Find(pBuilding);
+			const auto pExt = TechnoExtContainer::Instance.Find(pBuilding);
 			if (pExt->PaintBallState)
 			{
 				pExt->PaintBallState->DrawSHP_Paintball_BuildAnim(pBuilding, R);
@@ -85,7 +85,7 @@ DEFINE_HOOK(0x7063FF, TechnoClass_DrawSHP_Colour, 0x7)
 {
 	GET(TechnoClass* const, pOwnerObject, ESI);
 
-	auto pExt = TechnoExt::ExtMap.Find(pOwnerObject);
+	auto pExt = TechnoExtContainer::Instance.Find(pOwnerObject);
 
 	if (pExt->PaintBallState.get())
 		pExt->PaintBallState->DrawSHP_Paintball(pOwnerObject, R);
@@ -99,7 +99,7 @@ DEFINE_HOOK(0x706640, TechnoClass_DrawVXL_Colour, 0x5)
 
 	if (pOwnerObject->WhatAmI() == BuildingClass::AbsID)
 	{
-		auto pExt = TechnoExt::ExtMap.Find(pOwnerObject);
+		auto pExt = TechnoExtContainer::Instance.Find(pOwnerObject);
 
 		if (pExt->PaintBallState.get())
 			pExt->PaintBallState->DrawVXL_Paintball(pOwnerObject, R, true);

@@ -3,9 +3,9 @@
 #include <Ext/TechnoType/Body.h>
 #include "../../Helpers/Helpers.h"
 
-void JJFacingFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
+void JJFacingFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 {
-	//if (pTypeExt->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget.Get()))
+	//if (pTypeExt->JumpjetTurnToTarget.Get(RulesExtData::Instance()->JumpjetTurnToTarget.Get()))
 	//	return;
 
 	//if (auto const pFoot = generic_cast<FootClass*>(pExt->Get()))
@@ -109,8 +109,8 @@ DEFINE_HOOK(0x736E40, UnitClass_FiringAI_JumpjetTurning, 0x6)
 		{
 			if (!pThis->Locomotor.get()->Is_Moving_Now())
 			{
-				auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-				auto pExt = TechnoExt::ExtMap.Find(pThis);
+				auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+				auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 				if (auto pTarget = pThis->Target)
 				{

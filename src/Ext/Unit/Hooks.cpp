@@ -19,9 +19,9 @@
 // 	if (!pBuilding || !pBuilding->Owner)
 // 		return 0;
 //
-// 	auto storageTiberiumIndex = RulesExt::Global()->Storage_TiberiumIndex;
+// 	auto storageTiberiumIndex = RulesExtData::Instance()->Storage_TiberiumIndex;
 //
-// 	if (BuildingTypeExt::ExtMap.Find(pBuilding->Type)->Refinery_UseStorage && storageTiberiumIndex >= 0)
+// 	if (BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->Refinery_UseStorage && storageTiberiumIndex >= 0)
 // 	{
 // 		BuildingExt::StoreTiberium(pBuilding, amount, idxTiberium, storageTiberiumIndex);
 // 		amount = 0.0f;
@@ -34,7 +34,7 @@ DEFINE_HOOK(0x7394FF, UnitClass_TryToDeploy_CantDeployVoice, 0x8)
 {
 	GET(UnitClass* const, pThis, EBP);
 
-	const auto pThisTechno = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	const auto pThisTechno = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	VoxClass::Play(GameStrings::EVA_CannotDeployHere());
 

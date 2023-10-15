@@ -1,8 +1,8 @@
 #include "Body.h"
 
-void TiberiumExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+void TiberiumExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->Get();
+	auto pThis = this->AttachedToObject;
 	const char* pSection = pThis->ID;
 
 	if (parseFailAddr)
@@ -41,12 +41,12 @@ void TiberiumExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->DebrisChance.Read(exINI, pSection, "Debris.Chance");
 }
 
-double TiberiumExt::ExtData::GetHealDelay() const
+double TiberiumExtData::GetHealDelay() const
 {
 	return this->Heal_Delay.Get(RulesClass::Instance->TiberiumHeal);
 }
 
-int TiberiumExt::ExtData::GetHealStep(TechnoClass* pTechno) const
+int TiberiumExtData::GetHealStep(TechnoClass* pTechno) const
 {
 	const auto pType = pTechno->GetTechnoType();
 
@@ -61,27 +61,27 @@ int TiberiumExt::ExtData::GetHealStep(TechnoClass* pTechno) const
 	}
 }
 
-int TiberiumExt::ExtData::GetDamage() const
+int TiberiumExtData::GetDamage() const
 {
-	return this->Damage.Get(MinImpl((this->OwnerObject()->Power / 10), 1));
+	return this->Damage.Get(MinImpl((this->AttachedToObject->Power / 10), 1));
 }
 
-WarheadTypeClass* TiberiumExt::ExtData::GetWarhead() const
+WarheadTypeClass* TiberiumExtData::GetWarhead() const
 {
 	return this->Warhead.Get(RulesClass::Instance->C4Warhead);
 }
 
-WarheadTypeClass* TiberiumExt::ExtData::GetExplosionWarhead() const
+WarheadTypeClass* TiberiumExtData::GetExplosionWarhead() const
 {
 	return this->ExplosionWarhead.Get(RulesClass::Instance->C4Warhead);
 }
 
-int TiberiumExt::ExtData::GetExplosionDamage() const
+int TiberiumExtData::GetExplosionDamage() const
 {
 	return this->ExplosionDamage.Get(RulesClass::Instance->TiberiumExplosionDamage);
 }
 
-int TiberiumExt::ExtData::GetDebrisChance() const
+int TiberiumExtData::GetDebrisChance() const
 {
 	return this->DebrisChance;
 }
@@ -89,7 +89,7 @@ int TiberiumExt::ExtData::GetDebrisChance() const
 // =============================
 // container
 template <typename T>
-void TiberiumExt::ExtData::Serialize(T& Stm)
+void TiberiumExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
@@ -113,7 +113,7 @@ void TiberiumExt::ExtData::Serialize(T& Stm)
 	;
 }
 
-TiberiumExt::ExtContainer TiberiumExt::ExtMap;
+TiberiumExtExtContainer TiberiumExtExtContainer::Instance;
 
 // =============================
 // container hooks
@@ -122,14 +122,14 @@ TiberiumExt::ExtContainer TiberiumExt::ExtMap;
 DEFINE_HOOK(0x721876, TiberiumClass_CTOR, 0x5)
 {
 	GET(TiberiumClass*, pItem, ESI);
-	TiberiumExt::ExtMap.Allocate(pItem);
+	TiberiumExtExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
 DEFINE_HOOK(0x721888, TiberiumClass_DTOR, 0x6)
 {
 	GET(TiberiumClass*, pItem, ECX);
-	TiberiumExt::ExtMap.Remove(pItem);
+	TiberiumExtExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 
@@ -139,20 +139,20 @@ DEFINE_HOOK(0x721E80, TiberiumClass_SaveLoad_Prefix, 0x7)
 	GET_STACK(TiberiumClass*, pThis, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 
-	TiberiumExt::ExtMap.PrepareStream(pThis, pStm);
+	TiberiumExtExtContainer::Instance.PrepareStream(pThis, pStm);
 
 	return 0;
 }
 
 DEFINE_HOOK(0x72208C, TiberiumClass_Load_Suffix, 0x7)
 {
-	TiberiumExt::ExtMap.LoadStatic();
+	TiberiumExtExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
 DEFINE_HOOK(0x72212C, TiberiumClass_Save_Suffix, 0x5)
 {
-	TiberiumExt::ExtMap.SaveStatic();
+	TiberiumExtExtContainer::Instance.SaveStatic();
 	return 0;
 }
 
@@ -163,7 +163,7 @@ DEFINE_HOOK(0x721C7B, TiberiumClass_LoadFromINI, 0xA)
 	GET(TiberiumClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0xC4, -0x4));
 
-	TiberiumExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x721CE9);
+	TiberiumExtExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x721CE9);
 
 	return 0;
 }

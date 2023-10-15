@@ -46,7 +46,7 @@ DEFINE_OVERRIDE_HOOK(0x6622E0, RocketLocomotionClass_ILocomotion_Process_CustomM
 {
 	GET(AircraftClass* const, pThis, ECX);
 
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (pExt->IsCustomMissile) {
 		R->EAX(pExt->CustomMissileData.GetEx());
@@ -62,11 +62,11 @@ DEFINE_OVERRIDE_HOOK(0x66238A, RocketLocomotionClass_ILocomotion_Process_CustomM
 
 	const auto pLocomotor = static_cast<RocketLocomotionClass* const>(pThis);
 	const auto pOwner = static_cast<AircraftClass* const>(pLocomotor->LinkedTo);
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pOwner->Type);
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pOwner->Type);
 
 	if (AnimTypeClass* pType = pExt->CustomMissileTakeoffAnim) {
 
-		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pOwner->Location, 2, 1, 0x600, -10, false),
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pOwner->Location, 2, 1, 0x600, -10, false),
 			pOwner->Owner,
 			nullptr,
 			pOwner,
@@ -85,10 +85,10 @@ DEFINE_OVERRIDE_HOOK(0x662512, RocketLocomotionClass_ILocomotion_Process_CustomM
 
 	const auto pLocomotor = static_cast<RocketLocomotionClass* const>(pThis);
 	const auto pOwner = static_cast<AircraftClass* const>(pLocomotor->LinkedTo);
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pOwner->Type);
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pOwner->Type);
 
 	if (AnimTypeClass* pType = pExt->CustomMissileTakeoffAnim) {
-		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pOwner->Location, 2, 1, 0x600, -10, false),
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pOwner->Location, 2, 1, 0x600, -10, false),
 			pOwner->Owner,
 			nullptr,
 			pOwner,
@@ -107,10 +107,10 @@ DEFINE_OVERRIDE_HOOK(0x6627E5, RocketLocomotionClass_ILocomotion_Process_CustomM
 
 	const auto pLocomotor = static_cast<RocketLocomotionClass* const>(pThis);
 	const auto pOwner = static_cast<AircraftClass* const>(pLocomotor->LinkedTo);
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pOwner->Type);
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pOwner->Type);
 
 	if (AnimTypeClass* pType = pExt->CustomMissileTakeoffAnim) {
-		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pOwner->Location, 2, 1, 0x600, -10, false),
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pOwner->Location, 2, 1, 0x600, -10, false),
 			pOwner->Owner,
 			nullptr,
 			pOwner,
@@ -132,12 +132,12 @@ DEFINE_OVERRIDE_HOOK(0x662D85, RocketLocomotionClass_ILocomotion_Process_CustomM
 	if (pLocomotor->TrailerTimer.Expired())
 	{
 		const auto pOwner = static_cast<AircraftClass* const>(pLocomotor->LinkedTo);
-		const auto pExt = TechnoTypeExt::ExtMap.Find(pOwner->Type);
+		const auto pExt = TechnoTypeExtContainer::Instance.Find(pOwner->Type);
 
 		pLocomotor->TrailerTimer.Start(pExt->CustomMissileTrailerSeparation);
 
 		if (AnimTypeClass* pType = pExt->CustomMissileTrailerAnim) {
-			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pOwner->Location),
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pOwner->Location),
 				pOwner->Owner,
 				nullptr,
 				pOwner,
@@ -159,7 +159,7 @@ DEFINE_OVERRIDE_HOOK(0x66305A, RocketLocomotionClass_Explode_CustomMissile, 6)
 	LEA_STACK(WarheadTypeClass**, ppWarhead, 0x10);
 	LEA_STACK(RocketStruct**, ppRocketData, 0x14);
 
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (pExt->IsCustomMissile)
 	{
@@ -180,12 +180,12 @@ DEFINE_OVERRIDE_HOOK(0x663218, RocketLocomotionClass_Explode_CustomMissile2, 5)
 	REF_STACK(CoordStruct const, coords, STACK_OFFS(0x60, 0x18));
 
 	const auto pOwner = static_cast<AircraftClass* const>(pThis->LinkedTo);
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pOwner->Type);
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pOwner->Type);
 
 	if (pExt->IsCustomMissile) {
 		if (auto const& pWeapon = pThis->SpawnerIsElite
 			? pExt->CustomMissileEliteWeapon : pExt->CustomMissileWeapon) {
-			WeaponTypeExt::DetonateAt(pWeapon, coords, pOwner , true , pOwner ? pOwner->Owner : nullptr);
+			WeaponTypeExtData::DetonateAt(pWeapon, coords, pOwner , true , pOwner ? pOwner->Owner : nullptr);
 			return 0x6632CC;
 		}
 	}
@@ -196,7 +196,7 @@ DEFINE_OVERRIDE_HOOK(0x663218, RocketLocomotionClass_Explode_CustomMissile2, 5)
 	const auto pCell = MapClass::Instance->GetCellAt(pCellStr);
 
 	if (auto pAnimType = MapClass::SelectDamageAnimation(nDamage, pWH, pCell->LandType, coords)) {
-		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coords, 0, 1, 0x2600, -15),
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coords, 0, 1, 0x2600, -15),
 			pOwner->Owner,
 			pOwner->Target ? pOwner->Target->GetOwningHouse() : nullptr,
 			pOwner,
@@ -214,7 +214,7 @@ DEFINE_OVERRIDE_HOOK(0x663218, RocketLocomotionClass_Explode_CustomMissile2, 5)
 DEFINE_OVERRIDE_HOOK(0x6632F2, RocketLocomotionClass_ILocomotion_MoveTo_CustomMissile, 6)
 {
 	GET(AircraftTypeClass* const, pType, EDX);
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (pExt->IsCustomMissile) {
 		R->EDX(pExt->CustomMissileData.GetEx());
@@ -227,7 +227,7 @@ DEFINE_OVERRIDE_HOOK(0x6632F2, RocketLocomotionClass_ILocomotion_MoveTo_CustomMi
 DEFINE_OVERRIDE_HOOK(0x6634F6, RocketLocomotionClass_ILocomotion_DrawMatrix_CustomMissile, 6)
 {
 	GET(AircraftTypeClass* const, pType, ECX);
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (pExt->IsCustomMissile) {
 		R->EAX(pExt->CustomMissileData.GetEx());
@@ -246,7 +246,7 @@ DEFINE_HOOK(0x662720, RocketLocomotionClass_ILocomotion_Process_Raise, 0x6)
 	GET(RocketLocomotionClass* const, pThis, ESI);
 
 	if (const auto pAir = static_cast<AircraftClass* const>(pThis->Owner)) {
-		const auto pExt = TechnoTypeExt::ExtMap.Find(pAir->Type);
+		const auto pExt = TechnoTypeExtContainer::Instance.Find(pAir->Type);
 		if (pExt->IsCustomMissile.Get() && pAir->SpawnOwner) {
 			if(!pExt->CustomMissileRaise.Get(pAir->SpawnOwner))
 			return Handled;
@@ -262,13 +262,13 @@ DEFINE_HOOK(0x662720, RocketLocomotionClass_ILocomotion_Process_Raise, 0x6)
 DEFINE_OVERRIDE_HOOK(0x6B6D60, SpawnManagerClass_CTOR_CustomMissile, 6)
 {
 	GET(SpawnManagerClass* const, pSpawnManager, ESI);
-	return TechnoTypeExt::ExtMap.Find(pSpawnManager->SpawnType)->IsCustomMissile ? 0x6B6D86 : 0x0;
+	return TechnoTypeExtContainer::Instance.Find(pSpawnManager->SpawnType)->IsCustomMissile ? 0x6B6D86 : 0x0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6B78F8, SpawnManagerClass_Update_CustomMissile, 6)
 {
 	GET(TechnoTypeClass* const, pSpawnType, EAX);
-	return TechnoTypeExt::ExtMap.Find(pSpawnType)->IsCustomMissile ? 0x6B791F : 0x0;
+	return TechnoTypeExtContainer::Instance.Find(pSpawnType)->IsCustomMissile ? 0x6B791F : 0x0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6B7A72, SpawnManagerClass_Update_CustomMissile2, 6)
@@ -277,7 +277,7 @@ DEFINE_OVERRIDE_HOOK(0x6B7A72, SpawnManagerClass_Update_CustomMissile2, 6)
 	//GET(int, idxSpawn, EDI);
 	GET(TechnoTypeClass* const, pSpawnType, EDX);
 
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pSpawnType);
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pSpawnType);
 
 	if (pExt->IsCustomMissile) {
 		R->EDX(Unsorted::CurrentFrame());
@@ -295,13 +295,13 @@ DEFINE_HOOK(0x6B750B, SpawnManagerClass_Update_CustomMissilePreLauchAnim, 0x5)
 {
 	GET(AircraftClass*, pSpawned, EDI);
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pSpawned->Type);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pSpawned->Type);
 
 	if (pSpawned->Type == RulesClass::Instance->CMisl.Type) {
 		return 0x0;
 	} else if (pTypeExt->IsCustomMissile) {
 		if(AnimTypeClass* pType = pTypeExt->CustomMissilePreLauchAnim) {
-			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pSpawned->Location, 2, 1, 0x600, -10, false),
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pSpawned->Location, 2, 1, 0x600, -10, false),
 				pSpawned->Owner,
 				nullptr,
 				pSpawned,
@@ -326,7 +326,7 @@ DEFINE_HOOK(0x6B74BC, SpawnManagerClass_Update_MissileCoordOffset, 0x6)
 	//GET(AircraftClass*, pSpawned, EDI);
 	GET(AircraftTypeClass* const, pMissile, EAX);
 
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pMissile);
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pMissile);
 
 	if (pExt->IsCustomMissile && pExt->CustomMissileOffset.isset()) {
 		R->Stack(0x2C, R->ECX<int>() - pExt->CustomMissileOffset->X);

@@ -15,13 +15,13 @@ bool SW_SpyPlane::HandleThisType(SuperWeaponType type) const
 bool SW_SpyPlane::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	SuperWeaponTypeClass* pSW = pThis->Type;
-	SWTypeExt::ExtData* pData = SWTypeExt::ExtMap.Find(pSW);
+	SWTypeExtData* pData = SWTypeExtContainer::Instance.Find(pSW);
 
 	if (pThis->IsCharged)
 	{
 		if (CellClass* pTarget = MapClass::Instance->GetCellAt(Coords))
 		{
-			const auto Default = HouseExt::GetSpyPlane(pThis->Owner);
+			const auto Default = HouseExtData::GetSpyPlane(pThis->Owner);
 
 			const auto& PlaneIdxes = pData->SpyPlanes_TypeIndex;
 			const auto& PlaneCounts = pData->SpyPlanes_Count;
@@ -41,7 +41,7 @@ bool SW_SpyPlane::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 				if (!Plane || Plane->Strength == 0)
 					continue;
 
-				TechnoExt::SendPlane(Plane,
+				TechnoExtData::SendPlane(Plane,
 					Amount,
 					pThis->Owner,
 					Rank,
@@ -61,9 +61,9 @@ bool SW_SpyPlane::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 	return false;
 }
 
-void SW_SpyPlane::Initialize(SWTypeExt::ExtData* pData)
+void SW_SpyPlane::Initialize(SWTypeExtData* pData)
 {
-	pData->OwnerObject()->Action = Action::SpyPlane;
+	pData->AttachedToObject->Action = Action::SpyPlane;
 	// Defaults to Spy Plane values
 	pData->SW_RadarEvent = false;
 
@@ -73,9 +73,9 @@ void SW_SpyPlane::Initialize(SWTypeExt::ExtData* pData)
 	pData->CursorType = (int)MouseCursorType::SpyPlane;
 }
 
-void SW_SpyPlane::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
+void SW_SpyPlane::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
-	const char* section = pData->Get()->ID;
+	const char* section = pData->AttachedToObject->ID;
 
 	INI_EX exINI(pINI);
 
@@ -85,7 +85,7 @@ void SW_SpyPlane::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->SpyPlanes_Rank.Read(exINI, section, "SpyPlane.Rank");
 }
 
-bool SW_SpyPlane::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+bool SW_SpyPlane::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
 	if (!this->IsLaunchsiteAlive(pBuilding))
 		return false;

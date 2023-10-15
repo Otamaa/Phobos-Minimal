@@ -126,7 +126,7 @@ DEFINE_HOOK(0x6D4455, Tactical_Render_UpdateLightSources, 0x8)
 
 		for (auto pTerrain : *TerrainClass::Array)
 		{
-			auto pExt = TerrainExt::ExtMap.Find(pTerrain);
+			auto pExt = TerrainExtContainer::Instance.Find(pTerrain);
 
 			if (pExt->LighSource && pExt->LighSource->Activated)
 			{
@@ -148,13 +148,13 @@ DEFINE_HOOK(0x6D4455, Tactical_Render_UpdateLightSources, 0x8)
 //DEFINE_HOOK_AGAIN(0x6E2EF7, TActionClass_Retint_LightSourceFix, 0x3) // Green
 //DEFINE_HOOK(0x6E2EA7, TActionClass_Retint_LightSourceFix, 0x3) // Red
 //{
-//	if (ScenarioExt::Global()->AdjustLightingFix)
+//	if (ScenarioExtData::Instance()->AdjustLightingFix)
 //		TActionExt::RecreateLightSources();
 //
 //	const TintStruct tint = ScenarioClass::Instance->NormalLighting.Tint;
-//	ScenarioExt::Global()->CurrentTint_Tiles = tint;
-//	ScenarioExt::Global()->CurrentTint_Schemes = tint;
-//	ScenarioExt::Global()->CurrentTint_Hashes = tint;
+//	ScenarioExtData::Instance()->CurrentTint_Tiles = tint;
+//	ScenarioExtData::Instance()->CurrentTint_Schemes = tint;
+//	ScenarioExtData::Instance()->CurrentTint_Hashes = tint;
 //
 //	return 0;
 //}

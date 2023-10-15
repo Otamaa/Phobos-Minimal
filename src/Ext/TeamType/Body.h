@@ -9,6 +9,7 @@
 class TeamTypeExt
 {
 public:
+	/*
 	class ExtData final : public Extension<TeamTypeClass>
 	{
 	public:
@@ -41,4 +42,5 @@ public:
 	};
 
 	static ExtContainer ExtMap;
+	*/
 };

@@ -3,7 +3,7 @@
 
 #include <Ext/Building/Body.h>
 
-void FighterAreaGuardFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
+void FighterAreaGuardFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 {
 	if (!pExt->MyFighterData)
 		return;

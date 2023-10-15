@@ -16,8 +16,8 @@
 //
 //	char bufferTitle[0x1F];
 //	char bufferMessage[0x1F];
-//	const auto& Title = ScenarioExt::Global()->ParTitle;
-//	const auto& Message = ScenarioExt::Global()->ParMessage;
+//	const auto& Title = ScenarioExtData::Instance()->ParTitle;
+//	const auto& Message = ScenarioExtData::Instance()->ParMessage;
 //
 //	if (!Title.isset()) {
 //		CRT::strcpy(bufferTitle, ScoreA > ScoreB ? pScen->OverParTitle : pScen->UnderParTitle);
@@ -38,7 +38,7 @@
 //
 //DEFINE_HOOK(0x6C9357, ScoreDialog_Handle_ScoreThemeB, 0x5)
 //{
-//	const auto& Theme = ScenarioExt::Global()->ScoreCampaignTheme;
+//	const auto& Theme = ScenarioExtData::Instance()->ScoreCampaignTheme;
 //	R->EAX(ThemeClass::Instance->FindIndex(Theme.isset() ? Theme->data() : GameStrings::SCORE()));
 //
 //	return 0x6C9366;
@@ -46,7 +46,7 @@
 //
 //DEFINE_HOOK(0x5AE11A, SelectNextMissionScenario, 0x6)
 //{
-//	const auto& NextMission = ScenarioExt::Global()->NextMission;
+//	const auto& NextMission = ScenarioExtData::Instance()->NextMission;
 //
 //	if (NextMission.isset()){
 //		R->EAX(NextMission->data());
@@ -60,10 +60,10 @@
 //{
 //	auto swap_data = []()
 //	{
-//		std::swap(ScenarioExt::Global()->DefaultAmbientOriginal, ScenarioClass::Instance->AmbientOriginal);
-//		std::swap(ScenarioExt::Global()->DefaultAmbientCurrent, ScenarioClass::Instance->AmbientCurrent);
-//		std::swap(ScenarioExt::Global()->DefaultAmbientTarget, ScenarioClass::Instance->AmbientTarget);
-//		std::swap(ScenarioExt::Global()->DefaultNormalLighting, ScenarioClass::Instance->NormalLighting);
+//		std::swap(ScenarioExtData::Instance()->DefaultAmbientOriginal, ScenarioClass::Instance->AmbientOriginal);
+//		std::swap(ScenarioExtData::Instance()->DefaultAmbientCurrent, ScenarioClass::Instance->AmbientCurrent);
+//		std::swap(ScenarioExtData::Instance()->DefaultAmbientTarget, ScenarioClass::Instance->AmbientTarget);
+//		std::swap(ScenarioExtData::Instance()->DefaultNormalLighting, ScenarioClass::Instance->NormalLighting);
 //	};
 //
 //	swap_data();
@@ -82,27 +82,27 @@
 //
 //	for (auto& pLightConvert : *LightConvertClass::Array)
 //		pLightConvert->UpdateColors(
-//			ScenarioExt::Global()->CurrentTint_Tiles.Red * 10,
-//			ScenarioExt::Global()->CurrentTint_Tiles.Green * 10,
-//			ScenarioExt::Global()->CurrentTint_Tiles.Blue * 10,
+//			ScenarioExtData::Instance()->CurrentTint_Tiles.Red * 10,
+//			ScenarioExtData::Instance()->CurrentTint_Tiles.Green * 10,
+//			ScenarioExtData::Instance()->CurrentTint_Tiles.Blue * 10,
 //			false);
 //
-//	if (ScenarioExt::Global()->CurrentTint_Schemes != TintStruct { -1,-1,-1 })
+//	if (ScenarioExtData::Instance()->CurrentTint_Schemes != TintStruct { -1,-1,-1 })
 //	{
 //		for (auto& pScheme : *ColorScheme::Array)
 //			pScheme->LightConvert->UpdateColors(
-//				ScenarioExt::Global()->CurrentTint_Schemes.Red * 10,
-//				ScenarioExt::Global()->CurrentTint_Schemes.Green * 10,
-//				ScenarioExt::Global()->CurrentTint_Schemes.Blue * 10,
+//				ScenarioExtData::Instance()->CurrentTint_Schemes.Red * 10,
+//				ScenarioExtData::Instance()->CurrentTint_Schemes.Green * 10,
+//				ScenarioExtData::Instance()->CurrentTint_Schemes.Blue * 10,
 //				false);
 //	}
 //
-//	if (ScenarioExt::Global()->CurrentTint_Hashes != TintStruct { -1,-1,-1 })
+//	if (ScenarioExtData::Instance()->CurrentTint_Hashes != TintStruct { -1,-1,-1 })
 //	{
 //		ScenarioClass::UpdateHashPalLighting(
-//			ScenarioExt::Global()->CurrentTint_Hashes.Red * 10,
-//			ScenarioExt::Global()->CurrentTint_Hashes.Green * 10,
-//			ScenarioExt::Global()->CurrentTint_Hashes.Blue * 10,
+//			ScenarioExtData::Instance()->CurrentTint_Hashes.Red * 10,
+//			ScenarioExtData::Instance()->CurrentTint_Hashes.Green * 10,
+//			ScenarioExtData::Instance()->CurrentTint_Hashes.Blue * 10,
 //			false);
 //	}
 //

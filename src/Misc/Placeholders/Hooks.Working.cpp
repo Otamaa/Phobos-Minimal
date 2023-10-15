@@ -71,7 +71,7 @@
 //	enum { retFireErrRearm = 0x6FC940 , retContinueCheck = 0x6FC981 };
 //
 //	const auto pType = pThis->GetTechnoType();
-//	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+//	const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 //
 //	if (R->EAX<int>())
 //	{
@@ -134,13 +134,13 @@
 //	if (!pNeighbour->Owner || !pThis->Owner || pNeighbour->Owner != pThis->Owner)
 //		return false;
 //
-//	const auto pThisExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+//	const auto pThisExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 //	const auto& nFence = pThisExt->LaserFencePostLinks;
 //
 //	if (nFence.empty() || !nFence.Contains(pNeighbour->Type))
 //		return false;
 //
-//	const auto pThatExt = BuildingTypeExt::ExtMap.Find(pNeighbour->Type);
+//	const auto pThatExt = BuildingTypeExtContainer::Instance.Find(pNeighbour->Type);
 //
 //	const auto nFacing_ = (nFacing & 3);
 //
@@ -185,7 +185,7 @@
 //	GET(BuildingClass*, pThis, EDI);
 //	GET_STACK(short, nFacing, 0x34);
 //
-//	auto const bTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+//	auto const bTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 //
 //	if (!bTypeExt->LaserFenceType)
 //		return 0x45304A;
@@ -262,8 +262,8 @@
 //{
 //	GET(TechnoClass*, pThis, ESI);
 //
-//	auto const pExt = TechnoExt::ExtMap.Find(pThis);
-//	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
+//	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+//	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
 //
 //	if (pThis->Owner && !pThis->Owner->RecheckTechTree && !pTypeExt->Linked_SW.empty())
 //		pThis->Owner->UpdateSuperWeaponsUnavailable();
@@ -277,7 +277,7 @@ DWORD ReloadAircraft(REGISTERS* R)
 
 	const auto pType = pThis->GetTechnoType();
 	const auto ammo = pType->Ammo;
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	int realod = 1;
 
 	if (pThis->Ammo > 0)
@@ -594,7 +594,7 @@ DWORD ReloadAircraft(REGISTERS* R)
 //{
 //	GET(BuildingClass*, pThis, ECX);
 //
-//	if (pThis->Type->EMPulseCannon && !TechnoExt::ExtMap.Find(pThis)->LinkedSW) {
+//	if (pThis->Type->EMPulseCannon && !TechnoExtContainer::Instance.Find(pThis)->LinkedSW) {
 //		R->EAX(0);
 //		return 0x445F6F;
 //	}
@@ -606,8 +606,8 @@ DWORD ReloadAircraft(REGISTERS* R)
 //{
 //	GET(BuildingClass*, pThis, ECX);
 //
-//	if (TechnoExt::ExtMap.Find(pThis)->LinkedSW)
-//		TechnoExt::ExtMap.Find(pThis)->LinkedSW = nullptr;
+//	if (TechnoExtContainer::Instance.Find(pThis)->LinkedSW)
+//		TechnoExtContainer::Instance.Find(pThis)->LinkedSW = nullptr;
 //
 //	return 0x0;
 //}
@@ -758,7 +758,7 @@ bool __fastcall AircraftClass_SetOwningHouse(AircraftClass* const pThis, DWORD, 
 //{
 //	GET(BuildingClass*, pThis, ESI);
 //
-//	const auto pExt = BuildingExt::ExtMap.Find(pThis);
+//	const auto pExt = BuildingExtContainer::Instance.Find(pThis);
 //
 //	if (pExt->C4Damage.isset())
 //	{
@@ -777,7 +777,7 @@ bool __fastcall AircraftClass_SetOwningHouse(AircraftClass* const pThis, DWORD, 
 //DEFINE_HOOK(0x442696, BuildingClass_ReceiveDamage_C4, 0xA)
 //{
 //	GET(BuildingClass*, pThis, ESI)
-//	const auto pExt = BuildingExt::ExtMap.Find(pThis);
+//	const auto pExt = BuildingExtContainer::Instance.Find(pThis);
 //
 //	if (pExt->C4Damage.isset())
 //	{
@@ -798,7 +798,7 @@ bool __fastcall AircraftClass_SetOwningHouse(AircraftClass* const pThis, DWORD, 
 //{
 //	GET(BuildingClass*, pThis, ESI);
 //
-//	const auto pExt = BuildingExt::ExtMap.Find(pThis);
+//	const auto pExt = BuildingExtContainer::Instance.Find(pThis);
 //	if (pExt->C4Damage.isset())
 //	{
 //		int nDamage = pExt->C4Damage.get();
@@ -816,7 +816,7 @@ bool __fastcall AircraftClass_SetOwningHouse(AircraftClass* const pThis, DWORD, 
 //DEFINE_HOOK(0x440327, BuildingClass_AI_C4DataClear, 0xA)
 //{
 //	GET(BuildingClass*, pThis, ESI);
-//	const auto pExt = BuildingExt::ExtMap.Find(pThis);
+//	const auto pExt = BuildingExtContainer::Instance.Find(pThis);
 //	pExt->C4Damage.clear();
 //	pExt->C4Owner = nullptr;
 //	return 0x0;
@@ -825,7 +825,7 @@ bool __fastcall AircraftClass_SetOwningHouse(AircraftClass* const pThis, DWORD, 
 //DEFINE_HOOK(0x457CA0, BuildingClass_ApplyIC_C4DataClear, 0x6)
 //{
 //	GET(BuildingClass*, pThis, ECX);
-//	const auto pExt = BuildingExt::ExtMap.Find(pThis);
+//	const auto pExt = BuildingExtContainer::Instance.Find(pThis);
 //	pExt->C4Damage.clear();
 //	pExt->C4Owner = nullptr;
 //	return 0x0;
@@ -834,7 +834,7 @@ bool __fastcall AircraftClass_SetOwningHouse(AircraftClass* const pThis, DWORD, 
 
 //double FC HouseClass_GetTypeCostMult(HouseClass* pThis, DWORD, TechnoTypeClass* pType)
 //{
-   // const double mult = !pThis->ControlledByPlayer() ? RulesExt::Global()->AI_CostMult : 1.0;
+   // const double mult = !pThis->ControlledByPlayer() ? RulesExtData::Instance()->AI_CostMult : 1.0;
    // return pThis->GetHouseTypeCostMult(pType) * mult;
 //}
 
@@ -917,7 +917,7 @@ bool __fastcall AircraftClass_SetOwningHouse(AircraftClass* const pThis, DWORD, 
 // DEFINE_HOOK(0x70A3E5, TechnoClass_DrawPipScale_Ammo_Idx, 7)
 // {
 // 	GET(TechnoClass* const, pThis, EBP);
-// 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+// 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 // 	R->ESP(pTypeExt->PipScaleIndex.Get(13));
 // 	return 0x0;
 // }
@@ -929,7 +929,7 @@ bool __fastcall AircraftClass_SetOwningHouse(AircraftClass* const pThis, DWORD, 
 // 	GET_STACK(int const, nX, 0x50);
 // 	GET_STACK(int const, nY, 0x54);
 //
-// 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+// 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 // 	if (pTypeExt->AmmoPip.isset())
 // 	{
 // 		const auto pSHApe = pTypeExt->AmmoPip;
@@ -1006,12 +1006,12 @@ bool __fastcall AircraftClass_SetOwningHouse(AircraftClass* const pThis, DWORD, 
 //				const auto pTType = pTerrain->Type;
 //				if (!pTType->SpawnsTiberium &&
 //					!pTType->Immune &&
-//					!TerrainTypeExt::ExtMap.Find(pTType)->IsPassable &&
+//					!TerrainTypeExtContainer::Instance.Find(pTType)->IsPassable &&
 //					pTType->Crushable
 //					)
 //				{
-//					if (TechnoTypeExt::ExtMap.Find(pType)->CrushLevel.Get(pUnit) >
-//						TerrainTypeExt::ExtMap.Find(pTType)->CrushableLevel)
+//					if (TechnoTypeExtContainer::Instance.Find(pType)->CrushLevel.Get(pUnit) >
+//						TerrainTypeExtContainer::Instance.Find(pTType)->CrushableLevel)
 //					{
 //						VocClass::PlayAt(pType->CrushSound, pUnit->Location);
 //						pTerrain->ReceiveDamage(&pTerrain->Health, 0, RulesClass::Instance->C4Warhead, pUnit, true, true, pUnit->Owner);
@@ -1074,7 +1074,7 @@ bool __fastcall AircraftClass_SetOwningHouse(AircraftClass* const pThis, DWORD, 
 //	GET(UnitClass*, pThis, ESI);
 //	GET_STACK(AbstractClass*, pTarget, 0x20);
 //
-//	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+//	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 //
 //	if (pThis->Type->DeployFire
 //		&& !pThis->Type->IsSimpleDeployer
@@ -1136,12 +1136,12 @@ bool __fastcall AircraftClass_SetOwningHouse(AircraftClass* const pThis, DWORD, 
 // 			const auto pType = pTerrain->Type;
 // 			if (!pType->SpawnsTiberium &&
 // 				!pType->Immune &&
-// 				!TerrainTypeExt::ExtMap.Find(pType)->IsPassable &&
+// 				!TerrainTypeExtContainer::Instance.Find(pType)->IsPassable &&
 // 				pTerrain->Type->Crushable
 // 				)
 // 			{
-// 				if (TechnoTypeExt::ExtMap.Find(pThis->Type)->CrushLevel.Get(pThis) >
-// 					TerrainTypeExt::ExtMap.Find(pType)->CrushableLevel)
+// 				if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->CrushLevel.Get(pThis) >
+// 					TerrainTypeExtContainer::Instance.Find(pType)->CrushableLevel)
 // 				{
 // 					VocClass::PlayIndexAtPos(pType->CrushSound, pThis->Location);
 // 					pTerrain->ReceiveDamage(&pTerrain->Health, 0, RulesClass::Instance->C4Warhead, pThis, true, true, pThis->Owner);
@@ -1175,12 +1175,12 @@ bool __fastcall AircraftClass_SetOwningHouse(AircraftClass* const pThis, DWORD, 
 // 			const auto pType = pTerrain->Type;
 // 			if (!pType->SpawnsTiberium &&
 // 				!pType->Immune &&
-// 				!TerrainTypeExt::ExtMap.Find(pType)->IsPassable &&
+// 				!TerrainTypeExtContainer::Instance.Find(pType)->IsPassable &&
 // 				pTerrain->Type->Crushable
 // 				)
 // 			{
-// 				if (TechnoTypeExt::ExtMap.Find(pLinkedTo->GetTechnoType())->CrushLevel.Get(pLinkedTo) >
-// 					TerrainTypeExt::ExtMap.Find(pType)->CrushableLevel)
+// 				if (TechnoTypeExtContainer::Instance.Find(pLinkedTo->GetTechnoType())->CrushLevel.Get(pLinkedTo) >
+// 					TerrainTypeExtContainer::Instance.Find(pType)->CrushableLevel)
 // 				{
 // 					VocClass::PlayIndexAtPos(pType->CrushSound, pLinkedTo->Location);
 // 					pTerrain->ReceiveDamage(&pTerrain->Health, 0, RulesClass::Instance->C4Warhead, pLinkedTo, true, true, pLinkedTo->Owner);
@@ -1245,12 +1245,12 @@ bool __fastcall AircraftClass_SetOwningHouse(AircraftClass* const pThis, DWORD, 
 //	//{
 //	//	if (SessionClass::Instance->GameMode != GameMode::Campaign && SessionClass::Instance->GameMode != GameMode::Skirmish)
 //	//	{
-//	//		HouseExt::ExtMap.Find(HouseClass::CurrentPlayer)->Seed = Random2Class::Seed();
+//	//		HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer)->Seed = Random2Class::Seed();
 //	//
 //	//		Debug::Log("Scenario Name [%s] , Map Name [%s] \n", ScenarioClass::Instance->FileName, SessionClass::Instance->ScenarioFilename);
 //	//		for (auto const& it : *HouseClass::Array)
 //	//		{
-//	//			auto pExt = HouseExt::ExtMap.TryFind(it);
+//	//			auto pExt = HouseExtContainer::Instance.TryFind(it);
 //	//
 //	//			Debug::Log("Player Name: %s IsCurrentPlayer: %u; ColorScheme: %s; ID: %d; HouseType: %s; Edge: %d; StartingAllies: %u; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d Seed: %d\n",
 //	//			it->PlainName ? it->PlainName : NONE_STR,
@@ -1393,7 +1393,7 @@ bool __fastcall AircraftClass_SetOwningHouse(AircraftClass* const pThis, DWORD, 
 //	GET(TechnoClass*, pThis, ESI);
 //	GET(HouseClass*, pDiscoverer, EDI);
 //
-//	const auto pHouseExt = HouseExt::ExtMap.Find(pDiscoverer);
+//	const auto pHouseExt = HouseExtContainer::Instance.Find(pDiscoverer);
 //
 //	if (!pHouseExt->DiscoverEvaDelay.IsTicking() || !pHouseExt->DiscoverEvaDelay.GetTimeLeft()){
 //		pHouseExt->DiscoverEvaDelay.Start(200);
@@ -1555,7 +1555,7 @@ FunctionreturnType KickoutTechnoType(BuildingClass* pProduction, KickOutProducti
 //DEFINE_HOOK(0x70822B, TechnoClass_ToProtectAttacked_Ignore_Infantry, 0x6)
 //{
 //	GET(InfantryClass*, pInf, ESI);
-//	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pInf->Type);
+//	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pInf->Type);
 //	return pTypeExt->IgnoreToProtect || pTypeExt->IsDummy
 //		? 0x7083BC : 0x0;
 //}
@@ -1567,7 +1567,7 @@ FunctionreturnType KickoutTechnoType(BuildingClass* pProduction, KickOutProducti
 //DEFINE_HOOK(0x708461, TechnoClass_ToProtectAttacked_Ignore_Unit, 0x6)
 //{
 //	GET(UnitClass*, pUnit, ESI);
-//	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pUnit->Type);
+//	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pUnit->Type);
 //	return pTypeExt->IgnoreToProtect || pTypeExt->IsDummy
 //		? 0x708622 : 0x0;
 //}
@@ -1628,13 +1628,13 @@ FunctionreturnType KickoutTechnoType(BuildingClass* pProduction, KickOutProducti
 // 	// REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0xD0, -0x4));
 //
 // 	// if (!InfantryExt::ExtMap.Find(pThis)->IsUsingDeathSequence && !pThis->Type->JumpJet) {
-// 	// 	auto pWHExt = WarheadTypeExt::ExtMap.Find(args.WH);
+// 	// 	auto pWHExt = WarheadTypeExtContainer::Instance.Find(args.WH);
 // 	// 	if (!pWHExt->DeadBodies.empty()) {
 // 	// 		if (AnimTypeClass* pSelected = pWHExt->DeadBodies.at(
 // 	// 			ScenarioClass::Instance->Random.RandomFromMax(pWHExt->DeadBodies.size() - 1)))
 // 	// 		{
 // 	// 			if (const auto pAnim = GameCreate<AnimClass>(pSelected, pThis->GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0)) {
-// 	// 				AnimExt::SetAnimOwnerHouseKind(pAnim, args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse, pThis->GetOwningHouse(), true);
+// 	// 				AnimExtData::SetAnimOwnerHouseKind(pAnim, args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse, pThis->GetOwningHouse(), true);
 // 	// 			}
 // 	// 		}
 // 	// 	}
@@ -1676,7 +1676,7 @@ FunctionreturnType KickoutTechnoType(BuildingClass* pProduction, KickOutProducti
 //	GET_STACK(int, nHouseIdx, 0x4);
 //
 //	const auto pHouse = HouseClass::Array->GetItemOrDefault(nHouseIdx);
-//	if (HouseExt::IsObserverPlayer(pHouse))
+//	if (HouseExtData::IsObserverPlayer(pHouse))
 //	{
 //		R->AL(1);
 //		return 0x4870DE;
@@ -1687,7 +1687,7 @@ FunctionreturnType KickoutTechnoType(BuildingClass* pProduction, KickOutProducti
 
 //DEFINE_HOOK(0x70DA6D, TechnoClass_SensorAI_ObserverSkipWarn, 0x6)
 //{
-//	return HouseExt::IsObserverPlayer() ? 0x70DADC : 0x0;
+//	return HouseExtData::IsObserverPlayer() ? 0x70DADC : 0x0;
 //}
 
 //DEFINE_HOOK(0x6FF1FB, TechnoClass_FireAt_Shield, 0x6)
@@ -1697,7 +1697,7 @@ FunctionreturnType KickoutTechnoType(BuildingClass* pProduction, KickOutProducti
 //
 //	if (auto const pTechno = abstract_cast<TechnoClass*>(pTarget))
 //	{
-//		auto const pExt = TechnoExt::ExtMap.Find(pTechno);
+//		auto const pExt = TechnoExtContainer::Instance.Find(pTechno);
 //		if (auto const pShield = pExt->GetShield())
 //		{
 //			if (!pShield->IsActive())
@@ -1720,7 +1720,7 @@ static int AnimClass_Expired_SpawnsParticle(REGISTERS* R)
 	GET(int, nNumParticles, ECX);
 
 	const auto pType = ParticleTypeClass::Array->Items[pAnimType->SpawnsParticle];
-	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pAnimType);
+	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pAnimType);
 	//should be lepton ?
 	const auto nMin = static_cast<int>(pTypeExt->ParticleRangeMin);
 	const auto nMax = static_cast<int>(pTypeExt->ParticleRangeMax);
@@ -1756,7 +1756,7 @@ static int AnimClass_Expired_SpawnsParticle(REGISTERS* R)
 //	enum { Draw = 0x0, DoNotDraw = 0x6D9587 };
 //
 //	GET(BuildingClass* const, pBuilding, EBX);
-//	return BuildingExt::ExtMap.Find(pBuilding)->LimboID != -1 ? DoNotDraw : Draw;
+//	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ? DoNotDraw : Draw;
 //}
 
 //DEFINE_HOOK(0x6FDDC0, TechnoClass_FireAt_RememberAttacker, 0x6)
@@ -1766,7 +1766,7 @@ static int AnimClass_Expired_SpawnsParticle(REGISTERS* R)
 //
 //	if (auto pTechnoTarget = generic_cast<TechnoClass*>(pTarget))
 //	{
-//		auto pTargetTExt = TechnoExt::ExtMap.Find(pTechnoTarget);
+//		auto pTargetTExt = TechnoExtContainer::Instance.Find(pTechnoTarget);
 //		pTargetTExt->LastAttacker = pThis;
 //	}
 //
@@ -1800,8 +1800,8 @@ DEFINE_HOOK(0x4D69F5, FootClass_ApproachTarget_EngineerCaptureDelay, 0x6)
 
 	if (auto pInf = specific_cast<InfantryClass*>(pFoot))
 	{
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pInf->Type);
-		const auto pExt = TechnoExt::ExtMap.Find(pInf);
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pInf->Type);
+		const auto pExt = TechnoExtContainer::Instance.Find(pInf);
 
 		if (pExt->EngineerCaptureDelay.InProgress())
 		{
@@ -2051,13 +2051,13 @@ DEFINE_HOOK(0x746CD0, UnitClass_SelectWeapon_Replacements, 0x6)
 //{
 //	Armor nArmor = pTarget->GetType()->Armor;
 //	if (const auto pTargetTech = generic_cast<TechnoClass*>(pTarget))
-//		if (auto const pExt = TechnoExt::ExtMap.Find(pTargetTech))
+//		if (auto const pExt = TechnoExtContainer::Instance.Find(pTargetTech))
 //			if (auto const pShield = pExt->GetShield())
 //				if (pShield->IsActive() && pExt->CurrentShieldType)
 //					nArmor = pShield->GetArmor();
 //
 //	const double Verses = GeneralUtils::GetWarheadVersusArmor(W->Warhead, nArmor);
-//	return (W->Damage * TechnoExt::GetDamageMult(pThis)) * Verses / (W->ROF * Helpers_DP::GetROFMult(pThis));
+//	return (W->Damage * TechnoExtData::GetDamageMult(pThis)) * Verses / (W->ROF * Helpers_DP::GetROFMult(pThis));
 //}
 //
 //static bool EvalWeaponAgainst(TechnoClass* pThis, AbstractClass* pTarget, WeaponTypeClass* W)
@@ -2153,7 +2153,7 @@ DEFINE_HOOK(0x746CD0, UnitClass_SelectWeapon_Replacements, 0x6)
 //
 //	const TechnoTypeClass* pThisT = pThis->GetTechnoType();
 //
-//	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThisT)) {
+//	if (const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThisT)) {
 //		if (pTypeExt->Interceptor.Get() && pTarget->WhatAmI() == AbstractType::Bullet) {
 //			return(pTypeExt->Interceptor_Weapon.Get() == -1 ? 0 : pTypeExt->Interceptor_Weapon.Get());
 //		}
@@ -2447,7 +2447,7 @@ static void Detonate(TechnoClass* pTarget, HouseClass* pOwner, CoordStruct const
 //	if (auto pAnimType = MapClass::SelectDamageAnimation(nDamage, pWarhead, pCell ? pCell->LandType : LandType::Clear, nCoord))
 //	{
 //		GameConstruct(pMem, pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, false);
-//		AnimExt::SetAnimOwnerHouseKind(pMem, pThis->LinkedTo->GetOwningHouse(), pThis->LinkedTo->Target ? pThis->LinkedTo->Target->GetOwningHouse() : nullptr, nullptr, false);
+//		AnimExtData::SetAnimOwnerHouseKind(pMem, pThis->LinkedTo->GetOwningHouse(), pThis->LinkedTo->Target ? pThis->LinkedTo->Target->GetOwningHouse() : nullptr, nullptr, false);
 //	}
 //	else
 //	{
@@ -2755,7 +2755,7 @@ DEFINE_HOOK(0x4F9AF0, HouseClass_IsAlly_AbstractClass, 0x7)
 //	auto const pBullet = Fuse_Bullet;
 //
 //	int nProx = 32;
-//	auto pExt = BulletExt::ExtMap.Find(pBullet);
+//	auto pExt = BulletExtContainer::Instance.Find(pBullet);
 //	if (pExt->TypeExt->Proximity_Range.isset())
 //		nProx = pExt->TypeExt->Proximity_Range.Get() * 256;
 //
@@ -2898,7 +2898,7 @@ DEFINE_HOOK(0x442A2A, BuildingClass_ReceiveDamage_RotateVsAircraft, 0x6)
 
 	if (pThis && pThis->Type)
 	{
-		if (auto const pStructureExt = BuildingTypeExt::ExtMap.Find(pThis->Type))
+		if (auto const pStructureExt = BuildingTypeExtContainer::Instance.Find(pThis->Type))
 		{
 			R->AL(pStructureExt->PlayerReturnFire.Get(pRules->PlayerReturnFire));
 			return 0x442A30;
@@ -2920,7 +2920,7 @@ DEFINE_HOOK(0x442A2A, BuildingClass_ReceiveDamage_RotateVsAircraft, 0x6)
 //	GET(AircraftClass*, pProduct, EBP);
 //
 //	if (pProduct) {
-//		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pProduct->Type);
+//		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pProduct->Type);
 //		if (pTypeExt && !pProduct->Type->AirportBound && pTypeExt->NoAirportBound_DisableRadioContact.Get()) {
 //			return SkipAllSet;
 //		}
@@ -2936,7 +2936,7 @@ DEFINE_HOOK(0x442A2A, BuildingClass_ReceiveDamage_RotateVsAircraft, 0x6)
 //DEFINE_HOOK(0x4CD8C9, FlyLocomotionClass_Movement_AI_DisableTSExp, 0x9)
 //{
 //	GET(FootClass*, pFoot, EDX);
-//	auto const& pTypeExt = TechnoTypeExt::ExtMap.Find(pFoot->GetTechnoType());
+//	auto const& pTypeExt = TechnoTypeExtContainer::Instance.Find(pFoot->GetTechnoType());
 //	return pTypeExt->Disable_C4WarheadExp.Get() ? 0x4CD9C0 : 0x0;
 //}
 
@@ -2993,7 +2993,7 @@ DEFINE_HOOK(0x442A2A, BuildingClass_ReceiveDamage_RotateVsAircraft, 0x6)
 //
 //		if (AnimTypeClass* pSelected = Iter.at(nIdx)) {
 //			if (const auto pAnim = GameCreate<AnimClass>(pSelected, pThis->GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0)) {
-//				AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
+//				AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
 //			}
 //		}
 //	}
@@ -3016,7 +3016,7 @@ DEFINE_HOOK(0x442A2A, BuildingClass_ReceiveDamage_RotateVsAircraft, 0x6)
 //	int nHeight = 0;
 //	if (auto pBuilding = pCell->GetBuilding())
 //	{
-//	   auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
+//	   auto pBldExt = BuildingExtContainer::Instance.Find(pBuilding);
 //
 //		CoordStruct vCoords = { 0, 0, 0 };
 //		if(!pBldExt->LimboID != -1)
@@ -3155,7 +3155,7 @@ DEFINE_HOOK(0x442A2A, BuildingClass_ReceiveDamage_RotateVsAircraft, 0x6)
 //	GET(DiskLaserClass*, pThis, ESI);
 //	GET(int, nFace, EDX);
 //
-//	auto pExt = WeaponTypeExt::ExtMap.Find(pThis->Weapon);
+//	auto pExt = WeaponTypeExtContainer::Instance.Find(pThis->Weapon);
 //
 //	if (!pExt->DiskLaser_FiringOffset.isset())
 //		return 0x0;
@@ -3172,7 +3172,7 @@ DEFINE_HOOK(0x442A2A, BuildingClass_ReceiveDamage_RotateVsAircraft, 0x6)
 //{
 //	GET(DiskLaserClass*, pThis, ESI);
 //
-//	auto pExt = WeaponTypeExt::ExtMap.Find(pThis->Weapon);
+//	auto pExt = WeaponTypeExtContainer::Instance.Find(pThis->Weapon);
 //
 //	if (!pExt->DiskLaser_FiringOffset.isset())
 //		return 0x0;

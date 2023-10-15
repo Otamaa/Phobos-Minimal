@@ -6,52 +6,130 @@
 #include <type_traits>
 #include <utility>
 
-template<typename T>
+template<typename T, typename Pr = std::less<T>>
+requires std::is_trivially_destructible<T>::value && std::is_destructible<T>::value
 class TPriorityQueueClass
 {
 public:
-	TPriorityQueueClass(int capacity = 0);
-	~TPriorityQueueClass();
+	TPriorityQueueClass(int capacity = 0) :
+		Capacity(capacity),
+		Count(0),
+		Nodes((T**)YRMemory::Allocate(sizeof(T*)* (capacity + 1))),
+		LMost((T*)nullptr),
+		RMost((T*)0xFFFFFFFF)
+	{
+		memset(Nodes, 0, sizeof(T*)* (Count + 1));
+	}
 
-	void Clear();
-	//void Heapify(unsigned index);
-	//T *Extract_Min();
-	//bool Insert(T *);
-	//void Resize_Max(unsigned);
+	~TPriorityQueueClass()
+	{
+		Clear();
+		YRMemory::Deallocate(Nodes);
+		Nodes = (T**)nullptr;
+	}
+
+	void Clear()
+	{
+		memset(Nodes, 0, sizeof(T*) * (Count + 1));
+		Count = 0;
+	}
+
+	T* Top()
+	{
+		return Count == 0 ? nullptr : Nodes[1];
+	}
+
+	bool Pop()
+	{
+		if (Count == 0)
+			return false;
+
+		Nodes[1] = Nodes[Count--];
+		int now = 1;
+		while (now * 2 <= Count)
+		{
+			int next = now * 2;
+			if (next < Count && Comp(Nodes[next + 1], Nodes[next]))
+				++next;
+			if (Comp(Nodes[now], Nodes[next]))
+				break;
+
+			// Westwood did Nodes[now] = Nodes[next] here
+			std::swap(Nodes[now], Nodes[next]);
+
+			now = next;
+		}
+
+		return true;
+	}
+
+	bool Push(T* pValue)
+	{
+		if (Count >= Capacity)
+			return false;
+
+		Nodes[++Count] = pValue;
+		int now = Count;
+		while (now != 1)
+		{
+			int next = now / 2;
+			if (!Comp(Nodes[now], Nodes[next]))
+				break;
+
+			// Westwood did Nodes[now] = Nodes[next] here
+			std::swap(Nodes[now], Nodes[next]);
+
+			now = next;
+		}
+
+		return true;
+	}
+
+	bool WWPop()
+	{
+		if (Pop())
+		{
+			for (int i = 1; i <= Count; ++i)
+				WWPointerUpdate(Nodes[i]);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	bool WWPush(T* pValue)
+	{
+		if (Push(pValue))
+		{
+			WWPointerUpdate(pValue);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	bool Comp(T* p1, T* p2)
+	{
+		return Pr()(*p1, *p2);
+	}
+
+	void WWPointerUpdate(T* pValue)
+	{
+		if (pValue > RMost)
+			RMost = pValue;
+		if (pValue < LMost)
+			LMost = pValue;
+	}
 
 public:
-	int HeapSize;
 	int Capacity;
-	T* Heap;
-	int field_10;
-	int field_14;
+	int Count;
+	T** Nodes;
+	T* LMost;
+	T* RMost;
 };
-
-template <typename T>
-TPriorityQueueClass<T>::TPriorityQueueClass(int capacity) :
-	HeapSize(0),
-	Capacity(capacity),
-	Heap((T*)YRMemory::Allocate(sizeof(T*) * (capacity + 1))),
-	field_10(0),
-	field_14(-1)
-{
-	memset(Heap, 0, sizeof(T*)* (Capacity + 1));
-}
-
-template <typename T>
-TPriorityQueueClass<T>::~TPriorityQueueClass()
-{
-	Clear();
-	YRMemory::Deallocate(Heap);
-	Capacity = 0;
-}
-
-template <typename T>
-void TPriorityQueueClass<T>::Clear()
-{
-	memset(Heap, 0, sizeof(T*) * (Capacity + 1));
-	HeapSize = 0;
-}
 
 template<typename TElement, typename TPriority, bool IsMinHeap = true>
 class PriorityQueueClassNode final

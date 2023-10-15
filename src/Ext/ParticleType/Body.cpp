@@ -1,6 +1,6 @@
 #include "Body.h"
 
-void ParticleTypeExt::ExtData::Initialize() {
+void ParticleTypeExtData::Initialize() {
 	LaserTrail_Types.reserve(2);
 }
 
@@ -9,7 +9,7 @@ void ReadWinDirMult(std::array<Point2D, (size_t)FacingType::Count>& arr, INI_EX&
 	char buff_wind[0x25];
 
 	for (size_t i = 0; i < arr.size(); ++i) {
-		Nullable<Point2D> ReadWind {};
+		Nullable<Point2D> ReadWind;
 		IMPL_SNPRNINTF(buff_wind, sizeof(buff_wind) - 1, "WindDirectionMult%d", i);
 		ReadWind.Read(exINI, pID, buff_wind);
 
@@ -21,10 +21,10 @@ void ReadWinDirMult(std::array<Point2D, (size_t)FacingType::Count>& arr, INI_EX&
 	}
 }
 
-void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+void ParticleTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->Get();
-	const char* pID = this->Get()->ID;
+	auto pThis = this->AttachedToObject;
+	const char* pID = pThis->ID;
 
 	if (parseFailAddr)
 		return;
@@ -93,7 +93,7 @@ void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 // =============================
 // load / save
 template <typename T>
-void ParticleTypeExt::ExtData::Serialize(T& Stm)
+void ParticleTypeExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
@@ -116,7 +116,7 @@ void ParticleTypeExt::ExtData::Serialize(T& Stm)
 
 // =============================
 // container
-ParticleTypeExt::ExtContainer ParticleTypeExt::ExtMap;
+ParticleTypeExtContainer ParticleTypeExtContainer::Instance;
 
 // =============================
 // container hooks
@@ -124,14 +124,14 @@ ParticleTypeExt::ExtContainer ParticleTypeExt::ExtMap;
 DEFINE_HOOK(0x644DBB, ParticleTypeClass_CTOR, 0x5)
 {
 	GET(ParticleTypeClass*, pItem, ESI);
-	ParticleTypeExt::ExtMap.Allocate(pItem);
+	ParticleTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
 DEFINE_HOOK(0x645A42, ParticleTypeClass_SDDTOR, 0xA)
 {
 	GET(ParticleTypeClass*, pItem, ESI);
-	ParticleTypeExt::ExtMap.Remove(pItem);
+	ParticleTypeExtContainer::Instance.Remove(pItem);
 
 	return 0;
 }
@@ -142,20 +142,20 @@ DEFINE_HOOK(0x645660, ParticleTypeClass_SaveLoad_Prefix, 0x7)
 	GET_STACK(ParticleTypeClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 
-	ParticleTypeExt::ExtMap.PrepareStream(pItem, pStm);
+	ParticleTypeExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
 }
 
 DEFINE_HOOK(0x64578C, ParticleTypeClass_Load_Suffix, 0x5)
 {
-	ParticleTypeExt::ExtMap.LoadStatic();
+	ParticleTypeExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
 DEFINE_HOOK(0x64580A, ParticleTypeClass_Save_Suffix, 0x7)
 {
-	ParticleTypeExt::ExtMap.SaveStatic();
+	ParticleTypeExtContainer::Instance.SaveStatic();
 	return 0;
 }
 
@@ -165,6 +165,6 @@ DEFINE_HOOK(0x645405, ParticleTypeClass_LoadFromINI, 0x5)
 	GET(ParticleTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0xDC , -0x4));
 
-	ParticleTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x645414);
+	ParticleTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x645414);
 	return 0;
 }

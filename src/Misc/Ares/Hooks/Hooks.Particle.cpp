@@ -11,7 +11,7 @@
 #include <Ext/Rules/Body.h>
 #include <SpotlightClass.h>
 
-void NOINLINE ParticleSystemExt::ExtData::UpdateLocations()
+void NOINLINE ParticleSystemExtData::UpdateLocations()
 {
 	const auto gravity = (float)RulesClass::Instance->Gravity;
 	for (auto& Data : this->OtherParticleData)
@@ -82,7 +82,7 @@ void NOINLINE ParticleSystemExt::ExtData::UpdateLocations()
 	}
 }
 
-void NOINLINE ParticleSystemExt::ExtData::UpdateState()
+void NOINLINE ParticleSystemExtData::UpdateState()
 {
 	this->OtherParticleData.remove_all_if([](const auto& data)
  {
@@ -96,7 +96,7 @@ void NOINLINE ParticleSystemExt::ExtData::UpdateState()
 
 }
 
-void NOINLINE ParticleSystemExt::ExtData::UpdateColor()
+void NOINLINE ParticleSystemExtData::UpdateColor()
 {
 	const auto pHeldType = this->HeldType;
 	const auto colorCounts = pHeldType->ColorList.Count - 2;
@@ -125,9 +125,9 @@ void NOINLINE ParticleSystemExt::ExtData::UpdateColor()
 	}
 }
 
-void NOINLINE ParticleSystemExt::ExtData::UpdateSpark()
+void NOINLINE ParticleSystemExtData::UpdateSpark()
 {
-	auto pOwner = this->OwnerObject();
+	auto pOwner = this->AttachedToObject;
 	auto SparkSpawnFrames = pOwner->SparkSpawnFrames;
 	auto SparkSpawnNeg1 = SparkSpawnFrames - 1;
 
@@ -231,9 +231,9 @@ void NOINLINE ParticleSystemExt::ExtData::UpdateSpark()
 	this->UpdateColor();
 }
 
-void NOINLINE ParticleSystemExt::ExtData::UpdateRailgun()
+void NOINLINE ParticleSystemExtData::UpdateRailgun()
 {
-	auto pOwnerObj = this->OwnerObject();
+	auto pOwnerObj = this->AttachedToObject;
 	auto pOwnerObjType = pOwnerObj->Type;
 
 	if (!pOwnerObj->TimeToDie && this->OtherParticleData.empty())
@@ -368,7 +368,7 @@ void NOINLINE ParticleSystemExt::ExtData::UpdateRailgun()
 	}
 }
 
-void NOINLINE ParticleSystemExt::ExtData::UpdateWindDirection()
+void NOINLINE ParticleSystemExtData::UpdateWindDirection()
 {
 	if ((Unsorted::CurrentFrame() & 1) != 0)
 	{
@@ -436,7 +436,7 @@ void NOINLINE ParticleSystemExt::ExtData::UpdateWindDirection()
 
 		for (auto& smoke : this->SmokeData)
 		{
-			const auto& [dirX, dirY] = ParticleTypeExt::ExtMap.Find(smoke.LinkedParticleType)->WindMult[WindDir];
+			const auto& [dirX, dirY] = ParticleTypeExtContainer::Instance.Find(smoke.LinkedParticleType)->WindMult[WindDir];
 			CoordStruct velCpy = smoke.vel;
 			smoke.vel.X += int(smoke.velB.X + smoke.LinkedParticleType->WindEffect * dirX);
 			smoke.vel.Y += int(smoke.velB.Y + smoke.LinkedParticleType->WindEffect * dirY);
@@ -456,9 +456,9 @@ void NOINLINE ParticleSystemExt::ExtData::UpdateWindDirection()
 	}
 }
 
-void NOINLINE ParticleSystemExt::ExtData::UpdateSmoke()
+void NOINLINE ParticleSystemExtData::UpdateSmoke()
 {
-	auto const pOwnerObj = this->OwnerObject();
+	auto const pOwnerObj = this->AttachedToObject;
 	auto const pOwnerObjType = pOwnerObj->Type;
 	auto const pOwnerObj_Owner = pOwnerObj->Owner;
 
@@ -544,7 +544,7 @@ void NOINLINE ParticleSystemExt::ExtData::UpdateSmoke()
 		pOwnerObj->TimeToDie = true;
 }
 
-bool ParticleSystemExt::ExtData::UpdateHandled()
+bool ParticleSystemExtData::UpdateHandled()
 {
 	switch (this->What)
 	{
@@ -561,7 +561,7 @@ bool ParticleSystemExt::ExtData::UpdateHandled()
 		return false;
 	}
 
-	const auto pOwner = this->OwnerObject();
+	const auto pOwner = this->AttachedToObject;
 
 	if (pOwner->Lifetime-- == 1)
 		pOwner->TimeToDie = true;
@@ -580,7 +580,7 @@ bool ParticleSystemExt::ExtData::UpdateHandled()
 	return true;
 }
 
-void NOINLINE ParticleSystemExt::ExtData::UpdateInAir_Main(bool allowDraw)
+void NOINLINE ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 {
 	const auto pHeldType = this->HeldType;
 	ColorStruct* color = pHeldType ? pHeldType->ColorList.Items : nullptr;
@@ -670,7 +670,7 @@ void NOINLINE ParticleSystemExt::ExtData::UpdateInAir_Main(bool allowDraw)
 			}
 
 			ConvertClass* pal = FileSystem::ANIM_PAL();
-			if (auto pManager = ParticleTypeExt::ExtMap.Find(draw.LinkedParticleType)->Palette)
+			if (auto pManager = ParticleTypeExtContainer::Instance.Find(draw.LinkedParticleType)->Palette)
 				pal = pManager->GetConvert<PaletteManager::Mode::Temperate>();
 
 			DSurface::Temp->DrawSHP(
@@ -694,9 +694,9 @@ void NOINLINE ParticleSystemExt::ExtData::UpdateInAir_Main(bool allowDraw)
 	}
 }
 
-void ParticleSystemExt::ExtData::UpdateInAir()
+void ParticleSystemExtData::UpdateInAir()
 {
-	if (ParticleSystemClass::Array->Count && GameOptionsClass::Instance->DetailLevel && RulesExt::DetailsCurrentlyEnabled())
+	if (ParticleSystemClass::Array->Count && GameOptionsClass::Instance->DetailLevel && RulesExtData::DetailsCurrentlyEnabled())
 	{
 		bool StopDrawing = false;
 		if (Unsorted::ArmageddonMode() || !Game::hInstance() || ((ScenarioClass::Instance->SpecialFlags.RawFlags + 1) & 16) == 0)
@@ -704,7 +704,7 @@ void ParticleSystemExt::ExtData::UpdateInAir()
 
 		for (auto pSys : *ParticleSystemClass::Array)
 		{
-			ParticleSystemExt::ExtMap.Find(pSys)->UpdateInAir_Main(StopDrawing);
+			ParticleSystemExtContainer::Instance.Find(pSys)->UpdateInAir_Main(StopDrawing);
 		}
 	}
 }
@@ -867,7 +867,7 @@ DEFINE_HOOK(0x62FCF0, ParticleSytemClass_FireDirectioon_AI_DirMult, 0x7)
 {
 	GET(int, facing, EAX);
 	GET(ParticleSystemClass*, pThis, ESI);
-	const auto& mult = ParticleSystemTypeExt::ExtMap.Find(pThis->Type)->FacingMult[facing];
+	const auto& mult = ParticleSystemTypeExtContainer::Instance.Find(pThis->Type)->FacingMult[facing];
 	R->ECX(mult.X);
 	R->EAX(mult.Y);
 	return 0x62FCFE;
@@ -941,7 +941,7 @@ DEFINE_OVERRIDE_HOOK(0x72590E, AnnounceInvalidPointer_Particle, 0x9)
 // 		if (pTechno->IsSinking || pTechno->IsCrashing || pTechno->TemporalTargetingMe)
 // 			return 0x62C309;
 //
-// 		if (pTechno->WhatAmI() != BuildingClass::AbsID && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTechno)))
+// 		if (pTechno->WhatAmI() != BuildingClass::AbsID && TechnoExtData::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTechno)))
 // 			return 0x62C309;
 // 	}
 //
@@ -952,14 +952,14 @@ DEFINE_OVERRIDE_HOOK(0x72590E, AnnounceInvalidPointer_Particle, 0x9)
 //	return 0x62C309;
 //}
 
-void ParticleClass_Gas_Transmography(ObjectClass* pItem, TechnoClass* pAttacker , HouseClass* pOwner , int distance, const CoordStruct& loc, ParticleTypeExt::ExtData* pTypeExt, HouseClass* transmoOwner)
+void ParticleClass_Gas_Transmography(ObjectClass* pItem, TechnoClass* pAttacker , HouseClass* pOwner , int distance, const CoordStruct& loc, ParticleTypeExtData* pTypeExt, HouseClass* transmoOwner)
 {
-	int damage = pTypeExt->Get()->Damage;
-	if (pItem->ReceiveDamage(&damage, distance, pTypeExt->Get()->Warhead, pAttacker, false, false, pOwner) == DamageState::NowDead) {
+	int damage = pTypeExt->AttachedToObject->Damage;
+	if (pItem->ReceiveDamage(&damage, distance, pTypeExt->AttachedToObject->Warhead, pAttacker, false, false, pOwner) == DamageState::NowDead) {
 		if (pTypeExt->TransmogrifyChance >= 0) {
 
 			if (pTypeExt->TransmogrifyOwner != OwnerHouseKind::Neutral)
-				transmoOwner = HouseExt::GetHouseKind(pTypeExt->TransmogrifyOwner, true, nullptr, pOwner, pItem->GetOwningHouse());
+				transmoOwner = HouseExtData::GetHouseKind(pTypeExt->TransmogrifyOwner, true, nullptr, pOwner, pItem->GetOwningHouse());
 
 			CoordStruct loc_ = loc;
 			TechnoExt_ExtData::SpawnVisceroid(loc_, pTypeExt->TransmogrifyType, pTypeExt->TransmogrifyChance, pTypeExt->Transmogrify, transmoOwner);
@@ -970,10 +970,10 @@ void ParticleClass_Gas_Transmography(ObjectClass* pItem, TechnoClass* pAttacker 
 DEFINE_OVERRIDE_HOOK(0x62C23D, ParticleClass_Update_Gas_DamageRange, 6)
 {
 	GET(ParticleClass*, pThis, EBP);
-	auto pTypeExt = ParticleTypeExt::ExtMap.Find(pThis->Type);
+	auto pTypeExt = ParticleTypeExtContainer::Instance.Find(pThis->Type);
 
-	const auto& [pAttacker, pOwner] = ParticleExt::GetOwnership(pThis);
-	HouseClass* transmoOwner = HouseExt::FindNeutral();
+	const auto& [pAttacker, pOwner] = ParticleExtData::GetOwnership(pThis);
+	HouseClass* transmoOwner = HouseExtData::FindNeutral();
 
 	if (pTypeExt->DamageRange.Get() <= 0.0)
 	{
@@ -986,7 +986,7 @@ DEFINE_OVERRIDE_HOOK(0x62C23D, ParticleClass_Update_Gas_DamageRange, 6)
 				 	if (pTechno->IsSinking || pTechno->IsCrashing || pTechno->TemporalTargetingMe)
 				 		continue;
 
-				 	if (pTechno->WhatAmI() != BuildingClass::AbsID && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTechno)))
+				 	if (pTechno->WhatAmI() != BuildingClass::AbsID && TechnoExtData::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTechno)))
 						continue;
 				 }
 
@@ -1002,7 +1002,7 @@ DEFINE_OVERRIDE_HOOK(0x62C23D, ParticleClass_Update_Gas_DamageRange, 6)
 
 		for (const auto pItem : pVec)
 		{
-			if (pItem->WhatAmI() != BuildingClass::AbsID && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pItem)))
+			if (pItem->WhatAmI() != BuildingClass::AbsID && TechnoExtData::IsChronoDelayDamageImmune(static_cast<FootClass*>(pItem)))
 				continue;
 
 			auto nX = abs(pThis->Location.X - pItem->Location.X);
@@ -1019,7 +1019,7 @@ DEFINE_OVERRIDE_HOOK(0x62D015, ParticleClass_Draw_Palette, 6)
 	GET(ParticleClass*, pThis, EDI);
 
 	ConvertClass* pConvert = FileSystem::ANIM_PAL();
-	const auto pTypeExt = ParticleTypeExt::ExtMap.Find(pThis->Type);
+	const auto pTypeExt = ParticleTypeExtContainer::Instance.Find(pThis->Type);
 	if (const auto pConvertData = pTypeExt->Palette)
 	{
 		pConvert = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
@@ -1036,9 +1036,9 @@ DEFINE_HOOK(0x62CCB8, ParticleClass_Update_Fire, 7)
 	GET(ParticleClass*, pThis, ESI);
 
 	pThis->RemainingDC = LOWORD(pThis->Type->MaxDC);
-	auto const& [pAttacker, pOwner] = ParticleExt::GetOwnership(pThis);
+	auto const& [pAttacker, pOwner] = ParticleExtData::GetOwnership(pThis);
 	const auto pCell = MapClass::Instance->GetCellAt(pThis->Location);
-	const auto pTypeExt = ParticleTypeExt::ExtMap.Find(pThis->Type);
+	const auto pTypeExt = ParticleTypeExtContainer::Instance.Find(pThis->Type);
 
 	for (auto pOccupy = pCell->GetContent(pThis->Location.Z); pOccupy; pOccupy = pOccupy->NextObject) {
 
@@ -1052,7 +1052,7 @@ DEFINE_HOOK(0x62CCB8, ParticleClass_Update_Fire, 7)
 				if (pTechno->IsSinking || pTechno->IsCrashing || pTechno->TemporalTargetingMe)
 					continue;
 
-				if (pTechno->WhatAmI() != BuildingClass::AbsID && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTechno)))
+				if (pTechno->WhatAmI() != BuildingClass::AbsID && TechnoExtData::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTechno)))
 					continue;
 			}
 
@@ -1062,7 +1062,7 @@ DEFINE_HOOK(0x62CCB8, ParticleClass_Update_Fire, 7)
 			pOccupy->ReceiveDamage(&damage, length, pThis->Type->Warhead, pAttacker, false, false, pOwner);
 			if (pTypeExt->Fire_DamagingAnim) {
 				if (auto pAnimType = MapClass::SelectDamageAnimation(pThis->Type->Damage, pThis->Type->Warhead, pCell->LandType, pThis->Location)) {
-					AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pThis->Location),
+					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pThis->Location),
 						pOwner, pOccupy->GetOwningHouse(), pAttacker, false);
 				}
 			}
@@ -1077,7 +1077,7 @@ DEFINE_OVERRIDE_HOOK(0x6D9427, TacticalClass_DrawUnits_ParticleSystems, 9)
 	GET(Layer, layer, EAX);
 
 	if (layer == Layer::Air)
-		ParticleSystemExt::ExtData::UpdateInAir();
+		ParticleSystemExtData::UpdateInAir();
 
 	return layer == Layer::Ground ? 0x6D9430 : 0x6D95A1;
 }
@@ -1086,7 +1086,7 @@ DEFINE_OVERRIDE_HOOK(0x62E380, ParticleSystemClass_SpawnParticle, 0xA)
 {
 	GET(ParticleSystemClass*, pThis, ECX);
 
-	return ParticleSystemExt::ExtMap.Find(pThis)->What != ParticleSystemExt::Behave::None
+	return ParticleSystemExtContainer::Instance.Find(pThis)->What != ParticleSystemExtData::Behave::None
 		? 0x62E428 : 0;
 }
 
@@ -1098,7 +1098,7 @@ DEFINE_OVERRIDE_HOOK(0x62E2AD, ParticleSystemClass_Draw, 6)
 	if (pThisType->ParticleCap)
 	{
 		R->ECX(pThis->Particles.Count +
-			ParticleSystemExt::ExtMap.Find(pThis)->OtherParticleData.size());
+			ParticleSystemExtContainer::Instance.Find(pThis)->OtherParticleData.size());
 	}
 	else
 	{
@@ -1128,7 +1128,7 @@ DEFINE_OVERRIDE_HOOK(0x62FD60, ParticleSystemClass_Update, 0x9)
 	//	return 0x0;
 	//}
 
-	const bool Handled = ParticleSystemExt::ExtMap.Find(pThis)->UpdateHandled();
+	const bool Handled = ParticleSystemExtContainer::Instance.Find(pThis)->UpdateHandled();
 
 	return Handled ? 0x62FE43 : 0;
 }

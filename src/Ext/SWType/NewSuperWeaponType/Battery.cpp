@@ -14,7 +14,7 @@ bool SW_Battery::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 	if (!pThis->Granted)
 		return false;
 
-	auto pHouseExt = HouseExt::ExtMap.Find(pThis->Owner);
+	auto pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
 
 	//this check prevent same SW activated multiple times
 	if(!pHouseExt->Batteries.contains(pThis)) {
@@ -27,23 +27,23 @@ bool SW_Battery::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 
 void SW_Battery::Deactivate(SuperClass* pSW, CellStruct cell, bool isPlayer)
 {
-	auto pHouseExt = HouseExt::ExtMap.Find(pSW->Owner);
+	auto pHouseExt = HouseExtContainer::Instance.Find(pSW->Owner);
 
 	if(pHouseExt->Batteries.remove(pSW))
 		pSW->Owner->RecheckPower = true;
 }
 
-void SW_Battery::Initialize(SWTypeExt::ExtData* pData)
+void SW_Battery::Initialize(SWTypeExtData* pData)
 {
-	pData->OwnerObject()->Action = Action::None;
-	pData->OwnerObject()->UseChargeDrain = true;
+	pData->AttachedToObject->Action = Action::None;
+	pData->AttachedToObject->UseChargeDrain = true;
 	pData->SW_RadarEvent = false;
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::LowPower;
 }
 
-void SW_Battery::LoadFromINI(SWTypeExt::ExtData * pData,CCINIClass * pINI)
+void SW_Battery::LoadFromINI(SWTypeExtData * pData,CCINIClass * pINI)
 {
-	const auto pSection = pData->Get()->ID;
+	const auto pSection = pData->AttachedToObject->ID;
 	INI_EX exINI(pINI);
 
 	pData->Battery_Overpower.Read(exINI, pSection, "Battery.Overpower");
@@ -52,12 +52,12 @@ void SW_Battery::LoadFromINI(SWTypeExt::ExtData * pData,CCINIClass * pINI)
 	if(!pData->SW_Power.isset())
 		pData->SW_Power.Read(exINI, pSection, "Battery.Power");
 
-	pData->OwnerObject()->Action = Action::None;
-	pData->OwnerObject()->UseChargeDrain = true;
+	pData->AttachedToObject->Action = Action::None;
+	pData->AttachedToObject->UseChargeDrain = true;
 	pData->SW_RadarEvent = false;
 }
 
-bool SW_Battery::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+bool SW_Battery::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
 	if (!this->IsLaunchsiteAlive(pBuilding))
 		return false;

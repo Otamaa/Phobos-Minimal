@@ -7,16 +7,20 @@
 
 #include <Utilities/Macro.h>
 
-const Leptons BulletTypeExt::DefaultBulletScatterMin = Leptons { 256 };
-const Leptons BulletTypeExt::DefaultBulletScatterMax = Leptons { 512 };
+const Leptons BulletTypeExtData::DefaultBulletScatterMin = Leptons { 256 };
+const Leptons BulletTypeExtData::DefaultBulletScatterMax = Leptons { 512 };
 
-double BulletTypeExt::GetAdjustedGravity(BulletTypeClass* pType)
+double BulletTypeExtData::GetAdjustedGravity(BulletTypeClass* pType)
 {
-	auto const nGravity = BulletTypeExt::ExtMap.Find(pType)->Gravity.Get(static_cast<double>(RulesClass::Instance->Gravity));
-	return pType->Floater ? nGravity * 0.5 : nGravity;
+	if(const auto pExt = BulletTypeExtContainer::Instance.Find(pType)){
+		auto const nGravity = pExt->Gravity.Get(static_cast<double>(RulesClass::Instance->Gravity));
+		return pType->Floater ? nGravity * 0.5 : nGravity;
+	}
+
+	return (double)RulesClass::Instance->Gravity;
 }
 
-BulletTypeClass* BulletTypeExt::GetDefaultBulletType(const char* pBullet)
+BulletTypeClass* BulletTypeExtData::GetDefaultBulletType(const char* pBullet)
 {
 	BulletTypeClass* pType = nullptr;
 
@@ -33,15 +37,15 @@ BulletTypeClass* BulletTypeExt::GetDefaultBulletType(const char* pBullet)
 	return pType;
 }
 
-const ConvertClass* BulletTypeExt::ExtData::GetBulletConvert()
+const ConvertClass* BulletTypeExtData::GetBulletConvert()
 {
 	if(!this->ImageConvert.empty())
 		return  this->ImageConvert;
 	else
 	{
 		ConvertClass* pConvert = nullptr;
-		if (const auto pAnimType = AnimTypeClass::Find(this->Get()->ImageFile)) {
-			if(const auto pConvertData = AnimTypeExt::ExtMap.Find(pAnimType)->Palette){
+		if (const auto pAnimType = AnimTypeClass::Find(this->AttachedToObject->ImageFile)) {
+			if(const auto pConvertData = AnimTypeExtContainer::Instance.Find(pAnimType)->Palette){
 				pConvert = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
 			}
 		}
@@ -51,16 +55,16 @@ const ConvertClass* BulletTypeExt::ExtData::GetBulletConvert()
 	}
 }
 
-bool BulletTypeExt::ExtData::HasSplitBehavior()
+bool BulletTypeExtData::HasSplitBehavior()
 {
 	// behavior in FS: Splits defaults to Airburst.
-	return this->Get()->Airburst || this->Splits.Get();
+	return this->AttachedToObject->Airburst || this->Splits.Get();
 }
 
-BulletClass* BulletTypeExt::ExtData::CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, WeaponTypeClass* pWeapon, bool addDamage, bool SetWeaponType) const
+BulletClass* BulletTypeExtData::CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, WeaponTypeClass* pWeapon, bool addDamage, bool SetWeaponType) const
 {
 	if (auto pBullet = this->CreateBullet(pTarget, pOwner, pWeapon->Damage, pWeapon->Warhead,
-		pWeapon->Speed, WeaponTypeExt::ExtMap.Find(pWeapon)->GetProjectileRange(), pWeapon->Bright || pWeapon->Warhead->Bright, addDamage))
+		pWeapon->Speed, WeaponTypeExtContainer::Instance.Find(pWeapon)->GetProjectileRange(), pWeapon->Bright || pWeapon->Warhead->Bright, addDamage))
 	{
 		if(SetWeaponType)
 			pBullet->SetWeaponType(pWeapon);
@@ -71,10 +75,10 @@ BulletClass* BulletTypeExt::ExtData::CreateBullet(AbstractClass* pTarget, Techno
 	return nullptr;
 }
 
-BulletClass* BulletTypeExt::ExtData::CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, WeaponTypeClass* pWeapon) const
+BulletClass* BulletTypeExtData::CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, WeaponTypeClass* pWeapon) const
 {
 	if (auto pBullet = this->CreateBullet(pTarget, pOwner, pWeapon->Damage, pWeapon->Warhead,
-		pWeapon->Speed, WeaponTypeExt::ExtMap.Find(pWeapon)->GetProjectileRange(), pWeapon->Bright || pWeapon->Warhead->Bright, true))
+		pWeapon->Speed, WeaponTypeExtContainer::Instance.Find(pWeapon)->GetProjectileRange(), pWeapon->Bright || pWeapon->Warhead->Bright, true))
 	{
 		pBullet->SetWeaponType(pWeapon);
 		return pBullet;
@@ -83,13 +87,13 @@ BulletClass* BulletTypeExt::ExtData::CreateBullet(AbstractClass* pTarget, Techno
 	return nullptr;
 }
 
-BulletClass* BulletTypeExt::ExtData::CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner,
+BulletClass* BulletTypeExtData::CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner,
 	int damage, WarheadTypeClass* pWarhead, int speed, int range, bool bright, bool addDamage) const
 {
 	if (addDamage)
-		damage = (int)(damage * TechnoExt::GetDamageMult(pOwner));
+		damage = (int)(damage * TechnoExtData::GetDamageMult(pOwner));
 
-	auto pBullet = this->Get()->CreateBullet(pTarget, pOwner, damage, pWarhead, speed, bright);
+	auto pBullet = this->AttachedToObject->CreateBullet(pTarget, pOwner, damage, pWarhead, speed, bright);
 
 	if (pBullet)
 	{
@@ -99,20 +103,17 @@ BulletClass* BulletTypeExt::ExtData::CreateBullet(AbstractClass* pTarget, Techno
 	return pBullet;
 }
 
-void  BulletTypeExt::ExtData::Uninitialize()
-{
-
-}
 // =============================
 // load / save
 
-void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+void BulletTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->Get();
+	auto pThis = this->AttachedToObject;
 	auto pArtInI = &CCINIClass::INI_Art;
 
 	const char* pSection = pThis->ID;
 	const char* pArtSection = pThis->ImageFile;
+
 	this->ImageConvert.clear();
 
 	if (!parseFailAddr)
@@ -187,11 +188,6 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->AnimLength.Read(exINI, pThis->ID, "AnimLength");
 		this->Arcing_AllowElevationInaccuracy.Read(exINI, pSection, "Arcing.AllowElevationInaccuracy");
 		this->AttachedSystem.Read(exINI, pSection, "AttachedSystem");
-
-		if (this->AttachedSystem && this->AttachedSystem->BehavesLike != ParticleSystemTypeBehavesLike::Smoke) {
-			Debug::Log("Bullet[%s] With AttachedSystem[%s] is not BehavesLike=Smoke!\n", pSection, this->AttachedSystem->ID);
-			Debug::RegisterParserError();
-		}
 	}
 
 	if (pArtInI && pArtInI->GetSection(pArtSection)){
@@ -208,7 +204,7 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 }
 
 template <typename T>
-void BulletTypeExt::ExtData::Serialize(T& Stm)
+void BulletTypeExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
@@ -277,22 +273,76 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 
 // =============================
 // container
-BulletTypeExt::ExtContainer BulletTypeExt::ExtMap;
 
+BulletTypeExtContainer BulletTypeExtContainer::Instance;
+
+bool BulletTypeExtContainer::Load(BulletTypeClass* key, IStream* pStm)
+{
+	// this really shouldn't happen
+	if (!key)
+	{
+		//Debug::Log("[LoadKey] Attempted for a null pointer! WTF!\n");
+		return false;
+	}
+
+	auto Iter = BulletTypeExtContainer::Instance.Map.find(key);
+
+	if (Iter == BulletTypeExtContainer::Instance.Map.end())
+	{
+		auto ptr = new BulletTypeExtData(key);
+		Iter = BulletTypeExtContainer::Instance.Map.emplace(key, ptr).first;
+	}
+
+	this->ClearExtAttribute(key);
+	this->SetExtAttribute(key, Iter->second);
+
+	PhobosByteStream loader { 0 };
+	if (!loader.ReadBlockFromStream(pStm))
+	{
+		//Debug::Log("[LoadKey] Failed to read data from save stream?!\n");
+		return false;
+	}
+
+	PhobosStreamReader reader { loader };
+	if (reader.Expect(BulletTypeExtData::Canary)
+		&& reader.RegisterChange(Iter->second))
+	{
+		Iter->second->LoadFromStream(reader);
+		if (reader.ExpectEndOfBlock())
+			return true;
+	}
+
+	return false;
+}
 // =============================
 // container hooks
 
 DEFINE_HOOK(0x46BDD9, BulletTypeClass_CTOR, 0x5)
 {
 	GET(BulletTypeClass*, pItem, EAX);
-	BulletTypeExt::ExtMap.Allocate(pItem);
+	//BulletTypeExtContainer::Instance.Allocate(pItem);
+
+	auto Iter = BulletTypeExtContainer::Instance.Map.find(pItem);
+
+	if (Iter == BulletTypeExtContainer::Instance.Map.end())
+	{
+		auto ptr = new BulletTypeExtData(pItem);
+		Iter = BulletTypeExtContainer::Instance.Map.emplace(pItem, ptr).first;
+	}
+
+	BulletTypeExtContainer::Instance.ClearExtAttribute(pItem);
+	BulletTypeExtContainer::Instance.SetExtAttribute(pItem, Iter->second);
 	return 0;
 }
 
 DEFINE_HOOK(0x46C8B6, BulletTypeClass_SDDTOR, 0x6)
 {
 	GET(BulletTypeClass*, pItem, ESI);
-	BulletTypeExt::ExtMap.Remove(pItem);
+	auto extData = BulletTypeExtContainer::Instance.GetExtAttribute(pItem);
+	BulletTypeExtContainer::Instance.ClearExtAttribute(pItem);
+	BulletTypeExtContainer::Instance.Map.erase(pItem);
+	//BulletTypeExtContainer::Instance.Remove(pItem);
+	delete extData;
 	return 0;
 }
 
@@ -302,7 +352,7 @@ DEFINE_HOOK(0x46C6A0, BulletTypeClass_SaveLoad_Prefix, 0x5)
 	GET_STACK(BulletTypeClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 
-	BulletTypeExt::ExtMap.PrepareStream(pItem, pStm);
+	BulletTypeExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
 }
@@ -314,7 +364,7 @@ DEFINE_HOOK(0x46C70F, BulletTypeClass_Load_Suffix, 0x6)
 	GET(BulletTypeClass*, pThis, ESI);
 
 	SwizzleManagerClass::Instance->Swizzle((void**)&pThis->ShrapnelWeapon);
-	BulletTypeExt::ExtMap.LoadStatic();
+	BulletTypeExtContainer::Instance.LoadStatic();
 
 	return 0x46C720;
 }
@@ -328,7 +378,7 @@ DEFINE_HOOK(0x46C744, BulletTypeClass_Save_Suffix, 0x6)
 	if (SUCCEEDED(nRes))
 	{
 		nRes = 0;
-		BulletTypeExt::ExtMap.SaveStatic();
+		BulletTypeExtContainer::Instance.SaveStatic();
 	}
 
 	return 0x46C74A;
@@ -339,8 +389,7 @@ DEFINE_HOOK(0x46C41C, BulletTypeClass_LoadFromINI, 0xA)
 {
 	GET(BulletTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0x90);
-
-	BulletTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x46C429);
+	BulletTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x46C429);
 
 	return 0;
 }

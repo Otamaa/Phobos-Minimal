@@ -9,6 +9,7 @@ class WeaponTypeClass;
 class TemporalExt
 {
 public:
+	/*
 	class ExtData final : public Extension<TemporalClass>
 	{
 	public:
@@ -37,4 +38,5 @@ public:
 	};
 
 	static ExtContainer ExtMap;
+	*/
 };

@@ -19,6 +19,7 @@ class AITriggerTypeExt
 {
 public:
 
+	/*
 	class ExtData final : public Extension<AITriggerTypeClass>
 	{
 	public:
@@ -55,9 +56,12 @@ public:
 
 	static ExtContainer ExtMap;
 
+
 	static void ProcessCondition(AITriggerTypeClass* pAITriggerType, HouseClass* pHouse, int type, int condition);
 	static void DisableAITrigger(AITriggerTypeClass* pAITriggerType);
 	static void EnableAITrigger(AITriggerTypeClass* pAITriggerType);
 	static bool ReadCustomizableAICondition(HouseClass* pHouse, int pickMode, int compareMode, int Number, TechnoTypeClass* TechnoType);
 	static void CustomizableAICondition(AITriggerTypeClass* pAITriggerType, HouseClass* pHouse, int condition);
+
+	*/
 };

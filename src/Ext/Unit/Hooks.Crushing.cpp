@@ -12,7 +12,7 @@ DEFINE_HOOK(0x073B05B, UnitClass_PerCellProcess_TiltWhenCrushes, 0x6)
 
 	GET(UnitClass*, pThis, EBP);
 
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (!pTypeExt->TiltsWhenCrushes_Overlays.Get(pThis->Type->TiltsWhenCrushes))
 		return SkipGameCode;
@@ -28,7 +28,7 @@ DEFINE_HOOK(0x0741941, UnitClass_OverrunSquare_TiltWhenCrushes, 0x6)
 
 	GET(UnitClass*, pThis, EDI);
 
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (!pTypeExt->TiltsWhenCrushes_Vehicles.Get(pThis->Type->TiltsWhenCrushes))
 		return SkipGameCode;
@@ -45,7 +45,7 @@ DEFINE_HOOK(0x4B1150, DriveLocomotionClass_WhileMoving_CrushSlowdown, 0x9)
 
 	GET(DriveLocomotionClass*, pThis, EBP);
 
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->LinkedTo->GetTechnoType());
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->LinkedTo->GetTechnoType());
 	auto slowdownCoefficient = pThis->movementspeed_50;
 
 	if (slowdownCoefficient > pTypeExt->CrushSlowdownMultiplier)
@@ -65,7 +65,7 @@ DEFINE_HOOK(0x4B19F7, DriveLocomotionClass_WhileMoving_CrushTilt, 0xD)
 	GET(DriveLocomotionClass*, pThis, EBP);
 
 	auto const pLinkedTo = pThis->LinkedTo;
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pLinkedTo->GetTechnoType());
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pLinkedTo->GetTechnoType());
 
 	if(pTypeExt->CrushForwardTiltPerFrame.isset()){
 		pLinkedTo->RockingForwardsPerFrame = static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Get());
@@ -81,7 +81,7 @@ DEFINE_HOOK(0x6A0813, ShipLocomotionClass_WhileMoving_CrushSlowdown, 0xB)
 
 	GET(ShipLocomotionClass*, pThis, EBP);
 
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->LinkedTo->GetTechnoType());
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->LinkedTo->GetTechnoType());
 	auto slowdownCoefficient = pThis->movementspeed_50;
 
 	if (slowdownCoefficient > pTypeExt->CrushSlowdownMultiplier)
@@ -99,7 +99,7 @@ DEFINE_HOOK(0x6A108D, ShipLocomotionClass_WhileMoving_CrushTilt, 0xD)
 	GET(DriveLocomotionClass*, pThis, EBP);
 
 	auto const pLinkedTo = pThis->LinkedTo;
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pLinkedTo->GetTechnoType());
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pLinkedTo->GetTechnoType());
 
 	if (pTypeExt->CrushForwardTiltPerFrame.isset()) {
 		pLinkedTo->RockingForwardsPerFrame = static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Get());

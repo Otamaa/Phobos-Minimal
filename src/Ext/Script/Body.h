@@ -191,48 +191,31 @@ enum class PhobosScripts : unsigned int
 
 enum class DistanceMode : int
 {
-	idkZero = 0 ,
-	idkOne = 1 ,
+	idkZero = 0,
+	idkOne = 1,
 	Closest = 2,
 	Furtherst = 3
 };
 
-class ScriptExt
+class ScriptExtData final
 {
 public:
-	class ExtData final : public Extension<ScriptClass>
+	static constexpr size_t Canary = 0x3B3B3B3B;
+	using base_type = ScriptClass;
+
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+public:
+	// Nothing yet
+
+	ScriptExtData(base_type* OwnerObject) noexcept
 	{
-	public:
-		static constexpr size_t Canary = 0x3B3B3B3B;
-		using base_type = ScriptClass;
+		AttachedToObject = OwnerObject;
+	}
 
-	public:
-		// Nothing yet
+	~ScriptExtData() noexcept = default;
 
-		ExtData(ScriptClass* OwnerObject) : Extension<ScriptClass>(OwnerObject)
-			// Nothing yet
-		{ }
-
-		virtual ~ExtData() override = default;
-	private:
-		template <typename T>
-		void Serialize(T& Stm)
-		{
-			Stm
-				.Process(this->Initialized)
-				;
-		}
-	};
-
-	class ExtContainer final : public Container<ScriptExt::ExtData> {
-	public:
-		CONSTEXPR_NOCOPY_CLASS(ScriptExt::ExtData, "ScriptClass");
-	};
-
-	static ExtContainer ExtMap;
-
-	static void ProcessScriptActions(TeamClass * pTeam);
-
+	static void ProcessScriptActions(TeamClass* pTeam);
 	static void ExecuteTimedAreaGuardAction(TeamClass* pTeam);
 	static void LoadIntoTransports(TeamClass* pTeam);
 	static void WaitUntilFullAmmoAction(TeamClass* pTeam);
@@ -318,15 +301,29 @@ public:
 
 	//
 	static void JumpBackToPreviousScript(TeamClass* pTeam);
-
 	static void RepairDestroyedBridge(TeamClass* pTeam, int mode);
-
 	static std::pair<WeaponTypeClass*, WeaponTypeClass*> GetWeapon(TechnoClass* pTechno);
+
 private:
 	static void ModifyCurrentTriggerWeight(TeamClass* pTeam, bool forceJumpLine, double modifier);
 	static bool MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, FootClass* pLeader, int mode);
 	static void ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeamLeader, AbstractClass* pTarget);
-
 	static ScriptActionNode GetSpecificAction(ScriptClass* pScript, int nIdx);
 
+private:
+	template <typename T>
+	void Serialize(T& Stm)
+	{
+		Stm
+			.Process(this->Initialized)
+			;
+	}
+};
+
+class ScriptExtContainer final : public Container<ScriptExtData>
+{
+public:
+	static ScriptExtContainer Instance;
+
+	CONSTEXPR_NOCOPY_CLASSB(ScriptExtContainer, ScriptExtData, "ScriptClass");
 };

@@ -25,7 +25,7 @@ DEFINE_OVERRIDE_HOOK(0x4DFE00, FootClass_GarrisonStructure_TakeVehicle, 6)
 {
 	GET(FootClass*, pThis, ECX);
 
-	if (!TechnoExt::ExtMap.Find(pThis)->TakeVehicleMode)
+	if (!TechnoExtContainer::Instance.Find(pThis)->TakeVehicleMode)
 		return 0x0;
 
 	R->EAX(TechnoExt_ExtData::FindAndTakeVehicle(pThis));
@@ -38,7 +38,7 @@ DEFINE_OVERRIDE_HOOK(0x4D718C, FootClass_Put_InitialPayload, 6)
 
 	if (pThis->WhatAmI() != AbstractType::Infantry)
 	{
-		TechnoExt::ExtMap.Find(pThis)->CreateInitialPayload();
+		TechnoExtContainer::Instance.Find(pThis)->CreateInitialPayload();
 	}
 
 	return 0;
@@ -51,7 +51,7 @@ DEFINE_OVERRIDE_HOOK(0x4D98C0, FootClass_Destroyed_PlayEvent, 0xA)
 	//GET_STACK(ObjectClass*, pKiller, 0x4);
 
 	const auto pType = pThis->GetTechnoType();
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	if (pExt->SupressEVALost
 		|| pType->DontScore
@@ -64,7 +64,7 @@ DEFINE_OVERRIDE_HOOK(0x4D98C0, FootClass_Destroyed_PlayEvent, 0xA)
 		return Skip;
 	}
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (RadarEventClass::Create(RadarEventType::UnitLost, pThis->GetMapCoords()))
 		VoxClass::PlayIndex(pTypeExt->EVA_UnitLost, -1, -1);
@@ -151,7 +151,7 @@ DEFINE_OVERRIDE_HOOK(0x4D8D95, FootClass_UpdatePosition_HunterSeeker, 0xA)
 			}
 			else
 			{
-				auto damage = RulesExt::Global()->HunterSeeker_Damage.Get();
+				auto damage = RulesExtData::Instance()->HunterSeeker_Damage.Get();
 				pTarget->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, pThis, true, true, pThis->Owner);
 			}
 		}
@@ -174,7 +174,7 @@ DEFINE_OVERRIDE_HOOK(0x4DAA68, FootClass_Update_MoveSound, 0x6)
 
 	const auto pType = pThis->GetTechnoType();
 
-	if(pType->IdleRate && TechnoTypeExt::ExtMap.Find(pType)->NoIdleSound) {
+	if(pType->IdleRate && TechnoTypeExtContainer::Instance.Find(pType)->NoIdleSound) {
 		if(!pThis->Locomotor->Is_Moving_Now()) {
 			pThis->__MovingSoundDelay = 0;
 			return 0x4DAB3C;
@@ -213,7 +213,7 @@ DEFINE_OVERRIDE_HOOK(0x4D9920, FootClass_SelectAutoTarget_Cloaked, 9)
 		&& pThis->GetCurrentMission() == Mission::Guard)
 	{
 		auto const pType = pThis->GetTechnoType();
-		auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
+		auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		auto allowAquire = true;
 
@@ -246,8 +246,8 @@ DEFINE_OVERRIDE_HOOK(0x4D9EBD, FootClass_CanBeSold_SellUnit, 6)
 	GET(BuildingClass*, pBld, EAX);
 	GET(TechnoClass*, pDocker, ESI);
 
-	const auto nUnitRepair = BuildingTypeExt::ExtMap.Find(pBld->Type)->UnitSell.Get(pBld->Type->UnitRepair);
-	const auto nSellable = TechnoTypeExt::ExtMap.Find(pDocker->GetTechnoType())->Unsellable.Get(RulesExt::Global()->Units_UnSellable);
+	const auto nUnitRepair = BuildingTypeExtContainer::Instance.Find(pBld->Type)->UnitSell.Get(pBld->Type->UnitRepair);
+	const auto nSellable = TechnoTypeExtContainer::Instance.Find(pDocker->GetTechnoType())->Unsellable.Get(RulesExtData::Instance()->Units_UnSellable);
 
 	if (!nUnitRepair || !nSellable)
 	{
@@ -266,7 +266,7 @@ DEFINE_OVERRIDE_HOOK(0x4DA8B2, FootClass_Update_AnimRate, 6)
 {
 	GET(FootClass*, pThis, ESI);
 	auto pType = pThis->GetTechnoType();
-	auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	enum { Undecided = 0u, NoChange = 0x4DAA01u, Advance = 0x4DA9FBu };
 
@@ -289,12 +289,12 @@ DEFINE_OVERRIDE_HOOK(0x4DA8B2, FootClass_Update_AnimRate, 6)
 DEFINE_OVERRIDE_HOOK(0x4DECAE, FootClass_Crash_Spin, 5)
 {
 	GET(FootClass*, pThis, ESI);
-	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->CrashSpin ? 0u : 0x4DED4Bu;
+	return TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->CrashSpin ? 0u : 0x4DED4Bu;
 }
 
 DEFINE_OVERRIDE_HOOK(0x518744, InfantryClass_ReceiveDamage_ElectricDeath, 6)
 {
-	AnimTypeClass* El = RulesExt::Global()->ElectricDeath;
+	AnimTypeClass* El = RulesExtData::Instance()->ElectricDeath;
 
 	if (!El) {
 		El = AnimTypeClass::Array->GetItem(0);
@@ -315,10 +315,10 @@ DEFINE_OVERRIDE_HOOK(0x4D85E4, FootClass_UpdatePosition_TiberiumDamage, 9)
 	WarheadTypeClass* pWarhead = nullptr;
 	int transmogrify = RulesClass::Instance->TiberiumTransmogrify;
 
-	if (RulesExt::Global()->Tiberium_DamageEnabled && pThis->GetHeight() <= RulesClass::Instance->HoverHeight)
+	if (RulesExtData::Instance()->Tiberium_DamageEnabled && pThis->GetHeight() <= RulesClass::Instance->HoverHeight)
 	{
 		TechnoTypeClass* pType = pThis->GetTechnoType();
-		TechnoTypeExt::ExtData* pExt = TechnoTypeExt::ExtMap.Find(pType);
+		TechnoTypeExtData* pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		// default is: infantry can be damaged, others cannot
 		const bool enabled = (pThis->WhatAmI() != InfantryClass::AbsID);
@@ -329,7 +329,7 @@ DEFINE_OVERRIDE_HOOK(0x4D85E4, FootClass_UpdatePosition_TiberiumDamage, 9)
 			{
 				if (auto pTiberium = TiberiumClass::Array->GetItemOrDefault(pThis->GetCell()->GetContainedTiberiumIndex()))
 				{
-					auto pTibExt = TiberiumExt::ExtMap.Find(pTiberium);
+					auto pTibExt = TiberiumExtExtContainer::Instance.Find(pTiberium);
 
 					pWarhead = pTibExt->GetWarhead();
 					damage = pTibExt->GetDamage();
@@ -346,7 +346,7 @@ DEFINE_OVERRIDE_HOOK(0x4D85E4, FootClass_UpdatePosition_TiberiumDamage, 9)
 
 		if (pThis->ReceiveDamage(&damage, 0, pWarhead, nullptr, false, false, nullptr) == DamageState::NowDead)
 		{
-			TechnoExt_ExtData::SpawnVisceroid(crd, RulesClass::Instance->SmallVisceroid, transmogrify, ScenarioClass::Instance->TiberiumDeathToVisceroid , HouseExt::FindNeutral());
+			TechnoExt_ExtData::SpawnVisceroid(crd, RulesClass::Instance->SmallVisceroid, transmogrify, ScenarioClass::Instance->TiberiumDeathToVisceroid , HouseExtData::FindNeutral());
 			return 0x4D8F29;
 		}
 	}

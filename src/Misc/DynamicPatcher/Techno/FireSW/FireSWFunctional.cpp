@@ -4,7 +4,7 @@
 
 void FireSWFunctional::OnFire(TechnoClass* pThis, AbstractClass* pTarget, int nWeaponIDx)
 {
-	if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
+	if (auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType()))
 	{
 		if (!pTypeExt->SWFireData.SuperWeapons.empty() && (pTypeExt->SWFireData.AnyWeapon.Get()
 			|| pTypeExt->SWFireData.WeaponIndex.Get() == nWeaponIDx))

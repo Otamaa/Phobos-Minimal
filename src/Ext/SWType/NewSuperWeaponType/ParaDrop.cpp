@@ -26,16 +26,16 @@ bool SW_ParaDrop::Activate(SuperClass* const pThis, const CellStruct& Coords, bo
 	return false;
 }
 
-void SW_ParaDrop::Initialize(SWTypeExt::ExtData* pData)
+void SW_ParaDrop::Initialize(SWTypeExtData* pData)
 {
-	pData->OwnerObject()->Action = Action::ParaDrop;
+	pData->AttachedToObject->Action = Action::ParaDrop;
 	// default for american paradrop
-	if (pData->Get()->Type == SuperWeaponType::AmerParaDrop)
+	if (pData->AttachedToObject->Type == SuperWeaponType::AmerParaDrop)
 	{
-		pData->OwnerObject()->Action = Action::AmerParaDrop;
+		pData->AttachedToObject->Action = Action::AmerParaDrop;
 		// the American paradrop will be the same for every country,
 		// thus we use the SW's default here.
-		auto& nData = pData->ParaDropDatas[pData->Get()];
+		auto& nData = pData->ParaDropDatas[pData->AttachedToObject];
 		nData.push_back(std::move(std::make_unique<ParadropData>()));
 		auto& pPlane = nData.back();
 
@@ -54,7 +54,7 @@ void SW_ParaDrop::Initialize(SWTypeExt::ExtData* pData)
 	pData->CursorType = int(MouseCursorType::ParaDrop);
 }
 
-void SW_ParaDrop::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
+void SW_ParaDrop::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
 	const char* section = pData->get_ID();
 
@@ -142,13 +142,13 @@ void SW_ParaDrop::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 
 	// default
 	CreateParaDropBase(nullptr, base);
-	GetParadropPlane(base, 1, pData->Get());
+	GetParadropPlane(base, 1, pData->AttachedToObject);
 
 	// put all sides into the hash table
 	for (auto const& pSide : *SideClass::Array)
 	{
 		CreateParaDropBase(pSide->ID, base);
-		GetParadropPlane(base, pData->ParaDropDatas[pData->Get()].size(), pSide);
+		GetParadropPlane(base, pData->ParaDropDatas[pData->AttachedToObject].size(), pSide);
 	}
 
 	// put all countries into the hash table
@@ -181,7 +181,7 @@ bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 	}
 
 	auto const pType = pThis->Type;
-	auto const pData = SWTypeExt::ExtMap.Find(pType);
+	auto const pData = SWTypeExtContainer::Instance.Find(pType);
 	auto const pHouse = pThis->Owner;
 
 	// these are fallback values if the SW doesn't define them
@@ -189,8 +189,8 @@ bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 	Iterator<TechnoTypeClass*> FallbackTypes;
 	Iterator<int> FallbackNum;
 
-	HouseExt::GetParadropContent(pHouse , FallbackTypes, FallbackNum);
-	pFallbackPlane = HouseExt::GetParadropPlane(pHouse);
+	HouseExtData::GetParadropContent(pHouse , FallbackTypes, FallbackNum);
+	pFallbackPlane = HouseExtData::GetParadropPlane(pHouse);
 
 	// use paradrop lists from house, side and default
 	const std::vector<std::unique_ptr<ParadropData>>* drops[3] {
@@ -376,7 +376,7 @@ void SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, AircraftTy
 	pPlane->NextMission();
 }
 
-bool SW_ParaDrop::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+bool SW_ParaDrop::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
 	if (!this->IsLaunchsiteAlive(pBuilding))
 		return false;

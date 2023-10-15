@@ -138,7 +138,7 @@ void ArmorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 
 void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 {
-	auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH);
+	auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 	const char* section = pWH->get_ID();
 
 	INI_EX exINI(pINI);
@@ -186,7 +186,7 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 
 void ArmorTypeClass::LoadForWarhead_NoParse(WarheadTypeClass* pWH)
 {
-	auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH);
+	auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 	const char* section = pWH->get_ID();
 
 	for (size_t i = 0; i < pWHExt->Verses.size(); ++i)

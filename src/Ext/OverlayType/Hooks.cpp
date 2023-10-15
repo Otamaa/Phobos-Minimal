@@ -17,7 +17,7 @@ DEFINE_HOOK(0x47F974, CellClass_DrawOverlay_Walls, 0x5)
 		colorSchemeIndex = HouseClass::Array->GetItem(pThis->WallOwnerIndex)->ColorSchemeIndex;
 
 	LightConvertClass* pConvert = nullptr;
-	const auto pTypeExt = OverlayTypeExt::ExtMap.Find(pOverlayType);
+	const auto pTypeExt = OverlayTypeExtContainer::Instance.Find(pOverlayType);
 
 	if (pTypeExt->Palette && pTypeExt->Palette->ColorschemeDataVector)
 		pConvert = pTypeExt->Palette->ColorschemeDataVector->GetItem(colorSchemeIndex)->LightConvert;

@@ -3,7 +3,7 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/WarheadType/Body.h>
 
-bool CanAffectHouse(WarheadTypeExt::ExtData* warheadTypeExt,HouseClass* pOwnerHouse, HouseClass* pTargetHouse)
+bool CanAffectHouse(WarheadTypeExtData* warheadTypeExt,HouseClass* pOwnerHouse, HouseClass* pTargetHouse)
 {
 	if (pOwnerHouse && pTargetHouse)
 	{
@@ -23,7 +23,7 @@ bool CanAffectHouse(WarheadTypeExt::ExtData* warheadTypeExt,HouseClass* pOwnerHo
 	return true;
 }
 
-bool AffectMe(ObjectClass* pVictim , ObjectClass* pAttacker, WarheadTypeClass* pWH, HouseClass* pTargetHouse, WarheadTypeExt::ExtData* warheadTypeExt)
+bool AffectMe(ObjectClass* pVictim , ObjectClass* pAttacker, WarheadTypeClass* pWH, HouseClass* pTargetHouse, WarheadTypeExtData* warheadTypeExt)
 {
 	if (pAttacker && warheadTypeExt)
 	{
@@ -34,7 +34,7 @@ bool AffectMe(ObjectClass* pVictim , ObjectClass* pAttacker, WarheadTypeClass* p
 }
 
 
-bool DamageMe(ObjectClass* pVictim, int damage, int distanceFromEpicenter, WarheadTypeExt::ExtData* warheadTypeExt, int& realDamage, bool effectsRequireDamage = false)
+bool DamageMe(ObjectClass* pVictim, int damage, int distanceFromEpicenter, WarheadTypeExtData* warheadTypeExt, int& realDamage, bool effectsRequireDamage = false)
 {
 	// 计算实际伤害
 	if (damage > 0)
@@ -72,7 +72,7 @@ bool DamageMe(ObjectClass* pVictim, int damage, int distanceFromEpicenter, Warhe
 
 void AttachEffect(ObjectClass* pVictim, AttachEffectType* aeType, ObjectClass* pAttacker, HouseClass* pAttackingHouse)
 {
-	auto pExt = TechnoExt::ExtMap.Find((TechnoClass*)pVictim);
+	auto pExt = TechnoExtContainer::Instance.Find((TechnoClass*)pVictim);
 	auto pManager = pExt->AnotherData.MyManager.get();
 
 	if (!pManager)
@@ -105,9 +105,9 @@ void AttachEffect(ObjectClass* pVictim, AttachEffectType* aeType, ObjectClass* p
 
 void ReceiveDamage_AttachEffect(ObjectClass* pVictim, int* pDamage, int distanceFromEpicenter, WarheadTypeClass* pWH,
 	ObjectClass* pAttacker, bool ignoreDefenses, bool preventPassengerEscape, HouseClass* pAttackingHouse,
-	WarheadTypeExt::ExtData* whExt, int realDamage)
+	WarheadTypeExtData* whExt, int realDamage)
 {
-	auto pExt = TechnoExt::ExtMap.Find((TechnoClass*)pVictim);
+	auto pExt = TechnoExtContainer::Instance.Find((TechnoClass*)pVictim);
 	auto pManager = pExt->AnotherData.MyManager.get();
 
 	if (!pManager)
@@ -147,7 +147,7 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage, 0x7)
 	if (!pTechno->IsActive())
 		return 0x0;
 
-	auto pWhExt = WarheadTypeExt::ExtMap.Find(pWH);
+	auto pWhExt = WarheadTypeExtContainer::Instance.Find(pWH);
 	int nDamage;
 	if (AffectMe(pTechno,pAttacker, pWH, pAttackingHouse, pWhExt) &&
 		DamageMe(pTechno, *pDamage, distanceFromEpicenter, pWhExt, nDamage))

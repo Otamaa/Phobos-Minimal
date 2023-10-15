@@ -170,7 +170,7 @@ DEFINE_HOOK(0x443FD8, BuildingClass_ExitObject_PoseDir_B, 0x8)
 //
 //	if (const auto pBld = specific_cast<BuildingClass*>(pContact)) {
 //
-//		const auto pExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+//		const auto pExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 //		const auto nIdx = pBld->FindLinkIndex(pAircraft);
 //
 //		if (!pExt->DockPoseDir.empty() && nIdx != -1) {
@@ -178,7 +178,7 @@ DEFINE_HOOK(0x443FD8, BuildingClass_ExitObject_PoseDir_B, 0x8)
 //			return SetFromValue; //we return here , similar to Rules->PoseDir
 //		}
 //	}
-//	else if (TechnoTypeExt::ExtMap.Find(pAircraft->Type))
+//	else if (TechnoTypeExtContainer::Instance.Find(pAircraft->Type))
 //	{
 //
 //	}

@@ -22,7 +22,7 @@ struct TrailData
 		, Onturrents { nTur }
 	{ }
 
-	virtual ~TrailData() = default;
+	~TrailData() = default;
 
 	TrailData(const TrailData& other) = default;
 	TrailData& operator=(const TrailData& other) = default;
@@ -79,7 +79,7 @@ struct TrailsReader
 
 	explicit TrailsReader() : CurrentData {} { CurrentData.reserve(2); };
 
-	virtual ~TrailsReader() = default;
+	~TrailsReader() = default;
 
 	TrailsReader(const TrailsReader& other) = default;
 	TrailsReader& operator=(const TrailsReader& other) = default;

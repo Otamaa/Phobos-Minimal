@@ -16,7 +16,7 @@
 //		if (superCount > MaxSWShown)
 //			break;
 //
-//		if(SWTypeExt::ExtMap.Find(pSuper->Type)->IsAvailable(pCurrent))
+//		if(SWTypeExtContainer::Instance.Find(pSuper->Type)->IsAvailable(pCurrent))
 //			superCount++;
 //	}
 //
@@ -72,7 +72,7 @@
 //		if (superCount > MaxSWShown)
 //			break;
 //
-//		if (SWTypeExt::ExtMap.Find(pSuper->Type)->IsAvailable(pCurrent))
+//		if (SWTypeExtContainer::Instance.Find(pSuper->Type)->IsAvailable(pCurrent))
 //			superCount++;
 //	}
 //
@@ -125,7 +125,7 @@
 //		if (grantedSupers.size() > MaxSWShown)
 //			break;
 //
-//		if(SWTypeExt::ExtMap.Find(pSuper->Type)->IsAvailable(pCurrent))
+//		if(SWTypeExtContainer::Instance.Find(pSuper->Type)->IsAvailable(pCurrent))
 //			grantedSupers.emplace_back(pSuper);
 //	}
 //
@@ -155,7 +155,7 @@
 //		{
 //			bool useAITargeting = false;
 //
-//			if (const auto pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type))
+//			if (const auto pSWExt = SWTypeExtContainer::Instance.Find(pSuper->Type))
 //			{
 //				useAITargeting = pSWExt->SW_UseAITargeting;
 //				VocClass::PlayGlobal(RulesClass::Instance->GUIBuildSound, Panning::Center, 1.0);

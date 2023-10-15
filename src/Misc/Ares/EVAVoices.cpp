@@ -51,6 +51,8 @@ void EVAVoices::RegisterType(const char* type)
 	}
 }
 
+#define disable_eva_hooks
+
 #ifndef disable_eva_hooks
 // replace the complete ini loading function
 DEFINE_OVERRIDE_HOOK(0x753000, VoxClass_CreateFromINIList, 6)
@@ -178,7 +180,7 @@ DEFINE_OVERRIDE_HOOK(0x7534e0 , VoxClass_SetEVAIndex , 5)
 {	GET(int ,side , ECX);
 
 	if (auto pSide = SideClass::Array->GetItemOrDefault(side)) {
-		VoxClass::EVAIndex = SideExt::ExtMap.Find(pSide)->EVAIndex;
+		VoxClass::EVAIndex = SideExtContainer::Instance.Find(pSide)->EVAIndex;
 	} else {
 		VoxClass::EVAIndex = -1;
 	}

@@ -23,25 +23,18 @@ enum class BunkerSoundMode : int
 	Up, Down
 };
 
-class BuildingTypeExt
-{
-public:
-
-	static std::vector<std::string> trenchKinds; //!< Vector of strings associating known trench names with IsTrench IDs. \sa IsTrench
-	static const DirStruct DefaultJuggerFacing;
-	static const Foundation CustomFoundation = static_cast<Foundation>(0x7F);
-	static const CellStruct FoundationEndMarker;
-
-	class ExtData final : public Extension<BuildingTypeClass>
+	class BuildingTypeExtData final
 	{
 	public:
 		static constexpr size_t Canary = 0x11111111;
 		using base_type = BuildingTypeClass;
 		static constexpr size_t ExtOffset = 0x1794;
 
+		base_type* AttachedToObject {};
+		InitState Initialized { InitState::Blank };
 	public:
 
-		TechnoTypeExt::ExtData* Type { nullptr };
+		TechnoTypeExtData* Type { nullptr };
 
 		PrismForwardingData PrismForwarding {};
 
@@ -284,8 +277,10 @@ public:
 		Nullable<AffectedHouse> DisplayIncome_Houses {};
 		Valueable<Point2D> DisplayIncome_Offset {};
 
-		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject) {}
-		virtual ~ExtData() override = default;
+		BuildingTypeExtData(BuildingTypeClass* OwnerObject) noexcept {
+			this->AttachedToObject = OwnerObject;
+		}
+		~BuildingTypeExtData() noexcept = default;
 
 		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 		void Initialize();
@@ -304,23 +299,70 @@ public:
 		void UpdateFoundationRadarShape();
 
 		static bool IsFoundationEqual(BuildingTypeClass* pType1, BuildingTypeClass* pType2);
+		// Short check: Is the building of a linkable kind at all?
+		static bool IsLinkable(BuildingTypeClass* pThis);
+		static int GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse);
+		static float GetPurifierBonusses(HouseClass* pHouse);
+		static double GetExternalFactorySpeedBonus(TechnoClass* pWhat);
+		static double GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseClass* pOwner);
+		static double GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, HouseClass* pOwner);
+		static bool CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass* pUpgradeType, HouseClass* pUpgradeOwner);
+		static int GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass* pHouse);
+
+		template<BunkerSoundMode UpSound>
+		struct BunkerSound
+		{
+			constexpr void operator ()(BuildingClass* pThis)
+			{
+
+				if constexpr (UpSound == BunkerSoundMode::Up)
+				{
+					const auto nSound = BuildingTypeExtContainer::Instance.Find(pThis->Type)->BunkerWallsUpSound.Get(RulesClass::Instance->BunkerWallsUpSound);
+					VocClass::PlayIndexAtPos(nSound, pThis->Location);
+				}
+				else
+				{
+					const auto nSound = BuildingTypeExtContainer::Instance.Find(pThis->Type)->BunkerWallsDownSound.Get(RulesClass::Instance->BunkerWallsDownSound);
+					VocClass::PlayIndexAtPos(nSound, pThis->Location);
+				}
+			}
+		};
+
+		static void DisplayPlacementPreview();
+		static Point2D* GetOccupyMuzzleFlash(BuildingClass* pThis, int nOccupyIdx);
+		static int CheckBuildLimit(HouseClass* pHouse, BuildingTypeClass* pItem, bool includeQueued);
+		static int BuildLimitRemaining(HouseClass* pHouse, BuildingTypeClass* pItem);
+		static int GetBuildingAnimTypeIndex(BuildingClass* pThis, const BuildingAnimSlot& nSlot, const char* pDefault);
+
+		static void UpdateBuildupFrames(BuildingTypeClass* pThis);
+
+		static bool __fastcall IsFactory(BuildingClass* pThis, void* _);
+		static void __fastcall DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset);
 
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
+	public:
+
+		static std::vector<std::string> trenchKinds; //!< Vector of strings associating known trench names with IsTrench IDs. \sa IsTrench
+		static const DirStruct DefaultJuggerFacing;
+		static const Foundation CustomFoundation = static_cast<Foundation>(0x7F);
+		static const CellStruct FoundationEndMarker;
 	};
 
-	class ExtContainer final : public Container<BuildingTypeExt::ExtData>
+	class BuildingTypeExtContainer final : public Container<BuildingTypeExtData>
 	{
 	public:
-		CONSTEXPR_NOCOPY_CLASS(BuildingTypeExt::ExtData, "BuildingTypeClass");
+		CONSTEXPR_NOCOPY_CLASSB(BuildingTypeExtContainer, BuildingTypeExtData, "BuildingTypeClass");
 	public:
+		static BuildingTypeExtContainer Instance;
+
 		virtual bool Load(BuildingTypeClass* pThis, IStream* pStm) override;
 
 		static bool LoadGlobals(PhobosStreamReader& Stm)
 		{
 			return Stm
-				.Process(BuildingTypeExt::trenchKinds)
+				.Process(BuildingTypeExtData::trenchKinds)
 				.Success()
 				;
 		}
@@ -328,51 +370,8 @@ public:
 		static bool SaveGlobals(PhobosStreamWriter& Stm)
 		{
 			return Stm
-				.Process(BuildingTypeExt::trenchKinds)
+				.Process(BuildingTypeExtData::trenchKinds)
 				.Success()
 				;
 		}
 	};
-
-	static ExtContainer ExtMap;
-
-	// Short check: Is the building of a linkable kind at all?
-	static bool IsLinkable(BuildingTypeClass* pThis);
-	static int GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse);
-	static float GetPurifierBonusses(HouseClass* pHouse);
-	static double GetExternalFactorySpeedBonus(TechnoClass* pWhat);
-	static double GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseClass* pOwner);
-	static double GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, HouseClass* pOwner);
-	static bool CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass* pUpgradeType, HouseClass* pUpgradeOwner);
-	static int GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass* pHouse);
-
-	template<BunkerSoundMode UpSound>
-	struct BunkerSound
-	{
-		constexpr void operator ()(BuildingClass* pThis)
-		{
-
-			if constexpr (UpSound == BunkerSoundMode::Up)
-			{
-				const auto nSound = BuildingTypeExt::ExtMap.Find(pThis->Type)->BunkerWallsUpSound.Get(RulesClass::Instance->BunkerWallsUpSound);
-				VocClass::PlayIndexAtPos(nSound, pThis->Location);
-			}
-			else
-			{
-				const auto nSound = BuildingTypeExt::ExtMap.Find(pThis->Type)->BunkerWallsDownSound.Get(RulesClass::Instance->BunkerWallsDownSound);
-				VocClass::PlayIndexAtPos(nSound, pThis->Location);
-			}
-		}
-	};
-
-	static void DisplayPlacementPreview();
-	static Point2D* GetOccupyMuzzleFlash(BuildingClass* pThis, int nOccupyIdx);
-	static int CheckBuildLimit(HouseClass* pHouse, BuildingTypeClass* pItem, bool includeQueued);
-	static int BuildLimitRemaining(HouseClass* pHouse, BuildingTypeClass* pItem);
-	static int GetBuildingAnimTypeIndex(BuildingClass* pThis, const BuildingAnimSlot& nSlot, const char* pDefault);
-
-	static void UpdateBuildupFrames(BuildingTypeClass* pThis);
-
-	static bool __fastcall IsFactory(BuildingClass* pThis, void* _);
-	static void __fastcall DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset);
-};

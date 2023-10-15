@@ -18,7 +18,7 @@
 
 #include <Misc/DynamicPatcher/Techno/Passengers/PassengersFunctional.h>
 
-bool DisguiseAllowed(const TechnoTypeExt::ExtData* pThis, ObjectTypeClass* pThat)
+bool DisguiseAllowed(const TechnoTypeExtData* pThis, ObjectTypeClass* pThat)
 {
 	if (!pThis->DisguiseDisAllowed.empty() && pThis->DisguiseDisAllowed.Contains(pThat))
 		return false;
@@ -36,7 +36,7 @@ DEFINE_HOOK(0x6FE562, TechnoClass_FireAt_BurstRandomTarget, 0x6)
 	if (!pBullet || pWeapon->Burst < 2)
 		return 0;
 
-	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 	if (pWeaponExt->Burst_Retarget <= 0.0)
 		return 0;
 
@@ -48,7 +48,7 @@ DEFINE_HOOK(0x6FE562, TechnoClass_FireAt_BurstRandomTarget, 0x6)
 	auto pThisType = pThis->GetTechnoType();
 	std::vector<TechnoClass*> candidates;
 	auto originalTarget = pThis->Target;
-	auto pThisExt = TechnoExt::ExtMap.Find(pThis);
+	auto pThisExt = TechnoExtContainer::Instance.Find(pThis);
 	int minimumRange = pWeapon->MinimumRange;
 	int range = pWeapon->Range;
 	int airRange = pWeapon->Range + pThisType->AirRangeBonus;
@@ -102,7 +102,7 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 	auto const pObjectT = generic_cast<ObjectClass*>(pTarget);
 
 	if (pWeapon->Warhead->MakesDisguise && pObjectT) {
-		if (!DisguiseAllowed(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()), pObjectT->GetDisguise(true)))
+		if (!DisguiseAllowed(TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType()), pObjectT->GetDisguise(true)))
 			return FireIllegal;
 	}
 
@@ -118,22 +118,22 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 		}
 	}
 
-	//if (!TechnoExt::FireOnceAllowFiring(pThis, pWeapon, pTarget))
+	//if (!TechnoExtData::FireOnceAllowFiring(pThis, pWeapon, pTarget))
 	//	return FireCant;
 
-	if (!TechnoExt::ObjectHealthAllowFiring(pObjectT, pWeapon))
+	if (!TechnoExtData::ObjectHealthAllowFiring(pObjectT, pWeapon))
 		return FireIllegal;
 
 	if (PassengersFunctional::CanFire(pThis))
 		return FireIllegal;
 
-	if (!TechnoExt::CheckFundsAllowFiring(pThis, pWeapon->Warhead))
+	if (!TechnoExtData::CheckFundsAllowFiring(pThis, pWeapon->Warhead))
 		return FireIllegal;
 
-	if (!TechnoExt::InterceptorAllowFiring(pThis, pObjectT))
+	if (!TechnoExtData::InterceptorAllowFiring(pThis, pObjectT))
 		return FireIllegal;
 
-	auto const& [pTargetTechno, targetCell] = TechnoExt::GetTargets(pObjectT, pTarget);
+	auto const& [pTargetTechno, targetCell] = TechnoExtData::GetTargets(pObjectT, pTarget);
 
 	// AAOnly doesn't need to be checked if LandTargeting=1.
 	if ((!pTargetTechno
@@ -141,23 +141,23 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 		&& pWeapon->Projectile->AA
 		&& pTarget && !pTarget->IsInAir()
 		) {
-		if (BulletTypeExt::ExtMap.Find(pWeapon->Projectile)->AAOnly)
+		if (BulletTypeExtContainer::Instance.Find(pWeapon->Projectile)->AAOnly)
 			return FireIllegal;
 	}
 
-	if (!TechnoExt::CheckCellAllowFiring(targetCell, pWeapon))
+	if (!TechnoExtData::CheckCellAllowFiring(targetCell, pWeapon))
 		return FireIllegal;
 
 	if (pTargetTechno)
 	{
 
-		if (!TechnoExt::TechnoTargetAllowFiring(pThis, pTargetTechno, pWeapon))
+		if (!TechnoExtData::TechnoTargetAllowFiring(pThis, pTargetTechno, pWeapon))
 			return FireIllegal;
 
-		//if (!TechnoExt::TargetTechnoShieldAllowFiring(pTargetTechno, pWeapon))
+		//if (!TechnoExtData::TargetTechnoShieldAllowFiring(pTargetTechno, pWeapon))
 		//	return FireIllegal;
 
-		if (!TechnoExt::TargetFootAllowFiring(pThis, pTargetTechno, pWeapon))
+		if (!TechnoExtData::TargetFootAllowFiring(pThis, pTargetTechno, pWeapon))
 			return FireIllegal;
 	}
 
@@ -177,7 +177,7 @@ DEFINE_HOOK(0x6FE43B, TechnoClass_FireAt_OpenToppedDmgMult, 0x6) //7
 		GET_STACK(int, nDamage, STACK_OFFS(0xB0, 0x84));
 		if (auto const  pTransport = pThis->Transporter)
 		{
-			float nDamageMult = TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType())->OpenTopped_DamageMultiplier
+			float nDamageMult = TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())->OpenTopped_DamageMultiplier
 				.Get(RulesClass::Instance->OpenToppedDamageMultiplier);
 			R->EAX(int(nDamage * nDamageMult));
 			return ApplyDamageMult;
@@ -195,7 +195,7 @@ DEFINE_HOOK(0x6FE19A, TechnoClass_FireAt_AreaFire, 0x6) //7
 	GET(CellClass*, pCell, EAX);
 	GET_STACK(WeaponTypeClass*, pWeaponType, STACK_OFFS(0xB0, 0x70));
 
-	switch (TechnoExt::ApplyAreaFire(pThis, pCell, pWeaponType))
+	switch (TechnoExtData::ApplyAreaFire(pThis, pCell, pWeaponType))
 	{
 	case AreaFireReturnFlag::Continue:
 	{
@@ -222,7 +222,7 @@ DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_FeedbackWeapon, 0x6)//8
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBX);
 
-	auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+	auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
 	if (pWeaponExt->FeedbackWeapon.isset())
 	{
@@ -231,7 +231,7 @@ DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_FeedbackWeapon, 0x6)//8
 			if (pThis->InOpenToppedTransport && !fbWeapon->FireInTransport)
 				return 0;
 
-			WeaponTypeExt::DetonateAt(fbWeapon, pThis, pThis , true , nullptr);
+			WeaponTypeExtData::DetonateAt(fbWeapon, pThis, pThis , true , nullptr);
 		}
 	}
 
@@ -249,7 +249,7 @@ DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_Middle, 0x6)
 	//TechnoClass_FireAt_ToggleLaserWeaponIndex
 	if (pThis->WhatAmI() == BuildingClass::AbsID && pWeaponType->IsLaser)
 	{
-		auto const pExt = TechnoExt::ExtMap.Find(pThis);
+		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
 		if (pExt->CurrentLaserWeaponIndex.empty())
 			pExt->CurrentLaserWeaponIndex = weaponIndex;
@@ -263,20 +263,20 @@ DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_Middle, 0x6)
 
 	if (auto const pTargetObject = specific_cast<BulletClass* const>(pTarget))
 	{
-		if (TechnoExt::ExtMap.Find(pThis)->IsInterceptor())
+		if (TechnoExtContainer::Instance.Find(pThis)->IsInterceptor())
 		{
-			BulletExt::ExtMap.Find(pBullet)->IsInterceptor = true;
-			BulletExt::ExtMap.Find(pTargetObject)->InterceptedStatus = InterceptedStatus::Targeted;
+			BulletExtContainer::Instance.Find(pBullet)->IsInterceptor = true;
+			BulletExtContainer::Instance.Find(pTargetObject)->InterceptedStatus = InterceptedStatus::Targeted;
 
 			// If using Inviso projectile, can intercept bullets right after firing.
 			if (pTargetObject->IsAlive && pWeaponType->Projectile->Inviso)
 			{
-				WarheadTypeExt::ExtMap.Find(pWeaponType->Warhead)->InterceptBullets(pThis, pWeaponType, pTargetObject->Location);
+				WarheadTypeExtContainer::Instance.Find(pWeaponType->Warhead)->InterceptBullets(pThis, pWeaponType, pTargetObject->Location);
 			}
 		}
 	}
 
-	auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeaponType);
+	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeaponType);
 
 	if (pWeaponExt->ShakeLocal.Get() && !pThis->IsOnMyView())
 		return 0x0;
@@ -299,7 +299,7 @@ DEFINE_HOOK(0x6FC587, TechnoClass_CanFire_OpenTopped, 0x6)
 
 	if (auto const pTransport = pThis->Transporter)
 	{
-		auto const  pExt = TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType());
+		auto const  pExt = TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType());
 		if (pTransport->Deactivated && !pExt->OpenTopped_AllowFiringIfDeactivated)
 			return DisallowFiring;
 
@@ -324,7 +324,7 @@ DEFINE_HOOK(0x7012C0, TechnoClass_WeaponRange, 0x8) //4
 	if (const auto pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType)
 	{
 		result = pWeapon->Range;
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThisType);
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThisType);
 
 		if (pThisType->OpenTopped && !pTypeExt->OpenTopped_IgnoreRangefinding.Get())
 		{
@@ -441,7 +441,7 @@ NOINLINE WeaponStruct* TechnoClass_GetWeaponAgainstWallWrapper(TechnoClass* pThi
 		if (weaponSecondary
 			&& weaponSecondary->WeaponType
 			&& weaponSecondary->WeaponType->Warhead->Wall
-			 && !TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->NoSecondaryWeaponFallback) {
+			 && !TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->NoSecondaryWeaponFallback) {
 			return weaponSecondary;
 		}
 	}

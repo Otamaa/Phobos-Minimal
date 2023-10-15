@@ -12,14 +12,14 @@
 // change the lambda UpdateStatus. Available means this super weapon exists at
 // all. Setting it to false removes the super weapon. PowerSourced controls
 // whether the super weapon charges or can be used.
-void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
+void SuperExtData::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 {
 	// look at every sane building this player owns, if it is not defeated already.
 	if (!pHouse->Defeated && !pHouse->IsObserver())
 	{
 		if (pHouse->Supers.Count > 0) {
 			pHouse->Supers.for_each([pHouse](SuperClass* pSuper) {
-				auto pExt = SuperExt::ExtMap.Find(pSuper);
+				auto pExt = SuperExtContainer::Instance.Find(pSuper);
 				pExt->Statusses.reset();
 
 				//if AlwaysGranted and SWAvaible
@@ -42,7 +42,7 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 				// check for upgrades. upgrades can give super weapons, too.
 				for (const auto type : pBld->GetTypes())
 				{
-					if (auto pUpgradeExt = BuildingTypeExt::ExtMap.TryFind(const_cast<BuildingTypeClass*>(type)))
+					if (auto pUpgradeExt = BuildingTypeExtContainer::Instance.TryFind(const_cast<BuildingTypeClass*>(type)))
 					{
 						for (auto i = 0; i < pUpgradeExt->GetSuperWeaponCount(); ++i)
 						{
@@ -50,7 +50,7 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 
 							if (idxSW >= 0)
 							{
-								const auto pSuperExt = SuperExt::ExtMap.Find(pHouse->Supers[idxSW]);
+								const auto pSuperExt = SuperExtContainer::Instance.Find(pHouse->Supers[idxSW]);
 								auto& status = pSuperExt->Statusses;
 
 								if (!status.Charging)
@@ -63,7 +63,7 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 										{
 											HasPower = pBld->HasPower
 												&& !pBld->IsUnderEMP()
-												&& (TechnoExt::ExtMap.Find(pBld)->Is_Operated || TechnoExt_ExtData::IsOperated(pBld));
+												&& (TechnoExtContainer::Instance.Find(pBld)->Is_Operated || TechnoExt_ExtData::IsOperated(pBld));
 
 											PowerChecked = true;
 										}
@@ -98,7 +98,7 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 		if (!hasPower || !bIsSWShellEnabled) {
 			pHouse->Supers.for_each([&](SuperClass* pSuper) {
 
-				const auto pExt = SuperExt::ExtMap.Find(pSuper);
+				const auto pExt = SuperExtContainer::Instance.Find(pSuper);
 				auto& nStatus = pExt->Statusses;
 
 				// turn off super weapons that are disallowed.
@@ -123,7 +123,7 @@ void SuperExt::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 // load / save
 
 template <typename T>
-void SuperExt::ExtData::Serialize(T& Stm) {
+void SuperExtData::Serialize(T& Stm) {
 
 	Stm
 		.Process(this->Initialized)
@@ -139,7 +139,7 @@ void SuperExt::ExtData::Serialize(T& Stm) {
 
 // =============================
 // container
-SuperExt::ExtContainer SuperExt::ExtMap;
+SuperExtContainer SuperExtContainer::Instance;
 
 // =============================
 // container hooks
@@ -149,8 +149,8 @@ DEFINE_HOOK(0x6CB10E, SuperClass_CTOR, 0x7)
 {
 	GET(SuperClass*, pItem, ESI);
 
-	if (auto pExt = SuperExt::ExtMap.FindOrAllocate(pItem)) {
-		pExt->Type = SWTypeExt::ExtMap.TryFind(pItem->Type);
+	if (auto pExt = SuperExtContainer::Instance.FindOrAllocate(pItem)) {
+		pExt->Type = SWTypeExtContainer::Instance.TryFind(pItem->Type);
 	}
 
 	return 0;
@@ -159,7 +159,7 @@ DEFINE_HOOK(0x6CB10E, SuperClass_CTOR, 0x7)
 DEFINE_HOOK(0x6CB1BD, SuperClass_SDDTOR, 0x7)
 {
 	GET(SuperClass*, pItem, ESI);
-	SuperExt::ExtMap.Remove(pItem);
+	SuperExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 
@@ -169,20 +169,20 @@ DEFINE_HOOK(0x6CDFD0, SuperClass_SaveLoad_Prefix, 0x8)
 	GET_STACK(SuperClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 
-	SuperExt::ExtMap.PrepareStream(pItem, pStm);
+	SuperExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
 }
 
 DEFINE_HOOK(0x6CDFC4, SuperClass_Load_Suffix, 0x7)
 {
-	SuperExt::ExtMap.LoadStatic();
+	SuperExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
 DEFINE_HOOK(0x6CDFE8, SuperClass_Save_Suffix, 0x5)
 {
-	SuperExt::ExtMap.SaveStatic();
+	SuperExtContainer::Instance.SaveStatic();
 	return 0;
 }
 
@@ -192,14 +192,14 @@ DEFINE_HOOK(0x6CDFE8, SuperClass_Save_Suffix, 0x5)
 // 	GET(void*, target, EAX);
 // 	GET_STACK(bool, all, STACK_OFFS(0x4, -0x8));
 //
-// 	SuperExt::ExtMap.InvalidatePointerFor(pThis , target , all);
+// 	SuperExtContainer::Instance.InvalidatePointerFor(pThis , target , all);
 //
 // 	return target == pThis->Type ? 0x6CE006 : 0x6CE009;
 // }
 
 void __fastcall SuperClass_Detach_Wrapper(SuperClass* pThis ,DWORD , AbstractClass* target , bool all)\
 {
-	SuperExt::ExtMap.InvalidatePointerFor(pThis , target , all);
+	SuperExtContainer::Instance.InvalidatePointerFor(pThis , target , all);
 	pThis->SuperClass::PointerExpired(target , all);
 }
 DEFINE_JUMP(VTABLE, 0x7F4010, GET_OFFSET(SuperClass_Detach_Wrapper))

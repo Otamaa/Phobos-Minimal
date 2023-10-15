@@ -30,7 +30,7 @@ int AddExpCustom(VeterancyStruct* vstruct, int targetCost, int exp)
 	return transffered;
 }
 
-int WarheadTypeExt::ExtData::TransactOneValue(TechnoClass* pTechno, TechnoTypeClass* pTechnoType, int transactValue, TransactValueType valueType)
+int WarheadTypeExtData::TransactOneValue(TechnoClass* pTechno, TechnoTypeClass* pTechnoType, int transactValue, TransactValueType valueType)
 {
 	if (pTechno) {
 
@@ -45,7 +45,7 @@ int WarheadTypeExt::ExtData::TransactOneValue(TechnoClass* pTechno, TechnoTypeCl
 	return 0;
 }
 
-int WarheadTypeExt::ExtData::TransactGetValue(TechnoClass* pTarget, TechnoClass* pOwner, int flat, double percent, bool calcFromTarget)
+int WarheadTypeExtData::TransactGetValue(TechnoClass* pTarget, TechnoClass* pOwner, int flat, double percent, bool calcFromTarget)
 {
 	int flatValue = 0, percentValue = 0;
 
@@ -64,7 +64,7 @@ int WarheadTypeExt::ExtData::TransactGetValue(TechnoClass* pTarget, TechnoClass*
 	return abs(percentValue) > abs(flatValue) ? percentValue : flatValue;
 }
 
-TransactData WarheadTypeExt::ExtData::TransactGetSourceAndTarget(TechnoClass* pTarget, TechnoTypeClass* pTargetType, TechnoClass* pOwner, TechnoTypeClass* pOwnerType, int targets)
+TransactData WarheadTypeExtData::TransactGetSourceAndTarget(TechnoClass* pTarget, TechnoTypeClass* pTargetType, TechnoClass* pOwner, TechnoTypeClass* pOwnerType, int targets)
 {
 	TransactData allVal;
 	std::vector<int> sourceValues;
@@ -116,7 +116,7 @@ TransactData WarheadTypeExt::ExtData::TransactGetSourceAndTarget(TechnoClass* pT
 	return allVal;
 }
 
-void WarheadTypeExt::ExtData::TransactOnOneUnit(TechnoClass* pTarget, TechnoClass* pOwner, int targets)
+void WarheadTypeExtData::TransactOnOneUnit(TechnoClass* pTarget, TechnoClass* pOwner, int targets)
 {
 	auto const pTargetType = pTarget ? pTarget->GetTechnoType() : nullptr;
 	auto const pOwnerType = pOwner ? pOwner->GetTechnoType() : nullptr;
@@ -162,7 +162,7 @@ void WarheadTypeExt::ExtData::TransactOnOneUnit(TechnoClass* pTarget, TechnoClas
 	}
 }
 
-void WarheadTypeExt::ExtData::TransactOnAllUnits(std::vector<TechnoClass*>& nVec, HouseClass* pHouse,TechnoClass* pOwner)
+void WarheadTypeExtData::TransactOnAllUnits(std::vector<TechnoClass*>& nVec, HouseClass* pHouse,TechnoClass* pOwner)
 {
 	//since we are on last chain of the event , we can do these thing
 	const auto NotEligible = [this, pHouse , pOwner](TechnoClass* const pTech)

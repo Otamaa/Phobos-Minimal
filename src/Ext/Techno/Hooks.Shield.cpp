@@ -26,7 +26,7 @@
 
 void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 {
-	if (ScriptExt::IsUnitAvailable(pThis, false))
+	if (ScriptExtData::IsUnitAvailable(pThis, false))
 	{
 		if (const auto pFoot = abstract_cast<FootClass*>(pThis))
 		{
@@ -34,7 +34,7 @@ void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 			if (pFoot->ParasiteEatingMe
 				&& pThis->WhatAmI() != AbstractType::Building)
 			{
-				const auto pWHExt = WarheadTypeExt::ExtMap.Find(args->WH);
+				const auto pWHExt = WarheadTypeExtContainer::Instance.Find(args->WH);
 				auto parasyte = pFoot->ParasiteEatingMe;
 
 				if (!pWHExt || !pWHExt->CanRemoveParasytes.isset() || !pWHExt->CanTargetHouse(parasyte->Owner, pThis))
@@ -46,12 +46,12 @@ void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 						VocClass::PlayAt(pWHExt->CanRemoveParasytes_ReportSound.Get(), parasyte->GetCoords());
 
 					// Kill the parasyte
-					CoordStruct coord = TechnoExt::PassengerKickOutLocation(pThis, parasyte, 10);
+					CoordStruct coord = TechnoExtData::PassengerKickOutLocation(pThis, parasyte, 10);
 
 					if (!pWHExt->CanRemoveParasytes_KickOut.Get() || coord == CoordStruct::Empty)
 					{
 						Debug::Log(__FUNCTION__"\n");
-						TechnoExt::HandleRemove(parasyte, args->Attacker, false , false);
+						TechnoExtData::HandleRemove(parasyte, args->Attacker, false , false);
 					}
 					else
 					{
@@ -61,7 +61,7 @@ void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 						if (!parasyte->Unlimbo(coord, parasyte->PrimaryFacing.Current().GetDir()))
 						{
 							Debug::Log(__FUNCTION__"\n");
-							TechnoExt::HandleRemove(parasyte, nullptr, false , false);
+							TechnoExtData::HandleRemove(parasyte, nullptr, false , false);
 							return;
 						}
 
@@ -78,7 +78,7 @@ void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 						{
 							if (auto const pAnim = GameCreate<AnimClass>(pWHExt->CanRemoveParasytes_KickOut_Anim.Get(), parasyte->GetCoords()))
 							{
-								AnimExt::SetAnimOwnerHouseKind(pAnim, args->SourceHouse ? args->SourceHouse : parasyte->Owner, pThis->Owner, parasyte, false);
+								AnimExtData::SetAnimOwnerHouseKind(pAnim, args->SourceHouse ? args->SourceHouse : parasyte->Owner, pThis->Owner, parasyte, false);
 								pAnim->SetOwnerObject(parasyte);
 							}
 						}
@@ -96,14 +96,14 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Early, 0x6)
 	GET(TechnoClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
 
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(args.WH);
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(args.WH);
 
 	pWHExt->ApplyDamageMult(pThis, &args);
 	//SkipAllReaction = false
 
 	if (!args.IgnoreDefenses)
 	{
-		if (auto pShieldData = TechnoExt::ExtMap.Find(pThis)->GetShield())
+		if (auto pShieldData = TechnoExtContainer::Instance.Find(pThis)->GetShield())
 		{
 			pShieldData->OnReceiveDamage(&args);
 		}
@@ -128,7 +128,7 @@ DEFINE_HOOK(0x7019D8, TechnoClass_ReceiveDamage_SkipLowDamageCheck, 0x5)
 	GET(TechnoClass*, pThis, ESI);
 	GET(int*, pDamage, EBX);
 
-	auto const pExt = TechnoExt::ExtMap.Find(pThis);
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	if (pExt->SkipLowDamageCheck)
 	{
@@ -149,7 +149,7 @@ DEFINE_HOOK(0x7019D8, TechnoClass_ReceiveDamage_SkipLowDamageCheck, 0x5)
 DEFINE_HOOK(addr, name, 0x6) {\
 GET(WeaponTypeClass*, pWeapon, regWP);\
 GET(TechnoClass*, pTarget, regTech);\
-	if (TechnoExt::ReplaceArmor(R, pTarget, pWeapon))\
+	if (TechnoExtData::ReplaceArmor(R, pTarget, pWeapon))\
 		{ return R->Origin() + 6; } return 0; }
 
 DEFINE_HOOK(0x70CF39, TechnoClass_EvalThreatRating_Shield, 0x6)
@@ -159,7 +159,7 @@ DEFINE_HOOK(0x70CF39, TechnoClass_EvalThreatRating_Shield, 0x6)
 
 	if (auto pTechno = generic_cast<TechnoClass*>(pTarget))
 	{
-		if (TechnoExt::ReplaceArmor(R, pTechno, pWeapon))
+		if (TechnoExtData::ReplaceArmor(R, pTechno, pWeapon))
 			return R->Origin() + 6;
 	}
 
@@ -178,8 +178,8 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_AfterRadioClassRemove, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
 
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
 
 	if (pThis->Owner  && pThis->Owner->CountOwnedAndPresent(pExt->Type) <= 0 && !pTypeExt->Linked_SW.empty())
 		pThis->Owner->UpdateSuperWeaponsOwned();
@@ -199,7 +199,7 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_AfterRadioClassRemove, 0x5)
 //	double result = pTechno->GetHealthPercentage();
 //	if (result >= 1.0)
 //	{
-//		const auto pExt = TechnoExt::ExtMap.Find(pTechno);
+//		const auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 //		if (const auto pShieldData = pExt->Shield.get())
 //		{
 //			if (pShieldData->IsActive())
@@ -232,7 +232,7 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_AfterRadioClassRemove, 0x5)
 //
 //		if (const auto pTechno = abstract_cast<TechnoClass*>(pObj))
 //		{
-//			const auto pExt = TechnoExt::ExtMap.Find(pTechno);
+//			const auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 //
 //			if (const auto pShieldData = pExt->Shield.get())
 //			{
@@ -263,7 +263,7 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_AfterRadioClassRemove, 0x5)
 //
 //		if (const auto pTechno = abstract_cast<TechnoClass*>(pObj))
 //		{
-//			const auto pExt = TechnoExt::ExtMap.Find(pTechno);
+//			const auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 //
 //			if (const auto pShieldData = pExt->Shield.get())
 //			{
@@ -297,7 +297,7 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_AfterRadioClassRemove, 0x5)
 //	{
 //		if (const auto pBuilding = specific_cast<BuildingClass*>(pTarget))
 //		{
-//			const auto pExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+//			const auto pExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 //
 //			if (HouseClass::CurrentPlayer->IsAlliedWith_(pBuilding))
 //			{

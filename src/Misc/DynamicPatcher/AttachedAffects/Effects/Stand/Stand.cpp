@@ -16,7 +16,7 @@ void Stand::CreateAndPutStand(ObjectClass* pObject, HouseClass* pHouse)
 		pStand = (TechnoClass*)Type->CreateObject(pHouse);
 		if (pStand)
 		{
-			if (auto ext = TechnoExt::ExtMap.Find(pStand))
+			if (auto ext = TechnoExtContainer::Instance.Find(pStand))
 			{
 				if (TypeData->VirtualUnit.Get()) {
 					ext->VirtualUnit = TypeData->VirtualUnit;
@@ -35,7 +35,7 @@ void Stand::CreateAndPutStand(ObjectClass* pObject, HouseClass* pHouse)
 					ext->MyMaster = pTechno;
 					//if (pTechno->Owner && pHouse == pTechno->Owner)
 					//{
-					 // auto masterExt = TechnoExt::ExtMap.Find((TechnoClass*)pObject);
+					 // auto masterExt = TechnoExtContainer::Instance.Find((TechnoClass*)pObject);
 					  //ext->AnotherData.MyManager->PaintballState = masterExt.AttachEffectManager.PaintballState;
 					//}
 				}	break;
@@ -304,7 +304,7 @@ void Stand::OnStopCommand()
 {
 	RemoveStandTarget();
 	onStopCommand = true;
-	auto ext = TechnoExt::ExtMap.Find(pStand);
+	auto ext = TechnoExtContainer::Instance.Find(pStand);
 	if (auto pManager = ext->AnotherData.MyManager.get())
 		pManager->StopCommand();
 }

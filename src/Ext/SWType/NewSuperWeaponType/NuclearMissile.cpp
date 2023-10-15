@@ -22,7 +22,7 @@ bool SW_NuclearMissile::HandleThisType(SuperWeaponType type) const
 	return (type == SuperWeaponType::Nuke);
 }
 
-SuperWeaponFlags SW_NuclearMissile::Flags(const SWTypeExt::ExtData* pData) const
+SuperWeaponFlags SW_NuclearMissile::Flags(const SWTypeExtData* pData) const
 {
 	return SuperWeaponFlags::NoEvent;
 }
@@ -32,7 +32,7 @@ bool SW_NuclearMissile::Activate(SuperClass* const pThis, const CellStruct& Coor
 	if (pThis->IsCharged)
 	{
 		auto const pType = pThis->Type;
-		auto const pData = SWTypeExt::ExtMap.Find(pType);
+		auto const pData = SWTypeExtContainer::Instance.Find(pType);
 
 		auto const pCell = MapClass::Instance->GetCellAt(Coords);
 		auto const target = pCell->GetCoordsWithBridge();
@@ -53,8 +53,8 @@ bool SW_NuclearMissile::Activate(SuperClass* const pThis, const CellStruct& Coor
 		{
 			// setup the missile and start the fire mission
 			pSilo->FiringSWType = pType->ArrayIndex;
-			TechnoExt::ExtMap.Find(pSilo)->LinkedSW = pThis;
-			TechnoExt::ExtMap.Find(pSilo)->SuperTarget = Coords;
+			TechnoExtContainer::Instance.Find(pSilo)->LinkedSW = pThis;
+			TechnoExtContainer::Instance.Find(pSilo)->SuperTarget = Coords;
 			pThis->Owner->NukeTarget = Coords;
 
 			pSilo->QueueMission(Mission::Missile, false);
@@ -90,9 +90,9 @@ bool SW_NuclearMissile::Activate(SuperClass* const pThis, const CellStruct& Coor
 	return false;
 }
 
-void SW_NuclearMissile::Initialize(SWTypeExt::ExtData* pData)
+void SW_NuclearMissile::Initialize(SWTypeExtData* pData)
 {
-	pData->OwnerObject()->Action = Action::Nuke;
+	pData->AttachedToObject->Action = Action::Nuke;
 	// default values for the original Nuke
 	pData->Nuke_Payload = WeaponTypeClass::FindOrAllocate(GameStrings::NukePayload); //use for nuke pointing down
 	//SW->WeaponType = used for nuke pointing up !
@@ -106,9 +106,9 @@ void SW_NuclearMissile::Initialize(SWTypeExt::ExtData* pData)
 	pData->CursorType = (int)MouseCursorType::Nuke;
 }
 
-void SW_NuclearMissile::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
+void SW_NuclearMissile::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
-	const char* section = pData->Get()->ID;
+	const char* section = pData->AttachedToObject->ID;
 
 	INI_EX exINI(pINI);
 
@@ -119,9 +119,9 @@ void SW_NuclearMissile::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 
 }
 
-bool SW_NuclearMissile::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+bool SW_NuclearMissile::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
-	const auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
+	const auto pBldExt = BuildingExtContainer::Instance.Find(pBuilding);
 	if(pBldExt->LimboID != -1)
 		return false;
 
@@ -131,7 +131,7 @@ bool SW_NuclearMissile::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingCl
 	return pBuilding->Type->NukeSilo && this->IsSWTypeAttachedToThis(pData, pBuilding);
 }
 
-WarheadTypeClass* SW_NuclearMissile::GetWarhead(const SWTypeExt::ExtData* pData) const
+WarheadTypeClass* SW_NuclearMissile::GetWarhead(const SWTypeExtData* pData) const
 {
 	if (pData->SW_Warhead.Get(nullptr))
 		return pData->SW_Warhead;
@@ -143,7 +143,7 @@ WarheadTypeClass* SW_NuclearMissile::GetWarhead(const SWTypeExt::ExtData* pData)
 	return nullptr; // :p
 }
 
-int SW_NuclearMissile::GetDamage(const SWTypeExt::ExtData* pData) const
+int SW_NuclearMissile::GetDamage(const SWTypeExtData* pData) const
 {
 	auto damage = pData->SW_Damage.Get(-1);
 	if (damage < 0) {
@@ -152,7 +152,7 @@ int SW_NuclearMissile::GetDamage(const SWTypeExt::ExtData* pData) const
 	return damage;
 }
 
-BuildingClass* SW_NuclearMissile::GetAlternateLauchSite(const SWTypeExt::ExtData* pData, SuperClass* pThis)
+BuildingClass* SW_NuclearMissile::GetAlternateLauchSite(const SWTypeExtData* pData, SuperClass* pThis)
 {
 	for (auto pBuilding : pThis->Owner->Buildings) {
 		if (!this->IsLaunchsiteAlive(pBuilding))
@@ -173,8 +173,8 @@ bool SW_NuclearMissile::DropNukeAt(SuperWeaponTypeClass* pSuper, CoordStruct con
 	const auto pCell = MapClass::Instance->GetCellAt(to);
 
 	if (auto const pBullet = GameCreate<BulletClass>()
-		//BulletTypeExt::ExtMap.Find(pPayload->Projectile)->CreateBullet(pCell, Owner, 0, nullptr,
-		//pPayload->Speed, WeaponTypeExt::ExtMap.Find(pPayload)->GetProjectileRange(), false , false)
+		//BulletTypeExtContainer::Instance.Find(pPayload->Projectile)->CreateBullet(pCell, Owner, 0, nullptr,
+		//pPayload->Speed, WeaponTypeExtContainer::Instance.Find(pPayload)->GetProjectileRange(), false , false)
 		)
 	{
 		pBullet->Construct(pPayload->Projectile, pCell, Owner, 0, nullptr, pPayload->Speed, false);
@@ -184,7 +184,7 @@ bool SW_NuclearMissile::DropNukeAt(SuperWeaponTypeClass* pSuper, CoordStruct con
 		WarheadTypeClass* pWarhead = pPayload->Warhead;
 
 		if(pSuper){
-			auto const pData = SWTypeExt::ExtMap.Find(pSuper);
+			auto const pData = SWTypeExtContainer::Instance.Find(pSuper);
 
 			if (auto const pAnimType = pData->Nuke_PsiWarning) {
 				OwnerHouse->PsiWarn(pCell, pBullet, pAnimType->ID);
@@ -194,16 +194,16 @@ bool SW_NuclearMissile::DropNukeAt(SuperWeaponTypeClass* pSuper, CoordStruct con
 			pWarhead = NewSWType::GetNewSWType(pData)->GetWarhead(pData);
 
 			// remember the fired SW type
-			BulletExt::ExtMap.Find(pBullet)->NukeSW = pSuper;
+			BulletExtContainer::Instance.Find(pBullet)->NukeSW = pSuper;
 		}
 
 		pBullet->Health = Damage; //Yes , this is
 		pBullet->WH = pWarhead;
 		pBullet->Bright = pPayload->Bright || pWarhead->Bright;
-		pBullet->Range = WeaponTypeExt::ExtMap.Find(pPayload)->GetProjectileRange();
+		pBullet->Range = WeaponTypeExtContainer::Instance.Find(pPayload)->GetProjectileRange();
 
 		if(!Owner)
-			BulletExt::ExtMap.Find(pBullet)->Owner = OwnerHouse;
+			BulletExtContainer::Instance.Find(pBullet)->Owner = OwnerHouse;
 
 #ifndef vanilla
 		// aim the bullet downward and put

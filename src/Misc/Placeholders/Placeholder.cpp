@@ -157,7 +157,7 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitMixes, 0x6)
 //	const auto pCell = MapClass::Instance->TryGetCellAt(candidate);
 //
 //	const bool isWater = pCell->LandType == LandType::Water;
-//	if (isWater && RulesExt::Global()->Crate_LandOnly.Get())
+//	if (isWater && RulesExtData::Instance()->Crate_LandOnly.Get())
 //		return SkipSpawn;
 //
 //	cell = MapClass::Instance->NearByLocation(pCell->MapCoords,
@@ -177,7 +177,7 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitMixes, 0x6)
 //	if (auto const pLinked = pThis->LinkedTo)
 //	{
 //		const double currentSpeed = pLinked->GetTechnoType()->Speed * pThis->CurrentSpeed *
-//			TechnoExt::GetCurrentSpeedMultiplier(pLinked);
+//			TechnoExtData::GetCurrentSpeedMultiplier(pLinked);
 //
 //		R->EAX(int(currentSpeed));
 //	}
@@ -216,7 +216,7 @@ DEFINE_HOOK(0x737DBF, UnitClass_ReceiveDamage_DeathAnim, 0xA)
 //	if (auto const pLinked = pThis->LinkedTo)
 //	{
 //		const double currentSpeed = pLinked->GetTechnoType()->Speed * pThis->CurrentSpeed *
-//			TechnoExt::GetCurrentSpeedMultiplier(pLinked);
+//			TechnoExtData::GetCurrentSpeedMultiplier(pLinked);
 //
 //		R->EAX(int(currentSpeed));
 //	}
@@ -262,7 +262,7 @@ DEFINE_HOOK(0x469BD6, BulletClass_Logics_MindControlAlternative2, 0x6)
 	{
 		if (const auto pTargetType = pTarget->GetTechnoType())
 		{
-			auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(pBulletWH);
+			auto const pWarheadExt = WarheadTypeExtContainer::Instance.Find(pBulletWH);
 			{
 				const double currentHealthPerc = pTarget->GetHealthPercentage();
 				const bool flipComparations = pWarheadExt->MindControl_Threshold_Inverse;
@@ -492,7 +492,7 @@ DEFINE_HOOK(0x5206F9, InfantryClass_UpdateFiringState_AIDeploy, 0x8)
 	{
 		const auto pHouseOwner = pThis->GetOwningHouse();
 		const auto pType = pThis->Type;
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		// Other hooks needed
 		//DeployToFire.RequiresAIOnly

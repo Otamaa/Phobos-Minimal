@@ -70,7 +70,7 @@ static	void __fastcall _Log_PathFailere_1(const char* pFormat, ...)
 	if (Phobos::Otamaa::IsAdmin)
 		return;
 
-	if (!RulesExt::Global()->DisablePathfindFailureLog.Get())
+	if (!RulesExtData::Instance()->DisablePathfindFailureLog.Get())
 		Debug::Log(pFormat);
 }
 
@@ -81,7 +81,7 @@ static	void __fastcall _Log_PathFailere_2(const char* pFormat, ...)
 	if (Phobos::Otamaa::IsAdmin)
 		return;
 
-	if (!RulesExt::Global()->DisablePathfindFailureLog.Get())
+	if (!RulesExtData::Instance()->DisablePathfindFailureLog.Get())
 		Debug::Log(pFormat);
 }
 

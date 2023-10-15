@@ -13,10 +13,10 @@ std::vector<const char*> SW_HunterSeeker::GetTypeString() const
 bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	HouseClass* pOwner = pThis->Owner;
-	auto pExt = SWTypeExt::ExtMap.Find(pThis->Type);
+	auto pExt = SWTypeExtContainer::Instance.Find(pThis->Type);
 
 	// get the appropriate hunter seeker type
-	UnitTypeClass* pType = pExt->HunterSeeker_Type.Get(HouseExt::GetHunterSeeker(pOwner));
+	UnitTypeClass* pType = pExt->HunterSeeker_Type.Get(HouseExtData::GetHunterSeeker(pOwner));
 
 	// no type found
 	if (!pType)
@@ -47,7 +47,7 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 			// create a hunter seeker
 			if (auto pHunter = (UnitClass*)pType->CreateObject(pOwner))
 			{
-				TechnoExt::ExtMap.Find(pHunter)->LinkedSW = pThis;
+				TechnoExtContainer::Instance.Find(pHunter)->LinkedSW = pThis;
 
 				// put it on the map and let it go
 				CoordStruct crd = CellClass::Cell2Coord(cell);
@@ -73,7 +73,7 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 			//		if (auto pHunter = static_cast<UnitClass*>(pType->CreateObject(pOwner)))
 			//		{
 			//			if (pHunter->Type->HunterSeeker)
-			//				TechnoExt::ExtMap.Find(pHunter)->LinkedSW = pThis;
+			//				TechnoExtContainer::Instance.Find(pHunter)->LinkedSW = pThis;
 			//
 			//			// put it on the map and let it go
 			//			CoordStruct crd = CellClass::Cell2Coord(cell);
@@ -106,7 +106,7 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 	return Success != 0;
 }
 
-void SW_HunterSeeker::Initialize(SWTypeExt::ExtData* pData)
+void SW_HunterSeeker::Initialize(SWTypeExtData* pData)
 {	// Defaults to HunterSeeker values
 	pData->SW_MaxCount = 1;
 
@@ -120,11 +120,11 @@ void SW_HunterSeeker::Initialize(SWTypeExt::ExtData* pData)
 	pData->Text_Ready = CSFText("TXT_RELEASE");
 
 	// hardcoded
-	pData->Get()->Action = Action::None;
+	pData->AttachedToObject->Action = Action::None;
 	pData->SW_RadarEvent = false;
 }
 
-void SW_HunterSeeker::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
+void SW_HunterSeeker::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
 	const char* section = pData->get_ID();
 
@@ -137,16 +137,16 @@ void SW_HunterSeeker::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->HunterSeeker_Type_Count.Read(exINI, section, "HunterSeeker.Count"); // WIP , attached code is disabled atm
 
 	// hardcoded
-	pData->Get()->Action = Action::None;
+	pData->AttachedToObject->Action = Action::None;
 	pData->SW_RadarEvent = false;
 }
 
-bool SW_HunterSeeker::IsLaunchSite_HS(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+bool SW_HunterSeeker::IsLaunchSite_HS(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
 	// don't further question the types in this list
 		// get the appropriate launch buildings list
 	const auto HSBuilding = !pData->HunterSeeker_Buildings.empty()
-		? make_iterator(pData->HunterSeeker_Buildings) : make_iterator(RulesExt::Global()->HunterSeekerBuildings);
+		? make_iterator(pData->HunterSeeker_Buildings) : make_iterator(RulesExtData::Instance()->HunterSeekerBuildings);
 
 	if (HSBuilding.contains(pBuilding->Type))
 		return true;
@@ -158,7 +158,7 @@ bool SW_HunterSeeker::IsLaunchSite_HS(const SWTypeExt::ExtData* pData, BuildingC
 	return false;
 }
 
-bool SW_HunterSeeker::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+bool SW_HunterSeeker::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
 	if (!this->IsLaunchsiteAlive(pBuilding))
 		return false;
@@ -166,9 +166,9 @@ bool SW_HunterSeeker::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClas
 	return this->IsLaunchSite_HS(pData , pBuilding);
 }
 
-CellStruct NOINLINE SW_HunterSeeker::GetLaunchCell(SWTypeExt::ExtData* pSWType, BuildingClass* pBuilding, UnitTypeClass* pHunter) const
+CellStruct NOINLINE SW_HunterSeeker::GetLaunchCell(SWTypeExtData* pSWType, BuildingClass* pBuilding, UnitTypeClass* pHunter) const
 {
-	const auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
+	const auto pBldExt = BuildingExtContainer::Instance.Find(pBuilding);
 	CellStruct cell;
 
 	if (pBldExt->LimboID != -1)

@@ -36,6 +36,6 @@ void SaveVariablesToFileCommandClass::Execute(WWKey eInput) const
 		true
 	);
 
-	ScenarioExt::SaveVariablesToFile(false);
-	ScenarioExt::SaveVariablesToFile(true);
+	ScenarioExtData::SaveVariablesToFile(false);
+	ScenarioExtData::SaveVariablesToFile(true);
 }

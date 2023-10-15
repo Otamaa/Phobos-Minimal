@@ -25,9 +25,9 @@ DEFINE_OVERRIDE_HOOK(0x415085, AircraftClass_Update_DamageSmoke, 7)
 {
 	GET(AircraftClass*, pThis, ESI);
 
-	auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
-	AnimTypeClass* pType = pExt->SmokeAnim.Get(RulesExt::Global()->DefaultAircraftDamagedSmoke);
+	AnimTypeClass* pType = pExt->SmokeAnim.Get(RulesExtData::Instance()->DefaultAircraftDamagedSmoke);
 	if(!pType)
 		return 0x41512C;
 
@@ -86,7 +86,7 @@ DEFINE_OVERRIDE_HOOK(0x41949F, AircraftClass_ReceivedRadioCommand_SpecificPassen
 
 	auto const pSenderType = pSender->GetTechnoType();
 
-	return TechnoTypeExt::PassangersAllowed(pType, pSenderType) ? Allowed : Disallowed;
+	return TechnoTypeExtData::PassangersAllowed(pType, pSenderType) ? Allowed : Disallowed;
 }
 
 DEFINE_OVERRIDE_HOOK(0x41946B, AircraftClass_ReceivedRadioCommand_QueryEnterAsPassenger_KillDriver, 6)
@@ -94,7 +94,7 @@ DEFINE_OVERRIDE_HOOK(0x41946B, AircraftClass_ReceivedRadioCommand_QueryEnterAsPa
 	// prevent units from getting the enter cursor on transports
 	// with killed drivers.
 	GET(TechnoClass*, pThis, ESI);
-	return (TechnoExt::ExtMap.Find(pThis)->Is_DriverKilled ? 0x4190DDu : 0u);
+	return (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x4190DDu : 0u);
 }
 
 DEFINE_OVERRIDE_HOOK(0x416CF4, AircraftClass_Carryall_Unload_Guard, 0x5)
@@ -322,7 +322,7 @@ DEFINE_OVERRIDE_HOOK(0x416C3A, AircraftClass_Carryall_Unload_Facing, 0x5)
 		return RetFailed;
 
 	const auto pCargoType = pCargo->GetTechnoType();
-	const auto pCorgoTypeExt = TechnoTypeExt::ExtMap.Find(pCargoType);
+	const auto pCorgoTypeExt = TechnoTypeExtContainer::Instance.Find(pCargoType);
 	const auto nRot = pCargoType->ROT;
 
 	pCargo->PrimaryFacing.Set_ROT(nRot);

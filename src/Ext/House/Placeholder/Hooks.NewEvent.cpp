@@ -32,7 +32,7 @@ struct NetworkEventExt
 		{
 		case PhobosNetworkEvents::RepairAll:
 		{
-			HouseExt::ExtMap.Find(pHouse)->AllRepairEventRiggered = true; //where it is cleared ?
+			HouseExtContainer::Instance.Find(pHouse)->AllRepairEventRiggered = true; //where it is cleared ?
 			return true;
 		}
 		break;
@@ -72,7 +72,7 @@ DEFINE_HOOK(0x45064B, HouseClass_RepairAI_AutoRepair, 0x6)
 {
 	GET(HouseClass*, pThis, EAX);
 
-	if(auto pExt = HouseExt::ExtMap.Find(pThis))
+	if(auto pExt = HouseExtContainer::Instance.Find(pThis))
 		if(pExt->AllRepairEventRiggered)
 			return 0x450659;
 

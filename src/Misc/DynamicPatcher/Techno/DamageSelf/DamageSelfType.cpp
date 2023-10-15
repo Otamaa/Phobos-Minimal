@@ -61,7 +61,7 @@ void DamageSelfState::PlayWHAnim(ObjectClass* pObj, int realDamage, WarheadTypeC
 
 	if (auto pWHAnimType = MapClass::SelectDamageAnimation(realDamage, pWH, landType, location))
 	{
-		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pWHAnimType, location),
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pWHAnimType, location),
 			pObj->GetOwningHouse(),
 			nullptr,
 			false
@@ -92,7 +92,7 @@ void DamageSelfState::TechnoClass_Update_DamageSelf(TechnoClass* pTechno)
 					// Logger.Log($"{Game.CurrentFrame} {pTechno}[{pTechno.Ref.Type.Ref.Base.Base.ID}] 收到自伤 {realDamage} 而死，设置了平静的移除");
 					// 本次伤害足够打死目标，移除单位
 					Debug::Log(__FUNCTION__" Called \n");
-					TechnoExt::HandleRemove(pTechno , nullptr, false , false);
+					TechnoExtData::HandleRemove(pTechno , nullptr, false , false);
 					return;
 				}
 			}

@@ -45,7 +45,7 @@ DEFINE_OVERRIDE_HOOK(0x5f4fe7, ObjectClass_Put, 8)
 	GET(ObjectTypeClass*, pType, EBX);
 
 	if(auto pBullet = specific_cast<BulletClass*>(pThis)) {
-		BulletExt::ExtMap.Find(pBullet)->CreateAttachedSystem();
+		BulletExtContainer::Instance.Find(pBullet)->CreateAttachedSystem();
 	}
 
 	return pType ?  0x5F4FEF : 0x5F5210;
@@ -104,7 +104,7 @@ DEFINE_HOOK(0x46837F, BulletClass_DrawSHP_SetAnimPalette, 6)
 	if (!pType)
 		return 0x0;
 
-	const auto pTypeExt = BulletTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = BulletTypeExtContainer::Instance.Find(pType);
 
 	if (const auto pConvert = pTypeExt->GetBulletConvert()) {
 		R->EBX(pConvert);
@@ -124,7 +124,7 @@ DEFINE_OVERRIDE_HOOK(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
 	GET(AnimTypeClass* const, AnimType, EBX);
 	LEA_STACK(CoordStruct*, XYZ, 0x64);
 
-	const auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+	const auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(pThis->WH);
 	bool createdAnim = false;
 
 	int creationInterval = pWarheadExt->Splashed ?
@@ -132,7 +132,7 @@ DEFINE_OVERRIDE_HOOK(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
 
 	int* remainingInterval = &pWarheadExt->RemainingAnimCreationInterval;
 	if (creationInterval > 0 && pThis->Owner)
-			remainingInterval = &TechnoExt::ExtMap.Find(pThis->Owner)->WHAnimRemainingCreationInterval;
+			remainingInterval = &TechnoExtContainer::Instance.Find(pThis->Owner)->WHAnimRemainingCreationInterval;
 
 	if (creationInterval < 1 || *remainingInterval <= 0)
 	{
@@ -147,7 +147,7 @@ DEFINE_OVERRIDE_HOOK(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
 			pInvoker = pThis->Owner->GetOwningHouse();
 
 		} else {
-			if (auto const pBulletExt = BulletExt::ExtMap.Find(pThis))
+			if (auto const pBulletExt = BulletExtContainer::Instance.Find(pThis))
 				pInvoker = pBulletExt->Owner;
 		}
 
@@ -156,7 +156,7 @@ DEFINE_OVERRIDE_HOOK(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
 		if (pWarheadExt->SplashList_CreateAll && pWarheadExt->Splashed)
 			types = pWarheadExt->SplashList.GetElements(RulesClass::Instance->SplashList);
 		else if (pWarheadExt->AnimList_CreateAll && !pWarheadExt->Splashed)
-			types = pWarheadExt->OwnerObject()->AnimList;
+			types = pWarheadExt->AttachedToObject->AnimList;
 
 			for (auto pType : types)
 			{
@@ -168,17 +168,17 @@ DEFINE_OVERRIDE_HOOK(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
 						createdAnim = true;
 
 						if (const auto pTech = pThis->Owner) {
-							if (auto const pAnimExt = AnimExt::ExtMap.Find(pAnim))
+							if (auto const pAnimExt = AnimExtContainer::Instance.Find(pAnim))
 								pAnimExt->Invoker = pTech;
 						}
 
 						if (pAnim->Type->MakeInfantry > -1)
 						{
-							AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pVictim);
+							AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pVictim);
 						}
 						else
 						{
-							AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pVictim, pInvoker);
+							AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pVictim, pInvoker);
 						}
 					}
 			}
@@ -194,7 +194,7 @@ DEFINE_OVERRIDE_HOOK(0x46670F, BulletClass_Update_PreImpactAnim, 6)
 {
 	GET(BulletClass*, pThis, EBP);
 
-	const auto pWarheadTypeExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+	const auto pWarheadTypeExt = WarheadTypeExtContainer::Instance.Find(pThis->WH);
 
 	if (!pThis->NextAnim)
 		return 0x46671D;
@@ -217,7 +217,7 @@ DEFINE_OVERRIDE_HOOK(0x46867F, BulletClass_SetMovement_Parachute, 5)
 
 	R->EBX<BulletClass*>(Bullet);
 
-	const auto pBulletData = BulletTypeExt::ExtMap.Find(Bullet->Type);
+	const auto pBulletData = BulletTypeExtContainer::Instance.Find(Bullet->Type);
 
 	bool result = false;
 	if (pBulletData->Parachuted)
@@ -238,21 +238,21 @@ DEFINE_OVERRIDE_HOOK(0x468EB9, BulletClass_Fire_SplitsA, 6)
 {
 	//GET(BulletClass*, pThis, ESI);
 	GET(BulletTypeClass* const, pType, EAX);
-	return !BulletTypeExt::ExtMap.Find(pType)->HasSplitBehavior()
+	return !BulletTypeExtContainer::Instance.Find(pType)->HasSplitBehavior()
 		? 0x468EC7u : 0x468FF4u;
 }
 
 DEFINE_OVERRIDE_HOOK(0x468FFA, BulletClass_Fire_SplitsB, 6)
 {
 	GET(BulletTypeClass* const, pType, EAX);
-	return BulletTypeExt::ExtMap.Find(pType)->HasSplitBehavior()
+	return BulletTypeExtContainer::Instance.Find(pType)->HasSplitBehavior()
 		? 0x46909Au : 0x469008u;
 }
 
 DEFINE_OVERRIDE_HOOK(0x469EBA, BulletClass_DetonateAt_Splits, 6)
 {
 	GET(BulletClass*, pThis, ESI);
-	BulletExt::ApplyAirburst(pThis);
+	BulletExtData::ApplyAirburst(pThis);
 	return 0x46A290;
 }
 
@@ -270,7 +270,7 @@ DEFINE_OVERRIDE_HOOK(0x468000, BulletClass_GetAnimFrame, 6)
 		DirStruct dir(-pThis->Velocity.Y, pThis->Velocity.X);
 		const auto ReverseFacing32 = *reinterpret_cast<int(*)[8]>(0x7F4890);
 		const auto facing = ReverseFacing32[(short)dir.GetValue(5)];
-		const int length = BulletTypeExt::ExtMap.Find(pThis->Type)->AnimLength.Get();
+		const int length = BulletTypeExtContainer::Instance.Find(pThis->Type)->AnimLength.Get();
 
 		if (length > 1)
 		{

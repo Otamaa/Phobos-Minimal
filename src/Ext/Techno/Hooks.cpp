@@ -33,7 +33,7 @@ DEFINE_HOOK(0x518FBC, InfantryClass_DrawIt_DontRenderSHP, 0x6)
 
 	GET(InfantryClass*, pThis, EBP);
 
-	if (TechnoExt::ExtMap.Find(pThis)->IsWebbed && pThis->ParalysisTimer.GetTimeLeft() > 0)
+	if (TechnoExtContainer::Instance.Find(pThis)->IsWebbed && pThis->ParalysisTimer.GetTimeLeft() > 0)
 		return SkipDrawCode;
 
 	return 0;
@@ -43,7 +43,7 @@ DEFINE_HOOK(0x51AA49, InfantryClass_Assign_Destination_DisallowMoving, 0x6)
 {
 	GET(InfantryClass*, pThis, ECX);
 
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	if (pExt->IsWebbed && pThis->ParalysisTimer.HasTimeLeft()) {
 		if (pThis->Target) {
@@ -76,7 +76,7 @@ DEFINE_HOOK(0x702E4E, TechnoClass_RegisterDestruction_SaveKillerInfo, 0x6)
 	GET(TechnoClass*, pKiller, EDI);
 	GET(TechnoClass*, pVictim, ECX);
 
-	TechnoExt::ObjectKilledBy(pVictim, pKiller);
+	TechnoExtData::ObjectKilledBy(pVictim, pKiller);
 
 	return 0;
 }
@@ -86,7 +86,7 @@ DEFINE_HOOK(0x6FD05E, TechnoClass_RearmDelay_BurstDelays, 0x7)
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EDI);
 
-	const int burstDelay = WeaponTypeExt::GetBurstDelay(pWeapon, pThis->CurrentBurstIndex);
+	const int burstDelay = WeaponTypeExtData::GetBurstDelay(pWeapon, pThis->CurrentBurstIndex);
 
 	if (burstDelay >= 0)
 	{
@@ -105,7 +105,7 @@ DEFINE_HOOK(0x6F72D2, TechnoClass_IsCloseEnoughToTarget_OpenTopped_RangeBonus, 0
 
 	if (auto const pTransport = pThis->Transporter)
 	{
-		R->EAX(TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType())
+		R->EAX(TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())
 			->OpenTopped_RangeBonus.Get(RulesClass::Instance->OpenToppedRangeBonus));
 		return 0x6F72DE;
 	}
@@ -119,7 +119,7 @@ DEFINE_HOOK(0x71A82C, TemporalClass_AI_Opentopped_WarpDistance, 0x6) //C
 
 	if (auto const pTransport = pThis->Owner->Transporter)
 	{
-		R->EDX(TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType())
+		R->EDX(TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())
 			->OpenTopped_WarpDistance.Get(RulesClass::Instance->OpenToppedWarpDistance));
 		return 0x71A838;
 	}
@@ -133,7 +133,7 @@ DEFINE_HOOK(0x7098B9, TechnoClass_TargetSomethingNearby_AutoFire, 0x6)
 
 	GET(TechnoClass* const, pThis, ESI);
 
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	if (pExt->AutoFire)
 	{
@@ -152,8 +152,8 @@ DEFINE_HOOK(0x6F6CFE, TechnoClass_Unlimbo_LaserTrails, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	auto const pExt = TechnoExt::ExtMap.Find(pThis);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
 
 	if (!pExt->LaserTrails.empty())
 	{
@@ -173,19 +173,19 @@ DEFINE_HOOK(0x4DBF13, FootClass_SetOwningHouse, 0x6)
 {
 	GET(FootClass* const, pThis, ESI);
 
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	if(!pExt->LaserTrails.empty()) {
 		for (auto& trail : pExt->LaserTrails) {
 			if (trail.Type->IsHouseColor)
 				trail.CurrentColor = (pThis->Owner ?
-				pThis->Owner : HouseExt::FindCivilianSide())
+				pThis->Owner : HouseExtData::FindCivilianSide())
 				->LaserColor;
 		}
 	}
 
 	//if (pThis->Owner->IsHumanPlayer)
-	//	TechnoExt::ChangeOwnerMissionFix(pThis);
+	//	TechnoExtData::ChangeOwnerMissionFix(pThis);
 
 	return 0;
 }
@@ -194,7 +194,7 @@ DEFINE_HOOK(0x6FB086, TechnoClass_Reload_ReloadAmount_UpdateSharedAmmo, 0x8)
 {
 	GET(TechnoClass* const, pThis, ECX);
 
-	TechnoExt::UpdateSharedAmmo(pThis);
+	TechnoExtData::UpdateSharedAmmo(pThis);
 
 	return 0;
 }
@@ -204,7 +204,7 @@ DEFINE_HOOK(0x6FD446, TechnoClass_LaserZap_IsSingleColor, 0x7)
 	GET(WeaponTypeClass* const, pWeapon, ECX);
 	GET(LaserDrawClass* const, pLaser, EAX);
 
-	if (!pLaser->IsHouseColor && WeaponTypeExt::ExtMap.Find(pWeapon)->Laser_IsSingleColor)
+	if (!pLaser->IsHouseColor && WeaponTypeExtContainer::Instance.Find(pWeapon)->Laser_IsSingleColor)
 		pLaser->IsHouseColor = true;
 
 	// Fixes drawing thick lasers for non-PrismSupport building-fired lasers.
@@ -223,11 +223,11 @@ DEFINE_HOOK(0x70A4FB, TechnoClass_Draw_Pips_SelfHealGain, 0x5)
 
 	if (const auto pFoot = generic_cast<FootClass*>(pThis)){
 		if (const auto pParasiteFoot = pFoot->ParasiteEatingMe) {
-			TechnoExt::DrawParasitedPips(pFoot, pLocation, pBounds);
+			TechnoExtData::DrawParasitedPips(pFoot, pLocation, pBounds);
 		}
 	}
 
-	TechnoExt::DrawSelfHealPips(pThis, pLocation, pBounds);
+	TechnoExtData::DrawSelfHealPips(pThis, pLocation, pBounds);
 
 	return SkipGameDrawing;
 }
@@ -244,8 +244,8 @@ DEFINE_HOOK(0x70EFE0, TechnoClass_GetMaxSpeed, 0x8) //6
 	{
 		auto pType = pThis->GetTechnoType();
 
-		if (TechnoTypeExt::ExtMap.Find(pType)->UseDisguiseMovementSpeed)
-			pType = TechnoExt::GetDisguiseType(pThis, false, false).first;
+		if (TechnoTypeExtContainer::Instance.Find(pType)->UseDisguiseMovementSpeed)
+			pType = TechnoExtData::GetDisguiseType(pThis, false, false).first;
 
 		maxSpeed = pType->Speed;
 	}
@@ -264,7 +264,7 @@ DEFINE_HOOK(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x6) //0x8
 	GET(TechnoClass*, pKiller, EBX);
 	GET_STACK(HouseClass*, pDefaultRetHouse, STACK_OFFS(0x24, 0x14));
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pSlave->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pSlave->GetTechnoType());
 	{
 		if (pTypeExt->Death_WithMaster.Get() || pTypeExt->Slaved_ReturnTo == SlaveReturnTo::Suicide)
 		{
@@ -274,7 +274,7 @@ DEFINE_HOOK(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x6) //0x8
 		}
 
 		const auto pVictim = pThis->Owner ? pThis->Owner->GetOwningHouse() : pSlave->GetOwningHouse();
-		R->EAX(HouseExt::GetSlaveHouse(pTypeExt->Slaved_ReturnTo, pKiller->GetOwningHouse(), pVictim ? pVictim : pDefaultRetHouse));
+		R->EAX(HouseExtData::GetSlaveHouse(pTypeExt->Slaved_ReturnTo, pKiller->GetOwningHouse(), pVictim ? pVictim : pDefaultRetHouse));
 		return SkipSetEax;
 	}
 
@@ -305,7 +305,7 @@ DEFINE_HOOK(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 	// Currently only used with infantry, so a performance saving measure.
 	if (const auto pInf = specific_cast<InfantryClass*>(pThis))
 	{
-		const auto pExt = InfantryExt::ExtMap.Find(pInf);
+		const auto pExt = InfantryExtContainer::Instance.Find(pInf);
 		if (pExt->ForceFullRearmDelay)
 		{
 			pExt->ForceFullRearmDelay = false;
@@ -335,7 +335,7 @@ DEFINE_HOOK(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 	if (!pWeapon)
 		return ReturnFromFunction;
 
-	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 	int cumulativeDelay = 0;
 	int projectedDelay = 0;
 
@@ -344,7 +344,7 @@ DEFINE_HOOK(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 	{
 		for (int i = 0; i <= pThis->CurrentBurstIndex; i++)
 		{
-			int burstDelay = WeaponTypeExt::GetBurstDelay(pWeapon, i);
+			int burstDelay = WeaponTypeExtData::GetBurstDelay(pWeapon, i);
 			int delay = 0;
 
 			if (burstDelay > -1)
@@ -373,7 +373,7 @@ DEFINE_HOOK(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 			// If projected frame for firing next shot goes beyond the sequence frame count, cease firing after this shot and start rearm timer.
 			if (firingFrame + projectedDelay > frameCount)
 			{
-				InfantryExt::ExtMap.Find(pThis)->ForceFullRearmDelay = true;
+				InfantryExtContainer::Instance.Find(pThis)->ForceFullRearmDelay = true;
 			}
 		}
 
@@ -391,19 +391,19 @@ DEFINE_HOOK(0x702672, TechnoClass_ReceiveDamage_RevengeWeapon, 0x5)
 
 	if (pSource)
 	{
-		auto const pExt = TechnoExt::ExtMap.Find(pThis);
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 		if (pTypeExt && pTypeExt->RevengeWeapon.isset() &&
 			EnumFunctions::CanTargetHouse(pTypeExt->RevengeWeapon_AffectsHouses, pThis->Owner, pSource->Owner))
 		{
-			WeaponTypeExt::DetonateAt(pTypeExt->RevengeWeapon.Get(), pSource, pThis, true, nullptr);
+			WeaponTypeExtData::DetonateAt(pTypeExt->RevengeWeapon.Get(), pSource, pThis, true, nullptr);
 		}
 
 		for (const auto& weapon : pExt->RevengeWeapons)
 		{
 			if (EnumFunctions::CanTargetHouse(weapon.ApplyToHouses, pThis->Owner, pSource->Owner))
-				WeaponTypeExt::DetonateAt(weapon.Value, pSource, pThis , true, nullptr);
+				WeaponTypeExtData::DetonateAt(weapon.Value, pSource, pThis , true, nullptr);
 		}
 	}
 
@@ -418,7 +418,7 @@ DEFINE_HOOK(0x70265F, TechnoClass_ReceiveDamage_Explodes, 0x6)
 	enum { SkipKillingPassengers = 0x702669 };
 
 	GET(TechnoClass*, pThis, ESI);
-	return !TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->Explodes_KillPassengers ? SkipKillingPassengers : 0x0;
+	return !TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->Explodes_KillPassengers ? SkipKillingPassengers : 0x0;
 }
 
 DEFINE_HOOK(0x701DFF, TechnoClass_ReceiveDamage_AfterObjectClassCall, 0x7)
@@ -430,11 +430,11 @@ DEFINE_HOOK(0x701DFF, TechnoClass_ReceiveDamage_AfterObjectClassCall, 0x7)
 	const bool Show = Phobos::Otamaa::IsAdmin || *pDamage;
 
 	if (Phobos::Debug_DisplayDamageNumbers && Show)
-		TechnoExt::DisplayDamageNumberString(pThis, *pDamage, false , pWH);
+		TechnoExtData::DisplayDamageNumberString(pThis, *pDamage, false , pWH);
 
 	GET(DamageState, damageState, EDI);
 
-	GiftBoxFunctional::TakeDamage(TechnoExt::ExtMap.Find(pThis), TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()), pWH, damageState);
+	GiftBoxFunctional::TakeDamage(TechnoExtContainer::Instance.Find(pThis), TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType()), pWH, damageState);
 
 	if(damageState != DamageState::PostMortem && !pThis->IsAlive) {
 		R->EAX(DamageState::NowDead);
@@ -448,9 +448,9 @@ DEFINE_HOOK(0x7037F7, TechnoClass_Cloak_CloakAnim, 0x5)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
-	if (const auto pAnimType = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->CloakAnim.Get(RulesExt::Global()->CloakAnim))
+	if (const auto pAnimType = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->CloakAnim.Get(RulesExtData::Instance()->CloakAnim))
 	{
-		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pThis->GetCoords()),
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pThis->GetCoords()),
 			pThis->Owner,
 			nullptr,
 			false
@@ -464,9 +464,9 @@ DEFINE_HOOK(0x70374F, TechnoClass_Uncloak_DecloakAnim, 0x5)
 {
 	TechnoClass* const pThis = reinterpret_cast<TechnoClass*>(R->ESI<int>() - 0x9C);
 
-	if (const auto pAnimType = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->DecloakAnim.Get(RulesExt::Global()->DecloakAnim))
+	if (const auto pAnimType = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->DecloakAnim.Get(RulesExtData::Instance()->DecloakAnim))
 	{
-		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pThis->GetCoords()),
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pThis->GetCoords()),
 			pThis->Owner,
 			nullptr,
 			false
@@ -493,8 +493,8 @@ DEFINE_HOOK(0x4D9992, FootClass_PointerGotInvalid_Parasite, 0x7)
 
 	if (!bRemoved)
 	{
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-		bRemoved = pTypeExt->Cloak_KickOutParasite.Get(RulesExt::Global()->Cloak_KickOutParasite);
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+		bRemoved = pTypeExt->Cloak_KickOutParasite.Get(RulesExtData::Instance()->Cloak_KickOutParasite);
 	}
 
 	if (pParasiteOwner && pParasiteOwner->Health > 0)
@@ -517,10 +517,10 @@ DEFINE_HOOK(0x709B2E, TechnoClass_DrawPips_Sizes, 0x5)
 	const auto pType = pThis->GetTechnoType();
 
 	if (pType->PipScale == PipScale::Ammo) {
-		size = TechnoTypeExt::ExtMap.Find(pType)->AmmoPipSize.Get((isBuilding ?
-			RulesExt::Global()->Pips_Ammo_Buildings_Size : RulesExt::Global()->Pips_Ammo_Size));
+		size = TechnoTypeExtContainer::Instance.Find(pType)->AmmoPipSize.Get((isBuilding ?
+			RulesExtData::Instance()->Pips_Ammo_Buildings_Size : RulesExtData::Instance()->Pips_Ammo_Size));
 	} else {
-		size = (isBuilding ? RulesExt::Global()->Pips_Generic_Buildings_Size : RulesExt::Global()->Pips_Generic_Size).Get();
+		size = (isBuilding ? RulesExtData::Instance()->Pips_Generic_Buildings_Size : RulesExtData::Instance()->Pips_Generic_Size).Get();
 	}
 
 	pipWidth = size.X;
@@ -542,7 +542,7 @@ DEFINE_HOOK(0x70A36E, TechnoClass_DrawPips_Ammo, 0x6)
 	GET(int, yOffset, ESI);
 	GET_STACK(SHPStruct*, pDefault, 0x74 - 0x48);
 
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 	Point2D position = { offset->X + pTypeExt->AmmoPipOffset->X, offset->Y  + pTypeExt->AmmoPipOffset->Y};
 	ConvertClass* pConvert = pTypeExt->AmmoPip_Palette ?
 		pTypeExt->AmmoPip_Palette->GetConvert<PaletteManager::Mode::Default>()

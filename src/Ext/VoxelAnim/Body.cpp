@@ -3,16 +3,16 @@
 #include <Ext/VoxelAnimType/Body.h>
 #include <New/Entity/LaserTrailClass.h>
 
-TechnoClass* VoxelAnimExt::GetTechnoOwner(VoxelAnimClass* pThis)
+TechnoClass* VoxelAnimExtData::GetTechnoOwner(VoxelAnimClass* pThis)
 {
-	auto const pTypeExt = VoxelAnimTypeExt::ExtMap.TryFind(pThis->Type);
+	auto const pTypeExt = VoxelAnimTypeExtContainer::Instance.TryFind(pThis->Type);
 
 	if (!pTypeExt || !pTypeExt->Damage_DealtByOwner)
 		return nullptr;
 
-	auto const pExt  = VoxelAnimExt::ExtMap.TryFind(pThis);
+	auto const pExt  = VoxelAnimExtContainer::Instance.TryFind(pThis);
 
-	if (!pExt || pExt->GetInitStatus() < InitState::Constanted || !pExt->Invoker)
+	if (!pExt || pExt->Initialized < InitState::Constanted || !pExt->Invoker)
 		return nullptr;
 
 	const auto pAddr = pExt->Invoker->WhatAmI();
@@ -27,21 +27,21 @@ TechnoClass* VoxelAnimExt::GetTechnoOwner(VoxelAnimClass* pThis)
 	return pExt->Invoker;
 }
 
-void VoxelAnimExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
+void VoxelAnimExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(Invoker, ptr , bRemoved);
 }
 
-void VoxelAnimExt::ExtData::InitializeLaserTrails(VoxelAnimTypeExt::ExtData* pTypeExt)
+void VoxelAnimExtData::InitializeLaserTrails(VoxelAnimTypeExtData* pTypeExt)
 {
-	auto pThis = Get();
+	auto pThis = this->AttachedToObject;
 
 	if (!LaserTrails.empty())
 		return;
 
-	auto const pInvoker = VoxelAnimExt::GetTechnoOwner(pThis);
+	auto const pInvoker = VoxelAnimExtData::GetTechnoOwner(pThis);
 	auto const pOwner = pThis->OwnerHouse ?
-		pThis->OwnerHouse : pInvoker ? pInvoker->Owner : HouseExt::FindCivilianSide();
+		pThis->OwnerHouse : pInvoker ? pInvoker->Owner : HouseExtData::FindCivilianSide();
 
 	if(!pTypeExt->LaserTrail_Types.empty())
 		LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
@@ -55,7 +55,7 @@ void VoxelAnimExt::ExtData::InitializeLaserTrails(VoxelAnimTypeExt::ExtData* pTy
 // =============================
 // load / save
 template <typename T>
-void VoxelAnimExt::ExtData::Serialize(T& Stm)
+void VoxelAnimExtData::Serialize(T& Stm)
 {
 	//Debug::Log("Processing Element From VoxelAnimExt ! \n");
 
@@ -69,15 +69,15 @@ void VoxelAnimExt::ExtData::Serialize(T& Stm)
 
 // =============================
 // container
-VoxelAnimExt::ExtContainer VoxelAnimExt::ExtMap;
+VoxelAnimExtContainer VoxelAnimExtContainer::Instance;
 
 DEFINE_HOOK(0x7494CE , VoxelAnimClass_CTOR, 0x6)
 {
 	GET(VoxelAnimClass*, pItem, ESI);
 
-	if (auto pExt = VoxelAnimExt::ExtMap.Allocate(pItem))
+	if (auto pExt = VoxelAnimExtContainer::Instance.Allocate(pItem))
 	{
-		if (const auto pTypeExt = VoxelAnimTypeExt::ExtMap.TryFind(pItem->Type))
+		if (const auto pTypeExt = VoxelAnimTypeExtContainer::Instance.TryFind(pItem->Type))
 		{
 			//ID = Get()->Type->ID;
 			if (!pTypeExt->LaserTrail_Types.empty())
@@ -95,7 +95,7 @@ DEFINE_HOOK(0x749B02, VoxelAnimClass_DTOR, 0xA)
 {
 	GET(VoxelAnimClass*, pItem, ECX);
 
-	VoxelAnimExt::ExtMap.Remove(pItem);
+	VoxelAnimExtContainer::Instance.Remove(pItem);
 
 	return 0;
 }
@@ -105,7 +105,7 @@ DEFINE_HOOK(0x74A970, VoxelAnimClass_Load_Prefix, 0x5)
 	GET_STACK(VoxelAnimClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 
-	VoxelAnimExt::ExtMap.PrepareStream(pItem, pStm);
+	VoxelAnimExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
 }
@@ -116,7 +116,7 @@ DEFINE_HOOK(0x74A9EA , VoxelAnimClass_Load_Suffix, 0x6)
 	GET(VoxelAnimClass*, pThis, ESI);
 
 	SwizzleManagerClass::Instance->Swizzle((void**)&pThis->OwnerHouse);
-	VoxelAnimExt::ExtMap.LoadStatic();
+	VoxelAnimExtContainer::Instance.LoadStatic();
 
 	return 0x74A9FB;
 }
@@ -130,8 +130,8 @@ DEFINE_HOOK(0x74AA10, VoxelAnimClass_Save_Ext, 0x8)
 	const auto res = AbstractClass::_Save(pItem, pStm, isDirty);
 
 	if(SUCCEEDED(res)){
-		VoxelAnimExt::ExtMap.PrepareStream(pItem, pStm);
-		VoxelAnimExt::ExtMap.SaveStatic();
+		VoxelAnimExtContainer::Instance.PrepareStream(pItem, pStm);
+		VoxelAnimExtContainer::Instance.SaveStatic();
 	}
 
 	R->EAX(res);
@@ -141,7 +141,7 @@ DEFINE_HOOK(0x74AA10, VoxelAnimClass_Save_Ext, 0x8)
 static void __fastcall VoxelAnimClass_Detach(VoxelAnimClass* pThis,void* _, AbstractClass* pTarget, bool bRemove)
 {
 	pThis->ObjectClass::PointerExpired(pTarget, bRemove);
-	VoxelAnimExt::ExtMap.InvalidatePointerFor(pThis, pTarget, bRemove);
+	VoxelAnimExtContainer::Instance.InvalidatePointerFor(pThis, pTarget, bRemove);
 }
 
 DEFINE_JUMP(VTABLE ,0x7F6340 , GET_OFFSET(VoxelAnimClass_Detach))

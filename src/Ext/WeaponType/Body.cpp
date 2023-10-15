@@ -4,21 +4,21 @@
 #include <Ext/Bullet/Body.h>
 #include <Utilities/Macro.h>
 
-int WeaponTypeExt::nOldCircumference = DiskLaserClass::Radius;
-PhobosMap<EBolt*, const WeaponTypeExt::ExtData*> WeaponTypeExt::boltWeaponTypeExt;
+int WeaponTypeExtData::nOldCircumference = DiskLaserClass::Radius;
+PhobosMap<EBolt*, const WeaponTypeExtData*> WeaponTypeExtData::boltWeaponTypeExt;
 
-void WeaponTypeExt::ExtData::Initialize()
+void WeaponTypeExtData::Initialize()
 {
 	Burst_Delays.reserve(10);
-	this->RadType = RadTypeClass::Find(RADIATION_SECTION);
+	this->RadType = RadTypeClass::Array[0].get();
 }
 
 // =============================
 // load / save
 
-void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->Get();
+	auto pThis = this->AttachedToObject;
 	const char* pSection = pThis->ID;
 
 	if (parseFailAddr)
@@ -31,7 +31,7 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->DiskLaser_Circumference = (int)(this->DiskLaser_Radius * Math::Pi * 2);
 	}
 
-	Nullable<int> Bolt_Count{};
+	Nullable<int> Bolt_Count;
 	Bolt_Count.Read(exINI, pSection, "Bolt.Count");
 
 	if (Bolt_Count.isset())
@@ -198,9 +198,9 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 	this->Bolt_ParticleSys_Enabled.Read(exINI, pSection, "Bolt.DisableParticleSystems");
 }
 
-ColorStruct WeaponTypeExt::ExtData::GetBeamColor() const
+ColorStruct WeaponTypeExtData::GetBeamColor() const
 {
-	const auto pThis = this->OwnerObject();
+	const auto pThis = this->AttachedToObject;
 
 	if (pThis->IsRadBeam || pThis->IsRadEruption) {
 		if (pThis->Warhead && pThis->Warhead->Temporal) {
@@ -212,7 +212,7 @@ ColorStruct WeaponTypeExt::ExtData::GetBeamColor() const
 }
 
 template <typename T>
-void WeaponTypeExt::ExtData::Serialize(T& Stm)
+void WeaponTypeExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
@@ -316,9 +316,9 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 	MyAttachFireDatas.Serialize(Stm);
 };
 
-int WeaponTypeExt::GetBurstDelay(WeaponTypeClass* pThis, int burstIndex)
+int WeaponTypeExtData::GetBurstDelay(WeaponTypeClass* pThis, int burstIndex)
 {
-	auto const pExt = WeaponTypeExt::ExtMap.Find(pThis);
+	auto const pExt = WeaponTypeExtContainer::Instance.Find(pThis);
 
 	if (burstIndex == 0)
 		return 0;
@@ -336,83 +336,83 @@ int WeaponTypeExt::GetBurstDelay(WeaponTypeClass* pThis, int burstIndex)
 	return -1;
 }
 
-void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, bool AddDamage, HouseClass* HouseInveoker)
+void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, bool AddDamage, HouseClass* HouseInveoker)
 {
-	WeaponTypeExt::DetonateAt(pThis, pTarget, pOwner, pThis->Damage , AddDamage , HouseInveoker);
+	WeaponTypeExtData::DetonateAt(pThis, pTarget, pOwner, pThis->Damage , AddDamage , HouseInveoker);
 }
 
-void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
+void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
 {
 	if (pThis->Warhead->NukeMaker)
 	{
 		if (!pTarget)
 		{
-			Debug::Log("WeaponTypeExt::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
+			Debug::Log("WeaponTypeExtData::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
 			return;
 		}
 	}
 
-	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pThis->Projectile);
-	auto pExt = WeaponTypeExt::ExtMap.Find(pThis);
+	auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Projectile);
+	auto pExt = WeaponTypeExtContainer::Instance.Find(pThis);
 
 	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
 		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright, AddDamage))
 	{
 		pBullet->SetWeaponType(pThis);
-		BulletExt::DetonateAt(pBullet, pTarget, pOwner, CoordStruct::Empty , HouseInveoker);
+		BulletExtData::DetonateAt(pBullet, pTarget, pOwner, CoordStruct::Empty , HouseInveoker);
 	}
 }
 
-void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, bool AddDamage, HouseClass* HouseInveoker)
+void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, bool AddDamage, HouseClass* HouseInveoker)
 {
-	WeaponTypeExt::DetonateAt(pThis, coords, pOwner, pThis->Damage , AddDamage , HouseInveoker);
+	WeaponTypeExtData::DetonateAt(pThis, coords, pOwner, pThis->Damage , AddDamage , HouseInveoker);
 }
 
-void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
+void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
 {
 	if (!coords)
 	{
-		Debug::Log("WeaponTypeExt::DetonateAt Coords empty ! ");
+		Debug::Log("WeaponTypeExtData::DetonateAt Coords empty ! ");
 		return;
 	}
 
-	WeaponTypeExt::DetonateAt(pThis, MapClass::Instance->GetCellAt(coords), pOwner, damage, AddDamage , HouseInveoker);
+	WeaponTypeExtData::DetonateAt(pThis, MapClass::Instance->GetCellAt(coords), pOwner, damage, AddDamage , HouseInveoker);
 }
 
-void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
+void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
 {
 	if (pThis->Warhead->NukeMaker)
 	{
 		if (!pTarget)
 		{
-			Debug::Log("WeaponTypeExt::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
+			Debug::Log("WeaponTypeExtData::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
 			return;
 		}
 	}
 
-	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pThis->Projectile);
-	auto pExt = WeaponTypeExt::ExtMap.Find(pThis);
+	auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Projectile);
+	auto pExt = WeaponTypeExtContainer::Instance.Find(pThis);
 
 	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
 		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright, AddDamage))
 	{
 		pBullet->SetWeaponType(pThis);
-		BulletExt::DetonateAt(pBullet, pTarget, pOwner, coords , HouseInveoker);
+		BulletExtData::DetonateAt(pBullet, pTarget, pOwner, coords , HouseInveoker);
 	}
 }
 
-EBolt* WeaponTypeExt::CreateBolt(WeaponTypeClass* pWeapon)
+EBolt* WeaponTypeExtData::CreateBolt(WeaponTypeClass* pWeapon)
 {
-	return WeaponTypeExt::CreateBolt(WeaponTypeExt::ExtMap.Find(pWeapon));
+	return WeaponTypeExtData::CreateBolt(WeaponTypeExtContainer::Instance.Find(pWeapon));
 }
 
-EBolt* WeaponTypeExt::CreateBolt(WeaponTypeExt::ExtData* pWeapon)
+EBolt* WeaponTypeExtData::CreateBolt(WeaponTypeExtData* pWeapon)
 {
 	auto ret = GameCreate<EBolt>();
 
 	if (ret && pWeapon)
 	{
-		WeaponTypeExt::boltWeaponTypeExt[ret] = pWeapon;
+		WeaponTypeExtData::boltWeaponTypeExt[ret] = pWeapon;
 	}
 
 	return ret;
@@ -420,7 +420,28 @@ EBolt* WeaponTypeExt::CreateBolt(WeaponTypeExt::ExtData* pWeapon)
 
 // =============================
 // container
-WeaponTypeExt::ExtContainer WeaponTypeExt::ExtMap;
+WeaponTypeExtContainer WeaponTypeExtContainer::Instance;
+
+bool WeaponTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return Stm
+		.Process(WeaponTypeExtData::nOldCircumference)
+		.Process(WeaponTypeExtData::boltWeaponTypeExt)
+		.Success();
+}
+
+bool WeaponTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return Stm
+		.Process(WeaponTypeExtData::nOldCircumference)
+		.Process(WeaponTypeExtData::boltWeaponTypeExt)
+		.Success();
+}
+
+void WeaponTypeExtContainer::Clear()
+{
+	WeaponTypeExtData::boltWeaponTypeExt.clear();
+}
 
 // =============================
 // container hooks
@@ -429,14 +450,14 @@ WeaponTypeExt::ExtContainer WeaponTypeExt::ExtMap;
 DEFINE_HOOK(0x771EE0, WeaponTypeClass_CTOR, 0x6)
 {
 	GET(WeaponTypeClass*, pItem, ESI);
-	WeaponTypeExt::ExtMap.Allocate(pItem);
+	WeaponTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
 DEFINE_HOOK(0x77311D, WeaponTypeClass_SDDTOR, 0x6)
 {
 	GET(WeaponTypeClass*, pItem, ESI);
-	WeaponTypeExt::ExtMap.Remove(pItem);
+	WeaponTypeExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 
@@ -446,20 +467,20 @@ DEFINE_HOOK(0x772CD0, WeaponTypeClass_SaveLoad_Prefix, 0x7)
 	GET_STACK(WeaponTypeClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 
-	WeaponTypeExt::ExtMap.PrepareStream(pItem, pStm);
+	WeaponTypeExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
 }
 
 DEFINE_HOOK(0x772EA6, WeaponTypeClass_Load_Suffix, 0x6)
 {
-	WeaponTypeExt::ExtMap.LoadStatic();
+	WeaponTypeExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
 DEFINE_HOOK(0x772F8C, WeaponTypeClass_Save, 0x5)
 {
-	WeaponTypeExt::ExtMap.SaveStatic();
+	WeaponTypeExtContainer::Instance.SaveStatic();
 	return 0;
 }
 
@@ -470,7 +491,7 @@ DEFINE_HOOK(0x7729B0, WeaponTypeClass_LoadFromINI, 0x5)
 	GET(WeaponTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0xE4);
 
-	WeaponTypeExt::ExtMap.LoadFromINI(pItem, pINI, R->Origin() == 0x7729D6);
+	WeaponTypeExtContainer::Instance.LoadFromINI(pItem, pINI, R->Origin() == 0x7729D6);
 
 	return 0;
 }

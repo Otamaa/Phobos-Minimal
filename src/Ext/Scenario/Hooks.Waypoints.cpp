@@ -10,7 +10,7 @@ DEFINE_HOOK(0x68BCC0, ScenarioClass_Get_Waypoint_Location, 0xB)
 	GET_STACK(CellStruct*, pCell, 0x4);
 	GET_STACK(int, nWaypoint, 0x8);
 
-	*pCell = ScenarioExt::Global()->Waypoints[nWaypoint];
+	*pCell = ScenarioExtData::Instance()->Waypoints[nWaypoint];
 	R->EAX(pCell);
 	return 0x68BCD1;
 }
@@ -18,20 +18,20 @@ DEFINE_HOOK(0x68BCC0, ScenarioClass_Get_Waypoint_Location, 0xB)
 DEFINE_HOOK(0x68BCE4, ScenarioClass_Get_Waypoint_Cell_0, 0x7)
 {
 	GET_STACK(int, nWaypoint, 0x4);
-	R->ECX(&ScenarioExt::Global()->Waypoints[nWaypoint]);
+	R->ECX(&ScenarioExtData::Instance()->Waypoints[nWaypoint]);
 	return 0x68BCEB;
 }
 
 DEFINE_HOOK(0x68BD08, ScenarioClass_Get_Waypoint, 0x7)
 {
 	GET_STACK(int, nWaypoint, STACK_OFFS(0x10, -0x8));
-	R->ECX(&ScenarioExt::Global()->Waypoints[nWaypoint]);
+	R->ECX(&ScenarioExtData::Instance()->Waypoints[nWaypoint]);
 	return 0x68BD0F;
 }
 
 DEFINE_HOOK(0x68BD60, ScenarioClass_Clear_All_Waypoints, 0x6)
 {
-	if (auto const pScen = ScenarioExt::Global())
+	if (auto const pScen = ScenarioExtData::Instance())
 			pScen->Waypoints.clear();
 
 	return 0x68BD79;
@@ -40,7 +40,7 @@ DEFINE_HOOK(0x68BD60, ScenarioClass_Clear_All_Waypoints, 0x6)
 DEFINE_HOOK(0x68BD80, ScenarioClass_Is_Waypoint_Valid, 0x5)
 {
 	GET_STACK(int, nWaypoint, 0x4);
-	const auto waypoints = &ScenarioExt::Global()->Waypoints;
+	const auto waypoints = &ScenarioExtData::Instance()->Waypoints;
 	R->AL(nWaypoint >= 0 && waypoints->contains(nWaypoint) && (*waypoints)[nWaypoint].IsValid());
 
 	return 0x68BDB3;
@@ -68,7 +68,7 @@ DEFINE_HOOK(0x68BDC0, ScenarioClass_ReadWaypoints, 0x8)
 
 			if (auto const pCell = MapClass::Instance->GetCellAt(buffer))
 				pCell->Flags |= CellFlags::IsWaypoint;
-			else if (ScenarioExt::CellParsed)
+			else if (ScenarioExtData::CellParsed)
 				Debug::Log("[Phobos Developer Warning] Can not get waypoint %d : [%d, %d]!\n", id, buffer.X, buffer.Y);
 		}
 		else
@@ -76,7 +76,7 @@ DEFINE_HOOK(0x68BDC0, ScenarioClass_ReadWaypoints, 0x8)
 
 
 		//Debug::Log("Parse waypoint Result [%d][%d, %d] ! \n", id, buffer.X, buffer.Y);
-		ScenarioExt::Global()->Waypoints[id] = buffer;
+		ScenarioExtData::Instance()->Waypoints[id] = buffer;
 	}
 
 	return 0x68BE8C;
@@ -84,7 +84,7 @@ DEFINE_HOOK(0x68BDC0, ScenarioClass_ReadWaypoints, 0x8)
 
 DEFINE_HOOK(0x6874E7, ScenarioClass_ReadINI_CellParsed, 0x6)
 {
-	ScenarioExt::CellParsed = true;
+	ScenarioExtData::CellParsed = true;
 	return 0;
 }
 
@@ -93,7 +93,7 @@ DEFINE_HOOK(0x68BE90, ScenarioClass_Write_Waypoints, 0x5) //was 5 and crash ?
 	GET_STACK(INIClass*, pINI, 0x4);
 	pINI->Clear(GameStrings::Waypoints(), nullptr);
 	char buffer[32];
-	for (const auto& [nidx,nCell] : ScenarioExt::Global()->Waypoints)
+	for (const auto& [nidx,nCell] : ScenarioExtData::Instance()->Waypoints)
 	{
 		if (!nCell.IsValid())
 			continue;
@@ -115,14 +115,14 @@ DEFINE_HOOK(0x68BF50, ScenarioClass_Set_Waypoint, 0x8)
 {
 	GET_STACK(int, nWaypoint, 0x4);
 	GET_STACK(CellStruct, cell, 0x8);
-	ScenarioExt::Global()->Waypoints[nWaypoint] = cell;
+	ScenarioExtData::Instance()->Waypoints[nWaypoint] = cell;
 	return 0x68BF5F;
 }
 
 DEFINE_HOOK(0x68BF74, ScenarioClass_Get_Waypoint_Cell, 0x7)
 {
 	GET_STACK(int, nWaypoint, 0x4);
-	R->ECX(&ScenarioExt::Global()->Waypoints[nWaypoint]);
+	R->ECX(&ScenarioExtData::Instance()->Waypoints[nWaypoint]);
 	return 0x68BF7B;
 }
 
@@ -201,7 +201,7 @@ DEFINE_HOOK(0x68843B, ScenStruct_ScenStruct_2, 0x6)
 	GET(int, i, ESI);
 
 	if (ScenarioClass::Instance->IsDefinedWaypoint(i)) {
-		buffer = ScenarioExt::Global()->Waypoints[i];
+		buffer = ScenarioExtData::Instance()->Waypoints[i];
 		if(waypoints.AddItem(buffer))
 			Debug::Log("Multiplayer start waypoint found at cell [%d][%d,%d] , With waypoints Size %d \n",i, buffer.X, buffer.Y , waypoints.Size());
 	}
@@ -224,20 +224,20 @@ DEFINE_HOOK(0x68843B, ScenStruct_ScenStruct_2, 0x6)
 DEFINE_HOOK(0x684CB7, Scen_Waypoint_Call_1, 0x7)
 {
 	GET(int, nWaypoint, EAX);
-	R->EAX(ScenarioExt::Global()->Waypoints[nWaypoint].Pack());
+	R->EAX(ScenarioExtData::Instance()->Waypoints[nWaypoint].Pack());
 	return 0x684CBE;
 }
 
 DEFINE_HOOK(0x6855E4, Scen_Waypoint_Call_2, 0x5)
 {
-	ScenarioExt::Global()->Waypoints.clear();
+	ScenarioExtData::Instance()->Waypoints.clear();
 	return 0x6855FC;
 }
 
 DEFINE_HOOK(0x68AFE7, Scen_Waypoint_Call_3, 0x7) //5
 {
 	GET(int, nWaypoint, EDI);
-	R->EAX(ScenarioExt::Global()->Waypoints[nWaypoint].Pack());
+	R->EAX(ScenarioExtData::Instance()->Waypoints[nWaypoint].Pack());
 	return 0x68AFEE;
 }
 
@@ -260,5 +260,5 @@ DEFINE_HOOK(0x68AF45, Scen_Waypoint_Call_4, 0x6)
 //{
 //	GET(CellStruct, nCell, ESI);
 //
-//	R->EDX(ScenarioExt::Global()->Waypoints());
+//	R->EDX(ScenarioExtData::Instance()->Waypoints());
 //}

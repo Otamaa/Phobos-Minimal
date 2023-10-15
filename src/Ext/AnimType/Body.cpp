@@ -15,14 +15,14 @@
 #include <Locomotor/Cast.h>
 #include <Locomotor/JumpjetLocomotionClass.h>
 
-void AnimTypeExt::ExtData::Initialize()
+void AnimTypeExtData::Initialize()
 {
 	SplashList.reserve(RulesClass::Instance->SplashList.Count);
 	SpawnsMultiple.reserve(8);
 	SpawnsMultiple_amouts.reserve(8);
 	ConcurrentAnim.reserve(8);
 	Launchs.reserve(8);
-	const char* pID = this->Get()->ID;
+	const char* pID = this->AttachedToObject->ID;
 
 	SpecialDraw = IS_SAME_STR_(pID, RING1_NAME);
 	IsInviso = IS_SAME_STR_(pID, INVISO_NAME);
@@ -31,9 +31,9 @@ void AnimTypeExt::ExtData::Initialize()
 // AnimType Class is readed before Unit and weapon
 // so it is safe to `allocate` them before
 
-void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
-	const char* pID = this->Get()->ID;
+	const char* pID = this->AttachedToObject->ID;
 
 	if (parseFailAddr)
 		return;
@@ -66,7 +66,7 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Warhead_Detonate.Read(exINI, pID, "Warhead.Detonate");
 	this->Damage_TargetFlag.Read(exINI, pID, "Damage.TargetFlag");
 
-	Nullable<bool> Damage_TargetInvoker {};
+	Nullable<bool> Damage_TargetInvoker;
 	Damage_TargetInvoker.Read(exINI, pID, "Damage.TargetInvoker");
 	if (Damage_TargetInvoker.isset() && Damage_TargetInvoker.Get())
 		this->Damage_TargetFlag = DamageDelayTargetFlag::Invoker;
@@ -133,7 +133,7 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	for (size_t i = 0; ; ++i)
 	{
 		char nBuff[0x30];
-		Nullable<SuperWeaponTypeClass*> LaunchWhat_Dummy { };
+		Nullable<SuperWeaponTypeClass*> LaunchWhat_Dummy;
 		IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.Type", i);
 		LaunchWhat_Dummy.Read(exINI, pID, nBuff, true);
 
@@ -147,13 +147,13 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 #pragma endregion
 }
 
-void AnimTypeExt::CreateUnit_MarkCell(AnimClass* pThis)
+void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 {
 	if (!pThis->Type)
 		return;
 
-	auto const pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
-	auto pExt = AnimExt::ExtMap.Find(pThis);
+	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+	auto pExt = AnimExtContainer::Instance.Find(pThis);
 
 	if (pExt->AllowCreateUnit)
 		return;
@@ -213,20 +213,20 @@ void AnimTypeExt::CreateUnit_MarkCell(AnimClass* pThis)
 
 HouseClass* GetOwnerForSpawned(AnimClass* pThis)
 {
-	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 	if (!pThis->Owner || ((!pTypeExt->CreateUnit_KeepOwnerIfDefeated && pThis->Owner->Defeated)))
-		return HouseExt::FindCivilianSide();
+		return HouseExtData::FindCivilianSide();
 
 	return pThis->Owner;
 }
 
-void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
+void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 {
 	if (!pThis->Type)
 		return;
 
-	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
-	const auto pAnimExt = AnimExt::ExtMap.Find(pThis);
+	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+	const auto pAnimExt = AnimExtContainer::Instance.Find(pThis);
 
 	//location is not marked , so dont !
 	if (!pAnimExt->AllowCreateUnit)
@@ -262,8 +262,8 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 				if (auto const pCreateUnitAnim = GameCreate<AnimClass>(pCreateUnitAnimType, pAnimExt->CreateUnitLocation))
 				{
 					pCreateUnitAnim->Owner = decidedOwner;
-					if (auto pCreateUnitAnimExt = AnimExt::ExtMap.Find(pCreateUnitAnim))
-						pCreateUnitAnimExt->Invoker = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
+					if (auto pCreateUnitAnimExt = AnimExtContainer::Instance.Find(pCreateUnitAnim))
+						pCreateUnitAnimExt->Invoker = AnimExtData::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
 				}
 			}
 
@@ -318,12 +318,12 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 		else
 		{
 			Debug::Log(__FUNCTION__" Called \n");
-			TechnoExt::HandleRemove(pTechno);
+			TechnoExtData::HandleRemove(pTechno);
 		}
 	}
 }
 
-void AnimTypeExt::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller)
+void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller)
 {
 	const auto location = pThis->GetCoords();
 
@@ -335,7 +335,7 @@ void AnimTypeExt::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller)
 		return;
 
 	const DirType facing = (DirType)pThis->PrimaryFacing.Current().GetFacing<256>();
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	int idxAnim = 0;
 	GeneralUtils::GetRandomAnimVal(idxAnim, pType->DestroyAnim.Count, (short)facing, pTypeExt->DestroyAnim_Random.Get());
@@ -346,11 +346,11 @@ void AnimTypeExt::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller)
 
 	if (auto pAnim = GameCreate<AnimClass>(pAnimType, location))
 	{
-		const auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pAnimType);
-		auto pAnimExt = AnimExt::ExtMap.Find(pAnim);
+		const auto pAnimTypeExt = AnimTypeExtContainer::Instance.Find(pAnimType);
+		auto pAnimExt = AnimExtContainer::Instance.Find(pAnim);
 		HouseClass* const pInvoker = pKiller ? pKiller->Owner : nullptr;
 
-		AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, pThis, true);
+		AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, pThis, true);
 
 		if (pAnimTypeExt->CreateUnit_InheritDeathFacings.Get())
 			pAnimExt->DeathUnitFacing = facing;
@@ -365,10 +365,10 @@ void AnimTypeExt::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller)
 	}
 }
 
-void AnimTypeExt::ExtData::ValidateSpalshAnims()
+void AnimTypeExtData::ValidateSpalshAnims()
 {
 	AnimTypeClass* pWake = nullptr;
-	if (WakeAnim.isset() && this->Get()->IsMeteor)
+	if (WakeAnim.isset() && this->AttachedToObject->IsMeteor)
 		pWake = WakeAnim.Get();
 	else
 		pWake = RulesClass::Instance->Wake;
@@ -380,12 +380,12 @@ void AnimTypeExt::ExtData::ValidateSpalshAnims()
 	}
 }
 
-OwnerHouseKind AnimTypeExt::ExtData::GetAnimOwnerHouseKind() {
+OwnerHouseKind AnimTypeExtData::GetAnimOwnerHouseKind() {
 
 	if (this->CreateUnit && !this->CreateUnit_Owner.isset())
 		return OwnerHouseKind::Victim;
 
-	if(this->Get()->MakeInfantry > -1 && !this->MakeInfantryOwner.isset())
+	if(this->AttachedToObject->MakeInfantry > -1 && !this->MakeInfantryOwner.isset())
 		return OwnerHouseKind::Invoker;
 
 	if (this->CreateUnit_Owner.isset())
@@ -398,7 +398,7 @@ OwnerHouseKind AnimTypeExt::ExtData::GetAnimOwnerHouseKind() {
 }
 
 template <typename T>
-void AnimTypeExt::ExtData::Serialize(T& Stm)
+void AnimTypeExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
@@ -463,12 +463,12 @@ void AnimTypeExt::ExtData::Serialize(T& Stm)
 		;
 }
 
-AnimTypeExt::ExtContainer AnimTypeExt::ExtMap;
+AnimTypeExtContainer AnimTypeExtContainer::Instance;
 
 DEFINE_HOOK(0x42784B, AnimTypeClass_CTOR, 0x5)
 {
 	GET(AnimTypeClass*, pItem, EAX);
-	AnimTypeExt::ExtMap.Allocate(pItem);
+	AnimTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
@@ -476,7 +476,7 @@ DEFINE_HOOK(0x428EA8, AnimTypeClass_SDDTOR, 0x5)
 {
 	GET(AnimTypeClass*, pItem, ECX);
 
-	AnimTypeExt::ExtMap.Remove(pItem);
+	AnimTypeExtContainer::Instance.Remove(pItem);
 
 	return 0;
 }
@@ -487,7 +487,7 @@ DEFINE_HOOK(0x428800, AnimTypeClass_SaveLoad_Prefix, 0xA)
 	GET_STACK(AnimTypeClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 
-	AnimTypeExt::ExtMap.PrepareStream(pItem, pStm);
+	AnimTypeExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
 }
@@ -496,13 +496,13 @@ DEFINE_HOOK(0x428800, AnimTypeClass_SaveLoad_Prefix, 0xA)
 DEFINE_HOOK_AGAIN(0x42892C, AnimTypeClass_Load_Suffix, 0x6)
 DEFINE_HOOK(0x428958, AnimTypeClass_Load_Suffix, 0x6)
 {
-	AnimTypeExt::ExtMap.LoadStatic();
+	AnimTypeExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
 DEFINE_HOOK(0x42898A, AnimTypeClass_Save_Suffix, 0x3)
 {
-	AnimTypeExt::ExtMap.SaveStatic();
+	AnimTypeExtContainer::Instance.SaveStatic();
 	return 0;
 }
 
@@ -512,6 +512,6 @@ DEFINE_HOOK(0x4287DC, AnimTypeClass_LoadFromINI, 0xA)
 	GET(AnimTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0xBC);
 
-	AnimTypeExt::ExtMap.LoadFromINI(pItem, pINI, R->Origin() == 0x4287E9);
+	AnimTypeExtContainer::Instance.LoadFromINI(pItem, pINI, R->Origin() == 0x4287E9);
 	return 0;
 }

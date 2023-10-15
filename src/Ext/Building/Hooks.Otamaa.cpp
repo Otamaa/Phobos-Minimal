@@ -11,7 +11,7 @@ DEFINE_HOOK(0x4518CF, BuildingClass_AnimLogic_check, 0x9)
 	GET(BuildingClass*, pThis, ESI);
 	GET_STACK(const char*, pDecidedName, STACK_OFFS(0x34, -0x4));
 	GET_STACK(BuildingAnimSlot, nSlot, STACK_OFFS(0x34, -0x8));
-	R->EAX(BuildingTypeExt::GetBuildingAnimTypeIndex(pThis, nSlot, pDecidedName));
+	R->EAX(BuildingTypeExtData::GetBuildingAnimTypeIndex(pThis, nSlot, pDecidedName));
 	return 0x4518D8;
 }
 
@@ -35,7 +35,7 @@ DEFINE_HOOK(0x44E85F, BuildingClass_Power_UntieStregth, 0x7)
 	GET(BuildingClass*, pThis, ESI);
 	GET_STACK(int, nPowMult, STACK_OFFS(0xC, 0x4));
 
-	R->EAX((int)(!BuildingTypeExt::ExtMap.Find(pThis->Type)->Power_DegradeWithHealth.Get()
+	R->EAX((int)(!BuildingTypeExtContainer::Instance.Find(pThis->Type)->Power_DegradeWithHealth.Get()
 		? (nPowMult) : (nPowMult * pThis->GetHealthPercentage())));
 
 	return 0x44E86F;
@@ -68,7 +68,7 @@ DEFINE_HOOK_AGAIN(0x6D5EB1, BuildingClass_PlaceCementGrid_Shape, 0x6)
 DEFINE_HOOK(0x47EF52, BuildingClass_PlaceCementGrid_Shape, 0x6)
 {
 	if (auto const pBuilding = specific_cast<BuildingClass*>(DisplayClass::Instance->CurrentBuilding)) {
-		R->EDX(BuildingTypeExt::ExtMap.Find(pBuilding->Type)->BuildingPlacementGrid_Shape.Get(FileSystem::PLACE_SHP()));
+		R->EDX(BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->BuildingPlacementGrid_Shape.Get(FileSystem::PLACE_SHP()));
 		return R->Origin() + 0x6;
 	}
 
@@ -95,7 +95,7 @@ DEFINE_HOOK(0x441EFC, BuildingClass_Destroy_PreventRubble, 0xB)
 	return 0x0;
 }
 
-DEFINE_JUMP(VTABLE, 0x7E4140, GET_OFFSET(BuildingTypeExt::IsFactory));
+DEFINE_JUMP(VTABLE, 0x7E4140, GET_OFFSET(BuildingTypeExtData::IsFactory));
 
 /*
 #ifdef ENABLE_NEWHOOKS

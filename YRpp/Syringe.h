@@ -414,7 +414,7 @@ declhook(hook, funcname##_DEBUG_HOOK__LOG_, size)
 
 #endif
 
-#ifndef DEBUG_HOOK_O
+#ifndef DEBUG_HOOK
 
 #define DEFINE_OVERRIDE_HOOK(hook,funcname,size) \
 decl_override_hook(hook, funcname, size) \

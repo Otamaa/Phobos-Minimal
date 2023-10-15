@@ -13,7 +13,7 @@ AnimTypeClass* CaptureExt::GetMindcontrollAnimType(TechnoClass* pController, Tec
 	if (wpidx >= 0)
 	{
 		if (const auto pWH = pController->GetWeapon(wpidx)->WeaponType->Warhead)
-			return WarheadTypeExt::ExtMap.Find(pWH)->MindControl_Anim.Get(pFallback);
+			return WarheadTypeExtContainer::Instance.Find(pWH)->MindControl_Anim.Get(pFallback);
 	}
 
 	return pFallback;
@@ -21,7 +21,7 @@ AnimTypeClass* CaptureExt::GetMindcontrollAnimType(TechnoClass* pController, Tec
 
 bool CaptureExt::AllowDrawLink(TechnoTypeClass* pType)
 {
-	if (const auto pExt = TechnoTypeExt::ExtMap.Find(pType))
+	if (const auto pExt = TechnoTypeExtContainer::Instance.Find(pType))
 		return pExt->Draw_MindControlLink.Get();
 
 	return true;
@@ -32,7 +32,7 @@ bool CaptureExt::CanCapture(CaptureManagerClass* pManager, TechnoClass* pTarget)
 	if (pManager->MaxControlNodes == 1)
 		return pManager->CanCapture(pTarget);
 
-	if (TechnoTypeExt::ExtMap.Find(pManager->Owner->GetTechnoType())->MultiMindControl_ReleaseVictim)
+	if (TechnoTypeExtContainer::Instance.Find(pManager->Owner->GetTechnoType())->MultiMindControl_ReleaseVictim)
 	{
 		// I hate Ares' completely rewritten things - secsome
 		pManager->MaxControlNodes += 1;
@@ -77,7 +77,7 @@ bool CaptureExt::FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, b
 				// Fix : Player defeated should not get this unit.
 				const auto pOriginOwner = !pNode->OriginalOwner ||
 					pNode->OriginalOwner->Defeated ?
-					HouseExt::FindNeutral() : pNode->OriginalOwner;
+					HouseExtData::FindNeutral() : pNode->OriginalOwner;
 
 				pTarget->SetOwningHouse(pOriginOwner, !bSilent);
 				pManager->DecideUnitFate(pTarget);
@@ -162,7 +162,7 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTechno
 	{
 		const auto Controller = pManager->Owner;
 		return CaptureExt::CaptureUnit(pManager, pTechno,
-		TechnoTypeExt::ExtMap.Find(Controller->GetTechnoType())->MultiMindControl_ReleaseVictim,
+		TechnoTypeExtContainer::Instance.Find(Controller->GetTechnoType())->MultiMindControl_ReleaseVictim,
 		false, RulesClass::Instance->ControlledAnimationType);
 	}
 
@@ -177,19 +177,19 @@ void CaptureExt::DecideUnitFate(CaptureManagerClass* pManager, FootClass* pFoot)
 // =============================
 // load / save
 
-template <typename T>
-void CaptureExt::ExtData::Serialize(T& Stm) {
-
-	Stm
-		.Process(this->Initialized)
-
-		;
-
-}
+//template <typename T>
+//void CaptureExt::ExtData::Serialize(T& Stm) {
+//
+//	Stm
+//		.Process(this->Initialized)
+//
+//		;
+//
+//}
 
 // =============================
 // container
-CaptureExt::ExtContainer CaptureExt::ExtMap;
+//CaptureExt::ExtContainer CaptureExt::ExtMap;
 
 // =============================
 // container hooks

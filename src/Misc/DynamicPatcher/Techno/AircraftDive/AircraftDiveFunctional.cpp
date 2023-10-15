@@ -1,6 +1,9 @@
 #include "AircraftDiveFunctional.h"
 
-void AircraftDiveFunctional::Init(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
+#include <Ext/TechnoType/Body.h>
+#include <Ext/Techno/Body.h>
+
+void AircraftDiveFunctional::Init(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 {
 	// if (!Is_Aircraft(pExt->Get()))
 	// 	return;
@@ -10,7 +13,7 @@ void AircraftDiveFunctional::Init(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtDa
 	// }
 }
 
-void AircraftDiveFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
+void AircraftDiveFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 {
 	// if (!pTypeExt->MyDiveData.Enable)
 	// 	return;
@@ -44,7 +47,7 @@ void AircraftDiveFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData
 	// }
 }
 
-void AircraftDiveFunctional::OnFire(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt, AbstractClass* pTarget, int nWeaponIDx)
+void AircraftDiveFunctional::OnFire(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt, AbstractClass* pTarget, int nWeaponIDx)
 {
 	// if (!Is_Aircraft(pExt->Get()))
 	// 	return;

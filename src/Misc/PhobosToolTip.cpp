@@ -31,14 +31,14 @@
 
 PhobosToolTip PhobosToolTip::Instance;
 
-inline const wchar_t* GetUIDescription(TechnoTypeExt::ExtData* pData)
+inline const wchar_t* GetUIDescription(TechnoTypeExtData* pData)
 {
 	return Phobos::Config::ToolTipDescriptions && !pData->UIDescription.Get().empty()
 		? pData->UIDescription.Get().Text
 		: nullptr;
 }
 
-inline const wchar_t* GetUIDescription(SWTypeExt::ExtData* pData)
+inline const wchar_t* GetUIDescription(SWTypeExtData* pData)
 {
 	return Phobos::Config::ToolTipDescriptions && !pData->UIDescription.Get().empty()
 		? pData->UIDescription.Get().Text
@@ -112,7 +112,7 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 	if (!pType)
 		return;
 
-	const auto pData = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pData = TechnoTypeExtContainer::Instance.Find(pType);
 
 	const int nBuildTime = this->GetBuildTime(pType);
 	const int nSec = TickTimeToSeconds(nBuildTime) % 60;
@@ -165,7 +165,7 @@ int PhobosToolTip::TickTimeToSeconds(int tickTime)
 
 void PhobosToolTip::HelpText(SuperWeaponTypeClass* pType)
 {
-	const auto pData = SWTypeExt::ExtMap.Find(pType);
+	const auto pData = SWTypeExtContainer::Instance.Find(pType);
 
 	std::wostringstream oss;
 	oss << pType->UIName;
@@ -197,7 +197,7 @@ void PhobosToolTip::HelpText(SuperWeaponTypeClass* pType)
 			<< std::setw(2) << std::setfill(L'0') << nSec;
 	}
 
-	const auto pExt = SWTypeExt::ExtMap.Find(pType);
+	const auto pExt = SWTypeExtContainer::Instance.Find(pType);
 	const auto nPower = pExt->SW_Power;
 
 	if (nPower != 0)
@@ -406,17 +406,17 @@ DEFINE_HOOK(0x478FDC, CCToolTip_Draw2_FillRect, 0x5)
 		const int nPlayerSideIndex = ScenarioClass::Instance->PlayerSideIndex;
 		if (const auto pSide = SideClass::Array->GetItemOrDefault(nPlayerSideIndex))
 		{
-			if (const auto pData = SideExt::ExtMap.Find(pSide))
+			if (const auto pData = SideExtContainer::Instance.Find(pSide))
 			{
 				SidebarClass::Instance->SidebarBackgroundNeedsRedraw = true;
 
 				pThis->Fill_Rect_Trans(pRect
-					, pData->ToolTip_Background_Color.GetEx(RulesExt::Global()->ToolTip_Background_Color)
-					, pData->ToolTip_Background_Opacity.Get(RulesExt::Global()->ToolTip_Background_Opacity)
+					, pData->ToolTip_Background_Color.GetEx(RulesExtData::Instance()->ToolTip_Background_Color)
+					, pData->ToolTip_Background_Opacity.Get(RulesExtData::Instance()->ToolTip_Background_Opacity)
 				);
 
 				if (Phobos::Config::ToolTipBlur)
-					pThis->BlurRect(*pRect, pData->ToolTip_Background_BlurSize.Get(RulesExt::Global()->ToolTip_Background_BlurSize));
+					pThis->BlurRect(*pRect, pData->ToolTip_Background_BlurSize.Get(RulesExtData::Instance()->ToolTip_Background_BlurSize));
 
 				return (int)_CCToolTip_Draw2_FillRect_RET;
 			}

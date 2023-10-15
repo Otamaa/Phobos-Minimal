@@ -53,21 +53,21 @@ void CaptureObjectsCommandClass::Execute(WWKey eInput) const
 			{
 				return;
 				//if ((techno->AbstractFlags & AbstractFlags::Foot) && !Is_DriverKilled(techno)){
-				//	techno->SetOwningHouse(HouseExt::FindSpecial(), false);
+				//	techno->SetOwningHouse(HouseExtData::FindSpecial(), false);
 				//	techno->QueueMission(Mission::Harmless, true);
 				//}
 			}
 			else
 			{
-				if (TechnoExt::ExtMap.Find(techno)->Is_DriverKilled)
-					TechnoExt::ExtMap.Find(techno)->Is_DriverKilled = false;
+				if (TechnoExtContainer::Instance.Find(techno)->Is_DriverKilled)
+					TechnoExtContainer::Instance.Find(techno)->Is_DriverKilled = false;
 
 				techno->SetOwningHouse(pToOwner, false);
 			}
 		}
 	});
 
-	auto const pHouseExt = HouseExt::ExtMap.TryFind(HouseClass::CurrentPlayer());
+	auto const pHouseExt = HouseExtContainer::Instance.TryFind(HouseClass::CurrentPlayer());
 	if (!pHouseExt)
 		return;
 

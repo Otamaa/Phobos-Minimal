@@ -2,7 +2,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 
-bool TeamExt::ExtData::InvalidateIgnorable(AbstractClass* ptr) {
+bool TeamExtData::InvalidateIgnorable(AbstractClass* ptr) {
 
 	switch (ptr->WhatAmI())
 	{
@@ -20,14 +20,14 @@ bool TeamExt::ExtData::InvalidateIgnorable(AbstractClass* ptr) {
 	return true;
 }
 
-void TeamExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
+void TeamExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(TeamLeader, ptr , bRemoved);
 	AnnounceInvalidPointer(LastFoundSW, ptr);
 	AnnounceInvalidPointer(PreviousScript, ptr);
 }
 
-bool TeamExt::HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, const Iterator<TechnoTypeClass*>& list)
+bool TeamExtData::HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, const Iterator<TechnoTypeClass*>& list)
 {
 	bool result = false;
 	int counter = 0;
@@ -37,7 +37,7 @@ bool TeamExt::HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool alli
 	{
 		for (auto pObject : *TechnoClass::Array)
 		{
-			if (!TechnoExt::IsAlive(pObject))
+			if (!TechnoExtData::IsAlive(pObject))
 				continue;
 
 			if (((!allies && pObject->Owner == pHouse) || (allies && pHouse != pObject->Owner && pHouse->IsAlliedWith_(pObject->Owner)))
@@ -76,7 +76,7 @@ bool TeamExt::HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool alli
 	return result;
 }
 
-bool TeamExt::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, bool onlySelectedEnemy, const Iterator<TechnoTypeClass*>& list)
+bool TeamExtData::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, bool onlySelectedEnemy, const Iterator<TechnoTypeClass*>& list)
 {
 	bool result = false;
 	int counter = 0;
@@ -89,7 +89,7 @@ bool TeamExt::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClas
 	{
 		for (auto pObject : *TechnoClass::Array)
 		{
-			if (!TechnoExt::IsAlive(pObject))
+			if (!TechnoExtData::IsAlive(pObject))
 				continue;
 
 			if (pObject->Owner != pHouse
@@ -129,7 +129,7 @@ bool TeamExt::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClas
 	return result;
 }
 
-bool TeamExt::NeutralOwns(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list)
+bool TeamExtData::NeutralOwns(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list)
 {
 	bool result = false;
 	int counter = 0;
@@ -144,7 +144,7 @@ bool TeamExt::NeutralOwns(AITriggerTypeClass* pThis, const Iterator<TechnoTypeCl
 		{
 			for (auto pObject : *TechnoClass::Array)
 			{
-				if (!TechnoExt::IsAlive(pObject))
+				if (!TechnoExtData::IsAlive(pObject))
 					continue;
 
 				if (pObject->Owner == pHouse
@@ -183,7 +183,7 @@ bool TeamExt::NeutralOwns(AITriggerTypeClass* pThis, const Iterator<TechnoTypeCl
 	return result;
 }
 
-bool TeamExt::HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, const Iterator<TechnoTypeClass*>& list)
+bool TeamExtData::HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, const Iterator<TechnoTypeClass*>& list)
 {
 	bool result = true;
 
@@ -201,7 +201,7 @@ bool TeamExt::HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, const 
 
 		for (auto pObject : *TechnoClass::Array)
 		{
-			if (!TechnoExt::IsAlive(pObject))
+			if (!TechnoExtData::IsAlive(pObject))
 				continue;
 
 			if (pObject->Owner == pHouse &&
@@ -239,7 +239,7 @@ bool TeamExt::HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, const 
 	return result;
 }
 
-bool TeamExt::EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, const Iterator<TechnoTypeClass*>& list)
+bool TeamExtData::EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, const Iterator<TechnoTypeClass*>& list)
 {
 	bool result = true;
 
@@ -260,7 +260,7 @@ bool TeamExt::EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseC
 
 		for (auto pObject : *TechnoClass::Array)
 		{
-			if (!TechnoExt::IsAlive(pObject) || !pObject->Owner)
+			if (!TechnoExtData::IsAlive(pObject) || !pObject->Owner)
 				continue;
 
 			if (pObject->Owner != pHouse
@@ -300,7 +300,7 @@ bool TeamExt::EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseC
 	return result;
 }
 
-bool TeamExt::NeutralOwnsAll(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list)
+bool TeamExtData::NeutralOwnsAll(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list)
 {
 	bool result = true;
 
@@ -328,7 +328,7 @@ bool TeamExt::NeutralOwnsAll(AITriggerTypeClass* pThis, const Iterator<TechnoTyp
 
 			for (auto pObject : *TechnoClass::Array)
 			{
-				if (!TechnoExt::IsAlive(pObject))
+				if (!TechnoExtData::IsAlive(pObject))
 					continue;
 
 				if (pObject->Owner == pHouse &&
@@ -370,13 +370,13 @@ bool TeamExt::NeutralOwnsAll(AITriggerTypeClass* pThis, const Iterator<TechnoTyp
 	return result;
 }
 
-bool TeamExt::GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat)
+bool TeamExtData::GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat)
 {
 	if (pThis == pThat) //default comparison result
 		return true;
 
-	const auto pThatTechExt = TechnoTypeExt::ExtMap.TryFind(pThat);
-	const auto pThisTechExt = TechnoTypeExt::ExtMap.TryFind(pThis);
+	const auto pThatTechExt = TechnoTypeExtContainer::Instance.TryFind(pThat);
+	const auto pThisTechExt = TechnoTypeExtContainer::Instance.TryFind(pThis);
 
 	if (!pThatTechExt || !pThisTechExt)
 		return false;
@@ -391,7 +391,7 @@ bool TeamExt::GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat)
 // load / save
 
 template <typename T>
-void TeamExt::ExtData::Serialize(T& Stm)
+void TeamExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
@@ -434,7 +434,7 @@ void TeamExt::ExtData::Serialize(T& Stm)
 
 // =============================
 // container
-TeamExt::ExtContainer TeamExt::ExtMap;
+TeamExtContainer TeamExtContainer::Instance;
 
 // =============================
 // container hooks
@@ -443,14 +443,14 @@ TeamExt::ExtContainer TeamExt::ExtMap;
 DEFINE_HOOK(0x6E8D05, TeamClass_CTOR, 0x5)
 {
 	GET(TeamClass*, pThis, ESI);
-	TeamExt::ExtMap.Allocate(pThis);
+	TeamExtContainer::Instance.Allocate(pThis);
 	return 0;
 }
 
 DEFINE_HOOK(0x6E8ECB, TeamClass_DTOR, 0x7)
 {
 	GET(TeamClass*, pThis, ESI);
-	TeamExt::ExtMap.Remove(pThis);
+	TeamExtContainer::Instance.Remove(pThis);
 	return 0;
 }
 
@@ -460,21 +460,21 @@ DEFINE_HOOK(0x6EC540, TeamClass_SaveLoad_Prefix, 0x8)
 	GET_STACK(TeamClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 
-	TeamExt::ExtMap.PrepareStream(pItem, pStm);
+	TeamExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
 }
 
 DEFINE_HOOK(0x6EC52F, TeamClass_Load_Suffix, 0x6)
 {
-	TeamExt::ExtMap.LoadStatic();
+	TeamExtContainer::Instance.LoadStatic();
 
 	return 0;
 }
 
 DEFINE_HOOK(0x6EC55A, TeamClass_Save_Suffix, 0x5)
 {
-	TeamExt::ExtMap.SaveStatic();
+	TeamExtContainer::Instance.SaveStatic();
 	return 0;
 }
 
@@ -484,7 +484,7 @@ DEFINE_HOOK(0x6EC55A, TeamClass_Save_Suffix, 0x5)
  	GET_STACK(AbstractClass*, target, 0x4);
  	GET_STACK(bool, all, 0x8);
 
- 	TeamExt::ExtMap.InvalidatePointerFor(pThis, target, true);
+ 	TeamExtContainer::Instance.InvalidatePointerFor(pThis, target, true);
 
  	//return pThis->Target == target ? 0x6EAECC : 0x6EAECF;
  	return 0x0;
@@ -492,7 +492,7 @@ DEFINE_HOOK(0x6EC55A, TeamClass_Save_Suffix, 0x5)
 
 //void __fastcall TeamClass_Detach_Wrapper(TeamClass* pThis ,DWORD , AbstractClass* target , bool all)\
 //{
-//	TeamExt::ExtMap.InvalidatePointerFor(pThis , target , all);
+//	TeamExtContainer::Instance.InvalidatePointerFor(pThis , target , all);
 //	pThis->TeamClass::PointerExpired(target , all);
 //}
 //DEFINE_JUMP(VTABLE, 0x7F4758, GET_OFFSET(TeamClass_Detach_Wrapper))

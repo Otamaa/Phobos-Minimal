@@ -172,7 +172,7 @@ CoordStruct VerticalLaserClass::GetCoords(int start, int i, int increase)
 
 void  VerticalLaserClass::DealDamage(const CoordStruct& to)
 {
-	auto const pWeaponExt = BulletTypeExt::ExtMap.Find(Weapon->Projectile);
+	auto const pWeaponExt = BulletTypeExtContainer::Instance.Find(Weapon->Projectile);
 	if (const auto pBullet = pWeaponExt->CreateBullet(Map[to], nullptr, Weapon))
 	{
 		pBullet->SetWeaponType(Weapon);

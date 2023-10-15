@@ -54,7 +54,7 @@ DEFINE_OVERRIDE_HOOK(0x489235, GetTotalDamage_Verses, 0x8)
 	GET(int, nArmor, EDX);
 	GET(int, nDamage, ECX);
 
-	const auto pExt = WarheadTypeExt::ExtMap.Find(pWH);
+	const auto pExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
 
 	if ((size_t)nArmor > ArmorTypeClass::Array.size())
@@ -74,7 +74,7 @@ DEFINE_OVERRIDE_HOOK(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
 	GET(WarheadTypeClass*, pWH, ECX);
 	GET(int, nArmor, EAX);
 
-	const auto pData = WarheadTypeExt::ExtMap.Find(pWH);
+	const auto pData = WarheadTypeExtContainer::Instance.Find(pWH);
 
 	if ((size_t)nArmor > ArmorTypeClass::Array.size())
 		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
@@ -95,7 +95,7 @@ DEFINE_OVERRIDE_HOOK(0x6FCB6A, TechnoClass_CanFire_Verses, 0x7)
 	GET(WarheadTypeClass*, pWH, EDI);
 	GET(int, nArmor, EAX);
 
-	const auto pData = WarheadTypeExt::ExtMap.Find(pWH);
+	const auto pData = WarheadTypeExtContainer::Instance.Find(pWH);
 	const auto vsData = &pData->Verses[nArmor];
 
 	if ((size_t)nArmor > ArmorTypeClass::Array.size())
@@ -106,7 +106,7 @@ DEFINE_OVERRIDE_HOOK(0x6FCB6A, TechnoClass_CanFire_Verses, 0x7)
 	{
 		if (pWH->BombDisarm &&
 			(!pTarget->AttachedBomb ||
-			!BombExt::ExtMap.Find(pTarget->AttachedBomb)->Weapon->Ivan_Detachable)
+			!BombExtContainer::Instance.Find(pTarget->AttachedBomb)->Weapon->Ivan_Detachable)
 		) {
 			return FireIllegal;
 		}
@@ -128,7 +128,7 @@ DEFINE_OVERRIDE_HOOK(0x70CEA0, TechnoClass_EvalThreatRating_TargetWeaponWarhead_
 	GET_STACK(double, mult, 0x18);
 	GET(TechnoTypeClass*, pThisType, EBX);
 
-	const auto pData = WarheadTypeExt::ExtMap.Find(pTargetWH);
+	const auto pData = WarheadTypeExtContainer::Instance.Find(pTargetWH);
 
 	if ((int)pThisType->Armor > ArmorTypeClass::Array.size())
 		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
@@ -155,7 +155,7 @@ DEFINE_OVERRIDE_HOOK(0x70CF45, TechnoClass_EvalThreatRating_ThisWeaponWarhead_Ve
 	GET_STACK(double, dmult, 0x10);
 	GET_STACK(double, dCoeff, 0x30);
 
-	const auto pData = WarheadTypeExt::ExtMap.Find(pWH);
+	const auto pData = WarheadTypeExtContainer::Instance.Find(pWH);
 
 	if ((size_t)nArmor > ArmorTypeClass::Array.size())
 		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
@@ -183,12 +183,12 @@ DEFINE_OVERRIDE_HOOK(0x6F36E3, TechnoClass_SelectWeapon_Verses, 0x5)
 	if ((size_t)nArmor > ArmorTypeClass::Array.size())
 		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
 
-	const auto vsData_Secondary = &WarheadTypeExt::ExtMap.Find(pSecondary->Warhead)->Verses[nArmor];
+	const auto vsData_Secondary = &WarheadTypeExtContainer::Instance.Find(pSecondary->Warhead)->Verses[nArmor];
 
 	if (vsData_Secondary->Verses == 0.0)
 		return UsePrimary;
 
-	const auto vsData_Primary = &WarheadTypeExt::ExtMap.Find(pPrimary->Warhead)->Verses[nArmor];
+	const auto vsData_Primary = &WarheadTypeExtContainer::Instance.Find(pPrimary->Warhead)->Verses[nArmor];
 
 	return vsData_Primary->Verses != 0.0 ? ContinueCheck : UseSecondary;
 }
@@ -200,7 +200,7 @@ DEFINE_OVERRIDE_HOOK(0x708AF7, TechnoClass_ShouldRetaliate_Verses, 0x7)
 	GET(WarheadTypeClass*, pWH, ECX);
 	GET(int, nArmor, EAX);
 
-	const auto pData = WarheadTypeExt::ExtMap.Find(pWH);
+	const auto pData = WarheadTypeExtContainer::Instance.Find(pWH);
 	if ((size_t)nArmor > ArmorTypeClass::Array.size())
 		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
 

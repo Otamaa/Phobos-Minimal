@@ -28,13 +28,13 @@ DEFINE_HOOK(0x71A9F1, TemporalClass_Update_RemoveBuildingTarget, 0x6)
 				{
 					if (pAir->IsAlive && !pAir->InLimbo && !pAir->TemporalTargetingMe)
 					{
-						const auto pExt = TechnoTypeExt::ExtMap.Find(pAir->Type);
+						const auto pExt = TechnoTypeExtContainer::Instance.Find(pAir->Type);
 						if (pAir->IsInAir())
 						{
 							if ((pExt->Crashable.isset() && !pExt->Crashable) || !pAir->Crash(pThis->Owner))
 							{
 								Debug::Log(__FUNCTION__" Called \n");
-								TechnoExt::HandleRemove(pAir, pThis->Owner, false, false);
+								TechnoExtData::HandleRemove(pAir, pThis->Owner, false, false);
 							}
 						}
 						else

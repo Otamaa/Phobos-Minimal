@@ -57,7 +57,7 @@ ShieldClass::ShieldClass(TechnoClass* pTechno, bool isAttached) : Techno { pTech
 
 void ShieldClass::UpdateType()
 {
-	this->Type = TechnoExt::ExtMap.Find(this->Techno)->CurrentShieldType;
+	this->Type = TechnoExtContainer::Instance.Find(this->Techno)->CurrentShieldType;
 }
 
 template <typename T>
@@ -105,9 +105,9 @@ bool ShieldClass::Save(PhobosStreamWriter& Stm) const
 // Is used for DeploysInto/UndeploysInto
 void ShieldClass::SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo)
 {
-	const auto pFromExt = TechnoExt::ExtMap.Find(pFrom);
-	const auto pToExt = TechnoExt::ExtMap.Find(pTo);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pTo->GetTechnoType());
+	const auto pFromExt = TechnoExtContainer::Instance.Find(pFrom);
+	const auto pToExt = TechnoExtContainer::Instance.Find(pTo);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTo->GetTechnoType());
 
 	if (!pToExt || !pFromExt || !pFromExt->Shield)
 		return;
@@ -141,7 +141,7 @@ bool ShieldClass::TEventIsShieldBroken(ObjectClass* pAttached)
 {
 	if (const auto pThis = generic_cast<TechnoClass*>(pAttached))
 	{
-		const auto pExt = TechnoExt::ExtMap.Find(pThis);
+		const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 		if (auto const pShield = pExt->GetShield())
 		{
@@ -157,7 +157,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	if (!IsActive())
 		return;
 
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(args->WH);
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(args->WH);
 
 	if (!pWHExt || !this->HP || this->Temporal || *args->Damage == 0 ||
 		this->Techno->IsIronCurtained())
@@ -165,7 +165,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 		return;
 	}
 
-	if(CanBePenetrated(args->WH) || TechnoExt::IsTypeImmune(this->Techno, args->Attacker))
+	if(CanBePenetrated(args->WH) || TechnoExtData::IsTypeImmune(this->Techno, args->Attacker))
 		return;
 
 	const auto pSource = args->Attacker ? args->Attacker->Owner : args->SourceHouse;
@@ -201,7 +201,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	{
 		auto nPassableDamageAnountCopy = PassableDamageAnount;
 		if (Phobos::Debug_DisplayDamageNumbers && (nPassableDamageAnountCopy) != 0)
-			TechnoExt::DisplayDamageNumberString(this->Techno, (nPassableDamageAnountCopy), true, args->WH);
+			TechnoExtData::DisplayDamageNumberString(this->Techno, (nPassableDamageAnountCopy), true, args->WH);
 
 		nDamageResult = PassableDamageAnount;
 	}
@@ -242,7 +242,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 			); //only absord percentage damage
 
 			if (Phobos::Debug_DisplayDamageNumbers && (nHPCopy) != 0)
-				TechnoExt::DisplayDamageNumberString(this->Techno, (nHPCopy), true, args->WH);
+				TechnoExtData::DisplayDamageNumberString(this->Techno, (nHPCopy), true, args->WH);
 
 			this->BreakShield(pWHExt->Shield_BreakAnim.Get(nullptr), pWHExt->Shield_BreakWeapon.Get(nullptr));
 
@@ -254,7 +254,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 		{
 			auto nResidualCopy = residueDamage;
 			if (Phobos::Debug_DisplayDamageNumbers && (-nResidualCopy)  != 0)
-				TechnoExt::DisplayDamageNumberString(this->Techno, (-nResidualCopy), true, args->WH);
+				TechnoExtData::DisplayDamageNumberString(this->Techno, (-nResidualCopy), true, args->WH);
 
 			this->WeaponNullifyAnim(pWHExt->Shield_HitAnim.Get(nullptr));
 			this->HP = MaxImpl(this->HP + residueDamage, 0);
@@ -277,7 +277,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 				auto nDamageCopy = DamageToShieldAfterMinMax;
 
 				if (Phobos::Debug_DisplayDamageNumbers && DamageToShieldAfterMinMax != 0)
-					TechnoExt::DisplayDamageNumberString(this->Techno, DamageToShieldAfterMinMax, true, args->WH);
+					TechnoExtData::DisplayDamageNumberString(this->Techno, DamageToShieldAfterMinMax, true, args->WH);
 
 				this->HP = std::clamp(this->HP + (-nDamageCopy), 0, this->Type->Strength.Get());
 				this->UpdateIdleAnim();
@@ -297,7 +297,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	if (IsShielRequreFeeback)
 	{
 		*args->Damage = nDamageResult;
-		TechnoExt::ExtMap.Find(this->Techno)->SkipLowDamageCheck = true;
+		TechnoExtContainer::Instance.Find(this->Techno)->SkipLowDamageCheck = true;
 	}
 
 }
@@ -338,7 +338,7 @@ void ShieldClass::WeaponNullifyAnim(AnimTypeClass* pHitAnim)
 	if (pAnimType)
 	{
 		auto nCoord = this->Techno->GetCenterCoords();
-		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nCoord),
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nCoord),
 			Techno->GetOwningHouse(),
 			nullptr,
 			Techno
@@ -354,7 +354,7 @@ bool ShieldClass::CanBeTargeted(WeaponTypeClass* pWeapon) const
 	if (this->CanBePenetrated(pWeapon->Warhead))
 		return true;
 
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
 	return (std::abs( pWHExt->GetVerses(this->Type->Armor).Verses ) >= 0.001);
 }
 
@@ -363,7 +363,7 @@ bool ShieldClass::CanBePenetrated(WarheadTypeClass* pWarhead) const
 	if (!pWarhead)
 		return false;
 
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
 	const auto affectedTypes = pWHExt->Shield_Penetrate_Types.GetElements(pWHExt->Shield_AffectTypes);
 
 	if (!affectedTypes.empty() && !affectedTypes.contains(this->Type))
@@ -423,13 +423,13 @@ void ShieldClass::OnUpdate()
 
 	if (this->Techno->WhatAmI() == BuildingClass::AbsID)
 	{
-		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(this->Techno))->LimboID != -1)
+		if (BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(this->Techno))->LimboID != -1)
 			return;
 	}
 
 	if (this->Techno->Health <= 0 || !this->Techno->IsAlive || this->Techno->IsSinking)
 	{
-		if (auto const pTechnoExt = TechnoExt::ExtMap.Find(this->Techno))
+		if (auto const pTechnoExt = TechnoExtContainer::Instance.Find(this->Techno))
 		{
 			pTechnoExt->Shield = nullptr;
 			return;
@@ -573,8 +573,8 @@ bool ShieldClass::ConvertCheck()
 	if (this->CurTechnoType == newID)
 		return false;
 
-	const auto pTechnoExt = TechnoExt::ExtMap.Find(this->Techno);
-	const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(this->Techno->GetTechnoType());
+	const auto pTechnoExt = TechnoExtContainer::Instance.Find(this->Techno);
+	const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(this->Techno->GetTechnoType());
 	const auto pOldType = this->Type;
 	bool allowTransfer = this->Type->AllowTransfer.Get(Attached);
 
@@ -718,7 +718,7 @@ void ShieldClass::BreakShield(AnimTypeClass* pBreakAnim, WeaponTypeClass* pBreak
 			if (auto const pAnim = GameCreate<AnimClass>(pAnimType, this->Techno->Location))
 			{
 				pAnim->SetOwnerObject(this->Techno);
-				AnimExt::SetAnimOwnerHouseKind(pAnim, Techno->GetOwningHouse(), nullptr, Techno);
+				AnimExtData::SetAnimOwnerHouseKind(pAnim, Techno->GetOwningHouse(), nullptr, Techno);
 			}
 		}
 	}
@@ -728,7 +728,7 @@ void ShieldClass::BreakShield(AnimTypeClass* pBreakAnim, WeaponTypeClass* pBreak
 	if (const auto pWeaponType = pBreakWeapon ? pBreakWeapon : this->Type->BreakWeapon.Get(nullptr))
 	{
 		AbstractClass* const pTarget = this->Type->BreakWeapon_TargetSelf.Get() ? static_cast<AbstractClass*>(this->Techno) : this->Techno->GetCell();
-		WeaponTypeExt::DetonateAt(pWeaponType, pTarget, this->Techno, true, nullptr);
+		WeaponTypeExtData::DetonateAt(pWeaponType, pTarget, this->Techno, true, nullptr);
 	}
 }
 
@@ -805,7 +805,7 @@ void ShieldClass::CreateAnim()
 		if (auto const pAnim = GameCreate<AnimClass>(idleAnimType, this->Techno->Location))
 		{
 			pAnim->RemainingIterations = 0xFFu;
-			AnimExt::SetAnimOwnerHouseKind(pAnim, this->Techno->Owner, nullptr, this->Techno, false);
+			AnimExtData::SetAnimOwnerHouseKind(pAnim, this->Techno->Owner, nullptr, this->Techno, false);
 			pAnim->SetOwnerObject(this->Techno);
 			this->IdleAnim = pAnim;
 		}
@@ -875,7 +875,7 @@ void ShieldClass::DrawShieldBar_Building(int iLength, Point2D* pLocation, Rectan
 			frameIdx;
 			frameIdx--, deltaX += 4, deltaY -= 2)
 		{
-			position = TechnoExt::GetBuildingSelectBracketPosition(Techno, BuildingSelectBracketPosition::Top);
+			position = TechnoExtData::GetBuildingSelectBracketPosition(Techno, BuildingSelectBracketPosition::Top);
 			position.X -= deltaX + 6;
 			position.Y -= deltaY + 3;
 
@@ -886,14 +886,14 @@ void ShieldClass::DrawShieldBar_Building(int iLength, Point2D* pLocation, Rectan
 
 	if (iTotal < iLength)
 	{
-		int emptyFrame = this->Type->Pips_Building_Empty.Get(RulesExt::Global()->Pips_Shield_Building_Empty.Get(0));
+		int emptyFrame = this->Type->Pips_Building_Empty.Get(RulesExtData::Instance()->Pips_Shield_Building_Empty.Get(0));
 
 		int frameIdx, deltaX, deltaY;
 		for (frameIdx = iLength - iTotal, deltaX = 4 * iTotal, deltaY = -2 * iTotal;
 			frameIdx;
 			frameIdx--, deltaX += 4, deltaY -= 2)
 		{
-			position = TechnoExt::GetBuildingSelectBracketPosition(Techno, BuildingSelectBracketPosition::Top);
+			position = TechnoExtData::GetBuildingSelectBracketPosition(Techno, BuildingSelectBracketPosition::Top);
 			position.X -= deltaX + 6;
 			position.Y -= deltaY + 3;
 
@@ -907,12 +907,12 @@ void ShieldClass::DrawShieldBar_Building(int iLength, Point2D* pLocation, Rectan
 void ShieldClass::DrawShieldBar_Other(int iLength, Point2D* pLocation, RectangleStruct* pBound)
 {
 	const auto pipBoard = this->Type->Pips_Background_SHP
-		.Get(RulesExt::Global()->Pips_Shield_Background_SHP.Get(FileSystem::PIPBRD_SHP()));
+		.Get(RulesExtData::Instance()->Pips_Shield_Background_SHP.Get(FileSystem::PIPBRD_SHP()));
 
 	if (!pipBoard)
 		return;
 
-	auto position = TechnoExt::GetFootSelectBracketPosition(Techno, Anchor(HorizontalPosition::Left, VerticalPosition::Top));
+	auto position = TechnoExtData::GetFootSelectBracketPosition(Techno, Anchor(HorizontalPosition::Left, VerticalPosition::Top));
 	position.X -= 1;
 	position.Y += this->Techno->GetTechnoType()->PixelSelectionBracketDelta + this->Type->BracketDelta - 3;
 	int	frame = (iLength == 8) ? (pipBoard->Frames > 2 ? 3 : 1) : pipBoard->Frames > 2 ? 2 : 0;
@@ -941,7 +941,7 @@ int ShieldClass::DrawShieldBar_Pip(const bool isBuilding)
 {
 	const auto strength = this->Type->Strength;
 	const auto& pips_Shield = isBuilding ? this->Type->Pips_Building : this->Type->Pips;
-	const auto& pips_Global = isBuilding ? RulesExt::Global()->Pips_Shield_Building : RulesExt::Global()->Pips_Shield;
+	const auto& pips_Global = isBuilding ? RulesExtData::Instance()->Pips_Shield_Building : RulesExtData::Instance()->Pips_Shield;
 	const auto& shieldPip = pips_Shield->X != -1 ? pips_Shield : pips_Global;
 
 	if (this->HP > RulesClass::Instance->ConditionYellow * strength && shieldPip->X != -1)

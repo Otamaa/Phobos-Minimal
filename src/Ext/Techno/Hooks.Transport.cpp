@@ -7,13 +7,13 @@
 DEFINE_HOOK(addr, name, size) {\
 GET(TechnoClass* , pThis , techreg);\
 	if (auto const  pTransport = pThis->Transporter) {\
-		if (TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType())->Passengers_SyncOwner.Get()) return ret; } return 0; }
+		if (TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())->Passengers_SyncOwner.Get()) return ret; } return 0; }
 
 #define SET_THREATEVALSB(addr , techreg , name ,size , ret)\
 DEFINE_HOOK(addr, name, size) {\
 GET(TechnoClass* , pThis , techreg);\
 	if (auto const  pTransport = pThis->Transporter) {\
-	  if (TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType())->Passengers_SyncOwner.Get()) return ret; } return 0; }
+	  if (TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())->Passengers_SyncOwner.Get()) return ret; } return 0; }
 
 SET_THREATEVALS(0x6FA33C,ESI,TechnoClass_AI_ThreatEvals_OpenToppedOwner,0x6,0x6FA37A) //
 SET_THREATEVALSB(0x6F89F4,ESI,TechnoClass_EvaluateCell_ThreatEvals_OpenToppedOwner,0x6,0x6F8A0F)
@@ -54,7 +54,7 @@ DEFINE_HOOK(0x6F8FD7, TechnoClass_ThreatEvals_OpenToppedOwner, 0x5)       // Tec
 
 	if (auto pTransport = pThis->Transporter)
 	{
-		if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType()))
+		if (auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType()))
 		{
 			if (pTypeExt->Passengers_SyncOwner)
 				return returnAddress;
@@ -69,7 +69,7 @@ DEFINE_HOOK(0x701881, TechnoClass_ChangeHouse_Passenger_SyncOwner, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	if (TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->Passengers_SyncOwner && pThis->Passengers.NumPassengers > 0)
+	if (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->Passengers_SyncOwner && pThis->Passengers.NumPassengers > 0)
 	{
 			FootClass* pPassenger = pThis->Passengers.GetFirstPassenger();
 
@@ -95,9 +95,9 @@ DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
 
 	if (pThis && pPassenger)
 	{
-		auto const pTransTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-		auto pPassExt = TechnoExt::ExtMap.Find(pPassenger);
-		auto const pPassTypeExt = TechnoTypeExt::ExtMap.Find(pPassenger->GetTechnoType());
+		auto const pTransTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+		auto pPassExt = TechnoExtContainer::Instance.Find(pPassenger);
+		auto const pPassTypeExt = TechnoTypeExtContainer::Instance.Find(pPassenger->GetTechnoType());
 
 		if (pTransTypeExt->Passengers_SyncOwner && pTransTypeExt->Passengers_SyncOwner_RevertOnExit)
 			pPassExt->OriginalPassengerOwner = pPassenger->Owner;
@@ -124,9 +124,9 @@ DEFINE_HOOK(0x4DE67B, FootClass_LeaveTransport, 0x8)
 
 	if (pThis && pPassenger)
 	{
-		auto const pTransTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-		auto pPassExt = TechnoExt::ExtMap.Find(pPassenger);
-		auto const pPassTypeExt = TechnoTypeExt::ExtMap.Find(pPassenger->GetTechnoType());
+		auto const pTransTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+		auto pPassExt = TechnoExtContainer::Instance.Find(pPassenger);
+		auto const pPassTypeExt = TechnoTypeExtContainer::Instance.Find(pPassenger->GetTechnoType());
 
 		if (pTransTypeExt->Passengers_SyncOwner && pTransTypeExt->Passengers_SyncOwner_RevertOnExit &&
 			pPassExt->OriginalPassengerOwner)
@@ -145,12 +145,12 @@ DEFINE_HOOK(0x737F80, TechnoClass_ReceiveDamage_Cargo_SyncOwner, 0x6)
 
 	if (pThis && pThis->Passengers.NumPassengers > 0)
 	{
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 		if (pTypeExt->Passengers_SyncOwner && pTypeExt->Passengers_SyncOwner_RevertOnExit)
 		{
 			auto pPassenger = pThis->Passengers.GetFirstPassenger();
-			auto pExt = TechnoExt::ExtMap.Find(pPassenger);
+			auto pExt = TechnoExtContainer::Instance.Find(pPassenger);
 
 			if (pExt->OriginalPassengerOwner)
 				pPassenger->SetOwningHouse(pExt->OriginalPassengerOwner, false);
@@ -158,7 +158,7 @@ DEFINE_HOOK(0x737F80, TechnoClass_ReceiveDamage_Cargo_SyncOwner, 0x6)
 			while (pPassenger->NextObject)
 			{
 				pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
-				pExt = TechnoExt::ExtMap.Find(pPassenger);
+				pExt = TechnoExtContainer::Instance.Find(pPassenger);
 
 				if (pExt->OriginalPassengerOwner)
 					pPassenger->SetOwningHouse(pExt->OriginalPassengerOwner, false);
@@ -176,7 +176,7 @@ DEFINE_HOOK(0x710552, TechnoClass_SetOpenTransportCargoTarget_ShareTarget, 0x6)
 	GET(TechnoClass* const, pThis, ECX);
 	GET_STACK(AbstractClass* const, pTarget, STACK_OFFSET(0x8, 0x4));
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 	return pTarget && !pTypeExt->OpenTopped_ShareTransportTarget
 		? ReturnFromFunction : Continue;
 }

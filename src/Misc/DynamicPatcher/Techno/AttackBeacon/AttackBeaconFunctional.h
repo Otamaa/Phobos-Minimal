@@ -5,6 +5,6 @@
 
 namespace AttackBeaconFunctional
 {
-	void AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
-	void OnFire(TechnoExt::ExtData* pExt, AbstractClass* pTarget, int nWeapon);
+	void AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt);
+	void OnFire(TechnoExtData* pExt, AbstractClass* pTarget, int nWeapon);
 };

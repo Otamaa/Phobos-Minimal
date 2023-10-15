@@ -17,7 +17,7 @@ DEFINE_HOOK(0x43D6E5, BuildingClass_Draw_ZShapePointMove, 0x5)
 	GET(BuildingClass*, pThis, ESI);
 	GET(Mission, mission, EAX);
 
-	if ((mission != Mission::Selling && mission != Mission::Construction) || BuildingTypeExt::ExtMap.Find(pThis->Type)->ZShapePointMove_OnBuildup)
+	if ((mission != Mission::Selling && mission != Mission::Construction) || BuildingTypeExtContainer::Instance.Find(pThis->Type)->ZShapePointMove_OnBuildup)
 		return Apply;
 
 	return Skip;
@@ -29,7 +29,7 @@ DEFINE_HOOK(0x4511D6, BuildingClass_AnimationAI_SellBuildup, 0x7)
 
 	GET(BuildingClass*, pThis, ESI);
 
-	return BuildingTypeExt::ExtMap.Find(pThis->Type)->SellBuildupLength == pThis->Animation.Value
+	return BuildingTypeExtContainer::Instance.Find(pThis->Type)->SellBuildupLength == pThis->Animation.Value
 		? Continue : Skip;
 }
 
@@ -43,7 +43,7 @@ DEFINE_HOOK(0x739717, UnitClass_TryToDeploy_Transfer, 0x8)
 		if (pUnit->Type->DeployToFire && pUnit->Target)
 			pStructure->LastTarget = pUnit->Target;
 
-		BuildingExt::ExtMap.Find(pStructure)->DeployedTechno = true;
+		BuildingExtContainer::Instance.Find(pStructure)->DeployedTechno = true;
 
 		return 0x73971F;
 	}
@@ -59,7 +59,7 @@ DEFINE_HOOK(0x739717, UnitClass_TryToDeploy_Transfer, 0x8)
 //	if (pUnit->Type->DeployToFire && pUnit->Target)
 //		pStructure->LastTarget = pUnit->Target;
 //
-//	BuildingExt::ExtMap.Find(pStructure)->DeployedTechno = true;
+//	BuildingExtContainer::Instance.Find(pStructure)->DeployedTechno = true;
 //
 //	return 0;
 //}
@@ -69,7 +69,7 @@ DEFINE_HOOK(0x449ADA, BuildingClass_MissionConstruction_DeployToFireFix, 0x6) //
 	GET(BuildingClass*, pThis, ESI);
 
 	Mission nMission = Mission::Guard;
-	if (BuildingExt::ExtMap.Find(pThis)->DeployedTechno && pThis->LastTarget) {
+	if (BuildingExtContainer::Instance.Find(pThis)->DeployedTechno && pThis->LastTarget) {
 		pThis->SetTarget(pThis->LastTarget);
 		nMission = Mission::Attack;
 	}
@@ -85,7 +85,7 @@ DEFINE_HOOK(0x449ADA, BuildingClass_MissionConstruction_DeployToFireFix, 0x6) //
 // 	if (Unsorted::CurrentFrame % 15 != 0)
 // 		return 0;
 //
-// 	auto const pExt = BuildingExt::ExtMap.Find(pThis);
+// 	auto const pExt = BuildingExtContainer::Instance.Find(pThis);
 // 	if (pExt->AccumulatedGrindingRefund) {
 // 		FlyingStrings::AddMoneyString(true,
 // 			pExt->AccumulatedGrindingRefund,
@@ -104,7 +104,7 @@ DEFINE_HOOK(0x44224F, BuildingClass_ReceiveDamage_DamageSelf, 0x5)
 
 	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0x9C, -0x4));
 
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(args.WH);
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(args.WH);
 	return pWHExt->AllowDamageOnSelf.isset() && pWHExt->AllowDamageOnSelf.Get() ?
 	SkipCheck : Continue;
 }
@@ -120,10 +120,10 @@ DEFINE_HOOK(0x440B4F, BuildingClass_Unlimbo_SetShouldRebuild, 0x5)
 			return ShouldNotRebuild;
 
 		// Preplaced structures are already managed before
-		if (BuildingExt::ExtMap.Find(pThis)->IsCreatedFromMapFile)
+		if (BuildingExtContainer::Instance.Find(pThis)->IsCreatedFromMapFile)
 			return ShouldNotRebuild;
 
-		if (!HouseExt::ExtMap.Find(pThis->Owner)->RepairBaseNodes[GameOptionsClass::Instance->Difficulty])
+		if (!HouseExtContainer::Instance.Find(pThis->Owner)->RepairBaseNodes[GameOptionsClass::Instance->Difficulty])
 		return ShouldNotRebuild;
 	}
 
@@ -137,8 +137,8 @@ DEFINE_HOOK(0x465D40, BuildingTypeClass_IsUndeployable_ConsideredVehicle, 0x6)
 
 	GET(BuildingTypeClass*, pThis, ECX);
 
-	const auto pBldExt = BuildingTypeExt::ExtMap.Find(pThis);
-	const bool IsCustomEligible = pThis->Foundation == BuildingTypeExt::CustomFoundation
+	const auto pBldExt = BuildingTypeExtContainer::Instance.Find(pThis);
+	const bool IsCustomEligible = pThis->Foundation == BuildingTypeExtData::CustomFoundation
 			&& pBldExt->CustomHeight == 1 && pBldExt->CustomWidth == 1;
 
 	const bool FoundationEligible = IsCustomEligible || pThis->Foundation == Foundation::_1x1;
@@ -151,7 +151,7 @@ DEFINE_HOOK(0x445FD6, BuildingTypeClass_GrandOpening_StorageActiveAnimations, 0x
 {
 	GET(BuildingClass*, pBuilding, EBP);
 
-	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 
 	if (pTypeExt->Storage_ActiveAnimations.Get(pBuilding->Type->Refinery || pBuilding->Type->Weeder))
 	{
@@ -169,7 +169,7 @@ DEFINE_HOOK(0x450D9C, BuildingTypeClass_AI_Anims_IncludeWeeder_1, 0x6)
 {
 	GET(BuildingClass*, pBuilding, ESI);
 
-	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 
 	if (pTypeExt->Storage_ActiveAnimations.Get(pBuilding->Type->Refinery || pBuilding->Type->Weeder))
 	{

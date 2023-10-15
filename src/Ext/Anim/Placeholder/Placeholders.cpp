@@ -8,7 +8,7 @@
 // 	GET(BulletClass*, pThis, ESI);
 // 	GET(AnimClass*, pAnim, EAX);
 //
-// 	const auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+// 	const auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(pThis->WH);
 //
 // 	if (pAnim && pAnim->Type) {
 // 		HouseClass* pInvoker =  nullptr;
@@ -16,19 +16,19 @@
 //
 // 		if(auto pTech = pThis->Owner) {
 // 			pInvoker = pThis->Owner->GetOwningHouse();
-// 			if(auto const pAnimExt = AnimExt::ExtMap.Find(pAnim))
+// 			if(auto const pAnimExt = AnimExtContainer::Instance.Find(pAnim))
 // 				pAnimExt->Invoker = pTech;
 // 		}
 // 		else
 // 		{
-// 			if(auto const pBulletExt = BulletExt::ExtMap.Find(pThis))
+// 			if(auto const pBulletExt = BulletExtContainer::Instance.Find(pThis))
 // 			pInvoker = pBulletExt->Owner;
 // 		}
 //
 // 		if (TechnoClass* Target = generic_cast<TechnoClass*>(pThis->Target))
 // 			pVictim = Target->Owner;
 //
-// 		AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pVictim, pInvoker);
+// 		AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pVictim, pInvoker);
 //
 // 	} else if (pWarheadExt->IsNukeWarhead.Get()) {
 // 		return NukeWarheadExtras;
@@ -43,7 +43,7 @@
 //	GET_STACK(HouseClass*, pHouse, STACK_OFFS(0x18, -0x4));
 //
 //	if (pAnim) {
-//		AnimExt::SetAnimOwnerHouseKind(pAnim, pHouse, pHouse,false);
+//		AnimExtData::SetAnimOwnerHouseKind(pAnim, pHouse, pHouse,false);
 //	}
 //
 //	return 0;
@@ -52,7 +52,7 @@
 //DEFINE_HOOK(0x423AC0, AnimClass_Update, 0x6)
 //{
 	//GET(AnimClass*, pThis, ECX);
-	//auto pExt = AnimExt::ExtMap.Find(pThis);
+	//auto pExt = AnimExtContainer::Instance.Find(pThis);
 
 	//if (!pExt && pThis->Type)
 	//	Debug::Log("Failed ! To Find Ext for [%s] ! \n", pThis->get_ID());
@@ -64,7 +64,7 @@
 //DEFINE_HOOK(0x424F00, AnimClass_Middle_Broken, 0x4)
 //{
 	//GET(AnimClass*, pThis, ECX);
-	//auto pExt = AnimExt::ExtMap.Find(pThis);
+	//auto pExt = AnimExtContainer::Instance.Find(pThis);
 //	return 0x0;
 //}
 
@@ -150,7 +150,7 @@ DEFINE_HOOK(0x4251B1, AnimClass_Detach, 0x6)
 	GET(void* , target, EDI);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
-	if (auto pAnimExt = AnimExt::ExtMap.Find(pThis))
+	if (auto pAnimExt = AnimExtContainer::Instance.Find(pThis))
 		pAnimExt->InvalidatePointer(target,all);
 
 	return pThis->AttachedBullet == target ? 0x4251B9 :0x4251C9;

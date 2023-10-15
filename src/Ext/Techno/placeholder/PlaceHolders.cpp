@@ -33,7 +33,7 @@ DEFINE_HOOK(0x6F7891, TechnoClass_TriggersCellInset_IgnoreVertical, 0x5)
 	GET(TechnoClass*, pTarget, EBX);
 
 	bool bRangeIgnoreVertical = false;
-	if (auto const pExt = WeaponTypeExt::ExtMap.Find(pWeapon)) {
+	if (auto const pExt = WeaponTypeExtContainer::Instance.Find(pWeapon)) {
 		bRangeIgnoreVertical = pExt->Range_IgnoreVertical.Get();
 	}
 
@@ -51,7 +51,7 @@ DEFINE_HOOK(0x6F7893, TechnoClass_TriggersCellInset_IgnoreVertical, 0x5)
 	GET(TechnoClass*, pThis, ESI);
 
 	bool bRangeVertical = pThis->IsInAir();
-	if (auto const pExt = WeaponTypeExt::ExtMap.Find(pWeapon)) {
+	if (auto const pExt = WeaponTypeExtContainer::Instance.Find(pWeapon)) {
 		bRangeVertical = bRangeVertical && !pExt->Range_IgnoreVertical.Get();
 	}
 
@@ -73,7 +73,7 @@ DEFINE_HOOK(0x6F3B2E, TechnoClass_Transform_FLH, 0x6)
 	{
 		if (pInf->Crawling)
 		{
-			if (auto const pExt = TechnoTypeExt::ExtMap.Find(pInf->Type))
+			if (auto const pExt = TechnoTypeExtContainer::Instance.Find(pInf->Type))
 			{
 				if (!pThis->Veterancy.IsElite())
 				{
@@ -106,8 +106,8 @@ DEFINE_HOOK(0x6F3B2E, TechnoClass_Transform_FLH, 0x6)
 // 	GET(TechnoClass*, pKiller, EDI);
 // 	GET(int, cost, EBP);
 
-// 	const auto pVictimTypeExt = TechnoTypeExt::ExtMap.Find(pVictim->GetTechnoType());
-// 	const auto pKillerTypeExt = TechnoTypeExt::ExtMap.Find(pKiller->GetTechnoType());
+// 	const auto pVictimTypeExt = TechnoTypeExtContainer::Instance.Find(pVictim->GetTechnoType());
+// 	const auto pKillerTypeExt = TechnoTypeExtContainer::Instance.Find(pKiller->GetTechnoType());
 // 	const double giveExpMultiple = pVictimTypeExt->Experience_VictimMultiple.Get();
 // 	const double gainExpMultiple = pKillerTypeExt->Experience_KillerMultiple.Get();
 
@@ -171,7 +171,7 @@ int DrawHealthBar_PipAmount(TechnoClass* pThis, int iLength)
 
 void DrawGroupID_Building(TechnoClass* pThis, Point2D* pLocation, const Point2D& GroupID_Offs)
 {
-	auto const pHouse = pThis->GetOwningHouse() ? pThis->GetOwningHouse() : HouseExt::FindCivilianSide();
+	auto const pHouse = pThis->GetOwningHouse() ? pThis->GetOwningHouse() : HouseExtData::FindCivilianSide();
 
 	CoordStruct vCoords = { 0, 0, 0 };
 	pThis->GetTechnoType()->Dimension2(&vCoords);
@@ -220,7 +220,7 @@ void DrawGroupID_Building(TechnoClass* pThis, Point2D* pLocation, const Point2D&
 
 void DrawGroupID_Other(TechnoClass* pThis, Point2D* pLocation, const Point2D& GroupID_Offs)
 {
-	auto const pHouse = pThis->GetOwningHouse() ? pThis->GetOwningHouse() : HouseExt::FindCivilianSide();
+	auto const pHouse = pThis->GetOwningHouse() ? pThis->GetOwningHouse() : HouseExtData::FindCivilianSide();
 
 	Point2D vLoc = *pLocation;
 	Point2D vOffset = GroupID_Offs;
@@ -426,7 +426,7 @@ void HarvesterLocoFix(TechnoClass* pThis)
 				pFoot->Type->Locomotor.get() == LocomotionClass::CLSIDs::Jumpjet) &&
 			(pFoot->GetCurrentMission() == Mission::Guard ||
 				pFoot->GetCurrentMission() == Mission::Area_Guard) &&
-			!TechnoExt::IsHarvesting(pThis) && !pFoot->Locomotor->Is_Really_Moving_Now()
+			!TechnoExtData::IsHarvesting(pThis) && !pFoot->Locomotor->Is_Really_Moving_Now()
 		)
 		{
 			pFoot->QueueMission(Mission::Harvest, true);
@@ -572,8 +572,8 @@ DEFINE_HOOK(0x4F8FE1, Houseclass_AI_Add, 0x5)
 //
 //	enum { skipDelayedFire = 0, skipFireAt = 0x6FDE03 };
 //
-//	auto pWeaponTypeExt = WeaponTypeExt::ExtMap.Find(pWeaponType);
-//	auto pExt = TechnoExt::ExtMap.Find(pThis);
+//	auto pWeaponTypeExt = WeaponTypeExtContainer::Instance.Find(pWeaponType);
+//	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 //
 //	if (pWeaponTypeExt->DelayedFire_Anim_LoopCount <= 0 || !pWeaponTypeExt->DelayedFire_Anim.isset())
 //		return skipDelayedFire;
@@ -604,19 +604,19 @@ DEFINE_HOOK(0x4F8FE1, Houseclass_AI_Add, 0x5)
 //		CoordStruct animLocation = pThis->Location;
 //
 //		if (pWeaponTypeExt->DelayedFire_Anim_UseFLH)
-//			animLocation = TechnoExt::GetFLHAbsoluteCoords(pThis, pThisType->GetWeapon(weaponIndex)->FLH, pThis->HasTurret());//pThisType->Weapon[weaponIndex].FLH;
+//			animLocation = TechnoExtData::GetFLHAbsoluteCoords(pThis, pThisType->GetWeapon(weaponIndex)->FLH, pThis->HasTurret());//pThisType->Weapon[weaponIndex].FLH;
 //
 //		if (auto pAnim = GameCreate<AnimClass>(pDelayedFireAnimType, animLocation))//pThis->Location))//animLocation))
 //		{
 //			pExt->DelayedFire_Anim = pAnim;
-//			AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, pThis, false);
+//			AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, pThis, false);
 //			pExt->DelayedFire_Anim->SetOwnerObject(pThis);
 //			pExt->DelayedFire_Anim_LoopCount++;
 //		}
 //		else
 //		{
 //			Debug::Log("ERROR! DelayedFire animation [%s] -> %s can't be created.\n", pThis->GetTechnoType()->ID, pDelayedFireAnimType->ID);
-//			TechnoExt::ResetDelayFireAnim(pThis);
+//			TechnoExtData::ResetDelayFireAnim(pThis);
 //			return skipDelayedFire;
 //		}
 //	}

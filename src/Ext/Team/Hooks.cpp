@@ -62,7 +62,7 @@ DEFINE_HOOK(0x6EAD86, TeamClass_CanAdd_CompareType_Convert_UnitType, 0x7) //6
 	GET(TaskForceClass*, pTeam, EDX);
 	GET(int, nMemberIdx, EBP);
 
-	return TeamExt::GroupAllowed(pTeam->Entries[nMemberIdx].Type, pGoingToBeRecuitedType) ?
+	return TeamExtData::GroupAllowed(pTeam->Entries[nMemberIdx].Type, pGoingToBeRecuitedType) ?
 		ContinueCheck : ContinueLoop;
 }
 
@@ -72,6 +72,6 @@ DEFINE_HOOK(0x6EA6D3, TeamClass_CanAdd_ReplaceLoop, 0x7)
 	GET(TechnoTypeClass*, pThat, EAX);
 	GET(int, idx, EDI);
 
-	return TeamExt::GroupAllowed(pForce->Entries[idx].Type , pThat) ? 0x6EA6F2 : 0x6EA6DC;
+	return TeamExtData::GroupAllowed(pForce->Entries[idx].Type , pThat) ? 0x6EA6F2 : 0x6EA6DC;
 }
 

@@ -6,7 +6,7 @@ void ReadFacingDirMult(std::array<Point2D, (size_t)FacingType::Count>& arr, INI_
 
 	for (size_t i = 0; i < arr.size(); ++i)
 	{
-		Nullable<Point2D> ReadWind {};
+		Nullable<Point2D> ReadWind;
 		IMPL_SNPRNINTF(buff_wind, sizeof(buff_wind) - 1, "FacingDirectionMult%d", i);
 		ReadWind.Read(exINI, pID, buff_wind);
 
@@ -18,13 +18,10 @@ void ReadFacingDirMult(std::array<Point2D, (size_t)FacingType::Count>& arr, INI_
 	}
 }
 
-void ParticleSystemTypeExt::ExtData::Initialize() {
-}
-
-void ParticleSystemTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+void ParticleSystemTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->Get();
-	const char* pID = this->Get()->ID;
+	auto pThis = this->AttachedToObject;
+	const char* pID = pThis->ID;
 
 	if (parseFailAddr)
 		return;
@@ -37,6 +34,11 @@ void ParticleSystemTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool pars
 		ReadFacingDirMult(this->FacingMult, exINI, pID, ParticleSystemClass::FireWind_X.begin(), ParticleSystemClass::FireWind_Y.begin());
 	}
 	break;
+	case ParticleSystemTypeBehavesLike::Spark:
+		if (pThis->ParticleCap < 2){
+			Debug::FatalErrorAndExit("ParticleSystem[%s] BehavesLike=Spark ParticleCap need to be more than 1\n", pID);
+		}
+		break;
 	default:
 		break;
 	}
@@ -46,7 +48,7 @@ void ParticleSystemTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool pars
 // =============================
 // load / save
 template <typename T>
-void ParticleSystemTypeExt::ExtData::Serialize(T& Stm)
+void ParticleSystemTypeExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->ApplyOptimization)
@@ -56,7 +58,7 @@ void ParticleSystemTypeExt::ExtData::Serialize(T& Stm)
 
 // =============================
 // container
-ParticleSystemTypeExt::ExtContainer ParticleSystemTypeExt::ExtMap;
+ParticleSystemTypeExtContainer ParticleSystemTypeExtContainer::Instance;
 
 // =============================
 // container hooks
@@ -64,14 +66,14 @@ ParticleSystemTypeExt::ExtContainer ParticleSystemTypeExt::ExtMap;
 DEFINE_HOOK(0x644217, ParticleSystemTypeClass_CTOR, 0x5)
 {
 	GET(ParticleSystemTypeClass*, pItem, ESI);
-	ParticleSystemTypeExt::ExtMap.Allocate(pItem);
+	ParticleSystemTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
 DEFINE_HOOK(0x644276, ParticleSystemTypeClass_SDDTOR, 0x6)
 {
 	GET(ParticleSystemTypeClass*, pItem, ESI);
-	ParticleSystemTypeExt::ExtMap.Remove(pItem);
+	ParticleSystemTypeExtContainer::Instance.Remove(pItem);
 
 	return 0;
 }
@@ -82,20 +84,20 @@ DEFINE_HOOK(0x6447E0, ParticleSystemTypeClass_SaveLoad_Prefix, 0x5)
 	GET_STACK(ParticleSystemTypeClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 
-	ParticleSystemTypeExt::ExtMap.PrepareStream(pItem, pStm);
+	ParticleSystemTypeExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
 }
 
 DEFINE_HOOK(0x64481F, ParticleSystemTypeClass_Load_Suffix, 0x6)
 {
-	ParticleSystemTypeExt::ExtMap.LoadStatic();
+	ParticleSystemTypeExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
 DEFINE_HOOK(0x644844, ParticleSystemTypeClass_Save_Suffix, 0x5)
 {
-	ParticleSystemTypeExt::ExtMap.SaveStatic();
+	ParticleSystemTypeExtContainer::Instance.SaveStatic();
 	return 0;
 }
 
@@ -105,6 +107,6 @@ DEFINE_HOOK(0x644617, ParticleSystemTypeClass_LoadFromINI, 0x5)
 	GET(ParticleSystemTypeClass*, pItem, ESI);
 	GET(CCINIClass*, pINI, EBX);
 
-	ParticleSystemTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x644620);
+	ParticleSystemTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x644620);
 	return 0;
 }

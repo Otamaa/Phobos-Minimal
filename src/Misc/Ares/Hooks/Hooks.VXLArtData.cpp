@@ -35,7 +35,7 @@ DEFINE_OVERRIDE_HOOK(0x5F8277, ObjectTypeClass_Load3DArt_NoSpawnAlt1, 7)
 
 	if (pType->NoSpawnAlt)
 	{
-		auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		char Buffer[0x40];
 		auto pKey = "%sWO";
@@ -69,7 +69,7 @@ DEFINE_OVERRIDE_HOOK(0x5F887B, ObjectTypeClass_Load3DArt_Barrels, 6)
 {
 	GET(TechnoTypeClass*, pThis, ESI);
 
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis);
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis);
 
 	const int nRemaining = (pThis->TurretCount - TechnoTypeClass::MaxWeapons) < 0 ?
 		0 : (pThis->TurretCount - TechnoTypeClass::MaxWeapons);
@@ -123,7 +123,7 @@ DEFINE_OVERRIDE_HOOK(0x5F865F, ObjectTypeClass_Load3DArt_Turrets, 6)
 {
 	GET(TechnoTypeClass*, pThis, ESI);
 
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis);
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis);
 
 	const int nRemaining = (pThis->TurretCount - TechnoTypeClass::MaxWeapons) < 0 ?
 		0 : (pThis->TurretCount - TechnoTypeClass::MaxWeapons);
@@ -181,7 +181,7 @@ DEFINE_OVERRIDE_HOOK(0x73B90E, UnitClass_DrawVXL_Barrels1, 7)
 	GET(int, nIdx, EAX);
 
 	R->Stack(0x2C, R->ESI());
-	const auto pData = TechnoTypeExt::GetBarrelsVoxel(pUnit, nIdx);
+	const auto pData = TechnoTypeExtData::GetBarrelsVoxel(pUnit, nIdx);
 	return (!pData->VXL || !pData->HVA) ? 0x73B94A : 0x73B928;
 }
 
@@ -189,7 +189,7 @@ DEFINE_OVERRIDE_HOOK(0x73BCCD, UnitClass_DrawVXL_Barrels2, 7)
 {
 	GET(UnitTypeClass*, pUnit, EBX);
 	GET(int, nIdx, ECX);
-	R->EDX(TechnoTypeExt::GetBarrelsVoxel(pUnit, nIdx));
+	R->EDX(TechnoTypeExtData::GetBarrelsVoxel(pUnit, nIdx));
 	return 0x73BCD4;
 }
 
@@ -197,7 +197,7 @@ DEFINE_OVERRIDE_HOOK(0x73BD6A, UnitClass_DrawVXL_Barrels3, 7)
 {
 	GET(UnitTypeClass*, pUnit, EBX);
 	GET(int, nIdx, ESI);
-	R->ECX(TechnoTypeExt::GetBarrelsVoxel(pUnit, nIdx));
+	R->ECX(TechnoTypeExtData::GetBarrelsVoxel(pUnit, nIdx));
 	return 0x73BD71;
 }
 
@@ -205,7 +205,7 @@ DEFINE_OVERRIDE_HOOK(0x73BD15, UnitClass_DrawVXL_Turrets, 7)
 {
 	GET(UnitTypeClass*, pUnit, EBX);
 	GET(int, nIdx, ESI);
-	R->ECX(TechnoTypeExt::GetTurretsVoxel(pUnit, nIdx));
+	R->ECX(TechnoTypeExtData::GetTurretsVoxel(pUnit, nIdx));
 	return 0x73BD1C;
 }
 
@@ -223,7 +223,7 @@ DEFINE_OVERRIDE_HOOK(0x5F8084, ObjectTypeClass_UnloadTurretArt, 6)
 		)
 		return 0;
 
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find((TechnoTypeClass*)pThis);
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find((TechnoTypeClass*)pThis);
 
 	pTypeExt->BarrelImageData.clear();
 	pTypeExt->TurretImageData.clear();
@@ -234,6 +234,6 @@ DEFINE_OVERRIDE_HOOK(0x5F8084, ObjectTypeClass_UnloadTurretArt, 6)
 DEFINE_OVERRIDE_HOOK(0x73B6E3, UnitClass_DrawVXL_NoSpawnAlt, 6)
 {
 	GET(UnitTypeClass*, pType, EBX);
-	R->EDX(&TechnoTypeExt::ExtMap.Find(pType)->SpawnAltData);
+	R->EDX(&TechnoTypeExtContainer::Instance.Find(pType)->SpawnAltData);
 	return 0x73B6E9;
 }

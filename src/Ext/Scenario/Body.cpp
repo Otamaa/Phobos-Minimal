@@ -1,10 +1,10 @@
 #include "Body.h"
 
-IStream* ScenarioExt::g_pStm = nullptr;
-bool ScenarioExt::CellParsed = false;
-std::unique_ptr< ScenarioExt::ExtData>  ScenarioExt::Data = nullptr;
+IStream* ScenarioExtData::g_pStm = nullptr;
+bool ScenarioExtData::CellParsed = false;
+std::unique_ptr<ScenarioExtData>  ScenarioExtData::Data = nullptr;
 
-void ScenarioExt::SaveVariablesToFile(bool isGlobal)
+void ScenarioExtData::SaveVariablesToFile(bool isGlobal)
 {
 	const auto fileName = isGlobal ? "globals.ini" : "locals.ini";
 
@@ -16,26 +16,26 @@ void ScenarioExt::SaveVariablesToFile(bool isGlobal)
 	else
 		pFile->CreateFileA();
 
-	for (const auto& variable : *ScenarioExt::GetVariables(isGlobal))
+	for (const auto& variable : *ScenarioExtData::GetVariables(isGlobal))
 		pINI->WriteInteger(ScenarioClass::Instance()->FileName, variable.second.Name, variable.second.Value, false);
 
 	pINI->WriteCCFile(pFile);
 	pFile->Close();
 }
 
-std::map<int, ExtendedVariable>* ScenarioExt::GetVariables(bool IsGlobal)
+std::map<int, ExtendedVariable>* ScenarioExtData::GetVariables(bool IsGlobal)
 {
 	if (IsGlobal)
-		return &ScenarioExt::Global()->Global_Variables;
+		return &ScenarioExtData::Instance()->Global_Variables;
 
-	return &ScenarioExt::Global()->Local_Variables;
+	return &ScenarioExtData::Instance()->Local_Variables;
 }
 
-void ScenarioExt::ExtData::SetVariableToByID(const bool IsGlobal, int nIndex, char bState)
+void ScenarioExtData::SetVariableToByID(const bool IsGlobal, int nIndex, char bState)
 {
 	//Debug::Log("%s , Executed !\n", __FUNCTION__);
 
-	const auto dict = ScenarioExt::GetVariables(IsGlobal);
+	const auto dict = ScenarioExtData::GetVariables(IsGlobal);
 	const auto itr = dict->find(nIndex);
 
 	if (itr != dict->end() && itr->second.Value != bState)
@@ -49,11 +49,11 @@ void ScenarioExt::ExtData::SetVariableToByID(const bool IsGlobal, int nIndex, ch
 	}
 }
 
-void ScenarioExt::ExtData::GetVariableStateByID(const bool IsGlobal,int nIndex, char* pOut)
+void ScenarioExtData::GetVariableStateByID(const bool IsGlobal,int nIndex, char* pOut)
 {
 	//Debug::Log("%s , Executed !\n", __FUNCTION__);
 
-	const auto dict = ScenarioExt::GetVariables(IsGlobal);
+	const auto dict = ScenarioExtData::GetVariables(IsGlobal);
 	const auto itr = dict->find(nIndex);
 
 	if (itr != dict->end())
@@ -63,14 +63,14 @@ void ScenarioExt::ExtData::GetVariableStateByID(const bool IsGlobal,int nIndex, 
 
 }
 
-void ScenarioExt::ExtData::ReadVariables(const bool IsGlobal, CCINIClass* pINI)
+void ScenarioExtData::ReadVariables(const bool IsGlobal, CCINIClass* pINI)
 {
 	//auto const pString = IsGlobal ? "Global" : "Local";
 	//Debug::Log("%s , Executed For %s Variables !\n", __FUNCTION__, pString);
 
 	if (!IsGlobal) // Local variables need to be read again
-		ScenarioExt::GetVariables(false)->clear();
-	else if (!ScenarioExt::GetVariables(true)->empty()) // Global variables had been loaded, DO NOT CHANGE THEM
+		ScenarioExtData::GetVariables(false)->clear();
+	else if (!ScenarioExtData::GetVariables(true)->empty()) // Global variables had been loaded, DO NOT CHANGE THEM
 		return;
 
 	const char* const pVariableNames = GameStrings::VariableNames();
@@ -83,7 +83,7 @@ void ScenarioExt::ExtData::ReadVariables(const bool IsGlobal, CCINIClass* pINI)
 
 		if (sscanf_s(pKey, "%d", &nIndex) == 1)
 		{
-			auto& var = (*ScenarioExt::GetVariables(IsGlobal))[nIndex];
+			auto& var = (*ScenarioExtData::GetVariables(IsGlobal))[nIndex];
 			pINI->ReadString(pVariableNames, pKey, pKey, Phobos::readBuffer);
 			char* buffer = nullptr;
 			strcpy_s(var.Name, strtok_s(Phobos::readBuffer, Phobos::readDelims, &buffer));
@@ -97,27 +97,28 @@ void ScenarioExt::ExtData::ReadVariables(const bool IsGlobal, CCINIClass* pINI)
 	}
 }
 
-void ScenarioExt::Allocate(ScenarioClass* pThis)
+void ScenarioExtData::Allocate(ScenarioClass* pThis)
 {
-	Data = std::make_unique<ScenarioExt::ExtData>(pThis);
+	Data = std::make_unique<ScenarioExtData>(pThis);
 }
 
-void ScenarioExt::Remove(ScenarioClass* pThis)
+void ScenarioExtData::Remove(ScenarioClass* pThis)
 {
 	Data = nullptr;
 }
 
-void ScenarioExt::LoadFromINIFile(ScenarioClass* pThis, CCINIClass* pINI)
+void ScenarioExtData::s_LoadFromINIFile(ScenarioClass* pThis, CCINIClass* pINI)
 {
+	//Data->Initialize();
 	Data->LoadFromINIFile(pINI , false);
 }
 
-void ScenarioExt::ExtData::LoadBasicFromINIFile(CCINIClass* pINI)
+void ScenarioExtData::LoadBasicFromINIFile(CCINIClass* pINI)
 {
 	AdjustLightingFix = pINI->ReadBool(GameStrings::Basic(), "AdjustLightingFix", false);
 }
 
-void ScenarioExt::ExtData::FetchVariables(ScenarioClass* pScen)
+void ScenarioExtData::FetchVariables(ScenarioClass* pScen)
 {
 	// Initialize
 	DefaultAmbientOriginal = pScen->AmbientOriginal;
@@ -128,9 +129,9 @@ void ScenarioExt::ExtData::FetchVariables(ScenarioClass* pScen)
 	CurrentTint_Tiles = pScen->NormalLighting.Tint;
 }
 
-void ScenarioExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+void ScenarioExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->Get();
+	auto pThis = this->AttachedToObject;
 
 	 INI_EX exINI(pINI);
 
@@ -157,10 +158,10 @@ void ScenarioExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 // load / save
 
 template <typename T>
-void ScenarioExt::ExtData::Serialize(T& Stm)
+void ScenarioExtData::Serialize(T& Stm)
 {
 
-	//Debug::Log("Processing ScenarioExt ! \n");
+	//Debug::Log("Processing ScenarioExtData ! \n");
 	Stm
 
 		.Process(SessionClass::Instance->Config)
@@ -197,10 +198,10 @@ DEFINE_HOOK(0x683549, ScenarioClass_CTOR, 0x9)
 {
 	GET(ScenarioClass*, pItem, EAX);
 
-	ScenarioExt::Allocate(pItem);
-	ScenarioExt::Global()->Waypoints.clear();
-	ScenarioExt::Global()->Local_Variables.clear();
-	ScenarioExt::Global()->Global_Variables.clear();
+	ScenarioExtData::Allocate(pItem);
+	ScenarioExtData::Instance()->Waypoints.clear();
+	ScenarioExtData::Instance()->Local_Variables.clear();
+	ScenarioExtData::Instance()->Global_Variables.clear();
 
 	return 0;
 }
@@ -209,7 +210,7 @@ DEFINE_HOOK(0x6BEB7D, ScenarioClass_DTOR, 0x6)
 {
 	GET(ScenarioClass*, pItem, ESI);
 
-	ScenarioExt::Remove(pItem);
+	ScenarioExtData::Remove(pItem);
 	return 0;
 }
 
@@ -218,21 +219,21 @@ DEFINE_HOOK(0x689310, ScenarioClass_SaveLoad_Prefix, 0x5)
 {
 	GET_STACK(IStream*, pStm, 0x4);
 
-	ScenarioExt::g_pStm = pStm;
+	ScenarioExtData::g_pStm = pStm;
 
 	return 0;
 }
 
 DEFINE_HOOK(0x689669, ScenarioClass_Load_Suffix, 0x6)
 {
-	auto buffer = ScenarioExt::Global();
+	auto buffer = ScenarioExtData::Instance();
 
 	PhobosByteStream Stm(0);
-	if (Stm.ReadBlockFromStream(ScenarioExt::g_pStm))
+	if (Stm.ReadBlockFromStream(ScenarioExtData::g_pStm))
 	{
 		PhobosStreamReader Reader(Stm);
 
-		if (Reader.Expect(ScenarioExt::ExtData::Canary) && Reader.RegisterChange(buffer))
+		if (Reader.Expect(ScenarioExtData::Canary) && Reader.RegisterChange(buffer))
 			buffer->LoadFromStream(Reader);
 	}
 
@@ -241,18 +242,18 @@ DEFINE_HOOK(0x689669, ScenarioClass_Load_Suffix, 0x6)
 
 DEFINE_HOOK(0x68945B, ScenarioClass_Save_Suffix, 0x8)
 {
-	auto buffer = ScenarioExt::Global();
+	auto buffer = ScenarioExtData::Instance();
 	PhobosByteStream saver(//sizeof(GameModeOptionsClass)
 		+ sizeof(*buffer));
 	PhobosStreamWriter writer(saver);
 
-	writer.Expect(ScenarioExt::ExtData::Canary);
+	writer.Expect(ScenarioExtData::Canary);
 	writer.RegisterChange(buffer);
 
 	buffer->SaveToStream(writer);
 	//if (!
-	saver.WriteBlockToStream(ScenarioExt::g_pStm)
-	//) Debug::Log("Faild To Write ScenarioExt to the Stream ! ")
+	saver.WriteBlockToStream(ScenarioExtData::g_pStm)
+	//) Debug::Log("Faild To Write ScenarioExtData to the Stream ! ")
 		;
 
 	return 0;
@@ -263,7 +264,7 @@ DEFINE_HOOK(0x689FC0, ScenarioClass_LoadFromINI_ReadBasic, 0x8)
 	GET(CCINIClass*, pINI, EDI);
 
 	//read the "Basic" section
-	ScenarioExt::Global()->LoadBasicFromINIFile(pINI);
+	ScenarioExtData::Instance()->LoadBasicFromINIFile(pINI);
 	return 0x0;
 }
 
@@ -287,12 +288,12 @@ DEFINE_HOOK(0x689E90, ScenarioClass_LoadFromINI_Early, 0x6)
 	GET_STACK(CCINIClass*, pINI, 0x8);
 
 	//init the Ext
-	ScenarioExt::LoadFromINIFile(pItem, pINI);
+	ScenarioExtData::s_LoadFromINIFile(pItem, pINI);
 	return 0;
 }
 
 DEFINE_HOOK(0x68AD62, ScenarioClass_LoadFromINI, 0x6)
 {
-	ScenarioExt::Global()->FetchVariables(ScenarioClass::Instance());
+	ScenarioExtData::Instance()->FetchVariables(ScenarioClass::Instance());
 	return 0;
 }

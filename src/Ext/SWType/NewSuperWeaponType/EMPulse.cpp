@@ -14,7 +14,7 @@ std::vector<const char*> SW_EMPulse::GetTypeString() const
 
 bool SW_EMPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
-	auto pData = SWTypeExt::ExtMap.Find(pThis->Type);
+	auto pData = SWTypeExtContainer::Instance.Find(pThis->Type);
 	pThis->Owner->EMPTarget = Coords;
 
 	// the maximum number of buildings to fire. negative means all.
@@ -36,8 +36,8 @@ bool SW_EMPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 		if (!pData->EMPulse_TargetSelf)
 		{
 			// set extended properties
-			TechnoExt::ExtMap.Find(pBld)->SuperTarget = Coords;
-			TechnoExt::ExtMap.Find(pBld)->LinkedSW = pThis;
+			TechnoExtContainer::Instance.Find(pBld)->SuperTarget = Coords;
+			TechnoExtContainer::Instance.Find(pBld)->LinkedSW = pThis;
 			// setup the cannon and start the fire mission
 			pBld->FiringSWType = pThis->Type->ArrayIndex;
 			pBld->QueueMission(Mission::Missile, false);
@@ -48,10 +48,10 @@ bool SW_EMPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 			// create a bullet and detonate immediately
 			if (auto pWeapon = pBld->GetWeapon(0)->WeaponType)
 			{
-				if (auto pBullet = BulletTypeExt::ExtMap.Find(pWeapon->Projectile)->CreateBullet(pBld, pBld, pWeapon , false , true))
+				if (auto pBullet = BulletTypeExtContainer::Instance.Find(pWeapon->Projectile)->CreateBullet(pBld, pBld, pWeapon , false , true))
 				{
 					pBullet->Limbo();
-					pBullet->Detonate(BuildingExt::GetCenterCoords(pBld));
+					pBullet->Detonate(BuildingExtData::GetCenterCoords(pBld));
 					pBullet->Release();
 				}
 			}
@@ -61,9 +61,9 @@ bool SW_EMPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 	return true;
 }
 
-void SW_EMPulse::Initialize(SWTypeExt::ExtData* pData)
+void SW_EMPulse::Initialize(SWTypeExtData* pData)
 {
-	pData->OwnerObject()->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	pData->AttachedToObject->Action = Action(AresNewActionType::SuperWeaponAllowed);
 	pData->SW_RangeMaximum = -1.0;
 	pData->SW_RangeMinimum = 0.0;
 	pData->SW_MaxCount = 1;
@@ -76,7 +76,7 @@ void SW_EMPulse::Initialize(SWTypeExt::ExtData* pData)
 	pData->NoCursorType = int(MouseCursorType::AttackOutOfRange);
 }
 
-void SW_EMPulse::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
+void SW_EMPulse::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
 	const char* section = pData->get_ID();
 
@@ -88,13 +88,13 @@ void SW_EMPulse::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->EMPulse_PulseBall.Read(exINI, section, "EMPulse.PulseBall");
 	pData->EMPulse_Cannons.Read(exINI, section, "EMPulse.Cannons");
 
-	pData->Get()->Action = pData->EMPulse_TargetSelf ? Action::None : (Action)AresNewActionType::SuperWeaponAllowed;
+	pData->AttachedToObject->Action = pData->EMPulse_TargetSelf ? Action::None : (Action)AresNewActionType::SuperWeaponAllowed;
 
 }
 
-bool SW_EMPulse::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+bool SW_EMPulse::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
-	const auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
+	const auto pBldExt = BuildingExtContainer::Instance.Find(pBuilding);
 	if(pBldExt->LimboID != -1)
 		return false;
 
@@ -109,7 +109,7 @@ bool SW_EMPulse::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pB
 	return pBuilding->Type->EMPulseCannon && this->IsSWTypeAttachedToThis(pData, pBuilding);
 }
 
-std::pair<double, double> SW_EMPulse::GetLaunchSiteRange(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+std::pair<double, double> SW_EMPulse::GetLaunchSiteRange(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
 	if (pData->EMPulse_TargetSelf)
 	{

@@ -20,7 +20,7 @@ DEFINE_HOOK(0x62CE86, ParticleClass_AI, 0x7) // F , this is the end, here's the 
 {
 	GET(ParticleClass*, pThis, ESI);
 
-	const auto pParticleExt = ParticleExt::ExtMap.TryFind(pThis);
+	const auto pParticleExt = ParticleExtContainer::Instance.TryFind(pThis);
 
 	if (!pParticleExt) {
 		Debug::Log("Particle[%x - %s] , Without Ext , Returning ! \n", pThis, pThis->get_ID());
@@ -52,7 +52,7 @@ DEFINE_HOOK(0x62D301, ParticleClass_SmokeDirection_AI_WinDirMult, 0x6)
 {
 	GET(int, facing, EAX);
 	GET(ParticleClass*, pThis, ESI);
-	const auto& mult = ParticleTypeExt::ExtMap.Find(pThis->Type)->WindMult[facing];
+	const auto& mult = ParticleTypeExtContainer::Instance.Find(pThis->Type)->WindMult[facing];
 	R->ECX(mult.X);
 	R->EAX(mult.Y);
 	return 0x62D30D;
@@ -62,7 +62,7 @@ DEFINE_HOOK(0x62D44A, ParticleClass_GasDirection_AI_WinDirMult, 0x6)
 {
 	GET(int, facing, EAX);
 	GET(ParticleClass*, pThis, ESI);
-	const auto& mult = ParticleTypeExt::ExtMap.Find(pThis->Type)->WindMult[facing];
+	const auto& mult = ParticleTypeExtContainer::Instance.Find(pThis->Type)->WindMult[facing];
 	R->ECX(mult.X);
 	R->EAX(mult.Y);
 	return 0x62D456;
@@ -81,7 +81,7 @@ DEFINE_HOOK(0x62C361, ParticleClass_ProcessGasBehaviour_DisOnWater, 6)
 	GET(ParticleClass*, pThis, EBP);
 	GET(ParticleTypeClass* const, pType, EDI);
 
-	const auto pTypeExt = ParticleTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = ParticleTypeExtContainer::Instance.Find(pType);
 
 	if (pType->WindEffect == -1)
 	{
@@ -112,7 +112,7 @@ DEFINE_HOOK(0x62BE30, ParticleClass_Gas_AI_DriftSpeed, 0x5)
 
 	GET(ParticleClass*, pParticle, EBP);
 
-	const auto pExt = ParticleTypeExt::ExtMap.Find(pParticle->Type);
+	const auto pExt = ParticleTypeExtContainer::Instance.Find(pParticle->Type);
 	const int maxDriftSpeed = pExt->Gas_DriftSpeed->X;
 	const int minDriftSpeed = pExt->Gas_DriftSpeed->Y;
 

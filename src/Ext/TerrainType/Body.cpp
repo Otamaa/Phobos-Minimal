@@ -3,24 +3,24 @@
 #include <TerrainTypeClass.h>
 #include <Utilities/GeneralUtils.h>
 
-void TerrainTypeExt::ExtData::Initialize()
+void TerrainTypeExtData::Initialize()
 {
 	AttachedAnim.reserve(1);
 }
 
-int TerrainTypeExt::ExtData::GetTiberiumGrowthStage()
+int TerrainTypeExtData::GetTiberiumGrowthStage()
 {
 	return GeneralUtils::GetRangedRandomOrSingleValue(this->SpawnsTiberium_GrowthStage);
 }
 
-int TerrainTypeExt::ExtData::GetCellsPerAnim()
+int TerrainTypeExtData::GetCellsPerAnim()
 {
 	return GeneralUtils::GetRangedRandomOrSingleValue(this->SpawnsTiberium_CellsPerAnim);
 }
 
-void TerrainTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+void TerrainTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->Get();
+	auto pThis = this->AttachedToObject;
 	const char* pSection = pThis->ID;
 
 	if (parseFailAddr)
@@ -65,7 +65,7 @@ void TerrainTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 // load / save
 
 template <typename T>
-void TerrainTypeExt::ExtData::Serialize(T& Stm)
+void TerrainTypeExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
@@ -94,7 +94,7 @@ void TerrainTypeExt::ExtData::Serialize(T& Stm)
 
 }
 
-void TerrainTypeExt::Remove(TerrainClass* pTerrain)
+void TerrainTypeExtData::Remove(TerrainClass* pTerrain)
 {
 	if (!pTerrain)
 		return;
@@ -108,7 +108,7 @@ void TerrainTypeExt::Remove(TerrainClass* pTerrain)
 
 // =============================
 // container
-TerrainTypeExt::ExtContainer TerrainTypeExt::ExtMap;
+TerrainTypeExtContainer TerrainTypeExtContainer::Instance;
 
 // =============================
 // container hooks
@@ -116,7 +116,7 @@ TerrainTypeExt::ExtContainer TerrainTypeExt::ExtMap;
 DEFINE_HOOK(0x71DBC0, TerrainTypeClass_CTOR, 0x7)
 {
 	GET(TerrainTypeClass*, pItem, ESI);
-	TerrainTypeExt::ExtMap.Allocate(pItem);
+	TerrainTypeExtContainer::Instance.Allocate(pItem);
 	pItem->RadarInvisible = false;
 	return 0;
 }
@@ -125,7 +125,7 @@ DEFINE_HOOK(0x71E3A5, TerrainTypeClass_SDDTOR, 0x6)
 {
 	GET(TerrainTypeClass*, pItem, ESI);
 
-	TerrainTypeExt::ExtMap.Remove(pItem);
+	TerrainTypeExtContainer::Instance.Remove(pItem);
 
 	return 0;
 }
@@ -136,21 +136,21 @@ DEFINE_HOOK(0x71E240, TerrainTypeClass_SaveLoad_Prefix, 0x8)
 	GET_STACK(TerrainTypeClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 
-	TerrainTypeExt::ExtMap.PrepareStream(pItem, pStm);
+	TerrainTypeExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
 }
 
 DEFINE_HOOK(0x71E233, TerrainTypeClass_Load_Suffix, 0x6)
 {
-	TerrainTypeExt::ExtMap.LoadStatic();
+	TerrainTypeExtContainer::Instance.LoadStatic();
 
 	return 0;
 }
 
 DEFINE_HOOK(0x71E258, TerrainTypeClass_Save_Suffix, 0x5)
 {
-	TerrainTypeExt::ExtMap.SaveStatic();
+	TerrainTypeExtContainer::Instance.SaveStatic();
 
 	return 0;
 }
@@ -160,7 +160,7 @@ DEFINE_HOOK(0x71E0B4, TerrainTypeClass_LoadFromINI_ReturnFalse, 0xA)
 	GET(TerrainTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0x20C, -0x4));
 
-	TerrainTypeExt::ExtMap.LoadFromINI(pItem, pINI , true);
+	TerrainTypeExtContainer::Instance.LoadFromINI(pItem, pINI , true);
 
 	return 0;
 }
@@ -170,7 +170,7 @@ DEFINE_HOOK(0x71E0A6, TerrainTypeClass_LoadFromINI, 0x5)
 	GET(TerrainTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0x210, -0x4));
 
-	TerrainTypeExt::ExtMap.LoadFromINI(pItem, pINI , false);
+	TerrainTypeExtContainer::Instance.LoadFromINI(pItem, pINI , false);
 
 	return 0;
 }

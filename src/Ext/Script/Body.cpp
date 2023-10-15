@@ -18,7 +18,7 @@
 *	Each script contains function that behave as it programmed
 */
 
-ScriptActionNode NOINLINE ScriptExt::GetSpecificAction(ScriptClass* pScript, int nIdx)
+ScriptActionNode NOINLINE ScriptExtData::GetSpecificAction(ScriptClass* pScript, int nIdx)
 {
 	if (nIdx == -1)
 		return { -1 , 0 };
@@ -41,7 +41,7 @@ ScriptActionNode NOINLINE ScriptExt::GetSpecificAction(ScriptClass* pScript, int
 
 // =============================
 // container
-ScriptExt::ExtContainer ScriptExt::ExtMap;
+ScriptExtContainer ScriptExtContainer::Instance;
 
 #define stringify( name ) #name
 
@@ -370,7 +370,7 @@ NOINLINE const char* ToStrings(PhobosScripts from)
 	}
 }
 
-void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
+void ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 {
 	auto const& [action, argument] = pTeam->CurrentScript->GetCurrentAction();
 
@@ -389,80 +389,80 @@ void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
 		{
 		case PhobosScripts::TimedAreaGuard:
 		{
-			ScriptExt::ExecuteTimedAreaGuardAction(pTeam); //checked
+			ScriptExtData::ExecuteTimedAreaGuardAction(pTeam); //checked
 			return;
 		}
 		case PhobosScripts::LoadIntoTransports:
 		{
-			ScriptExt::LoadIntoTransports(pTeam); //fixed
+			ScriptExtData::LoadIntoTransports(pTeam); //fixed
 			return;
 		}
 		case PhobosScripts::WaitUntilFullAmmo:
 		{
-			ScriptExt::WaitUntilFullAmmoAction(pTeam); //
+			ScriptExtData::WaitUntilFullAmmoAction(pTeam); //
 			return;
 		}
 		case PhobosScripts::DecreaseCurrentAITriggerWeight:
 		{
-			ScriptExt::DecreaseCurrentTriggerWeight(pTeam, true, 0); //
+			ScriptExtData::DecreaseCurrentTriggerWeight(pTeam, true, 0); //
 			return;
 		}
 		case PhobosScripts::IncreaseCurrentAITriggerWeight:
 		{
-			ScriptExt::IncreaseCurrentTriggerWeight(pTeam, true, 0);
+			ScriptExtData::IncreaseCurrentTriggerWeight(pTeam, true, 0);
 			return;
 		}
 		case PhobosScripts::WaitIfNoTarget:
 		{
-			ScriptExt::WaitIfNoTarget(pTeam, -1);
+			ScriptExtData::WaitIfNoTarget(pTeam, -1);
 			return;
 		}
 		case PhobosScripts::TeamWeightReward:
 		{
-			ScriptExt::TeamWeightReward(pTeam , -1);
+			ScriptExtData::TeamWeightReward(pTeam , -1);
 			return;
 		}
 		case PhobosScripts::PickRandomScript:
 		{
-			ScriptExt::PickRandomScript(pTeam, -1);
+			ScriptExtData::PickRandomScript(pTeam, -1);
 			return;
 		}
 		case PhobosScripts::ModifyTargetDistance:
 		{
 			// AISafeDistance equivalent for Mission_Move()
-			ScriptExt::SetCloseEnoughDistance(pTeam , -1);
+			ScriptExtData::SetCloseEnoughDistance(pTeam , -1);
 			return;
 		}
 		case PhobosScripts::SetMoveMissionEndMode:
 		{
 			// Set the condition for ending the Mission_Move Actions.
-			ScriptExt::SetMoveMissionEndMode(pTeam, -1);
+			ScriptExtData::SetMoveMissionEndMode(pTeam, -1);
 			return;
 		}
 		case PhobosScripts::UnregisterGreatSuccess:
 		{
 			// Un-register success for AITrigger weight adjustment (this is the opposite of 49,0)
-			ScriptExt::UnregisterGreatSuccess(pTeam);
+			ScriptExtData::UnregisterGreatSuccess(pTeam);
 			return;
 		}
 		case PhobosScripts::GatherAroundLeader:
 		{
-			ScriptExt::Mission_Gather_NearTheLeader(pTeam, -1);
+			ScriptExtData::Mission_Gather_NearTheLeader(pTeam, -1);
 			return;
 		}
 		case PhobosScripts::RandomSkipNextAction:
 		{
-			ScriptExt::SkipNextAction(pTeam, -1);
+			ScriptExtData::SkipNextAction(pTeam, -1);
 			return;
 		}
 		case PhobosScripts::ForceGlobalOnlyTargetHouseEnemy:
 		{
-			ScriptExt::ForceGlobalOnlyTargetHouseEnemy(pTeam, -1);
+			ScriptExtData::ForceGlobalOnlyTargetHouseEnemy(pTeam, -1);
 			return;
 		}
 		case PhobosScripts::ChangeTeamGroup:
 		{
-		//	ScriptExt::TeamMemberSetGroup(pTeam, argument);
+		//	ScriptExtData::TeamMemberSetGroup(pTeam, argument);
 			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
 			pTeam->StepCompleted = true;
 			return;
@@ -470,39 +470,39 @@ void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
 		//TODO
 		case PhobosScripts::DistributedLoading:
 		{
-			//ScriptExt::DistributedLoadOntoTransport(pTeam, argument); //which branch is this again ?
+			//ScriptExtData::DistributedLoadOntoTransport(pTeam, argument); //which branch is this again ?
 			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
 			pTeam->StepCompleted = true;
 			return;
 		}
 		case PhobosScripts::FollowFriendlyByGroup:
 		{
-			//ScriptExt::FollowFriendlyByGroup(pTeam, argument); //which branch is this again ?
+			//ScriptExtData::FollowFriendlyByGroup(pTeam, argument); //which branch is this again ?
 			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
 			pTeam->StepCompleted = true;
 			return;
 		}
 		case PhobosScripts::RallyUnitWithSameGroup:
 		{
-			//ScriptExt::RallyUnitInMap(pTeam, argument); //which branch is this again ?
+			//ScriptExtData::RallyUnitInMap(pTeam, argument); //which branch is this again ?
 			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
 			pTeam->StepCompleted = true;
 			return;
 		}
 		case PhobosScripts::AbortActionAfterSuccessKill:
 		{
-			ScriptExt::SetAbortActionAfterSuccessKill(pTeam, -1);  //which branch is this again ?
+			ScriptExtData::SetAbortActionAfterSuccessKill(pTeam, -1);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::JumpBackToPreviousScript:
 		{
-			ScriptExt::JumpBackToPreviousScript(pTeam);  //which branch is this again ?
+			ScriptExtData::JumpBackToPreviousScript(pTeam);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::RepairDestroyedBridge:
 		{
 			// Start Timed Jump that jumps to the same line when the countdown finish (in frames)
-			ScriptExt::RepairDestroyedBridge(pTeam, -1);  //which branch is this again ?
+			ScriptExtData::RepairDestroyedBridge(pTeam, -1);  //which branch is this again ?
 			Debug::Log("Team[%x - %s , Script [%x - %s] Action [%d] - No AttachedFunction\n", pTeam, pTeam->get_ID(), pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), action);
 			pTeam->StepCompleted = true;
 			return;
@@ -510,7 +510,7 @@ void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
 		case PhobosScripts::ChronoshiftToEnemyBase: //#1077
 		{
 			// Chronoshift to enemy base, argument is additional distance modifier
-			ScriptExt::ChronoshiftToEnemyBase(pTeam, argument);
+			ScriptExtData::ChronoshiftToEnemyBase(pTeam, argument);
 			return;
 		}
 
@@ -518,49 +518,49 @@ void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
 		case PhobosScripts::RepeatAttackCloserThreat:
 		{
 			// Threats that are close have more priority. Kill until no more targets.
-			ScriptExt::Mission_Attack(pTeam, true, DistanceMode::idkZero, -1, -1); //done
+			ScriptExtData::Mission_Attack(pTeam, true, DistanceMode::idkZero, -1, -1); //done
 			return;
 		}
 		case PhobosScripts::RepeatAttackFartherThreat:
 		{
 			// Threats that are far have more priority. Kill until no more targets.
-			ScriptExt::Mission_Attack(pTeam, true, DistanceMode::idkOne, -1, -1); //done
+			ScriptExtData::Mission_Attack(pTeam, true, DistanceMode::idkOne, -1, -1); //done
 			return;
 		}
 		case PhobosScripts::RepeatAttackCloser:
 		{
 			// Closer targets from Team Leader have more priority. Kill until no more targets.
-			ScriptExt::Mission_Attack(pTeam, true, DistanceMode::Closest, -1, -1); //done
+			ScriptExtData::Mission_Attack(pTeam, true, DistanceMode::Closest, -1, -1); //done
 			return;
 		}
 		case PhobosScripts::RepeatAttackFarther:
 		{
 			// Farther targets from Team Leader have more priority. Kill until no more targets.
-			ScriptExt::Mission_Attack(pTeam, true, DistanceMode::Furtherst, -1, -1); //done
+			ScriptExtData::Mission_Attack(pTeam, true, DistanceMode::Furtherst, -1, -1); //done
 			return;
 		}
 		case PhobosScripts::SingleAttackCloserThreat:
 		{
 			// Threats that are close have more priority. 1 kill only (good for xx=49,0 combos)
-			ScriptExt::Mission_Attack(pTeam, false, DistanceMode::idkZero, -1, -1); //done
+			ScriptExtData::Mission_Attack(pTeam, false, DistanceMode::idkZero, -1, -1); //done
 			return;
 		}
 		case PhobosScripts::SingleAttackFartherThreat:
 		{
 			// Threats that are far have more priority. 1 kill only (good for xx=49,0 combos)
-			ScriptExt::Mission_Attack(pTeam, false, DistanceMode::idkOne, -1, -1); //done
+			ScriptExtData::Mission_Attack(pTeam, false, DistanceMode::idkOne, -1, -1); //done
 			return;
 		}
 		case PhobosScripts::SingleAttackCloser:
 		{
 			// Closer targets from Team Leader have more priority. 1 kill only (good for xx=49,0 combos)
-			ScriptExt::Mission_Attack(pTeam, false, DistanceMode::Closest, -1, -1); //done
+			ScriptExtData::Mission_Attack(pTeam, false, DistanceMode::Closest, -1, -1); //done
 			return;
 		}
 		case PhobosScripts::SingleAttackFarther:
 		{
 			// Farther targets from Team Leader have more priority. 1 kill only (good for xx=49,0 combos)
-			ScriptExt::Mission_Attack(pTeam, false, DistanceMode::Furtherst, -1, -1); //done
+			ScriptExtData::Mission_Attack(pTeam, false, DistanceMode::Furtherst, -1, -1); //done
 			return;
 		}
 #pragma endregion
@@ -569,49 +569,49 @@ void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
 		case PhobosScripts::RepeatAttackTypeCloserThreat:
 		{
 			// Threats specific targets that are close have more priority. Kill until no more targets.
-			ScriptExt::Mission_Attack_List(pTeam, true, DistanceMode::idkZero, -1);
+			ScriptExtData::Mission_Attack_List(pTeam, true, DistanceMode::idkZero, -1);
 			return;
 		}
 		case PhobosScripts::RepeatAttackTypeFartherThreat:
 		{
 			// Threats specific targets that are far have more priority. Kill until no more targets.
-			ScriptExt::Mission_Attack_List(pTeam, true, DistanceMode::idkOne, -1);
+			ScriptExtData::Mission_Attack_List(pTeam, true, DistanceMode::idkOne, -1);
 			return;
 		}
 		case PhobosScripts::RepeatAttackTypeCloser:
 		{
 			// Closer specific targets targets from Team Leader have more priority. Kill until no more targets.
-			ScriptExt::Mission_Attack_List(pTeam, true, DistanceMode::Closest, -1);
+			ScriptExtData::Mission_Attack_List(pTeam, true, DistanceMode::Closest, -1);
 			return;
 		}
 		case PhobosScripts::RepeatAttackTypeFarther:
 		{
 			// Farther specific targets targets from Team Leader have more priority. Kill until no more targets.
-			ScriptExt::Mission_Attack_List(pTeam, true, DistanceMode::Furtherst, -1);
+			ScriptExtData::Mission_Attack_List(pTeam, true, DistanceMode::Furtherst, -1);
 			return;
 		}
 		case PhobosScripts::SingleAttackTypeCloserThreat:
 		{
 			// Threats specific targets that are close have more priority. 1 kill only (good for xx=49,0 combos)
-			ScriptExt::Mission_Attack_List(pTeam, false, DistanceMode::idkZero, -1);
+			ScriptExtData::Mission_Attack_List(pTeam, false, DistanceMode::idkZero, -1);
 			return;
 		}
 		case PhobosScripts::SingleAttackTypeFartherThreat:
 		{
 			// Threats specific targets that are far have more priority. 1 kill only (good for xx=49,0 combos)
-			ScriptExt::Mission_Attack_List(pTeam, false, DistanceMode::idkOne, -1);
+			ScriptExtData::Mission_Attack_List(pTeam, false, DistanceMode::idkOne, -1);
 			return;
 		}
 		case PhobosScripts::SingleAttackTypeCloser:
 		{
 			// Closer specific targets from Team Leader have more priority. 1 kill only (good for xx=49,0 combos)
-			ScriptExt::Mission_Attack_List(pTeam, false, DistanceMode::Closest, -1);
+			ScriptExtData::Mission_Attack_List(pTeam, false, DistanceMode::Closest, -1);
 			return;
 		}
 		case PhobosScripts::SingleAttackTypeFarther:
 		{
 			// Farther specific targets from Team Leader have more priority. 1 kill only (good for xx=49,0 combos)
-			ScriptExt::Mission_Attack_List(pTeam, false, DistanceMode::Furtherst, -1);
+			ScriptExtData::Mission_Attack_List(pTeam, false, DistanceMode::Furtherst, -1);
 			return;
 		}
 #pragma endregion
@@ -620,13 +620,13 @@ void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
 		case PhobosScripts::RandomAttackTypeCloser:
 		{
 			// Pick 1 closer random objective from specific list for attacking it
-			ScriptExt::Mission_Attack_List1Random(pTeam, true, DistanceMode::Closest, -1);
+			ScriptExtData::Mission_Attack_List1Random(pTeam, true, DistanceMode::Closest, -1);
 			return;
 		}
 		case PhobosScripts::RandomAttackTypeFarther:
 		{
 			// Pick 1 farther random objective from specific list for attacking it
-			ScriptExt::Mission_Attack_List1Random(pTeam, true, DistanceMode::Furtherst, -1);
+			ScriptExtData::Mission_Attack_List1Random(pTeam, true, DistanceMode::Furtherst, -1);
 			return;
 		}
 #pragma endregion
@@ -635,25 +635,25 @@ void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
 		case PhobosScripts::MoveToEnemyCloser:
 		{
 			// Move to the closest enemy target
-			ScriptExt::Mission_Move(pTeam, DistanceMode::Closest, false, -1, -1);
+			ScriptExtData::Mission_Move(pTeam, DistanceMode::Closest, false, -1, -1);
 			return;
 		}
 		case PhobosScripts::MoveToEnemyFarther:
 		{
 			// Move to the farther enemy target
-			ScriptExt::Mission_Move(pTeam, DistanceMode::Furtherst, false, -1, -1);
+			ScriptExtData::Mission_Move(pTeam, DistanceMode::Furtherst, false, -1, -1);
 			return;
 		}
 		case PhobosScripts::MoveToFriendlyCloser:
 		{
 			// Move to the closest friendly target
-			ScriptExt::Mission_Move(pTeam, DistanceMode::Closest, true, -1, -1);
+			ScriptExtData::Mission_Move(pTeam, DistanceMode::Closest, true, -1, -1);
 			return;
 		}
 		case PhobosScripts::MoveToFriendlyFarther:
 		{
 			// Move to the farther friendly target
-			ScriptExt::Mission_Move(pTeam, DistanceMode::Furtherst, true, -1, -1);
+			ScriptExtData::Mission_Move(pTeam, DistanceMode::Furtherst, true, -1, -1);
 			return;
 		}
 #pragma endregion
@@ -662,25 +662,25 @@ void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
 		case PhobosScripts::MoveToTypeEnemyCloser:
 		{
 			// Move to the closest specific enemy target
-			ScriptExt::Mission_Move_List(pTeam, DistanceMode::Closest, false, -1);
+			ScriptExtData::Mission_Move_List(pTeam, DistanceMode::Closest, false, -1);
 			return;
 		}
 		case PhobosScripts::MoveToTypeEnemyFarther:
 		{
 			// Move to the farther specific enemy target
-			ScriptExt::Mission_Move_List(pTeam, DistanceMode::Furtherst, false, -1);
+			ScriptExtData::Mission_Move_List(pTeam, DistanceMode::Furtherst, false, -1);
 			return;
 		}
 		case PhobosScripts::MoveToTypeFriendlyCloser:
 		{
 			// Move to the closest specific friendly target
-			ScriptExt::Mission_Move_List(pTeam, DistanceMode::Closest, true, -1);
+			ScriptExtData::Mission_Move_List(pTeam, DistanceMode::Closest, true, -1);
 			return;
 		}
 		case PhobosScripts::MoveToTypeFriendlyFarther:
 		{
 			// Move to the farther specific friendly target
-			ScriptExt::Mission_Move_List(pTeam, DistanceMode::Furtherst, true, -1);
+			ScriptExtData::Mission_Move_List(pTeam, DistanceMode::Furtherst, true, -1);
 			return;
 		}
 #pragma endregion
@@ -689,25 +689,25 @@ void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
 		case PhobosScripts::RandomMoveToTypeEnemyCloser:
 		{
 			// Pick 1 closer enemy random objective from specific list for moving to it
-			ScriptExt::Mission_Move_List1Random(pTeam, DistanceMode::Closest, false, -1, -1);
+			ScriptExtData::Mission_Move_List1Random(pTeam, DistanceMode::Closest, false, -1, -1);
 			return;
 		}
 		case PhobosScripts::RandomMoveToTypeEnemyFarther:
 		{
 			// Pick 1 farther enemy random objective from specific list for moving to it
-			ScriptExt::Mission_Move_List1Random(pTeam, DistanceMode::Furtherst, false, -1, -1);
+			ScriptExtData::Mission_Move_List1Random(pTeam, DistanceMode::Furtherst, false, -1, -1);
 			return;
 		}
 		case PhobosScripts::RandomMoveToTypeFriendlyCloser:
 		{
 			// Pick 1 closer friendly random objective from specific list for moving to it
-			ScriptExt::Mission_Move_List1Random(pTeam, DistanceMode::Closest, true, -1, -1);
+			ScriptExtData::Mission_Move_List1Random(pTeam, DistanceMode::Closest, true, -1, -1);
 			return;
 		}
 		case PhobosScripts::RandomMoveToTypeFriendlyFarther:
 		{
 			// Pick 1 farther friendly random objective from specific list for moving to it
-			ScriptExt::Mission_Move_List1Random(pTeam, DistanceMode::Furtherst, true, -1, -1);
+			ScriptExtData::Mission_Move_List1Random(pTeam, DistanceMode::Furtherst, true, -1, -1);
 			return;
 		}
 #pragma endregion
@@ -716,19 +716,19 @@ void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
 		case PhobosScripts::StopForceJumpCountdown:
 		{
 			// Stop Timed Jump
-			ScriptExt::Stop_ForceJump_Countdown(pTeam);
+			ScriptExtData::Stop_ForceJump_Countdown(pTeam);
 			return;
 		}
 		case PhobosScripts::NextLineForceJumpCountdown:
 		{
 			// Start Timed Jump that jumps to the next line when the countdown finish (in frames)
-			ScriptExt::Set_ForceJump_Countdown(pTeam, false, -1);
+			ScriptExtData::Set_ForceJump_Countdown(pTeam, false, -1);
 			return;
 		}
 		case PhobosScripts::SameLineForceJumpCountdown:
 		{
 			// Start Timed Jump that jumps to the same line when the countdown finish (in frames)
-			ScriptExt::Set_ForceJump_Countdown(pTeam, true, -1);
+			ScriptExtData::Set_ForceJump_Countdown(pTeam, true, -1);
 			return;
 		}
 #pragma endregion
@@ -736,55 +736,55 @@ void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
 #pragma region AngerNodes
 		case PhobosScripts::SetHouseAngerModifier:
 		{
-			ScriptExt::SetHouseAngerModifier(pTeam, 0); //which branch is this again ?
+			ScriptExtData::SetHouseAngerModifier(pTeam, 0); //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::OverrideOnlyTargetHouseEnemy:
 		{
-			ScriptExt::OverrideOnlyTargetHouseEnemy(pTeam, -1); //which branch is this again ?
+			ScriptExtData::OverrideOnlyTargetHouseEnemy(pTeam, -1); //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ModifyHateHouseIndex:
 		{
-			ScriptExt::ModifyHateHouse_Index(pTeam, -1); //which branch is this again ?
+			ScriptExtData::ModifyHateHouse_Index(pTeam, -1); //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ModifyHateHousesList:
 		{
-			ScriptExt::ModifyHateHouses_List(pTeam, -1); //which branch is this again ?
+			ScriptExtData::ModifyHateHouses_List(pTeam, -1); //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ModifyHateHousesList1Random:
 		{
-			ScriptExt::ModifyHateHouses_List1Random(pTeam, -1);  //which branch is this again ?
+			ScriptExtData::ModifyHateHouses_List1Random(pTeam, -1);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::SetTheMostHatedHouseMinorNoRandom:
 		{
 			// <, no random
-			ScriptExt::SetTheMostHatedHouse(pTeam, 0, 0, false);  //which branch is this again ?
+			ScriptExtData::SetTheMostHatedHouse(pTeam, 0, 0, false);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::SetTheMostHatedHouseMajorNoRandom:
 		{
 			// >, no random
-			ScriptExt::SetTheMostHatedHouse(pTeam, 0, 1, false);
+			ScriptExtData::SetTheMostHatedHouse(pTeam, 0, 1, false);
 			return;
 		}
 		case PhobosScripts::SetTheMostHatedHouseRandom:
 		{
 			// random
-			ScriptExt::SetTheMostHatedHouse(pTeam, 0, 0, true);
+			ScriptExtData::SetTheMostHatedHouse(pTeam, 0, 0, true);
 			return;
 		}
 		case PhobosScripts::ResetAngerAgainstHouses:
 		{
-			ScriptExt::ResetAngerAgainstHouses(pTeam);  //which branch is this again ?
+			ScriptExtData::ResetAngerAgainstHouses(pTeam);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::AggroHouse:
 		{
-			ScriptExt::AggroHouse(pTeam, -1);  //which branch is this again ?
+			ScriptExtData::AggroHouse(pTeam, -1);  //which branch is this again ?
 			return;
 		}
 #pragma endregion
@@ -792,72 +792,72 @@ void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
 #pragma region ConditionalJump //#599
 		case PhobosScripts::ConditionalJumpSetCounter:
 		{
-			ScriptExt::ConditionalJump_SetCounter(pTeam, -100000000);  //which branch is this again ?
+			ScriptExtData::ConditionalJump_SetCounter(pTeam, -100000000);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpSetComparatorMode:
 		{
-			ScriptExt::ConditionalJump_SetComparatorMode(pTeam, -1);  //which branch is this again ?
+			ScriptExtData::ConditionalJump_SetComparatorMode(pTeam, -1);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpSetComparatorValue:
 		{
-			ScriptExt::ConditionalJump_SetComparatorValue(pTeam, -1);  //which branch is this again ?
+			ScriptExtData::ConditionalJump_SetComparatorValue(pTeam, -1);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpSetIndex:
 		{
-			ScriptExt::ConditionalJump_SetIndex(pTeam, -1000000);  //which branch is this again ?
+			ScriptExtData::ConditionalJump_SetIndex(pTeam, -1000000);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpResetVariables:
 		{
-			ScriptExt::ConditionalJump_ResetVariables(pTeam);  //which branch is this again ?
+			ScriptExtData::ConditionalJump_ResetVariables(pTeam);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpIfFalse:
 		{
-			ScriptExt::ConditionalJumpIfFalse(pTeam, -1);  //which branch is this again ?
+			ScriptExtData::ConditionalJumpIfFalse(pTeam, -1);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpIfTrue:
 		{
-			ScriptExt::ConditionalJumpIfTrue(pTeam, -1);  //which branch is this again ?
+			ScriptExtData::ConditionalJumpIfTrue(pTeam, -1);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpManageKillsCounter:
 		{
-			ScriptExt::ConditionalJump_ManageKillsCounter(pTeam, -1);  //which branch is this again ?
+			ScriptExtData::ConditionalJump_ManageKillsCounter(pTeam, -1);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpCheckAliveHumans:
 		{
-			ScriptExt::ConditionalJump_CheckAliveHumans(pTeam, -1);  //which branch is this again ?
+			ScriptExtData::ConditionalJump_CheckAliveHumans(pTeam, -1);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpCheckHumanIsMostHated:
 		{
-			ScriptExt::ConditionalJump_CheckHumanIsMostHated(pTeam);  //which branch is this again ?
+			ScriptExtData::ConditionalJump_CheckHumanIsMostHated(pTeam);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpKillEvaluation:
 		{
-			ScriptExt::ConditionalJump_KillEvaluation(pTeam);  //which branch is this again ?
+			ScriptExtData::ConditionalJump_KillEvaluation(pTeam);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpCheckObjects:
 		{
-			ScriptExt::ConditionalJump_CheckObjects(pTeam);  //which branch is this again ?
+			ScriptExtData::ConditionalJump_CheckObjects(pTeam);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpCheckCount:
 		{
-			ScriptExt::ConditionalJump_CheckCount(pTeam, 0);  //which branch is this again ?
+			ScriptExtData::ConditionalJump_CheckCount(pTeam, 0);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ConditionalJumpManageResetIfJump:
 		{
-			ScriptExt::ConditionalJump_ManageResetIfJump(pTeam, -1);  //which branch is this again ?
+			ScriptExtData::ConditionalJump_ManageResetIfJump(pTeam, -1);  //which branch is this again ?
 			return;
 		}
 #pragma endregion
@@ -865,37 +865,37 @@ void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
 #pragma region ManagingTriggers
 		case PhobosScripts::SetSideIdxForManagingTriggers:
 		{
-			ScriptExt::SetSideIdxForManagingTriggers(pTeam, -1);  //which branch is this again ?
+			ScriptExtData::SetSideIdxForManagingTriggers(pTeam, -1);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::SetHouseIdxForManagingTriggers:
 		{
-			ScriptExt::SetHouseIdxForManagingTriggers(pTeam, 1000000);  //which branch is this again ?
+			ScriptExtData::SetHouseIdxForManagingTriggers(pTeam, 1000000);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::ManageAllAITriggers:
 		{
-			ScriptExt::ManageAITriggers(pTeam, -1);  //which branch is this again ?
+			ScriptExtData::ManageAITriggers(pTeam, -1);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::EnableTriggersFromList:
 		{
-			ScriptExt::ManageTriggersFromList(pTeam, -1, true);  //which branch is this again ?
+			ScriptExtData::ManageTriggersFromList(pTeam, -1, true);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::DisableTriggersFromList:
 		{
-			ScriptExt::ManageTriggersFromList(pTeam, -1, false);  //which branch is this again ?
+			ScriptExtData::ManageTriggersFromList(pTeam, -1, false);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::EnableTriggersWithObjects:
 		{
-			ScriptExt::ManageTriggersWithObjects(pTeam, -1, true);  //which branch is this again ?
+			ScriptExtData::ManageTriggersWithObjects(pTeam, -1, true);  //which branch is this again ?
 			return;
 		}
 		case PhobosScripts::DisableTriggersWithObjects:
 		{
-			ScriptExt::ManageTriggersWithObjects(pTeam, -1, false);  //which branch is this again ?
+			ScriptExtData::ManageTriggersWithObjects(pTeam, -1, false);  //which branch is this again ?
 			return;
 		}
 #pragma endregion
@@ -926,7 +926,7 @@ void ScriptExt::ProcessScriptActions(TeamClass* pTeam)
 	}
 }
 
-void ScriptExt::ExecuteTimedAreaGuardAction(TeamClass* pTeam)
+void ScriptExtData::ExecuteTimedAreaGuardAction(TeamClass* pTeam)
 {
 	auto const pScript = pTeam->CurrentScript;
 	auto const pScriptType = pScript->Type;
@@ -934,7 +934,7 @@ void ScriptExt::ExecuteTimedAreaGuardAction(TeamClass* pTeam)
 	if (pTeam->GuardAreaTimer.TimeLeft == 0 && !pTeam->GuardAreaTimer.InProgress())
 	{
 		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember){
-			if (TechnoExt::IsInWarfactory(pUnit))
+			if (TechnoExtData::IsInWarfactory(pUnit))
 				return; // held back Timed area guard if one of the member still in warfactory
 
 			pUnit->QueueMission(Mission::Area_Guard, true);
@@ -950,7 +950,7 @@ void ScriptExt::ExecuteTimedAreaGuardAction(TeamClass* pTeam)
 	}
 }
 
-void ScriptExt::LoadIntoTransports(TeamClass* pTeam)
+void ScriptExtData::LoadIntoTransports(TeamClass* pTeam)
 {
 	std::vector<FootClass*> transports;
 
@@ -1016,7 +1016,7 @@ void ScriptExt::LoadIntoTransports(TeamClass* pTeam)
 			return;
 	}
 
-	auto const pExt = TeamExt::ExtMap.Find(pTeam);
+	auto const pExt = TeamExtContainer::Instance.Find(pTeam);
 
 	if (pExt)
 	{
@@ -1028,11 +1028,11 @@ void ScriptExt::LoadIntoTransports(TeamClass* pTeam)
 	pTeam->StepCompleted = true;
 }
 
-void ScriptExt::WaitUntilFullAmmoAction(TeamClass* pTeam)
+void ScriptExtData::WaitUntilFullAmmoAction(TeamClass* pTeam)
 {
 	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 	{
-		if (ScriptExt::IsUnitAvailable(pUnit , false))
+		if (ScriptExtData::IsUnitAvailable(pUnit , false))
 		{
 			const auto pType = pUnit->GetTechnoType();
 
@@ -1062,7 +1062,7 @@ void ScriptExt::WaitUntilFullAmmoAction(TeamClass* pTeam)
 	pTeam->StepCompleted = true;
 }
 
-void ScriptExt::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown = -1)
+void ScriptExtData::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown = -1)
 {
 	// This team has no units! END
 	if (!pTeam)
@@ -1075,7 +1075,7 @@ void ScriptExt::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown = -
 	FootClass* pLeaderUnit = nullptr;
 	int initialCountdown = pTeam->CurrentScript->GetCurrentAction().Argument;
 	bool gatherUnits = false;
-	auto const pExt = TeamExt::ExtMap.Find(pTeam);
+	auto const pExt = TeamExtContainer::Instance.Find(pTeam);
 
 	// Load countdown
 	if (pExt->Countdown_RegroupAtLeader >= 0)
@@ -1121,9 +1121,9 @@ void ScriptExt::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown = -
 		// Find the Leader
 		pLeaderUnit = pExt->TeamLeader;
 
-		if (!ScriptExt::IsUnitAvailable(pLeaderUnit, true))
+		if (!ScriptExtData::IsUnitAvailable(pLeaderUnit, true))
 		{
-			pLeaderUnit = ScriptExt::FindTheTeamLeader(pTeam);
+			pLeaderUnit = ScriptExtData::FindTheTeamLeader(pTeam);
 			pExt->TeamLeader = pLeaderUnit;
 		}
 
@@ -1156,7 +1156,7 @@ void ScriptExt::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown = -
 		// Check if units are around the leader
 		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 		{
-			if (ScriptExt::IsUnitAvailable(pUnit, true))
+			if (ScriptExtData::IsUnitAvailable(pUnit, true))
 			{
 				auto pTypeUnit = pUnit->GetTechnoType();
 
@@ -1217,7 +1217,7 @@ void ScriptExt::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown = -
 	}
 }
 
-void ScriptExt::DecreaseCurrentTriggerWeight(TeamClass* pTeam, bool forceJumpLine = true, double modifier = 0)
+void ScriptExtData::DecreaseCurrentTriggerWeight(TeamClass* pTeam, bool forceJumpLine = true, double modifier = 0)
 {
 	if (modifier <= 0)
 		modifier = pTeam->CurrentScript->GetCurrentAction().Argument;
@@ -1227,7 +1227,7 @@ void ScriptExt::DecreaseCurrentTriggerWeight(TeamClass* pTeam, bool forceJumpLin
 	else
 		modifier = modifier * (-1);
 
-	ScriptExt::ModifyCurrentTriggerWeight(pTeam, forceJumpLine, modifier);
+	ScriptExtData::ModifyCurrentTriggerWeight(pTeam, forceJumpLine, modifier);
 
 	// This action finished
 	if (forceJumpLine)
@@ -1236,7 +1236,7 @@ void ScriptExt::DecreaseCurrentTriggerWeight(TeamClass* pTeam, bool forceJumpLin
 	return;
 }
 
-void ScriptExt::IncreaseCurrentTriggerWeight(TeamClass* pTeam, bool forceJumpLine = true, double modifier = 0)
+void ScriptExtData::IncreaseCurrentTriggerWeight(TeamClass* pTeam, bool forceJumpLine = true, double modifier = 0)
 {
 	if (modifier <= 0)
 		modifier = pTeam->CurrentScript->GetCurrentAction().Argument;
@@ -1244,7 +1244,7 @@ void ScriptExt::IncreaseCurrentTriggerWeight(TeamClass* pTeam, bool forceJumpLin
 	if (modifier <= 0)
 		modifier = abs(RulesClass::Instance->AITriggerSuccessWeightDelta);
 
-	ScriptExt::ModifyCurrentTriggerWeight(pTeam, forceJumpLine, modifier);
+	ScriptExtData::ModifyCurrentTriggerWeight(pTeam, forceJumpLine, modifier);
 
 	// This action finished
 	if (forceJumpLine)
@@ -1253,7 +1253,7 @@ void ScriptExt::IncreaseCurrentTriggerWeight(TeamClass* pTeam, bool forceJumpLin
 	return;
 }
 
-void ScriptExt::ModifyCurrentTriggerWeight(TeamClass* pTeam, bool forceJumpLine = true, double modifier = 0)
+void ScriptExtData::ModifyCurrentTriggerWeight(TeamClass* pTeam, bool forceJumpLine = true, double modifier = 0)
 {
 	AITriggerTypeClass* pTriggerType = nullptr;
 	auto pTeamType = pTeam->Type;
@@ -1289,14 +1289,14 @@ void ScriptExt::ModifyCurrentTriggerWeight(TeamClass* pTeam, bool forceJumpLine 
 	}
 }
 
-void ScriptExt::WaitIfNoTarget(TeamClass* pTeam, int attempts = 0)
+void ScriptExtData::WaitIfNoTarget(TeamClass* pTeam, int attempts = 0)
 {
 	// This method modifies the new attack actions preventing Team's Trigger to jump to next script action
 	// attempts == number of times the Team will wait if Mission_Attack(...) can't find a new target.
 	if (attempts < 0)
 		attempts = pTeam->CurrentScript->GetCurrentAction().Argument;
 
-	if (auto pTeamData = TeamExt::ExtMap.Find(pTeam))
+	if (auto pTeamData = TeamExtContainer::Instance.Find(pTeam))
 	{
 		if (attempts <= 0)
 			pTeamData->WaitNoTargetAttempts = -1; // Infinite waits if no target
@@ -1310,12 +1310,12 @@ void ScriptExt::WaitIfNoTarget(TeamClass* pTeam, int attempts = 0)
 	return;
 }
 
-void ScriptExt::TeamWeightReward(TeamClass* pTeam, double award = 0)
+void ScriptExtData::TeamWeightReward(TeamClass* pTeam, double award = 0)
 {
 	if (award <= 0)
 		award = pTeam->CurrentScript->GetCurrentAction().Argument;
 
-	if (auto pTeamData = TeamExt::ExtMap.Find(pTeam))
+	if (auto pTeamData = TeamExtContainer::Instance.Find(pTeam))
 	{
 		if (award > 0)
 			pTeamData->NextSuccessWeightAward = award;
@@ -1327,7 +1327,7 @@ void ScriptExt::TeamWeightReward(TeamClass* pTeam, double award = 0)
 	return;
 }
 
-void ScriptExt::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
+void ScriptExtData::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 {
 	if (idxScriptsList <= 0)
 		idxScriptsList = pTeam->CurrentScript->GetCurrentAction().Argument;
@@ -1336,7 +1336,7 @@ void ScriptExt::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 
 	if (idxScriptsList >= 0)
 	{
-		const auto& scriptList = RulesExt::Global()->AIScriptsLists;
+		const auto& scriptList = RulesExtData::Instance()->AIScriptsLists;
 		if ((size_t)idxScriptsList < scriptList.size())
 		{
 			const auto& objectsList = scriptList[idxScriptsList];
@@ -1350,7 +1350,7 @@ void ScriptExt::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 				if (pNewScript->ActionsCount > 0)
 				{
 					changeFailed = false;
-					TeamExt::ExtMap.Find(pTeam)->PreviousScript =
+					TeamExtContainer::Instance.Find(pTeam)->PreviousScript =
 					std::exchange(pTeam->CurrentScript , GameCreate<ScriptClass>(pNewScript));
 					// Ready for jumping to the first line of the new script
 					pTeam->CurrentScript->CurrentMission = -1;
@@ -1361,7 +1361,7 @@ void ScriptExt::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 				else
 				{
 					pTeam->StepCompleted = true;
-					ScriptExt::Log("AI Scripts - PickRandomScript: [%s] Aborting Script change because [%s] has 0 Action scripts!\n",
+					ScriptExtData::Log("AI Scripts - PickRandomScript: [%s] Aborting Script change because [%s] has 0 Action scripts!\n",
 						pTeam->Type->ID,
 						pNewScript->ID
 					);
@@ -1376,20 +1376,20 @@ void ScriptExt::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 	if (changeFailed)
 	{
 		pTeam->StepCompleted = true;
-		ScriptExt::Log("AI Scripts - PickRandomScript: [%s] [%s] Failed to change the Team Script with a random one!\n",
+		ScriptExtData::Log("AI Scripts - PickRandomScript: [%s] [%s] Failed to change the Team Script with a random one!\n",
 			pTeam->Type->ID,
 			pTeam->CurrentScript->Type->ID
 		);
 	}
 }
 
-void ScriptExt::SetCloseEnoughDistance(TeamClass* pTeam, double distance = -1)
+void ScriptExtData::SetCloseEnoughDistance(TeamClass* pTeam, double distance = -1)
 {
 	// This passive method replaces the CloseEnough value from rulesmd.ini by a custom one. Used by Mission_Move()
 	if (distance <= 0)
 		distance = pTeam->CurrentScript->GetCurrentAction().Argument;
 
-	auto const pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto const pTeamData = TeamExtContainer::Instance.Find(pTeam);
 
 
 	if (distance > 0)
@@ -1405,19 +1405,19 @@ void ScriptExt::SetCloseEnoughDistance(TeamClass* pTeam, double distance = -1)
 	return;
 }
 
-void ScriptExt::UnregisterGreatSuccess(TeamClass* pTeam)
+void ScriptExtData::UnregisterGreatSuccess(TeamClass* pTeam)
 {
 	pTeam->AchievedGreatSuccess = false;
 	pTeam->StepCompleted = true;
 }
 
-void ScriptExt::SetMoveMissionEndMode(TeamClass* pTeam, int mode = 0)
+void ScriptExtData::SetMoveMissionEndMode(TeamClass* pTeam, int mode = 0)
 {
 	// This passive method replaces the CloseEnough value from rulesmd.ini by a custom one. Used by Mission_Move()
 	if (mode < 0 || mode > 2)
 		mode = pTeam->CurrentScript->GetCurrentAction().Argument;
 
-	if (auto const pTeamData = TeamExt::ExtMap.Find(pTeam))
+	if (auto const pTeamData = TeamExtContainer::Instance.Find(pTeam))
 	{
 		if (mode >= 0 && mode <= 2)
 			pTeamData->MoveMissionEndMode = mode;
@@ -1429,21 +1429,21 @@ void ScriptExt::SetMoveMissionEndMode(TeamClass* pTeam, int mode = 0)
 	return;
 }
 
-bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, FootClass* pLeader = nullptr, int mode = 0)
+bool ScriptExtData::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, FootClass* pLeader = nullptr, int mode = 0)
 {
 
 	if (!pTeam || mode < 0)
 		return false;
 
-	if (!ScriptExt::IsUnitAvailable(pFocus, false))
+	if (!ScriptExtData::IsUnitAvailable(pFocus, false))
 	{
 		pTeam->Focus = nullptr;
 		return false;
 	}
 
-	auto const pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto const pTeamData = TeamExtContainer::Instance.Find(pTeam);
 
-	if (mode != 2 && mode != 1 && !ScriptExt::IsUnitAvailable(pLeader, false)){
+	if (mode != 2 && mode != 1 && !ScriptExtData::IsUnitAvailable(pLeader, false)){
 		pTeamData->TeamLeader = nullptr;
 		return false;
 	}
@@ -1461,7 +1461,7 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 	// Team already have a focused target
 	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 	{
-		if (ScriptExt::IsUnitAvailable(pUnit, true)
+		if (ScriptExtData::IsUnitAvailable(pUnit, true)
 			&& !pUnit->TemporalTargetingMe
 			&& !pUnit->BeingWarpedOut)
 		{
@@ -1514,7 +1514,7 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 				else
 				{
 					// All other cases: Team Leader mode in range
-					if (ScriptExt::IsUnitAvailable(pLeader, false))
+					if (ScriptExtData::IsUnitAvailable(pLeader, false))
 					{
 						if ((pUnit->DistanceFrom(pFocus->GetCell()) / 256.0) > closeEnough)
 						{
@@ -1548,7 +1548,7 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 	return bForceNextAction;
 }
 
-void ScriptExt::SkipNextAction(TeamClass* pTeam, int successPercentage = 0)
+void ScriptExtData::SkipNextAction(TeamClass* pTeam, int successPercentage = 0)
 {
 	// This team has no units! END
 	//if (!pTeam)
@@ -1557,7 +1557,7 @@ void ScriptExt::SkipNextAction(TeamClass* pTeam, int successPercentage = 0)
 	//	pTeam->StepCompleted = true;
 	//	const auto&[curAct, curArg] = pTeam->CurrentScript->GetCurrentAction();
 	//	const auto&[nextAct, nextArg] = pTeam->CurrentScript->GetNextAction();
-	//	ScriptExt::Log("AI Scripts - SkipNextAction: [%s] [%s] (line: %d) Jump to next line: %d = %d,%d -> (No team members alive)\n",
+	//	ScriptExtData::Log("AI Scripts - SkipNextAction: [%s] [%s] (line: %d) Jump to next line: %d = %d,%d -> (No team members alive)\n",
 	//		pTeam->Type->ID,
 	//		pTeam->CurrentScript->Type->ID,
 	//		pTeam->CurrentScript->CurrentMission,
@@ -1584,9 +1584,9 @@ void ScriptExt::SkipNextAction(TeamClass* pTeam, int successPercentage = 0)
 	if (percentage <= successPercentage)
 	{
 		const auto&[curAct, curArg] = pTeam->CurrentScript->GetCurrentAction();
-		const auto&[nextAct, nextArg] = ScriptExt::GetSpecificAction(pTeam->CurrentScript, pTeam->CurrentScript->CurrentMission + 2);
+		const auto&[nextAct, nextArg] = ScriptExtData::GetSpecificAction(pTeam->CurrentScript, pTeam->CurrentScript->CurrentMission + 2);
 
-		ScriptExt::Log("AI Scripts - SkipNextAction: [%s] [%s] (line: %d = %d,%d) Next script line skipped successfuly. Next line will be: %d = %d,%d\n",
+		ScriptExtData::Log("AI Scripts - SkipNextAction: [%s] [%s] (line: %d = %d,%d) Next script line skipped successfuly. Next line will be: %d = %d,%d\n",
 			pTeam->Type->ID,
 			pTeam->CurrentScript->Type->ID,
 			pTeam->CurrentScript->CurrentMission,
@@ -1604,7 +1604,7 @@ void ScriptExt::SkipNextAction(TeamClass* pTeam, int successPercentage = 0)
 	pTeam->StepCompleted = true;
 }
 
-void ScriptExt::VariablesHandler(TeamClass* pTeam, PhobosScripts eAction, int nArg)
+void ScriptExtData::VariablesHandler(TeamClass* pTeam, PhobosScripts eAction, int nArg)
 {
 	struct operation_set { int operator()(const int& a, const int& b) { return b; } };
 	struct operation_add { int operator()(const int& a, const int& b) { return a + b; } };
@@ -1772,11 +1772,11 @@ void ScriptExt::VariablesHandler(TeamClass* pTeam, PhobosScripts eAction, int nA
 }
 
 template<bool IsGlobal, class _Pr>
-void ScriptExt::VariableOperationHandler(TeamClass* pTeam, int nVariable, int Number)
+void ScriptExtData::VariableOperationHandler(TeamClass* pTeam, int nVariable, int Number)
 {
-	auto itr = ScenarioExt::GetVariables(IsGlobal)->find(nVariable);
+	auto itr = ScenarioExtData::GetVariables(IsGlobal)->find(nVariable);
 
-	if (itr != ScenarioExt::GetVariables(IsGlobal)->end())
+	if (itr != ScenarioExtData::GetVariables(IsGlobal)->end())
 	{
 		itr->second.Value = _Pr()(itr->second.Value, Number);
 		if (IsGlobal)
@@ -1789,17 +1789,17 @@ void ScriptExt::VariableOperationHandler(TeamClass* pTeam, int nVariable, int Nu
 }
 
 template<bool IsSrcGlobal, bool IsGlobal, class _Pr>
-void ScriptExt::VariableBinaryOperationHandler(TeamClass* pTeam, int nVariable, int nVarToOperate)
+void ScriptExtData::VariableBinaryOperationHandler(TeamClass* pTeam, int nVariable, int nVarToOperate)
 {
-	auto itr = ScenarioExt::GetVariables(IsGlobal)->find(nVarToOperate);
+	auto itr = ScenarioExtData::GetVariables(IsGlobal)->find(nVarToOperate);
 
-	if (itr != ScenarioExt::GetVariables(IsGlobal)->end())
+	if (itr != ScenarioExtData::GetVariables(IsGlobal)->end())
 		VariableOperationHandler<IsGlobal, _Pr>(pTeam, nVariable, itr->second.Value);
 
 	pTeam->StepCompleted = true;
 }
 
-FootClass* ScriptExt::FindTheTeamLeader(TeamClass* pTeam)
+FootClass* ScriptExtData::FindTheTeamLeader(TeamClass* pTeam)
 {
 	FootClass* pLeaderUnit = nullptr;
 	int bestUnitLeadershipValue = -1;
@@ -1826,17 +1826,17 @@ FootClass* ScriptExt::FindTheTeamLeader(TeamClass* pTeam)
 	return pLeaderUnit;
 }
 
-bool ScriptExt::IsExtVariableAction(int action)
+bool ScriptExtData::IsExtVariableAction(int action)
 {
 	auto eAction = static_cast<PhobosScripts>(action);
 	return eAction >= PhobosScripts::LocalVariableAdd && eAction <= PhobosScripts::GlobalVariableAndByGlobal;
 }
 
-void ScriptExt::Set_ForceJump_Countdown(TeamClass* pTeam, bool repeatLine = false, int count = 0)
+void ScriptExtData::Set_ForceJump_Countdown(TeamClass* pTeam, bool repeatLine = false, int count = 0)
 {
 	if (!pTeam)
 		return;
-	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	const auto& [curAct, curArgs] = pTeam->CurrentScript->GetCurrentAction();
 
 	if (count <= 0)
@@ -1860,7 +1860,7 @@ void ScriptExt::Set_ForceJump_Countdown(TeamClass* pTeam, bool repeatLine = fals
 
 	// This action finished
 	pTeam->StepCompleted = true;
-	ScriptExt::Log("AI Scripts - SetForceJumpCountdown: [%s] [%s](line: %d = %d,%d) Set Timed Jump -> (Countdown: %d, repeat action: %d)\n",
+	ScriptExtData::Log("AI Scripts - SetForceJumpCountdown: [%s] [%s](line: %d = %d,%d) Set Timed Jump -> (Countdown: %d, repeat action: %d)\n",
 		pTeam->Type->ID,
 		pScript->Type->ID,
 		pScript->CurrentMission,
@@ -1870,9 +1870,9 @@ void ScriptExt::Set_ForceJump_Countdown(TeamClass* pTeam, bool repeatLine = fals
 	);
 }
 
-void ScriptExt::Stop_ForceJump_Countdown(TeamClass* pTeam)
+void ScriptExtData::Stop_ForceJump_Countdown(TeamClass* pTeam)
 {
-	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	pTeamData->ForceJump_InitialCountdown = -1;
 	pTeamData->ForceJump_Countdown.Stop();
 	pTeamData->ForceJump_Countdown = -1;
@@ -1883,7 +1883,7 @@ void ScriptExt::Stop_ForceJump_Countdown(TeamClass* pTeam)
 	// This action finished
 	pTeam->StepCompleted = true;
 	const auto& [curAct, curArgs] = pTeam->CurrentScript->GetCurrentAction();
-	ScriptExt::Log("AI Scripts - StopForceJumpCountdown: [%s] [%s](line: %d = %d,%d): Stopped Timed Jump\n",
+	ScriptExtData::Log("AI Scripts - StopForceJumpCountdown: [%s] [%s](line: %d = %d,%d): Stopped Timed Jump\n",
 		pTeam->Type->ID,
 		pScript->Type->ID,
 		pScript->CurrentMission,
@@ -1892,10 +1892,10 @@ void ScriptExt::Stop_ForceJump_Countdown(TeamClass* pTeam)
 	);
 }
 
-void ScriptExt::ChronoshiftToEnemyBase(TeamClass* pTeam, int extraDistance)
+void ScriptExtData::ChronoshiftToEnemyBase(TeamClass* pTeam, int extraDistance)
 {
 	auto pScript = pTeam->CurrentScript;
-	auto const pLeader = ScriptExt::FindTheTeamLeader(pTeam);
+	auto const pLeader = ScriptExtData::FindTheTeamLeader(pTeam);
 	const auto& [curAct, curArgs] = pTeam->CurrentScript->GetCurrentAction();
 	const auto& [nextAct, nextArgs] = pTeam->CurrentScript->GetNextAction();
 
@@ -1913,7 +1913,7 @@ void ScriptExt::ChronoshiftToEnemyBase(TeamClass* pTeam, int extraDistance)
 
 	if (!pLeader)
 	{
-		ScriptExt::Log(logText, "No team leader found");
+		ScriptExtData::Log(logText, "No team leader found");
 		pTeam->StepCompleted = true;
 		return;
 	}
@@ -1923,24 +1923,24 @@ void ScriptExt::ChronoshiftToEnemyBase(TeamClass* pTeam, int extraDistance)
 
 	if (!pEnemy)
 	{
-		ScriptExt::Log(logText, "No enemy house found");
+		ScriptExtData::Log(logText, "No enemy house found");
 		pTeam->StepCompleted = true;
 		return;
 	}
 
-	auto const pTargetCell = HouseExt::GetEnemyBaseGatherCell(pEnemy, pLeader->Owner, pLeader->GetCoords(), pLeader->GetTechnoType()->SpeedType, extraDistance);
+	auto const pTargetCell = HouseExtData::GetEnemyBaseGatherCell(pEnemy, pLeader->Owner, pLeader->GetCoords(), pLeader->GetTechnoType()->SpeedType, extraDistance);
 
 	if (!pTargetCell)
 	{
-		ScriptExt::Log(logText, "No target cell found");
+		ScriptExtData::Log(logText, "No target cell found");
 		pTeam->StepCompleted = true;
 		return;
 	}
 
-	ScriptExt::ChronoshiftTeamToTarget(pTeam, pLeader, pTargetCell);
+	ScriptExtData::ChronoshiftTeamToTarget(pTeam, pLeader, pTargetCell);
 }
 
-void ScriptExt::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeamLeader, AbstractClass* pTarget)
+void ScriptExtData::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeamLeader, AbstractClass* pTarget)
 {
 	if (!pTeam || !pTeamLeader || !pTarget)
 		return;
@@ -1989,7 +1989,7 @@ void ScriptExt::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeamLead
 
 	if (!pSuperChronosphere || !pSuperChronowarp)
 	{
-		ScriptExt::Log(logTextJump, "No Chronosphere or ChronoWarp superweapon found");
+		ScriptExtData::Log(logTextJump, "No Chronosphere or ChronoWarp superweapon found");
 		pTeam->StepCompleted = true;
 		return;
 	}
@@ -2003,13 +2003,13 @@ void ScriptExt::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeamLead
 
 			if ((1.0 - RulesClass::Instance->AIMinorSuperReadyPercent) < ((double)timeLeft / rechargeTime))
 			{
-				ScriptExt::Log(logTextBase, "Chronosphere superweapon charge not at AIMinorSuperReadyPercent yet, not jumping to next line yet");
+				ScriptExtData::Log(logTextBase, "Chronosphere superweapon charge not at AIMinorSuperReadyPercent yet, not jumping to next line yet");
 				return;
 			}
 		}
 		else
 		{
-			ScriptExt::Log(logTextJump, "Chronosphere superweapon is not available");
+			ScriptExtData::Log(logTextJump, "Chronosphere superweapon is not available");
 			pTeam->StepCompleted = true;
 			return;
 		}
@@ -2022,18 +2022,18 @@ void ScriptExt::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeamLead
 		pOwner->Fire_SW(pSuperChronosphere->Type->ArrayIndex, pTeam->SpawnCell->MapCoords);
 		pOwner->Fire_SW(pSuperChronowarp->Type->ArrayIndex, pTargetCell->MapCoords);
 		pTeam->AssignMissionTarget(pTargetCell);
-		ScriptExt::Log(logTextJump, "Finished successfully");
+		ScriptExtData::Log(logTextJump, "Finished successfully");
 	}
 	else
 	{
-		ScriptExt::Log(logTextJump, "No target cell found");
+		ScriptExtData::Log(logTextJump, "No target cell found");
 	}
 
 	pTeam->StepCompleted = true;
 	return;
 }
 
-void ScriptExt::ForceGlobalOnlyTargetHouseEnemy(TeamClass* pTeam, int mode = -1)
+void ScriptExtData::ForceGlobalOnlyTargetHouseEnemy(TeamClass* pTeam, int mode = -1)
 {
 	if(!pTeam->CurrentScript)
 	{
@@ -2041,7 +2041,7 @@ void ScriptExt::ForceGlobalOnlyTargetHouseEnemy(TeamClass* pTeam, int mode = -1)
 		return;
 	}
 
-	auto pHouseExt = HouseExt::ExtMap.Find(pTeam->Owner);
+	auto pHouseExt = HouseExtContainer::Instance.Find(pTeam->Owner);
 	const auto&[curAct , curArgs] = pTeam->CurrentScript->GetCurrentAction();
 
 	if (mode < 0 || mode > 2)
@@ -2050,15 +2050,15 @@ void ScriptExt::ForceGlobalOnlyTargetHouseEnemy(TeamClass* pTeam, int mode = -1)
 	if (mode < -1 || mode > 2)
 		mode = -1;
 
-	HouseExt::ForceOnlyTargetHouseEnemy(pTeam->Owner, mode);
+	HouseExtData::ForceOnlyTargetHouseEnemy(pTeam->Owner, mode);
 
 	// This action finished
 	pTeam->StepCompleted = true;
 }
 
-void ScriptExt::JumpBackToPreviousScript(TeamClass* pTeam)
+void ScriptExtData::JumpBackToPreviousScript(TeamClass* pTeam)
 {
-	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	if (pTeamData->PreviousScript)
 	{
 		GameDelete<false, true>(pTeam->CurrentScript);
@@ -2084,9 +2084,9 @@ void ScriptExt::JumpBackToPreviousScript(TeamClass* pTeam)
 	}
 }
 
-void ScriptExt::SetAbortActionAfterSuccessKill(TeamClass* pTeam, int enable = -1)
+void ScriptExtData::SetAbortActionAfterSuccessKill(TeamClass* pTeam, int enable = -1)
 {
-	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	int scriptArgument = enable;
 
 	if (scriptArgument < 0)
@@ -2105,7 +2105,7 @@ void ScriptExt::SetAbortActionAfterSuccessKill(TeamClass* pTeam, int enable = -1
 	pTeam->StepCompleted = true;
 }
 
-bool ScriptExt::IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrAbsorbed)
+bool ScriptExtData::IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrAbsorbed)
 {
 	if (!pTechno || !pTechno->Owner)
 		return false;
@@ -2118,15 +2118,15 @@ bool ScriptExt::IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrA
 	return isAvailable;
 }
 
-std::pair<WeaponTypeClass*, WeaponTypeClass*> ScriptExt::GetWeapon(TechnoClass* pTechno)
+std::pair<WeaponTypeClass*, WeaponTypeClass*> ScriptExtData::GetWeapon(TechnoClass* pTechno)
 {
 	if (!pTechno)
 		return { nullptr , nullptr };
 
-	return { TechnoExt::GetCurrentWeapon(pTechno, false),TechnoExt::GetCurrentWeapon(pTechno, true) };
+	return { TechnoExtData::GetCurrentWeapon(pTechno, false),TechnoExtData::GetCurrentWeapon(pTechno, true) };
 }
 
-void ScriptExt::Log(const char* pFormat, ...)
+void ScriptExtData::Log(const char* pFormat, ...)
 {
 	va_list args;
 	va_start(args, pFormat);
@@ -2134,12 +2134,12 @@ void ScriptExt::Log(const char* pFormat, ...)
 	va_end(args);
 }
 
-void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
+void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 {
 	if (!pTeam)
 		return;
 
-	auto const pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto const pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	if (!pTeamData)
 		return;
 
@@ -2155,7 +2155,7 @@ void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 		if (pTeamData->BridgeRepairHuts.size() == 0)
 		{
 			pTeam->StepCompleted = true;
-			ScriptExt::Log("AI Scripts - [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No repair huts found)\n",
+			ScriptExtData::Log("AI Scripts - [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No repair huts found)\n",
 				pTeam->Type->ID,
 				pScript->Type->ID,
 				pScript->CurrentMission,
@@ -2239,7 +2239,7 @@ void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 	if (engineers.size() == 0)
 	{
 		pTeam->StepCompleted = true;
-		ScriptExt::Log("AI Scripts - [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: Team has no engineers)\n",
+		ScriptExtData::Log("AI Scripts - [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: Team has no engineers)\n",
 			pTeam->Type->ID,
 			pScript->Type->ID,
 			pScript->CurrentMission,
@@ -2332,7 +2332,7 @@ void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 	{
 		pTeam->StepCompleted = true;
 
-		ScriptExt::Log("AI Scripts - [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: Can not select a bridge repair hut)\n",
+		ScriptExtData::Log("AI Scripts - [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: Can not select a bridge repair hut)\n",
 			pTeam->Type->ID,
 			pScript->Type->ID,
 			pScript->CurrentMission,
@@ -2376,7 +2376,7 @@ void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 
 				// Get a cell near the target
 				pFoot->QueueMission(Mission::Move, false);
-				CoordStruct coord = TechnoExt::PassengerKickOutLocation(selectedTarget, pFoot);
+				CoordStruct coord = TechnoExtData::PassengerKickOutLocation(selectedTarget, pFoot);
 				CellClass* pCellDestination = MapClass::Instance->TryGetCellAt(coord);
 				pFoot->SetDestination(pCellDestination, true);
 			}
@@ -2391,7 +2391,7 @@ void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 //DEFINE_HOOK(0x6913F8, ScriptClass_CTOR, 0x5)
 //{
 //	GET(ScriptClass* const, pThis, ESI);
-//	ScriptExt::ExtMap.FindOrAllocate(pThis);
+//	ScriptExtData::ExtMap.FindOrAllocate(pThis);
 //	return 0x0;
 //}
 //
@@ -2399,7 +2399,7 @@ void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 //DEFINE_HOOK(0x691486, ScriptClass_DTOR, 0x6)
 //{
 //	GET(ScriptClass*, pThis, ESI);
-//	ScriptExt::ExtMap.Remove(pThis);
+//	ScriptExtData::ExtMap.Remove(pThis);
 //	return 0x0;
 //}
 //
@@ -2409,7 +2409,7 @@ void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 //{
 //	GET_STACK(ScriptClass*, pItem, 0x4);
 //	GET_STACK(IStream*, pStm, 0x8);
-//	ScriptExt::ExtMap.PrepareStream(pItem, pStm);
+//	ScriptExtData::ExtMap.PrepareStream(pItem, pStm);
 //	return 0;
 //}
 //
@@ -2418,7 +2418,7 @@ void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 //	GET(ScriptClass*, pThis, ESI);
 //
 //	SwizzleManagerClass::Instance->Swizzle((void**)&pThis->Type);
-//	TeamExt::ExtMap.LoadStatic();
+//	TeamExtContainer::Instance.LoadStatic();
 //
 //	return 0x69167D;
 //}
@@ -2429,7 +2429,7 @@ void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 //
 //	if (SUCCEEDED(nRes))
 //	{
-//		TeamExt::ExtMap.SaveStatic();
+//		TeamExtContainer::Instance.SaveStatic();
 //		return 0x6916A8;
 //	}
 //

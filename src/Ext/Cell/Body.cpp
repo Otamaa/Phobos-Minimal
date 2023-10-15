@@ -34,18 +34,18 @@ int CellExt::GetOverlayIndex(CellClass* pCell)
 
 // ============================ =
 // load / save
-template <typename T>
-void CellExt::ExtData::Serialize(T& Stm) {
-
-	Stm
-		.Process(this->Initialized)
-		.Process(this->FoggedObjects)
-		;
-}
+//template <typename T>
+//void CellExt::ExtData::Serialize(T& Stm) {
+//
+//	Stm
+//		.Process(this->Initialized)
+//		.Process(this->FoggedObjects)
+//		;
+//}
 
 // =============================
 // container
-CellExt::ExtContainer CellExt::ExtMap;
+//CellExt::ExtContainer CellExt::ExtMap;
 
 // =============================
 // container hooks

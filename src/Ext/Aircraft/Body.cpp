@@ -13,7 +13,7 @@
 // Spy plane, airstrike etc.
 bool AircraftExt::PlaceReinforcementAircraft(AircraftClass* pThis, CellStruct edgeCell)
 {
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 	auto coords = CellClass::Cell2Coord(edgeCell);
 	coords.Z = 0;
 	AbstractClass* pTarget = nullptr;
@@ -41,13 +41,13 @@ bool AircraftExt::PlaceReinforcementAircraft(AircraftClass* pThis, CellStruct ed
 void AircraftExt::TriggerCrashWeapon(AircraftClass* pThis, int nMult)
 {
 	const auto pType = pThis->GetTechnoType();
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	const auto pCrashWeapon = pTypeExt->CrashWeapon.GetOrDefault(pThis, pTypeExt->CrashWeapon_s.Get());
 
-	if (!TechnoExt::FireWeaponAtSelf(pThis, pCrashWeapon))
+	if (!TechnoExtData::FireWeaponAtSelf(pThis, pCrashWeapon))
 		pThis->FireDeathWeapon(nMult);
 
-	AnimTypeExt::ProcessDestroyAnims(pThis, nullptr);
+	AnimTypeExtData::ProcessDestroyAnims(pThis, nullptr);
 }
 
 void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber)
@@ -80,7 +80,7 @@ void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, Aircra
 
 	for (int i = 0; i < pWeapon->Burst; i++)
 	{
-		if (pWeapon->Burst < 2 && WeaponTypeExt::ExtMap.Find(pWeapon)->Strafing_SimulateBurst)
+		if (pWeapon->Burst < 2 && WeaponTypeExtContainer::Instance.Find(pWeapon)->Strafing_SimulateBurst)
 			pThis->CurrentBurstIndex = (int)shotNumber;
 
 		pThis->Fire(pTarget, WeaponIdx);

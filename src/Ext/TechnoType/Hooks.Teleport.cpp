@@ -11,16 +11,16 @@
 	TeleportLocomotionClass* pLocomotor = static_cast<TeleportLocomotionClass*>(Loco); \
 	TechnoClass* pOwner =  pLocomotor->LinkedTo ? pLocomotor->LinkedTo : pLocomotor->Owner; \
 	TechnoTypeClass* pType = pOwner->GetTechnoType(); \
-	TechnoTypeExt::ExtData *pExt = TechnoTypeExt::ExtMap.Find(pType);
+	TechnoTypeExtData *pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 DEFINE_HOOK(0x7193F6, TeleportLocomotionClass_ILocomotion_Process_WarpoutAnim, 0x6)
 {
 	GET_LOCO(ESI);
 
-	TechnoExt::PlayAnim(pExt->WarpOut.GetOrDefault(pOwner , RulesClass::Instance->WarpOut), pOwner);
+	TechnoExtData::PlayAnim(pExt->WarpOut.GetOrDefault(pOwner , RulesClass::Instance->WarpOut), pOwner);
 
 	if (const auto pWeapon = pExt->WarpOutWeapon.Get(pOwner))
-		WeaponTypeExt::DetonateAt(pWeapon, pOwner, pOwner , true , nullptr);
+		WeaponTypeExtData::DetonateAt(pWeapon, pOwner, pOwner , true , nullptr);
 
 	return 0x719447;
 }
@@ -30,9 +30,9 @@ DEFINE_HOOK(0x719742, TeleportLocomotionClass_ILocomotion_Process_WarpInAnim, 0x
 	GET_LOCO(ESI);
 
 	//WarpIn is unused , maybe a type on WW side
-	TechnoExt::PlayAnim(pExt->WarpIn.GetOrDefault(pOwner ,RulesClass::Instance->WarpOut), pOwner);
+	TechnoExtData::PlayAnim(pExt->WarpIn.GetOrDefault(pOwner ,RulesClass::Instance->WarpOut), pOwner);
 
-	const auto pTechnoExt = TechnoExt::ExtMap.Find(pOwner);
+	const auto pTechnoExt = TechnoExtContainer::Instance.Find(pOwner);
 
 	const auto Rank = pOwner->CurrentRanking;
 	const auto pWarpInWeapon = pExt->WarpInWeapon.GetFromSpecificRank(Rank);
@@ -44,7 +44,7 @@ DEFINE_HOOK(0x719742, TeleportLocomotionClass_ILocomotion_Process_WarpInAnim, 0x
 		const int damage = pExt->WarpInWeapon_UseDistanceAsDamage.Get(pOwner) ?
 			(pTechnoExt->LastWarpDistance / Unsorted::LeptonsPerCell) : pWeapon->Damage;
 
-		WeaponTypeExt::DetonateAt(pWeapon, pOwner, pOwner, damage, true, nullptr);
+		WeaponTypeExtData::DetonateAt(pWeapon, pOwner, pOwner, damage, true, nullptr);
 	}
 
 	return 0x719796;
@@ -54,7 +54,7 @@ DEFINE_HOOK(0x719827, TeleportLocomotionClass_ILocomotion_Process_WarpAway, 0x6)
 {
 	GET_LOCO(ESI);
 
-	TechnoExt::PlayAnim(pExt->WarpAway.GetOrDefault(pOwner , RulesClass::Instance->WarpOut), pOwner);
+	TechnoExtData::PlayAnim(pExt->WarpAway.GetOrDefault(pOwner , RulesClass::Instance->WarpOut), pOwner);
 	return 0x719878;
 }
 
@@ -110,7 +110,7 @@ DEFINE_HOOK(0x719555, TeleportLocomotionClass_ILocomotion_Process_ChronoRangeMin
 	GET(RulesClass*, pRules, ECX);
 	GET(int, comparator, EDX);
 
-	TechnoExt::ExtMap.Find(pOwner)->LastWarpDistance = comparator;
+	TechnoExtContainer::Instance.Find(pOwner)->LastWarpDistance = comparator;
 	const auto factor = pExt->ChronoRangeMinimum.GetOrDefault(pOwner, pRules->ChronoRangeMinimum);
 	return comparator < factor ? 0x71955D : 0x719576;
 }

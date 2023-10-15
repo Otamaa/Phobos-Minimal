@@ -14,7 +14,7 @@ public:
 		Datas = (MapSurfaceData*)YRMemory::Allocate(sizeof(MapSurfaceData) * nCount);
 		States = (bool*)YRMemory::Allocate(sizeof(bool) * nCount);
 		std::memset(States, 0, sizeof(bool) * nCount);
-		Heap = GameCreate<PointerHeapClass<MapSurfaceData*>>(nCount);
+		Heap = GameCreate<PointerHeapClass<MapSurfaceData>>(nCount);
 	}
 
 	//74E8A0
@@ -38,7 +38,7 @@ public:
 	}
 
 	int Count;
-	PointerHeapClass<MapSurfaceData*>* Heap;
+	PointerHeapClass<MapSurfaceData>* Heap;
 	MapSurfaceData* Datas;
 	CDTimerClass Timer;
 	bool* States;
@@ -178,7 +178,7 @@ public:
 	CellStruct MonsterCell;
 	int ShapeFrame;
 	bool SkipDraw;
-	bool  ToPuffGas;
+	bool ToPuffGas;
 	int VeinCount;
 };
 

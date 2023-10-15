@@ -6,39 +6,40 @@
 #include <Utilities/TemplateDef.h>
 #include <ExtraHeaders/CompileTimeDirStruct.h>
 
-class InfantryExt
+class InfantryExtData final
 {
 public:
-	class ExtData final : public Extension<InfantryClass>
+	static constexpr size_t Canary = 0xACCAAAAA;
+	using base_type = InfantryClass;
+	static constexpr size_t ExtOffset = 0x6EC;
+
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+public:
+
+	bool IsUsingDeathSequence { false };
+	int CurrentDoType { -1 };
+	bool ForceFullRearmDelay { false };
+
+	InfantryExtData(base_type* OwnerObject) noexcept
 	{
-	public:
-		static constexpr size_t Canary = 0xACCAAAAA;
-		using base_type = InfantryClass;
-		static constexpr size_t ExtOffset = 0x6EC;
+		AttachedToObject = OwnerObject;
+	}
 
-	public:
+	~InfantryExtData() noexcept = default;
 
-		bool IsUsingDeathSequence { false };
-		int CurrentDoType { -1 };
-		bool ForceFullRearmDelay { false };
-		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
-		{ }
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-		virtual ~ExtData() override = default;
+private:
+	template <typename T>
+	void Serialize(T& Stm);
+};
 
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+class InfantryExtContainer final : public Container<InfantryExtData>
+{
+public:
+	static InfantryExtContainer Instance;
 
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public Container<InfantryExt::ExtData>
-	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(InfantryExt::ExtData, "InfantryClass");
-	};
-
-	static ExtContainer ExtMap;
+	CONSTEXPR_NOCOPY_CLASSB(InfantryExtContainer, InfantryExtData, "InfantryClass");
 };

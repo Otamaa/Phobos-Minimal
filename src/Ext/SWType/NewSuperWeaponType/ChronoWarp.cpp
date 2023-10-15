@@ -9,7 +9,7 @@ bool SW_ChronoWarp::HandleThisType(SuperWeaponType type) const
 	return (type == SuperWeaponType::ChronoWarp);
 }
 
-SuperWeaponFlags SW_ChronoWarp::Flags(const SWTypeExt::ExtData* pData) const
+SuperWeaponFlags SW_ChronoWarp::Flags(const SWTypeExtData* pData) const
 {
 	return SuperWeaponFlags::NoAnim | SuperWeaponFlags::NoEvent | SuperWeaponFlags::PostClick;
 }
@@ -20,7 +20,7 @@ void KillCargo(TechnoClass* pTech , HouseClass* killer)
 		for(auto& pOcc : pBuilding->Occupants) {
 			pOcc->RegisterKill(killer);
 			pOcc->UnInit();
-				TechnoExt::ExtMap.Find(pOcc)->GarrisonedIn = nullptr;
+				TechnoExtContainer::Instance.Find(pOcc)->GarrisonedIn = nullptr;
 			}
 		pBuilding->Occupants.Count = 0;
 	}
@@ -43,7 +43,7 @@ void KillCargo(TechnoClass* pTech , HouseClass* killer)
 bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	// get the previous super weapon
-	SuperClass* pSource = pThis->Owner->Supers.GetItemOrDefault(HouseExt::ExtMap.Find(pThis->Owner)->SWLastIndex);
+	SuperClass* pSource = pThis->Owner->Supers.GetItemOrDefault(HouseExtContainer::Instance.Find(pThis->Owner)->SWLastIndex);
 
 	// use source super weapon properties
 	if (!pSource || pSource->Type->Type != SuperWeaponType::ChronoSphere)
@@ -54,7 +54,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 	}
 
 	Debug::Log("[ChronoWarp::Activate] Launching %s with %s as source.\n", pThis->Type->ID, pSource->Type->ID);
-	auto const pSourceSWExt = SWTypeExt::ExtMap.Find(pSource->Type);
+	auto const pSourceSWExt = SWTypeExtContainer::Instance.Find(pSource->Type);
 
 	// add radar events for source and target
 	if (pSourceSWExt->SW_RadarEvent)
@@ -64,7 +64,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 	}
 
 	// update animations
-	SWTypeExt::ClearChronoAnim(pThis);
+	SWTypeExtData::ClearChronoAnim(pThis);
 
 	if (auto const pAnimType = pSourceSWExt->Chronosphere_BlastSrc.Get(RulesClass::Instance->ChronoBlast))
 	{
@@ -102,7 +102,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 		}
 
 		auto const pType = pTechno->GetTechnoType();
-		auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
+		auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		// can this techno be chronoshifted?
 		if (!pExt->Chronoshift_Allow)
@@ -158,7 +158,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 		}
 
 		// unwarpable unit
-		if (TechnoExt::IsUnwarpable(pTechno) && !pSourceSWExt->Chronosphere_AffectUnwarpable) {
+		if (TechnoExtData::IsUnwarpable(pTechno) && !pSourceSWExt->Chronosphere_AffectUnwarpable) {
 			return true;
 		}
 
@@ -169,7 +169,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 
 		// if this is a newly produced unit that still is in its
 		// weapons factory, this skips it.
-		if (TechnoExt::IsInWarfactory(pTechno, true)) {
+		if (TechnoExtData::IsInWarfactory(pTechno, true)) {
 			return true;
 		}
 
@@ -296,7 +296,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 			pBld->DisableTemporal();
 			pBld->UpdatePlacement(PlacementType::Redraw);
 
-			BuildingExt::ExtMap.Find(pBld)->AboutToChronoshift = true;
+			BuildingExtContainer::Instance.Find(pBld)->AboutToChronoshift = true;
 
 			// register for chronoshift
 			ChronoWarpStateMachine::ChronoWarpContainer Container(pBld, cellUnitTarget, pBld->Location, IsVehicle);
@@ -321,16 +321,16 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 	return true;
 }
 
-void SW_ChronoWarp::Initialize(SWTypeExt::ExtData* pData)
+void SW_ChronoWarp::Initialize(SWTypeExtData* pData)
 { 	// Every other thing will be read in the ChronoSphere.
-	pData->OwnerObject()->Action = Action::ChronoWarp;
+	pData->AttachedToObject->Action = Action::ChronoWarp;
 	pData->CursorType = (int)MouseCursorType::Chronosphere;
 }
 
-bool SW_ChronoWarp::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+bool SW_ChronoWarp::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
 	// get the previous super weapon
-	SuperClass* pSource = pBuilding->Owner->Supers.GetItemOrDefault(HouseExt::ExtMap.Find(pBuilding->Owner)->SWLastIndex);
+	SuperClass* pSource = pBuilding->Owner->Supers.GetItemOrDefault(HouseExtContainer::Instance.Find(pBuilding->Owner)->SWLastIndex);
 
 	if(!pSource) {
 		if (!this->IsLaunchsiteAlive(pBuilding))
@@ -342,7 +342,7 @@ bool SW_ChronoWarp::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass*
 		return this->IsSWTypeAttachedToThis(pData, pBuilding);
 	}
 
-	return SWTypeExt::ExtMap.Find(pSource->Type)->GetNewSWType()->IsLaunchSite(pData , pBuilding);
+	return SWTypeExtContainer::Instance.Find(pSource->Type)->GetNewSWType()->IsLaunchSite(pData , pBuilding);
 }
 
 void ChronoWarpStateMachine::Update()
@@ -419,12 +419,12 @@ void ChronoWarpStateMachine::Update()
 			pBld->EnableTemporal();
 			pBld->UpdatePlacement(PlacementType::Redraw);
 
-			BuildingExt::ExtMap.Find(pBld)->AboutToChronoshift = false;
+			BuildingExtContainer::Instance.Find(pBld)->AboutToChronoshift = false;
 
 			if (!success)
 			{
 				// destroy (buildings only if they are supposed to)
-				auto const pExt = SWTypeExt::ExtMap.Find(this->Super->Type);
+				auto const pExt = SWTypeExtContainer::Instance.Find(this->Super->Type);
 
 				if (item.isVehicle || pExt->Chronosphere_BlowUnplaceable)
 				{

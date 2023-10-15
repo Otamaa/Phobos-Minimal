@@ -103,7 +103,7 @@ bool SpiralTrajectory::OnAI()
 	double closeEnough = pBullet->TargetCoords.DistanceFrom(pBullet->Location);
 	if (closeEnough < 100)
 	{
-		auto pBulletExt = BulletExt::ExtMap.Find(pBullet);
+		auto pBulletExt = BulletExtContainer::Instance.Find(pBullet);
 
 		pBulletExt->LaserTrails.clear();
 
@@ -121,7 +121,7 @@ void SpiralTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosit
 {
 	auto const pBullet = this->AttachedTo;
 	auto const type = this->GetTrajectoryType();
-	pSpeed->Z += BulletTypeExt::GetAdjustedGravity(pBullet->Type); // We don't want to take the gravity into account
+	pSpeed->Z += BulletTypeExtData::GetAdjustedGravity(pBullet->Type); // We don't want to take the gravity into account
 
 	CoordStruct center = this->CenterLocation;
 	center.Z = 0;

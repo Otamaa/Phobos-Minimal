@@ -80,7 +80,7 @@ DEFINE_OVERRIDE_HOOK(0x746B89, UnitClass_GetUIName, 8)
 	GET(UnitClass*, pThis, ESI);
 	const auto pType = pThis->Type;
 	const auto nCurWp = pThis->CurrentWeaponNumber;
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	const wchar_t* Text =
 		(size_t)nCurWp < pTypeExt->WeaponUINameX.size()

@@ -8,16 +8,16 @@ DEFINE_HOOK(0x469008, BulletClass_Explode_Cluster, 0x8)
 
 	if (pThis->Type->Cluster > 0)
 	{
-		const auto pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
-		const int min = pTypeExt->Cluster_Scatter_Min.Get(BulletTypeExt::DefaultBulletScatterMin);
-		const int max = pTypeExt->Cluster_Scatter_Max.Get(BulletTypeExt::DefaultBulletScatterMax);
+		const auto pTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
+		const int min = pTypeExt->Cluster_Scatter_Min.Get(BulletTypeExtData::DefaultBulletScatterMin);
+		const int max = pTypeExt->Cluster_Scatter_Max.Get(BulletTypeExtData::DefaultBulletScatterMax);
 		CoordStruct coord = origCoords;
 
 		for (int i = 0; i < pThis->Type->Cluster; i++) {
 
 			pThis->Detonate(coord);
 
-			if (!BulletExt::IsReallyAlive(pThis))
+			if (!BulletExtData::IsReallyAlive(pThis))
 				break;
 
 			const int distance = ScenarioClass::Instance->Random.RandomRanged(min, max);
@@ -36,7 +36,7 @@ int GetScatterResult(BulletClass* pThis
 
 	)
 {
-	const auto pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
+	const auto pTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
 	int min = pTypeExt->BallisticScatter_Min.Get(static_cast<Leptons>(0));
 	const auto nMaxDef = Leptons(2 * RulesClass::Instance->BallisticScatter);
 	int max = pTypeExt->BallisticScatter_Max.Get(nMaxDef);
@@ -61,7 +61,7 @@ DEFINE_HOOK(0x46874E, BulletClass_Unlimbo_FlakScatter, 0x5)
 	GET_BASE(CoordStruct*, pDest, 0x8);
 
 	const auto nDistance = pDest->DistanceFrom(pThis->TargetCoords);
-	const auto pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
+	const auto pTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
 	const int min = pTypeExt->BallisticScatter_Min.isset() ? pTypeExt->BallisticScatter_Min : static_cast<Leptons>(0);
 	const int max = pTypeExt->BallisticScatter_Max.Get(Leptons(RulesClass::Instance->BallisticScatter));
 	const auto range = pThis->WeaponType ? pThis->WeaponType->Range : pThis->Range;

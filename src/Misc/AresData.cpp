@@ -237,19 +237,19 @@ bool AresData::Init()
 	static constexpr DWORD AresFunctionOffsets[FunctionIndices::count] =
 	{
 		0x044130,	// ConvertTypeTo
-		0x047030, // TechnoExt::SpawnSurvivors
-		0x046C10, //TechnoExt::ExtData::RecalculateStat
+		0x047030, // TechnoExtData::SpawnSurvivors
+		0x046C10, //TechnoExtData::RecalculateStat
 		0x013390, // static BuildingExt::ReverseEngineer
 		0x025DF0, // static  GetInfActionOverObject
 		0x058AB0, // static MouseCursor::SetAction
-		0x022580, // static HouseExt::canBuild
-		0x032A00, // static SWTypeExt::Activate
-		0x044D10, // TechnoExt::ExtData::DepositTiberium
-		0x0211D0, // HouseExt::ExtData::ApplyAcademy
-		0x03E7C0, // TechnoTypeExt::ExtData::GetTurretsVoxel
-		0x0465F0, // TechnoExt::ExtData::TechnoTransferAffects
-		0x03E950, // TechnoTypeExt::ExtData::IsGenericPrerequisite
-		0x0459F0, // TechnoExt::ExtData::GetSelfHealAmount
+		0x022580, // static HouseExtData::canBuild
+		0x032A00, // static SWTypeExtData::Activate
+		0x044D10, // TechnoExtData::DepositTiberium
+		0x0211D0, // HouseExtData::ExtData::ApplyAcademy
+		0x03E7C0, // TechnoTypeExtData::GetTurretsVoxel
+		0x0465F0, // TechnoExtData::TechnoTransferAffects
+		0x03E950, // TechnoTypeExtData::IsGenericPrerequisite
+		0x0459F0, // TechnoExtData::GetSelfHealAmount
 		0x058900, // ExtMap.Find
 		0x019A50, // BulletTypeExtGetConvert
 		0x0537F0, // WhExt::ApplyKillDriver
@@ -280,17 +280,17 @@ bool AresData::Init()
 
 		0x044470, //TechnoExt CloadAllowed
 
-		0x059580, //TechnoExt::RemoveAE
-		0x044F70, //TechnoExt::FlyingStringsAdd
-		0x043D10, //TechnoExt::CalculateBounty
-		0x046F90, //TechnoExt::SetSpotlight
+		0x059580, //TechnoExtData::RemoveAE
+		0x044F70, //TechnoExtData::FlyingStringsAdd
+		0x043D10, //TechnoExtData::CalculateBounty
+		0x046F90, //TechnoExtData::SetSpotlight
 
 		0x046060, //IsPowered
 		0x043FA0, //IsDriverKillable
-		0x046240, //TechnoExt::KillDriverCore
+		0x046240, //TechnoExtData::KillDriverCore
 
 		0x03A970, //TeamExt_FireIC
-		0x023010, //HouseExt::RespondToFirewall
+		0x023010, //HouseExtData::RespondToFirewall
 		0x022A70, //RequirementsMet
 		0x0231E0, //UpdateAcademy
 
@@ -298,12 +298,12 @@ bool AresData::Init()
 
 		0x013760, //BuildingExt::UpdateDosplayTo
 
-		0x003E870, //TechnoTypeExt::GetTurretWeaponIdx
-		0x003E210, //TechnoTypeExt::CameoIsElite
-		0x0045B60, //TechnoExt::GetActionHijack
+		0x003E870, //TechnoTypeExtData::GetTurretWeaponIdx
+		0x003E210, //TechnoTypeExtData::CameoIsElite
+		0x0045B60, //TechnoExtData::GetActionHijack
 		0x0023010, //AresEvent::Handle::RespondToFirewall
 
-		0x003E810, //TechnoTypeExt::GetWeapon
+		0x003E810, //TechnoTypeExtData::GetWeapon
 		0x00454B0, //BuildingExt::SetFactoryPlans
 
 		0x0059690, //AttachedAffect_UpdateType
@@ -319,12 +319,12 @@ bool AresData::Init()
 
 	static constexpr DWORD AresStaticInstanceTable[AresStaticInstanceCount] = {
 		0x0C2B84, //ParticleSystemExt
-		0x0C2DD0, //WeaponTypeExt
+		0x0C2DD0, //WeaponTypeExtData
 		0x0C2C50, //SWTypeExt
 
 		0x0C2A00, //Debug::bTrackParserErrors
 
-		0x0C2A54, //HouseExt::FSW
+		0x0C2A54, //HouseExtData::FSW
 
 		0x0C3100, //std::vector<const char*>
 
@@ -332,7 +332,7 @@ bool AresData::Init()
 
 		0x0C1134, //SW_Firewall::FirewallType
 
-		0x0C2C7C, //SWTypeExt::CurrentSWType
+		0x0C2C7C, //SWTypeExtData::CurrentSWType
 
 		0x0C2E2C, //EboltColors1
 		0x0C2E30, //EboltColors2
@@ -460,10 +460,10 @@ void AresData::UnInit()
 //	AresThiscall<ApplyKillDriverID, ConvertClass*, void* , TechnoClass* , TechnoClass*>()(GetAresAresWarheadTypeExt(pThis) , pAttacker , pVictim);
 //}
 
-//void AresData::MouseCursorTypeLoadDefault()
-//{
-//	AresStdcall<MouseCursorTypeLoadDefaultID, void>()();
-//}
+void AresData::MouseCursorTypeLoadDefault()
+{
+	AresStdcall<MouseCursorTypeLoadDefaultID, void>()();
+}
 
 //AresFactoryStateRet* AresData::HouseExt_HasFactory(AresFactoryStateRet* nBuff, HouseClass const* const Owner, TechnoTypeClass const* const pType, bool bSkipAircraft, bool bRequirePower, bool bCheckCanBuild, bool a7)
 //{

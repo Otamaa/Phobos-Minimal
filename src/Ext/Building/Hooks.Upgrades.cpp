@@ -96,7 +96,7 @@ DEFINE_HOOK(0x4492D7, BuildingClass_SetOwningHouse_Upgrades, 0x5)
 	GET(HouseClass*, pNew, EBP);
 
 	//reset
-	BuildingExt::ExtMap.Find(pThis)->AccumulatedIncome = 0;
+	BuildingExtContainer::Instance.Find(pThis)->AccumulatedIncome = 0;
 
 	// Somewhat upgrades were removed for AI after ownership chages
 	for (auto const& upgrade : pThis->Upgrades)

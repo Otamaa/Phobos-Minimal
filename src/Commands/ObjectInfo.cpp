@@ -73,7 +73,7 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 	Append(buffer, "Current Mission = %d (%s)\n", pFoot->CurrentMission, MissionClass::MissionToString(pFoot->CurrentMission));
 	Append(buffer, "sp = %fl, fp = %fl , am = %fl ", pFoot->SpeedMultiplier, pFoot->FirepowerMultiplier, pFoot->ArmorMultiplier);
 	if (pFoot->WhatAmI() != InfantryClass::AbsID)
-		Append(buffer, ", DKilled= %d , ", TechnoExt::ExtMap.Find(pFoot)->Is_DriverKilled);
+		Append(buffer, ", DKilled= %d , ", TechnoExtContainer::Instance.Find(pFoot)->Is_DriverKilled);
 
 	Append(buffer, "Grp = %d, RectA = %d, RectB = %d\n", pFoot->Group, (int)pFoot->RecruitableA, (int)pFoot->RecruitableB);
 
@@ -197,7 +197,7 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 	else
 		Append(buffer, "\n");
 
-	if (const auto pTechnoExt = TechnoExt::ExtMap.Find(pFoot))
+	if (const auto pTechnoExt = TechnoExtContainer::Instance.Find(pFoot))
 	{
 		const auto pShieldData = pTechnoExt->Shield.get();
 
@@ -265,7 +265,7 @@ void PrintBuilding(T& buffer, BuildingClass* pBuilding)
 	auto const nLevel = pBuilding->Veterancy.GetRemainingLevel();
 	Append(buffer, "CurHP = (%d / %d) , Armor = %s (%d) , Exp = %s ( %fl / %fl ) \n", pBuilding->Health, pBuilding->Type->Strength, pArmor->Name.data(), (int)pBuilding->Type->Armor, EnumFunctions::Rank_ToStrings[(int)nLevel], pBuilding->Veterancy.Veterancy, RulesClass::Instance->VeteranCap);
 
-	if (auto pTechnoExt = TechnoExt::ExtMap.Find(pBuilding))
+	if (auto pTechnoExt = TechnoExtContainer::Instance.Find(pBuilding))
 	{
 		auto pShieldData = pTechnoExt->Shield.get();
 

@@ -26,7 +26,7 @@ DEFINE_HOOK(0x55AFB3, LogicClass_Update_Early, 0x6)
 	SWStateMachine::UpdateAll();
 	for (auto pHouse : *HouseClass::Array)
 	{
-		HouseExt::ExtMap.Find(pHouse)->UpdateAutoDeathObjects();
+		HouseExtContainer::Instance.Find(pHouse)->UpdateAutoDeathObjects();
 	}
 
 	//auto pCellbegin = MapClass::Instance->Cells.Items;
@@ -72,13 +72,13 @@ DEFINE_OVERRIDE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 
 	if (
 #ifndef Replace_SW
-		SWTypeExt::ExtData::Activate(pSuper, *pCell, isPlayer)
+		SWTypeExtData::Activate(pSuper, *pCell, isPlayer)
 #else
 		AresData::SW_Activate(pSuper, *pCell, isPlayer)
 #endif
 		)
 	{
-		SWTypeExt::ExtMap.Find(pSuper->Type)->FireSuperWeapon(pSuper, pSuper->Owner, pCell, isPlayer);
+		SWTypeExtContainer::Instance.Find(pSuper->Type)->FireSuperWeapon(pSuper, pSuper->Owner, pCell, isPlayer);
 		return 0x6CDE40;
 	}
 
@@ -124,7 +124,7 @@ DEFINE_HOOK(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
 			found = true;
 		}
 
-		SWTypeExt::ExtMap.Find(pThis)->LastAction = result;
+		SWTypeExtContainer::Instance.Find(pThis)->LastAction = result;
 	}
 
 
@@ -150,7 +150,7 @@ DEFINE_HOOK(0x6CBEF4, SuperClass_AnimStage_UseWeeds, 0x6)
 	GET(SuperClass*, pSuper, ECX);
 	GET(SuperWeaponTypeClass*, pSWType, EBX);
 
-	auto pExt = SWTypeExt::ExtMap.Find(pSWType);
+	auto pExt = SWTypeExtContainer::Instance.Find(pSWType);
 
 	if (pExt->UseWeeds)
 	{
@@ -185,7 +185,7 @@ DEFINE_HOOK(0x6CBD2C, SuperClass_AI_UseWeeds, 0x6)
 
 	GET(SuperClass*, pSuper, ESI);
 
-	const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
+	const auto pExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
 
 	if (pExt->UseWeeds)
 	{
@@ -227,7 +227,7 @@ DEFINE_HOOK(0x6CC1E6, SuperClass_SetSWCharge_UseWeeds, 0x5)
 	enum { Skip = 0x6CC251 };
 
 	GET(SuperClass*, pSuper, EDI);
-	return SWTypeExt::ExtMap.Find(pSuper->Type)->UseWeeds ? Skip : 0;
+	return SWTypeExtContainer::Instance.Find(pSuper->Type)->UseWeeds ? Skip : 0;
 }
 
 #ifndef Replace_SW
@@ -265,7 +265,7 @@ DEFINE_HOOK(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 			if (IS_SAME_STR_(SuperWeaponTypeClass::SuperweaponTypeName[i], exINI.value()))
 			{
 				pThis->Type = (SuperWeaponType)(i);
-				SWTypeExt::ExtMap.Find(pThis)->HandledType = NewSWType::GetHandledType((SuperWeaponType)(i));
+				SWTypeExtContainer::Instance.Find(pThis)->HandledType = NewSWType::GetHandledType((SuperWeaponType)(i));
 			}
 		}
 
@@ -308,7 +308,7 @@ DEFINE_HOOK(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 		return 0;
 
 	const auto pSuperType = SuperWeaponTypeClass::Array()->GetItem(Unsorted::CurrentSWType);
-	const auto pExt = SWTypeExt::ExtMap.Find(pSuperType);
+	const auto pExt = SWTypeExtContainer::Instance.Find(pSuperType);
 
 	if (!pExt->ShowDesignatorRange)
 		return 0;
@@ -327,7 +327,7 @@ DEFINE_HOOK(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 			continue;
 		}
 
-		const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pCurrentTechnoType);
+		const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pCurrentTechnoType);
 
 		const float radius = float((pOwner == HouseClass::CurrentPlayer
 			? pTechnoTypeExt->DesignatorRange
@@ -353,7 +353,7 @@ DEFINE_OVERRIDE_HOOK(0x41F0F1, AITriggerClass_IC_Ready, 0xA)
 	GET(SuperClass*, pSuper, EDI);
 
 	return (pSuper->Type->Type == SuperWeaponType::IronCurtain
-		&& SWTypeExt::ExtMap.Find(pSuper->Type)->IsAvailable(pSuper->Owner))
+		&& SWTypeExtContainer::Instance.Find(pSuper->Type)->IsAvailable(pSuper->Owner))
 		? breakloop : advance;
 }
 
@@ -363,7 +363,7 @@ DEFINE_OVERRIDE_HOOK(0x41F1A1, AITriggerClass_Chrono_Ready, 0xA)
 	GET(SuperClass*, pSuper, EBX);
 
 	return (pSuper->Type->Type == SuperWeaponType::ChronoSphere
-		&& SWTypeExt::ExtMap.Find(pSuper->Type)->IsAvailable(pSuper->Owner))
+		&& SWTypeExtContainer::Instance.Find(pSuper->Type)->IsAvailable(pSuper->Owner))
 		? breakloop : advance;
 }
 
@@ -375,7 +375,7 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 	GET_STACK(ScriptActionNode*, pTeamMission, 0x4);
 	//GET_STACK(bool, barg3, 0x8);
 
-	auto pTeamExt = TeamExt::ExtMap.Find(pThis);
+	auto pTeamExt = TeamExtContainer::Instance.Find(pThis);
 	const auto pLeader = pThis->FetchLeader();
 
 	if (!pLeader)
@@ -397,7 +397,7 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 	{
 		for (const auto& pSuper : pOwner->Supers)
 		{
-			const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
+			const auto pExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
 
 			if (pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain && pExt->SW_Group == pTeamMission->Argument)
 			{
@@ -434,7 +434,7 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 	{ //continue waiting until it ready
 
 		if (!pTeamExt->LastFoundSW->Granted ||
-			!SWTypeExt::ExtMap.Find(pTeamExt->LastFoundSW->Type)->IsAvailable(pOwner))
+			!SWTypeExtContainer::Instance.Find(pTeamExt->LastFoundSW->Type)->IsAvailable(pOwner))
 		{
 			pTeamExt->LastFoundSW = nullptr;
 			pThis->StepCompleted = true;
@@ -460,7 +460,7 @@ DEFINE_HOOK(0x6EFF05, TeamClass_ChronosphereTeam_PickSuper_IsAvail_A, 0x9)
 	GET(SuperClass*, pSuper, EAX);
 	GET(HouseClass*, pOwner, EBP);
 
-	return SWTypeExt::ExtMap.Find(pSuper->Type)->IsAvailable(pOwner) ?
+	return SWTypeExtContainer::Instance.Find(pSuper->Type)->IsAvailable(pOwner) ?
 		0x0//allow
 		: 0x6EFF1C;//advance
 }
@@ -470,7 +470,7 @@ DEFINE_HOOK(0x6F01BA, TeamClass_ChronosphereTeam_PickSuper_IsAvail_B, 0x9)
 	GET(SuperClass*, pSuper, EAX);
 	GET(HouseClass*, pOwner, EDI);
 
-	return SWTypeExt::ExtMap.Find(pSuper->Type)->IsAvailable(pOwner) ?
+	return SWTypeExtContainer::Instance.Find(pSuper->Type)->IsAvailable(pOwner) ?
 		0x0//allow
 		: 0x6F01D3;//advance
 }
@@ -480,7 +480,7 @@ DEFINE_OVERRIDE_HOOK(0x6CEF84, SuperWeaponTypeClass_GetAction, 7)
 	GET_STACK(CellStruct*, pMapCoords, 0x0C);
 	GET(SuperWeaponTypeClass*, pType, ECX);
 
-	const auto nAction = SWTypeExt::ExtData::GetAction(pType, pMapCoords);
+	const auto nAction = SWTypeExtData::GetAction(pType, pMapCoords);
 
 	if (nAction != Action::None)
 	{
@@ -517,7 +517,7 @@ DEFINE_OVERRIDE_HOOK(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
 	GET(int, idxSW, ESI);
 
 	SuperClass* pSuper = HouseClass::CurrentPlayer->Supers.GetItem(idxSW);
-	const auto pData = SWTypeExt::ExtMap.Find(pSuper->Type);
+	const auto pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
 
 	// if this SW is only auto-firable, discard any clicks.
 	// if AutoFire is off, the sw would not be firable at all,
@@ -542,7 +542,7 @@ DEFINE_OVERRIDE_HOOK(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
 		return RetImpatientClick;
 	}
 
-	if (!pData->SW_UseAITargeting.Get() || SWTypeExt::ExtData::IsTargetConstraintsEligible(pSuper, true))
+	if (!pData->SW_UseAITargeting.Get() || SWTypeExtData::IsTargetConstraintsEligible(pSuper, true))
 	{
 		// disallow manuals and active unstoppables
 		if (manual || unstoppable)
@@ -575,7 +575,7 @@ DEFINE_OVERRIDE_HOOK(0x6AAF9D, SidebarClass_ProcessCameoClick_SelectTarget, 5)
 
 	if (SuperClass* pSW = HouseClass::CurrentPlayer->Supers.GetItem(index))
 	{
-		VoxClass::PlayIndex(SWTypeExt::ExtMap.Find(pSW->Type)->EVA_SelectTarget);
+		VoxClass::PlayIndex(SWTypeExtContainer::Instance.Find(pSW->Type)->EVA_SelectTarget);
 	}
 
 	return 0x6AB95A;
@@ -585,7 +585,7 @@ DEFINE_OVERRIDE_HOOK(0x6A932B, StripClass_GetTip_MoneySW, 6)
 {
 	GET(SuperWeaponTypeClass*, pSW, EAX);
 
-	const auto pData = SWTypeExt::ExtMap.Find(pSW);
+	const auto pData = SWTypeExtContainer::Instance.Find(pSW);
 
 	if (pData->Money_Amount < 0)
 	{
@@ -651,7 +651,7 @@ DEFINE_OVERRIDE_HOOK(0x4AC20C, DisplayClass_LeftMouseButtonUp, 7)
 		return 0x4AC294;
 	}
 
-	R->EAX(SWTypeExt::CurrentSWType);
+	R->EAX(SWTypeExtData::CurrentSWType);
 	return 0x4AC21C;
 }
 
@@ -674,7 +674,7 @@ DEFINE_OVERRIDE_HOOK(0x653B3A, RadarClass_GetMouseAction_CustomSWAction, 7)
 	if ((flag & (MouseEvent::RightDown | MouseEvent::RightUp)))
 		return DifferentEventFlags;
 
-	const auto nResult = SWTypeExt::ExtData::GetAction(SuperWeaponTypeClass::Array->GetItem(Unsorted::CurrentSWType), &MapCoords);
+	const auto nResult = SWTypeExtData::GetAction(SuperWeaponTypeClass::Array->GetItem(Unsorted::CurrentSWType), &MapCoords);
 
 	if (nResult == Action::None)
 		return NothingToDo; //vanilla action
@@ -688,7 +688,7 @@ DEFINE_OVERRIDE_HOOK(0x4463F0, BuildingClass_Place_SuperWeaponAnimsA, 6)
 {
 	GET(BuildingClass*, pThis, EBP);
 
-	if (auto pSuper = BuildingExt::GetFirstSuperWeapon(pThis))
+	if (auto pSuper = BuildingExtData::GetFirstSuperWeapon(pThis))
 	{
 		R->EAX(pSuper);
 		return 0x44643E;
@@ -714,7 +714,7 @@ DEFINE_OVERRIDE_HOOK(0x450F9E, BuildingClass_ProcessAnims_SuperWeaponsA, 6)
 	if (miss == Mission::Construction || miss == Mission::Selling || pThis->Type->ChargedAnimTime > 990.0)
 		return 0x451145;
 
-	const auto pSuper = BuildingExt::GetFirstSuperWeapon(pThis);
+	const auto pSuper = BuildingExtData::GetFirstSuperWeapon(pThis);
 
 	if (!pSuper)
 		return 0x451145;
@@ -729,12 +729,12 @@ DEFINE_OVERRIDE_HOOK(0x4468F4, BuildingClass_Place_AnnounceSW, 6)
 {
 	GET(BuildingClass*, pThis, EBP);
 
-	if (auto pSuper = BuildingExt::GetFirstSuperWeapon(pThis))
+	if (auto pSuper = BuildingExtData::GetFirstSuperWeapon(pThis))
 	{
 		if (pSuper->Owner->IsNeutral())
 			return 0x44699A;
 
-		const auto pData = SWTypeExt::ExtMap.Find(pSuper->Type);
+		const auto pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
 
 		pData->PrintMessage(pData->Message_Detected, pThis->Owner);
 
@@ -755,7 +755,7 @@ DEFINE_OVERRIDE_HOOK(0x4468F4, BuildingClass_Place_AnnounceSW, 6)
 DEFINE_OVERRIDE_HOOK(0x6CBDD7, SuperClass_AnnounceReady, 6)
 {
 	GET(SuperWeaponTypeClass*, pThis, EAX);
-	const auto pData = SWTypeExt::ExtMap.Find(pThis);
+	const auto pData = SWTypeExtContainer::Instance.Find(pThis);
 
 	pData->PrintMessage(pData->Message_Ready, HouseClass::CurrentPlayer);
 
@@ -772,7 +772,7 @@ DEFINE_OVERRIDE_HOOK(0x6CBDD7, SuperClass_AnnounceReady, 6)
 DEFINE_OVERRIDE_HOOK(0x6CC0EA, SuperClass_AnnounceQuantity, 9)
 {
 	GET(SuperClass*, pThis, ESI);
-	const auto pData = SWTypeExt::ExtMap.Find(pThis->Type);
+	const auto pData = SWTypeExtContainer::Instance.Find(pThis->Type);
 
 	pData->PrintMessage(pData->Message_Ready, HouseClass::CurrentPlayer);
 
@@ -802,7 +802,7 @@ DEFINE_OVERRIDE_HOOK(0x457630, BuildingClass_SWAvailable, 9)
 	GET(BuildingClass*, pThis, ECX);
 
 	auto nSuper = pThis->Type->SuperWeapon2;
-	if (nSuper >= 0 && !HouseExt::ExtData::IsSuperAvail(nSuper, pThis->Owner))
+	if (nSuper >= 0 && !HouseExtData::IsSuperAvail(nSuper, pThis->Owner))
 		nSuper = -1;
 
 	R->EAX(nSuper);
@@ -814,7 +814,7 @@ DEFINE_OVERRIDE_HOOK(0x457690, BuildingClass_SW2Available, 9)
 	GET(BuildingClass*, pThis, ECX);
 
 	auto nSuper = pThis->Type->SuperWeapon2;
-	if (nSuper >= 0 && !HouseExt::ExtData::IsSuperAvail(nSuper, pThis->Owner))
+	if (nSuper >= 0 && !HouseExtData::IsSuperAvail(nSuper, pThis->Owner))
 		nSuper = -1;
 
 	R->EAX(nSuper);
@@ -825,7 +825,7 @@ DEFINE_OVERRIDE_HOOK(0x43BE50, BuildingClass_DTOR_HasAnySW, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	return (BuildingExt::GetFirstSuperWeaponIndex(pThis) != -1)
+	return (BuildingExtData::GetFirstSuperWeaponIndex(pThis) != -1)
 		? 0x43BEEAu : 0x43BEF5u;
 }
 
@@ -841,7 +841,7 @@ DEFINE_OVERRIDE_HOOK(0x4FAE72, HouseClass_SWFire_PreDependent, 6)
 
 	// find the predependent SW. decouple this from the chronosphere.
 	// don't use a fixed SW type but the very one acutually fired last.
-	R->ESI(pThis->Supers.GetItemOrDefault(HouseExt::ExtMap.Find(pThis)->SWLastIndex));
+	R->ESI(pThis->Supers.GetItemOrDefault(HouseExtContainer::Instance.Find(pThis)->SWLastIndex));
 
 	return 0x4FAE7B;
 }
@@ -849,7 +849,7 @@ DEFINE_OVERRIDE_HOOK(0x4FAE72, HouseClass_SWFire_PreDependent, 6)
 DEFINE_OVERRIDE_HOOK(0x6CC2B0, SuperClass_NameReadiness, 5)
 {
 	GET(SuperClass*, pThis, ECX);
-	const auto pData = SWTypeExt::ExtMap.Find(pThis->Type);
+	const auto pData = SWTypeExtContainer::Instance.Find(pThis->Type);
 
 	// complete rewrite of this method.
 
@@ -900,11 +900,11 @@ DEFINE_OVERRIDE_HOOK(0x6A99B7, StripClass_Draw_SuperDarken, 5)
 	GET(int, idxSW, EDI);
 
 	const auto pSW = HouseClass::CurrentPlayer->Supers.GetItem(idxSW);
-	const auto pExt = SWTypeExt::ExtMap.Find(pSW->Type);
+	const auto pExt = SWTypeExtContainer::Instance.Find(pSW->Type);
 
 	bool darken = false;
 	if (pSW->IsCharged && !pSW->Owner->CanTransactMoney(pExt->Money_Amount)
-		|| (pExt->SW_UseAITargeting && !SWTypeExt::ExtData::IsTargetConstraintsEligible(pSW, true)))
+		|| (pExt->SW_UseAITargeting && !SWTypeExtData::IsTargetConstraintsEligible(pSW, true)))
 	{
 		darken = true;
 	}
@@ -938,7 +938,7 @@ DEFINE_OVERRIDE_HOOK(0x6CBF5B, SuperClass_GetCameoChargeStage_ChargeDrainRatio, 
 
 	// use per-SW charge-to-drain ratio.
 	double percentage = 0.0;
-	double ratio = SWTypeExt::ExtMap.Find(pType)->GetChargeToDrainRatio();
+	double ratio = SWTypeExtContainer::Instance.Find(pType)->GetChargeToDrainRatio();
 	if (std::fabs(rechargeTime2 * ratio) > 0.001)
 	{
 		percentage = 1.0 - (rechargeTime1 * ratio - timeLeft) / (rechargeTime2 * ratio);
@@ -958,7 +958,7 @@ DEFINE_OVERRIDE_HOOK(0x6CC053, SuperClass_GetCameoChargeStage_FixFullyCharged, 5
 DEFINE_OVERRIDE_HOOK(0x6CBD86, SuperClass_Progress_Charged, 7)
 {
 	GET(SuperClass* const, pThis, ESI);
-	SWTypeExt::ExtData::Deactivate(pThis, CellStruct::Empty, true);
+	SWTypeExtData::Deactivate(pThis, CellStruct::Empty, true);
 	return 0;
 }
 
@@ -977,8 +977,8 @@ DEFINE_OVERRIDE_HOOK(0x6CB7B0, SuperClass_Lose, 6)
 		{
 			std::sort(SuperClass::ShowTimers->begin(), SuperClass::ShowTimers->end(),
 			[](SuperClass* a, SuperClass* b) {
-				const auto aExt = SWTypeExt::ExtMap.Find(a->Type);
-				const auto bExt = SWTypeExt::ExtMap.Find(b->Type);
+				const auto aExt = SWTypeExtContainer::Instance.Find(a->Type);
+				const auto bExt = SWTypeExtContainer::Instance.Find(b->Type);
 				return aExt->SW_Priority.Get() > bExt->SW_Priority.Get();
 			});
 		}
@@ -986,7 +986,7 @@ DEFINE_OVERRIDE_HOOK(0x6CB7B0, SuperClass_Lose, 6)
 		// changed
 		if (pThis->Type->UseChargeDrain && pThis->ChargeDrainState == ChargeDrainState::Draining)
 		{
-			SWTypeExt::ExtData::Deactivate(pThis, CellStruct::Empty, false);
+			SWTypeExtData::Deactivate(pThis, CellStruct::Empty, false);
 			pThis->ChargeDrainState = ChargeDrainState::Charging;
 		}
 
@@ -1007,7 +1007,7 @@ DEFINE_OVERRIDE_HOOK(0x6CB920, SuperClass_ClickFire, 5)
 	retfunc<bool> ret(R, 0x6CBC9C);
 
 	auto const pType = pThis->Type;
-	auto const pExt = SWTypeExt::ExtMap.Find(pType);
+	auto const pExt = SWTypeExtContainer::Instance.Find(pType);
 	auto const pOwner = pThis->Owner;
 
 	if (!pType->UseChargeDrain)
@@ -1133,9 +1133,9 @@ DEFINE_OVERRIDE_HOOK(0x6CB4D0, SuperClass_SetOnHold, 6)
 			{
 				if (pThis->ChargeDrainState == ChargeDrainState::Draining)
 				{
-					SWTypeExt::ExtData::Deactivate(pThis, CellStruct::Empty, false);
+					SWTypeExtData::Deactivate(pThis, CellStruct::Empty, false);
 					const auto nTime = pThis->GetRechargeTime();
-					const auto nRation = pThis->RechargeTimer.GetTimeLeft() / SWTypeExt::ExtMap.Find(pThis->Type)->GetChargeToDrainRatio();
+					const auto nRation = pThis->RechargeTimer.GetTimeLeft() / SWTypeExtContainer::Instance.Find(pThis->Type)->GetChargeToDrainRatio();
 					pThis->RechargeTimer.Start(int(nTime - nRation));
 					pThis->RechargeTimer.Pause();
 				}
@@ -1144,11 +1144,11 @@ DEFINE_OVERRIDE_HOOK(0x6CB4D0, SuperClass_SetOnHold, 6)
 			}
 			else
 			{
-				const auto pExt = SWTypeExt::ExtMap.Find(pThis->Type);
+				const auto pExt = SWTypeExtContainer::Instance.Find(pThis->Type);
 
 				pThis->ChargeDrainState = ChargeDrainState::Charging;
 
-				if (!pExt->SW_InitialReady || HouseExt::ExtMap.Find(pThis->Owner)
+				if (!pExt->SW_InitialReady || HouseExtContainer::Instance.Find(pThis->Owner)
 					->GetShotCount(pThis->Type).Count)
 				{
 					pThis->RechargeTimer.Start(pThis->GetRechargeTime());
@@ -1179,7 +1179,7 @@ DEFINE_OVERRIDE_HOOK(0x6CBD6B, SuperClass_Update_DrainMoney, 8)
 
 	if (timeLeft > 0 && pSuper->Type->UseChargeDrain && pSuper->ChargeDrainState == ChargeDrainState::Draining)
 	{
-		SWTypeExt::ExtData* pData = SWTypeExt::ExtMap.Find(pSuper->Type);
+		SWTypeExtData* pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
 
 		const int money = pData->Money_DrainAmount;
 
@@ -1239,7 +1239,7 @@ DEFINE_OVERRIDE_HOOK(0x6CEEB0, SuperWeaponTypeClass_FindFirstOfAction, 8)
 		}
 		else
 		{
-			if (auto pNewSWType = SWTypeExt::ExtMap.Find(pType)->GetNewSWType())
+			if (auto pNewSWType = SWTypeExtContainer::Instance.Find(pType)->GetNewSWType())
 			{
 				if (pNewSWType->HandleThisType(SuperWeaponType::Nuke))
 				{
@@ -1271,7 +1271,7 @@ DEFINE_OVERRIDE_HOOK(0x6D49D1, TacticalClass_Draw_TimerVisibility, 5)
 
 	GET(SuperClass*, pThis, EDX);
 
-	const auto pExt = SWTypeExt::ExtMap.Find(pThis->Type);
+	const auto pExt = SWTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (!pExt->IsHouseAffected(pThis->Owner, HouseClass::CurrentPlayer(), pExt->SW_TimerVisibility))
 		return DoNotDraw;
@@ -1288,8 +1288,8 @@ DEFINE_OVERRIDE_HOOK(0x6CB70C, SuperClass_Grant_InitialReady, 0xA)
 	if (pSuper->Type->UseChargeDrain)
 		pSuper->ChargeDrainState = ChargeDrainState::Charging;
 
-	auto pHouseExt = HouseExt::ExtMap.Find(pSuper->Owner);
-	const auto pSuperExt = SWTypeExt::ExtMap.Find(pSuper->Type);
+	auto pHouseExt = HouseExtContainer::Instance.Find(pSuper->Owner);
+	const auto pSuperExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
 
 	auto const [frame, count] = pHouseExt->GetShotCount(pSuper->Type);
 
@@ -1341,13 +1341,10 @@ DEFINE_OVERRIDE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
 	// method would abort if this house is human-controlled.
 	bool AIFire = pThis->IsControlledByHuman();
 
-	for (const auto& pSuper : pThis->Supers)
-	{
-		if (pSuper->IsCharged && pSuper->ChargeDrainState != ChargeDrainState::Draining)
-		{
-			if (!AIFire || SWTypeExt::ExtMap.Find(pSuper->Type)->SW_AutoFire)
-			{
-				SWTypeExt::ExtData::TryFire(pSuper, false);
+	for (const auto& pSuper : pThis->Supers) {
+		if (pSuper->IsCharged && pSuper->ChargeDrainState != ChargeDrainState::Draining) {
+			if (!AIFire || SWTypeExtContainer::Instance.Find(pSuper->Type)->SW_AutoFire) {
+				SWTypeExtData::TryFire(pSuper, false);
 			}
 		}
 	}
@@ -1366,11 +1363,11 @@ DEFINE_OVERRIDE_HOOK(0x4C78D6, Networking_RespondToEvent_SpecialPlace, 8)
 
 	const auto& specialplace = pEvent->Data.SpecialPlace;
 	const auto pSuper = pHouse->Supers.Items[specialplace.ID];
-	const auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
+	const auto pExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
 
 	if (pExt->SW_UseAITargeting)
 	{
-		if (!SWTypeExt::ExtData::TryFire(pSuper, 1))
+		if (!SWTypeExtData::TryFire(pSuper, 1))
 		{
 			const auto pHouseID = pHouse->get_ID();
 
@@ -1397,7 +1394,7 @@ DEFINE_OVERRIDE_HOOK(0x50AF10, HouseClass_UpdateSuperWeaponsOwned, 5)
 	if (pThis->IsNeutral())
 		return 0x50B1CA;
 
-	SuperExt::UpdateSuperWeaponStatuses(pThis);
+	SuperExtData::UpdateSuperWeaponStatuses(pThis);
 
 	// now update every super weapon that is valid.
 	// if this weapon has not been granted there's no need to update
@@ -1407,7 +1404,7 @@ DEFINE_OVERRIDE_HOOK(0x50AF10, HouseClass_UpdateSuperWeaponsOwned, 5)
 		{
 			auto pType = pSuper->Type;
 			auto index = pType->ArrayIndex;
-			auto& status = SuperExt::ExtMap.Find(pSuper)->Statusses;
+			auto& status = SuperExtContainer::Instance.Find(pSuper)->Statusses;
 
 			auto Update = [&]()
 			{
@@ -1467,7 +1464,7 @@ DEFINE_OVERRIDE_HOOK(0x50B1D0, HouseClass_UpdateSuperWeaponsUnavailable, 6)
 
 	if (!pThis->Defeated && !(pThis->IsObserver()))
 	{
-		SuperExt::UpdateSuperWeaponStatuses(pThis);
+		SuperExtData::UpdateSuperWeaponStatuses(pThis);
 
 		// update all super weapons not repeatedly available
 		for (auto& pSuper : pThis->Supers)
@@ -1475,7 +1472,7 @@ DEFINE_OVERRIDE_HOOK(0x50B1D0, HouseClass_UpdateSuperWeaponsUnavailable, 6)
 			if (!pSuper->Granted || pSuper->OneTime)
 			{
 				auto index = pSuper->Type->ArrayIndex;
-				const auto pExt = SuperExt::ExtMap.Find(pSuper);
+				const auto pExt = SuperExtContainer::Instance.Find(pSuper);
 				auto& status = pExt->Statusses;
 
 				if (status.Available)
@@ -1507,19 +1504,19 @@ DEFINE_HOOK(0x46B371, BulletClass_NukeMaker, 5)
 
 	SuperWeaponTypeClass* pNukeSW = nullptr;
 
-	if (auto const pNuke = BulletExt::ExtMap.Find(pThis)->NukeSW)
+	if (auto const pNuke = BulletExtContainer::Instance.Find(pThis)->NukeSW)
 	{
 		pNukeSW = pNuke;
 	}
 	else if (auto pLinkedNuke = SuperWeaponTypeClass::Array->
-		GetItemOrDefault(WarheadTypeExt::ExtMap.Find(pThis->WH)->NukePayload_LinkedSW))
+		GetItemOrDefault(WarheadTypeExtContainer::Instance.Find(pThis->WH)->NukePayload_LinkedSW))
 	{
 		pNukeSW = pLinkedNuke;
 	}
 
 	if (pNukeSW)
 	{
-		auto const pSWExt = SWTypeExt::ExtMap.Find(pNukeSW);
+		auto const pSWExt = SWTypeExtContainer::Instance.Find(pNukeSW);
 
 		// get the per-SW nuke payload weapon
 		if (WeaponTypeClass const* const pPayload = pSWExt->Nuke_Payload)
@@ -1559,8 +1556,8 @@ DEFINE_HOOK(0x46B423, BulletClass_NukeMaker_PropagateSW, 6)
 	GET(BulletClass* const, pThis, EBP);
 	GET(BulletClass* const, pNuke, EDI);
 
-	auto const pThisExt = BulletExt::ExtMap.Find(pThis);
-	auto const pNukeExt = BulletExt::ExtMap.Find(pNuke);
+	auto const pThisExt = BulletExtContainer::Instance.Find(pThis);
+	auto const pNukeExt = BulletExtContainer::Instance.Find(pNuke);
 	pNukeExt->NukeSW = pThisExt->NukeSW;
 	pNuke->Owner = pThis->Owner;
 	pNukeExt->Owner = pNukeExt->Owner;
@@ -1575,8 +1572,8 @@ DEFINE_OVERRIDE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
 		// to a more universal approach. every warhead can get this behavior.
 	GET(BulletClass* const, pThis, EBP);
 
-	auto const pExt = BulletExt::ExtMap.Find(pThis);
-	auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+	auto const pExt = BulletExtContainer::Instance.Find(pThis);
+	auto const pWarheadExt = WarheadTypeExtContainer::Instance.Find(pThis->WH);
 
 	enum { Default = 0u, FireNow = 0x467F9Bu, PreImpact = 0x467ED0 };
 
@@ -1594,7 +1591,7 @@ DEFINE_OVERRIDE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
 		}
 
 		// cause yet another radar event
-		auto const pSWTypeExt = SWTypeExt::ExtMap.Find(pExt->NukeSW);
+		auto const pSWTypeExt = SWTypeExtContainer::Instance.Find(pExt->NukeSW);
 
 		if (pSWTypeExt->SW_RadarEvent)
 		{
@@ -1622,7 +1619,7 @@ DEFINE_OVERRIDE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
 		NukeFlash::StartTime = Unsorted::CurrentFrame;
 		NukeFlash::Duration = duration;
 
-		SWTypeExt::ChangeLighting(pExt->NukeSW ? pExt->NukeSW : nullptr);
+		SWTypeExtData::ChangeLighting(pExt->NukeSW ? pExt->NukeSW : nullptr);
 		MapClass::Instance->RedrawSidebar(1);
 	}
 
@@ -1652,15 +1649,15 @@ DEFINE_OVERRIDE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
 //	WeaponTypeClass* pPaylod = nullptr;
 //	SuperWeaponTypeClass* pNukeSW = nullptr;
 //
-//	if (auto const pNuke = BulletExt::ExtMap.Find(pThis)->NukeSW)
+//	if (auto const pNuke = BulletExtContainer::Instance.Find(pThis)->NukeSW)
 //	{
-//		pPaylod = SWTypeExt::ExtMap.Find(pNuke)->Nuke_Payload;
+//		pPaylod = SWTypeExtContainer::Instance.Find(pNuke)->Nuke_Payload;
 //		pNukeSW = pNuke;
 //	}
 //	else if (auto pLinkedNuke = SuperWeaponTypeClass::Array->
-//		GetItemOrDefault(WarheadTypeExt::ExtMap.Find(pThis->WH)->NukePayload_LinkedSW))
+//		GetItemOrDefault(WarheadTypeExtContainer::Instance.Find(pThis->WH)->NukePayload_LinkedSW))
 //	{
-//		pPaylod = SWTypeExt::ExtMap.Find(pLinkedNuke)->Nuke_Payload;
+//		pPaylod = SWTypeExtContainer::Instance.Find(pLinkedNuke)->Nuke_Payload;
 //		pNukeSW = pLinkedNuke;
 //	}
 //	else
@@ -1676,7 +1673,7 @@ DEFINE_OVERRIDE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
 //	}
 //	auto targetcoord = pTarget->GetCoords();
 //
-//	R->EAX(SW_NuclearMissile::DropNukeAt(pNukeSW, targetcoord, nullptr, pThis->Owner ? pThis->Owner->Owner : HouseExt::FindCivilianSide(), pPaylod));
+//	R->EAX(SW_NuclearMissile::DropNukeAt(pNukeSW, targetcoord, nullptr, pThis->Owner ? pThis->Owner->Owner : HouseExtData::FindCivilianSide(), pPaylod));
 //	return ret;
 //}
 
@@ -1713,7 +1710,7 @@ DEFINE_OVERRIDE_HOOK(0x44CE46, BuildingClass_Mi_Missile_EMPulse_Pulsball, 5)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	auto pSWExt = SWTypeExt::ExtMap.Find(TechnoExt::ExtMap.Find(pThis)->LinkedSW->Type);
+	auto pSWExt = SWTypeExtContainer::Instance.Find(TechnoExtContainer::Instance.Find(pThis)->LinkedSW->Type);
 	auto pPulseBall = pSWExt->EMPulse_PulseBall.Get(AnimTypeClass::Find(GameStrings::PULSBALL));
 	auto delay = pSWExt->EMPulse_PulseDelay;
 
@@ -1738,7 +1735,7 @@ DEFINE_OVERRIDE_HOOK(0x44CCE7, BuildingClass_Mi_Missile_GenericSW, 6)
 	enum { ProcessEMPulse = 0x44CD18, ReturnFromFunc = 0x44D599 };
 	GET(BuildingClass* const, pThis, ESI);
 
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	if (!pThis->Type->EMPulseCannon)
 	{
@@ -1767,9 +1764,9 @@ DEFINE_HOOK(0x44C9F3, BuildingClass_Mi_Missile_PsiWarn, 0x5)
 	GET(HouseClass*, pOwner, EBP);
 	GET(CellClass*, pCell, EAX);
 
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	AnimClass* PsiWarn = nullptr;
-	auto const pSWTypeExt = SWTypeExt::ExtMap.Find(pExt->LinkedSW->Type);
+	auto const pSWTypeExt = SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type);
 
 	if (auto& Anim = pSWTypeExt->Nuke_PsiWarning)
 	{
@@ -1790,7 +1787,7 @@ DEFINE_HOOK(0x44C992, BuildingClass_MI_Missile_Safeguard, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	if (!TechnoExt::ExtMap.Find(pThis)->LinkedSW)
+	if (!TechnoExtContainer::Instance.Find(pThis)->LinkedSW)
 	{
 		Debug::Log("Building[%s] with Mission::Missile Missing Important Linked SW data !\n", pThis->get_ID());
 		return 0x44D584;
@@ -1813,7 +1810,7 @@ DEFINE_HOOK(0x44CA97, BuildingClass_MI_Missile_CreateBullet, 0x6)
 	GET(BuildingClass* const, pThis, ESI);
 
 	auto pTarget = MapClass::Instance->GetCellAt(pThis->Owner->NukeTarget);
-	auto pSuper = TechnoExt::ExtMap.Find(pThis)->LinkedSW;
+	auto pSuper = TechnoExtContainer::Instance.Find(pThis)->LinkedSW;
 
 	if (WeaponTypeClass* pWeapon = pSuper->Type->WeaponType)
 	{
@@ -1821,8 +1818,8 @@ DEFINE_HOOK(0x44CA97, BuildingClass_MI_Missile_CreateBullet, 0x6)
 		//speed harcoded to 255
 		if (auto pCreated = pWeapon->Projectile->CreateBullet(pTarget, pThis, pWeapon->Damage, pWeapon->Warhead, 255, pWeapon->Bright || pWeapon->Warhead->Bright))
 		{
-			BulletExt::ExtMap.Find(pCreated)->NukeSW = pSuper->Type;
-			pCreated->Range = WeaponTypeExt::ExtMap.Find(pWeapon)->GetProjectileRange();
+			BulletExtContainer::Instance.Find(pCreated)->NukeSW = pSuper->Type;
+			pCreated->Range = WeaponTypeExtContainer::Instance.Find(pWeapon)->GetProjectileRange();
 
 
 			pCreated->SetWeaponType(pWeapon);
@@ -1853,7 +1850,7 @@ DEFINE_HOOK(0x44CA97, BuildingClass_MI_Missile_CreateBullet, 0x6)
 			if (!pCreated->MoveTo(nFLH, { 0.0, 0.0 , nMult }))
 				return DeleteBullet;
 
-			if (auto const pAnimType = SWTypeExt::ExtMap.Find(pSuper->Type)->Nuke_TakeOff.Get(RulesClass::Instance->NukeTakeOff))
+			if (auto const pAnimType = SWTypeExtContainer::Instance.Find(pSuper->Type)->Nuke_TakeOff.Get(RulesClass::Instance->NukeTakeOff))
 			{
 				if (auto pAnim = GameCreate<AnimClass>(pAnimType, nFLH))
 				{
@@ -1879,7 +1876,7 @@ DEFINE_OVERRIDE_HOOK(0x48A59A, MapClass_SelectDamageAnimation_LightningWarhead, 
 	GET(WarheadTypeClass* const, pWarhead, ESI);
 	if (auto const pSuper = SW_LightningStorm::CurrentLightningStorm)
 	{
-		auto const pData = SWTypeExt::ExtMap.Find(pSuper->Type);
+		auto const pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
 
 		if (pData->GetNewSWType()->GetWarhead(pData) == pWarhead)
 		{
@@ -1914,7 +1911,7 @@ DEFINE_OVERRIDE_HOOK(0x539EB0, LightningStorm_Start, 5)
 	GET_STACK(HouseClass* const, pOwner, 0x8);
 
 	auto const pType = pSuper->Type;
-	auto const pExt = SWTypeExt::ExtMap.Find(pType);
+	auto const pExt = SWTypeExtContainer::Instance.Find(pType);
 
 	auto ret = false;
 
@@ -2116,7 +2113,7 @@ DEFINE_OVERRIDE_HOOK(0x53A6CF, LightningStorm_Update, 7)
 	CellStruct coords = LightningStorm::Coords();
 
 	auto const pType = pSuper->Type;
-	auto const pExt = SWTypeExt::ExtMap.Find(pType);
+	auto const pExt = SWTypeExtContainer::Instance.Find(pType);
 
 	// is inactive
 	if (!LightningStorm::Active || LightningStorm::TimeToEnd)
@@ -2284,7 +2281,7 @@ DEFINE_OVERRIDE_HOOK(0x53A140, LightningStorm_Strike, 7)
 		GET_STACK(CellStruct const, cell, 0x4);
 
 		auto const pType = pSuper->Type;
-		auto const pExt = SWTypeExt::ExtMap.Find(pType);
+		auto const pExt = SWTypeExtContainer::Instance.Find(pType);
 
 		// get center of cell coords
 		auto const pCell = MapClass::Instance->GetCellAt(cell);
@@ -2339,7 +2336,7 @@ DEFINE_OVERRIDE_HOOK(0x53A300, LightningStorm_Strike2, 5)
 	REF_STACK(CoordStruct const, refCoords, 0x4);
 
 	auto const pType = pSuper->Type;
-	auto const pData = SWTypeExt::ExtMap.Find(pType);
+	auto const pData = SWTypeExtContainer::Instance.Find(pType);
 
 	// get center of cell coords
 	auto const pCell = MapClass::Instance->GetCellAt(refCoords);
@@ -2397,7 +2394,7 @@ DEFINE_OVERRIDE_HOOK(0x53A300, LightningStorm_Strike2, 5)
 				if (pBldType->LightningRod && (nRodTypes.empty() || nRodTypes.Contains(pBldType)))
 				{
 					// multiply the damage, but never go below zero.
-					auto const pBldExt = BuildingTypeExt::ExtMap.Find(pBldType);
+					auto const pBldExt = BuildingTypeExtContainer::Instance.Find(pBldType);
 					damage = MaxImpl(int(damage * pBldExt->LightningRod_Modifier), 0);
 				}
 			}
@@ -2459,7 +2456,7 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 {
 	if (SuperClass* pSuper = SW_PsychicDominator::CurrentPsyDom)
 	{
-		const auto pData = SWTypeExt::ExtMap.Find(pSuper->Type);
+		const auto pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
 		HouseClass* pFirer = PsyDom::Owner;
 		CellStruct cell = PsyDom::Coords;
 		auto pNewData = pData->GetNewSWType();
@@ -2527,7 +2524,7 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 				}
 
 				// ignore units with no drivers
-				if (TechnoExt::ExtMap.Find(pTechno)->Is_DriverKilled)
+				if (TechnoExtContainer::Instance.Find(pTechno)->Is_DriverKilled)
 				{
 					return true;
 				}
@@ -2557,7 +2554,7 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 				}
 
 				// ignore ImmuneToPsionics, if wished
-				if (TechnoExt::IsPsionicsImmune(pTechno) && !pData->Dominator_CaptureImmuneToPsionics)
+				if (TechnoExtData::IsPsionicsImmune(pTechno) && !pData->Dominator_CaptureImmuneToPsionics)
 				{
 					return true;
 				}
@@ -2635,7 +2632,7 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 // replace entire function
 DEFINE_OVERRIDE_HOOK(0x53C280, ScenarioClass_UpdateLighting, 5)
 {
-	const auto lighting = SWTypeExt::GetLightingColor();
+	const auto lighting = SWTypeExtData::GetLightingColor();
 
 	auto scen = ScenarioClass::Instance();
 	if (lighting.HasValue)
@@ -2658,7 +2655,7 @@ DEFINE_OVERRIDE_HOOK(0x555E50, LightConvertClass_CTOR_Lighting, 5)
 {
 	GET(LightConvertClass*, pThis, ESI);
 
-	auto lighting = SWTypeExt::GetLightingColor();
+	auto lighting = SWTypeExtData::GetLightingColor();
 
 	if (lighting.HasValue)
 	{
@@ -2688,9 +2685,9 @@ DEFINE_OVERRIDE_HOOK(0x4555D5, BuildingClass_IsPowerOnline_KeepOnline, 5)
 
 	if (auto pOwner = pThis->GetOwningHouse())
 	{
-		for (auto const& pBatt : HouseExt::ExtMap.Find(pOwner)->Batteries)
+		for (auto const& pBatt : HouseExtContainer::Instance.Find(pOwner)->Batteries)
 		{
-			if (SWTypeExt::ExtMap.Find(pBatt->Type)->Battery_KeepOnline.Contains(pThis->Type))
+			if (SWTypeExtContainer::Instance.Find(pBatt->Type)->Battery_KeepOnline.Contains(pThis->Type))
 			{
 				Contains = true;
 				break;
@@ -2705,7 +2702,7 @@ DEFINE_OVERRIDE_HOOK(0x4555D5, BuildingClass_IsPowerOnline_KeepOnline, 5)
 DEFINE_OVERRIDE_HOOK(0x508E66, HouseClass_UpdateRadar_Battery, 8)
 {
 	GET(HouseClass*, pThis, ECX);
-	return HouseExt::ExtMap.Find(pThis)->Batteries.size() > 0
+	return HouseExtContainer::Instance.Find(pThis)->Batteries.size() > 0
 		? 0x508E87 : 0x508F2F;
 }
 
@@ -2717,9 +2714,9 @@ DEFINE_OVERRIDE_HOOK(0x44019D, BuildingClass_Update_Battery, 6)
 	{
 		if (!pThis->IsOverpowered)
 		{
-			for (auto const& pBatt : HouseExt::ExtMap.Find(pOwner)->Batteries)
+			for (auto const& pBatt : HouseExtContainer::Instance.Find(pOwner)->Batteries)
 			{
-				if (SWTypeExt::ExtMap.Find(pBatt->Type)->Battery_Overpower.Contains(pThis->Type))
+				if (SWTypeExtContainer::Instance.Find(pBatt->Type)->Battery_Overpower.Contains(pThis->Type))
 				{
 					pThis->IsOverpowered = true;
 					break;
@@ -2741,7 +2738,7 @@ DEFINE_OVERRIDE_HOOK(0x6A9948, StripClass_Draw_SuperWeapon, 6)
 {
 	GET(SuperWeaponTypeClass*, pSuper, EAX);
 
-	if (auto pManager = SWTypeExt::ExtMap.Find(pSuper)->SidebarPalette)
+	if (auto pManager = SWTypeExtContainer::Instance.Find(pSuper)->SidebarPalette)
 		SWConvert = pManager->GetConvert<PaletteManager::Mode::Default>();
 
 	return 0x0;
@@ -2753,7 +2750,7 @@ DEFINE_OVERRIDE_HOOK(0x6A9A2A, StripClass_Draw_Main, 6)
 
 	ConvertClass* pResult = nullptr;
 	if (pTechno) {
-		if(auto pPal = TechnoTypeExt::ExtMap.TryFind(pTechno)->CameoPal) {
+		if(auto pPal = TechnoTypeExtContainer::Instance.TryFind(pTechno)->CameoPal) {
 			pResult = pPal->GetConvert<PaletteManager::Mode::Default>();
 		}
 	}
@@ -2768,7 +2765,7 @@ DEFINE_OVERRIDE_HOOK(0x6A9A2A, StripClass_Draw_Main, 6)
 DEFINE_OVERRIDE_HOOK(0x6A9952, StripClass_Draw_SuperWeapon_PCX, 6)
 {
 	GET(SuperWeaponTypeClass*, pSuper, EAX);
-	CameoPCXSurface = SWTypeExt::ExtMap.Find(pSuper)->SidebarPCX.GetSurface();
+	CameoPCXSurface = SWTypeExtContainer::Instance.Find(pSuper)->SidebarPCX.GetSurface();
 	return 0x0;
 }
 
@@ -2792,7 +2789,7 @@ DEFINE_OVERRIDE_HOOK(0x6A99F3, StripClass_Draw_SkipSHPForPCX, 6)
 	{
 		auto pCameoRef = pCameo->AsReference();
 		char pFilename[0x20];
-		strcpy_s(pFilename, RulesExt::Global()->MissingCameo.data());
+		strcpy_s(pFilename, RulesExtData::Instance()->MissingCameo.data());
 		_strlwr_s(pFilename);
 
 		if (!_stricmp(pCameoRef->Filename, GameStrings::XXICON_SHP())

@@ -16,61 +16,64 @@
 
 #include <Misc/DynamicPatcher/Trails/Trails.h>
 
-class VoxelAnimExt
+class VoxelAnimExtData final
 {
 public:
-	class ExtData final : public Extension<VoxelAnimClass>
+	static constexpr size_t Canary = 0xAAACAACC;
+	using base_type = VoxelAnimClass;
+	static constexpr size_t ExtOffset = 0x144;
+
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+public:
+
+	TechnoClass* Invoker { nullptr };
+	std::vector<LaserTrailClass> LaserTrails { };
+	std::vector<UniversalTrail> Trails { };
+
+	VoxelAnimExtData(base_type* OwnerObject) noexcept
 	{
-	public:
-		static constexpr size_t Canary = 0xAAACAACC;
-		using base_type = VoxelAnimClass;
-		static constexpr size_t ExtOffset = 0x144;
+		this->AttachedToObject = OwnerObject;
+	}
 
-	public:
+	~VoxelAnimExtData() noexcept = default;
 
-		TechnoClass* Invoker { nullptr };
-		std::vector<LaserTrailClass> LaserTrails { };
-		std::vector<UniversalTrail> Trails { };
+	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 
-		ExtData(VoxelAnimClass* OwnerObject) : Extension<VoxelAnimClass>(OwnerObject)
-		{ }
+	static bool InvalidateIgnorable(AbstractClass* ptr)
+	{
 
-		virtual ~ExtData() override = default;
-		void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-
-		static bool InvalidateIgnorable(AbstractClass* ptr) {
-
-			switch (ptr->WhatAmI())
-			{
-			case AircraftClass::AbsID:
-			case BuildingClass::AbsID:
-			case InfantryClass::AbsID:
-			case UnitClass::AbsID:
-				return false;
-			}
-
-			return true;
+		switch (ptr->WhatAmI())
+		{
+		case AircraftClass::AbsID:
+		case BuildingClass::AbsID:
+		case InfantryClass::AbsID:
+		case UnitClass::AbsID:
+			return false;
 		}
 
+		return true;
+	}
 
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-		void Uninitialize() {}
-		void InitializeLaserTrails(VoxelAnimTypeExt::ExtData* pTypeExt);
+	void InitializeLaserTrails(VoxelAnimTypeExtData* pTypeExt);
 
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
+private:
+	template <typename T>
+	void Serialize(T& Stm);
 
-	class ExtContainer final : public Container<VoxelAnimExt::ExtData>
-	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(VoxelAnimExt::ExtData, "VoxelAnimClass");
-	};
+public:
 
-	static ExtContainer ExtMap;
 	static TechnoClass* GetTechnoOwner(VoxelAnimClass* pThis);
-
 };
+
+class VoxelAnimExtContainer final : public Container<VoxelAnimExtData>
+{
+public:
+	static VoxelAnimExtContainer Instance;
+
+	CONSTEXPR_NOCOPY_CLASSB(VoxelAnimExtContainer, VoxelAnimExtData, "VoxelAnimClass");
+};
+

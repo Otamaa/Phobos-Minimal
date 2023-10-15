@@ -56,7 +56,7 @@ void ArcingTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 
 	if (pBullet->Type->Inaccurate)
 	{
-		auto const pTypeExt = BulletTypeExt::ExtMap.Find(pBullet->Type);
+		auto const pTypeExt = BulletTypeExtContainer::Instance.Find(pBullet->Type);
 
 		int ballisticScatter = RulesClass::Instance()->BallisticScatter;
 		int scatterMax = pTypeExt->BallisticScatter_Max.isset() ? (int)(pTypeExt->BallisticScatter_Max.Get()) : ballisticScatter;
@@ -81,7 +81,7 @@ void ArcingTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 	double FullDistance = InitialTargetLocation.DistanceFrom(InitialSourceLocation);
 
 	double Z = pBullet->TargetCoords.Z - pBullet->SourceCoords.Z;
-	double g = BulletTypeExt::GetAdjustedGravity(pBullet->Type);
+	double g = BulletTypeExtData::GetAdjustedGravity(pBullet->Type);
 
 	double Elevation = this->GetTrajectoryType()->Elevation;
 	if (Elevation > DBL_EPSILON)

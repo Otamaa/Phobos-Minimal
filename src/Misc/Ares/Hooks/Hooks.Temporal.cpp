@@ -42,11 +42,11 @@ DEFINE_OVERRIDE_HOOK(0x46920B, BulletClass_Detonate, 6)
 	GET_BASE(const CoordStruct* const, pCoordsDetonation, 0x8);
 
 	auto const pWarhead = pThis->WH;
-	auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
-	auto const pWeaponExt = WeaponTypeExt::ExtMap.TryFind(pThis->WeaponType);
+	auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
+	auto const pWeaponExt = WeaponTypeExtContainer::Instance.TryFind(pThis->WeaponType);
 
 	auto const pTechno = pThis->Owner ? pThis->Owner : nullptr;
-	auto const pOwnerHouse = pTechno ? pTechno->Owner : BulletExt::ExtMap.Find(pThis)->Owner;
+	auto const pOwnerHouse = pTechno ? pTechno->Owner : BulletExtContainer::Instance.Find(pThis)->Owner;
 
 	pWHExt->Detonate(pTechno, pOwnerHouse, pThis, *pCoordsDetonation , pThis->WeaponType ? pThis->WeaponType->Damage : 0);
 	PhobosGlobal::Instance()->DetonateDamageArea = false;
@@ -63,7 +63,7 @@ DEFINE_OVERRIDE_HOOK(0x46920B, BulletClass_Detonate, 6)
 
 	// these effects should be applied no matter what happens to the target
 	//AresData::applyIonCannon(pWarhead , &coords);
-	 WarheadTypeExt::CreateIonBlast(pWarhead, coords);
+	 WarheadTypeExtData::CreateIonBlast(pWarhead, coords);
 
 	bool targetStillOnMap = true;
 	if (snapped && pWeaponExt && AresWPWHExt::conductAbduction(pThis->WeaponType, pThis->Owner, pThis->Target, coords)) {
@@ -81,7 +81,7 @@ DEFINE_OVERRIDE_HOOK(0x46920B, BulletClass_Detonate, 6)
 
 		auto const damage = pThis->WeaponType ? pThis->WeaponType->Damage : 0;
 		pWHExt->applyIronCurtain(coords, pOwnerHouse, damage);
-		WarheadTypeExt::applyEMP(pWarhead, coords, pThis->Owner);
+		WarheadTypeExtData::applyEMP(pWarhead, coords, pThis->Owner);
 		AresAE::applyAttachedEffect(pWarhead, coords, pOwnerHouse);
 
 		if (snapped && AresWPWHExt::applyOccupantDamage(pThis)) {
@@ -98,7 +98,7 @@ DEFINE_OVERRIDE_HOOK(0x46920B, BulletClass_Detonate, 6)
 	if (!pWHExt->MindControl_UseTreshold)
 		return 0u;
 
-	return BulletExt::ApplyMCAlternative(pThis) ? 0x469AA4u  : 0u;
+	return BulletExtData::ApplyMCAlternative(pThis) ? 0x469AA4u  : 0u;
 }
 
 DEFINE_OVERRIDE_HOOK(0x71AAAC, TemporalClass_Update_Abductor, 6)
@@ -106,9 +106,9 @@ DEFINE_OVERRIDE_HOOK(0x71AAAC, TemporalClass_Update_Abductor, 6)
 	GET(TemporalClass*, pThis, ESI);
 
 	const auto pOwner = pThis->Owner;
-	const auto nWeaponIDx = TechnoExt::ExtMap.Find(pThis->Owner)->idxSlot_Warp;
+	const auto nWeaponIDx = TechnoExtContainer::Instance.Find(pThis->Owner)->idxSlot_Warp;
 	auto const pWeapon = pThis->Owner->GetWeapon(nWeaponIDx)->WeaponType;
-	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
 	return pWeaponExt->Abductor_Temporal && AresWPWHExt::conductAbduction(pWeapon, pOwner, pThis->Target , CoordStruct::Empty)
 		? 0x71AAD5 : 0x0;
@@ -128,13 +128,13 @@ DEFINE_HOOK(0x71A8BD, TemporalClass_Update_WarpAway, 5)
 	GET(TemporalClass*, pThis, ESI);
 
 	//inside `pTarget` check
-	const auto nWeaponIDx = TechnoExt::ExtMap.Find(pThis->Owner)->idxSlot_Warp;
+	const auto nWeaponIDx = TechnoExtContainer::Instance.Find(pThis->Owner)->idxSlot_Warp;
 	auto const pWeapon = pThis->Owner->GetWeapon(nWeaponIDx)->WeaponType;
 
 	const auto pTarget = pThis->Target;
 
-	if(auto pAnimType = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->Temporal_WarpAway.Get(RulesClass::Instance()->WarpAway)) {
-		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pTarget->Location ,0,1, AnimFlag(0x600),0,0),
+	if(auto pAnimType = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead)->Temporal_WarpAway.Get(RulesClass::Instance()->WarpAway)) {
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pTarget->Location ,0,1, AnimFlag(0x600),0,0),
 			pThis->Owner ? pThis->Owner->Owner : nullptr,
 			pTarget->Owner,
 			pThis->Owner,
@@ -153,9 +153,9 @@ DEFINE_OVERRIDE_HOOK(0x71A917, TemporalClass_Update_Erase, 5)
 	GET(TemporalClass*, pThis, ESI);
 
 	auto pOwner = pThis->Owner;
-	auto const pWeapon = pThis->Owner->GetWeapon(TechnoExt::ExtMap.Find(pThis->Owner)->idxSlot_Warp)->WeaponType;
-	auto pOwnerExt = TechnoExt::ExtMap.Find(pOwner);
-	auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
+	auto const pWeapon = pThis->Owner->GetWeapon(TechnoExtContainer::Instance.Find(pThis->Owner)->idxSlot_Warp)->WeaponType;
+	auto pOwnerExt = TechnoExtContainer::Instance.Find(pOwner);
+	auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
 
 	if (pWarheadExt->Supress_LostEva)
 		pOwnerExt->SupressEVALost = true;
@@ -191,12 +191,12 @@ DEFINE_HOOK(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)
 		auto nTotal = pThis->GetWarpPerStep();
 		if (nTotal)
 		{
-			auto const pWeapon = pThis->Owner->GetWeapon(TechnoExt::ExtMap.Find(pThis->Owner)->idxSlot_Warp)->WeaponType;
+			auto const pWeapon = pThis->Owner->GetWeapon(TechnoExtContainer::Instance.Find(pThis->Owner)->idxSlot_Warp)->WeaponType;
 
 			if (auto const Warhead = pWeapon->Warhead)
 			{
 				auto const pTempOwner = pThis->Owner;
-				auto const peWHext = WarheadTypeExt::ExtMap.Find(Warhead);
+				auto const peWHext = WarheadTypeExtContainer::Instance.Find(Warhead);
 
 				if (auto pExpireAnim = peWHext->TemporalExpiredAnim.Get())
 				{
@@ -205,7 +205,7 @@ DEFINE_HOOK(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)
 					if (auto const pAnim = GameCreate<AnimClass>(pExpireAnim, nCoord))
 					{
 						pAnim->ZAdjust = pTarget->GetZAdjustment() - 3;
-						AnimExt::SetAnimOwnerHouseKind(pAnim, pTempOwner->GetOwningHouse()
+						AnimExtData::SetAnimOwnerHouseKind(pAnim, pTempOwner->GetOwningHouse()
 							, pTarget->GetOwningHouse(), pThis->Owner, false);
 					}
 				}
@@ -236,9 +236,9 @@ DEFINE_OVERRIDE_HOOK(0x71AFB2, TemporalClass_Fire_HealthFactor, 5)
 	GET(TemporalClass*, pThis, ESI);
 	GET(int, nStreght, EAX);
 
-	auto const pWeapon = pThis->Owner->GetWeapon(TechnoExt::ExtMap.Find(pThis->Owner)->idxSlot_Warp)->WeaponType;;
+	auto const pWeapon = pThis->Owner->GetWeapon(TechnoExtContainer::Instance.Find(pThis->Owner)->idxSlot_Warp)->WeaponType;;
 	const auto pWarhead = pWeapon->Warhead;
-	const auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+	const auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
 	const auto nCalc = (int)(((1.0 - pTarget->Health) / pTarget->GetTechnoType()->Strength) * pWarheadExt->Temporal_HealthFactor.Get());
 	const double nCalc_b = (1.0 - nCalc) * (10 * nStreght) + nCalc * 0.0;
 
@@ -285,9 +285,9 @@ DEFINE_HOOK(0x71AFD0 , TemporalClass_Logic_Unit_OreMinerUnderAttack, 0x5)
 
 	if(auto pTarget = (UnitClass*)pThis->Target) {
 		if(pTarget->Type->Harvester) {
-			const auto nWeaponIDx = TechnoExt::ExtMap.Find(pThis->Owner)->idxSlot_Warp;
+			const auto nWeaponIDx = TechnoExtContainer::Instance.Find(pThis->Owner)->idxSlot_Warp;
 			auto const pWeapon = pThis->Owner->GetWeapon(nWeaponIDx)->WeaponType;
-			const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
+			const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
 
 			if(!pWHExt->Malicious && pTarget->Owner == HouseClass::CurrentPlayer) {
 				auto nDest = pTarget->GetDestination();
@@ -306,8 +306,8 @@ DEFINE_HOOK(0x71B0AE, TemporalClass_Logic_Building_UnderAttack, 0x7)
 	GET(TemporalClass*, pThis, ESI);
 	GET(BuildingClass*, pBld, EDI);
 
-	BuildingExt::ExtMap.Find(pBld)->ReceiveDamageWarhead =
-		pThis->Owner->GetWeapon(TechnoExt::ExtMap.Find(pThis->Owner)->idxSlot_Warp)
+	BuildingExtContainer::Instance.Find(pBld)->ReceiveDamageWarhead =
+		pThis->Owner->GetWeapon(TechnoExtContainer::Instance.Find(pThis->Owner)->idxSlot_Warp)
 			 ->WeaponType->Warhead;
 
 	return 0x0;

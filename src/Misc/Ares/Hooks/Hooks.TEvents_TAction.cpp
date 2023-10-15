@@ -55,7 +55,7 @@ DEFINE_OVERRIDE_HOOK(0x6DE0D3, TActionClass_Execute_MessageColor, 6)
 {
 	int idxColor = 0;
 	if (SideClass* pSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex)) {
-		if (SideExt::ExtData* pExt = SideExt::ExtMap.Find(pSide)) {
+		if (SideExtData* pExt = SideExtContainer::Instance.Find(pSide)) {
 			idxColor = pExt->MessageTextColorIndex;
 		}
 	}

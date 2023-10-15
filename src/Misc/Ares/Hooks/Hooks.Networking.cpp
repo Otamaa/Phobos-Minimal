@@ -20,7 +20,7 @@ DEFINE_OVERRIDE_HOOK(0x6ab773, SelectClass_ProcessInput_ProduceUnsuspended, 10)
 	GET(EventClass*, pEvent, EAX);
 	GET_STACK(DWORD, flag, 0xB8);
 
-	for (int i = (4 * (flag & 1)) | 1); i > 0; --i)
+	for (int i = ((4 * (flag & 1)) | 1); i > 0; --i)
 	{
 		if (EventClass::OutList->Count < 128)
 		{

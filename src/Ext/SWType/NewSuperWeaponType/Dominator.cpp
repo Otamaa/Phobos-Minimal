@@ -12,7 +12,7 @@ bool SW_PsychicDominator::HandleThisType(SuperWeaponType type) const
 	return (type == SuperWeaponType::PsychicDominator);
 }
 
-SuperWeaponFlags SW_PsychicDominator::Flags(const SWTypeExt::ExtData* pData) const
+SuperWeaponFlags SW_PsychicDominator::Flags(const SWTypeExtData* pData) const
 {
 	return SuperWeaponFlags::NoEvent;
 }
@@ -37,7 +37,7 @@ bool SW_PsychicDominator::AbortFire(SuperClass* pSW, bool IsPlayer)
 	{
 		if (IsPlayer)
 		{
-			SWTypeExt::ExtData* pData = SWTypeExt::ExtMap.Find(pSW->Type);
+			SWTypeExtData* pData = SWTypeExtContainer::Instance.Find(pSW->Type);
 			pData->PrintMessage(pData->Message_Abort, pSW->Owner);
 		}
 		return true;
@@ -45,9 +45,9 @@ bool SW_PsychicDominator::AbortFire(SuperClass* pSW, bool IsPlayer)
 	return false;
 }
 
-void SW_PsychicDominator::Initialize(SWTypeExt::ExtData* pData)
+void SW_PsychicDominator::Initialize(SWTypeExtData* pData)
 {
-	pData->OwnerObject()->Action = Action::PsychicDominator;
+	pData->AttachedToObject->Action = Action::PsychicDominator;
 	// Defaults to PsychicDominator values
 	pData->Dominator_FirstAnimHeight = 750;
 	pData->Dominator_SecondAnimHeight = 0;
@@ -70,9 +70,9 @@ void SW_PsychicDominator::Initialize(SWTypeExt::ExtData* pData)
 
 }
 
-void SW_PsychicDominator::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
+void SW_PsychicDominator::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
-	const char* section = pData->Get()->ID;
+	const char* section = pData->AttachedToObject->ID;
 
 	INI_EX exINI(pINI);
 	pData->Dominator_FirstAnimHeight.Read(exINI, section, "Dominator.FirstAnimHeight");
@@ -89,7 +89,7 @@ void SW_PsychicDominator::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pIN
 	pData->Dominator_PermanentCapture.Read(exINI, section, "Dominator.PermanentCapture");
 }
 
-bool SW_PsychicDominator::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+bool SW_PsychicDominator::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
 	if (!this->IsLaunchsiteAlive(pBuilding))
 		return false;
@@ -100,17 +100,17 @@ bool SW_PsychicDominator::IsLaunchSite(const SWTypeExt::ExtData* pData, Building
 	return this->IsSWTypeAttachedToThis(pData, pBuilding);
 }
 
-WarheadTypeClass* SW_PsychicDominator::GetWarhead(const SWTypeExt::ExtData* pData) const
+WarheadTypeClass* SW_PsychicDominator::GetWarhead(const SWTypeExtData* pData) const
 {
 	return pData->SW_Warhead.Get(RulesClass::Instance->DominatorWarhead);
 }
 
-int SW_PsychicDominator::GetDamage(const SWTypeExt::ExtData* pData) const
+int SW_PsychicDominator::GetDamage(const SWTypeExtData* pData) const
 {
 	return pData->SW_Damage.Get(RulesClass::Instance->DominatorDamage);
 }
 
-SWRange SW_PsychicDominator::GetRange(const SWTypeExt::ExtData* pData) const
+SWRange SW_PsychicDominator::GetRange(const SWTypeExtData* pData) const
 {
 	return pData->SW_Range->empty() ? SWRange(RulesClass::Instance->DominatorCaptureRange) : pData->SW_Range;
 }
@@ -126,7 +126,7 @@ void PsychicDominatorStateMachine::Update()
 		}
 	}
 
-	SWTypeExt::ExtData* pData = SWTypeExt::ExtMap.Find(this->Super->Type);
+	SWTypeExtData* pData = SWTypeExtContainer::Instance.Find(this->Super->Type);
 
 	switch (PsyDom::Status)
 	{

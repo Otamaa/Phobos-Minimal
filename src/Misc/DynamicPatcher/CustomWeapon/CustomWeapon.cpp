@@ -18,7 +18,7 @@ void CustomWeaponManager::Update(TechnoClass* pAttacker)
 		return;
 
 	if (!pAttacker->Target
-		|| !TechnoExt::IsActive(pAttacker)) {
+		|| !TechnoExtData::IsActive(pAttacker)) {
 		Clear();
 	}
 	else {
@@ -66,7 +66,7 @@ bool CustomWeaponManager::FireCustomWeapon(TechnoClass* pShooter,
 
 	if (pShooter && pWeapon && (!pAttacker->Transporter || pWeapon->FireInTransport))
 	{
-		if (const auto typeExt = WeaponTypeExt::ExtMap.Find(pWeapon))
+		if (const auto typeExt = WeaponTypeExtContainer::Instance.Find(pWeapon))
 		{
 			const AttachFireData& fireData = typeExt->MyAttachFireDatas;
 			CoordStruct fireFLH = flh;
@@ -100,7 +100,7 @@ bool CustomWeaponManager::FireCustomWeapon(TechnoClass* pShooter,
 
 				//if (BulletTypeClass* pBulletType = pWeapon->Projectile)
 				//{
-					//auto bulletTypeExt = BulletTypeExt::ExtMap.Find(pBulletType);
+					//auto bulletTypeExt = BulletTypeExtContainer::Instance.Find(pBulletType);
 					//if (bulletTypeExt && bulletTypeExt->MissileData.ReverseVelocity)
 					//	flipY = -1;
 

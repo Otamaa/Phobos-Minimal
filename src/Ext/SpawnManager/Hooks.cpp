@@ -11,7 +11,7 @@
 //
 // 	if (pThis->Owner)
 // 	{
-// 		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType());
+// 		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Owner->GetTechnoType());
 //
 // 		if (pTypeExt->Spawner_DelayFrames.isset())
 // 			R->ECX(pTypeExt->Spawner_DelayFrames.Get());
@@ -28,7 +28,7 @@
 // 	if (pThis->Owner && pThis->Status == SpawnManagerStatus::Launching
 // 		&& pThis->CountDockedSpawns() != 0)
 // 	{
-// 		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType());
+// 		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Owner->GetTechnoType());
 // 		R->EAX(pTypeExt->Spawner_DelayFrames.Get(10));
 // 	}
 //
@@ -42,7 +42,7 @@ DEFINE_HOOK(0x6B743E, SpawnManagerClass_AI_SpawnOffsets, 0x6)
 	LEA_STACK(CoordStruct*, pBuffer, STACK_OFFS(0x68, 0x18));
 	LEA_STACK(CoordStruct*, pBuffer2, STACK_OFFS(0x68, 0xC));
 
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
+	auto const pExt = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType());
 
 	if (pExt->Spawner_SpawnOffsets.isset())
 	{

@@ -14,17 +14,17 @@ bool SW_Protect::HandleThisType(SuperWeaponType type) const
 			(type == SuperWeaponType::ForceShield);
 }
 
-bool SW_Protect::CanFireAt(TargetingData const& data, const CellStruct& cell, bool manual) const
+bool SW_Protect::CanFireAt(const TargetingData* pTargeting, const CellStruct& cell, bool manual) const
 {
-	auto ret = NewSWType::CanFireAt(data, cell, manual);
+	auto ret = NewSWType::CanFireAt(pTargeting, cell, manual);
 
 	// if this is a force shield requiring buildings and a building is selected, check the modifier
-	if (ret && manual && data.TypeExt->Protect_IsForceShield && data.TypeExt->SW_RequiresTarget & SuperWeaponTarget::Building)
+	if (ret && manual && pTargeting->TypeExt->Protect_IsForceShield && pTargeting->TypeExt->SW_RequiresTarget & SuperWeaponTarget::Building)
 	{
 		auto pCell = MapClass::Instance->GetCellAt(cell);
 		if (auto pBld = pCell->GetBuilding())
 		{
-			auto pExt = TechnoTypeExt::ExtMap.Find(pBld->GetTechnoType());
+			auto pExt = TechnoTypeExtContainer::Instance.Find(pBld->GetTechnoType());
 			if (pExt->ForceShield_Modifier <= 0.0)
 			{
 				ret = false;
@@ -38,7 +38,7 @@ bool SW_Protect::CanFireAt(TargetingData const& data, const CellStruct& cell, bo
 bool SW_Protect::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	SuperWeaponTypeClass* pSW = pThis->Type;
-	SWTypeExt::ExtData* pData = SWTypeExt::ExtMap.Find(pSW);
+	SWTypeExtData* pData = SWTypeExtContainer::Instance.Find(pSW);
 
 	if (pThis->IsCharged)
 	{
@@ -112,16 +112,16 @@ bool SW_Protect::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 	return true;
 }
 
-void SW_Protect::Initialize(SWTypeExt::ExtData* pData)
+void SW_Protect::Initialize(SWTypeExtData* pData)
 {
-	auto type = pData->Get()->Type;
+	auto type = pData->AttachedToObject->Type;
 
 	// iron curtain and force shield, as well as protect
 	pData->SW_AnimHeight = 5;
 
 	if (type == SuperWeaponType::ForceShield)
 	{
-		pData->OwnerObject()->Action = Action::ForceShield;
+		pData->AttachedToObject->Action = Action::ForceShield;
 		// force shield
 		pData->Protect_IsForceShield = true;
 		pData->SW_RadarEvent = false;
@@ -140,7 +140,7 @@ void SW_Protect::Initialize(SWTypeExt::ExtData* pData)
 	}
 	else
 	{
-		pData->OwnerObject()->Action = Action::IronCurtain;
+		pData->AttachedToObject->Action = Action::IronCurtain;
 		// iron curtain and protect
 		pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_IronCurtainReady);
 		pData->EVA_Detected = VoxClass::FindIndexById(GameStrings::EVA_IronCurtainDetected);
@@ -150,7 +150,7 @@ void SW_Protect::Initialize(SWTypeExt::ExtData* pData)
 	}
 }
 
-void SW_Protect::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
+void SW_Protect::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
 	const char* section = pData->get_ID();
 
@@ -160,7 +160,7 @@ void SW_Protect::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->Protect_PlayFadeSoundTime.Read(exINI, section, "Protect.PlayFadeSoundTime");
 }
 
-bool SW_Protect::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+bool SW_Protect::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
 	if (!this->IsLaunchsiteAlive(pBuilding))
 		return false;
@@ -171,18 +171,18 @@ bool SW_Protect::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pB
 	return this->IsSWTypeAttachedToThis(pData, pBuilding);
 }
 
-AnimTypeClass* SW_Protect::GetAnim(const SWTypeExt::ExtData* pData) const
+AnimTypeClass* SW_Protect::GetAnim(const SWTypeExtData* pData) const
 {
-	return pData->SW_Anim.Get(pData->OwnerObject()->Type == SuperWeaponType::ForceShield ?
+	return pData->SW_Anim.Get(pData->AttachedToObject->Type == SuperWeaponType::ForceShield ?
 		RulesClass::Instance->ForceShieldInvokeAnim : RulesClass::Instance->IronCurtainInvokeAnim);
 }
 
-SWRange SW_Protect::GetRange(const SWTypeExt::ExtData* pData) const
+SWRange SW_Protect::GetRange(const SWTypeExtData* pData) const
 {
 	if (!pData->SW_Range->empty()) {
 		return pData->SW_Range;
 	}
-	else if (pData->OwnerObject()->Type == SuperWeaponType::ForceShield) {
+	else if (pData->AttachedToObject->Type == SuperWeaponType::ForceShield) {
 		return { RulesClass::Instance->ForceShieldRadius };
 	}
 

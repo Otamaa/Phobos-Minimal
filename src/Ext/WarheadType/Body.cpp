@@ -18,9 +18,9 @@
 
 #include <New/Entity/FlyingStrings.h>
 
-PhobosMap<IonBlastClass*, WarheadTypeExt::ExtData*> WarheadTypeExt::IonBlastExt;
+PhobosMap<IonBlastClass*, WarheadTypeExtData*> WarheadTypeExtData::IonBlastExt;
 
-void WarheadTypeExt::ExtData::Initialize()
+void WarheadTypeExtData::Initialize()
 {
 	Launchs.reserve(2);
 	SuppressDeathWeapon.reserve(8);
@@ -38,16 +38,16 @@ void WarheadTypeExt::ExtData::Initialize()
 	Shield_AttachTypes.reserve(8);
 	Shield_RemoveTypes.reserve(8);
 	InfDeathAnims.reserve(200);
-	if(IS_SAME_STR_(RulesExt::Global()->NukeWarheadName.data(), this->Get()->ID)){
+	if(IS_SAME_STR_(RulesExtData::Instance()->NukeWarheadName.data(), this->AttachedToObject->ID)){
 		IsNukeWarhead = true;
 		PreImpactAnim = AnimTypeClass::Find(GameStrings::NUKEBALL());
 		NukeFlashDuration = 30;
 	}
 }
 
-void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->Get();
+	auto pThis = this->AttachedToObject;
 	const char* pSection = pThis->ID;
 	INI_EX exINI(pINI);
 
@@ -91,10 +91,8 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	// Miscs
 	this->Reveal.Read(exINI, pSection, "Reveal");
 
-	Nullable<bool> spySat;
-	spySat.Read(exINI, pSection, GameStrings::SpySat());
-
-	if (spySat.isset() && spySat.Get())
+	bool spySat;
+	if(detail::read(spySat,exINI , pSection, GameStrings::SpySat()) && spySat)
 		this->Reveal = -1;
 
 	this->BigGap.Read(exINI, pSection, "BigGap");
@@ -248,11 +246,10 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 
 	for (auto const& ArmorType : ArmorTypeClass::Array)
 	{
-		Nullable<AnimTypeClass*> pAnimReaded {};
-		pAnimReaded.Read(exINI, pSection, ArmorType->HitAnim_Tag.data(), true);
+		AnimTypeClass* pAnimReaded;
+		if(detail::read(pAnimReaded , exINI , pSection , ArmorType->HitAnim_Tag.data(), true) && pAnimReaded)
+			ArmorHitAnim[ArmorType.get()] = pAnimReaded;
 
-		if(pAnimReaded.isset() && pAnimReaded != nullptr)
-			ArmorHitAnim[ArmorType.get()] = pAnimReaded.Get();
 	}
 
 	this->IsNukeWarhead.Read(exINI, pSection, "IsNukeWarhead");
@@ -313,22 +310,6 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	this->Supress_LostEva.Read(exINI, pSection, "UnitLost.Suppress");
 	this->Temporal_HealthFactor.Read(exINI, pSection, "Temporal.HealthFactor");
 
-#ifdef COMPILE_PORTED_DP_FEATURES_
-	auto ReadHitTextData = [this, &exINI, pSection](const char* pBaseKey, bool bAllocate = true)
-	{
-		char tempBuffer[0x80];
-		for (size_t i = 0; i < ArmorTypeClass::Array.size(); ++i)
-		{
-			const auto pArmor = ArmorTypeClass::Array[i].get();
-			IMPL_SNPRNINTF(tempBuffer, sizeof(flag), "%s.%s.", pBaseKey, pArmor->Name.data());
-			DamageTextPerArmor[i].Read(exINI, pSection, tempBuffer);
-		}
-	};
-
-	ReadHitTextData("DamageText");
-
-#endif
-
 	this->PaintBallDuration.Read(exINI, pSection, "PaintBall.Duration");
 	this->PaintBallData.Read(exINI, pSection);
 #pragma endregion
@@ -359,14 +340,14 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	char nBuff[0x80];
 	for (size_t i = 0; ; ++i)
 	{
-		Nullable<SuperWeaponTypeClass*> LaunchWhat_Dummy {};
+		SuperWeaponTypeClass* LaunchWhat_Dummy;
 		IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.Type", i);
-		LaunchWhat_Dummy.Read(exINI, pSection, nBuff, true);
 
-		if (!LaunchWhat_Dummy.isset() || !LaunchWhat_Dummy.Get())
+		if (!detail::read(LaunchWhat_Dummy, exINI, pSection, nBuff, true) || !LaunchWhat_Dummy)
 			break;
 
-		this->Launchs.emplace_back().Read(exINI, pSection, i, LaunchWhat_Dummy);
+		this->Launchs.emplace_back();
+		this->Launchs.back().Read(exINI, pSection, i, LaunchWhat_Dummy);
 	}
 
 	this->Conventional_IgnoreUnits.Read(exINI, pSection, "Conventional.IgnoreUnits");
@@ -381,11 +362,9 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 #pragma region Ion
 	this->Ion.Read(exINI, pSection, "IonCannon");
 
-	Nullable<int> Ion_ripple{};
-
-	Ion_ripple.Read(exINI, pSection, "Ripple.Radius");
-	if (Ion_ripple.isset())
-		this->Ripple_Radius = this->Ripple_Radius.Get();
+	int Ion_ripple;
+	if (detail::read(Ion_ripple , exINI , pSection , "Ripple.Radius"))
+		this->Ripple_Radius = Ion_ripple;
 	else
 		this->Ripple_Radius.Read(exINI, pSection, "IonCannon.Ripple");
 
@@ -442,12 +421,12 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
-void WarheadTypeExt::ExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs)
+void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs)
 {
 	if (!pVictim)
 		return;
 
-	auto const pExt = TechnoExt::ExtMap.Find(pVictim);
+	auto const pExt = TechnoExtContainer::Instance.Find(pVictim);
 
 	if (pExt->ReceiveDamageMultiplier.isset())
 	{
@@ -462,12 +441,12 @@ void WarheadTypeExt::ExtData::ApplyDamageMult(TechnoClass* pVictim, args_Receive
 	if ((!nAllyMod.isset() && !nOwnerMod.isset() && !nEnemyMod.isset()))
 		return;
 
-	auto const pHouse = pArgs->SourceHouse ? pArgs->SourceHouse : pArgs->Attacker ? pArgs->Attacker->GetOwningHouse() : HouseExt::FindCivilianSide();
+	auto const pHouse = pArgs->SourceHouse ? pArgs->SourceHouse : pArgs->Attacker ? pArgs->Attacker->GetOwningHouse() : HouseExtData::FindCivilianSide();
 	auto const pVictimHouse = pVictim->GetOwningHouse();
 
 	if (pHouse && pVictimHouse)
 	{
-		auto const pWH = Get();
+		auto const pWH = this->AttachedToObject;
 		const int nDamage = *pArgs->Damage;
 
 		if (pVictimHouse != pHouse)
@@ -488,7 +467,7 @@ void WarheadTypeExt::ExtData::ApplyDamageMult(TechnoClass* pVictim, args_Receive
 	}
 }
 
-void WarheadTypeExt::ExtData::EvaluateArmor(WarheadTypeClass* OwnerObject)
+void WarheadTypeExtData::EvaluateArmor(WarheadTypeClass* OwnerObject)
 {
 	//const auto nArmorArrSize = ArmorTypeClass::Array.size();
 	Verses.resize(Unsorted::ArmorNameArray.size());
@@ -510,7 +489,7 @@ void WarheadTypeExt::ExtData::EvaluateArmor(WarheadTypeClass* OwnerObject)
 	//}
 }
 
-void WarheadTypeExt::ExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVictim, args_ReceiveDamage* pArgs)
+void WarheadTypeExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVictim, args_ReceiveDamage* pArgs)
 {
 	if ((pVictim->AbstractFlags & AbstractFlags::Techno) == AbstractFlags::None)
 		return;
@@ -551,14 +530,14 @@ void WarheadTypeExt::ExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVicti
 	}
 }
 
-bool WarheadTypeExt::ExtData::CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTargetHouse)
+bool WarheadTypeExtData::CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTargetHouse)
 {
 	if (pOwnerHouse && pTargetHouse)
 	{
 		if (pTargetHouse == pOwnerHouse){
-			return this->AffectsOwner.Get(this->Get()->AffectsAllies);
+			return this->AffectsOwner.Get(this->AttachedToObject->AffectsAllies);
 		} else if (pTargetHouse != pOwnerHouse && pOwnerHouse->IsAlliedWith_(pTargetHouse)) {
-				return this->Get()->AffectsAllies;
+				return this->AttachedToObject->AffectsAllies;
 		}
 
 		return AffectsEnemies.Get();
@@ -567,7 +546,7 @@ bool WarheadTypeExt::ExtData::CanAffectHouse(HouseClass* pOwnerHouse, HouseClass
 	return true;
 }
 
-bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool SkipVerses)
+bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool SkipVerses)
 {
 	if (pTechno)
 	{
@@ -586,7 +565,7 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, b
 
 		if (auto const pBld = specific_cast<BuildingClass*>(pTechno))
 		{
-			auto const pBldExt = BuildingExt::ExtMap.Find(pBld);
+			auto const pBldExt = BuildingExtContainer::Instance.Find(pBld);
 
 			if (this->LimboKill_IDs.empty() && pBldExt->LimboID != -1)
 			{
@@ -599,7 +578,7 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, b
 
 		if (const auto pFoot = abstract_cast<FootClass*>(pTechno))
 		{
-			if (TechnoExt::IsChronoDelayDamageImmune(pFoot))
+			if (TechnoExtData::IsChronoDelayDamageImmune(pFoot))
 				return false;
 
 			if (pFoot->WhatAmI() == UnitClass::AbsID) {
@@ -613,7 +592,7 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, b
 			return false;
 
 		if (!SkipVerses && EffectsRequireVerses.Get()) {
-			return (std::abs(this->GetVerses(TechnoExt::GetTechnoArmor(pTechno , this->Get())).Verses) >= 0.001);
+			return (std::abs(this->GetVerses(TechnoExtData::GetTechnoArmor(pTechno , this->AttachedToObject)).Verses) >= 0.001);
 		}
 
 		return true;
@@ -622,18 +601,18 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, b
 	return Bypass;
 }
 
-bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage)
+bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage)
 {
 	auto nArmor = pTechno->GetTechnoType()->Armor;
 
-	if (auto pShield = TechnoExt::ExtMap.Find(pTechno)->GetShield())
+	if (auto pShield = TechnoExtContainer::Instance.Find(pTechno)->GetShield())
 		if (pShield->IsActive())
 			nArmor = pShield->GetType()->Armor;
 
 	if (damageIn > 0)
-		DamageResult = MapClass::GetTotalDamage(damageIn, Get(), nArmor, distanceFromEpicenter);
+		DamageResult = MapClass::GetTotalDamage(damageIn, this->AttachedToObject, nArmor, distanceFromEpicenter);
 	else
-		DamageResult = -MapClass::GetTotalDamage(-damageIn, Get(), nArmor, distanceFromEpicenter);
+		DamageResult = -MapClass::GetTotalDamage(-damageIn, this->AttachedToObject, nArmor, distanceFromEpicenter);
 
 	if (damageIn == 0)
 	{
@@ -643,7 +622,7 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, 
 	{
 		if (EffectsRequireVerses)
 		{
-			if (MapClass::GetTotalDamage(RulesClass::Instance->MaxDamage, Get(), nArmor, 0) == 0.0)
+			if (MapClass::GetTotalDamage(RulesClass::Instance->MaxDamage, this->AttachedToObject, nArmor, 0) == 0.0)
 			{
 				return false;
 			}
@@ -659,7 +638,7 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, 
 
 }
 
-FullMapDetonateResult WarheadTypeExt::ExtData::EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner)
+FullMapDetonateResult WarheadTypeExtData::EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner)
 {
 	if (!EnumFunctions::IsTechnoEligibleB(pTechno, this->DetonateOnAllMapObjects_AffectTargets))
 		return FullMapDetonateResult::TargetNotEligible;
@@ -683,7 +662,7 @@ FullMapDetonateResult WarheadTypeExt::ExtData::EligibleForFullMapDetonation(Tech
 	return FullMapDetonateResult::TargetValid;
 }
 
-bool WarheadTypeExt::ExtData::CanTargetHouse(HouseClass* pHouse, TechnoClass* pTarget)
+bool WarheadTypeExtData::CanTargetHouse(HouseClass* pHouse, TechnoClass* pTarget)
 {
 	if (pHouse && pTarget)
 	{
@@ -693,17 +672,17 @@ bool WarheadTypeExt::ExtData::CanTargetHouse(HouseClass* pHouse, TechnoClass* pT
 	return true;
 }
 
-void WarheadTypeExt::ExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKillerHouse, TechnoClass* pKillerTech)
+void WarheadTypeExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKillerHouse, TechnoClass* pKillerTech)
 {
 	if (!this->Webby || this->Webby_Duration == 0)
 		return;
 
 	if (auto pInf = specific_cast<InfantryClass*>(pTarget))
 	{
-		if (TechnoExt::IsWebImmune(pInf))
+		if (TechnoExtData::IsWebImmune(pInf))
 			return;
 
-		const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pInf->Type);
+		const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pInf->Type);
 		const auto pAnim = pTechnoTypeExt->Webby_Anims.GetElements(this->Webby_Anims);
 
 		if (pAnim.empty())
@@ -721,7 +700,7 @@ void WarheadTypeExt::ExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKill
 			getDur = int(getDur * pTechnoTypeExt->Webby_Modifier);
 
 		// get the values
-		auto pExt = TechnoExt::ExtMap.Find(pInf);
+		auto pExt = TechnoExtContainer::Instance.Find(pInf);
 		int oldValue = (!pExt->IsWebbed || pInf->ParalysisTimer.Expired() ? 0 : pInf->ParalysisTimer.GetTimeLeft());
 		int newValue = Helpers::Alex::getCappedDuration(oldValue, duration, this->Webby_Cap);
 
@@ -739,8 +718,8 @@ void WarheadTypeExt::ExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKill
 				AnimTypeClass* pAnimType = pAnim[ScenarioClass::Instance->Random.RandomFromMax(pAnim.size() - 1)];
 				pExt->WebbedAnim.reset(GameCreate<AnimClass>(pAnimType, pInf->Location, 0, 1, 0x600, 0, false));
 				pExt->WebbedAnim->SetOwnerObject(pInf);
-				AnimExt::SetAnimOwnerHouseKind(pExt->WebbedAnim, pKillerHouse, pInf->Owner, pKillerTech, false);
-				TechnoExt::StoreLastTargetAndMissionAfterWebbed(pInf);
+				AnimExtData::SetAnimOwnerHouseKind(pExt->WebbedAnim, pKillerHouse, pInf->Owner, pKillerTech, false);
+				TechnoExtData::StoreLastTargetAndMissionAfterWebbed(pInf);
 			}
 		}
 		else
@@ -755,9 +734,9 @@ void WarheadTypeExt::ExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKill
 					AnimTypeClass* pAnimType = pAnim[ScenarioClass::Instance->Random.RandomFromMax(pAnim.size() - 1)];
 					pExt->WebbedAnim.reset(GameCreate<AnimClass>(pAnimType, pInf->Location, 0, 1, 0x600, 0, false));
 					pExt->WebbedAnim->SetOwnerObject(pInf);
-					AnimExt::SetAnimOwnerHouseKind(pExt->WebbedAnim, pKillerHouse, pInf->Owner, pKillerTech, false);
+					AnimExtData::SetAnimOwnerHouseKind(pExt->WebbedAnim, pKillerHouse, pInf->Owner, pKillerTech, false);
 				} else {
-					AnimExt::SetAnimOwnerHouseKind(pExt->WebbedAnim, pKillerHouse, pInf->Owner, pKillerTech, false);
+					AnimExtData::SetAnimOwnerHouseKind(pExt->WebbedAnim, pKillerHouse, pInf->Owner, pKillerTech, false);
 				}
 			}
 			else //turn off
@@ -765,7 +744,7 @@ void WarheadTypeExt::ExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKill
 				if (pExt->IsWebbed) {
 					pExt->IsWebbed = false;
 					pInf->ParalysisTimer.Stop();
-					TechnoExt::RestoreLastTargetAndMissionAfterWebbed(pInf);
+					TechnoExtData::RestoreLastTargetAndMissionAfterWebbed(pInf);
 				}
 
 				if (pExt->WebbedAnim) {
@@ -776,16 +755,16 @@ void WarheadTypeExt::ExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKill
 	}
 }
 
-bool WarheadTypeExt::ExtData::applyCulling(TechnoClass* pSource, ObjectClass* pTarget) const
+bool WarheadTypeExtData::applyCulling(TechnoClass* pSource, ObjectClass* pTarget) const
 {
-	auto const pThis = OwnerObject();
+	auto const pThis = this->AttachedToObject;
 
 	if (!pThis->Culling || !pSource)
 		return false;
 
 	if (auto const pTargetTechno = generic_cast<TechnoClass*>(pTarget))
 	{
-		if (TechnoExt::IsCullingImmune(pTargetTechno))
+		if (TechnoExtData::IsCullingImmune(pTargetTechno))
 			return false;
 	}
 
@@ -806,7 +785,7 @@ bool WarheadTypeExt::ExtData::applyCulling(TechnoClass* pSource, ObjectClass* pT
 	return  nChance < 0 || ScenarioClass::Instance->Random.RandomFromMax(99) < nChance;
 }
 
-int NOINLINE GetRelativeValue(ObjectClass* pTarget, WarheadTypeExt::ExtData* pWHExt) {
+int NOINLINE GetRelativeValue(ObjectClass* pTarget, WarheadTypeExtData* pWHExt) {
 	auto const pWhat = pTarget->WhatAmI();
 
 	switch (pWhat)
@@ -840,12 +819,12 @@ int NOINLINE GetRelativeValue(ObjectClass* pTarget, WarheadTypeExt::ExtData* pWH
 	return 0;
 }
 
-void WarheadTypeExt::ExtData::applyRelativeDamage(ObjectClass* pTarget, args_ReceiveDamage* pArgs) const
+void WarheadTypeExtData::applyRelativeDamage(ObjectClass* pTarget, args_ReceiveDamage* pArgs) const
 {
 	if (!this->RelativeDamage)
 		return;
 
-	auto nRelativeVal = GetRelativeValue(pTarget, const_cast<WarheadTypeExt::ExtData*>(this));
+	auto nRelativeVal = GetRelativeValue(pTarget, const_cast<WarheadTypeExtData*>(this));
 	if (nRelativeVal)
 	{
 
@@ -862,7 +841,7 @@ void WarheadTypeExt::ExtData::applyRelativeDamage(ObjectClass* pTarget, args_Rec
 	*pArgs->Damage = nRelativeVal;
 }
 
-bool WarheadTypeExt::ExtData::GoBerzerkFor(FootClass* pVictim, int* damage)
+bool WarheadTypeExtData::GoBerzerkFor(FootClass* pVictim, int* damage)
 {
 	int nDur = this->Berzerk_dur.Get(*damage);
 	auto const pType = pVictim->GetTechnoType();
@@ -871,14 +850,14 @@ bool WarheadTypeExt::ExtData::GoBerzerkFor(FootClass* pVictim, int* damage)
 	{
 		if (nDur > 0)
 		{
-			if (auto pData = TechnoTypeExt::ExtMap.Find(pType))
+			if (auto pData = TechnoTypeExtContainer::Instance.Find(pType))
 			{
 				nDur = static_cast<int>(nDur * pData->Berzerk_Modifier.Get());
 			}
 		}
 
 		//Default way game modify duration
-		nDur = MapClass::GetTotalDamage(nDur, this->OwnerObject(), pType->Armor, 0);
+		nDur = MapClass::GetTotalDamage(nDur, this->AttachedToObject, pType->Armor, 0);
 
 		const int oldValue = (!pVictim->Berzerk ? 0 : pVictim->BerzerkDurationLeft);
 		const int newValue = Helpers::Alex::getCappedDuration(oldValue, nDur, this->Berzerk_cap.Get());
@@ -912,7 +891,7 @@ bool WarheadTypeExt::ExtData::GoBerzerkFor(FootClass* pVictim, int* damage)
 					pVictim->BerzerkDurationLeft = 0;
 					pVictim->Berzerk = false;
 					pVictim->SetTarget(nullptr);
-					TechnoExt::SetMissionAfterBerzerk(pVictim);
+					TechnoExtData::SetMissionAfterBerzerk(pVictim);
 				}
 				else
 				{
@@ -927,7 +906,7 @@ bool WarheadTypeExt::ExtData::GoBerzerkFor(FootClass* pVictim, int* damage)
 	return false; //default
 }
 
-AnimTypeClass* WarheadTypeExt::ExtData::GetArmorHitAnim(int Armor)
+AnimTypeClass* WarheadTypeExtData::GetArmorHitAnim(int Armor)
 {
 	const auto pArmor = ArmorTypeClass::Array[Armor].get();
 
@@ -950,7 +929,7 @@ AnimTypeClass* WarheadTypeExt::ExtData::GetArmorHitAnim(int Armor)
 	return nullptr;
 }
 
-void WarheadTypeExt::DetonateAt(
+void WarheadTypeExtData::DetonateAt(
 	WarheadTypeClass* pThis,
 	ObjectClass* pTarget,
 	TechnoClass* pOwner,
@@ -961,15 +940,15 @@ void WarheadTypeExt::DetonateAt(
 {
 	if (targetCell && !pTarget)
 	{
-		Debug::Log("WarheadTypeExt::Detonate asking for targetCell but pTarget is nullptr ! \n");
+		Debug::Log("WarheadTypeExtData::Detonate asking for targetCell but pTarget is nullptr ! \n");
 		return;
 	}
 
 	AbstractClass* pATarget = !targetCell ? static_cast<AbstractClass*>(pTarget) : pTarget->GetCell();
-	WarheadTypeExt::DetonateAt(pThis, pATarget, CoordStruct::Empty, pOwner, damage , pFiringHouse);
+	WarheadTypeExtData::DetonateAt(pThis, pATarget, CoordStruct::Empty, pOwner, damage , pFiringHouse);
 }
 
-void WarheadTypeExt::DetonateAt(
+void WarheadTypeExtData::DetonateAt(
 	WarheadTypeClass* pThis,
 	const CoordStruct& coords,
 	TechnoClass* pOwner,
@@ -980,15 +959,15 @@ void WarheadTypeExt::DetonateAt(
 {
 	if (targetCell && !coords)
 	{
-		Debug::Log("WarheadTypeExt::Detonate asking for targetCell but coords is invalid ! \n");
+		Debug::Log("WarheadTypeExtData::Detonate asking for targetCell but coords is invalid ! \n");
 		return;
 	}
 
 	AbstractClass* pTarget = !targetCell ? nullptr : coords ? MapClass::Instance->GetCellAt(coords) : nullptr;
-	WarheadTypeExt::DetonateAt(pThis, pTarget, coords, pOwner, damage , pFiringHouse);
+	WarheadTypeExtData::DetonateAt(pThis, pTarget, coords, pOwner, damage , pFiringHouse);
 }
 
-void WarheadTypeExt::DetonateAt(
+void WarheadTypeExtData::DetonateAt(
 	WarheadTypeClass* pThis,
 	AbstractClass* pTarget,
 	const CoordStruct& coords,
@@ -1000,20 +979,20 @@ void WarheadTypeExt::DetonateAt(
 	if (!pThis)
 		return;
 
-	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
+	BulletTypeClass* pType = BulletTypeExtData::GetDefaultBulletType();
 
 	if (pThis->NukeMaker) {
 		if (!pTarget) {
-			Debug::Log("WarheadTypeExt::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
+			Debug::Log("WarheadTypeExtData::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
 			return;
 		}
 	}
 
 	if (!pOwner) {
-		Debug::Log("WarheadTypeExt::DetonateAt[%s] delivering damage from unknown source [%x] !", pThis->get_ID(), pOwner);
+		Debug::Log("WarheadTypeExtData::DetonateAt[%s] delivering damage from unknown source [%x] !", pThis->get_ID(), pOwner);
 	}
 
-	if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pType)->CreateBullet(pTarget, pOwner,
+	if (BulletClass* pBullet = BulletTypeExtContainer::Instance.Find(pType)->CreateBullet(pTarget, pOwner,
 		damage, pThis, 0, 0, pThis->Bright, true))
 	{
 		pBullet->MoveTo(coords, { 0 ,0, 0 });
@@ -1023,13 +1002,13 @@ void WarheadTypeExt::DetonateAt(
 		if (pCellCoord->ContainsBridge())
 			pBullet->OnBridge = true;
 
-		BulletExt::DetonateAt(pBullet, pTarget, pOwner, coords, pFiringHouse);
+		BulletExtData::DetonateAt(pBullet, pTarget, pOwner, coords, pFiringHouse);
 	}
 }
 
-void WarheadTypeExt::CreateIonBlast(WarheadTypeClass* pThis, const CoordStruct& coords)
+void WarheadTypeExtData::CreateIonBlast(WarheadTypeClass* pThis, const CoordStruct& coords)
 {
-	const auto pExt = WarheadTypeExt::ExtMap.Find(pThis);
+	const auto pExt = WarheadTypeExtContainer::Instance.Find(pThis);
 
 	if (pExt->Ion || pExt->Ripple_Radius.isset() && pExt->Ripple_Radius > 0)
 	{
@@ -1041,8 +1020,8 @@ void WarheadTypeExt::CreateIonBlast(WarheadTypeClass* pThis, const CoordStruct& 
 
 #include <Misc/Ares/Hooks/Header.h>
 
-void WarheadTypeExt::applyEMP(WarheadTypeClass* pWH, const CoordStruct& coords, TechnoClass* source) {
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH);
+void WarheadTypeExtData::applyEMP(WarheadTypeClass* pWH, const CoordStruct& coords, TechnoClass* source) {
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
 	if (pWHExt->EMP_Duration)
 		AresEMPulse::CreateEMPulse(pWH, coords, source);
@@ -1053,7 +1032,7 @@ void WarheadTypeExt::applyEMP(WarheadTypeClass* pWH, const CoordStruct& coords, 
 // load / save
 
 template <typename T>
-void WarheadTypeExt::ExtData::Serialize(T& Stm)
+void WarheadTypeExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
@@ -1338,7 +1317,7 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 	PaintBallData.Serialize(Stm);
 }
 
-bool WarheadTypeExt::ExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim)
+bool WarheadTypeExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim)
 {
 	auto const absType = pVictim->WhatAmI();
 	auto const pVictimType = pVictim->GetTechnoType();
@@ -1363,28 +1342,28 @@ bool WarheadTypeExt::ExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim)
 
 // =============================
 // container
-WarheadTypeExt::ExtContainer WarheadTypeExt::ExtMap;
+WarheadTypeExtContainer WarheadTypeExtContainer::Instance;
 
-bool WarheadTypeExt::ExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool WarheadTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
 	return Stm
-		.Process(WarheadTypeExt::IonBlastExt)
+		.Process(WarheadTypeExtData::IonBlastExt)
 		.Success();
 }
 
-bool WarheadTypeExt::ExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+bool WarheadTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
 	return Stm
-		.Process(WarheadTypeExt::IonBlastExt)
+		.Process(WarheadTypeExtData::IonBlastExt)
 		.Success();
 }
 
-void WarheadTypeExt::ExtContainer::Clear()
+void WarheadTypeExtContainer::Clear()
 {
-	WarheadTypeExt::IonBlastExt.clear();
+	WarheadTypeExtData::IonBlastExt.clear();
 }
 
-//void WarheadTypeExt::ExtContainer::InvalidatePointer(AbstractClass* ptr, bool bRemoved) { }
+//void WarheadTypeExtData::ExtContainer::InvalidatePointer(AbstractClass* ptr, bool bRemoved) { }
 
 // =============================
 // container hooks
@@ -1392,16 +1371,14 @@ void WarheadTypeExt::ExtContainer::Clear()
 DEFINE_HOOK(0x75D1A9, WarheadTypeClass_CTOR, 0x7)
 {
 	GET(WarheadTypeClass*, pItem, EBP);
-	WarheadTypeExt::ExtMap.Allocate(pItem);
+	WarheadTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
 DEFINE_HOOK(0x75E5C8, WarheadTypeClass_SDDTOR, 0x6)
 {
 	GET(WarheadTypeClass*, pItem, ESI);
-
-	WarheadTypeExt::ExtMap.Remove(pItem);
-
+	WarheadTypeExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 
@@ -1410,21 +1387,19 @@ DEFINE_HOOK(0x75E0C0, WarheadTypeClass_SaveLoad_Prefix, 0x8)
 {
 	GET_STACK(WarheadTypeClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
-
-	WarheadTypeExt::ExtMap.PrepareStream(pItem, pStm);
-
+	WarheadTypeExtContainer::Instance.PrepareStream(pItem, pStm);
 	return 0;
 }
 
 DEFINE_HOOK(0x75E2AE, WarheadTypeClass_Load_Suffix, 0x7)
 {
-	WarheadTypeExt::ExtMap.LoadStatic();
+	WarheadTypeExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
 DEFINE_HOOK(0x75E39C, WarheadTypeClass_Save_Suffix, 0x5)
 {
-	WarheadTypeExt::ExtMap.SaveStatic();
+	WarheadTypeExtContainer::Instance.SaveStatic();
 	return 0;
 }
 
@@ -1435,7 +1410,8 @@ DEFINE_HOOK(0x75DEA0 , WarheadTypeClass_LoadFromINI, 0x5)
 	GET(WarheadTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0x150);
 
-	WarheadTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x75DEAF);
+	Debug::Log("Reading WH [%s]\n", pItem->ID);
+	WarheadTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x75DEAF);
 
 	//0x75DE9A do net set isOrganic here , just skip it to next adrress to execute ares hook
 	return// R->Origin() == 0x75DE9A ? 0x75DEA0 :

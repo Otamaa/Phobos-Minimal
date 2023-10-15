@@ -6,12 +6,12 @@
 #include <Utilities/Template.h>
 
 #include <Helpers/Template.h>
- 
 #include <TacticalClass.h>
 
 class TacticalExt
 {
 public:
+/*
 	static IStream* g_pStm;
 
 	class ExtData final : public Extension<TacticalClass>
@@ -50,7 +50,7 @@ public:
 	{
 		Allocate(TacticalClass::Instance);
 	}
-
+*/
 	//void DrawDebugOverlay();
 	//bool DrawCurrentCell(); //TODO
 	//bool DebugDrawAllCellInfo(); //TODO

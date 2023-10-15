@@ -14,7 +14,8 @@ struct SWStatus
 	bool PowerSourced; //1
 	bool Charging;
 
-	void __forceinline reset() {
+	void __forceinline reset()
+	{
 		std::memset(this, 0, sizeof(SWStatus));
 	}
 
@@ -37,61 +38,64 @@ struct SWStatus
 	}
 };
 
-class SuperExt
+class SuperExtData final
 {
 public:
-	class ExtData final : public Extension<SuperClass>
+	static constexpr size_t Canary = 0x12311111;
+	using base_type = SuperClass;
+
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+public:
+
+	SWTypeExtData* Type { nullptr };
+	bool Temp_IsPlayer { false };
+	CellStruct Temp_CellStruct { };
+	bool CameoFirstClickDone { false };
+	bool FirstClickAutoFireDone { false };
+	//TechnoClass* Firer { nullptr };
+	SWStatus Statusses { };
+
+	SuperExtData(base_type* OwnerObject) noexcept
 	{
-	public:
-		static constexpr size_t Canary = 0x12311111;
-		using base_type = SuperClass;
-	public:
+		AttachedToObject = OwnerObject;
+	}
 
-		SWTypeExt::ExtData* Type { nullptr };
-		bool Temp_IsPlayer { false };
-		CellStruct Temp_CellStruct { };
-		bool CameoFirstClickDone { false };
-		bool FirstClickAutoFireDone { false };
-		//TechnoClass* Firer { nullptr };
-		SWStatus Statusses { };
+	~SuperExtData() noexcept = default;
 
-		ExtData(SuperClass* OwnerObject) : Extension<SuperClass>(OwnerObject)
-		{ }
-
-		virtual ~ExtData() override  = default;
-		void InvalidatePointer(AbstractClass* ptr, bool bRemoved)
-		{
+	void InvalidatePointer(AbstractClass* ptr, bool bRemoved)
+	{
 		//	AnnounceInvalidPointer(Firer, ptr);
-		}
+	}
 
-		static bool InvalidateIgnorable(AbstractClass* ptr)
-		{
-			switch (VTable::Get(ptr))
-			{
-			case BuildingClass::vtable:
-			case AircraftClass::vtable:
-			case UnitClass::vtable:
-			case InfantryClass::vtable:
-				return false;
-			}
-
-			return true;
-		}
-
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public Container<SuperExt::ExtData>
+	static bool InvalidateIgnorable(AbstractClass* ptr)
 	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(SuperExt::ExtData, "SuperClass");
-	};
+		switch (VTable::Get(ptr))
+		{
+		case BuildingClass::vtable:
+		case AircraftClass::vtable:
+		case UnitClass::vtable:
+		case InfantryClass::vtable:
+			return false;
+		}
+
+		return true;
+	}
+
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	static void UpdateSuperWeaponStatuses(HouseClass* pHouse);
-	static ExtContainer ExtMap;
+
+private:
+	template <typename T>
+	void Serialize(T& Stm);
+};
+
+class SuperExtContainer final : public Container<SuperExtData>
+{
+public:
+	static SuperExtContainer Instance;
+
+	CONSTEXPR_NOCOPY_CLASSB(SuperExtContainer, SuperExtData, "SuperClass");
 };

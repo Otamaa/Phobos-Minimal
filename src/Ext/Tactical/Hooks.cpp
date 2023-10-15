@@ -3,6 +3,6 @@
 
 DEFINE_HOOK(0x6D4CD9, PrintTimerOnTactical_BlinkColor, 0x6)
 {
-	R->EDI(ColorScheme::Array->GetItem(RulesExt::Global()->TimerBlinkColorScheme));
+	R->EDI(ColorScheme::Array->GetItem(RulesExtData::Instance()->TimerBlinkColorScheme));
 	return 0x6D4CE2;
 }

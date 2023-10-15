@@ -16,7 +16,7 @@ DEFINE_HOOK(0x47C20B, CellClass_CellColor_TiberiumRadarColor, 5)
 
 	const auto pTib = TiberiumClass::Array->GetItem(nTibIDx);
 
-	if(const auto pTiberiumExt = TiberiumExt::ExtMap.TryFind(pTib)) {
+	if(const auto pTiberiumExt = TiberiumExtExtContainer::Instance.TryFind(pTib)) {
 
 		if (pTiberiumExt->MinimapColor.isset()) {
 
@@ -54,7 +54,7 @@ DEFINE_HOOK(0x47C20B, CellClass_CellColor_TiberiumRadarColor, 5)
 //	if (tiberiumType < 0)
 //		return 0;
 //
-//	const auto pTiberiumExt = TiberiumExt::ExtMap.Find(TiberiumClass::Array->GetItem(tiberiumType));
+//	const auto pTiberiumExt = TiberiumExtExtContainer::Instance.Find(TiberiumClass::Array->GetItem(tiberiumType));
 //
 //	{
 //		if (pTiberiumExt->MinimapColor.isset())

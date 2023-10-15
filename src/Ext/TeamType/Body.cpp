@@ -1,6 +1,6 @@
 #include "Body.h"
 
-
+/*
 void TeamTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->Get();
@@ -14,25 +14,25 @@ void TeamTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->AI_FriendlyDistance.Read(exINI, pSection, "AIFriendlyDistance");
 	//this->AttackWaypoint_AllowCell.Read(exINI, pSection, "AttackWaypoint.AllowCell");
 }
-
+*/
 // =============================
 // load / save
 
-template <typename T>
-void TeamTypeExt::ExtData::Serialize(T& Stm)
-{
-	Stm
-		.Process(this->Initialized)
-		.Process(this->AI_SafeDIstance)
-		.Process(this->AI_FriendlyDistance)
-		.Process(this->AttackWaypoint_AllowCell)
-		;
-
-}
+//template <typename T>
+//void TeamTypeExt::ExtData::Serialize(T& Stm)
+//{
+//	Stm
+//		.Process(this->Initialized)
+//		.Process(this->AI_SafeDIstance)
+//		.Process(this->AI_FriendlyDistance)
+//		.Process(this->AttackWaypoint_AllowCell)
+//		;
+//
+//}
 
 // =============================
 // container
-TeamTypeExt::ExtContainer TeamTypeExt::ExtMap;
+//TeamTypeExt::ExtContainer TeamTypeExt::ExtMap;
 
 // =============================
 // container hooks

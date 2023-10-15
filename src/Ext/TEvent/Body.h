@@ -59,32 +59,40 @@ enum PhobosTriggerEvent
 };
 
 class TechnoTypeClass;
-class TEventExt
+class TEventExtData final
 {
 public:
-	class ExtData final : public Extension<TEventClass>
+	static constexpr size_t Canary = 0x91919191;
+	using base_type = TEventClass;
+
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+public:
+	OptionalStruct<TechnoTypeClass*, false> TechnoType {};
+
+	TEventExtData(base_type* OwnerObject) noexcept
 	{
-	public:
-		static constexpr size_t Canary = 0x91919191;
-		using base_type = TEventClass;
+		this->AttachedToObject = OwnerObject;
+	}
 
-	public:
-		OptionalStruct<TechnoTypeClass* , false> TechnoType {};
+	~TEventExtData() noexcept = default;
 
-		ExtData(TEventClass* const OwnerObject) : Extension<TEventClass>(OwnerObject)
-		{ }
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-		virtual ~ExtData() override = default;
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	// support
+	TechnoTypeClass* GetTechnoType();
 
-		// support
-		TechnoTypeClass* GetTechnoType();
+private:
 
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
+	template <typename T>
+	void Serialize(T& Stm);
+
+public:
+
+	static bool HousesAreDestroyedTEvent(TEventClass* pThis);
+	static bool HouseOwnsTechnoTypeTEvent(TEventClass* pThis);
+	static bool HouseDoesntOwnTechnoTypeTEvent(TEventClass* pThis);
 
 	static bool Occured(TEventClass* pThis, EventArgs const& args, bool& bHandled);
 
@@ -92,16 +100,12 @@ public:
 	static bool VariableCheck(TEventClass* pThis);
 	template<bool IsSrcGlobal, bool IsGlobal, typename _Pr>
 	static bool VariableCheckBinary(TEventClass* pThis);
+};
 
-	class ExtContainer final : public Container<TEventExt::ExtData>
-	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(TEventExt::ExtData, "TEventClass");
-	};
+class TEventExtContainer final : public Container<TEventExtData>
+{
+public:
+	static TEventExtContainer Instance;
 
-	static ExtContainer ExtMap;
-
-	static bool HousesAreDestroyedTEvent(TEventClass* pThis);
-	static bool HouseOwnsTechnoTypeTEvent(TEventClass* pThis);
-	static bool HouseDoesntOwnTechnoTypeTEvent(TEventClass* pThis);
+	CONSTEXPR_NOCOPY_CLASSB(TEventExtContainer, TEventExtData, "TEventClass");
 };

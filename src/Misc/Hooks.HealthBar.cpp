@@ -12,7 +12,7 @@ DEFINE_HOOK(0x709ACF, TechnoClass_DrawPip_PipShape1_A, 0x6)
 	GET(TechnoClass* const, pThis, EBP);
 	GET(SHPStruct*, pPipShape01, ECX);
 
-	R->ECX(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())
+	R->ECX(TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())
 		->PipShapes01.Get(pPipShape01));
 
 	return 0;
@@ -23,7 +23,7 @@ DEFINE_HOOK(0x709AE3, TechnoClass_DrawPip_PipShape1_B, 0x6)
 	GET(TechnoClass* const, pThis, EBP);
 	GET(SHPStruct*, pPipShape01, EAX);
 
-	R->EAX(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())
+	R->EAX(TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())
 		->PipShapes01.Get(pPipShape01));
 
 	return 0;
@@ -34,7 +34,7 @@ DEFINE_HOOK(0x709AF8, TechnoClass_DrawPip_PipShape2, 0x6)
 	GET(TechnoClass* const, pThis, EBP);
 	GET(SHPStruct*, pPipShape02, EBX);
 
-	R->EBX(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())
+	R->EBX(TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())
 		->PipShapes02.Get(pPipShape02));
 
 	return 0;
@@ -45,7 +45,7 @@ DEFINE_HOOK(0x6F6722, TechnoClass_DrawHealth_Building_PipFile_B, 0x6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 
-	const auto pThisExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	const auto pThisExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	R->EDX(pThisExt->PipShapes01.Get(FileSystem::PIPS_SHP()));
 
 	return 0x6F6728;
@@ -54,7 +54,7 @@ DEFINE_HOOK(0x6F6722, TechnoClass_DrawHealth_Building_PipFile_B, 0x6)
 DEFINE_HOOK(0x6F6759, TechnoClass_DrawHealth_Building_PipFile_B_pal, 0x6)
 {
 	GET(BuildingClass* const, pThis, ESI);
-	const auto pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+	const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 	ConvertClass* nPal = FileSystem::THEATER_PAL();
 
 	if (pBuildingTypeExt->PipShapes01Remap) {
@@ -73,7 +73,7 @@ DEFINE_HOOK(0x6F66B3, TechnoClass_DrawHealth_Building_PipFile_A, 0x6)
 	GET(BuildingClass* const, pThis, ESI);
 	GET(SHPReference*, pDefaultPip, EAX);
 
-	const auto pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+	const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 	ConvertClass* nPal = FileSystem::THEATER_PAL();
 
 	if (pBuildingTypeExt->PipShapes01Remap) {
@@ -94,7 +94,7 @@ namespace DrawHeathData
 {
 	void DrawNumber(const TechnoClass* const pThis, Point2D* pLocation, RectangleStruct* pBounds)
 	{
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 		if (!pTypeExt->HealthNumber_Show.Get() || !pThis->IsAlive)
 			return;
@@ -229,7 +229,7 @@ namespace DrawHeathData
 
 	void DrawBar(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBound)
 	{
-		auto const&[pType , pOwner]= TechnoExt::GetDisguiseType(pThis, false, true);
+		auto const&[pType , pOwner]= TechnoExtData::GetDisguiseType(pThis, false, true);
 		LightConvertClass* pTechConvert = pThis->GetRemapColour();
 		const bool bIsInfantry = pThis->WhatAmI() == InfantryClass::AbsID;
 		bool IsDisguised = false;
@@ -238,7 +238,7 @@ namespace DrawHeathData
 			IsDisguised = true;
 		}
 
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 		const auto pPipsShape = pTypeExt->HealthBarSHP.Get(FileSystem::PIPS_SHP());
 		const auto pPipsShapeSelected = pTypeExt->HealthBarSHP_Selected.Get(FileSystem::PIPBRD_SHP());
 		ConvertClass* pPalette = FileSystem::PALETTE_PAL();
@@ -259,7 +259,7 @@ namespace DrawHeathData
 			nPoint.Y = nLocation.Y + nBracketDelta - (bIsInfantry ? 25 : 26);
 
 			DSurface::Temp->DrawSHP(pPalette, pPipsShapeSelected, (bIsInfantry ? 1 : 0), &nPoint, pBound, BlitterFlags(0xE00), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
-			TechnoExt::DrawSelectBrd(pThis, pType, bIsInfantry ? 8 : 17, pLocation, pBound, bIsInfantry, IsDisguised);
+			TechnoExtData::DrawSelectBrd(pThis, pType, bIsInfantry ? 8 : 17, pLocation, pBound, bIsInfantry, IsDisguised);
 		}
 
 		const int nOffsetX = (bIsInfantry ? -5 : -15);
@@ -413,7 +413,7 @@ DEFINE_HOOK(0x6F65D1, TechnoClass_DrawdBar_Building, 0x6)
 	GET_STACK(Point2D*, pLocation, STACK_OFFS(0x4C, -0x4));
 	GET_STACK(RectangleStruct*, pBound, STACK_OFFS(0x4C, -0x8));
 
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	if (const auto pShieldData = pExt->Shield.get()) {
 		if (pShieldData->IsAvailable())
 			pShieldData->DrawShieldBar(iLength, pLocation, pBound);
@@ -421,7 +421,7 @@ DEFINE_HOOK(0x6F65D1, TechnoClass_DrawdBar_Building, 0x6)
 
 	//DrawHeathData::DrawNumber(pThis, pLocation, pBound);
 	//DrawHeathData::DrawIronCurtaindBar(pThis, iLength, pLocation, pBound);
-	TechnoExt::ProcessDigitalDisplays(pThis);
+	TechnoExtData::ProcessDigitalDisplays(pThis);
 	return 0;
 }
 
@@ -433,7 +433,7 @@ DEFINE_HOOK(0x6F683C, TechnoClass_DrawBar_Foot, 0x7)
 
 	const int iLength = pThis->WhatAmI() == InfantryClass::AbsID ? 8 : 17;
 
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	if (const auto pShieldData = pExt->Shield.get()) {
 		if (pShieldData->IsAvailable()) {
 			pShieldData->DrawShieldBar(iLength, pLocation, pBound);
@@ -443,7 +443,7 @@ DEFINE_HOOK(0x6F683C, TechnoClass_DrawBar_Foot, 0x7)
 	DrawHeathData::DrawBar(pThis, pLocation, pBound);
 	//DrawHeathData::DrawNumber(pThis, pLocation, pBound);
 	//DrawHeathData::DrawIronCurtaindBar(pThis, iLength, pLocation, pBound);
-	TechnoExt::ProcessDigitalDisplays(pThis);
+	TechnoExtData::ProcessDigitalDisplays(pThis);
 
 	return 0x6F6A58;
 }

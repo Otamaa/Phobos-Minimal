@@ -10,7 +10,7 @@ std::vector<const char*> SW_SonarPulse::GetTypeString() const
 	return { "SonarPulse" };
 }
 
-SuperWeaponFlags SW_SonarPulse::Flags(const SWTypeExt::ExtData* pData) const
+SuperWeaponFlags SW_SonarPulse::Flags(const SWTypeExtData* pData) const
 {
 	if (this->GetRange(pData).WidthOrRange > 0)
 		return SuperWeaponFlags::NoEvent;
@@ -21,7 +21,7 @@ SuperWeaponFlags SW_SonarPulse::Flags(const SWTypeExt::ExtData* pData) const
 bool SW_SonarPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	auto const pType = pThis->Type;
-	auto const pData = SWTypeExt::ExtMap.Find(pType);
+	auto const pData = SWTypeExtContainer::Instance.Find(pType);
 
 	auto Detect = [pThis, pData](TechnoClass* const pTechno) -> bool
 	{
@@ -36,7 +36,7 @@ bool SW_SonarPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 			return true;
 		}
 
-		auto& nTime = TechnoExt::ExtMap.Find(pTechno)->CloakSkipTimer;
+		auto& nTime = TechnoExtContainer::Instance.Find(pTechno)->CloakSkipTimer;
 
 		auto const delay = MaxImpl(
 			nTime.GetTimeLeft(), pData->Sonar_Delay.Get());
@@ -80,9 +80,9 @@ bool SW_SonarPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 	return true;
 }
 
-void SW_SonarPulse::Initialize(SWTypeExt::ExtData* pData)
+void SW_SonarPulse::Initialize(SWTypeExtData* pData)
 {
-	pData->OwnerObject()->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	pData->AttachedToObject->Action = Action(AresNewActionType::SuperWeaponAllowed);
 	// some defaults
 	pData->SW_RadarEvent = false;
 
@@ -95,17 +95,17 @@ void SW_SonarPulse::Initialize(SWTypeExt::ExtData* pData)
 	pData->SW_AIRequiresTarget = SuperWeaponTarget::Water;
 }
 
-void SW_SonarPulse::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
+void SW_SonarPulse::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
 	const char* section = pData->get_ID();
 
 	pData->Sonar_Delay = pINI->ReadInteger(section, "SonarPulse.Delay", pData->Sonar_Delay);
 
 	// full map detection?
-	pData->Get()->Action = (GetRange(pData).WidthOrRange < 0) ? Action::None : (Action)AresNewActionType::SuperWeaponAllowed;
+	pData->AttachedToObject->Action = (GetRange(pData).WidthOrRange < 0) ? Action::None : (Action)AresNewActionType::SuperWeaponAllowed;
 }
 
-bool SW_SonarPulse::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+bool SW_SonarPulse::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
 	if (!this->IsLaunchsiteAlive(pBuilding))
 		return false;
@@ -116,7 +116,7 @@ bool SW_SonarPulse::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass*
 	return this->IsSWTypeAttachedToThis(pData, pBuilding);
 }
 
-SWRange SW_SonarPulse::GetRange(const SWTypeExt::ExtData* pData) const
+SWRange SW_SonarPulse::GetRange(const SWTypeExtData* pData) const
 {
 	return pData->SW_Range->empty() ? SWRange{ 10 } :pData->SW_Range.Get();
 }

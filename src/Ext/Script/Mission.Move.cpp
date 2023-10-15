@@ -4,9 +4,9 @@
 #include <Ext/Team/Body.h>
 #include <Ext/Techno/Body.h>
 
-// Contains ScriptExt::Mission_Move and its helper functions.
+// Contains ScriptExtData::Mission_Move and its helper functions.
 
-void ScriptExt::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, bool pickAllies = false, int attackAITargetType = -1, int idxAITargetTypeItem = -1)
+void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, bool pickAllies = false, int attackAITargetType = -1, int idxAITargetTypeItem = -1)
 {
 	auto pScript = pTeam->CurrentScript;
 	bool noWaitLoop = false;
@@ -26,7 +26,7 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, bool
 		// This action finished
 		pTeam->StepCompleted = true;
 		auto const& [nextAct, nextArg] = pScript->GetNextAction();
-		ScriptExt::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No team members alive)\n",
+		ScriptExtData::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No team members alive)\n",
 			pTeam->Type->ID,
 			pScript->Type->ID,
 			pScript->CurrentMission,
@@ -39,13 +39,13 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, bool
 		return;
 	}
 
-	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 
 	if (!pTeamData)
 	{
 		pTeam->StepCompleted = true;
 		auto const& [nextAct, nextArg] = pScript->GetNextAction();
-		ScriptExt::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: ExtData found)\n",
+		ScriptExtData::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: ExtData found)\n",
 			pTeam->Type->ID,
 			pScript->CurrentMission,
 			act,
@@ -75,7 +75,7 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, bool
 
 	for (auto pFoot = pTeam->FirstUnit; pFoot; pFoot = pFoot->NextTeamMember)
 	{
-		if (ScriptExt::IsUnitAvailable(pFoot,false))
+		if (ScriptExtData::IsUnitAvailable(pFoot,false))
 		{
 			auto const pTechnoType = pFoot->GetTechnoType();
 
@@ -90,8 +90,8 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, bool
 	}
 
 	// Find the Leader
-	if (!ScriptExt::IsUnitAvailable(pTeamData->TeamLeader, true)) {
-		pTeamData->TeamLeader = ScriptExt::FindTheTeamLeader(pTeam);
+	if (!ScriptExtData::IsUnitAvailable(pTeamData->TeamLeader, true)) {
+		pTeamData->TeamLeader = ScriptExtData::FindTheTeamLeader(pTeam);
 	}
 
 	if (!pTeamData->TeamLeader || bAircraftsWithoutAmmo)
@@ -112,7 +112,7 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, bool
 		// This action finished
 		pTeam->StepCompleted = true;
 		auto const& [nextAct, nextArg] = pScript->GetNextAction();
-		ScriptExt::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reasons: No Leader | Aircrafts without ammo)\n",
+		ScriptExtData::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reasons: No Leader | Aircrafts without ammo)\n",
 			pTeam->Type->ID,
 			pScript->Type->ID,
 			pScript->CurrentMission,
@@ -132,7 +132,7 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, bool
 	{
 		// This part of the code is used for picking a new target.
 		int targetMask = scriptArgument;
-		auto selectedTarget = ScriptExt::FindBestObject(
+		auto selectedTarget = ScriptExtData::FindBestObject(
 			pTeamData->TeamLeader,
 			targetMask,
 			calcThreatMode,
@@ -143,7 +143,7 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, bool
 
 		if (selectedTarget)
 		{
-			ScriptExt::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Leader [%s] (UID: %lu) selected [%s] (UID: %lu) as destination target.\n",
+			ScriptExtData::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Leader [%s] (UID: %lu) selected [%s] (UID: %lu) as destination target.\n",
 				pTeam->Type->ID,
 				pScript->Type->ID,
 				pScript->CurrentMission,
@@ -161,8 +161,8 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, bool
 
 			for (auto pFoot = pTeam->FirstUnit; pFoot; pFoot = pFoot->NextTeamMember)
 			{
-				if (ScriptExt::IsUnitAvailable(pFoot, false)
-					&& ScriptExt::IsUnitAvailable(selectedTarget, false)
+				if (ScriptExtData::IsUnitAvailable(pFoot, false)
+					&& ScriptExtData::IsUnitAvailable(selectedTarget, false)
 					)
 				{
 					auto const pTechnoType = pFoot->GetTechnoType();
@@ -184,7 +184,7 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, bool
 
 					// Get a cell near the target
 					pFoot->QueueMission(Mission::Move, false);
-					CoordStruct coord = TechnoExt::PassengerKickOutLocation(selectedTarget, pFoot, 10);
+					CoordStruct coord = TechnoExtData::PassengerKickOutLocation(selectedTarget, pFoot, 10);
 					coord = coord != CoordStruct::Empty ? coord : selectedTarget->Location;
 
 					if(CellClass* pCellDestination = MapClass::Instance->TryGetCellAt(coord))
@@ -223,7 +223,7 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, bool
 			// This action finished
 			pTeam->StepCompleted = true;
 			auto const& [nextAct, nextArg] = pScript->GetNextAction();
-			ScriptExt::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d (new target NOT FOUND)\n",
+			ScriptExtData::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d (new target NOT FOUND)\n",
 				pTeam->Type->ID,
 				pScript->Type->ID,
 				pScript->CurrentMission,
@@ -242,7 +242,7 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, bool
 		// This part of the code is used for updating the "Move" mission in each team unit
 		int moveDestinationMode = 0;
 		moveDestinationMode = pTeamData->MoveMissionEndMode;
-		bool bForceNextAction = ScriptExt::MoveMissionEndStatus(pTeam, pFocus, pTeamData->TeamLeader, moveDestinationMode);
+		bool bForceNextAction = ScriptExtData::MoveMissionEndStatus(pTeam, pFocus, pTeamData->TeamLeader, moveDestinationMode);
 
 
 		if (bForceNextAction)
@@ -256,7 +256,7 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, bool
 			// This action finished
 			pTeam->StepCompleted = true;
 			auto const& [nextAct, nextArg] = pScript->GetNextAction();
-			ScriptExt::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d (Reason: Reached destination)\n",
+			ScriptExtData::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d (Reason: Reached destination)\n",
 				pTeam->Type->ID,
 				pScript->Type->ID,
 				pScript->CurrentMission,
@@ -271,7 +271,7 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, bool
 	}
 }
 
-TechnoClass* ScriptExt::FindBestObject(TechnoClass* pTechno, int method, DistanceMode calcThreatMode, bool pickAllies = false, int attackAITargetType = -1, int idxAITargetTypeItem = -1)
+TechnoClass* ScriptExtData::FindBestObject(TechnoClass* pTechno, int method, DistanceMode calcThreatMode, bool pickAllies = false, int attackAITargetType = -1, int idxAITargetTypeItem = -1)
 {
 	TechnoClass* bestObject = nullptr;
 	double bestVal = -1;
@@ -284,9 +284,9 @@ TechnoClass* ScriptExt::FindBestObject(TechnoClass* pTechno, int method, Distanc
 		if (auto pFoot = abstract_cast<FootClass*>(pTechno))
 		{
 			const int enemyHouseIndex = pFoot->Team->FirstUnit->Owner->EnemyHouseIndex;
-			const auto pHouseExt = HouseExt::ExtMap.Find(pFoot->Team->Owner);
+			const auto pHouseExt = HouseExtContainer::Instance.Find(pFoot->Team->Owner);
 			const bool onlyTargetHouseEnemy = pHouseExt->ForceOnlyTargetHouseEnemyMode != -1 ?
-			pFoot->Team->Type->OnlyTargetHouseEnemy : pHouseExt->ForceOnlyTargetHouseEnemy ;
+			pFoot->Team->Type->OnlyTargetHouseEnemy : pHouseExt->m_ForceOnlyTargetHouseEnemy ;
 
 			if (onlyTargetHouseEnemy && enemyHouseIndex >= 0)
 				enemyHouse = HouseClass::Array->GetItem(enemyHouseIndex);
@@ -295,7 +295,7 @@ TechnoClass* ScriptExt::FindBestObject(TechnoClass* pTechno, int method, Distanc
 
 	// Generic method for targeting
 	TechnoClass::Array->for_each([&](TechnoClass* pObj) {
-		if (!ScriptExt::IsUnitAvailable(pObj, true) || pObj == pTechno)
+		if (!ScriptExtData::IsUnitAvailable(pObj, true) || pObj == pTechno)
 			return;
 
 		//if (pTechno->Spawned)
@@ -335,7 +335,7 @@ TechnoClass* ScriptExt::FindBestObject(TechnoClass* pTechno, int method, Distanc
 			{
 				double value = 0;
 
-				if (ScriptExt::EvaluateObjectWithMask(pObj, method, attackAITargetType, idxAITargetTypeItem, pTechno))
+				if (ScriptExtData::EvaluateObjectWithMask(pObj, method, attackAITargetType, idxAITargetTypeItem, pTechno))
 				{
 					bool isGoodTarget = false;
 
@@ -416,23 +416,23 @@ TechnoClass* ScriptExt::FindBestObject(TechnoClass* pTechno, int method, Distanc
 	return bestObject;
 }
 
-void ScriptExt::Mission_Move_List(TeamClass* pTeam, DistanceMode calcThreatMode, bool pickAllies, int attackAITargetType)
+void ScriptExtData::Mission_Move_List(TeamClass* pTeam, DistanceMode calcThreatMode, bool pickAllies, int attackAITargetType)
 {
-	TeamExt::ExtMap.Find(pTeam)->IdxSelectedObjectFromAIList = -1;
+	TeamExtContainer::Instance.Find(pTeam)->IdxSelectedObjectFromAIList = -1;
 	const auto& [curAct, curArg] = pTeam->CurrentScript->GetCurrentAction();
 
 	if (attackAITargetType < 0)
 		attackAITargetType = curArg;
 
-	const auto& Arr = RulesExt::Global()->AITargetTypesLists;
+	const auto& Arr = RulesExtData::Instance()->AITargetTypesLists;
 	if (!Arr.empty() && (size_t)attackAITargetType < Arr.size() && !Arr[attackAITargetType].empty())
 	{
-		ScriptExt::Mission_Move(pTeam, calcThreatMode, pickAllies, attackAITargetType, -1);
+		ScriptExtData::Mission_Move(pTeam, calcThreatMode, pickAllies, attackAITargetType, -1);
 		return;
 	}
 
 	pTeam->StepCompleted = true;
-	ScriptExt::Log("AI Scripts - Mission_Move_List: [%s] [%s] (line: %d = %d,%d) Failed to get the list index [AITargetTypes][%d]! out of bound: %d\n",
+	ScriptExtData::Log("AI Scripts - Mission_Move_List: [%s] [%s] (line: %d = %d,%d) Failed to get the list index [AITargetTypes][%d]! out of bound: %d\n",
 		pTeam->Type->ID,
 		pTeam->CurrentScript->Type->ID,
 		pTeam->CurrentScript->CurrentMission,
@@ -442,30 +442,30 @@ void ScriptExt::Mission_Move_List(TeamClass* pTeam, DistanceMode calcThreatMode,
 		Arr.size());
 }
 
-void ScriptExt::Mission_Move_List1Random(TeamClass* pTeam, DistanceMode calcThreatMode, bool pickAllies, int attackAITargetType, int idxAITargetTypeItem = -1)
+void ScriptExtData::Mission_Move_List1Random(TeamClass* pTeam, DistanceMode calcThreatMode, bool pickAllies, int attackAITargetType, int idxAITargetTypeItem = -1)
 {
 	auto pScript = pTeam->CurrentScript;
 	std::vector<int> validIndexes;
-	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	const auto& [curAct, curArg] = pScript->GetCurrentAction();
 
 	if (attackAITargetType < 0)
 		attackAITargetType = curArg;
 
 	if (attackAITargetType >= 0
-		&& (size_t)attackAITargetType < RulesExt::Global()->AITargetTypesLists.size())
+		&& (size_t)attackAITargetType < RulesExtData::Instance()->AITargetTypesLists.size())
 	{
 
-	if (pTeamData->IdxSelectedObjectFromAIList >= 0 && (size_t)pTeamData->IdxSelectedObjectFromAIList < RulesExt::Global()->AITargetTypesLists[attackAITargetType].size()) {
-		ScriptExt::Mission_Move(pTeam, calcThreatMode, pickAllies, attackAITargetType, pTeamData->IdxSelectedObjectFromAIList);
+	if (pTeamData->IdxSelectedObjectFromAIList >= 0 && (size_t)pTeamData->IdxSelectedObjectFromAIList < RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].size()) {
+		ScriptExtData::Mission_Move(pTeam, calcThreatMode, pickAllies, attackAITargetType, pTeamData->IdxSelectedObjectFromAIList);
 		return;
 	}
 		// Still no random target selected
-		if (!RulesExt::Global()->AITargetTypesLists[attackAITargetType].empty()) {
+		if (!RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].empty()) {
 			// Finding the objects from the list that actually exists in the map
 			TechnoClass::Array->for_each([&](TechnoClass* pTechno)
 			{
-				if(!ScriptExt::IsUnitAvailable(pTechno, true))
+				if(!ScriptExtData::IsUnitAvailable(pTechno, true))
 					return;
 
 				//if (pTechno->Spawned)
@@ -474,9 +474,9 @@ void ScriptExt::Mission_Move_List1Random(TeamClass* pTeam, DistanceMode calcThre
 				auto pTechnoType = pTechno->GetTechnoType();
 				bool found = false;
 
-				for (auto j = 0u; j < RulesExt::Global()->AITargetTypesLists[attackAITargetType].size() && !found; j++)
+				for (auto j = 0u; j < RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].size() && !found; j++)
 				{
-					if (pTechnoType == RulesExt::Global()->AITargetTypesLists[attackAITargetType][j]
+					if (pTechnoType == RulesExtData::Instance()->AITargetTypesLists[attackAITargetType][j]
 						&& ((pickAllies
 							&& pTeam->FirstUnit->Owner->IsAlliedWith(pTechno))
 							|| (!pickAllies
@@ -492,16 +492,16 @@ void ScriptExt::Mission_Move_List1Random(TeamClass* pTeam, DistanceMode calcThre
 			{
 				const int idxsel = validIndexes[ScenarioClass::Instance->Random.RandomFromMax(validIndexes.size() - 1)];
 				pTeamData->IdxSelectedObjectFromAIList = idxsel;
-				ScriptExt::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Picked a random Techno from the list index [AITargetTypes][%d][%d] = %s\n",
+				ScriptExtData::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Picked a random Techno from the list index [AITargetTypes][%d][%d] = %s\n",
 					pTeam->Type->ID,
 					pTeam->CurrentScript->Type->ID,
 					pScript->CurrentMission,
 					curAct,
 					curArg,
 					attackAITargetType, idxsel,
-					RulesExt::Global()->AITargetTypesLists[attackAITargetType][idxsel]->ID);
+					RulesExtData::Instance()->AITargetTypesLists[attackAITargetType][idxsel]->ID);
 
-				ScriptExt::Mission_Move(pTeam, calcThreatMode, pickAllies, attackAITargetType, idxsel);
+				ScriptExtData::Mission_Move(pTeam, calcThreatMode, pickAllies, attackAITargetType, idxsel);
 
 				return;
 			}
@@ -510,7 +510,7 @@ void ScriptExt::Mission_Move_List1Random(TeamClass* pTeam, DistanceMode calcThre
 
 	// This action finished
 	pTeam->StepCompleted = true;
-	ScriptExt::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Failed to pick a random Techno from the list index [AITargetTypes][%d]! Valid Technos in the list: %d\n",
+	ScriptExtData::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Failed to pick a random Techno from the list index [AITargetTypes][%d]! Valid Technos in the list: %d\n",
 		pTeam->Type->ID,
 		pTeam->CurrentScript->Type->ID,
 		pScript->CurrentMission,

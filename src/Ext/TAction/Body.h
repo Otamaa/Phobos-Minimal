@@ -58,6 +58,7 @@ enum class PhobosTriggerAction : unsigned int
 class TActionExt
 {
 public:
+/*
 	static std::map<int, std::vector<TriggerClass*>> RandomTriggerPool;
 
 	class ExtData final : public Extension<TActionClass>
@@ -117,7 +118,7 @@ public:
 	};
 
 	static ExtContainer ExtMap;
-
+*/
 	static void RecreateLightSources();
 	static bool Occured(TActionClass* pThis, ActionArgs const& args , bool& bHandled);
 	static bool RunSuperWeaponAt(TActionClass* pThis, int X, int Y);
@@ -139,9 +140,9 @@ public:
 
 	ACTION_FUNC(DrawLaserBetweenWaypoints);
 
-	ACTION_FUNC(RandomTriggerPut);
-	ACTION_FUNC(RandomTriggerEnable);
-	ACTION_FUNC(RandomTriggerRemove);
+	//ACTION_FUNC(RandomTriggerPut);
+	//ACTION_FUNC(RandomTriggerEnable);
+	//ACTION_FUNC(RandomTriggerRemove);
 
 	ACTION_FUNC(ScoreCampaignText);
 	ACTION_FUNC(ScoreCampaignTheme);

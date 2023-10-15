@@ -26,11 +26,11 @@
 //
 //	//if (pThis && pThis->WH)
 //	//{
-//	//	auto const pExt = BulletExt::ExtMap.Find(pThis);
+//	//	auto const pExt = BulletExtContainer::Instance.Find(pThis);
 //	//	auto const pTechno = pThis->Owner ? pThis->Owner : nullptr;
 //	//	auto const pHouse = pTechno ? pTechno->Owner : pExt->Owner ? pExt->Owner : nullptr;
 //	//
-//	//	WarheadTypeExt::ExtMap.Find(pThis->WH)->Detonate(pTechno, pHouse, pThis, *pCoords);
+//	//	WarheadTypeExtContainer::Instance.Find(pThis->WH)->Detonate(pTechno, pHouse, pThis, *pCoords);
 //	//}
 //
 //	PhobosGlobal::Instance()->DetonateDamageArea = false;
@@ -46,20 +46,20 @@ DEFINE_HOOK(0x46A290, BulletClass_Logics_Return, 0x5)
 
 	if (pThis->WeaponType )
 	{
-		auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pThis->WeaponType);
+		auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pThis->WeaponType);
 		int defaultDamage = pThis->WeaponType->Damage;
 
 		for (size_t i = 0; i < pWeaponExt->ExtraWarheads.size(); i++)
 		{
 			auto const pWH = pWeaponExt->ExtraWarheads[i];
-			auto const pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExt::ExtMap.Find(pThis)->Owner;
+			auto const pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pThis)->Owner;
 			int damage = defaultDamage;
 
 			if (pWeaponExt->ExtraWarheads_DamageOverrides.size() > i)
 				damage = pWeaponExt->ExtraWarheads_DamageOverrides[i];
 
 			AbstractClass* pTarget = pThis->Target ? pThis->Target : MapClass::Instance->GetCellAt(coords);
-			WarheadTypeExt::DetonateAt(pWH, pThis->Target, *coords, pThis->Owner, damage , pOwner);
+			WarheadTypeExtData::DetonateAt(pWH, pThis->Target, *coords, pThis->Owner, damage , pOwner);
 		}
 	}
 
@@ -70,7 +70,7 @@ DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 {
 	GET_BASE(WarheadTypeClass*, pWH, 0x0C);
 
-	if (auto const pWHExt = WarheadTypeExt::ExtMap.TryFind(pWH))
+	if (auto const pWHExt = WarheadTypeExtContainer::Instance.TryFind(pWH))
 	{
 		 GET(const int, Damage, EDX);
 		// GET_BASE(const bool, AffectsTiberium, 0x10);
@@ -115,7 +115,7 @@ DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 DEFINE_HOOK(0x48A551, WarheadTypeClass_AnimList_SplashList, 0x6)
 {
 	GET(WarheadTypeClass* const, pThis, ESI);
-	auto pWHExt = WarheadTypeExt::ExtMap.Find(pThis);
+	auto pWHExt = WarheadTypeExtContainer::Instance.Find(pThis);
 
 	if (const auto Vec = pWHExt->SplashList.GetElements(RulesClass::Instance->SplashList))
 	{
@@ -134,7 +134,7 @@ DEFINE_HOOK(0x48A551, WarheadTypeClass_AnimList_SplashList, 0x6)
 DEFINE_HOOK(0x48A5BD, WarheadTypeClass_AnimList_PickRandom, 0x6)
 {
 	GET(WarheadTypeClass* const, pThis, ESI);
-	const auto& random = WarheadTypeExt::ExtMap.Find(pThis)->AnimList_PickRandom;
+	const auto& random = WarheadTypeExtContainer::Instance.Find(pThis)->AnimList_PickRandom;
 	return random.Get(pThis->EMEffect)
 		? 0x48A5C7 : 0x48A5EB;
 }
@@ -142,7 +142,7 @@ DEFINE_HOOK(0x48A5BD, WarheadTypeClass_AnimList_PickRandom, 0x6)
 DEFINE_HOOK(0x48A5B3, WarheadTypeClass_AnimList_CritAnim, 0x6)
 {
 	GET(WarheadTypeClass* const, pThis, ESI);
-	auto pWHExt = WarheadTypeExt::ExtMap.Find(pThis);
+	auto pWHExt = WarheadTypeExtContainer::Instance.Find(pThis);
 
 	if (pWHExt->HasCrit && !pWHExt->Crit_AnimList.empty() && !pWHExt->Crit_AnimOnAffectedTargets)
 	{
@@ -162,7 +162,7 @@ DEFINE_HOOK(0x4896EC, Explosion_Damage_DamageSelf, 0x6)
 	enum { SkipCheck = 0x489702 };
 
 	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
-	auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+	auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
 	return (pWHExt->AllowDamageOnSelf.isset() && pWHExt->AllowDamageOnSelf.Get()) ? SkipCheck : 0;
 }
 
@@ -176,7 +176,7 @@ DEFINE_HOOK(0x48A4F3, SelectDamageAnimation_NegativeZeroDamage, 0x6)
 	if (!warhead)
 		return NoAnim;
 
-	if (damage == 0 && !WarheadTypeExt::ExtMap.Find(warhead)->AnimList_ShowOnZeroDamage)
+	if (damage == 0 && !WarheadTypeExtContainer::Instance.Find(warhead)->AnimList_ShowOnZeroDamage)
 		return NoAnim;
 	else if (damage < 0)
 		damage = -damage;
@@ -192,7 +192,7 @@ DEFINE_HOOK(0x4891AF, GetTotalDamage_NegativeDamageModifiers, 0x6)
 
 	GET(WarheadTypeClass* const, pWarhead, EDI);
 
-	auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+	auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
 
 	if (pWHExt->ApplyModifiersOnNegativeDamage)
 		return ApplyModifiers;
@@ -205,7 +205,7 @@ DEFINE_HOOK(0x4891AF, GetTotalDamage_NegativeDamageModifiers, 0x6)
 //	GET_BASE(WarheadTypeClass*, pWH, 0xC);
 //	GET_STACK(int, damage, 0xE0 - 0xBC);
 //
-//	const int rocker = WarheadTypeExt::ExtMap.Find(pWH)->Rocker_Damage.Get(damage);
+//	const int rocker = WarheadTypeExtContainer::Instance.Find(pWH)->Rocker_Damage.Get(damage);
 //	_asm fild rocker;
 //
 //	return 0x489B4D;

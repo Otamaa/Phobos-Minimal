@@ -84,7 +84,7 @@ void MeteorTrajectory::OnAIPreDetonate() { }
 void MeteorTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition)
 {
 	auto const pBullet = this->AttachedTo;
-	pSpeed->Z += BulletTypeExt::GetAdjustedGravity(pBullet->Type);
+	pSpeed->Z += BulletTypeExtData::GetAdjustedGravity(pBullet->Type);
 }
 
 TrajectoryCheckReturnType MeteorTrajectory::OnAITargetCoordCheck(CoordStruct& coords)

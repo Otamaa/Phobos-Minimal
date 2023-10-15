@@ -196,9 +196,9 @@ double PhobosTrajectory::GetTrajectorySpeed() const
 	if (!pBullet->WeaponType)
 		return nResult;
 
-	auto const nWeaponnResult = WeaponTypeExt::ExtMap.Find(pBullet->WeaponType)->Trajectory_Speed.Get();
+	auto const nWeaponnResult = WeaponTypeExtContainer::Instance.Find(pBullet->WeaponType)->Trajectory_Speed.Get();
 
-	return BulletTypeExt::ExtMap.Find(pBullet->Type)->Trajectory_Speed.
+	return BulletTypeExtContainer::Instance.Find(pBullet->Type)->Trajectory_Speed.
 			Get(nWeaponnResult == 0.0 ? nResult : nWeaponnResult);
 }
 
@@ -271,12 +271,12 @@ bool PhobosTrajectory::UpdateType(BulletClass* pBullet, std::unique_ptr<PhobosTr
 
 void PhobosTrajectory::CreateInstance(BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity)
 {
-	auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pBullet->Type);
+	auto const pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pBullet->Type);
 
 	if (!pBulletTypeExt->TrajectoryType)
 		return;
 
-	auto const pBulletExt = BulletExt::ExtMap.Find(pBullet);
+	auto const pBulletExt = BulletExtContainer::Instance.Find(pBullet);
 
 	if (PhobosTrajectory::UpdateType(pBullet , pBulletExt->Trajectory ,pBulletTypeExt->TrajectoryType.get())) {
 		pBulletExt->Trajectory->OnUnlimbo(pCoord, pVelocity);
@@ -357,7 +357,7 @@ void PhobosTrajectory::SetInaccurate() const
 
 	if (pBullet->Type->Inaccurate)
 	{
-		auto const pTypeExt = BulletTypeExt::ExtMap.Find(pBullet->Type);
+		auto const pTypeExt = BulletTypeExtContainer::Instance.Find(pBullet->Type);
 
 		const int ballisticScatter = RulesClass::Instance()->BallisticScatter;
 		const int scatterMax = pTypeExt->BallisticScatter_Max.isset() ? (int)(pTypeExt->BallisticScatter_Max.Get()) : ballisticScatter;

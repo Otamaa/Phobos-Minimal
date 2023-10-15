@@ -332,7 +332,7 @@ bool Prereqs::ListContainsAny(BuildingTypeClass** items, int size, const Dynamic
 
 bool Prereqs::PrerequisitesListed(BuildingTypeClass** items, int size, TechnoTypeClass* pItem)
 {
-	for(auto& prereq : TechnoTypeExt::ExtMap.Find(pItem)->Prerequisites) {
+	for(auto& prereq : TechnoTypeExtContainer::Instance.Find(pItem)->Prerequisites) {
 		if (Prereqs::ListContainsAll(items , size,  prereq.data() , prereq.size() )) {
 			return true;
 		}

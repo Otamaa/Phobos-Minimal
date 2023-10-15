@@ -9,7 +9,7 @@ DEFINE_OVERRIDE_HOOK(0x6FD469, TechnoClass_FireEBolt, 9)
 	//GET(TechnoClass*, pThis, EDI);
 	GET_STACK(WeaponTypeClass*, pWeapon, STACK_OFFS(0x30, -0x8));
 
-	R->EAX(WeaponTypeExt::CreateBolt(pWeapon));
+	R->EAX(WeaponTypeExtData::CreateBolt(pWeapon));
 	R->ESI(0);
 
 	return 0x6FD480;
@@ -30,7 +30,7 @@ DEFINE_HOOK(0x6FD5FC, TechnoClass_CreateEbolt_UnnessesaryData, 0xA)
 
 namespace BoltTemp
 {
-	const WeaponTypeExt::ExtData* pType = nullptr;
+	const WeaponTypeExtData* pType = nullptr;
 }
 
 inline unsigned inline_02(ConvertClass* pConvert , int idx)
@@ -57,7 +57,7 @@ DEFINE_OVERRIDE_HOOK(0x4C1F33, EBolt_Draw_Colors, 7)
 	auto& data1 = boltColor1;
 	auto& data2 = boltColor2;
 	auto& data3 = boltColor3;
-	const auto& nMap = WeaponTypeExt::boltWeaponTypeExt;
+	const auto& nMap = WeaponTypeExtData::boltWeaponTypeExt;
 
 	const auto nFirst = FileSystem::PALETTE_PAL()->inline_02(nColorIdx);
 	const auto nSec = FileSystem::PALETTE_PAL()->inline_02(15);
@@ -87,7 +87,7 @@ DEFINE_OVERRIDE_HOOK(0x4C2951, EBolt_DTOR, 0x5)
 {
 	GET(EBolt* const, pBolt, ECX);
 
-	WeaponTypeExt::boltWeaponTypeExt.erase(pBolt);
+	WeaponTypeExtData::boltWeaponTypeExt.erase(pBolt);
 
 	return 0;
 }
@@ -160,7 +160,7 @@ DEFINE_OVERRIDE_HOOK(0x4C2AFF, EBolt_Fire_Particles, 5)
 
 	auto pParticleSys = RulesClass::Instance->DefaultSparkSystem;
 
-	if (auto pData = WeaponTypeExt::boltWeaponTypeExt.get_or_default(pThis))
+	if (auto pData = WeaponTypeExtData::boltWeaponTypeExt.get_or_default(pThis))
 	{
 		if (!pData->Bolt_ParticleSys_Enabled)
 		{

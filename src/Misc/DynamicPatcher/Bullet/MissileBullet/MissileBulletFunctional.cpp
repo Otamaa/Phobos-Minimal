@@ -7,7 +7,7 @@ void MissileBulletFunctional::Put(BulletClass* pThis)
 	if (!pThis || !pThis->Type)
 		return;
 
-	auto pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
+	auto pTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (!pTypeExt)
 		return;
@@ -21,7 +21,7 @@ void MissileBulletFunctional::Put(BulletClass* pThis)
 				pThis->Velocity.Z *= -1;
 			}
 
-			pThis->Velocity.Z += BulletTypeExt::GetAdjustedGravity(pThis->Type);
+			pThis->Velocity.Z += BulletTypeExtData::GetAdjustedGravity(pThis->Type);
 		}
 
 		if (pTypeExt->AnotherData.MissileData.ReverseVelocity)

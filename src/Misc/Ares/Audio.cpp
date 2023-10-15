@@ -318,7 +318,7 @@ bool NOINLINE PlayWavWrapper(int HouseTypeIdx , size_t SampleIdx)
 		return false;
 	}
 
-	const auto pExt = HouseTypeExt::ExtMap.Find(
+	const auto pExt = HouseTypeExtContainer::Instance.Find(
 		HouseTypeClass::Array->Items[HouseTypeIdx]
 	);
 
@@ -335,7 +335,7 @@ bool NOINLINE PlayWavWrapper(int HouseTypeIdx , size_t SampleIdx)
 		//	pExt->OwnerObject()->ID, SampleIdx , buffer.c_str());
 	} else {
 		Debug::FatalErrorAndExit("Country [%s] Have Invalid Taunt Name Format [%s]\n",
-		pExt->OwnerObject()->ID, pExt->TauntFile.c_str());
+		pExt->AttachedToObject->ID, pExt->TauntFile.c_str());
 	}
 
 	return pAudioStream->PlayWAV(buffer.c_str(), false);

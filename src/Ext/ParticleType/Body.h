@@ -8,54 +8,54 @@
 
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 
-class ParticleTypeExt
+class ParticleTypeExtData final
 {
 public:
-	class ExtData final : public Extension<ParticleTypeClass>
+	static constexpr size_t Canary = 0xEAEEEEEE;
+	using base_type = ParticleTypeClass;
+
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+public:
+
+	ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types { };
+	TrailsReader Trails { };
+	Valueable<bool> ReadjustZ { true };
+	Valueable<PaletteManager*> Palette { }; //CustomPalette::PaletteMode::Temperate
+	Valueable<double> DamageRange { 0.0 };
+	Valueable<bool> DeleteWhenReachWater { false };
+
+	std::array<Point2D, (size_t)FacingType::Count> WindMult {};
+
+	Valueable<PartialVector2D<int>> Gas_DriftSpeed { {2, -2} };
+	Valueable<bool> Transmogrify { false };
+	Valueable<int> TransmogrifyChance { -1 };
+	Valueable<UnitTypeClass*> TransmogrifyType { nullptr };
+	Valueable<OwnerHouseKind> TransmogrifyOwner { OwnerHouseKind::Neutral };
+
+	Valueable<bool> Fire_DamagingAnim { false };
+
+	ParticleTypeExtData(base_type* OwnerObject) noexcept
 	{
-	public:
-		static constexpr size_t Canary = 0xEAEEEEEE;
-		using base_type = ParticleTypeClass;
+		AttachedToObject = OwnerObject;
+	}
 
-	public:
+	~ParticleTypeExtData() noexcept = default;
 
-		ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types { };
-		TrailsReader Trails { };
-		Valueable<bool> ReadjustZ { true };
-		Valueable<PaletteManager*> Palette { }; //CustomPalette::PaletteMode::Temperate
-		Valueable<double> DamageRange { 0.0 };
-		Valueable<bool> DeleteWhenReachWater { false };
+	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	void Initialize();
 
-		std::array<Point2D, (size_t)FacingType::Count> WindMult {};
+private:
+	template <typename T>
+	void Serialize(T& Stm);
+};
 
-		Valueable<PartialVector2D<int>> Gas_DriftSpeed { {2, -2} };
-		Valueable<bool> Transmogrify { false };
-		Valueable<int> TransmogrifyChance { -1 };
-		Valueable<UnitTypeClass*> TransmogrifyType { nullptr };
-		Valueable<OwnerHouseKind> TransmogrifyOwner { OwnerHouseKind::Neutral };
+class ParticleTypeExtContainer final : public Container<ParticleTypeExtData>
+{
+public:
+	static ParticleTypeExtContainer Instance;
 
-		Valueable<bool> Fire_DamagingAnim { false };
-
-		ExtData(ParticleTypeClass* OwnerObject) : Extension<ParticleTypeClass>(OwnerObject)
-		{ }
-
-		virtual ~ExtData() override  = default;
-
-		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-		void Initialize();
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public Container<ParticleTypeExt::ExtData>
-	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(ParticleTypeExt::ExtData, "ParticleTypeClass");
-	};
-
-	static ExtContainer ExtMap;
+	CONSTEXPR_NOCOPY_CLASSB(ParticleTypeExtContainer, ParticleTypeExtData, "ParticleTypeClass");
 };

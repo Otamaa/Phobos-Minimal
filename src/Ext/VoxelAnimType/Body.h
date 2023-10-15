@@ -12,52 +12,52 @@
 
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 
-class VoxelAnimTypeExt
+class VoxelAnimTypeExtData final
 {
 public:
-	class ExtData final : public Extension<VoxelAnimTypeClass>
-	{
-	public:
-		static constexpr size_t Canary = 0xAAAEEEEE;
-		using base_type = VoxelAnimTypeClass;
+	static constexpr size_t Canary = 0xAAAEEEEE;
+	using base_type = VoxelAnimTypeClass;
 
-	public:
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+public:
 
-		ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types { };
-		Valueable<bool> Warhead_Detonate { false };
+	ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types { };
+	Valueable<bool> Warhead_Detonate { false };
 #pragma region Otamaa
-		NullableVector <AnimTypeClass*> SplashList { };//
-		Valueable<bool> SplashList_Pickrandom { true };
-		Nullable<AnimTypeClass*> WakeAnim { }; //
-		Valueable<bool> ExplodeOnWater { false };
-		Valueable<bool> Damage_DealtByOwner;
-		Nullable<WeaponTypeClass*> Weapon { };
-		Valueable<bool> ExpireDamage_ConsiderInvokerVet { false };
+	NullableVector <AnimTypeClass*> SplashList { };//
+	Valueable<bool> SplashList_Pickrandom { true };
+	Nullable<AnimTypeClass*> WakeAnim { }; //
+	Valueable<bool> ExplodeOnWater { false };
+	Valueable<bool> Damage_DealtByOwner;
+	Nullable<WeaponTypeClass*> Weapon { };
+	Valueable<bool> ExpireDamage_ConsiderInvokerVet { false };
 
-		TrailsReader Trails { };
+	TrailsReader Trails { };
 #pragma endregion
 
-		ExtData(VoxelAnimTypeClass* OwnerObject) : Extension<VoxelAnimTypeClass>(OwnerObject)
-		{ }
-
-		virtual ~ExtData() override = default;
-
-		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-		void Initialize();
-
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public Container<VoxelAnimTypeExt::ExtData>
+	VoxelAnimTypeExtData(base_type* OwnerObject) noexcept
 	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(VoxelAnimTypeExt::ExtData, "VoxelAnimTypeClass");
-	};
+		this->AttachedToObject = OwnerObject;
+	}
 
-	static ExtContainer ExtMap;
+	~VoxelAnimTypeExtData() noexcept = default;
+
+	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+	void Initialize();
+
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+
+private:
+	template <typename T>
+	void Serialize(T& Stm);
+};
+
+class VoxelAnimTypeExtContainer final : public Container<VoxelAnimTypeExtData>
+{
+public:
+	static VoxelAnimTypeExtContainer Instance;
+
+	CONSTEXPR_NOCOPY_CLASSB(VoxelAnimTypeExtContainer, VoxelAnimTypeExtData, "VoxelAnimTypeClass");
 };

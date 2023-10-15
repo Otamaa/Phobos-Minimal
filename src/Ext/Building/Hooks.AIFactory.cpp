@@ -3,11 +3,11 @@
 #include <Ext/House/Body.h>
 
 
-std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType, bool naval, HouseExt::ExtData* pData)
+std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType, bool naval, HouseExtData* pData)
 {
 	BuildingClass** currFactory = nullptr;
 	bool block = false;
-	auto pRules = RulesExt::Global();
+	auto pRules = RulesExtData::Instance();
 
 	switch (AbsType)
 	{
@@ -51,9 +51,9 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 	return { currFactory  , block ,AbsType };
 }
 
-void HouseExt::ExtData::UpdateVehicleProduction()
+void HouseExtData::UpdateVehicleProduction()
 {
-	auto pThis = this->Get();
+	auto pThis = this->AttachedToObject;
 	const auto AIDifficulty = static_cast<int>(pThis->GetAIDifficultyIndex());
 	bool skipGround = pThis->ProducingUnitTypeIndex != -1;
 	bool skipNaval = this->ProducingNavalUnitTypeIndex != -1;
@@ -61,10 +61,10 @@ void HouseExt::ExtData::UpdateVehicleProduction()
 	if ((skipGround && skipNaval) || (!skipGround && this->UpdateHarvesterProduction()))
 		return;
 
-	auto& creationFrames = HouseExt::AIProduction_CreationFrames;
-	auto& values = HouseExt::AIProduction_Values;
-	auto& bestChoices = HouseExt::AIProduction_BestChoices;
-	auto& bestChoicesNaval = HouseExt::AIProduction_BestChoicesNaval;
+	auto& creationFrames = HouseExtData::AIProduction_CreationFrames;
+	auto& values = HouseExtData::AIProduction_Values;
+	auto& bestChoices = HouseExtData::AIProduction_BestChoices;
+	auto& bestChoicesNaval = HouseExtData::AIProduction_BestChoicesNaval;
 
 	auto count = static_cast<size_t>(UnitTypeClass::Array->Count);
 	creationFrames.assign(count, 0x7FFFFFFF);
@@ -197,7 +197,7 @@ DEFINE_HOOK(0x4401BB, Factory_AI_PickWithFreeDocks, 0x6) //was C
 {
 	GET(BuildingClass*, pBuilding, ESI);
 
-	auto pRules = RulesExt::Global();
+	auto pRules = RulesExtData::Instance();
 
 	if (!pRules->ForbidParallelAIQueues_Aircraft.Get(!pRules->AllowParallelAIQueues))
 		return 0;
@@ -211,9 +211,9 @@ DEFINE_HOOK(0x4401BB, Factory_AI_PickWithFreeDocks, 0x6) //was C
 	if (pBuilding->Type->Factory == AbstractType::AircraftType)
 	{
 		if (pBuilding->Factory
-			&& !BuildingExt::HasFreeDocks(pBuilding))
+			&& !BuildingExtData::HasFreeDocks(pBuilding))
 		{
-			BuildingExt::UpdatePrimaryFactoryAI(pBuilding);
+			BuildingExtData::UpdatePrimaryFactoryAI(pBuilding);
 		}
 	}
 
@@ -224,7 +224,7 @@ DEFINE_HOOK(0x4401BB, Factory_AI_PickWithFreeDocks, 0x6) //was C
 //{
 //	GET(BuildingClass*, pThis, ESI);
 //
-//	auto pRules = RulesExt::Global();
+//	auto pRules = RulesExtData::Instance();
 //
 //	if (pThis->Type->Factory == AbstractType::AircraftType && pRules->ForbidParallelAIQueues_Aircraft.Get(!pRules->AllowParallelAIQueues))
 //		if(!pThis->Factory && !pThis->IsPrimaryFactory && pThis->Owner && pThis->Owner->IsControlledByHuman_())
@@ -236,21 +236,21 @@ DEFINE_HOOK(0x4401BB, Factory_AI_PickWithFreeDocks, 0x6) //was C
 DEFINE_OVERRIDE_HOOK(0x443CCA, BuildingClass_KickOutUnit_AircraftType_Phobos, 0xA)
 {
 	GET(HouseClass*, pHouse, EDX);
-	HouseExt::ExtMap.Find(pHouse)->Factory_AircraftType = nullptr;
+	HouseExtContainer::Instance.Find(pHouse)->Factory_AircraftType = nullptr;
 	return 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x44531F, BuildingClass_KickOutUnit_BuildingType_Phobos, 0xA)
 {
 	GET(HouseClass*, pHouse, EAX);
-	HouseExt::ExtMap.Find(pHouse)->Factory_BuildingType = nullptr;
+	HouseExtContainer::Instance.Find(pHouse)->Factory_BuildingType = nullptr;
 	return 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x444131, BuildingClass_KickOutUnit_InfantryType_Phobos, 0x6)
 {
 	GET(HouseClass*, pHouse, EAX);
-	HouseExt::ExtMap.Find(pHouse)->Factory_InfantryType = nullptr;
+	HouseExtContainer::Instance.Find(pHouse)->Factory_InfantryType = nullptr;
 	return 0;
 }
 
@@ -259,7 +259,7 @@ DEFINE_OVERRIDE_HOOK(0x444119, BuildingClass_KickOutUnit_UnitType_Phobos, 0x6)
 	GET(UnitClass*, pUnit, EDI);
 	GET(BuildingClass*, pFactory, ESI);
 
-	auto pHouseExt = HouseExt::ExtMap.Find(pFactory->Owner);
+	auto pHouseExt = HouseExtContainer::Instance.Find(pFactory->Owner);
 
 	if (pUnit->Type->Naval)
 		pHouseExt->Factory_NavyType = nullptr;
@@ -273,10 +273,10 @@ DEFINE_OVERRIDE_HOOK(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 {
 	GET(FactoryClass*, pFactory, ESI);
 
-	auto pRules = RulesExt::Global();
+	auto pRules = RulesExtData::Instance();
 
 	if(HouseClass* pOwner = pFactory->Owner) {
-		HouseExt::ExtData* pData = HouseExt::ExtMap.Find(pOwner);
+		HouseExtData* pData = HouseExtContainer::Instance.Find(pOwner);
 		TechnoClass* pTechno = pFactory->Object;
 
 	switch (pTechno->WhatAmI())
@@ -311,8 +311,8 @@ DEFINE_OVERRIDE_HOOK(0x4502F4, BuildingClass_Update_Factory, 0x6)
 	if (!pOwner || !pOwner->Production)
 		return 0x0;
 
-	auto pRules = RulesExt::Global();
-	HouseExt::ExtData* pData = HouseExt::ExtMap.Find(pOwner);
+	auto pRules = RulesExtData::Instance();
+	HouseExtData* pData = HouseExtContainer::Instance.Find(pOwner);
 	const auto&[curFactory , block , type] = GetFactory(pThis->Type->Factory, pThis->Type->Naval, pData);
 
 	if (!curFactory) {
@@ -351,7 +351,7 @@ DEFINE_OVERRIDE_HOOK(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
 	auto const pRules = RulesClass::Instance();
 	auto const AIDiff = static_cast<int>(pThis->GetAIDifficultyIndex());
 	auto const idxParentCountry = pThis->Type->FindParentCountryIndex();
-	auto const pHarvester = HouseExt::FindOwned(
+	auto const pHarvester = HouseExtData::FindOwned(
 		pThis, idxParentCountry, make_iterator(pRules->HarvesterUnit));
 
 	if (pHarvester)
@@ -359,7 +359,7 @@ DEFINE_OVERRIDE_HOOK(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
 		//Buildable harvester found
 		auto const harvesters = pThis->CountResourceGatherers;
 
-		auto maxHarvesters = HouseExt::FindBuildable(
+		auto maxHarvesters = HouseExtData::FindBuildable(
 			pThis, idxParentCountry, make_iterator(pRules->BuildRefinery))
 			? pRules->HarvestersPerRefinery[AIDiff] * pThis->CountResourceDestinations
 			: pRules->AISlaveMinerNumber[AIDiff];
@@ -379,7 +379,7 @@ DEFINE_OVERRIDE_HOOK(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
 
 		if (pThis->CountResourceGatherers < maxHarvesters)
 		{
-			auto const pRefinery = HouseExt::FindBuildable(
+			auto const pRefinery = HouseExtData::FindBuildable(
 				pThis, idxParentCountry, make_iterator(pRules->BuildRefinery));
 
 			if (pRefinery)
@@ -397,7 +397,7 @@ DEFINE_OVERRIDE_HOOK(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
 	GetTypeToProduce<UnitClass, UnitTypeClass>(pThis, pThis->ProducingUnitTypeIndex);
 
 #else
-	HouseExt::ExtMap.Find(pThis)->UpdateVehicleProduction();
+	HouseExtContainer::Instance.Find(pThis)->UpdateVehicleProduction();
 #endif
 	return ret();
 }
@@ -408,9 +408,9 @@ DEFINE_OVERRIDE_HOOK(0x4FEEE0, HouseClass_AI_InfantryProduction, 6)
 
 	if (pThis->ProducingInfantryTypeIndex == -1)
 	{
-		auto& CreationFrames = HouseExt::AIProduction_CreationFrames;
-		auto& Values = HouseExt::AIProduction_Values;
-		auto& BestChoices = HouseExt::AIProduction_BestChoices;
+		auto& CreationFrames = HouseExtData::AIProduction_CreationFrames;
+		auto& Values = HouseExtData::AIProduction_Values;
+		auto& BestChoices = HouseExtData::AIProduction_BestChoices;
 
 		auto const count = static_cast<unsigned int>(InfantryTypeClass::Array->Count);
 		CreationFrames.assign(count, 0x7FFFFFFF);
@@ -516,9 +516,9 @@ DEFINE_OVERRIDE_HOOK(0x4FF210, HouseClass_AI_AircraftProduction, 6)
 
 	if (pThis->ProducingAircraftTypeIndex == -1)
 	{
-		auto& CreationFrames = HouseExt::AIProduction_CreationFrames;
-		auto& Values = HouseExt::AIProduction_Values;
-		auto& BestChoices = HouseExt::AIProduction_BestChoices;
+		auto& CreationFrames = HouseExtData::AIProduction_CreationFrames;
+		auto& Values = HouseExtData::AIProduction_Values;
+		auto& BestChoices = HouseExtData::AIProduction_BestChoices;
 
 		auto const count = static_cast<unsigned int>(AircraftTypeClass::Array->Count);
 		CreationFrames.assign(count, 0x7FFFFFFF);
@@ -602,7 +602,7 @@ DEFINE_OVERRIDE_HOOK(0x4FF210, HouseClass_AI_AircraftProduction, 6)
 
 		const int Dockercount = std::count_if(pThis->Buildings.begin(), pThis->Buildings.end(), [](BuildingClass* pBld)
 		{
-			const auto pExt = BuildingExt::ExtMap.Find(pBld);
+			const auto pExt = BuildingExtContainer::Instance.Find(pBld);
 			if (pExt->AboutToChronoshift || pExt->LimboID >= 0)
 				return false;
 
@@ -617,7 +617,7 @@ DEFINE_OVERRIDE_HOOK(0x4FF210, HouseClass_AI_AircraftProduction, 6)
 				return false;
 
 			if (pBld->Type->Factory == AircraftTypeClass::AbsID) {
-				if (BuildingExt::HasFreeDocks(pBld))
+				if (BuildingExtData::HasFreeDocks(pBld))
 					return true;
 			}
 

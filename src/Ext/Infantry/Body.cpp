@@ -4,7 +4,7 @@
 // load / save
 
 template <typename T>
-void InfantryExt::ExtData::Serialize(T& Stm)
+void InfantryExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
@@ -17,7 +17,7 @@ void InfantryExt::ExtData::Serialize(T& Stm)
 // =============================
 // container
 
-InfantryExt::ExtContainer InfantryExt::ExtMap;
+InfantryExtContainer InfantryExtContainer::Instance;
 
 // =============================
 // container hooks
@@ -27,7 +27,7 @@ DEFINE_HOOK(0x517ACC, InfantryClass_CTOR, 0x6)
 	GET(InfantryClass*, pItem, ESI);
 
 	if(pItem->Type)
-		InfantryExt::ExtMap.Allocate(pItem);
+		InfantryExtContainer::Instance.Allocate(pItem);
 
 	return 0;
 }
@@ -35,7 +35,7 @@ DEFINE_HOOK(0x517ACC, InfantryClass_CTOR, 0x6)
 DEFINE_HOOK(0x517D90, InfantryClass_DTOR, 0x5)
 {
 	GET(InfantryClass* const, pItem, ECX);
-	InfantryExt::ExtMap.Remove(pItem);
+	InfantryExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 
@@ -44,7 +44,7 @@ DEFINE_HOOK(0x521960, InfantryClass_SaveLoad_Prefix, 0x6)
 {
 	GET_STACK(InfantryClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
-	InfantryExt::ExtMap.PrepareStream(pItem, pStm);
+	InfantryExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
 }
@@ -53,7 +53,7 @@ DEFINE_HOOK(0x521960, InfantryClass_SaveLoad_Prefix, 0x6)
 // After : 521AEA , 0x5
 DEFINE_HOOK(0x521AEA, InfantryClass_Load_Suffix, 0x5)
 {
-	InfantryExt::ExtMap.LoadStatic();
+	InfantryExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
@@ -62,7 +62,7 @@ DEFINE_HOOK(0x521B14, InfantryClass_Save_Suffix, 0x3)
 	GET(const HRESULT, nRes, EAX);
 
 	if (SUCCEEDED(nRes))
-		InfantryExt::ExtMap.SaveStatic();
+		InfantryExtContainer::Instance.SaveStatic();
 
 	return 0;
 }

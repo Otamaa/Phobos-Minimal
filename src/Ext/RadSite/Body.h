@@ -9,75 +9,78 @@
 #include <Ext/WeaponType/Body.h>
 
 class RadTypeClass;
-
-class RadSiteExt
+class RadSiteExtData final
 {
 public:
-	class ExtData final : public Extension<RadSiteClass>
+	static constexpr size_t Canary = 0x87654321;
+	using base_type = RadSiteClass;
+
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+public:
+	RadTypeClass* Type { nullptr };
+	WeaponTypeClass* Weapon { nullptr };
+	TechnoClass* TechOwner { nullptr };
+	HouseClass* HouseOwner { nullptr };
+	bool NoOwner { true };
+
+	RadSiteExtData(base_type* OwnerObject) noexcept
 	{
-	public:
-		static constexpr size_t Canary = 0x87654321;
-		using base_type = RadSiteClass;
+		AttachedToObject = OwnerObject;
+	}
 
-	public:
-		RadTypeClass* Type { nullptr };
-		WeaponTypeClass* Weapon { nullptr };
-		TechnoClass* TechOwner { nullptr };
-		HouseClass* HouseOwner { nullptr };
-		bool NoOwner { true };
+	~RadSiteExtData() noexcept = default;
 
-		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
-		{}
+	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 
-		virtual ~ExtData() override = default;
+	static bool InvalidateIgnorable(AbstractClass* ptr)
+	{
 
-		void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-
-		static bool InvalidateIgnorable(AbstractClass* ptr) {
-
-			switch (VTable::Get(ptr))
-			{
-			case BuildingClass::vtable:
-			case AircraftClass::vtable:
-			case UnitClass::vtable:
-			case InfantryClass::vtable:
-			case HouseClass::vtable:
-				return false;
-			}
-
-			return true;
+		switch (VTable::Get(ptr))
+		{
+		case BuildingClass::vtable:
+		case AircraftClass::vtable:
+		case UnitClass::vtable:
+		case InfantryClass::vtable:
+		case HouseClass::vtable:
+			return false;
 		}
 
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-		void CreateLight();
-		void Add(int amount);
-		void SetRadLevel(int amount);
-		const double GetRadLevelAt(CellStruct const& cell);
-		const double GetRadLevelAt(double distance);
-
-		enum DamagingState {
-			Dead , Ignore , Continue
-		};
-		const DamagingState ApplyRadiationDamage(TechnoClass* pTarget, int damage, int distance);
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public Container<RadSiteExt::ExtData>
-	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(RadSiteExt::ExtData, "RadSiteClass");
-	};
-
-	static ExtContainer ExtMap;
-
-	static void CreateInstance(CoordStruct const& nCoord, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt, TechnoClass* const pTech);
-	static CoordStruct __fastcall GetAltCoords_Wrapper(RadSiteClass* pThis, void* _) {
-		auto const pCell = MapClass::Instance->GetCellAt(pThis->BaseCell);
-		 return pCell->GetCoordsWithBridge();
+		return true;
 	}
+
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+
+	void CreateLight();
+	void Add(int amount);
+	void SetRadLevel(int amount);
+	const double GetRadLevelAt(CellStruct const& cell);
+	const double GetRadLevelAt(double distance);
+
+	enum DamagingState
+	{
+		Dead, Ignore, Continue
+	};
+
+	const DamagingState ApplyRadiationDamage(TechnoClass* pTarget, int damage, int distance);
+
+	static void CreateInstance(CoordStruct const& nCoord, int spread, int amount, WeaponTypeExtData* pWeaponExt, TechnoClass* const pTech);
+	static CoordStruct __fastcall GetAltCoords_Wrapper(RadSiteClass* pThis, void* _)
+	{
+		auto const pCell = MapClass::Instance->GetCellAt(pThis->BaseCell);
+		return pCell->GetCoordsWithBridge();
+	}
+
+private:
+	template <typename T>
+	void Serialize(T& Stm);
+};
+
+class RadSiteExtContainer final : public Container<RadSiteExtData>
+{
+public:
+	static RadSiteExtContainer Instance;
+
+	CONSTEXPR_NOCOPY_CLASSB(RadSiteExtContainer, RadSiteExtData, "RadSiteClass");
 };

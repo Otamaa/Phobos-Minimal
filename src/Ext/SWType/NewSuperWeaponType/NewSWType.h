@@ -41,7 +41,7 @@ enum class AresNewActionType :int
 
 struct TargetingData
 {
-	TargetingData(SWTypeExt::ExtData* pTypeExt, HouseClass* pOwner) noexcept : TypeExt { pTypeExt }
+	TargetingData(SWTypeExtData* pTypeExt, HouseClass* pOwner) noexcept : TypeExt { pTypeExt }
 		, Owner { pOwner }
 		, NeedsLaunchSite { false}
 		, NeedsDesignator { false }
@@ -71,7 +71,7 @@ struct TargetingData
 		CellStruct Center;
 	};
 
-	SWTypeExt::ExtData* TypeExt;
+	SWTypeExtData* TypeExt;
 	HouseClass* Owner;
 	bool NeedsLaunchSite;
 
@@ -118,53 +118,53 @@ public:
 
 	virtual std::vector<const char*> GetTypeString() const { return {}; }
 	virtual bool HandleThisType(SuperWeaponType type) const { return false; }
-	virtual SuperWeaponFlags Flags(const SWTypeExt::ExtData* pData) const { return SuperWeaponFlags::None; }
+	virtual SuperWeaponFlags Flags(const SWTypeExtData* pData) const { return SuperWeaponFlags::None; }
 
-	virtual bool CanFireAt(TargetingData const& data, CellStruct const& cell, bool manual) const;
+	virtual bool CanFireAt(const TargetingData* pTargeting, CellStruct const& cell, bool manual) const;
 
 	virtual bool Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer) = 0;
 	virtual void Deactivate(SuperClass* pThis, CellStruct cell, bool isPlayer) { }
 	virtual bool AbortFire(SuperClass* pSW, bool IsPlayer) { return false; }
 
-	virtual void Initialize(SWTypeExt::ExtData* pData) { }
-	virtual void LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI) { }
-	virtual bool IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const;
-	virtual std::pair<double, double> GetLaunchSiteRange(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding = nullptr) const;
+	virtual void Initialize(SWTypeExtData* pData) { }
+	virtual void LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI) { }
+	virtual bool IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const;
+	virtual std::pair<double, double> GetLaunchSiteRange(const SWTypeExtData* pData, BuildingClass* pBuilding = nullptr) const;
 
-	bool IsDesignator(const SWTypeExt::ExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const;
-	bool IsInhibitor(const SWTypeExt::ExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const;
-	bool IsAttractor(const SWTypeExt::ExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const;
-	bool IsSuppressor(const SWTypeExt::ExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const;
+	bool IsDesignator(const SWTypeExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const;
+	bool IsInhibitor(const SWTypeExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const;
+	bool IsAttractor(const SWTypeExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const;
+	bool IsSuppressor(const SWTypeExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const;
 
-	virtual SWRange GetRange(const SWTypeExt::ExtData* pData) const;
-	virtual WarheadTypeClass* GetWarhead(const SWTypeExt::ExtData* pData) const;
-	virtual AnimTypeClass* GetAnim(const SWTypeExt::ExtData* pData) const;
-	virtual int GetSound(const SWTypeExt::ExtData* pData) const;
-	virtual int GetDamage(const SWTypeExt::ExtData* pData) const;
+	virtual SWRange GetRange(const SWTypeExtData* pData) const;
+	virtual WarheadTypeClass* GetWarhead(const SWTypeExtData* pData) const;
+	virtual AnimTypeClass* GetAnim(const SWTypeExtData* pData) const;
+	virtual int GetSound(const SWTypeExtData* pData) const;
+	virtual int GetDamage(const SWTypeExtData* pData) const;
 
 	bool IsLaunchsiteAlive(BuildingClass* pBuilding) const;
-	bool IsSWTypeAttachedToThis(const SWTypeExt::ExtData* pData ,BuildingClass* pBuilding) const;
+	bool IsSWTypeAttachedToThis(const SWTypeExtData* pData ,BuildingClass* pBuilding) const;
 public:
 
-	bool HasDesignator(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords) const;
-	bool IsDesignatorEligible(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno) const;
-	bool HasInhibitor(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords) const;
-	bool IsInhibitorEligible(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno) const;
+	bool HasDesignator(const SWTypeExtData* pData, HouseClass* pOwner, const CellStruct& Coords) const;
+	bool IsDesignatorEligible(const SWTypeExtData* pData, HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno) const;
+	bool HasInhibitor(const SWTypeExtData* pData, HouseClass* pOwner, const CellStruct& Coords) const;
+	bool IsInhibitorEligible(const SWTypeExtData* pData, HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno) const;
 
-	bool HasAttractor(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords) const;
-	bool IsAttractorEligible(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno) const;
+	bool HasAttractor(const SWTypeExtData* pData, HouseClass* pOwner, const CellStruct& Coords) const;
+	bool IsAttractorEligible(const SWTypeExtData* pData, HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno) const;
 
-	bool HasSuppressor(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords) const;
-	bool IsSuppressorEligible(const SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno) const;
+	bool HasSuppressor(const SWTypeExtData* pData, HouseClass* pOwner, const CellStruct& Coords) const;
+	bool IsSuppressorEligible(const SWTypeExtData* pData, HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno) const;
 
-	bool IsLaunchSiteEligible(SWTypeExt::ExtData* pSWType, const CellStruct& Coords, BuildingClass* pBuilding, bool ignoreRange) const;
-	bool HasLaunchSite(SWTypeExt::ExtData* pSWType, HouseClass* pOwner, const CellStruct& Coords) const;
+	bool IsLaunchSiteEligible(SWTypeExtData* pSWType, const CellStruct& Coords, BuildingClass* pBuilding, bool ignoreRange) const;
+	bool HasLaunchSite(SWTypeExtData* pSWType, HouseClass* pOwner, const CellStruct& Coords) const;
 
-	std::unique_ptr<const TargetingData> GetTargetingData(SWTypeExt::ExtData* pData, HouseClass* pOwner) const;
-	bool CanFireAt(SWTypeExt::ExtData* pData, HouseClass* pOwner, const CellStruct& cell, bool manual) const;
+	std::unique_ptr<const TargetingData> GetTargetingData(SWTypeExtData* pData, HouseClass* pOwner) const;
+	bool CanFireAt(SWTypeExtData* pData, HouseClass* pOwner, const CellStruct& cell, bool manual) const;
 
 	TechnoClass* GetFirer(SuperClass* pSW, const CellStruct& Coords, bool ignoreRange) const;
-	bool CanHaveLauchSite(SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const;
+	bool CanHaveLauchSite(SWTypeExtData* pData, BuildingClass* pBuilding) const;
 
 public:
 	// static methods
@@ -174,7 +174,7 @@ public:
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 	static NewSWType* GetNthItem(SuperWeaponType i);
 	static SuperWeaponType GetHandledType(SuperWeaponType nType);
-	static NewSWType* GetNewSWType(const SWTypeExt::ExtData* pData);
+	static NewSWType* GetNewSWType(const SWTypeExtData* pData);
 	static NewSWType* GetNewSWType(const SuperClass* pSuper);
 	static SuperWeaponType FindFromTypeID(const char* pType);
 

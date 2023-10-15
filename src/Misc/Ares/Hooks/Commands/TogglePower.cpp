@@ -26,7 +26,7 @@ const wchar_t* TogglePowerCommandClass::GetUIDescription() const
 
 void TogglePowerCommandClass::Execute(WWKey dwUnk) const
 {
-	if (RulesExt::Global()->TogglePowerAllowed)
+	if (RulesExtData::Instance()->TogglePowerAllowed)
 	{
 		MapClass::Instance->SetTogglePowerMode(-1);
 	}

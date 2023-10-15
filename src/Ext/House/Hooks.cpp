@@ -37,7 +37,7 @@ DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 {
 	GET(HouseClass*, pThis, ECX);
 
-	const auto pHouseExt = HouseExt::ExtMap.Find(pThis);
+	const auto pHouseExt = HouseExtContainer::Instance.Find(pThis);
 
 	pHouseExt->PowerPlantEnhancerBuildings.clear();
 
@@ -54,7 +54,7 @@ DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 				continue;
 
 			if (pBld->TemporalTargetingMe
-				|| BuildingExt::ExtMap.Find(pBld)->AboutToChronoshift
+				|| BuildingExtContainer::Instance.Find(pBld)->AboutToChronoshift
 				|| pBld->IsBeingWarpedOut())
 				continue;
 
@@ -66,13 +66,13 @@ DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 				if (!PowerChecked)
 				{
 					HasPower = pBld->HasPower && !pBld->IsUnderEMP()
-						&& (TechnoExt::ExtMap.Find(pBld)->Is_Operated || TechnoExt_ExtData::IsOperated(pBld))
+						&& (TechnoExtContainer::Instance.Find(pBld)->Is_Operated || TechnoExt_ExtData::IsOperated(pBld))
 						;
 
 					PowerChecked = true;
 				}
 
-				const auto pExt = BuildingTypeExt::ExtMap.TryFind(pType);
+				const auto pExt = BuildingTypeExtContainer::Instance.TryFind(pType);
 
 				if(HasPower) {
 					if (pExt->PowerPlantEnhancer_Buildings.size() &&
@@ -94,7 +94,7 @@ DEFINE_HOOK(0x508CF2, HouseClass_UpdatePower_PowerOutput, 0x7)
 	GET(HouseClass*, pThis, ESI);
 	GET(BuildingClass*, pBld, EDI);
 
-	pThis->PowerOutput += BuildingTypeExt::GetEnhancedPower(pBld, pThis);
+	pThis->PowerOutput += BuildingTypeExtData::GetEnhancedPower(pBld, pThis);
 
 	return 0x508D07;
 }
@@ -120,7 +120,7 @@ DEFINE_HOOK(0x508CF2, HouseClass_UpdatePower_PowerOutput, 0x7)
 //	auto const pType = pThis->GetTechnoType();
 //
 //	if (pThis->InLimbo && !pType->Insignificant && !pType->DontScore) {
-//		HouseExt::ExtMap.Find(pThis->Owner)->RemoveFromLimboTracking(pType);
+//		HouseExtContainer::Instance.Find(pThis->Owner)->RemoveFromLimboTracking(pType);
 //	}
 //
 //	LimboTrackingTemp::IsBeingDeleted = true;
@@ -136,7 +136,7 @@ DEFINE_HOOK(0x6F6BC9, TechnoClass_Limbo_AddTracking, 0x6)
 	GET(TechnoClass* const, pThis, ESI);
 
 	if(pThis->IsAlive){
-		HouseExt::ExtMap.Find(pThis->Owner)->LimboTechno.push_back_unique(pThis);
+		HouseExtContainer::Instance.Find(pThis->Owner)->LimboTechno.push_back_unique(pThis);
 	}
 
 	return 0;
@@ -145,7 +145,7 @@ DEFINE_HOOK(0x6F6BC9, TechnoClass_Limbo_AddTracking, 0x6)
 DEFINE_HOOK(0x6F6D85, TechnoClass_Unlimbo_RemoveTracking, 0x6)
 {
 	GET(TechnoClass* const, pThis, ESI);
-	HouseExt::ExtMap.Find(pThis->Owner)->LimboTechno.remove(pThis);
+	HouseExtContainer::Instance.Find(pThis->Owner)->LimboTechno.remove(pThis);
 	return 0;
 }
 
@@ -155,15 +155,15 @@ DEFINE_HOOK(0x7015C9, TechnoClass_Captured_UpdateTracking, 0x6)
 	GET(HouseClass* const, pNewOwner, EBP);
 
 	auto const pType = pThis->GetTechnoType();
-	auto pOldOwnerExt = HouseExt::ExtMap.Find(pThis->Owner);
-	auto pNewOwnerExt = HouseExt::ExtMap.Find(pNewOwner);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-	/*auto pExt = TechnoExt::ExtMap.Find(pThis);*/
+	auto pOldOwnerExt = HouseExtContainer::Instance.Find(pThis->Owner);
+	auto pNewOwnerExt = HouseExtContainer::Instance.Find(pNewOwner);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	/*auto pExt = TechnoExtContainer::Instance.Find(pThis);*/
 
 	//this kind a dangerous
 	const KillMethod nMethod = pTypeExt->Death_Method.Get();
 	if (pTypeExt->Death_IfChangeOwnership && nMethod != KillMethod::None) {
-		TechnoExt::KillSelf(pThis, nMethod, pTypeExt->AutoDeath_VanishAnimation);
+		TechnoExtData::KillSelf(pThis, nMethod, pTypeExt->AutoDeath_VanishAnimation);
 	}
 
 	if (pThis->InLimbo) {
@@ -198,7 +198,7 @@ DEFINE_HOOK(0x7015C9, TechnoClass_Captured_UpdateTracking, 0x6)
 //			pTechno->InLimbo
 //			)
 //		{
-//			HouseExt::ExtMap.Find(pTechno->Owner)->AddToLimboTracking(pType);
+//			HouseExtContainer::Instance.Find(pTechno->Owner)->AddToLimboTracking(pType);
 //		}
 //	}
 //;

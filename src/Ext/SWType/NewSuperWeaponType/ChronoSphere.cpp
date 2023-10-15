@@ -5,7 +5,7 @@ bool SW_ChronoSphere::HandleThisType(SuperWeaponType type) const
 	return (type == SuperWeaponType::ChronoSphere);
 }
 
-SuperWeaponFlags SW_ChronoSphere::Flags(const SWTypeExt::ExtData* pData) const
+SuperWeaponFlags SW_ChronoSphere::Flags(const SWTypeExtData* pData) const
 {
 	return SuperWeaponFlags::NoAnim | SuperWeaponFlags::NoEVA | SuperWeaponFlags::NoMoney
 		| SuperWeaponFlags::NoEvent | SuperWeaponFlags::NoCleanup | SuperWeaponFlags::NoMessage
@@ -15,7 +15,7 @@ SuperWeaponFlags SW_ChronoSphere::Flags(const SWTypeExt::ExtData* pData) const
 bool SW_ChronoSphere::Activate(SuperClass* const pThis, const CellStruct& Coords, bool const IsPlayer)
 {
 	auto const pSW = pThis->Type;
-	auto const pData = SWTypeExt::ExtMap.Find(pSW);
+	auto const pData = SWTypeExtContainer::Instance.Find(pSW);
 
 	if (pThis->IsCharged)
 	{
@@ -32,7 +32,7 @@ bool SW_ChronoSphere::Activate(SuperClass* const pThis, const CellStruct& Coords
 		// and visibility for allies, too.
 		if (auto const pAnimType = GetAnim(pData))
 		{
-			SWTypeExt::CreateChronoAnim(pThis, coords, pAnimType);
+			SWTypeExtData::CreateChronoAnim(pThis, coords, pAnimType);
 		}
 
 		if (IsPlayer)
@@ -66,7 +66,7 @@ bool SW_ChronoSphere::Activate(SuperClass* const pThis, const CellStruct& Coords
 	return true;
 }
 
-void SW_ChronoSphere::Initialize(SWTypeExt::ExtData* pData)
+void SW_ChronoSphere::Initialize(SWTypeExtData* pData)
 {
 	pData->SW_AnimVisibility = AffectedHouse::Team;
 	pData->SW_AnimHeight = 5;
@@ -77,12 +77,12 @@ void SW_ChronoSphere::Initialize(SWTypeExt::ExtData* pData)
 
 	pData->SW_AffectsTarget = SuperWeaponTarget::Infantry | SuperWeaponTarget::Unit;
 	pData->CursorType = (int)MouseCursorType::Chronosphere;
-	pData->OwnerObject()->Action = Action::ChronoSphere;
+	pData->AttachedToObject->Action = Action::ChronoSphere;
 }
 
-void SW_ChronoSphere::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
+void SW_ChronoSphere::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
-	const char* section = pData->Get()->ID;
+	const char* section = pData->AttachedToObject->ID;
 
 	INI_EX exINI(pINI);
 
@@ -111,17 +111,17 @@ void SW_ChronoSphere::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->SW_AffectsTarget = (pData->SW_AffectsTarget | SuperWeaponTarget::Building);
 }
 
-AnimTypeClass* SW_ChronoSphere::GetAnim(const SWTypeExt::ExtData* pData) const
+AnimTypeClass* SW_ChronoSphere::GetAnim(const SWTypeExtData* pData) const
 {
 	return pData->SW_Anim.Get(RulesClass::Instance->ChronoPlacement);
 }
 
-SWRange SW_ChronoSphere::GetRange(const SWTypeExt::ExtData* pData) const
+SWRange SW_ChronoSphere::GetRange(const SWTypeExtData* pData) const
 {
 	return pData->SW_Range->empty() ? SWRange{3, 3} : pData->SW_Range;
 }
 
-bool SW_ChronoSphere::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+bool SW_ChronoSphere::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
 	if (!this->IsLaunchsiteAlive(pBuilding))
 		return false;

@@ -171,7 +171,7 @@ void StraightTrajectory::OnAIPreDetonate()
 
 	if (pCoords.DistanceFrom(pBullet->Location) <= type->SnapThreshold.Get(type->TargetSnapDistance.Get()))
 	{
-		BulletExt::ExtMap.Find(pBullet)->SnappedToTarget = true;
+		BulletExtContainer::Instance.Find(pBullet)->SnappedToTarget = true;
 		pBullet->SetLocation(pCoords);
 	}
 }
@@ -179,7 +179,7 @@ void StraightTrajectory::OnAIPreDetonate()
 void StraightTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition)
 {
 	auto const pBullet = this->AttachedTo;
-	auto const pTypeExt = BulletTypeExt::ExtMap.Find(pBullet->Type);
+	auto const pTypeExt = BulletTypeExtContainer::Instance.Find(pBullet->Type);
 	pSpeed->Z += pTypeExt->GetAdjustedGravity(); // We don't want to take the gravity into account
 }
 

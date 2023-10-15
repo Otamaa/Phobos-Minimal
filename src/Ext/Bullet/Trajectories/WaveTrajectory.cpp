@@ -100,7 +100,7 @@ bool WaveTrajectory::OnAI()
 	double closeEnough = pBullet->TargetCoords.DistanceFrom(pBullet->Location);
 	if (closeEnough < 100)
 	{
-		auto pBulletExt = BulletExt::ExtMap.Find(pBullet);
+		auto pBulletExt = BulletExtContainer::Instance.Find(pBullet);
 
 		pBulletExt->LaserTrails.clear();
 		pBulletExt->Trails.clear();
@@ -115,7 +115,7 @@ void WaveTrajectory::OnAIPreDetonate() { }
 void WaveTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition)
 {
 	auto const pBullet = this->AttachedTo;
-	pSpeed->Z += BulletTypeExt::GetAdjustedGravity(pBullet->Type); // We don't want to take the gravity into account
+	pSpeed->Z += BulletTypeExtData::GetAdjustedGravity(pBullet->Type); // We don't want to take the gravity into account
 }
 
 TrajectoryCheckReturnType WaveTrajectory::OnAITargetCoordCheck(CoordStruct& coords)

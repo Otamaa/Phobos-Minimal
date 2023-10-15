@@ -12,6 +12,7 @@
 class IsometricTileTypeExt
 {
 public:
+	/*
 	static int CurrentTileset;
 #ifdef IsoTilePalette
 
@@ -40,7 +41,7 @@ public:
 
 		virtual ~ExtData() override  = default;
 		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); } 
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	private:
@@ -83,4 +84,5 @@ public:
 	};
 
 	static ExtContainer ExtMap;
+	*/
 };

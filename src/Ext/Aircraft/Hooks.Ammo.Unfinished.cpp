@@ -27,7 +27,7 @@ int MissionAttack_Strafe(AircraftClass* pThis, bool CheckAmmo)
 				pThis->SetDestination(pTarget, true);
 		Execute_Firing:
 			auto weaponType = pThis->GetWeapon(weaponIndex)->WeaponType;
-			auto pWeaponTypeExt = WeaponTypeExt::ExtMap.Find(weaponType);
+			auto pWeaponTypeExt = WeaponTypeExtContainer::Instance.Find(weaponType);
 
 			if (weaponType->Burst > 0)
 			{
@@ -99,7 +99,7 @@ int Mission_Attack(AircraftClass* pThis)
 			{
 				if (pWeaponStr->WeaponType)
 				{
-					if (auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeaponStr->WeaponType))
+					if (auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeaponStr->WeaponType))
 					{
 						int fireCount = pThis->MissionStatus - 4;
 						if (fireCount > 1 && pWeaponExt->Strafing_Shots < fireCount)
@@ -638,7 +638,7 @@ DEFINE_HOOK_AGAIN(0x41879D, AircraftClass_Mi_Attack_Strafe, 0x6)
 DEFINE_HOOK(0x418ACA, AircraftClass_Mi_Attack_Strafe, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
-	auto pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	R->EAX(MissionAttack_Strafe(pThis, pExt->Aircraft_DecreaseAmmo.Get()));
 	return 0x4187B2;
 }
@@ -647,7 +647,7 @@ DEFINE_HOOK_AGAIN(0x4180BA, AircraftClass_Mi_Attack_SkipDecreasingAmmo, 0x6)
 DEFINE_HOOK(0x418050, AircraftClass_Mi_Attack_SkipDecreasingAmmo, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
-	auto pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	return !pExt->Aircraft_DecreaseAmmo.Get() ? 0x418056 :
 		0x0;
 }
@@ -655,7 +655,7 @@ DEFINE_HOOK(0x418050, AircraftClass_Mi_Attack_SkipDecreasingAmmo, 0x6)
 DEFINE_HOOK(0x4182BF, AircraftClass_Mi_Attack_StrafeTurn, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
-	auto pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	auto const pFly = static_cast<IFlyControl*>(pThis);
 	if (!pExt->Aircraft_DecreaseAmmo.Get() ||
 		!pFly->Is_Strafe())
@@ -672,7 +672,7 @@ DEFINE_HOOK(0x4182BF, AircraftClass_Mi_Attack_StrafeTurn, 0x6)
 DEFINE_HOOK(0x41839D, AircraftClass_Mi_Attack_StrafeFireError, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
-	auto pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	return !pExt->Aircraft_DecreaseAmmo.Get() ||
 		!pThis->Is_Strafe() ? 0x4183A7 : 0x4183DB;
 }

@@ -70,7 +70,7 @@ DEFINE_HOOK(0x641EE0, PreviewClass_ReadPreview, 0x6)
 DEFINE_HOOK(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 {
 	const auto pPlayer = HouseClass::CurrentPlayer();
-	if (HouseExt::IsObserverPlayer(pPlayer) || pPlayer->Defeated)
+	if (HouseExtData::IsObserverPlayer(pPlayer) || pPlayer->Defeated)
 		return 0x0;
 
 	const auto pSide = SideClass::Array->GetItemOrDefault(pPlayer->SideIndex);
@@ -80,14 +80,14 @@ DEFINE_HOOK(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 
 	//GET(CreditClass*, pThis, EBP);
 
-	const auto pSideExt = SideExt::ExtMap.Find(pSide);
+	const auto pSideExt = SideExtContainer::Instance.Find(pSide);
 
 	wchar_t counter[0x20];
 
 	 if (Phobos::UI::ShowHarvesterCounter)
 	 {
-	 	const auto nActive = HouseExt::ActiveHarvesterCount(pPlayer);
-	 	const auto nTotal = HouseExt::TotalHarvesterCount(pPlayer);
+	 	const auto nActive = HouseExtData::ActiveHarvesterCount(pPlayer);
+	 	const auto nTotal = HouseExtData::TotalHarvesterCount(pPlayer);
 	 	const auto nPercentage = nTotal == 0 ? 1.0 : (double)nActive / (double)nTotal;
 
 	 	const ColorStruct clrToolTip = nPercentage > Phobos::UI::HarvesterCounter_ConditionYellow
@@ -150,13 +150,13 @@ DEFINE_HOOK_AGAIN(0x716D13, Replace_XXICON_With_New, 0x7)   //TechnoTypeClass::L
 DEFINE_HOOK(0x715A4D, Replace_XXICON_With_New, 0x7)         //TechnoTypeClass::ReadINI
 {
 	char pFilename[0x20];
-	strcpy_s(pFilename, RulesExt::Global()->MissingCameo.data());
+	strcpy_s(pFilename, RulesExtData::Instance()->MissingCameo.data());
 	_strlwr_s(pFilename);
 
 	if (_stricmp(pFilename, GameStrings::XXICON_SHP())
 		&& strstr(pFilename, GameStrings::dot_SHP()))
 	{
-		if (const auto pFile = FileSystem::LoadFile(RulesExt::Global()->MissingCameo.data(), false))
+		if (const auto pFile = FileSystem::LoadFile(RulesExtData::Instance()->MissingCameo.data(), false))
 		{
 			R->EAX(pFile);
 			return R->Origin() + 0xC;
@@ -182,13 +182,13 @@ DEFINE_HOOK(0x6A8463, StripClass_OperatorLessThan_CameoPriority, 5)
 	GET_STACK(AbstractType const, rttiLeft, STACK_OFFS(0x1C, -0x4));
 	GET_STACK(AbstractType const, rttiRight, STACK_OFFS(0x1C, -0xC));
 
-	const auto pLeftTechnoExt = TechnoTypeExt::ExtMap.TryFind(pLeft);
-	const auto pRightTechnoExt = TechnoTypeExt::ExtMap.TryFind(pRight);
+	const auto pLeftTechnoExt = TechnoTypeExtContainer::Instance.TryFind(pLeft);
+	const auto pRightTechnoExt = TechnoTypeExtContainer::Instance.TryFind(pRight);
 
 	const auto pLeftSWExt = (rttiLeft == AbstractType::Special || rttiLeft == AbstractType::Super || rttiLeft == AbstractType::SuperWeaponType)
-		? SWTypeExt::ExtMap.TryFind(SuperWeaponTypeClass::Array->GetItemOrDefault(idxLeft)) : nullptr;
+		? SWTypeExtContainer::Instance.TryFind(SuperWeaponTypeClass::Array->GetItemOrDefault(idxLeft)) : nullptr;
 	const auto pRightSWExt = (rttiRight == AbstractType::Special || rttiRight == AbstractType::Super || rttiRight == AbstractType::SuperWeaponType)
-		? SWTypeExt::ExtMap.TryFind(SuperWeaponTypeClass::Array->GetItemOrDefault(idxRight)) : nullptr;
+		? SWTypeExtContainer::Instance.TryFind(SuperWeaponTypeClass::Array->GetItemOrDefault(idxRight)) : nullptr;
 
 	if ((pLeftTechnoExt || pLeftSWExt) && (pRightTechnoExt || pRightSWExt))
 	{
@@ -219,18 +219,18 @@ DEFINE_HOOK(0x683E41, ScenarioClass_Start_ShowBriefing, 0x6)
 	GET_STACK(bool, showBriefing, STACK_OFFSET(0xFC, -0xE9));
 
 	// Don't show briefing dialog for non-campaign games or on restarts etc.
-	if (!ScenarioExt::Global()->ShowBriefing || !showBriefing || !SessionClass::Instance->IsCampaign())
+	if (!ScenarioExtData::Instance()->ShowBriefing || !showBriefing || !SessionClass::Instance->IsCampaign())
 		return 0;
 
 	BriefingTemp::ShowBriefing = true;
 
-	int theme = ScenarioExt::Global()->BriefingTheme;
+	int theme = ScenarioExtData::Instance()->BriefingTheme;
 
 	if (theme == -1)
 	{
 		SideClass* pSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex);
 
-		if (const auto pSideExt = SideExt::ExtMap.Find(pSide))
+		if (const auto pSideExt = SideExtContainer::Instance.Find(pSide))
 			theme = pSideExt->BriefingTheme;
 	}
 
@@ -324,7 +324,7 @@ static void FC StripClass_Draw_GClockSHP(
 	auto const pPlayer = HouseClass::CurrentPlayer();
 
 	if(auto const pSide = SideClass::Array->GetItemOrDefault(pPlayer->SideIndex)) {
-		if(auto const pSideExt = SideExt::ExtMap.Find(pSide)) {
+		if(auto const pSideExt = SideExtContainer::Instance.Find(pSide)) {
 			SHP = pSideExt->GClock_Shape.Get(SHP);
 			Gclock_int = pSideExt->GClock_Transculency.Get(-1);
 			//Pal = pSideExt->GClock_Palette.GetOrDefaultConvert(Pal);
@@ -333,7 +333,7 @@ static void FC StripClass_Draw_GClockSHP(
 
 	if (auto const pSuper = GClockTemp::Super)
 	{
-		if (auto const pExt = SWTypeExt::ExtMap.Find(pSuper))
+		if (auto const pExt = SWTypeExtContainer::Instance.Find(pSuper))
 		{
 			SHP = pExt->GClock_Shape.Get(SHP);
 			Gclock_int = pExt->GClock_Transculency.Get(-1);
@@ -343,7 +343,7 @@ static void FC StripClass_Draw_GClockSHP(
 	}else
 	if (auto const pTechno = GClockTemp::Techno)
 	{
-		if (auto const pExt = TechnoTypeExt::ExtMap.Find(pTechno))
+		if (auto const pExt = TechnoTypeExtContainer::Instance.Find(pTechno))
 		{
 			SHP = pExt->GClock_Shape.Get(SHP);
 			Gclock_int = pExt->GClock_Transculency.Get(-1);

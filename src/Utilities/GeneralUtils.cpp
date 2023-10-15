@@ -66,7 +66,7 @@ void GeneralUtils::AdjacentCellsInRange(std::vector<CellStruct>& nCells, size_t 
 
 const double GeneralUtils::GetWarheadVersusArmor(WarheadTypeClass* pWH, Armor const ArmorType)
 {
-	const auto& verses = WarheadTypeExt::ExtMap.Find(pWH)->GetVerses(ArmorType);
+	const auto& verses = WarheadTypeExtContainer::Instance.Find(pWH)->GetVerses(ArmorType);
 	return verses.Verses;
 	//return double(MapClass::GetTotalDamage(100, pWH, ArmorType, 0)) / 100.0;
 }

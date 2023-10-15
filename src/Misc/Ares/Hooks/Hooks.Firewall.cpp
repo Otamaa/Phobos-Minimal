@@ -38,14 +38,14 @@ DEFINE_OVERRIDE_HOOK(0x445355, BuildingClass_KickOutUnit_Firewall, 6)
 DEFINE_OVERRIDE_HOOK(0x6D5455, TacticalClass_DrawPlacement_IsLInkable, 6)
 {
 	GET(BuildingTypeClass* const, pType, EAX);
-	return BuildingTypeExt::IsLinkable(pType) ?
+	return BuildingTypeExtData::IsLinkable(pType) ?
 		0x6D545Fu : 0x6D54A9u;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6D5A5C, TacticalClass_DrawPlacement_FireWall_IsLInkable, 6)
 {
 	GET(BuildingTypeClass* const, pType, EDX);
-	return BuildingTypeExt::IsLinkable(pType) ?
+	return BuildingTypeExtData::IsLinkable(pType) ?
 		0x6D5A66u : 0x6D5A75u;
 }
 
@@ -77,7 +77,7 @@ DEFINE_OVERRIDE_HOOK(0x5880A0, MapClass_FindFirstFirestorm, 6)
 
 	*pOutBuffer = CoordStruct::Empty;
 
-	if (HouseExt::IsAnyFirestormActive && *pStart != *pEnd)
+	if (HouseExtData::IsAnyFirestormActive && *pStart != *pEnd)
 	{
 		auto const start = CellClass::Coord2Cell(*pStart);
 		auto const end = CellClass::Coord2Cell(*pEnd);
@@ -103,7 +103,7 @@ DEFINE_OVERRIDE_HOOK(0x5880A0, MapClass_FindFirstFirestorm, 6)
 DEFINE_OVERRIDE_HOOK(0x483D94, CellClass_UpdatePassability, 6)
 {
 	GET(BuildingClass* const, pBuilding, ESI);
-	return BuildingTypeExt::ExtMap.Find(pBuilding->Type)->Firestorm_Wall ? 0x483D9E : 0x483DB0;
+	return BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->Firestorm_Wall ? 0x483D9E : 0x483DB0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x4423E7, BuildingClass_ReceiveDamage_FSW, 5)
@@ -113,7 +113,7 @@ DEFINE_OVERRIDE_HOOK(0x4423E7, BuildingClass_ReceiveDamage_FSW, 5)
 
 	if (FirewallFunctions::IsActiveFirestormWall(pThis , nullptr))
 	{
-		auto const pExt = RulesExt::Global();
+		auto const pExt = RulesExtData::Instance();
 		auto const& coefficient = pExt->DamageToFirestormDamageCoefficient;
 		auto const amount = static_cast<int>(*pDamage * coefficient);
 
@@ -152,7 +152,10 @@ DEFINE_OVERRIDE_HOOK(0x445DF4, BuildingClass_Remove_FirestormWall, 6)
 DEFINE_OVERRIDE_HOOK(0x440378, BuildingClass_Update_FirestormWall, 6)
 {
 	GET(BuildingClass* const, pThis, ESI);
-	FirewallFunctions::UpdateFirewall(pThis, false);
+
+	if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->Firestorm_Wall)
+		FirewallFunctions::UpdateFirewall(pThis, false);
+
 	return 0;
 }
 
@@ -166,7 +169,7 @@ DEFINE_OVERRIDE_HOOK(0x51BD4C, InfantryClass_Update_BuildingBelow, 6)
 		cannotPass = 0x51BD68
 	};
 
-	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 
 	if (pTypeExt->IsPassable)
 		return canPass;
@@ -190,7 +193,7 @@ DEFINE_OVERRIDE_HOOK(0x51C4C8, InfantryClass_IsCellOccupied, 6)
 		CheckFirestorm = 0x51C4D2
 	};
 
-	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 
 	if (pTypeExt->IsPassable)
 		return Ignore;
@@ -216,7 +219,7 @@ DEFINE_OVERRIDE_HOOK(0x73F7B0, UnitClass_IsCellOccupied, 6)
 		CheckFirestormActive = 0x73F7BA // check if the object owner has FirestromActive flag
 	};
 
-	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 
 	if (pTypeExt->IsPassable)
 		return Ignore;
@@ -233,7 +236,7 @@ DEFINE_OVERRIDE_HOOK(0x4DA53E, FootClass_Update_AresAddition, 6)
 
 	auto const pType = pThis->GetTechnoType();
 
-	if (HouseExt::IsAnyFirestormActive) {
+	if (HouseExtData::IsAnyFirestormActive) {
 		if (pThis->IsAlive && !pThis->InLimbo && !pThis->InOpenToppedTransport && !pType->IgnoresFirestorm) {
 			if (auto const pBld = pThis->GetCell()->GetBuilding()) {
 				if (FirewallFunctions::IsActiveFirestormWall(pBld, nullptr)) {
@@ -244,7 +247,7 @@ DEFINE_OVERRIDE_HOOK(0x4DA53E, FootClass_Update_AresAddition, 6)
 	}
 
 	// tiberium heal, as in Tiberian Sun, but customizable per Tiberium type
-	if (pThis->IsAlive && RulesExt::Global()->Tiberium_HealEnabled
+	if (pThis->IsAlive && RulesExtData::Instance()->Tiberium_HealEnabled
 		&& pThis->GetHeight() <= RulesClass::Instance->HoverHeight)
 	{
 		if (pType->TiberiumHeal || pThis->HasAbility(AbilityType::TiberiumHeal))
@@ -262,7 +265,7 @@ DEFINE_OVERRIDE_HOOK(0x4DA53E, FootClass_Update_AresAddition, 6)
 					int idxTib = pCell->GetContainedTiberiumIndex();
 					if (auto const pTib = TiberiumClass::Array->GetItemOrDefault(idxTib))
 					{
-						auto pExt = TiberiumExt::ExtMap.Find(pTib);
+						auto pExt = TiberiumExtExtContainer::Instance.Find(pTib);
 						delay = pExt->GetHealDelay();
 						health = pExt->GetHealStep(pThis);
 					}
@@ -319,20 +322,20 @@ DEFINE_OVERRIDE_HOOK(0x467B94, BulletClass_Update_Ranged, 7)
 	pThis->SetLocation(CrdNew);
 
 	// firestorm wall check
-	if (HouseExt::IsAnyFirestormActive && !pThis->Type->IgnoresFirestorm)
+	if (HouseExtData::IsAnyFirestormActive && !pThis->Type->IgnoresFirestorm)
 	{
 		auto const pCell = MapClass::Instance->GetCellAt(CrdNew);
 
 		if (auto const pBld = pCell->GetBuilding())
 		{
-			HouseClass* pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExt::ExtMap.Find(pThis)->Owner;
-			if (WarheadTypeExt::ExtMap.Find(RulesExt::Global()->FirestormWarhead)->CanAffectHouse(pBld->Owner, pOwner))
+			HouseClass* pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pThis)->Owner;
+			if (WarheadTypeExtContainer::Instance.Find(RulesExtData::Instance()->FirestormWarhead)->CanAffectHouse(pBld->Owner, pOwner))
 				pOwner =  nullptr; // clear the pointer if can affect the bullet owner
 
 			if (FirewallFunctions::IsActiveFirestormWall(pBld, pOwner))
 			{
 				FirewallFunctions::ImmolateVictim(pBld , pThis, false);
-				BulletExt::HandleBulletRemove(pThis, ScenarioClass::Instance->Random.RandomBool(), true);
+				BulletExtData::HandleBulletRemove(pThis, ScenarioClass::Instance->Random.RandomBool(), true);
 				return 0x467FBA;
 			}
 		}
@@ -347,7 +350,7 @@ DEFINE_OVERRIDE_HOOK(0x4688BD, BulletClass_SetMovement_Obstacle, 6)
 	GET(CoordStruct const* const, pLocation, EDI);
 	REF_STACK(CoordStruct const, dest, STACK_OFFS(0x54, 0x10));
 
-	auto const pBulletOwner = pThis->Owner ? pThis->Owner->Owner : BulletExt::ExtMap.Find(pThis)->Owner;
+	auto const pBulletOwner = pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pThis)->Owner;
 
 	// code must use pLocation because it has FlakScatter applied
 	auto crdFirestorm = MapClass::Instance->FindFirstFirestorm(
@@ -361,12 +364,12 @@ DEFINE_OVERRIDE_HOOK(0x4688BD, BulletClass_SetMovement_Obstacle, 6)
 		auto const pCell = MapClass::Instance->GetCellAt(crdFirestorm);
 		auto const pBld = pCell->GetBuilding();
 		FirewallFunctions::ImmolateVictim(pBld, pThis, false);
-		BulletExt::HandleBulletRemove(pThis, ScenarioClass::Instance->Random.RandomBool(), true);
+		BulletExtData::HandleBulletRemove(pThis, ScenarioClass::Instance->Random.RandomBool(), true);
 
 	}
 	else
 	{
-		auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
+		auto const pTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
 		auto const pCell = AresTrajectoryHelper::FindFirstObstacle(
 			*pLocation, dest, pThis->Owner, pThis->Target, pThis->Type,
 			pTypeExt, pBulletOwner);
@@ -385,7 +388,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF008, TechnoClass_Fire_FSW, 8)
 	REF_STACK(CoordStruct const, src, 0x44);
 	REF_STACK(CoordStruct const, tgt, 0x88);
 
-	if (!HouseExt::IsAnyFirestormActive) {
+	if (!HouseExtData::IsAnyFirestormActive) {
 		return 0;
 	}
 

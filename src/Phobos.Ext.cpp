@@ -317,22 +317,15 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 
 	PhobosGlobal::PointerGotInvalid(pInvalid, removed);
 	SWStateMachine::PointerGotInvalid(pInvalid, removed);
-	//TechnoExt::ExtMap.InvalidateMapPointers(pInvalid, removed);
-	//BulletExt::ExtMap.InvalidateMapPointers(pInvalid, removed);
-	//TeamExt::ExtMap.InvalidateMapPointers(pInvalid, removed);
-	//HouseExt::ExtMap.InvalidateMapPointers(pInvalid, removed);
-	//AnimExt::ExtMap.InvalidateMapPointers(pInvalid, removed);
-	//TerrainExt::ExtMap.InvalidateMapPointers(pInvalid, removed);
-	Process_InvalidatePtr<BulletExt>(pInvalid, removed);
-	Process_InvalidatePtr<SWTypeExt>(pInvalid, removed);
-	Process_InvalidatePtr<TActionExt>(pInvalid, removed);
+	Process_InvalidatePtr<SWTypeExtContainer>(pInvalid, removed);
+	//Process_InvalidatePtr<TActionExt>(pInvalid, removed);
 	return 0;
 }
 
 // Clear static data from respective classes
 DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 {
-	TechnoTypeExt::ExtMap.Clear();
+	TechnoTypeExtContainer::Instance.Clear();
 	PhobosGlobal::Clear();
 	SWStateMachine::Clear();
 	ArmorTypeClass::Clear();
@@ -345,20 +338,20 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	FlyingStrings::Clear();
 	PaletteManager::Clear();
 	RadTypeClass::Clear();
-	RulesExt::Clear();
-	ScenarioExt::Clear();
-	SWTypeExt::ExtMap.Clear();
-	SidebarExt::Clear();
+	RulesExtData::Clear();
+	ScenarioExtData::Clear();
+	SWTypeExtContainer::Instance.Clear();
+	SidebarExtData::Clear();
 	ShieldTypeClass::Clear();
-	TacticalExt::Clear();
+	//TacticalExt::Clear();
 	TrailType::Clear();
 	HoverTypeClass::Clear();
 	LaserTrailTypeClass::Clear();
-	TActionExt::ExtMap.Clear();
-	HouseExt::ExtMap.Clear();
+	//TActionExt::ExtMap.Clear();
+	HouseExtContainer::Instance.Clear();
 	TunnelTypeClass::Clear();
-	WeaponTypeExt::ExtMap.Clear();
-	WarheadTypeExt::ExtMap.Clear();
+	WeaponTypeExtContainer::Instance.Clear();
+	WarheadTypeExtContainer::Instance.Clear();
 	SuperWeaponSidebar::Clear();
 	FoggedObject::FoggedObjects.Clear();
 	GenericPrerequisite::Clear();
@@ -443,11 +436,10 @@ DEFINE_HOOK(0x67D32C, SaveGame_Phobos_Global, 0x5)
 		Process_Save<ArmorTypeClass>(pStm) &&
 		Process_Save<ImmunityTypeClass>(pStm) &&
 		Process_Save<ColorTypeClass>(pStm) &&
-		Process_Save<HouseExt>(pStm) &&
-		Process_Save<WeaponTypeExt>(pStm) &&
-		Process_Save<SWTypeExt>(pStm) &&
-		Process_Save<BuildingTypeExt>(pStm) &&
-		Process_Save<BulletExt>(pStm) &&
+		Process_Save<HouseExtContainer>(pStm) &&
+		Process_Save<WeaponTypeExtContainer>(pStm) &&
+		Process_Save<SWTypeExtContainer>(pStm) &&
+		Process_Save<BuildingTypeExtContainer>(pStm) &&
 		Process_Save<RadTypeClass>(pStm) &&
 		Process_Save<ShieldTypeClass>(pStm) &&
 		Process_Save<HoverTypeClass>(pStm) &&
@@ -482,11 +474,10 @@ DEFINE_HOOK(0x67E826, LoadGame_Phobos_Global, 0x6)
 		Process_Load<ArmorTypeClass>(pStm) &&
 		Process_Load<ImmunityTypeClass>(pStm) &&
 		Process_Load<ColorTypeClass>(pStm) &&
-		Process_Load<HouseExt>(pStm) &&
-		Process_Load<WeaponTypeExt>(pStm) &&
-		Process_Load<SWTypeExt>(pStm) &&
-		Process_Load<BuildingTypeExt>(pStm) &&
-		Process_Load<BulletExt>(pStm) &&
+		Process_Load<HouseExtContainer>(pStm) &&
+		Process_Load<WeaponTypeExtContainer>(pStm) &&
+		Process_Load<SWTypeExtContainer>(pStm) &&
+		Process_Load<BuildingTypeExtContainer>(pStm) &&
 		Process_Load<RadTypeClass>(pStm) &&
 		Process_Load<ShieldTypeClass>(pStm) &&
 		Process_Load<HoverTypeClass>(pStm) &&

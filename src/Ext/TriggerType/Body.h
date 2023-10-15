@@ -7,6 +7,7 @@ class TriggerClass;
 class TriggerTypeExt
 {
 public:
+/*
 	class ExtData final : public Extension<TriggerTypeClass>
 	{
 	public:
@@ -40,6 +41,7 @@ public:
 	};
 
 	static ExtContainer ExtMap;
-	static HouseClass* ResolveHouseParam(int const param, HouseClass* const pOwnerHouse);
+*/
 
+	static HouseClass* ResolveHouseParam(int const param, HouseClass* const pOwnerHouse);
 };

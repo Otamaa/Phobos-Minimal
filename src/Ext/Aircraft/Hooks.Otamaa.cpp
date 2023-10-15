@@ -34,7 +34,7 @@ DEFINE_HOOK(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
 	GET(AircraftClass*, pThis, EDI);
 	GET_BASE(int, nWeaponIdx, 0xC);
 
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	bool DropPassengers = pTypeExt->Paradrop_DropPassangers;
 
@@ -44,7 +44,7 @@ DEFINE_HOOK(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
 		{
 			if (pWewapons->WeaponType)
 			{
-				const auto pExt = WeaponTypeExt::ExtMap.Find(pWewapons->WeaponType);
+				const auto pExt = WeaponTypeExtContainer::Instance.Find(pWewapons->WeaponType);
 				if (pExt->KickOutPassenger.isset())
 					DropPassengers = pExt->KickOutPassenger; //#1151
 			}
@@ -80,7 +80,7 @@ DEFINE_HOOK(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
 				return 0x415F4D;
 
 			const auto pLocomotor = static_cast<FlyLocomotionClass*>(pThis->Locomotor.GetInterfacePtr());
-			const double currentSpeed = pThis->Type->Speed * pLocomotor->CurrentSpeed * TechnoExt::GetCurrentSpeedMultiplier(pThis);
+			const double currentSpeed = pThis->Type->Speed * pLocomotor->CurrentSpeed * TechnoExtData::GetCurrentSpeedMultiplier(pThis);
 
 			R->EAX(int(currentSpeed));
 			return 0x415F5C;
@@ -99,7 +99,7 @@ DEFINE_HOOK(0x415991, AircraftClass_Mission_Paradrop_Overfly_Radius, 0x6)
 	GET(AircraftClass* const, pThis, ESI);
 	GET(int, comparator, EAX);
 
-	const int nRadius = TechnoTypeExt::ExtMap.Find(pThis->Type)->ParadropOverflRadius.Get(RulesClass::Instance->ParadropRadius);
+	const int nRadius = TechnoTypeExtContainer::Instance.Find(pThis->Type)->ParadropOverflRadius.Get(RulesClass::Instance->ParadropRadius);
 	return comparator > nRadius ? ConditionMeet : ConditionFailed;
 }
 
@@ -110,7 +110,7 @@ DEFINE_HOOK(0x415934, AircraftClass_Mission_Paradrop_Approach_Radius, 0x6)
 	GET(AircraftClass* const, pThis, ESI);
 	GET(int, comparator, EAX);
 
-	const int nRadius = TechnoTypeExt::ExtMap.Find(pThis->Type)->ParadropRadius.Get(RulesClass::Instance->ParadropRadius);
+	const int nRadius = TechnoTypeExtContainer::Instance.Find(pThis->Type)->ParadropRadius.Get(RulesClass::Instance->ParadropRadius);
 	return  comparator <= nRadius ? ConditionMeet : ConditionFailed;
 }
 
@@ -120,7 +120,7 @@ DEFINE_HOOK(0x416545, AircraftClass_FireAt_AttackRangeSight_1, 0x7)
 	GET(RulesClass*, pRules, EAX);
 
 	R->Stack(STACK_OFFS(0x94, 0x48), R->ECX());
-	R->ECX(TechnoTypeExt::ExtMap.Find(pThis->Type)->AttackingAircraftSightRange.Get(pRules->AttackingAircraftSightRange));
+	R->ECX(TechnoTypeExtContainer::Instance.Find(pThis->Type)->AttackingAircraftSightRange.Get(pRules->AttackingAircraftSightRange));
 	return 0x41654C;
 }
 
@@ -130,7 +130,7 @@ DEFINE_HOOK(0x416580, AircraftClass_FireAt_AttackRangeSight_2, 0x7)
 	GET(RulesClass*, pRules, ECX);
 
 	R->Stack(STACK_OFFS(0x8C, 0x48), R->EDX());
-	R->EDX(TechnoTypeExt::ExtMap.Find(pThis->Type)->AttackingAircraftSightRange.Get(pRules->AttackingAircraftSightRange));
+	R->EDX(TechnoTypeExtContainer::Instance.Find(pThis->Type)->AttackingAircraftSightRange.Get(pRules->AttackingAircraftSightRange));
 	return 0x416587;
 }
 
@@ -138,7 +138,7 @@ DEFINE_HOOK(0x4156F1, AircraftClass_Mission_SpyplaneApproach_camerasound, 0x6)
 {
 	GET(RulesClass* const, pRules, EAX);
 	GET(AircraftClass* const, pThis, ESI);
-	R->ECX(TechnoTypeExt::ExtMap.Find(pThis->Type)->SpyplaneCameraSound.Get(pRules->SpyPlaneCamera));
+	R->ECX(TechnoTypeExtContainer::Instance.Find(pThis->Type)->SpyplaneCameraSound.Get(pRules->SpyPlaneCamera));
 	return 0x4156F7;
 }
 
@@ -183,7 +183,7 @@ DEFINE_HOOK(0x4183C3, AircraftClass_CurleyShuffle_A, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
 	GET(RulesClass*, pRules, ECX);
-	R->DL(TechnoTypeExt::ExtMap.Find(pThis->Type)->CurleyShuffle.Get(pRules->CurleyShuffle));
+	R->DL(TechnoTypeExtContainer::Instance.Find(pThis->Type)->CurleyShuffle.Get(pRules->CurleyShuffle));
 	return 0x4183C9;
 }
 
@@ -191,7 +191,7 @@ DEFINE_HOOK(0x418671, AircraftClass_CurleyShuffle_B, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
 	GET(RulesClass*, pRules, EDX);
-	R->AL(TechnoTypeExt::ExtMap.Find(pThis->Type)->CurleyShuffle.Get(pRules->CurleyShuffle));
+	R->AL(TechnoTypeExtContainer::Instance.Find(pThis->Type)->CurleyShuffle.Get(pRules->CurleyShuffle));
 	return 0x418677;
 }
 
@@ -199,7 +199,7 @@ DEFINE_HOOK(0x418733, AircraftClass_CurleyShuffle_C, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
 	GET(RulesClass*, pRules, EAX);
-	R->CL(TechnoTypeExt::ExtMap.Find(pThis->Type)->CurleyShuffle.Get(pRules->CurleyShuffle));
+	R->CL(TechnoTypeExtContainer::Instance.Find(pThis->Type)->CurleyShuffle.Get(pRules->CurleyShuffle));
 	return 0x418739;
 }
 
@@ -207,7 +207,7 @@ DEFINE_HOOK(0x418782, AircraftClass_CurleyShuffle_D, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
 	GET(RulesClass*, pRules, ECX);
-	R->DL(TechnoTypeExt::ExtMap.Find(pThis->Type)->CurleyShuffle.Get(pRules->CurleyShuffle));
+	R->DL(TechnoTypeExtContainer::Instance.Find(pThis->Type)->CurleyShuffle.Get(pRules->CurleyShuffle));
 	return 0x418788;
 }
 

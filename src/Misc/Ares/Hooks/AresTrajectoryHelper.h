@@ -28,7 +28,7 @@ private:
 public:
 	// gets whether collision checks are needed
 	static bool SubjectToAnything(
-		BulletTypeClass const* pType, BulletTypeExt::ExtData const* pTypeExt);
+		BulletTypeClass const* pType, BulletTypeExtData const* pTypeExt);
 
 	// gets the obstacle when moving from pCellBullet to crdCur
 	static CellClass* GetObstacle(
@@ -36,14 +36,14 @@ public:
 		AbstractClass const* pSource, AbstractClass const* pTarget,
 		CellClass const* pCellBullet, CoordStruct const& crdCur,
 		BulletTypeClass const* pType,
-		BulletTypeExt::ExtData const* pTypeExt, HouseClass const* pOwner);
+		BulletTypeExtData const* pTypeExt, HouseClass const* pOwner);
 
 	// gets the first obstacle when moving from crdSrc to crdTarget
 	static CellClass* FindFirstObstacle(
 		CoordStruct const& crdSrc, CoordStruct const& crdTarget,
 		AbstractClass const* pSource, AbstractClass const* pTarget,
 		BulletTypeClass const* pType,
-		BulletTypeExt::ExtData const* pTypeExt, HouseClass const* pOwner);
+		BulletTypeExtData const* pTypeExt, HouseClass const* pOwner);
 
 	// gets the first obstacle from crdSrc to crdTarget a weapon cannot destroy
 	static CellClass* FindFirstImpenetrableObstacle(

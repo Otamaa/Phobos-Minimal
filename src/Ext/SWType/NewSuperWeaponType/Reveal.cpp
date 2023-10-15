@@ -17,7 +17,7 @@ bool SW_Reveal::HandleThisType(SuperWeaponType type) const
 bool SW_Reveal::Activate(SuperClass* const pThis, const CellStruct& Coords, bool const IsPlayer)
 {
 	auto const pSW = pThis->Type;
-	auto const pData = SWTypeExt::ExtMap.Find(pSW);
+	auto const pData = SWTypeExtContainer::Instance.Find(pSW);
 
 	if (pThis->IsCharged)
 	{
@@ -31,9 +31,9 @@ bool SW_Reveal::Activate(SuperClass* const pThis, const CellStruct& Coords, bool
 void SW_Reveal::Deactivate(SuperClass* pThis, CellStruct cell, bool isPlayer)
 { }
 
-void SW_Reveal::Initialize(SWTypeExt::ExtData* pData)
+void SW_Reveal::Initialize(SWTypeExtData* pData)
 {
-	pData->OwnerObject()->Action = Action::PsychicReveal;
+	pData->AttachedToObject->Action = Action::PsychicReveal;
 	pData->SW_RadarEvent = false;
 
 	pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_PsychicRevealReady);
@@ -42,17 +42,17 @@ void SW_Reveal::Initialize(SWTypeExt::ExtData* pData)
 	pData->CursorType = int(MouseCursorType::PsychicReveal);
 }
 
-void SW_Reveal::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
+void SW_Reveal::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
-	pData->Get()->Action = (this->GetRange(pData).WidthOrRange < 0.0) ? Action::None : (Action)AresNewActionType::SuperWeaponAllowed;
+	pData->AttachedToObject->Action = (this->GetRange(pData).WidthOrRange < 0.0) ? Action::None : (Action)AresNewActionType::SuperWeaponAllowed;
 }
 
-int SW_Reveal::GetSound(const SWTypeExt::ExtData* pData) const
+int SW_Reveal::GetSound(const SWTypeExtData* pData) const
 {
 	return pData->SW_Sound.Get(RulesClass::Instance->PsychicRevealActivateSound);
 }
 
-bool SW_Reveal::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+bool SW_Reveal::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
 	if (!this->IsLaunchsiteAlive(pBuilding))
 		return false;
@@ -63,7 +63,7 @@ bool SW_Reveal::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBu
 	return this->IsSWTypeAttachedToThis(pData, pBuilding);
 }
 
-SWRange SW_Reveal::GetRange(const SWTypeExt::ExtData* pData) const
+SWRange SW_Reveal::GetRange(const SWTypeExtData* pData) const
 {
 	if (pData->SW_Range->empty())
 	{

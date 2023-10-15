@@ -12,7 +12,7 @@
 //	GET(BuildingClass*, pThis, ESI);
 //	GET(AnimClass*, pAnim, EBP);
 //
-//	auto const pAnimExt = AnimExt::ExtMap.Find(pAnim);
+//	auto const pAnimExt = AnimExtContainer::Instance.Find(pAnim);
 //	pAnimExt->ParentBuilding = pThis;
 //	pAnimExt->Invoker = pThis;
 //
@@ -25,8 +25,8 @@ DEFINE_HOOK(0x4232E2, AnimClass_DrawIt_AltPalette, 0x6)
 
 	GET(AnimClass*, pThis, ESI);
 
-	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
-	int schemeIndex = RulesExt::Global()->AnimRemapDefaultColorScheme;
+	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+	int schemeIndex = RulesExtData::Instance()->AnimRemapDefaultColorScheme;
 
 	if (((pTypeExt->CreateUnit && pTypeExt->CreateUnit_RemapAnim.Get(pTypeExt->RemapAnim)) || pTypeExt->RemapAnim) && pThis->Owner) {
 		schemeIndex = pThis->Owner->ColorSchemeIndex - 1;
@@ -45,7 +45,7 @@ DEFINE_HOOK(0x422CAB, AnimClass_DrawIt_XDrawOffset, 0x5)
 
 	if (pThis->Type)
 	{
-		pCoord->X += AnimTypeExt::ExtMap.Find(pThis->Type)->XDrawOffset;
+		pCoord->X += AnimTypeExtContainer::Instance.Find(pThis->Type)->XDrawOffset;
 	}
 
 	return 0;
@@ -58,7 +58,7 @@ DEFINE_HOOK(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x6)
 
 	if (pType && pType->HideIfNoOre)
 	{
-		int nThreshold = abs(AnimTypeExt::ExtMap.Find(pType)->HideIfNoOre_Threshold.Get());
+		int nThreshold = abs(AnimTypeExtContainer::Instance.Find(pType)->HideIfNoOre_Threshold.Get());
 		auto const pCell = pThis->GetCell();
 
 		pThis->Invisible = !pCell || pCell->GetContainedTiberiumValue() <= nThreshold;
@@ -70,7 +70,7 @@ DEFINE_HOOK(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x6)
 
 } //was 8
 
-//DEFINE_JUMP(VTABLE, 0x7E33CC, GET_OFFSET(AnimExt::GetLayer_patch));
+//DEFINE_JUMP(VTABLE, 0x7E33CC, GET_OFFSET(AnimExtData::GetLayer_patch));
 
 //DEFINE_HOOK(0x424CB0, AnimClass_InWhichLayer_Override, 0x6) //was 5
 //{
@@ -87,7 +87,7 @@ DEFINE_HOOK(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x6)
 //	if (pThis->Type) {
 //		if (pThis->OwnerObject) {
 //
-//			const auto pExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+//			const auto pExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 //
 //			if (!pExt->Layer_UseObjectLayer.isset() || !pThis->OwnerObject->IsAlive) {
 //				return RetLayerGround;
@@ -131,7 +131,7 @@ DEFINE_HOOK(0x424CB0, AnimClass_InWhichLayer_AttachedObjectLayer, 0x6)
 
 	GET(AnimClass*, pThis, ECX);
 
-	auto pExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	auto pExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (pThis->OwnerObject && pExt->Layer_UseObjectLayer.isset())
 	{
@@ -156,13 +156,13 @@ DEFINE_HOOK(0x424C3D, AnimClass_AttachTo_BuildingCoords, 0x6)
 
 	if (pThis->Type)
 	{
-		if (AnimTypeExt::ExtMap.Find(pThis->Type)
+		if (AnimTypeExtContainer::Instance.Find(pThis->Type)
 			->UseCenterCoordsIfAttached)
 		{
 			pObject->GetRenderCoords(pCoords);
 
 			//save original coords because centering it broke damage
-			AnimExt::ExtMap.Find(pThis)->BackupCoords = pObject->Location;
+			AnimExtContainer::Instance.Find(pThis)->BackupCoords = pObject->Location;
 
 			pCoords->X += 128;
 			pCoords->Y += 128;
@@ -180,8 +180,8 @@ DEFINE_HOOK(0x424807, AnimClass_AI_Next, 0x6) //was 8
 
 	if (pThis->Type)
 	{
-		const auto pExt = AnimExt::ExtMap.Find(pThis);
-		const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+		const auto pExt = AnimExtContainer::Instance.Find(pThis);
+		const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 
 		if (pExt->AttachedSystem && pExt->AttachedSystem->Type != pTypeExt->AttachedSystem.Get())
 			pExt->AttachedSystem.clear();
@@ -198,7 +198,7 @@ DEFINE_HOOK(0x424AEC, AnimClass_AI_SetMission, 0x6)
 	GET(AnimClass*, pThis, ESI);
 	GET(InfantryClass*, pInf, EDI);
 
-	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 
 	const Mission nMission = pTypeExt->MakeInfantry_Mission.Get(!pThis->Owner->IsControlledByHuman_() ? Mission::Hunt : Mission::Guard);
 	Debug::Log("Anim[%s] with MakeInf , setting Mission[%s] ! \n", pThis->Type->ID , MissionClass::MissionToString(nMission));

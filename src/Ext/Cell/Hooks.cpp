@@ -39,7 +39,7 @@ DEFINE_HOOK(0x6D7A46, TacticalClass_DrawPixelFX_Tiberium, 0x7)
 	bool bDraw = false;
 
 	if (const auto pTiberium = CellExt::GetTiberium(pCell)) {
-		if (TiberiumExt::ExtMap.Find(pTiberium)->EnablePixelFXAnim)
+		if (TiberiumExtExtContainer::Instance.Find(pTiberium)->EnablePixelFXAnim)
 			bDraw = pTiberium->Value;
 	}
 
@@ -56,7 +56,7 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8) // B
 	if (!pTiberium)
 		return 0x47FB86;
 
-	const auto pTibExt = TiberiumExt::ExtMap.Find(pTiberium);
+	const auto pTibExt = TiberiumExtExtContainer::Instance.Find(pTiberium);
 
 	if (!pTibExt) {
 		Debug::Log("CellClass_DrawOverlay_Tiberium TiberiumExt for [%s] is missing ! \n", pTiberium->ID);
@@ -109,7 +109,7 @@ DEFINE_HOOK(0x47F661, CellClass_DrawOverlay_Rubble_Shadow, 0x8)
 	if (!R->AL())
 		return 0x47F637;
 
-	auto const pBTypeExt = BuildingTypeExt::ExtMap.Find(pCell->Rubble);
+	auto const pBTypeExt = BuildingTypeExtContainer::Instance.Find(pCell->Rubble);
 
 	ConvertClass* pDecided = pCell->LightConvert;
 	if (const auto pCustom = pBTypeExt->RubblePalette) {
@@ -147,7 +147,7 @@ DEFINE_HOOK(0x47FADB, CellClass_DrawOverlay_Rubble, 0x5)
 	//if (!R->AL())
 	//	return 0x47FB86;
 
-	auto const pBTypeExt = BuildingTypeExt::ExtMap.Find(pRubble);
+	auto const pBTypeExt = BuildingTypeExtContainer::Instance.Find(pRubble);
 	ConvertClass* pDecided = pCell->LightConvert;
 	if (const auto pCustom = pBTypeExt->RubblePalette) {
 		pDecided = pCustom->GetConvert<PaletteManager::Mode::Temperate>();

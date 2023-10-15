@@ -3,7 +3,7 @@
 #include <Ext/TerrainType/Body.h>
 #include <Ext/Cell/Body.h>
 
-void TerrainExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
+void TerrainExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	if (this->LighSource.get() == ptr) {
 		this->LighSource.release();
@@ -14,11 +14,11 @@ void TerrainExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	}
 }
 
-void TerrainExt::ExtData::InitializeLightSource()
+void TerrainExtData::InitializeLightSource()
 {
-	if (!this->LighSource && this->Get()->Type)
+	if (!this->LighSource && this->AttachedToObject->Type)
 	{
-		auto const TypeData = TerrainTypeExt::ExtMap.Find(this->Get()->Type);
+		auto const TypeData = TerrainTypeExtContainer::Instance.Find(this->AttachedToObject->Type);
 
 		if (!TypeData->LightEnabled || !TypeData->LightIntensity.isset())
 			return;
@@ -29,7 +29,7 @@ void TerrainExt::ExtData::InitializeLightSource()
 			return;
 
 		auto Tint = TypeData->GetLightTint();
-		auto Coords = this->Get()->GetCoords();
+		auto Coords = this->AttachedAnim->GetCoords();
 
 		if (const auto light = GameCreate<LightSourceClass>(Coords, nVisibility, TypeData->GetLightIntensity(), Tint))
 		{
@@ -39,11 +39,11 @@ void TerrainExt::ExtData::InitializeLightSource()
 	}
 }
 
-void TerrainExt::ExtData::InitializeAnim()
+void TerrainExtData::InitializeAnim()
 {
-	if (!AttachedAnim && this->Get()->Type)
+	if (!AttachedAnim && this->AttachedToObject->Type)
 	{
-		auto const TypeData = TerrainTypeExt::ExtMap.Find(this->Get()->Type);
+		auto const TypeData = TerrainTypeExtContainer::Instance.Find(this->AttachedToObject->Type);
 
 		if (TypeData->AttachedAnim.empty())
 			return;
@@ -58,30 +58,30 @@ void TerrainExt::ExtData::InitializeAnim()
 
 		if (pAnimType)
 		{
-			auto const Coords = this->Get()->GetCoords();
+			auto const Coords = this->AttachedAnim->GetCoords();
 
 			AttachedAnim.reset(GameCreate<AnimClass>(pAnimType, Coords));
 		}
 	}
 }
 
-void TerrainExt::ExtData::ClearAnim()
+void TerrainExtData::ClearAnim()
 {
 	AttachedAnim.clear();
 }
 
 //called when it Dtor ed , for more optimal
-void TerrainExt::ExtData::ClearLightSource()
+void TerrainExtData::ClearLightSource()
 {
 	LighSource.clear();
 }
 
-void TerrainExt::Unlimbo(TerrainClass* pThis, CoordStruct* pCoord)
+void TerrainExtData::Unlimbo(TerrainClass* pThis, CoordStruct* pCoord)
 {
 	if (!pThis || !pThis->Type)
 		return;
 
-	auto const TerrainExt = TerrainExt::ExtMap.FindOrAllocate(pThis);
+	auto const TerrainExt = TerrainExtContainer::Instance.FindOrAllocate(pThis);
 
 	//if (auto const CellExt = CellExt::ExtMap.Find<true>(Map[*pCoord]))
 	//{
@@ -99,12 +99,12 @@ void TerrainExt::Unlimbo(TerrainClass* pThis, CoordStruct* pCoord)
 
 }
 
-void TerrainExt::CleanUp(TerrainClass* pThis)
+void TerrainExtData::CleanUp(TerrainClass* pThis)
 {
 	if (!pThis)
 		return;
 
-	if(auto const TerrainExt = TerrainExt::ExtMap.Find(pThis)) {
+	if(auto const TerrainExt = TerrainExtContainer::Instance.Find(pThis)) {
 		TerrainExt->ClearLightSource();
 		TerrainExt->ClearAnim();
 	}
@@ -113,7 +113,7 @@ void TerrainExt::CleanUp(TerrainClass* pThis)
 // =============================
 // load / save
 template <typename T>
-void TerrainExt::ExtData::Serialize(T& Stm)
+void TerrainExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
@@ -124,7 +124,7 @@ void TerrainExt::ExtData::Serialize(T& Stm)
 
 // =============================
 // container
-TerrainExt::ExtContainer TerrainExt::ExtMap;
+TerrainExtContainer TerrainExtContainer::Instance;
 
 // container hooks
 #include <Notifications.h>
@@ -135,7 +135,7 @@ DEFINE_JUMP(LJMP, 0x71BC31 , 0x71BC86);
 DEFINE_HOOK(0x71BE74, TerrainClass_CTOR, 0x5)
 {
 	GET(TerrainClass*, pItem, ESI);
-	TerrainExt::ExtMap.Allocate(pItem);
+	TerrainExtContainer::Instance.Allocate(pItem);
 	//PointerExpiredNotification::NotifyInvalidObject->Add(pItem);
 	return 0;
 }
@@ -145,7 +145,7 @@ DEFINE_HOOK(0x71BCA5, TerrainClass_CTOR_MoveAndAllocate, 0x5)
 	GET(TerrainClass*, pItem, ESI);
 	GET_STACK(CellStruct*, pCoord, 0x24);
 
-	TerrainExt::ExtMap.FindOrAllocate(pItem);
+	TerrainExtContainer::Instance.FindOrAllocate(pItem);
 
 	if (pCoord->IsValid()) {
 		//vtable may not instantiated
@@ -169,9 +169,9 @@ DEFINE_HOOK(0x71B824, TerrainClass_DTOR, 0x5)
 			pItem->AnnounceExpiredPointer();
 	}
 
-	if(auto pExt = TerrainExt::ExtMap.TryFind(pItem)) {
+	if(auto pExt = TerrainExtContainer::Instance.TryFind(pItem)) {
 		delete pExt;
-		TerrainExt::ExtMap.ClearExtAttribute(pItem);
+		TerrainExtContainer::Instance.ClearExtAttribute(pItem);
 		//PointerExpiredNotification::NotifyInvalidObject->Remove(pItem);
 	}
 
@@ -184,20 +184,20 @@ DEFINE_HOOK(0x71CF30, TerrainClass_SaveLoad_Prefix, 0x8)
 	GET_STACK(TerrainClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 
-	TerrainExt::ExtMap.PrepareStream(pItem, pStm);
+	TerrainExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
 }
 
 DEFINE_HOOK(0x71CEAC, TerrainClass_Load_Suffix, 0x9)
 {
-	TerrainExt::ExtMap.LoadStatic();
+	TerrainExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
 DEFINE_HOOK(0x71CF44, TerrainClass_Save_Suffix, 0x5)
 {
-	TerrainExt::ExtMap.SaveStatic();
+	TerrainExtContainer::Instance.SaveStatic();
 	return 0;
 }
 
@@ -208,7 +208,7 @@ DEFINE_HOOK(0x71CF44, TerrainClass_Save_Suffix, 0x5)
 //	GET_STACK(bool, bRemoved, 0x8);
 //
 //	pThis->ObjectClass::PointerExpired(pObj, bRemoved);
-//	TerrainExt::ExtMap.InvalidatePointerFor(pThis, pObj, bRemoved);
+//	TerrainExtContainer::Instance.InvalidatePointerFor(pThis, pObj, bRemoved);
 //
 //	if (pThis->Type == pObj)
 //		pThis->Type = nullptr;
@@ -218,7 +218,7 @@ DEFINE_HOOK(0x71CF44, TerrainClass_Save_Suffix, 0x5)
 
 void __fastcall TerrainClass_Detach_Wrapper(TerrainClass* pThis, DWORD, AbstractClass* target, bool all)
 {
-	TerrainExt::ExtMap.InvalidatePointerFor(pThis, target, all);
+	TerrainExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
 	pThis->TerrainClass::PointerExpired(target, all);
 }
 DEFINE_JUMP(VTABLE, 0x7F5254, GET_OFFSET(TerrainClass_Detach_Wrapper));

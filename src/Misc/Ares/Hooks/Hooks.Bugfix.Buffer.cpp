@@ -77,19 +77,19 @@ DEFINE_OVERRIDE_HOOK(0x772462, WeaponTypeClass_LoadFromINI_ListLength, 0x9)
 }
 
 // == WarheadType ==
-DEFINE_OVERRIDE_HOOK(0x75D660, WarheadTypeClass_LoadFromINI_ListLength, 9)
-{
-	GET(WarheadTypeClass*, pThis, ESI);
-	GET(const char*, pSection, EBP);
-	GET(CCINIClass*, pINI, EDI);
+// DEFINE_OVERRIDE_HOOK(0x75D660, WarheadTypeClass_LoadFromINI_ListLength, 9)
+// {
+// 	GET(WarheadTypeClass*, pThis, ESI);
+// 	GET(const char*, pSection, EBP);
+// 	GET(CCINIClass*, pINI, EDI);
 
-	INI_EX exINI(pINI);
-	detail::ParseVector<AnimTypeClass*, true>(pThis->AnimList, exINI, pSection, GameStrings::AnimList, "Expect valid AnimType");
-	detail::ParseVector(pThis->DebrisMaximums, exINI, pSection, GameStrings::DebrisMaximums, "Expect valid number");
-	detail::ParseVector<VoxelAnimTypeClass*>(pThis->DebrisTypes, exINI, pSection, GameStrings::DebrisTypes, "Expect valid VoxelAnimType");
+// 	INI_EX exINI(pINI);
+// 	detail::ParseVector<AnimTypeClass*, true>(pThis->AnimList, exINI, pSection, GameStrings::AnimList, "Expect valid AnimType");
+// 	detail::ParseVector(pThis->DebrisMaximums, exINI, pSection, GameStrings::DebrisMaximums, "Expect valid number");
+// 	detail::ParseVector<VoxelAnimTypeClass*>(pThis->DebrisTypes, exINI, pSection, GameStrings::DebrisTypes, "Expect valid VoxelAnimType");
 
-	return 0x75D75D;
-}
+// 	return 0x75D75D;
+// }
 
 DEFINE_OVERRIDE_HOOK(0x6A9348, StripClass_GetTip_FixLength, 9)
 {

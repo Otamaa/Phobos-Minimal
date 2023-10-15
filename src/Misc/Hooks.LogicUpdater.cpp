@@ -36,7 +36,7 @@ DEFINE_HOOK(0x728F74, TunnelLocomotionClass_Process_KillAnims, 0x5)
 
 	const auto pLoco = static_cast<TunnelLocomotionClass*>(pThis);
 
-	if (const auto pShieldData = TechnoExt::ExtMap.Find(pLoco->LinkedTo)->GetShield())
+	if (const auto pShieldData = TechnoExtContainer::Instance.Find(pLoco->LinkedTo)->GetShield())
 	{
 		pShieldData->SetAnimationVisibility(false);
 	}
@@ -52,7 +52,7 @@ DEFINE_HOOK(0x728E5F, TunnelLocomotionClass_Process_RestoreAnims, 0x7)
 
 	if (pLoco->State == TunnelLocomotionClass::State::PRE_DIG_OUT)
 	{
-		if (const auto pShieldData = TechnoExt::ExtMap.Find(pLoco->LinkedTo)->GetShield())
+		if (const auto pShieldData = TechnoExtContainer::Instance.Find(pLoco->LinkedTo)->GetShield())
 			pShieldData->SetAnimationVisibility(true);
 	}
 
@@ -61,7 +61,7 @@ DEFINE_HOOK(0x728E5F, TunnelLocomotionClass_Process_RestoreAnims, 0x7)
 
 void UpdateWebbed(FootClass* pThis)
 {
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	if (!pExt->IsWebbed)
 		return;
@@ -75,7 +75,7 @@ void UpdateWebbed(FootClass* pThis)
 				pExt->WebbedAnim.clear();
 			}
 
-			TechnoExt::RestoreLastTargetAndMissionAfterWebbed(pInf);
+			TechnoExtData::RestoreLastTargetAndMissionAfterWebbed(pInf);
 		}
 	}
 }
@@ -95,12 +95,12 @@ DEFINE_OVERRIDE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 
 	//type may already change ,..
 	auto const pType = pThis->GetTechnoType();
-	auto const pExt = TechnoExt::ExtMap.Find(pThis);
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto IsBuilding = pThis->WhatAmI() == BuildingClass::AbsID;
 	bool IsInLimboDelivered = false;
 
 	if(IsBuilding) {
-		IsInLimboDelivered = BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->LimboID >= 0;
+		IsInLimboDelivered = BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis))->LimboID >= 0;
 	}
 
 	const auto nFootMapCoords = pThis->InlineMapCoords();
@@ -108,7 +108,7 @@ DEFINE_OVERRIDE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	if (pThis->Location == CoordStruct::Empty || nFootMapCoords == CellStruct::Empty) {
 		if (!pType->Spawned && !IsInLimboDelivered) {
 			Debug::Log("Techno[%x : %s] With Invalid Location ! , Removing ! \n", pThis, pThis->get_ID());
-			TechnoExt::HandleRemove(pThis, nullptr, false, false);
+			TechnoExtData::HandleRemove(pThis, nullptr, false, false);
 			return retDead;
 		}
 	}
@@ -153,7 +153,7 @@ DEFINE_HOOK_AGAIN(0x703789, TechnoClass_CloakUpdateMCAnim, 0x6) // TechnoClass_D
 DEFINE_HOOK(0x6FB9D7, TechnoClass_CloakUpdateMCAnim, 0x6)       // TechnoClass_Cloaking_AI
 {
 	GET(TechnoClass*, pThis, ESI);
-	TechnoExt::ExtMap.Find(pThis)->UpdateMindControlAnim();
+	TechnoExtContainer::Instance.Find(pThis)->UpdateMindControlAnim();
 	return 0;
 }
 
@@ -161,7 +161,7 @@ DEFINE_HOOK_AGAIN(0x7363B5, TechnoClass_AI_Tunnel, 0x6) // Unit
 DEFINE_HOOK(0x51BAC7, TechnoClass_AI_Tunnel, 0x6) // Inf
 {
 	GET(TechnoClass*, pThis, ESI);
-	TechnoExt::ExtMap.Find(pThis)->UpdateOnTunnelEnter();
+	TechnoExtContainer::Instance.Find(pThis)->UpdateOnTunnelEnter();
 	return 0x0;
 }
 
@@ -172,9 +172,9 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 	pThis->UpdateIronCurtainTimer();
 	pThis->UpdateAirstrikeTimer();
 
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
 
 	PassengersFunctional::AI(pThis);
 	SpawnSupportFunctional::AI(pThis);
@@ -202,8 +202,8 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
 {
 	GET(AircraftClass*, pThis, ESI);
 
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
 
 	pExt->UpdateAircraftOpentopped();
 	AircraftPutDataFunctional::AI(pExt, pTypeExt);
@@ -219,7 +219,7 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 	GET(FootClass*, pThis, ESI);
 	GET8(bool, IsMovingNow, AL);
 
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	 DriveDataFunctional::AI(pExt);
 	 UpdateWebbed(pThis);
@@ -248,7 +248,7 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Add, 0x8) //0
 		if (pTarget->IsMouseHovering)
 			pTarget->IsMouseHovering = false;
 
-		auto const pTargetExt = TechnoExt::ExtMap.Find(pTarget);
+		auto const pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
 
 		if (const auto pShieldData = pTargetExt->GetShield())
 		{
@@ -261,7 +261,7 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Add, 0x8) //0
 
 		if (auto pBldTarget = specific_cast<BuildingClass*>(pTarget))
 		{
-			auto pExt = BuildingExt::ExtMap.Find(pBldTarget);
+			auto pExt = BuildingExtContainer::Instance.Find(pBldTarget);
 
 			std::array<std::pair<BuildingTypeClass*, CDTimerClass*>, 4u> Timers
 			{ {
@@ -306,8 +306,8 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Add, 0x8) //0
 //{
 //	GET(UnitClass*, pThis, ESI);
 //
-//	//const auto pExt = TechnoExt::ExtMap.Find(pThis);
-//	//const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+//	//const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+//	//const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 //
 //	//JJFacingFunctional::AI(pExt, pTypeExt);
 //
@@ -320,12 +320,12 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Add, 0x8) //0
 //{
 //	GET(FootClass*, pThis, ESI);
 //
-//	auto pExt = TechnoExt::ExtMap.Find(pThis);
+//	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 //
 //	if (pThis->SpawnOwner && !pExt->IsMissisleSpawn)
 //	{
 //		auto pSpawnTechnoType = pThis->SpawnOwner->GetTechnoType();
-//		auto pSpawnTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pSpawnTechnoType);
+//		auto pSpawnTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pSpawnTechnoType);
 //
 //		if (const auto pTargetTech = abstract_cast<TechnoClass*>(pThis->Target))
 //		{

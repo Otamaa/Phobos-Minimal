@@ -19,7 +19,7 @@ DEFINE_OVERRIDE_HOOK(0x6FD64A, TechnoClass_FireRadBeam1, 6)
 		Rad->Color = RulesClass::Instance->RadColor;
 	}
 
-	TechnoExt::ExtMap.Find(Techno)->idxSlot_Beam = idxWeapon;
+	TechnoExtContainer::Instance.Find(Techno)->idxSlot_Beam = idxWeapon;
 
 	R->Stack<int>(0x0, idxWeapon);
 	return 0;
@@ -30,7 +30,7 @@ DEFINE_OVERRIDE_HOOK(0x6FD79C, TechnoClass_FireRadBeam2, 6)
 	GET(RadBeam*, Rad, ESI);
 	GET_STACK(WeaponTypeClass*, pSource, 0xC);
 
-	WeaponTypeExt::ExtData* pData = WeaponTypeExt::ExtMap.Find(pSource);
+	WeaponTypeExtData* pData = WeaponTypeExtContainer::Instance.Find(pSource);
 
 	if (!pData->Beam_IsHouseColor) {
 		Rad->Color = pData->GetBeamColor();

@@ -213,7 +213,7 @@ struct AresData
 
 	//static ConvertClass* GetBulletTypeConvert(BulletTypeClass* pThis);
 	//static void WarheadTypeExt_ExtData_ApplyKillDriver(WarheadTypeClass* pThis, TechnoClass* const pAttacker, TechnoClass* const pVictim);
-	//static void MouseCursorTypeLoadDefault();
+	static void MouseCursorTypeLoadDefault();
 
 	//static AresFactoryStateRet* HouseExt_HasFactory(AresFactoryStateRet* nBuff, HouseClass const* const Owner, TechnoTypeClass const* const pType, bool bSkipAircraft, bool bRequirePower, bool bCheckCanBuild, bool a7);
 	//static int HouseExt_GetBuildLimitRemaining(HouseClass const* const Owner, TechnoTypeClass const* const pType);

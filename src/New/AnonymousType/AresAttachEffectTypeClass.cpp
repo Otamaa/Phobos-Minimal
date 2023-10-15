@@ -1,4 +1,5 @@
 #include "AresAttachEffectTypeClass.h"
+#include <Utilities/Debug.h>
 
 bool AresAttachEffectTypeClass::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
@@ -44,6 +45,9 @@ bool AresAttachEffectTypeClass::Save(PhobosStreamWriter& Stm) const
 
 void AresAttachEffectTypeClass::Read(INI_EX& exINI)
 {
+	if (!this->Owner)
+		Debug::FatalError("AttahedAffectType Is Missing OwnerPointer!\n");
+
 	auto const pSection = this->Owner->ID;
 	this->Duration.Read(exINI, pSection, "AttachEffect.Duration");
 	this->Cumulative.Read(exINI, pSection, "AttachEffect.Cumulative");

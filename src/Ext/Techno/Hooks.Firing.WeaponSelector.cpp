@@ -18,9 +18,9 @@ DEFINE_HOOK(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)
 
 	if (pTarget)
 	{
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
-		if (TechnoExt::ExtMap.Find(pThis)->IsInterceptor() && pTarget->WhatAmI() == BulletClass::AbsID)
+		if (TechnoExtContainer::Instance.Find(pThis)->IsInterceptor() && pTarget->WhatAmI() == BulletClass::AbsID)
 		{
 			R->EAX(pTypeExt->Interceptor_Weapon.Get() == -1 ? 0 : pTypeExt->Interceptor_Weapon.Get());
 			return ReturnHandled;
@@ -50,7 +50,7 @@ DEFINE_HOOK(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
 	{
 		auto const pWeaponPrimary = pThis->GetWeapon(0)->WeaponType;
 		auto const pWeaponSecondary = pThis->GetWeapon(1)->WeaponType;
-		const auto pPrimaryExt = WeaponTypeExt::ExtMap.Find(pWeaponPrimary);
+		const auto pPrimaryExt = WeaponTypeExtContainer::Instance.Find(pWeaponPrimary);
 
 		if (pWeaponSecondary && !EnumFunctions::IsCellEligible(pCell, pPrimaryExt->CanTarget, true, true))
 		{
@@ -61,7 +61,7 @@ DEFINE_HOOK(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
 			auto const pOverlayType = OverlayTypeClass::Array()->GetItem(pCell->OverlayTypeIndex);
 
 			if (pOverlayType->Wall && pCell->OverlayData >> 4 != pOverlayType->DamageLevels && !pWeaponPrimary->Warhead->Wall &&
-				pWeaponSecondary && pWeaponSecondary->Warhead->Wall && !TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->NoSecondaryWeaponFallback)
+				pWeaponSecondary && pWeaponSecondary->Warhead->Wall && !TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->NoSecondaryWeaponFallback)
 			{
 				return Secondary;
 			}
@@ -88,7 +88,7 @@ DEFINE_HOOK(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 	if (pTarget)
 	{
 		const auto pTargetType = pTarget->GetTechnoType();
-		const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pThisTechnoType);
+		const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pThisTechnoType);
 
 		if (pTechnoTypeExt->ForceWeapon_Naval_Decloaked >= 0
 			&& pTargetType->Cloakable && pTargetType->Naval
@@ -135,8 +135,8 @@ DEFINE_HOOK(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 //		OriginalCheck = 0x6F36E3
 //	};
 //
-//	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
-//		int weaponIndex = TechnoExt::PickWeaponIndex(pThis, pTargetTechno, pTarget, 0, 1, !pTypeExt->NoSecondaryWeaponFallback);
+//	if (const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())) {
+//		int weaponIndex = TechnoExtData::PickWeaponIndex(pThis, pTargetTechno, pTarget, 0, 1, !pTypeExt->NoSecondaryWeaponFallback);
 //		return (weaponIndex != -1) && weaponIndex == 1 ? Secondary : Primary;
 //	}
 //
@@ -170,7 +170,7 @@ DEFINE_HOOK(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 //	auto const pWeaponOne = pWeaponStructOne->WeaponType;
 //	auto const pWeaponTwo = pWeaponStructTwo->WeaponType;
 //
-//	if (auto const pSecondExt = WeaponTypeExt::ExtMap.TryFind(pWeaponTwo))
+//	if (auto const pSecondExt = WeaponTypeExtContainer::Instance.TryFind(pWeaponTwo))
 //	{
 //		if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pSecondExt->CanTarget, true , true)) ||
 //			(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pSecondExt->CanTarget) ||
@@ -178,11 +178,11 @@ DEFINE_HOOK(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 //		{
 //			return weaponIndexOne;
 //		}
-//		else if (auto const pFirstExt = WeaponTypeExt::ExtMap.TryFind(pWeaponOne))
+//		else if (auto const pFirstExt = WeaponTypeExtContainer::Instance.TryFind(pWeaponOne))
 //		{
 //			bool secondaryIsAA = pTargetTechno && pTargetTechno->IsInAir() && pWeaponTwo->Projectile->AA;
 //
-//			if (!allowFallback && (!allowAAFallback || !secondaryIsAA) && !TechnoExt::CanFireNoAmmoWeapon(pThis, 1))
+//			if (!allowFallback && (!allowAAFallback || !secondaryIsAA) && !TechnoExtData::CanFireNoAmmoWeapon(pThis, 1))
 //				return weaponIndexOne;
 //
 //			if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pFirstExt->CanTarget, true , true)) ||
@@ -251,11 +251,11 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 		OriginalCheck = 0x6F36E3
 	};
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	bool allowFallback = !pTypeExt->NoSecondaryWeaponFallback;
 	bool allowAAFallback = allowFallback ? true : pTypeExt->NoSecondaryWeaponFallback_AllowAA;
-	const int weaponIndex = TechnoExt::PickWeaponIndex(pThis, pTargetTechno, pTarget, 0, 1, allowFallback, allowAAFallback);
+	const int weaponIndex = TechnoExtData::PickWeaponIndex(pThis, pTargetTechno, pTarget, 0, 1, allowFallback, allowAAFallback);
 
 	if (weaponIndex != -1)
 		return weaponIndex == 1 ? Secondary : Primary;
@@ -264,7 +264,7 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 		return Primary;
 
 	//select weapon is executed with dead target ?
-	const auto pTargetExt = TechnoExt::ExtMap.Find(pTargetTechno);
+	const auto pTargetExt = TechnoExtContainer::Instance.Find(pTargetTechno);
 
 	//if (!pTargetExt) {
 	//	Debug::Log("Caller[%x] Techno[%s] Trying to target possibly dead Techno[%x] FromOwner [%s]\n", calleraddr ,  pThis->get_ID(), pTargetTechno , pTargetTechno->align_154->OriginalHouseType->ID);
@@ -279,7 +279,7 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 			const auto secondary = pThis->GetWeapon(1)->WeaponType;
 			const bool secondaryIsAA = pTargetTechno && pTargetTechno->IsInAir() && secondary && secondary->Projectile->AA;
 
-			if (secondary && (allowFallback || (allowAAFallback && secondaryIsAA) || TechnoExt::CanFireNoAmmoWeapon(pThis, 1)))
+			if (secondary && (allowFallback || (allowAAFallback && secondaryIsAA) || TechnoExtData::CanFireNoAmmoWeapon(pThis, 1)))
 			{
 				if (!pShield->CanBeTargeted(pThis->GetWeapon(0)->WeaponType))
 					return Secondary;
@@ -302,7 +302,7 @@ DEFINE_HOOK(0x6FF4CC, TechnoClass_FireAt_ToggleLaserWeaponIndex, 0x6)
 
 	if (pThis->WhatAmI() == BuildingClass::AbsID && pWeapon->IsLaser)
 	{
-		auto const pExt = TechnoExt::ExtMap.Find(pThis);
+		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
 		if (pExt->CurrentLaserWeaponIndex.empty())
 			pExt->CurrentLaserWeaponIndex = weaponIndex;
@@ -339,7 +339,7 @@ DEFINE_HOOK(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 	int oddWeaponIndex = 2 * pThis->CurrentGattlingStage;
 	int evenWeaponIndex = oddWeaponIndex + 1;
 	int chosenWeaponIndex = oddWeaponIndex;
-	int eligibleWeaponIndex = TechnoExt::PickWeaponIndex(pThis, pTargetTechno, pTarget, oddWeaponIndex, evenWeaponIndex, true,true);
+	int eligibleWeaponIndex = TechnoExtData::PickWeaponIndex(pThis, pTargetTechno, pTarget, oddWeaponIndex, evenWeaponIndex, true,true);
 
 	if (eligibleWeaponIndex != -1)
 	{
@@ -351,7 +351,7 @@ DEFINE_HOOK(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 		auto const pWeaponEven = pThis->GetWeapon(evenWeaponIndex)->WeaponType;
 		bool skipRemainingChecks = false;
 
-		if (const auto pShield = TechnoExt::ExtMap.Find(pTargetTechno)->GetShield())
+		if (const auto pShield = TechnoExtContainer::Instance.Find(pTargetTechno)->GetShield())
 		{
 			if (pShield->IsActive() && !pShield->CanBeTargeted(pWeaponOdd))
 			{
@@ -365,7 +365,7 @@ DEFINE_HOOK(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 
 			if (std::abs(
 				//GeneralUtils::GetWarheadVersusArmor(pWeaponOdd->Warhead , pTargetTechno->GetTechnoType()->Armor)
-				WarheadTypeExt::ExtMap.Find(pWeaponOdd->Warhead)->GetVerses(pTargetTechno->GetTechnoType()->Armor).Verses
+				WarheadTypeExtContainer::Instance.Find(pWeaponOdd->Warhead)->GetVerses(pTargetTechno->GetTechnoType()->Armor).Verses
 			) == 0.0)
 			{
 				chosenWeaponIndex = evenWeaponIndex;
@@ -402,7 +402,7 @@ DEFINE_HOOK(0x6F34B7, TechnoClass_WhatWeaponShouldIUse_AllowAirstrike, 0x6)
 
 	if (pThis)
 	{
-		R->AL(BuildingTypeExt::ExtMap.Find(pThis)->AllowAirstrike.Get(pThis->CanC4));
+		R->AL(BuildingTypeExtContainer::Instance.Find(pThis)->AllowAirstrike.Get(pThis->CanC4));
 		return SkipGameCode;
 	}
 
@@ -416,7 +416,7 @@ DEFINE_HOOK(0x51EAF2, TechnoClass_WhatAction_AllowAirstrike, 0x6)
 
 	if (pThis)
 	{
-		R->AL(BuildingTypeExt::ExtMap.Find(pThis)->AllowAirstrike.Get(pThis->CanC4));
+		R->AL(BuildingTypeExtContainer::Instance.Find(pThis)->AllowAirstrike.Get(pThis->CanC4));
 		return SkipGameCode;
 	}
 
@@ -430,7 +430,7 @@ DEFINE_HOOK(0x70E1A0, TechnoClass_GetTurretWeapon_LaserWeapon, 0x5)
 
 	if (pThis->WhatAmI() == BuildingClass::AbsID)
 	{
-		auto const pExt = TechnoExt::ExtMap.Find(pThis);
+		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
 		if (!pExt->CurrentLaserWeaponIndex.empty()) {
 			R->EAX(pThis->GetWeapon(pExt->CurrentLaserWeaponIndex));

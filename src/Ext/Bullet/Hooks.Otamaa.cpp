@@ -39,7 +39,7 @@ DEFINE_HOOK(0x5F5A86, ObjectClass_SpawnParachuted_Animation_Bulet, 0x6)
 	GET(RulesClass*, pRules, ECX);
 	GET(BulletClass*, pBullet, ESI);
 
-	R->EDX(BulletTypeExt::ExtMap.Find(pBullet->Type)->Parachute.Get(pRules->BombParachute));
+	R->EDX(BulletTypeExtContainer::Instance.Find(pBullet->Type)->Parachute.Get(pRules->BombParachute));
 	return 0x5F5A8C;
 }
 
@@ -59,8 +59,8 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 	GET(int, nTotalSpawn, EBX);
 	GET(WarheadTypeClass*, pWarhead, EAX);
 
-	auto pExt = BulletExt::ExtMap.Find(pThis);
-	HouseClass* const pOWner = pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt->Owner ? pExt->Owner : HouseExt::FindCivilianSide());
+	auto pExt = BulletExtContainer::Instance.Find(pThis);
+	HouseClass* const pOWner = pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt->Owner ? pExt->Owner : HouseExtData::FindCivilianSide());
 	HouseClass* const Victim = (pThis->Target) ? pThis->Target->GetOwningHouse() : nullptr;
 	CoordStruct nCoords { 0,0,0 };
 	auto const& nDebrisTypes = pWarhead->DebrisTypes;
@@ -85,7 +85,7 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 					if (auto const pVoxelAnimType = nDebrisTypes[nCurIdx])
 						if (auto pVoxAnim = GameCreate<VoxelAnimClass>(pVoxelAnimType, &nCoords, pOWner))
 						{
-							if (auto pVoxelAnimExt = VoxelAnimExt::ExtMap.Find(pVoxAnim))
+							if (auto pVoxelAnimExt = VoxelAnimExtContainer::Instance.Find(pVoxAnim))
 								pVoxelAnimExt->Invoker = pThis->Owner;
 						}
 				}
@@ -100,7 +100,7 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 
 	if (!nDebrisTypes.Count && (nTotalSpawn > 0))
 	{
-		const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
 		const auto AnimDebris = pWHExt->DebrisAnimTypes.GetElements(RulesClass::Instance->MetallicDebris);
 
 		if (!AnimDebris.empty())
@@ -112,7 +112,7 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 			{
 				if (auto const pAnimType = AnimDebris[ScenarioClass::Instance->Random(0, AnimDebris.size() - 1)])
 				{
-					AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nCoords),
+					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nCoords),
 						pOWner,
 						Victim,
 						pThis->Owner,
@@ -146,7 +146,7 @@ static void  ManipulateLoco(FootClass* pFirer, AbstractClass* pTarget, BulletCla
 	{
 		if (pTarget_1->WhatAmI() == AbstractType::Aircraft || pTarget_1->WhatAmI() == AbstractType::Unit)
 		{
-			if (auto pExt = WarheadTypeExt::ExtMap.Find(pBullet->WH))
+			if (auto pExt = WarheadTypeExtContainer::Instance.Find(pBullet->WH))
 			{
 				if (!pExt->CanTargetHouse(pBullet->GetOwningHouse(), pFoot_T))
 					return;
@@ -329,7 +329,7 @@ DEFINE_HOOK(0x466BAF, BulletClass_AI_MissileROTVar, 0x6)
 	GET(BulletClass*, pThis, EBP);
 
 	const auto nFrame = (Unsorted::CurrentFrame + pThis->Fetch_ID()) % 15;
-	const double nMissileROTVar = BulletTypeExt::ExtMap.Find(pThis->Type)
+	const double nMissileROTVar = BulletTypeExtContainer::Instance.Find(pThis->Type)
 		->MissileROTVar.Get(RulesClass::Instance->MissileROTVar);
 
 	R->EAX(int(Math::sin(static_cast<double>(nFrame) *
@@ -346,7 +346,7 @@ DEFINE_HOOK(0x466E9F, BulletClass_AI_MissileSafetyAltitude, 0x6)
 {
 	GET(BulletClass*, pThis, EBP);
 	GET(int, comparator, EAX);
-	auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
+	auto const pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
 	return comparator >= pBulletTypeExt->GetMissileSaveAltitude(RulesClass::Instance)
 		? 0x466EAD : 0x466EB6;
 }

@@ -123,7 +123,7 @@ public:
 	void DrawTrail(HouseClass* pHouse, CoordStruct& sourcePos, const CoordStruct& createOffset)
 	{
 		if (!pHouse)
-			pHouse = HouseExt::FindCivilianSide();
+			pHouse = HouseExtData::FindCivilianSide();
 
 		if (sourcePos)
 		{

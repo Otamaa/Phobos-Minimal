@@ -13,6 +13,7 @@
 class ScriptTypeExt
 {
 public:
+	/*
 	class ExtData final : public Extension<ScriptTypeClass>
 	{
 	public:
@@ -42,4 +43,5 @@ public:
 	};
 
 	static ExtContainer ExtMap;
+	*/
 };

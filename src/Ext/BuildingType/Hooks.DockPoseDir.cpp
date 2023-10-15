@@ -2,7 +2,7 @@
 
 NOINLINE FacingType GetPoseDir(AircraftClass* pAir , BuildingClass* pBld)
 {
-	FacingType ret = (FacingType)TechnoTypeExt::ExtMap.Find(pAir->Type)->LandingDir.Get(RulesClass::Instance->PoseDir);
+	FacingType ret = (FacingType)TechnoTypeExtContainer::Instance.Find(pAir->Type)->LandingDir.Get(RulesClass::Instance->PoseDir);
 
 	if (pBld || pAir->HasAnyLink())
 	{
@@ -20,7 +20,7 @@ NOINLINE FacingType GetPoseDir(AircraftClass* pAir , BuildingClass* pBld)
 		}
 
 		if(pBld) {
-			const auto pBldTypeExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+			const auto pBldTypeExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 			const int nIdx = pBld->FindLinkIndex(pAir);
 			const auto dir = &pBldTypeExt->DockPoseDir;
 

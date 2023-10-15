@@ -8,39 +8,42 @@
 
 #include <map>
 
-class SidebarExt
+class SidebarExtData final
 {
+private:
+	static std::unique_ptr<SidebarExtData> Data;
+
+public:
+
+	static constexpr size_t Canary = 0x51DEBA12;
+	using base_type = SidebarClass;
+
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+public:
+
+	SidebarExtData(base_type* OwnerObject) noexcept
+	{
+		AttachedToObject = OwnerObject;
+	}
+
+	~SidebarExtData() noexcept = default;
+
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+
+private:
+	template <typename T>
+	void Serialize(T& Stm);
+
 public:
 	static IStream* g_pStm;
 	static std::array<SHPReference*, 4u> TabProducingProgress;
 
-	class ExtData final : public Extension<SidebarClass>
-	{
-	public:
-		static constexpr size_t Canary = 0x51DEBA12;
-		using base_type = SidebarClass;
-
-	public:
-
-		ExtData(SidebarClass* OwnerObject) : Extension<SidebarClass>(OwnerObject)
-		{ }
-
-		virtual ~ExtData() override = default;
-
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-private:
-	static std::unique_ptr<ExtData> Data;
-public:
 	static void Allocate(SidebarClass* pThis);
 	static void Remove(SidebarClass* pThis);
 
-	static ExtData* Global()
+	static SidebarExtData* Instance()
 	{
 		return Data.get();
 	}

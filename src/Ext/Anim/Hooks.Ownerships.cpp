@@ -7,12 +7,12 @@ DEFINE_HOOK(0x423991, AnimClass_BounceAI_BounceAnim, 0x5)
 	GET(AnimTypeClass*, pBounceAnim, ECX);
 	GET(AnimClass*, pThis, EBP);
 
-	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pBounceAnim);
-	TechnoClass* pObject = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
+	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pBounceAnim);
+	TechnoClass* pObject = AnimExtData::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
 	HouseClass* pHouse = pThis->Owner ? pThis->Owner : ((pObject) ? pObject->GetOwningHouse() : nullptr);
 
 	auto nCoord = pThis->GetCoords();
-	AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pBounceAnim, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0),
+	AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pBounceAnim, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0),
 		pHouse,
 		nullptr,
 		pObject,
@@ -39,14 +39,14 @@ DEFINE_HOOK(0x423F31, AnimClass_Spawns_Override, 0x6)
 	if(nMax <= 0)
 		return 0x423FC6;
 
-	const auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
-	TechnoClass* pTech = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker.Get());
+	const auto pAnimTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+	TechnoClass* pTech = AnimExtData::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker.Get());
 	HouseClass* pOwner = pThis->Owner ? pThis->Owner : pTech ? pTech->GetOwningHouse() : nullptr;
 	auto nDelay = pAnimTypeExt->Spawns_Delay.Get();
 
 	for (int i = nMax; i > 0; --i) {
 		if (auto pMem = GameCreate<AnimClass>(pThis->Type->Spawns, nCoord, nDelay, 1, AnimFlag(0x600), 0, false)) {
-			AnimExt::SetAnimOwnerHouseKind(pMem, pOwner, nullptr, pTech, false);
+			AnimExtData::SetAnimOwnerHouseKind(pMem, pOwner, nullptr, pTech, false);
 		}
 	}
 

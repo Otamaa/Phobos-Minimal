@@ -109,7 +109,7 @@ void OwnFunc::ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 	if (Unsorted::CurrentFrame % 15)
 		return;
 
-	auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(args->WH);
+	auto const pWarheadExt = WarheadTypeExtContainer::Instance.Find(args->WH);
 	auto const pTechno = generic_cast<TechnoClass*>(pTarget);
 	auto const pType = pTarget->GetType();
 	auto const bIgnoreDefense = args->IgnoreDefenses;
@@ -121,7 +121,7 @@ void OwnFunc::ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 
 	if (pTechno)
 	{
-		const auto pShield = TechnoExt::ExtMap.Find(pTechno)->GetShield();
+		const auto pShield = TechnoExtContainer::Instance.Find(pTechno)->GetShield();
 		bImmune_pt2 = (pShield && pShield->IsActive())
 			|| pTechno->TemporalTargetingMe
 			|| pTechno->BeingWarpedOut
@@ -144,7 +144,7 @@ void OwnFunc::ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 
 			if (pTechno)
 			{
-				auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
+				auto const pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
 
 				if (!pTechnoTypeExt->HitCoordOffset.empty())
 				{
@@ -156,7 +156,7 @@ void OwnFunc::ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 			}
 
 			auto const nCoord = pTarget->GetCenterCoords() + nBuffer;
-			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimTypeDecided, nCoord),
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimTypeDecided, nCoord),
 				args->Attacker ? args->Attacker->GetOwningHouse() : args->SourceHouse, pTarget->GetOwningHouse(),
 				args->Attacker,
 				false
@@ -169,7 +169,7 @@ void OwnFunc::ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 
 BSurface* TechnoTypeExt_ExtData::GetPCXSurface(TechnoTypeClass* pType, HouseClass* pHouse)
 {
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	const auto eliteCameo = TechnoTypeExt_ExtData::CameoIsElite(pType, pHouse);
 
 	return eliteCameo ? pTypeExt->AltCameoPCX.GetSurface() : pTypeExt->CameoPCX.GetSurface();
@@ -182,8 +182,8 @@ bool TechnoTypeExt_ExtData::CarryallCanLift(AircraftTypeClass* pCarryAll, UnitCl
 		return false;
 	}
 
-	const auto CarryAllData = TechnoTypeExt::ExtMap.Find(pCarryAll);
-	const auto TargetData = TechnoTypeExt::ExtMap.Find(Target->Type);
+	const auto CarryAllData = TechnoTypeExtContainer::Instance.Find(pCarryAll);
+	const auto TargetData = TechnoTypeExtContainer::Instance.Find(Target->Type);
 
 	UnitTypeClass* TargetType = Target->Type;
 	const bool passengerEligible = !TargetType->Organic && !TargetType->NonVehicle;
@@ -203,12 +203,12 @@ bool TechnoTypeExt_ExtData::CarryallCanLift(AircraftTypeClass* pCarryAll, UnitCl
 
 bool TechnoTypeExt_ExtData::CameoIsElite(TechnoTypeClass* pType, HouseClass* pHouse)
 {
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if ((!pType->AltCameo && !pTypeExt->AltCameoPCX.GetSurface()) || !pHouse)
 		return false;
 
-	const auto pHouseExt = HouseExt::ExtMap.Find(pHouse);
+	const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 	const auto pCountry = pHouse->Type;
 	switch (pType->WhatAmI())
 	{
@@ -255,7 +255,7 @@ bool TechnoTypeExt_ExtData::CameoIsElite(TechnoTypeClass* pType, HouseClass* pHo
 			return true;
 		}
 
-		return HouseTypeExt::ExtMap.Find(pCountry)->VeteranBuildings.Contains((BuildingTypeClass*)(pType));
+		return HouseTypeExtContainer::Instance.Find(pCountry)->VeteranBuildings.Contains((BuildingTypeClass*)(pType));
 	}
 	}
 
@@ -270,7 +270,7 @@ void TechnoTypeExt_ExtData::LoadTurrets(TechnoTypeClass* pType, CCINIClass* pINI
 	const int weaponCount = pType->WeaponCount >= 0 ? pType->WeaponCount : 0;
 	const int addamount = weaponCount - TechnoTypeClass::MaxWeapons < 0 ? 0 : weaponCount - TechnoTypeClass::MaxWeapons;
 
-	auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	pExt->AdditionalTurrentWeapon.resize(addamount, -1);
 	pExt->WeaponUINameX.resize(weaponCount);
@@ -351,7 +351,7 @@ int* TechnoTypeExt_ExtData::GetTurretWeaponIndex(TechnoTypeClass* pType, size_t 
 	}
 
 	const int resultidx = (idx - TechnoTypeClass::MaxWeapons);
-	const auto& vec = &TechnoTypeExt::ExtMap.Find(pType)->AdditionalTurrentWeapon;
+	const auto& vec = &TechnoTypeExtContainer::Instance.Find(pType)->AdditionalTurrentWeapon;
 
 	if ((size_t)resultidx < vec->size())
 		return vec->data() + resultidx;
@@ -362,7 +362,7 @@ int* TechnoTypeExt_ExtData::GetTurretWeaponIndex(TechnoTypeClass* pType, size_t 
 
 WeaponStruct* TechnoTypeExt_ExtData::GetWeapon(TechnoTypeClass* pType, int const idx, bool elite)
 {
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 	const auto Vectors = &(elite ? pExt->AdditionalEliteWeaponDatas : pExt->AdditionalWeaponDatas);
 
 	if ((size_t)idx < Vectors->size())
@@ -380,7 +380,7 @@ void TechnoTypeExt_ExtData::ReadWeaponStructDatas(TechnoTypeClass* pType, CCINIC
 	const auto pSection = pType->ID;
 	const auto pSection_art = pType->ImageFile;
 	const int additionalamount = pType->WeaponCount - TechnoTypeClass::MaxWeapons < 0 ? 0 : pType->WeaponCount - TechnoTypeClass::MaxWeapons;
-	auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	//Debug::Log("Resize Additional Weapon [%s] [%d]\n", pSection, additionalamount);
 
@@ -441,14 +441,14 @@ void TechnoTypeExt_ExtData::ReadWeaponStructDatas(TechnoTypeClass* pType, CCINIC
 
 bool TechnoExt_ExtData::IsOperated(TechnoClass* pThis)
 {
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	if (pExt->Operators.empty())
 	{
 		if (pExt->Operator_Any)
 			return pThis->Passengers.GetFirstPassenger() != nullptr;
 
-		TechnoExt::ExtMap.Find(pThis)->Is_Operated = true;
+		TechnoExtContainer::Instance.Find(pThis)->Is_Operated = true;
 		return true;
 	}
 	else
@@ -468,7 +468,7 @@ bool TechnoExt_ExtData::IsOperated(TechnoClass* pThis)
 
 bool TechnoExt_ExtData::IsOperatedB(TechnoClass* pThis)
 {
-	return TechnoExt::ExtMap.Find(pThis)->Is_Operated || TechnoExt_ExtData::IsOperated(pThis);
+	return TechnoExtContainer::Instance.Find(pThis)->Is_Operated || TechnoExt_ExtData::IsOperated(pThis);
 }
 
 bool TechnoExt_ExtData::IsPowered(TechnoClass* pThis)
@@ -489,7 +489,7 @@ bool TechnoExt_ExtData::IsPowered(TechnoClass* pThis)
 		// if we reach this, we found no building that currently powers this object
 		return false;
 	}
-	else if (auto& pPower = TechnoExt::ExtMap.Find(pThis)->PoweredUnit)
+	else if (auto& pPower = TechnoExtContainer::Instance.Find(pThis)->PoweredUnit)
 	{
 		// #617
 		return pPower->IsPowered();
@@ -501,7 +501,7 @@ bool TechnoExt_ExtData::IsPowered(TechnoClass* pThis)
 
 void TechnoExt_ExtData::EvalRaidStatus(BuildingClass* pThis)
 {
-	auto pExt = BuildingExt::ExtMap.Find(pThis);
+	auto pExt = BuildingExtContainer::Instance.Find(pThis);
 
 	// if the building is still marked as raided, but unoccupied, return it to its previous owner
 	if (pExt->OwnerBeforeRaid && !pThis->Occupants.Count)
@@ -528,7 +528,7 @@ bool TechnoExt_ExtData::IsUnitAlive(UnitClass* pUnit)
 	if (pUnit->TemporalTargetingMe)
 		return false;
 
-	if (TechnoExt::ExtMap.Find(pUnit)->Is_DriverKilled)
+	if (TechnoExtContainer::Instance.Find(pUnit)->Is_DriverKilled)
 		return false;
 
 	if (pUnit->BerzerkDurationLeft)
@@ -540,7 +540,7 @@ bool TechnoExt_ExtData::IsUnitAlive(UnitClass* pUnit)
 	if (pUnit->DeathFrameCounter > 0)
 		return false;
 
-	if (TechnoExt::IsInWarfactory(pUnit))
+	if (TechnoExtData::IsInWarfactory(pUnit))
 		return false;
 
 	return true;
@@ -557,8 +557,8 @@ void TechnoExt_ExtData::SetSpotlight(TechnoClass* pThis, BuildingLightClass* pSp
 		}
 	}
 
-	if (TechnoExt::ExtMap.Find(pThis)->BuildingLight != pSpotlight) {
-		GameDelete<true, true>(std::exchange(TechnoExt::ExtMap.Find(pThis)->BuildingLight, pSpotlight));
+	if (TechnoExtContainer::Instance.Find(pThis)->BuildingLight != pSpotlight) {
+		GameDelete<true, true>(std::exchange(TechnoExtContainer::Instance.Find(pThis)->BuildingLight, pSpotlight));
 	}
 }
 
@@ -566,13 +566,13 @@ void TechnoExt_ExtData::SetSpotlight(TechnoClass* pThis, BuildingLightClass* pSp
 bool TechnoExt_ExtData::CanSelfCloakNow(TechnoClass* pThis)
 {
 	// cloaked and deactivated units are hard to find otherwise
-	if (TechnoExt::ExtMap.Find(pThis)->Is_DriverKilled || pThis->Deactivated) {
+	if (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled || pThis->Deactivated) {
 		return false;
 	}
 
 	const auto what = pThis->WhatAmI();
 	auto pType = pThis->GetTechnoType();
-	auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (what == BuildingClass::AbsID) {
 		if (pExt->CloakPowered && !pThis->IsPowerOnline()) {
@@ -601,7 +601,7 @@ bool TechnoExt_ExtData::CanSelfCloakNow(TechnoClass* pThis)
 bool TechnoExt_ExtData::IsCloakable(TechnoClass* pThis, bool allowPassive)
 {
 	TechnoTypeClass* pType = pThis->GetTechnoType();
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	// object disallowed from cloaking
 	if (!pTypeExt->CloakAllowed)
@@ -630,7 +630,7 @@ bool TechnoExt_ExtData::IsCloakable(TechnoClass* pThis, bool allowPassive)
 	{
 		// cloak generators ignore everything above ground. this
 		// fixes hover units not being affected by cloak.
-		if (pThis->GetHeight() > RulesExt::Global()->
+		if (pThis->GetHeight() > RulesExtData::Instance()->
 					CloakHeight.Get(RulesClass::Instance->HoverHeight))
 		{
 			return false;
@@ -650,7 +650,7 @@ bool TechnoExt_ExtData::CloakDisallowed(TechnoClass* pThis, bool allowPassive)
 {
 	if (TechnoExt_ExtData::IsCloakable(pThis, allowPassive))
 	{
-		return TechnoExt::ExtMap.Find(pThis)->CloakSkipTimer.InProgress() || pThis->IsUnderEMP() || pThis->IsParalyzed()
+		return TechnoExtContainer::Instance.Find(pThis)->CloakSkipTimer.InProgress() || pThis->IsUnderEMP() || pThis->IsParalyzed()
 			|| pThis->IsBeingWarpedOut() || pThis->IsWarpingIn();
 	}
 
@@ -704,7 +704,7 @@ InfantryTypeClass* TechnoExt_ExtData::GetBuildingCrew(BuildingClass* pThis, int 
 		&& nChance > 0
 		&& ScenarioClass::Instance->Random.RandomFromMax(99) < nChance)
 	{
-		return HouseExt::GetEngineer(pThis->Owner);
+		return HouseExtData::GetEngineer(pThis->Owner);
 	}
 
 	return pThis->TechnoClass::GetCrew();
@@ -723,10 +723,10 @@ void TechnoExt_ExtData::UpdateFactoryQueues(BuildingClass const* const pBuilding
 
 bool TechnoExt_ExtData::IsBaseNormal(BuildingClass* pBuilding)
 {
-	if (BuildingExt::ExtMap.Find(pBuilding)->IsFromSW)
+	if (BuildingExtContainer::Instance.Find(pBuilding)->IsFromSW)
 		return true;
 
-	const auto pExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+	const auto pExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 
 	if (pExt->AIBaseNormal.isset())
 		return pExt->AIBaseNormal;
@@ -740,13 +740,13 @@ bool TechnoExt_ExtData::IsBaseNormal(BuildingClass* pBuilding)
 int TechnoExt_ExtData::GetVictimBountyValue(TechnoClass* pVictim, TechnoClass* pKiller)
 {
 	int Value = 0;
-	const auto pKillerTypeExt = TechnoTypeExt::ExtMap.Find(pKiller->GetTechnoType());
-	const auto pVictimTypeExt = TechnoTypeExt::ExtMap.Find(pVictim->GetTechnoType());
+	const auto pKillerTypeExt = TechnoTypeExtContainer::Instance.Find(pKiller->GetTechnoType());
+	const auto pVictimTypeExt = TechnoTypeExtContainer::Instance.Find(pVictim->GetTechnoType());
 
-	switch (pKillerTypeExt->Bounty_Value_Option.Get(RulesExt::Global()->Bounty_Value_Option))
+	switch (pKillerTypeExt->Bounty_Value_Option.Get(RulesExtData::Instance()->Bounty_Value_Option))
 	{
 	case BountyValueOption::Cost:
-		Value = pVictimTypeExt->Get()->GetCost();
+		Value = pVictimTypeExt->AttachedToObject->GetCost();
 		break;
 	case BountyValueOption::Soylent:
 		Value = pVictim->GetRefund();
@@ -767,15 +767,15 @@ int TechnoExt_ExtData::GetVictimBountyValue(TechnoClass* pVictim, TechnoClass* p
 
 bool TechnoExt_ExtData::KillerAllowedToEarnBounty(TechnoClass* pKiller , TechnoClass* pVictim)
 {
-	if (!pKiller || !pVictim || !pKiller->Owner || !pVictim->Owner || !TechnoExt::IsBountyHunter(pKiller))
+	if (!pKiller || !pVictim || !pKiller->Owner || !pVictim->Owner || !TechnoExtData::IsBountyHunter(pKiller))
 		return false;
 
-	const auto pHouseTypeExt = HouseTypeExt::ExtMap.TryFind(pVictim->Owner->Type);
+	const auto pHouseTypeExt = HouseTypeExtContainer::Instance.TryFind(pVictim->Owner->Type);
 
 	if (pHouseTypeExt && !pHouseTypeExt->GivesBounty)
 		return false;
 
-	const auto pKillerTypeExt = TechnoTypeExt::ExtMap.Find(pKiller->GetTechnoType());
+	const auto pKillerTypeExt = TechnoTypeExtContainer::Instance.Find(pKiller->GetTechnoType());
 	const auto pVictimType = pVictim->GetTechnoType();
 
 	if (!pKillerTypeExt->BountyAllow.Eligible(pVictimType))
@@ -787,10 +787,10 @@ bool TechnoExt_ExtData::KillerAllowedToEarnBounty(TechnoClass* pKiller , TechnoC
 	if (pKiller->Owner->IsAlliedWith_(pVictim))
 		return false;
 
-	if (pKillerTypeExt->Bounty_IgnoreEnablers || RulesExt::Global()->Bounty_Enablers.empty())
+	if (pKillerTypeExt->Bounty_IgnoreEnablers || RulesExtData::Instance()->Bounty_Enablers.empty())
 		return true;
 
-	for (auto const& pEnablers : RulesExt::Global()->Bounty_Enablers) {
+	for (auto const& pEnablers : RulesExtData::Instance()->Bounty_Enablers) {
 		if(pKiller->Owner->ActiveBuildingTypes.GetItemCount(pEnablers->ArrayIndex) > 0)
 			return true;
 	}
@@ -803,21 +803,21 @@ void TechnoExt_ExtData::GiveBounty(TechnoClass* pVictim, TechnoClass* pKiller)
 	if (!TechnoExt_ExtData::KillerAllowedToEarnBounty(pKiller, pVictim))
 		return;
 
-	const auto pKillerTypeExt = TechnoTypeExt::ExtMap.Find(pKiller->GetTechnoType());
+	const auto pKillerTypeExt = TechnoTypeExtContainer::Instance.Find(pKiller->GetTechnoType());
 	const int nValueResult = TechnoExt_ExtData::GetVictimBountyValue(pVictim, pKiller);
 
 	if (nValueResult != 0 && pKiller->Owner->AbleToTransactMoney(nValueResult))
 	{
-		if (pKillerTypeExt->Bounty_Display.Get(RulesExt::Global()->Bounty_Display))
+		if (pKillerTypeExt->Bounty_Display.Get(RulesExtData::Instance()->Bounty_Display))
 		{
-			if (pKillerTypeExt->Get()->MissileSpawn && pKiller->SpawnOwner)
+			if (pKillerTypeExt->AttachedToObject->MissileSpawn && pKiller->SpawnOwner)
 				pKiller = pKiller->SpawnOwner;
 
 			if(pKillerTypeExt->Bounty_ReceiveSound != -1)
 				VocClass::PlayAt(pKillerTypeExt->Bounty_ReceiveSound, pKiller->Location);
 
 			pKiller->Owner->TransactMoney(nValueResult);
-			TechnoExt::ExtMap.Find(pKiller)->TechnoValueAmount += nValueResult;
+			TechnoExtContainer::Instance.Find(pKiller)->TechnoValueAmount += nValueResult;
 		}
 	}
 }
@@ -831,10 +831,10 @@ AresHijackActionResult TechnoExt_ExtData::GetActionHijack(InfantryClass* pThis, 
 		return AresHijackActionResult::None;
 
 	const auto pType = pThis->Type;
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	// this can't steal vehicles
-	if (!pType->VehicleThief && !pTypeExt->CanDrive.Get(RulesExt::Global()->CanDrive))
+	if (!pType->VehicleThief && !pTypeExt->CanDrive.Get(RulesExtData::Instance()->CanDrive))
 	{
 		return AresHijackActionResult::None;
 	}
@@ -852,7 +852,7 @@ AresHijackActionResult TechnoExt_ExtData::GetActionHijack(InfantryClass* pThis, 
 	}
 
 	//no , this one bit different ?
-	const bool IsNotOperated = !TechnoExt::ExtMap.Find(pThis)->Is_Operated
+	const bool IsNotOperated = !TechnoExtContainer::Instance.Find(pThis)->Is_Operated
 		&& !TechnoExt_ExtData::IsOperated(pTarget);
 
 	// i'm in a state that forbids capturing
@@ -899,11 +899,11 @@ AresHijackActionResult TechnoExt_ExtData::GetActionHijack(InfantryClass* pThis, 
 
 	//drivers can drive, but only stuff owned by neutrals. if a driver is a vehicle thief
 	//also, it can reclaim units even if they are immune to hijacking (see below)
-	const auto pHouseTypeExt = HouseTypeExt::ExtMap.Find(pTarget->Owner->Type);
+	const auto pHouseTypeExt = HouseTypeExtContainer::Instance.Find(pTarget->Owner->Type);
 	const auto specialOwned = pHouseTypeExt->CanBeDriven.Get(pTarget->Owner->Type->MultiplayPassive);
-	const auto pTargetTypeExt = TechnoTypeExt::ExtMap.Find(pTargetType);
+	const auto pTargetTypeExt = TechnoTypeExtContainer::Instance.Find(pTargetType);
 
-	if (specialOwned && pTypeExt->CanDrive.Get(RulesExt::Global()->CanDrive) && pTargetTypeExt->CanBeDriven)
+	if (specialOwned && pTypeExt->CanDrive.Get(RulesExtData::Instance()->CanDrive) && pTargetTypeExt->CanBeDriven)
 	{
 		return AresHijackActionResult::Drive;
 	}
@@ -938,8 +938,8 @@ bool TechnoExt_ExtData::PerformActionHijack(TechnoClass* pFrom, TechnoClass* con
 	if (const auto pThis = abstract_cast<InfantryClass*>(pFrom))
 	{
 		const auto pType = pThis->Type;
-		const auto pExt = TechnoExt::ExtMap.Find(pThis);
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		const auto action = TechnoExt_ExtData::GetActionHijack(pThis, pTarget);
 
@@ -968,7 +968,7 @@ bool TechnoExt_ExtData::PerformActionHijack(TechnoClass* pFrom, TechnoClass* con
 		}
 
 		bool asPassenger = false;
-		const auto pDestTypeExt = TechnoTypeExt::ExtMap.Find(pTarget->GetTechnoType());
+		const auto pDestTypeExt = TechnoTypeExtContainer::Instance.Find(pTarget->GetTechnoType());
 
 		if (action == AresHijackActionResult::Drive && (!pDestTypeExt->Operators.empty() || pDestTypeExt->Operator_Any))
 		{
@@ -1018,16 +1018,16 @@ bool TechnoExt_ExtData::PerformActionHijack(TechnoClass* pFrom, TechnoClass* con
 		VocClass::PlayAt(pTypeExt->HijackerEnterSound, pTarget->Location, nullptr);
 
 		// remove the driverless-marker
-		TechnoExt::ExtMap.Find(pTarget)->Is_DriverKilled = 0;
+		TechnoExtContainer::Instance.Find(pTarget)->Is_DriverKilled = 0;
 
 		// save the hijacker's properties
 		if (action == AresHijackActionResult::Hijack)
 		{
 			pTarget->HijackerInfantryType = pType->ArrayIndex;
-			TechnoExt::ExtMap.Find(pTarget)->HijackerOwner = pThis->Owner;
-			TechnoExt::ExtMap.Find(pTarget)->HijackerHealth = pThis->Health;
-			TechnoExt::ExtMap.Find(pTarget)->HijackerVeterancy = pThis->Veterancy.Veterancy;
-			TechnoExt::StoreHijackerLastDisguiseData(pThis, (FootClass*)pTarget);
+			TechnoExtContainer::Instance.Find(pTarget)->HijackerOwner = pThis->Owner;
+			TechnoExtContainer::Instance.Find(pTarget)->HijackerHealth = pThis->Health;
+			TechnoExtContainer::Instance.Find(pTarget)->HijackerVeterancy = pThis->Veterancy.Veterancy;
+			TechnoExtData::StoreHijackerLastDisguiseData(pThis, (FootClass*)pTarget);
 		}
 
 		// hook up the original mind-controller with the target #762
@@ -1082,8 +1082,8 @@ bool TechnoExt_ExtData::FindAndTakeVehicle(FootClass* pThis)
 	if (!pInf)
 		return false;
 
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pInf->Type);
-	if (!pInf->Type->VehicleThief && !pExt->CanDrive.Get(RulesExt::Global()->CanDrive))
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pInf->Type);
+	if (!pInf->Type->VehicleThief && !pExt->CanDrive.Get(RulesExtData::Instance()->CanDrive))
 		return false;
 
 	const auto nDistanceMax = ScenarioClass::Instance->Random.RandomFromMax(128);
@@ -1104,7 +1104,7 @@ bool TechnoExt_ExtData::FindAndTakeVehicle(FootClass* pThis)
 	});
 
 	if(it != its.end()){
-		TechnoExt::ExtMap.Find(pThis)->TakeVehicleMode = true;
+		TechnoExtContainer::Instance.Find(pThis)->TakeVehicleMode = true;
 		pThis->ShouldGarrisonStructure = true;
 		if (pThis->Target != *it || pThis->CurrentMission != Mission::Capture)
 		{
@@ -1114,7 +1114,7 @@ bool TechnoExt_ExtData::FindAndTakeVehicle(FootClass* pThis)
 		}
 	}
 
-	TechnoExt::ExtMap.Find(pThis)->TakeVehicleMode = false;
+	TechnoExtContainer::Instance.Find(pThis)->TakeVehicleMode = false;
 	pThis->ShouldGarrisonStructure = false;
 	return false;
 }
@@ -1143,7 +1143,7 @@ Action TechnoExt_ExtData::GetEngineerEnterEnemyBuildingAction(BuildingClass* con
 		auto const isTech = pBld->InitialOwner
 			? pBld->InitialOwner->IsNeutral() : false;
 
-		auto const pRulesExt = RulesExt::Global();
+		auto const pRulesExt = RulesExtData::Instance();
 		if (!isTech || !pRulesExt->EngineerAlwaysCaptureTech)
 		{
 			// no civil structure. apply new logic.
@@ -1167,8 +1167,8 @@ bool TechnoExt_ExtData::CloneBuildingEligible(BuildingClass* pBuilding , bool re
 		!pBuilding->IsOnMap ||
 		pBuilding->TemporalTargetingMe ||
 		pBuilding->IsBeingWarpedOut() ||
-		BuildingExt::ExtMap.Find(pBuilding)->AboutToChronoshift ||
-		BuildingExt::ExtMap.Find(pBuilding)->LimboID != -1
+		BuildingExtContainer::Instance.Find(pBuilding)->AboutToChronoshift ||
+		BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1
 	)
 	{
 		return false;
@@ -1184,7 +1184,7 @@ void TechnoExt_ExtData::KickOutClone(BuildingClass* pBuilding, TechnoTypeClass* 
 {
 	auto Clone = static_cast<TechnoClass*>(ProductionType->CreateObject(FactoryOwner));
 
-	const auto& nStr = TechnoTypeExt::ExtMap.Find(pBuilding->Type)->InitialStrength_Cloning;
+	const auto& nStr = TechnoTypeExtContainer::Instance.Find(pBuilding->Type)->InitialStrength_Cloning;
 	if (nStr.isset()) {
 		const auto rStr = GeneralUtils::GetRangedRandomOrSingleValue(nStr);
 		const int strength = std::clamp(static_cast<int>(ProductionType->Strength * rStr), 1, ProductionType->Strength);
@@ -1194,7 +1194,7 @@ void TechnoExt_ExtData::KickOutClone(BuildingClass* pBuilding, TechnoTypeClass* 
 
 	if (pBuilding->KickOutUnit(Clone, CellStruct::Empty) != KickOutResult::Succeeded) {
 		Debug::Log(__FUNCTION__" Called \n");
-		TechnoExt::HandleRemove(Clone, nullptr, false , false);
+		TechnoExtData::HandleRemove(Clone, nullptr, false , false);
 	}
 }
 
@@ -1211,7 +1211,7 @@ void TechnoExt_ExtData::KickOutClones(BuildingClass* pFactory, TechnoClass* cons
 	}
 
 	const auto ProductionType = Production->GetTechnoType();
-	const auto ProductionTypeData = TechnoTypeExt::ExtMap.Find(ProductionType);
+	const auto ProductionTypeData = TechnoTypeExtContainer::Instance.Find(ProductionType);
 
 	if (!ProductionTypeData->Cloneable)
 	{
@@ -1235,7 +1235,7 @@ void TechnoExt_ExtData::KickOutClones(BuildingClass* pFactory, TechnoClass* cons
 	{
 		for (auto const& CloningVat : FactoryOwner->CloningVats)
 		{
-			if (!CloneBuildingEligible(CloningVat, BuildingTypeExt::ExtMap.Find(CloningVat->Type)->Cloning_RequirePower))
+			if (!CloneBuildingEligible(CloningVat, BuildingTypeExtContainer::Instance.Find(CloningVat->Type)->Cloning_RequirePower))
 				continue;
 
 			KickOutClone(CloningVat, ProductionTypeAs, FactoryOwner);
@@ -1249,7 +1249,7 @@ void TechnoExt_ExtData::KickOutClones(BuildingClass* pFactory, TechnoClass* cons
 	{
 		for (auto const& CloningVat : FactoryOwner->Buildings)
 		{
-			if (!CloneBuildingEligible(CloningVat, BuildingTypeExt::ExtMap.Find(CloningVat->Type)->Cloning_RequirePower))
+			if (!CloneBuildingEligible(CloningVat, BuildingTypeExtContainer::Instance.Find(CloningVat->Type)->Cloning_RequirePower))
 				continue;
 
 			auto const BType = CloningVat->Type;
@@ -1261,7 +1261,7 @@ void TechnoExt_ExtData::KickOutClones(BuildingClass* pFactory, TechnoClass* cons
 			}
 			else if (IsUnit)
 			{
-				ShouldClone = BuildingTypeExt::ExtMap.Find(CloningVat->Type)->CloningFacility && (CloningVat->Type->Naval == FactoryType->Naval);
+				ShouldClone = BuildingTypeExtContainer::Instance.Find(CloningVat->Type)->CloningFacility && (CloningVat->Type->Naval == FactoryType->Naval);
 			}
 
 			if (ShouldClone)
@@ -1312,13 +1312,13 @@ void TechnoExt_ExtData::InitWeapon(
 	{
 		pTemporal = GameCreate<TemporalClass>(pThis);
 		pTemporal->WarpPerStep = pWeapon->Damage;
-		TechnoExt::ExtMap.Find(pThis)->idxSlot_Warp = static_cast<BYTE>(idxWeapon);
+		TechnoExtContainer::Instance.Find(pThis)->idxSlot_Warp = static_cast<BYTE>(idxWeapon);
 	}
 
 	if (pWarhead->Parasite && IsFoot && !pParasite)
 	{
 		pParasite = GameCreate<ParasiteClass>((FootClass*)pThis);
-		TechnoExt::ExtMap.Find(pThis)->idxSlot_Parasite = static_cast<BYTE>(idxWeapon);
+		TechnoExtContainer::Instance.Find(pThis)->idxSlot_Parasite = static_cast<BYTE>(idxWeapon);
 	}
 }
 
@@ -1327,19 +1327,19 @@ InfantryClass* TechnoExt_ExtData::RecoverHijacker(FootClass* const pThis)
 	if (auto const pType = InfantryTypeClass::Array->GetItemOrDefault(
 		pThis->HijackerInfantryType))
 	{
-		const auto pOwner = TechnoExt::ExtMap.Find(pThis)->HijackerOwner ?
-			TechnoExt::ExtMap.Find(pThis)->HijackerOwner : pThis->Owner;
+		const auto pOwner = TechnoExtContainer::Instance.Find(pThis)->HijackerOwner ?
+			TechnoExtContainer::Instance.Find(pThis)->HijackerOwner : pThis->Owner;
 
 		pThis->HijackerInfantryType = -1;
 
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 		if (!pTypeExt->HijackerOneTime && pOwner && !pOwner->Defeated)
 		{
 			if (auto const pHijacker = static_cast<InfantryClass*>(pType->CreateObject(pOwner)))
 			{
-				TechnoExt::RestoreStoreHijackerLastDisguiseData(pHijacker, pThis);
-				pHijacker->Health = MaxImpl(TechnoExt::ExtMap.Find(pThis)->HijackerHealth, 10) / 2;
-				pHijacker->Veterancy.Veterancy = TechnoExt::ExtMap.Find(pThis)->HijackerVeterancy;
+				TechnoExtData::RestoreStoreHijackerLastDisguiseData(pHijacker, pThis);
+				pHijacker->Health = MaxImpl(TechnoExtContainer::Instance.Find(pThis)->HijackerHealth, 10) / 2;
+				pHijacker->Veterancy.Veterancy = TechnoExtContainer::Instance.Find(pThis)->HijackerVeterancy;
 				return pHijacker;
 			}
 		}
@@ -1352,12 +1352,12 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 {
 	auto const pType = pThis->GetTechnoType();
 	auto const pOwner = pThis->Owner;
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	// do not ever do this again for this unit
-	if (!TechnoExt::ExtMap.Find(pThis)->Is_SurvivorsDone)
+	if (!TechnoExtContainer::Instance.Find(pThis)->Is_SurvivorsDone)
 	{
-		TechnoExt::ExtMap.Find(pThis)->Is_SurvivorsDone = true;
+		TechnoExtContainer::Instance.Find(pThis)->Is_SurvivorsDone = true;
 	}
 	else
 	{
@@ -1365,7 +1365,7 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 	}
 
 	// always eject passengers, but passengers only if not supressed.
-	if (!TechnoExt::ExtMap.Find(pThis)->Is_DriverKilled && !IgnoreDefenses)
+	if (!TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled && !IgnoreDefenses)
 	{
 		// save this, because the hijacker can kill people
 		auto pilotCount = pThis->GetCrewCount();
@@ -1373,13 +1373,13 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 		// process the hijacker
 		if (auto const pHijacker = RecoverHijacker(pThis))
 		{
-			auto const pHijackerTypeExt = TechnoTypeExt::ExtMap.Find(pHijacker->Type);
+			auto const pHijackerTypeExt = TechnoTypeExtContainer::Instance.Find(pHijacker->Type);
 
-			if (!TechnoExt::EjectRandomly(pHijacker, pThis->Location, 144, Select))
+			if (!TechnoExtData::EjectRandomly(pHijacker, pThis->Location, 144, Select))
 			{
 				pHijacker->RegisterDestruction(pKiller);
 				Debug::Log(__FUNCTION__" Hijacker Called \n");
-				TechnoExt::HandleRemove(pHijacker, pKiller, false, true);
+				TechnoExtData::HandleRemove(pHijacker, pKiller, false, true);
 			}
 			else
 			{
@@ -1423,11 +1423,11 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 							pPilot->Health /= 2;
 							pPilot->Veterancy.Veterancy = pThis->Veterancy.Veterancy;
 
-							if (!TechnoExt::EjectRandomly(pPilot, pThis->Location, 144, Select))
+							if (!TechnoExtData::EjectRandomly(pPilot, pThis->Location, 144, Select))
 							{
 								pPilot->RegisterDestruction(pKiller);
 								Debug::Log(__FUNCTION__" Pilot Called \n");
-								TechnoExt::HandleRemove(pPilot, pKiller, false, true);
+								TechnoExtData::HandleRemove(pPilot, pKiller, false, true);
 							}
 							else if (auto const pTag = pThis->AttachedTag)
 							{
@@ -1469,7 +1469,7 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 				trySpawn = (occupation == Move::OK || occupation == Move::MovingBlock);
 			}
 
-			if (trySpawn && TechnoExt::EjectRandomly(pPassenger, pThis->Location, 128, Select))
+			if (trySpawn && TechnoExtData::EjectRandomly(pPassenger, pThis->Location, 128, Select))
 			{
 				continue;
 			}
@@ -1477,7 +1477,7 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 			// kill passenger, if not spawned
 			pPassenger->RegisterDestruction(pKiller);
 			Debug::Log(__FUNCTION__" Passengers Called \n");
-			TechnoExt::HandleRemove(pPassenger, pKiller, false, false);
+			TechnoExtData::HandleRemove(pPassenger, pKiller, false, false);
 		}
 	}
 }
@@ -1496,7 +1496,7 @@ int TechnoExt_ExtData::GetWarpPerStep(TemporalClass* pThis, int nStep)
 			break;
 
 		++nStep;
-		auto const pWeapon = pTemp->Owner->GetWeapon(TechnoExt::ExtMap.Find(pTemp->Owner)->idxSlot_Warp)->WeaponType;
+		auto const pWeapon = pTemp->Owner->GetWeapon(TechnoExtContainer::Instance.Find(pTemp->Owner)->idxSlot_Warp)->WeaponType;
 
 		//if (auto const pTarget = pTemp->Target)
 		//	nStepR = MapClass::GetTotalDamage(pWeapon->Damage, pWeapon->Warhead, pTarget->GetTechnoType()->Armor, 0);
@@ -1515,22 +1515,22 @@ bool TechnoExt_ExtData::Warpable(TechnoClass* pTarget)
 	if (!pTarget || pTarget->IsSinking || pTarget->IsCrashing || pTarget->IsIronCurtained())
 		return false;
 
-	if (TechnoExt::IsUnwarpable(pTarget))
+	if (TechnoExtData::IsUnwarpable(pTarget))
 		return false;
 
 	if (pTarget->WhatAmI() == BuildingClass::AbsID)
 	{
-		if (BuildingExt::ExtMap.Find((BuildingClass*)pTarget)->AboutToChronoshift)
+		if (BuildingExtContainer::Instance.Find((BuildingClass*)pTarget)->AboutToChronoshift)
 		{
 			return false;
 		}
 	}
 	else
 	{
-		if (TechnoExt::IsInWarfactory(pTarget, true))
+		if (TechnoExtData::IsInWarfactory(pTarget, true))
 			return false;
 
-		if (TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTarget)))
+		if (TechnoExtData::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTarget)))
 			return false;
 	}
 
@@ -1554,7 +1554,7 @@ void TechnoExt_ExtData::DepositTiberium(TechnoClass* pThis, float const amount, 
 	// also add the normal tiberium to the global account?
 	if (amount > 0.0)
 	{
-		auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 		if (!pExt->Refinery_UseStorage)
 		{
 			value += int(amount * pTiberium->Value * pHouse->Type->IncomeMult);
@@ -1563,10 +1563,10 @@ void TechnoExt_ExtData::DepositTiberium(TechnoClass* pThis, float const amount, 
 		{
 			int decidedIndex = idxType;
 			float decidedAmount = amount;
-			if (pThis->WhatAmI() == BuildingClass::AbsID && RulesExt::Global()->Storage_TiberiumIndex >= 0)
+			if (pThis->WhatAmI() == BuildingClass::AbsID && RulesExtData::Instance()->Storage_TiberiumIndex >= 0)
 			{
-				pTiberium = TiberiumClass::Array->GetItem(RulesExt::Global()->Storage_TiberiumIndex);
-				decidedIndex = RulesExt::Global()->Storage_TiberiumIndex;
+				pTiberium = TiberiumClass::Array->GetItem(RulesExtData::Instance()->Storage_TiberiumIndex);
+				decidedIndex = RulesExtData::Instance()->Storage_TiberiumIndex;
 				decidedAmount = (amount * pTiberium->Value) / pTiberium->Value;
 			}
 
@@ -1584,7 +1584,7 @@ void TechnoExt_ExtData::DepositTiberium(TechnoClass* pThis, float const amount, 
 void TechnoExt_ExtData::RefineTiberium(TechnoClass* pThis, float const amount, int const idxType)
 {
 	const auto pHouse = pThis->GetOwningHouse();
-	const auto refined = BuildingTypeExt::GetPurifierBonusses(pHouse) * amount;
+	const auto refined = BuildingTypeExtData::GetPurifierBonusses(pHouse) * amount;
 	// add the tiberium to the house's credits
 	TechnoExt_ExtData::DepositTiberium(pThis, amount, refined, idxType);
 }
@@ -1592,7 +1592,7 @@ void TechnoExt_ExtData::RefineTiberium(TechnoClass* pThis, float const amount, i
 bool TechnoExt_ExtData::FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon)
 {
 	const auto nRulesGreen = RulesClass::Instance->ConditionGreen;
-	const auto pThatTechnoExt = TechnoExt::ExtMap.Find(pTarget);
+	const auto pThatTechnoExt = TechnoExtContainer::Instance.Find(pTarget);
 	const auto pThatShield = pThatTechnoExt->GetShield();
 
 	if (pThatShield && pThatShield->IsActive())
@@ -1622,9 +1622,9 @@ bool TechnoExt_ExtData::FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget, 
 
 std::pair<bool, int> TechnoExt_ExtData::HealActionProhibited(bool CheckKeyPress, TechnoClass* pTarget, WeaponTypeClass* pWeapon)
 {
-	const auto pThatTechnoExt = TechnoExt::ExtMap.Find(pTarget);
+	const auto pThatTechnoExt = TechnoExtContainer::Instance.Find(pTarget);
 	const auto pThatShield = pThatTechnoExt->GetShield();
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
 
 	if (CheckKeyPress)
 	{
@@ -1673,7 +1673,7 @@ std::pair<bool, int> TechnoExt_ExtData::HealActionProhibited(bool CheckKeyPress,
 
 UnitTypeClass* TechnoExt_ExtData::GetUnitTypeImage(UnitClass* const pThis)
 {
-	const auto pData = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	const auto pData = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	if (pData->WaterImage && !pThis->OnBridge && pThis->GetCell()->LandType == LandType::Water && !pThis->IsAttackedByLocomotor)
 	{
 		return pData->WaterImage;
@@ -1714,7 +1714,7 @@ TechnoTypeClass* TechnoExt_ExtData::GetImage(FootClass* pThis)
 
 void TechnoExt_ExtData::HandleTunnelLocoStuffs(FootClass* pOwner, bool DugIN, bool PlayAnim)
 {
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType());
 	const auto pRules = RulesClass::Instance();
 	const auto nSound = (DugIN ? pExt->DigInSound : pExt->DigOutSound).Get(pRules->DigSound);
 
@@ -1724,7 +1724,7 @@ void TechnoExt_ExtData::HandleTunnelLocoStuffs(FootClass* pOwner, bool DugIN, bo
 	{
 		if (const auto pAnimType = (DugIN ? pExt->DigInAnim : pExt->DigOutAnim).Get(pRules->Dig))
 		{
-			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pOwner->Location),
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pOwner->Location),
 				pOwner->Owner,
 				nullptr,
 				false
@@ -1736,13 +1736,13 @@ void TechnoExt_ExtData::HandleTunnelLocoStuffs(FootClass* pOwner, bool DugIN, bo
 
 bool TechnoExt_ExtData::IsSameTrech(BuildingClass* currentBuilding, BuildingClass* targetBuilding)
 {
-	auto pThisTypeExt = BuildingTypeExt::ExtMap.Find(currentBuilding->Type);
+	auto pThisTypeExt = BuildingTypeExtContainer::Instance.Find(currentBuilding->Type);
 	if (pThisTypeExt->IsTrench <= 0)
 	{
 		return false;
 	}
 
-	return pThisTypeExt->IsTrench == BuildingTypeExt::ExtMap.Find(targetBuilding->Type)->IsTrench;
+	return pThisTypeExt->IsTrench == BuildingTypeExtContainer::Instance.Find(targetBuilding->Type)->IsTrench;
 }
 
 bool TechnoExt_ExtData::canTraverseTo(BuildingClass* currentBuilding, BuildingClass* targetBuilding)
@@ -1772,7 +1772,7 @@ void TechnoExt_ExtData::doTraverseTo(BuildingClass* currentBuilding, BuildingCla
 	{
 		auto item = currentBuilding->Occupants.Items[0];
 		targetBuilding->Occupants.AddItem(item);
-		TechnoExt::ExtMap.Find(item)->GarrisonedIn = targetBuilding;
+		TechnoExtContainer::Instance.Find(item)->GarrisonedIn = targetBuilding;
 		currentBuilding->Occupants.Remove(item); // maybe switch Add/Remove if the game gets pissy about multiple of them walking around
 	}
 
@@ -1795,20 +1795,20 @@ bool TechnoExt_ExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 
 		// defaults if SW isn't set
 		auto pOwner = pThis->GetOwningHouse();
-		SWTypeExt::ExtData* pSWExt = nullptr;
+		SWTypeExtData* pSWExt = nullptr;
 		auto canPrefer = true;
 
 		// check the hunter seeker SW
 		if (auto const pSuper =
 #ifndef Replace_SW
-			TechnoExt::ExtMap.Find(pThis)->LinkedSW
+			TechnoExtContainer::Instance.Find(pThis)->LinkedSW
 #else
 			pThis->align_154->AttachedSuperWeapon
 #endif
 			)
 		{
 			pOwner = pSuper->Owner;
-			pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type);
+			pSWExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
 			canPrefer = !pSWExt->HunterSeeker_RandomOnly;
 		}
 
@@ -1842,7 +1842,7 @@ bool TechnoExt_ExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 			if (what == BuildingClass::AbsID)
 			{
 				auto pBuilding = static_cast<BuildingClass*>(i);
-				const auto pExt = BuildingExt::ExtMap.Find(pBuilding);
+				const auto pExt = BuildingExtContainer::Instance.Find(pBuilding);
 
 				if (pExt->LimboID >= 0 || pBuilding->Type->InvisibleInGame)
 					continue;
@@ -1858,7 +1858,7 @@ bool TechnoExt_ExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 			auto const pType = i->GetTechnoType();
 
 			// is type to be ignored?
-			auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
+			auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 			if (pType->Invisible
 			|| (pExt->AI_LegalTarget.isset() && !isHumanControlled && !pExt->AI_LegalTarget.Get())
@@ -2001,7 +2001,7 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 			|| ((TechnoClass*)pSource)->CloakState == CloakState::Cloaked
 			|| pSource->GetHeight() < -10
 			|| pSource->IsDisguised() && (pDisguise = pSource->GetDisguise(true)) && pDisguise->WhatAmI() == AbstractType::TerrainType
-			|| what == BuildingClass::AbsID && (pSource->GetCurrentMission() != Mission::Construction && !((BuildingClass*)pSource)->IsPowerOnline() || BuildingExt::ExtMap.Find(((BuildingClass*)pSource))->LimboID != -1)
+			|| what == BuildingClass::AbsID && (pSource->GetCurrentMission() != Mission::Construction && !((BuildingClass*)pSource)->IsPowerOnline() || BuildingExtContainer::Instance.Find(((BuildingClass*)pSource))->LimboID != -1)
 			)
 	)
 	{
@@ -2031,7 +2031,7 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 
 int TechnoExt_ExtData::GetAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapon)
 {
-	const auto pExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+	const auto pExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
 	for (int i = pExt->Ammo; i > 0; --i)
 		pThis->DecreaseAmmo();
@@ -2042,7 +2042,7 @@ int TechnoExt_ExtData::GetAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapo
 void TechnoExt_ExtData::DecreaseAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapon)
 {
 	const auto pType = pThis->GetTechnoType();
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (GetAmmo(pThis, pWeapon) > 0)
 	{
@@ -2093,7 +2093,7 @@ void TechnoExt_ExtData::PlantBomb(TechnoClass* pSource, ObjectClass* pTarget, We
 	// ensure target isn't rigged already
 	if (pTarget && !pTarget->AttachedBomb)
 	{
-		const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
+		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
 		const auto pTechno = generic_cast<TechnoClass*>(pTarget);
 
 		//https://bugs.launchpad.net/ares/+bug/1591335
@@ -2105,8 +2105,8 @@ void TechnoExt_ExtData::PlantBomb(TechnoClass* pSource, ObjectClass* pTarget, We
 		// if target has a bomb, planting was successful
 		if (auto pBomb = pTarget->AttachedBomb)
 		{
-			const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
-			BombExt::ExtMap.Find(pBomb)->Weapon = pWeaponExt;
+			const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+			BombExtContainer::Instance.Find(pBomb)->Weapon = pWeaponExt;
 			pBomb->DetonationFrame = Unsorted::CurrentFrame + pWeaponExt->Ivan_Delay.Get(RulesClass::Instance->IvanTimedDelay);
 			pBomb->TickSound = pWeaponExt->Ivan_TickingSound.Get(RulesClass::Instance->BombTickingSound);
 
@@ -2134,7 +2134,7 @@ bool TechnoExt_ExtData::CanDetonate(TechnoClass* pThis, ObjectClass* pThat)
 
 			if (pBomb->OwnerHouse->ControlledByPlayer())
 			{
-				const auto pData = BombExt::ExtMap.Find(pBomb);
+				const auto pData = BombExtContainer::Instance.Find(pBomb);
 				const bool bCanDetonateDeathBomb =
 					pData->Weapon->Ivan_CanDetonateDeathBomb.Get(RulesClass::Instance->CanDetonateDeathBomb);
 				const bool bCanDetonateTimeBomb =
@@ -2174,7 +2174,7 @@ Action TechnoExt_ExtData::GetAction(TechnoClass* pThis, ObjectClass* pThat)
 
 int TechnoExt_ExtData::GetFirstSuperWeaponIndex(BuildingClass* pThis)
 {
-	const auto pExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+	const auto pExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 	const auto count = pExt->GetSuperWeaponCount();
 	for (auto i = 0; i < count; ++i)
 	{
@@ -2194,13 +2194,13 @@ void TechnoExt_ExtData::UpdateDisplayTo(BuildingClass* pThis)
 		auto pHouse = pThis->Owner;
 		pHouse->RadarVisibleTo.Clear();
 
-		pHouse->RadarVisibleTo.data |= HouseExt::ExtMap.Find(pHouse)->RadarPersist.data;
+		pHouse->RadarVisibleTo.data |= HouseExtContainer::Instance.Find(pHouse)->RadarPersist.data;
 
 		for (auto pBld : pHouse->Buildings)
 		{
 			if (!pBld->InLimbo)
 			{
-				if (BuildingTypeExt::ExtMap.Find(pBld->Type)->SpyEffect_RevealRadar)
+				if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->SpyEffect_RevealRadar)
 				{
 					pHouse->RadarVisibleTo.data |= pBld->DisplayProductionTo.data;
 				}
@@ -2214,7 +2214,7 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 {
 	auto EnteredType = EnteredBuilding->Type;
 	auto Owner = EnteredBuilding->Owner;
-	auto pTypeExt = BuildingTypeExt::ExtMap.Find(EnteredBuilding->Type);
+	auto pTypeExt = BuildingTypeExtContainer::Instance.Find(EnteredBuilding->Type);
 
 	if (!pTypeExt->SpyEffect_Custom)
 	{
@@ -2269,7 +2269,7 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 
 	if (pTypeExt->SpyEffect_StolenTechIndex_result.any())
 	{
-		HouseExt::ExtMap.Find(Enterer)->StolenTech |= pTypeExt->SpyEffect_StolenTechIndex_result;
+		HouseExtContainer::Instance.Find(Enterer)->StolenTech |= pTypeExt->SpyEffect_StolenTechIndex_result;
 		Enterer->RecheckTechTree = true;
 		if (evaForOwner) {
 			VoxClass::Play(GameStrings::EVA_TechnologyStolen);
@@ -2286,7 +2286,7 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 	if (pTypeExt->SpyEffect_UnReverseEngineer)
 	{
 		Debug::Log("Undoing all Reverse Engineering achieved by house %ls\n", Owner->UIName);
-		HouseExt::ExtMap.Find(Owner)->Reversed.clear();
+		HouseExtContainer::Instance.Find(Owner)->Reversed.clear();
 		Owner->RecheckTechTree = true;
 
 		if (evaForOwner || evaForEnterer)
@@ -2302,7 +2302,7 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 		bool somethingReset = false;
 		for (auto types : EnteredBuilding->GetTypes())
 		{
-			if (auto typeExt = BuildingTypeExt::ExtMap.TryFind(types))
+			if (auto typeExt = BuildingTypeExtContainer::Instance.TryFind(types))
 			{
 				for (auto i = 0; i < typeExt->GetSuperWeaponCount(); ++i)
 				{
@@ -2470,7 +2470,7 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 	}
 
 	{
-		auto pEntererExt = HouseExt::ExtMap.Find(Enterer);
+		auto pEntererExt = HouseExtContainer::Instance.Find(Enterer);
 
 		bool promotionStolen = false;
 		if (pTypeExt->SpyEffect_GainVeterancy)
@@ -2582,7 +2582,7 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 		*/
 		if (pTypeExt->SpyEffect_RevealRadarPersist)
 		{
-			HouseExt::ExtMap.Find(Owner)->RadarPersist.Add(Enterer);
+			HouseExtContainer::Instance.Find(Owner)->RadarPersist.Add(Enterer);
 		}
 
 		EnteredBuilding->DisplayProductionTo.Add(Enterer);
@@ -2615,7 +2615,7 @@ DirStruct TechnoExt_ExtData::UnloadFacing(UnitClass* pThis)
 	{
 		if (const auto pBld = specific_cast<BuildingClass*>(pThis->RadioLinks.Items[0]))
 		{
-			auto const pBldExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+			auto const pBldExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 			if (pBldExt->DockUnload_Facing.isset())
 				nResult.Raw = ((size_t)pBldExt->DockUnload_Facing.Get()) << 11;
 		}
@@ -2626,7 +2626,7 @@ DirStruct TechnoExt_ExtData::UnloadFacing(UnitClass* pThis)
 
 CellStruct TechnoExt_ExtData::UnloadCell(BuildingClass* pThis)
 {
-	return BuildingTypeExt::ExtMap.Find(pThis->Type)->DockUnload_Cell;
+	return BuildingTypeExtContainer::Instance.Find(pThis->Type)->DockUnload_Cell;
 }
 
 BuildingClass* TechnoExt_ExtData::BuildingUnload(UnitClass* pThis)
@@ -2702,7 +2702,7 @@ void TechnoExt_ExtData::UpdateSensorArray(BuildingClass* pBld)
 	if (pBld->Type->SensorArray)
 	{
 		bool isActive = pBld->IsPowerOnline() && !pBld->Deactivated;
-		bool wasActive = (BuildingExt::ExtMap.Find(pBld)->SensorArrayActiveCounter > 0);
+		bool wasActive = (BuildingExtContainer::Instance.Find(pBld)->SensorArrayActiveCounter > 0);
 
 		if (isActive != wasActive)
 		{
@@ -2734,10 +2734,10 @@ BuildingClass* TechnoExt_ExtData::CreateBuilding(
 	if (!remove)
 	{
 		HouseClass* designated =
-			//pBuilding->Type->CanBeOccupied && pBuilding->Occupants.Count != 0 ? HouseExt::FindCivilianSide() :
+			//pBuilding->Type->CanBeOccupied && pBuilding->Occupants.Count != 0 ? HouseExtData::FindCivilianSide() :
 			pBuilding->Owner;
 
-		auto pOwner = HouseExt::GetHouseKind(owner, true, designated);
+		auto pOwner = HouseExtData::GetHouseKind(owner, true, designated);
 		pRet = static_cast<BuildingClass*>(pNewType->CreateObject(pOwner));
 
 		if (strength <= -1 && strength >= -100)
@@ -2758,7 +2758,7 @@ BuildingClass* TechnoExt_ExtData::CreateBuilding(
 		if (!res)
 		{
 			Debug::Log(__FUNCTION__" Called \n");
-			TechnoExt::HandleRemove(pRet, nullptr, true, false);
+			TechnoExtData::HandleRemove(pRet, nullptr, true, false);
 			pRet = nullptr;
 		}
 	}
@@ -2803,7 +2803,7 @@ bool TechnoExt_ExtData::IsDriverKillable(TechnoClass* pThis, double KillBelowPer
 			return false;
 	}
 
-	if (pThis->BeingWarpedOut || pThis->IsIronCurtained() || TechnoExt::IsInWarfactory(pThis, false))
+	if (pThis->BeingWarpedOut || pThis->IsIronCurtained() || TechnoExtData::IsInWarfactory(pThis, false))
 		return false;
 
 	const auto pType = pThis->GetTechnoType();
@@ -2811,8 +2811,8 @@ bool TechnoExt_ExtData::IsDriverKillable(TechnoClass* pThis, double KillBelowPer
 	if (pType->Natural || pType->Organic)
 		return false;
 
-	const auto pThisTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-	const bool protecteddriver = TechnoExt::IsDriverKillProtected(pThis);
+	const auto pThisTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	const bool protecteddriver = TechnoExtData::IsDriverKillProtected(pThis);
 
 	const double maxKillHealth = MinImpl(
 		pThisTypeExt->ProtectedDriver_MinHealth.Get(
@@ -2834,9 +2834,9 @@ void TechnoExt_ExtData::ApplyKillDriver(TechnoClass* pTarget, TechnoClass* pKill
 		return;
 	}
 
-	TechnoExt::ExtMap.Find(pTarget)->Is_DriverKilled = pToOwner->Type->MultiplayPassive;
+	TechnoExtContainer::Instance.Find(pTarget)->Is_DriverKilled = pToOwner->Type->MultiplayPassive;
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pTarget->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTarget->GetTechnoType());
 
 	if (pTarget->Passengers.GetFirstPassenger())
 	{
@@ -2868,7 +2868,7 @@ void TechnoExt_ExtData::ApplyKillDriver(TechnoClass* pTarget, TechnoClass* pKill
 		// if passengers remain in the vehicle, operator-using or not, they should leave
 		if (pTarget->Passengers.GetFirstPassenger())
 		{
-			TechnoExt::EjectPassengers((FootClass*)pTarget, -1);
+			TechnoExtData::EjectPassengers((FootClass*)pTarget, -1);
 		}
 	}
 
@@ -3028,9 +3028,9 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 		pOwner->RegisterGain(pThis, false);
 
 	pOwner->RecheckTechTree = true;
-	TechnoExt::ExtMap.Find(pThis)->Is_Operated = false;
+	TechnoExtContainer::Instance.Find(pThis)->Is_Operated = false;
 
-	AresAE::RemoveSpecific(&TechnoExt::ExtMap.Find(pThis)->AeData, pThis, prevType);
+	AresAE::RemoveSpecific(&TechnoExtContainer::Instance.Find(pThis)->AeData, pThis, prevType);
 
 	// remove previous line trail
 	GameDelete<true, true>(pThis->LineTrailer);
@@ -3084,13 +3084,13 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 
 	BuildingLightClass* pSpot = nullptr;
 
-	if (TechnoTypeExt::ExtMap.Find(pToType)->HasSpotlight) {
+	if (TechnoTypeExtContainer::Instance.Find(pToType)->HasSpotlight) {
 		pSpot = GameCreate<BuildingLightClass>(pThis);
 	}
 
 	TechnoExt_ExtData::SetSpotlight(pThis, pSpot);
 	pThis->PrimaryFacing.Set_ROT(pToType->ROT);
-	pThis->SecondaryFacing.Set_ROT(TechnoTypeExt::ExtMap.Find(pToType)->TurretRot.Get(pToType->ROT));
+	pThis->SecondaryFacing.Set_ROT(TechnoTypeExtContainer::Instance.Find(pToType)->TurretRot.Get(pToType->ROT));
 
 	// because we are throwing away the locomotor in a split second, piggybacking
 	// has to be stopped. otherwise the object might remain in a weird state.
@@ -3142,25 +3142,25 @@ void TechnoExt_ExtData::RecalculateStat(TechnoClass* pThis)
 
 	if (pThis->AbstractFlags & AbstractFlags::Foot) {
 
-		//if (Speed_Mult < 1.0 && TechnoExt::IsInWarfactory(pThis))
+		//if (Speed_Mult < 1.0 && TechnoExtData::IsInWarfactory(pThis))
 		//	Speed_Mult = 1.0; //negate all speed bonusses when it is still in warfactory
 
 		((FootClass*)pThis)->SpeedMultiplier = Speed_Mult;
 	}
 #else
 	//AresData::RecalculateStat(pThis);
-	AresAE::RecalculateStat(&TechnoExt::ExtMap.Find(pThis)->AeData, pThis);
+	AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pThis)->AeData, pThis);
 #endif
 }
 
 int TechnoExt_ExtData::GetSelfHealAmount(TechnoClass* pThis) {
 
 	auto const pType = pThis->GetTechnoType();
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	if (pType->SelfHealing || pThis->HasAbility(AbilityType::SelfHeal))
 	{
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		if (pExt->SelfHealing_CombatDelay.GetTimeLeft())
 			return 0x0;
@@ -3210,7 +3210,7 @@ void TechnoExt_ExtData::SpawnVisceroid(CoordStruct& crd, UnitTypeClass* pType, i
 				if (!created)
 				{
 					Debug::Log(__FUNCTION__" Called \n");
-					TechnoExt::HandleRemove(pVisc, nullptr, true, true);
+					TechnoExtData::HandleRemove(pVisc, nullptr, true, true);
 				}
 			}
 		}
@@ -3219,7 +3219,7 @@ void TechnoExt_ExtData::SpawnVisceroid(CoordStruct& crd, UnitTypeClass* pType, i
 
 void TechnoExt_ExtData::TransferOriginalOwner(TechnoClass* pFrom, TechnoClass* pTo)
 {
-	TechnoExt::ExtMap.Find(pFrom)->OriginalHouseType = TechnoExt::ExtMap.Find(pTo)->OriginalHouseType;
+	TechnoExtContainer::Instance.Find(pFrom)->OriginalHouseType = TechnoExtContainer::Instance.Find(pTo)->OriginalHouseType;
 }
 
 void TechnoExt_ExtData::TransferIvanBomb(TechnoClass* From, TechnoClass* To)
@@ -3235,7 +3235,7 @@ void TechnoExt_ExtData::TransferIvanBomb(TechnoClass* From, TechnoClass* To)
 	}
 }
 
-void NOINLINE UpdateType(TechnoClass* pThis, TechnoTypeExt::ExtData* pOldTypeExt)
+void NOINLINE UpdateType(TechnoClass* pThis, TechnoTypeExtData* pOldTypeExt)
 {
 	if (pOldTypeExt->Convert_Water || pOldTypeExt->Convert_Land)
 	{
@@ -3244,14 +3244,14 @@ void NOINLINE UpdateType(TechnoClass* pThis, TechnoTypeExt::ExtData* pOldTypeExt
 		if (pCell && (pCell->LandType == LandType::Water || pCell->LandType == LandType::Beach))
 			Convert = pOldTypeExt->Convert_Water;
 
-		if (Convert && pOldTypeExt->Get() != Convert)
+		if (Convert && pOldTypeExt->AttachedToObject != Convert)
 			TechnoExt_ExtData::ConvertToType(pThis, Convert);
 	}
 }
 
-void NOINLINE UpdatePassengerTurrent(TechnoClass* pThis, TechnoTypeExt::ExtData* pTypeData)
+void NOINLINE UpdatePassengerTurrent(TechnoClass* pThis, TechnoTypeExtData* pTypeData)
 {
-	const auto pType = pTypeData->OwnerObject();
+	const auto pType = pTypeData->AttachedToObject;
 	if (pTypeData->PassengerTurret)
 	{
 		// 18 = 1 8 = A H = Adolf Hitler. Clearly we can't allow it to come to that.
@@ -3260,28 +3260,28 @@ void NOINLINE UpdatePassengerTurrent(TechnoClass* pThis, TechnoTypeExt::ExtData*
 	}
 }
 
-void NOINLINE UpdatePoweredBy(TechnoClass* pThis, TechnoTypeExt::ExtData* pTypeData)
+void NOINLINE UpdatePoweredBy(TechnoClass* pThis, TechnoTypeExtData* pTypeData)
 {
 	if (!pTypeData->PoweredBy.empty())
 	{
 
-		if (!TechnoExt::ExtMap.Find(pThis)->PoweredUnit)
+		if (!TechnoExtContainer::Instance.Find(pThis)->PoweredUnit)
 		{
-			TechnoExt::ExtMap.Find(pThis)->PoweredUnit = std::make_unique<AresPoweredUnit>(pThis);
+			TechnoExtContainer::Instance.Find(pThis)->PoweredUnit = std::make_unique<AresPoweredUnit>(pThis);
 		}
 
-		if (!TechnoExt::ExtMap.Find(pThis)->PoweredUnit->Update())
+		if (!TechnoExtContainer::Instance.Find(pThis)->PoweredUnit->Update())
 		{
 			TechnoExt_ExtData::Destroy(pThis, nullptr, nullptr, nullptr);
 		}
 	}
 }
 
-void NOINLINE UpdateBuildingOperation(TechnoExt::ExtData* pData, TechnoTypeExt::ExtData* pTypeData)
+void NOINLINE UpdateBuildingOperation(TechnoExtData* pData, TechnoTypeExtData* pTypeData)
 {
-	auto const pThis = pData->OwnerObject();
+	auto const pThis = pData->AttachedToObject;
 
-	if (TechnoExt::ExtMap.Find(pThis)->Is_Operated && pThis->WhatAmI() == BuildingClass::AbsID)
+	if (TechnoExtContainer::Instance.Find(pThis)->Is_Operated && pThis->WhatAmI() == BuildingClass::AbsID)
 	{
 		if (pThis->Deactivated
 			&& pThis->IsPowerOnline()
@@ -3337,9 +3337,9 @@ void NOINLINE UpdateBuildingOperation(TechnoExt::ExtData* pData, TechnoTypeExt::
 	}
 }
 
-void NOINLINE UpdateRadarJammer(TechnoExt::ExtData* pData, TechnoTypeExt::ExtData* pTypeData)
+void NOINLINE UpdateRadarJammer(TechnoExtData* pData, TechnoTypeExtData* pTypeData)
 {
-	auto const pThis = pData->OwnerObject();
+	auto const pThis = pData->AttachedToObject;
 
 	// prevent disabled units from driving around.
 	if (pThis->Deactivated)
@@ -3354,7 +3354,7 @@ void NOINLINE UpdateRadarJammer(TechnoExt::ExtData* pData, TechnoTypeExt::ExtDat
 		}
 
 		// dropping Radar Jammers (#305) here for now; should check if another TechnoClass::Update hook might be better ~Ren
-		if (auto& pJam = TechnoExt::ExtMap.Find(pThis)->RadarJammer)
+		if (auto& pJam = TechnoExtContainer::Instance.Find(pThis)->RadarJammer)
 		{ // RadarJam should only be non-null if the object is an active radar jammer
 			pJam->UnjamAll();
 		}
@@ -3364,11 +3364,11 @@ void NOINLINE UpdateRadarJammer(TechnoExt::ExtData* pData, TechnoTypeExt::ExtDat
 		// dropping Radar Jammers (#305) here for now; should check if another TechnoClass::Update hook might be better ~Ren
 		if (pTypeData->RadarJamRadius)
 		{
-			if (!TechnoExt::ExtMap.Find(pThis)->RadarJammer) {
-				TechnoExt::ExtMap.Find(pThis)->RadarJammer = std::make_unique<AresJammer>(pThis);
+			if (!TechnoExtContainer::Instance.Find(pThis)->RadarJammer) {
+				TechnoExtContainer::Instance.Find(pThis)->RadarJammer = std::make_unique<AresJammer>(pThis);
 			}
 
-			TechnoExt::ExtMap.Find(pThis)->RadarJammer->Update();
+			TechnoExtContainer::Instance.Find(pThis)->RadarJammer->Update();
 		}
 	}
 }
@@ -3378,9 +3378,9 @@ void NOINLINE UpdateRadarJammer(TechnoExt::ExtData* pData, TechnoTypeExt::ExtDat
 void TechnoExt_ExtData::Ares_technoUpdate(TechnoClass* pThis)
 {
 	const auto pOldType = pThis->GetTechnoType();
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	auto pOldTypeExt = TechnoTypeExt::ExtMap.Find(pOldType);
+	auto pOldTypeExt = TechnoTypeExtContainer::Instance.Find(pOldType);
 
 	UpdateType(pThis, pOldTypeExt);
 	UpdatePassengerTurrent(pThis, pOldTypeExt);
@@ -3411,11 +3411,11 @@ void TechnoExt_ExtData::Ares_technoUpdate(TechnoClass* pThis)
 
 void TechnoExt_ExtData::Ares_AddMoneyStrings(TechnoClass* pThis, bool forcedraw)
 {
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto value = pExt->TechnoValueAmount;
 	if (value && (forcedraw || Unsorted::CurrentFrame >= pExt->Pos))
 	{
-		pExt->Pos = Unsorted::CurrentFrame - int32_t(RulesExt::Global()->DisplayCreditsDelay * -900.0);
+		pExt->Pos = Unsorted::CurrentFrame - int32_t(RulesExtData::Instance()->DisplayCreditsDelay * -900.0);
 		pExt->TechnoValueAmount = 0;
 		bool isPositive = value > 0;
 		wchar_t moneyStr[0x20];
@@ -3455,7 +3455,7 @@ void TechnoExperienceData::AddAirstrikeFactor(TechnoClass*& pKiller, double& d_f
 	{
 		if (const auto pDesignator = pKiller->Airstrike->Owner)
 		{
-			if (const auto pDesignatorExt = TechnoTypeExt::ExtMap.Find(pDesignator->GetTechnoType()))
+			if (const auto pDesignatorExt = TechnoTypeExtContainer::Instance.Find(pDesignator->GetTechnoType()))
 			{
 				if (pDesignatorExt->ExperienceFromAirstrike)
 				{
@@ -3473,7 +3473,7 @@ bool TechnoExperienceData::KillerInTransporterFactor(TechnoClass* pKiller, Techn
 	if (!pTransporter)
 		return false;
 
-	const auto pTTransporterData = TechnoTypeExt::ExtMap.Find(pTransporter->GetTechnoType());
+	const auto pTTransporterData = TechnoTypeExtContainer::Instance.Find(pTransporter->GetTechnoType());
 	const auto TransporterAndKillerAllied = pTransporter->Owner->IsAlliedWith_(pKiller);
 
 	if (pKiller->InOpenToppedTransport)
@@ -3510,8 +3510,8 @@ void TechnoExperienceData::AddExperience(TechnoClass* pExtReceiver, TechnoClass*
 	const auto pExpReceiverType = pExtReceiver->GetTechnoType();
 	const auto pVinctimType = pVictim->GetTechnoType();
 	const auto TechnoCost = pExpReceiverType->GetActualCost(pExtReceiver->Owner);
-	const auto pVictimTypeExt = TechnoTypeExt::ExtMap.Find(pVinctimType);
-	const auto pKillerTypeExt = TechnoTypeExt::ExtMap.Find(pExpReceiverType);
+	const auto pVictimTypeExt = TechnoTypeExtContainer::Instance.Find(pVinctimType);
+	const auto pKillerTypeExt = TechnoTypeExtContainer::Instance.Find(pExpReceiverType);
 
 	const auto WeightedVictimCost = static_cast<int>(victimCost * factor *
 		pKillerTypeExt->Experience_KillerMultiple * pVictimTypeExt->Experience_VictimMultiple);
@@ -3532,7 +3532,7 @@ void TechnoExperienceData::MCControllerGainExperince(TechnoClass* pExpReceiver, 
 
 			// get the mind controllers extended properties
 			const auto pTController = pController->GetTechnoType();
-			const auto pTControllerData = TechnoTypeExt::ExtMap.Find(pTController);
+			const auto pTControllerData = TechnoTypeExtContainer::Instance.Find(pTController);
 
 			// promote the mind-controller
 			if (pTController->Trainable)
@@ -3554,7 +3554,7 @@ void TechnoExperienceData::GetSpawnerData(TechnoClass*& pSpawnOut, TechnoClass*&
 		const auto pTSpawner = pSpawner->GetTechnoType();
 		if (!pTSpawner->MissileSpawn && pTSpawner->Trainable)
 		{
-			const auto pTSpawnerData = TechnoTypeExt::ExtMap.Find(pTSpawner);
+			const auto pTSpawnerData = TechnoTypeExtContainer::Instance.Find(pTSpawner);
 
 			// add experience to the spawn. this is done later so mind-control
 			// can be factored in.
@@ -3576,7 +3576,7 @@ void TechnoExperienceData::PromoteImmedietely(TechnoClass* pExpReceiver, bool bS
 	{
 		if (pExpReceiver->CurrentRanking != Rank::Invalid)
 		{
-			auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pExpReceiver->GetTechnoType());
+			auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pExpReceiver->GetTechnoType());
 
 			if (pTypeExt->Promote_IncludePassengers)
 			{
@@ -3605,7 +3605,7 @@ void TechnoExperienceData::PromoteImmedietely(TechnoClass* pExpReceiver, bool bS
 
 			if (newRank == Rank::Veteran)
 			{
-				flash = pTypeExt->Promote_Vet_Flash.Get(RulesExt::Global()->VeteranFlashTimer);
+				flash = pTypeExt->Promote_Vet_Flash.Get(RulesExtData::Instance()->VeteranFlashTimer);
 				sound = pTypeExt->Promote_Vet_Sound.Get(pRules->UpgradeVeteranSound);
 				eva = pTypeExt->Promote_Vet_Eva;
 				pNewType = pTypeExt->Promote_Vet_Type;
@@ -3695,7 +3695,7 @@ void TechnoExperienceData::UpdateVeterancy(TechnoClass*& pExpReceiver, TechnoCla
 void TechnoExperienceData::EvaluateExtReceiverData(TechnoClass*& pExpReceiver, TechnoClass* pKiller, double& d_factor, bool& promoteImmediately)
 {
 	const auto pKillerTechnoType = pKiller->GetTechnoType();
-	const auto pKillerTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pKillerTechnoType);
+	const auto pKillerTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pKillerTechnoType);
 
 	if (!KillerInTransporterFactor(pKiller, pExpReceiver, d_factor, promoteImmediately))
 	{
@@ -3768,7 +3768,7 @@ DWORD FirewallFunctions::GetFirewallFlags(BuildingClass* pThis)
 	for (size_t direction = 0; direction < 8; direction += 2) {
 		if(auto pNeighbour = pCell->GetNeighbourCell((FacingType)direction)) {
 			if (auto pBld = pNeighbour->GetBuilding()) {
-				if (BuildingTypeExt::ExtMap.Find(pBld->Type)->Firestorm_Wall
+				if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->Firestorm_Wall
 					&& pBld->Owner == pThis->Owner
 					&& !pBld->InLimbo
 					&& pBld->IsAlive
@@ -3801,7 +3801,7 @@ bool FirewallFunctions::ImmolateVictim(TechnoClass* pThis, ObjectClass* const pV
 {
 	if (pVictim && pVictim->IsAlive && pVictim->Health > 0 && !pVictim->InLimbo)
 	{
-		auto const pRulesExt = RulesExt::Global();
+		auto const pRulesExt = RulesExtData::Instance();
 
 		if (destroy)
 		{
@@ -3831,14 +3831,14 @@ bool FirewallFunctions::ImmolateVictim(TechnoClass* pThis, ObjectClass* const pV
 			case AbstractType::Bullet:
 			{
 				const auto pBlt = (BulletClass*)pVictim;
-				pTarget = pBlt->Owner ? pBlt->Owner->Owner : BulletExt::ExtMap.Find(pBlt)->Owner;
+				pTarget = pBlt->Owner ? pBlt->Owner->Owner : BulletExtContainer::Instance.Find(pBlt)->Owner;
 			}
 			break;
 			default:
 				break;
 			}
 
-			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, crd, 0, 1, 0x600, -10, false),
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, crd, 0, 1, 0x600, -10, false),
 				pThis->Owner,
 				pTarget,
 				pThis,
@@ -3855,6 +3855,10 @@ bool FirewallFunctions::ImmolateVictim(TechnoClass* pThis, ObjectClass* const pV
 
 void FirewallFunctions::UpdateFirewall(BuildingClass* pThis, bool const changedState)
 {
+	if (pThis->InLimbo || !pThis->IsAlive) {
+		return;
+	}
+
 	auto const active = pThis->Owner->FirestormActive;
 
 	if (!changedState)
@@ -3868,7 +3872,7 @@ void FirewallFunctions::UpdateFirewall(BuildingClass* pThis, bool const changedS
 			&& connections != 0b0101 && connections != 0b1010
 			&& (ScenarioClass::Instance->Random.Random() & 0xF) == 0)
 		{
-			if (AnimTypeClass* pType = RulesExt::Global()->FirestormIdleAnim)
+			if (AnimTypeClass* pType = RulesExtData::Instance()->FirestormIdleAnim)
 			{
 				auto const crd = pThis->GetCoords() - CoordStruct { 740, 740, 0 };
 				Anim = GameCreate<AnimClass>(pType, crd, 0, 1, 0x604, -10);
@@ -3894,7 +3898,7 @@ void FirewallFunctions::UpdateFirewall(BuildingClass* pThis, bool const changedS
 		auto const connections = idxFrame & 0xF;
 		if (active && connections != 0b0101 && connections != 0b1010 && !Anim)
 		{
-			if (auto const& pType = RulesExt::Global()->FirestormActiveAnim)
+			if (auto const& pType = RulesExtData::Instance()->FirestormActiveAnim)
 			{
 				auto const crd = pThis->GetCoords() - CoordStruct { 128, 128, 0 };
 				Anim = GameCreate<AnimClass>(pType, crd, 1, 0, 0x600, -10);
@@ -3918,12 +3922,10 @@ void FirewallFunctions::UpdateFirewall(BuildingClass* pThis, bool const changedS
 
 void FirewallFunctions::UpdateFirewallLinks(BuildingClass* pThis)
 {
-	if (BuildingTypeExt::ExtMap.Find(pThis->Type)->Firestorm_Wall)
+	if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->Firestorm_Wall)
 	{
 		// update this
-		if (!pThis->InLimbo && pThis->IsAlive) {
-			FirewallFunctions::UpdateFirewall(pThis, true);
-		}
+		FirewallFunctions::UpdateFirewall(pThis, true);
 
 		// and all surrounding buildings
 		auto const pCell = MapClass::Instance->GetCellAt(pThis->Location);
@@ -3931,7 +3933,7 @@ void FirewallFunctions::UpdateFirewallLinks(BuildingClass* pThis)
 		{
 			if(auto const pNeighbour = pCell->GetNeighbourCell((FacingType)i)){
 				if (auto const pBld = pNeighbour->GetBuilding()) {
-					if (BuildingTypeExt::ExtMap.Find(pBld->Type)->Firestorm_Wall)
+					if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->Firestorm_Wall)
 						FirewallFunctions::UpdateFirewall(pBld, true);
 				}
 			}
@@ -3941,11 +3943,11 @@ void FirewallFunctions::UpdateFirewallLinks(BuildingClass* pThis)
 
 bool FirewallFunctions::IsActiveFirestormWall(BuildingClass* const pBuilding, HouseClass const* const pIgnore)
 {
-	if (HouseExt::IsAnyFirestormActive && pBuilding && pBuilding->Owner != pIgnore && pBuilding->Owner->FirestormActive)
+	if (HouseExtData::IsAnyFirestormActive && pBuilding && pBuilding->Owner != pIgnore && pBuilding->Owner->FirestormActive)
 	{
 		if (!pBuilding->InLimbo && pBuilding->IsAlive)
 		{
-			return BuildingTypeExt::ExtMap.Find(pBuilding->Type)->Firestorm_Wall;
+			return BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->Firestorm_Wall;
 		}
 	}
 
@@ -3954,8 +3956,8 @@ bool FirewallFunctions::IsActiveFirestormWall(BuildingClass* const pBuilding, Ho
 
 bool FirewallFunctions::sameTrench(BuildingClass* currentBuilding, BuildingClass* targetBuilding)
 {
-	const auto currentTypeExtData = BuildingTypeExt::ExtMap.Find(currentBuilding->Type);
-	const auto targetTypeExtData = BuildingTypeExt::ExtMap.Find(targetBuilding->Type);
+	const auto currentTypeExtData = BuildingTypeExtContainer::Instance.Find(currentBuilding->Type);
+	const auto targetTypeExtData = BuildingTypeExtContainer::Instance.Find(targetBuilding->Type);
 
 	return ((currentTypeExtData->IsTrench > -1) && (currentTypeExtData->IsTrench == targetTypeExtData->IsTrench));
 }
@@ -3968,12 +3970,12 @@ bool FirewallFunctions::canLinkTo(BuildingClass* currentBuilding, BuildingClass*
 		return false;
 	}
 
-	BuildingTypeExt::ExtData* currentTypeExtData = BuildingTypeExt::ExtMap.Find(currentBuilding->Type);
-	BuildingTypeExt::ExtData* targetTypeExtData = BuildingTypeExt::ExtMap.Find(targetBuilding->Type);
+	BuildingTypeExtData* currentTypeExtData = BuildingTypeExtContainer::Instance.Find(currentBuilding->Type);
+	BuildingTypeExtData* targetTypeExtData = BuildingTypeExtContainer::Instance.Find(targetBuilding->Type);
 
 	// Firewalls
-	if (BuildingTypeExt::ExtMap.Find(currentBuilding->Type)->Firestorm_Wall
-		&& 	BuildingTypeExt::ExtMap.Find(targetBuilding->Type)->Firestorm_Wall)
+	if (BuildingTypeExtContainer::Instance.Find(currentBuilding->Type)->Firestorm_Wall
+		&& 	BuildingTypeExtContainer::Instance.Find(targetBuilding->Type)->Firestorm_Wall)
 	{
 		return true;
 	}
@@ -3990,7 +3992,7 @@ bool FirewallFunctions::canLinkTo(BuildingClass* currentBuilding, BuildingClass*
 void FirewallFunctions::BuildLines(BuildingClass* theBuilding, CellStruct selectedCell, HouseClass* buildingOwner)
 {
 	// check if this building is linkable at all and abort if it isn't
-	if (!BuildingTypeExt::IsLinkable(theBuilding->Type))
+	if (!BuildingTypeExtData::IsLinkable(theBuilding->Type))
 	{
 		return;
 	}
@@ -4057,7 +4059,7 @@ void FirewallFunctions::BuildLines(BuildingClass* theBuilding, CellStruct select
 					else
 					{
 						Debug::Log(__FUNCTION__"Called!\n");
-						TechnoExt::HandleRemove(tempBuilding, nullptr, true, true);
+						TechnoExtData::HandleRemove(tempBuilding, nullptr, true, true);
 					}
 				}
 			}
@@ -4067,7 +4069,7 @@ void FirewallFunctions::BuildLines(BuildingClass* theBuilding, CellStruct select
 
 int FirewallFunctions::GetImageFrameIndex(BuildingClass* pThis)
 {
-	BuildingTypeExt::ExtData* pData = BuildingTypeExt::ExtMap.Find(pThis->Type);
+	BuildingTypeExtData* pData = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (pData->Firestorm_Wall)
 	{
@@ -4131,7 +4133,7 @@ void AresEMPulse::Destroy(TechnoClass* pTechno, TechnoClass* pKiller, HouseClass
 AnimTypeClass* AresEMPulse::GetSparkleAnimType(TechnoClass const* const pTechno)
 {
 	auto const pType = pTechno->GetTechnoType();
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	return pTypeExt->EMP_Sparkles.Get(RulesClass::Instance->EMPulseSparkles);
 }
 
@@ -4323,7 +4325,7 @@ bool AresEMPulse::isCurrentlyEMPImmune(WarheadTypeClass* pWarhead, TechnoClass* 
 
 bool AresEMPulse::isEMPImmune(TechnoClass* Target, HouseClass* SourceHouse)
 {
-	if (TechnoExt::IsEMPImmune(Target))
+	if (TechnoExtData::IsEMPImmune(Target))
 		return true;
 
 	auto pType = Target->GetTechnoType();
@@ -4358,7 +4360,7 @@ bool AresEMPulse::isEMPTypeImmune(TechnoClass* Target)
 	for (auto i = 0; i < WeaponCount; ++i) {
 
 		if (auto pWeaponType = Target->GetWeapon(i)->WeaponType) {
-			auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pWeaponType->Warhead);
+			auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(pWeaponType->Warhead);
 			if (pWarheadExt->EMP_Duration != 0) {
 					// this unit can fire emps and type immunity
 					// grants it to never be affected.
@@ -4404,7 +4406,7 @@ void AresEMPulse::UpdateSparkleAnim(TechnoClass* pFrom, TechnoClass* pTo)
 {
 	AnimTypeClass* pSparkle = nullptr;
 
-	if (auto& pCurSparkle = TechnoExt::ExtMap.Find(pFrom)->EMPSparkleAnim) {
+	if (auto& pCurSparkle = TechnoExtContainer::Instance.Find(pFrom)->EMPSparkleAnim) {
 		const auto pSpecific = AresEMPulse::GetSparkleAnimType(pFrom);
 
 		if (pSpecific != pCurSparkle->Type)
@@ -4416,7 +4418,7 @@ void AresEMPulse::UpdateSparkleAnim(TechnoClass* pFrom, TechnoClass* pTo)
 
 void AresEMPulse::UpdateSparkleAnim(TechnoClass* pWho, AnimTypeClass* pAnim)
 {
-	auto& Anim = TechnoExt::ExtMap.Find(pWho)->EMPSparkleAnim;
+	auto& Anim = TechnoExtContainer::Instance.Find(pWho)->EMPSparkleAnim;
 
 	if (pWho->IsUnderEMP())
 	{
@@ -4447,7 +4449,7 @@ void AresEMPulse::UpdateSparkleAnim(TechnoClass* pWho, AnimTypeClass* pAnim)
 
 bool AresEMPulse::thresholdExceeded(TechnoClass* Victim)
 {
-	auto const pData = TechnoTypeExt::ExtMap.Find(Victim->GetTechnoType());
+	auto const pData = TechnoTypeExtContainer::Instance.Find(Victim->GetTechnoType());
 	if (pData->EMP_Threshold != 0 && Victim->EMPLockRemaining > (std::abs(pData->EMP_Threshold)))
 	{
 		if (pData->EMP_Threshold > 0) {
@@ -4471,7 +4473,7 @@ bool AresEMPulse::thresholdExceeded(TechnoClass* Victim)
 
 bool AresEMPulse::isEligibleEMPTarget(TechnoClass* const pTarget, HouseClass* const pSourceHouse, WarheadTypeClass* pWarhead)
 {
-	if (!WarheadTypeExt::ExtMap.Find(pWarhead)->CanTargetHouse(pSourceHouse, pTarget))
+	if (!WarheadTypeExtContainer::Instance.Find(pWarhead)->CanTargetHouse(pSourceHouse, pTarget))
 	{
 		return false;
 	}
@@ -4482,7 +4484,7 @@ bool AresEMPulse::isEligibleEMPTarget(TechnoClass* const pTarget, HouseClass* co
 void AresEMPulse::deliverEMPDamage(TechnoClass* const pTechno, TechnoClass* const pFirer, WarheadTypeClass* pWarhead)
 {
 	auto const pHouse = pFirer ? pFirer->Owner : nullptr;
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
 
 	if (AresEMPulse::isEligibleEMPTarget(pTechno, pHouse, pWarhead))
 	{
@@ -4493,7 +4495,7 @@ void AresEMPulse::deliverEMPDamage(TechnoClass* const pTechno, TechnoClass* cons
 			return;
 		}
 
-		auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
+		auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
 		// get the target-specific multiplier
 		auto modifier = pWHExt->EMP_Duration > 0 ? pExt->EMP_Modifier : 1.0;
 
@@ -4607,7 +4609,7 @@ bool AresEMPulse::EnableEMPEffect(TechnoClass* const pVictim, ObjectClass* const
 	}
 
 	// cache the last mission this thing did
-	TechnoExt::ExtMap.Find(pVictim)->EMPLastMission = pVictim->CurrentMission;
+	TechnoExtContainer::Instance.Find(pVictim)->EMPLastMission = pVictim->CurrentMission;
 
 	// detach temporal
 	if (pVictim->IsWarpingSomethingOut())
@@ -4721,8 +4723,8 @@ void AresEMPulse::DisableEMPEffect(TechnoClass* const pVictim)
 			if (pUnit->Type->Harvester || pUnit->Type->ResourceGatherer)
 			{
 				// prevent unloading harvesters from being irritated.
-				auto const mission = TechnoExt::ExtMap.Find(pVictim)->EMPLastMission != Mission::Guard
-					? TechnoExt::ExtMap.Find(pVictim)->EMPLastMission : Mission::Enter;
+				auto const mission = TechnoExtContainer::Instance.Find(pVictim)->EMPLastMission != Mission::Guard
+					? TechnoExtContainer::Instance.Find(pVictim)->EMPLastMission : Mission::Enter;
 
 				pUnit->QueueMission(mission, true);
 				hasMission = true;
@@ -4731,7 +4733,7 @@ void AresEMPulse::DisableEMPEffect(TechnoClass* const pVictim)
 
 		if (!hasMission && !pFoot->Owner->IsControlledByHuman_())
 		{
-			pFoot->QueueMission(RulesExt::Global()->EMPAIRecoverMission.Get(Mission::Hunt), false);
+			pFoot->QueueMission(RulesExtData::Instance()->EMPAIRecoverMission.Get(Mission::Hunt), false);
 		}
 	}
 }
@@ -4765,7 +4767,7 @@ bool AresEMPulse::EnableEMPEffect2(TechnoClass* const pVictim)
 	if (!pVictim->Deactivated && AresEMPulse::IsDeactivationAdvisable(pVictim))
 	{
 		// cache the last mission this thing did
-		TechnoExt::ExtMap.Find(pVictim)->EMPLastMission = pVictim->CurrentMission;
+		TechnoExtContainer::Instance.Find(pVictim)->EMPLastMission = pVictim->CurrentMission;
 
 		// detach temporal
 		if (pVictim->IsWarpingSomethingOut())
@@ -4873,8 +4875,8 @@ void AresEMPulse::DisableEMPEffect2(TechnoClass* const pVictim)
 				if (pUnit->Type->Harvester || pUnit->Type->ResourceGatherer)
 				{
 					// prevent unloading harvesters from being irritated.
-					auto const mission = TechnoExt::ExtMap.Find(pVictim)->EMPLastMission != Mission::Guard
-						? TechnoExt::ExtMap.Find(pVictim)->EMPLastMission : Mission::Enter;
+					auto const mission = TechnoExtContainer::Instance.Find(pVictim)->EMPLastMission != Mission::Guard
+						? TechnoExtContainer::Instance.Find(pVictim)->EMPLastMission : Mission::Enter;
 
 					pUnit->QueueMission(mission, true);
 					hasMission = true;
@@ -4883,7 +4885,7 @@ void AresEMPulse::DisableEMPEffect2(TechnoClass* const pVictim)
 
 			if (!hasMission && !pFoot->Owner->IsControlledByHuman_())
 			{
-				pFoot->QueueMission(RulesExt::Global()->EMPAIRecoverMission.Get(Mission::Hunt), false);
+				pFoot->QueueMission(RulesExtData::Instance()->EMPAIRecoverMission.Get(Mission::Hunt), false);
 			}
 		}
 	}
@@ -4896,7 +4898,7 @@ void AresEMPulse::DisableEMPEffect2(TechnoClass* const pVictim)
 bool AresPoweredUnit::IsPoweredBy(HouseClass* const pOwner) const
 {
 	auto const pType = this->Techno->GetTechnoType();
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	auto const& PoweredBy = pTypeExt->PoweredBy;
 
@@ -4932,7 +4934,7 @@ bool AresPoweredUnit::PowerDown()
 	{
 		// destroy if EMP.Threshold would crash this unit when in air
 		auto const pType = pTechno->GetTechnoType();
-		auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
+		auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		if (AresEMPulse::EnableEMPEffect2(pTechno)
 			|| (pExt->EMP_Threshold && pTechno->IsInAir()))
@@ -5050,7 +5052,7 @@ void AresJammer::Update()
 //! \param TargetBuilding The building to check the distance to.
 bool AresJammer::InRangeOf(BuildingClass* TargetBuilding)
 {
-	auto const pExt = TechnoTypeExt::ExtMap.Find(this->AttachedToObject->GetTechnoType());
+	auto const pExt = TechnoTypeExtContainer::Instance.Find(this->AttachedToObject->GetTechnoType());
 	auto const& JammerLocation = this->AttachedToObject->Location;
 	auto const JamRadiusInLeptons = 256.0 * pExt->RadarJamRadius;
 
@@ -5061,7 +5063,7 @@ bool AresJammer::InRangeOf(BuildingClass* TargetBuilding)
 void AresJammer::Jam(BuildingClass* TargetBuilding)
 {
 	//Using map ? , so it can keep item unique i presume ?
-	auto& jammMap = BuildingExt::ExtMap.Find(TargetBuilding)->RegisteredJammers;
+	auto& jammMap = BuildingExtContainer::Instance.Find(TargetBuilding)->RegisteredJammers;
 
 	jammMap.push_back_unique(this->AttachedToObject);
 
@@ -5076,7 +5078,7 @@ void AresJammer::Jam(BuildingClass* TargetBuilding)
 void AresJammer::Unjam(BuildingClass* TargetBuilding)
 {
 	//Using map ? , so it can keep item unique i presume ?
-	auto& jammMap = BuildingExt::ExtMap.Find(TargetBuilding)->RegisteredJammers;
+	auto& jammMap = BuildingExtContainer::Instance.Find(TargetBuilding)->RegisteredJammers;
 
 	if (jammMap.remove(this->AttachedToObject)) {
 		if (jammMap.empty()) {
@@ -5111,7 +5113,7 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 			auto pNext = pFirst->NextTeamMember;
 			do
 			{
-				TechnoExt::ExtMap.Find(pFirst)->TakeVehicleMode = false;
+				TechnoExtContainer::Instance.Find(pFirst)->TakeVehicleMode = false;
 
 				if (pFirst->GarrisonStructure())
 					pTeam->RemoveMember(pFirst, -1, 1);
@@ -5138,14 +5140,14 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 		{
 		case AresScripts::AuxilarryPower:
 		{
-			HouseExt::ExtMap.Find(pTeam->Owner)->AuxPower += pTeamMission->Argument;
+			HouseExtContainer::Instance.Find(pTeam->Owner)->AuxPower += pTeamMission->Argument;
 			pTeam->Owner->RecheckPower = 1;
 			pTeam->StepCompleted = 1;
 			return true;
 		}
 		case AresScripts::KillDrivers:
 		{
-			const auto pToHouse = HouseExt::FindSpecial();
+			const auto pToHouse = HouseExtData::FindSpecial();
 			FootClass* pCur = nullptr;
 			if (auto pFirst = pTeam->FirstUnit)
 			{
@@ -5154,7 +5156,7 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 				{
 					if (pFirst->Health > 0 && pFirst->IsAlive && pFirst->IsOnMap && !pFirst->InLimbo)
 					{
-						if (!TechnoExt::ExtMap.Find(pFirst)->Is_DriverKilled
+						if (!TechnoExtContainer::Instance.Find(pFirst)->Is_DriverKilled
 							&& TechnoExt_ExtData::IsDriverKillable(pFirst , 1.0))
 						{
 							TechnoExt_ExtData::ApplyKillDriver(pFirst, nullptr, pToHouse, false , Mission::Harmless);
@@ -5183,7 +5185,7 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 				auto pNext = pFirst->NextTeamMember;
 				do
 				{
-					TechnoExt::ExtMap.Find(pFirst)->TakeVehicleMode = true;
+					TechnoExtContainer::Instance.Find(pFirst)->TakeVehicleMode = true;
 
 					if (pFirst->GarrisonStructure())
 						pTeam->RemoveMember(pFirst, -1, 1);
@@ -5210,7 +5212,7 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 				auto pNext = pFirst->NextTeamMember;
 				do
 				{
-					const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pFirst->GetTechnoType());
+					const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pFirst->GetTechnoType());
 					if (pTypeExt->Convert_Script)
 					{
 						TechnoExt_ExtData::ConvertToType(pFirst, pTypeExt->Convert_Script);
@@ -5235,7 +5237,7 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 			const auto nDur = pTeamMission->Argument;
 			for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 			{
-				auto& nSonarTime = TechnoExt::ExtMap.Find(pUnit)->CloakSkipTimer;
+				auto& nSonarTime = TechnoExtContainer::Instance.Find(pUnit)->CloakSkipTimer;
 				if (nDur > nSonarTime.GetTimeLeft())
 				{
 					nSonarTime.Start(nDur);
@@ -5257,7 +5259,7 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 			const auto nDur = pTeamMission->Argument;
 			for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 			{
-				auto& nTimer = TechnoExt::ExtMap.Find(pUnit)->DisableWeaponTimer;
+				auto& nTimer = TechnoExtContainer::Instance.Find(pUnit)->DisableWeaponTimer;
 				if (nDur > nTimer.GetTimeLeft())
 				{
 					nTimer.Start(nDur);
@@ -5284,7 +5286,7 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner, AbstractClass* pTarget, CoordStruct nTargetCoords)
 {
 
-	const auto pData = WeaponTypeExt::ExtMap.Find(pWeapon);
+	const auto pData = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
 	// ensuring a few base parameters
 	if (!pData->Abductor || !pOwner || !pTarget)
@@ -5292,7 +5294,7 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 		return false;
 	}
 
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pData->OwnerObject()->Warhead);
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pData->AttachedToObject->Warhead);
 	const auto Target = abstract_cast<FootClass*>(pTarget);
 
 	if (!Target)
@@ -5313,16 +5315,16 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 		return false;
 	}
 
-	if (!TechnoExt::IsAbductable(Attacker, pData->OwnerObject(), Target))
+	if (!TechnoExtData::IsAbductable(Attacker, pData->AttachedToObject, Target))
 	{
 		return false;
 	}
 
 	//if it's owner meant to be changed, do it here
-	HouseClass* pDesiredOwner = Attacker->Owner ? Attacker->Owner : HouseExt::FindSpecial();
+	HouseClass* pDesiredOwner = Attacker->Owner ? Attacker->Owner : HouseExtData::FindSpecial();
 
 	//if it's owner meant to be changed, do it here
-	if ((pData->Abductor_ChangeOwner && !TechnoExt::IsPsionicsImmune(Target)))
+	if ((pData->Abductor_ChangeOwner && !TechnoExtData::IsPsionicsImmune(Target)))
 		Target->SetOwningHouse(pDesiredOwner);
 
 	// if we ended up here, the target is of the right type, and the attacker can take it
@@ -5390,7 +5392,7 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 	// if we have an abducting animation, play it
 	if (auto pAnimType = pData->Abductor_AnimType)
 	{
-		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nTargetCoords),
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nTargetCoords),
 			Attacker->Owner,
 			Target->Owner,
 			Attacker,
@@ -5478,8 +5480,8 @@ bool AresWPWHExt::applyOccupantDamage(BulletClass* pThis)
 		return false;
 	}
 
-	auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
-	auto const pBldTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+	auto const pTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
+	auto const pBldTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 
 	auto const occupants = pBuilding->Occupants.Count;
 	auto const& passThrough = pBldTypeExt->UCPassThrough;
@@ -5527,7 +5529,7 @@ bool AresWPWHExt::applyOccupantDamage(BulletClass* pThis)
 
 void AresWPWHExt::applyKillDriver(WarheadTypeClass* pWH, TechnoClass* pKiller, TechnoClass* pVictim)
 {
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH);
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
 	if (!pKiller || !pWHExt->KillDriver || !pVictim)
 		return;
@@ -5540,9 +5542,9 @@ void AresWPWHExt::applyKillDriver(WarheadTypeClass* pWH, TechnoClass* pKiller, T
 
 	if (ScenarioClass::Instance->Random.RandomDouble() <= pWHExt->KillDriver_Chance)
 	{
-		HouseClass* Owner = HouseExt::GetHouseKind(pWHExt->KillDriver_Owner, false, nullptr, pKiller->Owner, pVictim->Owner);
+		HouseClass* Owner = HouseExtData::GetHouseKind(pWHExt->KillDriver_Owner, false, nullptr, pKiller->Owner, pVictim->Owner);
 		if(!Owner)
-			Owner = HouseExt::FindSpecial();
+			Owner = HouseExtData::FindSpecial();
 
 		TechnoExt_ExtData::ApplyKillDriver(pVictim, pKiller, Owner, pWHExt->KillDriver_ResetVeterancy , Mission::Harmless);
 	}
@@ -5607,7 +5609,7 @@ bool AresTActionExt::AuxiliaryPower(TActionClass* pAction, HouseClass* pHouse, O
 	if (!pDecidedHouse)
 		return false;
 
-	HouseExt::ExtMap.Find(pDecidedHouse)->AuxPower += pAction->Value2;
+	HouseExtContainer::Instance.Find(pDecidedHouse)->AuxPower += pAction->Value2;
 	pDecidedHouse->RecheckPower = true;
 	return true;
 }
@@ -5616,7 +5618,7 @@ bool AresTActionExt::KillDriversOf(TActionClass* pAction, HouseClass* pHouse, Ob
 {
 	auto pDecidedHouse = pAction->FindHouseByIndex(pTrigger, pAction->Value);
 	if (!pDecidedHouse)
-		pDecidedHouse = HouseExt::FindSpecial();
+		pDecidedHouse = HouseExtData::FindSpecial();
 
 	for (auto pUnit : *FootClass::Array)
 	{
@@ -5624,7 +5626,7 @@ bool AresTActionExt::KillDriversOf(TActionClass* pAction, HouseClass* pHouse, Ob
 		{
 			if (pUnit->AttachedTag && pUnit->AttachedTag->ContainsTrigger(pTrigger))
 			{
-				if (!TechnoExt::ExtMap.Find(pUnit)->Is_DriverKilled
+				if (!TechnoExtContainer::Instance.Find(pUnit)->Is_DriverKilled
 					&& TechnoExt_ExtData::IsDriverKillable(pUnit, 1.0))
 				{
 					TechnoExt_ExtData::ApplyKillDriver(pUnit, nullptr, pDecidedHouse, false , Mission::Harmless);
@@ -5686,7 +5688,7 @@ bool AresTActionExt::LauchhNuke(TActionClass* pAction, HouseClass* pHouse, Objec
 	//	double nY = nCos * nSin * -100.0;
 	//	double nZ = nSin * -100.0;
 	//
-	//	BulletExt::ExtMap.Find(pBullet)->Owner = pHouse;
+	//	BulletExtContainer::Instance.Find(pBullet)->Owner = pHouse;
 	//	pBullet->MoveTo({ nCoord.X , nCoord.Y , nCoord.Z + 20000 }, nVel);
 	//	return true;
 	//}
@@ -5715,7 +5717,7 @@ bool AresTActionExt::LauchhChemMissile(TActionClass* pAction, HouseClass* pHouse
 		double nY = nCos * nSin * 100.0;
 		double nZ = nSin * 100.0;
 
-		BulletExt::ExtMap.Find(pBullet)->Owner = pHouse;
+		BulletExtContainer::Instance.Find(pBullet)->Owner = pHouse;
 		auto nCell = MapClass::Instance->Localsize_586AC0(&nLoc, false);
 
 		pBullet->MoveTo({ nCell.X + 128 , nCell.Y + 128 , 0 }, nVel);
@@ -6036,7 +6038,7 @@ std::pair<bool, TriggerAttachType> AresTEventExt::GetAttachFlags(AresTriggerEven
 
 bool AresTEventExt::FindTechnoType(TEventClass* pThis, int args, HouseClass* pWho)
 {
-	const auto pType = TEventExt::ExtMap.Find(pThis)->GetTechnoType();
+	const auto pType = TEventExtContainer::Instance.Find(pThis)->GetTechnoType();
 	if (!pType)
 		return false;
 
@@ -6337,10 +6339,10 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs const Args, bool& r
 				result = false;
 			else
 			{
-				auto const& nVec = HouseExt::ExtMap.Find(Args.Owner)->Reversed;
+				auto const& nVec = HouseExtContainer::Instance.Find(Args.Owner)->Reversed;
 
 				result = std::any_of(nVec.begin(), nVec.end(), [&](TechnoTypeClass* pTech)
-					{ return pTech == TEventExt::ExtMap.Find(pThis)->GetTechnoType(); });
+					{ return pTech == TEventExtContainer::Instance.Find(pThis)->GetTechnoType(); });
 			}
 			break;
 		}
@@ -6351,7 +6353,7 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs const Args, bool& r
 		}
 		case AresTriggerEvents::ReverseEngineerType:
 		{
-			result = ((TechnoClass*)Args.Source)->GetTechnoType() == TEventExt::ExtMap.Find(pThis)->GetTechnoType();
+			result = ((TechnoClass*)Args.Source)->GetTechnoType() == TEventExtContainer::Instance.Find(pThis)->GetTechnoType();
 			break;
 		}
 		case AresTriggerEvents::HouseOwnTechnoType:
@@ -6396,7 +6398,7 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs const Args, bool& r
 				nullptr : HouseClass::Index_IsMP(pThis->Value) ?
 				HouseClass::FindByIndex(pThis->Value) : HouseClass::FindByCountryIndex(pThis->Value);
 
-			result = pHouse && HouseExt::ExtMap.Find(pHouse)->KeepAliveCount <= 0;
+			result = pHouse && HouseExtContainer::Instance.Find(pHouse)->KeepAliveCount <= 0;
 			break;
 		}
 		case AresTriggerEvents::AllKeppAlivesBuildingDestroyed:
@@ -6405,7 +6407,7 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs const Args, bool& r
 				nullptr : HouseClass::Index_IsMP(pThis->Value) ?
 				HouseClass::FindByIndex(pThis->Value) : HouseClass::FindByCountryIndex(pThis->Value);
 
-			result = pHouse && HouseExt::ExtMap.Find(pHouse)->KeepAliveBuildingCount <= 0;
+			result = pHouse && HouseExtContainer::Instance.Find(pHouse)->KeepAliveBuildingCount <= 0;
 			break;
 		}
 		}
@@ -6431,13 +6433,13 @@ bool TunnelFuncs::FindSameTunnel(BuildingClass* pTunnel)
 	{
 		if (pTunnel != pBld && pBld->Health > 0 && !pBld->InLimbo && pBld->IsOnMap)
 		{
-			if (BuildingExt::ExtMap.Find(pBld)->LimboID != -1)
+			if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
 				return false;
 
 			const auto nCurMission = pBld->CurrentMission;
 			if (nCurMission != Mission::Construction && nCurMission != Mission::Selling)
 			{
-				if (BuildingTypeExt::ExtMap.Find(pBld->Type)->TunnelType == BuildingTypeExt::ExtMap.Find(pTunnel->Type)->TunnelType)
+				if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->TunnelType == BuildingTypeExtContainer::Instance.Find(pTunnel->Type)->TunnelType)
 				{
 					return true;
 				}
@@ -6455,7 +6457,7 @@ void TunnelFuncs::KillFootClass(FootClass* pFoot, TechnoClass* pKiller)
 
 	pFoot->RegisterDestruction(pKiller);
 	Debug::Log(__FUNCTION__" Called \n");
-	TechnoExt::HandleRemove(pFoot, pKiller, false, false);
+	TechnoExtData::HandleRemove(pFoot, pKiller, false, false);
 }
 
 void TunnelFuncs::DestroyTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, TechnoClass* pKiller)
@@ -6520,14 +6522,14 @@ std::vector<int>* TunnelFuncs::PopulatePassangerPIPData(TechnoClass* pThis, Tech
 	if (nPassangersTotal < 0)
 		nPassangersTotal = 0;
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	const auto pBld = specific_cast<BuildingClass*>(pThis);
 
 	PipData.clear();
 
 	if (pBld)
 	{
-		const TunnelData* pTunnelData = HouseExt::GetTunnelVector(pBld->Type, pThis->Owner);
+		const TunnelData* pTunnelData = HouseExtData::GetTunnelVector(pBld->Type, pThis->Owner);
 		const bool Absorber = pBld->Absorber();
 
 		if (!pTunnelData)
@@ -6790,7 +6792,7 @@ bool AresHouseExt::CheckBasePlanSanity(HouseClass* const pThis)
 		Iterator<BuildingTypeClass const*> const list,
 		const char* const ListName) -> void
 		{
-			if (!HouseExt::FindBuildable(pThis, idxParent, list))
+			if (!HouseExtData::FindBuildable(pThis, idxParent, list))
 			{
 				AllIsWell = false;
 				Debug::FatalError(errorMsg, pThis, pType->ID, ListName);
@@ -6811,10 +6813,10 @@ bool AresHouseExt::CheckBasePlanSanity(HouseClass* const pThis)
 	//CheckList(make_iterator(pRules->BuildNavalYard), "BuildNavalYard");
 
 
-	CheckList(HouseTypeExt::ExtMap.Find(pType)->GetPowerplants(), "Powerplants");
+	CheckList(HouseTypeExtContainer::Instance.Find(pType)->GetPowerplants(), "Powerplants");
 
 	//auto const pSide = SideClass::Array->GetItemOrDefault(pType->SideIndex);
-	//if(auto const pSideExt = SideExt::ExtMap.Find(pSide)) {
+	//if(auto const pSideExt = SideExtContainer::Instance.Find(pSide)) {
 	//	CheckList(make_iterator(pSideExt->BaseDefenses), "Base Defenses");
 	//}
 
@@ -6823,7 +6825,7 @@ bool AresHouseExt::CheckBasePlanSanity(HouseClass* const pThis)
 
 void AresHouseExt::UpdateTogglePower(HouseClass* pThis)
 {
-	auto pRulesExt = RulesExt::Global();
+	auto pRulesExt = RulesExtData::Instance();
 
 	if (!pRulesExt->TogglePowerAllowed
 		|| pRulesExt->TogglePowerDelay <= 0
@@ -6951,19 +6953,19 @@ void AresHouseExt::UpdateTogglePower(HouseClass* pThis)
 
 bool AresHouseExt::UpdateAnyFirestormActive(bool const lastChange)
 {
-	HouseExt::IsAnyFirestormActive = lastChange;
+	HouseExtData::IsAnyFirestormActive = lastChange;
 
 	// if last change activated one, there is at least one. else...
 	if (!lastChange) {
 		for (auto const& pHouse : *HouseClass::Array) {
 			if (pHouse->FirestormActive) {
-				HouseExt::IsAnyFirestormActive = true;
+				HouseExtData::IsAnyFirestormActive = true;
 				break;
 			}
 		}
 	}
 
-	return HouseExt::IsAnyFirestormActive;
+	return HouseExtData::IsAnyFirestormActive;
 }
 
 void AresHouseExt::SetFirestormState(HouseClass* pHouse , bool const active)
@@ -6979,7 +6981,7 @@ void AresHouseExt::SetFirestormState(HouseClass* pHouse , bool const active)
 
 	for (auto const& pBld : pHouse->Buildings)
 	{
-		if (BuildingTypeExt::ExtMap.Find(pBld->Type)->Firestorm_Wall)
+		if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->Firestorm_Wall)
 		{
 			FirewallFunctions::UpdateFirewall(pBld , true);
 			auto const temp = pBld->GetMapCoords();
@@ -6998,7 +7000,7 @@ void AresHouseExt::SetFirestormState(HouseClass* pHouse , bool const active)
 DWORD CustomFoundation::FoundationLength(CellStruct const* const pFoundation)
 {
 	auto pFCell = pFoundation;
-	while (*pFCell != BuildingTypeExt::FoundationEndMarker)
+	while (*pFCell != BuildingTypeExtData::FoundationEndMarker)
 	{
 		++pFCell;
 	}
@@ -7019,7 +7021,7 @@ const std::vector<CellStruct>* CustomFoundation::GetCoveredCells(
 
 	auto pFCell = pFoundation;
 
-	while (*pFCell != BuildingTypeExt::FoundationEndMarker)
+	while (*pFCell != BuildingTypeExtData::FoundationEndMarker)
 	{
 		auto actualCell = mainCoords + *pFCell;
 		for (auto i = shadowHeight; i > 0; --i)
@@ -7171,7 +7173,7 @@ int MouseClassExt::ByWeapon(TechnoClass* pThis, int nWeaponIdx, bool OutOfRange)
 	{
 		if (const auto pWeapon = pWeaponS->WeaponType)
 		{
-			const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+			const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 			return ((OutOfRange ?
 				pWeaponExt->Cursor_AttackOutOfRange : pWeaponExt->Cursor_Attack).Get());
 		}

@@ -353,7 +353,7 @@ void FoggedObject::RenderAsBuilding(const RectangleStruct& viewRect) const
 				Matrix3D matrixturret;
 				matrixturret.MakeIdentity();
 				matrixturret.RotateZ(static_cast<float>(primaryDir.GetRadian()));
-				TechnoTypeExt::ExtMap.Find(pType)->ApplyTurretOffset(&matrixturret, 0.125);
+				TechnoTypeExtContainer::Instance.Find(pType)->ApplyTurretOffset(&matrixturret, 0.125);
 
 				Vector3D<float> negativevector = { -matrixturret.Row[0].W ,-matrixturret.Row[1].W,-matrixturret.Row[2].W };
 				Vector3D<float> vector = { matrixturret.Row[0].W ,matrixturret.Row[1].W,matrixturret.Row[2].W };

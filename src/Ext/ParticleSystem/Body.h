@@ -6,10 +6,15 @@
 
 class ParticleClass;
 class ParticleTypeClass;
-class ParticleSystemExt
+class ParticleSystemExtData final
 {
 public:
+	static constexpr size_t Canary = 0xAAA2BBBB;
+	using base_type = ParticleSystemClass;
 
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+public:
 	enum class Behave : int
 	{
 		None = 0,
@@ -18,140 +23,133 @@ public:
 		Smoke = 3
 	};
 
-	class ExtData final : public Extension<ParticleSystemClass>
+	Behave What { Behave::None };
+	ParticleTypeClass* HeldType { nullptr };
+
+	//everything else use this
+	struct Movement
 	{
-	public:
-		static constexpr size_t Canary = 0xAAA2BBBB;
-		using base_type = ParticleSystemClass;
+		Vector3D<float> vel;
+		Vector3D<float> velB;
+		float A;
+		float ColorFactor;
+		int C; //counter for the color change update
+		int RemainingEC;
+		BYTE Empty; //state counter
+		ColorStruct Colors;
 
-	public:
-		Behave What { Behave::None };
-		ParticleTypeClass* HeldType { nullptr };
-
-		//everything else use this
-		struct Movement
+		bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 		{
-			Vector3D<float> vel;
-			Vector3D<float> velB;
-			float A;
-			float ColorFactor;
-			int C; //counter for the color change update
-			int RemainingEC;
-			BYTE Empty; //state counter
-			ColorStruct Colors;
-
-			bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-			{
-				return Serialize(Stm);
-			}
-
-			bool Save(PhobosStreamWriter& Stm) const
-			{
-				return const_cast<Movement*>(this)->Serialize(Stm);
-			}
-
-		private:
-			template <typename T>
-			bool Serialize(T& Stm)
-			{
-				return Stm
-					.Process(vel)
-					.Process(velB)
-					.Process(A)
-					.Process(ColorFactor)
-					.Process(C)
-					.Process(RemainingEC)
-					.Process(Empty)
-					.Process(Colors)
-					.Success()
-					//&& Stm.RegisterChange(this)
-					;
-			}
-		};
-		static_assert(sizeof(Movement) == 0x2C, "Invalid Size");
-		HelperedVector<Movement> OtherParticleData { };
-
-		//used for smoke state
-		struct Draw
-		{
-			CoordStruct vel; //0 4 8
-			Vector3D<float> velB; //C 10 14
-			int StateAdvance;//18
-			int ImageFrame; //1C
-			int RemainingEC; //20
-			ParticleTypeClass* LinkedParticleType; //24
-			BYTE Translucency; //28
-			BYTE DeleteOnStateLimit; //state counter //29
-			BYTE byte30; //2A
-			BYTE byte31;//2B
-
-			bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-			{
-				return Serialize(Stm);
-			}
-
-			bool Save(PhobosStreamWriter& Stm) const
-			{
-				return const_cast<Draw*>(this)->Serialize(Stm);
-			}
-
-		private:
-			template <typename T>
-			bool Serialize(T& Stm)
-			{
-				return Stm
-					.Process(vel)
-					.Process(velB)
-					.Process(StateAdvance)
-					.Process(ImageFrame)
-					.Process(RemainingEC)
-					.Process(LinkedParticleType)
-					.Process(Translucency)
-					.Process(DeleteOnStateLimit)
-					.Process(byte30)
-					.Process(byte31)
-					.Success()
-					//&& Stm.RegisterChange(this)
-					;
-			}
-		};
-		static_assert(sizeof(Draw) == 0x2C, "Invalid Size");
-		HelperedVector<Draw> SmokeData { };
-
-		ExtData(ParticleSystemClass* OwnerObject) : Extension<base_type> { OwnerObject }
-		{
-			this->InitializeConstants();
+			return Serialize(Stm);
 		}
 
-		virtual ~ExtData() override = default;
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-		void InitializeConstants();
-
-
-		void UpdateLocations();
-		void UpdateState();
-		void UpdateColor();
-		void UpdateSpark();
-		void UpdateRailgun();
-		void UpdateWindDirection();
-		void UpdateSmoke();
-		bool UpdateHandled();
-		void UpdateInAir_Main(bool allowDraw);
-
-		static void UpdateInAir();
+		bool Save(PhobosStreamWriter& Stm) const
+		{
+			return const_cast<Movement*>(this)->Serialize(Stm);
+		}
 
 	private:
 		template <typename T>
-		void Serialize(T& Stm);
+		bool Serialize(T& Stm)
+		{
+			return Stm
+				.Process(vel)
+				.Process(velB)
+				.Process(A)
+				.Process(ColorFactor)
+				.Process(C)
+				.Process(RemainingEC)
+				.Process(Empty)
+				.Process(Colors)
+				.Success()
+				//&& Stm.RegisterChange(this)
+				;
+		}
 	};
+	static_assert(sizeof(Movement) == 0x2C, "Invalid Size");
+	HelperedVector<Movement> OtherParticleData { };
 
-	class ExtContainer final : public Container<ParticleSystemExt::ExtData>
+	//used for smoke state
+	struct Draw
 	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(ParticleSystemExt::ExtData, "ParticleSystemClass");
+		CoordStruct vel; //0 4 8
+		Vector3D<float> velB; //C 10 14
+		int StateAdvance;//18
+		int ImageFrame; //1C
+		int RemainingEC; //20
+		ParticleTypeClass* LinkedParticleType; //24
+		BYTE Translucency; //28
+		BYTE DeleteOnStateLimit; //state counter //29
+		BYTE byte30; //2A
+		BYTE byte31;//2B
+
+		bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+		{
+			return Serialize(Stm);
+		}
+
+		bool Save(PhobosStreamWriter& Stm) const
+		{
+			return const_cast<Draw*>(this)->Serialize(Stm);
+		}
+
+	private:
+		template <typename T>
+		bool Serialize(T& Stm)
+		{
+			return Stm
+				.Process(vel)
+				.Process(velB)
+				.Process(StateAdvance)
+				.Process(ImageFrame)
+				.Process(RemainingEC)
+				.Process(LinkedParticleType)
+				.Process(Translucency)
+				.Process(DeleteOnStateLimit)
+				.Process(byte30)
+				.Process(byte31)
+				.Success()
+				//&& Stm.RegisterChange(this)
+				;
+		}
 	};
+	static_assert(sizeof(Draw) == 0x2C, "Invalid Size");
+	HelperedVector<Draw> SmokeData { };
 
-	static ExtContainer ExtMap;
+	ParticleSystemExtData(base_type* OwnerObject) noexcept
+	{
+		this->AttachedToObject = OwnerObject;
+		InitializeConstants(OwnerObject, this);
+	}
 
+	~ParticleSystemExtData() noexcept = default;
+
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+
+
+	void UpdateLocations();
+	void UpdateState();
+	void UpdateColor();
+	void UpdateSpark();
+	void UpdateRailgun();
+	void UpdateWindDirection();
+	void UpdateSmoke();
+	bool UpdateHandled();
+	void UpdateInAir_Main(bool allowDraw);
+
+	static void UpdateInAir();
+	static void InitializeConstants(ParticleSystemClass* pOwnerObject, ParticleSystemExtData* pData);
+
+private:
+	template <typename T>
+	void Serialize(T& Stm);
+};
+
+class ParticleSystemExtContainer final : public Container<ParticleSystemExtData>
+{
+public:
+	static ParticleSystemExtContainer Instance;
+
+	CONSTEXPR_NOCOPY_CLASSB(ParticleSystemExtContainer, ParticleSystemExtData, "ParticleSystemClass");
 };

@@ -10,8 +10,8 @@
 bool Helpers::Otamaa::LauchSW(const LauchSWData& nData,
 	HouseClass* pOwner, const CoordStruct Where , TechnoClass* pFirer)
 {
-	const auto pOwnerResult = HouseExt::GetHouseKind(nData.LauchhSW_Owner, true, HouseExt::FindCivilianSide(), pOwner, nullptr);
-	auto const HouseOwner = pOwnerResult->Defeated ? HouseExt::FindCivilianSide() : pOwnerResult;
+	const auto pOwnerResult = HouseExtData::GetHouseKind(nData.LauchhSW_Owner, true, HouseExtData::FindCivilianSide(), pOwner, nullptr);
+	auto const HouseOwner = pOwnerResult->Defeated ? HouseExtData::FindCivilianSide() : pOwnerResult;
 
 	if (HouseOwner)
 	{
@@ -19,7 +19,7 @@ bool Helpers::Otamaa::LauchSW(const LauchSWData& nData,
 		if (auto pSelected = HouseOwner->Supers.GetItemOrDefault(nData.LaunchWhat))
 		{
 			auto const pSuper = pSelected;
-			const auto pSWExt = SWTypeExt::ExtMap.Find(pSelected->Type);
+			const auto pSWExt = SWTypeExtContainer::Instance.Find(pSelected->Type);
 
 			auto const nWhere = MapClass::Instance->GetCellAt(Where)->MapCoords;
 			bool const lauch = (nData.LaunchWaitcharge) && (!pSuper->IsCharged || (pSuper->IsPowered() && HouseOwner->HasLowPower())) ? false : true;
@@ -58,7 +58,7 @@ bool Helpers::Otamaa::LauchSW(const LauchSWData& nData,
 					pSWExt->Money_Amount, HouseOwner, 
 					nData.LaunchSW_DisplayMoney_Houses, Where, nData.LaunchSW_DisplayMoney_Offset);
 
-				//SuperExt::ExtMap.Find(pSelected)->Firer = pFirer;
+				//SuperExtContainer::Instance.Find(pSelected)->Firer = pFirer;
 				pSuper->Launch(nWhere, !bIsObserver);
 
 				if (nData.LaunchResetCharge)

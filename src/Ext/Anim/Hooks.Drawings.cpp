@@ -15,7 +15,7 @@ DEFINE_HOOK(0x4236F0, AnimClass_DrawIt_Tiled_Palette, 0x6)
 {
 	GET(AnimClass* const, pThis, ESI);
 
-	if (const auto pCustom = AnimTypeExt::ExtMap.Find(pThis->Type)->Palette) {
+	if (const auto pCustom = AnimTypeExtContainer::Instance.Find(pThis->Type)->Palette) {
 		R->EDX(pCustom->GetConvert<PaletteManager::Mode::Temperate>());
 		return 0x4236F6;
 	}
@@ -38,7 +38,7 @@ DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0x6) //was A
 	GET_STACK(int, nTintColor, STACK_OFFS(0x110, 0xF4));
 	GET_STACK(int, nBrightness, STACK_OFFS(0x110, 0xD8));
 
-	const auto pTypeExt = AnimTypeExt::ExtMap.TryFind(pThis->Type);
+	const auto pTypeExt = AnimTypeExtContainer::Instance.TryFind(pThis->Type);
 	if (!pTypeExt)
 		return 0x0;
 

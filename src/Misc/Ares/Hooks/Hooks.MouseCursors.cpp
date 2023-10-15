@@ -214,7 +214,7 @@ DEFINE_OVERRIDE_HOOK(0x700600, TechnoClass_GetActionOnCell_Cursors, 5)
 {
 	GET(TechnoClass*, pThis, ECX);
 	const auto pType = pThis->GetTechnoType();
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	// Cursor Move
 	MouseCursorFuncs::SetMouseCursorAction(pTypeExt->Cursor_Move.Get(), Action::Move, false);
@@ -228,7 +228,7 @@ DEFINE_OVERRIDE_HOOK(0x7000CD, TechnoClass_GetActionOnObject_SelfDeployCursor, 6
 {
 	GET(TechnoClass*, pThis, ESI);
 	const auto pType = pThis->GetTechnoType();
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	//Cursor Deploy
 	MouseCursorFuncs::SetMouseCursorAction(pTypeExt->Cursor_Deploy.Get(), Action::AreaAttack, false);
@@ -243,7 +243,7 @@ DEFINE_OVERRIDE_HOOK(0x7000CD, TechnoClass_GetActionOnObject_SelfDeployCursor, 6
 DEFINE_OVERRIDE_HOOK(0x7400F0, UnitClass_GetActionOnObject_SelfDeployCursor_Bunker, 6)
 {
 	GET(UnitClass*, pThis, ESI);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (pThis->BunkerLinkedItem) {
 		//Cursor Deploy

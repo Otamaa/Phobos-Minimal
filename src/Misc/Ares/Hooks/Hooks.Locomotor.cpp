@@ -60,12 +60,12 @@ DEFINE_OVERRIDE_HOOK(0x718275 ,TeleportLocomotionClass_MakeRoom, 9)
 		const auto bObjIsInfantry = pObj->WhatAmI() == AbstractType::Infantry;
 		bool bIsImmune = pObj->IsIronCurtained();
 		auto pType = pObj->GetTechnoType();
-		const auto pTypeExt = TechnoTypeExt::ExtMap.TryFind(pType);
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.TryFind(pType);
 
 		if (pTypeExt && !pTypeExt->Chronoshift_Crushable)
 			bIsImmune = 1;
 
-		if (!RulesExt::Global()->ChronoInfantryCrush && bLinkedIsInfantry && !bObjIsInfantry) {
+		if (!RulesExtData::Instance()->ChronoInfantryCrush && bLinkedIsInfantry && !bObjIsInfantry) {
 			pLoco->LinkedTo->ReceiveDamage(&pLoco->LinkedTo->GetType()->Strength, 0, RulesClass::Instance->C4Warhead, 0, 1, 0, 0);
 			break;
 		}
@@ -329,7 +329,7 @@ DEFINE_OVERRIDE_HOOK(0x4CF3D0, FlyLocomotionClass_sub_4CEFB0_HunterSeeker, 7)
 	GET_STACK(FlyLocomotionClass* const, pThis, 0x20);
 	auto const pObject = pThis->LinkedTo;
 	auto const pType = pObject->GetTechnoType();
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (pType->HunterSeeker)
 	{
@@ -338,8 +338,8 @@ DEFINE_OVERRIDE_HOOK(0x4CF3D0, FlyLocomotionClass_sub_4CEFB0_HunterSeeker, 7)
 			pObject->Target ? pObject->Target : MapClass::Instance->TryGetCellAt(pThis->MovingDestination)
 			)
 		{
-			auto const DetonateProximity = pExt->HunterSeekerDetonateProximity.Get(RulesExt::Global()->HunterSeekerDetonateProximity);
-			auto const DescendProximity = pExt->HunterSeekerDescendProximity.Get(RulesExt::Global()->HunterSeekerDescendProximity);
+			auto const DetonateProximity = pExt->HunterSeekerDetonateProximity.Get(RulesExtData::Instance()->HunterSeekerDetonateProximity);
+			auto const DescendProximity = pExt->HunterSeekerDescendProximity.Get(RulesExtData::Instance()->HunterSeekerDescendProximity);
 
 			// get th difference of our position to the target,
 			// disregarding the Z component.
@@ -445,7 +445,7 @@ DEFINE_OVERRIDE_HOOK(0x4CF3D0, FlyLocomotionClass_sub_4CEFB0_HunterSeeker, 7)
 
 				// damage the map
 				auto const crd2 = pObject->GetCoords();
-				//WeaponTypeExt::DetonateAt(pWeapon, crd2, pObject, true, pObject->Owner);
+				//WeaponTypeExtData::DetonateAt(pWeapon, crd2, pObject, true, pObject->Owner);
 				MapClass::FlashbangWarheadAt(pWeapon->Damage, RulesClass::Instance->C4Warhead, crd2);
 				MapClass::DamageArea(crd2, pWeapon->Damage, pObject, pWeapon->Warhead, true, pObject->Owner);
 
@@ -464,7 +464,7 @@ DEFINE_OVERRIDE_HOOK(0x4CDE64, FlyLocomotionClass_sub_4CD600_HunterSeeker_Ascent
 	GET(int const, unk, EDI);
 	auto const pObject = pThis->LinkedTo;
 	auto const pType = pObject->GetTechnoType();
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	auto ret = pThis->FlightLevel - unk;
 	auto max = 16;
@@ -482,11 +482,11 @@ DEFINE_OVERRIDE_HOOK(0x4CDE64, FlyLocomotionClass_sub_4CD600_HunterSeeker_Ascent
 			// is hunter seeker
 			if (pThis->IsTakingOff)
 			{
-				max = pExt->HunterSeekerEmergeSpeed.Get(RulesExt::Global()->HunterSeekerEmergeSpeed);
+				max = pExt->HunterSeekerEmergeSpeed.Get(RulesExtData::Instance()->HunterSeekerEmergeSpeed);
 			}
 			else
 			{
-				max = pExt->HunterSeekerAscentSpeed.Get(RulesExt::Global()->HunterSeekerAscentSpeed);
+				max = pExt->HunterSeekerAscentSpeed.Get(RulesExtData::Instance()->HunterSeekerAscentSpeed);
 			}
 		}
 	}
@@ -506,10 +506,10 @@ DEFINE_OVERRIDE_HOOK(0x4CDF54, FlyLocomotionClass_sub_4CD600_HunterSeeker_Descen
 	GET(int const, max, EDI);
 	auto const pObject = pThis->LinkedTo;
 	auto const pType = pObject->GetTechnoType();
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (pType->HunterSeeker) {
-		auto ret = pExt->HunterSeekerDescentSpeed.Get(RulesExt::Global()->HunterSeekerDescentSpeed);
+		auto ret = pExt->HunterSeekerDescentSpeed.Get(RulesExtData::Instance()->HunterSeekerDescentSpeed);
 		if (max < ret) {
 			ret = max;
 		}
@@ -550,7 +550,7 @@ DEFINE_OVERRIDE_HOOK(0x514A21, HoverLocomotionClass_ILocomotion_Process_DeployTo
 
 			if (pType->DeployingAnim)
 			{
-				auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+				auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 				const int nDeployDirVal = pTypeExt->DeployDir.isset() ? (int)pTypeExt->DeployDir.Get() << 13 : RulesClass::Instance->DeployDir << 8;
 				DirStruct nDeployDir(nDeployDirVal);
 
@@ -574,7 +574,7 @@ DEFINE_OVERRIDE_HOOK(0x54C767, JumpjetLocomotionClass_State4_54C550_DeployDir, 6
 {
 	GET(JumpjetLocomotionClass*, pLoco, ESI);
 	auto const pOwner = pLoco->LinkedTo;
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType());
 	const int nDeployDirVal = pTypeExt->DeployDir.isset() ? (int)pTypeExt->DeployDir.Get() << 13 : RulesClass::Instance->DeployDir << 8;
 
 	DirStruct nDeployDir(nDeployDirVal);

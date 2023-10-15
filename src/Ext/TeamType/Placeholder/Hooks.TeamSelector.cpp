@@ -79,12 +79,12 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 	if (houseIsHuman || pHouse->Type->MultiplayPassive)
 		return SkipCode;
 
-	const auto pHouseTypeExt = HouseTypeExt::ExtMap.Find(pHouse->Type);
+	const auto pHouseTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
 
 	if (!pHouseTypeExt)
 		return SkipCode;
 
-	auto const pRulexExt = RulesExt::Global();
+	auto const pRulexExt = RulesExtData::Instance();
 
 	if (!pRulexExt->NewTeamsSelector)
 		return UseOriginalSelector;
@@ -124,11 +124,11 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 
 		if (splitTriggersByCategory)
 		{
-			mergeUnclassifiedCategoryWith = pHouseTypeExt->NewTeamsSelector_MergeUnclassifiedCategoryWith.isset() ? pHouseTypeExt->NewTeamsSelector_MergeUnclassifiedCategoryWith.Get() : RulesExt::Global()->NewTeamsSelector_MergeUnclassifiedCategoryWith;  // Should mixed teams be merged into another category?
-			percentageUnclassifiedTriggers = pHouseTypeExt->NewTeamsSelector_UnclassifiedCategoryPercentage.isset() ? pHouseTypeExt->NewTeamsSelector_UnclassifiedCategoryPercentage.Get() : RulesExt::Global()->NewTeamsSelector_UnclassifiedCategoryPercentage; // Mixed teams
-			percentageGroundTriggers = pHouseTypeExt->NewTeamsSelector_GroundCategoryPercentage.isset() ? pHouseTypeExt->NewTeamsSelector_GroundCategoryPercentage.Get() : RulesExt::Global()->NewTeamsSelector_GroundCategoryPercentage; // Only ground
-			percentageNavalTriggers = pHouseTypeExt->NewTeamsSelector_NavalCategoryPercentage.isset() ? pHouseTypeExt->NewTeamsSelector_NavalCategoryPercentage.Get() : RulesExt::Global()->NewTeamsSelector_NavalCategoryPercentage; // Only Naval=yes
-			percentageAirTriggers = pHouseTypeExt->NewTeamsSelector_AirCategoryPercentage.isset() ? pHouseTypeExt->NewTeamsSelector_AirCategoryPercentage.Get() : RulesExt::Global()->NewTeamsSelector_AirCategoryPercentage; // Only Aircrafts & jumpjets
+			mergeUnclassifiedCategoryWith = pHouseTypeExt->NewTeamsSelector_MergeUnclassifiedCategoryWith.isset() ? pHouseTypeExt->NewTeamsSelector_MergeUnclassifiedCategoryWith.Get() : RulesExtData::Instance()->NewTeamsSelector_MergeUnclassifiedCategoryWith;  // Should mixed teams be merged into another category?
+			percentageUnclassifiedTriggers = pHouseTypeExt->NewTeamsSelector_UnclassifiedCategoryPercentage.isset() ? pHouseTypeExt->NewTeamsSelector_UnclassifiedCategoryPercentage.Get() : RulesExtData::Instance()->NewTeamsSelector_UnclassifiedCategoryPercentage; // Mixed teams
+			percentageGroundTriggers = pHouseTypeExt->NewTeamsSelector_GroundCategoryPercentage.isset() ? pHouseTypeExt->NewTeamsSelector_GroundCategoryPercentage.Get() : RulesExtData::Instance()->NewTeamsSelector_GroundCategoryPercentage; // Only ground
+			percentageNavalTriggers = pHouseTypeExt->NewTeamsSelector_NavalCategoryPercentage.isset() ? pHouseTypeExt->NewTeamsSelector_NavalCategoryPercentage.Get() : RulesExtData::Instance()->NewTeamsSelector_NavalCategoryPercentage; // Only Naval=yes
+			percentageAirTriggers = pHouseTypeExt->NewTeamsSelector_AirCategoryPercentage.isset() ? pHouseTypeExt->NewTeamsSelector_AirCategoryPercentage.Get() : RulesExtData::Instance()->NewTeamsSelector_AirCategoryPercentage; // Only Aircrafts & jumpjets
 
 			// Merge mixed category with another category, if set
 			if (mergeUnclassifiedCategoryWith >= 0)
@@ -205,7 +205,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 		double totalWeightUnclassifiedOnly = 0.0;
 
 		// Check if the running teams by the house already reached all the limits
-		auto& activeTeamsList = HouseExt::ExtMap.Find(pHouse)->ActiveTeams;
+		auto& activeTeamsList = HouseExtContainer::Instance.Find(pHouse)->ActiveTeams;
 
 		for (auto const pRunningTeam : *TeamClass::Array)
 		{
@@ -265,7 +265,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 
 		for (auto pFoot : *FootClass::Array)
 		{
-			if (!TechnoExt::IsActive(pFoot))
+			if (!TechnoExtData::IsActive(pFoot))
 				continue;
 
 			if (!pFoot->CanBeRecruited(pHouse))
@@ -316,7 +316,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 					// "ConditionType=-1" will be skipped, always is valid
 					if ((int)pTrigger->ConditionType >= 0)
 					{
-						auto const& nAIList = RulesExt::Global()->AITargetTypesLists;
+						auto const& nAIList = RulesExtData::Instance()->AITargetTypesLists;
 
 						if ((int)pTrigger->ConditionType == 0)
 						{
@@ -545,7 +545,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 								}
 								else
 								{
-									const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(entry.Type);
+									const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(entry.Type);
 
 									if (!pTechnoTypeExt)
 										continue;
@@ -606,7 +606,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 									continue;
 
 								TechnoTypeClass* object = entry.Type;
-								bool canBeBuilt = HouseExt::PrerequisitesMet(pHouse, object, ownedBuildingTypes);
+								bool canBeBuilt = HouseExtData::PrerequisitesMet(pHouse, object, ownedBuildingTypes);
 
 								if (!canBeBuilt)
 								{

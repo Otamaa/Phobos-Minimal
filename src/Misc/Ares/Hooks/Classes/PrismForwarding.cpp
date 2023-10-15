@@ -11,7 +11,7 @@ BuildingClass* PrismForwarding::GetOwner() const
 
 PrismForwardingData* PrismForwarding::GetOwnerData() const
 {
-	return BuildingTypeExt::ExtMap.Find(this->Owner->Type)->PrismForwarding.AsPointer();
+	return BuildingTypeExtContainer::Instance.Find(this->Owner->Type)->PrismForwarding.AsPointer();
 }
 
 int PrismForwarding::AcquireSlaves_MultiStage(PrismForwarding* TargetTower, int stage, int chain, int& NetworkSize, int& LongestChain)
@@ -81,7 +81,7 @@ int PrismForwarding::AcquireSlaves_SingleStage(PrismForwarding* TargetTower, int
 	std::vector<PrismTargetData> EligibleTowers;
 	for (auto const SlaveTower : *BuildingClass::Array)
 	{
-		auto const pSlaveData = BuildingExt::ExtMap.Find(SlaveTower);
+		auto const pSlaveData = BuildingExtContainer::Instance.Find(SlaveTower);
 		if (this->ValidateSupportTower(TargetTower, &pSlaveData->PrismForwarding))
 		{
 			SlaveTower->GetRenderCoords(&curPosition);
@@ -141,13 +141,13 @@ bool PrismForwarding::ValidateSupportTower(PrismForwarding* pTargetTower, PrismF
 	if (SlaveTower->IsAlive)
 	{
 		auto const pSlaveType = SlaveTower->Type;
-		auto const pSlaveTypeData = BuildingTypeExt::ExtMap.Find(pSlaveType);
+		auto const pSlaveTypeData = BuildingTypeExtContainer::Instance.Find(pSlaveType);
 		if (pSlaveTypeData->PrismForwarding.CanForward())
 		{
 			//building is a prism tower
 			//get all the data we need
-			auto const pTechnoData = TechnoExt::ExtMap.Find(SlaveTower);
-			//BuildingExt::ExtData *pSlaveData = BuildingExt::ExtMap.Find(SlaveTower);
+			auto const pTechnoData = TechnoExtContainer::Instance.Find(SlaveTower);
+			//BuildingExt::ExtData *pSlaveData = BuildingExtContainer::Instance.Find(SlaveTower);
 			auto const SlaveMission = SlaveTower->GetCurrentMission();
 			//now check all the rules
 			if (SlaveTower->ReloadTimer.Expired()
@@ -242,7 +242,7 @@ void PrismForwarding::SetChargeDelay_Get(int chain, int endChain, int LongestCha
 	{
 		if (chain != LongestChain)
 		{
-			auto const pTypeData = BuildingTypeExt::ExtMap.Find(TargetTower->Type);
+			auto const pTypeData = BuildingTypeExtContainer::Instance.Find(TargetTower->Type);
 			//update the delays for this chain
 			auto const thisDelay = pTypeData->PrismForwarding.ChargeDelay + LongestCDelay[chain + 1];
 			if (thisDelay > LongestCDelay[chain])

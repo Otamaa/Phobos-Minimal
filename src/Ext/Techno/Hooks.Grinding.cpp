@@ -18,7 +18,7 @@ DEFINE_HOOK(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 
 	if (pThis->Type->Grinding)
 	{
-		auto const pExt = BuildingExt::ExtMap.Find(pThis);
+		auto const pExt = BuildingExtContainer::Instance.Find(pThis);
 
 		if (pExt->LimboID != -1 || pThis->Owner->Type->MultiplayPassive)
 			return ReturnStatic;
@@ -48,7 +48,7 @@ DEFINE_HOOK(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 			return ReturnNegative;
 		}
 
-		return BuildingExt::CanGrindTechno(pThis, pFrom) ? ReturnRoger : ReturnNegative;
+		return BuildingExtData::CanGrindTechno(pThis, pFrom) ? ReturnRoger : ReturnNegative;
 	}
 
 	return Continue;
@@ -62,7 +62,7 @@ DEFINE_HOOK(0x4D4CD3, FootClass_Mission_Eaten_Grinding, 0x6)
 
 	if (auto const pBuilding = specific_cast<BuildingClass*>(pThis->Destination))
 	{
-		if (pBuilding->Type->Grinding && !BuildingExt::CanGrindTechno(pBuilding, pThis))
+		if (pBuilding->Type->Grinding && !BuildingExtData::CanGrindTechno(pBuilding, pThis))
 		{
 			pThis->SetDestination(nullptr, false);
 			return LoseDestination;
@@ -86,9 +86,9 @@ DEFINE_HOOK(0x51F0AF, InfantryClass_WhatAction_Grinding, 0x5)
 			&& pThis->Owner->IsControlledByCurrentPlayer()
 			&& !pBuilding->IsBeingWarpedOut()
 			&& (pThis->Owner->IsAlliedWith_(pTarget) && pBuilding->Owner != pThis->Owner)
-			&& (BuildingTypeExt::ExtMap.Find(pBuilding->Type)->Grinding_AllowAllies || action == Action::Select))
+			&& (BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->Grinding_AllowAllies || action == Action::Select))
 		{
-			action = BuildingExt::CanGrindTechno(pBuilding, pThis) ? Action::Repair : Action::NoEnter;
+			action = BuildingExtData::CanGrindTechno(pBuilding, pThis) ? Action::Repair : Action::NoEnter;
 			R->EBP(action);
 			return ReturnValue;
 		}
@@ -106,12 +106,12 @@ DEFINE_HOOK(0x51E63A, InfantryClass_WhatAction_Grinding_Engineer, 0x6)
 
 	if (auto pBuilding = specific_cast<BuildingClass*>(pTarget))
 	{
-		const bool canBeGrinded = pBuilding->Type->Grinding && BuildingExt::CanGrindTechno(pBuilding, pThis);
+		const bool canBeGrinded = pBuilding->Type->Grinding && BuildingExtData::CanGrindTechno(pBuilding, pThis);
 		Action ret = canBeGrinded ? Action::Repair : Action::NoGRepair;
 
 		if(ret == Action::NoGRepair &&
 			(pBuilding->Type->InfantryAbsorb
-			|| BuildingTypeExt::ExtMap.Find(pBuilding->Type)->TunnelType != -1
+			|| BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->TunnelType != -1
 			|| pBuilding->Type->Hospital && pThis->GetHealthStatus() != HealthState::Green
 			|| pBuilding->Type->Armory && pThis->Type->Trainable
 		  )){
@@ -147,7 +147,7 @@ DEFINE_HOOK(0x740134, UnitClass_WhatAction_Grinding, 0x9) //0
 			if (pThis->SendCommand(RadioCommand::QueryCanEnter, pTarget) == RadioCommand::AnswerPositive)
 			{
 				bool isFlying = pThis->GetTechnoType()->MovementZone == MovementZone::Fly;
-				bool canBeGrinded = BuildingExt::CanGrindTechno(pBuilding, pThis);
+				bool canBeGrinded = BuildingExtData::CanGrindTechno(pBuilding, pThis);
 				action = pBuilding->Type->Grinding ? canBeGrinded && !isFlying ? Action::Repair : Action::NoEnter : !isFlying ? Action::Enter : Action::NoEnter;
 				R->EBX(action);
 			}
@@ -168,14 +168,14 @@ DEFINE_HOOK(0x4DFABD, FootClass_Try_Grinding_CheckIfAllowed, 0x8)
 	enum { Continue = 0x0 , Skip = 0x4DFB30 };
 	GET(FootClass*, pThis, ESI);
 	GET(BuildingClass*, pBuilding, EBX);
-	return BuildingExt::CanGrindTechno(pBuilding, pThis)
+	return BuildingExtData::CanGrindTechno(pBuilding, pThis)
 		? Continue : Skip;
 }
 
 DEFINE_HOOK(0x51986A, InfantryClass_PerCellProcess_GrindingSetBalance, 0xA)
 {
 	GET(BuildingClass*, pBuilding, EBX);
-	HouseExt::LastGrindingBlanceInf = pBuilding->Owner->Available_Money();
+	HouseExtData::LastGrindingBlanceInf = pBuilding->Owner->Available_Money();
 	return 0x0;
 }
 
@@ -193,15 +193,15 @@ DEFINE_HOOK(0x5198B3, InfantryClass_PerCellProcess_Grinding, 0x5)
 	}
 
 	// Calculated like this because it is easier than tallying up individual refunds for passengers and parasites.
-	const int totalRefund = pBuilding->Owner->Available_Money() - HouseExt::LastGrindingBlanceInf;
+	const int totalRefund = pBuilding->Owner->Available_Money() - HouseExtData::LastGrindingBlanceInf;
 
-	return BuildingExt::DoGrindingExtras(pBuilding, pThis , totalRefund) ? PlayAnims : Continue;
+	return BuildingExtData::DoGrindingExtras(pBuilding, pThis , totalRefund) ? PlayAnims : Continue;
 }
 
 DEFINE_HOOK(0x73A0A5, UnitClass_PerCellProcess_GrindingSetBalance, 0x5)
 {
 	GET(BuildingClass*, pBuilding, EBX);
-	HouseExt::LastGrindingBlanceUnit = pBuilding->Owner->Available_Money();
+	HouseExtData::LastGrindingBlanceUnit = pBuilding->Owner->Available_Money();
 	return 0;
 }
 
@@ -213,9 +213,9 @@ DEFINE_HOOK(0x73A1C3, UnitClass_PerCellProcess_Grinding, 0x5)
 	GET(BuildingClass*, pBuilding, EBX);
 
 	// Calculated like this because it is easier than tallying up individual refunds for passengers and parasites.
-	const int totalRefund = pBuilding->Owner->Available_Money() - HouseExt::LastGrindingBlanceUnit;
+	const int totalRefund = pBuilding->Owner->Available_Money() - HouseExtData::LastGrindingBlanceUnit;
 
-	return BuildingExt::DoGrindingExtras(pBuilding, pThis, totalRefund) ? PlayAnim : Continue;
+	return BuildingExtData::DoGrindingExtras(pBuilding, pThis, totalRefund) ? PlayAnim : Continue;
 
 }
 
@@ -223,7 +223,7 @@ DEFINE_HOOK(0x519790, InfantryClass_UpdatePosition_Grinding_SkipDiesound, 0xA)
 {
 	enum { Play = 0x0 , DoNotPlay = 0x51986A };
 	GET(BuildingClass*, pBuilding, EBX);
-	return BuildingTypeExt::ExtMap.Find(pBuilding->Type)->Grinding_PlayDieSound.Get() ?
+	return BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->Grinding_PlayDieSound.Get() ?
 		Play : DoNotPlay;
 }
 
@@ -231,7 +231,7 @@ DEFINE_HOOK(0x739FBC, UnitClass_UpdatePosition_Grinding_SkipDiesound, 0x5)
 {
 	enum { Play = 0x0, DoNotPlay = 0x073A0A5 };
 	GET(BuildingClass*, pBuilding, EBX);
-	return BuildingTypeExt::ExtMap.Find(pBuilding->Type)->Grinding_PlayDieSound.Get() ?
+	return BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->Grinding_PlayDieSound.Get() ?
 		Play : DoNotPlay;
 }
 
@@ -241,7 +241,7 @@ DEFINE_HOOK(0x73E3DB, UnitClass_Mission_Unload_NoteBalanceBefore, 0x6)
 	GET(HouseClass* const, pHouse, EBX); // this is the house of the refinery, not the harvester
 	// GET(BuildingClass* const, pDock, EDI);
 
-	HouseExt::LastHarvesterBalance = pHouse->Available_Money();// Available_Money takes silos into account
+	HouseExtData::LastHarvesterBalance = pHouse->Available_Money();// Available_Money takes silos into account
 
 	return 0;
 }
@@ -253,9 +253,9 @@ DEFINE_HOOK(0x73E3DB, UnitClass_Mission_Unload_NoteBalanceBefore, 0x6)
 //	GET(HouseClass* const, pHouse, EBX);
 //	GET(BuildingClass* const, pDock, EDI);
 //
-//	if(BuildingTypeExt::ExtMap.Find(pDock->Type)->Refinery_DisplayDumpedMoneyAmount){
-//		BuildingExt::ExtMap.Find(pDock)->AccumulatedIncome +=
-//			pHouse->Available_Money() - HouseExt::LastHarvesterBalance;
+//	if(BuildingTypeExtContainer::Instance.Find(pDock->Type)->Refinery_DisplayDumpedMoneyAmount){
+//		BuildingExtContainer::Instance.Find(pDock)->AccumulatedIncome +=
+//			pHouse->Available_Money() - HouseExtData::LastHarvesterBalance;
 //	}
 //
 //	return 0;
@@ -264,7 +264,7 @@ DEFINE_HOOK(0x73E3DB, UnitClass_Mission_Unload_NoteBalanceBefore, 0x6)
 //DEFINE_HOOK(0x522D50, InfantryClass_SlaveGiveMoney_RecordBalanceBefore, 0x5)
 //{
 //	GET_STACK(TechnoClass* const, slaveMiner, 0x4);
-//	HouseExt::LastSlaveBalance = slaveMiner->Owner->Available_Money();
+//	HouseExtData::LastSlaveBalance = slaveMiner->Owner->Available_Money();
 //	return 0;
 //}
 //
@@ -272,14 +272,14 @@ DEFINE_HOOK(0x73E3DB, UnitClass_Mission_Unload_NoteBalanceBefore, 0x6)
 //{
 //	GET_STACK(TechnoClass* const, slaveMiner, STACK_OFFSET(0x18, 0x4));
 //
-//	int money = slaveMiner->Owner->Available_Money() - HouseExt::LastSlaveBalance;
+//	int money = slaveMiner->Owner->Available_Money() - HouseExtData::LastSlaveBalance;
 //
 //	if (auto pBld = specific_cast<BuildingClass*>(slaveMiner)) {
-//		if (BuildingTypeExt::ExtMap.Find(pBld->Type)->Refinery_DisplayDumpedMoneyAmount) {
-//			BuildingExt::ExtMap.Find(pBld)->AccumulatedIncome += money;
+//		if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->Refinery_DisplayDumpedMoneyAmount) {
+//			BuildingExtContainer::Instance.Find(pBld)->AccumulatedIncome += money;
 //		}
 //	}
-//	else if (auto pBldTypeExt = BuildingTypeExt::ExtMap.Find(slaveMiner->GetTechnoType()->DeploysInto))
+//	else if (auto pBldTypeExt = BuildingTypeExtContainer::Instance.Find(slaveMiner->GetTechnoType()->DeploysInto))
 //	{
 //		if (pBldTypeExt->Refinery_DisplayDumpedMoneyAmount.Get())
 //		{

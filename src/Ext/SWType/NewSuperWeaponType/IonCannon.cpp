@@ -8,7 +8,7 @@ std::vector<const char*> SW_IonCannon::GetTypeString() const
 	return { "IonCannon" };
 }
 
-SuperWeaponFlags SW_IonCannon::Flags(const SWTypeExt::ExtData* pData) const
+SuperWeaponFlags SW_IonCannon::Flags(const SWTypeExtData* pData) const
 {
 	return SuperWeaponFlags::NoEvent;
 }
@@ -22,9 +22,9 @@ bool SW_IonCannon::Activate(SuperClass* pThis, const CellStruct& Coords, bool Is
 	return true;
 }
 
-void SW_IonCannon::Initialize(SWTypeExt::ExtData* pData)
+void SW_IonCannon::Initialize(SWTypeExtData* pData)
 {
-	pData->OwnerObject()->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	pData->AttachedToObject->Action = Action(AresNewActionType::SuperWeaponAllowed);
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::Nuke;
 	pData->IonCannon_BeamHeight = 750;
 	pData->IonCannon_BlastHeight = 0;
@@ -38,9 +38,9 @@ void SW_IonCannon::Initialize(SWTypeExt::ExtData* pData)
 	pData->EVA_Activated = VoxClass::FindIndexById("EVA_IonCannonActivated");
 }
 
-void SW_IonCannon::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
+void SW_IonCannon::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
-	const char* section = pData->Get()->ID;
+	const char* section = pData->AttachedToObject->ID;
 
 	INI_EX exINI(pINI);
 	pData->IonCannon_BeamHeight.Read(exINI, section, "IonCannon.BeamAnimHeight");
@@ -51,17 +51,17 @@ void SW_IonCannon::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->IonCannon_Ripple.Read(exINI, section, "IonCannon.Ripple");
 }
 
-WarheadTypeClass* SW_IonCannon::GetWarhead(const SWTypeExt::ExtData* pData) const
+WarheadTypeClass* SW_IonCannon::GetWarhead(const SWTypeExtData* pData) const
 {
 	return pData->SW_Warhead.Get(RulesClass::Instance->IonCannonWarhead);
 }
 
-int SW_IonCannon::GetDamage(const SWTypeExt::ExtData* pData) const
+int SW_IonCannon::GetDamage(const SWTypeExtData* pData) const
 {
 	return pData->SW_Damage.Get(RulesClass::Instance->IonCannonDamage);
 }
 
-bool SW_IonCannon::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+bool SW_IonCannon::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
 	if (!this->IsLaunchsiteAlive(pBuilding))
 		return false;
@@ -83,7 +83,7 @@ void IonCannonStateMachine::Update()
 		}
 	}
 
-	SWTypeExt::ExtData* pData = SWTypeExt::ExtMap.Find(this->Super->Type);
+	SWTypeExtData* pData = SWTypeExtContainer::Instance.Find(this->Super->Type);
 
 	switch (this->Status)
 	{
@@ -245,7 +245,7 @@ void IonCannonStateMachine::Fire()
 	auto pWarhead = pNewData->GetWarhead(pData);
 
 	if (pWarhead && damage != 0) {
-		WarheadTypeExt::DetonateAt(pWarhead, pTarget, coords, this->Firer, damage, this->Owner);
+		WarheadTypeExtData::DetonateAt(pWarhead, pTarget, coords, this->Firer, damage, this->Owner);
 	}
 
 	//TODO , destroy bridges

@@ -15,7 +15,7 @@
 //
 //	if (!m_SpawnDatas)
 //	{
-//		auto const pExt = AnimTypeExt::ExtMap.Find(pFrom);
+//		auto const pExt = AnimTypeExtContainer::Instance.Find(pFrom);
 //		m_SpawnDatas = std::make_unique<AnimSpawnerDatas>(pExt->SpawnerDatas);
 //	}
 //}

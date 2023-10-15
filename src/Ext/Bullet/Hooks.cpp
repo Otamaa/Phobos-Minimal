@@ -24,7 +24,7 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 	enum { retContunue = 0x0 , retDead = 0x466781 };
 	GET(BulletClass* const, pThis, EBP);
 
-	const auto pBulletExt = BulletExt::ExtMap.Find(pThis);
+	const auto pBulletExt = BulletExtContainer::Instance.Find(pThis);
 	bool bChangeOwner = false;
 	auto const pBulletCurOwner = pThis->GetOwningHouse();
 
@@ -43,7 +43,7 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 		}
 	}
 
-	auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
+	auto const pTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (pTypeExt->PreExplodeRange.isset())
 	{
@@ -52,12 +52,12 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 
 		if (abs(ThisCoord.DistanceFrom(TargetCoords))
 			<= pTypeExt->PreExplodeRange.Get(0) * 256)
-			if (BulletExt::HandleBulletRemove(pThis, true, true))
+			if (BulletExtData::HandleBulletRemove(pThis, true, true))
 				return retDead;
 	}
 
 	if (pBulletExt->InterceptedStatus == InterceptedStatus::Intercepted) {
-		if (BulletExt::HandleBulletRemove(pThis, pBulletExt->Intercepted_Detonate, true))
+		if (BulletExtData::HandleBulletRemove(pThis, pBulletExt->Intercepted_Detonate, true))
 			return retDead;
 	}
 
@@ -103,13 +103,13 @@ DEFINE_HOOK(0x4692BD, BulletClass_Logics_ApplyMindControl_Override, 0x6)
 {
 	GET(BulletClass*, pThis, ESI);
 
-	const auto pTypeExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+	const auto pTypeExt = WarheadTypeExtContainer::Instance.Find(pThis->WH);
 	const auto pControlledAnimType = pTypeExt->MindControl_Anim.Get(RulesClass::Instance->ControlledAnimationType);
 	const auto pTechno = generic_cast<TechnoClass*>(pThis->Target);
 	const auto Controller = pThis->Owner;
 
 	R->AL(CaptureExt::CaptureUnit(Controller->CaptureManager,
-		pTechno, TechnoTypeExt::ExtMap.Find(Controller->GetTechnoType())->MultiMindControl_ReleaseVictim, false  , pControlledAnimType));
+		pTechno, TechnoTypeExtContainer::Instance.Find(Controller->GetTechnoType())->MultiMindControl_ReleaseVictim, false  , pControlledAnimType));
 
 	return 0x4692D5;
 }
@@ -119,7 +119,7 @@ DEFINE_HOOK(0x4671B9, BulletClass_AI_ApplyGravity, 0x6)
 	//GET(BulletClass* const, pThis, EBP);
 	GET(BulletTypeClass* const, pType, EAX);
 
-	auto const nGravity = BulletTypeExt::GetAdjustedGravity(pType);
+	auto const nGravity = BulletTypeExtData::GetAdjustedGravity(pType);
 	__asm { fld nGravity };
 
 	return 0x4671BF;
@@ -135,7 +135,7 @@ DEFINE_HOOK(0x469A75, BulletClass_Logics_DamageHouse, 0x7)
 	GET(HouseClass*, pHouse, ECX);
 
 	if (!pHouse)
-		R->ECX(BulletExt::ExtMap.Find(pThis)->Owner);
+		R->ECX(BulletExtContainer::Instance.Find(pThis)->Owner);
 
 	return 0;
 }
@@ -148,7 +148,7 @@ DEFINE_HOOK(0x4668BD, BulletClass_AI_Interceptor_InvisoSkip, 0x6)
 {
 	enum { DetonateBullet = 0x467F9B, Continue = 0x0 };
 	GET(BulletClass*, pThis, EBP);
-	return (pThis->Type->Inviso && BulletExt::ExtMap.Find(pThis)->IsInterceptor)
+	return (pThis->Type->Inviso && BulletExtContainer::Instance.Find(pThis)->IsInterceptor)
 		? DetonateBullet : Continue;
 }
 
@@ -158,18 +158,18 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 
 	GET(BulletClass* const, pThis, ESI);
 
-	if (!BulletExt::IsReallyAlive(pThis)) {
+	if (!BulletExtData::IsReallyAlive(pThis)) {
 		return ReturnFromFunction;
 	}
 
 	if (pThis->WH)
 	{
-		const auto pWHExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pThis->WH);
 
 		if (pWHExt->DetonateOnAllMapObjects && !pWHExt->WasDetonatedOnAllMapObjects)
 		{
 			pWHExt->WasDetonatedOnAllMapObjects = true;
-			const auto pHouse = BulletExt::GetHouse(pThis);
+			const auto pHouse = BulletExtData::GetHouse(pThis);
 
 			//for(auto const pTechno : *TechnoClass::Array)
 			//{
@@ -180,7 +180,7 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 			//		pThis->Target = pTechno;
 			//		pThis->Detonate(pTechno->Location);
 			//
-			//		if (!BulletExt::IsReallyAlive(pThis))
+			//		if (!BulletExtData::IsReallyAlive(pThis))
 			//		{
 			//			pWHExt->WasDetonatedOnAllMapObjects = false;
 			//			return ReturnFromFunction;
@@ -197,7 +197,7 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 			 		pThis->Target = pTechno;
 			 		pThis->Detonate(pTechno->Location);
 
-			 		if (!BulletExt::IsReallyAlive(pThis))
+			 		if (!BulletExtData::IsReallyAlive(pThis))
 			 		{
 			 			pWHExt->WasDetonatedOnAllMapObjects = false;
 			 			return ReturnFromFunction;
@@ -205,7 +205,7 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 			 	}
 			 }
 
-			 if (!BulletExt::IsReallyAlive(pThis))
+			 if (!BulletExtData::IsReallyAlive(pThis))
 			 {
 				 pWHExt->WasDetonatedOnAllMapObjects = false;
 				 return ReturnFromFunction;
@@ -220,7 +220,7 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 			 		pThis->Target = pTechno;
 			 		pThis->Detonate(pTechno->Location);
 
-			 		if (!BulletExt::IsReallyAlive(pThis))
+			 		if (!BulletExtData::IsReallyAlive(pThis))
 			 		{
 			 			pWHExt->WasDetonatedOnAllMapObjects = false;
 			 			return ReturnFromFunction;
@@ -228,7 +228,7 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 			 	}
 			 }
 
-			 if (!BulletExt::IsReallyAlive(pThis))
+			 if (!BulletExtData::IsReallyAlive(pThis))
 			 {
 				 pWHExt->WasDetonatedOnAllMapObjects = false;
 				 return ReturnFromFunction;
@@ -243,7 +243,7 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 			 		pThis->Target = pTechno;
 			 		pThis->Detonate(pTechno->Location);
 
-			 		if (!BulletExt::IsReallyAlive(pThis))
+			 		if (!BulletExtData::IsReallyAlive(pThis))
 			 		{
 			 			pWHExt->WasDetonatedOnAllMapObjects = false;
 			 			return ReturnFromFunction;
@@ -251,7 +251,7 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 			 	}
 			 }
 
-			 if (!BulletExt::IsReallyAlive(pThis))
+			 if (!BulletExtData::IsReallyAlive(pThis))
 			 {
 				 pWHExt->WasDetonatedOnAllMapObjects = false;
 				 return ReturnFromFunction;
@@ -259,14 +259,14 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 
 			 for (auto const pTechno : *BuildingClass::Array)
 			 {
-			 	const auto nRes = pWHExt->EligibleForFullMapDetonation(pTechno, BulletExt::GetHouse(pThis));
+			 	const auto nRes = pWHExt->EligibleForFullMapDetonation(pTechno, BulletExtData::GetHouse(pThis));
 
 			 	if (nRes == FullMapDetonateResult::TargetValid)
 			 	{
 			 		pThis->Target = pTechno;
 			 		pThis->Detonate(pTechno->Location);
 
-			 		if (!BulletExt::IsReallyAlive(pThis))
+			 		if (!BulletExtData::IsReallyAlive(pThis))
 			 		{
 			 			pWHExt->WasDetonatedOnAllMapObjects = false;
 			 			return ReturnFromFunction;
@@ -289,7 +289,7 @@ DEFINE_HOOK(0x469D1A, BulletClass_Logics_Debris_Checks, 0x6)
 
 	GET(BulletClass*, pThis, ESI);
 
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pThis->WH);
 	auto const pCell = pThis->GetCell();
 	const bool isLand = !pCell ? true :
 	pCell->LandType != LandType::Water || pCell->ContainsBridge();
@@ -309,7 +309,7 @@ DEFINE_HOOK(0x469B44, BulletClass_Logics_LandTypeCheck, 0x6)
 
 	GET(BulletClass*, pThis, ESI);
 
-	auto const pWHExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+	auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pThis->WH);
 
 	if (pWHExt->Conventional_IgnoreUnits)
 		return SkipChecks;
@@ -325,7 +325,7 @@ DEFINE_HOOK(0x6FE657, TechnoClass_FireAt_ArcingFix, 0x6)
 
 	if (pBulletType->Arcing && targetHeight > fireHeight)
 	{
-		auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pBulletType);
+		auto const pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pBulletType);
 
 		if (!pBulletTypeExt->Arcing_AllowElevationInaccuracy)
 			R->EAX(targetHeight);
@@ -344,7 +344,7 @@ DEFINE_HOOK(0x44D23C, BuildingClass_Mission_Missile_ArcingFix, 0x7)
 
 	if (pBulletType->Arcing && targetHeight > fireHeight)
 	{
-		auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pBulletType);
+		auto const pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pBulletType);
 
 		if (!pBulletTypeExt->Arcing_AllowElevationInaccuracy)
 			R->EAX(targetHeight);

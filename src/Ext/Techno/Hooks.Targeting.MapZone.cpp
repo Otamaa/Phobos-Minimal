@@ -11,9 +11,9 @@ DEFINE_HOOK(0x6F7E24, TechnoClass_EvaluateObject_MapZone, 0x6)
 	GET(WeaponTypeClass*, pWeapon, EBP);
 	GET_STACK(ZoneType, zone, STACK_OFFSET(0x3C ,0x18));
 
-	auto pThisTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto pThisTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
-	if (!TechnoExt::AllowedTargetByZone(pThis, pTarget, pThisTypeExt->TargetZoneScanType, pWeapon, zone))
+	if (!TechnoExtData::AllowedTargetByZone(pThis, pTarget, pThisTypeExt->TargetZoneScanType, pWeapon, zone))
 		return DisallowedObject;
 
 	return AllowedObject;

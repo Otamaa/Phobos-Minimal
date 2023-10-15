@@ -8,15 +8,14 @@
 class TechnoTypeClass;
 class HouseClass;
 class FootClass;
-class TeamExt
-{
-public:
-	class ExtData final : public Extension<TeamClass>
+	class TeamExtData final
 	{
 	public:
 		static constexpr size_t Canary = 0x414B4B41;
 		using base_type = TeamClass;
 
+		base_type* AttachedToObject {};
+		InitState Initialized { InitState::Blank };
 	public:
 		int WaitNoTargetAttempts { 0 };
 		double NextSuccessWeightAward { 0 };
@@ -52,11 +51,12 @@ public:
 		ScriptClass* PreviousScript { nullptr };
 		std::vector<BuildingClass*> BridgeRepairHuts {};
 
-		ExtData(TeamClass* OwnerObject) : Extension<TeamClass>(OwnerObject)
+		TeamExtData(base_type* OwnerObject) noexcept
+		{
+			AttachedToObject = OwnerObject;
+		}
 
-		{ }
-
-		virtual ~ExtData() override {
+		~TeamExtData() noexcept {
 			GameDelete<true, true>(PreviousScript);
 			PreviousScript = nullptr;
 		}
@@ -66,24 +66,23 @@ public:
 		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
+		static bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, const Iterator<TechnoTypeClass*>& list);
+		static bool HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, const Iterator<TechnoTypeClass*>& list);
+		static bool EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, bool onlySelectedEnemy, const Iterator<TechnoTypeClass*>& list);
+		static bool EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, const Iterator<TechnoTypeClass*>& list);
+		static bool NeutralOwns(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list);
+		static bool NeutralOwnsAll(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list);
+		static bool NOINLINE GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat);
+
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<TeamExt::ExtData>
+	class TeamExtContainer final : public Container<TeamExtData>
 	{
 	public:
-		CONSTEXPR_NOCOPY_CLASS(TeamExt::ExtData, "TeamClass");
+		static TeamExtContainer Instance;
+
+		CONSTEXPR_NOCOPY_CLASSB(TeamExtContainer, TeamExtData, "TeamClass");
 	};
-
-	static ExtContainer ExtMap;
-
-	static bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, const Iterator<TechnoTypeClass*>& list);
-	static bool HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, const Iterator<TechnoTypeClass*>& list);
-	static bool EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, bool onlySelectedEnemy, const Iterator<TechnoTypeClass*>& list);
-	static bool EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, const Iterator<TechnoTypeClass*>& list);
-	static bool NeutralOwns(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list);
-	static bool NeutralOwnsAll(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list);
-	static bool NOINLINE GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat);
-};

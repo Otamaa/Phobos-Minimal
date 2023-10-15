@@ -10,8 +10,8 @@ void StraightBulletFunctional::Put(BulletClass* pBullet)
 	if (!pBullet || !pBullet->Type)
 		return;
 
-	auto pBulletExt = BulletExt::ExtMap.Find(pBullet);
-	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pBullet->Type);
+	auto pBulletExt = BulletExtContainer::Instance.Find(pBullet);
+	auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pBullet->Type);
 
 	if (!pBulletExt || !pBulletTypeExt)
 		return;
@@ -48,7 +48,7 @@ void StraightBulletFunctional::AI(BulletClass* pBullet)
 	if (!pBullet)
 		return;
 
-	auto pBulletExt = BulletExt::ExtMap.Find(pBullet);
+	auto pBulletExt = BulletExtContainer::Instance.Find(pBullet);
 
 	if (!pBulletExt)
 		return;

@@ -13,7 +13,7 @@
 
 void EffectHelpers::DrawBolt(CoordStruct sourcePos, CoordStruct targetPos, WeaponTypeClass* pWeapon)
 {
-	const auto pTypeExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+	const auto pTypeExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 	if (pTypeExt->WeaponBolt_Data.isset())
 		ElectricBoltClass::Create(sourcePos, targetPos,
 		pTypeExt->WeaponBolt_Data.Get(), 0,
@@ -60,7 +60,7 @@ void Helpers_DP::DrawBulletEffect(WeaponTypeClass* pWeapon, CoordStruct& sourceP
 		laserType.IsHouseColor = pWeapon->IsHouseColor; // house color will be
 		laserType.Duration = pWeapon->LaserDuration;
 		/*
-		WeaponTypeExt ext = WeaponTypeExt.ExtMap.Find(pWeapon);
+		WeaponTypeExtData ext = WeaponTypeExtData.ExtMap.Find(pWeapon);
 		if (null != ext)
 		{
 			if (ext.LaserThickness > 0)
@@ -317,7 +317,7 @@ int Helpers_DP::Dir2FrameIndex(DirStruct& dir, int facing)
 
 double Helpers_DP::GetROFMult(TechnoClass const* pTech)
 {
-	return TechnoExt::GetROFMult(pTech);
+	return TechnoExtData::GetROFMult(pTech);
 }
 
 double Helpers_DP::GetDamageMult(TechnoClass* pTechno)
@@ -325,7 +325,7 @@ double Helpers_DP::GetDamageMult(TechnoClass* pTechno)
 	if (!pTechno || !pTechno->IsAlive)
 		return 1.0;
 
-	return TechnoExt::GetDamageMult(pTechno);
+	return TechnoExtData::GetDamageMult(pTechno);
 }
 
 DirStruct Helpers_DP::DirNormalized(int index, int facing)
@@ -771,7 +771,7 @@ bool Helpers_DP::CanDamageMe(TechnoClass* pTechno, int damage, int distanceFromE
 	// 计算实际伤害
 	auto const Armor = pTechno->GetTechnoType()->Armor;
 	realDamage = MapClass::Instance->GetTotalDamage(damage,pWH, Armor,distanceFromEpicenter);
-	auto const data = WarheadTypeExt::ExtMap.Find(pWH);
+	auto const data = WarheadTypeExtContainer::Instance.Find(pWH);
 
 	if (damage == 0)
 	{
@@ -887,7 +887,7 @@ CoordStruct Helpers_DP::GetFLHAbsoluteCoords(TechnoClass* pTechno, CoordStruct& 
 
 	if (isOnTurret)
 	{
-		const auto& nTurretOffset = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset.Get();
+		const auto& nTurretOffset = TechnoTypeExtContainer::Instance.Find(pType)->TurretOffset.Get();
 		turretOffset.X = nTurretOffset.X;
 		turretOffset.Y = nTurretOffset.Y;
 		turretOffset.Z = nTurretOffset.Z;
@@ -941,7 +941,7 @@ TechnoClass* Helpers_DP::CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* 
 				if (pTechno)
 				{
 					Debug::Log(__FUNCTION__" Called \n");
-					TechnoExt::HandleRemove(pTechno);
+					TechnoExtData::HandleRemove(pTechno);
 				}
 			}
 		}
@@ -1061,8 +1061,8 @@ BulletClass* Helpers_DP::FireBullet(TechnoClass* pAttacker, AbstractClass* pTarg
 	int speed = pWeapon->GetWeaponSpeed(sourcePos, targetPos);
 	bool bright = pWeapon->Bright || pWH->Bright;
 
-	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pWeapon->Projectile);
-	auto pExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+	auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pWeapon->Projectile);
+	auto pExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
 	BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pAttacker, damage, pWH, speed, pExt->GetProjectileRange(), bright, true);
 
@@ -1107,7 +1107,7 @@ void Helpers_DP::DrawWeaponAnim(WeaponTypeClass* pWeapon, CoordStruct& sourcePos
 
 		if (auto pAnimType = pWeapon->Anim.GetItem(index))
 		{
-			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, sourcePos),
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, sourcePos),
 				pOwner ? pOwner->GetOwningHouse() : nullptr,
 				pTarget ? pTarget->GetOwningHouse() : nullptr,
 				pOwner,

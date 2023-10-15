@@ -8,7 +8,7 @@ DEFINE_HOOK(0x522790, InfantryClass_SetDisguise_PermaDisguise_DefaultDisguise, 0
 	GET(InfantryTypeClass*, pType, EAX);
 	GET(InfantryClass*, pThis, ECX);
 
-	if (const auto pDisguiseType = TechnoExt::SetInfDefaultDisguise(pThis, pType)) {
+	if (const auto pDisguiseType = TechnoExtData::SetInfDefaultDisguise(pThis, pType)) {
 		pThis->Disguise = pDisguiseType;
 		return 0x5227BF;// EC / D7 / E4
 	}
@@ -21,7 +21,7 @@ DEFINE_HOOK(0x6F421C, TechnoClass_Init_PermaDisguise_DefaultDisguise, 0x6)
 	GET(TechnoTypeClass*, pType, EAX);
 	GET(TechnoClass*, pThis, ESI);
 
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 	const auto what = pThis->WhatAmI();
 
 	if (what == UnitClass::AbsID && pExt->TankDisguiseAsTank.Get())
@@ -33,7 +33,7 @@ DEFINE_HOOK(0x6F421C, TechnoClass_Init_PermaDisguise_DefaultDisguise, 0x6)
 	}
 
 	if (what == InfantryClass::AbsID) {
-		if (const auto pDisguiseType = TechnoExt::SetInfDefaultDisguise(pThis, pType)) {
+		if (const auto pDisguiseType = TechnoExtData::SetInfDefaultDisguise(pThis, pType)) {
 
 			pThis->Disguise = pDisguiseType;
 			return 0x6F424B;
@@ -54,7 +54,7 @@ bool NOINLINE CanBlinkDisguise(TechnoClass* pTechno , HouseClass* pCurPlayer)
 {
 	if(pCurPlayer && !pCurPlayer->IsObserver()) {
 		return  EnumFunctions::CanTargetHouse(
-			RulesExt::Global()->DisguiseBlinkingVisibility,pTechno->Owner, pCurPlayer);
+			RulesExtData::Instance()->DisguiseBlinkingVisibility,pTechno->Owner, pCurPlayer);
 	}
 
 	return true;
@@ -92,7 +92,7 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 
 	GET(TechnoClass*, pThis, ESI);
 
-	auto const& [pType, pOwner] = TechnoExt::GetDisguiseType(pThis, true, true);
+	auto const& [pType, pOwner] = TechnoExtData::GetDisguiseType(pThis, true, true);
 	LightConvertClass* pConvert = nullptr;
 
 	if(pOwner) {
@@ -148,7 +148,7 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 //{
 //	GET(UnitClass*, pThis, ESI);
 //
-//	if (!TechnoTypeExt::ExtMap.Find(pThis->Type)
+//	if (!TechnoTypeExtContainer::Instance.Find(pThis->Type)
 //		->TankDisguiseAsTank.Get())
 //		pThis->UpdateDisguise(); //this one updating the disguise blink and stuffs
 //
@@ -160,7 +160,7 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 // {
 // 	GET(UnitClass*, pThis, ESI);
 
-// 	if (!TechnoTypeExt::ExtMap.Find(pThis->Type)
+// 	if (!TechnoTypeExtContainer::Instance.Find(pThis->Type)
 // 		->TankDisguiseAsTank.Get())
 // 		return 0x0;
 
@@ -178,7 +178,7 @@ DEFINE_HOOK(0x7466D8, UnitClass_DesguiseAs_AsAnotherUnit, 0xA)
 	if (!pObjectT || pObjectT->IsDisguised())
 		return 0x0;
 
-	if (pObjectT->WhatAmI() != UnitClass::AbsID || !TechnoTypeExt::ExtMap.Find(pThis->Type)
+	if (pObjectT->WhatAmI() != UnitClass::AbsID || !TechnoTypeExtContainer::Instance.Find(pThis->Type)
 		->TankDisguiseAsTank.Get())
 		return 0x0;
 
@@ -198,7 +198,7 @@ DEFINE_HOOK(0x746670, UnitClass_DisguiseAs_Override, 0x5)
 	if (!pThis || !pTarget || Is_Infantry(pTarget))
 		return 0x746714;
 
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (!pTarget->IsDisguised())
 	{
@@ -277,7 +277,7 @@ DEFINE_HOOK(0x522718, InfantryClass_DisguiseAs_Allowed, 0x8)
 	GET(InfantryClass*, pThis, EDI);
 	GET(InfantryClass*, pThat, ESI);
 
-	if (Allowed(TechnoTypeExt::ExtMap.Find(pThis->Type), pThat->Type)) {
+	if (Allowed(TechnoTypeExtContainer::Instance.Find(pThis->Type), pThat->Type)) {
 		pThis->Techno_70E280(pThat);
 		return 0x522720;
 	}

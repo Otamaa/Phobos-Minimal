@@ -16,7 +16,7 @@
 #include <Utilities/Cast.h>
 #include <Utilities/EnumFunctions.h>
 
-void TechnoTypeExt::ExtData::Initialize()
+void TechnoTypeExtData::Initialize()
 {
 	//OreGathering_Anims.reserve(1);
 	//OreGathering_Tiberiums.reserve(1);
@@ -58,7 +58,7 @@ void TechnoTypeExt::ExtData::Initialize()
 	this->SellSound = RulesClass::Instance->SellSound;
 	auto Eva_ready = GameStrings::EVA_ConstructionComplete();
 	auto Eva_sold = GameStrings::EVA_StructureSold() ;
-	this->AttachtoType =  Get()->WhatAmI();
+	this->AttachtoType = this->AttachedToObject->WhatAmI();
 
 	if (this->AttachtoType != BuildingTypeClass::AbsID)
 	{
@@ -81,31 +81,31 @@ void TechnoTypeExt::ExtData::Initialize()
 	this->EVA_Sold = VoxClass::FindIndexById(Eva_sold);
 }
 
-bool TechnoTypeExt::CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClass* pFactoryType)
+bool TechnoTypeExtData::CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClass* pFactoryType)
 {
-	const auto pProductTypeExt = TechnoTypeExt::ExtMap.Find(pProduct);
-	const auto pBExt = BuildingTypeExt::ExtMap.Find(pFactoryType);
+	const auto pProductTypeExt = TechnoTypeExtContainer::Instance.Find(pProduct);
+	const auto pBExt = BuildingTypeExtContainer::Instance.Find(pFactoryType);
 	return (pProductTypeExt->BuiltAt.empty() && !pBExt->Factory_ExplicitOnly)
 		|| pProductTypeExt->BuiltAt.Contains(pFactoryType);
 }
 
-void TechnoTypeExt::ExtData::ApplyTurretOffset(Matrix3D* mtx, double factor)
+void TechnoTypeExtData::ApplyTurretOffset(Matrix3D* mtx, double factor)
 {
 	const auto offs = this->TurretOffset.GetEx();
 	mtx->Translate((float)(offs->X * factor), (float)(offs->Y * factor), (float)(offs->Z * factor));
 }
 
-AnimTypeClass* TechnoTypeExt::GetSinkAnim(TechnoClass* pThis)
+AnimTypeClass* TechnoTypeExtData::GetSinkAnim(TechnoClass* pThis)
 {
-	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->SinkAnim.Get(RulesClass::Instance->Wake);
+	return TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->SinkAnim.Get(RulesClass::Instance->Wake);
 }
 
-double TechnoTypeExt::GetTunnelSpeed(TechnoClass* pThis, RulesClass* pRules)
+double TechnoTypeExtData::GetTunnelSpeed(TechnoClass* pThis, RulesClass* pRules)
 {
-	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->Tunnel_Speed.Get(pRules->TunnelSpeed);
+	return TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->Tunnel_Speed.Get(pRules->TunnelSpeed);
 }
 
-VoxelStruct* TechnoTypeExt::GetBarrelsVoxel(TechnoTypeClass* const pThis, int const nIdx)
+VoxelStruct* TechnoTypeExtData::GetBarrelsVoxel(TechnoTypeClass* const pThis, int const nIdx)
 {
 	if (nIdx == -1)/// ??
 		return pThis->ChargerBarrels;
@@ -115,16 +115,16 @@ VoxelStruct* TechnoTypeExt::GetBarrelsVoxel(TechnoTypeClass* const pThis, int co
 
 	const auto nAdditional = (nIdx - TechnoTypeClass::MaxWeapons);
 
-	if ((size_t)nAdditional >= TechnoTypeExt::ExtMap.Find(pThis)->BarrelImageData.size()) {
+	if ((size_t)nAdditional >= TechnoTypeExtContainer::Instance.Find(pThis)->BarrelImageData.size()) {
 		Debug::FatalErrorAndExit(__FUNCTION__" [%s] Size[%s] Is Bigger than BarrelData ! \n", pThis->ID, nAdditional);
 		return nullptr;
 	}
 
-	return TechnoTypeExt::ExtMap.Find(pThis)->BarrelImageData.data() +
+	return TechnoTypeExtContainer::Instance.Find(pThis)->BarrelImageData.data() +
 		nAdditional;
 }
 
-VoxelStruct* TechnoTypeExt::GetTurretsVoxel(TechnoTypeClass* const pThis, int const nIdx)
+VoxelStruct* TechnoTypeExtData::GetTurretsVoxel(TechnoTypeClass* const pThis, int const nIdx)
 {
 	if (nIdx == -1)/// ??
 		return pThis->ChargerTurrets;
@@ -133,26 +133,26 @@ VoxelStruct* TechnoTypeExt::GetTurretsVoxel(TechnoTypeClass* const pThis, int co
 		return pThis->ChargerTurrets + nIdx;
 
 	const auto nAdditional = (nIdx - TechnoTypeClass::MaxWeapons);
-	if ((size_t)nAdditional >= TechnoTypeExt::ExtMap.Find(pThis)->TurretImageData.size()) {
+	if ((size_t)nAdditional >= TechnoTypeExtContainer::Instance.Find(pThis)->TurretImageData.size()) {
 		Debug::FatalErrorAndExit(__FUNCTION__" [%s] Size[%d]  Is Bigger than TurretData ! \n", pThis->ID, nAdditional);
 		return nullptr;
 	}
-	return TechnoTypeExt::ExtMap.Find(pThis)->TurretImageData.data() + nAdditional;
+	return TechnoTypeExtContainer::Instance.Find(pThis)->TurretImageData.data() + nAdditional;
 }
 
 // Ares 0.A source
-const char* TechnoTypeExt::ExtData::GetSelectionGroupID() const
+const char* TechnoTypeExtData::GetSelectionGroupID() const
 {
-	return GeneralUtils::IsValidString(this->GroupAs) ? this->GroupAs : this->Get()->ID;
+	return GeneralUtils::IsValidString(this->GroupAs) ? this->GroupAs : this->AttachedToObject->ID;
 }
 
-bool TechnoTypeExt::ExtData::IsGenericPrerequisite() const
+bool TechnoTypeExtData::IsGenericPrerequisite() const
 {
 	if (this->GenericPrerequisite.empty())
 	{
 		bool isGeneric = false;
 		for (auto const& Prereq : GenericPrerequisite::Array) {
-			if (Prereq->Alternates.Contains(this->OwnerObject())) {
+			if (Prereq->Alternates.Contains(this->AttachedToObject)) {
 				isGeneric = true;
 				break;
 			}
@@ -164,29 +164,29 @@ bool TechnoTypeExt::ExtData::IsGenericPrerequisite() const
 	return this->GenericPrerequisite;
 }
 
-const char* TechnoTypeExt::GetSelectionGroupID(ObjectTypeClass* pType)
+const char* TechnoTypeExtData::GetSelectionGroupID(ObjectTypeClass* pType)
 {
 	if (auto pTType = type_cast<TechnoTypeClass*>(pType))
-		return TechnoTypeExt::ExtMap.Find(pTType)->GetSelectionGroupID();
+		return TechnoTypeExtContainer::Instance.Find(pTType)->GetSelectionGroupID();
 
 	return pType->ID;
 }
 
-bool TechnoTypeExt::HasSelectionGroupID(ObjectTypeClass* pType, const std::string& pID)
+bool TechnoTypeExtData::HasSelectionGroupID(ObjectTypeClass* pType, const std::string& pID)
 {
-	const auto id = TechnoTypeExt::GetSelectionGroupID(pType);
+	const auto id = TechnoTypeExtData::GetSelectionGroupID(pType);
 
 	return (IS_SAME_STR_(id, pID.c_str()));
 }
 
-bool TechnoTypeExt::ExtData::IsCountedAsHarvester() const
+bool TechnoTypeExtData::IsCountedAsHarvester() const
 {
 	if(!this->Harvester_Counted.isset()) {
-		if(this->Get()->Enslaves){
+		if(this->AttachedToObject->Enslaves){
 			return true;
 		}
 
-		if (const auto pUnit = specific_cast<UnitTypeClass*>(this->Get())){
+		if (const auto pUnit = specific_cast<UnitTypeClass*>(this->AttachedToObject)){
 			if(pUnit->Harvester || pUnit->Enslaves){
 				return true;
 			}
@@ -197,7 +197,7 @@ bool TechnoTypeExt::ExtData::IsCountedAsHarvester() const
 }
 
 //DO NOT USE !
-void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis,
+void TechnoTypeExtData::GetBurstFLHs(TechnoTypeClass* pThis,
 	INI_EX& exArtINI,
 	const char* pArtSection,
 	ColletiveCoordStructVectorData& nFLH,
@@ -228,11 +228,11 @@ void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis,
 				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), prefix, pPrefixTagRes);
 
 				IMPL_SNPRNINTF(tempBufferFLH, sizeof(tempBufferFLH), "%sFLH.Burst%d", tempBuffer, j);
-				Nullable<CoordStruct> FLH { };
+				Nullable<CoordStruct> FLH;
 				FLH.Read(exArtINI, pArtSection, tempBufferFLH);
 
 				IMPL_SNPRNINTF(tempBufferFLH, sizeof(tempBufferFLH), "Elite%sFLH.Burst%d", tempBuffer, j);
-				Nullable<CoordStruct> eliteFLH { };
+				Nullable<CoordStruct> eliteFLH;
 				eliteFLH.Read(exArtINI, pArtSection, tempBufferFLH);
 
 				if (FLH.isset() && !eliteFLH.isset())
@@ -247,7 +247,7 @@ void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis,
 	}
 }
 
-void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection,
+void TechnoTypeExtData::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection,
 	std::vector<BurstFLHBundle>& nFLH, const char* pPrefixTag)
 {
 	char tempBuffer[0x40];
@@ -276,19 +276,19 @@ void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const
 			Nullable<CoordStruct> eliteFLH;
 			eliteFLH.Read(exArtINI, pArtSection, tempBufferFLH);
 
-			CoordStruct Flh = FLH.Get();
-			CoordStruct Flh_e = FLH.Get();
+			CoordStruct Flh = FLH.GetCopy();
+			CoordStruct Flh_e = FLH.GetCopy();
 			nFLH[i].Flh.push_back(Flh);
 
 			if (eliteFLH.isset())
-				Flh_e = eliteFLH.Get();
+				Flh_e = eliteFLH.GetCopy();
 
 			nFLH[i].EFlh.push_back(Flh_e);
 		}
 	}
 };
 
-void TechnoTypeExt::GetFLH(INI_EX& exArtINI, const char* pArtSection, Nullable<CoordStruct>& nFlh, Nullable<CoordStruct>& nEFlh, const char* pFlag)
+void TechnoTypeExtData::GetFLH(INI_EX& exArtINI, const char* pArtSection, Nullable<CoordStruct>& nFlh, Nullable<CoordStruct>& nEFlh, const char* pFlag)
 {
 	char tempBuffer[0x40];
 	IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "%sFLH", pFlag);
@@ -300,9 +300,9 @@ void TechnoTypeExt::GetFLH(INI_EX& exArtINI, const char* pArtSection, Nullable<C
 		nEFlh = nFlh;
 }
 
-void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->Get();
+	auto pThis = this->AttachedToObject;
 	const auto pArtIni = &CCINIClass::INI_Art();
 	const char* pSection = pThis->ID;
 	const char* pArtSection = pThis->ImageFile;
@@ -363,7 +363,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->Death_Countdown.Read(exINI, pSection, "Death.Countdown");
 		this->Death_Countdown.Read(exINI, pSection, "AutoDeath.AfterDelay");
 
-		Nullable<bool> Death_Peaceful {};
+		Nullable<bool> Death_Peaceful;
 		Death_Peaceful.Read(exINI, pSection, "Death.Peaceful");
 
 		this->Death_Method.Read(exINI, pSection, "Death.Method");
@@ -426,7 +426,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		if (canParse)
 		{
 			if (!this->PassengerDeletionType)
-				this->PassengerDeletionType = std::make_unique<PassengerDeletionTypeClass>(this->Get());
+				this->PassengerDeletionType = std::make_unique<PassengerDeletionTypeClass>(this->AttachedToObject);
 
 			this->PassengerDeletionType->LoadFromINI(pINI, pSection);
 		}
@@ -1211,7 +1211,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		for (size_t i = 5; ; ++i)
 		{
-			Nullable<CoordStruct> alternateFLH {};
+			Nullable<CoordStruct> alternateFLH;
 			IMPL_SNPRNINTF(alternateFLHbuffer, sizeof(alternateFLHbuffer), "AlternateFLH%u", i);
 			alternateFLH.Read(exArtINI, pArtSection, alternateFLHbuffer);
 
@@ -1223,7 +1223,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		for (size_t i = 0; ; ++i)
 		{
-			Nullable<CoordStruct> nHitBuff {};
+			Nullable<CoordStruct> nHitBuff;
 			IMPL_SNPRNINTF(HitCoord_tempBuffer, sizeof(HitCoord_tempBuffer), "HitCoordOffset%d", i);
 			nHitBuff.Read(exArtINI, pArtSection, HitCoord_tempBuffer);
 
@@ -1245,19 +1245,19 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		//ColletiveCoordStructVectorData nFLH = { &WeaponBurstFLHs  , &DeployedWeaponBurstFLHs , &CrouchedWeaponBurstFLHs };
 		//ColletiveCoordStructVectorData nEFLH = { &EliteWeaponBurstFLHs  , &EliteDeployedWeaponBurstFLHs , &EliteCrouchedWeaponBurstFLHs };
 		//const char* tags[sizeof(ColletiveCoordStructVectorData) / sizeof(void*)] = { Phobos::readDefval  , "Deployed" , "Prone" };
-		//TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, nFLH, nEFLH, tags);
+		//TechnoTypeExtData::GetBurstFLHs(pThis, exArtINI, pArtSection, nFLH, nEFLH, tags);
 
-		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, WeaponBurstFLHs, "");
-		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, DeployedWeaponBurstFLHs, "Deployed");
-		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, CrouchedWeaponBurstFLHs, "Prone");
+		TechnoTypeExtData::GetBurstFLHs(pThis, exArtINI, pArtSection, WeaponBurstFLHs, "");
+		TechnoTypeExtData::GetBurstFLHs(pThis, exArtINI, pArtSection, DeployedWeaponBurstFLHs, "Deployed");
+		TechnoTypeExtData::GetBurstFLHs(pThis, exArtINI, pArtSection, CrouchedWeaponBurstFLHs, "Prone");
 
-		TechnoTypeExt::GetFLH(exArtINI, pArtSection, PronePrimaryFireFLH, E_PronePrimaryFireFLH, "PronePrimaryFire");
-		TechnoTypeExt::GetFLH(exArtINI, pArtSection, ProneSecondaryFireFLH, E_ProneSecondaryFireFLH, "ProneSecondaryFire");
-		TechnoTypeExt::GetFLH(exArtINI, pArtSection, DeployedPrimaryFireFLH, E_DeployedPrimaryFireFLH, "DeployedPrimaryFire");
-		TechnoTypeExt::GetFLH(exArtINI, pArtSection, DeployedSecondaryFireFLH, E_DeployedSecondaryFireFLH, "DeployedSecondaryFire");
+		TechnoTypeExtData::GetFLH(exArtINI, pArtSection, PronePrimaryFireFLH, E_PronePrimaryFireFLH, "PronePrimaryFire");
+		TechnoTypeExtData::GetFLH(exArtINI, pArtSection, ProneSecondaryFireFLH, E_ProneSecondaryFireFLH, "ProneSecondaryFire");
+		TechnoTypeExtData::GetFLH(exArtINI, pArtSection, DeployedPrimaryFireFLH, E_DeployedPrimaryFireFLH, "DeployedPrimaryFire");
+		TechnoTypeExtData::GetFLH(exArtINI, pArtSection, DeployedSecondaryFireFLH, E_DeployedSecondaryFireFLH, "DeployedSecondaryFire");
 
-		TechnoTypeExt::GetFLH(exArtINI, pArtSection, PrimaryCrawlFLH, Elite_PrimaryCrawlFLH, "PrimaryCrawling");
-		TechnoTypeExt::GetFLH(exArtINI, pArtSection, SecondaryCrawlFLH, Elite_SecondaryCrawlFLH, "SecondaryCrawling");
+		TechnoTypeExtData::GetFLH(exArtINI, pArtSection, PrimaryCrawlFLH, Elite_PrimaryCrawlFLH, "PrimaryCrawling");
+		TechnoTypeExtData::GetFLH(exArtINI, pArtSection, SecondaryCrawlFLH, Elite_SecondaryCrawlFLH, "SecondaryCrawling");
 
 		this->MyExtraFireData.ReadArt(exArtINI, pArtSection);
 		this->MySpawnSupportFLH.Read(exArtINI, pArtSection);
@@ -1269,14 +1269,14 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 	}
 }
 
-void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
+void TechnoTypeExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
 {
 	//auto pThis = Get();
 	//const char* pSection = pThis->ID;
 	//INI_EX exINI(pINI);
 }
 
-void TechnoTypeExt::ExtData::LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI)
+void TechnoTypeExtData::LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI)
 {
 	//auto pThis = Get();
 	//const char* pSection = pThis->ID;
@@ -1318,9 +1318,9 @@ ImageStatusses ImageStatusses::ReadVoxel(const char* const nKey, bool a4)
 	return { {nullptr , nullptr} , a4 };
 }
 
-void TechnoTypeExt::ExtData::AdjustCrushProperties()
+void TechnoTypeExtData::AdjustCrushProperties()
 {
-	auto const pThis = Get();
+	auto const pThis = this->AttachedToObject;
 
 	if (this->CrushLevel.Rookie <= 0)
 	{
@@ -1379,9 +1379,9 @@ void TechnoTypeExt::ExtData::AdjustCrushProperties()
 	}
 }
 
-bool TechnoTypeExt::PassangersAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pPassanger)
+bool TechnoTypeExtData::PassangersAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pPassanger)
 {
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis);
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis);
 
 	if (!pExt->PassengersWhitelist.Eligible(pPassanger))
 		return false;
@@ -1393,7 +1393,7 @@ bool TechnoTypeExt::PassangersAllowed(TechnoTypeClass* pThis, TechnoTypeClass* p
 }
 
 template <typename T>
-void TechnoTypeExt::ExtData::Serialize(T& Stm)
+void TechnoTypeExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
@@ -2067,14 +2067,14 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		;
 }
 
-double TechnoTypeExt::TurretMultiOffsetDefaultMult = 1.0;
-double TechnoTypeExt::TurretMultiOffsetOneByEightMult = 0.125;
+double TechnoTypeExtData::TurretMultiOffsetDefaultMult = 1.0;
+double TechnoTypeExtData::TurretMultiOffsetOneByEightMult = 0.125;
 
 // =============================
 // container
-TechnoTypeExt::ExtContainer TechnoTypeExt::ExtMap;
+TechnoTypeExtContainer TechnoTypeExtContainer::Instance;
 
-bool TechnoTypeExt::ExtContainer::Load(TechnoTypeClass* key, IStream* pStm)
+bool TechnoTypeExtContainer::Load(TechnoTypeClass* key, IStream* pStm)
 {
 	// this really shouldn't happen
 	if (!key)
@@ -2083,11 +2083,11 @@ bool TechnoTypeExt::ExtContainer::Load(TechnoTypeClass* key, IStream* pStm)
 		return false;
 	}
 
-	auto Iter = TechnoTypeExt::ExtMap.Map.find(key);
+	auto Iter = TechnoTypeExtContainer::Instance.Map.find(key);
 
-	if (Iter == TechnoTypeExt::ExtMap.Map.end()) {
-		auto ptr = new TechnoTypeExt::ExtData(key);
-		Iter = TechnoTypeExt::ExtMap.Map.emplace(key, ptr).first;
+	if (Iter == TechnoTypeExtContainer::Instance.Map.end()) {
+		auto ptr = new TechnoTypeExtData(key);
+		Iter = TechnoTypeExtContainer::Instance.Map.emplace(key, ptr).first;
 	}
 
 	this->ClearExtAttribute(key);
@@ -2101,7 +2101,7 @@ bool TechnoTypeExt::ExtContainer::Load(TechnoTypeClass* key, IStream* pStm)
 	}
 
 	PhobosStreamReader reader { loader };
-	if (reader.Expect(TechnoTypeExt::ExtData::Canary)
+	if (reader.Expect(TechnoTypeExtData::Canary)
 		&& reader.RegisterChange(Iter->second))
 	{
 		Iter->second->LoadFromStream(reader);
@@ -2119,15 +2119,15 @@ DEFINE_HOOK(0x711835, TechnoTypeClass_CTOR, 0x5)
 {
 	GET(TechnoTypeClass* , pItem, ESI);
 
-	auto Iter = TechnoTypeExt::ExtMap.Map.find(pItem);
+	auto Iter = TechnoTypeExtContainer::Instance.Map.find(pItem);
 
-	if (Iter == TechnoTypeExt::ExtMap.Map.end()) {
-		auto ptr = new TechnoTypeExt::ExtData(pItem);
-		Iter = TechnoTypeExt::ExtMap.Map.emplace(pItem, ptr).first;
+	if (Iter == TechnoTypeExtContainer::Instance.Map.end()) {
+		auto ptr = new TechnoTypeExtData(pItem);
+		Iter = TechnoTypeExtContainer::Instance.Map.emplace(pItem, ptr).first;
 	}
 
-	TechnoTypeExt::ExtMap.ClearExtAttribute(pItem);
-	TechnoTypeExt::ExtMap.SetExtAttribute(pItem, Iter->second);
+	TechnoTypeExtContainer::Instance.ClearExtAttribute(pItem);
+	TechnoTypeExtContainer::Instance.SetExtAttribute(pItem, Iter->second);
 
 	return 0;
 }
@@ -2136,8 +2136,10 @@ DEFINE_HOOK(0x711AE0, TechnoTypeClass_DTOR, 0x5)
 {
 	GET(TechnoTypeClass*, pItem, ECX);
 
-	TechnoTypeExt::ExtMap.ClearExtAttribute(pItem);
-	TechnoTypeExt::ExtMap.Map.erase(pItem);
+	auto extData = TechnoTypeExtContainer::Instance.GetExtAttribute(pItem);
+	TechnoTypeExtContainer::Instance.ClearExtAttribute(pItem);
+	TechnoTypeExtContainer::Instance.Map.erase(pItem);
+	delete extData;
 
 	return 0;
 }
@@ -2148,7 +2150,7 @@ DEFINE_HOOK(0x7162F0, TechnoTypeClass_SaveLoad_Prefix, 0x6)
 	GET_STACK(TechnoTypeClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 
-	TechnoTypeExt::ExtMap.PrepareStream(pItem, pStm);
+	TechnoTypeExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
 }
@@ -2157,14 +2159,14 @@ DEFINE_HOOK(0x7162F0, TechnoTypeClass_SaveLoad_Prefix, 0x6)
 
 DEFINE_HOOK(0x716429, TechnoTypeClass_Load_Suffix, 0x6)
 {
-	TechnoTypeExt::ExtMap.LoadStatic();
+	TechnoTypeExtContainer::Instance.LoadStatic();
 
 	return 0;
 }
 
 DEFINE_HOOK(0x716DDE, TechnoTypeClass_Save_Suffix, 0x6)
 {
-	TechnoTypeExt::ExtMap.SaveStatic();
+	TechnoTypeExtContainer::Instance.SaveStatic();
 
 	return 0;
 }
@@ -2179,7 +2181,7 @@ DEFINE_HOOK(0x716123, TechnoTypeClass_LoadFromINI, 0x5)
 	//	Debug::Log("Failed to find TechnoType %s from TechnoType::LoadFromINI with AbsType %s ! \n", pItem->get_ID(), pItem->GetThisClassName());
 	//}
 
-	TechnoTypeExt::ExtMap.LoadFromINI(pItem, pINI, R->Origin() == 0x716132);
+	TechnoTypeExtContainer::Instance.LoadFromINI(pItem, pINI, R->Origin() == 0x716132);
 
 	return 0;
 }
@@ -2192,7 +2194,7 @@ DEFINE_HOOK(0x716123, TechnoTypeClass_LoadFromINI, 0x5)
 //
 //	R->AL(pINI->ReadBool(pItem->ID, GameStrings::FlyBack(), R->CL()));
 //
-//	if (auto pExt = TechnoTypeExt::ExtMap.Find(pItem))
+//	if (auto pExt = TechnoTypeExtContainer::Instance.Find(pItem))
 //		pExt->LoadFromINIFile_Aircraft(pINI);
 //
 //	return 0x41CD82;

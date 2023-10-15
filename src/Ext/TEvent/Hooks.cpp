@@ -19,7 +19,7 @@ DEFINE_HOOK(0x71E940, TEventClass_Execute, 0x5)
 	enum { return_value = 0x71EA2D , continue_check = 0x0 };
 
 	bool result = false;
-	if (TEventExt::Occured(pThis, args, result))
+	if (TEventExtData::Occured(pThis, args, result))
 	{
 		R->AL(result);
 		return return_value;

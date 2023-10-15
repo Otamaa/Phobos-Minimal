@@ -4,7 +4,7 @@
 #include <Ext/Rules/Body.h>
 #include <Ext/House/Body.h>
 
-void ScriptExt::ManageTriggersFromList(TeamClass* pTeam, int idxAITriggerType = -1, bool isEnabled = false)
+void ScriptExtData::ManageTriggersFromList(TeamClass* pTeam, int idxAITriggerType = -1, bool isEnabled = false)
 {
 	auto pScript = pTeam->CurrentScript;
 	const auto&[curAct , curArgs] = pScript->GetCurrentAction();
@@ -17,7 +17,7 @@ void ScriptExt::ManageTriggersFromList(TeamClass* pTeam, int idxAITriggerType = 
 		return;
 	}
 
-	auto const& triggetList = RulesExt::Global()->AITriggersLists;
+	auto const& triggetList = RulesExtData::Instance()->AITriggersLists;
 
 	if (triggetList.empty() || (size_t)idxAITriggerType >= triggetList.size() ) {
 		pTeam->StepCompleted = true;
@@ -36,7 +36,7 @@ void ScriptExt::ManageTriggersFromList(TeamClass* pTeam, int idxAITriggerType = 
 	pTeam->StepCompleted = true;
 }
 
-void ScriptExt::ManageAllTriggersFromHouse(TeamClass* pTeam, HouseClass* pHouse = nullptr, int sideIdx = -1, int houseIdx = -1, bool isEnabled = true)
+void ScriptExtData::ManageAllTriggersFromHouse(TeamClass* pTeam, HouseClass* pHouse = nullptr, int sideIdx = -1, int houseIdx = -1, bool isEnabled = true)
 {
 	// if pHouse is set then it overwrites any argument
 	if (pHouse)
@@ -63,7 +63,7 @@ void ScriptExt::ManageAllTriggersFromHouse(TeamClass* pTeam, HouseClass* pHouse 
 	pTeam->StepCompleted = true;
 }
 
-void ScriptExt::SetSideIdxForManagingTriggers(TeamClass* pTeam, int sideIdx = -1)
+void ScriptExtData::SetSideIdxForManagingTriggers(TeamClass* pTeam, int sideIdx = -1)
 {
 	auto pScript = pTeam->CurrentScript;
 	const auto&[curAct , curArgs] = pScript->GetCurrentAction();
@@ -74,13 +74,13 @@ void ScriptExt::SetSideIdxForManagingTriggers(TeamClass* pTeam, int sideIdx = -1
 	if (sideIdx < -1)
 		sideIdx = -1;
 
-	TeamExt::ExtMap.Find(pTeam)->TriggersSideIdx = sideIdx;
+	TeamExtContainer::Instance.Find(pTeam)->TriggersSideIdx = sideIdx;
 
 	// This action finished
 	pTeam->StepCompleted = true;
 }
 
-void ScriptExt::SetHouseIdxForManagingTriggers(TeamClass* pTeam, int houseIdx = 1000000)
+void ScriptExtData::SetHouseIdxForManagingTriggers(TeamClass* pTeam, int houseIdx = 1000000)
 {
 	auto pScript = pTeam->CurrentScript;
 	const auto&[curAct , curArgs] = pScript->GetCurrentAction();
@@ -88,20 +88,20 @@ void ScriptExt::SetHouseIdxForManagingTriggers(TeamClass* pTeam, int houseIdx = 
 	if (houseIdx == 1000000)
 		houseIdx = curArgs;
 
-	houseIdx = HouseExt::GetHouseIndex(houseIdx, pTeam, nullptr);
+	houseIdx = HouseExtData::GetHouseIndex(houseIdx, pTeam, nullptr);
 
 	if (houseIdx < -1)
 		houseIdx = -1;
 
-	TeamExt::ExtMap.Find(pTeam)->TriggersHouseIdx = houseIdx;
+	TeamExtContainer::Instance.Find(pTeam)->TriggersHouseIdx = houseIdx;
 
 	// This action finished
 	pTeam->StepCompleted = true;
 }
 
-void ScriptExt::ManageAITriggers(TeamClass* pTeam, int enabled = -1)
+void ScriptExtData::ManageAITriggers(TeamClass* pTeam, int enabled = -1)
 {
-	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	auto pScript = pTeam->CurrentScript;
 	const auto&[curAct , curArgs] = pScript->GetCurrentAction();
 
@@ -118,14 +118,14 @@ void ScriptExt::ManageAITriggers(TeamClass* pTeam, int enabled = -1)
 		if (enabled >= 1)
 			isEnabled = true;
 
-		ScriptExt::ManageAllTriggersFromHouse(pTeam, nullptr, sideIdx, houseIdx, isEnabled);
+		ScriptExtData::ManageAllTriggersFromHouse(pTeam, nullptr, sideIdx, houseIdx, isEnabled);
 	}
 
 	// This action finished
 	pTeam->StepCompleted = true;
 }
 
-void ScriptExt::ManageTriggersWithObjects(TeamClass* pTeam, int idxAITargetType = -1, bool isEnabled = false)
+void ScriptExtData::ManageTriggersWithObjects(TeamClass* pTeam, int idxAITargetType = -1, bool isEnabled = false)
 {
 	auto pScript = pTeam->CurrentScript;
 	const auto&[curAct , curArgs] = pScript->GetCurrentAction();
@@ -138,7 +138,7 @@ void ScriptExt::ManageTriggersWithObjects(TeamClass* pTeam, int idxAITargetType 
 		return;
 	}
 
-	const auto& targetList = RulesExt::Global()->AITargetTypesLists;
+	const auto& targetList = RulesExtData::Instance()->AITargetTypesLists;
 
 	if (targetList.empty() || (size_t)idxAITargetType >= targetList.size()) {
 		pTeam->StepCompleted = true;
@@ -182,7 +182,7 @@ void ScriptExt::ManageTriggersWithObjects(TeamClass* pTeam, int idxAITargetType 
 		{
 			for (auto entry : entriesList) {
 				for(auto const& target_ : targetList_inside) {
-					if(TeamExt::GroupAllowed(entry , target_)) {
+					if(TeamExtData::GroupAllowed(entry , target_)) {
 						pTrigger->IsEnabled = isEnabled;
 						break;
 					}

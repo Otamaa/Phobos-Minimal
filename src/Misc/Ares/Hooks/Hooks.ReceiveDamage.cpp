@@ -46,7 +46,7 @@ DEFINE_HOOK(0x5F53DB, ObjectClass_ReceiveDamage_Handled, 0xA)
 	GET(ObjectClass*, pObject, ESI);
 	REF_STACK(args_ReceiveDamage, args, STACK_OFFSET(0x24, 0x4));
 
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(args.WH);
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(args.WH);
 	const bool bIgnoreDefenses = R->BL();
 
 	OwnFunc::ApplyHitAnim(pObject, &args);
@@ -66,7 +66,7 @@ DEFINE_HOOK(0x5F53DB, ObjectClass_ReceiveDamage_Handled, 0xA)
 
 		if (!pBld->Type->CanC4)
 		{
-			auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+			auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 
 			if (!pTypeExt->CanC4_AllowZeroDamage)
 				*args.Damage = 1;
@@ -101,7 +101,7 @@ DEFINE_HOOK(0x701A3B, TechnoClass_ReceiveDamage_Flash, 0xA)
 	GET_STACK(bool, third, 0x13);
 	GET(int*, pDamage, EBX);
 
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pShield = pExt->GetShield();
 
 	if (forced || third)
@@ -115,7 +115,7 @@ DEFINE_HOOK(0x701A3B, TechnoClass_ReceiveDamage_Flash, 0xA)
 	{
 		if (pThis->ProtectType == ProtectTypes::ForceShield)
 			MapClass::FlashbangWarheadAt(2 * (*pDamage), pWh, pThis->Location, true, SpotlightFlags::NoRed | SpotlightFlags::NoGreen);
-		else if (WarheadTypeExt::ExtMap.Find(pWh)->IC_Flash.Get(RulesExt::Global()->IC_Flash.Get()))
+		else if (WarheadTypeExtContainer::Instance.Find(pWh)->IC_Flash.Get(RulesExtData::Instance()->IC_Flash.Get()))
 			MapClass::FlashbangWarheadAt(2 * (*pDamage), pWh, pThis->Location, true, SpotlightFlags::NoColor);
 
 		return NullifyDamage; //nullify damage
@@ -129,7 +129,7 @@ DEFINE_OVERRIDE_HOOK(0x7021F5, TechnoClass_ReceiveDamage_OverrideDieSound, 0x6)
 	GET_STACK(WarheadTypeClass*, pWh, 0xD0);
 	GET(TechnoClass*, pThis, ESI);
 
-	auto const& nSound = WarheadTypeExt::ExtMap.Find(pWh)->DieSound_Override;
+	auto const& nSound = WarheadTypeExtContainer::Instance.Find(pWh)->DieSound_Override;
 
 	if (nSound.isset() && nSound.Get() >= 0)
 	{
@@ -145,7 +145,7 @@ DEFINE_OVERRIDE_HOOK(0x702185, TechnoClass_ReceiveDamage_OverrideVoiceDie, 0x6)
 	GET_STACK(WarheadTypeClass*, pWh, 0xD0);
 	GET(TechnoClass*, pThis, ESI);
 
-	auto const& nSound = WarheadTypeExt::ExtMap.Find(pWh)->VoiceSound_Override;
+	auto const& nSound = WarheadTypeExtContainer::Instance.Find(pWh)->VoiceSound_Override;
 
 	if (nSound.isset() && nSound.Get() >= 0)
 	{
@@ -163,7 +163,7 @@ DEFINE_OVERRIDE_HOOK(0x702CFE, TechnoClass_ReceiveDamage_PreventScatter_Deep, 6)
 	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0xC4, -0xC));
 
 	// only allow to scatter if not prevented
-	if (!WarheadTypeExt::ExtMap.Find(pWarhead)->PreventScatter)
+	if (!WarheadTypeExtContainer::Instance.Find(pWarhead)->PreventScatter)
 	{
 		pThis->Scatter(CoordStruct::Empty, true, false);
 	}
@@ -178,7 +178,7 @@ DEFINE_HOOK(0x702B47, TechnoClass_ReceiveDamage_PreventScatter, 0x8)
 	//GET(FootClass*, pThis, ESI);
 	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0xC4, -0xC));
 
-	return WarheadTypeExt::ExtMap.Find(pWarhead)->PreventScatter ? 0x702D11 : 0x0;
+	return WarheadTypeExtContainer::Instance.Find(pWarhead)->PreventScatter ? 0x702D11 : 0x0;
 }
 
 // #1283653: fix for jammed buildings and attackers in open topped transports
@@ -201,7 +201,7 @@ DEFINE_OVERRIDE_HOOK(0x702669, TechnoClass_ReceiveDamage_SuppressDeathWeapon, 0x
 	GET(TechnoClass* const, pThis, ESI);
 	GET_STACK(WarheadTypeClass* const, pWarhead, STACK_OFFS(0xC4, -0xC));
 
-	if (!WarheadTypeExt::ExtMap.Find(pWarhead)->ApplySuppressDeathWeapon(pThis))
+	if (!WarheadTypeExtContainer::Instance.Find(pWarhead)->ApplySuppressDeathWeapon(pThis))
 	{
 		pThis->FireDeathWeapon(0);
 	}
@@ -226,7 +226,7 @@ DEFINE_OVERRIDE_HOOK(0x517FC1, InfantryClass_ReceiveDamage_DeployedDamage, 0x6)
 	// yes, let's make sure the pointer's safe AFTER we've dereferenced it... Failstwood!
 	if (pWH)
 	{
-		const auto nMult = WarheadTypeExt::ExtMap.Find(pWH)->DeployedDamage.Get(I);
+		const auto nMult = WarheadTypeExtContainer::Instance.Find(pWH)->DeployedDamage.Get(I);
 		*pDamage = static_cast<int>(*pDamage * nMult);
 		return 0x517FF9u;
 	}
@@ -241,10 +241,10 @@ DEFINE_OVERRIDE_HOOK(0x702050, TechnoClass_ReceiveDamage_ResultDestroyed, 6)
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(WarheadTypeClass*, pWarhead, 0xD0);
 
-	const auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pWarhead);
-	auto pTechExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
+	auto pTechExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pType = pThis->GetTechnoType();
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (pWarheadExt->Supress_LostEva.Get())
 		pTechExt->SupressEVALost = true;
@@ -275,7 +275,7 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 
 	bool bAffected = false;
 	const auto pType = pThis->GetTechnoType();
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const bool IsAffected = nDamageResult != DamageState::Unaffected;
 
 	if (IsAffected || bIgnoreDamage || !IsDamaging || *pDamamge)
@@ -283,9 +283,9 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 		if (IsAffected && IsDamaging)
 		{
 			const auto rank = pThis->Veterancy.GetRemainingLevel();
-			const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-			const auto pWHExt = WarheadTypeExt::ExtMap.TryFind(pWarhead);
+			const auto pWHExt = WarheadTypeExtContainer::Instance.TryFind(pWarhead);
 			const auto fromTechno = pTypeExt->SelfHealing_CombatDelay.GetFromSpecificRank(rank);
 
 			const int amount = pWHExt  ? pWHExt->SelfHealing_CombatDelay.GetFromSpecificRank(rank)
@@ -304,14 +304,14 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 
 	if (pWarhead)
 	{
-		const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
 		const auto pHouse = pAttacker ? pAttacker->Owner : pAttacker_House;
 
 		if (IsAffected && pWHExt->DecloakDamagedTargets.Get())
 			pThis->Reveal();
 
 		const auto bCond1 = (!bAffected || !pWHExt->EffectsRequireDamage);
-		const auto bCond2 = (!pWHExt->EffectsRequireVerses || (pWHExt->GetVerses(TechnoExt::GetTechnoArmor(pThis, pWarhead)).Verses >= 0.0001));
+		const auto bCond2 = (!pWHExt->EffectsRequireVerses || (pWHExt->GetVerses(TechnoExtData::GetTechnoArmor(pThis, pWarhead)).Verses >= 0.0001));
 
 		if (bCond1 && bCond2)
 		{
@@ -319,7 +319,7 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 
 			if (pWHExt->Sonar_Duration > 0)
 			{
-				auto& nSonarTime = TechnoExt::ExtMap.Find(pThis)->CloakSkipTimer;
+				auto& nSonarTime = TechnoExtContainer::Instance.Find(pThis)->CloakSkipTimer;
 				if (pWHExt->Sonar_Duration > nSonarTime.GetTimeLeft())
 				{
 					nSonarTime.Start(pWHExt->Sonar_Duration);
@@ -334,7 +334,7 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 
 			if (pWHExt->DisableWeapons_Duration > 0)
 			{
-				auto& nTimer = TechnoExt::ExtMap.Find(pThis)->DisableWeaponTimer;
+				auto& nTimer = TechnoExtContainer::Instance.Find(pThis)->DisableWeaponTimer;
 				if (pWHExt->DisableWeapons_Duration > nTimer.GetTimeLeft())
 				{
 					nTimer.Start(pWHExt->DisableWeapons_Duration);
@@ -382,17 +382,17 @@ DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 
 	const auto nRank = pThis->Veterancy.GetRemainingLevel();
 
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH);
-	if (pWHExt->ImmunityType.isset() && TechnoExt::HasImmunity(nRank, pThis, pWHExt->ImmunityType))
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
+	if (pWHExt->ImmunityType.isset() && TechnoExtData::HasImmunity(nRank, pThis, pWHExt->ImmunityType))
 		return RetNullify;
 
-	if (pWH->Radiation && TechnoExt::IsRadImmune(nRank, pThis))
+	if (pWH->Radiation && TechnoExtData::IsRadImmune(nRank, pThis))
 		return RetNullify;
 
-	if (pWH->PsychicDamage && TechnoExt::IsPsionicsWeaponImmune(nRank, pThis))
+	if (pWH->PsychicDamage && TechnoExtData::IsPsionicsWeaponImmune(nRank, pThis))
 		return RetNullify;
 
-	if (pWH->Poison && TechnoExt::IsPoisonImmune(nRank, pThis))
+	if (pWH->Poison && TechnoExtData::IsPoisonImmune(nRank, pThis))
 		return RetNullify;
 
 	const auto pSourceHouse = pAttacker ? pAttacker->Owner : pAttacker_House;
@@ -409,7 +409,7 @@ DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 		if (pSourceHouse && pSourceHouse->IsAlliedWith_(pThis))
 			return RetUnaffected;
 
-		if (TechnoExt::IsPsionicsImmune(nRank, pThis) || TechnoExt::IsBerserkImmune(nRank, pThis))
+		if (TechnoExtData::IsPsionicsImmune(nRank, pThis) || TechnoExtData::IsBerserkImmune(nRank, pThis))
 			return RetUnaffected;
 
 		// there is no building involved
@@ -469,7 +469,7 @@ DEFINE_HOOK(0x41660C, AircraftClass_ReceiveDamage_destroyed, 0x5)
 				// if (pInvoker && !Is_House(pInvoker))
 				// 	pInvoker = nullptr;
 
-			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pExp, nCoord),
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pExp, nCoord),
 				args.Attacker ? args.Attacker->Owner : (args.SourceHouse ? args.SourceHouse : nullptr),
 				pThis->Owner,
 				true
@@ -485,7 +485,7 @@ DEFINE_HOOK(0x41660C, AircraftClass_ReceiveDamage_destroyed, 0x5)
 		args.IgnoreDefenses,
 		args.PreventsPassengerEscape);
 
-	const auto& crashable = TechnoTypeExt::ExtMap.Find(pThis->Type)->Crashable;
+	const auto& crashable = TechnoTypeExtContainer::Instance.Find(pThis->Type)->Crashable;
 	if ((crashable.isset() && !crashable.Get()) || !pThis->Crash(args.Attacker))
 		pThis->UnInit();
 
@@ -499,8 +499,8 @@ DEFINE_OVERRIDE_HOOK(0x702216, TechnoClass_ReceiveDamage_TiberiumHeal_SpillTiber
 	GET(TechnoClass*, pThis, ESI);
 	TechnoTypeClass* pType = pThis->GetTechnoType();
 
-	if (TechnoTypeExt::ExtMap.Find(pType)->TiberiumRemains
-		.Get(pType->TiberiumHeal && RulesExt::Global()->Tiberium_HealEnabled))
+	if (TechnoTypeExtContainer::Instance.Find(pType)->TiberiumRemains
+		.Get(pType->TiberiumHeal && RulesExtData::Instance()->Tiberium_HealEnabled))
 	{
 		int nIdx = pThis->Tiberium.GetHighestStorageIdx();
 		const CellClass* pCenter = MapClass::Instance->GetCellAt(pThis->Location);
@@ -524,7 +524,7 @@ DEFINE_OVERRIDE_HOOK(0x702894, TechnoClass_ReceiveDamage_SmokeParticles, 6)
 	REF_STACK(DynamicVectorClass<ParticleSystemTypeClass const*>, Systems, 0x30);
 
 	const auto pType = pThis->GetTechnoType();
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	const auto it = pExt->ParticleSystems_DamageSmoke.GetElements(pType->DamageParticleSystems);
 	const auto allowAny = pExt->ParticleSystems_DamageSmoke.HasValue();
@@ -547,7 +547,7 @@ DEFINE_OVERRIDE_HOOK(0x702200, TechnoClass_ReceiveDamage_SpillTiberium, 6)
 
 	TechnoTypeClass* pType = pThis->GetTechnoType();
 
-	if (TechnoTypeExt::ExtMap.Find(pType)->TiberiumSpill)
+	if (TechnoTypeExtContainer::Instance.Find(pType)->TiberiumSpill)
 	{
 		const auto pUnit = specific_cast<UnitClass*>(pThis);
 		const auto pBld = specific_cast<BuildingClass*>(pThis);
@@ -611,7 +611,7 @@ DEFINE_OVERRIDE_HOOK(0x51849A, InfantryClass_ReceiveDamage_DeathAnim, 5)
 		: Arguments->SourceHouse
 		;
 
-	AnimExt::SetAnimOwnerHouseKind(Anim, Invoker, I->Owner, Arguments->Attacker, false);
+	AnimExtData::SetAnimOwnerHouseKind(Anim, Invoker, I->Owner, Arguments->Attacker, false);
 
 	R->EAX<AnimClass*>(Anim);
 	return 0x5184F2;
@@ -630,7 +630,7 @@ DEFINE_OVERRIDE_HOOK(0x5183DE, InfantryClass_ReceiveDamage_InfantryVirus1, 6)
 		? Arguments.Attacker->Owner
 		: Arguments.SourceHouse;
 
-	AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker);
+	AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker);
 
 	// bonus: don't require SpawnsParticle to be present
 
@@ -658,7 +658,7 @@ DEFINE_OVERRIDE_HOOK(0x518698, InfantryClass_ReceiveDamage_Anims, 5) // Infantry
 		? Arguments.Attacker->Owner
 		: Arguments.SourceHouse;
 
-	AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker, false);
+	AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker, false);
 
 	return 0x5185F1;
 }
@@ -675,7 +675,7 @@ DEFINE_OVERRIDE_HOOK(0x51887B, InfantryClass_ReceiveDamage_InfantryVirus2, 0xA)
 		: Arguments.SourceHouse;
 
 	const auto& [bChanged, result] =
-		AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker, false);
+		AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker, false);
 
 	// reset the color for default (invoker).
 	if (bChanged && result != OwnerHouseKind::Default)
@@ -697,7 +697,7 @@ DEFINE_OVERRIDE_HOOK(0x518A96, InfantryClass_ReceiveDamage_InfantryMutate, 7)
 		? Arguments.Attacker->Owner
 		: Arguments.SourceHouse;
 
-	AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker, false);
+	AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker, false);
 
 	return 0x518AFF;
 }
@@ -709,7 +709,7 @@ DEFINE_OVERRIDE_HOOK(0x518CB3, InfantryClass_ReceiveDamage_Doggie, 0x6)
 	// hurt doggie gets more panic
 	if (pThis->Type->Doggie && pThis->IsRedHP())
 	{
-		R->EDI(RulesExt::Global()->DoggiePanicMax);
+		R->EDI(RulesExtData::Instance()->DoggiePanicMax);
 	}
 
 	return 0;

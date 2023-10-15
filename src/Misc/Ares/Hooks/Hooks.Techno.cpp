@@ -36,7 +36,7 @@ DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 	GET(TechnoClass*, pThis, ECX);
 
 	const auto pType = pThis->GetTechnoType();
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	double nFinalSpeed = 0.00;
 	const auto what = pThis->WhatAmI();
 	const bool isNaval = what == UnitClass::AbsID && pType->Naval;
@@ -44,7 +44,7 @@ DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 	if (const auto pOwner = pThis->Owner)
 	{
 		double nSpeed = (double)pType->GetBuildSpeed();
-		const int cap = RulesExt::Global()->MultipleFactoryCap.Get(what, isNaval);
+		const int cap = RulesExtData::Instance()->MultipleFactoryCap.Get(what, isNaval);
 		const double nFactorySpeed = pTypeExt->BuildTime_MultipleFactory.Get(RulesClass::Instance->MultipleFactory);
 
 		{// Owner and type mult
@@ -94,7 +94,7 @@ DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 			}
 		}
 
-		const auto bonus = BuildingTypeExt::GetExternalFactorySpeedBonus(pThis);
+		const auto bonus = BuildingTypeExtData::GetExternalFactorySpeedBonus(pThis);
 		if(bonus > 0.0)
 			nSpeed *= bonus;
 
@@ -115,7 +115,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF1FB, TechnoClass_Fire_DetachedRailgun, 0x6)
 	//GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBX);
 
-	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 	//const bool IsRailgun = pWeapon->IsRailgun || pWeaponExt->IsDetachedRailgun;
 
 	//if (IsRailgun && Is_Aircraft(pThis))
@@ -132,7 +132,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF26E, TechnoClass_Fire_DetachedRailgun2, 0x6)
 {
 	GET(WeaponTypeClass*, pWeapon, EBX);
 
-	return WeaponTypeExt::ExtMap.Find(pWeapon)->IsDetachedRailgun
+	return WeaponTypeExtContainer::Instance.Find(pWeapon)->IsDetachedRailgun
 		? 0x6FF274 : 0x0;
 }
 
@@ -161,7 +161,7 @@ DEFINE_OVERRIDE_HOOK(0x6FA743, TechnoClass_Update_SelfHeal, 0xA)
 	GET(TechnoClass* const, pThis, ESI);
 
 	// prevent crashing and sinking technos from self-healing
-	if (pThis->InLimbo || pThis->IsCrashing || pThis->IsSinking || TechnoExt::ExtMap.Find(pThis)->Is_DriverKilled)
+	if (pThis->InLimbo || pThis->IsCrashing || pThis->IsSinking || TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
 	{
 		return SkipAnySelfHeal;
 	}
@@ -184,7 +184,7 @@ DEFINE_OVERRIDE_HOOK(0x6FA743, TechnoClass_Update_SelfHeal, 0xA)
 		pThis->Health += nAmount;
 	}
 
-	TechnoExt::ApplyGainedSelfHeal(pThis, wasDamaged);
+	TechnoExtData::ApplyGainedSelfHeal(pThis, wasDamaged);
 
 	return SkipAnySelfHeal;
 }
@@ -196,7 +196,7 @@ DEFINE_OVERRIDE_HOOK(0x6FAD49, TechnoClass_Update_SparkParticles, 8) // breaks t
 	REF_STACK(DynamicVectorClass<ParticleSystemTypeClass const*>, Systems, 0x60);
 
 	auto pType = pThis->GetTechnoType();
-	auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (auto it = pExt->ParticleSystems_DamageSparks.GetElements(pType->DamageParticleSystems))
 	{
@@ -218,14 +218,14 @@ DEFINE_OVERRIDE_HOOK(0x6FAD49, TechnoClass_Update_SparkParticles, 8) // breaks t
 DEFINE_OVERRIDE_HOOK(0x7036EB, TechnoClass_Uncloak_CloakingStages, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
-	R->ECX(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->CloakStages.Get(RulesClass::Instance->CloakingStages));
+	R->ECX(TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->CloakStages.Get(RulesClass::Instance->CloakingStages));
 	return 0x7036F1;
 }
 
 DEFINE_OVERRIDE_HOOK(0x703A79, TechnoClass_VisualCharacter_CloakingStages, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);
-	int stages = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->CloakStages.Get(RulesClass::Instance->CloakingStages);
+	int stages = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->CloakStages.Get(RulesClass::Instance->CloakingStages);
 	R->EAX(int(pThis->CloakProgress.Value * 256.0 / stages));
 	return 0x703A94;
 }
@@ -243,14 +243,14 @@ DEFINE_OVERRIDE_HOOK(0x6FACD9, TechnoClass_Update_DamageSparks, 6)
 	if (pThis->GetHealthPercentage() >= RulesClass::Instance->ConditionYellow || pThis->GetHeight() <= -10)
 		return 0x6FAF01;
 
-	return TechnoTypeExt::ExtMap.Find(pType)->DamageSparks.Get(pType->DamageSparks) ?
+	return TechnoTypeExtContainer::Instance.Find(pType)->DamageSparks.Get(pType->DamageSparks) ?
 		0x6FAD17 : 0x6FAF01;
 }
 
 DEFINE_OVERRIDE_HOOK(0x70380A, TechnoClass_Cloak_CloakSound, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
-	auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 	R->ECX(pExt->CloakSound.Get(RulesClass::Instance->CloakSound));
 	return 0x703810;
 }
@@ -259,8 +259,8 @@ DEFINE_OVERRIDE_HOOK(0x70375B, TechnoClass_Uncloak_DecloakSound, 6)
 {
 	GET(int, ptr, ESI);
 	const TechnoClass* pThis = reinterpret_cast<TechnoClass*>(ptr - 0x9C);
-	const int nDefault = RulesExt::Global()->DecloakSound.Get(RulesClass::Instance->CloakSound);
-	R->ECX(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->DecloakSound.Get(nDefault));
+	const int nDefault = RulesExtData::Instance()->DecloakSound.Get(RulesClass::Instance->CloakSound);
+	R->ECX(TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->DecloakSound.Get(nDefault));
 	return 0x703761;
 }
 
@@ -271,7 +271,7 @@ DEFINE_OVERRIDE_HOOK(0x732C30, TechnoClass_IDMatches, 5)
 	GET(DynamicVectorClass<const char*>*, pNames, EDX);
 
 	TechnoTypeClass* pType = pThis->GetTechnoType();
-	const char* id = TechnoTypeExt::ExtMap.Find(pType)
+	const char* id = TechnoTypeExtContainer::Instance.Find(pType)
 		->GetSelectionGroupID();
 	bool match = false;
 	const auto what = pThis->WhatAmI();
@@ -306,7 +306,7 @@ DEFINE_OVERRIDE_HOOK(0x6F3950, TechnoClass_GetCrewCount, 8)
 	auto pType = pThis->GetTechnoType();
 
 	// previous default for crew count was -1
-	int count = TechnoTypeExt::ExtMap.Find(pType)->Survivors_PilotCount.Get();
+	int count = TechnoTypeExtContainer::Instance.Find(pType)->Survivors_PilotCount.Get();
 	// default to original formula
 	if (count < 0)
 	{
@@ -326,7 +326,7 @@ DEFINE_OVERRIDE_HOOK(0x70E2B0, TechnoClass_IronCurtain, 5)
 	GET_STACK(bool, force, STACK_OFFS(0x0, -0xC));
 
 	// if it's no force shield then it's the iron curtain.
-	const auto pData = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const auto pData = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 	const auto modifier = (force ? pData->ForceShield_Modifier : pData->IronCurtain_Modifier).Get();
 
 	pThis->IronCurtainTimer.Start(int(duration * modifier));
@@ -342,7 +342,7 @@ DEFINE_OVERRIDE_HOOK(0x7327AA, TechnoClass_PlayerOwnedAliveAndNamed_GroupAs, 8)
 	GET(TechnoClass*, pThis, ESI);
 	GET(const char*, pID, EDI);
 
-	R->EAX<int>(TechnoTypeExt::HasSelectionGroupID(pThis->GetTechnoType(), pID));
+	R->EAX<int>(TechnoTypeExtData::HasSelectionGroupID(pThis->GetTechnoType(), pID));
 	return 0x7327B2;
 }
 
@@ -371,7 +371,7 @@ DEFINE_OVERRIDE_HOOK(0x70DA95, TechnoClass_RadarTrackingUpdate_AnnounceDetected,
 	GET_STACK(int, detect, 0x10);
 
 	const auto pType = pThis->GetTechnoType();
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	auto PlayEva = [](const char* pEva, CDTimerClass& nTimer, double nRate)
 		{
@@ -387,10 +387,10 @@ DEFINE_OVERRIDE_HOOK(0x70DA95, TechnoClass_RadarTrackingUpdate_AnnounceDetected,
 		switch (detect)
 		{
 		case 1:
-			PlayEva("EVA_CloakedUnitDetected", HouseExt::CloakEVASpeak, RulesExt::Global()->StealthSpeakDelay);
+			PlayEva("EVA_CloakedUnitDetected", HouseExtData::CloakEVASpeak, RulesExtData::Instance()->StealthSpeakDelay);
 			break;
 		case 2:
-			PlayEva("EVA_SubterraneanUnitDetected", HouseExt::SubTerraneanEVASpeak, RulesExt::Global()->SubterraneanSpeakDelay);
+			PlayEva("EVA_SubterraneanUnitDetected", HouseExtData::SubTerraneanEVASpeak, RulesExtData::Instance()->SubterraneanSpeakDelay);
 			break;
 		}
 
@@ -478,15 +478,15 @@ DEFINE_OVERRIDE_HOOK(0x6F6AC9, TechnoClass_Remove_Early, 6)
 	GET(TechnoClass*, pThis, ESI);
 
 	// if the removed object is a radar jammer, unjam all jammed radars
-	TechnoExt::ExtMap.Find(pThis)->RadarJammer.reset(nullptr);
+	TechnoExtContainer::Instance.Find(pThis)->RadarJammer.reset(nullptr);
 	// #617 powered units
-	TechnoExt::ExtMap.Find(pThis)->PoweredUnit.reset(nullptr);
+	TechnoExtContainer::Instance.Find(pThis)->PoweredUnit.reset(nullptr);
 
 
 	//#1573, #1623, #255 attached effects
-	AresAE::Remove(&TechnoExt::ExtMap.Find(pThis)->AeData , pThis);
+	AresAE::Remove(&TechnoExtContainer::Instance.Find(pThis)->AeData , pThis);
 
-	if (TechnoExt::ExtMap.Find(pThis)->TechnoValueAmount != 0) {
+	if (TechnoExtContainer::Instance.Find(pThis)->TechnoValueAmount != 0) {
 		TechnoExt_ExtData::Ares_AddMoneyStrings(pThis, true);
 	}
 
@@ -498,8 +498,8 @@ DEFINE_OVERRIDE_HOOK(0x6F6F20, TechnoClass_Put_BuildingLight, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
 
 	//only update the SW if really needed it
 	if (pThis->Owner && pThis->WhatAmI() != BuildingClass::AbsID && !pTypeExt->Linked_SW.empty())
@@ -517,7 +517,7 @@ DEFINE_OVERRIDE_HOOK(0x6FD0BF, TechnoClass_GetROF_AttachEffect, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	const auto nRof = TechnoExt::ExtMap.Find(pThis)->AE_ROF;
+	const auto nRof = TechnoExtContainer::Instance.Find(pThis)->AE_ROF;
 	__asm { fmul nRof };
 	return 0x0;
 }
@@ -526,7 +526,7 @@ DEFINE_OVERRIDE_HOOK(0x707D20, TechnoClass_GetCrew, 5)
 {
 	GET(TechnoClass*, pThis, ECX);
 	auto pType = pThis->GetTechnoType();
-	auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	auto pHouse = pThis->Owner;
 	InfantryTypeClass* pCrewType = nullptr;
@@ -556,7 +556,7 @@ DEFINE_OVERRIDE_HOOK(0x707D20, TechnoClass_GetCrew, 5)
 
 			if ((size_t)pHouse->SideIndex >= nVec.size())
 			{
-				pCrewType = HouseExt::GetCrew(pHouse);
+				pCrewType = HouseExtData::GetCrew(pHouse);
 			}
 			else if (auto pPilotType = nVec[pHouse->SideIndex])
 			{
@@ -564,13 +564,13 @@ DEFINE_OVERRIDE_HOOK(0x707D20, TechnoClass_GetCrew, 5)
 			}
 			else
 			{
-				pCrewType = HouseExt::GetCrew(pHouse);
+				pCrewType = HouseExtData::GetCrew(pHouse);
 			}
 		}
 		else
 		{
 			// either civilian side or chance
-			pCrewType = HouseExt::GetTechnician(pHouse);
+			pCrewType = HouseExtData::GetTechnician(pHouse);
 		}
 	}
 
@@ -620,7 +620,7 @@ DEFINE_OVERRIDE_HOOK(0x70FBE0, TechnoClass_Activate_AresReplace, 6)
 			}
 
 			// change: add spotlight
-			auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+			auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 			if (pTypeExt->HasSpotlight)
 			{
 				++Unsorted::ScenarioInit;
@@ -645,7 +645,7 @@ DEFINE_OVERRIDE_HOOK(0x6FD438, TechnoClass_FireLaser, 6)
 	GET(WeaponTypeClass*, pWeapon, ECX);
 	GET(LaserDrawClass*, pBeam, EAX);
 
-	auto const pData = WeaponTypeExt::ExtMap.Find(pWeapon);
+	auto const pData = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
 	if (pData->Laser_Thickness > 1)
 	{
@@ -662,7 +662,7 @@ DEFINE_OVERRIDE_HOOK(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 
 	if (auto pBld = specific_cast<BuildingClass*>(pTechno))
 	{
-		const auto pBldExt = BuildingExt::ExtMap.Find(pBld);
+		const auto pBldExt = BuildingExtContainer::Instance.Find(pBld);
 		const auto isObserver = HouseClass::IsCurrentPlayerObserver();
 
 		// allies and observers can always see by default
@@ -676,7 +676,7 @@ DEFINE_OVERRIDE_HOOK(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 			&& !pBld->WarpingOut
 			// never show to enemies when cloaked, and only if allowed
 			&& (canSeeRepair || (pBld->CloakState == CloakState::Uncloaked
-				&& RulesExt::Global()->EnemyWrench));
+				&& RulesExtData::Instance()->EnemyWrench));
 
 		// display power off marker only for current player's buildings
 		const bool showPower = FileSystem::POWEROFF_SHP
@@ -752,7 +752,7 @@ DEFINE_OVERRIDE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 	{
 		auto const pType = pBuilding->Type;
 		auto const pOwner = pBuilding->Owner;
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		if (!pType || !pOwner)
 			return 0x70AD4C;
@@ -808,7 +808,7 @@ DEFINE_OVERRIDE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 					GameStrings::TXT_PRIMARY() : GameStrings::TXT_PRI()));
 			}
 
-			if(!BuildingExt::ExtMap.Find(pBuilding)->RegisteredJammers.empty())
+			if(!BuildingExtContainer::Instance.Find(pBuilding)->RegisteredJammers.empty())
 				DrawTheStuff(Phobos::UI::BuidingRadarJammedLabel);
 		}
 	}
@@ -858,7 +858,7 @@ DEFINE_OVERRIDE_HOOK(0x70FC90, TechnoClass_Deactivate_AresReplace, 6)
 		}
 
 		// change: remove spotlight
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 		if (pTypeExt->HasSpotlight)
 		{
 			TechnoExt_ExtData::SetSpotlight(pThis, nullptr);
@@ -880,7 +880,7 @@ DEFINE_OVERRIDE_HOOK(0x6FB1B5, TechnoClass_CreateGap_LargeGap, 7)
 	GET(TechnoClass*, pThis, ESI);
 	GET(TechnoTypeClass*, pType, EAX);
 
-	pThis->GapRadius = TechnoTypeExt::ExtMap.Find(pType)->GapRadiusInCells;
+	pThis->GapRadius = TechnoTypeExtContainer::Instance.Find(pType)->GapRadiusInCells;
 	return R->Origin() + 0xD;
 }
 
@@ -889,12 +889,12 @@ DEFINE_OVERRIDE_HOOK(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
-	if (auto& pJammer = TechnoExt::ExtMap.Find(pThis)->RadarJammer)
+	if (auto& pJammer = TechnoExtContainer::Instance.Find(pThis)->RadarJammer)
 	{
 		pJammer->UnjamAll();
 	}
 
-	if (TechnoExt::ExtMap.Find(pThis)->TechnoValueAmount != 0)
+	if (TechnoExtContainer::Instance.Find(pThis)->TechnoValueAmount != 0)
 		TechnoExt_ExtData::Ares_AddMoneyStrings(pThis, true);
 
 	return 0;
@@ -931,7 +931,7 @@ DEFINE_OVERRIDE_HOOK(0x6FAF0D, TechnoClass_Update_EMPLock, 6)
 			if (!pThis->Deactivated && AresEMPulse::IsDeactivationAdvisable(pThis))
 			{
 				// update the current mission
-				TechnoExt::ExtMap.Find(pThis)->EMPLastMission = pThis->CurrentMission;
+				TechnoExtContainer::Instance.Find(pThis)->EMPLastMission = pThis->CurrentMission;
 				pThis->Deactivate();
 			}
 		}
@@ -1008,7 +1008,7 @@ DEFINE_HOOK(0x6F3F88, TechnoClass_Init_1, 5)
 	{
 		const auto pHouseType = pOwner->Type;
 		const auto pParentHouseType = pHouseType->FindParentCountry();
-		TechnoExt::ExtMap.Find(pThis)->OriginalHouseType = pParentHouseType ? pParentHouseType : pHouseType;
+		TechnoExtContainer::Instance.Find(pThis)->OriginalHouseType = pParentHouseType ? pParentHouseType : pHouseType;
 	}
 	else
 	{
@@ -1018,7 +1018,7 @@ DEFINE_HOOK(0x6F3F88, TechnoClass_Init_1, 5)
 	// this object might have been deployed, undeployed, ...
 	if (Unsorted::ScenarioInit && Unsorted::CurrentFrame)
 	{
-		TechnoExt::ExtMap.Find(pThis)->PayloadCreated = true;
+		TechnoExtContainer::Instance.Find(pThis)->PayloadCreated = true;
 	}
 
 	R->EAX(pType);
@@ -1081,8 +1081,8 @@ DEFINE_OVERRIDE_HOOK(0x6FF28F, TechnoClass_Fire_BerserkROFMultiplier, 6)
 	GET(int, ROF, EAX);
 
 	if (pThis->Berzerk) {
-		const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-		double multiplier = pExt->BerserkROFMultiplier.Get(RulesExt::Global()->BerserkROFMultiplier);
+		const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+		double multiplier = pExt->BerserkROFMultiplier.Get(RulesExtData::Instance()->BerserkROFMultiplier);
 		ROF = static_cast<int>(ROF * multiplier);
 	}
 
@@ -1093,7 +1093,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF28F, TechnoClass_Fire_BerserkROFMultiplier, 6)
 DEFINE_OVERRIDE_HOOK(0x6FE709, TechnoClass_Fire_BallisticScatter1, 6)
 {
 	GET_STACK(BulletTypeClass*, pProjectile, 0x68);
-	auto pExt = BulletTypeExt::ExtMap.Find(pProjectile);
+	auto pExt = BulletTypeExtContainer::Instance.Find(pProjectile);
 
 	// defaults for FlakScatter && !Inviso
 	int ndefault = RulesClass::Instance->BallisticScatter;
@@ -1108,7 +1108,7 @@ DEFINE_OVERRIDE_HOOK(0x6FE709, TechnoClass_Fire_BallisticScatter1, 6)
 DEFINE_OVERRIDE_HOOK(0x6FE7FE, TechnoClass_Fire_BallisticScatter2, 5)
 {
 	GET_STACK(BulletTypeClass*, pProjectile, 0x68);
-	auto pExt = BulletTypeExt::ExtMap.Find(pProjectile);
+	auto pExt = BulletTypeExtContainer::Instance.Find(pProjectile);
 
 	// defaults for !FlakScatter || Inviso
 	int ndefault = RulesClass::Instance->BallisticScatter;
@@ -1228,8 +1228,8 @@ DEFINE_OVERRIDE_HOOK(0x6FE53F, TechnoClass_FireAt_CreateBullet, 0x6)
 	REF_STACK(int, Speed, 0x28);
 	Speed = speed;
 
-	auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
-	auto pBulletExt = BulletTypeExt::ExtMap.Find(pWeapon->Projectile);
+	auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+	auto pBulletExt = BulletTypeExtContainer::Instance.Find(pWeapon->Projectile);
 
 	// create a new bullet with projectile range
 	const auto ret = pBulletExt->CreateBullet(pTarget, pThis, damage, pWeapon->Warhead,
@@ -1252,7 +1252,7 @@ DEFINE_OVERRIDE_HOOK(0x6F826E, TechnoClass_CanAutoTargetObject_CivilianEnemy, 0x
 		Ignore = 0x6F894F
 	};
 
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pTargetType);
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pTargetType);
 
 	// always consider this an enemy
 	if (pExt->CivilianEnemy) {
@@ -1263,7 +1263,7 @@ DEFINE_OVERRIDE_HOOK(0x6F826E, TechnoClass_CanAutoTargetObject_CivilianEnemy, 0x
 	// to not allow civilians to overrun a player
 	if (const auto pTargetTarget = abstract_cast<TechnoClass*>(pTarget->Target)) {
 		if (pThis->Owner->IsAlliedWith_(pTargetTarget)) {
-			const auto pData = RulesExt::Global();
+			const auto pData = RulesExtData::Instance();
 
 			if (pThis->Owner->IsControlledByHuman() ?
 				pData->AutoRepelPlayer : pData->AutoRepelAI) {
@@ -1302,12 +1302,12 @@ DEFINE_HOOK(0x6FC3FE, TechnoClass_CanFire_Immunities, 0x6)
 	if(pTarget)	{
 		//const auto nRank = pTarget->Veterancy.GetRemainingLevel();
 
-		//const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+		//const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
 		//if(pWHExt->ImmunityType.isset() &&
-		//	 TechnoExt::HasImmunity(nRank, pTarget , pWHExt->ImmunityType.Get()))
+		//	 TechnoExtData::HasImmunity(nRank, pTarget , pWHExt->ImmunityType.Get()))
 		//	return FireIllegal;
 
-		if(pWarhead->Psychedelic && TechnoExt::IsPsionicsImmune(pTarget))
+		if(pWarhead->Psychedelic && TechnoExtData::IsPsionicsImmune(pTarget))
 			return FireIllegal;
 	}
 
@@ -1327,7 +1327,7 @@ DEFINE_HOOK(0x7441B0, UnitClass_MarkOccupationBits, 0x6)
 	bool alt = (pCrd->Z >= height && pCell->ContainsBridge());
 
 	// remember which occupation bit we set
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	pExt->AltOccupation = alt;
 
 	if (alt)
@@ -1354,7 +1354,7 @@ DEFINE_HOOK(0x744210, UnitClass_UnmarkOccupationBits, 0x5)
 	int alt = (pCrd->Z >= height) ? obAlt : obNormal;
 
 	// also clear the last occupation bit, if set
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	if (!pExt->AltOccupation.empty())
 	{
 		int lastAlt = pExt->AltOccupation ? obAlt : obNormal;
@@ -1382,7 +1382,7 @@ DEFINE_OVERRIDE_HOOK(0x6FE31C, TechnoClass_Fire_AllowDamage, 8)
 
 	// whether conventional damage should be used
 	const bool applyDamage =
-		WeaponTypeExt::ExtMap.Find(pWeapon)->ApplyDamage.Get(!pWeapon->IsSonic && !pWeapon->UseFireParticles);
+		WeaponTypeExtContainer::Instance.Find(pWeapon)->ApplyDamage.Get(!pWeapon->IsSonic && !pWeapon->UseFireParticles);
 
 	if (!applyDamage)
 	{
@@ -1404,7 +1404,7 @@ DEFINE_HOOK(0x6F534E, TechnoClass_DrawExtras_Insignia, 0x5)
 	GET(RectangleStruct*, pBounds, ESI);
 
 	if (pThis->VisualCharacter(false, nullptr) != VisualType::Hidden)
-		TechnoExt::DrawInsignia(pThis, pLocation, pBounds);
+		TechnoExtData::DrawInsignia(pThis, pLocation, pBounds);
 
 	bool drawHealth = pThis->IsSelected;
 	if (!drawHealth)

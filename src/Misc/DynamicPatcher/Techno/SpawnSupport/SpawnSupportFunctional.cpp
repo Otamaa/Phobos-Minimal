@@ -9,7 +9,7 @@
 void SpawnSupportFunctional::Construct(TechnoClass* pThis)
 {
 	auto const pType = pThis->GetTechnoType();
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	auto const& pSupportWeapon = pThis->Veterancy.IsElite() ?
 		pTypeExt->MySpawnSupportDatas.EliteSupportWeapon : pTypeExt->MySpawnSupportDatas.SupportWeapon;
 
@@ -28,11 +28,11 @@ void SpawnSupportFunctional::FireSupportWeaponToSpawn(TechnoClass* pThis, Abstra
 
 	//if (!pSpawnOwner)
 	//	return;
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	if (pTypeExt->MySpawnSupportDatas.Enable)
 	{
-		auto const pExt = TechnoExt::ExtMap.Find(pThis);
+		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 		//if (pTypeExt->MySpawnSupportDatas.Always.Get())
 		//	return;
 
@@ -42,7 +42,7 @@ void SpawnSupportFunctional::FireSupportWeaponToSpawn(TechnoClass* pThis, Abstra
 
 		//if (auto const pTransporter = pThis->Transporter)
 		//{
-		//	if(auto const pTransportExt = TechnoTypeExt::ExtMap.Find<false>(pTransporter->GetTechnoType()))
+		//	if(auto const pTransportExt = TechnoTypeExtContainer::Instance.Find<false>(pTransporter->GetTechnoType()))
 		//	{
 		//		nFLHData = pTransportExt->MySpawnSupportFLH;
 		//	}
@@ -63,8 +63,8 @@ void SpawnSupportFunctional::FireSupportWeaponToSpawn(TechnoClass* pThis, Abstra
 		//}
 
 		//if(!InUpdateFunc) {
-		//	auto nSourcePos = TechnoExt::GetFLHAbsoluteCoords(pThis, nFLH, true);
-		//	auto nTargetPos = TechnoExt::GetFLHAbsoluteCoords(pThis, nFLH, true);
+		//	auto nSourcePos = TechnoExtData::GetFLHAbsoluteCoords(pThis, nFLH, true);
+		//	auto nTargetPos = TechnoExtData::GetFLHAbsoluteCoords(pThis, nFLH, true);
 		//	VelocityClass nVel = Helpers_DP::GetBulletVelocity(nSourcePos, nTargetPos);
 
 		//	Helpers_DP::FireBulletTo(pSpawnOwner, pThis, pSupportWeapon, nSourcePos, nTargetPos, nVel);
@@ -85,8 +85,8 @@ void SpawnSupportFunctional::AI(TechnoClass* pThis)
 	//if (!pSpawnOwner)
 	//	return;
 
-	//auto const pExt = TechnoExt::ExtMap.Find<false>(pSpawnOwner);
-	//auto const pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pSpawnOwner->GetTechnoType());
+	//auto const pExt = TechnoExtContainer::Instance.Find<false>(pSpawnOwner);
+	//auto const pTypeExt = TechnoTypeExtContainer::Instance.Find<false>(pSpawnOwner->GetTechnoType());
 
 	//if (!pExt || !pTypeExt)
 	//	return;

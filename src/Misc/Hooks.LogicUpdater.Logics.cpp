@@ -26,28 +26,28 @@
 #include <New/Entity/VerticalLaserClass.h>
 #include <New/Entity/HomingMissileTargetTracker.h>
 
-void TechnoExt::ExtData::InitFunctionEvents()
+void TechnoExtData::InitFunctionEvents()
 {
 	/*
 	GenericFuctions.clear();
 
 	//register desired functions !
-	GenericFuctions += TechnoExt::UpdateMindControlAnim;
-	GenericFuctions += TechnoExt::ApplyMindControlRangeLimit;
-	GenericFuctions += TechnoExt::ApplyInterceptor;
-	GenericFuctions += TechnoExt::ApplySpawn_LimitRange;
-	GenericFuctions += TechnoExt::CheckDeathConditions;
-	GenericFuctions += TechnoExt::EatPassengers;
+	GenericFuctions += TechnoExtData::UpdateMindControlAnim;
+	GenericFuctions += TechnoExtData::ApplyMindControlRangeLimit;
+	GenericFuctions += TechnoExtData::ApplyInterceptor;
+	GenericFuctions += TechnoExtData::ApplySpawn_LimitRange;
+	GenericFuctions += TechnoExtData::CheckDeathConditions;
+	GenericFuctions += TechnoExtData::EatPassengers;
 	GenericFuctions += PassengersFunctional::AI;
 	GenericFuctions += SpawnSupportFunctional::AI;
 	GenericFuctions += TechnoClass_AI_GattlingDamage;
 	*/
 }
 
-void TechnoExt::InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType)
+void TechnoExtData::InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType)
 {
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	pExt->Type = pType;
 	pExt->AbsType = pThis->WhatAmI();
@@ -64,7 +64,7 @@ void TechnoExt::InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType)
 		if (!pTypeExt->LaserTrailData.empty() && !pExt->Type->Invisible)
 			pExt->LaserTrails.reserve(pTypeExt->LaserTrailData.size());
 
-		TechnoExt::InitializeLaserTrail(pThis, false);
+		TechnoExtData::InitializeLaserTrail(pThis, false);
 		TrailsManager::Construct(pThis);
 	}
 }

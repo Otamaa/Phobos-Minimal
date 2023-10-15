@@ -5,17 +5,17 @@
 
 // =============================
 // load / save
-template <typename T>
-void SpawnManagerExt::ExtData::Serialize(T& Stm) {
-	//Debug::Log("Processing Element From SpawnManagerExt ! \n");
-	Stm
-		.Process(this->Initialized)
-		;
-}
+//template <typename T>
+//void SpawnManagerExt::ExtData::Serialize(T& Stm) {
+//	//Debug::Log("Processing Element From SpawnManagerExt ! \n");
+//	Stm
+//		.Process(this->Initialized)
+//		;
+//}
 
 // =============================
 // container
-SpawnManagerExt::ExtContainer SpawnManagerExt::ExtMap;
+//SpawnManagerExt::ExtContainer SpawnManagerExt::ExtMap;
 
 // =============================
 // container hooks

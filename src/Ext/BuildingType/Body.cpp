@@ -10,11 +10,11 @@
 
 #include <Misc/AresData.h>
 
-std::vector<std::string> BuildingTypeExt::trenchKinds;
-const DirStruct  BuildingTypeExt::DefaultJuggerFacing = DirStruct { 0x7FFF };
-const CellStruct BuildingTypeExt::FoundationEndMarker = { 0x7FFF, 0x7FFF };
+std::vector<std::string> BuildingTypeExtData::trenchKinds;
+const DirStruct  BuildingTypeExtData::DefaultJuggerFacing = DirStruct { 0x7FFF };
+const CellStruct BuildingTypeExtData::FoundationEndMarker = { 0x7FFF, 0x7FFF };
 
-bool  BuildingTypeExt::ExtData::IsAcademy() const
+bool  BuildingTypeExtData::IsAcademy() const
 {
 	if (this->Academy.empty())
 	{
@@ -27,13 +27,13 @@ bool  BuildingTypeExt::ExtData::IsAcademy() const
 	return this->Academy;
 }
 
-void BuildingTypeExt::ExtData::UpdateFoundationRadarShape()
+void BuildingTypeExtData::UpdateFoundationRadarShape()
 {
 	this->FoundationRadarShape.Clear();
 
 	if (this->IsCustom)
 	{
-		auto pType = this->OwnerObject();
+		auto pType = this->AttachedToObject;
 		auto pRadar = RadarClass::Global();
 
 		int width = pType->GetFoundationWidth();
@@ -87,9 +87,9 @@ void BuildingTypeExt::ExtData::UpdateFoundationRadarShape()
 	}
 }
 
-void BuildingTypeExt::UpdateBuildupFrames(BuildingTypeClass* pThis)
+void BuildingTypeExtData::UpdateBuildupFrames(BuildingTypeClass* pThis)
 {
-	auto pExt = BuildingTypeExt::ExtMap.Find(pThis);
+	auto pExt = BuildingTypeExtContainer::Instance.Find(pThis);
 
 	if (const auto pShp = pThis->Buildup)
 	{
@@ -106,13 +106,13 @@ void BuildingTypeExt::UpdateBuildupFrames(BuildingTypeClass* pThis)
 	}
 }
 
-void BuildingTypeExt::ExtData::CompleteInitialization()
+void BuildingTypeExtData::CompleteInitialization()
 {
-	auto const pThis = this->Get();
+	auto const pThis = this->AttachedToObject;
 
 	// enforce same foundations for rubble/intact building pairs
 	if (this->RubbleDestroyed &&
-		!BuildingTypeExt::ExtData::IsFoundationEqual(pThis, this->RubbleDestroyed))
+		!BuildingTypeExtData::IsFoundationEqual(pThis, this->RubbleDestroyed))
 	{
 		Debug::FatalErrorAndExit(
 			"BuildingType %s and its %s %s don't have the same foundation.",
@@ -120,17 +120,17 @@ void BuildingTypeExt::ExtData::CompleteInitialization()
 	}
 
 	if (this->RubbleIntact &&
-		!BuildingTypeExt::ExtData::IsFoundationEqual(pThis, this->RubbleIntact))
+		!BuildingTypeExtData::IsFoundationEqual(pThis, this->RubbleIntact))
 	{
 		Debug::FatalErrorAndExit(
 			"BuildingType %s and its %s %s don't have the same foundation.",
 			pThis->ID, "Rubble.Intact", this->RubbleIntact->ID);
 	}
 
-	BuildingTypeExt::UpdateBuildupFrames(pThis);
+	BuildingTypeExtData::UpdateBuildupFrames(pThis);
 }
 
-bool BuildingTypeExt::ExtData::IsFoundationEqual(BuildingTypeClass* pType1, BuildingTypeClass* pType2)
+bool BuildingTypeExtData::IsFoundationEqual(BuildingTypeClass* pType1, BuildingTypeClass* pType2)
 {
 	// both types must be set and must have same foundation id
 	if (!pType1 || !pType2 || pType1->Foundation != pType2->Foundation) {
@@ -138,14 +138,14 @@ bool BuildingTypeExt::ExtData::IsFoundationEqual(BuildingTypeClass* pType1, Buil
 	}
 
 	// non-custom foundations need no special handling
-	if (pType1->Foundation != BuildingTypeExt::CustomFoundation)
+	if (pType1->Foundation != BuildingTypeExtData::CustomFoundation)
 	{
 		return true;
 	}
 
 	// custom foundation
-	auto const pExt1 = BuildingTypeExt::ExtMap.Find(pType1);
-	auto const pExt2 = BuildingTypeExt::ExtMap.Find(pType2);
+	auto const pExt1 = BuildingTypeExtContainer::Instance.Find(pType1);
+	auto const pExt2 = BuildingTypeExtContainer::Instance.Find(pType2);
 	const auto& data1 = pExt1->CustomData;
 	const auto& data2 = pExt2->CustomData;
 
@@ -156,7 +156,7 @@ bool BuildingTypeExt::ExtData::IsFoundationEqual(BuildingTypeClass* pType1, Buil
 			data1.begin(), data1.end(), data2.begin(), data2.end());
 }
 
-void BuildingTypeExt::ExtData::Initialize()
+void BuildingTypeExtData::Initialize()
 {
 	this->AIBuildInsteadPerDiff.reserve(3);
 	this->PowersUp_Buildings.reserve(3);
@@ -172,35 +172,35 @@ void BuildingTypeExt::ExtData::Initialize()
 	this->GarrisonAnim_ActiveTwo.reserve(HouseTypeClass::Array->Count);
 	this->GarrisonAnim_ActiveThree.reserve(HouseTypeClass::Array->Count);
 	this->GarrisonAnim_ActiveFour.reserve(HouseTypeClass::Array->Count);
-	this->Type = TechnoTypeExt::ExtMap.Find(this->Get());
-	this->OccupierMuzzleFlashes.reserve(((BuildingTypeClass*)this->Type->Get())->MaxNumberOccupants);
-	this->DockPoseDir.reserve(((BuildingTypeClass*)this->Type->Get())->NumberOfDocks);
+	this->Type = TechnoTypeExtContainer::Instance.Find(this->AttachedToObject);
+	this->OccupierMuzzleFlashes.reserve(((BuildingTypeClass*)this->Type->AttachedToObject)->MaxNumberOccupants);
+	this->DockPoseDir.reserve(((BuildingTypeClass*)this->Type->AttachedToObject)->NumberOfDocks);
 	this->LostEvaEvent = VoxClass::FindIndexById(GameStrings::EVA_TechBuildingLost());
-	this->PrismForwarding.Initialize(this->OwnerObject());
+	this->PrismForwarding.Initialize(this->AttachedToObject);
 }
 
-bool BuildingTypeExt::ExtData::CanBeOccupiedBy(InfantryClass* whom)
+bool BuildingTypeExtData::CanBeOccupiedBy(InfantryClass* whom)
 {
 	// if CanBeOccupiedBy isn't empty, we have to check if this soldier is allowed in
 	return this->AllowedOccupiers.empty() || this->AllowedOccupiers.Contains(whom->Type);
 }
 
-int BuildingTypeExt::BuildLimitRemaining(HouseClass* pHouse, BuildingTypeClass* pItem)
+int BuildingTypeExtData::BuildLimitRemaining(HouseClass* pHouse, BuildingTypeClass* pItem)
 {
 	const auto BuildLimit = pItem->BuildLimit;
 
 	if (BuildLimit >= 0)
-		return BuildLimit - BuildingTypeExt::GetUpgradesAmount(pItem, pHouse);
+		return BuildLimit - BuildingTypeExtData::GetUpgradesAmount(pItem, pHouse);
 	else
 		return -BuildLimit - pHouse->CountOwnedEver(pItem);
 }
 
-int BuildingTypeExt::CheckBuildLimit(HouseClass* pHouse, BuildingTypeClass* pItem, bool includeQueued)
+int BuildingTypeExtData::CheckBuildLimit(HouseClass* pHouse, BuildingTypeClass* pItem, bool includeQueued)
 {
 	enum { NotReached = 1, ReachedPermanently = -1, ReachedTemporarily = 0 };
 
 	const int BuildLimit = pItem->BuildLimit;
-	const int Remaining = BuildingTypeExt::BuildLimitRemaining(pHouse, pItem);
+	const int Remaining = BuildingTypeExtData::BuildLimitRemaining(pHouse, pItem);
 
 	if (BuildLimit >= 0 && Remaining <= 0)
 		return (includeQueued && pHouse->GetFactoryProducing(pItem)) ? NotReached : ReachedPermanently;
@@ -208,13 +208,13 @@ int BuildingTypeExt::CheckBuildLimit(HouseClass* pHouse, BuildingTypeClass* pIte
 	return Remaining > 0 ? NotReached : ReachedTemporarily;
 }
 
-Point2D* BuildingTypeExt::GetOccupyMuzzleFlash(BuildingClass* pThis, int nOccupyIdx)
+Point2D* BuildingTypeExtData::GetOccupyMuzzleFlash(BuildingClass* pThis, int nOccupyIdx)
 {
-	return BuildingTypeExt::ExtMap.Find(pThis->Type)
+	return BuildingTypeExtContainer::Instance.Find(pThis->Type)
 		->OccupierMuzzleFlashes.data() + nOccupyIdx;
 }
 
-void BuildingTypeExt::DisplayPlacementPreview()
+void BuildingTypeExtData::DisplayPlacementPreview()
 {
 	const auto pBuilding = specific_cast<BuildingClass*>(DisplayClass::Instance->CurrentBuilding);
 
@@ -222,8 +222,8 @@ void BuildingTypeExt::DisplayPlacementPreview()
 		return;
 
 	const auto pType = pBuilding->Type;
-	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pType);
-	const bool bShow = pTypeExt->PlacementPreview_Show.Get(RulesExt::Global()->Building_PlacementPreview.Get(Phobos::Config::EnableBuildingPlacementPreview));
+	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
+	const bool bShow = pTypeExt->PlacementPreview_Show.Get(RulesExtData::Instance()->Building_PlacementPreview.Get(Phobos::Config::EnableBuildingPlacementPreview));
 
 	if (!bShow)
 		return;
@@ -268,7 +268,7 @@ void BuildingTypeExt::DisplayPlacementPreview()
 	const auto nFrame = std::clamp(pTypeExt->PlacementPreview_ShapeFrame.Get(nDecidedFrame), 0, static_cast<int>(Selected->Frames));
 	nPoint.X += nOffsetX;
 	nPoint.Y += nOffsetY;
-	const auto nFlag = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | EnumFunctions::GetTranslucentLevel(pTypeExt->PlacementPreview_TranslucentLevel.Get(RulesExt::Global()->BuildingPlacementPreview_TranslucentLevel));
+	const auto nFlag = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | EnumFunctions::GetTranslucentLevel(pTypeExt->PlacementPreview_TranslucentLevel.Get(RulesExtData::Instance()->BuildingPlacementPreview_TranslucentLevel));
 	auto nREct = DSurface::Temp()->Get_Rect_WithoutBottomBar();
 
 	ConvertClass* pDecidedPal = FileSystem::UNITx_PAL();
@@ -289,9 +289,9 @@ void BuildingTypeExt::DisplayPlacementPreview()
 	DSurface::Temp()->DrawSHP(pDecidedPal, Selected, nFrame, &nPoint, &nREct, nFlag, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
 }
 
-bool BuildingTypeExt::CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass* pUpgradeType, HouseClass* pUpgradeOwner)
+bool BuildingTypeExtData::CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass* pUpgradeType, HouseClass* pUpgradeOwner)
 {
-	const auto pUpgradeExt = BuildingTypeExt::ExtMap.Find(pUpgradeType);
+	const auto pUpgradeExt = BuildingTypeExtContainer::Instance.Find(pUpgradeType);
 	if (EnumFunctions::CanTargetHouse(pUpgradeExt->PowersUp_Owner, pUpgradeOwner, pBuilding->Owner))
 	{
 		// PowersUpBuilding
@@ -310,19 +310,19 @@ bool BuildingTypeExt::CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass* pU
 }
 
 // Assuming SuperWeapon & SuperWeapon2 are used (for the moment)
-int BuildingTypeExt::ExtData::GetSuperWeaponCount() const
+int BuildingTypeExtData::GetSuperWeaponCount() const
 {
 	// The user should only use SuperWeapon and SuperWeapon2 if the attached sw count isn't bigger than 2
 	return 2 + this->SuperWeapons.size();
 }
 
-int BuildingTypeExt::ExtData::GetSuperWeaponIndex(const int index, HouseClass* pHouse) const
+int BuildingTypeExtData::GetSuperWeaponIndex(const int index, HouseClass* pHouse) const
 {
 	auto idxSW = this->GetSuperWeaponIndex(index);
 
 	if (auto pSuper = pHouse->Supers.GetItemOrDefault(idxSW))
 	{
-		if (!SWTypeExt::ExtMap.Find(pSuper->Type)->IsAvailable(pHouse))
+		if (!SWTypeExtContainer::Instance.Find(pSuper->Type)->IsAvailable(pHouse))
 		{
 			return -1;
 		}
@@ -331,9 +331,9 @@ int BuildingTypeExt::ExtData::GetSuperWeaponIndex(const int index, HouseClass* p
 	return idxSW;
 }
 
-int BuildingTypeExt::ExtData::GetSuperWeaponIndex(const int index) const
+int BuildingTypeExtData::GetSuperWeaponIndex(const int index) const
 {
-	const auto pThis = this->Get();
+	const auto pThis = this->AttachedToObject;
 
 	if (index < 2)
 	{
@@ -347,7 +347,7 @@ int BuildingTypeExt::ExtData::GetSuperWeaponIndex(const int index) const
 	return -1;
 }
 
-int BuildingTypeExt::GetBuildingAnimTypeIndex(BuildingClass* pThis, const BuildingAnimSlot& nSlot, const char* pDefault)
+int BuildingTypeExtData::GetBuildingAnimTypeIndex(BuildingClass* pThis, const BuildingAnimSlot& nSlot, const char* pDefault)
 {
 	//pthis check is just in  case
 	if (pThis
@@ -355,7 +355,7 @@ int BuildingTypeExt::GetBuildingAnimTypeIndex(BuildingClass* pThis, const Buildi
 		&& (pThis->Occupants.Count > 0)
 		)
 	{
-		const auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+		const auto pBuildingExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 
 		{
 			const auto nIndex = HouseTypeClass::Array()->FindItemIndex(pThis->Occupants[0]->Owner->Type);
@@ -395,7 +395,7 @@ int BuildingTypeExt::GetBuildingAnimTypeIndex(BuildingClass* pThis, const Buildi
 
 }
 
-bool __fastcall BuildingTypeExt::IsFactory(BuildingClass* pThis, void* _)
+bool __fastcall BuildingTypeExtData::IsFactory(BuildingClass* pThis, void* _)
 {
 	if (!pThis || !pThis->Type)
 		return false;
@@ -403,30 +403,30 @@ bool __fastcall BuildingTypeExt::IsFactory(BuildingClass* pThis, void* _)
 	return pThis->Type->Factory == AbstractType::AircraftType || pThis->IsFactory();
 }
 
-void __fastcall BuildingTypeExt::DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset)
+void __fastcall BuildingTypeExtData::DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset)
 {
-	const auto nFlag = Flags | EnumFunctions::GetTranslucentLevel(RulesExt::Global()->PlacementGrid_TranslucentLevel.Get());
+	const auto nFlag = Flags | EnumFunctions::GetTranslucentLevel(RulesExtData::Instance()->PlacementGrid_TranslucentLevel.Get());
 
 	CC_Draw_Shape(Surface, Pal, SHP, FrameIndex, Position, Bounds, nFlag, Remap, ZAdjust,
 		ZGradientDescIndex, Brightness, TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
 }
 
-bool BuildingTypeExt::IsLinkable(BuildingTypeClass* pThis)
+bool BuildingTypeExtData::IsLinkable(BuildingTypeClass* pThis)
 {
-	const auto pExt = BuildingTypeExt::ExtMap.Find(pThis);
+	const auto pExt = BuildingTypeExtContainer::Instance.Find(pThis);
 
 	return pExt->Firestorm_Wall || pExt->IsTrench >= 0;
 }
 
-int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse)
+int BuildingTypeExtData::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse)
 {
 	int nAmount = 0;
 	float fFactor = 1.0f;
 
-	auto const pHouseExt = HouseExt::ExtMap.Find(pHouse);
+	auto const pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 	for (const auto& [pBldType, nCount] : pHouseExt->PowerPlantEnhancerBuildings)
 	{
-		const auto pExt = BuildingTypeExt::ExtMap.Find(pBldType);
+		const auto pExt = BuildingTypeExtContainer::Instance.Find(pBldType);
 		if (pExt->PowerPlantEnhancer_Buildings.empty() || !pExt->PowerPlantEnhancer_Buildings.Contains(pBuilding->Type))
 			continue;
 
@@ -437,7 +437,7 @@ int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHou
 	return static_cast<int>(std::round(pBuilding->GetPowerOutput() * fFactor)) + nAmount;
 }
 
-float BuildingTypeExt::GetPurifierBonusses(HouseClass* pHouse)
+float BuildingTypeExtData::GetPurifierBonusses(HouseClass* pHouse)
 {
 	/*removing the counter reference
 	 Unit unload , 73E437 done
@@ -449,10 +449,10 @@ float BuildingTypeExt::GetPurifierBonusses(HouseClass* pHouse)
 
 	float fFactor = 0.00f;
 
-	if (!pHouse || pHouse->Defeated || pHouse->IsNeutral() || HouseExt::IsObserverPlayer(pHouse))
+	if (!pHouse || pHouse->Defeated || pHouse->IsNeutral() || HouseExtData::IsObserverPlayer(pHouse))
 		return 0.00f;
 
-	auto pHouseExt = HouseExt::ExtMap.Find(pHouse);
+	auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 
 	if (pHouseExt->Building_OrePurifiersCounter.empty())
 		return 0.00f;
@@ -466,7 +466,7 @@ float BuildingTypeExt::GetPurifierBonusses(HouseClass* pHouse)
 
 	for (const auto& [pBldType, nCount] : pHouseExt->Building_OrePurifiersCounter)
 	{
-		const auto pExt = BuildingTypeExt::ExtMap.Find(pBldType);
+		const auto pExt = BuildingTypeExtContainer::Instance.Find(pBldType);
 		const auto bonusses = pExt->PurifierBonus.Get(RulesClass::Instance->PurifierBonus);
 
 		if (bonusses > 0.00f) {
@@ -477,24 +477,24 @@ float BuildingTypeExt::GetPurifierBonusses(HouseClass* pHouse)
 	return (fFactor > 0.00f) ? fFactor + bonusAI : 0.00f ;
 }
 
-double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseClass* pOwner)
+double BuildingTypeExtData::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseClass* pOwner)
 {
 	double fFactor = 0.0;
 
-	if (!pWhat || !pOwner || pOwner->Defeated || pOwner->IsNeutral() || HouseExt::IsObserverPlayer(pOwner))
+	if (!pWhat || !pOwner || pOwner->Defeated || pOwner->IsNeutral() || HouseExtData::IsObserverPlayer(pOwner))
 		return fFactor;
 
 	const auto pType = pWhat->GetTechnoType();
 	if (!pType)
 		return fFactor;
 
-	auto pHouseExt = HouseExt::ExtMap.Find(pOwner);
+	auto pHouseExt = HouseExtContainer::Instance.Find(pOwner);
 	if (pHouseExt->Building_BuildSpeedBonusCounter.empty())
 		return fFactor;
 
 	for (const auto& [pBldType, nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
 	{
-		auto const pExt = BuildingTypeExt::ExtMap.Find(pBldType);
+		auto const pExt = BuildingTypeExtContainer::Instance.Find(pBldType);
 		{
 			if (!pExt->SpeedBonus.AffectedType.empty() && !pExt->SpeedBonus.AffectedType.Contains(pType))
 				continue;
@@ -529,13 +529,13 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 	return fFactor;
 }
 
-double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, HouseClass* pOwner)
+double BuildingTypeExtData::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, HouseClass* pOwner)
 {
 	double fFactor = 1.0;
-	if (!pWhat || !pOwner || pOwner->Defeated || pOwner->IsNeutral() || HouseExt::IsObserverPlayer(pOwner))
+	if (!pWhat || !pOwner || pOwner->Defeated || pOwner->IsNeutral() || HouseExtData::IsObserverPlayer(pOwner))
 		return fFactor;
 
-	auto pHouseExt = HouseExt::ExtMap.Find(pOwner);
+	auto pHouseExt = HouseExtContainer::Instance.Find(pOwner);
 	if (pHouseExt->Building_BuildSpeedBonusCounter.empty())
 		return fFactor;
 
@@ -545,7 +545,7 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, Hou
 		//if (pBldType->PowerDrain && pOwner->HasLowPower())
 		//	continue;
 
-		if (auto const pExt = BuildingTypeExt::ExtMap.TryFind(pBldType))
+		if (auto const pExt = BuildingTypeExtContainer::Instance.TryFind(pBldType))
 		{
 			if (!pExt->SpeedBonus.AffectedType.empty() && !pExt->SpeedBonus.AffectedType.Contains(pWhat))
 				continue;
@@ -580,12 +580,12 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, Hou
 	return fFactor;
 }
 
-double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat)
+double BuildingTypeExtData::GetExternalFactorySpeedBonus(TechnoClass* pWhat)
 {
-	return BuildingTypeExt::GetExternalFactorySpeedBonus(pWhat, pWhat->GetOwningHouse());
+	return BuildingTypeExtData::GetExternalFactorySpeedBonus(pWhat, pWhat->GetOwningHouse());
 }
 
-int BuildingTypeExt::GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass* pHouse) // not including producing upgrades
+int BuildingTypeExtData::GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass* pHouse) // not including producing upgrades
 {
 	int result = 0;
 	bool isUpgrade = false;
@@ -616,15 +616,15 @@ int BuildingTypeExt::GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass*
 	}
 
 
-	for (auto pTPowersUp : BuildingTypeExt::ExtMap.Find(pBuilding)->PowersUp_Buildings)
+	for (auto pTPowersUp : BuildingTypeExtContainer::Instance.Find(pBuilding)->PowersUp_Buildings)
 		checkUpgrade(pTPowersUp);
 
 	return isUpgrade ? result : -1;
 }
 
-void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->Get();
+	auto pThis = this->AttachedToObject;
 	const char* pSection = pThis->ID;
 	const char* pArtSection = pThis->ImageFile;
 	auto pArtINI = &CCINIClass::INI_Art();
@@ -953,7 +953,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		if (this->IsCustom)
 		{
 			//Reset
-			pThis->Foundation = BuildingTypeExt::CustomFoundation;
+			pThis->Foundation = BuildingTypeExtData::CustomFoundation;
 			pThis->FoundationData = this->CustomData.data();
 			pThis->FoundationOutside = this->OutlineData.data();
 		}
@@ -961,7 +961,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		{
 			//Custom Foundation!
 			this->IsCustom = true;
-			pThis->Foundation = BuildingTypeExt::CustomFoundation;
+			pThis->Foundation = BuildingTypeExtData::CustomFoundation;
 
 			//Load Width and Height
 			detail::read(this->CustomWidth, exArtINI, pArtSection, "Foundation.X");
@@ -1076,7 +1076,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		char tempFire_OffsBuffer[0x25];
 		for (int i = 0;; ++i)
 		{
-			Nullable<Point2D> nFire_offs {};
+			Nullable<Point2D> nFire_offs;
 			IMPL_SNPRNINTF(tempFire_OffsBuffer, sizeof(tempFire_OffsBuffer), "%s%d", GameStrings::DamageFireOffset(), i);
 			nFire_offs.Read(exArtINI, pArtSection, tempFire_OffsBuffer);
 
@@ -1109,7 +1109,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 }
 
 template <typename T>
-void BuildingTypeExt::ExtData::Serialize(T& Stm)
+void BuildingTypeExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
@@ -1301,16 +1301,16 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		;
 }
 
-bool BuildingTypeExt::ExtContainer::Load(BuildingTypeClass* pThis, IStream* pStm)
+bool BuildingTypeExtContainer::Load(BuildingTypeClass* pThis, IStream* pStm)
 {
-	BuildingTypeExt::ExtData* pData = this->LoadKey(pThis, pStm);
+	BuildingTypeExtData* pData = this->LoadKey(pThis, pStm);
 
 	return pData != nullptr;
 };
 
 // =============================
 // container
-BuildingTypeExt::ExtContainer BuildingTypeExt::ExtMap;
+BuildingTypeExtContainer BuildingTypeExtContainer::Instance;
 
 // =============================
 // container hooks
@@ -1319,7 +1319,7 @@ DEFINE_HOOK(0x45E50C, BuildingTypeClass_CTOR, 0x6)
 {
 	GET(BuildingTypeClass*, pItem, EAX);
 
-	BuildingTypeExt::ExtMap.Allocate(pItem);
+	BuildingTypeExtContainer::Instance.Allocate(pItem);
 
 	return 0;
 }
@@ -1328,7 +1328,7 @@ DEFINE_HOOK(0x45E707, BuildingTypeClass_DTOR, 0x6)
 {
 	GET(BuildingTypeClass*, pItem, ESI);
 
-	BuildingTypeExt::ExtMap.Remove(pItem);
+	BuildingTypeExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 
@@ -1337,7 +1337,7 @@ DEFINE_HOOK(0x465300, BuildingTypeClass_Save, 0x5)
 	GET_STACK(BuildingTypeClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 
-	BuildingTypeExt::ExtMap.PrepareStream(pItem, pStm);
+	BuildingTypeExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
 }
@@ -1347,20 +1347,20 @@ DEFINE_HOOK(0x465010, BuildingTypeClass_Load, 0x5)
 	GET_STACK(BuildingTypeClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 
-	BuildingTypeExt::ExtMap.PrepareStream(pItem, pStm);
+	BuildingTypeExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
 }
 
 DEFINE_HOOK(0x465151, BuildingTypeClass_Load_Suffix, 0x7)
 {
-	BuildingTypeExt::ExtMap.LoadStatic();
+	BuildingTypeExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
 DEFINE_HOOK(0x46531C, BuildingTypeClass_Save_Suffix, 0x6)
 {
-	BuildingTypeExt::ExtMap.SaveStatic();
+	BuildingTypeExtContainer::Instance.SaveStatic();
 	return 0;
 }
 
@@ -1371,6 +1371,6 @@ DEFINE_HOOK(0x464A49, BuildingTypeClass_LoadFromINI, 0xA)
 	GET(BuildingTypeClass*, pItem, EBP);
 	GET_STACK(CCINIClass*, pINI, 0x364);
 
-	BuildingTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x464A56);
+	BuildingTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x464A56);
 	return 0;
 }

@@ -10,7 +10,7 @@ bool SW_GeneticMutator::HandleThisType(SuperWeaponType type) const
 bool SW_GeneticMutator::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	SuperWeaponTypeClass* pSW = pThis->Type;
-	SWTypeExt::ExtData* pData = SWTypeExt::ExtMap.Find(pSW);
+	SWTypeExtData* pData = SWTypeExtContainer::Instance.Find(pSW);
 
 	CellClass* Cell = MapClass::Instance->GetCellAt(Coords);
 	CoordStruct coords = Cell->GetCoordsWithBridge();
@@ -78,9 +78,9 @@ bool SW_GeneticMutator::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 	return true;
 }
 
-void SW_GeneticMutator::Initialize(SWTypeExt::ExtData* pData)
+void SW_GeneticMutator::Initialize(SWTypeExtData* pData)
 {
-	pData->OwnerObject()->Action = Action::GeneticConverter;
+	pData->AttachedToObject->Action = Action::GeneticConverter;
 	// Defaults to Genetic Mutator values
 	pData->SW_AnimHeight = 5;
 
@@ -97,7 +97,7 @@ void SW_GeneticMutator::Initialize(SWTypeExt::ExtData* pData)
 	pData->CursorType = int(MouseCursorType::GeneticMutator);
 }
 
-void SW_GeneticMutator::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
+void SW_GeneticMutator::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
 	const char* section = pData->get_ID();
 
@@ -112,7 +112,7 @@ void SW_GeneticMutator::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->SW_AffectsTarget = pData->SW_AffectsTarget | SuperWeaponTarget::AllTechnos;
 }
 
-WarheadTypeClass* SW_GeneticMutator::GetWarhead(const SWTypeExt::ExtData* pData) const
+WarheadTypeClass* SW_GeneticMutator::GetWarhead(const SWTypeExtData* pData) const
 {
 	// is set to non-null?
 	if (pData->SW_Warhead.Get(nullptr))
@@ -129,22 +129,22 @@ WarheadTypeClass* SW_GeneticMutator::GetWarhead(const SWTypeExt::ExtData* pData)
 	}
 }
 
-AnimTypeClass* SW_GeneticMutator::GetAnim(const SWTypeExt::ExtData* pData) const
+AnimTypeClass* SW_GeneticMutator::GetAnim(const SWTypeExtData* pData) const
 {
 	return pData->SW_Anim.Get(RulesClass::Instance->IonBlast);
 }
 
-int SW_GeneticMutator::GetSound(const SWTypeExt::ExtData* pData) const
+int SW_GeneticMutator::GetSound(const SWTypeExtData* pData) const
 {
 	return pData->SW_Sound.Get(RulesClass::Instance->GeneticMutatorActivateSound);
 }
 
-int SW_GeneticMutator::GetDamage(const SWTypeExt::ExtData* pData) const
+int SW_GeneticMutator::GetDamage(const SWTypeExtData* pData) const
 {
 	return pData->SW_Damage.Get(10000);
 }
 
-SWRange SW_GeneticMutator::GetRange(const SWTypeExt::ExtData* pData) const
+SWRange SW_GeneticMutator::GetRange(const SWTypeExtData* pData) const
 {
 	if (!pData->SW_Range->empty()) {
 		return pData->SW_Range;

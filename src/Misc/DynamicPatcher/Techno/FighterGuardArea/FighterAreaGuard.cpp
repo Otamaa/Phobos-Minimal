@@ -49,7 +49,7 @@ void FighterAreaGuard::OnUpdate()
 	}
 
 	const auto pType = OwnerObject->Type;
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	auto NewUpdate = [&]()
 	{
@@ -382,10 +382,10 @@ void FighterAreaGuard::OnUpdate()
 										if (const auto pBuilding = specific_cast<BuildingClass*>(pTech))
 										{
 											IsBuilding = true;
-											if (BuildingExt::ExtMap.Find(pBuilding)->LimboID != -1)
+											if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1)
 												continue;
 
-										}else if(TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTech)))
+										}else if(TechnoExtData::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTech)))
 											continue;
 
 										const auto pOwnerHouse = pTech->GetOwningHouse();
@@ -526,7 +526,7 @@ bool FighterAreaGuard::SetupDestination(CoordStruct& dest)
 {
 	FootClass* pTechno = OwnerObject;
 	const auto pType = OwnerObject->Type;
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (CoordStruct::Empty != dest && dest != destCenter && !contains(destList, dest))
 	{
@@ -565,7 +565,7 @@ bool FighterAreaGuard::FoundAndAttack(CoordStruct location)
 {
 	FootClass* pTechno = OwnerObject;
 	const auto pType = OwnerObject->Type;
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (pTypeExt->MyFighterData.AutoFire)
 	{
@@ -612,8 +612,8 @@ bool FighterAreaGuard::CanAttack(TechnoClass* pTarget, bool isPassiveAcquire)
 	if (pWeapon && pWeapon->WeaponType)
 	{
 		const auto pWH = pWeapon->WeaponType->Warhead;
-		const auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pWH);
-		const auto versus = &pWarheadExt->GetVerses(TechnoExt::GetTechnoArmor(pTarget, pWH));
+		const auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(pWH);
+		const auto versus = &pWarheadExt->GetVerses(TechnoExtData::GetTechnoArmor(pTarget, pWH));
 
 		if (isPassiveAcquire)
 		{
@@ -663,12 +663,12 @@ bool FighterAreaGuard::CheckTarget(TechnoClass* pTarget)
 
 	if (const auto pBuildingTarget = specific_cast<BuildingClass*>(pTarget))
 	{
-		if (BuildingExt::ExtMap.Find(pBuildingTarget)->LimboID != -1)
+		if (BuildingExtContainer::Instance.Find(pBuildingTarget)->LimboID != -1)
 			return false;
 	}
 	else if (pTarget->AbstractFlags & AbstractFlags::Foot)
 	{
-		if (TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTarget)))
+		if (TechnoExtData::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTarget)))
 			return false;
 	}
 
@@ -676,7 +676,7 @@ bool FighterAreaGuard::CheckTarget(TechnoClass* pTarget)
 	if (pTechTypeHere->Insignificant)
 		return false;
 
-	const auto pTargetTypeExt = TechnoTypeExt::ExtMap.Find(pTechTypeHere);
+	const auto pTargetTypeExt = TechnoTypeExtContainer::Instance.Find(pTechTypeHere);
 
 	if (pTargetTypeExt->IsDummy)
 		return false;

@@ -42,6 +42,7 @@
 DEFINE_DISABLE_HOOK(0x6d4684, TacticalClass_Draw_FlyingStrings_ares)
 DEFINE_DISABLE_HOOK(0x7258d0, AnnounceInvalidPointer_ares)
 DEFINE_DISABLE_HOOK(0x533058, CommandClassCallback_Register_ares)
+DEFINE_DISABLE_HOOK(0x679CAF, RulesData_LoadAfterTypeData_ares)
 
 DEFINE_OVERRIDE_HOOK(0x52C5E0 , Ares_NOLOGO , 0x7)
 {
@@ -51,14 +52,14 @@ DEFINE_OVERRIDE_HOOK(0x52C5E0 , Ares_NOLOGO , 0x7)
 DEFINE_OVERRIDE_HOOK(0x62A020, ParasiteClass_Update, 0xA)
 {
 	GET(TechnoClass*, pOwner, ECX);
-	R->EAX(pOwner->GetWeapon(TechnoExt::ExtMap.Find(pOwner)->idxSlot_Parasite));
+	R->EAX(pOwner->GetWeapon(TechnoExtContainer::Instance.Find(pOwner)->idxSlot_Parasite));
 	return 0x62A02A;
 }
 
 DEFINE_OVERRIDE_HOOK(0x62A7B1, Parasite_ExitUnit, 9)
 {
 	GET(TechnoClass*, pOwner, ECX);
-	R->EAX(pOwner->GetWeapon(TechnoExt::ExtMap.Find(pOwner)->idxSlot_Parasite));
+	R->EAX(pOwner->GetWeapon(TechnoExtContainer::Instance.Find(pOwner)->idxSlot_Parasite));
 	return 0x62A7BA;
 }
 
@@ -127,7 +128,7 @@ DEFINE_OVERRIDE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 0)
 //		if (AnimClass* pAnim = GameCreate<AnimClass>(AnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false))
 //		{
 //			pAnim->IsPlaying = true;
-//			AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, false);
+//			AnimExtData::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, false);
 //		}
 //	}
 //
@@ -186,7 +187,7 @@ DEFINE_OVERRIDE_HOOK(0x441C21, BuildingClass_Destroyed_Shake, 0x6)
 	if (!BuildingCost)
 		return 0x441C39;
 
-	if (!TechnoTypeExt::ExtMap.Find(pBld->Type)->DontShake.Get())
+	if (!TechnoTypeExtContainer::Instance.Find(pBld->Type)->DontShake.Get())
 		ShakeScreenHandle::ShakeScreen(pBld, BuildingCost, RulesClass::Instance->ShakeScreen);
 
 	return 0x441C39; //return 0 causing crash
@@ -202,7 +203,7 @@ DEFINE_OVERRIDE_HOOK(0x7387D1, UnitClass_Destroyed_Shake, 0x56)
 	if (!pUnit->Type->Strength)
 		return 0x738801;
 
-	if (!TechnoTypeExt::ExtMap.Find(pUnit->Type)->DontShake.Get())
+	if (!TechnoTypeExtContainer::Instance.Find(pUnit->Type)->DontShake.Get())
 		ShakeScreenHandle::ShakeScreen(pUnit, pUnit->Type->Strength, RulesClass::Instance->ShakeScreen);
 
 	return 0x738801;
@@ -427,7 +428,7 @@ DEFINE_OVERRIDE_HOOK(0x62A2F8, ParasiteClass_PointerGotInvalid, 0x6)
 
 	if (result == CoordStruct::Empty || CellClass::Coord2Cell(result) == CellStruct::Empty) {
 		Debug::Log("Parasite[%x : %s] With Invalid Location ! , Removing ! \n", Parasite, Parasite->Owner->get_ID());
-		TechnoExt::HandleRemove(Parasite->Owner, nullptr, false, false);
+		TechnoExtData::HandleRemove(Parasite->Owner, nullptr, false, false);
 		Parasite->Victim = nullptr;
 		return 0x62A47B; //pop the registers
 	}
@@ -462,7 +463,7 @@ DEFINE_OVERRIDE_HOOK(0x74A884, VoxelAnimClass_UpdateBounce_Damage, 0x6)
 
 	const auto nCoord = pThis->Bounce.GetCoords();
 	const auto pCell = MapClass::Instance->GetCellAt(nCoord);
-	const auto pInvoker = VoxelAnimExt::GetTechnoOwner(pThis);
+	const auto pInvoker = VoxelAnimExtData::GetTechnoOwner(pThis);
 
 	for (NextObject j(pCell->GetContent()); j; ++j)
 	{
@@ -592,9 +593,9 @@ DEFINE_OVERRIDE_HOOK(0x731E08, Select_By_Units_Text_FakeOf, 0x6)
 	{
 		if (const auto pTechno = generic_cast<const TechnoClass*>(pObj))
 		{
-			const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
+			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
 
-			TechnoTypeClass* pType = pTypeExt->Get();
+			TechnoTypeClass* pType = pTypeExt->AttachedToObject;
 			if (pTypeExt->Fake_Of.isset())
 				pType = pTypeExt->Fake_Of.Get();
 
@@ -609,7 +610,7 @@ DEFINE_OVERRIDE_HOOK(0x731E08, Select_By_Units_Text_FakeOf, 0x6)
 DEFINE_OVERRIDE_HOOK(0x6DA665, sub_6DA5C0_GroupAs, 0xA)
 {
 	GET(ObjectClass*, pThis, ESI);
-	R->EAX(TechnoTypeExt::GetSelectionGroupID(pThis->GetType()));
+	R->EAX(TechnoTypeExtData::GetSelectionGroupID(pThis->GetType()));
 	return R->Origin() + 13;
 }
 
@@ -662,7 +663,7 @@ DEFINE_OVERRIDE_HOOK(0x489270, CellChainReact, 5)
 		return 0x0;
 
 	if (ScenarioClass::Instance->Random.RandomFromMax(99) <
-		(RulesExt::Global()->ChainReact_Multiplier * pCell->OverlayData))
+		(RulesExtData::Instance()->ChainReact_Multiplier * pCell->OverlayData))
 	{
 		const bool wasFullGrown = (pCell->OverlayData >= 11);
 
@@ -674,7 +675,7 @@ DEFINE_OVERRIDE_HOOK(0x489270, CellChainReact, 5)
 		pCell->MarkForRedraw();
 
 		// get the warhead
-		auto pExt = TiberiumExt::ExtMap.Find(pTib);
+		auto pExt = TiberiumExtExtContainer::Instance.Find(pTib);
 		CoordStruct crd = pCell->GetCoords();
 
 		if(auto pWarhead = pExt->GetExplosionWarhead()) {
@@ -696,9 +697,9 @@ DEFINE_OVERRIDE_HOOK(0x489270, CellChainReact, 5)
 
 				if (pNeighbour->GetContainedTiberiumIndex() != -1 && pNeighbour->OverlayData > 2u)
 				{
-					if (ScenarioClass::Instance->Random.RandomFromMax(99) < RulesExt::Global()->ChainReact_SpreadChance)
+					if (ScenarioClass::Instance->Random.RandomFromMax(99) < RulesExtData::Instance()->ChainReact_SpreadChance)
 					{
-						int delay = ScenarioClass::Instance->Random.RandomRanged(RulesExt::Global()->ChainReact_MinDelay, RulesExt::Global()->ChainReact_MaxDelay);
+						int delay = ScenarioClass::Instance->Random.RandomRanged(RulesExtData::Instance()->ChainReact_MinDelay, RulesExtData::Instance()->ChainReact_MaxDelay);
 						crd = pNeighbour->GetCoords();
 
 						GameCreate<AnimClass>(pType, crd, delay, 1, 0x600, 0);
@@ -720,14 +721,14 @@ DEFINE_OVERRIDE_HOOK(0x424DD3, AnimClass_ReInit_TiberiumChainReaction_Chance, 6)
 {
 	GET(TiberiumClass*, pTib, EDI);
 
-	return ScenarioClass::Instance->Random.RandomFromMax(99) < TiberiumExt::ExtMap.Find(pTib)->GetDebrisChance()
+	return ScenarioClass::Instance->Random.RandomFromMax(99) < TiberiumExtExtContainer::Instance.Find(pTib)->GetDebrisChance()
 		? 0x424DF9 : 0x424E9B;
 }
 
 DEFINE_OVERRIDE_HOOK(0x424EC5, AnimClass_ReInit_TiberiumChainReaction_Damage, 6)
 {
 	GET(TiberiumClass*, pTib, EDI);
-	auto pExt = TiberiumExt::ExtMap.Find(pTib);
+	auto pExt = TiberiumExtExtContainer::Instance.Find(pTib);
 
 	R->Stack(0x0, pExt->GetExplosionWarhead());
 	R->EDX(pExt->GetExplosionDamage());
@@ -780,7 +781,7 @@ DEFINE_OVERRIDE_HOOK(0x71C5D2, TerrainClass_Ignite_IsFlammable, 6)
 DEFINE_OVERRIDE_HOOK(0x6AB8BB, SelectClass_ProcessInput_BuildTime, 6)
 {
 	GET(BuildingTypeClass* const, pBuildingProduct, ESI);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pBuildingProduct);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pBuildingProduct);
 
 	bool IsAWall = pBuildingProduct->Wall;
 	if (pBuildingProduct->Wall && pTypeExt->BuildTime_Speed.isset())
@@ -797,7 +798,7 @@ DEFINE_JUMP(LJMP, 0x715857, 0x715876);
 DEFINE_OVERRIDE_HOOK(0x711EE0, TechnoTypeClass_GetBuildSpeed, 6)
 {
 	GET(TechnoTypeClass* const, pThis, ECX);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis);
 	const auto nSeed = pTypeExt->BuildTime_Speed.Get(RulesClass::Instance->BuildSpeed);
 	const auto nCost = pTypeExt->BuildTime_Cost.Get(pThis->Cost);
 	R->EAX(int(nSeed * nCost / 1000.0 * 900.0));
@@ -1019,7 +1020,7 @@ DEFINE_OVERRIDE_HOOK(0x48248D, CellClass_CrateBeingCollected_MoneyRandom, 6)
 {
 	GET(int, nCur, EAX);
 
-	const auto nAdd = RulesExt::Global()->RandomCrateMoney;
+	const auto nAdd = RulesExtData::Instance()->RandomCrateMoney;
 
 	if (nAdd > 0)
 		nCur += ScenarioClass::Instance->Random.RandomFromMax(nAdd);
@@ -1040,7 +1041,7 @@ DEFINE_OVERRIDE_HOOK(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 
 	if (pTechnoType)
 	{
-		const auto pExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
+		const auto pExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 		nFallRate = (!bAnimAttached ? pExt->FallRate_NoParachute : pExt->FallRate_Parachute).Get();
 		auto& nCustomMaxFallRate = (!bAnimAttached ? pExt->FallRate_NoParachuteMax : pExt->FallRate_ParachuteMax);
 
@@ -1058,32 +1059,32 @@ DEFINE_OVERRIDE_HOOK(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 DEFINE_OVERRIDE_HOOK(0x481C6C, CellClass_CrateBeingCollected_Armor1, 6)
 {
 	GET(TechnoClass*, Unit, EDI);
-	return (TechnoExt::ExtMap.Find(Unit)->AE_ArmorMult == 1.0) ? 0x481D52 : 0x481C86;
+	return (TechnoExtContainer::Instance.Find(Unit)->AE_ArmorMult == 1.0) ? 0x481D52 : 0x481C86;
 }
 
 DEFINE_OVERRIDE_HOOK(0x481CE1, CellClass_CrateBeingCollected_Speed1, 6)
 {
 	GET(FootClass*, Unit, EDI);
-	return (TechnoExt::ExtMap.Find(Unit)->AE_SpeedMult == 1.0) ? 0x481D52 : 0x481C86;
+	return (TechnoExtContainer::Instance.Find(Unit)->AE_SpeedMult == 1.0) ? 0x481D52 : 0x481C86;
 }
 
 DEFINE_OVERRIDE_HOOK(0x481D0E, CellClass_CrateBeingCollected_Firepower1, 6)
 {
 	GET(TechnoClass*, Unit, EDI);
-	return (TechnoExt::ExtMap.Find(Unit)->AE_FirePowerMult == 1.0) ? 0x481D52 : 0x481C86;
+	return (TechnoExtContainer::Instance.Find(Unit)->AE_FirePowerMult == 1.0) ? 0x481D52 : 0x481C86;
 }
 
 DEFINE_OVERRIDE_HOOK(0x481D3D, CellClass_CrateBeingCollected_Cloak1, 6)
 {
 	GET(TechnoClass*, Unit, EDI);
 
-	if (Unit->CanICloakByDefault() || TechnoExt::ExtMap.Find(Unit)->AE_Cloak)
+	if (Unit->CanICloakByDefault() || TechnoExtContainer::Instance.Find(Unit)->AE_Cloak)
 	{
 		return 0x481C86;
 	}
 
 	// cloaking forbidden for type
-	return  (!TechnoTypeExt::ExtMap.Find(Unit->GetTechnoType())->CloakAllowed)
+	return  (!TechnoTypeExtContainer::Instance.Find(Unit->GetTechnoType())->CloakAllowed)
 		? 0x481C86 : 0x481D52;
 }
 
@@ -1091,7 +1092,7 @@ DEFINE_OVERRIDE_HOOK(0x481D3D, CellClass_CrateBeingCollected_Cloak1, 6)
 DEFINE_OVERRIDE_HOOK(0x48294F, CellClass_CrateBeingCollected_Cloak2, 7)
 {
 	GET(TechnoClass*, Unit, EDX);
-	TechnoExt::ExtMap.Find(Unit)->AE_Cloak = true;
+	TechnoExtContainer::Instance.Find(Unit)->AE_Cloak = true;
 	TechnoExt_ExtData::RecalculateStat(Unit);
 	return 0x482956;
 }
@@ -1101,9 +1102,9 @@ DEFINE_OVERRIDE_HOOK(0x482E57, CellClass_CrateBeingCollected_Armor2, 6)
 	GET(TechnoClass*, Unit, ECX);
 	GET_STACK(double, Pow_ArmorMultiplier, 0x20);
 
-	if (TechnoExt::ExtMap.Find(Unit)->AE_ArmorMult == 1.0)
+	if (TechnoExtContainer::Instance.Find(Unit)->AE_ArmorMult == 1.0)
 	{
-		TechnoExt::ExtMap.Find(Unit)->AE_ArmorMult = Pow_ArmorMultiplier;
+		TechnoExtContainer::Instance.Find(Unit)->AE_ArmorMult = Pow_ArmorMultiplier;
 		TechnoExt_ExtData::RecalculateStat(Unit);
 		R->AL(Unit->GetOwningHouse()->IsInPlayerControl);
 		return 0x482E89;
@@ -1119,9 +1120,9 @@ DEFINE_OVERRIDE_HOOK(0x48303A, CellClass_CrateBeingCollected_Speed2, 6)
 	// removed aircraft check
 	// these originally not allow those to gain speed mult
 
-	if (TechnoExt::ExtMap.Find(Unit)->AE_SpeedMult == 1.0)
+	if (TechnoExtContainer::Instance.Find(Unit)->AE_SpeedMult == 1.0)
 	{
-		TechnoExt::ExtMap.Find(Unit)->AE_SpeedMult = Pow_SpeedMultiplier;
+		TechnoExtContainer::Instance.Find(Unit)->AE_SpeedMult = Pow_SpeedMultiplier;
 		TechnoExt_ExtData::RecalculateStat(Unit);
 		R->CL(Unit->GetOwningHouse()->IsInPlayerControl);
 		return 0x483078;
@@ -1134,9 +1135,9 @@ DEFINE_OVERRIDE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 	GET(TechnoClass*, Unit, ECX);
 	GET_STACK(double, Pow_FirepowerMultiplier, 0x20);
 
-	if (TechnoExt::ExtMap.Find(Unit)->AE_FirePowerMult == 1.0)
+	if (TechnoExtContainer::Instance.Find(Unit)->AE_FirePowerMult == 1.0)
 	{
-		TechnoExt::ExtMap.Find(Unit)->AE_FirePowerMult = Pow_FirepowerMultiplier;
+		TechnoExtContainer::Instance.Find(Unit)->AE_FirePowerMult = Pow_FirepowerMultiplier;
 		TechnoExt_ExtData::RecalculateStat(Unit);
 		R->AL(Unit->GetOwningHouse()->IsInPlayerControl);
 		return 0x483258;
@@ -1152,8 +1153,8 @@ DEFINE_OVERRIDE_HOOK(0x71A84E, TemporalClass_UpdateA, 5)
 	// it's not guaranteed that there is a target
 	if (auto const pTarget = pThis->Target)
 	{
-		TechnoExt::ExtMap.Find(pTarget)->RadarJammer.reset(nullptr);
-		AresAE::UpdateTempoal(&TechnoExt::ExtMap.Find(pTarget)->AeData , pTarget);
+		TechnoExtContainer::Instance.Find(pTarget)->RadarJammer.reset(nullptr);
+		AresAE::UpdateTempoal(&TechnoExtContainer::Instance.Find(pTarget)->AeData , pTarget);
 	}
 
 	pThis->WarpRemaining -= pThis->GetWarpPerStep(0);
@@ -1168,10 +1169,10 @@ DEFINE_OVERRIDE_HOOK(0x413FD2, AircraftClass_Init_Academy, 6)
 
 	if (pThis->Owner)
 	{
-		if (pThis->Type->Trainable && HouseExt::ExtMap.Find(pThis->Owner)->Is_AirfieldSpied)
+		if (pThis->Type->Trainable && HouseExtContainer::Instance.Find(pThis->Owner)->Is_AirfieldSpied)
 			pThis->Veterancy.Veterancy = 1.0f;
 
-		HouseExt::ApplyAcademy(pThis->Owner, pThis, AbstractType::Aircraft);
+		HouseExtData::ApplyAcademy(pThis->Owner, pThis, AbstractType::Aircraft);
 	}
 
 	return 0;
@@ -1186,14 +1187,14 @@ DEFINE_OVERRIDE_HOOK(0x41D940, AirstrikeClass_Fire_AirstrikeAttackVoice, 5)
 	int index = RulesClass::Instance->AirstrikeAttackVoice;
 
 	// get from aircraft
-	const auto pAircraftExt = TechnoTypeExt::ExtMap.Find(pAirstrike->FirstObject->GetTechnoType());
+	const auto pAircraftExt = TechnoTypeExtContainer::Instance.Find(pAirstrike->FirstObject->GetTechnoType());
 	if (pAircraftExt->VoiceAirstrikeAttack.isset())
 		index = pAircraftExt->VoiceAirstrikeAttack.Get();
 
 	// get from designator
 	if (const auto pOwner = pAirstrike->Owner)
 	{
-		auto pOwnerExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
+		auto pOwnerExt = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType());
 
 		if (pOwnerExt->VoiceAirstrikeAttack.isset())
 			index = pOwnerExt->VoiceAirstrikeAttack.Get();
@@ -1211,14 +1212,14 @@ DEFINE_OVERRIDE_HOOK(0x41D5AE, AirstrikeClass_PointerGotInvalid_AirstrikeAbortSo
 	int index = RulesClass::Instance->AirstrikeAbortSound;
 
 	// get from aircraft
-	const auto pAircraftExt = TechnoTypeExt::ExtMap.Find(pAirstrike->FirstObject->GetTechnoType());
+	const auto pAircraftExt = TechnoTypeExtContainer::Instance.Find(pAirstrike->FirstObject->GetTechnoType());
 	if (pAircraftExt->VoiceAirstrikeAbort.isset())
 		index = pAircraftExt->VoiceAirstrikeAbort.Get();
 
 	// get from designator
 	if (const auto pOwner = pAirstrike->Owner)
 	{
-		auto pOwnerExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
+		auto pOwnerExt = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType());
 		if (pOwnerExt->VoiceAirstrikeAbort.isset())
 			index = pOwnerExt->VoiceAirstrikeAbort.Get();
 	}
@@ -1230,7 +1231,7 @@ DEFINE_OVERRIDE_HOOK(0x41D5AE, AirstrikeClass_PointerGotInvalid_AirstrikeAbortSo
 DEFINE_OVERRIDE_HOOK(0x4A8FF5, MapClass_CanBuildingTypeBePlacedHere_Ignore, 5)
 {
 	GET(BuildingClass*, pBuilding, ESI);
-	return BuildingExt::ExtMap.Find(pBuilding)->IsFromSW ? 0x4A8FFA : 0x0;
+	return BuildingExtContainer::Instance.Find(pBuilding)->IsFromSW ? 0x4A8FFA : 0x0;
 }
 
 
@@ -1305,13 +1306,13 @@ DEFINE_OVERRIDE_HOOK(0x4A76ED, DiskLaserClass_Update_Anim, 7)
 
 	auto const pWarhead = pThis->Weapon->Warhead;
 
-	if (RulesExt::Global()->DiskLaserAnimEnabled)
+	if (RulesExtData::Instance()->DiskLaserAnimEnabled)
 	{
 		auto const pType = MapClass::SelectDamageAnimation(
 			pThis->Damage, pWarhead, LandType::Clear, coords);
 
 		if (pType) {
-			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, coords),
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, coords),
 				pThis->Owner ? pThis->Owner->Owner : nullptr,
 				pThis->Target ? pThis->Target->Owner : nullptr,
 				false,
@@ -1381,12 +1382,12 @@ DEFINE_OVERRIDE_HOOK(0x5f5add, ObjectClass_SpawnParachuted_Animation, 6)
 	if (const auto pTechno = generic_cast<TechnoClass*>(pThis))
 	{
 		auto pType = pTechno->GetTechnoType();
-		auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		if (pTypeExt->IsBomb)
 			pThis->IsABomb = true;
 
-		R->EDX(pTypeExt->ParachuteAnim ? pTypeExt->ParachuteAnim : HouseExt::GetParachuteAnim(pTechno->Owner));
+		R->EDX(pTypeExt->ParachuteAnim ? pTypeExt->ParachuteAnim : HouseExtData::GetParachuteAnim(pTechno->Owner));
 		return 0x5F5AE3;
 	}
 
@@ -1439,11 +1440,11 @@ DEFINE_OVERRIDE_HOOK(0x5d7048, MPGameMode_SpawnBaseUnit_BuildConst, 5)
 
 	auto pHouseType = pHouse->Type;
 
-	if (!HouseTypeExt::ExtMap.Find(pHouseType)->StartInMultiplayer_WithConst)
+	if (!HouseTypeExtContainer::Instance.Find(pHouseType)->StartInMultiplayer_WithConst)
 		return 0;
 
 	auto idxParentCountry = HouseClass::FindIndexByName(pHouseType->ParentCountry);
-	const auto v7 = HouseExt::FindBuildable(pHouse, idxParentCountry, make_iterator(RulesClass::Instance->BuildConst), 0);
+	const auto v7 = HouseExtData::FindBuildable(pHouse, idxParentCountry, make_iterator(RulesClass::Instance->BuildConst), 0);
 
 	if (!v7) {
 		Debug::Log(__FUNCTION__" House of country [%s] cannot build anything from [General]BuildConst=.\n", pHouse->Type->ID);
@@ -1542,7 +1543,7 @@ void GetTypeList()
 	for (auto pHouse : *HouseClass::Array) {
 		if (!pHouse->Type->MultiplayPassive) {
 
-			const auto& data = HouseTypeExt::ExtMap.Find(pHouse->Type)->StartInMultiplayer_Types;
+			const auto& data = HouseTypeExtContainer::Instance.Find(pHouse->Type)->StartInMultiplayer_Types;
 			if (!data.empty()) {
 				types.assign(data.begin(), data.end());
 			}

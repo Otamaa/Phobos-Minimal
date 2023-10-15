@@ -1,4 +1,7 @@
 #include "GiftBoxFunctional.h"
+
+#include <Ext/TechnoType/Body.h>
+#include <Ext/Techno/Body.h>
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
 #include "GiftBox.h"
 #include "GiftBoxData.h"
@@ -12,7 +15,7 @@ const bool OpenDisallowed(TechnoClass* const pTechno)
 		if (pTechno->InLimbo)
 			return false;
 
-		const bool bIsOnWarfactory = TechnoExt::IsInWarfactory(pTechno);
+		const bool bIsOnWarfactory = TechnoExtData::IsInWarfactory(pTechno);
 
 		return pTechno->Absorbed ||
 			pTechno->InOpenToppedTransport ||
@@ -23,7 +26,7 @@ const bool OpenDisallowed(TechnoClass* const pTechno)
 	return false;
 }
 
-void GiftBoxFunctional::Init(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
+void GiftBoxFunctional::Init(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 {
 	if (!pTypeExt->MyGiftBoxData.Enable)
 		return;
@@ -38,22 +41,22 @@ void GiftBoxFunctional::Init(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* p
 
 }
 
-void GiftBoxFunctional::Destroy(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
+void GiftBoxFunctional::Destroy(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 {
-	if (!pExt->MyGiftBox || OpenDisallowed(pExt->Get()))
+	if (!pExt->MyGiftBox || OpenDisallowed(pExt->AttachedToObject))
 		return;
 
 	if (pTypeExt->MyGiftBoxData.OpenWhenDestoryed && !pExt->MyGiftBox->IsOpen)
 	{
-		pExt->MyGiftBox->Release(pExt->Get(), pTypeExt->MyGiftBoxData);
+		pExt->MyGiftBox->Release(pExt->AttachedToObject, pTypeExt->MyGiftBoxData);
 		pExt->MyGiftBox->IsOpen = true;
 	}
 
 }
 
-void GiftBoxFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
+void GiftBoxFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 {
-	if (!pExt->MyGiftBox || OpenDisallowed(pExt->Get()))
+	if (!pExt->MyGiftBox || OpenDisallowed(pExt->AttachedToObject))
 		return;
 
 	if (!pTypeExt->MyGiftBoxData.OpenWhenDestoryed &&
@@ -61,7 +64,7 @@ void GiftBoxFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTy
 		pExt->MyGiftBox->CanOpen())
 	{
 
-		pExt->MyGiftBox->Release(pExt->Get(), pTypeExt->MyGiftBoxData);
+		pExt->MyGiftBox->Release(pExt->AttachedToObject, pTypeExt->MyGiftBoxData);
 		pExt->MyGiftBox->IsOpen = true;
 	}
 
@@ -69,22 +72,22 @@ void GiftBoxFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTy
 	{
 		if (pTypeExt->MyGiftBoxData.Remove)
 		{
-			pExt->Get()->Limbo();
+			pExt->AttachedToObject->Limbo();
 			Debug::Log(__FUNCTION__" Called \n");
-			TechnoExt::HandleRemove(pExt->Get(),nullptr , false , false);
+			TechnoExtData::HandleRemove(pExt->AttachedToObject,nullptr , false , false);
 			return;
 		}
 
 		if (pTypeExt->MyGiftBoxData.Destroy)
 		{
 			auto nDamage = (pExt->Type->Strength);
-			pExt->Get()->ReceiveDamage(&nDamage, 0, RulesClass::Instance->C4Warhead, nullptr, false,
-				!pTypeExt->Get()->Crewed, nullptr);
+			pExt->AttachedToObject->ReceiveDamage(&nDamage, 0, RulesClass::Instance->C4Warhead, nullptr, false,
+				!pTypeExt->AttachedToObject->Crewed, nullptr);
 
 			return;
 		}
 
-		if(pExt->Get()->IsAlive)
+		if(pExt->AttachedToObject->IsAlive)
 		{
 			auto const nDelay = pTypeExt->MyGiftBoxData.DelayMax == 0 ?
 				pTypeExt->MyGiftBoxData.Delay :
@@ -98,20 +101,20 @@ void GiftBoxFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTy
 
 }
 
-void GiftBoxFunctional::TakeDamage(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt, WarheadTypeClass* pWH, DamageState nState)
+void GiftBoxFunctional::TakeDamage(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt, WarheadTypeClass* pWH, DamageState nState)
 {
 
 	if (!pExt->MyGiftBox.get())
 		return;
 
 	if (nState != DamageState::NowDead &&
-		(!OpenDisallowed(pExt->Get())) &&
+		(!OpenDisallowed(pExt->AttachedToObject)) &&
 		pTypeExt->MyGiftBoxData.OpenWhenHealthPercent.isset())
 	{
-		double healthPercent = pExt->Get()->GetHealthPercentage();
+		double healthPercent = pExt->AttachedToObject->GetHealthPercentage();
 		if (healthPercent <= pTypeExt->MyGiftBoxData.OpenWhenHealthPercent.Get())
 		{
-			pExt->MyGiftBox->Release(pExt->Get(), pTypeExt->MyGiftBoxData);
+			pExt->MyGiftBox->Release(pExt->AttachedToObject, pTypeExt->MyGiftBoxData);
 			pExt->MyGiftBox->IsOpen = true;
 		}
 	}

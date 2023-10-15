@@ -27,21 +27,21 @@ void PlayChronoSparkleAnim(TechnoClass* pTechno, CoordStruct* pLoc, int X_Offs =
 			}
 		}
 
-		AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, pVictim, pTInvoker, false);
+		AnimExtData::SetAnimOwnerHouseKind(pAnim, pOwner, pVictim, pTInvoker, false);
 	}
 }
 
 DEFINE_HOOK(0x73622F, UnitClass_AI_ChronoSparkle, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
-	PlayChronoSparkleAnim(pThis, &pThis->Location, 120 , RulesExt::Global()->ChronoSparkleDisplayDelay);
+	PlayChronoSparkleAnim(pThis, &pThis->Location, 120 , RulesExtData::Instance()->ChronoSparkleDisplayDelay);
 	return 0x7362A7;
 }
 
 DEFINE_HOOK(0x51BAF6, InfantryClass_AI_ChronoSparkle, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
-	PlayChronoSparkleAnim(pThis, &pThis->Location, 120, RulesExt::Global()->ChronoSparkleDisplayDelay);
+	PlayChronoSparkleAnim(pThis, &pThis->Location, 120, RulesExtData::Instance()->ChronoSparkleDisplayDelay);
 	return 0x51BB6E;
 
 }
@@ -49,7 +49,7 @@ DEFINE_HOOK(0x51BAF6, InfantryClass_AI_ChronoSparkle, 0x5)
 DEFINE_HOOK(0x414C06, AircraftClass_AI_ChronoSparkle, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
-	PlayChronoSparkleAnim(pThis, &pThis->Location, 0, RulesExt::Global()->ChronoSparkleDisplayDelay);
+	PlayChronoSparkleAnim(pThis, &pThis->Location, 0, RulesExtData::Instance()->ChronoSparkleDisplayDelay);
 	return 0x414C78;
 }
 
@@ -61,7 +61,7 @@ DEFINE_HOOK(0x4403D4, BuildingClass_AI_ChronoSparkle, 0x6)
 
 	if (RulesClass::Instance->ChronoSparkle1)
 	{
-		auto const displayPositions = RulesExt::Global()->ChronoSparkleBuildingDisplayPositions;
+		auto const displayPositions = RulesExtData::Instance()->ChronoSparkleBuildingDisplayPositions;
 		auto const pType = pThis->Type;
 		const bool displayOnBuilding = (displayPositions & ChronoSparkleDisplayPosition::Building) != ChronoSparkleDisplayPosition::None;
 		const bool displayOnSlots = (displayPositions & ChronoSparkleDisplayPosition::OccupantSlots) != ChronoSparkleDisplayPosition::None;
@@ -73,12 +73,12 @@ DEFINE_HOOK(0x4403D4, BuildingClass_AI_ChronoSparkle, 0x6)
 		{
 			for (int i = 0; i < occupantCount; i++)
 			{
-				if (!((Unsorted::CurrentFrame + i) % RulesExt::Global()->ChronoSparkleDisplayDelay))
+				if (!((Unsorted::CurrentFrame + i) % RulesExtData::Instance()->ChronoSparkleDisplayDelay))
 				{
 					auto offset =  TacticalClass::Instance->ApplyMatrix_Pixel(
 						(pType->MaxNumberOccupants <= 10 ?
 						pType->MuzzleFlash[i] :
-						BuildingTypeExt::ExtMap.Find(pType)->OccupierMuzzleFlashes[i])
+						BuildingTypeExtContainer::Instance.Find(pType)->OccupierMuzzleFlashes[i])
 					);
 
 					auto coords = pThis->GetRenderCoords();
@@ -99,7 +99,7 @@ DEFINE_HOOK(0x4403D4, BuildingClass_AI_ChronoSparkle, 0x6)
 							}
 						}
 
-						AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, pVictim, pTInvoker, false);
+						AnimExtData::SetAnimOwnerHouseKind(pAnim, pOwner, pVictim, pTInvoker, false);
 					}
 				}
 			}

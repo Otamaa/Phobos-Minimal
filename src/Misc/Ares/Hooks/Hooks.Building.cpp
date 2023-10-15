@@ -32,7 +32,7 @@ DEFINE_DISABLE_HOOK(0x679caf, RulesClass_LoadAfterTypeData_CompleteInitializatio
 DEFINE_OVERRIDE_HOOK(0x446EE2, BuildingClass_Place_InitialPayload, 6)
 {
 	GET(BuildingClass* const, pThis, EBP);
-	TechnoExt::ExtMap.Find(pThis)->CreateInitialPayload();
+	TechnoExtContainer::Instance.Find(pThis)->CreateInitialPayload();
 	return 0;
 }
 
@@ -42,7 +42,7 @@ DEFINE_OVERRIDE_HOOK(0x44D760, BuildingClass_Destroyed_UnitLost, 7)
 	GET_STACK(ObjectClass*, pKiller, 0x4);
 
 	const auto pType = pThis->Type;
-	auto pTechnoExt = TechnoExt::ExtMap.Find(pThis);
+	auto pTechnoExt = TechnoExtContainer::Instance.Find(pThis);
 
 	if (pTechnoExt->SupressEVALost
 		|| pType->DontScore
@@ -53,7 +53,7 @@ DEFINE_OVERRIDE_HOOK(0x44D760, BuildingClass_Destroyed_UnitLost, 7)
 		return 0x44D7C9;
 	}
 
-	VoxClass::PlayIndex(TechnoTypeExt::ExtMap.Find(pType)->EVA_UnitLost);
+	VoxClass::PlayIndex(TechnoTypeExtContainer::Instance.Find(pType)->EVA_UnitLost);
 
 	if (pKiller)
 	{
@@ -75,7 +75,7 @@ DEFINE_OVERRIDE_HOOK(0x451330, BuildingClass_GetCrewCount, 0xA)
 		auto pHouse = pThis->Owner;
 
 		// get the divisor
-		int divisor = HouseExt::GetSurvivorDivisor(pHouse);
+		int divisor = HouseExtData::GetSurvivorDivisor(pHouse);
 
 		if (divisor > 0)
 		{
@@ -109,7 +109,7 @@ DEFINE_OVERRIDE_HOOK(0x44EB10, BuildingClass_GetCrew, 9)
 	GET(BuildingClass*, pThis, ECX);
 
 	// YR defaults to 25 for buildings producing buildings
-	R->EAX(TechnoExt_ExtData::GetBuildingCrew(pThis, TechnoTypeExt::ExtMap.Find(pThis->Type)->
+	R->EAX(TechnoExt_ExtData::GetBuildingCrew(pThis, TechnoTypeExtContainer::Instance.Find(pThis->Type)->
 		Crew_EngineerChance.Get((pThis->Type->Factory == BuildingTypeClass::AbsID) ? 25 : 0)));
 
 	return 0x44EB5B;
@@ -126,7 +126,7 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 	if (!pThis->IsSelected || !HouseClass::CurrentPlayer)
 		return 0x43E8F2;
 
-	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
 
 	// helpers (with support for the new spy effect)
 	const bool bAllied = pThis->Owner->IsAlliedWith_(HouseClass::CurrentPlayer);
@@ -151,7 +151,7 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 				auto pProdType = pFactory->Object->GetTechnoType();
 				const int nTotal = pFactory->CountTotal(pProdType);
 				Point2D DrawCameoLoc = { pLocation->X , pLocation->Y + 45 };
-				const auto pProdTypeExt = TechnoTypeExt::ExtMap.Find(pProdType);
+				const auto pProdTypeExt = TechnoTypeExtContainer::Instance.Find(pProdType);
 				RectangleStruct cameoRect {};
 
 				// support for pcx cameos
@@ -221,16 +221,16 @@ DEFINE_OVERRIDE_HOOK(0x442D1B, BuildingClass_Init_Academy, 6)
 	if (!pThis->Owner)
 		return 0x0;
 
-	if (HouseTypeExt::ExtMap.Find(pThis->Owner->Type)->VeteranBuildings.Contains(pThis->Type))
+	if (HouseTypeExtContainer::Instance.Find(pThis->Owner->Type)->VeteranBuildings.Contains(pThis->Type))
 	{
 		pThis->Veterancy.Veterancy = 1.0f;
 	}
 
-	if (pThis->Type->Trainable && HouseExt::ExtMap.Find(pThis->Owner)->Is_ConstructionYardSpied)
+	if (pThis->Type->Trainable && HouseExtContainer::Instance.Find(pThis->Owner)->Is_ConstructionYardSpied)
 		pThis->Veterancy.Veterancy = 1.0f;
 
 
-	HouseExt::ApplyAcademy(pThis->Owner, pThis, AbstractType::Building);
+	HouseExtData::ApplyAcademy(pThis->Owner, pThis, AbstractType::Building);
 
 	return 0;
 }
@@ -272,7 +272,7 @@ DEFINE_OVERRIDE_HOOK(0x442974, BuildingClass_ReceiveDamage_Malicious, 6)
 	GET(BuildingClass*, pThis, ESI);
 	GET_STACK(WarheadTypeClass*, pWH, 0xA8);
 
-	BuildingExt::ExtMap.Find(pThis)->ReceiveDamageWarhead = pWH;
+	BuildingExtContainer::Instance.Find(pThis)->ReceiveDamageWarhead = pWH;
 	pThis->BuildingUnderAttack();
 
 	return 0x442980;
@@ -285,7 +285,7 @@ DEFINE_OVERRIDE_HOOK(0x442974, BuildingClass_ReceiveDamage_Malicious, 6)
 DEFINE_OVERRIDE_HOOK(0x44C844, BuildingClass_MissionRepair_Reload, 6)
 {
 	GET(BuildingClass* const, pThis, EBP);
-	auto const pExt = BuildingExt::ExtMap.Find(pThis);
+	auto const pExt = BuildingExtContainer::Instance.Find(pThis);
 
 	// ensure there are enough slots
 	pExt->DockReloadTimers.resize(pThis->RadioLinks.Capacity, -1);
@@ -333,7 +333,7 @@ DEFINE_OVERRIDE_HOOK(0x44C844, BuildingClass_MissionRepair_Reload, 6)
 				}
 
 				// set the next frame
-				auto const pLinkExt = TechnoTypeExt::ExtMap.Find(pLinkType);
+				auto const pLinkExt = TechnoTypeExtContainer::Instance.Find(pLinkType);
 				auto const defaultRate = RulesClass::Instance->ReloadRate;
 				auto const rate = pLinkExt->ReloadRate.Get(defaultRate);
 				auto const frames = static_cast<int>(rate * 900);
@@ -427,7 +427,7 @@ DEFINE_OVERRIDE_HOOK(0x4444E2, BuildingClass_KickOutUnit_FindAlternateKickout, 6
 	 && Tst->GetCurrentMission() == Mission::Guard
 	 && Tst->Type->Factory == Src->Type->Factory
 	 && Tst->Type->Naval == Src->Type->Naval
-	 && TechnoTypeExt::CanBeBuiltAt(Production->GetTechnoType(), Tst->Type)
+	 && TechnoTypeExtData::CanBeBuiltAt(Production->GetTechnoType(), Tst->Type)
 	 && !Tst->Factory)
 	{
 		return 0x44451F;
@@ -466,7 +466,7 @@ DEFINE_OVERRIDE_HOOK(0x69281E, DisplayClass_ChooseAction_TogglePower, 0xA) {
 				&& !pBld->IsStrange()
 				&& !pBld->IsBeingWarpedOut()
 				&& !pBld->IsUnderEMP()
-				&& !BuildingExt::ExtMap.Find(pBld)->AboutToChronoshift
+				&& !BuildingExtContainer::Instance.Find(pBld)->AboutToChronoshift
 				)
 			{
 				if (pBld->Type->CanTogglePower())
@@ -515,7 +515,7 @@ DEFINE_OVERRIDE_HOOK(0x441F12, BuildingClass_Destroy_RubbleYell, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 
 	// If this object has a rubble building set, turn
 	if (pTypeExt->RubbleDestroyed || pTypeExt->RubbleDestroyedRemove)
@@ -538,7 +538,7 @@ DEFINE_OVERRIDE_HOOK(0x519FAF, InfantryClass_UpdatePosition_EngineerRepairsFrien
 	GET(InfantryClass*, pThis, ESI);
 	GET(BuildingClass*, Target, EDI);
 
-	const auto TargetTypeExtData = BuildingTypeExt::ExtMap.Find(Target->Type);
+	const auto TargetTypeExtData = BuildingTypeExtContainer::Instance.Find(Target->Type);
 
 	if (TargetTypeExtData->RubbleIntact || TargetTypeExtData->RubbleIntactRemove)
 	{
@@ -551,7 +551,7 @@ DEFINE_OVERRIDE_HOOK(0x519FAF, InfantryClass_UpdatePosition_EngineerRepairsFrien
 		);
 
 		Debug::Log(__FUNCTION__" Called \n");
-		TechnoExt::HandleRemove(Target, nullptr, false, false);
+		TechnoExtData::HandleRemove(Target, nullptr, false, false);
 
 		if (pRubble)
 		{
@@ -597,8 +597,8 @@ DEFINE_OVERRIDE_HOOK(0x459ed0, BuildingClass_GetUIName, 6)
 	}
 
 	auto Type = pBld->Type;
-	if (TechnoTypeExt::ExtMap.Find(pBld->Type)->Fake_Of.isset())
-		Type = (BuildingTypeClass*)TechnoTypeExt::ExtMap.Find(pBld->Type)->Fake_Of.Get();
+	if (TechnoTypeExtContainer::Instance.Find(pBld->Type)->Fake_Of.isset())
+		Type = (BuildingTypeClass*)TechnoTypeExtContainer::Instance.Find(pBld->Type)->Fake_Of.Get();
 
 	R->EAX(Type->UIName);
 	return 0x459ED9;
@@ -608,7 +608,7 @@ DEFINE_OVERRIDE_HOOK(0x44e2b0, BuildingClass_Mi_Unload_LargeGap, 6)
 {
 	GET(BuildingClass*, pBld, EBP);
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pBld->Type);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pBld->Type);
 
 	if (!pTypeExt->SuperGapRadiusInCells)
 		return 0x44E371;
@@ -632,7 +632,7 @@ DEFINE_OVERRIDE_HOOK(0x4566d5, BuildingClass_GetRangeOfRadial_LargeGap, 6)
 {
 	GET(BuildingClass*, pBld, ESI);
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pBld->Type);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pBld->Type);
 	R->EAX((pBld->GapSuperCharged ? pTypeExt->SuperGapRadiusInCells : pTypeExt->GapRadiusInCells).Get());
 	return 0x456745;
 }
@@ -644,7 +644,7 @@ DEFINE_OVERRIDE_HOOK(0x44840B, BuildingClass_ChangeOwnership_Tech, 6)
 
 	if (pThis->Owner != pNewOwner)
 	{
-		const auto pExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+		const auto pExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 		const auto color = HouseClass::CurrentPlayer->ColorSchemeIndex;
 
 		if (pThis->Owner->ControlledByPlayer())
@@ -725,7 +725,7 @@ struct ProduceCashData
 
 			if (auto pType = FromType[i])
 			{
-				CurrentProduceCashBudget[i] = BuildingTypeExt::ExtMap.Find(pType)->AdditionalProduceCashData.ProduceCashBudget;
+				CurrentProduceCashBudget[i] = BuildingTypeExtContainer::Instance.Find(pType)->AdditionalProduceCashData.ProduceCashBudget;
 			}
 		}
 	}
@@ -734,7 +734,7 @@ struct ProduceCashData
 
 	static void AI(BuildingClass* pBld)
 	{
-		auto pExt = BuildingExt::ExtMap.Find(pBld);
+		auto pExt = BuildingExtContainer::Instance.Find(pBld);
 		auto additionaldata = &pExt->ProduceCashAdditionalData;
 		std::array<std::pair<BuildingTypeClass*, CDTimerClass*>, 4u> Timers
 		{ {
@@ -799,7 +799,7 @@ struct ProduceCashData
 	{
 		if (pBld->Owner->Type->MultiplayPassive)
 		{
-			auto pExt = BuildingExt::ExtMap.Find(pBld);
+			auto pExt = BuildingExtContainer::Instance.Find(pBld);
 			auto additionaldata = &pExt->ProduceCashAdditionalData;
 			std::array<std::pair<BuildingTypeClass*, CDTimerClass*>, 4u> Timers
 			{ {
@@ -813,7 +813,7 @@ struct ProduceCashData
 			{
 				if (auto pType = Timers[i].first)
 				{
-					const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pType);
+					const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
 
 					if (pType->ProduceCashStartup > 0)
 					{
@@ -853,7 +853,7 @@ struct ProduceCashData
 	// need to move !
 	static void GrandOpening(BuildingClass* pBld)
 	{
-		auto pExt = BuildingExt::ExtMap.Find(pBld);
+		auto pExt = BuildingExtContainer::Instance.Find(pBld);
 		auto additionaldata = &pExt->ProduceCashAdditionalData;
 		std::array<std::pair<BuildingTypeClass*, CDTimerClass*>, 4u> Timers
 		{ {
@@ -872,7 +872,7 @@ struct ProduceCashData
 					Timers[i].second->Start(pType->ProduceCashDelay + 1);
 				}
 
-				const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pType);
+				const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
 
 				if (pTypeExt->AdditionalProduceCashData.ProduceCashBudget > 0)
 				{
@@ -891,7 +891,7 @@ DEFINE_OVERRIDE_HOOK(0x4409F4, BuildingClass_Put_ProduceCash, 6)
 	GET(BuildingClass*, pThis, ESI);
 	GET(BuildingClass*, pToUpgrade, EDI);
 
-	auto pExt = BuildingExt::ExtMap.Find(pToUpgrade);
+	auto pExt = BuildingExtContainer::Instance.Find(pToUpgrade);
 
 	if (auto delay = pThis->Type->ProduceCashDelay)
 	{
@@ -924,7 +924,7 @@ DEFINE_OVERRIDE_HOOK(0x4409F4, BuildingClass_Put_ProduceCash, 6)
 			pOwner->UnitsSelfHeal += pUnitSelfHeal;
 	}
 
-	HouseExt::UpdateFactoryPlans(pThis);
+	HouseExtData::UpdateFactoryPlans(pThis);
 	return 0;
 }
 
@@ -934,7 +934,7 @@ DEFINE_OVERRIDE_HOOK(0x4482BD, BuildingClass_ChangeOwnership_ProduceCash, 6)
 	GET(HouseClass*, pNewOwner, EBX);
 
 	int startup = 0;
-	auto pExt = BuildingExt::ExtMap.Find(pThis);
+	auto pExt = BuildingExtContainer::Instance.Find(pThis);
 
 	std::array<std::pair<BuildingTypeClass*, CDTimerClass*>, 4u> Timers
 	{ {
@@ -967,9 +967,9 @@ DEFINE_OVERRIDE_HOOK(0x4482BD, BuildingClass_ChangeOwnership_ProduceCash, 6)
 		if (!pNewOwner->Type->MultiplayPassive)
 		{
 			pNewOwner->TransactMoney(startup);
-			if (BuildingTypeExt::ExtMap.Find(pThis->Type)->ProduceCashDisplay)
+			if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->ProduceCashDisplay)
 			{
-				TechnoExt::ExtMap.Find(pThis)->TechnoValueAmount += startup;
+				TechnoExtContainer::Instance.Find(pThis)->TechnoValueAmount += startup;
 			}
 		}
 	}
@@ -982,7 +982,7 @@ DEFINE_OVERRIDE_HOOK(0x43FD2C, BuildingClass_Update_ProduceCash, 6)
 	GET(BuildingClass*, pThis, ESI);
 
 	int produceAmount = 0;
-	auto pExt = BuildingExt::ExtMap.Find(pThis);
+	auto pExt = BuildingExtContainer::Instance.Find(pThis);
 
 	std::array<std::pair<BuildingTypeClass*, CDTimerClass*>, 4u> Timers
 	{ {
@@ -1015,9 +1015,9 @@ DEFINE_OVERRIDE_HOOK(0x43FD2C, BuildingClass_Update_ProduceCash, 6)
 	if (produceAmount && !pThis->Owner->Type->MultiplayPassive && pThis->IsPowerOnline())
 	{
 		pThis->Owner->TransactMoney(produceAmount);
-		if (BuildingTypeExt::ExtMap.Find(pThis->Type)->ProduceCashDisplay)
+		if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->ProduceCashDisplay)
 		{
-			TechnoExt::ExtMap.Find(pThis)->TechnoValueAmount += produceAmount;
+			TechnoExtContainer::Instance.Find(pThis)->TechnoValueAmount += produceAmount;
 		}
 	}
 
@@ -1446,7 +1446,7 @@ DEFINE_OVERRIDE_HOOK(0x4456E5, BuildingClass_UpdateConstructionOptions_ExcludeDi
 //		nPass;
 //		nPass = (FootClass*)nPass->NextObject)
 //	{
-//		if (TechnoTypeExt::ExtMap.Find(nPass->GetTechnoType())->CanBeReversed) {
+//		if (TechnoTypeExtContainer::Instance.Find(nPass->GetTechnoType())->CanBeReversed) {
 //			colle.push_back(nPass);
 //		}
 //
@@ -1456,7 +1456,7 @@ DEFINE_OVERRIDE_HOOK(0x4456E5, BuildingClass_UpdateConstructionOptions_ExcludeDi
 
 // https://bugs.launchpad.net/ares/+bug/1925359
 //bool ReverseEngineer(BuildingClass* pBuilding , TechnoClass* Victim) {
-//	auto pReverseData = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+//	auto pReverseData = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 //
 //	if (!pReverseData->ReverseEngineersVictims || !pBuilding->Owner) {
 //		return false;
@@ -1464,7 +1464,7 @@ DEFINE_OVERRIDE_HOOK(0x4456E5, BuildingClass_UpdateConstructionOptions_ExcludeDi
 //
 //	std::vector<TechnoClass*> Victims;
 //
-//	if(TechnoTypeExt::ExtMap.Find(Victim->GetTechnoType())->CanBeReversed)
+//	if(TechnoTypeExtContainer::Instance.Find(Victim->GetTechnoType())->CanBeReversed)
 //		Victims.push_back(Victim);
 //
 //	AddPassengers(Victims,Victim);
@@ -1474,7 +1474,7 @@ DEFINE_OVERRIDE_HOOK(0x4456E5, BuildingClass_UpdateConstructionOptions_ExcludeDi
 //	for(auto nColle : Victims) {
 //
 //		const auto VictimType = nColle->GetTechnoType();
-//		const auto pVictimTypeExt = TechnoTypeExt::ExtMap.Find(VictimType);
+//		const auto pVictimTypeExt = TechnoTypeExtContainer::Instance.Find(VictimType);
 //		const auto pVictimAs = pVictimTypeExt->ReversedAs.Get(VictimType);
 //
 //		if(std::find_if(std::begin(nVec), std::end(nVec), [&](TechnoTypeClass* pTech) { return pTech == pVictimAs; }) == std::end(nVec)) {
@@ -1514,7 +1514,7 @@ void AddPassengers(BuildingClass* const Grinder, TechnoClass* Vic)
 	{
 		const auto pType = nPass->GetTechnoType();
 
-		if (BuildingExt::ReverseEngineer(Grinder, Vic))
+		if (BuildingExtData::ReverseEngineer(Grinder, Vic))
 		{
 			if (nPass->Owner && nPass->Owner->ControlledByPlayer())
 			{
@@ -1545,7 +1545,7 @@ DEFINE_OVERRIDE_HOOK(0x73A1BC, UnitClass_UpdatePosition_EnteredGrinder, 0x7)
 	//ReverseEngineer(Grinder, Vehicle);
 
 	// TODO : bring  ReverseEngineer in later
-	if (BuildingExt::ReverseEngineer(Grinder, Vehicle))
+	if (BuildingExtData::ReverseEngineer(Grinder, Vehicle))
 	{
 		if (Vehicle->Owner && Vehicle->Owner->ControlledByPlayer())
 		{
@@ -1588,7 +1588,7 @@ DEFINE_OVERRIDE_HOOK(0x5198AD, InfantryClass_UpdatePosition_EnteredGrinder, 0x6)
 	//ReverseEngineer(Grinder, Infantry);
 
 	// TODO : bring  ReverseEngineer in later
-	if (BuildingExt::ReverseEngineer(Grinder, Infantry))
+	if (BuildingExtData::ReverseEngineer(Grinder, Infantry))
 	{
 		if (Infantry->Owner->ControlledByPlayer())
 		{
@@ -1614,7 +1614,7 @@ DEFINE_OVERRIDE_HOOK(0x5198AD, InfantryClass_UpdatePosition_EnteredGrinder, 0x6)
 bool NOINLINE IsSabotagable(BuildingClass const* const pThis)
 {
 	const auto pType = pThis->Type;
-	const auto pExt = BuildingTypeExt::ExtMap.Find(pType);
+	const auto pExt = BuildingTypeExtContainer::Instance.Find(pType);
 	const auto civ_occupiable = pType->CanBeOccupied && pType->TechLevel == -1;
 	const auto default_sabotabable = pType->CanC4 && !civ_occupiable;
 
@@ -1639,7 +1639,7 @@ Action NOINLINE GetiInfiltrateActionResult(InfantryClass* pInf, BuildingClass* p
 			return Action::Move;
 	}
 
-	auto const bIsSaboteur = TechnoTypeExt::ExtMap.Find(pInfType)->Saboteur.Get();
+	auto const bIsSaboteur = TechnoTypeExtContainer::Instance.Find(pInfType)->Saboteur.Get();
 
 	if (bIsSaboteur && IsSabotagable(pBuilding))
 		return Action::NoMove;
@@ -1675,7 +1675,7 @@ DEFINE_OVERRIDE_HOOK(0x51EE6B, InfantryClass_GetActionOnObject_Saboteur, 6)
 	{
 		if (pThis->Owner && !pThis->Owner->IsAlliedWith_(pBldObject))
 		{
-			const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBldObject->Type);
+			const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBldObject->Type);
 
 			switch (GetiInfiltrateActionResult(pThis, pBldObject))
 			{
@@ -1708,7 +1708,7 @@ DEFINE_OVERRIDE_HOOK(0x51E635, InfantryClass_GetActionOnObject_EngineerOverFrien
 	GET(BuildingClass* const, pTarget, ESI);
 	GET(InfantryClass* const, pThis, EDI);
 
-	const auto pData = BuildingTypeExt::ExtMap.Find(pTarget->Type);
+	const auto pData = BuildingTypeExtContainer::Instance.Find(pTarget->Type);
 
 	if ((pData->RubbleIntact || pData->RubbleIntactRemove) && pTarget->Owner->IsAlliedWith_(pThis))
 	{
@@ -1723,7 +1723,7 @@ DEFINE_OVERRIDE_HOOK(0x51E635, InfantryClass_GetActionOnObject_EngineerOverFrien
 DEFINE_OVERRIDE_HOOK(0x51FA82, InfantryClass_GetActionOnCell_EngineerRepairable, 6)
 {
 	GET(BuildingTypeClass* const, pBuildingType, EBP);
-	R->AL(BuildingTypeExt::ExtMap.Find(pBuildingType)
+	R->AL(BuildingTypeExtContainer::Instance.Find(pBuildingType)
 		->EngineerRepairable.Get(pBuildingType->Repairable));
 	return 0x51FA88;
 }
@@ -1731,7 +1731,7 @@ DEFINE_OVERRIDE_HOOK(0x51FA82, InfantryClass_GetActionOnCell_EngineerRepairable,
 DEFINE_OVERRIDE_HOOK(0x51E4ED, InfantryClass_GetActionOnObject_EngineerRepairable, 6)
 {
 	GET(BuildingClass* const, pBuilding, ESI);
-	R->CL(BuildingTypeExt::ExtMap.Find(pBuilding->Type)
+	R->CL(BuildingTypeExtContainer::Instance.Find(pBuilding->Type)
 		->EngineerRepairable.Get(pBuilding->Type->Repairable));
 	return 0x51E4F3;
 }
@@ -1753,11 +1753,11 @@ DEFINE_OVERRIDE_HOOK(0x51B2CB, InfantryClass_SetTarget_Saboteur, 0x6)
 
 bool ApplyC4ToBuilding(InfantryClass* const pThis, BuildingClass* const pBuilding, const bool IsSaboteur)
 {
-	const auto pInfext = InfantryTypeExt::ExtMap.Find(pThis->Type);
+	const auto pInfext = InfantryTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (pBuilding->IsIronCurtained() || pBuilding->IsBeingWarpedOut()
 		|| pBuilding->GetCurrentMission() == Mission::Selling
-		|| BuildingExt::ExtMap.Find(pBuilding)->AboutToChronoshift
+		|| BuildingExtContainer::Instance.Find(pBuilding)->AboutToChronoshift
 		)
 	{
 		pThis->AbortMotion();
@@ -1789,7 +1789,7 @@ bool ApplyC4ToBuilding(InfantryClass* const pThis, BuildingClass* const pBuildin
 	pBuilding->IsGoingToBlow = true;
 	pBuilding->C4AppliedBy = pThis;
 
-	const auto pData = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+	const auto pData = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 	const auto delay = pInfext->C4Delay.Get(RulesClass::Instance->C4Delay);
 
 	auto duration = (int)(delay * 900.0);
@@ -1802,7 +1802,7 @@ bool ApplyC4ToBuilding(InfantryClass* const pThis, BuildingClass* const pBuildin
 			duration = 1;
 	}
 
-	//auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
+	//auto pBldExt = BuildingExtContainer::Instance.Find(pBuilding);
 	//if (pInfext->C4Damage.isset())
 	//{
 	//	pBldExt->C4Damage = pInfext->C4Damage;
@@ -1985,7 +1985,7 @@ DEFINE_OVERRIDE_HOOK(0x709B4E, TechnoClass_DrawPipscale_SkipSkipTiberium, 6)
 		{
 			// show only if this refinery uses storage. otherwise, the original
 			// refineries would show an unused tiberium pip scale
-			showTiberium = TechnoTypeExt::ExtMap.Find(pBld->Type)->Refinery_UseStorage;
+			showTiberium = TechnoTypeExtContainer::Instance.Find(pBld->Type)->Refinery_UseStorage;
 		}
 	}
 
@@ -2030,7 +2030,7 @@ DEFINE_OVERRIDE_HOOK(0x455DA0, BuildingClass_IsFactory_CloningFacility, 6)
 	const auto what = pThis->Type->Factory;
 
 	if(what == AircraftTypeClass::AbsID
-		|| BuildingTypeExt::ExtMap.Find(pThis->Type)->CloningFacility)
+		|| BuildingTypeExtContainer::Instance.Find(pThis->Type)->CloningFacility)
 		return 0x455DCD;
 
 	return 0x0;
@@ -2040,7 +2040,7 @@ DEFINE_OVERRIDE_HOOK(0x4444B3, BuildingClass_KickOutUnit_NoAlternateKickout, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	return pThis->Type->Factory == AbstractType::None
-		|| BuildingTypeExt::ExtMap.Find(pThis->Type)->CloningFacility.Get()
+		|| BuildingTypeExtContainer::Instance.Find(pThis->Type)->CloningFacility.Get()
 		? 0x4452C5 : 0x0;
 }
 
@@ -2048,9 +2048,9 @@ DEFINE_OVERRIDE_HOOK(0x446366, BuildingClass_Place_Academy, 6)
 {
 	GET(BuildingClass*, pThis, EBP);
 
-	if (BuildingTypeExt::ExtMap.Find(pThis->Type)->IsAcademy() && pThis->Owner)
+	if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->IsAcademy() && pThis->Owner)
 	{
-		HouseExt::UpdateAcademy(pThis->Owner, pThis, true);
+		HouseExtData::UpdateAcademy(pThis->Owner, pThis, true);
 	}
 
 	return 0x446382;
@@ -2061,9 +2061,9 @@ DEFINE_OVERRIDE_HOOK(0x445905, BuildingClass_Remove_Academy, 6)
 	GET(BuildingClass*, pThis, ESI);
 
 	if (pThis->IsOnMap &&
-		BuildingTypeExt::ExtMap.Find(pThis->Type)->IsAcademy() && pThis->Owner)
+		BuildingTypeExtContainer::Instance.Find(pThis->Type)->IsAcademy() && pThis->Owner)
 	{
-		HouseExt::UpdateAcademy(pThis->Owner, pThis, false);
+		HouseExtData::UpdateAcademy(pThis->Owner, pThis, false);
 	}
 
 	R->ECX(pThis->Type);
@@ -2075,9 +2075,9 @@ DEFINE_OVERRIDE_HOOK(0x448AB2, BuildingClass_ChangeOwnership_UnregisterFunction,
 	GET(BuildingClass*, pThis, ESI);
 
 	if (pThis->IsOnMap &&
-		BuildingTypeExt::ExtMap.Find(pThis->Type)->IsAcademy() && pThis->Owner)
+		BuildingTypeExtContainer::Instance.Find(pThis->Type)->IsAcademy() && pThis->Owner)
 	{
-		HouseExt::UpdateAcademy(pThis->Owner, pThis, false);
+		HouseExtData::UpdateAcademy(pThis->Owner, pThis, false);
 	}
 
 	//if (pThis->Type->OrePurifier && pThis->Owner)
@@ -2090,10 +2090,10 @@ DEFINE_OVERRIDE_HOOK(0x4491D5, BuildingClass_ChangeOwnership_RegisterFunction, 6
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	if (BuildingTypeExt::ExtMap.Find(pThis->Type)->IsAcademy()
+	if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->IsAcademy()
 		 && pThis->Owner)
 	{
-		HouseExt::UpdateAcademy(pThis->Owner, pThis, true);
+		HouseExtData::UpdateAcademy(pThis->Owner, pThis, true);
 	}
 
 	//if (pThis->Type->OrePurifier && pThis->Owner)
@@ -2115,7 +2115,7 @@ DEFINE_OVERRIDE_HOOK(0x446AAF, BuildingClass_Place_SkipFreeUnits, 6)
 	// only once.
 	GET(BuildingClass*, pBld, EBP);
 
-	auto pBldExt = TechnoExt::ExtMap.Find(pBld);
+	auto pBldExt = TechnoExtContainer::Instance.Find(pBld);
 
 	// skip handling free units
 	if (pBldExt->FreeUnitDone)
@@ -2132,7 +2132,7 @@ DEFINE_OVERRIDE_HOOK(0x4494D2, BuildingClass_IsSellable, 6)
 	GET(BuildingClass*, pThis, ESI);
 
 	// enemy shouldn't be able to sell "borrowed" buildings
-	return BuildingExt::ExtMap.Find(pThis)->OwnerBeforeRaid ? Unsellable : Undecided;
+	return BuildingExtContainer::Instance.Find(pThis)->OwnerBeforeRaid ? Unsellable : Undecided;
 }
 
 DEFINE_OVERRIDE_HOOK(0x449518, BuildingClass_IsSellable_FirestormWall, 6)
@@ -2141,13 +2141,13 @@ DEFINE_OVERRIDE_HOOK(0x449518, BuildingClass_IsSellable_FirestormWall, 6)
 	//GET(BuildingClass*, pThis, ESI);
 
 	GET(BuildingTypeClass*, pType, ECX);
-	return BuildingTypeExt::ExtMap.Find(pType)->Firestorm_Wall ? CheckHouseFireWallActive : ReturnFalse;
+	return BuildingTypeExtContainer::Instance.Find(pType)->Firestorm_Wall ? CheckHouseFireWallActive : ReturnFalse;
 }
 
 DEFINE_OVERRIDE_HOOK(0x44E550, BuildingClass_Mi_Open_GateDown, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
-	R->ECX(BuildingTypeExt::ExtMap.Find(pThis->Type)->GateDownSound
+	R->ECX(BuildingTypeExtContainer::Instance.Find(pThis->Type)->GateDownSound
 		.Get(RulesClass::Instance->GateDown));
 	return 0x44E556;
 }
@@ -2156,7 +2156,7 @@ DEFINE_OVERRIDE_HOOK(0x44E61E, BuildingClass_Mi_Open_GateUp, 6)
 {
 	GET(DWORD, offset, ESI);
 	const auto pThis = reinterpret_cast<BuildingClass*>(offset - 0x9C);
-	R->ECX(BuildingTypeExt::ExtMap.Find(pThis->Type)->GateUpSound
+	R->ECX(BuildingTypeExtContainer::Instance.Find(pThis->Type)->GateUpSound
 		.Get(RulesClass::Instance->GateUp));
 	return 0x44E624;
 }
@@ -2164,7 +2164,7 @@ DEFINE_OVERRIDE_HOOK(0x44E61E, BuildingClass_Mi_Open_GateUp, 6)
 DEFINE_OVERRIDE_HOOK(0x4509B4, BuildingClass_UpdateRepair_Funds, 7)
 {
 	GET(BuildingClass*, pThis, ESI);
-	return !pThis->Owner->IsControlledByHuman_() || RulesExt::Global()->RepairStopOnInsufficientFunds
+	return !pThis->Owner->IsControlledByHuman_() || RulesExtData::Instance()->RepairStopOnInsufficientFunds
 		? 0x0 : 0x4509BB;
 }
 
@@ -2190,7 +2190,7 @@ DEFINE_OVERRIDE_HOOK(0x4566B0, BuildingClass_GetRangeOfRadial_Radius, 6)
 	};
 
 	GET(BuildingClass*, pThis, ECX);
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (!pExt->RadialIndicatorRadius.isset())
 		return Nothing;
@@ -2203,7 +2203,7 @@ DEFINE_HOOK(0x456768, BuildingClass_DrawRadialIndicator_Always, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	return pExt->AlwayDrawRadialIndicator.Get(pThis->HasPower) ?
 		0x456776 : 0x456962;
@@ -2238,7 +2238,7 @@ DEFINE_OVERRIDE_HOOK(0x441f2c, BuildingClass_Destroy_KickOutOfRubble, 5)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (pTypeExt->RubbleDestroyed || pTypeExt->RubbleIntact)
 		TechnoExt_ExtData::KickOutOfRubble(pThis);
@@ -2249,21 +2249,21 @@ DEFINE_OVERRIDE_HOOK(0x441f2c, BuildingClass_Destroy_KickOutOfRubble, 5)
 DEFINE_OVERRIDE_HOOK(0x465A48, BuildingTypeClass_GetBuildup_BuildupTime, 5)
 {
 	GET(BuildingTypeClass*, pThis, ESI);
-	BuildingTypeExt::UpdateBuildupFrames(pThis);
+	BuildingTypeExtData::UpdateBuildupFrames(pThis);
 	return 0x465AAE;
 }
 
 DEFINE_OVERRIDE_HOOK(0x45EAA5, BuildingTypeClass_LoadArt_BuildupTime, 6)
 {
 	GET(BuildingTypeClass*, pThis, ESI);
-	BuildingTypeExt::UpdateBuildupFrames(pThis);
+	BuildingTypeExtData::UpdateBuildupFrames(pThis);
 	return 0x45EB3A;
 }
 
 DEFINE_OVERRIDE_HOOK(0x45F2B4, BuildingTypeClass_Load2DArt_BuildupTime, 5)
 {
 	GET(BuildingTypeClass*, pThis, EBP);
-	BuildingTypeExt::UpdateBuildupFrames(pThis);
+	BuildingTypeExtData::UpdateBuildupFrames(pThis);
 	return 0x45F310;
 }
 
@@ -2274,7 +2274,7 @@ DEFINE_OVERRIDE_HOOK(0x447a63, BuildingClass_QueueImageAnim_Sell, 3)
 
 	if (pThis->CurrentMission == Mission::Selling)
 	{
-		R->EAX(BuildingTypeExt::ExtMap.Find(pThis->Type)->SellFrames);
+		R->EAX(BuildingTypeExtContainer::Instance.Find(pThis->Type)->SellFrames);
 	}
 	else
 	{
@@ -2288,7 +2288,7 @@ DEFINE_OVERRIDE_HOOK(0x447a63, BuildingClass_QueueImageAnim_Sell, 3)
 DEFINE_OVERRIDE_HOOK(0x459C03, BuildingClass_CanBeSelectedNow_MassSelectable, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (pTypeExt->MassSelectable.Get(pThis->Type->IsUndeployable()))
 	{
@@ -2309,7 +2309,7 @@ DEFINE_OVERRIDE_HOOK(0x457D58, BuildingClass_CanBeOccupied_SpecificOccupiers, 6)
 	if (!pInf->Type->Occupier)
 		return 0x457DA3;
 
-	BuildingTypeExt::ExtData* pBuildTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+	BuildingTypeExtData* pBuildTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 	if (!pBuildTypeExt->CanBeOccupiedBy(pInf))
 		return 0x457DA3;
 
@@ -2346,10 +2346,10 @@ DEFINE_OVERRIDE_HOOK(0x52297F, InfantryClass_GarrisonBuilding_OccupierEntered, 5
 	GET(InfantryClass*, pInf, ESI);
 	GET(BuildingClass*, pBld, EBP);
 
-	TechnoExt::ExtMap.Find(pInf)->GarrisonedIn = pBld;
+	TechnoExtContainer::Instance.Find(pInf)->GarrisonedIn = pBld;
 	//pInf->Target = nullptr; //reset targeting
 
-	auto buildingExtData = BuildingExt::ExtMap.Find(pBld);
+	auto buildingExtData = BuildingExtContainer::Instance.Find(pBld);
 
 	// if building and owner are from different players, and the building is not in raided state
 	// change the building's owner and mark it as raided
@@ -2371,7 +2371,7 @@ DEFINE_OVERRIDE_HOOK(0x52297F, InfantryClass_GarrisonBuilding_OccupierEntered, 5
 DEFINE_OVERRIDE_HOOK(0x455828, BuildingClass_SensorArrayActivate, 8)
 {
 	GET(BuildingClass*, pBld, ECX);
-	auto pExt = BuildingExt::ExtMap.Find(pBld);
+	auto pExt = BuildingExtContainer::Instance.Find(pBld);
 
 	// only add sensor if ActiveCount was zero
 	if (pBld->IsPowerOnline() && !pBld->Deactivated && !pExt->SensorArrayActiveCounter++)
@@ -2385,7 +2385,7 @@ DEFINE_OVERRIDE_HOOK(0x455828, BuildingClass_SensorArrayActivate, 8)
 DEFINE_OVERRIDE_HOOK(0x4556E1, BuildingClass_SensorArrayDeactivate, 7)
 {
 	GET(BuildingClass*, pBld, ECX);
-	auto pExt = BuildingExt::ExtMap.Find(pBld);
+	auto pExt = BuildingExtContainer::Instance.Find(pBld);
 
 	// don't do the same work twice
 	if (pExt->SensorArrayActiveCounter > 0)
@@ -2424,7 +2424,7 @@ DEFINE_OVERRIDE_HOOK(0x43FE69, BuildingClass_Update_SensorArray, 0xA)
 {
 	GET(BuildingClass*, pThis, ESI);
 	TechnoExt_ExtData::UpdateSensorArray(pThis);
-	const auto pExt = BuildingExt::ExtMap.Find(pThis);
+	const auto pExt = BuildingExtContainer::Instance.Find(pThis);
 	pExt->DisplayIncomeString();
 	pExt->UpdatePoweredKillSpawns();
 	pExt->UpdateAutoSellTimer();
@@ -2434,7 +2434,7 @@ DEFINE_OVERRIDE_HOOK(0x43FE69, BuildingClass_Update_SensorArray, 0xA)
 DEFINE_OVERRIDE_HOOK(0x454BDC, BuildingClass_UpdatePowered_LargeGap, 7)
 {
 	GET(BuildingTypeClass*, pType, ECX);
-	R->EDX(TechnoTypeExt::ExtMap.Find(pType)->GapRadiusInCells.Get());
+	R->EDX(TechnoTypeExtContainer::Instance.Find(pType)->GapRadiusInCells.Get());
 	return 0x454BE3;
 }
 
@@ -2453,10 +2453,10 @@ DEFINE_OVERRIDE_HOOK(0x445F80, BuildingClass_Place, 5)
 	GET(BuildingClass*, pThis, ECX);
 
 	if (pThis->Type->SecretLab) {
-		BuildingExt::UpdateSecretLab(pThis);
+		BuildingExtData::UpdateSecretLab(pThis);
 	}
 
-	HouseExt::UpdateFactoryPlans(pThis);
+	HouseExtData::UpdateFactoryPlans(pThis);
 	return 0;
 }
 
@@ -2465,20 +2465,20 @@ DEFINE_OVERRIDE_HOOK(0x445F80, BuildingClass_Place, 5)
 DEFINE_OVERRIDE_HOOK(0x452287, BuildingClass_GoOnline_TogglePower, 6)
 {
 	GET(BuildingClass* const, pThis, ESI);
-	BuildingExt::ExtMap.Find(pThis)->TogglePower_HasPower = true;
+	BuildingExtContainer::Instance.Find(pThis)->TogglePower_HasPower = true;
 	return 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x452393, BuildingClass_GoOffline_TogglePower, 7)
 {
 	GET(BuildingClass* const, pThis, ESI);
-	BuildingExt::ExtMap.Find(pThis)->TogglePower_HasPower = false;
+	BuildingExtContainer::Instance.Find(pThis)->TogglePower_HasPower = false;
 	return 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x452210, BuildingClass_Enable_TogglePower, 7)
 {
 	GET(BuildingClass* const, pThis, ECX);
-	pThis->HasPower = BuildingExt::ExtMap.Find(pThis)->TogglePower_HasPower;
+	pThis->HasPower = BuildingExtContainer::Instance.Find(pThis)->TogglePower_HasPower;
 	return 0x452217;
 }

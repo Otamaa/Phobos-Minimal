@@ -7,16 +7,16 @@
 #include <Utilities/Macro.h>
 #include <Notifications.h>
 
-void RadSiteExt::ExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
+void RadSiteExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(TechOwner, ptr , bRemoved);
 	AnnounceInvalidPointer(HouseOwner, ptr);
 }
 
-void RadSiteExt::CreateInstance(CoordStruct const& nCoord, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt, TechnoClass* const pTech)
+void RadSiteExtData::CreateInstance(CoordStruct const& nCoord, int spread, int amount, WeaponTypeExtData* pWeaponExt, TechnoClass* const pTech)
 {
 	// use real ctor
-	const auto pRadExt = RadSiteExt::ExtMap.TryFind(GameCreate<RadSiteClass>());
+	const auto pRadExt = RadSiteExtContainer::Instance.TryFind(GameCreate<RadSiteClass>());
 
 	if (!pRadExt)
 		Debug::FatalErrorAndExit("Uneable To find Ext for Radsite ! \n");
@@ -24,13 +24,13 @@ void RadSiteExt::CreateInstance(CoordStruct const& nCoord, int spread, int amoun
 	//Adding Owner to RadSite, from bullet
 	if (pWeaponExt)
 	{
-		pRadExt->Weapon = pWeaponExt->Get();
-		pRadExt->Type = pWeaponExt->RadType.Get(RadTypeClass::Find(RADIATION_SECTION));
+		pRadExt->Weapon = pWeaponExt->AttachedToObject;
+		pRadExt->Type = pWeaponExt->RadType.Get(0);
 		pRadExt->NoOwner = pWeaponExt->Rad_NoOwner.Get();
 	}
 	else
 	{
-		pRadExt->Type = RadTypeClass::Find(RADIATION_SECTION);
+		pRadExt->Type = RadTypeClass::Array[0].get();
 	}
 
 	if (pTech && pRadExt->Type->GetHasInvoker() && !pRadExt->NoOwner && pRadExt->Type->GetHasOwner())
@@ -39,17 +39,17 @@ void RadSiteExt::CreateInstance(CoordStruct const& nCoord, int spread, int amoun
 		pRadExt->TechOwner = pTech;
 	}
 
-	pRadExt->Get()->BaseCell = CellClass::Coord2Cell(nCoord);
-	pRadExt->Get()->SetSpread(spread);
+	pRadExt->AttachedToObject->BaseCell = CellClass::Coord2Cell(nCoord);
+	pRadExt->AttachedToObject->SetSpread(spread);
 	pRadExt->SetRadLevel(amount);
 	pRadExt->CreateLight();
 
 }
 
 //RadSiteClass Activate , Rewritten
-void RadSiteExt::ExtData::CreateLight()
+void RadSiteExtData::CreateLight()
 {
-	const auto pThis = this->Get();
+	const auto pThis = this->AttachedToObject;
 	const auto nLevelDelay = this->Type->GetLevelDelay();
 	const auto nLightDelay = this->Type->GetLightDelay();
 	const auto nRadcolor = this->Type->GetColor();
@@ -91,9 +91,9 @@ void RadSiteExt::ExtData::CreateLight()
 }
 
 // Rewrite because of crashing craziness
-void RadSiteExt::ExtData::Add(int amount)
+void RadSiteExtData::Add(int amount)
 {
-	const auto pThis = this->Get();
+	const auto pThis = this->AttachedToObject;
 	pThis->Deactivate();
 	const auto nInput = int(double(pThis->RadLevel * pThis->RadTimeLeft) / (double)pThis->RadDuration) + amount;
 	pThis->RadLevel = nInput;
@@ -103,9 +103,9 @@ void RadSiteExt::ExtData::Add(int amount)
 	this->CreateLight();
 }
 
-void RadSiteExt::ExtData::SetRadLevel(int amount)
+void RadSiteExtData::SetRadLevel(int amount)
 {
-	const auto pThis = this->Get();
+	const auto pThis = this->AttachedToObject;
 	const auto nMax = this->Type->GetLevelMax();
 	const auto nDecidedamount = MinImpl(amount,  nMax);
 	const int mult = this->Type->GetDurationMultiple();
@@ -115,9 +115,9 @@ void RadSiteExt::ExtData::SetRadLevel(int amount)
 }
 
 // helper function provided by AlexB
-const double RadSiteExt::ExtData::GetRadLevelAt(CellStruct const& cell)
+const double RadSiteExtData::GetRadLevelAt(CellStruct const& cell)
 {
-	const auto pThis = this->Get();
+	const auto pThis = this->AttachedToObject;
 	const auto currentLevel = pThis->GetCurrentRadLevel();
 
 	if (currentLevel <= 0)
@@ -137,9 +137,9 @@ bool NOINLINE IsFiniteNumber(double x) {
 	return (x <= DBL_MAX && x >= -DBL_MAX);
 }
 
-const double RadSiteExt::ExtData::GetRadLevelAt(double distance)
+const double RadSiteExtData::GetRadLevelAt(double distance)
 {
-	const auto pThis = this->Get();
+	const auto pThis = this->AttachedToObject;
 	const auto currentLevel = pThis->GetCurrentRadLevel();
 
 	if (currentLevel <= 0)
@@ -160,16 +160,16 @@ const double RadSiteExt::ExtData::GetRadLevelAt(double distance)
 }
 
 //return false mean it is already death
-const RadSiteExt::ExtData::DamagingState RadSiteExt::ExtData::ApplyRadiationDamage(TechnoClass* pTarget, int damage, int distance)
+const RadSiteExtData::DamagingState RadSiteExtData::ApplyRadiationDamage(TechnoClass* pTarget, int damage, int distance)
 {
 	const auto pWarhead = this->Type->GetWarhead();
 	if (!pTarget->IsAlive || pTarget->InLimbo || !pTarget->Health || pTarget->IsSinking || pTarget->IsCrashing)
-		return RadSiteExt::ExtData::DamagingState::Dead;
+		return RadSiteExtData::DamagingState::Dead;
 
 	auto const pUnit = specific_cast<UnitClass*>(pTarget);
 
 	if ((pUnit && pUnit->DeathFrameCounter > 0))
-		return RadSiteExt::ExtData::DamagingState::Ignore;
+		return RadSiteExtData::DamagingState::Ignore;
 
 	{
 		if (!this->Type->GetWarheadDetonate())
@@ -178,31 +178,31 @@ const RadSiteExt::ExtData::DamagingState RadSiteExt::ExtData::ApplyRadiationDama
 			const auto result = pTarget->ReceiveDamage(&damage, distance, pWarhead, this->TechOwner, false, true, pOwner);
 
 			if (result != DamageState::NowDead && result != DamageState::PostMortem)
-				return RadSiteExt::ExtData::DamagingState::Continue;
+				return RadSiteExtData::DamagingState::Continue;
 			else if (result == DamageState::PostMortem)
-				return RadSiteExt::ExtData::DamagingState::Ignore;
+				return RadSiteExtData::DamagingState::Ignore;
 		}
 		else
 		{
 			auto const coords = pTarget->GetCoords();
 			HouseClass* const pOwner = this->TechOwner ? this->TechOwner->Owner : this->HouseOwner;
-			WarheadTypeExt::DetonateAt(pWarhead, pTarget, coords , this->TechOwner, damage , pOwner);
+			WarheadTypeExtData::DetonateAt(pWarhead, pTarget, coords , this->TechOwner, damage , pOwner);
 
 			if ((pUnit && pUnit->DeathFrameCounter > 0))
-				return RadSiteExt::ExtData::DamagingState::Ignore;
+				return RadSiteExtData::DamagingState::Ignore;
 		}
 	}
 
 	const auto res =  pTarget->IsAlive && !pTarget->InLimbo && pTarget->Health > 0 && !pTarget->IsSinking && !pTarget->IsCrashing;
 
-	return res ? RadSiteExt::ExtData::DamagingState::Continue : RadSiteExt::ExtData::DamagingState::Dead;
+	return res ? RadSiteExtData::DamagingState::Continue : RadSiteExtData::DamagingState::Dead;
 }
 
 // =============================
 // load / save
 
 template <typename T>
-void RadSiteExt::ExtData::Serialize(T& Stm)
+void RadSiteExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
@@ -217,7 +217,7 @@ void RadSiteExt::ExtData::Serialize(T& Stm)
 
 // =============================
 // container
-RadSiteExt::ExtContainer RadSiteExt::ExtMap;
+RadSiteExtContainer RadSiteExtContainer::Instance;
 
 // =============================
 // container hooks
@@ -227,7 +227,7 @@ DEFINE_HOOK(0x65B28D, RadSiteClass_CTOR, 0x6)
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 	{
 		GET(RadSiteClass*, pThis, ESI);
-		RadSiteExt::ExtMap.Allocate(pThis);
+		RadSiteExtContainer::Instance.Allocate(pThis);
 		PointerExpiredNotification::NotifyInvalidObject->Add(pThis);
 	}
 
@@ -240,7 +240,7 @@ DEFINE_HOOK(0x65B2F4, RadSiteClass_DTOR, 0x5)
 	{
 		GET(RadSiteClass*, pThis, ECX);
 		PointerExpiredNotification::NotifyInvalidObject->Remove(pThis);
-		RadSiteExt::ExtMap.Remove(pThis);
+		RadSiteExtContainer::Instance.Remove(pThis);
 	}
 
 	return 0;
@@ -254,7 +254,7 @@ DEFINE_HOOK(0x65B450, RadSiteClass_SaveLoad_Prefix, 0x8)
 		GET_STACK(RadSiteClass*, pItem, 0x4);
 		GET_STACK(IStream*, pStm, 0x8);
 
-		RadSiteExt::ExtMap.PrepareStream(pItem, pStm);
+		RadSiteExtContainer::Instance.PrepareStream(pItem, pStm);
 	}
 
 	return 0;
@@ -269,7 +269,7 @@ DEFINE_HOOK(0x65B431 , RadSiteClass_Load_Suffix , 0x9)
 	SwizzleManagerClass::Instance->Swizzle((void**)&pThis->LightSource);
 
 	if (!Phobos::Otamaa::DisableCustomRadSite)
-		RadSiteExt::ExtMap.LoadStatic();
+		RadSiteExtContainer::Instance.LoadStatic();
 
 	//return 0;
 	return 0x65B43F;
@@ -281,7 +281,7 @@ DEFINE_HOOK(0x65B464, RadSiteClass_Save_Suffix, 0x5)
 
 	if(SUCCEEDED(nRes)) {
 		if (!Phobos::Otamaa::DisableCustomRadSite) {
-			RadSiteExt::ExtMap.SaveStatic();
+			RadSiteExtContainer::Instance.SaveStatic();
 		}
 	}
 
@@ -295,7 +295,7 @@ DEFINE_HOOK(0x65B464, RadSiteClass_Save_Suffix, 0x5)
 //	GET(RadSiteClass*, pThis, ECX);
 //	if (!Phobos::Otamaa::DisableCustomRadSite)
 //	{
-//		R->EAX(RadSiteExt::ExtMap.Find(pThis)->Spread);
+//		R->EAX(RadSiteExtContainer::Instance.Find(pThis)->Spread);
 //		return 0x65B4B3;
 //	}
 //	return 0x0;
@@ -307,7 +307,7 @@ DEFINE_HOOK(0x65B464, RadSiteClass_Save_Suffix, 0x5)
 //	GET(RadSiteClass*, pThis, ECX);
 //	if (!Phobos::Otamaa::DisableCustomRadSite)
 //	{
-//		auto nSpread = RadSiteExt::ExtMap.Find(pThis)->Spread;
+//		auto nSpread = RadSiteExtContainer::Instance.Find(pThis)->Spread;
 //		R->ESI(nSpread);
 //		R->EDX(R->EDX<int>() - nSpread);
 //		return R->Origin() == 0x65B9D4 ? 0x65B9D9 : 0x65BD19;
@@ -321,7 +321,7 @@ DEFINE_HOOK(0x65B464, RadSiteClass_Save_Suffix, 0x5)
 //	GET_STACK(int, spread, 0x4);
 //	if (!Phobos::Otamaa::DisableCustomRadSite)
 //	{
-//		RadSiteExt::ExtMap.Find(pThis)->Spread = spread;
+//		RadSiteExtContainer::Instance.Find(pThis)->Spread = spread;
 //		pThis->SpreadInLeptons = (spread << 8) + 128;
 //		return 0x65B4E2;
 //	}
@@ -333,7 +333,7 @@ DEFINE_HOOK(0x65B464, RadSiteClass_Save_Suffix, 0x5)
 static void __fastcall RadSiteClass_Detach(RadSiteClass* pThis, void* _, AbstractClass* pTarget, bool bRemove)
 {
 	if (!Phobos::Otamaa::DisableCustomRadSite){
-		RadSiteExt::ExtMap.InvalidatePointerFor(pThis, pTarget, bRemove);
+		RadSiteExtContainer::Instance.InvalidatePointerFor(pThis, pTarget, bRemove);
 	}
 }
 
@@ -342,7 +342,7 @@ DEFINE_JUMP(VTABLE, 0x7F0838, GET_OFFSET(RadSiteClass_Detach));
 static HouseClass* __fastcall RadSiteClass_OwningHouse(RadSiteClass* pThis, void* _)
 {
 	if (!Phobos::Otamaa::DisableCustomRadSite){
-		if (const auto pExt = RadSiteExt::ExtMap.Find(pThis)){
+		if (const auto pExt = RadSiteExtContainer::Instance.Find(pThis)){
 			return pExt->HouseOwner;
 		}
 	}

@@ -1,13 +1,13 @@
 #include "Body.h"
 
-void VoxelAnimTypeExt::ExtData::Initialize(){
+void VoxelAnimTypeExtData::Initialize(){
 	LaserTrail_Types.reserve(1);
 	SplashList.reserve(RulesClass::Instance->SplashList.Count);
 }
 
-void VoxelAnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+void VoxelAnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
-	const char* pID = this->Get()->ID;
+	const char* pID = this->AttachedToObject->ID;
 	INI_EX exINI(pINI);
 
 	if (parseFailAddr)
@@ -32,7 +32,7 @@ void VoxelAnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFail
 // =============================
 // load / save
 template <typename T>
-void VoxelAnimTypeExt::ExtData::Serialize(T& Stm)
+void VoxelAnimTypeExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
@@ -51,12 +51,12 @@ void VoxelAnimTypeExt::ExtData::Serialize(T& Stm)
 
 // =============================
 // container
-VoxelAnimTypeExt::ExtContainer VoxelAnimTypeExt::ExtMap;
+VoxelAnimTypeExtContainer VoxelAnimTypeExtContainer::Instance;
 
 DEFINE_HOOK(0x74AF5C, VoxelAnimTypeClass_CTOR, 0x7)
 {
 	GET(VoxelAnimTypeClass*, pItem, ESI);
-	VoxelAnimTypeExt::ExtMap.Allocate(pItem);
+	VoxelAnimTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
@@ -64,7 +64,7 @@ DEFINE_HOOK(0x74BA66, VoxelAnimTypeClass_DTOR, 0x7)
 {
 	GET(VoxelAnimTypeClass*, pItem, ESI);
 
-	VoxelAnimTypeExt::ExtMap.Remove(pItem);
+	VoxelAnimTypeExtContainer::Instance.Remove(pItem);
 
 	return 0;
 }
@@ -75,7 +75,7 @@ DEFINE_HOOK(0x74B8D0, VoxelAnimTypeClass_SaveLoad_Prefix, 0x8)
 	GET_STACK(VoxelAnimTypeClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 
-	VoxelAnimTypeExt::ExtMap.PrepareStream(pItem, pStm);
+	VoxelAnimTypeExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
 }
@@ -83,14 +83,14 @@ DEFINE_HOOK(0x74B8D0, VoxelAnimTypeClass_SaveLoad_Prefix, 0x8)
 // Before :  DEFINE_HOOK(0x74B8C2, VoxelAnimTypeClass_Load_Suffix, 0x7)
 DEFINE_HOOK(0x74B8C0 , VoxelAnimTypeClass_Load_Suffix, 0x6)
 {
-	VoxelAnimTypeExt::ExtMap.LoadStatic();
+	VoxelAnimTypeExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
 // Before :  DEFINE_HOOK(0x74B8EA, VoxelAnimTypeClass_Save_Suffix, 0x5)
 DEFINE_HOOK(0x74B8E8, VoxelAnimTypeClass_Save_Suffix, 0x5)
 {
-	VoxelAnimTypeExt::ExtMap.SaveStatic();
+	VoxelAnimTypeExtContainer::Instance.SaveStatic();
 	return 0;
 }
 
@@ -104,7 +104,7 @@ DEFINE_HOOK(0x74B4F0, VoxelAnimTypeClass_LoadFromINI, 0x5)
 	GET(VoxelAnimTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0x4);
 
-	VoxelAnimTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x74B612);
+	VoxelAnimTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x74B612);
 
 	return 0;
 }

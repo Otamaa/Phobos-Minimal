@@ -29,7 +29,7 @@ DEFINE_HOOK(0x6FF329, TechnoCllass_FireAt_OccupyAnims, 0x6)
 
 	AnimTypeClass* pDecidedMuzzle = pWeapon->OccupantAnim;
 
-	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 	if (pWeaponExt->OccupantAnim_UseMultiple.Get())
 	{
 		if (!pWeaponExt->OccupantAnims.empty())
@@ -66,7 +66,7 @@ DEFINE_HOOK(0x709C84, TechnoClass_DrawPip_Occupants, 0x6)
 	{
 		if (auto const pInfantry = pThis->Occupants.GetItem(nOccupantIdx))
 		{
-			const auto pExt = TechnoTypeExt::ExtMap.Find(pInfantry->Type);
+			const auto pExt = TechnoTypeExtContainer::Instance.Find(pInfantry->Type);
 
 			if (const auto pGarrisonPip = pExt->PipGarrison.Get(nullptr))
 			{
@@ -122,14 +122,14 @@ void DetonateDeathWeapon(TechnoClass* pThis, TechnoTypeClass* pType, WeaponTypeC
 	if (pDecided)
 	{
 		auto const pBonus = RulesDeath ? (int)(pType->Strength * 0.5) : (int)(pDecided->Damage * pType->DeathWeaponDamageModifier);
-		auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pDecided->Projectile);
+		auto const pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pDecided->Projectile);
 
 		if (const auto pBullet = pBulletTypeExt->CreateBullet(pThis, pThis, pBonus + nMult, pDecided->Warhead, pDecided->Speed,
-			WeaponTypeExt::ExtMap.Find(pDecided)->GetProjectileRange(),
+			WeaponTypeExtContainer::Instance.Find(pDecided)->GetProjectileRange(),
 			pDecided->Bright || pDecided->Warhead->Bright, true))
 		{
 			pBullet->SetWeaponType(pDecided);
-			BulletExt::DetonateAt(pBullet, pThis, pThis, pThis->Location);
+			BulletExtData::DetonateAt(pBullet, pThis, pThis, pThis->Location);
 		}
 	}
 }
@@ -146,7 +146,7 @@ DEFINE_HOOK(0x70D690, TechnoClass_FireDeathWeapon_Replace, 0x5) //4
 
 	// Using Promotable<WeaponTypeClass*>
 	// tags : "%sDeathWeapon (%s replaced with rank level);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	WeaponTypeClass* pWeaponResult = pTypeExt->DeathWeapon.GetOrDefault(pThis, pType->DeathWeapon);
 
 	if (!pWeaponResult)
@@ -188,7 +188,7 @@ DEFINE_HOOK(0x4DABBC, ObjectClass_WasFallingDown, 0x6)
 	auto const pTechno = static_cast<TechnoClass*>(pThis);
 
 	{
-		auto const pExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
+		auto const pExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
 
 		{
 			auto const GetLandingAnim = [pExt, pTechno]()
@@ -206,7 +206,7 @@ DEFINE_HOOK(0x4DABBC, ObjectClass_WasFallingDown, 0x6)
 			if (auto pDecidedAnim = GetLandingAnim())
 			{
 				auto const nCoord = pTechno->GetCoords();
-				AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDecidedAnim, nCoord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0),
+				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDecidedAnim, nCoord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0),
 					pTechno->GetOwningHouse(),
 					nullptr,
 					pTechno,
@@ -232,10 +232,10 @@ DEFINE_HOOK(0x4CE689, FlyLocomotionClass_TakeOffAnim, 0x5)
 		if (!pCell || pAir->GetHeight() > pCell->GetFloorHeight({ 1,1 }))
 			return 0x0;
 
-		if (auto pDecidedAnim = TechnoTypeExt::ExtMap.Find(pAir->Type)->TakeOff_Anim.Get(RulesExt::Global()->Aircraft_TakeOffAnim.Get()))
+		if (auto pDecidedAnim = TechnoTypeExtContainer::Instance.Find(pAir->Type)->TakeOff_Anim.Get(RulesExtData::Instance()->Aircraft_TakeOffAnim.Get()))
 		{
 			auto const nCoord = pAir->GetCoords();
-			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDecidedAnim, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0),
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDecidedAnim, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0),
 				pAir->GetOwningHouse(),
 				nullptr,
 				pAir,
@@ -253,26 +253,26 @@ DEFINE_HOOK(0x4CEB51, FlyLocomotionClass_LandingAnim, 0x8)
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x48, 0x18));
 
 	const auto pType = pLinked->Type;
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	{
 		auto GetDefaultType = [pType]()
 		{
 			if (pType->IsDropship)
-				return RulesExt::Global()->DropShip_LandAnim.Get();
+				return RulesExtData::Instance()->DropShip_LandAnim.Get();
 			else if (pType->Carryall)
-				return RulesExt::Global()->CarryAll_LandAnim.Get();
+				return RulesExtData::Instance()->CarryAll_LandAnim.Get();
 
 			return (AnimTypeClass*)nullptr;
 		};
 
 		const auto pCell = pLinked->GetCell();
 		const auto pFirst = pCell->LandType == LandType::Water && !pCell->ContainsBridge() && pExt->Landing_AnimOnWater.Get()
-			? pExt->Landing_AnimOnWater.Get() : pExt->Landing_Anim.Get(RulesExt::Global()->Aircraft_LandAnim.Get());
+			? pExt->Landing_AnimOnWater.Get() : pExt->Landing_Anim.Get(RulesExtData::Instance()->Aircraft_LandAnim.Get());
 
 		if (AnimTypeClass* pDecidedType = pFirst ? pFirst : GetDefaultType())
 		{
-			AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDecidedType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0),
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDecidedType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0),
 				pLinked->GetOwningHouse(),
 				nullptr,
 				pLinked,
@@ -292,15 +292,15 @@ DEFINE_HOOK(0x6FD0A6, TechnoClass_RearmDelay_RandomROF, 0x5)
 	GET(WeaponTypeClass*, pWeapon, EDI);
 
 	int nResult = 0;
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	if (pExt->ROF_Random.Get())
 	{
-		const auto nDefault = Point2D{RulesExt::Global()->ROF_RandomDelay->X , RulesExt::Global()->ROF_RandomDelay->Y };
+		const auto nDefault = Point2D{RulesExtData::Instance()->ROF_RandomDelay->X , RulesExtData::Instance()->ROF_RandomDelay->Y };
 		nResult += GeneralUtils::GetRangedRandomOrSingleValue(pExt->Rof_RandomMinMax.Get(nDefault));
 	}
 
-	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
 	if(pWeaponExt->ROF_RandomDelay.isset()){
 		nResult += GeneralUtils::GetRangedRandomOrSingleValue(pWeaponExt->ROF_RandomDelay);
@@ -314,7 +314,7 @@ DEFINE_HOOK(0x4DECBB, FootClass_Destroy_SpinSpeed, 0x5) //A
 {
 	GET(FootClass* const, pThis, ESI);
 
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	pThis->RockingSidewaysPerFrame = static_cast<float>((ScenarioClass::Instance->Random.RandomDouble() * 0.15 + 0.1) * pExt->CrashSpinLevelRate.Get());
 
@@ -334,7 +334,7 @@ DEFINE_HOOK(0x4D42C4, FootClass_Mission_Patrol_IsCow, 0x6) //8
 	GET(FootClass* const, pThis, ESI);
 
 	if(const auto pInf = specific_cast<InfantryClass*>(pThis)) {
-		if (InfantryTypeExt::ExtMap.Find(pInf->Type)->Is_Cow) {
+		if (InfantryTypeExtContainer::Instance.Find(pInf->Type)->Is_Cow) {
 			pThis->UpdateIdleAction();
 			return pThis->Destination ? Skip : SetMissionRate;
 		}
@@ -358,7 +358,7 @@ DEFINE_HOOK(0x4A7755, DiskLaserClass_Update_ChargedUpSound, 0x6) //B
 
 	if (pThis && pThis->Owner)
 	{
-		R->ECX(TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType())->DiskLaserChargeUp.Get(RulesClass::Instance->DiskLaserChargeUp));
+		R->ECX(TechnoTypeExtContainer::Instance.Find(pThis->Owner->GetTechnoType())->DiskLaserChargeUp.Get(RulesClass::Instance->DiskLaserChargeUp));
 		return 0x4A7760;
 	}
 
@@ -372,11 +372,11 @@ DEFINE_HOOK(0x70FDC2, TechnoClass_Drain_LocalDrainAnim, 0x5) //A
 
 	if (Drainer && pVictim)
 	{
-		if (auto const pAnimType = TechnoTypeExt::ExtMap.Find(Drainer->GetTechnoType())->DrainAnimationType.Get(RulesClass::Instance->DrainAnimationType))
+		if (auto const pAnimType = TechnoTypeExtContainer::Instance.Find(Drainer->GetTechnoType())->DrainAnimationType.Get(RulesClass::Instance->DrainAnimationType))
 		{
 			auto const nCoord = Drainer->GetCoords();
 			auto const pDrainAnimCreated = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-			AnimExt::SetAnimOwnerHouseKind(pDrainAnimCreated, Drainer->Owner, pVictim->Owner, Drainer, false);
+			AnimExtData::SetAnimOwnerHouseKind(pDrainAnimCreated, Drainer->Owner, pVictim->Owner, Drainer, false);
 			R->EAX(pDrainAnimCreated);
 			return 0x70FE07;
 		}
@@ -401,7 +401,7 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0xD0, -0x4));
 	GET(DWORD, InfDeath, EDI);
 
-	auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(args.WH);
+	auto const pWarheadExt = WarheadTypeExtContainer::Instance.Find(args.WH);
 
 	if (!pThis->Type->NotHuman)
 	{
@@ -423,7 +423,7 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 					: args.SourceHouse
 					;
 
-				AnimExt::SetAnimOwnerHouseKind(Anim, Invoker, pThis->Owner ,args.Attacker , false);
+				AnimExtData::SetAnimOwnerHouseKind(Anim, Invoker, pThis->Owner ,args.Attacker , false);
 
 				Handled = true;
 			}
@@ -438,7 +438,7 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 						;
 
 					//these were MakeInf stuffs  , to make sure no behaviour chages
-					AnimExt::SetAnimOwnerHouseKind(Anim, Invoker, pThis->Owner, args.Attacker , false);
+					AnimExtData::SetAnimOwnerHouseKind(Anim, Invoker, pThis->Owner, args.Attacker , false);
 
 					Handled = true;
 				}
@@ -459,7 +459,7 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 		if (auto pAnim = GameCreate<AnimClass>(pDeathAnim, pThis->Location))
 		{
 			auto pInvoker = args.Attacker ? args.Attacker->GetOwningHouse() : nullptr;
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->GetOwningHouse(), args.Attacker, true);
+			AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->GetOwningHouse(), args.Attacker, true);
 			pAnim->ZAdjust = pThis->GetZAdjustment();
 		}
 	}
@@ -472,7 +472,7 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 		int resultSequence = Die(1);
 
 		if (!whSequence.isset()
-			&& TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->NotHuman_RandomDeathSequence.Get())
+			&& TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->NotHuman_RandomDeathSequence.Get())
 		{
 			resultSequence = ScenarioClass::Instance->Random.RandomRanged(Die(1), Die(5));
 		}
@@ -481,7 +481,7 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 			resultSequence = std::clamp(Die(abs(whSequence.Get())), Die(1), Die(5));
 		}
 
-		InfantryExt::ExtMap.Find(pThis)->IsUsingDeathSequence = true;
+		InfantryExtContainer::Instance.Find(pThis)->IsUsingDeathSequence = true;
 
 		//BugFix : when the sequence not declared , it keep the infantry alive ! , wtf WW ?!
 		if (pThis->PlayAnim(static_cast<DoType>(resultSequence), true))

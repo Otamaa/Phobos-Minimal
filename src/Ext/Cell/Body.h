@@ -10,6 +10,7 @@
 class CellExt
 {
 public:
+	/*
 	class ExtData final : public Extension<CellClass>
 	{
 	public:
@@ -40,6 +41,7 @@ public:
 	};
 
 	static ExtContainer ExtMap;
+	*/
 
 	// Don t call it without checking Tiberium existence
 	// otherwise crash

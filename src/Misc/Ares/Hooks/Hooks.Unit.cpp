@@ -167,7 +167,7 @@ DEFINE_OVERRIDE_HOOK(0x739B8A, UnitClass_SimpleDeploy_Facing, 0x6)
 
 	if (pType->DeployingAnim)
 	{
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 		// not sure what is the bitfrom or bitto so it generate this result
 		// yes iam dum , iam sorry - otamaa
 		const auto nRulesDeployDir = ((((RulesClass::Instance->DeployDir) >> 4) + 1) >> 1) & 7;
@@ -200,7 +200,7 @@ DEFINE_OVERRIDE_HOOK(0x74642C, UnitClass_ReceiveGunner, 6)
 	if (pTemp)
 		pTemp->LetGo();
 
-	TechnoExt::ExtMap.Find(Unit)->MyOriginalTemporal = pTemp;
+	TechnoExtContainer::Instance.Find(Unit)->MyOriginalTemporal = pTemp;
 	Unit->TemporalImUsing = nullptr;
 	return 0;
 }
@@ -208,7 +208,7 @@ DEFINE_OVERRIDE_HOOK(0x74642C, UnitClass_ReceiveGunner, 6)
 DEFINE_OVERRIDE_HOOK(0x74653C, UnitClass_RemoveGunner, 0xA)
 {
 	GET(UnitClass*, Unit, EDI);
-	auto pData = TechnoExt::ExtMap.Find(Unit);
+	auto pData = TechnoExtContainer::Instance.Find(Unit);
 	Unit->TemporalImUsing = pData->MyOriginalTemporal;
 	pData->MyOriginalTemporal = nullptr;
 	return 0x746546;
@@ -222,7 +222,7 @@ DEFINE_OVERRIDE_HOOK(0x73769E, UnitClass_ReceivedRadioCommand_SpecificPassengers
 	auto const pType = pThis->GetTechnoType();
 	auto const pSenderType = pSender->GetTechnoType();
 
-	return TechnoTypeExt::PassangersAllowed(pType, pSenderType) ? 0u : 0x73780Fu;
+	return TechnoTypeExtData::PassangersAllowed(pType, pSenderType) ? 0u : 0x73780Fu;
 }
 
 DEFINE_OVERRIDE_HOOK(0x73762B, UnitClass_ReceivedRadioCommand_BySize1, 6)
@@ -230,7 +230,7 @@ DEFINE_OVERRIDE_HOOK(0x73762B, UnitClass_ReceivedRadioCommand_BySize1, 6)
 	GET(UnitClass*, pThis, ESI);
 
 	auto pType = pThis->Type;
-	auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (pExt->Passengers_BySize.Get())
 		return 0;
@@ -244,7 +244,7 @@ DEFINE_OVERRIDE_HOOK(0x73778F, UnitClass_ReceivedRadioCommand_BySize2, 6)
 	GET(UnitClass*, pThis, ESI);
 
 	auto pType = pThis->Type;
-	auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (pExt->Passengers_BySize.Get())
 		return 0;
@@ -258,7 +258,7 @@ DEFINE_OVERRIDE_HOOK(0x73782F, UnitClass_ReceivedRadioCommand_BySize3, 6)
 	GET(UnitClass*, pThis, ESI);
 
 	auto pType = pThis->Type;
-	auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (pExt->Passengers_BySize.Get())
 		return 0;
@@ -272,7 +272,7 @@ DEFINE_OVERRIDE_HOOK(0x737994, UnitClass_ReceivedRadioCommand_BySize4, 6)
 	GET(UnitClass*, pThis, ESI);
 
 	auto pType = pThis->Type;
-	auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (pExt->Passengers_BySize.Get())
 		return 0;
@@ -285,7 +285,7 @@ DEFINE_OVERRIDE_HOOK(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
 {
 	enum { FireRange = 0x6FC0DF, ContinueCheck = 0x0 };
 	GET(TechnoClass*, pThis, ESI);
-	return TechnoExt::ExtMap.Find(pThis)->DisableWeaponTimer.InProgress()
+	return TechnoExtContainer::Instance.Find(pThis)->DisableWeaponTimer.InProgress()
 		? FireRange : ContinueCheck;
 }
 
@@ -293,35 +293,35 @@ DEFINE_OVERRIDE_HOOK(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
 DEFINE_OVERRIDE_HOOK(0x730EE5, StopCommandClass_Execute_Berzerk, 6)
 {
 	GET(TechnoClass*, pTechno, ESI);
-	return pTechno->Berzerk || TechnoExt::ExtMap.Find(pTechno)->Is_DriverKilled ? 0x730EF7 : 0;
+	return pTechno->Berzerk || TechnoExtContainer::Instance.Find(pTechno)->Is_DriverKilled ? 0x730EF7 : 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6F3283, TechnoClass_CanScatter_KillDriver, 8)
 {
 	// prevent units with killed drivers from scattering when attacked.
 	GET(TechnoClass*, pThis, ESI);
-	return (TechnoExt::ExtMap.Find(pThis)->Is_DriverKilled ? 0x6F32C5u : 0u);
+	return (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x6F32C5u : 0u);
 }
 
 DEFINE_OVERRIDE_HOOK(0x7091D6, TechnoClass_CanPassiveAquire_KillDriver, 6)
 {
 	// prevent units with killed drivers from looking for victims.
 	GET(TechnoClass*, pThis, ESI);
-	return (TechnoExt::ExtMap.Find(pThis)->Is_DriverKilled ? 0x70927Du : 0u);
+	return (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x70927Du : 0u);
 }
 
 DEFINE_OVERRIDE_HOOK(0x6F6A58, TechnoClass_DrawHealthBar_HidePips_KillDriver, 6)
 {
 	// prevent player from seeing pips on transports with killed drivers.
 	GET(TechnoClass*, pThis, ESI);
-	return TechnoExt::ExtMap.Find(pThis)->Is_DriverKilled ? 0x6F6AB6u : 0u;
+	return TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x6F6AB6u : 0u;
 }
 
 DEFINE_OVERRIDE_HOOK(0x7087EB, TechnoClass_ShouldRetaliate_KillDriver, 6)
 {
 	// prevent units with killed drivers from retaliating.
 	GET(TechnoClass*, pThis, ESI);
-	return (TechnoExt::ExtMap.Find(pThis)->Is_DriverKilled ? 0x708B17u : 0u);
+	return (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x708B17u : 0u);
 }
 
 DEFINE_OVERRIDE_HOOK(0x73758A, UnitClass_ReceivedRadioCommand_QueryEnterAsPassenger_KillDriver, 6)
@@ -329,7 +329,7 @@ DEFINE_OVERRIDE_HOOK(0x73758A, UnitClass_ReceivedRadioCommand_QueryEnterAsPassen
 	// prevent units from getting the enter cursor on transports
 	// with killed drivers.
 	GET(TechnoClass*, pThis, ESI);
-	return TechnoExt::ExtMap.Find(pThis)->Is_DriverKilled ? 0x73761Fu : 0u;
+	return TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x73761Fu : 0u;
 }
 
 DEFINE_OVERRIDE_HOOK(0x70DEBA, TechnoClass_UpdateGattling_Cycle, 6)
@@ -348,7 +348,7 @@ DEFINE_OVERRIDE_HOOK(0x70DEBA, TechnoClass_UpdateGattling_Cycle, 6)
 	else
 	{
 		// if max or higher, reset cyclic gattlings
-		if (TechnoTypeExt::ExtMap.Find(pType)->GattlingCyclic)
+		if (TechnoTypeExtContainer::Instance.Find(pType)->GattlingCyclic)
 		{
 			pThis->GattlingValue = 0;
 			pThis->CurrentGattlingStage = 0;
@@ -368,7 +368,7 @@ DEFINE_OVERRIDE_HOOK(0x70DEBA, TechnoClass_UpdateGattling_Cycle, 6)
 DEFINE_OVERRIDE_HOOK(0x71810D, TeleportLocomotionClass_ILocomotion_MoveTo_Deactivated, 6)
 {
 	GET(FootClass*, pFoot, ECX);
-	return (!pFoot->Deactivated && pFoot->Locomotor.GetInterfacePtr()->Is_Powered() && !TechnoExt::ExtMap.Find(pFoot)->Is_DriverKilled)
+	return (!pFoot->Deactivated && pFoot->Locomotor.GetInterfacePtr()->Is_Powered() && !TechnoExtContainer::Instance.Find(pFoot)->Is_DriverKilled)
 		? 0 : 0x71820F;
 }
 
@@ -382,7 +382,7 @@ DEFINE_OVERRIDE_HOOK(0x7188F2, TeleportLocomotionClass_Unwarp_SinkJumpJets, 7)
 	{
 		if (UnitClass* pUnit = specific_cast<UnitClass*>(pTechno[3]))
 		{
-			if (pUnit->Deactivated || TechnoExt::ExtMap.Find(pUnit)->Is_DriverKilled)
+			if (pUnit->Deactivated || TechnoExtContainer::Instance.Find(pUnit)->Is_DriverKilled)
 			{
 				// this thing does not float
 				R->BL(0);
@@ -446,13 +446,13 @@ DEFINE_HOOK(0x73E46D , UnitClass_Mi_Unload_replace , 0x6)
 	{
 		TechnoExt_ExtData::DepositTiberium(pBld,
 	 	amountRaw,
-	 	BuildingTypeExt::GetPurifierBonusses(pBld->Owner) * amountRaw,
+	 	BuildingTypeExtData::GetPurifierBonusses(pBld->Owner) * amountRaw,
 		idxTiberium
 	 	);
 		pThis->Animation.Value = 0;
 
-		BuildingExt::ExtMap.Find(pBld)->AccumulatedIncome +=
-			pBld->Owner->Available_Money() - HouseExt::LastHarvesterBalance;
+		BuildingExtContainer::Instance.Find(pBld)->AccumulatedIncome +=
+			pBld->Owner->Available_Money() - HouseExtData::LastHarvesterBalance;
 
 	}
 
@@ -471,7 +471,7 @@ DEFINE_DISABLE_HOOK(0x73E4A2, UnitClass_Mi_Unload_Storage_ares) //, 0x6)
 //
 	// TechnoExt_ExtData::DepositTiberium(pBld,
 	//  amountRaw,
-	//  BuildingTypeExt::GetPurifierBonusses(pBld->Owner) * amountRaw,
+	//  BuildingTypeExtData::GetPurifierBonusses(pBld->Owner) * amountRaw,
 	//  idxTiberium
 	//  );
 	//
@@ -508,7 +508,7 @@ DEFINE_HOOK(0x522D50, InfantryClass_StorageAI_Handle, 0x5)
 		if (amount > 0.0)
 		{
 			TechnoExt_ExtData::DepositTiberium(pThis, amount,
-				BuildingTypeExt::GetPurifierBonusses(pThis->Owner) * amount,
+				BuildingTypeExtData::GetPurifierBonusses(pThis->Owner) * amount,
 				i);
 
 			// register for refinery smoke
@@ -524,22 +524,22 @@ DEFINE_HOOK(0x522D50, InfantryClass_StorageAI_Handle, 0x5)
 		const auto what = pDest->WhatAmI();
 
 		if (what == BuildingClass::AbsID) {
-			BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pDest))->AccumulatedIncome += money;
+			BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pDest))->AccumulatedIncome += money;
 		}
 		else if (what == UnitClass::AbsID && money)
 		{
 			auto pUnit = static_cast<UnitClass*>(pDest);
 
 			if (pUnit->Type->DeploysInto) {
-				const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pUnit->Type->DeploysInto);
+				const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pUnit->Type->DeploysInto);
 
-				if (pTypeExt->DisplayIncome.Get(RulesExt::Global()->DisplayIncome)) {
-					if (pThis->Owner->IsControlledByHuman() || RulesExt::Global()->DisplayIncome_AllowAI) {
+				if (pTypeExt->DisplayIncome.Get(RulesExtData::Instance()->DisplayIncome)) {
+					if (pThis->Owner->IsControlledByHuman() || RulesExtData::Instance()->DisplayIncome_AllowAI) {
 						FlyingStrings::AddMoneyString(
 						money,
 						money,
 						pThis,
-						pTypeExt->DisplayIncome_Houses.Get(RulesExt::Global()->DisplayIncome_Houses),
+						pTypeExt->DisplayIncome_Houses.Get(RulesExtData::Instance()->DisplayIncome_Houses),
 						pThis->GetCoords(),
 						pTypeExt->DisplayIncome_Offset
 						);
@@ -558,21 +558,21 @@ DEFINE_OVERRIDE_HOOK(0x73DE90, UnitClass_Mi_Unload_SimpleDeployer, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (pThis->Deployed
 		&& pTypeExt->Convert_Deploy
 		&& TechnoExt_ExtData::ConvertToType(pThis, pTypeExt->Convert_Deploy))
 	{
 		if(pTypeExt->Convert_Deploy_Delay > 0)
-			TechnoExt::ExtMap.Find(pThis)->Convert_Deploy_Delay
+			TechnoExtContainer::Instance.Find(pThis)->Convert_Deploy_Delay
 				//.Start(100);
 				.Start(pTypeExt->Convert_Deploy_Delay);
 
 		pThis->Deployed = false;
 	}
 
-	TechnoExt::InitializeLaserTrail(pThis, true);
+	TechnoExtData::InitializeLaserTrail(pThis, true);
 	TrailsManager::Construct(static_cast<TechnoClass*>(pThis), true);
 	//LineTrailExt::DeallocateLineTrail(pUnit);
 	//LineTrailExt::ConstructLineTrails(pUnit);
@@ -601,7 +601,7 @@ DEFINE_OVERRIDE_HOOK(0x73DBF9, UnitClass_Mi_Unload_Decactivated, 5)
 		*ppCell = pPosition;
 	}
 
-	//auto pTypeExt = TechnoTypeExt::ExtMap.Find(pUnloadee->Type);
+	//auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pUnloadee->Type);
 	//if(!pTypeExt->Operators.empty() || pTypeExt->Operator_Any)
 	//{
 	//	auto pCapturer = pUnloadee->MindControlledBy;
@@ -633,7 +633,7 @@ DEFINE_OVERRIDE_HOOK(0x6AF748, SlaveManagerClass_UpdateSlaves_SlaveScan, 6)
 	GET(InfantryClass*, pSlave, ESI);
 	//GET(SlaveManagerClass*, pThis, EDI);
 
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pSlave->Type);
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pSlave->Type);
 	R->EAX(pTypeExt->Harvester_ShortScan.Get(RulesClass::Instance->SlaveMinerSlaveScan));
 	return 0x6AF74E;
 }
@@ -643,7 +643,7 @@ DEFINE_OVERRIDE_HOOK(0x6B006D, SlaveManagerClass_UpdateMiner_ShortScan, 6)
 {
 	GET(TechnoClass*, pSlaveOwner, ECX);
 
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pSlaveOwner->GetTechnoType());
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pSlaveOwner->GetTechnoType());
 
 	R->EAX(pTypeExt->Harvester_ShortScan.Get(RulesClass::Instance->SlaveMinerShortScan));
 	return R->Origin() + 0x6;
@@ -652,7 +652,7 @@ DEFINE_OVERRIDE_HOOK(0x6B006D, SlaveManagerClass_UpdateMiner_ShortScan, 6)
 DEFINE_OVERRIDE_HOOK(0x6B01A3, SlaveManagerClass_UpdateMiner_ScanCorrection, 6)
 {
 	GET(SlaveManagerClass*, pThis, ESI);
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType());
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Owner->GetTechnoType());
 
 	R->EAX(pTypeExt->Harvester_ScanCorrection.Get(RulesClass::Instance->SlaveMinerScanCorrection));
 	return 0x6B01A9;
@@ -663,7 +663,7 @@ DEFINE_OVERRIDE_HOOK_AGAIN(0x6B00BD, SlaveManagerClass_UpdateMiner_LongScan, 6)
 DEFINE_OVERRIDE_HOOK(0x6AFDFC, SlaveManagerClass_UpdateMiner_LongScan, 6)
 {
 	GET(TechnoClass*, pSlaveOwner, ECX);
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pSlaveOwner->GetTechnoType());
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pSlaveOwner->GetTechnoType());
 
 	R->EAX(pTypeExt->Harvester_LongScan.Get(RulesClass::Instance->SlaveMinerLongScan));
 	return R->Origin() + 0x6;
@@ -673,7 +673,7 @@ DEFINE_OVERRIDE_HOOK(0x6B1065, SlaveManagerClass_ShouldWakeUp_ShortScan, 5)
 {
 	GET(SlaveManagerClass*, pThis, ESI);
 
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType());
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Owner->GetTechnoType());
 	auto nKickFrameDelay = pTypeExt->Harvester_KickDelay.Get(RulesClass::Instance->SlaveMinerKickFrameDelay);
 
 	if (nKickFrameDelay < 0 || nKickFrameDelay + pThis->LastScanFrame >= Unsorted::CurrentFrame)
@@ -686,7 +686,7 @@ DEFINE_OVERRIDE_HOOK(0x6B1065, SlaveManagerClass_ShouldWakeUp_ShortScan, 5)
 DEFINE_OVERRIDE_HOOK(0x73EC0E, UnitClass_Mi_Harvest_TooFarDistance1, 6)
 {
 	GET(UnitClass*, pThis, EBP);
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	R->EDX(pTypeExt->Harvester_TooFarDistance.Get(RulesClass::Instance->HarvesterTooFarDistance));
 	return 0x73EC14;
 }
@@ -695,7 +695,7 @@ DEFINE_OVERRIDE_HOOK(0x73EE40, UnitClass_Mi_Harvest_TooFarDistance2, 6)
 {
 	GET(UnitClass*, pThis, EBP);
 
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	R->EDX(pTypeExt->Harvester_TooFarDistance.Get(RulesClass::Instance->ChronoHarvTooFarDistance));
 	return 0x73EE46;
@@ -707,7 +707,7 @@ DEFINE_OVERRIDE_HOOK_AGAIN(0x73EA17, UnitClass_Mi_Harvest_ShortScan, 6)
 DEFINE_OVERRIDE_HOOK(0x73E9F1, UnitClass_Mi_Harvest_ShortScan, 6)
 {
 	GET(UnitClass*, pThis, EBP);
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	R->EAX(pTypeExt->Harvester_ShortScan.Get(RulesClass::Instance->TiberiumShortScan));
 	return R->Origin() + 0x6;
 }
@@ -716,7 +716,7 @@ DEFINE_OVERRIDE_HOOK_AGAIN(0x73E772, UnitClass_Mi_Harvest_LongScan, 6)
 DEFINE_OVERRIDE_HOOK(0x73E851, UnitClass_Mi_Harvest_LongScan, 6)
 {
 	GET(UnitClass*, pThis, EBP);
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	R->EAX(pTypeExt->Harvester_LongScan.Get(RulesClass::Instance->TiberiumLongScan));
 	return R->Origin() + 0x6;
 }
@@ -724,7 +724,7 @@ DEFINE_OVERRIDE_HOOK(0x73E851, UnitClass_Mi_Harvest_LongScan, 6)
 DEFINE_OVERRIDE_HOOK(0x74081F, UnitClass_Mi_Guard_KickFrameDelay, 5)
 {
 	GET(UnitClass*, pThis, ESI);
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	auto nFrame = pTypeExt->Harvester_KickDelay.Get(RulesClass::Instance->SlaveMinerKickFrameDelay);
 
 	return(nFrame < 0 || nFrame + pThis->CurrentMissionStartTime >= Unsorted::CurrentFrame) ?
@@ -734,7 +734,7 @@ DEFINE_OVERRIDE_HOOK(0x74081F, UnitClass_Mi_Guard_KickFrameDelay, 5)
 DEFINE_OVERRIDE_HOOK(0x74410D, UnitClass_Mi_AreaGuard_KickFrameDelay, 5)
 {
 	GET(UnitClass*, pThis, ESI);
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	auto nFrame = pTypeExt->Harvester_KickDelay.Get(RulesClass::Instance->SlaveMinerKickFrameDelay);
 
 	return(nFrame < 0 || nFrame + pThis->CurrentMissionStartTime >= Unsorted::CurrentFrame) ?
@@ -751,7 +751,7 @@ DEFINE_OVERRIDE_HOOK(0x74689B, UnitClass_Init_Academy, 6)
 		return 0x0;
 
 	const auto pType = pThis->Type;
-	const auto pHouseExt = HouseExt::ExtMap.Find(pThis->Owner);
+	const auto pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
 
 	if (pType->Trainable && pType->Naval && pHouseExt->Is_NavalYardSpied)
 	{
@@ -760,15 +760,15 @@ DEFINE_OVERRIDE_HOOK(0x74689B, UnitClass_Init_Academy, 6)
 
 	if (pType->ConsideredAircraft)
 	{
-		HouseExt::ApplyAcademy(pThis->Owner, pThis, AbstractType::Aircraft);
+		HouseExtData::ApplyAcademy(pThis->Owner, pThis, AbstractType::Aircraft);
 	}
 	else if (pType->Organic)
 	{
-		HouseExt::ApplyAcademy(pThis->Owner, pThis, AbstractType::Infantry);
+		HouseExtData::ApplyAcademy(pThis->Owner, pThis, AbstractType::Infantry);
 	}
 	else
 	{
-		HouseExt::ApplyAcademy(pThis->Owner, pThis, AbstractType::Unit);
+		HouseExtData::ApplyAcademy(pThis->Owner, pThis, AbstractType::Unit);
 	}
 
 	return 0;
@@ -810,7 +810,7 @@ DEFINE_OVERRIDE_HOOK(0x740031, UnitClass_GetActionOnObject_NoManualUnload, 6)
 		return 0x73FFFC;
 	}
 	*/
-	return TechnoTypeExt::ExtMap.Find(pThis->Type)->NoManualUnload ? 0x740115u : 0u;
+	return TechnoTypeExtContainer::Instance.Find(pThis->Type)->NoManualUnload ? 0x740115u : 0u;
 }
 
 DEFINE_OVERRIDE_HOOK(0x417DD2, AircraftClass_GetActionOnObject_NoManualUnload, 6)
@@ -818,7 +818,7 @@ DEFINE_OVERRIDE_HOOK(0x417DD2, AircraftClass_GetActionOnObject_NoManualUnload, 6
 	enum { RetDefault = 0, NoUnload = 0x417DF4 };
 
 	GET(AircraftClass const* const, pThis, ESI);
-	return TechnoTypeExt::ExtMap.Find(pThis->Type)->NoManualUnload ? 0x417DF4u : 0u;
+	return TechnoTypeExtContainer::Instance.Find(pThis->Type)->NoManualUnload ? 0x417DF4u : 0u;
 }
 
 DEFINE_OVERRIDE_HOOK(0x700EEC, TechnoClass_CanDeploySlashUnload_NoManualUnload, 6)
@@ -826,7 +826,7 @@ DEFINE_OVERRIDE_HOOK(0x700EEC, TechnoClass_CanDeploySlashUnload_NoManualUnload, 
 	// this techno is known to be a unit
 	GET(UnitClass const* const, pThis, ESI);
 
-	return TechnoTypeExt::ExtMap.Find(pThis->Type)->NoManualUnload || pThis->BunkerLinkedItem
+	return TechnoTypeExtContainer::Instance.Find(pThis->Type)->NoManualUnload || pThis->BunkerLinkedItem
 		? 0x700DCEu : 0u;
 }
 
@@ -840,11 +840,11 @@ DEFINE_OVERRIDE_HOOK(0x53C450, TechnoClass_CanBePermaMC, 5)
 		&& !pThis->IsIronCurtained() && !pThis->IsInAir())
 	{
 
-		const auto TechnoExt = TechnoExt::ExtMap.Find(pThis);
-		if (!TechnoExt::IsPsionicsImmune(pThis) && !TechnoExt->Type->BalloonHover)
+		const auto TechnoExt = TechnoExtContainer::Instance.Find(pThis);
+		if (!TechnoExtData::IsPsionicsImmune(pThis) && !TechnoExt->Type->BalloonHover)
 		{
 			// KillDriver check
-			if (!TechnoExt::ExtMap.Find(pThis)->Is_DriverKilled)
+			if (!TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
 			{
 				bDisaalow = 1;
 			}
@@ -859,14 +859,14 @@ DEFINE_OVERRIDE_HOOK(0x700536, TechnoClass_GetActionOnObject_NoManualFire, 6)
 {
 	GET(TechnoClass const* const, pThis, ESI);
 	auto const pType = pThis->GetTechnoType();
-	return TechnoTypeExt::ExtMap.Find(pType)->NoManualFire ? 0x70056Cu : 0u;
+	return TechnoTypeExtContainer::Instance.Find(pType)->NoManualFire ? 0x70056Cu : 0u;
 }
 
 DEFINE_OVERRIDE_HOOK(0x7008D4, TechnoClass_GetCursorOverCell_NoManualFire, 6)
 {
 	GET(TechnoClass const* const, pThis, ESI);
 	auto const pType = pThis->GetTechnoType();
-	return TechnoTypeExt::ExtMap.Find(pType)->NoManualFire ? 0x700AB7u : 0u;
+	return TechnoTypeExtContainer::Instance.Find(pType)->NoManualFire ? 0x700AB7u : 0u;
 }
 
 DEFINE_OVERRIDE_HOOK(0x74031A, UnitClass_GetActionOnObject_NoManualEnter, 6)
@@ -874,7 +874,7 @@ DEFINE_OVERRIDE_HOOK(0x74031A, UnitClass_GetActionOnObject_NoManualEnter, 6)
 	//GET(UnitClass const* const, pThis, ESI);
 	GET(TechnoTypeClass*, pTargetType, EAX);
 	const bool enterable = pTargetType->Passengers > 0 &&
-		!TechnoTypeExt::ExtMap.Find(pTargetType)->NoManualEnter;
+		!TechnoTypeExtContainer::Instance.Find(pTargetType)->NoManualEnter;
 	return enterable ? 0x740324u : 0x74037Au;
 }
 
@@ -954,7 +954,7 @@ DEFINE_OVERRIDE_HOOK(0x51E710, InfantryClass_GetActionOnObject_Heal, 7)
 	GET(ObjectClass*, pThat, ESI);
 
 	if (pThis == pThat)
-		return TechnoTypeExt::ExtMap.Find(pThis->Type)->NoSelfGuardArea ? NextCheck2 : ActionGuardArea;
+		return TechnoTypeExtContainer::Instance.Find(pThis->Type)->NoSelfGuardArea ? NextCheck2 : ActionGuardArea;
 
 	const auto pThatTechno = generic_cast<TechnoClass*>(pThat);
 	if (!pThatTechno)
@@ -1075,12 +1075,12 @@ DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 		return 0x0;
 
 	auto pType = TechnoExt_ExtData::GetImage(pThis);
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	const auto tur = pType->Gunner || pType->IsChargeTurret
-		? TechnoTypeExt::GetTurretsVoxel(pType, pThis->CurrentTurretNumber)
+		? TechnoTypeExtData::GetTurretsVoxel(pType, pThis->CurrentTurretNumber)
 		: &pType->TurretVoxel;
 
-	if (pTypeExt->TurretShadow.Get(RulesExt::Global()->DrawTurretShadow) && tur->VXL && tur->HVA)
+	if (pTypeExt->TurretShadow.Get(RulesExtData::Instance()->DrawTurretShadow) && tur->VXL && tur->HVA)
 	{
 		Matrix3D mtx;
 		pThis->Locomotor->Shadow_Matrix(&mtx, nullptr);
@@ -1098,7 +1098,7 @@ DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 		pThis->DrawVoxelShadow(tur, 0, angle, 0, a4, &a3, &mtx, a9, pSurface, pos);
 
 		const auto bar = pType->ChargerBarrels ?
-			TechnoTypeExt::GetBarrelsVoxel(pType, pThis->CurrentTurretNumber)
+			TechnoTypeExtData::GetBarrelsVoxel(pType, pThis->CurrentTurretNumber)
 			: &pType->BarrelVoxel;
 
 		if (bar->VXL && bar->HVA)
@@ -1152,7 +1152,7 @@ DEFINE_OVERRIDE_HOOK(0x715320, TechnoTypeClass_LoadFromINI_EarlyReader, 6)
 	GET(TechnoTypeClass*, pType, EBP);
 
 	INI_EX exINI(pINI);
-	TechnoTypeExt::ExtMap.Find(pType)->WaterImage.Read(exINI, pType->ID, "WaterImage");
+	TechnoTypeExtContainer::Instance.Find(pType)->WaterImage.Read(exINI, pType->ID, "WaterImage");
 
 	return 0;
 }
@@ -1169,7 +1169,7 @@ DEFINE_OVERRIDE_HOOK(0x73C485, UnitClass_DrawVXL_NoSpawnAlt_SkipShadow, 8)
 		&& pSpawnManager->CountDockedSpawns() < pSpawnManager->SpawnCount
 		)
 	{
-		if (TechnoTypeExt::ExtMap.Find(pThis->Type)->NoShadowSpawnAlt.Get())
+		if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->NoShadowSpawnAlt.Get())
 			return DoNotDrawShadow;
 	}
 
@@ -1258,9 +1258,9 @@ DEFINE_OVERRIDE_HOOK(0x739956, DeploysInto_UndeploysInto_SyncStatuses, 0x6) //Un
 	AresAE::TransferAttachedEffects(pFrom , pTo);
 	TechnoExt_ExtData::TransferOriginalOwner(pFrom , pTo);
 	//AresData::TechnoTransferAffects(pFrom, pTo);
-	TechnoExt::TransferMindControlOnDeploy(pFrom, pTo);
+	TechnoExtData::TransferMindControlOnDeploy(pFrom, pTo);
 	ShieldClass::SyncShieldToAnother(pFrom, pTo);
-	TechnoExt::SyncIronCurtainStatus(pFrom, pTo);
+	TechnoExtData::SyncIronCurtainStatus(pFrom, pTo);
 
 	if (pFrom->AttachedTag)
 		pTo->AttachTrigger(pFrom->AttachedTag);
@@ -1275,7 +1275,7 @@ DEFINE_OVERRIDE_HOOK(0x4140EB, AircraftClass_DTOR_Prereqs, 6)
 {
 	GET(UnitClass* const, pThis, EDI);
 
-	if (TechnoTypeExt::ExtMap.Find(pThis->Type)->IsGenericPrerequisite())
+	if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->IsGenericPrerequisite())
 	{
 		pThis->Owner->RecheckTechTree = true;
 	}
@@ -1287,7 +1287,7 @@ DEFINE_OVERRIDE_HOOK(0x517DF2, InfantryClass_DTOR_Prereqs, 6)
 {
 	GET(InfantryClass* const, pThis, ESI);
 
-	if (TechnoTypeExt::ExtMap.Find(pThis->Type)->IsGenericPrerequisite())
+	if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->IsGenericPrerequisite())
 	{
 		pThis->Owner->RecheckTechTree = true;
 	}
@@ -1299,7 +1299,7 @@ DEFINE_OVERRIDE_HOOK(0x7357F6, UnitClass_DTOR_Prereqs, 6)
 {
 	GET(UnitClass* const, pThis, ESI);
 
-	if (TechnoTypeExt::ExtMap.Find(pThis->Type)->IsGenericPrerequisite())
+	if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->IsGenericPrerequisite())
 	{
 		pThis->Owner->RecheckTechTree = true;
 	}
@@ -1313,7 +1313,7 @@ DEFINE_OVERRIDE_HOOK(0x4D7221, FootClass_Put_Prereqs, 6)
 
 	auto const pType = pThis->GetTechnoType();
 
-	if (TechnoTypeExt::ExtMap.Find(pType)->IsGenericPrerequisite()) {
+	if (TechnoTypeExtContainer::Instance.Find(pType)->IsGenericPrerequisite()) {
 		pThis->Owner->RecheckTechTree = true;
 	}
 
@@ -1327,7 +1327,7 @@ DEFINE_OVERRIDE_HOOK(0x6F4A1D, TechnoClass_DiscoveredBy_Prereqs, 6)
 
 	auto const pType = pThis->GetTechnoType();
 
-	if (pThis->WhatAmI() != BuildingClass::AbsID && TechnoTypeExt::ExtMap.Find(pType)->IsGenericPrerequisite())
+	if (pThis->WhatAmI() != BuildingClass::AbsID && TechnoTypeExtContainer::Instance.Find(pType)->IsGenericPrerequisite())
 	{
 		pThis->Owner->RecheckTechTree = true;
 	}
@@ -1342,7 +1342,7 @@ DEFINE_OVERRIDE_HOOK(0x7015EB, TechnoClass_ChangeOwnership_Prereqs, 7)
 
 	auto const pType = pThis->GetTechnoType();
 
-	if (pThis->WhatAmI() != BuildingClass::AbsID && TechnoTypeExt::ExtMap.Find(pType)->IsGenericPrerequisite())
+	if (pThis->WhatAmI() != BuildingClass::AbsID && TechnoTypeExtContainer::Instance.Find(pType)->IsGenericPrerequisite())
 	{
 		pThis->Owner->RecheckTechTree = true;
 		pNewOwner->RecheckTechTree = true;
@@ -1354,7 +1354,7 @@ DEFINE_OVERRIDE_HOOK(0x7015EB, TechnoClass_ChangeOwnership_Prereqs, 7)
 DEFINE_OVERRIDE_HOOK(0x741613, UnitClass_ApproachTarget_OmniCrusher, 6)
 {
 	GET(UnitClass* const, pThis, ESI);
-	return TechnoTypeExt::ExtMap.Find(pThis->Type)->OmniCrusher_Aggressive
+	return TechnoTypeExtContainer::Instance.Find(pThis->Type)->OmniCrusher_Aggressive
 		? 0u : 0x741685u;
 }
 
@@ -1364,7 +1364,7 @@ DEFINE_HOOK(0x7418E1, UnitClass_CrushCell_DeathWeapon, 0xA)
 
 	if (auto const pVictimTechno = abstract_cast<TechnoClass*>(pVictim))
 	{
-		const auto pExt = TechnoTypeExt::ExtMap.Find(pVictim->GetTechnoType());
+		const auto pExt = TechnoTypeExtContainer::Instance.Find(pVictim->GetTechnoType());
 
 		const auto nChance = abs(pExt->CrushFireDeathWeapon.Get(pVictimTechno));
 
@@ -1382,7 +1382,7 @@ DEFINE_HOOK(0x74192E, UnitClass_CrushCell_CrushDecloak, 0x5)
 {
 	enum { Decloak = 0x0, DoNotDecloak = 0x741939 };
 	GET(UnitClass* const, pThis, EDI);
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	return pExt->CrusherDecloak ? Decloak : DoNotDecloak;
 }
 
@@ -1424,9 +1424,9 @@ DEFINE_OVERRIDE_HOOK(0x7418AA, UnitClass_CrushCell_CrushDamage, 6)
 
 	if (auto const pVictimTechno = abstract_cast<TechnoClass*>(pVictim))
 	{
-		const auto pExt = TechnoExt::ExtMap.Find(pVictimTechno);
-		const auto pThisTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-		const auto pVictimTypeExt = TechnoTypeExt::ExtMap.Find(pVictim->GetTechnoType());
+		const auto pExt = TechnoExtContainer::Instance.Find(pVictimTechno);
+		const auto pThisTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+		const auto pVictimTypeExt = TechnoTypeExtContainer::Instance.Find(pVictim->GetTechnoType());
 		auto damage = pVictimTypeExt->CrushDamage.Get(pVictimTechno);
 
 		if (pThisTypeExt->Crusher_SupressLostEva)
@@ -1442,7 +1442,7 @@ DEFINE_OVERRIDE_HOOK(0x7418AA, UnitClass_CrushCell_CrushDamage, 6)
 			if (pVictimTypeExt->CrushDamagePlayWHAnim) {
 				auto loc = pVictim->GetCoords();
 				if (auto pAnimType = MapClass::SelectDamageAnimation(damage, pWarhead, pThis->GetCell()->LandType, loc)) {
-					AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, loc),
+					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, loc),
 						pThis->Owner, pVictim->GetOwningHouse(), pThis, false);
 				}
 			}
@@ -1455,14 +1455,14 @@ DEFINE_OVERRIDE_HOOK(0x7418AA, UnitClass_CrushCell_CrushDamage, 6)
 DEFINE_OVERRIDE_HOOK(0x735584, UnitClass_CTOR_TurretROT, 6)
 {
 	GET(UnitTypeClass*, pType, ECX);
-	R->EDX(TechnoTypeExt::ExtMap.Find(pType)->TurretRot.Get(pType->ROT));
+	R->EDX(TechnoTypeExtContainer::Instance.Find(pType)->TurretRot.Get(pType->ROT));
 	return 0x73558A;
 }
 
 DEFINE_OVERRIDE_HOOK(0x413ffa , AircraftClass_Init_TurretROT , 6)
 {
 	GET(AircraftTypeClass*, pType, EDX);
-	R->EAX(TechnoTypeExt::ExtMap.Find(pType)->TurretRot.Get(pType->ROT));
+	R->EAX(TechnoTypeExtContainer::Instance.Find(pType)->TurretRot.Get(pType->ROT));
 	return 0x414000;
 }
 
@@ -1526,7 +1526,7 @@ DEFINE_OVERRIDE_HOOK(0x72920C, TunnelLocomotionClass_Turning, 9)
 DEFINE_OVERRIDE_HOOK(0x441B30, BuildingClass_Destroy_Refinery, 6)
 {
 	GET(BuildingClass* const, pThis, ESI);
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	auto& store = pThis->Tiberium;
 	auto& total = pThis->Owner->OwnedTiberium;
@@ -1571,7 +1571,7 @@ DEFINE_OVERRIDE_HOOK(0x7090A8, TechnoClass_SelectFiringVoice, 5)
 	GET(TechnoClass*, pTarget, ECX);
 
 	TechnoTypeClass* pType = pThis->GetTechnoType();
-	TechnoTypeExt::ExtData* pData = TechnoTypeExt::ExtMap.Find(pType);
+	TechnoTypeExtData* pData = TechnoTypeExtContainer::Instance.Find(pType);
 
 	int idxVoice = -1;
 
@@ -1648,18 +1648,18 @@ DEFINE_OVERRIDE_HOOK(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
 	const CoordStruct crd = pCell->GetCoordsWithBridge();
 
 	// recreate replaced check, and also disallow if unit is still warping or dropping in.
-	return TechnoExt::ExtMap.Find(pThis)->Convert_Deploy_Delay.InProgress()
+	return TechnoExtContainer::Instance.Find(pThis)->Convert_Deploy_Delay.InProgress()
 	|| pThis->IsUnderEMP()
 	|| pThis->IsWarpingIn()
 	|| pThis->IsFallingDown
-	|| TechnoExt::ExtMap.Find(pThis)->Is_DriverKilled
+	|| TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled
 	 ? 0x700DCE : 0x700E59;
 }
 
 DEFINE_OVERRIDE_HOOK(0x7384BD, UnitClass_ReceiveDamage_OreMinerUnderAttack, 6)
 {
 	GET_STACK(WarheadTypeClass*, WH, STACK_OFFS(0x44, -0xC));
-	return WH && !WarheadTypeExt::ExtMap.Find(WH)->Malicious ? 0x738535u : 0u;
+	return WH && !WarheadTypeExtContainer::Instance.Find(WH)->Malicious ? 0x738535u : 0u;
 }
 
 DEFINE_OVERRIDE_HOOK(0x738749, UnitClass_Destroy_TiberiumExplosive, 6)
@@ -1682,14 +1682,14 @@ DEFINE_OVERRIDE_HOOK(0x738749, UnitClass_Destroy_TiberiumExplosive, 6)
 		{
 
 			CoordStruct crd = pThis->GetCoords();
-			if (auto pWH = RulesExt::Global()->Tiberium_ExplosiveWarhead)
+			if (auto pWH = RulesExtData::Instance()->Tiberium_ExplosiveWarhead)
 			{
 				MapClass::DamageArea(crd, morePower, const_cast<UnitClass*>(pThis), pWH, pWH->Tiberium, pThis->Owner);
 			}
 
-			if (auto pAnim = RulesExt::Global()->Tiberium_ExplosiveAnim)
+			if (auto pAnim = RulesExtData::Instance()->Tiberium_ExplosiveAnim)
 			{
-				AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, crd, 0, 1, AnimFlag(0x2600), -15, false),
+				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, crd, 0, 1, AnimFlag(0x2600), -15, false),
 					pThis->Owner,
 					nullptr,
 					false
@@ -1745,7 +1745,7 @@ DEFINE_OVERRIDE_HOOK(0x739F21, UnitClass_UpdatePosition_Visceroid, 6)
 			pDest->QueueMission(Mission::Guard, true);
 
 			Debug::Log(__FUNCTION__" Executed!\n");
-			TechnoExt::HandleRemove(pThis, nullptr, false, false);
+			TechnoExtData::HandleRemove(pThis, nullptr, false, false);
 			return 0x73B0A5;
 		}
 	}
@@ -1759,7 +1759,7 @@ DEFINE_HOOK(0x73C141, UnitClass_DrawVXL_Deactivated, 7)
 	GET(UnitClass*, pThis, EBP);
 	REF_STACK(int, Value, 0x1E0);
 
-	const auto pRules = RulesExt::Global();
+	const auto pRules = RulesExtData::Instance();
 	double factor = 1.0;
 
 	if (pThis->IsUnderEMP())

@@ -11,7 +11,7 @@ DEFINE_HOOK(0x6B7A18, SpawnManagerClass_AI_Add_Missile_Target, 0x6)
 
 	if (pRocket->Type->MissileSpawn) {
 		if (const auto pTarget = pManager->Target) {
-			if (const auto pExt = TechnoExt::ExtMap.Find(pRocket)) {
+			if (const auto pExt = TechnoExtContainer::Instance.Find(pRocket)) {
 				if (const auto pTracker = pExt->MissileTargetTracker)
 				{
 					pTracker->Target = pTarget;
@@ -31,7 +31,7 @@ DEFINE_HOOK(0x54E42B, KamikazeTrackerClass_Add_Missile_Has_Target, 0x6)
 	GET(TechnoClass*, pRocket, ESI);
 	//GET(AbstractClass*, pTarget, ECX);
 
-	if (const auto pExt = TechnoExt::ExtMap.Find(pRocket)) {
+	if (const auto pExt = TechnoExtContainer::Instance.Find(pRocket)) {
 		if (auto const pTracker = pExt->MissileTargetTracker) {
 			pTracker->AI();
 			if(auto const pRedirect = pTracker->AsAbstract()){
@@ -48,7 +48,7 @@ DEFINE_HOOK(0x6622C0, RocketLocomotionClass_Process, 0x6)
 {
 	GET(FootClass*, pFoot, ESI);
 
-	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pFoot->GetTechnoType())) {
+	if (auto const pExt = TechnoTypeExtContainer::Instance.Find(pFoot->GetTechnoType())) {
 		if (pExt->MissileHoming.Get()) {
 			const auto pLocomotor = static_cast<RocketLocomotionClass*>(pFoot->Locomotor.get());
 			if (pLocomotor->MissionState == 0)
@@ -66,7 +66,7 @@ DEFINE_HOOK(0x662CAC, RocketLocomotionClass_Process_Step5_To_Lazy_4, 0x6)
 	//It is an offset to ILocomotion pointer -AlexB
 	if (const auto pLoco = static_cast<RocketLocomotionClass*>(pILoco)) {
 		if (const auto pResult = pLoco->LinkedTo) {
-			if (const auto pExt = TechnoTypeExt::ExtMap.Find(pResult->GetTechnoType())) {
+			if (const auto pExt = TechnoTypeExtContainer::Instance.Find(pResult->GetTechnoType())) {
 				if (pExt->MissileHoming.Get())
 					return 0x662A32;
 			}

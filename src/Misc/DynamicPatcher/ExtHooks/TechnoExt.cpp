@@ -18,7 +18,7 @@
 DEFINE_HOOK(0x4149EE, AircraftClass_Render2, 0x5)
 {
 	GET(AircraftClass*, pThis, EBP);
-	if (auto const pExt = TechnoExt::ExtMap.Find(pThis))
+	if (auto const pExt = TechnoExtContainer::Instance.Find(pThis))
 	if (auto pManager = pExt->AnotherData.MyManager.get())
 		pManager->Render2(pThis, !pThis->IsActive());
 
@@ -28,7 +28,7 @@ DEFINE_HOOK(0x4149EE, AircraftClass_Render2, 0x5)
 DEFINE_HOOK(0x519616, InfantryClass_Render2, 0x5)
 {
 	GET(InfantryClass*, pThis, EBP);
-	if (auto const pExt = TechnoExt::ExtMap.Find(pThis))
+	if (auto const pExt = TechnoExtContainer::Instance.Find(pThis))
 	if (auto pManager = pExt->AnotherData.MyManager.get())
 		pManager->Render2(pThis, !pThis->IsActive());
 
@@ -40,7 +40,7 @@ DEFINE_HOOK(0x73D40C, UnitClass_Render2, 0x7)
 {
 	GET(UnitClass*, pThis, ESI);
 
-	if (auto const pExt = TechnoExt::ExtMap.Find(pThis))
+	if (auto const pExt = TechnoExtContainer::Instance.Find(pThis))
 	if (auto pManager = pExt->AnotherData.MyManager.get())
 		pManager->Render2(pThis, !pThis->IsActive());
 
@@ -54,7 +54,7 @@ DEFINE_HOOK(0x730F1C, ObjectClass_StopCommand, 0x5)
 
 	if (auto pTechno = generic_cast<TechnoClass*>(pObject))
 	{
-		auto const pExt = TechnoExt::ExtMap.Find(pTechno);
+		auto const pExt = TechnoExtContainer::Instance.Find(pTechno);
 		if (auto pManager = pExt->AnotherData.MyManager.get())
 			pManager->StopCommand();
 	}
@@ -65,7 +65,7 @@ DEFINE_HOOK(0x730F1C, ObjectClass_StopCommand, 0x5)
 DEFINE_HOOK(0x69252D, ScrollClass_ProcessClickCoords_VirtualUnit, 0x8)
 {
 	GET(TechnoClass*, pThis, ESI);
-	auto const pExt = TechnoExt::ExtMap.Find(pThis);
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	return pExt && pExt->VirtualUnit ? 0x6925E6 : 0x0;
 }
@@ -100,7 +100,7 @@ DEFINE_HOOK(0x6B743E, SpawnManagerAI_SpawnSupportFLH, 0x8)
 	{
 		//if ((*pFLH) == CoordStruct::Empty)
 		{
-			auto pTypeExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
+			auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType());
 
 			if (pTypeExt->MySpawnSupportDatas.Enable)
 			{
@@ -109,7 +109,7 @@ DEFINE_HOOK(0x6B743E, SpawnManagerAI_SpawnSupportFLH, 0x8)
 				SpawnSupportFLHData nFLHData = pTypeExt->MySpawnSupportFLH;
 				if (auto const pTransporter = pOwner->Transporter)
 				{
-					if (auto const pTransportExt = TechnoTypeExt::ExtMap.Find(pTransporter->GetTechnoType()))
+					if (auto const pTransportExt = TechnoTypeExtContainer::Instance.Find(pTransporter->GetTechnoType()))
 					{
 						nFLHData = pTransportExt->MySpawnSupportFLH;
 					}
@@ -120,7 +120,7 @@ DEFINE_HOOK(0x6B743E, SpawnManagerAI_SpawnSupportFLH, 0x8)
 				if (nFLH == CoordStruct::Empty)
 					return 0x0;
 
-				if (auto pSpawnExt = TechnoExt::ExtMap.Find(pOwner))
+				if (auto pSpawnExt = TechnoExtContainer::Instance.Find(pOwner))
 				{
 					if (pTypeExt->MySpawnSupportDatas.SwitchFLH)
 					{
@@ -149,7 +149,7 @@ namespace CalculatePinch
 			if (!pFirer->IsVoxel())
 				return;
 
-			const auto ext = WeaponTypeExt::ExtMap.Find(pWeapon->WeaponType);
+			const auto ext = WeaponTypeExtContainer::Instance.Find(pWeapon->WeaponType);
 
 			{
 				if (std::abs(ext->RockerPitch.Get()) < 0.005)
@@ -176,7 +176,7 @@ namespace CalculatePinch
 // 	bool Slectable = true;
 
 
-// 	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
+// 	if (auto pExt = TechnoExtContainer::Instance.Find(pThis))
 // 		Slectable = !pExt->VirtualUnit.Get();
 
 
@@ -199,10 +199,10 @@ DEFINE_HOOK(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
 	ExtraFirefunctional::GetWeapon(pThis, pTarget, nWeapon);
 	//FireSWFunctional::OnFire(pThis, pTarget, nWeapon);
 	SpawnSupportFunctional::OnFire(pThis, pTarget);
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
+	if (auto pExt = TechnoExtContainer::Instance.Find(pThis))
 	{
 		pExt->CurrentWeaponIdx = nWeapon;
-		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
+		if (auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType()))
 		{
 			AircraftDiveFunctional::OnFire(pExt, pTypeExt, pTarget, nWeapon);
 			//AttackBeaconFunctional::OnFire(pExt, pTarget, nWeapon);
@@ -217,7 +217,7 @@ DEFINE_HOOK(0x6FDD61, TechnoClass_FireAt_OverrideWeapon, 0x5)
 	GET(TechnoClass*, pThis, ESI);
 	//GET_STACK(AbstractClass*, pTarget, 0x4);
 
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis)) {
+	if (auto pExt = TechnoExtContainer::Instance.Find(pThis)) {
 		R->EBX(pThis->GetWeapon(pExt->CurrentWeaponIdx)->WeaponType);
 		return 0x6FDD71;
 	}
@@ -231,8 +231,8 @@ DEFINE_HOOK(0x6F6CA0, TechnoClass_Unlimbo_Early, 0x7)
 	GET_STACK(CoordStruct*, pCoord, (0x4));
 	//GET_STACK(DirType, faceDir, (0x8));
 
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis)) {
-		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
+	if (auto pExt = TechnoExtContainer::Instance.Find(pThis)) {
+		if (auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())) {
 			DamageSelfState::OnPut(pExt->DamageSelfState, pTypeExt->DamageSelfData);
 			GiftBoxFunctional::Init(pExt, pTypeExt);
 			AircraftPutDataFunctional::OnPut(pExt, pTypeExt, pCoord);
@@ -246,7 +246,7 @@ DEFINE_HOOK(0x6FC016, TechnoClass_Select_SkipVoice, 0x8)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	return pExt && pExt->SkipVoice ? 0x6FC01E :0x0;
 }
 
@@ -306,7 +306,7 @@ DEFINE_HOOK(0x41A697, AircraftClass_Mission_Guard_NoTarget_Enter , 6)
 {
 	GET(TechnoClass*, pTechno, ESI);
 
-	auto pExt = TechnoExt::ExtMap.Find(pTechno);
+	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 
 	if (!pExt->MyFighterData)
 		return 0x0;
@@ -321,7 +321,7 @@ DEFINE_HOOK(0x41A96C, AircraftClass_Mission_GuardArea_NoTarget_Enter , 6)
 {
 	GET(TechnoClass*, pTechno, ESI);
 
-	auto pExt = TechnoExt::ExtMap.Find(pTechno);
+	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 
 	if (!pExt->MyFighterData)
 		return 0x0;
@@ -336,7 +336,7 @@ DEFINE_HOOK(0x41A96C, AircraftClass_Mission_GuardArea_NoTarget_Enter , 6)
 //	GET(ILocomotion*, Iloco, ESI);
 //
 //	const FlyLocomotionClass* pFly = static_cast<FlyLocomotionClass*>(Iloco);
-//	auto pExt = TechnoExt::ExtMap.Find(pFly->LinkedTo);
+//	auto pExt = TechnoExtContainer::Instance.Find(pFly->LinkedTo);
 //
 //	if (!pExt->MyFighterData)
 //		return 0x0;
@@ -368,7 +368,7 @@ DEFINE_HOOK(0x41A96C, AircraftClass_Mission_GuardArea_NoTarget_Enter , 6)
 //	GET(ObjectClass*, pObj, ESI);
 //
 //	if (auto pTechno = generic_cast<TechnoClass*>(pObj)) {
-//		auto pExt = TechnoExt::ExtMap.Find(pTechno);
+//		auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 //		if (pExt->MyFighterData)
 //			pExt->MyFighterData->OnStopCommand();
 //	}

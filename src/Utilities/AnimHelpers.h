@@ -23,11 +23,11 @@ namespace Helper
 		{
 			if (pWarhead)
 			{
-				nDamage = static_cast<int>(nDamage * TechnoExt::GetDamageMult(pInvoker, !DamageConsiderVet));
+				nDamage = static_cast<int>(nDamage * TechnoExtData::GetDamageMult(pInvoker, !DamageConsiderVet));
 
 				if (bWarheadDetonate)
 				{
-					WarheadTypeExt::DetonateAt(pWarhead, Where, pInvoker, nDamage , pOwner);
+					WarheadTypeExtData::DetonateAt(pWarhead, Where, pInvoker, nDamage , pOwner);
 				}
 				else
 				{
@@ -46,8 +46,8 @@ namespace Helper
 				return DetonateWarhead(nDamage, pWarhead, bWarheadDetonate, Where, pInvoker, pOwner, DamageConsiderVet);
 			}
 
-			nDamage = static_cast<int>(nDamage * TechnoExt::GetDamageMult(pInvoker, !DamageConsiderVet));
-			WeaponTypeExt::DetonateAt(pWeapon, Where, pInvoker, nDamage, false);
+			nDamage = static_cast<int>(nDamage * TechnoExtData::GetDamageMult(pInvoker, !DamageConsiderVet));
+			WeaponTypeExtData::DetonateAt(pWeapon, Where, pInvoker, nDamage, false);
 			return { false , 0 };
 		}
 
@@ -61,7 +61,7 @@ namespace Helper
 					{
 						for (int k = nAmount[nIndex]; k > 0; --k)
 						{
-							AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pMultipleSelected, Where),
+							AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pMultipleSelected, Where),
 								pOwner,
 								nullptr,
 								pInvoker,

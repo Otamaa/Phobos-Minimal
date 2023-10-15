@@ -31,7 +31,7 @@ DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
 {
 	GET(AircraftClass* const, pThis, ECX);
 
-	//auto pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	//auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (pThis->MissionStatus < (int)AirAttackStatus::FireAtTarget2_Strafe
 		|| pThis->MissionStatus >(int)AirAttackStatus::FireAtTarget5_Strafe
@@ -48,7 +48,7 @@ DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
 		if (pWeaponStr->WeaponType) {
 			int fireCount = pThis->MissionStatus - 4;
 			if (fireCount > 1 &&
-				WeaponTypeExt::ExtMap.Find(pWeaponStr->WeaponType)->Strafing_Shots < fireCount) {
+				WeaponTypeExtContainer::Instance.Find(pWeaponStr->WeaponType)->Strafing_Shots < fireCount) {
 
 					if (!pThis->Ammo)
 						pThis->__DoingOverfly = false;
@@ -95,7 +95,7 @@ DEFINE_HOOK(0x414F21, AircraftClass_AI_TrailerInheritOwner, 0x6)
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x40, 0xC));
 
 	pAnim->AnimClass::AnimClass(pThis->Type->Trailer, nCoord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, pThis, false);
+	AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, pThis, false);
 
 	return 0x414F47;
 }
@@ -118,7 +118,7 @@ enum class AirAttackStatusP : int
 //#pragma optimize("", off )
 //int Mission_Attack(AircraftClass* pThis)
 //{
-//	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+//	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 //
 //	if (/*!SecondFiringMethod &&*/ !(pThis->MissionStatus < (int)AirAttackStatus::FireAtTarget2_Strafe
 //		|| pThis->MissionStatus >(int)AirAttackStatus::FireAtTarget5_Strafe))
@@ -129,7 +129,7 @@ enum class AirAttackStatusP : int
 //		{
 //			int fireCount = pThis->MissionStatus - 4;
 //			if (fireCount > 1 &&
-//				WeaponTypeExt::ExtMap.Find(pWeaponStr->WeaponType)->Strafing_Shots < fireCount)
+//				WeaponTypeExtContainer::Instance.Find(pWeaponStr->WeaponType)->Strafing_Shots < fireCount)
 //			{
 //
 //				if (!pThis->Ammo)

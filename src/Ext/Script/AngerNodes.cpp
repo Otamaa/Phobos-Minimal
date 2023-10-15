@@ -4,7 +4,7 @@
 #include <Ext/Rules/Body.h>
 #include <Ext/House/Body.h>
 
-void ScriptExt::ResetAngerAgainstHouses(TeamClass* pTeam)
+void ScriptExtData::ResetAngerAgainstHouses(TeamClass* pTeam)
 {
 
 	for (auto& angerNode : pTeam->Owner->AngerNodes) {
@@ -12,17 +12,17 @@ void ScriptExt::ResetAngerAgainstHouses(TeamClass* pTeam)
 	}
 
 	pTeam->Owner->EnemyHouseIndex = -1;
-	ScriptExt::DebugAngerNodesData();
+	ScriptExtData::DebugAngerNodesData();
 
 	// This action finished
 	pTeam->StepCompleted = true; // This action finished - FS-21
 }
 
-void ScriptExt::SetHouseAngerModifier(TeamClass* pTeam, int modifier = 0)
+void ScriptExtData::SetHouseAngerModifier(TeamClass* pTeam, int modifier = 0)
 {
 
 
-	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	auto pScript = pTeam->CurrentScript;
 	const auto& [curAct, curArgs] = pScript->GetCurrentAction();
 
@@ -38,11 +38,11 @@ void ScriptExt::SetHouseAngerModifier(TeamClass* pTeam, int modifier = 0)
 	pTeam->StepCompleted = true;
 }
 
-void ScriptExt::ModifyHateHouses_List(TeamClass* pTeam, int idxHousesList = -1)
+void ScriptExtData::ModifyHateHouses_List(TeamClass* pTeam, int idxHousesList = -1)
 {
 
 
-	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	bool changeFailed = true;
 	auto pScript = pTeam->CurrentScript;
 	const auto& [curAct, curArgs] = pScript->GetCurrentAction();
@@ -50,7 +50,7 @@ void ScriptExt::ModifyHateHouses_List(TeamClass* pTeam, int idxHousesList = -1)
 	if (idxHousesList <= 0)
 		idxHousesList = curArgs;
 
-	const auto& houseLists = RulesExt::Global()->AIHousesLists;
+	const auto& houseLists = RulesExtData::Instance()->AIHousesLists;
 
 	if (idxHousesList >= 0 && (size_t)idxHousesList < houseLists.size())
 	{
@@ -89,18 +89,18 @@ void ScriptExt::ModifyHateHouses_List(TeamClass* pTeam, int idxHousesList = -1)
 		return;
 	}
 
-	ScriptExt::UpdateEnemyHouseIndex(pTeam->Owner);
-	ScriptExt::DebugAngerNodesData();
+	ScriptExtData::UpdateEnemyHouseIndex(pTeam->Owner);
+	ScriptExtData::DebugAngerNodesData();
 
 	// This action finished
 	pTeam->StepCompleted = true;
 }
 
-void ScriptExt::ModifyHateHouses_List1Random(TeamClass* pTeam, int idxHousesList = -1)
+void ScriptExtData::ModifyHateHouses_List1Random(TeamClass* pTeam, int idxHousesList = -1)
 {
 
 
-	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	int changes = 0;
 	auto pScript = pTeam->CurrentScript;
 	const auto& [curAct, curArgs] = pScript->GetCurrentAction();
@@ -108,7 +108,7 @@ void ScriptExt::ModifyHateHouses_List1Random(TeamClass* pTeam, int idxHousesList
 	if (idxHousesList <= 0)
 		idxHousesList = curArgs;
 
-	const auto& houseLists = RulesExt::Global()->AIHousesLists;
+	const auto& houseLists = RulesExtData::Instance()->AIHousesLists;
 
 	if (idxHousesList >= 0 && (size_t)idxHousesList < houseLists.size())
 	{
@@ -145,18 +145,18 @@ void ScriptExt::ModifyHateHouses_List1Random(TeamClass* pTeam, int idxHousesList
 		return;
 	}
 
-	ScriptExt::UpdateEnemyHouseIndex(pTeam->Owner);
-	ScriptExt::DebugAngerNodesData();
+	ScriptExtData::UpdateEnemyHouseIndex(pTeam->Owner);
+	ScriptExtData::DebugAngerNodesData();
 
 	// This action finished
 	pTeam->StepCompleted = true;
 }
 
-void ScriptExt::SetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int mode = 1, bool random = false)
+void ScriptExtData::SetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int mode = 1, bool random = false)
 {
 
 
-	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	auto pScript = pTeam->CurrentScript;
 	const auto& [curAct, curArgs] = pScript->GetCurrentAction();
 
@@ -215,7 +215,7 @@ void ScriptExt::SetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int mode = 
 	}
 	else
 	{
-		selectedHouse = ScriptExt::GetTheMostHatedHouse(pTeam, mask, mode);
+		selectedHouse = ScriptExtData::GetTheMostHatedHouse(pTeam, mask, mode);
 	}
 
 	if (selectedHouse)
@@ -238,7 +238,7 @@ void ScriptExt::SetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int mode = 
 			}
 		}
 
-		ScriptExt::UpdateEnemyHouseIndex(pTeam->Owner);
+		ScriptExtData::UpdateEnemyHouseIndex(pTeam->Owner);
 	}
 	else
 	{
@@ -255,7 +255,7 @@ void ScriptExt::SetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int mode = 
 	pTeam->StepCompleted = true;
 }
 
-HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int mode = 1)
+HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int mode = 1)
 {
 
 
@@ -266,7 +266,7 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 		return nullptr;
 	}
 
-	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	auto pScript = pTeam->CurrentScript;
 	const auto& [curAct, curArgs] = pScript->GetCurrentAction();
 
@@ -281,7 +281,7 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 	FootClass* pLeaderUnit = pTeamData->TeamLeader;
 
 	if (!pLeaderUnit) {
-		pTeamData->TeamLeader = ScriptExt::FindTheTeamLeader(pTeam);
+		pTeamData->TeamLeader = ScriptExtData::FindTheTeamLeader(pTeam);
 	}
 
 	double objectDistance = -1;
@@ -531,7 +531,7 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 					&& pUnit->Owner == pHouse
 					&& !pUnit->InLimbo
 					&& pUnit->IsOnMap
-					&& ScriptExt::EvaluateObjectWithMask(pUnit, 31, -1, -1, nullptr))
+					&& ScriptExtData::EvaluateObjectWithMask(pUnit, 31, -1, -1, nullptr))
 				{
 					currentNavalUnits++;
 				}
@@ -673,7 +673,7 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 	// Depending the mode check what house will be selected as the most hated
 	for (auto pTechno : *TechnoClass::Array)
 	{
-		if (!ScriptExt::IsUnitAvailable(pTechno , true))
+		if (!ScriptExtData::IsUnitAvailable(pTechno , true))
 			continue;
 
 		if (!pTechno->Owner->Defeated
@@ -711,7 +711,7 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 			else
 			{
 				// mask > 0 : Threat based on the new types in the new attack actions
-				if (ScriptExt::EvaluateObjectWithMask(pTechno, mask, -1, -1, pLeaderUnit))
+				if (ScriptExtData::EvaluateObjectWithMask(pTechno, mask, -1, -1, pLeaderUnit))
 				{
 					auto pTechnoType = pTechno->GetTechnoType();
 
@@ -769,10 +769,10 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 	return enemyHouse;
 }
 
-void ScriptExt::OverrideOnlyTargetHouseEnemy(TeamClass* pTeam, int mode = -1)
+void ScriptExtData::OverrideOnlyTargetHouseEnemy(TeamClass* pTeam, int mode = -1)
 {
 
-	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	auto pScript = pTeam->CurrentScript;
 	const auto& [curAct, curArgs] = pScript->GetCurrentAction();
 
@@ -824,11 +824,11 @@ void ScriptExt::OverrideOnlyTargetHouseEnemy(TeamClass* pTeam, int mode = -1)
 	pTeam->StepCompleted = true;
 }
 
-void ScriptExt::ModifyHateHouse_Index(TeamClass* pTeam, int idxHouse = -1)
+void ScriptExtData::ModifyHateHouse_Index(TeamClass* pTeam, int idxHouse = -1)
 {
 
 
-	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	auto pScript = pTeam->CurrentScript;
 	const auto& [curAct, curArgs] = pScript->GetCurrentAction();
 
@@ -864,19 +864,19 @@ void ScriptExt::ModifyHateHouse_Index(TeamClass* pTeam, int idxHouse = -1)
 		}
 	}
 
-	ScriptExt::UpdateEnemyHouseIndex(pTeam->Owner);
-	ScriptExt::DebugAngerNodesData();
+	ScriptExtData::UpdateEnemyHouseIndex(pTeam->Owner);
+	ScriptExtData::DebugAngerNodesData();
 
 	// This action finished
 	pTeam->StepCompleted = true;
 }
 
 // The selected house will become the most hated of the map (the effects are only visible if the other houses are enemy of the selected house)
-void ScriptExt::AggroHouse(TeamClass* pTeam, int index = -1)
+void ScriptExtData::AggroHouse(TeamClass* pTeam, int index = -1)
 {
 
 
-	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
+	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	std::vector<HouseClass*> objectsList;
 	HouseClass* selectedHouse = nullptr;
 	int newHateLevel = 5000;
@@ -963,7 +963,7 @@ void ScriptExt::AggroHouse(TeamClass* pTeam, int index = -1)
 				}
 			}
 
-			ScriptExt::UpdateEnemyHouseIndex(pHouse);
+			ScriptExtData::UpdateEnemyHouseIndex(pHouse);
 		}
 	}
 	else
@@ -978,13 +978,13 @@ void ScriptExt::AggroHouse(TeamClass* pTeam, int index = -1)
 		);
 	}
 
-	ScriptExt::DebugAngerNodesData();
+	ScriptExtData::DebugAngerNodesData();
 
 	// This action finished
 	pTeam->StepCompleted = true;
 }
 
-void ScriptExt::UpdateEnemyHouseIndex(HouseClass* pHouse)
+void ScriptExtData::UpdateEnemyHouseIndex(HouseClass* pHouse)
 {
 
 
@@ -1006,7 +1006,7 @@ void ScriptExt::UpdateEnemyHouseIndex(HouseClass* pHouse)
 	pHouse->EnemyHouseIndex = index;
 }
 
-void ScriptExt::DebugAngerNodesData()
+void ScriptExtData::DebugAngerNodesData()
 {
 #ifdef DebugThese
 	Debug::Log("DEBUG: Updated AngerNodes lists of every playable House:\n");

@@ -33,7 +33,7 @@ DEFINE_OVERRIDE_HOOK(0x656584, RadarClass_GetFoundationShape, 6)
 
 	const auto fnd = pType->Foundation;
 	const DynamicVectorClass<Point2D>* ret = fnd > Foundation::_0x0 ?
-		&BuildingTypeExt::ExtMap.Find(pType)->FoundationRadarShape :
+		&BuildingTypeExtContainer::Instance.Find(pType)->FoundationRadarShape :
 		&pThis->FoundationTypePixels[(int)fnd];
 
 	R->EAX(ret);
@@ -45,7 +45,7 @@ DEFINE_OVERRIDE_HOOK(0x6563B0, RadarClass_UpdateFoundationShapes_Custom, 5)
 	// update each building type foundation
 	for (auto pType : *BuildingTypeClass::Array)
 	{
-		BuildingTypeExt::ExtMap.Find(pType)->UpdateFoundationRadarShape();
+		BuildingTypeExtContainer::Instance.Find(pType)->UpdateFoundationRadarShape();
 	}
 
 	return 0;
@@ -150,9 +150,9 @@ DEFINE_OVERRIDE_HOOK(0x45ec90, BuildingTypeClass_GetFoundationWidth, 6)
 {
 	GET(BuildingTypeClass*, pThis, ECX);
 
-	if (pThis->Foundation == BuildingTypeExt::CustomFoundation)
+	if (pThis->Foundation == BuildingTypeExtData::CustomFoundation)
 	{
-		R->EAX(BuildingTypeExt::ExtMap.Find(pThis)->CustomWidth);
+		R->EAX(BuildingTypeExtContainer::Instance.Find(pThis)->CustomWidth);
 		return 0x45EC9D;
 	}
 
@@ -163,11 +163,11 @@ DEFINE_OVERRIDE_HOOK(0x45eca0, BuildingTypeClass_GetFoundationHeight, 6)
 {
 	GET(BuildingTypeClass*, pThis, ECX);
 
-	if (pThis->Foundation == BuildingTypeExt::CustomFoundation)
+	if (pThis->Foundation == BuildingTypeExtData::CustomFoundation)
 	{
 		bool bIncludeBib = (R->Stack8(0x4) != 0);
 
-		int fH = BuildingTypeExt::ExtMap.Find(pThis)->CustomHeight;
+		int fH = BuildingTypeExtContainer::Instance.Find(pThis)->CustomHeight;
 		if (bIncludeBib && pThis->Bib)
 		{
 			++fH;
@@ -184,9 +184,9 @@ DEFINE_OVERRIDE_HOOK(0x45ECE0, BuildingTypeClass_GetMaxPips, 6)
 {
 	GET(BuildingTypeClass*, pThis, ECX);
 
-	if (pThis->Foundation == BuildingTypeExt::CustomFoundation)
+	if (pThis->Foundation == BuildingTypeExtData::CustomFoundation)
 	{
-		R->EAX(BuildingTypeExt::ExtMap.Find(pThis)->CustomWidth);
+		R->EAX(BuildingTypeExtContainer::Instance.Find(pThis)->CustomWidth);
 		return 0x45ECED;
 	}
 
@@ -197,9 +197,9 @@ DEFINE_OVERRIDE_HOOK(0x465550, BuildingTypeClass_GetFoundationOutline, 6)
 {
 	GET(BuildingTypeClass*, pThis, ECX);
 
-	if (pThis->Foundation == BuildingTypeExt::CustomFoundation)
+	if (pThis->Foundation == BuildingTypeExtData::CustomFoundation)
 	{
-		R->EAX(BuildingTypeExt::ExtMap.Find(pThis)->OutlineData.data());
+		R->EAX(BuildingTypeExtContainer::Instance.Find(pThis)->OutlineData.data());
 		return 0x46556D;
 	}
 
@@ -210,10 +210,10 @@ DEFINE_OVERRIDE_HOOK(0x465550, BuildingTypeClass_GetFoundationOutline, 6)
 DEFINE_OVERRIDE_HOOK(0x464AF0, BuildingTypeClass_GetSizeInLeptons, 6)
 {
 	GET(BuildingTypeClass*, pThis, ECX);
-	if (pThis->Foundation == BuildingTypeExt::CustomFoundation)
+	if (pThis->Foundation == BuildingTypeExtData::CustomFoundation)
 	{
 		GET_STACK(CoordStruct*, Coords, 0x4);
-		const auto pData = BuildingTypeExt::ExtMap.Find(pThis);
+		const auto pData = BuildingTypeExtContainer::Instance.Find(pThis);
 
 		Coords->X = pData->CustomWidth * 256;
 		Coords->Y = pData->CustomHeight * 256;

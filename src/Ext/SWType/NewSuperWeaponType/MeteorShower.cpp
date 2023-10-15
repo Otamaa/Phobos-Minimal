@@ -18,7 +18,7 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 	{
 		if (const auto pCell = MapClass::Instance->TryGetCellAt(Coords))
 		{
-			auto const pData = SWTypeExt::ExtMap.Find(pThis->Type);
+			auto const pData = SWTypeExtContainer::Instance.Find(pThis->Type);
 			auto pFirer = this->GetFirer(pThis, Coords, false);
 
 			const auto nCoord = pCell->GetCoordsWithBridge();
@@ -47,7 +47,7 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 				if (AnimTypeClass* anim = ScenarioClass::Instance->Random.PercentChance(pData->MeteorKindChance) ?
 					large_meteor : small_meteor)
 				{
-					AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(anim, nwhere),
+					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(anim, nwhere),
 						pThis->Owner,
 						nullptr,
 						pFirer,
@@ -76,7 +76,7 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 					{
 						if (auto pVxl = GameCreate<VoxelAnimClass>(impact, &im_where, pThis->Owner))
 						{
-							VoxelAnimExt::ExtMap.Find(pVxl)->Invoker = pFirer;
+							VoxelAnimExtContainer::Instance.Find(pVxl)->Invoker = pFirer;
 						}
 					}
 				}
@@ -87,9 +87,9 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 	return true;
 }
 
-void SW_MeteorShower::Initialize(SWTypeExt::ExtData* pData)
+void SW_MeteorShower::Initialize(SWTypeExtData* pData)
 {
-	pData->OwnerObject()->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	pData->AttachedToObject->Action = Action(AresNewActionType::SuperWeaponAllowed);
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::LightningStorm;
 	pData->SW_RadarEvent = false;
 	pData->MeteorSmall = AnimTypeClass::Find(GameStrings::METSMALL);
@@ -99,9 +99,9 @@ void SW_MeteorShower::Initialize(SWTypeExt::ExtData* pData)
 	pData->MeteorImpactLarge = VoxelAnimTypeClass::Find("METEOR01");
 }
 
-void SW_MeteorShower::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
+void SW_MeteorShower::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
-	const auto pSection = pData->Get()->ID;
+	const auto pSection = pData->AttachedToObject->ID;
 	INI_EX exINI(pINI);
 
 	pData->MeteorCounts.Read(exINI ,pSection,"Meteor.Count");
@@ -117,7 +117,7 @@ void SW_MeteorShower::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->MeteorImpactLarge.Read(exINI, pSection, "Meteor.VoxelAnimImpactLarge");
 }
 
-bool SW_MeteorShower::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+bool SW_MeteorShower::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
 	if (!this->IsLaunchsiteAlive(pBuilding))
 		return false;

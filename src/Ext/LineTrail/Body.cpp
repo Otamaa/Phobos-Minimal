@@ -9,7 +9,7 @@ PhobosMap<LineTrail*, CoordStruct> LineTrailExt::LineTrailMap;
 
 bool LineTrailExt::DeallocateLineTrail(TechnoClass* pTech)
 {
-	auto const pTechExt = TechnoExt::ExtMap.Find(pTech);
+	auto const pTechExt = TechnoExtContainer::Instance.Find(pTech);
 	{
 		if (pTechExt->TechnoLineTrail.Count > 0)
 		{
@@ -31,7 +31,7 @@ bool LineTrailExt::DeallocateLineTrail(TechnoClass* pTech)
 
 bool LineTrailExt::DeallocateLineTrail(BulletClass* pBullet)
 {
-	auto const pBulletExt = BulletExt::ExtMap.Find(pBullet);
+	auto const pBulletExt = BulletExtContainer::Instance.Find(pBullet);
 	{
 		if (pBulletExt->BulletTrails.Count > 0)
 		{
@@ -87,9 +87,9 @@ void LineTrailExt::DetachLineTrails(ObjectClass* pThis)
 void LineTrailExt::ConstructLineTrails(TechnoClass* pTech)
 {
 	{
-		auto const pTechExt = TechnoExt::ExtMap.Find(pTech);
+		auto const pTechExt = TechnoExtContainer::Instance.Find(pTech);
 		auto const pType = pTech->GetTechnoType();
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		if (!pTypeExt->LineTrailData.empty())
 		{
@@ -104,9 +104,9 @@ void LineTrailExt::ConstructLineTrails(TechnoClass* pTech)
 void LineTrailExt::ConstructLineTrails(BulletClass* pBullet)
 {
 	{
-		auto const pBulletExt = BulletExt::ExtMap.Find(pBullet);
+		auto const pBulletExt = BulletExtContainer::Instance.Find(pBullet);
 		auto const pType = pBullet->Type;
-		auto const pTypeExt = BulletTypeExt::ExtMap.Find(pType);
+		auto const pTypeExt = BulletTypeExtContainer::Instance.Find(pType);
 
 		if (!pTypeExt->LineTrailData.empty())
 		{

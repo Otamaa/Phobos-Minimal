@@ -3,9 +3,9 @@
 #include <ThemeClass.h>
 #include <Utilities/Helpers.h>
 
-void SideExt::ExtData::Initialize() {
+void SideExtData::Initialize() {
 
-	const char* pID = this->OwnerObject()->ID;
+	const char* pID = this->AttachedToObject->ID;
 
 	if (IS_SAME_STR_(pID, "Nod"))
 	{ //Soviets
@@ -61,21 +61,21 @@ void SideExt::ExtData::Initialize() {
 	}
 };
 
-bool SideExt::isNODSidebar()
+bool SideExtData::isNODSidebar()
 {
 	auto const PlayerSideIndex = ScenarioClass::Instance->PlayerSideIndex;
 	if (const auto pSide = SideClass::Array->GetItemOrDefault(PlayerSideIndex)) {
-		return !SideExt::ExtMap.Find(pSide)->Sidebar_GDIPositions.Get(PlayerSideIndex == 0);
+		return !SideExtContainer::Instance.Find(pSide)->Sidebar_GDIPositions.Get(PlayerSideIndex == 0);
 	}
 
 	return PlayerSideIndex == 0;
 }
 
-int SideExt::ExtData::GetSurvivorDivisor() const {
+int SideExtData::GetSurvivorDivisor() const {
 	return this->SurvivorDivisor.Get(this->GetDefaultSurvivorDivisor());
 }
 
-int SideExt::ExtData::GetDefaultSurvivorDivisor() const
+int SideExtData::GetDefaultSurvivorDivisor() const
 {
 	switch (this->ArrayIndex)
 	{
@@ -91,12 +91,12 @@ int SideExt::ExtData::GetDefaultSurvivorDivisor() const
 	return 100 * (this->ArrayIndex + 1);
 }
 
-InfantryTypeClass* SideExt::ExtData::GetCrew() const
+InfantryTypeClass* SideExtData::GetCrew() const
 {
 	return this->Crew.Get(this->GetDefaultCrew());
 }
 
-InfantryTypeClass* SideExt::ExtData::GetDefaultCrew() const
+InfantryTypeClass* SideExtData::GetDefaultCrew() const
 {
 	switch (this->ArrayIndex)
 	{
@@ -109,22 +109,22 @@ InfantryTypeClass* SideExt::ExtData::GetDefaultCrew() const
 	return RulesClass::Instance->AlliedCrew;
 }
 
-InfantryTypeClass* SideExt::ExtData::GetEngineer() const
+InfantryTypeClass* SideExtData::GetEngineer() const
 {
 	return this->Engineer.Get(RulesClass::Instance->Engineer);
 }
 
-InfantryTypeClass* SideExt::ExtData::GetTechnician() const
+InfantryTypeClass* SideExtData::GetTechnician() const
 {
 	return this->Technician.Get(RulesClass::Instance->Technician);
 }
 
-UnitTypeClass* SideExt::ExtData::GetHunterSeeker() const
+UnitTypeClass* SideExtData::GetHunterSeeker() const
 {
 	return this->HunterSeeker.Get();
 }
 
-Iterator<TechnoTypeClass*> SideExt::ExtData::GetParaDropTypes() const
+Iterator<TechnoTypeClass*> SideExtData::GetParaDropTypes() const
 {
 	if (this->ParaDropTypes.HasValue() && this->ParaDropNum.HasValue())
 	{
@@ -134,7 +134,7 @@ Iterator<TechnoTypeClass*> SideExt::ExtData::GetParaDropTypes() const
 	return this->GetDefaultParaDropTypes();
 }
 
-Iterator<InfantryTypeClass*> SideExt::ExtData::GetDefaultParaDropTypes() const
+Iterator<InfantryTypeClass*> SideExtData::GetDefaultParaDropTypes() const
 {
 
 	switch (this->ArrayIndex)
@@ -149,7 +149,7 @@ Iterator<InfantryTypeClass*> SideExt::ExtData::GetDefaultParaDropTypes() const
 	return RulesClass::Instance->AllyParaDropInf;
 }
 
-Iterator<int> SideExt::ExtData::GetDefaultParaDropNum() const
+Iterator<int> SideExtData::GetDefaultParaDropNum() const
 {
 	switch (this->ArrayIndex)
 	{
@@ -163,7 +163,7 @@ Iterator<int> SideExt::ExtData::GetDefaultParaDropNum() const
 	return RulesClass::Instance->AllyParaDropNum;
 }
 
-Iterator<int> SideExt::ExtData::GetParaDropNum() const
+Iterator<int> SideExtData::GetParaDropNum() const
 {
 	if (this->ParaDropTypes.HasValue() && this->ParaDropNum.HasValue()) {
 		return this->ParaDropNum;
@@ -172,7 +172,7 @@ Iterator<int> SideExt::ExtData::GetParaDropNum() const
 	return this->GetDefaultParaDropNum();
 }
 
-Iterator<int> SideExt::ExtData::GetBaseDefenseCounts() const
+Iterator<int> SideExtData::GetBaseDefenseCounts() const
 {
 	if (this->BaseDefenseCounts.HasValue()) {
 		return this->BaseDefenseCounts;
@@ -181,7 +181,7 @@ Iterator<int> SideExt::ExtData::GetBaseDefenseCounts() const
 	return this->GetDefaultBaseDefenseCounts();
 }
 
-Iterator<int> SideExt::ExtData::GetDefaultBaseDefenseCounts() const
+Iterator<int> SideExtData::GetDefaultBaseDefenseCounts() const
 {
 	switch (this->ArrayIndex)
 	{
@@ -197,7 +197,7 @@ Iterator<int> SideExt::ExtData::GetDefaultBaseDefenseCounts() const
 	}
 }
 
-Iterator<BuildingTypeClass*> SideExt::ExtData::GetBaseDefenses() const
+Iterator<BuildingTypeClass*> SideExtData::GetBaseDefenses() const
 {
 	if (this->BaseDefenses.HasValue()) {
 		return this->BaseDefenses;
@@ -206,7 +206,7 @@ Iterator<BuildingTypeClass*> SideExt::ExtData::GetBaseDefenses() const
 	return this->GetDefaultBaseDefenses();
 }
 
-Iterator<BuildingTypeClass*> SideExt::ExtData::GetDefaultBaseDefenses() const
+Iterator<BuildingTypeClass*> SideExtData::GetDefaultBaseDefenses() const
 {
 	switch (this->ArrayIndex)
 	{
@@ -222,7 +222,7 @@ Iterator<BuildingTypeClass*> SideExt::ExtData::GetDefaultBaseDefenses() const
 	}
 }
 
-InfantryTypeClass* SideExt::ExtData::GetDisguise() const
+InfantryTypeClass* SideExtData::GetDisguise() const
 {
 	if (this->Disguise.isset()) {
 		return this->Disguise;
@@ -231,7 +231,7 @@ InfantryTypeClass* SideExt::ExtData::GetDisguise() const
 	return this->GetDefaultDisguise();
 }
 
-InfantryTypeClass* SideExt::ExtData::GetDefaultDisguise() const
+InfantryTypeClass* SideExtData::GetDefaultDisguise() const
 {
 	switch (this->ArrayIndex)
 	{
@@ -247,9 +247,9 @@ InfantryTypeClass* SideExt::ExtData::GetDefaultDisguise() const
 	}
 }
 
-void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+void SideExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->Get();
+	auto pThis = this->AttachedToObject;
 	const char* pSection = pThis->ID;
 
 	if (parseFailAddr)
@@ -317,7 +317,7 @@ void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 // load / save
 
 template <typename T>
-void SideExt::ExtData::Serialize(T& Stm)
+void SideExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
@@ -384,7 +384,7 @@ void SideExt::ExtData::Serialize(T& Stm)
 
 // =============================
 // container
-SideExt::ExtContainer SideExt::ExtMap;
+SideExtContainer SideExtContainer::Instance;
 
 // =============================
 // container hooks
@@ -394,7 +394,7 @@ DEFINE_HOOK(0x6A4600, SideClass_CTOR, 0x6)
 	GET(SideClass*, pItem, ESI);
 	GET(int, nIdx, EAX);
 
-	if(auto pExt = SideExt::ExtMap.Allocate(pItem))
+	if(auto pExt = SideExtContainer::Instance.Allocate(pItem))
 		pExt->ArrayIndex = nIdx;
 
 	return 0;
@@ -404,7 +404,7 @@ DEFINE_HOOK(0x6A499F, SideClass_SDDTOR, 0x6)
 {
 	GET(SideClass*, pItem, ESI);
 
-	SideExt::ExtMap.Remove(pItem);
+	SideExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 
@@ -414,21 +414,21 @@ DEFINE_HOOK(0x6A4780, SideClass_SaveLoad_Prefix, 0x6)
 	GET_STACK(SideClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 
-	SideExt::ExtMap.PrepareStream(pItem, pStm);
+	SideExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
 }
 
 DEFINE_HOOK(0x6A488B, SideClass_Load_Suffix, 0x6)
 {
-   	SideExt::ExtMap.LoadStatic();
+   	SideExtContainer::Instance.LoadStatic();
 
 	return 0;
 }
 
 DEFINE_HOOK(0x6A48FC, SideClass_Save_Suffix, 0x5)
 {
-	SideExt::ExtMap.SaveStatic();
+	SideExtContainer::Instance.SaveStatic();
 	return 0;
 }
 
@@ -437,7 +437,7 @@ DEFINE_HOOK(0x6A48FC, SideClass_Save_Suffix, 0x5)
 // 	GET_STACK(CCINIClass*, pINI, 0x4);
 //
 // 	for (auto pSide : *SideClass::Array) {
-// 		SideExt::ExtMap.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
+// 		SideExtContainer::Instance.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
 // 	}
 //
 // 	return 0;
@@ -449,7 +449,7 @@ FINE_HOOK(6725C4, RulesClass_Addition_Sides, 8)
 	GET(SideClass *, pItem, EBP);
 	GET_STACK(CCINIClass*, pINI, 0x38);
 
-	SideExt::ExtMap.LoadFromINI(pItem, pINI);
+	SideExtContainer::Instance.LoadFromINI(pItem, pINI);
 	return 0;
 }
 */

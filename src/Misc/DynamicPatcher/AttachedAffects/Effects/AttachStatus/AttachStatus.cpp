@@ -6,7 +6,7 @@ void AttachStatus::OnEnable(ObjectClass* pObject, HouseClass* pHouse, TechnoClas
 	Active = true;
 	if (auto pTechno = generic_cast<TechnoClass*>(pObject))
 	{
-		if (auto ext = TechnoExt::ExtMap.Find(pTechno))
+		if (auto ext = TechnoExtContainer::Instance.Find(pTechno))
 		{
 			ExtData = ext;
 			ext->RecalculateStatus();
@@ -19,5 +19,5 @@ void AttachStatus::Disable(CoordStruct location)
 {
 	Active = false;
 	if(ExtData)
-		((TechnoExt::ExtData*)ExtData)->RecalculateStatus();
+		((TechnoExtData*)ExtData)->RecalculateStatus();
 }

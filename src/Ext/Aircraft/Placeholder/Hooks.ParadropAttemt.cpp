@@ -10,8 +10,8 @@ DEFINE_HOOK(0x413F98, AircraftClass_Init, 0x6)
 	GET(AircraftClass*, pThis, ESI);
 	GET(AircraftTypeClass*, pThisType, EDI);
 
-	if (auto const pExt = TechnoTypeExt::ExtMap.TryFind(pThisType)) {
-		TechnoExt::ExtMap.Find(pThis)->Attempt = pExt->Paradrop_MaxAttempt.Get();
+	if (auto const pExt = TechnoTypeExtContainer::Instance.TryFind(pThisType)) {
+		TechnoExtContainer::Instance.Find(pThis)->Attempt = pExt->Paradrop_MaxAttempt.Get();
 		//pThis->___paradrop_attempts = static_cast<BYTE>(pExt->Paradrop_MaxAttempt.Get());
 	}
 
@@ -24,11 +24,11 @@ DEFINE_HOOK(0x415E93, AircraftClass_DropCargo_ParaLeft, 0x7)
 
 	int nAttempt = 5;
 
-	if (auto const pExt = TechnoTypeExt::ExtMap.TryFind(pThis->Type)) {
+	if (auto const pExt = TechnoTypeExtContainer::Instance.TryFind(pThis->Type)) {
 		nAttempt = pExt->Paradrop_MaxAttempt.Get();
 	}
 
-	TechnoExt::ExtMap.Find(pThis)->Attempt = nAttempt;
+	TechnoExtContainer::Instance.Find(pThis)->Attempt = nAttempt;
 	//pThis->___paradrop_attempts = static_cast<BYTE>(nAttempt);
 	return 0x415E9A;
 }
@@ -36,7 +36,7 @@ DEFINE_HOOK(0x415E93, AircraftClass_DropCargo_ParaLeft, 0x7)
 DEFINE_HOOK(0x415950, AircraftClass_MI_Paradrop_Attempt, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
-	--TechnoExt::ExtMap.Find(pThis)->Attempt;
+	--TechnoExtContainer::Instance.Find(pThis)->Attempt;
 	return 0x415956;
 }
 
@@ -44,7 +44,7 @@ DEFINE_HOOK(0x41599F, AircraftClass_MI_Paradrop_Attempt_B, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
 	pThis->__DoingOverfly = false;
-	return TechnoExt::ExtMap.Find(pThis)->Attempt > 0 ? 0x4159B0 : 0x415A11;
+	return TechnoExtContainer::Instance.Find(pThis)->Attempt > 0 ? 0x4159B0 : 0x415A11;
 }
 
 //DEFINE_HOOK(0x41B657, AircraftClass_CalculateCRC_Add, 0x5)
@@ -52,7 +52,7 @@ DEFINE_HOOK(0x41599F, AircraftClass_MI_Paradrop_Attempt_B, 0x6)
 //	GET(AircraftClass*, pThis, ESI);
 //	GET(WWCRCEngine*, pCRC, EDI);
 //
-//	if (auto pExt = TechnoExt::ExtMap.TryFind(pThis))
+//	if (auto pExt = TechnoExtContainer::Instance.TryFind(pThis))
 //		pCRC->Add(pExt->Attempt);
 //
 //	return 0x0;

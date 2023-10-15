@@ -2,7 +2,7 @@
 
 #include <Ext/Techno/Body.h>
 
-void TechnoExt::DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
+void TechnoExtData::DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 {
 #ifdef PARASITE_PIPS
 	{
@@ -12,21 +12,21 @@ void TechnoExt::DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, Rectan
 		int xOffset = 0;
 		int yOffset = 0;
 
-		nBracket = TechnoExt::GetDisguiseType, (pThis).first->PixelSelectionBracketDelta;
+		nBracket = TechnoExtData::GetDisguiseType, (pThis).first->PixelSelectionBracketDelta;
 
 		switch ((((DWORD*)pThis)[0]))
 		{
 		case UnitClass::vtable:
 		case AircraftClass::vtable:
 		{
-			const auto& offset = RulesExt::Global()->Pips_SelfHeal_Units_Offset.Get();
+			const auto& offset = RulesExtData::Instance()->Pips_SelfHeal_Units_Offset.Get();
 			xOffset = offset.X;
 			yOffset = offset.Y + nBracket;
 		}
 		break;
 		case InfantryClass::vtable:
 		{
-			const auto& offset = RulesExt::Global()->Pips_SelfHeal_Infantry_Offset.Get();
+			const auto& offset = RulesExtData::Instance()->Pips_SelfHeal_Infantry_Offset.Get();
 			xOffset = offset.X;
 			yOffset = offset.Y + nBracket;
 		}
@@ -47,18 +47,18 @@ void TechnoExt::DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, Rectan
 
 // =============================
 // load / save
-template <typename T>
-void ParasiteExt::ExtData::Serialize(T& Stm) {
-	//Debug::Log("Processing Element From ParasiteExt ! \n");
-	Stm
-		.Process(this->Initialized)
-		.Process(this->LastVictimLocation)
-		;
-}
+//template <typename T>
+//void ParasiteExt::ExtData::Serialize(T& Stm) {
+//	//Debug::Log("Processing Element From ParasiteExt ! \n");
+//	Stm
+//		.Process(this->Initialized)
+//		.Process(this->LastVictimLocation)
+//		;
+//}
 
 // =============================
 // container
-ParasiteExt::ExtContainer ParasiteExt::ExtMap;
+//ParasiteExt::ExtContainer ParasiteExt::ExtMap;
 
 // =============================
 // container hooks

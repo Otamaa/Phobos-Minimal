@@ -16,7 +16,7 @@ DEFINE_HOOK(0x467CCA, BulletClass_AI_TargetSnapChecks, 0x6) //was C
 	}
 	else
 	{
-		auto const pExt = BulletExt::ExtMap.Find(pThis);
+		auto const pExt = BulletExtContainer::Instance.Find(pThis);
 
 		if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight)
 		{
@@ -46,7 +46,7 @@ DEFINE_HOOK(0x468E61, BulletClass_Explode_TargetSnapChecks1, 0x6) //was C
 	}
 	else
 	{
-		auto const pExt = BulletExt::ExtMap.Find(pThis);
+		auto const pExt = BulletExtContainer::Instance.Find(pThis);
 
 		if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight)
 		{
@@ -76,7 +76,7 @@ DEFINE_HOOK(0x468E9F, BulletClass_Explode_TargetSnapChecks2, 0x6) //was C
 
 	// Do not force Trajectory=Straight projectiles to detonate at target coordinates under certain circumstances.
 	// Fixes issues with walls etc.
-	auto const pExt = BulletExt::ExtMap.Find(pThis);
+	auto const pExt = BulletExtContainer::Instance.Find(pThis);
 	if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight && !pExt->SnappedToTarget)
 	{
 		return SkipSetCoordinate;
@@ -91,7 +91,7 @@ DEFINE_HOOK(0x468D3F, BulletClass_ShouldExplode_AirTarget, 0x8)
 	enum { DontExplode = 0x468D73 , Contine = 0x0 };
 
 	GET(BulletClass*, pThis, ESI);
-	auto const pExt = BulletExt::ExtMap.Find(pThis);
+	auto const pExt = BulletExtContainer::Instance.Find(pThis);
 
 	if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight) {
 		// Straight trajectory has its own proximity checks.

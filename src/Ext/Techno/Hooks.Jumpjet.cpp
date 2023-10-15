@@ -13,7 +13,7 @@ DEFINE_HOOK(0x7115AE, TechnoTypeClass_CTOR_JumpjetControls, 0xA)
 {
 	GET(TechnoTypeClass*, pThis, ESI);
 	const auto pRules = RulesClass::Instance();
-	const auto pRulesExt = RulesExt::Global();
+	const auto pRulesExt = RulesExtData::Instance();
 
 	pThis->JumpjetTurnRate = pRules->TurnRate;
 	pThis->JumpjetSpeed = pRules->Speed;
@@ -37,7 +37,7 @@ DEFINE_HOOK(0x52D0F9, InitRules_EarlyLoadJumpjetControls, 0x6)
 	GET(RulesClass*, pThis, ECX);
 	GET(CCINIClass*, pINI, EAX);
 
-	RulesExt::LoadEarlyBeforeColor(pThis, pINI);
+	RulesExtData::LoadEarlyBeforeColor(pThis, pINI);
 	pThis->Read_JumpjetControls(pINI);
 
 	return 0;
@@ -45,7 +45,7 @@ DEFINE_HOOK(0x52D0F9, InitRules_EarlyLoadJumpjetControls, 0x6)
 
 DEFINE_HOOK(0x6744E4, RulesClass_ReadJumpjetControls_Extra, 0x7)
 {
-	if (const auto pRulesExt = RulesExt::Global())
+	if (const auto pRulesExt = RulesExtData::Instance())
 	{
 		GET(CCINIClass*, pINI, EDI);
 
@@ -104,8 +104,8 @@ DEFINE_HOOK(0x4CD64E , FlyLocomotionClass_MovementAI_UpdateSensors, 0xA)
 //
 //	if (pThis->IsInAir())
 //	{
-//		if (!TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->JumpjetAllowLayerDeviation
-//			.Get(RulesExt::Global()->JumpjetAllowLayerDeviation.Get()))
+//		if (!TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->JumpjetAllowLayerDeviation
+//			.Get(RulesExtData::Instance()->JumpjetAllowLayerDeviation.Get()))
 //		{
 //			R->EDX(INT32_MAX); // Override JumpjetHeight / CruiseHeight check so it always results in 3 / Layer::Air.
 //			return 0x54B96B;
@@ -120,8 +120,8 @@ DEFINE_HOOK(0x54D138, JumpjetLocomotionClass_Movement_AI_SpeedModifiers, 0x6)
 	GET(JumpjetLocomotionClass*, pThis, ESI);
 
 	if (auto const pLinked = pThis->LinkedTo ? pThis->LinkedTo : pThis->Owner) {
-		if (TechnoExt::IsReallyTechno(pLinked) && pLinked->IsAlive) {
-			const double multiplier = TechnoExt::GetCurrentSpeedMultiplier(pLinked);
+		if (TechnoExtData::IsReallyTechno(pLinked) && pLinked->IsAlive) {
+			const double multiplier = TechnoExtData::GetCurrentSpeedMultiplier(pLinked);
 			pThis->Speed = int(pLinked->GetTechnoType()->JumpjetSpeed * multiplier);
 		}
 	}
@@ -133,11 +133,11 @@ DEFINE_HOOK(0x54CB0E, JumpjetLocomotionClass_State5_CrashRotation, 0x7)
 {
 	GET(JumpjetLocomotionClass*, pLoco, EDI);
 
-	bool bRotate = RulesExt::Global()->JumpjetCrash_Rotate.Get();
+	bool bRotate = RulesExtData::Instance()->JumpjetCrash_Rotate.Get();
 
 	if (const auto pOwner = pLoco->LinkedTo ? pLoco->LinkedTo : pLoco->Owner) {
-		if (TechnoExt::IsReallyTechno(pOwner) && pOwner->IsAlive) {
-			const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
+		if (TechnoExtData::IsReallyTechno(pOwner) && pOwner->IsAlive) {
+			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType());
 			bRotate = pTypeExt->JumpjetCrash_Rotate.Get(bRotate);
 		}
 	}
@@ -218,7 +218,7 @@ DEFINE_HOOK(0x54D208, JumpjetLocomotionClass_MovementAI_Wobbles, 0x5)
 		return NoWobble;
 
 	if (const auto pUnit = specific_cast<UnitClass*>(pThis->LinkedTo ? pThis->LinkedTo : pThis->Owner)){
-		if(TechnoExt::IsReallyTechno(pUnit) && pUnit->IsAlive) {
+		if(TechnoExtData::IsReallyTechno(pUnit) && pUnit->IsAlive) {
 			return pUnit->IsDeactivated() ? NoWobble : SetWobble;
 		}
 	}
@@ -242,7 +242,7 @@ DEFINE_HOOK(0x54D208, JumpjetLocomotionClass_MovementAI_Wobbles, 0x5)
 //
 //	if (const auto pThis = abstract_cast<UnitClass*>(pLinkedTo))
 //	{
-//		if (TechnoTypeExt::ExtMap.Find(pThis->Type)->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget))
+//		if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->JumpjetTurnToTarget.Get(RulesExtData::Instance()->JumpjetTurnToTarget))
 //		{
 //			CoordStruct& source = pThis->Location;
 //			CoordStruct target = pTarget->GetCoords();
@@ -265,9 +265,9 @@ DEFINE_HOOK(0x54D208, JumpjetLocomotionClass_MovementAI_Wobbles, 0x5)
 //	const auto pLoco = static_cast<JumpjetLocomotionClass*>(iLoco);
 //const auto pThis = pLoco->Owner;
 //	const auto pType = pThis->GetTechnoType();
-//	const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pType);
+//	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find<false>(pType);
 //
-//	if (pTypeExt && pTypeExt->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget) &&
+//	if (pTypeExt && pTypeExt->JumpjetTurnToTarget.Get(RulesExtData::Instance()->JumpjetTurnToTarget) &&
 	//	pThis->WhatAmI() == AbstractType::Unit && pThis->IsInAir() && !pType->TurretSpins && pLoco)
 	//{
 	//	if (const auto pTarget = pThis->Target)

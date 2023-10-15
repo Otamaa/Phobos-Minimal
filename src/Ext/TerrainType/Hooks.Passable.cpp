@@ -27,7 +27,7 @@ DEFINE_HOOK(0x71C110, TerrainClass_SetOccupyBit_PassableTerrain, 0x5)
 
 	GET(TerrainClass*, pThis, ECX);
 
-	return (TerrainTypeExt::ExtMap.Find(pThis->Type)->IsPassable) ? Skip : 0;
+	return (TerrainTypeExtContainer::Instance.Find(pThis->Type)->IsPassable) ? Skip : 0;
 }
 
 #include <Ext/TechnoType/Body.h>
@@ -35,14 +35,14 @@ DEFINE_HOOK(0x71C110, TerrainClass_SetOccupyBit_PassableTerrain, 0x5)
 bool CanMoveHere(TechnoClass* pThis, TerrainClass* pTerrain)
 {
 
-	const auto pExt = TerrainTypeExt::ExtMap.Find(pTerrain->Type);
+	const auto pExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
 
 	if (pExt->IsPassable)
 		return true;
 
 	if(pThis->WhatAmI() == UnitClass::AbsID) {
 		if(pTerrain->Type->Crushable) {
-			if (TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->CrushLevel.Get(pThis) > pExt->CrushableLevel) {
+			if (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->CrushLevel.Get(pThis) > pExt->CrushableLevel) {
 				return true;
 			}
 		}
@@ -84,7 +84,7 @@ DEFINE_HOOK(0x483D87, CellClass_CheckPassability_PassableTerrain, 0x5)
 	GET(ObjectClass*, pObject, ESI);
 
 	if (auto pTerrain = specific_cast<TerrainClass*>(pObject)) {
-		if (TerrainTypeExt::ExtMap.Find(pTerrain->Type)->IsPassable) {
+		if (TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->IsPassable) {
 			pThis->Passability = 0;
 			return ReturnFromFunction;
 		}
@@ -127,7 +127,7 @@ DEFINE_HOOK(0x47C745, CellClass_IsClearTo_Build_BuildableTerrain, 0x5)
 
 	if (auto const pTerrain = pThis->GetTerrain(false))
 	{
-		if (TerrainTypeExt::ExtMap.Find(pTerrain->Type)->CanBeBuiltOn)
+		if (TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->CanBeBuiltOn)
 		{
 			if (IS_CELL_OCCUPIED(pThis))
 				return Skip;
@@ -158,7 +158,7 @@ DEFINE_HOOK(0x47C657, CellClass_IsClearTo_Build_BuildableTerrain_LF, 0x6)
 
 			if(what == TerrainClass::AbsID) {
 				if (auto const pTerrain = static_cast<TerrainClass*>(pObj)) {
-					isEligible = TerrainTypeExt::ExtMap.Find(pTerrain->Type)->CanBeBuiltOn;
+					isEligible = TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->CanBeBuiltOn;
 				}
 			}
 
@@ -186,7 +186,7 @@ DEFINE_HOOK(0x6D57C1, TacticalClass_DrawLaserFencePlacement_BuildableTerrain, 0x
 
 	if (auto const pTerrain = pCell->GetTerrain(false))
 	{
-		return (TerrainTypeExt::ExtMap.Find(pTerrain->Type)->CanBeBuiltOn) ? ContinueChecks : DontDraw;
+		return (TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->CanBeBuiltOn) ? ContinueChecks : DontDraw;
 	}
 
 	return ContinueChecks;
@@ -202,10 +202,10 @@ DEFINE_HOOK(0x5684B1, MapClass_PlaceDown_BuildableTerrain, 0x6)
 	{
 		if (auto const pTerrain = pCell->GetTerrain(false))
 		{
-			if (TerrainTypeExt::ExtMap.Find(pTerrain->Type)->CanBeBuiltOn)
+			if (TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->CanBeBuiltOn)
 			{
 				pCell->RemoveContent(pTerrain, false);
-				TerrainTypeExt::Remove(pTerrain);
+				TerrainTypeExtData::Remove(pTerrain);
 			}
 		}
 	}

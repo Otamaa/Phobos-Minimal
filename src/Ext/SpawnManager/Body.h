@@ -8,6 +8,7 @@
 class SpawnManagerExt
 {
 public:
+	/*
 	class ExtData final : public Extension<SpawnManagerClass>
 	{
 	public:
@@ -35,4 +36,5 @@ public:
 	};
 
 	static ExtContainer ExtMap;
+	*/
 };

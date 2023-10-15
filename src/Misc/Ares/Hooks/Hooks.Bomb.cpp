@@ -51,7 +51,7 @@ DEFINE_OVERRIDE_HOOK(0x438A00, BombClass_GetCurrentFrame, 6)
 {
 	GET(BombClass*, pThis, ECX);
 
-	const auto pData = BombExt::ExtMap.Find(pThis)->Weapon;
+	const auto pData = BombExtContainer::Instance.Find(pThis)->Weapon;
 	const SHPStruct* pSHP = pData->Ivan_Image.Get(RulesClass::Instance->BOMBCURS_SHP);
 	int frame = 0;
 
@@ -98,7 +98,7 @@ DEFINE_OVERRIDE_HOOK(0x6F523C, TechnoClass_DrawExtras_IvanBombImage_Shape, 5)
 {
 	GET(TechnoClass*, pThis, EBP);
 
-	if (SHPStruct* pImage = BombExt::ExtMap.Find(pThis->AttachedBomb)
+	if (SHPStruct* pImage = BombExtContainer::Instance.Find(pThis->AttachedBomb)
 		->Weapon->Ivan_Image.Get(RulesClass::Instance->BOMBCURS_SHP))
 	{
 		R->ECX(pImage);
@@ -136,7 +136,7 @@ DEFINE_OVERRIDE_HOOK(0x6F523C, TechnoClass_DrawExtras_IvanBombImage_Shape, 5)
 DEFINE_OVERRIDE_HOOK(0x51E488, InfantryClass_GetCursorOverObject2, 5)
 {
 	GET(TechnoClass* const, Target, ESI);
-	return !BombExt::ExtMap.Find(Target->AttachedBomb)
+	return !BombExtContainer::Instance.Find(Target->AttachedBomb)
 			->Weapon->Ivan_Detachable
 		? 0x51E49E : 0x0;
 }
@@ -150,19 +150,19 @@ DEFINE_HOOK(0x438761, BombClass_Detonate_Handle, 0x7)
 	pThis->State = BombState::Removed;
 	// Also adjust detonation coordinate.
 	const CoordStruct coords = pTarget->GetCenterCoords();
-	const auto pExt = BombExt::ExtMap.Find(pThis);
+	const auto pExt = BombExtContainer::Instance.Find(pThis);
 	const auto pBombWH = pExt->Weapon->Ivan_WH.Get(RulesClass::Instance->IvanWarhead);
 	const auto nDamage = pExt->Weapon->Ivan_Damage.Get(RulesClass::Instance->IvanDamage);
 	const auto OwningHouse = pThis->GetOwningHouse();
 
-	/*WarheadTypeExt::DetonateAt(pBombWH, pTarget, coords, pThis->Owner, nDamage);*/
+	/*WarheadTypeExtData::DetonateAt(pBombWH, pTarget, coords, pThis->Owner, nDamage);*/
 	MapClass::Instance->DamageArea(coords, nDamage, pThis->Owner, pBombWH, pBombWH->Tiberium, OwningHouse);
 	MapClass::Instance->FlashbangWarheadAt(nDamage, pBombWH, coords);
 	const auto pCell = MapClass::Instance->GetCellAt(coords);
 
 	if (auto pAnimType = MapClass::Instance->SelectDamageAnimation(nDamage, pBombWH, pCell->LandType, coords))
 	{
-		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coords, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, false),
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coords, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, false),
 			OwningHouse,
 			pThis->Target ? pThis->Target->GetOwningHouse() : nullptr,
 			pThis->Owner,
@@ -174,8 +174,8 @@ DEFINE_HOOK(0x438761, BombClass_Detonate_Handle, 0x7)
 }
 
 //new
-DEFINE_JUMP(VTABLE, 0x7E3D4C, GET_OFFSET(BombExt::GetOwningHouse));
-DEFINE_JUMP(VTABLE, 0x7E3D38 , GET_OFFSET(BombExt::InvalidatePointer));
+DEFINE_JUMP(VTABLE, 0x7E3D4C, GET_OFFSET(BombExtData::GetOwningHouse));
+DEFINE_JUMP(VTABLE, 0x7E3D38 , GET_OFFSET(BombExtData::InvalidatePointer));
 
 //new
 DEFINE_HOOK(0x6F51F8, TechnoClass_DrawExtras_IvanBombImage_Pos, 0x9)
@@ -191,7 +191,7 @@ DEFINE_HOOK(0x6F51F8, TechnoClass_DrawExtras_IvanBombImage_Pos, 0x9)
 DEFINE_OVERRIDE_HOOK(0x438879, BombClass_Detonate_CanKillBridge, 6)
 {
 	GET(BombClass* const, Bomb, ESI);
-	return BombExt::ExtMap.Find(Bomb)->Weapon->Ivan_KillsBridges
+	return BombExtContainer::Instance.Find(Bomb)->Weapon->Ivan_KillsBridges
 		? 0 : 0x438989;
 }
 
@@ -241,7 +241,7 @@ DEFINE_OVERRIDE_HOOK(0x6FFFB1, TechnoClass_GetCursorOverObject_IvanBombs, 8)
 {
 	GET(TechnoClass* const, pThis, EDI);
 
-	const auto pExt = BombExt::ExtMap.Find(pThis->AttachedBomb);
+	const auto pExt = BombExtContainer::Instance.Find(pThis->AttachedBomb);
 
 	const bool canDetonate = (pThis->AttachedBomb->Type == BombType::NormalBomb)
 		? pExt->Weapon->Ivan_CanDetonateTimeBomb.Get(RulesClass::Instance->CanDetonateTimeBomb)
@@ -316,7 +316,7 @@ DEFINE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_IvanBombsA, 5)
 
 	const auto pType = pThis->GetTechnoType();
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	// Cursor Move
 	MouseCursorFuncs::SetMouseCursorAction(pTypeExt->Cursor_Move.Get(), Action::Move, false);
@@ -329,7 +329,7 @@ DEFINE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_IvanBombsA, 5)
 
 	if (const auto pTargetType = pObject->GetTechnoType())
 	{
-		auto pTargetTypeExt = TechnoTypeExt::ExtMap.Find(pTargetType);
+		auto pTargetTypeExt = TechnoTypeExtContainer::Instance.Find(pTargetType);
 		// Cursor Enter
 		MouseCursorFuncs::SetMouseCursorAction(pTargetTypeExt->Cursor_Enter.Get(), Action::Repair, false);
 		MouseCursorFuncs::SetMouseCursorAction(pTargetTypeExt->Cursor_Enter.Get(), Action::Enter, false);
@@ -347,7 +347,7 @@ DEFINE_OVERRIDE_HOOK(0x4471D5, BuildingClass_Sell_DetonateNoBuildup, 6)
 	GET(BuildingClass* const, pStructure, ESI);
 
 	if(const auto pBomb = pStructure->AttachedBomb){
-		if (BombExt::ExtMap.Find(pBomb)->Weapon->Ivan_DetonateOnSell.Get())
+		if (BombExtContainer::Instance.Find(pBomb)->Weapon->Ivan_DetonateOnSell.Get())
 			pBomb->Detonate();
 	}
 
@@ -359,7 +359,7 @@ DEFINE_OVERRIDE_HOOK(0x44A1FF, BuildingClass_Mi_Selling_DetonatePostBuildup, 6)
 	GET(BuildingClass* const, pStructure, EBP);
 
 	if (const auto pBomb = pStructure->AttachedBomb) {
-		if (BombExt::ExtMap.Find(pBomb) ->Weapon->Ivan_DetonateOnSell.Get())
+		if (BombExtContainer::Instance.Find(pBomb) ->Weapon->Ivan_DetonateOnSell.Get())
 			pBomb->Detonate();
 	}
 
@@ -371,7 +371,7 @@ DEFINE_OVERRIDE_HOOK(0x4D9F7B, FootClass_Sell_Detonate, 6)
 	GET(FootClass* const, pSellee, ESI);
 
 	if (const auto pBomb = pSellee->AttachedBomb) {
-		if (BombExt::ExtMap.Find(pBomb)->Weapon->Ivan_DetonateOnSell.Get())
+		if (BombExtContainer::Instance.Find(pBomb)->Weapon->Ivan_DetonateOnSell.Get())
 			pBomb->Detonate();
 	}
 

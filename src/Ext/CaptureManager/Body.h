@@ -11,6 +11,7 @@
 class CaptureExt
 {
 public:
+	/*
 	class ExtData final : public Extension<CaptureManagerClass>
 	{
 	public:
@@ -38,6 +39,7 @@ public:
 	};
 
 	static ExtContainer ExtMap;
+	*/
 
 	static bool CanCapture(CaptureManagerClass* pManager, TechnoClass* pTarget);
 	static bool FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, bool bSilent = false);

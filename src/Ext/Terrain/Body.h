@@ -11,62 +11,64 @@
 #include <LightSourceClass.h>
 #include <CellClass.h>
 
-class TerrainExt
+class TerrainExtData final
 {
 public:
-	class ExtData final : public Extension<TerrainClass>
+	static constexpr size_t Canary = 0xE1E2E3E4;
+	using base_type = TerrainClass;
+	//static constexpr size_t ExtOffset = 0xD0;
+
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+public:
+
+	Handle<LightSourceClass*, UninitLightSource> LighSource {};
+	Handle<AnimClass*, UninitAnim> AttachedAnim {};
+
+	TerrainExtData(base_type* OwnerObject) noexcept
 	{
-	public:
-		static constexpr size_t Canary = 0xE1E2E3E4;
-		using base_type = TerrainClass;
-		//static constexpr size_t ExtOffset = 0xD0;
+		AttachedToObject = OwnerObject;
+	}
 
-	public:
+	~TerrainExtData() noexcept = default;
 
-		Handle<LightSourceClass* , UninitLightSource> LighSource {};
-		Handle<AnimClass* ,UninitAnim> AttachedAnim {};
-
-		ExtData(TerrainClass* OwnerObject) : Extension<TerrainClass>(OwnerObject)
-		{ }
-
-		virtual ~ExtData() override = default;
-
-		void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-		static bool InvalidateIgnorable(AbstractClass* ptr) {
-			switch (ptr->WhatAmI())
-			{
-			case AnimClass::AbsID:
-			case LightSourceClass::AbsID:
-				return false;
-			}
-
-			return true;
+	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
+	static bool InvalidateIgnorable(AbstractClass* ptr)
+	{
+		switch (ptr->WhatAmI())
+		{
+		case AnimClass::AbsID:
+		case LightSourceClass::AbsID:
+			return false;
 		}
 
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+		return true;
+	}
 
-		void InitializeLightSource();
-		void InitializeAnim();
-		void ClearLightSource();
-		void ClearAnim();
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-		void Uninitialize() { }
+	void InitializeLightSource();
+	void InitializeAnim();
+	void ClearLightSource();
+	void ClearAnim();
 
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
+	void Uninitialize() { }
 
-	};
+private:
+	template <typename T>
+	void Serialize(T& Stm);
 
-	class ExtContainer final : public Container<TerrainExt::ExtData>
-	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(TerrainExt::ExtData, "TerrainClass");
-	};
-
-	static ExtContainer ExtMap;
+public:
 
 	static void Unlimbo(TerrainClass* pThis, CoordStruct* pCoord);
 	static void CleanUp(TerrainClass* pThis);
+};
+
+class TerrainExtContainer final : public Container<TerrainExtData>
+{
+public:
+	static TerrainExtContainer Instance;
+
+	CONSTEXPR_NOCOPY_CLASSB(TerrainExtContainer, TerrainExtData, "TerrainClass");
 };

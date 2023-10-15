@@ -9,42 +9,40 @@
 
 #include <Misc/DynamicPatcher/Trails/Trails.h>
 
-class ParticleExt
+class ParticleExtData final
 {
 public:
+	static constexpr size_t Canary = 0xAAAABBBB;
+	using base_type = ParticleClass;
+	//static constexpr size_t ExtOffset = 0x134;
 
-	class ExtData final : public Extension<ParticleClass>
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+public:
+
+	std::vector<LaserTrailClass> LaserTrails { };
+	std::vector<UniversalTrail> Trails { };
+
+	ParticleExtData(base_type* OwnerObject) noexcept
 	{
-	public:
-		static constexpr size_t Canary = 0xAAAABBBB;
-		using base_type = ParticleClass;
-		//static constexpr size_t ExtOffset = 0x134;
+		AttachedToObject = OwnerObject;
+	}
 
-	public:
+	~ParticleExtData() noexcept = default;
 
-		std::vector<LaserTrailClass> LaserTrails { };
-		std::vector<UniversalTrail> Trails { };
-
-		ExtData(ParticleClass* OwnerObject) : Extension<ParticleClass>(OwnerObject)
-		{ }
-
-		virtual ~ExtData() override = default;
-
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public Container<ParticleExt::ExtData>
-	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(ParticleExt::ExtData, "ParticleClass");
-	};
-
-	static ExtContainer ExtMap;
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	static std::pair<TechnoClass*, HouseClass*> GetOwnership(ParticleClass* pThis);
+private:
+	template <typename T>
+	void Serialize(T& Stm);
+};
+
+class ParticleExtContainer final : public Container<ParticleExtData>
+{
+public:
+	static ParticleExtContainer Instance;
+
+	CONSTEXPR_NOCOPY_CLASSB(ParticleExtContainer, ParticleExtData, "ParticleClass");
 };

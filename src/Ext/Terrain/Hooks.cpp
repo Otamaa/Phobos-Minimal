@@ -30,7 +30,7 @@ DEFINE_HOOK(0x71B98B, TerrainClass_ReceiveDamage_Add, 0x7)
 	auto nDamage = args.Damage;
 	if (!pThis->IsBurning && *nDamage > 0 && args.WH->Sparky)
 	{
-		auto pWarheadExt = WarheadTypeExt::ExtMap.Find(args.WH);
+		auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(args.WH);
 		const bool spawn = pWarheadExt->Flammability.isset() ?
 			(ScenarioClass::Instance->Random.PercentChance(
 				abs(pWarheadExt->Flammability.Get()))) : true;
@@ -57,13 +57,13 @@ DEFINE_HOOK(0x71BB2C, TerrainClass_ReceiveDamage_NowDead_Add_light, 0x6)
 	GET(TerrainClass*, pThis, ESI);
 	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0x3C, -0x4));
 
-	const auto pTerrainExt = TerrainTypeExt::ExtMap.Find(pThis->Type);
+	const auto pTerrainExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
 	auto const nCoords = pThis->GetCenterCoords();
 	VocClass::PlayIndexAtPos(pTerrainExt->DestroySound.Get(-1), nCoords);
 	const auto pAttackerHoue = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
 
 	if (auto const pAnimType = pTerrainExt->DestroyAnim.Get(nullptr)) {
-		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nCoords),
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nCoords),
 			args.SourceHouse,
 			pThis->GetOwningHouse(),
 			args.Attacker,
@@ -86,7 +86,7 @@ DEFINE_HOOK(0x71D09D, TerrainClass_UnLImbo_Light, 0x6)
 	GET(TerrainClass*, pThis, ECX);
 	GET(CoordStruct*, pCoord, EBP);
 
-	TerrainExt::Unlimbo(pThis, pCoord);
+	TerrainExtData::Unlimbo(pThis, pCoord);
 	return 0;
 }
 
@@ -97,7 +97,7 @@ DEFINE_HOOK(0x71CA15, TerrainClass_Limbo_Light, 0x6)
 
 	if (nLimboed)
 	{
-		TerrainExt::CleanUp(pThis);
+		TerrainExtData::CleanUp(pThis);
 	}
 
 	return 0;
@@ -108,7 +108,7 @@ DEFINE_HOOK(0x71C2BC, TerrainClass_Draw_CustomPal, 0x6)
 	GET(ConvertClass*, pConvert, EDX);
 	GET(TerrainTypeClass*, pThisType, EAX);
 
-	const auto pTerrainExt = TerrainTypeExt::ExtMap.Find(pThisType);
+	const auto pTerrainExt = TerrainTypeExtContainer::Instance.Find(pThisType);
 
 	if (const auto pConvertData = pTerrainExt->CustomPalette) {
 		pConvert = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
@@ -128,13 +128,13 @@ DEFINE_HOOK(0x71B9BB, TerraiClass_ReceiveDamage_IsTiberiumSpawn, 0x5) //A
 
 	GET(const TerrainClass*, pThis, ESI);
 
-	const auto pTerrainTypeExt = TerrainTypeExt::ExtMap.Find(pThis->Type);
+	const auto pTerrainTypeExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
 	const auto nDamage = pTerrainTypeExt->Damage.Get(100);
 	const auto pWH = pTerrainTypeExt->Warhead.Get(RulesClass::Instance->C4Warhead);
 
 	if (auto const pAnim = MapClass::SelectDamageAnimation(nDamage, pWH, MapClass::Instance->GetCellAt(pThis->Location)->LandType, pThis->Location))
 	{
-		AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, 0),
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, 0),
 			nullptr,
 			nullptr,
 			false

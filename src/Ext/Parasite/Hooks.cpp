@@ -34,7 +34,7 @@ DEFINE_HOOK(0x62AB88, ParasiteClass_PassableTerrain, 0x5)
 		{
 			const auto pTerrain = specific_cast<TerrainClass*>(pObject);
 
-			if (pTerrain && !TerrainTypeExt::ExtMap.Find(pTerrain->Type)->IsPassable)
+			if (pTerrain && !TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->IsPassable)
 				return pTerrain;
 		}
 
@@ -61,7 +61,7 @@ DEFINE_HOOK(0x629FE4, ParasiteClass_IsGrapplingAttack, 0x5)
 	GET(ParasiteClass*, pThis, ESI);
 
 	auto const pOwnerType = pThis->Owner->GetTechnoType();
-	auto const pOwnerTypeExt = TechnoTypeExt::ExtMap.Find(pOwnerType);
+	auto const pOwnerTypeExt = TechnoTypeExtContainer::Instance.Find(pOwnerType);
 
 	return pOwnerTypeExt->GrapplingAttack.Get(pOwnerType->Naval && pOwnerType->Organic) ?
 		DoGrapple : DoParasite;
@@ -75,7 +75,7 @@ DEFINE_HOOK(0x62A0D3, ParasiteClass_AI_Particle, 0x5)
 	LEA_STACK(CoordStruct* const, pCoord, STACK_OFFS(0x4C, 0x18));
 	GET(WeaponTypeClass* const, pWeapon, EDI);
 
-	if (auto pParticle = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->Parasite_ParticleSys.Get(RulesClass::Instance->DefaultSparkSystem))
+	if (auto pParticle = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead)->Parasite_ParticleSys.Get(RulesClass::Instance->DefaultSparkSystem))
 	{
 		auto nLocHere = *pCoord;
 		if(pParticle->BehavesLike == ParticleSystemTypeBehavesLike::Smoke)
@@ -93,7 +93,7 @@ DEFINE_HOOK(0x62A13F, ParasiteClass_AI_WeaponAnim, 0x5)
 	GET(AnimTypeClass* const, pAnimType, EBP);
 	LEA_STACK(CoordStruct*, pStack, STACK_OFFS(0x4C, 0x18));
 
-	AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pStack,0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 , 0 , 0),
+	AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pStack,0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 , 0 , 0),
 		pThis->Owner ? pThis->Owner->GetOwningHouse() : nullptr,
 		pThis->Victim ? pThis->Victim->GetOwningHouse() : nullptr,
 		pThis->Owner,
@@ -119,7 +119,7 @@ DEFINE_HOOK(0x62A074, ParasiteClass_AI_DamagingAction, 0x6)
 	pThis->SuppressionTimer.Start(pWarhead->Paralyzes);
 
 	if (pThis->Victim->WhatAmI() == InfantryClass::AbsID
-		&& !WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->Parasite_TreatInfantryAsVehicle
+		&& !WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead)->Parasite_TreatInfantryAsVehicle
 		.Get(static_cast<InfantryClass*>(pThis->Victim)->Type->Cyborg)) {
 		return ReceiveDamage;
 	}
@@ -156,7 +156,7 @@ DEFINE_HOOK(0x62A16A, ParasiteClass_AI_DisableRocking, 0x5)
 	if (pThis->Victim->IsAttackedByLocomotor)
 		return DealDamage;
 
-	return (WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->Parasite_DisableRocking.Get())
+	return (WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead)->Parasite_DisableRocking.Get())
 			|| pThis->Victim->WhatAmI() == InfantryClass::AbsID
 		? DealDamage : Continue;
 }
@@ -168,7 +168,7 @@ DEFINE_HOOK(0x62A16A, ParasiteClass_AI_DisableRocking, 0x5)
  	GET(ParasiteClass*, pThis, ESI);
  	GET(WeaponTypeClass* const, pWeapon, EDI);
 
- 	auto const pWarheadTypeExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
+ 	auto const pWarheadTypeExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
 
  	if (pWarheadTypeExt->Parasite_Damaging_Chance.isset()
  		&& ScenarioClass::Instance->Random.RandomDouble() >=
@@ -178,7 +178,7 @@ DEFINE_HOOK(0x62A16A, ParasiteClass_AI_DisableRocking, 0x5)
  	}
 
  	if (auto const pInvestationWP = pWarheadTypeExt->Parasite_InvestationWP.Get(nullptr)) {
- 		WeaponTypeExt::DetonateAt(pInvestationWP,pThis->Victim, pThis->Owner , true , nullptr);
+ 		WeaponTypeExtData::DetonateAt(pInvestationWP,pThis->Victim, pThis->Owner , true , nullptr);
  		return SkipDamaging;
  	}
 
@@ -192,7 +192,7 @@ DEFINE_HOOK(0x62A735, ParasiteClass_ExitUnit_ExitSound, 0xA) //ParasiteClass_Uni
 
 	if (auto const pParasiteOwner = pParasite->Owner) {
 		auto nCoord = pParasiteOwner->GetCoords();
-		VoxClass::PlayAtPos(TechnoTypeExt::ExtMap.Find(pParasiteOwner->GetTechnoType())
+		VoxClass::PlayAtPos(TechnoTypeExtContainer::Instance.Find(pParasiteOwner->GetTechnoType())
 			->ParasiteExit_Sound.Get(), &nCoord);
 	}
 
@@ -213,14 +213,14 @@ DEFINE_HOOK(0x629B3F, ParasiteClass_SquiddyGrab_DeharcodeSplash, 0x5) // 7
 	if(!MapClass::Instance->GetCellAt(nCoord)->Tile_Is_Water())
 		return Handled;
 
-	if (auto const AnimType = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->SquidSplash.GetElements(RulesClass::Instance->SplashList))
+	if (auto const AnimType = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead)->SquidSplash.GetElements(RulesClass::Instance->SplashList))
 	{
 		if (auto const pSplashType = AnimType[ScenarioClass::Instance->Random.RandomFromMax(AnimType.size() - 1)])
 		{
 			if (auto pAnim = GameCreate<AnimClass>(pSplashType, nCoord))
 			{
 				auto const Invoker = (pThis->Owner) ? pThis->Owner->GetOwningHouse() : nullptr;
-				AnimExt::SetAnimOwnerHouseKind(pAnim, Invoker, (pThis->Victim) ? pThis->Victim->GetOwningHouse() : nullptr, pThis->Owner, false);
+				AnimExtData::SetAnimOwnerHouseKind(pAnim, Invoker, (pThis->Victim) ? pThis->Victim->GetOwningHouse() : nullptr, pThis->Owner, false);
 				return Handled;
 			}
 		}
@@ -234,7 +234,7 @@ DEFINE_HOOK(0x62991C, ParasiteClass_GrappleAI_GrappleAnimCreated, 0x8)
 	GET(ParasiteClass*, pThis, ESI);
 	GET(AnimClass*, pGrapple, EAX);
 	auto const Invoker = (pThis->Owner) ? pThis->Owner->GetOwningHouse() : nullptr;
-	AnimExt::SetAnimOwnerHouseKind(pGrapple, Invoker, (pThis->Victim) ? pThis->Victim->GetOwningHouse() : nullptr, pThis->Owner, false);
+	AnimExtData::SetAnimOwnerHouseKind(pGrapple, Invoker, (pThis->Victim) ? pThis->Victim->GetOwningHouse() : nullptr, pThis->Owner, false);
 	return 0x0;
 }
 
@@ -245,8 +245,8 @@ DEFINE_HOOK(0x6298CC, ParasiteClass_GrappleAI_AnimType, 0x5)
 	//GET(ParasiteClass*, pThis, ESI);
 	GET_STACK(WeaponTypeClass* const, pWeapon, STACK_OFFS(0x6C, 0x4C));
 
-	auto const pWeaponExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
-	auto const pAnimType = pWeaponExt->Parasite_GrappleAnim.Get(RulesExt::Global()->DefaultSquidAnim.Get());
+	auto const pWeaponExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
+	auto const pAnimType = pWeaponExt->Parasite_GrappleAnim.Get(RulesExtData::Instance()->DefaultSquidAnim.Get());
 
 	if (!pAnimType)
 		return NoAnim;
@@ -307,7 +307,7 @@ DEFINE_HOOK(0x629E90, FootClass_WakeAnim_OnlyWater, 0x6)
 //	{
 //		--Unsorted::ScenarioInit();
 //		pThis->Owner->Health = 0;
-//		TechnoExt::HandleRemove(pThis->Owner, nullptr, true);
+//		TechnoExtData::HandleRemove(pThis->Owner, nullptr, true);
 //		//pThis->Owner->UnInit();
 //		pThis->Victim = nullptr;
 //		return 0x62A453;

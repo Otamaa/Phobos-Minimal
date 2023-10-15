@@ -10,10 +10,10 @@ DEFINE_HOOK(0x6A593E, SidebarClass_InitForHouse_AdditionalFiles, 0x5)
 {
 	char filename[0x20];
 
-	for (int i = 0; i < (int)SidebarExt::TabProducingProgress.size(); i++) {
-		if(!SidebarExt::TabProducingProgress[i]) {
+	for (int i = 0; i < (int)SidebarExtData::TabProducingProgress.size(); i++) {
+		if(!SidebarExtData::TabProducingProgress[i]) {
 			IMPL_SNPRNINTF(filename,sizeof(filename), "tab%02dpp%s", i , GameStrings::dot_SHP());
-			SidebarExt::TabProducingProgress[i] = GameCreate<SHPReference>(filename);
+			SidebarExtData::TabProducingProgress[i] = GameCreate<SHPReference>(filename);
 		}
 	}
 
@@ -22,12 +22,12 @@ DEFINE_HOOK(0x6A593E, SidebarClass_InitForHouse_AdditionalFiles, 0x5)
 
 DEFINE_HOOK(0x6A5EA1, SidebarClass_UnloadShapes_AdditionalFiles, 0x5)
 {
-	for (int i = 0; i < (int)SidebarExt::TabProducingProgress.size(); i++)
+	for (int i = 0; i < (int)SidebarExtData::TabProducingProgress.size(); i++)
 	{
 		//the shape is already invalid if the name not event there ,..
-		if(SidebarExt::TabProducingProgress[i] && SidebarExt::TabProducingProgress[i]->Filename){
+		if(SidebarExtData::TabProducingProgress[i] && SidebarExtData::TabProducingProgress[i]->Filename){
 			//GameDelete<false, false>(SidebarExt::TabProducingProgress[i]);
-			SidebarExt::TabProducingProgress[i] = nullptr;
+			SidebarExtData::TabProducingProgress[i] = nullptr;
 		}
 	}
 
@@ -36,7 +36,7 @@ DEFINE_HOOK(0x6A5EA1, SidebarClass_UnloadShapes_AdditionalFiles, 0x5)
 
 DEFINE_HOOK(0x6A6EB1, SidebarClass_DrawIt_ProducingProgress, 0x6)
 {
-	SidebarExt::DrawProducingProgress();
+	SidebarExtData::DrawProducingProgress();
 	return 0;
 }
 

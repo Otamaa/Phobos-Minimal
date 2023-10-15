@@ -100,8 +100,6 @@ void CursorTypeClass::SaveToStream(PhobosStreamWriter& Stm)
 
 void CursorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 {
-	CursorTypeClass::AddDefaults();
-
 	if (!pINI)
 		return;
 

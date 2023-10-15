@@ -13,7 +13,8 @@ struct LauchData
 	int LastFrame { Unsorted::CurrentFrame };
 	int Count { 0 };
 
-	void Update() {
+	void Update()
+	{
 		++Count;
 		LastFrame = Unsorted::CurrentFrame();
 	}
@@ -60,155 +61,110 @@ struct TunnelData
 };
 
 //TODO : validate check
-enum class BuildLimitStatus {
+enum class BuildLimitStatus
+{
 	ReachedPermanently = -1, // remove cameo
 	ReachedTemporarily = 0, // black out cameo
 	NotReached = 1, // don't do anything
 };
 
-class HouseExt
+class HouseExtData final
 {
 public:
-	static std::vector<int> AIProduction_CreationFrames;
-	static std::vector<int> AIProduction_Values;
-	static std::vector<int> AIProduction_BestChoices;
-	static std::vector<int> AIProduction_BestChoicesNaval;
+	static constexpr size_t Canary = 0x11111111;
+	using base_type = HouseClass;
+	static constexpr size_t ExtOffset = 0x16098;
 
-	static int LastGrindingBlanceUnit;
-	static int LastGrindingBlanceInf;
-	static int LastHarvesterBalance;
-	static int LastSlaveBalance;
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+public:
+	Nullable<bool> Degrades {};
 
-	static CDTimerClass CloakEVASpeak;
-	static CDTimerClass SubTerraneanEVASpeak;
+	PhobosMap<BuildingTypeClass*, int> PowerPlantEnhancerBuildings {};
+	PhobosMap<BuildingTypeClass*, int> Building_BuildSpeedBonusCounter {};
+	PhobosMap<BuildingTypeClass*, int> Building_OrePurifiersCounter {};
 
-	class ExtData final : public Extension<HouseClass>
+	bool m_ForceOnlyTargetHouseEnemy { false };
+	int ForceOnlyTargetHouseEnemyMode { -1 };
+
+	BuildingClass* Factory_BuildingType { nullptr };
+	BuildingClass* Factory_InfantryType { nullptr };
+	BuildingClass* Factory_VehicleType { nullptr };
+	BuildingClass* Factory_NavyType { nullptr };
+	BuildingClass* Factory_AircraftType { nullptr };
+
+	bool AllRepairEventTriggered { false };
+	int LastBuildingTypeArrayIdx { -1 };
+
+	bool RepairBaseNodes[3] { false };
+
+	std::vector<TeamClass*> ActiveTeams {};
+
+	//#817
+	int LastBuiltNavalVehicleType { -1 };
+	int ProducingNavalUnitTypeIndex { -1 };
+
+	//#830
+	PhobosMap<TechnoClass*, KillMethod> AutoDeathObjects {};
+
+	std::vector<LauchData> LaunchDatas {};
+	bool CaptureObjectExecuted { false };
+	CDTimerClass DiscoverEvaDelay {};
+	std::vector<TunnelData> Tunnels {};
+	DWORD Seed { 0 };
+
+	int SWLastIndex { -1 };
+	HelperedVector<SuperClass*> Batteries {};
+	HelperedVector<HouseTypeClass*> Factories_HouseTypes {};
+	HelperedVector<TechnoClass*> LimboTechno {};
+
+	int AvaibleDocks { 0 };
+
+	std::bitset<32> StolenTech {};
+	IndexBitfield<HouseClass*> RadarPersist {};
+	HelperedVector<HouseTypeClass*> FactoryOwners_GatheredPlansOf {};
+	HelperedVector<BuildingClass*> Academies {};
+	HelperedVector<TechnoTypeClass*> Reversed {};
+
+	bool Is_NavalYardSpied { false };
+	bool Is_AirfieldSpied { false };
+	bool Is_ConstructionYardSpied { false };
+	int AuxPower { 0 };
+
+	int KeepAliveCount { 0 };
+	int KeepAliveBuildingCount { 0 };
+
+	HouseExtData(base_type* OwnerObject) noexcept
 	{
-	public:
-		static constexpr size_t Canary = 0x11111111;
-		using base_type = HouseClass;
-		static constexpr size_t ExtOffset = 0x16098;
+		AttachedToObject = OwnerObject;
+	}
 
-	public:
-		Nullable<bool> Degrades {};
+	~HouseExtData() noexcept = default;
 
-		PhobosMap<BuildingTypeClass*, int> PowerPlantEnhancerBuildings {};
-		PhobosMap<BuildingTypeClass*, int> Building_BuildSpeedBonusCounter {};
-		PhobosMap<BuildingTypeClass*, int> Building_OrePurifiersCounter {};
+	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 
-		bool ForceOnlyTargetHouseEnemy { false };
-		int ForceOnlyTargetHouseEnemyMode { -1 };
+	static bool InvalidateIgnorable(AbstractClass* ptr);
 
-		BuildingClass* Factory_BuildingType { nullptr };
-		BuildingClass* Factory_InfantryType { nullptr };
-		BuildingClass* Factory_VehicleType { nullptr };
-		BuildingClass* Factory_NavyType { nullptr };
-		BuildingClass* Factory_AircraftType { nullptr };
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 
-		bool AllRepairEventTriggered { false };
-		int LastBuildingTypeArrayIdx { -1 };
+	void UpdateVehicleProduction();
+	void UpdateAutoDeathObjects();
+	void UpdateTransportReloaders();
 
-		bool RepairBaseNodes[3] { false };
+	void UpdateShotCount(SuperWeaponTypeClass* pFor);
+	void UpdateShotCountB(SuperWeaponTypeClass* pFor);
+	LauchData GetShotCount(SuperWeaponTypeClass* pFor);
 
-		std::vector<TeamClass*> ActiveTeams {};
+	//void AddToLimboTracking(TechnoTypeClass* pTechnoType);
+	//void RemoveFromLimboTracking(TechnoTypeClass* pTechnoType);
+	//int CountOwnedPresentAndLimboed(TechnoTypeClass* pTechnoType);
 
-		//#817
-		int LastBuiltNavalVehicleType { -1 };
-		int ProducingNavalUnitTypeIndex { -1 };
+	void UpdateAcademy(BuildingClass* pAcademy, bool added);
+	void ApplyAcademy(TechnoClass* pTechno, AbstractType considerAs) const;
 
-		//#830
-		PhobosMap<TechnoClass* , KillMethod> AutoDeathObjects {};
-
-		std::vector<LauchData> LaunchDatas {};
-		bool CaptureObjectExecuted { false };
-		CDTimerClass DiscoverEvaDelay {};
-		std::vector<TunnelData> Tunnels {};
-		DWORD Seed { 0 };
-
-		int SWLastIndex { -1 };
-		HelperedVector<SuperClass*> Batteries {};
-		HelperedVector<HouseTypeClass*> Factories_HouseTypes {};
-		HelperedVector<TechnoClass*> LimboTechno {};
-
-		int AvaibleDocks { 0 };
-
-		std::bitset<32> StolenTech {};
-		IndexBitfield<HouseClass*> RadarPersist {};
-		HelperedVector<HouseTypeClass*> FactoryOwners_GatheredPlansOf {};
-		HelperedVector<BuildingClass*> Academies {};
-		HelperedVector<TechnoTypeClass*> Reversed {};
-
-		bool Is_NavalYardSpied { false };
-		bool Is_AirfieldSpied { false };
-		bool Is_ConstructionYardSpied { false };
-		int AuxPower { 0 };
-
-		int KeepAliveCount { 0 };
-		int KeepAliveBuildingCount { 0 };
-
-		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
-		{ }
-
-		virtual ~ExtData() override = default;
-
-		void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-		static bool InvalidateIgnorable(AbstractClass* ptr);
-
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-
-		void UpdateVehicleProduction();
-		void UpdateAutoDeathObjects();
-		void UpdateTransportReloaders();
-
-		void UpdateShotCount(SuperWeaponTypeClass* pFor);
-		void UpdateShotCountB(SuperWeaponTypeClass* pFor);
-		LauchData GetShotCount(SuperWeaponTypeClass* pFor);
-
-		//void AddToLimboTracking(TechnoTypeClass* pTechnoType);
-		//void RemoveFromLimboTracking(TechnoTypeClass* pTechnoType);
-		//int CountOwnedPresentAndLimboed(TechnoTypeClass* pTechnoType);
-
-		void UpdateAcademy(BuildingClass* pAcademy, bool added);
-		void ApplyAcademy(TechnoClass* pTechno, AbstractType considerAs) const;
-
-		static SuperClass* IsSuperAvail(int nIdx , HouseClass* pHouse);
-	private:
-		bool UpdateHarvesterProduction();
-
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public Container<HouseExt::ExtData>
-	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(HouseExt::ExtData, "HouseClass");
-	public:
-
-		static bool LoadGlobals(PhobosStreamReader& Stm);
-		static bool SaveGlobals(PhobosStreamWriter& Stm);
-
-		void Clear()
-		{
-			AIProduction_CreationFrames.clear();
-			AIProduction_Values.clear();
-			AIProduction_BestChoices.clear();
-			AIProduction_BestChoicesNaval.clear();
-
-			LastGrindingBlanceUnit = 0;
-			LastGrindingBlanceInf = 0;
-			LastHarvesterBalance = 0;
-			LastSlaveBalance = 0;
-
-			CloakEVASpeak.Stop();
-			SubTerraneanEVASpeak.Stop();
-		}
-
-	};
-
-	static ExtContainer ExtMap;
+	static SuperClass* IsSuperAvail(int nIdx, HouseClass* pHouse);
 	static bool IsAnyFirestormActive;
 
 	static int ActiveHarvesterCount(HouseClass* pThis);
@@ -216,7 +172,8 @@ public:
 	static CellClass* GetEnemyBaseGatherCell(HouseClass* pTargetHouse, HouseClass* pCurrentHouse, const CoordStruct& defaultCurrentCoords, SpeedType speedTypeZone, int extraDistance = 0);
 
 	// Some non playable countries will set SideIndex to -1
-	static SideClass* HouseExt::GetSide(HouseClass* pHouse) {
+	static SideClass* GetSide(HouseClass* pHouse)
+	{
 		if (!pHouse)
 			return nullptr;
 
@@ -228,10 +185,6 @@ public:
 	static HouseClass* FindNeutral();
 	static HouseClass* GetHouseKind(OwnerHouseKind const& kind, bool allowRandom, HouseClass* pDefault, HouseClass* pInvoker = nullptr, HouseClass* pVictim = nullptr);
 	static HouseClass* GetSlaveHouse(SlaveReturnTo const& kind, HouseClass* pKiller, HouseClass* pVictim);
-	static signed int PrereqValidate(HouseClass const* const pHouse, TechnoTypeClass const* const pItem,bool const buildLimitOnly, bool const includeQueued)
-	{
-		return 1;
-	}
 
 	//
 	static int GetSurvivorDivisor(HouseClass* pHouse);
@@ -243,7 +196,7 @@ public:
 	static AircraftTypeClass* GetSpyPlane(HouseClass* pHouse);
 	static UnitTypeClass* GetHunterSeeker(HouseClass* pHouse);
 	static AnimTypeClass* GetParachuteAnim(HouseClass* pHouse);
-	static bool GetParadropContent(HouseClass* pHouse , Iterator<TechnoTypeClass*>& Types, Iterator<int>& Num);
+	static bool GetParadropContent(HouseClass* pHouse, Iterator<TechnoTypeClass*>& Types, Iterator<int>& Num);
 	//
 	static void ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode);
 
@@ -295,6 +248,39 @@ public:
 	bool b7);
 
 	static RequirementStatus RequirementsMet(HouseClass* pHouse, TechnoTypeClass* pItem);
-	static void UpdateAcademy(HouseClass* pHouse , BuildingClass* pAcademy, bool added);
-	static void ApplyAcademy(HouseClass* pHouse ,TechnoClass* pTechno, AbstractType considerAs);
+	static void UpdateAcademy(HouseClass* pHouse, BuildingClass* pAcademy, bool added);
+	static void ApplyAcademy(HouseClass* pHouse, TechnoClass* pTechno, AbstractType considerAs);
+
+private:
+	bool UpdateHarvesterProduction();
+
+	template <typename T>
+	void Serialize(T& Stm);
+
+public:
+	static std::vector<int> AIProduction_CreationFrames;
+	static std::vector<int> AIProduction_Values;
+	static std::vector<int> AIProduction_BestChoices;
+	static std::vector<int> AIProduction_BestChoicesNaval;
+
+	static int LastGrindingBlanceUnit;
+	static int LastGrindingBlanceInf;
+	static int LastHarvesterBalance;
+	static int LastSlaveBalance;
+
+	static CDTimerClass CloakEVASpeak;
+	static CDTimerClass SubTerraneanEVASpeak;
+};
+
+class HouseExtContainer final : public Container<HouseExtData>
+{
+public:
+	CONSTEXPR_NOCOPY_CLASSB(HouseExtContainer, HouseExtData, "HouseClass");
+public:
+	static HouseExtContainer Instance;
+
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
+	void Clear();
 };

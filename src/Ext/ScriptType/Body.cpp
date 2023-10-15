@@ -3,18 +3,18 @@
 // =============================
 // load / save
 
-template <typename T>
-void ScriptTypeExt::ExtData::Serialize(T& Stm)
-{
-	Stm
-		.Process(this->Initialized)
-		.Process(this->PhobosNode)
-		;
-}
+//template <typename T>
+//void ScriptTypeExt::ExtData::Serialize(T& Stm)
+//{
+//	Stm
+//		.Process(this->Initialized)
+//		.Process(this->PhobosNode)
+//		;
+//}
 
 // =============================
 // container
-ScriptTypeExt::ExtContainer ScriptTypeExt::ExtMap;
+//ScriptTypeExt::ExtContainer ScriptTypeExt::ExtMap;
 
 // =============================
 // container hooks

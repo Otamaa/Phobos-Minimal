@@ -6,7 +6,7 @@
 
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 
-std::pair<TechnoClass*, HouseClass*> ParticleExt::GetOwnership(ParticleClass* pThis)
+std::pair<TechnoClass*, HouseClass*> ParticleExtData::GetOwnership(ParticleClass* pThis)
 {
 	TechnoClass* pAttacker = nullptr;
 	HouseClass* pOwner = nullptr;
@@ -29,7 +29,7 @@ std::pair<TechnoClass*, HouseClass*> ParticleExt::GetOwnership(ParticleClass* pT
 		if (pAttacker)
 			pOwner = pAttacker->GetOwningHouse();
 		else if (pBullet)
-			pOwner = BulletExt::ExtMap.Find(pBullet)->Owner;
+			pOwner = BulletExtContainer::Instance.Find(pBullet)->Owner;
 	}
 
 	return { pAttacker , pOwner };
@@ -40,7 +40,7 @@ std::pair<TechnoClass*, HouseClass*> ParticleExt::GetOwnership(ParticleClass* pT
 // load / save
 
 template <typename T>
-void ParticleExt::ExtData::Serialize(T& Stm)
+void ParticleExtData::Serialize(T& Stm)
 {
 	//Debug::Log("Processing Element From ParticleExt ! \n");
 
@@ -54,7 +54,7 @@ void ParticleExt::ExtData::Serialize(T& Stm)
 
 // =============================
 // container
-ParticleExt::ExtContainer ParticleExt::ExtMap;
+ParticleExtContainer ParticleExtContainer::Instance;
 
 // =============================
 // container hooks
@@ -63,9 +63,9 @@ DEFINE_HOOK(0x62BB13, ParticleClass_CTOR, 0x5)
 {
 	GET(ParticleClass*, pItem, ESI);
 
-	if (auto pExt = ParticleExt::ExtMap.Allocate(pItem))
+	if (auto pExt = ParticleExtContainer::Instance.Allocate(pItem))
 	{
-		if (const auto pTypeExt = ParticleTypeExt::ExtMap.TryFind(pItem->Type))
+		if (const auto pTypeExt = ParticleTypeExtContainer::Instance.TryFind(pItem->Type))
 		{
 			CoordStruct nFLH = CoordStruct::Empty;
 			const ColorStruct nColor = pItem->GetOwningHouse() ? pItem->GetOwningHouse()->LaserColor : ColorStruct::Empty;
@@ -91,7 +91,7 @@ DEFINE_HOOK_AGAIN(0x62BCED, ParticleClass_DTOR, 0xA)
 DEFINE_HOOK(0x62D9CD, ParticleClass_DTOR, 0xA)
 {
 	GET(ParticleClass* const, pItem, ESI);
-	ParticleExt::ExtMap.Remove(pItem);
+	ParticleExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 
@@ -101,14 +101,14 @@ DEFINE_HOOK(0x62D7A0, ParticleClass_SaveLoad_Prefix, 0x5)
 	GET_STACK(ParticleClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 
-	ParticleExt::ExtMap.PrepareStream(pItem, pStm);
+	ParticleExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
 }
 
 DEFINE_HOOK(0x62D801, ParticleClass_Load_Suffix, 0x6)
 {
-	ParticleExt::ExtMap.LoadStatic();
+	ParticleExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
@@ -116,9 +116,9 @@ DEFINE_HOOK(0x62D825, ParticleClass_Save_Suffix, 0x7)
 {
 	GET(const HRESULT , nRest, EAX);
 
-	ParticleExt::ExtMap.GetSavingObject()->byte130 = true;
+	ParticleExtContainer::Instance.GetSavingObject()->byte130 = true;
 	if (SUCCEEDED(nRest)) {
-		ParticleExt::ExtMap.SaveStatic();
+		ParticleExtContainer::Instance.SaveStatic();
 	}
 
 	return 0x62D82C;

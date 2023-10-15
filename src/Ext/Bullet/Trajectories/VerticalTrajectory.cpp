@@ -75,11 +75,11 @@ void VerticalTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPos
 
 	if (!this->IsFalling)
 	{
-		pSpeed->Z += BulletTypeExt::GetAdjustedGravity(pBullet->Type);
+		pSpeed->Z += BulletTypeExtData::GetAdjustedGravity(pBullet->Type);
 
 		if (pBullet->Location.Z + pBullet->Velocity.Z >= this->Height)
 		{
-			auto pExt = BulletExt::ExtMap.Find(pBullet);
+			auto pExt = BulletExtContainer::Instance.Find(pBullet);
 			auto type = this->GetTrajectoryType();
 
 			pExt->LaserTrails.clear();

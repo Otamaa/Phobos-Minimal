@@ -4,5 +4,5 @@
 
 struct JJFacingFunctional
 {
-	static void AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
+	static void AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt);
 };

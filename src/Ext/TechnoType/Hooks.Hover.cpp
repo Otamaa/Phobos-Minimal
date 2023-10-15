@@ -20,7 +20,7 @@ static const HoverTypeClass* GetHover(TechnoClass* pThis)
 {
 	if (pThis) {
 		auto const pTechnoType = pThis->GetTechnoType();
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
+		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 
 		if (pTypeExt->HoverType.isset())
 			return pTypeExt->HoverType;
@@ -107,7 +107,7 @@ DEFINE_HOOK(0x514A32, HoverLocomotionClass_513D20_Anim, 0x5) //B
 			if (const auto pAnimType = GetHover(Linked)->GetAboveWaterAnim())
 			{
 				const auto nCoord = Linked->GetCoords();
-				AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nCoord),
+				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nCoord),
 					Linked->Owner,
 					nullptr,
 					Linked,

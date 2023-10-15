@@ -17,7 +17,7 @@ bool SW_LightningStorm::HandleThisType(SuperWeaponType type) const
 	return (type == SuperWeaponType::LightningStorm);
 }
 
-SuperWeaponFlags SW_LightningStorm::Flags(const SWTypeExt::ExtData* pData) const
+SuperWeaponFlags SW_LightningStorm::Flags(const SWTypeExtData* pData) const
 {
 	return SuperWeaponFlags::NoMessage | SuperWeaponFlags::NoEvent;
 }
@@ -26,7 +26,7 @@ bool SW_LightningStorm::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 {
 	if (pThis->IsCharged)
 	{
-		SWTypeExt::ExtData* pData = SWTypeExt::ExtMap.Find(pThis->Type);
+		SWTypeExtData* pData = SWTypeExtContainer::Instance.Find(pThis->Type);
 
 		auto duration = pData->Weather_Duration.Get(RulesClass::Instance->LightningStormDuration);
 		auto deferment = pData->SW_Deferment.Get(RulesClass::Instance->LightningDeferment);
@@ -49,7 +49,7 @@ bool SW_LightningStorm::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 
 bool SW_LightningStorm::AbortFire(SuperClass* pSW, bool IsPlayer)
 {
-	SWTypeExt::ExtData* pData = SWTypeExt::ExtMap.Find(pSW->Type);
+	SWTypeExtData* pData = SWTypeExtContainer::Instance.Find(pSW->Type);
 
 	// only one Lightning Storm allowed
 	if (LightningStorm::Active || LightningStorm::HasDeferment())
@@ -63,9 +63,9 @@ bool SW_LightningStorm::AbortFire(SuperClass* pSW, bool IsPlayer)
 	return false;
 }
 
-void SW_LightningStorm::Initialize(SWTypeExt::ExtData* pData)
+void SW_LightningStorm::Initialize(SWTypeExtData* pData)
 {
-	pData->OwnerObject()->Action = Action::LightningStorm;
+	pData->AttachedToObject->Action = Action::LightningStorm;
 	// Defaults to Lightning Storm values
 	pData->Weather_DebrisMin = 2;
 	pData->Weather_DebrisMax = 4;
@@ -90,7 +90,7 @@ void SW_LightningStorm::Initialize(SWTypeExt::ExtData* pData)
 
 }
 
-bool SW_LightningStorm::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingClass* pBuilding) const
+bool SW_LightningStorm::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
 	if (!this->IsLaunchsiteAlive(pBuilding))
 		return false;
@@ -101,7 +101,7 @@ bool SW_LightningStorm::IsLaunchSite(const SWTypeExt::ExtData* pData, BuildingCl
 	return this->IsSWTypeAttachedToThis(pData, pBuilding);
 }
 
-void SW_LightningStorm::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
+void SW_LightningStorm::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
 	const char* section = pData->get_ID();
 
@@ -127,17 +127,17 @@ void SW_LightningStorm::LoadFromINI(SWTypeExt::ExtData* pData, CCINIClass* pINI)
 	pData->Weather_LightningRodTypes.Read(exINI, section, "Lightning.LighningRodTypes");
 }
 
-WarheadTypeClass* SW_LightningStorm::GetWarhead(const SWTypeExt::ExtData* pData) const
+WarheadTypeClass* SW_LightningStorm::GetWarhead(const SWTypeExtData* pData) const
 {
 	return pData->SW_Warhead.Get(RulesClass::Instance->LightningWarhead);
 }
 
-int SW_LightningStorm::GetDamage(const SWTypeExt::ExtData* pData) const
+int SW_LightningStorm::GetDamage(const SWTypeExtData* pData) const
 {
 	return pData->SW_Damage.Get(RulesClass::Instance->LightningDamage);
 }
 
-SWRange SW_LightningStorm::GetRange(const SWTypeExt::ExtData* pData) const
+SWRange SW_LightningStorm::GetRange(const SWTypeExtData* pData) const
 {
 	return pData->SW_Range->empty() ? SWRange(RulesClass::Instance->LightningCellSpread) : pData->SW_Range;
 }
@@ -403,7 +403,7 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 
 			if (auto const pAnim = GameCreate<AnimClass>(pAnimType, coords))
 			{
-				AnimExt::SetAnimOwnerHouseKind(pAnim, Super->Owner, nullptr, Invoker, false);
+				AnimExtData::SetAnimOwnerHouseKind(pAnim, Super->Owner, nullptr, Invoker, false);
 				BoltsPresent.AddItem(pAnim);
 			}
 		}
@@ -446,7 +446,7 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 				if (pBldType->LightningRod && (nRodTypes.empty() || nRodTypes.Contains(pBldType)))
 				{
 					// multiply the damage, but never go below zero.
-					auto const pBldExt = BuildingTypeExt::ExtMap.Find(pBldType);
+					auto const pBldExt = BuildingTypeExtContainer::Instance.Find(pBldType);
 					damage = MaxImpl(int(damage * pBldExt->LightningRod_Modifier), 0);
 				}
 			}
@@ -460,7 +460,7 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 			if (!Invoker)
 				Debug::Log("LS[%d - %s] Invoked is nullptr, dealing damage without ownership !! \n", Super, Super->Type->ID);
 
-			WarheadTypeExt::DetonateAt(pWarhead, MapClass::Instance->GetCellAt(coords), coords, Invoker, damage ,Super->Owner);
+			WarheadTypeExtData::DetonateAt(pWarhead, MapClass::Instance->GetCellAt(coords), coords, Invoker, damage ,Super->Owner);
 
 			if(auto pBoltExt = pData->Weather_BoltExplosion.Get(RulesClass::Instance->WeatherConBoltExplosion))
 				if (auto pAnim = GameCreate<AnimClass>(pBoltExt, coords))
@@ -488,7 +488,7 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 					auto const rnd = ScenarioClass::Instance->Random.Random();
 					auto const pAnimType = it.at(rnd % it.size());
 
-					AnimExt::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coords),
+					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coords),
 						Super->Owner,
 						nullptr,
 						Invoker,
@@ -532,7 +532,7 @@ bool CloneableLighningStormStateMachine::Strike(CellStruct const& nCell)
 		// create the cloud and do some book keeping.
 		if (auto const pAnim = GameCreate<AnimClass>(pAnimType, coords))
 		{
-			AnimExt::SetAnimOwnerHouseKind(pAnim, Super->Owner, nullptr, Invoker, false);
+			AnimExtData::SetAnimOwnerHouseKind(pAnim, Super->Owner, nullptr, Invoker, false);
 			CloudsManifest.AddItem(pAnim);
 			CloudsPresent.AddItem(pAnim);
 		}

@@ -1,10 +1,11 @@
 #pragma once
-#include <Ext/TechnoType/Body.h>
-#include <Ext/Techno/Body.h>
 
+class AbstractClass;
+class TechnoExtData;
+class TechnoTypeExtData;
 struct AircraftDiveFunctional
 {
-	static void Init(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
-	static void AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
-	static void OnFire(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt, AbstractClass* pTarget, int nWeaponIDx);
+	static void Init(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt);
+	static void AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt);
+	static void OnFire(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt, AbstractClass* pTarget, int nWeaponIDx);
 };

@@ -55,11 +55,11 @@
 //
 //	if (pBeamAnim)
 //		if (auto pBeam = GameCreate<AnimClass>(pBeamAnim, nAnimLoc))
-//			AnimExt::SetAnimOwnerHouseKind(pBeam, pHouseOwner, nullptr, AnimTypeExt::ExtMap.Find(pBeam->Type)->Anim_Owner.Get(), false);
+//			AnimExtData::SetAnimOwnerHouseKind(pBeam, pHouseOwner, nullptr, AnimTypeExtContainer::Instance.Find(pBeam->Type)->Anim_Owner.Get(), false);
 //
 //	if (pBlastAnim)
 //		if (auto pBlast = GameCreate<AnimClass>(pBlastAnim, nAnimLoc))
-//			AnimExt::SetAnimOwnerHouseKind(pBlast, pHouseOwner, nullptr, AnimTypeExt::ExtMap.Find(pBlast->Type)->Anim_Owner.Get(), false);
+//			AnimExtData::SetAnimOwnerHouseKind(pBlast, pHouseOwner, nullptr, AnimTypeExtContainer::Instance.Find(pBlast->Type)->Anim_Owner.Get(), false);
 //
 //	if (pWarhead)
 //	{

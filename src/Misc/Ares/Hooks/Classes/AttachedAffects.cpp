@@ -7,7 +7,7 @@
 void NOINLINE AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 {
 	double ROF_Mult = 1.0;
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	double FP_Mult = pExt->AE_FirePowerMult;
 	double Armor_Mult = pExt->AE_ArmorMult;
 	double Speed_Mult = pExt->AE_SpeedMult;
@@ -31,7 +31,7 @@ void NOINLINE AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 	if (pThis->AbstractFlags & AbstractFlags::Foot)
 	{
 
-		//if (Speed_Mult < 1.0 && TechnoExt::IsInWarfactory(pThis))
+		//if (Speed_Mult < 1.0 && TechnoExtData::IsInWarfactory(pThis))
 		//	Speed_Mult = 1.0; //negate all speed bonusses when it is still in warfactory
 
 		((FootClass*)pThis)->SpeedMultiplier = Speed_Mult;
@@ -42,7 +42,7 @@ void NOINLINE AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 
 void AresAE::applyAttachedEffect(WarheadTypeClass* pWH, const CoordStruct& coords, HouseClass* Source)
 {
-	auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH);
+	auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
 	if (pWHExt->AttachedEffect.Duration != 0)
 	{
@@ -69,12 +69,12 @@ void AresAE::applyAttachedEffect(WarheadTypeClass* pWH, const CoordStruct& coord
 
 AresAttachEffectTypeClass* GetAETypeFromTechnoType(TechnoTypeClass* pType)
 {
-	return std::addressof(TechnoTypeExt::ExtMap.Find(pType)->AttachedEffect);
+	return std::addressof(TechnoTypeExtContainer::Instance.Find(pType)->AttachedEffect);
 }
 
 AresAEData* GetAEDAtaFromTechno(TechnoClass* pThis)
 {
-	return std::addressof(TechnoExt::ExtMap.Find(pThis)->AeData); //dummy
+	return std::addressof(TechnoExtContainer::Instance.Find(pThis)->AeData); //dummy
 }
 
 void NOINLINE AresAE::UpdateTempoal(AresAEData* ae, TechnoClass* pTechno)

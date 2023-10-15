@@ -3,9 +3,9 @@
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Helpers.h>
 
-void HouseTypeExt::ExtData::Initialize()
+void HouseTypeExtData::Initialize()
 {
-	const char* pID = this->OwnerObject()->ID;
+	const char* pID = this->AttachedToObject->ID;
 
 	constexpr static char const* const countries[] = {
 		"Americans",
@@ -85,10 +85,10 @@ void HouseTypeExt::ExtData::Initialize()
 	}
 }
 
-void HouseTypeExt::ExtData::InheritSettings(HouseTypeClass* pThis)
+void HouseTypeExtData::InheritSettings(HouseTypeClass* pThis)
 {
 	if (auto ParentCountry = pThis->FindParentCountry()) {
-		if (const auto ParentData = HouseTypeExt::ExtMap.Find(ParentCountry)) {
+		if (const auto ParentData = HouseTypeExtContainer::Instance.Find(ParentCountry)) {
 			this->SurvivorDivisor = ParentData->SurvivorDivisor;
 			this->Crew = ParentData->Crew;
 			this->Engineer = ParentData->Engineer;
@@ -117,9 +117,9 @@ void HouseTypeExt::ExtData::InheritSettings(HouseTypeClass* pThis)
 	this->SettingsInherited = true;
 }
 
-void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+void HouseTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->Get();
+	auto pThis = this->AttachedToObject;
 	const char* pSection = pThis->ID;
 
 	if (!this->SettingsInherited
@@ -144,6 +144,7 @@ void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr
 	this->ParaDropTypes.Read(exINI, pSection, "ParaDrop.Types", true);
 
 	// remove all types that cannot paradrop
+
 	Helpers::Alex::remove_non_paradroppables(this->ParaDropTypes, pSection, "ParaDrop.Types");
 
 	this->StartInMultiplayer_Types.Read(exINI, pSection, "StartInMultiplayer.Types", true);
@@ -167,16 +168,22 @@ void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr
 	this->Powerplants.Read(exINI, pSection, "AI.PowerPlants", true);
 	this->VeteranBuildings.Read(exINI, pSection, "VeteranBuildings", true);
 
-	this->TauntFile.Read(pINI, pSection, "File.Taunt");
-
 	this->Degrades.Read(exINI, pSection, "Degrades");
 	this->Disguise.Read(exINI, pSection, "DefaultDisguise", true);
+}
 
+void HouseTypeExtData::LoadFromRulesFile(CCINIClass* pINI) {
+	auto pThis = this->AttachedToObject;
+	const char* pSection = pThis->ID;
+
+	INI_EX exINI(pINI);
+
+	this->TauntFile.Read(pINI, pSection, "File.Taunt");
 	this->LoadScreenBackground.Read(pINI, pSection, "File.LoadScreen");
 	this->LoadScreenPalette.Read(pINI, pSection, "File.LoadScreenPAL");
 }
 
-Iterator<BuildingTypeClass*> HouseTypeExt::ExtData::GetPowerplants() const
+Iterator<BuildingTypeClass*> HouseTypeExtData::GetPowerplants() const
 {
 	if (!this->Powerplants.empty()) {
 		return this->Powerplants;
@@ -185,10 +192,10 @@ Iterator<BuildingTypeClass*> HouseTypeExt::ExtData::GetPowerplants() const
 	return this->GetDefaultPowerplants();
 }
 
-Iterator<BuildingTypeClass*> HouseTypeExt::ExtData::GetDefaultPowerplants() const
+Iterator<BuildingTypeClass*> HouseTypeExtData::GetDefaultPowerplants() const
 {
 	BuildingTypeClass** ppPower = nullptr;
-	switch (this->OwnerObject()->SideIndex)
+	switch (this->AttachedToObject->SideIndex)
 	{
 	case 0:
 		ppPower = &RulesClass::Instance->GDIPowerPlant;
@@ -206,7 +213,7 @@ Iterator<BuildingTypeClass*> HouseTypeExt::ExtData::GetDefaultPowerplants() cons
 }
 
 template <typename T>
-void  HouseTypeExt::ExtData::Serialize(T& Stm)
+void  HouseTypeExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
@@ -244,11 +251,11 @@ void  HouseTypeExt::ExtData::Serialize(T& Stm)
 // =============================
 // container
 
-HouseTypeExt::ExtContainer HouseTypeExt::ExtMap;
+HouseTypeExtContainer HouseTypeExtContainer::Instance;
 
-bool HouseTypeExt::ExtContainer::Load(HouseTypeClass* pThis, IStream* pStm)
+bool HouseTypeExtContainer::Load(HouseTypeClass* pThis, IStream* pStm)
 {
-	HouseTypeExt::ExtData* pData = this->LoadKey(pThis, pStm);
+	HouseTypeExtData* pData = this->LoadKey(pThis, pStm);
 	return pData != nullptr;
 };
 
@@ -259,7 +266,7 @@ DEFINE_HOOK(0x511635, HouseTypeClass_CTOR_1, 0x5)
 {
 	GET(HouseTypeClass*, pItem, EAX);
 
-	HouseTypeExt::ExtMap.FindOrAllocate(pItem);
+	HouseTypeExtContainer::Instance.FindOrAllocate(pItem);
 
 	return 0;
 }
@@ -268,7 +275,7 @@ DEFINE_HOOK(0x511643, HouseTypeClass_CTOR_2, 0x5)
 {
 	GET(HouseTypeClass*, pItem, EAX);
 
-	HouseTypeExt::ExtMap.FindOrAllocate(pItem);
+	HouseTypeExtContainer::Instance.FindOrAllocate(pItem);
 
 	return 0;
 }
@@ -277,7 +284,7 @@ DEFINE_HOOK(0x5127CF, HouseTypeClass_DTOR, 0x6)
 {
 	GET(HouseTypeClass*, pItem, ESI);
 
-	HouseTypeExt::ExtMap.Remove(pItem);
+	HouseTypeExtContainer::Instance.Remove(pItem);
 
 	return 0;
 }
@@ -288,20 +295,20 @@ DEFINE_HOOK(0x512290, HouseTypeClass_SaveLoad_Prefix, 0x5)
 	GET_STACK(HouseTypeClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 
-	HouseTypeExt::ExtMap.PrepareStream(pItem, pStm);
+	HouseTypeExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
 }
 
 DEFINE_HOOK(0x51246D, HouseTypeClass_Load_Suffix, 0x5)
 {
-	HouseTypeExt::ExtMap.LoadStatic();
+	HouseTypeExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
 DEFINE_HOOK(0x51255C, HouseTypeClass_Save_Suffix, 0x5)
 {
-	HouseTypeExt::ExtMap.SaveStatic();
+	HouseTypeExtContainer::Instance.SaveStatic();
 	return 0;
 }
 
@@ -311,7 +318,7 @@ DEFINE_HOOK(0x51214F, HouseTypeClass_LoadFromINI, 0x5)
 	GET(HouseTypeClass*, pItem, EBX);
 	GET_BASE(CCINIClass*, pINI, 0x8);
 
-	HouseTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x51215A);
+	HouseTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x51215A);
 
 	return 0;
 }

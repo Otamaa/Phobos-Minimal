@@ -10,7 +10,7 @@ DEFINE_OVERRIDE_HOOK(0x468BE2, BulletClass_ShouldDetonate_Obstacle, 6)
 	GET(BulletClass* const, pThis, ESI);
 	GET(CoordStruct* const, pOutCoords, EDI);
 
-	auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
+	auto const pTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (AresTrajectoryHelper::SubjectToAnything(pThis->Type, pTypeExt))
 	{
@@ -19,7 +19,7 @@ DEFINE_OVERRIDE_HOOK(0x468BE2, BulletClass_ShouldDetonate_Obstacle, 6)
 		auto const pCellTarget = Map->GetCellAt(pThis->TargetCoords);
 		auto const pCellLast = Map->GetCellAt(pThis->LastMapCoords);
 
-		auto const pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExt::ExtMap.Find(pThis)->Owner;
+		auto const pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pThis)->Owner;
 
 		if (AresTrajectoryHelper::GetObstacle(
 			pCellSource, pCellTarget, pThis->Owner, pThis->Target, pCellLast,
@@ -59,7 +59,7 @@ DEFINE_OVERRIDE_HOOK(0x4CC360, TrajectoryHelper_GetObstacle, 5)
 	GET_STACK(BulletTypeClass* const, pType, 0x14);
 	GET_STACK(HouseClass const* const, pOwner, 0x18);
 
-	const auto pTypeExt = BulletTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = BulletTypeExtContainer::Instance.Find(pType);
 
 	const auto ret = AresTrajectoryHelper::GetObstacle(
 		pCellSource, pCellTarget, nullptr, nullptr, pCellBullet, crdCur, pType,
@@ -76,7 +76,7 @@ DEFINE_OVERRIDE_HOOK(0x4CC100, TrajectoryHelper_FindFirstObstacle, 7)
 	GET_STACK(BulletTypeClass* const, pType, 0x4);
 	GET_STACK(HouseClass* const, pOwner, 0x8);
 
-	const auto pTypeExt = BulletTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = BulletTypeExtContainer::Instance.Find(pType);
 
 	const auto ret = AresTrajectoryHelper::FindFirstObstacle(
 		*pSource, *pTarget, nullptr, nullptr, pType, pTypeExt, pOwner);

@@ -23,7 +23,7 @@ DEFINE_OVERRIDE_HOOK(0x4892BE, DamageArea_NullDamage, 0x6)
 
 	if (!pWarhead
 		|| ((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x20) != 0)
-		|| !Damage && !WarheadTypeExt::ExtMap.Find(pWarhead)->AllowZeroDamage)
+		|| !Damage && !WarheadTypeExtContainer::Instance.Find(pWarhead)->AllowZeroDamage)
 		return DeleteDamageAreaVector;
 
 	R->ESI(pWarhead);
@@ -84,7 +84,7 @@ DEFINE_OVERRIDE_HOOK(0x48A2D9, DamageArea_ExplodesThreshold, 6)
 	GET(OverlayTypeClass*, pOverlay, EAX);
 	GET_STACK(int, damage, 0x24);
 
-	return pOverlay->Explodes && damage >= RulesExt::Global()->OverlayExplodeThreshold
+	return pOverlay->Explodes && damage >= RulesExtData::Instance()->OverlayExplodeThreshold
 		? 0x48A2E7 : 0x48A433;
 }
 
@@ -92,7 +92,7 @@ DEFINE_OVERRIDE_HOOK(0x489E9F, DamageArea_BridgeAbsoluteDestroyer, 5)
 {
 	GET(WarheadTypeClass*, pWH, EBX);
 	GET(WarheadTypeClass*, pIonCannonWH, EDI);
-	R->Stack(0x13, WarheadTypeExt::ExtMap.Find(pWH)->BridgeAbsoluteDestroyer.Get(pWH == pIonCannonWH));
+	R->Stack(0x13, WarheadTypeExtContainer::Instance.Find(pWH)->BridgeAbsoluteDestroyer.Get(pWH == pIonCannonWH));
 	return 0x489EA4;
 }
 
@@ -128,13 +128,13 @@ DEFINE_OVERRIDE_HOOK(0x4893BA, DamageArea_DamageAir, 9)
 	// consider explosions on and over bridges
 	if (heightAboveGround > Unsorted::BridgeHeight
 		&& pCell->ContainsBridge()
-		&& RulesExt::Global()->DamageAirConsiderBridges)
+		&& RulesExtData::Instance()->DamageAirConsiderBridges)
 	{
 		heightAboveGround -= Unsorted::BridgeHeight;
 	}
 
 	// damage units in air if detonation is above a threshold
-	auto const pExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+	auto const pExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
 	auto const damageAir = heightAboveGround > pExt->DamageAirThreshold;
 
 	return damageAir ? 0x4893C3u : 0x48955Eu;
@@ -153,7 +153,7 @@ DEFINE_OVERRIDE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
  	REF_STACK(DynamicVectorClass<DamageGroup*>, groups, STACK_OFFS(0xE0, 0xA8));
  	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
 
- 	auto pExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+ 	auto pExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
  	const int MaxAffect = pExt->CellSpread_MaxAffect;
 
  	if (MaxAffect < 0)
