@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Utilities/SavegameDef.h>
+#include <Utilities/Constructs.h>
 #include <GeneralStructures.h>
 #include <SpecificStructures.h>
 #include <CoordStruct.h>
@@ -22,20 +23,20 @@ public:
 	ShieldClass();
 	ShieldClass(TechnoClass* pTechno, bool isAttached);
 	ShieldClass(TechnoClass* pTechno) : ShieldClass(pTechno, false) {};
-	virtual ~ShieldClass() { KillAnim(); };
+	~ShieldClass() noexcept = default;
 
-	void OnInit() { }
-	void OnUnInit() { }
-	void OnDetonate(CoordStruct* location) { }
-	void OnPut(CoordStruct pCoord, short faceDirValue8) { }
+	//void OnInit() { }
+	//void OnUnInit() { }
+	//void OnDetonate(CoordStruct* location) { }
+	//void OnPut(CoordStruct pCoord, short faceDirValue8) { }
 	void OnRemove();
 	void OnReceiveDamage(args_ReceiveDamage* args);
-	void OnFire(AbstractClass* pTarget, int weaponIndex) { }
+	//void OnFire(AbstractClass* pTarget, int weaponIndex) { }
 
-	void OnSelect(bool& selectable) { }
-	void OnGuardCommand() { }
-	void OnStopCommand() { }
-	void OnDeploy() { }
+	//void OnSelect(bool& selectable) { }
+	//void OnGuardCommand() { }
+	//void OnStopCommand() { }
+	//void OnDeploy() { }
 
 	bool CanBeTargeted(WeaponTypeClass* pWeapon) const;
 	bool CanBePenetrated(WarheadTypeClass* pWarhead) const;
@@ -52,14 +53,18 @@ public:
 	void DrawShieldBar(int iLength, Point2D* pLocation, RectangleStruct* pBound);
 
 	double GetHealthRatio() const;
+
 	void SetHP(int amount);
 	int GetHP() const;
+
 	bool IsActive() const;
 	bool IsAvailable() const;
+
 	bool IsBrokenAndNonRespawning() const;
 	ShieldTypeClass* GetType() const;
 	Armor GetArmor() const;
 	int GetFramesSinceLastBroken() const;
+
 	void SetAnimationVisibility(bool visible);
 
 	static void SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo);
@@ -69,7 +74,8 @@ public:
 	bool IsYellowSP();
 	bool IsRedSP();
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bDetach);
+	void InvalidatePointer(AbstractClass* ptr, bool bDetach);
+
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	bool Save(PhobosStreamWriter& Stm) const;
 
@@ -101,6 +107,8 @@ private:
 	int DrawShieldBar_Pip(const bool isBuilding);
 	int DrawShieldBar_PipAmount(int iLength);
 
+private:
+
 	/// Properties ///
 	TechnoClass* Techno;
 	TechnoTypeClass* CurTechnoType;
@@ -112,7 +120,7 @@ private:
 	CDTimerClass Timers_Respawn;
 	CDTimerClass Timers_Respawn_Warhead;
 
-	AnimClass* IdleAnim;
+	Handle<AnimClass* , UninitAnim> IdleAnim;
 	bool Cloak;
 	bool Online;
 	bool Temporal;
@@ -131,6 +139,7 @@ private:
 	double LastTechnoHealthRatio;
 
 	ShieldTypeClass* Type;
+
 private:
 	ShieldClass(const ShieldClass& other) = delete;
 	ShieldClass& operator=(const ShieldClass& other) = delete;

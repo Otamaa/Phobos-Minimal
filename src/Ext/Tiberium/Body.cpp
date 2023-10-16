@@ -41,11 +41,6 @@ void TiberiumExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->DebrisChance.Read(exINI, pSection, "Debris.Chance");
 }
 
-double TiberiumExtData::GetHealDelay() const
-{
-	return this->Heal_Delay.Get(RulesClass::Instance->TiberiumHeal);
-}
-
 int TiberiumExtData::GetHealStep(TechnoClass* pTechno) const
 {
 	const auto pType = pTechno->GetTechnoType();
@@ -59,31 +54,6 @@ int TiberiumExtData::GetHealStep(TechnoClass* pTechno) const
 	default:
 		return this->Heal_Step.Get(pType->GetRepairStep());
 	}
-}
-
-int TiberiumExtData::GetDamage() const
-{
-	return this->Damage.Get(MinImpl((this->AttachedToObject->Power / 10), 1));
-}
-
-WarheadTypeClass* TiberiumExtData::GetWarhead() const
-{
-	return this->Warhead.Get(RulesClass::Instance->C4Warhead);
-}
-
-WarheadTypeClass* TiberiumExtData::GetExplosionWarhead() const
-{
-	return this->ExplosionWarhead.Get(RulesClass::Instance->C4Warhead);
-}
-
-int TiberiumExtData::GetExplosionDamage() const
-{
-	return this->ExplosionDamage.Get(RulesClass::Instance->TiberiumExplosionDamage);
-}
-
-int TiberiumExtData::GetDebrisChance() const
-{
-	return this->DebrisChance;
 }
 
 // =============================

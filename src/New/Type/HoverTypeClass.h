@@ -33,39 +33,39 @@ public:
 
 	virtual ~HoverTypeClass() override = default;
 
-	AnimTypeClass* GetAboveWaterAnim() const {
+	inline AnimTypeClass* GetAboveWaterAnim() const {
 		return this->AboveWaterAnim.Get(RulesClass::Instance->Wake);
 	}
 
-	int GetScoldSound() const {
+	inline int GetScoldSound() const {
 		return this->ScoldSound.Get(RulesClass::Instance->ScoldSound);
 	}
 
-	int GetHeight() const {
+	inline 	int GetHeight() const {
 		return this->HoverHeight.Get(RulesClass::Instance->HoverHeight);
 	}
 
-	double GetBob() const {
+	inline double GetBob() const {
 		return this->HoverBob.Get(RulesClass::Instance->HoverBob);
 	}
 
-	double GetDampen() const {
+	inline double GetDampen() const {
 		return this->HoverDampen.Get(RulesClass::Instance->HoverDampen);
 	}
 
-	double GetAccel() const {
+	inline double GetAccel() const {
 		return this->HoverAcceleration.Get(RulesClass::Instance->HoverAcceleration);
 	}
 
-	double GetBrake() const {
+	inline double GetBrake() const {
 		return this->HoverBrake.Get(RulesClass::Instance->HoverBrake);
 	}
 
-	double GetBoost() const {
+	inline double GetBoost() const {
 		return this->HoverBoost.Get(RulesClass::Instance->HoverBoost);
 	}
 
-	static void AddDefaults() {
+	inline static void AddDefaults() {
 		FindOrAllocate(DEFAULT_STR2);
 	}
 

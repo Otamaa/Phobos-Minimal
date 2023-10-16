@@ -36,7 +36,7 @@ ShieldClass::ShieldClass(TechnoClass* pTechno, bool isAttached) : Techno { pTech
 , Timers_SelfHealing_Warhead { }
 , Timers_Respawn { }
 , Timers_Respawn_Warhead { }
-, IdleAnim { nullptr }
+, IdleAnim { }
 , Cloak { false }
 , Online { true }
 , Temporal { false }
@@ -695,7 +695,10 @@ int ShieldClass::GetPercentageAmount(double iStatus) const
 
 void ShieldClass::InvalidatePointer(AbstractClass* ptr, bool bDetach)
 {
-	AnnounceInvalidPointer(this->IdleAnim, ptr);
+	if (this->IdleAnim && this->IdleAnim.get() == ptr)
+		this->IdleAnim.release();
+
+	//AnnounceInvalidPointer(this->IdleAnim.Get(), ptr);
 }
 
 void ShieldClass::BreakShield(AnimTypeClass* pBreakAnim, WeaponTypeClass* pBreakWeapon)
@@ -807,24 +810,26 @@ void ShieldClass::CreateAnim()
 			pAnim->RemainingIterations = 0xFFu;
 			AnimExtData::SetAnimOwnerHouseKind(pAnim, this->Techno->Owner, nullptr, this->Techno, false);
 			pAnim->SetOwnerObject(this->Techno);
-			this->IdleAnim = pAnim;
+			this->IdleAnim.reset(pAnim);
 		}
 	}
 }
 
 void ShieldClass::KillAnim()
 {
-	if (this->IdleAnim)
-	{
-		if (this->IdleAnim->Type) //this anim doesnt have type pointer , just detach it
-		{
-			//GameDelete<true,false>(this->IdleAnim);
-			this->IdleAnim->TimeToDie = true;
-			this->IdleAnim->UnInit();
-		}
+	IdleAnim.reset(nullptr);
 
-		this->IdleAnim = nullptr;
-	}
+	//if (this->IdleAnim)
+	//{
+	//	if (this->IdleAnim->Type) //this anim doesnt have type pointer , just detach it
+	//	{
+	//		//GameDelete<true,false>(this->IdleAnim);
+	//		this->IdleAnim->TimeToDie = true;
+	//		this->IdleAnim->UnInit();
+	//	}
+	//
+	//	this->IdleAnim = nullptr;
+	//}
 }
 
 void ShieldClass::UpdateIdleAnim()
@@ -961,36 +966,34 @@ int ShieldClass::DrawShieldBar_PipAmount(int iLength)
 		: 0;
 }
 
-double ShieldClass::GetHealthRatio() const
+bool ShieldClass::IsGreenSP()
 {
-	return static_cast<double>(this->HP) / this->Type->Strength;
+	return (RulesClass::Instance->ConditionYellow * Type->Strength.Get()) < HP;
 }
 
-int ShieldClass::GetHP() const
+bool ShieldClass::IsYellowSP()
 {
-	return this->HP;
+	return (RulesClass::Instance->ConditionRed * Type->Strength.Get()) < HP && HP <= (RulesClass::Instance->ConditionYellow * Type->Strength.Get());
+}
+
+bool ShieldClass::IsRedSP()
+{
+	return HP <= (RulesClass::Instance->ConditionRed * Type->Strength.Get());
+}
+
+double ShieldClass::GetHealthRatio() const
+{
+	return static_cast<double>(this->HP) / static_cast<double>(this->Type->Strength);
 }
 
 void ShieldClass::SetHP(int amount)
 {
-	this->HP = amount;
-	if (this->HP > this->Type->Strength)
-		this->HP = this->Type->Strength;
+	this->HP = amount > this->Type->Strength ? this->Type->Strength : amount;
 }
 
-Armor ShieldClass::GetArmor() const
+int ShieldClass::GetHP()  const
 {
-	return this->Type->Armor;
-}
-
-ShieldTypeClass* ShieldClass::GetType() const
-{
-	return this->Type;
-}
-
-int ShieldClass::GetFramesSinceLastBroken() const
-{
-	return Unsorted::CurrentFrame - this->LastBreakFrame;
+	return this->HP;
 }
 
 bool ShieldClass::IsActive() const
@@ -1011,17 +1014,17 @@ bool ShieldClass::IsBrokenAndNonRespawning() const
 	return this->HP <= 0 && !this->Type->Respawn;
 }
 
-bool ShieldClass::IsGreenSP()
+ShieldTypeClass* ShieldClass::GetType() const
 {
-	return RulesClass::Instance->ConditionYellow * Type->Strength.Get() < HP;
+	return this->Type;
 }
 
-bool ShieldClass::IsYellowSP()
+Armor ShieldClass::GetArmor() const
 {
-	return RulesClass::Instance->ConditionRed * Type->Strength.Get() < HP && HP <= RulesClass::Instance->ConditionYellow * Type->Strength.Get();
+	return this->Type->Armor;
 }
 
-bool ShieldClass::IsRedSP()
+int ShieldClass::GetFramesSinceLastBroken() const
 {
-	return HP <= RulesClass::Instance->ConditionRed * Type->Strength.Get();
+	return Unsorted::CurrentFrame - this->LastBreakFrame;
 }

@@ -12,12 +12,7 @@ const Leptons BulletTypeExtData::DefaultBulletScatterMax = Leptons { 512 };
 
 double BulletTypeExtData::GetAdjustedGravity(BulletTypeClass* pType)
 {
-	if(const auto pExt = BulletTypeExtContainer::Instance.Find(pType)){
-		auto const nGravity = pExt->Gravity.Get(static_cast<double>(RulesClass::Instance->Gravity));
-		return pType->Floater ? nGravity * 0.5 : nGravity;
-	}
-
-	return (double)RulesClass::Instance->Gravity;
+	return BulletTypeExtContainer::Instance.Find(pType)->GetAdjustedGravity();
 }
 
 BulletTypeClass* BulletTypeExtData::GetDefaultBulletType(const char* pBullet)

@@ -89,7 +89,7 @@ bool TechnoTypeExtData::CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClas
 		|| pProductTypeExt->BuiltAt.Contains(pFactoryType);
 }
 
-void TechnoTypeExtData::ApplyTurretOffset(Matrix3D* mtx, double factor)
+void  TechnoTypeExtData::ApplyTurretOffset(Matrix3D* mtx, double factor)
 {
 	const auto offs = this->TurretOffset.GetEx();
 	mtx->Translate((float)(offs->X * factor), (float)(offs->Y * factor), (float)(offs->Z * factor));

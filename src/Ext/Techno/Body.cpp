@@ -122,8 +122,42 @@ Point2D TechnoExtData::GetBuildingSelectBracketPosition(TechnoClass* pThis, Buil
 		return position;
 	}
 
-Iterator<DigitalDisplayTypeClass*> GetDisplayType(TechnoClass* pThis, TechnoTypeClass* pType, int& length) {
-	return make_iterator(RulesExtData::Instance()->Buildings_DefaultDigitalDisplayTypes);
+Iterator<DigitalDisplayTypeClass*> NOINLINE TechnoExtData::GetDisplayType(TechnoClass* pThis, TechnoTypeClass* pType, int& length) {
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	if (pTypeExt->DigitalDisplayTypes.empty())
+	{
+		switch (pThis->WhatAmI())
+		{
+		case AbstractType::Building:
+		{
+			const auto pBuildingType = static_cast<BuildingTypeClass*>(pType);
+			const int height = pBuildingType->GetFoundationHeight(false);
+			length = height * 7 + height / 2;
+			return RulesExtData::Instance()->Buildings_DefaultDigitalDisplayTypes;
+		}
+		case AbstractType::Infantry:
+		{
+			length = 8;
+			return RulesExtData::Instance()->Infantry_DefaultDigitalDisplayTypes;
+		}
+		case AbstractType::Unit:
+		{
+			return RulesExtData::Instance()->Vehicles_DefaultDigitalDisplayTypes;
+		}
+		case AbstractType::Aircraft:
+		{
+			return RulesExtData::Instance()->Aircraft_DefaultDigitalDisplayTypes;
+		}
+		default:
+		{
+			return {};
+		}
+
+		}
+	}
+
+	return pTypeExt->DigitalDisplayTypes;
 }
 
 bool GetDisplayTypeData(std::vector<DigitalDisplayTypeClass*>* ret , TechnoClass* pThis , TechnoTypeClass* pType, int& length)
@@ -180,47 +214,43 @@ void TechnoExtData::ProcessDigitalDisplays(TechnoClass* pThis)
 	if (TechnoTypeExtContainer::Instance.Find(pType)->DigitalDisplay_Disable)
 		return;
 
-	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	int length = 17;
-	const auto What = pThis->WhatAmI();
-	const bool isBuilding = What == AbstractType::Building;
-	const bool isInfantry = What == AbstractType::Infantry;
+	if (const auto DisplayTypes = TechnoExtData::GetDisplayType(pThis, pType, length)) {
 
-	HelperedVector<DigitalDisplayTypeClass*> DisplayTypes {};
+		const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+		const auto What = pThis->WhatAmI();
+		const bool isBuilding = What == AbstractType::Building;
+		const bool isInfantry = What == AbstractType::Infantry;
+		const bool IsCurPlayerObserver = HouseClass::IsCurrentPlayerObserver();
 
-	if (!GetDisplayTypeData(&DisplayTypes, pThis, pType, length) || DisplayTypes.empty())
-		return;
+		for (auto pDisplayType : DisplayTypes) {
 
-	const bool IsCurPlayerObserver = HouseClass::IsCurrentPlayerObserver();
+			if (IsCurPlayerObserver && !pDisplayType->VisibleToHouses_Observer)
+				continue;
 
-	DisplayTypes.for_each([&](DigitalDisplayTypeClass* pDisplayType) {
+			if (!IsCurPlayerObserver && !EnumFunctions::CanTargetHouse(pDisplayType->VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer))
+				continue;
 
-		if (IsCurPlayerObserver && !pDisplayType->VisibleToHouses_Observer)
-			return;
+			int value = -1;
+			int maxValue = -1;
 
-		if (!IsCurPlayerObserver && !EnumFunctions::CanTargetHouse(pDisplayType->VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer))
-			return;
+			TechnoExtData::GetValuesForDisplay(pThis, pDisplayType->InfoType, value, maxValue);
 
-		int value = -1;
-		int maxValue = -1;
+			if (value == -1 || maxValue == -1)
+				continue;
 
-		GetValuesForDisplay(pThis, pDisplayType->InfoType, value, maxValue);
+			const bool hasShield = pExt->Shield != nullptr && !pExt->Shield->IsBrokenAndNonRespawning();
+			Point2D position = isBuilding ? GetBuildingSelectBracketPosition(pThis, pDisplayType->AnchorType_Building)
+				: GetFootSelectBracketPosition(pThis, pDisplayType->AnchorType);
 
-		if (value == -1 || maxValue == -1)
-			return;
+			position.Y += pType->PixelSelectionBracketDelta;
 
-		const bool hasShield = pExt->Shield != nullptr && !pExt->Shield->IsBrokenAndNonRespawning();
-		Point2D position = isBuilding ? GetBuildingSelectBracketPosition(pThis, pDisplayType->AnchorType_Building)
-			: GetFootSelectBracketPosition(pThis, pDisplayType->AnchorType);
+			if (pDisplayType->InfoType == DisplayInfoType::Shield)
+				position.Y += pExt->CurrentShieldType->BracketDelta;
 
-		position.Y += pType->PixelSelectionBracketDelta;
-
-		if (pDisplayType->InfoType == DisplayInfoType::Shield)
-			position.Y += pExt->CurrentShieldType->BracketDelta;
-
-		pDisplayType->Draw(position, length, value, maxValue, isBuilding, isInfantry, hasShield);
-	});
-
+			pDisplayType->Draw(position, length, value, maxValue, isBuilding, isInfantry, hasShield);
+		}
+	}
 }
 
 void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType, int& value, int& maxValue)
@@ -3756,7 +3786,7 @@ void TechnoExtData::UpdateShield()
 	if (this->CurrentShieldType && this->CurrentShieldType->Strength && !this->Shield)
 	{
 		this->Shield = std::make_unique<ShieldClass>(pThis);
-		this->Shield->OnInit();
+		//this->Shield->OnInit();
 	}
 
 	if (const  auto pShieldData = this->GetShield())

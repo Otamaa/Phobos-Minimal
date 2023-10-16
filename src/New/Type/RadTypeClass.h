@@ -48,82 +48,82 @@ public:
 
 	static void AddDefaults();
 
-	WarheadTypeClass* GetWarhead() const
+	inline WarheadTypeClass* GetWarhead() const
 	{
 		return RadWarhead.Get(RulesClass::Instance->RadSiteWarhead);
 	}
 
-	bool GetWarheadDetonate() const
+	inline bool GetWarheadDetonate() const
 	{
 		return this->RadWarhead_Detonate.Get(RulesExtData::Instance()->RadWarhead_Detonate);
 	}
 
-	bool GetHasOwner(const Nullable<bool>&nOwner) const
+	inline bool GetHasOwner(const Nullable<bool>&nOwner) const
 	{
 		return nOwner.Get(this->RadHasOwner.Get(RulesExtData::Instance()->RadHasOwner));
 	}
 
-	bool GetHasInvoker(const Nullable<bool>& nOwner) const
+	inline bool GetHasInvoker(const Nullable<bool>& nOwner) const
 	{
 		return nOwner.Get(this->RadHasInvoker.Get(RulesExtData::Instance()->RadHasInvoker));
 	}
 
-	bool GetHasOwner() const
+	inline bool GetHasOwner() const
 	{
 		return (this->RadHasOwner.Get(RulesExtData::Instance()->RadHasOwner));
 	}
 
-	bool GetHasInvoker() const
+	inline bool GetHasInvoker() const
 	{
 		return (this->RadHasInvoker.Get(RulesExtData::Instance()->RadHasInvoker));
 	}
 
-	ColorStruct GetColor() const
+	inline ColorStruct GetColor() const
 	{
 		return this->RadSiteColor.Get(RulesClass::Instance->RadColor);
 	}
 
-	int GetDurationMultiple() const
+	inline int GetDurationMultiple() const
 	{
 		return this->DurationMultiple.Get(RulesClass::Instance->RadDurationMultiple);
 	}
 
-	int GetApplicationDelay()  const
+	inline int GetApplicationDelay()  const
 	{
 		return abs(this->ApplicationDelay.Get(RulesClass::Instance->RadApplicationDelay));
 	}
 
-	int GetBuildingApplicationDelay() const
+	inline int GetBuildingApplicationDelay() const
 	{
 		return abs(this->BuildingApplicationDelay.Get(RulesExtData::Instance()->RadApplicationDelay_Building.Get()));
 	}
 
-	int GetLevelMax()  const
+	inline int GetLevelMax()  const
 	{
 		return this->LevelMax.Get(RulesClass::Instance->RadLevelMax);
 	}
 
-	int GetLevelDelay() const
+	inline int GetLevelDelay() const
 	{
 		return this->LevelDelay.Get(RulesClass::Instance->RadLevelDelay);
 	}
 
-	int GetLightDelay() const
+	inline int GetLightDelay() const
 	{
 		return this->LightDelay.Get(RulesClass::Instance->RadLightDelay);
 	}
 
-	double GetLevelFactor() const
+	inline double GetLevelFactor() const
 	{
 		return this->LevelFactor.Get(RulesClass::Instance->RadLevelFactor);
 	}
 
-	double GetLightFactor() const
+	inline double GetLightFactor() const
 	{
 		return this->LightFactor.Get(RulesClass::Instance->RadLightFactor);
 	}
 
-	double GetTintFactor() const
+	inline double GetTintFactor() const
 	{
 		return this->TintFactor.Get(RulesClass::Instance->RadTintFactor);
 	}

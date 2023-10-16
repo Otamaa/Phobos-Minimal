@@ -53,7 +53,6 @@ public:
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-	void Initialize() { } //Init After INI Read
 
 	inline AnimTypeClass* GetTwinkleAnim() const
 	{
@@ -65,13 +64,37 @@ public:
 		return this->OreTwinkleChance.Get(RulesClass::Instance->OreTwinkleChance);
 	}
 
-	double GetHealDelay() const;
+	inline double GetHealDelay() const
+	{
+		return this->Heal_Delay.Get(RulesClass::Instance->TiberiumHeal);
+	}
+
 	int GetHealStep(TechnoClass* pTechno) const;
-	int GetDamage() const;
-	WarheadTypeClass* GetWarhead() const;
-	WarheadTypeClass* GetExplosionWarhead() const;
-	int GetExplosionDamage() const;
-	int GetDebrisChance() const;
+
+	inline int GetDamage() const
+	{
+		return this->Damage.Get(MinImpl((this->AttachedToObject->Power / 10), 1));
+	}
+
+	inline WarheadTypeClass* GetWarhead() const
+	{
+		return this->Warhead.Get(RulesClass::Instance->C4Warhead);
+	}
+
+	inline WarheadTypeClass* GetExplosionWarhead() const
+	{
+		return this->ExplosionWarhead.Get(RulesClass::Instance->C4Warhead);
+	}
+
+	inline int GetExplosionDamage() const
+	{
+		return this->ExplosionDamage.Get(RulesClass::Instance->TiberiumExplosionDamage);
+	}
+
+	inline int GetDebrisChance() const
+	{
+		return this->DebrisChance;
+	}
 
 private:
 	template <typename T>

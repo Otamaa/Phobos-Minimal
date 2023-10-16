@@ -51,15 +51,18 @@ bool SW_LightningStorm::AbortFire(SuperClass* pSW, bool IsPlayer)
 {
 	SWTypeExtData* pData = SWTypeExtContainer::Instance.Find(pSW->Type);
 
-	// only one Lightning Storm allowed
-	if (LightningStorm::Active || LightningStorm::HasDeferment())
-	{
-		if (IsPlayer)
+	if(!pData->Weather_UseSeparateState) {
+		// only one Lightning Storm allowed
+		if (LightningStorm::Active || LightningStorm::HasDeferment())
 		{
-			pData->PrintMessage(pData->Message_Abort, pSW->Owner);
+			if (IsPlayer)
+			{
+				pData->PrintMessage(pData->Message_Abort, pSW->Owner);
+			}
+			return true;
 		}
-		return true;
 	}
+
 	return false;
 }
 
@@ -347,6 +350,7 @@ void CloneableLighningStormStateMachine::Update()
 			// is this spot far away from another cloud?
 			auto const separation = pExt->Weather_Separation.Get(
 				RulesClass::Instance->LightningSeparation);
+
 			if (separation > 0)
 			{
 				// assume success and disprove.
@@ -398,8 +402,8 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 		if (auto it = pData->Weather_Bolts.GetElements(
 			RulesClass::Instance->WeatherConBolts))
 		{
-			auto const rnd = ScenarioClass::Instance->Random.Random();
-			auto const pAnimType = it.at(rnd % it.size());
+			auto const rnd = ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1);
+			auto const pAnimType = it.at(rnd);
 
 			if (auto const pAnim = GameCreate<AnimClass>(pAnimType, coords))
 			{
@@ -412,8 +416,8 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 		if (auto const it = pData->Weather_Sounds.GetElements(
 			RulesClass::Instance->LightningSounds))
 		{
-			auto const rnd = ScenarioClass::Instance->Random.Random();
-			VocClass::PlayAt(it.at(rnd % it.size()), coords, nullptr);
+			auto const rnd = ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1);
+			VocClass::PlayAt(it.at(rnd), coords, nullptr);
 		}
 
 		auto debris = false;
@@ -485,8 +489,8 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 
 				for (int i = 0; i < count; ++i)
 				{
-					auto const rnd = ScenarioClass::Instance->Random.Random();
-					auto const pAnimType = it.at(rnd % it.size());
+					auto const rnd = ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1);
+					auto const pAnimType = it.at(rnd);
 
 					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coords),
 						Super->Owner,
@@ -513,20 +517,17 @@ bool CloneableLighningStormStateMachine::Strike(CellStruct const& nCell)
 	if (coords != CoordStruct::Empty)
 	{
 		// select the anim
-		auto const itClouds = pExt->Weather_Clouds.GetElements(
-			RulesClass::Instance->WeatherConClouds);
-		auto const pAnimType = itClouds.at(
-			ScenarioClass::Instance->Random.Random() % itClouds.size());
+		auto const itClouds = pExt->Weather_Clouds.GetElements(RulesClass::Instance->WeatherConClouds);
+		auto const pAnimType = itClouds.at(ScenarioClass::Instance->Random.RandomFromMax(itClouds.size() - 1));
 
 		// infer the height this thing will be drawn at.
-		if (pExt->Weather_CloudHeight < 0)
-		{
+		if (pExt->Weather_CloudHeight < 0) {
 			if (auto const itBolts = pExt->Weather_Bolts.GetElements(
-				RulesClass::Instance->WeatherConBolts))
-			{
-				pExt->Weather_CloudHeight = GeneralUtils::GetLSAnimHeightFactor(itBolts[0], pCell, true);
+				RulesClass::Instance->WeatherConBolts)) {
+				pExt->Weather_CloudHeight = GeneralUtils::GetLSAnimHeightFactor(itBolts[0], pCell, false);
 			}
 		}
+
 		coords.Z += pExt->Weather_CloudHeight;
 
 		// create the cloud and do some book keeping.
@@ -558,8 +559,8 @@ bool CloneableLighningStormStateMachine::Start(CellStruct& cell, int nDuration, 
 		auto& Random = ScenarioClass::Instance->Random;
 		while (!MapClass::Instance->CellExists(cell))
 		{
-			cell.X = static_cast<short>(Random.RandomRanged(0, Bounds.Right));
-			cell.Y = static_cast<short>(Random.RandomRanged(0, Bounds.Bottom));
+			cell.X = static_cast<short>(Random.RandomFromMax(Bounds.Right));
+			cell.Y = static_cast<short>(Random.RandomFromMax(Bounds.Bottom));
 		}
 	}
 

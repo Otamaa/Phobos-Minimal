@@ -171,8 +171,6 @@ public:
 	~TechnoExtData() noexcept
 	{
 		GameDelete<true, true>(MyOriginalTemporal);
-
-		WebbedAnim.clear();
 	}
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
