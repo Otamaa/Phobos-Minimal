@@ -405,7 +405,7 @@ DEFINE_HOOK(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6FC815, TechnoClass_CanFire_CellTargeting, 0x6)
+DEFINE_HOOK(0x6FC815, TechnoClass_CanFire_CellTargeting, 0x7)
 {
 	enum
 	{
@@ -449,7 +449,7 @@ NOINLINE WeaponStruct* TechnoClass_GetWeaponAgainstWallWrapper(TechnoClass* pThi
 	return weaponPrimary;
 }
 
-DEFINE_HOOK(0x51C1F1, InfantryClass_CanEnterCell_GetWeapon_WallWeapon, 0x7) {
+DEFINE_HOOK(0x51C1F1, InfantryClass_CanEnterCell_GetWeapon_WallWeapon, 0x5) {
 	GET(TechnoClass*, pThis, EBP);
 	R->EAX(TechnoClass_GetWeaponAgainstWallWrapper(pThis));
 	return 0x51C1FE;

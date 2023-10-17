@@ -3893,17 +3893,33 @@ DEFINE_HOOK(0x43B150, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
 
-	if(!pThis
-		|| !pThis->IsAlive
+
+	if(pThis) {
+
+		const auto vtable = VTable::Get(pThis);
+		if(vtable != UnitClass::vtable
+			&& vtable != InfantryClass::vtable
+			&& vtable != AircraftClass::vtable
+			&& vtable != BuildingClass::vtable)
+		{
+			R->AL(false);
+			return 0x43B4B0;
+		}
+
+		if(!pThis->IsAlive
 		|| pThis->IsCrashing
 		|| pThis->IsSinking
 		|| (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->DeathFrameCounter > 0))
-	{
-		R->AL(false);
-		return 0x43B4B0;
+		{
+			R->AL(false);
+			return 0x43B4B0;
+		}
+
+		return 0x0;
 	}
 
-	return 0x0;
+	R->AL(false);
+	return 0x43B4B0;
 }
 
 // Gives player houses names based on their spawning spot
@@ -4042,9 +4058,9 @@ DEFINE_HOOK(0x5FF93F, SpotlightClass_Draw_OutOfboundSurfaceArrayFix, 0x7)
 	GET(SpotlightClass*, pThis, EBP);
 	GET(int, idx, ECX);
 
-	if (idx > 63){
-		Debug::Log("[0x%x]SpotlightClass with OutOfBoundSurfaceArrayIndex Fixing!\n", pThis);
-		idx = 63;
+	if (idx > 64){
+		Debug::Log("[0x%x]SpotlightClass with OutOfBoundSurfaceArrayIndex[%d] Fixing!\n", pThis ,idx);
+		idx = 64;
 	}
 
 	return 0x0;

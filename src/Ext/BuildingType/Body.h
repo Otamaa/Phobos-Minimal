@@ -28,7 +28,8 @@ enum class BunkerSoundMode : int
 	public:
 		static constexpr size_t Canary = 0x11111111;
 		using base_type = BuildingTypeClass;
-		static constexpr size_t ExtOffset = 0x1794;
+		//static constexpr size_t ExtOffset = 0x1794;
+		static constexpr size_t ExtOffset = 0xE24; //ares
 
 		base_type* AttachedToObject {};
 		InitState Initialized { InitState::Blank };

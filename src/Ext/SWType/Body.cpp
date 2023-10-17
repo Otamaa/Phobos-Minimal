@@ -1027,15 +1027,17 @@ const char* SWTypeExtData::get_ID()
 	return this->AttachedToObject->ID;
 }
 
-bool SWTypeExtData::CanFire(HouseClass* pOwner)
-{
-	const int nAmount = this->SW_Shots;
+ bool SWTypeExtData::CanFire(HouseClass* pOwner)
+ {
+ 	const int nAmount = this->SW_Shots;
 
-	if (nAmount < 0)
-		return true;
+ 	if (nAmount < 0)
+ 		return true;
 
-	return HouseExtContainer::Instance.Find(pOwner)->GetShotCount(this->AttachedToObject).Count < nAmount;
-}
+ 	return
+		HouseExtContainer::Instance.Find(pOwner)->GetShotCount(this->AttachedToObject).Count <
+		nAmount;
+ }
 
 // can i see the animation of pFirer's SW?
 bool SWTypeExtData::IsAnimVisible(HouseClass* pFirer)
@@ -1164,7 +1166,7 @@ bool SWTypeExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStruct c
 
 	const auto pData = SWTypeExtContainer::Instance.Find(pSuper->Type); //newer data
 
-	if (pSuper->OneTime || pData->CanFire(pOwner))
+	if (pSuper->OneTime || (pCurrentSWTypeData->SW_Shots >= 0 && HouseExtContainer::Instance.Find(pOwner)->GetShotCount(pSuper->Type).Count >= pCurrentSWTypeData->SW_Shots))
 		pOwner->RecheckTechTree = true;
 
 	const auto curSuperIdx = pOwner->Supers.FindItemIndex(pSuper);
@@ -1821,7 +1823,7 @@ bool SWTypeExtData::IsAvailable(HouseClass* pHouse)
 {
 	const auto pThis = this->AttachedToObject;
 
-	if (!this->CanFire(pHouse))
+	if (this->SW_Shots >= 0 && HouseExtContainer::Instance.Find(pHouse)->GetShotCount(pThis).Count >= this->SW_Shots)
 		return false;
 
 	if (pHouse->IsControlledByHuman_() ? (!this->SW_AllowPlayer) : (!this->SW_AllowAI))

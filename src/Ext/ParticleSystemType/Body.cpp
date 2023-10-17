@@ -39,6 +39,10 @@ void ParticleSystemTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFail
 		break;
 	}
 	this->ApplyOptimization.Read(exINI, pID, "ApplyOptimization");
+
+	if (pThis->LightSize > 94)
+		Debug::Log("ParticleSystem[%s] with LightSize > 94 value [%d]\n", pID , pThis->LightSize);
+
 }
 
 // =============================
