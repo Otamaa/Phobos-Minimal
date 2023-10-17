@@ -18,7 +18,6 @@ struct FileStruct
 
 struct LooseAudioFile
 {
-	std::string wavName {};
 	int Offset { -1 };
 	int Size { -1 };
 	AudioSampleData Data {};

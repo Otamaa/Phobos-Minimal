@@ -682,6 +682,8 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->DisplayIncome_Houses.Read(exINI, pSection, "DisplayIncome.Houses");
 		this->DisplayIncome_Offset.Read(exINI, pSection, "DisplayIncome.Offset");
 
+		this->FreeUnit_Count.Read(exINI, pSection, "FreeUnit.Count");
+
 		// Ares SuperWeapons tag
 		auto const& pArray = SuperWeaponTypeClass::Array;
 		if (pArray->IsAllocated && pArray->Count > 0)
@@ -1278,6 +1280,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->DisplayIncome)
 		.Process(this->DisplayIncome_Houses)
 		.Process(this->DisplayIncome_Offset)
+		.Process(this->FreeUnit_Count)
 		;
 }
 

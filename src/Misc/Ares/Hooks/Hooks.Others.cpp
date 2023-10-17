@@ -301,8 +301,7 @@ DEFINE_OVERRIDE_HOOK(0x4C6DDB, Networking_RespondToEvent_Selling, 0x8)
 	GET(TechnoClass* const, pTechno, EDI);
 	GET(AbstractClass* const, pFocus, EAX);
 
-	if (pTechno->CurrentMission != Mission::Selling || pTechno->Focus)
-	{
+	if (pTechno->CurrentMission != Mission::Selling || pTechno->Focus) {
 		pTechno->SetFocus(pFocus);
 	}
 
@@ -1490,6 +1489,13 @@ DEFINE_OVERRIDE_HOOK(0x52BB64, Expand_MIX_Deorg, 5)
 {
 	R->AL(1);
 	return 0x52BB69;
+}
+
+DEFINE_OVERRIDE_HOOK(0x5FDDA4 , IsOverlayIdxTiberium_Log, 6)
+{
+	GET(OverlayTypeClass*, pThis, EAX);
+	Debug::Log(*reinterpret_cast<const char**>(0x833490), pThis->ID);
+	return 0x5FDDC1;
 }
 
 //[01:25:38] SyringeDebugger::HandleException: Ares.dll [0x5d6d9a , MPGameModeClass_CreateStartingUnits_UnitCost , 6]

@@ -185,13 +185,15 @@ bool SW_NuclearMissile::DropNukeAt(SuperWeaponTypeClass* pSuper, CoordStruct con
 
 		if(pSuper){
 			auto const pData = SWTypeExtContainer::Instance.Find(pSuper);
+			BulletClass::CreateDamagingBulletAnim(OwnerHouse,
+				pCell,
+				pBullet,
+				pData->Nuke_PsiWarning
+			);
 
-			if (auto const pAnimType = pData->Nuke_PsiWarning) {
-				OwnerHouse->PsiWarn(pCell, pBullet, pAnimType->ID);
-			}
-
-			Damage = NewSWType::GetNewSWType(pData)->GetDamage(pData);
-			pWarhead = NewSWType::GetNewSWType(pData)->GetWarhead(pData);
+			auto pNewType = NewSWType::GetNewSWType(pData);
+			Damage = pNewType->GetDamage(pData);
+			pWarhead = pNewType->GetWarhead(pData);
 
 			// remember the fired SW type
 			BulletExtContainer::Instance.Find(pBullet)->NukeSW = pSuper;

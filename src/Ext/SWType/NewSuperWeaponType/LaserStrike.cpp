@@ -59,7 +59,7 @@ void SW_LaserStrike::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 	pData->LaserStrikeAngleAcceleration.Read(exINI, section, "LaserStrike.AngleAccel");
 	pData->LaserStrikeAngleMax.Read(exINI, section, "LaserStrike.AngleMax");
 	pData->LaserStrikeAngleMin.Read(exINI, section, "LaserStrike.AngleMin");
-	pData->LaserStrikeZeroRadius_Weapon.Read(exINI, section, "LaserStrike.ZeroRadiusWeapon");
+	pData->LaserStrikeZeroRadius_Weapon.Read(exINI, section, "LaserStrike.ZeroRadiusWeapon" , true);
 	pData->LaserStrikeInnerColor.Read(exINI, section, "LaserStrike.InnerColor");
 	pData->LaserStrikeOuterColor.Read(exINI, section, "LaserStrike.OuterColor");
 	pData->LaserStrikeOuterSpread.Read(exINI, section, "LaserStrike.OuterSpread");
@@ -87,7 +87,7 @@ bool SW_LaserStrike::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBu
 
 void LaserStrikeStateMachine::Update()
 {
-	auto pData = GetTypeExtData();
+	auto pData = this->GetTypeExtData();
 
 	if (!this->AlreadyActivated)
 	{

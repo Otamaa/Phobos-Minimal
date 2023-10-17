@@ -472,19 +472,31 @@ namespace detail
 	}
 
 	template <>
+	inline bool read<unsigned int>(unsigned int& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		int buffer { 0 };
+		if (parser.ReadInteger(pSection, pKey, &buffer) && buffer > 0 && (unsigned int)buffer <= MAX_VAL(unsigned int)) {
+			value = (unsigned int)buffer;
+			return true;
+		}
+
+		if (!parser.empty())
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid unsigned int between 0 and 4294967295 inclusive");
+
+		return false;
+	}
+
+	template <>
 	inline bool read<unsigned short>(unsigned short& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		short buffer;
-		if (parser.ReadShort(pSection, pKey, &buffer))
-		{
-			if (buffer < 0 || buffer > MAX_VAL(unsigned short)){
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid unsigned short between 0 and 65535 inclusive");
-				return false;
-			} else{
-				value = static_cast<unsigned short>(buffer);
-				return true;
-			}
+		short buffer { 0 };
+		if (parser.ReadShort(pSection, pKey, &buffer) && buffer > 0 && (unsigned short)buffer <= MAX_VAL(unsigned short)) {
+			value = (unsigned short)buffer;
+			return true;
 		}
+
+		if(!parser.empty())
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid unsigned short between 0 and 65535 inclusive");
 
 		return false;
 	}
@@ -1388,9 +1400,9 @@ namespace detail
 		{
 			auto buffer = T();
 
-			if (Parser<T>::Parse(pCur, &buffer) || GameStrings::IsBlank(pCur) )
+			if (Parser<T>::Parse(pCur, &buffer))
 				vector.push_back(buffer);
-			else if (!allocate)
+			else if (!allocate && !GameStrings::IsBlank(pCur))
 				Debug::INIParseFailed(pSection, pKey, pCur, nullptr);
 		}
 	}
@@ -1433,9 +1445,9 @@ namespace detail
 			auto buffer = base_type::FindOrAllocate(pCur);
 			bool parseSucceeded = buffer != nullptr;
 
-			if (parseSucceeded || GameStrings::IsBlank(pCur))
+			if (parseSucceeded)
 				vector.push_back(buffer);
-			else
+			else if(!GameStrings::IsBlank(pCur))
 				Debug::INIParseFailed(pSection, pKey, pCur, nullptr);
 		}
 	}

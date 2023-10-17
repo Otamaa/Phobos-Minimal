@@ -9,14 +9,14 @@ bool SW_GeneticMutator::HandleThisType(SuperWeaponType type) const
 
 bool SW_GeneticMutator::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
-	SuperWeaponTypeClass* pSW = pThis->Type;
-	SWTypeExtData* pData = SWTypeExtContainer::Instance.Find(pSW);
-
-	CellClass* Cell = MapClass::Instance->GetCellAt(Coords);
-	CoordStruct coords = Cell->GetCoordsWithBridge();
-
 	if (pThis->IsCharged)
 	{
+		SuperWeaponTypeClass* pSW = pThis->Type;
+		SWTypeExtData* pData = SWTypeExtContainer::Instance.Find(pSW);
+
+		CellClass* Cell = MapClass::Instance->GetCellAt(Coords);
+		CoordStruct coords = Cell->GetCoordsWithBridge();
+
 		auto pFirer = this->GetFirer(pThis, Coords, false);
 
 		if (pData->Mutate_Explosion.Get(RulesClass::Instance->MutateExplosion))
@@ -30,6 +30,9 @@ bool SW_GeneticMutator::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 			// ranged approach
 			auto Mutate = [=](InfantryClass* pInf) -> bool
 			{
+				if(!pInf->IsAlive || pInf->IsCrashing || pInf->IsSinking || pInf->InLimbo)
+					return true;
+
 				// is this thing affected at all?
 				if (!pData->IsHouseAffected(pThis->Owner, pInf->Owner))
 				{
@@ -47,13 +50,11 @@ bool SW_GeneticMutator::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 				InfantryTypeClass* pType = pInf->Type;
 
 				// quick ways out
-				if (pType->Cyborg && pData->Mutate_IgnoreCyborg)
-				{
+				if (pType->Cyborg && pData->Mutate_IgnoreCyborg) {
 					return true;
 				}
 
-				if (pType->NotHuman && pData->Mutate_IgnoreNotHuman)
-				{
+				if (pType->NotHuman && pData->Mutate_IgnoreNotHuman) {
 					return true;
 				}
 

@@ -1410,7 +1410,6 @@ DEFINE_HOOK(0x75DEA0 , WarheadTypeClass_LoadFromINI, 0x5)
 	GET(WarheadTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0x150);
 
-	Debug::Log("Reading WH [%s]\n", pItem->ID);
 	WarheadTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x75DEAF);
 
 	//0x75DE9A do net set isOrganic here , just skip it to next adrress to execute ares hook

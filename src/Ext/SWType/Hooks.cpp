@@ -1765,19 +1765,13 @@ DEFINE_HOOK(0x44C9F3, BuildingClass_Mi_Missile_PsiWarn, 0x5)
 	GET(CellClass*, pCell, EAX);
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	AnimClass* PsiWarn = nullptr;
-	auto const pSWTypeExt = SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type);
 
-	if (auto& Anim = pSWTypeExt->Nuke_PsiWarning)
-	{
-		auto nLoc = pCell->GetCoords();
-		if (auto pAnim = GameCreate<AnimClass>(Anim.Get(), nLoc))
-		{
-			pAnim->SetBullet(nullptr);
-			pAnim->SetHouse(pOwner);
-			pAnim->Invisible = true;
-		}
-	}
+	AnimClass* PsiWarn =
+	BulletClass::CreateDamagingBulletAnim(pOwner,
+	pCell,
+	nullptr,
+	SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->Nuke_PsiWarning
+	);
 
 	R->EDI(PsiWarn);
 	return 0x44CA74;

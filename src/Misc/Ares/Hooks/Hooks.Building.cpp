@@ -1163,8 +1163,8 @@ DEFINE_OVERRIDE_HOOK(0x451E40, BuildingClass_DestroyNthAnim_Destroy, 0x7)
 	{
 		for (auto& pAnim : pThis->Anims)
 		{
-			if (pAnim)
-			{
+			if (pAnim) {
+				//pAnim->Limbo();
 				pAnim->UnInit();
 				pAnim = nullptr;
 			}
@@ -1172,8 +1172,8 @@ DEFINE_OVERRIDE_HOOK(0x451E40, BuildingClass_DestroyNthAnim_Destroy, 0x7)
 	}
 	else
 	{
-		if (auto& pAnim = pThis->Anims[AnimState])
-		{
+		if (auto& pAnim = pThis->Anims[AnimState]) {
+			//pAnim->Limbo();
 			pAnim->UnInit();
 			pAnim = nullptr;
 		}
@@ -1187,6 +1187,7 @@ DEFINE_OVERRIDE_HOOK(0x451A28, BuildingClass_PlayAnim_Destroy, 0x7)
 	//GET(BuildingClass* const , pThis , ESI);
 
 	GET(AnimClass*, pAnim, ECX);
+	//pAnim->Limbo();
 	pAnim->UnInit();
 	return 0x451A2F;
 }
@@ -1340,34 +1341,146 @@ DEFINE_OVERRIDE_HOOK(0x449FF8, BuildingClass_Mi_Selling_PutMcv, 7)
 	return ret ? 0x44A010u : 0x44A16Bu;
 }
 
-// Added more conditions , especially for AI better to set is as Hunt
-DEFINE_OVERRIDE_HOOK(0x446E9F, BuildingClass_Place_FreeUnit_Mission, 0x6)
+// start after free unit checks 0x446B16
+//FreeUnit end 0x446EE2
+
+DEFINE_HOOK(0x45EE30 , BuildingClass_GetActualCost_FreeUnitCount , 0x6)
 {
-	GET(UnitClass* const, pFreeUnit, EDI);
+	GET(BuildingTypeClass* , pThis ,EBX);
+	GET(HouseClass* , pHouse , EBP);
+
+	if(!pThis->FreeUnit)
+		return 0x45EE58;
+
+	const int FreeUnitamount = BuildingTypeExtContainer::Instance.Find(pThis)->FreeUnit_Count;
+	if(!FreeUnitamount)
+		return 0x45EE58;
+
+	R->EAX(pThis->FreeUnit->GetActualCost(pHouse) * FreeUnitamount);
+	return 0x45EE45;
+}
+
+DEFINE_HOOK(0x45EDA3 , BuildingClass_GetCost_FreeUnitCount , 0x6)
+{
+	GET(BuildingTypeClass* , pThis ,EBX);
+
+	if(!pThis->FreeUnit)
+		return 0x45EDC8;
+
+	const int FreeUnitamount = BuildingTypeExtContainer::Instance.Find(pThis)->FreeUnit_Count;
+	if(!FreeUnitamount)
+		return 0x45EDC8;
+
+	R->EAX(pThis->FreeUnit->GetCost() * FreeUnitamount);
+	return 0x45EDB7;
+}
+
+void SetFreeUnitMission(UnitClass* pUnit)
+{
 	Mission nMissions;
 
-	if (!pFreeUnit->Owner)
-	{
+	//Initial DriverKilled
+	if (TechnoExtContainer::Instance.Find(pUnit)->Is_DriverKilled) {
 		nMissions = Mission::Sleep;
-	}
-	else
-	{
-		if (pFreeUnit->Type->Harvester ||
-			pFreeUnit->Type->Weeder ||
-			pFreeUnit->Type->ResourceGatherer)
-		{
+	} else {
+
+		if (pUnit->Type->Harvester ||
+			pUnit->Type->Weeder ||
+			pUnit->Type->ResourceGatherer) {
 			nMissions = Mission::Harvest;
-		}
-		else
-		{
-			nMissions = !pFreeUnit->Owner->IsControlledByHuman()
+		} else {
+			nMissions = !pUnit->Owner->IsControlledByHuman()
 				? Mission::Hunt : Mission::Area_Guard;
 		}
 	}
-	pFreeUnit->QueueMission(nMissions, false);
 
-	return 0x446EAD;
+	pUnit->QueueMission(nMissions, false);
+	pUnit->NextMission();
 }
+
+void SpawnFreeUnits(BuildingClass* pBuilding , int count) {
+
+	if(!count)
+		return;
+
+	std::vector<bool> succeededplacement(count);
+
+	const auto pBldLoc = pBuilding->GetCoords();
+	const auto pBldCell = CellClass::Coord2Cell(pBldLoc);
+	const auto placement_first = pBldCell + CellSpread::AdjacentCell[(size_t)FacingType::South];
+
+	for(auto& place : succeededplacement) {
+		if(auto pUnit = (UnitClass*)pBuilding->Type->FreeUnit->CreateObject(pBuilding->Owner)) {
+			if(pUnit->Unlimbo(CellClass::Cell2Coord(placement_first) , DirType::West)) {
+				SetFreeUnitMission(pUnit);
+				place = true;
+				continue;
+			}
+
+			// weeee
+			for(int i = 0 ; i < 2; ++i) {
+				const auto pBldLoc_ = pBuilding->Location;
+				const auto pBldLoc_Cell = CellClass::Coord2Cell(pBldLoc_);
+				int zone = MapClass::Instance->GetMapZone(pBldLoc_Cell, pUnit->Type->MovementZone, false);
+				auto nearbyLoc = MapClass::Instance->NearByLocation(pBldLoc_Cell ,
+				pUnit->Type->SpeedType,
+				zone ,
+				pUnit->Type->MovementZone,
+				false,1 , 1 , !i , true ,false ,false ,CellStruct::Empty,	false , false );
+
+				if(nearbyLoc.IsValid()) {
+					if(pUnit->Unlimbo(CellClass::Cell2Coord(nearbyLoc) , DirType::SouthWest)) {
+						SetFreeUnitMission(pUnit);
+						place = true;
+						break; // berak from 2nd loop
+					}
+				}
+			}
+
+			if(!place){
+				GameDelete<true>(pUnit);
+				pBuilding->Owner->TransactMoney(pBuilding->Type->FreeUnit->GetRefund(pBuilding->Owner, true));
+			}
+		}
+	}
+}
+
+DEFINE_HOOK(0x446B16 , BuildingClass_Place_FreeUnits , 0x7)
+{
+	GET(BuildingClass* const, pThis, EBP);
+	SpawnFreeUnits(pThis, BuildingTypeExtContainer::Instance.Find(pThis->Type)->FreeUnit_Count);
+	return 0x446EE2;
+}
+
+// Added more conditions , especially for AI better to set is as Hunt
+DEFINE_DISABLE_HOOK(0x446E9F, BuildingClass_Place_FreeUnit_Mission_ares);
+// DEFINE_OVERRIDE_HOOK(0x446E9F, BuildingClass_Place_FreeUnit_Mission, 0x6)
+// {
+// 	GET(UnitClass* const, pFreeUnit, EDI);
+// 	Mission nMissions;
+
+// 	if (!pFreeUnit->Owner)
+// 	{
+// 		nMissions = Mission::Sleep;
+// 	}
+// 	else
+// 	{
+// 		if (pFreeUnit->Type->Harvester ||
+// 			pFreeUnit->Type->Weeder ||
+// 			pFreeUnit->Type->ResourceGatherer)
+// 		{
+// 			nMissions = Mission::Harvest;
+// 		}
+// 		else
+// 		{
+// 			nMissions = !pFreeUnit->Owner->IsControlledByHuman()
+// 				? Mission::Hunt : Mission::Area_Guard;
+// 		}
+// 	}
+// 	pFreeUnit->QueueMission(nMissions, false);
+
+// 	return 0x446EAD;
+// }
 
 // also consider NeedsEngineer when activating animations
 // if the status changes, animations might start to play that aren't

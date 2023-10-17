@@ -195,13 +195,12 @@ DEFINE_OVERRIDE_HOOK(0x74642C, UnitClass_ReceiveGunner, 6)
 {
 	GET(UnitClass*, Unit, ESI);
 
-	const auto pTemp = Unit->TemporalImUsing;
+	const auto pTemp = std::exchange(Unit->TemporalImUsing , nullptr);
 
 	if (pTemp)
 		pTemp->LetGo();
 
 	TechnoExtContainer::Instance.Find(Unit)->MyOriginalTemporal = pTemp;
-	Unit->TemporalImUsing = nullptr;
 	return 0;
 }
 
@@ -209,8 +208,7 @@ DEFINE_OVERRIDE_HOOK(0x74653C, UnitClass_RemoveGunner, 0xA)
 {
 	GET(UnitClass*, Unit, EDI);
 	auto pData = TechnoExtContainer::Instance.Find(Unit);
-	Unit->TemporalImUsing = pData->MyOriginalTemporal;
-	pData->MyOriginalTemporal = nullptr;
+	Unit->TemporalImUsing = std::exchange(pData->MyOriginalTemporal, nullptr);
 	return 0x746546;
 }
 

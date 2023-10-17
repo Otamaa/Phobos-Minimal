@@ -55,10 +55,8 @@ DEFINE_OVERRIDE_HOOK(0x489235, GetTotalDamage_Verses, 0x8)
 	GET(int, nDamage, ECX);
 
 	const auto pExt = WarheadTypeExtContainer::Instance.Find(pWH);
-
-
-	if ((size_t)nArmor > ArmorTypeClass::Array.size())
-		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
+	//if ((size_t)nArmor > ArmorTypeClass::Array.size())
+	//	Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
 
 	const auto vsData = &pExt->Verses[nArmor];
 
@@ -76,8 +74,8 @@ DEFINE_OVERRIDE_HOOK(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
 
 	const auto pData = WarheadTypeExtContainer::Instance.Find(pWH);
 
-	if ((size_t)nArmor > ArmorTypeClass::Array.size())
-		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
+	//if ((size_t)nArmor > ArmorTypeClass::Array.size())
+	//	Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
 
 	const auto vsData = &pData->Verses[nArmor];
 
@@ -98,8 +96,8 @@ DEFINE_OVERRIDE_HOOK(0x6FCB6A, TechnoClass_CanFire_Verses, 0x7)
 	const auto pData = WarheadTypeExtContainer::Instance.Find(pWH);
 	const auto vsData = &pData->Verses[nArmor];
 
-	if ((size_t)nArmor > ArmorTypeClass::Array.size())
-		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
+	//if ((size_t)nArmor > ArmorTypeClass::Array.size())
+	//	Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
 
 	// i think there is no way for the techno know if it attack using force fire or not
 	if (vsData->Flags.ForceFire || vsData->Verses != 0.0)
@@ -130,8 +128,8 @@ DEFINE_OVERRIDE_HOOK(0x70CEA0, TechnoClass_EvalThreatRating_TargetWeaponWarhead_
 
 	const auto pData = WarheadTypeExtContainer::Instance.Find(pTargetWH);
 
-	if ((int)pThisType->Armor > ArmorTypeClass::Array.size())
-		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
+	//if ((int)pThisType->Armor > ArmorTypeClass::Array.size())
+	//	Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
 
 	const auto vsData = &pData->Verses[(int)pThisType->Armor];
 
@@ -157,8 +155,8 @@ DEFINE_OVERRIDE_HOOK(0x70CF45, TechnoClass_EvalThreatRating_ThisWeaponWarhead_Ve
 
 	const auto pData = WarheadTypeExtContainer::Instance.Find(pWH);
 
-	if ((size_t)nArmor > ArmorTypeClass::Array.size())
-		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
+	//if ((size_t)nArmor > ArmorTypeClass::Array.size())
+	//	Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
 
 	const auto vsData = &pData->Verses[nArmor];
 
@@ -180,8 +178,8 @@ DEFINE_OVERRIDE_HOOK(0x6F36E3, TechnoClass_SelectWeapon_Verses, 0x5)
 	GET_STACK(WeaponTypeClass*, pPrimary, 0x14); //primary
 
 	const int nArmor = (int)pTarget->GetTechnoType()->Armor;
-	if ((size_t)nArmor > ArmorTypeClass::Array.size())
-		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
+	//if ((size_t)nArmor > ArmorTypeClass::Array.size())
+	//	Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
 
 	const auto vsData_Secondary = &WarheadTypeExtContainer::Instance.Find(pSecondary->Warhead)->Verses[nArmor];
 
@@ -201,8 +199,8 @@ DEFINE_OVERRIDE_HOOK(0x708AF7, TechnoClass_ShouldRetaliate_Verses, 0x7)
 	GET(int, nArmor, EAX);
 
 	const auto pData = WarheadTypeExtContainer::Instance.Find(pWH);
-	if ((size_t)nArmor > ArmorTypeClass::Array.size())
-		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
+	//if ((size_t)nArmor > ArmorTypeClass::Array.size())
+	//	Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
 
 	const auto vsData = &pData->Verses[nArmor];
 

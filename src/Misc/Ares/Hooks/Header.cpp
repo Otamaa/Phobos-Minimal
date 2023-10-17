@@ -4108,7 +4108,7 @@ void AresEMPulse::CreateEMPulse(WarheadTypeClass* pWarhead, const CoordStruct& T
 	// affect each object
 	for (const auto& pItem : items)
 	{
-		deliverEMPDamage(pItem, Firer, pWarhead);
+		AresEMPulse::deliverEMPDamage(pItem, Firer, pWarhead);
 	}
 }
 
@@ -4328,14 +4328,14 @@ bool AresEMPulse::isEMPImmune(TechnoClass* Target, HouseClass* SourceHouse)
 
 	auto pType = Target->GetTechnoType();
 
-	if (!IsTypeEMPProne(pType))
+	if (!AresEMPulse::IsTypeEMPProne(pType))
 		return true;
 
 	// if houses differ, TypeImmune does not count.
 	if (Target->Owner == SourceHouse)
 	{
 		// ignore if type immune. don't even try.
-		if (isEMPTypeImmune(Target))
+		if (AresEMPulse::isEMPTypeImmune(Target))
 		{
 			// This unit can fire emps and type immunity
 			// grants it to never be affected.
@@ -4418,20 +4418,16 @@ void AresEMPulse::UpdateSparkleAnim(TechnoClass* pWho, AnimTypeClass* pAnim)
 {
 	auto& Anim = TechnoExtContainer::Instance.Find(pWho)->EMPSparkleAnim;
 
-	if (pWho->IsUnderEMP())
-	{
-		if (!Anim)
-		{
+	if (pWho->IsUnderEMP()) {
+		if (!Anim) {
 			auto const pAnimType = pAnim ? pAnim
 				: AresEMPulse::GetSparkleAnimType(pWho);
 
-			if (pAnimType)
-			{
+			if (pAnimType) {
 				Anim.reset(GameCreate<AnimClass>(pAnimType, pWho->Location));
 				Anim->SetOwnerObject(pWho);
 
-				if (auto const pBld = specific_cast<BuildingClass*>(pWho))
-				{
+				if (pWho->WhatAmI() == BuildingClass::AbsID) {
 					Anim->ZAdjust = -1024;
 				}
 			}

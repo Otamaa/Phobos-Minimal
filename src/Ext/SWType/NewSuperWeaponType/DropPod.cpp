@@ -18,7 +18,7 @@ bool SW_DropPod::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 	if (nDeferement <= 0)
 		DroppodStateMachine::SendDroppods(pThis, pData, this, Coords);
 	else
-		this->newStateMachine(nDeferement < 0 ? 20 : nDeferement, Coords, pThis);
+		this->newStateMachine(nDeferement, Coords, pThis);
 
 	return true;
 }

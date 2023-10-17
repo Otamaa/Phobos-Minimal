@@ -119,6 +119,10 @@ public:
 
 	static bool isNODSidebar();
 
+	void EvalueateTechnoTypes()
+	{
+
+	}
 private:
 	template <typename T>
 	void Serialize(T& Stm);

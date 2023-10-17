@@ -92,6 +92,21 @@ INIClass::~INIClass()
 	this->SectionIndex.~IndexClass<int, INISection*>();
 }
 
+AnimClass* BulletClass::CreateDamagingBulletAnim(HouseClass* pHouse, CellClass* pTarget, BulletClass* pBullet, AnimTypeClass* pAnimType)
+{
+	if (!pAnimType)
+		return nullptr;
+
+	auto loc = pTarget->GetCoords();
+
+	auto pAnim = GameCreate<AnimClass>(pAnimType, loc);
+	pAnim->SetBullet(pBullet);
+	pAnim->SetHouse(pHouse);
+	pAnim->Make_Invisible();
+
+	return pAnim;
+}
+
 bool WWKeyboardClass::IsForceFireKeyPressed() const
 {
 	return this->IsKeyPressed(GameOptionsClass::Instance->KeyForceFire1)

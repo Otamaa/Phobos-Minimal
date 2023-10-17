@@ -68,7 +68,7 @@ SWRange SW_Reveal::GetRange(const SWTypeExtData* pData) const
 	if (pData->SW_Range->empty())
 	{
 		// real default values, that is, force max cellspread range of 10
-		auto const radius = std::min(RulesClass::Instance->PsychicRevealRadius, 10);
+		auto const radius = MinImpl(RulesClass::Instance->PsychicRevealRadius, 10);
 		return { radius };
 	}
 	return pData->SW_Range;

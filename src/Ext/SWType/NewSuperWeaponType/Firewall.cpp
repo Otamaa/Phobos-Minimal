@@ -14,7 +14,6 @@ std::vector<const char*> SW_Firewall::GetTypeString() const
 	return { "Firestorm" };
 }
 
-
 void SW_Firewall::Initialize(SWTypeExtData* pData)
 {
 	pData->AttachedToObject->Action = Action::None;

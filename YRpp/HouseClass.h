@@ -603,8 +603,8 @@ public:
 	BuildingClass* FindBuildingOfType(int idx, int sector = -1) const
 		{ JMP_THIS(0x4FD060); }
 
-	AnimClass * __fastcall PsiWarn(CellClass *pTarget, BulletClass *Bullet, char *AnimName)
-		JMP_THIS(0x43B5E0);
+	static AnimClass * __fastcall PsiWarn(HouseClass* pOwner , CellClass *pTarget, BulletClass *Bullet, char *AnimName)
+		JMP_STD(0x43B5E0);
 
 	bool Fire_LightningStorm(SuperClass* pSuper)
 		{ JMP_THIS(0x509E00); }

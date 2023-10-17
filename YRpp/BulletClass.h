@@ -139,6 +139,8 @@ public:
 		}
 	}
 
+	static AnimClass* CreateDamagingBulletAnim(HouseClass* pHouse, CellClass* pTarget, BulletClass* pBullet, AnimTypeClass* pAnimType);
+
 	//Constructor
 	BulletClass() noexcept
 		: BulletClass(noinit_t())

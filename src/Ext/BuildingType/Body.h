@@ -276,10 +276,12 @@ enum class BunkerSoundMode : int
 		Nullable<bool> DisplayIncome {};
 		Nullable<AffectedHouse> DisplayIncome_Houses {};
 		Valueable<Point2D> DisplayIncome_Offset {};
+		Valueable<unsigned int> FreeUnit_Count { 1 };
 
 		BuildingTypeExtData(BuildingTypeClass* OwnerObject) noexcept {
 			this->AttachedToObject = OwnerObject;
 		}
+
 		~BuildingTypeExtData() noexcept = default;
 
 		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

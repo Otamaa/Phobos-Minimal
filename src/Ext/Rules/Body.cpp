@@ -234,6 +234,21 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			Debug::RegisterParserError();
 		}
 
+		if (auto pHVA = pItem->MainVoxel.HVA)
+		{
+			if (pItem->MainVoxel.VXL)
+			{
+				auto shadowIdx = pItem->ShadowIndex;
+				auto layerCount = pHVA->LayerCount;
+
+				if (shadowIdx >= layerCount) {
+					Debug::Log("ShadowIndex on [%s]'s image is %d, but the HVA only has %d sections.\n",
+						pItem->ID, shadowIdx , layerCount);
+					Debug::RegisterParserError();
+				}
+			}
+		}
+
 		if(pItem->PoweredUnit && !pExt->PoweredBy.empty()) {
 			Debug::Log("[%s - %s] uses both PoweredUnit=yes and PoweredBy=!\n", pItem->ID, myClassName);
 			pItem->PoweredUnit = false;

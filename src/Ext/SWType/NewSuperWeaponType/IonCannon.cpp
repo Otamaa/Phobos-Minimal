@@ -83,7 +83,7 @@ void IonCannonStateMachine::Update()
 		}
 	}
 
-	SWTypeExtData* pData = SWTypeExtContainer::Instance.Find(this->Super->Type);
+	SWTypeExtData* pData = this->GetTypeExtData();
 
 	switch (this->Status)
 	{
@@ -103,9 +103,8 @@ void IonCannonStateMachine::Update()
 			}
 		}
 
-		auto sound = pData->SW_ActivationSound.Get();
-		if (sound != -1)
-		{
+		const auto sound = pData->SW_ActivationSound.Get();
+		if (sound != -1) {
 			VocClass::PlayAt(sound, coords, nullptr);
 		}
 
@@ -207,7 +206,6 @@ void IonCannonStateMachine::Fire()
 {
 	const auto pData = this->GetTypeExtData();
 	CellStruct cell = this->Coords;
-	auto pNewData = pData->GetNewSWType();
 	CellClass* pTarget = MapClass::Instance->GetCellAt(cell);
 	CoordStruct coords = pTarget->GetCoordsWithBridge();
 
@@ -241,14 +239,12 @@ void IonCannonStateMachine::Fire()
 	}
 
 	// kill
-	auto damage = pNewData->GetDamage(pData);
-	auto pWarhead = pNewData->GetWarhead(pData);
+	auto damage = this->Type->GetDamage(pData);
+	auto pWarhead = this->Type->GetWarhead(pData);
 
 	if (pWarhead && damage != 0) {
 		WarheadTypeExtData::DetonateAt(pWarhead, pTarget, coords, this->Firer, damage, this->Owner);
 	}
-
-	//TODO , destroy bridges
 }
 
 void IonCannonStateMachine::InvalidatePointer(AbstractClass* ptr, bool remove)

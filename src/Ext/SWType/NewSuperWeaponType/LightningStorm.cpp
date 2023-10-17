@@ -385,12 +385,10 @@ void CloneableLighningStormStateMachine::Update()
 			}
 		}
 	}
-
 }
 
 void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 {
-
 	auto const pData = this->GetTypeExtData();
 	auto const pCell = MapClass::Instance->GetCellAt(nCoord);
 	auto const coords = pCell->GetCoordsWithBridge();
@@ -545,11 +543,6 @@ bool CloneableLighningStormStateMachine::Strike(CellStruct const& nCell)
 bool CloneableLighningStormStateMachine::Start(CellStruct& cell, int nDuration, int nDeferment)
 {
 	auto pData = this->GetTypeExtData();
-
-	if (!pData)
-	{
-		return false;
-	}
 	bool ret = false;
 
 	// generate random cell if the passed ones are empty
@@ -635,7 +628,6 @@ bool CloneableLighningStormStateMachine::Start(CellStruct& cell, int nDuration, 
 			MapClass::Instance->RedrawSidebar(1);
 		}
 	}
-
 
 	return ret;
 }
