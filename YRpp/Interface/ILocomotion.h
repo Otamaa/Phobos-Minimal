@@ -51,8 +51,8 @@ DECLARE_INTERFACE_IID_(ILocomotion, IUnknown, "070F3290-9841-11D1-B709-00A024DDA
 	virtual bool __stdcall Is_Really_Moving_Now() PURE;	//Infantry moving query function
 	virtual void __stdcall Stop_Movement_Animation() PURE;	//Falsifies the IsReallyMoving flag in WalkLocomotionClass
 	virtual void __stdcall Clear_Coords() PURE;	//Unknown, must have been added after LOCOS.TLB was generated. -pd
-	virtual void __stdcall Lock() PURE;	//Locks the locomotor from being deleted
 	virtual void __stdcall Unlock() PURE;	//Unlocks the locomotor from being deleted
+	virtual void __stdcall Lock() PURE;	//Locks the locomotor from being deleted
 	virtual int __stdcall Get_Track_Number() PURE;	//Queries internal variables
 	virtual int __stdcall Get_Track_Index() PURE;	//Queries internal variables
 	virtual int __stdcall Get_Speed_Accum() PURE;	//Queries internal variables

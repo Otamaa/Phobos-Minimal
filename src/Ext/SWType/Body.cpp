@@ -681,6 +681,18 @@ struct TargetingFuncs
 			  return -1;
 			}
 
+			//if(pTargeting->TypeExt->AttachedToObject->Type == SuperWeaponType::GeneticMutator) {
+			//	auto pTechnoType = pTechno->GetTechnoType();
+			//
+			//	if (pTechnoType->Cyborg && pTargeting->TypeExt->Mutate_IgnoreCyborg) {
+			//		return -1;
+			//	}
+			//
+			//	if (pTechnoType->NotHuman && pTargeting->TypeExt->Mutate_IgnoreNotHuman) {
+			//		return -1;
+			//	}
+			//}
+
 			auto cell = pTechno->GetCell()->MapCoords;
 			int value = 0;
 

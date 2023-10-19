@@ -97,5 +97,43 @@ void DumperTypesCommandClass::Execute(WWKey dwUnk) const
 		Debug::Log("%X = %s\n", pItem->get_ID(), pItem->IsEnabled ? "yes" : "no");
 	}
 
+	// yes , iam sorry
+	// sometime i need the rules that you lock behind the mix
+	// so i can validate and fix the stuffs , enable it with your own risk ! -Otamaa
+	if(Phobos::Otamaa::IsAdmin) {
+		GenericNode* sectionNode = CCINIClass::INI_Rules()->Sections.First();
+		while (sectionNode)
+		{
+			if (*((unsigned int*)sectionNode) == 0x7EB73C)
+			{
+				INIClass::INISection* section = (INIClass::INISection*)sectionNode;
+				Debug::Log("[%s]\n", section->Name);
+
+				GenericNode* entryNode = section->Entries.GenericList::First();
+				while (entryNode)
+				{
+					if (*((unsigned int*)entryNode) == 0x7EB734)
+					{
+						INIClass::INIEntry* entry = (INIClass::INIEntry*)entryNode;
+						unsigned int checksum = 0xAFFEAFFE;
+
+						for (int i = 0; i < section->EntryIndex.Count(); i++)
+						{
+							const auto data = section->EntryIndex.begin() + i;
+							if (data->Data == entry)
+							{
+								checksum = data->ID;
+								break;
+							}
+						}
+						Debug::Log("\t%s = %s (Checksum: %08X)\n", entry->Key, entry->Value, checksum);
+					}
+					entryNode = entryNode->Next();
+				}
+			}
+			sectionNode = sectionNode->Next();
+		}
+	}
+
 	MessageListClass::Instance->PrintMessage(L"Type data dumped");
 }

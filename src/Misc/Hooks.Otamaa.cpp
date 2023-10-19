@@ -2095,13 +2095,13 @@ BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 		}
 	}
 
-	int Purifiers = 0;
+	//int Purifiers = 0;
 
 	//count them
-	for (auto& purifier : pHouseExt->Building_OrePurifiersCounter)
-		Purifiers += purifier.second;
+	//for (auto& purifier : pHouseExt->Building_OrePurifiersCounter)
+	//	Purifiers += purifier.second;
 
-	pThis->NumOrePurifiers = Purifiers;
+	//pThis->NumOrePurifiers = Purifiers;
 
 	return Spysat;
 }

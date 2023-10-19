@@ -1823,9 +1823,14 @@ double TechnoExtData::GetDamageMult(TechnoClass* pSouce, bool ForceDisable)
 const BurstFLHBundle* TechnoExtData::PickFLHs(TechnoClass* pThis, int weaponidx)
 {
 	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	std::vector<BurstFLHBundle>* res  = &pExt->WeaponBurstFLHs;
 
-	const std::vector<BurstFLHBundle>* res = pThis->WhatAmI() == InfantryClass::AbsID ? ((InfantryClass*)pThis)->IsDeployed() && !pExt->DeployedWeaponBurstFLHs.empty() ?
-		&pExt->DeployedWeaponBurstFLHs : &pExt->CrouchedWeaponBurstFLHs : &pExt->WeaponBurstFLHs;
+	if (pThis->WhatAmI() == InfantryClass::AbsID) {
+		if (((InfantryClass*)pThis)->IsDeployed() && !pExt->DeployedWeaponBurstFLHs.empty())
+			res = &pExt->DeployedWeaponBurstFLHs;
+		else if (((InfantryClass*)pThis)->Crawling && !pExt->CrouchedWeaponBurstFLHs.empty())
+			res = &pExt->CrouchedWeaponBurstFLHs;
+	}
 
 	if (res->empty() || res->size() <= (size_t)weaponidx)
 		return nullptr;

@@ -43,7 +43,6 @@ void CaptureObjectsCommandClass::Execute(WWKey eInput) const
 	if (!ObjectClass::CurrentObjects->Count)
 		return;
 
-
 	ObjectClass::CurrentObjects->for_each([](ObjectClass* const object) {
 		if (TechnoClass* techno = generic_cast<TechnoClass*>(object)) {
 
@@ -77,4 +76,11 @@ void CaptureObjectsCommandClass::Execute(WWKey eInput) const
 		//Debug::Log("Giving Money to Player ! \n");
 		pHouseExt->CaptureObjectExecuted = true;
 	}
+
+	//if (auto pBld = BuildingTypeClass::Find("AIYAREFN"))
+	//{
+	//	auto pObj = (BuildingClass*)pBld->CreateObject(HouseClass::CurrentPlayer());
+	//	auto coord = CellClass::Cell2Coord(WWMouseClass::Instance->GetCellUnderCursor());
+	//	pObj->Unlimbo(coord, DirType::North);
+	//}
 }

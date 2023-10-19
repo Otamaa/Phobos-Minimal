@@ -85,8 +85,8 @@ public:
 	virtual bool __stdcall Is_Really_Moving_Now() { JMP_STD(0x4B4C50); }
 	virtual void __stdcall Stop_Movement_Animation() { JMP_STD(0x4B4C90); }
 	virtual void __stdcall Clear_Coords() { JMP_STD(0x4B4CA0); }
-	virtual void __stdcall Lock() { JMP_STD(0x4B6650); }
 	virtual void __stdcall Unlock() { JMP_STD(0x4B6660); }
+	virtual void __stdcall Lock() { JMP_STD(0x4B6650); }
 	virtual int __stdcall Get_Track_Number() { JMP_STD(0x4B6670); }
 	virtual int __stdcall Get_Track_Index() { JMP_STD(0x4B6680); }
 	virtual int __stdcall Get_Speed_Accum() { JMP_STD(0x4B6690); }

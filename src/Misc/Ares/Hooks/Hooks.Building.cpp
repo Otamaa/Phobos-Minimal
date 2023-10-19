@@ -1686,7 +1686,7 @@ DEFINE_OVERRIDE_HOOK(0x73A1BC, UnitClass_UpdatePosition_EnteredGrinder, 0x7)
 		if (InfantryTypeClass* Hijacker =
 			InfantryTypeClass::Array->GetItem(Vehicle->HijackerInfantryType))
 		{
-			Grinder->Owner->GiveMoney(Hijacker->GetRefund(Vehicle->Owner, 0));
+			Grinder->Owner->TransactMoney(Hijacker->GetRefund(Vehicle->Owner, 0));
 		}
 	}
 
@@ -2345,7 +2345,6 @@ DEFINE_OVERRIDE_HOOK(0x4586CA, BuildingClass_KillOccupiers_EachOccupierKilled, 6
 	//return 0x4586F0;
 	return 0;
 }
-
 
 DEFINE_OVERRIDE_HOOK(0x441f2c, BuildingClass_Destroy_KickOutOfRubble, 5)
 {
