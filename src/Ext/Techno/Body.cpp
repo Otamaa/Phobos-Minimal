@@ -2889,10 +2889,6 @@ bool NOINLINE TechnoExtData::CanFireNoAmmoWeapon(TechnoClass* pThis, int weaponI
 
 #include <AircraftTrackerClass.h>
 
-void NOINLINE DeleteTechnoPtr(TechnoClass* pThis) {
-	GameDelete<true, false>(pThis);
-}
-
 void TechnoExtData::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool SkipTrackingRemove, bool Delete)
 {
 	// kill passenger cargo to prevent memleak

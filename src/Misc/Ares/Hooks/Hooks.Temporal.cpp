@@ -142,7 +142,7 @@ DEFINE_HOOK(0x71A8BD, TemporalClass_Update_WarpAway, 5)
 		);
 	}
 
-	return 0x71A906;
+	return 0x71A90E;
 }
 
 // bugfix #379: Temporal friendly kills give veterancy

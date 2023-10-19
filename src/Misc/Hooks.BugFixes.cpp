@@ -265,72 +265,46 @@ bool NOINLINE IsTemporalptrValid(TemporalClass* pThis)
 	return VTable::Get(pThis) == TemporalClass::vtable;
 }
 
-DWORD NOINLINE TechnoClass_AI_TemporalTargetingMe_Fix(REGISTERS* R ,AbstractType)
-{
-	GET(TechnoClass*, pThis, ESI);
-
+void NOINLINE IsTechnoShouldBeAliveAfterTemporal(TechnoClass* pThis) {
 	if (pThis->TemporalTargetingMe)
 	{
 		// Also check for vftable here to guarantee the TemporalClass not being destoryed already.
-		if (IsTemporalptrValid(pThis->TemporalTargetingMe))
-		{
-			if(pThis->TemporalTargetingMe->Owner)
-				pThis->TemporalTargetingMe->Update();
-			else
-			{
-				GameDelete<true, false>(pThis->TemporalTargetingMe);
-				pThis->TemporalTargetingMe = nullptr;
-			}
-		}
+		if (IsTemporalptrValid(pThis->TemporalTargetingMe)) // TemporalClass::`vtable`
+			pThis->TemporalTargetingMe->Update();
 		else // It should had being warped out, delete this object
 		{
 			pThis->TemporalTargetingMe = nullptr;
-
-			if (pThis->IsAlive)
-			{
-				pThis->Limbo();
-				Debug::Log(__FUNCTION__" Called \n");
-				TechnoExtData::HandleRemove(pThis, nullptr, true, false);
-			}
-			else
-			{
-				switch (R->Origin())
-				{
-				case 0x51BB6E:
-					return 0x51BF80;
-				case 0x736204:
-					return 0x7363C1;
-				case 0x414BDB:
-					return 0x414E25;
-				case 0x43FCF9:
-					return 0x440573;
-				}
-			}
+			pThis->Limbo();
+			Debug::Log(__FUNCTION__" Called \n");
+			TechnoExtData::HandleRemove(pThis, nullptr, true, false);
 		}
 	}
-
-	return R->Origin() + 0xF; //skip updating the temporal
 }
+
 // Fix the crash of TemporalTargetingMe related "stack dump starts with 0051BB7D"
 // Author: secsome
 DEFINE_HOOK(0x43FCF9, BuildingClass_AI_TemporalTargetingMe, 0x6) // BuildingClass
 {
-	return TechnoClass_AI_TemporalTargetingMe_Fix(R , BuildingClass::AbsID);
+	IsTechnoShouldBeAliveAfterTemporal(R->ESI<BuildingClass*>());
+	return 0x43FD08;
 }
 
 DEFINE_HOOK(0x414BDB, AircraftClass_AI_TemporalTargetingMe, 0x6) //
 {
-	return TechnoClass_AI_TemporalTargetingMe_Fix(R, AircraftClass::AbsID);
+	IsTechnoShouldBeAliveAfterTemporal(R->ESI<AircraftClass*>());
+	return 0x414BEA;
 }
 
 DEFINE_HOOK(0x736204, UnitClass_AI_TemporalTargetingMe, 0x6) //
 {
-	return TechnoClass_AI_TemporalTargetingMe_Fix(R, UnitClass::AbsID);
+	IsTechnoShouldBeAliveAfterTemporal(R->ESI<UnitClass*>());
+	return 0x736213;
 }
 
 DEFINE_HOOK(0x51BB6E, InfantryClass_AI_TemporalTargetingMe_Fix, 0x6) //
 {
-	return TechnoClass_AI_TemporalTargetingMe_Fix(R, InfantryClass::AbsID);
+	IsTechnoShouldBeAliveAfterTemporal(R->ESI<InfantryClass*>());
+	return 0x51BB7D;
 }
 
 // Fix the issue that AITriggerTypes do not recognize building upgrades
