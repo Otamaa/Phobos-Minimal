@@ -213,17 +213,13 @@ public:
 	static constexpr reference<DWORD, 0xB04474, 256> const LatestFramesCRC {};
 	static constexpr reference<DWORD, 0xAC51FC> const CurrentFrameCRC {};
 
-	static bool AddEvent(const EventClass& nEvent)
+	static bool AddEvent(const EventClass* pEvent)
 	{
 		if (OutList->Count >= 128)
 			return false;
 
-		OutList->List[OutList->Tail] = nEvent;
-
-		// timeGetTime();
-		//OutList->Timings[OutList->Tail] = ((int(__stdcall*)())0x7E1530)();
+		memcpy((OutList->List + OutList->Tail), pEvent, sizeof(EventClass));
 		OutList->Timings[OutList->Tail] = static_cast<int>(Imports::TimeGetTime.get()());
-
 		++OutList->Count;
 		OutList->Tail = (OutList->Tail + 1) & 127;
 

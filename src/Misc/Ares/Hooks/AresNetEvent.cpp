@@ -27,7 +27,7 @@ void AresNetEvent::TrenchRedirectClick::Raise(BuildingClass* Source, CellStruct*
 	memcpy(&Event.Data.nothing, &Datas, TrenchRedirectClick::size());
 
 	//the data is an array containing 2 stuffs
-	EventClass::AddEvent(Event);
+	EventClass::AddEvent(&Event);
 }
 
 void AresNetEvent::TrenchRedirectClick::Respond(EventClass* Event)
@@ -56,7 +56,7 @@ void AresNetEvent::FirewallToggle::Raise(HouseClass* Source)
 	Event.Type = static_cast<EventType>(AresNetEvent::Events::FirewallToggle);
 	Event.HouseIndex = byte(Source->ArrayIndex);
 
-	EventClass::AddEvent(Event);
+	EventClass::AddEvent(&Event);
 }
 
 void AresNetEvent::FirewallToggle::Respond(EventClass* Event)
@@ -82,7 +82,7 @@ void AresNetEvent::ResponseTime2::Raise()
 	ResponseTime2 dataToSend { 10 ,20 };
 	memcpy(&Event.Data.nothing, &dataToSend, size());
 
-	if (EventClass::AddEvent(Event))
+	if (EventClass::AddEvent(&Event))
 		Debug::Log("test");
 }
 

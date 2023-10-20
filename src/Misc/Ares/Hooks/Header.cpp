@@ -1775,11 +1775,13 @@ void TechnoExt_ExtData::doTraverseTo(BuildingClass* currentBuilding, BuildingCla
 	}
 
 	// fix up firing index, as decrementing the source occupants can invalidate it
-	if (currentBuilding->FiringOccupantIndex >= currentBuilding->GetOccupantCount())
-	{
+	if (currentBuilding->FiringOccupantIndex >= currentBuilding->GetOccupantCount()) {
 		currentBuilding->FiringOccupantIndex = 0;
 	}
 
+	//const auto oldtgt = currentBuilding->Target;
+	//currentBuilding->SetTarget(nullptr);
+	//targetBuilding->SetTarget(oldtgt);
 	TechnoExt_ExtData::EvalRaidStatus(currentBuilding); // if the traversal emptied the current building, it'll have to be returned to its owner
 }
 
