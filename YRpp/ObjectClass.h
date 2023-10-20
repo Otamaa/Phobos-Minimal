@@ -152,7 +152,7 @@ public:
 	virtual void UnInit() JMP_THIS(0x5F65F0);  // RemoveThis_DeleteThis 0xF8
 	virtual void Reveal() RX; // uncloak when object is bumped, damaged, detected, ... , DoShimmer  0xFC
 	virtual KickOutResult KickOutUnit(TechnoClass* pTechno, CellStruct Cell) RT(KickOutResult); //Exit Object 0x100
-	virtual bool DrawIfVisible(RectangleStruct *pBounds, bool EvenIfCloaked, DWORD dwUnk3) const R0;
+	virtual bool DrawIfVisible(RectangleStruct *pBounds, bool EvenIfCloaked, DWORD dwUnk3) const JMP_THIS(0x5F4B10);
 	virtual CellStruct const* GetFoundationData(bool includeBib = false) const R0;
 	virtual void DrawBehind(Point2D* pLocation, RectangleStruct* pBounds) const RX;
 	virtual void DrawExtras(Point2D* pLocation, RectangleStruct* pBounds) const RX; // draws ivan bomb, health bar, talk bubble, etc

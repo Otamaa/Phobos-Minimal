@@ -9,7 +9,7 @@
 #include <TechnoTypeClass.h>
 #include <Helpers/Template.h>
 #include <ProgressTimer.h>
-#include <TransitionTimer.h>
+#include <DoorClass.h>
 #include <FacingClass.h>
 enum class ProtectTypes : int
 {
@@ -876,7 +876,7 @@ public:
 	DECLARE_PROPERTY(StorageClass, Tiberium);
 	DWORD            unknown_34C;
 
-	DECLARE_PROPERTY(TransitionTimer, UnloadTimer); // times the deploy, unload, etc. cycles ,DoorClass
+	DECLARE_PROPERTY(DoorClass, UnloadTimer); // times the deploy, unload, etc. cycles ,DoorClass
 
 	DECLARE_PROPERTY(FacingClass, BarrelFacing);
 	DECLARE_PROPERTY(FacingClass, PrimaryFacing); //Facing

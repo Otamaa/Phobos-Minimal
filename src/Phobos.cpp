@@ -406,34 +406,34 @@ void InitAdminDebugMode()
 			Phobos::EnableConsole = true;
 #endif
 
-#ifdef DETACH_DEBUGGER
+#ifndef DETACH_DEBUGGER
 			 //this thing can cause game to lockup when loading data
 			//better disable it for release
 
-			const bool Detached =
-				Phobos::DetachFromDebugger();
+			//const bool Detached =
+			//	Phobos::DetachFromDebugger();
 
-			if (Detached)
-			{
-				MessageBoxW(NULL,
-				L"You can now attach a debugger.\n\n"
-
-				L"Press OK to continue YR execution.",
-				L"Debugger Notice", MB_OK);
-			}
-			else
-			{
-				MessageBoxW(NULL,
-				L"You can now attach a debugger.\n\n"
-
-				L"To attach a debugger find the YR process in Process Hacker "
-				L"/ Visual Studio processes window and detach debuggers from it, "
-				L"then you can attach your own debugger. After this you should "
-				L"terminate Syringe.exe because it won't automatically exit when YR is closed.\n\n"
-
-				L"Press OK to continue YR execution.",
-				L"Debugger Notice", MB_OK);
-			}
+			//if (Detached)
+			//{
+			//	MessageBoxW(NULL,
+			//	L"You can now attach a debugger.\n\n"
+			//
+			//	L"Press OK to continue YR execution.",
+			//	L"Debugger Notice", MB_OK);
+			//}
+			//else
+			//{
+			//	MessageBoxW(NULL,
+			//	L"You can now attach a debugger.\n\n"
+			//
+			//	L"To attach a debugger find the YR process in Process Hacker "
+			//	L"/ Visual Studio processes window and detach debuggers from it, "
+			//	L"then you can attach your own debugger. After this you should "
+			//	L"terminate Syringe.exe because it won't automatically exit when YR is closed.\n\n"
+			//
+			//	L"Press OK to continue YR execution.",
+			//	L"Debugger Notice", MB_OK);
+			//}
 #endif
 		}
 	}

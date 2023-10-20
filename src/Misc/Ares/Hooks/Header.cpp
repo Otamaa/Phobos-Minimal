@@ -4416,6 +4416,9 @@ void AresEMPulse::UpdateSparkleAnim(TechnoClass* pFrom, TechnoClass* pTo)
 
 void AresEMPulse::UpdateSparkleAnim(TechnoClass* pWho, AnimTypeClass* pAnim)
 {
+	if (TechnoTypeExtContainer::Instance.Find(pWho->GetTechnoType())->IsDummy)
+		return;
+
 	auto& Anim = TechnoExtContainer::Instance.Find(pWho)->EMPSparkleAnim;
 
 	if (pWho->IsUnderEMP()) {

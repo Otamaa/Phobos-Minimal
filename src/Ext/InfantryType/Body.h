@@ -31,6 +31,8 @@ public:
 	WeaponStruct CrawlingWeaponDatas[4] {};
 	std::vector<DoInfoStruct> Sequences {};
 
+	ValueableIdxVector<VocClass> VoiceGarrison {};
+
 	InfantryTypeExtData(base_type* OwnerObject) noexcept
 	{
 		AttachedToObject = OwnerObject;

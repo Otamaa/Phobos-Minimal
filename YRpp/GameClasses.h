@@ -94,7 +94,7 @@
 #include <LoadProgressManager.h>
 
 #include <ProgressTimer.h>
-#include <TransitionTimer.h>
+#include <DoorClass.h>
 
 //Static classes
 #include <Ion.h>

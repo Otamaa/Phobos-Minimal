@@ -3893,7 +3893,6 @@ DEFINE_HOOK(0x43B150, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
 
-
 	if(pThis) {
 
 		const auto vtable = VTable::Get(pThis);
@@ -4066,7 +4065,70 @@ DEFINE_HOOK(0x5FF93F, SpotlightClass_Draw_OutOfboundSurfaceArrayFix, 0x7)
 	return 0x0;
 }
 
-#include <Ext/Cell/Body.h>
+DEFINE_HOOK(0x73B0B0, UnitClass_DrawIfVisible, 0xA)
+{
+	GET(UnitClass*, pThis, ECX);
+	GET_STACK(RectangleStruct*, pBounds, 0x4);
+	GET_STACK(bool, ignorecloaked, 0x8);
+
+	bool result = !pThis->IsTethered;
+	if (TechnoClass* pContact = pThis->GetNthLink())
+	{
+		result |= pContact->WhatAmI() != AbstractType::Building;
+		result |= pContact->GetCurrentMission() != Mission::Unload && pContact->QueuedMission != Mission::Unload;
+		result |= !pContact->UnloadTimer.IsOpening()
+			&& !pContact->UnloadTimer.IsClosing()
+			&& !pContact->UnloadTimer.IsOpen()
+			&& !pContact->UnloadTimer.IsClosed();
+	}
+
+	result &= pThis->ObjectClass::DrawIfVisible(pBounds, ignorecloaked, 0);
+
+	R->EAX(result);
+
+	return 0x73B139;
+}
+
+DEFINE_HOOK(0x725947, Game_InvalidatePointers_AllAbstractptrVectorCrash, 0x6)
+{
+	GET(int, AllAbsCount, EAX);
+	GET(AbstractClass*, pTarget, ESI);
+	GET(bool, bRemoved, EDI);
+
+	for (int i = 0; i < AllAbsCount; ++i) {
+		AbstractClass::Array->Items[i]->PointerExpired(pTarget, bRemoved);
+	}
+
+	return 0x725961;
+}
+
+DEFINE_HOOK(0x6FFD25, TechnoClass_PlayerAssignMission_Capture_InfantryToBld, 0xA)
+{
+	GET_STACK(ObjectClass*, pTarget, 0x98 + 0xC);
+	GET(TechnoClass*, pThis, ESI);
+
+	if (pThis->WhatAmI() == InfantryClass::AbsID && pTarget && pTarget->WhatAmI() == BuildingClass::AbsID)
+	{
+		auto pInf = ((InfantryClass*)pThis);
+		if (pInf->Type->Assaulter || pInf->Type->Infiltrate || pInf->Type->Engineer)
+			return 0x0;
+
+		auto pInfTypeExt = InfantryTypeExtContainer::Instance.Find(pInf->Type);
+
+		if (!pInfTypeExt->VoiceGarrison.empty())
+		{
+			if (((BuildingClass*)pTarget)->Type->MaxNumberOccupants > 0)
+			{
+				pThis->QueueVoice(pInfTypeExt->VoiceGarrison[Random2Class::NonCriticalRandomNumber->Random() % pInfTypeExt->VoiceGarrison.size()]);
+				return 0x6FFDA5;
+			}
+		}
+	}
+
+	return 0x0;
+}
+
+//#include <Ext/Cell/Body.h>
 
 //TODO : another place to reset ?
 // this one address not really convincing ,..

@@ -12,8 +12,11 @@ struct DoorClass
 {
 	double RateDouble {};
 	CDTimerClass Timer {};
-	char ToTransition { 0 };
+	int rate_2 {};
+	DoorState ToTransition { DoorState::Close };
 	DoorState State { DoorState::Close };
+
+public:
 
 	bool IsOpening() const {
 		JMP_THIS(0x4A5110);
