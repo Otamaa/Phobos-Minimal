@@ -6407,7 +6407,7 @@ void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 		}
 		else
 		{
-			for (auto pHut : pTeamData->MapPath_ValidBridgeRepairHuts)
+			for (auto& pHut : pTeamData->MapPath_ValidBridgeRepairHuts)
 			{
 				if (mode > 0)
 				{

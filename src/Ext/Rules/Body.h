@@ -276,6 +276,9 @@ public:
 
 	Valueable<double> DisplayCreditsDelay { 0.02 };
 
+	Valueable<bool> TypeSelectUseDeploy { true };
+	Nullable<int> StartInMultiplayerUnitCost { };
+
 	AircraftPutDataRules MyPutData { };
 
 	RulesExtData(base_type* OwnerObject) noexcept

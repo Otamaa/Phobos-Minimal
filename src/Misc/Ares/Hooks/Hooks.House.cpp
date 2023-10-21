@@ -33,6 +33,217 @@ DEFINE_DISABLE_HOOK(0x504069, HouseClass_Load_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x504080, HouseClass_SaveLoad_Prefix_ares)
 DEFINE_DISABLE_HOOK(0x5046de, HouseClass_Save_Suffix_ares)
 
+DEFINE_DISABLE_HOOK(0x511635, HouseTypeClass_CTOR_1_ares)
+DEFINE_DISABLE_HOOK(0x511643, HouseTypeClass_CTOR_2_ares)
+DEFINE_DISABLE_HOOK(0x51214f, HouseTypeClass_LoadFromINI_ares)
+DEFINE_DISABLE_HOOK(0x51215a, HouseTypeClass_LoadFromINI_ares)
+DEFINE_DISABLE_HOOK(0x512290, HouseTypeClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x51246d, HouseTypeClass_Load_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x512480, HouseTypeClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x51255c, HouseTypeClass_Save_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x5127cf, HouseTypeClass_DTOR_ares)
+
+static constexpr int ObserverBackgroundWidth = 121;
+static constexpr int ObserverBackgroundHeight = 96;
+
+static constexpr int ObserverFlagPCXX = 70;
+static constexpr int ObserverFlagPCXY = 70;
+static constexpr int ObserverFlagPCXWidth = 45;
+static constexpr int ObserverFlagPCXHeight = 21;
+
+DEFINE_OVERRIDE_HOOK(0x6AA0CA, StripClass_Draw_DrawObserverBackground, 6)
+{
+	enum { DrawSHP = 0x6AA0ED, DontDraw = 0x6AA159 };
+
+	GET(HouseTypeClass*, pCountry, EAX);
+
+	const auto pData = HouseTypeExtContainer::Instance.Find(pCountry);
+
+	if (pData->ObserverBackgroundSHP)
+	{
+		R->EAX<SHPStruct*>(pData->ObserverBackgroundSHP);
+		return DrawSHP;
+	}
+	else if (auto PCXSurface = pData->ObserverBackground.GetSurface())
+	{
+		GET(int, TLX, EDI);
+		GET(int, TLY, EBX);
+		RectangleStruct bounds = { TLX, TLY, ObserverBackgroundWidth, ObserverBackgroundHeight };
+		const WORD Color = (uint8)(0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft)
+			|| (uint8)(0u >> ColorStruct::GreenShiftRight << ColorStruct::GreenShiftLeft)
+			|| (uint8)(0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft);
+
+		PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, PCXSurface, Color);
+	}
+
+	return DontDraw;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6AA164, StripClass_Draw_DrawObserverFlag, 6)
+{
+	enum { IDontKnowYou = 0x6AA16D, DrawSHP = 0x6AA1DB, DontDraw = 0x6AA2CE };
+
+	GET(HouseTypeClass*, pCountry, EAX);
+	
+	const auto idx = pCountry->ArrayIndex2;
+
+	//special cases
+	if (idx == -2) {
+		R->EAX(idx);
+		return 0x6AA1CD;
+	}
+
+	if (idx == -3) {
+		R->EAX(idx);
+		return 0x6AA17D;
+	}
+
+	const auto pData = HouseTypeExtContainer::Instance.Find(pCountry);
+
+	if (pData->ObserverFlagSHP)
+	{
+		R->ESI<SHPStruct*>(pData->ObserverFlagSHP);
+		R->EAX<int>(pData->ObserverFlagYuriPAL ? 9 : 0);
+		return DrawSHP;
+	}
+	else if (auto PCXSurface = pData->ObserverFlag.GetSurface())
+	{
+		GET(int, TLX, EDI);
+		GET(int, TLY, EBX);
+		RectangleStruct bounds = { TLX + ObserverFlagPCXX , TLY + ObserverFlagPCXY,
+				ObserverFlagPCXWidth, ObserverFlagPCXHeight
+		};
+
+		const WORD Color = (uint8)(0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft)
+			|| (uint8)(0u >> ColorStruct::GreenShiftRight << ColorStruct::GreenShiftLeft)
+			|| (uint8)(0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft);
+
+		PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, PCXSurface, Color);
+	}
+
+	return DontDraw;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4e3562, Game_GetFlagSurface, 5)
+{
+	GET(int, n, ECX);
+
+	if (n == -2)
+		return 0x4E3567; // special index
+
+	if (n < HouseTypeClass::Array->Count) {
+		if (auto pSurface = HouseTypeExtContainer::Instance.Find(HouseTypeClass::Array->GetItem(n))->FlagFile.GetSurface()) {
+			R->EAX(pSurface);
+			return 0x4E3686; //override result
+		}
+	}
+
+	return 0x4E3579; // handle check
+}
+
+DEFINE_DISABLE_HOOK(0x4E38D8, LoadPlayerCountryString_ares)
+
+DEFINE_HOOK(0x4E38A0, LoadPlayerCountryString, 5)
+{
+	GET(int, n, ECX);
+
+	enum { NextCompare = 0x4E38BC, Neg2Result = 0x4E38A5 , RetResult = 0x4E39F1 };
+
+	if (n >= 0) {
+		if(n < HouseTypeClass::Array->Count) {
+			R->EAX(HouseTypeExtContainer::Instance.Find(HouseTypeClass::Array->GetItem(n))->StatusText->Text);
+			return RetResult; //replaced
+		}
+	}
+
+	return n == -2 ? Neg2Result : NextCompare; /// overriden
+}
+
+DEFINE_OVERRIDE_HOOK(0x553412, LoadProgressMgr_Draw_LSFile, 9)
+{
+	GET(int, n, EBX);
+	enum { SwitchStatement = 0x553421, DefaultResult = 0x553416, RetResult = 0x55342C };
+
+	if (n >= 0) {
+
+		if(n < HouseTypeClass::Array->Count) {
+			R->EDX(HouseTypeExtContainer::Instance.Find(HouseTypeClass::Array->GetItem(n))->LoadScreenBackground.data());
+			return RetResult;//replaced
+		}
+
+		return SwitchStatement; //switch
+	}
+
+	return DefaultResult; //unknown
+}
+
+DEFINE_OVERRIDE_HOOK(0x5536da, LoadProgressMgr_Draw_LSName, 0)
+{
+	GET(int, n, EBX);
+	enum { SwitchStatement = 0x5536FB, DefaultResult = 0x5536DE, RetResult = 0x553820 };
+
+	if (n >= 0)
+	{
+		if(n <= HouseTypeClass::Array->Count){
+			R->EDI(HouseTypeExtContainer::Instance.Find(HouseTypeClass::Array->GetItem(n))->LoadScreenName->Text);
+			return RetResult;//replaced
+		}
+
+		return SwitchStatement;//switch
+	}
+
+	return DefaultResult; //unknown
+}
+
+DEFINE_OVERRIDE_HOOK(0x553a05, LoadProgressMgr_Draw_LSSpecialName, 6)
+{
+	GET_STACK(int, n, 0x38);
+	enum { SwitchStatement = 0x553A28, DefaultResult = 0x553A0D, RetResult = 0x553B3B };
+
+	if (n <= 0)
+	{
+		if (n < HouseTypeClass::Array->Count) {
+			R->EAX(HouseTypeExtContainer::Instance.Find(HouseTypeClass::Array->GetItem(n))->LoadScreenSpecialName->Text);
+			return RetResult;
+		}
+
+		R->EAX(n);
+		return SwitchStatement;
+	}
+
+	return DefaultResult;
+}
+
+DEFINE_OVERRIDE_HOOK(0x553d06, LoadProgressMgr_Draw_LSBrief, 6)
+{
+	GET_STACK(int, n, 0x38);
+	enum { SwitchStatement = 0x553D2B, DefaultResult = 0x553D0E, RetResult = 0x553E54 };
+
+	if (n <= 0) {
+		if (n < HouseTypeClass::Array->Count) {
+			R->ESI(HouseTypeExtContainer::Instance.Find(HouseTypeClass::Array->GetItem(n))->LoadScreenBrief->Text);
+			return RetResult;
+		}
+
+		R->EAX(n);
+		return SwitchStatement;
+	}
+
+	return DefaultResult;
+}
+
+DEFINE_OVERRIDE_HOOK(0x69B774, HTExt_PickRandom_Human, 0)
+{
+	R->EAX(HouseTypeExtData::PickRandomCountry());
+	return 0x69B788;
+}
+
+DEFINE_OVERRIDE_HOOK(0x69B670, HTExt_PickRandom_AI, 0)
+{
+	R->EAX(HouseTypeExtData::PickRandomCountry());
+	return 0x69B684;
+}
+
 bool KeepThisAlive(HouseClass* pHouse, TechnoClass* pTech, AbstractType what, uint8_t keep)
 {
 	const auto pType = pTech->GetTechnoType();

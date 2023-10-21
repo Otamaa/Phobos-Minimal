@@ -1921,7 +1921,6 @@ bool TechnoExt_ExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 
 		if (auto const count = targets->size())
 		{
-
 			// that's our target
 			pThis->SetTarget
 			(*(targets->data() + (size_t(count == 1 ?
@@ -2196,7 +2195,7 @@ void TechnoExt_ExtData::UpdateDisplayTo(BuildingClass* pThis)
 
 		pHouse->RadarVisibleTo.data |= HouseExtContainer::Instance.Find(pHouse)->RadarPersist.data;
 
-		for (auto pBld : pHouse->Buildings)
+		for (auto& pBld : pHouse->Buildings)
 		{
 			if (!pBld->InLimbo)
 			{

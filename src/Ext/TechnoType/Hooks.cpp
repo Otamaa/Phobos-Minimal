@@ -191,7 +191,7 @@ DEFINE_HOOK(0x6B7282, SpawnManagerClass_AI_PromoteSpawns, 0x5)
 
 	if (TechnoTypeExtContainer::Instance.Find(pThis->Owner->GetTechnoType())->Promote_IncludeSpawns)
 	{
-		for (const auto i : pThis->SpawnedNodes)
+		for (const auto& i : pThis->SpawnedNodes)
 		{
 			if (i->Unit && i->Unit->Veterancy.Veterancy < pThis->Owner->Veterancy.Veterancy)
 				i->Unit->Veterancy.Add(pThis->Owner->Veterancy.Veterancy - i->Unit->Veterancy.Veterancy);

@@ -418,6 +418,12 @@ namespace Helpers {
 					Debug::INIParseFailed(section, key, pItem->ID, "Only InfantryTypes and UnitTypes are supported.");
 					return true;
 				}
+
+				if(pItem->Strength <= 0) {
+					Debug::INIParseFailed(section, key, pItem->ID, "0 Strength types are removed.");
+					return true;
+				}
+
 				return false;
 				}), types.end());
 		}

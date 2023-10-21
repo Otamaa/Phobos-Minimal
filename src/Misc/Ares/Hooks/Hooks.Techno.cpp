@@ -31,6 +31,15 @@ DEFINE_DISABLE_HOOK(0x70c249, TechnoClass_Load_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x70c250, TechnoClass_SaveLoad_Prefix_ares)
 DEFINE_DISABLE_HOOK(0x70c264, TechnoClass_Save_Suffix_ares)
 
+DEFINE_DISABLE_HOOK(0x711835, TechnoTypeClass_CTOR_ares)
+DEFINE_DISABLE_HOOK(0x711ae0, TechnoTypeClass_DTOR_ares)
+DEFINE_DISABLE_HOOK(0x716123, TechnoTypeClass_LoadFromINI_ares)
+DEFINE_DISABLE_HOOK(0x716132, TechnoTypeClass_LoadFromINI_ares)
+DEFINE_DISABLE_HOOK(0x7162f0, TechnoTypeClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x716dac, TechnoTypeClass_Load_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x716dc0, TechnoTypeClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x717094, TechnoTypeClass_Save_Suffix_ares)
+
 DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 {
 	GET(TechnoClass*, pThis, ECX);
@@ -296,7 +305,7 @@ DEFINE_OVERRIDE_HOOK(0x732C30, TechnoClass_IDMatches, 5)
 		}
 	}
 
-	R->EAX(match ? 1 : 0);
+	R->EAX(match);
 	return 0x732C97;
 }
 

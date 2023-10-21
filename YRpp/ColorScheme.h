@@ -35,7 +35,7 @@ public:
 		if (GameStrings::IsBlank(pID))
 			return nullptr;
 
-		for (auto& pItem : *Array) {
+		for (auto pItem : *Array) {
 			if (!CRT::strcmpi(pItem->ID, pID)) {
 				if (pItem->ShadeCount == ShadeCount) {
 					return pItem;

@@ -613,10 +613,10 @@ DEFINE_OVERRIDE_HOOK(0x6DA665, sub_6DA5C0_GroupAs, 0xA)
 	return R->Origin() + 13;
 }
 
-// DEFINE_OVERRIDE_HOOK(0x7BB445, XSurface_20, 0x6)
-// {
-// 	return R->EAX<void*>() ? 0x0 : 0x7BB90C;
-// }
+DEFINE_OVERRIDE_HOOK(0x7BB445, XSurface_20, 0x6)
+{
+	return R->EAX<void*>() ? 0x0 : 0x7BB90C;
+}
 
 DEFINE_OVERRIDE_HOOK(0x5FDDA4, OverlayClass_GetTiberiumType_NotReallyTiberiumLog, 0x6)
 {
@@ -1498,13 +1498,239 @@ DEFINE_OVERRIDE_HOOK(0x5FDDA4 , IsOverlayIdxTiberium_Log, 6)
 	return 0x5FDDC1;
 }
 
-//[01:25:38] SyringeDebugger::HandleException: Ares.dll [0x5d6d9a , MPGameModeClass_CreateStartingUnits_UnitCost , 6]
-//[01:25 : 38] SyringeDebugger::HandleException: Ares.dll[0x5d7163, MPGameMode_SpawnStartingUnits_Types, 8]
+DEFINE_OVERRIDE_HOOK(0x7cd819, ExeRun, 5)
+{
+	Game::Savegame_Magic = 0x1414D121;
+	Game::bVideoBackBuffer = false;
+	Game::bAllowVRAMSidebar = false;
 
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x74fdc0, GetModuleVersion, 5)
+{
+	R->EAX("Ares r21.352.1218");
+	return 0x74FEEF;
+}
+
+DEFINE_OVERRIDE_HOOK(0x74fae0, GetModuleInternalVersion, 5)
+{
+	R->EAX("1.001/Ares 3.0p1");
+	return 0x74FC7B;
+}
+
+DEFINE_OVERRIDE_HOOK(0x732d47, TacticalClass_CollectSelectedIDs, 5)
+{
+	auto pNames = R->EBX<DynamicVectorClass<const char*>*>();
+
+	auto Add = [pNames](TechnoTypeClass* pType) {
+		const char* id = TechnoTypeExtContainer::Instance.Find(pType)->GetSelectionGroupID();
+
+		if (pNames->none_of([id](const char* pID) {
+				return !CRT::strcmpi(pID, id);
+			})) {
+			pNames->AddItem(id);
+		}
+	};
+
+	bool useDeploy = RulesExtData::Instance()->TypeSelectUseDeploy;
+
+	for (auto pObject : ObjectClass::CurrentObjects())
+	{
+		// add this object's id used for grouping
+		if (TechnoTypeClass* pType = pObject->GetTechnoType())
+		{
+			Add(pType);
+
+			// optionally do the same the original game does, but support the new grouping feature.
+			if (useDeploy)
+			{
+				if (pType->DeploysInto)
+				{
+					Add(pType->DeploysInto);
+				}
+				if (pType->UndeploysInto)
+				{
+					Add(pType->UndeploysInto);
+				}
+			}
+		}
+	}
+
+	R->EAX(pNames);
+	return 0x732FD9;
+}
+
+DEFINE_OVERRIDE_HOOK(0x534f89, Game_ReloadNeutralMIX_NewLine, 5)
+{
+	Debug::Log("LOADED NEUTRAL.MIX\n");
+	return 0x534F96;
+}
+
+DEFINE_OVERRIDE_HOOK_AGAIN(0x4ABD9D, DisplayClass_LeftMouseButtonUp_GroupAs, 0xA)
+DEFINE_OVERRIDE_HOOK_AGAIN(0x4ABE58, DisplayClass_LeftMouseButtonUp_GroupAs, 0xA)
+DEFINE_OVERRIDE_HOOK(0x4ABD6C, DisplayClass_LeftMouseButtonUp_GroupAs, 0xA)
+{
+	GET(ObjectClass*, pThis, ESI);
+	R->EAX(TechnoTypeExtData::GetSelectionGroupID(pThis->GetType()));
+	return R->Origin() + 13;
+}
+
+//this is still 0.A code , need check the new one ,..
+DEFINE_OVERRIDE_HOOK(0x537BC0, Game_MakeScreenshot, 0)
+{
+	RECT Viewport = {};
+	if (Imports::GetWindowRect.get()(Game::hWnd, &Viewport))
+	{
+		POINT TL = { Viewport.left, Viewport.top }, BR = { Viewport.right, Viewport.bottom };
+		if (Imports::ClientToScreen.get()(Game::hWnd, &TL) && Imports::ClientToScreen.get()(Game::hWnd, &BR))
+		{
+			RectangleStruct ClipRect = { TL.x, TL.y, Viewport.right + 1, Viewport.bottom + 1 };
+
+			DSurface* Surface = DSurface::Primary;
+
+			int width = Surface->Get_Width();
+			int height = Surface->Get_Height();
+
+			size_t arrayLen = width * height;
+
+			if (width < ClipRect.Width)
+			{
+				ClipRect.Width = width;
+			}
+			if (height < ClipRect.Height)
+			{
+				ClipRect.Height = height;
+			}
+
+			WWMouseClass::Instance->HideCursor();
+
+			if (WORD* buffer = reinterpret_cast<WORD*>(Surface->Lock(0, 0)))
+			{
+
+				char fName[0x80];
+
+				SYSTEMTIME time;
+				GetLocalTime(&time);
+
+				_snprintf_s(fName, _TRUNCATE, "SCRN.%04u%02u%02u-%02u%02u%02u-%05u.BMP",
+					time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
+
+				CCFileClass* ScreenShot = GameCreate<CCFileClass>("\0");
+
+				ScreenShot->OpenEx(fName, FileAccessMode::Write);
+
+#pragma pack(push, 1)
+				struct bmpfile_full_header
+				{
+					unsigned char magic[2];
+					DWORD filesz;
+					WORD creator1;
+					WORD creator2;
+					DWORD bmp_offset;
+					DWORD header_sz;
+					DWORD width;
+					DWORD height;
+					WORD nplanes;
+					WORD bitspp;
+					DWORD compress_type;
+					DWORD bmp_bytesz;
+					DWORD hres;
+					DWORD vres;
+					DWORD ncolors;
+					DWORD nimpcolors;
+					DWORD R; //
+					DWORD G; //
+					DWORD B; //
+				} h;
+#pragma pack(pop)
+
+				h.magic[0] = 'B';
+				h.magic[1] = 'M';
+
+				h.creator1 = h.creator2 = 0;
+
+				h.header_sz = 40;
+				h.width = width;
+				h.height = -height; // magic! no need to reverse rows this way
+				h.nplanes = 1;
+				h.bitspp = 16;
+				h.compress_type = BI_BITFIELDS;
+				h.bmp_bytesz = arrayLen * 2;
+				h.hres = 4000;
+				h.vres = 4000;
+				h.ncolors = h.nimpcolors = 0;
+
+				h.R = 0xF800;
+				h.G = 0x07E0;
+				h.B = 0x001F; // look familiar?
+
+				h.bmp_offset = sizeof(h);
+				h.filesz = h.bmp_offset + h.bmp_bytesz;
+
+				ScreenShot->WriteBytes(&h, sizeof(h));
+				std::unique_ptr<WORD[]> pixelData(new WORD[arrayLen]);
+				WORD* pixels = pixelData.get();
+				int pitch = Surface->VideoSurfaceDescription->lPitch;
+				for (int r = 0; r < height; ++r)
+				{
+					memcpy(pixels, reinterpret_cast<void*>(buffer), width * 2);
+					pixels += width;
+					buffer += pitch / 2; // /2 because buffer is a WORD * and pitch is in bytes
+				}
+
+				ScreenShot->WriteBytes(pixelData.get(), arrayLen * 2);
+				ScreenShot->Close();
+				GameDelete(ScreenShot);
+
+				Debug::Log("Wrote screenshot to file %s\n", fName);
+				Surface->Unlock();
+			}
+
+			WWMouseClass::Instance->ShowCursor();
+		}
+	}
+
+	return 0x537DC9;
+}
+
+DEFINE_DISABLE_HOOK(0x679a15 , RulesData_LoadBeforeTypeData_ares)
+
+DEFINE_OVERRIDE_HOOK(0x5d7163, MPGameMode_SpawnStartingUnits_Types, 8)
+{
+	LEA_STACK(DynamicVectorClass<TechnoTypeClass*>*, pInfVec, 0x18);
+	LEA_STACK(DynamicVectorClass<TechnoTypeClass*>*, pUnitVec, 0x30);
+	GET_STACK(HouseClass* , pHouse , 0x4C);
+
+	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
+
+	if (!pTypeExt->StartInMultiplayer_Types.HasValue())
+		return !UnitTypeClass::Array->Count ? 0x5D721A : 0x5D716B; //restore overriden instruction
+
+	if (pTypeExt->StartInMultiplayer_Types.empty())
+		return 0x5D743E;
+
+	for (auto& start : pTypeExt->StartInMultiplayer_Types)
+	{
+		const auto what = start->WhatAmI();
+
+		if (what == UnitTypeClass::AbsID)
+			pUnitVec->AddItem(start);
+		else
+			pInfVec->AddItem(start);
+	}
+
+	return 0x5D72AB;
+}
+
+//[01:25:38] SyringeDebugger::HandleException: Ares.dll [0x5d6d9a , MPGameModeClass_CreateStartingUnits_UnitCost , 6]
 //StartInMultiplayerUnitCost
 
 void FormulateTypeList(std::vector<TechnoTypeClass*>& types, TechnoTypeClass** items, int count, int houseidx)
 {
+	if (!count)
+		return;
+
 	const auto end = items + count;
 	for (auto find = items; find != end; ++find)
 	{
@@ -1518,7 +1744,49 @@ void FormulateTypeList(std::vector<TechnoTypeClass*>& types, TechnoTypeClass** i
 	}
 }
 
-int GetTotalCost(const Nullable<int>& fixed, std::vector<TechnoTypeClass*>& types)
+void GetTypeList(ValueableVector<TechnoTypeClass*>& types)
+{
+	DWORD avaibleHouses = 0u;
+
+	for (auto pHouse : *HouseClass::Array) {
+		if (!pHouse->Type->MultiplayPassive) {
+
+			const auto& data = HouseTypeExtContainer::Instance.Find(pHouse->Type)->StartInMultiplayer_Types;
+			if (!data.empty()) {
+				types.insert(types.end(), data.begin(), data.end());
+			} else {
+				avaibleHouses |= 1 << pHouse->Type->ArrayIndex;
+			}
+		}
+	}
+
+	FormulateTypeList(types, (TechnoTypeClass**)UnitTypeClass::Array->Items, UnitTypeClass::Array->Count, avaibleHouses);
+	FormulateTypeList(types, (TechnoTypeClass**)InfantryTypeClass::Array->Items, InfantryTypeClass::Array->Count, avaibleHouses);
+
+	//remove any `BaseUnit` included 
+	//base unit given for free then ?
+	auto Iter = std::find_if(types.begin() , types.end(), [](TechnoTypeClass* pItem) {
+		for (int i = 0; i < RulesClass::Instance->BaseUnit.Count; ++i) {
+			if (pItem == (RulesClass::Instance->BaseUnit.Items[i])) {
+				return true;
+			}
+		}
+
+		return false;
+	});
+
+	//idk these part 
+	//but lets put it here 
+	//need someone to test this to make sure if the calculation were correct :s
+	//-Otamaa
+	if (Iter != types.end())
+		types.erase(Iter, types.end());
+
+	std::sort(types.begin(), types.end());
+	types.erase(std::unique(types.begin(), types.end()), types.end());
+}
+
+int GetTotalCost(const Nullable<int>& fixed)
 {
 	if (GameModeOptionsClass::Instance->UnitCount <= 0)
 		return 0;
@@ -1527,43 +1795,25 @@ int GetTotalCost(const Nullable<int>& fixed, std::vector<TechnoTypeClass*>& type
 	if (fixed.isset()) {
 		totalCost = fixed;
 	}else{
+
+		ValueableVector<TechnoTypeClass*> types {};
+		GetTypeList(types);
+
 		int total_ = 0;
-		for (auto& tech : types)
-		{
+
+		for (auto& tech : types) {
 			total_ += tech->GetCost();
 		}
 
-		int what = !types.size() ? 1 : types.size();
+		const int what = !types.size() ? 1 : types.size();
 		totalCost = (total_ + (what >> 1)) / what;
-
+		Debug::Log("Unit cost of %d derived from %u units totalling %d credits.\n", totalCost, what, total_);
 	}
 
 	return totalCost * GameModeOptionsClass::Instance->UnitCount;
 }
 
-void GetTypeList()
-{
-	std::vector<TechnoTypeClass*> types;
-
-	DWORD idx = 0u;
-	for (auto pHouse : *HouseClass::Array) {
-		if (!pHouse->Type->MultiplayPassive) {
-
-			const auto& data = HouseTypeExtContainer::Instance.Find(pHouse->Type)->StartInMultiplayer_Types;
-			if (!data.empty()) {
-				types.assign(data.begin(), data.end());
-			}
-			else
-			{
-				idx |= 1 << pHouse->Type->ArrayIndex;
-			}
-		}
-	}
-
-	FormulateTypeList(types, (TechnoTypeClass**)UnitTypeClass::Array->Items, UnitTypeClass::Array->Count, idx);
-	FormulateTypeList(types, (TechnoTypeClass**)InfantryTypeClass::Array->Items, InfantryTypeClass::Array->Count, idx);
-
-	for (auto& base : RulesClass::Instance->BaseUnit) {
-
-	}
+DEFINE_OVERRIDE_HOOK(0x5d6d9a, MPGameModeClass_CreateStartingUnits_UnitCost, 6) {
+	R->EBP(GetTotalCost(RulesExtData::Instance()->StartInMultiplayerUnitCost));
+	return 0x5D6ED6;
 }

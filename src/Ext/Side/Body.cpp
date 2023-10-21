@@ -3,6 +3,16 @@
 #include <ThemeClass.h>
 #include <Utilities/Helpers.h>
 
+UniqueGamePtrB<SHPStruct> SideExtData::s_GraphicalTextImage = nullptr;
+UniqueGamePtr<BytePalette> SideExtData::s_GraphicalTextPalette = nullptr;
+UniqueGamePtrB<ConvertClass> SideExtData::s_GraphicalTextConvert = nullptr;
+
+UniqueGamePtrB<SHPStruct> SideExtData::s_DialogBackgroundImage = nullptr;
+UniqueGamePtr<BytePalette> SideExtData::s_DialogBackgroundPalette = nullptr;
+UniqueGamePtrB<ConvertClass> SideExtData::s_DialogBackgroundConvert = nullptr;
+
+int SideExtData::CurrentLoadTextColor = -1;
+
 void SideExtData::Initialize() {
 
 	const char* pID = this->AttachedToObject->ID;
@@ -12,6 +22,7 @@ void SideExtData::Initialize() {
 		this->EVAIndex = 1;
 		this->MessageTextColorIndex = 11;
 		this->SidebarYuriFileNames = false;
+		this->SidebarMixFileIndex = 2;
 		this->ToolTipTextColor = ColorStruct(255, 255, 0);
 	}
 	else if (IS_SAME_STR_(pID, "ThirdSide"))
@@ -19,6 +30,7 @@ void SideExtData::Initialize() {
 		this->EVAIndex = 2;
 		this->MessageTextColorIndex = 25;
 		this->SidebarYuriFileNames = true;
+		this->SidebarMixFileIndex = 2;
 		this->ToolTipTextColor = ColorStruct(255, 255, 0);
 	}
 	else
@@ -26,6 +38,7 @@ void SideExtData::Initialize() {
 		this->EVAIndex = 0;
 		this->MessageTextColorIndex = 21;
 		this->SidebarYuriFileNames = false;
+		this->SidebarMixFileIndex = 1;
 		this->ToolTipTextColor = ColorStruct(164, 210, 255);
 	}
 
@@ -39,6 +52,8 @@ void SideExtData::Initialize() {
 		this->ScoreCampaignTransition = "ASCRTMD.SHP";
 		this->ScoreCampaignAnimation = "ASCRAMD.SHP";
 		this->ScoreCampaignPalette = "ASCORE.PAL";
+
+		this->ScoreMultiplayBars = "mpascrnlbar~~.pcx";
 		break;
 	case 1: // Soviet
 		this->ScoreMultiplayBackground = "MPSSCRNL.SHP";
@@ -48,6 +63,8 @@ void SideExtData::Initialize() {
 		this->ScoreCampaignTransition = "SSCRTMD.SHP";
 		this->ScoreCampaignAnimation = "SSCRAMD.SHP";
 		this->ScoreCampaignPalette = "SSCORE.PAL";
+
+		this->ScoreMultiplayBars = "mpsscrnlbar~~.pcx";
 		break;
 	default: // Yuri and others
 		this->ScoreMultiplayBackground = "MPYSCRNL.SHP";
@@ -57,9 +74,32 @@ void SideExtData::Initialize() {
 		this->ScoreCampaignTransition = "SYCRTMD.SHP";
 		this->ScoreCampaignAnimation = "SYCRAMD.SHP";
 		this->ScoreCampaignPalette = "YSCORE.PAL";
+
+		this->ScoreMultiplayBars = "mpyscrnlbar~~.pcx";
+
 		break;
 	}
 };
+
+const char* SideExtData::GetMultiplayerScoreBarFilename(unsigned int index) const
+{
+	static char filename[decltype(this->ScoreMultiplayBars)::Size];
+	auto const& data = this->ScoreMultiplayBars.data();
+
+	std::transform(std::begin(data), std::end(data), filename, [](const char& ch) {
+		return static_cast<char>(tolower(static_cast<unsigned char>(ch)));
+	});
+
+	if (auto const pMarker = strstr(filename, "~~"))
+	{
+		char number[3];
+		sprintf_s(number, "%02u", index + 1);
+		pMarker[0] = number[0];
+		pMarker[1] = number[1];
+	}
+
+	return filename;
+}
 
 bool SideExtData::isNODSidebar()
 {
@@ -287,10 +327,6 @@ void SideExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->HunterSeeker.Read(exINI, pSection, "HunterSeeker", true);
 
 	this->ParaDropTypes.Read(exINI, pSection, "ParaDrop.Types" , true);
-
-	// remove all types that cannot paradrop
-	Helpers::Alex::remove_non_paradroppables(this->ParaDropTypes, pSection, "ParaDrop.Types");
-
 	this->ParaDropNum.Read(exINI, pSection, "ParaDrop.Num");
 
 	this->MessageTextColorIndex.Read(exINI, pSection, "MessageTextColor");
@@ -311,8 +347,111 @@ void SideExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->ScoreCampaignTransition.Read(pINI, pSection, "CampaignScore.Transition");
 	this->ScoreCampaignAnimation.Read(pINI, pSection, "CampaignScore.Animation");
 	this->ScoreCampaignPalette.Read(pINI, pSection, "CampaignScore.Palette");
+
+	this->GraphicalTextImage.Read(pINI, pSection, "GraphicalText.Image");
+	this->GraphicalTextPalette.Read(pINI, pSection, "GraphicalText.Palette");
+
+	this->DialogBackgroundImage.Read(pINI, pSection, "DialogBackground.Image");
+	this->DialogBackgroundPalette.Read(pINI, pSection, "DialogBackground.Palette");
+
+	this->ScoreMultiplayBackground.Read(pINI, pSection, "MultiplayerScore.Background");
+	this->ScoreMultiplayPalette.Read(pINI, pSection, "MultiplayerScore.Palette");
+	this->ScoreMultiplayBars.Read(pINI, pSection, "MultiplayerScore.Bars");
+
+	for (unsigned int i = 0; i < 10; ++i) {
+		auto pFilename = this->GetMultiplayerScoreBarFilename(i);
+		if (!PCX::Instance->GetSurface(pFilename)) {
+			PCX::Instance->LoadFile(pFilename);
+		}
+	}
+
+	this->ScoreCampaignThemeUnderPar.Read(pINI, pSection, "CampaignScore.UnderParTheme");
+	this->ScoreCampaignThemeOverPar.Read(pINI, pSection, "CampaignScore.OverParTheme");
+
+	this->ScoreMultiplayThemeWin.Read(pINI, pSection, "MultiplayerScore.WinTheme");
+	this->ScoreMultiplayThemeLose.Read(pINI, pSection, "MultiplayerScore.LoseTheme");
+
+	this->SidebarMixFileIndex.Read(exINI, pSection, "Sidebar.MixFileIndex");
 }
 
+void SideExtData::UpdateGlobalFiles()
+{
+	// clear old data
+	SideExtData::s_GraphicalTextImage = nullptr;
+	SideExtData::s_GraphicalTextConvert = nullptr;
+	SideExtData::s_GraphicalTextPalette = nullptr;
+
+	SideExtData::s_DialogBackgroundImage = nullptr;
+	SideExtData::s_DialogBackgroundConvert = nullptr;
+	SideExtData::s_DialogBackgroundPalette = nullptr;
+
+	int idxSide = ScenarioClass::Instance->PlayerSideIndex;
+	auto pSide = SideClass::Array->GetItemOrDefault(idxSide);
+	auto pExt = SideExtContainer::Instance.Find(pSide);
+
+	if (!pExt)
+	{
+		return;
+	}
+
+	// load graphical text shp
+	if (pExt->GraphicalTextImage)
+	{
+		auto pShp = FileSystem::AllocateFile<SHPStruct>(pExt->GraphicalTextImage);
+		SideExtData::s_GraphicalTextImage.reset(pShp);
+	}
+
+	// load graphical text palette and create convert
+	if (pExt->GraphicalTextPalette)
+	{
+		if (auto pPal = FileSystem::AllocatePalette(pExt->GraphicalTextPalette))
+		{
+			SideExtData::s_GraphicalTextPalette.reset(pPal);
+
+			auto pConvert = GameCreate<ConvertClass>(*pPal, FileSystem::TEMPERAT_PAL(), DSurface::Primary(), 1, false);
+			SideExtData::s_GraphicalTextConvert.reset(pConvert);
+		}
+	}
+
+	// load dialog background shp
+	if (pExt->DialogBackgroundImage)
+	{
+		auto pShp = FileSystem::AllocateFile<SHPStruct>(pExt->DialogBackgroundImage);
+		SideExtData::s_DialogBackgroundImage.reset(pShp);
+	}
+
+	// load dialog background palette and create convert
+	if (pExt->DialogBackgroundPalette)
+	{
+		if (auto pPal = FileSystem::AllocatePalette(pExt->DialogBackgroundPalette))
+		{
+			SideExtData::s_DialogBackgroundPalette.reset(pPal);
+
+			auto pConvert = GameCreate<ConvertClass>(*pPal, *pPal, DSurface::Alternate(), 1, false);
+			SideExtData::s_DialogBackgroundConvert.reset(pConvert);
+		}
+	}
+}
+
+SHPStruct* SideExtData::GetGraphicalTextImage()
+{
+	if (SideExtData::s_GraphicalTextImage)
+	{
+		return SideExtData::s_GraphicalTextImage.get();
+	}
+
+	return FileSystem::GRFXTXT_SHP;
+}
+
+ConvertClass* SideExtData::GetGraphicalTextConvert()
+{
+	if (SideExtData::s_GraphicalTextConvert)
+	{
+		return SideExtData::s_GraphicalTextConvert.get();
+	}
+
+	return FileSystem::GRFXTXT_Convert;
+}
 // =============================
 // load / save
 
@@ -374,18 +513,43 @@ void SideExtData::Serialize(T& Stm)
 
 		.Process(this->ScoreMultiplayBackground)
 		.Process(this->ScoreMultiplayPalette)
+		.Process(this->ScoreMultiplayBars)
 
 		.Process(this->ScoreCampaignBackground)
 		.Process(this->ScoreCampaignTransition)
 		.Process(this->ScoreCampaignAnimation)
 		.Process(this->ScoreCampaignPalette)
+
+		.Process(this->ScoreCampaignThemeUnderPar)
+		.Process(this->ScoreCampaignThemeOverPar)
+		.Process(this->ScoreMultiplayThemeWin)
+		.Process(this->ScoreMultiplayThemeLose)
+
+		.Process(this->SidebarMixFileIndex)
 		;
+}
+
+bool SideExtData::LoadGlobals(PhobosStreamReader& Stm)
+{
+	auto ret = Stm
+		.Process(SideExtData::CurrentLoadTextColor)
+		.Success();
+
+	SideExtData::UpdateGlobalFiles();
+
+	return ret;
+}
+
+bool SideExtData::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return Stm
+		.Process(SideExtData::CurrentLoadTextColor)
+		.Success();
 }
 
 // =============================
 // container
 SideExtContainer SideExtContainer::Instance;
-
 // =============================
 // container hooks
 

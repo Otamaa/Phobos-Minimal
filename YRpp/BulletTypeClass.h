@@ -25,6 +25,13 @@ public:
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<BulletTypeClass*>, 0xA83C80u> const Array {};
 
+	//static void __fastcall Allocate(const char* pID) {
+	//	if (!pID || !*pID || !CRT::strlen(pID) , GameStrings::IsBlank(pID))
+	//		return;
+	//
+	//	GameCreate<BulletTypeClass>(pID);
+	//}
+
 	IMPL_Find(BulletTypeClass)
 
 	static BulletTypeClass* __fastcall FindOrAllocate(const char* pID) {

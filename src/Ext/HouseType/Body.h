@@ -46,10 +46,27 @@ public:
 	Nullable<bool> Degrades {};
 	Nullable<InfantryTypeClass*> Disguise {};
 
-	ValueableVector<TechnoTypeClass*> StartInMultiplayer_Types {};
+	NullableVector<TechnoTypeClass*> StartInMultiplayer_Types {};
 
 	PhobosFixedString<0x20> LoadScreenBackground {};
 	PhobosFixedString<0x20> LoadScreenPalette {};
+
+	ValueableIdx<ColorScheme> LoadTextColor { -1 }; //The text color used for non-Campaign modes
+	Valueable<unsigned int> RandomSelectionWeight { 1 };
+
+	Valueable<CSFText> LoadScreenName {};
+	Valueable<CSFText> LoadScreenSpecialName {};
+	Valueable<CSFText> LoadScreenBrief {};
+
+	Valueable<CSFText> StatusText {};
+
+	PhobosPCXFile FlagFile {}; //Flag
+	PhobosPCXFile ObserverFlag {};
+	SHPStruct* ObserverFlagSHP {};
+	Valueable<bool> ObserverFlagYuriPAL { false };
+
+	PhobosPCXFile ObserverBackground {};
+	SHPStruct* ObserverBackgroundSHP {};
 
 	HouseTypeExtData(base_type* OwnerObject) noexcept
 	{
@@ -70,6 +87,7 @@ public:
 	Iterator<BuildingTypeClass*> GetPowerplants() const;
 	Iterator<BuildingTypeClass*> GetDefaultPowerplants() const;
 
+	static int PickRandomCountry();
 private:
 	template <typename T>
 	void Serialize(T& Stm);

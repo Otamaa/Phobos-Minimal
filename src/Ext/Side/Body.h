@@ -74,11 +74,26 @@ public:
 
 	PhobosFixedString<0x20> ScoreMultiplayBackground {};
 	PhobosFixedString<0x20> ScoreMultiplayPalette {};
+	PhobosFixedString<0x20> ScoreMultiplayBars {};
 
 	PhobosFixedString<0x20> ScoreCampaignBackground {};
 	PhobosFixedString<0x20> ScoreCampaignTransition {};
 	PhobosFixedString<0x20> ScoreCampaignAnimation {};
 	PhobosFixedString<0x20> ScoreCampaignPalette {};
+
+	PhobosFixedString<0x20> GraphicalTextImage {};
+	PhobosFixedString<0x20> GraphicalTextPalette {};
+
+	PhobosFixedString<0x20> DialogBackgroundImage {};
+	PhobosFixedString<0x20> DialogBackgroundPalette {};
+
+	PhobosFixedString<0x20> ScoreCampaignThemeUnderPar {};
+	PhobosFixedString<0x20> ScoreCampaignThemeOverPar {};
+
+	PhobosFixedString<0x20> ScoreMultiplayThemeWin {};
+	PhobosFixedString<0x20> ScoreMultiplayThemeLose {};
+
+	Valueable<int> SidebarMixFileIndex { -1 };
 
 	SideExtData(base_type* OwnerObject) noexcept
 	{
@@ -118,11 +133,25 @@ public:
 	InfantryTypeClass* GetDefaultDisguise() const;
 
 	static bool isNODSidebar();
+	static void UpdateGlobalFiles();
 
-	void EvalueateTechnoTypes()
-	{
+	static int CurrentLoadTextColor;
 
-	}
+	static UniqueGamePtrB<SHPStruct> s_GraphicalTextImage;
+	static UniqueGamePtr<BytePalette> s_GraphicalTextPalette;
+	static UniqueGamePtrB<ConvertClass> s_GraphicalTextConvert;
+
+	static UniqueGamePtrB<SHPStruct> s_DialogBackgroundImage;
+	static UniqueGamePtr<BytePalette> s_DialogBackgroundPalette;
+	static UniqueGamePtrB<ConvertClass> s_DialogBackgroundConvert;
+
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
+	static SHPStruct* GetGraphicalTextImage();
+	static ConvertClass* GetGraphicalTextConvert();
+
+	const char* GetMultiplayerScoreBarFilename(unsigned int index) const;
 private:
 	template <typename T>
 	void Serialize(T& Stm);

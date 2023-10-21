@@ -58,8 +58,6 @@ void SW_DropPod::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 	pData->DropPod_Veterancy.Read(exINI, section, "DropPod.Veterancy");
 	pData->DropPod_Types.Read(exINI, section, "DropPod.Types");
 
-	Helpers::Alex::remove_non_paradroppables(pData->DropPod_Types, section, "DropPod.Types");
-
 	pData->Droppod_RetryCount.Read(exINI, section, "DropPod.RetryCount");
 
 	pData->Droppod_PodImage_Infantry.Read(exINI, section, "DropPod.PodImageInfantry");

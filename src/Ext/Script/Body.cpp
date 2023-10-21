@@ -1950,7 +1950,7 @@ void ScriptExtData::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeam
 	SuperClass* pSuperChronosphere = nullptr;
 	SuperClass* pSuperChronowarp = nullptr;
 
-	for (auto const pSuper : pOwner->Supers)
+	for (auto& pSuper : pOwner->Supers)
 	{
 		if (!pSuperChronosphere && pSuper->Type->Type == SuperWeaponType::ChronoSphere)
 			pSuperChronosphere = pSuper;

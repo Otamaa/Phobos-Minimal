@@ -17,10 +17,10 @@ void AttachEffectType::LoadFromINI(CCINIClass* pINI)
 	if (exINI.ReadString(pSection, "AffectTypes"))
 	{
 		char* context = nullptr;
-		for (char* cur = CRT::strtok(exINI.value(),
+		for (char* cur = strtok_s(exINI.value(),
 			Phobos::readDelims, &context);
 			cur;
-			cur = CRT::strtok(nullptr, Phobos::readDelims,
+			cur = strtok_s(nullptr, Phobos::readDelims,
 			&context)) {
 			AffectTypes.push_back(cur);
 		}
@@ -29,10 +29,10 @@ void AttachEffectType::LoadFromINI(CCINIClass* pINI)
 	if (exINI.ReadString(pSection, "NotAffectTypes"))
 	{
 		char* context = nullptr;
-		for (char* cur = CRT::strtok(exINI.value(),
+		for (char* cur = strtok_s(exINI.value(),
 			Phobos::readDelims, &context);
 			cur;
-			cur = CRT::strtok(nullptr, Phobos::readDelims,
+			cur = strtok_s(nullptr, Phobos::readDelims,
 			&context)) {
 			NotAffectTypes.push_back(cur);
 		}
@@ -283,7 +283,7 @@ void AttachEffectType::LoadFromINI(CCINIClass* pINI)
 		{
 			int nCount = 0;
 			char* context = nullptr;
-			for (char* cur = CRT::strtok(exINI.value(), Phobos::readDelims, &context); cur; cur = CRT::strtok(nullptr, Phobos::readDelims, &context))
+			for (char* cur = strtok_s(exINI.value(), Phobos::readDelims, &context); cur; cur = CRT::strtok(nullptr, Phobos::readDelims, &context))
 			{
 				if (Phobos::Config::MoreDetailSLDebugLog)
 					Debug::Log("Parsing %d Size of [%s]%s=%s idx[%d] \n", nBaseSize, pSection, pNumKey, cur, nCount);
