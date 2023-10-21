@@ -84,7 +84,7 @@ void DumperTypesCommandClass::Execute(WWKey dwUnk) const
 	LogType<TaskForceClass>("TaskForces");
 
 	Debug::Log("[AITriggerTypes]\n");
-	for (auto const& pItem : *AITriggerTypeClass::Array)
+	for (auto const pItem : *AITriggerTypeClass::Array)
 	{
 		char Buffer[1024];
 		pItem->FormatForSaving(Buffer, sizeof(Buffer));
@@ -92,7 +92,7 @@ void DumperTypesCommandClass::Execute(WWKey dwUnk) const
 	}
 
 	Debug::Log("[AITriggerTypesEnable]\n");
-	for (auto const& pItem : *AITriggerTypeClass::Array)
+	for (auto const pItem : *AITriggerTypeClass::Array)
 	{
 		Debug::Log("%X = %s\n", pItem->get_ID(), pItem->IsEnabled ? "yes" : "no");
 	}

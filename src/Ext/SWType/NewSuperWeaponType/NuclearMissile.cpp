@@ -154,7 +154,7 @@ int SW_NuclearMissile::GetDamage(const SWTypeExtData* pData) const
 
 BuildingClass* SW_NuclearMissile::GetAlternateLauchSite(const SWTypeExtData* pData, SuperClass* pThis)
 {
-	for (auto pBuilding : pThis->Owner->Buildings) {
+	for (auto& pBuilding : pThis->Owner->Buildings) {
 		if (!this->IsLaunchsiteAlive(pBuilding))
 			continue;
 

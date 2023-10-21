@@ -493,19 +493,26 @@ public:
 
 	~PhobosPCXFile() = default;
 
+	PhobosPCXFile(const PhobosPCXFile& other) = default;
+	PhobosPCXFile& operator=(const PhobosPCXFile& other) = default;
+
 	PhobosPCXFile& operator = (const char* pFilename) {
 
-		if(strlen(pFilename) && *pFilename) {
-			this->filename = pFilename;
-			auto& data = this->filename.data();
-			_strlwr_s(data);
-
-			BSurface* pSource = PCX::Instance->GetSurface(this->filename);
-			if( !pSource && PCX::Instance->LoadFile(this->filename))
-				pSource = PCX::Instance->GetSurface(this->filename);
-
-			this->Surface = pSource;
+		// fucker
+		if (!pFilename || !*pFilename || !strlen(pFilename)) {
+			this->Clear();
+			return *this;
 		}
+
+		this->filename = pFilename;
+		auto& data = this->filename.data();
+		_strlwr_s(data);
+
+		BSurface* pSource = PCX::Instance->GetSurface(this->filename);
+		if (!pSource && PCX::Instance->LoadFile(this->filename))
+			pSource = PCX::Instance->GetSurface(this->filename);
+
+		this->Surface = pSource;
 
 		return *this;
 	}
@@ -524,13 +531,20 @@ public:
 
 	bool Read(INIClass* pINI, const char* pSection, const char* pKey, const char* pDefault = "") {
 		char buffer[Capacity];
-		if (pINI->ReadString(pSection, pKey, pDefault, buffer)  > 0) {
-			*this = buffer;
+		if (pINI->ReadString(pSection, pKey, pDefault, buffer) > 0) {
+
+			std::string cachedWithExt = _strlwr(buffer);
+
+			if (cachedWithExt.find(".pcx") == std::string::npos)
+				cachedWithExt += ".pcx";
+
+			*this = cachedWithExt.c_str();
 
 			if (this->filename && !this->Surface) {
 				Debug::INIParseFailed(pSection, pKey, this->filename, "PCX file not found.");
 			}
 		}
+
 		return buffer[0] != 0;
 	}
 
@@ -577,9 +591,6 @@ private:
 	BSurface* Surface;
 	FixedString<Capacity> filename;
 
-protected:
-	PhobosPCXFile(const PhobosPCXFile& other) = delete;
-	PhobosPCXFile& operator=(const PhobosPCXFile& other) = delete;
 };
 
 // provides storage for a csf label with automatic lookup.

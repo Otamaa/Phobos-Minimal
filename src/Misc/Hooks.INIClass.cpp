@@ -317,7 +317,7 @@ DEFINE_HOOK(0x474230, CCINIClass_Load_Inheritance, 0x5)
 	if (!section)
 		return 0;
 
-	for (auto node : section->EntryIndex)
+	for (auto& node : section->EntryIndex)
 	{
 		if (!node.Data || !node.Data->Value || !*node.Data->Value)
 			continue;

@@ -97,9 +97,6 @@ void SW_ParaDrop::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 		IMPL_SNPRNINTF(key, _TRUNCATE, "%s.Types", base);
 		pPlane->Types.Read(exINI, section, key);
 
-		// remove all types that cannot paradrop
-		Helpers::Alex::remove_non_paradroppables(pPlane->Types, section, key);
-
 		// don't parse nums if there are no types
 		if (!pPlane->Aircraft && pPlane->Types.empty())
 		{

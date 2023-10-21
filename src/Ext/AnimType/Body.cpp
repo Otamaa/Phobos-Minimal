@@ -321,6 +321,15 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 	}
 }
 
+void AnimTypeExtData::ValidateData() {
+
+	if (this->CreateUnit && this->CreateUnit->Strength == 0){
+		Debug::Log("AnimType[%s] With[%s] CreateUnit strength 0 !\n" , this->AttachedToObject->ID , this->CreateUnit->ID);
+		this->CreateUnit = nullptr;
+		Debug::RegisterParserError();
+	}
+}
+
 void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller)
 {
 	const auto location = pThis->GetCoords();

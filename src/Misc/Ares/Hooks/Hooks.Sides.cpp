@@ -1,6 +1,28 @@
 #include <Ext/HouseType/Body.h>
 #include <Ext/Side/Body.h>
 
+DEFINE_DISABLE_HOOK(0x6a4609, SideClass_CTOR_ares)
+DEFINE_DISABLE_HOOK(0x6a4780, SideClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x6a488b, SideClass_Load_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x6a48a0, SideClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x6a48fc, SideClass_Save_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x6a499f, SideClass_SDDTOR_ares)
+DEFINE_DISABLE_HOOK(0x679a10, SideClass_LoadAllFromINI_ares)
+
+DEFINE_OVERRIDE_HOOK(0x534FB1, Sides_MixFileIndex, 5)
+{
+	GET(int, n, ESI);
+
+	int MixIdx = n;
+	if (n >= 0)
+		MixIdx = SideExtContainer::Instance.Find(SideClass::Array->GetItem(n))->SidebarMixFileIndex - 1;
+
+	R->EBX(MixIdx);
+	R->ESI(MixIdx);
+	R->Stack(0x10, MixIdx);
+	return ((MixIdx >> 0x1F) & 0xFFFFFFC3) + 0x535003;
+}
+
 DWORD MixFileYuriFiles(REGISTERS* R, DWORD dwReturnAddress1, DWORD dwReturnAddress2)
 {
 	GET(ScenarioClass*, pScen, EAX);
@@ -134,4 +156,260 @@ DEFINE_OVERRIDE_HOOK(0x72B690, LoadScreenPal_Load, 0)
 	ConvertClass::CreateFromFile(pPALFile, *ppPalette, *ppDestination);
 
 	return 0x72B804;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6847B7, ScenarioClass_PrepareMapAndUDP, 6)
+{
+	GET(HouseTypeClass*, pType, EAX);
+
+	SideExtData::CurrentLoadTextColor = -1;
+
+	if (auto pData = HouseTypeExtContainer::Instance.Find(pType)) {
+		if (pData->LoadTextColor != -1) {
+			SideExtData::CurrentLoadTextColor = pData->LoadTextColor;
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x686D7F, INIClass_ReadScenario_CacheSP, 6)
+{
+	LEA_STACK(INIClass*, pINI, 0x1C);
+
+	const char* pDefault = "";
+	const char* pID = ScenarioClass::Instance->FileName;
+
+	if (!CRT::_strnicmp(pID, "SOV", 3))
+	{
+		pDefault = "SovietLoad";
+	}
+	else if (!CRT::_strnicmp(pID, "YUR", 3))
+	{
+		pDefault = "YuriLoad";
+	}
+	else if (!CRT::_strnicmp(pID, "TUT", 3))
+	{
+		pDefault = "LightGrey";
+	}
+	else
+	{
+		pDefault = "AlliedLoad";
+	}
+
+	SideExtData::CurrentLoadTextColor = -1;
+
+	if (pINI->ReadString(ScenarioClass::Instance->FileName, "LoadScreenText.Color", pDefault, Phobos::readBuffer)) {
+		if (ColorScheme* pCS = ColorScheme::Find(Phobos::readBuffer)) {
+			SideExtData::CurrentLoadTextColor = pCS->ArrayIndex; // TODO: check if off by one. see ColorScheme.h
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x53534C, Game_LoadUI_LoadSideData, 7)
+{
+	SideExtData::UpdateGlobalFiles();
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6D4E79, TacticalClass_DrawOverlay_GraphicalText, 6)
+{
+	auto pConvert = SideExtData::GetGraphicalTextConvert();
+	auto pShp = SideExtData::GetGraphicalTextImage();
+
+	R->EBX(pConvert);
+	R->ESI(pShp);
+
+	return (pConvert && pShp) ? 0x6D4E8D : 0x6D4EF4;
+}
+
+DEFINE_OVERRIDE_HOOK(0x622223, sub_621E90_DialogBackground, 6)
+{
+	auto pShp = SideExtData::s_DialogBackgroundImage.get();
+	auto pConvert = SideExtData::s_DialogBackgroundConvert.get();
+
+	R->EDI(pShp);
+	R->EAX(pConvert);
+
+	return (pConvert && pShp) ? 0x62226A : 0;
+}
+
+// music piece when loading a match or mission
+int idxLoadingTheme = -2;
+
+DEFINE_OVERRIDE_HOOK(0x683C70, sub_683AB0_LoadingScoreA, 7)
+{
+	LEA_STACK(CCINIClass*, pINI, STACK_OFFS(0xFC, 0xE0));
+
+	// magic value for the default loading theme
+	idxLoadingTheme = -2;
+
+	if (SessionClass::Instance->GameMode == GameMode::Campaign) {
+		// single player missions read from the scenario
+		idxLoadingTheme = pINI->ReadTheme("Basic", "LoadingTheme", -2);
+
+	}
+	else {
+		// override the default for multiplayer matches
+		if (auto pSpot = SessionClass::Instance->StartSpots.GetItemOrDefault(0)) {
+			if (auto pType = HouseTypeClass::Array->GetItemOrDefault(pSpot->Country)) {
+				// get theme from the side
+				if(auto pSide = SideClass::Array->GetItemOrDefault(pType->SideIndex)){
+					idxLoadingTheme = CCINIClass::INI_Rules()->ReadTheme(pSide->ID, "LoadingTheme", -2);
+
+					// ...then from the house
+					idxLoadingTheme = CCINIClass::INI_Rules()->ReadTheme(pType->ID, "LoadingTheme", idxLoadingTheme);
+				}
+			}
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x683D05, sub_683AB0_LoadingScoreB, 5)
+{
+	R->EAX(idxLoadingTheme);
+	return (idxLoadingTheme == -2) ? 0 : 0x683D14;
+}
+
+DEFINE_OVERRIDE_HOOK(0x5C9B75, Global_DrawScoreScreen_ScoreTheme, 5)
+{
+	REF_STACK(const char*, pTheme, 0x0);
+
+	if (!HouseClass::IsCurrentPlayerObserver())
+	{
+		if(auto pSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex)){
+			pTheme = HouseClass::CurrentPlayer->Defeated
+				? SideExtContainer::Instance.Find(pSide)->ScoreMultiplayThemeLose
+				: SideExtContainer::Instance.Find(pSide)->ScoreMultiplayThemeWin;
+		}
+	}
+
+	return 0;
+}
+
+DWORD LoadTextColor(REGISTERS* R, DWORD dwReturnAddress)
+{
+	// if there is a cached LoadTextColor, use that.
+	if (auto pCS = ColorScheme::Array->GetItemOrDefault(SideExtData::CurrentLoadTextColor)) {
+		R->EAX(pCS);
+		return dwReturnAddress;
+	}
+
+	return 0;
+}
+
+// WRONG! Stoopidwood passes CD= instead of Side= into singleplayer campaigns, TODO: fix that shit
+DEFINE_OVERRIDE_HOOK(0x642B36, Sides_LoadTextColor1, 5)
+{ return LoadTextColor(R, 0x68CAA9); }
+
+// WRONG! Stoopidwood passes CD= instead of Side= into singleplayer campaigns, TODO: fix that shit
+DEFINE_OVERRIDE_HOOK(0x643BB9, Sides_LoadTextColor2, 5)
+{ return LoadTextColor(R, 0x643BEF); }
+
+DEFINE_OVERRIDE_HOOK(0x642B91, Sides_LoadTextColor3, 5)
+{ return LoadTextColor(R, 0x68CAA9); }
+
+DEFINE_OVERRIDE_HOOK(0x5CA110, Game_GetMultiplayerScoreScreenBar, 5)
+{
+	GET(unsigned int, idxBar, ECX);
+
+	BSurface* ret = nullptr;
+	if (auto pSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex)){
+		ret = PCX::Instance->GetSurface(SideExtContainer::Instance.Find(pSide)->GetMultiplayerScoreBarFilename(idxBar));
+	}
+
+	R->EAX(ret);
+	return 0x5CA41D;
+}
+
+// issue 906
+// do not draw a box below the label text if there is none.
+DEFINE_OVERRIDE_HOOK(0x553E54, LoadProgressMgr_Draw_SkipShadowOnNullString, 6)
+{
+	GET(wchar_t*, pBrief, ESI);
+
+	if (!pBrief || !CRT::wcslen(pBrief))
+	{
+		return 0x554027;
+	}
+
+	return 0;
+}
+
+// do not draw a box for the country name.
+DEFINE_OVERRIDE_HOOK(0x553820, LoadProgressMgr_Draw_SkipShadowOnNullString2, 5)
+{
+	GET(wchar_t*, pCountry, EDI);
+
+	if (!pCountry || !CRT::wcslen(pCountry))
+	{
+		return 0x5539E4;
+	}
+
+	return 0;
+}
+
+// do not draw a box for an empty LoadingEx string
+DEFINE_OVERRIDE_HOOK(0x55403D, LoadProgressMgr_Draw_SkipShadowOnNullString3, 6)
+{
+	GET(wchar_t*, pLoading, EAX);
+
+	if (!pLoading || !CRT::wcslen(pLoading))
+	{
+		return 0x554097;
+	}
+
+	return 0;
+}
+
+// score music for single player missions
+static const char* pSinglePlayerScoreTheme = nullptr;
+
+DEFINE_OVERRIDE_HOOK(0x6C922C, ScoreDialog_Handle_ScoreThemeA, 5)
+{
+	GET(int, elapsed, EDI);
+	GET(int, par, ESI);
+
+	auto pScen = ScenarioClass::Instance();
+	const char* pTitle = nullptr;
+	const char* pMessage = nullptr;
+	auto pSide = SideClass::Array->GetItemOrDefault(pScen->PlayerSideIndex);
+
+	// replicate skipped instructions, and also update the score id
+
+	if (elapsed > par)
+	{
+		pTitle = pScen->OverParTitle;
+		pMessage = pScen->OverParMessage;
+
+		if(pSide)
+			pSinglePlayerScoreTheme = SideExtContainer::Instance.Find(pSide)->ScoreCampaignThemeOverPar;
+	}
+	else
+	{
+		pTitle = pScen->UnderParTitle;
+		pMessage = pScen->UnderParMessage;
+
+		if (pSide)
+			pSinglePlayerScoreTheme = SideExtContainer::Instance.Find(pSide)->ScoreCampaignThemeUnderPar;
+	}
+
+	R->ECX(pTitle);
+	R->ESI(pMessage);
+	return 0x6C924F;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6C935C, ScoreDialog_Handle_ScoreThemeB, 5)
+{
+	REF_STACK(const char*, pTheme, 0x0);
+
+	if (pSinglePlayerScoreTheme) {
+		pTheme = pSinglePlayerScoreTheme;
+	}
+
+	return 0;
 }

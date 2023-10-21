@@ -3808,6 +3808,11 @@ DEFINE_HOOK(0x6F7D90, TechnoClass_Threat_Forbidden, 0x6)
 		if(pTechno->IsCrashing || pTechno->IsSinking)
 			return 0x6F894F;
 
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
+
+		if(pTypeExt->IsDummy)
+			return 0x6F894F;
+
 		switch (pTechno->WhatAmI())
 		{
 		case AbstractType::Building:{
@@ -4128,6 +4133,7 @@ DEFINE_HOOK(0x6FFD25, TechnoClass_PlayerAssignMission_Capture_InfantryToBld, 0xA
 	return 0x0;
 }
 
+static_assert(offsetof(TechnoClass, Airstrike) == 0x294, "ClassMember Shifted !");
 //#include <Ext/Cell/Body.h>
 
 //TODO : another place to reset ?

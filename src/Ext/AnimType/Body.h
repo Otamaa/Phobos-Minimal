@@ -111,6 +111,7 @@ public:
 	static void CreateUnit_MarkCell(AnimClass* pThis);
 	static void CreateUnit_Spawn(AnimClass* pThis);
 
+	void ValidateData();
 private:
 	template <typename T>
 	void Serialize(T& Stm);

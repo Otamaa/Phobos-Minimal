@@ -22,8 +22,10 @@
 #include <Ext/AnimType/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <Ext/BulletType/Body.h>
+#include <Ext/HouseType/Body.h>
 
 #include <Utilities/Macro.h>
+#include <Utilities/Helpers.h>
 
 #include <Misc/DynamicPatcher/Trails/TrailType.h>
 
@@ -168,9 +170,10 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		const auto myClassName = pItem->GetThisClassName();
 		bool WeederAndHarvesterWarning = false;
 
-		if (pItem->Strength == 0) {
-
-			if(!IsVanillaDummy(pItem->ID)){
+		if (pItem->Strength <= 0)
+		{
+			if (!IsVanillaDummy(pItem->ID) || !pExt->IsDummy)
+			{
 				Debug::Log("TechnoType[%s - %s] , registered with 0 strength"
 					", this mostlikely because this technotype has no rules entry"
 					" or it is suppose to be an dummy\n", pItem->ID, myClassName);
@@ -186,7 +189,26 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		// 		pExt->AIIonCannonValue.push_back(0);
 		// }
 
-		if (pItem->DebrisTypes.Count > 0 && pItem->DebrisMaximums.Count < pItem->DebrisTypes.Count) {
+		if (pExt->Promote_Vet_Type && pExt->Promote_Vet_Type->Strength <= 0)
+		{
+			Debug::Log("TechnoType[%s - %s] , registered PromoteVet[%s] with 0 strength , Fixing.\n", 
+				pItem->ID, myClassName , pExt->Promote_Vet_Type->ID);
+
+			pExt->Promote_Vet_Type = nullptr;
+			Debug::RegisterParserError();
+		}
+
+		if (pExt->Promote_Elite_Type && pExt->Promote_Elite_Type->Strength <= 0)
+		{
+			Debug::Log("TechnoType[%s - %s] , registered PromoteElite[%s] with 0 strength , Fixing.\n",
+				pItem->ID, myClassName, pExt->Promote_Elite_Type->ID);
+
+			pExt->Promote_Elite_Type = nullptr;
+			Debug::RegisterParserError();
+		}
+
+		if (pItem->DebrisTypes.Count > 0 && pItem->DebrisMaximums.Count < pItem->DebrisTypes.Count)
+		{
 			Debug::Log("TechnoType[%s - %s] DebrisMaximums items count is less than"
 			" DebrisTypes items count it will fail when the index counter reached DebrisMaximus items count\n"
 			, pItem->ID, myClassName
@@ -194,41 +216,48 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			Debug::RegisterParserError();
 		}
 
-		if (pExt->Fake_Of.Get(nullptr) && pExt->Fake_Of->WhatAmI() != what) {
-			Debug::Log("[%s - %s] has fake of but it different ClassType from it!\n", pItem->ID , myClassName);
+		if (pExt->Fake_Of.Get(nullptr) && pExt->Fake_Of->WhatAmI() != what)
+		{
+			Debug::Log("[%s - %s] has fake of but it different ClassType from it!\n", pItem->ID, myClassName);
 			pExt->Fake_Of.Reset();
 			Debug::RegisterParserError();
 		}
 
-		if (pExt->ClonedAs.Get(nullptr) && pExt->ClonedAs->WhatAmI() != what) {
+		if (pExt->ClonedAs.Get(nullptr) && pExt->ClonedAs->WhatAmI() != what)
+		{
 			Debug::Log("[%s - %s] has ClonedAs but it different ClassType from it!\n", pItem->ID, myClassName);
 			pExt->ClonedAs.Reset();
 			Debug::RegisterParserError();
 		}
 
-		if (pExt->AI_ClonedAs.Get(nullptr) && pExt->AI_ClonedAs->WhatAmI() != what) {
+		if (pExt->AI_ClonedAs.Get(nullptr) && pExt->AI_ClonedAs->WhatAmI() != what)
+		{
 			Debug::Log("[%s - %s] has AI.ClonedAs but it different ClassType from it!\n", pItem->ID, myClassName);
 			pExt->AI_ClonedAs.Reset();
 			Debug::RegisterParserError();
 		}
 
-		if (pExt->ReversedAs.Get(nullptr) && pExt->ReversedAs->WhatAmI() != what) {
+		if (pExt->ReversedAs.Get(nullptr) && pExt->ReversedAs->WhatAmI() != what)
+		{
 			Debug::Log("[%s - %s] has ReversedAs but it different ClassType from it!\n", pItem->ID, pItem->ID, myClassName);
 			pExt->ReversedAs.Reset();
 			Debug::RegisterParserError();
 		}
 
-		if(isFoot && !pExt->IsDummy && pItem->SpeedType == SpeedType::None) {
+		if (isFoot && !pExt->IsDummy && pItem->SpeedType == SpeedType::None)
+		{
 			Debug::Log("[%s - %s]SpeedType is invalid!\n", pItem->ID, myClassName);
 			Debug::RegisterParserError();
 		}
 
-		if(isFoot && !pExt->IsDummy && pItem->MovementZone == MovementZone::None) {
+		if (isFoot && !pExt->IsDummy && pItem->MovementZone == MovementZone::None)
+		{
 			Debug::Log("[%s - %s]MovementZone is invalid!\n", pItem->ID, myClassName);
 			Debug::RegisterParserError();
 		}
 
-		if(pItem->Passengers > 0 && pItem->SizeLimit < 1) {
+		if (pItem->Passengers > 0 && pItem->SizeLimit < 1)
+		{
 			Debug::Log("[%s - %s]Passengers=%d and SizeLimit=%d!\n",
 				pItem->ID, myClassName, pItem->Passengers, pItem->SizeLimit);
 			Debug::RegisterParserError();
@@ -241,22 +270,26 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 				auto shadowIdx = pItem->ShadowIndex;
 				auto layerCount = pHVA->LayerCount;
 
-				if (shadowIdx >= layerCount) {
+				if (shadowIdx >= layerCount)
+				{
 					Debug::Log("ShadowIndex on [%s]'s image is %d, but the HVA only has %d sections.\n",
-						pItem->ID, shadowIdx , layerCount);
+						pItem->ID, shadowIdx, layerCount);
 					Debug::RegisterParserError();
 				}
 			}
 		}
 
-		if(pItem->PoweredUnit && !pExt->PoweredBy.empty()) {
+		if (pItem->PoweredUnit && !pExt->PoweredBy.empty())
+		{
 			Debug::Log("[%s - %s] uses both PoweredUnit=yes and PoweredBy=!\n", pItem->ID, myClassName);
 			pItem->PoweredUnit = false;
 			Debug::RegisterParserError();
 		}
 
-		if(auto const pPowersUnit = pItem->PowersUnit) {
-			if(!TechnoTypeExtContainer::Instance.Find(pPowersUnit)->PoweredBy.empty()) {
+		if (auto const pPowersUnit = pItem->PowersUnit)
+		{
+			if (!TechnoTypeExtContainer::Instance.Find(pPowersUnit)->PoweredBy.empty())
+			{
 				Debug::Log("[%s]PowersUnit=%s, but [%s] uses PoweredBy=!\n",
 					pItem->ID, pPowersUnit->ID, pPowersUnit->ID);
 				pItem->PowersUnit = nullptr;
@@ -266,18 +299,22 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 		// if empty, set survivor pilots to the corresponding side's Crew
 		{
-			const size_t count = MinImpl( pExt->Survivors_Pilots.size(), Crews.size());
+			const size_t count = MinImpl(pExt->Survivors_Pilots.size(), Crews.size());
 
-			for (size_t j = 0; j < count; ++j) {
-				if (!pExt->Survivors_Pilots[j]) {
+			for (size_t j = 0; j < count; ++j)
+			{
+				if (!pExt->Survivors_Pilots[j])
+				{
 					pExt->Survivors_Pilots[j] = Crews[j];
 				}
 			}
 		}
 
-		for(int k = static_cast<int>(pExt->ClonedAt.size()) - 1; k >= 0; --k) {
+		for (int k = static_cast<int>(pExt->ClonedAt.size()) - 1; k >= 0; --k)
+		{
 			auto const pCloner = pExt->ClonedAt[k];
-			if(pCloner->Factory != AbstractType::None) {
+			if (pCloner->Factory != AbstractType::None)
+			{
 				pExt->ClonedAt.erase(pExt->ClonedAt.begin() + k);
 				Debug::Log("[%s]ClonedAt includes %s, but %s has Factory= settings. "
 					"This combination is not supported.\n(Protip: Factory= is "
@@ -288,36 +325,44 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			}
 		}
 
-		if(isFoot) {
+		if (isFoot)
+		{
 
-			for (auto pSuper : *SuperWeaponTypeClass::Array) {
-				const auto pSuperExt = SWTypeExtContainer::Instance.Find(pSuper);
-				if (!pSuperExt->Aux_Techno.empty() && pSuperExt->Aux_Techno.Contains(pItem)) {
-					if(pExt->Linked_SW.Find(pSuper) == pExt->Linked_SW.end())
-						pExt->Linked_SW.push_back(pSuper);
+			for (auto pSuper : *SuperWeaponTypeClass::Array)
+			{
+				if(const auto pSuperExt = SWTypeExtContainer::Instance.Find(pSuper)){
+					if (!pSuperExt->Aux_Techno.empty() && pSuperExt->Aux_Techno.Contains(pItem)) {
+						if (pExt->Linked_SW.Find(pSuper) == pExt->Linked_SW.end())
+							pExt->Linked_SW.push_back(pSuper);
+					}
 				}
 			}
 
-			if(what == InfantryTypeClass::AbsID){
-				WarheadTypeClass::Array->for_each([&](WarheadTypeClass* pWarhead) {
-				 if (auto const pExt = WarheadTypeExtContainer::Instance.TryFind(pWarhead)) {
+			if (what == InfantryTypeClass::AbsID)
+			{
+				WarheadTypeClass::Array->for_each([&](WarheadTypeClass* pWarhead)
+ {
+	 if (auto const pExt = WarheadTypeExtContainer::Instance.TryFind(pWarhead))
+	 {
 
-					AnimTypeClass* nBuffer;
-					IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.InfDeathAnim", pItem->ID);
+		 AnimTypeClass* nBuffer;
+		 IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.InfDeathAnim", pItem->ID);
 
-					if (!detail::read(nBuffer , iniEX, pWarhead->ID, buffer) || !nBuffer)
-						return;
+		 if (!detail::read(nBuffer, iniEX, pWarhead->ID, buffer) || !nBuffer)
+			 return;
 
-					//Debug::Log("Found specific InfDeathAnim for [WH : %s Inf : %s Anim %s]\n", pWarhead->ID, pInfType->ID, nBuffer->ID);
-					pExt->InfDeathAnims[((InfantryTypeClass*)pItem)->ArrayIndex] = nBuffer;
-				 }
+		 //Debug::Log("Found specific InfDeathAnim for [WH : %s Inf : %s Anim %s]\n", pWarhead->ID, pInfType->ID, nBuffer->ID);
+		 pExt->InfDeathAnims[((InfantryTypeClass*)pItem)->ArrayIndex] = nBuffer;
+	 }
 				});
 			}
 
-			if (what == UnitTypeClass::AbsID) {
+			if (what == UnitTypeClass::AbsID)
+			{
 				const auto pUnit = (UnitTypeClass*)pItem;
 
-				if (pUnit->Harvester && pUnit->Weeder) {
+				if (pUnit->Harvester && pUnit->Weeder)
+				{
 					WeederAndHarvesterWarning = true;
 					pUnit->Weeder = false;
 				}
@@ -327,14 +372,16 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		{
 			auto const pBType = (BuildingTypeClass*)pItem;
 
-			if(pBType->Refinery && pBType->Weeder){
+			if (pBType->Refinery && pBType->Weeder)
+			{
 				WeederAndHarvesterWarning = true;
 				pBType->Weeder = false;
 			}
 
 			auto const pBExt = BuildingTypeExtContainer::Instance.Find(pBType);
 
-			if(pBExt->CloningFacility && pBType->Factory != AbstractType::None) {
+			if (pBExt->CloningFacility && pBType->Factory != AbstractType::None)
+			{
 				pBExt->CloningFacility = false;
 				Debug::Log("[%s] cannot have both CloningFacility= and Factory=.\n",
 				pItem->ID);
@@ -360,7 +407,8 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			}
 		}
 
-		if (WeederAndHarvesterWarning) {
+		if (WeederAndHarvesterWarning)
+		{
 			Debug::Log("Please choose between Weeder or (Refinery / Harvester) for [%s - %s] both cant be used at same time\n", pItem->ID, myClassName);
 			Debug::RegisterParserError();
 		}
@@ -371,59 +419,112 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		"- The weapon was created too late and its rules weren't read "
 		"(see WEEDGUY hack);\n- The weapon's name was misspelled.\n";
 
-	for(auto pItem : *WeaponTypeClass::Array) {
+	for (auto pItem : *WeaponTypeClass::Array)
+	{
 
-		if(!pItem->Warhead) {
+		if (!pItem->Warhead)
+		{
 			Debug::Log(Msg, pItem->ID, "Warhead");
 			Debug::RegisterParserError();
 		}
 
-		if(!pItem->Projectile) {
+		if (!pItem->Projectile)
+		{
 			Debug::Log(Msg, pItem->ID, "Projectile");
 			Debug::RegisterParserError();
 		}
 	}
 
-	for(auto const& pConst : RulesClass::Instance->BuildConst) {
-		if(!pConst->AIBuildThis) {
+	for (auto const& pConst : RulesClass::Instance->BuildConst)
+	{
+		if (!pConst->AIBuildThis)
+		{
 			Debug::Log("[AI]BuildConst= includes [%s], which doesn't have "
 				"AIBuildThis=yes!\n", pConst->ID);
 		}
 	}
 
-	if(OverlayTypeClass::Array->Count > 255) {
+	if (OverlayTypeClass::Array->Count > 255)
+	{
 		Debug::Log("Reaching over 255 OverlayTypes!.\n");
 		Debug::RegisterParserError();
 	}
 
-	for (auto const pWH : *WarheadTypeClass::Array) {
-
-		if(auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH)){
+	for (auto const pWH : *WarheadTypeClass::Array)
+	{
+		if (auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH))
+		{
 			const size_t versesSize = pWHExt->Verses.size();
 
-			if (versesSize < ArmorTypeClass::Array.size()) {
+			if (versesSize < ArmorTypeClass::Array.size())
+			{
 				Debug::Log("Inconsistent verses size of [%s - %d] Warhead with ArmorType Array[%d]\n", pWH->ID, versesSize, ArmorTypeClass::Array.size());
 				Debug::RegisterParserError();
 			}
 		}
 	}
 
-	for (size_t i = 1; i < ShieldTypeClass::Array.size(); ++i) {
-		if (auto& pShield = ShieldTypeClass::Array[i]) {
-			if(pShield->Strength == 0){
+	for (size_t i = 1; i < ShieldTypeClass::Array.size(); ++i)
+	{
+		if (auto& pShield = ShieldTypeClass::Array[i])
+		{
+			if (pShield->Strength <= 0)
+			{
 				Debug::Log("[%s]ShieldType is not valid because Strength is 0.\n", pShield->Name.data());
 				Debug::RegisterParserError();
 			}
 		}
 	}
 
-	for (auto pBullet : *BulletTypeClass::Array) {
-
-		if(auto pExt = BulletTypeExtContainer::Instance.Find(pBullet)) {
-			if (pExt->AttachedSystem && pExt->AttachedSystem->BehavesLike != ParticleSystemTypeBehavesLike::Smoke) {
+	for (auto pBullet : *BulletTypeClass::Array)
+	{
+		if (auto pExt = BulletTypeExtContainer::Instance.Find(pBullet))
+		{
+			if (pExt->AttachedSystem && pExt->AttachedSystem->BehavesLike != ParticleSystemTypeBehavesLike::Smoke)
+			{
 				Debug::Log("Bullet[%s] With AttachedSystem[%s] is not BehavesLike=Smoke!\n", pBullet->ID, pExt->AttachedSystem->ID);
 				Debug::RegisterParserError();
 			}
+		}
+	}
+
+	for (auto pHouse : *HouseTypeClass::Array) {
+		if(auto pExt = HouseTypeExtContainer::Instance.Find(pHouse)){
+			// remove all types that cannot paradrop
+
+			if(!pExt->ParaDropTypes.empty())
+				Helpers::Alex::remove_non_paradroppables(pExt->ParaDropTypes, pHouse->ID, "ParaDrop.Types");
+
+			if(pExt->StartInMultiplayer_Types.HasValue() && !pExt->StartInMultiplayer_Types.empty())
+				Helpers::Alex::remove_non_paradroppables(pExt->StartInMultiplayer_Types, pHouse->ID, "StartInMultiplayer.Types");
+		}
+	}
+
+	for (auto pSuper : *SuperWeaponTypeClass::Array) {
+		if (const auto pSuperExt = SWTypeExtContainer::Instance.Find(pSuper)) {
+			Helpers::Alex::remove_non_paradroppables(pSuperExt->DropPod_Types, pSuper->ID, "DropPod.Types");
+
+			for (auto& para : pSuperExt->ParaDropDatas) {
+				for (auto& pVec : para.second) {
+					if(pVec && !pVec->Types.empty())
+						Helpers::Alex::remove_non_paradroppables(pVec->Types, pSuper->ID, "ParaDrop.Types");
+				}
+			}
+		}
+	}
+
+	for (auto pSide : *SideClass::Array) {
+		if (auto pExt = SideExtContainer::Instance.Find(pSide)) {
+			// remove all types that cannot paradrop
+
+			if(pExt->ParaDropTypes.HasValue() && !pExt->ParaDropTypes.empty())
+				 Helpers::Alex::remove_non_paradroppables(pExt->ParaDropTypes, pSide->ID, "ParaDrop.Types");
+		}
+	}
+	
+	for (auto pAnim : *AnimTypeClass::Array) {
+		if (auto pExt = AnimTypeExtContainer::Instance.Find(pAnim)) { 
+			pExt->ValidateData();
 		}
 	}
 
@@ -459,36 +560,9 @@ void RulesExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
-	//Allocate Default bullet
-	constexpr std::array<const char*, 3u> sections =
-	{{
-		{ "WeaponTypes" } , { "Projectiles" } , { "Warheads" }
-	}};
-
-	//int lenw = pINI->GetKeyCount(sections[0]);
-	//for (int i = 0; i < lenw; ++i) {
-	//	const char *key = pINI->GetKeyName(sectionWeapon, i);
-	//	if (pINI->ReadString(sectionWeapon, key, Phobos::readDefval, Phobos::readBuffer)) {
-	//		WeaponTypeClass::FindOrAllocate(Phobos::readBuffer);
-	//	}
-	//}
-
-	int lenp = pINI->GetKeyCount(sections[1]);
-	for (int i = 0; i < lenp; ++i) {
-		const char* key = pINI->GetKeyName(sections[1], i);
-		if (pINI->ReadString(sections[1], key, Phobos::readDefval, Phobos::readBuffer) > 0) {
-			BulletTypeClass::FindOrAllocate(Phobos::readBuffer);
-		}
-	}
-
 	if(pINI == CCINIClass::INI_Rules()){
 
-		for (auto& pSect : sections) {
-			Debug::Log("Reading [%s] with key count [%d]\n", pSect, pINI->GetKeyCount(pSect));
-		}
-
 		//Load All the default value here
-		BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
 		this->ElectricDeath = AnimTypeClass::FindOrAllocate("ELECTRO");
 		this->DefaultParaPlane = AircraftTypeClass::FindOrAllocate(GameStrings::PDPLANE());
 		this->DefaultVeinParticle = ParticleTypeClass::FindOrAllocate(GameStrings::GASCLUDM1());
@@ -506,6 +580,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	INI_EX exINI(pINI);
 
+	this->StartInMultiplayerUnitCost.Read(exINI, GENERAL_SECTION, "StartInMultiplayerUnitCost");
 	this->Buildings_DefaultDigitalDisplayTypes.Read(exINI, GameStrings::AudioVisual, "Buildings.DefaultDigitalDisplayTypes");
 	this->Infantry_DefaultDigitalDisplayTypes.Read(exINI, GameStrings::AudioVisual, "Infantry.DefaultDigitalDisplayTypes");
 	this->Vehicles_DefaultDigitalDisplayTypes.Read(exINI, GameStrings::AudioVisual, "Vehicles.DefaultDigitalDisplayTypes");
@@ -529,6 +604,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 #pragma region Otamaa
 	this->DisplayCreditsDelay.Read(exINI, AUDIOVISUAL_SECTION, "DisplayCreditsDelay");
+	this->TypeSelectUseDeploy.Read(exINI, GENERAL_SECTION, "TypeSelectUseDeploy");
 	this->AIDetectDisguise_Percent.Read(exINI, GENERAL_SECTION, "AIDisguiseDetectionPercent");
 	this->CanDrive.Read(exINI, GENERAL_SECTION, "EveryoneCanDrive");
 	this->TogglePowerAllowed.Read(exINI, GENERAL_SECTION, "TogglePowerAllowed");
@@ -1004,6 +1080,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->DisplayIncome_Houses)
 
 		.Process(this->DisplayCreditsDelay)
+		.Process(this->TypeSelectUseDeploy)
 		;
 
 	MyPutData.Serialize(Stm);
@@ -1122,6 +1199,34 @@ DEFINE_HOOK(0x679A15, RulesData_LoadBeforeTypeData, 0x6)
 	SideClass::Array->for_each([pINI](SideClass* pSide) {
 		SideExtContainer::Instance.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
 	});
+
+	HouseTypeClass::Array->for_each([pINI](HouseTypeClass* pHouse) {
+		HouseTypeExtContainer::Instance.LoadFromINI(pHouse, pINI, !pINI->GetSection(pHouse->ID));
+	});
+
+	BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
+
+	constexpr std::array<const char*, 3u> sections =
+	{ {
+		{ "WeaponTypes" } ,
+		{ "Projectiles" } ,
+		{ "Warheads" }
+	} };
+
+	for (int nn = 0; nn < pINI->GetKeyCount(sections[0]); ++nn) {
+		if (pINI->GetString(sections[0], pINI->GetKeyName(sections[0], nn), Phobos::readBuffer))
+			WeaponTypeClass::FindOrAllocate(Phobos::readBuffer);
+	}
+
+	for (int nn = 0; nn < pINI->GetKeyCount(sections[1]); ++nn) {
+		if (pINI->GetString(sections[1], pINI->GetKeyName(sections[1], nn), Phobos::readBuffer))
+			BulletTypeClass::FindOrAllocate(Phobos::readBuffer);
+	}
+
+	for (int nn = 0; nn < pINI->GetKeyCount(sections[2]); ++nn) {
+		if (pINI->GetString(sections[2], pINI->GetKeyName(sections[2], nn), Phobos::readBuffer))
+			WarheadTypeClass::FindOrAllocate(Phobos::readBuffer);
+	}
 
 	// All TypeClass Created but not yet read INI
 	//	RulesClass::Initialized = true;
