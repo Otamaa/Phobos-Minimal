@@ -502,7 +502,9 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 	for (auto pSuper : *SuperWeaponTypeClass::Array) {
 		if (const auto pSuperExt = SWTypeExtContainer::Instance.Find(pSuper)) {
-			Helpers::Alex::remove_non_paradroppables(pSuperExt->DropPod_Types, pSuper->ID, "DropPod.Types");
+
+			if(!pSuperExt->DropPod_Types.empty())
+				Helpers::Alex::remove_non_paradroppables(pSuperExt->DropPod_Types, pSuper->ID, "DropPod.Types");
 
 			for (auto& para : pSuperExt->ParaDropDatas) {
 				for (auto& pVec : para.second) {
@@ -1081,6 +1083,7 @@ void RulesExtData::Serialize(T& Stm)
 
 		.Process(this->DisplayCreditsDelay)
 		.Process(this->TypeSelectUseDeploy)
+		.Process(this->StartInMultiplayerUnitCost)
 		;
 
 	MyPutData.Serialize(Stm);

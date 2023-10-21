@@ -131,6 +131,9 @@ DEFINE_OVERRIDE_HOOK(0x4e3562, Game_GetFlagSurface, 5)
 	if (n == -2)
 		return 0x4E3567; // special index
 
+	if (n == -3)
+		return 0x4E365A; // special index
+
 	if (n < HouseTypeClass::Array->Count) {
 		if (auto pSurface = HouseTypeExtContainer::Instance.Find(HouseTypeClass::Array->GetItem(n))->FlagFile.GetSurface()) {
 			R->EAX(pSurface);

@@ -206,7 +206,6 @@ DEFINE_OVERRIDE_HOOK(0x465550, BuildingTypeClass_GetFoundationOutline, 6)
 	return 0;
 }
 
-
 DEFINE_OVERRIDE_HOOK(0x464AF0, BuildingTypeClass_GetSizeInLeptons, 6)
 {
 	GET(BuildingTypeClass*, pThis, ECX);
@@ -224,7 +223,6 @@ DEFINE_OVERRIDE_HOOK(0x464AF0, BuildingTypeClass_GetSizeInLeptons, 6)
 	return 0;
 
 }
-
 
 DEFINE_OVERRIDE_HOOK(0x474DEE, INIClass_GetFoundation, 7)
 {
