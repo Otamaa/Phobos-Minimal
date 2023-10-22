@@ -367,7 +367,7 @@ void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& co
 
 void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
 {
-	if (!coords)
+	if (!coords.IsValid())
 	{
 		Debug::Log("WeaponTypeExtData::DetonateAt Coords empty ! ");
 		return;

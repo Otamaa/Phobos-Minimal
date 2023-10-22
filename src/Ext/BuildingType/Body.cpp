@@ -33,6 +33,7 @@ void BuildingTypeExtData::UpdateFoundationRadarShape()
 
 	if (this->IsCustom)
 	{
+		Debug::Log("RadarFoundationUpdate [%s]\n", this->AttachedToObject->ID);
 		auto pType = this->AttachedToObject;
 		auto pRadar = RadarClass::Global();
 
@@ -81,7 +82,7 @@ void BuildingTypeExtData::UpdateFoundationRadarShape()
 			// fill the line
 			for (int j = start; j <= end; ++j)
 			{
-				this->FoundationRadarShape.EmpalaceItem(j, i);
+				this->FoundationRadarShape.AddItem(Point2D(j, i));
 			}
 		}
 	}
@@ -931,124 +932,136 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->PrismForwarding.LoadFromINIFile(pThis, pINI);
 	}
 #pragma endregion
+	INI_EX exArtINI(pArtINI);
+	char strbuff[0x80];
 
-	if (pArtINI->GetSection(pArtSection))
+	if (this->IsCustom)
 	{
-		INI_EX exArtINI(pArtINI);
+		//Reset
+		pThis->Foundation = BuildingTypeExtData::CustomFoundation;
+		pThis->FoundationData = this->CustomData.data();
+		pThis->FoundationOutside = this->OutlineData.data();
+	}
+	else if ((pArtINI->ReadString(pArtSection, "Foundation", "", strbuff) > 0) && IS_SAME_STR_(strbuff, "Custom"))
+	{
+		//Custom Foundation!
+		this->IsCustom = true;
+		pThis->Foundation = BuildingTypeExtData::CustomFoundation;
 
-		char strbuff[0x80];
+		//Load Width and Height
+		detail::read(this->CustomWidth, exArtINI, pArtSection, "Foundation.X");
+		detail::read(this->CustomHeight, exArtINI, pArtSection, "Foundation.Y");
 
-		if (this->IsCustom)
+		int outlineLength = pArtINI->ReadInteger(pArtSection, "FoundationOutline.Length", 0);
+
+		// at len < 10, things will end very badly for weapons factories
+		if (outlineLength < 10)
 		{
-			//Reset
-			pThis->Foundation = BuildingTypeExtData::CustomFoundation;
-			pThis->FoundationData = this->CustomData.data();
-			pThis->FoundationOutside = this->OutlineData.data();
+			outlineLength = 10;
 		}
-		else if ((pArtINI->ReadString(pArtSection, "Foundation", "", strbuff) > 0 ) && IS_SAME_STR_(strbuff, "Custom"))
-		{
-			//Custom Foundation!
-			this->IsCustom = true;
-			pThis->Foundation = BuildingTypeExtData::CustomFoundation;
 
-			//Load Width and Height
-			detail::read(this->CustomWidth, exArtINI, pArtSection, "Foundation.X");
-			detail::read(this->CustomHeight, exArtINI, pArtSection, "Foundation.Y");
+		//Allocate CellStruct array
+		const int dimension = this->CustomWidth * this->CustomHeight;
 
-			int outlineLength = pArtINI->ReadInteger(pArtSection, "FoundationOutline.Length", 0);
+		this->CustomData.assign(dimension + 1, CellStruct::Empty);
+		this->OutlineData.assign(outlineLength + 1, CellStruct::Empty);
 
-			// at len < 10, things will end very badly for weapons factories
-			if (outlineLength < 10) {
-				outlineLength = 10;
-			}
+		using Iter = std::vector<CellStruct>::iterator;
 
-			//Allocate CellStruct array
-			const int dimension = this->CustomWidth * this->CustomHeight;
-
-			this->CustomData.assign(dimension + 1, CellStruct::Empty);
-			this->OutlineData.assign(outlineLength + 1, CellStruct::Empty);
-
-			using Iter = std::vector<CellStruct>::iterator;
-			
-			auto ParsePoint = [](Iter& cell, const char* str) -> void
+		auto ParsePoint = [](Iter& cell, const char* str) -> void
 			{
 				int x = 0, y = 0;
 				switch (sscanf_s(str, "%d,%d", &x, &y))
 				{
 				case 0:
 					x = 0;
-				[[fallthrough]];
+					[[fallthrough]];
 				case 1:
 					y = 0;
 				}
 				*cell++ = CellStruct { static_cast<short>(x), static_cast<short>(y) };
 			};
 
-			//Load FoundationData
-			auto itData = this->CustomData.begin();
-			char key[0x20];
+		//Load FoundationData
+		auto itData = this->CustomData.begin();
+		char key[0x20];
 
-			for (int i = 0; i < dimension; ++i) {
-				IMPL_SNPRNINTF(key, sizeof(key), "Foundation.%d", i);
-				if (pArtINI->ReadString(pArtSection , key, Phobos::readDefval, strbuff)) {
-					ParsePoint(itData, strbuff);
-				} else {
-					break;
-				}
-			}
-
-			//Sort, remove dupes, add end marker
-			std::sort(this->CustomData.begin(), itData,
-			[](const CellStruct& lhs, const CellStruct& rhs) {
-				 if (lhs.Y != rhs.Y) {
-					 return lhs.Y < rhs.Y;
-				 }
-				 return lhs.X < lhs.X;
-			});
-
-			itData = std::unique(this->CustomData.begin(), itData);
-			*itData = FoundationEndMarker;
-			this->CustomData.erase(itData + 1, this->CustomData.end());
-
-			auto itOutline = this->OutlineData.begin();
-			for (int i = 0; i < outlineLength; ++i) {
-				IMPL_SNPRNINTF(key, sizeof(key), "FoundationOutline.%d", i);
-				if (pArtINI->ReadString(pArtSection, key, "", strbuff)) {
-					ParsePoint(itOutline, strbuff);
-				} else {
-					//Set end vector
-					// can't break, some stupid functions access fixed offsets without checking if that offset is within the valid range
-					*itOutline++ = FoundationEndMarker;
-				}
-			}
-
-			//Set end vector
-			*itOutline = FoundationEndMarker;
-
-			if (this->CustomData.begin() == this->CustomData.end()) {
-				Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. This breaks AI base building.\n",pArtSection);
+		for (int i = 0; i < dimension; ++i)
+		{
+			IMPL_SNPRNINTF(key, sizeof(key), "Foundation.%d", i);
+			if (pArtINI->ReadString(pArtSection, key, Phobos::readDefval, strbuff))
+			{
+				ParsePoint(itData, strbuff);
 			}
 			else
 			{
-				auto iter = this->CustomData.begin();
-				while (iter->X || iter->Y) {
-					if (++iter == this->CustomData.end())
-						Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. This breaks AI base building.\n", pArtSection);
-
-				}
+				break;
 			}
-
-			pThis->FoundationData = this->CustomData.data();
-			pThis->FoundationOutside = this->OutlineData.data();
 		}
 
+		//Sort, remove dupes, add end marker
+		std::sort(this->CustomData.begin(), itData,
+		[](const CellStruct& lhs, const CellStruct& rhs)
+		{
+			if (lhs.Y != rhs.Y)
+			{
+				return lhs.Y < rhs.Y;
+			}
+			return lhs.X < lhs.X;
+		});
+
+		itData = std::unique(this->CustomData.begin(), itData);
+		*itData = FoundationEndMarker;
+		this->CustomData.erase(itData + 1, this->CustomData.end());
+
+		auto itOutline = this->OutlineData.begin();
+		for (int i = 0; i < outlineLength; ++i)
+		{
+			IMPL_SNPRNINTF(key, sizeof(key), "FoundationOutline.%d", i);
+			if (pArtINI->ReadString(pArtSection, key, "", strbuff))
+			{
+				ParsePoint(itOutline, strbuff);
+			}
+			else
+			{
+				//Set end vector
+				// can't break, some stupid functions access fixed offsets without checking if that offset is within the valid range
+				*itOutline++ = FoundationEndMarker;
+			}
+		}
+
+		//Set end vector
+		*itOutline = FoundationEndMarker;
+
+		if (this->CustomData.begin() == this->CustomData.end())
+		{
+			Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. This breaks AI base building.\n", pArtSection);
+		}
+		else
+		{
+			auto iter = this->CustomData.begin();
+			while (iter->X || iter->Y)
+			{
+				if (++iter == this->CustomData.end())
+					Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. This breaks AI base building.\n", pArtSection);
+
+			}
+		}
+
+		pThis->FoundationData = this->CustomData.data();
+		pThis->FoundationOutside = this->OutlineData.data();
+	}
+
+	if (pArtINI->GetSection(pArtSection))
+	{
 		if (pThis->MaxNumberOccupants > 10)
 		{
 			char tempMuzzleBuffer[32];
 			this->OccupierMuzzleFlashes.clear();
 			this->OccupierMuzzleFlashes.resize(pThis->MaxNumberOccupants);
 
-			for (int i = 0; i < pThis->MaxNumberOccupants; ++i) {
+			for (int i = 0; i < pThis->MaxNumberOccupants; ++i)
+			{
 				IMPL_SNPRNINTF(tempMuzzleBuffer, sizeof(tempMuzzleBuffer), "%s%d", GameStrings::MuzzleFlash(), i);
 				detail::read(this->OccupierMuzzleFlashes[i], exArtINI, pArtSection, tempMuzzleBuffer);
 			}
@@ -1296,6 +1309,33 @@ void BuildingTypeExtData::Serialize(T& Stm)
 // =============================
 // container
 BuildingTypeExtContainer BuildingTypeExtContainer::Instance;
+
+bool BuildingTypeExtContainer::Load(BuildingTypeClass* key, IStream* pStm)
+{
+	//call the base class
+	if(Container<BuildingTypeExtData>::Load(key, pStm)){
+		auto pData = this->Find(key);
+
+		// if there's custom data, assign it
+		if (pData->IsCustom && pData->CustomWidth > 0 && pData->CustomHeight > 0)
+		{
+			key->Foundation = BuildingTypeExtData::CustomFoundation;
+			key->FoundationData = pData->CustomData.data();
+			key->FoundationOutside = pData->OutlineData.data();
+		}
+		else
+		{
+			pData->CustomData.clear();
+			pData->OutlineData.clear();
+		}
+
+		// reset the buildup time
+		BuildingTypeExtData::UpdateBuildupFrames(key);
+		return true;
+	}
+
+	return false;
+}
 
 // =============================
 // container hooks

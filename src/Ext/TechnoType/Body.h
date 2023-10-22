@@ -254,9 +254,9 @@ public:
 	Nullable<CoordStruct> E_DeployedPrimaryFireFLH {};
 	Nullable<CoordStruct> E_DeployedSecondaryFireFLH {};
 
-//	std::vector<BurstFLHBundle> WeaponBurstFLHs {};
-//	std::vector<BurstFLHBundle> CrouchedWeaponBurstFLHs {};
-//	std::vector<BurstFLHBundle> DeployedWeaponBurstFLHs {};
+	std::vector<BurstFLHBundle> WeaponBurstFLHs {};
+	std::vector<BurstFLHBundle> CrouchedWeaponBurstFLHs {};
+	std::vector<BurstFLHBundle> DeployedWeaponBurstFLHs {};
 	std::vector<CoordStruct> AlternateFLHs {};
 
 	Nullable<bool> IronCurtain_SyncDeploysInto {};

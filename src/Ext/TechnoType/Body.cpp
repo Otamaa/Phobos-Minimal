@@ -1234,9 +1234,9 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		//const char* tags[sizeof(ColletiveCoordStructVectorData) / sizeof(void*)] = { Phobos::readDefval  , "Deployed" , "Prone" };
 		//TechnoTypeExtData::GetBurstFLHs(pThis, exArtINI, pArtSection, nFLH, nEFLH, tags);
 
-		//TechnoTypeExtData::GetBurstFLHs(pThis, exArtINI, pArtSection, WeaponBurstFLHs, "");
-		//TechnoTypeExtData::GetBurstFLHs(pThis, exArtINI, pArtSection, DeployedWeaponBurstFLHs, "Deployed");
-		//TechnoTypeExtData::GetBurstFLHs(pThis, exArtINI, pArtSection, CrouchedWeaponBurstFLHs, "Prone");
+		TechnoTypeExtData::GetBurstFLHs(pThis, exArtINI, pArtSection, WeaponBurstFLHs, "");
+		TechnoTypeExtData::GetBurstFLHs(pThis, exArtINI, pArtSection, DeployedWeaponBurstFLHs, "Deployed");
+		TechnoTypeExtData::GetBurstFLHs(pThis, exArtINI, pArtSection, CrouchedWeaponBurstFLHs, "Prone");
 
 		TechnoTypeExtData::GetFLH(exArtINI, pArtSection, PronePrimaryFireFLH, E_PronePrimaryFireFLH, "PronePrimaryFire");
 		TechnoTypeExtData::GetFLH(exArtINI, pArtSection, ProneSecondaryFireFLH, E_ProneSecondaryFireFLH, "ProneSecondaryFire");
@@ -1562,6 +1562,10 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->E_ProneSecondaryFireFLH)
 		.Process(this->E_DeployedPrimaryFireFLH)
 		.Process(this->E_DeployedSecondaryFireFLH)
+
+		.Process(this->WeaponBurstFLHs)
+		.Process(this->CrouchedWeaponBurstFLHs)
+		.Process(this->DeployedWeaponBurstFLHs)
 
 		.Process(this->IronCurtain_SyncDeploysInto)
 		.Process(this->IronCurtain_Effect)

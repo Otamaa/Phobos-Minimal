@@ -213,7 +213,7 @@ DirStruct Helpers_DP::Point2Dir(CoordStruct& sourcePos, CoordStruct& targetPos)
 
 Vector3D<float> Helpers_DP::GetFLHAbsoluteOffset(CoordStruct& flh, DirStruct& dir, const CoordStruct& turretOffset)
 {
-	if (flh)
+	if (flh.IsValid())
 	{
 		Matrix3D matrix3D {  };
 		matrix3D.MakeIdentity();
@@ -235,7 +235,7 @@ VelocityClass Helpers_DP::GetVelocityClass(CoordStruct sourcePos, CoordStruct ta
 
 CoordStruct Helpers_DP::GetFLHAbsoluteCoords(CoordStruct source, CoordStruct& flh, DirStruct& dir, const CoordStruct& turretOffset)
 {
-	if (flh)
+	if (flh.IsValid())
 	{
 		Vector3D<float> offset = Helpers_DP::GetFLHAbsoluteOffset(flh, dir, turretOffset);
 		source += { static_cast<int>(offset.X), static_cast<int>(offset.Y), static_cast<int>(offset.Z) };
@@ -462,7 +462,7 @@ CoordStruct Helpers_DP::GetFLHAbsoluteCoords(TechnoClass* pTechno, const CoordSt
 		}
 	}
 
-	if (flh)
+	if (flh.IsValid())
 	{
 		Matrix3D matrix3D = GetMatrix3D(pTechno);
 		matrix3D.Translate(static_cast<float>(turretOffset.X), static_cast<float>(turretOffset.Y), static_cast<float>(turretOffset.Z));
@@ -554,7 +554,7 @@ Vector3D<float> Helpers_DP::GetForwardVector(TechnoClass* pTechno, bool getTurre
 
 CoordStruct Helpers_DP::GetFLH(CoordStruct& source, CoordStruct& flh, DirStruct& dir, bool flip)
 {
-	if (flh)
+	if (flh.IsValid())
 	{
 		double radians = dir.GetRadian();
 
@@ -601,7 +601,7 @@ CoordStruct Helpers_DP::GetFLHAbsoluteCoords(ObjectClass* pObject, CoordStruct& 
 
 LocationMark Helpers_DP::GetRelativeLocation(ObjectClass* pOwner, OffsetData data, CoordStruct offset)
 {
-	if (!offset) {
+	if (!offset.IsValid()) {
 		offset = data.Offset;
 	}
 
@@ -984,7 +984,7 @@ void Helpers_DP::FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, Abs
 
 		CoordStruct sourcePos = bulletSourcePos;
 
-		if (!bulletSourcePos)
+		if (!bulletSourcePos.IsValid())
 		{
 			CoordStruct nFLh_ = flh;
 			sourcePos = GetFLHAbsoluteCoords(pShooter, nFLh_, true, flipY);

@@ -350,7 +350,7 @@ void FighterAreaGuard::OnUpdate()
 					}
 				}
 
-				if (this->areaProtectTo)
+				if (this->areaProtectTo.IsValid())
 				{
 					auto dest = this->areaProtectTo;
 					auto house = OwnerObject->Owner;

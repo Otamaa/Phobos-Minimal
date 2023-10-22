@@ -5731,9 +5731,10 @@ bool AresTActionExt::LightstormStrike(TActionClass* pAction, HouseClass* pHouse,
 
 	// get center of cell coords
 	auto const pCell = MapClass::Instance->GetCellAt(nLoc);
+	auto coords = pCell->GetCoordsWithBridge();
 
 	// create a cloud animation
-	if (auto coords = pCell->GetCoordsWithBridge())
+	if (coords.IsValid())
 	{
 		// select the anim
 		auto const& itClouds = RulesClass::Instance->WeatherConClouds;

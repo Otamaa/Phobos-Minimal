@@ -967,13 +967,13 @@ void WarheadTypeExtData::DetonateAt(
 	HouseClass* pFiringHouse
 )
 {
-	if (targetCell && !coords)
+	if (targetCell && !coords.IsValid())
 	{
 		Debug::Log("WarheadTypeExtData::Detonate asking for targetCell but coords is invalid ! \n");
 		return;
 	}
 
-	AbstractClass* pTarget = !targetCell ? nullptr : coords ? MapClass::Instance->GetCellAt(coords) : nullptr;
+	AbstractClass* pTarget = !targetCell ? nullptr : coords.IsValid() ? MapClass::Instance->GetCellAt(coords) : nullptr;
 	WarheadTypeExtData::DetonateAt(pThis, pTarget, coords, pOwner, damage , pFiringHouse);
 }
 

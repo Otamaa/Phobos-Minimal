@@ -16,16 +16,29 @@ DEFINE_DISABLE_HOOK(0x45417e, BuildingClass_Load_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x454190, BuildingClass_SaveLoad_Prefix_ares)
 DEFINE_DISABLE_HOOK(0x454244, BuildingClass_Save_Suffix_ares)
 
+//DEFINE_DISABLE_HOOK(0x45e50c, BuildingTypeClass_CTOR_ares)
+//DEFINE_DISABLE_HOOK(0x45e707, BuildingTypeClass_DTOR_ares)
+//DEFINE_DISABLE_HOOK(0x464a49, BuildingTypeClass_LoadFromINI_ares)
+//DEFINE_DISABLE_HOOK(0x464a56, BuildingTypeClass_LoadFromINI_ares)
+//DEFINE_DISABLE_HOOK(0x465010, BuildingTypeClass_SaveLoad_Prefix_ares)
+//DEFINE_DISABLE_HOOK(0x4652ed, BuildingTypeClass_Load_Suffix_ares)
+//DEFINE_DISABLE_HOOK(0x465300, BuildingTypeClass_SaveLoad_Prefix_ares)
+//DEFINE_DISABLE_HOOK(0x46536a, BuildingTypeClass_Save_Suffix_ares)
+
 #ifndef ENABLE_FOUNDATIONHOOK
 
-DEFINE_DISABLE_HOOK(0x45e50c, BuildingTypeClass_CTOR_ares)
-DEFINE_DISABLE_HOOK(0x45e707, BuildingTypeClass_DTOR_ares)
-DEFINE_DISABLE_HOOK(0x464a49, BuildingTypeClass_LoadFromINI_ares)
-DEFINE_DISABLE_HOOK(0x464a56, BuildingTypeClass_LoadFromINI_ares)
-DEFINE_DISABLE_HOOK(0x465010, BuildingTypeClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x4652ed, BuildingTypeClass_Load_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x465300, BuildingTypeClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x46536a, BuildingTypeClass_Save_Suffix_ares)
+DEFINE_OVERRIDE_HOOK(0x45eca0, BuildingTypeClass_GetFoundationHeight, 6)
+{
+	GET(BuildingTypeClass*, pThis, ECX);
+
+	if (pThis->Foundation == BuildingTypeExtData::CustomFoundation) {
+		const bool bIncludeBib = (R->Stack8(0x4) != 0);
+		R->EAX(BuildingTypeExtContainer::Instance.Find(pThis)->CustomHeight + (bIncludeBib && pThis->Bib));
+		return 0x45ECDA;
+	}
+
+	return 0;
+}
 
 DEFINE_OVERRIDE_HOOK(0x656584, RadarClass_GetFoundationShape, 6)
 {
@@ -155,27 +168,6 @@ DEFINE_OVERRIDE_HOOK(0x45ec90, BuildingTypeClass_GetFoundationWidth, 6)
 	{
 		R->EAX(BuildingTypeExtContainer::Instance.Find(pThis)->CustomWidth);
 		return 0x45EC9D;
-	}
-
-	return 0;
-}
-
-DEFINE_OVERRIDE_HOOK(0x45eca0, BuildingTypeClass_GetFoundationHeight, 6)
-{
-	GET(BuildingTypeClass*, pThis, ECX);
-
-	if (pThis->Foundation == BuildingTypeExtData::CustomFoundation)
-	{
-		bool bIncludeBib = (R->Stack8(0x4) != 0);
-
-		int fH = BuildingTypeExtContainer::Instance.Find(pThis)->CustomHeight;
-		if (bIncludeBib && pThis->Bib)
-		{
-			++fH;
-		}
-
-		R->EAX(fH);
-		return 0x45ECDA;
 	}
 
 	return 0;

@@ -37,7 +37,7 @@ void AircraftPutDataFunctional::OnPut(TechnoExtData* pExt, TechnoTypeExtData* pT
 			auto const nOffset = GetOffset(pTypeExt->MyPutData);
 
 			// move location
-			if (!pExt->aircraftPutOffsetFlag && nOffset)
+			if (!pExt->aircraftPutOffsetFlag && nOffset.IsValid())
 			{
 				pExt->aircraftPutOffsetFlag = true;
 				pExt->aircraftPutOffset = true;
@@ -65,7 +65,9 @@ void AircraftPutDataFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pType
 	if (!pExt || !pExt->aircraftPutOffset)
 		return;
 
-	if (auto const nOffset = GetOffset(pTypeExt->MyPutData))
+	auto const nOffset = GetOffset(pTypeExt->MyPutData);
+
+	if (nOffset.IsValid())
 	{
 		pExt->aircraftPutOffset = false;
 		auto const pTechno = pExt->AttachedToObject;

@@ -8,7 +8,7 @@ bool LaserTrailClass::Update(CoordStruct const& location)
 {
 	bool result = false;
 
-	if (!this->LastLocation.has_value() || !this->LastLocation.get())
+	if (!this->LastLocation.has_value() || !this->LastLocation.get().IsValid())
 	{
 		// The trail was just inited
 		this->LastLocation = location;

@@ -29,7 +29,7 @@ enum class BunkerSoundMode : int
 		static constexpr size_t Canary = 0x11111111;
 		using base_type = BuildingTypeClass;
 
-#ifndef ENABLE_FOUNDATIONHOOK
+#ifdef ENABLE_FOUNDATIONHOOK
 		static constexpr size_t ExtOffset = 0xE24; //ares
 #else
 		static constexpr size_t ExtOffset = 0x1794;
@@ -358,6 +358,9 @@ enum class BunkerSoundMode : int
 	public:
 		CONSTEXPR_NOCOPY_CLASSB(BuildingTypeExtContainer, BuildingTypeExtData, "BuildingTypeClass");
 	public:
+
+		virtual bool Load(BuildingTypeClass* key, IStream* pStm) override;
+
 		static BuildingTypeExtContainer Instance;
 
 		static bool LoadGlobals(PhobosStreamReader& Stm)

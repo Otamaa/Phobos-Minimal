@@ -20,7 +20,7 @@ void FlyingStrings::Clear() { Data.clear(); }
 
 bool FlyingStrings::DrawAllowed(CoordStruct const& nCoords, Point2D& outPoint)
 {
-	if (!nCoords)
+	if (!nCoords.IsValid())
 		return false;
 
 	if (auto const pCell = MapClass::Instance->TryGetCellAt(nCoords)) {
@@ -39,7 +39,7 @@ void FlyingStrings::Add(const wchar_t* text, CoordStruct const& coords, ColorStr
 
 void FlyingStrings::AddMoneyString(bool Display, int const amount, TechnoClass* owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset, const ColorStruct& nOverrideColor)
 {
-	if (!coords || !Display || !owner)
+	if (!coords.IsValid() || !Display || !owner)
 		return;
 
 	if (EnumFunctions::CanTargetHouse(displayToHouses, owner->GetOwningHouse(), HouseClass::CurrentPlayer()))
@@ -76,7 +76,7 @@ void FlyingStrings::AddMoneyString(bool Display, int const amount, TechnoClass* 
 
 void FlyingStrings::AddMoneyString(bool Display, int const amount, HouseClass* owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset, const ColorStruct& nOverrideColor)
 {
-	if (!coords || !Display || !owner)
+	if (!coords.IsValid() || !Display || !owner)
 		return;
 
 	if (EnumFunctions::CanTargetHouse(displayToHouses, owner, HouseClass::CurrentPlayer()))
@@ -110,7 +110,7 @@ void FlyingStrings::AddMoneyString(bool Display, int const amount, HouseClass* o
 
 void FlyingStrings::AddString(const std::wstring& text, bool Display, TechnoClass* owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset, const ColorStruct& nOverrideColor)
 {
-	if (text.empty() || !coords || !Display || !owner)
+	if (text.empty() || !coords.IsValid() || !Display || !owner)
 		return;
 
 	if (EnumFunctions::CanTargetHouse(displayToHouses, owner->GetOwningHouse(), HouseClass::CurrentPlayer()))

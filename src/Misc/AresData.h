@@ -75,14 +75,14 @@ struct DataBundleDetonate
 // becarefull when doing operation that involve those , it can result on undefine behaviour
 
 //TODO : port these
-#define GetAresTechnoExt(var) (void*)(*(uintptr_t*)((char*)var + 0x154))
-#define GetAresBuildingExt(var)  (void*)(*(uintptr_t*)((char*)var + 0x71C))
-#define GetAresHouseExt(var)  (void*)(*(uintptr_t*)((char*)var + 0x16084))
-#define GetAresHouseTypeExt(var)  (void*)(*(uintptr_t*)((char*)var + 0xC4))
-#define GetAresBuildingTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0xE24))
-#define GetAresTechnoTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0x2FC))
-#define GetAresBulletTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0x2C4))
-#define GetAresAresWarheadTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0x1CC))
+//#define GetAresTechnoExt(var) (void*)(*(uintptr_t*)((char*)var + 0x154))
+//#define GetAresBuildingExt(var)  (void*)(*(uintptr_t*)((char*)var + 0x71C))
+//#define GetAresHouseExt(var)  (void*)(*(uintptr_t*)((char*)var + 0x16084))
+//#define GetAresHouseTypeExt(var)  (void*)(*(uintptr_t*)((char*)var + 0xC4))
+//#define GetAresBuildingTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0xE24))
+//#define GetAresTechnoTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0x2FC))
+//#define GetAresBulletTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0x2C4))
+//#define GetAresAresWarheadTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0x1CC))
 
 // TechnoExt
 //#define GetDisableWeaponTimer(techno) (*(CDTimerClass*)(((char*)GetAresTechnoExt(techno)) + 0x50))

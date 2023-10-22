@@ -515,6 +515,18 @@ DEFINE_HOOK(0x67D1B4, SaveGame_Phobos_AfterEverything, 0x6)
 	return 0;
 }
 
+DEFINE_OVERRIDE_HOOK(0x67D300, SaveGame_Start, 5)
+{
+	Debug::Log("About to save the game\n");
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x67E730, LoadGame_Start, 5)
+{
+	Debug::Log("About to load the game\n");
+	return 0;
+}
+
 DEFINE_OVERRIDE_HOOK(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 {
 	GET(IStream*, pStm, ESI);
