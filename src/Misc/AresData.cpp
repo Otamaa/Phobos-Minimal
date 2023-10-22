@@ -98,6 +98,8 @@ enum FunctionIndices : int
 	BuildingExt_SetFactoryPlans = 57,
 
 	AttachedAffect_UpdateType = 58,
+
+	SideExtUpdateGlobalFiles = 59,
 	count
 };
 
@@ -344,6 +346,9 @@ bool AresData::Init()
 
 		0x0C1C59, //Ares_FPSCounter
 		0x0C1C78, //Ares_DebugLog
+
+		0x02F5B2, //SideExtUpdateGlobalFiles
+		0x005061, //BuildingExtContainer_LoadGlobal
 	};
 
 	for (int a = 0; a < FunctionIndices::count; a++)

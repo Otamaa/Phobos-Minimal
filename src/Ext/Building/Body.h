@@ -57,14 +57,10 @@ public:
 
 	HelperedVector<TechnoClass*> RegisteredJammers { };
 
-	BuildingExtData(base_type* OwnerObject) noexcept
-	{
-		this->AttachedToObject = OwnerObject;
-		this->PrismForwarding.Owner = OwnerObject;
-	}
-
+	BuildingExtData() noexcept = default;
 	~BuildingExtData() noexcept = default;
 
+	void InitializeConstant();
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 	static bool InvalidateIgnorable(AbstractClass* ptr);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

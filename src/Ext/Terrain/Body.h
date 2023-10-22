@@ -25,11 +25,7 @@ public:
 	Handle<LightSourceClass*, UninitLightSource> LighSource {};
 	Handle<AnimClass*, UninitAnim> AttachedAnim {};
 
-	TerrainExtData(base_type* OwnerObject) noexcept
-	{
-		AttachedToObject = OwnerObject;
-	}
-
+	TerrainExtData()  noexcept = default;
 	~TerrainExtData() noexcept = default;
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);

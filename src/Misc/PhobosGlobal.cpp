@@ -28,10 +28,16 @@ bool PhobosGlobal::LoadGlobals(PhobosStreamReader& stm)
 
 	if (PhobosGlobal::Instance()->Serialize(stm))
 	{
+#ifndef ENABLE_FOUNDATIONHOOK
+		if (Unsorted::CursorSize())
+		{
+			Unsorted::CursorSize = PhobosGlobal::Instance()->TempFoundationData1.data();
+		}
 
-#ifdef ENABLE_FOUNDATIONHOOK
-		MouseClass::Instance->CurrentFoundation_Data = Instance()->TempFoundationData1.data();
-		MouseClass::Instance->CurrentFoundationCopy_Data = Instance()->TempFoundationData2.data();
+		if (Unsorted::CursorSizeSecond())
+		{
+			Unsorted::CursorSizeSecond = PhobosGlobal::Instance()->TempFoundationData2.data();
+		}
 #endif
 		return true;
 	}

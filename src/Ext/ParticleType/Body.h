@@ -35,11 +35,7 @@ public:
 
 	Valueable<bool> Fire_DamagingAnim { false };
 
-	ParticleTypeExtData(base_type* OwnerObject) noexcept
-	{
-		AttachedToObject = OwnerObject;
-	}
-
+	ParticleTypeExtData() noexcept = default;
 	~ParticleTypeExtData() noexcept = default;
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

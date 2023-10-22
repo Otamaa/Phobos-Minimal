@@ -54,7 +54,7 @@ public:
 		return Vector2D{ -X, -Y };
 	}
 	//equality
-	bool operator==(const Vector2D& a) const
+	inline bool operator==(const Vector2D& a) const
 	{
 		return (X == a.X && Y == a.Y);
 	}
@@ -77,11 +77,11 @@ public:
 		return *this;
 	}
 
-	inline T& operator[](int i) { return (&X)[i]; }
-	inline const T& operator[](int i) const { return (&X)[i]; }
+	//inline T& operator[](int i) { return (&X)[i]; }
+	//inline const T& operator[](int i) const { return (&X)[i]; }
 
-	inline T& At(int i) { return (&X)[i]; }
-	inline const T& At(int i) const { return (&X)[i]; }
+	inline T& at(int i) { return (&X)[i]; }
+	inline const T& at(int i) const { return (&X)[i]; }
 
 	//vector multiplication
 	double operator*(const Vector2D& a) const {
@@ -164,13 +164,13 @@ public:
 	}
 
 	//equality
-	bool operator==(const Vector3D& a) const
+	inline bool operator==(const Vector3D& a) const
 	{
 		return (X == a.X && Y == a.Y && Z == a.Z);
 	}
 
 	//unequality
-	bool operator!=(const Vector3D& a) const
+	inline bool operator!=(const Vector3D& a) const
 	{
 		return (X != a.X || Y != a.Y || Z != a.Z);
 	}
@@ -199,8 +199,8 @@ public:
 	inline T& operator[](int i) { return (&X)[i]; }
 	inline const T& operator[](int i) const { return (&X)[i]; }
 
-	inline T& At(int i) { return (&X)[i]; }
-	inline const T& At(int i) const { return (&X)[i]; }
+	inline T& at(int i) { return (&X)[i]; }
+	inline const T& at(int i) const { return (&X)[i]; }
 
 	//vector multiplication
 	double operator*(const Vector3D& a) const
@@ -263,13 +263,13 @@ public:
 	inline bool operator==(const Vector4D &b)
 	{
 		Vector4D a = *this;
-		return ((a[0] == b[0]) && (a[1] == b[1]) && (a[2] == b[2]) && (a[3] == b[3]));
+		return ((a[0] == b.at(0)) && (a[1] == b.at(1)) && (a[2] == b.at(2)) && (a[3] == b.at(3)));
 	}
 
 	inline bool operator!=(const Vector4D &b)
 	{
 		Vector4D a = *this;
-		return ((a[0] != b[0]) || (a[1] != b[1]) || (a[2] != b[2]) || (a[3] != b[3]));
+		return ((a[0] != b.at(0)) || (a[1] != b.at(1)) || (a[2] != b.at(2)) || (a[3] != b.at(3)));
 	}
 
 	inline bool IsValid() const { return *this != (Vector4D<T>::Empty); }
@@ -326,34 +326,34 @@ public:
 	{
 		float ook = 1.0f / k;
 		Vector4D nThis = *this;
-		return Vector4D{ (nThis[0] * ook), (nThis[1] * ook), (nThis[2] * ook), (nThis[3] * ook) };
+		return Vector4D{ (nThis.at(0) * ook), (nThis.at(1) * ook), (nThis.at(2) * ook), (nThis.at(3) * ook) };
 	}
 
 
 	inline Vector4D operator+(const Vector4D &b)
 	{
 		Vector4D nThis = *this;
-		return Vector4D{ nThis[0] + b[0],nThis[1] + b[1],nThis[2] + b[2],nThis[3] + b[3] };
+		return Vector4D{ nThis.at(0) + b.at(0),nThis.at(1) + b.at(1),nThis.at(2) + b.at(2),nThis.at(3) + b.at(3) };
 	}
 
 
 	inline Vector4D operator-(const Vector4D &b)
 	{
 		Vector4D nThis = *this;
-		return Vector4D{ nThis[0] - b[0], nThis[1] - b[1], nThis[2] - b[2], nThis[3] - b[3] };
+		return Vector4D{ nThis.at(0) - b.at(0), nThis.at(1) - b.at(1), nThis.at(2) - b.at(2), nThis.at(3) - b.at(3) };
 	}
 
 	inline double operator*(const Vector4D &b)
 	{
 		Vector4D nThis = *this;
-		return nThis[0] * b[0] + nThis[1] * b[1] + nThis[2] * b[2] + nThis[3] * b[3];
+		return nThis.at(0) * b.at(0) + nThis.at(1) * b.at(1) + nThis.at(2) * b.at(2) + nThis.at(3) * b.at(3);
 	}
 
 	inline T& operator[](int i) { return (&X)[i]; }
 	inline const T& operator[](int i) const { return (&X)[i]; }
 
-	inline T& At(int i) { return (&X)[i]; }
-	inline const T& At(int i) const { return (&X)[i]; }
+	inline T& at(int i) { return (&X)[i]; }
+	inline const T& at(int i) const { return (&X)[i]; }
 
 //=============================Most cases================================================
 	/*

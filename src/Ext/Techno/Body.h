@@ -163,11 +163,7 @@ public:
 	bool FreeUnitDone { false };
 	AresAEData AeData {};
 
-	TechnoExtData(base_type* OwnerObject) noexcept
-	{
-		AttachedToObject = OwnerObject;
-	}
-
+	TechnoExtData() noexcept = default;
 	~TechnoExtData() noexcept
 	{
 		GameDelete<true, true>(MyOriginalTemporal);

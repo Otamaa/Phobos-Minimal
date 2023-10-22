@@ -95,11 +95,7 @@ public:
 
 	Valueable<int> SidebarMixFileIndex { -1 };
 
-	SideExtData(base_type* OwnerObject) noexcept
-	{
-		AttachedToObject = OwnerObject;
-	}
-
+	SideExtData() noexcept = default;
 	~SideExtData() noexcept = default;
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

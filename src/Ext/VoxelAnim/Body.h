@@ -31,11 +31,7 @@ public:
 	std::vector<LaserTrailClass> LaserTrails { };
 	std::vector<UniversalTrail> Trails { };
 
-	VoxelAnimExtData(base_type* OwnerObject) noexcept
-	{
-		this->AttachedToObject = OwnerObject;
-	}
-
+	VoxelAnimExtData() noexcept = default;
 	~VoxelAnimExtData() noexcept = default;
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);

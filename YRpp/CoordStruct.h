@@ -67,9 +67,9 @@ public:
 		return { static_cast<short>(X / 256) ,static_cast<short>(Y / 256) };
 	}
 
-	FORCEINLINE operator bool() const {
-		return X || Y || Z;
-	}
+	//FORCEINLINE operator bool() const {
+	//	return X || Y || Z;
+	//}
 
 	bool FORCEINLINE IsValid() const {
 		return X || Y || Z;
@@ -145,8 +145,8 @@ public:
 	}
 
 	//scalar multiplication
-	//CoordStruct operator*(double r) const
-	//{ return { static_cast<int>(X * r), static_cast<int>(Y * r), static_cast<int>(Z * r) }; }
+	CoordStruct operator*(double r) const
+	{ return { static_cast<int>(X * r), static_cast<int>(Y * r), static_cast<int>(Z * r) }; }
 
 	//scalar multiplication
 	CoordStruct& operator*=(double r)
@@ -171,11 +171,11 @@ public:
 
 	static const  CoordStruct Empty;
 
-	inline int& operator[](int i) { return (&X)[i]; }
-	inline const int& operator[](int i) const { return (&X)[i]; }
+	//inline int& operator[](int i) { return (&X)[i]; }
+	//inline const int& operator[](int i) const { return (&X)[i]; }
 
-	inline int& At(int i) { return (&X)[i]; }
-	inline const int& At(int i) const { return (&X)[i]; }
+	inline int& at(int i) { return (&X)[i]; }
+	inline const int& at(int i) const { return (&X)[i]; }
 
 //=============================Special cases=========================================
 	inline double powXY() const {

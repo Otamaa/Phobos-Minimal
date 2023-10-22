@@ -438,6 +438,24 @@ public:
 
 	static std::array<MappedActions, (size_t)Action::count + 2> CursorIdx;
 
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	{
+		return
+			Stm
+			.Process(CursorIdx)
+			.Success()
+			;
+	}
+
+	static bool LoadGlobals(PhobosStreamReader& Stm)
+	{
+		return
+			Stm
+			.Process(CursorIdx)
+			.Success()
+			;
+	}
+
 	static void ClearMappedAction();
 	static void NOINLINE InsertMappedAction(MouseCursorType nCursorIdx, Action nAction, bool Shrouded);
 	static void NOINLINE InsertSWMappedAction(MouseCursorType nCursorIdx, Action nAction, bool Shrouded);

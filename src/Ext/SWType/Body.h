@@ -462,11 +462,7 @@ public:
 	Valueable<bool> UseWeeds_StorageTimer { false };
 	Valueable<int> UseWeeds_ReadinessAnimationPercentage { 90 };
 
-	SWTypeExtData(base_type* OwnerObject) noexcept
-	{
-		AttachedToObject = OwnerObject;
-	}
-
+	SWTypeExtData() noexcept = default;
 	~SWTypeExtData() noexcept;
 
 	void FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const CellStruct* const pCell, bool IsCurrentPlayer);

@@ -81,6 +81,8 @@
 
 //#include <New/Entity/FoggedObject.h>
 #include <Misc/DynamicPatcher/Trails/TrailType.h>
+
+#include <Misc/Ares/Hooks/Header.h>
 #pragma endregion
 
 //#include <New/Entity/BannerClass.h>
@@ -307,7 +309,7 @@ FORCEINLINE void Process_InvalidatePtr(AbstractClass* pInvalid, bool const remov
 	}
 }
 
-DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
+DEFINE_OVERRIDE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 {
 	GET(AbstractClass* const, pInvalid, ECX);
 	GET(bool const, removed, EDX);
@@ -326,6 +328,7 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 {
 	TechnoTypeExtContainer::Instance.Clear();
+	BulletTypeExtContainer::Instance.Clear();
 	PhobosGlobal::Clear();
 	SWStateMachine::Clear();
 	ArmorTypeClass::Clear();
@@ -423,50 +426,103 @@ FORCEINLINE bool Process_Save(IStream* pStm)
 		return T::SaveGlobals(writer) && stm.WriteBlockToStream(pStm);
 }
 
-DEFINE_HOOK(0x67D32C, SaveGame_Phobos_Global, 0x5)
+//DEFINE_HOOK(0x67D32C, SaveGame_Phobos_Global, 0x5)
+//{
+//	Debug::Log("Saving global Phobos data\n");
+//	GET(IStream*, pStm, ESI);
+//
+//	bool ret =
+//		Process_Save<PaletteManager>(pStm) &&
+//		Process_Save<CursorTypeClass>(pStm) &&
+//		Process_Save<MouseClassExt>(pStm) &&
+//		Process_Save<DigitalDisplayTypeClass>(pStm) &&
+//		Process_Save<ArmorTypeClass>(pStm) &&
+//		Process_Save<ImmunityTypeClass>(pStm) &&
+//		Process_Save<ColorTypeClass>(pStm) &&
+//		Process_Save<HouseExtContainer>(pStm) &&
+//		Process_Save<WeaponTypeExtContainer>(pStm) &&
+//		Process_Save<SWTypeExtContainer>(pStm) &&
+//		Process_Save<BuildingTypeExtContainer>(pStm) &&
+//		Process_Save<RadTypeClass>(pStm) &&
+//		Process_Save<ShieldTypeClass>(pStm) &&
+//		Process_Save<HoverTypeClass>(pStm) &&
+//		Process_Save<BannerTypeClass>(pStm) &&
+//		Process_Save<TrailType>(pStm) &&
+//		Process_Save<LaserTrailTypeClass>(pStm) &&
+//		Process_Save<TunnelTypeClass>(pStm) &&
+//		Process_Save<SWStateMachine>(pStm) &&
+//		Process_Save<PhobosGlobal>(pStm) &&
+//		Process_Save<GenericPrerequisite>(pStm) &&
+//		Process_Save<CrateTypeClass>(pStm)
+//		;
+//
+//	if (!ret)
+//		Debug::Log("[Phobos] Global SaveGame Failed !\n");
+//
+//	return 0;
+//}
+//
+DEFINE_HOOK(0x67E826, LoadGame_Phobos_Global_Early, 0x6)
 {
-	//Debug::Log("Saving global Phobos data\n");
-	GET(IStream*, pStm, ESI);
-
-	bool ret =
-		Process_Save<PaletteManager>(pStm) &&
-		Process_Save<CursorTypeClass>(pStm) &&
-		Process_Save<DigitalDisplayTypeClass>(pStm) &&
-		Process_Save<ArmorTypeClass>(pStm) &&
-		Process_Save<ImmunityTypeClass>(pStm) &&
-		Process_Save<ColorTypeClass>(pStm) &&
-		Process_Save<HouseExtContainer>(pStm) &&
-		Process_Save<WeaponTypeExtContainer>(pStm) &&
-		Process_Save<SWTypeExtContainer>(pStm) &&
-		Process_Save<BuildingTypeExtContainer>(pStm) &&
-		Process_Save<RadTypeClass>(pStm) &&
-		Process_Save<ShieldTypeClass>(pStm) &&
-		Process_Save<HoverTypeClass>(pStm) &&
-		Process_Save<BannerTypeClass>(pStm) &&
-		Process_Save<TrailType>(pStm) &&
-		Process_Save<LaserTrailTypeClass>(pStm) &&
-		Process_Save<TunnelTypeClass>(pStm) &&
-		Process_Save<SWStateMachine>(pStm) &&
-		Process_Save<PhobosGlobal>(pStm) &&
-		Process_Save<GenericPrerequisite>(pStm) &&
-		Process_Save<CrateTypeClass>(pStm)
-		;
-
-	if (!ret)
-		Debug::Log("[Phobos] Global SaveGame Failed !\n");
-
+//	Debug::Log("Loading global Phobos data\n");
+//	GET(IStream*, pStm, ESI);
+	Phobos::Otamaa::DoingLoadGame = true;
+//
+//	bool ret =
+//		Process_Load<PaletteManager>(pStm) &&
+//		Process_Load<CursorTypeClass>(pStm) &&
+//		Process_Load<MouseClassExt>(pStm) &&
+//		Process_Load<DigitalDisplayTypeClass>(pStm) &&
+//		Process_Load<ArmorTypeClass>(pStm) &&
+//		Process_Load<ImmunityTypeClass>(pStm) &&
+//		Process_Load<ColorTypeClass>(pStm) &&
+//		Process_Load<HouseExtContainer>(pStm) &&
+//		Process_Load<WeaponTypeExtContainer>(pStm) &&
+//		Process_Load<SWTypeExtContainer>(pStm) &&
+//		Process_Load<BuildingTypeExtContainer>(pStm) &&
+//		Process_Load<RadTypeClass>(pStm) &&
+//		Process_Load<ShieldTypeClass>(pStm) &&
+//		Process_Load<HoverTypeClass>(pStm) &&
+//		Process_Load<BannerTypeClass>(pStm) &&
+//		Process_Load<TrailType>(pStm) &&
+//		Process_Load<LaserTrailTypeClass>(pStm) &&
+//		Process_Load<TunnelTypeClass>(pStm) &&
+//		Process_Load<SWStateMachine>(pStm) &&
+//		Process_Load<PhobosGlobal>(pStm) &&
+//		Process_Load<GenericPrerequisite>(pStm) &&
+//		Process_Load<CrateTypeClass>(pStm)
+//		;
+//
+//	if (!ret)
+//		Debug::Log("[Phobos] Global LoadGame Failed !\n");
+//
 	return 0;
 }
 
-DEFINE_HOOK(0x67E826, LoadGame_Phobos_Global, 0x6)
+//there some classes that need to be re-init after load game done
+//maybe worth taking a look at it at some point -Otamaa
+DEFINE_HOOK(0x67E65E, LoadGame_Phobos_AfterEverything, 0x6)
 {
-	//Debug::Log("Loading global Phobos data\n");
+	GET_STACK(IStream*, pStm, 0x10);
+	Phobos::LoadGameDataAfter(pStm);
+	return 0;
+}
+
+DEFINE_HOOK(0x67D1B4, SaveGame_Phobos_AfterEverything, 0x6)
+{
+	GET_STACK(IStream*, pStm, 0x1C);
+	Phobos::SaveGameDataAfter(pStm);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
+{
 	GET(IStream*, pStm, ESI);
-	Phobos::Otamaa::DoingLoadGame = true;
 
 	bool ret =
 		Process_Load<PaletteManager>(pStm) &&
 		Process_Load<CursorTypeClass>(pStm) &&
+		Process_Load<MouseClassExt>(pStm) &&
 		Process_Load<DigitalDisplayTypeClass>(pStm) &&
 		Process_Load<ArmorTypeClass>(pStm) &&
 		Process_Load<ImmunityTypeClass>(pStm) &&
@@ -485,7 +541,8 @@ DEFINE_HOOK(0x67E826, LoadGame_Phobos_Global, 0x6)
 		Process_Load<SWStateMachine>(pStm) &&
 		Process_Load<PhobosGlobal>(pStm) &&
 		Process_Load<GenericPrerequisite>(pStm) &&
-		Process_Load<CrateTypeClass>(pStm)
+		Process_Load<CrateTypeClass>(pStm) &&
+		Process_Load<NewSWType>(pStm)
 		;
 
 	if (!ret)
@@ -494,20 +551,47 @@ DEFINE_HOOK(0x67E826, LoadGame_Phobos_Global, 0x6)
 	return 0;
 }
 
-//there some classes that need to be re-init after load game done
-//maybe worth taking a look at it at some point -Otamaa
-DEFINE_HOOK(0x67E65E, LoadGame_Phobos_AfterEverything, 0x6)
+DEFINE_OVERRIDE_HOOK(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 {
-	GET_STACK(IStream*, pStm, 0x10);
-	Phobos::LoadGameDataAfter(pStm);
-	return 0;
-}
+	GET(HRESULT, Status, EAX);
 
-DEFINE_HOOK(0x67D1B4, SaveGame_Phobos_AfterEverything, 0x6)
-{
-	GET_STACK(IStream*, pStm, 0x1C);
-	Phobos::SaveGameDataAfter(pStm);
-	return 0;
+	if (SUCCEEDED(Status))
+	{
+		GET(IStream*, pStm, ESI);
+
+		bool ret =
+			Process_Save<PaletteManager>(pStm) &&
+			Process_Save<CursorTypeClass>(pStm) &&
+			Process_Save<MouseClassExt>(pStm) &&
+			Process_Save<DigitalDisplayTypeClass>(pStm) &&
+			Process_Save<ArmorTypeClass>(pStm) &&
+			Process_Save<ImmunityTypeClass>(pStm) &&
+			Process_Save<ColorTypeClass>(pStm) &&
+			Process_Save<HouseExtContainer>(pStm) &&
+			Process_Save<WeaponTypeExtContainer>(pStm) &&
+			Process_Save<SWTypeExtContainer>(pStm) &&
+			Process_Save<BuildingTypeExtContainer>(pStm) &&
+			Process_Save<RadTypeClass>(pStm) &&
+			Process_Save<ShieldTypeClass>(pStm) &&
+			Process_Save<HoverTypeClass>(pStm) &&
+			Process_Save<BannerTypeClass>(pStm) &&
+			Process_Save<TrailType>(pStm) &&
+			Process_Save<LaserTrailTypeClass>(pStm) &&
+			Process_Save<TunnelTypeClass>(pStm) &&
+			Process_Save<SWStateMachine>(pStm) &&
+			Process_Save<PhobosGlobal>(pStm) &&
+			Process_Save<GenericPrerequisite>(pStm) &&
+			Process_Save<CrateTypeClass>(pStm) &&
+			Process_Save<NewSWType>(pStm)
+			;
+
+		if (!ret)
+			Debug::Log("[Phobos] Global SaveGame Failed !\n");
+
+		R->EAX<HRESULT>(ret ? S_OK : E_FAIL);
+	}
+
+	return 0x0;
 }
 
 #pragma endregion

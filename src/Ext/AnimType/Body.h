@@ -90,11 +90,7 @@ public:
 
 	Valueable<bool> AltPalette_ApplyLighting { false };
 
-	AnimTypeExtData(AnimTypeClass* OwnerObject) noexcept
-	{
-		AttachedToObject = OwnerObject;
-	}
-
+	AnimTypeExtData() noexcept = default;
 	~AnimTypeExtData() noexcept = default;
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

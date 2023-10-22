@@ -55,7 +55,7 @@ struct BurstFLHBundle
 		return Stm
 			.Process(this->Flh, RegisterForChange)
 			.Process(this->EFlh, RegisterForChange)
-			.Success() && Stm.RegisterChange(this)
+			.Success()
 			;
 	}
 
@@ -179,8 +179,6 @@ public:
 	ValueableVector<int> OreGathering_Tiberiums {};
 	ValueableVector<int> OreGathering_FramesPerDir {};
 
-	//std::vector<BurstFLHBundle> WeaponBurstFLHs {};
-
 	Valueable<bool> DestroyAnim_Random { true };
 	Valueable<bool> NotHuman_RandomDeathSequence { false };
 
@@ -256,8 +254,9 @@ public:
 	Nullable<CoordStruct> E_DeployedPrimaryFireFLH {};
 	Nullable<CoordStruct> E_DeployedSecondaryFireFLH {};
 
-	//std::vector<BurstFLHBundle> CrouchedWeaponBurstFLHs {};
-	//std::vector<BurstFLHBundle> DeployedWeaponBurstFLHs {};
+//	std::vector<BurstFLHBundle> WeaponBurstFLHs {};
+//	std::vector<BurstFLHBundle> CrouchedWeaponBurstFLHs {};
+//	std::vector<BurstFLHBundle> DeployedWeaponBurstFLHs {};
 	std::vector<CoordStruct> AlternateFLHs {};
 
 	Nullable<bool> IronCurtain_SyncDeploysInto {};
@@ -864,18 +863,14 @@ public:
 
 	Nullable<PartialVector3D<double>> DetectDisguise_Percent {};
 
-
-	//unused atm
-	TechnoTypeExtData(TechnoTypeClass* OwnerObject) noexcept { }
-	//
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);
+	void InitializeConstant();
 	void Initialize();
-
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 	bool IsCountedAsHarvester() const;
@@ -921,9 +916,9 @@ public:
 
 	virtual bool Load(TechnoTypeClass* key, IStream* pStm) override;
 
-	//void Clear() {
-	//	this->Map.clear();
-	//}
+	void Clear() {
+		this->Map.clear();
+	}
 
 	TechnoTypeExtContainer() : Container<TechnoTypeExtData> { "TechnoTypeClass" }
 		, Map {}

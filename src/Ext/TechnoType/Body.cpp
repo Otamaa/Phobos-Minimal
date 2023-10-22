@@ -1271,6 +1271,15 @@ void TechnoTypeExtData::LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI)
 
 }
 
+void TechnoTypeExtData::InitializeConstant()
+{
+	// stuffs will be serialized after
+	if (Phobos::Otamaa::DoingLoadGame)
+		return;
+
+	this->AttachedEffect.Owner = this->AttachedToObject;
+}
+
 ImageStatusses ImageStatusses::ReadVoxel(const char* const nKey, bool a4)
 {
 	char buffer[0x60];
@@ -2095,9 +2104,7 @@ bool TechnoTypeExtContainer::Load(TechnoTypeClass* key, IStream* pStm)
 	auto Iter = TechnoTypeExtContainer::Instance.Map.find(key);
 
 	if (Iter == TechnoTypeExtContainer::Instance.Map.end()) {
-		auto ptr = new TechnoTypeExtData();
-		ptr->AttachedToObject = key;
-		ptr->AttachedEffect.Owner = key;
+		auto ptr = this->AllocateUnlchecked(key);
 		Iter = TechnoTypeExtContainer::Instance.Map.emplace(key, ptr).first;
 	}
 
@@ -2130,12 +2137,11 @@ DEFINE_HOOK(0x711835, TechnoTypeClass_CTOR, 0x5)
 {
 	GET(TechnoTypeClass* , pItem, ESI);
 
+	constexpr size_t test = sizeof(TechnoExtData);
 	auto Iter = TechnoTypeExtContainer::Instance.Map.find(pItem);
 
 	if (Iter == TechnoTypeExtContainer::Instance.Map.end()) {
-		auto ptr = new TechnoTypeExtData();
-		ptr->AttachedToObject = pItem;
-		ptr->AttachedEffect.Owner = pItem;
+		auto ptr = TechnoTypeExtContainer::Instance.AllocateUnlchecked(pItem);
 		Iter = TechnoTypeExtContainer::Instance.Map.emplace(pItem, ptr).first;
 	}
 

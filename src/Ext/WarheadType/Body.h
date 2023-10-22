@@ -344,15 +344,10 @@ public:
 
 public:
 
-	WarheadTypeExtData(base_type* OwnerObject) noexcept
-	{
-		this->AttachedToObject = OwnerObject;
-		this->AttachedEffect.Owner = OwnerObject;
-		this->EvaluateArmor(OwnerObject);
-	}
-
+	WarheadTypeExtData() noexcept = default;
 	~WarheadTypeExtData() noexcept = default;
 
+	void InitializeConstant();
 	void ApplyRemoveDisguise(HouseClass* pHouse, TechnoClass* pTarget);
 	void ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass* pTarget);
 

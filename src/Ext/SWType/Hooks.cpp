@@ -2281,7 +2281,8 @@ DEFINE_OVERRIDE_HOOK(0x53A140, LightningStorm_Strike, 7)
 		auto const pCell = MapClass::Instance->GetCellAt(cell);
 
 		// create a cloud animation
-		if (auto coords = pCell->GetCoordsWithBridge())
+		auto coords = pCell->GetCoordsWithBridge();
+		if (coords.IsValid())
 		{
 			// select the anim
 			auto const itClouds = pExt->Weather_Clouds.GetElements(
@@ -2335,8 +2336,9 @@ DEFINE_OVERRIDE_HOOK(0x53A300, LightningStorm_Strike2, 5)
 	// get center of cell coords
 	auto const pCell = MapClass::Instance->GetCellAt(refCoords);
 	const auto pNewSW = pData->GetNewSWType();
+	auto const coords = pCell->GetCoordsWithBridge();
 
-	if (auto const coords = pCell->GetCoordsWithBridge())
+	if (coords.IsValid())
 	{
 		// create a bolt animation
 		if (auto it = pData->Weather_Bolts.GetElements(

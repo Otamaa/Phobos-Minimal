@@ -67,11 +67,7 @@ public:
 	bool ShowBriefing { false };
 	int BriefingTheme { -1 };
 
-	ScenarioExtData(base_type* OwnerObject) noexcept
-	{
-		AttachedToObject = OwnerObject;
-	}
-
+	ScenarioExtData() noexcept = default;
 	~ScenarioExtData() noexcept = default;
 
 	void SetVariableToByID(const bool IsGlobal, int nIndex, char bState);

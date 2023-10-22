@@ -7012,10 +7012,10 @@ const std::vector<CellStruct>* CustomFoundation::GetCoveredCells(
 	int const shadowHeight)
 {
 	auto const pFoundation = pThis->GetFoundationData(false);
-	auto const len = FoundationLength(pFoundation);
+	//auto const len = FoundationLength(pFoundation);
 
 	PhobosGlobal::Instance()->TempCoveredCellsData.clear();
-	PhobosGlobal::Instance()->TempCoveredCellsData.reserve(len * shadowHeight);
+	//PhobosGlobal::Instance()->TempCoveredCellsData.reserve(len * shadowHeight);
 
 	auto pFCell = pFoundation;
 

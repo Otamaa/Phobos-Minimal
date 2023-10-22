@@ -803,7 +803,7 @@ Fuse BulletExtData::FuseCheckup(BulletClass* pBullet, CoordStruct* newlocation)
 void BulletExtData::DetonateAt(BulletClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, CoordStruct nCoord , HouseClass* pBulletOwner)
 {
 
-	if (!nCoord && pTarget)
+	if (!nCoord.IsValid() && pTarget)
 		nCoord = pTarget->GetCoords();
 
 	if(pBulletOwner && !pOwner) {

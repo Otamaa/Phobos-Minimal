@@ -21,11 +21,7 @@ public:
 	int CurrentDoType { -1 };
 	bool ForceFullRearmDelay { false };
 
-	InfantryExtData(base_type* OwnerObject) noexcept
-	{
-		AttachedToObject = OwnerObject;
-	}
-
+	InfantryExtData() noexcept = default;
 	~InfantryExtData() noexcept = default;
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

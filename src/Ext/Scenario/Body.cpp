@@ -98,7 +98,8 @@ void ScenarioExtData::ReadVariables(const bool IsGlobal, CCINIClass* pINI)
 
 void ScenarioExtData::Allocate(ScenarioClass* pThis)
 {
-	Data = std::make_unique<ScenarioExtData>(pThis);
+	Data = std::make_unique<ScenarioExtData>();
+	Data->AttachedToObject = pThis;
 }
 
 void ScenarioExtData::Remove(ScenarioClass* pThis)

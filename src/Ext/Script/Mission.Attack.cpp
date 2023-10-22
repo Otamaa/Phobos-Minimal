@@ -486,7 +486,7 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 	auto pTechnoType = pTechno->GetTechnoType();
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 	auto const AIDifficulty = static_cast<int>(pTechno->Owner->GetAIDifficultyIndex());
-	auto const DisguiseDetectionValue = pTypeExt->DetectDisguise_Percent.GetEx(RulesExtData::Instance()->AIDetectDisguise_Percent)->At(AIDifficulty);
+	auto const DisguiseDetectionValue = pTypeExt->DetectDisguise_Percent.GetEx(RulesExtData::Instance()->AIDetectDisguise_Percent)->at(AIDifficulty);
 	auto const detectionValue = (int)std::round(DisguiseDetectionValue * 100.0);
 
 	// Generic method for targeting

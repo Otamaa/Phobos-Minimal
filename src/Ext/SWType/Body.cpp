@@ -547,7 +547,7 @@ struct TargetingFuncs
 					int value = 0;
 
 					if(pTypeExt->AIIonCannonValue.isset()) {
-						value = pTypeExt->AIIonCannonValue->At(pTargeting->Owner->GetAIDifficultyIndex());
+						value = pTypeExt->AIIonCannonValue->at(pTargeting->Owner->GetAIDifficultyIndex());
 					}else {
 						value = pTechno->GetIonCannonValue(pTargeting->Owner->AIDifficulty);
 					}

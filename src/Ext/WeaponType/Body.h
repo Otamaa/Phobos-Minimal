@@ -142,11 +142,7 @@ public:
 
 	Valueable<bool> Bolt_ParticleSys_Enabled { true };
 
-	WeaponTypeExtData(base_type* OwnerObject) noexcept
-	{
-		this->AttachedToObject = OwnerObject;
-	}
-
+	WeaponTypeExtData() noexcept = default;
 	~WeaponTypeExtData() noexcept = default;
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

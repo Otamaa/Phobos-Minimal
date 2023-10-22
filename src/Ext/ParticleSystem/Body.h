@@ -116,18 +116,13 @@ public:
 	static_assert(sizeof(Draw) == 0x2C, "Invalid Size");
 	HelperedVector<Draw> SmokeData { };
 
-	ParticleSystemExtData(base_type* OwnerObject) noexcept
-	{
-		this->AttachedToObject = OwnerObject;
-		InitializeConstants(OwnerObject, this);
-	}
-
+	ParticleSystemExtData() noexcept = default;
 	~ParticleSystemExtData() noexcept = default;
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-
+	void InitializeConstant();
 	void UpdateLocations();
 	void UpdateState();
 	void UpdateColor();
@@ -139,7 +134,7 @@ public:
 	void UpdateInAir_Main(bool allowDraw);
 
 	static void UpdateInAir();
-	static void InitializeConstants(ParticleSystemClass* pOwnerObject, ParticleSystemExtData* pData);
+	
 
 private:
 	template <typename T>

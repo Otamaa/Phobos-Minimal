@@ -281,11 +281,7 @@ public:
 
 	AircraftPutDataRules MyPutData { };
 
-	RulesExtData(base_type* OwnerObject) noexcept
-	{
-		AttachedToObject = OwnerObject;
-	}
-
+	RulesExtData() noexcept = default;
 	~RulesExtData() noexcept = default;
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

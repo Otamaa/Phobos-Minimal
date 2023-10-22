@@ -23,11 +23,7 @@ public:
 	std::vector<LaserTrailClass> LaserTrails { };
 	std::vector<UniversalTrail> Trails { };
 
-	ParticleExtData(base_type* OwnerObject) noexcept
-	{
-		AttachedToObject = OwnerObject;
-	}
-
+	ParticleExtData() noexcept = default;
 	~ParticleExtData() noexcept = default;
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

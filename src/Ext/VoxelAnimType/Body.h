@@ -36,11 +36,7 @@ public:
 	TrailsReader Trails { };
 #pragma endregion
 
-	VoxelAnimTypeExtData(base_type* OwnerObject) noexcept
-	{
-		this->AttachedToObject = OwnerObject;
-	}
-
+	VoxelAnimTypeExtData() noexcept = default;
 	~VoxelAnimTypeExtData() noexcept = default;
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

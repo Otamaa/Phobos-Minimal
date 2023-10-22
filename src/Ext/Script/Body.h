@@ -208,11 +208,7 @@ public:
 public:
 	// Nothing yet
 
-	ScriptExtData(base_type* OwnerObject) noexcept
-	{
-		AttachedToObject = OwnerObject;
-	}
-
+	ScriptExtData()  noexcept = default;
 	~ScriptExtData() noexcept = default;
 
 	static void ProcessScriptActions(TeamClass* pTeam);

@@ -17,11 +17,7 @@ public:
 
 	Valueable<PaletteManager*> Palette { };
 
-	OverlayTypeExtData(base_type* OwnerObject) noexcept
-	{
-		AttachedToObject = OwnerObject;
-	}
-
+	OverlayTypeExtData() noexcept = default;
 	~OverlayTypeExtData() noexcept = default;
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

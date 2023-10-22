@@ -28,9 +28,12 @@ enum class BunkerSoundMode : int
 	public:
 		static constexpr size_t Canary = 0x11111111;
 		using base_type = BuildingTypeClass;
-		//static constexpr size_t ExtOffset = 0x1794;
-		static constexpr size_t ExtOffset = 0xE24; //ares
 
+#ifndef ENABLE_FOUNDATIONHOOK
+		static constexpr size_t ExtOffset = 0xE24; //ares
+#else
+		static constexpr size_t ExtOffset = 0x1794;
+#endif
 		base_type* AttachedToObject {};
 		InitState Initialized { InitState::Blank };
 	public:
@@ -279,10 +282,7 @@ enum class BunkerSoundMode : int
 		Valueable<Point2D> DisplayIncome_Offset {};
 		Valueable<unsigned int> FreeUnit_Count { 1 };
 
-		BuildingTypeExtData(BuildingTypeClass* OwnerObject) noexcept {
-			this->AttachedToObject = OwnerObject;
-		}
-
+		BuildingTypeExtData() noexcept = default;
 		~BuildingTypeExtData() noexcept = default;
 
 		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
@@ -359,8 +359,6 @@ enum class BunkerSoundMode : int
 		CONSTEXPR_NOCOPY_CLASSB(BuildingTypeExtContainer, BuildingTypeExtData, "BuildingTypeClass");
 	public:
 		static BuildingTypeExtContainer Instance;
-
-		virtual bool Load(BuildingTypeClass* pThis, IStream* pStm) override;
 
 		static bool LoadGlobals(PhobosStreamReader& Stm)
 		{

@@ -18,11 +18,7 @@ public:
 
 	Valueable<bool> Clearable { true };
 
-	SmudgeTypeExtData(base_type* OwnerObject) noexcept
-	{
-		AttachedToObject = OwnerObject;
-	}
-
+	SmudgeTypeExtData() noexcept = default;
 	~SmudgeTypeExtData() noexcept = default;
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

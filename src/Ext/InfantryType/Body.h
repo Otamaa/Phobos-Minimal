@@ -33,11 +33,7 @@ public:
 
 	ValueableIdxVector<VocClass> VoiceGarrison {};
 
-	InfantryTypeExtData(base_type* OwnerObject) noexcept
-	{
-		AttachedToObject = OwnerObject;
-	}
-
+	InfantryTypeExtData() noexcept = default;
 	~InfantryTypeExtData() noexcept = default;
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

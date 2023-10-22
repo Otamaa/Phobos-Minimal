@@ -458,6 +458,17 @@ bool __fastcall CustomPalette_Read_Static(CustomPalette* pThis, DWORD, INI_EX* p
 	return pThis->Read(pEx->GetINI(), pSection, pKey, pDefault);
 }
 
+//dummy
+void __stdcall SideExt_UpdateGlobalFiles()
+{
+	Debug::Log(__FUNCTION__" Executed!\n");
+}
+
+void __stdcall BuildingExtContainer_LoadGlobal(void**)
+{
+	Debug::Log(__FUNCTION__" Executed!\n");
+}
+
 void Phobos::ExeRun()
 {
 	Phobos::Otamaa::ExeTerminated = false;
@@ -487,7 +498,17 @@ void Phobos::ExeRun()
 		VirtualProtect((LPVOID)nData, sizeof(Data), protect_flag, 0);
 	}
 
+	const auto Data = _CALL(AresData::AresStaticInstanceFinal[16], GET_OFFSET(SideExt_UpdateGlobalFiles));
+	VirtualProtect((LPVOID)AresData::AresStaticInstanceFinal[16], sizeof(Data), PAGE_EXECUTE_READWRITE, &protect_flag);
+	memcpy((LPVOID)AresData::AresStaticInstanceFinal[16], (LPVOID)(&Data), sizeof(Data));
+	VirtualProtect((LPVOID)AresData::AresStaticInstanceFinal[16], sizeof(Data), protect_flag, 0);
 
+#ifndef ENABLE_FOUNDATIONHOOK
+	const auto Data2 = _CALL(AresData::AresStaticInstanceFinal[17], GET_OFFSET(BuildingExtContainer_LoadGlobal));
+	VirtualProtect((LPVOID)AresData::AresStaticInstanceFinal[17], sizeof(Data2), PAGE_EXECUTE_READWRITE, &protect_flag);
+	memcpy((LPVOID)AresData::AresStaticInstanceFinal[17], (LPVOID)(&Data2), sizeof(Data2));
+	VirtualProtect((LPVOID)AresData::AresStaticInstanceFinal[17], sizeof(Data2), protect_flag, 0);
+#endif
 	//PoseDirOverride::Apply();
 	InitConsole();
 }

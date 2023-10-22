@@ -18,11 +18,7 @@ public:
 	Valueable<bool> ApplyOptimization { true };
 	std::array<Point2D, (size_t)FacingType::Count> FacingMult {};
 
-	ParticleSystemTypeExtData(base_type* OwnerObject) noexcept
-	{
-		AttachedToObject = OwnerObject;
-	}
-
+	ParticleSystemTypeExtData() noexcept = default;
 	~ParticleSystemTypeExtData() noexcept = default;
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

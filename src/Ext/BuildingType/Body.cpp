@@ -50,7 +50,7 @@ void BuildingTypeExtData::UpdateFoundationRadarShape()
 					dblLength = minLength;
 				}
 
-				return Game::F2I(dblLength);
+				return int(dblLength);
 			};
 
 		// the transformed lengths
@@ -955,7 +955,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			detail::read(this->CustomWidth, exArtINI, pArtSection, "Foundation.X");
 			detail::read(this->CustomHeight, exArtINI, pArtSection, "Foundation.Y");
 
-			auto outlineLength = pArtINI->ReadInteger(pArtSection, "FoundationOutline.Length", 0);
+			int outlineLength = pArtINI->ReadInteger(pArtSection, "FoundationOutline.Length", 0);
 
 			// at len < 10, things will end very badly for weapons factories
 			if (outlineLength < 10) {
@@ -963,35 +963,38 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			}
 
 			//Allocate CellStruct array
-			const size_t dimension = this->CustomWidth * this->CustomHeight;
+			const int dimension = this->CustomWidth * this->CustomHeight;
 
 			this->CustomData.assign(dimension + 1, CellStruct::Empty);
 			this->OutlineData.assign(outlineLength + 1, CellStruct::Empty);
 
-			//using Iter = std::vector<CellStruct>::iterator;
-			//
-			//auto ParsePoint = [](Iter& cell, const char* str) -> void
-			//	{
-			//		int x = 0, y = 0;
-			//		switch (sscanf_s(str, "%d,%d", &x, &y))
-			//		{
-			//		case 0:
-			//			x = 0;
-			//		[[fallthrough]];
-			//		case 1:
-			//			y = 0;
-			//		}
-			//		*cell++ = CellStruct { static_cast<short>(x), static_cast<short>(y) };
-			//	};
+			using Iter = std::vector<CellStruct>::iterator;
+			
+			auto ParsePoint = [](Iter& cell, const char* str) -> void
+			{
+				int x = 0, y = 0;
+				switch (sscanf_s(str, "%d,%d", &x, &y))
+				{
+				case 0:
+					x = 0;
+				[[fallthrough]];
+				case 1:
+					y = 0;
+				}
+				*cell++ = CellStruct { static_cast<short>(x), static_cast<short>(y) };
+			};
 
 			//Load FoundationData
 			auto itData = this->CustomData.begin();
 			char key[0x20];
 
-			for (size_t i = 0; i < dimension; ++i) {
+			for (int i = 0; i < dimension; ++i) {
 				IMPL_SNPRNINTF(key, sizeof(key), "Foundation.%d", i);
-				if(!detail::read((*itData++), exArtINI, pArtSection, key))
+				if (pArtINI->ReadString(pArtSection , key, Phobos::readDefval, strbuff)) {
+					ParsePoint(itData, strbuff);
+				} else {
 					break;
+				}
 			}
 
 			//Sort, remove dupes, add end marker
@@ -1010,7 +1013,9 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			auto itOutline = this->OutlineData.begin();
 			for (int i = 0; i < outlineLength; ++i) {
 				IMPL_SNPRNINTF(key, sizeof(key), "FoundationOutline.%d", i);
-				if (!detail::read((*itOutline++), exArtINI, pArtSection, key)) {
+				if (pArtINI->ReadString(pArtSection, key, "", strbuff)) {
+					ParsePoint(itOutline, strbuff);
+				} else {
 					//Set end vector
 					// can't break, some stupid functions access fixed offsets without checking if that offset is within the valid range
 					*itOutline++ = FoundationEndMarker;
@@ -1287,13 +1292,6 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->FreeUnit_Count)
 		;
 }
-
-bool BuildingTypeExtContainer::Load(BuildingTypeClass* pThis, IStream* pStm)
-{
-	BuildingTypeExtData* pData = this->LoadKey(pThis, pStm);
-
-	return pData != nullptr;
-};
 
 // =============================
 // container

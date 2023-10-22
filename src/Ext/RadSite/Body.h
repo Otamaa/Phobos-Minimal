@@ -24,11 +24,7 @@ public:
 	HouseClass* HouseOwner { nullptr };
 	bool NoOwner { true };
 
-	RadSiteExtData(base_type* OwnerObject) noexcept
-	{
-		AttachedToObject = OwnerObject;
-	}
-
+	RadSiteExtData() noexcept = default;
 	~RadSiteExtData() noexcept = default;
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);

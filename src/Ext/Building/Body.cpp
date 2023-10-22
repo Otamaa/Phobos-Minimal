@@ -10,6 +10,25 @@
 #include <New/Entity/FlyingStrings.h>
 #include <Misc/AresData.h>
 
+void BuildingExtData::InitializeConstant()
+{
+	// stuffs will be serialized after
+	if (Phobos::Otamaa::DoingLoadGame)
+		return;
+
+	this->PrismForwarding.Owner = this->AttachedToObject;
+
+	this->TechnoExt = TechnoExtContainer::Instance.Find(this->AttachedToObject);
+	auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(this->AttachedToObject->Type);
+	this->Type = pTypeExt;
+
+	if (pTypeExt && !pTypeExt->DamageFire_Offs.empty())
+	{
+		this->DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
+	}
+
+	this->StartupCashDelivered.resize(HouseClass::Array->Count);
+}
 // Assigns a secret production option to the building.
 void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 {
@@ -854,19 +873,8 @@ DEFINE_HOOK(0x43BCBD, BuildingClass_CTOR, 0x6)
 {
 	GET(BuildingClass*, pItem, ESI);
 
-	if (auto pExt = BuildingExtContainer::Instance.Allocate(pItem))
-	{
-		pExt->TechnoExt = TechnoExtContainer::Instance.Find(pItem);
-
-		auto const pTypeExt = BuildingTypeExtContainer::Instance.TryFind(pItem->Type);
-		pExt->Type = pTypeExt;
-
-		if (pTypeExt && !pTypeExt->DamageFire_Offs.empty()) {
-			pExt->DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
-		}
-
-		pExt->StartupCashDelivered.resize(HouseClass::Array->Count);
-	}
+	BuildingExtContainer::Instance.Allocate(pItem);
+	
 
 	return 0;
 }

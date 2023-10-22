@@ -135,11 +135,7 @@ public:
 	int KeepAliveCount { 0 };
 	int KeepAliveBuildingCount { 0 };
 
-	HouseExtData(base_type* OwnerObject) noexcept
-	{
-		AttachedToObject = OwnerObject;
-	}
-
+	HouseExtData() noexcept = default;
 	~HouseExtData() noexcept = default;
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);

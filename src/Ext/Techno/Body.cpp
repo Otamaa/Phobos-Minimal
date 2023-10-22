@@ -1582,7 +1582,7 @@ void TechnoExtData::UpdateMCOverloadDamage(TechnoClass* pOwner)
 					if (pParticle->BehavesLike == ParticleSystemTypeBehavesLike::Smoke)
 						nLoc.Z += 100;
 
-					CoordStruct nParticleCoord { pOwner->Location.X + nRamdomX, nRandomY + pOwner->Location.Y, nLoc };
+					CoordStruct nParticleCoord { nLoc.X + nRamdomX, nRandomY + nLoc.Y, nLoc.Z };
 					GameCreate<ParticleSystemClass>(pParticle, nParticleCoord, pOwner->GetCell(), pOwner, CoordStruct::Empty, pOwner->Owner);
 				}
 			}
@@ -1833,10 +1833,9 @@ const BurstFLHBundle* TechnoExtData::PickFLHs(TechnoClass* pThis, int weaponidx)
 	//}
 
 	//if (res->empty() || res->size() <= (size_t)weaponidx)
-	//	return nullptr;
+		return nullptr;
 
 	//return &(*res)[weaponidx];
-	return nullptr;
 }
 
 std::pair<bool, CoordStruct> TechnoExtData::GetBurstFLH(TechnoClass* pThis, int weaponIndex)
@@ -1945,7 +1944,7 @@ std::pair<bool, CoordStruct> TechnoExtData::GetInfantryFLH(InfantryClass* pThis,
 
 	const auto pickedFLH = TechnoExtData::GetInfrantyCrawlFLH(pThis, weaponIndex);
 
-	if (pickedFLH && pickedFLH->isset() && pickedFLH->Get())
+	if (pickedFLH && pickedFLH->isset() && pickedFLH->Get().IsValid())
 	{
 		return { true , pickedFLH->Get() };
 	}
@@ -2666,7 +2665,7 @@ CoordStruct TechnoExtData::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordS
 	result.Y *= -1;
 
 	// Step 5: apply as an offset to global object coords
-	CoordStruct location = Overrider ? Overrider : pThis->GetCoords();
+	CoordStruct location = Overrider.IsValid() ? Overrider : pThis->GetCoords();
 	location += { static_cast<int>(result.X), static_cast<int>(result.Y), static_cast<int>(result.Z) };
 	// += { std::lround(result.X), std::lround(result.Y), std::lround(result.Z) };
 

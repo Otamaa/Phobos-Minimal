@@ -35,6 +35,10 @@ template <typename T>
 concept CanLoadFromRulesFile =
 	requires (T t, CCINIClass * pINI) { t.LoadFromRulesFile(pINI); };
 
+template <typename T>
+concept CTORInitable =
+	requires (T t) { t.InitializeConstant(); };
+
 
 template <typename T>
 concept PointerInvalidationSubscribable =
@@ -198,6 +202,21 @@ public:
 	//	return nullptr;
 	//}
 
+	// Allocate extensionptr without any checking
+	extension_type_ptr AllocateUnlchecked(base_type_ptr key)
+	{
+		if (extension_type_ptr val = new extension_type())
+		{
+			val->AttachedToObject = key;
+			if constexpr (CTORInitable<T>)
+				val->InitializeConstant();
+
+			return val;
+		}
+
+		return nullptr;
+	}
+
 	extension_type_ptr Allocate(base_type_ptr key)
 	{
 		if (!key || Phobos::Otamaa::DoingLoadGame)
@@ -205,7 +224,7 @@ public:
 
 		this->ClearExtAttribute(key);
 
-		if (extension_type_ptr val = new extension_type(key))
+		if (extension_type_ptr val = AllocateUnlchecked(key))
 		{
 			this->SetExtAttribute(key, val);
 			return val;
@@ -443,7 +462,7 @@ protected:
 			}
 
 			this->ClearExtAttribute(key);
-			extension_type_ptr buffer = new extension_type(key);
+			auto buffer = this->AllocateUnlchecked(key);
 			this->SetExtAttribute(key, buffer);
 
 			PhobosByteStream loader { 0 };

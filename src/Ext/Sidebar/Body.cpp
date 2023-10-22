@@ -9,7 +9,8 @@ std::array<SHPReference*, 4u> SidebarExtData::TabProducingProgress {};
 
 void SidebarExtData::Allocate(SidebarClass* pThis)
 {
-	Data = std::make_unique<SidebarExtData>(pThis);
+	Data = std::make_unique<SidebarExtData>();
+	Data->AttachedToObject = pThis;
 }
 
 void SidebarExtData::Remove(SidebarClass* pThis)

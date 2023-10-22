@@ -44,12 +44,7 @@ public:
 
 	Valueable<int> Bounty { 0 };
 
-	TerrainTypeExtData(base_type* OwnerObject) noexcept
-	{
-		this->AttachedToObject = OwnerObject;
-		this->CrushableLevel = OwnerObject->Crushable ? 10 : 0;
-	}
-
+	TerrainTypeExtData()  noexcept = default;
 	~TerrainTypeExtData() noexcept = default;
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

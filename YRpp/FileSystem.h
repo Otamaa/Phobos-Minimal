@@ -19,13 +19,15 @@ struct VoxelStruct
 	VoxLib* VXL;
 	MotLib* HVA;
 
-	VoxelStruct() = default;
+	VoxelStruct() noexcept :
+		VXL { nullptr }, HVA { nullptr }
+	{ }
 
-	VoxelStruct(VoxLib* pVxl, MotLib* pHva) :
+	VoxelStruct(VoxLib* pVxl, MotLib* pHva) noexcept :
 	 VXL { pVxl } , HVA { pHva }
 	{}
 
-	~VoxelStruct() {
+	~VoxelStruct() noexcept {
 		GameDelete<true,true>(VXL);
 		GameDelete<true,true>(HVA);
 	}

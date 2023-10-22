@@ -35,7 +35,8 @@ IStream* RulesExtData::g_pStm = nullptr;
 
 void RulesExtData::Allocate(RulesClass* pThis)
 {
-	Data = std::make_unique<RulesExtData>(pThis);
+	Data = std::make_unique<RulesExtData>();
+	Data->AttachedToObject = pThis;
 }
 
 void RulesExtData::Remove(RulesClass* pThis)

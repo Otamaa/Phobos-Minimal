@@ -257,11 +257,7 @@ public:
 	Vector3D<double> SonicBeamEndPinRight { 30.0, 100.0, 0.0 };
 	*/
 
-	WaveExtData(base_type* OwnerObject) noexcept
-	{
-		this->AttachedToObject = OwnerObject;
-	}
-
+	WaveExtData() noexcept = default;
 	~WaveExtData() noexcept = default;
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

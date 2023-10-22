@@ -30,10 +30,7 @@ public:
 	Handle<ParticleSystemClass*, UninitAttachedSystem> AttachedSystem {};
 	CoordStruct CreateUnitLocation {};
 
-	AnimExtData(base_type* OwnerObject) noexcept {
-		this->AttachedToObject = OwnerObject;
-	}
-
+	AnimExtData() noexcept = default;
 	~AnimExtData() noexcept = default;
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);

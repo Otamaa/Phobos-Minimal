@@ -125,9 +125,9 @@ public:
 		if (!pHouse)
 			pHouse = HouseExtData::FindCivilianSide();
 
-		if (sourcePos)
+		if (sourcePos.IsValid())
 		{
-			if (LastLocation.has_value() && LastLocation.get())
+			if (LastLocation.has_value() && LastLocation.get().IsValid())
 			{
 				CoordStruct targetPos = LastLocation.get();
 				int distance = Type->Distance;

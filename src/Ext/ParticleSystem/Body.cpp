@@ -5,18 +5,22 @@
 #include <ParticleTypeClass.h>
 #include <ParticleClass.h>
 
-void NOINLINE ParticleSystemExtData::InitializeConstants(ParticleSystemClass* pOwnerObject, ParticleSystemExtData* pData)
+void NOINLINE ParticleSystemExtData::InitializeConstant()
 {
-	if (auto pType = pOwnerObject->Type)
+	// stuffs will be serialized after
+	if (Phobos::Otamaa::DoingLoadGame)
+		return;
+
+	if (auto pType = this->AttachedToObject->Type)
 	{
 		if (!ParticleSystemTypeExtContainer::Instance.Find(pType)->ApplyOptimization || (size_t)pType->HoldsWhat >= ParticleTypeClass::Array->Size())
 			return ;
 
-		pData->HeldType = ParticleTypeClass::Array->GetItem(pType->HoldsWhat);
+		this->HeldType = ParticleTypeClass::Array->GetItem(pType->HoldsWhat);
 
-		if (!pData->HeldType->UseLineTrail && !pData->HeldType->AlphaImage) {
+		if (!this->HeldType->UseLineTrail && !this->HeldType->AlphaImage) {
 
-			auto bIsZero = (int)pData->HeldType->BehavesLike;
+			auto bIsZero = (int)this->HeldType->BehavesLike;
 			auto nBehave = (int)pType->BehavesLike;
 
 			if (bIsZero <= 1)
@@ -25,19 +29,19 @@ void NOINLINE ParticleSystemExtData::InitializeConstants(ParticleSystemClass* pO
 			if (nBehave == bIsZero) {
 
 				if (nBehave == 0) {
-					pData->What = Behave::Smoke;
+					this->What = Behave::Smoke;
 					return;
 				}
 
 				auto v11 = nBehave - 3;
 
 				if (!v11) {
-					pData->What = Behave::Spark;
+					this->What = Behave::Spark;
 					return;
 				}
 
 				if (v11 == 1) {
-					pData->What = Behave::Railgun;
+					this->What = Behave::Railgun;
 					return;
 				}
 			}

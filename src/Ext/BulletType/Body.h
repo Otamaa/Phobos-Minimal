@@ -100,11 +100,7 @@ public:
 
 	std::unique_ptr<PhobosTrajectoryType> TrajectoryType { };
 
-	BulletTypeExtData(base_type* OwnerObject) noexcept
-	{
-		AttachedToObject = OwnerObject;
-	}
-
+	BulletTypeExtData() noexcept = default;
 	~BulletTypeExtData() noexcept = default;
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
@@ -161,6 +157,10 @@ public:
 	std::unordered_map<BulletTypeClass*, BulletTypeExtData*> Map;
 
 	virtual bool Load(BulletTypeClass* key, IStream* pStm);
+
+	void Clear() {
+		this->Map.clear();
+	}
 
 	BulletTypeExtContainer() : Container<BulletTypeExtData> { "BulletTypeClass" }
 		, Map {}

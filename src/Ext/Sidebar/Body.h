@@ -22,11 +22,7 @@ public:
 	InitState Initialized { InitState::Blank };
 public:
 
-	SidebarExtData(base_type* OwnerObject) noexcept
-	{
-		AttachedToObject = OwnerObject;
-	}
-
+	SidebarExtData() noexcept = default;
 	~SidebarExtData() noexcept = default;
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

@@ -181,7 +181,7 @@ struct AresData
 	static DWORD AresMemAllocAddrFinal;
 
 	//number of static instance
-	static constexpr int AresStaticInstanceCount = 16;
+	static constexpr int AresStaticInstanceCount = 18;
 	//number of call for `CustomPalette::ReadFromINI`
 	static constexpr int AresCustomPaletteReadCount = 5;
 

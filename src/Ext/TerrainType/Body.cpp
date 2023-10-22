@@ -5,7 +5,8 @@
 
 void TerrainTypeExtData::Initialize()
 {
-	AttachedAnim.reserve(1);
+	this->AttachedAnim.reserve(1);
+	this->CrushableLevel = this->AttachedToObject->Crushable ? 10 : 0;
 }
 
 int TerrainTypeExtData::GetTiberiumGrowthStage()

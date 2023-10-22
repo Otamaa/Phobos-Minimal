@@ -51,10 +51,7 @@ class FootClass;
 		ScriptClass* PreviousScript { nullptr };
 		std::vector<BuildingClass*> BridgeRepairHuts {};
 
-		TeamExtData(base_type* OwnerObject) noexcept
-		{
-			AttachedToObject = OwnerObject;
-		}
+		TeamExtData() noexcept = default;
 
 		~TeamExtData() noexcept {
 			GameDelete<true, true>(PreviousScript);

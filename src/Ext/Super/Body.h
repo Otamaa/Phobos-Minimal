@@ -56,11 +56,7 @@ public:
 	//TechnoClass* Firer { nullptr };
 	SWStatus Statusses { };
 
-	SuperExtData(base_type* OwnerObject) noexcept
-	{
-		AttachedToObject = OwnerObject;
-	}
-
+	SuperExtData() noexcept = default;
 	~SuperExtData() noexcept = default;
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved)

@@ -68,11 +68,7 @@ public:
 	PhobosPCXFile ObserverBackground {};
 	SHPStruct* ObserverBackgroundSHP {};
 
-	HouseTypeExtData(base_type* OwnerObject) noexcept
-	{
-		AttachedToObject = OwnerObject;
-	}
-
+	HouseTypeExtData() noexcept = default;
 	~HouseTypeExtData() noexcept = default;
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
@@ -100,6 +96,4 @@ public:
 
 	CONSTEXPR_NOCOPY_CLASSB(HouseTypeExtContainer, HouseTypeExtData, "HouseTypeClass");
 
-public:
-	virtual bool Load(HouseTypeClass* pThis, IStream* pStm) override;
 };

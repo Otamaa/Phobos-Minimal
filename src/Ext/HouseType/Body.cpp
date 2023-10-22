@@ -480,12 +480,6 @@ void  HouseTypeExtData::Serialize(T& Stm)
 
 HouseTypeExtContainer HouseTypeExtContainer::Instance;
 
-bool HouseTypeExtContainer::Load(HouseTypeClass* pThis, IStream* pStm)
-{
-	HouseTypeExtData* pData = this->LoadKey(pThis, pStm);
-	return pData != nullptr;
-};
-
 // =============================
 // container hooks
 

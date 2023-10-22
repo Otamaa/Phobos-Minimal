@@ -70,11 +70,7 @@ public:
 public:
 	OptionalStruct<TechnoTypeClass*, false> TechnoType {};
 
-	TEventExtData(base_type* OwnerObject) noexcept
-	{
-		this->AttachedToObject = OwnerObject;
-	}
-
+	TEventExtData() noexcept = default;
 	~TEventExtData() noexcept = default;
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

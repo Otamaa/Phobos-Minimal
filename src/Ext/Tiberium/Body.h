@@ -43,11 +43,7 @@ public:
 
 	Valueable<int> DebrisChance { 33 };
 
-	TiberiumExtData(base_type* OwnerObject) noexcept
-	{
-		this->AttachedToObject = OwnerObject;
-	}
-
+	TiberiumExtData()noexcept = default;
 	~TiberiumExtData() noexcept = default;
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

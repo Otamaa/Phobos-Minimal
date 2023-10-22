@@ -17,10 +17,7 @@ public:
 
 	WeaponTypeExtData* Weapon { nullptr };
 
-	BombExtData(base_type* OwnerObject) noexcept {
-		AttachedToObject = OwnerObject;
-	}
-
+	BombExtData() noexcept = default;
 	~BombExtData() noexcept = default;
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

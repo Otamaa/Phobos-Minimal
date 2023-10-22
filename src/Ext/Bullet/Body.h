@@ -43,10 +43,7 @@ public:
 	std::unique_ptr<PhobosTrajectory> Trajectory {};
 	Handle<ParticleSystemClass*, UninitAttachedSystem> AttachedSystem {};
 
-	BulletExtData(base_type* OwnerObject) noexcept {
-		AttachedToObject = OwnerObject;
-	}
-
+	BulletExtData() noexcept = default;
 	~BulletExtData() noexcept = default;
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);

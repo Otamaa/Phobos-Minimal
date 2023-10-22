@@ -17,11 +17,7 @@ public:
 
 	int NewPowerups { -1 };
 
-	CellExtData(CellClass* OwnerObject) noexcept
-	{
-		this->AttachedToObject = OwnerObject;
-	}
-
+	CellExtData() noexcept = default;
 	~CellExtData() noexcept = default;
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
