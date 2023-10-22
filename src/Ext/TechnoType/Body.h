@@ -46,28 +46,28 @@ struct ImageStatusses
 
 struct BurstFLHBundle
 {
-	std::vector<CoordStruct> Flh;
-	std::vector<CoordStruct> EFlh;
-};
+	std::vector<CoordStruct> Flh {};
+	std::vector<CoordStruct> EFlh {};
 
-template <>
-struct Savegame::PhobosStreamObject<BurstFLHBundle>
-{
-	bool ReadFromStream(PhobosStreamReader& Stm, BurstFLHBundle& Value, bool RegisterForChange) const
+	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
+		// support pointer to this type
 		return Stm
-			.Process(Value.Flh, RegisterForChange)
-			.Process(Value.EFlh, RegisterForChange)
-			.Success();
-	};
+			.Process(this->Flh, RegisterForChange)
+			.Process(this->EFlh, RegisterForChange)
+			.Success() && Stm.RegisterChange(this)
+			;
+	}
 
-	bool WriteToStream(PhobosStreamWriter& Stm, const BurstFLHBundle& Value) const
+	inline bool Save(PhobosStreamWriter& Stm) const
 	{
+		// remember this object address
 		return Stm
-			.Process(Value.Flh)
-			.Process(Value.EFlh)
-			.Success();
-	};
+			.Process(this->Flh)
+			.Process(this->EFlh)
+			.Success()
+			;
+	}
 };
 
 class Matrix3D;
@@ -179,7 +179,7 @@ public:
 	ValueableVector<int> OreGathering_Tiberiums {};
 	ValueableVector<int> OreGathering_FramesPerDir {};
 
-	std::vector<BurstFLHBundle> WeaponBurstFLHs {};
+	//std::vector<BurstFLHBundle> WeaponBurstFLHs {};
 
 	Valueable<bool> DestroyAnim_Random { true };
 	Valueable<bool> NotHuman_RandomDeathSequence { false };
@@ -256,8 +256,8 @@ public:
 	Nullable<CoordStruct> E_DeployedPrimaryFireFLH {};
 	Nullable<CoordStruct> E_DeployedSecondaryFireFLH {};
 
-	std::vector<BurstFLHBundle> CrouchedWeaponBurstFLHs {};
-	std::vector<BurstFLHBundle> DeployedWeaponBurstFLHs {};
+	//std::vector<BurstFLHBundle> CrouchedWeaponBurstFLHs {};
+	//std::vector<BurstFLHBundle> DeployedWeaponBurstFLHs {};
 	std::vector<CoordStruct> AlternateFLHs {};
 
 	Nullable<bool> IronCurtain_SyncDeploysInto {};
@@ -305,7 +305,7 @@ public:
 
 	Nullable<float> TalkBubbleTime { };
 	Nullable <int> AttackingAircraftSightRange { };
-	NullableIdx<VoxClass>SpyplaneCameraSound { };
+	NullableIdx<VoxClass> SpyplaneCameraSound { };
 	Nullable<int> ParadropRadius { };
 	Nullable<int> ParadropOverflRadius { };
 	Valueable<bool> Paradrop_DropPassangers { true };
@@ -337,6 +337,7 @@ public:
 	Nullable<AnimTypeClass*> Landing_Anim { };
 	Valueable<AnimTypeClass*> Landing_AnimOnWater { nullptr };
 	Nullable<AnimTypeClass*> TakeOff_Anim { };
+
 	std::vector<CoordStruct> HitCoordOffset { };
 	Valueable<bool> HitCoordOffset_Random { true };
 	Promotable<WeaponTypeClass*> DeathWeapon { };
@@ -863,12 +864,11 @@ public:
 
 	Nullable<PartialVector3D<double>> DetectDisguise_Percent {};
 
-	TechnoTypeExtData(TechnoTypeClass* OwnerObject) noexcept
-	{
-		this->AttachedToObject = OwnerObject;
-		this->AttachedEffect.Owner = OwnerObject;
-	}
 
+	//unused atm
+	TechnoTypeExtData(TechnoTypeClass* OwnerObject) noexcept { }
+	//
+	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
@@ -919,7 +919,7 @@ public:
 
 	std::unordered_map<TechnoTypeClass*, TechnoTypeExtData*> Map;
 
-	virtual bool Load(TechnoTypeClass* key, IStream* pStm);
+	virtual bool Load(TechnoTypeClass* key, IStream* pStm) override;
 
 	//void Clear() {
 	//	this->Map.clear();

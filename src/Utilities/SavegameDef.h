@@ -161,6 +161,32 @@ namespace Savegame
 	}
 
 	// specializations
+	//template <typename T , size_t count>
+	//struct Savegame::PhobosStreamObject<T>
+	//{
+	//	bool ReadFromStream(PhobosStreamReader& Stm, T[count]& Value, bool RegisterForChange) const
+	//	{
+	//		std::memset(&value , 0, sizeof(T) * count);
+	//
+	//		for(int i = 0;  i < count; ++i){
+	//			if (!Savegame::ReadPhobosStream(Stm, Value[i], RegisterForChange))
+	//				return false;
+	///		}
+	//
+	//		return true;
+	//	}
+	//
+	//	bool WriteToStream(PhobosStreamWriter& Stm, const T[count]& Value) const
+	//	{
+	//		for(int i = 0;  i < count; ++i){
+	//			if (!Savegame::WritePhobosStream(Stm, Value[i]))
+	//				return false;
+	//		}
+	//
+	//		return true;
+	//	}
+	//};
+
 	template <typename T>
 	struct Savegame::PhobosStreamObject<VectorClass<T>>
 	{

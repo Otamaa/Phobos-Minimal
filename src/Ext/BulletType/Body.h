@@ -82,7 +82,7 @@ public:
 	Nullable <double> Trajectory_Speed { };
 	Nullable<int> Proximity_Range { };
 	Valueable<bool> IsScalable { false };
-	std::vector<LineTrailData> LineTrailData { };
+	//std::vector<LineTrailData> LineTrailData { };
 
 	Nullable<Leptons> BallisticScatterMin { };
 	Nullable<Leptons> BallisticScatterMax { };

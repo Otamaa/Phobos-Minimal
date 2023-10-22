@@ -32,7 +32,6 @@ public:
 	int LimboID { -1 };
 	int GrindingWeapon_LastFiredFrame { 0 };
 	BuildingClass* CurrentAirFactory { nullptr };
-	int AccumulatedGrindingRefund { 0 };
 	int AccumulatedIncome { 0 };
 	bool IsCreatedFromMapFile { false };
 

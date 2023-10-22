@@ -390,24 +390,13 @@ protected:
 	// override this method to do type-specific stuff
 	virtual bool Save(base_type_ptr key, IStream* pStm)
 	{
-		return this->SaveKey(key, pStm) != nullptr;
-	}
-
-	// override this method to do type-specific stuff
-	virtual bool Load(base_type_ptr key, IStream* pStm)
-	{
-		return this->LoadKey(key, pStm) != nullptr;
-	}
-
-	extension_type_ptr SaveKey(base_type_ptr key, IStream* pStm)
-	{
 		if constexpr (CanThisSaveToStream<T>)
 		{
 			// this really shouldn't happen
 			if (!key)
 			{
 				//Debug::Log("[SaveKey] Attempted for a null pointer! WTF!\n");
-				return nullptr;
+				return false;
 			}
 
 			// get the value data
@@ -416,7 +405,7 @@ protected:
 			if (!buffer)
 			{
 				//Debug::Log("[SaveKey] Could not find value.\n");
-				return nullptr;
+				return false;
 			}
 
 			// write the current pointer, the size of the block, and the canary
@@ -433,15 +422,16 @@ protected:
 			if (saver.WriteBlockToStream(pStm))
 			{
 				//Debug::Log("[SaveKey] Save used up 0x%X bytes\n", saver.Size());
-				return buffer;
+				return true;
 			}
 		}
 
 		//Debug::Log("[SaveKey] Failed to save data.\n");
-		return nullptr;
+		return false;
 	}
 
-	extension_type_ptr LoadKey(base_type_ptr key, IStream* pStm)
+	// override this method to do type-specific stuff
+	virtual bool Load(base_type_ptr key, IStream* pStm)
 	{
 		if constexpr (CanThisLoadFromStream<T>)
 		{
@@ -449,7 +439,7 @@ protected:
 			if (!key)
 			{
 				//Debug::Log("[LoadKey] Attempted for a null pointer! WTF!\n");
-				return nullptr;
+				return false;
 			}
 
 			this->ClearExtAttribute(key);
@@ -460,7 +450,7 @@ protected:
 			if (!loader.ReadBlockFromStream(pStm))
 			{
 				//Debug::Log("[LoadKey] Failed to read data from save stream?!\n");
-				return nullptr;
+				return false;
 			}
 
 			PhobosStreamReader reader { loader };
@@ -468,12 +458,13 @@ protected:
 			{
 				buffer->LoadFromStream(reader);
 				if (reader.ExpectEndOfBlock())
-					return buffer;
+					return true;
 			}
 		}
 
-		return nullptr;
+		return false;
 	}
+
 
 private:
 	Container<T>(const Container<T>&) = delete;

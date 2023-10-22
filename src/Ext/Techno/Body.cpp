@@ -1822,20 +1822,21 @@ double TechnoExtData::GetDamageMult(TechnoClass* pSouce, bool ForceDisable)
 
 const BurstFLHBundle* TechnoExtData::PickFLHs(TechnoClass* pThis, int weaponidx)
 {
-	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-	std::vector<BurstFLHBundle>* res  = &pExt->WeaponBurstFLHs;
+	//auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	//std::vector<BurstFLHBundle>* res  = &pExt->WeaponBurstFLHs;
 
-	if (pThis->WhatAmI() == InfantryClass::AbsID) {
-		if (((InfantryClass*)pThis)->IsDeployed() && !pExt->DeployedWeaponBurstFLHs.empty())
-			res = &pExt->DeployedWeaponBurstFLHs;
-		else if (((InfantryClass*)pThis)->Crawling && !pExt->CrouchedWeaponBurstFLHs.empty())
-			res = &pExt->CrouchedWeaponBurstFLHs;
-	}
+	//if (pThis->WhatAmI() == InfantryClass::AbsID) {
+	//	if (((InfantryClass*)pThis)->IsDeployed() && !pExt->DeployedWeaponBurstFLHs.empty())
+	//		res = &pExt->DeployedWeaponBurstFLHs;
+	//	else if (((InfantryClass*)pThis)->Crawling && !pExt->CrouchedWeaponBurstFLHs.empty())
+	//		res = &pExt->CrouchedWeaponBurstFLHs;
+	//}
 
-	if (res->empty() || res->size() <= (size_t)weaponidx)
-		return nullptr;
+	//if (res->empty() || res->size() <= (size_t)weaponidx)
+	//	return nullptr;
 
-	return &(*res)[weaponidx];
+	//return &(*res)[weaponidx];
+	return nullptr;
 }
 
 std::pair<bool, CoordStruct> TechnoExtData::GetBurstFLH(TechnoClass* pThis, int weaponIndex)
@@ -4510,6 +4511,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->Is_UnitLostMuted)
 		.Process(this->TakeVehicleMode)
 		.Process(this->TechnoValueAmount)
+		.Process(this->Pos)
 		.Process(this->Shield)
 		.Process(this->LaserTrails)
 		.Process(this->ReceiveDamage)

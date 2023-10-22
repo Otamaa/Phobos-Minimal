@@ -191,9 +191,9 @@ bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 
 	// use paradrop lists from house, side and default
 	const std::vector<std::unique_ptr<ParadropData>>* drops[3] {
-		pData->ParaDropDatas.find(pHouse->Type),
-		pData->ParaDropDatas.find(SideClass::Array->Items[pHouse->Type->SideIndex]),
-		pData->ParaDropDatas.find(pType)
+		pData->ParaDropDatas.tryfind(pHouse->Type),
+		pData->ParaDropDatas.tryfind(SideClass::Array->Items[pHouse->Type->SideIndex]),
+		pData->ParaDropDatas.tryfind(pType)
 	};
 
 	// how many planes shall we launch?

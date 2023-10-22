@@ -320,34 +320,48 @@ class PhobosMap {
 public:
 
 	TValue& operator[] (const TKey& key) {
-		if (auto pValue = this->find(key)) {
+		if (auto pValue = this->tryfind(key)) {
 			return *pValue;
 		}
 		return this->insert_unchecked(key, TValue());
 	}
 
-	TValue* find(const TKey& key) {
-		auto pValue = static_cast<const PhobosMap*>(this)->find(key);
-		return const_cast<TValue*>(pValue);
-	}
+	//TValue* find__(const TKey& key) {
+	//	auto pValue = static_cast<const PhobosMap*>(this)->tryfind(key);
+	//	return const_cast<TValue*>(pValue);
+	//}
 
-	const TValue* find(const TKey& key) const {
+	TValue* tryfind(const TKey& key) {
 		auto it = this->get_key_iterator(key);
 		if (it != this->values.end()) {
 			return &it->second;
 		}
+
 		return nullptr;
 	}
 
+	// nonmodifiable
+	const TValue* tryfind(const TKey& key) const {
+		auto it = this->get_key_iterator(key);
+
+		if (it != this->values.end()) {
+			return &it->second;
+		}
+
+		return nullptr;
+	}
+
+	// nonmodifiable
 	TValue get_or_default(const TKey& key) const {
-		if (auto pValue = this->find(key)) {
+		if (auto pValue = this->tryfind(key)) {
 			return *pValue;
 		}
 		return TValue();
 	}
 
+	// nonmodifiable
 	TValue get_or_default(const TKey& key, TValue def) const {
-		if (auto pValue = this->find(key)) {
+		if (auto pValue = this->tryfind(key)) {
 			return *pValue;
 		}
 		return def;
@@ -367,7 +381,7 @@ public:
 	}
 
 	bool insert(const TKey& key, TValue value) {
-		if (!this->find(key)) {
+		if (!this->tryfind(key)) {
 			this->insert_unchecked(key, std::move(value));
 			return true;
 		}
@@ -397,7 +411,6 @@ public:
 	void resize(size_t newsize) {
 		values.resize(newsize);
 	}
-
 
 	bool load(PhobosStreamReader& Stm, bool RegisterForChange) {
 		this->clear();
@@ -461,8 +474,19 @@ public:
 		return values.back();
 	}
 
-	auto get_key_iterator(const TKey& key) const {
+	auto get_key_iterator(const TKey& key) {
 		if constexpr (direct_comparable<TKey>){
+			return std::find_if(this->values.begin(), this->values.end(), [&](const container_t::value_type& item) {
+				return item.first == key;
+			});
+		} else {
+			return std::find(this->values.begin(), this->values.end(), key);
+		}
+	}
+
+	// nonmodifiable
+	auto get_key_iterator(const TKey& key) const {
+		if constexpr (direct_comparable<TKey>) {
 			return std::find_if(this->values.begin(), this->values.end(), [&](const container_t::value_type& item) {
 				return item.first == key;
 			});

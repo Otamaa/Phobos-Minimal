@@ -29,7 +29,7 @@ public:
 	Valueable<bool> HideWhenDeployAnimPresent { false };
 	Valueable<bool> DeathBodies_UseDieSequenceAsIndex { false };
 	WeaponStruct CrawlingWeaponDatas[4] {};
-	std::vector<DoInfoStruct> Sequences {};
+	//std::vector<DoInfoStruct> Sequences {};
 
 	ValueableIdxVector<VocClass> VoiceGarrison {};
 

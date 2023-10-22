@@ -184,7 +184,7 @@ public:
 	Valueable<bool> Remover { false };
 	Valueable<AnimTypeClass*> Remover_Anim { nullptr };
 
-	std::unordered_map<ArmorTypeClass*, AnimTypeClass*> ArmorHitAnim {};
+	PhobosMap<ArmorTypeClass*, AnimTypeClass*> ArmorHitAnim {};
 
 	NullableVector<AnimTypeClass*> DebrisAnimTypes {};
 	NullableVector<AnimTypeClass*> SquidSplash {};
@@ -223,12 +223,6 @@ public:
 	NullableVector<TechnoTypeClass*> AttachTag_Types {};
 	NullableVector<TechnoTypeClass*> AttachTag_Ignore {};
 
-	Valueable<bool> DirectionalArmor { false };
-	Valueable<float> DirectionalArmor_FrontMultiplier { 1.0 };
-	Valueable<float> DirectionalArmor_SideMultiplier { 1.0 };
-	Valueable<float> DirectionalArmor_BackMultiplier { 1.0 };
-	Valueable<float> DirectionalArmor_FrontField { 0.5 };
-	Valueable<float> DirectionalArmor_BackField { 0.5 };
 
 	Valueable<bool> RecalculateDistanceDamage { false };
 	Valueable<bool> RecalculateDistanceDamage_IgnoreMaxDamage { false };
@@ -282,7 +276,7 @@ public:
 	Valueable<bool> Supress_LostEva { false };
 	Valueable<double> Temporal_HealthFactor { 1.0 };
 
-	std::unordered_map<int, AnimTypeClass*> InfDeathAnims {};
+	PhobosMap<int, AnimTypeClass*> InfDeathAnims {};
 
 	Valueable<int> Sonar_Duration { 0 };
 	Valueable<int> DisableWeapons_Duration { 0 };

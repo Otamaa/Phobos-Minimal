@@ -35,7 +35,7 @@ template <typename T>
 void VoxelAnimTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
+		.Process(Initialized)
 		.Process(LaserTrail_Types)
 		.Process(SplashList)
 		.Process(SplashList_Pickrandom)

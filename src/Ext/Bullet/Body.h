@@ -36,7 +36,7 @@ public:
 	bool Bouncing { false };
 	ObjectClass* LastObject { nullptr };
 	int BounceAmount { 0 };
-	std::vector<LineTrail*> BulletTrails {};
+	//std::vector<LineTrail*> BulletTrails {};
 	OptionalStruct<DirStruct, true> InitialBulletDir {};
 
 	std::vector<UniversalTrail> Trails {};

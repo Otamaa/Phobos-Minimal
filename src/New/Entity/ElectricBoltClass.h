@@ -7,7 +7,7 @@
 #include <ScenarioClass.h>
 
 #include <Unsorted.h>
-#include <vector>
+#include <Utilities/SavegameDef.h>
 
 constexpr auto EBOLT_DEFAULT_DEVIATION  = 1.0f;
 constexpr auto  EBOLT_DEFAULT_INTERATIONS = 1;
@@ -29,6 +29,28 @@ struct BoltData
 	{
 		ColorData.resize(count);
 		Disabled.resize(count);
+	}
+
+	inline bool Load(PhobosStreamReader& stm, bool registerForChange)
+	{
+		return
+			stm
+			.Process(count , registerForChange)
+			.Process(ColorData , registerForChange)
+			.Process(Disabled, registerForChange)
+			.Success()
+			;
+	}
+
+	inline bool Save(PhobosStreamWriter& stm) const
+	{
+		return
+			stm
+			.Process(count)
+			.Process(ColorData)
+			.Process(Disabled)
+			.Success()
+			;
 	}
 
 	BoltData(const BoltData&) = default;

@@ -224,13 +224,11 @@ template<bool IsGlobal, class _Pr>
 bool TEventExtData::VariableCheck(TEventClass* pThis)
 {
 	const auto nVar = ScenarioExtData::GetVariables(IsGlobal);
-	auto itr = nVar->find(pThis->Value);
 
-	if (itr != nVar->end())
-	{
+	if (auto itr = nVar->tryfind(pThis->Value)) {
 		// We uses TechnoName for our operator number
 		int nOpt = atoi(pThis->String);
-		return _Pr()(itr->second.Value, nOpt);
+		return _Pr()(itr->Value, nOpt);
 	}
 
 	return false;
@@ -240,16 +238,12 @@ template<bool IsSrcGlobal, bool IsGlobal, class _Pr>
 bool TEventExtData::VariableCheckBinary(TEventClass* pThis)
 {
 	const auto nVar = ScenarioExtData::GetVariables(IsGlobal);
-	const auto itr = nVar->find(pThis->Value);
 
-	if (itr != nVar->end())
+	if (const auto itr = nVar->tryfind(pThis->Value))
 	{
 		// We uses TechnoName for our src variable index
-		int nSrcVariable = atoi(pThis->String);
-		auto itrsrc = nVar->find(nSrcVariable);
-
-		if (itrsrc != nVar->end())
-			return _Pr()(itr->second.Value, itrsrc->second.Value);
+		if (auto itrsrc = nVar->tryfind(atoi(pThis->String)))
+			return _Pr()(itr->Value, itrsrc->Value);
 	}
 
 	return false;

@@ -290,7 +290,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->ApplyDamage)
 		.Process(this->Cursor_Attack)
 		.Process(this->Cursor_AttackOutOfRange)
-
+		.Process(this->WeaponBolt_Data)
 		.Process(this->Bolt_Color1)
 		.Process(this->Bolt_Color2)
 		.Process(this->Bolt_Color3)

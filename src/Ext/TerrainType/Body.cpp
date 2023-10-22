@@ -89,6 +89,9 @@ void TerrainTypeExtData::Serialize(T& Stm)
 		.Process(this->LightGreenTint)
 		.Process(this->LightBlueTint)
 		.Process(this->AttachedAnim)
+		.Process(this->Warhead)
+		.Process(this->Damage)
+		.Process(this->AreaDamage)
 		.Process(this->Bounty)
 		;
 

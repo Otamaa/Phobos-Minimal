@@ -12,6 +12,26 @@ struct ExtendedVariable
 {
 	char Name[0x100];
 	int Value;
+
+	inline bool Load(PhobosStreamReader& stm, bool registerForChange)
+	{
+		return
+			stm
+			.Process(Name , registerForChange)
+			.Process(Value, registerForChange)
+			.Success()
+			;
+	}
+
+	inline bool Save(PhobosStreamWriter& stm) const
+	{
+		return
+			stm
+			.Process(Name)
+			.Process(Value)
+			.Success()
+			;
+	}
 };
 
 class ScenarioExtData final
@@ -25,9 +45,9 @@ public:
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
 public:
-	std::map<int, CellStruct> Waypoints { };
-	std::map<int, ExtendedVariable> Local_Variables { }; // 0 for local, 1 for global
-	std::map<int, ExtendedVariable> Global_Variables { };
+	PhobosMap<int, CellStruct> Waypoints { };
+	PhobosMap<int, ExtendedVariable> Local_Variables { }; // 0 for local, 1 for global
+	PhobosMap<int, ExtendedVariable> Global_Variables { };
 
 	Nullable<FixedString<0x1F>> ParTitle { };
 	Nullable<FixedString<0x1F>> ParMessage { };
@@ -90,5 +110,5 @@ public:
 
 	static void SaveVariablesToFile(bool isGlobal);
 
-	static std::map<int, ExtendedVariable>* GetVariables(bool IsGlobal);
+	static PhobosMap<int, ExtendedVariable>* GetVariables(bool IsGlobal);
 };

@@ -1075,7 +1075,8 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->Crit_AffectBelowPercent)
 		.Process(this->Crit_SuppressOnIntercept)
 		.Process(this->Crit_GuaranteeAfterHealthTreshold)
-
+		.Process(this->RandomBuffer)
+		.Process(this->HasCrit)
 		.Process(this->MindControl_Anim)
 
 		// Ares tags
@@ -1196,12 +1197,6 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->AttachTag_Types)
 		.Process(this->AttachTag_Ignore)
 		.Process(this->AttachTag_Imposed)
-		.Process(this->DirectionalArmor)
-		.Process(this->DirectionalArmor_FrontMultiplier)
-		.Process(this->DirectionalArmor_SideMultiplier)
-		.Process(this->DirectionalArmor_BackMultiplier)
-		.Process(this->DirectionalArmor_FrontField)
-		.Process(this->DirectionalArmor_BackField)
 
 		.Process(this->RecalculateDistanceDamage)
 		.Process(this->RecalculateDistanceDamage_IgnoreMaxDamage)

@@ -23,7 +23,7 @@ void ScenarioExtData::SaveVariablesToFile(bool isGlobal)
 	pFile->Close();
 }
 
-std::map<int, ExtendedVariable>* ScenarioExtData::GetVariables(bool IsGlobal)
+PhobosMap<int, ExtendedVariable>* ScenarioExtData::GetVariables(bool IsGlobal)
 {
 	if (IsGlobal)
 		return &ScenarioExtData::Instance()->Global_Variables;
@@ -36,11 +36,11 @@ void ScenarioExtData::SetVariableToByID(const bool IsGlobal, int nIndex, char bS
 	//Debug::Log("%s , Executed !\n", __FUNCTION__);
 
 	const auto dict = ScenarioExtData::GetVariables(IsGlobal);
-	const auto itr = dict->find(nIndex);
+	auto itr = dict->tryfind(nIndex);
 
-	if (itr != dict->end() && itr->second.Value != bState)
+	if (itr && itr->Value != bState)
 	{
-		itr->second.Value = bState;
+		itr->Value = bState;
 		ScenarioClass::Instance->VariablesChanged = true;
 		if (!IsGlobal)
 			TagClass::NotifyLocalChanged(nIndex);
@@ -54,10 +54,9 @@ void ScenarioExtData::GetVariableStateByID(const bool IsGlobal,int nIndex, char*
 	//Debug::Log("%s , Executed !\n", __FUNCTION__);
 
 	const auto dict = ScenarioExtData::GetVariables(IsGlobal);
-	const auto itr = dict->find(nIndex);
 
-	if (itr != dict->end())
-		*pOut = static_cast<char>(itr->second.Value);
+	if (const auto itr = dict->tryfind(nIndex))
+		*pOut = static_cast<char>(itr->Value);
 	else
 		Debug::Log("Failed When Trying to Get [%d]Variables with Indx [%d] \n", (int)IsGlobal, nIndex);
 

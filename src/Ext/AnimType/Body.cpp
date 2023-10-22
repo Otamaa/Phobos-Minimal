@@ -433,6 +433,7 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->Damage_ApplyOnce)
 		.Process(this->Damage_ConsiderOwnerVeterancy)
 		.Process(this->Damage_TargetFlag)
+		.Process(this->MakeInfantry_Mission)
 		.Process(this->Warhead_Detonate)
 
 		.Process(this->SplashList)

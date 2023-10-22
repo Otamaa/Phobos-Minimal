@@ -704,11 +704,10 @@ bool TActionExt::EditVariable(TActionClass* pThis, HouseClass* pHouse, ObjectCla
 
 	// uses !pThis->Param5 to ensure Param5 is 0 or 1
 	const auto variables = ScenarioExtData::GetVariables(pThis->Param5 != 0);
-	auto const& itr = variables->find(pThis->Value);
 
-	if (itr != variables->end())
+	if (auto itr = variables->tryfind(pThis->Value))
 	{
-		auto& nCurrentValue = itr->second.Value;
+		auto& nCurrentValue = itr->Value;
 		// variable being found
 		switch (pThis->Param3)
 		{
@@ -739,11 +738,10 @@ bool TActionExt::EditVariable(TActionClass* pThis, HouseClass* pHouse, ObjectCla
 bool TActionExt::GenerateRandomNumber(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	const auto& variables = ScenarioExtData::GetVariables(pThis->Param5 != 0);
-	const auto& itr = variables->find(pThis->Value);
 
-	if (itr != variables->end())
+	if (auto itr = variables->tryfind(pThis->Value))
 	{
-		itr->second.Value = ScenarioClass::Instance->Random.RandomRanged(pThis->Param3, pThis->Param4);
+		itr->Value = ScenarioClass::Instance->Random.RandomRanged(pThis->Param3, pThis->Param4);
 		if (!pThis->Param5)
 			TagClass::NotifyLocalChanged(pThis->Value);
 		else
@@ -756,11 +754,10 @@ bool TActionExt::GenerateRandomNumber(TActionClass* pThis, HouseClass* pHouse, O
 bool TActionExt::PrintVariableValue(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	const auto& variables = ScenarioExtData::GetVariables(pThis->Param3 != 0);
-	const auto& itr = variables->find(pThis->Value);
 
-	if (itr != variables->end())
+	if (auto itr = variables->tryfind(pThis->Value))
 	{
-		swprintf_s(Phobos::wideBuffer, L"%d", itr->second.Value);
+		swprintf_s(Phobos::wideBuffer, L"%d", itr->Value);
 		MessageListClass::Instance->PrintMessage(Phobos::wideBuffer);
 	}
 
@@ -769,15 +766,15 @@ bool TActionExt::PrintVariableValue(TActionClass* pThis, HouseClass* pHouse, Obj
 
 bool TActionExt::BinaryOperation(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	const auto& variables1 = ScenarioExtData::GetVariables(pThis->Param5 != 0);
-	auto const& itr1 = variables1->find(pThis->Value);
-	const auto& variables2 = ScenarioExtData::GetVariables(pThis->Param6 != 0);
-	auto const& itr2 = variables2->find(pThis->Param4);
+	const auto variables1 = ScenarioExtData::GetVariables(pThis->Param5 != 0);
+	auto itr1 = variables1->tryfind(pThis->Value);
+	const auto variables2 = ScenarioExtData::GetVariables(pThis->Param6 != 0);
+	auto itr2 = variables2->tryfind(pThis->Param4);
 
-	if (itr1 != variables1->end() && itr2 != variables2->end())
+	if (itr1 && itr2)
 	{
-		auto& nCurrentValue = itr1->second.Value;
-		auto& nOptValue = itr2->second.Value;
+		auto& nCurrentValue = itr1->Value;
+		auto& nOptValue = itr2->Value;
 		switch (pThis->Param3)
 		{
 		case 0: { nCurrentValue = nOptValue; break; }
@@ -811,15 +808,12 @@ bool TActionExt::RunSuperWeaponAtLocation(TActionClass* pThis, HouseClass* pHous
 
 bool TActionExt::RunSuperWeaponAtWaypoint(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	const auto& waypoints = ScenarioExtData::Instance()->Waypoints;
-	int nWaypoint = pThis->Param5;
+	const auto waypoints = ScenarioExtData::Instance()->Waypoints;
 
 	// Check if is a valid Waypoint
-	if (nWaypoint >= 0 && waypoints.find(nWaypoint) != waypoints.end())
-	{
-		auto const& selectedWP = waypoints.at(nWaypoint);
-		if (selectedWP.X && selectedWP.Y)
-			return TActionExt::RunSuperWeaponAt(pThis, selectedWP.X, selectedWP.Y);
+	if (auto iter = waypoints.tryfind(pThis->Param5)) {
+		if (iter->X && iter->Y)
+			return TActionExt::RunSuperWeaponAt(pThis, iter->X, iter->Y);
 	}
 
 	return true;

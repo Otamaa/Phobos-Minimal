@@ -1774,11 +1774,9 @@ void ScriptExtData::VariablesHandler(TeamClass* pTeam, PhobosScripts eAction, in
 template<bool IsGlobal, class _Pr>
 void ScriptExtData::VariableOperationHandler(TeamClass* pTeam, int nVariable, int Number)
 {
-	auto itr = ScenarioExtData::GetVariables(IsGlobal)->find(nVariable);
-
-	if (itr != ScenarioExtData::GetVariables(IsGlobal)->end())
+	if (auto itr = ScenarioExtData::GetVariables(IsGlobal)->tryfind(nVariable))
 	{
-		itr->second.Value = _Pr()(itr->second.Value, Number);
+		itr->Value = _Pr()(itr->Value, Number);
 		if (IsGlobal)
 			TagClass::NotifyGlobalChanged(nVariable);
 		else
@@ -1791,10 +1789,8 @@ void ScriptExtData::VariableOperationHandler(TeamClass* pTeam, int nVariable, in
 template<bool IsSrcGlobal, bool IsGlobal, class _Pr>
 void ScriptExtData::VariableBinaryOperationHandler(TeamClass* pTeam, int nVariable, int nVarToOperate)
 {
-	auto itr = ScenarioExtData::GetVariables(IsGlobal)->find(nVarToOperate);
-
-	if (itr != ScenarioExtData::GetVariables(IsGlobal)->end())
-		VariableOperationHandler<IsGlobal, _Pr>(pTeam, nVariable, itr->second.Value);
+	if (auto itr = ScenarioExtData::GetVariables(IsGlobal)->tryfind(nVarToOperate))
+		VariableOperationHandler<IsGlobal, _Pr>(pTeam, nVariable, itr->Value);
 
 	pTeam->StepCompleted = true;
 }

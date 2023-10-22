@@ -228,20 +228,17 @@ void TechnoTypeExtData::GetBurstFLHs(TechnoTypeClass* pThis,
 				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), prefix, pPrefixTagRes);
 
 				IMPL_SNPRNINTF(tempBufferFLH, sizeof(tempBufferFLH), "%sFLH.Burst%d", tempBuffer, j);
-				Nullable<CoordStruct> FLH;
-				FLH.Read(exArtINI, pArtSection, tempBufferFLH);
 
+				CoordStruct flhFirst {};
+				if(!detail::read(flhFirst, exArtINI , pArtSection, tempBufferFLH)){
+					break;
+				}
+
+				(*nFLH[k])[i].emplace_back(flhFirst);
 				IMPL_SNPRNINTF(tempBufferFLH, sizeof(tempBufferFLH), "Elite%sFLH.Burst%d", tempBuffer, j);
-				Nullable<CoordStruct> eliteFLH;
-				eliteFLH.Read(exArtINI, pArtSection, tempBufferFLH);
-
-				if (FLH.isset() && !eliteFLH.isset())
-					eliteFLH = FLH;
-				else if (!FLH.isset() && !eliteFLH.isset())
-					break; // this break thing is actually making stuffs harder , lmao
-
-				(*nFLH[k])[i].push_back(FLH.Get());
-				(*nEFlh[k])[i].push_back(eliteFLH.Get());
+				if(!detail::read((*nEFlh[k])[i].emplace_back(), exArtINI , pArtSection, tempBufferFLH)){
+					(*nEFlh[k])[i].back() = (*nFLH[k])[i].back();
+				}
 			}
 		}
 	}
@@ -266,24 +263,16 @@ void TechnoTypeExtData::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, c
 			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), prefix, pPrefixTag);
 
 			IMPL_SNPRNINTF(tempBufferFLH, sizeof(tempBufferFLH), "%sFLH.Burst%d", tempBuffer, j);
-			Nullable<CoordStruct> FLH;
-			FLH.Read(exArtINI, pArtSection, tempBufferFLH);
 
-			if (!FLH.isset()) //early break
+			CoordStruct coord {};
+			if (!detail::read(coord, exArtINI, pArtSection, tempBufferFLH))
 				break;
 
+			nFLH[i].Flh.emplace_back(coord);
+
 			IMPL_SNPRNINTF(tempBufferFLH, sizeof(tempBufferFLH), "Elite%sFLH.Burst%d", tempBuffer, j);
-			Nullable<CoordStruct> eliteFLH;
-			eliteFLH.Read(exArtINI, pArtSection, tempBufferFLH);
-
-			CoordStruct Flh = FLH.GetCopy();
-			CoordStruct Flh_e = FLH.GetCopy();
-			nFLH[i].Flh.push_back(Flh);
-
-			if (eliteFLH.isset())
-				Flh_e = eliteFLH.GetCopy();
-
-			nFLH[i].EFlh.push_back(Flh_e);
+			if (!detail::read(nFLH[i].EFlh.emplace_back(), exArtINI, pArtSection, tempBufferFLH))
+				nFLH[i].EFlh.back() = coord;
 		}
 	}
 };
@@ -1245,9 +1234,9 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		//const char* tags[sizeof(ColletiveCoordStructVectorData) / sizeof(void*)] = { Phobos::readDefval  , "Deployed" , "Prone" };
 		//TechnoTypeExtData::GetBurstFLHs(pThis, exArtINI, pArtSection, nFLH, nEFLH, tags);
 
-		TechnoTypeExtData::GetBurstFLHs(pThis, exArtINI, pArtSection, WeaponBurstFLHs, "");
-		TechnoTypeExtData::GetBurstFLHs(pThis, exArtINI, pArtSection, DeployedWeaponBurstFLHs, "Deployed");
-		TechnoTypeExtData::GetBurstFLHs(pThis, exArtINI, pArtSection, CrouchedWeaponBurstFLHs, "Prone");
+		//TechnoTypeExtData::GetBurstFLHs(pThis, exArtINI, pArtSection, WeaponBurstFLHs, "");
+		//TechnoTypeExtData::GetBurstFLHs(pThis, exArtINI, pArtSection, DeployedWeaponBurstFLHs, "Deployed");
+		//TechnoTypeExtData::GetBurstFLHs(pThis, exArtINI, pArtSection, CrouchedWeaponBurstFLHs, "Prone");
 
 		TechnoTypeExtData::GetFLH(exArtINI, pArtSection, PronePrimaryFireFLH, E_PronePrimaryFireFLH, "PronePrimaryFire");
 		TechnoTypeExtData::GetFLH(exArtINI, pArtSection, ProneSecondaryFireFLH, E_ProneSecondaryFireFLH, "ProneSecondaryFire");
@@ -1474,7 +1463,15 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->DestroyAnim_Random)
 		.Process(this->NotHuman_RandomDeathSequence)
 		.Process(this->DefaultDisguise)
-		.Process(this->WeaponBurstFLHs)
+		;
+
+	//Debug::Log("%s AboutToLoad WeaponFLhA\n" , this->AttachedToObject->ID);
+	//Stm
+	//	.Process(this->WeaponBurstFLHs)
+	//	;
+	//Debug::Log("Done WeaponFLhA\n");
+
+	Stm
 		.Process(this->PassengerDeletionType)
 
 		.Process(this->OpenTopped_RangeBonus)
@@ -1549,10 +1546,11 @@ void TechnoTypeExtData::Serialize(T& Stm)
 
 		.Process(this->PronePrimaryFireFLH)
 		.Process(this->ProneSecondaryFireFLH)
-
+		.Process(this->DeployedPrimaryFireFLH)
+		.Process(this->DeployedSecondaryFireFLH)
 		.Process(this->E_PronePrimaryFireFLH)
 		.Process(this->ProneSecondaryFireFLH)
-
+		.Process(this->E_ProneSecondaryFireFLH)
 		.Process(this->E_DeployedPrimaryFireFLH)
 		.Process(this->E_DeployedSecondaryFireFLH)
 
@@ -1561,15 +1559,21 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->IronCurtain_KillWarhead)
 
 		.Process(this->SellSound)
-		.Process(this->EVA_Sold)
+		.Process(this->EVA_Sold);
+		//Debug::Log("AboutToLoad WeaponFLhB\n");
+		//Stm.Process(this->CrouchedWeaponBurstFLHs);
+		//Debug::Log("Done WeaponFLhB\n");
+		//Debug::Log("AboutToLoad WeaponFLhC\n");
+		//Stm.Process(this->DeployedWeaponBurstFLHs);
+		//Debug::Log("Done WeaponFLhC\n");
+		Stm.Process(this->AlternateFLHs)
+			.Process(this->Spawner_SpawnOffsets)
 
-		.Process(this->CrouchedWeaponBurstFLHs)
-		.Process(this->DeployedWeaponBurstFLHs)
+			.Process(this->Spawner_SpawnOffsets_OverrideWeaponFLH);
 
-		.Process(this->AlternateFLHs)
-		.Process(this->Spawner_SpawnOffsets)
-		.Process(this->Spawner_SpawnOffsets_OverrideWeaponFLH)
+		Debug::Log("AboutToLoad Otammaa\n");
 #pragma region Otamaa
+		Stm
 		.Process(this->FacingRotation_Disable)
 		.Process(this->FacingRotation_DisalbeOnEMP)
 		.Process(this->FacingRotation_DisalbeOnDeactivated)
@@ -1960,6 +1964,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->CrushForwardTiltPerFrame)
 		.Process(this->CrushOverlayExtraForwardTilt)
 		.Process(this->CrushSlowdownMultiplier)
+		.Process(this->ShadowScale)
 		.Process(this->AIIonCannonValue)
 		.Process(this->GenericPrerequisite)
 		.Process(this->ExtraPower_Amount)
@@ -1984,7 +1989,10 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->PipWrapAmmoPip)
 		.Process(this->AmmoPipSize)
 		.Process(this->ProduceCashDisplay)
-
+		.Process(this->FactoryOwners)
+		.Process(this->FactoryOwners_Forbidden)
+		.Process(this->FactoryOwners_HaveAllPlans)
+		.Process(this->FactoryOwners_HasAllPlans)
 		.Process(this->Drain_Local)
 		.Process(this->Drain_Amount)
 
@@ -2010,6 +2018,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->CameoPCX)
 		.Process(this->AltCameoPCX)
 		.Process(this->CameoPal)
+		.Process(this->LandingDir)
 #pragma endregion
 		;
 
@@ -2033,6 +2042,8 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->AmmoPip)
 		.Process(this->AmmoPip_Palette)
 		.Process(this->AmmoPipOffset)
+		.Process(this->AmmoPip_Offset)
+		.Process(this->AmmoPip_shape)
 
 		.Process(this->ShowSpawnsPips)
 		.Process(this->SpawnsPip)
@@ -2084,7 +2095,9 @@ bool TechnoTypeExtContainer::Load(TechnoTypeClass* key, IStream* pStm)
 	auto Iter = TechnoTypeExtContainer::Instance.Map.find(key);
 
 	if (Iter == TechnoTypeExtContainer::Instance.Map.end()) {
-		auto ptr = new TechnoTypeExtData(key);
+		auto ptr = new TechnoTypeExtData();
+		ptr->AttachedToObject = key;
+		ptr->AttachedEffect.Owner = key;
 		Iter = TechnoTypeExtContainer::Instance.Map.emplace(key, ptr).first;
 	}
 
@@ -2120,7 +2133,9 @@ DEFINE_HOOK(0x711835, TechnoTypeClass_CTOR, 0x5)
 	auto Iter = TechnoTypeExtContainer::Instance.Map.find(pItem);
 
 	if (Iter == TechnoTypeExtContainer::Instance.Map.end()) {
-		auto ptr = new TechnoTypeExtData(pItem);
+		auto ptr = new TechnoTypeExtData();
+		ptr->AttachedToObject = pItem;
+		ptr->AttachedEffect.Owner = pItem;
 		Iter = TechnoTypeExtContainer::Instance.Map.emplace(pItem, ptr).first;
 	}
 
