@@ -71,7 +71,7 @@ enum class BuildLimitStatus
 class HouseExtData final
 {
 public:
-	static constexpr size_t Canary = 0x11111111;
+	static constexpr size_t Canary = 0x12345678;
 	using base_type = HouseClass;
 	//static constexpr size_t ExtOffset = 0x16098;
 	static constexpr size_t ExtOffset = 0x16084;//ARES

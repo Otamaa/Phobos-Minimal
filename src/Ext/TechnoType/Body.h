@@ -79,10 +79,10 @@ public:
 	using ImageVector = std::vector<VoxelStruct>;
 	using ColletiveCoordStructVectorData = std::array<std::vector<std::vector<CoordStruct>>*, 3u>;
 
-	static constexpr size_t Canary = 0x11111111;
+	static constexpr size_t Canary = 0x44444444;
 	using base_type = TechnoTypeClass;
 	//static constexpr size_t ExtOffset = 0x35C;
-	static constexpr size_t ExtOffset = 0xDF4;
+	//static constexpr size_t ExtOffset = 0xDF4;
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };

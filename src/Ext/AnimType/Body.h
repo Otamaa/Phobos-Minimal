@@ -13,7 +13,7 @@ class AnimTypeExtData final
 {
 public:
 	using base_type = AnimTypeClass;
-	static constexpr size_t Canary = 0xEEEEEEEE;
+	static constexpr size_t Canary = 0xEEECEEEE;
 	//static constexpr size_t ExtOffset = 0x374;
 
 	base_type* AttachedToObject {};

@@ -19,7 +19,7 @@
 class WeaponTypeExtData final
 {
 public:
-	static constexpr size_t Canary = 0x22222222;
+	static constexpr size_t Canary = 0x23222222;
 	using base_type = WeaponTypeClass;
 
 	base_type* AttachedToObject {};

@@ -7,8 +7,6 @@
 
 DEFINE_DISABLE_HOOK(0x465d4a, BuildingTypeClass_IsUndeployable_ares) //, 6)
 
-// there is bug with WF that causing unit stuck
-// seems the bib is not correct in the old code ?
 DEFINE_DISABLE_HOOK(0x43bcbd, BuildingClass_CTOR_ares)
 DEFINE_DISABLE_HOOK(0x43c022, BuildingClass_DTOR_ares)
 DEFINE_DISABLE_HOOK(0x453e20, BuildingClass_SaveLoad_Prefix_ares)
@@ -16,16 +14,41 @@ DEFINE_DISABLE_HOOK(0x45417e, BuildingClass_Load_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x454190, BuildingClass_SaveLoad_Prefix_ares)
 DEFINE_DISABLE_HOOK(0x454244, BuildingClass_Save_Suffix_ares)
 
-//DEFINE_DISABLE_HOOK(0x45e50c, BuildingTypeClass_CTOR_ares)
-//DEFINE_DISABLE_HOOK(0x45e707, BuildingTypeClass_DTOR_ares)
-//DEFINE_DISABLE_HOOK(0x464a49, BuildingTypeClass_LoadFromINI_ares)
-//DEFINE_DISABLE_HOOK(0x464a56, BuildingTypeClass_LoadFromINI_ares)
-//DEFINE_DISABLE_HOOK(0x465010, BuildingTypeClass_SaveLoad_Prefix_ares)
-//DEFINE_DISABLE_HOOK(0x4652ed, BuildingTypeClass_Load_Suffix_ares)
-//DEFINE_DISABLE_HOOK(0x465300, BuildingTypeClass_SaveLoad_Prefix_ares)
-//DEFINE_DISABLE_HOOK(0x46536a, BuildingTypeClass_Save_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x45e50c, BuildingTypeClass_CTOR_ares)
+DEFINE_DISABLE_HOOK(0x45e707, BuildingTypeClass_DTOR_ares)
+DEFINE_DISABLE_HOOK(0x464a49, BuildingTypeClass_LoadFromINI_ares)
+DEFINE_DISABLE_HOOK(0x464a56, BuildingTypeClass_LoadFromINI_ares)
+DEFINE_DISABLE_HOOK(0x465010, BuildingTypeClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x4652ed, BuildingTypeClass_Load_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x465300, BuildingTypeClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x46536a, BuildingTypeClass_Save_Suffix_ares)
 
 #ifndef ENABLE_FOUNDATIONHOOK
+
+//since we loading game reaally early , fixup some of the stuffs
+DEFINE_HOOK(0x465201, BuildingTypeClass_LoadFromStream_Foundation, 0x6)
+{
+	GET(BuildingTypeClass*, pThis, ESI);
+
+	pThis->ToTile = 0;
+	const auto Foundation = pThis->Foundation;
+	auto pExt = BuildingTypeExtContainer::Instance.Find(pThis);
+
+	if (pExt->IsCustom && pExt->CustomWidth > 0 && pExt->CustomHeight > 0) {
+		
+		// if there's custom data, assign it
+		pThis->FoundationData = pExt->CustomData.data();
+		pThis->FoundationOutside = pExt->OutlineData.data();
+	}
+	else
+	{
+		pThis->FoundationData = BuildingTypeClass::FoundationOutlines_B[(int)Foundation].Datas;
+		pThis->FoundationOutside = BuildingTypeClass::FoundationOutlines_A[(int)Foundation].Datas;
+	}
+
+	SwizzleManagerClass::Instance->Swizzle((void**)&pThis->ToOverlay);
+	return 0x465239;
+}
 
 DEFINE_OVERRIDE_HOOK(0x45eca0, BuildingTypeClass_GetFoundationHeight, 6)
 {
@@ -46,9 +69,16 @@ DEFINE_OVERRIDE_HOOK(0x656584, RadarClass_GetFoundationShape, 6)
 	GET(BuildingTypeClass*, pType, EAX);
 
 	const auto fnd = pType->Foundation;
-	const DynamicVectorClass<Point2D>* ret = fnd > Foundation::_0x0 ?
-		&BuildingTypeExtContainer::Instance.Find(pType)->FoundationRadarShape :
-		&pThis->FoundationTypePixels[(int)fnd];
+	DynamicVectorClass<Point2D>* ret = nullptr;
+
+	if (fnd == BuildingTypeExtData::CustomFoundation) {
+		const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
+		ret = &pTypeExt->FoundationRadarShape;
+	} else if(fnd >= Foundation::_1x1 && fnd <= Foundation::_0x0) {
+		ret = pThis->FoundationTypePixels + (int)fnd;
+	} else {
+		ret = pThis->FoundationTypePixels + (int)Foundation::_2x2;
+	}
 
 	R->EAX(ret);
 	return 0x656595;
@@ -74,11 +104,11 @@ DEFINE_OVERRIDE_HOOK(0x568565, MapClass_AddContentAt_Foundation_OccupyHeight, 5)
 	auto const AffectedCells = CustomFoundation::GetCoveredCells(
 		pThis, *MainCoords, ShadowHeight);
 
-	std::for_each(AffectedCells->begin(), AffectedCells->end(), [](CellStruct const& cell) {
+	for(const auto& cell : *AffectedCells) {
 		if (auto pCell = MapClass::Instance->TryGetCellAt(cell)) {
 			++pCell->OccupyHeightsCoveringMe;
 		}
-	});
+	}
 
 	return 0x568697;
 }
@@ -86,18 +116,14 @@ DEFINE_OVERRIDE_HOOK(0x568565, MapClass_AddContentAt_Foundation_OccupyHeight, 5)
 DEFINE_OVERRIDE_HOOK(0x568411, MapClass_AddContentAt_Foundation_P1, 0)
 {
 	GET(BuildingClass*, pThis, EDI);
-
 	R->EBP(pThis->GetFoundationData(false));
-
 	return 0x568432;
 }
 
 DEFINE_OVERRIDE_HOOK(0x568841, MapClass_RemoveContentAt_Foundation_P1, 0)
 {
 	GET(BuildingClass*, pThis, EDI);
-
 	R->EBP(pThis->GetFoundationData(false));
-
 	return 0x568862;
 }
 
@@ -107,22 +133,22 @@ DEFINE_OVERRIDE_HOOK(0x568997, MapClass_RemoveContentAt_Foundation_OccupyHeight,
 	GET(int, ShadowHeight, EBP);
 	GET_STACK(CellStruct*, MainCoords, 0x8B4);
 
-	auto const& AffectedCells = CustomFoundation::GetCoveredCells(
+	auto const AffectedCells = CustomFoundation::GetCoveredCells(
 		pThis, *MainCoords, ShadowHeight);
 
-	std::for_each(AffectedCells->begin(), AffectedCells->end(), [](CellStruct const& cell) {
+	for (const auto& cell : *AffectedCells) {
 		if (auto pCell = MapClass::Instance->TryGetCellAt(cell)) {
-			if(pCell->OccupyHeightsCoveringMe > 0)
-			--pCell->OccupyHeightsCoveringMe;
+			if (pCell->OccupyHeightsCoveringMe > 0)
+				--pCell->OccupyHeightsCoveringMe;
 		}
-	});
+	}
 
 	return 0x568ADC;
 }
 
 DEFINE_OVERRIDE_HOOK(0x4A8C77, DisplayClass_ProcessFoundation1_UnlimitBuffer, 5)
 {
-	GET_STACK(CellStruct const*, Foundation, 0x18);
+	LEA_STACK(CellStruct*, Foundation, 0x18);
 	GET(DisplayClass*, Display, EBX);
 
 	DWORD Len = CustomFoundation::FoundationLength(Foundation);
@@ -134,15 +160,15 @@ DEFINE_OVERRIDE_HOOK(0x4A8C77, DisplayClass_ProcessFoundation1_UnlimitBuffer, 5)
 	auto const bounds = Display->FoundationBoundsSize(
 		PhobosGlobal::Instance()->TempFoundationData1.data());
 
-	R->Stack<CellStruct>(0x18, bounds);
-	R->EAX<CellStruct*>(R->lea_Stack<CellStruct*>(0x18));
+	*Foundation = bounds;
+	R->EAX<CellStruct*>(Foundation);
 
 	return 0x4A8C9E;
 }
 
 DEFINE_OVERRIDE_HOOK(0x4A8DD7, DisplayClass_ProcessFoundation2_UnlimitBuffer, 5)
 {
-	GET_STACK(CellStruct const*, Foundation, 0x18);
+	LEA_STACK(CellStruct*, Foundation, 0x18);
 	GET(DisplayClass*, Display, EBX);
 
 	DWORD Len = CustomFoundation::FoundationLength(Foundation);
@@ -154,8 +180,8 @@ DEFINE_OVERRIDE_HOOK(0x4A8DD7, DisplayClass_ProcessFoundation2_UnlimitBuffer, 5)
 	auto const bounds = Display->FoundationBoundsSize(
 		PhobosGlobal::Instance()->TempFoundationData2.data());
 
-	R->Stack<CellStruct>(0x18, bounds);
-	R->EAX<CellStruct*>(R->lea_Stack<CellStruct*>(0x18));
+	*Foundation = bounds;
+	R->EAX<CellStruct*>(Foundation);
 
 	return 0x4A8DFE;
 }

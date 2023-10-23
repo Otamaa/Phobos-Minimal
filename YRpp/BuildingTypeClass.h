@@ -27,7 +27,7 @@ struct BuildingAnimFrameStruct
 
 struct FoundationOutlineStruct
 {
-	ArrayWrapper<CellStruct , 0x1E> Datas;
+   CellStruct Datas[30u];
 };
 static_assert(sizeof(FoundationOutlineStruct) == 0x78);
 

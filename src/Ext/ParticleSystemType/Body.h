@@ -8,7 +8,7 @@
 class ParticleSystemTypeExtData final
 {
 public:
-	static constexpr size_t Canary = 0xEAEEEEEE;
+	static constexpr size_t Canary = 0xEAAEEEEE;
 	using base_type = ParticleSystemTypeClass;
 
 	base_type* AttachedToObject {};

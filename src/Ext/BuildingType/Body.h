@@ -23,359 +23,375 @@ enum class BunkerSoundMode : int
 	Up, Down
 };
 
-	class BuildingTypeExtData final
-	{
-	public:
-		static constexpr size_t Canary = 0x11111111;
-		using base_type = BuildingTypeClass;
+class BuildingTypeExtData final
+{
+public:
+	static constexpr size_t Canary = 0x66666666;
+	using base_type = BuildingTypeClass;
 
 #ifdef ENABLE_FOUNDATIONHOOK
-		static constexpr size_t ExtOffset = 0xE24; //ares
+	static constexpr size_t ExtOffset = 0xE24; //ares
 #else
-		static constexpr size_t ExtOffset = 0x1794;
+	static constexpr size_t ExtOffset = 0x1794;
 #endif
-		base_type* AttachedToObject {};
-		InitState Initialized { InitState::Blank };
-	public:
-
-		TechnoTypeExtData* Type { nullptr };
-
-		PrismForwardingData PrismForwarding {};
-
-		Valueable<AffectedHouse> PowersUp_Owner { AffectedHouse::Owner };
-		ValueableVector<BuildingTypeClass*> PowersUp_Buildings {};
-		ValueableIdxVector<SuperWeaponTypeClass> SuperWeapons {};
-
-		ValueableVector<BuildingTypeClass*> PowerPlantEnhancer_Buildings {};
-		Nullable<int> PowerPlantEnhancer_Amount {};
-		Nullable<float> PowerPlantEnhancer_Factor {};
-
-		std::vector<Point2D> OccupierMuzzleFlashes {};
-
-		Valueable<bool> Refinery_UseStorage { false };
-
-		Nullable<bool> AllowAirstrike {};
-
-		Valueable<bool> Grinding_AllowAllies { false };
-		Valueable<bool> Grinding_AllowOwner { true };
-		ValueableVector<TechnoTypeClass*> Grinding_AllowTypes {};
-		ValueableVector<TechnoTypeClass*> Grinding_DisallowTypes {};
-		NullableIdx<VocClass> Grinding_Sound {};
-		Nullable<WeaponTypeClass*> Grinding_Weapon {};
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+public:
+
+	TechnoTypeExtData* Type { nullptr };
+
+	PrismForwardingData PrismForwarding {};
+
+	Valueable<AffectedHouse> PowersUp_Owner { AffectedHouse::Owner };
+	ValueableVector<BuildingTypeClass*> PowersUp_Buildings {};
+	ValueableIdxVector<SuperWeaponTypeClass> SuperWeapons {};
+
+	ValueableVector<BuildingTypeClass*> PowerPlantEnhancer_Buildings {};
+	Nullable<int> PowerPlantEnhancer_Amount {};
+	Nullable<float> PowerPlantEnhancer_Factor {};
+
+	std::vector<Point2D> OccupierMuzzleFlashes {};
+
+	Valueable<bool> Refinery_UseStorage { false };
+
+	Nullable<bool> AllowAirstrike {};
+
+	Valueable<bool> Grinding_AllowAllies { false };
+	Valueable<bool> Grinding_AllowOwner { true };
+	ValueableVector<TechnoTypeClass*> Grinding_AllowTypes {};
+	ValueableVector<TechnoTypeClass*> Grinding_DisallowTypes {};
+	NullableIdx<VocClass> Grinding_Sound {};
+	Nullable<WeaponTypeClass*> Grinding_Weapon {};
 
-		Valueable<bool> Grinding_PlayDieSound { false };
+	Valueable<bool> Grinding_PlayDieSound { false };
+
+	Nullable<bool> PlacementPreview_Show {};
+	Nullable<Theater_SHPStruct*> PlacementPreview_Shape {};
+	Nullable<int> PlacementPreview_ShapeFrame {};
+	Valueable<CoordStruct> PlacementPreview_Offset { {0, -15, 1} };
+	Valueable<bool> PlacementPreview_Remap { true };
+	Valueable<PaletteManager*> PlacementPreview_Palette {}; //CustomPalette::PaletteMode::Default
+	Nullable<int> PlacementPreview_TranslucentLevel {};
+
+	Nullable<AffectedHouse> RadialIndicator_Visibility {};
 
-		Nullable<bool> PlacementPreview_Show {};
-		Nullable<Theater_SHPStruct*> PlacementPreview_Shape {};
-		Nullable<int> PlacementPreview_ShapeFrame {};
-		Valueable<CoordStruct> PlacementPreview_Offset { {0, -15, 1} };
-		Valueable<bool> PlacementPreview_Remap { true };
-		Valueable<PaletteManager*> PlacementPreview_Palette {}; //CustomPalette::PaletteMode::Default
-		Nullable<int> PlacementPreview_TranslucentLevel {};
+	Valueable<bool> SpyEffect_Custom { false };
+	NullableIdx<SuperWeaponTypeClass> SpyEffect_VictimSuperWeapon {};
+	NullableIdx<SuperWeaponTypeClass> SpyEffect_InfiltratorSuperWeapon {};
 
-		Nullable<AffectedHouse> RadialIndicator_Visibility {};
+	//#814
+	Valueable<bool> SpyEffect_InfiltratorSW_JustGrant { false };
+	Valueable<bool> SpyEffect_VictimSW_RealLaunch { false };
 
-		Valueable<bool> SpyEffect_Custom { false };
-		NullableIdx<SuperWeaponTypeClass> SpyEffect_VictimSuperWeapon {};
-		NullableIdx<SuperWeaponTypeClass> SpyEffect_InfiltratorSuperWeapon {};
+	Valueable<bool> SpyEffect_RevealProduction { false };
+	Valueable<bool> SpyEffect_ResetSW { false };
+	Valueable<bool> SpyEffect_ResetRadar { false };
+	Valueable<bool> SpyEffect_RevealRadar { false };
+	Valueable<bool> SpyEffect_RevealRadarPersist { false };
+	Valueable<bool> SpyEffect_GainVeterancy { false };
+	Valueable<bool> SpyEffect_UnReverseEngineer { false };
+	std::bitset<32> SpyEffect_StolenTechIndex_result {};
+	Valueable<int> SpyEffect_StolenMoneyAmount { 0 };
+	Valueable<float> SpyEffect_StolenMoneyPercentage { 0 };
+	Valueable<int> SpyEffect_PowerOutageDuration { 0 };
+	Valueable<int> SpyEffect_SabotageDelay { 0 };
+	Valueable<SuperWeaponTypeClass*> SpyEffect_SuperWeapon { nullptr };
+	Valueable<bool> SpyEffect_SuperWeaponPermanent { false };
 
-		//#814
-		Valueable<bool> SpyEffect_InfiltratorSW_JustGrant { false };
-		Valueable<bool> SpyEffect_VictimSW_RealLaunch { false };
+	Valueable<bool> SpyEffect_InfantryVeterancy { false };
+	Valueable<bool> SpyEffect_VehicleVeterancy { false };
+	Valueable<bool> SpyEffect_NavalVeterancy { false };
+	Valueable<bool> SpyEffect_AircraftVeterancy { false };
+	Valueable<bool> SpyEffect_BuildingVeterancy { false };
 
-		Valueable<bool> SpyEffect_RevealProduction { false };
-		Valueable<bool> SpyEffect_ResetSW { false };
-		Valueable<bool> SpyEffect_ResetRadar { false };
-		Valueable<bool> SpyEffect_RevealRadar { false };
-		Valueable<bool> SpyEffect_RevealRadarPersist { false };
-		Valueable<bool> SpyEffect_GainVeterancy { false };
-		Valueable<bool> SpyEffect_UnReverseEngineer { false };
-		std::bitset<32> SpyEffect_StolenTechIndex_result {};
-		Valueable<int> SpyEffect_StolenMoneyAmount { 0 };
-		Valueable<float> SpyEffect_StolenMoneyPercentage { 0 };
-		Valueable<int> SpyEffect_PowerOutageDuration { 0 };
-		Valueable<int> SpyEffect_SabotageDelay { 0 };
-		Valueable<SuperWeaponTypeClass*> SpyEffect_SuperWeapon { nullptr };
-		Valueable<bool> SpyEffect_SuperWeaponPermanent { false };
+	Valueable<bool> ZShapePointMove_OnBuildup { false };
+	Valueable<int> SellBuildupLength { 23 };
 
-		Valueable<bool> SpyEffect_InfantryVeterancy { false };
-		Valueable<bool> SpyEffect_VehicleVeterancy { false };
-		Valueable<bool> SpyEffect_NavalVeterancy { false };
-		Valueable<bool> SpyEffect_AircraftVeterancy { false };
-		Valueable<bool> SpyEffect_BuildingVeterancy { false };
+	Valueable<bool> CanC4_AllowZeroDamage { false };
+	Valueable<double> C4_Modifier { 1.0 };
 
-		Valueable<bool> ZShapePointMove_OnBuildup { false };
-		Valueable<int> SellBuildupLength { 23 };
+	Valueable<CellStruct> DockUnload_Cell { { 3, 1 } };
+	Nullable<DirType32> DockUnload_Facing { };
 
-		Valueable<bool> CanC4_AllowZeroDamage { false };
-		Valueable<double> C4_Modifier { 1.0 };
+	// solid
+	Valueable<int> Solid_Height { 0 };
+	Valueable<int> Solid_Level { 1 };
 
-		Valueable<CellStruct> DockUnload_Cell { { 3, 1 } };
-		Nullable<DirType32> DockUnload_Facing { };
+	Nullable<bool> AIBaseNormal { };
+	Nullable<bool> AIInnerBase { };
 
-		// solid
-		Valueable<int> Solid_Height { 0 };
-		Valueable<int> Solid_Level { 1 };
+	// gates
+	NullableIdx<VocClass> GateDownSound {};
+	NullableIdx<VocClass> GateUpSound {};
+	Nullable<bool> UnitSell {};
 
-		Nullable<bool> AIBaseNormal { };
-		Nullable<bool> AIInnerBase { };
+	NullableVector<AnimTypeClass*> DamageFireTypes {};
+	NullableVector<AnimTypeClass*> OnFireTypes {};
+	NullableVector<int> OnFireIndex {};
+	HealthOnFireData HealthOnfire {};
 
-		// gates
-		NullableIdx<VocClass> GateDownSound {};
-		NullableIdx<VocClass> GateUpSound {};
-		Nullable<bool> UnitSell {};
+	Valueable<BuildingTypeClass*> RubbleIntact { nullptr }; 		//!< What BuildingType to turn into when reconstructed. (This is the normal building, set on rubble.)
+	Valueable<BuildingTypeClass*> RubbleDestroyed { nullptr };	//!< What BuildingType to turn into when destroyed. (This is the rubble, set on normal buildings.)
+	Valueable<AnimTypeClass*> RubbleDestroyedAnim { nullptr };
+	Valueable<AnimTypeClass*> RubbleIntactAnim { nullptr };
+	Valueable<OwnerHouseKind> RubbleDestroyedOwner { OwnerHouseKind::Default };
+	Valueable<OwnerHouseKind> RubbleIntactOwner { OwnerHouseKind::Default };
+	Valueable<int> RubbleDestroyedStrength { 0 };
+	Valueable<int> RubbleIntactStrength { -1 };
+	Valueable<bool> RubbleDestroyedRemove { false };
+	Valueable<bool> RubbleIntactRemove { false };
 
-		NullableVector<AnimTypeClass*> DamageFireTypes {};
-		NullableVector<AnimTypeClass*> OnFireTypes {};
-		NullableVector<int> OnFireIndex {};
-		HealthOnFireData HealthOnfire {};
+	ValueableVector<Point2D> DamageFire_Offs {};
 
-		Valueable<BuildingTypeClass*> RubbleIntact { nullptr }; 		//!< What BuildingType to turn into when reconstructed. (This is the normal building, set on rubble.)
-		Valueable<BuildingTypeClass*> RubbleDestroyed { nullptr };	//!< What BuildingType to turn into when destroyed. (This is the rubble, set on normal buildings.)
-		Valueable<AnimTypeClass*> RubbleDestroyedAnim { nullptr };
-		Valueable<AnimTypeClass*> RubbleIntactAnim { nullptr };
-		Valueable<OwnerHouseKind> RubbleDestroyedOwner { OwnerHouseKind::Default };
-		Valueable<OwnerHouseKind> RubbleIntactOwner { OwnerHouseKind::Default };
-		Valueable<int> RubbleDestroyedStrength { 0 };
-		Valueable<int> RubbleIntactStrength { -1 };
-		Valueable<bool> RubbleDestroyedRemove { false };
-		Valueable<bool> RubbleIntactRemove { false };
+	Nullable<double> RepairRate {};
+	Nullable<int> RepairStep {};
 
-		ValueableVector<Point2D> DamageFire_Offs {};
+	Nullable<bool> PlayerReturnFire {};
 
-		Nullable<double> RepairRate {};
-		Nullable<int> RepairStep {};
+	Valueable<bool> PackupSound_PlayGlobal { false };
+	Valueable<bool> DisableDamageSound { false };
 
-		Nullable<bool> PlayerReturnFire {};
+	Nullable<float> BuildingOccupyDamageMult {};
+	Nullable<float> BuildingOccupyROFMult {};
 
-		Valueable<bool> PackupSound_PlayGlobal { false };
-		Valueable<bool> DisableDamageSound { false };
+	Nullable<float> BuildingBunkerDamageMult {};
+	Nullable<float> BuildingBunkerROFMult {};
 
-		Nullable<float> BuildingOccupyDamageMult {};
-		Nullable<float> BuildingOccupyROFMult {};
+	NullableIdx<VocClass> BunkerWallsUpSound {};
+	NullableIdx<VocClass> BunkerWallsDownSound {};
 
-		Nullable<float> BuildingBunkerDamageMult {};
-		Nullable<float> BuildingBunkerROFMult {};
+	ValueableIdxVector<BuildingTypeClass> AIBuildInsteadPerDiff {};
 
+	PhobosMap<int, AnimTypeClass*> GarrisonAnim_idle {};
+	PhobosMap<int, AnimTypeClass*> GarrisonAnim_ActiveOne {};
+	PhobosMap<int, AnimTypeClass*> GarrisonAnim_ActiveTwo {};
+	PhobosMap<int, AnimTypeClass*> GarrisonAnim_ActiveThree {};
+	PhobosMap<int, AnimTypeClass*> GarrisonAnim_ActiveFour {};
 
-		NullableIdx<VocClass> BunkerWallsUpSound {};
-		NullableIdx<VocClass> BunkerWallsDownSound {};
+	Valueable<PaletteManager*> PipShapes01Palette {}; //CustomPalette::PaletteMode::Temperate
+	Valueable<bool> PipShapes01Remap { false };
 
-		ValueableIdxVector<BuildingTypeClass> AIBuildInsteadPerDiff {};
+	Nullable<AnimTypeClass*> TurretAnim_LowPower {};
+	Nullable<AnimTypeClass*> TurretAnim_DamagedLowPower {};
 
-		PhobosMap<int, AnimTypeClass*> GarrisonAnim_idle {};
-		PhobosMap<int, AnimTypeClass*> GarrisonAnim_ActiveOne {};
-		PhobosMap<int, AnimTypeClass*> GarrisonAnim_ActiveTwo {};
-		PhobosMap<int, AnimTypeClass*> GarrisonAnim_ActiveThree {};
-		PhobosMap<int, AnimTypeClass*> GarrisonAnim_ActiveFour {};
+	Valueable<bool> BuildUp_UseNormalLIght {};
 
-		Valueable<PaletteManager*> PipShapes01Palette {}; //CustomPalette::PaletteMode::Temperate
-		Valueable<bool> PipShapes01Remap { false };
+	Valueable<bool> Power_DegradeWithHealth { true };
 
-		Nullable<AnimTypeClass*> TurretAnim_LowPower {};
-		Nullable<AnimTypeClass*> TurretAnim_DamagedLowPower {};
+	Nullable<float> AutoSellTime {};
 
-		Valueable<bool> BuildUp_UseNormalLIght {};
+	Valueable<bool> IsJuggernaut { false };
 
-		Valueable<bool> Power_DegradeWithHealth { true };
+	Nullable<SHPStruct*> BuildingPlacementGrid_Shape {};
+	BuildSpeedBonus SpeedBonus {};
 
-		Nullable<float> AutoSellTime {};
+	Valueable<PaletteManager*> RubblePalette {}; //CustomPalette::PaletteMode::Temperates
 
-		Valueable<bool> IsJuggernaut { false };
+	ValueableVector<FacingType> DockPoseDir {};
 
-		Nullable<SHPStruct*> BuildingPlacementGrid_Shape {};
-		BuildSpeedBonus SpeedBonus {};
+	Nullable<bool> EngineerRepairable {};
 
-		Valueable<PaletteManager*> RubblePalette {}; //CustomPalette::PaletteMode::Temperates
+	signed int IsTrench { -1 };					//!< Enables moving between segments - saves ID of a kind of trench. \sa trenchKinds
 
-		ValueableVector<FacingType> DockPoseDir {};
+	ValueableIdx<TunnelTypeClass> TunnelType { -1 };
 
-		Nullable<bool> EngineerRepairable {};
+	Valueable<double> UCPassThrough { 0.0 }; 					//!< How many percent of the shots pass through the building to the occupants? 0.0 = 0%, 1.0 = 100%; Defaults to 0.0.
+	Valueable<double> UCFatalRate { 0.0 }; 					//!< Chance of an occupant getting killed instantly when a bullet passes through. 0.0 = 0%, 1.0 = 100%; Defaults to 0.0.
+	Valueable<double> UCDamageMultiplier { 1.0 }; 				//!< How many percent of normal damage are applied if an occupant is hit when a bullet passes through. 0.0 = 0%, 1.0 = 100%; Defaults to 1.0.
 
-		signed int IsTrench { -1 };					//!< Enables moving between segments - saves ID of a kind of trench. \sa trenchKinds
+	ValueableIdx<CursorTypeClass> Cursor_Spy { (int)MouseCursorType::Enter };
+	ValueableIdx<CursorTypeClass> Cursor_Sabotage { 93 };
+	Nullable<bool> ImmuneToSaboteurs {};
+	Valueable<bool> ReverseEngineersVictims { false };
 
-		ValueableIdx<TunnelTypeClass> TunnelType { -1 };
+	// lightning rod
+	Valueable<double> LightningRod_Modifier { 1.0 };
+	Nullable<bool> Returnable {};
+	Nullable<double> BuildupTime {};
+	Nullable<double> SellTime {};
+	NullableIdx<VocClass> SlamSound {};
 
-		Valueable<double> UCPassThrough { 0.0 }; 					//!< How many percent of the shots pass through the building to the occupants? 0.0 = 0%, 1.0 = 100%; Defaults to 0.0.
-		Valueable<double> UCFatalRate { 0.0 }; 					//!< Chance of an occupant getting killed instantly when a bullet passes through. 0.0 = 0%, 1.0 = 100%; Defaults to 0.0.
-		Valueable<double> UCDamageMultiplier { 1.0 }; 				//!< How many percent of normal damage are applied if an occupant is hit when a bullet passes through. 0.0 = 0%, 1.0 = 100%; Defaults to 1.0.
+	Valueable<bool> Destroyed_CreateSmudge { true };
 
-		ValueableIdx<CursorTypeClass> Cursor_Spy { (int)MouseCursorType::Enter };
-		ValueableIdx<CursorTypeClass> Cursor_Sabotage { 93 };
-		Nullable<bool> ImmuneToSaboteurs {};
-		Valueable<bool> ReverseEngineersVictims { false };
+	Valueable<BuildingTypeClass*> LaserFenceType { nullptr };
+	Nullable<BuildingTypeClass*> LaserFenceWEType { };
+	ValueableVector<BuildingTypeClass*> LaserFencePostLinks { };
+	Valueable<short> LaserFenceDirection {};
 
-		// lightning rod
-		Valueable<double> LightningRod_Modifier { 1.0 };
-		Nullable<bool> Returnable {};
-		Nullable<double> BuildupTime {};
-		Nullable<double> SellTime {};
-		NullableIdx<VocClass> SlamSound {};
+	// #218 Specific Occupiers
+	ValueableVector<InfantryTypeClass*> AllowedOccupiers {};
 
-		Valueable<bool> Destroyed_CreateSmudge { true } ;
+	Valueable<bool> BunkerRaidable { false };
+	Valueable<bool> Firestorm_Wall { false };
 
-		Valueable<BuildingTypeClass*> LaserFenceType { nullptr };
-		Nullable<BuildingTypeClass*> LaserFenceWEType { };
-		ValueableVector<BuildingTypeClass*> LaserFencePostLinks { };
-		Valueable<short> LaserFenceDirection {};
+	NullableIdx<VocClass> AbandonedSound {};
+	Valueable<bool> CloningFacility { false };
+	Valueable<bool> Factory_ExplicitOnly { false };
 
-		// #218 Specific Occupiers
-		ValueableVector<InfantryTypeClass*> AllowedOccupiers {};
+	ValueableIdx<VoxClass> LostEvaEvent { -1 };
+	Valueable<CSFText> MessageCapture {};
+	Valueable<CSFText> MessageLost {};
 
-		Valueable<bool> BunkerRaidable { false };
-		Valueable<bool> Firestorm_Wall { false };
+	ValueableVector<int> AIBuildCounts {};
+	ValueableVector<int> AIExtraCounts {};
 
-		NullableIdx<VocClass> AbandonedSound {};
-		Valueable<bool> CloningFacility { false };
-		Valueable<bool> Factory_ExplicitOnly { false };
+	Nullable<FacingType> LandingDir {};
 
-		ValueableIdx<VoxClass> LostEvaEvent { -1 };
-		Valueable<CSFText> MessageCapture {};
-		Valueable<CSFText> MessageLost {};
+	int SellFrames { 0 };
 
-		ValueableVector<int> AIBuildCounts {};
-		ValueableVector<int> AIExtraCounts {};
+	// foundations
+	bool IsCustom { false };
+	int CustomWidth { 0 };
+	int CustomHeight { 0 };
+	int OutlineLength { 0 };
+	std::vector<CellStruct> CustomData {};
+	std::vector<CellStruct> OutlineData {};
+	DynamicVectorClass<Point2D> FoundationRadarShape {};
 
-		Nullable<FacingType> LandingDir {};
+	// new secret lab
+	NullableVector<TechnoTypeClass*> Secret_Boons {};
+	Valueable<bool> Secret_RecalcOnCapture { false };
 
-		int SellFrames { 0 };
+	// academy
+	mutable OptionalStruct<bool> Academy {};
+	ValueableVector<TechnoTypeClass*> AcademyWhitelist {};
+	ValueableVector<TechnoTypeClass*> AcademyBlacklist {};
+	Valueable<double> AcademyInfantry { 0.0 };
+	Valueable<double> AcademyAircraft { 0.0 };
+	Valueable<double> AcademyVehicle { 0.0 };
+	Valueable<double> AcademyBuilding { 0.0 };
 
-		// foundations
-		bool IsCustom { false };
-		int CustomWidth { 0 };
-		int CustomHeight { 0 };
-		int OutlineLength { 0 };
-		std::vector<CellStruct> CustomData {};
-		std::vector<CellStruct> OutlineData {};
-		DynamicVectorClass<Point2D> FoundationRadarShape {};
+	// degrading on low power
+	Nullable<int> DegradeAmount {};
+	Nullable<double> DegradePercentage {};
 
-		// new secret lab
-		NullableVector<TechnoTypeClass*> Secret_Boons {};
-		Valueable<bool> Secret_RecalcOnCapture { false };
+	Valueable<bool> IsPassable { false };
+	Valueable<bool> ProduceCashDisplay { false };
 
-		// academy
-		mutable OptionalStruct<bool> Academy {};
-		ValueableVector<TechnoTypeClass*> AcademyWhitelist {};
-		ValueableVector<TechnoTypeClass*> AcademyBlacklist {};
-		Valueable<double> AcademyInfantry { 0.0 };
-		Valueable<double> AcademyAircraft { 0.0 };
-		Valueable<double> AcademyVehicle { 0.0 };
-		Valueable<double> AcademyBuilding { 0.0 };
+	Nullable<bool> Storage_ActiveAnimations {};
+	Nullable<float> PurifierBonus {};
+	Valueable<bool> PurifierBonus_RequirePower { true };
 
-		// degrading on low power
-		Nullable<int> DegradeAmount {};
-		Nullable<double> DegradePercentage {};
+	Valueable<bool> FactoryPlant_RequirePower { true };
+	Valueable<bool> SpySat_RequirePower { true };
+	Valueable<bool> Cloning_RequirePower { true };
 
-		Valueable<bool> IsPassable { false };
-		Valueable<bool> ProduceCashDisplay { false };
+	Nullable<bool> DisplayIncome {};
+	Nullable<AffectedHouse> DisplayIncome_Houses {};
+	Valueable<Point2D> DisplayIncome_Offset {};
+	Valueable<unsigned int> FreeUnit_Count { 1 };
 
-		Nullable<bool> Storage_ActiveAnimations {};
-		Nullable<float> PurifierBonus {};
-		Valueable<bool> PurifierBonus_RequirePower { true };
+	BuildingTypeExtData() noexcept = default;
+	~BuildingTypeExtData() noexcept = default;
 
-		Valueable<bool> FactoryPlant_RequirePower { true };
-		Valueable<bool> SpySat_RequirePower { true };
-		Valueable<bool> Cloning_RequirePower { true };
+	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+	void Initialize();
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-		Nullable<bool> DisplayIncome {};
-		Nullable<AffectedHouse> DisplayIncome_Houses {};
-		Valueable<Point2D> DisplayIncome_Offset {};
-		Valueable<unsigned int> FreeUnit_Count { 1 };
+	void CompleteInitialization();
+	int GetSuperWeaponCount() const;
+	int GetSuperWeaponIndex(int index, HouseClass* pHouse) const;
+	int GetSuperWeaponIndex(int index) const;
 
-		BuildingTypeExtData() noexcept = default;
-		~BuildingTypeExtData() noexcept = default;
+	bool CanBeOccupiedBy(InfantryClass* whom);
 
-		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-		void Initialize();
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	bool IsAcademy() const;
 
-		void CompleteInitialization();
-		int GetSuperWeaponCount() const;
-		int GetSuperWeaponIndex(int index, HouseClass* pHouse) const;
-		int GetSuperWeaponIndex(int index) const;
+	void UpdateFoundationRadarShape();
 
-		bool CanBeOccupiedBy(InfantryClass* whom);
+	static bool IsFoundationEqual(BuildingTypeClass* pType1, BuildingTypeClass* pType2);
+	// Short check: Is the building of a linkable kind at all?
+	static bool IsLinkable(BuildingTypeClass* pThis);
+	static int GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse);
+	static float GetPurifierBonusses(HouseClass* pHouse);
+	static double GetExternalFactorySpeedBonus(TechnoClass* pWhat);
+	static double GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseClass* pOwner);
+	static double GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, HouseClass* pOwner);
+	static bool CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass* pUpgradeType, HouseClass* pUpgradeOwner);
+	static int GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass* pHouse);
 
-		bool IsAcademy() const;
-
-		void UpdateFoundationRadarShape();
-
-		static bool IsFoundationEqual(BuildingTypeClass* pType1, BuildingTypeClass* pType2);
-		// Short check: Is the building of a linkable kind at all?
-		static bool IsLinkable(BuildingTypeClass* pThis);
-		static int GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse);
-		static float GetPurifierBonusses(HouseClass* pHouse);
-		static double GetExternalFactorySpeedBonus(TechnoClass* pWhat);
-		static double GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseClass* pOwner);
-		static double GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, HouseClass* pOwner);
-		static bool CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass* pUpgradeType, HouseClass* pUpgradeOwner);
-		static int GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass* pHouse);
-
-		template<BunkerSoundMode UpSound>
-		struct BunkerSound
-		{
-			constexpr void operator ()(BuildingClass* pThis)
-			{
-
-				if constexpr (UpSound == BunkerSoundMode::Up)
-				{
-					const auto nSound = BuildingTypeExtContainer::Instance.Find(pThis->Type)->BunkerWallsUpSound.Get(RulesClass::Instance->BunkerWallsUpSound);
-					VocClass::PlayIndexAtPos(nSound, pThis->Location);
-				}
-				else
-				{
-					const auto nSound = BuildingTypeExtContainer::Instance.Find(pThis->Type)->BunkerWallsDownSound.Get(RulesClass::Instance->BunkerWallsDownSound);
-					VocClass::PlayIndexAtPos(nSound, pThis->Location);
-				}
-			}
-		};
-
-		static void DisplayPlacementPreview();
-		static Point2D* GetOccupyMuzzleFlash(BuildingClass* pThis, int nOccupyIdx);
-		static int CheckBuildLimit(HouseClass* pHouse, BuildingTypeClass* pItem, bool includeQueued);
-		static int BuildLimitRemaining(HouseClass* pHouse, BuildingTypeClass* pItem);
-		static int GetBuildingAnimTypeIndex(BuildingClass* pThis, const BuildingAnimSlot& nSlot, const char* pDefault);
-
-		static void UpdateBuildupFrames(BuildingTypeClass* pThis);
-
-		static bool __fastcall IsFactory(BuildingClass* pThis, void* _);
-		static void __fastcall DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset);
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	public:
-
-		static std::vector<std::string> trenchKinds; //!< Vector of strings associating known trench names with IsTrench IDs. \sa IsTrench
-		static const DirStruct DefaultJuggerFacing;
-		static const Foundation CustomFoundation = static_cast<Foundation>(0x7F);
-		static const CellStruct FoundationEndMarker;
-	};
-
-	class BuildingTypeExtContainer final : public Container<BuildingTypeExtData>
+	template<BunkerSoundMode UpSound>
+	struct BunkerSound
 	{
-	public:
-		CONSTEXPR_NOCOPY_CLASSB(BuildingTypeExtContainer, BuildingTypeExtData, "BuildingTypeClass");
-	public:
-
-		virtual bool Load(BuildingTypeClass* key, IStream* pStm) override;
-
-		static BuildingTypeExtContainer Instance;
-
-		static bool LoadGlobals(PhobosStreamReader& Stm)
+		constexpr void operator ()(BuildingClass* pThis)
 		{
-			return Stm
-				.Process(BuildingTypeExtData::trenchKinds)
-				.Success()
-				;
-		}
 
-		static bool SaveGlobals(PhobosStreamWriter& Stm)
-		{
-			return Stm
-				.Process(BuildingTypeExtData::trenchKinds)
-				.Success()
-				;
+			if constexpr (UpSound == BunkerSoundMode::Up)
+			{
+				const auto nSound = BuildingTypeExtContainer::Instance.Find(pThis->Type)->BunkerWallsUpSound.Get(RulesClass::Instance->BunkerWallsUpSound);
+				VocClass::PlayIndexAtPos(nSound, pThis->Location);
+			}
+			else
+			{
+				const auto nSound = BuildingTypeExtContainer::Instance.Find(pThis->Type)->BunkerWallsDownSound.Get(RulesClass::Instance->BunkerWallsDownSound);
+				VocClass::PlayIndexAtPos(nSound, pThis->Location);
+			}
 		}
 	};
+
+	static void DisplayPlacementPreview();
+	static Point2D* GetOccupyMuzzleFlash(BuildingClass* pThis, int nOccupyIdx);
+	static int CheckBuildLimit(HouseClass* pHouse, BuildingTypeClass* pItem, bool includeQueued);
+	static int BuildLimitRemaining(HouseClass* pHouse, BuildingTypeClass* pItem);
+	static int GetBuildingAnimTypeIndex(BuildingClass* pThis, const BuildingAnimSlot& nSlot, const char* pDefault);
+
+	static void UpdateBuildupFrames(BuildingTypeClass* pThis);
+
+	static bool __fastcall IsFactory(BuildingClass* pThis, void* _);
+	static void __fastcall DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset);
+
+private:
+	template <typename T>
+	void Serialize(T& Stm);
+public:
+
+	static std::vector<std::string> trenchKinds; //!< Vector of strings associating known trench names with IsTrench IDs. \sa IsTrench
+	static const DirStruct DefaultJuggerFacing;
+	static const Foundation CustomFoundation = static_cast<Foundation>(0x7F);
+	static const CellStruct FoundationEndMarker;
+};
+
+class BuildingTypeExtContainer final : public Container<BuildingTypeExtData>
+{
+public:
+	static BuildingTypeExtContainer Instance;
+	std::unordered_map<BuildingTypeClass*, BuildingTypeExtData*> Map;
+
+	virtual bool Load(BuildingTypeClass* key, IStream* pStm);
+
+	static bool LoadGlobals(PhobosStreamReader& Stm)
+	{
+		return Stm
+			.Process(BuildingTypeExtData::trenchKinds)
+			.Success()
+			;
+	}
+
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	{
+		return Stm
+			.Process(BuildingTypeExtData::trenchKinds)
+			.Success()
+			;
+	}
+
+
+	void Clear()
+	{
+		this->Map.clear();
+	}
+
+	BuildingTypeExtContainer() : Container<BuildingTypeExtData> { "BuildingTypeClass" }
+		, Map {}
+	{ }
+
+	virtual ~BuildingTypeExtContainer() override = default;
+	//CONSTEXPR_NOCOPY_CLASSB(BulletTypeExtContainer, BulletTypeExtData, "BulletTypeClass");
+
+private:
+	BuildingTypeExtContainer(const BuildingTypeExtContainer&) = delete;
+	BuildingTypeExtContainer(BuildingTypeExtContainer&&) = delete;
+	BuildingTypeExtContainer& operator=(const BuildingTypeExtContainer& other) = delete;
+
+};

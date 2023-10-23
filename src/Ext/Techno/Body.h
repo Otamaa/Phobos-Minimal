@@ -39,7 +39,7 @@ struct BurstFLHBundle;
 class TechnoExtData
 {
 public:
-	static constexpr size_t Canary = 0x55555555;
+	static constexpr size_t Canary = 0x55565555;
 	using base_type = TechnoClass;
 	//static constexpr size_t ExtOffset = 0x4FC;
 	static constexpr size_t ExtOffset = 0x154; //ares

@@ -65,25 +65,41 @@ void BuildingTypeExtData::UpdateFoundationRadarShape()
 		// wider for each line drawn. the start and end values
 		// are special-cased to not draw the pixels outside the
 		// foundation.
-		for (int i = 0; i < rows; ++i)
+
+
+		if (rows  > 0)
 		{
-			int start = -i;
-			if (i >= pixelsY)
+			int increment = 0;
+			int start = 0;
+			int end = 0;
+			int YPixStart = 0;
+			do
 			{
-				start = i - 2 * pixelsY + 2;
-			}
+				if (increment >= pixelsY) {
+					start = increment - 2 * pixelsY + 2;
+				} else {
+					start = YPixStart;
+				}
 
-			int end = i;
-			if (i >= pixelsX)
-			{
-				end = 2 * pixelsX - i - 2;
-			}
+				if (increment >= pixelsX) {
+					end = 2 * pixelsX - increment - 2;
+				} else {
+					end = increment;
+				}
 
-			// fill the line
-			for (int j = start; j <= end; ++j)
-			{
-				this->FoundationRadarShape.AddItem(Point2D(j, i));
+				if (start <= end)
+				{
+					do
+					{
+						this->FoundationRadarShape.AddItem(Point2D(start, increment));
+						++start;
+					}
+					while (start <= end);
+				}
+				++increment;
+				--YPixStart;
 			}
+			while (increment < rows);
 		}
 	}
 }
@@ -656,7 +672,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			"This combination causes Internal Errors and other unwanted behaviour.", pSection);
 	}
 
-	if (!parseFailAddr)
+	//if (!parseFailAddr)
 	{
 		INI_EX exINI(pINI);
 
@@ -942,12 +958,11 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		pThis->FoundationData = this->CustomData.data();
 		pThis->FoundationOutside = this->OutlineData.data();
 	}
-	else if ((pArtINI->ReadString(pArtSection, "Foundation", "", strbuff) > 0) && IS_SAME_STR_(strbuff, "Custom"))
+
+	if ((pArtINI->ReadString(pArtSection, "Foundation", Phobos::readDefval, strbuff) > 0) && IS_SAME_STR_(strbuff, "Custom"))
 	{
 		//Custom Foundation!
 		this->IsCustom = true;
-		pThis->Foundation = BuildingTypeExtData::CustomFoundation;
-
 		//Load Width and Height
 		detail::read(this->CustomWidth, exArtINI, pArtSection, "Foundation.X");
 		detail::read(this->CustomHeight, exArtINI, pArtSection, "Foundation.Y");
@@ -1047,12 +1062,17 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 			}
 		}
+	}
 
+	if (this->IsCustom)
+	{
+		//Reset
+		pThis->Foundation = BuildingTypeExtData::CustomFoundation;
 		pThis->FoundationData = this->CustomData.data();
 		pThis->FoundationOutside = this->OutlineData.data();
 	}
 
-	if (pArtINI->GetSection(pArtSection))
+	//if (pArtINI->GetSection(pArtSection))
 	{
 		if (pThis->MaxNumberOccupants > 10)
 		{
@@ -1312,27 +1332,40 @@ BuildingTypeExtContainer BuildingTypeExtContainer::Instance;
 
 bool BuildingTypeExtContainer::Load(BuildingTypeClass* key, IStream* pStm)
 {
-	//call the base class
-	if(Container<BuildingTypeExtData>::Load(key, pStm)){
-		auto pData = this->Find(key);
+	if (!key)
+		return false;
 
-		// if there's custom data, assign it
-		if (pData->IsCustom && pData->CustomWidth > 0 && pData->CustomHeight > 0)
-		{
-			key->Foundation = BuildingTypeExtData::CustomFoundation;
-			key->FoundationData = pData->CustomData.data();
-			key->FoundationOutside = pData->OutlineData.data();
-		}
-		else
-		{
-			pData->CustomData.clear();
-			pData->OutlineData.clear();
-		}
+	auto Iter = BuildingTypeExtContainer::Instance.Map.find(key);
 
-		// reset the buildup time
-		BuildingTypeExtData::UpdateBuildupFrames(key);
-		return true;
+	if (Iter == BuildingTypeExtContainer::Instance.Map.end())
+	{
+		auto ptr = this->AllocateUnlchecked(key);
+		Iter = BuildingTypeExtContainer::Instance.Map.emplace(key, ptr).first;
 	}
+
+	this->ClearExtAttribute(key);
+	this->SetExtAttribute(key, Iter->second);
+
+	PhobosByteStream loader { 0 };
+	if (!loader.ReadBlockFromStream(pStm))
+	{
+		//Debug::Log("[LoadKey] Failed to read data from save stream?!\n");
+		return false;
+	}
+
+	PhobosStreamReader reader { loader };
+	if (reader.Expect(BuildingTypeExtData::Canary)
+		&& reader.RegisterChange(Iter->second))
+	{
+		Iter->second->LoadFromStream(reader);
+		if (reader.ExpectEndOfBlock())
+		{
+			// reset the buildup time
+			BuildingTypeExtData::UpdateBuildupFrames(key);
+			return true;
+		}
+	}
+
 
 	return false;
 }
@@ -1344,7 +1377,17 @@ DEFINE_HOOK(0x45E50C, BuildingTypeClass_CTOR, 0x6)
 {
 	GET(BuildingTypeClass*, pItem, EAX);
 
-	BuildingTypeExtContainer::Instance.Allocate(pItem);
+
+	auto Iter = BuildingTypeExtContainer::Instance.Map.find(pItem);
+
+	if (Iter == BuildingTypeExtContainer::Instance.Map.end())
+	{
+		auto ptr = BuildingTypeExtContainer::Instance.AllocateUnlchecked(pItem);
+		Iter = BuildingTypeExtContainer::Instance.Map.emplace(pItem, ptr).first;
+	}
+
+	BuildingTypeExtContainer::Instance.ClearExtAttribute(pItem);
+	BuildingTypeExtContainer::Instance.SetExtAttribute(pItem, Iter->second);
 
 	return 0;
 }
@@ -1353,7 +1396,9 @@ DEFINE_HOOK(0x45E707, BuildingTypeClass_DTOR, 0x6)
 {
 	GET(BuildingTypeClass*, pItem, ESI);
 
-	BuildingTypeExtContainer::Instance.Remove(pItem);
+	auto extData = BuildingTypeExtContainer::Instance.GetExtAttribute(pItem);
+	BuildingTypeExtContainer::Instance.ClearExtAttribute(pItem);
+	BuildingTypeExtContainer::Instance.Map.erase(pItem);
 	return 0;
 }
 
