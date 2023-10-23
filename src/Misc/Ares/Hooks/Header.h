@@ -437,23 +437,36 @@ public:
 	};
 
 	static std::array<MappedActions, (size_t)Action::count + 2> CursorIdx;
+	static std::array<std::vector<BuildType>, 4u> TabCameos;
 
 	static bool SaveGlobals(PhobosStreamWriter& Stm)
 	{
-		return
-			Stm
-			.Process(CursorIdx)
-			.Success()
-			;
+		Stm.Process(CursorIdx);
+		for (const auto& tab : TabCameos) {
+			Savegame::WritePhobosStream(Stm, tab);
+		}
+
+		return Stm.Success();
 	}
 
 	static bool LoadGlobals(PhobosStreamReader& Stm)
 	{
-		return
-			Stm
-			.Process(CursorIdx)
-			.Success()
-			;
+		Stm.Process(CursorIdx) ;
+
+		for (auto& tab : TabCameos) {
+			Savegame::ReadPhobosStream(Stm, tab);
+		}
+
+		return Stm.Success();
+	}
+
+	static void ClearCameos()
+	{
+		for (auto& cameos : TabCameos)
+		{
+			cameos.clear();
+			cameos.reserve(100);
+		}
 	}
 
 	static void ClearMappedAction();

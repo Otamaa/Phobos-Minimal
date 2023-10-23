@@ -31,7 +31,6 @@ DEFINE_HOOK(0x465201, BuildingTypeClass_LoadFromStream_Foundation, 0x6)
 	GET(BuildingTypeClass*, pThis, ESI);
 
 	pThis->ToTile = 0;
-	const auto Foundation = pThis->Foundation;
 	auto pExt = BuildingTypeExtContainer::Instance.Find(pThis);
 
 	if (pExt->IsCustom && pExt->CustomWidth > 0 && pExt->CustomHeight > 0) {
@@ -42,8 +41,8 @@ DEFINE_HOOK(0x465201, BuildingTypeClass_LoadFromStream_Foundation, 0x6)
 	}
 	else
 	{
-		pThis->FoundationData = BuildingTypeClass::FoundationOutlines_B[(int)Foundation].Datas;
-		pThis->FoundationOutside = BuildingTypeClass::FoundationOutlines_A[(int)Foundation].Datas;
+		pThis->FoundationData = BuildingTypeClass::FoundationlinesData[(int)pThis->Foundation].Datas;
+		pThis->FoundationOutside = BuildingTypeClass::FoundationOutlinesData[(int)pThis->Foundation].Datas;
 	}
 
 	SwizzleManagerClass::Instance->Swizzle((void**)&pThis->ToOverlay);
@@ -148,7 +147,7 @@ DEFINE_OVERRIDE_HOOK(0x568997, MapClass_RemoveContentAt_Foundation_OccupyHeight,
 
 DEFINE_OVERRIDE_HOOK(0x4A8C77, DisplayClass_ProcessFoundation1_UnlimitBuffer, 5)
 {
-	LEA_STACK(CellStruct*, Foundation, 0x18);
+	GET_STACK(CellStruct const*, Foundation, 0x18);
 	GET(DisplayClass*, Display, EBX);
 
 	DWORD Len = CustomFoundation::FoundationLength(Foundation);
@@ -160,15 +159,15 @@ DEFINE_OVERRIDE_HOOK(0x4A8C77, DisplayClass_ProcessFoundation1_UnlimitBuffer, 5)
 	auto const bounds = Display->FoundationBoundsSize(
 		PhobosGlobal::Instance()->TempFoundationData1.data());
 
-	*Foundation = bounds;
-	R->EAX<CellStruct*>(Foundation);
+	R->Stack<CellStruct>(0x18, bounds);
+	R->EAX<CellStruct*>(R->lea_Stack<CellStruct*>(0x18));
 
 	return 0x4A8C9E;
 }
 
 DEFINE_OVERRIDE_HOOK(0x4A8DD7, DisplayClass_ProcessFoundation2_UnlimitBuffer, 5)
 {
-	LEA_STACK(CellStruct*, Foundation, 0x18);
+	GET_STACK(CellStruct const*, Foundation, 0x18);
 	GET(DisplayClass*, Display, EBX);
 
 	DWORD Len = CustomFoundation::FoundationLength(Foundation);
@@ -180,8 +179,8 @@ DEFINE_OVERRIDE_HOOK(0x4A8DD7, DisplayClass_ProcessFoundation2_UnlimitBuffer, 5)
 	auto const bounds = Display->FoundationBoundsSize(
 		PhobosGlobal::Instance()->TempFoundationData2.data());
 
-	*Foundation = bounds;
-	R->EAX<CellStruct*>(Foundation);
+	R->Stack<CellStruct>(0x18, bounds);
+	R->EAX<CellStruct*>(R->lea_Stack<CellStruct*>(0x18));
 
 	return 0x4A8DFE;
 }

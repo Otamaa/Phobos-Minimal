@@ -274,7 +274,7 @@ public:
 	}
 
 	// Production
-	explicit EventClass(int houseIndex, EventType eventType, int rtti_id, int heap_id, bool is_naval)
+	explicit EventClass(int houseIndex, EventType eventType, AbstractType rtti_id, int heap_id, bool is_naval)
 	{
 		JMP_THIS(0x4C6970);
 	}

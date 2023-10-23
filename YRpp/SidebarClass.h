@@ -210,7 +210,7 @@ class NOVTABLE SelectClass : public ControlClass
 
 public:
 
-	static constexpr reference2D<SelectClass*, 0xB07E80u, 1, 14> const Buttons {};
+	static constexpr reference<SelectClass*, 0xB07E80u , 14u> const Buttons {};
 	static constexpr constant_ptr<SelectClass, 0xB07E80> const ButtonsPtr {};
 	static constexpr constant_ptr<SelectClass, 0xB07E8C> const Buttons_beginPtr {};
 	static constexpr constant_ptr<SelectClass, 0xB0B300> const Buttons_endPtr {};

@@ -241,6 +241,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.ReceiveDamage.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Remove.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Sides.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Strips.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Tactical.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Team_Script.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.cpp" />
@@ -679,13 +680,13 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
+      <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <SDLCheck>
       </SDLCheck>
       <ConformanceMode>false</ConformanceMode>
       <DiagnosticsFormat>Column</DiagnosticsFormat>
-      <OmitFramePointers>false</OmitFramePointers>
+      <OmitFramePointers>true</OmitFramePointers>
       <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;COMPILE_PORTED_DP_FEATURES;ENABLE_PHOBOS_DAMAGEDELAYANIM;ENABLE_PHOBOS_AIRBURST;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
@@ -707,13 +708,13 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>
       <BuildStlModules>false</BuildStlModules>
       <MinimalRebuild>false</MinimalRebuild>
-      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

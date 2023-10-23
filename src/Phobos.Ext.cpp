@@ -327,6 +327,7 @@ DEFINE_OVERRIDE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 // Clear static data from respective classes
 DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 {
+	MouseClassExt::ClearCameos();
 	TechnoTypeExtContainer::Instance.Clear();
 	BulletTypeExtContainer::Instance.Clear();
 	BuildingTypeExtContainer::Instance.Clear();

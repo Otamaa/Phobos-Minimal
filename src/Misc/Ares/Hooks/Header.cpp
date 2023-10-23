@@ -7127,6 +7127,7 @@ const MouseCursor* MouseClassExt::GetCursorDataFromRawAction(Action nAction)
 #pragma region MappedAction
 
 std::array<MouseClassExt::MappedActions, (size_t)Action::count + 2> MouseClassExt::CursorIdx;
+std::array<std::vector<BuildType>, 4u> MouseClassExt::TabCameos;
 
 void MouseClassExt::ClearMappedAction()
 {

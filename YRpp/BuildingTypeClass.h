@@ -25,11 +25,11 @@ struct BuildingAnimFrameStruct
 	int FrameDuration;
 };
 
-struct FoundationOutlineStruct
+struct FoundationStruct
 {
    CellStruct Datas[30u];
 };
-static_assert(sizeof(FoundationOutlineStruct) == 0x78);
+static_assert(sizeof(FoundationStruct) == 0x78);
 
 class DECLSPEC_UUID("AE8B33DB-061C-11D2-ACA4-006008055BB5")
 	NOVTABLE BuildingTypeClass : public TechnoTypeClass
@@ -52,8 +52,8 @@ public:
 	}
 
 	static constexpr reference<int, 0x89DDB8u> const HeightInLeptons{};
-	static constexpr reference<FoundationOutlineStruct, 0x89D368u, 22u> const FoundationOutlines_A {};
-	static constexpr reference<FoundationOutlineStruct, 0x89C900u, 22u> const FoundationOutlines_B {};
+	static constexpr reference<FoundationStruct, 0x89D368u, 22u> const FoundationOutlinesData {};
+	static constexpr reference<FoundationStruct, 0x89C900u, 22u> const FoundationlinesData {};
 
 
 	//IPersist
