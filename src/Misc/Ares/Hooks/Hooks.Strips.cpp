@@ -8,17 +8,6 @@ static constexpr constant_ptr<SelectClass, 0xB07E80> const ButtonsPtr {};
 static constexpr constant_ptr<SelectClass, 0xB0B300> const Buttons_endPtr {};
 
 #ifdef CAMEOS_
-//int IndexOfTab(StripClass* tab)
-//{
-//	for (auto i = 0; i < 4; ++i) {
-//		if ((&MouseClass::Instance->Tabs[i]) == tab) {
-//			return i;
-//		}
-//	}
-//
-//	Debug::FatalErrorAndExit("Failed to determine tab index of ptr %p\n", tab);
-//	//return -1; does not return
-//};
 
 // initializing sidebar
 DEFINE_OVERRIDE_HOOK(0x6A4EA5, SidebarClass_CTOR_InitCameosList, 6)
@@ -521,8 +510,6 @@ DEFINE_HOOK(0x6AAC10, TabCameoListClass_RecheckCameos_GetPointer, 0)
 
 #endif
 
-#ifdef NEED_CHECKS
-
 DEFINE_OVERRIDE_HOOK(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
 {
 	enum
@@ -531,25 +518,23 @@ DEFINE_OVERRIDE_HOOK(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
 		BreakLoop = 0x6ABFC4,
 	};
 
-	GET(SelectClass*, pPtr, ESI);
-	const auto pCur = (((BYTE*)pPtr) + 0xF0);
+	GET(DWORD, pPtr, ESI);
+	const DWORD pCur = pPtr + 0x3480;
 	R->ESI(pCur);
 	R->Stack(0x10, pCur);
 	return (DWORD)pCur < SelectClass::Buttons_endPtr.getAddrs() ?
 		ContinueLoop : BreakLoop;
 }
 
-
+//duuunno 
 DEFINE_OVERRIDE_HOOK(0x6a96d9, StripClass_Draw_Strip, 7)
 {
 	GET(FactoryClass*, pFact, EDI);
 	GET(int, idx_first, ECX);
 	GET(int, idx_Second, EDX);
-
-	R->EAX(&Buttons[idx_first][idx_Second]);
-	return pFact->Production.Step != 0 ? 0x6A9703 : 0x6A9714;
+	R->EAX(reinterpret_cast<SelectClass*>(56 * (idx_Second + 2 * idx_first) + ButtonsPtr.getAddrs()));
+	return  *reinterpret_cast<bool*>((((BYTE*)pFact) + 36u + 27u)) != 0 ? 0x6A9703 : 0x6A9714;
 }
-#endif
 
 DEFINE_OVERRIDE_HOOK(0x6AC02F, sub_6ABD30_Strip3, 0x8)
 {
