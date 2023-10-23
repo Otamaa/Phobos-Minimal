@@ -2,10 +2,16 @@
 
 #include <CCToolTip.h>
 #include <EventClass.h>
+#include <ShapeButtonClass.h>
 
 static constexpr reference2D<SelectClass, 0xB07E80u, 1, 14u> const Buttons {};
 static constexpr constant_ptr<SelectClass, 0xB07E80> const ButtonsPtr {};
+static constexpr constant_ptr<SelectClass, 0xB07E94> const ButtonsPtr_2 {};
 static constexpr constant_ptr<SelectClass, 0xB0B300> const Buttons_endPtr {};
+static constexpr reference<ShapeButtonClass, 0xB07C48u, 4u> const ShapeButtons {};
+static constexpr size_t sizeofShapeBtn = sizeof(ShapeButtonClass);
+static constexpr constant_ptr<StripClass, 0x880D2C> const Collum_begin {};
+static constexpr constant_ptr<StripClass, 0x884B7C> const Collum_end {};
 
 #ifdef CAMEOS_
 
@@ -66,6 +72,36 @@ DEFINE_OVERRIDE_HOOK(0x6A63B7, SidebarClass_AddCameo_SkipSizeCheck, 0)
 	return NewlyAdded;
 }
 
+//template<typename T>
+//static T* lower_bound(DynamicVectorClass<T>& a, const T& x)
+//{
+//	int count = a.Count;
+//
+//	if (count > 0)
+//	{
+//		auto Items = a.Items;
+//
+//		do
+//		{
+//			auto idx_ = count >> 1;
+//			if (Items[idx_] < x)
+//			{
+//				Items = (Items + idx_ * sizeof(T) + sizeof(T));
+//				count += -1 - (count >> 1);
+//			}
+//			else
+//			{
+//				count = count >> 1;
+//			}
+//		}
+//		while (count > 0);
+//
+//		return Items;
+//	}
+//
+//	return a.Items;
+//}
+
 DEFINE_OVERRIDE_HOOK(0x6A8710, StripClass_AddCameo_ReplaceItAll, 0)
 {
 	GET(StripClass*, pTab, ECX);
@@ -77,14 +113,8 @@ DEFINE_OVERRIDE_HOOK(0x6A8710, StripClass_AddCameo_ReplaceItAll, 0)
 		newCameo.IsAlt = ObjectTypeClass::IsBuildCat5(ItemType, ItemIndex);
 	}
 
-	auto& cameos = MouseClassExt::TabCameos[pTab->Index];
-
-	cameos.push_back(newCameo);
-	auto const old_end = cameos.end() - 1;
+	MouseClassExt::TabCameos[pTab->Index].InsertAtLowerBound(newCameo);
 	++pTab->CameoCount;
-	auto const it = std::lower_bound(cameos.begin(), old_end, newCameo);
-	std::copy_backward(it, old_end, cameos.end());
-	*it = newCameo;
 
 	return 0x6A87E7;
 }
@@ -100,7 +130,7 @@ DEFINE_OVERRIDE_HOOK(0x6A8D1C, StripClass_MouseMove_GetCameos1, 0)
 		return 0x6A8D8B;
 	}
 
-	R->EDI<BuildType*>(MouseClassExt::TabCameos[pTab->Index].data());
+	R->EDI<BuildType*>(MouseClassExt::TabCameos[pTab->Index].Items);
 	return 0x6A8D23;
 }
 
@@ -114,7 +144,7 @@ DEFINE_OVERRIDE_HOOK(0x6A8DB5, StripClass_MouseMove_GetCameos2, 0)
 		return 0x6A8F64;
 	}
 
-	auto ptr = reinterpret_cast<byte*>(MouseClassExt::TabCameos[pTab->Index].data());
+	auto ptr = reinterpret_cast<byte*>(MouseClassExt::TabCameos[pTab->Index].Items);
 	ptr += 0x10;
 	R->EBP<byte*>(ptr);
 
@@ -125,16 +155,15 @@ DEFINE_OVERRIDE_HOOK(0x6A8DB5, StripClass_MouseMove_GetCameos2, 0)
 DEFINE_OVERRIDE_HOOK(0x6A8F6C, StripClass_MouseMove_GetCameos3, 0)
 {
 	GET(StripClass*, pTab, ESI);
-	GET_STACK(int, unused, 0x20);
 
 	if (pTab->CameoCount < 1) {
 		return 0x6A902D;
 	}
 
-	auto ptr = reinterpret_cast<byte*>(MouseClassExt::TabCameos[pTab->Index].data());
+	auto ptr = reinterpret_cast<byte*>(MouseClassExt::TabCameos[pTab->Index].Items);
 	ptr += 0x1C;
 	R->ESI<byte*>(ptr);
-	R->EBP<int>(unused);
+	R->EBP<int>(R->Stack<int>(0x20));
 
 	return 0x6A8F7C;
 }
@@ -151,7 +180,7 @@ DEFINE_OVERRIDE_HOOK(0x6A9304, StripClass_GetTip_NoLimit, 0)
 	return 0x6A9316;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A9747, StripClass_Draw_GetCameo1, 0)
+DEFINE_OVERRIDE_HOOK(0x6A9747, StripClass_Draw_GetCameo, 0)
 {
 	GET(int, CameoIndex, ECX);
 
@@ -186,7 +215,9 @@ DEFINE_OVERRIDE_HOOK(0x6A9866, StripClass_Draw_Status_1, 0)
 {
 	GET(int, CameoIndex, ECX);
 
-	return (MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex][CameoIndex].unknown_10 == 1)
+	return (MouseClassExt::TabCameos
+		[MouseClass::Instance->ActiveTabIndex]
+		[CameoIndex].unknown_10 == 1)
 		? 0x6A9874
 		: 0x6A98CF
 		;
@@ -243,12 +274,13 @@ DEFINE_OVERRIDE_HOOK(0x6A9B4F, StripClass_Draw_TestFlashFrame, 0)
 		;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AAD2F, SelectClass_ProcessInput_LoadCameoData1, 0)
+DEFINE_OVERRIDE_HOOK(0x6AAD2F, SelectClass_ProcessInput_LoadCameo1, 0)
 {
 	GET(int, CameoIndex, ESI);
 
 	auto& cameos = MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex];
-	if (CameoIndex >= (int)cameos.size()) {
+
+	if (CameoIndex >= cameos.Count) {
 		return 0x6AB94F;
 	}
 
@@ -257,9 +289,10 @@ DEFINE_OVERRIDE_HOOK(0x6AAD2F, SelectClass_ProcessInput_LoadCameoData1, 0)
 	R->Stack<int>(STACK_OFFS(0xAC, 0x80), CameoIndex);
 
 	auto& Item = cameos[CameoIndex];
-	R->Stack<int>(STACK_OFFS(0xAC, 0x98), Item.ItemIndex);
-	R->Stack<FactoryClass*>(STACK_OFFS(0xAC, 0x94), Item.CurrentFactory);
-	R->Stack<int>(STACK_OFFS(0xAC, 0x88), Item.IsAlt);
+	R->Stack<int>(0x2C, CameoIndex);
+	R->Stack<int>(0x14, Item.ItemIndex);
+	R->Stack<FactoryClass*>(0x18, Item.CurrentFactory);
+	R->Stack<int>(0x24, Item.IsAlt);
 	R->EBP(Item.ItemType);
 
 	auto ptr = reinterpret_cast<byte*>(&Item);
@@ -285,14 +318,12 @@ DEFINE_OVERRIDE_HOOK(0x6AB49D, SelectClass_ProcessInput_FixOffset1, 0)
 {
 	R->EDI<void*>(nullptr);
 	R->ECX<void*>(nullptr);
-
 	return 0x6AB4A4;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6AB4E8, SelectClass_ProcessInput_FixOffset2, 0)
 {
-	GET_STACK(int, idx, 0x14);
-	R->ECX<int>(idx);
+	R->ECX<int>(R->Stack<int>(0x14));
 	R->EDX<void*>(nullptr);
 	return 0x6AB4EF;
 }
@@ -311,21 +342,17 @@ DEFINE_OVERRIDE_HOOK(0x6AB577, SelectClass_ProcessInput_FixOffset3, 0)
 		: 0
 		;
 
-	R->EAX<int>(Progress);
-	R->EBP<void*>(nullptr);
+	//R->EAX<int>(Progress);
+	//R->EBP<void*>(nullptr);
 
-	if (Item.unknown_10 == 1)
-	{ // hi, welcome to dumb ideas
-		if (Item.Progress.Value > Progress)
-		{
+	if (Item.unknown_10 == 1) { 
+		if (Item.Progress.Value > Progress) {
 			Progress = (Progress + Item.Progress.Value) / 2;
 		}
 	}
+
 	Item.Progress.Value = Progress;
-
-	int Frames = SavedFactory->GetBuildTimeFrames();
-
-	R->EAX<int>(Frames);
+	R->EAX<int>(SavedFactory->GetBuildTimeFrames());
 	R->ECX<void*>(nullptr);
 
 	return 0x6AB5C6;
@@ -340,7 +367,6 @@ DEFINE_OVERRIDE_HOOK(0x6AB620, SelectClass_ProcessInput_FixOffset4, 0)
 DEFINE_OVERRIDE_HOOK(0x6AB741, SelectClass_ProcessInput_FixOffset5, 0)
 {
 	R->EDX<void*>(nullptr);
-
 	return 0x6AB748;
 }
 
@@ -368,21 +394,19 @@ DEFINE_OVERRIDE_HOOK(0x6AB920, SelectClass_ProcessInput_FixOffset8, 0)
 DEFINE_OVERRIDE_HOOK(0x6AB92F, SelectClass_ProcessInput_FixOffset9, 0)
 {
 	R->EBX<byte*>(R->EBX<byte*>() + 0x6C);
-
 	return 0x6AB936;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6ABBCB, StripClass_AbandonCameosFromFactory_GetPointer1, 0)
 {
 	GET(int, CameoCount, EAX);
-
 	GET(StripClass*, pTab, ESI);
 
 	if (CameoCount < 1) {
 		return 0x6ABC2F;
 	}
 
-	auto ptr = reinterpret_cast<byte*>(MouseClassExt::TabCameos[pTab->Index].data());
+	auto ptr = reinterpret_cast<byte*>(MouseClassExt::TabCameos[pTab->Index].Items);
 	ptr += 0xC;
 	R->ESI<byte*>(ptr);
 
@@ -396,11 +420,7 @@ DEFINE_OVERRIDE_HOOK(0x6AC6D9, SidebarClass_FlashCameo, 0)
 	GET(int, ItemIndex, ESI);
 	GET_STACK(int, Duration, 0x10);
 
-	auto& cameos = MouseClassExt::TabCameos[TabIndex];
-
-	for (auto i = 0; i < (int)cameos.size(); ++i)
-	{
-		auto& cameo = cameos[i];
+	for (auto& cameo : MouseClassExt::TabCameos[TabIndex]) {
 		if (cameo.ItemIndex == ItemIndex) {
 			cameo.FlashEndFrame = Unsorted::CurrentFrame + Duration;
 			break;
@@ -411,6 +431,7 @@ DEFINE_OVERRIDE_HOOK(0x6AC6D9, SidebarClass_FlashCameo, 0)
 }
 
 // Ares 3.0 replace 3 hooks with //[0x6aa600 , StripClass_RecheckCameos , 0]
+#ifdef USE_OLDIMPL
 DEFINE_DISABLE_HOOK(0x6aa600, StripClass_RecheckCameos_ares)
 
 DEFINE_HOOK(0x6AA6EA, StripClass_RecheckCameos_Memcpy, 0)
@@ -441,7 +462,8 @@ DEFINE_HOOK(0x6AA711, StripClass_RecheckCameos_FilterAllowedCameos, 0)
 		bool KeepCameo = false;
 		if (TechnoType)
 		{
-			if (auto Factory = TechnoType->FindFactory(true, false, false, HouseClass::CurrentPlayer())) {
+			if (auto Factory = TechnoType->FindFactory(true, false, false, HouseClass::CurrentPlayer()))
+			{
 				// ToDo : Wtf is this ?
 				KeepCameo = Factory->Owner->CanBuild(TechnoType, false, true) != CanBuildResult::Unbuildable;
 			}
@@ -507,8 +529,249 @@ DEFINE_HOOK(0x6AAC10, TabCameoListClass_RecheckCameos_GetPointer, 0)
 	R->ECX(MouseClassExt::TabCameos[pTab->Index].data());
 	return 0x6AAC17;
 }
+#endif
+
+bool NOINLINE RemoveCameo(BuildType* item)
+{
+	auto TechnoType = ObjectTypeClass::FetchTechnoType(item->ItemType, item->ItemIndex);
+	bool removeCameo = false;
+	if (TechnoType)
+	{
+		if (auto Factory = TechnoType->FindFactory(true, false, false, HouseClass::CurrentPlayer()))
+		{
+			removeCameo = Factory->Owner->CanBuild(TechnoType, false, true) == CanBuildResult::Unbuildable;
+		}
+	}
+	else
+	{
+
+		auto& Supers = HouseClass::CurrentPlayer->Supers;
+		if (Supers.ValidIndex(item->ItemIndex))
+		{
+			removeCameo = !Supers.Items[item->ItemIndex]->Granted;
+		}
+	}
+
+	if (!removeCameo)
+		return false;
+
+
+	if (item->CurrentFactory)
+	{
+		EventClass Event {
+			HouseClass::CurrentPlayer->ArrayIndex  ,
+			EventType::ABANDON ,
+			item->ItemType ,
+			item->ItemIndex,
+			bool(TechnoType ? TechnoType->Naval : 0)
+		};
+
+		EventClass::AddEvent(&Event);
+	}
+
+	if (item->ItemType == BuildingTypeClass::AbsID || item->ItemType == BuildingClass::AbsID)
+	{
+		MouseClass::Instance->CurrentBuilding = nullptr;
+		MouseClass::Instance->CurrentBuildingType = nullptr;
+		MouseClass::Instance->unknown_11AC = 0xFFFFFFFF;
+		MouseClass::Instance->SetActiveFoundation(nullptr);
+	}
+
+	if (TechnoType)
+	{
+		auto Me = TechnoType->WhatAmI();
+		if (HouseClass::CurrentPlayer->GetPrimaryFactory(Me, TechnoType->Naval, BuildCat::DontCare))
+		{
+			EventClass Event {
+				HouseClass::CurrentPlayer->ArrayIndex  ,
+				EventType::ABANDON_ALL ,
+				item->ItemType ,
+				item->ItemIndex,
+				bool(TechnoType ? TechnoType->Naval : 0)
+			};
+
+			EventClass::AddEvent(&Event);
+		}
+	}
+
+	return true;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6aa600, StripClass_RecheckCameos, 0)
+{
+	GET(StripClass*, pThis, ECX);
+
+	if (Unsorted::ArmageddonMode || pThis->CameoCount <= 0)
+	{
+		R->EAX(0);
+		return 0x6AACAE;
+	}
+
+	auto& tabs = MouseClassExt::TabCameos[pThis->Index];
+
+	auto begin = tabs.Items;
+	auto end = &tabs.Items[tabs.Count];
+
+	BuildType copy = tabs[pThis->TopRowIndex];
+
+	if (begin != end)
+	{
+		do
+		{
+			if (RemoveCameo(begin))
+				break;
+
+			++begin;
+		}
+		while (begin != end);
+
+		if (begin != end)
+		{
+			auto next = begin + 1;
+			if (next != end)
+			{
+				do
+				{
+					if (!RemoveCameo(next))
+					{
+						std::memcpy(begin++, next, sizeof(CameoDataStruct));
+					}
+
+					++next;
+				}
+				while (next != end);
+			}
+		}
+	}
+
+	tabs.Count = std::distance((tabs.Items + pThis->Index), begin);
+
+	if (tabs.Count >= pThis->CameoCount)
+	{
+		R->EAX(0);
+		return 0x6AACAE;
+	}
+
+	pThis->CameoCount = tabs.Count;
+	if (tabs.Count <= 0)
+	{
+		ShapeButtons[pThis->Index].Disable();
+
+		auto begin_c = Collum_begin();
+		while (begin_c->CameoCount <= 0)
+		{
+			if (++begin_c == Collum_end())
+			{
+				SidebarClass::Instance->ToggleStuffs();
+				if (SidebarClass::Shape_B0B478())
+				{
+					SidebarClass::something_884B80 = -1;
+					SidebarClass::something_884B7C = SidebarClass::Shape_B0B478->Height;
+				}
+
+				break;
+			}
+		}
+
+		if (pThis->Index == SidebarClass::something_884B84())
+			SidebarClass::Instance->ChangeTab(((DWORD)begin_c - 0x880D2C) / sizeof(StripClass));
+	}
+	else
+	{
+		SidebarClass::Instance->ToggleStuffs();
+	}
+
+	auto iter = std::lower_bound(tabs.begin(), tabs.end(), copy);
+	auto idxLower = (iter - tabs.begin()) / 104;
+
+	auto buildCount = pThis->CameoCount - SidebarClass::Instance->Func_6AC430();
+	int value = buildCount >= 0 ? buildCount : 0;
+	value /= 2;
+
+	if (value >= idxLower)
+		value = idxLower;
+
+	pThis->Index = value;
+	CCToolTip::Bound = true;
+	R->EAX(true);
+	return 0x6AACAE;
+}
 
 #endif
+
+//B0B500 SidebarClass::ObjectHeight int 
+//B0B4FC SidebarClass::ObjectWidth_ int
+// yeah , fuck it 
+// i cant reproduce the exact code 
+// so lets just dump the assembly code instead , lmao
+// -otamaa
+#pragma optimize("", off )
+decl_override_hook(0x6A8220, StripClass_Initialize, 0x7)
+EXPORT_FUNC(StripClass_Initialize)
+{
+	__asm
+	{
+		push ecx
+		mov eax, [esp + 0x8]
+		mov ecx, 0x87F7E8
+		push ebx
+		push ebp
+		push esi
+		mov ebx, [eax + 0x20]
+		xor esi, esi
+		mov eax, [eax + 0x14]
+		push edi
+		mov ebp, [ebx + 0x24]
+		mov eax, [eax + 0x4]
+		inc ebp
+		mov [ebx + 0x38], eax
+		mov eax, [ebx + 0x20]
+		mov[esp + 0x18], eax
+		call ds : 0x6AC430
+		lea edi, ds : 0[eax * 8]
+		sub edi, eax
+		shl edi, 3
+		mov[esp + 0x10], edi
+		test edi, edi
+		jz short retfunc_
+		mov ecx, 0xB0B500
+		mov eax, 0xB07E94
+		lea ebx, [ebx + 0x0]
+	loopfunc_:
+		mov[eax + 0x1C], esi
+		mov edx, esi
+		mov dword ptr[eax + 0x10], 0xCA
+		and edx, 0xFFFFFFFE
+		mov[eax + 0x18], ebx
+		mov edi, 0xB0B4FC
+		imul edx, [ecx]
+		mov ecx, esi
+		and ecx, 1
+		inc esi
+		imul ecx, [edi]
+		add edx, ebp
+		add ecx, [esp + 0x18]
+		mov[eax - 8], ecx
+		mov ecx, [esp + 0x10]
+		mov[eax - 4], edx
+		add ecx, 0xB07E94
+		mov dword ptr[eax], 0x3C
+		mov dword ptr[eax + 4], 0x30
+		add eax, 0x38
+		cmp eax, ecx
+		lea ecx, [edx + 4]
+		jnz loopfunc_
+	retfunc_ :
+		pop edi
+		pop esi
+		pop ebp
+		mov eax, 0x6A8329
+		pop ebx
+		pop ecx
+		retn
+	}
+}
+#pragma optimize("", on)
 
 DEFINE_OVERRIDE_HOOK(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
 {

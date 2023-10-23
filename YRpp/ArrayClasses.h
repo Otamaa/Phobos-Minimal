@@ -203,7 +203,7 @@ enum class ArrayType : int
 //=== VectorClass ========================================================
 //========================================================================
 
-template <typename T>
+template <typename T, typename Allocator = GameAllocator<T>>
 class VectorClass
 {
 public:
@@ -538,6 +538,12 @@ public:
 	{
 		return this->Items + this->Count;
 	}
+
+
+	size_t size() const {
+		return static_cast<size_t>(Count);
+	}
+
 #pragma endregion
 
 #pragma region Funcs
@@ -589,28 +595,47 @@ public:
 		if (!this->IsValidArray())
 			return false;
 
-		this->Items[this->Count++] = item;
+		this->Items[this->Count++] = std::move_if_noexcept(item);
 
 		return true;
 	}
 
-	bool Insert(size_t index, const T& object)
+	//size_t index to prevent -1
+	bool InsertAt(size_t index, const T& object)
 	{
-		if (!this->IsValidArray()) {
-			return false;
+		if (this->IsValidArray()) {
+
+			if (index < (size_t)this->Count)
+			{
+				T* nDest = this->Items + (index + 1);
+				T* nSource = this->Items + index;
+				std::memmove(nDest, nSource, (this->Count - index) * sizeof(T));
+			}
+
+			this->Items[index] = std::move_if_noexcept(object);
+			++this->Count;
+
+			return true;
 		}
 
-		if (index < this->Count)
-		{
-			T* nDest = this->Items + (index + 1);
-			T* nSource = this->Items + index;
-			std::memmove(nDest, nSource, (this->Count - index) * sizeof(T));
+		return false;
+	}
+
+	bool InsertAtLowerBound(const T& object)
+	{
+		auto const iterator = std::lower_bound(begin(), end(), object);
+		int idx = this->IsInitialized ? std::distance(begin(), iterator) : 0;
+
+		if (this->IsValidArray()) {
+			T* added = this->Items + idx;
+			T* added_plusOne = this->Items + (idx + 1);
+			std::memcpy(added_plusOne, added, std::distance(added , end()));
+			this->Items[idx] = std::move_if_noexcept(object);
+			++this->Count;
+			return true;
 		}
 
-		this->Items[index] = std::move_if_noexcept(object);
-		++this->Count;
-
-		return true;
+		return false;
 	}
 
 	bool AddUnique(const T& item)
@@ -665,10 +690,6 @@ public:
 		using std::swap;
 		swap(this->Count, other.Count);
 		swap(this->CapacityIncrement, other.CapacityIncrement);
-	}
-
-	size_t Size() const {
-		return static_cast<size_t>(Count);
 	}
 
 	T* Find(const T& item) const {

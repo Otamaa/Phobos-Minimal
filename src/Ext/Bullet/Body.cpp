@@ -48,7 +48,7 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 		const CellStruct cellDest = CellClass::Coord2Cell(crdDest);
 
 		// create a list of cluster targets
-		DynamicVectorClass<AbstractClass*> targets;
+		std::vector<AbstractClass*> targets;
 
 		if (!pExt->Splits.Get())
 		{
@@ -57,12 +57,12 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 			// fill target list with cells around the target
 			CellRangeIterator<CellClass>{}(cellDest, pExt->AirburstSpread.Get(),
 			[&targets](CellClass* const pCell) -> bool {
-				 targets.AddItem(pCell);
+				 targets.push_back(pCell);
 				 return true;
 			});
 
 			// we want as many as we get, not more, not less
-			cluster = (int)targets.Size();
+			cluster = (int)targets.size();
 		}
 		else
 		{
@@ -90,7 +90,7 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 						if (crdDest.DistanceFrom(crdTechno) < pExt->Splits_Range
 						 && ((!pTechno->IsInAir() && pWeapon->Projectile->AG)
 							 || (pTechno->IsInAir() && pWeapon->Projectile->AA))) {
-							 targets.AddItem(pTechno);
+							 targets.push_back(pTechno);
 						}
 					 }
 				}
@@ -102,18 +102,18 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 				const int nMinRange = pExt->Splits_RandomCellUseHarcodedRange.Get() ? 3 : pWeapon->MinimumRange / Unsorted::LeptonsPerCell;
 				const int nMaxRange = pExt->Splits_RandomCellUseHarcodedRange.Get() ? 3 : pWeapon->Range / Unsorted::LeptonsPerCell;
 
-				while ((int)targets.Size() < (cluster))
+				while ((int)targets.size() < (cluster))
 				{
 					int x = random.RandomRanged(-nMinRange, nMaxRange);
 					int y = random.RandomRanged(-nMinRange, nMaxRange);
 
 					CellStruct cell { static_cast<short>(x + cellDest.X), static_cast<short>(cellDest.Y + y) };
-					targets.AddItem(MapClass::Instance->GetCellAt(cell));
+					targets.push_back(MapClass::Instance->GetCellAt(cell));
 				}
 			}
 			else
 			{
-				cluster = targets.Size();
+				cluster = targets.size();
 			}
 		}
 
@@ -131,7 +131,7 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 			else if (!pTarget || pExt->RetargetAccuracy < random.RandomDouble())
 			{
 				// select another target randomly
-				int index = random.RandomFromMax(targets.Size() - 1);
+				int index = random.RandomFromMax(targets.size() - 1);
 				pTarget = targets[index];
 
 				// firer would hit itself
@@ -139,13 +139,13 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 				{
 					if (random.RandomDouble() > 0.5)
 					{
-						index = random.RandomFromMax(targets.Size() - 1);
+						index = random.RandomFromMax(targets.size() - 1);
 						pTarget = targets[index];
 					}
 				}
 
 				// remove this target from the list
-				targets.RemoveAt(index);
+				targets.erase(targets.begin() + index);
 			}
 
 			if (pTarget)

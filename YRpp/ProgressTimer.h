@@ -14,6 +14,9 @@ class ProgressTimer
 {
 public:
 	constexpr ProgressTimer() = default;
+	ProgressTimer(const ProgressTimer&) = default;
+	ProgressTimer& operator = (const ProgressTimer&) = default;
+
 	ProgressTimer(int duration) { this->Start(duration); }
 
 	void Start(int duration) {

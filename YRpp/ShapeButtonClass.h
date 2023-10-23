@@ -29,7 +29,7 @@ public:
 	virtual void SetShape(SHPStruct* pSHP, int Width, int Height) RX;
 
 	//Non virtual
-	ShapeButtonClass& operator=(ShapeButtonClass& const another) { JMP_THIS(0x4B5630); }
+	ShapeButtonClass& operator=(const ShapeButtonClass& another) { JMP_THIS(0x4B5630); }
 	void ClearShape() { JMP_THIS(0x69DE70); }
 	void SetLoadedStatus() { JMP_THIS(0x69DEA0); }
 	bool StartFlashing(int nDelay, int nInitDelay, bool bStart) { JMP_THIS(0x69DFC0); }

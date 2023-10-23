@@ -13,7 +13,7 @@ void NOINLINE ParticleSystemExtData::InitializeConstant()
 
 	if (auto pType = this->AttachedToObject->Type)
 	{
-		if (!ParticleSystemTypeExtContainer::Instance.Find(pType)->ApplyOptimization || (size_t)pType->HoldsWhat >= ParticleTypeClass::Array->Size())
+		if (!ParticleSystemTypeExtContainer::Instance.Find(pType)->ApplyOptimization || (size_t)pType->HoldsWhat >= ParticleTypeClass::Array->size())
 			return ;
 
 		this->HeldType = ParticleTypeClass::Array->GetItem(pType->HoldsWhat);

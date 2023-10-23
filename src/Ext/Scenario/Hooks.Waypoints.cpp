@@ -203,7 +203,7 @@ DEFINE_HOOK(0x68843B, ScenStruct_ScenStruct_2, 0x6)
 	if (ScenarioClass::Instance->IsDefinedWaypoint(i)) {
 		buffer = ScenarioExtData::Instance()->Waypoints[i];
 		if(waypoints.AddItem(buffer))
-			Debug::Log("Multiplayer start waypoint found at cell [%d][%d,%d] , With waypoints Size %d \n",i, buffer.X, buffer.Y , waypoints.Size());
+			Debug::Log("Multiplayer start waypoint found at cell [%d][%d,%d] , With waypoints Size %d \n",i, buffer.X, buffer.Y , waypoints.size());
 	}
 
 

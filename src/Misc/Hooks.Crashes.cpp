@@ -157,7 +157,7 @@ DEFINE_HOOK(0x5D6BF1, MultiplayerGameMode_SetBaseSpawnCell_CheckAvail, 0x5)
 				const auto HouseID = pHouse->get_ID();
 
 				// you dont want to read out of bound array here,..
-				if (pHouse->StartingPoint < (int)pScenStruct->CellVector.Size())
+				if (pHouse->StartingPoint < (int)pScenStruct->CellVector.size())
 				{
 					const auto& Cell = pScenStruct->CellVector.Items[pHouse->StartingPoint];
 					//IsCurrentCellAssigned[pHouse->StartingPoint] = true;

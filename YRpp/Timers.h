@@ -165,6 +165,9 @@ public:
 	int Duration { 0 };
 
 	constexpr RepeatableTimerStruct() = default;
+	RepeatableTimerStruct(const RepeatableTimerStruct&) = default;
+	RepeatableTimerStruct& operator = (const RepeatableTimerStruct&) = default;
+
 	RepeatableTimerStruct(int duration) { this->Start(duration); }
 
 	void Start(int duration)

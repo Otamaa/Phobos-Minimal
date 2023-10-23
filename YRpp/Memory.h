@@ -75,6 +75,11 @@ template<typename T>
 struct needs_vector_delete : std::integral_constant<bool,
 	!std::is_scalar<T>::value && !std::is_trivially_destructible<T>::value> {};
 
+enum class AllocatorType : unsigned char
+{
+	GameAllocator = 0 ,
+	DllAllocator = 1
+};
 // this is a stateless basic allocator definition that manages memory using the
 // game's operator new and operator delete methods. do not use it directly,
 // though. use std::allocator_traits, which will fill in the blanks.
@@ -82,6 +87,7 @@ template <typename T>
 struct GameAllocator {
 	using value_type = T;
 
+	static const AllocatorType AllocType = AllocatorType::GameAllocator;
 	constexpr GameAllocator() noexcept = default;
 
 	template <typename U>
@@ -107,6 +113,11 @@ struct GameAllocator {
 		std::construct_at(p, std::forward<Args>(args)...);
 	}
 
+};
+
+template <typename T>
+struct DllAllocator : public std::allocator<T>{
+	static const AllocatorType AllocType = AllocatorType::DllAllocator;
 };
 
 // construct or destroy objects using an allocator.
@@ -278,13 +289,13 @@ template <typename T, typename... TArgs>
 static inline T* DLLCreate(TArgs&&... args) {
 	static_assert(std::is_constructible<T, TArgs...>::value, "Cannot construct T from TArgs.");
 
-	std::allocator<T> alloc;
+	DllAllocator<T> alloc;
 	return Memory::Create<T>(alloc, std::forward<TArgs>(args)...);
 }
 
 template<typename T>
 static inline void DLLDelete(T* ptr) {
-	std::allocator<T> alloc;
+	DllAllocator<T> alloc;
 	Memory::Delete(alloc, ptr);
 }
 
@@ -292,20 +303,20 @@ template <typename T, typename... TArgs>
 static inline T* DLLCreateArray(size_t capacity, TArgs&&... args) {
 	static_assert(std::is_constructible<T, TArgs...>::value, "Cannot construct T from TArgs.");
 
-	std::allocator<T> alloc;
+	DllAllocator<T> alloc;
 	return Memory::CreateArray<T>(alloc, capacity, std::forward<TArgs>(args));
 }
 
 template<typename T>
 static inline void DLLDeleteArray(T* ptr, size_t capacity) {
-	std::allocator<T> alloc;
+	DllAllocator<T> alloc;
 	Memory::DeleteArray(alloc, ptr, capacity);
 }
 
 template<bool check = true, typename T>
 static inline void DLLCallDTOR(T* ptr)
 {
-	std::allocator<T> alloc;
+	DllAllocator<T> alloc;
 	Memory::Delete<true>(std::bool_constant<check>::type(), alloc, ptr);
 }
 

@@ -11,20 +11,60 @@ struct SHPStruct;
 // SidebarClass::StripClass::BuildType
 struct BuildType
 {
-	int               ItemIndex { -1 };
-	AbstractType      ItemType { AbstractType::None };
-	bool              IsAlt { false }; // set on buildings that go on tab 2
-	FactoryClass*	  CurrentFactory { nullptr };
-	DWORD             unknown_10 { 0 };
-	ProgressTimer     Progress {}; // 0 to 54, how much of this object is constructed (gclock anim level)
-	int               FlashEndFrame { 0 };
+	int               ItemIndex;
+	AbstractType      ItemType;
+	bool              IsAlt; // set on buildings that go on tab 2
+	FactoryClass* CurrentFactory;
+	DWORD             unknown_10;
+	ProgressTimer     Progress; // 0 to 54, how much of this object is constructed (gclock anim level)
+	int               FlashEndFrame;
 
-	BuildType() = default;
+public:
 
-	BuildType(int itemIndex, AbstractType itemType) :
-		ItemIndex(itemIndex),
-		ItemType(itemType)
-	{ }
+	BuildType() noexcept :
+		ItemIndex { -1 },
+		ItemType { AbstractType::None },
+		IsAlt { false },
+		CurrentFactory { nullptr },
+		unknown_10 { 0 },
+		Progress { },
+		FlashEndFrame { 0 }
+	{
+	}
+
+	BuildType(const BuildType& that)  noexcept :
+		ItemIndex { that.ItemIndex },
+		ItemType { that.ItemType },
+		IsAlt { that.IsAlt },
+		CurrentFactory { that.CurrentFactory },
+		unknown_10 { that.unknown_10 },
+		Progress { that.Progress },
+		FlashEndFrame { that.FlashEndFrame }
+	{
+	}
+
+	BuildType& operator = (const BuildType& that)
+	{
+		memcpy(this, &that, sizeof(*this));
+		return *this;
+	}
+
+	BuildType& operator = (BuildType&& that)
+	{
+		memmove(this, &that, sizeof(*this));
+		return *this;
+	}
+
+	BuildType(int itemIndex, AbstractType itemType) noexcept :
+		ItemIndex { itemIndex },
+		ItemType { itemType },
+		IsAlt { false },
+		CurrentFactory { nullptr },
+		unknown_10 { 0 },
+		Progress { },
+		FlashEndFrame { 0 }
+	{
+	}
 
 	bool operator == (const BuildType& rhs) const
 	{
@@ -36,13 +76,15 @@ struct BuildType
 		return ItemIndex != rhs.ItemIndex || ItemType != rhs.ItemType;
 	}
 
+	static bool __stdcall SortsBefore(AbstractType leftType, int leftIndex, AbstractType rightType, int rightIndex) {
+		JMP_STD(0x6A8420);
+	}
+
 	bool operator < (const BuildType& rhs) const
 	{
 		return SortsBefore(this->ItemType, this->ItemIndex, rhs.ItemType, rhs.ItemIndex);
 	}
 
-	static bool __stdcall SortsBefore(AbstractType leftType, int leftIndex, AbstractType rightType, int rightIndex)
-	{ JMP_STD(0x6A8420); }
 };
 
 typedef BuildType CameoDataStruct;
@@ -105,6 +147,10 @@ public:
 	static constexpr constant_ptr<SidebarClass, 0x87F7E8u> const Instance {};
 	static constexpr reference<DWORD, 0xB0B500u> const ObjectHeight {};
 	static constexpr reference<wchar_t, 0xB07BC4u, TooltipLength> const TooltipBuffer {};
+	static constexpr reference<SHPFrame*, 0xB0B478u> const Shape_B0B478 {};
+	static constexpr reference<int, 0x884B7C> const something_884B7C {};
+	static constexpr reference<int, 0x884B80> const something_884B80 {};
+	static constexpr reference<int, 0x884B84> const something_884B84 {};
 
 	void SidebarNeedsRepaint(int mode = 0)
 	{
@@ -149,6 +195,7 @@ public:
 	virtual bool Activate(int control = 1) JMP_THIS(0x6A7D70);
 
 	//Non-virtual
+	void ToggleStuffs() const { JMP_THIS(0x6A6610); }
 
 	// which tab does the 'th object of that type belong in?
 	static int __fastcall GetObjectTabIdx(AbstractType abs, int idxType, int unused)
