@@ -255,7 +255,7 @@ public:
 #define EXPORT_DEBUG_DECLARE(name) DWORD __forceinline name(REGISTERS* R);
 #define EXPORT_DEBUG(name) DWORD __forceinline name(REGISTERS* R)
 #define EXPORT_FUNC(name) extern "C" __declspec(dllexport) DWORD __cdecl name (REGISTERS *R)
-
+#define EXPORT_FUNC_NAKED(name) extern "C" __declspec(naked , dllexport) DWORD __cdecl name (REGISTERS *R)
 
 //Handshake definitions
 struct SyringeHandshakeInfo

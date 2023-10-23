@@ -705,10 +705,8 @@ DEFINE_OVERRIDE_HOOK(0x6aa600, StripClass_RecheckCameos, 0)
 // i cant reproduce the exact code 
 // so lets just dump the assembly code instead , lmao
 // -otamaa
-#pragma optimize("", off )
 decl_override_hook(0x6A8220, StripClass_Initialize, 0x7)
-EXPORT_FUNC(StripClass_Initialize)
-{
+extern "C" __declspec(naked, dllexport) DWORD __cdecl StripClass_Initialize(REGISTERS * R) {
 	__asm
 	{
 		push ecx
@@ -771,7 +769,6 @@ EXPORT_FUNC(StripClass_Initialize)
 		retn
 	}
 }
-#pragma optimize("", on)
 
 DEFINE_OVERRIDE_HOOK(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
 {

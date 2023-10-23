@@ -203,7 +203,7 @@ enum class ArrayType : int
 //=== VectorClass ========================================================
 //========================================================================
 
-template <typename T, typename Allocator = GameAllocator<T>>
+template <typename T>
 class VectorClass
 {
 public:
@@ -601,25 +601,28 @@ public:
 	}
 
 	//size_t index to prevent -1
-	bool InsertAt(size_t index, const T& object)
-	{
-		if (this->IsValidArray()) {
+	// what if the index is bigger than curret allocation ?
+	// this not make any sense atm 
+	// disabled
+	//bool InsertAt(size_t index, const T& object)
+	//{
+	//	if (this->IsValidArray()) {
+	//
+	//		if (index < (size_t)this->Count)
+	//		{
+	//			T* nDest = this->Items + (index + 1);
+	//			T* nSource = this->Items + index;
+	//			std::memmove(nDest, nSource, (this->Count - index) * sizeof(T));
+	//		}
+	//
+	//		this->Items[index] = std::move_if_noexcept(object);
+	//		++this->Count;
+	//
+	//		return true;
+	//	}
 
-			if (index < (size_t)this->Count)
-			{
-				T* nDest = this->Items + (index + 1);
-				T* nSource = this->Items + index;
-				std::memmove(nDest, nSource, (this->Count - index) * sizeof(T));
-			}
-
-			this->Items[index] = std::move_if_noexcept(object);
-			++this->Count;
-
-			return true;
-		}
-
-		return false;
-	}
+	//	return false;
+	//}
 
 	bool InsertAtLowerBound(const T& object)
 	{
