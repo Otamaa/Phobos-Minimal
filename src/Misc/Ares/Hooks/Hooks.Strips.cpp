@@ -699,6 +699,10 @@ DEFINE_OVERRIDE_HOOK(0x6aa600, StripClass_RecheckCameos, 0)
 
 #endif
 
+int __fastcall SidebarClass_6AC430(SidebarClass*)
+{
+	JMP_THIS(0x6AC430)
+}
 //B0B500 SidebarClass::ObjectHeight int 
 //B0B4FC SidebarClass::ObjectWidth_ int
 // yeah , fuck it 
@@ -725,14 +729,14 @@ extern "C" __declspec(naked, dllexport) DWORD __cdecl StripClass_Initialize(REGI
 		mov [ebx + 0x38], eax
 		mov eax, [ebx + 0x20]
 		mov[esp + 0x18], eax
-		call ds : 0x6AC430
+		call SidebarClass_6AC430
 		lea edi, ds : 0[eax * 8]
 		sub edi, eax
 		shl edi, 3
 		mov[esp + 0x10], edi
 		test edi, edi
 		jz short retfunc_
-		mov ecx, 0xB0B500
+		mov ecx, dword ptr ds:0xB0B500
 		mov eax, 0xB07E94
 		lea ebx, [ebx + 0x0]
 	loopfunc_:
@@ -741,12 +745,12 @@ extern "C" __declspec(naked, dllexport) DWORD __cdecl StripClass_Initialize(REGI
 		mov dword ptr[eax + 0x10], 0xCA
 		and edx, 0xFFFFFFFE
 		mov[eax + 0x18], ebx
-		mov edi, 0xB0B4FC
-		imul edx, [ecx]
+		mov edi, dword ptr ds:0xB0B4FC
+		imul edx, ecx
 		mov ecx, esi
 		and ecx, 1
 		inc esi
-		imul ecx, [edi]
+		imul ecx, edi
 		add edx, ebp
 		add ecx, [esp + 0x18]
 		mov[eax - 8], ecx
