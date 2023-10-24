@@ -1598,6 +1598,7 @@ DEFINE_OVERRIDE_HOOK(0x537BC0, Game_MakeScreenshot, 0)
 			{
 				ClipRect.Width = width;
 			}
+
 			if (height < ClipRect.Height)
 			{
 				ClipRect.Height = height;
@@ -1607,18 +1608,16 @@ DEFINE_OVERRIDE_HOOK(0x537BC0, Game_MakeScreenshot, 0)
 
 			if (WORD* buffer = reinterpret_cast<WORD*>(Surface->Lock(0, 0)))
 			{
-
 				char fName[0x80];
 
 				SYSTEMTIME time;
 				GetLocalTime(&time);
 
-				_snprintf_s(fName, _TRUNCATE, "SCRN.%04u%02u%02u-%02u%02u%02u-%05u.BMP",
+				IMPL_SNPRNINTF(fName, _TRUNCATE, "SCRN.%04u%02u%02u-%02u%02u%02u-%05u.BMP",
 					time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
 
-				CCFileClass* ScreenShot = GameCreate<CCFileClass>("\0");
-
-				ScreenShot->OpenEx(fName, FileAccessMode::Write);
+				CCFileClass ScreenShot { "\0" };
+				ScreenShot.OpenEx(fName, FileAccessMode::Write);
 
 #pragma pack(push, 1)
 				struct bmpfile_full_header
@@ -1668,7 +1667,7 @@ DEFINE_OVERRIDE_HOOK(0x537BC0, Game_MakeScreenshot, 0)
 				h.bmp_offset = sizeof(h);
 				h.filesz = h.bmp_offset + h.bmp_bytesz;
 
-				ScreenShot->WriteBytes(&h, sizeof(h));
+				ScreenShot.WriteBytes(&h, sizeof(h));
 				std::unique_ptr<WORD[]> pixelData(new WORD[arrayLen]);
 				WORD* pixels = pixelData.get();
 				int pitch = Surface->VideoSurfaceDescription->lPitch;
@@ -1679,10 +1678,8 @@ DEFINE_OVERRIDE_HOOK(0x537BC0, Game_MakeScreenshot, 0)
 					buffer += pitch / 2; // /2 because buffer is a WORD * and pitch is in bytes
 				}
 
-				ScreenShot->WriteBytes(pixelData.get(), arrayLen * 2);
-				ScreenShot->Close();
-				GameDelete(ScreenShot);
-
+				ScreenShot.WriteBytes(pixelData.get(), arrayLen * 2);
+				ScreenShot.Close();
 				Debug::Log("Wrote screenshot to file %s\n", fName);
 				Surface->Unlock();
 			}

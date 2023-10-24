@@ -44,18 +44,16 @@ public:
 	TimerClass(int duration) { this->Start(duration); }
 	~TimerClass() = default;
 
-	TimerClass(const TimerClass& other)
-	{
-		this->StartTime = other.StartTime;
-		this->TimeLeft = other.TimeLeft;
+	TimerClass(const TimerClass& other) {
+		std::memcpy(this, &other, sizeof(*this));
 	}
 
-	TimerClass& operator=(const TimerClass& other)
-	{
-		this->StartTime = other.StartTime;
-		this->TimeLeft = other.TimeLeft;
+	TimerClass& operator=(const TimerClass& other) {
+		std::memcpy(this, &other, sizeof(*this));
 		return *this;
 	}
+
+	TimerClass& operator = (TimerClass&&) =  default;
 
 	void Start(int duration)
 	{
@@ -167,7 +165,7 @@ public:
 	constexpr RepeatableTimerStruct() = default;
 	RepeatableTimerStruct(const RepeatableTimerStruct&) = default;
 	RepeatableTimerStruct& operator = (const RepeatableTimerStruct&) = default;
-
+	RepeatableTimerStruct& operator = (RepeatableTimerStruct&&) = default;
 	RepeatableTimerStruct(int duration) { this->Start(duration); }
 
 	void Start(int duration)

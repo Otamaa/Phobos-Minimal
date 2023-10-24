@@ -13,7 +13,7 @@ struct BuildType
 {
 	int               ItemIndex;
 	AbstractType      ItemType;
-	bool              IsAlt; // set on buildings that go on tab 2
+	BuildCat		  Cat; // set on buildings that go on tab 2
 	FactoryClass* CurrentFactory;
 	DWORD             unknown_10;
 	ProgressTimer     Progress; // 0 to 54, how much of this object is constructed (gclock anim level)
@@ -24,47 +24,28 @@ public:
 	BuildType() noexcept :
 		ItemIndex { -1 },
 		ItemType { AbstractType::None },
-		IsAlt { false },
+		Cat { BuildCat::DontCare },
 		CurrentFactory { nullptr },
 		unknown_10 { 0 },
 		Progress { },
 		FlashEndFrame { 0 }
 	{
-	}
-
-	BuildType(const BuildType& that)  noexcept :
-		ItemIndex { that.ItemIndex },
-		ItemType { that.ItemType },
-		IsAlt { that.IsAlt },
-		CurrentFactory { that.CurrentFactory },
-		unknown_10 { that.unknown_10 },
-		Progress { that.Progress },
-		FlashEndFrame { that.FlashEndFrame }
-	{
-	}
-
-	BuildType& operator = (const BuildType& that)
-	{
-		memcpy(this, &that, sizeof(*this));
-		return *this;
-	}
-
-	BuildType& operator = (BuildType&& that)
-	{
-		memmove(this, &that, sizeof(*this));
-		return *this;
 	}
 
 	BuildType(int itemIndex, AbstractType itemType) noexcept :
 		ItemIndex { itemIndex },
 		ItemType { itemType },
-		IsAlt { false },
+		Cat { BuildCat::DontCare },
 		CurrentFactory { nullptr },
 		unknown_10 { 0 },
 		Progress { },
 		FlashEndFrame { 0 }
 	{
 	}
+
+	BuildType&operator =(const BuildType&) = default;
+	BuildType(const BuildType&) = default;
+	BuildType&operator=(BuildType&&) = default;
 
 	bool operator == (const BuildType& rhs) const
 	{

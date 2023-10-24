@@ -229,3 +229,22 @@ DEFINE_HOOK(0x65DC11, Do_Reinforcement_ValidateHouse, 0x6)
 	R->EAX(nEdge);
 	return 0x65DC2B;
 }
+
+//DEFINE_HOOK(0x6A8420, SortsBefore_whocaall, 0x5)
+//{
+//	GET_STACK(DWORD, caller, 0x0);
+//	Debug::Log(__FUNCTION__" Caller[%x]!\n",caller);
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x6A844D, SortsBefore, 0x8)
+//{
+//	GET_STACK(TechnoTypeClass*, pResultFirst, 0x14);
+//	GET(int, indexq, EDI);
+//	GET(AbstractType, type1, ESI);
+//
+//	if (!pResultFirst)
+//		Debug::Log("Trying to getType from RTTI[%s - %d] idx[%d] failed!\n", AbstractClass::GetAbstractClassName(type1) , (int)type1, indexq);
+//
+//	return 0;
+//}

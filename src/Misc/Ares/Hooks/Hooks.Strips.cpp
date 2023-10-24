@@ -13,16 +13,14 @@ static constexpr size_t sizeofShapeBtn = sizeof(ShapeButtonClass);
 static constexpr constant_ptr<StripClass, 0x880D2C> const Collum_begin {};
 static constexpr constant_ptr<StripClass, 0x884B7C> const Collum_end {};
 
-#ifdef CAMEOS_
+#ifndef CAMEOS_
 
-// initializing sidebar
 DEFINE_OVERRIDE_HOOK(0x6A4EA5, SidebarClass_CTOR_InitCameosList, 6)
 {
 	MouseClassExt::ClearCameos();
 	return 0;
 }
 
-// zeroing in preparation for load
 DEFINE_OVERRIDE_HOOK(0x6A4FD8, SidebarClass_Load_InitCameosList, 6)
 {
 	MouseClassExt::ClearCameos();
@@ -36,7 +34,7 @@ DEFINE_OVERRIDE_HOOK(0x6A61B1, SidebarClass_SetFactoryForObject, 0)
 	GET(int, TabIndex, EAX);
 	GET(AbstractType, ItemType, EDI);
 	GET(int, ItemIndex, EBP);
-	GET_STACK(FactoryClass*, Factory, STACK_OFFS(0xC, -0x4));
+	GET_STACK(FactoryClass*, Factory, 0x10);
 
 	for (auto& cameo : MouseClassExt::TabCameos[TabIndex]) {
 		if (cameo.ItemIndex == ItemIndex && cameo.ItemType == ItemType) {
@@ -72,35 +70,28 @@ DEFINE_OVERRIDE_HOOK(0x6A63B7, SidebarClass_AddCameo_SkipSizeCheck, 0)
 	return NewlyAdded;
 }
 
-//template<typename T>
-//static T* lower_bound(DynamicVectorClass<T>& a, const T& x)
-//{
-//	int count = a.Count;
-//
-//	if (count > 0)
-//	{
-//		auto Items = a.Items;
-//
-//		do
-//		{
-//			auto idx_ = count >> 1;
-//			if (Items[idx_] < x)
-//			{
-//				Items = (Items + idx_ * sizeof(T) + sizeof(T));
-//				count += -1 - (count >> 1);
-//			}
-//			else
-//			{
-//				count = count >> 1;
-//			}
-//		}
-//		while (count > 0);
-//
-//		return Items;
-//	}
-//
-//	return a.Items;
-//}
+static NOINLINE BuildType* lower_bound(BuildType* first, int size , const BuildType& x)
+{
+	BuildType* it;
+	typename std::iterator_traits<BuildType*>::difference_type count, step;
+	count = size;
+
+	while (count > 0)
+	{
+		it = first;
+		step = count / 2;
+		std::advance(it, step);
+
+		if (*it < x) {
+			first = ++it;
+			count -= step + 1;
+		}
+		else
+			count = step;
+	}
+
+	return first;
+}
 
 DEFINE_OVERRIDE_HOOK(0x6A8710, StripClass_AddCameo_ReplaceItAll, 0)
 {
@@ -110,10 +101,21 @@ DEFINE_OVERRIDE_HOOK(0x6A8710, StripClass_AddCameo_ReplaceItAll, 0)
 
 	BuildType newCameo(ItemIndex, ItemType);
 	if (ItemType == BuildingTypeClass::AbsID) {
-		newCameo.IsAlt = ObjectTypeClass::IsBuildCat5(ItemType, ItemIndex);
+		newCameo.Cat = ObjectTypeClass::IsBuildCat5(BuildingTypeClass::AbsID, ItemIndex);
 	}
 
-	MouseClassExt::TabCameos[pTab->Index].InsertAtLowerBound(newCameo);
+	auto& cameo = MouseClassExt::TabCameos[pTab->Index];
+	auto lower = lower_bound(cameo.begin(), cameo.Count , newCameo);
+	int idx = cameo.IsInitialized ? std::distance(cameo.begin(), lower) : 0;
+
+	if (cameo.IsValidArray()) {
+		BuildType* added = cameo.Items + idx;
+		BuildType* added_plusOne = std::next(added);
+		std::memcpy(added_plusOne, added, (char*)(cameo.end()) - ((char*)added));
+		cameo.Items[idx] = std::move_if_noexcept(newCameo);
+		++cameo.Count;
+	}
+
 	++pTab->CameoCount;
 
 	return 0x6A87E7;
@@ -126,7 +128,7 @@ DEFINE_OVERRIDE_HOOK(0x6A8D1C, StripClass_MouseMove_GetCameos1, 0)
 
 	GET(StripClass*, pTab, EBX);
 
-	if (CameoCount < 1) {
+	if (CameoCount <= 0) {
 		return 0x6A8D8B;
 	}
 
@@ -140,7 +142,7 @@ DEFINE_OVERRIDE_HOOK(0x6A8DB5, StripClass_MouseMove_GetCameos2, 0)
 	GET(int, CameoCount, EAX);
 	GET(StripClass*, pTab, EBX);
 
-	if (CameoCount < 1) {
+	if (CameoCount <= 0) {
 		return 0x6A8F64;
 	}
 
@@ -156,7 +158,7 @@ DEFINE_OVERRIDE_HOOK(0x6A8F6C, StripClass_MouseMove_GetCameos3, 0)
 {
 	GET(StripClass*, pTab, ESI);
 
-	if (pTab->CameoCount < 1) {
+	if (pTab->CameoCount <= 0) {
 		return 0x6A902D;
 	}
 
@@ -286,13 +288,12 @@ DEFINE_OVERRIDE_HOOK(0x6AAD2F, SelectClass_ProcessInput_LoadCameo1, 0)
 
 	MouseClass::Instance->UpdateCursor(MouseCursorType::Default, false);
 
-	R->Stack<int>(STACK_OFFS(0xAC, 0x80), CameoIndex);
+	R->Stack(0x2C, CameoIndex);
 
 	auto& Item = cameos[CameoIndex];
-	R->Stack<int>(0x2C, CameoIndex);
-	R->Stack<int>(0x14, Item.ItemIndex);
-	R->Stack<FactoryClass*>(0x18, Item.CurrentFactory);
-	R->Stack<int>(0x24, Item.IsAlt);
+	R->Stack(0x14, Item.ItemIndex);
+	R->Stack(0x18, Item.CurrentFactory);
+	R->Stack(0x24, Item.Cat);
 	R->EBP(Item.ItemType);
 
 	auto ptr = reinterpret_cast<byte*>(&Item);
@@ -347,7 +348,7 @@ DEFINE_OVERRIDE_HOOK(0x6AB577, SelectClass_ProcessInput_FixOffset3, 0)
 
 	if (Item.unknown_10 == 1) { 
 		if (Item.Progress.Value > Progress) {
-			Progress = (Progress + Item.Progress.Value) / 2;
+			Progress = (Item.Progress.Value + Progress) / 2;
 		}
 	}
 
@@ -534,27 +535,21 @@ DEFINE_HOOK(0x6AAC10, TabCameoListClass_RecheckCameos_GetPointer, 0)
 bool NOINLINE RemoveCameo(BuildType* item)
 {
 	auto TechnoType = ObjectTypeClass::FetchTechnoType(item->ItemType, item->ItemIndex);
-	bool removeCameo = false;
-	if (TechnoType)
-	{
-		if (auto Factory = TechnoType->FindFactory(true, false, false, HouseClass::CurrentPlayer()))
-		{
+	bool removeCameo = true;
+	if (TechnoType) {
+		if (auto Factory = TechnoType->FindFactory(true, false, false, HouseClass::CurrentPlayer())) {
 			removeCameo = Factory->Owner->CanBuild(TechnoType, false, true) == CanBuildResult::Unbuildable;
 		}
-	}
-	else
-	{
+	} else {
 
 		auto& Supers = HouseClass::CurrentPlayer->Supers;
-		if (Supers.ValidIndex(item->ItemIndex))
-		{
+		if (Supers.ValidIndex(item->ItemIndex)) {
 			removeCameo = !Supers.Items[item->ItemIndex]->Granted;
 		}
 	}
 
 	if (!removeCameo)
 		return false;
-
 
 	if (item->CurrentFactory)
 	{
@@ -608,11 +603,11 @@ DEFINE_OVERRIDE_HOOK(0x6aa600, StripClass_RecheckCameos, 0)
 	}
 
 	auto& tabs = MouseClassExt::TabCameos[pThis->Index];
+	const auto rtt = tabs[pThis->TopRowIndex].ItemType;
+	const auto idx = tabs[pThis->TopRowIndex].ItemIndex;
 
 	auto begin = tabs.Items;
 	auto end = &tabs.Items[tabs.Count];
-
-	BuildType copy = tabs[pThis->TopRowIndex];
 
 	if (begin != end)
 	{
@@ -634,7 +629,7 @@ DEFINE_OVERRIDE_HOOK(0x6aa600, StripClass_RecheckCameos, 0)
 				{
 					if (!RemoveCameo(next))
 					{
-						std::memcpy(begin++, next, sizeof(CameoDataStruct));
+						std::memcpy(begin++, next, sizeof(BuildType));
 					}
 
 					++next;
@@ -644,21 +639,23 @@ DEFINE_OVERRIDE_HOOK(0x6aa600, StripClass_RecheckCameos, 0)
 		}
 	}
 
-	tabs.Count = std::distance((tabs.Items + pThis->Index), begin);
+	const auto count_after = std::distance(tabs.begin(), begin);
+	tabs.Count = count_after;
 
-	if (tabs.Count >= pThis->CameoCount)
+	if (count_after >= pThis->CameoCount)
 	{
 		R->EAX(0);
 		return 0x6AACAE;
 	}
 
-	pThis->CameoCount = tabs.Count;
-	if (tabs.Count <= 0)
+	pThis->CameoCount = count_after;
+	if (count_after <= 0)
 	{
 		ShapeButtons[pThis->Index].Disable();
 
-		auto begin_c = Collum_begin();
-		while (begin_c->CameoCount <= 0)
+		StripClass* begin_c = Collum_begin();
+		bool IsBreak = false;
+		while ((*begin_c).CameoCount <= 0)
 		{
 			if (++begin_c == Collum_end())
 			{
@@ -669,35 +666,36 @@ DEFINE_OVERRIDE_HOOK(0x6aa600, StripClass_RecheckCameos, 0)
 					SidebarClass::something_884B7C = SidebarClass::Shape_B0B478->Height;
 				}
 
+				IsBreak = true;
 				break;
 			}
 		}
 
-		if (pThis->Index == SidebarClass::something_884B84())
-			SidebarClass::Instance->ChangeTab(((DWORD)begin_c - 0x880D2C) / sizeof(StripClass));
+		if(!IsBreak && pThis->Index == SidebarClass::something_884B84())
+			SidebarClass::Instance->ChangeTab(std::distance(Collum_begin() , begin_c));
 	}
 	else
 	{
 		SidebarClass::Instance->ToggleStuffs();
 	}
 
-	auto iter = std::lower_bound(tabs.begin(), tabs.end(), copy);
-	auto idxLower = (iter - tabs.begin()) / 104;
-
+	auto iter = lower_bound(tabs.begin(), tabs.Count, { idx , rtt });
+	auto idxLower = std::distance(tabs.begin() , iter);
 	auto buildCount = pThis->CameoCount - SidebarClass::Instance->Func_6AC430();
-	int value = buildCount >= 0 ? buildCount : 0;
-	value /= 2;
+	int value = (buildCount >= 0 ? buildCount : 0) / 2;
 
 	if (value >= idxLower)
 		value = idxLower;
 
-	pThis->Index = value;
+	pThis->TopRowIndex = value;
 	CCToolTip::Bound = true;
-	R->EAX(true);
+	R->EAX(1);
 	return 0x6AACAE;
 }
 
 #endif
+
+#ifndef STRIPS
 
 int __fastcall SidebarClass_6AC430(SidebarClass*)
 {
@@ -827,14 +825,9 @@ DEFINE_OVERRIDE_HOOK(0x6a9822, StripClass_Draw_Power, 5)
 
 	bool IsDone = pFactory->IsDone();
 
-	if (IsDone)
-	{
-		if (auto pObj = pFactory->Object)
-		{
-			if (pObj->WhatAmI() == BuildingClass::AbsID)
-			{
-				IsDone = ((BuildingClass*)pObj)->FindFactory(true, true) != nullptr;
-			}
+	if (IsDone) {
+		if (auto pBuilding = specific_cast<BuildingClass*>(pFactory->Object)) {
+			IsDone = pBuilding->FindFactory(true, true) != nullptr;
 		}
 	}
 
@@ -938,4 +931,4 @@ DEFINE_OVERRIDE_HOOK(0x6A94B0, StripClass_Deactivate, 6)
 	pThis->Deactivate();
 	return 0x6A94E9;
 }
-
+#endif

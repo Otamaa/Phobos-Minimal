@@ -778,24 +778,8 @@ void BuildingExtData::LimboKill(BuildingClass* pBuilding)
 
 	if (pType->FactoryPlant)
 	{
-		auto Remove = [](DynamicVectorClass<BuildingClass*>& vec , BuildingClass* item)
-		{
-			BuildingClass** end = vec.Items + vec.Count;
 
-			for (BuildingClass** find = vec.Items; find != end; ++find)
-			{
-				if ((*find) == item)
-				{
-					// move all the items from next to current pos
-					BuildingClass** next = find + 1;
-					std::memmove(find, next, (size_t)(sizeof(BuildingClass*) * std::distance(next, end)));
-					--vec.Count;
-				}
-			}
-		};
-
-		static_assert(offsetof(HouseClass, __FactoryPlants) == 0x140, "ClassMember Shifted !");
-		Remove(pTargetHouse->FactoryPlants, pBuilding);
+		pTargetHouse->FactoryPlants.Remove(pBuilding);
 		pTargetHouse->CalculateCostMultipliers();
 	}
 

@@ -600,45 +600,49 @@ public:
 		return true;
 	}
 
-	//size_t index to prevent -1
-	// what if the index is bigger than curret allocation ?
-	// this not make any sense atm 
-	// disabled
-	//bool InsertAt(size_t index, const T& object)
-	//{
-	//	if (this->IsValidArray()) {
-	//
-	//		if (index < (size_t)this->Count)
-	//		{
-	//			T* nDest = this->Items + (index + 1);
-	//			T* nSource = this->Items + index;
-	//			std::memmove(nDest, nSource, (this->Count - index) * sizeof(T));
-	//		}
-	//
-	//		this->Items[index] = std::move_if_noexcept(object);
-	//		++this->Count;
-	//
-	//		return true;
-	//	}
-
-	//	return false;
-	//}
-
-	bool InsertAtLowerBound(const T& object)
+	bool AddHead(const T& object)
 	{
-		auto const iterator = std::lower_bound(begin(), end(), object);
-		int idx = this->IsInitialized ? std::distance(begin(), iterator) : 0;
+		if (!this->ValidArray())
+			return false;
+
+		if (this->Count)
+		{
+			T* next = std::next(this->begin());
+			std::memmove(next, this->begin(), this->Count * sizeof(T));
+		}
+
+		this->Items[0] = std::move_if_noexcept(object);
+		this->Count++;
+
+		return true;
+	}
+
+	bool InsertAt(int index, const T& object)
+	{
+		if (!this->ValidIndex(index))
+			return false;
 
 		if (this->IsValidArray()) {
-			T* added = this->Items + idx;
-			T* added_plusOne = this->Items + (idx + 1);
-			std::memcpy(added_plusOne, added, std::distance(added , end()));
-			this->Items[idx] = std::move_if_noexcept(object);
+	
+			if (index < this->Count)
+			{
+				T* nSource = this->Items + index;
+				T* nDest = std::next(nSource);
+				std::memmove(nDest, nSource, (this->begin() - nSource) * sizeof(T));
+			}
+	
+			this->Items[index] = std::move_if_noexcept(object);
 			++this->Count;
+	
 			return true;
 		}
 
 		return false;
+	}
+
+	T* UninitializedAdd() {
+		return this->IsValidArray() ? 
+			&(this->Items[this->Count++]) : nullptr;
 	}
 
 	bool AddUnique(const T& item)
@@ -654,12 +658,12 @@ public:
 
 		T* find = this->Items + index;
 		T* end = this->Items + this->Count;
-		T* next = this->Items + (index + 1);
+		T* next = std::next(find);
 
 		if (find != this->end()) {
 
 			// move all the items from next to current pos
-			std::memmove(find, next, (size_t)(sizeof(T) * std::distance(next, end)));
+			std::memmove(find, next, (end - next) * sizeof(T));
 			--this->Count;//decrease the count
 			return true;
 		}
@@ -674,8 +678,8 @@ public:
 
 		if(iter != this->end())
 		{
-			T* next = iter + 1;
-			std::memmove(iter, next, (size_t)(sizeof(T) * std::distance(next, end)));
+			T* next = std::next(iter);
+			std::memmove(iter, next, (end - next) * sizeof(T));
 			--this->Count;
 			return true;
 		}
@@ -746,23 +750,26 @@ public:
 	}
 #pragma endregion
 
-public:
-	int Count { 0 };
-	int CapacityIncrement { 10 };
-
-protected:
-
-	bool IsValidArray() {
-		if (this->Count >= this->Capacity) {
-			if ((this->IsAllocated || !this->Capacity) && this->CapacityIncrement > 0) {
+	bool IsValidArray()
+	{
+		if (this->Count >= this->Capacity)
+		{
+			if ((this->IsAllocated || !this->Capacity) && this->CapacityIncrement > 0)
+			{
 				return this->SetCapacity(this->Capacity + this->CapacityIncrement, nullptr);
-			} else {
+			}
+			else
+			{
 				return false;
 			}
 		}
 
 		return true;
 	}
+
+public:
+	int Count { 0 };
+	int CapacityIncrement { 10 };
 };
 
 //========================================================================
