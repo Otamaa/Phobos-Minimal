@@ -606,40 +606,11 @@ DEFINE_OVERRIDE_HOOK(0x6aa600, StripClass_RecheckCameos, 0)
 	const auto rtt = tabs[pThis->TopRowIndex].ItemType;
 	const auto idx = tabs[pThis->TopRowIndex].ItemIndex;
 
-	auto begin = tabs.Items;
-	auto end = &tabs.Items[tabs.Count];
+	auto removeIter = std::remove_if(tabs.begin(), tabs.end(), [=](BuildType& item) {
+		return RemoveCameo(&item);
+	});
 
-	if (begin != end)
-	{
-		do
-		{
-			if (RemoveCameo(begin))
-				break;
-
-			++begin;
-		}
-		while (begin != end);
-
-		if (begin != end)
-		{
-			auto next = begin + 1;
-			if (next != end)
-			{
-				do
-				{
-					if (!RemoveCameo(next))
-					{
-						std::memcpy(begin++, next, sizeof(BuildType));
-					}
-
-					++next;
-				}
-				while (next != end);
-			}
-		}
-	}
-
-	const auto count_after = std::distance(tabs.begin(), begin);
+	const auto count_after = std::distance(tabs.begin(), removeIter);
 	tabs.Count = count_after;
 
 	if (count_after >= pThis->CameoCount)
