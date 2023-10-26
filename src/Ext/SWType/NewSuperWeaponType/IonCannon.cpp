@@ -1,6 +1,4 @@
 #include "IonCannon.h"
-#include <Misc/AresData.h>
-
 #include <Ext/WarheadType/Body.h>
 
 std::vector<const char*> SW_IonCannon::GetTypeString() const

@@ -19,7 +19,6 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 
-#include <Misc/AresData.h>
 #include "Header.h"
 
 #include <Conversions.h>
@@ -543,7 +542,7 @@ DEFINE_OVERRIDE_HOOK(0x707D20, TechnoClass_GetCrew, 5)
 	// YR defaults to 15 for armed objects,
 	// Ares < 0.5 defaulted to 0 for non-buildings.
 	const int TechnicianChance = pExt->Crew_TechnicianChance.Get(
-		abstract_cast<FootClass*>(pThis) ?
+		(pThis->AbstractFlags & AbstractFlags::Foot) ?
 		0 :
 		pThis->IsArmed() ? 15 : 0
 	);

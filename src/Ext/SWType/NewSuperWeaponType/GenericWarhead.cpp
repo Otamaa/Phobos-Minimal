@@ -2,7 +2,6 @@
 
 #include <Ext/Anim/Body.h>
 #include <Ext/WarheadType/Body.h>
-#include <Misc/AresData.h>
 
 #include <Misc/Ares/Hooks/Classes/AttachedAffects.h>
 

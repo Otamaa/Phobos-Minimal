@@ -353,26 +353,5 @@ void PhobosTrajectory::ProcessFromStream(PhobosStreamWriter& Stm, std::unique_pt
 
 void PhobosTrajectory::SetInaccurate() const
 {
-	auto const pBullet = this->AttachedTo;
-
-	if (pBullet->Type->Inaccurate)
-	{
-		auto const pTypeExt = BulletTypeExtContainer::Instance.Find(pBullet->Type);
-
-		const int ballisticScatter = RulesClass::Instance()->BallisticScatter;
-		const int scatterMax = pTypeExt->BallisticScatter_Max.isset() ? (int)(pTypeExt->BallisticScatter_Max.Get()) : ballisticScatter;
-		const int scatterMin = pTypeExt->BallisticScatter_Min.isset() ? (int)(pTypeExt->BallisticScatter_Min.Get()) : (scatterMax / 2);
-
-		const double random = ScenarioClass::Instance()->Random.RandomRanged(scatterMin, scatterMax);
-		const double theta = ScenarioClass::Instance()->Random.RandomDouble() * Math::TwoPi;
-
-		CoordStruct offset
-		{
-			static_cast<int>(random * Math::cos(theta)),
-			static_cast<int>(random * Math::sin(theta)),
-			0
-		};
-
-		pBullet->TargetCoords += offset;
-	}
+	this->AttachedTo->TargetCoords += BulletTypeExtData::CalculateInaccurate(this->AttachedTo->Type);
 }

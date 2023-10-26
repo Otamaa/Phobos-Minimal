@@ -2,8 +2,6 @@
 
 #include <Ext/House/Body.h>
 
-#include <Misc/AresData.h>
-
 std::vector<const char*> SW_Battery::GetTypeString() const
 {
 	return { "Battery" , "Generator" };

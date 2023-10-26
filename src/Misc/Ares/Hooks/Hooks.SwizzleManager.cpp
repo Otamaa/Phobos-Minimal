@@ -1,30 +1,5 @@
-#include <AbstractClass.h>
-#include <TechnoClass.h>
-#include <FootClass.h>
-#include <UnitClass.h>
-#include <Utilities/Macro.h>
-#include <Helpers/Macro.h>
-#include <Base/Always.h>
-
-#include <HouseClass.h>
-#include <Utilities/Debug.h>
-
-#include <HoverLocomotionClass.h>
-
-#include <Ext/Anim/Body.h>
-#include <Ext/AnimType/Body.h>
-#include <Ext/TechnoType/Body.h>
-#include <Ext/WarheadType/Body.h>
-#include <Ext/WeaponType/Body.h>
-#include <Ext/BulletType/Body.h>
-#include <Ext/VoxelAnim/Body.h>
-#include <Ext/Terrain/Body.h>
-#include <Ext/Techno/Body.h>
-
-#include <TerrainTypeClass.h>
-#include <New/Type/ArmorTypeClass.h>
-
-#include <Notifications.h>
+#include <Utilities/Swizzle.h>
+#include <Phobos.h>
 
 /// i forgot that ares swizzle manager system is tightly integrated
 /// so replacing the hook mean we need to replace absolutely everything , lmao

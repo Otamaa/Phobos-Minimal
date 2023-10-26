@@ -25,8 +25,6 @@
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
 
-#include <Misc/AresData.h>
-
 DEFINE_HOOK(0x518FBC, InfantryClass_DrawIt_DontRenderSHP, 0x6)
 {
 	enum { SkipDrawCode = 0x5192B5 };

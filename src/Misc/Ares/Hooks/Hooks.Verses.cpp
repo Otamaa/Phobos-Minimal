@@ -48,21 +48,40 @@ void Debug(ObjectClass* pTarget, int nArmor, VersesData* pData, WarheadTypeClass
 			pData->Verses);
 }
 
-DEFINE_OVERRIDE_HOOK(0x489235, GetTotalDamage_Verses, 0x8)
+DEFINE_HOOK(0x489180, MapClass_GetTotalDamage, 0x6)
 {
-	GET(WarheadTypeClass*, pWH, EDI);
-	GET(int, nArmor, EDX);
-	GET(int, nDamage, ECX);
+	GET(int, damage, ECX);
+	GET(WarheadTypeClass*, pWH, EDX);
+	GET_STACK(int, armorIdx, 0x4);
+	GET_STACK(int, distance, 0x8);
+
+	if (damage == 0
+		|| ScenarioClass::Instance->SpecialFlags.StructEd.Inert)
+	{
+		R->EAX(0);
+		return 0x48926A;
+	}
 
 	const auto pExt = WarheadTypeExtContainer::Instance.Find(pWH);
-	//if ((size_t)nArmor > ArmorTypeClass::Array.size())
-	//	Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
+	const double Atmax = (double)damage * (double)pWH->PercentAtMax;
+	const int cellSpreadRadius = Game::F2I(pWH->CellSpread * 256.0);
+	const auto vsData = &pExt->Verses[armorIdx];
 
-	const auto vsData = &pExt->Verses[nArmor];
+	int damageTotal = damage;
 
-	R->EAX(static_cast<int>((nDamage * vsData->Verses)));
-	return 0x489249;
+	if (fabs(Atmax - damage) >= 1e-4 && cellSpreadRadius != 0)
+		damageTotal = Game::F2I((damage - Atmax) * (cellSpreadRadius - distance) / cellSpreadRadius + Atmax);
+
+	if (damage > 0)
+		damageTotal = Game::F2I((damageTotal < 0 ? 0 : damageTotal) * vsData->Verses);
+	else
+		damageTotal = Game::F2I((damageTotal > 0 ? 0 : damageTotal) * vsData->Verses);
+
+	R->EAX(damageTotal >= RulesClass::Instance->MaxDamage ? RulesClass::Instance->MaxDamage : damageTotal);
+	return 0x48926A;
 }
+
+DEFINE_DISABLE_HOOK(0x489235, GetTotalDamage_Verses_ares)
 
 DEFINE_OVERRIDE_HOOK(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
 {

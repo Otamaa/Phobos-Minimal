@@ -8,7 +8,6 @@
 
 #include <New/Type/CursorTypeClass.h>
 
-#include <Misc/AresData.h>
 
 SuperWeaponTypeClass* SW_NuclearMissile::CurrentNukeType = nullptr;
 

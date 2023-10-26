@@ -10,8 +10,6 @@
 
 #include <FootClass.h>
 
-#include <Misc/AresData.h>
-
 #include <Misc/PhobosGlobal.h>
 
 #include <Notifications.h>

@@ -8,7 +8,6 @@
 
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
-#include <Misc/AresData.h>
 
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>

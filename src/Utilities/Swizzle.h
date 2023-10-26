@@ -1,8 +1,5 @@
 #pragma once
 
-// Ares has hooked the SwizzleManagerClass,
-// so what we need to do is just call the original functions.
-
 #include <unordered_map>
 #include <type_traits>
 

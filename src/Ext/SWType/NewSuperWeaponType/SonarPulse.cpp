@@ -1,7 +1,6 @@
 #include "SonarPulse.h"
 
 #include <Utilities/Helpers.h>
-#include <Misc/AresData.h>
 
 #include <Ext/Techno/Body.h>
 

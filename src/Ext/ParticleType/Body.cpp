@@ -48,7 +48,7 @@ void ParticleTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	case ParticleTypeBehavesLike::Fire: {
 	//	this->ExpireAfterDamaging.Read(exINI, pID, "Fire.ExpireAfterDamaging");
 		this->Fire_DamagingAnim.Read(exINI, pID, "Fire.DamagingAnim");
-
+		this->ReadjustZ.Read(exINI, pID , "ReadjustZCoord");
 	}
 	break;
 	case ParticleTypeBehavesLike::Railgun: {

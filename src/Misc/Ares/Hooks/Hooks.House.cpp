@@ -19,8 +19,6 @@
 #include <Ext/HouseType/Body.h>
 #include <Ext/Side/Body.h>
 
-#include <Misc/AresData.h>
-
 #include <New/Type/GenericPrerequisite.h>
 
 #include "Header.h"

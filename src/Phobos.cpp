@@ -14,7 +14,6 @@
 #include <Utilities/Debug.h>
 #include <Utilities/Patch.h>
 
-#include <Misc/AresData.h>
 #include <Misc/Patches.h>
 
 #include <Misc/PhobosGlobal.h>
@@ -23,6 +22,7 @@
 #include <tlhelp32.h>
 #include <winternl.h>
 #include <cfenv>
+#include <WinBase.h>
 
 #pragma region DEFINES
 #ifndef IS_RELEASE_VER
@@ -120,9 +120,45 @@ DWORD TLS_Thread::dwTlsIndex_SHPDRaw_2;
 #pragma endregion
 
 #pragma region PhobosFunctions
+void CheckProcessorFeatures()
+{
+	BOOL supported = FALSE;
+#if _M_IX86_FP == 0 // IA32
+	Debug::Log("Phobos is not using enhanced instruction set.\n");
+#elif _M_IX86_FP == 1 // SSE
+#define INSTRUCTION_SET_NAME "SSE"
+	supported = IsProcessorFeaturePresent(PF_XMMI_INSTRUCTIONS_AVAILABLE);
+#elif _M_IX86_FP == 2 && !__AVX__ // SEE2, not AVX
+#define INSTRUCTION_SET_NAME "SSE2"
+	supported = IsProcessorFeaturePresent(PF_XMMI64_INSTRUCTIONS_AVAILABLE);
+#else // all others, untested. add more #elifs to support more
+	static_assert(false, "Phobos compiled using unsupported architecture.");
+#endif
+
+#ifdef INSTRUCTION_SET_NAME
+	Debug::Log("Phobos requires a CPU with " INSTRUCTION_SET_NAME " support. %s.\n",
+		supported ? "Available" : "Not available");
+
+	if (!supported)
+	{
+		MessageBoxA(Game::hWnd,
+			"This version of Phobos requires a CPU with " INSTRUCTION_SET_NAME
+			" support.\n\nYour CPU does not support " INSTRUCTION_SET_NAME ". "
+			"Game will now exit.",
+			"Phobos - CPU Requirements", MB_ICONERROR);
+		Debug::Log("Game will now exit.\n");
+		Phobos::ExeTerminate();
+		ExitProcess(533);
+	}
+#endif
+}
+
+#include "CD.h"
 
 void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 {
+	DWORD_PTR processAffinityMask = 1; // limit to first processor
+
 	// > 1 because the exe path itself counts as an argument, too!
 	for (int i = 1; i < nNumArgs; i++)
 	{
@@ -132,6 +168,10 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		if (IS_SAME_STR_(pArg, "-Icon"))
 		{
 			Phobos::AppIconPath = ppArgs[++i];
+		}
+		else if (IS_SAME_STR_(pArg, "-LOG"))
+		{
+			Debug::LogEnabled = true;
 		}
 		else if (IS_SAME_STR_(pArg, "-AI-CONTROL"))
 		{
@@ -157,9 +197,53 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		{
 			Phobos::Config::HideWarning = true;
 		}
+		else if (!_strnicmp(pArg, "-AFFINITY:", 0xAu))
+		{
+			auto nData = atoi(pArg + 0xAu);
+			if (nData < 0)
+				nData = 0;
+
+			processAffinityMask = nData;
+		}
 	}
 
-	Debug::Log("Initialized Phobos " PRODUCT_VERSION "\n");
+	if (Debug::LogEnabled) {
+		Debug::LogFileOpen();
+		Debug::Log("Initialized Phobos" PRODUCT_VERSION "\n");
+	}
+
+	CheckProcessorFeatures();
+
+	if (processAffinityMask)
+	{
+		Debug::Log("Set Process Affinity: %lu (%x)\n", processAffinityMask, processAffinityMask);
+		auto const process = GetCurrentProcess();
+		SetProcessAffinityMask(process, processAffinityMask);
+	}
+
+	if (!CDDriveManagerClass::Instance->NumCDDrives)
+	{
+		Debug::Log("No CD drives detected. Switching to NoCD mode.\n");
+		Phobos::Otamaa::NoCD = true;
+	}
+
+	if (Phobos::Otamaa::NoCD)
+	{
+		Debug::Log("Optimizing list of CD drives for NoCD mode.\n");
+		memset(CDDriveManagerClass::Instance->CDDriveNames, -1, 26);
+
+		char drv[] = "a:\\";
+		for (int i = 0; i < 26; ++i)
+		{
+			drv[0] = 'a' + (i + 2) % 26;
+			if (GetDriveTypeA(drv) == DRIVE_FIXED)
+			{
+				CDDriveManagerClass::Instance->CDDriveNames[0] = (i + 2) % 26;
+				CDDriveManagerClass::Instance->NumCDDrives = 1;
+				break;
+			}
+		}
+	}
 }
 
 CCINIClass* Phobos::OpenConfig(const char* file)
@@ -348,19 +432,19 @@ void Phobos::Config::Read()
 		Phobos::Config::SaveVariablesOnScenarioEnd = pINI->ReadBool(GENERAL_SECTION, "SaveVariablesOnScenarioEnd", Phobos::Config::SaveVariablesOnScenarioEnd);
 		Phobos::Config::ApplyShadeCountFix = pINI->ReadBool(AUDIOVISUAL_SECTION, "ApplyShadeCountFix", Phobos::Config::ApplyShadeCountFix);
 
-		if (pINI->ReadBool(GENERAL_SECTION, "SkirmishUnlimitedColors", false))
-		{
-			// Game_GetLinkedColor converts vanilla dropdown color index into color scheme index ([Colors] from rules)
-			// What we want to do is to restore vanilla from Ares hook, and immediately return arg
-			// So if spawner feeds us a number, it will be used to look up color scheme directly
-			Patch::Apply_RAW(0x69A310,
-			{
-				0x8B, 0x44, 0x24, 0x04, // mov eax, [esp+4]
-				0xD1, 0xE0,             // shl eax, 1
-				0x40,                   // inc eax
-				0xC2, 0x04, 0x00        // retn 4
-			});
-		}
+		//if (pINI->ReadBool(GENERAL_SECTION, "SkirmishUnlimitedColors", false))
+		//{
+		//	// Game_GetLinkedColor converts vanilla dropdown color index into color scheme index ([Colors] from rules)
+		//	// What we want to do is to restore vanilla from Ares hook, and immediately return arg
+		//	// So if spawner feeds us a number, it will be used to look up color scheme directly
+		//	Patch::Apply_RAW(0x69A310,
+		//	{
+		//		0x8B, 0x44, 0x24, 0x04, // mov eax, [esp+4]
+		//		0xD1, 0xE0,             // shl eax, 1
+		//		0x40,                   // inc eax
+		//		0xC2, 0x04, 0x00        // retn 4
+		//	});
+		//}
 
 
 		Phobos::CloseConfig(pINI);
@@ -472,44 +556,15 @@ void __stdcall BuildingExtContainer_LoadGlobal(void**)
 void Phobos::ExeRun()
 {
 	Phobos::Otamaa::ExeTerminated = false;
+	Game::Savegame_Magic = 0x1414D121;
+	Game::bVideoBackBuffer = false;
+	Game::bAllowVRAMSidebar = false;
+
 	InitAdminDebugMode();
 	Patch::PrintAllModuleAndBaseAddr();
 	Patch::InitRelatedModule();
-
-	if (!AresData::Init())
-	{
-		MessageBoxW(NULL,
-		L"This version of phobos is only support Ares 3.0p1.\n\n"
-		L"Press OK to Closing the game .",
-		L"Notice", MB_OK);
-
-		Phobos::ExeTerminate();
-		exit(0);
-	}
-
 	PhobosGlobal::Init();
 
-	DWORD protect_flag;
-	for (auto const& nData : AresData::AresCustomPaletteReadFuncFinal)
-	{
-		const auto Data = _CALL(nData, GET_OFFSET(CustomPalette_Read_Static));
-		VirtualProtect((LPVOID)nData, sizeof(Data), PAGE_EXECUTE_READWRITE, &protect_flag);
-		memcpy((LPVOID)nData, (LPVOID)(&Data), sizeof(Data));
-		VirtualProtect((LPVOID)nData, sizeof(Data), protect_flag, 0);
-	}
-
-	const auto Data = _CALL(AresData::AresStaticInstanceFinal[16], GET_OFFSET(SideExt_UpdateGlobalFiles));
-	VirtualProtect((LPVOID)AresData::AresStaticInstanceFinal[16], sizeof(Data), PAGE_EXECUTE_READWRITE, &protect_flag);
-	memcpy((LPVOID)AresData::AresStaticInstanceFinal[16], (LPVOID)(&Data), sizeof(Data));
-	VirtualProtect((LPVOID)AresData::AresStaticInstanceFinal[16], sizeof(Data), protect_flag, 0);
-
-#ifndef ENABLE_FOUNDATIONHOOK
-	const auto Data2 = _CALL(AresData::AresStaticInstanceFinal[17], GET_OFFSET(BuildingExtContainer_LoadGlobal));
-	VirtualProtect((LPVOID)AresData::AresStaticInstanceFinal[17], sizeof(Data2), PAGE_EXECUTE_READWRITE, &protect_flag);
-	memcpy((LPVOID)AresData::AresStaticInstanceFinal[17], (LPVOID)(&Data2), sizeof(Data2));
-	VirtualProtect((LPVOID)AresData::AresStaticInstanceFinal[17], sizeof(Data2), protect_flag, 0);
-#endif
-	//PoseDirOverride::Apply();
 	InitConsole();
 }
 
@@ -517,9 +572,8 @@ void Phobos::ExeRun()
 
 void Phobos::ExeTerminate()
 {
-	TheaterTypeClass::Array.clear();
-	AresData::UnInit();
 	Phobos::Otamaa::ExeTerminated = true;
+	Debug::LogFileClose(111);
 	Console::Release();
 }
 
@@ -704,6 +758,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 	case DLL_PROCESS_ATTACH:
 	{
 		Phobos::hInstance = hInstance;
+		Debug::LogFileRemove();
 		Patch::ApplyStatic();
 	}
 	break;
@@ -715,95 +770,95 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 }
 
 // =============================
-//#pragma region SyringeHandshake
-//SYRINGE_HANDSHAKE(pInfo)
-//{
-//	//const DWORD YR_SIZE_1000 = 0x496110;
-//	const DWORD YR_SIZE_1001 = 0x497110;
-//	const DWORD YR_SIZE_1001_UC = 0x497FE0;
-//	const DWORD YR_SIZE_NPATCH = 0x5AB000;
-//
-//	const DWORD YR_TIME_1000 = 0x3B846665;
-//	const DWORD YR_TIME_1001 = 0x3BDF544E;
-//
-//	//const DWORD YR_CRC_1000 = 0xB701D792;
-//	const DWORD YR_CRC_1001_CD = 0x098465B3;
-//	const DWORD YR_CRC_1001_TFD = 0xEB903080;
-//	const DWORD YR_CRC_1001_UC = 0x1B499086;
-//
-//	if (pInfo)
-//	{
-//		const char* AcceptMsg = "Found Yuri's Revenge %s. Applying Phobos " _STR(BUILD_NUMBER) ".";
-//		const char* PatchDetectedMessage = "Found %s. Phobos " _STR(BUILD_NUMBER) " is not compatible with other patches.";
-//
-//		const char* desc = nullptr;
-//		const char* msg = nullptr;
-//		bool allowed = false;
-//
-//		// accept tfd and cd version 1.001
-//		if (pInfo->exeTimestamp == YR_TIME_1001)
-//		{
-//			// don't accept expanded exes
-//			switch (pInfo->exeFilesize)
-//			{
-//			case YR_SIZE_1001:
-//			case YR_SIZE_1001_UC:
-//
-//				// all versions allowed
-//				switch (pInfo->exeCRC)
-//				{
-//				case YR_CRC_1001_CD:
-//					desc = "1.001 (CD)";
-//					break;
-//				case YR_CRC_1001_TFD:
-//					desc = "1.001 (TFD)";
-//					break;
-//				case YR_CRC_1001_UC:
-//					desc = "1.001 (UC)";
-//					break;
-//				default:
-//					// no-cd, network port or other changes
-//					desc = "1.001 (modified)";
-//				}
-//				msg = AcceptMsg;
-//				allowed = true;
-//				break;
-//
-//			case YR_SIZE_NPATCH:
-//				// known patch size
-//				desc = "RockPatch or an NPatch-derived patch";
-//				msg = PatchDetectedMessage;
-//				break;
-//			default:
-//				// expanded exe, unknown make
-//				desc = "an unknown game patch";
-//				msg = PatchDetectedMessage;
-//			}
-//		}
-//		else if (pInfo->exeTimestamp == YR_TIME_1000)
-//		{
-//			// upgrade advice for version 1.000
-//			desc = "1.000";
-//			msg = "Found Yuri's Revenge 1.000 but Phobos " _STR(BUILD_NUMBER) " requires version 1.001. Please update your copy of Yuri's Revenge first.";
-//		}
-//		else
-//		{
-//			// does not even compute...
-//			msg = "Unknown executable. Phobos " _STR(BUILD_NUMBER) " requires Command & Conquer Yuri's Revenge version 1.001 (gamemd.exe).";
-//		}
-//
-//		// generate the output message
-//		if (pInfo->Message)
-//		{
-//			sprintf_s(pInfo->Message, pInfo->cchMessage, msg, desc);
-//		}
-//
-//		return allowed ? S_OK : S_FALSE;
-//	}
-//
-//	return E_POINTER;
-//}
-//#pragma endregion
+#pragma region SyringeHandshake
+SYRINGE_HANDSHAKE(pInfo)
+{
+	//const DWORD YR_SIZE_1000 = 0x496110;
+	const DWORD YR_SIZE_1001 = 0x497110;
+	const DWORD YR_SIZE_1001_UC = 0x497FE0;
+	const DWORD YR_SIZE_NPATCH = 0x5AB000;
+
+	const DWORD YR_TIME_1000 = 0x3B846665;
+	const DWORD YR_TIME_1001 = 0x3BDF544E;
+
+	//const DWORD YR_CRC_1000 = 0xB701D792;
+	const DWORD YR_CRC_1001_CD = 0x098465B3;
+	const DWORD YR_CRC_1001_TFD = 0xEB903080;
+	const DWORD YR_CRC_1001_UC = 0x1B499086;
+
+	if (pInfo)
+	{
+		constexpr const char* AcceptMsg = "Found Yuri's Revenge %s. Applying Phobos " FILE_VERSION_STR ".";
+		constexpr const char* PatchDetectedMessage = "Found %s. Phobos " FILE_VERSION_STR" is not compatible with Exe patched Gamemd.";
+
+		const char* desc = nullptr;
+		const char* msg = nullptr;
+		bool allowed = false;
+
+		// accept tfd and cd version 1.001
+		if (pInfo->exeTimestamp == YR_TIME_1001)
+		{
+			// don't accept expanded exes
+			switch (pInfo->exeFilesize)
+			{
+			case YR_SIZE_1001:
+			case YR_SIZE_1001_UC:
+
+				// all versions allowed
+				switch (pInfo->exeCRC)
+				{
+				case YR_CRC_1001_CD:
+					desc = "1.001 (CD)";
+					break;
+				case YR_CRC_1001_TFD:
+					desc = "1.001 (TFD)";
+					break;
+				case YR_CRC_1001_UC:
+					desc = "1.001 (UC)";
+					break;
+				default:
+					// no-cd, network port or other changes
+					desc = "1.001 (modified)";
+				}
+				msg = AcceptMsg;
+				allowed = true;
+				break;
+
+			case YR_SIZE_NPATCH:
+				// known patch size
+				desc = "RockPatch or an NPatch-derived patch";
+				msg = PatchDetectedMessage;
+				break;
+			default:
+				// expanded exe, unknown make
+				desc = "an unknown game patch";
+				msg = PatchDetectedMessage;
+			}
+		}
+		else if (pInfo->exeTimestamp == YR_TIME_1000)
+		{
+			// upgrade advice for version 1.000
+			desc = "1.000";
+			msg = "Found Yuri's Revenge 1.000 but Phobos " FILE_VERSION_STR " requires version 1.001. Please update your copy of Yuri's Revenge first.";
+		}
+		else
+		{
+			// does not even compute...
+			msg = "Unknown executable. Phobos " FILE_VERSION_STR " requires Command & Conquer Yuri's Revenge version 1.001 (gamemd.exe).";
+		}
+
+		// generate the output message
+		if (pInfo->Message)
+		{
+			sprintf_s(pInfo->Message, pInfo->cchMessage, msg, desc);
+		}
+
+		return allowed ? S_OK : S_FALSE;
+	}
+
+	return E_POINTER;
+}
+#pragma endregion
 
 #pragma region hooks
 

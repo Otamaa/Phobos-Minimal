@@ -20,8 +20,6 @@
 #include <Ext/InfantryType/Body.h>
 #include <Ext/HouseType/Body.h>
 
-#include <Misc/AresData.h>
-
 #include <numeric>
 #include "Header.h"
 

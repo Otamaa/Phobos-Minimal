@@ -26,7 +26,7 @@
 //#include <Lib/gcem/gcem.hpp>
 
 #include <Notifications.h>
-#include <Misc/AresData.h>
+
 #include "Header.h"
 
 DEFINE_DISABLE_HOOK(0x6E232E, ActionClass_PlayAnimAt_ares)

@@ -1,6 +1,5 @@
 #include "HunterSeeker.h"
 
-#include <Misc/AresData.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/Rules/Body.h>

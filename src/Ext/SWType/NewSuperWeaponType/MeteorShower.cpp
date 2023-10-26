@@ -4,8 +4,6 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 
-#include <Misc/AresData.h>
-
 std::vector<const char*> SW_MeteorShower::GetTypeString() const
 {
 	return { "MeteorShower" };

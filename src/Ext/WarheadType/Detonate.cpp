@@ -24,7 +24,6 @@
 #include <Ext/SWType/NewSuperWeaponType/Reveal.h>
 
 #include <New/Entity/VerticalLaserClass.h>
-#include <Misc/AresData.h>
 #include <Misc/Ares/Hooks/AresNetEvent.h>
 #include <Ares_TechnoExt.h>
 

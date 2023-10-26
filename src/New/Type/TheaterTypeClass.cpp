@@ -3,7 +3,6 @@
 #include <Phobos.h>
 
 #include <Ext/Scenario/Body.h>
-#include <Misc/AresData.h>
 
 #include <MixFileClass.h>
 
@@ -440,7 +439,6 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 	// any errors triggered before this line are irrelevant
 	// caused by reading the section while only certain flags from it are needed
 	// and before other global lists are initialized
-	Debug_bTrackParseErrors = true;
 	Phobos::Otamaa::TrackParserErrors = true;
 
 	Game::SetProgress(8);

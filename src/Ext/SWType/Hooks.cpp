@@ -1,6 +1,5 @@
 
 #pragma region  Incl
-#include <Misc/AresData.h>
 #include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <Ext/BulletType/Body.h>

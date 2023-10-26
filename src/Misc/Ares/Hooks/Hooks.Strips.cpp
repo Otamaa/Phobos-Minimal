@@ -12,7 +12,8 @@ static constexpr reference<ShapeButtonClass, 0xB07C48u, 4u> const ShapeButtons {
 static constexpr size_t sizeofShapeBtn = sizeof(ShapeButtonClass);
 static constexpr constant_ptr<StripClass, 0x880D2C> const Collum_begin {};
 static constexpr constant_ptr<StripClass, 0x884B7C> const Collum_end {};
-
+static constexpr reference<int, 0xB0B500> const SidebarObject_Height {};
+static constexpr reference<int, 0xB0B4FC> const SidebarObject_Width {};
 #ifndef CAMEOS_
 
 DEFINE_OVERRIDE_HOOK(0x6A4EA5, SidebarClass_CTOR_InitCameosList, 6)
@@ -674,6 +675,45 @@ int __fastcall SidebarClass_6AC430(SidebarClass*)
 }
 //B0B500 SidebarClass::ObjectHeight int 
 //B0B4FC SidebarClass::ObjectWidth_ int
+
+//the compiled result offseting the array begin too much 
+//not sure what happen , altho there is similar code exist
+//just this one generating too far offsetted array begin pointer
+//DEFINE_OVERRIDE_HOOK(0x6A8220, StripClass_Initialize, 7)
+//{
+//	GET(StripClass*, pThis, ECX);
+//	GET_STACK(int, nIdx, 0x4);
+//
+//	//pThis->unknown_50 = nIdx;
+//	//auto nInc_y = pThis->Location.X + 1;
+//
+//	int const nXIdx = SidebarClass::Instance->Func_6AC430();
+//	int a = 0;
+//
+//	for (auto i = ButtonsPtr(); i != (&ButtonsPtr[nIdx]); ++i) { 
+//		(*i).Index = a;
+//		(*i).ID = 202;
+//		(*i).Strip = pThis;
+//		++a;
+//	}
+//
+//	//	int nIncb = 0;
+//	//	for (auto i = ButtonsPtr(); i != (&ButtonsPtr[nIdx]); ++i)
+//	//	{
+//	//		(*i).Index = nIncb;
+//	//		(*i).ID = 202;
+//	//		(*i).Strip = pThis;
+//	//		const auto nY_stuff = SidebarObject_Height() * (nIncb & 0xFFFFFFFE);
+//	//		const auto  nX_stuff = nIncb++ & 1;
+//	//		(*i).Rect.X = pThis->Location.Y + SidebarObject_Width() + nX_stuff;
+//	//		(*i).Rect.Y = nInc_y + nY_stuff;
+//	//		(*i).Rect.Height = 60;
+//	//		(*i).Rect.Width = 48;
+//	//	}
+//
+//	return 0x6A8329;
+//}
+
 // yeah , fuck it 
 // i cant reproduce the exact code 
 // so lets just dump the assembly code instead , lmao
@@ -822,8 +862,8 @@ DEFINE_OVERRIDE_HOOK(0x6A8330, StripClass_EnableInput, 5)
 
 	for (auto i = ButtonsPtr(); i != (&ButtonsPtr[nIdx]); ++i)
 	{
-		i->Zap();
-		i->Strip = pThis;
+		(*i).Zap();
+		(*i).Strip = pThis;
 		GScreenClass::Instance->AddButton(i);
 	}
 

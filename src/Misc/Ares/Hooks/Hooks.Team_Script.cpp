@@ -29,7 +29,6 @@
 #include <New/Type/ArmorTypeClass.h>
 
 #include <Misc/PhobosGlobal.h>
-#include <Misc/AresData.h>
 
 #include <Notifications.h>
 #include <strsafe.h>

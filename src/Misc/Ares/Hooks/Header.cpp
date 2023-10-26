@@ -48,7 +48,6 @@
 #include <New/Type/ArmorTypeClass.h>
 
 #include <Misc/PhobosGlobal.h>
-#include <Misc/AresData.h>
 
 #include <Misc/Ares/EVAVoices.h>
 

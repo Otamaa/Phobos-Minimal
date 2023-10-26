@@ -74,7 +74,9 @@ DEFINE_HOOK(0x62B897, ParticleClass_CTOR_RailgunCoordAdjust, 0x5)
 	const auto pParticleTypeExt = ParticleTypeExtContainer::Instance.Find(pThis->Type);
 
 	if(pParticleSys
-	&& pParticleSys->Type->BehavesLike == ParticleSystemTypeBehavesLike::Railgun){
+	&& (pParticleSys->Type->BehavesLike == ParticleSystemTypeBehavesLike::Railgun
+		|| pParticleSys->Type->BehavesLike == ParticleSystemTypeBehavesLike::Fire)
+	){
 		GET(CoordStruct*, pCoordBase, EDI);
 		LEA_STACK(CoordStruct* , pCoord, 0x10);
 
@@ -102,7 +104,7 @@ DEFINE_HOOK(0x62B897, ParticleClass_CTOR_RailgunCoordAdjust, 0x5)
 	return Continue;
 }
 
-#ifdef PERFORMANCE_HEAVY
+#ifndef PERFORMANCE_HEAVY
 // https://github.com/Phobos-developers/Phobos/pull/825
 // Todo :  Otamaa : massive FPS drops !
 // Contains hooks that fix weapon graphical effects like lasers, railguns, electric bolts, beams and waves not interacting
@@ -125,7 +127,7 @@ DEFINE_HOOK(0x6FF15F, TechnoClass_FireAt_ObstacleCellSet, 0x6)
 
 	auto coords = pTarget->GetCenterCoords();
 
-	if (const auto pBuilding = abstract_cast<BuildingClass*>(pTarget))
+	if (const auto pBuilding = specific_cast<BuildingClass*>(pTarget))
 		coords = pBuilding->GetTargetCoords();
 
 	FireAtTemp::pObstacleCell = TrajectoryHelper::FindFirstObstacle(*pSourceCoords, coords, pWeapon->Projectile, pThis->Owner);
@@ -148,6 +150,8 @@ DEFINE_HOOK(0x6FF189, TechnoClass_FireAt_SparkFireTargetSet, 0x5)
 	return 0;
 }
 
+#include <ext/ParticleSystemType/Body.h>
+
 // Fix fire particle target coordinates potentially differing from actual target coords.
 DEFINE_HOOK(0x62FA20, ParticleSystemClass_FireAI_TargetCoords, 0x6)
 {
@@ -156,7 +160,9 @@ DEFINE_HOOK(0x62FA20, ParticleSystemClass_FireAI_TargetCoords, 0x6)
 	GET(ParticleSystemClass*, pThis, ESI);
 	GET(TechnoClass*, pOwner, EBX);
 
-	if (pOwner->PrimaryFacing.IsRotating())
+	if (ParticleSystemTypeExtContainer::Instance
+			.Find(pThis->Type)->AdjustTargetCoordsOnRotation
+		&& pOwner->PrimaryFacing.Is_Rotating())
 	{
 		auto coords = pThis->TargetCoords;
 		R->EAX(&coords);
@@ -265,6 +271,42 @@ DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_PreFire_ObstacleCellUnset, 0x6)
 
 	R->EDI(target);
 
+	return 0;
+}
+
+#include <Ext/WeaponType/Body.h>
+
+DEFINE_HOOK(0x70C862, TechnoClass_Railgun_AmbientDamageIgnoreTarget1, 0x5)
+{
+	enum { IgnoreTarget = 0x70CA59 };
+
+	GET_BASE(WeaponTypeClass*, pWeapon, 0x14);
+
+	if (WeaponTypeExtContainer::Instance.Find(pWeapon)->AmbientDamage_IgnoreTarget)
+		return IgnoreTarget;
+
+	return 0;
+}
+
+DEFINE_HOOK(0x70CA8B, TechnoClass_Railgun_AmbientDamageIgnoreTarget2, 0x6)
+{
+	enum { IgnoreTarget = 0x70CBB0 };
+
+	GET_BASE(WeaponTypeClass*, pWeapon, 0x14);
+	REF_STACK(DynamicVectorClass<ObjectClass*>, objects, STACK_OFFSET(0xC0, -0xAC));
+
+	if (WeaponTypeExtContainer::Instance.Find(pWeapon)->AmbientDamage_IgnoreTarget) {
+		R->EAX(objects.Count);
+		return IgnoreTarget;
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x70CBE0, TechnoClass_Railgun_AmbientDamageWarhead, 0x5)
+{
+	GET(WeaponTypeClass*, pWeapon, EDI);
+	R->EDX(WeaponTypeExtContainer::Instance.Find(pWeapon)->AmbientDamage_Warhead.Get(pWeapon->Warhead));
 	return 0;
 }
 

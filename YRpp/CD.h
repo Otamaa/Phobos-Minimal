@@ -42,12 +42,12 @@ public:
 
 	virtual bool ForceAvailable(int cdNumber) JMP_THIS(0x4790E0);
 	virtual bool InsertCDDialog() JMP_THIS(0x479110);
-	virtual void SwapToDisk() JMP_THIS(4791F0);
+	virtual void SwapToDisk() JMP_THIS(0x4791F0);
 
 public:
 
 	DWORD unknown_04;
 
-protected:
-	CD() RX;
+//protected:
+//	CD() RX;
 };

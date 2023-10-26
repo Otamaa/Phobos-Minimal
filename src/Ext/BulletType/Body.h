@@ -140,6 +140,7 @@ public:
 
 	static double GetAdjustedGravity(BulletTypeClass* pType);
 	static BulletTypeClass* GetDefaultBulletType(const char* pBullet = nullptr);
+	static CoordStruct CalculateInaccurate(BulletTypeClass* pBulletType);
 
 private:
 	template <typename T>

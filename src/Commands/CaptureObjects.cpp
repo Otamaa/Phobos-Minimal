@@ -3,8 +3,6 @@
 #include <SessionClass.h>
 #include <HouseClass.h>
 
-#include <Misc/AresData.h>
-
 #include <Ext/Techno/Body.h>
 #include <Ext/House/Body.h>
 #include <Utilities/GeneralUtils.h>

@@ -4,8 +4,6 @@
 
 #include <Ext/Building/Body.h>
 
-#include <Misc/AresData.h>
-
 #include <WWKeyboardClass.h>
 
 AresNetEvent::TrenchRedirectClick::TrenchRedirectClick(CellStruct* target, BuildingClass* source)

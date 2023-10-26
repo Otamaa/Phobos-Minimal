@@ -4,8 +4,6 @@
 #include "Dominator.h"
 #include "LightningStorm.h"
 
-#include <Misc/AresData.h>
-
 #include <Ext/House/Body.h>
 #include <Ext/WarheadType/Body.h>
 

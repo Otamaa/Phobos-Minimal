@@ -189,7 +189,6 @@
     <ClCompile Include="src\Ext\WeaponType\Hook.EBolt.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.DiskLaserRadius.cpp" />
-    <ClCompile Include="src\Misc\AresData.cpp" />
     <ClCompile Include="src\Misc\Ares\Audio.cpp" />
     <ClCompile Include="src\Misc\Ares\CSF.cpp" />
     <ClCompile Include="src\Misc\Ares\EVAVoices.cpp" />
@@ -242,6 +241,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Remove.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Sides.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Strips.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.SwizzleManager.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Tactical.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Team_Script.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.cpp" />
@@ -466,10 +466,10 @@
     <ClInclude Include="src\Ext\TriggerType\Body.h" />
     <ClInclude Include="src\Ext\Wave\Body.h" />
     <ClInclude Include="src\Lib\gcem\gcem.hpp" />
-    <ClInclude Include="src\Misc\AresData.h" />
     <ClInclude Include="src\Misc\Ares\Audio.h" />
     <ClInclude Include="src\Misc\Ares\CSF.h" />
     <ClInclude Include="src\Misc\Ares\EVAVoices.h" />
+    <ClInclude Include="src\Misc\Ares\Hooks\AresChecksummer.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\AresNetEvent.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\AresTrajectoryHelper.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\Classes\AresJammer.h" />

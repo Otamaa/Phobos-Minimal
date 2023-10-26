@@ -1085,6 +1085,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->DisplayCreditsDelay)
 		.Process(this->TypeSelectUseDeploy)
 		.Process(this->StartInMultiplayerUnitCost)
+		.Process(this->FPSCounter)
 		;
 
 	MyPutData.Serialize(Stm);

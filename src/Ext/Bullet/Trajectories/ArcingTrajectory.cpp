@@ -50,30 +50,8 @@ bool ArcingTrajectory::Save(PhobosStreamWriter& Stm) const
 		;
 }
 
-void ArcingTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
+void ArcingTrajectory::CalculateVelocity(BulletClass* pBullet, double elevation, bool lobber, ArcingTrajectory* pTraj)
 {
-	auto pBullet = this->AttachedTo;
-
-	if (pBullet->Type->Inaccurate)
-	{
-		auto const pTypeExt = BulletTypeExtContainer::Instance.Find(pBullet->Type);
-
-		int ballisticScatter = RulesClass::Instance()->BallisticScatter;
-		int scatterMax = pTypeExt->BallisticScatter_Max.isset() ? (int)(pTypeExt->BallisticScatter_Max.Get()) : ballisticScatter;
-		int scatterMin = pTypeExt->BallisticScatter_Min.isset() ? (int)(pTypeExt->BallisticScatter_Min.Get()) : (scatterMax / 2);
-
-		double random = ScenarioClass::Instance()->Random.RandomRanged(scatterMin, scatterMax);
-		double theta = ScenarioClass::Instance()->Random.RandomDouble() * Math::TwoPi;
-
-		CoordStruct offset
-		{
-			static_cast<int>(random * Math::cos(theta)),
-			static_cast<int>(random * Math::sin(theta)),
-			0
-		};
-		pBullet->TargetCoords += offset;
-	}
-
 	CoordStruct InitialSourceLocation = pBullet->SourceCoords;
 	InitialSourceLocation.Z = 0;
 	CoordStruct InitialTargetLocation = pBullet->TargetCoords;
@@ -83,25 +61,26 @@ void ArcingTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 	double Z = pBullet->TargetCoords.Z - pBullet->SourceCoords.Z;
 	double g = BulletTypeExtData::GetAdjustedGravity(pBullet->Type);
 
-	double Elevation = this->GetTrajectoryType()->Elevation;
-	if (Elevation > DBL_EPSILON)
+	if (elevation > DBL_EPSILON)
 	{
-		double LifeTime = Math::sqrt(2 / g * (Elevation * FullDistance - Z));
+		double LifeTime = Math::sqrt(2 / g * (elevation * FullDistance - Z));
+
 
 		double Velocity_XY = FullDistance / LifeTime;
 		double ratio = Velocity_XY / FullDistance;
 		pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X) * ratio;
 		pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y) * ratio;
-		pBullet->Velocity.Z = Elevation * Velocity_XY;
+		pBullet->Velocity.Z = elevation * Velocity_XY;
 	}
-	else
+	else // 不指定发射仰角，则读取Speed设定作为出膛速率，每次攻击时自动计算发射仰角
 	{
-		double S = this->GetTrajectorySpeed();
+		const auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pBullet->Type);
+		double S = pBulletTypeExt->Trajectory_Speed;
 		double A = g * g / 4;
 		double B = g * Z - S * S;
 		double C = Z * Z + FullDistance * FullDistance;
-
 		double delta = B * B - 4 * A * C;
+
 		if (delta < 0)
 		{
 			double Velocity_XY = S / Math::Sqrt2;
@@ -110,11 +89,12 @@ void ArcingTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 			pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y) * ratio;
 			pBullet->Velocity.Z = Velocity_XY;
 
-			this->OverRange = true;
+			if (pTraj != nullptr)
+				pTraj->OverRange = true;
 		}
 		else
 		{
-			int isLobber = this->GetTrajectoryType()->Lobber ? 1 : -1;
+			int isLobber = lobber ? 1 : -1;
 			double LifeTimeSquare = (-B + isLobber * Math::sqrt(delta)) / (2 * A);
 			double LifeTime = Math::sqrt(LifeTimeSquare);
 
@@ -126,6 +106,13 @@ void ArcingTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 			pBullet->Velocity.Z = Math::sqrt(S * S - Velocity_XY * Velocity_XY);
 		}
 	}
+}
+
+void ArcingTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
+{
+	this->SetInaccurate();
+	const auto pType = this->GetTrajectoryType();
+	CalculateVelocity(this->AttachedTo, pType->Elevation, pType->Lobber, this);
 }
 
 bool ArcingTrajectory::OnAI()

@@ -21,8 +21,6 @@
 #include <WWKeyboardClass.h>
 #include <Conversions.h>
 
-#include <Misc/AresData.h>
-
 DEFINE_OVERRIDE_HOOK(0x5F8277, ObjectTypeClass_Load3DArt_NoSpawnAlt1, 7)
 {
 	REF_STACK(bool, bLoadFailed, 0x13);

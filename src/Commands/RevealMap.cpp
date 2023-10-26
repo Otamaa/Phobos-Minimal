@@ -27,7 +27,6 @@ const wchar_t* RevealMapCommandClass::GetUIDescription() const
 	return GeneralUtils::LoadStringUnlessMissing("TXT_REVEALMAP_DESC", L"Reveal Map.");
 }
 
-#include <Misc/AresData.h>
 #include <Misc/MapRevealer.h>
 #include <Misc/Ares/Hooks/AresNetEvent.h>
 

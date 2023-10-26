@@ -3,8 +3,6 @@
 #include <FactoryClass.h>
 #include <TEventClass.h>
 
-#include <Misc/AresData.h>
-
 // AI Naval queue bugfix hooks
 
 namespace ExitObjectTemp

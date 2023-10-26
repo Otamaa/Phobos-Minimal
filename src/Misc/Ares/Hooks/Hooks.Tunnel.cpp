@@ -7,7 +7,6 @@
 
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
-#include <Misc/AresData.h>
 
 #include <Ext/Building/Body.h>
 #include <Ext/Anim/Body.h>

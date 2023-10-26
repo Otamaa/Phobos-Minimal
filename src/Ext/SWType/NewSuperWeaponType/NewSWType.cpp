@@ -26,8 +26,6 @@
 #include "MeteorShower.h"
 #include "LaserStrike.h"
 
-#include <Misc/AresData.h>
-
 std::array<std::unique_ptr<NewSWType>, (size_t)AresNewSuperType::count> NewSWType::Array;
 
 bool NewSWType::CanFireAt(const TargetingData* pTargeting, CellStruct const& cell, bool manual) const

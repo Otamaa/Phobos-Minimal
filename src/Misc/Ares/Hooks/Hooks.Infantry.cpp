@@ -18,7 +18,6 @@
 #include <Ext/InfantryType/Body.h>
 
 #include <WWKeyboardClass.h>
-#include <Misc/AresData.h>
 #include <Ares_TechnoExt.h>
 
 #include "Header.h"

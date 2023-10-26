@@ -2,8 +2,6 @@
 
 #include <HouseClass.h>
 
-#include <Misc/AresData.h>
-
 #include <Utilities/Macro.h>
 #include <Helpers/Macro.h>
 #include <Base/Always.h>

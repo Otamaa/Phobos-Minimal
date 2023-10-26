@@ -1,6 +1,5 @@
 
 #include "Header.h"
-#include <Misc/AresData.h>
 
 #include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>

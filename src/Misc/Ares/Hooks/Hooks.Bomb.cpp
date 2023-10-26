@@ -11,8 +11,6 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 
-#include <Misc/AresData.h>
-
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/Techno/Body.h>
@@ -366,16 +364,32 @@ DEFINE_OVERRIDE_HOOK(0x44A1FF, BuildingClass_Mi_Selling_DetonatePostBuildup, 6)
 	return 0;
 }
 
+#include <New/Entity/FlyingStrings.h>
+
 DEFINE_OVERRIDE_HOOK(0x4D9F7B, FootClass_Sell_Detonate, 6)
 {
-	GET(FootClass* const, pSellee, ESI);
+	GET(FootClass* const, pThis, ESI);
 
-	if (const auto pBomb = pSellee->AttachedBomb) {
+	if (const auto pBomb = pThis->AttachedBomb) {
 		if (BombExtContainer::Instance.Find(pBomb)->Weapon->Ivan_DetonateOnSell.Get())
 			pBomb->Detonate();
 	}
 
-	return 0;
+	if (pThis->Owner->IsControlledByCurrentPlayer())
+	{
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+		VoxClass::PlayIndex(pTypeExt->EVA_Sold);
+		//WW used VocClass::PlayGlobal to play the SellSound, why did they do that?
+		VocClass::PlayAt(pTypeExt->SellSound, pThis->Location);
+	}
+
+	int money = pThis->GetRefund();
+	pThis->Owner->GiveMoney(money);
+
+	FlyingStrings::AddMoneyString(RulesExtData::Instance()->DisplayIncome  , money, pThis->Owner, RulesExtData::Instance()->DisplayIncome_Houses, pThis->Location);
+
+	return 0x4D9FCB;
 }
 
 // custom ivan bomb attachment

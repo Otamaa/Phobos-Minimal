@@ -41,9 +41,16 @@ DEFINE_HOOK(0x6E427D, TActionClass_CreateBuildingAt, 0x9)
 	GET(HouseClass*, pHouse, EDI);
 	REF_STACK(CoordStruct, coord, STACK_OFFS(0x24, 0x18));
 
-	bool bPlayBuildUp = pThis->Param3;
+	if (pThis->Param5) {
+		if (HouseClass::Index_IsMP(pThis->Param6))
+			pHouse = HouseClass::FindByIndex(pThis->Param6);
+		else
+			pHouse = HouseClass::FindByCountryIndex(pThis->Param6);
+	}
 
+	bool bPlayBuildUp = pThis->Param3;
 	bool bCreated = false;
+
 	if (auto pBld = static_cast<BuildingClass*>(pBldType->CreateObject(pHouse)))
 	{
 		if (bPlayBuildUp)
@@ -142,6 +149,155 @@ DEFINE_HOOK(0x6D4455, Tactical_Render_UpdateLightSources, 0x8)
 }
 
 #pragma endregion
+
+DEFINE_HOOK(0x6E0AA0, TActionClass_ChangeHouse_IncludePassengers, 0x7)
+{
+	GET(TActionClass*, pThis, ECX);
+	REF_STACK(ActionArgs const, args, 0x4);
+
+	bool changed = false;
+	if (args.pTrigger) {
+		auto NewOwner = pThis->Value;
+
+		HouseClass* NewOwnerPtr = nullptr;
+		if (NewOwner == 8997)
+			NewOwnerPtr = args.pTrigger->House;
+		else
+		{
+
+			if (NewOwner == -1)
+			{
+				R->EAX(false);
+				return 0x6E0AE7;
+			}
+
+			if (HouseClass::Index_IsMP(NewOwner))
+			{
+				NewOwnerPtr = HouseClass::FindByPlayerAt(NewOwner);
+			}
+			else
+			{
+				NewOwnerPtr = HouseClass::FindByCountryIndex(NewOwner);
+			}
+		}
+
+		if (NewOwnerPtr)
+		{
+			TechnoClass::Array->for_each([&](TechnoClass* pItem) {
+				if (!pItem->IsAlive || pItem->Health <= 0 || !pItem->IsOnMap || pItem->InLimbo)
+					return;
+
+				if (pItem->AttachedTag && pItem->AttachedTag->ContainsTrigger(args.pTrigger)) {
+					pItem->SetOwningHouse(NewOwnerPtr, false);
+
+					if (pThis->Param3 != 0 && pItem->Passengers.FirstPassenger)
+					{
+						FootClass* pPassenger = pItem->Passengers.FirstPassenger;
+
+						do
+						{
+							pPassenger->SetOwningHouse(NewOwnerPtr, false);
+							pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
+						}
+						while (pPassenger != nullptr && pPassenger->Transporter == pItem);
+					}
+
+					changed = true;
+				}
+			});
+		}
+	}
+
+	R->EAX(changed);
+	return 0x6E0AE7;
+}
+
+DEFINE_HOOK(0x6E0B60, TActionClass_SwitchAllObjectsToHouse, 0x9)
+{
+	GET(TActionClass*, pThis, ECX);
+	REF_STACK(ActionArgs const, args, 0x4);
+
+	bool changed = false;
+
+	if (args.pTrigger != nullptr)
+	{
+		auto NewOwner = pThis->Value;
+
+		HouseClass* NewOwnerPtr = nullptr;
+		if (NewOwner == 8997)
+			NewOwnerPtr = args.pTrigger->House;
+		else
+		{
+
+			if (NewOwner == -1)
+			{
+				R->EAX(false);
+				return 0x6E0AE7;
+			}
+
+			if (HouseClass::Index_IsMP(NewOwner))
+			{
+				NewOwnerPtr = HouseClass::FindByPlayerAt(NewOwner);
+			}
+			else
+			{
+				NewOwnerPtr = HouseClass::FindByCountryIndex(NewOwner);
+			}
+		}
+
+		if (NewOwnerPtr) {
+
+			TechnoClass::Array->for_each([&](TechnoClass* pItem) {
+				if (!pItem->IsAlive || pItem->Health <= 0 || pItem->Owner != args.pHouse || pItem->Owner == NewOwnerPtr)
+					 return;
+
+				if (pThis->Param3 && pItem->Passengers.FirstPassenger != nullptr)
+				{
+					FootClass* pPassenger = pItem->Passengers.FirstPassenger;
+
+					do
+					{
+						pPassenger->SetOwningHouse(NewOwnerPtr, false);
+						pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
+					}
+					while (pPassenger != nullptr && pPassenger->Transporter == pItem);
+				}
+
+				pItem->SetOwningHouse(NewOwnerPtr, false);
+
+				if (BuildingClass* pBuilding = specific_cast<BuildingClass*>(pItem)) {
+					if (pBuilding->Type->Powered || pBuilding->Type->PoweredSpecial) {
+						pBuilding->UpdatePowerDown();
+					}
+				}
+
+				changed = true;
+			});			
+		}
+	}
+
+	R->EAX(changed);
+	return 0x6E0C91;
+}
+
+DEFINE_HOOK(0x6DD614, TActionClass_LoadFromINI_GetActionIndex_ParamAsName, 0x6)
+{
+	GET(TActionClass*, pThis, EBP);
+
+	if (pThis->ActionKind == TriggerAction::PlayAnimAt) {
+		GET(char*, pName, ESI);
+
+		if (GeneralUtils::IsValidString(pName) && (pName[0] < '0' || pName[0] > '9')) {
+			const int idx = AnimTypeClass::FindIndexById(pName);
+
+			if (idx >= 0)
+				R->EDX(idx);
+		}
+	}
+
+	return 0;
+}
+
 // Bugfix, #issue 429: Retint map script disables RGB settings on light source
 // Author: secsome
 //DEFINE_HOOK_AGAIN(0x6E2F47, TActionClass_Retint_LightSourceFix, 0x3) // Blue

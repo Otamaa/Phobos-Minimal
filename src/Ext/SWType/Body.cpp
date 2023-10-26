@@ -12,7 +12,6 @@
 #include <Utilities/Macro.h>
 #include <Utilities/EnumFunctions.h>
 
-#include <Misc/AresData.h>
 #include <Misc/Ares/Hooks/Header.h>
 
 #include <Misc/PhobosToolTip.h>

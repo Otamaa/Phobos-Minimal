@@ -1,4 +1,5 @@
 #pragma once
+#include <Helpers/CompileTime.h>
 
 class FPSCounter
 {

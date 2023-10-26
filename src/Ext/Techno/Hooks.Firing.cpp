@@ -14,8 +14,6 @@
 #include <TerrainTypeClass.h>
 #include <OverlayTypeClass.h>
 
-#include <Misc/AresData.h>
-
 #include <Misc/DynamicPatcher/Techno/Passengers/PassengersFunctional.h>
 
 bool DisguiseAllowed(const TechnoTypeExtData* pThis, ObjectTypeClass* pThat)

@@ -19,8 +19,6 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 
-#include <Misc/AresData.h>
-
 #include <Conversions.h>
 #include <New/Type/ArmorTypeClass.h>
 

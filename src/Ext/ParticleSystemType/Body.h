@@ -17,6 +17,7 @@ public:
 
 	Valueable<bool> ApplyOptimization { true };
 	std::array<Point2D, (size_t)FacingType::Count> FacingMult {};
+	Valueable<bool> AdjustTargetCoordsOnRotation { true };
 
 	ParticleSystemTypeExtData() noexcept = default;
 	~ParticleSystemTypeExtData() noexcept = default;

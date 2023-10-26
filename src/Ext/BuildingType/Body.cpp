@@ -8,8 +8,6 @@
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/Macro.h>
 
-#include <Misc/AresData.h>
-
 std::vector<std::string> BuildingTypeExtData::trenchKinds;
 const DirStruct  BuildingTypeExtData::DefaultJuggerFacing = DirStruct { 0x7FFF };
 const CellStruct BuildingTypeExtData::FoundationEndMarker = { 0x7FFF, 0x7FFF };

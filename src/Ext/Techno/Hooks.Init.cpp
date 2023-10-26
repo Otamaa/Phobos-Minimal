@@ -2,7 +2,6 @@
 
 #include <Ext/TechnoType/Body.h>
 
-#include <Misc/AresData.h>
 #include <Ares_TechnoExt.h>
 
 #include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDiveFunctional.h>

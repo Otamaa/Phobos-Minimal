@@ -8,6 +8,22 @@ class REGISTERS;
 class Debug final
 {
 public:
+	enum class Severity : int {
+		None = 0,
+		Verbose = 1,
+		Notice = 2,
+		Warning = 3,
+		Error = 4,
+		Fatal = 5
+	};
+
+	static FILE* LogFile;
+	static bool LogEnabled;
+	static std::wstring LogFileName;
+	static std::wstring LogFileTempName;
+	static char DeferredStringBuffer[0x1000];
+	static char LogMessageBuffer[0x1000];
+	static std::vector<std::string> DeferredLogData;
 
 	enum class ExitCode : int
 	{
@@ -15,22 +31,57 @@ public:
 		SLFail = 114514
 	};
 
-	static char StringBuffer[0x1000];
-	static char DeferredStringBuffer[0x1000];
-	static int CurrentBufferSize;
+	static std::wstring FullDump();
+	static std::wstring FullDump(std::wstring destinationFolder);
 
-	static void FreeMouse();
-	static void Log(const char* pFormat, ...);
+	template <typename... TArgs>
+	static void Log(bool enabled, Debug::Severity severity, const char* const pFormat, TArgs&&... args) {
+		if (enabled) {
+			Debug::Log(severity, pFormat, std::forward<TArgs>(args)...);
+		}
+	}
+
+	template <typename... TArgs>
+	static void Log(bool enabled, const char* const pFormat, TArgs&&... args) {
+		if (enabled) {
+			Debug::Log(pFormat, std::forward<TArgs>(args)...);
+		}
+	}
+
+	template <typename... TArgs>
+	static void Log(Debug::Severity severity, const char* const pFormat, TArgs&&... args) {
+		Debug::LogFlushed(severity, pFormat, std::forward<TArgs>(args)...);
+	}
+
+	template <typename... TArgs>
+	static void Log(const char* const pFormat, TArgs&&... args) {
+		Debug::LogFlushed(pFormat, std::forward<TArgs>(args)...);
+	}
+
+	static void LogWithVArgs(const char* const pFormat, va_list args);
+
+	static bool LogFileActive() {
+		return Debug::LogEnabled && Debug::LogFile;
+	}
+
 	static void LogDeferred(const char* pFormat, ...);
 	static void LogDeferredFinalize();
+
 	static void LogAndMessage(const char* pFormat, ...);
-	static void LogWithVArgs(const char* pFormat, va_list args);
-	static void INIParseFailed(const char* section, const char* flag, const char* value, const char* Message = nullptr);
-	[[noreturn]] static void FatalErrorAndExit(const char* pFormat, ...);
+
+	static void MakeLogFile();
+	static void LogFileOpen();
+	static void LogFileClose(int tag);
+	static void LogFileRemove();
+
+	static void FreeMouse();
+
+	static void ExitGame();
 
 	static void FatalError(bool Dump = false); /* takes formatted message from Ares::readBuffer */
 	static void FatalError(const char* Message, ...);
 	[[noreturn]] static void FatalErrorAndExit(ExitCode nExitCode, const char* pFormat, ...);
+	[[noreturn]] static void FatalErrorAndExit(const char* pFormat, ...);
 
 	static void RegisterParserError() {
 		if (Phobos::Otamaa::TrackParserErrors) {
@@ -38,73 +89,43 @@ public:
 		}
 	}
 
-#pragma region Otamaa
-	static void DumpStack(const char* function, REGISTERS* R, size_t len, int startAt = 0);
 	static void DumpObj(void const* data, size_t len);
-	static void TestPointer(AbstractClass* pAbstract);
 
 	template <typename T>
-	static void DumpObj(const T& object)
-	{
+	static void DumpObj(const T& object) {
 		DumpObj(&object, sizeof(object));
 	}
 
-	template <typename... TArgs>
-	static void Log_WithBool(bool bDisable, const char* const pFormat, TArgs&&... args)
+	static void INIParseFailed(const char* section, const char* flag, const char* value, const char* Message = nullptr);
+
+	static const char* SeverityString(Debug::Severity const severity)
 	{
-		if (!bDisable)
+		switch (severity)
 		{
-			Debug::Log(pFormat, std::forward<TArgs>(args)...);
+		case Severity::Verbose:
+			return "verbose";
+		case Severity::Notice:
+			return "notice";
+		case Severity::Warning:
+			return "warning";
+		case Severity::Error:
+			return "error";
+		case Severity::Fatal:
+			return "fatal";
+		default:
+			return "wtf";
 		}
 	}
 
-	template <typename ... TArgs>
-	static void Log_Masselist(const char* const pFormat, TArgs&&... args)
-	{
-		char buffer[0x800] = { 0 };
+	static void __cdecl LogFlushed(const char* pFormat, ...);
+	static void __cdecl LogFlushed(Debug::Severity severity, const char* pFormat, ...);
 
-		auto append = [&buffer](const char* pFormat, ...)
-		{
-			va_list args;
-			va_start(args, pFormat);
-			vsprintf_s(Phobos::readBuffer, pFormat, args);
-			va_end(args);
-			strcat_s(buffer, Phobos::readBuffer);
-		};
-
-		auto display = [&buffer]()
-		{
-			memset(Phobos::wideBuffer, 0, sizeof Phobos::wideBuffer);
-			size_t nCharConvertedRecord;
-			mbstowcs_s(&nCharConvertedRecord, Phobos::wideBuffer, buffer, strlen(buffer));
-				UNREFERENCED_PARAMETER(nCharConvertedRecord);
-			MessageListClass::Instance->PrintMessage(Phobos::wideBuffer, 600, 5, true);
-			Debug::Log("%s\n", buffer);
-			buffer[0] = 0;
-		};
-
-		append(pFormat, std::forward<TArgs>(args)...);
-		display();
-	}
-
-	static void Time(char* ret)
-	{
-		SYSTEMTIME Sys;
-		GetLocalTime(&Sys);
-		sprintf_s(ret, 24, "%04d/%02d/%02d %02d:%02d:%02d:%03d",
-			Sys.wYear, Sys.wMonth, Sys.wDay, Sys.wHour, Sys.wMinute,
-			Sys.wSecond, Sys.wMilliseconds);
-	}
-
-	static void DumpStack(const char* function, size_t len, int startAt = 0);
+	// no flushing, and unchecked
 	static void __cdecl LogUnflushed(const char* pFormat, ...);
-
-	static void ExitGame();
-private:
 	static void LogWithVArgsUnflushed(const char* pFormat, va_list args);
-#pragma endregion
 
-	//static void __cdecl WriteLog(const char* pFormat, ...);
+	// flush unchecked
+	static void Flush();
 };
 
 class Console

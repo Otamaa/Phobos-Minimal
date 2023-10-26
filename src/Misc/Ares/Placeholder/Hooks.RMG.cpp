@@ -200,3 +200,47 @@ DEFINE_OVERRIDE_HOOK(0x5A66B0, MapSeedClass_Generate_PlaceUrbanStructures_Sanity
 		: 0x5A68D8
 		;
 }
+
+DEFINE_DISABLE_HOOK(0x5A5C6A, MapSeedClass_Generate_PlacePavedRoads_RoadEndNE_ares) //, 9, 5A5CC8)
+DEFINE_JUMP(LJMP, 0x5A5C6A, 0x5A5CC8);
+
+DEFINE_DISABLE_HOOK(0x5A5D6F, MapSeedClass_Generate_PlacePavedRoads_RoadEndSW_ares) //, 9, 5A5DB8)
+DEFINE_JUMP(LJMP, 0x5A5D6F, 0x5A5DB8);
+
+DEFINE_DISABLE_HOOK(0x5A5F6A, MapSeedClass_Generate_PlacePavedRoads_RoadEndNW_ares) //, 8, 5A5FF8)
+DEFINE_JUMP(LJMP, 0x5A5F6A, 0x5A5FF8);
+
+DEFINE_DISABLE_HOOK(0x5A6464, MapSeedClass_Generate_PlacePavedRoads_RoadEndSE_ares) //, 9, 5A64AD)
+DEFINE_JUMP(LJMP, 0x5A6464, 0x5A64AD);
+
+DEFINE_DISABLE_HOOK(0x59000E, RMG_FixPavedRoadEnd_Bridges_North) //, 5, 590087)
+DEFINE_JUMP(LJMP, 0x59000E, 0x590087);
+
+DEFINE_DISABLE_HOOK(0x5900F7, RMG_FixPavedRoadEnd_Bridges_South) //, 5, 59015E)
+DEFINE_JUMP(LJMP, 0x5900F7, 0x59015E);
+
+DEFINE_DISABLE_HOOK(0x58FCC6, RMG_FixPavedRoadEnd_Bridges_West) //, 5, 58FD2A)
+DEFINE_JUMP(LJMP, 0x58FCC6, 0x58FD2A);
+
+DEFINE_DISABLE_HOOK(0x58FBDD, RMG_FixPavedRoadEnd_Bridges_East) //, 5, 58FC55)
+DEFINE_JUMP(LJMP, 0x58FBDD, 0x58FC55);
+
+DEFINE_OVERRIDE_HOOK(0x58FA51, RMG_PlaceWEBridge, 6)
+{
+	LEA_STACK(const RectangleStruct* const, pRect, 0x14);
+
+	//it's a WE bridge
+	return (pRect->Width > pRect->Height)
+		? 0x58FA73
+		: 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x58FE7B, RMG_PlaceNSBridge, 8)
+{
+	LEA_STACK(const RectangleStruct* const, pRect, 0x14);
+
+	//it's a NS bridge
+	return (pRect->Height > pRect->Width)
+		? 0x58FE91
+		: 0;
+}

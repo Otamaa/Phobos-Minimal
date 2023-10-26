@@ -1,7 +1,7 @@
 #include "ChronoWarp.h"
 
 #include <Ext/Building/Body.h>
-#include <Misc/AresData.h>
+
 #include <Utilities/Helpers.h>
 
 bool SW_ChronoWarp::HandleThisType(SuperWeaponType type) const

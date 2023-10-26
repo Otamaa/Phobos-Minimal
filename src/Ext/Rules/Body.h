@@ -279,6 +279,8 @@ public:
 	Valueable<bool> TypeSelectUseDeploy { true };
 	Nullable<int> StartInMultiplayerUnitCost { };
 
+	bool FPSCounter { false };
+
 	AircraftPutDataRules MyPutData { };
 
 	RulesExtData() noexcept = default;

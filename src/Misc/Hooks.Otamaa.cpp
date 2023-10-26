@@ -13,8 +13,6 @@
 #include <Ext/Infantry/Body.h>
 #include <Ext/InfantryType/Body.h>
 
-#include <Misc/AresData.h>
-
 #include <InfantryClass.h>
 #include <VeinholeMonsterClass.h>
 #include <TerrainTypeClass.h>
@@ -1518,7 +1516,6 @@ DEFINE_HOOK(0x51A2EF, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
 {
 	GET(BuildingClass* const, pBuilding, EDI);
 	VocClass::PlayIndexAtPos(pBuilding->Type->EnterBioReactorSound, pBuilding->GetCoords(), 0);
-
 	return 0x51A30F;
 }
 
@@ -4134,6 +4131,22 @@ DEFINE_HOOK(0x6FFD25, TechnoClass_PlayerAssignMission_Capture_InfantryToBld, 0xA
 }
 
 static_assert(offsetof(TechnoClass, Airstrike) == 0x294, "ClassMember Shifted !");
+
+DEFINE_HOOK_AGAIN(0x4F9A10, HouseClass_IsAlliedWith, 0x6)
+DEFINE_HOOK_AGAIN(0x4F9A50, HouseClass_IsAlliedWith, 0x6)
+DEFINE_HOOK_AGAIN(0x4F9AF0, HouseClass_IsAlliedWith, 0x7)
+DEFINE_HOOK(0x4F9A90, HouseClass_IsAlliedWith, 0x7)
+{
+	GET(HouseClass*, pThis, ECX);
+	GET_STACK(DWORD, called, 0x0);
+
+	if (!pThis) {
+		Debug::FatalError("HouseClass - IsAlliedWith , Called from[%x] with `nullptr` pointer !\n", called);
+	}
+
+	return 0;
+}
+
 //#include <Ext/Cell/Body.h>
 
 //TODO : another place to reset ?

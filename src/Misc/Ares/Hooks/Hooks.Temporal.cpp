@@ -23,7 +23,7 @@
 
 #include <TerrainTypeClass.h>
 #include <New/Type/ArmorTypeClass.h>
-#include <Misc/AresData.h>
+
 #include <Notifications.h>
 
 #include <Ext/House/Body.h>

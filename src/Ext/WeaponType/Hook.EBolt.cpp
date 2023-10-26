@@ -2,8 +2,6 @@
 #include <EBolt.h>
 #include <map>
 
-#include <Misc/AresData.h>
-
 DEFINE_OVERRIDE_HOOK(0x6FD469, TechnoClass_FireEBolt, 9)
 {
 	//GET(TechnoClass*, pThis, EDI);

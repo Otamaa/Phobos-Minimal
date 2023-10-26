@@ -2,25 +2,30 @@
 #include "Macro.h"
 #include <Phobos.h>
 
+
+#include <MouseClass.h>
+#include <WWMouseClass.h>
+#include <Surface.h>
+
+#include <Misc/Ares/Hooks/Classes/Dialogs.h>
+
 #include <MessageListClass.h>
 #include <CRT.h>
 #include <YRPPCore.h>
 #include <AbstractClass.h>
 #include <vector>
 #include <Phobos.h>
-#include <Misc/AresData.h>
 
-char Debug::StringBuffer[0x1000];
 char Debug::DeferredStringBuffer[0x1000];
-static std::vector<std::string> DeferredLogData;
+char Debug::LogMessageBuffer[0x1000];
+std::vector<std::string> Debug::DeferredLogData;
+bool Debug::LogEnabled = false;
+FILE* Debug::LogFile = nullptr;
+std::wstring Debug::LogFileName;
+std::wstring Debug::LogFileTempName;
 
 // push    0x860A0000; vs 0x02CA0000
 //DEFINE_RAW_PATCH(0x777CC0, CreateMainWindow , 0x68, 0x00, 0x00, 0x0A, 0x86)
-
-void Debug::Log(const char* pFormat, ...)
-{
-	JMP_STD(0x4068E0);
-}
 
 //This log is not immedietely printed , but buffered until time it need to be finalize(printed)
 void Debug::LogDeferred(const char* pFormat, ...)
@@ -44,18 +49,12 @@ void Debug::LogAndMessage(const char* pFormat, ...)
 {
 	va_list args;
 	va_start(args, pFormat);
-	vsprintf_s(StringBuffer, pFormat, args);
-	Log("%s", StringBuffer);
+	vsprintf_s(LogMessageBuffer, pFormat, args);
+	Log("%s", LogMessageBuffer);
 	va_end(args);
 	wchar_t buffer[0x1000];
-	mbstowcs(buffer, StringBuffer, 0x1000);
+	mbstowcs(buffer, LogMessageBuffer, 0x1000);
 	MessageListClass::Instance->PrintMessage(buffer);
-}
-
-void Debug::LogWithVArgs(const char* pFormat, va_list args)
-{
-	vsprintf_s(StringBuffer, pFormat, args);
-	Log("%s", StringBuffer);
 }
 
 void Debug::INIParseFailed(const char* section, const char* flag, const char* value, const char* Message)
@@ -95,92 +94,70 @@ void __SUNINI_TORA2MD(const char* pFormat, ...) {
 }
 DEFINE_JUMP(CALL, 0x5FA636, GET_OFFSET(__SUNINI_TORA2MD));
 
-#pragma region Otamaa
-void Debug::DumpStack(const char* function, REGISTERS* R, size_t len, int startAt)
-{
-	Debug::LogUnflushed("Phobos::Dumping %X bytes of stack from [%s]\n", len, function);
-	auto const end = len / 4;
-	auto const* const mem = R->lea_Stack<DWORD*>(startAt);
-	for (auto i = 0u; i < end; ++i)
-	{
-		Debug::LogUnflushed("esp+%04X = %08X\n", i * 4, mem[i]);
-	}
-	Debug::Log("Phobos::Dumping[%s] Done.\n", function); // flushes
-}
-
-void __cdecl Debug::LogUnflushed(const char* const pFormat, ...)
-{
-	va_list args;
-	va_start(args, pFormat);
-	Debug::LogWithVArgsUnflushed(pFormat, args);
-	va_end(args);
-}
-
 void Debug::LogWithVArgsUnflushed(
 	const char* const pFormat, va_list const args)
 {
-	LogWithVArgs(pFormat, args);
+	vfprintf(Debug::LogFile, pFormat, args);
 }
 
-void Debug::TestPointer(AbstractClass* pAbstract)
+void Debug::LogFileOpen()
 {
-	Debug::Log("Phobos::What Pointer it Is [%d].\n", pAbstract->WhatAmI());
+	Debug::MakeLogFile();
+	Debug::LogFileClose(999);
+
+	LogFile = _wfsopen(Debug::LogFileTempName.c_str(), L"w", _SH_DENYWR);
+	if (!LogFile)
+	{
+		wchar_t msg[100] = L"\0";
+		wsprintfW(msg, L"Log file failed to open. Error code = %X", errno);
+		MessageBoxW(Game::hWnd, Debug::LogFileTempName.c_str(), msg, MB_OK | MB_ICONEXCLAMATION);
+		ExitProcess(1);
+	}
 }
 
-void Debug::DumpObj(void const* const data, size_t const len)
+void Debug::LogFileClose(int tag)
 {
-
-	Debug::LogUnflushed("Phobos::Dumping %u bytes of object at %p\n", len, data);
-	auto const bytes = static_cast<byte const*>(data);
-
-	Debug::LogUnflushed("       |");
-	for (auto i = 0u; i < 0x10u; ++i)
+	if (Debug::LogFile)
 	{
-		Debug::LogUnflushed(" %02X |", i);
+		fprintf(Debug::LogFile, "Closing log file on request %d", tag);
+		fclose(Debug::LogFile);
+		CopyFileW(Debug::LogFileTempName.c_str(), Debug::LogFileName.c_str(), FALSE);
+		Debug::LogFile = nullptr;
 	}
-
-	Debug::LogUnflushed("\n");
-	Debug::LogUnflushed("-------|");
-	for (auto i = 0u; i < 0x10u; ++i)
-	{
-		Debug::LogUnflushed("----|", i);
-	}
-	auto const bytesToPrint = (len + 0x10 - 1) / 0x10 * 0x10;
-	for (auto startRow = 0u; startRow < bytesToPrint; startRow += 0x10)
-	{
-		Debug::LogUnflushed("\n");
-		Debug::LogUnflushed(" %05X |", startRow);
-		auto const bytesInRow = MinImpl(len - startRow, 0x10u);
-		for (auto i = 0u; i < bytesInRow; ++i)
-		{
-			Debug::LogUnflushed(" %02X |", bytes[startRow + i]);
-		}
-		for (auto i = bytesInRow; i < 0x10u; ++i)
-		{
-			Debug::LogUnflushed(" -- |");
-		}
-		for (auto i = 0u; i < bytesInRow; ++i)
-		{
-			auto const& sym = bytes[startRow + i];
-			Debug::LogUnflushed("%c", isprint(sym) ? sym : '?');
-		}
-	}
-	Debug::Log("\nPhobos::End of dump.\n"); // flushes
 }
 
-void Debug::DumpStack(const char* function, size_t len, int startAt)
+void Debug::MakeLogFile()
 {
-	Debug::LogUnflushed("Phobos::Dumping %X bytes of stack from [%s]\n", len, function);
-	auto const end = len / 4;
-	DWORD lea_nData;
-	_asm {mov lea_nData, esp};
-	auto const* const mem = reinterpret_cast<DWORD*>(static_cast<DWORD>(lea_nData + static_cast<DWORD>(startAt)));
-
-	for (auto i = 0u; i < end; ++i)
+	static bool made = 0;
+	if (!made)
 	{
-		Debug::LogUnflushed("esp+%04X = %08X\n", i * 4, mem[i]);
+		wchar_t path[MAX_PATH];
+
+		SYSTEMTIME time;
+
+		GetLocalTime(&time);
+		GetCurrentDirectoryW(MAX_PATH, path);
+
+		Debug::LogFileName = path;
+		Debug::LogFileName += L"\\debug";
+
+		CreateDirectoryW(Debug::LogFileName.c_str(), nullptr);
+
+		wchar_t subpath[64];
+		swprintf(subpath, 64, L"\\debug.%04u%02u%02u-%02u%02u%02u.log",
+			time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond);
+
+		Debug::LogFileTempName = Debug::LogFileName + L"\\debug.log";
+		Debug::LogFileName += subpath;
+
+		made = 1;
 	}
-	Debug::Log("Phobos::Dumping[%s] Done.\n", function); // flushes
+}
+
+void Debug::LogFileRemove()
+{
+	Debug::LogFileClose(555);
+	DeleteFileW(Debug::LogFileTempName.c_str());
 }
 
 void Debug::FreeMouse()
@@ -244,75 +221,110 @@ void Debug::FatalError(const char* Message, ...)
 	Debug::FatalError(false);
 }
 
-#include <MouseClass.h>
-#include <WWMouseClass.h>
-#include <Surface.h>
-
 void Debug::ExitGame()
 {
-	Ares_IsShuttingDown = true;
 	Phobos::ExeTerminate();
 	ExitProcess(1u);
 }
 
-#pragma endregion
-
-
-static DWORD _Real_Debug_Log = 0x4A4AF9;
-void __declspec(naked) _Fake_Debug_Log()
+void Debug::Flush()
 {
-	// va_start(args, pFormat);
-	// Console::WriteWithVArgs(pFormat, args);
-	// // va_end(args);
-	// No need to use va_end here.
-	//
-	// As Console::WriteWithVArgs uses __fastcall,
-	// ECX: pFormat, EDX: args
-	__asm { mov ecx, [esp + 0x4] }
-	__asm { lea edx, [esp + 0x8] }
-	__asm { call Console::WriteWithVArgs }
-	// __asm { mov edx, 0}
-
-	// goto original bytes
-	__asm { mov eax, _Real_Debug_Log }
-	__asm { jmp eax }
+	fflush(Debug::LogFile);
 }
 
-static DWORD AresLogPatchJmp1;
-void __declspec(naked) AresLogPatch1()
+std::wstring Debug::FullDump()
 {
-	static va_list args;
-	static const char* pFormat;
-
-	__asm { mov eax, [esp + 0x4] }
-	__asm { mov pFormat, eax }
-
-	__asm { lea eax, [esp + 0x8] };
-	__asm { mov args, eax }
-
-	Console::WriteWithVArgs(pFormat, args);
-
-	__asm { mov args, 0 }
-
-	JMP(AresLogPatchJmp1);
+	return Dialogs::FullDump();
 }
-static DWORD AresLogPatchJmp2;
-void __declspec(naked) AresLogPatch2()
+
+std::wstring Debug::FullDump(std::wstring destinationFolder)
 {
-	static va_list args;
-	static const char* pFormat;
+	return Dialogs::FullDump(std::move(destinationFolder));
+}
 
-	__asm { mov eax, [esp + 0x4] }
-	__asm { mov pFormat, eax}
+void Debug::DumpObj(void const* const data, size_t const len)
+{
+	if (!Debug::LogFileActive())
+	{
+		return;
+	}
+	Debug::LogUnflushed("Dumping %u bytes of object at %p\n", len, data);
+	auto const bytes = static_cast<byte const*>(data);
 
-	__asm { lea eax, [esp + 0x8] };
-	__asm { mov args, eax }
+	Debug::LogUnflushed("       |");
+	for (auto i = 0u; i < 0x10u; ++i)
+	{
+		Debug::LogUnflushed(" %02X |", i);
+	}
+	Debug::LogUnflushed("\n");
+	Debug::LogUnflushed("-------|");
+	for (auto i = 0u; i < 0x10u; ++i)
+	{
+		Debug::LogUnflushed("----|", i);
+	}
+	auto const bytesToPrint = (len + 0x10 - 1) / 0x10 * 0x10;
+	for (auto startRow = 0u; startRow < bytesToPrint; startRow += 0x10)
+	{
+		Debug::LogUnflushed("\n");
+		Debug::LogUnflushed(" %05X |", startRow);
+		auto const bytesInRow = std::min(len - startRow, 0x10u);
+		for (auto i = 0u; i < bytesInRow; ++i)
+		{
+			Debug::LogUnflushed(" %02X |", bytes[startRow + i]);
+		}
+		for (auto i = bytesInRow; i < 0x10u; ++i)
+		{
+			Debug::LogUnflushed(" -- |");
+		}
+		for (auto i = 0u; i < bytesInRow; ++i)
+		{
+			auto const& sym = bytes[startRow + i];
+			Debug::LogUnflushed("%c", isprint(sym) ? sym : '?');
+		}
+	}
+	Debug::Log("\nEnd of dump.\n"); // flushes
+}
 
-	Console::WriteWithVArgs(pFormat, args);
+void Debug::LogWithVArgs(const char* const pFormat, va_list const args)
+{
+	if (Debug::LogFileActive())
+	{
+		Debug::LogWithVArgsUnflushed(pFormat, args);
+		Debug::Flush();
+	}
+}
 
-	__asm { mov args, 0 }
+void __cdecl Debug::LogUnflushed(const char* const pFormat, ...)
+{
+	va_list args;
+	va_start(args, pFormat);
+	Debug::LogWithVArgsUnflushed(pFormat, args);
+	va_end(args);
+}
 
-	JMP(AresLogPatchJmp2);
+void __cdecl Debug::LogFlushed(
+	Debug::Severity const severity, const char* const pFormat, ...)
+{
+	if (Debug::LogFileActive())
+	{
+		if (severity != Severity::None)
+		{
+			Debug::LogUnflushed(
+				"[Developer %s]", SeverityString(severity));
+		}
+		va_list args;
+		va_start(args, pFormat);
+		Debug::LogWithVArgs(pFormat, args);
+		va_end(args);
+	}
+}
+
+void Debug::LogFlushed(const char* const pFormat, ...)
+{
+	va_list args;
+	va_start(args, pFormat);
+	Debug::LogWithVArgs(pFormat, args);
+	va_end(args);
 }
 
 Console::ConsoleTextAttribute Console::TextAttribute;
@@ -332,9 +344,6 @@ bool Console::Create()
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	GetConsoleScreenBufferInfo(ConsoleHandle, &csbi);
 	TextAttribute.AsWord = csbi.wAttributes;
-
-	PatchLog(0x4A4AC0, _Fake_Debug_Log, &_Real_Debug_Log);
-	PatchLog(0x4068E0, _Fake_Debug_Log, nullptr);
 
 	return true;
 }
@@ -395,8 +404,8 @@ void Console::WriteLine(const char* str, int len)
 
 void __fastcall Console::WriteWithVArgs(const char* pFormat, va_list args)
 {
-	vsprintf_s(Debug::StringBuffer, pFormat, args);
-	Write(Debug::StringBuffer, strlen(Debug::StringBuffer));
+	vsprintf_s(Debug::LogMessageBuffer, pFormat, args);
+	Write(Debug::LogMessageBuffer, strlen(Debug::LogMessageBuffer));
 }
 
 void Console::WriteFormat(const char* pFormat, ...)

@@ -2,7 +2,6 @@
 
 #include <Ares_TechnoExt.h>
 
-#include <Misc/AresData.h>
 #include <Ext/Building/Body.h>
 
 #include <Misc/Ares/Hooks/Header.h>

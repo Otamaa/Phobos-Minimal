@@ -8,7 +8,6 @@
 #include <Ext/BuildingType/Body.h>
 
 #include <New/Entity/FlyingStrings.h>
-#include <Misc/AresData.h>
 
 void BuildingExtData::InitializeConstant()
 {

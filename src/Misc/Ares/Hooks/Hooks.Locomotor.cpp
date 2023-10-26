@@ -8,7 +8,6 @@
 
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
-#include <Misc/AresData.h>
 #include <Strsafe.h>
 
 #include <Ext/Anim/Body.h>

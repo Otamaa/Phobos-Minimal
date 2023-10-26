@@ -38,7 +38,9 @@ void ParticleSystemTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFail
 	default:
 		break;
 	}
+
 	this->ApplyOptimization.Read(exINI, pID, "ApplyOptimization");
+	this->AdjustTargetCoordsOnRotation.Read(exINI, pID, "AdjustTargetCoordsOnRotation");
 
 	if (pThis->LightSize > 94)
 		Debug::Log("ParticleSystem[%s] with LightSize > 94 value [%d]\n", pID , pThis->LightSize);
@@ -51,8 +53,10 @@ template <typename T>
 void ParticleSystemTypeExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(this->ApplyOptimization)
 		.Process(this->FacingMult)
+		.Process(this->AdjustTargetCoordsOnRotation)
 		;
 }
 

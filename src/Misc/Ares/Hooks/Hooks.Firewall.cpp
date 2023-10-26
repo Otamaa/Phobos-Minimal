@@ -8,8 +8,6 @@
 #include <Ext/Bullet/Body.h>
 #include <Ext/WarheadType/Body.h>
 
-#include <Misc/AresData.h>
-
 #include "Header.h"
 #include "AresTrajectoryHelper.h"
 

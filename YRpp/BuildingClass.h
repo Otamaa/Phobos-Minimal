@@ -312,8 +312,12 @@ public:
 		JMP_THIS(0x449BC0);
 	}
 
-	void UpdateAnimations() {
+	void UpdateAnimations() const {
 		JMP_THIS(0x4509D0);
+	}
+
+	void UpdatePowerDown() const {
+		JMP_THIS(0x4549B0);
 	}
 
 	int DrawInfoTipAndSpiedSelection(Point2D* pLocation, RectangleStruct* pRect) const

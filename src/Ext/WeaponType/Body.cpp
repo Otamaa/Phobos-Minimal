@@ -193,6 +193,9 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Beam_Color.Read(exINI, pSection, "Beam.Color");
 
 	this->Bolt_ParticleSys_Enabled.Read(exINI, pSection, "Bolt.DisableParticleSystems");
+
+	this->AmbientDamage_Warhead.Read(exINI, pSection, "AmbientDamage.Warhead");
+	this->AmbientDamage_IgnoreTarget.Read(exINI, pSection, "AmbientDamage.IgnoreTarget");
 }
 
 ColorStruct WeaponTypeExtData::GetBeamColor() const
@@ -308,6 +311,9 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->Beam_IsHouseColor)
 
 		.Process(this->Bolt_ParticleSys_Enabled)
+
+		.Process(this->AmbientDamage_Warhead)
+		.Process(this->AmbientDamage_IgnoreTarget)
 		;
 
 	MyAttachFireDatas.Serialize(Stm);

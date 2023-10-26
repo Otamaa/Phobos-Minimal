@@ -1,7 +1,7 @@
 #include "FPSCounter.h"
 
-#include <Misc/AresData.h>
 #include <Utilities/GeneralUtils.h>
+#include <Ext/Rules/Body.h>
 
 const char* FPSCounterCommandClass::GetName() const
 {
@@ -25,5 +25,5 @@ const wchar_t* FPSCounterCommandClass::GetUIDescription() const
 
 void FPSCounterCommandClass::Execute(WWKey dwUnk) const
 {
-	Ares_FPSCounter = !Ares_FPSCounter;
+	RulesExtData::Instance()->FPSCounter = !RulesExtData::Instance()->FPSCounter;
 }

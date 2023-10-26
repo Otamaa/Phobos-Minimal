@@ -1,7 +1,6 @@
 #include "EMPulse.h"
 
 #include <Utilities/Helpers.h>
-#include <Misc/AresData.h>
 
 #include <Ext/Building/Body.h>
 #include <Ext/Bullet/Body.h>

@@ -1,4 +1,5 @@
- #include <AbstractClass.h>
+
+#include <AbstractClass.h>
 #include <TechnoClass.h>
 #include <TeamClass.h>
 #include <FootClass.h>
@@ -26,17 +27,39 @@
 #include <Ext/InfantryType/Body.h>
 #include <Ext/TeamType/Body.h>
 #include <Ext/HouseType/Body.h>
+#include <Ext/SWType/Body.h>
+#include <Ext/Super/Body.h>
+#include <Ext/Techno/Body.h>
+#include <Ext/Tiberium/Body.h>
+#include <Ext/ParticleType/Body.h>
+#include <Ext/Particle/Body.h>
 
-#include <TerrainTypeClass.h>
+#include <Utilities/Helpers.h>
+
 #include <Locomotor/HoverLocomotionClass.h>
+
 #include <New/Type/ArmorTypeClass.h>
 
 #include <Misc/PhobosGlobal.h>
 
+#include <WWKeyboardClass.h>
+#include <MPGameModeClass.h>
+#include <LoadOptionsClass.h>
+#include <VersionHelpers.h>
+#include <FPSCounter.h>
+#include <EventClass.h>
+#include <dxcore.h>
+#include <TerrainTypeClass.h>
 #include <Notifications.h>
+
 #include <strsafe.h>
 
+
+#include "AresChecksummer.h"
+#include "Classes/Dialogs.h"
+
 #include "Header.h"
+
 #include <Ares_TechnoExt.h>
 
 DEFINE_DISABLE_HOOK(0x6d4684, TacticalClass_Draw_FlyingStrings_ares)
@@ -633,13 +656,6 @@ DEFINE_OVERRIDE_HOOK(0x716D98, TechnoTypeClass_Load_Palette, 0x5)
 	return pThis->PaletteFile[0] == 0 ? 0x716DAA : 0x716D9D;
 }
 
-#include <Misc/AresData.h>
-#include <Ext/SWType/Body.h>
-#include <Ext/Super/Body.h>
-#include <Ext/Techno/Body.h>
-#include <Ext/Tiberium/Body.h>
-
-
 // this was only a leftover stub from TS. reimplemented
 // using the same mechanism.
 DEFINE_OVERRIDE_HOOK(0x489270, CellChainReact, 5)
@@ -906,50 +922,6 @@ DEFINE_OVERRIDE_HOOK(0x67E74A, LoadGame_EarlyLoadSides, 5)
 DEFINE_DISABLE_HOOK(0x67F281, LoadGame_LateSkipSides_ares) //, 7, 67F2BF)
 DEFINE_JUMP(LJMP, 0x67F281, 0x67F2BF);
 
-DEFINE_DISABLE_HOOK(0x5A5C6A, MapSeedClass_Generate_PlacePavedRoads_RoadEndNE_ares) //, 9, 5A5CC8)
-DEFINE_JUMP(LJMP, 0x5A5C6A, 0x5A5CC8);
-
-DEFINE_DISABLE_HOOK(0x5A5D6F, MapSeedClass_Generate_PlacePavedRoads_RoadEndSW_ares) //, 9, 5A5DB8)
-DEFINE_JUMP(LJMP, 0x5A5D6F, 0x5A5DB8);
-
-DEFINE_DISABLE_HOOK(0x5A5F6A, MapSeedClass_Generate_PlacePavedRoads_RoadEndNW_ares) //, 8, 5A5FF8)
-DEFINE_JUMP(LJMP, 0x5A5F6A, 0x5A5FF8);
-
-DEFINE_DISABLE_HOOK(0x5A6464, MapSeedClass_Generate_PlacePavedRoads_RoadEndSE_ares) //, 9, 5A64AD)
-DEFINE_JUMP(LJMP, 0x5A6464, 0x5A64AD);
-
-DEFINE_DISABLE_HOOK(0x59000E, RMG_FixPavedRoadEnd_Bridges_North) //, 5, 590087)
-DEFINE_JUMP(LJMP, 0x59000E, 0x590087);
-
-DEFINE_DISABLE_HOOK(0x5900F7, RMG_FixPavedRoadEnd_Bridges_South) //, 5, 59015E)
-DEFINE_JUMP(LJMP, 0x5900F7, 0x59015E);
-
-DEFINE_DISABLE_HOOK(0x58FCC6, RMG_FixPavedRoadEnd_Bridges_West) //, 5, 58FD2A)
-DEFINE_JUMP(LJMP, 0x58FCC6, 0x58FD2A);
-
-DEFINE_DISABLE_HOOK(0x58FBDD, RMG_FixPavedRoadEnd_Bridges_East) //, 5, 58FC55)
-DEFINE_JUMP(LJMP, 0x58FBDD, 0x58FC55);
-
-DEFINE_OVERRIDE_HOOK(0x58FA51, RMG_PlaceWEBridge, 6)
-{
-	LEA_STACK(const RectangleStruct* const, pRect, 0x14);
-
-	//it's a WE bridge
-	return (pRect->Width > pRect->Height)
-		? 0x58FA73
-		: 0;
-}
-
-DEFINE_OVERRIDE_HOOK(0x58FE7B, RMG_PlaceNSBridge, 8)
-{
-	LEA_STACK(const RectangleStruct* const, pRect, 0x14);
-
-	//it's a NS bridge
-	return (pRect->Height > pRect->Width)
-		? 0x58FE91
-		: 0;
-}
-
 // fix for ultra-fast processors overrunning the performance evaluator function
 DEFINE_OVERRIDE_HOOK(0x5CB0B1, Game_QueryPerformance, 5)
 {
@@ -1002,18 +974,12 @@ DEFINE_OVERRIDE_HOOK(0x65757C, RadarClass_UpdateMinimap_Unlock, 8)
 	return R->EAX() ? 0x657584 : 0x6576A5;
 }
 
-#include <WWKeyboardClass.h>
-
 DEFINE_OVERRIDE_HOOK(0x4B769B, ScenarioClass_GenerateDropshipLoadout, 5)
 {
 	WWKeyboardClass::Instance->Clear();
 	WWMouseClass::Instance->ShowCursor();
 	return 0x4B76A0;
 }
-
-#include <Utilities/Helpers.h>
-#include <Ext/ParticleType/Body.h>
-#include <Ext/Particle/Body.h>
 
 DEFINE_OVERRIDE_HOOK(0x48248D, CellClass_CrateBeingCollected_MoneyRandom, 6)
 {
@@ -1278,18 +1244,18 @@ DEFINE_OVERRIDE_HOOK(0x4ABFBE, DisplayClass_LeftMouseButtonUp_ExecPowerToggle, 7
 		;
 }
 
-// DEFINE_OVERRIDE_HOOK(0x52E9AA, Frontend_WndProc_Checksum, 5)
-// {
-// 	if (SessionClass::Instance->GameMode == GameMode::LAN || SessionClass::Instance->GameMode == GameMode::Internet)
-// 	{
-// 		auto nHashes = HashData::GetINIChecksums();
-// 		Debug::Log("Rules checksum: %08X\n", nHashes.Rules);
-// 		Debug::Log("Art checksum: %08X\n", nHashes.Art);
-// 		Debug::Log("AI checksum: %08X\n", nHashes.AI);
-// 	}
-//
-// 	return 0;
-// }
+DEFINE_OVERRIDE_HOOK(0x52E9AA, Frontend_WndProc_Checksum, 5)
+{
+	if (SessionClass::Instance->GameMode == GameMode::LAN || SessionClass::Instance->GameMode == GameMode::Internet)
+	{
+		auto nHashes = HashData::GetINIChecksums();
+		Debug::Log("Rules checksum: %08X\n", nHashes.Rules);
+		Debug::Log("Art checksum: %08X\n", nHashes.Art);
+		Debug::Log("AI checksum: %08X\n", nHashes.AI);
+	}
+
+	return 0;
+}
 
 DEFINE_OVERRIDE_HOOK(0x480534, CellClass_AttachesToNeighbourOverlay, 5)
 {
@@ -1336,8 +1302,6 @@ DEFINE_OVERRIDE_HOOK(0x48a4f9, SelectDamageAnimation_FixNegatives, 6)
 //InitGame_Delay
 DEFINE_JUMP(LJMP, 0x52CA37, 0x52CA65)
 
-#include <MPGameModeClass.h>
-
 //Wrong register ?
 // game crash here , ugh
 DEFINE_OVERRIDE_HOOK(0x5D6F61, MPGameModeClass_CreateStartingUnits_BaseCenter, 8)
@@ -1368,7 +1332,6 @@ DEFINE_OVERRIDE_HOOK(0x5D6F61, MPGameModeClass_CreateStartingUnits_BaseCenter, 8
 DEFINE_OVERRIDE_HOOK(0x687C56, INIClass_ReadScenario_ResetLogStatus, 5)
 {
 	// reset this so next scenario startup log is cleaner
-	Debug_bTrackParseErrors = false;
 	Phobos::Otamaa::TrackParserErrors = false;
 
 	return 0;
@@ -1613,7 +1576,7 @@ DEFINE_OVERRIDE_HOOK(0x537BC0, Game_MakeScreenshot, 0)
 				SYSTEMTIME time;
 				GetLocalTime(&time);
 
-				IMPL_SNPRNINTF(fName, _TRUNCATE, "SCRN.%04u%02u%02u-%02u%02u%02u-%05u.BMP",
+				IMPL_SNPRNINTF(fName, sizeof(fName), "SCRN.%04u%02u%02u-%02u%02u%02u-%05u.BMP",
 					time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
 
 				CCFileClass ScreenShot { "\0" };
@@ -1814,3 +1777,738 @@ DEFINE_OVERRIDE_HOOK(0x5d6d9a, MPGameModeClass_CreateStartingUnits_UnitCost, 6) 
 	R->EBP(GetTotalCost(RulesExtData::Instance()->StartInMultiplayerUnitCost));
 	return 0x5D6ED6;
 }
+
+MixFileClass* aresMIX = nullptr;
+
+void UninitOwnResources()
+{
+	if (aresMIX)
+	{
+		GameDelete(aresMIX);
+		aresMIX = nullptr;
+	}
+}
+
+void InitOwnResources()
+{
+	UninitOwnResources();
+	aresMIX = GameCreate<MixFileClass>("ares.mix");
+}
+
+DEFINE_OVERRIDE_HOOK(0x53029e, Load_Bootstrap_AresMIX, 5)
+{
+	InitOwnResources();
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6BE9BD, Game_ProgramEnd_ClearResource, 6)
+{
+	UninitOwnResources();
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x531413, Game_Start, 5)
+{
+	int topActive = 500;
+
+	DSurface::Hidden->DrawText_Old(L"Ares is active.", 10, topActive, COLOR_GREEN);
+	DSurface::Hidden->DrawText_Old(L"Ares is © The Ares Contributors 2007 - 2021.", 10, 520, COLOR_GREEN);
+
+	wchar_t wVersion[256];
+	wsprintfW(wVersion, L"%hs", L"Ares version: 3.0p1");
+
+	DSurface::Hidden->DrawText_Old(wVersion, 10, 540, COLOR_RED | COLOR_GREEN);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x532017, DlgProc_MainMenu_Version, 5)
+{
+	GET(HWND, hWnd, ESI);
+
+	// account for longer version numbers
+	const int MinimumWidth = 168;
+
+	RECT Rect;
+	if (GetWindowRect(hWnd, &Rect))
+	{
+		int width = Rect.right - Rect.left;
+
+		if (width < MinimumWidth)
+		{
+			// extend to the left by the difference
+			Rect.left -= (MinimumWidth - width);
+
+			// if moved out of screen, move right by this amount
+			if (Rect.left < 0)
+			{
+				Rect.right += -Rect.left;
+				Rect.left = 0;
+			}
+
+			MoveWindow(hWnd, Rect.left, Rect.top, Rect.right - Rect.left, Rect.bottom - Rect.top, FALSE);
+		}
+	}
+
+	return 0;
+}
+
+char ModName[0x40] = "Yuri's Revenge";
+char ModVersion[0x40] = "1.001";
+int ModIdentifier = 0;
+byte GFX_DX_Force = 0;
+
+void LoadGlobalConfig()
+{
+	CCFileClass IniFile { "uimd.ini" };
+	if (!IniFile.Exists())
+		return;
+
+	CCINIClass Ini {};
+	Ini.ReadCCFile(&IniFile);
+
+	if (Ini.ReadString("Graphics.Advanced", "DirectX.Force", Phobos::readDefval, Phobos::readBuffer)) {
+		if (IS_SAME_STR_(Phobos::readBuffer, "hardware"))
+		{
+			GFX_DX_Force = 0x01l; //HW
+		}
+		else if (IS_SAME_STR_(Phobos::readBuffer, "emulation"))
+		{
+			GFX_DX_Force = 0x02l; //EM
+		}
+	}
+
+	if (IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_VISTA), LOBYTE(_WIN32_WINNT_VISTA), 0))
+	{
+		GFX_DX_Force = 0;
+	}
+}
+
+void ReadRA2MD()
+{
+	Debug::Log("--------- Loading Ares global settings -----------\n");
+
+	CCFileClass IniFile { "uimd.ini" };
+
+	if (!IniFile.Exists())
+		return;
+
+	CCINIClass Ini {};
+	Ini.ReadCCFile(&IniFile);
+
+	// read the mod's version info
+	if (Ini.ReadString("VersionInfo", "Name", Phobos::readDefval, Phobos::readBuffer, std::size(ModName))) {
+		PhobosCRT::strCopy(ModName, Phobos::readBuffer);
+	}
+
+	if (Ini.ReadString("VersionInfo", "Version", Phobos::readDefval, Phobos::readBuffer, std::size(ModVersion))) {
+		PhobosCRT::strCopy(ModVersion, Phobos::readBuffer);
+	}
+
+	AresSafeChecksummer crc;
+	crc.Add(ModName);
+	crc.Commit();
+	crc.Add(ModVersion);
+
+	ModIdentifier = Ini.ReadInteger("VersionInfo", "Identifier", static_cast<int>(crc.GetValue()));
+
+	Debug::Log("Mod is %s (%s) with %X\n",
+		ModName, 
+		ModVersion, 
+		ModIdentifier
+	);
+}
+
+DEFINE_OVERRIDE_HOOK(0x5facdf, Options_LoadFromINI, 5)
+{
+	ReadRA2MD();
+	return 0x0;
+}
+
+DEFINE_DISABLE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme_ares)
+
+DEFINE_OVERRIDE_HOOK(0x67D04E, Game_Save_SavegameInformation, 7)
+{
+	REF_STACK(SavegameInformation, Info, STACK_OFFS(0x4A4, 0x3F4));
+
+	// remember the Ares version and a mod id
+	Info.Version = ModIdentifier + SAVEGAME_ID;
+	Info.InternalVersion = 0x1414D121;
+	sprintf_s(Info.ExecutableName.data(), "GAMEMD.EXE + %s", "Ares/3.0p1");
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x559F31, LoadOptionsClass_GetFileInfo, 9)
+{
+	REF_STACK(SavegameInformation, Info, STACK_OFFS(0x400, 0x3F4));
+
+	// compare equal if same mod and same Ares version (or compatible)
+	auto same = (Info.Version == (ModIdentifier + SAVEGAME_ID)
+		&& Info.InternalVersion == 0x1414D121);
+
+	R->ECX(&Info);
+	return same ? 0x559F60u : 0x559F48u;
+}
+
+DEFINE_OVERRIDE_HOOK(0x67CEFE, Game_Save_FixLog, 7)
+{
+	GET(const char*, pFilename, EDI);
+	GET(const wchar_t*, pSaveName, ESI);
+
+	Debug::Log("\nSAVING GAME [%s - %ls]\n", pFilename, pSaveName);
+
+	return 0x67CF0D;
+}
+
+DEFINE_DISABLE_HOOK(0x685659, Scenario_ClearClasses_ares)
+
+CSFText ModNote;
+
+DEFINE_OVERRIDE_HOOK(0x4F4583, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
+{
+	const int AdvCommBarHeight = 32;
+
+	int offset = AdvCommBarHeight;
+
+	auto DrawText_Helper = [](const wchar_t* string, int& offset, int color)
+		{
+			auto wanted = Drawing::GetTextDimensions(string);
+
+			auto h = DSurface::Composite->Get_Height();
+			RectangleStruct rect = { 0, h - wanted.Height - offset, wanted.Width, wanted.Height };
+
+			DSurface::Composite->Fill_Rect(rect, COLOR_BLACK);
+			DSurface::Composite->DrawText_Old(string, 0, rect.Y, color);
+
+			offset += wanted.Height;
+		};
+
+	if (!ModNote.Label)
+	{
+		ModNote = "TXT_RELEASE_NOTE";
+	}
+
+	if (!ModNote.empty())
+	{
+		DrawText_Helper(ModNote, offset, COLOR_RED);
+	}
+
+	if (RulesExtData::Instance()->FPSCounter)
+	{
+		wchar_t buffer[0x100];
+		swprintf_s(buffer, L"FPS: %-4u Avg: %.2f", FPSCounter::CurrentFrameRate(), FPSCounter::GetAverageFrameRate());
+
+		DrawText_Helper(buffer, offset, COLOR_WHITE);
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x7C89D4, DDRAW_Create, 6)
+{
+	R->Stack<DWORD>(0x4, GFX_DX_Force);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK_AGAIN(0x4A4AC0, Debug_Log, 1)
+DEFINE_OVERRIDE_HOOK(0x4068E0, Debug_Log, 1)
+{
+	LEA_STACK(va_list const, args, 0x8);
+	GET_STACK(const char* const, pFormat, 0x4);
+
+	Debug::LogWithVArgs(pFormat, args);
+
+	return 0x4A4AF9; // changed to co-op with YDE
+}
+
+#pragma region ErrorHandlings
+
+DEFINE_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
+{
+	// mimic an increment because decrement happens in the middle of function cleanup and can't be erased nicely
+	int& TempMutex = *reinterpret_cast<int*>(0xA8DAB4);
+	++TempMutex;
+
+	Debug::Log("Reconnection error detected!");
+	if (MessageBoxW(Game::hWnd, L"Yuri's Revenge has detected a desynchronization!\n"
+		L"Would you like to create a full error report for the developers?\n"
+		L"Be advised that reports from at least two players are needed.", L"Reconnection Error!", MB_YESNO | MB_ICONERROR) == IDYES)
+	{
+		HCURSOR loadCursor = LoadCursor(nullptr, IDC_WAIT);
+		SetClassLong(Game::hWnd, GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
+		SetCursor(loadCursor);
+
+		std::wstring path = Dialogs::PrepareSnapshotDirectory();
+
+		if (Debug::LogEnabled) {
+			Debug::Log("Copying debug log\n");
+			std::wstring logCopy = path + L"\\debug.log";
+			CopyFileW(Debug::LogFileTempName.c_str(), logCopy.c_str(), FALSE);
+		}
+
+		Debug::Log("Making a memory snapshot\n");
+		Debug::FullDump(std::move(path));
+
+		loadCursor = LoadCursor(nullptr, IDC_ARROW);
+		SetClassLong(Game::hWnd, GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
+		SetCursor(loadCursor);
+		Debug::FatalError("A desynchronization has occurred.\r\n"
+			"%s"
+			"A crash dump should have been created in your game's \\debug subfolder.\r\n"
+			"Please submit that to the developers along with SYNC*.txt, debug.txt and syringe.log."
+				, Phobos::Otamaa::ParserErrorDetected ? "(One or more parser errors have been detected that might be responsible. Check the debug logs.)\r\n" : ""
+		);
+	}
+
+	return 0x64CD11;
+}
+
+#pragma warning(push)
+#pragma warning(disable: 4646) // this function does not return, though it isn't declared VOID
+
+[[noreturn]] LONG CALLBACK ExceptionHandler(PEXCEPTION_POINTERS const pExs)
+{
+	Debug::FreeMouse();
+	Debug::Log("Exception handler fired!\n");
+	Debug::Log("Exception %X at %p\n", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
+	SetWindowTextW(Game::hWnd, L"Fatal Error - Yuri's Revenge");
+
+	//	if (IsDebuggerAttached()) return EXCEPTION_CONTINUE_SEARCH;
+
+	switch (pExs->ExceptionRecord->ExceptionCode)
+	{
+	case EXCEPTION_ACCESS_VIOLATION:
+	case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
+	case EXCEPTION_BREAKPOINT:
+	case EXCEPTION_DATATYPE_MISALIGNMENT:
+	case EXCEPTION_FLT_DENORMAL_OPERAND:
+	case EXCEPTION_FLT_DIVIDE_BY_ZERO:
+	case EXCEPTION_FLT_INEXACT_RESULT:
+	case EXCEPTION_FLT_INVALID_OPERATION:
+	case EXCEPTION_FLT_OVERFLOW:
+	case EXCEPTION_FLT_STACK_CHECK:
+	case EXCEPTION_FLT_UNDERFLOW:
+	case EXCEPTION_ILLEGAL_INSTRUCTION:
+	case EXCEPTION_IN_PAGE_ERROR:
+	case EXCEPTION_INT_DIVIDE_BY_ZERO:
+	case EXCEPTION_INT_OVERFLOW:
+	case EXCEPTION_INVALID_DISPOSITION:
+	case EXCEPTION_NONCONTINUABLE_EXCEPTION:
+	case EXCEPTION_PRIV_INSTRUCTION:
+	case EXCEPTION_SINGLE_STEP:
+	case EXCEPTION_STACK_OVERFLOW:
+	case 0xE06D7363: // exception thrown and not caught
+	{
+		std::wstring path = Dialogs::PrepareSnapshotDirectory();
+
+		if (Debug::LogEnabled)
+		{
+			std::wstring logCopy = path + L"\\debug.log";
+			CopyFileW(Debug::LogFileTempName.c_str(), logCopy.c_str(), FALSE);
+		}
+
+		std::wstring except_file = path + L"\\except.txt";
+
+		if (FILE* except = _wfsopen(except_file.c_str(), L"w", _SH_DENYNO))
+		{
+			constexpr auto const pDelim = "---------------------\n";
+			fprintf(except, "Internal Error encountered!\n");
+			fprintf(except, pDelim);
+			fprintf(except, "Ares version: 21.352.1218"); //TODO
+			fprintf(except, "\n");
+			fprintf(except, pDelim);
+
+			fprintf(except, "Exception code: %08X at %08p\n", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
+
+			fprintf(except, "Registers:\n");
+			PCONTEXT pCtxt = pExs->ContextRecord;
+			fprintf(except, "EIP: %08X\tESP: %08X\tEBP: %08X\n", pCtxt->Eip, pCtxt->Esp, pCtxt->Ebp);
+			fprintf(except, "EAX: %08X\tEBX: %08X\tECX: %08X\n", pCtxt->Eax, pCtxt->Ebx, pCtxt->Ecx);
+			fprintf(except, "EDX: %08X\tESI: %08X\tEDI: %08X\n", pCtxt->Edx, pCtxt->Esi, pCtxt->Edi);
+
+			fprintf(except, "\nStack dump:\n");
+			DWORD* ptr = reinterpret_cast<DWORD*>(pCtxt->Esp);
+			for (int i = 0; i < 0x100; ++i)
+			{
+				fprintf(except, "%08p: %08X\n", ptr, *ptr);
+				++ptr;
+			}
+
+			fclose(except);
+			Debug::Log("Exception data has been saved to file:\n%ls\n", except_file.c_str());
+		}
+
+		if (MessageBoxW(Game::hWnd, L"Yuri's Revenge has encountered a fatal error!\nWould you like to create a full crash report for the developers?", L"Fatal Error!", MB_YESNO | MB_ICONERROR) == IDYES)
+		{
+			HCURSOR loadCursor = LoadCursor(nullptr, IDC_WAIT);
+			SetClassLong(Game::hWnd, GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
+			SetCursor(loadCursor);
+			Debug::Log("Making a memory dump\n");
+
+			MINIDUMP_EXCEPTION_INFORMATION expParam;
+			expParam.ThreadId = GetCurrentThreadId();
+			expParam.ExceptionPointers = pExs;
+			expParam.ClientPointers = FALSE;
+
+			Dialogs::FullDump(std::move(path), &expParam);
+
+			loadCursor = LoadCursor(nullptr, IDC_ARROW);
+			SetClassLong(Game::hWnd, GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
+			SetCursor(loadCursor);
+			Debug::FatalError("The cause of this error could not be determined.\r\n"
+				"%s"
+				"A crash dump should have been created in your game's \\debug subfolder.\r\n"
+				"You can submit that to the developers (along with debug.txt and syringe.log)."
+				, Phobos::Otamaa::ParserErrorDetected ? "(One or more parser errors have been detected that might be responsible. Check the debug logs.)\r\n" : ""
+			);
+		}
+		break;
+	}
+	case ERROR_MOD_NOT_FOUND:
+	case ERROR_PROC_NOT_FOUND:
+		Debug::Log("Massive failure: Procedure or module not found!\n");
+		break;
+	default:
+		Debug::Log("Massive failure: reason unknown, have fun figuring it out\n");
+		Debug::DumpObj(reinterpret_cast<byte*>(pExs->ExceptionRecord), sizeof(*(pExs->ExceptionRecord)));
+		//			return EXCEPTION_CONTINUE_SEARCH;
+		break;
+	}
+
+	Phobos::ExeTerminate();
+	ExitProcess(pExs->ExceptionRecord->ExceptionCode);
+};
+
+#pragma warning(pop)
+
+DEFINE_OVERRIDE_HOOK(0x4C8FE0, Exception_Handler, 9)
+{
+	//GET(int, code, ECX);
+	GET(LPEXCEPTION_POINTERS, pExs, EDX);
+	ExceptionHandler(pExs);
+	__debugbreak();
+}
+
+template<typename T>
+void WriteLog(const T* it, int idx, DWORD checksum, FILE* F)
+{
+	fprintf(F, "#%05d:\t%08X", idx, checksum);
+}
+
+template<>
+void WriteLog(const AbstractClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<void>(it, idx, checksum, F);
+	auto abs = it->WhatAmI();
+	fprintf(F, "; Abs: %u (%s)", abs, AbstractClass::GetAbstractClassName(abs));
+}
+
+template<>
+void WriteLog(const ObjectClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<AbstractClass>(it, idx, checksum, F);
+
+	const char* typeID = GameStrings::NoneStr();
+	int typeIndex = -1;
+	if (auto pType = it->GetType())
+	{
+		typeID = pType->ID;
+		typeIndex = pType->GetArrayIndex();
+	}
+
+	CoordStruct crd = it->GetCoords();
+	CellStruct cell = CellClass::Coord2Cell(crd);
+
+	fprintf(F, "; Type: %d (%s); Coords: %d,%d,%d (%d,%d); Health: %d; InLimbo: %u",
+		typeIndex, typeID, crd.X, crd.Y, crd.Z, cell.X, cell.Y, it->Health, it->InLimbo);
+}
+
+template<>
+void WriteLog(const MissionClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<ObjectClass>(it, idx, checksum, F);
+	fprintf(F, "; Mission: %d; StartTime: %d",
+		it->GetCurrentMission(), it->CurrentMissionStartTime);
+}
+
+template<>
+void WriteLog(const RadioClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<MissionClass>(it, idx, checksum, F);
+	//fprintf(F, "; LastCommand: %d", it->LastCommands[0]);
+}
+
+template<>
+void WriteLog(const TechnoClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<RadioClass>(it, idx, checksum, F);
+
+	const char* targetID = GameStrings::NoneStr();
+	int targetIndex = -1;
+	CoordStruct targetCrd = { -1, -1, -1 };
+	if (auto pTarget = it->Target)
+	{
+		targetID = AbstractClass::GetAbstractClassName(pTarget->WhatAmI());
+		targetIndex = pTarget->GetArrayIndex();
+		targetCrd = pTarget->GetCoords();
+	}
+
+	fprintf(F, "; Facing: %d; Facing2: %d; Target: %s (%d; %d,%d)",
+		it->PrimaryFacing.Current().Getvalue8(), it->SecondaryFacing.Current().Getvalue8(), targetID, targetIndex, targetCrd.X, targetCrd.Y);
+}
+
+template<>
+void WriteLog(const FootClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<TechnoClass>(it, idx, checksum, F);
+
+	const char* destID = GameStrings::NoneStr();
+	int destIndex = -1;
+	CoordStruct destCrd = { -1, -1, -1 };
+	if (auto pDest = it->Destination)
+	{
+		destID = AbstractClass::GetAbstractClassName(pDest->WhatAmI());
+		destIndex = pDest->GetArrayIndex();
+		destCrd = pDest->GetCoords();
+	}
+
+	fprintf(F, "; Destination: %s (%d; %d,%d)",
+		destID, destIndex, destCrd.X, destCrd.Y);
+}
+
+template<>
+void WriteLog(const InfantryClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<FootClass>(it, idx, checksum, F);
+	fprintf(F, "; Speed %d", Game::F2I(it->SpeedPercentage * 256));
+}
+
+template<>
+void WriteLog(const UnitClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<FootClass>(it, idx, checksum, F);
+
+	const auto& Loco = it->Locomotor;
+	auto accum = Loco->Get_Speed_Accum();
+	auto index = Loco->Get_Track_Index();
+	auto number = Loco->Get_Track_Number();
+
+	fprintf(F, "; Speed %d; TrackNumber: %d; TrackIndex: %d", accum, number, index);
+}
+
+template<>
+void WriteLog(const AircraftClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<FootClass>(it, idx, checksum, F);
+	fprintf(F, "; Speed %d; Height: %d", Game::F2I(it->SpeedPercentage * 256), it->GetHeight());
+}
+
+template<>
+void WriteLog(const BuildingClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<TechnoClass>(it, idx, checksum, F);
+}
+
+template<>
+void WriteLog(const AbstractTypeClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<AbstractClass>(it, idx, checksum, F);
+	fprintf(F, "; ID: %s; Name: %s", it->ID, it->Name);
+}
+
+template<>
+void WriteLog(const HouseClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<void>(it, idx, checksum, F);
+
+	fprintf(F, "; CurrentPlayer: %u; ColorScheme: %s; ID: %d; HouseType: %s; Edge: %d; StartingAllies: %u; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d",
+		it->IsHumanPlayer, ColorScheme::Array->GetItem(it->ColorSchemeIndex)->ID,
+		it->ArrayIndex, HouseTypeClass::Array->GetItem(it->Type->ArrayIndex)->Name,
+		(int)it->Edge, it->StartingAllies.data, it->StartingCell.X, it->StartingCell.Y, it->Visionary,
+		it->MapIsClear, it->Available_Money());
+}
+
+// calls WriteLog and appends a newline
+template<typename T>
+void WriteLogLine(const T* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog(it, idx, checksum, F);
+	fprintf(F, "\n");
+}
+
+template<typename T>
+void LogItem(const T* it, int idx, FILE* F)
+{
+	if (it->WhatAmI() != AnimClass::AbsID || it->Fetch_ID() != -2)
+	{
+		DWORD Checksum(0);
+		SafeChecksummer Ch;
+		it->ComputeCRC(Ch);
+		Checksum = Ch.CRC;
+		WriteLogLine(it, idx, Checksum, F);
+	}
+}
+
+template<typename T>
+void VectorLogger(const DynamicVectorClass<T>* Array, FILE* F, const char* Label = nullptr)
+{
+	if (Label)
+	{
+		fprintf(F, "Checksums for [%s] (%d)\n", Label, Array ? Array->Count : -1);
+	}
+	if (Array)
+	{
+		for (auto i = 0; i < Array->Count; ++i)
+		{
+			auto it = Array->Items[i];
+			LogItem(it, i, F);
+		}
+	}
+	else
+	{
+		fprintf(F, "Array not initialized yet...\n");
+	}
+}
+
+template<typename T>
+void HouseLogger(const DynamicVectorClass<T>* Array, FILE* F, const char* Label = nullptr)
+{
+	if (Array)
+	{
+		for (auto j = 0; j < HouseClass::Array->Count; ++j)
+		{
+			auto pHouse = HouseClass::Array->GetItem(j);
+			fprintf(F, "-------------------- %s (%d) %s -------------------\n", pHouse->Type->Name, j, Label ? Label : "");
+
+			for (auto i = 0; i < Array->Count; ++i)
+			{
+				auto it = Array->Items[i];
+
+				if (it->Owner == pHouse)
+				{
+					LogItem(it, i, F);
+				}
+			}
+		}
+	}
+	else
+	{
+		fprintf(F, "Array not initialized yet...\n");
+	}
+}
+
+#include <Phobos.version.h>
+static constexpr reference<DynamicVectorClass<ObjectClass*>*, 0x87F778u> const Logics {};
+
+bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
+{
+	FILE* LogFile = nullptr;
+	if (!fopen_s(&LogFile, LogFilename, "wt") && LogFile)
+	{
+		std::setvbuf(LogFile, nullptr, _IOFBF, 1024 * 1024); // 1024 kb buffer - should be sufficient for whole log
+
+		fprintf(LogFile, "YR synchronization log\n");
+		fprintf(LogFile, "With Ares [21.352.1218] and Phobos %s\n", FILE_VERSION_STR);
+
+		for (auto ixF = 0; ixF < 0x100; ++ixF)
+		{
+			fprintf(LogFile, "LastFrame CRC[%02X] = %08X\n", ixF, EventClass::LatestFramesCRC[ixF]);
+		}
+
+		fprintf(LogFile, "My Random Number: %08X\n", ScenarioClass::Instance->Random.Random());
+		fprintf(LogFile, "My Frame: %08X\n", Unsorted::CurrentFrame());
+		fprintf(LogFile, "Average FPS: %d\n", Game::F2I(FPSCounter::GetAverageFrameRate()));
+		fprintf(LogFile, "Max MaxAhead: %d\n", *reinterpret_cast<int*>(0xA8B568));
+		fprintf(LogFile, "Latency setting: %d\n", *reinterpret_cast<int*>(0xA8DB9C));
+		fprintf(LogFile, "Game speed setting: %d\n", GameOptionsClass::Instance->GameSpeed);
+		fprintf(LogFile, "FrameSendRate: %d\n", *reinterpret_cast<int*>(0xA8B554));
+		fprintf(LogFile, "Mod is %s (%s) with %X\n", ModName , ModVersion , ModIdentifier);
+
+		if(HouseClass::CurrentPlayer())
+		fprintf(LogFile, "Player Name %s\n", HouseClass::CurrentPlayer->PlainName);
+
+		auto nHashes = HashData::GetINIChecksums();
+
+		fprintf(LogFile, "Rules checksum: %08X\n", nHashes.Rules);
+		fprintf(LogFile, "Art checksum: %08X\n", nHashes.Art);
+		fprintf(LogFile, "AI checksum: %08X\n", nHashes.AI);
+
+		if (OffendingEvent)
+		{
+			fprintf(LogFile, "\nOffending event:\n");
+			fprintf(LogFile, "Type:         %X\n", OffendingEvent->Type);
+			fprintf(LogFile, "Frame:        %X\n", OffendingEvent->Frame);
+			fprintf(LogFile, "ID:           %X\n", OffendingEvent->HouseIndex);
+			fprintf(LogFile, "CRC:          %X\n", OffendingEvent->Data.FrameInfo.CRC);
+			fprintf(LogFile, "CommandCount: %hu\n", OffendingEvent->Data.FrameInfo.CommandCount);
+			fprintf(LogFile, "Delay:        %hhu\n", OffendingEvent->Data.FrameInfo.Delay);
+			fprintf(LogFile, "\n\n");
+		}
+
+		fprintf(LogFile, "\nTypes\n");
+		HouseLogger(InfantryClass::Array(), LogFile, "Infantry");
+		HouseLogger(UnitClass::Array(), LogFile, "Units");
+		HouseLogger(AircraftClass::Array(), LogFile, "Aircraft");
+		HouseLogger(BuildingClass::Array(), LogFile, "Buildings");
+
+		fprintf(LogFile, "\nChecksums\n");
+		VectorLogger(HouseClass::Array(), LogFile, "Houses");
+		VectorLogger(InfantryClass::Array(), LogFile, "Infantry");
+		VectorLogger(UnitClass::Array(), LogFile, "Units");
+		VectorLogger(AircraftClass::Array(), LogFile, "Aircraft");
+		VectorLogger(BuildingClass::Array(), LogFile, "Buildings");
+
+		fprintf(LogFile, "\n");
+		VectorLogger(&ObjectClass::CurrentObjects(), LogFile, "Current Objects");
+		VectorLogger(Logics(), LogFile, "Logics");
+
+		fprintf(LogFile, "\nChecksums for Map Layers\n");
+		for (auto ixL = 0; ixL < 5; ++ixL)
+		{
+			fprintf(LogFile, "Checksums for Layer %d\n", ixL);
+			VectorLogger(&(MapClass::ObjectsInLayers[ixL]), LogFile);
+		}
+
+		fprintf(LogFile, "\nChecksums for Logics\n");
+		VectorLogger(Logics(), LogFile);
+
+		fprintf(LogFile, "\nChecksums for Abstracts\n");
+		VectorLogger(AbstractClass::Array(), LogFile, "Abstracts");
+		VectorLogger(AbstractTypeClass::Array(), LogFile, "AbstractTypes");
+
+		fclose(LogFile);
+		return true;
+	}
+	else
+	{
+		Debug::Log("Failed to open file for sync log. Error code %X.\n", errno);
+		return false;
+	}
+}
+
+DEFINE_OVERRIDE_HOOK(0x64DEA0, Multiplay_LogToSYNC_NOMPDEBUG, 0)
+{
+	GET(EventClass*, OffendingEvent, ECX);
+
+	char LogFilename[0x40];
+	IMPL_SNPRNINTF(LogFilename, sizeof(LogFilename), "SYNC%01d.TXT", HouseClass::CurrentPlayer->ArrayIndex);
+
+	LogFrame(LogFilename, OffendingEvent);
+
+	return 0x64DF3D;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6516F0, Multiplay_LogToSync_MPDEBUG, 6)
+{
+	GET(int, SlotNumber, ECX);
+	GET(EventClass*, OffendingEvent, EDX);
+
+	char LogFilename[0x40];
+	IMPL_SNPRNINTF(LogFilename, sizeof(LogFilename), "SYNC%01d_%03d.TXT", HouseClass::CurrentPlayer->ArrayIndex, SlotNumber);
+
+	LogFrame(LogFilename, OffendingEvent);
+
+	return 0x651781;
+}
+
+#pragma endregion

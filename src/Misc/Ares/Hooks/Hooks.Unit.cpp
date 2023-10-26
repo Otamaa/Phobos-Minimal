@@ -23,7 +23,6 @@
 #include <Conversions.h>
 #include <Locomotor/TunnelLocomotionClass.h>
 
-#include <Misc/AresData.h>
 #include "Header.h"
 
 // TODO : require complete port of More IFV turrents
