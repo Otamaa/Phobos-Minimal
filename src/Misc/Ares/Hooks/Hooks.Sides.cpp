@@ -66,24 +66,22 @@ DEFINE_OVERRIDE_HOOK(0x72D730, Game_LoadMultiplayerScoreAssets, 5)
 	auto pSide = SideClass::Array->GetItemOrDefault(idxSide);
 	auto pExt = SideExtContainer::Instance.Find(pSide);
 
-	auto& AlreadyLoaded = *reinterpret_cast<bool*>(0xB0FBB8);
-
-	if (!AlreadyLoaded)
+	static constexpr reference<bool , 0xB0FBB8u> const MultiplayerScoreAssetsAlreadyLoaded{};
+	if (!MultiplayerScoreAssetsAlreadyLoaded)
 	{
+		static constexpr reference<SHPStruct* , 0xB0FB1Cu> const MPxSCRNy_SHP {};
+		static constexpr reference<bool , 0xB0FC7Du> const MPxSCRNy_Loaded {};
 
 		// load the images
-		auto& MPxSCRNy_SHP = *reinterpret_cast<SHPStruct**>(0xB0FB1C);
-		auto& MPxSCRNy_Loaded = *reinterpret_cast<bool*>(0xB0FC7D);
+		MPxSCRNy_SHP = FileSystem::LoadWholeFileEx<SHPStruct>(pExt->ScoreMultiplayBackground, MPxSCRNy_Loaded());
 
-		MPxSCRNy_SHP = FileSystem::LoadWholeFileEx<SHPStruct>(pExt->ScoreMultiplayBackground, MPxSCRNy_Loaded);
+		static constexpr reference<BytePalette* , 0xB0FBB0u> const MPxSCRN_Palette {};
+		static constexpr reference<ConvertClass* , 0xB0FBB4u> const MPxSCRN_Convert {};
 
 		// load the palette
-		auto& MPxSCRN_Palette = *reinterpret_cast<BytePalette**>(0xB0FBB0);
-		auto& MPxSCRN_Convert = *reinterpret_cast<ConvertClass**>(0xB0FBB4);
+		ConvertClass::CreateFromFile(pExt->ScoreMultiplayPalette, MPxSCRN_Palette(), MPxSCRN_Convert());
 
-		ConvertClass::CreateFromFile(pExt->ScoreMultiplayPalette, MPxSCRN_Palette, MPxSCRN_Convert);
-
-		AlreadyLoaded = true;
+		MultiplayerScoreAssetsAlreadyLoaded = true;
 	}
 
 	return 0x72D775;
@@ -95,37 +93,35 @@ DEFINE_OVERRIDE_HOOK(0x72D300, Game_LoadCampaignScoreAssets, 5)
 	auto pSide = SideClass::Array->GetItemOrDefault(idxSide);
 	auto pExt = SideExtContainer::Instance.Find(pSide);
 
-	auto& AlreadyLoaded = *reinterpret_cast<bool*>(0xB0FBAC);
+	static constexpr reference<bool , 0xB0FBACu> const CampaignScoreAssetsAlreadyLoaded {};
 
-	if (!AlreadyLoaded)
+	if (!CampaignScoreAssetsAlreadyLoaded)
 	{
+		static constexpr reference<SHPStruct* , 0xB0FB34u> const SxCRBKyy_SHP {};
+		static constexpr reference<SHPStruct* , 0xB0FB00u> const SxCRTyy_SHP {};
+		static constexpr reference<SHPStruct* , 0xB0FB30u> const SxCRAyy_SHP {};
+
+		static constexpr reference<bool , 0xB0FC70u> const SxCRBKyy_Loaded {};
+		static constexpr reference<bool ,0xB0FC71u> const SxCRTyy_Loaded {};
+		static constexpr reference<bool , 0xB0FC72u> const SxCRAyy_Loaded {};
 
 		// load the images
-		auto& SxCRBKyy_SHP = *reinterpret_cast<SHPStruct**>(0xB0FB34);
-		auto& SxCRTyy_SHP = *reinterpret_cast<SHPStruct**>(0xB0FB00);
-		auto& SxCRAyy_SHP = *reinterpret_cast<SHPStruct**>(0xB0FB30);
-
-		auto& SxCRBKyy_Loaded = *reinterpret_cast<bool*>(0xB0FC70);
-		auto& SxCRTyy_Loaded = *reinterpret_cast<bool*>(0xB0FC71);
-		auto& SxCRAyy_Loaded = *reinterpret_cast<bool*>(0xB0FC72);
-
-		SxCRBKyy_SHP = FileSystem::LoadWholeFileEx<SHPStruct>(pExt->ScoreCampaignBackground, SxCRBKyy_Loaded);
-		SxCRTyy_SHP = FileSystem::LoadWholeFileEx<SHPStruct>(pExt->ScoreCampaignTransition, SxCRTyy_Loaded);
-		SxCRAyy_SHP = FileSystem::LoadWholeFileEx<SHPStruct>(pExt->ScoreCampaignAnimation, SxCRAyy_Loaded);
+		SxCRBKyy_SHP = FileSystem::LoadWholeFileEx<SHPStruct>(pExt->ScoreCampaignBackground, SxCRBKyy_Loaded());
+		SxCRTyy_SHP = FileSystem::LoadWholeFileEx<SHPStruct>(pExt->ScoreCampaignTransition, SxCRTyy_Loaded());
+		SxCRAyy_SHP = FileSystem::LoadWholeFileEx<SHPStruct>(pExt->ScoreCampaignAnimation, SxCRAyy_Loaded());
 
 		// load the palette
-		auto& xSCORE_Palette = *reinterpret_cast<BytePalette**>(0xB0FBA4);
-		auto& xSCORE_Convert = *reinterpret_cast<ConvertClass**>(0xB0FBA8);
+		static constexpr reference<BytePalette* , 0xB0FBA4u> const xSCORE_Palette {};
+		static constexpr reference<ConvertClass* , 0xB0FBA8u> const xSCORE_Convert {};
+		ConvertClass::CreateFromFile(pExt->ScoreCampaignPalette, xSCORE_Palette(), xSCORE_Convert());
 
-		ConvertClass::CreateFromFile(pExt->ScoreCampaignPalette, xSCORE_Palette, xSCORE_Convert);
-
-		AlreadyLoaded = true;
+		CampaignScoreAssetsAlreadyLoaded = true;
 	}
 
 	return 0x72D345;
 }
 
-DEFINE_OVERRIDE_HOOK(0x72B690, LoadScreenPal_Load, 0)
+DEFINE_OVERRIDE_HOOK(0x72B690, LoadScreenPal_Load, 0xA)
 {
 	GET(int, n, EDI);
 
@@ -137,13 +133,11 @@ DEFINE_OVERRIDE_HOOK(0x72B690, LoadScreenPal_Load, 0)
 
 	const char* pPALFile = nullptr;
 
-	if (pData)
-	{
+	if (pData) {
 		pPALFile = pData->LoadScreenPalette;
 	}
-	else if (n == 0)
-	{
-		pPALFile = "mplsu.pal";	//need to recode cause I broke the code with the jump
+	else if (n == 0) {
+		pPALFile = GameStrings::MPLSU_PAL();	//need to recode cause I broke the code with the jump
 	}
 	else
 	{
@@ -151,9 +145,9 @@ DEFINE_OVERRIDE_HOOK(0x72B690, LoadScreenPal_Load, 0)
 	}
 
 	//some ASM-less magic! =)
-	auto ppPalette = reinterpret_cast<BytePalette**>(0xB0FB94);
-	auto ppDestination = reinterpret_cast<ConvertClass**>(0xB0FB98);
-	ConvertClass::CreateFromFile(pPALFile, *ppPalette, *ppDestination);
+	static constexpr reference<BytePalette* , 0xB0FB94u> const _0xB0FB94u_{};
+	static constexpr reference<ConvertClass* , 0xB0FB98> const _0xB0FB98u_{};
+	ConvertClass::CreateFromFile(pPALFile, _0xB0FB94u_(), _0xB0FB98u_());
 
 	return 0x72B804;
 }
@@ -182,7 +176,7 @@ DEFINE_OVERRIDE_HOOK(0x686D7F, INIClass_ReadScenario_CacheSP, 6)
 
 	if (!CRT::_strnicmp(pID, "SOV", 3))
 	{
-		pDefault = "SovietLoad";
+		pDefault = GameStrings::SovietLoad();
 	}
 	else if (!CRT::_strnicmp(pID, "YUR", 3))
 	{
@@ -190,11 +184,11 @@ DEFINE_OVERRIDE_HOOK(0x686D7F, INIClass_ReadScenario_CacheSP, 6)
 	}
 	else if (!CRT::_strnicmp(pID, "TUT", 3))
 	{
-		pDefault = "LightGrey";
+		pDefault = GameStrings::LightGrey();
 	}
 	else
 	{
-		pDefault = "AlliedLoad";
+		pDefault = GameStrings::AlliedLoad();
 	}
 
 	SideExtData::CurrentLoadTextColor = -1;
@@ -248,7 +242,7 @@ DEFINE_OVERRIDE_HOOK(0x683C70, sub_683AB0_LoadingScoreA, 7)
 
 	if (SessionClass::Instance->GameMode == GameMode::Campaign) {
 		// single player missions read from the scenario
-		idxLoadingTheme = pINI->ReadTheme("Basic", "LoadingTheme", -2);
+		idxLoadingTheme = pINI->ReadTheme(GameStrings::Basic(), "LoadingTheme", -2);
 
 	}
 	else {

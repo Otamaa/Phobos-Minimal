@@ -669,7 +669,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			"This combination causes Internal Errors and other unwanted behaviour.", pSection);
 	}
 
-	//if (!parseFailAddr)
+	if (!parseFailAddr)
 	{
 		INI_EX exINI(pINI);
 
@@ -945,6 +945,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->PrismForwarding.LoadFromINIFile(pThis, pINI);
 	}
 #pragma endregion
+
 	INI_EX exArtINI(pArtINI);
 	char strbuff[0x80];
 
@@ -1069,7 +1070,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		pThis->FoundationOutside = this->OutlineData.data();
 	}
 
-	//if (pArtINI->GetSection(pArtSection))
+	if (pArtINI->GetSection(pArtSection))
 	{
 		if (pThis->MaxNumberOccupants > 10)
 		{

@@ -38,6 +38,10 @@ struct GameStrings
 	GAMEMD_STR(STRFORMAT_DOT_PAL, 0x827D3C);
 	GAMEMD_STR(STRFORMAT_A, 0x832AE8);
 
+	GAMEMD_STR(MPLSU_PAL , 0x8453DCu);
+
+	GAMEMD_STR(SovietLoad , 0x836EB4u);
+	GAMEMD_STR(AlliedLoad , 0x836EC0u);
 	// <none>
 	GAMEMD_STR(NoneStr, 0x817474u);
 	//<human player>
