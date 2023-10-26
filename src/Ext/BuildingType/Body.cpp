@@ -31,7 +31,6 @@ void BuildingTypeExtData::UpdateFoundationRadarShape()
 
 	if (this->IsCustom)
 	{
-		Debug::Log("RadarFoundationUpdate [%s]\n", this->AttachedToObject->ID);
 		auto pType = this->AttachedToObject;
 		auto pRadar = RadarClass::Global();
 

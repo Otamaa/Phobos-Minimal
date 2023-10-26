@@ -215,27 +215,6 @@ DEFINE_HOOK(0x6FE19A, TechnoClass_FireAt_AreaFire, 0x6) //7
 	}
 }
 
-DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_FeedbackWeapon, 0x6)//8
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EBX);
-
-	auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-
-	if (pWeaponExt->FeedbackWeapon.isset())
-	{
-		if (auto fbWeapon = pWeaponExt->FeedbackWeapon.Get())
-		{
-			if (pThis->InOpenToppedTransport && !fbWeapon->FireInTransport)
-				return 0;
-
-			WeaponTypeExtData::DetonateAt(fbWeapon, pThis, pThis , true , nullptr);
-		}
-	}
-
-	return 0;
-}
-
 DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_Middle, 0x6)
 {
 	GET(TechnoClass* const, pThis, ESI);

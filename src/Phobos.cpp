@@ -35,14 +35,7 @@ wchar_t Phobos::wideBuffer[Phobos::readLength];
 const char Phobos::readDelims[4] = ",";
 const char Phobos::readDefval[4] = "";
 
-
-#ifdef ENABLE_NEWHOOKS
-const wchar_t* Phobos::VersionDescription = L"Phobos Unstable build (" _STR(BUILD_NUMBER) L"). DO NOT SHIP IN MODS!";
-#elif defined(COMPILE_PORTED_DP_FEATURES)
 const wchar_t* Phobos::VersionDescription = L"Phobos Otamaa Unofficial development build #" _STR(BUILD_NUMBER) L". Please test before shipping.";
-#else
-const wchar_t* Phobos::VersionDescription = L"Beta version #" _STR(BUILD_NUMBER) L".provided by Otamaa";
-#endif
 
 bool Phobos::UI::DisableEmptySpawnPositions = false;
 bool Phobos::UI::ExtendedToolTips = false;
@@ -63,6 +56,7 @@ bool Phobos::UI::ShowPowerDelta = false;
 double Phobos::UI::PowerDelta_ConditionYellow = 0.75;
 double Phobos::UI::PowerDelta_ConditionRed = 1.0;
 bool Phobos::UI::CenterPauseMenuBackground = false;
+bool Phobos::UI::UnlimitedColor = false;
 
 bool Phobos::Config::ToolTipDescriptions = true;
 bool Phobos::Config::ToolTipBlur = false;
@@ -146,6 +140,7 @@ void CheckProcessorFeatures()
 			" support.\n\nYour CPU does not support " INSTRUCTION_SET_NAME ". "
 			"Game will now exit.",
 			"Phobos - CPU Requirements", MB_ICONERROR);
+
 		Debug::Log("Game will now exit.\n");
 		Phobos::ExeTerminate();
 		ExitProcess(533);
@@ -160,10 +155,12 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 	DWORD_PTR processAffinityMask = 1; // limit to first processor
 
 	// > 1 because the exe path itself counts as an argument, too!
+	std::string args;
 	for (int i = 1; i < nNumArgs; i++)
 	{
 		const auto pArg = ppArgs[i];
-		Debug::Log("args %s\n", pArg);
+		args += " ";
+		args += pArg;
 
 		if (IS_SAME_STR_(pArg, "-Icon"))
 		{
@@ -209,7 +206,8 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 
 	if (Debug::LogEnabled) {
 		Debug::LogFileOpen();
-		Debug::Log("Initialized Phobos" PRODUCT_VERSION "\n");
+		Debug::Log("Initialized Phobos %s .\n" , PRODUCT_VERSION);
+		Debug::Log("args %s\n", args.c_str());
 	}
 
 	CheckProcessorFeatures();
@@ -432,20 +430,7 @@ void Phobos::Config::Read()
 		Phobos::Config::SaveVariablesOnScenarioEnd = pINI->ReadBool(GENERAL_SECTION, "SaveVariablesOnScenarioEnd", Phobos::Config::SaveVariablesOnScenarioEnd);
 		Phobos::Config::ApplyShadeCountFix = pINI->ReadBool(AUDIOVISUAL_SECTION, "ApplyShadeCountFix", Phobos::Config::ApplyShadeCountFix);
 
-		//if (pINI->ReadBool(GENERAL_SECTION, "SkirmishUnlimitedColors", false))
-		//{
-		//	// Game_GetLinkedColor converts vanilla dropdown color index into color scheme index ([Colors] from rules)
-		//	// What we want to do is to restore vanilla from Ares hook, and immediately return arg
-		//	// So if spawner feeds us a number, it will be used to look up color scheme directly
-		//	Patch::Apply_RAW(0x69A310,
-		//	{
-		//		0x8B, 0x44, 0x24, 0x04, // mov eax, [esp+4]
-		//		0xD1, 0xE0,             // shl eax, 1
-		//		0x40,                   // inc eax
-		//		0xC2, 0x04, 0x00        // retn 4
-		//	});
-		//}
-
+		Phobos::UI::UnlimitedColor = pINI->ReadBool(GENERAL_SECTION, "SkirmishUnlimitedColors", Phobos::UI::UnlimitedColor);
 
 		Phobos::CloseConfig(pINI);
 	}
@@ -563,6 +548,11 @@ void Phobos::ExeRun()
 	InitAdminDebugMode();
 	Patch::PrintAllModuleAndBaseAddr();
 	Patch::InitRelatedModule();
+
+	for (auto& tmodule : Patch::ModuleDatas) {
+		if (IS_SAME_STR_(tmodule.first.c_str(), "Ares"))
+			Debug::FatalErrorAndExit("No Ares\n");
+	}
 	PhobosGlobal::Init();
 
 	InitConsole();
@@ -663,20 +653,20 @@ HRESULT __stdcall OleLoadFromStream_(LPSTREAM pStm, REFIID iidInterface, LPVOID*
 #pragma endregion
 
 #pragma region Unsorted
-void NAKED _ExeTerminate()
-{
-	// Call WinMain
-	SET_REG32(EAX, 0x6BB9A0);
-	CALL(EAX);
-	PUSH_REG(EAX);
-
-	Phobos::ExeTerminate();
-
-	// Jump back
-	POP_REG(EAX);
-	SET_REG32(EBX, 0x7CD8EF);
-	__asm {jmp ebx};
-}
+//void NAKED _ExeTerminate()
+//{
+//	// Call WinMain
+//	SET_REG32(EAX, 0x6BB9A0);
+//	CALL(EAX);
+//	PUSH_REG(EAX);
+//
+//	Phobos::ExeTerminate();
+//
+//	// Jump back
+//	POP_REG(EAX);
+//	SET_REG32(EBX, 0x7CD8EF);
+//	__asm {jmp ebx};
+//}
 #pragma endregion
 
 void NOINLINE encrypt_func(std::string& data, std::string key)
@@ -863,10 +853,20 @@ SYRINGE_HANDSHAKE(pInfo)
 #pragma region hooks
 
 //DEFINE_JUMP(LJMP, 0x7CD8EA, GET_OFFSET(_ExeTerminate));
-DEFINE_HOOK(0x6BE131, Game_ExeTerminate, 0x5)
+//DEFINE_OVERRIDE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
+//{
+//	Phobos::ExeTerminate();
+//	CRT::exit_noreturn(0);
+//	return 0x0;
+//}
+
+DEFINE_HOOK(0x7C8B3D, Game_freeMem, 0x9)
 {
-	Phobos::ExeTerminate();
-	return 0x0;
+	GET_STACK(void*, ptr, 0x4);
+
+	Debug::Log(__FUNCTION__ " CalledFrom 0x%08x ptr [0x%08x]\n", R->Stack<uintptr_t>(0x0) , ptr);
+	CRT::free(ptr);
+	return 0x7C8B47;
 }
 
 DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
@@ -897,7 +897,7 @@ DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 //Disable MousePresent check
 //DEFINE_JUMP(LJMP, 0x6BD8A4, 0x6BD8C2);
 
-DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
+DEFINE_OVERRIDE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 {
 	GET(char**, ppArgs, ESI);
 	GET(int, nNumArgs, EDI);

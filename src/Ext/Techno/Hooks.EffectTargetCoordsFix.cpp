@@ -6,6 +6,15 @@
 
 #include <Utilities/Macro.h>
 #include <Utilities/Debug.h>
+
+#include <Ext/WeaponType/Body.h>
+#include <Ext/Bullet/Body.h>
+#include <Ext/BulletType/Body.h>
+#include <Ext/Techno/Body.h>
+#include <Ext/ParticleType/Body.h>
+#include <Ext/ParticleSystemType/Body.h>
+#include <Ext/WarheadType/Body.h>
+
 // Contains hooks that fix weapon graphical effects like lasers, railguns, electric bolts, beams and waves not interacting
 // correctly with obstacles between firer and target, as well as railgun / railgun particles being cut off by elevation.
 
@@ -62,7 +71,6 @@ DEFINE_HOOK(0x70C6AF, TechnoClass_Railgun_TargetCoords, 0x6)
 	R->EAX(pBuffer);
 	return 0x70C6B5;
 }
-#include <Ext/ParticleType/Body.h>
 
 // Do not adjust map coordinates for railgun particles that are below cell coordinates.
 DEFINE_HOOK(0x62B897, ParticleClass_CTOR_RailgunCoordAdjust, 0x5)
@@ -103,54 +111,6 @@ DEFINE_HOOK(0x62B897, ParticleClass_CTOR_RailgunCoordAdjust, 0x5)
 
 	return Continue;
 }
-
-#ifndef PERFORMANCE_HEAVY
-// https://github.com/Phobos-developers/Phobos/pull/825
-// Todo :  Otamaa : massive FPS drops !
-// Contains hooks that fix weapon graphical effects like lasers, railguns, electric bolts, beams and waves not interacting
-// correctly with obstacles between firer and target, as well as railgun / railgun particles being cut off by elevation.
-
-namespace FireAtTemp
-{
-	CoordStruct originalTargetCoords;
-	CellClass* pObstacleCell = nullptr;
-	AbstractClass* pOriginalTarget = nullptr;
-}
-
-// Set obstacle cell.
-DEFINE_HOOK(0x6FF15F, TechnoClass_FireAt_ObstacleCellSet, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EBX);
-	GET_BASE(AbstractClass*, pTarget, 0x8);
-	LEA_STACK(CoordStruct*, pSourceCoords, STACK_OFFSET(0xB0, -0x6C));
-
-	auto coords = pTarget->GetCenterCoords();
-
-	if (const auto pBuilding = specific_cast<BuildingClass*>(pTarget))
-		coords = pBuilding->GetTargetCoords();
-
-	FireAtTemp::pObstacleCell = TrajectoryHelper::FindFirstObstacle(*pSourceCoords, coords, pWeapon->Projectile, pThis->Owner);
-
-	return 0;
-}
-
-// Apply obstacle logic to fire & spark particle system targets.
-DEFINE_HOOK_AGAIN(0x6FF1D7, TechnoClass_FireAt_SparkFireTargetSet, 0x5)
-DEFINE_HOOK(0x6FF189, TechnoClass_FireAt_SparkFireTargetSet, 0x5)
-{
-	if (FireAtTemp::pObstacleCell)
-	{
-		if (R->Origin() == 0x6FF189)
-			R->ECX(FireAtTemp::pObstacleCell);
-		else
-			R->EDX(FireAtTemp::pObstacleCell);
-	}
-
-	return 0;
-}
-
-#include <ext/ParticleSystemType/Body.h>
 
 // Fix fire particle target coordinates potentially differing from actual target coords.
 DEFINE_HOOK(0x62FA20, ParticleSystemClass_FireAI_TargetCoords, 0x6)
@@ -202,20 +162,19 @@ DEFINE_HOOK(0x62D685, ParticleSystemClass_FireAt_Coords, 0x5)
 	return SkipGameCode;
 }
 
-// Cut railgun logic off at obstacle coordinates.
-DEFINE_HOOK(0x70CA64, TechnoClass_Railgun_Obstacles, 0x5)
+#ifndef PERFORMANCE_HEAVY
+// https://github.com/Phobos-developers/Phobos/pull/825
+// Todo :  Otamaa : massive FPS drops !
+// Contains hooks that fix weapon graphical effects like lasers, railguns, electric bolts, beams and waves not interacting
+// correctly with obstacles between firer and target, as well as railgun / railgun particles being cut off by elevation.
+
+namespace FireAtTemp
 {
-	enum { Continue = 0x70CA79, Stop = 0x70CAD8 };
-
-	REF_STACK(CoordStruct const, coords, STACK_OFFSET(0xC0, -0x80));
-
-	auto pCell = MapClass::Instance->GetCellAt(coords);
-
-	if (pCell == FireAtTemp::pObstacleCell)
-		return Stop;
-
-	return Continue;
+	CoordStruct originalTargetCoords;
+	CellClass* pObstacleCell = nullptr;
+	AbstractClass* pOriginalTarget = nullptr;
 }
+
 
 // Adjust target coordinates for laser drawing.
 DEFINE_HOOK(0x6FD38D, TechnoClass_LaserZap_Obstacles, 0x7)
@@ -232,13 +191,64 @@ DEFINE_HOOK(0x6FD38D, TechnoClass_LaserZap_Obstacles, 0x7)
 	return 0;
 }
 
+// Set obstacle cell.
+DEFINE_HOOK(0x6FF15F, TechnoClass_FireAt_ObstacleCellSet, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(WeaponTypeClass*, pWeapon, EBX);
+	GET_BASE(AbstractClass*, pTarget, 0x8);
+	LEA_STACK(CoordStruct*, pSourceCoords, STACK_OFFSET(0xB0, -0x6C));
+
+	auto coords = pTarget->GetCenterCoords();
+
+	if (const auto pBuilding = specific_cast<BuildingClass*>(pTarget))
+		coords = pBuilding->GetTargetCoords();
+
+	FireAtTemp::pObstacleCell = TrajectoryHelper::FindFirstObstacle(*pSourceCoords, coords, pWeapon->Projectile, pThis->Owner);
+
+	return 0;
+}
+
+// Apply obstacle logic to fire & spark particle system targets.
+DEFINE_HOOK_AGAIN(0x6FF1D7, TechnoClass_FireAt_SparkFireTargetSet, 0x5)
+DEFINE_HOOK(0x6FF189, TechnoClass_FireAt_SparkFireTargetSet, 0x5)
+{
+	if (FireAtTemp::pObstacleCell)
+	{
+		if (R->Origin() == 0x6FF189)
+			R->ECX(FireAtTemp::pObstacleCell);
+		else
+			R->EDX(FireAtTemp::pObstacleCell);
+	}
+
+	return 0;
+}
+
+// Cut railgun logic off at obstacle coordinates.
+DEFINE_HOOK(0x70CA64, TechnoClass_Railgun_Obstacles, 0x5)
+{
+	enum { Continue = 0x70CA79, Stop = 0x70CAD8 };
+
+	REF_STACK(CoordStruct const, coords, STACK_OFFSET(0xC0, -0x80));
+
+	auto pCell = MapClass::Instance->GetCellAt(coords);
+
+	if (pCell == FireAtTemp::pObstacleCell)
+		return Stop;
+
+	return Continue;
+}
+
 // Adjust target for bolt / beam / wave drawing.
 // same hook with TechnoClass_FireAt_FeedbackWeapon
-DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_TargetSet, 0x6)
+DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_Additional, 0x6)
 {
+	GET(TechnoClass*, pThis, ESI);
+	GET(WeaponTypeClass*, pWeapon, EBX);
 	LEA_STACK(CoordStruct*, pTargetCoords, STACK_OFFSET(0xB0, -0x28));
 	GET(AbstractClass*, pTarget, EDI);
 
+	//TargetSet
 	FireAtTemp::originalTargetCoords = *pTargetCoords;
 	FireAtTemp::pOriginalTarget = pTarget;
 
@@ -248,7 +258,21 @@ DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_TargetSet, 0x6)
 		pTargetCoords->X = coords.X;
 		pTargetCoords->Y = coords.Y;
 		pTargetCoords->Z = coords.Z;
+		//Sonic wave using base stack
 		R->EDI(FireAtTemp::pObstacleCell);
+	}
+
+	//FeedbackWeapon
+	auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+
+	if (pWeaponExt->FeedbackWeapon.isset())
+	{
+		if (auto fbWeapon = pWeaponExt->FeedbackWeapon.Get())
+		{
+			if (pThis->InOpenToppedTransport && !fbWeapon->FireInTransport)
+				return 0;
+			WeaponTypeExtData::DetonateAt(fbWeapon, pThis, pThis , true , nullptr);
+		}
 	}
 
 	return 0;
@@ -257,19 +281,58 @@ DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_TargetSet, 0x6)
 // Restore original target values and unset obstacle cell.
 DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_PreFire_ObstacleCellUnset, 0x6)
 {
+	GET(TechnoClass* const, pThis, ESI);
+	GET_BASE(AbstractClass* const, pTarget, 0x8);
+	GET(WeaponTypeClass* const, pWeaponType, EBX);
+	GET_STACK(BulletClass* const, pBullet, STACK_OFFS(0xB0, 0x74));
+	GET_BASE(int, weaponIndex, 0xC);
 	LEA_STACK(CoordStruct*, pTargetCoords, STACK_OFFSET(0xB0, -0x28));
 
-	auto coords = FireAtTemp::originalTargetCoords;
-	pTargetCoords->X = coords.X;
-	pTargetCoords->Y = coords.Y;
-	pTargetCoords->Z = coords.Z;
-	auto target = FireAtTemp::pOriginalTarget;
+	*pTargetCoords = std::exchange(FireAtTemp::originalTargetCoords , CoordStruct::Empty);
+	std::exchange(FireAtTemp::pOriginalTarget , nullptr);
+	std::exchange(FireAtTemp::pObstacleCell, nullptr);
 
-	FireAtTemp::originalTargetCoords = CoordStruct::Empty;
-	FireAtTemp::pOriginalTarget = nullptr;
-	FireAtTemp::pObstacleCell = nullptr;
+	R->EDI(pTarget);
+	//TechnoClass_FireAt_ToggleLaserWeaponIndex
+	if (pThis->WhatAmI() == BuildingClass::AbsID && pWeaponType->IsLaser)
+	{
+		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	R->EDI(target);
+		if (pExt->CurrentLaserWeaponIndex.empty())
+			pExt->CurrentLaserWeaponIndex = weaponIndex;
+		else
+			pExt->CurrentLaserWeaponIndex.clear();
+	}
+
+	//TechnoClass_FireAt_BurstOffsetFix_2
+	++pThis->CurrentBurstIndex;
+	pThis->CurrentBurstIndex %= pWeaponType->Burst;
+
+	if (auto const pTargetObject = specific_cast<BulletClass* const>(pTarget))
+	{
+		if (TechnoExtContainer::Instance.Find(pThis)->IsInterceptor())
+		{
+			BulletExtContainer::Instance.Find(pBullet)->IsInterceptor = true;
+			BulletExtContainer::Instance.Find(pTargetObject)->InterceptedStatus = InterceptedStatus::Targeted;
+
+			// If using Inviso projectile, can intercept bullets right after firing.
+			if (pTargetObject->IsAlive && pWeaponType->Projectile->Inviso)
+			{
+				WarheadTypeExtContainer::Instance.Find(pWeaponType->Warhead)->InterceptBullets(pThis, pWeaponType, pTargetObject->Location);
+			}
+		}
+	}
+
+	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeaponType);
+
+	if (pWeaponExt->ShakeLocal.Get() && !pThis->IsOnMyView())
+		return 0x0;
+
+	if (pWeaponExt->Xhi || pWeaponExt->Xlo)
+		GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, ScenarioClass::Instance->Random(pWeaponExt->Xlo, pWeaponExt->Xhi));
+
+	if (pWeaponExt->Yhi || pWeaponExt->Ylo)
+		GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, ScenarioClass::Instance->Random(pWeaponExt->Ylo, pWeaponExt->Yhi));
 
 	return 0;
 }

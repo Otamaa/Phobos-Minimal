@@ -12,7 +12,7 @@
 #define VERSION_MAJOR 0
 
 // Indicates major changes and significant additions, like new logics
-#define VERSION_MINOR 5
+#define VERSION_MINOR 100
 
 // Indicates minor changes, like vanilla bugfixes, unhardcodings or hacks
 #define VERSION_REVISION 50
@@ -25,29 +25,10 @@
 // Build number. Incremented on each released build.
 #define BUILD_NUMBER 28
 
-// Nightly defines GIT_COMMIT and GIT_BRANCH in GH Actions
-
-#ifdef IS_RELEASE_VER // Release build metadata
-	#define SAVEGAME_ID ((VERSION_MAJOR << 24) | (VERSION_MINOR << 16) | (VERSION_REVISION << 8) | VERSION_PATCH)
-	#define FILE_DESCRIPTION "Phobos - Minimal , YR engine extension"
-	#define FILE_VERSION_STR _STR(VERSION_MAJOR) "." _STR(VERSION_MINOR) "." _STR(VERSION_REVISION) "." _STR(VERSION_PATCH)
-	#define FILE_VERSION VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION, VERSION_PATCH
-	#define PRODUCT_VERSION "Release Build " FILE_VERSION_STR
-#elif defined(GIT_COMMIT) // Nightly devbuild metadata
-	#define STR_GIT_COMMIT _STR(GIT_COMMIT)
-	#define STR_GIT_BRANCH _STR(GIT_BRANCH)
-
-	#define SAVEGAME_ID ((BUILD_NUMBER << 24) | (BUILD_NUMBER << 12) | (BUILD_NUMBER))
-	#define FILE_DESCRIPTION "Unstable nightly devbuild of Phobos engine extension"
-	#define FILE_VERSION_STR "Commit " STR_GIT_COMMIT
-	#define FILE_VERSION 0
-	#define PRODUCT_VERSION "Nightly Build " STR_GIT_COMMIT " @ " STR_GIT_BRANCH
-#else // Regular devbuild metadata
-	#define SAVEGAME_ID ((BUILD_NUMBER << 24) | (BUILD_NUMBER << 12) | (BUILD_NUMBER))
-	#define FILE_DESCRIPTION "Unofficial Development build of Phobos - Minimal engine extension"
-	#define FILE_VERSION_STR "Unofficial Build #" _STR(BUILD_NUMBER)
-	#define FILE_VERSION 0,0,0,BUILD_NUMBER
-	#define PRODUCT_VERSION "Unofficial Development Build #" _STR(BUILD_NUMBER)
-#endif
+#define SAVEGAME_ID ((BUILD_NUMBER << 24) | (BUILD_NUMBER << 12) | (BUILD_NUMBER))
+#define FILE_DESCRIPTION "Unofficial Development build of Phobos - Minimal engine extension"
+#define FILE_VERSION_STR "Unofficial Build #" _STR(BUILD_NUMBER)
+#define FILE_VERSION 0,0,0,BUILD_NUMBER
+#define PRODUCT_VERSION "Unofficial Development Build #" _STR(BUILD_NUMBER)
 
 #endif // VERSION_H

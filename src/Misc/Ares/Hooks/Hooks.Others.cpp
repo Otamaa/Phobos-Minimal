@@ -216,7 +216,7 @@ DEFINE_OVERRIDE_HOOK(0x441C21, BuildingClass_Destroyed_Shake, 0x6)
 	return 0x441C39; //return 0 causing crash
 }
 
-DEFINE_OVERRIDE_HOOK(0x7387D1, UnitClass_Destroyed_Shake, 0x56)
+DEFINE_OVERRIDE_HOOK(0x7387D1, UnitClass_Destroyed_Shake, 0x6)
 {
 	GET(UnitClass* const, pUnit, ESI); //forEXT
 
@@ -641,12 +641,12 @@ DEFINE_OVERRIDE_HOOK(0x7BB445, XSurface_20, 0x6)
 	return R->EAX<void*>() ? 0x0 : 0x7BB90C;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5FDDA4, OverlayClass_GetTiberiumType_NotReallyTiberiumLog, 0x6)
-{
-	GET(OverlayTypeClass*, pThis, EAX);
-	Debug::Log("Overlay %s not really tiberium\n", pThis->ID);
-	return 0x5FDDC1;
-}
+// DEFINE_OVERRIDE_HOOK(0x5FDDA4, OverlayClass_GetTiberiumType_NotReallyTiberiumLog, 0x6)
+// {
+// 	GET(OverlayTypeClass*, pThis, EAX);
+// 	Debug::Log("Overlay %s not really tiberium\n", pThis->ID);
+// 	return 0x5FDDC1;
+// }
 
 DEFINE_OVERRIDE_HOOK(0x716D98, TechnoTypeClass_Load_Palette, 0x5)
 {
@@ -1461,9 +1461,55 @@ DEFINE_OVERRIDE_HOOK(0x5FDDA4 , IsOverlayIdxTiberium_Log, 6)
 	return 0x5FDDC1;
 }
 
+constexpr DWORD InternalVersion = 0x1414D121;
+char ModName[0x40] = "Yuri's Revenge";
+char ModVersion[0x40] = "1.001";
+int ModIdentifier = 0;
+byte GFX_DX_Force = 0;
+int colorCount = 8;
+int version = ModIdentifier + SAVEGAME_ID;
+
+int uiColorText;
+int uiColorTextButton = 0xFFFF; // #1644: needed for CD prompt
+int uiColorTextCheckbox;
+int uiColorTextRadio;
+int uiColorTextLabel = 0xFFFF; // #1644: needed for CD prompt
+int uiColorTextList;
+int uiColorTextCombobox;
+int uiColorTextGroupbox;
+int uiColorTextEdit;
+int uiColorTextSlider;
+int uiColorTextObserver;
+int uiColorCaret;
+int uiColorSelection;
+int uiColorSelectionCombobox;
+int uiColorSelectionList;
+int uiColorSelectionObserver;
+int uiColorBorder1;
+int uiColorBorder2;
+int uiColorDisabled;
+int uiColorDisabledLabel;
+int uiColorDisabledButton;
+int uiColorDisabledCombobox;
+int uiColorDisabledCheckbox;
+int uiColorDisabledList;
+int uiColorDisabledSlider;
+int uiColorDisabledObserver;
+
+struct ColorData
+{
+	int colorRGB;
+	int selectedIndex;
+	int colorSchemeIndex;
+	char colorScheme[0x20];
+	const wchar_t* sttToolTipSublineText;
+};
+
+static ColorData Colors[16 + 1];
+
 DEFINE_OVERRIDE_HOOK(0x7cd819, ExeRun, 5)
 {
-	Game::Savegame_Magic = 0x1414D121;
+	Game::Savegame_Magic = InternalVersion;
 	Game::bVideoBackBuffer = false;
 	Game::bAllowVRAMSidebar = false;
 
@@ -1852,14 +1898,9 @@ DEFINE_OVERRIDE_HOOK(0x532017, DlgProc_MainMenu_Version, 5)
 	return 0;
 }
 
-char ModName[0x40] = "Yuri's Revenge";
-char ModVersion[0x40] = "1.001";
-int ModIdentifier = 0;
-byte GFX_DX_Force = 0;
-
 void LoadGlobalConfig()
 {
-	CCFileClass IniFile { "uimd.ini" };
+	CCFileClass IniFile { "Ares.ini" };
 	if (!IniFile.Exists())
 		return;
 
@@ -1887,13 +1928,111 @@ void ReadRA2MD()
 {
 	Debug::Log("--------- Loading Ares global settings -----------\n");
 
-	CCFileClass IniFile { "uimd.ini" };
+	CCFileClass IniFile { GameStrings::UIMD_INI() };
 
 	if (!IniFile.Exists())
 		return;
 
 	CCINIClass Ini {};
 	Ini.ReadCCFile(&IniFile);
+
+	auto const section2 = GameStrings::Colors();
+	colorCount = std::clamp(Ini.ReadInteger(section2, "Count", colorCount), 8, 16);
+
+	auto const ParseColorInt = [&Ini](const char* section, const char* key, int defColor) -> int {
+			ColorStruct ndefault(defColor & 0xFF, (defColor >> 8) & 0xFF, (defColor >> 16) & 0xFF);
+			auto const color = Ini.ReadColor(section, key, ndefault);
+			return color.R | color.G << 8 | color.B << 16;
+	};
+
+	auto const section = "UISettings";
+
+	auto const ReadColor = [&Ini, section2, ParseColorInt]
+	(	
+		const char* name,
+		ColorData& value,
+		int colorRGB,
+		const char* defTooltip,
+		const char* defColorScheme
+	)
+	{
+			// load the tooltip string
+			char buffer[0x20];
+			IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.Tooltip", name);
+			if (Ini.ReadString(section2, buffer, defTooltip, Phobos::readBuffer))
+			{
+				value.sttToolTipSublineText = StringTable::LoadString(Phobos::readBuffer);
+			}
+
+			IMPL_SNPRNINTF(buffer, 0x20, "%s.ColorScheme", name);
+			if (Ini.ReadString(section2, buffer, defColorScheme, Phobos::readBuffer))
+			{
+				PhobosCRT::strCopy(value.colorScheme, Phobos::readBuffer);
+			}
+
+			IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.DisplayColor", name);
+			value.colorRGB = ParseColorInt(section2, buffer, colorRGB);
+
+			value.colorSchemeIndex = -1;
+			value.selectedIndex = -1;
+	};
+
+	// menu colors. the color of labels, button texts, list items, stuff and others
+	uiColorText = ParseColorInt(section, "Color.Text", 0xFFFF);
+
+	// original color schemes
+	auto const defColors = reinterpret_cast<int const*>(0x8316A8);
+	ReadColor("Observer", Colors[0], defColors[8], "STT:PlayerColorObserver", "LightGrey");
+	ReadColor("Slot1", Colors[1], defColors[0], "STT:PlayerColorGold", "Gold");
+	ReadColor("Slot2", Colors[2], defColors[1], "STT:PlayerColorRed", "DarkRed");
+	ReadColor("Slot3", Colors[3], defColors[2], "STT:PlayerColorBlue", "DarkBlue");
+	ReadColor("Slot4", Colors[4], defColors[3], "STT:PlayerColorGreen", "DarkGreen");
+	ReadColor("Slot5", Colors[5], defColors[4], "STT:PlayerColorOrange", "Orange");
+	ReadColor("Slot6", Colors[6], defColors[5], "STT:PlayerColorSkyBlue", "DarkSky");
+	ReadColor("Slot7", Colors[7], defColors[6], "STT:PlayerColorPurple", "Purple");
+	ReadColor("Slot8", Colors[8], defColors[7], "STT:PlayerColorPink", "Magenta");
+
+	// additional color schemes so just increasing Count will produce nice colors
+	ReadColor("Slot9", Colors[9], 0xEF5D94, "STT:PlayerColorLilac", "NeonBlue");
+	ReadColor("Slot10", Colors[10], 0xE7FF73, "STT:PlayerColorLightBlue", "LightBlue");
+	ReadColor("Slot11", Colors[11], 0x63EFFF, "STT:PlayerColorLime", "Yellow");
+	ReadColor("Slot12", Colors[12], 0x5AC308, "STT:PlayerColorTeal", "Green");
+	ReadColor("Slot13", Colors[13], 0x0055BD, "STT:PlayerColorBrown", "Red");
+	ReadColor("Slot14", Colors[14], 0x808080, "STT:PlayerColorCharcoal", "Grey");
+
+	// blunt stuff
+	char key[0x10];
+	for (auto i = 15; i <= colorCount; ++i)
+	{
+		sprintf_s(key, 0x10, "Slot%d", i);
+		ReadColor(key, Colors[i], 0xFFFFFF, "NOSTR:", "LightGrey");
+	}
+
+	uiColorTextButton = ParseColorInt(section, "Color.Button.Text", uiColorText);
+	uiColorTextRadio = ParseColorInt(section, "Color.Radio.Text", uiColorText);
+	uiColorTextCheckbox = ParseColorInt(section, "Color.Checkbox.Text", uiColorText);
+	uiColorTextLabel = ParseColorInt(section, "Color.Label.Text", uiColorText);
+	uiColorTextList = ParseColorInt(section, "Color.List.Text", uiColorText);
+	uiColorTextCombobox = ParseColorInt(section, "Color.Combobox.Text", uiColorText);
+	uiColorTextGroupbox = ParseColorInt(section, "Color.Groupbox.Text", uiColorText);
+	uiColorTextSlider = ParseColorInt(section, "Color.Slider.Text", uiColorText);
+	uiColorTextEdit = ParseColorInt(section, "Color.Edit.Text", uiColorText);
+	uiColorTextObserver = ParseColorInt(section, "Color.Observer.Text", 0xEEEEEE);
+	uiColorCaret = ParseColorInt(section, "Color.Caret", 0xFFFF);
+	uiColorSelection = ParseColorInt(section, "Color.Selection", 0xFF);
+	uiColorSelectionCombobox = ParseColorInt(section, "Color.Combobox.Selection", uiColorSelection);
+	uiColorSelectionList = ParseColorInt(section, "Color.List.Selection", uiColorSelection);
+	uiColorSelectionObserver = ParseColorInt(section, "Color.Observer.Selection", 0x626262);
+	uiColorBorder1 = ParseColorInt(section, "Color.Border1", 0xC5BEA7);
+	uiColorBorder2 = ParseColorInt(section, "Color.Border2", 0x807A68);
+	uiColorDisabled = ParseColorInt(section, "Color.Disabled", 0x9F);
+	uiColorDisabledLabel = ParseColorInt(section, "Color.Label.Disabled", uiColorDisabled);
+	uiColorDisabledCombobox = ParseColorInt(section, "Color.Combobox.Disabled", uiColorDisabled);
+	uiColorDisabledSlider = ParseColorInt(section, "Color.Slider.Disabled", uiColorDisabled);
+	uiColorDisabledButton = ParseColorInt(section, "Color.Button.Disabled", 0xA7);
+	uiColorDisabledCheckbox = ParseColorInt(section, "Color.Checkbox.Disabled", uiColorDisabled);
+	uiColorDisabledList = ParseColorInt(section, "Color.List.Disabled", uiColorDisabled);
+	uiColorDisabledObserver = ParseColorInt(section, "Color.Observer.Disabled", 0x8F8F8F);
 
 	// read the mod's version info
 	if (Ini.ReadString("VersionInfo", "Name", Phobos::readDefval, Phobos::readBuffer, std::size(ModName))) {
@@ -1912,8 +2051,8 @@ void ReadRA2MD()
 	ModIdentifier = Ini.ReadInteger("VersionInfo", "Identifier", static_cast<int>(crc.GetValue()));
 
 	Debug::Log("Mod is %s (%s) with %X\n",
-		ModName, 
-		ModVersion, 
+		ModName,
+		ModVersion,
 		ModIdentifier
 	);
 }
@@ -1924,15 +2063,393 @@ DEFINE_OVERRIDE_HOOK(0x5facdf, Options_LoadFromINI, 5)
 	return 0x0;
 }
 
+DEFINE_OVERRIDE_HOOK(0x6BC0CD, _LoadRA2MD, 5)
+{
+	LoadGlobalConfig();
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x69B97D, Game_ProcessRandomPlayers_ObserverColor, 7)
+{
+	GET(NodeNameType* const, pStartingSpot, ESI);
+
+	// observer uses last color, beyond the actual colors
+	pStartingSpot->Color = colorCount;
+
+	return 0x69B984;
+}
+
+DEFINE_OVERRIDE_HOOK(0x69B949, Game_ProcessRandomPlayers_ColorsA, 6)
+{
+	R->EAX(ScenarioClass::Instance->Random.RandomRanged(0, colorCount - 1));
+	return 0x69B95E;
+}
+
+DEFINE_OVERRIDE_HOOK(0x69BA13, Game_ProcessRandomPlayers_ColorsB, 6)
+{
+	R->EAX(ScenarioClass::Instance->Random.RandomRanged(0, colorCount - 1));
+	return 0x69BA28;
+}
+
+DEFINE_OVERRIDE_HOOK(0x69B69B, GameModeClass_PickRandomColor_Unlimited, 6)
+{
+	R->EAX(ScenarioClass::Instance->Random.RandomRanged(0, colorCount - 1));
+	return 0x69B6AF;
+}
+
+DEFINE_OVERRIDE_HOOK(0x69B7FF, Session_SetColor_Unlimited, 6)
+{
+	R->EAX(ScenarioClass::Instance->Random.RandomRanged(0, colorCount - 1));
+	return 0x69B813;
+}
+
+DEFINE_OVERRIDE_HOOK(0x60FAD7, Ownerdraw_PostProcessColors, 0xA)
+{
+	// copy original instruction
+	*reinterpret_cast<int*>(0xAC1B90) = 0x443716;
+
+	// update colors
+	*reinterpret_cast<int*>(0xAC18A4) = uiColorText;
+	*reinterpret_cast<int*>(0xAC184C) = uiColorCaret;
+	*reinterpret_cast<int*>(0xAC4604) = uiColorSelection;
+	*reinterpret_cast<int*>(0xAC1B98) = uiColorBorder1;
+	*reinterpret_cast<int*>(0xAC1B94) = uiColorBorder2;
+	*reinterpret_cast<int*>(0xAC1AF8) = uiColorDisabledObserver;
+	*reinterpret_cast<int*>(0xAC1CB0) = uiColorTextObserver;
+	*reinterpret_cast<int*>(0xAC4880) = uiColorSelectionObserver;
+	*reinterpret_cast<int*>(0xAC1CB4) = uiColorDisabled;
+
+	// skip initialization
+	//CommonDialogStuff_Color_Shifts_Set_PCXes_Loaded
+	bool inited = *reinterpret_cast<bool*>(0xAC48D4);
+	return inited ? 0x60FB5D : 0x60FAE3;
+}
+
+DEFINE_OVERRIDE_HOOK(0x612DA9, Handle_Button_Messages_Color, 6)
+{
+	R->EDI(uiColorTextButton);
+	return 0x612DAF;
+}
+
+DEFINE_OVERRIDE_HOOK(0x613072, Handle_Button_Messages_DisabledColor, 7)
+{
+	R->EDI(uiColorDisabledButton);
+	return 0x613138;
+}
+
+DEFINE_OVERRIDE_HOOK(0x61664C, Handle_Checkbox_Messages_Color, 5)
+{
+	R->EAX(uiColorTextCheckbox);
+	return 0x616651;
+}
+
+DEFINE_OVERRIDE_HOOK(0x616655, Handle_Checkbox_Messages_Disabled, 5)
+{
+	R->EAX(uiColorDisabledCheckbox);
+	return 0x61665A;
+}
+
+DEFINE_OVERRIDE_HOOK(0x616AF0, Handle_RadioButton_Messages_Color, 6)
+{
+	R->ECX(uiColorTextRadio);
+	return 0x616AF6;
+}
+
+DEFINE_OVERRIDE_HOOK(0x615DF7, Handle_Static_Messages_Color, 6)
+{
+	R->ECX(uiColorTextLabel);
+	return 0x615DFD;
+}
+
+DEFINE_OVERRIDE_HOOK(0x615AB7, Handle_Static_Messages_Disabled, 6)
+{
+	R->ECX(uiColorDisabledLabel);
+	return 0x615ABD;
+}
+
+DEFINE_OVERRIDE_HOOK(0x619A4F, Handle_Listbox_Messages_Color, 6)
+{
+	R->ESI(uiColorTextList);
+	return 0x619A55;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6198D3, Handle_Listbox_Messages_DisabledA, 6)
+{
+	R->EBX(uiColorDisabledList);
+	return 0x6198D9;
+}
+
+DEFINE_OVERRIDE_HOOK(0x619A5F, Handle_Listbox_Messages_DisabledB, 6)
+{
+	R->ESI(uiColorDisabledList);
+	return 0x619A65;
+}
+
+DEFINE_OVERRIDE_HOOK(0x619270, Handle_Listbox_Messages_SelectionA, 5)
+{
+	R->EAX(uiColorSelectionList);
+	return 0x619275;
+}
+
+DEFINE_OVERRIDE_HOOK(0x619288, Handle_Listbox_Messages_SelectionB, 6)
+{
+	R->DL(BYTE(uiColorSelectionList >> 16));
+	return 0x61928E;
+}
+
+DEFINE_OVERRIDE_HOOK(0x617A2B, Handle_Combobox_Messages_Color, 6)
+{
+	R->EBX(uiColorTextCombobox);
+	return 0x617A31;
+}
+
+DEFINE_OVERRIDE_HOOK(0x617A57, Handle_Combobox_Messages_Disabled, 6)
+{
+	R->EBX(uiColorDisabledCombobox);
+	return 0x617A5D;
+}
+
+DEFINE_OVERRIDE_HOOK(0x60DDA6, Handle_Combobox_Dropdown_Messages_SelectionA, 5)
+{
+	R->EAX(uiColorSelectionCombobox);
+	return 0x60DDAB;
+}
+
+DEFINE_OVERRIDE_HOOK(0x60DDB6, Handle_Combobox_Dropdown_Messages_SelectionB, 6)
+{
+	R->DL(BYTE(uiColorSelectionCombobox >> 16));
+	return 0x60DDBC;
+}
+
+DEFINE_OVERRIDE_HOOK(0x61E2A5, Handle_Slider_Messages_Color, 5)
+{
+	R->EAX(uiColorTextSlider);
+	return 0x61E2AA;
+}
+
+DEFINE_OVERRIDE_HOOK(0x61E2B1, Handle_Slider_Messages_Disabled, 5)
+{
+	R->EAX(uiColorDisabledSlider);
+	return 0x61E2B6;
+}
+
+DEFINE_OVERRIDE_HOOK(0x61E8A0, Handle_GroupBox_Messages_Color, 6)
+{
+	R->ECX(uiColorTextGroupbox);
+	return 0x61E8A6;
+}
+
+DEFINE_OVERRIDE_HOOK(0x614FF2, Handle_NewEdit_Messages_Color, 6)
+{
+	R->EDX(uiColorTextEdit);
+	return 0x614FF8;
+}
+
+// reset the colors
+DEFINE_OVERRIDE_HOOK(0x4E43C0, Game_InitDropdownColors, 5)
+{
+	// mark all colors as unused (+1 for the  observer)
+	for (auto i = 0; i < colorCount + 1; ++i) {
+		Colors[i].selectedIndex = -1;
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme, 7)
+{
+	if (Phobos::UI::UnlimitedColor)
+		return 0x0;
+
+	GET_STACK(int const, idx, 0x4);
+
+	// get the slot
+	ColorData* slot = nullptr;
+	if (idx == -2 || idx == colorCount)
+	{
+		// observer color
+		slot = &Colors[0];
+	}
+	else if (idx < colorCount)
+	{
+		// house color
+		slot = &Colors[idx + 1];
+	}
+
+	// retrieve the color scheme index
+	auto ret = 0;
+	if (slot)
+	{
+		if (slot->colorSchemeIndex == -1)
+		{
+			auto const pScheme = slot->colorScheme;
+			slot->colorSchemeIndex = ColorScheme::FindIndex(pScheme);
+			if (slot->colorSchemeIndex == -1)
+			{
+				Debug::Log("Color scheme \"%s\" not found.\n", pScheme);
+				slot->colorSchemeIndex = 4;
+			}
+		}
+		ret = slot->colorSchemeIndex;
+	}
+
+	R->EAX(ret + 1);
+	return 0x69A334;
+}
+
+// return the tool tip describing this color
+DEFINE_OVERRIDE_HOOK(0x4E42A0, GameSetup_GetColorTooltip, 5)
+{
+	GET(int const, idxColor, ECX);
+
+	const wchar_t* ret = nullptr;
+	if (idxColor == -2)
+	{
+		// random
+		ret = StringTable::LoadString("STT:PlayerColorRandom");
+	}
+	else if (idxColor <= colorCount)
+	{
+		// houses and observer
+		auto const index = (idxColor + 1) % (colorCount + 1);
+		ret = Colors[index].sttToolTipSublineText;
+	}
+
+	R->EAX(ret);
+	return 0x4E43B9;
+}
+
+// handle adding colors to combo box
+DEFINE_OVERRIDE_HOOK(0x4E46BB, hWnd_PopulateWithColors, 7)
+{
+	GET(HWND const, hWnd, ESI);
+	GET_STACK(int const, idxPlayer, 0x14);
+
+	// add all colors
+	auto curSel = 0;
+	for (auto i = 0; i < colorCount; ++i)
+	{
+		auto const& Color = Colors[i + 1];
+		auto const isCurrent = Color.selectedIndex == idxPlayer;
+
+		if (isCurrent || Color.selectedIndex == -1)
+		{
+			int idx = SendMessageA(hWnd, WW_CB_ADDITEM, 0, 0x822B78);
+			SendMessageA(hWnd, WW_SETCOLOR, idx, Color.colorRGB);
+			SendMessageA(hWnd, CB_SETITEMDATA, idx, i);
+
+			if (isCurrent)
+			{
+				curSel = idx;
+			}
+		}
+	}
+
+	SendMessageA(hWnd, CB_SETCURSEL, curSel, 0);
+	SendMessageA(hWnd, 0x4F1, 0, 0);
+
+	return 0x4E4749;
+}
+
+// update the color in the combo drop-down lists
+DEFINE_OVERRIDE_HOOK(0x4E4A41, hWnd_SetPlayerColor_A, 7)
+{
+	GET(int const, idxPlayer, EAX);
+
+	for (auto i = 0; i < colorCount; ++i)
+	{
+		auto& Color = Colors[i + 1];
+		if (Color.selectedIndex == idxPlayer)
+		{
+			Color.selectedIndex = -1;
+			break;
+		}
+	}
+
+	return 0x4E4A6D;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4E4B47, hWnd_SetPlayerColor_B, 7)
+{
+	GET(int const, idxColor, EBP);
+	GET(int const, idxPlayer, ESI);
+
+	Colors[idxColor + 1].selectedIndex = idxPlayer;
+
+	return 0x4E4B4E;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4E4556, hWnd_GetSlotColorIndex, 7)
+{
+	GET(int const, idxPlayer, ECX);
+
+	auto ret = -1;
+	for (auto i = 0; i < colorCount; ++i)
+	{
+		auto const& Color = Colors[i + 1];
+		if (Color.selectedIndex == idxPlayer)
+		{
+			ret = i + 1;
+			break;
+		}
+	}
+
+	R->EAX(ret);
+	return 0x4E4570;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4E4580, hWnd_IsAvailableColor, 5)
+{
+	GET(int const, idxColor, ECX);
+	R->AL(Colors[idxColor + 1].selectedIndex == -1);
+	return 0x4E4592;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4E4C9D, hWnd_UpdatePlayerColors_A, 7)
+{
+	GET(int const, idxPlayer, EAX);
+
+	// check players and reset used color for this player
+	for (auto i = 0; i < colorCount; ++i)
+	{
+		auto& Color = Colors[i + 1];
+		if (Color.selectedIndex == idxPlayer)
+		{
+			Color.selectedIndex = -1;
+			break;
+		}
+	}
+
+	return 0x4E4CC9;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4E4D67, hWnd_UpdatePlayerColors_B, 7)
+{
+	GET(int const, idxColor, EAX);
+	GET(int const, idxPlayer, ESI);
+
+	// reserve the color for a player. skip the observer
+	Colors[idxColor + 1].selectedIndex = idxPlayer;
+
+	return 0x4E4D6E;
+}
+
 DEFINE_DISABLE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme_ares)
+DEFINE_DISABLE_HOOK(0x667a1d , RulesClass_CTOR_ares)
+DEFINE_DISABLE_HOOK(0x667a30 , RulesClass_DTOR_ares)
+DEFINE_DISABLE_HOOK(0x668bf0 , RulesClass_Addition_ares)
+DEFINE_DISABLE_HOOK(0x674730 , RulesClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x675205 , RulesClass_Save_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x675210 , RulesClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x678841 , RulesClass_Load_Suffix_ares)
 
 DEFINE_OVERRIDE_HOOK(0x67D04E, Game_Save_SavegameInformation, 7)
 {
 	REF_STACK(SavegameInformation, Info, STACK_OFFS(0x4A4, 0x3F4));
 
 	// remember the Ares version and a mod id
-	Info.Version = ModIdentifier + SAVEGAME_ID;
-	Info.InternalVersion = 0x1414D121;
+	Info.Version = version;
+	Info.InternalVersion = InternalVersion;
 	sprintf_s(Info.ExecutableName.data(), "GAMEMD.EXE + %s", "Ares/3.0p1");
 
 	return 0;
@@ -1943,8 +2460,8 @@ DEFINE_OVERRIDE_HOOK(0x559F31, LoadOptionsClass_GetFileInfo, 9)
 	REF_STACK(SavegameInformation, Info, STACK_OFFS(0x400, 0x3F4));
 
 	// compare equal if same mod and same Ares version (or compatible)
-	auto same = (Info.Version == (ModIdentifier + SAVEGAME_ID)
-		&& Info.InternalVersion == 0x1414D121);
+	auto same = (Info.Version == (version)
+		&& Info.InternalVersion == InternalVersion);
 
 	R->ECX(&Info);
 	return same ? 0x559F60u : 0x559F48u;
@@ -1964,7 +2481,7 @@ DEFINE_DISABLE_HOOK(0x685659, Scenario_ClearClasses_ares)
 
 CSFText ModNote;
 
-DEFINE_OVERRIDE_HOOK(0x4F4583, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
+DEFINE_OVERRIDE_HOOK(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
 {
 	const int AdvCommBarHeight = 32;
 
@@ -2026,8 +2543,7 @@ DEFINE_OVERRIDE_HOOK(0x4068E0, Debug_Log, 1)
 DEFINE_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 {
 	// mimic an increment because decrement happens in the middle of function cleanup and can't be erased nicely
-	int& TempMutex = *reinterpret_cast<int*>(0xA8DAB4);
-	++TempMutex;
+	++Unsorted::SystemResponseMessages;
 
 	Debug::Log("Reconnection error detected!");
 	if (MessageBoxW(Game::hWnd, L"Yuri's Revenge has detected a desynchronization!\n"
@@ -2114,7 +2630,7 @@ DEFINE_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			constexpr auto const pDelim = "---------------------\n";
 			fprintf(except, "Internal Error encountered!\n");
 			fprintf(except, pDelim);
-			fprintf(except, "Ares version: 21.352.1218"); //TODO
+			fprintf(except, "Ares version: 21.352.1218 With Phobos %s" ,PRODUCT_VERSION); //TODO
 			fprintf(except, "\n");
 			fprintf(except, pDelim);
 
@@ -2175,6 +2691,7 @@ DEFINE_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 		break;
 	}
 
+	Debug::Log("Exiting...\n");
 	Phobos::ExeTerminate();
 	ExitProcess(pExs->ExceptionRecord->ExceptionCode);
 };
@@ -2231,12 +2748,12 @@ void WriteLog(const MissionClass* it, int idx, DWORD checksum, FILE* F)
 		it->GetCurrentMission(), it->CurrentMissionStartTime);
 }
 
-template<>
-void WriteLog(const RadioClass* it, int idx, DWORD checksum, FILE* F)
-{
-	WriteLog<MissionClass>(it, idx, checksum, F);
+//template<>
+//void WriteLog(const RadioClass* it, int idx, DWORD checksum, FILE* F)
+//{
+	//WriteLog<MissionClass>(it, idx, checksum, F);
 	//fprintf(F, "; LastCommand: %d", it->LastCommands[0]);
-}
+//}
 
 template<>
 void WriteLog(const TechnoClass* it, int idx, DWORD checksum, FILE* F)
@@ -2408,7 +2925,7 @@ bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 		std::setvbuf(LogFile, nullptr, _IOFBF, 1024 * 1024); // 1024 kb buffer - should be sufficient for whole log
 
 		fprintf(LogFile, "YR synchronization log\n");
-		fprintf(LogFile, "With Ares [21.352.1218] and Phobos %s\n", FILE_VERSION_STR);
+		fprintf(LogFile, "With Ares [21.352.1218] and Phobos %s\n", PRODUCT_VERSION);
 
 		for (auto ixF = 0; ixF < 0x100; ++ixF)
 		{
@@ -2509,6 +3026,51 @@ DEFINE_OVERRIDE_HOOK(0x6516F0, Multiplay_LogToSync_MPDEBUG, 6)
 	LogFrame(LogFilename, OffendingEvent);
 
 	return 0x651781;
+}
+
+struct IniSectionIncludes
+{
+	static INIClass::INISection* includedSection;
+	static void CopySection(CCINIClass* ini, INIClass::INISection* source, const char* dest);
+};
+
+INIClass::INISection* IniSectionIncludes::includedSection = nullptr;
+
+void IniSectionIncludes::CopySection(CCINIClass* ini, INIClass::INISection* source, const char* destName)
+{
+	//browse through section entries and copy them over to the new section
+	for (GenericNode* node = *source->Entries.First(); node; node = node->Next())
+	{
+		INIClass::INIEntry* entry = static_cast<INIClass::INIEntry*>(node);
+		ini->WriteString(destName, entry->Key, entry->Value); //simple but effective
+	}
+}
+
+DEFINE_OVERRIDE_HOOK(0x525E44, INIClass_Parse_IniSectionIncludes_CopySection2, 7)
+{
+	if (IniSectionIncludes::includedSection)
+	{
+		GET_STACK(CCINIClass*, ini, 0x28);
+		GET(INIClass::INISection*, section, EBX);
+		IniSectionIncludes::CopySection(ini, IniSectionIncludes::includedSection, section->Name);
+		IniSectionIncludes::includedSection = nullptr; //reset, very important
+	}
+	return 0;
+}
+
+
+DEFINE_OVERRIDE_HOOK(0x525C28 , INIClass_Parse_IniSectionIncludes_CopySection1, 7)
+{
+	LEA_STACK(char*, sectionName, 0x278);
+	GET_STACK(CCINIClass*, ini, 0x28);
+
+	if (IniSectionIncludes::includedSection) {
+
+		IniSectionIncludes::CopySection(ini, IniSectionIncludes::includedSection, sectionName);
+		IniSectionIncludes::includedSection = nullptr; //reset, very important
+	}
+
+	return 0x0;
 }
 
 #pragma endregion

@@ -39,8 +39,10 @@ void Debug::LogDeferred(const char* pFormat, ...)
 
 void Debug::LogDeferredFinalize()
 {
-	for(auto const& Logs : DeferredLogData)
-		Log("%s", Logs);
+	for(auto const& Logs : DeferredLogData) {
+		if(!Logs.empty())
+			Log("%s", Logs);
+	}
 
 	DeferredLogData.clear();
 }
@@ -105,12 +107,13 @@ void Debug::LogFileOpen()
 	Debug::MakeLogFile();
 	Debug::LogFileClose(999);
 
-	LogFile = _wfsopen(Debug::LogFileTempName.c_str(), L"w", _SH_DENYWR);
-	if (!LogFile)
-	{
+	LogFile = _wfsopen(Debug::LogFileTempName.c_str(), L"w", SH_DENYNO);
+
+	if (!LogFile) {
 		wchar_t msg[100] = L"\0";
 		wsprintfW(msg, L"Log file failed to open. Error code = %X", errno);
 		MessageBoxW(Game::hWnd, Debug::LogFileTempName.c_str(), msg, MB_OK | MB_ICONEXCLAMATION);
+		Phobos::Otamaa::ExeTerminated = true;
 		ExitProcess(1);
 	}
 }

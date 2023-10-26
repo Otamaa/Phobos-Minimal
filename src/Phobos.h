@@ -117,6 +117,8 @@ struct Phobos final
 		static double PowerDelta_ConditionRed;
 		static bool CenterPauseMenuBackground;
 
+		static bool UnlimitedColor;
+
 		static const wchar_t* CostLabel;
 		static const wchar_t* PowerLabel;
 		static const wchar_t* PowerBlackoutLabel;
