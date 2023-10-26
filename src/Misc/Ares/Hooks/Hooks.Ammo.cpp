@@ -44,17 +44,6 @@ DEFINE_OVERRIDE_HOOK(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
 	return (!IsDisabled || !nAmmo) ? FireErrAmmo : Continue;
 }
 
-//remove ammo rounds depending on weapon
-DEFINE_OVERRIDE_HOOK(0x6FF656, TechnoClass_Fire_Ammo, 0xA)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(WeaponTypeClass* const, pWeapon, EBX);
-
-	TechnoExt_ExtData::DecreaseAmmo(pThis, pWeapon);
-
-	return 0x6FF660;
-}
-
 DEFINE_OVERRIDE_HOOK(0x7413FF, UnitClass_Fire_Ammo, 7)
 {
 	GET(UnitClass*, pThis, ESI);

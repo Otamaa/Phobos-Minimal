@@ -15,6 +15,8 @@
 #include <Ext/ParticleSystemType/Body.h>
 #include <Ext/WarheadType/Body.h>
 
+#include <Misc/Ares/Hooks/Header.h>
+
 // Contains hooks that fix weapon graphical effects like lasers, railguns, electric bolts, beams and waves not interacting
 // correctly with obstacles between firer and target, as well as railgun / railgun particles being cut off by elevation.
 
@@ -278,8 +280,7 @@ DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_Additional, 0x6)
 	return 0;
 }
 
-// Restore original target values and unset obstacle cell.
-DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_PreFire_ObstacleCellUnset, 0x6)
+DEFINE_OVERRIDE_HOOK(0x6FF656, TechnoClass_FireAt_Additionals, 0xA)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET_BASE(AbstractClass* const, pTarget, 0x8);
@@ -288,14 +289,18 @@ DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_PreFire_ObstacleCellUnset, 0x6)
 	GET_BASE(int, weaponIndex, 0xC);
 	LEA_STACK(CoordStruct*, pTargetCoords, STACK_OFFSET(0xB0, -0x28));
 
+	//remove ammo rounds depending on weapon
+	TechnoExt_ExtData::DecreaseAmmo(pThis, pWeaponType);
+
+	// Restore original target values and unset obstacle cell.
 	*pTargetCoords = std::exchange(FireAtTemp::originalTargetCoords , CoordStruct::Empty);
 	std::exchange(FireAtTemp::pOriginalTarget , nullptr);
 	std::exchange(FireAtTemp::pObstacleCell, nullptr);
 
 	R->EDI(pTarget);
+
 	//TechnoClass_FireAt_ToggleLaserWeaponIndex
-	if (pThis->WhatAmI() == BuildingClass::AbsID && pWeaponType->IsLaser)
-	{
+	if (pThis->WhatAmI() == BuildingClass::AbsID && pWeaponType->IsLaser) {
 		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
 		if (pExt->CurrentLaserWeaponIndex.empty())
@@ -308,16 +313,13 @@ DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_PreFire_ObstacleCellUnset, 0x6)
 	++pThis->CurrentBurstIndex;
 	pThis->CurrentBurstIndex %= pWeaponType->Burst;
 
-	if (auto const pTargetObject = specific_cast<BulletClass* const>(pTarget))
-	{
-		if (TechnoExtContainer::Instance.Find(pThis)->IsInterceptor())
-		{
+	if (auto const pTargetObject = specific_cast<BulletClass* const>(pTarget)) {
+		if (TechnoExtContainer::Instance.Find(pThis)->IsInterceptor()) {
 			BulletExtContainer::Instance.Find(pBullet)->IsInterceptor = true;
 			BulletExtContainer::Instance.Find(pTargetObject)->InterceptedStatus = InterceptedStatus::Targeted;
 
 			// If using Inviso projectile, can intercept bullets right after firing.
-			if (pTargetObject->IsAlive && pWeaponType->Projectile->Inviso)
-			{
+			if (pTargetObject->IsAlive && pWeaponType->Projectile->Inviso) {
 				WarheadTypeExtContainer::Instance.Find(pWeaponType->Warhead)->InterceptBullets(pThis, pWeaponType, pTargetObject->Location);
 			}
 		}
@@ -325,16 +327,16 @@ DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_PreFire_ObstacleCellUnset, 0x6)
 
 	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeaponType);
 
-	if (pWeaponExt->ShakeLocal.Get() && !pThis->IsOnMyView())
-		return 0x0;
+	if (pWeaponExt->ShakeLocal.Get() && pThis->IsOnMyView()) {
 
-	if (pWeaponExt->Xhi || pWeaponExt->Xlo)
-		GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, ScenarioClass::Instance->Random(pWeaponExt->Xlo, pWeaponExt->Xhi));
+		if (pWeaponExt->Xhi || pWeaponExt->Xlo)
+			GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, ScenarioClass::Instance->Random(pWeaponExt->Xlo, pWeaponExt->Xhi));
 
-	if (pWeaponExt->Yhi || pWeaponExt->Ylo)
-		GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, ScenarioClass::Instance->Random(pWeaponExt->Ylo, pWeaponExt->Yhi));
+		if (pWeaponExt->Yhi || pWeaponExt->Ylo)
+			GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, ScenarioClass::Instance->Random(pWeaponExt->Ylo, pWeaponExt->Yhi));
+	}
 
-	return 0;
+	return 0x6FF660;
 }
 
 #include <Ext/WeaponType/Body.h>

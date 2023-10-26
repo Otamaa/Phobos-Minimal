@@ -215,59 +215,6 @@ DEFINE_HOOK(0x6FE19A, TechnoClass_FireAt_AreaFire, 0x6) //7
 	}
 }
 
-DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_Middle, 0x6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET_BASE(AbstractClass* const, pTarget, 0x8);
-	GET(WeaponTypeClass* const, pWeaponType, EBX);
-	GET_STACK(BulletClass* const, pBullet, STACK_OFFS(0xB0, 0x74));
-	GET_BASE(int, weaponIndex, 0xC);
-
-	//TechnoClass_FireAt_ToggleLaserWeaponIndex
-	if (pThis->WhatAmI() == BuildingClass::AbsID && pWeaponType->IsLaser)
-	{
-		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-
-		if (pExt->CurrentLaserWeaponIndex.empty())
-			pExt->CurrentLaserWeaponIndex = weaponIndex;
-		else
-			pExt->CurrentLaserWeaponIndex.clear();
-	}
-
-	//TechnoClass_FireAt_BurstOffsetFix_2
-	++pThis->CurrentBurstIndex;
-	pThis->CurrentBurstIndex %= pWeaponType->Burst;
-
-	if (auto const pTargetObject = specific_cast<BulletClass* const>(pTarget))
-	{
-		if (TechnoExtContainer::Instance.Find(pThis)->IsInterceptor())
-		{
-			BulletExtContainer::Instance.Find(pBullet)->IsInterceptor = true;
-			BulletExtContainer::Instance.Find(pTargetObject)->InterceptedStatus = InterceptedStatus::Targeted;
-
-			// If using Inviso projectile, can intercept bullets right after firing.
-			if (pTargetObject->IsAlive && pWeaponType->Projectile->Inviso)
-			{
-				WarheadTypeExtContainer::Instance.Find(pWeaponType->Warhead)->InterceptBullets(pThis, pWeaponType, pTargetObject->Location);
-			}
-		}
-	}
-
-	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeaponType);
-
-	if (pWeaponExt->ShakeLocal.Get() && !pThis->IsOnMyView())
-		return 0x0;
-
-	if (pWeaponExt->Xhi || pWeaponExt->Xlo)
-		GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, ScenarioClass::Instance->Random(pWeaponExt->Xlo, pWeaponExt->Xhi));
-
-	if (pWeaponExt->Yhi || pWeaponExt->Ylo)
-		GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, ScenarioClass::Instance->Random(pWeaponExt->Ylo, pWeaponExt->Yhi));
-
-
-	return 0;
-}
-
 DEFINE_HOOK(0x6FC587, TechnoClass_CanFire_OpenTopped, 0x6)
 {
 	enum { DisallowFiring = 0x6FC86A };
