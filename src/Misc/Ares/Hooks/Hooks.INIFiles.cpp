@@ -26,7 +26,7 @@ NOINLINE INIClass::INISection* GetSection(INIClass* pINI, const char* pSection)
 		return pINI->CurrentSection;
 
 	if (pSection) {
-		if (auto pData = pINI->SectionIndex.FetchItem(CRCEngine()(pSection, strlen(pSection)))){
+		if (auto pData = pINI->SectionIndex.FetchItem(CRCEngine()(pSection, strlen(pSection)) , true)){
 			pINI->CurrentSection = pData->Data;
 			pINI->CurrentSectionName = (char*)pSection;
 			return pINI->CurrentSection;
@@ -40,7 +40,7 @@ NOINLINE const char* Result(INIClass* pINI , const char* pSection , const char* 
 {
 	if (INIClass::INISection* pSectionRes = GetSection(pINI, pSection)) {
 		if (pKey) {
-			if (auto pResult = pSectionRes->EntryIndex.FetchItem(CRCEngine()(pKey, strlen(pKey)))) {
+			if (auto pResult = pSectionRes->EntryIndex.FetchItem(CRCEngine()(pKey, strlen(pKey)), true)) {
 				if(pResult->Data) { 
 					return pResult->Data->Value;
 				}
@@ -56,13 +56,13 @@ DEFINE_OVERRIDE_HOOK(0x5260d9, INIClass_Parse_Override, 7)
 	GET_STACK(INIClass*, pThis, 0x38);
 	GET(int, CRC, EAX);
 
-	auto find = pThis->SectionIndex.FetchItem(CRC);
+	auto find = pThis->SectionIndex.FetchItem(CRC, true);
 
 	if (!find)
 		return 0x0;
 
 	if (auto pData = find->Data) {
-		if (auto find2 = pThis->SectionIndex.FetchItem(CRC)) { 
+		if (auto find2 = pThis->SectionIndex.FetchItem(CRC, true)) {
 			auto begin = find2;
 			auto next = (&find2[1]);
 			const auto end = *reinterpret_cast<NodeElement<int, INIClass::INISection*>**>(pThis->SectionIndex.IndexCount + 8 * pThis->SectionIndex.IndexSize);
@@ -147,22 +147,22 @@ DEFINE_OVERRIDE_HOOK(0x525D23, IteratorChar_Process_Method2, 5)
 	GET(char*, value, ESI);
 	LEA_STACK(char*, key, 0x78)
 
-		if (CRT::strcmp(key, iteratorChar) == 0)
-		{
-			char buffer[0x200];
-			strcpy_s(buffer, value);
-			int len = sprintf_s(key, sizeof(buffer),
-				iteratorReplacementFormat,
-				iteratorValue++);
+	if (CRT::strcmp(key, iteratorChar) == 0)
+	{
+		char buffer[0x200];
+		strcpy_s(buffer, value);
+		int len = sprintf_s(key, sizeof(buffer),
+			iteratorReplacementFormat,
+			iteratorValue++);
 
-			if (len >= 0)
-			{
-				char* newValue = &key[len + 1];
-				strcpy_s(newValue, sizeof(buffer) - len - 1, buffer);
-				R->ESI<char*>(newValue);
-				R->ESI(newValue); //for correct debug display
-			}
+		if (len >= 0)
+		{
+			char* newValue = &key[len + 1];
+			strcpy_s(newValue, sizeof(buffer) - len - 1, buffer);
+			R->ESI<char*>(newValue);
+			R->ESI(newValue); //for correct debug display
 		}
+	}
 
 	return 0;
 }
@@ -304,6 +304,79 @@ DEFINE_OVERRIDE_HOOK(0x525C28, INIClass_Parse_IniSectionIncludes_CopySection1, 7
 	}
 
 	return 0x0;
+}
+
+NOINLINE INIClass::INISection* GetInheritedSection(INIClass* pThis, char* ptr)
+{
+	char* copy = ptr;
+	for (auto i = *ptr; i <= ' '; i = *++copy) {
+		if (!i)
+			break;
+	}
+
+	if (*copy == ':') {
+		char* copy_1 = copy + 1;
+		for (auto j = *(copy + 1); j <= ' '; j = *++copy_1) {
+			if (!j)
+				break;
+		}
+
+		if (*copy_1 == '[') {
+			char copy_2 = *(copy_1 + 1);
+			char* copy_2_2 = (copy_1 + 1);
+			for (; copy_2 <= ' '; copy_2 = *++copy_2_2) {
+				if (!copy_2)
+					break;
+			}
+
+			if (char* get = strstr(copy_2_2, "];")) {
+				if (*get == ']' && copy_2_2 != get) {
+					while (*(get - 1) <= ' ') {
+						if (copy_2_2 == --get) {
+							return nullptr;
+						}
+					}
+
+					if (copy_2_2 != get)
+					{
+						*get = 0;
+
+						if (auto section = pThis->GetSection(copy_2_2)) {
+							return section;
+						}
+
+						Debug::Log(Debug::Severity::Warning, "An INI section inherits from section '%s', which doesn't exist or has not been parsed yet.\n", copy_2_2);
+					}
+				}
+			}
+		}
+	}
+
+	return nullptr;
+}
+
+DEFINE_OVERRIDE_HOOK(0x525CA5, INIClass_Parse_IniSectionIncludes_PreProcess1, 8)
+{
+	GET(char*, ptr, EAX);
+	GET_STACK(INIClass*, pThis, 0x28);
+
+	if (!ptr) { 
+
+		IniSectionIncludes::includedSection = GetInheritedSection(pThis, ptr + 1);
+		return 0x525CAD;
+	}
+
+	return 0x525D4D;
+}
+
+DEFINE_OVERRIDE_HOOK(0x525DDB ,INIClass_Parse_IniSectionIncludes_PreProcess2, 5)
+{
+	GET(char*, ptr, EAX);
+	GET_STACK(INIClass*, pThis, 0x28);
+
+	ptr[0] = '\0';
+	IniSectionIncludes::includedSection = GetInheritedSection(pThis, ptr + 1);
+	return 0x525DEA;
 }
 
 int LastReadIndex = -1;

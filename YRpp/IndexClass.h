@@ -34,7 +34,7 @@ public:
 	constexpr bool AddIndex(TKey id, const TValue& data);
 	bool AddIndex(TKey id, TValue&& data);
 	bool RemoveIndex(TKey id);
-	bool IsPresent(TKey id) const;
+	bool IsPresent(TKey id, bool Lowerbound = false) const;
 	int Count() const;
 	const TValue& FetchIndex(TKey id) const;
 	TValue& FetchIndex(TKey id);
@@ -58,14 +58,14 @@ public:
 	auto end() const { return &IndexTable[IndexCount]; }
 	auto begin() { return &IndexTable[0]; }
 	auto end() { return &IndexTable[IndexCount]; }
-	auto FetchItem(TKey id) const;
+	auto FetchItem(TKey id, bool Lowerbound = false) const;
 
 private:
 	bool IncreaseTableSize(int nAmount);
 	bool IsArchiveSame(TKey id) const;
 	void InvalidateArchive();
 	void SetArchive(NodeType const* pNode);
-	NodeType const* SearchForNode(TKey id) const;
+	NodeType const* SearchForNode(TKey id, bool Lowerbound = false) const;
 
 	//static int __cdecl search_compfunc(void const * ptr, void const * ptr2);
 };
@@ -159,7 +159,7 @@ int IndexClass<TKey, TValue>::Count() const
 }
 
 template<typename TKey, typename TValue>
-bool IndexClass<TKey, TValue>::IsPresent(TKey id) const
+bool IndexClass<TKey, TValue>::IsPresent(TKey id, bool Lowerbound) const
 {
 	if (!this->IndexCount)
 		return false;
@@ -167,7 +167,7 @@ bool IndexClass<TKey, TValue>::IsPresent(TKey id) const
 	if (this->IsArchiveSame(id))
 		return true;
 
-	if (NodeType const* nodeptr = SearchForNode(id))
+	if (NodeType const* nodeptr = SearchForNode(id, Lowerbound))
 	{
 		const_cast<IndexClass<TKey, TValue>*>(this)->SetArchive(nodeptr);
 		return true;
@@ -177,11 +177,11 @@ bool IndexClass<TKey, TValue>::IsPresent(TKey id) const
 }
 
 template<typename TKey, typename TValue>
-auto IndexClass<TKey, TValue>::FetchItem(TKey id) const
+auto IndexClass<TKey, TValue>::FetchItem(TKey id, bool Lowerbound) const
 {
 	if (!this->IsArchiveSame(id))
 	{
-		if (NodeType const* nodeptr = const_cast<IndexClass<TKey, TValue>*>(this)->SearchForNode(id)) {
+		if (NodeType const* nodeptr = const_cast<IndexClass<TKey, TValue>*>(this)->SearchForNode(id , Lowerbound)) {
 			const_cast<IndexClass<TKey, TValue>*>(this)->SetArchive(nodeptr);
 			return this->Archive;
 		} 
@@ -299,15 +299,17 @@ bool IndexClass<TKey, TValue>::RemoveIndex(TKey id)
 //}
 
 template<typename TKey, typename TValue>
-typename IndexClass<TKey, TValue>::NodeType const* IndexClass<TKey, TValue>::SearchForNode(TKey id) const
+typename IndexClass<TKey, TValue>::NodeType const* IndexClass<TKey, TValue>::SearchForNode(TKey id , bool Lowerbound) const
 {
 	if (!this->IndexCount)
 		return 0;
 
 	const_cast<IndexClass<TKey, TValue>*>(this)->Sort();
 
-	NodeType node;
-	node.ID = id;
-	return static_cast<const NodeType*>(std::bsearch(&node, &IndexTable[0], IndexCount, sizeof(IndexTable[0]), Comparator));
-	//return std::lower_bound(begin(), end(), node);
+	if(Lowerbound) {
+		const NodeType* find = static_cast<const NodeType*>(std::lower_bound(begin(), end(), NodeType{ id , {} }));
+		return (find->ID == end()->ID || id < end()->ID) ? nullptr : find;
+	}
+
+	return static_cast<const NodeType*>(std::bsearch(&NodeType { id , {} }, &IndexTable[0], IndexCount, sizeof(IndexTable[0]), Comparator));
 }
