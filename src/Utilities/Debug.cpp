@@ -353,10 +353,7 @@ bool Console::Create()
 
 void Console::SetForeColor(ConsoleColor color)
 {
-	if (NULL == ConsoleHandle)
-		return;
-
-	if (TextAttribute.Foreground == color)
+	if (NULL == ConsoleHandle || TextAttribute.Foreground == color)
 		return;
 
 	TextAttribute.Foreground = color;
@@ -365,10 +362,7 @@ void Console::SetForeColor(ConsoleColor color)
 
 void Console::SetBackColor(ConsoleColor color)
 {
-	if (NULL == ConsoleHandle)
-		return;
-
-	if (TextAttribute.Background == color)
+	if (NULL == ConsoleHandle || TextAttribute.Background == color)
 		return;
 
 	TextAttribute.Background = color;
@@ -377,10 +371,7 @@ void Console::SetBackColor(ConsoleColor color)
 
 void Console::EnableUnderscore(bool enable)
 {
-	if (NULL == ConsoleHandle)
-		return;
-
-	if (TextAttribute.Underscore == enable)
+	if (NULL == ConsoleHandle || TextAttribute.Underscore == enable)
 		return;
 
 	TextAttribute.Underscore = enable;
@@ -389,14 +380,18 @@ void Console::EnableUnderscore(bool enable)
 
 void Console::Release()
 {
-	if (NULL != ConsoleHandle)
-		FreeConsole();
+	if (NULL == ConsoleHandle)
+		return;
+
+	FreeConsole();
 }
 
 void Console::Write(const char* str, int len)
 {
-	if (NULL != ConsoleHandle)
-		WriteConsole(ConsoleHandle, str, len, nullptr, nullptr);
+	if (NULL == ConsoleHandle)
+		return;
+
+	WriteConsole(ConsoleHandle, str, len, nullptr, nullptr);
 }
 
 void Console::WriteLine(const char* str, int len)
@@ -407,8 +402,11 @@ void Console::WriteLine(const char* str, int len)
 
 void __fastcall Console::WriteWithVArgs(const char* pFormat, va_list args)
 {
+	if (ConsoleHandle == NULL)
+		return;
+
 	vsprintf_s(Debug::LogMessageBuffer, pFormat, args);
-	Write(Debug::LogMessageBuffer, strlen(Debug::LogMessageBuffer));
+	WriteConsole(ConsoleHandle, Debug::LogMessageBuffer, strlen(Debug::LogMessageBuffer), nullptr, nullptr);
 }
 
 void Console::WriteFormat(const char* pFormat, ...)

@@ -232,43 +232,6 @@ DEFINE_OVERRIDE_HOOK(0x7387D1, UnitClass_Destroyed_Shake, 0x6)
 	return 0x738801;
 }
 
-// replaces entire function (without the pip distortion bug)
-DEFINE_OVERRIDE_HOOK(0x4748A0, INIClass_GetPipIdx, 0x7)
-{
-	GET(INIClass*, pINI, ECX);
-	GET_STACK(const char*, pSection, 0x4);
-	GET_STACK(const char*, pKey, 0x8);
-	GET_STACK(int, fallback, 0xC);
-
-	if (pINI->ReadString(pSection, pKey, Phobos::readDefval, Phobos::readBuffer) > 0)
-	{
-		int nbuffer;
-		if (Parser<int>::TryParse(Phobos::readBuffer, &nbuffer))
-		{
-			R->EAX(nbuffer);
-			return 0x474907;
-		}
-		else
-		{
-			// find the pip value with the name specified
-			for (const auto& data : TechnoTypeClass::PipsTypeName)
-			{
-				if (data == Phobos::readBuffer)
-				{
-					//Debug::Log("[%s]%s=%s ([%d] from [%s]) \n", pSection, pKey, Phobos::readBuffer, it->Value, it->Name);
-					R->EAX(data.Value);
-					return 0x474907;
-				}
-			}
-		}
-
-		Debug::INIParseFailed(pSection, pKey, Phobos::readBuffer, "Expect valid pip");
-	}
-
-	R->EAX(fallback);
-	return 0x474907;
-}
-
 // replaced entire function. error was using delete[] instead of delete.
 // it potentially crashed when any of the files were present in the
 // game directory.
@@ -302,20 +265,6 @@ DEFINE_OVERRIDE_HOOK(0x56BC54, ThreatPosedEstimates_GetIndex, 0x5)
 
 	R->EAX(index);
 	return 0x56BC7D;
-}
-
-// invalid or not set edge reads array out of bounds
-DEFINE_OVERRIDE_HOOK(0x4759D4, INIClass_WriteEdge, 0x7)
-{
-	GET(int const, index, EAX);
-
-	if (index < 0 || index > 4)
-	{
-		R->EDX(GameStrings::NoneStrb());
-		return 0x4759DB;
-	}
-
-	return 0;
 }
 
 // don't set the focus when selling (true selling, thus no focus set atm)
@@ -1329,14 +1278,6 @@ DEFINE_OVERRIDE_HOOK(0x5D6F61, MPGameModeClass_CreateStartingUnits_BaseCenter, 8
 	return 0x5D6F77;
 }
 
-DEFINE_OVERRIDE_HOOK(0x687C56, INIClass_ReadScenario_ResetLogStatus, 5)
-{
-	// reset this so next scenario startup log is cleaner
-	Phobos::Otamaa::TrackParserErrors = false;
-
-	return 0;
-}
-
 DEFINE_OVERRIDE_HOOK(0x5f5add, ObjectClass_SpawnParachuted_Animation, 6)
 {
 	GET(ObjectClass*, pThis, ESI);
@@ -1448,11 +1389,7 @@ DEFINE_OVERRIDE_HOOK(0x6BD7E3, Expand_MIX_Reorg, 5)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x52BB64, Expand_MIX_Deorg, 5)
-{
-	R->AL(1);
-	return 0x52BB69;
-}
+DEFINE_JUMP(LJMP , 0x52BB64 , 0x52BB95) //Expand_MIX_Deorg
 
 DEFINE_OVERRIDE_HOOK(0x5FDDA4 , IsOverlayIdxTiberium_Log, 6)
 {
@@ -2287,20 +2224,14 @@ DEFINE_OVERRIDE_HOOK(0x4E42A0, GameSetup_GetColorTooltip, 5)
 {
 	GET(int const, idxColor, ECX);
 
-	const wchar_t* ret = nullptr;
-	if (idxColor == -2)
-	{
-		// random
-		ret = StringTable::LoadString("STT:PlayerColorRandom");
+	if (idxColor == -2) {
+		return 0x4E42A5;// random
 	}
-	else if (idxColor <= colorCount)
-	{
-		// houses and observer
-		auto const index = (idxColor + 1) % (colorCount + 1);
-		ret = Colors[index].sttToolTipSublineText;
+	else if (idxColor > colorCount) {
+		return 0x4E43B7;
 	}
 
-	R->EAX(ret);
+	R->EAX(Colors[(idxColor + 1) % (colorCount + 1)].sttToolTipSublineText);
 	return 0x4E43B9;
 }
 
@@ -2519,6 +2450,7 @@ DEFINE_OVERRIDE_HOOK(0x4068E0, Debug_Log, 1)
 	GET_STACK(const char* const, pFormat, 0x4);
 
 	Debug::LogWithVArgs(pFormat, args);
+	Console::WriteWithVArgs(pFormat, args);
 
 	return 0x4A4AF9; // changed to co-op with YDE
 }
@@ -3012,50 +2944,4 @@ DEFINE_OVERRIDE_HOOK(0x6516F0, Multiplay_LogToSync_MPDEBUG, 6)
 
 	return 0x651781;
 }
-
-struct IniSectionIncludes
-{
-	static INIClass::INISection* includedSection;
-	static void CopySection(CCINIClass* ini, INIClass::INISection* source, const char* dest);
-};
-
-INIClass::INISection* IniSectionIncludes::includedSection = nullptr;
-
-void IniSectionIncludes::CopySection(CCINIClass* ini, INIClass::INISection* source, const char* destName)
-{
-	//browse through section entries and copy them over to the new section
-	for (GenericNode* node = *source->Entries.First(); node; node = node->Next())
-	{
-		INIClass::INIEntry* entry = static_cast<INIClass::INIEntry*>(node);
-		ini->WriteString(destName, entry->Key, entry->Value); //simple but effective
-	}
-}
-
-DEFINE_OVERRIDE_HOOK(0x525E44, INIClass_Parse_IniSectionIncludes_CopySection2, 7)
-{
-	if (IniSectionIncludes::includedSection)
-	{
-		GET_STACK(CCINIClass*, ini, 0x28);
-		GET(INIClass::INISection*, section, EBX);
-		IniSectionIncludes::CopySection(ini, IniSectionIncludes::includedSection, section->Name);
-		IniSectionIncludes::includedSection = nullptr; //reset, very important
-	}
-	return 0;
-}
-
-
-DEFINE_OVERRIDE_HOOK(0x525C28 , INIClass_Parse_IniSectionIncludes_CopySection1, 7)
-{
-	LEA_STACK(char*, sectionName, 0x278);
-	GET_STACK(CCINIClass*, ini, 0x28);
-
-	if (IniSectionIncludes::includedSection) {
-
-		IniSectionIncludes::CopySection(ini, IniSectionIncludes::includedSection, sectionName);
-		IniSectionIncludes::includedSection = nullptr; //reset, very important
-	}
-
-	return 0x0;
-}
-
 #pragma endregion

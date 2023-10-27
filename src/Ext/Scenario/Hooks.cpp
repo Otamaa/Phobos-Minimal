@@ -4,7 +4,7 @@
 
 #include <Ext/Side/Body.h>
 
-//DEFINE_DISABLE_HOOK(0x6873ab , INIClass_ReadScenario_EarlyLoadRules_ares)
+DEFINE_DISABLE_HOOK(0x6873ab , INIClass_ReadScenario_EarlyLoadRules_ares)
 
 DEFINE_HOOK(0x6870D7, ReadScenario_LoadingScreens, 0x5)
 {
