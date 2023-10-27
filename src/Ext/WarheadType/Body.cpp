@@ -22,10 +22,6 @@ PhobosMap<IonBlastClass*, WarheadTypeExtData*> WarheadTypeExtData::IonBlastExt;
 
 void WarheadTypeExtData::InitializeConstant()
 {
-	// stuffs will be serialized after
-	if (Phobos::Otamaa::DoingLoadGame)
-		return;
-
 	this->AttachedEffect.Owner = this->AttachedToObject;
 	this->EvaluateArmor(this->AttachedToObject);
 }

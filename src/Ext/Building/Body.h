@@ -19,7 +19,7 @@ class BuildingExtData final
 public:
 	static constexpr size_t Canary = 0x87654321;
 	using base_type = BuildingClass;
-	static constexpr size_t ExtOffset = 0x71C; //ares
+	//static constexpr size_t ExtOffset = 0x71C; //ares
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };

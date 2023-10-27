@@ -29,8 +29,8 @@ public:
 	static constexpr size_t Canary = 0x66666666;
 	using base_type = BuildingTypeClass;
 
-	static constexpr size_t ExtOffset = 0xE24; //ares
-	//static constexpr size_t ExtOffset = 0x1794;
+	//static constexpr size_t ExtOffset = 0xE24; //ares
+	static constexpr size_t ExtOffset = 0x1794;
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
@@ -211,10 +211,10 @@ public:
 
 	Valueable<bool> Destroyed_CreateSmudge { true };
 
-	Valueable<BuildingTypeClass*> LaserFenceType { nullptr };
-	Nullable<BuildingTypeClass*> LaserFenceWEType { };
-	ValueableVector<BuildingTypeClass*> LaserFencePostLinks { };
-	Valueable<short> LaserFenceDirection {};
+	//Valueable<BuildingTypeClass*> LaserFenceType { nullptr };
+	//Nullable<BuildingTypeClass*> LaserFenceWEType { };
+	//ValueableVector<BuildingTypeClass*> LaserFencePostLinks { };
+	//Valueable<short> LaserFenceDirection {};
 
 	// #218 Specific Occupiers
 	ValueableVector<InfantryTypeClass*> AllowedOccupiers {};

@@ -132,7 +132,7 @@ void BulletTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	auto pArtInI = &CCINIClass::INI_Art;
 
 	const char* pSection = pThis->ID;
-	const char* pArtSection = pThis->ImageFile;
+	const char* pArtSection = (!pThis->ImageFile || !pThis->ImageFile[0]) ? pSection : pThis->ImageFile;
 
 	this->ImageConvert.clear();
 
@@ -361,7 +361,6 @@ DEFINE_HOOK(0x46C8B6, BulletTypeClass_SDDTOR, 0x6)
 	auto extData = BulletTypeExtContainer::Instance.GetExtAttribute(pItem);
 	BulletTypeExtContainer::Instance.ClearExtAttribute(pItem);
 	BulletTypeExtContainer::Instance.Map.erase(pItem);
-	//BulletTypeExtContainer::Instance.Remove(pItem);
 	delete extData;
 	return 0;
 }
@@ -377,8 +376,8 @@ DEFINE_HOOK(0x46C6A0, BulletTypeClass_SaveLoad_Prefix, 0x5)
 	return 0;
 }
 
-// Before : 0x46C722 , 0x4
-// After : 46C70F , 0x6
+//// Before : 0x46C722 , 0x4
+//// After : 46C70F , 0x6
 DEFINE_HOOK(0x46C70F, BulletTypeClass_Load_Suffix, 0x6)
 {
 	GET(BulletTypeClass*, pThis, ESI);
@@ -389,8 +388,8 @@ DEFINE_HOOK(0x46C70F, BulletTypeClass_Load_Suffix, 0x6)
 	return 0x46C720;
 }
 
-// Before : 0x46C74A , 0x3
-// After : 46C744 , 0x6
+//// Before : 0x46C74A , 0x3
+//// After : 46C744 , 0x6
 DEFINE_HOOK(0x46C744, BulletTypeClass_Save_Suffix, 0x6)
 {
 	GET(HRESULT, nRes, EAX);

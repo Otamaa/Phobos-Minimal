@@ -364,6 +364,15 @@ DEFINE_OVERRIDE_HOOK(0x48da3b , sub_48D1E0_PlayTaunt , 5)
 }
 
 #include <ThemeClass.h>
+
+#ifndef DISABLE_AUDIO_OVERRIDE
+
+//DEFINE_HOOK(0x406B10, Audio_InitPhobosAudio, 0x6) {
+//	LooseAudioCache::Allocate();
+//	//AudioLuggage::Allocate();
+//	return 0x0;
+//}
+
 // skip theme log lines
 DEFINE_DISABLE_HOOK(0x720C42, Theme_PlaySong_DisableStopLog_ares) // skip Theme::Stop
 DEFINE_HOOK(0x720C3C, Theme_PlaySong_DisableStopLog, 0x6) // skip Theme::PlaySong
@@ -396,14 +405,6 @@ DEFINE_HOOK(0x720A58, ThemeClass_AI_DisableLog, 0x6)
 	pThis->QueuedTheme = R->EAX<int>();
 	return 0x720A69;
 }
-
-#ifndef DISABLE_AUDIO_OVERRIDE
-
-//DEFINE_HOOK(0x406B10, Audio_InitPhobosAudio, 0x6) {
-//	LooseAudioCache::Allocate();
-//	//AudioLuggage::Allocate();
-//	return 0x0;
-//}
 
 // load more than one audio bag and index.
 // this replaces the entire old parser.

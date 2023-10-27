@@ -46,13 +46,6 @@ void RulesExtData::Remove(RulesClass* pThis)
 
 void RulesExtData::Initialize()
 {
-	AITargetTypesLists.reserve(5);
-	AIScriptsLists.reserve(5);
-	AIHateHousesLists.reserve(5);
-	AIConditionsLists.reserve(5);
-	AITriggersLists.reserve(5);
-	AI_AutoSellHealthRatio.reserve(3);
-	WallTowers.reserve(5);
 }
 
 void RulesExtData::LoadVeryEarlyBeforeAnyData(RulesClass* pRules, CCINIClass* pINI)
@@ -74,7 +67,6 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	CursorTypeClass::LoadFromINIList_New(pINI);
 
 	TunnelTypeClass::LoadFromINIList(pINI);
-
 
 	// we override it , so it loaded before any type read happen , so all the properties will correcly readed
 	pThis->Read_CrateRules(pINI);
@@ -790,14 +782,14 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->DiskLaserAnimEnabled.Read(exINI, AUDIOVISUAL_SECTION, "DiskLaserAnimEnabled");
 
 	//TODO :Disabled atm
-	this->NewTeamsSelector.Read(exINI, "AI", "NewTeamsSelector");
-	this->NewTeamsSelector_SplitTriggersByCategory.Read(exINI, "AI", "NewTeamsSelector.SplitTriggersByCategory");
-	this->NewTeamsSelector_EnableFallback.Read(exINI, "AI", "NewTeamsSelector.EnableFallback");
-	this->NewTeamsSelector_MergeUnclassifiedCategoryWith.Read(exINI, "AI", "NewTeamsSelector.MergeUnclassifiedCategoryWith");
-	this->NewTeamsSelector_UnclassifiedCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.UnclassifiedCategoryPercentage");
-	this->NewTeamsSelector_GroundCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.GroundCategoryPercentage");
-	this->NewTeamsSelector_AirCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.AirCategoryPercentage");
-	this->NewTeamsSelector_NavalCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.NavalCategoryPercentage");
+	//this->NewTeamsSelector.Read(exINI, "AI", "NewTeamsSelector");
+	//this->NewTeamsSelector_SplitTriggersByCategory.Read(exINI, "AI", "NewTeamsSelector.SplitTriggersByCategory");
+	//this->NewTeamsSelector_EnableFallback.Read(exINI, "AI", "NewTeamsSelector.EnableFallback");
+	//this->NewTeamsSelector_MergeUnclassifiedCategoryWith.Read(exINI, "AI", "NewTeamsSelector.MergeUnclassifiedCategoryWith");
+	//this->NewTeamsSelector_UnclassifiedCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.UnclassifiedCategoryPercentage");
+	//this->NewTeamsSelector_GroundCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.GroundCategoryPercentage");
+	//this->NewTeamsSelector_AirCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.AirCategoryPercentage");
+	//this->NewTeamsSelector_NavalCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.NavalCategoryPercentage");
 	//
 
 	this->EnemyWrench.Read(exINI, GENERAL_SECTION, "EnemyWrench");

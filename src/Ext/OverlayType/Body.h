@@ -33,7 +33,24 @@ class OverlayTypeExtContainer final : public Container<OverlayTypeExtData>
 {
 public:
 	static OverlayTypeExtContainer Instance;
+	std::unordered_map<OverlayTypeClass*, OverlayTypeExtData*> Map;
 
-	CONSTEXPR_NOCOPY_CLASSB(OverlayTypeExtContainer, OverlayTypeExtData, "OverlayTypeClass");
+	virtual bool Load(OverlayTypeClass* key, IStream* pStm);
+
+	void Clear()
+	{
+		this->Map.clear();
+	}
+
+	OverlayTypeExtContainer() : Container<OverlayTypeExtData> { "OverlayTypeClass" }
+		, Map {}
+	{ }
+
+	virtual ~OverlayTypeExtContainer() override = default;
+
+private:
+	OverlayTypeExtContainer(const OverlayTypeExtContainer&) = delete;
+	OverlayTypeExtContainer(OverlayTypeExtContainer&&) = delete;
+	OverlayTypeExtContainer& operator=(const OverlayTypeExtContainer& other) = delete;
 };
 

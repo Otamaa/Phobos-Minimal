@@ -288,7 +288,6 @@ DEFINE_HOOK(0x65B464, RadSiteClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-//
 //#ifdef AAENABLE_NEWHOOKS
 //DEFINE_HOOK(0x65B4B0, RadSiteClass_GetSpread_Replace, 0x4)
 //{

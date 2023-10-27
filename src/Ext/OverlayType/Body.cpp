@@ -32,6 +32,42 @@ void OverlayTypeExtData::Serialize(T& Stm)
 // container
 OverlayTypeExtContainer OverlayTypeExtContainer::Instance;
 
+bool OverlayTypeExtContainer::Load(OverlayTypeClass* key, IStream* pStm)
+{
+	if (!key)
+		return false;
+
+	auto Iter = OverlayTypeExtContainer::Instance.Map.find(key);
+
+	if (Iter == OverlayTypeExtContainer::Instance.Map.end())
+	{
+		auto ptr = this->AllocateUnlchecked(key);
+		Iter = OverlayTypeExtContainer::Instance.Map.emplace(key, ptr).first;
+	}
+
+	this->ClearExtAttribute(key);
+	this->SetExtAttribute(key, Iter->second);
+
+	PhobosByteStream loader { 0 };
+	if (!loader.ReadBlockFromStream(pStm))
+	{
+		PhobosStreamReader reader { loader };
+		if (reader.Expect(OverlayTypeExtData::Canary)
+			&& reader.RegisterChange(Iter->second))
+		{
+			Iter->second->LoadFromStream(reader);
+			if (reader.ExpectEndOfBlock())
+			{
+				// reset the buildup time
+
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 // =============================
 // container hooks
 DEFINE_HOOK_AGAIN(0x5FE3AF, OverlayTypeClass_CTOR, 0x5)
@@ -39,7 +75,16 @@ DEFINE_HOOK(0x5FE3A2, OverlayTypeClass_CTOR, 0x5)
 {
 	GET(OverlayTypeClass*, pItem, EAX);
 
-	OverlayTypeExtContainer::Instance.Allocate(pItem);
+	auto Iter = OverlayTypeExtContainer::Instance.Map.find(pItem);
+
+	if (Iter == OverlayTypeExtContainer::Instance.Map.end())
+	{
+		auto ptr = OverlayTypeExtContainer::Instance.AllocateUnlchecked(pItem);
+		Iter = OverlayTypeExtContainer::Instance.Map.emplace(pItem, ptr).first;
+	}
+
+	OverlayTypeExtContainer::Instance.ClearExtAttribute(pItem);
+	OverlayTypeExtContainer::Instance.SetExtAttribute(pItem, Iter->second);
 
 	return 0;
 }
@@ -48,7 +93,10 @@ DEFINE_HOOK(0x5FE3F6, OverlayTypeClass_DTOR, 0x6)
 {
 	GET(OverlayTypeClass*, pItem, ESI);
 
-	OverlayTypeExtContainer::Instance.Remove(pItem);
+	auto extData = OverlayTypeExtContainer::Instance.GetExtAttribute(pItem);
+	OverlayTypeExtContainer::Instance.ClearExtAttribute(pItem);
+	OverlayTypeExtContainer::Instance.Map.erase(pItem);
+	delete extData;
 
 	return 0;
 }

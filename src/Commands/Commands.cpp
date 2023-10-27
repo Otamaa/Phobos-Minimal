@@ -55,6 +55,7 @@ DEFINE_HOOK(0x532150, CommandClassCallback_Register, 5)
 	Make(FrameStepCommandClass<30>); // Speed 4
 	Make(FrameStepCommandClass<60>); // Speed 5
 
+#ifndef ARES_CMD
 	Make(AIBasePlanCommandClass);
 
 	if (Phobos::Otamaa::AllowAIControl)
@@ -65,7 +66,7 @@ DEFINE_HOOK(0x532150, CommandClassCallback_Register, 5)
 	Make(FPSCounterCommandClass);
 	Make(MapSnapshotCommandClass);
 	Make(TogglePowerCommandClass);
-
+#endif
 	return 0x0;
 }
 

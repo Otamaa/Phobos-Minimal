@@ -17,11 +17,6 @@
 
 void AnimTypeExtData::Initialize()
 {
-	SplashList.reserve(RulesClass::Instance->SplashList.Count);
-	SpawnsMultiple.reserve(8);
-	SpawnsMultiple_amouts.reserve(8);
-	ConcurrentAnim.reserve(8);
-	Launchs.reserve(8);
 	const char* pID = this->AttachedToObject->ID;
 
 	SpecialDraw = IS_SAME_STR_(pID, RING1_NAME);

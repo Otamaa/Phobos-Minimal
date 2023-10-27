@@ -41,7 +41,7 @@ void Debug::LogDeferredFinalize()
 {
 	for(auto const& Logs : DeferredLogData) {
 		if(!Logs.empty())
-			Log("%s", Logs);
+			GameDebugLog::Log("%s", Logs);
 	}
 
 	DeferredLogData.clear();

@@ -480,23 +480,59 @@ void  HouseTypeExtData::Serialize(T& Stm)
 
 HouseTypeExtContainer HouseTypeExtContainer::Instance;
 
+bool HouseTypeExtContainer::Load(HouseTypeClass* key, IStream* pStm)
+{
+	if (!key)
+		return false;
+
+	auto Iter = HouseTypeExtContainer::Instance.Map.find(key);
+
+	if (Iter == HouseTypeExtContainer::Instance.Map.end())
+	{
+		auto ptr = this->AllocateUnlchecked(key);
+		Iter = HouseTypeExtContainer::Instance.Map.emplace(key, ptr).first;
+	}
+
+	this->ClearExtAttribute(key);
+	this->SetExtAttribute(key, Iter->second);
+
+	PhobosByteStream loader { 0 };
+	if (loader.ReadBlockFromStream(pStm))
+	{
+		PhobosStreamReader reader { loader };
+		if (reader.Expect(HouseTypeExtData::Canary)
+			&& reader.RegisterChange(Iter->second))
+		{
+			Iter->second->LoadFromStream(reader);
+			if (reader.ExpectEndOfBlock())
+			{
+				return true;
+			}
+		}
+	}
+
+
+	return false;
+}
 // =============================
 // container hooks
 
-DEFINE_HOOK(0x511635, HouseTypeClass_CTOR_1, 0x5)
+
+DEFINE_HOOK_AGAIN(0x511635, HouseTypeClass_CTOR, 0x5)
+DEFINE_HOOK(0x511643, HouseTypeClass_CTOR, 0x5)
 {
 	GET(HouseTypeClass*, pItem, EAX);
 
-	HouseTypeExtContainer::Instance.FindOrAllocate(pItem);
+	auto Iter = HouseTypeExtContainer::Instance.Map.find(pItem);
 
-	return 0;
-}
+	if (Iter == HouseTypeExtContainer::Instance.Map.end())
+	{
+		auto ptr = HouseTypeExtContainer::Instance.AllocateUnlchecked(pItem);
+		Iter = HouseTypeExtContainer::Instance.Map.emplace(pItem, ptr).first;
+	}
 
-DEFINE_HOOK(0x511643, HouseTypeClass_CTOR_2, 0x5)
-{
-	GET(HouseTypeClass*, pItem, EAX);
-
-	HouseTypeExtContainer::Instance.FindOrAllocate(pItem);
+	HouseTypeExtContainer::Instance.ClearExtAttribute(pItem);
+	HouseTypeExtContainer::Instance.SetExtAttribute(pItem, Iter->second);
 
 	return 0;
 }
@@ -505,7 +541,10 @@ DEFINE_HOOK(0x5127CF, HouseTypeClass_DTOR, 0x6)
 {
 	GET(HouseTypeClass*, pItem, ESI);
 
-	HouseTypeExtContainer::Instance.Remove(pItem);
+	auto extData = HouseTypeExtContainer::Instance.GetExtAttribute(pItem);
+	HouseTypeExtContainer::Instance.ClearExtAttribute(pItem);
+	HouseTypeExtContainer::Instance.Map.erase(pItem);
+	delete extData;
 
 	return 0;
 }

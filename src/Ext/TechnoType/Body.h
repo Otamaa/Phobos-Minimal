@@ -82,8 +82,8 @@ public:
 	static constexpr size_t Canary = 0x44444444;
 	using base_type = TechnoTypeClass;
 	//static constexpr size_t ExtOffset = 0x35C;
-	//static constexpr size_t ExtOffset = 0xDF4;
-	static constexpr size_t ExtOffset = 0x2FC;
+	static constexpr size_t ExtOffset = 0xDF4;
+	//static constexpr size_t ExtOffset = 0x2FC;
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };

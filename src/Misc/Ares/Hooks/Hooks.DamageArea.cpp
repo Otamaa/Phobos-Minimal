@@ -140,6 +140,8 @@ DEFINE_OVERRIDE_HOOK(0x4893BA, DamageArea_DamageAir, 9)
 	return damageAir ? 0x4893C3u : 0x48955Eu;
 }
 
+#include <Lib/SimpleVector.h>
+
 // #895990: limit the number of times a warhead with
 // CellSpread will hit the same object for each hit
 DEFINE_OVERRIDE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
@@ -161,30 +163,28 @@ DEFINE_OVERRIDE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
  		return 0;
  	}
 
- 	constexpr auto const DefaultSize = 1000;
- 	ObjectClass* bufferHandled[DefaultSize] = {};
- 	DynamicVectorClass<ObjectClass*> handled(DefaultSize, bufferHandled);
+	constexpr auto const DefaultSize = 1000;
+	SimpleDynVecClass<ObjectClass*> handled(DefaultSize);
  	handled.Reserve(groups.Count);
 
-	DamageGroup** bufferTarget[DefaultSize] = {};
- 	DynamicVectorClass<DamageGroup**> target(DefaultSize, bufferTarget);
+	SimpleDynVecClass<DamageGroup**> target(DefaultSize);
  	target.Reserve(groups.Count);
 
  	for (auto& group : groups) {
  		// group could have been cleared by previous iteration.
  		// only handle if has not been handled already.
- 		if (group && handled.AddUnique(group->Target)) {
- 			target.Count = 0;
+ 		if (group && handled.Add_Unique(group->Target)) {
+ 			target.Set_Count(0);
 
  			// collect all slots containing damage groups for this target
  			std::for_each(&group, groups.end(), [group, &target](DamageGroup*& item) {
  			 if (item && item->Target == group->Target) {
- 					target.AddItem(&item);
+ 					target.Add(&item);
  				}
  			});
 
  			// if more than allowed, sort them and remove the ones further away
- 			if (target.Count > MaxAffect) {
+ 			if (target.Count() > MaxAffect) {
  				Helpers::Alex::selectionsort(
  					target.begin(), target.begin() + MaxAffect, target.end(),
  					[](DamageGroup** a, DamageGroup** b) {

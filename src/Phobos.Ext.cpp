@@ -331,6 +331,8 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	TechnoTypeExtContainer::Instance.Clear();
 	BulletTypeExtContainer::Instance.Clear();
 	BuildingTypeExtContainer::Instance.Clear();
+	HouseTypeExtContainer::Instance.Clear();
+	OverlayTypeExtContainer::Instance.Clear();
 	PhobosGlobal::Clear();
 	SWStateMachine::Clear();
 	ArmorTypeClass::Clear();

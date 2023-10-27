@@ -1401,7 +1401,7 @@ namespace detail
 			auto buffer = T();
 
 			if (Parser<T>::Parse(pCur, &buffer))
-				vector.push_back(buffer);
+				vector.push_back(std::move(buffer));
 			else if (!allocate && !GameStrings::IsBlank(pCur))
 				Debug::INIParseFailed(pSection, pKey, pCur, nullptr);
 		}

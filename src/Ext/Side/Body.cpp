@@ -14,7 +14,6 @@ UniqueGamePtrB<ConvertClass> SideExtData::s_DialogBackgroundConvert = nullptr;
 int SideExtData::CurrentLoadTextColor = -1;
 
 void SideExtData::Initialize() {
-
 	const char* pID = this->AttachedToObject->ID;
 
 	if (IS_SAME_STR_(pID, "Nod"))
@@ -596,16 +595,16 @@ DEFINE_HOOK(0x6A48FC, SideClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-// DEFINE_HOOK(0x679A10, SideClass_LoadAllFromINI, 0x5)
-// {
-// 	GET_STACK(CCINIClass*, pINI, 0x4);
-//
-// 	for (auto pSide : *SideClass::Array) {
-// 		SideExtContainer::Instance.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
-// 	}
-//
-// 	return 0;
-// }
+ //DEFINE_HOOK(0x679A10, SideClass_LoadAllFromINI, 0x5)
+ //{
+ //	GET_STACK(CCINIClass*, pINI, 0x4);
+
+ //	for (auto pSide : *SideClass::Array) {
+ //		SideExtContainer::Instance.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
+ //	}
+
+ //	return 0;
+ //}
 
 /*
 FINE_HOOK(6725C4, RulesClass_Addition_Sides, 8)

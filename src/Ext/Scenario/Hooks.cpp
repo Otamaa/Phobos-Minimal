@@ -4,7 +4,7 @@
 
 #include <Ext/Side/Body.h>
 
-DEFINE_DISABLE_HOOK(0x6873ab , INIClass_ReadScenario_EarlyLoadRules_ares)
+//DEFINE_DISABLE_HOOK(0x6873ab , INIClass_ReadScenario_EarlyLoadRules_ares)
 
 DEFINE_HOOK(0x6870D7, ReadScenario_LoadingScreens, 0x5)
 {
@@ -26,12 +26,15 @@ DEFINE_HOOK(0x6870D7, ReadScenario_LoadingScreens, 0x5)
 	pINI->ReadString(defaultsSection, "DefaultLS800BkgdPal", pScenario->LS800BkgdPal, pScenario->LS800BkgdPal, 64);
 	pINI->ReadString(scenarioName, "LS800BkgdPal", pScenario->LS800BkgdPal, pScenario->LS800BkgdPal, 64);
 
+	
 	if(SessionClass::Instance->GameMode == GameMode::Campaign) {
 		RulesClass::Instance()->Read_Sides(CCINIClass::INI_Rules);
 		for(auto pSide : *SideClass::Array)
 			SideExtContainer::Instance.LoadFromINI(pSide , CCINIClass::INI_Rules , false);
 	}
 
-	R->EAX(0x1180);
-	return 0x6873B0;
+	//R->EAX(0x1180);
+	//return 0x6873B0;
+
+	return 0x0;
 }

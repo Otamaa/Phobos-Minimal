@@ -1824,32 +1824,17 @@ DEFINE_OVERRIDE_HOOK(0x5d6d9a, MPGameModeClass_CreateStartingUnits_UnitCost, 6) 
 	return 0x5D6ED6;
 }
 
-MixFileClass* aresMIX = nullptr;
-
-void UninitOwnResources()
-{
-	if (aresMIX)
-	{
-		GameDelete(aresMIX);
-		aresMIX = nullptr;
-	}
-}
-
-void InitOwnResources()
-{
-	UninitOwnResources();
-	aresMIX = GameCreate<MixFileClass>("ares.mix");
-}
+UniqueGamePtrB<MixFileClass> aresMIX;
 
 DEFINE_OVERRIDE_HOOK(0x53029e, Load_Bootstrap_AresMIX, 5)
 {
-	InitOwnResources();
+	aresMIX.reset(GameCreate<MixFileClass>("ares.mix"));
 	return 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6BE9BD, Game_ProgramEnd_ClearResource, 6)
 {
-	UninitOwnResources();
+	aresMIX.reset(nullptr);
 	return 0;
 }
 

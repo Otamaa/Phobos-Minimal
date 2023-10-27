@@ -159,7 +159,7 @@ bool GeneralUtils::ApplyTheaterSuffixToString(char* str)
 
 	if (auto pSuffix = strstr(str, "~~~"))
 	{
-		std::string pTheater =
+		std::string pTheater = TheaterTypeClass::Array.empty() ? Theater::Get(ScenarioClass::Instance->Theater)->Extension :
 			TheaterTypeClass::FindFromTheaterType(ScenarioClass::Instance->Theater)->Extension.c_str();
 		pTheater = GeneralUtils::lowercase(pTheater);
 		pSuffix[0] = pTheater[0];
@@ -177,7 +177,7 @@ bool GeneralUtils::ApplyTheaterExtToString(std::string& flag)
 	const auto nPos = flag.find("~");
 	if (nPos != std::string::npos)
 	{
-		std::string pTheater =
+		std::string pTheater = TheaterTypeClass::Array.empty() ? Theater::Get(ScenarioClass::Instance->Theater)->Letter:
 			TheaterTypeClass::FindFromTheaterType(ScenarioClass::Instance->Theater)->Letter.c_str();
 		pTheater = GeneralUtils::lowercase(pTheater);
 
@@ -195,8 +195,9 @@ std::string GeneralUtils::ApplyTheaterSuffixToString(const std::string& str)
 	const auto nPos = buffer.find("~~~");
 	if (nPos != std::string::npos)
 	{
-		std::string pTheater =
-			TheaterTypeClass::FindFromTheaterType(ScenarioClass::Instance->Theater)->Extension.c_str();
+		std::string pTheater = TheaterTypeClass::Array.empty() ? Theater::Get(ScenarioClass::Instance->Theater)->Extension
+			: TheaterTypeClass::FindFromTheaterType(ScenarioClass::Instance->Theater)->Extension.c_str()
+			;
 		pTheater = GeneralUtils::lowercase(pTheater);
 
 		//only set the 3 characters without the terminator string

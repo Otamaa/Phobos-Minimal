@@ -98,7 +98,6 @@
     <ClCompile Include="src\Ext\SHPReference\Body.cpp" />
     <ClCompile Include="src\Ext\Sidebar\Body.cpp" />
     <ClCompile Include="src\Ext\Anim\Body.cpp" />
-    <ClCompile Include="src\Ext\Sidebar\Hooks.cpp" />
     <ClCompile Include="src\Ext\Side\Hooks.cpp" />
     <ClCompile Include="src\Ext\Side\Hooks.SidebarGDIPositions.cpp" />
     <ClCompile Include="src\Ext\SmudgeType\Body.cpp" />
@@ -255,25 +254,23 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.VXLArtData.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Wave.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Weapons.cpp" />
-    <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\Hooks.PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\ExtHooks\TechnoExt.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\FighterGuardArea\FighterAreaGuard.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\TurretAngle\Status.cpp" />
     <ClCompile Include="src\Misc\Hooks.Blowfish.cpp" />
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.Crashes.cpp" />
+    <ClCompile Include="src\Misc\Hooks.GameSpeed.cpp" />
     <ClCompile Include="src\Misc\Hooks.HealthBar.cpp" />
     <ClCompile Include="src\Misc\Hooks.Image.cpp" />
     <ClCompile Include="src\Misc\Hooks.INIClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.cpp" />
+    <ClCompile Include="src\Misc\Hooks.LogicUpdater.Logics.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
-    <ClCompile Include="src\Misc\Hooks.PCX.cpp" />
     <ClCompile Include="src\Misc\Hooks.Render.cpp" />
-    <ClCompile Include="src\Misc\Hooks.UI.cpp" />
     <ClCompile Include="src\Misc\MapRevealer.cpp" />
     <ClCompile Include="src\Misc\PhobosGlobal.cpp" />
     <ClCompile Include="src\Misc\PhobosToolTip.cpp" />
-    <ClCompile Include="src\Misc\Hooks.GameSpeed.cpp" />
     <ClCompile Include="src\Misc\RetryDialog.cpp" />
     <ClCompile Include="src\Misc\Selection.cpp" />
     <ClCompile Include="src\Misc\TextInput.cpp" />
@@ -317,7 +314,6 @@
     <ClCompile Include="src\Misc\DynamicPatcher\Trails\TrailsManager.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Trails\TrailType.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Weapon\AttachFireData.cpp" />
-    <ClCompile Include="src\Misc\Hooks.LogicUpdater.Logics.cpp" />
     <ClCompile Include="src\Misc\Patches.cpp" />
     <ClCompile Include="src\New\AnonymousType\AresAttachEffectTypeClass.cpp" />
     <ClCompile Include="src\New\AnonymousType\PassengerDeletionTypeClass.cpp" />
@@ -398,7 +394,6 @@
     <ClInclude Include="src\Commands\ToggleDesignatorRange.h" />
     <ClInclude Include="src\Commands\ToggleDigitalDisplay.h" />
     <ClInclude Include="src\Commands\ToggleRadialIndicatorDrawMode.h" />
-    <ClInclude Include="src\ExtraHeaders\AStarClass.h" />
     <ClInclude Include="src\Ext\Abstract\Body.h" />
     <ClInclude Include="src\Ext\Bomb\Body.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\ArcingTrajectory.h" />
@@ -642,7 +637,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{3FAF7126-F38C-4D1E-9973-C21A37870F60}</ProjectGuid>
     <RootNamespace>Phobos</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.22621.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.20348.0</WindowsTargetPlatformVersion>
     <ProjectName>Phobos</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

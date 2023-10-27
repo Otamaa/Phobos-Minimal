@@ -11,6 +11,7 @@
 
 //DEFINE_DISABLE_HOOK(0x615BD3, Handle_Static_Messages_LoopingMovie_ares)
 
+//DEFINE_DISABLE_HOOK(0x4f8440, HouseClass_Update_TogglePower_ares)
 
 DEFINE_DISABLE_HOOK(0x41BE80, ObjectClass_DrawRadialIndicator_ares)
 DEFINE_DISABLE_HOOK(0x6FC339, TechnoClass_GetFireError_OpenToppedGunnerTemporal_ares)
@@ -41,7 +42,7 @@ DEFINE_DISABLE_HOOK(0x4D99AA, FootClass_PointerGotInvalid_Parasite_ares)
 DEFINE_DISABLE_HOOK(0x47F9A4, CellClass_DrawOverlay_WallRemap_ares)
 
 DEFINE_DISABLE_HOOK(0x5240bd, InfantryTypeClass_LoadFromINI_DamageSparks_ares)
-DEFINE_DISABLE_HOOK(0x4da584 ,FootClass_Update_RadImmune_ares)
+DEFINE_DISABLE_HOOK(0x4da584, FootClass_Update_RadImmune_ares)
 DEFINE_DISABLE_HOOK(0x457DB7, BuildingClass_CanBeOccupied_SpecificAssaulters_ares)
 DEFINE_DISABLE_HOOK(0x5F6515, AbstractClass_Distance2DSquared_1_ares)
 DEFINE_DISABLE_HOOK(0x47C8AB, CellClass_CanThisExistHere_GateOnWall_ares)

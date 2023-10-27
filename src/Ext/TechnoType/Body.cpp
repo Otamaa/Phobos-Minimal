@@ -18,41 +18,6 @@
 
 void TechnoTypeExtData::Initialize()
 {
-	//OreGathering_Anims.reserve(1);
-	//OreGathering_Tiberiums.reserve(1);
-	//OreGathering_FramesPerDir.reserve(1);
-	//LaserTrailData.reserve(4);
-	//LineTrailData.reserve(4);
-	//AutoDeath_Nonexist.reserve(5);
-	//AutoDeath_Exist.reserve(5);
-	//OreGathering_Anims.reserve(5);
-	//OreGathering_Tiberiums.reserve(5);
-	//OreGathering_FramesPerDir.reserve(5);
-	//AlternateFLHs.reserve(5);
-	//MobileRefinery_FrontOffset.reserve(2);
-	//MobileRefinery_LeftOffset.reserve(2);
-	//MobileRefinery_Anims.reserve(2);
-	//Overload_Count.reserve(3);
-	//Overload_Damage.reserve(3);
-	//Overload_Frames.reserve(3);
-	//HitCoordOffset.reserve(3);
-	//FireSelf_Weapon.reserve(3);
-	//FireSelf_ROF.reserve(3);
-	//FireSelf_Weapon_GreenHeath.reserve(3);
-	//FireSelf_ROF_GreenHeath.reserve(3);
-	//FireSelf_Weapon_YellowHeath.reserve(3);
-	//FireSelf_ROF_YellowHeath.reserve(3);
-	//FireSelf_Weapon_RedHeath.reserve(3);
-	//FireSelf_ROF_RedHeath.reserve(3);
-	//DisguiseDisAllowed.reserve(10);
-	//Prerequisites.reserve(10);
-	//Prerequisite_Negative.reserve(10);
-	//TargetLaser_WeaponIdx.reserve(TechnoTypeClass::MaxWeapons);
-	//PassengersWhitelist.reserve(10);
-	//PassengersBlacklist.reserve(10);
-	//ParticleSystems_DamageSmoke.reserve(4);
-	//ParticleSystems_DamageSparks.reserve(4);
-
 	this->ShieldType = ShieldTypeClass::Array[0].get();
 
 	this->SellSound = RulesClass::Instance->SellSound;
@@ -1273,10 +1238,6 @@ void TechnoTypeExtData::LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI)
 
 void TechnoTypeExtData::InitializeConstant()
 {
-	// stuffs will be serialized after
-	if (Phobos::Otamaa::DoingLoadGame)
-		return;
-
 	this->AttachedEffect.Owner = this->AttachedToObject;
 }
 

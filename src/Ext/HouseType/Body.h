@@ -93,7 +93,24 @@ class HouseTypeExtContainer final : public Container<HouseTypeExtData>
 {
 public:
 	static HouseTypeExtContainer Instance;
+	std::unordered_map<HouseTypeClass*, HouseTypeExtData*> Map;
 
-	CONSTEXPR_NOCOPY_CLASSB(HouseTypeExtContainer, HouseTypeExtData, "HouseTypeClass");
+	virtual bool Load(HouseTypeClass* key, IStream* pStm);
+
+	void Clear()
+	{
+		this->Map.clear();
+	}
+
+	HouseTypeExtContainer() : Container<HouseTypeExtData> { "HouseTypeClass" }
+		, Map {}
+	{ }
+
+	virtual ~HouseTypeExtContainer() override = default;
+
+private:
+	HouseTypeExtContainer(const HouseTypeExtContainer&) = delete;
+	HouseTypeExtContainer(HouseTypeExtContainer&&) = delete;
+	HouseTypeExtContainer& operator=(const HouseTypeExtContainer& other) = delete;
 
 };

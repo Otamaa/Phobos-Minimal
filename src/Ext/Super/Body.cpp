@@ -196,9 +196,9 @@ DEFINE_HOOK(0x6CDFE8, SuperClass_Save_Suffix, 0x5)
 // 	return target == pThis->Type ? 0x6CE006 : 0x6CE009;
 // }
 
-void __fastcall SuperClass_Detach_Wrapper(SuperClass* pThis ,DWORD , AbstractClass* target , bool all)\
-{
-	SuperExtContainer::Instance.InvalidatePointerFor(pThis , target , all);
-	pThis->SuperClass::PointerExpired(target , all);
-}
-DEFINE_JUMP(VTABLE, 0x7F4010, GET_OFFSET(SuperClass_Detach_Wrapper))
+//void __fastcall SuperClass_Detach_Wrapper(SuperClass* pThis ,DWORD , AbstractClass* target , bool all)\
+//{
+//	SuperExtContainer::Instance.InvalidatePointerFor(pThis , target , all);
+//	pThis->SuperClass::PointerExpired(target , all);
+//}
+//DEFINE_JUMP(VTABLE, 0x7F4010, GET_OFFSET(SuperClass_Detach_Wrapper))

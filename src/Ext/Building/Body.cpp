@@ -11,10 +11,6 @@
 
 void BuildingExtData::InitializeConstant()
 {
-	// stuffs will be serialized after
-	if (Phobos::Otamaa::DoingLoadGame)
-		return;
-
 	this->PrismForwarding.Owner = this->AttachedToObject;
 
 	this->TechnoExt = TechnoExtContainer::Instance.Find(this->AttachedToObject);

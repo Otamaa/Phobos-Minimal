@@ -17,7 +17,7 @@ class BulletTypeExtData final
 public:
 	static constexpr size_t Canary = 0xF00DF00D;
 	using base_type = BulletTypeClass;
-	static constexpr size_t ExtOffset = 0x2C4; //ares
+	//static constexpr size_t ExtOffset = 0x2C4; //ares
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };

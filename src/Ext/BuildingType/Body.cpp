@@ -64,7 +64,7 @@ void BuildingTypeExtData::UpdateFoundationRadarShape()
 		// foundation.
 
 
-		if (rows  > 0)
+		if (rows > 0)
 		{
 			int increment = 0;
 			int start = 0;
@@ -72,15 +72,21 @@ void BuildingTypeExtData::UpdateFoundationRadarShape()
 			int YPixStart = 0;
 			do
 			{
-				if (increment >= pixelsY) {
+				if (increment >= pixelsY)
+				{
 					start = increment - 2 * pixelsY + 2;
-				} else {
+				}
+				else
+				{
 					start = YPixStart;
 				}
 
-				if (increment >= pixelsX) {
+				if (increment >= pixelsX)
+				{
 					end = 2 * pixelsX - increment - 2;
-				} else {
+				}
+				else
+				{
 					end = increment;
 				}
 
@@ -147,7 +153,8 @@ void BuildingTypeExtData::CompleteInitialization()
 bool BuildingTypeExtData::IsFoundationEqual(BuildingTypeClass* pType1, BuildingTypeClass* pType2)
 {
 	// both types must be set and must have same foundation id
-	if (!pType1 || !pType2 || pType1->Foundation != pType2->Foundation) {
+	if (!pType1 || !pType2 || pType1->Foundation != pType2->Foundation)
+	{
 		return false;
 	}
 
@@ -172,23 +179,7 @@ bool BuildingTypeExtData::IsFoundationEqual(BuildingTypeClass* pType1, BuildingT
 
 void BuildingTypeExtData::Initialize()
 {
-	this->AIBuildInsteadPerDiff.reserve(3);
-	this->PowersUp_Buildings.reserve(3);
-	this->PowerPlantEnhancer_Buildings.reserve(8);
-	this->Grinding_AllowTypes.reserve(8);
-	this->Grinding_DisallowTypes.reserve(8);
-	this->DamageFireTypes.reserve(8);
-	this->OnFireTypes.reserve(8);
-	this->OnFireIndex.reserve(8);
-	this->DamageFire_Offs.reserve(8);
-	this->GarrisonAnim_idle.reserve(HouseTypeClass::Array->Count);
-	this->GarrisonAnim_ActiveOne.reserve(HouseTypeClass::Array->Count);
-	this->GarrisonAnim_ActiveTwo.reserve(HouseTypeClass::Array->Count);
-	this->GarrisonAnim_ActiveThree.reserve(HouseTypeClass::Array->Count);
-	this->GarrisonAnim_ActiveFour.reserve(HouseTypeClass::Array->Count);
 	this->Type = TechnoTypeExtContainer::Instance.Find(this->AttachedToObject);
-	this->OccupierMuzzleFlashes.reserve(((BuildingTypeClass*)this->Type->AttachedToObject)->MaxNumberOccupants);
-	this->DockPoseDir.reserve(((BuildingTypeClass*)this->Type->AttachedToObject)->NumberOfDocks);
 	this->LostEvaEvent = VoxClass::FindIndexById(GameStrings::EVA_TechBuildingLost());
 	this->PrismForwarding.Initialize(this->AttachedToObject);
 }
@@ -287,15 +278,22 @@ void BuildingTypeExtData::DisplayPlacementPreview()
 
 	ConvertClass* pDecidedPal = FileSystem::UNITx_PAL();
 
-	if (!pTypeExt->PlacementPreview_Remap.Get()) {
-		if (const auto pCustom = pTypeExt->PlacementPreview_Palette) {
+	if (!pTypeExt->PlacementPreview_Remap.Get())
+	{
+		if (const auto pCustom = pTypeExt->PlacementPreview_Palette)
+		{
 			pDecidedPal = pCustom->GetConvert<PaletteManager::Mode::Temperate>();
 		}
 
-	} else {
-		if (pTypeExt->PlacementPreview_Palette && pTypeExt->PlacementPreview_Palette->ColorschemeDataVector) {
+	}
+	else
+	{
+		if (pTypeExt->PlacementPreview_Palette && pTypeExt->PlacementPreview_Palette->ColorschemeDataVector)
+		{
 			pDecidedPal = pTypeExt->PlacementPreview_Palette->ColorschemeDataVector->GetItem(pBuilding->Owner->ColorSchemeIndex)->LightConvert;
-		} else {
+		}
+		else
+		{
 			pDecidedPal = pBuilding->GetRemapColour();
 		}
 	}
@@ -483,12 +481,13 @@ float BuildingTypeExtData::GetPurifierBonusses(HouseClass* pHouse)
 		const auto pExt = BuildingTypeExtContainer::Instance.Find(pBldType);
 		const auto bonusses = pExt->PurifierBonus.Get(RulesClass::Instance->PurifierBonus);
 
-		if (bonusses > 0.00f) {
+		if (bonusses > 0.00f)
+		{
 			fFactor += (bonusses * nCount);
 		}
 	}
 
-	return (fFactor > 0.00f) ? fFactor + bonusAI : 0.00f ;
+	return (fFactor > 0.00f) ? fFactor + bonusAI : 0.00f;
 }
 
 double BuildingTypeExtData::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseClass* pOwner)
@@ -609,19 +608,20 @@ int BuildingTypeExtData::GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseCl
 		return 0;
 
 	auto checkUpgrade = [pHouse, pBuilding, &result, &isUpgrade](BuildingTypeClass* pTPowersUp)
-	{
-		isUpgrade = true;
-		for (auto const& pBld : pHouse->Buildings) {
-			if (pBld->Type == pTPowersUp)
+		{
+			isUpgrade = true;
+			for (auto const& pBld : pHouse->Buildings)
 			{
-				for (auto const& pUpgrade : pBld->Upgrades)
+				if (pBld->Type == pTPowersUp)
 				{
-					if (pUpgrade && pUpgrade == pBuilding)
-						++result;
+					for (auto const& pUpgrade : pBld->Upgrades)
+					{
+						if (pUpgrade && pUpgrade == pBuilding)
+							++result;
+					}
 				}
 			}
-		}
-	};
+		};
 
 	if (pPowersUp[0])
 	{
@@ -640,7 +640,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->AttachedToObject;
 	const char* pSection = pThis->ID;
-	const char* pArtSection = pThis->ImageFile;
+	const char* pArtSection = (!pThis->ImageFile || !pThis->ImageFile[0]) ? pSection : pThis->ImageFile;
 	auto pArtINI = &CCINIClass::INI_Art();
 
 	if (pINI->ReadString(pSection, "IsTrench", "", Phobos::readBuffer) > 0)
@@ -656,17 +656,12 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		*/
 		const auto it = std::find_if(trenchKinds.begin(), trenchKinds.end(), [](auto const& pItem)
 						{ return pItem == Phobos::readBuffer; });
+
 		this->IsTrench = std::distance(trenchKinds.begin(), it);
 		if (it == trenchKinds.end())
 		{
 			trenchKinds.push_back(Phobos::readBuffer);
 		}
-	}
-
-	if (pThis->UnitRepair && pThis->Factory == AbstractType::AircraftType) {
-		Debug::FatalErrorAndExit(
-			"BuildingType [%s] has both UnitRepair=yes and Factory=AircraftType.\n"
-			"This combination causes Internal Errors and other unwanted behaviour.", pSection);
 	}
 
 	if (!parseFailAddr)
@@ -680,7 +675,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->PowerPlantEnhancer_Factor.Read(exINI, pSection, "PowerPlantEnhancer.Factor");
 
 		if (pThis->PowersUpBuilding[0] == NULL && this->PowersUp_Buildings.size() > 0)
-			strcpy_s(pThis->PowersUpBuilding, this->PowersUp_Buildings[0]->ID);
+			PhobosCRT::strCopy(pThis->PowersUpBuilding, this->PowersUp_Buildings[0]->ID);
 
 		this->AllowAirstrike.Read(exINI, pSection, "AllowAirstrike");
 
@@ -729,20 +724,21 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		auto GetGarrisonAnim = [&exINI, pSection](
 			PhobosMap<int, AnimTypeClass*>& nVec, const char* pBaseFlag, bool bAllocate = true, bool bParseDebug = false)
-		{
-			nVec.clear();
-			char tempBuffer[0x55];
-			for (int i = 0; i < HouseTypeClass::Array()->Count; ++i)
 			{
-				AnimTypeClass* nBuffer;
-				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "%s%d", pBaseFlag, i);
+				nVec.clear();
+				nVec.reserve(HouseTypeClass::Array()->Count);
+				char tempBuffer[0x55];
+				for (int i = 0; i < HouseTypeClass::Array()->Count; ++i)
+				{
+					AnimTypeClass* nBuffer;
+					IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "%s%d", pBaseFlag, i);
 
-				if (!detail::read(nBuffer , exINI, pSection, tempBuffer, bAllocate) || !nBuffer)
-					continue;
+					if (!detail::read(nBuffer, exINI, pSection, tempBuffer, bAllocate) || !nBuffer)
+						continue;
 
-				nVec[i] = nBuffer;
-			}
-		};
+					nVec[i] = nBuffer;
+				}
+			};
 
 		GetGarrisonAnim(this->GarrisonAnim_idle, "GarrisonAnim.IdleForCountry");
 		GetGarrisonAnim(this->GarrisonAnim_ActiveOne, "GarrisonAnim.ActiveOneForCountry");
@@ -800,8 +796,31 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->SpyEffect_RevealRadar.Read(exINI, pSection, "SpyEffect.RevealRadar");
 		this->SpyEffect_RevealRadarPersist.Read(exINI, pSection, "SpyEffect.KeepRadar");
 		this->SpyEffect_GainVeterancy.Read(exINI, pSection, "SpyEffect.UnitVeterancy");
-		std::vector<int> SpyEffect_StolenTechIndex {};
-		detail::parse_values(SpyEffect_StolenTechIndex, exINI, pSection, "SpyEffect.StolenTechIndex");
+
+		ValueableVector<int> SpyEffect_StolenTechIndex;
+		SpyEffect_StolenTechIndex.Read(exINI, pSection, "SpyEffect.StolenTechIndex");
+
+		auto pos = SpyEffect_StolenTechIndex.begin();
+		const auto end = SpyEffect_StolenTechIndex.end();
+
+		if (pos != end)
+		{
+			this->SpyEffect_StolenTechIndex_result.reset();
+			do
+			{
+				if ((*pos) > -1 && (*pos) < 32)
+				{
+					this->SpyEffect_StolenTechIndex_result.set((*pos));
+				}
+				else if ((*pos) != -1)
+				{
+					Debug::Log("BuildingType %s has a SpyEffect.StolenTechIndex of %d. The value has to be less than 32.\n", pSection, (*pos));
+					Debug::RegisterParserError();
+				}
+
+			}
+			while (++pos != end);
+		}
 
 		this->SpyEffect_PowerOutageDuration.Read(exINI, pSection, "SpyEffect.PowerOutageDuration");
 		this->SpyEffect_StolenMoneyAmount.Read(exINI, pSection, "SpyEffect.StolenMoneyAmount");
@@ -811,41 +830,21 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->SpyEffect_SuperWeaponPermanent.Read(exINI, pSection, "SpyEffect.SuperWeaponPermanent");
 		this->SpyEffect_UnReverseEngineer.Read(exINI, pSection, "SpyEffect.UndoReverseEngineer");
 
-		this->SpyEffect_InfantryVeterancy.Read(exINI, pSection, "SpyEffect.InfantryVeterancy"); {}
+		this->SpyEffect_InfantryVeterancy.Read(exINI, pSection, "SpyEffect.InfantryVeterancy"); { }
 		this->SpyEffect_VehicleVeterancy.Read(exINI, pSection, "SpyEffect.VehicleVeterancy");
 		this->SpyEffect_NavalVeterancy.Read(exINI, pSection, "SpyEffect.NavalVeterancy");
 		this->SpyEffect_AircraftVeterancy.Read(exINI, pSection, "SpyEffect.AircraftVeterancy");
 		this->SpyEffect_BuildingVeterancy.Read(exINI, pSection, "SpyEffect.BuildingVeterancy");
 
-		auto pos = SpyEffect_StolenTechIndex.begin();
-		const auto end = SpyEffect_StolenTechIndex.end();
-
-		if(pos != end) {
-			this->SpyEffect_StolenTechIndex_result.reset();
-			do{
-				if ((*pos) > -1 && (*pos) < 32)
-				{
-					this->SpyEffect_StolenTechIndex_result.set((*pos));
-				}
-				else if ((*pos) != -1)
-				{
-					Debug::Log("BuildingType %s has a SpyEffect.StolenTechIndex of %d. The value has to be less than 32.\n", pSection, (*pos));
-				}
-
-			}while(++pos != end);
-		}
-
 		this->CanC4_AllowZeroDamage.Read(exINI, pSection, "CanC4.AllowZeroDamage");
 		this->C4_Modifier.Read(exINI, pSection, "C4Modifier");
 
-		// relocated the solid tag from artmd to rulesmd
 		this->Solid_Height.Read(exINI, pSection, "SolidHeight");
 		this->Solid_Level.Read(exINI, pSection, "SolidLevel");
 		this->AIBaseNormal.Read(exINI, pSection, "AIBaseNormal");
 		this->AIInnerBase.Read(exINI, pSection, "AIInnerBase");
 		this->EngineerRepairable.Read(exINI, pSection, "EngineerRepairable");
 
-		// no code attached
 		this->RubbleDestroyed.Read(exINI, pSection, "Rubble.Destroyed");
 		this->RubbleIntact.Read(exINI, pSection, "Rubble.Intact");
 		this->RubbleDestroyedAnim.Read(exINI, pSection, "Rubble.Destroyed.Anim");
@@ -856,13 +855,11 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->RubbleIntactStrength.Read(exINI, pSection, "Rubble.Intact.Strength");
 		this->RubbleDestroyedRemove.Read(exINI, pSection, "Rubble.Destroyed.Remove");
 		this->RubbleIntactRemove.Read(exINI, pSection, "Rubble.Intact.Remove");
-		//
 
 		this->TunnelType.Read(exINI, pSection, "Tunnel");
 
 		this->SellBuildupLength.Read(exINI, pSection, "SellBuildupLength");
 
-		// added on 11.11.09 for #221 and children (Trenches)
 		this->UCPassThrough.Read(exINI, pSection, "UC.PassThrough");
 		this->UCFatalRate.Read(exINI, pSection, "UC.FatalRate");
 		this->UCDamageMultiplier.Read(exINI, pSection, "UC.DamageMultiplier");
@@ -885,14 +882,15 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		//TODO , the hook is disabled
 		// need better implementation
-		this->LaserFenceType.Read(exINI, pSection, "LaserFence.Type");
-		this->LaserFenceWEType.Read(exINI, pSection, "LaserFence.WEType");
-		this->LaserFencePostLinks.Read(exINI, pSection, "LaserFence.PostLinks");
-		this->LaserFenceDirection.Read(exINI, pSection, "LaserFence.Direction");
+		//this->LaserFenceType.Read(exINI, pSection, "LaserFence.Type");
+		//this->LaserFenceWEType.Read(exINI, pSection, "LaserFence.WEType");
+		//this->LaserFencePostLinks.Read(exINI, pSection, "LaserFence.PostLinks");
+		//this->LaserFenceDirection.Read(exINI, pSection, "LaserFence.Direction");
 
 		// #218 Specific Occupiers
 		this->AllowedOccupiers.Read(exINI, pSection, "CanBeOccupiedBy");
-		if (!this->AllowedOccupiers.empty()) {
+		if (!this->AllowedOccupiers.empty())
+		{
 			// having a specific occupier list implies that this building is supposed to be occupiable
 			pThis->CanBeOccupied = true;
 		}
@@ -945,133 +943,132 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->PrismForwarding.LoadFromINIFile(pThis, pINI);
 	}
 #pragma endregion
-
-	INI_EX exArtINI(pArtINI);
-	char strbuff[0x80];
-
-	if (this->IsCustom)
-	{
-		//Reset
-		pThis->Foundation = BuildingTypeExtData::CustomFoundation;
-		pThis->FoundationData = this->CustomData.data();
-		pThis->FoundationOutside = this->OutlineData.data();
-	}
-
-	if ((pArtINI->ReadString(pArtSection, "Foundation", Phobos::readDefval, strbuff) > 0) && IS_SAME_STR_(strbuff, "Custom"))
-	{
-		//Custom Foundation!
-		this->IsCustom = true;
-		//Load Width and Height
-		detail::read(this->CustomWidth, exArtINI, pArtSection, "Foundation.X");
-		detail::read(this->CustomHeight, exArtINI, pArtSection, "Foundation.Y");
-
-		int outlineLength = pArtINI->ReadInteger(pArtSection, "FoundationOutline.Length", 0);
-
-		// at len < 10, things will end very badly for weapons factories
-		if (outlineLength < 10)
-		{
-			outlineLength = 10;
-		}
-
-		//Allocate CellStruct array
-		const int dimension = this->CustomWidth * this->CustomHeight;
-
-		this->CustomData.assign(dimension + 1, CellStruct::Empty);
-		this->OutlineData.assign(outlineLength + 1, CellStruct::Empty);
-
-		using Iter = std::vector<CellStruct>::iterator;
-
-		auto ParsePoint = [](Iter& cell, const char* str) -> void
-			{
-				int x = 0, y = 0;
-				switch (sscanf_s(str, "%d,%d", &x, &y))
-				{
-				case 0:
-					x = 0;
-					[[fallthrough]];
-				case 1:
-					y = 0;
-				}
-				*cell++ = CellStruct { static_cast<short>(x), static_cast<short>(y) };
-			};
-
-		//Load FoundationData
-		auto itData = this->CustomData.begin();
-		char key[0x20];
-
-		for (int i = 0; i < dimension; ++i)
-		{
-			IMPL_SNPRNINTF(key, sizeof(key), "Foundation.%d", i);
-			if (pArtINI->ReadString(pArtSection, key, Phobos::readDefval, strbuff))
-			{
-				ParsePoint(itData, strbuff);
-			}
-			else
-			{
-				break;
-			}
-		}
-
-		//Sort, remove dupes, add end marker
-		std::sort(this->CustomData.begin(), itData,
-		[](const CellStruct& lhs, const CellStruct& rhs)
-		{
-			if (lhs.Y != rhs.Y)
-			{
-				return lhs.Y < rhs.Y;
-			}
-			return lhs.X < lhs.X;
-		});
-
-		itData = std::unique(this->CustomData.begin(), itData);
-		*itData = FoundationEndMarker;
-		this->CustomData.erase(itData + 1, this->CustomData.end());
-
-		auto itOutline = this->OutlineData.begin();
-		for (int i = 0; i < outlineLength; ++i)
-		{
-			IMPL_SNPRNINTF(key, sizeof(key), "FoundationOutline.%d", i);
-			if (pArtINI->ReadString(pArtSection, key, "", strbuff))
-			{
-				ParsePoint(itOutline, strbuff);
-			}
-			else
-			{
-				//Set end vector
-				// can't break, some stupid functions access fixed offsets without checking if that offset is within the valid range
-				*itOutline++ = FoundationEndMarker;
-			}
-		}
-
-		//Set end vector
-		*itOutline = FoundationEndMarker;
-
-		if (this->CustomData.begin() == this->CustomData.end())
-		{
-			Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. This breaks AI base building.\n", pArtSection);
-		}
-		else
-		{
-			auto iter = this->CustomData.begin();
-			while (iter->X || iter->Y)
-			{
-				if (++iter == this->CustomData.end())
-					Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. This breaks AI base building.\n", pArtSection);
-
-			}
-		}
-	}
-
-	if (this->IsCustom)
-	{
-		//Reset
-		pThis->Foundation = BuildingTypeExtData::CustomFoundation;
-		pThis->FoundationData = this->CustomData.data();
-		pThis->FoundationOutside = this->OutlineData.data();
-	}
-
 	if (pArtINI->GetSection(pArtSection))
 	{
+		INI_EX exArtINI(pArtINI);
+		char strbuff[0x80];
+
+		if (this->IsCustom)
+		{
+			//Reset
+			pThis->Foundation = BuildingTypeExtData::CustomFoundation;
+			pThis->FoundationData = this->CustomData.data();
+			pThis->FoundationOutside = this->OutlineData.data();
+		}
+
+		if ((pArtINI->ReadString(pArtSection, "Foundation", Phobos::readDefval, strbuff) > 0) && IS_SAME_STR_(strbuff, "Custom"))
+		{
+			//Custom Foundation!
+			this->IsCustom = true;
+			//Load Width and Height
+			detail::read(this->CustomWidth, exArtINI, pArtSection, "Foundation.X");
+			detail::read(this->CustomHeight, exArtINI, pArtSection, "Foundation.Y");
+
+			int outlineLength = pArtINI->ReadInteger(pArtSection, "FoundationOutline.Length", 0);
+
+			// at len < 10, things will end very badly for weapons factories
+			if (outlineLength < 10)
+			{
+				outlineLength = 10;
+			}
+
+			//Allocate CellStruct array
+			const int dimension = this->CustomWidth * this->CustomHeight;
+
+			this->CustomData.assign(dimension + 1, CellStruct::Empty);
+			this->OutlineData.assign(outlineLength + 1, CellStruct::Empty);
+
+			using Iter = std::vector<CellStruct>::iterator;
+
+			auto ParsePoint = [](Iter& cell, const char* str) -> void
+				{
+					int x = 0, y = 0;
+					switch (sscanf_s(str, "%d,%d", &x, &y))
+					{
+					case 0:
+						x = 0;
+						[[fallthrough]];
+					case 1:
+						y = 0;
+					}
+					*cell++ = CellStruct { static_cast<short>(x), static_cast<short>(y) };
+				};
+
+			//Load FoundationData
+			auto itData = this->CustomData.begin();
+			char key[0x20];
+
+			for (int i = 0; i < dimension; ++i)
+			{
+				IMPL_SNPRNINTF(key, sizeof(key), "Foundation.%d", i);
+				if (pArtINI->ReadString(pArtSection, key, Phobos::readDefval, strbuff))
+				{
+					ParsePoint(itData, strbuff);
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			//Sort, remove dupes, add end marker
+			std::sort(this->CustomData.begin(), itData,
+			[](const CellStruct& lhs, const CellStruct& rhs)
+			{
+					if (lhs.Y != rhs.Y)
+					{
+						return lhs.Y < rhs.Y;
+					}
+					return lhs.X < lhs.X;
+			});
+
+			itData = std::unique(this->CustomData.begin(), itData);
+			*itData = FoundationEndMarker;
+			this->CustomData.erase(itData + 1, this->CustomData.end());
+
+			auto itOutline = this->OutlineData.begin();
+			for (int i = 0; i < outlineLength; ++i)
+			{
+				IMPL_SNPRNINTF(key, sizeof(key), "FoundationOutline.%d", i);
+				if (pArtINI->ReadString(pArtSection, key, "", strbuff))
+				{
+					ParsePoint(itOutline, strbuff);
+				}
+				else
+				{
+					//Set end vector
+					// can't break, some stupid functions access fixed offsets without checking if that offset is within the valid range
+					*itOutline++ = FoundationEndMarker;
+				}
+			}
+
+			//Set end vector
+			*itOutline = FoundationEndMarker;
+
+			if (this->CustomData.begin() == this->CustomData.end())
+			{
+				Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. This breaks AI base building.\n", pArtSection);
+			}
+			else
+			{
+				auto iter = this->CustomData.begin();
+				while (iter->X || iter->Y)
+				{
+					if (++iter == this->CustomData.end())
+						Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. This breaks AI base building.\n", pArtSection);
+
+				}
+			}
+		}
+
+		if (this->IsCustom)
+		{
+			//Reset
+			pThis->Foundation = BuildingTypeExtData::CustomFoundation;
+			pThis->FoundationData = this->CustomData.data();
+			pThis->FoundationOutside = this->OutlineData.data();
+		}
+
 		if (pThis->MaxNumberOccupants > 10)
 		{
 			char tempMuzzleBuffer[32];
@@ -1089,7 +1086,6 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 #pragma region Otamaa
 		this->HealthOnfire.Read(exArtINI, pArtSection, "OnFire.Health");
 
-#ifndef REPLACE_BUILDING_ONFIRE
 		this->DamageFire_Offs.clear();
 		this->DamageFire_Offs.reserve(8u);
 
@@ -1098,19 +1094,19 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		{
 			Point2D nFire_offs;
 			IMPL_SNPRNINTF(tempFire_OffsBuffer, sizeof(tempFire_OffsBuffer), "%s%d", GameStrings::DamageFireOffset(), i);
-			if (!detail::read(nFire_offs , exArtINI, pArtSection, tempFire_OffsBuffer))
+			if (!detail::read(nFire_offs, exArtINI, pArtSection, tempFire_OffsBuffer))
 				break;
 
 			this->DamageFire_Offs.push_back(nFire_offs);
 		}
-#endif
+
 		this->BuildUp_UseNormalLIght.Read(exArtINI, pArtSection, "Buildup.UseNormalLight");
 		this->RubblePalette.Read(exArtINI, pArtSection, "Rubble.Palette");
 
-		this->DockPoseDir.clear();
 		if (pThis->Helipad)
 		{
 			char keyDock[0x40];
+			this->DockPoseDir.clear();
 			this->DockPoseDir.resize(pThis->NumberOfDocks);
 
 			for (int i = 0; i < pThis->NumberOfDocks; ++i)
@@ -1123,6 +1119,13 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->DockUnload_Cell.Read(exArtINI, pArtSection, "DockUnloadCell");
 		this->DockUnload_Facing.Read(exArtINI, pArtSection, "DockUnloadFacing");
+	}
+
+	if (pThis->UnitRepair && pThis->Factory == AbstractType::AircraftType)
+	{
+		Debug::FatalErrorAndExit(
+			"BuildingType [%s] has both UnitRepair=yes and Factory=AircraftType.\n"
+			"This combination causes Internal Errors and other unwanted behaviour.", pSection);
 	}
 }
 
@@ -1271,10 +1274,10 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->SlamSound)
 		.Process(this->Destroyed_CreateSmudge)
 
-		.Process(this->LaserFenceType)
-		.Process(this->LaserFenceWEType)
-		.Process(this->LaserFencePostLinks)
-		.Process(this->LaserFenceDirection)
+		//.Process(this->LaserFenceType)
+		//.Process(this->LaserFenceWEType)
+		//.Process(this->LaserFencePostLinks)
+		//.Process(this->LaserFenceDirection)
 		.Process(this->AllowedOccupiers)
 		.Process(this->BunkerRaidable)
 		.Process(this->Firestorm_Wall)
@@ -1347,23 +1350,19 @@ bool BuildingTypeExtContainer::Load(BuildingTypeClass* key, IStream* pStm)
 	PhobosByteStream loader { 0 };
 	if (!loader.ReadBlockFromStream(pStm))
 	{
-		//Debug::Log("[LoadKey] Failed to read data from save stream?!\n");
-		return false;
-	}
-
-	PhobosStreamReader reader { loader };
-	if (reader.Expect(BuildingTypeExtData::Canary)
-		&& reader.RegisterChange(Iter->second))
-	{
-		Iter->second->LoadFromStream(reader);
-		if (reader.ExpectEndOfBlock())
+		PhobosStreamReader reader { loader };
+		if (reader.Expect(BuildingTypeExtData::Canary)
+			&& reader.RegisterChange(Iter->second))
 		{
-			// reset the buildup time
-			BuildingTypeExtData::UpdateBuildupFrames(key);
-			return true;
+			Iter->second->LoadFromStream(reader);
+			if (reader.ExpectEndOfBlock())
+			{
+				// reset the buildup time
+				BuildingTypeExtData::UpdateBuildupFrames(key);
+				return true;
+			}
 		}
 	}
-
 
 	return false;
 }
@@ -1374,7 +1373,6 @@ bool BuildingTypeExtContainer::Load(BuildingTypeClass* key, IStream* pStm)
 DEFINE_HOOK(0x45E50C, BuildingTypeClass_CTOR, 0x6)
 {
 	GET(BuildingTypeClass*, pItem, EAX);
-
 
 	auto Iter = BuildingTypeExtContainer::Instance.Map.find(pItem);
 
@@ -1397,6 +1395,8 @@ DEFINE_HOOK(0x45E707, BuildingTypeClass_DTOR, 0x6)
 	auto extData = BuildingTypeExtContainer::Instance.GetExtAttribute(pItem);
 	BuildingTypeExtContainer::Instance.ClearExtAttribute(pItem);
 	BuildingTypeExtContainer::Instance.Map.erase(pItem);
+	delete extData;
+
 	return 0;
 }
 
@@ -1432,7 +1432,6 @@ DEFINE_HOOK(0x46531C, BuildingTypeClass_Save_Suffix, 0x6)
 	return 0;
 }
 
-// fixed the last delay on game loading !
 DEFINE_HOOK_AGAIN(0x464A56, BuildingTypeClass_LoadFromINI, 0xA)
 DEFINE_HOOK(0x464A49, BuildingTypeClass_LoadFromINI, 0xA)
 {

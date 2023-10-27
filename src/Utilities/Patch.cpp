@@ -150,6 +150,8 @@ uintptr_t Patch::GetModuleBaseAddress(const char* modName)
 	return modBaseAddr;
 }
 
+#include <DebugLog.h>
+
 DWORD Patch::GetDebuggerProcessId(DWORD dwSelfProcessId)
 {
 	DWORD dwParentProcessId = NULL;

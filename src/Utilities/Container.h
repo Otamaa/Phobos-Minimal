@@ -208,8 +208,10 @@ public:
 		if (extension_type_ptr val = new extension_type())
 		{
 			val->AttachedToObject = key;
-			if constexpr (CTORInitable<T>)
-				val->InitializeConstant();
+			if constexpr (CTORInitable<T>) { 
+				if(!Phobos::Otamaa::DoingLoadGame)
+					val->InitializeConstant();
+			}
 
 			return val;
 		}

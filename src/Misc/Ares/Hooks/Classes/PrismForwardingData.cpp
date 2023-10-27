@@ -67,12 +67,7 @@ void PrismForwardingData::LoadFromINIFile(BuildingTypeClass* pThis, CCINIClass* 
 		{
 			Debug::Log("[Developer Error] %s has an invalid PrismForwarding.ChargeDelay (%d), overriding to 1.\n", pThis->ID, this->ChargeDelay.Get());
 			this->ChargeDelay = 1;
-		}
-
-		auto SuperWH = RulesClass::Instance->C4Warhead;
-		if (!SuperWH)
-		{
-			SuperWH = WarheadTypeClass::Find("Super");
+			Debug::RegisterParserError();
 		}
 
 		auto const ReadSupportWeapon = [=, &exINI]
@@ -94,10 +89,10 @@ void PrismForwardingData::LoadFromINIFile(BuildingTypeClass* pThis, CCINIClass* 
 
 						pSetting = idxWeapon;
 
-						if (!pWeapon->Warhead)
-						{
-							pWeapon->Warhead = SuperWH;
+						if (!pWeapon->Warhead) {
+							pWeapon->Warhead = RulesClass::Instance->C4Warhead;
 						}
+
 						pWeapon->NeverUse = true; //the modder shouldn't be expected to have to set this
 
 						auto Weapon = (elite ? pThis->GetEliteWeapon(idxWeapon) : pThis->GetWeapon(idxWeapon));
