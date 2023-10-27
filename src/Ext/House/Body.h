@@ -208,7 +208,29 @@ public:
 	static bool IsDisabledFromShell(HouseClass* pHouse, BuildingTypeClass const* pItem);
 
 	static size_t FindOwnedIndex(HouseClass* pHouse, int idxParentCountry, Iterator<TechnoTypeClass const*> items, size_t start = 0);
-	static size_t FindBuildableIndex(HouseClass* pHouse, int idxParentCountry, Iterator<TechnoTypeClass const*> items, size_t start = 0);
+
+	template <typename T>
+	static size_t FindBuildableIndex(HouseClass* pHouse, int idxParentCountry, Iterator<T const*> items, size_t start = 0)
+	{
+		for (auto i = start; i < items.size(); ++i)
+		{
+			if (!items[i])
+				continue;
+
+			if (pHouse->CanExpectToBuild(items[i], idxParentCountry)) {
+
+				if constexpr (T::AbsID == BuildingTypeClass::AbsID) {
+					if (HouseExtData::IsDisabledFromShell(pHouse, (const BuildingTypeClass*)items[i])) {
+						continue;
+					}
+				}
+
+				return i;
+			}
+		}
+
+		return items.size();
+	}
 
 	template <typename T>
 	static T* FindOwned(HouseClass* pHouse, int const idxParent, Iterator<T*> const items, size_t const start = 0)
@@ -220,7 +242,7 @@ public:
 	template <typename T>
 	static T* FindBuildable(HouseClass* pHouse, int const idxParent, Iterator<T*> const items, size_t const start = 0)
 	{
-		auto const index = FindBuildableIndex(pHouse, idxParent, items, start);
+		auto const index = FindBuildableIndex<T>(pHouse, idxParent, items, start);
 		return index < items.size() ? items[index] : nullptr;
 	}
 

@@ -1346,8 +1346,12 @@ DEFINE_OVERRIDE_HOOK(0x5d7048, MPGameMode_SpawnBaseUnit_BuildConst, 5)
 	if (!HouseTypeExtContainer::Instance.Find(pHouseType)->StartInMultiplayer_WithConst)
 		return 0;
 
-	auto idxParentCountry = HouseClass::FindIndexByName(pHouseType->ParentCountry);
-	const auto v7 = HouseExtData::FindBuildable(pHouse, idxParentCountry, make_iterator(RulesClass::Instance->BuildConst), 0);
+	const auto v7 = HouseExtData::FindBuildable(
+		pHouse,
+		pHouseType->FindParentCountryIndex(),
+		make_iterator(RulesClass::Instance->BuildConst),
+		0
+	);
 
 	if (!v7) {
 		Debug::Log(__FUNCTION__" House of country [%s] cannot build anything from [General]BuildConst=.\n", pHouse->Type->ID);

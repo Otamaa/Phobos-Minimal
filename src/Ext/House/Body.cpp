@@ -1052,7 +1052,7 @@ bool HouseExtData::IsDisabledFromShell(
 	if (pItem->SuperWeapon != -1)
 	{
 		// allow SWs only if not disableable from shell
-		if (RulesClass::Instance->BuildTech.FindItemIndex(const_cast<BuildingTypeClass*>(pItem)) == -1) {
+		if (!RulesClass::Instance->BuildTech.Contains(const_cast<BuildingTypeClass*>(pItem))) {
 			if (pHouse->Supers[pItem->SuperWeapon]->Type->DisableableFromShell) {
 				return true;
 			}
@@ -1060,26 +1060,6 @@ bool HouseExtData::IsDisabledFromShell(
 	}
 
 	return false;
-}
-
-size_t HouseExtData::FindBuildableIndex(
-	HouseClass* pHouse, int const idxParentCountry,
-	Iterator<TechnoTypeClass const*> const items, size_t const start)
-{
-	for (auto i = start; i < items.size(); ++i) {
-		if (pHouse->CanExpectToBuild(items[i], idxParentCountry)) {
-
-			const auto pBld = specific_cast<const BuildingTypeClass*>(items[i]);
-
-			if (pBld && HouseExtData::IsDisabledFromShell(pHouse, pBld)) {
-				continue;
-			}
-
-			return i;
-		}
-	}
-
-	return items.size();
 }
 
 void HouseExtData::UpdateAutoDeathObjects()

@@ -71,6 +71,9 @@ public:
 
 	GenericNode* First() const { return FirstNode.Next(); }
 	GenericNode* Last() const { return LastNode.Prev(); }
+	GenericNode* GetFirst() { return (&FirstNode); };
+	GenericNode* GetLast() { return (&LastNode); };
+
 	bool IsEmpty() const { return !FirstNode.Next()->IsValid(); }
 	void AddHead(GenericNode* pNode) { FirstNode.Link(pNode); }
 	void AddTail(GenericNode* pNode) { LastNode.Prev()->Link(pNode); }
