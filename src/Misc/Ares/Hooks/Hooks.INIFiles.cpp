@@ -51,9 +51,15 @@ NOINLINE const char* Result(INIClass* pINI , const char* pSection , const char* 
 	return pDefault;
 }
 
+struct INIClass_ {
+	BYTE gap[44];
+	IndexClass<int, INIClass::INISection*> SectionIndex;
+};
+static_assert(sizeof(INIClass_) == 0x40, "Invalid Size!");
+
 DEFINE_OVERRIDE_HOOK(0x5260d9, INIClass_Parse_Override, 7)
 {
-	GET_STACK(INIClass*, pThis, 0x38);
+	GET_STACK(INIClass_*, pThis, 0x38);
 	GET(int, CRC, EAX);
 
 	auto find = pThis->SectionIndex.FetchItem(CRC, true);
@@ -64,14 +70,14 @@ DEFINE_OVERRIDE_HOOK(0x5260d9, INIClass_Parse_Override, 7)
 	if (auto pData = find->Data) {
 		if (auto find2 = pThis->SectionIndex.FetchItem(CRC, true)) {
 			auto begin = find2;
-			auto next = (&find2[1]);
-			const auto end = *reinterpret_cast<NodeElement<int, INIClass::INISection*>**>(pThis->SectionIndex.IndexCount + 8 * pThis->SectionIndex.IndexSize);
-			std::memcpy(begin, next, (end - next));
-			const auto idxSz = pThis->SectionIndex.IndexSize;
-			(*reinterpret_cast<DWORD*>(pThis->SectionIndex.IndexCount + 8 * idxSz - 8)) = 0;
-			(*reinterpret_cast<DWORD*>(pThis->SectionIndex.IndexCount + 8 * idxSz - 4)) = 0;
-			--pThis->SectionIndex.IndexSize;
-			pThis->LineComments = nullptr;
+			const auto end = pThis->SectionIndex.end();
+			std::memcpy(begin, &find2[1], (end - (find + 1)));
+			auto entries = pThis->SectionIndex.IndexTable;
+			const auto countBefore = pThis->SectionIndex.IndexCount;
+			entries[countBefore - 1].Data = 0;
+			entries[countBefore - 1].ID = 0;
+			--pThis->SectionIndex.IndexCount;
+			pThis->SectionIndex.Archive = nullptr;
 		}
 
 		GameDelete<true, false>(pData);
@@ -181,13 +187,14 @@ DEFINE_OVERRIDE_HOOK(0x528A10, INIClass_GetString, 5)
 	{
 		if (auto result = Result(pThis , pSection, pKey , pDefault))
 		{
+			auto resultcopy = result;
 			for (auto i = *result; i != ' '; i= *++result) {
 				if (!i)
 					break;
 			}
-			int len = strlen(result);
+			int len = strlen(resultcopy);
 			for (; len > 0; --len) {
-				if (result[len - 1] > ' ')
+				if (resultcopy[len - 1] > ' ')
 					break;
 			}
 
@@ -195,7 +202,7 @@ DEFINE_OVERRIDE_HOOK(0x528A10, INIClass_GetString, 5)
 			if (bufferlength - 1 >= len)
 				bufferlengthtotal = len;
 
-			std::memcpy(buffer, result, (size_t)bufferlengthtotal);
+			std::memcpy(buffer, resultcopy, (size_t)bufferlengthtotal);
 		}
 
 		*(bufferlengthtotal + buffer) = '\0';
