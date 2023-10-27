@@ -101,7 +101,6 @@ DEFINE_OVERRIDE_HOOK(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
 	return 0;
 }
 
-
 DEFINE_DISABLE_HOOK(0x565215, MapClass_CTOR_NoInit_Crates_ares)//, 0x6, 56522D)
 DEFINE_JUMP(LJMP, 0x565215, 0x56522D);
 
@@ -1393,6 +1392,8 @@ DEFINE_OVERRIDE_HOOK(0x6BD7E3, Expand_MIX_Reorg, 5)
 	return 0;
 }
 
+
+DEFINE_DISABLE_HOOK(0x52bb64, Expand_MIX_Deorg_ares)
 DEFINE_JUMP(LJMP , 0x52BB64 , 0x52BB95) //Expand_MIX_Deorg
 
 DEFINE_OVERRIDE_HOOK(0x5FDDA4 , IsOverlayIdxTiberium_Log, 6)
