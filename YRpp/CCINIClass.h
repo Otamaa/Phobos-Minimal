@@ -43,10 +43,19 @@ public:
 	class INISection : public Node<INISection>
 	{
 	public:
+		using EntryIndexes = IndexClass<int, INIEntry*>;
+
 		char* Name;
-		List<INIEntry*> Entries;
-		IndexClass<unsigned int, INIEntry*> EntryIndex;
+		DECLARE_PROPERTY(List<INIEntry*>, Entries);
+		DECLARE_PROPERTY(EntryIndexes, EntryIndex);
 		INIComment* Comments;
+
+		virtual ~INISection() override{
+			JMP_THIS(0x52AB80);
+		}
+
+	protected:
+			INISection() = default;// no
 	};
 	static_assert(sizeof(INISection) == 0x44, "Invalid size.");
 

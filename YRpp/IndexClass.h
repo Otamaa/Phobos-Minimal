@@ -308,7 +308,7 @@ typename IndexClass<TKey, TValue>::NodeType const* IndexClass<TKey, TValue>::Sea
 
 	if(Lowerbound) {
 		const NodeType* find = static_cast<const NodeType*>(std::lower_bound(begin(), end(), NodeType{ id , {} }));
-		return (find->ID == end()->ID || id < end()->ID) ? nullptr : find;
+		return (find == end() || id < find->ID) ? nullptr : find;
 	}
 
 	return static_cast<const NodeType*>(std::bsearch(&NodeType { id , {} }, &IndexTable[0], IndexCount, sizeof(IndexTable[0]), Comparator));

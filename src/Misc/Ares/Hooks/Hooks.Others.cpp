@@ -1851,6 +1851,34 @@ void LoadGlobalConfig()
 	}
 }
 
+DWORD ProcessCRCStrings(const char* str, int strsize, DWORD initial = -1)
+{
+	auto bytes = reinterpret_cast<const BYTE*>(str);
+	auto ret = ~initial;
+
+	for (int i = strsize; i > 0; --i)
+	{
+		ret = Checksummer::Table[*bytes++ ^ static_cast<BYTE>(ret)] ^ (ret >> 8);
+	}
+
+	return ~ret;
+}
+
+void DoSomethingWithThe64Char(AresSafeChecksummer& crc, const char* str, int strsize)
+{
+	crc.Value = ProcessCRCStrings(str, strsize);
+	int remain = 64 - strsize;
+
+	if (remain != 0)
+	{
+		*crc.Bytes = 0;
+		std::memcpy(crc.Bytes, &str[strsize], remain);
+		crc.ByteIndex = remain;
+	}
+
+	AresSafeChecksummer::Process(crc.Bytes, strsize, crc.Value);
+}
+
 void ReadRA2MD()
 {
 	Debug::Log("--------- Loading Ares global settings -----------\n");
@@ -1971,9 +1999,8 @@ void ReadRA2MD()
 	}
 
 	AresSafeChecksummer crc;
-	crc.Add(ModName);
-	crc.Commit();
-	crc.Add(ModVersion);
+	DoSomethingWithThe64Char(crc, ModName, sizeof(ModName));
+	crc.Value = ProcessCRCStrings(ModVersion, sizeof(ModVersion) , crc.Value);
 
 	ModIdentifier = Ini.ReadInteger("VersionInfo", "Identifier", static_cast<int>(crc.GetValue()));
 
@@ -1983,6 +2010,9 @@ void ReadRA2MD()
 		ModIdentifier
 	);
 }
+
+
+
 
 DEFINE_OVERRIDE_HOOK(0x5facdf, Options_LoadFromINI, 5)
 {

@@ -178,6 +178,8 @@ protected:
 		this->ByteIndex = 0;
 	}
 
+public:
+
 	DWORD Value;
 	size_t ByteIndex;
 	mutable BYTE Bytes[Size];
