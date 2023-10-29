@@ -1218,6 +1218,7 @@ enum class PrismChargeState : int {
 };
 
 enum class RadarEventType : int {
+	None = -1,
 	Combat = 0,
 	Noncombat = 1,
 	DropZone = 2,
@@ -1234,7 +1235,8 @@ enum class RadarEventType : int {
 	SuperweaponActivated = 13,
 	BridgeRepaired = 14,
 	GarrisonAbandoned = 15,
-	AllyBaseAttacked = 16
+	AllyBaseAttacked = 16,
+	Count
 };
 
 enum class PsychicDominatorStatus : unsigned int {

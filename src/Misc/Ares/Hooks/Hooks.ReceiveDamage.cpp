@@ -53,7 +53,7 @@ DEFINE_HOOK(0x5F53DB, ObjectClass_ReceiveDamage_Handled, 0xA)
 
 	if (!bIgnoreDefenses)
 	{
-		MapClass::GetTotalDamage(&args, pObject->GetType()->Armor);
+		MapClass::GetTotalDamage(&args, TechnoExtData::GetArmor(pObject));
 		//this already calculate distance damage from epicenter
 		pWHExt->ApplyRecalculateDistanceDamage(pObject, &args);
 	}

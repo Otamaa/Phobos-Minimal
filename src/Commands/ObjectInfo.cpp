@@ -188,9 +188,10 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 		}
 	}
 
-	const auto pArmor = ArmorTypeClass::FindFromIndex((int)pType->Armor);
+	const auto Armor_ = TechnoExtData::GetArmor(pFoot);
+	const auto pArmor = ArmorTypeClass::FindFromIndex((int)Armor_);
 	const auto nLevel = pFoot->Veterancy.GetRemainingLevel();
-	Append(buffer, "CurHP = (%d / %d) , Armor = %s (%d) , Exp = %s ( %fl / %fl ) ", pFoot->Health, pType->Strength, pArmor->Name.data(), (int)pType->Armor, EnumFunctions::Rank_ToStrings[(int)nLevel], pFoot->Veterancy.Veterancy, RulesClass::Instance->VeteranCap);
+	Append(buffer, "CurHP = (%d / %d) , Armor = %s (%d) , Exp = %s ( %fl / %fl ) ", pFoot->Health, pType->Strength, pArmor->Name.data(), (int)Armor_, EnumFunctions::Rank_ToStrings[(int)nLevel], pFoot->Veterancy.Veterancy, RulesClass::Instance->VeteranCap);
 
 	if (pType->Ammo > 0)
 		Append(buffer, " , Ammo = (%d / %d) \n", pFoot->Ammo, pType->Ammo);
@@ -261,9 +262,10 @@ void PrintBuilding(T& buffer, BuildingClass* pBuilding)
 		}
 	}
 
-	auto const pArmor = ArmorTypeClass::FindFromIndex((int)pBuilding->Type->Armor);
+	auto const armor_ = TechnoExtData::GetArmor(pBuilding);
+	auto const pArmor = ArmorTypeClass::FindFromIndex((int)armor_);
 	auto const nLevel = pBuilding->Veterancy.GetRemainingLevel();
-	Append(buffer, "CurHP = (%d / %d) , Armor = %s (%d) , Exp = %s ( %fl / %fl ) \n", pBuilding->Health, pBuilding->Type->Strength, pArmor->Name.data(), (int)pBuilding->Type->Armor, EnumFunctions::Rank_ToStrings[(int)nLevel], pBuilding->Veterancy.Veterancy, RulesClass::Instance->VeteranCap);
+	Append(buffer, "CurHP = (%d / %d) , Armor = %s (%d) , Exp = %s ( %fl / %fl ) \n", pBuilding->Health, pBuilding->Type->Strength, pArmor->Name.data(), (int)armor_, EnumFunctions::Rank_ToStrings[(int)nLevel], pBuilding->Veterancy.Veterancy, RulesClass::Instance->VeteranCap);
 
 	if (auto pTechnoExt = TechnoExtContainer::Instance.Find(pBuilding))
 	{

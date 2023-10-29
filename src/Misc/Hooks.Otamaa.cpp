@@ -4147,6 +4147,39 @@ DEFINE_HOOK(0x4F9A90, HouseClass_IsAlliedWith, 0x7)
 	return 0;
 }
 
+int AdjustDamageWithArmor(int damage, WarheadTypeClass* pWH, ObjectClass* pTarget, int distance) {
+	return MapClass::ModifyDamage(damage, pWH, TechnoExtData::GetArmor(pTarget), distance);
+}
+
+DEFINE_HOOK(0x5F53F7, ObjectClass_ReceiveDamage_Adjust, 0x5)
+{
+	GET(ObjectClass*, pThis, ESI);
+	GET(int, distance, EAX);
+	GET(int*, pDamage, EDI);
+	GET_STACK(WarheadTypeClass*, pWH, 0x24 + 0xC);
+
+	R->EAX(AdjustDamageWithArmor(*pDamage, pWH, pThis, distance));
+	return 0x5F5414;
+}
+
+DEFINE_HOOK(0x701D4D, TechnoClass_ReceiveDamage_Adjust, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(WarheadTypeClass*, pWH, EBP);
+	GET(int*, pDamage, EBX);
+	R->EAX(AdjustDamageWithArmor(*pDamage , pWH , pThis , 0));
+	return 0x701D69;
+}
+
+DEFINE_HOOK(0x6FDD0A, TechnoClass_AdjustDamage_Armor, 0x6)
+{
+	GET(ObjectClass*, pThis, EDI);
+	GET_STACK(WeaponTypeClass*, pWeapon, 0x18 + 0x8);
+	GET(int, damage, EBX);
+	R->EAX(AdjustDamageWithArmor(damage , pWeapon->Warhead , pThis, 0));
+	return 0x6FDD2E;
+}
+
 //DEFINE_HOOK(0x7272AE ,TriggerTypeClass_LoadFromINI_CountryName, 7)
 //{
 //	GET(TriggerTypeClass*, pThis, EBP);

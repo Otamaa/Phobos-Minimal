@@ -519,7 +519,7 @@ void WarheadTypeExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVictim, ar
 	if (this->RecalculateDistanceDamage_ProcessVerses)
 		nAddDamage *=
 		// GeneralUtils::GetWarheadVersusArmor(this->Get() , pThisType->Armor)
-		this->GetVerses(pThisType->Armor).Verses
+		this->GetVerses(TechnoExtData::GetArmor(pVictimTechno)).Verses
 		;
 
 	auto const nEligibleAddDamage = std::clamp((int)nAddDamage,
@@ -609,7 +609,7 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool S
 
 bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage)
 {
-	auto nArmor = pTechno->GetTechnoType()->Armor;
+	auto nArmor = TechnoExtData::GetArmor(pTechno);
 
 	if (auto pShield = TechnoExtContainer::Instance.Find(pTechno)->GetShield())
 		if (pShield->IsActive())
@@ -863,7 +863,7 @@ bool WarheadTypeExtData::GoBerzerkFor(FootClass* pVictim, int* damage)
 		}
 
 		//Default way game modify duration
-		nDur = MapClass::GetTotalDamage(nDur, this->AttachedToObject, pType->Armor, 0);
+		nDur = MapClass::GetTotalDamage(nDur, this->AttachedToObject, TechnoExtData::GetArmor(pVictim), 0);
 
 		const int oldValue = (!pVictim->Berzerk ? 0 : pVictim->BerzerkDurationLeft);
 		const int newValue = Helpers::Alex::getCappedDuration(oldValue, nDur, this->Berzerk_cap.Get());

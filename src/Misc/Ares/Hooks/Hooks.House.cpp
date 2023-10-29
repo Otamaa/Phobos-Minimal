@@ -677,18 +677,10 @@ DEFINE_OVERRIDE_HOOK(0x50965E, HouseClass_CanInstantiateTeam, 5)
 			if (RulesExtData::Instance()->AllowBypassBuildLimit[Owner->GetAIDifficultyIndex()])
 			{
 				CanBuild = BuildLimitAllows;
-			}
-			else
-			{
-				int remainLimit = HouseExtData::BuildLimitRemaining(Owner, Type);
-				if (remainLimit >= ptrEntry->Amount)
-				{
-					CanBuild = BuildLimitAllows;
-				}
-				else
-				{
-					CanBuild = TryToRecruit;
-				}
+			} else {
+
+				CanBuild = HouseExtData::BuildLimitRemaining(Owner, Type) >= ptrEntry->Amount ?
+					BuildLimitAllows : TryToRecruit;
 			}
 		}
 		else
@@ -744,12 +736,12 @@ DEFINE_OVERRIDE_HOOK(0x505C95, HouseClass_GenerateAIBuildList_CountExtra, 7)
 			if (pExt->AIBuildCounts.isset())
 			{
 				// fixed number of buildings, one minimum (exists already)
-				auto count = std::max(pExt->AIBuildCounts->at(idxDifficulty), 1);
+				auto count = MaxImpl(pExt->AIBuildCounts->at(idxDifficulty), 1);
 
 				// random optional building counts
 				if (pExt->AIExtraCounts.isset()) {
 					auto const& max = pExt->AIExtraCounts->at(idxDifficulty);
-					count += Random.RandomFromMax(std::max(max, 0));
+					count += Random.RandomFromMax(MaxImpl(max, 0));
 				}
 
 				// account for the one that already exists

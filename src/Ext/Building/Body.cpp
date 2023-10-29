@@ -838,6 +838,7 @@ void BuildingExtData::Serialize(T& Stm)
 		.Process(this->AboutToChronoshift)
 		.Process(this->IsFromSW)
 		.Process(this->RegisteredJammers)
+		.Process(this->BeignMCEd)
 		;
 }
 

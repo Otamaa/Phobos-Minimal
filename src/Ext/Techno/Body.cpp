@@ -404,6 +404,26 @@ void TechnoExtData::StoreLastTargetAndMissionAfterWebbed(InfantryClass* pThis)
 	pExt->WebbyLastTarget = pThis->Target;
 }
 
+//https://blueprints.launchpad.net/ares/+spec/elite-armor
+Armor TechnoExtData::GetArmor(ObjectClass* pThis) {
+	const auto pType = pThis->GetType();
+
+	if(pThis->AbstractFlags & AbstractFlags::Techno){
+
+		if (((TechnoClass*)pThis)->Veterancy.IsRookie())
+			return pType->Armor;
+
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find((TechnoTypeClass*)pType);
+
+		if (((TechnoClass*)pThis)->Veterancy.IsVeteran() && pTypeExt->VeteranArmor.isset())
+			return pTypeExt->VeteranArmor;
+		else if (((TechnoClass*)pThis)->Veterancy.IsElite() && pTypeExt->EliteArmor.isset())
+			return pTypeExt->EliteArmor;
+	}
+
+	return pType->Armor;
+}
+
 void TechnoExtData::StoreHijackerLastDisguiseData(InfantryClass* pThis, FootClass* pVictim)
 {
 	auto pExt = TechnoExtContainer::Instance.Find(pVictim);
@@ -1914,7 +1934,7 @@ const Nullable<CoordStruct>* TechnoExtData::GetInfrantyCrawlFLH(InfantryClass* p
 const Armor TechnoExtData::GetTechnoArmor(TechnoClass* pThis, WarheadTypeClass* pWarhead)
 {
 	auto const pTargetTechnoExt = TechnoExtContainer::Instance.Find(pThis);
-	auto nArmor = pThis->GetTechnoType()->Armor;
+	auto nArmor = TechnoExtData::GetArmor(pThis);
 
 	if (!pTargetTechnoExt)
 		return nArmor;

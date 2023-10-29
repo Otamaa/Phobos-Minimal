@@ -1119,6 +1119,9 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		//this->ShadowIndices.Read(exINI, pSection, "ShadowIndices");
 
+		this->EliteArmor.Read(exINI, pSection, "EliteArmor");
+		this->VeteranArmor.Read(exINI, pSection, "VeteranArmor");
+
 	}
 
 	// Art tags
@@ -2047,6 +2050,8 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->Prerequisite_Power)
 		.Process(this->PassengerTurret)
 		.Process(this->DetectDisguise_Percent)
+		.Process(this->EliteArmor)
+		.Process(this->VeteranArmor)
 		;
 }
 

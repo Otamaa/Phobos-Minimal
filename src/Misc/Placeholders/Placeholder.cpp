@@ -280,7 +280,7 @@ DEFINE_HOOK(0x469BD6, BulletClass_Logics_MindControlAlternative2, 0x6)
 					WarheadTypeClass* pAltWarhead = pWarheadExt->MindControl_AlternateWarhead;
 					const auto pAttacker = pBullet->Owner;
 					const auto pAttackingHouse = pBullet->Owner->Owner;
-					int realDamage = MapClass::GetTotalDamage(damage, pAltWarhead, pTargetType->Armor, 0);
+					int realDamage = MapClass::GetTotalDamage(damage, pAltWarhead, TechnoExtData::GetArmor(pTarget), 0);
 
 					if (!pWarheadExt->MindControl_CanKill && pTarget->Health <= realDamage)
 					{

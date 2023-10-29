@@ -11,6 +11,7 @@
 
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
+#include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
@@ -87,7 +88,7 @@ DEFINE_OVERRIDE_HOOK(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
 {
 	enum { ReturnFalse = 0x6F894F, ContinueCheck = 0x6F7D55, };
 
-	//GET(ObjectClass*, pTarget, ESI);
+	GET(ObjectClass*, pTarget, ESI);
 	GET(WarheadTypeClass*, pWH, ECX);
 	GET(int, nArmor, EAX);
 
@@ -95,8 +96,8 @@ DEFINE_OVERRIDE_HOOK(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
 
 	//if ((size_t)nArmor > ArmorTypeClass::Array.size())
 	//	Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
-
-	const auto vsData = &pData->Verses[nArmor];
+	const auto armor = (int)TechnoExtData::GetArmor(pTarget);
+	const auto vsData = &pData->Verses[armor];
 
 	return vsData->Flags.PassiveAcquire  //|| !(vsData->Verses <= 0.02)
 		? ContinueCheck
@@ -113,7 +114,8 @@ DEFINE_OVERRIDE_HOOK(0x6FCB6A, TechnoClass_CanFire_Verses, 0x7)
 	GET(int, nArmor, EAX);
 
 	const auto pData = WarheadTypeExtContainer::Instance.Find(pWH);
-	const auto vsData = &pData->Verses[nArmor];
+	const auto armor = (int)TechnoExtData::GetArmor(pTarget);
+	const auto vsData = &pData->Verses[armor];
 
 	//if ((size_t)nArmor > ArmorTypeClass::Array.size())
 	//	Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
@@ -149,8 +151,8 @@ DEFINE_OVERRIDE_HOOK(0x70CEA0, TechnoClass_EvalThreatRating_TargetWeaponWarhead_
 
 	//if ((int)pThisType->Armor > ArmorTypeClass::Array.size())
 	//	Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
-
-	const auto vsData = &pData->Verses[(int)pThisType->Armor];
+	const auto armor = (int)TechnoExtData::GetArmor(pThis);
+	const auto vsData = &pData->Verses[armor];
 
 	double nMult = 0.0;
 
@@ -165,7 +167,7 @@ DEFINE_OVERRIDE_HOOK(0x70CEA0, TechnoClass_EvalThreatRating_TargetWeaponWarhead_
 
 DEFINE_OVERRIDE_HOOK(0x70CF45, TechnoClass_EvalThreatRating_ThisWeaponWarhead_Verses, 0xB)
 {
-	//GET(ObjectClass*, pTarget, ESI);
+	GET(ObjectClass*, pTarget, ESI);
 	//GET(WeaponTypeClass*, pWeapon, EBX);
 	GET(WarheadTypeClass*, pWH, ECX);
 	GET(int, nArmor, EAX);
@@ -176,8 +178,8 @@ DEFINE_OVERRIDE_HOOK(0x70CF45, TechnoClass_EvalThreatRating_ThisWeaponWarhead_Ve
 
 	//if ((size_t)nArmor > ArmorTypeClass::Array.size())
 	//	Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
-
-	const auto vsData = &pData->Verses[nArmor];
+	const auto armor = (int)TechnoExtData::GetArmor(pTarget);
+	const auto vsData = &pData->Verses[armor];
 
 	R->Stack(0x10, dCoeff * vsData->Verses + dmult);
 	return 0x70CF58;
@@ -196,7 +198,7 @@ DEFINE_OVERRIDE_HOOK(0x6F36E3, TechnoClass_SelectWeapon_Verses, 0x5)
 	GET_STACK(WeaponTypeClass*, pSecondary, 0x10); //secondary
 	GET_STACK(WeaponTypeClass*, pPrimary, 0x14); //primary
 
-	const int nArmor = (int)pTarget->GetTechnoType()->Armor;
+	const int nArmor = (int)TechnoExtData::GetArmor(pTarget);
 	//if ((size_t)nArmor > ArmorTypeClass::Array.size())
 	//	Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
 
@@ -214,6 +216,7 @@ DEFINE_OVERRIDE_HOOK(0x708AF7, TechnoClass_ShouldRetaliate_Verses, 0x7)
 {
 	enum { Retaliate = 0x708B0B, DoNotRetaliate = 0x708B17 };
 
+	GET(TechnoClass* , pSource , EBP);
 	GET(WarheadTypeClass*, pWH, ECX);
 	GET(int, nArmor, EAX);
 
@@ -221,7 +224,8 @@ DEFINE_OVERRIDE_HOOK(0x708AF7, TechnoClass_ShouldRetaliate_Verses, 0x7)
 	//if ((size_t)nArmor > ArmorTypeClass::Array.size())
 	//	Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
 
-	const auto vsData = &pData->Verses[nArmor];
+	const auto armor = (int)TechnoExtData::GetArmor(pSource);
+	const auto vsData = &pData->Verses[armor];
 
 	return vsData->Flags.Retaliate //|| !(vsData->Verses <= 0.0099999998)
 		? Retaliate

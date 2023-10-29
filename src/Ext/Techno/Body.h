@@ -379,6 +379,8 @@ public:
 
 	static void RestoreLastTargetAndMissionAfterWebbed(InfantryClass* pThis);
 	static void StoreLastTargetAndMissionAfterWebbed(InfantryClass* pThis);
+
+	static NOINLINE Armor GetArmor(ObjectClass* pThis);
 };
 
 class TechnoExtContainer final : public Container<TechnoExtData>

@@ -131,7 +131,7 @@ void OwnFunc::ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 
 	if (!bImmune_pt1 && !bImmune_pt2)
 	{
-		const int nArmor = (int)pType->Armor;
+		const int nArmor = (int)TechnoExtData::GetArmor(pTarget);
 
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		TechnoClass_ReceiveDamage2_DamageText(pTechno, pDamage, pWarheadExt->DamageTextPerArmor[(int)nArmor]);
@@ -1662,7 +1662,7 @@ std::pair<bool, int> TechnoExt_ExtData::HealActionProhibited(bool CheckKeyPress,
 		}
 	}
 
-	if (pWHExt->GetVerses(pThatTechnoExt->Type->Armor).Verses <= 0.0)
+	if (pWHExt->GetVerses(TechnoExtData::GetArmor(pTarget)).Verses <= 0.0)
 		return { true , -1 };
 
 	return { pTarget->IsFullHP() , -1 };
@@ -4486,7 +4486,7 @@ void AresEMPulse::deliverEMPDamage(TechnoClass* const pTechno, TechnoClass* cons
 	if (AresEMPulse::isEligibleEMPTarget(pTechno, pHouse, pWarhead))
 	{
 		auto const pType = pTechno->GetTechnoType();
-		auto const& Verses = pWHExt->GetVerses(pType->Armor).Verses;
+		auto const& Verses = pWHExt->GetVerses(TechnoExtData::GetArmor(pTechno)).Verses;
 		if (std::abs(Verses) < 0.001)
 		{
 			return;

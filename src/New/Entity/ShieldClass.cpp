@@ -270,7 +270,11 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 		// if the shield still in full HP
 		// heal the shield user instead
 		if (ShieldStillInfullHP) {
-			if (MapClass::GetTotalDamage(DamageToShieldAfterMinMax, args->WH, this->CurTechnoType->Armor, args->DistanceToEpicenter) < 0)
+			if (MapClass::GetTotalDamage(DamageToShieldAfterMinMax,
+				 args->WH,
+				 TechnoExtData::GetArmor(this->Techno),
+				 args->DistanceToEpicenter) < 0
+				 )
 				IsShielRequreFeeback = !this->Type->PassthruNegativeDamage;
 		} else { //otherwise we heal the shield
 			if (this->Type->CanBeHealed) {

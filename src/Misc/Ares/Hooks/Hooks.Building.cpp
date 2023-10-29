@@ -949,10 +949,12 @@ DEFINE_OVERRIDE_HOOK(0x4482BD, BuildingClass_ChangeOwnership_ProduceCash, 6)
 			if (bld->ProduceCashStartup || bld->ProduceCashAmount)
 			{
 
-				startup += bld->ProduceCashStartup;
+				if(!pExt->BeignMCEd) {
+					pExt->BeignMCEd = false;
+					startup += bld->ProduceCashStartup;
+				}
 
-				if (bld->ProduceCashDelay)
-				{
+				if (bld->ProduceCashDelay) {
 					timer->Start(bld->ProduceCashDelay + 1);
 				}
 			}

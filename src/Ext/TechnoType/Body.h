@@ -864,6 +864,9 @@ public:
 
 	Nullable<PartialVector3D<double>> DetectDisguise_Percent {};
 
+	Nullable<Armor> EliteArmor {};
+	Nullable<Armor> VeteranArmor {};
+
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;
 

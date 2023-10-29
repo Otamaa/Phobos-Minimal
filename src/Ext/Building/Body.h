@@ -54,6 +54,8 @@ public:
 	bool SecretLab_Placed { false };
 	bool AboutToChronoshift { false };
 	bool IsFromSW { false };
+	bool BeignMCEd { true }; //this tag only use to fix 
+	//https://github.com/Phobos-developers/Phobos/issues/1146
 
 	HelperedVector<TechnoClass*> RegisteredJammers { };
 

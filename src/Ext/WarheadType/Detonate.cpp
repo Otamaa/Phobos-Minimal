@@ -123,7 +123,7 @@ void WarheadTypeExtData::applyIronCurtain(const CoordStruct& coords, HouseClass*
 
 			auto pType = curTechno->GetType();
 			// respect verses the boolean way
-			if (std::abs(this->GetVerses(pType->Armor).Verses) < 0.001)
+			if (std::abs(this->GetVerses(TechnoExtData::GetArmor(curTechno)).Verses) < 0.001)
 			{
 				continue;
 			}

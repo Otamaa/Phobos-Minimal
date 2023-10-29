@@ -336,7 +336,6 @@ bool BulletExtData::ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pT
 		break;
 		default: {
 			if (auto pType = pTargetObj->GetType()) {
-				//if (std::abs(pWhExt->GetVerses(pType->Armor).Verses) < 0.001)
 				if(GeneralUtils::GetWarheadVersusArmor(pWH , pType->Armor) < 0.001) {
 
 					return false;
