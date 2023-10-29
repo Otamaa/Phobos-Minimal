@@ -17,23 +17,6 @@ HouseClass* TriggerTypeExt::ResolveHouseParam(int const param, HouseClass* const
 		HouseClass::FindByIndex(param) : HouseClass::FindByCountryIndex(param);
 	return !result ? pOwnerHouse : result;
 }
-
-//DEFINE_HOOK(0x7272AE ,TriggerTypeClass_LoadFromINI_CountryName, 7)
-//{
-//	GET(TriggerTypeClass*, pThis, EBP);
-//	GET(const char*, pData, ESI);
-//	const int nParam = atoi(pData);
-//
-//	Debug::Log("TriggerTypeClass_LoadFromINI_CountryName[%s] %s - %d \n", pThis->ID, pData, nParam);
-//
-//	if ((nParam - 4475) > 7) {
-//		R->EDX(HouseTypeClass::Array->GetItem(HouseTypeClass::FindIndexByIdAndName(pData)));
-//		return 0x7272C1;
-//	} else {
-//		TriggerTypeExt::ExtMap.Find(pThis)->HouseParam = nParam;
-//		return 0x7272A4;
-//	}
-//}
 //
 //DEFINE_HOOK(0x7265E7, TriggerClass_FireActions, 7)
 //{

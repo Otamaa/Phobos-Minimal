@@ -939,7 +939,7 @@ DEFINE_HOOK(0x6F09C4, TeamTypeClass_CreateOneOf_RemoveLog, 0x5)
 	return 0x6F09D5;
 }
 
-DEFINE_HOOK(0x6F0A3F, TeamTypeClass_CreateOneOf_CreateLog, 0x6)
+DEFINE_HOOK(0x6F0A3F, TeamTypeClass_CreateOneOf_CreateLog, 0x9)
 {
 	GET(TeamTypeClass* const, pThis, ESI);
 	GET(HouseClass* const, pHouse, EDI);
@@ -4146,6 +4146,23 @@ DEFINE_HOOK(0x4F9A90, HouseClass_IsAlliedWith, 0x7)
 
 	return 0;
 }
+
+//DEFINE_HOOK(0x7272AE ,TriggerTypeClass_LoadFromINI_CountryName, 7)
+//{
+//	GET(TriggerTypeClass*, pThis, EBP);
+//	GET(const char*, pData, ESI);
+//	const int nParam = atoi(pData);
+//
+//	Debug::Log("TriggerTypeClass_LoadFromINI_CountryName[%s] %s - %d \n", pThis->ID, pData, nParam);
+//
+//	if ((nParam - 4475) > 7) {
+//		R->EDX(HouseTypeClass::Array->GetItem(HouseTypeClass::FindIndexByIdAndName(pData)));
+//		return 0x7272C1;
+//	} else {
+//		TriggerTypeExt::ExtMap.Find(pThis)->HouseParam = nParam;
+//		return 0x7272A4;
+//	}
+//}
 
 //#include <Ext/Cell/Body.h>
 

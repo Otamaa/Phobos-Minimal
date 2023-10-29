@@ -230,8 +230,8 @@ public:
 	Valueable<CSFText> MessageCapture {};
 	Valueable<CSFText> MessageLost {};
 
-	ValueableVector<int> AIBuildCounts {};
-	ValueableVector<int> AIExtraCounts {};
+	Nullable<PartialVector3D<int>> AIBuildCounts {};
+	Nullable<PartialVector3D<int>> AIExtraCounts {};
 
 	Nullable<FacingType> LandingDir {};
 

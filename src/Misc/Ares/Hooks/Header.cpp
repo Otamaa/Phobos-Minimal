@@ -4930,11 +4930,9 @@ bool AresPoweredUnit::PowerDown()
 	if (AresEMPulse::IsDeactivationAdvisableB(pTechno))
 	{
 		// destroy if EMP.Threshold would crash this unit when in air
-		auto const pType = pTechno->GetTechnoType();
-		auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
-
 		if (AresEMPulse::EnableEMPEffect2(pTechno)
-			|| (pExt->EMP_Threshold && pTechno->IsInAir()))
+			|| (TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType())->EMP_Threshold 
+				&& pTechno->IsInAir()))
 		{
 			return false;
 		}
@@ -5496,8 +5494,8 @@ bool AresWPWHExt::applyOccupantDamage(BulletClass* pThis)
 
 	auto const idxPoorBastard = Random.RandomFromMax(occupants - 1);
 	auto const pPoorBastard = pBuilding->Occupants[idxPoorBastard];
-
 	auto const& fatalRate = pBldTypeExt->UCFatalRate;
+
 	if (fatalRate > 0.0 && Random.RandomDouble() < fatalRate)
 	{
 		pPoorBastard->Destroyed(pThis->Owner);
@@ -5705,19 +5703,15 @@ bool AresTActionExt::LauchhChemMissile(TActionClass* pAction, HouseClass* pHouse
 	if (auto pBullet = pFind->Projectile->CreateBullet(MapClass::Instance->GetCellAt(nLoc), nullptr, pFind->Damage, pFind->Warhead, 20, false))
 	{
 		pBullet->SetWeaponType(pFind);
-		VelocityClass nVel {};
-
 		double nSin = Math::sin(1.570748388432313);
 		double nCos = Math::cos(-0.00009587672516830327);
-
-		double nX = nCos * nCos * 100.0;
-		double nY = nCos * nSin * 100.0;
-		double nZ = nSin * 100.0;
-
 		BulletExtContainer::Instance.Find(pBullet)->Owner = pHouse;
 		auto nCell = MapClass::Instance->Localsize_586AC0(&nLoc, false);
 
-		pBullet->MoveTo({ nCell.X + 128 , nCell.Y + 128 , 0 }, nVel);
+		pBullet->MoveTo(
+			{ nCell.X + 128 , nCell.Y + 128 , 0 },		
+			{ nCos * nCos * 100.0  , nCos * nSin * 100.0  , nSin * 100.0 }
+		);
 		return true;
 	}
 
@@ -6030,7 +6024,6 @@ std::pair<bool, TriggerAttachType> AresTEventExt::GetAttachFlags(AresTriggerEven
 	}
 	}
 
-
 	return { false ,TriggerAttachType::None };
 }
 
@@ -6336,11 +6329,11 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs const Args, bool& r
 			if (!Args.Owner)
 				result = false;
 			else
-			{
-				auto const& nVec = HouseExtContainer::Instance.Find(Args.Owner)->Reversed;
-
-				result = std::any_of(nVec.begin(), nVec.end(), [&](TechnoTypeClass* pTech)
-					{ return pTech == TEventExtContainer::Instance.Find(pThis)->GetTechnoType(); });
+			{		
+				result = HouseExtContainer::Instance.Find(Args.Owner)->Reversed.any_of
+				([&](TechnoTypeClass* pTech) {
+					return pTech == TEventExtContainer::Instance.Find(pThis)->GetTechnoType();
+				});
 			}
 			break;
 		}
@@ -6646,7 +6639,7 @@ std::vector<int>* TunnelFuncs::PopulatePassangerPIPData(TechnoClass* pThis, Tech
 
 std::pair<bool, FootClass*> TunnelFuncs::UnlimboOne(std::vector<FootClass*>* pVector, BuildingClass* pTunnel, DWORD Where)
 {
-	auto pPassenger = *std::prev(pVector->end());
+	auto pPassenger = pVector->back();
 	auto nCoord = pTunnel->GetCoords();
 
 	const auto nBldFacing = ((((short)pTunnel->PrimaryFacing.Current().Raw >> 7) + 1) >> 1);
@@ -6658,10 +6651,9 @@ std::pair<bool, FootClass*> TunnelFuncs::UnlimboOne(std::vector<FootClass*>* pVe
 	bool Succeeded = pPassenger->Unlimbo(nCoord, (DirType)nBldFacing);
 	--Unsorted::ScenarioInit();
 
-	pVector->pop_back();
-
 	if (Succeeded)
 	{
+		pVector->pop_back();
 		pPassenger->Scatter(CoordStruct::Empty, true, false);
 		return { true,  pPassenger };
 	}
@@ -6743,11 +6735,8 @@ bool TunnelFuncs::UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel, bool sile
 
 void TunnelFuncs::HandleUnload(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel)
 {
-	auto nPos = pTunnelData->end();
-
-	if (pTunnelData->begin() != nPos)
-	{
-		if (UnloadOnce(*std::prev(nPos), pTunnel))
+	if (!pTunnelData->empty()) {
+		if (UnloadOnce(pTunnelData->back(), pTunnel))
 			pTunnelData->pop_back();
 	}
 }

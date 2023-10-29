@@ -199,15 +199,12 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 				 pThis->Target = pTarget;
 				 pThis->Detonate(pTarget->GetCoords());
 
-				 if (!BulletExtData::IsReallyAlive(pThis))
-				 {
-					 pWHExt->WasDetonatedOnAllMapObjects = false;
-					 return ReturnFromFunction;
+				 if (!BulletExtData::IsReallyAlive(pThis))  {
+					 break;
 				 }
 			 }		 
 
 			pWHExt->WasDetonatedOnAllMapObjects = false;
-
 			return ReturnFromFunction;
 		}
 	}

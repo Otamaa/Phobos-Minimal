@@ -149,6 +149,7 @@ void CheckProcessorFeatures()
 }
 
 #include "CD.h"
+#include "aclapi.h"
 
 void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 {
@@ -211,6 +212,38 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 	}
 
 	CheckProcessorFeatures();
+
+	//auto v9 = GetCurrentProcess();
+	//PSID_IDENTIFIER_AUTHORITY auth;
+	//PSID pSID;
+	//if (AllocateAndInitializeSid(auth, 1u, 0, 0, 0, 0, 0, 0, 0, 0, &pSID))
+	//{
+	//	PHANDLE TokenHandle;
+	//	if (OpenProcessToken(v9, 8u, TokenHandle))
+	//	{
+	//		PDWORD ReturnLength;
+	//		GetTokenInformation(TokenHandle, TokenUser, 0, 0, ReturnLength);
+	//		if (ReturnLength <= 0x400)
+	//		{
+	//			auto v10 = LocalAlloc(0x40u, 0x400u);
+	//			if (GetTokenInformation(TokenHandle, TokenUser, v10, 0x400u, ReturnLength))
+	//			{
+	//				PACL pAcl;
+	//				if (InitializeAcl(pAcl, 0x400u, 2u)
+	//				  && AddAccessDeniedAce(pAcl, 2u, 0xFAu, pSID)
+	//				  && AddAccessAllowedAce(pAcl, 2u, 0x100701u, v10))
+	//				{
+	//					SetSecurityInfo(v9, SE_KERNEL_OBJECT, 0x80000004, 0, 0, pAcl, 0);
+	//				}
+	//			}
+	//		}
+	//	}
+	//}
+	//
+	//if (v9)
+	//	CloseHandle(v9);
+	//if (pSID)
+	//	FreeSid(pSID);
 
 	if (processAffinityMask)
 	{
@@ -283,76 +316,79 @@ void Phobos::Config::Read()
 		//Patch::Apply_RAW(0x55D78D , sizeof(defaultspeed), &defaultspeed);
 	}
 
-	if (CCINIClass* pINI_UIMD = Phobos::OpenConfig(UIMD_FILENAME))
+	CCFileClass UIMD_ini { UIMD_FILENAME };
+
+	if(UIMD_ini.Exists())
 	{
+		CCINIClass INI_UIMD { };
+		INI_UIMD.ReadCCFile(&UIMD_ini);
+
 		// LoadingScreen
 		{
 			Phobos::UI::DisableEmptySpawnPositions =
-				pINI_UIMD->ReadBool("LoadingScreen", "DisableEmptySpawnPositions", false);
+				INI_UIMD.ReadBool("LoadingScreen", "DisableEmptySpawnPositions", false);
 		}
 
 		// ToolTips
 		{
 			Phobos::UI::ExtendedToolTips =
-				pINI_UIMD->ReadBool(TOOLTIPS_SECTION, "ExtendedToolTips", false);
+				INI_UIMD.ReadBool(TOOLTIPS_SECTION, "ExtendedToolTips", false);
 
 			Phobos::UI::MaxToolTipWidth =
-				pINI_UIMD->ReadInteger(TOOLTIPS_SECTION, "MaxWidth", 0);
+				INI_UIMD.ReadInteger(TOOLTIPS_SECTION, "MaxWidth", 0);
 
-			pINI_UIMD->ReadString(TOOLTIPS_SECTION, "CostLabel", NONE_STR, Phobos::readBuffer);
+			INI_UIMD.ReadString(TOOLTIPS_SECTION, "CostLabel", NONE_STR, Phobos::readBuffer);
 			Phobos::UI::CostLabel = GeneralUtils::LoadStringOrDefault(Phobos::readBuffer, L"$");
 
-			pINI_UIMD->ReadString(TOOLTIPS_SECTION, "PowerLabel", NONE_STR, Phobos::readBuffer);
+			INI_UIMD.ReadString(TOOLTIPS_SECTION, "PowerLabel", NONE_STR, Phobos::readBuffer);
 			Phobos::UI::PowerLabel = GeneralUtils::LoadStringOrDefault(Phobos::readBuffer, L"\u26a1"); // ⚡
 
-			pINI_UIMD->ReadString(TOOLTIPS_SECTION, "PowerBlackoutLabel", NONE_STR, Phobos::readBuffer);
+			INI_UIMD.ReadString(TOOLTIPS_SECTION, "PowerBlackoutLabel", NONE_STR, Phobos::readBuffer);
 			Phobos::UI::PowerBlackoutLabel = GeneralUtils::LoadStringOrDefault(Phobos::readBuffer, L"\u26a1\u274c"); // ⚡❌
 
-			pINI_UIMD->ReadString(TOOLTIPS_SECTION, "TimeLabel", NONE_STR, Phobos::readBuffer);
+			INI_UIMD.ReadString(TOOLTIPS_SECTION, "TimeLabel", NONE_STR, Phobos::readBuffer);
 			Phobos::UI::TimeLabel = GeneralUtils::LoadStringOrDefault(Phobos::readBuffer, L"\u231a"); // ⌚
 
-			pINI_UIMD->ReadString(TOOLTIPS_SECTION, "PercentLabel", NONE_STR, Phobos::readBuffer);
+			INI_UIMD.ReadString(TOOLTIPS_SECTION, "PercentLabel", NONE_STR, Phobos::readBuffer);
 			Phobos::UI::PercentLabel = GeneralUtils::LoadStringOrDefault(Phobos::readBuffer, L"\u231a"); // ⌚
 
-			pINI_UIMD->ReadString(TOOLTIPS_SECTION, "RadarJammedLabel", NONE_STR, Phobos::readBuffer);
+			INI_UIMD.ReadString(TOOLTIPS_SECTION, "RadarJammedLabel", NONE_STR, Phobos::readBuffer);
 			Phobos::UI::BuidingRadarJammedLabel = GeneralUtils::LoadStringOrDefault(Phobos::readBuffer, L"Radar Jammed");
 		}
 
 		// Sidebar
 		{
 			Phobos::UI::ShowHarvesterCounter =
-				pINI_UIMD->ReadBool(SIDEBAR_SECTION_T, "HarvesterCounter.Show", false);
+				INI_UIMD.ReadBool(SIDEBAR_SECTION_T, "HarvesterCounter.Show", false);
 
-			pINI_UIMD->ReadString(SIDEBAR_SECTION_T, "HarvesterCounter.Label", NONE_STR, Phobos::readBuffer);
+			INI_UIMD.ReadString(SIDEBAR_SECTION_T, "HarvesterCounter.Label", NONE_STR, Phobos::readBuffer);
 			Phobos::UI::HarvesterLabel = GeneralUtils::LoadStringOrDefault(Phobos::readBuffer, L"\u26cf"); // ⛏
 
 			Phobos::UI::HarvesterCounter_ConditionYellow =
-				pINI_UIMD->ReadDouble(SIDEBAR_SECTION_T, "HarvesterCounter.ConditionYellow", Phobos::UI::HarvesterCounter_ConditionYellow);
+				INI_UIMD.ReadDouble(SIDEBAR_SECTION_T, "HarvesterCounter.ConditionYellow", Phobos::UI::HarvesterCounter_ConditionYellow);
 
 			Phobos::UI::HarvesterCounter_ConditionRed =
-				pINI_UIMD->ReadDouble(SIDEBAR_SECTION_T, "HarvesterCounter.ConditionRed", Phobos::UI::HarvesterCounter_ConditionRed);
+				INI_UIMD.ReadDouble(SIDEBAR_SECTION_T, "HarvesterCounter.ConditionRed", Phobos::UI::HarvesterCounter_ConditionRed);
 
 			Phobos::UI::ShowProducingProgress =
-				pINI_UIMD->ReadBool(SIDEBAR_SECTION_T, "ProducingProgress.Show", false);
+				INI_UIMD.ReadBool(SIDEBAR_SECTION_T, "ProducingProgress.Show", false);
 
 			Phobos::UI::ShowPowerDelta =
-				pINI_UIMD->ReadBool(SIDEBAR_SECTION_T, "PowerDelta.Show", false);
+				INI_UIMD.ReadBool(SIDEBAR_SECTION_T, "PowerDelta.Show", false);
 
 			Phobos::UI::PowerDelta_ConditionYellow =
-				pINI_UIMD->ReadDouble(SIDEBAR_SECTION_T, "PowerDelta.ConditionYellow", Phobos::UI::PowerDelta_ConditionYellow);
+				INI_UIMD.ReadDouble(SIDEBAR_SECTION_T, "PowerDelta.ConditionYellow", Phobos::UI::PowerDelta_ConditionYellow);
 
 			Phobos::UI::PowerDelta_ConditionRed =
-				pINI_UIMD->ReadDouble(SIDEBAR_SECTION_T, "PowerDelta.ConditionRed", Phobos::UI::PowerDelta_ConditionRed);
+				INI_UIMD.ReadDouble(SIDEBAR_SECTION_T, "PowerDelta.ConditionRed", Phobos::UI::PowerDelta_ConditionRed);
 
 			Phobos::Config::TogglePowerInsteadOfRepair =
-				pINI_UIMD->ReadBool(SIDEBAR_SECTION_T, "TogglePowerInsteadOfRepair", false);
+				INI_UIMD.ReadBool(SIDEBAR_SECTION_T, "TogglePowerInsteadOfRepair", false);
 
 			Phobos::UI::CenterPauseMenuBackground =
-				pINI_UIMD->ReadBool(SIDEBAR_SECTION_T, "CenterPauseMenuBackground", Phobos::UI::CenterPauseMenuBackground);
+				INI_UIMD.ReadBool(SIDEBAR_SECTION_T, "CenterPauseMenuBackground", Phobos::UI::CenterPauseMenuBackground);
 
 		}
-
-		Phobos::CloseConfig(pINI_UIMD);
 	}
 	else
 	{

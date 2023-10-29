@@ -721,6 +721,10 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 		JMP_THIS(0x70F1D0);
 	}
 
+	void SwitchTurretWeapon(int idx) const {
+		JMP_THIS(0x70DC70);
+	}
+
 	//Constructor
 	TechnoClass(HouseClass* pOwner) noexcept
 		: TechnoClass(noinit_t())

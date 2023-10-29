@@ -203,6 +203,7 @@ DEFINE_OVERRIDE_HOOK(0x74642C, UnitClass_ReceiveGunner, 6)
 	return 0;
 }
 
+//DEFINE_DISABLE_HOOK(0x74653C, UnitClass_RemoveGunner_ares)
 DEFINE_OVERRIDE_HOOK(0x74653C, UnitClass_RemoveGunner, 0xA)
 {
 	GET(UnitClass*, Unit, EDI);
@@ -210,6 +211,66 @@ DEFINE_OVERRIDE_HOOK(0x74653C, UnitClass_RemoveGunner, 0xA)
 	Unit->TemporalImUsing = std::exchange(pData->MyOriginalTemporal, nullptr);
 	return 0x746546;
 }
+
+//DEFINE_HOOK(0x746420, UnitClass_ReceiveGunner, 5)
+//{
+//	GET(UnitClass*, pThis, ECX);
+//	GET_STACK(FootClass*, Gunner, 0x4);
+//
+//	if(Gunner) {
+//		if (Gunner->TemporalImUsing) {
+//
+//			const auto pTemp = std::exchange(pThis->TemporalImUsing, nullptr);
+//
+//			if (pTemp)
+//				pTemp->LetGo();
+//
+//			TechnoExtContainer::Instance.Find(pThis)->MyOriginalTemporal = pTemp;
+//			pThis->TemporalImUsing = std::exchange(Gunner->TemporalImUsing, nullptr);
+//			pThis->TemporalImUsing->Owner = pThis;
+//			//pThis->SwitchTurretWeapon(7);
+//		}
+//
+//		if (Gunner->DiskLaserTimer.HasTimeLeft()) {
+//			++pThis->CurrentBurstIndex;
+//			pThis->DiskLaserTimer.Start(pThis->GetROF(7)); //hardcoded it seems
+//		}
+//
+//		pThis->SwitchTurretWeapon(Gunner->GetTechnoType()->IFVMode);
+//	}
+//
+//
+//}
+//
+//DEFINE_HOOK(0x7464E0 , UnitClass_RemoveGunner, 5)
+//{
+//	GET(UnitClass*, pThis, ECX);
+//	GET_STACK(FootClass* , Gunner , 0x4);
+//
+//	if(Gunner) {
+//
+//		if(!pThis->DiskLaserTimer.GetTimeLeft()) {
+//			++pThis->CurrentBurstIndex;
+//			pThis->DiskLaserTimer.Start(pThis->GetROF(0));
+//		}
+//
+//		if (pThis->TemporalImUsing)
+//		{
+//			Gunner->TemporalImUsing = pThis->TemporalImUsing;
+//			pThis->TemporalImUsing->Owner = Gunner;
+//			auto pData = TechnoExtContainer::Instance.Find(pThis);
+//			pThis->TemporalImUsing = std::exchange(pData->MyOriginalTemporal, nullptr);
+//
+//			if (Gunner->TemporalImUsing && Gunner->TemporalImUsing->Target)
+//			{
+//				Gunner->TemporalImUsing->LetGo();
+//			}
+//		}
+//	}
+//
+//	pThis->SwitchTurretWeapon(0);
+//	 return 0x7465A1;
+//}
 
 DEFINE_OVERRIDE_HOOK(0x73769E, UnitClass_ReceivedRadioCommand_SpecificPassengers, 8)
 {

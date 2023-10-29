@@ -741,15 +741,14 @@ DEFINE_OVERRIDE_HOOK(0x505C95, HouseClass_GenerateAIBuildList_CountExtra, 7)
 		if (!handled.contains(pItem))
 		{
 			auto const pExt = BuildingTypeExtContainer::Instance.Find(pItem);
-			if (idxDifficulty < pExt->AIBuildCounts.size())
+			if (pExt->AIBuildCounts.isset())
 			{
 				// fixed number of buildings, one minimum (exists already)
-				auto count = std::max(pExt->AIBuildCounts[idxDifficulty], 1);
+				auto count = std::max(pExt->AIBuildCounts->at(idxDifficulty), 1);
 
 				// random optional building counts
-				if (idxDifficulty < pExt->AIExtraCounts.size())
-				{
-					auto const& max = pExt->AIExtraCounts[idxDifficulty];
+				if (pExt->AIExtraCounts.isset()) {
+					auto const& max = pExt->AIExtraCounts->at(idxDifficulty);
 					count += Random.RandomFromMax(std::max(max, 0));
 				}
 

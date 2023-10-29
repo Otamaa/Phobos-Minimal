@@ -3680,34 +3680,6 @@ void TechnoExtData::UpdateType(TechnoTypeClass* currentType)
 	this->Type = currentType;
 	auto const pTypeExtData = TechnoTypeExtContainer::Instance.Find(currentType);
 
-	//if (auto pSpawnManager = pThis->SpawnManager)
-	//{
-	//	if (currentType->Spawns && pSpawnManager->SpawnType != currentType->Spawns)
-	//	{
-	//		pSpawnManager->SpawnType = currentType->Spawns;
-	//
-	//		if (currentType->SpawnsNumber > 0)
-	//			pSpawnManager->SpawnCount = currentType->SpawnsNumber;
-	//
-	//		pSpawnManager->RegenRate = currentType->SpawnRegenRate;
-	//		pSpawnManager->ReloadRate = currentType->SpawnReloadRate;
-	//	}
-	//}
-
-	// https://bugs.launchpad.net/ares/+bug/1891753
-	//if (pThis->IsDisguised() && pOldType->DisguiseWhenStill && !currentType->DisguiseWhenStill)
-	//	pThis->ClearDisguise();
-
-	//else if(currentType->Spawns && currentType->SpawnsNumber > 0)
-	//{
-	//	pThis->SpawnManager = GameCreate<SpawnManagerClass>(
-	//		pThis,
-	//		currentType->Spawns ,
-	//		currentType->SpawnsNumber ,
-	//		currentType->SpawnRegenRate ,
-	//		currentType->SpawnReloadRate);
-	//}
-
 	TechnoExtData::InitializeLaserTrail(pThis, true);
 
 	// Reset Shield
@@ -3726,8 +3698,8 @@ void TechnoExtData::UpdateType(TechnoTypeClass* currentType)
 
 	// Reset PassengerDeletion Timer - TODO : unchecked
 	if (this->PassengerDeletionTimer.IsTicking()
-		&& pTypeExtData->PassengerDeletionType
-		&& pTypeExtData->PassengerDeletionType->Rate <= 0)
+		&& (!pTypeExtData->PassengerDeletionType
+			|| pTypeExtData->PassengerDeletionType->Rate <= 0))
 		this->PassengerDeletionTimer.Stop();
 
 	TrailsManager::Construct(static_cast<TechnoClass*>(pThis), true);
@@ -3750,6 +3722,35 @@ void TechnoExtData::UpdateType(TechnoTypeClass* currentType)
 		this->MyGiftBox.reset(nullptr);
 	else if (pTypeExtData->MyGiftBoxData.Enable && !this->MyGiftBox)
 		GiftBoxFunctional::Init(this, pTypeExtData);*/
+
+		// Update open topped state of potential passengers if transport's OpenTopped value changes.
+	bool toOpenTopped = currentType->OpenTopped && !pOldType->OpenTopped;
+
+	if ((toOpenTopped || (!currentType->OpenTopped && pOldType->OpenTopped)) && pThis->Passengers.NumPassengers > 0)
+	{
+		auto pPassenger = pThis->Passengers.FirstPassenger;
+
+		while (pPassenger)
+		{
+			if (toOpenTopped)
+			{
+				pThis->EnteredOpenTopped(pPassenger);
+			}
+			else
+			{
+				pThis->ExitedOpenTopped(pPassenger);
+
+				// Lose target & destination
+				pPassenger->Guard();
+
+				// OpenTopped adds passengers to logic layer when enabled. Under normal conditions this does not need to be removed since
+				// OpenTopped state does not change while passengers are still in transport but in case of type conversion that can happen.
+				MapClass::Logics.get().RemoveObject(pPassenger);
+			}
+
+			pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
+		}
+	}
 }
 
 void TechnoExtData::UpdateBuildingLightning()
