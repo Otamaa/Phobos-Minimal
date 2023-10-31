@@ -1999,9 +1999,9 @@ void ReadRA2MD()
 	}
 
 	AresSafeChecksummer crc;
-	DoSomethingWithThe64Char(crc, ModName, sizeof(ModName));
-	crc.Value = ProcessCRCStrings(ModVersion, sizeof(ModVersion) , crc.Value);
-
+	crc.Add(ModName , strlen(ModName));
+	crc.Commit();
+	crc.Add(ModVersion, strlen(ModVersion));
 	ModIdentifier = Ini.ReadInteger("VersionInfo", "Identifier", static_cast<int>(crc.GetValue()));
 
 	Debug::Log("Mod is %s (%s) with %X\n",
@@ -2010,9 +2010,6 @@ void ReadRA2MD()
 		ModIdentifier
 	);
 }
-
-
-
 
 DEFINE_OVERRIDE_HOOK(0x5facdf, Options_LoadFromINI, 5)
 {

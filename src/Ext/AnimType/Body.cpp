@@ -325,7 +325,9 @@ void AnimTypeExtData::ValidateData() {
 	}
 }
 
-void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller)
+#include <Ext/WarheadType/Body.h>
+
+void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller, WarheadTypeClass* pWH)
 {
 	const auto location = pThis->GetCoords();
 
@@ -333,15 +335,23 @@ void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller
 		return;
 
 	const auto pType = pThis->GetTechnoType();
-	if (!pType->DestroyAnim.Count)
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	AnimTypeClass** begin = pType->DestroyAnim.begin();
+	int count = pType->DestroyAnim.Count;
+
+	if (pWH && pTypeExt->DestroyAnimSpecific.contains(pWH)) {
+		begin  = pTypeExt->DestroyAnimSpecific[pWH].data();
+		count = (int)pTypeExt->DestroyAnimSpecific[pWH].size();
+	}
+
+	if (!count)
 		return;
 
 	const DirType facing = (DirType)pThis->PrimaryFacing.Current().GetFacing<256>();
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	int idxAnim = 0;
-	GeneralUtils::GetRandomAnimVal(idxAnim, pType->DestroyAnim.Count, (short)facing, pTypeExt->DestroyAnim_Random.Get());
-	AnimTypeClass* pAnimType = pType->DestroyAnim[idxAnim];
+	GeneralUtils::GetRandomAnimVal(idxAnim, count, (short)facing, pTypeExt->DestroyAnim_Random.Get());
+	AnimTypeClass* pAnimType = begin[idxAnim];
 
 	if (!pAnimType)
 		return;

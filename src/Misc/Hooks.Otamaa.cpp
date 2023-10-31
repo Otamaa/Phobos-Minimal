@@ -2348,9 +2348,10 @@ DEFINE_HOOK(0x4D423A, FootClass_MissionMove_SubterraneanResourceGatherer, 0x6)
 	GET(FootClass*, pThis, ESI);
 
 	const auto pType = pThis->GetTechnoType();
-	if (pThis->WhatAmI() == UnitClass::AbsID && pType->IsSubterranean && pType->ResourceGatherer)
-	{
-		pThis->QueueMission(Mission::Harvest, false);
+	if (pThis->WhatAmI() == UnitClass::AbsID && pType->ResourceGatherer) {
+		//https://github.com/Phobos-developers/Phobos/issues/326
+		if(pType->IsSubterranean || VTable::Get(((UnitClass*)pThis)->Locomotor.GetInterfacePtr()) == HoverLocomotionClass::vtable)
+			pThis->QueueMission(Mission::Harvest, false);
 	}
 
 	return 0x0;

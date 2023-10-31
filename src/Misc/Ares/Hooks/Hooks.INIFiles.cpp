@@ -26,32 +26,32 @@ NOINLINE INIClass::INISection* GetSection(INIClass* pINI, const char* pSection)
 	if (pINI->CurrentSectionName == pSection)
 		return pINI->CurrentSection;
 
-	AresSafeChecksummer cf;
+	//AresSafeChecksummer cf;
 
-	if (pSection)
-	{
-		if (auto len = strlen(pSection))
-		{
-			const size_t len_t = len & 0xFFFFFFFC;
+	//if (pSection)
+	//{
+	//	if (auto len = strlen(pSection))
+	//	{
+	//		const size_t len_t = len & 0xFFFFFFFC;
 
-			if (len_t != 0)
-			{
-				cf.Value = AresSafeChecksummer::Process(pSection, len_t, 0);
-				len -= len_t;
-			}
+	//		if (len_t != 0)
+	//		{
+	//			cf.Value = AresSafeChecksummer::Process(pSection, len_t, 0);
+	//			len -= len_t;
+	//		}
 
-			if (len)
-			{
-				*cf.Bytes = 0;
-				std::memcpy(cf.Bytes, &pSection[len_t], len);
-				cf.ByteIndex = len;
-			}
-		}
+	//		if (len)
+	//{
+	//			*cf.Bytes = 0;
+	//			std::memcpy(cf.Bytes, &pSection[len_t], len);
+	//			cf.ByteIndex = len;
+	//		}
+	//	}
 
-		cf.Value = cf.GetValue();
-	}
+	//	cf.Value = cf.GetValue();
+	//}
 
-	if (auto pData = pINI->SectionIndex.FetchItem(cf.Value, true))
+	if (auto pData = pINI->SectionIndex.FetchItem(SafeChecksummer()(pSection), true))
 	{
 		if (pData->Data)
 		{
@@ -68,32 +68,32 @@ NOINLINE const char* GetKeyValue(INIClass* pINI, const char* pSection, const cha
 {
 	if (INIClass::INISection* pSectionRes = GetSection(pINI, pSection))
 	{
-		AresSafeChecksummer cf;
+		//AresSafeChecksummer cf;
 
-		if (pKey)
-		{
-			if (auto len = strlen(pKey))
-			{
-				const size_t len_t = len & 0xFFFFFFFC;
+		//if (pKey)
+		//{
+		//	if (auto len = strlen(pKey))
+		//	{
+		//		const size_t len_t = len & 0xFFFFFFFC;
 
-				if (len_t != 0)
-				{
-					cf.Value = AresSafeChecksummer::Process(pKey, len_t, 0);
-					len -= len_t;
-				}
+		//		if (len_t != 0)
+		//		{
+		//			cf.Value = AresSafeChecksummer::Process(pKey, len_t, 0);
+		//			len -= len_t;
+		//		}
 
-				if (len)
-				{
-					*cf.Bytes = 0;
-					std::memcpy(cf.Bytes, &pKey[len_t], len);
-					cf.ByteIndex = len;
-				}
-			}
+		//		if (len)
+		//		{
+		//			*cf.Bytes = 0;
+		//			std::memcpy(cf.Bytes, &pKey[len_t], len);
+		//			cf.ByteIndex = len;
+		//		}
+		//	}
 
-			cf.Value = cf.GetValue();
-		}
+		//	cf.Value = cf.GetValue();
+		//}
 
-		if (auto pResult = pSectionRes->EntryIndex.FetchItem(cf.Value, true))
+		if (auto pResult = pSectionRes->EntryIndex.FetchItem(SafeChecksummer()(pKey), true))
 		{
 			if (pResult->Data)
 			{
@@ -112,7 +112,7 @@ struct INIClass_
 };
 static_assert(sizeof(INIClass_) == 0x40, "Invalid Size!");
 
-#ifndef BROKEN_STUFFS
+#ifdef BROKEN_STUFFS
 DEFINE_OVERRIDE_HOOK(0x528A10, INIClass_GetString, 5)
 {
 	GET(INIClass*, pThis, ECX);
@@ -155,8 +155,7 @@ DEFINE_OVERRIDE_HOOK(0x528A10, INIClass_GetString, 5)
 	return 0x528BFA;
 }
 
-
-DEFINE_OVERRIDE_HOOK(0x526cc0, INIClass_Section_GetKeyName, 7)
+DEFINE_OVERRIDE_HOOK(0x526CC0, INIClass_Section_GetKeyName, 7)
 {
 	GET(INIClass*, pThis, ECX);
 	GET_STACK(const char*, pSection, 0x4);
@@ -196,6 +195,11 @@ DEFINE_OVERRIDE_HOOK(0x526cc0, INIClass_Section_GetKeyName, 7)
 	R->EAX(0);
 	return 0x526D8A;
 }
+#else 
+
+DEFINE_DISABLE_HOOK(0x526CC0, INIClass_Section_GetKeyName_ares)
+DEFINE_DISABLE_HOOK(0x528A10, INIClass_GetString_ares)
+
 #endif
 
 // hmm , dont really undestand what this trying to do ?

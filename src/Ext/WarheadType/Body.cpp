@@ -28,22 +28,6 @@ void WarheadTypeExtData::InitializeConstant()
 
 void WarheadTypeExtData::Initialize()
 {
-	Launchs.reserve(2);
-	SuppressDeathWeapon.reserve(8);
-	SuppressDeathWeapon_Exclude.reserve(8);
-	LimboKill_IDs.reserve(8);
-	DetonatesWeapons.reserve(8);
-	AttachTag_Types.reserve(8);
-	AttachTag_Ignore.reserve(8);
-	DeadBodies.reserve(8);
-	SquidSplash.reserve(RulesClass::Instance->SplashList.Count);
-	DebrisAnimTypes.reserve(RulesClass::Instance->MetallicDebris.Count);
-	DetonateOnAllMapObjects_IgnoreTypes.reserve(8);
-	DetonateOnAllMapObjects_AffectTypes.reserve(8);
-	Shield_AffectTypes.reserve(8);
-	Shield_AttachTypes.reserve(8);
-	Shield_RemoveTypes.reserve(8);
-	InfDeathAnims.reserve(200);
 	if(IS_SAME_STR_(RulesExtData::Instance()->NukeWarheadName.data(), this->AttachedToObject->ID)){
 		IsNukeWarhead = true;
 		PreImpactAnim = AnimTypeClass::Find(GameStrings::NUKEBALL());
@@ -404,6 +388,17 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->SelfHealing_CombatDelay.Read(exINI, pSection, "VictimSelfHealing.%sCombatDelay");
 	this->ApplyModifiersOnNegativeDamage.Read(exINI, pSection, "ApplyModifiersOnNegativeDamage");
+
+	ValueableVector<std::string> InfDeathAnims_List {};
+
+	InfDeathAnims_List.Read(exINI, pSection, "InfDeathAnim.LinkedList");
+
+	if (!InfDeathAnims_List.empty()) {
+		this->InfDeathAnims.resize(InfDeathAnims_List.size());
+		for (size_t i = 0; i < InfDeathAnims_List.size(); ++i) {
+			detail::read(this->InfDeathAnims[InfantryTypeClass::Find(InfDeathAnims_List[i].data())], exINI, pSection, "InfDeathAnim%d");
+		}
+	}
 
 #pragma endregion
 

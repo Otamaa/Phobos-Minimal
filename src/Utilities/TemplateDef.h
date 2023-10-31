@@ -64,6 +64,14 @@
 #include <iostream>
 #include <string_view>
 
+std::string __forceinline trim(const char* source)
+{
+	std::string s(source);
+	s.erase(0, s.find_first_not_of(" \n\r\t"));
+	s.erase(s.find_last_not_of(" \n\r\t") + 1);
+	return s;
+}
+
 namespace detail
 {
 #pragma region getresult
@@ -377,6 +385,16 @@ namespace detail
 					return true;
 				}
 			}
+		}
+
+		return false;
+	}
+
+	template <>
+	inline bool read<std::string> (std::string& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate) {
+		if (parser.ReadString(pSection, pKey)) {
+			value = parser.value();
+			return true;
 		}
 
 		return false;
@@ -1454,7 +1472,7 @@ namespace detail
 
 	//WARNING : this not checking for read first , make sure before using it !
 	template <>
-	inline void parse_values(std::vector<LandType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	inline void parse_values<LandType>(std::vector<LandType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		vector.clear();
 		char* context = nullptr;
@@ -1469,7 +1487,7 @@ namespace detail
 	}
 
 	template <>
-	inline void parse_values(std::vector<FacingType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	inline void parse_values<FacingType>(std::vector<FacingType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		vector.clear();
 		char* context = nullptr;
@@ -1484,7 +1502,7 @@ namespace detail
 	}
 
 	template <>
-	inline void parse_values(std::vector<PhobosAbilityType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	inline void parse_values<PhobosAbilityType>(std::vector<PhobosAbilityType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		vector.clear();
 		char* context = nullptr;
@@ -1499,7 +1517,7 @@ namespace detail
 	}
 
 	template <>
-	inline void parse_values(std::vector<TechnoTypeConvertData>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	inline void parse_values<TechnoTypeConvertData>(std::vector<TechnoTypeConvertData>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		vector.clear();
 		char* context = nullptr;
@@ -1514,7 +1532,7 @@ namespace detail
 	}
 
 	template <>
-	inline void parse_values(std::vector<TileType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	inline void parse_values<TileType>(std::vector<TileType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		vector.clear();
 		char* context = nullptr;
@@ -1530,7 +1548,7 @@ namespace detail
 	}
 
 	template <>
-	inline void parse_values(std::vector<Mission>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	inline void parse_values<Mission>(std::vector<Mission>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		vector.clear();
 		char* context = nullptr;
@@ -1546,7 +1564,7 @@ namespace detail
 	}
 
 	template <>
-	inline void parse_values(std::vector<Rank>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	inline void parse_values<Rank>(std::vector<Rank>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		vector.clear();
 		char* context = nullptr;
@@ -1586,6 +1604,7 @@ namespace detail
 			}
 		}
 	}
+
 #pragma endregion
 
 }
@@ -1816,6 +1835,22 @@ void NOINLINE ValueableVector<T>::Read(INI_EX& parser, const char* pSection, con
 	if (parser.ReadString(pSection, pKey))
 	{
 		detail::parse_values<T>(*this, parser, pSection, pKey, bAllocate);
+	}
+}
+
+template <>
+void NOINLINE ValueableVector<std::string>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate)
+{
+	if (parser.ReadString(pSection, pKey))
+	{
+		this->clear();
+		char* context = nullptr;
+		for (auto pCur = strtok_s(parser.value(), Phobos::readDelims, &context);
+				pCur;
+				pCur = strtok_s(nullptr, Phobos::readDelims, &context))
+		{
+			this->push_back(trim(pCur));
+		}
 	}
 }
 

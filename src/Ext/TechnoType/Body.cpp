@@ -371,6 +371,18 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->OreGathering_FramesPerDir.Read(exINI, pSection, "OreGathering.FramesPerDir");
 
 		this->DestroyAnim_Random.Read(exINI, pSection, "DestroyAnim.Random");
+		ValueableVector<WarheadTypeClass*> DestroyAnimSpecificList {};
+		DestroyAnimSpecificList.Read(exINI, pSection, "DesytroyAnims.LinkedWarhead");
+
+		char buffersp[0x100];
+		if(!DestroyAnimSpecificList.empty()) {
+			this->DestroyAnimSpecific.reserve(DestroyAnimSpecificList.size());
+			for (size_t i = 0; i < DestroyAnimSpecificList.size(); ++i) {
+				IMPL_SNPRNINTF(buffersp, sizeof(buffersp), "DestroyAnims%d.Types", i);
+				detail::ReadVectors(this->DestroyAnimSpecific[DestroyAnimSpecificList[i]], exINI, pSection, buffersp);
+			}
+		}
+
 		this->NotHuman_RandomDeathSequence.Read(exINI, pSection, "NotHuman.RandomDeathSequence");
 
 		auto const& [canParse, resetValue] = PassengerDeletionTypeClass::CanParse(exINI, pSection);
@@ -1434,6 +1446,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->OreGathering_FramesPerDir)
 		.Process(this->LaserTrailData)
 		.Process(this->DestroyAnim_Random)
+		.Process(this->DestroyAnimSpecific)
 		.Process(this->NotHuman_RandomDeathSequence)
 		.Process(this->DefaultDisguise)
 		;

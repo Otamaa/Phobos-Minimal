@@ -109,6 +109,14 @@ public:
 		JMP_THIS(0x4A1DE0);
 	}
 
+	unsigned int operator()(const char* buffer)
+	{
+		if (!buffer)
+			return 0u;
+
+		return this->operator()(buffer, strlen(buffer));
+	}
+
 	static constexpr reference<unsigned int, 0x81F7B4, 256> const Table {};
 
 	static int Memory(const void* data, int bytes, int crc)

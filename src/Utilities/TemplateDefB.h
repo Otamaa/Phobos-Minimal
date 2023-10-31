@@ -4,13 +4,6 @@
 
 #include "TemplateDef.h"
 
-std::string __forceinline trim(const char* source) {
-    std::string s(source);
-    s.erase(0,s.find_first_not_of(" \n\r\t"));
-    s.erase(s.find_last_not_of(" \n\r\t")+1);
-    return s;
-}
-
 namespace detail
 {
 	template<>
@@ -523,7 +516,7 @@ namespace detail
 				cur;
 				cur = strtok_s(nullptr, Delims, &context))
 			{
-					auto res = trim(cur);
+				auto res = trim(cur);
 
 				if (!res.empty())
 					nVecDest[i].push_back(res.c_str());

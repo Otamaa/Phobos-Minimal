@@ -181,6 +181,7 @@ public:
 	ValueableVector<int> OreGathering_FramesPerDir {};
 
 	Valueable<bool> DestroyAnim_Random { true };
+	PhobosMap<WarheadTypeClass* , std::vector<AnimTypeClass*>> DestroyAnimSpecific {};
 	Valueable<bool> NotHuman_RandomDeathSequence { false };
 
 	Nullable<InfantryTypeClass*> DefaultDisguise {};

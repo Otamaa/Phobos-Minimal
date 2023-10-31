@@ -26,7 +26,7 @@ DEFINE_HOOK(0x737F6D, UnitClass_ReceiveDamage_Destroy, 0x7)
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	R->ECX(R->ESI());
 	pExt->ReceiveDamage = true;
-	AnimTypeExtData::ProcessDestroyAnims(pThis, args.Attacker);
+	AnimTypeExtData::ProcessDestroyAnims(pThis, args.Attacker , args.WH);
 	pThis->Destroy();
 	return 0x737F74;
 }

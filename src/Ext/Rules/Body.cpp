@@ -151,7 +151,6 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	for (int i = 0; i < SideClass::Array->Count; ++i)
 		Crews[i] = SideExtContainer::Instance.Find(SideClass::Array->Items[i])->GetCrew();
 
-	char buffer[0x30];
 	auto pINI = CCINIClass::INI_Rules();
 	INI_EX iniEX(pINI);
 
@@ -320,36 +319,6 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 		if (isFoot)
 		{
-
-			for (auto pSuper : *SuperWeaponTypeClass::Array)
-			{
-				if(const auto pSuperExt = SWTypeExtContainer::Instance.Find(pSuper)){
-					if (!pSuperExt->Aux_Techno.empty() && pSuperExt->Aux_Techno.Contains(pItem)) {
-						if (pExt->Linked_SW.Find(pSuper) == pExt->Linked_SW.end())
-							pExt->Linked_SW.push_back(pSuper);
-					}
-				}
-			}
-
-			if (what == InfantryTypeClass::AbsID)
-			{
-				WarheadTypeClass::Array->for_each([&](WarheadTypeClass* pWarhead)
- {
-	 if (auto const pExt = WarheadTypeExtContainer::Instance.TryFind(pWarhead))
-	 {
-
-		 AnimTypeClass* nBuffer;
-		 IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.InfDeathAnim", pItem->ID);
-
-		 if (!detail::read(nBuffer, iniEX, pWarhead->ID, buffer) || !nBuffer)
-			 return;
-
-		 //Debug::Log("Found specific InfDeathAnim for [WH : %s Inf : %s Anim %s]\n", pWarhead->ID, pInfType->ID, nBuffer->ID);
-		 pExt->InfDeathAnims[((InfantryTypeClass*)pItem)->ArrayIndex] = nBuffer;
-	 }
-				});
-			}
-
 			if (what == UnitTypeClass::AbsID)
 			{
 				const auto pUnit = (UnitTypeClass*)pItem;
@@ -414,7 +383,6 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 	for (auto pItem : *WeaponTypeClass::Array)
 	{
-
 		if (!pItem->Warhead)
 		{
 			Debug::Log(Msg, pItem->ID, "Warhead");
@@ -428,25 +396,20 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		}
 	}
 
-	for (auto const& pConst : RulesClass::Instance->BuildConst)
-	{
-		if (!pConst->AIBuildThis)
-		{
+	for (auto const& pConst : RulesClass::Instance->BuildConst) {
+		if (!pConst->AIBuildThis) {
 			Debug::Log("[AI]BuildConst= includes [%s], which doesn't have "
 				"AIBuildThis=yes!\n", pConst->ID);
 		}
 	}
 
-	if (OverlayTypeClass::Array->Count > 255)
-	{
+	if (OverlayTypeClass::Array->Count > 255) {
 		Debug::Log("Reaching over 255 OverlayTypes!.\n");
 		Debug::RegisterParserError();
 	}
 
-	for (auto const pWH : *WarheadTypeClass::Array)
-	{
-		if (auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH))
-		{
+	for (auto const pWH : *WarheadTypeClass::Array) {
+		if (auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH)) {
 			const size_t versesSize = pWHExt->Verses.size();
 
 			if (versesSize < ArmorTypeClass::Array.size())
@@ -457,22 +420,17 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		}
 	}
 
-	for (size_t i = 1; i < ShieldTypeClass::Array.size(); ++i)
-	{
-		if (auto& pShield = ShieldTypeClass::Array[i])
-		{
-			if (pShield->Strength <= 0)
-			{
+	for (size_t i = 1; i < ShieldTypeClass::Array.size(); ++i) {
+		if (auto& pShield = ShieldTypeClass::Array[i]) {
+			if (pShield->Strength <= 0) {
 				Debug::Log("[%s]ShieldType is not valid because Strength is 0.\n", pShield->Name.data());
 				Debug::RegisterParserError();
 			}
 		}
 	}
 
-	for (auto pBullet : *BulletTypeClass::Array)
-	{
-		if (auto pExt = BulletTypeExtContainer::Instance.Find(pBullet))
-		{
+	for (auto pBullet : *BulletTypeClass::Array) {
+		if (auto pExt = BulletTypeExtContainer::Instance.Find(pBullet)) {
 			if (pExt->AttachedSystem && pExt->AttachedSystem->BehavesLike != ParticleSystemTypeBehavesLike::Smoke)
 			{
 				Debug::Log("Bullet[%s] With AttachedSystem[%s] is not BehavesLike=Smoke!\n", pBullet->ID, pExt->AttachedSystem->ID);
@@ -482,7 +440,7 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	}
 
 	for (auto pHouse : *HouseTypeClass::Array) {
-		if(auto pExt = HouseTypeExtContainer::Instance.Find(pHouse)){
+		if(auto pExt = HouseTypeExtContainer::Instance.Find(pHouse)) {
 			// remove all types that cannot paradrop
 
 			if(!pExt->ParaDropTypes.empty())
@@ -495,6 +453,12 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 	for (auto pSuper : *SuperWeaponTypeClass::Array) {
 		if (const auto pSuperExt = SWTypeExtContainer::Instance.Find(pSuper)) {
+
+			if (!pSuperExt->Aux_Techno.empty()) {
+				for (auto& pTech : pSuperExt->Aux_Techno) {
+					TechnoTypeExtContainer::Instance.Find(pTech)->Linked_SW.push_back(pSuper);
+				}
+			}
 
 			if(!pSuperExt->DropPod_Types.empty())
 				Helpers::Alex::remove_non_paradroppables(pSuperExt->DropPod_Types, pSuper->ID, "DropPod.Types");

@@ -409,39 +409,24 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 		R->EDI(InfDeath);
 
 		bool Handled = false;
-
 		if (pThis->GetHeight() < 10)
-		{
-			if (pWarheadExt->InfDeathAnims.contains(pThis->Type->ArrayIndex)
-				&& pWarheadExt->InfDeathAnims[pThis->Type->ArrayIndex])
-			{
-				AnimClass* Anim = GameCreate<AnimClass>(pWarheadExt->InfDeathAnims[pThis->Type->ArrayIndex],
-				pThis->Location);
+		{	
+			AnimClass* pAnim = nullptr;
+			if (auto pSpecific = pWarheadExt->InfDeathAnims.get_or_default(pThis->Type)) {
+				pAnim = GameCreate<AnimClass>(pSpecific, pThis->Location);
+			} else if (AnimTypeClass* deathAnim = pWarheadExt->InfDeathAnim) {
+				pAnim = GameCreate<AnimClass>(deathAnim, pThis->Location);
+			}
 
+			if(pAnim){
 				HouseClass* const Invoker = (args.Attacker)
 					? args.Attacker->Owner
 					: args.SourceHouse
 					;
 
-				AnimExtData::SetAnimOwnerHouseKind(Anim, Invoker, pThis->Owner ,args.Attacker , false);
-
+				AnimExtData::SetAnimOwnerHouseKind(pAnim, Invoker, pThis->Owner, args.Attacker, false);
 				Handled = true;
 			}
-			else
-				if (AnimTypeClass* deathAnim = pWarheadExt->InfDeathAnim)
-				{
-					AnimClass* Anim = GameCreate<AnimClass>(deathAnim, pThis->Location);
-
-					HouseClass* const Invoker = (args.Attacker)
-						? args.Attacker->Owner
-						: args.SourceHouse
-						;
-
-					//these were MakeInf stuffs  , to make sure no behaviour chages
-					AnimExtData::SetAnimOwnerHouseKind(Anim, Invoker, pThis->Owner, args.Attacker , false);
-
-					Handled = true;
-				}
 		}
 
 		return (Handled || InfDeath >= 10)
