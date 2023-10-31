@@ -178,7 +178,7 @@ DEFINE_OVERRIDE_HOOK(0x553412, LoadProgressMgr_Draw_LSFile, 9)
 	return DefaultResult; //unknown
 }
 
-DEFINE_OVERRIDE_HOOK(0x5536da, LoadProgressMgr_Draw_LSName, 0)
+DEFINE_OVERRIDE_HOOK(0x5536da, LoadProgressMgr_Draw_LSName, 9)
 {
 	GET(int, n, EBX);
 	enum { SwitchStatement = 0x5536FB, DefaultResult = 0x5536DE, RetResult = 0x553820 };
@@ -233,13 +233,13 @@ DEFINE_OVERRIDE_HOOK(0x553d06, LoadProgressMgr_Draw_LSBrief, 6)
 	return DefaultResult;
 }
 
-DEFINE_OVERRIDE_HOOK(0x69B774, HTExt_PickRandom_Human, 0)
+DEFINE_OVERRIDE_HOOK(0x69B774, HTExt_PickRandom_Human, 5)
 {
 	R->EAX(HouseTypeExtData::PickRandomCountry());
 	return 0x69B788;
 }
 
-DEFINE_OVERRIDE_HOOK(0x69B670, HTExt_PickRandom_AI, 0)
+DEFINE_OVERRIDE_HOOK(0x69B670, HTExt_PickRandom_AI, 5)
 {
 	R->EAX(HouseTypeExtData::PickRandomCountry());
 	return 0x69B684;
@@ -584,7 +584,7 @@ DEFINE_OVERRIDE_HOOK(0x4FE782, HouseClass_AI_BaseConstructionUpdate_PickPowerpla
 	return 0x4FE893;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4F8EBD, HouseClass_Update_HasBeenDefeated, 0)
+DEFINE_OVERRIDE_HOOK(0x4F8EBD, HouseClass_Update_HasBeenDefeated, 5)
 {
 	GET(HouseClass*, pThis, ESI);
 

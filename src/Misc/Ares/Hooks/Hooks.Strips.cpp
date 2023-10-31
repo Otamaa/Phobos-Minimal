@@ -28,7 +28,7 @@ DEFINE_OVERRIDE_HOOK(0x6A4FD8, SidebarClass_Load_InitCameosList, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A61B1, SidebarClass_SetFactoryForObject, 0)
+DEFINE_OVERRIDE_HOOK(0x6A61B1, SidebarClass_SetFactoryForObject, 5)
 {
 	enum { Found = 0x6A6210, NotFound = 0x6A61E6 };
 
@@ -52,7 +52,7 @@ DEFINE_OVERRIDE_HOOK(0x6A61B1, SidebarClass_SetFactoryForObject, 0)
 }
 
 // don't check for 75 cameos in active tab
-DEFINE_OVERRIDE_HOOK(0x6A63B7, SidebarClass_AddCameo_SkipSizeCheck, 0)
+DEFINE_OVERRIDE_HOOK(0x6A63B7, SidebarClass_AddCameo_SkipSizeCheck, 5)
 {
 	enum { AlreadyExists = 0x6A65FF, NewlyAdded = 0x6A63FD };
 
@@ -94,7 +94,7 @@ static NOINLINE BuildType* lower_bound(BuildType* first, int size , const BuildT
 	return first;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A8710, StripClass_AddCameo_ReplaceItAll, 0)
+DEFINE_OVERRIDE_HOOK(0x6A8710, StripClass_AddCameo_ReplaceItAll, 6)
 {
 	GET(StripClass*, pTab, ECX);
 	GET_STACK(AbstractType, ItemType, 0x4);
@@ -123,7 +123,7 @@ DEFINE_OVERRIDE_HOOK(0x6A8710, StripClass_AddCameo_ReplaceItAll, 0)
 }
 
 // pointer #1
-DEFINE_OVERRIDE_HOOK(0x6A8D1C, StripClass_MouseMove_GetCameos1, 0)
+DEFINE_OVERRIDE_HOOK(0x6A8D1C, StripClass_MouseMove_GetCameos1, 7)
 {
 	GET(int, CameoCount, EAX);
 
@@ -138,7 +138,7 @@ DEFINE_OVERRIDE_HOOK(0x6A8D1C, StripClass_MouseMove_GetCameos1, 0)
 }
 
 // pointer #2
-DEFINE_OVERRIDE_HOOK(0x6A8DB5, StripClass_MouseMove_GetCameos2, 0)
+DEFINE_OVERRIDE_HOOK(0x6A8DB5, StripClass_MouseMove_GetCameos2, 8)
 {
 	GET(int, CameoCount, EAX);
 	GET(StripClass*, pTab, EBX);
@@ -155,7 +155,7 @@ DEFINE_OVERRIDE_HOOK(0x6A8DB5, StripClass_MouseMove_GetCameos2, 0)
 }
 
 // pointer #3
-DEFINE_OVERRIDE_HOOK(0x6A8F6C, StripClass_MouseMove_GetCameos3, 0)
+DEFINE_OVERRIDE_HOOK(0x6A8F6C, StripClass_MouseMove_GetCameos3, 9)
 {
 	GET(StripClass*, pTab, ESI);
 
@@ -172,7 +172,7 @@ DEFINE_OVERRIDE_HOOK(0x6A8F6C, StripClass_MouseMove_GetCameos3, 0)
 }
 
 // don't check for <= 75, pointer
-DEFINE_OVERRIDE_HOOK(0x6A9304, StripClass_GetTip_NoLimit, 0)
+DEFINE_OVERRIDE_HOOK(0x6A9304, StripClass_GetTip_NoLimit, 9)
 {
 	GET(int, CameoIndex, EAX);
 
@@ -183,7 +183,7 @@ DEFINE_OVERRIDE_HOOK(0x6A9304, StripClass_GetTip_NoLimit, 0)
 	return 0x6A9316;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A9747, StripClass_Draw_GetCameo, 0)
+DEFINE_OVERRIDE_HOOK(0x6A9747, StripClass_Draw_GetCameo, 6)
 {
 	GET(int, CameoIndex, ECX);
 
@@ -202,7 +202,7 @@ DEFINE_OVERRIDE_HOOK(0x6A9747, StripClass_Draw_GetCameo, 0)
 		;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A95C8, StripClass_Draw_Status, 0)
+DEFINE_OVERRIDE_HOOK(0x6A95C8, StripClass_Draw_Status, 8)
 {
 	GET(int, CameoIndex, EAX);
 
@@ -214,7 +214,7 @@ DEFINE_OVERRIDE_HOOK(0x6A95C8, StripClass_Draw_Status, 0)
 	return 0x6A95D3;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A9866, StripClass_Draw_Status_1, 0)
+DEFINE_OVERRIDE_HOOK(0x6A9866, StripClass_Draw_Status_1, 8)
 {
 	GET(int, CameoIndex, ECX);
 
@@ -226,7 +226,7 @@ DEFINE_OVERRIDE_HOOK(0x6A9866, StripClass_Draw_Status_1, 0)
 		;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A9886, StripClass_Draw_Status_2, 0)
+DEFINE_OVERRIDE_HOOK(0x6A9886, StripClass_Draw_Status_2, 8)
 {
 	GET(int, CameoIndex, EAX);
 
@@ -245,7 +245,7 @@ DEFINE_OVERRIDE_HOOK(0x6A9886, StripClass_Draw_Status_2, 0)
 	return 0x6A9893;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A9EBA, StripClass_Draw_Status_3, 0)
+DEFINE_OVERRIDE_HOOK(0x6A9EBA, StripClass_Draw_Status_3, 8)
 {
 	GET(int, CameoIndex, EAX);
 
@@ -264,7 +264,7 @@ DEFINE_OVERRIDE_HOOK(0x6A99BE, StripClass_Draw_BreakDrawLoop, 5)
 	return 0x6AA01C;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A9B4F, StripClass_Draw_TestFlashFrame, 0)
+DEFINE_OVERRIDE_HOOK(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
 {
 	GET(int, CameoIndex, EAX);
 
@@ -277,7 +277,7 @@ DEFINE_OVERRIDE_HOOK(0x6A9B4F, StripClass_Draw_TestFlashFrame, 0)
 		;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AAD2F, SelectClass_ProcessInput_LoadCameo1, 0)
+DEFINE_OVERRIDE_HOOK(0x6AAD2F, SelectClass_ProcessInput_LoadCameo1, 7)
 {
 	GET(int, CameoIndex, ESI);
 
@@ -304,7 +304,7 @@ DEFINE_OVERRIDE_HOOK(0x6AAD2F, SelectClass_ProcessInput_LoadCameo1, 0)
 	return 0x6AAD66;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AB0B0, SelectClass_ProcessInput_LoadCameo2, 0)
+DEFINE_OVERRIDE_HOOK(0x6AB0B0, SelectClass_ProcessInput_LoadCameo2, 8)
 {
 	GET(int, CameoIndex, ESI);
 
@@ -316,21 +316,21 @@ DEFINE_OVERRIDE_HOOK(0x6AB0B0, SelectClass_ProcessInput_LoadCameo2, 0)
 	return 0x6AB0BE;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AB49D, SelectClass_ProcessInput_FixOffset1, 0)
+DEFINE_OVERRIDE_HOOK(0x6AB49D, SelectClass_ProcessInput_FixOffset1, 7)
 {
 	R->EDI<void*>(nullptr);
 	R->ECX<void*>(nullptr);
 	return 0x6AB4A4;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AB4E8, SelectClass_ProcessInput_FixOffset2, 0)
+DEFINE_OVERRIDE_HOOK(0x6AB4E8, SelectClass_ProcessInput_FixOffset2, 7)
 {
 	R->ECX<int>(R->Stack<int>(0x14));
 	R->EDX<void*>(nullptr);
 	return 0x6AB4EF;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AB577, SelectClass_ProcessInput_FixOffset3, 0)
+DEFINE_OVERRIDE_HOOK(0x6AB577, SelectClass_ProcessInput_FixOffset3, 7)
 {
 	GET(int, CameoIndex, ESI);
 	GET_STACK(FactoryClass*, SavedFactory, 0x18);
@@ -360,26 +360,26 @@ DEFINE_OVERRIDE_HOOK(0x6AB577, SelectClass_ProcessInput_FixOffset3, 0)
 	return 0x6AB5C6;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AB620, SelectClass_ProcessInput_FixOffset4, 0)
+DEFINE_OVERRIDE_HOOK(0x6AB620, SelectClass_ProcessInput_FixOffset4, 7)
 {
 	R->ECX<void*>(nullptr);
 	return 0x6AB627;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AB741, SelectClass_ProcessInput_FixOffset5, 0)
+DEFINE_OVERRIDE_HOOK(0x6AB741, SelectClass_ProcessInput_FixOffset5, 7)
 {
 	R->EDX<void*>(nullptr);
 	return 0x6AB748;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AB802, SelectClass_ProcessInput_FixOffset6, 0)
+DEFINE_OVERRIDE_HOOK(0x6AB802, SelectClass_ProcessInput_FixOffset6, 8)
 {
 	GET(int, CameoIndex, EAX);
 	MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex][CameoIndex].unknown_10 = 1;
 	return 0x6AB814;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AB825, SelectClass_ProcessInput_FixOffset7, 0)
+DEFINE_OVERRIDE_HOOK(0x6AB825, SelectClass_ProcessInput_FixOffset7, 5)
 {
 	R->ECX<int>(R->EBP<int>());
 	R->EDX<void*>(nullptr);
@@ -387,19 +387,19 @@ DEFINE_OVERRIDE_HOOK(0x6AB825, SelectClass_ProcessInput_FixOffset7, 0)
 	return 0x6AB82A;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AB920, SelectClass_ProcessInput_FixOffset8, 0)
+DEFINE_OVERRIDE_HOOK(0x6AB920, SelectClass_ProcessInput_FixOffset8, 7)
 {
 	R->ECX<void*>(nullptr);
 	return 0x6AB927;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AB92F, SelectClass_ProcessInput_FixOffset9, 0)
+DEFINE_OVERRIDE_HOOK(0x6AB92F, SelectClass_ProcessInput_FixOffset9, 7)
 {
 	R->EBX<byte*>(R->EBX<byte*>() + 0x6C);
 	return 0x6AB936;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6ABBCB, StripClass_AbandonCameosFromFactory_GetPointer1, 0)
+DEFINE_OVERRIDE_HOOK(0x6ABBCB, StripClass_AbandonCameosFromFactory_GetPointer1, 7)
 {
 	GET(int, CameoCount, EAX);
 	GET(StripClass*, pTab, ESI);
@@ -416,7 +416,7 @@ DEFINE_OVERRIDE_HOOK(0x6ABBCB, StripClass_AbandonCameosFromFactory_GetPointer1, 
 }
 
 // don't limit to 75
-DEFINE_OVERRIDE_HOOK(0x6AC6D9, SidebarClass_FlashCameo, 0)
+DEFINE_OVERRIDE_HOOK(0x6AC6D9, SidebarClass_FlashCameo, 5)
 {
 	GET(unsigned int, TabIndex, EAX);
 	GET(int, ItemIndex, ESI);
@@ -593,7 +593,7 @@ bool NOINLINE RemoveCameo(BuildType* item)
 	return true;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6aa600, StripClass_RecheckCameos, 0)
+DEFINE_OVERRIDE_HOOK(0x6aa600, StripClass_RecheckCameos, 5)
 {
 	GET(StripClass*, pThis, ECX);
 

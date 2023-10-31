@@ -395,8 +395,13 @@ void Phobos::Config::Read()
 		Debug::Log(FAILEDTOLOADUIMD_MSG);
 	}
 
-	if (CCINIClass* pINI = Phobos::OpenConfig(GameStrings::RULESMD_INI))
+	CCFileClass RULESMD_ini { GameStrings::RULESMD_INI() };
+	if (RULESMD_ini.Exists())
 	{
+		CCINIClass INI_RulesMD { };
+		INI_RulesMD.ReadCCFile(&RULESMD_ini);
+
+		Debug::Log("Loading early %s file\n", GameStrings::RULESMD_INI());
 		// there is only few mod(s) that using this
 		// just add your mod name or remove these code if you dont like it
 		//if (!Phobos::Otamaa::IsAdmin)
@@ -429,12 +434,12 @@ void Phobos::Config::Read()
 		//}
 
 		if (!Phobos::Otamaa::IsAdmin)
-			Phobos::Config::DevelopmentCommands = pINI->ReadBool(GLOBALCONTROLS_SECTION, "DebugKeysEnabled", Phobos::Config::DevelopmentCommands);
+			Phobos::Config::DevelopmentCommands = INI_RulesMD.ReadBool(GLOBALCONTROLS_SECTION, "DebugKeysEnabled", Phobos::Config::DevelopmentCommands);
 
-		Phobos::Otamaa::DisableCustomRadSite = pINI->ReadBool(PHOBOS_STR, "DisableCustomRadSite", false);
-		Phobos::Config::ArtImageSwap = pINI->ReadBool(GENERAL_SECTION, "ArtImageSwap", false);
+		Phobos::Otamaa::DisableCustomRadSite = INI_RulesMD.ReadBool(PHOBOS_STR, "DisableCustomRadSite", false);
+		Phobos::Config::ArtImageSwap = INI_RulesMD.ReadBool(GENERAL_SECTION, "ArtImageSwap", false);
 
-		if (pINI->ReadBool(GENERAL_SECTION, "CustomGS", false))
+		if (INI_RulesMD.ReadBool(GENERAL_SECTION, "CustomGS", false))
 		{
 			Phobos::Misc::CustomGS = true;
 
@@ -442,33 +447,31 @@ void Phobos::Config::Read()
 			for (size_t i = 0; i <= 6; ++i)
 			{
 				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "CustomGS%d.ChangeDelay", 6 - i);
-				int temp = pINI->ReadInteger(GENERAL_SECTION, tempBuffer, -1);
+				int temp = INI_RulesMD.ReadInteger(GENERAL_SECTION, tempBuffer, -1);
 				if (temp >= 0 && temp <= 6)
 					Phobos::Misc::CustomGS_ChangeDelay[i] = 6 - temp;
 
 				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "CustomGS%d.DefaultDelay", 6 - i);
-				temp = pINI->ReadInteger(GENERAL_SECTION, tempBuffer, -1);
+				temp = INI_RulesMD.ReadInteger(GENERAL_SECTION, tempBuffer, -1);
 				if (temp >= 1)
 					Phobos::Misc::CustomGS_DefaultDelay[i] = 6 - temp;
 
 				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "CustomGS%d.ChangeInterval", 6 - i);
-				temp = pINI->ReadInteger(GENERAL_SECTION, tempBuffer, -1);
+				temp = INI_RulesMD.ReadInteger(GENERAL_SECTION, tempBuffer, -1);
 				if (temp >= 1)
 					Phobos::Misc::CustomGS_ChangeInterval[i] = temp;
 			}
 		}
 
-		if (pINI->ReadBool(GENERAL_SECTION, "FixTransparencyBlitters", false))
+		if (INI_RulesMD.ReadBool(GENERAL_SECTION, "FixTransparencyBlitters", false))
 		{
 			BlittersFix::Apply();
 		}
 
-		Phobos::Config::SaveVariablesOnScenarioEnd = pINI->ReadBool(GENERAL_SECTION, "SaveVariablesOnScenarioEnd", Phobos::Config::SaveVariablesOnScenarioEnd);
-		Phobos::Config::ApplyShadeCountFix = pINI->ReadBool(AUDIOVISUAL_SECTION, "ApplyShadeCountFix", Phobos::Config::ApplyShadeCountFix);
+		Phobos::Config::SaveVariablesOnScenarioEnd = INI_RulesMD.ReadBool(GENERAL_SECTION, "SaveVariablesOnScenarioEnd", Phobos::Config::SaveVariablesOnScenarioEnd);
+		Phobos::Config::ApplyShadeCountFix = INI_RulesMD.ReadBool(AUDIOVISUAL_SECTION, "ApplyShadeCountFix", Phobos::Config::ApplyShadeCountFix);
 
-		Phobos::UI::UnlimitedColor = pINI->ReadBool(GENERAL_SECTION, "SkirmishUnlimitedColors", Phobos::UI::UnlimitedColor);
-
-		Phobos::CloseConfig(pINI);
+		Phobos::UI::UnlimitedColor = INI_RulesMD.ReadBool(GENERAL_SECTION, "SkirmishUnlimitedColors", Phobos::UI::UnlimitedColor);
 	}
 }
 
@@ -906,7 +909,7 @@ DEFINE_OVERRIDE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
 //	return 0x7C8B47;
 //}
 
-DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
+DEFINE_OVERRIDE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 {
 	//Imports::ReadFile = ReadFIle_;
 	//Imports::CreateFileA = CreatefileA_;

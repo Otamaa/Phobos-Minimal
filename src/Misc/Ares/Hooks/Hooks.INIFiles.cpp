@@ -202,6 +202,7 @@ DEFINE_DISABLE_HOOK(0x528A10, INIClass_GetString_ares)
 
 #endif
 
+#ifndef idksss
 // hmm , dont really undestand what this trying to do ?
 // do FetchItem twices , then delete the first one , altho it is same with the second one 
 // that moved to the next of current item ? 
@@ -234,6 +235,7 @@ DEFINE_OVERRIDE_HOOK(0x5260d9, INIClass_Parse_Override, 7)
 
 	return 0;
 }
+#endif
 
 #ifndef IteratorChar
 DEFINE_OVERRIDE_HOOK(0x5260A2, INIClass_Parse_IteratorChar1, 6)

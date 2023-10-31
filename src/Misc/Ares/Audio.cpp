@@ -451,7 +451,7 @@ DEFINE_OVERRIDE_HOOK(0x4016F0, IDXContainer_LoadSample, 6)
 }
 
 // add saple is assemble an idex then put it onto some list
-DEFINE_OVERRIDE_HOOK(0x4064A0, VocClassData_AddSample, 0) // Complete rewrite of VocClass::AddSample
+DEFINE_OVERRIDE_HOOK(0x4064A0, VocClassData_AddSample, 6) // Complete rewrite of VocClass::AddSample
 {
 	GET(AudioEventClassTag*, pVoc, ECX);
 	GET(const char*, pSampleName, EDX);

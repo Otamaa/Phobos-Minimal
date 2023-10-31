@@ -112,14 +112,14 @@ DEFINE_OVERRIDE_HOOK(0x568565, MapClass_AddContentAt_Foundation_OccupyHeight, 5)
 	return 0x568697;
 }
 
-DEFINE_OVERRIDE_HOOK(0x568411, MapClass_AddContentAt_Foundation_P1, 0)
+DEFINE_OVERRIDE_HOOK(0x568411, MapClass_AddContentAt_Foundation_P1, 6)
 {
 	GET(BuildingClass*, pThis, EDI);
 	R->EBP(pThis->GetFoundationData(false));
 	return 0x568432;
 }
 
-DEFINE_OVERRIDE_HOOK(0x568841, MapClass_RemoveContentAt_Foundation_P1, 0)
+DEFINE_OVERRIDE_HOOK(0x568841, MapClass_RemoveContentAt_Foundation_P1, 6)
 {
 	GET(BuildingClass*, pThis, EDI);
 	R->EBP(pThis->GetFoundationData(false));

@@ -105,7 +105,7 @@ DEFINE_DISABLE_HOOK(0x565215, MapClass_CTOR_NoInit_Crates_ares)//, 0x6, 56522D)
 DEFINE_JUMP(LJMP, 0x565215, 0x56522D);
 
 
-DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 0)
+DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 8)
 {
 	GET(AbstractClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pThat, 0x4);
@@ -122,7 +122,7 @@ DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 0)
 	return 0x5F655D;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 0)
+DEFINE_OVERRIDE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 9)
 {
 	GET(AbstractClass*, pThis, ECX);
 	auto const nThisCoord = pThis->GetCoords();
@@ -1528,7 +1528,7 @@ DEFINE_OVERRIDE_HOOK(0x4ABD6C, DisplayClass_LeftMouseButtonUp_GroupAs, 0xA)
 }
 
 //this is still 0.A code , need check the new one ,..
-DEFINE_OVERRIDE_HOOK(0x537BC0, Game_MakeScreenshot, 0)
+DEFINE_OVERRIDE_HOOK(0x537BC0, Game_MakeScreenshot, 6)
 {
 	RECT Viewport = {};
 	if (Imports::GetWindowRect.get()(Game::hWnd, &Viewport))
@@ -2952,7 +2952,7 @@ bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 	}
 }
 
-DEFINE_OVERRIDE_HOOK(0x64DEA0, Multiplay_LogToSYNC_NOMPDEBUG, 0)
+DEFINE_OVERRIDE_HOOK(0x64DEA0, Multiplay_LogToSYNC_NOMPDEBUG, 6)
 {
 	GET(EventClass*, OffendingEvent, ECX);
 

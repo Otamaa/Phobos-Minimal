@@ -6735,10 +6735,8 @@ bool TunnelFuncs::UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel, bool sile
 
 void TunnelFuncs::HandleUnload(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel)
 {
-	if (!pTunnelData->empty()) {
-		if (UnloadOnce(pTunnelData->back(), pTunnel))
+	if (UnloadOnce(pTunnelData->back(), pTunnel))
 			pTunnelData->pop_back();
-	}
 }
 #pragma endregion
 

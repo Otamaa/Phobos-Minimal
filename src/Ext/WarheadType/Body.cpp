@@ -389,14 +389,14 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SelfHealing_CombatDelay.Read(exINI, pSection, "VictimSelfHealing.%sCombatDelay");
 	this->ApplyModifiersOnNegativeDamage.Read(exINI, pSection, "ApplyModifiersOnNegativeDamage");
 
-	ValueableVector<std::string> InfDeathAnims_List {};
+	ValueableVector<InfantryTypeClass*> InfDeathAnims_List {};
 
 	InfDeathAnims_List.Read(exINI, pSection, "InfDeathAnim.LinkedList");
 
 	if (!InfDeathAnims_List.empty()) {
-		this->InfDeathAnims.resize(InfDeathAnims_List.size());
+		this->InfDeathAnims.reserve(InfDeathAnims_List.size());
 		for (size_t i = 0; i < InfDeathAnims_List.size(); ++i) {
-			detail::read(this->InfDeathAnims[InfantryTypeClass::Find(InfDeathAnims_List[i].data())], exINI, pSection, "InfDeathAnim%d");
+			detail::read(this->InfDeathAnims[InfDeathAnims_List[i]], exINI, pSection, "InfDeathAnim%d");
 		}
 	}
 

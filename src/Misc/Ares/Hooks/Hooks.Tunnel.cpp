@@ -231,16 +231,36 @@ DEFINE_OVERRIDE_HOOK(0x44A37F, BuildingClass_Mi_Selling_Tunnel_TryToPlacePasseng
 	return 0x0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x44D8A7, BuildingClass_Mi_Unload_Tunnel, 6)
-{
-	GET(BuildingClass*, pThis, EBP);
-	const auto nTunnelVec = HouseExtData::GetTunnelVector(pThis->Type, pThis->Owner);
+DEFINE_DISABLE_HOOK(0x44D8A7, BuildingClass_Mi_Unload_Tunnel_ares)
 
-	if (!nTunnelVec || nTunnelVec->Vector.empty())
+DEFINE_HOOK(0x44D880, BuildingClass_Mi_Unload_Tunnel, 5)
+{
+	GET(BuildingClass*, pThis, ECX);
+	auto pThisType = pThis->Type;
+
+	const auto nTunnelVec = HouseExtData::GetTunnelVector(pThisType, pThis->Owner);
+
+	if (!nTunnelVec)
 		return 0x0;
 
-	TunnelFuncs::HandleUnload(&nTunnelVec->Vector, pThis);
-	return 0x44DC84;
+	if (!nTunnelVec->Vector.empty()) {
+		TunnelFuncs::HandleUnload(&nTunnelVec->Vector, pThis);
+
+		if (nTunnelVec->Vector.empty())
+		{
+			pThis->ShouldLoseTargetNow = true;
+			pThis->ForceMission(Mission::Guard);
+			pThis->SetTarget(nullptr);
+			R->EAX(1);
+			return 0x44E388;
+		}
+	}
+
+	auto miss = pThis->GetCurrentMissionControl();
+	auto rate = Game::F2I(miss->Rate * 900.0);
+	R->EAX(rate + ScenarioClass::Instance->Random.RandomFromMax(2));
+
+	return 0x44E388;
 }
 
 // Phobos hook on higher part of this for grinding

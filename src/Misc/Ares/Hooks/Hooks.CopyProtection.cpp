@@ -1,7 +1,8 @@
 #include <Phobos.h>
 
 // this douchebag blows your base up when it thinks you're cheating
-DEFINE_OVERRIDE_SKIP_HOOK(0x55CFDF, CopyProtection_DontBlowMeUp, 0, 55D059);
+// this already handled below , the validation will aways return true , this prevent  this to even happen
+DEFINE_DISABLE_HOOK(0x55CFDF, CopyProtection_DontBlowMeUp_ares);
 //DEFINE_JUMP(LJMP, 0x55CFDF, 0x55D059);
 
 DEFINE_OVERRIDE_HOOK(0x49F5C0, CopyProtection_IsLauncherRunning, 0x8)
