@@ -118,10 +118,11 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 		if (auto pControlNode = GameCreate<ControlNode>(pTarget, pTarget->Owner, RulesClass::Instance->MindControlAttackLineFrames))
 		{
 			pManager->ControlNodes.AddItem(pControlNode);
-			const auto pWhat = (VTable::Get(pTarget));
+			const auto pBld = specific_cast<BuildingClass*>(pTarget);
 
-			if (pWhat == BuildingClass::vtable)
-				BuildingExtContainer::Instance.Find((BuildingClass*)pTarget)->BeignMCEd = true;
+			if (pBld) {
+				BuildingExtContainer::Instance.Find(pBld)->BeignMCEd = true;
+			}
 
 			if (pTarget->SetOwningHouse(pManager->Owner->Owner, !bSilent))
 			{
@@ -131,8 +132,6 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 
 				if (pControlledAnimType)
 				{
-
-					const auto pBld = pWhat == BuildingClass::vtable ? static_cast<BuildingClass*>(pTarget) : nullptr;
 					const auto pType = pTarget->GetTechnoType();
 					CoordStruct location = pTarget->GetCoords();
 
@@ -153,6 +152,12 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 				}
 
 				return true;
+			}
+			else
+			{
+				if (pBld) {
+					BuildingExtContainer::Instance.Find(pBld)->BeignMCEd = false;
+				}
 			}
 		}
 	}

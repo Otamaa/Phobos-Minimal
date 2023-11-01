@@ -241,7 +241,10 @@ DEFINE_HOOK(0x44D880, BuildingClass_Mi_Unload_Tunnel, 5)
 	const auto nTunnelVec = HouseExtData::GetTunnelVector(pThisType, pThis->Owner);
 
 	if (!nTunnelVec)
-		return 0x0;
+		return 0x0; //something on `TechnoClass::AI` is causing building uneable to 
+	// properly reset the mission after Unload + Turret
+	// seems strange
+	// method used below is one that working for the thing 
 
 	if (!nTunnelVec->Vector.empty()) {
 		TunnelFuncs::HandleUnload(&nTunnelVec->Vector, pThis);
@@ -257,8 +260,7 @@ DEFINE_HOOK(0x44D880, BuildingClass_Mi_Unload_Tunnel, 5)
 	}
 
 	auto miss = pThis->GetCurrentMissionControl();
-	auto rate = Game::F2I(miss->Rate * 900.0);
-	R->EAX(rate + ScenarioClass::Instance->Random.RandomFromMax(2));
+	R->EAX(Game::F2I(miss->Rate * 900.0) + ScenarioClass::Instance->Random.RandomFromMax(2));
 
 	return 0x44E388;
 }

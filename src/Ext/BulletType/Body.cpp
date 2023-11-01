@@ -148,6 +148,7 @@ void BulletTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		PhobosTrajectoryType::CreateType(this->TrajectoryType, pINI, pSection, "Trajectory");
 		this->Shrapnel_AffectsGround.Read(exINI, pSection, "Shrapnel.AffectsGround");
 		this->Shrapnel_AffectsBuildings.Read(exINI, pSection, "Shrapnel.AffectsBuildings");
+		this->Shrapnel_Chance.Read(exINI, pSection, "Shrapnel.Chance");
 
 		// Code Disabled , #816 , Bullet/Hooks.obstacles.cpp
 		this->SubjectToLand.Read(exINI, pSection, "SubjectToLand");
@@ -236,7 +237,7 @@ void BulletTypeExtData::Serialize(T& Stm)
 		.Process(this->Gravity_HeightFix)
 		.Process(this->Shrapnel_AffectsGround)
 		.Process(this->Shrapnel_AffectsBuildings)
-
+		.Process(this->Shrapnel_Chance)
 		.Process(this->SubjectToLand)
 		.Process(this->SubjectToLand_Detonate)
 		.Process(this->SubjectToWater)

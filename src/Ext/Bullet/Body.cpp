@@ -301,6 +301,11 @@ bool BulletExtData::AllowShrapnel(BulletClass* pThis, CellClass* pCell)
 {
 	auto const pData = BulletTypeExtContainer::Instance.Find(pThis->Type);
 
+	if (pData->Shrapnel_Chance.isset()
+		&& ScenarioClass::Instance->Random.RandomDouble() < std::abs(pData->Shrapnel_Chance)) {
+			return false;
+	}
+
 	if (auto const pObject = pCell->FirstObject)
 	{
 		if ((((DWORD*)pObject)[0]) != BuildingClass::vtable || pData->Shrapnel_AffectsBuildings)

@@ -30,6 +30,7 @@ public:
 	Valueable<bool> Gravity_HeightFix { false };
 	Valueable<bool> Shrapnel_AffectsGround { false };
 	Valueable<bool> Shrapnel_AffectsBuildings { false };
+	Nullable<double> Shrapnel_Chance { };
 	Nullable<Leptons> Cluster_Scatter_Min { };
 	Nullable<Leptons> Cluster_Scatter_Max { };
 
