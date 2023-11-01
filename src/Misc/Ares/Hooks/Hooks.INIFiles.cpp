@@ -272,9 +272,9 @@ DEFINE_OVERRIDE_HOOK(0x5260d9, INIClass_Parse_Override, 7)
 }
 #else 
 
-DEFINE_DISABLE_HOOK(0x526CC0, INIClass_Section_GetKeyName_ares)
-DEFINE_DISABLE_HOOK(0x528A10, INIClass_GetString_ares)
-DEFINE_DISABLE_HOOK(0x5260d9, INIClass_Parse_Override_ares)
+//DEFINE_DISABLE_HOOK(0x526CC0, INIClass_Section_GetKeyName_ares)
+//DEFINE_DISABLE_HOOK(0x528A10, INIClass_GetString_ares)
+//DEFINE_DISABLE_HOOK(0x5260d9, INIClass_Parse_Override_ares)
 
 #endif
 	
