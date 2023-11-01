@@ -20,6 +20,49 @@ constexpr const char* const iteratorReplacementFormat = "var_%d";
 
 int iteratorValue = 0;
 #include <New/Type/GenericPrerequisite.h>
+#include "Classes/INISection_.h"
+
+class INIClassCopy
+{
+public:
+
+	char* CurrentSectionName;
+	INISection* CurrentSection;
+	DECLARE_PROPERTY(ListOfINISection, Sections);
+	DECLARE_PROPERTY(IndexClassOfINISection, SectionIndex); // <CRCValue of the Name, Pointer to the section>
+	INIComment* LineComments;
+
+	INIClassCopy()
+	{ JMP_THIS(0x535AA0); }
+
+public:
+
+	virtual ~INIClassCopy()
+	{
+		this->Clear(nullptr, nullptr);
+
+		auto find = this->LineComments;
+		if (this->LineComments)
+		{
+			do
+			{
+				auto cur = std::exchange(find, find->Next);
+				if (cur->Value)
+					CRT::free(cur->Value);
+
+				YRMemory::Deallocate(cur);
+			}
+			while (find);
+		}
+
+		this->Sections.UnlinkAll();
+		this->SectionIndex.~IndexClassOfINISection();
+	}
+
+	void Clear(const char* s1, char* s2)
+	{ JMP_THIS(0x5257C0); }
+};
+static_assert(sizeof(INIClassCopy) == 0x40);//64
 
 NOINLINE INIClass::INISection* GetSection(INIClass* pINI, const char* pSection)
 {
@@ -108,7 +151,7 @@ NOINLINE const char* GetKeyValue(INIClass* pINI, const char* pSection, const cha
 struct INIClass_
 {
 	BYTE gap[44];
-	INIClass::IndexType SectionIndex;
+	IndexClassOfINISection SectionIndex;
 };
 static_assert(sizeof(INIClass_) == 0x40, "Invalid Size!");
 
@@ -195,18 +238,9 @@ DEFINE_OVERRIDE_HOOK(0x526CC0, INIClass_Section_GetKeyName, 7)
 	R->EAX(0);
 	return 0x526D8A;
 }
-#else 
 
-DEFINE_DISABLE_HOOK(0x526CC0, INIClass_Section_GetKeyName_ares)
-DEFINE_DISABLE_HOOK(0x528A10, INIClass_GetString_ares)
-
-#endif
-
-#ifndef idksss
-// hmm , dont really undestand what this trying to do ?
-// do FetchItem twices , then delete the first one , altho it is same with the second one 
-// that moved to the next of current item ? 
-// the hell ?
+// this one somewhat crash the game with certain mod 
+// idk where it is the fault , tried stuffs so far
 DEFINE_OVERRIDE_HOOK(0x5260d9, INIClass_Parse_Override, 7)
 {
 	GET_STACK(INIClass_*, pThis, 0x38);
@@ -218,25 +252,32 @@ DEFINE_OVERRIDE_HOOK(0x5260d9, INIClass_Parse_Override, 7)
 		return 0x0;
 
 	//move deleted item forward ?
-	if (auto pData = find->Data) {
-		const auto end = pThis->SectionIndex.end();
-		auto next = std::next(find);
-		std::memcpy(find, next, (end - (next)));
-		auto entries = pThis->SectionIndex.IndexTable;
-		const auto countBefore = pThis->SectionIndex.IndexCount;
-		entries[countBefore - 1].Data = 0;
-		entries[countBefore - 1].ID = 0;
-		--pThis->SectionIndex.IndexCount;
-		pThis->SectionIndex.Archive = nullptr;
-		pData->~INISection();
-		GameDelete<false, false>(pData);
-		pData = nullptr;
-	}
+	if (auto pData = find->Data)
+	{
+		if (auto findB = pThis->SectionIndex.FetchItem(CRC, true))
+		{
+			const auto end = pThis->SectionIndex.end();
+			std::memcpy(findB, &findB[1], (end - (std::next(findB))));
+			const auto entries = pThis->SectionIndex.IndexTable;
+			const auto countBefore = pThis->SectionIndex.IndexCount;
+			entries[countBefore - 1].Data = 0;
+			entries[countBefore - 1].ID = 0;
+			--pThis->SectionIndex.IndexCount;
+			pThis->SectionIndex.Archive = nullptr;
+		}
 
+		GameDelete<true, false>(pData);
+	}
 	return 0;
 }
-#endif
+#else 
 
+DEFINE_DISABLE_HOOK(0x526CC0, INIClass_Section_GetKeyName_ares)
+DEFINE_DISABLE_HOOK(0x528A10, INIClass_GetString_ares)
+DEFINE_DISABLE_HOOK(0x5260d9, INIClass_Parse_Override_ares)
+
+#endif
+	
 #ifndef IteratorChar
 DEFINE_OVERRIDE_HOOK(0x5260A2, INIClass_Parse_IteratorChar1, 6)
 {

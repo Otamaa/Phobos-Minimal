@@ -46,16 +46,16 @@ public:
 		using EntryIndexes = IndexClass<int, INIEntry*>;
 
 		char* Name;
-		DECLARE_PROPERTY(List<INIEntry*>, Entries);
-		DECLARE_PROPERTY(EntryIndexes, EntryIndex);
+		List<INIEntry*> Entries;
+		EntryIndexes EntryIndex;
 		INIComment* Comments;
 
-		virtual ~INISection() override{
+		void DeallocINISection(){
 			JMP_THIS(0x52AB80);
 		}
 
-	protected:
-			INISection() = default;// no
+		//virtual ~INISection() = default;
+		//INISection() = delete; //TODO
 	};
 	static_assert(sizeof(INISection) == 0x44, "Invalid size.");
 

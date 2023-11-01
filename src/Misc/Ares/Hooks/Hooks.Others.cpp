@@ -2651,8 +2651,10 @@ DEFINE_OVERRIDE_HOOK(0x4C8FE0, Exception_Handler, 9)
 {
 	//GET(int, code, ECX);
 	GET(LPEXCEPTION_POINTERS, pExs, EDX);
-	ExceptionHandler(pExs);
-	__debugbreak();
+	if(!Phobos::Otamaa::ExeTerminated){ //dont fire exception twices ,..
+		ExceptionHandler(pExs);
+		__debugbreak();
+	}
 }
 
 template<typename T>

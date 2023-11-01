@@ -64,7 +64,10 @@ public:
 	{
 		FirstNode.Link(&LastNode);
 	}
-
+	
+	GenericList(GenericList& list) = default;
+	GenericList& operator = (GenericList const&) = default;
+	
 	virtual ~GenericList() {
 		this->UnlinkAll();
 	}
@@ -86,9 +89,6 @@ protected:
 	GenericNode FirstNode;
 	GenericNode LastNode;
 
-private:
-	GenericList(GenericList& list);
-	GenericList& operator = (GenericList const&) = delete;
 };
 
 template<class T> class List;
