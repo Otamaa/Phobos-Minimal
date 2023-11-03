@@ -1403,13 +1403,13 @@ void SpawnFreeUnits(BuildingClass* pBuilding , int count) {
 	if(!count)
 		return;
 
-	std::vector<bool> succeededplacement(count);
+	std::vector<bool> placements(count);
 
 	const auto pBldLoc = pBuilding->GetCoords();
 	const auto pBldCell = CellClass::Coord2Cell(pBldLoc);
 	const auto placement_first = pBldCell + CellSpread::AdjacentCell[(size_t)FacingType::South];
 
-	for(auto& place : succeededplacement) {
+	for(auto& place : placements) {
 		if(auto pUnit = (UnitClass*)pBuilding->Type->FreeUnit->CreateObject(pBuilding->Owner)) {
 			if(pUnit->Unlimbo(CellClass::Cell2Coord(placement_first) , DirType::West)) {
 				SetFreeUnitMission(pUnit);

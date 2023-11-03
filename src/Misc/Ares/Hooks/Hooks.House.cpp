@@ -67,11 +67,7 @@ DEFINE_OVERRIDE_HOOK(0x6AA0CA, StripClass_Draw_DrawObserverBackground, 6)
 		GET(int, TLX, EDI);
 		GET(int, TLY, EBX);
 		RectangleStruct bounds = { TLX, TLY, ObserverBackgroundWidth, ObserverBackgroundHeight };
-		const WORD Color = (uint8)(0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft)
-			|| (uint8)(0u >> ColorStruct::GreenShiftRight << ColorStruct::GreenShiftLeft)
-			|| (uint8)(0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft);
-
-		PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, PCXSurface, Color);
+		PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, PCXSurface, Drawing::ColorStructToWordRGB(Drawing::DefaultColors[6]));
 	}
 
 	return DontDraw;
@@ -112,11 +108,7 @@ DEFINE_OVERRIDE_HOOK(0x6AA164, StripClass_Draw_DrawObserverFlag, 6)
 				ObserverFlagPCXWidth, ObserverFlagPCXHeight
 		};
 
-		const WORD Color = (uint8)(0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft)
-			|| (uint8)(0u >> ColorStruct::GreenShiftRight << ColorStruct::GreenShiftLeft)
-			|| (uint8)(0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft);
-
-		PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, PCXSurface, Color);
+		PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, PCXSurface, Drawing::ColorStructToWordRGB(Drawing::DefaultColors[6]));
 	}
 
 	return DontDraw;

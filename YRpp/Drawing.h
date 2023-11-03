@@ -318,6 +318,15 @@ struct Drawing
 		   (BYTE)(modified.G >> Drawing::GreenShiftRight) << Drawing::GreenShiftLeft
 		   );
 	}
+
+	static WORD ColorStructToWordRGB(const ColorStruct& modified)
+	{
+		return (
+		   (BYTE)(modified.R >> Drawing::RedShiftRight) << Drawing::RedShiftLeft |
+		   (BYTE)(modified.G >> Drawing::GreenShiftRight) << Drawing::GreenShiftLeft|
+		   (BYTE)(modified.B >> Drawing::BlueShiftRight) << Drawing::BlueShiftLeft
+		   );
+	}
 };
 
 struct BufferData

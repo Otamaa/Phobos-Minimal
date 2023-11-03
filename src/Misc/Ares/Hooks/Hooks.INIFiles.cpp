@@ -69,32 +69,32 @@ NOINLINE INIClass::INISection* GetSection(INIClass* pINI, const char* pSection)
 	if (pINI->CurrentSectionName == pSection)
 		return pINI->CurrentSection;
 
-	//AresSafeChecksummer cf;
+	AresSafeChecksummer cf;
 
-	//if (pSection)
-	//{
-	//	if (auto len = strlen(pSection))
-	//	{
-	//		const size_t len_t = len & 0xFFFFFFFC;
+	if (pSection)
+	{
+		if (auto len = strlen(pSection))
+		{
+			const size_t len_t = len & 0xFFFFFFFC;
 
-	//		if (len_t != 0)
-	//		{
-	//			cf.Value = AresSafeChecksummer::Process(pSection, len_t, 0);
-	//			len -= len_t;
-	//		}
+			if (len_t != 0)
+			{
+				cf.Value = AresSafeChecksummer::Process(pSection, len_t, 0);
+				len -= len_t;
+			}
 
-	//		if (len)
-	//{
-	//			*cf.Bytes = 0;
-	//			std::memcpy(cf.Bytes, &pSection[len_t], len);
-	//			cf.ByteIndex = len;
-	//		}
-	//	}
+			if (len)
+	{
+				*cf.Bytes = 0;
+				std::memcpy(cf.Bytes, &pSection[len_t], len);
+				cf.ByteIndex = len;
+			}
+		}
 
-	//	cf.Value = cf.GetValue();
-	//}
+		cf.Value = cf.GetValue();
+	}
 
-	if (auto pData = pINI->SectionIndex.FetchItem(SafeChecksummer()(pSection), true))
+	if (auto pData = pINI->SectionIndex.FetchItem(cf.Value, true))
 	{
 		if (pData->Data)
 		{
@@ -111,32 +111,32 @@ NOINLINE const char* GetKeyValue(INIClass* pINI, const char* pSection, const cha
 {
 	if (INIClass::INISection* pSectionRes = GetSection(pINI, pSection))
 	{
-		//AresSafeChecksummer cf;
+		AresSafeChecksummer cf;
 
-		//if (pKey)
-		//{
-		//	if (auto len = strlen(pKey))
-		//	{
-		//		const size_t len_t = len & 0xFFFFFFFC;
+		if (pKey)
+		{
+			if (auto len = strlen(pKey))
+			{
+				const size_t len_t = len & 0xFFFFFFFC;
 
-		//		if (len_t != 0)
-		//		{
-		//			cf.Value = AresSafeChecksummer::Process(pKey, len_t, 0);
-		//			len -= len_t;
-		//		}
+				if (len_t != 0)
+				{
+					cf.Value = AresSafeChecksummer::Process(pKey, len_t, 0);
+					len -= len_t;
+				}
 
-		//		if (len)
-		//		{
-		//			*cf.Bytes = 0;
-		//			std::memcpy(cf.Bytes, &pKey[len_t], len);
-		//			cf.ByteIndex = len;
-		//		}
-		//	}
+				if (len)
+				{
+					*cf.Bytes = 0;
+					std::memcpy(cf.Bytes, &pKey[len_t], len);
+					cf.ByteIndex = len;
+				}
+			}
 
-		//	cf.Value = cf.GetValue();
-		//}
+			cf.Value = cf.GetValue();
+		}
 
-		if (auto pResult = pSectionRes->EntryIndex.FetchItem(SafeChecksummer()(pKey), true))
+		if (auto pResult = pSectionRes->EntryIndex.FetchItem(cf.Value, true))
 		{
 			if (pResult->Data)
 			{
@@ -155,7 +155,7 @@ struct INIClass_
 };
 static_assert(sizeof(INIClass_) == 0x40, "Invalid Size!");
 
-#ifdef BROKEN_STUFFS
+#ifndef BROKEN_STUFFS
 DEFINE_OVERRIDE_HOOK(0x528A10, INIClass_GetString, 5)
 {
 	GET(INIClass*, pThis, ECX);
@@ -239,8 +239,6 @@ DEFINE_OVERRIDE_HOOK(0x526CC0, INIClass_Section_GetKeyName, 7)
 	return 0x526D8A;
 }
 
-// this one somewhat crash the game with certain mod 
-// idk where it is the fault , tried stuffs so far
 DEFINE_OVERRIDE_HOOK(0x5260d9, INIClass_Parse_Override, 7)
 {
 	GET_STACK(INIClass_*, pThis, 0x38);
@@ -257,7 +255,8 @@ DEFINE_OVERRIDE_HOOK(0x5260d9, INIClass_Parse_Override, 7)
 		if (auto findB = pThis->SectionIndex.FetchItem(CRC, true))
 		{
 			const auto end = pThis->SectionIndex.end();
-			std::memcpy(findB, &findB[1], (end - (std::next(findB))));
+			const auto next = std::next(findB);
+			std::memcpy(findB, next, (((char*)end) - ((char*)next)));
 			const auto entries = pThis->SectionIndex.IndexTable;
 			const auto countBefore = pThis->SectionIndex.IndexCount;
 			entries[countBefore - 1].Data = 0;
@@ -338,7 +337,7 @@ void IniSectionIncludes::CopySection(CCINIClass* ini, INIClass::INISection* sour
 	}
 }
 
-#ifdef INHERITANCE
+#ifndef INHERITANCE
 DEFINE_OVERRIDE_HOOK(0x525E44, INIClass_Parse_IniSectionIncludes_CopySection2, 7)
 {
 	if (IniSectionIncludes::includedSection)

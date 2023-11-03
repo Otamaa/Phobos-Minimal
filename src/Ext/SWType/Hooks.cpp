@@ -2818,10 +2818,7 @@ DEFINE_OVERRIDE_HOOK(0x6A9A43, StripClass_Draw_DrawPCX, 6)
 		GET(int, TLX, ESI);
 		GET(int, TLY, EBP);
 		RectangleStruct bounds { TLX, TLY, 60, 48 };
-		const WORD Color =
-			(uint8)(0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft)
-			| (uint8)(0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft);
-		PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, CameoPCXSurface, Color);
+		PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, CameoPCXSurface, Drawing::ColorStructToWordRGB(Drawing::DefaultColors[6]));
 		CameoPCXSurface = nullptr;
 	}
 
