@@ -11,6 +11,7 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/HouseType/Body.h>
+#include <Ext/IsometricTileType/Body.h>
 #include <Ext/RadSite/Body.h>
 #include <Ext/Rules/Body.h>
 #include <Ext/Scenario/Body.h>
@@ -332,6 +333,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	BulletTypeExtContainer::Instance.Clear();
 	BuildingTypeExtContainer::Instance.Clear();
 	HouseTypeExtContainer::Instance.Clear();
+	IsometricTileTypeExtContainer::Instance.Clear();
 	OverlayTypeExtContainer::Instance.Clear();
 	PhobosGlobal::Clear();
 	SWStateMachine::Clear();
@@ -526,6 +528,7 @@ DEFINE_OVERRIDE_HOOK(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 		Process_Load<ImmunityTypeClass>(pStm) &&
 		Process_Load<ColorTypeClass>(pStm) &&
 		Process_Load<HouseExtContainer>(pStm) &&
+		Process_Load<IsometricTileTypeExtContainer>(pStm) &&
 		Process_Load<WeaponTypeExtContainer>(pStm) &&
 		Process_Load<SWTypeExtContainer>(pStm) &&
 		Process_Load<BuildingTypeExtContainer>(pStm) &&
@@ -566,6 +569,7 @@ DEFINE_OVERRIDE_HOOK(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 			Process_Save<ImmunityTypeClass>(pStm) &&
 			Process_Save<ColorTypeClass>(pStm) &&
 			Process_Save<HouseExtContainer>(pStm) &&
+			Process_Save<IsometricTileTypeExtContainer>(pStm) &&
 			Process_Save<WeaponTypeExtContainer>(pStm) &&
 			Process_Save<SWTypeExtContainer>(pStm) &&
 			Process_Save<BuildingTypeExtContainer>(pStm) &&

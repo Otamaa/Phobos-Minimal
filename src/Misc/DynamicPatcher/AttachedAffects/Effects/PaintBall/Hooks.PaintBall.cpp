@@ -6,9 +6,8 @@ DEFINE_HOOK(0x73C15F, UnitClass_DrawVXL_Colour, 0x7)
 {
 	GET(UnitClass* const, pOwnerObject, EBP);
 
-	auto pExt = TechnoExtContainer::Instance.Find(pOwnerObject);
-	if (pExt->PaintBallState.get())
-		pExt->PaintBallState->DrawVXL_Paintball(pOwnerObject, R, false);
+	if (auto& pPaintBall = TechnoExtContainer::Instance.Find(pOwnerObject)->PaintBallState)
+		pPaintBall->DrawVXL_Paintball(pOwnerObject, R, false);
 
 	return 0;
 }
@@ -67,12 +66,9 @@ DEFINE_HOOK(0x423630, AnimClass_Draw_It, 0x6)
 		auto const pCell = pAnim->GetCell();
 		auto const pBuilding = pCell->GetBuilding();
 
-		if (pBuilding && pBuilding->IsAlive && !pBuilding->Type->Invisible)
-		{
-			const auto pExt = TechnoExtContainer::Instance.Find(pBuilding);
-			if (pExt->PaintBallState)
-			{
-				pExt->PaintBallState->DrawSHP_Paintball_BuildAnim(pBuilding, R);
+		if (pBuilding && pBuilding->IsAlive && !pBuilding->Type->Invisible) {
+			if (auto& pPaintBall = TechnoExtContainer::Instance.Find(pBuilding)->PaintBallState) {
+				pPaintBall->DrawSHP_Paintball_BuildAnim(pBuilding, R);
 			}
 		}
 	}
@@ -85,10 +81,8 @@ DEFINE_HOOK(0x7063FF, TechnoClass_DrawSHP_Colour, 0x7)
 {
 	GET(TechnoClass* const, pOwnerObject, ESI);
 
-	auto pExt = TechnoExtContainer::Instance.Find(pOwnerObject);
-
-	if (pExt->PaintBallState.get())
-		pExt->PaintBallState->DrawSHP_Paintball(pOwnerObject, R);
+	if (auto& pPaintBall = TechnoExtContainer::Instance.Find(pOwnerObject)->PaintBallState)
+		pPaintBall->DrawSHP_Paintball(pOwnerObject, R);
 
 	return 0;
 }
@@ -97,13 +91,9 @@ DEFINE_HOOK(0x706640, TechnoClass_DrawVXL_Colour, 0x5)
 {
 	GET(TechnoClass* const, pOwnerObject, ECX);
 
-	if (pOwnerObject->WhatAmI() == BuildingClass::AbsID)
-	{
-		auto pExt = TechnoExtContainer::Instance.Find(pOwnerObject);
-
-		if (pExt->PaintBallState.get())
-			pExt->PaintBallState->DrawVXL_Paintball(pOwnerObject, R, true);
-
+	if (pOwnerObject->WhatAmI() == BuildingClass::AbsID) {
+		if (auto& pPaintBall = TechnoExtContainer::Instance.Find(pOwnerObject)->PaintBallState)
+			pPaintBall->DrawVXL_Paintball(pOwnerObject, R, true);
 	}
 
 	return 0;

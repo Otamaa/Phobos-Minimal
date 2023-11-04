@@ -9,80 +9,68 @@
 #include <ScenarioClass.h>
 #include <set>
 
-class IsometricTileTypeExt
+class IsometricTileTypeExtData final
 {
 public:
-	/*
+
+	static constexpr DWORD Canary = 0x91577125;
+	using base_type = IsometricTileTypeClass;
+
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+
+public : 
+	Valueable<int> Tileset { -1 };
+	Valueable<PaletteManager*> Palette {};
+
+	IsometricTileTypeExtData() noexcept = default;
+	~IsometricTileTypeExtData() noexcept = default;
+
+	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+
+	LightConvertClass* GetLightConvert(int r, int g, int b);
+
+private:
+	template <typename T>
+	void Serialize(T& Stm);
+};
+
+class IsometricTileTypeExtContainer final : public Container<IsometricTileTypeExtData>
+{
+public:
+	static IsometricTileTypeExtContainer Instance;
+	static std::map<std::string, std::map<TintStruct, LightConvertClass*>> LightConvertEntities;
 	static int CurrentTileset;
-#ifdef IsoTilePalette
 
-	static std::map<std::string, int> PalettesInitHelper;
-	static std::map<int, int> LoadedPalettesLookUp;
-	static std::vector<std::map<TintStruct, LightConvertClass*>> LoadedPalettes;
-	static std::vector<UniqueGamePtr<BytePalette>> CustomPalettes;
+	void Clear() {
+		LightConvertEntities.clear();
+	}
 
-	static LightConvertClass* IsometricTileTypeExt::InitDrawer(int nLookUpIdx, int red, int green, int blue);
-	static void LoadPaletteFromName(int nTileset, const std::string_view PaletteName);
-#endif
-
-	class ExtData final : public Extension<IsometricTileTypeClass>
+	static bool LoadGlobals(PhobosStreamReader& Stm)
 	{
-	public:
-		static constexpr DWORD Canary = 0x91577125;
-		using base_type = IsometricTileTypeClass;
+		return Stm
+			.Process(CurrentTileset)
+			.Success()
+			;
+	}
 
-	public:
-		Valueable<int> Tileset;
-		Valueable<bool> BlockJumpjet;
-		ExtData(IsometricTileTypeClass* OwnerObject) : Extension<IsometricTileTypeClass>(OwnerObject)
-			, Tileset { -1 }
-			, BlockJumpjet { false }
-		{ }
-
-		virtual ~ExtData() override  = default;
-		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public Container<IsometricTileTypeExt::ExtData>
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
 	{
-	public:
-		ExtContainer();
-		~ExtContainer();
+		return Stm
+			.Process(CurrentTileset)
+			.Success()
+			;
+	}
 
-		static bool LoadGlobals(PhobosStreamReader& Stm)
-		{
-			return Stm
-				.Process(IsometricTileTypeExt::CurrentTileset)
-#ifdef IsoTilePalette
-				.Process(IsometricTileTypeExt::PalettesInitHelper)
-				.Process(IsometricTileTypeExt::LoadedPalettesLookUp)
-				.Process(IsometricTileTypeExt::LoadedPalettes)
-				.Process(IsometricTileTypeExt::CustomPalettes)
-#endif
-				.Success();
-		}
+	IsometricTileTypeExtContainer() : Container<IsometricTileTypeExtData> { "IsometricTileTypeClass" }
+	{ }
 
-		static bool SaveGlobals(PhobosStreamWriter& Stm)
-		{
-			return Stm
+	virtual ~IsometricTileTypeExtContainer() override = default;
 
-				.Process(IsometricTileTypeExt::CurrentTileset)
-#ifdef IsoTilePalette
-				.Process(IsometricTileTypeExt::PalettesInitHelper)
-				.Process(IsometricTileTypeExt::LoadedPalettesLookUp)
-				.Process(IsometricTileTypeExt::LoadedPalettes)
-				.Process(IsometricTileTypeExt::CustomPalettes)
-#endif
-				.Success();
-		}
-	};
-
-	static ExtContainer ExtMap;
-	*/
+private:
+	IsometricTileTypeExtContainer(const IsometricTileTypeExtContainer&) = delete;
+	IsometricTileTypeExtContainer(IsometricTileTypeExtContainer&&) = delete;
+	IsometricTileTypeExtContainer& operator=(const IsometricTileTypeExtContainer& other) = delete;
 };

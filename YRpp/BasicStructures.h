@@ -7,6 +7,7 @@
 struct TintStruct
 {
 	TintStruct() = default;
+	~TintStruct() = default;
 
 	TintStruct(int r, int g, int b) noexcept : Red { r }, Green { g }, Blue { b }{}
 	TintStruct(const ColorStruct& nColor ,  double nTintFactor) noexcept :
