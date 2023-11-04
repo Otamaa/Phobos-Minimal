@@ -163,12 +163,9 @@ DEFINE_OVERRIDE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
  		return 0;
  	}
 
-	constexpr auto const DefaultSize = 1000;
+	constexpr size_t const DefaultSize = 1000;
 	SimpleDynVecClass<ObjectClass*> handled(DefaultSize);
- 	handled.Reserve(groups.Count);
-
 	SimpleDynVecClass<DamageGroup**> target(DefaultSize);
- 	target.Reserve(groups.Count);
 
  	for (auto& group : groups) {
  		// group could have been cleared by previous iteration.
@@ -201,11 +198,10 @@ DEFINE_OVERRIDE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 
  	// move all the empty ones to the back, then remove them
  	auto const end = std::remove_if(groups.begin(), groups.end(), [](DamageGroup* pGroup) {
- 	 return pGroup == nullptr;
+ 		return pGroup == nullptr;
  	});
 
- 	auto const validCount = std::distance(groups.begin(), end);
- 	groups.Count = validCount;
+ 	groups.Count = std::distance(groups.begin(), end);
 
  	return 0;
 }

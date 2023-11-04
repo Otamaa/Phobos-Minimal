@@ -169,6 +169,8 @@ public:
 					{
 						//std::vector<AudioIDXEntry> entries;
 
+						Debug::Log("Reading [%s from %s] file with [%d] samples!.\n", filename, pIndex.GetFileName(), headerIndex.numSamples);
+
 						if (headerIndex.numSamples > 0)
 						{
 							this->Entries.resize(headerIndex.numSamples, {});
@@ -227,6 +229,10 @@ public:
 						//update the data with the new one
 						auto node = map.extract(find);
 						node.key().update(ent);
+						auto& [idx, file] = node.mapped();
+						Debug::Log("Replacing audio %s from : [%d - %s] to [%d - %s].\n", ent.Name, idx, file->FileName, i, this->Bags[i].Bag->FileName);
+						idx = i;
+						file = this->Bags[i].Bag.get();
 						map.insert(std::move(node));
 					}
 				}
@@ -475,6 +481,9 @@ DEFINE_OVERRIDE_HOOK(0x4064A0, VocClassData_AddSample, 6) // Complete rewrite of
 			if(idxSample == -1) {
 				idxSample = LooseAudioCache::FindOrAllocateIndex(pSampleName) + AudioIDXData::Instance->SampleCount;
 			}
+
+			if (idxSample == -1)
+				Debug::Log("Cannot Find [%s] sample!.\n", pSampleName);
 
 			// Set sample index or string pointer
 			pVoc->SampleIndex[pVoc->NumSamples++] = idxSample;

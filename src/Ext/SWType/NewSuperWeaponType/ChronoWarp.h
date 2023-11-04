@@ -15,7 +15,7 @@ public:
 	virtual bool IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const override;
 
 	void newStateMachine(int Duration, const CellStruct& XY, SuperClass* pSuper, NewSWType* pSWType,
-	DynamicVectorClass<ChronoWarpStateMachine::ChronoWarpContainer> Buildings)
+	std::vector<ChronoWarpStateMachine::ChronoWarpContainer> Buildings)
 	{
 		SWStateMachine::Register(std::make_unique<ChronoWarpStateMachine>(Duration, XY, pSuper, this, std::move(Buildings)));
 	}

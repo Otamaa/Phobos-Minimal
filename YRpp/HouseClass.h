@@ -1189,10 +1189,10 @@ public:
 		// altered on each object's loss or gain
 		// BuildLimit > 0 validation uses this
 		//	XQuantity on topsonIDB
-	DECLARE_PROPERTY(CounterClass, OwnedBuildingTypes);
-	DECLARE_PROPERTY(CounterClass, OwnedUnitTypes);
-	DECLARE_PROPERTY(CounterClass, OwnedInfantryTypes);
-	DECLARE_PROPERTY(CounterClass, OwnedAircraftTypes);
+	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, OwnedBuildingTypes);
+	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, OwnedUnitTypes);
+	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, OwnedInfantryTypes);
+	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, OwnedAircraftTypes);
 
 		// Used for: Counting objects currently owned and on the map
 		// altered on each object's loss or gain
@@ -1200,18 +1200,18 @@ public:
 		// original PrereqOverride check uses this
 		// original Prerequisite check uses this
 		// AuxBuilding check uses this
-	DECLARE_PROPERTY(CounterClass, ActiveBuildingTypes);
-	DECLARE_PROPERTY(CounterClass, ActiveUnitTypes);
-	DECLARE_PROPERTY(CounterClass, ActiveInfantryTypes);
-	DECLARE_PROPERTY(CounterClass, ActiveAircraftTypes);
+	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, ActiveBuildingTypes);
+	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, ActiveUnitTypes);
+	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, ActiveInfantryTypes);
+	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, ActiveAircraftTypes);
 
 		// Used for: Counting objects produced from Factory
 		// not altered when things get taken over or removed
 		// BuildLimit < 0 validation uses this
-	DECLARE_PROPERTY(CounterClass, FactoryProducedBuildingTypes);
-	DECLARE_PROPERTY(CounterClass, FactoryProducedUnitTypes);
-	DECLARE_PROPERTY(CounterClass, FactoryProducedInfantryTypes);
-	DECLARE_PROPERTY(CounterClass, FactoryProducedAircraftTypes);
+	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, FactoryProducedBuildingTypes);
+	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, FactoryProducedUnitTypes);
+	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, FactoryProducedInfantryTypes);
+	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, FactoryProducedAircraftTypes);
 
 	DECLARE_PROPERTY(CDTimerClass, AttackTimer);
 	int                   InitialAttackDelay; // both unused

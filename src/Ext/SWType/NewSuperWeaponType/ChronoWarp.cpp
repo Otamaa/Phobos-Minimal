@@ -88,7 +88,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 			pAnim->Owner = pSource->Owner;
 	}
 
-	DynamicVectorClass<ChronoWarpStateMachine::ChronoWarpContainer> RegisteredBuildings;
+	std::vector<ChronoWarpStateMachine::ChronoWarpContainer> RegisteredBuildings;
 
 	auto Chronoport = [pThis, pSourceSWExt, pSource, Coords, &RegisteredBuildings](TechnoClass* const pTechno) -> bool
 	{
@@ -299,8 +299,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 			BuildingExtContainer::Instance.Find(pBld)->AboutToChronoshift = true;
 
 			// register for chronoshift
-			ChronoWarpStateMachine::ChronoWarpContainer Container(pBld, cellUnitTarget, pBld->Location, IsVehicle);
-			RegisteredBuildings.AddItem(Container);
+			RegisteredBuildings.emplace_back(pBld, cellUnitTarget, pBld->Location, IsVehicle);
 		}
 #pragma endregion
 		return true;
@@ -313,7 +312,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 	Helpers::Alex::for_each_in_rect_or_range<TechnoClass>(pSource->ChronoMapCoords, range.WidthOrRange, range.Height, items);
 	items.apply_function_for_each(Chronoport);
 
-	if (RegisteredBuildings.Count)
+	if (!RegisteredBuildings.empty())
 	{
 		this->newStateMachine(pSourceSWExt->Chronosphere_Delay.Get(RulesClass::Instance->ChronoDelay) + 1, Coords, pSource, this, std::move(RegisteredBuildings));
 	}
@@ -363,7 +362,7 @@ void ChronoWarpStateMachine::Update()
 	else if (passed == this->Duration - 1)
 	{
 		// move the array so items can't get invalidated
-		DynamicVectorClass<ChronoWarpContainer> const buildings = std::move(this->Buildings);
+		std::vector<ChronoWarpContainer> const buildings = std::move(this->Buildings);
 
 		// remove all buildings from the map at once
 		for (auto const& item : buildings)
@@ -447,9 +446,9 @@ void ChronoWarpStateMachine::Update()
 void ChronoWarpStateMachine::InvalidatePointer(AbstractClass* ptr, bool remove)
 {
 	if (remove) {
-		for (int i = 0; i < this->Buildings.Count; ++i) {
+		for (int i = 0; i < (int)this->Buildings.size(); ++i) {
 			if (this->Buildings[i].building == ptr) {
-				this->Buildings.RemoveAt(i);
+				this->Buildings.erase(this->Buildings.begin() + i);
 				break;
 			}
 		}

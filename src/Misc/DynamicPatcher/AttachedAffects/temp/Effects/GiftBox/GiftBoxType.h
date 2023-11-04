@@ -24,7 +24,7 @@ struct GiftBoxType
 
 	Valueable<bool> Enable;
 	ValueableVector<TechnoTypeClass*> Gifts;
-	DynamicVectorClass<int> Nums;
+	std::vector<int> Nums;
 	ValueableVector<double> Chances;
 	Valueable<bool> Remove;
 	Valueable<bool> Destroy;

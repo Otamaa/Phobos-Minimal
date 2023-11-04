@@ -56,16 +56,16 @@ int StraightTrajectory::GetFirerZPosition()
 	return coords.Z;
 }
 
-int StraightTrajectory::GetTargetZPosition()
+CoordStruct StraightTrajectory::GetTargetPosition()
 {
 	auto coords = AttachedTo->TargetCoords;
 
-	if (AttachedTo->Target) {
-		if (auto const pCell = MapClass::Instance()->TryGetCellAt(AttachedTo->Target->GetCoords()))
+	if (auto pTarget = AttachedTo->Target) {
+		if (auto const pCell = MapClass::Instance()->TryGetCellAt(pTarget->GetCoords()))
 			coords = pCell->GetCoordsWithBridge();
 	}
 
-	return coords.Z;
+	return coords;
 }
 
 // Should bullet detonate based on elevation conditions.
@@ -135,7 +135,7 @@ void StraightTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity
 	auto const pBullet = this->AttachedTo;
 	this->DetonationDistance = type->DetonationDistance.Get(type->SDetonationDistance.Get());
 	this->FirerZPosition = this->GetFirerZPosition();
-	this->TargetZPosition = this->GetTargetZPosition();
+	this->TargetZPosition = this->GetTargetPosition().Z;
 
 	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Length();
 }

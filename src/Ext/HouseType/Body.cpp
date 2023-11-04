@@ -324,7 +324,7 @@ void HouseTypeExtData::LoadFromRulesFile(CCINIClass* pINI) {
 				}
 				Pcx = nullptr;
 			}
-			else if (!ppShp || CRT::strstr(Phobos::readBuffer, ".pcx"))
+			else if (!ppShp || strstr(Phobos::readBuffer, ".pcx"))
 			{
 					// clear shp and load pcx
 				if (ppShp)

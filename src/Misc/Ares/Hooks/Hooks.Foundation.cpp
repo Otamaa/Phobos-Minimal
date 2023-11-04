@@ -68,15 +68,15 @@ DEFINE_OVERRIDE_HOOK(0x656584, RadarClass_GetFoundationShape, 6)
 	GET(BuildingTypeClass*, pType, EAX);
 
 	const auto fnd = pType->Foundation;
-	DynamicVectorClass<Point2D>* ret = nullptr;
+	DWORD* ret = nullptr;
 
 	if (fnd == BuildingTypeExtData::CustomFoundation) {
 		const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
-		ret = &pTypeExt->FoundationRadarShape;
+		ret = reinterpret_cast<DWORD*>(&pTypeExt->FoundationRadarShape);
 	} else if(fnd >= Foundation::_1x1 && fnd <= Foundation::_0x0) {
-		ret = pThis->FoundationTypePixels + (int)fnd;
+		ret = reinterpret_cast<DWORD*>(pThis->FoundationTypePixels + (int)fnd);
 	} else {
-		ret = pThis->FoundationTypePixels + (int)Foundation::_2x2;
+		ret = reinterpret_cast<DWORD*>(pThis->FoundationTypePixels + (int)Foundation::_2x2);
 	}
 
 	R->EAX(ret);

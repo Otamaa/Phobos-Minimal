@@ -167,6 +167,8 @@ public:
 		{
 			return this->building == other.building;
 		}
+
+		~ChronoWarpContainer() = default;
 	};
 
 	ChronoWarpStateMachine()
@@ -174,7 +176,7 @@ public:
 	{
 	}
 
-	ChronoWarpStateMachine(int Duration, const CellStruct& XY, SuperClass* pSuper, NewSWType* pSWType, DynamicVectorClass<ChronoWarpContainer> Buildings)
+	ChronoWarpStateMachine(int Duration, const CellStruct& XY, SuperClass* pSuper, NewSWType* pSWType, std::vector<ChronoWarpContainer> Buildings)
 		: SWStateMachine(Duration, XY, pSuper, pSWType), Buildings(std::move(Buildings)), Duration(Duration)
 	{
 	}
@@ -198,7 +200,7 @@ public:
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
 protected:
-	DynamicVectorClass<ChronoWarpContainer> Buildings;
+	std::vector<ChronoWarpContainer> Buildings;
 	int Duration;
 };
 
@@ -353,36 +355,30 @@ public:
 	{
 		for (auto& CP : CloudsPresent)
 		{
-			if (CP)
-			{
+			if (CP && CP->IsAlive && CP->Type) {
 				CP->UnInit();
-				CP = nullptr;
 			}
-		}
 
-		CloudsPresent.Clear();
+			CP = nullptr;
+		}
 
 		for (auto& CM : CloudsManifest)
 		{
-			if (CM)
-			{
+			if (CM && CM->IsAlive && CM->Type) {
 				CM->UnInit();
-				CM = nullptr;
 			}
+			CM = nullptr;
 		}
-
-		CloudsManifest.Clear();
 
 		for (auto& BP : BoltsPresent)
 		{
-			if (BP)
-			{
+			if (BP && BP->IsAlive && BP->Type) {
 				BP->UnInit();
-				BP = nullptr;
 			}
+
+			BP = nullptr;
 		}
 
-		BoltsPresent.Clear();
 	}
 
 	virtual SWStateMachineIdentifier GetIdentifier() const override
@@ -405,9 +401,9 @@ public:
 	void Stop() { TimeToEnd = true; }
 
 public:
-	DynamicVectorClass<AnimClass*> CloudsPresent;
-	DynamicVectorClass<AnimClass*> CloudsManifest;
-	DynamicVectorClass<AnimClass*> BoltsPresent;
+	std::vector<AnimClass*> CloudsPresent;
+	std::vector<AnimClass*> CloudsManifest;
+	std::vector<AnimClass*> BoltsPresent;
 
 	int ActualDuration;
 	int StartTime; //storing current frame

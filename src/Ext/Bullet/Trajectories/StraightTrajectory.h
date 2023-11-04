@@ -53,6 +53,6 @@ public:
 private:
 	int GetVelocityZ();
 	int GetFirerZPosition();
-	int GetTargetZPosition();
+	CoordStruct GetTargetPosition();
 	bool ElevationDetonationCheck();
 };

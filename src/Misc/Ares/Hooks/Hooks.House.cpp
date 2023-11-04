@@ -539,23 +539,21 @@ DEFINE_OVERRIDE_HOOK(0x4FE782, HouseClass_AI_BaseConstructionUpdate_PickPowerpla
 {
 	GET(HouseClass* const, pThis, EBP);
 	auto const pExt = HouseTypeExtContainer::Instance.Find(pThis->Type);
-
-	constexpr auto const DefaultSize = 10;
-	BuildingTypeClass* buffer[DefaultSize] = {};
-	DynamicVectorClass<BuildingTypeClass*> Eligible(DefaultSize, buffer);
+	std::vector<BuildingTypeClass*> Eligible {};
+	Eligible.reserve(10u);
 
 	auto const it = pExt->GetPowerplants();
 	for (auto const& pPower : it) {
 		if (HouseExtData::PrereqValidate(pThis, pPower, false, true) == CanBuildResult::Buildable && HouseExtData::PrerequisitesMet(pThis, pPower)) {
-			Eligible.AddItem(pPower);
+			Eligible.push_back(pPower);
 		}
 	}
 
 	BuildingTypeClass* pResult = nullptr;
-	if (Eligible.Count > 0) {
+	if (!Eligible.empty()) {
 
-		if (Eligible.Count > 1)
-			pResult = Eligible[ScenarioClass::Instance->Random.RandomFromMax(Eligible.Count - 1)];
+		if ((int)Eligible.size() > 1)
+			pResult = Eligible[ScenarioClass::Instance->Random.RandomFromMax((int)Eligible.size() - 1)];
 		else
 			pResult = Eligible[0];
 

@@ -4992,6 +4992,24 @@ bool AresPoweredUnit::Update()
 #pragma endregion
 
 #pragma region AresJammer
+//! \param TargetBuilding The building whose eligibility to check.
+bool AresJammer::IsEligible(BuildingClass* TargetBuilding)
+{
+	/* Current requirements for being eligible:
+		- not an ally (includes ourselves)
+		- either a radar or a spysat
+	*/
+
+	if (!this->AttachedToObject->Owner->IsAlliedWith(TargetBuilding->Owner)) {
+		for (auto pType : TargetBuilding->GetTypes()) {
+			if (pType && (pType->Radar || pType->SpySat)) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
 
 void AresJammer::Update()
 {
@@ -5006,43 +5024,21 @@ void AresJammer::Update()
 	// walk through all buildings
 	for (auto const curBuilding : *BuildingClass::Array)
 	{
-		if (this->AttachedToObject->Owner->IsAlliedWith_(curBuilding->Owner))
+		if (!AresJammer::IsEligible(curBuilding))
 			continue;
 
 		// for each jammable building ...
-		bool Eligible = false;
-		for (auto pType : curBuilding->GetTypes()) {
-			if (pType && (pType->Radar || pType->SpySat)) {
-				Eligible = true;
-				break;
-			}
-		}
-
-		if (Eligible)
+		// ...check if it's in range, and jam or unjam based on that
+		if (this->InRangeOf(curBuilding))
 		{
-			// ...check if it's in range, and jam or unjam based on that
-			if (this->InRangeOf(curBuilding))
-			{
-				this->Jam(curBuilding);
-			}
-			else
-			{
-				this->Unjam(curBuilding);
-			}
+			this->Jam(curBuilding);
+		}
+		else
+		{
+			this->Unjam(curBuilding);
 		}
 	}
 }
-
-//! \param TargetBuilding The building whose eligibility to check.
-//bool AresJammer::IsEligible(BuildingClass* TargetBuilding)
-//{
-//	/* Current requirements for being eligible:
-//		- not an ally (includes ourselves)
-//		- either a radar or a spysat
-//	*/
-//	return !this->AttachedToObject->Owner->IsAlliedWith(TargetBuilding->Owner)
-//		&& (TargetBuilding->Type->Radar || TargetBuilding->Type->SpySat);
-//}
 
 //! \param TargetBuilding The building to check the distance to.
 bool AresJammer::InRangeOf(BuildingClass* TargetBuilding)
@@ -5057,7 +5053,7 @@ bool AresJammer::InRangeOf(BuildingClass* TargetBuilding)
 //! \param TargetBuilding The building to jam.
 void AresJammer::Jam(BuildingClass* TargetBuilding)
 {
-	//Using map ? , so it can keep item unique i presume ?
+	//keep item unique
 	auto& jammMap = BuildingExtContainer::Instance.Find(TargetBuilding)->RegisteredJammers;
 
 	jammMap.push_back_unique(this->AttachedToObject);
@@ -5072,7 +5068,7 @@ void AresJammer::Jam(BuildingClass* TargetBuilding)
 //! \param TargetBuilding The building to unjam.
 void AresJammer::Unjam(BuildingClass* TargetBuilding)
 {
-	//Using map ? , so it can keep item unique i presume ?
+	//keep item unique
 	auto& jammMap = BuildingExtContainer::Instance.Find(TargetBuilding)->RegisteredJammers;
 
 	if (jammMap.remove(this->AttachedToObject)) {
@@ -5124,7 +5120,7 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 			while (pCur);
 		}
 
-		pTeam->StepCompleted = 1;
+		pTeam->StepCompleted = true;
 		return true;
 	}
 	}
@@ -5136,8 +5132,8 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 		case AresScripts::AuxilarryPower:
 		{
 			HouseExtContainer::Instance.Find(pTeam->Owner)->AuxPower += pTeamMission->Argument;
-			pTeam->Owner->RecheckPower = 1;
-			pTeam->StepCompleted = 1;
+			pTeam->Owner->RecheckPower = true;
+			pTeam->StepCompleted = true;
 			return true;
 		}
 		case AresScripts::KillDrivers:
@@ -5169,7 +5165,7 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 				while (pCur);
 			}
 
-			pTeam->StepCompleted = 1;
+			pTeam->StepCompleted = true;
 			return true;
 		}
 		case AresScripts::TakeVehicles:
@@ -5196,7 +5192,7 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 				while (pCur);
 			}
 
-			pTeam->StepCompleted = 1;
+			pTeam->StepCompleted = true;
 			return true;
 		}
 		case AresScripts::ConvertType:
@@ -5224,7 +5220,7 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 				while (pCur);
 			}
 
-			pTeam->StepCompleted = 1;
+			pTeam->StepCompleted = true;
 			return true;
 		}
 		case AresScripts::SonarReveal:
@@ -5246,7 +5242,7 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 				}
 			}
 
-			pTeam->StepCompleted = 1;
+			pTeam->StepCompleted = true;
 			return true;
 		}
 		case AresScripts::DisableWeapons:
@@ -5265,7 +5261,7 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 				}
 			}
 
-			pTeam->StepCompleted = 1;
+			pTeam->StepCompleted = true;
 			return true;
 		}
 		}
@@ -5648,7 +5644,6 @@ bool AresTActionExt::SetGroup(TActionClass* pAction, HouseClass* pHouse, ObjectC
 	if (auto pTech = generic_cast<TechnoClass*>(pObject))
 	{
 		pTech->Group = pAction->Value;
-
 		return true;
 	}
 
@@ -6514,11 +6509,10 @@ std::vector<int>* TunnelFuncs::PopulatePassangerPIPData(TechnoClass* pThis, Tech
 		nPassangersTotal = 0;
 
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	const auto pBld = specific_cast<BuildingClass*>(pThis);
 
 	PipData.clear();
 
-	if (pBld)
+	if (const auto pBld = specific_cast<BuildingClass*>(pThis))
 	{
 		const TunnelData* pTunnelData = HouseExtData::GetTunnelVector(pBld->Type, pThis->Owner);
 		const bool Absorber = pBld->Absorber();
@@ -6762,9 +6756,8 @@ bool AresHouseExt::CheckBasePlanSanity(HouseClass* const pThis)
 	// planning? only through crates or map actions, so have to validate base
 	// unit in other situations
 	auto const idxParent = pType->FindParentCountryIndex();
-	auto const canBuild = pRules->BaseUnit.any_of([pThis, idxParent](UnitTypeClass const* const pItem)
- {
-	 return pThis->CanExpectToBuild(pItem, idxParent);
+	auto const canBuild = pRules->BaseUnit.any_of([pThis, idxParent](UnitTypeClass const* const pItem) {
+		return pThis->CanExpectToBuild(pItem, idxParent);
 	});
 
 	if (!canBuild)
@@ -6942,7 +6935,7 @@ bool AresHouseExt::UpdateAnyFirestormActive(bool const lastChange)
 
 	// if last change activated one, there is at least one. else...
 	if (!lastChange) {
-		for (auto const& pHouse : *HouseClass::Array) {
+		for (auto pHouse : *HouseClass::Array) {
 			if (pHouse->FirestormActive) {
 				HouseExtData::IsAnyFirestormActive = true;
 				break;
@@ -7113,7 +7106,7 @@ const MouseCursor* MouseClassExt::GetCursorDataFromRawAction(Action nAction)
 #pragma region MappedAction
 
 std::array<MouseClassExt::MappedActions, (size_t)Action::count + 2> MouseClassExt::CursorIdx;
-DynamicVectorClass<BuildType> MouseClassExt::TabCameos[4u];
+DynamicVectorClass<BuildType, DllAllocator<BuildType>> MouseClassExt::TabCameos[4u];
 
 void MouseClassExt::ClearMappedAction()
 {

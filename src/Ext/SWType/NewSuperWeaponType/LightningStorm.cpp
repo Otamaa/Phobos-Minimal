@@ -180,33 +180,28 @@ bool CloneableLighningStormStateMachine::Save(PhobosStreamWriter& Stm) const
 void CloneableLighningStormStateMachine::Update()
 {
 	// remove all bolts from the list that are halfway done
-	for (auto i = BoltsPresent.Count - 1; i >= 0; --i)
+	for (auto i = BoltsPresent.size() - 1; i >= 0; --i)
 	{
-		if (auto const pAnim = BoltsPresent[i])
-		{
-			if (pAnim->Animation.Value >= pAnim->Type->GetImage()->Frames / 2)
-			{
-				BoltsPresent.RemoveAt(i);
+		if (auto const pAnim = BoltsPresent[i]) {
+			if (pAnim->Animation.Value >= pAnim->Type->GetImage()->Frames / 2) {
+				BoltsPresent.erase(BoltsPresent.begin() + i);
 			}
 		}
 	}
 
 	// find the clouds that should strike right now
-	for (auto i = CloudsManifest.Count - 1; i >= 0; --i)
-	{
-		if (auto const pAnim = CloudsManifest[i])
-		{
-			if (pAnim->Animation.Value >= pAnim->Type->GetImage()->Frames / 2)
-			{
+	for (auto i = CloudsManifest.size() - 1; i >= 0; --i) {
+		if (auto const pAnim = CloudsManifest[i]) {
+			if (pAnim->Animation.Value >= pAnim->Type->GetImage()->Frames / 2) {
 				auto const crdStrike = pAnim->GetCoords();
 				this->Strike2(crdStrike);
-				CloudsManifest.RemoveAt(i);
+				CloudsManifest.erase(CloudsManifest.begin() + i);
 			}
 		}
 	}
 
 	// all currently present clouds have to disappear first
-	if (CloudsPresent.Count <= 0)
+	if (CloudsPresent.empty())
 	{
 		// end the lightning storm
 		if (TimeToEnd)
@@ -221,14 +216,14 @@ void CloneableLighningStormStateMachine::Update()
 	}
 	else
 	{
-		for (auto i = CloudsPresent.Count - 1; i >= 0; --i)
+		for (auto i = CloudsPresent.size() - 1; i >= 0; --i)
 		{
 			if (auto const pAnim = CloudsPresent[i])
 			{
 				auto pAnimImage = pAnim->Type->GetImage();
 				if (pAnim->Animation.Value >= pAnimImage->Frames - 1)
 				{
-					CloudsPresent.RemoveAt(i);
+					CloudsPresent.erase(CloudsPresent.begin() + i);
 				}
 			}
 		}
@@ -406,7 +401,7 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 			if (auto const pAnim = GameCreate<AnimClass>(pAnimType, coords))
 			{
 				AnimExtData::SetAnimOwnerHouseKind(pAnim, Super->Owner, nullptr, Invoker, false);
-				BoltsPresent.AddItem(pAnim);
+				BoltsPresent.push_back(pAnim);
 			}
 		}
 
@@ -532,8 +527,8 @@ bool CloneableLighningStormStateMachine::Strike(CellStruct const& nCell)
 		if (auto const pAnim = GameCreate<AnimClass>(pAnimType, coords))
 		{
 			AnimExtData::SetAnimOwnerHouseKind(pAnim, Super->Owner, nullptr, Invoker, false);
-			CloudsManifest.AddItem(pAnim);
-			CloudsPresent.AddItem(pAnim);
+			CloudsManifest.push_back(pAnim);
+			CloudsPresent.push_back(pAnim);
 		}
 	}
 

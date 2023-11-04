@@ -237,7 +237,9 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 			? ScenarioClass::Instance->Random.RandomRangedSpecific<DirType>(DirType::North, DirType::Max) : pTypeExt->CreateUnit_Facing.Get();
 
 		auto pCell = MapClass::Instance->GetCellAt(pAnimExt->CreateUnitLocation);
-		if (!pTypeExt->CreateUnit_ConsiderPathfinding.Get() || !pCell->GetBuilding() || !pCell->ContainsBridge())
+		const bool IsBridge = pCell->ContainsBridge();
+
+		if (!pTypeExt->CreateUnit_ConsiderPathfinding.Get() || !pCell->GetBuilding() || !IsBridge)
 		{
 			++Unsorted::ScenarioInit;
 			pTechno->Unlimbo(pAnimExt->CreateUnitLocation, resultingFacing);
@@ -258,13 +260,6 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 					if (auto pCreateUnitAnimExt = AnimExtContainer::Instance.Find(pCreateUnitAnim))
 						pCreateUnitAnimExt->Invoker = AnimExtData::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
 				}
-			}
-
-			if (!decidedOwner->IsNeutral() && !pTypeExt->CreateUnit->Insignificant)
-			{
-				decidedOwner->RegisterGain(pTechno, false);
-				decidedOwner->AddTracking(pTechno);
-				decidedOwner->RecheckTechTree = 1;
 			}
 
 			if (pTechno->HasTurret() && pAnimExt->DeathUnitTurretFacing.has_value())
@@ -298,12 +293,10 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 					pTechno->IsFallingDown = true;
 				}
 			}
-			else
-			{
+			else if(IsBridge != pTechno->OnBridge) {
 				pTechno->UpdatePlacement(PlacementType::Remove);
 				pTechno->OnBridge = pCell->ContainsBridge();
 				pTechno->UpdatePlacement(PlacementType::Put);
-				//pTechno->MarkForRedraw();
 			}
 
 			pTechno->QueueMission(pTypeExt->CreateUnit_Mission.Get(), false);

@@ -49,9 +49,8 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 				TechnoExtContainer::Instance.Find(pHunter)->LinkedSW = pThis;
 
 				// put it on the map and let it go
-				CoordStruct crd = CellClass::Cell2Coord(cell);
 
-				if (pHunter->Unlimbo(crd, DirType::East))
+				if (pHunter->Unlimbo(CellClass::Cell2Coord(cell), DirType::East))
 				{
 					pHunter->Locomotor->Acquire_Hunter_Seeker_Target();
 					pHunter->QueueMission((pHunter->Type->Harvester || pHunter->Type->ResourceGatherer) ? Mission::Area_Guard : Mission::Attack, false);
@@ -63,37 +62,6 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 					GameDelete(pHunter);
 				}
 			}
-
-			//bool succededHere = false;
-			//std::vector<std::pair<bool, int>> retries(pExt->HunterSeeker_Type_Count, { false , 3 });
-			//for (auto&[done , att] : retries) {
-			//	if (!done && att > 0) {
-			//		// create a hunter seeker
-			//		if (auto pHunter = static_cast<UnitClass*>(pType->CreateObject(pOwner)))
-			//		{
-			//			if (pHunter->Type->HunterSeeker)
-			//				TechnoExtContainer::Instance.Find(pHunter)->LinkedSW = pThis;
-			//
-			//			// put it on the map and let it go
-			//			CoordStruct crd = CellClass::Cell2Coord(cell);
-
-			//			if (pHunter->Unlimbo(crd, DirType::East)) {
-			//				done = true;
-			//				succededHere = true; //one is counted as succeded
-			//				pHunter->Locomotor->Acquire_Hunter_Seeker_Target();
-			//				pHunter->QueueMission(pHunter->Type->Harvester ? Mission::Area_Guard : Mission::Attack, false);
-			//				pHunter->NextMission();
-			//			} else {
-			//				--att;
-			//				GameDelete<true, false>(pHunter);
-			//			}
-			//		}
-			//	}
-			//}
-			//
-			//if (succededHere){
-			//	++Success;
-			//}
 		});
 
 	// no launch building found
@@ -133,7 +101,6 @@ void SW_HunterSeeker::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 	pData->HunterSeeker_RandomOnly.Read(exINI, section, "HunterSeeker.RandomOnly");
 	pData->HunterSeeker_Buildings.Read(exINI, section, "HunterSeeker.Buildings");
 	pData->HunterSeeker_AllowAttachedBuildingAsFallback.Read(exINI, section, "HunterSeeker.AllowAttachedBuildingAsFallback");
-	pData->HunterSeeker_Type_Count.Read(exINI, section, "HunterSeeker.Count"); // WIP , attached code is disabled atm
 
 	// hardcoded
 	pData->AttachedToObject->Action = Action::None;

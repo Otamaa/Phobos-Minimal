@@ -164,16 +164,18 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 		if (pItem->Strength <= 0)
 		{
-			if (!IsVanillaDummy(pItem->ID) || !pExt->IsDummy)
+			const bool IsUpgradeBld = what == BuildingTypeClass::AbsID && *((BuildingTypeClass*)pItem)->PowersUpBuilding && strlen(((BuildingTypeClass*)pItem)->PowersUpBuilding) > 0;
+
+			if ((!IsVanillaDummy(pItem->ID) || !pExt->IsDummy) && !IsUpgradeBld)
 			{
 				Debug::Log("TechnoType[%s - %s] , registered with 0 strength"
 					", this mostlikely because this technotype has no rules entry"
 					" or it is suppose to be an dummy\n", pItem->ID, myClassName);
 
 				Debug::RegisterParserError();
-			}
 
-			pExt->IsDummy = true;
+				pExt->IsDummy = true;
+			}
 		}
 
 		// if (pExt->AIIonCannonValue.HasValue() && pExt->AIIonCannonValue.size() < 3) {

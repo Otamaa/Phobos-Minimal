@@ -113,14 +113,12 @@ DEFINE_OVERRIDE_HOOK(0x734A5F, CSF_AddOrOverrideLabel, 5)
 {
 	if (CSFLoader::CSFCount > 0)
 	{
-		CSFLabel* pLabel = static_cast<CSFLabel*>(CRT::bsearch(
+		if (CSFLabel* pLabel = static_cast<CSFLabel*>(CRT::bsearch(
 			StringTable::GlobalBuffer(), //label buffer, char[4096]
 			StringTable::Labels(),
 			(size_t)StringTable::LabelCount(),
 			sizeof(CSFLabel),
-			(int(__cdecl*)(const void*, const void*))CRT::strcmpi));
-
-		if (pLabel)
+			(int(__cdecl*)(const void*, const void*))CRT::strcmpi)))
 		{
 			//Label already exists - override!
 
@@ -166,16 +164,7 @@ DEFINE_OVERRIDE_HOOK(0x734A5F, CSF_AddOrOverrideLabel, 5)
 DEFINE_OVERRIDE_HOOK(0x734A97, CSF_SetIndex, 6)
 {
 	R->EDX(StringTable::Labels());
-
-	if (CSFLoader::CSFCount > 0)
-	{
-		R->ECX(CSFLoader::NextValueIndex);
-	}
-	else
-	{
-		R->ECX(R->Stack32(0x18));
-	}
-
+	R->ECX(CSFLoader::CSFCount > 0 ? CSFLoader::NextValueIndex : R->Stack32(0x18));
 	return 0x734AA1;
 }
 
@@ -192,8 +181,7 @@ DEFINE_OVERRIDE_HOOK(0x6BD886, CSF_LoadExtraFiles, 5)
 	IMPL_SNPRNINTF(fname, sizeof(fname), "ares_%s.csf", res);
 	CSFLoader::LoadAdditionalCSF(fname);
 
-	for (int idx = 0; idx < 100; ++idx)
-	{
+	for (int idx = 0; idx < 100; ++idx) {
 		IMPL_SNPRNINTF(fname, sizeof(fname), "stringtable%02d.csf", idx);
 		CSFLoader::LoadAdditionalCSF(fname);
 	}
@@ -206,10 +194,8 @@ DEFINE_OVERRIDE_HOOK(0x734E83, CSF_LoadString_1, 6)
 {
 	GET(const char*, pName, EBX);
 
-	if (!strncmp(pName, "NOSTR:", 6))
-	{
-		const wchar_t* string = CSFLoader::GetDynamicString(pName, L"%hs", &pName[6]);
-		R->EAX(string);
+	if (!strncmp(pName, "NOSTR:", 6)) {
+		R->EAX(CSFLoader::GetDynamicString(pName, L"%hs", &pName[6]));
 		return 0x734F0F;
 	}
 
@@ -219,11 +205,7 @@ DEFINE_OVERRIDE_HOOK(0x734E83, CSF_LoadString_1, 6)
 DEFINE_OVERRIDE_HOOK(0x734EC2, CSF_LoadString_2, 7)
 {
 	GET(const char*, pName, EBX);
-
-	const wchar_t* string = CSFLoader::GetDynamicString(pName, L"MISSING:'%hs'", pName);
-
-	R->EAX(string);
-
+	R->EAX(CSFLoader::GetDynamicString(pName, L"MISSING:'%hs'", pName));
 	return 0x734F0F;
 }
 #endif
