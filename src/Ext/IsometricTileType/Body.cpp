@@ -11,95 +11,65 @@ LightConvertClass* IsometricTileTypeExtData::GetLightConvert(IsometricTileTypeCl
 	if (!DSurface::Primary())
 		return nullptr;
 
-	if(pOvrl){
+	const char* ConverName = "ISO_X.PAL";
+	BytePalette* pISOPal = &FileSystem::ISOx_PAL;
+
+	if(pOvrl) {
 		auto pExt = IsometricTileTypeExtContainer::Instance.Find(pOvrl);
-
-		if (pExt->Palette) {
-
-			auto& entities = IsometricTileTypeExtContainer::LightConvertEntities[pExt->Palette->Name.data()];
-
-			ScenarioClass::Instance->ScenarioLighting(&r, &g, &b);
-			TintStruct tint(r, g, b);
-			auto Iter = entities.find(tint);
-
-			if (Iter != entities.end())
-			{
-				if (!Iter->second)
-				{
-					LightConvertClass* pLightConvert = GameCreate<LightConvertClass>
-						(
-							pExt->Palette->Palette.get(),
-							&FileSystem::TEMPERAT_PAL,
-							DSurface::Primary,
-							r,
-							g,
-							b,
-							!entities.empty(),
-							nullptr,
-							(r + g + b < 2000 ? 27 : 53)
-						);
-
-					LightConvertClass::Array->AddItem(pLightConvert);
-					Iter->second = pLightConvert;
-				}
-			}
-			else
-			{
-				LightConvertClass* pLightConvert = GameCreate<LightConvertClass>
-					(
-						pExt->Palette->Palette.get(),
-						&FileSystem::TEMPERAT_PAL,
-						DSurface::Primary,
-						r,
-						g,
-						b,
-						!entities.empty(),
-						nullptr,
-						(r + g + b < 2000 ? 27 : 53)
-					);
-
-				LightConvertClass::Array->AddItem(pLightConvert);
-				entities.emplace(tint, pLightConvert);
-			}
-
-			return Iter->second;
+		if(pExt->Palette) {
+			ConverName = pExt->Palette->Name;
+			pISOPal = pExt->Palette->Palette.get();
 		}
 	}
 
-	if (r == 1000 && g == 1000 && b == 1000 && LightConvertClass::Array->Count)
-		return LightConvertClass::Array->Items[0];
+	auto& entities = IsometricTileTypeExtContainer::LightConvertEntities[ConverName];
 
 	ScenarioClass::Instance->ScenarioLighting(&r, &g, &b);
-	if (LightConvertClass::Array->Count <= 1)
+	TintStruct tint(r, g, b);
+	auto Iter = entities.find(tint);
+
+	if (Iter != entities.end())
+	{
+		if (!Iter->second)
+		{
+			LightConvertClass* pLightConvert = GameCreate<LightConvertClass>
+				(
+					pISOPal,
+					&FileSystem::TEMPERAT_PAL,
+					DSurface::Primary,
+					r,
+					g,
+					b,
+					false,
+					nullptr,
+					(r + g + b < 2000 ? 27 : 53)
+				);
+
+			LightConvertClass::Array->AddItem(pLightConvert);
+			Iter->second = pLightConvert;
+		}
+
+		return Iter->second;
+	}
+	else
 	{
 		LightConvertClass* pLightConvert = GameCreate<LightConvertClass>
 			(
-				&FileSystem::ISOx_PAL,
+				pISOPal,
 				&FileSystem::TEMPERAT_PAL,
 				DSurface::Primary,
 				r,
 				g,
 				b,
-				LightConvertClass::Array->Count != 0,
+				false,
 				nullptr,
-				((r + g + b) < 2000 ? 27 : 53)
+				(r + g + b < 2000 ? 27 : 53)
 			);
 
 		LightConvertClass::Array->AddItem(pLightConvert);
+		entities[tint] = pLightConvert;
 		return pLightConvert;
 	}
-	else
-	{
-		for(int i = 1; i < LightConvertClass::Array->Count; ++i)  {
-			if (LightConvertClass::Array->Items[i]->Color1.Red == r && 
-				LightConvertClass::Array->Items[i]->Color1.Green == g && 
-				LightConvertClass::Array->Items[i]->Color1.Blue == b
-				)
-				return LightConvertClass::Array->Items[i];
-		}
-	}
-	
-	return nullptr;
 }
 
 // =============================
