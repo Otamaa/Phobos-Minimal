@@ -411,6 +411,7 @@ NOINLINE INIClass::INISection* GetInheritedSection(INIClass* pThis, char* ptr)
 
 						if (auto section = pThis->GetSection(copy_2_2))
 						{
+							//Debug::Log("Apply Inheritance for [%s].\n" , ptr);
 							return section;
 						}
 

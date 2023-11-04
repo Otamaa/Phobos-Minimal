@@ -924,6 +924,8 @@ struct TargetingFuncs
 					}
 				}
 			}
+		} else {
+			Debug::Log("Uneable to fire SW [%s - %s] , AuxTechno is empty!\n", pTargeting->TypeExt->AttachedToObject->ID, pTargeting->Owner->Type->ID);
 		}
 
 		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };

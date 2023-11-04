@@ -146,6 +146,7 @@ public:
 		AudioBag(AudioBag&& other) noexcept {
 			this->Entries = std::move(other.Entries);
 			this->Bag = std::move(other.Bag);
+			this->BagFile = std::move(other.BagFile);
 		};
 
 	private:
@@ -167,8 +168,6 @@ public:
 					AudioIDXHeader headerIndex {};
 					if(pIndex.ReadBytes(&headerIndex, sizeof(AudioIDXHeader)) == sizeof(AudioIDXHeader))
 					{
-						//std::vector<AudioIDXEntry> entries;
-
 						Debug::Log("Reading [%s from %s] file with [%d] samples!.\n", filename, pIndex.GetFileName(), headerIndex.numSamples);
 
 						if (headerIndex.numSamples > 0)
@@ -202,18 +201,20 @@ public:
 					}
 
 					this->Bag = std::move(pBag);
+					this->BagFile = filename;
 				}
 			}
 		}
 
 	public:
+		std::string BagFile;
 		UniqueGamePtrB<CCFileClass> Bag; //big file that contains the audios
 		std::vector<AudioIDXEntry> Entries; //every audio data that sit inside the file above
 	};
 
 	AudioIDXData* Pack(const char* pPath = nullptr)
 	{
-		std::map<AudioIDXEntry , std::pair<int, CCFileClass*>,std::less<AudioIDXEntry>> map;
+		std::map<AudioIDXEntry , std::tuple<int, CCFileClass*, std::string>,std::less<AudioIDXEntry>> map;
 
 		for (size_t i = 0; i < this->Bags.size(); ++i) {
 			if (this->Bags[i].Bag.get()) {
@@ -222,17 +223,27 @@ public:
 
 					//no entry , put one
 					if (find == map.end()) {
-						map.emplace(ent, std::make_pair(i , this->Bags[i].Bag.get())).first;
+						map.emplace(ent, std::make_tuple(i , this->Bags[i].Bag.get() , this->Bags[i].BagFile));
 					}
 					else
 					{
 						//update the data with the new one
 						auto node = map.extract(find);
 						node.key().update(ent);
-						auto& [idx, file] = node.mapped();
-						Debug::Log("Replacing audio %s from : [%d - %s] to [%d - %s].\n", ent.Name, idx, file->FileName, i, this->Bags[i].Bag->FileName);
+						auto& [idx, file , bagFileName] = node.mapped();
+						Debug::Log("Replacing audio `%s` from : [%d - (%s - %s)] to : [%d - (%s - %s)].\n", 
+							ent.Name,
+							idx, 
+							file->FileName ,
+							bagFileName.c_str(), 
+							i,
+							this->Bags[i].Bag->FileName,
+							this->Bags[i].BagFile.c_str()
+						);
+
 						idx = i;
 						file = this->Bags[i].Bag.get();
+						bagFileName = this->Bags[i].BagFile;
 						map.insert(std::move(node));
 					}
 				}
@@ -257,7 +268,7 @@ public:
 			//);
 			std::memcpy(&Indexes->Samples[i++], &entry, sizeof(AudioIDXEntry));
 
-			this->Files.push_back(data);
+			this->Files.emplace_back(std::get<0>(data) , std::get<1>(data));
 		}
 
 		return Indexes;

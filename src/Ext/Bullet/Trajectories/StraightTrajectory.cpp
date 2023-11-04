@@ -137,6 +137,9 @@ void StraightTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity
 	this->FirerZPosition = this->GetFirerZPosition();
 	this->TargetZPosition = this->GetTargetPosition().Z;
 
+	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
+	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
+	pBullet->Velocity.Z = this->GetVelocityZ();
 	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Length();
 }
 
@@ -178,9 +181,7 @@ void StraightTrajectory::OnAIPreDetonate()
 
 void StraightTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition)
 {
-	auto const pBullet = this->AttachedTo;
-	auto const pTypeExt = BulletTypeExtContainer::Instance.Find(pBullet->Type);
-	pSpeed->Z += pTypeExt->GetAdjustedGravity(); // We don't want to take the gravity into account
+	pSpeed->Z += BulletTypeExtContainer::Instance.Find(this->AttachedTo->Type)->GetAdjustedGravity(); // We don't want to take the gravity into account
 }
 
 TrajectoryCheckReturnType StraightTrajectory::OnAITargetCoordCheck(CoordStruct& coords)
