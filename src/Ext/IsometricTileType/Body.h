@@ -30,7 +30,7 @@ public :
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-	LightConvertClass* GetLightConvert(int r, int g, int b);
+	static LightConvertClass* GetLightConvert(IsometricTileTypeClass* pOvrl , int r, int g, int b);
 
 private:
 	template <typename T>

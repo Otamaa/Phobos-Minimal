@@ -6,53 +6,100 @@
 int IsometricTileTypeExtContainer::CurrentTileset = -1;
 std::map<std::string, std::map<TintStruct, LightConvertClass*>> IsometricTileTypeExtContainer::LightConvertEntities;
 
-LightConvertClass* IsometricTileTypeExtData::GetLightConvert(int r, int g, int b)
+LightConvertClass* IsometricTileTypeExtData::GetLightConvert(IsometricTileTypeClass* pOvrl, int r, int g, int b)
 {
-	auto& entities = IsometricTileTypeExtContainer::LightConvertEntities[this->Palette->Name.data()];
+	if (!DSurface::Primary())
+		return nullptr;
 
-	ScenarioClass::Instance->ScenarioLighting(&r, &g, &b);
-	TintStruct tint(r, g, b);
-	auto Iter = entities.find(tint);
+	if(pOvrl){
+		auto pExt = IsometricTileTypeExtContainer::Instance.Find(pOvrl);
 
-	if (Iter != entities.end()) {
-		if (!Iter->second) {
-			LightConvertClass* pLightConvert = GameCreate<LightConvertClass>
-				(
-					this->Palette->Palette.get(),
-					&FileSystem::TEMPERAT_PAL,
-					DSurface::Primary,
-					r,
-					g,
-					b,
-					!entities.empty(),
-					nullptr,
-					(r + g + b < 2000 ? 27 : 53)
-				);
+		if (pExt->Palette) {
 
-			LightConvertClass::Array->AddItem(pLightConvert);
-			Iter->second = pLightConvert;
+			auto& entities = IsometricTileTypeExtContainer::LightConvertEntities[pExt->Palette->Name.data()];
+
+			ScenarioClass::Instance->ScenarioLighting(&r, &g, &b);
+			TintStruct tint(r, g, b);
+			auto Iter = entities.find(tint);
+
+			if (Iter != entities.end())
+			{
+				if (!Iter->second)
+				{
+					LightConvertClass* pLightConvert = GameCreate<LightConvertClass>
+						(
+							pExt->Palette->Palette.get(),
+							&FileSystem::TEMPERAT_PAL,
+							DSurface::Primary,
+							r,
+							g,
+							b,
+							!entities.empty(),
+							nullptr,
+							(r + g + b < 2000 ? 27 : 53)
+						);
+
+					LightConvertClass::Array->AddItem(pLightConvert);
+					Iter->second = pLightConvert;
+				}
+			}
+			else
+			{
+				LightConvertClass* pLightConvert = GameCreate<LightConvertClass>
+					(
+						pExt->Palette->Palette.get(),
+						&FileSystem::TEMPERAT_PAL,
+						DSurface::Primary,
+						r,
+						g,
+						b,
+						!entities.empty(),
+						nullptr,
+						(r + g + b < 2000 ? 27 : 53)
+					);
+
+				LightConvertClass::Array->AddItem(pLightConvert);
+				entities.emplace(tint, pLightConvert);
+			}
+
+			return Iter->second;
 		}
 	}
-	else
+
+	if (r == 1000 && g == 1000 && b == 1000 && LightConvertClass::Array->Count)
+		return LightConvertClass::Array->Items[0];
+
+	ScenarioClass::Instance->ScenarioLighting(&r, &g, &b);
+	if (LightConvertClass::Array->Count <= 1)
 	{
 		LightConvertClass* pLightConvert = GameCreate<LightConvertClass>
 			(
-				this->Palette->Palette.get(),
+				&FileSystem::ISOx_PAL,
 				&FileSystem::TEMPERAT_PAL,
 				DSurface::Primary,
 				r,
 				g,
 				b,
-				!entities.empty(),
+				LightConvertClass::Array->Count != 0,
 				nullptr,
-				(r + g + b < 2000 ? 27 : 53)
+				((r + g + b) < 2000 ? 27 : 53)
 			);
 
 		LightConvertClass::Array->AddItem(pLightConvert);
-		entities.emplace(tint, pLightConvert);
+		return pLightConvert;
 	}
-
-	return Iter->second;
+	else
+	{
+		for(int i = 1; i < LightConvertClass::Array->Count; ++i)  {
+			if (LightConvertClass::Array->Items[i]->Color1.Red == r && 
+				LightConvertClass::Array->Items[i]->Color1.Green == g && 
+				LightConvertClass::Array->Items[i]->Color1.Blue == b
+				)
+				return LightConvertClass::Array->Items[i];
+		}
+	}
+	
+	return nullptr;
 }
 
 // =============================
@@ -63,7 +110,7 @@ void IsometricTileTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 	this->Tileset = IsometricTileTypeExtContainer::CurrentTileset;
 
 	char pSection[16];
-	sprintf(pSection, "TileSet%04d", IsometricTileTypeExtContainer::CurrentTileset);
+	IMPL_SNPRNINTF(pSection, sizeof(pSection), "TileSet%04d", IsometricTileTypeExtContainer::CurrentTileset);
 	INI_EX exINI(pINI);
 
 	this->Palette.Read(exINI, pSection, "CustomPalette");
@@ -135,7 +182,7 @@ DEFINE_HOOK(0x54642E, IsometricTileTypeClass_LoadFromINI, 0x6)
 	GET(IsometricTileTypeClass*, pItem, EBP);
 	LEA_STACK(CCINIClass*, pINI, STACK_OFFS(0xA10, 0x9D8));
 
-	IsometricTileTypeExtContainer::Instance.LoadFromINI(pItem, pINI , false);
+	IsometricTileTypeExtContainer::Instance.LoadFromINI(pItem, pINI, false);
 	return 0;
 }
 
