@@ -16,6 +16,7 @@ bool AresAttachEffectTypeClass::Load(PhobosStreamReader& Stm, bool RegisterForCh
 		.Process(this->ArmorMultiplier)
 		.Process(this->SpeedMultiplier)
 		.Process(this->ROFMultiplier)
+		.Process(this->ReceiveRelativeDamageMult)
 		.Process(this->Cloakable)
 		.Process(this->Delay)
 		.Success()
@@ -37,6 +38,7 @@ bool AresAttachEffectTypeClass::Save(PhobosStreamWriter& Stm) const
 		.Process(this->ArmorMultiplier)
 		.Process(this->SpeedMultiplier)
 		.Process(this->ROFMultiplier)
+		.Process(this->ReceiveRelativeDamageMult)
 		.Process(this->Cloakable)
 		.Process(this->Delay)
 		.Success()
@@ -60,6 +62,7 @@ void AresAttachEffectTypeClass::Read(INI_EX& exINI)
 	this->ArmorMultiplier.Read(exINI, pSection, "AttachEffect.ArmorMultiplier");
 	this->SpeedMultiplier.Read(exINI, pSection, "AttachEffect.SpeedMultiplier");
 	this->ROFMultiplier.Read(exINI, pSection, "AttachEffect.ROFMultiplier");
+	this->ReceiveRelativeDamageMult.Read(exINI, pSection, "AttachEffect.ReceiveRelativeDamageMultiplier");
 	this->Cloakable.Read(exINI, pSection, "AttachEffect.Cloakable");
 	this->Delay.Read(exINI, pSection, "AttachEffect.Delay");
 	this->InitialDelay.Read(exINI, pSection, "AttachEffect.InitialDelay");

@@ -1561,7 +1561,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 
 			.Process(this->Spawner_SpawnOffsets_OverrideWeaponFLH);
 
-		Debug::Log("AboutToLoad Otammaa\n");
+		//Debug::Log("AboutToLoad Otammaa\n");
 #pragma region Otamaa
 		Stm
 		.Process(this->FacingRotation_Disable)

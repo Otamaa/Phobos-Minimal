@@ -788,6 +788,8 @@ bool WarheadTypeExtData::applyCulling(TechnoClass* pSource, ObjectClass* pTarget
 
 int NOINLINE GetRelativeValue(ObjectClass* pTarget, WarheadTypeExtData* pWHExt) {
 	auto const pWhat = pTarget->WhatAmI();
+	bool IsTechno = false;
+	int relative = 0;
 
 	switch (pWhat)
 	{
@@ -796,28 +798,42 @@ int NOINLINE GetRelativeValue(ObjectClass* pTarget, WarheadTypeExtData* pWHExt) 
 		const auto pUnit = static_cast<UnitClass*>(pTarget);
 
 		if (pUnit->Type->ConsideredAircraft)
-			return pWHExt->RelativeDamage_AirCraft;
+			relative =  pWHExt->RelativeDamage_AirCraft;
 		else if (pUnit->Type->Organic)
-			return pWHExt->RelativeDamage_Infantry;
+			relative =  pWHExt->RelativeDamage_Infantry;
 		else
-			return pWHExt->RelativeDamage_Unit;
+			relative =  pWHExt->RelativeDamage_Unit;
+	IsTechno = true;
+	break;
 	}
 	case AircraftClass::AbsID:
 	{
 		if (static_cast<AircraftClass*>(pTarget)->Type->Organic)
-			return pWHExt->RelativeDamage_Infantry;
+			relative =  pWHExt->RelativeDamage_Infantry;
 		else
-			return pWHExt->RelativeDamage_AirCraft;
+			relative =  pWHExt->RelativeDamage_AirCraft;
+
+	IsTechno = true;
+	break;
 	}
 	case BuildingClass::AbsID:
-		return pWHExt->RelativeDamage_Building;
+		relative =  pWHExt->RelativeDamage_Building;
+	IsTechno = true;
+	break;
 	case InfantryClass::AbsID:
-		return pWHExt->RelativeDamage_Infantry;
+		relative =  pWHExt->RelativeDamage_Infantry;
+	IsTechno = true;
+	break;
 	case TerrainClass::AbsID:
 		return pWHExt->RelativeDamage_Terrain;
 	}
 
-	return 0;
+	if(IsTechno && relative > 0) {
+		const auto pExt = TechnoExtContainer::Instance.Find((TechnoClass*)pTarget);
+		relative *= pExt->AE_ReceiveRelativeDamageMult;
+	}
+
+	return relative;
 }
 
 void WarheadTypeExtData::applyRelativeDamage(ObjectClass* pTarget, args_ReceiveDamage* pArgs) const

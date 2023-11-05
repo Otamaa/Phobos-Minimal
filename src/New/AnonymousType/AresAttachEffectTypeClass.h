@@ -25,6 +25,7 @@ public:
 	Valueable<double> ArmorMultiplier { 1.0 };
 	Valueable<double> SpeedMultiplier { 1.0 };
 	Valueable<double> ROFMultiplier { 1.0 };
+	Valueable<double> ReceiveRelativeDamageMult { 1.0 };
 	Valueable<bool> Cloakable { false };
 
 	//#1623-only tags

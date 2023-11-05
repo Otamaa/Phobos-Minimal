@@ -23,9 +23,9 @@ private:
 	inline bool Serialize(T& stm)
 	{
 		return stm
-			.Process(Shapes)
-			.Process(Frame)
-			.Process(Frames)
+			.Process(this->Shapes)
+			.Process(this->Frame)
+			.Process(this->Frames)
 			.Success();
 	}
 };

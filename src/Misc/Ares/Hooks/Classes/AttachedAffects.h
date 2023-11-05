@@ -64,10 +64,10 @@ private:
 
 struct AresAEData
 {
-	std::vector<AresAE> Data;
-	int InitialDelay;
-	BYTE NeedToRecreateAnim;
-	BYTE Isset;
+	std::vector<AresAE> Data {};
+	int InitialDelay { 0 };
+	BYTE NeedToRecreateAnim {};
+	BYTE Isset {};
 
 	void InvalidatePointer(AnimClass* ptr, bool bDetach)
 	{

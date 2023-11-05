@@ -7,6 +7,7 @@
 void NOINLINE AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 {
 	double ROF_Mult = 1.0;
+	double ReceiveRelativeDamageMult = 1.0;
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	double FP_Mult = pExt->AE_FirePowerMult;
 	double Armor_Mult = pExt->AE_ArmorMult;
@@ -17,6 +18,7 @@ void NOINLINE AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 	{
 		//the class aligment is different , so it probably broke something
 		ROF_Mult *= ae.Type->ROFMultiplier;
+		ReceiveRelativeDamageMult *= ae.Type->ReceiveRelativeDamageMult;
 		FP_Mult *= ae.Type->FirepowerMultiplier;
 		Speed_Mult *= ae.Type->SpeedMultiplier;
 		Armor_Mult *= ae.Type->ArmorMultiplier;
@@ -26,6 +28,7 @@ void NOINLINE AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 	pThis->FirepowerMultiplier = FP_Mult;
 	pThis->ArmorMultiplier = Armor_Mult;
 	pExt->AE_ROF = ROF_Mult;
+	pExt->AE_ReceiveRelativeDamageMult = ReceiveRelativeDamageMult;
 	pThis->Cloakable = Cloak;
 
 	if (pThis->AbstractFlags & AbstractFlags::Foot)

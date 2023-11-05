@@ -55,6 +55,7 @@ public:
 	double AE_FirePowerMult { 1.0 };
 	double AE_ArmorMult { 1.0 };
 	double AE_SpeedMult { 1.0 };
+	double AE_ReceiveRelativeDamageMult { 1.0 };
 	BYTE AE_Cloak { false };
 
 	BYTE idxSlot_Wave { 0 }; //5
