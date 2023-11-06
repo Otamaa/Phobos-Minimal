@@ -80,7 +80,7 @@ DEFINE_HOOK(0x5F53DB, ObjectClass_ReceiveDamage_Handled, 0xA)
 	const int pTypeStr = pObject->GetType()->Strength;
 	const int nDamage = *args.Damage;
 	R->EBP(pTypeStr);
-	R->Stack(0x38, pTypeStr);
+	R->Stack(0x38, pObject->Health);
 	R->ECX(nDamage);
 
 	if (!nDamage)

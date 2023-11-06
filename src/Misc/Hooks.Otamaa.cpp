@@ -4152,25 +4152,27 @@ int AdjustDamageWithArmor(int damage, WarheadTypeClass* pWH, ObjectClass* pTarge
 	return MapClass::ModifyDamage(damage, pWH, TechnoExtData::GetArmor(pTarget), distance);
 }
 
-DEFINE_HOOK(0x5F53F7, ObjectClass_ReceiveDamage_Adjust, 0x5)
-{
-	GET(ObjectClass*, pThis, ESI);
-	GET(int, distance, EAX);
-	GET(int*, pDamage, EDI);
-	GET_STACK(WarheadTypeClass*, pWH, 0x24 + 0xC);
+//handled on ObjectClass_ReceiveDamage_Handled
+//DEFINE_HOOK(0x5F53F7, ObjectClass_ReceiveDamage_Adjust, 0x5)
+//{
+//	GET(ObjectClass*, pThis, ESI);
+//	GET(int, distance, EAX);
+//	GET(int*, pDamage, EDI);
+//	GET_STACK(WarheadTypeClass*, pWH, 0x24 + 0xC);
+//
+//	R->EAX(AdjustDamageWithArmor(*pDamage, pWH, pThis, distance));
+//	return 0x5F5414;
+//}
 
-	R->EAX(AdjustDamageWithArmor(*pDamage, pWH, pThis, distance));
-	return 0x5F5414;
-}
-
-DEFINE_HOOK(0x701D4D, TechnoClass_ReceiveDamage_Adjust, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(WarheadTypeClass*, pWH, EBP);
-	GET(int*, pDamage, EBX);
-	R->EAX(AdjustDamageWithArmor(*pDamage , pWH , pThis , 0));
-	return 0x701D69;
-}
+// for berzerk , unused 
+//DEFINE_HOOK(0x701D4D, TechnoClass_ReceiveDamage_Adjust, 0x6)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//	GET(WarheadTypeClass*, pWH, EBP);
+//	GET(int*, pDamage, EBX);
+//	R->EAX(AdjustDamageWithArmor(*pDamage , pWH , pThis , 0));
+//	return 0x701D69;
+//}
 
 DEFINE_HOOK(0x6FDD0A, TechnoClass_AdjustDamage_Armor, 0x6)
 {
@@ -4180,6 +4182,26 @@ DEFINE_HOOK(0x6FDD0A, TechnoClass_AdjustDamage_Armor, 0x6)
 	R->EAX(AdjustDamageWithArmor(damage , pWeapon->Warhead , pThis, 0));
 	return 0x6FDD2E;
 }
+
+DEFINE_HOOK(0x52D36F, RulesClass_init_AIMD, 0x5)
+{
+	GET(CCFileClass*, pFile, EAX);
+	Debug::Log("Init %s file\n", pFile->GetFileName());
+	return 0x0;
+}
+
+//DEFINE_HOOK(0x4F8A9B, HouseClass_AI_SuggestTeams, 0x6)
+//{
+//	GET(HouseClass*, pThis, ESI);
+//	GET(int, suggestedCount, EAX);
+//
+//	if (suggestedCount <= 0){
+//		Debug::Log("House [%s][Ratio : %d , AITriggersActive : %d ] Cannot get Any Team , please check your configuration!\n", pThis->get_ID() ,pThis->RatioAITriggerTeam, pThis->AITriggersActive);
+//		return 0x4F8ABB;
+//	}
+//
+//	return 0x4F8A9F;
+//}
 
 //DEFINE_HOOK(0x7272AE ,TriggerTypeClass_LoadFromINI_CountryName, 7)
 //{

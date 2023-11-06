@@ -1161,21 +1161,16 @@ DEFINE_OVERRIDE_HOOK(0x451E40, BuildingClass_DestroyNthAnim_Destroy, 0x7)
 
 	if (AnimState == -2)
 	{
-		for (auto& pAnim : pThis->Anims)
-		{
-			if (pAnim) {
-				//pAnim->Limbo();
+		for (int i = 0; i < 21; ++i) {
+			if (auto pAnim = std::exchange(pThis->Anims[i], nullptr)) {
 				pAnim->UnInit();
-				pAnim = nullptr;
 			}
 		}
 	}
 	else
 	{
-		if (auto& pAnim = pThis->Anims[AnimState]) {
-			//pAnim->Limbo();
+		if (auto pAnim = std::exchange(pThis->Anims[AnimState] , nullptr)) {
 			pAnim->UnInit();
-			pAnim = nullptr;
 		}
 	}
 

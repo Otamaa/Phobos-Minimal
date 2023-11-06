@@ -56,29 +56,44 @@ DEFINE_HOOK(0x489180, MapClass_GetTotalDamage, 0x6)
 	GET_STACK(int, armorIdx, 0x4);
 	GET_STACK(int, distance, 0x8);
 
+	int res = 0;
+
 	if (damage == 0
-		|| ScenarioClass::Instance->SpecialFlags.StructEd.Inert)
+		|| ScenarioClass::Instance->SpecialFlags.StructEd.Inert
+		|| !pWH
+		)
 	{
 		R->EAX(0);
 		return 0x48926A;
 	}
 
 	const auto pExt = WarheadTypeExtContainer::Instance.Find(pWH);
-	const double Atmax = (double)damage * (double)pWH->PercentAtMax;
-	const int cellSpreadRadius = Game::F2I(pWH->CellSpread * 256.0);
-	const auto vsData = &pExt->Verses[armorIdx];
 
-	int damageTotal = damage;
+	if (damage > 0 || pExt->ApplyModifiersOnNegativeDamage)
+	{
+		const float fDamage = float((double)damage);
+		const double dcellSpreadRadius = pWH->CellSpread * 256.0;
+		const int cellSpreadRadius = int(dcellSpreadRadius);
 
-	if (fabs(Atmax - damage) >= 1e-4 && cellSpreadRadius != 0)
-		damageTotal = Game::F2I((damage - Atmax) * (cellSpreadRadius - distance) / cellSpreadRadius + Atmax);
+		const float Atmax = float((double)damage * (double)pWH->PercentAtMax);
+		const auto vsData = &pExt->Verses[armorIdx];
 
-	if (damage > 0)
-		damageTotal = Game::F2I((damageTotal < 0 ? 0 : damageTotal) * vsData->Verses);
+		if (Atmax != fDamage && cellSpreadRadius) {
+			res = int((fDamage - Atmax) * (cellSpreadRadius - distance) / dcellSpreadRadius + Atmax);
+		}
+
+		res = int(((res <= 0) ? 0 : res) * vsData->Verses);
+		Debug::Log("ResultDamage %d Caller [%x]\n", res , R->Stack<DWORD>(0x0));
+
+		if (res >= RulesClass::Instance->MaxDamage)
+			res = RulesClass::Instance->MaxDamage;
+	}
 	else
-		damageTotal = Game::F2I((damageTotal > 0 ? 0 : damageTotal) * vsData->Verses);
+	{
+		res = distance >= 8 ? 0 : damage;
+	}
 
-	R->EAX(damageTotal >= RulesClass::Instance->MaxDamage ? RulesClass::Instance->MaxDamage : damageTotal);
+	R->EAX(res);
 	return 0x48926A;
 }
 

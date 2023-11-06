@@ -198,7 +198,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->GattlingRateUp.Read(exINI, pSection, "TargetGattlingRateUp");
 	this->ReloadAmmo.Read(exINI, pSection, "TargetReloadAmmo");
 
-	this->MindControl_UseTreshold.Read(exINI, pSection, "MindControl.UseTreshold");
+	this->MindControl_UseTreshold.Read(exINI, pSection, "MindControl.UseThreshold");
 	this->MindControl_Threshold.Read(exINI, pSection, "MindControl.Threshold");
 	this->MindControl_Threshold_Inverse.Read(exINI, pSection, "MindControl.Threshold.Inverse");
 	this->MindControl_AlternateDamage.Read(exINI, pSection, "MindControl.AlternateDamage");

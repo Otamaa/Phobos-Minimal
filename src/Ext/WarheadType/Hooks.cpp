@@ -186,19 +186,19 @@ DEFINE_HOOK(0x48A4F3, SelectDamageAnimation_NegativeZeroDamage, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x4891AF, GetTotalDamage_NegativeDamageModifiers, 0x6)
-{
-	enum { ApplyModifiers = 0x4891C6 };
-
-	GET(WarheadTypeClass* const, pWarhead, EDI);
-
-	auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
-
-	if (pWHExt->ApplyModifiersOnNegativeDamage)
-		return ApplyModifiers;
-
-	return 0;
-}
+// DEFINE_HOOK(0x4891AF, GetTotalDamage_NegativeDamageModifiers, 0x6)
+// {
+// 	enum { ApplyModifiers = 0x4891C6 };
+//
+// 	GET(WarheadTypeClass* const, pWarhead, EDI);
+//
+// 	auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
+//
+// 	if (pWHExt->ApplyModifiersOnNegativeDamage)
+// 		return ApplyModifiers;
+//
+// 	return 0;
+// }
 
 //DEFINE_HOOK(0x489B49, MapClass_DamageArea_Rocker, 0xA)
 //{
