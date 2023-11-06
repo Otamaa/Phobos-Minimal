@@ -1692,15 +1692,17 @@ void FormulateTypeList(std::vector<TechnoTypeClass*>& types, TechnoTypeClass** i
 	}
 }
 
-void GetTypeList(ValueableVector<TechnoTypeClass*>& types)
+std::vector<TechnoTypeClass*> GetTypeList()
 {
 	DWORD avaibleHouses = 0u;
+	std::vector<TechnoTypeClass*> types;
+	types.reserve(InfantryTypeClass::Array->Count + UnitTypeClass::Array->Count);
 
 	for (auto pHouse : *HouseClass::Array) {
 		if (!pHouse->Type->MultiplayPassive) {
 
 			const auto& data = HouseTypeExtContainer::Instance.Find(pHouse->Type)->StartInMultiplayer_Types;
-			if (!data.empty()) {
+			if (data.HasValue()) {
 				types.insert(types.end(), data.begin(), data.end());
 			} else {
 				avaibleHouses |= 1 << pHouse->Type->ArrayIndex;
@@ -1713,7 +1715,7 @@ void GetTypeList(ValueableVector<TechnoTypeClass*>& types)
 
 	//remove any `BaseUnit` included 
 	//base unit given for free then ?
-	auto Iter = std::find_if(types.begin() , types.end(), [](TechnoTypeClass* pItem) {
+	auto Iter = std::remove_if(types.begin() , types.end(), [](TechnoTypeClass* pItem) {
 		for (int i = 0; i < RulesClass::Instance->BaseUnit.Count; ++i) {
 			if (pItem == (RulesClass::Instance->BaseUnit.Items[i])) {
 				return true;
@@ -1732,6 +1734,7 @@ void GetTypeList(ValueableVector<TechnoTypeClass*>& types)
 
 	std::sort(types.begin(), types.end());
 	types.erase(std::unique(types.begin(), types.end()), types.end());
+	return types;
 }
 
 int GetTotalCost(const Nullable<int>& fixed)
@@ -1744,9 +1747,7 @@ int GetTotalCost(const Nullable<int>& fixed)
 		totalCost = fixed;
 	}else{
 
-		ValueableVector<TechnoTypeClass*> types {};
-		GetTypeList(types);
-
+		auto types = GetTypeList();
 		int total_ = 0;
 
 		for (auto& tech : types) {

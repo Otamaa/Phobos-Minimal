@@ -1370,6 +1370,17 @@ void ScriptExtData::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 				}
 			}
 		}
+		else
+		{
+			pTeam->StepCompleted = true;
+			ScriptExtData::Log("AI Scripts - PickRandomScript: [%s] [%s] Failed to change the Team Script with index [%d]!\n",
+				pTeam->Type->ID,
+				pTeam->CurrentScript->Type->ID,
+				idxScriptsList
+			);
+
+			return;
+		}
 	}
 
 	// This action finished
