@@ -83,7 +83,7 @@ DEFINE_HOOK(0x489180, MapClass_GetTotalDamage, 0x6)
 		}
 
 		res = int(((res <= 0) ? 0 : res) * vsData->Verses);
-		Debug::Log("ResultDamage %d Caller [%x]\n", res , R->Stack<DWORD>(0x0));
+		//Debug::Log("ResultDamage %d Caller [%x]\n", res , R->Stack<DWORD>(0x0));
 
 		if (res >= RulesClass::Instance->MaxDamage)
 			res = RulesClass::Instance->MaxDamage;

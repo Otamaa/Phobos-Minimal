@@ -31,6 +31,26 @@ DEFINE_DISABLE_HOOK(0x5f53e5, ObjectClass_ReceiveDamage_Relative_ares)
 DEFINE_DISABLE_HOOK(0x5f5456, ObjectClass_ReceiveDamage_Culling_ares)
 DEFINE_DISABLE_HOOK(0x41668B, AircraftClass_ReceiveDamage_Survivours_ares)
 
+//DEFINE_HOOK(0x489280, Dmage_Area_Caller, 0x6)
+//{
+//	GET_STACK(DWORD, caller, 0x0);
+//	Debug::Log("DamageArea Called %x.\n", caller);
+//
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x737C90 , UnitClass_TakeDamage_caller ,0x5)
+//{
+//	GET(UnitClass*, pThis, ECX);
+//	REF_STACK(args_ReceiveDamage, args, 0x4);
+//	GET_STACK(DWORD, caller, 0x0);
+//
+//	if (IS_SAME_STR_(pThis->Type->ID, "HARV"))
+//		Debug::Log("Harv [%s]DamageResult %d , HP %d/%d Called %x.\n", args.WH->ID, *args.Damage, pThis->Health, pThis->Type->Strength , caller);
+//
+//	return 0x0;
+//}
+
 DEFINE_HOOK(0x5F53DB, ObjectClass_ReceiveDamage_Handled, 0xA)
 {
 	enum
@@ -44,6 +64,7 @@ DEFINE_HOOK(0x5F53DB, ObjectClass_ReceiveDamage_Handled, 0xA)
 	GET(ObjectClass*, pObject, ESI);
 	REF_STACK(args_ReceiveDamage, args, STACK_OFFSET(0x24, 0x4));
 
+	const auto pType = pObject->GetType();
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(args.WH);
 	const bool bIgnoreDefenses = R->BL();
 
@@ -77,11 +98,15 @@ DEFINE_HOOK(0x5F53DB, ObjectClass_ReceiveDamage_Handled, 0xA)
 			*args.Damage = pObject->Health;
 	}
 
-	const int pTypeStr = pObject->GetType()->Strength;
+	const int MaxStr = pType->Strength;
+	const int CurStr = R->Stack<int>(0x14);
 	const int nDamage = *args.Damage;
-	R->EBP(pTypeStr);
-	R->Stack(0x38, pObject->Health);
+	R->EBP(MaxStr);
+	R->Stack(0x38, MaxStr);
 	R->ECX(nDamage);
+
+	//if (IS_SAME_STR_(pType->ID , "HARV"))
+	//	Debug::Log("Harv [%s]DamageResult %d , HP %d/%d.\n", args.WH->ID,nDamage, CurStr, MaxStr);
 
 	if (!nDamage)
 		return ReturnResultNone;

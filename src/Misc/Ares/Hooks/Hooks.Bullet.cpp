@@ -187,7 +187,7 @@ DEFINE_OVERRIDE_HOOK(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
 		(*remainingInterval)--;
 	}
 
-	return (createdAnim && pWarheadExt->IsNukeWarhead.Get()) ? NukeWarheadExtras : Continue;
+	return (!createdAnim && pWarheadExt->IsNukeWarhead.Get()) ? NukeWarheadExtras : Continue;
 }
 
 DEFINE_OVERRIDE_HOOK(0x46670F, BulletClass_Update_PreImpactAnim, 6)
