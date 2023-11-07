@@ -130,15 +130,54 @@ DEFINE_OVERRIDE_HOOK(0x6EF8A1, TeamClass_GatherAtEnemyBase_Distance, 0x6)
 
 DEFINE_OVERRIDE_HOOK(0x6EFB69, TeamClass_GatherAtFriendlyBase_Distance, 0x6)
 {
-	//GET_STACK(TeamClass*, pTeam, STACK_OFFS(0x4C, 0x2C));
+	//GET_STACK(TeamClass*, pTeam, 0x48 - 0x2C);
 	GET_BASE(ScriptActionNode*, pTeamM, 0x8);
 	GET(RulesClass*, pRules, ECX);
-	//Debug::Log("%s", std::format("{} Function With Type {} ! \n", __FUNCTION__, pTeam->Type->ID).c_str());
+	//if (IS_SAME_STR_(pTeam->Type->ID, "0100003I-G")) {
+	//	Debug::Log("Team %s with script %s, GatherAt friendlyBase.\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID);
+	//	int i = 0;
+	//	for (auto pCur = pTeam->FirstUnit; pCur; pCur = pCur->NextTeamMember) {
+	//		Debug::Log("	Team %s with script %s, GatherAt friendlyBase CurMember[%d - %s].\n", 
+	//			pTeam->Type->ID,
+	//			pTeam->CurrentScript->Type->ID,
+	//		i++,
+	//		pCur->GetTechnoType()->ID
+	//		);
+	//	}
+	//}
+
 	//const auto pTeamExt = TeamTypeExt::ExtMap.Find(pTeam->Type);
 	//R->EDX(pTeamExt->AI_FriendlyDistance.Get(RulesExtData::Instance()->AIFriendlyDistance.Get(RulesClass::Instance->AISafeDistance)) + pTeamM->Argument);
-	R->EDX(RulesExtData::Instance()->AIFriendlyDistance.Get(pRules->AISafeDistance) + pTeamM->Argument);
+	const auto distanceresult = RulesExtData::Instance()->AIFriendlyDistance.Get(pRules->AISafeDistance) + pTeamM->Argument;
+	R->EDX(distanceresult);
 	return 0x6EFB6F;
 }
+
+//DEFINE_HOOK(0x6EFC54, TeamClass_GatherAtFriendlyBase_TargetAssigned, 0x5)
+//{
+//	GET_STACK(TeamClass*, pTeam, 0x48 - 0x2C);
+//	GET(CellClass*, pTarget, EAX);
+//
+//	if (IS_SAME_STR_(pTeam->Type->ID, "0100003I-G"))
+//	{
+//		Debug::Log("Team %s with script %s, GatherAt friendlyBase.\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID);
+//		int i = 0;
+//		for (auto pCur = pTeam->FirstUnit; pCur; pCur = pCur->NextTeamMember)
+//		{
+//			Debug::Log("	Team %s with script %s, GatherAt friendlyBase CurMember[%d - %s].\n",
+//				pTeam->Type->ID,
+//				pTeam->CurrentScript->Type->ID,
+//			i++,
+//			pCur->GetTechnoType()->ID
+//			);
+//		}
+//
+//		const auto coord = pTarget->GetCoords();
+//		Debug::Log("Team %s with script %s, GatherAt { %d , %d , %d }.\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, coord.X, coord.Y, coord.Z);
+//	}
+//
+//	return 0x0;
+//}
 
 // #895225: make the AI smarter. this code was missing from YR.
 // it clears the targets and assigns the attacker the team's current focus.

@@ -70,14 +70,17 @@ void HouseExtData::UpdateVehicleProduction()
 	creationFrames.assign(count, 0x7FFFFFFF);
 	values.assign(count, 0);
 
-	//std::vector<TeamClass*> Teams;
+//	std::vector<TeamClass*> Teams;
 
 	for (auto currentTeam : *TeamClass::Array)
 	{
 		if (!currentTeam || currentTeam->Owner != pThis)
 			continue;
 
-		//Teams.push_back(currentTeam);
+//		if (IS_SAME_STR_(currentTeam->Type->ID, "0100003I-G"))
+//			Debug::Log("HereIam\n");
+
+//		Teams.push_back(currentTeam);
 		int teamCreationFrame = currentTeam->CreationFrame;
 
 		if ((!currentTeam->Type->Reinforce || currentTeam->IsFullStrength)
@@ -101,14 +104,18 @@ void HouseExtData::UpdateVehicleProduction()
 			const auto index = static_cast<size_t>(currentMember->GetArrayIndex());
 			++values[index];
 
+//			if (IS_SAME_STR_(currentTeam->Type->ID, "0100003I-G")) {
+//				Debug::Log("0100003I Unit %s  idx %d AddedValueResult %d\n", currentMember->ID, index, values[index]);
+//			}
+
 			if (teamCreationFrame < creationFrames[index])
 				creationFrames[index] = teamCreationFrame;
 		}
 	}
 
-	//for (int i = 0; i < (int)Teams.size(); ++i) {
-	//	Debug::Log("House [%s] Have [%d] Teams %s.\n", pThis->get_ID(), i, Teams[i]->get_ID());
-	//}
+//	for (int i = 0; i < (int)Teams.size(); ++i) {
+//		Debug::Log("House [%s] Have [%d] Teams %s.\n", pThis->get_ID(), i, Teams[i]->get_ID());
+//	}
 
 	for (auto unit : *UnitClass::Array)
 	{

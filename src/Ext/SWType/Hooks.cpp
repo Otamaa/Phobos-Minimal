@@ -399,20 +399,25 @@ DEFINE_HOOK(0x41F180, AITriggerClass_Chrono, 0x5)
 	auto pSuper = *iter;
 	auto v8 = pSuper->RechargeTimer.StartTime;
 	auto v9 = pSuper->RechargeTimer.TimeLeft;
+	const auto rechargePercent = (1.0 - RulesClass::Instance->AIMinorSuperReadyPercent);
+	const auto rechargeTime = pSuper->GetRechargeTime();
 
 	if (v8 == -1) {
-		R->EAX(1.0 - RulesClass::Instance->AIMinorSuperReadyPercent >= (v9 - (Unsorted::CurrentFrame - v8))
-					/ pSuper->GetRechargeTime());
+		const auto result1 = rechargePercent >= v9 - (Unsorted::CurrentFrame - v8) / rechargeTime;
+		R->EAX(result1);
 		return 0x41F1BA;
 	}
 
-	if (Unsorted::CurrentFrame - v8 < v9) {
-		v9 = (v9 - (Unsorted::CurrentFrame - v8));
-		R->EAX(1.0 - RulesClass::Instance->AIMinorSuperReadyPercent >= v9 / pSuper->GetRechargeTime());
+	const auto chargeTime = Unsorted::CurrentFrame - v8;
+	if (chargeTime < v9) {
+		v9 = (v9 - chargeTime);
+		const auto result2 = rechargePercent >= v9 / rechargeTime;
+		R->EAX(result2);
 		return 0x41F1BA;
 	}
 
-	R->EAX(1.0 - RulesClass::Instance->AIMinorSuperReadyPercent >= 0 / pSuper->GetRechargeTime());
+	const auto result3 = rechargePercent >= 0 / rechargeTime;
+	R->EAX(result3);
 	return 0x41F1BA;
 }
 

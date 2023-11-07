@@ -1336,6 +1336,10 @@ void ScriptExtData::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 
 	if (idxScriptsList >= 0)
 	{
+	
+//		if (IS_SAME_STR_(pTeam->CurrentScript->Type->ID, "NWAISC39-G"))
+//			Debug::Log("HereIam\n");
+
 		const auto& scriptList = RulesExtData::Instance()->AIScriptsLists;
 		if ((size_t)idxScriptsList < scriptList.size())
 		{

@@ -2482,8 +2482,8 @@ DEFINE_OVERRIDE_HOOK(0x4068E0, Debug_Log, 1)
 	LEA_STACK(va_list const, args, 0x8);
 	GET_STACK(const char* const, pFormat, 0x4);
 
-	Debug::LogWithVArgs(pFormat, args);
 	Console::WriteWithVArgs(pFormat, args);
+	Debug::LogWithVArgs(pFormat, args);
 
 	return 0x4A4AF9; // changed to co-op with YDE
 }
