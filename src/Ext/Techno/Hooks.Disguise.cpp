@@ -245,7 +245,7 @@ DEFINE_HOOK(0x746670, UnitClass_DisguiseAs_Override, 0x5)
 			{
 				if (pUnit->Owner)
 				{
-					if (pUnit->Owner->IsAlliedWith_(pThis->Owner))
+					if (pUnit->Owner->IsAlliedWith(pThis->Owner))
 					{
 						pThis->Disguise = pUnit->Type;
 						pThis->DisguisedAsHouse = pUnit->GetOwningHouse();

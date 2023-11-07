@@ -392,7 +392,7 @@ void FighterAreaGuard::OnUpdate()
 										const auto pTechTypeHere = pTech->GetTechnoType();
 
 										if (!pOwnerHouse ||
-											pOwnerHouse->IsAlliedWith_(pOwner) ||
+											pOwnerHouse->IsAlliedWith(pOwner) ||
 											pOwnerHouse == pOwner ||
 											pOwnerHouse->IsNeutral() ||
 											pTech == OwnerObject ||
@@ -657,7 +657,7 @@ bool FighterAreaGuard::CheckTarget(TechnoClass* pTarget)
 
 	if (pTarget->Owner && this->OwnerObject->Owner)
 	{
-		if (this->OwnerObject->Owner->IsAlliedWith_(pTarget))
+		if (this->OwnerObject->Owner->IsAlliedWith(pTarget))
 			return false;
 	}
 

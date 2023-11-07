@@ -127,7 +127,7 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
 
 	// helpers (with support for the new spy effect)
-	const bool bAllied = pThis->Owner->IsAlliedWith_(HouseClass::CurrentPlayer);
+	const bool bAllied = pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer);
 	const bool IsObserver = HouseClass::CurrentPlayer->IsObserver();
 	const bool bReveal = pTypeExt->SpyEffect_RevealProduction && pThis->DisplayProductionTo.Contains(HouseClass::CurrentPlayer);
 
@@ -1743,7 +1743,7 @@ Action NOINLINE GetiInfiltrateActionResult(InfantryClass* pInf, BuildingClass* p
 		auto pBldOwner = pBuilding->GetOwningHouse();
 		auto pInfOwner = pInf->GetOwningHouse();
 
-		if (!pBldOwner || (pBldOwner != pInfOwner && !pBldOwner->IsAlliedWith_(pInfOwner)))
+		if (!pBldOwner || (pBldOwner != pInfOwner && !pBldOwner->IsAlliedWith(pInfOwner)))
 			return Action::Move;
 	}
 
@@ -1781,7 +1781,7 @@ DEFINE_OVERRIDE_HOOK(0x51EE6B, InfantryClass_GetActionOnObject_Saboteur, 6)
 
 	if (auto pBldObject = specific_cast<BuildingClass*>(pObject))
 	{
-		if (pThis->Owner && !pThis->Owner->IsAlliedWith_(pBldObject))
+		if (pThis->Owner && !pThis->Owner->IsAlliedWith(pBldObject))
 		{
 			const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBldObject->Type);
 
@@ -1818,7 +1818,7 @@ DEFINE_OVERRIDE_HOOK(0x51E635, InfantryClass_GetActionOnObject_EngineerOverFrien
 
 	const auto pData = BuildingTypeExtContainer::Instance.Find(pTarget->Type);
 
-	if ((pData->RubbleIntact || pData->RubbleIntactRemove) && pTarget->Owner->IsAlliedWith_(pThis))
+	if ((pData->RubbleIntact || pData->RubbleIntactRemove) && pTarget->Owner->IsAlliedWith(pThis))
 	{
 		MouseCursorFuncs::SetMouseCursorAction(90u, Action::GRepair, false);
 		R->EAX(Action::GRepair);
@@ -1973,7 +1973,7 @@ DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
 	if (nResult == Action::Move) // this one will Infiltrate instead
 	{
 		const auto pHouse = pThis->Owner;
-		if (!pThis->Type->Agent || pHouse->IsAlliedWith_(pBuilding))
+		if (!pThis->Type->Agent || pHouse->IsAlliedWith(pBuilding))
 			return SkipInfiltrate;
 
 		pBuilding->Infiltrate(pHouse);

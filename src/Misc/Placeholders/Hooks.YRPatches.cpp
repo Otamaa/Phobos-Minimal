@@ -30,7 +30,7 @@
 //	if (pCurPlayer && pCurPlayer->IsObserver())
 //		return Show;
 //
-//	if (pTechno->Owner && pTechno->Owner->IsAlliedWith_(pCurPlayer))
+//	if (pTechno->Owner && pTechno->Owner->IsAlliedWith(pCurPlayer))
 //		return Show;
 //
 //	return Continue;
@@ -46,7 +46,7 @@
 //	if (pCurPlayer && pCurPlayer->IsObserver())
 //		return Show;
 //
-//	if (pTechno->Owner && pTechno->Owner->IsAlliedWith_(pCurPlayer))
+//	if (pTechno->Owner && pTechno->Owner->IsAlliedWith(pCurPlayer))
 //		return Show;
 //
 //	return Continue;
@@ -62,7 +62,7 @@
 //	if (pCurPlayer && pCurPlayer->IsObserver())
 //		return CheckInvisible;
 //
-//	if (pTechno->Owner && pTechno->Owner->IsAlliedWith_(pCurPlayer))
+//	if (pTechno->Owner && pTechno->Owner->IsAlliedWith(pCurPlayer))
 //		return CheckInvisible;
 //
 //	return Continue;
@@ -78,7 +78,7 @@
 //	if (pCurPlayer && pCurPlayer->IsObserver())
 //		return Select;
 //
-//	if (pTechno->Owner && pTechno->Owner->IsAlliedWith_(pCurPlayer))
+//	if (pTechno->Owner && pTechno->Owner->IsAlliedWith(pCurPlayer))
 //		return Select;
 //
 //	return Continue;
@@ -100,7 +100,7 @@
 //	if (pCurPlayer == pTechno->Owner)
 //		return DonotUnselect;
 //
-//	if (pTechno->Owner && pTechno->Owner->IsAlliedWith_(pCurPlayer))
+//	if (pTechno->Owner && pTechno->Owner->IsAlliedWith(pCurPlayer))
 //		return DonotUnselect;
 //
 //	R->EAX(pCurPlayer);
@@ -117,7 +117,7 @@
 //	if (pCurPlayer && pCurPlayer->IsObserver())
 //		return Allow;
 //
-//	if (pTechno->Owner && pTechno->Owner->IsAlliedWith_(pCurPlayer))
+//	if (pTechno->Owner && pTechno->Owner->IsAlliedWith(pCurPlayer))
 //		return Allow;
 //
 //	return Continue;
@@ -133,7 +133,7 @@
 //	if (pCurPlayer && pCurPlayer->IsObserver())
 //		return Allow;
 //
-//	if (pTechno->Owner && pTechno->Owner->IsAlliedWith_(pCurPlayer))
+//	if (pTechno->Owner && pTechno->Owner->IsAlliedWith(pCurPlayer))
 //		return Allow;
 //
 //	return Continue;
@@ -149,7 +149,7 @@
 //	if (pCurPlayer && pCurPlayer->IsObserver())
 //		return Allow;
 //
-//	if (pTechno->Owner && pTechno->Owner->IsAlliedWith_(pCurPlayer))
+//	if (pTechno->Owner && pTechno->Owner->IsAlliedWith(pCurPlayer))
 //		return Allow;
 //
 //	return Continue;

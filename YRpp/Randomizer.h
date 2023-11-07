@@ -82,7 +82,7 @@ public:
 	{ return RandomDouble() < dChance; }
 
 	double RandomDouble()
-	{ return RandomRanged(1, INT_MAX) * 4.656612873077393e-10; }
+	{ return RandomRanged(1, INT_MAX) / (double)((unsigned int)INT_MAX + 1); }
 
 	double GameRandomDouble()
 	{ return RandomRanged(1, INT_MAX) * INT_MAX_GAME(); }

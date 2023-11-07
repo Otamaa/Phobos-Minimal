@@ -404,6 +404,12 @@ public:
 		return { x, y, targetCoords.Z };
 	}
 
+	template <typename T>
+	static void shuffleVector(std::vector<T>& items)
+	{
+		std::shuffle(items.begin(), items.end(), ScenarioClass::Instance->Random.Random());
+	}
+
 #pragma region Otamaa
 	static const int GetAnimIndexFromFacing(FootClass* pFoot, int nVectorSize);
 	static const int GetAnimIndexFromFacing(TechnoClass* pFirer, int nVectorSize);

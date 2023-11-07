@@ -28,7 +28,7 @@ void AttackBeaconFunctional::AI(TechnoExtData* pExt , TechnoTypeExtData* pTypeEx
 		if (Helpers_DP::IsDeadOrInvisible(pTarget)
 			|| !pTarget->Owner
 			|| (pTarget->Owner == pHouse ? !BeaconTypeData.AffectsOwner :
-				(pTarget->Owner->IsAlliedWith_(pHouse) ? !BeaconTypeData.AffectsAllies : !BeaconTypeData.AffectsEnemies)))
+				(pTarget->Owner->IsAlliedWith(pHouse) ? !BeaconTypeData.AffectsAllies : !BeaconTypeData.AffectsEnemies)))
 		{ continue; }
 
 		auto const pTargetType = pTarget->GetTechnoType();

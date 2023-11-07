@@ -429,7 +429,7 @@ DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 			return RetUnaffected;
 
 		//This thing does ally check twice
-		if (pSourceHouse && pSourceHouse->IsAlliedWith_(pThis))
+		if (pSourceHouse && pSourceHouse->IsAlliedWith(pThis))
 			return RetUnaffected;
 
 		if (TechnoExtData::IsPsionicsImmune(nRank, pThis) || TechnoExtData::IsBerserkImmune(nRank, pThis))

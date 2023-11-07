@@ -151,6 +151,12 @@ public:
 		return this->origin;
 	}
 
+	DWORD Origin(DWORD value)
+	{
+		this->origin = value;
+		return this->origin;
+	}
+
 	DWORD EFLAGS()
 	{
 		return this->flags;

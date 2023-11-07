@@ -23,7 +23,7 @@ DEFINE_HOOK(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 		if (pExt->LimboID != -1 || pThis->Owner->Type->MultiplayPassive)
 			return ReturnStatic;
 
-		if (!pThis->Owner->IsAlliedWith_(pFrom))
+		if (!pThis->Owner->IsAlliedWith(pFrom))
 			return ReturnStatic;
 
 		auto const pFromTechnoType = pFrom->GetTechnoType();
@@ -85,7 +85,7 @@ DEFINE_HOOK(0x51F0AF, InfantryClass_WhatAction_Grinding, 0x5)
 		if (pBuilding->Type->Grinding
 			&& pThis->Owner->IsControlledByCurrentPlayer()
 			&& !pBuilding->IsBeingWarpedOut()
-			&& (pThis->Owner->IsAlliedWith_(pTarget) && pBuilding->Owner != pThis->Owner)
+			&& (pThis->Owner->IsAlliedWith(pTarget) && pBuilding->Owner != pThis->Owner)
 			&& (BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->Grinding_AllowAllies || action == Action::Select))
 		{
 			action = BuildingExtData::CanGrindTechno(pBuilding, pThis) ? Action::Repair : Action::NoEnter;
@@ -141,7 +141,7 @@ DEFINE_HOOK(0x740134, UnitClass_WhatAction_Grinding, 0x9) //0
 	{
 		if (pThis->Owner->IsControlledByCurrentPlayer()
 			&& !pBuilding->IsBeingWarpedOut()
-			&& pThis->Owner->IsAlliedWith_(pTarget)
+			&& pThis->Owner->IsAlliedWith(pTarget)
 			&& (pBuilding->Type->Grinding || action == Action::Select))
 		{
 			if (pThis->SendCommand(RadioCommand::QueryCanEnter, pTarget) == RadioCommand::AnswerPositive)

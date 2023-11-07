@@ -1508,7 +1508,7 @@ DEFINE_HOOK(0x629BB2, ParasiteClass_UpdateSquiddy_Culling, 0x8)
 	if (!WarheadTypeExtContainer::Instance.Find(pWH)->applyCulling(pThis->Owner, pThis->Victim))
 		return ApplyDamage;
 
-	return pThis->Owner && pThis->Owner->Owner && pThis->Owner->Owner->IsAlliedWith_(pThis->Victim)
+	return pThis->Owner && pThis->Owner->Owner && pThis->Owner->Owner->IsAlliedWith(pThis->Victim)
 		? SkipGainExperience : GainExperience;
 }
 
@@ -2175,7 +2175,7 @@ DEFINE_HOOK(0x457DAD, BuildingClass_CanBeOccupied_Assaulter, 0x6)
 
 	if (TechnoExtData::IsAssaulter(pInfantry))
 	{
-		if (!pThis->Owner->IsAlliedWith_(pInfantry) && pThis->GetOccupantCount() > 0)
+		if (!pThis->Owner->IsAlliedWith(pInfantry) && pThis->GetOccupantCount() > 0)
 		{
 			const auto pBldExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
@@ -3878,7 +3878,7 @@ DEFINE_HOOK(0x73666A, UnitClass_AI_Viscerid_ZeroStrength, 0x6)
 	return pType->Strength <= 0 || pThis->DeathFrameCounter > 0 ? 0x736685 : 0x0;
 }
 
-//DEFINE_HOOK(0x4F9A56, HouseClass_IsAlliedWith_OffendingPtrIsNotHouse, 0x6)
+//DEFINE_HOOK(0x4F9A56, HouseClass_IsAlliedWithOffendingPtrIsNotHouse, 0x6)
 //{
 //	GET(HouseClass*, pThis, EAX);
 //	GET(HouseClass*, pOffender, ECX);
@@ -4148,9 +4148,9 @@ DEFINE_HOOK(0x4F9A90, HouseClass_IsAlliedWith, 0x7)
 	return 0;
 }
 
-int AdjustDamageWithArmor(int damage, WarheadTypeClass* pWH, ObjectClass* pTarget, int distance) {
-	return MapClass::ModifyDamage(damage, pWH, TechnoExtData::GetArmor(pTarget), distance);
-}
+//int AdjustDamageWithArmor(int damage, WarheadTypeClass* pWH, ObjectClass* pTarget, int distance) {
+//	return MapClass::ModifyDamage(damage, pWH, TechnoExtData::GetArmor(pTarget), distance);
+//}
 
 //handled on ObjectClass_ReceiveDamage_Handled
 //DEFINE_HOOK(0x5F53F7, ObjectClass_ReceiveDamage_Adjust, 0x5)
@@ -4179,7 +4179,7 @@ DEFINE_HOOK(0x6FDD0A, TechnoClass_AdjustDamage_Armor, 0x6)
 	GET(ObjectClass*, pThis, EDI);
 	GET_STACK(WeaponTypeClass*, pWeapon, 0x18 + 0x8);
 	GET(int, damage, EBX);
-	R->EAX(AdjustDamageWithArmor(damage , pWeapon->Warhead , pThis, 0));
+	R->EAX(MapClass::ModifyDamage(damage, pWeapon->Warhead, TechnoExtData::GetArmor(pThis), 0));
 	return 0x6FDD2E;
 }
 

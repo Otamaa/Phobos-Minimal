@@ -206,7 +206,7 @@ public:
 		{
 			if (IsDeadOrInvisible(pAircraft)
 				|| !pAircraft->Owner
-				|| (pAircraft->Owner == pHouse ? !owner : (pAircraft->Owner->IsAlliedWith_(pHouse) ? !allied : !enemies)))
+				|| (pAircraft->Owner == pHouse ? !owner : (pAircraft->Owner->IsAlliedWith(pHouse) ? !allied : !enemies)))
 			{ continue; }
 
 			if (padList.contains(pAircraft->Type) && pAircraft->Type->AirportBound)

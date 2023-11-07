@@ -299,7 +299,7 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_AfterRadioClassRemove, 0x5)
 //		{
 //			const auto pExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 //
-//			if (HouseClass::CurrentPlayer->IsAlliedWith_(pBuilding))
+//			if (HouseClass::CurrentPlayer->IsAlliedWith(pBuilding))
 //			{
 //				return pExt->EngineerRepairable.Get(pBuilding->Type->Repairable);
 //			}

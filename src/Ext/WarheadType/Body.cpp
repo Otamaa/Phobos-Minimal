@@ -452,7 +452,7 @@ void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamag
 
 		if (pVictimHouse != pHouse)
 		{
-			if (pVictimHouse->IsAlliedWith_(pHouse) && pWH->AffectsAllies && nAllyMod.isset())
+			if (pVictimHouse->IsAlliedWith(pHouse) && pWH->AffectsAllies && nAllyMod.isset())
 			{
 				*pArgs->Damage = static_cast<int>(nDamage * nAllyMod.Get());
 			}
@@ -537,7 +537,7 @@ bool WarheadTypeExtData::CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTa
 	{
 		if (pTargetHouse == pOwnerHouse){
 			return this->AffectsOwner.Get(this->AttachedToObject->AffectsAllies);
-		} else if (pTargetHouse != pOwnerHouse && pOwnerHouse->IsAlliedWith_(pTargetHouse)) {
+		} else if (pTargetHouse != pOwnerHouse && pOwnerHouse->IsAlliedWith(pTargetHouse)) {
 				return this->AttachedToObject->AffectsAllies;
 		}
 

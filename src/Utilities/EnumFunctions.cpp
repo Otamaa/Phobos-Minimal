@@ -485,7 +485,7 @@ bool EnumFunctions::CanTargetHouse(AffectedHouse const &flags, HouseClass* owner
 		if ((flags & AffectedHouse::Owner) && ownerHouse == targetHouse)
 			return true;
 
-		const auto IsAlly = ownerHouse->IsAlliedWith_(targetHouse);
+		const auto IsAlly = ownerHouse->IsAlliedWith(targetHouse);
 		return (flags & AffectedHouse::Allies) && ownerHouse != targetHouse && IsAlly ||
 			   (flags & AffectedHouse::Enemies) && ownerHouse != targetHouse && !IsAlly;
 	}

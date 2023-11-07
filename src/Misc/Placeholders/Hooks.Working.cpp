@@ -699,7 +699,7 @@ DWORD ReloadAircraft(REGISTERS* R)
 //		if(!pPlayer || (pThis->Owner != pPlayer))
 //			return 0x746B48;
 //
-//		if(!pThis->Owner->IsAlliedWith_(pPlayer))
+//		if(!pThis->Owner->IsAlliedWith(pPlayer))
 //			return 0x746B48;
 //    }
 //
@@ -2088,7 +2088,7 @@ DEFINE_HOOK(0x746CD0, UnitClass_SelectWeapon_Replacements, 0x6)
 //	}
 //
 //	if (W->DrainWeapon) {
-//		return pTargetT->Drainable && !pThis->DrainTarget && !pThis->Owner->IsAlliedWith_(pTarget);
+//		return pTargetT->Drainable && !pThis->DrainTarget && !pThis->Owner->IsAlliedWith(pTarget);
 //	}
 //
 //	if (W->AreaFire) {
@@ -2493,7 +2493,7 @@ static void Detonate(TechnoClass* pTarget, HouseClass* pOwner, CoordStruct const
 //	GET(HouseClass*, pThis, ESI);
 //	GET(HouseClass*, pEnemy, EBX);
 //
-//	if (pThis->IsAlliedWith_(pEnemy))
+//	if (pThis->IsAlliedWith(pEnemy))
 //		R->EAX(INT_MAX);
 //	else
 //		R->EAX(pThis->BaseCenter ? pThis->BaseCenter.X : pThis->BaseSpawnCell.X);
@@ -2644,17 +2644,17 @@ DEFINE_HOOK(0x4F9AF0, HouseClass_IsAlly_AbstractClass, 0x7)
 		auto const pWhat = pTarget->WhatAmI();
 		if ((pTarget->AbstractFlags & AbstractFlags::Object) != AbstractFlags::None)
 		{
-			res = pThis->IsAlliedWith_(pTarget->GetOwningHouse());
+			res = pThis->IsAlliedWith(pTarget->GetOwningHouse());
 		}
 		else if (pWhat == AbstractType::House)
 		{
 			switch (pWhat)
 			{
 			case AbstractType::House:
-				res = pThis->IsAlliedWith_(static_cast<HouseClass*>(pTarget));
+				res = pThis->IsAlliedWith(static_cast<HouseClass*>(pTarget));
 			break;
 			case AbstractType::Bomb:
-				res = pThis->IsAlliedWith_(pTarget->GetOwningHouse());
+				res = pThis->IsAlliedWith(pTarget->GetOwningHouse());
 			break;
 			}
 		}
@@ -2704,7 +2704,7 @@ DEFINE_HOOK(0x4F9AF0, HouseClass_IsAlly_AbstractClass, 0x7)
 //		if (pThis == pTarget)
 //			ret = true;
 //		else
-//			ret = pThis->IsAlliedWith_(pTarget->ArrayIndex);
+//			ret = pThis->IsAlliedWith(pTarget->ArrayIndex);
 //	}
 //	R->AL(ret);
 //	return 0x4F9A60;
@@ -2714,7 +2714,7 @@ DEFINE_HOOK(0x4F9AF0, HouseClass_IsAlly_AbstractClass, 0x7)
 //{
 //	GET(HouseClass*, pThis, ECX);
 //	GET_STACK(ObjectClass*, pTarget, 0x4);
-//	R->AL(pThis->IsAlliedWith_(pTarget->GetOwningHouse()));
+//	R->AL(pThis->IsAlliedWith(pTarget->GetOwningHouse()));
 //	return 0x4F9AAB;
 //}
 

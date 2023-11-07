@@ -40,7 +40,7 @@ bool TeamExtData::HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool 
 			if (!TechnoExtData::IsAlive(pObject))
 				continue;
 
-			if (((!allies && pObject->Owner == pHouse) || (allies && pHouse != pObject->Owner && pHouse->IsAlliedWith_(pObject->Owner)))
+			if (((!allies && pObject->Owner == pHouse) || (allies && pHouse != pObject->Owner && pHouse->IsAlliedWith(pObject->Owner)))
 				&& !pObject->Owner->Type->MultiplayPassive
 				&& pObject->GetTechnoType() == pItem)
 			{
@@ -81,7 +81,7 @@ bool TeamExtData::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, House
 	bool result = false;
 	int counter = 0;
 
-	if (pEnemy && pHouse->IsAlliedWith_(pEnemy) && !onlySelectedEnemy)
+	if (pEnemy && pHouse->IsAlliedWith(pEnemy) && !onlySelectedEnemy)
 		pEnemy = nullptr;
 
 	// Count all objects of the list, like an OR operator
@@ -93,7 +93,7 @@ bool TeamExtData::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, House
 				continue;
 
 			if (pObject->Owner != pHouse
-				&& (!pEnemy || (pEnemy && !pHouse->IsAlliedWith_(pEnemy)))
+				&& (!pEnemy || (pEnemy && !pHouse->IsAlliedWith(pEnemy)))
 				&& !pObject->Owner->Type->MultiplayPassive
 				&& pObject->GetTechnoType() == pItem)
 			{
@@ -243,7 +243,7 @@ bool TeamExtData::EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, Ho
 {
 	bool result = true;
 
-	if (pEnemy && pHouse->IsAlliedWith_(pEnemy))
+	if (pEnemy && pHouse->IsAlliedWith(pEnemy))
 		pEnemy = nullptr;
 
 	if (list.empty())
@@ -264,7 +264,7 @@ bool TeamExtData::EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, Ho
 				continue;
 
 			if (pObject->Owner != pHouse
-				&& (!pEnemy || (pEnemy && !pHouse->IsAlliedWith_(pEnemy)))
+				&& (!pEnemy || (pEnemy && !pHouse->IsAlliedWith(pEnemy)))
 				&& !pObject->Owner->Type->MultiplayPassive
 				&& pObject->GetTechnoType() == pItem)
 			{

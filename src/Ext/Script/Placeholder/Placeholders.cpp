@@ -146,7 +146,7 @@ NOINLINE TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method
 		if (onlyTargetThisHouseEnemy && object->Owner != onlyTargetThisHouseEnemy)
 			continue;
 
-		if ((!pTechno->Owner->IsAlliedWith_(object) || IsUnitMindControlledFriendly(pTechno->Owner, object)))
+		if ((!pTechno->Owner->IsAlliedWith(object) || IsUnitMindControlledFriendly(pTechno->Owner, object)))
 		{
 			double value = 0;
 
@@ -490,7 +490,7 @@ void NOINLINE ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = tr
 
 						if (nWhat == InfantryClass::AbsID && pUnit->IsEngineer())
 						{
-							if (selectedTarget->Owner->IsAlliedWith_(pUnit))
+							if (selectedTarget->Owner->IsAlliedWith(pUnit))
 								pUnit->QueueMission(Mission::Enter, true);
 							else
 								pUnit->QueueMission(Mission::Capture, true);
@@ -570,7 +570,7 @@ void NOINLINE ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = tr
 		if (IsUnitAvailable(pFocus, true, true)
 			&& !pFocus->GetTechnoType()->Immune
 			&& (isAirOK || isGroundOK)
-			&& (!pLeaderUnit->Owner->IsAlliedWith_(pFocus) || IsUnitMindControlledFriendly(pLeaderUnit->Owner, pFocus)))
+			&& (!pLeaderUnit->Owner->IsAlliedWith(pFocus) || IsUnitMindControlledFriendly(pLeaderUnit->Owner, pFocus)))
 		{
 
 			bool bForceNextAction = false;
@@ -1745,7 +1745,7 @@ bool ScriptExt::IsValidFriendlyTarget(TeamClass* pTeam, int group, TechnoClass* 
 	{
 		auto pType = target->GetTechnoType();
 		// Friendly?
-		if (isFriendly ^ pTeam->Owner->IsAlliedWith_(target->Owner))
+		if (isFriendly ^ pTeam->Owner->IsAlliedWith(target->Owner))
 			return false;
 		// Only aircraft team can follow friendly aircraft
 		if (isSelfAircraft)
@@ -2347,7 +2347,7 @@ bool NOINLINE ScriptExt::IsUnitArmed(TechnoClass* pTechno)
 
 bool NOINLINE ScriptExt::IsUnitMindControlledFriendly(HouseClass* pHouse, TechnoClass* pTechno)
 {
-	return pHouse->IsAlliedWith_(pTechno) && pTechno->IsMindControlled() && !pHouse->IsAlliedWith_(pTechno->MindControlledBy);
+	return pHouse->IsAlliedWith(pTechno) && pTechno->IsMindControlled() && !pHouse->IsAlliedWith(pTechno->MindControlledBy);
 }
 
 bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attackAITargetType = -1, int idxAITargetTypeItem = -1, TechnoClass* pTeamLeader = nullptr)
@@ -3443,8 +3443,8 @@ TechnoClass* ScriptExt::FindBestObject(TechnoClass* pTechno, int method, int cal
 			continue;
 
 		if (IsUnitAvailable(object, true, false)
-			&& ((pickAllies && pTechno->Owner->IsAlliedWith_(object))
-				|| (!pickAllies && !pTechno->Owner->IsAlliedWith_(object))))
+			&& ((pickAllies && pTechno->Owner->IsAlliedWith(object))
+				|| (!pickAllies && !pTechno->Owner->IsAlliedWith(object))))
 		{
 
 			// Don't pick underground units
@@ -3602,11 +3602,11 @@ void ScriptExt::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, 
 								if (pTeam->FirstUnit->Owner)
 								{
 									if (!objectFromList->IsMindControlled())
-										return !pTeam->FirstUnit->Owner->IsAlliedWith_(objectFromList)
-										|| pTeam->FirstUnit->Owner->IsAlliedWith_(objectFromList);
+										return !pTeam->FirstUnit->Owner->IsAlliedWith(objectFromList)
+										|| pTeam->FirstUnit->Owner->IsAlliedWith(objectFromList);
 									else
-										return !pTeam->FirstUnit->Owner->IsAlliedWith_(objectFromList->MindControlledBy) ||
-										pTeam->FirstUnit->Owner->IsAlliedWith_(objectFromList->MindControlledBy);
+										return !pTeam->FirstUnit->Owner->IsAlliedWith(objectFromList->MindControlledBy) ||
+										pTeam->FirstUnit->Owner->IsAlliedWith(objectFromList->MindControlledBy);
 								}
 								else
 									return true;
@@ -3728,8 +3728,8 @@ void ScriptExt::Mission_Move_List1Random(TeamClass* pTeam, int calcThreatMode, b
 					{
 						if (pTeam->FirstUnit->Owner)
 						{
-							return (pickAllies && pTeam->FirstUnit->Owner->IsAlliedWith_(objectFromList)) || (!pickAllies
-								&& !pTeam->FirstUnit->Owner->IsAlliedWith_(objectFromList));
+							return (pickAllies && pTeam->FirstUnit->Owner->IsAlliedWith(objectFromList)) || (!pickAllies
+								&& !pTeam->FirstUnit->Owner->IsAlliedWith(objectFromList));
 						}
 						else
 							return !pickAllies;
@@ -4455,7 +4455,7 @@ void ScriptExt::SetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int mode = 
 	{
 		if (pTeam->Owner == angerNode.House
 			|| angerNode.House->Defeated
-			|| pTeam->Owner->IsAlliedWith_(angerNode.House)
+			|| pTeam->Owner->IsAlliedWith(angerNode.House)
 			|| angerNode.House->Type->MultiplayPassive)
 		{
 			continue;
@@ -4597,7 +4597,7 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 				|| pHouse->IsObserver()
 				|| pHouse->Defeated
 				|| pHouse->Type->MultiplayPassive
-				|| pLeaderUnit->Owner->IsAlliedWith_(pHouse))
+				|| pLeaderUnit->Owner->IsAlliedWith(pHouse))
 			{
 				continue;
 			}
@@ -4647,7 +4647,7 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 				|| !pHouse->IsControlledByHuman()
 				|| pHouse->Defeated
 				|| pHouse->Type->MultiplayPassive
-				|| pLeaderUnit->Owner->IsAlliedWith_(pHouse))
+				|| pLeaderUnit->Owner->IsAlliedWith(pHouse))
 			{
 				continue;
 			}
@@ -4701,7 +4701,7 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 			if (pLeaderUnit->Owner == pHouse
 				|| pHouse->Defeated
 				|| pHouse->Type->MultiplayPassive
-				|| pLeaderUnit->Owner->IsAlliedWith_(pHouse))
+				|| pLeaderUnit->Owner->IsAlliedWith(pHouse))
 			{
 				continue;
 			}
@@ -4762,7 +4762,7 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 				|| pHouse->IsObserver()
 				|| pHouse->Defeated
 				|| pHouse->Type->MultiplayPassive
-				|| pLeaderUnit->Owner->IsAlliedWith_(pHouse))
+				|| pLeaderUnit->Owner->IsAlliedWith(pHouse))
 			{
 				continue;
 			}
@@ -4814,7 +4814,7 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 				|| pHouse->IsObserver()
 				|| pHouse->Defeated
 				|| pHouse->Type->MultiplayPassive
-				|| pLeaderUnit->Owner->IsAlliedWith_(pHouse))
+				|| pLeaderUnit->Owner->IsAlliedWith(pHouse))
 			{
 				continue;
 			}
@@ -4877,7 +4877,7 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 				|| pHouse->IsObserver()
 				|| pHouse->Defeated
 				|| pHouse->Type->MultiplayPassive
-				|| pLeaderUnit->Owner->IsAlliedWith_(pHouse))
+				|| pLeaderUnit->Owner->IsAlliedWith(pHouse))
 			{
 				continue;
 			}
@@ -4929,7 +4929,7 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 				|| pHouse->IsObserver()
 				|| pHouse->Defeated
 				|| pHouse->Type->MultiplayPassive
-				|| pLeaderUnit->Owner->IsAlliedWith_(pHouse))
+				|| pLeaderUnit->Owner->IsAlliedWith(pHouse))
 			{
 				continue;
 			}
@@ -4983,7 +4983,7 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 
 		if (!pTechno->Owner->Defeated
 			&& pTechno->Owner != pTeam->Owner
-			&& !pTechno->Owner->IsAlliedWith_(pTeam->Owner)
+			&& !pTechno->Owner->IsAlliedWith(pTeam->Owner)
 			&& !pTechno->Owner->Type->MultiplayPassive)
 		{
 			if (mask < 0)
@@ -5319,7 +5319,7 @@ void ScriptExt::UpdateEnemyHouseIndex(HouseClass* pHouse)
 	for (auto& angerNode : pHouse->AngerNodes)
 	{
 		if (!angerNode.House->Defeated
-			&& !pHouse->IsAlliedWith_(angerNode.House)
+			&& !pHouse->IsAlliedWith(angerNode.House)
 			&& angerNode.AngerLevel > angerLevel)
 		{
 			angerLevel = angerNode.AngerLevel;
@@ -5755,10 +5755,10 @@ void ScriptExt::ConditionalJump_CheckObjects(TeamClass* pTeam)
 	 {
 
 		 const auto pTechnoType = pTechno->GetTechnoType();
-		 if ((!pTeam->FirstUnit->Owner->IsAlliedWith_(pTechno)
-			 || (pTeam->FirstUnit->Owner->IsAlliedWith_(pTechno)
+		 if ((!pTeam->FirstUnit->Owner->IsAlliedWith(pTechno)
+			 || (pTeam->FirstUnit->Owner->IsAlliedWith(pTechno)
 				 && pTechno->IsMindControlled()
-				 && !pTeam->FirstUnit->Owner->IsAlliedWith_(pTechno->MindControlledBy))))
+				 && !pTeam->FirstUnit->Owner->IsAlliedWith(pTechno->MindControlledBy))))
 		 {
 			 return objectsList.contains(pTechnoType);
 		 }
@@ -5872,7 +5872,7 @@ void ScriptExt::ConditionalJump_CheckHumanIsMostHated(TeamClass* pTeam)
 				&& !pNode.House->Defeated
 				&& !pNode.House->IsObserver()
 				&& ((pNode.AngerLevel > angerLevel
-					&& !pHouse->IsAlliedWith_(pNode.House))
+					&& !pHouse->IsAlliedWith(pNode.House))
 					|| angerLevel < 0))
 			{
 				angerLevel = pNode.AngerLevel;
@@ -5924,12 +5924,12 @@ void ScriptExt::ConditionalJump_CheckAliveHumans(TeamClass* pTeam, int mode = 0)
 				&& !pNode.House->IsObserver()
 				&& pNode.House->IsControlledByHuman())
 			{
-				if (mode == 1 && !pHouse->IsAlliedWith_(pNode.House)) // Mode 1: Enemy humans
+				if (mode == 1 && !pHouse->IsAlliedWith(pNode.House)) // Mode 1: Enemy humans
 				{
 					pTeamData->ConditionalJump_Evaluation = true;
 					break;
 				}
-				else if (mode == 2 && !pHouse->IsAlliedWith_(pNode.House)) // Mode 2: Friendly humans
+				else if (mode == 2 && !pHouse->IsAlliedWith(pNode.House)) // Mode 2: Friendly humans
 				{
 					pTeamData->ConditionalJump_Evaluation = true;
 					break;

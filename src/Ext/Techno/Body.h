@@ -164,6 +164,8 @@ public:
 	bool FreeUnitDone { false };
 	AresAEData AeData {};
 
+	int StrafeFireCunt { -1 };
+
 	TechnoExtData() noexcept = default;
 	~TechnoExtData() noexcept
 	{

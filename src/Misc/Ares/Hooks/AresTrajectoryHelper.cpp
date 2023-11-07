@@ -28,7 +28,7 @@ bool AresTrajectoryHelper::IsWallHit(
 			if (pSource->Level <= pTarget->Level)
 			{
 				return !RulesClass::Instance->AlliedWallTransparency
-					|| (pCheck->WallOwnerIndex != -1 && !HouseClass::Array->Items[pCheck->WallOwnerIndex]->IsAlliedWith_(pOwner));
+					|| (pCheck->WallOwnerIndex != -1 && !HouseClass::Array->Items[pCheck->WallOwnerIndex]->IsAlliedWith(pOwner));
 			}
 		}
 	}
@@ -53,7 +53,7 @@ bool AresTrajectoryHelper::IsBuildingHit(
 
 		// does the building let allies through?
 		auto const isTransparent = RulesExtData::Instance()->AlliedSolidTransparency
-			&& pBld->Owner->IsAlliedWith_(pOwner);
+			&& pBld->Owner->IsAlliedWith(pOwner);
 
 		if (isTransparent)
 		{
@@ -178,7 +178,7 @@ CellClass* AresTrajectoryHelper::FindFirstImpenetrableObstacle(
 		else if (auto const pBld = pCell->GetBuilding())
 		{
 			// only willingfully fire through enemy buildings
-			if (!pOwner->IsAlliedWith_(pBld))
+			if (!pOwner->IsAlliedWith(pBld))
 			{
 				auto const pBldTypeExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 

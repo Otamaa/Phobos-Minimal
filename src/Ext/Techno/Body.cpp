@@ -1041,7 +1041,7 @@ bool TechnoExtData::IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker)
 	if (pVictim->IsIronCurtained())
 		return false;
 
-	if (pAttacker->Owner && pAttacker->Owner->IsAlliedWith_(pVictim))
+	if (pAttacker->Owner && pAttacker->Owner->IsAlliedWith(pVictim))
 		return false;
 
 	auto const pAttackerType = pAttacker->GetTechnoType();
@@ -2040,8 +2040,8 @@ void TechnoExtData::DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pTy
 	const Point3D selectbrdFrame = pTypeExt->SelectBrd_Frame.Get((isInfantry ? RulesExtData::Instance()->SelectBrd_Frame_Infantry : RulesExtData::Instance()->SelectBrd_Frame_Unit));
 
 	const auto nFlag = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | EnumFunctions::GetTranslucentLevel(pTypeExt->SelectBrd_TranslucentLevel.Get(RulesExtData::Instance()->SelectBrd_DefaultTranslucentLevel.Get()));
-	const auto canSee = sIsDisguised && pThis->DisguisedAsHouse ? pThis->DisguisedAsHouse->IsAlliedWith_(HouseClass::CurrentPlayer) :
-		pThis->Owner->IsAlliedWith_(HouseClass::CurrentPlayer)
+	const auto canSee = sIsDisguised && pThis->DisguisedAsHouse ? pThis->DisguisedAsHouse->IsAlliedWith(HouseClass::CurrentPlayer) :
+		pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer)
 		|| HouseClass::CurrentPlayer->IsObserver()
 		|| pTypeExt->SelectBrd_ShowEnemy.Get(RulesExtData::Instance()->SelectBrd_DefaultShowEnemy.Get());
 
@@ -2202,7 +2202,7 @@ void TechnoExtData::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, Rectang
 
 	bool IsAlly = false;
 	if(pOwner) {
-		IsAlly = pOwner->IsAlliedWith_(HouseClass::CurrentPlayer);
+		IsAlly = pOwner->IsAlliedWith(HouseClass::CurrentPlayer);
 	}
 
 	const bool isVisibleToPlayer = IsAlly
@@ -4585,6 +4585,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->WebbyLastMission)
 		.Process(this->FreeUnitDone)
 		.Process(this->AeData)
+		.Process(this->StrafeFireCunt)
 		;
 	//should put this inside techo ext , ffs
 

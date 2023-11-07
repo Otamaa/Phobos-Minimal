@@ -177,7 +177,7 @@ DEFINE_HOOK(0x46794B, BulletClass_Update_CheckNearbyTechno, 0x6)
 		return 0x467957;
 	}
 
-	R->AL(pFirer->Owner->IsAlliedWith_(pTarget));
+	R->AL(pFirer->Owner->IsAlliedWith(pTarget));
 	return 0x467957;
 }
 

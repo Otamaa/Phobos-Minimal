@@ -58,15 +58,15 @@ bool AITriggerTypeExt::ReadCustomizableAICondition(HouseClass* pHouse, int pickM
 			&& pTechno->IsOnMap
 			&& !pTechno->Absorbed
 			&& pTechno->Owner
-			&& ((!pTechno->Owner->IsAlliedWith_(pHouse) && !pTechno->Owner->IsNeutral() && pickMode == 0)
-				|| (pTechno->Owner->IsAlliedWith_(pHouse) && !pTechno->Owner->IsNeutral() && pickMode == 1)
+			&& ((!pTechno->Owner->IsAlliedWith(pHouse) && !pTechno->Owner->IsNeutral() && pickMode == 0)
+				|| (pTechno->Owner->IsAlliedWith(pHouse) && !pTechno->Owner->IsNeutral() && pickMode == 1)
 				|| (pTechno->Owner == pHouse && pickMode == 2)
 				|| (!pTechno->Owner->IsNeutral() && pickMode == 3)
-				|| (pTechno->Owner->IsControlledByHuman_() && !pTechno->Owner->IsAlliedWith_(pHouse) && pickMode == 4)
-				|| (pTechno->Owner->IsControlledByHuman_() && pTechno->Owner->IsAlliedWith_(pHouse) && pickMode == 5)
+				|| (pTechno->Owner->IsControlledByHuman_() && !pTechno->Owner->IsAlliedWith(pHouse) && pickMode == 4)
+				|| (pTechno->Owner->IsControlledByHuman_() && pTechno->Owner->IsAlliedWith(pHouse) && pickMode == 5)
 				|| (pTechno->Owner->IsControlledByHuman_() && pickMode == 6)
-				|| (!pTechno->Owner->IsControlledByHuman_() && !pTechno->Owner->IsNeutral() && !pTechno->Owner->IsAlliedWith_(pHouse) && pickMode == 7)
-				|| (!pTechno->Owner->IsControlledByHuman_() && !pTechno->Owner->IsNeutral() && pTechno->Owner->IsAlliedWith_(pHouse) && pickMode == 8)
+				|| (!pTechno->Owner->IsControlledByHuman_() && !pTechno->Owner->IsNeutral() && !pTechno->Owner->IsAlliedWith(pHouse) && pickMode == 7)
+				|| (!pTechno->Owner->IsControlledByHuman_() && !pTechno->Owner->IsNeutral() && pTechno->Owner->IsAlliedWith(pHouse) && pickMode == 8)
 				|| (!pTechno->Owner->IsControlledByHuman_() && !pTechno->Owner->IsNeutral() && pickMode == 9)
 				|| (pTechno->Owner->IsNeutral() && pickMode == 10)
 				|| (pickMode == 11)

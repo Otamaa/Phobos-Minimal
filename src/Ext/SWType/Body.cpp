@@ -621,7 +621,7 @@ struct TargetingFuncs
 				 {
 					 const auto pFoot = static_cast<FootClass*>(*j);
 
-					 if (!pTargeting->Owner->IsAlliedWith_(pFoot) && !pFoot->IsInAir())
+					 if (!pTargeting->Owner->IsAlliedWith(pFoot) && !pFoot->IsInAir())
 					 {
 						  // original game does not consider cloak
 						 if (pFoot->CanBePermaMindControlled() && (pFoot->CloakState != CloakState::Cloaked))
@@ -703,7 +703,7 @@ struct TargetingFuncs
 				 {
 					const auto pInf = static_cast<InfantryClass*>(*j);
 
-					 if (!pTargeting->Owner->IsAlliedWith_(pInf) && !pInf->IsInAir())
+					 if (!pTargeting->Owner->IsAlliedWith(pInf) && !pInf->IsInAir())
 					 {
 						 // original game does not consider cloak
 						 if (pInf->CloakState != CloakState::Cloaked)
@@ -1083,7 +1083,7 @@ AffectedHouse SWTypeExtData::GetRelation(HouseClass* pFirer, HouseClass* pHouse)
 		return AffectedHouse::Owner;
 	}
 
-	if (pFirer->IsAlliedWith_(pHouse))
+	if (pFirer->IsAlliedWith(pHouse))
 	{
 		// only friendly houses
 		return AffectedHouse::Allies;

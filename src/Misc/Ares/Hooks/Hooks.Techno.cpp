@@ -674,7 +674,7 @@ DEFINE_OVERRIDE_HOOK(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 		const auto isObserver = HouseClass::IsCurrentPlayerObserver();
 
 		// allies and observers can always see by default
-		const bool canSeeRepair = HouseClass::CurrentPlayer->IsAlliedWith_(pBld->Owner)
+		const bool canSeeRepair = HouseClass::CurrentPlayer->IsAlliedWith(pBld->Owner)
 			|| isObserver;
 
 		const bool showRepair = FileSystem::WRENCH_SHP
@@ -781,7 +781,7 @@ DEFINE_OVERRIDE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 				DrawLoca.Y += (nTextDimension.Height) + 2; //extra number for the background
 			};
 
-		const bool IsAlly = pOwner->IsAlliedWith_(HouseClass::CurrentPlayer);
+		const bool IsAlly = pOwner->IsAlliedWith(HouseClass::CurrentPlayer);
 		const bool IsObserver = HouseClass::CurrentPlayer->IsObserver();
 		const bool isFake = pTypeExt->Fake_Of.Get();
 		const bool bReveal = pThis->DisplayProductionTo.Contains(HouseClass::CurrentPlayer);
@@ -1270,7 +1270,7 @@ DEFINE_OVERRIDE_HOOK(0x6F826E, TechnoClass_CanAutoTargetObject_CivilianEnemy, 0x
 	// if the potential target is attacking an allied object, consider it an enemy
 	// to not allow civilians to overrun a player
 	if (const auto pTargetTarget = abstract_cast<TechnoClass*>(pTarget->Target)) {
-		if (pThis->Owner->IsAlliedWith_(pTargetTarget)) {
+		if (pThis->Owner->IsAlliedWith(pTargetTarget)) {
 			const auto pData = RulesExtData::Instance();
 
 			if (pThis->Owner->IsControlledByHuman() ?
@@ -1461,7 +1461,7 @@ DEFINE_OVERRIDE_HOOK(0x6FA361, TechnoClass_Update_LoseTarget, 5)
 	{
 		if (const auto pTargetHouse = pTechTarget->GetOwningHouse())
 		{
-			if (pOwner->IsAlliedWith_(pTargetHouse))
+			if (pOwner->IsAlliedWith(pTargetHouse))
 				IsAlly = true;
 		}
 	}

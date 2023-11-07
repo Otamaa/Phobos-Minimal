@@ -781,7 +781,7 @@ bool TechnoExt_ExtData::KillerAllowedToEarnBounty(TechnoClass* pKiller , TechnoC
 	if (!pKillerTypeExt->BountyDissallow.empty() && pKillerTypeExt->BountyDissallow.Contains(pVictimType))
 		return false;
 
-	if (pKiller->Owner->IsAlliedWith_(pVictim))
+	if (pKiller->Owner->IsAlliedWith(pVictim))
 		return false;
 
 	if (pKillerTypeExt->Bounty_IgnoreEnablers || RulesExtData::Instance()->Bounty_Enablers.empty())
@@ -909,7 +909,7 @@ AresHijackActionResult TechnoExt_ExtData::GetActionHijack(InfantryClass* pThis, 
 	if (pType->VehicleThief)
 	{
 		// can't steal allied unit (CanDrive and special already handled)
-		if (pThis->Owner->IsAlliedWith_(pTarget->Owner) || specialOwned)
+		if (pThis->Owner->IsAlliedWith(pTarget->Owner) || specialOwned)
 		{
 			return AresHijackActionResult::None;
 		}
@@ -1875,7 +1875,7 @@ bool TechnoExt_ExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 					continue;
 				}
 			}
-			else if (!pSWExt && pOwner->IsAlliedWith_(i->Owner))
+			else if (!pSWExt && pOwner->IsAlliedWith(i->Owner))
 			{
 				// default without SW
 				continue;
@@ -2108,7 +2108,7 @@ void TechnoExt_ExtData::PlantBomb(TechnoClass* pSource, ObjectClass* pTarget, We
 			pBomb->DetonationFrame = Unsorted::CurrentFrame + pWeaponExt->Ivan_Delay.Get(RulesClass::Instance->IvanTimedDelay);
 			pBomb->TickSound = pWeaponExt->Ivan_TickingSound.Get(RulesClass::Instance->BombTickingSound);
 
-			const auto IsAlly = pSource->Owner && pSource->Owner->IsAlliedWith_(pTarget);
+			const auto IsAlly = pSource->Owner && pSource->Owner->IsAlliedWith(pTarget);
 
 			pBomb->Type = BombType((!IsAlly && pWeaponExt->Ivan_DeathBomb) || (IsAlly && pWeaponExt->Ivan_DeathBombOnAllies));
 
@@ -2160,7 +2160,7 @@ Action TechnoExt_ExtData::GetAction(TechnoClass* pThis, ObjectClass* pThat)
 	{
 		if (pThat->AbstractFlags & AbstractFlags::Techno)
 		{
-			if (pThis->Owner && pThis->Owner->IsAlliedWith_(pThat) && pThat->IsSelectable())
+			if (pThis->Owner && pThis->Owner->IsAlliedWith(pThat) && pThat->IsSelectable())
 			{
 				return Action::Select;
 			}
@@ -3472,7 +3472,7 @@ bool TechnoExperienceData::KillerInTransporterFactor(TechnoClass* pKiller, Techn
 		return false;
 
 	const auto pTTransporterData = TechnoTypeExtContainer::Instance.Find(pTransporter->GetTechnoType());
-	const auto TransporterAndKillerAllied = pTransporter->Owner->IsAlliedWith_(pKiller);
+	const auto TransporterAndKillerAllied = pTransporter->Owner->IsAlliedWith(pKiller);
 
 	if (pKiller->InOpenToppedTransport)
 	{
@@ -3525,7 +3525,7 @@ void TechnoExperienceData::MCControllerGainExperince(TechnoClass* pExpReceiver, 
 	// mind-controllers get experience, too.
 	if (auto pController = pExpReceiver->MindControlledBy)
 	{
-		if (!pController->Owner->IsAlliedWith_(pVictim->Owner))
+		if (!pController->Owner->IsAlliedWith(pVictim->Owner))
 		{
 
 			// get the mind controllers extended properties
@@ -3660,7 +3660,7 @@ void TechnoExperienceData::UpdateVeterancy(TechnoClass*& pExpReceiver, TechnoCla
 	{
 		// no way to get experience by proxy by an enemy unit. you cannot
 		// promote your mind-controller by capturing friendly units.
-		if (pExpReceiver->Owner->IsAlliedWith_(pKiller))
+		if (pExpReceiver->Owner->IsAlliedWith(pKiller))
 		{
 
 			// if this is a non-missile spawn, handle the spawn manually and switch over to the
@@ -5427,7 +5427,7 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 	}
 
 	Target->Transporter = Attacker;
-	if (AttackerType->OpenTopped && Target->Owner->IsAlliedWith_(Attacker))
+	if (AttackerType->OpenTopped && Target->Owner->IsAlliedWith(Attacker))
 	{
 		Attacker->EnteredOpenTopped(Target);
 	}

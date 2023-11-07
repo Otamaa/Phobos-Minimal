@@ -424,7 +424,7 @@ DEFINE_HOOK(0x4AE670, DisplayClass_GetToolTip_EnemyUIName, 0x8)
 			{
 				if (const auto pOwnerHouse = pFoot->GetOwningHouse())
 				{
-					if (!pOwnerHouse->IsNeutral() && !pOwnerHouse->IsAlliedWith_(HouseClass::CurrentPlayer))
+					if (!pOwnerHouse->IsNeutral() && !pOwnerHouse->IsAlliedWith(HouseClass::CurrentPlayer))
 					{
 						const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pFoot->GetTechnoType());
 						{

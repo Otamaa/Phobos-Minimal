@@ -404,7 +404,7 @@ void WarheadTypeExtData::applyTransactMoney(TechnoClass* pOwner, HouseClass* pHo
 							}
 						}
 
-						if (pHouse->IsAlliedWith_(pBulletTargetHouse))
+						if (pHouse->IsAlliedWith(pBulletTargetHouse))
 						{
 							if (Transact_AffectsAlly.Get() && pBulletTargetHouse != pHouse)
 							{
@@ -555,7 +555,7 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 					 !HouseExtData::IsObserverPlayer(pOtherHouse) &&		  // Not Observer
 					 !pOtherHouse->Defeated &&			  // Not Defeated
 					 pOtherHouse != pHouse &&			  // Not pThisHouse
-					 !pHouse->IsAlliedWith_(pOtherHouse))   // Not Allied
+					 !pHouse->IsAlliedWith(pOtherHouse))   // Not Allied
 				 {
 					 pOtherHouse->ReshroudMap();
 				 }

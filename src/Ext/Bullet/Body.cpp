@@ -355,7 +355,7 @@ bool BulletExtData::ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pT
 
 		if (pThis->Owner && checkOwner)
 		{
-			if (pThis->Owner->Owner->IsAlliedWith_(pTarget))
+			if (pThis->Owner->Owner->IsAlliedWith(pTarget))
 				return false;
 		}
 	}

@@ -351,7 +351,7 @@ bool BuildingExtData::HandleInfiltrate(BuildingClass* pBuilding, HouseClass* pIn
 	if (!BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->SpyEffect_Custom)
 		return false;
 
-	if (pInfiltratorHouse->IsAlliedWith_(pBuilding->Owner))
+	if (pInfiltratorHouse->IsAlliedWith(pBuilding->Owner))
 		return true;
 
 	return true;
@@ -570,7 +570,7 @@ bool BuildingExtData::CanGrindTechno(BuildingClass* pBuilding, TechnoClass* pTec
 		return false;
 	}
 
-	if(pBuilding->Owner->IsAlliedWith_(pTechno))
+	if(pBuilding->Owner->IsAlliedWith(pTechno))
 	{
 		const auto pExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 

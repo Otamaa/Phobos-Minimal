@@ -142,7 +142,7 @@ bool NewSWType::IsInhibitor(const SWTypeExtData* pData, HouseClass* pOwner, Tech
 {
 	if (pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo && !pTechno->Deactivated)
 	{
-		if (pOwner && pOwner->IsAlliedWith_(pTechno)) {
+		if (pOwner && pOwner->IsAlliedWith(pTechno)) {
 			return false;
 		}
 
@@ -245,7 +245,7 @@ bool NewSWType::IsSuppressor(const SWTypeExtData* pData, HouseClass* pOwner, Tec
 {
 	if (pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo && !pTechno->Deactivated)
 	{
-		if (pOwner && pOwner->IsAlliedWith_(pTechno)) {
+		if (pOwner && pOwner->IsAlliedWith(pTechno)) {
 			return false;
 		}
 

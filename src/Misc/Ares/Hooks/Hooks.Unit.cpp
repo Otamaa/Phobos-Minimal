@@ -51,7 +51,7 @@ DEFINE_OVERRIDE_HOOK(0x73F7DD, UnitClass_IsCellOccupied_Bib, 0x8)
 	GET(BuildingClass*, pBuilding, ESI);
 	GET(UnitClass*, pThis, EBX);
 
-	return pThis && pBuilding->Owner->IsAlliedWith_(pThis) ? 0x0 : 0x73F823;
+	return pThis && pBuilding->Owner->IsAlliedWith(pThis) ? 0x0 : 0x73F823;
 }
 
 // #1171643: keep the last passenger if this is a gunner, not just

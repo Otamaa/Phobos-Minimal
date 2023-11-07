@@ -25,36 +25,40 @@
 //
 //	return 0x0;
 //}
+#include <Ext/Techno/Body.h>
 
 #ifndef SecondMode
 DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
 {
 	GET(AircraftClass* const, pThis, ECX);
 
-	//auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-
 	if (pThis->MissionStatus < (int)AirAttackStatus::FireAtTarget2_Strafe
 		|| pThis->MissionStatus >(int)AirAttackStatus::FireAtTarget5_Strafe
-		//|| !pExt->Aircraft_DecreaseAmmo.Get()
 		)
 	{
 		return 0;
 	}
 
-	const int weaponIndex = pThis->SelectWeapon(pThis->Target);
-	const auto pWeaponStr = pThis->GetWeapon(weaponIndex);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (pWeaponStr) {
+	if (const auto pWeaponStr = pThis->GetWeapon(pThis->SelectWeapon(pThis->Target))) {
 		if (pWeaponStr->WeaponType) {
-			int fireCount = pThis->MissionStatus - 4;
-			if (fireCount > 1 &&
-				WeaponTypeExtContainer::Instance.Find(pWeaponStr->WeaponType)->Strafing_Shots < fireCount) {
+			if (pExt->StrafeFireCunt > 0)
+				pThis->MissionStatus = (int)AirAttackStatus::FireAtTarget3_Strafe;
 
-					if (!pThis->Ammo)
-						pThis->__DoingOverfly = false;
+			if(pExt->StrafeFireCunt < 0 && pThis->MissionStatus == (int)AirAttackStatus::FireAtTarget2_Strafe)
+				pExt->StrafeFireCunt = 0;
 
+			if (pExt->StrafeFireCunt >= WeaponTypeExtContainer::Instance.Find(pWeaponStr->WeaponType)->Strafing_Shots.Get(5))
+			{
+				if (!pThis->Ammo)
+					pThis->__DoingOverfly = false;
+
+				pExt->StrafeFireCunt = -1;
 				pThis->MissionStatus = (int)AirAttackStatus::ReturnToBase;
 			}
+
+			++pExt->StrafeFireCunt;
 		}
 	}
 

@@ -373,7 +373,7 @@ DEFINE_HOOK(0x70076E, TechnoClass_GetCursorOverCell_OverFog, 0x5)
 				nOvlIdx = pObject->OverlayData.Overlay;
 			else if (pObject->CoveredType == FoggedObject::CoveredType::Building)
 			{
-				if (HouseClass::CurrentPlayer->IsAlliedWith_(pObject->BuildingData.Owner) && pObject->BuildingData.Type->LegalTarget)
+				if (HouseClass::CurrentPlayer->IsAlliedWith(pObject->BuildingData.Owner) && pObject->BuildingData.Type->LegalTarget)
 					R->Stack<bool>(STACK_OFFS(0x2C, 0x19), true);
 			}
 		}
@@ -493,7 +493,7 @@ DEFINE_HOOK(0x4ADFF0, MapClass_RevealMapShroud, 0x5)
 		{
 			if (pTechno->GetTechnoType()->RevealToAll ||
 				pTechno->DiscoveredByCurrentPlayer && pTechno->Owner->ControlledByPlayer() ||
-				RulesClass::Instance->AllyReveal && pTechno->Owner->IsAlliedWith_(HouseClass::CurrentPlayer))
+				RulesClass::Instance->AllyReveal && pTechno->Owner->IsAlliedWith(HouseClass::CurrentPlayer))
 			{
 				pTechno->See(0, bFog);
 				if (pTechno->IsInAir())
