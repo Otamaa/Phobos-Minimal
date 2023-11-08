@@ -867,6 +867,7 @@ public:
 
 	Nullable<Armor> EliteArmor {};
 	Nullable<Armor> VeteranArmor {};
+	Valueable<bool> Cloakable_IgnoreArmTimer { false };
 
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;

@@ -667,7 +667,8 @@ bool TechnoExt_ExtData::CloakAllowed(TechnoClass* pThis)
 		return false;
 	}
 
-	if (pThis->DiskLaserTimer.InProgress())
+	if (!TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->Cloakable_IgnoreArmTimer
+		 && pThis->DiskLaserTimer.InProgress())
 	{
 		return false;
 	}

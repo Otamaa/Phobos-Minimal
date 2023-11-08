@@ -1133,7 +1133,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->EliteArmor.Read(exINI, pSection, "EliteArmor");
 		this->VeteranArmor.Read(exINI, pSection, "VeteranArmor");
-
+		this->Cloakable_IgnoreArmTimer.Read(exINI, pSection, "Cloakable.IgnoreROFTimer");
 	}
 
 	// Art tags
@@ -2065,6 +2065,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->DetectDisguise_Percent)
 		.Process(this->EliteArmor)
 		.Process(this->VeteranArmor)
+		.Process(this->Cloakable_IgnoreArmTimer)
 		;
 }
 
