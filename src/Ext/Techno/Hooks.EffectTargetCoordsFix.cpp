@@ -358,7 +358,7 @@ DEFINE_HOOK(0x70CA8B, TechnoClass_Railgun_AmbientDamageIgnoreTarget2, 0x6)
 	enum { IgnoreTarget = 0x70CBB0 };
 
 	GET_BASE(WeaponTypeClass*, pWeapon, 0x14);
-	REF_STACK(DynamicVectorClass<ObjectClass*>, objects, STACK_OFFSET(0xC0, -0xAC));
+	REF_STACK(DynamicVectorClass<ObjectClass*>, objects, 0xC0 - 0xAC);
 
 	if (WeaponTypeExtContainer::Instance.Find(pWeapon)->AmbientDamage_IgnoreTarget) {
 		R->EAX(objects.Count);

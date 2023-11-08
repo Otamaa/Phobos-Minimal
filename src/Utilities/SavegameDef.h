@@ -264,7 +264,7 @@ namespace Savegame
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, DynamicVectorClass<T, GameAllocator<T>>& Value, bool RegisterForChange) const
 		{
-			Value.Clear();
+			Value.Reset();
 			int Capacity = 0;
 
 			if (!Stm.Load(Capacity))
@@ -305,7 +305,7 @@ namespace Savegame
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, DynamicVectorClass<T, DllAllocator<T>> & Value, bool RegisterForChange) const
 		{
-			Value.Clear();
+			Value.Reset();
 			int Capacity = 0;
 
 			if (!Stm.Load(Capacity))

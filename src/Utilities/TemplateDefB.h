@@ -532,7 +532,7 @@ namespace detail
 	{
 		if (IniEx.ReadString(section,key))
 		{
-			List.Clear();
+			List.Reset();
 			char* context = nullptr;
 
 			if constexpr (std::is_pointer<T>())

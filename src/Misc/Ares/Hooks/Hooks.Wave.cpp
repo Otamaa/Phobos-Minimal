@@ -315,7 +315,7 @@ DEFINE_JUMP(LJMP, 0x760286, 0x7602D3);
 DEFINE_OVERRIDE_HOOK(0x76110B, WaveClass_RecalculateAffectedCells_Clear, 0x5)
 {
 	GET(DynamicVectorClass<CellClass*>*, pVec, EBP);
-	pVec->Count = 0; //clear count , dont destroy the vector
+	pVec->Reset();
 	return 0x761110;
 }
 

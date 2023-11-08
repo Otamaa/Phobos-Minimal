@@ -152,7 +152,7 @@ DEFINE_OVERRIDE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
  		int Distance;
  	};
 
- 	REF_STACK(DynamicVectorClass<DamageGroup*>, groups, STACK_OFFS(0xE0, 0xA8));
+ 	REF_STACK(DynamicVectorClass<DamageGroup*>, groups, 0xE0 + 0xA8);
  	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
 
  	auto pExt = WarheadTypeExtContainer::Instance.Find(pWarhead);

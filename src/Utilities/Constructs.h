@@ -291,7 +291,7 @@ public:
 
 	void Tokenize() {
 		if (this->Buffer) {
-			this->Strings.Clear();
+			this->Strings.Reset();
 
 			char* context = nullptr;
 			for (auto cur = CRT::strtok(this->Buffer, ",", &context); cur && *cur; cur = CRT::strtok(nullptr, ",", &context)) {

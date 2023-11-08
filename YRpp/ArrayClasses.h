@@ -49,9 +49,9 @@ public:
 
 	static const ArrayType Type = ArrayType::Vector;
 
-	constexpr VectorClass() noexcept = default;
+	constexpr VectorClass<T, Allocator>() noexcept = default;
 
-	explicit VectorClass(int capacity, T* pMem = nullptr)
+	explicit VectorClass<T, Allocator>(int capacity, T* pMem = nullptr)
 	{
 		if (capacity != 0)
 		{
@@ -70,7 +70,7 @@ public:
 		}
 	}
 
-	VectorClass(const VectorClass<T, Allocator>& other)
+	VectorClass<T, Allocator>(const VectorClass<T, Allocator>& other)
 	{
 		if (other.Capacity > 0)
 		{
@@ -85,7 +85,7 @@ public:
 		}
 	}
 
-	VectorClass(VectorClass<T, Allocator>&& other) noexcept :
+	VectorClass<T, Allocator>(VectorClass<T, Allocator>&& other) noexcept :
 		Items(other.Items),
 		Capacity(other.Capacity),
 		IsInitialized(other.IsInitialized),
@@ -93,7 +93,7 @@ public:
 	{
 	}
 
-	virtual ~VectorClass() noexcept
+	virtual ~VectorClass<T, Allocator>() noexcept
 	{
 		if (this->IsAllocated)
 		{
@@ -281,17 +281,17 @@ public:
 	static const ArrayType Type = ArrayType::DynamicVector;
 
 #pragma region constructorandoperators
-	constexpr DynamicVectorClass() noexcept = default;
+	constexpr DynamicVectorClass<T, Allocator>() noexcept = default;
 
-	explicit DynamicVectorClass(int capacity, T* pMem = nullptr)
-		: VectorClass<T>(capacity, pMem)
+	explicit DynamicVectorClass<T, Allocator>(int capacity, T* pMem = nullptr)
+		: VectorClass<T, Allocator>(capacity, pMem)
 	{ }
 
-	DynamicVectorClass(const DynamicVectorClass<T,Allocator>& other)
+	DynamicVectorClass<T, Allocator>(const DynamicVectorClass<T,Allocator>& other)
 	{
 		if (other.Capacity > 0)
 		{
-			Allocator alloc;			
+			Allocator alloc;
 			this->Items = Memory::CreateArray<T>(alloc, static_cast<size_t>(other.Capacity));
 			this->IsAllocated = true;
 			this->Capacity = other.Capacity;
@@ -304,8 +304,8 @@ public:
 		}
 	}
 
-	DynamicVectorClass(DynamicVectorClass<T, Allocator>&& other) noexcept
-		: VectorClass<T>(std::move(other)), Count(other.Count),
+	DynamicVectorClass<T, Allocator>(DynamicVectorClass<T, Allocator>&& other) noexcept
+		: VectorClass<T, Allocator>(std::move(other)), Count(other.Count),
 		CapacityIncrement(other.CapacityIncrement)
 	{
 	}
@@ -321,9 +321,13 @@ public:
 		DynamicVectorClass<T, Allocator>(std::move(other)).Swap(*this);
 		return *this;
 	}
+
 #pragma endregion
 
 #pragma region virtuals
+
+	virtual ~DynamicVectorClass<T, Allocator>() = default;
+
 	virtual bool SetCapacity(int capacity, T* pMem = nullptr) override
 	{
 		bool bRet = VectorClass<T, Allocator>::SetCapacity(capacity, pMem);
@@ -390,6 +394,13 @@ public:
 #pragma endregion
 
 #pragma region Funcs
+
+	// this one doesnt destroy the memory , just reset the count
+	// the vector memory may still contains dangling pointer if it vector of pointer
+	void __forceinline Reset(int resetCount = 0) const {
+		this->Count = resetCount;
+	}
+
 	bool __forceinline ValidIndex(int index) const
 	{
 		return static_cast<size_t>(index) < static_cast<size_t>(this->Count);
@@ -466,17 +477,17 @@ public:
 			return false;
 
 		if (this->IsValidArray()) {
-	
+
 			if (index < this->Count)
 			{
 				T* nSource = this->Items + index;
 				T* nDest = std::next(nSource);
 				std::memmove(nDest, nSource, (this->begin() - nSource) * sizeof(T));
 			}
-	
+
 			this->Items[index] = std::move_if_noexcept(object);
 			++this->Count;
-	
+
 			return true;
 		}
 
@@ -484,7 +495,7 @@ public:
 	}
 
 	T* UninitializedAdd() {
-		return this->IsValidArray() ? 
+		return this->IsValidArray() ?
 			&(this->Items[this->Count++]) : nullptr;
 	}
 
@@ -623,20 +634,22 @@ template <typename T, class Allocator = GameAllocator<T>>
 class TypeList : public DynamicVectorClass<T , Allocator>
 {
 public:
-	constexpr TypeList() noexcept = default;
+	constexpr TypeList<T, Allocator>() noexcept = default;
 	static const ArrayType Type = ArrayType::TypeList;
 
-	explicit TypeList(int capacity, T* pMem = nullptr)
+	explicit TypeList<T, Allocator>(int capacity, T* pMem = nullptr)
 		: DynamicVectorClass<T, Allocator>(capacity, pMem)
 	{ }
 
-	TypeList(const TypeList<T, Allocator>& other)
+	TypeList<T, Allocator>(const TypeList<T, Allocator>& other)
 		: DynamicVectorClass<T, Allocator>(other), unknown_18(other.unknown_18)
 	{ }
 
-	TypeList(TypeList<T>&& other) noexcept
+	TypeList<T, Allocator>(TypeList<T, Allocator>&& other) noexcept
 		: DynamicVectorClass<T, Allocator>(std::move(other)), unknown_18(other.unknown_18)
 	{ }
+
+	virtual ~TypeList<T, Allocator>() = default;
 
 	TypeList<T, Allocator>& operator = (const TypeList<T, Allocator>& other)
 	{
@@ -667,15 +680,15 @@ template<class Allocator = GameAllocator<int>>
 class CounterClass : public VectorClass<int , Allocator>
 {
 public:
-	constexpr CounterClass() noexcept = default;
+	constexpr CounterClass<Allocator>() noexcept = default;
 	static const ArrayType Type = ArrayType::Counter;
 	using VecInt_type = VectorClass<int, Allocator>;
 
-	CounterClass(const CounterClass<Allocator>& other)
+	CounterClass<Allocator>(const CounterClass<Allocator>& other)
 		: VecInt_type(other), Total(other.Total)
 	{ }
 
-	CounterClass(CounterClass<Allocator>&& other) noexcept
+	CounterClass<Allocator>(CounterClass<Allocator>&& other) noexcept
 		: VecInt_type(std::move(other)), Total(other.Total)
 	{ }
 
@@ -700,6 +713,8 @@ public:
 
 		this->Total = 0;
 	}
+
+	virtual ~CounterClass<Allocator>() = default;
 
 	int GetTotal() const
 	{
@@ -761,7 +776,7 @@ public:
 		return 0;
 	}
 
-	void Swap(CounterClass& other) noexcept
+	void Swap(CounterClass<Allocator>& other) noexcept
 	{
 		VecInt_type::Swap(other);
 		using std::swap;

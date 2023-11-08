@@ -612,7 +612,7 @@ DEFINE_OVERRIDE_HOOK(0x6aa600, StripClass_RecheckCameos, 5)
 	});
 
 	const auto count_after = std::distance(tabs.begin(), removeIter);
-	tabs.Count = count_after;
+	tabs.Reset(count_after);
 
 	if (count_after >= pThis->CameoCount)
 	{

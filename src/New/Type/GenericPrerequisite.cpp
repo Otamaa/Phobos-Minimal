@@ -50,7 +50,7 @@ void GenericPrerequisite::Parse(CCINIClass* pINI, const char* section, const cha
 {
 	if (pINI->ReadString(section, key, Phobos::readDefval, Phobos::readBuffer) > 0)
 	{
-		Vec.Clear();
+		Vec.Reset();
 
 		char* context = nullptr;
 		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
