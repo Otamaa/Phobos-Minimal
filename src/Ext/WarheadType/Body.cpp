@@ -803,33 +803,30 @@ int NOINLINE GetRelativeValue(ObjectClass* pTarget, WarheadTypeExtData* pWHExt) 
 			relative =  pWHExt->RelativeDamage_Infantry;
 		else
 			relative =  pWHExt->RelativeDamage_Unit;
-	IsTechno = true;
+
+		IsTechno = true;
 	break;
 	}
 	case AircraftClass::AbsID:
 	{
-		if (static_cast<AircraftClass*>(pTarget)->Type->Organic)
-			relative =  pWHExt->RelativeDamage_Infantry;
-		else
-			relative =  pWHExt->RelativeDamage_AirCraft;
-
-	IsTechno = true;
+		relative =  pWHExt->RelativeDamage_AirCraft;
+		IsTechno = true;
 	break;
 	}
 	case BuildingClass::AbsID:
 		relative =  pWHExt->RelativeDamage_Building;
-	IsTechno = true;
+		IsTechno = true;
 	break;
 	case InfantryClass::AbsID:
 		relative =  pWHExt->RelativeDamage_Infantry;
-	IsTechno = true;
+		IsTechno = true;
 	break;
 	case TerrainClass::AbsID:
 		return pWHExt->RelativeDamage_Terrain;
 	}
 
 	if(IsTechno && relative > 0) {
-		relative *= TechnoExtContainer::Instance.Find((TechnoClass*)pTarget)->AE_ReceiveRelativeDamageMult;
+		return int(relative *  TechnoExtContainer::Instance.Find((TechnoClass*)pTarget)->AE_ReceiveRelativeDamageMult);
 	}
 
 	return relative;
@@ -841,14 +838,9 @@ void WarheadTypeExtData::applyRelativeDamage(ObjectClass* pTarget, args_ReceiveD
 		return;
 
 	auto nRelativeVal = GetRelativeValue(pTarget, const_cast<WarheadTypeExtData*>(this));
-	if (nRelativeVal)
-	{
 
-		if (nRelativeVal < 0)
-			nRelativeVal *= pTarget->Health / -100;
-		else
-			if (const auto pType = pTarget->GetType())
-				nRelativeVal *= pType->Strength / 100;
+	if (nRelativeVal != 0) {
+		nRelativeVal *= nRelativeVal < 0 ? pTarget->Health / -100 : pTarget->GetType()->Strength / 100;
 	}
 
 	if (*pArgs->Damage < 0)
