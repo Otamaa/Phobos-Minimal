@@ -87,11 +87,21 @@ template <typename T>
 struct GameAllocator {
 	using value_type = T;
 
+	static_assert(!std::is_const_v<T>, "The C++ Standard forbids containers of const elements "
+								"because allocator<const T> is ill-formed.");
+	static_assert(!std::is_function_v<T>, "The C++ Standard forbids allocators for function elements "
+									   "because of [allocator.requirements].");
+	static_assert(!std::is_reference_v<T>, "The C++ Standard forbids allocators for reference elements "
+										"because of [allocator.requirements].");
+
 	static const AllocatorType AllocType = AllocatorType::GameAllocator;
 	constexpr GameAllocator() noexcept = default;
 
 	template <typename U>
 	constexpr GameAllocator(const GameAllocator<U>&) noexcept {}
+
+	_CONSTEXPR20 ~GameAllocator() = default;
+	_CONSTEXPR20 GameAllocator& operator=(const GameAllocator&) = default;
 
 	constexpr bool operator == (const GameAllocator&) const noexcept { return true; }
 	constexpr bool operator != (const GameAllocator&) const noexcept { return false; }
