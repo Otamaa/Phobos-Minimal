@@ -297,8 +297,7 @@ public:
 			this->Capacity = other.Capacity;
 			this->Count = other.Count;
 			this->CapacityIncrement = other.CapacityIncrement;
-			for (auto i = 0; i < other.Count; ++i)
-			{
+			for (auto i = 0; i < other.Count; ++i) {
 				this->Items[i] = other.Items[i];
 			}
 		}
@@ -310,7 +309,7 @@ public:
 	{
 	}
 
-	DynamicVectorClass<T, Allocator>& operator = (const  DynamicVectorClass<T, Allocator>& other)
+	DynamicVectorClass<T, Allocator>& operator = (const DynamicVectorClass<T, Allocator>& other)
 	{
 		DynamicVectorClass<T, Allocator>(other).Swap(*this);
 		return *this;
@@ -360,30 +359,30 @@ public:
 #pragma region iteratorpointer
 	T* begin() const
 	{
-		return this->Items;
+		return &this->Items[0];
 	}
 
 	T* end() const
 	{
-		return this->Items + this->Count;
+		return &this->Items[this->Count];
 	}
 
 	T* front() const {
-		return this->Items;
+		return &this->Items[0];
 	}
 
 	T* back() const {
-		return  this->Items + (this->Count - 1);
+		return  &this->Items[(this->Count - 1)];
 	}
 
 	T* begin()
 	{
-		return this->Items;
+		return &this->Items[0];
 	}
 
 	T* end()
 	{
-		return this->Items + this->Count;
+		return &this->Items[this->Count];
 	}
 
 
@@ -397,7 +396,7 @@ public:
 
 	// this one doesnt destroy the memory , just reset the count
 	// the vector memory may still contains dangling pointer if it vector of pointer
-	void __forceinline Reset(int resetCount = 0) const {
+	void __forceinline Reset(int resetCount = 0) {
 		this->Count = resetCount;
 	}
 

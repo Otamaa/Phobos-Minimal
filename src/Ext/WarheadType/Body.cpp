@@ -829,8 +829,7 @@ int NOINLINE GetRelativeValue(ObjectClass* pTarget, WarheadTypeExtData* pWHExt) 
 	}
 
 	if(IsTechno && relative > 0) {
-		const auto pExt = TechnoExtContainer::Instance.Find((TechnoClass*)pTarget);
-		relative *= pExt->AE_ReceiveRelativeDamageMult;
+		relative *= TechnoExtContainer::Instance.Find((TechnoClass*)pTarget)->AE_ReceiveRelativeDamageMult;
 	}
 
 	return relative;
