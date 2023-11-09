@@ -135,7 +135,6 @@ DEFINE_HOOK(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
 #include <TranslateFixedPoints.h>
 #include <Commands/ToggleDesignatorRange.h>
 
-
 //TODO : integrate this better inside ares SW ecosystems
 DEFINE_HOOK(0x6CBEF4, SuperClass_AnimStage_UseWeeds, 0x6)
 {

@@ -42,6 +42,7 @@ public:
 	Nullable<SHPStruct*> Pips_Background_SHP;
 	Valueable<Point3D> Pips_Building;
 	Nullable<int> Pips_Building_Empty;
+	Valueable<bool> Pips_HideIfNoStrength;
 
 	Valueable<bool> ImmuneToPsychedelic;
 	Nullable<int> ThreadPosed;

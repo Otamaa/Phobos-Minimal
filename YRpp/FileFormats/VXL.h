@@ -5,6 +5,7 @@ class CCFileClass;
 #include <RectangleStruct.h>
 #include <ColorStruct.h>
 #include <Memory.h>
+#include <Matrix3D.h>
 
 struct VoxelDrawStruct;
 struct VoxelShadowDrawStruct;
@@ -110,15 +111,14 @@ public:
 
 	void Adjust() const
 		{ JMP_THIS(0x756BB0); }
+
+	static bool IsInvalid(const VoxLib* pThis)
+		{ return !pThis || pThis->LoadFailed; }
 };
 
 struct TransformVector {
 	Vector3D<float> XYZ;
 	float Unknown;
-};
-
-struct TransformMatrix {
-	TransformVector Vectors[3];
 };
 
 struct VoxelDrawStruct {
@@ -182,7 +182,7 @@ struct VoxelSectionFileTailer {
 	int span_end_off;
 	int span_data_off;
 	float DetFloat;
-	TransformMatrix TransformationMatrix;
+	Matrix3D TransformationMatrix;
 	Vector3D<float> MinBounds;
 	Vector3D<float> MaxBounds;
 	char size_X;
@@ -197,7 +197,7 @@ struct VoxelSectionTailer {
 	int span_end_off;
 	int span_data_off;
 	float HVAMultiplier;
-	TransformMatrix TransformationMatrix;
+	Matrix3D TransformationMatrix;
 	Vector3D<float> MinBounds;
 	int MaxBounds;
 	int field_50;

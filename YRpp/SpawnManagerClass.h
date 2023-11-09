@@ -23,9 +23,10 @@ enum class SpawnNodeStatus : unsigned int {
 	Dead = 7 // respawning
 };
 
+class AircraftClass;
 struct SpawnNode
 {
-	TechnoClass* Unit;		//ThisCan be anything Techno that not building ?
+	AircraftClass* Unit;		//ThisCan be anything Techno that not building ?
 	SpawnNodeStatus Status;
 	CDTimerClass NodeSpawnTimer;
 	BOOL IsSpawnMissile;
@@ -54,6 +55,9 @@ public:
 	virtual AbstractType WhatAmI() const override { return AbstractType::SpawnManager; }
 	virtual int Size() const override { return 0x74; }
 	virtual void Update() override JMP_THIS(0x6B7230);
+
+	void SpawnManger_DTOR()
+		{ JMP_THIS(0x6B7010); }
 
 	// non-virtual
 	void KillNodes()

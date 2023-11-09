@@ -2927,7 +2927,7 @@ void TechnoExtData::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool 
 
 		const auto flight = pThis->GetLastFlightMapCoords();
 		if(flight.IsValid())
-			AircraftTrackerClass::Instance->Remove(pThis);
+			AircraftTrackerClass::Instance->Remove((FootClass*)pThis);
 	}
 
 	if (!SkipTrackingRemove)

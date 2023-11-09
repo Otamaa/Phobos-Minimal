@@ -470,7 +470,7 @@ struct TargetingFuncs
 	template<typename It, typename Valuator>
 	static ObjectClass* GetTargetAnyMax(It first, It last, Valuator value)
 	{
-		DiscreteSelectionClass<ObjectClass*> targets;
+		DiscreteSelectionClass<ObjectClass* , DllAllocator<ObjectClass*>> targets;
 
 		for (auto it = first; it < last; ++it)
 		{
@@ -487,7 +487,7 @@ struct TargetingFuncs
 	template<typename It, typename Valuator>
 	static ObjectClass* GetTargetShareAny(It first, It last, Valuator value)
 	{
-		DiscreteDistributionClass<ObjectClass*> targets;
+		DiscreteDistributionClass<ObjectClass*, DllAllocator<ObjectClass*>> targets;
 
 		for (auto it = first; it < last; ++it)
 		{

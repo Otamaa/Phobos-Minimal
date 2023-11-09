@@ -19,7 +19,7 @@ public:
     bool IsMouseKey(short nKey)
 		{ JMP_THIS(0x54EFC0); }
 
-    WORD Check()
+    bool HasFocus()
 		{ JMP_THIS(0x54F000); }
 
     WORD Get()

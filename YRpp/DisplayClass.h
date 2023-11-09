@@ -93,6 +93,12 @@ public:
 	bool FollowAnObject(ObjectClass* pObject) const
 	{ JMP_THIS(0x4AEB30); }
 
+	ObjectClass* GetFollowObject() const
+	{ JMP_THIS(0x4AEB10); }
+
+	static TechnoClass* __fastcall SelectLeadingTechno(CellStruct* cellBuffer, ObjectClass* pObj)
+	{ JMP_STD(0x5353D0); }
+
 protected:
 	//Constructor
 	DisplayClass() noexcept

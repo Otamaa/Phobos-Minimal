@@ -1003,11 +1003,11 @@ void WarheadTypeExtData::DetonateAt(
 	if (BulletClass* pBullet = BulletTypeExtContainer::Instance.Find(pType)->CreateBullet(pTarget, pOwner,
 		damage, pThis, 0, 0, pThis->Bright, true))
 	{
-		pBullet->MoveTo(coords, { 0 ,0, 0 });
+		pBullet->MoveTo(coords, {});
 
 		//something like 0x6FF08B
 		const auto pCellCoord = MapClass::Instance->GetCellAt(coords);
-		if (pCellCoord->ContainsBridge())
+		if (pBullet->Type->Inviso && pCellCoord->ContainsBridge())
 			pBullet->OnBridge = true;
 
 		BulletExtData::DetonateAt(pBullet, pTarget, pOwner, coords, pFiringHouse);

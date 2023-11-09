@@ -8,6 +8,10 @@
 #include <RectangleStruct.h>
 #include <Point2D.h>
 
+enum class PoweredFlag : char {
+	Powered = 1, Offline = 2 , DoNotNeedPowered = -1
+};
+
 class AbstractClass;
 class ObjectClass;
 class TechnoClass;
@@ -101,6 +105,7 @@ private:
 	void OnlineCheck();
 	void TemporalCheck();
 	bool ConvertCheck();
+	PoweredFlag PoweredByCheck();
 
 	void DrawShieldBar_Building(int iLength, Point2D* pLocation, RectangleStruct* pBound);
 	void DrawShieldBar_Other(int iLength, Point2D* pLocation, RectangleStruct* pBound);

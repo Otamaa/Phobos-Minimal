@@ -38,6 +38,9 @@ public:
 		}
 	}
 
+	static bool IsInvalid(const MotLib* pThis)
+		{ return !pThis || pThis->LoadedFailed; }
+
 	// 0 for valid, non 0 for invalid
 	bool ReadFile(CCFileClass* ccFile) const { JMP_THIS(0x5BD5C0); }
 	void Scale(float scale) const { JMP_THIS(0x5BD730); }

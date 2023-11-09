@@ -7,6 +7,12 @@
 struct SHPStruct;
 class Surface;
 
+struct LoadRectangle : public RectangleStruct
+{
+	RectangleStruct* GetLoadingBound() const
+	{ JMP_THIS(0x554150); }
+};
+
 class LoadProgressManager
 {
 public:
@@ -23,6 +29,32 @@ public:
 
 	void Draw()
 		{ JMP_THIS(0x552D60); }
+
+	static void __fastcall sub_554280(const wchar_t* pWString, Surface* pSurface,
+		RectangleStruct& pRect, DWORD a4, char a5)
+	{
+		JMP_THIS(0x554280);
+	}
+
+	static void __fastcall sub_5541C0(const wchar_t* pWString, Surface* pSurface,
+		Point2D position, int a5, bool a6 = false, bool a7 = false)
+	{
+		JMP_THIS(0x5541C0);
+	}
+
+	static void __fastcall FillRectWithColor(RectangleStruct& pRect,
+		Surface* pSurface, DWORD a3 = 0, DWORD a4 = 0x9Fu)
+	{
+		JMP_THIS(0x621B80);
+	}
+
+	static RectangleStruct GetLoadingBound()
+	{
+		LoadRectangle ret;
+		return *ret.GetLoadingBound();
+	}
+
+public:
 
 	DWORD field_4;
 	DWORD field_8;

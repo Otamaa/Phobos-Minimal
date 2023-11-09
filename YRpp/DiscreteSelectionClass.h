@@ -21,12 +21,13 @@
 
 #include <utility>
 
-template <typename T>
+template <typename T , class Allocator = GameAllocator<T>>
 class DiscreteSelectionClass
 {
 public:
 	DiscreteSelectionClass() = default;
 	explicit DiscreteSelectionClass(int initial) : Rating(initial) {}
+	~DiscreteSelectionClass() = default;
 
 	void Add(T value, int rating) {
 		if(this->Rating > rating) {
@@ -88,6 +89,6 @@ public:
 	}
 
 private:
-	DynamicVectorClass<T> Items{};
+	DynamicVectorClass<T , Allocator> Items{};
 	int Rating{ 0 };
 };

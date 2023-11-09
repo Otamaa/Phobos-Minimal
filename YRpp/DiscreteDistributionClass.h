@@ -18,25 +18,28 @@
 #include <Randomizer.h>
 
 #include <utility>
-
 template <typename T>
+struct DistributionObject {
+	DistributionObject() = default;
+	explicit DistributionObject(T value, unsigned int weight = 1u) : Value(std::move(value)), Weight(weight) {}
+	bool operator ==(const DistributionObject<T> &rhs) const { return false; }
+	bool operator !=(const DistributionObject<T> &rhs) const { return true; }
+	~DistributionObject() = default;
+
+	T Value{};
+	unsigned int Weight{ 0u };
+};
+
+template <typename T , class Allocator = GameAllocator<DistributionObject<T>>>
 class DiscreteDistributionClass
 {
 public:
-	template <typename T>
-	struct DistributionObject {
-		DistributionObject() = default;
-		explicit DistributionObject(T value, unsigned int weight = 1u) : Value(std::move(value)), Weight(weight) {}
-
-		bool operator ==(const DistributionObject<T> &rhs) const { return false; }
-		bool operator !=(const DistributionObject<T> &rhs) const { return true; }
-
-		T Value{};
-		unsigned int Weight{ 0u };
-	};
-
 	DiscreteDistributionClass() = default;
 	explicit DiscreteDistributionClass(int capacity, DistributionObject<T>* pMem = nullptr) : Items(capacity, pMem) {}
+
+	const DynamicVectorClass<DistributionObject<T> , Allocator> & GetItems() const {
+		return this->Items;
+	}
 
 	void Add(DistributionObject<T> item) {
 		this->TotalWeight += item.Weight;
@@ -44,6 +47,10 @@ public:
 	}
 
 	void Add(T value, unsigned int weight = 1u) {
+		if (!weight) {
+			return;
+		}
+
 		DistributionObject<T> item(std::move(value), weight);
 		this->Add(std::move(item));
 	}
@@ -83,10 +90,8 @@ public:
 		return false;
 	}
 
-	bool Select(Random2Class &random, T* pOut) const 
-	{
-		if(!this->TotalWeight)
-		{
+	bool Select(Random2Class &random, T* pOut) const {
+		if(!this->TotalWeight) {
 			return false;
 		}
 
@@ -99,13 +104,17 @@ public:
 		return nDefault;
 	}
 
-	T Select(Random2Class &random, T nDefault = T()) const
-	{
+	T Select(Random2Class &random, T nDefault = T()) const {
 		this->Select(random, &nDefault);
 		return nDefault;
 	}
 
+	T SelectOrDefault(T default = T()) const {
+		this->Select(ScenarioClass::Instance->Random, &default);
+		return default;
+	}
+
 private:
-	DynamicVectorClass<DistributionObject<T>> Items{};
+	DynamicVectorClass<DistributionObject<T> , Allocator> Items{};
 	unsigned int TotalWeight{ 0u };
 };

@@ -60,7 +60,7 @@ class NOVTABLE MPGameModeClass
 public:
 	//global arrays
 	static DynamicVectorClass<MPGameModeClass*>* GameModes;
-	//static constexpr constant_ptr<DynamicVectorClass<MPGameModeClass*>, 0x00000u> const GameModes{};
+	static constexpr reference<MPGameModeClass*, 0xA8B23C> const Instance{};
 
 	static bool Set(int index)
 	{
@@ -472,4 +472,45 @@ struct MPlayerScoreType
 	int Kill[4];
 	int Builts[4];
 	int Score[4];
+};
+
+class MPCooperative : public MPGameModeClass
+{
+	class CoopCampaignClass
+	{
+		CoopCampaignClass()
+		{ JMP_THIS(0x49B610); }
+
+		char field__0;
+		char gap_1[19];
+		int House1;
+		int Color1;
+		char field_bool_1C;
+		PROTECTED_PROPERTY(char, gap_1D[19])
+		int House2;
+		int Color2;
+		int CurrentMap;
+		int field_3C;
+		int field_40;
+		int CampaignType;
+		int Kills1;
+		int Kills2;
+		int Built1;
+		int Built2;
+		int Lost1;
+		int Lost2;
+		int Score1;
+		int Score2;
+		int Time;
+		char field_bool_6C;
+		PROTECTED_PROPERTY(char, gap_6D[1])
+		int field_6E;
+	};
+
+
+	//Constructor
+	MPCooperative(wchar_t **CSFTitle, wchar_t **CSFTooltip, char **INIFileName, char **mapfilter, bool AIAllowed, int MPModeIndex)
+		: MPGameModeClass(noinit_t())
+	{ JMP_THIS(0x5C1470); }
+
 };

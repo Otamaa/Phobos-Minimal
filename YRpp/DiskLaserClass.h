@@ -61,8 +61,8 @@ public:
 	TechnoClass* Owner;
 	TechnoClass* Target;
 	WeaponTypeClass* Weapon;
-	DWORD unknown_30;
-	DWORD unknown_34;
-	DWORD unknown_38;
+	int DrawRateCounter;//dec per update
+	DWORD Facing;//0-15
+	int DrawCounter;//inc per draw
 	int Damage;
 };

@@ -454,8 +454,27 @@ void ShieldClass::OnUpdate()
 		return;
 
 	this->OnlineCheck();
+
+	//why dont check it together insinde `OnlineCheck` instead ,..
+	//if(this->Type->Powered) {
+	//	const auto Powered = this->PoweredByCheck();
+	//	auto timer = (this->HP <= 0) ? &this->Timers_Respawn : &this->Timers_SelfHealing;
+	//
+	//	switch (Powered)
+	//	{
+	//	case PoweredFlag::Offline:
+	//		timer->Pause();
+	//		break;
+	//	case PoweredFlag::Powered:
+	//		timer->Resume();
+	//		break;
+	//	default:
+	//		this->SelfHealing();
+	//		break;
+	//	}
+	//}
+
 	this->RespawnShield();
-	this->SelfHealing();
 
 	double ratio = this->Techno->GetHealthPercentage();
 	if (!this->AreAnimsHidden)
@@ -632,6 +651,20 @@ bool ShieldClass::ConvertCheck()
 	this->CurTechnoType = newID;
 
 	return false;
+}
+
+#include <Misc/Ares/Hooks/Header.h>
+
+PoweredFlag ShieldClass::PoweredByCheck()
+{
+	if (!TechnoTypeExtContainer::Instance.Find(this->CurTechnoType)->PoweredBy.empty()) {
+		if (auto& Powered = TechnoExtContainer::Instance.Find(this->Techno)->PoweredUnit)
+			return Powered->IsPowered() ? PoweredFlag::Powered : PoweredFlag::Offline;
+
+		return PoweredFlag::Offline;
+	}
+
+	return PoweredFlag::DoNotNeedPowered;
 }
 
 void ShieldClass::SelfHealing()
@@ -868,6 +901,9 @@ void ShieldClass::DrawShieldBar(int iLength, Point2D* pLocation, RectangleStruct
 
 void ShieldClass::DrawShieldBar_Building(int iLength, Point2D* pLocation, RectangleStruct* pBound)
 {
+	if (this->HP == 0 && this->Type->Pips_HideIfNoStrength)
+		return;
+
 	Point2D vLoc = *pLocation;
 	vLoc.X -= 5;
 	vLoc.Y -= 3;
@@ -915,6 +951,9 @@ void ShieldClass::DrawShieldBar_Building(int iLength, Point2D* pLocation, Rectan
 
 void ShieldClass::DrawShieldBar_Other(int iLength, Point2D* pLocation, RectangleStruct* pBound)
 {
+	if (this->HP == 0 && this->Type->Pips_HideIfNoStrength)
+		return;
+
 	const auto pipBoard = this->Type->Pips_Background_SHP
 		.Get(RulesExtData::Instance()->Pips_Shield_Background_SHP.Get(FileSystem::PIPBRD_SHP()));
 

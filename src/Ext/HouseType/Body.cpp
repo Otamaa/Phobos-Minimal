@@ -405,7 +405,7 @@ Iterator<BuildingTypeClass*> HouseTypeExtData::GetDefaultPowerplants() const
 
 int HouseTypeExtData::PickRandomCountry()
 {
-	DiscreteDistributionClass<int> items;
+	DiscreteDistributionClass<int , DllAllocator<DistributionObject<int>>> items;
 
 	for (int i = 0; i < HouseTypeClass::Array->Count; i++) {
 		HouseTypeClass* pCountry = HouseTypeClass::Array->Items[i];
