@@ -98,11 +98,7 @@ void FlyingStrings::AddMoneyString(bool Display, int const amount, HouseClass* o
 		Dimensions nDim {};
 		BitFont::Instance->GetTextDimension(moneyStr, &nDim.Width, &nDim.Height, 120);
 		pixelOffset.X -= (nDim.Width / 2);
-
-		if (const auto pBuilding = specific_cast<BuildingClass*>(owner))
-			coords.Z += 104 * pBuilding->Type->Height;
-		else
-			coords.Z += 256;
+		coords.Z += 256;
 
 		FlyingStrings::Add(moneyStr, coords, color, pixelOffset);
 	}

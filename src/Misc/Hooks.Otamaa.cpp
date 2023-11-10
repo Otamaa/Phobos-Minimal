@@ -4190,6 +4190,21 @@ DEFINE_HOOK(0x52D36F, RulesClass_init_AIMD, 0x5)
 	return 0x0;
 }
 
+#include <New/Entity/FlyingStrings.h>
+
+DEFINE_HOOK(0x4824D9, CellClass_CollecCreate_FlyingStrings, 0x9)
+{
+	GET(CellClass*, pThis, ESI);
+	GET(int, amount, EDI);
+	GET_BASE(FootClass*, pPicker, 0x8);
+
+	CoordStruct loc = CellClass::Cell2Coord(pThis->MapCoords);
+	loc.Z = pThis->GetFloorHeight({ 128 , 128 });
+
+	FlyingStrings::AddMoneyString(true, amount, pPicker->Owner, AffectedHouse::Owner, loc);
+	return 0x0;
+}
+
 //DEFINE_HOOK(0x4F8A9B, HouseClass_AI_SuggestTeams, 0x6)
 //{
 //	GET(HouseClass*, pThis, ESI);
