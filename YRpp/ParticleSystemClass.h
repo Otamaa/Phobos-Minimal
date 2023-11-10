@@ -62,6 +62,17 @@ public:
 		HouseClass* pOwnerHouse = nullptr) noexcept : ParticleSystemClass(noinit_t())
 			{ JMP_THIS(0x62DC50); }
 
+	ParticleSystemClass(
+		ParticleSystemTypeClass* pParticleSystemType,
+		CoordStruct* coords, 
+		AbstractClass* pTarget,
+		ObjectClass* pOwner,
+		CoordStruct* targetCoords,
+		HouseClass* pOwnerHouse) noexcept : ParticleSystemClass(noinit_t())
+	{
+		JMP_THIS(0x62DC50);
+	}
+
 protected:
 	explicit __forceinline ParticleSystemClass(noinit_t) noexcept
 		: ObjectClass(noinit_t())

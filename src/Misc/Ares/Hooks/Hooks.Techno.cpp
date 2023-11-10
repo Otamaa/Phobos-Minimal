@@ -118,6 +118,43 @@ DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 	return 0x6F4955;
 }
 
+//The stack is messed up here , idk 
+// i cant properly catch them , it is just return garbages
+//DEFINE_OVERRIDE_HOOK(0x6FF1FB, TechnoClass_Fire_DetachedRailgun, 0x6)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//	GET(WeaponTypeClass*, pWeapon, EBX);
+//
+//	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+//
+//	if(pWeaponExt->IsDetachedRailgun || (pWeapon->IsRailgun && !pThis->RailgunParticleSystem))
+//	{
+//		GET_BASE(AbstractClass* , pTarget, 0x8);
+//		LEA_STACK(CoordStruct* , pTo, 0xB4 - 0x74);
+//		LEA_STACK(CoordStruct* , pFrom, 0xB4 - 0x1C);
+//		LEA_STACK(CoordStruct* , pBuffer, 0xB4 - 0x80);
+//
+//		Debug::Log("Railgun[%s]  From [%d %d %d] To [%d %d %d]\n", pWeapon->ID,
+//			pFrom->X,
+//			pFrom->Y,
+//			pFrom->Z,
+//			pTo->X,
+//			pTo->Y,
+//			pTo->Z
+//		);
+//
+//		pBuffer = pThis->DealthParticleDamage(pFrom , pTo , pTarget , pWeapon);
+//		const auto pParticle = GameCreate<ParticleSystemClass>(pWeapon->AttachedParticleSystem, pTo, nullptr, pThis, pBuffer, pThis->Owner);
+//
+//		if(!pWeaponExt->IsDetachedRailgun)
+//			pThis->RailgunParticleSystem = pParticle;
+//	}
+//
+//	return 0x6FF274;
+//}
+//
+//DEFINE_DISABLE_HOOK(0x6FF26E, TechnoClass_Fire_DetachedRailgun2_ares)
+
 DEFINE_OVERRIDE_HOOK(0x6FF1FB, TechnoClass_Fire_DetachedRailgun, 0x6)
 {
 	//GET(TechnoClass*, pThis, ESI);

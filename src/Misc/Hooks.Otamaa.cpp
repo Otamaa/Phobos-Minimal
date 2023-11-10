@@ -3928,7 +3928,7 @@ DEFINE_HOOK(0x43B150, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x6)
 
 int NOINLINE GetPlayerPosByName(const char* pName)
 {
-	if (!*pName || !strlen(pName))
+	if (!pName[0] || pName[0] != '<' || strlen(pName) != 12)
 		return -1;
 
 	if (IS_SAME_STR_(GameStrings::PlayerAt_A(), pName))
@@ -3966,16 +3966,16 @@ DEFINE_HOOK(0x44F8A6, TechnoClass_FromINI_CreateForHouse, 0x7)
 	GET(const char*, pHouseName, EAX);
 
 	const int startingPoints = GetPlayerPosByName(pHouseName);
-	int idx = -1;
+	const int idx = startingPoints != -1 
+		?
+		ScenarioClass::Instance->HouseIndices[startingPoints] :
+		HouseClass::FindIndexByName(pHouseName)
+		;
 
-	if(startingPoints == -1){
-		idx = HouseClass::FindIndexByName(pHouseName);
-	} else {
-		idx = ScenarioClass::Instance->HouseIndices[startingPoints];
-	}
-
-	if (idx == -1)
+	if (idx == -1) { 
 		Debug::Log("Failed To fetch house index by name of [%s]\n", pHouseName);
+		Debug::RegisterParserError();
+	}
 
 	R->EAX(idx);
 	return R->Origin() + 0x7;

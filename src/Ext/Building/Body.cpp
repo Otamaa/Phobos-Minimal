@@ -24,6 +24,7 @@ void BuildingExtData::InitializeConstant()
 
 	this->StartupCashDelivered.resize(HouseClass::Array->Count);
 }
+
 // Assigns a secret production option to the building.
 void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 {
@@ -51,10 +52,10 @@ void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 	}
 
 	std::vector<TechnoTypeClass*> Options;
-
-	auto AddToOptions = [pOwner, &Options](const Iterator<TechnoTypeClass*>& items)
+	const DWORD OwnerBits = 1u << pOwner->Type->ArrayIndex;
+	;
+	auto AddToOptions = [OwnerBits , pOwner, &Options](const Iterator<TechnoTypeClass*>& items)
 		{
-			auto OwnerBits = 1u << pOwner->Type->ArrayIndex;
 
 			for (const auto& Option : items)
 			{
@@ -88,9 +89,9 @@ void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 	}
 
 	// pick one of all eligible items
-	if (Options.size() > 0)
+	if (!Options.empty())
 	{
-		auto Result = Options[ScenarioClass::Instance->Random.RandomFromMax(Options.size() - 1)];
+		const auto Result = Options[ScenarioClass::Instance->Random.RandomFromMax(Options.size() - 1)];
 		Debug::Log("[Secret Lab] rolled %s for %s\n", Result->ID, pType->ID);
 		pThis->SecretProduction = Result;
 		pExt->SecretLab_Placed = true;
@@ -134,7 +135,6 @@ bool BuildingExtData::ReverseEngineer(BuildingClass* pBuilding, TechnoClass* Vic
 				return true;
 			}
 		}
-
 	}
 
 	return false;
@@ -161,17 +161,15 @@ void BuildingExtData::ApplyLimboKill(ValueableVector<int>& LimboIDs, Valueable<A
 
 int BuildingExtData::GetFirstSuperWeaponIndex(BuildingClass* pThis)
 {
-	const auto pExt = BuildingTypeExtContainer::Instance.TryFind(pThis->Type);
-
-	if (!pExt)
-		return -1;
-
-	for (auto i = 0; i < pExt->GetSuperWeaponCount(); ++i)
-	{
-		const auto idxSW = pExt->GetSuperWeaponIndex(i, pThis->Owner);
-		if (idxSW != -1)
+	if (const auto pExt = BuildingTypeExtContainer::Instance.TryFind(pThis->Type))
+	{ 
+		for (auto i = 0; i < pExt->GetSuperWeaponCount(); ++i)
 		{
-			return idxSW;
+			const auto idxSW = pExt->GetSuperWeaponIndex(i, pThis->Owner);
+			if (idxSW != -1)
+			{
+				return idxSW;
+			}
 		}
 	}
 
@@ -180,8 +178,7 @@ int BuildingExtData::GetFirstSuperWeaponIndex(BuildingClass* pThis)
 
 SuperClass* BuildingExtData::GetFirstSuperWeapon(BuildingClass* pThis)
 {
-	const auto idxSW = GetFirstSuperWeaponIndex(pThis);
-	return pThis->Owner->Supers.GetItemOrDefault(idxSW);
+	return pThis->Owner->Supers.GetItemOrDefault(GetFirstSuperWeaponIndex(pThis));
 }
 
 void BuildingExtData::DisplayIncomeString()
@@ -194,7 +191,6 @@ void BuildingExtData::DisplayIncomeString()
 			this->AccumulatedIncome = 0;
 			return;
 		}
-
 
 		FlyingStrings::AddMoneyString(
 			this->AccumulatedIncome,
@@ -437,11 +433,6 @@ void BuildingExtData::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 		return;
 
 	auto BuildingExt = BuildingExtContainer::Instance.Find(pThis);
-	auto HouseExt = HouseExtContainer::Instance.Find(pOwner);
-
-	if (!BuildingExt || !HouseExt)
-		return;
-
 	AircraftTypeClass* pAircraft = AircraftTypeClass::Array->GetItem(pOwner->ProducingAircraftTypeIndex);
 	FactoryClass* currFactory = pOwner->GetFactoryProducing(pAircraft);
 	std::vector<BuildingClass*> airFactoryBuilding;

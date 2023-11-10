@@ -23,6 +23,7 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/HouseType/Body.h>
+#include <Ext/WeaponType/Body.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/Helpers.h>
@@ -395,6 +396,20 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		{
 			Debug::Log(Msg, pItem->ID, "Projectile");
 			Debug::RegisterParserError();
+		}
+
+		const auto pExt = WeaponTypeExtContainer::Instance.Find(pItem);
+
+		if ((pItem->IsRailgun || pExt->IsDetachedRailgun || pItem->UseSparkParticles || pItem->UseFireParticles) 
+				&& !pItem->AttachedParticleSystem) {
+
+			Debug::Log("Weapon[%s] is an Railgun/Detached Railgun/UseSparkParticles/UseFireParticles but it missing AttachedParticleSystem", pItem->ID);
+			Debug::RegisterParserError();
+
+			pItem->IsRailgun = false;
+			pExt->IsDetachedRailgun = false;
+			pItem->UseSparkParticles = false;
+			pItem->UseFireParticles = false;
 		}
 	}
 

@@ -725,6 +725,10 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 		JMP_THIS(0x70DC70);
 	}
 
+	CoordStruct* DealthParticleDamage(CoordStruct* From , CoordStruct* To , AbstractClass* pTarget , WeaponTypeClass* pWeapon) {
+		JMP_THIS(0x70C690);
+	}
+
 	//Constructor
 	TechnoClass(HouseClass* pOwner) noexcept
 		: TechnoClass(noinit_t())

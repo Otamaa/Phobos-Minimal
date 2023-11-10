@@ -426,13 +426,21 @@ struct GameStrings
 	GAMEMD_STR(Special, 0x817318);
 	// ..
 
+	//12 char long
 	GAMEMD_STR(PlayerAt_A, 0x825070);
+	//12 char long
 	GAMEMD_STR(PlayerAt_B, 0x825060);
+	//12 char long
 	GAMEMD_STR(PlayerAt_C, 0x825050);
+	//12 char long
 	GAMEMD_STR(PlayerAt_D, 0x825040);
+	//12 char long
 	GAMEMD_STR(PlayerAt_E, 0x825030);
+	//12 char long
 	GAMEMD_STR(PlayerAt_F, 0x825020);
+	//12 char long
 	GAMEMD_STR(PlayerAt_G, 0x825010);
+	//12 char long
 	GAMEMD_STR(PlayerAt_H, 0x825000);
 
 	static bool IsBlank(const char* pValue);

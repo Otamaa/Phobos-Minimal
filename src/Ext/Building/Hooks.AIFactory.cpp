@@ -287,30 +287,29 @@ DEFINE_OVERRIDE_HOOK(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 {
 	GET(FactoryClass*, pFactory, ESI);
 
-	auto pRules = RulesExtData::Instance();
-
 	if(HouseClass* pOwner = pFactory->Owner) {
 		HouseExtData* pData = HouseExtContainer::Instance.Find(pOwner);
-		TechnoClass* pTechno = pFactory->Object;
 
-	switch (pTechno->WhatAmI())
-	{
-	case BuildingClass::AbsID:
-			pData->Factory_BuildingType = nullptr;
-		break;
-	case UnitClass::AbsID:
-		if (!pTechno->GetTechnoType()->Naval)
-				pData->Factory_VehicleType = nullptr;
-		else
-				pData->Factory_NavyType = nullptr;
-		break;
-	case InfantryClass::AbsID:
-			pData->Factory_InfantryType = nullptr;
-		break;
-	case AircraftClass::AbsID:
-			pData->Factory_AircraftType = nullptr;
-		break;
-	}
+		switch (pFactory->Object->WhatAmI())
+		{
+		case BuildingClass::AbsID:
+				pData->Factory_BuildingType = nullptr;
+			break;
+		case UnitClass::AbsID:
+			if (!pFactory->Object->GetTechnoType()->Naval)
+					pData->Factory_VehicleType = nullptr;
+			else
+					pData->Factory_NavyType = nullptr;
+			break;
+		case InfantryClass::AbsID:
+				pData->Factory_InfantryType = nullptr;
+			break;
+		case AircraftClass::AbsID:
+				pData->Factory_AircraftType = nullptr;
+			break;
+		default:
+			break;
+		}
 	}
 
 	return 0;
