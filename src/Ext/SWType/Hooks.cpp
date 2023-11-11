@@ -1043,6 +1043,7 @@ DEFINE_OVERRIDE_HOOK(0x6CB7B0, SuperClass_Lose, 6)
 }
 
 // activate or deactivate the SW
+// ForceCharged on IDB
 DEFINE_OVERRIDE_HOOK(0x6CB920, SuperClass_ClickFire, 5)
 {
 	GET(SuperClass* const, pThis, ECX);

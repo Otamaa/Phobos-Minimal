@@ -102,6 +102,10 @@ public:
 	bool ShouldFlashTab() const // sidebar
 		{ JMP_THIS(0x6CE1A0); }
 
+	void ClickFire() const {
+		JMP_THIS(0x6CC080);
+	}
+
 	// smooth operator
 	const char* get_ID() const {
 		return Type ? Type->get_ID() : GameStrings::NoneStr();
