@@ -363,7 +363,7 @@ DEFINE_OVERRIDE_HOOK(0x55403D, LoadProgressMgr_Draw_SkipShadowOnNullString3, 6)
 // score music for single player missions
 static const char* pSinglePlayerScoreTheme = nullptr;
 
-DEFINE_OVERRIDE_HOOK(0x6C922C, ScoreDialog_Handle_ScoreThemeA, 5)
+DEFINE_OVERRIDE_HOOK(0x6C922C, ScoreDialog_Handle_ScoreThemeFirst, 5)
 {
 	GET(int, elapsed, EDI);
 	GET(int, par, ESI);
@@ -397,7 +397,7 @@ DEFINE_OVERRIDE_HOOK(0x6C922C, ScoreDialog_Handle_ScoreThemeA, 5)
 	return 0x6C924F;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6C935C, ScoreDialog_Handle_ScoreThemeB, 5)
+DEFINE_OVERRIDE_HOOK(0x6C935C, ScoreDialog_Handle_ScoreThemeSecond, 5)
 {
 	REF_STACK(const char*, pTheme, 0x0);
 

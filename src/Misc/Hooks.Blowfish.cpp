@@ -35,9 +35,7 @@ Blowfish_Loader(
 	if (!SUCCEEDED(result)) {
 
 		if(hDll) Imports::FreeLibrary.get()(hDll);
-		const char* Message = "File Blowfish.dll was not found\n";
-		Imports::MessageBoxA.get()(0, Message, "Fatal error ", MB_ICONERROR);
-		Debug::FatalErrorAndExit(Message);
+		Debug::FatalErrorAndExit("File Blowfish.dll was not found\n");
 	}
 
 	return result;

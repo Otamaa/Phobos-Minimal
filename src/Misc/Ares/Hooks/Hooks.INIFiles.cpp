@@ -353,7 +353,7 @@ DEFINE_OVERRIDE_HOOK(0x525E44, INIClass_Parse_IniSectionIncludes_CopySection2, 7
 
 DEFINE_OVERRIDE_HOOK(0x525C28, INIClass_Parse_IniSectionIncludes_CopySection1, 7)
 {
-	LEA_STACK(char*, sectionName, 0x278);
+	LEA_STACK(char*, sectionName, 0x79);
 	GET_STACK(CCINIClass*, ini, 0x28);
 
 	if (IniSectionIncludes::includedSection)
@@ -393,7 +393,10 @@ NOINLINE INIClass::INISection* GetInheritedSection(INIClass* pThis, char* ptr)
 					break;
 			}
 
-			if (char* get = strstr(copy_2_2, "];"))
+			// Ares 3.0p1 was "];" , and it is not working ???
+			// change it to "]" it is working fine 
+			// what it is really , i dont understand ,..
+			if (char* get = strstr(copy_2_2, "]"))
 			{
 				if (*get == ']' && copy_2_2 != get)
 				{
@@ -431,12 +434,9 @@ DEFINE_OVERRIDE_HOOK(0x525CA5, INIClass_Parse_IniSectionIncludes_PreProcess1, 8)
 	GET_STACK(INIClass*, pThis, 0x28);
 
 	if (!ptr)
-	{
-
-		IniSectionIncludes::includedSection = GetInheritedSection(pThis, ptr + 1);
 		return 0x525CAD;
-	}
 
+	IniSectionIncludes::includedSection = GetInheritedSection(pThis, ptr + 1);
 	return 0x525D4D;
 }
 
@@ -445,7 +445,7 @@ DEFINE_OVERRIDE_HOOK(0x525DDB, INIClass_Parse_IniSectionIncludes_PreProcess2, 5)
 	GET(char*, ptr, EAX);
 	GET_STACK(INIClass*, pThis, 0x28);
 
-	ptr[0] = '\0';
+	*ptr = '\0';
 	IniSectionIncludes::includedSection = GetInheritedSection(pThis, ptr + 1);
 	return 0x525DEA;
 }
@@ -497,7 +497,7 @@ DEFINE_OVERRIDE_HOOK(0x474314, CCINIClass_ReadCCFile2, 6)
 		const char* key = xINI->GetKeyName(section, i);
 		++LastReadIndex;
 		buffer[0] = '\0';
-		if (xINI->ReadString(section, key, "", buffer))
+		if (xINI->ReadString(section, key, Phobos::readDefval, buffer))
 		{
 			bool canLoad = true;
 			for (auto& LoadedINI : LoadedINIFiles)

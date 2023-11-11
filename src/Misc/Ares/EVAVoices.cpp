@@ -47,7 +47,9 @@ void EVAVoices::RegisterType(const char* type)
 	int index = EVAVoices::FindIndexById(type);
 
 	if (index < 0) {
-		Types.emplace_back(_strdup(type));
+		char* str = _strdup(type);
+		Types.emplace_back(str);
+		free(str);
 	}
 }
 
@@ -70,7 +72,7 @@ DEFINE_OVERRIDE_HOOK(0x753000, VoxClass_CreateFromINIList, 6)
 
 		for(auto i = 0; i < count; ++i) {
 			auto const pKey = pINI->GetKeyName(pSection, i);
-			if(pINI->ReadString(pSection, pKey, "", buffer) > 0) {
+			if(pINI->ReadString(pSection, pKey, Phobos::readDefval, buffer) > 0) {
 				EVAVoices::RegisterType(buffer);
 			}
 		}
@@ -84,7 +86,7 @@ DEFINE_OVERRIDE_HOOK(0x753000, VoxClass_CreateFromINIList, 6)
 
 		for(auto i = 0; i < count; ++i) {
 			auto const pKey = pINI->GetKeyName(pSection2, i);
-			if(pINI->ReadString(pSection2, pKey, "", buffer) > 0) {
+			if(pINI->ReadString(pSection2, pKey, Phobos::readDefval, buffer) > 0) {
 
 				// find or allocate done manually
 				VoxClass* pVox = VoxClass::Find(buffer);
@@ -128,7 +130,7 @@ DEFINE_OVERRIDE_HOOK(0x752FDC, VoxClass_LoadFromINI, 5)
 
 	// put the filename in there. 8 chars max.
 	for(auto i = 0u; i < count; ++i) {
-		if(pINI->ReadString(pThis->Name, EVAVoices::Types[i].c_str(), "", buffer) > 0)
+		if(pINI->ReadString(pThis->Name, EVAVoices::Types[i].c_str(), Phobos::readDefval, buffer) > 0)
 			PhobosCRT::strCopy(pThis->Voices[i].Name, buffer);
 	}
 
@@ -153,21 +155,22 @@ DEFINE_OVERRIDE_HOOK(0x753380, VoxClass_GetFilename, 5)
 	switch(index)
 	{
 	case -1:
-		break;
+	break;
 	case 0:
 		ret = pThis->Allied;
-		break;
+	break;
 	case 1:
 		ret = pThis->Russian;
-		break;
+	break;
 	case 2:
 		ret = pThis->Yuri;
-		break;
+	break;
 	default:
 		auto const idxVoc = static_cast<size_t>(index - 3);
 		if(idxVoc < pThis->Voices.size()) {
 			ret = pThis->Voices[idxVoc].Name;
 		}
+	break;
 	}
 
 	R->EAX(ret);
