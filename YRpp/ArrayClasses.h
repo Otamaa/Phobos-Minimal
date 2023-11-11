@@ -500,7 +500,25 @@ public:
 
 	bool AddUnique(const T& item)
 	{
-		return !this->Contains(item) && this->AddItem(item);
+		int count = this->Count;
+		bool AllowAdd = false;
+
+		if (count) {
+			auto begin = (&this->Items[0]);
+			auto end = (&this->Items[count]);
+			T* found;
+			if constexpr (direct_comparable<T>) {
+				found = std::find_if(begin , end , [item](const auto item_here) { return item_here == item; });
+			} else {
+				found = std::find(begin, end, item);
+			}
+
+			AllowAdd = found == end;
+		} else {
+			AllowAdd = true;
+		}
+
+		return AllowAdd ? this->AddItem(item) : false;
 	}
 
 	bool RemoveAt(int index)

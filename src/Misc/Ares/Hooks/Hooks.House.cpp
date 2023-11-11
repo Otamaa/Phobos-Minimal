@@ -535,16 +535,20 @@ DEFINE_DISABLE_HOOK(0x508F91, HouseClass_SpySat_Update_CheckEligible_ares) //, 6
 //		;
 //}
 
+static std::vector<BuildingTypeClass*> Eligible;
+
 DEFINE_OVERRIDE_HOOK(0x4FE782, HouseClass_AI_BaseConstructionUpdate_PickPowerplant, 6)
 {
 	GET(HouseClass* const, pThis, EBP);
 	auto const pExt = HouseTypeExtContainer::Instance.Find(pThis->Type);
-	std::vector<BuildingTypeClass*> Eligible {};
-	Eligible.reserve(10u);
+	Eligible.clear();
 
-	auto const it = pExt->GetPowerplants();
+	const auto it = pExt->GetPowerplants();
+
 	for (auto const& pPower : it) {
-		if (HouseExtData::PrereqValidate(pThis, pPower, false, true) == CanBuildResult::Buildable && HouseExtData::PrerequisitesMet(pThis, pPower)) {
+		if (HouseExtData::PrereqValidate(pThis, pPower, false, true) == CanBuildResult::Buildable 
+			&& HouseExtData::PrerequisitesMet(pThis, pPower)
+		) {
 			Eligible.push_back(pPower);
 		}
 	}

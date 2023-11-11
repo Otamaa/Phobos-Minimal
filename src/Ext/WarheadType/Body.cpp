@@ -522,12 +522,12 @@ void WarheadTypeExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVictim, ar
 
 	*pArgs->Damage += nEligibleAddDamage;
 
-	if (this->RecalculateDistanceDamage_Display || Phobos::Debug_DisplayDamageNumbers)
+	if (this->RecalculateDistanceDamage_Display)
 	{
 		TechnoClass* pOwner = this->RecalculateDistanceDamage_Display_AtFirer ? pArgs->Attacker : pVictimTechno;
-		FlyingStrings::AddMoneyString(true, *pArgs->Damage, pOwner,
-			AffectedHouse::All, pOwner->Location,
-			this->RecalculateDistanceDamage_Display_Offset, Drawing::DefaultColors[(int)DefaultColorList::Yellow]);
+		FlyingStrings::AddNumberString(*pArgs->Damage, pOwner->Owner,
+			AffectedHouse::All, Drawing::DefaultColors[(int)DefaultColorList::Yellow] , pOwner->Location,
+			this->RecalculateDistanceDamage_Display_Offset, true , L"");
 	}
 }
 
