@@ -647,7 +647,7 @@ bool ShieldClass::ConvertCheck()
 
 SelfHealingStatus ShieldClass::SelfHealEnabledByCheck()
 {
-	if (!TechnoTypeExtContainer::Instance.Find(this->CurTechnoType)->PoweredBy.empty()) {
+	if (!this->Type->SelfHealing_EnabledBy.empty()) {
 		for (auto const pBuilding : this->Techno->Owner->Buildings) {
 			bool isActive = !(pBuilding->Deactivated || pBuilding->IsUnderEMP()) && pBuilding->IsPowerOnline();
 
