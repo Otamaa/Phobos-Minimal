@@ -161,7 +161,7 @@ public:
 	Valueable<AnimTypeClass*> DefaultSquidAnim { nullptr };
 	PhobosFixedString<0x18> NukeWarheadName {};
 	Nullable<bool> Building_PlacementPreview {};
-	NullableVector<float> AI_AutoSellHealthRatio {};
+	Nullable<PartialVector3D<float>> AI_AutoSellHealthRatio {};
 
 	Valueable<AnimTypeClass*> CarryAll_LandAnim { nullptr };
 	Valueable<AnimTypeClass*> DropShip_LandAnim { nullptr };

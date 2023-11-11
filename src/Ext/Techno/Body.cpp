@@ -680,7 +680,7 @@ void TechnoExtData::CreateInitialPayload(bool forced)
 	auto const sizePayloadRank = pTypeExt->InitialPayload_Vet.size();
 	auto const sizePyloadAddTeam = pTypeExt->InitialPayload_AddToTransportTeam.size();
 
-	for (auto i = 0u; i < pTypeExt->InitialPayload_Types.size(); ++i)
+	for (size_t i = 0u; i < pTypeExt->InitialPayload_Types.size(); ++i)
 	{
 		auto const pPayloadType = pTypeExt->InitialPayload_Types[i];
 
@@ -3190,9 +3190,8 @@ void TechnoExtData::ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged)
 		const auto pWhat = pThis->WhatAmI();
 		const bool isBuilding = pWhat == AbstractType::Building;
 		const int healthDeficit = pType->Strength - pThis->Health;
-		const bool allow = !RulesExtData::Instance()->GainSelfHealAllowMultiplayPassive && (pThis->Owner && pThis->Owner->Type->MultiplayPassive);
 
-		if(healthDeficit > 0 && allow) {
+		if(healthDeficit > 0 && (!pThis->Owner->Type->MultiplayPassive || RulesExtData::Instance()->GainSelfHealAllowMultiplayPassive)) {
 
 			const bool isOrganic = pWhat == AbstractType::Infantry || (pWhat == AbstractType::Unit && pType->Organic);
 			const auto defaultSelfHealType = isBuilding ? SelfHealGainType::None : isOrganic ? SelfHealGainType::Infantry : SelfHealGainType::Units;
@@ -3380,7 +3379,7 @@ void TechnoExtData::ApplyDrainMoney(TechnoClass* pThis)
 
 void TechnoExtData::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 {
-	if (!RulesExtData::Instance()->GainSelfHealAllowMultiplayPassive && (pThis->Owner && pThis->Owner->Type->MultiplayPassive))
+	if (pThis->Owner->Type->MultiplayPassive && !RulesExtData::Instance()->GainSelfHealAllowMultiplayPassive)
 		return;
 
 	bool drawPip = false;
@@ -3836,8 +3835,8 @@ void TechnoExtData::UpdateMobileRefinery()
 
 	for (int idx = 0; idx < cellCount; idx++)
 	{
-		flh.X = static_cast<int>(pTypeExt->MobileRefinery_FrontOffset.size()) > idx ? pTypeExt->MobileRefinery_FrontOffset[idx] * Unsorted::LeptonsPerCell : 0;
-		flh.Y = static_cast<int>(pTypeExt->MobileRefinery_LeftOffset.size()) > idx ? pTypeExt->MobileRefinery_LeftOffset[idx] * Unsorted::LeptonsPerCell : 0;
+		flh.X = (size_t)idx < pTypeExt->MobileRefinery_FrontOffset.size() ? pTypeExt->MobileRefinery_FrontOffset[idx] * Unsorted::LeptonsPerCell : 0;
+		flh.Y = (size_t)idx < pTypeExt->MobileRefinery_LeftOffset.size() ? pTypeExt->MobileRefinery_LeftOffset[idx] * Unsorted::LeptonsPerCell : 0;
 		auto nPos = TechnoExtData::GetFLHAbsoluteCoords(pThis, flh, false);
 		const CellClass* pCell = MapClass::Instance->GetCellAt(nPos);
 

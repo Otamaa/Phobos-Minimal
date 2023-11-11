@@ -173,7 +173,7 @@ SuperWeaponTarget SWTypeExtData::GetAIRequiredTarget() const
 		return this->SW_AIRequiresTarget;
 	}
 
-	auto index = static_cast<unsigned int>(this->SW_AITargetingMode.Get());
+	const size_t index = static_cast<size_t>(this->SW_AITargetingMode.Get());
 
 	if (index < AITargetingModes.size())
 	{
@@ -190,7 +190,7 @@ AffectedHouse SWTypeExtData::GetAIRequiredHouse() const
 		return this->SW_AIRequiresHouse;
 	}
 
-	auto index = static_cast<unsigned int>(this->SW_AITargetingMode.Get());
+	const size_t index = static_cast<size_t>(this->SW_AITargetingMode.Get());
 
 	if (index < AITargetingModes.size())
 	{
@@ -206,7 +206,7 @@ std::pair<TargetingConstraints, bool> SWTypeExtData::GetAITargetingConstraints()
 		return { this->SW_AITargetingConstrain.Get(), false };
 	else
 	{
-		const auto index = static_cast<size_t>(this->SW_AITargetingMode.Get());
+		const size_t index = static_cast<size_t>(this->SW_AITargetingMode.Get());
 
 		if (index < AITargetingModes.size()) {
 			return { AITargetingModes[index].Constraints , false };
@@ -222,10 +222,11 @@ TargetingPreference SWTypeExtData::GetAITargetingPreference() const
 		return this->SW_AITargetingPreference.Get();
 	else
 	{
-		auto index = static_cast<unsigned int>(this->SW_AITargetingMode.Get());
+		const size_t index = static_cast<size_t>(this->SW_AITargetingMode.Get());
+
 		if (index < AITargetingModes.size())
 		{
-			return AITargetingModes[(int)index].Preference;
+			return AITargetingModes[index].Preference;
 		}
 	}
 
@@ -1640,7 +1641,7 @@ std::vector<int> SWTypeExtData::WeightedRollsHandler(std::vector<float>* rolls, 
 void SWTypeExtData::ApplyLimboDelivery(HouseClass* pHouse)
 {
 	// random mode
-	if (this->LimboDelivery_RandomWeightsData.size())
+	if (!this->LimboDelivery_RandomWeightsData.empty())
 	{
 		int id = -1;
 		size_t idsSize = this->LimboDelivery_IDs.size();
@@ -1726,7 +1727,7 @@ void SWTypeExtData::ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, const C
 void SWTypeExtData::ApplySWNext(SuperClass* pSW, const CellStruct& cell, bool IsPlayer)
 {
 	// random mode
-	if (this->SW_Next_RandomWeightsData.size())
+	if (!this->SW_Next_RandomWeightsData.empty())
 	{
 		std::vector<int> results = this->WeightedRollsHandler(&this->SW_Next_RollChances, &this->SW_Next_RandomWeightsData, this->SW_Next.size());
 		for (const int& result : results)

@@ -273,7 +273,7 @@ bool TEventExtData::HousesAreDestroyedTEvent(TEventClass* pThis)
 
 	const auto& nHouseList = RulesExtData::Instance()->AIHousesLists;
 
-	if (nHouseList.empty() || (size_t)nIdxVariable >= nHouseList.size())
+	if ((size_t)nIdxVariable >= nHouseList.size())
 	{
 		Debug::Log("Map event %d: [AIHousesList] is empty. This event can't continue.\n", (int)pThis->EventKind);
 		return false;

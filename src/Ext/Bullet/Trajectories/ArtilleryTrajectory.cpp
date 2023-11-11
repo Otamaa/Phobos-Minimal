@@ -183,7 +183,7 @@ bool ArtilleryTrajectory::OnAI()
 		if (!pBulletExt->LaserTrails.empty())
 			pBulletExt->LaserTrails.clear();
 
-		if (pBulletExt->Trails.size())
+		if (!pBulletExt->Trails.empty())
 			pBulletExt->Trails.clear();
 
 		return true;

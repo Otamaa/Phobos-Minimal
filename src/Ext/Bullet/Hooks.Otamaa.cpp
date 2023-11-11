@@ -110,7 +110,7 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 
 			for (int i = 0; i < nTotalSpawn; ++i)
 			{
-				if (auto const pAnimType = AnimDebris[ScenarioClass::Instance->Random(0, AnimDebris.size() - 1)])
+				if (auto const pAnimType = AnimDebris[ScenarioClass::Instance->Random.RandomFromMax(AnimDebris.size() - 1)])
 				{
 					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nCoords),
 						pOWner,

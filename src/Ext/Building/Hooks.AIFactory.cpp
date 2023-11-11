@@ -182,7 +182,7 @@ void HouseExtData::UpdateVehicleProduction()
 		{
 			result = earliestTypenameIndex;
 		}
-		else if (const auto size = static_cast<int>(bestChoices.size()))
+		else if (const auto size = int(bestChoices.size()))
 		{
 			result = bestChoices[static_cast<size_t>(ScenarioClass::Instance->Random.RandomFromMax(size - 1))];
 		}
@@ -197,7 +197,7 @@ void HouseExtData::UpdateVehicleProduction()
 		{
 			result = earliestTypenameIndexNaval;
 		}
-		else if (const auto size = static_cast<int>(bestChoicesNaval.size()))
+		else if (const auto size = int(bestChoicesNaval.size()))
 		{
 			result = bestChoicesNaval[static_cast<size_t>(ScenarioClass::Instance->Random.RandomFromMax(size - 1))];
 		}
@@ -510,7 +510,7 @@ DEFINE_OVERRIDE_HOOK(0x4FEEE0, HouseClass_AI_InfantryProduction, 6)
 		{
 			pThis->ProducingInfantryTypeIndex = EarliestTypenameIndex;
 		}
-		else if (auto const size = static_cast<int>(BestChoices.size()))
+		else if (auto const size = int(BestChoices.size()))
 		{
 			int RandomChoice = ScenarioClass::Instance->Random.RandomRanged(0, size - 1);
 			pThis->ProducingInfantryTypeIndex = BestChoices[static_cast<unsigned int>(RandomChoice)];
@@ -649,7 +649,7 @@ DEFINE_OVERRIDE_HOOK(0x4FF210, HouseClass_AI_AircraftProduction, 6)
 		{
 			pThis->ProducingAircraftTypeIndex = EarliestTypenameIndex;
 		}
-		else if (auto const size = static_cast<int>(BestChoices.size()))
+		else if (auto const size = int(BestChoices.size()))
 		{
 			int RandomChoice = ScenarioClass::Instance->Random.RandomRanged(0, size - 1);
 			pThis->ProducingAircraftTypeIndex = BestChoices[static_cast<unsigned int>(RandomChoice)];

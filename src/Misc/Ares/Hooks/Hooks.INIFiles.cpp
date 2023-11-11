@@ -394,9 +394,9 @@ NOINLINE INIClass::INISection* GetInheritedSection(INIClass* pThis, char* ptr)
 			}
 
 			// Ares 3.0p1 was "];" , and it is not working ???
-			// change it to "]" it is working fine 
+			// change it to "]" it is working fine
 			// what it is really , i dont understand ,..
-			if (char* get = strstr(copy_2_2, "]"))
+			if (char* get = strchr(copy_2_2, ']'))
 			{
 				if (*get == ']' && copy_2_2 != get)
 				{
@@ -414,7 +414,7 @@ NOINLINE INIClass::INISection* GetInheritedSection(INIClass* pThis, char* ptr)
 
 						if (auto section = pThis->GetSection(copy_2_2))
 						{
-							//Debug::Log("Apply Inheritance for [%s].\n" , ptr);
+							//Debug::Log("Inheritance Result [%s].\n" , copy_2_2);
 							return section;
 						}
 

@@ -248,7 +248,7 @@ void BuildingExtData::UpdateAutoSellTimer()
 				AutoSellTimer.Start(static_cast<int>(this->Type->AutoSellTime.Get() * 900.0));
 		}
 
-		if (!pRulesExt->AI_AutoSellHealthRatio.empty() && pRulesExt->AI_AutoSellHealthRatio.size() >= 3)
+		if (pRulesExt->AI_AutoSellHealthRatio.isset())
 		{
 			if (!pThis->Owner || pThis->Occupants.Count || pThis->Owner->Type->MultiplayPassive)
 				return;
@@ -256,7 +256,7 @@ void BuildingExtData::UpdateAutoSellTimer()
 			if (!pThis->Owner->IsCurrentPlayer())
 				return;
 
-			const double nValue = pRulesExt->AI_AutoSellHealthRatio[pThis->Owner->GetCorrectAIDifficultyIndex()];
+			const double nValue = pRulesExt->AI_AutoSellHealthRatio->at(pThis->Owner->GetCorrectAIDifficultyIndex());
 
 			if (nValue > 0.0 && pThis->GetHealthPercentage() <= nValue){
 				pThis->Sell(-1);

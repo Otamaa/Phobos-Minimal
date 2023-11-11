@@ -305,7 +305,7 @@ DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			}
 		}
 
-		for (int k = static_cast<int>(pExt->ClonedAt.size()) - 1; k >= 0; --k)
+		for (int k = int(pExt->ClonedAt.size()) - 1; k >= 0; --k)
 		{
 			auto const pCloner = pExt->ClonedAt[k];
 			if (pCloner->Factory != AbstractType::None)

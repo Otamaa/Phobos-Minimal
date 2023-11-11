@@ -25,7 +25,7 @@ void Phobos_DoControls::ReadSequence(std::vector<DoInfoStruct>& Desig, InfantryT
 				) > 3){
 					for (size_t i = 0; i < EnumFunctions::FacingType_to_strings.size(); ++i)
 					{
-						if (!_strcmpi(EnumFunctions::FacingType_to_strings[i], bufferFacing))
+						if (IS_SAME_STR_(EnumFunctions::FacingType_to_strings[i], bufferFacing))
 						{
 							data.Facing = DoTypeFacing(i);
 						}

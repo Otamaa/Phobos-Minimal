@@ -30,10 +30,8 @@ DEFINE_HOOK(0x6FF329, TechnoCllass_FireAt_OccupyAnims, 0x6)
 	AnimTypeClass* pDecidedMuzzle = pWeapon->OccupantAnim;
 
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-	if (pWeaponExt->OccupantAnim_UseMultiple.Get())
-	{
-		if (!pWeaponExt->OccupantAnims.empty())
-			pDecidedMuzzle = pWeaponExt->OccupantAnims[ScenarioClass::Instance->Random.RandomFromMax(pWeaponExt->OccupantAnims.size() - 1)];
+	if (pWeaponExt->OccupantAnim_UseMultiple.Get() && !pWeaponExt->OccupantAnims.empty()) {
+		pDecidedMuzzle = pWeaponExt->OccupantAnims[ScenarioClass::Instance->Random.RandomFromMax(pWeaponExt->OccupantAnims.size() - 1)];
 	}
 
 	R->EDI(pDecidedMuzzle);

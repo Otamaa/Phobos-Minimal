@@ -206,14 +206,12 @@ DEFINE_OVERRIDE_HOOK(0x6FA743, TechnoClass_Update_SelfHeal, 0xA)
 	GET(TechnoClass* const, pThis, ESI);
 
 	// prevent crashing and sinking technos from self-healing
-	if (pThis->InLimbo || pThis->IsCrashing || pThis->IsSinking || TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
-	{
+	if (pThis->InLimbo || pThis->IsCrashing || pThis->IsSinking || TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled) {
 		return SkipAnySelfHeal;
 	}
 
 	const auto nUnit = specific_cast<UnitClass*>(pThis);
-	if (nUnit && nUnit->DeathFrameCounter > 0)
-	{
+	if (nUnit && nUnit->DeathFrameCounter > 0) {
 		return SkipAnySelfHeal;
 	}
 
@@ -224,13 +222,15 @@ DEFINE_OVERRIDE_HOOK(0x6FA743, TechnoClass_Update_SelfHeal, 0xA)
 	// this replaces the call to pThis->ShouldSelfHealOneStep()
 	const auto nAmount = TechnoExt_ExtData::GetSelfHealAmount(pThis);
 	bool wasDamaged = pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
-	if (nAmount > 0 || nAmount != 0)
-	{
+	if (nAmount > 0 || nAmount != 0) {
 		pThis->Health += nAmount;
 	}
 
+	//this one take care of the visual stuffs
+	//if the techno health back to normal
 	TechnoExtData::ApplyGainedSelfHeal(pThis, wasDamaged);
 
+	//handle everything
 	return SkipAnySelfHeal;
 }
 

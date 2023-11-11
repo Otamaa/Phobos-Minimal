@@ -1336,7 +1336,7 @@ void ScriptExtData::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 
 	if (idxScriptsList >= 0)
 	{
-	
+
 //		if (IS_SAME_STR_(pTeam->CurrentScript->Type->ID, "NWAISC39-G"))
 //			Debug::Log("HereIam\n");
 
@@ -2155,26 +2155,28 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 		return;
 
 	auto pScript = pTeam->CurrentScript;
+	auto const&[curAction ,curArgument] = pTeam->CurrentScript->GetCurrentAction();
+	auto const&[nextAction ,nextArgument] = pTeam->CurrentScript->GetNextAction();
 
 	// The first time this team runs this kind of script the repair huts list will updated. The only reason of why it isn't stored in ScenarioClass is because always exists the possibility of a modder to make destroyable Repair Huts
-	if (pTeamData->BridgeRepairHuts.size() == 0) {
+	if (pTeamData->BridgeRepairHuts.empty()) {
 		for (auto pBuilding : *BuildingClass::Array) {
 			if (pBuilding->Type->BridgeRepairHut)
 				pTeamData->BridgeRepairHuts.push_back(pBuilding);
 		}
 
-		if (pTeamData->BridgeRepairHuts.size() == 0)
+		if (pTeamData->BridgeRepairHuts.empty())
 		{
 			pTeam->StepCompleted = true;
 			ScriptExtData::Log("AI Scripts - [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No repair huts found)\n",
 				pTeam->Type->ID,
 				pScript->Type->ID,
 				pScript->CurrentMission,
-				pScript->Type->ScriptActions[pScript->CurrentMission].Action,
-				pScript->Type->ScriptActions[pScript->CurrentMission].Argument,
+				curAction,
+				curArgument,
 				pScript->CurrentMission + 1,
-				pScript->Type->ScriptActions[pScript->CurrentMission + 1].Action,
-				pScript->Type->ScriptActions[pScript->CurrentMission + 1].Argument);
+				nextAction,
+				nextArgument);
 
 			return;
 		}
@@ -2247,18 +2249,18 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 		otherTeamMembers.push_back(pUnit);
 	}
 
-	if (engineers.size() == 0)
+	if (engineers.empty())
 	{
 		pTeam->StepCompleted = true;
 		ScriptExtData::Log("AI Scripts - [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: Team has no engineers)\n",
 			pTeam->Type->ID,
 			pScript->Type->ID,
 			pScript->CurrentMission,
-			pScript->Type->ScriptActions[pScript->CurrentMission].Action,
-			pScript->Type->ScriptActions[pScript->CurrentMission].Argument,
+			curAction,
+			curArgument,
 			pScript->CurrentMission + 1,
-			pScript->Type->ScriptActions[pScript->CurrentMission + 1].Action,
-			pScript->Type->ScriptActions[pScript->CurrentMission + 1].Argument);
+			nextAction,
+			nextArgument);
 
 		return;
 	}
@@ -2267,7 +2269,6 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 
 	if (!selectedTarget)
 	{
-
 		for (auto pTechno : pTeamData->BridgeRepairHuts)
 		{
 			CellStruct cell = pTechno->GetCell()->MapCoords;
@@ -2298,12 +2299,12 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 			//auto hut = pTechno;
 
 			if (mode < 0)
-				mode = pTeam->CurrentScript->Type->ScriptActions[pTeam->CurrentScript->CurrentMission].Argument;
+				mode = curArgument;
 
 			if (mode < 0)
 			{
 				// Pick a random bridge
-				selectedTarget = validHuts[ScenarioClass::Instance->Random.RandomRanged(0, validHuts.size() - 1)];
+				selectedTarget = validHuts[ScenarioClass::Instance->Random.RandomFromMax(validHuts.size() - 1)];
 				break;
 			}
 			else
@@ -2347,11 +2348,11 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 			pTeam->Type->ID,
 			pScript->Type->ID,
 			pScript->CurrentMission,
-			pScript->Type->ScriptActions[pScript->CurrentMission].Action,
-			pScript->Type->ScriptActions[pScript->CurrentMission].Argument,
+			curAction,
+			curArgument,
 			pScript->CurrentMission + 1,
-			pScript->Type->ScriptActions[pScript->CurrentMission + 1].Action,
-			pScript->Type->ScriptActions[pScript->CurrentMission + 1].Argument);
+			nextAction,
+			nextArgument);
 
 		return;
 	}
@@ -2368,7 +2369,7 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 		}
 	}
 
-	if (otherTeamMembers.size() > 0)
+	if (!otherTeamMembers.empty())
 	{
 		double closeEnough = RulesClass::Instance->CloseEnough; // Note: this value is in leptons (*256)
 

@@ -75,7 +75,7 @@ DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 				const auto pExt = BuildingTypeExtContainer::Instance.TryFind(pType);
 
 				if(HasPower) {
-					if (pExt->PowerPlantEnhancer_Buildings.size() &&
+					if (!pExt->PowerPlantEnhancer_Buildings.empty() &&
 						(pExt->PowerPlantEnhancer_Amount != 0 || pExt->PowerPlantEnhancer_Factor != 1.0f))
 					{
 						++pHouseExt->PowerPlantEnhancerBuildings[pType];

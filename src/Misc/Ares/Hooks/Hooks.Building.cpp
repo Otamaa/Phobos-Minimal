@@ -893,7 +893,6 @@ DEFINE_OVERRIDE_HOOK(0x4409F4, BuildingClass_Put_ProduceCash, 6)
 
 	if (auto delay = pThis->Type->ProduceCashDelay)
 	{
-
 		switch (pToUpgrade->UpgradeLevel - 1)
 		{
 		case 0:
@@ -910,17 +909,17 @@ DEFINE_OVERRIDE_HOOK(0x4409F4, BuildingClass_Put_ProduceCash, 6)
 		}
 	}
 
-	if (auto const pOwner = pThis->Owner)
-	{
-		if (pOwner->Type->MultiplayPassive)
-			return 0x0;
-
-		if (auto const pInfantrySelfHeal = pThis->Type->InfantryGainSelfHeal)
-			pOwner->InfantrySelfHeal += pInfantrySelfHeal;
-
-		if (auto const pUnitSelfHeal = pThis->Type->UnitsGainSelfHeal)
-			pOwner->UnitsSelfHeal += pUnitSelfHeal;
-	}
+	// if (auto const pOwner = pThis->Owner)
+	// {
+	// 	if (pOwner->Type->MultiplayPassive)
+	// 		return 0x0;
+	//
+	// 	if (auto const pInfantrySelfHeal = pThis->Type->InfantryGainSelfHeal)
+	// 		pOwner->InfantrySelfHeal += pInfantrySelfHeal;
+	//
+	// 	if (auto const pUnitSelfHeal = pThis->Type->UnitsGainSelfHeal)
+	// 		pOwner->UnitsSelfHeal += pUnitSelfHeal;
+	// }
 
 	HouseExtData::UpdateFactoryPlans(pThis);
 	return 0;

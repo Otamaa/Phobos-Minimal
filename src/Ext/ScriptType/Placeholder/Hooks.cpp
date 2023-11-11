@@ -15,7 +15,7 @@ DEFINE_HOOK(0x691518, ScriptClass_GetCurrentAction_extra, 0x6)
 		size_t const nIdx = size_t(nCurIdx - ScriptTypeClass::MaxActions);
 		constexpr auto const nMax = ScriptTypeClass::MaxActions - 1;
 
-		if (!pTypeExt->PhobosNode.empty() && !(nIdx > (int)pTypeExt->PhobosNode.size())) {
+		if (nIdx < pTypeExt->PhobosNode.size()) {
 			*pNode = pTypeExt->PhobosNode[nIdx];
 		} else {
 			*pNode = pThis->Type->ScriptActions[nMax];
@@ -42,7 +42,7 @@ DEFINE_HOOK(0x691540, ScriptClass_GetNextAction_extra, 0x6)
 		size_t const nIdx = size_t(nCurIndex - ScriptTypeClass::MaxActions);
 		constexpr auto const nMax = ScriptTypeClass::MaxActions - 1;
 
-		if (!pTypeExt->PhobosNode.empty() && !(nIdx > (int)pTypeExt->PhobosNode.size())) {
+		if (nIdx < pTypeExt->PhobosNode.size()) {
 			*pNode = pTypeExt->PhobosNode[nIdx];
 		}else {
 			*pNode = { TeamMissionType::none , 0 };

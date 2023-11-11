@@ -449,11 +449,10 @@ void HouseExtData::UpdateShotCountB(SuperWeaponTypeClass* pFor)
 
 LauchData HouseExtData::GetShotCount(SuperWeaponTypeClass* pFor)
 {
-	if (pFor->ArrayIndex >= (int)this->LaunchDatas.size()) {
-		return {};
-	}
+	if((size_t)pFor->ArrayIndex < this->LaunchDatas.size())
+		return this->LaunchDatas[pFor->ArrayIndex];
 
-	return this->LaunchDatas[pFor->ArrayIndex];
+	return {};
 }
 
 SuperClass* HouseExtData::IsSuperAvail(int nIdx, HouseClass* pHouse)
@@ -637,7 +636,7 @@ bool HouseExtData::GetParadropContent(HouseClass* pHouse, Iterator<TechnoTypeCla
 
 	// tries to get the house's default contents and falls back to
 	// the sides default contents.
-	if (pTypeExt && pTypeExt->ParaDropTypes.size()) {
+	if (pTypeExt && !pTypeExt->ParaDropTypes.empty()) {
 		Types = pTypeExt->ParaDropTypes;
 		Num = pTypeExt->ParaDropNum;
 	}
@@ -1026,12 +1025,8 @@ size_t HouseExtData::FindOwnedIndex(
 {
 	auto const bitOwner = 1u << idxParentCountry;
 
-	for (auto i = start; i < items.size(); ++i)
-	{
-		auto const pItem = items[i];
-
-		if (pItem->InOwners(bitOwner))
-		{
+	for (size_t i = start; i < items.size(); ++i) {
+		if (items[i]->InOwners(bitOwner)) {
 			return i;
 		}
 	}

@@ -425,7 +425,7 @@ void ScriptExtData::Mission_Move_List(TeamClass* pTeam, DistanceMode calcThreatM
 		attackAITargetType = curArg;
 
 	const auto& Arr = RulesExtData::Instance()->AITargetTypesLists;
-	if (!Arr.empty() && (size_t)attackAITargetType < Arr.size() && !Arr[attackAITargetType].empty())
+	if ((size_t)attackAITargetType < Arr.size() && !Arr[attackAITargetType].empty())
 	{
 		ScriptExtData::Mission_Move(pTeam, calcThreatMode, pickAllies, attackAITargetType, -1);
 		return;
@@ -452,14 +452,14 @@ void ScriptExtData::Mission_Move_List1Random(TeamClass* pTeam, DistanceMode calc
 	if (attackAITargetType < 0)
 		attackAITargetType = curArg;
 
-	if (attackAITargetType >= 0
-		&& (size_t)attackAITargetType < RulesExtData::Instance()->AITargetTypesLists.size())
+	if ((size_t)attackAITargetType < RulesExtData::Instance()->AITargetTypesLists.size())
 	{
 
-	if (pTeamData->IdxSelectedObjectFromAIList >= 0 && (size_t)pTeamData->IdxSelectedObjectFromAIList < RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].size()) {
-		ScriptExtData::Mission_Move(pTeam, calcThreatMode, pickAllies, attackAITargetType, pTeamData->IdxSelectedObjectFromAIList);
-		return;
-	}
+		if ((size_t)pTeamData->IdxSelectedObjectFromAIList < RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].size()) {
+			ScriptExtData::Mission_Move(pTeam, calcThreatMode, pickAllies, attackAITargetType, pTeamData->IdxSelectedObjectFromAIList);
+			return;
+		}
+
 		// Still no random target selected
 		if (!RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].empty()) {
 			// Finding the objects from the list that actually exists in the map

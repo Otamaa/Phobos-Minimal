@@ -330,7 +330,7 @@ int WeaponTypeExtData::GetBurstDelay(WeaponTypeClass* pThis, int burstIndex)
 	{
 		const size_t nSize = pExt->Burst_Delays.size();
 
-		if (nSize > (unsigned)burstIndex)
+		if (nSize > (size_t)burstIndex)
 			return pExt->Burst_Delays[burstIndex - 1];
 		else
 			return pExt->Burst_Delays[nSize - 1];

@@ -95,7 +95,7 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 	int essentialRequirementsMetCount = 0;
 	int optionalRequirementsMetCount = 0;
 
-	if (!AIConditionsLists.empty() && condition < (int)AIConditionsLists.size())
+	if ((size_t)condition < AIConditionsLists.size())
 	{
 		auto& thisAICondition = AIConditionsLists[condition];
 

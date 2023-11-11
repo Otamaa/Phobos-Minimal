@@ -169,7 +169,7 @@ bool TActionExt::MessageForSpecifiedHouse(TActionClass* pThis, HouseClass* pHous
 			}
 		}
 
-		if (housesListIdx.size() > 0)
+		if (!housesListIdx.empty())
 			houseIdx = housesListIdx[(ScenarioClass::Instance->Random.RandomFromMax(housesListIdx.size() - 1))];
 		else
 			return true;

@@ -372,7 +372,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 						}
 						else if ((int)pTrigger->ConditionType == 9)
 						{
-							if (!nAIList.empty() && pTrigger->Conditions[3].ComparatorOperand < (int)nAIList.size())
+							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < nAIList.size())
 							{
 								// New case 9: Like in case 0 but instead of 1 unit for comparisons there is a full list from [AITargetTypes] owned by the enemy.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
@@ -385,7 +385,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 						}
 						else if ((int)pTrigger->ConditionType == 10)
 						{
-							if (!nAIList.empty() && pTrigger->Conditions[3].ComparatorOperand < (int)nAIList.size())
+							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < nAIList.size())
 							{
 								// New case 10: Like in case 1 but instead of 1 unit for comparisons there is a full list from [AITargetTypes] owned by the house.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
@@ -398,7 +398,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 						}
 						else if ((int)pTrigger->ConditionType == 11)
 						{
-							if (!nAIList.empty() && pTrigger->Conditions[3].ComparatorOperand < (int)nAIList.size())
+							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < nAIList.size())
 							{
 								// New case 11: Like in case 7 but instead of 1 unit for comparisons there is a full list from [AITargetTypes] owned by the Civilians.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
@@ -411,7 +411,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 						}
 						else if ((int)pTrigger->ConditionType == 12)
 						{
-							if (!nAIList.empty() && pTrigger->Conditions[3].ComparatorOperand < (int)nAIList.size())
+							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < nAIList.size())
 							{
 								// New case 12: Like in case 0 & 9 but instead of a specific enemy this checks in all enemies.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
@@ -424,7 +424,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 						}
 						else if ((int)pTrigger->ConditionType == 13)
 						{
-							if (!nAIList.empty() && pTrigger->Conditions[3].ComparatorOperand < (int)nAIList.size())
+							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < nAIList.size())
 							{
 								// New case 13: Like in case 1 & 10 but instead checking the house now checks the allies.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
@@ -437,7 +437,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 						}
 						else if ((int)pTrigger->ConditionType == 14)
 						{
-							if (!nAIList.empty() && pTrigger->Conditions[3].ComparatorOperand < (int)nAIList.size())
+							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < nAIList.size())
 							{
 								// New case 14: Like in case 9 but instead of meet any comparison now is required all.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
@@ -450,7 +450,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 						}
 						else if ((int)pTrigger->ConditionType == 15)
 						{
-							if (!nAIList.empty() && pTrigger->Conditions[3].ComparatorOperand < (int)nAIList.size())
+							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < nAIList.size())
 							{
 								// New case 15: Like in case 10 but instead of meet any comparison now is required all.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
@@ -463,7 +463,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 						}
 						else if ((int)pTrigger->ConditionType == 16)
 						{
-							if (!nAIList.empty() && pTrigger->Conditions[3].ComparatorOperand < (int)nAIList.size())
+							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < nAIList.size())
 							{
 								// New case 16: Like in case 11 but instead of meet any comparison now is required all.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
@@ -476,7 +476,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 						}
 						else if ((int)pTrigger->ConditionType == 17)
 						{
-							if (!nAIList.empty() && pTrigger->Conditions[3].ComparatorOperand < (int)nAIList.size())
+							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < nAIList.size())
 							{
 								// New case 17: Like in case 14 but instead of meet any comparison now is required all. Check all enemies
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)

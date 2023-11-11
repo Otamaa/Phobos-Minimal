@@ -43,7 +43,6 @@ void NOINLINE GrupDumped()
 	{
 		for (auto pTechn : *TechnoClass::Array)
 		{
-
 			if (pTechn->Owner == HouseClass::Array->GetItem(i))
 			{
 				DumpedTechno[i].push_back(pTechn);

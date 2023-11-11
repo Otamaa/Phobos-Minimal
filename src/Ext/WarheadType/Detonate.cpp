@@ -501,8 +501,8 @@ bool NOINLINE IsCellSpreadWH(WarheadTypeExtData* pData)
 		(pData->Converts && !pData->ConvertsPair.empty()) ||
 		pData->Shield_Respawn_Duration > 0 ||
 		pData->Shield_SelfHealing_Duration > 0 ||
-		pData->Shield_AttachTypes.size() > 0 ||
-		pData->Shield_RemoveTypes.size() > 0 ||
+		!pData->Shield_AttachTypes.empty() ||
+		!pData->Shield_RemoveTypes.empty() ||
 		pData->Transact ||
 		pData->PermaMC ||
 		pData->GattlingStage > 0 ||

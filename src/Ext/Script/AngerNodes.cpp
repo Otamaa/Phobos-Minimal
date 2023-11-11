@@ -47,7 +47,7 @@ void ScriptExtData::ModifyHateHouses_List(TeamClass* pTeam, int idxHousesList = 
 
 	const auto& houseLists = RulesExtData::Instance()->AIHousesLists;
 
-	if (idxHousesList >= 0 && (size_t)idxHousesList < houseLists.size())
+	if ((size_t)idxHousesList < houseLists.size())
 	{
 		if(const auto houselist = Iterator(houseLists[idxHousesList]))
 		{
@@ -103,7 +103,7 @@ void ScriptExtData::ModifyHateHouses_List1Random(TeamClass* pTeam, int idxHouses
 
 	const auto& houseLists = RulesExtData::Instance()->AIHousesLists;
 
-	if (idxHousesList >= 0 && (size_t)idxHousesList < houseLists.size())
+	if ((size_t)idxHousesList < houseLists.size())
 	{
 		if(auto const objectsList = Iterator(houseLists[idxHousesList]))
 		{
@@ -892,7 +892,7 @@ void ScriptExtData::AggroHouse(TeamClass* pTeam, int index = -1)
 	}
 
 	// Positive indexes are specific house indexes. -1 is translated as "pick 1 random" & -2 is the owner of the Team executing the script action
-	if (objectsList.size() > 0)
+	if (!objectsList.empty())
 	{
 		if (index < 0)
 		{

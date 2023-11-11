@@ -674,7 +674,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->PowerPlantEnhancer_Amount.Read(exINI, pSection, "PowerPlantEnhancer.Amount");
 		this->PowerPlantEnhancer_Factor.Read(exINI, pSection, "PowerPlantEnhancer.Factor");
 
-		if (pThis->PowersUpBuilding[0] == NULL && this->PowersUp_Buildings.size() > 0)
+		if (pThis->PowersUpBuilding[0] == NULL && !this->PowersUp_Buildings.empty())
 			PhobosCRT::strCopy(pThis->PowersUpBuilding, this->PowersUp_Buildings[0]->ID);
 
 		this->AllowAirstrike.Read(exINI, pSection, "AllowAirstrike");

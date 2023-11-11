@@ -681,7 +681,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 
 	// Special case: validate target if is part of a technos list in [AITargetTypes] section
 	const auto& nAITargetTypes = RulesExtData::Instance()->AITargetTypesLists;
-	if (attackAITargetType >= 0 && !nAITargetTypes.empty() && (size_t)attackAITargetType < nAITargetTypes.size()) {
+	if ((size_t)attackAITargetType < nAITargetTypes.size()) {
 		const auto nVec = make_iterator(nAITargetTypes[attackAITargetType]);
 		return nVec.contains(pTechnoType);
 	}
@@ -1327,9 +1327,7 @@ void ScriptExtData::Mission_Attack_List(TeamClass* pTeam, bool repeatAction, Dis
 		attackAITargetType = curArg;
 
 	const auto& targetList = RulesExtData::Instance()->AITargetTypesLists;
-	if (!targetList.empty()
-		&& (size_t)attackAITargetType < targetList.size()
-		&& !targetList[attackAITargetType].empty())
+	if ((size_t)attackAITargetType < targetList.size() && !targetList[attackAITargetType].empty())
 	{
 		ScriptExtData::Mission_Attack(pTeam, repeatAction, calcThreatMode, attackAITargetType, -1);
 		return;
@@ -1357,9 +1355,9 @@ void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatActi
 	if (attackAITargetType < 0)
 		attackAITargetType = curArgs;
 
-	if(attackAITargetType >= 0 && (size_t)attackAITargetType < RulesExtData::Instance()->AITargetTypesLists.size()) {
+	if((size_t)attackAITargetType < RulesExtData::Instance()->AITargetTypesLists.size()) {
 
-		if (pTeamData->IdxSelectedObjectFromAIList >= 0 && (size_t)pTeamData->IdxSelectedObjectFromAIList < RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].size()) {
+		if ((size_t)pTeamData->IdxSelectedObjectFromAIList < RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].size()) {
 			ScriptExtData::Mission_Attack(pTeam, repeatAction, calcThreatMode, attackAITargetType, pTeamData->IdxSelectedObjectFromAIList);
 			return;
 		}
@@ -1379,7 +1377,7 @@ void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatActi
 				{
 					bool found = false;
 
-					for (auto j = 0u; j < RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].size() && !found; j++)
+					for (size_t j = 0u; j < RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].size() && !found; j++)
 					{
 						auto const pFirstUnit = pTeam->FirstUnit;
 

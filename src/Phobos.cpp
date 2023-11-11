@@ -711,7 +711,7 @@ HRESULT __stdcall OleLoadFromStream_(LPSTREAM pStm, REFIID iidInterface, LPVOID*
 
 void NOINLINE encrypt_func(std::string& data, std::string key)
 {
-	for (unsigned i = 0; i < data.size(); i++)
+	for (size_t i = 0; i < data.size(); i++)
 		data[i] ^= key[i % key.size()];
 }
 

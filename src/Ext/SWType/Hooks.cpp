@@ -2744,7 +2744,7 @@ DEFINE_OVERRIDE_HOOK(0x4555D5, BuildingClass_IsPowerOnline_KeepOnline, 5)
 DEFINE_OVERRIDE_HOOK(0x508E66, HouseClass_UpdateRadar_Battery, 8)
 {
 	GET(HouseClass*, pThis, ECX);
-	return HouseExtContainer::Instance.Find(pThis)->Batteries.size() > 0
+	return !HouseExtContainer::Instance.Find(pThis)->Batteries.empty()
 		? 0x508E87 : 0x508F2F;
 }
 

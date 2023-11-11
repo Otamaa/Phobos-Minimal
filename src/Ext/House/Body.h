@@ -212,7 +212,7 @@ public:
 	template <typename T>
 	static size_t FindBuildableIndex(HouseClass* pHouse, int idxParentCountry, Iterator<T const*> items, size_t start = 0)
 	{
-		for (auto i = start; i < items.size(); ++i)
+		for (size_t i = start; i < items.size(); ++i)
 		{
 			if (!items[i])
 				continue;
@@ -235,14 +235,14 @@ public:
 	template <typename T>
 	static T* FindOwned(HouseClass* pHouse, int const idxParent, Iterator<T*> const items, size_t const start = 0)
 	{
-		auto const index = FindOwnedIndex(pHouse, idxParent, items, start);
+		size_t const index = FindOwnedIndex(pHouse, idxParent, items, start);
 		return index < items.size() ? items[index] : nullptr;
 	}
 
 	template <typename T>
 	static T* FindBuildable(HouseClass* pHouse, int const idxParent, Iterator<T*> const items, size_t const start = 0)
 	{
-		auto const index = FindBuildableIndex<T>(pHouse, idxParent, items, start);
+		size_t const index = FindBuildableIndex<T>(pHouse, idxParent, items, start);
 		return index < items.size() ? items[index] : nullptr;
 	}
 

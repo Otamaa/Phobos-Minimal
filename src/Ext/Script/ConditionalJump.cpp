@@ -235,14 +235,12 @@ void ScriptExtData::ConditionalJump_ManageResetIfJump(TeamClass* pTeam, int enab
 // Count objects from [AITargetTypes] lists
 void ScriptExtData::ConditionalJump_CheckObjects(TeamClass* pTeam)
 {
-	
-
 	long countValue = 0;
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	int index = pTeamData->ConditionalJump_Index;
 	const auto& targetTypeList = RulesExtData::Instance()->AITargetTypesLists;
 
-	if (index >= 0 && !targetTypeList.empty() && (size_t)index < targetTypeList.size())
+	if ((size_t)index < targetTypeList.size())
 	{
 		const auto& objectsList = targetTypeList[index];
 
@@ -282,8 +280,6 @@ void ScriptExtData::ConditionalJump_CheckObjects(TeamClass* pTeam)
 // A simple counter. The count can be increased or decreased
 void ScriptExtData::ConditionalJump_CheckCount(TeamClass* pTeam, int modifier = 0)
 {
-	
-
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	auto pScript = pTeam->CurrentScript;
 	const auto&[curAct , curArgs] = pScript->GetCurrentAction();

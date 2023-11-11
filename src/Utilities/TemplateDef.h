@@ -457,6 +457,17 @@ namespace detail
 
 		return false;
 	}
+
+	template <>
+	inline bool read<PartialVector3D<float>>(PartialVector3D<float>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		value.ValueCount = parser.Read3Float(pSection, pKey, (float*)&value);
+
+		if (value.ValueCount > 0)
+			return true;
+
+		return false;
+	}
 #pragma endregion
 
 #pragma region structandval
