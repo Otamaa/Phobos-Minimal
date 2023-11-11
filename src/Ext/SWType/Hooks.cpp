@@ -783,7 +783,7 @@ DEFINE_OVERRIDE_HOOK(0x4468F4, BuildingClass_Place_AnnounceSW, 6)
 
 // EVA_Ready
 // 6CBDD7, 6
-DEFINE_OVERRIDE_HOOK(0x6CBDD7, SuperClass_AnnounceReady, 6)
+DEFINE_OVERRIDE_HOOK(0x6CBDD7, SuperClass_AI_AnnounceReady, 6)
 {
 	GET(SuperWeaponTypeClass*, pThis, EAX);
 	const auto pData = SWTypeExtContainer::Instance.Find(pThis);
@@ -800,7 +800,7 @@ DEFINE_OVERRIDE_HOOK(0x6CBDD7, SuperClass_AnnounceReady, 6)
 }
 
 // 6CC0EA, 9
-DEFINE_OVERRIDE_HOOK(0x6CC0EA, SuperClass_AnnounceQuantity, 9)
+DEFINE_OVERRIDE_HOOK(0x6CC0EA, SuperClass_ForceCharged_AnnounceQuantity, 9)
 {
 	GET(SuperClass*, pThis, ESI);
 	const auto pData = SWTypeExtContainer::Instance.Find(pThis->Type);
@@ -815,6 +815,20 @@ DEFINE_OVERRIDE_HOOK(0x6CC0EA, SuperClass_AnnounceQuantity, 9)
 
 	return 0;
 }
+
+//DEFINE_HOOK(0x6CBDB7  , SuperClass_Upadate_ChargeDrainSWReady , 0x6)
+//{
+//	GET(SuperClass* , pThis , ESI);
+//	const auto pData = SWTypeExtContainer::Instance.Find(pThis->Type);
+//
+//	pData->PrintMessage(pData->Message_Ready, HouseClass::CurrentPlayer);
+//
+//	if (pData->EVA_Ready != -1) {
+//		VoxClass::PlayIndex(pData->EVA_Ready);
+//	}
+//
+//	return 0x0;
+//}
 
 // AI SW targeting submarines
 DEFINE_OVERRIDE_HOOK(0x50CFAA, HouseClass_PickOffensiveSWTarget, 0xA)
