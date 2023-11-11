@@ -2879,8 +2879,7 @@ bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 		fprintf(LogFile, "YR synchronization log\n");
 		fprintf(LogFile, "With Ares [21.352.1218] and Phobos %s\n", PRODUCT_VERSION);
 
-		for (auto ixF = 0; ixF < 0x100; ++ixF)
-		{
+		for (size_t ixF = 0; ixF < EventClass::LatestFramesCRC.c_size(); ++ixF) {
 			fprintf(LogFile, "LastFrame CRC[%02X] = %08X\n", ixF, EventClass::LatestFramesCRC[ixF]);
 		}
 
@@ -2894,7 +2893,7 @@ bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 		fprintf(LogFile, "Mod is %s (%s) with %X\n", ModName , ModVersion , ModIdentifier);
 
 		if(HouseClass::CurrentPlayer())
-		fprintf(LogFile, "Player Name %s\n", HouseClass::CurrentPlayer->PlainName);
+			fprintf(LogFile, "Player Name %s\n", HouseClass::CurrentPlayer->PlainName);
 
 		auto nHashes = HashData::GetINIChecksums();
 
@@ -2932,8 +2931,7 @@ bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 		VectorLogger(Logics(), LogFile, "Logics");
 
 		fprintf(LogFile, "\nChecksums for Map Layers\n");
-		for (auto ixL = 0; ixL < 5; ++ixL)
-		{
+		for (size_t ixL = 0; ixL < MapClass::ObjectsInLayers.c_size(); ++ixL) {
 			fprintf(LogFile, "Checksums for Layer %d\n", ixL);
 			VectorLogger(&(MapClass::ObjectsInLayers[ixL]), LogFile);
 		}
