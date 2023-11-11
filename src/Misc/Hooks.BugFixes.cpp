@@ -792,12 +792,12 @@ DEFINE_HOOK(0x519F84, InfantryClass_UpdatePosition_EngineerPreUninit, 0x6)
 }
 
 // Enable sorted add for Air/Top layers to fix issues with attached anims etc.
-DEFINE_HOOK(0x4A9750, DisplayClass_Submit_LayerSort, 0x9)
-{
-	GET(Layer const, layer, EDI);
-	R->ECX(layer != Layer::Surface && layer != Layer::Underground);
-	return 0;
-}
+// DEFINE_HOOK(0x4A9750, DisplayClass_Submit_LayerSort, 0x9)
+// {
+// 	GET(Layer const, layer, EDI);
+// 	R->ECX(layer != Layer::Surface && layer != Layer::Underground);
+// 	return 0;
+// }
 
 // Fixes C4=no amphibious infantry being killed in water if Chronoshifted/Paradropped there.
 DEFINE_HOOK(0x51A996, InfantryClass_PerCellProcess_KillOnImpassable, 0x5)
@@ -967,24 +967,36 @@ void UpdateAttachedAnimLayers(TechnoClass* pThis)
 }
 
 //causing desyncs , need to be retest
-DEFINE_HOOK(0x54B188, JumpjetLocomotionClass_Process_LayerUpdate, 0x6)
+// DEFINE_HOOK(0x54B188, JumpjetLocomotionClass_Process_LayerUpdate, 0x6)
+// {
+// 	GET(TechnoClass*, pLinkedTo, EAX);
+//
+// 	UpdateAttachedAnimLayers(pLinkedTo);
+//
+// 	return 0;
+// }
+//
+// DEFINE_HOOK(0x4CD4E1, FlyLocomotionClass_Update_LayerUpdate, 0x6)
+// {
+// 	GET(TechnoClass*, pLinkedTo, ECX);
+//
+// 	if (pLinkedTo->LastLayer != pLinkedTo->InWhichLayer())
+// 		UpdateAttachedAnimLayers(pLinkedTo);
+//
+// 	return 0;
+// }
+
+// Update attached anim layers after parent unit changes layer.
+void __fastcall DisplayClass_Submit_Wrapper(DisplayClass* pThis, void* _, ObjectClass* pObject)
 {
-	GET(TechnoClass*, pLinkedTo, EAX);
+	pThis->SubmitObject(pObject);
 
-	UpdateAttachedAnimLayers(pLinkedTo);
-
-	return 0;
+	if (auto const pTechno = abstract_cast<TechnoClass*>(pObject))
+		UpdateAttachedAnimLayers(pTechno);
 }
 
-DEFINE_HOOK(0x4CD4E1, FlyLocomotionClass_Update_LayerUpdate, 0x6)
-{
-	GET(TechnoClass*, pLinkedTo, ECX);
-
-	if (pLinkedTo->LastLayer != pLinkedTo->InWhichLayer())
-		UpdateAttachedAnimLayers(pLinkedTo);
-
-	return 0;
-}
+DEFINE_JUMP(CALL, 0x54B18E, GET_OFFSET(DisplayClass_Submit_Wrapper));  // JumpjetLocomotionClass_Process
+DEFINE_JUMP(CALL6, 0x4CD4F3, GET_OFFSET(DisplayClass_Submit_Wrapper)); // FlyLocomotionClass_Update
 
 DEFINE_HOOK(0x688F8C, ScenarioClass_ScanPlaceUnit_CheckMovement, 0x5)
 {
