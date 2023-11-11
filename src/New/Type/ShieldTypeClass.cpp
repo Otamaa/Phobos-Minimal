@@ -13,6 +13,7 @@ ShieldTypeClass::ShieldTypeClass(const char* const pTitle) : Enumerable<ShieldTy
 , SelfHealing_Rate { 0 }
 , SelfHealing_RestartInCombat { true }
 , SelfHealing_RestartInCombatDelay { 0 }
+, SelfHealing_EnabledBy {}
 , AbsorbOverDamage { false }
 , BracketDelta { 0 }
 , IdleAnim_OfflineAction { AttachedAnimFlag::Hides }
@@ -88,7 +89,7 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 
 	this->SelfHealing_RestartInCombat.Read(exINI, pSection, "SelfHealing.RestartInCombat");
 	this->SelfHealing_RestartInCombatDelay.Read(exINI, pSection, "SelfHealing.RestartInCombatDelay");
-
+	this->SelfHealing_EnabledBy.Read(exINI, pSection, "SelfHealing.EnabledBy");
 	this->AbsorbOverDamage.Read(exINI, pSection, "AbsorbOverDamage");
 	this->BracketDelta.Read(exINI, pSection, "BracketDelta");
 	this->ReceivedDamage_Minimum.Read(exINI, pSection, "ReceivedDamage.Minimum");
@@ -141,6 +142,7 @@ void ShieldTypeClass::Serialize(T& Stm)
 		.Process(this->SelfHealing_Rate)
 		.Process(this->SelfHealing_RestartInCombat)
 		.Process(this->SelfHealing_RestartInCombatDelay)
+		.Process(this->SelfHealing_EnabledBy)
 		.Process(this->AbsorbOverDamage)
 		.Process(this->BracketDelta)
 		.Process(this->ReceivedDamage_Minimum)

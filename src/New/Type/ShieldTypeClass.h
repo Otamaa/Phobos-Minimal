@@ -21,6 +21,7 @@ public:
 	Valueable<int> SelfHealing_Rate;
 	Valueable<bool> SelfHealing_RestartInCombat;
 	Valueable<int> SelfHealing_RestartInCombatDelay;
+	ValueableVector<BuildingTypeClass*> SelfHealing_EnabledBy;
 
 	Valueable<bool> AbsorbOverDamage;
 	Valueable<int> BracketDelta;

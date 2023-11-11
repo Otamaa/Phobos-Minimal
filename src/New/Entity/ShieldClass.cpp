@@ -454,27 +454,17 @@ void ShieldClass::OnUpdate()
 		return;
 
 	this->OnlineCheck();
+	const auto selfHealingCheck = this->SelfHealEnabledByCheck();
+	auto timer = (this->HP <= 0) ? &this->Timers_Respawn : &this->Timers_SelfHealing;
 
-	//why dont check it together insinde `OnlineCheck` instead ,..
-	//if(this->Type->Powered) {
-	//	const auto Powered = this->PoweredByCheck();
-	//	auto timer = (this->HP <= 0) ? &this->Timers_Respawn : &this->Timers_SelfHealing;
-	//
-	//	switch (Powered)
-	//	{
-	//	case PoweredFlag::Offline:
-	//		timer->Pause();
-	//		break;
-	//	case PoweredFlag::Powered:
-	//		timer->Resume();
-	//		break;
-	//	default:
-	//		this->SelfHealing();
-	//		break;
-	//	}
-	//}
-
-	this->RespawnShield();
+	if (selfHealingCheck == SelfHealingStatus::Offline) {
+		timer->Pause();
+	}
+	else if(selfHealingCheck == SelfHealingStatus::Online) {
+		timer->Resume();
+		this->RespawnShield();
+		this->SelfHealing();
+	}
 
 	double ratio = this->Techno->GetHealthPercentage();
 	if (!this->AreAnimsHidden)
@@ -655,16 +645,21 @@ bool ShieldClass::ConvertCheck()
 
 #include <Misc/Ares/Hooks/Header.h>
 
-PoweredFlag ShieldClass::PoweredByCheck()
+SelfHealingStatus ShieldClass::SelfHealEnabledByCheck()
 {
 	if (!TechnoTypeExtContainer::Instance.Find(this->CurTechnoType)->PoweredBy.empty()) {
-		if (auto& Powered = TechnoExtContainer::Instance.Find(this->Techno)->PoweredUnit)
-			return Powered->IsPowered() ? PoweredFlag::Powered : PoweredFlag::Offline;
+		for (auto const pBuilding : this->Techno->Owner->Buildings) {
+			bool isActive = !(pBuilding->Deactivated || pBuilding->IsUnderEMP()) && pBuilding->IsPowerOnline();
 
-		return PoweredFlag::Offline;
+			if (this->Type->SelfHealing_EnabledBy.Contains(pBuilding->Type) && isActive) {
+				return SelfHealingStatus::Online;
+			}
+		}
+
+		return SelfHealingStatus::Offline;
 	}
 
-	return PoweredFlag::DoNotNeedPowered;
+	return SelfHealingStatus::Online;
 }
 
 void ShieldClass::SelfHealing()
