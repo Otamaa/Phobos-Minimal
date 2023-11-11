@@ -518,7 +518,7 @@ TechnoClass* NewSWType::GetFirer(SuperClass* pSW, const CellStruct& Coords, bool
 	return pFirer;
 }
 
-bool NOINLINE NewSWType::CanHaveLauchSite(SWTypeExtData* pData, BuildingClass* pBuilding) const
+bool NewSWType::CanHaveLauchSite(SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
 	//switch (this->TypeIndex)
 	//{
@@ -664,7 +664,7 @@ SuperWeaponType NewSWType::FindFromTypeID(const char* pType)
 	return SuperWeaponType::Invalid;
 }
 
-bool NOINLINE NewSWType::IsLaunchSiteEligible(SWTypeExtData* pSWType, const CellStruct& Coords, BuildingClass* pBuilding, bool ignoreRange) const
+bool NewSWType::IsLaunchSiteEligible(SWTypeExtData* pSWType, const CellStruct& Coords, BuildingClass* pBuilding, bool ignoreRange) const
 {
 	if (!this->IsLaunchSite(pSWType, pBuilding) /*&& !this->CanHaveLauchSite(pSWType, pBuilding)*/)
 	{

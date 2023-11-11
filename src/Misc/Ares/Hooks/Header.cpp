@@ -3239,9 +3239,11 @@ void NOINLINE UpdateType(TechnoClass* pThis, TechnoTypeExtData* pOldTypeExt)
 	if (pOldTypeExt->Convert_Water || pOldTypeExt->Convert_Land)
 	{
 		TechnoTypeClass* Convert = pOldTypeExt->Convert_Land;
-		CellClass* pCell = pThis->GetCell();
-		if (pCell && (pCell->LandType == LandType::Water || pCell->LandType == LandType::Beach) && !pThis->OnBridge)
-			Convert = pOldTypeExt->Convert_Water;
+		if (!pThis->OnBridge) { //avoid calling `GetCell()` all the time ?
+			CellClass* pCell = pThis->GetCell();
+			if (pCell && (pCell->LandType == LandType::Water || pCell->LandType == LandType::Beach))
+				Convert = pOldTypeExt->Convert_Water;
+		}
 
 		if (Convert && pOldTypeExt->AttachedToObject != Convert)
 			TechnoExt_ExtData::ConvertToType(pThis, Convert);
@@ -7083,7 +7085,7 @@ void CustomFoundation::GetDisplayRect(RectangleStruct& a1, CellStruct* a2)
 
 #pragma region MouseClassExt
 
-NOINLINE const MouseCursor*  MouseClassExt::GetCursorData(MouseCursorType nMouse)
+const MouseCursor*  MouseClassExt::GetCursorData(MouseCursorType nMouse)
 {
 	if (!CursorTypeClass::Array.empty()) {
 		return CursorTypeClass::Array[(int)nMouse]->CursorData.GetEx() ;

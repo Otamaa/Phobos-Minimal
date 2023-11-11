@@ -3,7 +3,7 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/WarheadType/Body.h>
 
-NOINLINE HouseClass*  __fastcall BombExtData::GetOwningHouse(BombClass* pThis, void*)
+HouseClass*  __fastcall BombExtData::GetOwningHouse(BombClass* pThis, void*)
 {
 	return pThis->OwnerHouse;
 }

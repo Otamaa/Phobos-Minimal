@@ -4,7 +4,7 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
 
-void NOINLINE AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
+void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 {
 	double ROF_Mult = 1.0;
 	double ReceiveRelativeDamageMult = 1.0;
@@ -16,7 +16,6 @@ void NOINLINE AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 
 	for (const auto& ae : ae->Data)
 	{
-		//the class aligment is different , so it probably broke something
 		ROF_Mult *= ae.Type->ROFMultiplier;
 		ReceiveRelativeDamageMult *= ae.Type->ReceiveRelativeDamageMult;
 		FP_Mult *= ae.Type->FirepowerMultiplier;
@@ -33,10 +32,6 @@ void NOINLINE AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 
 	if (pThis->AbstractFlags & AbstractFlags::Foot)
 	{
-
-		//if (Speed_Mult < 1.0 && TechnoExtData::IsInWarfactory(pThis))
-		//	Speed_Mult = 1.0; //negate all speed bonusses when it is still in warfactory
-
 		((FootClass*)pThis)->SpeedMultiplier = Speed_Mult;
 	}
 }
@@ -80,7 +75,7 @@ AresAEData* GetAEDAtaFromTechno(TechnoClass* pThis)
 	return std::addressof(TechnoExtContainer::Instance.Find(pThis)->AeData); //dummy
 }
 
-void NOINLINE AresAE::UpdateTempoal(AresAEData* ae, TechnoClass* pTechno)
+void AresAE::UpdateTempoal(AresAEData* ae, TechnoClass* pTechno)
 {
 	if (!ae->NeedToRecreateAnim)
 	{
@@ -93,7 +88,7 @@ void NOINLINE AresAE::UpdateTempoal(AresAEData* ae, TechnoClass* pTechno)
 	}
 }
 
-void NOINLINE AresAE::Update(AresAEData* ae, TechnoClass* pTechno)
+void AresAE::Update(AresAEData* ae, TechnoClass* pTechno)
 {
 	if (pTechno->InLimbo || pTechno->IsImmobilized || pTechno->Transporter)
 		return;
@@ -189,7 +184,7 @@ void NOINLINE AresAE::Update(AresAEData* ae, TechnoClass* pTechno)
 	}
 }
 
-bool NOINLINE AresAE::Remove(AresAEData* ae)
+bool AresAE::Remove(AresAEData* ae)
 {
 	if (!ae->Data.empty())
 	{
@@ -214,13 +209,13 @@ bool NOINLINE AresAE::Remove(AresAEData* ae)
 	return false;
 }
 
-void NOINLINE AresAE::Remove(AresAEData* ae, TechnoClass* pTechno)
+void AresAE::Remove(AresAEData* ae, TechnoClass* pTechno)
 {
 	if (AresAE::Remove(ae))
 		RecalculateStat(ae, pTechno);
 }
 
-void NOINLINE AresAE::RemoveSpecific(AresAEData* ae, TechnoClass* pTechno, AbstractTypeClass* pRemove)
+void AresAE::RemoveSpecific(AresAEData* ae, TechnoClass* pTechno, AbstractTypeClass* pRemove)
 {
 	ae->Isset = 0;
 
@@ -239,7 +234,7 @@ void NOINLINE AresAE::RemoveSpecific(AresAEData* ae, TechnoClass* pTechno, Abstr
 	}
 }
 
-bool NOINLINE AresAE::Attach(AresAttachEffectTypeClass* pType, TechnoClass* pTargetTechno, int duration, HouseClass* pInvokerOwner)
+bool AresAE::Attach(AresAttachEffectTypeClass* pType, TechnoClass* pTargetTechno, int duration, HouseClass* pInvokerOwner)
 {
 	if (pTargetTechno->IsIronCurtained() && !pType->PenetratesIC)
 		return false;
@@ -312,12 +307,12 @@ void AresAE::TransferAttachedEffects(TechnoClass* From, TechnoClass* To)
 	RecalculateStat(ToData, To);
 }
 
-void NOINLINE AresAE::ClearAnim()
+void AresAE::ClearAnim()
 {
 	this->Anim.clear();
 }
 
-void NOINLINE AresAE::ReplaceAnim(TechnoClass* pTechno, AnimClass* pNewAnim)
+void AresAE::ReplaceAnim(TechnoClass* pTechno, AnimClass* pNewAnim)
 {
 	this->ClearAnim();
 
@@ -331,7 +326,7 @@ void NOINLINE AresAE::ReplaceAnim(TechnoClass* pTechno, AnimClass* pNewAnim)
 	this->Anim.reset(pNewAnim);
 }
 
-void NOINLINE AresAE::CreateAnim(TechnoClass* pTechno)
+void AresAE::CreateAnim(TechnoClass* pTechno)
 {
 	const auto state = pTechno->CloakState;
 

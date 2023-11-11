@@ -132,7 +132,7 @@ bool SW_HunterSeeker::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pB
 	return this->IsLaunchSite_HS(pData , pBuilding);
 }
 
-CellStruct NOINLINE SW_HunterSeeker::GetLaunchCell(SWTypeExtData* pSWType, BuildingClass* pBuilding, UnitTypeClass* pHunter) const
+CellStruct SW_HunterSeeker::GetLaunchCell(SWTypeExtData* pSWType, BuildingClass* pBuilding, UnitTypeClass* pHunter) const
 {
 	const auto pBldExt = BuildingExtContainer::Instance.Find(pBuilding);
 	CellStruct cell;

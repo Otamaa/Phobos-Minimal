@@ -1,6 +1,6 @@
 #include "Body.h"
 
-NOINLINE FacingType GetPoseDir(AircraftClass* pAir , BuildingClass* pBld)
+FacingType GetPoseDir(AircraftClass* pAir , BuildingClass* pBld)
 {
 	FacingType ret = (FacingType)TechnoTypeExtContainer::Instance.Find(pAir->Type)->LandingDir.Get(RulesClass::Instance->PoseDir);
 

@@ -9,7 +9,7 @@
 #include <ParticleClass.h>
 #include <SpotlightClass.h>
 
-void NOINLINE ParticleSystemExtData::UpdateLocations()
+void ParticleSystemExtData::UpdateLocations()
 {
 	const auto gravity = (float)RulesClass::Instance->Gravity;
 	for (auto& Data : this->OtherParticleData)
@@ -80,7 +80,7 @@ void NOINLINE ParticleSystemExtData::UpdateLocations()
 	}
 }
 
-void NOINLINE ParticleSystemExtData::UpdateState()
+void ParticleSystemExtData::UpdateState()
 {
 	this->OtherParticleData.remove_all_if([](const auto& data)
  {
@@ -94,7 +94,7 @@ void NOINLINE ParticleSystemExtData::UpdateState()
 
 }
 
-void NOINLINE ParticleSystemExtData::UpdateColor()
+void ParticleSystemExtData::UpdateColor()
 {
 	const auto pHeldType = this->HeldType;
 	const auto colorCounts = pHeldType->ColorList.Count - 2;
@@ -123,7 +123,7 @@ void NOINLINE ParticleSystemExtData::UpdateColor()
 	}
 }
 
-void NOINLINE ParticleSystemExtData::UpdateSpark()
+void ParticleSystemExtData::UpdateSpark()
 {
 	auto pOwner = this->AttachedToObject;
 	auto SparkSpawnFrames = pOwner->SparkSpawnFrames;
@@ -229,7 +229,7 @@ void NOINLINE ParticleSystemExtData::UpdateSpark()
 	this->UpdateColor();
 }
 
-void NOINLINE ParticleSystemExtData::UpdateRailgun()
+void ParticleSystemExtData::UpdateRailgun()
 {
 	auto pOwnerObj = this->AttachedToObject;
 	auto pOwnerObjType = pOwnerObj->Type;
@@ -366,7 +366,7 @@ void NOINLINE ParticleSystemExtData::UpdateRailgun()
 	}
 }
 
-void NOINLINE ParticleSystemExtData::UpdateWindDirection()
+void ParticleSystemExtData::UpdateWindDirection()
 {
 	if ((Unsorted::CurrentFrame() & 1) != 0)
 	{
@@ -455,7 +455,7 @@ void NOINLINE ParticleSystemExtData::UpdateWindDirection()
 	}
 }
 
-void NOINLINE ParticleSystemExtData::UpdateSmoke()
+void ParticleSystemExtData::UpdateSmoke()
 {
 	auto const pOwnerObj = this->AttachedToObject;
 	auto const pOwnerObjType = pOwnerObj->Type;
@@ -580,7 +580,7 @@ bool ParticleSystemExtData::UpdateHandled()
 	return true;
 }
 
-void NOINLINE ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
+void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 {
 	const auto pHeldType = this->HeldType;
 	ColorStruct* color = pHeldType ? pHeldType->ColorList.Items : nullptr;
@@ -709,7 +709,7 @@ void ParticleSystemExtData::UpdateInAir()
 	}
 }
 
-void NOINLINE ParticleSystemExtData::InitializeConstant()
+void ParticleSystemExtData::InitializeConstant()
 {
 	if (auto pType = this->AttachedToObject->Type)
 	{

@@ -828,7 +828,7 @@ NOINLINE HouseClass* GetPlayerAt(int param, HouseClass* const pOwnerHouse = null
 
 	if (param < 0)
 	{
-		std::vector<HouseClass*> housesListIdx {};
+		std::vector<HouseClass*> housesListIdx;
 
 		switch (param)
 		{

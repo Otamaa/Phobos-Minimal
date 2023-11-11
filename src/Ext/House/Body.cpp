@@ -412,7 +412,7 @@ void HouseExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Degrades.Read(exINI, pSection, "Degrades");
 }
 
-NOINLINE TunnelData* HouseExtData::GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx)
+TunnelData* HouseExtData::GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx)
 {
 	if (!pHouse || nTunnelIdx >= TunnelTypeClass::Array.size())
 		return nullptr;
