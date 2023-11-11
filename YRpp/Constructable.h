@@ -26,6 +26,8 @@ struct ConstructableWeaponStruct
 		, TurretLocked { bTurrentLocked }
 	{}
 
+	~ConstructableWeaponStruct() = default;
+
 	bool operator == (const ConstructableWeaponStruct& pWeap) const
 	{
 		return
@@ -63,9 +65,10 @@ struct ConstructableTurretControl
 	}
 };
 
+class ObjectClass;
 struct DamageGroup
 {
-	AbstractClass* Target { nullptr };
+	ObjectClass* Target { nullptr };
 	int Distance { 0 };
 
 	bool operator == (const DamageGroup& nOther) const {
@@ -73,10 +76,10 @@ struct DamageGroup
 			Distance == nOther.Distance;
 	}
 
-	bool operator == (const DamageGroup*& nOther) const {
-		return Target == (nOther->Target) &&
-			Distance == nOther->Distance;
-	}
+	// bool operator == (const DamageGroup*& nOther) const {
+	// 	return Target == (nOther->Target) &&
+	// 		Distance == nOther->Distance;
+	// }
 };
 
 //static_assert(sizeof(DamageGroup) == 0x8u, "Invalid size.");

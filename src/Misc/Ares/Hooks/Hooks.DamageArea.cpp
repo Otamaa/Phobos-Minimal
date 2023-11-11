@@ -140,14 +140,9 @@ DEFINE_OVERRIDE_HOOK(0x4893BA, DamageArea_DamageAir, 9)
 	return damageAir ? 0x4893C3u : 0x48955Eu;
 }
 
-#include <Lib/SimpleVector.h>
-
 // #895990: limit the number of times a warhead with
 // CellSpread will hit the same object for each hit
-struct DamageGroup {
- 	ObjectClass* Target;
- 	int Distance;
-};
+#include <Constructable.h>
 
 static DynamicVectorClass<ObjectClass*, DllAllocator<ObjectClass*>> Targets {};
 static DynamicVectorClass<DamageGroup* , DllAllocator<DamageGroup*>> Handled {};
