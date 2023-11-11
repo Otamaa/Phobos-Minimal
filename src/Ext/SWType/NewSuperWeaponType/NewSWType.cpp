@@ -400,8 +400,7 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExtData* 
 
 				if (range > 0)
 				{
-					data->Designators.emplace_back(TargetingData::RangedItem {
-						range * range, CellClass::Coord2Cell(center) });
+					data->Designators.emplace_back(range * range, CellClass::Coord2Cell(center));
 				}
 			}
 		}
@@ -428,8 +427,7 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExtData* 
 
 				if (range > 0)
 				{
-					data->Attractors.emplace_back(TargetingData::RangedItem {
-						range * range, CellClass::Coord2Cell(center) });
+					data->Attractors.emplace_back(range * range, CellClass::Coord2Cell(center));
 				}
 			}
 		}
@@ -456,8 +454,7 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExtData* 
 
 				if (range > 0)
 				{
-					data->Inhibitors.emplace_back(TargetingData::RangedItem {
-						range * range, CellClass::Coord2Cell(center) });
+					data->Inhibitors.emplace_back(range * range, CellClass::Coord2Cell(center));
 				}
 			}
 		}
@@ -484,8 +481,7 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExtData* 
 
 				if (range > 0)
 				{
-					data->Suppressors.emplace_back(TargetingData::RangedItem {
-						range * range, CellClass::Coord2Cell(center) });
+					data->Suppressors.emplace_back(range * range, CellClass::Coord2Cell(center));
 				}
 			}
 		}

@@ -399,32 +399,32 @@ void TechnoTypeExt_ExtData::ReadWeaponStructDatas(TechnoTypeClass* pType, CCINIC
 		auto data = (i < TechnoTypeClass::MaxWeapons ? pType->Weapon : pExt->AdditionalWeaponDatas.data()) + NextIdx;
 		auto data_e = (i < TechnoTypeClass::MaxWeapons ? pType->EliteWeapon : pExt->AdditionalEliteWeaponDatas.data()) + NextIdx;
 
-		_snprintf(bufferWeapon, sizeof(bufferWeapon), "EliteWeapon%u", i + 1);
+		IMPL_SNPRNINTF(bufferWeapon, sizeof(bufferWeapon), "EliteWeapon%u", i + 1);
 
 		detail::read(data->WeaponType, iniEx, pSection, bufferWeapon + 5, true);
 
 		if (!detail::read(data_e->WeaponType, iniEx, pSection, bufferWeapon, true))
 			data_e->WeaponType = data->WeaponType;
 
-		_snprintf(buffer, sizeof(buffer), "%sFLH", bufferWeapon);
+		IMPL_SNPRNINTF(buffer, sizeof(buffer), "%sFLH", bufferWeapon);
 		detail::read(data->FLH, iniEX_art, pSection_art, buffer + 5, false);
 
 		if (!detail::read(data_e->FLH, iniEX_art, pSection_art, buffer, false))
 			data_e->FLH = data->FLH;
 
-		_snprintf(buffer, sizeof(buffer), "%sBarrelLength", bufferWeapon);
+		IMPL_SNPRNINTF(buffer, sizeof(buffer), "%sBarrelLength", bufferWeapon);
 		detail::read(data->BarrelLength, iniEX_art, pSection_art, buffer + 5, false);
 
 		if(!detail::read(data_e->BarrelLength, iniEX_art, pSection_art, buffer))
 			data_e->BarrelLength = data->BarrelLength;
 
-		_snprintf(buffer, sizeof(buffer), "%sBarrelThickness", bufferWeapon);
+		IMPL_SNPRNINTF(buffer, sizeof(buffer), "%sBarrelThickness", bufferWeapon);
 		detail::read(data->BarrelThickness, iniEX_art, pSection_art, buffer + 5, false);
 
 		if(!detail::read(data_e->BarrelThickness, iniEX_art, pSection_art, buffer))
 			data_e->BarrelThickness = data->BarrelThickness;
 
-		_snprintf(buffer, sizeof(buffer), "%sTurretLocked", bufferWeapon);
+		IMPL_SNPRNINTF(buffer, sizeof(buffer), "%sTurretLocked", bufferWeapon);
 		detail::read(data->TurretLocked, iniEX_art, pSection_art, buffer + 5, false);
 
 		if(!detail::read(data_e->TurretLocked, iniEX_art, pSection_art, buffer))
@@ -3240,7 +3240,7 @@ void NOINLINE UpdateType(TechnoClass* pThis, TechnoTypeExtData* pOldTypeExt)
 	{
 		TechnoTypeClass* Convert = pOldTypeExt->Convert_Land;
 		CellClass* pCell = pThis->GetCell();
-		if (pCell && (pCell->LandType == LandType::Water || pCell->LandType == LandType::Beach))
+		if (pCell && (pCell->LandType == LandType::Water || pCell->LandType == LandType::Beach) && !pThis->OnBridge)
 			Convert = pOldTypeExt->Convert_Water;
 
 		if (Convert && pOldTypeExt->AttachedToObject != Convert)
@@ -3263,7 +3263,6 @@ void NOINLINE UpdatePoweredBy(TechnoClass* pThis, TechnoTypeExtData* pTypeData)
 {
 	if (!pTypeData->PoweredBy.empty())
 	{
-
 		if (!TechnoExtContainer::Instance.Find(pThis)->PoweredUnit)
 		{
 			TechnoExtContainer::Instance.Find(pThis)->PoweredUnit = std::make_unique<AresPoweredUnit>(pThis);
@@ -6885,7 +6884,7 @@ void AresHouseExt::UpdateTogglePower(HouseClass* pThis)
 				// power, we look for builidings that are disabled
 				if (pBld->StuffEnabled == HasLowPower)
 				{
-					Buildings.emplace_back(ExpendabilityStruct { pBld, GetExpendability(pBld) });
+					Buildings.emplace_back(pBld, GetExpendability(pBld));
 				}
 			}
 		}

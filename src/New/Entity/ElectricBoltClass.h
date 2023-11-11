@@ -179,7 +179,7 @@ private:
 	void Clear();
 
 	void Add_Plot_Line(CoordStruct& start, CoordStruct& end, ColorStruct& line_color, int start_z, int end_z) {
-		LineDrawList.emplace_back(LineDrawDataStruct { start, end, line_color, start_z, end_z });
+		LineDrawList.emplace_back(start, end, line_color, start_z, end_z);
 	}
 
 	void Plot_Bolt(CoordStruct& start, CoordStruct& end);

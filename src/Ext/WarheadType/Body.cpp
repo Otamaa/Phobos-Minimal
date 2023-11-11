@@ -336,8 +336,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		if (!detail::read(LaunchWhat_Dummy, exINI, pSection, nBuff, true) || !LaunchWhat_Dummy)
 			break;
 
-		this->Launchs.emplace_back();
-		this->Launchs.back().Read(exINI, pSection, i, LaunchWhat_Dummy);
+		this->Launchs.emplace_back().Read(exINI, pSection, i, LaunchWhat_Dummy);
 	}
 
 	this->Conventional_IgnoreUnits.Read(exINI, pSection, "Conventional.IgnoreUnits");
