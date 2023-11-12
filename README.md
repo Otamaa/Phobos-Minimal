@@ -9,9 +9,9 @@ this version of Phobos is not require Ares to function.
 
 Currently Missing Feature(s) from Ares 3.0p1: 
  - Fixed game image screenshoot
- - Ini inheritance 
  - Ingame menu UI (this not backported due to mod nowdays is using client anyways)
  - Some minor bugfix or optimization that probably still missing , visit the googledocument spreadsheet for more
+ - Random Map Generator
 
 # Stability 
 As the main developer is still in learning phase and constanly changing the code. The stability of this version of Phobos is not guaranteed. Always make sure backup your project before fully integrating this dll version .
@@ -34,9 +34,9 @@ Credits
 ### Developers
 - **Otamaa (Fahroni, BoredEXE)** - Main developer of this fork version ([PayPal](https://paypal.me/GeneralOtama))
 
-### Special Thanks 
-- **TODO** ( Really thanks for everyone who willing to integrate and help me test this)
-- 
+## Special Thanks 
+- **TODO**
+
 Legal and License
 -----
 
