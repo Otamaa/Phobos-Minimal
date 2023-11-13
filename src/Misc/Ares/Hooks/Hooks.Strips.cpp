@@ -466,7 +466,6 @@ DEFINE_HOOK(0x6AA711, StripClass_RecheckCameos_FilterAllowedCameos, 0)
 		{
 			if (auto Factory = TechnoType->FindFactory(true, false, false, HouseClass::CurrentPlayer()))
 			{
-				// ToDo : Wtf is this ?
 				KeepCameo = Factory->Owner->CanBuild(TechnoType, false, true) != CanBuildResult::Unbuildable;
 			}
 		}

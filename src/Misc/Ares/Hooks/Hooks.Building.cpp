@@ -1651,7 +1651,6 @@ DEFINE_OVERRIDE_HOOK(0x73A1BC, UnitClass_UpdatePosition_EnteredGrinder, 0x7)
 
 	//ReverseEngineer(Grinder, Vehicle);
 
-	// TODO : bring  ReverseEngineer in later
 	if (BuildingExtData::ReverseEngineer(Grinder, Vehicle))
 	{
 		if (Vehicle->Owner && Vehicle->Owner->ControlledByPlayer())
@@ -1694,7 +1693,6 @@ DEFINE_OVERRIDE_HOOK(0x5198AD, InfantryClass_UpdatePosition_EnteredGrinder, 0x6)
 
 	//ReverseEngineer(Grinder, Infantry);
 
-	// TODO : bring  ReverseEngineer in later
 	if (BuildingExtData::ReverseEngineer(Grinder, Infantry))
 	{
 		if (Infantry->Owner->ControlledByPlayer())

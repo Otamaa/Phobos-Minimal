@@ -165,6 +165,7 @@ public:
 	AresAEData AeData {};
 
 	int StrafeFireCunt { -1 };
+	CDTimerClass MergePreventionTimer {};
 
 	TechnoExtData() noexcept = default;
 	~TechnoExtData() noexcept

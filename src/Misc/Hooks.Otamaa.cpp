@@ -2230,7 +2230,6 @@ DEFINE_HOOK(0x474964, CCINIClass_ReadPipScale_add, 0x6)
 	return retzero;
 }
 
-// TODO : complete replacement !
 DEFINE_HOOK(0x709B79, TechnoClass_DrawPip_Spawner, 0x6)
 {
 	enum { SkipGameDrawing = 0x709C27 };
@@ -2333,7 +2332,6 @@ DEFINE_HOOK(0x520E75, InfantryClass_SequenceAI_Sounds, 0x6)
 DEFINE_HOOK(0x5194EF, InfantryClass_DrawIt_InAir_NoShadow, 5)
 {
 	GET(InfantryClass*, pThis, EBP);
-	//TODO : add option for this
 	return pThis->Type->NoShadow ? 0x51958A : 0x0;
 }
 
@@ -3861,7 +3859,7 @@ DEFINE_HOOK(0x73730E, UnitClass_Visceroid_HealthCheckRestore, 0x6)
 
 			} else {
 				pThis->unknown_int_6D4 = -1;
-				pThis->QueueMission(Mission::Area_Guard, false);
+				pThis->QueueMission(pThis->IsArmed() ? Mission::Hunt : Mission::Area_Guard, false);
 				pThis->NextMission();
 				return 0x73741F;
 			}
@@ -3928,7 +3926,7 @@ DEFINE_HOOK(0x43B150, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x6)
 
 int NOINLINE GetPlayerPosByName(const char* pName)
 {
-	if (!pName[0] || pName[0] != '<' || strlen(pName) != 12)
+	if (pName[0] != '<' || strlen(pName) != 12)
 		return -1;
 
 	if (IS_SAME_STR_(GameStrings::PlayerAt_A(), pName))
@@ -4148,6 +4146,18 @@ DEFINE_HOOK(0x4F9A90, HouseClass_IsAlliedWith, 0x7)
 	return 0;
 }
 
+DEFINE_HOOK(0x737BFB, UnitClass_Unlimbo_SmallVisceroid_DontMergeImmedietely, 0x6)
+{
+	GET(UnitClass*, pThis, ESI);
+	GET(UnitTypeClass*, pThisType, EAX);
+
+	if(pThisType->SmallVisceroid){
+		TechnoExtContainer::Instance.Find(pThis)->MergePreventionTimer.Start(1000);
+		return 0x737C38;
+	}
+
+	return pThisType->LargeVisceroid ? 0x737C38 : 0x737C0B;
+}
 //int AdjustDamageWithArmor(int damage, WarheadTypeClass* pWH, ObjectClass* pTarget, int distance) {
 //	return MapClass::ModifyDamage(damage, pWH, TechnoExtData::GetArmor(pTarget), distance);
 //}

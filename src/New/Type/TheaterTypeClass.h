@@ -185,7 +185,6 @@ public:
 	PhobosFixedString<16> SuffixMix;
 	PhobosFixedString<16> DataMix;
 
-	//TODO S/L
 	PhobosFixedString<4> TerrainTypeExtension;
 	PhobosFixedString<4> SmudgeTypeExtension;
 	PhobosFixedString<4> AnimTypeExtension;

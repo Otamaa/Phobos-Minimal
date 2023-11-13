@@ -25,9 +25,6 @@
 
 #include "Header.h"
 
-// TODO : require complete port of More IFV turrents
-// 746B89 = UnitClass_GetUIName, 8
-
 DEFINE_OVERRIDE_HOOK(0x73D219, UnitClass_Draw_OreGatherAnim, 0x6)
 {
 	GET(TechnoClass*, pTechno, ECX);
@@ -1035,7 +1032,6 @@ DEFINE_OVERRIDE_HOOK(0x51E710, InfantryClass_GetActionOnObject_Heal, 7)
 	const size_t nCursor = nCursorShield != -1 ? (size_t)nCursorShield :
 		(pThatType->Organic || pThat->WhatAmI() == InfantryClass::AbsID) ? 90 : 91;
 
-	//TODO : properly port this
 	MouseCursorFuncs::SetMouseCursorAction(nCursor, Action::Heal, false);
 	return DoActionHeal;
 }
@@ -1074,7 +1070,6 @@ DEFINE_OVERRIDE_HOOK(0x73FDBD, UnitClass_GetActionOnObject_Heal, 5)
 	size_t nCursor = nCursorSelected != -1 ? (size_t)nCursorSelected :
 		(pThatType->Organic || pThat->WhatAmI() == InfantryClass::AbsID) ? 90 : 91;
 
-	//TODO : properly port this
 	MouseCursorFuncs::SetMouseCursorAction(nCursor, Action::GRepair, false);
 
 	return DoActionGRepair;//0x73FE08;
@@ -1773,7 +1768,8 @@ DEFINE_OVERRIDE_HOOK(0x739F21, UnitClass_UpdatePosition_Visceroid, 6)
 {
 	GET(UnitClass*, pThis, EBP);
 
-	if (!pThis->Destination
+	if (TechnoExtContainer::Instance.Find(pThis)->MergePreventionTimer.InProgress()
+		|| !pThis->Destination
 		|| pThis->Destination->WhatAmI() != UnitClass::AbsID
 		|| !RulesClass::Instance->LargeVisceroid
 		|| RulesClass::Instance->LargeVisceroid->Strength <= 0
@@ -1781,6 +1777,11 @@ DEFINE_OVERRIDE_HOOK(0x739F21, UnitClass_UpdatePosition_Visceroid, 6)
 		return 0x0;
 
 	UnitClass* pDest = static_cast<UnitClass*>(pThis->Destination);
+	if(TechnoExtContainer::Instance.Find(pDest)->MergePreventionTimer.InProgress())
+		return 0x0;
+
+	if(pThis->Owner != pDest->Owner)
+		return 0x0;
 
 	// fleshbag erotic
 	if (pThis->Type->SmallVisceroid && pDest->Type->SmallVisceroid && TechnoExt_ExtData::IsUnitAlive(pDest))
@@ -1789,19 +1790,12 @@ DEFINE_OVERRIDE_HOOK(0x739F21, UnitClass_UpdatePosition_Visceroid, 6)
 		if (CellClass::Coord2Cell(pThis->GetCoords()) == CellClass::Coord2Cell(pDest->GetCoords()))
 		{
 			// two become one
-			pDest->Type = RulesClass::Instance->LargeVisceroid;
-			pDest->Health = RulesClass::Instance->LargeVisceroid->Strength;
-			pDest->EstimatedHealth = pDest->Health;
-			pDest->Target = nullptr;
-			pDest->Destination = nullptr;
-			pDest->Stun();
-
+			TechnoExt_ExtData::ConvertToType(pDest , RulesClass::Instance->LargeVisceroid , false);
 			pDest->IsSelected = pThis->IsSelected;
-
+			pDest->Override_Mission(pThis->IsArmed() ? Mission::Hunt : Mission::Area_Guard);
+			pThis->Limbo();
 			CellClass* pCell = MapClass::Instance->GetCellAt(pDest->LastMapCoords);
 			pDest->UpdateThreatInCell(pCell);
-			pDest->QueueMission(Mission::Guard, true);
-
 			Debug::Log(__FUNCTION__" Executed!\n");
 			TechnoExtData::HandleRemove(pThis, nullptr, false, false);
 			return 0x73B0A5;

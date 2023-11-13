@@ -1123,38 +1123,30 @@ Action TechnoExt_ExtData::GetEngineerEnterEnemyBuildingAction(BuildingClass* con
 	// modes, it's always on. single player campaigns also use special multi
 	// engineer behavior.
 	auto const gameMode = SessionClass::Instance->GameMode;
-	auto allowDamage = gameMode != GameMode::Skirmish
-		|| GameModeOptionsClass::Instance->MultiEngineer;
 
-	if (gameMode == GameMode::Campaign)
+	if ((gameMode == GameMode::Skirmish
+		&& GameModeOptionsClass::Instance->MultiEngineer)
+		|| gameMode == GameMode::Campaign)
 	{
 		// single player missions are currently hardcoded to "don't do damage".
-		allowDamage = false; // TODO: replace this by a new rules tag.
+		return Action::Capture; // TODO: replace this by a new rules tag.
 	}
 
 	// damage if multi engineer is enabled and target isn't that low on health.
-	if (allowDamage)
-	{
+	// check to always capture tech structures. a structure counts
+	// as tech if its initial owner is a multiplayer-passive country.
+	auto const pRulesExt = RulesExtData::Instance();
 
-		// check to always capture tech structures. a structure counts
-		// as tech if its initial owner is a multiplayer-passive country.
-		auto const isTech = pBld->InitialOwner
-			? pBld->InitialOwner->IsNeutral() : false;
-
-		auto const pRulesExt = RulesExtData::Instance();
-		if (!isTech || !pRulesExt->EngineerAlwaysCaptureTech)
-		{
-			// no civil structure. apply new logic.
-			auto const capLevel = RulesClass::Global()->EngineerCaptureLevel;
-			if (pBld->GetHealthPercentage() > capLevel)
-			{
-				return (pRulesExt->EngineerDamage > 0.0)
-					? Action::Damage : Action::NoEnter;
-			}
-		}
+	if(auto pOwner = pBld->InitialOwner) {
+		if(pOwner->Type->MultiplayPassive && pRulesExt->EngineerAlwaysCaptureTech)
+			return Action::Capture;
 	}
 
-	// default.
+	if(pBld->GetHealthPercentage() > pRulesExt->AttachedToObject->EngineerCaptureLevel) {
+		return (pRulesExt->EngineerDamage > 0.0)
+			? Action::Damage : Action::NoEnter;
+	}
+
 	return Action::Capture;
 }
 
@@ -2986,7 +2978,7 @@ void NOINLINE SetType(TechnoClass* pThis, TechnoTypeClass* pToType)
 	}
 }
 
-bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* pToType)
+bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* pToType, bool AdjustHealth)
 {
 	const auto& [prevType, rtti] = GetOriginalType(pThis, pToType);
 
@@ -3017,9 +3009,14 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 
 	SetType(pThis, pToType);
 
-	// Readjust health according to percentage
-	pThis->SetHealthPercentage((double)(oldHealth) / (double)prevType->Strength);
-	pThis->EstimatedHealth = pThis->Health;
+	if(AdjustHealth){
+		// Readjust health according to percentage
+		pThis->SetHealthPercentage((double)(oldHealth) / (double)prevType->Strength);
+		pThis->EstimatedHealth = pThis->Health;
+	} else {
+		pThis->Health = pToType->Strength;
+		pThis->EstimatedHealth = pToType->Strength;
+	}
 
 	// Add tracking of new techno
 	pOwner->AddTracking(pThis);

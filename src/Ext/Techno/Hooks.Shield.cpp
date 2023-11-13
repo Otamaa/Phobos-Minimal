@@ -24,6 +24,8 @@
 // 	return 0;
 // }
 
+// TODO : evaluate this 
+// interesting mechanic to replace negative damage always remove parasite
 void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 {
 	if (ScriptExtData::IsUnitAvailable(pThis, false))
@@ -31,13 +33,12 @@ void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 		if (const auto pFoot = abstract_cast<FootClass*>(pThis))
 		{
 			// Ignore other cases that aren't useful for this logic
-			if (pFoot->ParasiteEatingMe
-				&& pThis->WhatAmI() != AbstractType::Building)
+			if (pFoot->ParasiteEatingMe)
 			{
 				const auto pWHExt = WarheadTypeExtContainer::Instance.Find(args->WH);
 				auto parasyte = pFoot->ParasiteEatingMe;
 
-				if (!pWHExt || !pWHExt->CanRemoveParasytes.isset() || !pWHExt->CanTargetHouse(parasyte->Owner, pThis))
+				if (!pWHExt->CanRemoveParasytes.isset() || !pWHExt->CanTargetHouse(parasyte->Owner, pThis))
 					return;
 
 				if (pWHExt->CanRemoveParasytes.Get())

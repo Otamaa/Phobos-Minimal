@@ -177,7 +177,7 @@ struct TechnoExt_ExtData
 	static void Destroy(TechnoClass* pTechno, TechnoClass* pKiller, HouseClass* pKillerHouse, WarheadTypeClass* pWarhead);
 	static bool IsDriverKillable(TechnoClass* pThis, double KillBelowPercent);
 	static void ApplyKillDriver(TechnoClass* pTarget, TechnoClass* pKiller, HouseClass* pToOwner, bool ResetVet, Mission passiveMission);
-	static bool ConvertToType(TechnoClass* pThis, TechnoTypeClass* pToType);
+	static bool ConvertToType(TechnoClass* pThis, TechnoTypeClass* pToType , bool AdjustHealth = true);
 
 	static void RecalculateStat(TechnoClass* pThis);
 

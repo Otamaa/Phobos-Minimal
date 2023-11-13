@@ -53,7 +53,7 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Layer_UseObjectLayer.Read(exINI, pID, "Layer.UseObjectLayer");
 	this->UseCenterCoordsIfAttached.Read(exINI, pID, "UseCenterCoordsIfAttached");
 
-	this->Weapon.Read(exINI, pID, "Weapon" , true);
+	this->Weapon.Read(exINI, pID, "Weapon", true);
 	this->Damage_Delay.Read(exINI, pID, "Damage.Delay");
 	this->Damage_DealtByInvoker.Read(exINI, pID, "Damage.DealtByInvoker");
 	this->Damage_ApplyOnce.Read(exINI, pID, "Damage.ApplyOnce");
@@ -62,7 +62,7 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Damage_TargetFlag.Read(exINI, pID, "Damage.TargetFlag");
 
 	bool Damage_TargetInvoker;
-	if (detail::read(Damage_TargetInvoker , exINI, pID, "Damage.TargetInvoker") && Damage_TargetInvoker)
+	if (detail::read(Damage_TargetInvoker, exINI, pID, "Damage.TargetInvoker") && Damage_TargetInvoker)
 		this->Damage_TargetFlag = DamageDelayTargetFlag::Invoker;
 
 	this->MakeInfantryOwner.Read(exINI, pID, "MakeInfantryOwner");
@@ -130,7 +130,7 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		SuperWeaponTypeClass* LaunchWhat_Dummy;
 		IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.Type", i);
 
-		if (!detail::read(LaunchWhat_Dummy , exINI, pID, nBuff, true) || !LaunchWhat_Dummy)
+		if (!detail::read(LaunchWhat_Dummy, exINI, pID, nBuff, true) || !LaunchWhat_Dummy)
 			break;
 
 		this->Launchs.emplace_back().Read(exINI, pID, i, LaunchWhat_Dummy);
@@ -160,7 +160,7 @@ void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 
 		auto pCell = pThis->GetCell();
 
-		bool allowBridges = GroundType::GetCost(LandType::Clear , pUnit->SpeedType) > 0.0;
+		bool allowBridges = GroundType::GetCost(LandType::Clear, pUnit->SpeedType) > 0.0;
 		bool isBridge = allowBridges && pCell->ContainsBridge();
 
 		if (pTypeExt->CreateUnit_ConsiderPathfinding
@@ -247,7 +247,7 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 		}
 		else
 		{
-			 pTechno->Unlimbo(pAnimExt->CreateUnitLocation, resultingFacing);
+			pTechno->Unlimbo(pAnimExt->CreateUnitLocation, resultingFacing);
 		}
 
 		if (!pTechno->InLimbo)
@@ -271,16 +271,15 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 			{
 				if (auto const pJJLoco = locomotion_cast<JumpjetLocomotionClass*>(pTechno->Locomotor))
 				{
-					auto const pType = pTechno->GetTechnoType();
 					pJJLoco->Facing.Set_Current(DirStruct(static_cast<DirType>(resultingFacing)));
 
-					if (pType->BalloonHover)
+					if (pTechno->Type->BalloonHover)
 					{
 						// Makes the jumpjet think it is hovering without actually moving.
 						pJJLoco->NextState = JumpjetLocomotionClass::State::Hovering;
 						pJJLoco->IsMoving = true;
 						pJJLoco->HeadToCoord = pAnimExt->CreateUnitLocation;
-						pJJLoco->Height = pType->JumpjetHeight;
+						pJJLoco->Height = pTechno->Type->JumpjetHeight;
 					}
 					else
 					{
@@ -293,7 +292,9 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 					pTechno->IsFallingDown = true;
 				}
 			}
-			else if(IsBridge != pTechno->OnBridge) {
+
+			if ((!pThis->IsInAir() || pTypeExt->CreateUnit_AlwaysSpawnOnGround) && IsBridge != pTechno->OnBridge)
+			{
 				pTechno->UpdatePlacement(PlacementType::Remove);
 				pTechno->OnBridge = pCell->ContainsBridge();
 				pTechno->UpdatePlacement(PlacementType::Put);
@@ -309,10 +310,12 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 	}
 }
 
-void AnimTypeExtData::ValidateData() {
+void AnimTypeExtData::ValidateData()
+{
 
-	if (this->CreateUnit && this->CreateUnit->Strength == 0){
-		Debug::Log("AnimType[%s] With[%s] CreateUnit strength 0 !\n" , this->AttachedToObject->ID , this->CreateUnit->ID);
+	if (this->CreateUnit && this->CreateUnit->Strength == 0)
+	{
+		Debug::Log("AnimType[%s] With[%s] CreateUnit strength 0 !\n", this->AttachedToObject->ID, this->CreateUnit->ID);
 		this->CreateUnit = nullptr;
 		Debug::RegisterParserError();
 	}
@@ -332,8 +335,9 @@ void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller
 	AnimTypeClass** begin = pType->DestroyAnim.begin();
 	int count = pType->DestroyAnim.Count;
 
-	if (pWH && pTypeExt->DestroyAnimSpecific.contains(pWH)) {
-		begin  = pTypeExt->DestroyAnimSpecific[pWH].data();
+	if (pWH && pTypeExt->DestroyAnimSpecific.contains(pWH))
+	{
+		begin = pTypeExt->DestroyAnimSpecific[pWH].data();
 		count = (int)pTypeExt->DestroyAnimSpecific[pWH].size();
 	}
 
@@ -385,18 +389,19 @@ void AnimTypeExtData::ValidateSpalshAnims()
 	}
 }
 
-OwnerHouseKind AnimTypeExtData::GetAnimOwnerHouseKind() {
+OwnerHouseKind AnimTypeExtData::GetAnimOwnerHouseKind()
+{
 
 	if (this->CreateUnit && !this->CreateUnit_Owner.isset())
 		return OwnerHouseKind::Victim;
 
-	if(this->AttachedToObject->MakeInfantry > -1 && !this->MakeInfantryOwner.isset())
+	if (this->AttachedToObject->MakeInfantry > -1 && !this->MakeInfantryOwner.isset())
 		return OwnerHouseKind::Invoker;
 
 	if (this->CreateUnit_Owner.isset())
 		return this->CreateUnit_Owner;
 
-	if(this->MakeInfantryOwner.isset())
+	if (this->MakeInfantryOwner.isset())
 		return this->MakeInfantryOwner;
 
 	return OwnerHouseKind::Invoker;

@@ -2934,14 +2934,13 @@ void TechnoExtData::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool 
 	{
 		if (const auto pOwner = pThis->GetOwningHouse())
 		{
-			if (!pThisType->DontScore && !pThisType->Insignificant)
-			{
+			if(!pThis->InLimbo)
 				pOwner->RegisterLoss(pThis, false);
-				pOwner->RemoveTracking(pThis);
 
-				if (!pOwner->RecheckTechTree)
-					pOwner->RecheckTechTree = true;
-			}
+			pOwner->RemoveTracking(pThis);
+
+			if (!pOwner->RecheckTechTree)
+				pOwner->RecheckTechTree = true;
 		}
 	}
 
@@ -4579,6 +4578,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->FreeUnitDone)
 		.Process(this->AeData)
 		.Process(this->StrafeFireCunt)
+		.Process(this->MergePreventionTimer)
 		;
 	//should put this inside techo ext , ffs
 
