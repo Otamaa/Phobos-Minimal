@@ -144,6 +144,10 @@ DEFINE_OVERRIDE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	//pExt->UpdateDelayFireAnim();
 
 	pExt->UpdateRevengeWeapons();
+	if (!pThis->IsAlive) {
+		return retDead;
+	}
+
 	pExt->DepletedAmmoActions();
 
 	return Continue;

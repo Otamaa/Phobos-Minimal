@@ -4092,18 +4092,18 @@ DEFINE_HOOK(0x73B0B0, UnitClass_DrawIfVisible, 0xA)
 	return 0x73B139;
 }
 
-DEFINE_HOOK(0x725947, Game_InvalidatePointers_AllAbstractptrVectorCrash, 0x6)
-{
-	GET(int, AllAbsCount, EAX);
-	GET(AbstractClass*, pTarget, ESI);
-	GET(bool, bRemoved, EDI);
-
-	for (int i = 0; i < AllAbsCount; ++i) {
-		AbstractClass::Array->Items[i]->PointerExpired(pTarget, bRemoved);
-	}
-
-	return 0x725961;
-}
+//DEFINE_HOOK(0x72593E, Game_InvalidatePointers_AllAbstractptrVectorCrash, 0x5)
+//{
+//	GET(int, AllAbsCount, EAX);
+//	GET(AbstractClass*, pTarget, ESI);
+//	GET(bool, bRemoved, EDI);
+//
+//	for (int i = 0; i < AllAbsCount; ++i) {
+//		AbstractClass::Array->Items[i]->PointerExpired(pTarget, bRemoved);
+//	}
+//
+//	return 0x725961;
+//}
 
 DEFINE_HOOK(0x6FFD25, TechnoClass_PlayerAssignMission_Capture_InfantryToBld, 0xA)
 {

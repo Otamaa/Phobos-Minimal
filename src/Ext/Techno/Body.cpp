@@ -3900,14 +3900,8 @@ void TechnoExtData::UpdateMobileRefinery()
 
 void TechnoExtData::UpdateRevengeWeapons()
 {
-	if (this->RevengeWeapons.empty())
-		return;
-
-	for (size_t i = 0; i < this->RevengeWeapons.size(); i++)
-	{
-		auto const& weapon = this->RevengeWeapons[i];
-
-		if (weapon.Timer.Expired())
+	for (size_t i = 0; i < this->RevengeWeapons.size(); i++) {
+		if (this->RevengeWeapons[i].Timer.Expired())
 			this->RevengeWeapons.erase(this->RevengeWeapons.begin() + i);
 	}
 }

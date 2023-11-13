@@ -389,13 +389,17 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->ApplyModifiersOnNegativeDamage.Read(exINI, pSection, "ApplyModifiersOnNegativeDamage");
 
 	ValueableVector<InfantryTypeClass*> InfDeathAnims_List {};
+	if (IS_SAME_STR_(pSection, "SA"))
+		Debug::Log("Here\n");
 
 	InfDeathAnims_List.Read(exINI, pSection, "InfDeathAnim.LinkedList");
 
+	char buffersp[0x100];
 	if (!InfDeathAnims_List.empty()) {
 		this->InfDeathAnims.reserve(InfDeathAnims_List.size());
 		for (size_t i = 0; i < InfDeathAnims_List.size(); ++i) {
-			detail::read(this->InfDeathAnims[InfDeathAnims_List[i]], exINI, pSection, "InfDeathAnim%d");
+			IMPL_SNPRNINTF(buffersp, sizeof(buffersp), "InfDeathAnim%d", i);
+			detail::read(this->InfDeathAnims[InfDeathAnims_List[i]], exINI, pSection, buffersp);
 		}
 	}
 
