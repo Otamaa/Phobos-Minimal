@@ -389,8 +389,6 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->ApplyModifiersOnNegativeDamage.Read(exINI, pSection, "ApplyModifiersOnNegativeDamage");
 
 	ValueableVector<InfantryTypeClass*> InfDeathAnims_List {};
-	if (IS_SAME_STR_(pSection, "SA"))
-		Debug::Log("Here\n");
 
 	InfDeathAnims_List.Read(exINI, pSection, "InfDeathAnim.LinkedList");
 
