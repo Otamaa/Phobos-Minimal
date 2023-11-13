@@ -206,7 +206,7 @@ DEFINE_OVERRIDE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
  		return false;
  	});
 
- 	count = int(std::distance(end, items));
+ 	count = int(std::distance(items , end));
 
  	return 0;
 }
