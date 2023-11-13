@@ -196,7 +196,7 @@ DEFINE_OVERRIDE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
  	}
 
  	// move all the empty ones to the back, then remove them
- 	auto const end = std::remove_if(items, g_end, [](DamageGroup* pGroup) {
+ 	auto const end = std::remove_if(items, &items[count], [](DamageGroup* pGroup) {
 
 		if(!pGroup->Target) {
 			GameDelete<false, false>(pGroup);
