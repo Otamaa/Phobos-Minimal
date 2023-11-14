@@ -88,11 +88,11 @@
 //	if (!buffer)
 //		Debug::FatalErrorAndExit("TacticalClassExt_Save Apparently TacticalExt Global Pointer is missing !/n ");
 //
-//	PhobosByteStream saver(sizeof(*buffer));
+//	PhobosByteStream saver(sizeof(TacticalExt));
 //	PhobosStreamWriter writer(saver);
 //
-//	writer.Expect(TacticalExt::ExtData::Canary);
-//	writer.RegisterChange(buffer);
+// writer.Save(TacticalExt::Canary);
+// writer.Save(buffer);
 //
 //	buffer->SaveToStream(writer);
 //	saver.WriteBlockToStream(TacticalExt::g_pStm);

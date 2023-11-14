@@ -12,7 +12,7 @@ public:
 	class ExtData final : public Extension<ConvertClass>
 	{
 	public:
-		static constexpr DWORD Canary = 0xAACAACCC;
+		static constexpr size_t Canary = 0xAACAACCC;
 		using base_type = ConvertClass;
 		static constexpr size_t ExtOffset = 0x178;
 

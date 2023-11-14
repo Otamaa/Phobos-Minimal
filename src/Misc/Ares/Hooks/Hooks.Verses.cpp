@@ -117,7 +117,7 @@ DEFINE_OVERRIDE_HOOK(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
 
 	GET(ObjectClass*, pTarget, ESI);
 	GET(WarheadTypeClass*, pWH, ECX);
-	GET(int, nArmor, EAX);
+	//GET(int, nArmor, EAX);
 
 	const auto pData = WarheadTypeExtContainer::Instance.Find(pWH);
 
@@ -138,7 +138,7 @@ DEFINE_OVERRIDE_HOOK(0x6FCB6A, TechnoClass_CanFire_Verses, 0x7)
 
 	GET(ObjectClass*, pTarget, EBP);
 	GET(WarheadTypeClass*, pWH, EDI);
-	GET(int, nArmor, EAX);
+	//GET(int, nArmor, EAX);
 
 	const auto pData = WarheadTypeExtContainer::Instance.Find(pWH);
 	const auto armor = (int)TechnoExtData::GetArmor(pTarget);
@@ -197,7 +197,7 @@ DEFINE_OVERRIDE_HOOK(0x70CF45, TechnoClass_EvalThreatRating_ThisWeaponWarhead_Ve
 	GET(ObjectClass*, pTarget, ESI);
 	//GET(WeaponTypeClass*, pWeapon, EBX);
 	GET(WarheadTypeClass*, pWH, ECX);
-	GET(int, nArmor, EAX);
+	//GET(int, nArmor, EAX);
 	GET_STACK(double, dmult, 0x10);
 	GET_STACK(double, dCoeff, 0x30);
 
@@ -245,7 +245,7 @@ DEFINE_OVERRIDE_HOOK(0x708AF7, TechnoClass_ShouldRetaliate_Verses, 0x7)
 
 	GET(TechnoClass* , pSource , EBP);
 	GET(WarheadTypeClass*, pWH, ECX);
-	GET(int, nArmor, EAX);
+	//GET(int, nArmor, EAX);
 
 	const auto pData = WarheadTypeExtContainer::Instance.Find(pWH);
 	//if ((size_t)nArmor > ArmorTypeClass::Array.size())

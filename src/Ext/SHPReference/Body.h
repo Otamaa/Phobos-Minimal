@@ -13,7 +13,7 @@ public:
 	class ExtData final : public Extension<SHPReference>
 	{
 	public:
-		static constexpr DWORD Canary = 0xAB5005BA;
+		static constexpr size_t Canary = 0xAB5005BA;
 		using base_type = SHPReference;
 		static constexpr size_t ExtOffset = 0x20;
 

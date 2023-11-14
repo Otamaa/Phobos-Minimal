@@ -121,12 +121,12 @@ void ScenarioExtData::LoadBasicFromINIFile(CCINIClass* pINI)
 void ScenarioExtData::FetchVariables(ScenarioClass* pScen)
 {
 	// Initialize
-	DefaultAmbientOriginal = pScen->AmbientOriginal;
-	DefaultAmbientCurrent = pScen->AmbientCurrent;
-	DefaultAmbientTarget = pScen->AmbientTarget;
-	DefaultNormalLighting = pScen->NormalLighting;
+	//DefaultAmbientOriginal = pScen->AmbientOriginal;
+	//DefaultAmbientCurrent = pScen->AmbientCurrent;
+	//DefaultAmbientTarget = pScen->AmbientTarget;
+	//DefaultNormalLighting = pScen->NormalLighting;
 
-	CurrentTint_Tiles = pScen->NormalLighting.Tint;
+	//CurrentTint_Tiles = pScen->NormalLighting.Tint;
 }
 
 void ScenarioExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
@@ -160,7 +160,6 @@ void ScenarioExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 template <typename T>
 void ScenarioExtData::Serialize(T& Stm)
 {
-
 	//Debug::Log("Processing ScenarioExtData ! \n");
 	Stm
 
@@ -243,12 +242,12 @@ DEFINE_HOOK(0x689669, ScenarioClass_Load_Suffix, 0x6)
 DEFINE_HOOK(0x68945B, ScenarioClass_Save_Suffix, 0x8)
 {
 	auto buffer = ScenarioExtData::Instance();
-	PhobosByteStream saver(//sizeof(GameModeOptionsClass)
-		+ sizeof(*buffer));
+	// negative 4 for the AttachedToObjectPointer , it doesnot get S/L
+	PhobosByteStream saver(sizeof(GameModeOptionsClass) + (sizeof(ScenarioExtData) - 4u));
 	PhobosStreamWriter writer(saver);
 
-	writer.Expect(ScenarioExtData::Canary);
-	writer.RegisterChange(buffer);
+	writer.Save(ScenarioExtData::Canary);
+	writer.Save(buffer);
 
 	buffer->SaveToStream(writer);
 	//if (!

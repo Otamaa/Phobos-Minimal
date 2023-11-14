@@ -35,6 +35,7 @@
 #include <New/AnonymousType/AresAttachEffectTypeClass.h>
 #include <Utilities/MultiBoolFixedArray.h>
 
+class ArmorTypeClass;
 struct ImageStatusses
 {
 	VoxelStruct Images;
@@ -79,7 +80,7 @@ public:
 	using ImageVector = std::vector<VoxelStruct>;
 	using ColletiveCoordStructVectorData = std::array<std::vector<std::vector<CoordStruct>>*, 3u>;
 
-	static constexpr size_t Canary = 0x44444444;
+	static constexpr size_t Canary = 0x22544444;
 	using base_type = TechnoTypeClass;
 	//static constexpr size_t ExtOffset = 0x35C;
 	static constexpr size_t ExtOffset = 0xDF4;
@@ -865,8 +866,8 @@ public:
 
 	Nullable<PartialVector3D<double>> DetectDisguise_Percent {};
 
-	Nullable<Armor> EliteArmor {};
-	Nullable<Armor> VeteranArmor {};
+	NullableIdx<ArmorTypeClass*> EliteArmor {};
+	NullableIdx<ArmorTypeClass*> VeteranArmor {};
 	Valueable<bool> Cloakable_IgnoreArmTimer { false };
 
 	TechnoTypeExtData() noexcept = default;

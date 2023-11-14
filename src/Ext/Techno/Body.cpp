@@ -414,9 +414,9 @@ Armor TechnoExtData::GetArmor(ObjectClass* pThis) {
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find((TechnoTypeClass*)pType);
 
 		if (((TechnoClass*)pThis)->Veterancy.IsVeteran() && pTypeExt->VeteranArmor.isset())
-			res = pTypeExt->VeteranArmor;
+			res = (Armor)pTypeExt->VeteranArmor.Get();
 		else if (((TechnoClass*)pThis)->Veterancy.IsElite() && pTypeExt->EliteArmor.isset())
-			res = pTypeExt->EliteArmor;
+			res = (Armor)pTypeExt->EliteArmor.Get();
 		
 		return res;
 	}
@@ -4347,109 +4347,6 @@ int TechnoExtData::GetInitialStrength(TechnoTypeClass* pType, int nHP)
 	return TechnoTypeExtContainer::Instance.Find(pType)->InitialStrength.Get(nHP);
 }
 
-// Feature for common usage : TechnoType conversion -- Trsdy
-// BTW, who said it was merely a Type pointer replacement and he could make a better one than Ares?
-bool TechnoExtData::ConvertToType(FootClass* pThis, TechnoTypeClass* pToType)
-{
-	// In case not using Ares 3.0. Only update necessary vanilla properties
-	AbstractType rtti;
-	TechnoTypeClass** nowTypePtr;
-
-	// Different types prohibited
-	switch (pThis->WhatAmI())
-	{
-	case AbstractType::Infantry:
-		nowTypePtr = reinterpret_cast<TechnoTypeClass**>(&(static_cast<InfantryClass*>(pThis)->Type));
-		rtti = AbstractType::InfantryType;
-		break;
-	case AbstractType::Unit:
-		nowTypePtr = reinterpret_cast<TechnoTypeClass**>(&(static_cast<UnitClass*>(pThis)->Type));
-		rtti = AbstractType::UnitType;
-		break;
-	case AbstractType::Aircraft:
-		nowTypePtr = reinterpret_cast<TechnoTypeClass**>(&(static_cast<AircraftClass*>(pThis)->Type));
-		rtti = AbstractType::AircraftType;
-		break;
-	default:
-		Debug::Log("%s is not FootClass, conversion not allowed\n", pToType->get_ID());
-		return false;
-	}
-
-	if (pToType->WhatAmI() != rtti)
-	{
-		Debug::Log("Incompatible types between %s and %s\n", pThis->get_ID(), pToType->get_ID());
-		return false;
-	}
-
-	// Detach CLEG targeting
-	auto tempUsing = pThis->TemporalImUsing;
-	if (tempUsing && tempUsing->Target)
-		tempUsing->Detach();
-
-	HouseClass* const pOwner = pThis->Owner;
-
-	// Remove tracking of old techno
-	if (!pThis->InLimbo)
-		pOwner->RegisterLoss(pThis, false);
-	pOwner->RemoveTracking(pThis);
-
-	int oldHealth = pThis->Health;
-
-	// Generic type-conversion
-	TechnoTypeClass* prevType = *nowTypePtr;
-	*nowTypePtr = pToType;
-
-	// Readjust health according to percentage
-	pThis->AdjustStrength((double)(oldHealth) / (double)prevType->Strength);
-	pThis->EstimatedHealth = pThis->Health;
-
-	// Add tracking of new techno
-	pOwner->AddTracking(pThis);
-	if (!pThis->InLimbo)
-		pOwner->RegisterGain(pThis, false);
-	pOwner->RecheckTechTree = true;
-
-	// Update Ares AttachEffects -- skipped
-	// Ares RecalculateStats -- skipped
-
-	// Adjust ammo
-	pThis->Ammo = MinImpl(pThis->Ammo, pToType->Ammo);
-	// Ares ResetSpotlights -- skipped
-
-	// Adjust ROT
-	if (rtti == AbstractType::AircraftType)
-		pThis->SecondaryFacing.Set_ROT(pToType->ROT);
-	else
-		pThis->PrimaryFacing.Set_ROT(pToType->ROT);
-	// Adjust Ares TurretROT -- skipped
-	//  pThis->SecondaryFacing.SetROT(TechnoTypeExtContainer::Instance.Find(pToType)->TurretROT.Get(pToType->ROT));
-
-	// Locomotor change, referenced from Ares 0.A's abduction code, not sure if correct, untested
-	CLSID nowLocoID;
-	ILocomotion* iloco = pThis->Locomotor.GetInterfacePtr();
-	const auto& toLoco = pToType->Locomotor;
-	if ((SUCCEEDED(static_cast<LocomotionClass*>(iloco)->GetClassID(&nowLocoID)) && nowLocoID != toLoco))
-	{
-		// because we are throwing away the locomotor in a split second, piggybacking
-		// has to be stopped. otherwise the object might remain in a weird state.
-		while (LocomotionClass::End_Piggyback(pThis->Locomotor));
-		// throw away the current locomotor and instantiate
-		// a new one of the default type for this unit.
-		if (auto newLoco = LocomotionClass::CreateInstance(toLoco))
-		{
-			newLoco->Link_To_Object(pThis);
-			pThis->Locomotor = std::move(newLoco);
-		}
-	}
-
-	// TODO : Jumpjet locomotor special treatement, some brainfart, must be uncorrect, HELP ME!
-	const auto& jjLoco = CLSIDs::Jumpjet();
-	if (pToType->BalloonHover && pToType->DeployToLand && prevType->Locomotor != jjLoco && toLoco == jjLoco)
-		pThis->Locomotor->Move_To(pThis->Location);
-
-	return true;
-}
-
 bool TechnoExtData::IsEligibleSize(TechnoClass* pThis, TechnoClass* pPassanger)
 {
 	auto pThisType = pThis->GetTechnoType();
@@ -4491,8 +4388,6 @@ bool TechnoExtData::IsTypeImmune(TechnoClass* pThis, TechnoClass* pSource)
 template <typename T>
 void TechnoExtData::Serialize(T& Stm)
 {
-	//Debug::Log("Processing Element From TechnoExt ! \n");
-
 	Stm
 		.Process(this->Initialized)
 		.Process(this->Type)
@@ -4579,14 +4474,10 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->AeData)
 		.Process(this->StrafeFireCunt)
 		.Process(this->MergePreventionTimer)
+		.Process(this->MyWeaponManager)
+		.Process(this->MyDriveData)
+		.Process(this->MyDiveData)
 		;
-	//should put this inside techo ext , ffs
-
-	this->MyWeaponManager.Serialize(Stm);
-	this->MyDriveData.Serialize(Stm);
-	this->MyDiveData.Serialize(Stm);
-	//this->MyJJData.Serialize(Stm);
-	this->MySpawnSuport.Serialize(Stm);
 }
 
 bool TechnoExtData::InvalidateIgnorable(AbstractClass* ptr)
@@ -4640,7 +4531,7 @@ DEFINE_HOOK(0x6F4500, TechnoClass_DTOR, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x70C250, TechnoClass_SaveLoad_Prefix, 0x8)
+//DEFINE_HOOK_AGAIN(0x70C250, TechnoClass_SaveLoad_Prefix, 0x8)
 DEFINE_HOOK(0x70BF50, TechnoClass_SaveLoad_Prefix, 0x5)
 {
 	GET_STACK(TechnoClass*, pItem, 0x4);
@@ -4649,16 +4540,51 @@ DEFINE_HOOK(0x70BF50, TechnoClass_SaveLoad_Prefix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x70C249, TechnoClass_Load_Suffix, 0x5)
+DEFINE_HOOK(0x70BF6C, TechnoClass_Load_Suffix, 0x6)
 {
 	TechnoExtContainer::Instance.LoadStatic();
+	//auto key = TechnoExtContainer::Instance.GetSavingObject();
+	//TechnoExtContainer::Instance.ClearExtAttribute(key);
+	//auto buffer = TechnoExtContainer::Instance.AllocateUnlchecked(key);
+	//TechnoExtContainer::Instance.SetExtAttribute(key, buffer);
+
+	//PhobosByteStream loader { 0 };
+	//if (loader.ReadBlockFromStream(TechnoExtContainer::Instance.GetStream()))
+	//{
+	//	PhobosStreamReader reader { loader };
+	//	if (reader.Expect(TechnoExtData::Canary) 
+	//		&& reader.RegisterChange(buffer))
+	//	{
+	//		buffer->LoadFromStream(reader);
+	//		if (reader.ExpectEndOfBlock())
+	//			return 0;
+	//		else
+	//		{
+	//			Debug::FatalErrorAndExit("[LoadStatic] Loading object %p with buffer %p as '%s failed!\n",
+	//			key,
+	//			buffer,
+	//			TechnoExtContainer::Instance.GetName());
+	//		}
+	//	}
+	//}
+
 	return 0;
 }
 
-DEFINE_HOOK(0x70C264, TechnoClass_Save_Suffix, 0x5)
+DEFINE_HOOK(0x70C250, TechnoClass_Save_Suffix_Prefix, 0x8)
 {
-	TechnoExtContainer::Instance.SaveStatic();
-	return 0;
+	GET_STACK(TechnoClass*, pItem, 0x4);
+	GET_STACK(IStream*, pStm, 0x8);
+	GET_STACK(BOOL, isDirty, 0xC);
+
+	TechnoExtContainer::Instance.PrepareStream(pItem, pStm);
+	const HRESULT res = pItem->RadioClass::Save(pStm, isDirty);
+
+	if(SUCCEEDED(res))
+		TechnoExtContainer::Instance.SaveStatic();
+
+	R->EAX(res);
+	return 0x70C266;
 }
 
 DEFINE_HOOK(0x70783B, TechnoClass_Detach, 0x6)

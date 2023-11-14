@@ -11,6 +11,7 @@
 #include <New/Type/TheaterTypeClass.h>
 #include <New/Type/GenericPrerequisite.h>
 #include <New/Type/DigitalDisplayTypeClass.h>
+#include <New/Type/ArmorTypeClass.h>
 
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Cast.h>
@@ -2096,19 +2097,16 @@ bool TechnoTypeExtContainer::Load(TechnoTypeClass* key, IStream* pStm)
 	this->SetExtAttribute(key, Iter->second);
 
 	PhobosByteStream loader { 0 };
-	if (!loader.ReadBlockFromStream(pStm))
+	if (loader.ReadBlockFromStream(pStm))
 	{
-		//Debug::Log("[LoadKey] Failed to read data from save stream?!\n");
-		return false;
-	}
-
-	PhobosStreamReader reader { loader };
-	if (reader.Expect(TechnoTypeExtData::Canary)
-		&& reader.RegisterChange(Iter->second))
-	{
-		Iter->second->LoadFromStream(reader);
-		if (reader.ExpectEndOfBlock())
-			return true;
+		PhobosStreamReader reader { loader };
+		if (reader.Expect(TechnoTypeExtData::Canary)
+			&& reader.RegisterChange(Iter->second))
+		{
+			Iter->second->LoadFromStream(reader);
+			if (reader.ExpectEndOfBlock())
+				return true;
+		}
 	}
 
 	return false;

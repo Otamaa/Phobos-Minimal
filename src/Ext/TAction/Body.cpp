@@ -1001,49 +1001,49 @@ void TActionExt::RecreateLightSources()
 
 }
 
-bool TActionExt::AdjustLighting(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
-{
-	if (pThis->Param3 != -1)
-		ScenarioClass::Instance->NormalLighting.Tint.Red = pThis->Param3;
-	if (pThis->Param4 != -1)
-		ScenarioClass::Instance->NormalLighting.Tint.Green = pThis->Param4;
-	if (pThis->Param5 != -1)
-		ScenarioClass::Instance->NormalLighting.Tint.Blue = pThis->Param5;
-
-	const int r = ScenarioClass::Instance->NormalLighting.Tint.Red * 10;
-	const int g = ScenarioClass::Instance->NormalLighting.Tint.Green * 10;
-	const int b = ScenarioClass::Instance->NormalLighting.Tint.Blue * 10;
-
-	if (pThis->Value & 0b001) // Update Tiles
-	{
-		for (auto& pLightConvert : *LightConvertClass::Array)
-			pLightConvert->UpdateColors(r, g, b, false);
-
-		ScenarioExtData::Instance()->CurrentTint_Tiles = ScenarioClass::Instance->NormalLighting.Tint;
-	}
-
-	if (pThis->Value & 0b010) // Update Units & Buildings
-	{
-		for (auto& pScheme : *ColorScheme::Array)
-			pScheme->LightConvert->UpdateColors(r, g, b, false);
-		ScenarioExtData::Instance()->CurrentTint_Schemes = ScenarioClass::Instance->NormalLighting.Tint;
-	}
-
-	if (pThis->Value & 0b100) // Update CustomPalettes (vanilla YR LightConvertClass one, not the Ares ConvertClass only one)
-	{
-		ScenarioClass::UpdateHashPalLighting(r, g, b, false);
-		ScenarioExtData::Instance()->CurrentTint_Hashes = ScenarioClass::Instance->NormalLighting.Tint;
-	}
-
-	ScenarioClass::UpdateCellLighting();
-	MapClass::Instance->RedrawSidebar(1); // GScreenClass::Flag_To_Redraw
-
-	// #issue 429
-	if (ScenarioExtData::Instance()->AdjustLightingFix)
-		TActionExt::RecreateLightSources();
-
-	return true;
-}
+//bool TActionExt::AdjustLighting(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+//{
+//	if (pThis->Param3 != -1)
+//		ScenarioClass::Instance->NormalLighting.Tint.Red = pThis->Param3;
+//	if (pThis->Param4 != -1)
+//		ScenarioClass::Instance->NormalLighting.Tint.Green = pThis->Param4;
+//	if (pThis->Param5 != -1)
+//		ScenarioClass::Instance->NormalLighting.Tint.Blue = pThis->Param5;
+//
+//	const int r = ScenarioClass::Instance->NormalLighting.Tint.Red * 10;
+//	const int g = ScenarioClass::Instance->NormalLighting.Tint.Green * 10;
+//	const int b = ScenarioClass::Instance->NormalLighting.Tint.Blue * 10;
+//
+//	if (pThis->Value & 0b001) // Update Tiles
+//	{
+//		for (auto& pLightConvert : *LightConvertClass::Array)
+//			pLightConvert->UpdateColors(r, g, b, false);
+//
+//		ScenarioExtData::Instance()->CurrentTint_Tiles = ScenarioClass::Instance->NormalLighting.Tint;
+//	}
+//
+//	if (pThis->Value & 0b010) // Update Units & Buildings
+//	{
+//		for (auto& pScheme : *ColorScheme::Array)
+//			pScheme->LightConvert->UpdateColors(r, g, b, false);
+//		ScenarioExtData::Instance()->CurrentTint_Schemes = ScenarioClass::Instance->NormalLighting.Tint;
+//	}
+//
+//	if (pThis->Value & 0b100) // Update CustomPalettes (vanilla YR LightConvertClass one, not the Ares ConvertClass only one)
+//	{
+//		ScenarioClass::UpdateHashPalLighting(r, g, b, false);
+//		ScenarioExtData::Instance()->CurrentTint_Hashes = ScenarioClass::Instance->NormalLighting.Tint;
+//	}
+//
+//	ScenarioClass::UpdateCellLighting();
+//	MapClass::Instance->RedrawSidebar(1); // GScreenClass::Flag_To_Redraw
+//
+//	// #issue 429
+//	if (ScenarioExtData::Instance()->AdjustLightingFix)
+//		TActionExt::RecreateLightSources();
+//
+//	return true;
+//}
 
 /*
 

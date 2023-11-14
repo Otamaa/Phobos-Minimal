@@ -51,19 +51,10 @@ struct DelayFireWeapon
 	bool NotDone() const;
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
-	bool Save(PhobosStreamWriter& Stm);
+	bool Save(PhobosStreamWriter& Stm) const;
 
 private:
 	template <typename T>
 	bool Serialize(T& Stm);
 
-};
-
-template <>
-struct Savegame::ObjectFactory<DelayFireWeapon>
-{
-	std::unique_ptr<DelayFireWeapon> operator() (PhobosStreamReader& Stm) const
-	{
-		return std::make_unique<DelayFireWeapon>();
-	}
 };

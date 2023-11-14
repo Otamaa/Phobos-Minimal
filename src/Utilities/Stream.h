@@ -5,6 +5,7 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <DebugLog.h>
 
 struct IStream;
 class PhobosStreamReader;
@@ -223,12 +224,14 @@ public:
 	}
 
 	// helpers
-
+	// check wehter save game loading is succeeded or not
 	bool ExpectEndOfBlock() const
 	{
 		if (!this->Success() || this->stream->Size() != this->stream->Offset())
 		{
-			this->EmitExpectEndOfBlockWarning(stream_debugging_t());
+			//GameDebugLog::Log("[PhobosStreamReader] Read %x bytes instead of %x!\n",
+			//	this->stream->Offset(), this->stream->Size());
+
 			return false;
 		}
 
@@ -240,7 +243,9 @@ public:
 	{
 		if (!this->stream->Load(buffer))
 		{
-			this->EmitLoadWarning(sizeof(T), stream_debugging_t());
+			//GameDebugLog::Log("[PhobosStreamReader] Could not read data of length %u at %X of %X.\n",
+			//	sizeof(T), this->stream->Offset() - sizeof(T), this->stream->Size());
+
 			this->success = false;
 			return false;
 		}
@@ -251,7 +256,9 @@ public:
 	{
 		if (!this->stream->Read(Value, Size))
 		{
-			this->EmitLoadWarning(Size, stream_debugging_t());
+			//GameDebugLog::Log("[PhobosStreamReader] Could not read data of length %u at %X of %X.\n",
+			//	Size, this->stream->Offset() - Size, this->stream->Size());
+
 			this->success = false;
 			return false;
 		}
@@ -266,7 +273,7 @@ public:
 			if (buffer == value)
 				return true;
 
-			this->EmitExpectWarning(buffer, value, stream_debugging_t());
+			//GameDebugLog::Log("[PhobosStreamReader] Value Expected [%x] != Value Get [%x] \n", value, buffer);
 		}
 		return false;
 	}
@@ -274,17 +281,10 @@ public:
 	bool RegisterChange(void* newPtr);
 
 private:
-	void EmitExpectEndOfBlockWarning(std::true_type) const;
-	void EmitExpectEndOfBlockWarning(std::false_type) const { }
-
-	void EmitLoadWarning(size_t size, std::true_type) const;
-	void EmitLoadWarning(size_t size, std::false_type) const { }
-
-	void EmitExpectWarning(unsigned int found, unsigned int expect, std::true_type) const;
-	void EmitExpectWarning(unsigned int found, unsigned int expect, std::false_type) const { }
 
 	void EmitSwizzleWarning(long id, void* pointer, std::true_type) const;
 	void EmitSwizzleWarning(long id, void* pointer, std::false_type) const { }
+
 public :
 	template<typename T>
 	PhobosStreamReader& operator>>(T& dt)

@@ -80,6 +80,7 @@ void Debug::INIParseFailed(const char* section, const char* flag, const char* va
 	vsprintf_s(Phobos::readBuffer, pFormat, args);
 	va_end(args);
 	Debug::FatalError(false);
+	Debug::ExitGame();
 }
 
 [[noreturn]] void Debug::FatalErrorAndExit(ExitCode nExitCode, const char* pFormat, ...)
@@ -89,6 +90,7 @@ void Debug::INIParseFailed(const char* section, const char* flag, const char* va
 	vsprintf_s(Phobos::readBuffer, pFormat, args);
 	va_end(args);
 	Debug::FatalError(false);
+	Debug::ExitGame();
 }
 
 void __SUNINI_TORA2MD(const char* pFormat, ...) {
@@ -162,6 +164,7 @@ void Debug::LogFileRemove()
 	Debug::LogFileClose(555);
 	DeleteFileW(Debug::LogFileTempName.c_str());
 }
+static constexpr constant_ptr<DSurface, 0x887308u> const Primary {};
 
 void Debug::FreeMouse()
 {
@@ -172,10 +175,8 @@ void Debug::FreeMouse()
 
 	ShowCursor(TRUE);
 
-	auto const BlackSurface = [](DSurface* const pSurface)
-	{
-		if (pSurface)
-		{
+	auto const BlackSurface = [](DSurface* pSurface) {
+		if (pSurface && VTable::Get(pSurface) == DSurface::vtable && pSurface->BufferPtr) {
 			pSurface->Fill(0);
 		}
 	};
@@ -183,7 +184,7 @@ void Debug::FreeMouse()
 	BlackSurface(DSurface::Alternate);
 	BlackSurface(DSurface::Composite);
 	BlackSurface(DSurface::Hidden);
-	BlackSurface(DSurface::Hidden_2);
+	BlackSurface(DSurface::Temp);
 	BlackSurface(DSurface::Primary);
 	BlackSurface(DSurface::Sidebar);
 	BlackSurface(DSurface::Tile);
@@ -208,7 +209,7 @@ void Debug::FatalError(bool Dump)
 
 	if (Dump)
 	{
-		Debug::ExitGame();
+		Debug::FullDump();
 	}
 }
 

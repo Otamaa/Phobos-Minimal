@@ -1348,7 +1348,7 @@ bool BuildingTypeExtContainer::Load(BuildingTypeClass* key, IStream* pStm)
 	this->SetExtAttribute(key, Iter->second);
 
 	PhobosByteStream loader { 0 };
-	if (!loader.ReadBlockFromStream(pStm))
+	if (loader.ReadBlockFromStream(pStm))
 	{
 		PhobosStreamReader reader { loader };
 		if (reader.Expect(BuildingTypeExtData::Canary)

@@ -9,7 +9,7 @@ class HouseTypeExtData final
 {
 public:
 	using base_type = HouseTypeClass;
-	static constexpr DWORD Canary = 0x1111111A;
+	static constexpr size_t Canary = 0x1111111A;
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };

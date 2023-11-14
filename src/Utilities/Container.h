@@ -373,6 +373,7 @@ public:
 
 	void PrepareStream(base_type_ptr key, IStream* pStm)
 	{
+		static_assert(T::Canary < std::numeric_limits<size_t>::max(), "Canary Too Big !");
 		Debug::Log("[PrepareStream] Next is %p of type '%s'\n", key, this->Name.data());
 		this->SavingObject = key;
 		this->SavingStream = pStm;
@@ -396,7 +397,7 @@ public:
 		if (this->SavingObject && this->SavingStream)
 		{
 			if (!this->Load(this->SavingObject, this->SavingStream)){
-				Debug::Log("[LoadStatic] Loading object %p as '%s failed!\n", this->SavingObject, this->Name.data());
+				Debug::FatalErrorAndExit("[LoadStatic] Loading object %p as '%s failed!\n", this->SavingObject, this->Name.data());
 				return false;
 			}
 		}
@@ -430,7 +431,8 @@ protected:
 			}
 
 			// write the current pointer, the size of the block, and the canary
-			PhobosByteStream saver { sizeof(*buffer) };
+			// negative 4 for the AttachedToObjectPointer , it doesnot get S/L
+			PhobosByteStream saver { sizeof(T) - 4u };
 			PhobosStreamWriter writer { saver };
 
 			writer.Save(T::Canary);

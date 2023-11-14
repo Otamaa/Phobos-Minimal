@@ -50,18 +50,23 @@ public:
 		Delay = DataDelay;
 		CanDive = true;
 	}
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{ return Serialize(Stm); }
 
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<AircraftDive*>(this)->Serialize(Stm); }
+
+private:
 	template <typename T>
-	void Serialize(T& Stm)
+	bool Serialize(T& Stm)
 	{
-		Stm
+		return Stm
 			.Process(Speed)
 			.Process(DataDelay)
 			.Process(ZOffset)
 			.Process(Delay)
 			.Process(CanDive)
-			;
+			.Success() && Stm.RegisterChange(this);
 
-		//Stm.RegisterChange(this);
 	}
 };

@@ -21,7 +21,7 @@ struct CustomWeaponManager
 	}
 
 	void Update(TechnoClass* pAttacker);
-	bool FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, const CoordStruct& bulletSourcePos, double rofMult, FireBulletToTarget callback);
+	bool FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, const CoordStruct& bulletSourcePos, double rofMult);
 	void SimulateBurstFire(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, SimulateBurst& burst);
 	void SimulateBurstFireOnce(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, SimulateBurst& burst);
 	TechnoClass* WhoIsShooter(TechnoClass* pAttacker) const;
@@ -31,48 +31,33 @@ struct CustomWeaponManager
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{ return Serialize(Stm); }
 
-	bool Save(PhobosStreamWriter& Stm)
-	{ return Serialize(Stm); }
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<CustomWeaponManager*>(this)->Serialize(Stm); }
+
+private:
 
 	template <typename T>
 	bool Serialize(T& Stm)
 	{
-		//Debug::Log("Loading Element From CustomWeaponManager ! \n");
 		return Stm
 			.Process(simulateBurstQueue)
 			.Success()
-			//&& Stm.RegisterChange(this)
+			&& Stm.RegisterChange(this)
 			;
-	}
-};
-
-template <>
-struct Savegame::ObjectFactory<CustomWeaponManager>
-{
-	std::unique_ptr<CustomWeaponManager> operator() (PhobosStreamReader& Stm) const
-	{
-		return std::make_unique<CustomWeaponManager>();
 	}
 };
 
 struct FireWeaponManager
 {
-	//std::queue<DelayFireWeapon> DelayFires;
 	std::vector<DelayFireWeapon> DelayFires {};
 	CustomWeaponManager CWeaponManager {};
 
-	//FireWeaponManager() = default;
-	//~FireWeaponManager() = default;
-
-	void Init() {
-		// DelayFires.reserve(100);
-		// CWeaponManager.reserve(100);
-	}
+public:
 
 	void Clear();
 	void Insert(int weaponIndex, AbstractClass* pTarget, int delay = 0, int count = 1);
 	void Insert(WeaponTypeClass* pWeapon, AbstractClass* pTarget, int delay = 0, int count = 1);
-	bool FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, const CoordStruct& bulletSourcePos, double rofMult = 1, FireBulletToTarget callback = nullptr);
+	bool FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, const CoordStruct& bulletSourcePos, double rofMult = 1);
 	void TechnoClass_Update_CustomWeapon(TechnoClass* pAttacker);
 	void FireWeaponManager_Clear();
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
@@ -80,19 +65,19 @@ struct FireWeaponManager
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{ return Serialize(Stm); }
 
-	bool Save(PhobosStreamWriter& Stm)
-	{ return Serialize(Stm); }
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<FireWeaponManager*>(this)->Serialize(Stm); }
+
+private:
 
 	template <typename T>
 	bool Serialize(T& Stm)
 	{
-		//Debug::Log("Loading Element From FireWeaponManager ! \n");
-
 		return Stm
 			.Process(DelayFires)
 			.Process(CWeaponManager)
 			.Success()
-			//&& Stm.RegisterChange(this)
+			&& Stm.RegisterChange(this)
 			;
 		;
 	}

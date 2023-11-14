@@ -55,13 +55,13 @@ public:
 	Nullable<FixedString<0x20>> ScoreCampaignTheme { };
 	Nullable<FixedString<0x104>> NextMission { };
 
-	LightingStruct DefaultNormalLighting { {1000,1000,1000},0,0 };
-	int DefaultAmbientOriginal { 0 };
-	int DefaultAmbientCurrent { 0 };
-	int DefaultAmbientTarget { 0 };
-	TintStruct CurrentTint_Tiles { -1,-1,-1 };
-	TintStruct CurrentTint_Schemes { -1,-1,-1 };
-	TintStruct CurrentTint_Hashes { -1,-1,-1 };
+	//LightingStruct DefaultNormalLighting { {1000,1000,1000},0,0 };
+	//int DefaultAmbientOriginal { 0 };
+	//int DefaultAmbientCurrent { 0 };
+	//int DefaultAmbientTarget { 0 };
+	//TintStruct CurrentTint_Tiles { -1,-1,-1 };
+	//TintStruct CurrentTint_Schemes { -1,-1,-1 };
+	//TintStruct CurrentTint_Hashes { -1,-1,-1 };
 	bool AdjustLightingFix { false };
 
 	bool ShowBriefing { false };

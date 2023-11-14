@@ -1127,11 +1127,19 @@ DEFINE_HOOK(0x678841, RulesClass_Load_Suffix, 0x7)
 DEFINE_HOOK(0x675205, RulesClass_Save_Suffix, 0x8)
 {
 	auto buffer = RulesExtData::Instance();
-	PhobosByteStream saver(sizeof(*buffer));
+	/* 5 extra boolean that added to the save
+	 	.Process(Phobos::Config::ArtImageSwap)
+		.Process(Phobos::Otamaa::DisableCustomRadSite)
+		.Process(Phobos::Config::ShowTechnoNamesIsActive)
+		.Process(Phobos::Misc::CustomGS)
+		.Process(Phobos::Config::ApplyShadeCountFix)
+	*/
+	// negative 4 for the AttachedToObjectPointer , it doesnot get S/L
+	PhobosByteStream saver((sizeof(RulesExtData) - 4u) + (5 * (sizeof(bool))));
 	PhobosStreamWriter writer(saver);
 
-	writer.Expect(RulesExtData::Canary);
-	writer.RegisterChange(buffer);
+	writer.Save(RulesExtData::Canary);
+	writer.Save(buffer);
 
 	buffer->SaveToStream(writer);
 	saver.WriteBlockToStream(RulesExtData::g_pStm);

@@ -10,7 +10,7 @@ class AnimExtData final //: public Extension<AnimClass>
 {
 public:
 	using base_type = AnimClass;
-	static constexpr size_t Canary = 0xAADAAAAA;
+	static constexpr size_t Canary = 0xAADAAAA;
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };

@@ -49,17 +49,12 @@ bool OverlayTypeExtContainer::Load(OverlayTypeClass* key, IStream* pStm)
 	this->SetExtAttribute(key, Iter->second);
 
 	PhobosByteStream loader { 0 };
-	if (!loader.ReadBlockFromStream(pStm))
-	{
+	if (loader.ReadBlockFromStream(pStm)) {
 		PhobosStreamReader reader { loader };
 		if (reader.Expect(OverlayTypeExtData::Canary)
-			&& reader.RegisterChange(Iter->second))
-		{
+			&& reader.RegisterChange(Iter->second)) {
 			Iter->second->LoadFromStream(reader);
-			if (reader.ExpectEndOfBlock())
-			{
-				// reset the buildup time
-
+			if (reader.ExpectEndOfBlock()) {
 				return true;
 			}
 		}

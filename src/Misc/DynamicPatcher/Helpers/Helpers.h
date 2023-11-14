@@ -14,7 +14,7 @@
 //typedef Delegate<TechnoClass*> FoundTechno;
 //typedef Delegate<AircraftClass*> FoundAircraft;
 
-typedef bool(__stdcall* FireBulletToTarget)(int index, int burst, BulletClass* pBullet, AbstractClass* pTarget);
+//typedef bool(__stdcall* FireBulletToTarget)(int index, int burst, BulletClass* pBullet, AbstractClass* pTarget);
 struct ArcingVelocityData
 {
 	double m_StraightDistance;
@@ -143,7 +143,6 @@ public:
 		AbstractClass* pTarget,
 		WeaponTypeClass* pWeapon,
 		const CoordStruct& flh,
-		FireBulletToTarget callback = nullptr,
 		const CoordStruct& bulletSourcePos = CoordStruct::Empty,
 		bool radialFire = false, int splitAngle = 180);
 
@@ -176,11 +175,9 @@ public:
 		{
 			if (auto const pBullet = bullets->GetItem(i))
 			{
-				CoordStruct targetLocation = pBullet->GetCoords();
-
-				if (targetLocation.DistanceFrom(location) <= dist)
-					if (!pBulletSet.Contains(pBullet))
-						pBulletSet.push_back(pBullet);
+				if (pBullet->GetCoords().DistanceFrom(location) <= dist) {
+						pBulletSet.PushbackUnique(pBullet);
+				}
 			}
 		}
 

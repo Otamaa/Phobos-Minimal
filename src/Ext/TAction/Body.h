@@ -133,7 +133,7 @@ public:
 	ACTION_FUNC(GenerateRandomNumber);
 	ACTION_FUNC(PrintVariableValue);
 	ACTION_FUNC(BinaryOperation);
-	ACTION_FUNC(AdjustLighting);
+	//ACTION_FUNC(AdjustLighting);
 
 	ACTION_FUNC(RunSuperWeaponAtLocation);
 	ACTION_FUNC(RunSuperWeaponAtWaypoint);

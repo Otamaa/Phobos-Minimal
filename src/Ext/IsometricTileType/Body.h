@@ -13,7 +13,7 @@ class IsometricTileTypeExtData final
 {
 public:
 
-	static constexpr DWORD Canary = 0x91577125;
+	static constexpr size_t Canary = 0x91577125;
 	using base_type = IsometricTileTypeClass;
 
 	base_type* AttachedToObject {};

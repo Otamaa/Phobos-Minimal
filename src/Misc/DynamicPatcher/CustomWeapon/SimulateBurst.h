@@ -13,13 +13,12 @@ struct SimulateBurst
 	int MinRange;
 	int Range;
 	AttachFireData FireData;
-	FireBulletToTarget Callback;
 	int FlipY;
 	int Flag;
 	int Index;
 	CDTimerClass Timer;
 
-	SimulateBurst(WeaponTypeClass* pWeaponType, TechnoClass* pShooter, AbstractClass* pTarget, CoordStruct flh, int burst, int minRange, int range,const AttachFireData& fireData, int flipY, FireBulletToTarget callback)
+	SimulateBurst(WeaponTypeClass* pWeaponType, TechnoClass* pShooter, AbstractClass* pTarget, CoordStruct flh, int burst, int minRange, int range,const AttachFireData& fireData, int flipY)
 		:WeaponType { pWeaponType }
 		, Shooter { pShooter }
 		, Target { pTarget }
@@ -28,7 +27,6 @@ struct SimulateBurst
 		, MinRange { minRange }
 		, Range { range }
 		, FireData { fireData }
-		, Callback { callback }
 		, FlipY { flipY }
 		, Flag { flipY }
 		, Index { 0 }
@@ -44,7 +42,6 @@ struct SimulateBurst
 		, MinRange { 0 }
 		, Range { 0 }
 		, FireData { }
-		, Callback { nullptr }
 		, FlipY {  }
 		, Flag {  }
 		, Index { 0 }
@@ -80,8 +77,8 @@ struct SimulateBurst
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{ return Serialize(Stm); }
 
-	bool Save(PhobosStreamWriter& Stm)
-	{ return Serialize(Stm); }
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<SimulateBurst*>(this)->Serialize(Stm); }
 
 	SimulateBurst(const SimulateBurst& other) = default;
 	SimulateBurst& operator=(const SimulateBurst& other) = default;
@@ -98,6 +95,7 @@ private:
 			.Process(Target)
 			.Process(FLH)
 			.Process(Burst)
+			.Process(MinRange)
 			.Process(Range)
 			.Process(FireData)
 			.Process(FlipY)
@@ -105,18 +103,16 @@ private:
 			.Process(Index)
 			.Process(Timer)
 			.Success()
-			//&& Stm.RegisterChange(this)
-			;
+			&& Stm.RegisterChange(this)
 		;
 	}
-
 };
 
-template <>
-struct Savegame::ObjectFactory<SimulateBurst>
-{
-	std::unique_ptr<SimulateBurst> operator() (PhobosStreamReader& Stm) const
-	{
-		return std::make_unique<SimulateBurst>();
-	}
-};
+//template <>
+//struct Savegame::ObjectFactory<SimulateBurst>
+//{
+//	std::unique_ptr<SimulateBurst> operator() (PhobosStreamReader& Stm) const
+//	{
+//		return std::make_unique<SimulateBurst>();
+//	}
+//};

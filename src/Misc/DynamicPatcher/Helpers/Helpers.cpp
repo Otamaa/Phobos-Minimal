@@ -950,7 +950,7 @@ TechnoClass* Helpers_DP::CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* 
 	return nullptr;
 }
 
-void Helpers_DP::FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, FireBulletToTarget callback,const CoordStruct& bulletSourcePos, bool radialFire, int splitAngle)
+void Helpers_DP::FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh,const CoordStruct& bulletSourcePos, bool radialFire, int splitAngle)
 {
 	if (!pWeapon)
 		return;
@@ -995,12 +995,7 @@ void Helpers_DP::FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, Abs
 			bulletVelocity = GetBulletVelocity(sourcePos, targetPos);
 		}
 
-		auto pBullet = FireBulletTo(pAttacker, pTarget, pWeapon, sourcePos, targetPos, bulletVelocity);
-
-		if (callback && pBullet) {
-			callback(i, burst, pBullet, pTarget);
-		}
-
+		FireBulletTo(pAttacker, pTarget, pWeapon, sourcePos, targetPos, bulletVelocity);
 	}
 }
 

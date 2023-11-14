@@ -128,11 +128,12 @@ DEFINE_HOOK(0x6AC5DA, SidebarClass_Load_Suffix, 0x6)
 DEFINE_HOOK(0x6AC5EA, SidebarClass_Save_Suffix, 0x6)
 {
 	auto buffer = SidebarExtData::Instance();
-	PhobosByteStream saver(sizeof(*buffer));
+	// negative 4 for the AttachedToObjectPointer , it doesnot get S/L
+	PhobosByteStream saver(sizeof(SidebarExtData) - 4u);
 	PhobosStreamWriter writer(saver);
 
-	writer.Expect(SidebarExtData::Canary);
-	writer.RegisterChange(buffer);
+	writer.Save(SidebarExtData::Canary);
+	writer.Save(buffer);
 
 	buffer->SaveToStream(writer);
 	saver.WriteBlockToStream(SidebarExtData::g_pStm);

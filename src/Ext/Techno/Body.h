@@ -39,7 +39,7 @@ struct BurstFLHBundle;
 class TechnoExtData
 {
 public:
-	static constexpr size_t Canary = 0x55565555;
+	static constexpr size_t Canary = 0x22365555;
 	using base_type = TechnoClass;
 	//static constexpr size_t ExtOffset = 0x4FC;
 	//static constexpr size_t ExtOffset = 0x154; //ares
@@ -361,7 +361,6 @@ public:
 	static const Nullable<CoordStruct>* GetInfrantyCrawlFLH(InfantryClass* pThis, int weaponIndex);
 	static const Armor GetTechnoArmor(TechnoClass* pThis, WarheadTypeClass* pWarhead);
 
-	static bool ConvertToType(FootClass* pThis, TechnoTypeClass* toType);
 	static bool IsEligibleSize(TechnoClass* pThis, TechnoClass* pPassanger);
 	static bool IsAbductable(TechnoClass* pThis, WeaponTypeClass* pWeapon, FootClass* pFoot);
 

@@ -26,7 +26,7 @@ enum class BunkerSoundMode : int
 class BuildingTypeExtData final
 {
 public:
-	static constexpr size_t Canary = 0x66666666;
+	static constexpr size_t Canary = 0x23266666;
 	using base_type = BuildingTypeClass;
 
 	//static constexpr size_t ExtOffset = 0xE24; //ares

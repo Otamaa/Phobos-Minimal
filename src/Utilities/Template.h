@@ -478,13 +478,13 @@ public:
 		return *(this->begin() + nIdx);
 	}
 
-	void PushbackUnique(const T& other) const
+	void PushbackUnique(const T& other)
 	{
 		if (this->Contains(other)) return;
 		else { this->push_back(other); }
 	}
 
-	void EmpalacebackUnique(const T& other) const
+	void EmpalacebackUnique(const T& other)
 	{
 		if (this->Contains(other)) return;
 		else { this->empalace_back(other); }

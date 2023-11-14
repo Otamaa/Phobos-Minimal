@@ -870,13 +870,13 @@ DEFINE_HOOK(0x453E20, BuildingClass_SaveLoad_Prefix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x45417E, BuildingClass_Load_Suffix, 0x5)
+DEFINE_HOOK(0x453ED4, BuildingClass_Load_Suffix, 0x6)
 {
 	BuildingExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
-DEFINE_HOOK(0x454244, BuildingClass_Save_Suffix, 0x7)
+DEFINE_HOOK(0x4541B2, BuildingClass_Save_Suffix, 0x6)
 {
 	BuildingExtContainer::Instance.SaveStatic();
 	return 0;
