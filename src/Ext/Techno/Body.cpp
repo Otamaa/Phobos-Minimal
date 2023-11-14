@@ -4477,6 +4477,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->MyWeaponManager)
 		.Process(this->MyDriveData)
 		.Process(this->MyDiveData)
+		.Process(this->MySpawnSuport)
 		;
 }
 

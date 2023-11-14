@@ -50,6 +50,7 @@ public:
 		Delay = DataDelay;
 		CanDive = true;
 	}
+
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{ return Serialize(Stm); }
 

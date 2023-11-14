@@ -164,7 +164,6 @@ void Debug::LogFileRemove()
 	Debug::LogFileClose(555);
 	DeleteFileW(Debug::LogFileTempName.c_str());
 }
-static constexpr constant_ptr<DSurface, 0x887308u> const Primary {};
 
 void Debug::FreeMouse()
 {

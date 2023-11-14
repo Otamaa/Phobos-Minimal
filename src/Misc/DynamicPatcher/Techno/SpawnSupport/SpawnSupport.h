@@ -10,16 +10,22 @@ public:
 	CDTimerClass spawnFireOnceDelay;
 	bool spawnFireFlag;
 
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{ return Serialize(Stm); }
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<SpawnSupport*>(this)->Serialize(Stm); }
+
+private:
 	template <typename T>
-	void Serialize(T& Stm)
+	bool Serialize(T& Stm)
 	{
-		Stm
+		return Stm
 			.Process(supportFLHMult)
 			.Process(supportFireROF)
 			.Process(spawnFireOnceDelay)
 			.Process(spawnFireFlag)
-			;
+			.Success() && Stm.RegisterChange(this);
 
-		//Stm.RegisterChange(this);
 	}
 };
