@@ -400,19 +400,19 @@ public:
 
 	static void* Load_Alloc_Data(FileClass& file)
 	{
-		void* ptr = 0;
-		long size = file.GetFileSize();
+		const long size = file.GetFileSize();
 
-		ptr = new char[size];
-		if (ptr)
-		{
-			file.Read(ptr, size);
+		if (void* ptr = new char[size]) {
+			if(file.Read(ptr, size))
+				return ptr;
+			else
+				delete ptr;
 		}
 
-		return ptr;
+		return nullptr;
 	}
 
-	static void* Load_Alloc_Data(char const* name, int flags)
+	static void* Load_Alloc_Data(char const* name)
 	{
 		CCFileClass file(name);
 		return Load_Alloc_Data(file);

@@ -303,14 +303,10 @@ static inline T* DLLCreate(TArgs&&... args) {
 	return Memory::Create<T>(alloc, std::forward<TArgs>(args)...);
 }
 
-template<typename T>
-static inline void DLLDelete(T* ptr) {
-	DllAllocator<T> alloc;
-	Memory::Delete(alloc, ptr);
-}
 
 template <typename T, typename... TArgs>
-static inline T* DLLCreateArray(size_t capacity, TArgs&&... args) {
+static inline T* DLLCreateArray(size_t capacity, TArgs&&... args)
+{
 	static_assert(std::is_constructible<T, TArgs...>::value, "Cannot construct T from TArgs.");
 
 	DllAllocator<T> alloc;
@@ -318,9 +314,16 @@ static inline T* DLLCreateArray(size_t capacity, TArgs&&... args) {
 }
 
 template<typename T>
-static inline void DLLDeleteArray(T* ptr, size_t capacity) {
+static inline void DLLDeleteArray(T* ptr, size_t capacity)
+{
 	DllAllocator<T> alloc;
 	Memory::DeleteArray(alloc, ptr, capacity);
+}
+
+template<bool check = true , typename T>
+static inline void DLLDelete(T* ptr) {
+	DllAllocator<T> alloc;
+	Memory::Delete(std::bool_constant<check>::type(), alloc, ptr);
 }
 
 template<bool check = true, typename T>

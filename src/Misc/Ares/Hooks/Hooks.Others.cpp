@@ -2700,17 +2700,10 @@ void WriteLog(const MissionClass* it, int idx, DWORD checksum, FILE* F)
 		it->GetCurrentMission(), it->CurrentMissionStartTime);
 }
 
-//template<>
-//void WriteLog(const RadioClass* it, int idx, DWORD checksum, FILE* F)
-//{
-	//WriteLog<MissionClass>(it, idx, checksum, F);
-	//fprintf(F, "; LastCommand: %d", it->LastCommands[0]);
-//}
-
 template<>
 void WriteLog(const TechnoClass* it, int idx, DWORD checksum, FILE* F)
 {
-	WriteLog<RadioClass>(it, idx, checksum, F);
+	WriteLog<MissionClass>(it, idx, checksum, F);
 
 	const char* targetID = GameStrings::NoneStr();
 	int targetIndex = -1;
@@ -2741,15 +2734,11 @@ void WriteLog(const FootClass* it, int idx, DWORD checksum, FILE* F)
 		destCrd = pDest->GetCoords();
 	}
 
-	fprintf(F, "; Destination: %s (%d; %d,%d)",
-		destID, destIndex, destCrd.X, destCrd.Y);
-}
-
-template<>
-void WriteLog(const InfantryClass* it, int idx, DWORD checksum, FILE* F)
-{
-	WriteLog<FootClass>(it, idx, checksum, F);
-	fprintf(F, "; Speed %d", Game::F2I(it->SpeedPercentage * 256));
+	fprintf(F, "; Destination: %s (%d; %d,%d); SpeedPercentage %d ; Height %d", 
+		destID, destIndex, destCrd.X, destCrd.Y
+		, Game::F2I(it->SpeedPercentage * 256)
+		, it->GetHeight()
+	);
 }
 
 template<>
@@ -2762,14 +2751,7 @@ void WriteLog(const UnitClass* it, int idx, DWORD checksum, FILE* F)
 	auto index = Loco->Get_Track_Index();
 	auto number = Loco->Get_Track_Number();
 
-	fprintf(F, "; Speed %d; TrackNumber: %d; TrackIndex: %d", accum, number, index);
-}
-
-template<>
-void WriteLog(const AircraftClass* it, int idx, DWORD checksum, FILE* F)
-{
-	WriteLog<FootClass>(it, idx, checksum, F);
-	fprintf(F, "; Speed %d; Height: %d", Game::F2I(it->SpeedPercentage * 256), it->GetHeight());
+	fprintf(F, "; SpeedAccum %d; TrackNumber: %d; TrackIndex: %d", accum, number, index);
 }
 
 template<>
@@ -2823,7 +2805,7 @@ void VectorLogger(const DynamicVectorClass<T>* Array, FILE* F, const char* Label
 {
 	if (Label)
 	{
-		fprintf(F, "Checksums for [%s] (%d)\n", Label, Array ? Array->Count : -1);
+		fprintf(F, "Checksums for [%s] (%d) :\n", Label, Array ? Array->Count : -1);
 	}
 	if (Array)
 	{
@@ -2886,16 +2868,16 @@ bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 		fprintf(LogFile, "My Random Number: %08X\n", ScenarioClass::Instance->Random.Random());
 		fprintf(LogFile, "My Frame: %08X\n", Unsorted::CurrentFrame());
 		fprintf(LogFile, "Average FPS: %d\n", Game::F2I(FPSCounter::GetAverageFrameRate()));
-		fprintf(LogFile, "Max MaxAhead: %d\n", *reinterpret_cast<int*>(0xA8B568));
-		fprintf(LogFile, "Latency setting: %d\n", *reinterpret_cast<int*>(0xA8DB9C));
+		fprintf(LogFile, "Max MaxAhead: %d\n", Game::Network::MaxMaxAhead());
+		fprintf(LogFile, "Latency setting: %d\n", Game::Network::LatencyFudge());
 		fprintf(LogFile, "Game speed setting: %d\n", GameOptionsClass::Instance->GameSpeed);
-		fprintf(LogFile, "FrameSendRate: %d\n", *reinterpret_cast<int*>(0xA8B554));
+		fprintf(LogFile, "FrameSendRate: %d\n", Game::Network::FrameSendRate());
 		fprintf(LogFile, "Mod is %s (%s) with %X\n", ModName , ModVersion , ModIdentifier);
 
 		if(HouseClass::CurrentPlayer())
 			fprintf(LogFile, "Player Name %s\n", HouseClass::CurrentPlayer->PlainName);
 
-		auto nHashes = HashData::GetINIChecksums();
+		const auto nHashes = HashData::GetINIChecksums();
 
 		fprintf(LogFile, "Rules checksum: %08X\n", nHashes.Rules);
 		fprintf(LogFile, "Art checksum: %08X\n", nHashes.Art);
@@ -2913,13 +2895,13 @@ bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 			fprintf(LogFile, "\n\n");
 		}
 
-		fprintf(LogFile, "\nTypes\n");
+		fprintf(LogFile, "\n**Types**\n");
 		HouseLogger(InfantryClass::Array(), LogFile, "Infantry");
 		HouseLogger(UnitClass::Array(), LogFile, "Units");
 		HouseLogger(AircraftClass::Array(), LogFile, "Aircraft");
 		HouseLogger(BuildingClass::Array(), LogFile, "Buildings");
 
-		fprintf(LogFile, "\nChecksums\n");
+		fprintf(LogFile, "\n**Checksums**\n");
 		VectorLogger(HouseClass::Array(), LogFile, "Houses");
 		VectorLogger(InfantryClass::Array(), LogFile, "Infantry");
 		VectorLogger(UnitClass::Array(), LogFile, "Units");
@@ -2928,18 +2910,18 @@ bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 
 		fprintf(LogFile, "\n");
 		VectorLogger(&ObjectClass::CurrentObjects(), LogFile, "Current Objects");
-		VectorLogger(Logics(), LogFile, "Logics");
+		VectorLogger(&LogicClass::Instance(), LogFile, "Logics");
 
-		fprintf(LogFile, "\nChecksums for Map Layers\n");
+		fprintf(LogFile, "\n**Checksums for Map Layers**\n");
 		for (size_t ixL = 0; ixL < MapClass::ObjectsInLayers.c_size(); ++ixL) {
 			fprintf(LogFile, "Checksums for Layer %d\n", ixL);
 			VectorLogger(&(MapClass::ObjectsInLayers[ixL]), LogFile);
 		}
 
-		fprintf(LogFile, "\nChecksums for Logics\n");
-		VectorLogger(Logics(), LogFile);
+		fprintf(LogFile, "\n**Checksums for Logics**\n");
+		VectorLogger(&LogicClass::Instance(), LogFile);
 
-		fprintf(LogFile, "\nChecksums for Abstracts\n");
+		fprintf(LogFile, "\n**Checksums for Abstracts**\n");
 		VectorLogger(AbstractClass::Array(), LogFile, "Abstracts");
 		VectorLogger(AbstractTypeClass::Array(), LogFile, "AbstractTypes");
 

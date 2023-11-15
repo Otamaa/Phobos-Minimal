@@ -260,11 +260,13 @@ class CellSpreadEnumerator
 public:
 	constexpr inline static const size_t Max = 0x100u;
 
-	CellSpreadEnumerator(size_t Spread, size_t start=0u) noexcept : current(CellStruct())
+	constexpr CellSpreadEnumerator(size_t Spread, size_t start= 0u) noexcept : current(CellStruct())
 	, spread(MinImpl(Spread, Max)), curspread(0u)
 	, hasTwo(false), hadTwo(false)
 	{
 	}
+
+	~CellSpreadEnumerator() = default;
 
 	operator bool () const {
 		return curspread <= spread;

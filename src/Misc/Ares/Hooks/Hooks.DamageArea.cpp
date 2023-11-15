@@ -41,7 +41,9 @@ DEFINE_OVERRIDE_HOOK(0x4895B8, DamageArea_CellSpread1, 0x6)
 	if (spread < 0)
 		return 0x4899DA;
 
-	pIter = new CellSpreadEnumerator(spread);
+	//to avoid unnessesary allocation check 
+	//simplify the assembly result
+	pIter = DLLCreate<CellSpreadEnumerator>(spread);
 
 	return *pIter ? 0x4895C3 : 0x4899DA;
 }
@@ -74,8 +76,7 @@ DEFINE_OVERRIDE_HOOK(0x4899BE, DamageArea_CellSpread3, 0x8)
 	}
 
 	// all done. delete and go on
-	delete pIter;
-
+	DLLDelete<false>(pIter);
 	return 0x4899DA;
 }
 

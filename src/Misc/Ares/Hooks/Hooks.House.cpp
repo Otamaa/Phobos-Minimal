@@ -78,7 +78,7 @@ DEFINE_OVERRIDE_HOOK(0x6AA164, StripClass_Draw_DrawObserverFlag, 6)
 	enum { IDontKnowYou = 0x6AA16D, DrawSHP = 0x6AA1DB, DontDraw = 0x6AA2CE };
 
 	GET(HouseTypeClass*, pCountry, EAX);
-	
+
 	const auto idx = pCountry->ArrayIndex2;
 
 	//special cases
@@ -124,8 +124,8 @@ DEFINE_OVERRIDE_HOOK(0x4e3562, Game_GetFlagSurface, 5)
 	if (n == -3)
 		return 0x4E365A; // special index
 
-	if (n < HouseTypeClass::Array->Count) {
-		if (auto pSurface = HouseTypeExtContainer::Instance.Find(HouseTypeClass::Array->GetItem(n))->FlagFile.GetSurface()) {
+	if (auto pHouse = HouseTypeClass::Array->GetItemOrDefault(n)) {
+		if (auto pSurface = HouseTypeExtContainer::Instance.Find(pHouse)->FlagFile.GetSurface()) {
 			R->EAX(pSurface);
 			return 0x4E3686; //override result
 		}
@@ -142,11 +142,9 @@ DEFINE_HOOK(0x4E38A0, LoadPlayerCountryString, 5)
 
 	enum { NextCompare = 0x4E38BC, Neg2Result = 0x4E38A5 , RetResult = 0x4E39F1 };
 
-	if (n >= 0) {
-		if(n < HouseTypeClass::Array->Count) {
-			R->EAX(HouseTypeExtContainer::Instance.Find(HouseTypeClass::Array->GetItem(n))->StatusText->Text);
-			return RetResult; //replaced
-		}
+	if(auto pHouse = HouseTypeClass::Array->GetItemOrDefault(n)) {
+		R->EAX(HouseTypeExtContainer::Instance.Find(pHouse)->StatusText->Text);
+		return RetResult; //replaced
 	}
 
 	return n == -2 ? Neg2Result : NextCompare; /// overriden
@@ -157,17 +155,16 @@ DEFINE_OVERRIDE_HOOK(0x553412, LoadProgressMgr_Draw_LSFile, 9)
 	GET(int, n, EBX);
 	enum { SwitchStatement = 0x553421, DefaultResult = 0x553416, RetResult = 0x55342C };
 
-	if (n >= 0) {
-
-		if(n < HouseTypeClass::Array->Count) {
-			R->EDX(HouseTypeExtContainer::Instance.Find(HouseTypeClass::Array->GetItem(n))->LoadScreenBackground.data());
-			return RetResult;//replaced
-		}
-
-		return SwitchStatement; //switch
+	if(auto pHouse = HouseTypeClass::Array->GetItemOrDefault(n)) {
+		R->EDX(HouseTypeExtContainer::Instance.Find(pHouse)->LoadScreenBackground.data());
+		return RetResult;//replaced
 	}
 
-	return DefaultResult; //unknown
+	if (n == 0) {
+		return DefaultResult; //USA
+	}
+
+	return SwitchStatement; //switch
 }
 
 DEFINE_OVERRIDE_HOOK(0x5536da, LoadProgressMgr_Draw_LSName, 9)
@@ -175,17 +172,16 @@ DEFINE_OVERRIDE_HOOK(0x5536da, LoadProgressMgr_Draw_LSName, 9)
 	GET(int, n, EBX);
 	enum { SwitchStatement = 0x5536FB, DefaultResult = 0x5536DE, RetResult = 0x553820 };
 
-	if (n >= 0)
-	{
-		if(n <= HouseTypeClass::Array->Count){
-			R->EDI(HouseTypeExtContainer::Instance.Find(HouseTypeClass::Array->GetItem(n))->LoadScreenName->Text);
-			return RetResult;//replaced
-		}
-
-		return SwitchStatement;//switch
+	if(auto pHouse = HouseTypeClass::Array->GetItemOrDefault(n)){
+		R->EDI(HouseTypeExtContainer::Instance.Find(pHouse)->LoadScreenName->Text);
+		return RetResult;//replaced
 	}
 
-	return DefaultResult; //unknown
+	if (n == 0) {
+		return DefaultResult; //USA
+	}
+
+	return SwitchStatement;//switch
 }
 
 DEFINE_OVERRIDE_HOOK(0x553a05, LoadProgressMgr_Draw_LSSpecialName, 6)
@@ -193,18 +189,17 @@ DEFINE_OVERRIDE_HOOK(0x553a05, LoadProgressMgr_Draw_LSSpecialName, 6)
 	GET_STACK(int, n, 0x38);
 	enum { SwitchStatement = 0x553A28, DefaultResult = 0x553A0D, RetResult = 0x553B3B };
 
-	if (n <= 0)
-	{
-		if (n < HouseTypeClass::Array->Count) {
-			R->EAX(HouseTypeExtContainer::Instance.Find(HouseTypeClass::Array->GetItem(n))->LoadScreenSpecialName->Text);
-			return RetResult;
-		}
-
-		R->EAX(n);
-		return SwitchStatement;
+	// any valid index will be override
+	if (auto pHouse = HouseTypeClass::Array->GetItemOrDefault(n)) {
+		R->EAX(HouseTypeExtContainer::Instance.Find(pHouse)->LoadScreenSpecialName->Text);
+		return RetResult;
 	}
 
-	return DefaultResult;
+	if(n == 0) // Index 0 is USA
+		return DefaultResult;
+
+	R->EAX(n);
+	return SwitchStatement; //the default for switch statement is `null`
 }
 
 DEFINE_OVERRIDE_HOOK(0x553d06, LoadProgressMgr_Draw_LSBrief, 6)
@@ -212,17 +207,17 @@ DEFINE_OVERRIDE_HOOK(0x553d06, LoadProgressMgr_Draw_LSBrief, 6)
 	GET_STACK(int, n, 0x38);
 	enum { SwitchStatement = 0x553D2B, DefaultResult = 0x553D0E, RetResult = 0x553E54 };
 
-	if (n <= 0) {
-		if (n < HouseTypeClass::Array->Count) {
-			R->ESI(HouseTypeExtContainer::Instance.Find(HouseTypeClass::Array->GetItem(n))->LoadScreenBrief->Text);
-			return RetResult;
-		}
-
-		R->EAX(n);
-		return SwitchStatement;
+	// any valid index will be override
+	if (auto pHouse = HouseTypeClass::Array->GetItemOrDefault(n)) {
+		R->ESI(HouseTypeExtContainer::Instance.Find(pHouse)->LoadScreenBrief->Text);
+		return RetResult;
 	}
 
-	return DefaultResult;
+	if(n == 0) // Index 0 is USA
+		return DefaultResult;
+
+	R->EAX(n);
+	return SwitchStatement; //the default for switch statement is `null`
 }
 
 DEFINE_OVERRIDE_HOOK(0x69B774, HTExt_PickRandom_Human, 5)

@@ -186,7 +186,9 @@ DEFINE_OVERRIDE_HOOK(0x663218, RocketLocomotionClass_Explode_CustomMissile2, 5)
 		if (auto const& pWeapon = pThis->SpawnerIsElite
 			? pExt->CustomMissileEliteWeapon : pExt->CustomMissileWeapon) {
 			WeaponTypeExtData::DetonateAt(pWeapon, coords, pOwner , true , pOwner ? pOwner->Owner : nullptr);
-			return 0x6632CC;
+			pOwner->Limbo();
+			pOwner->UnInit();
+			return 0x6632D9;
 		}
 	}
 
@@ -206,9 +208,9 @@ DEFINE_OVERRIDE_HOOK(0x663218, RocketLocomotionClass_Explode_CustomMissile2, 5)
 
 	MapClass::FlashbangWarheadAt(nDamage, pWH, coords, false);
 	MapClass::DamageArea(coords, nDamage, pOwner, pWH, pWH->Tiberium, pOwner->Owner);
-
-	return 0x6632CC;
-	//return 0;
+	pOwner->Limbo();
+	pOwner->UnInit();
+	return 0x6632D9;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6632F2, RocketLocomotionClass_ILocomotion_MoveTo_CustomMissile, 6)
@@ -257,7 +259,6 @@ DEFINE_HOOK(0x662720, RocketLocomotionClass_ILocomotion_Process_Raise, 0x6)
 }
 
 #pragma endregion
-
 #pragma region SpawnManagerHooks
 DEFINE_OVERRIDE_HOOK(0x6B6D60, SpawnManagerClass_CTOR_CustomMissile, 6)
 {

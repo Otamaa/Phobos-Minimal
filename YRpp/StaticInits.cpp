@@ -1128,17 +1128,14 @@ ConvertClass* ConvertClass::CreateFromFile(const char* pal_filename) {
 
 	file.Open(FileAccessMode::Read);
 
-	void* data = CCFileClass::Load_Alloc_Data(file);
-	if (!data)
-	{
-		return nullptr;
+	if (void* data = CCFileClass::Load_Alloc_Data(file)) {
+		BytePalette loaded_pal { };
+		std::memcpy(&loaded_pal, data, sizeof(BytePalette));
+		delete data;
+		return GameCreate<ConvertClass>(loaded_pal, FileSystem::TEMPERAT_PAL(), DSurface::Primary(), 1, false);
 	}
 
-	BytePalette loaded_pal { };
-	std::memcpy(&loaded_pal, data, sizeof(BytePalette));
-
-	ConvertClass* drawer = GameCreate<ConvertClass>(loaded_pal, FileSystem::TEMPERAT_PAL(), DSurface::Primary(), 1 , false);
-	return drawer;
+	return nullptr;
 }
 
 void Game::Unselect_All_Except(AbstractType rtti)
