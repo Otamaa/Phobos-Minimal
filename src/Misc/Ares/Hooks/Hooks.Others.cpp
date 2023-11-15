@@ -2588,13 +2588,11 @@ DEFINE_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			fprintf(except, "\n");
 			fprintf(except, pDelim);
 
-			std::string type;
 			switch (pExs->ExceptionRecord->ExceptionCode)
 			{
 			case EXCEPTION_STACK_OVERFLOW:
-				type = "Exception is stack overflow! (0x%08X)\n";
-				break;
-
+				fprintf(except, "Exception is stack overflow! (0x%08X) at %08p\n", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
+			break;
 			case EXCEPTION_ACCESS_VIOLATION:
 			{
 				std::string VioType;
@@ -2616,7 +2614,7 @@ DEFINE_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 					VioType = ("Access address: 0x%08X Unknown violation.\n");
 					break;
 				};
-				type = "Exception is access violation (0x%08X) at %08p ";
+				std::string type = "Exception is access violation (0x%08X) at %08p ";
 				type += VioType;
 				fprintf(except, type.c_str(), pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress , pExs->ExceptionRecord->ExceptionInformation[1]);
 			}
@@ -2626,7 +2624,7 @@ DEFINE_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 				break;
 			default:
 				fprintf(except, "Exception code is 0x%08X at %08p\n", pExs->ExceptionRecord->ExceptionCode , pExs->ExceptionRecord->ExceptionAddress);
-				break;
+			break;
 			};
 
 			PCONTEXT pCtxt = pExs->ContextRecord;
@@ -2659,14 +2657,14 @@ DEFINE_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			fprintf(except, "\n");
 
 			fprintf(except, "Floating point status:\n");
-			fprintf(except, "Control word:		%08x\n", pCtxt->FloatSave.ControlWord);
-			fprintf(except, "Status word:		%08x\n", pCtxt->FloatSave.StatusWord);
-			fprintf(except, "Tag word:			%08x\n", pCtxt->FloatSave.TagWord);
-			fprintf(except, "Error Offset:		%08x\n", pCtxt->FloatSave.ErrorOffset);
-			fprintf(except, "Error Selector:	%08x\n", pCtxt->FloatSave.ErrorSelector);
-			fprintf(except, "Data Offset:		%08x\n", pCtxt->FloatSave.DataOffset);
-			fprintf(except, "Data Selector:		%08x\n", pCtxt->FloatSave.DataSelector);
-			fprintf(except, "Cr0NpxState:		%08x\n", pCtxt->FloatSave.Spare0);
+			fprintf(except, "Control word:\t%08x\n", pCtxt->FloatSave.ControlWord);
+			fprintf(except, "Status word:\t%08x\n", pCtxt->FloatSave.StatusWord);
+			fprintf(except, "Tag word:\t%08x\n", pCtxt->FloatSave.TagWord);
+			fprintf(except, "Error Offset:\t%08x\n", pCtxt->FloatSave.ErrorOffset);
+			fprintf(except, "Error Selector:\t%08x\n", pCtxt->FloatSave.ErrorSelector);
+			fprintf(except, "Data Offset:\t%08x\n", pCtxt->FloatSave.DataOffset);
+			fprintf(except, "Data Selector:\t%08x\n", pCtxt->FloatSave.DataSelector);
+			fprintf(except, "Cr0NpxState:\t%08x\n", pCtxt->FloatSave.Spare0);
 
 			fprintf(except, "\n");
 
