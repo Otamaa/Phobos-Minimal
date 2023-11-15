@@ -59,7 +59,11 @@ public:
 		HANDLE dumpFile = CreateFileW(filename.c_str(), GENERIC_WRITE,
 			0, nullptr, CREATE_ALWAYS, FILE_FLAG_RANDOM_ACCESS, nullptr);
 
-		MINIDUMP_TYPE type = static_cast<MINIDUMP_TYPE>(MiniDumpWithFullMemory);
+		MINIDUMP_TYPE type = static_cast<MINIDUMP_TYPE>(MiniDumpNormal
+									   | MiniDumpWithDataSegs
+									   | MiniDumpWithIndirectlyReferencedMemory
+									   | MiniDumpWithFullMemory
+		);
 
 		MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), dumpFile, type, pException, nullptr, nullptr);
 		CloseHandle(dumpFile);
