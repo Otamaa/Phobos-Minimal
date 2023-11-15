@@ -2531,6 +2531,10 @@ DEFINE_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 
 #pragma warning(push)
 #pragma warning(disable: 4646) // this function does not return, though it isn't declared VOID
+#pragma warning(disable: 4477)
+#pragma warning(disable: 4715)
+#define EXCEPTION_STACK_COLUMNS 8 // Number of columns in stack dump.
+#define EXCEPTION_STACK_DEPTH_MAX 1024
 
 [[noreturn]] LONG CALLBACK ExceptionHandler(PEXCEPTION_POINTERS const pExs)
 {
@@ -2577,24 +2581,147 @@ DEFINE_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 
 		if (FILE* except = _wfsopen(except_file.c_str(), L"w", _SH_DENYNO))
 		{
-			constexpr auto const pDelim = "---------------------\n";
+			constexpr auto const pDelim = "------------------------------------------------------------------------------------\n";
 			fprintf(except, "Internal Error encountered!\n");
 			fprintf(except, pDelim);
 			fprintf(except, "Ares version: 21.352.1218 With Phobos %s" ,PRODUCT_VERSION); //TODO
 			fprintf(except, "\n");
 			fprintf(except, pDelim);
 
-			fprintf(except, "Exception code: %08X at %08p\n", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
+			std::string type;
+			switch (pExs->ExceptionRecord->ExceptionCode)
+			{
+			case EXCEPTION_STACK_OVERFLOW:
+				type = "Exception is stack overflow! (0x%08X)\n";
+				break;
 
-			fprintf(except, "Registers:\n");
+			case EXCEPTION_ACCESS_VIOLATION:
+			{
+				std::string VioType;
+				switch (pExs->ExceptionRecord->ExceptionInformation[0])
+				{
+				case 0: // Read violation
+					VioType = ("Access address: 0x%08X was read from.\n");
+					break;
+				case 1: // Write violation
+					VioType = ("Access address: 0x%08X was written to.\n");
+					break;
+				case 2: // Execute violation
+					VioType = ("Access address: 0x%08X was written to.\n");
+					break;
+				case 8: // User-mode data execution prevention (DEP).
+					VioType = ("Access address: 0x%08X DEP violation.\n");
+					break;
+				default: // Unknown
+					VioType = ("Access address: 0x%08X Unknown violation.\n");
+					break;
+				};
+				type = "Exception is access violation (0x%08X) at %08p ";
+				type += VioType;
+				fprintf(except, type.c_str(), pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress , pExs->ExceptionRecord->ExceptionInformation[1]);
+			}
+			break;
+			case EXCEPTION_IN_PAGE_ERROR:
+				fprintf(except, "Exception is page fault (0x%08X) at %08p\n", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
+				break;
+			default:
+				fprintf(except, "Exception code is 0x%08X at %08p\n", pExs->ExceptionRecord->ExceptionCode , pExs->ExceptionRecord->ExceptionAddress);
+				break;
+			};
+
 			PCONTEXT pCtxt = pExs->ContextRecord;
-			fprintf(except, "EIP: %08X\tESP: %08X\tEBP: %08X\n", pCtxt->Eip, pCtxt->Esp, pCtxt->Ebp);
+			fprintf(except, "Bytes at CS:EIP (0x%08X)  : ", pCtxt->Eip);
+			uint8_t* eip_pointer = reinterpret_cast<uint8_t*>(pCtxt->Eip);
+
+			for (int i = 32; i > 0; --i)
+			{
+				if (IsBadReadPtr(eip_pointer, sizeof(uint8_t)))
+				{
+					fprintf(except, "?? ");
+				}
+				else
+				{
+					fprintf(except, "%02X ", (uintptr_t)*eip_pointer);
+				}
+				++eip_pointer;
+			}
+
+			fprintf(except, "\n\nRegisters:\n");
+			fprintf(except, "EIP: %08X\tESP: %08X\tEBP: %08X\t\n", pCtxt->Eip, pCtxt->Esp, pCtxt->Ebp);
 			fprintf(except, "EAX: %08X\tEBX: %08X\tECX: %08X\n", pCtxt->Eax, pCtxt->Ebx, pCtxt->Ecx);
 			fprintf(except, "EDX: %08X\tESI: %08X\tEDI: %08X\n", pCtxt->Edx, pCtxt->Esi, pCtxt->Edi);
+			fprintf(except, "CS:  %04x\tSS:  %04x\tDS:  %04x\n", pCtxt->SegCs,pCtxt->SegSs,pCtxt->SegDs);
+			fprintf(except, "ES:  %04x\tFS:  %04x\tGS:  %04x\n", pCtxt->SegEs,pCtxt->SegFs,pCtxt->SegGs);
+			fprintf(except, "\n");
 
-			fprintf(except, "\nStack dump:\n");
+			fprintf(except, "EFlags: %08X\n", pCtxt->EFlags);
+
+			fprintf(except, "\n");
+
+			fprintf(except, "Floating point status:\n");
+			fprintf(except, "Control word:		%08x\n", pCtxt->FloatSave.ControlWord);
+			fprintf(except, "Status word:		%08x\n", pCtxt->FloatSave.StatusWord);
+			fprintf(except, "Tag word:			%08x\n", pCtxt->FloatSave.TagWord);
+			fprintf(except, "Error Offset:		%08x\n", pCtxt->FloatSave.ErrorOffset);
+			fprintf(except, "Error Selector:	%08x\n", pCtxt->FloatSave.ErrorSelector);
+			fprintf(except, "Data Offset:		%08x\n", pCtxt->FloatSave.DataOffset);
+			fprintf(except, "Data Selector:		%08x\n", pCtxt->FloatSave.DataSelector);
+			fprintf(except, "Cr0NpxState:		%08x\n", pCtxt->FloatSave.Spare0);
+
+			fprintf(except, "\n");
+
+			fprintf(except, "Floating point Registers:\n");
+
+			for (int i = 0; i < EXCEPTION_STACK_COLUMNS; ++i)
+			{
+				fprintf(except, "ST%d : ", i);
+
+				for (int j = 0; j < 10; ++j)
+				{
+					fprintf(except, "%02X", pCtxt->FloatSave.RegisterArea[i * 10 + j]);
+				}
+
+				fprintf(except, "   %+#.17e\n", *reinterpret_cast<double*>(&pCtxt->FloatSave.RegisterArea[i * 10]));
+			}
+
+			if (IsProcessorFeaturePresent(PF_MMX_INSTRUCTIONS_AVAILABLE))
+			{
+				fprintf(except, "\n");
+				fprintf(except, "MMX Registers:\n");
+
+				fprintf(except, "MMX0:	%016llX\tMMX1:	%016llX\tMMX2:	%016llX\tMMX3:	%016llX\n", 
+					pCtxt->ExtendedRegisters[0],
+					pCtxt->ExtendedRegisters[1], 
+					pCtxt->ExtendedRegisters[2], 
+					pCtxt->ExtendedRegisters[3]
+				);
+
+				fprintf(except, "MMX4:	%016llX\tMMX5:	%016llX\tMMX6:	%016llX\tMMX7:	%016llX\n",
+					pCtxt->ExtendedRegisters[4],
+					pCtxt->ExtendedRegisters[5], 
+					pCtxt->ExtendedRegisters[6],
+					pCtxt->ExtendedRegisters[7]
+				);
+			}
+
+			fprintf(except, "\n");
+
+			fprintf(except, "Debug Registers:\n");
+			fprintf(except, "Dr0: %016llX\tDr1: %016llX\tDr2: %016llX\tDr3: %016llX\n", 
+				pCtxt->Dr0, 
+				pCtxt->Dr1, 
+				pCtxt->Dr2,
+				pCtxt->Dr3
+			);
+
+			fprintf(except, "Dr4: OBSOLETE\tDr5: OBSOLETE\tDr6: %08X\tDr7: %08X\n", 
+				pCtxt->Dr6, 
+				pCtxt->Dr7
+			);
+
+			fprintf(except, "\nStack dump (depth : %d):\n" , EXCEPTION_STACK_DEPTH_MAX);
 			DWORD* ptr = reinterpret_cast<DWORD*>(pCtxt->Esp);
-			for (int i = 0; i < 0x100; ++i)
+			for (int i = 0; i < EXCEPTION_STACK_DEPTH_MAX; ++i)
 			{
 				fprintf(except, "%08p: %08X\n", ptr, *ptr);
 				++ptr;
@@ -2646,8 +2773,6 @@ DEFINE_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 	ExitProcess(pExs->ExceptionRecord->ExceptionCode);
 };
 
-#pragma warning(pop)
-
 DEFINE_OVERRIDE_HOOK(0x4C8FE0, Exception_Handler, 9)
 {
 	//GET(int, code, ECX);
@@ -2658,6 +2783,7 @@ DEFINE_OVERRIDE_HOOK(0x4C8FE0, Exception_Handler, 9)
 	}
 }
 
+#pragma warning(pop)
 template<typename T>
 void WriteLog(const T* it, int idx, DWORD checksum, FILE* F)
 {
