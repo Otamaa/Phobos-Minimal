@@ -963,7 +963,7 @@ DEFINE_OVERRIDE_HOOK(0x6FAF0D, TechnoClass_Update_EMPLock, 6)
 	if (pThis->EMPLockRemaining)
 	{
 		--pThis->EMPLockRemaining;
-		if (!pThis->EMPLockRemaining)
+		if (pThis->EMPLockRemaining == 1)
 		{
 			// the forced vacation just ended. we use our own
 			// function here that is quicker in retrieving the

@@ -2766,15 +2766,16 @@ DEFINE_HOOK(0x415302, AircraftClass_MissionUnload_IsDropship, 0x8)
 	return 0x41530C;
 }
 
-DEFINE_HOOK(0x456376 , BuildingClass_RemoveSpacingAroundArea, 0x6)
-{
-	GET(BuildingTypeClass*, pThisType, EAX);
+ DEFINE_HOOK(0x456376 , BuildingClass_RemoveSpacingAroundArea, 0x6)
+ {
+ 	GET(BuildingTypeClass*, pThisType, EAX);
+	GET(BuildingClass*, pThis, ESI);
 
-	if(!pThisType->UndeploysInto && pThisType->ResourceGatherer)
-		return 0x4563A1;
+	if (!pThisType->UndeploysInto || (!pThisType->ResourceGatherer) && !pThis->IsStrange())
+ 		return 0x456398;
 
-	return pThisType->Adjacent == 0 ? 0x4563A1 : 0x45638A;
-}
+ 	return pThisType->Adjacent == 0 ? 0x4563A1 : 0x45638A;
+ }
 
 DEFINE_HOOK(0x518607, InfantryClass_TakeDamage_FixOnDestroyedSource, 0xA)
 {

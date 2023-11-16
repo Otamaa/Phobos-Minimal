@@ -2998,7 +2998,7 @@ bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 		fprintf(LogFile, "With Ares [21.352.1218] and Phobos %s\n", PRODUCT_VERSION);
 
 		for (size_t ixF = 0; ixF < EventClass::LatestFramesCRC.c_size(); ++ixF) {
-			fprintf(LogFile, "LastFrame CRC[%02X] = %08X\n", ixF, EventClass::LatestFramesCRC[ixF]);
+			fprintf(LogFile, "LastFrame CRC[%02d] = %08X\n", ixF, EventClass::LatestFramesCRC[ixF]);
 		}
 
 		fprintf(LogFile, "My Random Number: %08X\n", ScenarioClass::Instance->Random.Random());
@@ -3011,7 +3011,7 @@ bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 		fprintf(LogFile, "Mod is %s (%s) with %X\n", ModName , ModVersion , ModIdentifier);
 
 		if(HouseClass::CurrentPlayer())
-			fprintf(LogFile, "Player Name %s\n", HouseClass::CurrentPlayer->PlainName);
+			fprintf(LogFile, "Player Name: %s\n", HouseClass::CurrentPlayer->PlainName);
 
 		const auto nHashes = HashData::GetINIChecksums();
 
@@ -3025,7 +3025,7 @@ bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 			fprintf(LogFile, "Type:         %X\n", OffendingEvent->Type);
 			fprintf(LogFile, "Frame:        %X\n", OffendingEvent->Frame);
 			fprintf(LogFile, "ID:           %X\n", OffendingEvent->HouseIndex);
-			fprintf(LogFile, "CRC:          %X\n", OffendingEvent->Data.FrameInfo.CRC);
+			fprintf(LogFile, "CRC:          %X(%d)\n", OffendingEvent->Data.FrameInfo.CRC ,OffendingEvent->Data.FrameInfo.CRC);
 			fprintf(LogFile, "CommandCount: %hu\n", OffendingEvent->Data.FrameInfo.CommandCount);
 			fprintf(LogFile, "Delay:        %hhu\n", OffendingEvent->Data.FrameInfo.Delay);
 			fprintf(LogFile, "\n\n");

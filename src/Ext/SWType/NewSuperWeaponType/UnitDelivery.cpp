@@ -191,7 +191,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 
 				if (ItemBuilding)
 				{
-					if (bBaseNormal)
+					if (bDeliverBuildup)
 					{
 						ItemBuilding->DiscoveredBy(pOwner);
 						ItemBuilding->IsReadyToCommence = 1;
