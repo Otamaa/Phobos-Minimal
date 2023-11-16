@@ -960,10 +960,10 @@ DEFINE_OVERRIDE_HOOK(0x6FAF0D, TechnoClass_Update_EMPLock, 6)
 	GET(TechnoClass*, pThis, ESI);
 
 	// original code.
-	if (pThis->EMPLockRemaining)
+	if (const auto was = pThis->EMPLockRemaining)
 	{
-		--pThis->EMPLockRemaining;
-		if (pThis->EMPLockRemaining == 1)
+		pThis->EMPLockRemaining = was - 1;
+		if (was == 1)
 		{
 			// the forced vacation just ended. we use our own
 			// function here that is quicker in retrieving the

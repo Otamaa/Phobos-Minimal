@@ -84,17 +84,8 @@ DEFINE_OVERRIDE_HOOK(0x451330, BuildingClass_GetCrewCount, 0xA)
 			}
 
 			// value divided by "cost per survivor"
-			count = pThis->Type->GetRefund(pHouse, 0) / divisor;
-
 			// clamp between 1 and 5
-			if (count < 1)
-			{
-				count = 1;
-			}
-			if (count > 5)
-			{
-				count = 5;
-			}
+			count = std::clamp(pThis->Type->GetRefund(pHouse, 0) / divisor, 1 , 5);
 		}
 	}
 
