@@ -7,9 +7,10 @@
 #include <Helpers/CompileTime.h>
 #include <RectangleStruct.h>
 
+class ObjectClass;
 struct TacticalSelectableStruct
 {
-	TechnoClass* Techno { nullptr };
+	ObjectClass* Techno { nullptr };
 	Point2D Point { };
 
 	bool operator==(TacticalSelectableStruct const& rhs) const {

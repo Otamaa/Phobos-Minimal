@@ -995,9 +995,8 @@ void __fastcall DisplayClass_Submit_Wrapper(DisplayClass* pThis, void* _, Object
 		UpdateAttachedAnimLayers(pTechno);
 }
 
-// cause desync
-//DEFINE_JUMP(CALL, 0x54B18E, GET_OFFSET(DisplayClass_Submit_Wrapper));  // JumpjetLocomotionClass_Process
-//DEFINE_JUMP(CALL, 0x4CD4E7, GET_OFFSET(DisplayClass_Submit_Wrapper)); // FlyLocomotionClass_Update
+DEFINE_JUMP(CALL, 0x54B18E, GET_OFFSET(DisplayClass_Submit_Wrapper));  // JumpjetLocomotionClass_Process
+DEFINE_JUMP(CALL, 0x4CD4E7, GET_OFFSET(DisplayClass_Submit_Wrapper)); // FlyLocomotionClass_Update
 
 DEFINE_HOOK(0x688F8C, ScenarioClass_ScanPlaceUnit_CheckMovement, 0x5)
 {

@@ -681,13 +681,16 @@ DEFINE_HOOK(0x627699, TheaterTypeClass_ProcessOtherPalettes_Process, 0x6)
 	return 0x6276A4;
 }
 
+#include <VeinholeMonsterClass.h>
+
 // Picked from Ares custom theater branch
-DEFINE_HOOK(0x74D45A, TheaterTypeClass_ProcessVeinhole, 0x6)
+DEFINE_HOOK(0x74D450, TheaterTypeClass_ProcessVeinhole, 0x7)
 {
 	GET(TheaterType, index, ECX);
-	R->EAX(TheaterTypeClass::FindFromTheaterType_NoCheck(index)->Extension.data());
-	R->ECX<DWORD>(R->ESP());
-	return 0x74D468;
+	char buffer[32];
+	CRT::sprintf(buffer ,"VEINHOLE.%s" ,TheaterTypeClass::FindFromTheaterType_NoCheck(index)->Extension.c_str());
+	VeinholeMonsterClass::VeinSHPData = (SHPFrame*)MixFileClass::Retrieve(buffer);
+	return 0x74D48A;
 }
 
 DEFINE_HOOK(0x534CA9, Init_Theaters_SetPaletteUnit, 0x8)

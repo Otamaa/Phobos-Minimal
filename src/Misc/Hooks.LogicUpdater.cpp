@@ -106,7 +106,7 @@ DEFINE_OVERRIDE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	const auto nFootMapCoords = pThis->InlineMapCoords();
 
 	if (pThis->Location == CoordStruct::Empty || nFootMapCoords == CellStruct::Empty) {
-		if (!pType->Spawned && !IsInLimboDelivered) {
+		if (!pType->Spawned && !IsInLimboDelivered && !pThis->InLimbo) {
 			Debug::Log("Techno[%x : %s] With Invalid Location ! , Removing ! \n", pThis, pThis->get_ID());
 			TechnoExtData::HandleRemove(pThis, nullptr, false, false);
 			return retDead;

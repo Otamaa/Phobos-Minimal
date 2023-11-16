@@ -57,7 +57,7 @@ public:
 	static const AbstractType AbsID = AbstractType::VeinholeMonster;
 
 	static constexpr reference<bool*, 0xB1D2F0u> const IsCurrentPosAffected {};
-	static constexpr reference<SHPStruct*, 0xB1D2ECu> const VeinSHPData {};
+	static constexpr reference<SHPFrame*, 0xB1D2ECu> const VeinSHPData {};
 	static constexpr constant_ptr<DynamicVectorClass<VeinholeMonsterClass*>, 0xB1D290u> const Array {};
 
 	//IPersist
