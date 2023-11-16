@@ -960,7 +960,8 @@ DEFINE_OVERRIDE_HOOK(0x6FAF0D, TechnoClass_Update_EMPLock, 6)
 	GET(TechnoClass*, pThis, ESI);
 
 	// original code.
-	if (const auto was = pThis->EMPLockRemaining)
+	const auto was = pThis->EMPLockRemaining;
+	if (was > 0)
 	{
 		pThis->EMPLockRemaining = was - 1;
 		if (was == 1)
