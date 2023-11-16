@@ -549,6 +549,14 @@ DEFINE_OVERRIDE_HOOK(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 	if (!ret)
 		Debug::Log("[Phobos] Global LoadGame Failed !\n");
 
+	// add more variable that need to be reset after loading an saved games
+	if(SessionClass::Instance->GameMode == GameMode::Campaign)
+	{
+		Unsorted::MuteSWLaunches = false; // this will also make radar unusable
+		// this variable need to be reset , especially after you play as an observer on skirmish 
+		// then load an save game of campaign mode , it will shutoff the radar and EVA's
+	}
+
 	return 0;
 }
 

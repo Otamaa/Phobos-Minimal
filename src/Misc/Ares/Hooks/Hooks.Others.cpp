@@ -2476,8 +2476,8 @@ DEFINE_OVERRIDE_HOOK(0x7C89D4, DDRAW_Create, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK_AGAIN(0x4A4AC0, Debug_Log, 1)
-DEFINE_OVERRIDE_HOOK(0x4068E0, Debug_Log, 1)
+DEFINE_STRONG_OVERRIDE_HOOK_AGAIN(0x4A4AC0, Debug_Log, 1)
+DEFINE_STRONG_OVERRIDE_HOOK(0x4068E0, Debug_Log, 1)
 {
 	LEA_STACK(va_list const, args, 0x8);
 	GET_STACK(const char* const, pFormat, 0x4);
@@ -2490,7 +2490,7 @@ DEFINE_OVERRIDE_HOOK(0x4068E0, Debug_Log, 1)
 
 #pragma region ErrorHandlings
 
-DEFINE_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
+DEFINE_STRONG_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 {
 	// mimic an increment because decrement happens in the middle of function cleanup and can't be erased nicely
 	++Unsorted::SystemResponseMessages;
@@ -2771,7 +2771,7 @@ DEFINE_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 	ExitProcess(pExs->ExceptionRecord->ExceptionCode);
 };
 
-DEFINE_OVERRIDE_HOOK(0x4C8FE0, Exception_Handler, 9)
+DEFINE_STRONG_OVERRIDE_HOOK(0x4C8FE0, Exception_Handler, 9)
 {
 	//GET(int, code, ECX);
 	GET(LPEXCEPTION_POINTERS, pExs, EDX);
@@ -2876,6 +2876,18 @@ void WriteLog(const UnitClass* it, int idx, DWORD checksum, FILE* F)
 	auto number = Loco->Get_Track_Number();
 
 	fprintf(F, "; SpeedAccum %d; TrackNumber: %d; TrackIndex: %d", accum, number, index);
+}
+
+template<>
+void WriteLog(const InfantryClass * it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<FootClass>(it, idx, checksum, F);
+}
+
+template<>
+void WriteLog(const AircraftClass* it, int idx, DWORD checksum, FILE* F)
+{
+	WriteLog<FootClass>(it, idx, checksum, F);
 }
 
 template<>
@@ -3059,7 +3071,7 @@ bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 	}
 }
 
-DEFINE_OVERRIDE_HOOK(0x64DEA0, Multiplay_LogToSYNC_NOMPDEBUG, 6)
+DEFINE_STRONG_OVERRIDE_HOOK(0x64DEA0, Multiplay_LogToSYNC_NOMPDEBUG, 6)
 {
 	GET(EventClass*, OffendingEvent, ECX);
 
@@ -3071,7 +3083,7 @@ DEFINE_OVERRIDE_HOOK(0x64DEA0, Multiplay_LogToSYNC_NOMPDEBUG, 6)
 	return 0x64DF3D;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6516F0, Multiplay_LogToSync_MPDEBUG, 6)
+DEFINE_STRONG_OVERRIDE_HOOK(0x6516F0, Multiplay_LogToSync_MPDEBUG, 6)
 {
 	GET(int, SlotNumber, ECX);
 	GET(EventClass*, OffendingEvent, EDX);

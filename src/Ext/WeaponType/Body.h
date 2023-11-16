@@ -46,6 +46,7 @@ public:
 	Valueable<double> Abductor_AbductBelowPercent { 100 };
 	Valueable<bool> Abductor_Temporal { false };
 	Valueable<int> Abductor_MaxHealth { 0 };
+	Valueable<bool> Abductor_CheckAbductableWhenTargeting { false };
 
 	Nullable<AnimTypeClass*>DelayedFire_Anim {};
 	Valueable<int> DelayedFire_Anim_LoopCount { 1 };

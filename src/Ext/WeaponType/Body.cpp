@@ -86,6 +86,7 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Abductor_AbductBelowPercent.Read(exINI, pSection, "Abductor.AbductBelowPercent");
 	this->Abductor_Temporal.Read(exINI, pSection, "Abductor.Temporal");
 	this->Abductor_MaxHealth.Read(exINI, pSection, "Abductor.MaxHealth");
+	this->Abductor_CheckAbductableWhenTargeting.Read(exINI, pSection, "Abductor.CheckAbductableWhenTargeting");
 
 	this->DelayedFire_Anim.Read(exINI, pSection, "DelayedFire.Anim");
 	this->DelayedFire_Anim_LoopCount.Read(exINI, pSection, "DelayedFire.Anim.LoopCount");
@@ -239,6 +240,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->Abductor_AbductBelowPercent)
 		.Process(this->Abductor_Temporal)
 		.Process(this->Abductor_MaxHealth)
+		.Process(this->Abductor_CheckAbductableWhenTargeting)
 		.Process(this->DelayedFire_Anim)
 		.Process(this->DelayedFire_Anim_LoopCount)
 		.Process(this->DelayedFire_Anim_UseFLH)

@@ -1508,7 +1508,10 @@ bool TechnoExtData::TargetFootAllowFiring(TechnoClass* pThis, TechnoClass* pTarg
 		const auto pFoot = static_cast<FootClass*>(pTarget);
 		const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
-		if (pWeaponExt->Abductor.Get() && !TechnoExtData::IsAbductable(pThis, pWeapon, pFoot))
+		if (pWeaponExt->Abductor 
+			&& pWeaponExt->Abductor_CheckAbductableWhenTargeting
+			&& !TechnoExtData::IsAbductable(pThis, pWeapon, pFoot
+			))
 			return false;
 
 		if (auto const pUnit = specific_cast<UnitClass*>(pTarget))

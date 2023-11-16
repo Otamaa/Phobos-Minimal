@@ -422,6 +422,17 @@ declhook(hook, funcname##_DEBUG_HOOK__LOG_, size)
 
 #endif
 
+#pragma region DONOTLOG
+#define DEFINE_STRONG_OVERRIDE_HOOK(hook,funcname,size) \
+decl_override_hook(hook, funcname, size) \
+EXPORT_FUNC(funcname)\
+
+//decl_override_hook(hook, funcname, size)
+#define DEFINE_STRONG_OVERRIDE_HOOK_AGAIN(hook, funcname, size) \
+decl_override_hook(hook, funcname, size)
+
+#pragma endregion
+
 #ifndef DEBUG_HOOK
 //
 #define DEFINE_OVERRIDE_HOOK(hook,funcname,size) \
@@ -430,7 +441,7 @@ EXPORT_FUNC(funcname)\
 
 //decl_override_hook(hook, funcname, size)
 #define DEFINE_OVERRIDE_HOOK_AGAIN(hook, funcname, size) \
-decl_override_hook(hook, funcname, size) \
+decl_override_hook(hook, funcname, size)
 
 #else
 

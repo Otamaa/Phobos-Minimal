@@ -683,3 +683,654 @@ DEFINE_HOOK(0x7D107D, Game_msize_replace, 0x8)
 //	R->ECX(Phobos::Config::CampaignDefaultGameSpeed);
 //	return 0x55D791;
 //}
+
+//DEFINE_HOOK(0x4F8A9B, HouseClass_AI_SuggestTeams, 0x6)
+//{
+//	GET(HouseClass*, pThis, ESI);
+//	GET(int, suggestedCount, EAX);
+//
+//	if (suggestedCount <= 0){
+//		Debug::Log("House [%s][Ratio : %d , AITriggersActive : %d ] Cannot get Any Team , please check your configuration!\n", pThis->get_ID() ,pThis->RatioAITriggerTeam, pThis->AITriggersActive);
+//		return 0x4F8ABB;
+//	}
+//
+//	return 0x4F8A9F;
+//}
+
+//DEFINE_HOOK(0x7272AE ,TriggerTypeClass_LoadFromINI_CountryName, 7)
+//{
+//	GET(TriggerTypeClass*, pThis, EBP);
+//	GET(const char*, pData, ESI);
+//	const int nParam = atoi(pData);
+//
+//	Debug::Log("TriggerTypeClass_LoadFromINI_CountryName[%s] %s - %d \n", pThis->ID, pData, nParam);
+//
+//	if ((nParam - 4475) > 7) {
+//		R->EDX(HouseTypeClass::Array->GetItem(HouseTypeClass::FindIndexByIdAndName(pData)));
+//		return 0x7272C1;
+//	} else {
+//		TriggerTypeExt::ExtMap.Find(pThis)->HouseParam = nParam;
+//		return 0x7272A4;
+//	}
+//}
+
+//#include <Ext/Cell/Body.h>
+
+//TODO : another place to reset ?
+// this one address not really convincing ,..
+/*
+DEFINE_HOOK(0x56C1D3, MapClass_RemoveCrate_Override, 7)
+{
+	GET(CellClass*, pThis, EBX);
+
+	if(auto pExt = CellExtContainer::Instance.Find(pThis))
+		pExt->NewPowerups = -1;
+
+	return 0;
+}
+
+DEFINE_HOOK(0x56BFBE, MapClass_PlaceCrate_Override, 7)
+{
+	LEA_STACK(CellStruct*, pos, 0x18);
+	GET_STACK(int, OverlayData, 0x1C);
+
+	auto CellExt = CellExtContainer::Instance.Find(MapClass::Instance->GetCellAt(pos));
+
+	if (!CellExt)
+		return 0x0;
+
+	//ugly XD
+	//20 is random , dont occupy that
+	//custom powerup
+	const auto NewPowerUp = OverlayData > 20 ? (OverlayData - 20) : (-1);
+	//original powerup
+	OverlayData = OverlayData > 20 ? 20 : OverlayData;
+	OverlayData = OverlayData == 19 ? 0 : OverlayData; //19 is empty replace it with money instead
+
+	//18,6,15,13 absolute crate replace to speed
+  //  OverlayData = OverlayData == 13 || OverlayData == 18 || OverlayData == 6 || OverlayData == 15 ? 10 : OverlayData;
+
+	CellExt->AttachedToObject->OverlayData = (unsigned char)(OverlayData);
+	CellExt->NewPowerups = NewPowerUp;
+
+	Debug::Log("MapClass_PlaceCrate_Override NewPowerUps [%d] Original PowerUps[%d] cell NewPowerups [%d] \n", NewPowerUp, OverlayData, CellExt->NewPowerups);
+	return 0x56BFFF; //return true;
+}
+
+DEFINE_HOOK(0x481ACE, CellHasPowerUp_Override, 5)
+{
+	GET(CellClass*, pThis, ESI);
+
+	enum {
+		keeproll = 0x481AD3, SpawnSpesific = 0x481B22
+	};
+
+	const auto CellExt = CellExtContainer::Instance.TryFind(pThis);
+
+	if (CellExt && CellExt->NewPowerups > -1)
+	{
+		Debug::Log("CellHasPowerUp_Override Original PowerUps [%d] cell NewPowerups [%d] \n", pThis->OverlayData, CellExt->NewPowerups);
+
+		R->EBX(PowerupEffects::Darkness);//force spawn Darkness
+		return SpawnSpesific;
+	} else if(pThis->OverlayData < 19u) {
+	   R->EBX(pThis->OverlayData);
+		return SpawnSpesific;
+	}
+
+	return keeproll;
+}
+
+DEFINE_HOOK(0x73844A, UnitClass_ReceiveDamage_PlaceCrate_override, 6)
+{
+	GET(CellStruct, Where, EAX);
+	GET(UnitClass*, pthis, ESI);
+
+	const auto CrateType = abs(TechnoTypeExt::ExtMap.Find(pthis->GetTechnoType())->CrateType);
+	const auto Success = CrateStufs::Place_Crate(Where, (PowerupEffects)CrateType);
+	Debug::Log("Unit[%s] to crate [%d] X [%d] Y[%d] succes [%d]\n", pthis->Type->ID, CrateType, Where.X, Where.Y, Success);
+	return 0x738457;
+}
+
+DEFINE_HOOK(0x442215, BuildingTypeClass_Destroy_PlaceCrate_override, 7)
+{
+	GET(BuildingTypeClass*, pBldType, EDX);
+	GET(BuildingClass *, Building, EBX);
+
+	const auto CrateType = abs(TechnoTypeExt::ExtMap.Find((pBldType))->CrateType);
+	const auto Success = CrateStufs::Place_Crate(Building->GetMapCoords(), (PowerupEffects)CrateType);
+	Debug::Log("Building[%s] to crate [%d] succes ? [%d] \n", pBldType->ID, CrateType, Success);
+	R->AL(Success);
+
+	return 0x442226;
+}
+
+//Shroud easy to handle without breaking everything else
+//jump goes to the end of the function because need to replace the animation
+//for more fit with the stuffs
+DEFINE_HOOK(481F87, CellClass_CrateCollected_Shroud_Override, 7)
+{
+	if (CrateTypeClass::Array.empty())
+	{
+		Debug::Log("CrateType is empty return 0 \n");
+		return 0;
+	}
+
+	GET(TechnoClass*, Collector, EAX);
+
+	bool pass = false;//return default
+
+	if (auto const pHouse = Collector->Owner)
+	{
+		auto& CrateType = CrateTypeClass::Array;
+		//accesing thru Powerups::Anim causing access violation crash
+		auto Powerups_Animarray = reinterpret_cast<int*>(0x81DAD8);
+
+		CellStruct BufferCellStruct = { 0,0 };
+		BufferCellStruct.X = static_cast<short>(R->EDX());
+		BufferCellStruct.Y = static_cast<short>(R->ECX());
+
+		auto Cell = MapClass::Instance->TryGetCellAt(BufferCellStruct);
+		auto height = MapClass::Instance->GetCellFloorHeight(CellClass::Cell2Coord(BufferCellStruct));
+		auto animCoord = CellClass::Cell2Coord(BufferCellStruct, 200 + height);
+
+		auto& Randomizer = ScenarioClass::Instance->Random;
+		auto& Rules = RulesClass::Instance;
+		auto dice = Randomizer.RandomRanged(0, CrateType.size() - 1); //Pick  random from array
+		auto pickedupDice = Randomizer.RandomRanged(0, Rules->CrateMaximum);
+
+		//chance 0 cause crash fix
+		bool allowspawn = abs(CrateType[dice]->Chance.Get()) < pickedupDice && abs(CrateType[dice]->Chance.Get()) > 0;
+
+		if (CellExt::ExtMap.Find(Cell)->NewPowerups > -1)
+		{
+			dice = abs(CellExt::ExtMap.Find(Cell)->NewPowerups);
+			dice = dice - 1;
+			Debug::Log("Crate type Check cell which to spawn [%d]\n", dice);
+			allowspawn = true; //forced
+		}
+		bool LandTypeEligible = false;
+		auto type = CrateType[dice]->Type.Get();
+		auto pType = CrateType[dice]->Anim.Get();
+		auto pSound = CrateType[dice]->Sound.Get();
+		auto pEva = CrateType[dice]->Eva.Get();
+		bool NotObserver = !pHouse->IsObserver() && !pHouse->IsPlayerObserver();
+		auto isWater = Cell->LandType == LandType::Water && Cell->Tile_Is_Water() && Cell->Tile_Is_Wet();
+		LandTypeEligible = (CrateType[dice]->AllowWater && isWater) || !isWater;
+
+		if (allowspawn && LandTypeEligible)
+		{
+			switch (type)
+			{
+			case 1: //Super Weapon
+			{
+				auto SWIDX = CrateType[dice]->Super.Get();
+				auto pSuper = pHouse->Supers.GetItem(SWIDX);
+
+				if (CrateType[dice]->SuperGrant.Get())
+				{
+					if (pSuper->Grant(true, NotObserver, false))
+					{
+						if (NotObserver && pHouse == HouseClass::Player)
+						{
+							if (MouseClass::Instance->AddCameo(AbstractType::Special, SWIDX))
+								MouseClass::Instance->RepaintSidebar(1);
+						}
+					}
+				}
+				else
+				{
+					//Abused By AI ?
+					pSuper->IsCharged = true;
+					pSuper->Launch(Cell->MapCoords, true);
+
+				}
+				pass = true;
+			}
+			break;
+			case 2: //Weapon
+			{
+				auto Weapon = CrateType[dice]->WeaponType.Get();
+				if (Weapon && (!Weapon->Warhead->MindControl || !Weapon->LimboLaunch))
+				{
+					if (auto pBulletC = Weapon->Projectile->CreateBullet(Cell, Collector, Weapon->Damage, Weapon->Warhead, Weapon->Speed, Weapon->Bright))
+					{
+						pBulletC->SetWeaponType(Weapon);
+						pBulletC->SetLocation(CellClass::Cell2Coord(BufferCellStruct));
+						if (Weapon->Projectile->ShrapnelCount > 0)
+							pBulletC->Shrapnel();
+						pBulletC->Detonate(CellClass::Cell2Coord(BufferCellStruct));
+						pBulletC->Remove();
+						pBulletC->UnInit();
+
+						pass = true;
+					}
+				}
+			}
+			break;
+			case 3: //case 3 is overrided reshroud
+			{
+				if (!pType)
+					pType = AnimTypeClass::Array->GetItem(Powerups_Animarray[7]);
+				MapClass::Instance->Reshroud(pHouse);
+				pass = true;
+			}
+			break;
+			case 4: //random Unit
+			{
+				if (auto Unit = CrateType[dice]->Unit.GetElements())
+				{
+					auto const pUnit = static_cast<TechnoClass*>(Unit.at(Randomizer.Random() % Unit.size())->CreateObject(pHouse));
+
+					auto TrygeteligibleArea = TechnoExt::GetPutLocation(CellClass::Cell2Coord(BufferCellStruct), 6); //try to not get stuck
+					auto facing = static_cast<short>(Randomizer.RandomRanged(0, 255));
+					++Unsorted::IKnowWhatImDoing;
+					auto succes = pUnit->Put(TrygeteligibleArea, facing);
+					--Unsorted::IKnowWhatImDoing;
+
+					if (!succes)
+					{
+						GameDelete(pUnit);
+					}
+					else
+					{
+						if (!pUnit->InLimbo)
+						{
+							pUnit->NeedsRedraw = true;
+							pUnit->Update();
+							pUnit->QueueMission(Mission::Guard, 1);
+							pUnit->NextMission();
+						}
+
+						if (NotObserver)
+							pHouse->RecheckTechTree = true;
+
+						pass = true;
+					}
+				}
+			}
+			break;
+			case 5: //Money
+			{
+				if (!pType)
+					pType = AnimTypeClass::Array->GetItem(Powerups_Animarray[0]);
+				if (!pSound)
+					pSound = Rules->CrateMoneySound;
+
+				auto MoneyMin = abs(CrateType[dice]->MoneyMin.Get());
+				auto MoneyMax = abs(CrateType[dice]->MoneyMax.Get());
+				if (MoneyMax > MoneyMin)
+				{
+					pHouse->GiveMoney(Randomizer.RandomRanged(MoneyMin, MoneyMax));
+					pass = true;
+				}
+			}
+			break;
+			case 6: //Heall All
+			{
+				if (!pType)
+					pType = AnimTypeClass::Array->GetItem(Powerups_Animarray[2]);
+				if (!pSound)
+					pSound = Rules->HealCrateSound;
+
+				for (auto const& pTechno : *TechnoClass::Array)
+				{
+					bool Allowed = !pTechno->InLimbo || !pTechno->TemporalTargetingMe || !pTechno->IsSinking || !pTechno->IsCrashing;
+
+					if (pTechno->Owner == pHouse && pTechno->IsAlive && Allowed)
+					{
+						auto damage = (pTechno->GetTechnoType()->Strength * pTechno->Health) * -1;
+
+						pTechno->ReceiveDamage(&damage, 0, Rules->C4Warhead, Collector, true, true, pHouse);
+						pTechno->Flash(100);
+					}
+				}
+
+				pass = true;
+			}
+			break;
+			default:
+				break;
+			}
+
+			if (pass)
+			{
+				if (pType)
+					if (auto anim = GameCreate<AnimClass>(pType, animCoord))
+						anim->Owner = pHouse;
+
+				if (pSound)
+					VocClass::PlayAt(pSound, animCoord, nullptr);
+
+				if (pEva && pHouse->ControlledByPlayer() && NotObserver)
+					VoxClass::PlayAtPos(pEva, &animCoord);
+			}
+		}
+		else
+		{
+			return 0x481AD3; //reroll it instead
+			//reroll may cause game to freeze if only Shroud crate is activated (chance > 0)
+			//need atlast 2 (Shroud + other)
+			//Possible doubling Score for multiplayer play which is undesirable side affects
+
+			// Send money instead
+			//if (!pType)
+			//	pType = AnimTypeClass::Array->GetItem(Powerups_Animarray[0]);
+			//	  if (!pSound)
+			//		  pSound = Rules->CrateMoneySound;
+			//
+			//	  pHouse->GiveMoney(Rules->SoloCrateMoney);
+			//
+			//	  pass = true;
+		}
+
+	}
+
+	return pass ? 0x483389 : 0x0;
+}
+*/
+
+//DEFINE_HOOK(0x4C762A, EventClass_Execute_Idle, 0x6)
+//{
+//	GET(TechnoClass*, pTech, ESI);
+//
+//	if(pTech->GetHeight() > 0 && !pTech->IsInAir()){
+//		if (auto pBld = pTech->GetCell()->GetBuilding()) {
+//			if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->Firestorm_Wall)
+//				// this can be possible fix
+//				// but the satter not really desirable
+//				// which make techno still stand on top of the firestrom wall
+//				// idk , need more deep fix i guess
+//				pTech->Scatter(pTech->Location, true, true);
+//		}
+//	}
+//
+//	return 0x0;
+//}
+
+//int AdjustDamageWithArmor(int damage, WarheadTypeClass* pWH, ObjectClass* pTarget, int distance) {
+//	return MapClass::ModifyDamage(damage, pWH, TechnoExtData::GetArmor(pTarget), distance);
+//}
+
+//handled on ObjectClass_ReceiveDamage_Handled
+//DEFINE_HOOK(0x5F53F7, ObjectClass_ReceiveDamage_Adjust, 0x5)
+//{
+//	GET(ObjectClass*, pThis, ESI);
+//	GET(int, distance, EAX);
+//	GET(int*, pDamage, EDI);
+//	GET_STACK(WarheadTypeClass*, pWH, 0x24 + 0xC);
+//
+//	R->EAX(AdjustDamageWithArmor(*pDamage, pWH, pThis, distance));
+//	return 0x5F5414;
+//}
+
+// for berzerk , unused 
+//DEFINE_HOOK(0x701D4D, TechnoClass_ReceiveDamage_Adjust, 0x6)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//	GET(WarheadTypeClass*, pWH, EBP);
+//	GET(int*, pDamage, EBX);
+//	R->EAX(AdjustDamageWithArmor(*pDamage , pWH , pThis , 0));
+//	return 0x701D69;
+//}
+
+
+//DEFINE_HOOK(0x72593E, Game_InvalidatePointers_AllAbstractptrVectorCrash, 0x5)
+//{
+//	GET(int, AllAbsCount, EAX);
+//	GET(AbstractClass*, pTarget, ESI);
+//	GET(bool, bRemoved, EDI);
+//
+//	for (int i = 0; i < AllAbsCount; ++i) {
+//		AbstractClass::Array->Items[i]->PointerExpired(pTarget, bRemoved);
+//	}
+//
+//	return 0x725961;
+//}
+
+
+//DEFINE_HOOK(0x4191AF, AircraftClass_ReceiveMessage_RunAway_StackOverflow, 0x6)
+//{
+//	GET(AircraftClass*, pThis, ESI);
+//	GET(TechnoClass*, pSender, EDI);
+//	GET_STACK(AbstractClass*, last, 0x1C);
+//	GET(RadioCommand, command, EBP);
+//
+//	pThis->QueueMission(Mission::Move, false);
+//	const auto lZ = pThis->GoodLandingZone_();
+//	pThis->SetDestination(lZ, true);
+//	pThis->SendToFirstLink(RadioCommand::NotifyUnlink);
+//	R->EAX(pThis->FootClass::ReceiveCommand(pSender, command, last));
+//	return 0x4191EB;
+//}
+
+//DEFINE_HOOK(0x4190B0, AircraftClass_ReceiveMessage_RunAway_StackOverflow_entryPointLog, 0x5)
+//{
+//	GET(AircraftClass*, pThis, ECX);
+//	GET_STACK(RadioCommand, command, 0x8);
+//	GET_STACK(DWORD, address, 0x0);
+//
+//	if (command == RadioCommand::NotifyLeave)
+//		Debug::Log("Aircraft[%s - 0x%x ,Receive NotifyLeave RadioCommand From[0x%x]\n", pThis->Type->ID, pThis, address);
+//
+//	return 0x0;
+//}
+
+//DEFINE_HOOK(0x4F9A56, HouseClass_IsAlliedWithOffendingPtrIsNotHouse, 0x6)
+//{
+//	GET(HouseClass*, pThis, EAX);
+//	GET(HouseClass*, pOffender, ECX);
+//
+//	if (!pOffender || VTable::Get(pOffender) != HouseClass::vtable){
+//		GET_STACK(unsigned int, callerAddress, 0x0);
+//		Debug::Log("[%08x]Trying to get Ally from Invalid House Pointer[%08x]!\n", callerAddress, pOffender);
+//		return 0x4F9A8A;
+//	}
+//
+//	return pThis == pOffender ? 0x4F9A5E : 0x4F9A63;
+//}
+
+//DEFINE_HOOK(0x4CED12 , FlyLocomotionClass_UpdateLanding_Finish, 8)
+//{
+//	if (R->EDI<int>() <= 104)
+//		return 0;
+//
+//	R->ESI<FlyLocomotionClass*>()->IsTakingOff = false;
+//	R->Stack(0x13, 1);
+//
+//	return 0x4CED2D;
+//}
+
+//int __fastcall UnitClass_MI_Open_(UnitClass* pThis)
+//{
+//	return 450;
+//}
+//
+//DEFINE_JUMP(VTABLE , 0x7F5EC4 , GET_OFFSET(UnitClass_MI_Open_))
+//
+//int __fastcall InfantryClass_MI_Open_(InfantryClass* pThis)
+//{
+//	return 450;
+//}
+//
+//DEFINE_JUMP(VTABLE , 0x7EB2AC , GET_OFFSET(InfantryClass_MI_Open_))
+
+//DEFINE_HOOK(0x4DEFF1 , FootClass_FindNearestBuildingOfType_OverFlowFix, 8)
+//{
+//	GET(FootClass*, pFoot, EDI);
+//	GET(BuildingClass*, pDock, ESI);
+//	GET(int*, pDest, EBX);
+//
+//	const int distance = pFoot ? int(pFoot->GetCoords().DistanceFrom_(pDock->GetCoords())) : 0;
+//
+//	if (*pDest == -1 || distance > *pDest || pFoot->IsTeamLeader)
+//	{
+//		R->Stack(0x14, pFoot);
+//		*pDest = distance;
+//	}
+//
+//	return 0x4DF014;
+//}
+
+//DEFINE_HOOK(0x40A463, AudioDriverStart_NonamePrefill_PeekBuffer, 0x5)
+//{
+//	GET(AudioDriverChannelTag*, pTag, ECX);
+//
+//	if (!AudioDriverChannelTag::noname_prefil(pTag, pTag->dwBufferBytes)) {
+//		return 0x40A5CB //0x40A470
+//			;
+//	}
+//
+//	return 0x40A5CB ;
+//}
+
+//called always 0040276a
+//DEFINE_HOOK(0x40A340, AudioDriverStart_Log, 0x9)
+//{
+//	GET(AudioChannelTag*, pTag, ECX);
+//	GET_STACK(uintptr_t, callerAddress, 0x0);
+//
+//	Debug::Log(__FUNCTION__" [%x] , Caller: %08x \n", pTag ,callerAddress);
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x40A470, AudioDriverStart_Log_Failed, 0x5)
+//{
+//	GET(AudioDriverChannelTag* , pTag , EBX);
+//
+//	Debug::Log(__FUNCTION__" [%x]\n", pTag);
+//	return 0x0;
+//}
+
+//int InfantryClass_Mission_Harvest(InfantryClass* pThis)
+//{
+//	if (pThis->Type->Slaved)
+//	{
+//		if (pThis->Type->Storage)
+//		{
+//			auto pCell = pThis->GetCell();
+//			if (!pCell->HasTiberium() || pThis->GetStoragePercentage() == 1.0)
+//			{
+//				pThis->PlayAnim(DoType::Ready);
+//				pThis->QueueMission(Mission::Guard, false);
+//				return 1;
+//			}
+//			else
+//			{
+//				if (pThis->SequenceAnim != DoType::Shovel)
+//				{
+//					pThis->PlayAnim(DoType::Shovel);
+//				}
+//
+//				auto tiberium = pCell->GetContainedTiberiumIndex();
+//				auto curamount = pThis->Type->Storage - pThis->Tiberium.GetTotalAmount();
+//				const auto reduceamount = curamount <= 1.0 ? curamount : 1.0;
+//
+//				pCell->ReduceTiberium(reduceamount);
+//				pThis->Tiberium.AddAmount(reduceamount, tiberium);
+//				return pThis->Type->HarvestRate;
+//			}
+//		}
+//	}
+//
+//	if (!pThis->Destination)
+//		return 1;
+//
+//	auto pCell = pThis->GetCell();
+//	if (pThis->Type->ResourceGatherer && pThis->GetStoragePercentage() < 1.0 && pCell->HasTiberium())
+//	{
+//		auto tiberium = pCell->GetContainedTiberiumIndex();
+//	}
+//}
+
+//DEFINE_HOOK(0x54C531, JumpjetLocomotionClass_State3_DeployToLand_Convert, 0x6)
+//{
+//	GET(CellClass*, pCell, EAX);
+//	GET(FootClass*, pLinked, EDI);
+//
+//	if (auto pUnit = specific_cast<UnitClass*>(pLinked)) {
+//
+//		if (!pUnit->Type->DeployToLand)
+//			return 0x0;
+//
+//		if(MapClass::Instance->IsWithinUsableArea(pCell->MapCoords , true)){
+//			if (auto pConvert = TechnoTypeExtContainer::Instance.Find(pUnit->Type)->Convert_Deploy) {
+//				if (!MapClass::Instance->CanMoveHere(pCell->MapCoords, 1, 1, pConvert->SpeedType, -1, pConvert->MovementZone, -1, false, false))
+//					return 0x54C53B;
+//				else
+//					return 0x54C544;
+//			}
+//		}
+//	}
+//
+//	return 0x0;
+//}
+
+//DEFINE_HOOK(0x6F917D, TechnoClass_GreatestThreat_Occupy, 0x8)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//
+//	if (pThis->WhatAmI() == InfantryClass::AbsID && AresGarrisonedIn(pThis)) {
+//		return 0x6F9193;
+//	}
+//
+//	return 0x0;
+//}
+
+// Sink sound //4DAC7B
+//todo :
+
+// https://bugs.launchpad.net/ares/+bug/1840387
+// https://bugs.launchpad.net/ares/+bug/1777260
+// https://bugs.launchpad.net/ares/+bug/1324156
+// https://bugs.launchpad.net/ares/+bug/1911093
+// https://blueprints.launchpad.net/ares/+spec/set-veterancy-of-paradropped-units
+// https://bugs.launchpad.net/ares/+bug/1525515
+// https://bugs.launchpad.net/ares/+bug/896353
+
+//700E47
+//740031
+//700DA8
+// https://bugs.launchpad.net/ares/+bug/1384794
+
+// TODO :
+//  - Ice stuffs using WW pointer heap logic
+//#include <ExtraHeaders/Placeholders/ExtraAudio.h>
+
+//DEFINE_HOOK(0x407B60, AudioStreamer_Open_LogFileName, 0x5)
+//{
+//	GET(const char*, pName, EDX);
+//	GET_STACK(uintptr_t, callerAddress, 0x0);
+//
+//	Debug::Log(__FUNCTION__"[%s] Caller: %08x \n", pName , callerAddress);
+//
+//	return 0x0;
+//}
+
+//7F5DA0 unit
+//7EB188 inf
+//7E3FEC bld
+//DEFINE_HOOK(0x41BE80, ObjectClass_DrawRadialIndicator, 0x3)
+//{
+//	GET(ObjectClass*, pThis, ECX);
+//	GET_STACK(int, var, 0x4);
+//	ObjectClassExt::_DrawFootRadialIndicator(pThis ,0,var);
+//	return 0x0;
+//}
+
+//DEFINE_JUMP(LJMP, 0x41BE80 ,GET_OFFSET(ObjectClassExt::_DrawFootRadialIndicator))
+
+//https://bugs.launchpad.net/ares/+bug/1577493
+// stack 0x8 seems occupied by something else ?
+//DEFINE_HOOK(0x4684FF, BulletClass_InvalidatePointer_CloakOwner, 0xA)
+//{
+//	GET(BulletClass*, pThis, ESI);
+//	GET_STACK(bool, bRemove, 0x8);
+//	GET(AbstractClass*, pTarget, EDI);
+//	GET(TechnoClass*, pOwner, EAX);
+//   //nope , the third ags , seems not used consistenly , it can cause dangling pointer
+//	if (bRemove && pOwner == pTarget)
+//		pThis->Owner = nullptr;
+//
+//	return 0x468509;
+//}
