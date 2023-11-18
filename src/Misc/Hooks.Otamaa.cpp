@@ -575,7 +575,7 @@ DEFINE_HOOK(0x703819, TechnoClass_Cloak_Deselect, 0x6)
 	enum { Skip = 0x70383C, CheckIsSelected = 0x703828 };
 
 	return R->ESI<TechnoClass*>()->Owner->IsControlledByHuman()
-		? Skip : CheckIsSelected;
+		? CheckIsSelected : Skip;
 }
 
 DEFINE_HOOK(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
@@ -588,6 +588,9 @@ DEFINE_HOOK(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
 	return pTypeExt->AllowFire_IroncurtainedTarget.Get(Allow)
 		? BypassCheck : ContinueCheck;
 }
+
+static_assert(offsetof(HouseClass, IsHumanPlayer) == 0x1EC, "ClassMember Shifted !");
+static_assert(offsetof(HouseClass, IsInPlayerControl) == 0x1ED, "ClassMember Shifted !");
 
 DEFINE_HOOK(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
 {
@@ -603,21 +606,22 @@ DEFINE_HOOK(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
 	GET(TechnoTypeClass* const, pType, EAX);
 
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	bool DefaultCanPassive = pType->CanPassiveAquire;
-	if (pTypeExt->PassiveAcquire_AI.isset()
-		&& pThis->Owner
-		&& !pThis->Owner->IsControlledByHuman_()
-		&& !pThis->Owner->IsNeutral())
-	{
-		DefaultCanPassive =  pTypeExt->PassiveAcquire_AI.Get();
+	const auto owner = pThis->Owner;
+
+	if (pTypeExt->PassiveAcquire_AI.isset()) { 
+		if(owner
+			&& !owner->Type->MultiplayPassive
+			&& !owner->IsControlledByHuman()
+			) {
+
+			R->CL(pTypeExt->PassiveAcquire_AI.Get());
+			return 0x709202;
+		}
 	}
 
-	if(pType->Naval && pTypeExt->CanPassiveAquire_Naval.isset()) {
-		DefaultCanPassive = pTypeExt->CanPassiveAquire_Naval.Get();
-	}
-
-	return 	DefaultCanPassive ?	ContinueCheck : CantPassiveAcquire;
-	//return Continue;
+	R->CL((pType->Naval && pTypeExt->CanPassiveAquire_Naval.isset()) ?
+		pTypeExt->CanPassiveAquire_Naval.Get() : pType->CanPassiveAquire);
+	return 0x709202;
 }
 
 DEFINE_HOOK(0x45743B, BuildingClass_Infiltrated_StoleMoney_AI, 0xA)
@@ -655,7 +659,7 @@ DEFINE_HOOK(0x6F8260, TechnoClass_EvalObject_LegalTarget_AI, 0x6)
 
 	if (pTypeExt->AI_LegalTarget.isset())
 	{
-		if (pThis->Owner && pThis->Owner->IsControlledByHuman_())
+		if (pThis->Owner && pThis->Owner->IsControlledByHuman())
 			return Continue;
 
 		return pTypeExt->AI_LegalTarget.Get() ?
@@ -844,7 +848,6 @@ DEFINE_HOOK(0x4DA64D, FootClass_Update_IsInPlayField, 0x6)
 	GET(UnitTypeClass* const, pType, EAX);
 	return pType->BalloonHover || pType->JumpJet ? 0x4DA655 : 0x4DA677;
 }
-
 
 //DEFINE_HOOK(0x51D43F, InfantryClass_Scatter_Process, 0x6)
 //{
@@ -1594,7 +1597,7 @@ DEFINE_HOOK(0x4FB7CA, HouseClass_RegisterJustBuild_CreateSound_PlayerOnly, 0x6) 
 				pTechno->QueueVoice(pTechnoTypeExt->VoiceCreate);
 			else
 			{
-				if(pThis->IsControlledByHuman_() && !pThis->IsCurrentPlayerObserver())
+				if(pThis->IsControlledByHuman() && !pThis->IsCurrentPlayerObserver())
 					VocClass::PlayAt(pTechnoTypeExt->VoiceCreate, pTechno->Location);
 			}
 		}
@@ -1907,19 +1910,19 @@ DEFINE_HOOK(0x740015, UnitClass_WhatAction_NoManualEject, 0x6)
 	return TechnoTypeExtContainer::Instance.Find(pType)->NoManualEject.Get() ? 0x7400F0 : 0x0;
 }
 
-DEFINE_HOOK(0x711F0F, TechnoTypeClass_GetCost_AICostMult, 0x8)
-{
-	GET(HouseClass* const, pHouse, EDI);
-	GET(TechnoTypeClass* const, pType, ESI);
-
-	double result = int(pType->GetCost() * pHouse->GetHouseCostMult(pType) * pHouse->GetHouseTypeCostMult(pType));
-
-	if(!pHouse->IsControlledByHuman_())
-		result *= RulesExtData::Instance()->AI_CostMult;
-
-	R->EAX(result);
-	return 0x711F46;
-}
+// DEFINE_HOOK(0x711F0F, TechnoTypeClass_GetCost_AICostMult, 0x8)
+// {
+// 	GET(HouseClass* const, pHouse, EDI);
+// 	GET(TechnoTypeClass* const, pType, ESI);
+//
+// 	double result = int(pType->GetCost() * pHouse->GetHouseCostMult(pType) * pHouse->GetHouseTypeCostMult(pType));
+//
+// 	if(!pHouse->IsControlledByHuman_())
+// 		result *= RulesExtData::Instance()->AI_CostMult;
+//
+// 	R->EAX(result);
+// 	return 0x711F46;
+// }
 
 DEFINE_HOOK(0x422A59, AnimClass_DTOR_DoNotClearType, 0x6)
 {
@@ -2820,7 +2823,7 @@ public:
 	bool Allocated { false };
 };
 
-DEFINE_HOOK(0x4AD33E, DisplayClass_ReadINI_IsoMapPack5_Limit, 0x5)
+DEFINE_STRONG_HOOK(0x4AD33E, DisplayClass_ReadINI_IsoMapPack5_Limit, 0x5)
 {
 	LEA_STACK(XSurface*, pSurface, 0x134 - 0x124);
 	Game::CallBack();
@@ -3550,24 +3553,24 @@ DEFINE_HOOK(0x6DEA37 , TAction_Execute_Win, 6)
 	}
 }
 
-DEFINE_HOOK(0x4D54DD, FootClass_Mi_Hunt_NoPath, 6)
-{
-	GET(FootClass*, pThis, ESI);
-
-	const auto pOwner = pThis->Owner;
-	if (!pOwner->IsControlledByHuman_()
-		&& !(Unsorted::CurrentFrame() % 450)
-		&& pThis->CurrentMapCoords == pThis->LastMapCoords
-		&& !pThis->GetTechnoType()->ResourceGatherer
-		)
-	{
-		pThis->SetDestination(nullptr, true);
-		pThis->SetTarget(nullptr);
-		pThis->TargetAndEstimateDamage(&pThis->Location, ThreatType::Range);
-	}
-
-	return 0x0;
-}
+// DEFINE_HOOK(0x4D54DD, FootClass_Mi_Hunt_NoPath, 6)
+// {
+// 	GET(FootClass*, pThis, ESI);
+//
+// 	const auto pOwner = pThis->Owner;
+// 	if (!pOwner->IsControlledByHuman_()
+// 		&& !(Unsorted::CurrentFrame() % 450)
+// 		&& pThis->CurrentMapCoords == pThis->LastMapCoords
+// 		&& !pThis->GetTechnoType()->ResourceGatherer
+// 		)
+// 	{
+// 		pThis->SetDestination(nullptr, true);
+// 		pThis->SetTarget(nullptr);
+// 		pThis->TargetAndEstimateDamage(&pThis->Location, ThreatType::Range);
+// 	}
+//
+// 	return 0x0;
+// }
 
 DEFINE_HOOK(0x4CD747, FlyLocomotionClass_UpdateMoving_OutOfMap, 6)
 {
@@ -3868,7 +3871,6 @@ DEFINE_HOOK(0x6FFD25, TechnoClass_PlayerAssignMission_Capture_InfantryToBld, 0xA
 }
 
 static_assert(offsetof(TechnoClass, Airstrike) == 0x294, "ClassMember Shifted !");
-
 
 DEFINE_HOOK_AGAIN(0x4F9A10, HouseClass_IsAlliedWith, 0x6)
 DEFINE_HOOK_AGAIN(0x4F9A50, HouseClass_IsAlliedWith, 0x6)

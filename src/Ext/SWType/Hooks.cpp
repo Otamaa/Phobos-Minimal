@@ -8,7 +8,6 @@
 #include <Ext/WeaponType/Body.h>
 #include "Body.h"
 
-#include <NetworkEvents.h>
 #include <CCToolTip.h>
 
 #include <Ares_TechnoExt.h>
@@ -1385,11 +1384,11 @@ DEFINE_OVERRIDE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
 	// this method iterates over every available SW and checks
 	// whether it should be fired automatically. the original
 	// method would abort if this house is human-controlled.
-	bool AIFire = pThis->IsControlledByHuman();
+	bool humanControlled = pThis->IsControlledByHuman();
 
 	for (const auto& pSuper : pThis->Supers) {
 		if (pSuper->IsCharged && pSuper->ChargeDrainState != ChargeDrainState::Draining) {
-			if (!AIFire || SWTypeExtContainer::Instance.Find(pSuper->Type)->SW_AutoFire) {
+			if (!humanControlled || SWTypeExtContainer::Instance.Find(pSuper->Type)->SW_AutoFire) {
 				SWTypeExtData::TryFire(pSuper, false);
 			}
 		}

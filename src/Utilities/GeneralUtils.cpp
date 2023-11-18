@@ -2,8 +2,6 @@
 #include "Debug.h"
 #include <ScenarioClass.h>
 #include <Conversions.h>
-#include <Networking.h>
-#include <NetworkEvents.h>
 #include <VocClass.h>
 
 #include <Utilities/Cast.h>
@@ -13,6 +11,8 @@
 #include <TranslateFixedPoints.h>
 
 #include <Locomotor/CLSIDs.h>
+
+#include "EventClass.h"
 
 bool GeneralUtils::IsValidString(const char* str)
 {
@@ -84,14 +84,8 @@ const bool GeneralUtils::ProduceBuilding(HouseClass* pOwner, int idxBuilding)
 				if (pOwner->GetPrimaryFactory(AbstractType::Building, false, pBuilding->BuildCat))
 					return false;
 
-				NetworkEvent vEvent {};
-
-				VocClass::PlayGlobal(RulesClass::Instance->GUIBuildSound, Panning::Center, 1.0);
-				vEvent.FillEvent_ProduceAbandonSuspend(
-					pOwner->ArrayIndex, NetworkEventType::Produce, pItem->WhatAmI(), pItem->GetArrayIndex(), pItem->Naval
-				);
-
-				Networking::AddEvent(&vEvent);
+				EventClass vEvent { pOwner->ArrayIndex , EventType::PRODUCE , pItem->WhatAmI(), pItem->GetArrayIndex(), pItem->Naval };
+				EventClass::AddEvent(&vEvent);
 
 				return true;
 			}

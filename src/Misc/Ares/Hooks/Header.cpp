@@ -11,8 +11,6 @@
 #include <SlaveManagerClass.h>
 #include <SpawnManagerClass.h>
 #include <TerrainTypeClass.h>
-#include <NetworkEvents.h>
-#include <Networking.h>
 #include <Notifications.h>
 
 #include <Base/Always.h>

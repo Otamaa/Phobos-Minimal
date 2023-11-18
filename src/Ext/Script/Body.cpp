@@ -1329,73 +1329,49 @@ void ScriptExtData::TeamWeightReward(TeamClass* pTeam, double award = 0)
 
 void ScriptExtData::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 {
-	if (idxScriptsList <= 0)
+	if (idxScriptsList < 0)
 		idxScriptsList = pTeam->CurrentScript->GetCurrentAction().Argument;
 
-	bool changeFailed = true;
-
-	if (idxScriptsList >= 0)
+	const auto& scriptList = RulesExtData::Instance()->AIScriptsLists;
+	if ((size_t)idxScriptsList < scriptList.size())
 	{
+		const auto& objectsList = scriptList[idxScriptsList];
 
-//		if (IS_SAME_STR_(pTeam->CurrentScript->Type->ID, "NWAISC39-G"))
-//			Debug::Log("HereIam\n");
-
-		const auto& scriptList = RulesExtData::Instance()->AIScriptsLists;
-		if ((size_t)idxScriptsList < scriptList.size())
+		if (!objectsList.empty())
 		{
-			const auto& objectsList = scriptList[idxScriptsList];
+			int IdxSelectedObject = ScenarioClass::Instance->Random.RandomFromMax(objectsList.size() - 1);
 
-			if (!objectsList.empty())
+			ScriptTypeClass* pNewScript = objectsList[IdxSelectedObject];
+
+			if (pNewScript->ActionsCount > 0)
 			{
-				int IdxSelectedObject = ScenarioClass::Instance->Random.RandomFromMax(objectsList.size() - 1);
-
-				ScriptTypeClass* pNewScript = objectsList[IdxSelectedObject];
-
-				if (pNewScript->ActionsCount > 0)
-				{
-					changeFailed = false;
-					TeamExtContainer::Instance.Find(pTeam)->PreviousScript =
-					std::exchange(pTeam->CurrentScript , GameCreate<ScriptClass>(pNewScript));
-					// Ready for jumping to the first line of the new script
-					pTeam->CurrentScript->CurrentMission = -1;
-					pTeam->StepCompleted = true;
+				TeamExtContainer::Instance.Find(pTeam)->PreviousScript =
+				std::exchange(pTeam->CurrentScript , GameCreate<ScriptClass>(pNewScript));
+				// Ready for jumping to the first line of the new script
+				pTeam->CurrentScript->CurrentMission = -1;
+				pTeam->StepCompleted = true;
 
 					return;
-				}
-				else
-				{
-					pTeam->StepCompleted = true;
+			}
+			else
+			{
+				pTeam->StepCompleted = true;
 					ScriptExtData::Log("AI Scripts - PickRandomScript: [%s] Aborting Script change because [%s] has 0 Action scripts!\n",
 						pTeam->Type->ID,
 						pNewScript->ID
-					);
+				);
 
-					return;
-				}
+				return;
 			}
 		}
-		else
-		{
-			pTeam->StepCompleted = true;
-			ScriptExtData::Log("AI Scripts - PickRandomScript: [%s] [%s] Failed to change the Team Script with index [%d]!\n",
-				pTeam->Type->ID,
-				pTeam->CurrentScript->Type->ID,
-				idxScriptsList
-			);
-
-			return;
-		}
 	}
 
-	// This action finished
-	if (changeFailed)
-	{
-		pTeam->StepCompleted = true;
-		ScriptExtData::Log("AI Scripts - PickRandomScript: [%s] [%s] Failed to change the Team Script with a random one!\n",
-			pTeam->Type->ID,
-			pTeam->CurrentScript->Type->ID
-		);
-	}
+	pTeam->StepCompleted = true;
+	ScriptExtData::Log("AI Scripts - PickRandomScript: [%s] [%s] Failed to change the Team Script with index [%d]!\n",
+		pTeam->Type->ID,
+		pTeam->CurrentScript->Type->ID,
+		idxScriptsList
+	);
 }
 
 void ScriptExtData::SetCloseEnoughDistance(TeamClass* pTeam, double distance = -1)

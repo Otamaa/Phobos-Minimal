@@ -431,6 +431,15 @@ EXPORT_FUNC(funcname)\
 #define DEFINE_STRONG_OVERRIDE_HOOK_AGAIN(hook, funcname, size) \
 decl_override_hook(hook, funcname, size)
 
+#define DEFINE_STRONG_HOOK(hook,funcname,size) \
+declhook(hook, funcname, size) \
+EXPORT_FUNC(funcname)
+
+// Does the same as DEFINE_HOOK but no function opening, use for injgen-declaration when repeating the same hook at multiple addresses.
+// CAUTION: funcname must be the same as in DEFINE_HOOK.
+#define DEFINE_STRONG_HOOK_AGAIN(hook, funcname, size) \
+declhook(hook, funcname, size)
+
 #pragma endregion
 
 #ifndef DEBUG_HOOK

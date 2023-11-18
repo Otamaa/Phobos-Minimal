@@ -2260,7 +2260,7 @@ DEFINE_OVERRIDE_HOOK(0x44E61E, BuildingClass_Mi_Open_GateUp, 6)
 DEFINE_OVERRIDE_HOOK(0x4509B4, BuildingClass_UpdateRepair_Funds, 7)
 {
 	GET(BuildingClass*, pThis, ESI);
-	return !pThis->Owner->IsControlledByHuman_() || RulesExtData::Instance()->RepairStopOnInsufficientFunds
+	return !pThis->Owner->IsControlledByHuman() || RulesExtData::Instance()->RepairStopOnInsufficientFunds
 		? 0x0 : 0x4509BB;
 }
 

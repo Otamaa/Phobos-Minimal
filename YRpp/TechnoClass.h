@@ -31,7 +31,7 @@ class ParticleSystemClass;
 class SpawnManagerClass;
 class WaveClass;
 class EBolt;
-struct NetworkEvent;
+class EventClass;
 class SlaveManagerClass;
 class CaptureManagerClass;
 class RadBeam;
@@ -520,7 +520,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	int sub_70DE00(int State)
 		{ JMP_THIS(0x70DE00); }
 
-	int __fastcall ClearPlanningTokens(NetworkEvent* pEvent)
+	int __fastcall ClearPlanningTokens(EventClass* pEvent)
 		{ JMP_STD(0x6386E0); }
 
 	void SetTargetForPassengers(AbstractClass* pTarget)

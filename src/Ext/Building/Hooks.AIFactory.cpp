@@ -512,7 +512,7 @@ DEFINE_OVERRIDE_HOOK(0x4FEEE0, HouseClass_AI_InfantryProduction, 6)
 		}
 		else if (auto const size = int(BestChoices.size()))
 		{
-			int RandomChoice = ScenarioClass::Instance->Random.RandomRanged(0, size - 1);
+			int RandomChoice = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
 			pThis->ProducingInfantryTypeIndex = BestChoices[static_cast<unsigned int>(RandomChoice)];
 		}
 		else
@@ -651,7 +651,7 @@ DEFINE_OVERRIDE_HOOK(0x4FF210, HouseClass_AI_AircraftProduction, 6)
 		}
 		else if (auto const size = int(BestChoices.size()))
 		{
-			int RandomChoice = ScenarioClass::Instance->Random.RandomRanged(0, size - 1);
+			int RandomChoice = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
 			pThis->ProducingAircraftTypeIndex = BestChoices[static_cast<unsigned int>(RandomChoice)];
 		}
 		else

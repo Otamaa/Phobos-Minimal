@@ -209,7 +209,7 @@ DEFINE_OVERRIDE_HOOK(0x4D9920, FootClass_SelectAutoTarget_Cloaked, 9)
 {
 	GET(FootClass* const, pThis, ECX);
 
-	if (pThis->Owner->IsControlledByHuman_()
+	if (pThis->Owner->IsControlledByHuman()
 		&& pThis->GetCurrentMission() == Mission::Guard)
 	{
 		auto const pType = pThis->GetTechnoType();

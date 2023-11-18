@@ -860,7 +860,7 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 
 	this->HasCrit = true;
 
-	if (this->Crit_AnimOnAffectedTargets && this->Crit_AnimList.size())
+	if (this->Crit_AnimOnAffectedTargets && !this->Crit_AnimList.empty())
 	{
 		const int idx = this->AttachedToObject->EMEffect || this->Crit_AnimList_PickRandom.Get(this->AnimList_PickRandom) ?
 			ScenarioClass::Instance->Random.RandomFromMax(this->Crit_AnimList.size() - 1) : 0;

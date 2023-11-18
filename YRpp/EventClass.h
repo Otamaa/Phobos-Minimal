@@ -205,6 +205,7 @@ public:
 	static constexpr reference<uint8_t, 0x8208ECu, 46u> const EventLength {};
 
 	static constexpr reference<EventList<0x80>, 0xA802C8> OutList {};
+
 	// If the event is a MegaMission, then add it to this list
 	static constexpr reference<EventList<0x100>, 0xA83ED0> MegaMissionList {};
 	static constexpr reference<EventList<0x4000>, 0x8B41F8> DoList {};
@@ -213,6 +214,7 @@ public:
 	static constexpr reference<DWORD, 0xB04474, 256> const LatestFramesCRC {};
 	static constexpr reference<DWORD, 0xAC51FC> const CurrentFrameCRC {};
 
+
 	static bool AddEvent(const EventClass* pEvent)
 	{
 		if (OutList->Count >= 128)
@@ -220,9 +222,22 @@ public:
 
 		memcpy((OutList->List + OutList->Tail), pEvent, sizeof(EventClass));
 		OutList->Timings[OutList->Tail] = static_cast<int>(Imports::TimeGetTime.get()());
+		OutList->Tail = (OutList->Tail + 1) & 0x7F;
 		++OutList->Count;
-		OutList->Tail = (OutList->Tail + 1) & 127;
 
+		return true;
+	}
+
+	static bool AddEventWithTimeStamp(EventClass* event)
+	{
+		event->Frame = static_cast<DWORD>(Unsorted::CurrentFrame);
+		if (OutList->Count >= 128)
+			return false;
+
+		memcpy((OutList->List + OutList->Tail), event, sizeof(EventClass));
+		OutList->Timings[OutList->Tail] = static_cast<int>(Imports::TimeGetTime.get()());
+		OutList->Tail = (OutList->Tail + 1) & 0x7F;
+		++OutList->Count;
 		return true;
 	}
 
@@ -313,6 +328,21 @@ public:
 	explicit EventClass(int houseIndex, void*/*IPAddressClass*/ ip, char unknown_0)
 	{
 		JMP_THIS(0x4C6C50);
+	}
+
+	/**
+	 * dam girl, you crazy
+	 *
+	 * this gets called when you click-command your objects
+	 * from inside TechnoClass::ClickedMission, where this is the selected object
+	 *
+	 * selfID and selfWhatAmI are results of Pack(this)
+	 * PackedTarget and PackedTargetCell are pointers to the Pack()ed versions of the Target and TargetCell of ClickedMission
+	 */
+	static bool __fastcall CreateClickedMissionEvent
+	(Mission Mission, TargetClass* PackedTarget, int selfID, char selfWhatAmI, TargetClass* PackedTargetCell)
+	{
+		JMP_STD(0x646E90);
 	}
 
 	explicit EventClass(const EventClass& another)

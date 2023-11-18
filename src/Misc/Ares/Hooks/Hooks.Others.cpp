@@ -2776,6 +2776,7 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x4C8FE0, Exception_Handler, 9)
 	//GET(int, code, ECX);
 	GET(LPEXCEPTION_POINTERS, pExs, EDX);
 	if(!Phobos::Otamaa::ExeTerminated){ //dont fire exception twices ,..
+		//i dont know how handle recursive exception
 		ExceptionHandler(pExs);
 		__debugbreak();
 	}
@@ -2812,7 +2813,7 @@ void WriteLog(const ObjectClass* it, int idx, DWORD checksum, FILE* F)
 	CoordStruct crd = it->GetCoords();
 	CellStruct cell = CellClass::Coord2Cell(crd);
 
-	fprintf(F, "; Type: %d (%s); Coords: %d,%d,%d (%d,%d); Health: %d; InLimbo: %u",
+	fprintf(F, "; Type: %d (%s); Coords: %d,%d,%d (%d,%d); Health: %d ; InLimbo: %u",
 		typeIndex, typeID, crd.X, crd.Y, crd.Z, cell.X, cell.Y, it->Health, it->InLimbo);
 }
 
@@ -2820,8 +2821,9 @@ template<>
 void WriteLog(const MissionClass* it, int idx, DWORD checksum, FILE* F)
 {
 	WriteLog<ObjectClass>(it, idx, checksum, F);
-	fprintf(F, "; Mission: %d; StartTime: %d",
-		it->GetCurrentMission(), it->CurrentMissionStartTime);
+	const auto Cur = it->GetCurrentMission();
+	fprintf(F, "; Mission: %s (%d); StartTime: %d",
+		MissionClass::MissionToString(Cur) , Cur, it->CurrentMissionStartTime);
 }
 
 template<>

@@ -35,17 +35,17 @@ public:
 	static bool ObjectClass_IsSelectable(ObjectClass* pThis)
 	{
 		const auto pOwner = pThis->GetOwningHouse();
-		return pOwner 
-			&& pOwner->ControlledByPlayer() 
-			&& pThis->CanBeSelected() 
+		return pOwner
+			&& pOwner->ControlledByPlayer()
+			&& pThis->CanBeSelected()
 			&& pThis->CanBeSelectedNow();
 	}
 
 	// Reversed from Tactical::Select
 	bool IsInSelectionRect(LTRBStruct* pRect, const TacticalSelectableStruct& selectable)
 	{
-		if (selectable.Techno 
-			&& selectable.Techno->IsAlive 
+		if (selectable.Techno
+			&& selectable.Techno->IsAlive
 			&& !selectable.Techno->InLimbo
 			&& selectable.Techno->AbstractFlags & AbstractFlags::Techno
 			)
