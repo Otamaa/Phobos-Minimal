@@ -254,7 +254,7 @@ struct Game
 	static int __fastcall Point2DToDir8(Point2D* pFrom, Point2D* pTo)
 	{ JMP_STD(0x75F230); }
 
-	static AbilityType __fastcall GetAbility(char* pString)
+	static AbilityType __fastcall GetAbility(const char* pString)
 	{ JMP_STD(0x74FEF0); }
 
 	static int __fastcall CellStructToIdx(CellStruct* pCell)

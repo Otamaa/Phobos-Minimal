@@ -24,7 +24,7 @@ DEFINE_OVERRIDE_HOOK(0x415085, AircraftClass_Update_DamageSmoke, 7)
 {
 	GET(AircraftClass*, pThis, ESI);
 
-	auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	AnimTypeClass* pType = pExt->SmokeAnim.Get(RulesExtData::Instance()->DefaultAircraftDamagedSmoke);
 	if(!pType)
@@ -133,13 +133,8 @@ DEFINE_OVERRIDE_HOOK(0x417E16, AircraftClass_GetActionOnObject_Dock, 0x6)
 	GET(BuildingClass* const, pBuilding, EDI);
 
 	// enter and no-enter cursors only if aircraft can dock
-	if (pThis->Type->Dock.FindItemIndex(pBuilding->Type) != -1)
-	{
-		return 0x417E4B;
-	}
-
-	// select cursor
-	return 0x417E7D;
+	// or show select cursor
+	return pThis->Type->Dock.Contains(pBuilding->Type) ? 0x417E4B : 0x417E7D;
 }
 
 DEFINE_OVERRIDE_HOOK(0x413FA3, AircraftClass_Init_Cloakable, 0x5)

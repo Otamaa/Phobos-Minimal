@@ -328,6 +328,17 @@ int BuildingTypeExtData::GetSuperWeaponCount() const
 	return 2 + this->SuperWeapons.size();
 }
 
+SuperClass* BuildingTypeExtData::GetSuperWeaponByIndex(int index, HouseClass* pHouse) const
+{
+	if (auto pSuper = pHouse->Supers.GetItemOrDefault(this->GetSuperWeaponIndex(index))) {
+		if (SWTypeExtContainer::Instance.Find(pSuper->Type)->IsAvailable(pHouse)) {
+			return pSuper;
+		}
+	}
+
+	return nullptr;
+}
+
 int BuildingTypeExtData::GetSuperWeaponIndex(const int index, HouseClass* pHouse) const
 {
 	auto idxSW = this->GetSuperWeaponIndex(index);

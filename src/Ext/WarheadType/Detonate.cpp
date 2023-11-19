@@ -105,8 +105,6 @@ void WarheadTypeExtData::ApplyDirectional(BulletClass* pBullet, TechnoClass* pTa
 
 void WarheadTypeExtData::applyIronCurtain(const CoordStruct& coords, HouseClass* Owner, int damage)
 {
-	CellStruct cellCoords = MapClass::Instance->GetCellAt(coords)->MapCoords;
-
 	if (this->IC_Duration != 0)
 	{
 		// set of affected objects. every object can be here only once.
@@ -595,8 +593,6 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 			if (this->Transact) {
 				this->TransactOnAllUnits(pTargetv, pHouse, pOwner);
 			}
-
-			pTargetv.clear();
 
 		}
 		else

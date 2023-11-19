@@ -50,44 +50,44 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-	inline AnimTypeClass* GetTwinkleAnim() const
+	__forceinline AnimTypeClass* GetTwinkleAnim() const
 	{
 		return this->OreTwinkle.Get(RulesClass::Instance->OreTwinkle);
 	}
 
-	inline int GetTwinkleChance() const
+	__forceinline int GetTwinkleChance() const
 	{
 		return this->OreTwinkleChance.Get(RulesClass::Instance->OreTwinkleChance);
 	}
 
-	inline double GetHealDelay() const
+	__forceinline double GetHealDelay() const
 	{
 		return this->Heal_Delay.Get(RulesClass::Instance->TiberiumHeal);
 	}
 
 	int GetHealStep(TechnoClass* pTechno) const;
 
-	inline int GetDamage() const
+	__forceinline int GetDamage() const
 	{
 		return this->Damage.Get(MinImpl((this->AttachedToObject->Power / 10), 1));
 	}
 
-	inline WarheadTypeClass* GetWarhead() const
+	__forceinline WarheadTypeClass* GetWarhead() const
 	{
 		return this->Warhead.Get(RulesClass::Instance->C4Warhead);
 	}
 
-	inline WarheadTypeClass* GetExplosionWarhead() const
+	__forceinline WarheadTypeClass* GetExplosionWarhead() const
 	{
 		return this->ExplosionWarhead.Get(RulesClass::Instance->C4Warhead);
 	}
 
-	inline int GetExplosionDamage() const
+	__forceinline int GetExplosionDamage() const
 	{
 		return this->ExplosionDamage.Get(RulesClass::Instance->TiberiumExplosionDamage);
 	}
 
-	inline int GetDebrisChance() const
+	__forceinline int GetDebrisChance() const
 	{
 		return this->DebrisChance;
 	}

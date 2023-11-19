@@ -572,7 +572,7 @@ public:
 	{
 		bool result = this->IsHumanPlayer;
 		if(SessionClass::Instance->GameMode == GameMode::Campaign) {
-			result = result || this->IsInPlayerControl;
+			result |= this->IsInPlayerControl;
 		}
 		return result;
 	}
@@ -857,13 +857,14 @@ public:
 		return this == CurrentPlayer;
 	}
 
-	bool IsControlledByCurrentPlayer() const { JMP_THIS(0x50B730); }
+	//ControlledByPlayer
+	//bool IsControlledByCurrentPlayer() const { JMP_THIS(0x50B730); }
 	//{
 	//	bool result = CurrentPlayer;
 	//	if (SessionClass::Instance->GameMode == GameMode::Campaign) {
 	//		result = result || IsInPlayerControl;
 	//	}
-
+	//
 	//	return result;
 	//}
 

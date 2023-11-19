@@ -71,13 +71,11 @@ DEFINE_OVERRIDE_HOOK(0x41E893, AITriggerTypeClass_ConditionMet_SideIndex, 0xA)
 
 	enum { Eligible = 0x41E8D7, NotEligible = 0x41E8A1 };
 
-	if (!triggerSide)
-	{
+	if (!triggerSide) {
 		return Eligible;
 	}
 
-	--triggerSide;
-	return(triggerSide == House->SideIndex)
+	return((triggerSide - 1) == House->SideIndex)
 		? Eligible
 		: NotEligible
 		;

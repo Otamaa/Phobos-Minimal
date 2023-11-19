@@ -62,7 +62,6 @@ DEFINE_OVERRIDE_HOOK(0x46920B, BulletClass_Detonate, 6)
 	}
 
 	// these effects should be applied no matter what happens to the target
-	//AresData::applyIonCannon(pWarhead , &coords);
 	 WarheadTypeExtData::CreateIonBlast(pWarhead, coords);
 
 	bool targetStillOnMap = true;

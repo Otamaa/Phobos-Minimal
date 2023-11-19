@@ -426,7 +426,7 @@ DEFINE_OVERRIDE_HOOK(0x4444E2, BuildingClass_KickOutUnit_FindAlternateKickout, 6
 }
 
 // copy the remaining EMP duration to the unit when undeploying a building.
-DEFINE_OVERRIDE_HOOK(0x44A04C, BuildingClass_Unload_CopyEMPDuration, 6)
+DEFINE_OVERRIDE_HOOK(0x44A04C, BuildingClass_Destruction_CopyEMPDuration, 6)
 {
 	GET(TechnoClass*, pBuilding, EBP);
 	GET(TechnoClass*, pUnit, EBX);
@@ -986,10 +986,8 @@ DEFINE_OVERRIDE_HOOK(0x43FD2C, BuildingClass_Update_ProduceCash, 6)
 	{
 		if (pbld)
 		{
-
 			if (pbld->ProduceCashDelay > 0)
 			{
-
 				if (timer->HasTimeLeft())
 					timer->Resume();
 
@@ -1002,13 +1000,13 @@ DEFINE_OVERRIDE_HOOK(0x43FD2C, BuildingClass_Update_ProduceCash, 6)
 		}
 	}
 
-	if (produceAmount && !pThis->Owner->Type->MultiplayPassive && pThis->IsPowerOnline())
-	{
-		pThis->Owner->TransactMoney(produceAmount);
-		if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->ProduceCashDisplay)
-		{
+	if (produceAmount && !pThis->Owner->Type->MultiplayPassive && pThis->IsPowerOnline()) {
+
+		if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->ProduceCashDisplay) {
 			TechnoExtContainer::Instance.Find(pThis)->TechnoValueAmount += produceAmount;
 		}
+
+		pThis->Owner->TransactMoney(produceAmount);
 	}
 
 	return 0x43FDD6;
@@ -1474,21 +1472,21 @@ DEFINE_DISABLE_HOOK(0x446E9F, BuildingClass_Place_FreeUnit_Mission_ares);
 DEFINE_OVERRIDE_HOOK(0x4467D6, BuildingClass_Place_NeedsEngineer, 0x6)
 {
 	GET(BuildingClass* const, pThis, EBP);
-	R->AL(pThis->Type->Powered || (pThis->Type->NeedsEngineer && !pThis->HasEngineer));
+	R->AL(pThis->Type->Powered || pThis->Type->NeedsEngineer && !pThis->HasEngineer);
 	return 0x4467DC;
 }
 
 DEFINE_OVERRIDE_HOOK(0x454BF7, BuildingClass_UpdatePowered_NeedsEngineer, 0x6)
 {
 	GET(BuildingClass* const, pThis, ESI);
-	R->CL(pThis->Type->Powered || (pThis->Type->NeedsEngineer && !pThis->HasEngineer));
+	R->CL(pThis->Type->Powered || pThis->Type->NeedsEngineer && !pThis->HasEngineer);
 	return 0x454BFD;
 }
 
 DEFINE_OVERRIDE_HOOK(0x451A54, BuildingClass_PlayAnim_NeedsEngineer, 0x6)
 {
 	GET(BuildingClass* const, pThis, ESI);
-	R->CL(pThis->Type->Powered || (pThis->Type->NeedsEngineer && !pThis->HasEngineer));
+	R->CL(pThis->Type->Powered || pThis->Type->NeedsEngineer && !pThis->HasEngineer);
 	return 0x451A5A;
 }
 
@@ -2144,7 +2142,7 @@ DEFINE_OVERRIDE_HOOK(0x446366, BuildingClass_Place_Academy, 6)
 {
 	GET(BuildingClass*, pThis, EBP);
 
-	if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->IsAcademy() && pThis->Owner)
+	if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->Academy)
 	{
 		HouseExtData::UpdateAcademy(pThis->Owner, pThis, true);
 	}
@@ -2157,7 +2155,7 @@ DEFINE_OVERRIDE_HOOK(0x445905, BuildingClass_Remove_Academy, 6)
 	GET(BuildingClass*, pThis, ESI);
 
 	if (pThis->IsOnMap &&
-		BuildingTypeExtContainer::Instance.Find(pThis->Type)->IsAcademy() && pThis->Owner)
+		BuildingTypeExtContainer::Instance.Find(pThis->Type)->Academy)
 	{
 		HouseExtData::UpdateAcademy(pThis->Owner, pThis, false);
 	}
@@ -2170,8 +2168,7 @@ DEFINE_OVERRIDE_HOOK(0x448AB2, BuildingClass_ChangeOwnership_UnregisterFunction,
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	if (pThis->IsOnMap &&
-		BuildingTypeExtContainer::Instance.Find(pThis->Type)->IsAcademy() && pThis->Owner)
+	if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->Academy)
 	{
 		HouseExtData::UpdateAcademy(pThis->Owner, pThis, false);
 	}
@@ -2411,20 +2408,16 @@ DEFINE_OVERRIDE_HOOK(0x457D58, BuildingClass_CanBeOccupied_SpecificOccupiers, 6)
 	const auto count = pThis->GetOccupantCount();
 	const bool isFull = (count == pThis->Type->MaxNumberOccupants);
 	const bool isIneligible = ((pThis->Type->TechLevel == -1 && pThis->IsRedHP()) || pInf->IsMindControlled());
-	const bool isRaidable = (pBuildTypeExt->BunkerRaidable && count == 0); // if it's not empty, it cannot be raided anymore, 'cause it already was
-	const bool isNeutral = pThis->Owner->IsNeutral();
-	const bool sameOwner = (pThis->Owner == pInf->Owner);
-	bool can_occupy = false;
 
-	if (!isFull && !isIneligible)
-	{
-		/*	The building switches owners after the first occupant enters,
-			so this check should not interfere with the player who captured it,
-			only prevent others from entering it while it's occupied. (Bug #699) */
-		can_occupy = (sameOwner ? true : (isNeutral || isRaidable));
-	}
+	if(!isFull && !isIneligible && (count
+		|| pThis->Owner == pInf->Owner
+		|| SessionClass::Instance->GameMode == GameMode::Campaign && pThis->Owner->ControlledByPlayer() && pInf->Owner->ControlledByPlayer()
+		|| pBuildTypeExt->BunkerRaidable
+		|| pThis->Owner->IsNeutral())){
+			return 0x457DD5;
+		}
 
-	return can_occupy ? 0x457DD5 : 0x457DA3;
+	return 0x457DA3;
 }
 
 /* Requested in issue #695
@@ -2498,13 +2491,14 @@ DEFINE_OVERRIDE_HOOK(0x4556E1, BuildingClass_SensorArrayDeactivate, 7)
 }
 
 // powered state changed
-DEFINE_OVERRIDE_HOOK_AGAIN(0x454B5F, BuildingClass_UpdatePowered_SensorArray, 6)
-DEFINE_OVERRIDE_HOOK(0x4549F8, BuildingClass_UpdatePowered_SensorArray, 6)
-{
-	GET(BuildingClass*, pBld, ESI);
-	TechnoExt_ExtData::UpdateSensorArray(pBld);
-	return 0;
-}
+// ???
+// DEFINE_OVERRIDE_HOOK_AGAIN(0x454B5F, BuildingClass_UpdatePowered_SensorArray, 6)
+// DEFINE_OVERRIDE_HOOK(0x4549F8, BuildingClass_UpdatePowered_SensorArray, 6)
+// {
+// 	GET(BuildingClass*, pBld, ESI);
+// 	TechnoExt_ExtData::UpdateSensorArray(pBld);
+// 	return 0;
+// }
 
 // something changed to the worse, like toggle power
 DEFINE_OVERRIDE_HOOK(0x4524A3, BuildingClass_DisableThings, 6)

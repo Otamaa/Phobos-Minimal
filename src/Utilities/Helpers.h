@@ -198,7 +198,7 @@ namespace Helpers {
 			CoordStruct const& coords, double const spread,
 			bool const includeInAir = false , bool allowLimbo = false)
 		{
-			std::vector<T*> set;
+			HelperedVector<T*> set;
 			const auto range = static_cast<size_t>(spread + 0.99);
 
 			if(range > CellSpreadEnumerator::Max || includeInAir) {

@@ -139,23 +139,23 @@ public:
 		{ JMP_THIS(0x45F1D0); }
 
 	// helpers
-	bool HasSuperWeapon(int index) const {
+	bool __forceinline HasSuperWeapon(int index) const {
 		return (this->SuperWeapon == index || this->SuperWeapon2 == index);
 	}
 
-	bool HasSuperWeapon() const {
+	bool __forceinline HasSuperWeapon() const {
 		return (this->SuperWeapon != -1 || this->SuperWeapon2 != -1);
 	}
 
-	bool CanTogglePower() const {
+	bool __forceinline CanTogglePower() const {
 		return this->TogglePower && (this->PowerDrain > 0 || this->Powered);
 	}
 
-	BuildingAnimStruct& GetBuildingAnim(BuildingAnimSlot slot) {
+	__forceinline BuildingAnimStruct& GetBuildingAnim(BuildingAnimSlot slot) {
 		return this->BuildingAnim[static_cast<int>(slot)];
 	}
 
-	const BuildingAnimStruct& GetBuildingAnim(BuildingAnimSlot slot) const {
+	__forceinline const BuildingAnimStruct& GetBuildingAnim(BuildingAnimSlot slot) const {
 		return this->BuildingAnim[static_cast<int>(slot)];
 	}
 

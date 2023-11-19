@@ -325,45 +325,44 @@ void HouseExtData::ApplyAcademy(
 	}
 
 	auto const pType = pTechno->GetTechnoType();
-
-	// get the academy data for this type
-	Valueable<double> BuildingTypeExtData::* pmBonus = nullptr;
-	switch (considerAs)
-	{
-	case AbstractType::Infantry:
-		pmBonus = &BuildingTypeExtData::AcademyInfantry;
-		break;
-	case AbstractType::Aircraft:
-		pmBonus = &BuildingTypeExtData::AcademyAircraft;
-		break;
-	case AbstractType::Unit:
-		pmBonus = &BuildingTypeExtData::AcademyVehicle;
-		break;
-	default:
-		pmBonus = &BuildingTypeExtData::AcademyBuilding;
-		break;
-	}
-
-	auto veterancyBonus = 0.0;
-
-	// aggregate the bonuses
-	for (auto const& pBld : this->Academies)
-	{
-		auto const pExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
-
-		auto const isWhitelisted = pExt->AcademyWhitelist.empty()
-			|| pExt->AcademyWhitelist.Contains(pType);
-
-		if (isWhitelisted && !pExt->AcademyBlacklist.Contains(pType))
-		{
-			const auto& data = pExt->*pmBonus;
-			veterancyBonus = MaxImpl(veterancyBonus, data.Get());
-		}
-	}
-
-	// apply the bonus
 	if (pType->Trainable)
 	{
+		// get the academy data for this type
+		Valueable<double> BuildingTypeExtData::* pmBonus = nullptr;
+		switch (considerAs)
+		{
+		case AbstractType::Infantry:
+			pmBonus = &BuildingTypeExtData::AcademyInfantry;
+			break;
+		case AbstractType::Aircraft:
+			pmBonus = &BuildingTypeExtData::AcademyAircraft;
+			break;
+		case AbstractType::Unit:
+			pmBonus = &BuildingTypeExtData::AcademyVehicle;
+			break;
+		default:
+			pmBonus = &BuildingTypeExtData::AcademyBuilding;
+			break;
+		}
+
+		auto veterancyBonus = 0.0;
+
+		// aggregate the bonuses
+		for (auto const& pBld : this->Academies)
+		{
+			auto const pExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
+
+			auto const isWhitelisted = pExt->AcademyWhitelist.empty()
+				|| pExt->AcademyWhitelist.Contains(pType);
+
+			if (isWhitelisted && !pExt->AcademyBlacklist.Contains(pType))
+			{
+				const auto& data = pExt->*pmBonus;
+				veterancyBonus = MaxImpl(veterancyBonus, data.Get());
+			}
+		}
+
+		// apply the bonus
 		auto& value = pTechno->Veterancy.Veterancy;
 		if (veterancyBonus > value)
 		{
@@ -457,13 +456,11 @@ LauchData HouseExtData::GetShotCount(SuperWeaponTypeClass* pFor)
 
 SuperClass* HouseExtData::IsSuperAvail(int nIdx, HouseClass* pHouse)
 {
-	if (nIdx < 0)
-		return nullptr;
-
-	const auto pSW = pHouse->Supers[nIdx];
-
-	if (SWTypeExtContainer::Instance.Find(pSW->Type)->IsAvailable(pHouse))
-		return pSW;
+	if(const auto pSW = pHouse->Supers.GetItemOrDefault(nIdx)){
+		if (SWTypeExtContainer::Instance.Find(pSW->Type)->IsAvailable(pHouse)) {
+			return pSW;
+		}
+	}
 
 	return nullptr;
 }

@@ -726,7 +726,7 @@ DEFINE_OVERRIDE_HOOK(0x4463F0, BuildingClass_Place_SuperWeaponAnimsA, 6)
 	}
 	else
 	{
-		if (pThis->Type->SuperWeapon > 0)
+		if (pThis->Type->SuperWeapon >= 0)
 		{
 			const bool bIsDamage = !pThis->IsGreenHP();
 			const int nOcc = pThis->GetOccupantCount();
@@ -740,14 +740,13 @@ DEFINE_OVERRIDE_HOOK(0x4463F0, BuildingClass_Place_SuperWeaponAnimsA, 6)
 DEFINE_OVERRIDE_HOOK(0x450F9E, BuildingClass_ProcessAnims_SuperWeaponsA, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
-
-	const auto miss = pThis->GetCurrentMission();
-	if (miss == Mission::Construction || miss == Mission::Selling || pThis->Type->ChargedAnimTime > 990.0)
-		return 0x451145;
-
 	const auto pSuper = BuildingExtData::GetFirstSuperWeapon(pThis);
 
 	if (!pSuper)
+		return 0x451145;
+
+	const auto miss = pThis->GetCurrentMission();
+	if (miss == Mission::Construction || miss == Mission::Selling || pThis->Type->ChargedAnimTime > 990.0)
 		return 0x451145;
 
 	R->EDI(pThis->Type);
@@ -2752,17 +2751,11 @@ DEFINE_OVERRIDE_HOOK(0x44019D, BuildingClass_Update_Battery, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	if (auto pOwner = pThis->GetOwningHouse())
-	{
-		if (!pThis->IsOverpowered)
-		{
-			for (auto const& pBatt : HouseExtContainer::Instance.Find(pOwner)->Batteries)
-			{
-				if (SWTypeExtContainer::Instance.Find(pBatt->Type)->Battery_Overpower.Contains(pThis->Type))
-				{
-					pThis->IsOverpowered = true;
-					break;
-				}
+	if (pThis->Owner && !pThis->IsOverpowered) {
+		for (auto const& pBatt : HouseExtContainer::Instance.Find(pThis->Owner)->Batteries) {
+			if (SWTypeExtContainer::Instance.Find(pBatt->Type)->Battery_Overpower.Contains(pThis->Type)) {
+				pThis->IsOverpowered = true;
+				break;
 			}
 		}
 	}

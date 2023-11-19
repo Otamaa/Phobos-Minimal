@@ -197,7 +197,7 @@ DEFINE_OVERRIDE_HOOK(0x4503F0, BuildingClass_Update_Prism, 9)
 				if (pType->GetBuildingAnim(BuildingAnimSlot::Special).Anim[0])
 				{ //only if it actually has a special anim
 					pThis->DestroyNthAnim(BuildingAnimSlot::Active);
-					pThis->PlayNthAnim(BuildingAnimSlot::Special);
+					pThis->Game_PlayNthAnim(BuildingAnimSlot::Special ,!pThis->IsGreenHP(),pThis->GetOccupantCount() > 0 ,0);
 				}
 
 			}
@@ -479,21 +479,19 @@ DEFINE_OVERRIDE_HOOK(0x71AF76, TemporalClass_Fire_PrismForwardAndWarpable, 9)
 
 	// bugfix #874 B: Temporal warheads affect Warpable=no units
 	// it has been checked: this is warpable. free captured and destroy spawned units.
-	if (pThis->SpawnManager)
-	{
+	if (pThis->SpawnManager) {
 		pThis->SpawnManager->KillNodes();
 	}
 
-	if (pThis->CaptureManager)
-	{
+	if (pThis->CaptureManager) {
 		pThis->CaptureManager->FreeAll();
 	}
 
 	// prism forward
-	if (auto const pBld = specific_cast<BuildingClass*>(pThis))
-	{
-		BuildingExtContainer::Instance.Find(pBld)->PrismForwarding.RemoveFromNetwork(true);
+	if (pThis->WhatAmI() == BuildingClass::AbsID) {
+		BuildingExtContainer::Instance.Find((BuildingClass*)pThis)->PrismForwarding.RemoveFromNetwork(true);
 	}
+
 	return 0;
 }
 

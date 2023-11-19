@@ -87,6 +87,9 @@ DEFINE_OVERRIDE_HOOK(0x443414, BuildingClass_ActionOnObject, 6)
 
 	GET_STACK(ObjectClass *, pTarget, 0x8);
 
+	if(action == Action::Detonate)
+		return 0;
+
 	// part of deactivation logic
 	if(pThis->Deactivated) {
 		R->EAX(1);
@@ -94,14 +97,12 @@ DEFINE_OVERRIDE_HOOK(0x443414, BuildingClass_ActionOnObject, 6)
 	}
 
 	// trenches
-	if(action == Action::Enter) {
-		if(BuildingClass *pTargetBuilding = specific_cast<BuildingClass *>(pTarget)) {
-			CoordStruct XYZ = pTargetBuilding->GetCoords();
-			CellStruct tgt = CellClass::Coord2Cell(XYZ);
-			AresNetEvent::TrenchRedirectClick::Raise(pThis, &tgt);
-			R->EAX(1);
-			return 0x44344D;
-		}
+	if(action == Action::Enter && pTarget->WhatAmI() == BuildingClass::AbsID) {
+		CoordStruct XYZ = pTarget->GetCoords();
+		CellStruct tgt = CellClass::Coord2Cell(XYZ);
+		AresNetEvent::TrenchRedirectClick::Raise(pThis, &tgt);
+		R->EAX(1);
+		return 0x44344D;
 	}
 
 	return 0;

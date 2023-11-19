@@ -276,7 +276,7 @@ void PrismForwarding::SetChargeDelay_Set(int chain, DWORD const* LongestCDelay, 
 		if (pTargetTower->Type->GetBuildingAnim(BuildingAnimSlot::Special).Anim[0])
 		{ //only if it actually has a special anim
 			pTargetTower->DestroyNthAnim(BuildingAnimSlot::Active);
-			pTargetTower->PlayNthAnim(BuildingAnimSlot::Special);
+			pTargetTower->Game_PlayNthAnim(BuildingAnimSlot::Special ,!pTargetTower->IsGreenHP() ,pTargetTower->GetOccupantCount() > 0 , 0);
 		}
 	}
 

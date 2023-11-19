@@ -23,6 +23,7 @@ enum class BunkerSoundMode : int
 	Up, Down
 };
 
+class SuperClass;
 class BuildingTypeExtData final
 {
 public:
@@ -291,6 +292,7 @@ public:
 	int GetSuperWeaponCount() const;
 	int GetSuperWeaponIndex(int index, HouseClass* pHouse) const;
 	int GetSuperWeaponIndex(int index) const;
+	SuperClass* GetSuperWeaponByIndex(int index, HouseClass* pHouse) const;
 
 	bool CanBeOccupiedBy(InfantryClass* whom);
 

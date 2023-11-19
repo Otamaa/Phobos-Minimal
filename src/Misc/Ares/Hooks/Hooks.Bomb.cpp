@@ -197,11 +197,9 @@ DEFINE_OVERRIDE_HOOK(0x46934D, IvanBombs_Spread, 6)
 {
 	GET(BulletClass* const, pBullet, ESI);
 
-	if (!pBullet->Owner ||
-		(!(pBullet->Owner->AbstractFlags & AbstractFlags::Techno)))
+	if (!pBullet->Owner)
 		return 0x469AA4;
 
-	TechnoClass* pOwner = static_cast<TechnoClass*>(pBullet->Owner);
 	if (const auto pWeapon = pBullet->WeaponType)
 	{
 		// single target or spread switch
@@ -211,19 +209,17 @@ DEFINE_OVERRIDE_HOOK(0x46934D, IvanBombs_Spread, 6)
 				return 0x469AA4;
 
 			// single target
-			TechnoExt_ExtData::PlantBomb(pOwner, (ObjectClass*)pBullet->Target, pWeapon);
+			TechnoExt_ExtData::PlantBomb(pBullet->Owner, (ObjectClass*)pBullet->Target, pWeapon);
 		}
 		else
 		{
 			// cell spread
 			CoordStruct tgtCoords = pBullet->GetTargetCoords();
-
-			CellSpreadIterator<ObjectClass>{}(CellClass::Coord2Cell(tgtCoords),
-			static_cast<int>(pBullet->WH->CellSpread),
-			[pOwner, pWeapon](ObjectClass* pTechno) {
-				TechnoExt_ExtData::PlantBomb(pOwner, pTechno, pWeapon);
-				return true;
-			});
+			// TODO : tag to allow Ivan + cellspread affect air
+			std::vector<TechnoClass*> pTargetv = Helpers::Alex::getCellSpreadItems(tgtCoords, pBullet->WH->CellSpread, false);
+			for(auto target : pTargetv) {
+				TechnoExt_ExtData::PlantBomb(pBullet->Owner, target, pWeapon);
+			}
 		}
 	}
 	else
@@ -346,7 +342,8 @@ DEFINE_OVERRIDE_HOOK(0x4471D5, BuildingClass_Sell_DetonateNoBuildup, 6)
 
 	if(const auto pBomb = pStructure->AttachedBomb){
 		if (BombExtContainer::Instance.Find(pBomb)->Weapon->Ivan_DetonateOnSell.Get())
-			pBomb->Detonate();
+			pBomb->Detonate();// Otamaa : detonate may kill the techno before this function
+			// so this can possibly causing some weird crashes if that happening
 	}
 
 	return 0;
@@ -357,8 +354,9 @@ DEFINE_OVERRIDE_HOOK(0x44A1FF, BuildingClass_Mi_Selling_DetonatePostBuildup, 6)
 	GET(BuildingClass* const, pStructure, EBP);
 
 	if (const auto pBomb = pStructure->AttachedBomb) {
-		if (BombExtContainer::Instance.Find(pBomb) ->Weapon->Ivan_DetonateOnSell.Get())
-			pBomb->Detonate();
+		if (BombExtContainer::Instance.Find(pBomb)->Weapon->Ivan_DetonateOnSell.Get())
+			pBomb->Detonate();// Otamaa : detonate may kill the techno before this function
+			// so this can possibly causing some weird crashes if that happening
 	}
 
 	return 0;
@@ -372,10 +370,11 @@ DEFINE_OVERRIDE_HOOK(0x4D9F7B, FootClass_Sell_Detonate, 6)
 
 	if (const auto pBomb = pThis->AttachedBomb) {
 		if (BombExtContainer::Instance.Find(pBomb)->Weapon->Ivan_DetonateOnSell.Get())
-			pBomb->Detonate();
+			pBomb->Detonate(); // Otamaa : detonate may kill the techno before this function
+			// so this can possibly causing some weird crashes if that happening
 	}
 
-	if (pThis->Owner->IsControlledByCurrentPlayer())
+	if (pThis->Owner->ControlledByPlayer())
 	{
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 

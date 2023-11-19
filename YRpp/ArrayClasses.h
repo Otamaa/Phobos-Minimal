@@ -354,6 +354,7 @@ public:
 		T* iter = this->Find(item);
 		return iter != this->end() ?  std::distance(this->begin() , iter) : -1;
 	}
+
 #pragma endregion
 
 #pragma region iteratorpointer
@@ -425,6 +426,10 @@ public:
 
 	bool Contains(const T& item) const
 	{
+		if (this->Count <= 0) {
+			return false;
+		}
+
 		return this->Find(item) != this->end();
 	}
 
@@ -503,7 +508,7 @@ public:
 		int count = this->Count;
 		bool AllowAdd = false;
 
-		if (count) {
+		if (count > 0) {
 			auto begin = (&this->Items[0]);
 			auto end = (&this->Items[count]);
 			T* found;

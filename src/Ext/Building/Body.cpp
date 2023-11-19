@@ -162,7 +162,7 @@ void BuildingExtData::ApplyLimboKill(ValueableVector<int>& LimboIDs, Valueable<A
 int BuildingExtData::GetFirstSuperWeaponIndex(BuildingClass* pThis)
 {
 	if (const auto pExt = BuildingTypeExtContainer::Instance.TryFind(pThis->Type))
-	{ 
+	{
 		for (auto i = 0; i < pExt->GetSuperWeaponCount(); ++i)
 		{
 			const auto idxSW = pExt->GetSuperWeaponIndex(i, pThis->Owner);
@@ -665,11 +665,11 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		if (pType->SecretLab)
 			pOwner->SecretLabs.AddItem(pBuilding);
 
-		if (pType->FactoryPlant)
-		{
-			pOwner->FactoryPlants.AddItem(pBuilding);
-			pOwner->CalculateCostMultipliers();
-		}
+		//if (pType->FactoryPlant)
+		//{
+		//	pOwner->FactoryPlants.AddItem(pBuilding);
+		//	pOwner->CalculateCostMultipliers();
+		//}
 
 		//if (pType->OrePurifier)
 		//	pOwner->NumOrePurifiers++;
@@ -762,12 +762,12 @@ void BuildingExtData::LimboKill(BuildingClass* pBuilding)
 	if (pType->SecretLab)
 		pTargetHouse->SecretLabs.Remove(pBuilding);
 
-	if (pType->FactoryPlant)
-	{
-
-		pTargetHouse->FactoryPlants.Remove(pBuilding);
-		pTargetHouse->CalculateCostMultipliers();
-	}
+	//if (pType->FactoryPlant)
+	//{
+	//
+	//	pTargetHouse->FactoryPlants.Remove(pBuilding);
+	//	pTargetHouse->CalculateCostMultipliers();
+	//}
 
 	//if (pType->OrePurifier)
 	//	pTargetHouse->NumOrePurifiers--;

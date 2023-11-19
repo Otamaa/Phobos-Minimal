@@ -2181,20 +2181,19 @@ void TechnoExt_ExtData::UpdateDisplayTo(BuildingClass* pThis)
 	if (pThis->Type->Radar)
 	{
 		auto pHouse = pThis->Owner;
-		pHouse->RadarVisibleTo.Clear();
+		DWORD presistData = HouseExtContainer::Instance.Find(pHouse)->RadarPersist.data;
+		auto walk = pHouse->Buildings.begin();
+		const auto end = pHouse->Buildings.end();
 
-		pHouse->RadarVisibleTo.data |= HouseExtContainer::Instance.Find(pHouse)->RadarPersist.data;
-
-		for (auto& pBld : pHouse->Buildings)
-		{
-			if (!pBld->InLimbo)
-			{
-				if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->SpyEffect_RevealRadar)
-				{
-					pHouse->RadarVisibleTo.data |= pBld->DisplayProductionTo.data;
+		for(; walk != end; ++walk) {
+			if (!(*walk)->InLimbo) {
+				if (BuildingTypeExtContainer::Instance.Find((*walk)->Type)->SpyEffect_RevealRadar) {
+					presistData |= (*walk)->DisplayProductionTo.data;
 				}
 			}
 		}
+
+		pHouse->RadarVisibleTo.data = presistData;
 		MapClass::Instance->RedrawSidebar(2);
 	}
 }
@@ -2295,8 +2294,7 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 			{
 				for (auto i = 0; i < typeExt->GetSuperWeaponCount(); ++i)
 				{
-					if (auto pSuper = Owner->Supers.GetItemOrDefault(i))
-					{
+					if (auto pSuper = typeExt->GetSuperWeaponByIndex(i , Owner)) {
 						pSuper->Reset();
 						somethingReset = true;
 					}
@@ -2645,42 +2643,36 @@ void TechnoExt_ExtData::KickOutHospitalArmory(BuildingClass* pThis)
 	}
 }
 
+static DynamicVectorClass<std::pair<FootClass*, bool> , DllAllocator<std::pair<FootClass*, bool>>> KickList;
+
 void TechnoExt_ExtData::KickOutOfRubble(BuildingClass* pBld)
 {
-	std::vector<std::pair<FootClass*, bool>> list;
-
 	// iterate over all cells and remove all infantry
-
+	// Note : ares 3.0p1 seems doing faster way to do this
+	// not sure if that safe way tho -Otamaa
+	KickList.Reset();
 	auto const location = MapClass::Instance->GetCellAt(pBld->Location)->MapCoords;
 	// get the number of non-end-marker cells and a pointer to the cell data
 	for (auto i = pBld->Type->FoundationData; *i != CellStruct { 0x7FFF, 0x7FFF }; ++i)
 	{
 		// remove every techno that resides on this cell
 		for (NextObject obj(MapClass::Instance->GetCellAt(location + *i)->
-			GetContent()); obj; ++obj)
-		{
-			if (auto const pFoot = abstract_cast<FootClass*>(*obj))
-			{
-				if (pFoot->Limbo())
-				{
-					list.emplace_back(pFoot, pFoot->IsSelected);
+			GetContent()); obj; ++obj) {
+			if (auto const pFoot = abstract_cast<FootClass*>(*obj)) {
+				if (pFoot->Limbo()) {
+					KickList.AddItem({pFoot, pFoot->IsSelected});
 				}
 			}
 		}
 	}
 
 	// this part kicks out all units we found in the rubble
-	for (auto const& [pFoot, bIsSelected] : list)
-	{
-		if (pBld->KickOutUnit(pFoot, location) == KickOutResult::Succeeded)
-		{
-			if (bIsSelected)
-			{
+	for (auto const& [pFoot, bIsSelected] : KickList) {
+		if (pBld->KickOutUnit(pFoot, location) == KickOutResult::Succeeded) {
+			if (bIsSelected) {
 				pFoot->Select();
 			}
-		}
-		else
-		{
+		} else {
 			pFoot->UnInit();
 		}
 	}
@@ -2690,7 +2682,7 @@ void TechnoExt_ExtData::UpdateSensorArray(BuildingClass* pBld)
 {
 	if (pBld->Type->SensorArray)
 	{
-		bool isActive = pBld->IsPowerOnline() && !pBld->Deactivated;
+		bool isActive = !pBld->Deactivated && pBld->IsPowerOnline();
 		bool wasActive = (BuildingExtContainer::Instance.Find(pBld)->SensorArrayActiveCounter > 0);
 
 		if (isActive != wasActive)
@@ -3622,7 +3614,7 @@ void TechnoExperienceData::PromoteImmedietely(TechnoClass* pExpReceiver, bool bS
 				newRank = pExpReceiver->Veterancy.AddAndGetRank(promoteExp);
 			}
 
-			if (!bSilent && pExpReceiver->Owner->ControlledByPlayer_())
+			if (!bSilent && pExpReceiver->Owner->ControlledByPlayer())
 			{
 				VocClass::PlayIndexAtPos(sound, (pExpReceiver->Transporter ? pExpReceiver->Transporter : pExpReceiver)->Location, nullptr);
 				VoxClass::PlayIndex(eva);
@@ -4468,9 +4460,7 @@ bool AresEMPulse::thresholdExceeded(TechnoClass* Victim)
 bool AresEMPulse::isEligibleEMPTarget(TechnoClass* const pTarget, HouseClass* const pSourceHouse, WarheadTypeClass* pWarhead)
 {
 	if (!WarheadTypeExtContainer::Instance.Find(pWarhead)->CanTargetHouse(pSourceHouse, pTarget))
-	{
 		return false;
-	}
 
 	return !AresEMPulse::isCurrentlyEMPImmune(pWarhead, pTarget, pSourceHouse);
 }

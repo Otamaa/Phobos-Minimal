@@ -161,18 +161,13 @@ DEFINE_OVERRIDE_HOOK(0x4368C9, BuildingLightClass_Update_Trigger, 0x5)
 {
 	GET(TechnoClass*, pTechno, EAX);
 
-	if (pTechno->AttachedTag)
-	{
+	if (pTechno->AttachedTag) {
 		pTechno->AttachedTag->RaiseEvent(TriggerEvent::EnemyInSpotlight, pTechno, CellStruct::Empty, 0, 0);
 	}
 
-	if (pTechno->IsAlive)
-	{
-		if (pTechno->AttachedTag)
-		{
-			//66
-			pTechno->AttachedTag->RaiseEvent((TriggerEvent)AresTriggerEvents::EnemyInSpotlightNow, pTechno, CellStruct::Empty, 0, 0);
-		}
+	if (pTechno->IsAlive && pTechno->AttachedTag) {
+		//66
+		pTechno->AttachedTag->RaiseEvent((TriggerEvent)AresTriggerEvents::EnemyInSpotlightNow, pTechno, CellStruct::Empty, 0, 0);
 	}
 
 	return 0x4368D9;
