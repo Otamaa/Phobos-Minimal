@@ -497,6 +497,7 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 		{
 			auto nCoord = pThis->SpawnCell->GetCoords();
 			pOwner->Fire_SW(pTeamExt->LastFoundSW->Type->ArrayIndex, CellClass::Coord2Cell(nCoord));
+			pTeamExt->LastFoundSW = nullptr;
 			pThis->StepCompleted = true;
 			return 0x6EFE4F;
 		}

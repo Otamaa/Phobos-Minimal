@@ -729,6 +729,10 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 		JMP_THIS(0x70C690);
 	}
 
+	bool CurrentlyOnSensor() const {
+		JMP_THIS(0x43B150);
+	}
+
 	//Constructor
 	TechnoClass(HouseClass* pOwner) noexcept
 		: TechnoClass(noinit_t())

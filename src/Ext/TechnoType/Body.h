@@ -870,6 +870,8 @@ public:
 	NullableIdx<ArmorTypeClass*> VeteranArmor {};
 	Valueable<bool> Cloakable_IgnoreArmTimer { false };
 
+	Valueable<bool> Untrackable { false };
+
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;
 

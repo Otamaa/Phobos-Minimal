@@ -313,6 +313,7 @@ public:
 	static bool IsBountyHunter(TechnoClass* pThis);
 	static bool IsWebImmune(TechnoClass* pThis);
 	static bool IsDriverKillProtected(TechnoClass* pThis);
+	static bool IsUntrackable(TechnoClass* pThis);
 
 	static bool HasAbility(TechnoClass* pThis, PhobosAbilityType nType);
 	static bool HasImmunity(TechnoClass* pThis, int nType);
@@ -333,6 +334,7 @@ public:
 	static bool IsBountyHunter(Rank vet, TechnoClass* pThis);
 	static bool IsWebImmune(Rank vet, TechnoClass* pThis);
 	static bool IsDriverKillProtected(Rank vet, TechnoClass* pThis);
+	static bool IsUntrackable(Rank vet, TechnoClass* pThis);
 
 	static bool HasAbility(Rank vet, TechnoClass* pThis, PhobosAbilityType nType);
 	static bool HasImmunity(Rank vet, TechnoClass* pThis, int nType);

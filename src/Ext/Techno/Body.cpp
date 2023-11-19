@@ -642,6 +642,16 @@ bool TechnoExtData::IsDriverKillProtected(TechnoClass* pThis)
 	return HasAbility(pThis, PhobosAbilityType::Protected_Driver);
 }
 
+bool TechnoExtData::IsUntrackable(TechnoClass* pThis)
+{
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	if (pTypeExt->Untrackable)
+		return true;
+
+	return HasAbility(pThis, PhobosAbilityType::Untrackable);
+}
+
 bool TechnoExtData::IsInterceptor()
 {
 	auto const pThis = this->AttachedToObject;
@@ -994,6 +1004,16 @@ bool TechnoExtData::IsDriverKillProtected(Rank vet, TechnoClass* pThis)
 		return true;
 
 	return HasAbility(vet, pThis, PhobosAbilityType::Protected_Driver);
+}
+
+bool TechnoExtData::IsUntrackable(Rank vet, TechnoClass* pThis)
+{
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	if (pTypeExt->Untrackable)
+		return true;
+
+	return HasAbility(vet, pThis, PhobosAbilityType::Untrackable);
 }
 
 bool TechnoExtData::HasAbility(Rank vet, TechnoClass* pThis, PhobosAbilityType nType)

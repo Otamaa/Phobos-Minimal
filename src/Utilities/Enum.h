@@ -220,6 +220,7 @@ enum class PhobosAbilityType : int
 	ParasiteImmune = 14 ,
 	BountyHunter = 15,
 	WebbyImmune = 16,
+	Untrackable = 17,
 
 	count
 };

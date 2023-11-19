@@ -3673,36 +3673,38 @@ DEFINE_HOOK(0x73666A, UnitClass_AI_Viscerid_ZeroStrength, 0x6)
 	return pType->Strength <= 0 || pThis->DeathFrameCounter > 0 ? 0x736685 : 0x0;
 }
 
-DEFINE_HOOK(0x43B150, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x6)
+//this thing checking shit backwards ,..
+DEFINE_HOOK(0x6D4764, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x7)
 {
-	GET(TechnoClass*, pThis, ECX);
+	GET(TechnoClass*, pThis, ESI);
 
 	if(pThis) {
 
 		const auto vtable = VTable::Get(pThis);
 		if(vtable != UnitClass::vtable
 			&& vtable != InfantryClass::vtable
-			&& vtable != AircraftClass::vtable
-			&& vtable != BuildingClass::vtable)
-		{
-			R->AL(false);
-			return 0x43B4B0;
+			&& vtable != AircraftClass::vtable) {
+			return 0x6D4793;
 		}
 
 		if(!pThis->IsAlive
+		|| pThis->InLimbo
 		|| pThis->IsCrashing
 		|| pThis->IsSinking
-		|| (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->DeathFrameCounter > 0))
-		{
-			R->AL(false);
-			return 0x43B4B0;
+		|| (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->DeathFrameCounter > 0)) {
+			return 0x6D4793;
 		}
 
-		return 0x0;
+		if(TechnoExtData::IsUntrackable(pThis)) {
+			return 0x6D4793;
+		}
+
+		if(pThis->CurrentlyOnSensor()) {
+			return 0x6D478C; //draw dashed line
+		}
 	}
 
-	R->AL(false);
-	return 0x43B4B0;
+	return 0x6D4793;
 }
 
 // Gives player houses names based on their spawning spot
@@ -3928,4 +3930,24 @@ DEFINE_HOOK(0x4824EF, CellClass_CollecCreate_FlyingStrings, 0x8)
 	R->Stack(0x84, loc);
 	R->EAX(RulesClass::Instance());
 	return 0x482551;
+}
+
+DEFINE_HOOK(0x41F783, AITriggerTypeClass_ParseConditionType, 0x5)
+{
+	GET(const char*, pBuffer, EAX);
+	GET(AITriggerTypeClass*, pThis, EBP);
+
+	TechnoTypeClass* result = InfantryTypeClass::Find(pBuffer);
+	if (!result)
+		result = UnitTypeClass::Find(pBuffer);
+	if(!result)
+		result = AircraftTypeClass::Find(pBuffer);
+	if (!result)
+		result = BuildingTypeClass::Find(pBuffer);
+
+	//if (result)
+	//	Debug::Log("Found Condition Object[%s - %s] for [%s]\n", pBuffer , result->GetThisClassName(), pThis->ID);
+
+	R->ESI(result);
+	return 0x41F7DE;
 }
