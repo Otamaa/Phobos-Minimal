@@ -2492,13 +2492,13 @@ DEFINE_OVERRIDE_HOOK(0x4556E1, BuildingClass_SensorArrayDeactivate, 7)
 
 // powered state changed
 // ???
-// DEFINE_OVERRIDE_HOOK_AGAIN(0x454B5F, BuildingClass_UpdatePowered_SensorArray, 6)
-// DEFINE_OVERRIDE_HOOK(0x4549F8, BuildingClass_UpdatePowered_SensorArray, 6)
-// {
-// 	GET(BuildingClass*, pBld, ESI);
-// 	TechnoExt_ExtData::UpdateSensorArray(pBld);
-// 	return 0;
-// }
+DEFINE_OVERRIDE_HOOK_AGAIN(0x454B5F, BuildingClass_UpdatePowered_SensorArray, 6)
+DEFINE_OVERRIDE_HOOK(0x4549F8, BuildingClass_UpdatePowered_SensorArray, 6)
+{
+	GET(BuildingClass*, pBld, ESI);
+	TechnoExt_ExtData::UpdateSensorArray(pBld);
+	return 0;
+}
 
 // something changed to the worse, like toggle power
 DEFINE_OVERRIDE_HOOK(0x4524A3, BuildingClass_DisableThings, 6)
