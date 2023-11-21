@@ -3952,3 +3952,20 @@ DEFINE_HOOK(0x41F783, AITriggerTypeClass_ParseConditionType, 0x5)
 	R->ESI(result);
 	return 0x41F7DE;
 }
+
+
+// Enable This when needed
+#ifndef DEBUG_STUPID_HUMAN_CHECKS
+
+DEFINE_HOOK(0x50B730, HouseClass_IsControlledByHuman_LogCaller, 0x5)
+{
+	GameDebugLog::Log(__FUNCTION__"Caller [%x]", R->Stack<DWORD>(0x0));
+	return 0x0;
+}
+
+DEFINE_HOOK(0x50B6F0, HouseClass_ControlledByCurrentPlayer_LogCaller, 0x5)
+{
+	GameDebugLog::Log(__FUNCTION__"Caller [%x]", R->Stack<DWORD>(0x0));
+	return 0x0;
+}
+#endif 
