@@ -60,10 +60,10 @@ public:
 		TargetClass dummy; //not really used actually
 	};
 
-	static size_t GetDataSize(uint8_t type)
+	static size_t GetDataSize(EventType type)
 	{
-		if ((EventType)type <= EventType::ABANDON_ALL) // default event
-			return EventClass::EventLength[type];
+		if (type <= EventType::ABANDON_ALL) // default event
+			return EventClass::EventLength[(uint8_t)type];
 
 		switch ((Events)type)
 		{

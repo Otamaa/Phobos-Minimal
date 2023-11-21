@@ -49,7 +49,7 @@ DEFINE_HOOK(0x465201, BuildingTypeClass_LoadFromStream_Foundation, 0x6)
 	return 0x465239;
 }
 
-DEFINE_OVERRIDE_HOOK(0x45eca0, BuildingTypeClass_GetFoundationHeight, 6)
+DEFINE_STRONG_OVERRIDE_HOOK(0x45eca0, BuildingTypeClass_GetFoundationHeight, 6)
 {
 	GET(BuildingTypeClass*, pThis, ECX);
 
@@ -185,7 +185,7 @@ DEFINE_OVERRIDE_HOOK(0x4A8DD7, DisplayClass_ProcessFoundation2_UnlimitBuffer, 5)
 	return 0x4A8DFE;
 }
 
-DEFINE_OVERRIDE_HOOK(0x45ec90, BuildingTypeClass_GetFoundationWidth, 6)
+DEFINE_STRONG_OVERRIDE_HOOK(0x45ec90, BuildingTypeClass_GetFoundationWidth, 6)
 {
 	GET(BuildingTypeClass*, pThis, ECX);
 
@@ -211,7 +211,7 @@ DEFINE_OVERRIDE_HOOK(0x45ECE0, BuildingTypeClass_GetMaxPips, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x465550, BuildingTypeClass_GetFoundationOutline, 6)
+DEFINE_STRONG_OVERRIDE_HOOK(0x465550, BuildingTypeClass_GetFoundationOutline, 6)
 {
 	GET(BuildingTypeClass*, pThis, ECX);
 

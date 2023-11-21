@@ -482,7 +482,7 @@ float BuildingTypeExtData::GetPurifierBonusses(HouseClass* pHouse)
 
 	// AI VirtualPurifiers only applicable outside campaign
 	// the bonus is using default rules value
-	const bool Eligible = SessionClass::Instance->GameMode != GameMode::Campaign;
+	const bool Eligible = !pHouse->IsHumanPlayer && SessionClass::Instance->GameMode != GameMode::Campaign;
 	const int bonusCount = !Eligible ? 0 : RulesClass::Instance->AIVirtualPurifiers[pHouse->GetAIDifficultyIndex()];
 	//virtual purifier using rules value
 	const float bonusAI = RulesClass::Instance->PurifierBonus * bonusCount;

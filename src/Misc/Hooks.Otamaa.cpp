@@ -3204,9 +3204,10 @@ DEFINE_HOOK(0x442A08, BuildingClass_ReceiveDamage_ReturnFire, 0x5)
 	GET(TechnoClass*, pAttacker, EBP);
 	GET(BuildingClass*, pThis, ESI);
 
+	//Was pThis->Owner->ControlledByPlayer(), got desync ed with that 
 	const bool def = BuildingTypeExtContainer::Instance.Find(pThis->Type)->PlayerReturnFire.Get(
 		pAttacker->WhatAmI() == AircraftClass::AbsID ||
-		(pThis->Owner->ControlledByPlayer_() && !RulesClass::Instance->PlayerReturnFire)
+		(pThis->Owner->IsControlledByHuman() && !RulesClass::Instance->PlayerReturnFire)
 	);
 
 	return !def ? SetTarget : RandomFacing;

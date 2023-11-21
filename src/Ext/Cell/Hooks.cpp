@@ -32,7 +32,7 @@ DEFINE_HOOK(0x47F641, CellClass_DrawShadow_Tiberium, 0x6)
 }
 
 //seems causing large FPS drop
-DEFINE_HOOK(0x6D7A46, TacticalClass_DrawPixelFX_Tiberium, 0x7)
+DEFINE_STRONG_HOOK(0x6D7A46, TacticalClass_DrawPixelFX_Tiberium, 0x7)
 {
 	GET(CellClass*, pCell, ESI);
 

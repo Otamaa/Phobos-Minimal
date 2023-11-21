@@ -491,17 +491,17 @@ DEFINE_HOOK(0x73E46D , UnitClass_Mi_Unload_replace , 0x6)
 	GET(BuildingClass* const, pBld, EDI);
 	GET(UnitClass* , pThis , ESI);
 	GET(int, idxTiberium, EBP);
-	REF_STACK(float, amountRaw, 0x80 - 0x68);
-	REF_STACK(float, amountPurified, 0x80 - 0x50);
+	REF_STACK(float, amountRemoved, 0x80 - 0x68);//after decreased
+	//REF_STACK(float, amountPurified, 0x80 - 0x50);
 
 	if(pBld->Type->Weeder) {
-		pBld->Owner->GiveWeed((int)amountRaw ,idxTiberium);
+		pBld->Owner->GiveWeed((int)amountRemoved,idxTiberium);
 		pThis->Animation.Value = 0;
 	}else
 	{
-		TechnoExt_ExtData::DepositTiberium(pBld,
-	 	amountRaw,
-	 	BuildingTypeExtData::GetPurifierBonusses(pBld->Owner) * amountRaw,
+		TechnoExt_ExtData::DepositTiberium(pBld, pBld->Owner ,
+		amountRemoved,
+	 	BuildingTypeExtData::GetPurifierBonusses(pBld->Owner) * amountRemoved,
 		idxTiberium
 	 	);
 		pThis->Animation.Value = 0;
@@ -551,19 +551,21 @@ DEFINE_HOOK(0x522D50, InfantryClass_StorageAI_Handle, 0x5)
 	GET(InfantryClass*, pThis, ECX);
 	GET_STACK(TechnoClass* const, pDest, 0x4);
 
+	//be carefull , that slave sometime do unload with different owner
+	//this can become troublesome later ,..
+
 	auto storage = &pThis->Tiberium;
 	bool updateSmoke = false;
-	int balanceBefore = pThis->Owner->Available_Money();
+	int balanceBefore = pDest->Owner->Available_Money();
 
 	for (int i = storage->GEtFirstUsedSlot(); i != -1; i = storage->GEtFirstUsedSlot())
 	{
-		auto const amount = storage->GetAmount(i);
-		storage->RemoveAmount(amount, i);
+		auto const amountRemoved = storage->RemoveAmount(storage->GetAmount(i), i);
 
-		if (amount > 0.0)
+		if (amountRemoved > 0.0)
 		{
-			TechnoExt_ExtData::DepositTiberium(pThis, amount,
-				BuildingTypeExtData::GetPurifierBonusses(pThis->Owner) * amount,
+			TechnoExt_ExtData::DepositTiberium(pThis , pDest->Owner, amountRemoved,
+				BuildingTypeExtData::GetPurifierBonusses(pDest->Owner) * amountRemoved,
 				i);
 
 			// register for refinery smoke
@@ -573,9 +575,9 @@ DEFINE_HOOK(0x522D50, InfantryClass_StorageAI_Handle, 0x5)
 
 	if (updateSmoke)
 	{
-		pThis->UpdateRefinerySmokeSystems();
+		pDest->UpdateRefinerySmokeSystems();
 
-		int money = pThis->Owner->Available_Money() - balanceBefore;
+		int money = pDest->Owner->Available_Money() - balanceBefore;
 		const auto what = pDest->WhatAmI();
 
 		if (what == BuildingClass::AbsID) {
@@ -881,8 +883,8 @@ DEFINE_OVERRIDE_HOOK(0x700EEC, TechnoClass_CanDeploySlashUnload_NoManualUnload, 
 	// this techno is known to be a unit
 	GET(UnitClass const* const, pThis, ESI);
 
-	return TechnoTypeExtContainer::Instance.Find(pThis->Type)->NoManualUnload || pThis->BunkerLinkedItem
-		? 0x700DCEu : 0u;
+	return !TechnoTypeExtContainer::Instance.Find(pThis->Type)->NoManualUnload || pThis->BunkerLinkedItem
+		? 0u : 0x700DCEu;
 }
 
 DEFINE_OVERRIDE_HOOK(0x53C450, TechnoClass_CanBePermaMC, 5)

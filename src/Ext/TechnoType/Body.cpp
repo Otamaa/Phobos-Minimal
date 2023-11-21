@@ -373,7 +373,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->DestroyAnim_Random.Read(exINI, pSection, "DestroyAnim.Random");
 		ValueableVector<WarheadTypeClass*> DestroyAnimSpecificList {};
-		DestroyAnimSpecificList.Read(exINI, pSection, "DesytroyAnims.LinkedWarhead");
+		DestroyAnimSpecificList.Read(exINI, pSection, "DestroyAnims.LinkedWarhead");
 
 		char buffersp[0x100];
 		if(!DestroyAnimSpecificList.empty()) {

@@ -155,8 +155,7 @@ struct INIClass_
 };
 static_assert(sizeof(INIClass_) == 0x40, "Invalid Size!");
 
-#ifndef BROKEN_STUFFS
-DEFINE_OVERRIDE_HOOK(0x528A10, INIClass_GetString, 5)
+DEFINE_STRONG_OVERRIDE_HOOK(0x528A10, INIClass_GetString, 5)
 {
 	GET(INIClass*, pThis, ECX);
 	GET_STACK(const char*, pSection, 0x4);
@@ -198,7 +197,7 @@ DEFINE_OVERRIDE_HOOK(0x528A10, INIClass_GetString, 5)
 	return 0x528BFA;
 }
 
-DEFINE_OVERRIDE_HOOK(0x526CC0, INIClass_Section_GetKeyName, 7)
+DEFINE_STRONG_OVERRIDE_HOOK(0x526CC0, INIClass_Section_GetKeyName, 7)
 {
 	GET(INIClass*, pThis, ECX);
 	GET_STACK(const char*, pSection, 0x4);
@@ -239,7 +238,7 @@ DEFINE_OVERRIDE_HOOK(0x526CC0, INIClass_Section_GetKeyName, 7)
 	return 0x526D8A;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5260d9, INIClass_Parse_Override, 7)
+DEFINE_STRONG_OVERRIDE_HOOK(0x5260d9, INIClass_Parse_Override, 7)
 {
 	GET_STACK(INIClass_*, pThis, 0x38);
 	GET(int, CRC, EAX);
@@ -269,16 +268,9 @@ DEFINE_OVERRIDE_HOOK(0x5260d9, INIClass_Parse_Override, 7)
 	}
 	return 0;
 }
-#else 
-
-//DEFINE_DISABLE_HOOK(0x526CC0, INIClass_Section_GetKeyName_ares)
-//DEFINE_DISABLE_HOOK(0x528A10, INIClass_GetString_ares)
-//DEFINE_DISABLE_HOOK(0x5260d9, INIClass_Parse_Override_ares)
-
-#endif
 	
 #ifndef IteratorChar
-DEFINE_OVERRIDE_HOOK(0x5260A2, INIClass_Parse_IteratorChar1, 6)
+DEFINE_STRONG_OVERRIDE_HOOK(0x5260A2, INIClass_Parse_IteratorChar1, 6)
 {
 	GET(CCINIClass::INIEntry*, entry, ESI);
 
@@ -294,7 +286,7 @@ DEFINE_OVERRIDE_HOOK(0x5260A2, INIClass_Parse_IteratorChar1, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x525D23, INIClass_Parse_IteratorChar2, 5)
+DEFINE_STRONG_OVERRIDE_HOOK(0x525D23, INIClass_Parse_IteratorChar2, 5)
 {
 	GET(char*, value, ESI);
 	LEA_STACK(char*, key, 0x78)
@@ -338,7 +330,7 @@ void IniSectionIncludes::CopySection(CCINIClass* ini, INIClass::INISection* sour
 }
 
 #ifndef INHERITANCE
-DEFINE_OVERRIDE_HOOK(0x525E44, INIClass_Parse_IniSectionIncludes_CopySection2, 7)
+DEFINE_STRONG_OVERRIDE_HOOK(0x525E44, INIClass_Parse_IniSectionIncludes_CopySection2, 7)
 {
 	if (IniSectionIncludes::includedSection)
 	{
@@ -351,7 +343,7 @@ DEFINE_OVERRIDE_HOOK(0x525E44, INIClass_Parse_IniSectionIncludes_CopySection2, 7
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x525C28, INIClass_Parse_IniSectionIncludes_CopySection1, 7)
+DEFINE_STRONG_OVERRIDE_HOOK(0x525C28, INIClass_Parse_IniSectionIncludes_CopySection1, 7)
 {
 	LEA_STACK(char*, sectionName, 0x79);
 	GET_STACK(CCINIClass*, ini, 0x28);
@@ -428,7 +420,7 @@ NOINLINE INIClass::INISection* GetInheritedSection(INIClass* pThis, char* ptr)
 	return nullptr;
 }
 
-DEFINE_OVERRIDE_HOOK(0x525CA5, INIClass_Parse_IniSectionIncludes_PreProcess1, 8)
+DEFINE_STRONG_OVERRIDE_HOOK(0x525CA5, INIClass_Parse_IniSectionIncludes_PreProcess1, 8)
 {
 	GET(char*, ptr, EAX);
 	GET_STACK(INIClass*, pThis, 0x28);
@@ -440,7 +432,7 @@ DEFINE_OVERRIDE_HOOK(0x525CA5, INIClass_Parse_IniSectionIncludes_PreProcess1, 8)
 	return 0x525D4D;
 }
 
-DEFINE_OVERRIDE_HOOK(0x525DDB, INIClass_Parse_IniSectionIncludes_PreProcess2, 5)
+DEFINE_STRONG_OVERRIDE_HOOK(0x525DDB, INIClass_Parse_IniSectionIncludes_PreProcess2, 5)
 {
 	GET(char*, ptr, EAX);
 	GET_STACK(INIClass*, pThis, 0x28);
@@ -456,7 +448,7 @@ int LastReadIndex = -1;
 std::vector<CCINIClass*> LoadedINIs;
 std::vector<std::string> LoadedINIFiles;
 
-DEFINE_OVERRIDE_HOOK(0x474200, CCINIClass_ReadCCFile1, 6)
+DEFINE_STRONG_OVERRIDE_HOOK(0x474200, CCINIClass_ReadCCFile1, 6)
 {
 	GET(CCINIClass*, pINI, ECX);
 	GET(CCFileClass*, pFile, EAX);
@@ -478,7 +470,7 @@ DEFINE_OVERRIDE_HOOK(0x474200, CCINIClass_ReadCCFile1, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x474314, CCINIClass_ReadCCFile2, 6)
+DEFINE_STRONG_OVERRIDE_HOOK(0x474314, CCINIClass_ReadCCFile2, 6)
 {
 	char buffer[0x80];
 	CCINIClass* xINI = LoadedINIs.back();
@@ -533,7 +525,7 @@ DEFINE_OVERRIDE_HOOK(0x474314, CCINIClass_ReadCCFile2, 6)
 #endif
 
 // replaces entire function (without the pip distortion bug)
-DEFINE_OVERRIDE_HOOK(0x4748A0, INIClass_GetPipIdx, 0x7)
+DEFINE_STRONG_OVERRIDE_HOOK(0x4748A0, INIClass_GetPipIdx, 0x7)
 {
 	GET(INIClass*, pINI, ECX);
 	GET_STACK(const char*, pSection, 0x4);
@@ -570,7 +562,7 @@ DEFINE_OVERRIDE_HOOK(0x4748A0, INIClass_GetPipIdx, 0x7)
 }
 
 // invalid or not set edge reads array out of bounds
-DEFINE_OVERRIDE_HOOK(0x4759D4, INIClass_WriteEdge, 0x7)
+DEFINE_STRONG_OVERRIDE_HOOK(0x4759D4, INIClass_WriteEdge, 0x7)
 {
 	GET(int const, index, EAX);
 
@@ -583,7 +575,7 @@ DEFINE_OVERRIDE_HOOK(0x4759D4, INIClass_WriteEdge, 0x7)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x687C56, INIClass_ReadScenario_ResetLogStatus, 5)
+DEFINE_STRONG_OVERRIDE_HOOK(0x687C56, INIClass_ReadScenario_ResetLogStatus, 5)
 {
 	// reset this so next scenario startup log is cleaner
 	Phobos::Otamaa::TrackParserErrors = false;

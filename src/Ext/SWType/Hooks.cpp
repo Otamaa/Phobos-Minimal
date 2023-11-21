@@ -1255,7 +1255,7 @@ DEFINE_OVERRIDE_HOOK(0x6CBD6B, SuperClass_Update_DrainMoney, 8)
 }
 
 // clear the chrono placement animation if not ChronoWarp
-DEFINE_OVERRIDE_HOOK(0x6CBCDE, SuperClass_Update_Animation, 5)
+DEFINE_STRONG_OVERRIDE_HOOK(0x6CBCDE, SuperClass_Update_Animation, 5)
 {
 	if (Unsorted::CurrentSWType < 0)
 		return 0x6CBCE3;

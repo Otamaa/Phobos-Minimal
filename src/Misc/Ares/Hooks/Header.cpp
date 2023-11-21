@@ -1525,9 +1525,8 @@ bool TechnoExt_ExtData::Warpable(TechnoClass* pTarget)
 	return true;
 }
 
-void TechnoExt_ExtData::DepositTiberium(TechnoClass* pThis, float const amount, float const bonus, int const idxType)
+void TechnoExt_ExtData::DepositTiberium(TechnoClass* pThis, HouseClass* pHouse, float const amount, float const bonus, int const idxType)
 {
-	const auto pHouse = pThis->GetOwningHouse();
 	auto pTiberium = TiberiumClass::Array->GetItem(idxType);
 	auto value = 0;
 
@@ -1569,12 +1568,11 @@ void TechnoExt_ExtData::DepositTiberium(TechnoClass* pThis, float const amount, 
 	}
 }
 
-void TechnoExt_ExtData::RefineTiberium(TechnoClass* pThis, float const amount, int const idxType)
+void TechnoExt_ExtData::RefineTiberium(TechnoClass* pThis, HouseClass* pHouse, float const amount, int const idxType)
 {
-	const auto pHouse = pThis->GetOwningHouse();
 	const auto refined = BuildingTypeExtData::GetPurifierBonusses(pHouse) * amount;
 	// add the tiberium to the house's credits
-	TechnoExt_ExtData::DepositTiberium(pThis, amount, refined, idxType);
+	TechnoExt_ExtData::DepositTiberium(pThis, pHouse, amount, refined, idxType);
 }
 
 bool TechnoExt_ExtData::FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon)

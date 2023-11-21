@@ -27,39 +27,39 @@ DEFINE_OVERRIDE_HOOK(0x6ab773, SelectClass_ProcessInput_ProduceUnsuspended, 0xA)
 
 DEFINE_OVERRIDE_HOOK(0x64C314, sub_64BDD0_PayloadSize2, 0x8)
 {
-	GET(uint8_t, nSize, ESI);
+	GET(EventType, eventType, ESI);
 
-	const auto nFix = AresNetEvent::GetDataSize(nSize);
+	const auto eventDataSize = AresNetEvent::GetDataSize(eventType);
 
-	R->ECX(nFix);
-	R->EBP(nFix + (nSize == 4u));
+	R->ECX(eventDataSize);
+	R->EBP(eventDataSize + (EventType::MEGAMISSION == eventType));
 
 	return 0x64C321;
 }
 
 DEFINE_OVERRIDE_HOOK(0x64BE83, sub_64BDD0_PayloadSize1, 0x8)
 {
-	GET(uint8_t, nSize, EDI);
+	GET(EventType, eventType, EDI);
 
-	const auto nFix = AresNetEvent::GetDataSize(nSize);
+	const auto eventDataSize = AresNetEvent::GetDataSize(eventType);
 
-	R->ECX(nFix);
-	R->EBP(nFix);
-	R->Stack(0x20, nFix);
+	R->ECX(eventDataSize);
+	R->EBP(eventDataSize);
+	R->Stack(0x20, eventDataSize);
 
-	return nSize == 4 ? 0x64BF1A : 0x64BE97;
+	return (EventType::MEGAMISSION == eventType) ? 0x64BF1A : 0x64BE97;
 }
 
 DEFINE_OVERRIDE_HOOK(0x64B704, sub_64B660_PayloadSize, 0x8)
 {
-	GET(uint8_t, nSize, EDI);
+	GET(EventType, eventType, EDI);
 
-	const auto nFix = AresNetEvent::GetDataSize(nSize);
+	const auto eventDataSize = AresNetEvent::GetDataSize(eventType);
 
-	R->EDX(nFix);
-	R->EBP(nFix);
+	R->EDX(eventDataSize);
+	R->EBP(eventDataSize);
 
-	return (nSize == 0x1Fu) ? 0x64B710 : 0x64B71D;
+	return (EventType::ADDPLAYER == eventType) ? 0x64B710 : 0x64B71D;
 }
 
 // #666: Trench Traversal - check if traversal is possible & cursor display

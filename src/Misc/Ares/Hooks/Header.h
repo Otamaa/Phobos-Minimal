@@ -128,8 +128,8 @@ struct TechnoExt_ExtData
 	static int GetWarpPerStep(TemporalClass* pThis, int nStep);
 	static bool Warpable(TechnoClass* pTarget);
 
-	static void DepositTiberium(TechnoClass* pThis, float const amount, float const bonus, int const idxType);
-	static void RefineTiberium(TechnoClass* pThis, float const amount, int const idxType);
+	static void DepositTiberium(TechnoClass* pThis , HouseClass* pHouse, float const amount, float const bonus, int const idxType);
+	static void RefineTiberium(TechnoClass* pThis, HouseClass* pHouse, float const amount, int const idxType);
 
 	static bool FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
 	static std::pair<bool, int> HealActionProhibited(bool CheckKeyPress, TechnoClass* pTarget, WeaponTypeClass* pWeapon);

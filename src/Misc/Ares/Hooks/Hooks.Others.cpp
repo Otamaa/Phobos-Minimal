@@ -500,7 +500,7 @@ DEFINE_HOOK(0x65EA43, SendReinforcement_Opentopped, 0x6)
 //}
 
 // issue 1520: logging stupid shit crashes the game
-DEFINE_OVERRIDE_HOOK(0x4CA437, FactoryClass_GetCRC, 0x8)
+DEFINE_STRONG_OVERRIDE_HOOK(0x4CA437, FactoryClass_GetCRC, 0x8)
 {
 	GET(FactoryClass*, pThis, ECX);
 	GET_STACK(DWORD, pCRC, 0xC);
@@ -2490,7 +2490,7 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x4068E0, Debug_Log, 1)
 
 #pragma region ErrorHandlings
 
-DEFINE_STRONG_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
+DEFINE_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 {
 	// mimic an increment because decrement happens in the middle of function cleanup and can't be erased nicely
 	++Unsorted::SystemResponseMessages;
