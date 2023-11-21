@@ -1916,7 +1916,7 @@ DEFINE_HOOK(0x740015, UnitClass_WhatAction_NoManualEject, 0x6)
 //
 // 	double result = int(pType->GetCost() * pHouse->GetHouseCostMult(pType) * pHouse->GetHouseTypeCostMult(pType));
 //
-// 	if(!pHouse->IsControlledByHuman_())
+// 	if(!pHouse->IsControlledByHuman())
 // 		result *= RulesExtData::Instance()->AI_CostMult;
 //
 // 	R->EAX(result);
@@ -3559,7 +3559,7 @@ DEFINE_HOOK(0x6DEA37 , TAction_Execute_Win, 6)
 // 	GET(FootClass*, pThis, ESI);
 //
 // 	const auto pOwner = pThis->Owner;
-// 	if (!pOwner->IsControlledByHuman_()
+// 	if (!pOwner->IsControlledByHuman()
 // 		&& !(Unsorted::CurrentFrame() % 450)
 // 		&& pThis->CurrentMapCoords == pThis->LastMapCoords
 // 		&& !pThis->GetTechnoType()->ResourceGatherer

@@ -565,19 +565,21 @@ public:
 		{ JMP_THIS(0x505310); }
 
 	// whether any human player controls this house
+	// this check if this house IsHumanPlayer or IsInPlayerControl
+	// using it on wrong function can cause desyncs !
 	bool IsControlledByHuman() const  { JMP_THIS(0x50B730); }
 
 	// whether any human player controls this house
 	// this check if this house IsHumanPlayer or IsInPlayerControl
 	// using it on wrong function can cause desyncs !
-	bool IsControlledByHuman_() const
-	{
-		bool result = this->IsHumanPlayer;
-		if(SessionClass::Instance->GameMode == GameMode::Campaign) {
-			result |= this->IsInPlayerControl;
-		}
-		return result;
-	}
+	//bool IsControlledByHuman()_ const
+	//{
+	//	bool result = this->IsHumanPlayer;
+	//	if(SessionClass::Instance->GameMode == GameMode::Campaign) {
+	//		result |= this->IsInPlayerControl;
+	//	}
+	//	return result;
+	//}
 
 	// whether the human player on this PC can control this house
 	// this check if this equal to HouseClass::CurrentPlayer() pointer
@@ -585,13 +587,15 @@ public:
 	bool ControlledByCurrentPlayer() const { JMP_THIS(0x50B6F0); }
 
 	// whether the human player on this PC can control this house
-	bool ControlledByCurrentPlayer_() const
-	{
-		if(SessionClass::Instance->GameMode != GameMode::Campaign) {
-			return this->IsCurrentPlayer();
-		}
-		return this->IsHumanPlayer || this->IsInPlayerControl;
-	}
+	// this check if this equal to HouseClass::CurrentPlayer() pointer
+	// using it on wrong function can cause desyncs!
+	//bool ControlledByCurrentPlayer_() const
+	//{
+	//	if(SessionClass::Instance->GameMode != GameMode::Campaign) {
+	//		return this->IsCurrentPlayer();
+	//	}
+	//	return this->IsHumanPlayer || this->IsInPlayerControl;
+	//}
 
 	// Target ought to be Object, I imagine, but cell doesn't work then
 	void __fastcall SendSpyPlanes(int AircraftTypeIdx, int AircraftAmount, Mission SetMission, AbstractClass *Target, ObjectClass *Destination)

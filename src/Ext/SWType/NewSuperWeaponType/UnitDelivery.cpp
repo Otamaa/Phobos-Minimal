@@ -86,7 +86,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 
 	// get the house the units will belong to
 	const auto pOwner = HouseExtData::GetHouseKind(pData->SW_OwnerHouse, false, this->Super->Owner);
-	const bool IsPlayerControlled = pOwner->IsControlledByHuman_();
+	const bool IsPlayerControlled = pOwner->IsControlledByHuman();
 	const bool bBaseNormal = pData->SW_BaseNormal;
 	const bool bDeliverBuildup = pData->SW_DeliverBuildups;
 	const size_t facingsize = pData->SW_Deliverables_Facing.size();

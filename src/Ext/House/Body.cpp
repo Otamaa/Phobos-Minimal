@@ -40,7 +40,7 @@ RequirementStatus HouseExtData::RequirementsMet(
 
 	bool IsHuman = false;
 
-	if (pHouse->IsControlledByHuman_()) {
+	if (pHouse->IsControlledByHuman()) {
 		IsHuman = true;
 		if(pData->HumanUnbuildable || pItem->TechLevel == -1)
 			return RequirementStatus::Forbidden;
@@ -194,7 +194,7 @@ CanBuildResult HouseExtData::PrereqValidate(
 	HouseClass* pHouse, TechnoTypeClass* pItem,
 	bool buildLimitOnly, bool includeQueued)
 {
-	const bool IsHuman = pHouse->IsControlledByHuman_();
+	const bool IsHuman = pHouse->IsControlledByHuman();
 	//const bool debug = CRT::strcmpi(pItem->ID, "GAOREP") == 0;
 
 	if (!buildLimitOnly)
@@ -987,7 +987,7 @@ bool HouseExtData::UpdateHarvesterProduction()
 			: RulesClass::Instance->AISlaveMinerNumber[AIDifficulty];
 
 		if (pThis->IQLevel2 >= RulesClass::Instance->Harvester && !pThis->IsTiberiumShort
-			&& !pThis->IsControlledByHuman_() && harvesters < maxHarvesters
+			&& !pThis->IsControlledByHuman() && harvesters < maxHarvesters
 			&& pThis->TechLevel >= pHarvesterUnit->TechLevel)
 		{
 			pThis->ProducingUnitTypeIndex = pHarvesterUnit->ArrayIndex;

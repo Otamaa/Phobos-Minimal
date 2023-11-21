@@ -219,7 +219,7 @@ DEFINE_HOOK(0x4401BB, Factory_AI_PickWithFreeDocks, 0x6) //was C
 	if (!pBuilding || !pBuilding->Owner)
 		return 0;
 
-	if (pBuilding->Owner->IsControlledByHuman_() || pBuilding->Owner->IsNeutral())
+	if (pBuilding->Owner->IsControlledByHuman() || pBuilding->Owner->IsNeutral())
 		return 0;
 
 	if (pBuilding->Type->Factory == AbstractType::AircraftType)
@@ -241,7 +241,7 @@ DEFINE_HOOK(0x4401BB, Factory_AI_PickWithFreeDocks, 0x6) //was C
 //	auto pRules = RulesExtData::Instance();
 //
 //	if (pThis->Type->Factory == AbstractType::AircraftType && pRules->ForbidParallelAIQueues_Aircraft.Get(!pRules->AllowParallelAIQueues))
-//		if(!pThis->Factory && !pThis->IsPrimaryFactory && pThis->Owner && pThis->Owner->IsControlledByHuman_())
+//		if(!pThis->Factory && !pThis->IsPrimaryFactory && pThis->Owner && pThis->Owner->IsControlledByHuman())
 //		return 0x4503CA;
 //
 //	return 0x0;
@@ -378,7 +378,7 @@ DEFINE_OVERRIDE_HOOK(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
 			: pRules->AISlaveMinerNumber[AIDiff];
 
 		if (pThis->IQLevel2 >= pRules->Harvester && !pThis->IsTiberiumShort
-			&& !pThis->IsControlledByHuman_() && harvesters < maxHarvesters
+			&& !pThis->IsControlledByHuman() && harvesters < maxHarvesters
 			&& pThis->TechLevel >= pHarvester->TechLevel)
 		{
 			pThis->ProducingUnitTypeIndex = pHarvester->ArrayIndex;

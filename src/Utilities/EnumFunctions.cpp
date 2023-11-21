@@ -705,7 +705,7 @@ bool EnumFunctions::IsPlayerTypeEligible(AffectPlayerType flags, HouseClass* pFo
 	if (Obs && !pFor->IsObserver())
 		return false;
 
-	const bool IsHumanControlled = pFor->IsControlledByHuman_();
+	const bool IsHumanControlled = pFor->IsControlledByHuman();
 
 	if (Comp && IsHumanControlled)
 		return false;

@@ -963,7 +963,7 @@ DEFINE_HOOK(0x4F8FE1, HouseClass_Update_TryFireSW, 0x5)
 
 	if (!pThis->Type->MultiplayPassive)
 	{
-		if (!pThis->IsControlledByHuman_())
+		if (!pThis->IsControlledByHuman())
 			return 0x4F9015;
 		else
 			pThis->AI_TryFireSW();		// update the SWs for auto firings
@@ -1237,7 +1237,7 @@ DEFINE_OVERRIDE_HOOK(0x6CBD6B, SuperClass_Update_DrainMoney, 8)
 				// only abort if SW drains money and there is none
 				if (!pOwner->CanTransactMoney(money))
 				{
-					if (pOwner->IsControlledByHuman_())
+					if (pOwner->IsControlledByHuman())
 					{
 						VoxClass::PlayIndex(pData->EVA_InsufficientFunds);
 						pData->PrintMessage(pData->Message_InsufficientFunds, HouseClass::CurrentPlayer);
@@ -2658,7 +2658,7 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 			for (auto const& pFoot : Minions)
 			{
 				const auto nMission = pFoot->GetTechnoType()->ResourceGatherer ? Mission::Harvest :
-					!PsyDom::Owner->IsControlledByHuman_() ? Mission::Hunt : Mission::Guard;
+					!PsyDom::Owner->IsControlledByHuman() ? Mission::Hunt : Mission::Guard;
 
 				pFoot->QueueMission(nMission, false);
 			}

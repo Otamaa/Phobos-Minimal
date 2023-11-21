@@ -131,7 +131,7 @@ DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 		// display production cameo
 		if (IsObserver || bReveal)
 		{
-			const auto pFactory = pThis->Owner->IsControlledByHuman_() ?
+			const auto pFactory = pThis->Owner->IsControlledByHuman() ?
 				pThis->Owner->GetPrimaryFactory(pType->Factory, pType->Naval, BuildCat::DontCare)
 				: pThis->Factory;
 

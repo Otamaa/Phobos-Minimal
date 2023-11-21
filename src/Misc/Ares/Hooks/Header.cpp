@@ -1053,7 +1053,7 @@ bool TechnoExt_ExtData::PerformActionHijack(TechnoClass* pFrom, TechnoClass* con
 			ret = false;
 		}
 
-		pTarget->QueueMission(pThis->Owner->IsControlledByHuman_() ? Mission::Guard : Mission::Hunt, true);
+		pTarget->QueueMission(pThis->Owner->IsControlledByHuman() ? Mission::Guard : Mission::Hunt, true);
 
 		if (auto const pTag = pTarget->AttachedTag)
 		{
@@ -1206,7 +1206,7 @@ void TechnoExt_ExtData::KickOutClones(BuildingClass* pFactory, TechnoClass* cons
 		return;
 	}
 
-	const auto isPlayer = pFactory->Owner->IsControlledByHuman_();
+	const auto isPlayer = pFactory->Owner->IsControlledByHuman();
 
 	auto ProductionTypeAs = ProductionType;
 	if(!isPlayer && ProductionTypeData->AI_ClonedAs.isset())
@@ -1800,7 +1800,7 @@ bool TechnoExt_ExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 			canPrefer = !pSWExt->HunterSeeker_RandomOnly;
 		}
 
-		auto const isHumanControlled = pOwner->IsControlledByHuman_();
+		auto const isHumanControlled = pOwner->IsControlledByHuman();
 		auto const mode = SessionClass::Instance->GameMode;
 
 		// the AI in multiplayer games only attacks its favourite enemy
@@ -4713,7 +4713,7 @@ void AresEMPulse::DisableEMPEffect(TechnoClass* const pVictim)
 			}
 		}
 
-		if (!hasMission && !pFoot->Owner->IsControlledByHuman_())
+		if (!hasMission && !pFoot->Owner->IsControlledByHuman())
 		{
 			pFoot->QueueMission(RulesExtData::Instance()->EMPAIRecoverMission.Get(Mission::Hunt), false);
 		}
@@ -4865,7 +4865,7 @@ void AresEMPulse::DisableEMPEffect2(TechnoClass* const pVictim)
 				}
 			}
 
-			if (!hasMission && !pFoot->Owner->IsControlledByHuman_())
+			if (!hasMission && !pFoot->Owner->IsControlledByHuman())
 			{
 				pFoot->QueueMission(RulesExtData::Instance()->EMPAIRecoverMission.Get(Mission::Hunt), false);
 			}
@@ -6724,7 +6724,7 @@ void TunnelFuncs::HandleUnload(std::vector<FootClass*>* pTunnelData, BuildingCla
 bool AresHouseExt::CheckBasePlanSanity(HouseClass* const pThis)
 {
 	// this shouldn't happen, but you never know
-	if (pThis->IsControlledByHuman_() || pThis->IsNeutral())
+	if (pThis->IsControlledByHuman() || pThis->IsNeutral())
 	{
 		return true;
 	}
@@ -6796,7 +6796,7 @@ void AresHouseExt::UpdateTogglePower(HouseClass* pThis)
 		|| pRulesExt->TogglePowerIQ > pThis->IQLevel2
 		|| pThis->Buildings.Count == 0
 		|| pThis->IsBeingDrained
-		|| pThis->IsControlledByHuman_()
+		|| pThis->IsControlledByHuman()
 		|| pThis->PowerBlackoutTimer.InProgress())
 	{
 		return;

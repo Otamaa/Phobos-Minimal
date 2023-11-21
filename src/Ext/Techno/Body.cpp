@@ -394,7 +394,7 @@ void TechnoExtData::RestoreLastTargetAndMissionAfterWebbed(InfantryClass* pThis)
 	if (pTarget)
 		pThis->Override_Mission(pExt->WebbyLastMission, pTarget, pTarget);
 	else
-		pThis->QueueMission(pThis->Owner->IsControlledByHuman_() ? Mission::Guard : Mission::Hunt ,true);
+		pThis->QueueMission(pThis->Owner->IsControlledByHuman() ? Mission::Guard : Mission::Hunt ,true);
 }
 
 void TechnoExtData::StoreLastTargetAndMissionAfterWebbed(InfantryClass* pThis)
@@ -1512,7 +1512,7 @@ bool TechnoExtData::CreateWithDroppod(FootClass* Object, const CoordStruct& XYZ)
 		if (!Object->InLimbo)
 		{
 			Object->See(0, 0);
-			Object->QueueMission(Object->Owner && Object->Owner->IsControlledByHuman_() ? Mission::Guard : Mission::Hunt, 0);
+			Object->QueueMission(Object->Owner && Object->Owner->IsControlledByHuman() ? Mission::Guard : Mission::Hunt, 0);
 			Object->NextMission();
 			return true;
 		}

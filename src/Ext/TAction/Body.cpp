@@ -161,7 +161,7 @@ bool TActionExt::MessageForSpecifiedHouse(TActionClass* pThis, HouseClass* pHous
 		std::vector<int> housesListIdx;
 		for (auto ptmpHouse : *HouseClass::Array)
 		{
-			if (ptmpHouse->IsControlledByHuman_()
+			if (ptmpHouse->IsControlledByHuman()
 				&& !ptmpHouse->Defeated
 				&& !ptmpHouse->IsObserver())
 			{

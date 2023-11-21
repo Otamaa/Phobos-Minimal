@@ -1186,7 +1186,7 @@ DEFINE_OVERRIDE_HOOK(0x621B80, DSurface_FillRectWithColor, 5)
 DEFINE_OVERRIDE_HOOK(0x4ABFBE, DisplayClass_LeftMouseButtonUp_ExecPowerToggle, 7)
 {
 	GET(TechnoClass*, Target, ESI);
-	return (Target && Target->Owner->IsControlledByHuman_() && Target->WhatAmI() == AbstractType::Building)
+	return (Target && Target->Owner->IsControlledByHuman() && Target->WhatAmI() == AbstractType::Building)
 		? 0x4ABFCE
 		: 0x4AC294
 		;
@@ -1370,7 +1370,7 @@ DEFINE_OVERRIDE_HOOK(0x5d7048, MPGameMode_SpawnBaseUnit_BuildConst, 5)
 		--pHouse->BaseSpawnCell.Y;
 	}
 
-	if (!pHouse->IsControlledByHuman_())
+	if (!pHouse->IsControlledByHuman())
 	{
 		pHouse->Func_505180();
 		CellStruct base = pHouse->GetBaseCenter();

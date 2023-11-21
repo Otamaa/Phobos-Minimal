@@ -383,7 +383,7 @@ bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 
 			if (Flag == SWTargetFlags::AllowEmpty)
 			{
-				if(pThis->Owner->IsControlledByHuman_() && !pExt->SW_AutoFire && pExt->SW_ManualFire) {
+				if(pThis->Owner->IsControlledByHuman() && !pExt->SW_AutoFire && pExt->SW_ManualFire) {
 					Unsorted::CurrentBuilding = nullptr;
 					Unsorted::CurrentBuildingType = nullptr;
 					Unsorted::unknown_11AC = static_cast<DWORD>(-1);
@@ -1840,7 +1840,7 @@ bool SWTypeExtData::IsAvailable(HouseClass* pHouse)
 	if (this->SW_Shots >= 0 && HouseExtContainer::Instance.Find(pHouse)->GetShotCount(pThis).Count >= this->SW_Shots)
 		return false;
 
-	if (pHouse->IsControlledByHuman_() ? (!this->SW_AllowPlayer) : (!this->SW_AllowAI))
+	if (pHouse->IsControlledByHuman() ? (!this->SW_AllowPlayer) : (!this->SW_AllowAI))
 		return false;
 
 	if (!this->SW_Require.empty()) {
