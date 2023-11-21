@@ -449,7 +449,7 @@ DEFINE_OVERRIDE_HOOK(0x69281E, DisplayClass_ChooseAction_TogglePower, 0xA) {
 	{
 		auto pOwner = pBld->GetOwningHouse();
 
-		if (pOwner && pOwner->ControlledByPlayer())
+		if (pOwner && pOwner->ControlledByCurrentPlayer())
 		{
 			if (pBld->CanBeSelected()
 				&& !pBld->IsStrange()
@@ -636,13 +636,13 @@ DEFINE_OVERRIDE_HOOK(0x44840B, BuildingClass_ChangeOwnership_Tech, 6)
 		const auto pExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 		const auto color = HouseClass::CurrentPlayer->ColorSchemeIndex;
 
-		if (pThis->Owner->ControlledByPlayer())
+		if (pThis->Owner->ControlledByCurrentPlayer())
 		{
 			VoxClass::PlayIndex(pExt->LostEvaEvent);
 			pExt->MessageLost->PrintAsMessage(color);
 		}
 
-		if (pNewOwner->ControlledByPlayer())
+		if (pNewOwner->ControlledByCurrentPlayer())
 		{
 			VoxClass::PlayIndex(pThis->Type->CaptureEvaEvent);
 			pExt->MessageCapture->PrintAsMessage(color);
@@ -1582,7 +1582,7 @@ DEFINE_OVERRIDE_HOOK(0x4456E5, BuildingClass_UpdateConstructionOptions_ExcludeDi
 //
 //					Owner->RecheckTechTree = true;
 //
-//					if (nColle->Owner && nColle->Owner->ControlledByPlayer()) {
+//					if (nColle->Owner && nColle->Owner->ControlledByCurrentPlayer()) {
 //						VoxClass::Play(nColle->WhatAmI() == InfantryClass::AbsID ? "EVA_ReverseEngineeredInfantry" : "EVA_ReverseEngineeredVehicle");
 //						VoxClass::Play(GameStrings::EVA_NewTechAcquired());
 //					}
@@ -1612,7 +1612,7 @@ void AddPassengers(BuildingClass* const Grinder, TechnoClass* Vic)
 
 		if (BuildingExtData::ReverseEngineer(Grinder, Vic))
 		{
-			if (nPass->Owner && nPass->Owner->ControlledByPlayer())
+			if (nPass->Owner && nPass->Owner->ControlledByCurrentPlayer())
 			{
 				VoxClass::Play(nPass->WhatAmI() == InfantryClass::AbsID ? "EVA_ReverseEngineeredInfantry" : "EVA_ReverseEngineeredVehicle");
 				VoxClass::Play(GameStrings::EVA_NewTechAcquired());
@@ -1642,7 +1642,7 @@ DEFINE_OVERRIDE_HOOK(0x73A1BC, UnitClass_UpdatePosition_EnteredGrinder, 0x7)
 
 	if (BuildingExtData::ReverseEngineer(Grinder, Vehicle))
 	{
-		if (Vehicle->Owner && Vehicle->Owner->ControlledByPlayer())
+		if (Vehicle->Owner && Vehicle->Owner->ControlledByCurrentPlayer())
 		{
 			VoxClass::Play("EVA_ReverseEngineeredVehicle");
 			VoxClass::Play(GameStrings::EVA_NewTechAcquired());
@@ -1684,7 +1684,7 @@ DEFINE_OVERRIDE_HOOK(0x5198AD, InfantryClass_UpdatePosition_EnteredGrinder, 0x6)
 
 	if (BuildingExtData::ReverseEngineer(Grinder, Infantry))
 	{
-		if (Infantry->Owner->ControlledByPlayer())
+		if (Infantry->Owner->ControlledByCurrentPlayer())
 		{
 			VoxClass::Play("EVA_ReverseEngineeredInfantry");
 			VoxClass::Play(GameStrings::EVA_NewTechAcquired());
@@ -2411,7 +2411,7 @@ DEFINE_OVERRIDE_HOOK(0x457D58, BuildingClass_CanBeOccupied_SpecificOccupiers, 6)
 
 	if(!isFull && !isIneligible && (count
 		|| pThis->Owner == pInf->Owner
-		|| SessionClass::Instance->GameMode == GameMode::Campaign && pThis->Owner->ControlledByPlayer() && pInf->Owner->ControlledByPlayer()
+		|| SessionClass::Instance->GameMode == GameMode::Campaign && pThis->Owner->ControlledByCurrentPlayer() && pInf->Owner->ControlledByCurrentPlayer()
 		|| pBuildTypeExt->BunkerRaidable
 		|| pThis->Owner->IsNeutral())){
 			return 0x457DD5;

@@ -374,7 +374,7 @@ DEFINE_OVERRIDE_HOOK(0x4D9F7B, FootClass_Sell_Detonate, 6)
 			// so this can possibly causing some weird crashes if that happening
 	}
 
-	if (pThis->Owner->ControlledByPlayer())
+	if (pThis->Owner->ControlledByCurrentPlayer())
 	{
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 

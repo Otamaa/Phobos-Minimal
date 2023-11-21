@@ -83,7 +83,7 @@ DEFINE_HOOK(0x51F0AF, InfantryClass_WhatAction_Grinding, 0x5)
 	if (auto pBuilding = specific_cast<BuildingClass*>(pTarget))
 	{
 		if (pBuilding->Type->Grinding
-			&& pThis->Owner->ControlledByPlayer()
+			&& pThis->Owner->ControlledByCurrentPlayer()
 			&& !pBuilding->IsBeingWarpedOut()
 			&& (pThis->Owner->IsAlliedWith(pTarget) && pBuilding->Owner != pThis->Owner)
 			&& (BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->Grinding_AllowAllies || action == Action::Select))
@@ -139,7 +139,7 @@ DEFINE_HOOK(0x740134, UnitClass_WhatAction_Grinding, 0x9) //0
 
 	if (auto pBuilding = specific_cast<BuildingClass*>(pTarget))
 	{
-		if (pThis->Owner->ControlledByPlayer()
+		if (pThis->Owner->ControlledByCurrentPlayer()
 			&& !pBuilding->IsBeingWarpedOut()
 			&& pThis->Owner->IsAlliedWith(pTarget)
 			&& (pBuilding->Type->Grinding || action == Action::Select))

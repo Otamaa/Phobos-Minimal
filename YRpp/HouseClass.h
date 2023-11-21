@@ -568,6 +568,8 @@ public:
 	bool IsControlledByHuman() const  { JMP_THIS(0x50B730); }
 
 	// whether any human player controls this house
+	// this check if this house IsHumanPlayer or IsInPlayerControl
+	// using it on wrong function can cause desyncs !
 	bool IsControlledByHuman_() const
 	{
 		bool result = this->IsHumanPlayer;
@@ -578,10 +580,12 @@ public:
 	}
 
 	// whether the human player on this PC can control this house
-	bool ControlledByPlayer() const { JMP_THIS(0x50B6F0); }
+	// this check if this equal to HouseClass::CurrentPlayer() pointer
+	// using it on wrong function can cause desyncs!
+	bool ControlledByCurrentPlayer() const { JMP_THIS(0x50B6F0); }
 
 	// whether the human player on this PC can control this house
-	bool ControlledByPlayer_() const
+	bool ControlledByCurrentPlayer_() const
 	{
 		if(SessionClass::Instance->GameMode != GameMode::Campaign) {
 			return this->IsCurrentPlayer();
@@ -857,7 +861,7 @@ public:
 		return this == CurrentPlayer;
 	}
 
-	//ControlledByPlayer
+	//ControlledByCurrentPlayer
 	//bool IsControlledByCurrentPlayer() const { JMP_THIS(0x50B730); }
 	//{
 	//	bool result = CurrentPlayer;

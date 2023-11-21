@@ -583,7 +583,7 @@ int Mission_Attack(AircraftClass* pThis)
 				return 1;
 			}
 		}
-		else if (pThis->IsALoaner || (pThis->Owner && pThis->Owner->ControlledByPlayer()))
+		else if (pThis->IsALoaner || (pThis->Owner && pThis->Owner->ControlledByCurrentPlayer()))
 		{
 			pThis->SetTarget(nullptr);
 		}

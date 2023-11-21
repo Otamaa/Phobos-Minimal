@@ -1002,7 +1002,7 @@ DEFINE_HOOK(481F87, CellClass_CrateCollected_Shroud_Override, 7)
 				if (pSound)
 					VocClass::PlayAt(pSound, animCoord, nullptr);
 
-				if (pEva && pHouse->ControlledByPlayer() && NotObserver)
+				if (pEva && pHouse->ControlledByCurrentPlayer() && NotObserver)
 					VoxClass::PlayAtPos(pEva, &animCoord);
 			}
 		}

@@ -36,7 +36,7 @@ public:
 	{
 		const auto pOwner = pThis->GetOwningHouse();
 		return pOwner
-			&& pOwner->ControlledByPlayer()
+			&& pOwner->ControlledByCurrentPlayer()
 			&& pThis->CanBeSelected()
 			&& pThis->CanBeSelectedNow();
 	}
@@ -100,7 +100,7 @@ public:
 					const auto pOwner = pTechno->GetOwningHouse();
 
 					if (pOwner
-						&& pOwner->ControlledByPlayer()
+						&& pOwner->ControlledByCurrentPlayer()
 						&& pTechno->CanBeSelected()
 						&& (!pBldType || pBldType->IsUndeployable())
 						)

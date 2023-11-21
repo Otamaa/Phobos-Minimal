@@ -186,7 +186,7 @@ bool TActionExt::MessageForSpecifiedHouse(TActionClass* pThis, HouseClass* pHous
 	for (int i = 0; i < HouseClass::Array->Count; i++)
 	{
 		auto pTmpHouse = HouseClass::Array->GetItem(i);
-		if (pTmpHouse->ControlledByPlayer() && pTmpHouse == pTargetHouse)
+		if (pTmpHouse->IsControlledByHuman() && pTmpHouse == pTargetHouse)
 		{
 			MessageListClass::Instance->PrintMessage(StringTable::LoadStringA(pThis->Text), RulesClass::Instance->MessageDelay, pTmpHouse->ColorSchemeIndex);
 		}

@@ -2101,7 +2101,7 @@ void TechnoExt_ExtData::PlantBomb(TechnoClass* pSource, ObjectClass* pTarget, We
 
 			pBomb->Type = BombType((!IsAlly && pWeaponExt->Ivan_DeathBomb) || (IsAlly && pWeaponExt->Ivan_DeathBombOnAllies));
 
-			if (pSource->Owner && pSource->Owner->ControlledByPlayer())
+			if (pSource->Owner && pSource->Owner->ControlledByCurrentPlayer())
 			{
 				VocClass::PlayIndexAtPos(pWeaponExt->Ivan_AttachSound.Get(RulesClass::Instance->BombAttachSound)
 				, pBomb->Target->Location);
@@ -2119,7 +2119,7 @@ bool TechnoExt_ExtData::CanDetonate(TechnoClass* pThis, ObjectClass* pThat)
 			if (!pBomb->OwnerHouse)
 				return false;
 
-			if (pBomb->OwnerHouse->ControlledByPlayer())
+			if (pBomb->OwnerHouse->ControlledByCurrentPlayer())
 			{
 				const auto pData = BombExtContainer::Instance.Find(pBomb);
 				const bool bCanDetonateDeathBomb =
@@ -2208,10 +2208,10 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 	}
 
 	bool raiseEva = false;
-	const bool IsOwnerControlledByPlayer = Owner->ControlledByPlayer();
-	const bool IsEntererControlledByPlayer = Enterer->ControlledByPlayer();
+	const bool IsOwnerControlledByCurrentPlayer = Owner->ControlledByCurrentPlayer();
+	const bool IsEntererControlledByCurrentPlayer = Enterer->ControlledByCurrentPlayer();
 
-	if (IsEntererControlledByPlayer || IsOwnerControlledByPlayer)
+	if (IsEntererControlledByCurrentPlayer || IsOwnerControlledByCurrentPlayer)
 	{
 		CellStruct xy = CellClass::Coord2Cell(EnteredBuilding->GetCoords());
 		if (RadarEventClass::Create(RadarEventType::BuildingInfiltrated, xy))
@@ -2220,8 +2220,8 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 		}
 	}
 
-	const bool evaForOwner = IsOwnerControlledByPlayer && raiseEva;
-	const bool evaForEnterer = IsEntererControlledByPlayer && raiseEva;
+	const bool evaForOwner = IsOwnerControlledByCurrentPlayer && raiseEva;
+	const bool evaForEnterer = IsEntererControlledByCurrentPlayer && raiseEva;
 	bool effectApplied = false;
 
 	if (pTypeExt->SpyEffect_ResetRadar)
@@ -2522,7 +2522,7 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 		if (promotionStolen)
 		{
 			Enterer->RecheckTechTree = true;
-			if (IsEntererControlledByPlayer)
+			if (IsEntererControlledByCurrentPlayer)
 			{
 				MouseClass::Instance->SidebarNeedsRepaint();
 			}
@@ -3612,7 +3612,7 @@ void TechnoExperienceData::PromoteImmedietely(TechnoClass* pExpReceiver, bool bS
 				newRank = pExpReceiver->Veterancy.AddAndGetRank(promoteExp);
 			}
 
-			if (!bSilent && pExpReceiver->Owner->ControlledByPlayer())
+			if (!bSilent && pExpReceiver->Owner->ControlledByCurrentPlayer())
 			{
 				VocClass::PlayIndexAtPos(sound, (pExpReceiver->Transporter ? pExpReceiver->Transporter : pExpReceiver)->Location, nullptr);
 				VoxClass::PlayIndex(eva);

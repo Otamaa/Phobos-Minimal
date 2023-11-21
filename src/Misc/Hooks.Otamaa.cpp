@@ -584,7 +584,7 @@ DEFINE_HOOK(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
 	GET(TechnoClass* const, pThis, ESI);
 
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-	//TODO : re-eval check below  , i if desync/the behaviour is not good , change it to pThis->Owner->IsControlledByPlayer()
+	//TODO : re-eval check below  , i if desync/the behaviour is not good , change it to pThis->Owner->IsControlledByCurrentPlayer()
 	const bool Allow = RulesExtData::Instance()->AutoAttackICedTarget.Get() || pThis->Owner->IsControlledByHuman();
 	return pTypeExt->AllowFire_IroncurtainedTarget.Get(Allow)
 		? BypassCheck : ContinueCheck;
@@ -634,7 +634,7 @@ DEFINE_HOOK(0x45743B, BuildingClass_Infiltrated_StoleMoney_AI, 0xA)
 	float mult = pRules->SpyMoneyStealPercent;
 	auto const& nAIMult = RulesExtData::Instance()->AI_SpyMoneyStealPercent;
 
-	if (pThis->Owner && !pThis->Owner->ControlledByPlayer() && nAIMult.isset()) {
+	if (pThis->Owner && !pThis->Owner->IsControlledByHuman() && nAIMult.isset()) {
 		mult = nAIMult.Get();
 	}
 
@@ -1620,9 +1620,7 @@ DEFINE_HOOK(0x6A8E25, SidebarClass_StripClass_AI_Building_EVA_ConstructionComple
 {
 	GET(TechnoClass* const, pTech, ESI);
 
-	if (pTech && pTech->WhatAmI() == BuildingClass::AbsID
-	 && pTech->Owner
-	 && pTech->Owner->ControlledByPlayer()) {
+	if (pTech->WhatAmI() == BuildingClass::AbsID) {
 		VoxClass::PlayIndex(TechnoTypeExtContainer::Instance.Find(pTech->GetTechnoType())->Eva_Complete.Get());
 		return 0x6A8E34;
 	}
@@ -2035,7 +2033,7 @@ DEFINE_HOOK(0x7225F3, TiberiumClass_Spread_nullptrheap, 0x7)
 
 BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 {
-	const bool IsCurrentPlayer = pThis->ControlledByPlayer_();//inline version
+	const bool IsCurrentPlayer = pThis->ControlledByCurrentPlayer();//inline version
 
 	//===============reset all
 	pThis->CostDefensesMult = 1.0;
@@ -3032,7 +3030,8 @@ public:
 
 			if (pType->HasRadialIndicator && pTypeExt->AlwayDrawRadialIndicator.Get(!pTechno->Deactivated))
 			{
-				if (HouseClass::IsCurrentPlayerObserver() || (pTechno->Owner && pTechno->Owner->ControlledByPlayer_()))
+				if (HouseClass::IsCurrentPlayerObserver()
+					|| (pTechno->Owner && pTechno->Owner->ControlledByCurrentPlayer()))
 				{
 					int nRadius = 0;
 
@@ -3205,7 +3204,7 @@ DEFINE_HOOK(0x442A08, BuildingClass_ReceiveDamage_ReturnFire, 0x5)
 	GET(TechnoClass*, pAttacker, EBP);
 	GET(BuildingClass*, pThis, ESI);
 
-	//Was pThis->Owner->ControlledByPlayer(), got desync ed with that 
+	//Was pThis->Owner->ControlledByCurrentPlayer(), got desync ed with that 
 	const bool def = BuildingTypeExtContainer::Instance.Find(pThis->Type)->PlayerReturnFire.Get(
 		pAttacker->WhatAmI() == AircraftClass::AbsID ||
 		(pThis->Owner->IsControlledByHuman() && !RulesClass::Instance->PlayerReturnFire)

@@ -834,7 +834,7 @@ bool __fastcall AircraftClass_SetOwningHouse(AircraftClass* const pThis, DWORD, 
 
 //double FC HouseClass_GetTypeCostMult(HouseClass* pThis, DWORD, TechnoTypeClass* pType)
 //{
-   // const double mult = !pThis->ControlledByPlayer() ? RulesExtData::Instance()->AI_CostMult : 1.0;
+   // const double mult = !pThis->ControlledByCurrentPlayer() ? RulesExtData::Instance()->AI_CostMult : 1.0;
    // return pThis->GetHouseTypeCostMult(pType) * mult;
 //}
 

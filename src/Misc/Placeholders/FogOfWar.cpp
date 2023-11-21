@@ -405,7 +405,7 @@ DEFINE_HOOK(0x51F95F, InfantryClass_GetCursorOverCell_OverFog, 0x6)
 			{
 				pType = pObject->BuildingData.Type;
 
-				if (pThis->Type->Engineer && pThis->Owner->ControlledByPlayer())
+				if (pThis->Type->Engineer && pThis->Owner->ControlledByCurrentPlayer())
 				{
 					if (pType->BridgeRepairHut)
 					{
@@ -492,7 +492,7 @@ DEFINE_HOOK(0x4ADFF0, MapClass_RevealMapShroud, 0x5)
 		if (pTechno->WhatAmI() != AbstractType::Building || !bHideBuilding)
 		{
 			if (pTechno->GetTechnoType()->RevealToAll ||
-				pTechno->DiscoveredByCurrentPlayer && pTechno->Owner->ControlledByPlayer() ||
+				pTechno->DiscoveredByCurrentPlayer && pTechno->Owner->ControlledByCurrentPlayer() ||
 				RulesClass::Instance->AllyReveal && pTechno->Owner->IsAlliedWith(HouseClass::CurrentPlayer))
 			{
 				pTechno->See(0, bFog);

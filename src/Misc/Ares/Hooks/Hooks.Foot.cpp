@@ -58,7 +58,7 @@ DEFINE_OVERRIDE_HOOK(0x4D98C0, FootClass_Destroyed_PlayEvent, 0xA)
 		|| pType->Insignificant
 		|| pType->Spawned
 		|| !pThis->Owner
-		|| !pThis->Owner->ControlledByPlayer()
+		|| !pThis->Owner->ControlledByCurrentPlayer()
 	)
 	{
 		return Skip;

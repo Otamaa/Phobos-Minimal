@@ -728,7 +728,7 @@ DEFINE_OVERRIDE_HOOK(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 			&& (!pBldExt->TogglePower_HasPower)
 			// only for owned buildings, but observers got magic eyes
 			&& ((pBld->GetCurrentMission() != Mission::Selling) && (pBld->GetCurrentMission() != Mission::Construction))
-			&& (pBld->Owner->ControlledByPlayer() || isObserver);
+			&& (pBld->Owner->ControlledByCurrentPlayer() || isObserver);
 
 		// display any?
 		if (showPower || showRepair)
