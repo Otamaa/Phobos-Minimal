@@ -3955,7 +3955,7 @@ DEFINE_HOOK(0x41F783, AITriggerTypeClass_ParseConditionType, 0x5)
 
 
 // Enable This when needed
-#ifndef DEBUG_STUPID_HUMAN_CHECKS
+#ifdef DEBUG_STUPID_HUMAN_CHECKS
 
 DEFINE_HOOK(0x50B730, HouseClass_IsControlledByHuman_LogCaller, 0x5)
 {
