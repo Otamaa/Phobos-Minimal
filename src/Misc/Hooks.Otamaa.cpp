@@ -584,6 +584,7 @@ DEFINE_HOOK(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
 	GET(TechnoClass* const, pThis, ESI);
 
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	//TODO : re-eval check below  , i if desync/the behaviour is not good , change it to pThis->Owner->IsControlledByHuman()
 	const bool Allow = RulesExtData::Instance()->AutoAttackICedTarget.Get() || pThis->Owner->ControlledByPlayer();
 	return pTypeExt->AllowFire_IroncurtainedTarget.Get(Allow)
 		? BypassCheck : ContinueCheck;
