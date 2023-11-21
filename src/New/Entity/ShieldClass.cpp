@@ -187,15 +187,15 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 		const double passPercent = affectsShield ? pWHExt->Shield_PassPercent.Get(this->Type->PassPercent) : this->Type->PassPercent;
 		int ShieldDamage = (int)((double)nDamage * absorbPercent);
 		DamageToShield = ShieldDamage;
-		DamageToShieldAfterMinMax = std::clamp(DamageToShield, pWHExt->Shield_ReceivedDamage_Minimum.Get(this->Type->ReceivedDamage_Minimum),
-		pWHExt->Shield_ReceivedDamage_Maximum.Get(this->Type->ReceivedDamage_Maximum));
-
 		// passthrough damage shouldn't be affected by shield armor
 		PassableDamageAnount = (int)((double)*args->Damage * passPercent);
 	}
 
 	int nDamageResult = 0;
 	bool IsShielRequreFeeback = true;
+	DamageToShieldAfterMinMax = std::clamp(DamageToShield, 
+		pWHExt->Shield_ReceivedDamage_Minimum.Get(this->Type->ReceivedDamage_Minimum),
+		pWHExt->Shield_ReceivedDamage_Maximum.Get(this->Type->ReceivedDamage_Maximum));
 
 	if (DamageToShieldAfterMinMax == 0)
 	{
@@ -232,6 +232,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 
 		const auto nHPCopy = this->HP;
 		int residueDamage = DamageToShield - this->HP;
+
 		//positive residual , mean that shield cant take all the damage
 		//the shield will be broken
 		if (residueDamage >= 0)
@@ -252,15 +253,12 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 		else //negative residual damage
 			// that mean the damage can be sustained with the sield
 		{
-			auto nResidualCopy = residueDamage;
-			if (Phobos::Debug_DisplayDamageNumbers && (-nResidualCopy)  != 0)
-				TechnoExtData::DisplayDamageNumberString(this->Techno, (-nResidualCopy), true, args->WH);
+			if (Phobos::Debug_DisplayDamageNumbers && (-DamageToShield)  != 0)
+				TechnoExtData::DisplayDamageNumberString(this->Techno, (-DamageToShield), true, args->WH);
 
 			this->WeaponNullifyAnim(pWHExt->Shield_HitAnim.Get(nullptr));
-			this->HP = MaxImpl(this->HP + residueDamage, 0);
-
+			this->HP -= DamageToShield; //set the HP remaining after get hit
 			UpdateIdleAnim();
-
 			//absorb all the damage
 			nDamageResult = 0;
 		}
@@ -292,7 +290,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	}
 
 	//replace damage
-	if (nDamageResult > 0) {
+	if (!nDamageResult && this->HP == 0) {
 		if (auto const pTag = this->Techno->AttachedTag)
 			pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::ShieldBroken, this->Techno,
 				CellStruct::Empty, false, args->Attacker);//where is this? is this correct?
@@ -425,6 +423,10 @@ void ShieldClass::OnUpdate()
 	if (this->Techno->Location == CoordStruct::Empty)
 		return;
 
+	auto const loc = this->Techno->InlineMapCoords();
+	if (!loc.IsValid())
+		return;
+
 	if (this->Techno->WhatAmI() == BuildingClass::AbsID)
 	{
 		if (BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(this->Techno))->LimboID != -1)
@@ -433,11 +435,8 @@ void ShieldClass::OnUpdate()
 
 	if (this->Techno->Health <= 0 || !this->Techno->IsAlive || this->Techno->IsSinking)
 	{
-		if (auto const pTechnoExt = TechnoExtContainer::Instance.Find(this->Techno))
-		{
-			pTechnoExt->Shield = nullptr;
-			return;
-		}
+		TechnoExtContainer::Instance.Find(this->Techno)->Shield = nullptr;
+		return;
 	}
 
 	if (this->ConvertCheck())
@@ -454,6 +453,7 @@ void ShieldClass::OnUpdate()
 		return;
 
 	this->OnlineCheck();
+
 	const auto selfHealingCheck = this->SelfHealEnabledByCheck();
 	auto timer = (this->HP <= 0) ? &this->Timers_Respawn : &this->Timers_SelfHealing;
 
@@ -470,7 +470,7 @@ void ShieldClass::OnUpdate()
 	if (!this->AreAnimsHidden)
 	{
 		if (GeneralUtils::HasHealthRatioThresholdChanged(LastTechnoHealthRatio, ratio))
-			UpdateIdleAnim();
+			this->UpdateIdleAnim();
 
 		if (!this->Cloak && !this->Temporal && this->Online && (this->HP > 0 && this->Techno->Health > 0))
 			this->CreateAnim();
