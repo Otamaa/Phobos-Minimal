@@ -82,12 +82,10 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 
 				for (; nAmountToSpawn > 0; --nAmountToSpawn)
 				{
-					if (auto const pVoxelAnimType = nDebrisTypes[nCurIdx])
-						if (auto pVoxAnim = GameCreate<VoxelAnimClass>(pVoxelAnimType, &nCoords, pOWner))
-						{
-							if (auto pVoxelAnimExt = VoxelAnimExtContainer::Instance.Find(pVoxAnim))
-								pVoxelAnimExt->Invoker = pThis->Owner;
-						}
+					if (auto const pVoxelAnimType = nDebrisTypes[nCurIdx]){
+						auto pVoxAnim = GameCreate<VoxelAnimClass>(pVoxelAnimType, &nCoords, pOWner);
+						VoxelAnimExtContainer::Instance.Find(pVoxAnim)->Invoker = pThis->Owner;
+					}
 				}
 
 			if (nTotalSpawn <= 0)

@@ -139,10 +139,9 @@ void PsychicDominatorStateMachine::Update()
 
 		AnimClass* pAnim = nullptr;
 		if (AnimTypeClass* pAnimType = pData->Dominator_FirstAnim.Get(RulesClass::Instance->DominatorFirstAnim)) {
-			if(auto pCreated = GameCreate<AnimClass>(pAnimType, coords)){
-				pCreated->SetHouse(this->Super->Owner);
-				pAnim = pCreated;
-			}
+			auto pCreated = GameCreate<AnimClass>(pAnimType, coords);
+			pCreated->SetHouse(this->Super->Owner);
+			pAnim = pCreated;
 		}
 
 		PsyDom::Anim = pAnim;

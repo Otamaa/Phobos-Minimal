@@ -466,9 +466,9 @@ public:
 
 	void FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const CellStruct* const pCell, bool IsCurrentPlayer);
 
-	bool IsInhibitor(HouseClass* pOwner, TechnoClass* pTechno);
-	bool HasInhibitor(HouseClass* pOwner, const CellStruct& Coords);
-	bool IsInhibitorEligible(HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno);
+	bool IsInhibitor(HouseClass* pOwner, TechnoClass* pTechno) const;
+	bool HasInhibitor(HouseClass* pOwner, const CellStruct& Coords) const;
+	bool IsInhibitorEligible(HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno) const;
 	bool IsDesignator(HouseClass* pOwner, TechnoClass* pTechno) const;
 	bool HasDesignator(HouseClass* pOwner, const CellStruct& coords) const;
 	bool IsDesignatorEligible(HouseClass* pOwner, const CellStruct& coords, TechnoClass* pTechno) const;
@@ -490,9 +490,9 @@ public:
 	//with arg(s)
 
 	// check shootamount
-	bool CanFire(HouseClass* pOwner);
+	bool CanFire(HouseClass* pOwner) const;
 	bool CanFireAt(HouseClass* pOwner, const CellStruct& coords, bool manual);
-	bool IsAnimVisible(HouseClass* pFirer);
+	bool IsAnimVisible(HouseClass* pFirer) const;
 	bool IsHouseAffected(HouseClass* pFirer, HouseClass* pHouse);
 	bool IsHouseAffected(HouseClass* pFirer, HouseClass* pHouse, AffectedHouse value);
 	bool Launch(NewSWType* pNewType, SuperClass* pSuper, CellStruct const cell, bool const isPlayer);

@@ -70,12 +70,8 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 
 					im_where.Z = MapClass::Instance->GetCellFloorHeight(im_where);
 					if (VoxelAnimTypeClass* impact = ScenarioClass::Instance->Random.PercentChance(pData->MeteorImpactKindChance) ?
-						large_Impact : small_Impact)
-					{
-						if (auto pVxl = GameCreate<VoxelAnimClass>(impact, &im_where, pThis->Owner))
-						{
-							VoxelAnimExtContainer::Instance.Find(pVxl)->Invoker = pFirer;
-						}
+						large_Impact : small_Impact) {
+						VoxelAnimExtContainer::Instance.Find(GameCreate<VoxelAnimClass>(impact, &im_where, pThis->Owner))->Invoker = pFirer;
 					}
 				}
 			}

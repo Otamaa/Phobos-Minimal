@@ -75,13 +75,11 @@ void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 							parasyte->DiskLaserTimer.Start(paralysisCountdown);
 						}
 
-						if (pWHExt->CanRemoveParasytes_KickOut_Anim.isset())
+						if (pWHExt->CanRemoveParasytes_KickOut_Anim.isset() && pWHExt->CanRemoveParasytes_KickOut_Anim)
 						{
-							if (auto const pAnim = GameCreate<AnimClass>(pWHExt->CanRemoveParasytes_KickOut_Anim.Get(), parasyte->GetCoords()))
-							{
-								AnimExtData::SetAnimOwnerHouseKind(pAnim, args->SourceHouse ? args->SourceHouse : parasyte->Owner, pThis->Owner, parasyte, false);
-								pAnim->SetOwnerObject(parasyte);
-							}
+							auto const pAnim = GameCreate<AnimClass>(pWHExt->CanRemoveParasytes_KickOut_Anim.Get(), parasyte->GetCoords());
+							AnimExtData::SetAnimOwnerHouseKind(pAnim, args->SourceHouse ? args->SourceHouse : parasyte->Owner, pThis->Owner, parasyte, false);
+							pAnim->SetOwnerObject(parasyte);
 						}
 					}
 				}

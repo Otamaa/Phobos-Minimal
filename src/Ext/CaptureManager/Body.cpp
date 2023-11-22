@@ -115,8 +115,8 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 					CaptureExt::FreeUnit(pManager, pManager->ControlNodes[0]->Unit , bSilent);
 		}
 
-		if (auto pControlNode = GameCreate<ControlNode>(pTarget, pTarget->Owner, RulesClass::Instance->MindControlAttackLineFrames))
 		{
+			auto pControlNode = GameCreate<ControlNode>(pTarget, pTarget->Owner, RulesClass::Instance->MindControlAttackLineFrames);
 			pManager->ControlNodes.AddItem(pControlNode);
 			const auto pBld = specific_cast<BuildingClass*>(pTarget);
 
@@ -140,9 +140,8 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 					else
 						location.Z += pType->MindControlRingOffset;
 
-
-					if (auto const pAnim = GameCreate<AnimClass>(pControlledAnimType, location))
 					{
+						auto const pAnim = GameCreate<AnimClass>(pControlledAnimType, location);
 						pTarget->MindControlRingAnim = pAnim;
 						pAnim->SetOwnerObject(pTarget);
 

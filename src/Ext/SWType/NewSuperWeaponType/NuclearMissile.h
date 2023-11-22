@@ -19,7 +19,7 @@ public:
 	virtual WarheadTypeClass* GetWarhead(const SWTypeExtData* pData) const override;
 	virtual int GetDamage(const SWTypeExtData* pData) const override;
 
-	BuildingClass* GetAlternateLauchSite(const SWTypeExtData* pData, SuperClass* pThis);
+	BuildingClass* GetAlternateLauchSite(const SWTypeExtData* pData, SuperClass* pThis) const;
 
 	static SuperWeaponTypeClass* CurrentNukeType;
 	static bool DropNukeAt(SuperWeaponTypeClass* pSuper , CoordStruct const& to, TechnoClass* Owner , HouseClass* OwnerHouse , WeaponTypeClass* pPayload);

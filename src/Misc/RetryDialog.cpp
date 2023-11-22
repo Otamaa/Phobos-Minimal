@@ -45,11 +45,10 @@ DEFINE_HOOK(0x686092, DoLose_RetryDialogForCampaigns, 0x7)
 
 		case WWMessageBox::Result::Button2:
 		{
-			auto pDialog = GameCreate<LoadOptionsClass>();
+			LoadOptionsClass dialog {};
 			RetryDialogFlag::IsCalledFromRetryDialog = true;
-			const bool bIsAboutToLoad = pDialog->LoadDialog();
+			const bool bIsAboutToLoad = dialog.LoadDialog();
 			RetryDialogFlag::IsCalledFromRetryDialog = false;
-			GameDelete<true , false>(pDialog);
 
 			if (!bIsAboutToLoad)
 				continue;

@@ -13,22 +13,19 @@ void PlayChronoSparkleAnim(TechnoClass* pTechno, CoordStruct* pLoc, int X_Offs =
 		return;
 
 	CoordStruct nLoc { pLoc->X + X_Offs , pLoc->Y + X_Offs  , pLoc->Z };
-
-	if (auto pAnim = GameCreate<AnimClass>(pSparkle, nLoc, 0, 1, AnimFlag(0x600), false, false))
-	{
-		pAnim->ZAdjust = ZAdjust;
-		HouseClass* pOwner = nullptr;
-		HouseClass* pVictim = pTechno->GetOwningHouse();
-		TechnoClass* pTInvoker = nullptr;
-		if (const auto pInvoker = pTechno->TemporalTargetingMe) {
-			if (auto pOwnerOfTemp = pInvoker->Owner) {
-				pOwner = pOwnerOfTemp->GetOwningHouse();
-				pTInvoker = pOwnerOfTemp;
-			}
+	auto pAnim = GameCreate<AnimClass>(pSparkle, nLoc, 0, 1, AnimFlag(0x600), false, false);
+	pAnim->ZAdjust = ZAdjust;
+	HouseClass* pOwner = nullptr;
+	HouseClass* pVictim = pTechno->GetOwningHouse();
+	TechnoClass* pTInvoker = nullptr;
+	if (const auto pInvoker = pTechno->TemporalTargetingMe) {
+		if (auto pOwnerOfTemp = pInvoker->Owner) {
+			pOwner = pOwnerOfTemp->GetOwningHouse();
+			pTInvoker = pOwnerOfTemp;
 		}
-
-		AnimExtData::SetAnimOwnerHouseKind(pAnim, pOwner, pVictim, pTInvoker, false);
 	}
+
+	AnimExtData::SetAnimOwnerHouseKind(pAnim, pOwner, pVictim, pTInvoker, false);
 }
 
 DEFINE_HOOK(0x73622F, UnitClass_AI_ChronoSparkle, 0x5)
@@ -85,22 +82,19 @@ DEFINE_HOOK(0x4403D4, BuildingClass_AI_ChronoSparkle, 0x6)
 					coords.X += offset.X;
 					coords.Y += offset.Y;
 
-					if (auto const pAnim = GameCreate<AnimClass>(RulesClass::Instance->ChronoSparkle1, coords))
-					{
-						pAnim->ZAdjust = -200;
-
-						HouseClass* pOwner = nullptr;
-						HouseClass* pVictim = pThis->GetOwningHouse();
-						TechnoClass* pTInvoker = nullptr;
-						if (const auto pInvoker = pThis->TemporalTargetingMe) {
-							if (auto pOwnerOfTemp = pInvoker->Owner) {
-								pOwner = pOwnerOfTemp->GetOwningHouse();
-								pTInvoker = pOwnerOfTemp;
-							}
+					auto const pAnim = GameCreate<AnimClass>(RulesClass::Instance->ChronoSparkle1, coords);
+					pAnim->ZAdjust = -200;
+					HouseClass* pOwner = nullptr;
+					HouseClass* pVictim = pThis->GetOwningHouse();
+					TechnoClass* pTInvoker = nullptr;
+					if (const auto pInvoker = pThis->TemporalTargetingMe) {
+						if (auto pOwnerOfTemp = pInvoker->Owner) {
+							pOwner = pOwnerOfTemp->GetOwningHouse();
+							pTInvoker = pOwnerOfTemp;
 						}
-
-						AnimExtData::SetAnimOwnerHouseKind(pAnim, pOwner, pVictim, pTInvoker, false);
 					}
+
+					AnimExtData::SetAnimOwnerHouseKind(pAnim, pOwner, pVictim, pTInvoker, false);
 				}
 			}
 		}

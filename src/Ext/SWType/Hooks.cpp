@@ -1764,8 +1764,8 @@ DEFINE_OVERRIDE_HOOK(0x44CE46, BuildingClass_Mi_Missile_EMPulse_Pulsball, 5)
 	{
 		CoordStruct flh;
 		pThis->GetFLH(&flh , 0, CoordStruct::Empty);
-		if (auto pAnim = GameCreate<AnimClass>(pPulseBall, flh))
-			pAnim->Owner = pThis->GetOwningHouse();
+		auto pAnim = GameCreate<AnimClass>(pPulseBall, flh);
+		pAnim->Owner = pThis->GetOwningHouse();
 	}
 
 	pThis->MissionStatus = 2;
@@ -1891,13 +1891,11 @@ DEFINE_HOOK(0x44CA97, BuildingClass_MI_Missile_CreateBullet, 0x6)
 
 			if (auto const pAnimType = SWTypeExtContainer::Instance.Find(pSuper->Type)->Nuke_TakeOff.Get(RulesClass::Instance->NukeTakeOff))
 			{
-				if (auto pAnim = GameCreate<AnimClass>(pAnimType, nFLH))
-				{
-					if (!pAnim->ZAdjust)
-						pAnim->ZAdjust = -100;
+				auto pAnim = GameCreate<AnimClass>(pAnimType, nFLH);
+				if (!pAnim->ZAdjust)
+					pAnim->ZAdjust = -100;
 
-					pAnim->SetHouse(pThis->GetOwningHouse());
-				}
+				pAnim->SetHouse(pThis->GetOwningHouse());
 			}
 
 			return SetUpNext;
@@ -1917,13 +1915,9 @@ DEFINE_OVERRIDE_HOOK(0x48A59A, MapClass_SelectDamageAnimation_LightningWarhead, 
 	{
 		auto const pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
 
-		if (pData->GetNewSWType()->GetWarhead(pData) == pWarhead)
-		{
-			auto const pAnimType = pData->Weather_BoltExplosion.Get(
-				RulesClass::Instance->WeatherConBoltExplosion);
-
-			if (pAnimType)
-			{
+		if (pData->GetNewSWType()->GetWarhead(pData) == pWarhead) {
+			if (auto const pAnimType = pData->Weather_BoltExplosion.Get(
+				RulesClass::Instance->WeatherConBoltExplosion)) {
 				R->EAX(pAnimType);
 				return 0x48A5AD;
 			}
@@ -2332,8 +2326,7 @@ DEFINE_OVERRIDE_HOOK(0x53A140, LightningStorm_Strike, 7)
 			// select the anim
 			auto const itClouds = pExt->Weather_Clouds.GetElements(
 				RulesClass::Instance->WeatherConClouds);
-			auto const pAnimType = itClouds.at(ScenarioClass::Instance->Random.RandomFromMax(itClouds.size() - 1));
-
+			
 			// infer the height this thing will be drawn at.
 			if (pExt->Weather_CloudHeight < 0)
 			{
@@ -2345,9 +2338,9 @@ DEFINE_OVERRIDE_HOOK(0x53A140, LightningStorm_Strike, 7)
 			}
 			coords.Z += pExt->Weather_CloudHeight;
 
-			// create the cloud and do some book keeping.
-			if (auto const pAnim = GameCreate<AnimClass>(pAnimType, coords))
-			{
+			if(auto const pAnimType = itClouds.at(ScenarioClass::Instance->Random.RandomFromMax(itClouds.size() - 1))) {
+				// create the cloud and do some book keeping.
+				auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
 				pAnim->SetHouse(pSuper->Owner);
 				LightningStorm::CloudsManifesting->AddItem(pAnim);
 				LightningStorm::CloudsPresent->AddItem(pAnim);
@@ -2389,10 +2382,9 @@ DEFINE_OVERRIDE_HOOK(0x53A300, LightningStorm_Strike2, 5)
 		if (auto it = pData->Weather_Bolts.GetElements(
 			RulesClass::Instance->WeatherConBolts))
 		{
-			auto const pAnimType = it.at(ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1));
-
-			if (auto const pAnim = GameCreate<AnimClass>(pAnimType, coords))
+			if(auto const pAnimType = it.at(ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1)))
 			{
+				auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
 				pAnim->SetHouse(pSuper->Owner);
 				LightningStorm::BoltsPresent->AddItem(pAnim);
 			}
@@ -2453,12 +2445,11 @@ DEFINE_OVERRIDE_HOOK(0x53A300, LightningStorm_Strike2, 5)
 				coords, damage, nullptr, pWarhead, true, pSuper->Owner);
 
 			// fancy stuff if damage is dealt
-			auto const pAnimType = MapClass::SelectDamageAnimation(
-				damage, pWarhead, pCell->LandType, coords);
-
-			// Otamaa Add
-			if (auto pAnim = GameCreate<AnimClass>(pAnimType, coords))
+			if(auto const pAnimType = MapClass::SelectDamageAnimation(
+				damage, pWarhead, pCell->LandType, coords)) {
+				auto pAnim = GameCreate<AnimClass>(pAnimType, coords);
 				pAnim->SetHouse(pSuper->Owner);
+			}
 		}
 
 		// has the last target been destroyed?
@@ -2477,13 +2468,11 @@ DEFINE_OVERRIDE_HOOK(0x53A300, LightningStorm_Strike2, 5)
 				auto const count = ScenarioClass::Instance->Random.RandomRanged(
 					pData->Weather_DebrisMin, pData->Weather_DebrisMax);
 
-				for (int i = 0; i < count; ++i)
-				{
-					auto const pAnimType = it.at(ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1));
-
-					// Otamaa Add
-					if (auto pAnim = GameCreate<AnimClass>(pAnimType, coords))
+				for (int i = 0; i < count; ++i) {
+					if(auto const pAnimType = it.at(ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1))){
+						auto pAnim = GameCreate<AnimClass>(pAnimType, coords);
 						pAnim->SetHouse(pSuper->Owner);
+					}
 				}
 			}
 		}
@@ -2507,10 +2496,8 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 		// blast!
 		if (pData->Dominator_Ripple)
 		{
-			if (auto pBlast = GameCreate<IonBlastClass>(coords))
-			{
-				pBlast->DisableIonBeam = TRUE;
-			}
+			auto pBlast = GameCreate<IonBlastClass>(coords);
+			pBlast->DisableIonBeam = TRUE;
 		}
 
 		// tell!
@@ -2525,11 +2512,9 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 		{
 			CoordStruct animCoords = coords;
 			animCoords.Z += pData->Dominator_SecondAnimHeight;
-			if (auto pCreated = GameCreate<AnimClass>(pAnimType, animCoords))
-			{
-				pCreated->SetHouse(PsyDom::Owner);
-				PsyDom::Anim = pCreated;
-			}
+			auto pCreated = GameCreate<AnimClass>(pAnimType, animCoords);
+			pCreated->SetHouse(PsyDom::Owner);
+			PsyDom::Anim = pCreated;
 		}
 
 		// kill

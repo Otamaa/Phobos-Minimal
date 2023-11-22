@@ -309,10 +309,11 @@ bool NOINLINE SetAnim(AnimTypeClass* pAnimType , UnitClass* pUnit , bool isDeplo
 
 	auto const pExt = TechnoTypeExtContainer::Instance.Find(pUnit->Type);
 
-	if (auto const pAnim = GameCreate<AnimClass>(pAnimType,
+	if (pAnimType) {
+		auto const pAnim = GameCreate<AnimClass>(pAnimType,
 			pUnit->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0,
-				!isDeploying ? pExt->DeployingAnim_ReverseForUndeploy.Get() : false))
-	{
+				!isDeploying ? pExt->DeployingAnim_ReverseForUndeploy.Get() : false);
+
 			pUnit->DeployAnim = pAnim;
 			pAnim->SetOwnerObject(pUnit);
 

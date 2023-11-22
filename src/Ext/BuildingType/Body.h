@@ -288,13 +288,20 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-	void CompleteInitialization();
-	int GetSuperWeaponCount() const;
+	void CompleteInitialization() const;
+
+	// Assuming SuperWeapon & SuperWeapon2 are used (for the moment)
+	int __forceinline GetSuperWeaponCount() const
+	{
+		// The user should only use SuperWeapon and SuperWeapon2 if the attached sw count isn't bigger than 2
+		return 2 + this->SuperWeapons.size();
+	}
+
 	int GetSuperWeaponIndex(int index, HouseClass* pHouse) const;
 	int GetSuperWeaponIndex(int index) const;
 	SuperClass* GetSuperWeaponByIndex(int index, HouseClass* pHouse) const;
 
-	bool CanBeOccupiedBy(InfantryClass* whom);
+	bool CanBeOccupiedBy(InfantryClass* whom) const;
 
 	bool IsAcademy() const;
 

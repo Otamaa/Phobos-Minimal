@@ -348,16 +348,16 @@ public:
 	~WarheadTypeExtData() noexcept = default;
 
 	void InitializeConstant();
-	void ApplyRemoveDisguise(HouseClass* pHouse, TechnoClass* pTarget);
-	void ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass* pTarget);
+	void ApplyRemoveDisguise(HouseClass* pHouse, TechnoClass* pTarget) const;
+	void ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass* pTarget) const;
 
-	bool applyPermaMC(HouseClass* const Owner, AbstractClass* const Target);
+	bool applyPermaMC(HouseClass* const Owner, AbstractClass* const Target) const;
 
-	void ApplyLocomotorInfliction(TechnoClass* pTarget);
-	void ApplyLocomotorInflictionReset(TechnoClass* pTarget);
+	void ApplyLocomotorInfliction(TechnoClass* pTarget) const;
+	void ApplyLocomotorInflictionReset(TechnoClass* pTarget) const;
 
-	void applyIronCurtain(TechnoClass* items, HouseClass* Owner, int damage);
-	void applyIronCurtain(const CoordStruct& coords, HouseClass* pOwner, int damage);
+	void applyIronCurtain(TechnoClass* items, HouseClass* Owner, int damage) const;
+	void applyIronCurtain(const CoordStruct& coords, HouseClass* pOwner, int damage) const;
 
 private:
 
@@ -365,21 +365,21 @@ private:
 	void DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, int damage, TechnoClass* pOwner = nullptr, BulletClass* pBullet = nullptr, bool bulletWasIntercepted = false);
 
 	void ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* Owner);
-	void ApplyShieldModifiers(TechnoClass* pTarget);
+	void ApplyShieldModifiers(TechnoClass* pTarget) const;
 
-	void ApplyGattlingStage(TechnoClass* pTarget, int Stage);
-	void ApplyGattlingRateUp(TechnoClass* pTarget, int RateUp);
-	void ApplyReloadAmmo(TechnoClass* pTarget, int ReloadAmount);
+	void ApplyGattlingStage(TechnoClass* pTarget, int Stage) const;
+	void ApplyGattlingRateUp(TechnoClass* pTarget, int RateUp) const;
+	void ApplyReloadAmmo(TechnoClass* pTarget, int ReloadAmount) const;
 
-	void ApplyAttachTag(TechnoClass* pTarget);
-	void ApplyDirectional(BulletClass* pBullet, TechnoClass* pTarget);
+	void ApplyAttachTag(TechnoClass* pTarget) const;
+	void ApplyDirectional(BulletClass* pBullet, TechnoClass* pTarget) const;
 
-	void applyWebby(TechnoClass* pTarget, HouseClass* pKillerHouse, TechnoClass* pKillerTech);
+	void applyWebby(TechnoClass* pTarget, HouseClass* pKillerHouse, TechnoClass* pKillerTech) const;
 	//Otamaa
-	void applyTransactMoney(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct const& coords);
-	void applyStealMoney(TechnoClass* const Owner, TechnoClass* const Target);
+	void applyTransactMoney(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct const& coords) const;
+	void applyStealMoney(TechnoClass* const Owner, TechnoClass* const Target) const;
 
-	void ApplyUpgrade(HouseClass* pHouse, TechnoClass* pTarget);
+	void ApplyUpgrade(HouseClass* pHouse, TechnoClass* pTarget) const;
 
 	//void DetonateOnAllUnits(HouseClass* pHouse, const CoordStruct coords, const float cellSpread, TechnoClass* pOwner);
 	void TransactOnOneUnit(TechnoClass* pTarget, TechnoClass* pOwner, int targets);
@@ -390,19 +390,19 @@ private:
 
 public:
 	void Detonate(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct coords, int damage);
-	bool CanTargetHouse(HouseClass* pHouse, TechnoClass* pTechno);
-	void InterceptBullets(TechnoClass* pOwner, WeaponTypeClass* pWeapon, CoordStruct coords);
-	bool CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTargetHouse);
-	bool CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage = false);
-	bool CanDealDamage(TechnoClass* pTechno, bool Bypass = false, bool SkipVerses = false);
-	FullMapDetonateResult EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner);
-	void ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs);
-	void ApplyRecalculateDistanceDamage(ObjectClass* pVictim, args_ReceiveDamage* pArgs);
-	void ApplyRevengeWeapon(TechnoClass* pTarget);
+	bool CanTargetHouse(HouseClass* pHouse, TechnoClass* pTechno) const;
+	void InterceptBullets(TechnoClass* pOwner, WeaponTypeClass* pWeapon, CoordStruct coords) const;
+	bool CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTargetHouse) const;
+	bool CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage = false) const;
+	bool CanDealDamage(TechnoClass* pTechno, bool Bypass = false, bool SkipVerses = false) const;
+	FullMapDetonateResult EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner) const;
+	void ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs) const;
+	void ApplyRecalculateDistanceDamage(ObjectClass* pVictim, args_ReceiveDamage* pArgs) const;
+	void ApplyRevengeWeapon(TechnoClass* pTarget) const;
 	bool applyCulling(TechnoClass* pSource, ObjectClass* pTarget) const;
 	void applyRelativeDamage(ObjectClass* pTarget, args_ReceiveDamage* pArgs) const;
-	bool GoBerzerkFor(FootClass* pVictim, int* damage);
-	bool ApplySuppressDeathWeapon(TechnoClass* pVictim);
+	bool GoBerzerkFor(FootClass* pVictim, int* damage) const;
+	bool ApplySuppressDeathWeapon(TechnoClass* pVictim) const;
 
 	VersesData& GetVerses(Armor armor)
 	{

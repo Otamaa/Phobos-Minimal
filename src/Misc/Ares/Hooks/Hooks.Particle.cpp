@@ -25,8 +25,9 @@ void ParicleSystem_Web_AI(ParticleSystemClass* pThis)
 			{
 				const auto pNextType = ParticleTypeClass::Array->Items[particle->Type->NextParticle];
 				const auto nCoord = pNextType->NextParticleOffset + particle->Location;
-				if (auto particle_ = GameCreate<ParticleClass>(pNextType, nCoord, CoordStruct::Empty, nullptr))
+
 				{
+					auto particle_ = GameCreate<ParticleClass>(pNextType, nCoord, CoordStruct::Empty, nullptr);
 					particle = std::exchange(pThis->Particles[i], particle_);
 					particle_->Velocity = particle->Velocity;
 					particle_->GasVelocity = particle->GasVelocity;

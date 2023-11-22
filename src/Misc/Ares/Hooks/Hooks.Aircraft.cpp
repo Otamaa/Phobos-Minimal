@@ -38,8 +38,7 @@ DEFINE_OVERRIDE_HOOK(0x415085, AircraftClass_Update_DamageSmoke, 7)
 	if (pThis->GetHealthPercentage() < RulesClass::Instance->ConditionRed) {
 		if (pThis->GetHeight() > 0) {
 			if (ScenarioClass::Instance->Random.RandomFromMax(99) < chance) {
-				if (auto pAnim = GameCreate<AnimClass>(pType, pThis->Location))
-					pAnim->Owner = pThis->GetOwningHouse();
+				GameCreate<AnimClass>(pType, pThis->Location)->Owner = pThis->GetOwningHouse();
 			}
 		}
 	}

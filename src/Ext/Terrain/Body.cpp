@@ -30,12 +30,9 @@ void TerrainExtData::InitializeLightSource()
 
 		auto Tint = TypeData->GetLightTint();
 		auto Coords = this->AttachedToObject->GetCoords();
-
-		if (const auto light = GameCreate<LightSourceClass>(Coords, nVisibility, TypeData->GetLightIntensity(), Tint))
-		{
-			light->Activate();
-			this->LighSource.reset(light);
-		}
+		const auto light = GameCreate<LightSourceClass>(Coords, nVisibility, TypeData->GetLightIntensity(), Tint);
+		light->Activate();
+		this->LighSource.reset(light);
 	}
 }
 

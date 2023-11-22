@@ -1041,7 +1041,7 @@ const char* SWTypeExtData::get_ID()
 	return this->AttachedToObject->ID;
 }
 
- bool SWTypeExtData::CanFire(HouseClass* pOwner)
+ bool SWTypeExtData::CanFire(HouseClass* pOwner) const
  {
  	const int nAmount = this->SW_Shots;
 
@@ -1054,7 +1054,7 @@ const char* SWTypeExtData::get_ID()
  }
 
 // can i see the animation of pFirer's SW?
-bool SWTypeExtData::IsAnimVisible(HouseClass* pFirer)
+bool SWTypeExtData::IsAnimVisible(HouseClass* pFirer) const
 {
 	// auto relation = SWTypeExtData::GetRelation(pFirer, HouseClass::CurrentPlayer);
 	// const auto nRelationResult = (this->SW_AnimVisibility & relation);
@@ -1221,11 +1221,9 @@ bool SWTypeExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStruct c
 			if (auto pAnim = pNewType->GetAnim(pData))
 			{
 				nCoord.Z += pData->SW_AnimHeight;
-				if (AnimClass* placeholder = GameCreate<AnimClass>(pAnim, nCoord))
-				{
-					placeholder->SetHouse(pOwner);
-					placeholder->Invisible = !pData->IsAnimVisible(pOwner);
-				}
+				AnimClass* placeholder = GameCreate<AnimClass>(pAnim, nCoord);
+				placeholder->SetHouse(pOwner);
+				placeholder->Invisible = !pData->IsAnimVisible(pOwner);
 			}
 		}
 
@@ -1788,17 +1786,17 @@ void SWTypeExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const C
 	}
 }
 
-bool SWTypeExtData::IsInhibitor(HouseClass* pOwner, TechnoClass* pTechno)
+bool SWTypeExtData::IsInhibitor(HouseClass* pOwner, TechnoClass* pTechno) const
 {
 	return this->GetNewSWType()->IsInhibitor(this, pOwner, pTechno);
 }
 
-bool SWTypeExtData::HasInhibitor(HouseClass* pOwner, const CellStruct& Coords)
+bool SWTypeExtData::HasInhibitor(HouseClass* pOwner, const CellStruct& Coords) const
 {
 	return this->GetNewSWType()->HasInhibitor(this, pOwner, Coords);
 }
 
-bool SWTypeExtData::IsInhibitorEligible(HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno)
+bool SWTypeExtData::IsInhibitorEligible(HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno) const
 {
 	return this->GetNewSWType()->IsInhibitorEligible(this, pOwner, Coords, pTechno);
 }
@@ -1913,14 +1911,12 @@ void SWTypeExtData::CreateChronoAnim(SuperClass* const pThis, const CoordStruct&
 
 	if (pAnimType)
 	{
-		if (auto pAnim = GameCreate<AnimClass>(pAnimType, Coords))
-		{
-			auto const pData = SWTypeExtContainer::Instance.Find(pThis->Type);
-			pAnim->Invisible = !pData->IsAnimVisible(pThis->Owner);
-			pAnim->SetHouse(pThis->Owner);
-			pThis->Animation = pAnim;
-			PointerExpiredNotification::NotifyInvalidAnim->Add(pThis);
-		}
+		auto pAnim = GameCreate<AnimClass>(pAnimType, Coords);
+		auto const pData = SWTypeExtContainer::Instance.Find(pThis->Type);
+		pAnim->Invisible = !pData->IsAnimVisible(pThis->Owner);
+		pAnim->SetHouse(pThis->Owner);
+		pThis->Animation = pAnim;
+		PointerExpiredNotification::NotifyInvalidAnim->Add(pThis);
 	}
 }
 

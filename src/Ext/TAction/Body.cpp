@@ -45,8 +45,7 @@ TActionExt::ExtContainer TActionExt::ExtMap;
 
 bool TActionExt::UndeployToWaypoint(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	const auto nCell = ScenarioExtData::Instance()->Waypoints[pThis->Param5];
-	AbstractClass* pCell = MapClass::Instance->TryGetCellAt(nCell);
+	AbstractClass* pCell = MapClass::Instance->TryGetCellAt(ScenarioExtData::Instance()->Waypoints[pThis->Param5]);
 
 	if (!pCell) {
 		return true;
@@ -808,7 +807,7 @@ bool TActionExt::RunSuperWeaponAtLocation(TActionClass* pThis, HouseClass* pHous
 
 bool TActionExt::RunSuperWeaponAtWaypoint(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	const auto waypoints = ScenarioExtData::Instance()->Waypoints;
+	const auto& waypoints = ScenarioExtData::Instance()->Waypoints;
 
 	// Check if is a valid Waypoint
 	if (auto iter = waypoints.tryfind(pThis->Param5)) {
@@ -1161,22 +1160,22 @@ bool TActionExt::SetNextMission(TActionClass* pThis, HouseClass* pHouse, ObjectC
 bool TActionExt::DumpVariables(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	const auto fileName = (pThis->Param3 != 0) ? "globals.ini" : "locals.ini";
-	auto pINI = GameCreate<CCINIClass>();
-	auto pFile = GameCreate<CCFileClass>(fileName);
+	CCFileClass file { fileName };
 
-	if (pFile->Exists())
-		pINI->ReadCCFile(pFile);
-	else
-		pFile->CreateFileA();
+	if (!file.Exists()) {
+		if(!file.CreateFileA()) {
+			return false;
+		}
+	}
 
+	CCINIClass ini {};
+	ini.ReadCCFile(&file);
 	const auto variables = ScenarioExtData::GetVariables(pThis->Param3 != 0);
 	std::for_each(variables->begin(), variables->end(), [&](const auto& variable) {
-		pINI->WriteInteger(ScenarioClass::Instance()->FileName, variable.second.Name, variable.second.Value, false);
+		ini.WriteInteger(ScenarioClass::Instance()->FileName, variable.second.Name, variable.second.Value, false);
 	});
 
-	pINI->WriteCCFile(pFile);
-	pFile->Close();
-
+	ini.WriteCCFile(&file);
 	return true;
 }
 

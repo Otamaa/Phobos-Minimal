@@ -41,21 +41,17 @@ void WaveExtData::SetWeaponType(WeaponTypeClass* pWeapon, int nIdx)
 WaveClass* WaveExtData::Create(CoordStruct nFrom, CoordStruct nTo, TechnoClass* pOwner, WaveType nType, AbstractClass* pTarget,
 	WeaponTypeClass* pWeapon, bool FromSourceCoord)
 {
-	if (auto const pWave = GameCreate<WaveClass>(nFrom, nTo, pOwner, nType, pTarget))
-	{
-		const auto pExt = WaveExtContainer::Instance.Find(pWave);
-		const auto nWeaponIdx = !FromSourceCoord ? TechnoExtContainer::Instance.Find(pOwner)->CurrentWeaponIdx : -1;
-		pExt->SetWeaponType(pWeapon, nWeaponIdx);
-		pExt->InitWeaponData();
-		pExt->SourceCoord = nFrom;
+	auto const pWave = GameCreate<WaveClass>(nFrom, nTo, pOwner, nType, pTarget);
+	const auto pExt = WaveExtContainer::Instance.Find(pWave);
+	const auto nWeaponIdx = !FromSourceCoord ? TechnoExtContainer::Instance.Find(pOwner)->CurrentWeaponIdx : -1;
+	pExt->SetWeaponType(pWeapon, nWeaponIdx);
+	pExt->InitWeaponData();
+	pExt->SourceCoord = nFrom;
 
-		if (pExt->CanDoUpdate)
-			pWave->WaveAI();
+	if (pExt->CanDoUpdate)
+		pWave->WaveAI();
 
-		return pWave;
-	}
-
-	return nullptr;
+	return pWave;
 }
 
 bool WaveExtData::ModifyWaveColor(

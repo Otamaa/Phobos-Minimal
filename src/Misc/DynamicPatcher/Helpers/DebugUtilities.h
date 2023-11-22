@@ -14,12 +14,9 @@ struct DebugUtilities
 		ColorStruct outerColor { color.R / 2, color.G / 2, color.B / 2 };
 		ColorStruct outerSpread { color.R / 4, color.G / 4, color.B / 4 };
 		CoordStruct nOffset { 0, 0, beamHeight };
-
-		if (auto pMarkLaser = GameCreate<LaserDrawClass>(location, location + nOffset, innerColor, outerColor, outerSpread, duration))
-		{
-			pMarkLaser->Thickness = thickness;
-			pMarkLaser->IsHouseColor = true;
-		}
+		auto pMarkLaser = GameCreate<LaserDrawClass>(location, location + nOffset, innerColor, outerColor, outerSpread, duration);
+		pMarkLaser->Thickness = thickness;
+		pMarkLaser->IsHouseColor = true;
 	}
 
 	static void MarkTarget(AbstractClass* pTarget, ColorStruct color, int beamHeight = 1000, int thickness = 4, int duration = 10)
@@ -34,12 +31,9 @@ struct DebugUtilities
 		ColorStruct innerColor { color.R, color.G, color.B };
 		ColorStruct outerColor { color.R / 2, color.G / 2, color.B / 2 };
 		ColorStruct outerSpread { color.R / 4, color.G / 4, color.B / 4 };
-
-		if (auto pMarkLaser = GameCreate<LaserDrawClass>(from, to, innerColor, outerColor, outerSpread, duration))
-		{
-			pMarkLaser->Thickness = thickness;
-			pMarkLaser->IsHouseColor = true;
-		}
+		auto pMarkLaser = GameCreate<LaserDrawClass>(from, to, innerColor, outerColor, outerSpread, duration);
+		pMarkLaser->Thickness = thickness;
+		pMarkLaser->IsHouseColor = true;
 	}
 
 	/*

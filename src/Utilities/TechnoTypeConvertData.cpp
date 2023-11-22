@@ -26,9 +26,10 @@ void TechnoTypeConvertData::ApplyConvert(const std::vector<TechnoTypeConvertData
 				Debug::Log("Failed to ConvertType From[%x] To [%s]!\n" , pFrom->ID, pTo->ID);
 			else
 			{
-				if (SucceededAnim)
-					if (auto pAnim = GameCreate<AnimClass>(SucceededAnim, pTarget->Location))
-						pAnim->SetOwnerObject(pTarget);
+				if (SucceededAnim) {
+					auto pAnim = GameCreate<AnimClass>(SucceededAnim, pTarget->Location);
+					pAnim->SetOwnerObject(pTarget);
+				}
 			}
 		}
 	}

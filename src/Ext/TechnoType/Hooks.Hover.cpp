@@ -18,6 +18,13 @@
 
 static const HoverTypeClass* GetHover(TechnoClass* pThis)
 {
+	HoverTypeClass* defaulthover = nullptr;
+	if (HoverTypeClass::Array.empty())
+		defaulthover = HoverTypeClass::Allocate(DEFAULT_STR2);
+	else
+		defaulthover = HoverTypeClass::Array[0].get();
+
+
 	if (pThis) {
 		auto const pTechnoType = pThis->GetTechnoType();
 		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
@@ -26,7 +33,7 @@ static const HoverTypeClass* GetHover(TechnoClass* pThis)
 			return pTypeExt->HoverType;
 	}
 
-	return HoverTypeClass::FindOrAllocate(DEFAULT_STR2);
+	return defaulthover;
 }
 
 static TechnoClass* GetOwner(HoverLocomotionClass* pThis)

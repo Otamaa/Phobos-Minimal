@@ -151,18 +151,42 @@ DEFINE_HOOK(0x48DBE0, TheaterTypeClass_FindIndex, 0x5)
 
 #pragma region IsoTileTypeHooks
 
-DEFINE_HOOK(0x54547F, IsometricTileTypeClass_ReadINI_SetPaletteISO, 0x6)
+DEFINE_STRONG_HOOK(0x54547F, IsometricTileTypeClass_ReadINI_SetPaletteISO, 0x6)
 {
+	LEA_STACK(char*, outBuffs, 0x6B0);
+	LEA_STACK(CCFileClass*, file_c, 0xA10 - 0x668);
+
 	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
 
+	char* buffer = nullptr;
 	if (auto& data = pTheater->PaletteISO) {
-		R->ECX<char*>(data.data());
-		return 0x5454A2;
+		buffer = (data.data());
+	} else {
+		//Isometric pal = ISO+Extension.pal
+		buffer = (pTheater->IsometricTileTypeExtension ? pTheater->IsometricTileTypeExtension : pTheater->Extension).data();
 	}
 
-	//Isometric pal = ISO+Extension.pal
-	R->EAX((pTheater->IsometricTileTypeExtension ? pTheater->IsometricTileTypeExtension : pTheater->Extension).data());
-	return 0x545485;
+	//0x8295F4 -> 'ISO%s.PAL'
+	CRT::sprintf(outBuffs, reinterpret_cast<const char*>(0x8295F4), buffer);
+	file_c->CCFileClass::CCFileClass(outBuffs);
+	const bool Exist = file_c->Exists();
+
+	if(!Exist)
+		GameDebugLog::Log("Failed to load IsometricTileTypeClass Palette %s For [%s]\n", outBuffs,pTheater->Name.data());
+	else{ 
+		if(file_c->Read(FileSystem::ISOx_PAL(), sizeof(BytePalette))){
+			GameDebugLog::Log("Loaded IsometricTileTypeClass Palette %s For [%s]\n", outBuffs, pTheater->Name.data());
+
+			for (size_t i = 0; i < BytePalette::EntriesCount; ++i) {
+				auto& data = FileSystem::ISOx_PAL->at(i);
+				data.R *= 4;
+				data.G *= 4;
+				data.B *= 4;
+			}
+		}
+	}
+
+	return 0x5454EB;
 
 }
 

@@ -217,12 +217,10 @@ DEFINE_HOOK(0x629B3F, ParasiteClass_SquiddyGrab_DeharcodeSplash, 0x5) // 7
 	{
 		if (auto const pSplashType = AnimType[ScenarioClass::Instance->Random.RandomFromMax(AnimType.size() - 1)])
 		{
-			if (auto pAnim = GameCreate<AnimClass>(pSplashType, nCoord))
-			{
-				auto const Invoker = (pThis->Owner) ? pThis->Owner->GetOwningHouse() : nullptr;
-				AnimExtData::SetAnimOwnerHouseKind(pAnim, Invoker, (pThis->Victim) ? pThis->Victim->GetOwningHouse() : nullptr, pThis->Owner, false);
-				return Handled;
-			}
+			auto pAnim = GameCreate<AnimClass>(pSplashType, nCoord);
+			auto const Invoker = (pThis->Owner) ? pThis->Owner->GetOwningHouse() : nullptr;
+			AnimExtData::SetAnimOwnerHouseKind(pAnim, Invoker, (pThis->Victim) ? pThis->Victim->GetOwningHouse() : nullptr, pThis->Owner, false);
+			return Handled;
 		}
 	}
 

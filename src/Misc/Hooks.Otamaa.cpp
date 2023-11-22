@@ -197,8 +197,8 @@ DEFINE_HOOK(0x6FF394, TechnoClass_FireAt_FeedbackAnim, 0x8)
 	if (const auto pAnimType = pWeaponExt->Feedback_Anim.Get())
 	{
 		const auto nCoord = (pWeaponExt->Feedback_Anim_UseFLH ? nFLH : pThis->GetCoords()) + pWeaponExt->Feedback_Anim_Offset;
-		if (auto pFeedBackAnim = GameCreate<AnimClass>(pAnimType, nCoord))
 		{
+			auto pFeedBackAnim = GameCreate<AnimClass>(pAnimType, nCoord);
 			AnimExtData::SetAnimOwnerHouseKind(pFeedBackAnim, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false);
 			if (pThis->WhatAmI() != BuildingClass::AbsID)
 				pFeedBackAnim->SetOwnerObject(pThis);
@@ -3215,31 +3215,20 @@ DEFINE_HOOK(0x442A08, BuildingClass_ReceiveDamage_ReturnFire, 0x5)
 
 DEFINE_HOOK(0x6DBE35, TacticalClass_DrawLinesOrCircles, 0x9)
 {
-	if (!ToggleRadialIndicatorDrawModeClass::ShowForAll)
-	{
-		GET(int, intCurObjcount, EBX);
+	ObjectClass** items = !ToggleRadialIndicatorDrawModeClass::ShowForAll ? ObjectClass::CurrentObjects->Items : (ObjectClass**)TechnoClass::Array->Items;
+	const int count = !ToggleRadialIndicatorDrawModeClass::ShowForAll ? ObjectClass::CurrentObjects->Count : TechnoClass::Array->Count;
+	
+	if(count <= 0)
+		return 0x6DBE74;
 
-		if (!intCurObjcount)
-			return 0x6DBE74;
+	ObjectClass** items_end = &items[count];
 
-		for (auto pObj : ObjectClass::CurrentObjects())
-		{
-			if (pObj && pObj->GetType() && pObj->GetType()->HasRadialIndicator)
-			{
-				pObj->DrawRadialIndicator(1);
-			}
-		}
-	}
-	else
-	{
-		if (!TechnoClass::Array->Count)
-			return 0x6DBE74;
-
-		for (auto const pObj : *TechnoClass::Array)
-		{
-			if (pObj && pObj->GetType() && pObj->GetType()->HasRadialIndicator)
-			{
-				pObj->DrawRadialIndicator(1);
+	for (ObjectClass** walk = items; walk != items_end; ++walk) {
+		if (*walk) {
+			if (auto pObjType = (*walk)->GetType()) {
+				if (pObjType->HasRadialIndicator) {
+					(*walk)->DrawRadialIndicator(1);
+				}
 			}
 		}
 	}
@@ -3253,98 +3242,98 @@ bool ColorInitEd = false;
 ColorScheme* MainColor = nullptr;
 ColorScheme* BackColor = nullptr;
 
-void InitColorDraw()
-{
-	if (!ColorInitEd)
-	{
-		MainColor = ColorScheme::Find("Gold");
-		BackColor = ColorScheme::Find("NeonGreen");
-		ColorInitEd = true;
-	}
-}
-
-bool Draw_Debug_Test()
-{
-	const TextPrintType style = TextPrintType::FullShadow | TextPrintType::Point6Grad;
-	RectangleStruct rect = DSurface::ViewBounds();
-
-	// top left of tactical display.
-	Point2D screen = rect.Top_Left();
-
-	const auto buffer = std::format(L"RulesClass ptr {}", (uintptr_t)RulesClass::Instance());
-	DSurface::Temp()->DrawColorSchemeText(
-		buffer.c_str(),
-		rect,
-		screen,
-		MainColor,
-		BackColor,
-		style);
-
-	return true;
-}
-
-void Debug_Draw_Facings()
-{
-	const auto& objArr = ObjectClass::CurrentObjects;
-
-	if (objArr->Count != 1) {
-		return;
-	}
-
-	const auto pTechno = generic_cast<TechnoClass*>(objArr->Items[0]);
-	if (!pTechno)
-		return;
-
-	RectangleStruct rect = DSurface::ViewBounds();
-	const auto pType = pTechno->GetTechnoType();
-
-	CoordStruct lept {};
-	pType->Dimension2(&lept);
-	Point3D lept_center = Point3D(lept.X / 2, lept.Y / 2, lept.Z / 2);
-
-	Point3D pix {};
-	pType->PixelDimensions(&pix);
-	Point3D pixel_center = Point3D(pix.X / 2, pix.Y / 2, pix.Z / 2);
-
-	Coordinate coord = pTechno->GetCoords();
-
-	Point2D screen {};
-	//func_60F150 tspp
-	TacticalClass::Instance->CoordsToClient(coord, &screen);
-
-	screen.X -= TacticalClass::Instance->TacticalPos.X;
-	screen.Y -= TacticalClass::Instance->TacticalPos.Y;
-
-	screen.X += rect.X;
-	screen.Y += rect.Y;
-
-	DSurface::Temp->Fill_Rect(rect, RectangleStruct(screen.X, screen.Y, 2, 2), DSurface::RGB_To_Pixel(255, 0, 0));
-
-	TextPrintType style = TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Point6Grad;
-	const auto font = BitFont::BitFontPtr(style);
-
-	screen.Y -= font->GetHeight() / 2;
-
-	const auto buffer1 = std::format(L"{}" , (int)pTechno->PrimaryFacing.Current().GetDir());
-	const auto buffer2 = std::format(L"{}", (int)pTechno->PrimaryFacing.Current().Raw);
-
-	DSurface::Temp()->DrawColorSchemeText(
-		buffer1.c_str(),
-		rect,
-		screen,
-		MainColor,
-		BackColor,
-		style);
-
-	screen.Y += 10;
-	DSurface::Temp()->DrawColorSchemeText(
-		buffer2.c_str(),
-		rect,
-		screen,
-		MainColor,
-		BackColor,
-		style);
-}
+//void InitColorDraw()
+//{
+//	if (!ColorInitEd)
+//	{
+//		MainColor = ColorScheme::Find("Gold");
+//		BackColor = ColorScheme::Find("NeonGreen");
+//		ColorInitEd = true;
+//	}
+//}
+//
+//bool Draw_Debug_Test()
+//{
+//	const TextPrintType style = TextPrintType::FullShadow | TextPrintType::Point6Grad;
+//	RectangleStruct rect = DSurface::ViewBounds();
+//
+//	// top left of tactical display.
+//	Point2D screen = rect.Top_Left();
+//
+//	const auto buffer = std::format(L"RulesClass ptr {}", (uintptr_t)RulesClass::Instance());
+//	DSurface::Temp()->DrawColorSchemeText(
+//		buffer.c_str(),
+//		rect,
+//		screen,
+//		MainColor,
+//		BackColor,
+//		style);
+//
+//	return true;
+//}
+//
+//void Debug_Draw_Facings()
+//{
+//	const auto& objArr = ObjectClass::CurrentObjects;
+//
+//	if (objArr->Count != 1) {
+//		return;
+//	}
+//
+//	const auto pTechno = generic_cast<TechnoClass*>(objArr->Items[0]);
+//	if (!pTechno)
+//		return;
+//
+//	RectangleStruct rect = DSurface::ViewBounds();
+//	const auto pType = pTechno->GetTechnoType();
+//
+//	CoordStruct lept {};
+//	pType->Dimension2(&lept);
+//	Point3D lept_center = Point3D(lept.X / 2, lept.Y / 2, lept.Z / 2);
+//
+//	Point3D pix {};
+//	pType->PixelDimensions(&pix);
+//	Point3D pixel_center = Point3D(pix.X / 2, pix.Y / 2, pix.Z / 2);
+//
+//	Coordinate coord = pTechno->GetCoords();
+//
+//	Point2D screen {};
+//	//func_60F150 tspp
+//	TacticalClass::Instance->CoordsToClient(coord, &screen);
+//
+//	screen.X -= TacticalClass::Instance->TacticalPos.X;
+//	screen.Y -= TacticalClass::Instance->TacticalPos.Y;
+//
+//	screen.X += rect.X;
+//	screen.Y += rect.Y;
+//
+//	DSurface::Temp->Fill_Rect(rect, RectangleStruct(screen.X, screen.Y, 2, 2), DSurface::RGB_To_Pixel(255, 0, 0));
+//
+//	TextPrintType style = TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Point6Grad;
+//	const auto font = BitFont::BitFontPtr(style);
+//
+//	screen.Y -= font->GetHeight() / 2;
+//
+//	const auto buffer1 = std::format(L"{}" , (int)pTechno->PrimaryFacing.Current().GetDir());
+//	const auto buffer2 = std::format(L"{}", (int)pTechno->PrimaryFacing.Current().Raw);
+//
+//	DSurface::Temp()->DrawColorSchemeText(
+//		buffer1.c_str(),
+//		rect,
+//		screen,
+//		MainColor,
+//		BackColor,
+//		style);
+//
+//	screen.Y += 10;
+//	DSurface::Temp()->DrawColorSchemeText(
+//		buffer2.c_str(),
+//		rect,
+//		screen,
+//		MainColor,
+//		BackColor,
+//		style);
+//}
 
 DEFINE_HOOK(0x6D4656, TacticalClass_Render_Veinhole, 0x5)
 {

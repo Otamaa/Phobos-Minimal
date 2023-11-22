@@ -63,7 +63,7 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 			return Handled;
 
 		if (!pThis) {
-			const auto pDefault = RadTypeClass::Find(RADIATION_SECTION);
+			const auto pDefault = RadTypeClass::Array[0].get();
 			auto const it = RadSiteClass::Array->find_if([=](auto const pSite) {
 				 auto const pRadExt = RadSiteExtContainer::Instance.Find(pSite);
 				 if (pRadExt->Type != pDefault)

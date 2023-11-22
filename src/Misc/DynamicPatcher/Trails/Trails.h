@@ -115,9 +115,10 @@ public:
 			break;
 		}
 
-		if (animType)
-			if (auto pAnim = GameCreate<AnimClass>(animType, sourcePos))
-				pAnim->Owner = pHouse;
+		if (animType){
+			auto pAnim = GameCreate<AnimClass>(animType, sourcePos);
+			pAnim->Owner = pHouse;
+		}
 	}
 
 	void DrawTrail(HouseClass* pHouse, CoordStruct& sourcePos, const CoordStruct& createOffset)

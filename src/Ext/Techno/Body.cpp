@@ -2838,11 +2838,9 @@ void TechnoExtData::UpdateEatPassengers()
 
 					if (const auto pAnimType = pDelType->Anim.Get(nullptr))
 					{
-						if (auto const pAnim = GameCreate<AnimClass>(pAnimType, pThis->Location))
-						{
-							pAnim->SetOwnerObject(pThis);
-							AnimExtData::SetAnimOwnerHouseKind(pAnim, pThisOwner, pPassenger->GetOwningHouse(), pThis, false);
-						}
+						auto const pAnim = GameCreate<AnimClass>(pAnimType, pThis->Location);
+						pAnim->SetOwnerObject(pThis);
+						AnimExtData::SetAnimOwnerHouseKind(pAnim, pThisOwner, pPassenger->GetOwningHouse(), pThis, false);
 					}
 
 					// Check if there is money refund
@@ -3623,8 +3621,8 @@ void TechnoExtData::UpdateMindControlAnim()
 
 			coords.Z += offset;
 
-			if (auto anim = GameCreate<AnimClass>(MindControlRingAnimType, coords, 0, 1))
 			{
+				auto anim = GameCreate<AnimClass>(MindControlRingAnimType, coords, 0, 1);
 				pThis->MindControlRingAnim = anim;
 				pThis->MindControlRingAnim->SetOwnerObject(pThis);
 
@@ -3907,13 +3905,11 @@ void TechnoExtData::UpdateMobileRefinery()
 
 				if (pAnimType)
 				{
-					if (auto pAnim = GameCreate<AnimClass>(pAnimType, nPos))
-					{
-						AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false);
+					auto pAnim = GameCreate<AnimClass>(pAnimType, nPos);
+					AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false);
 
-						if (pTypeExt->MobileRefinery_AnimMove)
-							pAnim->SetOwnerObject(pThis);
-					}
+					if (pTypeExt->MobileRefinery_AnimMove)
+						pAnim->SetOwnerObject(pThis);
 				}
 			}
 		}

@@ -188,15 +188,12 @@ void VerticalLaserClass::Draw(const CoordStruct& from, const CoordStruct& to)
 {
 	if (Weapon->IsLaser)
 	{
-		if (auto pLaser = GameCreate<LaserDrawClass>(from, to, Weapon->LaserInnerColor,
+		auto pLaser = GameCreate<LaserDrawClass>(from, to, Weapon->LaserInnerColor,
 			Weapon->LaserOuterColor,
 			Weapon->LaserOuterSpread,
-			8)
-		)
-		{
-			pLaser->Thickness = 10;
-			pLaser->IsHouseColor = Weapon->IsHouseColor;
-		}
+			8);
+		pLaser->Thickness = 10;
+		pLaser->IsHouseColor = Weapon->IsHouseColor;
 	}
 }
 

@@ -72,18 +72,16 @@ namespace DamageFireAnims
 				if (const auto pFireType = pFire[pFire.size() == 1 ?
 					 0 : ScenarioClass::Instance->Random.RandomFromMax(pFire.size() - 1)])
 				{
-					if (auto pAnim = GameCreate<AnimClass>(pFireType, nPixCoord))
-					{
-						const auto nBuildingHeight = pType->GetFoundationHeight(false);
-						const auto nWidth = pType->GetFoundationWidth();
-						const auto nAdjust = ((3 * (nFireOffs.Y - 15 * nWidth + (-15) * nBuildingHeight)) >> 1) - 10;
-						pAnim->ZAdjust = nAdjust > 0 ? 0 : nAdjust; //ZAdjust always negative
-						if (pAnim->Type->End > 0)
-							pAnim->Animation.Value = ScenarioClass::Instance->Random.RandomFromMax(pAnim->Type->End - 1);
+					auto pAnim = GameCreate<AnimClass>(pFireType, nPixCoord);
+					const auto nBuildingHeight = pType->GetFoundationHeight(false);
+					const auto nWidth = pType->GetFoundationWidth();
+					const auto nAdjust = ((3 * (nFireOffs.Y - 15 * nWidth + (-15) * nBuildingHeight)) >> 1) - 10;
+					pAnim->ZAdjust = nAdjust > 0 ? 0 : nAdjust; //ZAdjust always negative
+					if (pAnim->Type->End > 0)
+						pAnim->Animation.Value = ScenarioClass::Instance->Random.RandomFromMax(pAnim->Type->End - 1);
 
-						pAnim->Owner = pThis->GetOwningHouse();
-						pExt->DamageFireAnims[i] = std::move(pAnim);
-					}
+					pAnim->Owner = pThis->GetOwningHouse();
+					pExt->DamageFireAnims[i] = std::move(pAnim);
 				}
 			}
 		}
@@ -175,14 +173,11 @@ DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)
 					if (auto pAnimType = pFireType[nFireTypeAt])
 					{
 						nDestCoord = MapClass::GetRandomCoordsNear(nDestCoord, 96, false);
-						if (auto const pAnim = GameCreate<AnimClass>(pAnimType, nDestCoord, 0, nLoop))
-						{
-							pAnim->SetOwnerObject(pThis);
-							const auto pKiller = args.Attacker;
-							const auto Invoker = (pKiller) ? pKiller->Owner : args.SourceHouse;
-
-							AnimExtData::SetAnimOwnerHouseKind(pAnim, Invoker, pThis->Owner, pKiller, false);
-						}
+						auto const pAnim = GameCreate<AnimClass>(pAnimType, nDestCoord, 0, nLoop);
+						pAnim->SetOwnerObject(pThis);
+						const auto pKiller = args.Attacker;
+						const auto Invoker = (pKiller) ? pKiller->Owner : args.SourceHouse;
+						AnimExtData::SetAnimOwnerHouseKind(pAnim, Invoker, pThis->Owner, pKiller, false);
 					}
 				};
 

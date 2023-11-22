@@ -45,9 +45,12 @@ DEFINE_HOOK(0x423F31, AnimClass_Spawns_Override, 0x6)
 	auto nDelay = pAnimTypeExt->Spawns_Delay.Get();
 
 	for (int i = nMax; i > 0; --i) {
-		if (auto pMem = GameCreate<AnimClass>(pThis->Type->Spawns, nCoord, nDelay, 1, AnimFlag(0x600), 0, false)) {
-			AnimExtData::SetAnimOwnerHouseKind(pMem, pOwner, nullptr, pTech, false);
-		}
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pThis->Type->Spawns, nCoord, nDelay, 1, AnimFlag(0x600), 0, false),
+		pOwner,
+		nullptr,
+		pTech,
+		false
+		);
 	}
 
 	R->Stack(0x88 - 0x4C , nCoord.X);

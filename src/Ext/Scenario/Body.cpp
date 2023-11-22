@@ -7,20 +7,21 @@ std::unique_ptr<ScenarioExtData>  ScenarioExtData::Data = nullptr;
 void ScenarioExtData::SaveVariablesToFile(bool isGlobal)
 {
 	const auto fileName = isGlobal ? "globals.ini" : "locals.ini";
+	CCFileClass file { fileName };
 
-	auto pINI = GameCreate<CCINIClass>();
-	auto pFile = GameCreate<CCFileClass>(fileName);
+	if(!file.Exists()){
+		if(!file.CreateFileA()) {
+			return;
+		}
+	}
 
-	if (pFile->Exists())
-		pINI->ReadCCFile(pFile);
-	else
-		pFile->CreateFileA();
+	CCINIClass ini {};
+	ini.ReadCCFile(&file);
 
 	for (const auto& variable : *ScenarioExtData::GetVariables(isGlobal))
-		pINI->WriteInteger(ScenarioClass::Instance()->FileName, variable.second.Name, variable.second.Value, false);
+		ini.WriteInteger(ScenarioClass::Instance()->FileName, variable.second.Name, variable.second.Value, false);
 
-	pINI->WriteCCFile(pFile);
-	pFile->Close();
+	ini.WriteCCFile(&file);
 }
 
 PhobosMap<int, ExtendedVariable>* ScenarioExtData::GetVariables(bool IsGlobal)

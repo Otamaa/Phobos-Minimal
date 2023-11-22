@@ -408,15 +408,14 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 
 		bool Handled = false;
 		if (pThis->GetHeight() < 10)
-		{	
-			AnimClass* pAnim = nullptr;
+		{
+			AnimTypeClass* pTypeAnim = pWarheadExt->InfDeathAnim;
 			if (auto pSpecific = pWarheadExt->InfDeathAnims.get_or_default(pThis->Type)) {
-				pAnim = GameCreate<AnimClass>(pSpecific, pThis->Location);
-			} else if (AnimTypeClass* deathAnim = pWarheadExt->InfDeathAnim) {
-				pAnim = GameCreate<AnimClass>(deathAnim, pThis->Location);
+				pTypeAnim = pSpecific;
 			}
 
-			if(pAnim){
+			if(pTypeAnim){
+				auto pAnim = GameCreate<AnimClass>(pTypeAnim, pThis->Location);
 				HouseClass* const Invoker = (args.Attacker)
 					? args.Attacker->Owner
 					: args.SourceHouse
@@ -439,12 +438,10 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 
 	if (auto pDeathAnim = pWarheadExt->NotHuman_DeathAnim.Get(nullptr))
 	{
-		if (auto pAnim = GameCreate<AnimClass>(pDeathAnim, pThis->Location))
-		{
-			auto pInvoker = args.Attacker ? args.Attacker->GetOwningHouse() : nullptr;
-			AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->GetOwningHouse(), args.Attacker, true);
-			pAnim->ZAdjust = pThis->GetZAdjustment();
-		}
+		auto pAnim = GameCreate<AnimClass>(pDeathAnim, pThis->Location);
+		auto pInvoker = args.Attacker ? args.Attacker->GetOwningHouse() : nullptr;
+		AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->GetOwningHouse(), args.Attacker, true);
+		pAnim->ZAdjust = pThis->GetZAdjustment();
 	}
 	else
 	{

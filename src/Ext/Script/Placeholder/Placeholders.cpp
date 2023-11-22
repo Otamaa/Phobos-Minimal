@@ -3092,9 +3092,8 @@ void ScriptExt::ClearCurrentScript(TeamClass* pThis)
 void ScriptExt::CreateNewCurrentScript(TeamClass* pThis, ScriptTypeClass* pNewType)
 {
 	bool bSucceeded = false;
-	if (auto pNew = GameCreate<ScriptClass>(pNewType))
-	{
-		pThis->CurrentScript = std::move(pNew);
+	if (pNewType) {
+		pThis->CurrentScript = GameCreate<ScriptClass>(pNewType);
 		bSucceeded = true;
 	}
 

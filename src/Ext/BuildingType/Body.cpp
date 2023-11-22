@@ -126,7 +126,7 @@ void BuildingTypeExtData::UpdateBuildupFrames(BuildingTypeClass* pThis)
 	}
 }
 
-void BuildingTypeExtData::CompleteInitialization()
+void BuildingTypeExtData::CompleteInitialization() const
 {
 	auto const pThis = this->AttachedToObject;
 
@@ -184,7 +184,7 @@ void BuildingTypeExtData::Initialize()
 	this->PrismForwarding.Initialize(this->AttachedToObject);
 }
 
-bool BuildingTypeExtData::CanBeOccupiedBy(InfantryClass* whom)
+bool BuildingTypeExtData::CanBeOccupiedBy(InfantryClass* whom) const
 {
 	// if CanBeOccupiedBy isn't empty, we have to check if this soldier is allowed in
 	return this->AllowedOccupiers.empty() || this->AllowedOccupiers.Contains(whom->Type);
@@ -319,13 +319,6 @@ bool BuildingTypeExtData::CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass
 	}
 
 	return false;
-}
-
-// Assuming SuperWeapon & SuperWeapon2 are used (for the moment)
-int BuildingTypeExtData::GetSuperWeaponCount() const
-{
-	// The user should only use SuperWeapon and SuperWeapon2 if the attached sw count isn't bigger than 2
-	return 2 + this->SuperWeapons.size();
 }
 
 SuperClass* BuildingTypeExtData::GetSuperWeaponByIndex(int index, HouseClass* pHouse) const

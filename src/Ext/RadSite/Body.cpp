@@ -16,10 +16,7 @@ void RadSiteExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 void RadSiteExtData::CreateInstance(CoordStruct const& nCoord, int spread, int amount, WeaponTypeExtData* pWeaponExt, TechnoClass* const pTech)
 {
 	// use real ctor
-	const auto pRadExt = RadSiteExtContainer::Instance.TryFind(GameCreate<RadSiteClass>());
-
-	if (!pRadExt)
-		Debug::FatalErrorAndExit("Uneable To find Ext for Radsite ! \n");
+	const auto pRadExt = RadSiteExtContainer::Instance.Find(GameCreate<RadSiteClass>());
 
 	//Adding Owner to RadSite, from bullet
 	if (pWeaponExt)
@@ -43,7 +40,6 @@ void RadSiteExtData::CreateInstance(CoordStruct const& nCoord, int spread, int a
 	pRadExt->AttachedToObject->SetSpread(spread);
 	pRadExt->SetRadLevel(amount);
 	pRadExt->CreateLight();
-
 }
 
 //RadSiteClass Activate , Rewritten
@@ -80,8 +76,8 @@ void RadSiteExtData::CreateLight()
 	else
 	{
 		auto const pCell = MapClass::Instance->GetCellAt(pThis->BaseCell);
-		if (auto const pLight = GameCreate<LightSourceClass>(pCell->GetCoordsWithBridge(), pThis->SpreadInLeptons, static_cast<int>(nLightFactor), nTintBuffer))
 		{
+			auto const pLight = GameCreate<LightSourceClass>(pCell->GetCoordsWithBridge(), pThis->SpreadInLeptons, static_cast<int>(nLightFactor), nTintBuffer);
 			pThis->LightSource = pLight;
 			pLight->DetailLevel = 0;
 			pLight->Activate(false);

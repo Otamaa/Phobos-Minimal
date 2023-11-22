@@ -27,7 +27,7 @@
 #include <Misc/Ares/Hooks/AresNetEvent.h>
 #include <Ares_TechnoExt.h>
 
-void WarheadTypeExtData::ApplyLocomotorInfliction(TechnoClass* pTarget)
+void WarheadTypeExtData::ApplyLocomotorInfliction(TechnoClass* pTarget) const
 {
 	auto pTargetFoot = abstract_cast<FootClass*>(pTarget);
 	if (!pTargetFoot)
@@ -48,7 +48,7 @@ void WarheadTypeExtData::ApplyLocomotorInfliction(TechnoClass* pTarget)
 	LocomotionClass::ChangeLocomotorTo(pTargetFoot, inflictCLSID);
 }
 
-void WarheadTypeExtData::ApplyLocomotorInflictionReset(TechnoClass* pTarget)
+void WarheadTypeExtData::ApplyLocomotorInflictionReset(TechnoClass* pTarget) const
 {
 	auto pTargetFoot = abstract_cast<FootClass*>(pTarget);
 
@@ -73,7 +73,7 @@ void WarheadTypeExtData::ApplyLocomotorInflictionReset(TechnoClass* pTarget)
 	LocomotionClass::End_Piggyback(pTargetFoot->Locomotor);
 }
 
-void WarheadTypeExtData::ApplyDirectional(BulletClass* pBullet, TechnoClass* pTarget)
+void WarheadTypeExtData::ApplyDirectional(BulletClass* pBullet, TechnoClass* pTarget) const
 {
 	//if (!pBullet || pBullet->IsInAir() != pTarget->IsInAir() || pBullet->GetCell() != pTarget->GetCell() || pTarget->IsIronCurtained())
 	//	return;
@@ -103,7 +103,7 @@ void WarheadTypeExtData::ApplyDirectional(BulletClass* pBullet, TechnoClass* pTa
 	//	pTarExt->ReceiveDamageMultiplier = this->DirectionalArmor_SideMultiplier.Get();
 }
 
-void WarheadTypeExtData::applyIronCurtain(const CoordStruct& coords, HouseClass* Owner, int damage)
+void WarheadTypeExtData::applyIronCurtain(const CoordStruct& coords, HouseClass* Owner, int damage) const
 {
 	if (this->IC_Duration != 0)
 	{
@@ -184,7 +184,7 @@ void WarheadTypeExtData::applyIronCurtain(const CoordStruct& coords, HouseClass*
 	}
 }
 
-void WarheadTypeExtData::applyIronCurtain(TechnoClass* curTechno, HouseClass* Owner, int damage)
+void WarheadTypeExtData::applyIronCurtain(TechnoClass* curTechno, HouseClass* Owner, int damage) const
 {
 	if (this->IC_Duration != 0) {
 
@@ -243,7 +243,7 @@ void WarheadTypeExtData::applyIronCurtain(TechnoClass* curTechno, HouseClass* Ow
 	}
 }
 
-void WarheadTypeExtData::ApplyAttachTag(TechnoClass* pTarget)
+void WarheadTypeExtData::ApplyAttachTag(TechnoClass* pTarget) const
 {
 	if (!this->AttachTag)
 		return;
@@ -275,12 +275,12 @@ void WarheadTypeExtData::ApplyAttachTag(TechnoClass* pTarget)
 	}
 }
 
-void WarheadTypeExtData::ApplyUpgrade(HouseClass* pHouse, TechnoClass* pTarget)
+void WarheadTypeExtData::ApplyUpgrade(HouseClass* pHouse, TechnoClass* pTarget) const
 {
 	TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTarget , this->Convert_SucceededAnim);
 }
 
-bool WarheadTypeExtData::applyPermaMC(HouseClass* const Owner, AbstractClass* const Target)
+bool WarheadTypeExtData::applyPermaMC(HouseClass* const Owner, AbstractClass* const Target) const
 {
 	if (!Owner || !this->PermaMC)
 		return false;
@@ -328,8 +328,8 @@ bool WarheadTypeExtData::applyPermaMC(HouseClass* const Owner, AbstractClass* co
 			location.Z += pType->MindControlRingOffset;
 		}
 
-		if (auto const pAnim = GameCreate<AnimClass>(pAnimType, location))
 		{
+			auto const pAnim = GameCreate<AnimClass>(pAnimType, location);
 			pTargetTechno->MindControlRingAnim = pAnim;
 			pAnim->SetOwnerObject(pTargetTechno);
 			if (pBld)
@@ -342,7 +342,7 @@ bool WarheadTypeExtData::applyPermaMC(HouseClass* const Owner, AbstractClass* co
 	return true;
 }
 
-void WarheadTypeExtData::applyStealMoney(TechnoClass* const Owner, TechnoClass* const Target)
+void WarheadTypeExtData::applyStealMoney(TechnoClass* const Owner, TechnoClass* const Target) const
 {
 	const int nStealAmout = StealMoney.Get();
 
@@ -372,7 +372,7 @@ void WarheadTypeExtData::applyStealMoney(TechnoClass* const Owner, TechnoClass* 
 	}
 }
 
-void WarheadTypeExtData::applyTransactMoney(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct const& coords)
+void WarheadTypeExtData::applyTransactMoney(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct const& coords) const
 {
 	int nTransactVal = 0;
 	bool bForSelf = true;
@@ -453,7 +453,7 @@ void WarheadTypeExtData::applyTransactMoney(TechnoClass* pOwner, HouseClass* pHo
 	}
 }
 
-void WarheadTypeExtData::InterceptBullets(TechnoClass* pOwner, WeaponTypeClass* pWeapon, CoordStruct coords)
+void WarheadTypeExtData::InterceptBullets(TechnoClass* pOwner, WeaponTypeClass* pWeapon, CoordStruct coords) const
 {
 	if (!pOwner || !pWeapon)
 		return;
@@ -715,7 +715,7 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 //	}
 //}
 
-void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget)
+void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget) const
 {
 	if (!pTarget)
 		return;
@@ -802,13 +802,13 @@ void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 		}
 }
 
-void WarheadTypeExtData::ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass* pTarget)
+void WarheadTypeExtData::ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass* pTarget) const
 {
 	if (const auto pController = pTarget->MindControlledBy)
 		pController->CaptureManager->FreeUnit(pTarget);
 }
 
-void WarheadTypeExtData::ApplyRemoveDisguise(HouseClass* pHouse, TechnoClass* pTarget)
+void WarheadTypeExtData::ApplyRemoveDisguise(HouseClass* pHouse, TechnoClass* pTarget) const
 {
 	//this is here , just in case i need special treatment for `TankDisguiseAsTank`
 	if (auto const pFoot = generic_cast<FootClass*>(pTarget))
@@ -877,7 +877,7 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 		pTarget->ReceiveDamage(&damage, 0, this->AttachedToObject, pOwner, false, false, pHouse);
 }
 
-void WarheadTypeExtData::ApplyGattlingStage(TechnoClass* pTarget, int Stage)
+void WarheadTypeExtData::ApplyGattlingStage(TechnoClass* pTarget, int Stage) const
 {
 	auto pData = pTarget->GetTechnoType();
 	if (pData->IsGattling)
@@ -904,7 +904,7 @@ void WarheadTypeExtData::ApplyGattlingStage(TechnoClass* pTarget, int Stage)
 	}
 }
 
-void WarheadTypeExtData::ApplyGattlingRateUp(TechnoClass* pTarget, int RateUp)
+void WarheadTypeExtData::ApplyGattlingRateUp(TechnoClass* pTarget, int RateUp) const
 {
 	auto pData = pTarget->GetTechnoType();
 	if (pData->IsGattling)
@@ -945,8 +945,8 @@ void WarheadTypeExtData::ApplyGattlingRateUp(TechnoClass* pTarget, int RateUp)
 		}
 	}
 }
-
-void WarheadTypeExtData::ApplyReloadAmmo(TechnoClass* pTarget, int ReloadAmount)
+ 
+void WarheadTypeExtData::ApplyReloadAmmo(TechnoClass* pTarget, int ReloadAmount) const
 {
 	auto pData = pTarget->GetTechnoType();
 	if (pData->Ammo > 0)
@@ -956,7 +956,7 @@ void WarheadTypeExtData::ApplyReloadAmmo(TechnoClass* pTarget, int ReloadAmount)
 	}
 }
 
-void WarheadTypeExtData::ApplyRevengeWeapon(TechnoClass* pTarget)
+void WarheadTypeExtData::ApplyRevengeWeapon(TechnoClass* pTarget) const
 {
 	auto const maxCount = this->RevengeWeapon_MaxCount;
 	if (!maxCount)

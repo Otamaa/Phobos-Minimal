@@ -71,10 +71,8 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 		auto const pCellSource = MapClass::Instance->GetCellAt(pSource->ChronoMapCoords);
 		auto coordsSource = pCellSource->GetCoordsWithBridge();
 		coordsSource.Z += pSourceSWExt->SW_AnimHeight;
-
-		//Otamaa Add
-		if (auto pAnim = GameCreate<AnimClass>(pAnimType, coordsSource))
-			pAnim->Owner = pSource->Owner;
+		auto pAnim = GameCreate<AnimClass>(pAnimType, coordsSource);
+		pAnim->Owner = pSource->Owner;
 	}
 
 	if (auto const pAnimType = pSourceSWExt->Chronosphere_BlastDest.Get(RulesClass::Instance->ChronoBlastDest))
@@ -82,10 +80,8 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 		auto const pCellTarget = MapClass::Instance->GetCellAt(Coords);
 		auto coordsTarget = pCellTarget->GetCoordsWithBridge();
 		coordsTarget.Z += pSourceSWExt->SW_AnimHeight;
-
-		//Otamaa Add
-		if (auto pAnim = GameCreate<AnimClass>(pAnimType, coordsTarget))
-			pAnim->Owner = pSource->Owner;
+		auto pAnim = GameCreate<AnimClass>(pAnimType, coordsTarget);
+		pAnim->Owner = pSource->Owner;
 	}
 
 	std::vector<ChronoWarpStateMachine::ChronoWarpContainer> RegisteredBuildings;

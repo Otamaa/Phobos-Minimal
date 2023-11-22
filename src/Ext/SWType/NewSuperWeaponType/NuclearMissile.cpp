@@ -151,7 +151,7 @@ int SW_NuclearMissile::GetDamage(const SWTypeExtData* pData) const
 	return damage;
 }
 
-BuildingClass* SW_NuclearMissile::GetAlternateLauchSite(const SWTypeExtData* pData, SuperClass* pThis)
+BuildingClass* SW_NuclearMissile::GetAlternateLauchSite(const SWTypeExtData* pData, SuperClass* pThis) const
 {
 	for (auto& pBuilding : pThis->Owner->Buildings) {
 		if (!this->IsLaunchsiteAlive(pBuilding))
@@ -170,54 +170,49 @@ bool SW_NuclearMissile::DropNukeAt(SuperWeaponTypeClass* pSuper, CoordStruct con
 		return false;
 
 	const auto pCell = MapClass::Instance->GetCellAt(to);
+	auto const pBullet = GameCreate<BulletClass>();
 
-	if (auto const pBullet = GameCreate<BulletClass>()
-		//BulletTypeExtContainer::Instance.Find(pPayload->Projectile)->CreateBullet(pCell, Owner, 0, nullptr,
-		//pPayload->Speed, WeaponTypeExtContainer::Instance.Find(pPayload)->GetProjectileRange(), false , false)
-		)
-	{
-		pBullet->Construct(pPayload->Projectile, pCell, Owner, 0, nullptr, pPayload->Speed, false);
-		pBullet->SetWeaponType(pPayload);
 
-		int Damage = pPayload->Damage;
-		WarheadTypeClass* pWarhead = pPayload->Warhead;
+	pBullet->Construct(pPayload->Projectile, pCell, Owner, 0, nullptr, pPayload->Speed, false);
+	pBullet->SetWeaponType(pPayload);
+	int Damage = pPayload->Damage;
+	WarheadTypeClass* pWarhead = pPayload->Warhead;
 
-		if(pSuper){
-			auto const pData = SWTypeExtContainer::Instance.Find(pSuper);
-			BulletClass::CreateDamagingBulletAnim(OwnerHouse,
-				pCell,
-				pBullet,
-				pData->Nuke_PsiWarning
-			);
+	if(pSuper){
+		auto const pData = SWTypeExtContainer::Instance.Find(pSuper);
+		BulletClass::CreateDamagingBulletAnim(OwnerHouse,
+			pCell,
+			pBullet,
+			pData->Nuke_PsiWarning
+		);
 
-			auto pNewType = NewSWType::GetNewSWType(pData);
-			Damage = pNewType->GetDamage(pData);
-			pWarhead = pNewType->GetWarhead(pData);
+		auto pNewType = NewSWType::GetNewSWType(pData);
+		Damage = pNewType->GetDamage(pData);
+		pWarhead = pNewType->GetWarhead(pData);
 
-			// remember the fired SW type
-			BulletExtContainer::Instance.Find(pBullet)->NukeSW = pSuper;
-		}
+		// remember the fired SW type
+		BulletExtContainer::Instance.Find(pBullet)->NukeSW = pSuper;
+	}
 
-		pBullet->Health = Damage; //Yes , this is
-		pBullet->WH = pWarhead;
-		pBullet->Bright = pPayload->Bright || pWarhead->Bright;
-		pBullet->Range = WeaponTypeExtContainer::Instance.Find(pPayload)->GetProjectileRange();
+	pBullet->Health = Damage; //Yes , this is
+	pBullet->WH = pWarhead;
+	pBullet->Bright = pPayload->Bright || pWarhead->Bright;
+	pBullet->Range = WeaponTypeExtContainer::Instance.Find(pPayload)->GetProjectileRange();
 
-		if(!Owner)
-			BulletExtContainer::Instance.Find(pBullet)->Owner = OwnerHouse;
+	if(!Owner)
+		BulletExtContainer::Instance.Find(pBullet)->Owner = OwnerHouse;
 
 #ifndef vanilla
-		// aim the bullet downward and put
-		// it over the target area.
-		const bool bNotVert = !pPayload->Projectile->Vertical;
-		VelocityClass vel { 0.0, bNotVert ? 100.0 : 0.0,  bNotVert ? 0.0 : -100.0 };
+	// aim the bullet downward and put
+	// it over the target area.
+	const bool bNotVert = !pPayload->Projectile->Vertical;
+	VelocityClass vel { 0.0, bNotVert ? 100.0 : 0.0,  bNotVert ? 0.0 : -100.0 };
+	CoordStruct high = to;
 
-		CoordStruct high = to;
+	if (!bNotVert)
+		high.Z += pPayload->Projectile->DetonationAltitude;
 
-		if (!bNotVert)
-			high.Z += pPayload->Projectile->DetonationAltitude;
-
-		return pBullet->MoveTo(high, vel);
+	return pBullet->MoveTo(high, vel);
 
 #else
 
@@ -233,7 +228,4 @@ bool SW_NuclearMissile::DropNukeAt(SuperWeaponTypeClass* pSuper, CoordStruct con
 
 		return pBullet->MoveTo(dest, { nX , nY , nZ });
 #endif
-	}
-
-	return false;
 }

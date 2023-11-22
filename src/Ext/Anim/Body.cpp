@@ -34,8 +34,7 @@ void AnimExtData::OnInit(AnimClass* pThis, CoordStruct* pCoord)
 				if (pType == pThis->Type)
 					return;
 
-				if (auto pAnim = GameCreate<AnimClass>(pType, pCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false))
-					pAnim->Owner = pThis->GetOwningHouse();
+				GameCreate<AnimClass>(pType, pCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false)->Owner = pThis->GetOwningHouse();
 			}
 		}
 	}

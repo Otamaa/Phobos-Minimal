@@ -2040,11 +2040,10 @@ void TechnoExt_ExtData::DecreaseAmmo(TechnoClass* const pThis, WeaponTypeClass* 
 				const auto pCurWeapon = pThis->GetWeapon(pTypeExt->NoAmmoWeapon);
 				if (pThis->Ammo <= pTypeExt->NoAmmoAmount && pCurWeapon->WeaponType != pWeapon)
 				{
-					if (auto pAnim = GameCreate<AnimClass>(pTypeExt->NoAmmoEffectAnim.Get(), pThis->Location))
-					{
-						pAnim->SetOwnerObject(pThis);
-						pAnim->SetHouse(pThis->Owner);
-					}
+					auto pAnim = GameCreate<AnimClass>(pTypeExt->NoAmmoEffectAnim.Get(), pThis->Location);
+					pAnim->SetOwnerObject(pThis);
+					pAnim->SetHouse(pThis->Owner);
+
 				}
 			}
 		}
@@ -2742,12 +2741,8 @@ BuildingClass* TechnoExt_ExtData::CreateBuilding(
 		}
 	}
 
-	if (pAnimType)
-	{
-		if (auto pAnim = GameCreate<AnimClass>(pAnimType, pBuilding->GetCoords()))
-		{
-			pAnim->Owner = pBuilding->Owner;
-		}
+	if (pAnimType) {
+		GameCreate<AnimClass>(pAnimType, pBuilding->GetCoords())->Owner = pBuilding->Owner;
 	}
 
 	return pRet;
@@ -3625,13 +3620,11 @@ void TechnoExperienceData::PromoteImmedietely(TechnoClass* pExpReceiver, bool bS
 
 			if (Promoted_PlayAnim && !pExpReceiver->InLimbo)
 			{
-				if (auto pAnim = GameCreate<AnimClass>(Promoted_PlayAnim, pExpReceiver->Location, 0, 1, 0x600u, 0, 0))
-				{
-					pAnim->SetOwnerObject(pExpReceiver);
+				auto pAnim = GameCreate<AnimClass>(Promoted_PlayAnim, pExpReceiver->Location, 0, 1, 0x600u, 0, 0);
+				pAnim->SetOwnerObject(pExpReceiver);
 
-					if (pExpReceiver->WhatAmI() == BuildingClass::AbsID)
-						pAnim->ZAdjust = -1024;
-				}
+				if (pExpReceiver->WhatAmI() == BuildingClass::AbsID)
+					pAnim->ZAdjust = -1024;
 			}
 
 			TechnoExt_ExtData::RecalculateStat(pExpReceiver);
@@ -5719,13 +5712,11 @@ bool AresTActionExt::LightstormStrike(TActionClass* pAction, HouseClass* pHouse,
 
 			if (coords.IsValid())
 			{
-				// create the cloud and do some book keeping.
-				if (auto const pAnim = GameCreate<AnimClass>(pAnimType, coords))
-				{
-					pAnim->SetHouse(pHouse);
-					LightningStorm::CloudsManifesting->AddItem(pAnim);
-					LightningStorm::CloudsPresent->AddItem(pAnim);
-				}
+				// create the cloud and do some book keeping.auto const
+				auto pAnim = GameCreate<AnimClass>(pAnimType, coords);
+				pAnim->SetHouse(pHouse);
+				LightningStorm::CloudsManifesting->AddItem(pAnim);
+				LightningStorm::CloudsPresent->AddItem(pAnim);
 			}
 		}
 	}
@@ -5777,10 +5768,8 @@ bool AresTActionExt::MeteorStrike(TActionClass* pAction, HouseClass* pHouse, Obj
 
 		if (pSelected)
 		{
-			if (auto pAnim = GameCreate<AnimClass>(pSelected, nLoc, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0))
-			{
-				pAnim->Owner = pHouse;
-			}
+			auto pAnim = GameCreate<AnimClass>(pSelected, nLoc, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+			pAnim->Owner = pHouse;
 		}
 	}
 
@@ -5798,11 +5787,9 @@ bool AresTActionExt::PlayAnimAt(TActionClass* pAction, HouseClass* pHouse, Objec
 		if (MapClass::Instance->GetCellAt(nCoord)->ContainsBridge())
 			nCoord.Z += Unsorted::BridgeHeight;
 
-		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0))
-		{
-			pAnim->IsPlaying = true;
-			pAnim->Owner = pHouse;
-		}
+		auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+		pAnim->IsPlaying = true;
+		pAnim->Owner = pHouse;
 	}
 
 	return true;

@@ -159,14 +159,13 @@ public:
 	constexpr TheaterSpecificSHP() noexcept = default;
 
 	TheaterSpecificSHP(SHPStruct* pSHP)
-	{
-		*this = pSHP;
-	}
+		: value { pSHP }
+	{ }
 
-	TheaterSpecificSHP& operator = (SHPStruct* pSHP)
-	{
-		this->value = pSHP;
-	}
+	//TheaterSpecificSHP& operator = (SHPStruct* pSHP)
+	//{
+	//	this->value = pSHP;
+	//}
 
 	operator SHPStruct* ()
 	{
@@ -251,7 +250,7 @@ protected:
 // vector of char* with builtin storage
 class VectorNames {
 protected:
-	DynamicVectorClass<const char*> Strings;
+	DynamicVectorClass<const char*> Strings {};
 	char* Buffer{ nullptr };
 
 public:

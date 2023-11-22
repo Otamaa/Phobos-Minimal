@@ -163,8 +163,8 @@ DEFINE_OVERRIDE_HOOK(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
 				if (!pType)
 					continue;
 
-					if (auto const pAnim = GameCreate<AnimClass>(pType, XYZ, 0, 1, (AnimFlag)0x2600, -15, false))
 					{
+						auto const pAnim = GameCreate<AnimClass>(pType, XYZ, 0, 1, (AnimFlag)0x2600, -15, false);
 						createdAnim = true;
 
 						if (const auto pTech = pThis->Owner) {

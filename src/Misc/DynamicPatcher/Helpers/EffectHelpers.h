@@ -293,12 +293,11 @@ public:
 			innerColor = houseColor;
 			outerColor = ColorStruct::Empty;
 		}
-		if (auto pLaser = GameCreate<LaserDrawClass>(sourcePos, targetPos, innerColor, outerColor, outerSpread, type.Duration))
-		{
-			pLaser->Thickness = type.Thickness;
-			pLaser->IsHouseColor = type.Fade ? type.Fade : type.IsHouseColor;
-			pLaser->IsSupported = type.IsSupported ? type.IsSupported : (type.Thickness > 5 && !type.Fade);
-		}
+
+		auto pLaser = GameCreate<LaserDrawClass>(sourcePos, targetPos, innerColor, outerColor, outerSpread, type.Duration);
+		pLaser->Thickness = type.Thickness;
+		pLaser->IsHouseColor = type.Fade ? type.Fade : type.IsHouseColor;
+		pLaser->IsSupported = type.IsSupported ? type.IsSupported : (type.Thickness > 5 && !type.Fade);
 	}
 
 	static void DrawBeam(CoordStruct& sourcePos, CoordStruct& targetPos, BeamType& type, const ColorStruct& customColor)

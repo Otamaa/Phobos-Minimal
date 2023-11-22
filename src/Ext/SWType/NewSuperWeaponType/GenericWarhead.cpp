@@ -132,8 +132,8 @@ void GenericWarheadStateMachine::SentPayload(TechnoClass* pFirer, SuperClass* pS
 		if (auto const pAnimType = MapClass::SelectDamageAnimation(damage, pWarhead, pCell->LandType, detonationCoords))
 		{
 			//Otamaa Added
-			if (auto pAnim = GameCreate<AnimClass>(pAnimType, detonationCoords))
-				pAnim->Owner = pSuper->Owner;
+			auto pAnim = GameCreate<AnimClass>(pAnimType, detonationCoords);
+			pAnim->Owner = pSuper->Owner;
 		}
 
 		MapClass::FlashbangWarheadAt(damage, pWarhead, detonationCoords, false, SpotlightFlags::None);

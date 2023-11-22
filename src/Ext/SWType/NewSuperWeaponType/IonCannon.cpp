@@ -94,11 +94,9 @@ void IonCannonStateMachine::Update()
 
 		if (AnimTypeClass* pAnimType = pData->IonCannon_Beam.Get())
 		{
-			if (auto pCreated = GameCreate<AnimClass>(pAnimType, coords))
-			{
-				pCreated->SetHouse(this->Owner);
-				this->Anim = pCreated;
-			}
+			auto pCreated = GameCreate<AnimClass>(pAnimType, coords);
+			pCreated->SetHouse(this->Owner);
+			this->Anim = pCreated;
 		}
 
 		const auto sound = pData->SW_ActivationSound.Get();
@@ -210,10 +208,8 @@ void IonCannonStateMachine::Fire()
 	// blast!
 	if (pData->IonCannon_Ripple)
 	{
-		if (auto pBlast = GameCreate<IonBlastClass>(coords))
-		{
-			pBlast->DisableIonBeam = TRUE;
-		}
+		auto pBlast = GameCreate<IonBlastClass>(coords);
+		pBlast->DisableIonBeam = TRUE;
 	}
 
 	// tell!
@@ -229,11 +225,9 @@ void IonCannonStateMachine::Fire()
 	{
 		CoordStruct animCoords = coords;
 		animCoords.Z += pData->IonCannon_BlastHeight;
-		if (auto pCreated = GameCreate<AnimClass>(pAnimType, animCoords))
-		{
-			pCreated->SetHouse(this->Owner);
-			this->Anim = pCreated;
-		}
+		auto pCreated = GameCreate<AnimClass>(pAnimType, animCoords);
+		pCreated->SetHouse(this->Owner);
+		this->Anim = pCreated;
 	}
 
 	// kill

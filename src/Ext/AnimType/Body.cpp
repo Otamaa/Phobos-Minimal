@@ -254,12 +254,9 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 		{
 			if (const auto pCreateUnitAnimType = pTypeExt->CreateUnit_SpawnAnim.Get(nullptr))
 			{
-				if (auto const pCreateUnitAnim = GameCreate<AnimClass>(pCreateUnitAnimType, pAnimExt->CreateUnitLocation))
-				{
-					pCreateUnitAnim->Owner = decidedOwner;
-					if (auto pCreateUnitAnimExt = AnimExtContainer::Instance.Find(pCreateUnitAnim))
-						pCreateUnitAnimExt->Invoker = AnimExtData::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
-				}
+				auto pCreateUnitAnim = GameCreate<AnimClass>(pCreateUnitAnimType, pAnimExt->CreateUnitLocation);
+				pCreateUnitAnim->Owner = decidedOwner;
+				AnimExtContainer::Instance.Find(pCreateUnitAnim)->Invoker = AnimExtData::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
 			}
 
 			if (pTechno->HasTurret() && pAnimExt->DeathUnitTurretFacing.has_value())
@@ -353,23 +350,20 @@ void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller
 	if (!pAnimType)
 		return;
 
-	if (auto pAnim = GameCreate<AnimClass>(pAnimType, location))
+	auto pAnim = GameCreate<AnimClass>(pAnimType, location);
+	const auto pAnimTypeExt = AnimTypeExtContainer::Instance.Find(pAnimType);
+	auto pAnimExt = AnimExtContainer::Instance.Find(pAnim);
+	HouseClass* const pInvoker = pKiller ? pKiller->Owner : nullptr;
+	AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, pThis, true);
+
+	if (pAnimTypeExt->CreateUnit_InheritDeathFacings.Get())
+		pAnimExt->DeathUnitFacing = facing;
+
+	if (pAnimTypeExt->CreateUnit_InheritTurretFacings.Get())
 	{
-		const auto pAnimTypeExt = AnimTypeExtContainer::Instance.Find(pAnimType);
-		auto pAnimExt = AnimExtContainer::Instance.Find(pAnim);
-		HouseClass* const pInvoker = pKiller ? pKiller->Owner : nullptr;
-
-		AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, pThis, true);
-
-		if (pAnimTypeExt->CreateUnit_InheritDeathFacings.Get())
-			pAnimExt->DeathUnitFacing = facing;
-
-		if (pAnimTypeExt->CreateUnit_InheritTurretFacings.Get())
+		if (pThis->HasTurret())
 		{
-			if (pThis->HasTurret())
-			{
-				pAnimExt->DeathUnitTurretFacing = pThis->SecondaryFacing.Current();
-			}
+			pAnimExt->DeathUnitTurretFacing = pThis->SecondaryFacing.Current();
 		}
 	}
 }

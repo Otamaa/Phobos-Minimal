@@ -423,7 +423,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
-void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs)
+void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs) const
 {
 	if (!pVictim)
 		return;
@@ -491,7 +491,7 @@ void WarheadTypeExtData::EvaluateArmor(WarheadTypeClass* OwnerObject)
 	//}
 }
 
-void WarheadTypeExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVictim, args_ReceiveDamage* pArgs)
+void WarheadTypeExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVictim, args_ReceiveDamage* pArgs) const
 {
 	if ((pVictim->AbstractFlags & AbstractFlags::Techno) == AbstractFlags::None)
 		return;
@@ -532,7 +532,7 @@ void WarheadTypeExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVictim, ar
 	}
 }
 
-bool WarheadTypeExtData::CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTargetHouse)
+bool WarheadTypeExtData::CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTargetHouse) const
 {
 	if (pOwnerHouse && pTargetHouse)
 	{
@@ -548,7 +548,7 @@ bool WarheadTypeExtData::CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTa
 	return true;
 }
 
-bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool SkipVerses)
+bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool SkipVerses) const
 {
 	if (pTechno)
 	{
@@ -603,7 +603,7 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool S
 	return Bypass;
 }
 
-bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage)
+bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage) const
 {
 	auto nArmor = TechnoExtData::GetArmor(pTechno);
 
@@ -640,7 +640,7 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, int d
 
 }
 
-FullMapDetonateResult WarheadTypeExtData::EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner)
+FullMapDetonateResult WarheadTypeExtData::EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner) const
 {
 	if (!EnumFunctions::IsTechnoEligibleB(pTechno, this->DetonateOnAllMapObjects_AffectTargets))
 		return FullMapDetonateResult::TargetNotEligible;
@@ -664,7 +664,7 @@ FullMapDetonateResult WarheadTypeExtData::EligibleForFullMapDetonation(TechnoCla
 	return FullMapDetonateResult::TargetValid;
 }
 
-bool WarheadTypeExtData::CanTargetHouse(HouseClass* pHouse, TechnoClass* pTarget)
+bool WarheadTypeExtData::CanTargetHouse(HouseClass* pHouse, TechnoClass* pTarget) const
 {
 	if (pHouse && pTarget)
 	{
@@ -674,7 +674,7 @@ bool WarheadTypeExtData::CanTargetHouse(HouseClass* pHouse, TechnoClass* pTarget
 	return true;
 }
 
-void WarheadTypeExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKillerHouse, TechnoClass* pKillerTech)
+void WarheadTypeExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKillerHouse, TechnoClass* pKillerTech) const
 {
 	if (!this->Webby || this->Webby_Duration == 0)
 		return;
@@ -850,7 +850,7 @@ void WarheadTypeExtData::applyRelativeDamage(ObjectClass* pTarget, args_ReceiveD
 	*pArgs->Damage = nRelativeVal;
 }
 
-bool WarheadTypeExtData::GoBerzerkFor(FootClass* pVictim, int* damage)
+bool WarheadTypeExtData::GoBerzerkFor(FootClass* pVictim, int* damage) const
 {
 	int nDur = this->Berzerk_dur.Get(*damage);
 	auto const pType = pVictim->GetTechnoType();
@@ -1321,7 +1321,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 	PaintBallData.Serialize(Stm);
 }
 
-bool WarheadTypeExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim)
+bool WarheadTypeExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim) const
 {
 	auto const absType = pVictim->WhatAmI();
 	auto const pVictimType = pVictim->GetTechnoType();

@@ -395,11 +395,8 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 		if (auto it = pData->Weather_Bolts.GetElements(
 			RulesClass::Instance->WeatherConBolts))
 		{
-			auto const rnd = ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1);
-			auto const pAnimType = it.at(rnd);
-
-			if (auto const pAnim = GameCreate<AnimClass>(pAnimType, coords))
-			{
+			if(auto const pAnimType = it.at(ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1))) {
+				auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
 				AnimExtData::SetAnimOwnerHouseKind(pAnim, Super->Owner, nullptr, Invoker, false);
 				BoltsPresent.push_back(pAnim);
 			}
@@ -459,9 +456,10 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 
 			WarheadTypeExtData::DetonateAt(pWarhead, MapClass::Instance->GetCellAt(coords), coords, Invoker, damage ,Super->Owner);
 
-			if(auto pBoltExt = pData->Weather_BoltExplosion.Get(RulesClass::Instance->WeatherConBoltExplosion))
-				if (auto pAnim = GameCreate<AnimClass>(pBoltExt, coords))
-					pAnim->SetHouse(Super->Owner);
+			if(auto pBoltExt = pData->Weather_BoltExplosion.Get(RulesClass::Instance->WeatherConBoltExplosion)){ 
+				auto pAnim = GameCreate<AnimClass>(pBoltExt, coords);
+				pAnim->SetHouse(Super->Owner);
+			}
 		}
 
 		// has the last target been destroyed?
@@ -480,17 +478,15 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 				auto const count = ScenarioClass::Instance->Random.RandomRanged(
 					pData->Weather_DebrisMin, pData->Weather_DebrisMax);
 
-				for (int i = 0; i < count; ++i)
-				{
-					auto const rnd = ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1);
-					auto const pAnimType = it.at(rnd);
-
-					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coords),
-						Super->Owner,
-						nullptr,
-						Invoker,
-						false
-					);
+				for (int i = 0; i < count; ++i) {
+					if(auto const pAnimType = it.at(ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1))){
+						AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coords),
+							Super->Owner,
+							nullptr,
+							Invoker,
+							false
+						);
+					}
 				}
 			}
 		}
@@ -511,7 +507,6 @@ bool CloneableLighningStormStateMachine::Strike(CellStruct const& nCell)
 	{
 		// select the anim
 		auto const itClouds = pExt->Weather_Clouds.GetElements(RulesClass::Instance->WeatherConClouds);
-		auto const pAnimType = itClouds.at(ScenarioClass::Instance->Random.RandomFromMax(itClouds.size() - 1));
 
 		// infer the height this thing will be drawn at.
 		if (pExt->Weather_CloudHeight < 0) {
@@ -523,9 +518,9 @@ bool CloneableLighningStormStateMachine::Strike(CellStruct const& nCell)
 
 		coords.Z += pExt->Weather_CloudHeight;
 
-		// create the cloud and do some book keeping.
-		if (auto const pAnim = GameCreate<AnimClass>(pAnimType, coords))
-		{
+		if(auto const pAnimType = itClouds.at(ScenarioClass::Instance->Random.RandomFromMax(itClouds.size() - 1))) {
+			// create the cloud and do some book keeping.
+			auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
 			AnimExtData::SetAnimOwnerHouseKind(pAnim, Super->Owner, nullptr, Invoker, false);
 			CloudsManifest.push_back(pAnim);
 			CloudsPresent.push_back(pAnim);

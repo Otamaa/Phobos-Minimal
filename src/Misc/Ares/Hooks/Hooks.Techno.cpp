@@ -998,28 +998,16 @@ DEFINE_HOOK(0x6F3F88, TechnoClass_Init_1, 5)
 	SlaveManagerClass* pSlaveManager = nullptr;
 	AirstrikeClass* pAirstrike = nullptr;
 
-	if (pType->Spawns)
-	{
-		if (auto pSpawn = GameCreate<SpawnManagerClass>(pThis, pType->Spawns, pType->SpawnsNumber, pType->SpawnRegenRate, pType->SpawnReloadRate))
-		{
-			pSpawnManager = pSpawn;
-		}
+	if (pType->Spawns) {
+		pSpawnManager = GameCreate<SpawnManagerClass>(pThis, pType->Spawns, pType->SpawnsNumber, pType->SpawnRegenRate, pType->SpawnReloadRate);
 	}
 
-	if (pType->Enslaves)
-	{
-		if (auto pSlaveMan = GameCreate<SlaveManagerClass>(pThis, pType->Enslaves, pType->SlavesNumber, pType->SlaveRegenRate, pType->SlaveReloadRate))
-		{
-			pSlaveManager = pSlaveMan;
-		}
+	if (pType->Enslaves) {
+		pSlaveManager = GameCreate<SlaveManagerClass>(pThis, pType->Enslaves, pType->SlavesNumber, pType->SlaveRegenRate, pType->SlaveReloadRate);
 	}
 
-	if (pType->AirstrikeTeam > 0 && pType->AirstrikeTeamType)
-	{
-		if (auto pAir = GameCreate<AirstrikeClass>(pThis))
-		{
-			pAirstrike = pAir;
-		}
+	if (pType->AirstrikeTeam > 0 && pType->AirstrikeTeamType) {
+		pAirstrike = GameCreate<AirstrikeClass>(pThis);
 	}
 
 	const bool IsFoot = pThis->WhatAmI() != BuildingClass::AbsID;
