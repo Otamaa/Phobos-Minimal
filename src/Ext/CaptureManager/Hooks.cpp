@@ -78,9 +78,6 @@ DEFINE_HOOK(0x4DBF23, FootClass_ChangeOwner_IAmNowHuman, 0x6)
 		return 0;
 	}
 
-	pThis->Override_Mission(Mission::Guard, nullptr, nullptr); // I don't even know what this is, just clear the target and destination for me
-	pThis->ShouldLoseTargetNow = TRUE;
-	pThis->QueueMission(pThis->GetTechnoType()->DefaultToGuardArea ? Mission::Area_Guard : Mission::Guard, true);
-
+	pThis->Override_Mission(pThis->GetTechnoType()->DefaultToGuardArea ? Mission::Area_Guard : Mission::Guard, nullptr, nullptr); // I don't even know what this is, just clear the target and destination for me
 	return 0;
 }

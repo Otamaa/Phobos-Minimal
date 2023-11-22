@@ -179,7 +179,7 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTechno
 	return false;
 }
 
-void CaptureExt::DecideUnitFate(CaptureManagerClass* pManager, FootClass* pFoot)
+void CaptureExt::DecideUnitFate(CaptureManagerClass* pManager, FootClass* pFoot , bool Captured)
 {
 	// to be implemented (if needed). - secsome
 }
