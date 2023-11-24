@@ -66,6 +66,7 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Damage_TargetFlag = DamageDelayTargetFlag::Invoker;
 
 	this->MakeInfantryOwner.Read(exINI, pID, "MakeInfantryOwner");
+	this->MakeInfantry_Mission.Read(exINI, pID, "MakeInfantry.Mission");
 
 #pragma region Otamaa
 

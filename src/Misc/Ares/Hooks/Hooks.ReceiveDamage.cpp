@@ -154,8 +154,7 @@ DEFINE_OVERRIDE_HOOK(0x7021F5, TechnoClass_ReceiveDamage_OverrideDieSound, 0x6)
 
 	auto const& nSound = WarheadTypeExtContainer::Instance.Find(pWh)->DieSound_Override;
 
-	if (nSound.isset() && nSound.Get() >= 0)
-	{
+	if (nSound.isset()) {
 		VocClass::PlayIndexAtPos(nSound, pThis->Location);
 		return 0x702200;
 	}
@@ -170,8 +169,7 @@ DEFINE_OVERRIDE_HOOK(0x702185, TechnoClass_ReceiveDamage_OverrideVoiceDie, 0x6)
 
 	auto const& nSound = WarheadTypeExtContainer::Instance.Find(pWh)->VoiceSound_Override;
 
-	if (nSound.isset() && nSound.Get() >= 0)
-	{
+	if (nSound.isset()) {
 		VocClass::PlayIndexAtPos(nSound, pThis->Location);
 		return 0x702200;
 	}
