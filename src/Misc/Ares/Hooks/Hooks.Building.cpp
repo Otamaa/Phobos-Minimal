@@ -46,7 +46,7 @@ DEFINE_OVERRIDE_HOOK(0x44D760, BuildingClass_Destroyed_UnitLost, 7)
 		|| pType->DontScore
 		|| pType->Insignificant
 		|| !pThis->Owner
-		|| !pThis->Owner->IsControlledByHuman())
+		|| !pThis->Owner->ControlledByCurrentPlayer())
 	{
 		return 0x44D7C9;
 	}
