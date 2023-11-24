@@ -2392,12 +2392,13 @@ DEFINE_HOOK(0x486920, CellClass_TriggerVein_Precheck, 0x6)
 
 DEFINE_HOOK(0x4869AB, CellClass_TriggerVein_Weight, 0x6)
 {
-	GET(TechnoTypeClass*, pTechno, ESI);
+	GET(TechnoTypeClass*, pTechnoType, EAX);
+	GET(TechnoClass*, pTechno, ESI);
 
-	if (pTechno->WhatAmI() == BuildingTypeClass::AbsID || !RulesExtData::Instance()->VeinsDamagingWeightTreshold.isset())
+	if (pTechno->WhatAmI() == BuildingClass::AbsID || !RulesExtData::Instance()->VeinsDamagingWeightTreshold.isset())
 		return 0x0;
 
-	if (pTechno->Weight <  RulesExtData::Instance()->VeinsDamagingWeightTreshold) {
+	if (pTechnoType->Weight <  RulesExtData::Instance()->VeinsDamagingWeightTreshold) {
 		return 0x486A55; //skip damaging
 	}
 
