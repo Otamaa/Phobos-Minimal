@@ -3946,7 +3946,7 @@ DEFINE_HOOK(0x41F783, AITriggerTypeClass_ParseConditionType, 0x5)
 // there is no way we know if its captured or freed
 DEFINE_HOOK(0x47243F , CaptureManageClass_DecideUnitFate_Neutral , 0x6)
 {
-	GET(TechnoClass* , pTarget , EBP);
+	GET(TechnoClass* , pTarget , EBX);
 	//GET_STACK(bool , houseChanged , 0x24);
 
 	//Neutral techno should not do anything after get freed/captured
