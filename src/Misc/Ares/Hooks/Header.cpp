@@ -2919,7 +2919,7 @@ void TechnoExt_ExtData::ApplyKillDriver(TechnoClass* pTarget, TechnoClass* pKill
 	pTarget->SetDestination(nullptr, false);
 
 	if (auto firstTag = pTarget->AttachedTag)
-		firstTag->SpringEvent((TriggerEvent)AresTriggerEvents::DriverKilled_ByHouse, pTarget, CellStruct::Empty, false, pKiller->Owner);
+		firstTag->SpringEvent((TriggerEvent)AresTriggerEvents::DriverKilled_ByHouse, pTarget, CellStruct::Empty, false, pToOwner);
 
 	if (pTarget->IsAlive) {
 		if (auto pSecTag = pTarget->AttachedTag)

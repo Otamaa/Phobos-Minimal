@@ -194,6 +194,10 @@ CanBuildResult HouseExtData::PrereqValidate(
 	HouseClass* pHouse, TechnoTypeClass* pItem,
 	bool buildLimitOnly, bool includeQueued)
 {
+	auto canBuiltresult = CanBuildResult::Unbuildable;
+	bool resultRetrieved = false;
+//	std::string TemporarilyResult {};
+
 	const bool IsHuman = pHouse->IsControlledByHuman();
 	//const bool debug = CRT::strcmpi(pItem->ID, "GAOREP") == 0;
 
@@ -216,32 +220,77 @@ CanBuildResult HouseExtData::PrereqValidate(
 			//	}
 			//}
 
-			return CanBuildResult::Unbuildable;
+			canBuiltresult =  CanBuildResult::Unbuildable;
+			resultRetrieved = true;
 		}
 
-		if (IsHuman && ReqsMet == RequirementStatus::Complete) {
-			if (!HouseExtData::PrerequisitesMet(pHouse, pItem)) {
-				return CanBuildResult::Unbuildable;
+		if(!resultRetrieved){
+			if (IsHuman && ReqsMet == RequirementStatus::Complete) {
+				if (!HouseExtData::PrerequisitesMet(pHouse, pItem)) {
+					canBuiltresult = CanBuildResult::Unbuildable;
+					resultRetrieved = true;
+				}
 			}
 		}
 
-		const auto res = HouseExtData::HasFactory(pHouse, pItem, true, true, false, true).first;
-
-		if (res <= NewFactoryState::NotFound)
-			return CanBuildResult::Unbuildable;
-
-		if (res <= NewFactoryState::Unpowered)
-			return CanBuildResult::TemporarilyUnbuildable;
+		if (!resultRetrieved)
+		{
+			switch (HouseExtData::HasFactory(pHouse, pItem, true, true, false, true).first)
+			{
+			case NewFactoryState::NotFound:
+			{
+				canBuiltresult = CanBuildResult::Unbuildable;
+				resultRetrieved = true;
+				break;
+			}
+			case NewFactoryState::Unpowered:
+			{
+//				TemporarilyResult = "Unpowered";
+				canBuiltresult = CanBuildResult::TemporarilyUnbuildable;
+				resultRetrieved = true;
+				break;
+			}
+			default:
+				break;
+			}
+		}
 	}
 
-	if (!IsHuman && RulesExtData::Instance()->AllowBypassBuildLimit[pHouse->GetAIDifficultyIndex()]) {
-		return CanBuildResult::Buildable;
+	if(!resultRetrieved){
+		if (!IsHuman && RulesExtData::Instance()->AllowBypassBuildLimit[pHouse->GetAIDifficultyIndex()]) {
+			canBuiltresult = CanBuildResult::Buildable;
+			resultRetrieved = true;
+		}
 	}
 
-	if (pItem->WhatAmI() == BuildingTypeClass::AbsID && !BuildingTypeExtContainer::Instance.Find((BuildingTypeClass*)pItem)->PowersUp_Buildings.empty())
-		return static_cast<CanBuildResult>(BuildingTypeExtData::CheckBuildLimit(pHouse, (BuildingTypeClass*)pItem, includeQueued));
+	if (!resultRetrieved)
+	{
+		if (pItem->WhatAmI() == BuildingTypeClass::AbsID && !BuildingTypeExtContainer::Instance.Find((BuildingTypeClass*)pItem)->PowersUp_Buildings.empty()) {
+			canBuiltresult = static_cast<CanBuildResult>(BuildingTypeExtData::CheckBuildLimit(pHouse, (BuildingTypeClass*)pItem, includeQueued));
+			resultRetrieved = true;
+//			TemporarilyResult = "WTF ??? Building Limit !!";
+		}
+	}
 
-	return static_cast<CanBuildResult>(HouseExtData::CheckBuildLimit(pHouse, pItem, includeQueued));
+	if (!resultRetrieved)
+	{
+		canBuiltresult = static_cast<CanBuildResult>(HouseExtData::CheckBuildLimit(pHouse, pItem, includeQueued));
+	//	TemporarilyResult = "Build Limit Reached";
+		resultRetrieved = true;
+	}
+
+//	static constexpr const char* LookUps[3] = { "INIT" , "E2" , "E1" };
+//
+//	if (resultRetrieved && !pHouse->IsNeutral()) {
+//		for(auto& toLook : LookUps){
+//			if (IS_SAME_STR_(toLook , pItem->ID) && canBuiltresult == CanBuildResult::TemporarilyUnbuildable){
+//				Debug::FatalError("%s for [%s - %x] return TemporarilyUnbuildable reason %s\n", toLook , pHouse->Type->ID , pHouse, TemporarilyResult.c_str());
+//				break;
+//			}
+//		}
+//	}
+
+	return canBuiltresult;
 }
 
 bool HouseExtData::CheckFactoryOwners(HouseClass* pHouse, TechnoTypeClass* pItem)
@@ -1091,27 +1140,35 @@ BuildLimitStatus HouseExtData::CheckBuildLimit(
 	HouseClass const* const pHouse, TechnoTypeClass* pItem,
 	bool const includeQueued)
 {
-	int BuildLimit = pItem->BuildLimit;
-	int Remaining = 0;
+	const int BuildLimit = pItem->BuildLimit;
 
 	if (BuildLimit < 0)
 	{
-		Remaining = -(BuildLimit + pHouse->CountOwnedEver(pItem));
+		return ((-(BuildLimit + pHouse->CountOwnedEver(pItem))) > 0)
+			? BuildLimitStatus::NotReached
+			: BuildLimitStatus::ReachedTemporarily
+			;
 	}
 	else
 	{
-		Remaining = BuildLimit - HouseExtData::CountOwnedNowTotal(pHouse, pItem);
+		const auto cur = HouseExtData::CountOwnedNowTotal(pHouse, pItem);
+
+		if (cur < 0)
+			Debug::FatalError("%s for [%s - %x] CountOwned return less than 0 when counted\n", pItem->ID, pHouse->Type->ID, pHouse);
+
+		int Remaining = BuildLimit - cur;
 
 		if (BuildLimit > 0 && Remaining <= 0) {
 			return !includeQueued || !pHouse->GetFactoryProducing(pItem) ?
 				BuildLimitStatus::ReachedPermanently : BuildLimitStatus::NotReached;
 		}
-	}
 
-	return (Remaining > 0)
-		? BuildLimitStatus::NotReached
-		: BuildLimitStatus::ReachedTemporarily
-		;
+
+		return (Remaining > 0)
+			? BuildLimitStatus::NotReached
+			: BuildLimitStatus::ReachedTemporarily
+			;
+	}
 }
 
 signed int HouseExtData::BuildLimitRemaining(

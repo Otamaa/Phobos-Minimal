@@ -2951,7 +2951,7 @@ void TechnoExtData::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool 
 			AircraftTrackerClass::Instance->Remove((FootClass*)pThis);
 	}
 
-	if (!SkipTrackingRemove)
+	if (!Delete && !SkipTrackingRemove)
 	{
 		if (const auto pOwner = pThis->GetOwningHouse())
 		{
