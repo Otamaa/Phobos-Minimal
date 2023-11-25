@@ -751,7 +751,7 @@ void BuildingExtData::LimboKill(BuildingClass* pBuilding)
 	static_assert(offsetof(HouseClass, Buildings) == 0x68, "ClassMember Shifted !");
 	pOwnerExt->LimboTechno.remove(pBuilding);
 	pTargetHouse->RegisterLoss(pBuilding, false);
-	pTargetHouse->RemoveTracking(pBuilding);
+	//pTargetHouse->RemoveTracking(pBuilding);
 
 	pTargetHouse->ActiveBuildingTypes.Decrement(pBuilding->Type->ArrayIndex);
 

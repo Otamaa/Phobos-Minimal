@@ -2951,19 +2951,19 @@ void TechnoExtData::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool 
 			AircraftTrackerClass::Instance->Remove((FootClass*)pThis);
 	}
 
-	if (!Delete && !SkipTrackingRemove)
-	{
-		if (const auto pOwner = pThis->GetOwningHouse())
-		{
-			if(!pThis->InLimbo)
-				pOwner->RegisterLoss(pThis, false);
-
-			pOwner->RemoveTracking(pThis);
-
-			if (!pOwner->RecheckTechTree)
-				pOwner->RecheckTechTree = true;
-		}
-	}
+	//if (!Delete && !SkipTrackingRemove)
+	//{
+	//	if (const auto pOwner = pThis->GetOwningHouse())
+	//	{
+	//		if(!pThis->InLimbo)
+	//			pOwner->RegisterLoss(pThis, false);
+	//
+	//		pOwner->RemoveTracking(pThis);
+	//
+	//		if (!pOwner->RecheckTechTree)
+	//			pOwner->RecheckTechTree = true;
+	//	}
+	//}
 
 
 	if (Delete)
