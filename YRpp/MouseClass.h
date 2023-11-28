@@ -144,6 +144,8 @@ public:
 	//SidebarClass
 	virtual bool Activate(int control = 1) override JMP_THIS(0x6D04F0);
 
+	void FlashMoney() const JMP_THIS(0x6D0EC0);
+
 	TabClass() JMP_THIS(0x6CFE20);
 
 public:

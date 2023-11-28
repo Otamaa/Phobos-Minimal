@@ -1356,6 +1356,51 @@ DEFINE_OVERRIDE_HOOK(0x4F8C97, HouseClass_Update_BuildConst, 6)
 	return Skip;
 }
 
+bool Timer_Something(CDTimerClass& timer)
+{
+	if (timer.StartTime != -1) {
+		if (timer.CurrentTime - timer.StartTime >= timer.TimeLeft) {
+			return true;
+		}
+	}
+
+	return false;
+}
+DWORD NOINLINE Speak(HouseClass* pHouse)
+{
+	if (Timer_Something(pHouse->SpeakMaxedDelayTimer) && pHouse->Buildings.Count) {
+
+		int NotJammed = 0;
+		bool HasAnyEligibleBuilding = false;
+		pHouse->Buildings.for_each([&NotJammed, &HasAnyEligibleBuilding](BuildingClass* pBld) {
+			for (auto pType : pBld->GetTypes()) {
+				if (pType && (pType->Radar || pType->SpySat)) {
+					if (BuildingExtContainer::Instance.Find(pBld)->RegisteredJammers.empty())
+						++NotJammed;
+
+					HasAnyEligibleBuilding = true;
+				}
+			}		
+		});
+
+		if (HasAnyEligibleBuilding && NotJammed == 0) {
+			VoxClass::Play("EVA_RadarJammed");
+			const int time = GameOptionsClass::Instance->GetAnimSpeed(			
+				int(RulesClass::Instance->SpeakDelay * 900.0));
+			pHouse->SpeakMaxedDelayTimer.Start(time);
+		}
+	}
+
+	return 0x0;
+}
+
+// there is actually an SpeakDelay 
+// dunno atm 
+DEFINE_HOOK(0x4F8B3C, HouseClass_Update_Annouces, 0x6) {
+	GET(HouseClass* const, pThis, ESI);
+	return Speak(pThis);
+}
+
 // play this annoying message every now and then
 DEFINE_OVERRIDE_HOOK(0x4F8C23, HouseClass_Update_SilosNeededEVA, 5)
 {
