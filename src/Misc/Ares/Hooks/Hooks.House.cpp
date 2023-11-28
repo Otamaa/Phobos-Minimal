@@ -1373,19 +1373,17 @@ DWORD NOINLINE Speak(HouseClass* pHouse)
 		int NotJammed = 0;
 		bool HasAnyEligibleBuilding = false;
 		pHouse->Buildings.for_each([&NotJammed, &HasAnyEligibleBuilding](BuildingClass* pBld) {
-			for (auto pType : pBld->GetTypes()) {
-				if (pType && (pType->Radar || pType->SpySat)) {
-					if (BuildingExtContainer::Instance.Find(pBld)->RegisteredJammers.empty())
-						++NotJammed;
+			if(pBld->Type->Radar){
+				if (BuildingExtContainer::Instance.Find(pBld)->RegisteredJammers.empty())
+					++NotJammed;
 
-					HasAnyEligibleBuilding = true;
-				}
-			}		
+				HasAnyEligibleBuilding = true;
+			}
 		});
 
 		if (HasAnyEligibleBuilding && NotJammed == 0) {
 			VoxClass::Play("EVA_RadarJammed");
-			const int time = GameOptionsClass::Instance->GetAnimSpeed(			
+			const int time = GameOptionsClass::Instance->GetAnimSpeed(
 				int(RulesClass::Instance->SpeakDelay * 900.0));
 			pHouse->SpeakMaxedDelayTimer.Start(time);
 		}

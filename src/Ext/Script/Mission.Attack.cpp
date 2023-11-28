@@ -1021,9 +1021,11 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 		{
 			if (auto pBld = specific_cast<BuildingClass*>(pTechno))
 			{
-				for (auto const type : pBld->GetTypes())
-				{
-					if (type && (type->Radar || type->SpySat))
+				if(pBld->Type->Radar)
+					return true;
+
+				for (auto const type : pBld->GetTypes()) {
+					if (type && type->SpySat)
 						return true;
 				}
 			}

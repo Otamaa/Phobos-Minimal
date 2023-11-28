@@ -240,7 +240,7 @@ public:
 	static void announceAttack(TechnoClass* Techno);
 	static void updateSpawnManager(TechnoClass* Techno, ObjectClass* Source = nullptr);
 	static void updateRadarBlackout(BuildingClass* const pBuilding);
-	static bool IsTypeEMPProne(TechnoTypeClass* pType);
+	static bool IsTypeEMPProne(TechnoClass* pType);
 	static bool isCurrentlyEMPImmune(WarheadTypeClass* pWarhead, TechnoClass* Target, HouseClass* SourceHouse);
 	static bool isEMPImmune(TechnoClass* Target, HouseClass* SourceHouse);
 	static bool isEMPTypeImmune(TechnoClass* Target);

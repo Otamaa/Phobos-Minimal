@@ -4199,12 +4199,15 @@ void AresEMPulse::updateSpawnManager(TechnoClass* Techno, ObjectClass* Source)
 
 void AresEMPulse::updateRadarBlackout(BuildingClass* const pBuilding)
 {
+	if(pBuilding->Type->Radar)
+	{
+		pBuilding->Owner->RecheckRadar = true;
+		return; //one of just check once
+	}
+
 	for (auto pType : pBuilding->GetTypes())
 	{
-		if (!pType)
-			continue;
-
-		if (pType->Radar || pType->SpySat)
+		if (pType && pType->SpySat)
 		{
 			pBuilding->Owner->RecheckRadar = true;
 			return; //one of just check once
@@ -4212,46 +4215,44 @@ void AresEMPulse::updateRadarBlackout(BuildingClass* const pBuilding)
 	}
 }
 
-bool AresEMPulse::IsTypeEMPProne(TechnoTypeClass* pType)
+bool AresEMPulse::IsTypeEMPProne(TechnoClass* pTechno)
 {
-	auto const abs = pType->WhatAmI();
+	auto const abs = pTechno->WhatAmI();
 
-	if (abs == AbstractType::BuildingType)
+	if (abs == AbstractType::Building)
 	{
-		auto const pBldType = static_cast<BuildingTypeClass const*>(pType);
+		auto const pBld = static_cast<BuildingClass const*>(pTechno);
 
 		// exclude invisible buildings
-		if (pBldType->InvisibleInGame)
+		if (pBld->Type->InvisibleInGame)
 		{
 			return false;
 		}
 
 		// buildings are prone if they consume power and need it to function
-		if (pBldType->Powered && pBldType->PowerDrain > 0)
-		{
+		if (pBld->Type->Powered && pBld->Type->PowerDrain > 0) {
 			return true;
 		}
 
 		// may have a special function.
-		return pBldType->Radar
-			|| pBldType->HasSuperWeapon()
-			|| pBldType->UndeploysInto
-			|| pBldType->PowersUnit
-			|| pBldType->Sensors
-			|| pBldType->LaserFencePost
-			|| pBldType->GapGenerator;
+		return pBld->Type->Radar
+			|| pBld->Type->HasSuperWeapon()
+			|| pBld->Type->UndeploysInto
+			|| pBld->Type->PowersUnit
+			|| pBld->Type->Sensors
+			|| pBld->Type->LaserFencePost
+			|| pBld->Type->GapGenerator;
 
 	}
-	else if (abs == AbstractType::InfantryType)
+	else if (abs == AbstractType::Infantry)
 	{
 		// affected only if this is a cyborg.
-		auto const pInfType = static_cast<InfantryTypeClass const*>(pType);
-		return pInfType->Cyborg;
+		return static_cast<InfantryClass const*>(pTechno)->Type->Cyborg;
 	}
 	else
 	{
 		// if this is a vessel or vehicle that is organic: no effect.
-		return !pType->Organic;
+		return !pTechno->GetTechnoType()->Organic;
 	}
 }
 
@@ -4308,7 +4309,7 @@ bool AresEMPulse::isEMPImmune(TechnoClass* Target, HouseClass* SourceHouse)
 
 	auto pType = Target->GetTechnoType();
 
-	if (!AresEMPulse::IsTypeEMPProne(pType))
+	if (!AresEMPulse::IsTypeEMPProne(Target))
 		return true;
 
 	// if houses differ, TypeImmune does not count.
@@ -4979,8 +4980,11 @@ bool AresJammer::IsEligible(BuildingClass* TargetBuilding)
 	*/
 
 	if (!this->AttachedToObject->Owner->IsAlliedWith(TargetBuilding->Owner)) {
+		if(TargetBuilding->Type->Radar)
+			return true;
+
 		for (auto pType : TargetBuilding->GetTypes()) {
-			if (pType && (pType->Radar || pType->SpySat)) {
+			if (pType && pType->SpySat) {
 				return true;
 			}
 		}
