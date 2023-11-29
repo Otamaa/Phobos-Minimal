@@ -1537,14 +1537,26 @@ DEFINE_HOOK(0x629BB2, ParasiteClass_UpdateSquiddy_Culling, 0x8)
 DEFINE_HOOK(0x51A2EF, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
 {
 	GET(BuildingClass* const, pBuilding, EDI);
-	VocClass::PlayIndexAtPos(pBuilding->Type->EnterBioReactorSound, pBuilding->GetCoords(), 0);
+	GET(InfantryClass* const , pThis , ESI);
+
+	int sound = pThis->Type->EnterBioReactorSound;
+	if(sound == -1)
+		sound = RulesClass::Instance->EnterBioReactorSound;
+
+	VocClass::PlayIndexAtPos(sound, pThis->GetCoords(), 0);
 	return 0x51A30F;
 }
 
-DEFINE_HOOK(0x44DBBC, InfantryClass_PCP_Leave_Bio_Reactor_Sound, 0x7)
+DEFINE_HOOK(0x44DBBC, BuildingClass_Mission_Unload_Leave_Bio_Readtor_Sound, 0x7)
 {
 	GET(BuildingClass* const, pThis, EBP);
-	VocClass::PlayIndexAtPos(pThis->Type->LeaveBioReactorSound, pThis->GetCoords(), 0);
+	GET(FootClass* const , pPassenger , ESI);
+
+	int sound = pPassenger->GetTechnoType()->LeaveBioReactorSound;
+	if(pPassenger->WhatAmI() != InfantryClass::AbsID  || sound == -1)
+		sound = RulesClass::Instance->LeaveBioReactorSound;
+
+	VocClass::PlayIndexAtPos(sound, pThis->GetCoords(), 0);
 	return 0x44DBDA;
 }
 
@@ -3957,6 +3969,44 @@ DEFINE_HOOK(0x47243F , CaptureManageClass_DecideUnitFate_Neutral , 0x6)
 	}
 
 	return 0x0;
+}
+
+DEFINE_HOOK(0x4CA682, FactoryClass_Total_Techno_Queued_CompareType, 0x8)
+{
+	GET(TechnoClass*, pObject, ECX);
+	GET(TechnoTypeClass*, pTypeCompare, EBX);
+
+	return pObject->GetTechnoType() == pTypeCompare || TechnoExtContainer::Instance.Find(pObject)->Type == pTypeCompare ?
+		0x4CA68E : 0x4CA693;
+}
+
+DEFINE_HOOK(0x4FA5B8, HouseClass_BeginProduction_CompareType, 0x8)
+{
+	GET(TechnoClass*, pObject, ECX);
+	GET(TechnoTypeClass*, pTypeCompare, EBP);
+
+	return pObject->GetTechnoType() == pTypeCompare || TechnoExtContainer::Instance.Find(pObject)->Type == pTypeCompare ?
+		0x4FA5C4 : 0x4FA5C8;
+}
+
+DEFINE_HOOK(0x4FAB4D, FactoryClass_GetObject_Type, 0x8)
+{
+	GET(TechnoClass*, pObject, ECX);
+
+	// use cached type instead of `->GetTechnoType()` the pointer was changed !
+	R->EAX(TechnoExtContainer::Instance.Find(pObject)->Type);
+	return R->Origin() + 0x8;
+}
+
+DEFINE_HOOK(0x4CA007, FactoryClass_GetObject_Type_2, 0x6)
+{
+	GET(TechnoClass*, pObject, ECX);
+
+	// use cached type instead of `->GetTechnoType()` the pointer was changed !
+	const auto pType = TechnoExtContainer::Instance.Find(pObject)->Type;
+	GameDebugLog::Log(reinterpret_cast<const char*>(0x8222AC), pType->Name);
+	R->EAX(pType);
+	return 0x4CA029;
 }
 
 // Enable This when needed

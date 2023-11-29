@@ -979,7 +979,7 @@ DEFINE_OVERRIDE_HOOK(0x5005CC, HouseClass_SetFactoryCreatedManually, 0x6)
 DEFINE_OVERRIDE_HOOK(0x5007BE, HouseClass_SetFactoryCreatedManually2, 0x6)
 {
 	GET(HouseClass*, pThis, ECX);
-	pThis->InfantryType_53D1 = (BYTE)R->DL();
+	pThis->InfantryType_53D1 = R->EDX();
 	return 0x50080D;
 }
 
@@ -1201,6 +1201,8 @@ DEFINE_OVERRIDE_HOOK(0x50BEB0, HouseClass_GetCostMult, 6)
 	return 0x50BF1E;
 }
 
+#include <CCToolTip.h>>
+
 DEFINE_OVERRIDE_HOOK(0x509140, HouseClass_Update_Factories_Queues, 5)
 {
 	GET(HouseClass*, H, ECX);
@@ -1211,6 +1213,7 @@ DEFINE_OVERRIDE_HOOK(0x509140, HouseClass_Update_Factories_Queues, 5)
 	if (nWhat == AbstractType::BuildingType && nBuildCat != BuildCat::DontCare)
 		H->Update_FactoriesQueues(nWhat, bIsNaval, nBuildCat);
 
+	CCToolTip::Bound = 1;
 	return 0;
 }
 
@@ -1368,26 +1371,16 @@ bool Timer_Something(CDTimerClass& timer)
 }
 DWORD NOINLINE Speak(HouseClass* pHouse)
 {
-	if (Timer_Something(pHouse->SpeakMaxedDelayTimer) && pHouse->Buildings.Count) {
-
-		int NotJammed = 0;
-		bool HasAnyEligibleBuilding = false;
-		pHouse->Buildings.for_each([&NotJammed, &HasAnyEligibleBuilding](BuildingClass* pBld) {
-			if(pBld->Type->Radar){
-				if (BuildingExtContainer::Instance.Find(pBld)->RegisteredJammers.empty())
-					++NotJammed;
-
-				HasAnyEligibleBuilding = true;
+	pHouse->Buildings.for_each([pHouse](BuildingClass* pBld) {
+		if(pBld->Type->Radar && Timer_Something(pHouse->SpeakMaxedDelayTimer)){
+			if (!BuildingExtContainer::Instance.Find(pBld)->RegisteredJammers.empty()) {
+				VoxClass::Play("EVA_RadarJammed");
+				const int time = GameOptionsClass::Instance->GetAnimSpeed(
+						int(RulesClass::Instance->SpeakDelay * 900.0));
+				pHouse->SpeakMaxedDelayTimer.Start(time);
 			}
-		});
-
-		if (HasAnyEligibleBuilding && NotJammed == 0) {
-			VoxClass::Play("EVA_RadarJammed");
-			const int time = GameOptionsClass::Instance->GetAnimSpeed(
-				int(RulesClass::Instance->SpeakDelay * 900.0));
-			pHouse->SpeakMaxedDelayTimer.Start(time);
 		}
-	}
+	});
 
 	return 0x0;
 }

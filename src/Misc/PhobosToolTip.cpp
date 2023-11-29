@@ -107,6 +107,14 @@ void PhobosToolTip::HelpText(const BuildType& cameo)
 		this->HelpText(ObjectTypeClass::FetchTechnoType(cameo.ItemType, cameo.ItemIndex));
 }
 
+struct TimerDatas {
+	int m_buildtimeresult;
+	int m_second;
+	int m_min;
+};
+#ifdef debug_timer
+static std::map<TechnoTypeClass*, TimerDatas> Timers;
+#endif
 void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 {
 	if (!pType)
@@ -119,6 +127,23 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 	const int nMin = TickTimeToSeconds(nBuildTime) / 60 /* % 60*/;
 	// int nHour = TickTimeToSeconds(nBuildTime) / 60 / 60;
 
+#ifdef debug_timer
+	if (!Timers.contains(pType))
+		Timers.insert({ pType, {nBuildTime , nSec , nMin} });
+	else
+	{
+		auto data = &Timers[pType];
+
+		if (data->m_buildtimeresult != nBuildTime)
+			Debug::FatalError("[%s] change BuildTime result from [%d] to [%d]!\n", pType->ID, data->m_buildtimeresult, nBuildTime);
+
+		if (data->m_second != nSec)
+			Debug::FatalError("[%s] change Second result from [%d] to [%d] [BuildTime %s]!\n", pType->ID, data->m_second, nSec , data->m_buildtimeresult);
+
+		if (data->m_min != nMin)
+			Debug::FatalError("[%s] change Min result from [%d] to [%d]!\n", pType->ID, data->m_min, nMin);
+	}
+#endif
 	const int cost = pType->GetActualCost(HouseClass::CurrentPlayer);
 
 	std::wostringstream oss;
@@ -146,21 +171,19 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 
 int PhobosToolTip::TickTimeToSeconds(int tickTime)
 {
-	if(!Phobos::Config::RealTimeTimers) {
+	//if(!Phobos::Config::RealTimeTimers)
+		return tickTime / 15;
 
-		if (Phobos::Config::RealTimeTimers_Adaptive ||
-		GameOptionsClass::Instance->GameSpeed == 0
-		|| (Phobos::Misc::CustomGS && !SessionClass::IsMultiplayer())
-		)
-		{
-		const auto nCur = (int)FPSCounter::CurrentFrameRate;
-			return tickTime / MaxImpl(nCur, 1);
-		}
+	//if (Phobos::Config::RealTimeTimers_Adaptive ||
+	//GameOptionsClass::Instance->GameSpeed == 0
+	//|| (Phobos::Misc::CustomGS && !SessionClass::IsMultiplayer())
+	//)
+	//{
+	//const auto nCur = (int)FPSCounter::CurrentFrameRate;
+	//	return tickTime / MaxImpl(nCur, 1);
+	//}
 
-		return tickTime / (60 / GameOptionsClass::Instance->GameSpeed);
-	}
-
-	return tickTime / 15;
+	//return tickTime / (60 / GameOptionsClass::Instance->GameSpeed);
 }
 
 void PhobosToolTip::HelpText(SuperWeaponTypeClass* pType)

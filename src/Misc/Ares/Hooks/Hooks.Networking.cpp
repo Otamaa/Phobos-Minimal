@@ -110,7 +110,7 @@ DEFINE_OVERRIDE_HOOK(0x443414, BuildingClass_ActionOnObject, 6)
 
 DEFINE_OVERRIDE_HOOK(0x4C6CCD, Networking_RespondToEvent, 0xA)
 {
-	GET(DWORD, EventKind, EAX);
+	GET(int, EventKind, EAX);
 	GET(EventClass *, Event, ESI);
 
 	auto kind = static_cast<AresNetEvent::Events>(EventKind);
@@ -119,9 +119,9 @@ DEFINE_OVERRIDE_HOOK(0x4C6CCD, Networking_RespondToEvent, 0xA)
 		AresNetEvent::RespondEvent(Event, kind);
 	}
 
-	--EventKind;
+	--(EventKind);
 	R->EAX(EventKind);
-	return (EventKind > 0x2D)
+	return (EventKind > (int)EventType::ABANDON_ALL)
 	 ? 0x4C8109
 	 : 0x4C6CD7
 	;

@@ -45,22 +45,15 @@ DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 
 	const auto pType = pThis->GetTechnoType();
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	double nFinalSpeed = 0.00;
 	const auto what = pThis->WhatAmI();
 	const bool isNaval = what == UnitClass::AbsID && pType->Naval;
+	int finalSpeed = 0;
 
 	if (const auto pOwner = pThis->Owner)
 	{
-		double nSpeed = (double)pType->GetBuildSpeed();
 		const int cap = RulesExtData::Instance()->MultipleFactoryCap.Get(what, isNaval);
 		const double nFactorySpeed = pTypeExt->BuildTime_MultipleFactory.Get(RulesClass::Instance->MultipleFactory);
-
-		{// Owner and type mult
-			const double nBuildMult = pOwner->GetBuildTimeMult(pType);
-			nSpeed *= nBuildMult;
-
-			nSpeed *= pType->BuildTimeMultiplier;
-		}
+		finalSpeed = (int)(pType->BuildTimeMultiplier * pOwner->GetBuildTimeMult(pType) * (double)pType->GetBuildSpeed());
 
 		//Power
 		const double nPowerPercentage = pOwner->GetPowerPercentage();
@@ -71,7 +64,7 @@ DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 			const double nLowPowerPenalty = pTypeExt->BuildTime_LowPowerPenalty.Get(RulesClass::Instance->LowPowerPenaltyModifier);
 			const double nMinLowPoweProductionSpeed = pTypeExt->BuildTime_MinLowPower.Get(RulesClass::Instance->MinLowPowerProductionSpeed);
 			const double nMaxLowPowerProductionSpeed = pTypeExt->BuildTime_MaxLowPower.Get(RulesClass::Instance->MaxLowPowerProductionSpeed);
-			double powerdivisor = 1.0 - (1.0 - nPowerPercentage) * nLowPowerPenalty;
+			double powerdivisor = 1.0 - nLowPowerPenalty * (1.0 - nPowerPercentage);
 
 			if (powerdivisor <= nMinLowPoweProductionSpeed)
 			{
@@ -87,7 +80,7 @@ DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 				powerdivisor = 0.01;
 			}
 
-			nSpeed /= powerdivisor;
+			finalSpeed = int((double)finalSpeed / powerdivisor);
 		}
 
 		{//Multiple Factory
@@ -97,24 +90,22 @@ DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 
 			if (nFactorySpeed > 0.0) {
 				for (int i = 0; i < divisor; ++i) {
-					nSpeed *= nFactorySpeed;
+					finalSpeed = int((double)finalSpeed * nFactorySpeed);
 				}
 			}
 		}
 
 		const auto bonus = BuildingTypeExtData::GetExternalFactorySpeedBonus(pThis);
 		if(bonus > 0.0)
-			nSpeed *= bonus;
-
-		nFinalSpeed = nSpeed;
+			finalSpeed = int((double)finalSpeed * bonus);
 	}
 
 	{ //Exception
 		if (what == BuildingClass::AbsID && !pTypeExt->BuildTime_Speed.isset() && static_cast<BuildingTypeClass*>(pType)->Wall)
-			nFinalSpeed *= RulesClass::Instance->WallBuildSpeedCoefficient;
+			finalSpeed = int((double)finalSpeed * RulesClass::Instance->WallBuildSpeedCoefficient);
 	}
 
-	R->EAX((int)nFinalSpeed);
+	R->EAX(finalSpeed);
 	return 0x6F4955;
 }
 

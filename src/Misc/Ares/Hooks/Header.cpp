@@ -3004,7 +3004,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	// Add tracking of new techno
 	pOwner->AddTracking(pThis);
 	if (!pThis->InLimbo)
-		pOwner->RegisterGain(pThis, false);
+		pOwner->RegisterGain(pThis, true);
 
 	pOwner->RecheckTechTree = true;
 	TechnoExtContainer::Instance.Find(pThis)->Is_Operated = false;
@@ -3067,9 +3067,15 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 		pSpot = GameCreate<BuildingLightClass>(pThis);
 	}
 
+	auto SetRotRaw = [](FacingClass* pFacing , int rate)
+		{
+			const int value = MinImpl(rate, 127);
+			pFacing->ROT.Raw = value << 8;
+		};
+
 	TechnoExt_ExtData::SetSpotlight(pThis, pSpot);
-	pThis->PrimaryFacing.Set_ROT(pToType->ROT);
-	pThis->SecondaryFacing.Set_ROT(TechnoTypeExtContainer::Instance.Find(pToType)->TurretRot.Get(pToType->ROT));
+	SetRotRaw(&pThis->PrimaryFacing ,pToType->ROT);
+	SetRotRaw(&pThis->SecondaryFacing, TechnoTypeExtContainer::Instance.Find(pToType)->TurretRot.Get(pToType->ROT));
 
 	// because we are throwing away the locomotor in a split second, piggybacking
 	// has to be stopped. otherwise the object might remain in a weird state.

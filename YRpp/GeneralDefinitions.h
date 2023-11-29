@@ -19,6 +19,16 @@
 #define SDDTOR_NODELETE				0x00
 #define SDDTOR_DELETE				0x01
 
+enum class AbandonProductionResult : int
+{
+	Ok = 0,
+	Limit = 1,
+	Illegal = 2,
+	Cant = 3,
+
+	count
+};
+
 enum class Countries : int
 {
 	None = -1,

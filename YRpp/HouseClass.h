@@ -987,6 +987,10 @@ public:
 		JMP_THIS(0x50C050);
 	}
 
+	AbandonProductionResult AbandonProduction(AbstractType rtti ,int index ,bool naval ,bool AbandonAll) const {
+		JMP_THIS(0x4FAA10);
+	}
+
 	//Constructor
 	HouseClass(HouseTypeClass* pCountry) noexcept
 		: HouseClass(noinit_t())

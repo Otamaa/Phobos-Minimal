@@ -344,8 +344,8 @@ DEFINE_OVERRIDE_HOOK(0x6AB577, SelectClass_ProcessInput_FixOffset3, 7)
 		: 0
 		;
 
-	//R->EAX<int>(Progress);
-	//R->EBP<void*>(nullptr);
+	R->EAX<int>(Progress);
+	R->EBP<void*>(nullptr);
 
 	if (Item.unknown_10 == 1) { 
 		if (Item.Progress.Value > Progress) {
@@ -404,7 +404,7 @@ DEFINE_OVERRIDE_HOOK(0x6ABBCB, StripClass_AbandonCameosFromFactory_GetPointer1, 
 	GET(int, CameoCount, EAX);
 	GET(StripClass*, pTab, ESI);
 
-	if (CameoCount < 1) {
+	if (CameoCount <= 0 ) {
 		return 0x6ABC2F;
 	}
 
@@ -582,7 +582,7 @@ bool NOINLINE RemoveCameo(BuildType* item)
 				EventType::ABANDON_ALL ,
 				item->ItemType ,
 				item->ItemIndex,
-				bool(TechnoType ? TechnoType->Naval : 0)
+				TechnoType->Naval
 			};
 
 			EventClass::AddEvent(&Event);
