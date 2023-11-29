@@ -2,7 +2,8 @@
 #include <CellClass.h>
 
 #include <Helpers/Macro.h>
-#include <Ext/Abstract/Body.h>
+#include <Utilities/Container.h>
+#include <Utilities/SavegameDef.h>
 
 class CellExtData final
 {

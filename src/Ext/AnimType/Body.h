@@ -1,9 +1,8 @@
 #pragma once
 
 #include <AnimTypeClass.h>
-
+#include <Utilities/Container.h>
 #include <Utilities/Enum.h>
-#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDefB.h>
 
 #include <New/Entity/LauchSWData.h>

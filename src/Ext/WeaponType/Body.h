@@ -3,8 +3,6 @@
 #include <WeaponTypeClass.h>
 
 #include <Helpers/Macro.h>
-//#include <Utilities/Container.h>
-#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 
 #include <New/Type/RadTypeClass.h>

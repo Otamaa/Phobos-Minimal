@@ -1,7 +1,7 @@
 #pragma once
 
 #include <TriggerTypeClass.h>
-#include <Ext/Abstract/Body.h>
+#include <Utilities/Container.h>
 
 class TriggerClass;
 class TriggerTypeExt

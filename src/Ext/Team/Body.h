@@ -1,6 +1,6 @@
 #pragma once
 #include <TeamClass.h>
-#include <Ext/Abstract/Body.h>
+#include <Utilities/Container.h>
 
 #include <Utilities/Iterator.h>
 #include <Utilities/MapPathCellElement.h>
@@ -8,78 +8,79 @@
 class TechnoTypeClass;
 class HouseClass;
 class FootClass;
-	class TeamExtData final
+class TeamExtData final
+{
+public:
+	static constexpr size_t Canary = 0x414B4B41;
+	using base_type = TeamClass;
+
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+public:
+	int WaitNoTargetAttempts { 0 };
+	double NextSuccessWeightAward { 0 };
+	int IdxSelectedObjectFromAIList { -1 };
+	double CloseEnough { -1 };
+	int Countdown_RegroupAtLeader { -1 };
+	int MoveMissionEndMode { 0 };
+	int WaitNoTargetCounter { 0 };
+	CDTimerClass WaitNoTargetTimer { 0 };
+	CDTimerClass ForceJump_Countdown { 0 };
+	int ForceJump_InitialCountdown { -1 };
+	bool ForceJump_RepeatMode { false };
+	FootClass* TeamLeader { nullptr };
+
+	SuperClass* LastFoundSW { nullptr };
+
+	bool ConditionalJump_Evaluation { false };
+	int ConditionalJump_ComparatorMode { 3 };
+	int ConditionalJump_ComparatorValue { 1 };
+	int ConditionalJump_Counter { 0 };
+	int ConditionalJump_Index { -1000000 };
+	bool AbortActionAfterKilling { false };
+	bool ConditionalJump_EnabledKillsCount { false };
+	bool ConditionalJump_ResetVariablesIfJump { false };
+
+	int TriggersSideIdx { -1 };
+	int TriggersHouseIdx { -1 };
+
+	int AngerNodeModifier { 5000 };
+	bool OnlyTargetHouseEnemy { false };
+	int OnlyTargetHouseEnemyMode { -1 };
+
+	ScriptClass* PreviousScript { nullptr };
+	std::vector<BuildingClass*> BridgeRepairHuts {};
+
+	TeamExtData() noexcept = default;
+
+	~TeamExtData() noexcept
 	{
-	public:
-		static constexpr size_t Canary = 0x414B4B41;
-		using base_type = TeamClass;
+		GameDelete<true, true>(PreviousScript);
+		PreviousScript = nullptr;
+	}
 
-		base_type* AttachedToObject {};
-		InitState Initialized { InitState::Blank };
-	public:
-		int WaitNoTargetAttempts { 0 };
-		double NextSuccessWeightAward { 0 };
-		int IdxSelectedObjectFromAIList { -1 };
-		double CloseEnough { -1 };
-		int Countdown_RegroupAtLeader { -1 };
-		int MoveMissionEndMode { 0 };
-		int WaitNoTargetCounter { 0 };
-		CDTimerClass WaitNoTargetTimer { 0 };
-		CDTimerClass ForceJump_Countdown { 0 };
-		int ForceJump_InitialCountdown { -1 };
-		bool ForceJump_RepeatMode { false };
-		FootClass* TeamLeader { nullptr };
+	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
+	static bool InvalidateIgnorable(AbstractClass* ptr);
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-		SuperClass* LastFoundSW { nullptr };
+	static bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, const Iterator<TechnoTypeClass*>& list);
+	static bool HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, const Iterator<TechnoTypeClass*>& list);
+	static bool EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, bool onlySelectedEnemy, const Iterator<TechnoTypeClass*>& list);
+	static bool EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, const Iterator<TechnoTypeClass*>& list);
+	static bool NeutralOwns(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list);
+	static bool NeutralOwnsAll(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list);
+	static bool NOINLINE GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat);
 
-		bool ConditionalJump_Evaluation { false };
-		int ConditionalJump_ComparatorMode { 3 };
-		int ConditionalJump_ComparatorValue { 1 };
-		int ConditionalJump_Counter { 0 };
-		int ConditionalJump_Index { -1000000 };
-		bool AbortActionAfterKilling { false };
-		bool ConditionalJump_EnabledKillsCount { false };
-		bool ConditionalJump_ResetVariablesIfJump { false };
+private:
+	template <typename T>
+	void Serialize(T& Stm);
+};
 
-		int TriggersSideIdx { -1 };
-		int TriggersHouseIdx { -1 };
+class TeamExtContainer final : public Container<TeamExtData>
+{
+public:
+	static TeamExtContainer Instance;
 
-		int AngerNodeModifier { 5000 };
-		bool OnlyTargetHouseEnemy { false };
-		int OnlyTargetHouseEnemyMode { -1 };
-
-		ScriptClass* PreviousScript { nullptr };
-		std::vector<BuildingClass*> BridgeRepairHuts {};
-
-		TeamExtData() noexcept = default;
-
-		~TeamExtData() noexcept {
-			GameDelete<true, true>(PreviousScript);
-			PreviousScript = nullptr;
-		}
-
-		void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-		static bool InvalidateIgnorable(AbstractClass* ptr);
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-		static bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, const Iterator<TechnoTypeClass*>& list);
-		static bool HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, const Iterator<TechnoTypeClass*>& list);
-		static bool EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, bool onlySelectedEnemy, const Iterator<TechnoTypeClass*>& list);
-		static bool EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, const Iterator<TechnoTypeClass*>& list);
-		static bool NeutralOwns(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list);
-		static bool NeutralOwnsAll(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list);
-		static bool NOINLINE GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat);
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class TeamExtContainer final : public Container<TeamExtData>
-	{
-	public:
-		static TeamExtContainer Instance;
-
-		CONSTEXPR_NOCOPY_CLASSB(TeamExtContainer, TeamExtData, "TeamClass");
-	};
+	CONSTEXPR_NOCOPY_CLASSB(TeamExtContainer, TeamExtData, "TeamClass");
+};

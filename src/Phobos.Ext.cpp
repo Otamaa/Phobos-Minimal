@@ -58,7 +58,6 @@
 #include <Ext/InfantryType/Body.h>
 #include <Ext/SHPReference/Body.h>
 #include <Ext/Cell/Body.h>
-#include <Ext/Convert/Body.h>
 #include <Ext/DiskLaser/Body.h>
 #include <Ext/Parasite/Body.h>
 #include <Ext/Particle/Body.h>

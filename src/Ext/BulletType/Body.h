@@ -2,10 +2,7 @@
 #include <BulletTypeClass.h>
 
 #include <Helpers/Macro.h>
-#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDefB.h>
-
-#include <Ext/LineTrail/Body.h>
 
 #include <New/Type/LaserTrailTypeClass.h>
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>

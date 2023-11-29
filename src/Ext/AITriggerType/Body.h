@@ -1,7 +1,7 @@
 #pragma once
 
 #include <AITriggerTypeClass.h>
-#include <Ext/Abstract/Body.h>
+#include <Utilities/Container.h>
 
 //this is a 1-based index.
 enum class PhobosAIConditionTypes : int

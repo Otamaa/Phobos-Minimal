@@ -1,7 +1,7 @@
 #pragma once
 #include <WaveClass.h>
 
-#include <Ext/Abstract/Body.h>
+#include <Utilities/Container.h>
 #include <Utilities/Template.h>
 #include <Utilities/TemplateDef.h>
 #include <Utilities/Debug.h>
@@ -13,7 +13,6 @@ enum class SonicBeamSurfacePatternType : int
 	ELLIPSE,
 	RHOMBUS,
 	SQUARE,
-
 	COUNT
 };
 

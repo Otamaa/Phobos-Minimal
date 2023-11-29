@@ -2,8 +2,8 @@
 #include <ParticleTypeClass.h>
 
 #include <Helpers/Macro.h>
-#include <Ext/Abstract/Body.h>
-#include <Utilities/TemplateDef.h>
+#include <Utilities/Container.h>
+#include <Utilities/TemplateDefB.h>
 #include <New/Type/LaserTrailTypeClass.h>
 
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>

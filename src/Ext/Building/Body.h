@@ -7,7 +7,6 @@
 #include <Helpers/Macro.h>
 #include <Utilities/TemplateDef.h>
 
-#include <Ext/Abstract/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/BuildingType/Body.h>

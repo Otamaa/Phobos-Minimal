@@ -1,7 +1,7 @@
 #pragma once
 #include <DiskLaserClass.h>
 
-#include <Ext/Abstract/Body.h>
+#include <Utilities/Container.h>
 
 class DiskLaserExt
 {

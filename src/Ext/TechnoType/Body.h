@@ -15,8 +15,6 @@
 #include <New/Type/ImmunityTypeClass.h>
 #include <New/Type/TheaterTypeClass.h>
 
-#include <Ext/LineTrail/Body.h>
-
 #include <New/AnonymousType/PassengerDeletionTypeClass.h>
 
 #include <FileSystem.h>
@@ -421,7 +419,6 @@ public:
 	Valueable<bool> TankDisguiseAsTank { false };
 	ValueableVector<ObjectTypeClass*> DisguiseDisAllowed { };
 	Valueable<bool> ChronoDelay_Immune { false };
-	std::vector<LineTrailData> LineTrailData { };
 	Nullable<int> PoseDir { };
 	Valueable<bool> Firing_IgnoreGravity { };
 

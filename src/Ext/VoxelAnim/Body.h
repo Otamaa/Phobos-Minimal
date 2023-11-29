@@ -3,8 +3,6 @@
 #include <VoxelAnimClass.h>
 
 #include <Utilities/Container.h>
-#include <Ext/Abstract/Body.h>
-//#include <Utilities/Constructs.h>
 #include <Utilities/Template.h>
 #include <Utilities/TemplateDef.h>
 #include <Utilities/Debug.h>
