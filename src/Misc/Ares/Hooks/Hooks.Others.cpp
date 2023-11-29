@@ -2386,13 +2386,13 @@ DEFINE_OVERRIDE_HOOK(0x4E4D67, hWnd_UpdatePlayerColors_B, 7)
 }
 
 DEFINE_DISABLE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme_ares)
-/*DEFINE_DISABLE_HOOK(0x667a1d , RulesClass_CTOR_ares)
+DEFINE_DISABLE_HOOK(0x667a1d , RulesClass_CTOR_ares)
 DEFINE_DISABLE_HOOK(0x667a30 , RulesClass_DTOR_ares)
 DEFINE_DISABLE_HOOK(0x668bf0 , RulesClass_Addition_ares)
 DEFINE_DISABLE_HOOK(0x674730 , RulesClass_SaveLoad_Prefix_ares)
 DEFINE_DISABLE_HOOK(0x675205 , RulesClass_Save_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x675210 , RulesClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x678841 , RulesClass_Load_Suffix_ares)*/
+DEFINE_DISABLE_HOOK(0x678841 , RulesClass_Load_Suffix_ares)
 
 DEFINE_OVERRIDE_HOOK(0x67D04E, Game_Save_SavegameInformation, 7)
 {
