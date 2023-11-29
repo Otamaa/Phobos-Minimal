@@ -979,7 +979,7 @@ DEFINE_OVERRIDE_HOOK(0x5005CC, HouseClass_SetFactoryCreatedManually, 0x6)
 DEFINE_OVERRIDE_HOOK(0x5007BE, HouseClass_SetFactoryCreatedManually2, 0x6)
 {
 	GET(HouseClass*, pThis, ECX);
-	pThis->InfantryType_53D1 = R->EDX();
+	pThis->InfantryType_53D1 = R->EDX<bool>();
 	return 0x50080D;
 }
 
@@ -1201,7 +1201,7 @@ DEFINE_OVERRIDE_HOOK(0x50BEB0, HouseClass_GetCostMult, 6)
 	return 0x50BF1E;
 }
 
-#include <CCToolTip.h>>
+#include <CCToolTip.h>
 
 DEFINE_OVERRIDE_HOOK(0x509140, HouseClass_Update_Factories_Queues, 5)
 {
@@ -1372,7 +1372,7 @@ bool Timer_Something(CDTimerClass& timer)
 DWORD NOINLINE Speak(HouseClass* pHouse)
 {
 	pHouse->Buildings.for_each([pHouse](BuildingClass* pBld) {
-		if(pBld->Type->Radar && Timer_Something(pHouse->SpeakMaxedDelayTimer)){
+		if(pBld->Type->Radar && pHouse->SpeakMaxedDelayTimer.Expired()){
 			if (!BuildingExtContainer::Instance.Find(pBld)->RegisteredJammers.empty()) {
 				VoxClass::Play("EVA_RadarJammed");
 				const int time = GameOptionsClass::Instance->GetAnimSpeed(
