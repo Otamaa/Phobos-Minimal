@@ -3989,7 +3989,7 @@ DEFINE_HOOK(0x4FA5B8, HouseClass_BeginProduction_CompareType, 0x8)
 		0x4FA5C4 : 0x4FA5C8;
 }
 
-DEFINE_HOOK(0x4FAB4D, FactoryClass_GetObject_Type, 0x8)
+DEFINE_HOOK(0x4FAB4D, HouseClass_AbandonProduction_GetObjectType, 0x8)
 {
 	GET(TechnoClass*, pObject, ECX);
 
@@ -3998,7 +3998,7 @@ DEFINE_HOOK(0x4FAB4D, FactoryClass_GetObject_Type, 0x8)
 	return R->Origin() + 0x8;
 }
 
-DEFINE_HOOK(0x4CA007, FactoryClass_GetObject_Type_2, 0x6)
+DEFINE_HOOK(0x4CA007, FactoryClass_AbandonProduction_GetObjectType, 0x6)
 {
 	GET(TechnoClass*, pObject, ECX);
 
