@@ -3804,7 +3804,7 @@ DEFINE_HOOK(0x6E23AD, TActionClass_DoExplosionAt_InvalidCell, 0x8)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x4A267D, CreditClass_AI_MissingCurPlayerPtr, 0x6)
+DEFINE_STRONG_HOOK(0x4A267D, CreditClass_AI_MissingCurPlayerPtr, 0x6)
 {
 	if (!HouseClass::CurrentPlayer())
 		Debug::FatalError("CurrentPlayer ptr is Missing!\n");
@@ -3877,10 +3877,10 @@ DEFINE_HOOK(0x6FFD25, TechnoClass_PlayerAssignMission_Capture_InfantryToBld, 0xA
 
 static_assert(offsetof(TechnoClass, Airstrike) == 0x294, "ClassMember Shifted !");
 
-DEFINE_HOOK_AGAIN(0x4F9A10, HouseClass_IsAlliedWith, 0x6)
-DEFINE_HOOK_AGAIN(0x4F9A50, HouseClass_IsAlliedWith, 0x6)
-DEFINE_HOOK_AGAIN(0x4F9AF0, HouseClass_IsAlliedWith, 0x7)
-DEFINE_HOOK(0x4F9A90, HouseClass_IsAlliedWith, 0x7)
+DEFINE_STRONG_HOOK_AGAIN(0x4F9A10, HouseClass_IsAlliedWith, 0x6)
+DEFINE_STRONG_HOOK_AGAIN(0x4F9A50, HouseClass_IsAlliedWith, 0x6)
+DEFINE_STRONG_HOOK_AGAIN(0x4F9AF0, HouseClass_IsAlliedWith, 0x7)
+DEFINE_STRONG_HOOK(0x4F9A90, HouseClass_IsAlliedWith, 0x7)
 {
 	GET(HouseClass*, pThis, ECX);
 	GET_STACK(DWORD, called, 0x0);
