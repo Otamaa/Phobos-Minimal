@@ -298,6 +298,108 @@ namespace Helpers {
 			return set;
 		}
 
+		template<class T = TechnoClass ,typename Func>
+		__forceinline void ApplyFuncToCellSpreadItems(
+			CoordStruct const& coords, double const spread, Func action,
+			bool const includeInAir = false , bool allowLimbo = false)
+		{
+			const auto range = static_cast<size_t>(spread + 0.99);
+
+			if(range > CellSpreadEnumerator::Max || includeInAir) {
+
+				// the not quite so fast way. skip everything not in the air.
+				T::Array->for_each([&](T* pTechno) {
+
+					if (!allowLimbo && pTechno->InLimbo)
+						return;
+
+					if (pTechno->Health <= 0
+						|| !pTechno->IsAlive
+						|| pTechno->IsCrashing
+						|| pTechno->IsSinking
+						|| pTechno->TemporalTargetingMe
+						)
+						return;
+
+					auto target = pTechno->GetCoords();
+					auto dist = target.DistanceFrom(coords);
+					auto what = pTechno->WhatAmI();
+
+					// ignore buildings that are not visible, like ambient light posts
+					if constexpr (T::AbsDerivateID != FootClass::AbsDerivateID){
+						if (what == BuildingClass::AbsID) {
+							const auto pBld = static_cast<const BuildingClass*>(pTechno);
+							if (pBld->Type->InvisibleInGame) {
+								return;
+							}
+						}
+					}
+
+					if (what == UnitClass::AbsID) {
+						if(static_cast<const UnitClass*>(pTechno)->DeathFrameCounter > 0) {
+							return;
+						}
+					}
+
+					if (includeInAir) {
+						if (pTechno->GetHeight() > 0
+							|| what == AircraftClass::AbsID && pTechno->IsInAir()) {
+							// rough estimation
+							dist *= 0.5;
+						}
+					}
+
+					if (dist <= spread * 256) {
+						action(pTechno);
+					}
+				});
+			}
+			else
+			{
+				// the quick way. only look at stuff residing on the very cells we are affecting.
+				auto const cellCoords = MapClass::Instance->GetCellAt(coords)->MapCoords;
+
+				for (CellSpreadEnumerator it(range); it; ++it)
+				{
+					auto const pCell = MapClass::Instance->GetCellAt(*it + cellCoords);
+					for (NextObject obj(pCell->GetContent()); obj; ++obj)
+					{
+						if (auto const pTechno = generic_cast<T*>(*obj))
+						{
+							if (!allowLimbo && pTechno->InLimbo)
+								continue;
+
+							if (pTechno->Health <= 0
+								|| !pTechno->IsAlive
+								|| pTechno->IsCrashing
+								|| pTechno->IsSinking
+								|| pTechno->TemporalTargetingMe
+								)
+								continue;
+
+							auto what = pTechno->WhatAmI();
+
+							if constexpr (T::AbsDerivateID != FootClass::AbsDerivateID) {
+								if (what == BuildingClass::AbsID) {
+									if (static_cast<const BuildingClass*>(pTechno)->Type->InvisibleInGame) {
+										continue;
+									}
+								}
+							}
+
+							if (what == UnitClass::AbsID) {
+								if (static_cast<const UnitClass*>(pTechno)->DeathFrameCounter > 0) {
+									continue;
+								}
+							}
+
+							action(pTechno);
+						}
+					}
+				}
+			}
+		}
+
 		//! Invokes an action for every cell or every object contained on the cells.
 		/*!
 			action is invoked only once per cell. action can be invoked multiple times

@@ -215,11 +215,9 @@ DEFINE_OVERRIDE_HOOK(0x46934D, IvanBombs_Spread, 6)
 		{
 			// cell spread
 			CoordStruct tgtCoords = pBullet->GetTargetCoords();
-			// TODO : tag to allow Ivan + cellspread affect air
-			std::vector<TechnoClass*> pTargetv = Helpers::Alex::getCellSpreadItems(tgtCoords, pBullet->WH->CellSpread, false);
-			for(auto target : pTargetv) {
-				TechnoExt_ExtData::PlantBomb(pBullet->Owner, target, pWeapon);
-			}
+			Helpers::Alex::ApplyFuncToCellSpreadItems(tgtCoords, pBullet->WH->CellSpread, [=](TechnoClass* pTarget) { 
+				TechnoExt_ExtData::PlantBomb(pBullet->Owner, pTarget, pWeapon);
+			}, false, false);
 		}
 	}
 	else

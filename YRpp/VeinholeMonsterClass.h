@@ -171,11 +171,11 @@ public:
 	int NextState;
 	int  MonsterFrameIdx;
 	bool  IsAnimationUpToDate;
-	CDTimerClass UpdateAnimationFrameTimer;
+	DECLARE_PROPERTY(CDTimerClass, UpdateAnimationFrameTimer);
 	int AnimationUpdatePeriod;
 	int MonsterFrameIdxChange;
-	CDTimerClass UpdateStateTimer;
-	CellStruct MonsterCell;
+	DECLARE_PROPERTY(CDTimerClass, UpdateStateTimer);
+	DECLARE_PROPERTY(CellStruct, MonsterCell);
 	int ShapeFrame;
 	bool SkipDraw;
 	bool ToPuffGas;

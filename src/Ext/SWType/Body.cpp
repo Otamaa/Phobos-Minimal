@@ -1777,11 +1777,10 @@ void SWTypeExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const C
 		{
 			const auto pCellptr = MapClass::Instance->GetCellAt(*pCell);
 			const auto range = this->GetNewSWType()->GetRange(this);
-			auto vecTechno = Helpers::Alex::getCellSpreadItems<FootClass>(pCellptr->GetCoordsWithBridge(), range.WidthOrRange, true);
-
-			for(auto pTargetFoot : vecTechno) {
-				TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTargetFoot, this->Convert_SucceededAnim);
-			}
+			Helpers::Alex::ApplyFuncToCellSpreadItems<FootClass>(pCellptr->GetCoordsWithBridge(), range.WidthOrRange ,
+			[=](FootClass* pTarget) {
+				TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTarget, this->Convert_SucceededAnim);
+			 }, true);
 		}
 	}
 }
