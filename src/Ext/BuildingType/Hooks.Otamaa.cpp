@@ -85,21 +85,24 @@ DEFINE_HOOK(0x6FD1C7, TechnoClass_RearmDelay_BuildingBunkerROFMult, 0x6) //C
 DEFINE_HOOK(0x45933D, BuildingClass_BunkerWallUpSound, 0x5)
 {
 	GET(BuildingClass* const, pThis, ESI);
-	BuildingTypeExtData::BunkerSound<BunkerSoundMode::Up>()(pThis);
+	const auto nSound = BuildingTypeExtContainer::Instance.Find(pThis->Type)->BunkerWallsUpSound.Get(RulesClass::Instance->BunkerWallsUpSound);
+	VocClass::PlayIndexAtPos(nSound, pThis->Location);
 	return 0x459374;
 }
 
 DEFINE_HOOK(0x4595D9, BuildingClass_4595C0_BunkerDownSound, 0x5)
 {
 	GET(BuildingClass* const, pThis, EDI);
-	BuildingTypeExtData::BunkerSound<BunkerSoundMode::Down>()(pThis);
+	const auto nSound = BuildingTypeExtContainer::Instance.Find(pThis->Type)->BunkerWallsDownSound.Get(RulesClass::Instance->BunkerWallsDownSound);
+	VocClass::PlayIndexAtPos(nSound, pThis->Location);
 	return 0x459612;
 }
 
 DEFINE_HOOK(0x459494, BuildingClass_459470_BunkerDownSound, 0x5)
 {
 	GET(BuildingClass* const, pThis, ESI);
-	BuildingTypeExtData::BunkerSound<BunkerSoundMode::Down>()(pThis);
+	const auto nSound = BuildingTypeExtContainer::Instance.Find(pThis->Type)->BunkerWallsDownSound.Get(RulesClass::Instance->BunkerWallsDownSound);
+	VocClass::PlayIndexAtPos(nSound, pThis->Location);
 	return 0x4594CD;
 }
 #pragma endregion
