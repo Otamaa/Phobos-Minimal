@@ -72,7 +72,7 @@ DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 					PowerChecked = true;
 				}
 
-				const auto pExt = BuildingTypeExtContainer::Instance.TryFind(pType);
+				const auto pExt = BuildingTypeExtContainer::Instance.Find(pType);
 
 				if(HasPower) {
 					if (!pExt->PowerPlantEnhancer_Buildings.empty() &&

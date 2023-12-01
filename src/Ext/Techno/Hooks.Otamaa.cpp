@@ -410,8 +410,11 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 		if (pThis->GetHeight() < 10)
 		{
 			AnimTypeClass* pTypeAnim = pWarheadExt->InfDeathAnim;
-			if (auto pSpecific = pWarheadExt->InfDeathAnims.get_or_default(pThis->Type)) {
-				pTypeAnim = pSpecific;
+			for(auto begin = pWarheadExt->InfDeathAnims.begin(); begin != pWarheadExt->InfDeathAnims.end(); ++begin) {
+				if(begin->first == pThis->Type){
+					pTypeAnim = begin->second;
+					break;
+				}
 			}
 
 			if(pTypeAnim){

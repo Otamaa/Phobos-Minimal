@@ -383,19 +383,19 @@ int BuildingTypeExtData::GetBuildingAnimTypeIndex(BuildingClass* pThis, const Bu
 				switch (nSlot)
 				{
 				case BuildingAnimSlot::Active:
-					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveOne.get_or_default(nIndex);
+					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveOne[nIndex];
 					break;
 				case BuildingAnimSlot::ActiveTwo:
-					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveTwo.get_or_default(nIndex);
+					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveTwo[nIndex];
 					break;
 				case BuildingAnimSlot::ActiveThree:
-					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveThree.get_or_default(nIndex);
+					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveThree[nIndex];
 					break;
 				case BuildingAnimSlot::ActiveFour:
-					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveFour.get_or_default(nIndex);
+					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveFour[nIndex];
 					break;
 				case BuildingAnimSlot::Idle:
-					pDecidedAnim = pBuildingExt->GarrisonAnim_idle.get_or_default(nIndex);
+					pDecidedAnim = pBuildingExt->GarrisonAnim_idle[nIndex];
 					break;
 				}
 
@@ -727,10 +727,9 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		//   this->Get()->StartFacing = 32 * ((std::clamp(pINI->ReadInteger(pSection, "StartFacing", 0), 0, 255)) << 5);
 
 		auto GetGarrisonAnim = [&exINI, pSection](
-			PhobosMap<int, AnimTypeClass*>& nVec, const char* pBaseFlag, bool bAllocate = true, bool bParseDebug = false)
+			std::vector<AnimTypeClass*>& nVec, const char* pBaseFlag, bool bAllocate = true, bool bParseDebug = false)
 			{
-				nVec.clear();
-				nVec.reserve(HouseTypeClass::Array()->Count);
+				nVec.resize(HouseTypeClass::Array()->Count);
 				char tempBuffer[0x55];
 				for (int i = 0; i < HouseTypeClass::Array()->Count; ++i)
 				{

@@ -161,11 +161,11 @@ public:
 
 	ValueableIdxVector<BuildingTypeClass> AIBuildInsteadPerDiff {};
 
-	PhobosMap<int, AnimTypeClass*> GarrisonAnim_idle {};
-	PhobosMap<int, AnimTypeClass*> GarrisonAnim_ActiveOne {};
-	PhobosMap<int, AnimTypeClass*> GarrisonAnim_ActiveTwo {};
-	PhobosMap<int, AnimTypeClass*> GarrisonAnim_ActiveThree {};
-	PhobosMap<int, AnimTypeClass*> GarrisonAnim_ActiveFour {};
+	std::vector<AnimTypeClass*> GarrisonAnim_idle {};
+	std::vector<AnimTypeClass*> GarrisonAnim_ActiveOne {};
+	std::vector<AnimTypeClass*> GarrisonAnim_ActiveTwo {};
+	std::vector<AnimTypeClass*> GarrisonAnim_ActiveThree {};
+	std::vector<AnimTypeClass*> GarrisonAnim_ActiveFour {};
 
 	Valueable<PaletteManager*> PipShapes01Palette {}; //CustomPalette::PaletteMode::Temperate
 	Valueable<bool> PipShapes01Remap { false };

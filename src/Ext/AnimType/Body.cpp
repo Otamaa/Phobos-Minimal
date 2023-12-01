@@ -333,10 +333,18 @@ void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller
 	AnimTypeClass** begin = pType->DestroyAnim.begin();
 	int count = pType->DestroyAnim.Count;
 
-	if (pWH && pTypeExt->DestroyAnimSpecific.contains(pWH))
-	{
-		begin = pTypeExt->DestroyAnimSpecific[pWH].data();
-		count = (int)pTypeExt->DestroyAnimSpecific[pWH].size();
+	if (pWH) {
+		for(auto walk = pTypeExt->DestroyAnimSpecific.begin();
+			 walk != pTypeExt->DestroyAnimSpecific.end();
+			++walk
+		) {
+			if(walk->first == pWH) {
+				begin = walk->second.data();
+				count = (int) walk->second.size();
+				break;
+			}
+		}
+
 	}
 
 	if (!count)

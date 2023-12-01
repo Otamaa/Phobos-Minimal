@@ -918,20 +918,22 @@ bool WarheadTypeExtData::GoBerzerkFor(FootClass* pVictim, int* damage) const
 AnimTypeClass* WarheadTypeExtData::GetArmorHitAnim(int Armor)
 {
 	const auto pArmor = ArmorTypeClass::Array[Armor].get();
+	const auto end = this->ArmorHitAnim.end();
 
-	if (this->ArmorHitAnim.empty())
+	if (this->ArmorHitAnim.begin() == end)
 		return nullptr;
 
-	if (this->ArmorHitAnim.contains(pArmor))
-		return this->ArmorHitAnim[pArmor];
-	else if (pArmor->DefaultTo != -1)
-	{
-		for (auto pDefArmor = ArmorTypeClass::Array[pArmor->DefaultTo].get();
-			pDefArmor && pDefArmor->DefaultTo != -1;
-			pDefArmor = ArmorTypeClass::Array[pDefArmor->DefaultTo].get())
-		{
-			if (this->ArmorHitAnim.contains(pDefArmor))
-				return this->ArmorHitAnim[pDefArmor];
+	for(auto begin = this->ArmorHitAnim.begin(); begin != end; ++begin) {
+		if(begin->first == pArmor){
+			return begin->second;
+		} else if (pArmor->DefaultTo != -1) {
+			for (auto pDefArmor = ArmorTypeClass::Array[pArmor->DefaultTo].get();
+				pDefArmor && pDefArmor->DefaultTo != -1;
+				pDefArmor = ArmorTypeClass::Array[pDefArmor->DefaultTo].get()) {
+				if(begin->first == pDefArmor) {
+					return begin->second;
+				}
+			}
 		}
 	}
 
