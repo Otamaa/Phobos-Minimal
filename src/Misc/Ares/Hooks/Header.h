@@ -132,7 +132,6 @@ struct TechnoExt_ExtData
 	static void RefineTiberium(TechnoClass* pThis, HouseClass* pHouse, float const amount, int const idxType);
 
 	static bool FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
-	static std::pair<bool, int> HealActionProhibited(bool CheckKeyPress, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
 
 	static UnitTypeClass* GetUnitTypeImage(UnitClass* const pThis);
 	static TechnoTypeClass* GetImage(FootClass* pThis);
@@ -510,6 +509,21 @@ static_assert(sizeof(MouseClassExt) == sizeof(MouseClass), "Invalid Size !");
 
 struct MouseCursorFuncs
 {
-	static void SetMouseCursorAction(size_t CursorIdx, Action nAction, bool bShrouded);
-	static void SetSuperWeaponCursorAction(size_t CursorIdx, Action nAction, bool bShrouded);
+	static void SetMouseCursorAction(size_t CursorIdx, Action nAction, bool bShrouded)
+	{
+#ifdef Dum
+	AresData::SetMouseCursorAction(CursorIdx, nAction, bShrouded);
+#else
+	MouseClassExt::InsertMappedAction((MouseCursorType)CursorIdx, nAction, bShrouded);
+#endif
+	}
+	static void SetSuperWeaponCursorAction(size_t CursorIdx, Action nAction, bool bShrouded)
+	{
+#ifdef Dum
+	AresData::SetSWMouseCursorAction(CursorIdx, bShrouded , -1);
+#else
+	MouseClassExt::InsertSWMappedAction((MouseCursorType)CursorIdx, nAction, bShrouded);
+#endif
+	}
+
 };

@@ -815,18 +815,13 @@ DEFINE_OVERRIDE_HOOK(0x74689B, UnitClass_Init_Academy, 6)
 		pThis->Veterancy.SetVeteran();
 	}
 
-	if (pType->ConsideredAircraft)
-	{
-		HouseExtData::ApplyAcademy(pThis->Owner, pThis, AbstractType::Aircraft);
-	}
+	AbstractType type = AbstractType::Unit;
+	if(pType->ConsideredAircraft)
+		type = AbstractType::Aircraft;
 	else if (pType->Organic)
-	{
-		HouseExtData::ApplyAcademy(pThis->Owner, pThis, AbstractType::Infantry);
-	}
-	else
-	{
-		HouseExtData::ApplyAcademy(pThis->Owner, pThis, AbstractType::Unit);
-	}
+		type = AbstractType::Infantry;
+
+	HouseExtData::ApplyAcademy(pThis->Owner, pThis, type);
 
 	return 0;
 }
@@ -997,6 +992,57 @@ DEFINE_HOOK(0x6F7F4F, TechnoClass_EvalObject_NegativeDamage, 0x7)
 
 }
 
+template<bool CheckKeyPress>
+std::pair<bool, int> HealActionProhibited(TechnoClass* pTarget, WeaponTypeClass* pWeapon)
+{
+	const auto pThatTechnoExt = TechnoExtContainer::Instance.Find(pTarget);
+	const auto pThatShield = pThatTechnoExt->GetShield();
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
+
+	if constexpr (CheckKeyPress) {
+		if (WWKeyboardClass::Instance->IsForceMoveKeyPressed())
+			return { true , -1 };
+	}
+
+	if (pThatShield && pThatShield->IsActive())
+	{
+		const auto pShieldType = pThatShield->GetType();
+
+		if (pWHExt->GetVerses(pShieldType->Armor).Verses <= 0.0)
+		{
+			return { true , -1 };
+		}
+
+		if (!pThatShield->CanBePenetrated(pWeapon->Warhead))
+		{
+			if (pShieldType->CanBeHealed)
+			{
+				const bool IsFullHp = pThatShield->GetHealthRatio() >= RulesClass::Instance->ConditionGreen;
+
+				if (!IsFullHp)
+				{
+					return { false ,  pShieldType->HealCursorType.Get(-1) };
+				}
+				else
+				{
+
+					if (pThatShield->GetType()->PassthruNegativeDamage)
+						return { pTarget->IsFullHP() , -1 };
+					else
+						return { true , -1 };
+				}
+			}
+
+			return { true , -1 };
+		}
+	}
+
+	if (pWHExt->GetVerses(TechnoExtData::GetArmor(pTarget)).Verses <= 0.0)
+		return { true , -1 };
+
+	return { pTarget->IsFullHP() , -1 };
+}
+
 DEFINE_OVERRIDE_HOOK(0x51E710, InfantryClass_GetActionOnObject_Heal, 7)
 {
 	enum
@@ -1019,7 +1065,7 @@ DEFINE_OVERRIDE_HOOK(0x51E710, InfantryClass_GetActionOnObject_Heal, 7)
 
 	const auto pWeapon = pThis->GetWeapon(pThis->SelectWeapon(pThatTechno))->WeaponType;
 	const auto pThatType = pThatTechno->GetTechnoType();
-	const auto&[ret ,nCursorShield] = TechnoExt_ExtData::HealActionProhibited(true ,pThatTechno, pWeapon);
+	const auto&[ret ,nCursorShield] = HealActionProhibited<true>(pThatTechno, pWeapon);
 
 	if (ret) {
 		if (const auto pBuilding = specific_cast<BuildingClass*>(pThatTechno)) {
@@ -1063,7 +1109,7 @@ DEFINE_OVERRIDE_HOOK(0x73FDBD, UnitClass_GetActionOnObject_Heal, 5)
 	}
 
 	auto pThatType = pThat->GetTechnoType();
-	const auto& [ret, nCursorSelected] = TechnoExt_ExtData::HealActionProhibited(false, pThatTechno,
+	const auto& [ret, nCursorSelected] = HealActionProhibited<false>(pThatTechno,
 			    pThis->GetWeapon(pThis->SelectWeapon(pThat))->WeaponType);
 
 	if(ret)
@@ -1273,7 +1319,7 @@ DEFINE_OVERRIDE_HOOK(0x73C725, UnitClass_DrawSHP_DrawShadowEarlier, 6)
 			coords.Y -= 14;
 		}
 
-		Point2D XYAdjust = U->Locomotor->Shadow_Point();
+		Point2D XYAdjust = U->Locomotor.GetInterfacePtr()->Shadow_Point();
 		coords += XYAdjust;
 
 		int ZAdjust = U->GetZAdjustment() - 2;

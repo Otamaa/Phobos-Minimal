@@ -61,7 +61,7 @@ DEFINE_HOOK(0x7355BA, UnitClass_Init_InitialStrength, 0x6)
 	if(TechnoTypeExtContainer::Instance.Find(pType)->Initial_DriverKilled)
 		TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled = true;
 
-	R->EAX(TechnoExtData::GetInitialStrength(pType, pType->Strength));
+	R->EAX(TechnoTypeExtContainer::Instance.Find(pType)->InitialStrength.Get(pType->Strength));
 	return 0x7355C0;
 }
 
@@ -73,13 +73,13 @@ DEFINE_HOOK(0x414051, AircraftClass_Init_InitialStrength, 0x6)
 	if (TechnoTypeExtContainer::Instance.Find(pType)->Initial_DriverKilled)
 		TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled = true;
 
-	R->EAX(TechnoExtData::GetInitialStrength(pType, pType->Strength));
+	R->EAX(TechnoTypeExtContainer::Instance.Find(pType)->InitialStrength.Get(pType->Strength));
 	return 0x414057;
 }
 
 DEFINE_HOOK(0x442C75, BuildingClass_Init_InitialStrength, 0x6)
 {
 	GET(BuildingTypeClass*, pType, EAX);
-	R->ECX(TechnoExtData::GetInitialStrength(pType, pType->Strength));
+	R->ECX(TechnoTypeExtContainer::Instance.Find(pType)->InitialStrength.Get(pType->Strength));
 	return 0x442C7B;
 }

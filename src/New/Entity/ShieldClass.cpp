@@ -11,6 +11,8 @@
 
 #include <Utilities/GeneralUtils.h>
 
+#include <Misc/Ares/Hooks/Header.h>
+
 #include <AnimClass.h>
 #include <HouseClass.h>
 #include <RadarEventClass.h>
@@ -496,14 +498,6 @@ void ShieldClass::CloakCheck()
 		KillAnim();
 }
 
-void ShieldClass::SetAnimationVisibility(bool visible)
-{
-	if (!this->AreAnimsHidden && !visible)
-		this->KillAnim();
-
-	this->AreAnimsHidden = !visible;
-}
-
 void ShieldClass::OnlineCheck()
 {
 	if (!this->Type->Powered)
@@ -643,8 +637,6 @@ bool ShieldClass::ConvertCheck()
 	return false;
 }
 
-#include <Misc/Ares/Hooks/Header.h>
-
 SelfHealingStatus ShieldClass::SelfHealEnabledByCheck()
 {
 	if (!this->Type->SelfHealing_EnabledBy.empty()) {
@@ -714,23 +706,10 @@ void ShieldClass::SelfHealing()
 	}
 }
 
-int ShieldClass::GetPercentageAmount(double iStatus) const
-{
-	if (iStatus == 0)
-		return 0;
-
-	if (iStatus >= -1.0 && iStatus <= 1.0)
-		return (int)round(this->Type->Strength * iStatus);
-
-	return (int)trunc(iStatus);
-}
-
 void ShieldClass::InvalidatePointer(AbstractClass* ptr, bool bDetach)
 {
 	if (this->IdleAnim && this->IdleAnim.get() == ptr)
 		this->IdleAnim.release();
-
-	//AnnounceInvalidPointer(this->IdleAnim.Get(), ptr);
 }
 
 void ShieldClass::BreakShield(AnimTypeClass* pBreakAnim, WeaponTypeClass* pBreakWeapon)
@@ -846,18 +825,6 @@ void ShieldClass::CreateAnim()
 void ShieldClass::KillAnim()
 {
 	IdleAnim.reset(nullptr);
-
-	//if (this->IdleAnim)
-	//{
-	//	if (this->IdleAnim->Type) //this anim doesnt have type pointer , just detach it
-	//	{
-	//		//GameDelete<true,false>(this->IdleAnim);
-	//		this->IdleAnim->TimeToDie = true;
-	//		this->IdleAnim->UnInit();
-	//	}
-	//
-	//	this->IdleAnim = nullptr;
-	//}
 }
 
 void ShieldClass::UpdateIdleAnim()
@@ -991,74 +958,4 @@ int ShieldClass::DrawShieldBar_Pip(const bool isBuilding)
 		return shieldPip->Z == -1 ? shieldPip->X : shieldPip->Z;
 
 	return isBuilding ? 5 : 16;
-}
-
-int ShieldClass::DrawShieldBar_PipAmount(int iLength)
-{
-	return this->IsActive()
-		? std::clamp((int)std::round(this->GetHealthRatio() * iLength), 1, iLength)
-		: 0;
-}
-
-bool ShieldClass::IsGreenSP()
-{
-	return (RulesClass::Instance->ConditionYellow * Type->Strength.Get()) < HP;
-}
-
-bool ShieldClass::IsYellowSP()
-{
-	return (RulesClass::Instance->ConditionRed * Type->Strength.Get()) < HP && HP <= (RulesClass::Instance->ConditionYellow * Type->Strength.Get());
-}
-
-bool ShieldClass::IsRedSP()
-{
-	return HP <= (RulesClass::Instance->ConditionRed * Type->Strength.Get());
-}
-
-double ShieldClass::GetHealthRatio() const
-{
-	return static_cast<double>(this->HP) / static_cast<double>(this->Type->Strength);
-}
-
-void ShieldClass::SetHP(int amount)
-{
-	this->HP = amount > this->Type->Strength ? this->Type->Strength : amount;
-}
-
-int ShieldClass::GetHP()  const
-{
-	return this->HP;
-}
-
-bool ShieldClass::IsActive() const
-{
-	return
-		this->Available &&
-		this->HP > 0 &&
-		this->Online;
-}
-
-bool ShieldClass::IsAvailable() const
-{
-	return this->Available;
-}
-
-bool ShieldClass::IsBrokenAndNonRespawning() const
-{
-	return this->HP <= 0 && !this->Type->Respawn;
-}
-
-ShieldTypeClass* ShieldClass::GetType() const
-{
-	return this->Type;
-}
-
-Armor ShieldClass::GetArmor() const
-{
-	return this->Type->Armor;
-}
-
-int ShieldClass::GetFramesSinceLastBroken() const
-{
-	return Unsorted::CurrentFrame - this->LastBreakFrame;
 }

@@ -202,14 +202,15 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 ColorStruct WeaponTypeExtData::GetBeamColor() const
 {
 	const auto pThis = this->AttachedToObject;
+	const auto& result = this->Beam_Color;
 
 	if (pThis->IsRadBeam || pThis->IsRadEruption) {
 		if (pThis->Warhead && pThis->Warhead->Temporal) {
-			this->Beam_Color.Get(RulesClass::Instance->ChronoBeamColor);
+			return result.Get(RulesClass::Instance->ChronoBeamColor);
 		}
 	}
 
-	return this->Beam_Color.Get(RulesClass::Instance->RadColor);
+	return result.Get(RulesClass::Instance->RadColor);
 }
 
 template <typename T>

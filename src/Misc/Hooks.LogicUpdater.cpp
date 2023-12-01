@@ -181,7 +181,7 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
 
 	PassengersFunctional::AI(pThis);
-	SpawnSupportFunctional::AI(pThis);
+	//SpawnSupportFunctional::AI(pThis);
 
 	pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
 

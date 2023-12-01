@@ -100,7 +100,22 @@ public:
 
 	void ValidateSpalshAnims();
 
-	OwnerHouseKind GetAnimOwnerHouseKind();
+	OwnerHouseKind GetAnimOwnerHouseKind()
+	{
+		if (this->CreateUnit && !this->CreateUnit_Owner.isset())
+			return OwnerHouseKind::Victim;
+
+		if (this->AttachedToObject->MakeInfantry > -1 && !this->MakeInfantryOwner.isset())
+			return OwnerHouseKind::Invoker;
+
+		if (this->CreateUnit_Owner.isset())
+			return this->CreateUnit_Owner;
+
+		if (this->MakeInfantryOwner.isset())
+			return this->MakeInfantryOwner;
+
+		return OwnerHouseKind::Invoker;
+	}
 
 	static void ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller = nullptr , WarheadTypeClass* pWH = nullptr);
 	static void CreateUnit_MarkCell(AnimClass* pThis);

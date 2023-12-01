@@ -247,15 +247,17 @@ DEFINE_OVERRIDE_HOOK(0x683C70, sub_683AB0_LoadingScoreA, 7)
 	}
 	else {
 		// override the default for multiplayer matches
-		if (auto pSpot = SessionClass::Instance->StartSpots.GetItemOrDefault(0)) {
-			if (auto pType = HouseTypeClass::Array->GetItemOrDefault(pSpot->Country)) {
-				// get theme from the side
-				if(auto pSide = SideClass::Array->GetItemOrDefault(pType->SideIndex)){
-					idxLoadingTheme = CCINIClass::INI_Rules()->ReadTheme(pSide->ID, "LoadingTheme", -2);
+		if (auto pSpot = SessionClass::Instance->StartSpots[0]) {
+			if (((size_t)pSpot->Country) < HouseTypeClass::Array->size()) {
 
-					// ...then from the house
-					idxLoadingTheme = CCINIClass::INI_Rules()->ReadTheme(pType->ID, "LoadingTheme", idxLoadingTheme);
-				}
+				const auto pType = HouseTypeClass::Array->Items[pSpot->Country];
+				const auto pSide = SideClass::Array->Items[pType->SideIndex];
+
+				// get theme from the side
+				idxLoadingTheme = CCINIClass::INI_Rules()->ReadTheme(pSide->ID, "LoadingTheme", -2);
+
+				// ...then from the house
+				idxLoadingTheme = CCINIClass::INI_Rules()->ReadTheme(pType->ID, "LoadingTheme", idxLoadingTheme);
 			}
 		}
 	}

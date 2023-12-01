@@ -577,7 +577,7 @@ bool TechnoExt_ExtData::CanSelfCloakNow(TechnoClass* pThis)
 	} else {
 
 		if (pExt->CloakMove.isset()
-			&& !((FootClass*)pThis)->Locomotor->Is_Moving_Now())
+			&& !((FootClass*)pThis)->Locomotor.GetInterfacePtr()->Is_Moving_Now())
 			return false;
 
 		if (what == InfantryClass::AbsID
@@ -1604,57 +1604,6 @@ bool TechnoExt_ExtData::FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget, 
 	}
 
 	return !(pTarget->GetHealthPercentage_() >= nRulesGreen);
-}
-
-std::pair<bool, int> TechnoExt_ExtData::HealActionProhibited(bool CheckKeyPress, TechnoClass* pTarget, WeaponTypeClass* pWeapon)
-{
-	const auto pThatTechnoExt = TechnoExtContainer::Instance.Find(pTarget);
-	const auto pThatShield = pThatTechnoExt->GetShield();
-	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
-
-	if (CheckKeyPress)
-	{
-		if (WWKeyboardClass::Instance->IsForceMoveKeyPressed())
-			return { true , -1 };
-	}
-
-	if (pThatShield && pThatShield->IsActive())
-	{
-		const auto pShieldType = pThatShield->GetType();
-
-		if (pWHExt->GetVerses(pShieldType->Armor).Verses <= 0.0)
-		{
-			return { true , -1 };
-		}
-
-		if (!pThatShield->CanBePenetrated(pWeapon->Warhead))
-		{
-			if (pShieldType->CanBeHealed)
-			{
-				const bool IsFullHp = pThatShield->GetHealthRatio() >= RulesClass::Instance->ConditionGreen;
-
-				if (!IsFullHp)
-				{
-					return { false ,  pShieldType->HealCursorType.Get(-1) };
-				}
-				else
-				{
-
-					if (pThatShield->GetType()->PassthruNegativeDamage)
-						return { pTarget->IsFullHP() , -1 };
-					else
-						return { true , -1 };
-				}
-			}
-
-			return { true , -1 };
-		}
-	}
-
-	if (pWHExt->GetVerses(TechnoExtData::GetArmor(pTarget)).Verses <= 0.0)
-		return { true , -1 };
-
-	return { pTarget->IsFullHP() , -1 };
 }
 
 UnitTypeClass* TechnoExt_ExtData::GetUnitTypeImage(UnitClass* const pThis)
@@ -3095,7 +3044,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	}
 
 	if (pToType->BalloonHover && pToType->DeployToLand && prevType->Locomotor != CLSIDs::Jumpjet() && pToType->Locomotor == CLSIDs::Jumpjet())
-		((FootClass*)pThis)->Locomotor->Move_To(pThis->Location);
+		((FootClass*)pThis)->Locomotor.GetInterfacePtr()->Move_To(pThis->Location);
 
 	return true;
 }
@@ -3293,7 +3242,7 @@ void NOINLINE UpdateBuildingOperation(TechnoExtData* pData, TechnoTypeExtData* p
 				{
 					// immobile, though not disabled. like hover tanks after
 					// a repair depot has been sold or warped away.
-					Override = ((BYTE)pFoot->Locomotor->Is_Powered() == pThis->Deactivated);
+					Override = ((BYTE)pFoot->Locomotor.GetInterfacePtr()->Is_Powered() == pThis->Deactivated);
 				}
 			}
 
@@ -5379,9 +5328,9 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 		);
 	}
 
-	Target->Locomotor->Force_Track(-1, CoordStruct::Empty);
+	Target->Locomotor.GetInterfacePtr()->Force_Track(-1, CoordStruct::Empty);
 	CoordStruct coordsUnitSource = Target->GetCoords();
-	Target->Locomotor->Mark_All_Occupation_Bits(0);
+	Target->Locomotor.GetInterfacePtr()->Mark_All_Occupation_Bits(0);
 	Target->MarkAllOccupationBits(coordsUnitSource);
 	Target->ClearPlanningTokens(nullptr);
 	Target->Flashing.DurationRemaining = 0;
@@ -7454,27 +7403,4 @@ Action MouseClassExt::ValidateShroudedAction(Action nAction)
 
 	return nAction;
 }
-#pragma endregion
-
-#pragma region MouseCursorFuncs
-
-void MouseCursorFuncs::SetMouseCursorAction(size_t CursorIdx, Action nAction, bool bShrouded)
-{
-#ifdef Dum
-	AresData::SetMouseCursorAction(CursorIdx, nAction, bShrouded);
-#else
-	MouseClassExt::InsertMappedAction((MouseCursorType)CursorIdx, nAction, bShrouded);
-#endif
-}
-
-void MouseCursorFuncs::SetSuperWeaponCursorAction(size_t CursorIdx, Action nAction, bool bShrouded)
-{
-#ifdef Dum
-	AresData::SetSWMouseCursorAction(CursorIdx, bShrouded , -1);
-#else
-	MouseClassExt::InsertSWMappedAction((MouseCursorType)CursorIdx, nAction, bShrouded);
-#endif
-}
-
-
 #pragma endregion

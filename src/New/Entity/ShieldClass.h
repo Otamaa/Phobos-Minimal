@@ -8,6 +8,8 @@
 #include <RectangleStruct.h>
 #include <Point2D.h>
 
+#include <New/Type/ShieldTypeClass.h>
+
 enum class SelfHealingStatus : char {
 	Online = 1, Offline = 2
 };
@@ -20,7 +22,6 @@ class WarheadTypeClass;
 class WeaponTypeClass;
 class TechnoTypeClass;
 class TemporalClass;
-class ShieldTypeClass;
 class ShieldClass final
 {
 public:
@@ -56,27 +57,79 @@ public:
 
 	void DrawShieldBar(int iLength, Point2D* pLocation, RectangleStruct* pBound);
 
-	double GetHealthRatio() const;
+	double GetHealthRatio() const
+	{
+		return static_cast<double>(this->HP) / static_cast<double>(this->Type->Strength);
+	}
 
-	void SetHP(int amount);
-	int GetHP() const;
+	void SetHP(int amount)
+	{
+		this->HP = amount > this->Type->Strength ? this->Type->Strength : amount;
+	}
 
-	bool IsActive() const;
-	bool IsAvailable() const;
+	int GetHP() const
+	{
+		return this->HP;
+	}
 
-	bool IsBrokenAndNonRespawning() const;
-	ShieldTypeClass* GetType() const;
-	Armor GetArmor() const;
-	int GetFramesSinceLastBroken() const;
+	bool IsActive() const
+	{
+		return
+			this->Available &&
+			this->HP > 0 &&
+			this->Online;
+	}
 
-	void SetAnimationVisibility(bool visible);
+	bool IsAvailable() const
+	{
+		return this->Available;
+	}
+
+	bool IsBrokenAndNonRespawning() const
+	{
+		return this->HP <= 0 && !this->Type->Respawn;
+	}
+
+	ShieldTypeClass* GetType() const
+	{
+		return this->Type;
+	}
+
+	Armor GetArmor() const
+	{
+		return this->Type->Armor;
+	}
+
+	int GetFramesSinceLastBroken() const
+	{
+		return Unsorted::CurrentFrame - this->LastBreakFrame;
+	}
+
+	void SetAnimationVisibility(bool visible)
+	{
+		if (!this->AreAnimsHidden && !visible)
+			this->KillAnim();
+
+		this->AreAnimsHidden = !visible;
+	}
 
 	static void SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo);
 	static bool TEventIsShieldBroken(ObjectClass* pThis);
 
-	bool IsGreenSP();
-	bool IsYellowSP();
-	bool IsRedSP();
+	bool IsGreenSP()
+	{
+		return (RulesClass::Instance->ConditionYellow * Type->Strength.Get()) < HP;
+	}
+
+	bool IsYellowSP()
+	{
+		return (RulesClass::Instance->ConditionRed * Type->Strength.Get()) < HP && HP <= (RulesClass::Instance->ConditionYellow * Type->Strength.Get());
+	}
+
+	bool IsRedSP()
+	{
+		return HP <= (RulesClass::Instance->ConditionRed * Type->Strength.Get());
+	}
 
 	void InvalidatePointer(AbstractClass* ptr, bool bDetach);
 
@@ -90,7 +143,17 @@ private:
 	void UpdateType();
 
 	void SelfHealing();
-	int GetPercentageAmount(double iStatus) const;
+
+	int GetPercentageAmount(double iStatus) const
+	{
+		if (iStatus == 0)
+			return 0;
+
+		if (iStatus >= -1.0 && iStatus <= 1.0)
+			return (int)round(this->Type->Strength * iStatus);
+
+		return (int)trunc(iStatus);
+	}
 
 	void RespawnShield();
 
@@ -110,7 +173,13 @@ private:
 	void DrawShieldBar_Building(int iLength, Point2D* pLocation, RectangleStruct* pBound);
 	void DrawShieldBar_Other(int iLength, Point2D* pLocation, RectangleStruct* pBound);
 	int DrawShieldBar_Pip(const bool isBuilding);
-	int DrawShieldBar_PipAmount(int iLength);
+
+	int DrawShieldBar_PipAmount(int iLength) const
+	{
+		return this->IsActive()
+			? std::clamp((int)std::round(this->GetHealthRatio() * iLength), 1, iLength)
+			: 0;
+	}
 
 private:
 

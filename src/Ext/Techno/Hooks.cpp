@@ -219,11 +219,11 @@ DEFINE_HOOK(0x70A4FB, TechnoClass_Draw_Pips_SelfHealGain, 0x5)
 	GET_STACK(Point2D*, pLocation, STACK_OFFS(0x74, -0x4));
 	GET_STACK(RectangleStruct*, pBounds, STACK_OFFS(0x74, -0xC));
 
-	if (const auto pFoot = generic_cast<FootClass*>(pThis)){
-		if (const auto pParasiteFoot = pFoot->ParasiteEatingMe) {
-			TechnoExtData::DrawParasitedPips(pFoot, pLocation, pBounds);
-		}
-	}
+	// if (const auto pFoot = generic_cast<FootClass*>(pThis)){
+	// 	if (const auto pParasiteFoot = pFoot->ParasiteEatingMe) {
+	// 		TechnoExtData::DrawParasitedPips(pFoot, pLocation, pBounds);
+	// 	}
+	// }
 
 	TechnoExtData::DrawSelfHealPips(pThis, pLocation, pBounds);
 

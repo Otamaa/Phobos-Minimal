@@ -3754,6 +3754,7 @@ DEFINE_HOOK(0x44F8A6, TechnoClass_FromINI_CreateForHouse, 0x7)
 	const int startingPoints = GetPlayerPosByName(pHouseName);
 	const int idx = startingPoints != -1 
 		?
+		//Hopefully the HouseIndices is fine
 		ScenarioClass::Instance->HouseIndices[startingPoints] :
 		HouseClass::FindIndexByName(pHouseName)
 		;
