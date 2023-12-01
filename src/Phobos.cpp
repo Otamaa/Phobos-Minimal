@@ -98,6 +98,7 @@ bool Phobos::Otamaa::ExeTerminated = true;
 bool Phobos::Otamaa::DoingLoadGame = false;
 bool Phobos::Otamaa::AllowAIControl = false;
 bool Phobos::Otamaa::OutputMissingStrings = false;
+bool Phobos::Otamaa::OutputAudioLogs = false;
 bool Phobos::Otamaa::StrictParser = false;
 bool Phobos::Otamaa::ParserErrorDetected = false;
 bool Phobos::Otamaa::TrackParserErrors = false;
@@ -178,6 +179,10 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		else if (IS_SAME_STR_(pArg, "-LOG-CSF"))
 		{
 			Phobos::Otamaa::OutputMissingStrings = true;
+		}
+		else if (IS_SAME_STR_(pArg, "-LOG-AUDIO"))
+		{
+			Phobos::Otamaa::OutputAudioLogs = true;
 		}
 		else if (IS_SAME_STR_(pArg, "-STRICT"))
 		{

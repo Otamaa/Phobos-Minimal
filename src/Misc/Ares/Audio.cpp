@@ -168,7 +168,9 @@ public:
 					AudioIDXHeader headerIndex {};
 					if(pIndex.ReadBytes(&headerIndex, sizeof(AudioIDXHeader)) == sizeof(AudioIDXHeader))
 					{
-						Debug::Log("Reading [%s from %s] file with [%d] samples!.\n", filename, pIndex.GetFileName(), headerIndex.numSamples);
+						if (Phobos::Otamaa::OutputAudioLogs) {
+							Debug::Log("Reading [%s from %s] file with [%d] samples!.\n", filename, pIndex.GetFileName(), headerIndex.numSamples);
+						}
 
 						if (headerIndex.numSamples > 0)
 						{
@@ -231,15 +233,18 @@ public:
 						auto node = map.extract(find);
 						node.key().update(ent);
 						auto& [idx, file , bagFileName] = node.mapped();
-						Debug::Log("Replacing audio `%s` from : [%d - (%s - %s)] to : [%d - (%s - %s)].\n", 
-							ent.Name,
-							idx, 
-							file->FileName ,
-							bagFileName.c_str(), 
-							i,
-							this->Bags[i].Bag->FileName,
-							this->Bags[i].BagFile.c_str()
-						);
+
+						if(Phobos::Otamaa::OutputAudioLogs) {
+							Debug::Log("Replacing audio `%s` from : [%d - (%s - %s)] to : [%d - (%s - %s)].\n", 
+								ent.Name,
+								idx, 
+								file->FileName ,
+								bagFileName.c_str(), 
+								i,
+								this->Bags[i].Bag->FileName,
+								this->Bags[i].BagFile.c_str()
+							);
+						}
 
 						idx = i;
 						file = this->Bags[i].Bag.get();
@@ -493,8 +498,9 @@ DEFINE_OVERRIDE_HOOK(0x4064A0, VocClassData_AddSample, 6) // Complete rewrite of
 				idxSample = LooseAudioCache::FindOrAllocateIndex(pSampleName) + AudioIDXData::Instance->SampleCount;
 			}
 
-			if (idxSample == -1)
+			if (Phobos::Otamaa::OutputAudioLogs && idxSample == -1) {
 				Debug::Log("Cannot Find [%s] sample!.\n", pSampleName);
+			}
 
 			// Set sample index or string pointer
 			pVoc->SampleIndex[pVoc->NumSamples++] = idxSample;

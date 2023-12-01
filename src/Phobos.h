@@ -175,6 +175,7 @@ struct Phobos final
 		static bool DoingLoadGame;
 		static bool AllowAIControl;
 		static bool OutputMissingStrings;
+		static bool OutputAudioLogs;
 		static bool StrictParser;
 		static bool ParserErrorDetected;
 		static bool TrackParserErrors;
