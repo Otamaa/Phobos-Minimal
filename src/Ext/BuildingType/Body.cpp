@@ -369,12 +369,14 @@ int BuildingTypeExtData::GetBuildingAnimTypeIndex(BuildingClass* pThis, const Bu
 	if (pThis
 		&& pThis->IsAlive
 		&& (pThis->Occupants.Count > 0)
+		&& pThis->Occupants[0]->Owner
+		&& pThis->Occupants[0]->Owner->Type
 		)
 	{
 		const auto pBuildingExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 
 		{
-			const auto nIndex = HouseTypeClass::Array()->FindItemIndex(pThis->Occupants[0]->Owner->Type);
+			const auto nIndex = pThis->Occupants[0]->Owner->Type->ArrayIndex;
 			if (nIndex != -1)
 			{
 
@@ -396,6 +398,8 @@ int BuildingTypeExtData::GetBuildingAnimTypeIndex(BuildingClass* pThis, const Bu
 					break;
 				case BuildingAnimSlot::Idle:
 					pDecidedAnim = pBuildingExt->GarrisonAnim_idle[nIndex];
+					break;
+				default:
 					break;
 				}
 
