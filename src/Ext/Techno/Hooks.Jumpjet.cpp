@@ -133,13 +133,10 @@ DEFINE_HOOK(0x54CB0E, JumpjetLocomotionClass_State5_CrashRotation, 0x7)
 {
 	GET(JumpjetLocomotionClass*, pLoco, EDI);
 
-	bool bRotate = RulesExtData::Instance()->JumpjetCrash_Rotate.Get();
+	bool bRotate = RulesExtData::Instance()->JumpjetCrash_Rotate;
 
 	if (const auto pOwner = pLoco->LinkedTo ? pLoco->LinkedTo : pLoco->Owner) {
-		if (TechnoExtData::IsReallyTechno(pOwner) && pOwner->IsAlive) {
-			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType());
-			bRotate = pTypeExt->JumpjetCrash_Rotate.Get(bRotate);
-		}
+		bRotate = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType())->JumpjetCrash_Rotate.Get(bRotate);
 	}
 
 	return bRotate ? 0 : 0x54CB3E;

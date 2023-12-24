@@ -407,9 +407,9 @@ bool BuildingExtData::InvalidateIgnorable(AbstractClass* ptr)
 
 void BuildingExtData::StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType)
 {
-	auto const pDepositableTiberium = TiberiumClass::Array->GetItem(idxStorageTiberiumType);
+	auto const pDepositableTiberium = TiberiumClass::Array->Items[idxStorageTiberiumType];
 	float depositableTiberiumAmount = 0.0f; // Number of 'bails' that will be stored.
-	auto const pTiberium = TiberiumClass::Array->GetItem(idxTiberiumType);
+	auto const pTiberium = TiberiumClass::Array->Items[idxTiberiumType];
 
 	if (amount > 0.0)
 	{
@@ -425,17 +425,19 @@ void BuildingExtData::StoreTiberium(BuildingClass* pThis, float amount, int idxT
 	}
 }
 
+static std::vector<BuildingClass*> airFactoryBuilding;
+
 void BuildingExtData::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 {
 	auto pOwner = pThis->Owner;
 
-	if (!pOwner || pOwner->ProducingAircraftTypeIndex < 0)
+	if (pOwner->ProducingAircraftTypeIndex < 0)
 		return;
 
 	auto BuildingExt = BuildingExtContainer::Instance.Find(pThis);
-	AircraftTypeClass* pAircraft = AircraftTypeClass::Array->GetItem(pOwner->ProducingAircraftTypeIndex);
+	AircraftTypeClass* pAircraft = AircraftTypeClass::Array->Items[pOwner->ProducingAircraftTypeIndex];
 	FactoryClass* currFactory = pOwner->GetFactoryProducing(pAircraft);
-	std::vector<BuildingClass*> airFactoryBuilding;
+	airFactoryBuilding.clear();
 	BuildingClass* newBuilding = nullptr;
 
 	// Update what is the current air factory for future comparisons
@@ -464,6 +466,8 @@ void BuildingExtData::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 			&& !pBuilding->InLimbo
 			&& !pBuilding->TemporalTargetingMe
 			&& !BuildingExtContainer::Instance.Find(pBuilding)->AboutToChronoshift
+			&& pBuilding->GetCurrentMission() != Mission::Selling
+			&& pBuilding->QueuedMission != Mission::Selling
 		)
 		{
 			if (!currFactory && pBuilding->Factory)

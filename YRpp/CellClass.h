@@ -405,12 +405,8 @@ public:
 		return { (cell.X * 256) + 128  , cell.Y * 256 + 128 ,z };
 	}
 
-	static CellStruct Coord2Cell(const CoordStruct &crd)
-	{
-		CellStruct ret;
-		ret.X = static_cast<short>(crd.X / 256);
-		ret.Y = static_cast<short>(crd.Y / 256);
-		return ret;
+	static CellStruct Coord2Cell(const CoordStruct &crd) {
+		return { static_cast<short>(crd.X / 256)  , static_cast<short>(crd.Y / 256) };
 	}
 
 	CoordStruct FixHeight(CoordStruct crd) const
@@ -421,6 +417,12 @@ public:
 		return crd;
 	}
 
+	void FixHeight(CoordStruct* pCrd) const {
+		if (this->ContainsBridge()) {
+			pCrd->Z += Unsorted::BridgeHeight;
+		}
+	}
+
 	// helper - gets coords and fixes height for bridge
 	CoordStruct GetCoordsWithBridge() const
 	{
@@ -428,12 +430,10 @@ public:
 		return FixHeight(buffer);
 	}
 
-	CoordStruct GetCoordsWithBridge(CoordStruct* pBuffer)
+	void GetCoordsWithBridge(CoordStruct* pBuffer) const
 	{
-		CoordStruct buffer = this->GetCoords();
-		buffer = FixHeight(buffer);
-		pBuffer = &buffer;
-		return buffer;
+		this->GetCoords(pBuffer);
+		this->FixHeight(pBuffer);
 	}
 
 	void MarkForRedraw() const
@@ -627,14 +627,23 @@ public:
 	DWORD              OccupationFlags;
 	DWORD              AltOccupationFlags;
 
-	AltCellFlags	   AltFlags;	// related to Flags below
+	union {
+		AltCellFlags	   AltFlags;	// related to Flags below
+		UINT UINTAltFlags;
+	};
+
 	int                ShroudCounter;
 	DWORD              GapsCoveringThisCell; // actual count of gapgens in this cell, no idea why they need a second layer
 	bool               VisibilityChanged;
 	PROTECTED_PROPERTY(BYTE,     align_139[0x3]);
 	DWORD              unknown_13C;
 
-	CellFlags          Flags;	//Various settings.
+	union
+	{
+		CellFlags          Flags;	//Various settings.
+		UINT UINTFlags;
+	};
+
 	PROTECTED_PROPERTY(DWORD,     padding_144);
 };
 

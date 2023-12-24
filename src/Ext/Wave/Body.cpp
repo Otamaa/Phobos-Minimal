@@ -228,7 +228,7 @@ DEFINE_HOOK(0x763226, WaveClass_DTOR, 0x6)
 
 void __fastcall WaveClass_Detach_Wrapper(WaveClass* pThis ,DWORD , AbstractClass* target , bool all)\
 {
-	WaveExtContainer::Instance.InvalidatePointerFor(pThis , target , all);
+	//WaveExtContainer::Instance.InvalidatePointerFor(pThis , target , all);
 	pThis->WaveClass::PointerExpired(target , all);
 }
 DEFINE_JUMP(VTABLE, 0x7F6C1C, GET_OFFSET(WaveClass_Detach_Wrapper))

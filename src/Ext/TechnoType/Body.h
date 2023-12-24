@@ -743,7 +743,7 @@ public:
 	Nullable<bool> TiltsWhenCrushes_Vehicles {};
 	Nullable<bool> TiltsWhenCrushes_Overlays {};
 	Nullable<double> CrushForwardTiltPerFrame {};
-	Valueable<double> CrushOverlayExtraForwardTilt { 0.2 };
+	Nullable<double> CrushOverlayExtraForwardTilt { };
 	Valueable<double> CrushSlowdownMultiplier { 0.2 };
 
 	Valueable<float> ShadowScale { -1.0f };

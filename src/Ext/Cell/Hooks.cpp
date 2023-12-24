@@ -16,7 +16,7 @@ DEFINE_HOOK(0x47FDF9, CellClass_GetOverlayShadowRect, 0xA)
 	GET(OverlayTypeClass*, pOverlay, ESI);
 
 	if (pOverlay->Tiberium)
-		pOverlay = OverlayTypeClass::Array->GetItem(CellExtData::GetOverlayIndex(pThis));
+		pOverlay = OverlayTypeClass::Array->Items[CellExtData::GetOverlayIndex(pThis)];
 
 	R->EBX(pOverlay->GetImage());
 
@@ -73,7 +73,7 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8) // B
 	GET(RectangleStruct*, pBound, EBP);
 
 	auto nIndex = CellExtData::GetOverlayIndex(pThis, pTiberium);
-	const auto pShape = OverlayTypeClass::Array->GetItem(nIndex)->GetImage();
+	const auto pShape = OverlayTypeClass::Array->Items[nIndex]->GetImage();
 
 	if (!pShape)
 		return 0x47FB86;
@@ -200,7 +200,7 @@ DEFINE_HOOK(0x47FADB, CellClass_DrawOverlay_Rubble, 0x5)
 //					if (nTile >= 0 && nTile < IsometricTileTypeClass::Array->Count
 //					 )
 //					{
-//						if (auto const pIsoTileExt = IsometricTileTypeExt::ExtMap.Find(IsometricTileTypeClass::Array->GetItem((nTile))))
+//						if (auto const pIsoTileExt = IsometricTileTypeExt::ExtMap.Find(IsometricTileTypeClass::Array->Items[(nTile))))
 //						{
 //							if (pIsoTileExt->BlockJumpjet.Get())
 //							{

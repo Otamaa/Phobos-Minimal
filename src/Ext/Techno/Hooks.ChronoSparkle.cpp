@@ -64,7 +64,7 @@ DEFINE_HOOK(0x4403D4, BuildingClass_AI_ChronoSparkle, 0x6)
 		const bool displayOnSlots = (displayPositions & ChronoSparkleDisplayPosition::OccupantSlots) != ChronoSparkleDisplayPosition::None;
 		const bool displayOnOccupants = (displayPositions & ChronoSparkleDisplayPosition::Occupants) != ChronoSparkleDisplayPosition::None;
 		const int occupantCount = displayOnSlots ? pType->MaxNumberOccupants : pThis->GetOccupantCount();
-		bool showOccupy = occupantCount && (displayOnOccupants || displayOnSlots);
+		const bool showOccupy = occupantCount && (displayOnOccupants || displayOnSlots);
 
 		if (showOccupy)
 		{
@@ -72,7 +72,7 @@ DEFINE_HOOK(0x4403D4, BuildingClass_AI_ChronoSparkle, 0x6)
 			{
 				if (!((Unsorted::CurrentFrame + i) % RulesExtData::Instance()->ChronoSparkleDisplayDelay))
 				{
-					auto offset =  TacticalClass::Instance->ApplyMatrix_Pixel(
+					const auto offset =  TacticalClass::Instance->ApplyMatrix_Pixel(
 						(pType->MaxNumberOccupants <= 10 ?
 						pType->MuzzleFlash[i] :
 						BuildingTypeExtContainer::Instance.Find(pType)->OccupierMuzzleFlashes[i])

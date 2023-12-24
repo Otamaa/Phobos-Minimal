@@ -19,7 +19,7 @@ void CSFLoader::LoadAdditionalCSF(const char* pFileName, bool ignoreLanguage)
 
 		if (file.Exists() && file.Open(FileAccessMode::Read))
 		{
-			CSFHeader header;
+			CSFHeader header {};
 
 			if (file.Read(header))
 			{
@@ -60,7 +60,7 @@ const wchar_t* CSFLoader::GetDynamicString(const char* pLabelName, const wchar_t
 	return pData->Text;
 }
 
-#ifndef disable_CSF_hooks
+#ifndef aaa
 DEFINE_OVERRIDE_HOOK(0x7349cf, StringTable_ParseFile_Buffer, 7)
 {
 	LEA_STACK(CCFileClass*, pFile, 0x28);

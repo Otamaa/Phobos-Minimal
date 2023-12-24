@@ -85,7 +85,7 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 
 		for (int i = 0; i < AITriggerTypeClass::Array->Count && !found; i++)
 		{
-			const auto pTriggerType = AITriggerTypeClass::Array->GetItem(i);
+			const auto pTriggerType = AITriggerTypeClass::Array->Items[i];
 
 			if (pTeamType && ((pTriggerType->Team1 && pTriggerType->Team1 == pTeamType) || (pTriggerType->Team2 && pTriggerType->Team2 == pTeamType)))
 			{
@@ -236,10 +236,10 @@ void PrintBuilding(T& buffer, BuildingClass* pBuilding)
 
 	if (pBuilding->Occupants.Count > 0)
 	{
-		Append(buffer, "Occupants: %s", pBuilding->Occupants.GetItem(0)->Type->ID);
+		Append(buffer, "Occupants: %s", pBuilding->Occupants.Items[0]->Type->ID);
 		for (int i = 1; i < pBuilding->Occupants.Count; i++)
 		{
-			Append(buffer, ", %s", pBuilding->Occupants.GetItem(i)->Type->ID);
+			Append(buffer, ", %s", pBuilding->Occupants.Items[i]->Type->ID);
 		}
 		Append(buffer, "\n");
 	}
@@ -326,7 +326,7 @@ void ObjectInfoCommandClass::Execute(WWKey eInput) const
 		{
 			if (ObjectClass::CurrentObjects->Count != 1)
 				MessageListClass::Instance->PrintMessage(L"This command will only dump one of these selected object", 600, 5, true);
-			DumpInfo(buffer, ObjectClass::CurrentObjects->GetItem(ObjectClass::CurrentObjects->Count - 1), dumped);
+			DumpInfo(buffer, ObjectClass::CurrentObjects->Items[ObjectClass::CurrentObjects->Count - 1], dumped);
 		}
 		else
 		{
@@ -348,7 +348,14 @@ void ObjectInfoCommandClass::Execute(WWKey eInput) const
 
 					const auto tibIdx = pCell->GetContainedTiberiumIndex();
 					if(tibIdx != -1)
-						Append(buffer, "[%d]TiberiumType is %s\n", tibIdx, TiberiumClass::Array->GetItem(tibIdx)->ID);
+						Append(buffer, "[%d]TiberiumType is %s\n", tibIdx, TiberiumClass::Array->Items[tibIdx]->ID);
+					else if(pOverlay->Wall){
+						const auto pHouse = HouseClass::Array->Items[pCell->WallOwnerIndex];
+						const char* pPlainName = pHouse ? pHouse->PlainName : GameStrings::NoneStr();
+						const char* pID = pHouse ? pHouse->Type->ID : GameStrings::NoneStr();
+
+						Append(buffer, "[%d]Wall Owner Is [%s - %s(%d)]\n" , nOverlay , pPlainName , pID , pCell->WallOwnerIndex);
+					}
 				}
 
 				if (auto pTerrain = pCell->GetTerrain(false))

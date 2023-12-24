@@ -39,7 +39,7 @@ void NextIdleHarvesterCommandClass::Execute(WWKey eInput) const
 	MapClass::Instance->SetSellMode(0);
 
 	auto pObjectToSelect = MapClass::Instance->NextObject(
-		ObjectClass::CurrentObjects->Count ? ObjectClass::CurrentObjects->GetItem(0) : nullptr);
+		ObjectClass::CurrentObjects->Count ? ObjectClass::CurrentObjects->Items[0] : nullptr);
 
 	bool idleHarvestersPresent = false;
 	auto pNextObject = pObjectToSelect;

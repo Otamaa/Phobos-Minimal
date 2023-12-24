@@ -7,6 +7,7 @@
 
 DEFINE_DISABLE_HOOK(0x465d4a, BuildingTypeClass_IsUndeployable_ares) //, 6)
 
+#ifndef aaa
 DEFINE_DISABLE_HOOK(0x43bcbd, BuildingClass_CTOR_ares)
 DEFINE_DISABLE_HOOK(0x43c022, BuildingClass_DTOR_ares)
 DEFINE_DISABLE_HOOK(0x453e20, BuildingClass_SaveLoad_Prefix_ares)
@@ -22,6 +23,7 @@ DEFINE_DISABLE_HOOK(0x465010, BuildingTypeClass_SaveLoad_Prefix_ares)
 DEFINE_DISABLE_HOOK(0x4652ed, BuildingTypeClass_Load_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x465300, BuildingTypeClass_SaveLoad_Prefix_ares)
 DEFINE_DISABLE_HOOK(0x46536a, BuildingTypeClass_Save_Suffix_ares)
+#endif
 
 #ifndef ENABLE_FOUNDATIONHOOK
 

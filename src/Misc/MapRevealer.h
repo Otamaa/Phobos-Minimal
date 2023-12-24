@@ -1,15 +1,18 @@
 #pragma once
 
-#include <TacticalClass.h>
-#include <HouseClass.h>
-#include <Utilities/Helpers.h>
+#include <CoordStruct.h>
+#include <CellStruct.h>
 
+class HouseClass;
+class MapClass;
+class CellClass;
 class MapRevealer
 {
 public:
 	MapRevealer(const CoordStruct& coords);
-
+	MapRevealer(const CoordStruct* pCoords);
 	MapRevealer(const CellStruct& cell);
+	MapRevealer(const CellStruct* pCell);
 
 	const CellStruct& Base() const
 	{
@@ -22,9 +25,9 @@ public:
 
 	void UpdateShroud(size_t start, size_t radius, bool fog = false) const;
 
-	void Process0(CellClass* const pCell, bool unknown, bool fog, bool add) const;
+	void Process0(CellClass* pCell, bool unknown, bool fog, bool add) const;
 
-	void Process1(CellClass* const pCell, bool fog, bool add) const;
+	void Process1(CellClass* pCell, bool fog, bool add) const;
 
 	bool IsCellAllowed(const CellStruct& cell) const
 	{
@@ -44,24 +47,7 @@ public:
 	bool IsCellAvailable(const CellStruct& cell) const;
 	bool CheckLevel(const CellStruct& offset, int level) const;
 
-	static bool AffectsHouse(HouseClass* const pHouse)
-	{
-		auto Player = HouseClass::CurrentPlayer();
-
-		if (pHouse == Player)
-		{
-			return true;
-		}
-
-		if (!pHouse || !Player)
-		{
-			return false;
-		}
-
-		return pHouse->RadarVisibleTo.Contains(Player) ||
-			(RulesClass::Instance->AllyReveal && pHouse->IsAlliedWith(Player));
-	}
-
+	static bool AffectsHouse(HouseClass* const pHouse);
 	static bool RequiresExtraChecks();
 	static CellStruct GetRelation(const CellStruct& offset);
 

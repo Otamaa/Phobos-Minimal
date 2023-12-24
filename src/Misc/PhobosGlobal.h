@@ -10,11 +10,9 @@ class PhobosGlobal
 {
 	static std::unique_ptr<PhobosGlobal> GlobalObject;
 public:
-	std::vector<unsigned char> ShpCompression1Buffer { };
 	ColorStruct maxColor { };
 	char BuildTimeDatas[0x720] { };
 	bool DetonateDamageArea { true };
-	PhobosMap<ObjectClass*, AlphaShapeClass*> ObjectLinkedAlphas { };
 	int SpotHeight { 0 };
 
 	std::vector<CellStruct> TempFoundationData1 { };
@@ -43,7 +41,6 @@ public:
 	{
 		return stm
 			.Process(this->DetonateDamageArea)
-			.Process(this->ObjectLinkedAlphas)
 			.Process(this->SpotHeight)
 			.Process(this->TempFoundationData1)
 			.Process(this->TempFoundationData2)

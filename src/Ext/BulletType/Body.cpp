@@ -10,11 +10,6 @@
 const Leptons BulletTypeExtData::DefaultBulletScatterMin = Leptons { 256 };
 const Leptons BulletTypeExtData::DefaultBulletScatterMax = Leptons { 512 };
 
-double BulletTypeExtData::GetAdjustedGravity(BulletTypeClass* pType)
-{
-	return BulletTypeExtContainer::Instance.Find(pType)->GetAdjustedGravity();
-}
-
 BulletTypeClass* BulletTypeExtData::GetDefaultBulletType(const char* pBullet)
 {
 	BulletTypeClass* pType = nullptr;
@@ -73,12 +68,6 @@ const ConvertClass* BulletTypeExtData::GetBulletConvert()
 		this->ImageConvert = pConvert;
 		return pConvert;
 	}
-}
-
-bool BulletTypeExtData::HasSplitBehavior()
-{
-	// behavior in FS: Splits defaults to Airburst.
-	return this->AttachedToObject->Airburst || this->Splits.Get();
 }
 
 BulletClass* BulletTypeExtData::CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, WeaponTypeClass* pWeapon, bool addDamage, bool SetWeaponType) const

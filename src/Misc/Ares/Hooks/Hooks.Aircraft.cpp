@@ -91,7 +91,7 @@ DEFINE_OVERRIDE_HOOK(0x41946B, AircraftClass_ReceivedRadioCommand_QueryEnterAsPa
 {
 	// prevent units from getting the enter cursor on transports
 	// with killed drivers.
-	GET(TechnoClass*, pThis, ESI);
+	GET(AircraftClass*, pThis, ESI);
 	return (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x4190DDu : 0u);
 }
 

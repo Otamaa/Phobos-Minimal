@@ -32,7 +32,10 @@ DEFINE_OVERRIDE_HOOK(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
 	if (nAmmo < 0)
 		return Continue;
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	return (nAmmo >= WeaponTypeExtContainer::Instance.Find(pWeapon)->Ammo)
+	  ? Continue : FireErrAmmo;
+
+    /*const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 	const bool IsDisabled = pTypeExt->NoAmmoWeapon == -1;
 
 	if (!IsDisabled)
@@ -41,7 +44,7 @@ DEFINE_OVERRIDE_HOOK(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
 			return Continue;
 	}
 
-	return (!IsDisabled || !nAmmo) ? FireErrAmmo : Continue;
+	return (!IsDisabled || !nAmmo) ? FireErrAmmo : Continue;*/
 }
 
 DEFINE_OVERRIDE_HOOK(0x7413FF, UnitClass_Fire_Ammo, 7)

@@ -72,6 +72,18 @@ class WeaponTypeClass;
 class AnimTypeClass;
 struct args_ReceiveDamage;
 struct WeaponStruct;
+class AlphaShapeClass;
+
+struct StaticVars {
+	static PhobosMap<ObjectClass*, AlphaShapeClass*> ObjectLinkedAlphas;
+	static std::vector<unsigned char> ShpCompression1Buffer;
+
+	static bool SaveGlobals(PhobosStreamWriter& stm);
+	static bool LoadGlobals(PhobosStreamReader& stm);
+
+	static void Clear();
+};
+
 struct TechnoExt_ExtData
 {
 	static bool IsOperated(TechnoClass* pThis);

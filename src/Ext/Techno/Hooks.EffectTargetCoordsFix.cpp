@@ -17,6 +17,7 @@
 
 #include <Misc/Ares/Hooks/Header.h>
 
+#ifndef PARTONE
 // Contains hooks that fix weapon graphical effects like lasers, railguns, electric bolts, beams and waves not interacting
 // correctly with obstacles between firer and target, as well as railgun / railgun particles being cut off by elevation.
 
@@ -163,6 +164,7 @@ DEFINE_HOOK(0x62D685, ParticleSystemClass_FireAt_Coords, 0x5)
 
 	return SkipGameCode;
 }
+#endif
 
 #ifndef PERFORMANCE_HEAVY
 // https://github.com/Phobos-developers/Phobos/pull/825
@@ -176,7 +178,6 @@ namespace FireAtTemp
 	CellClass* pObstacleCell = nullptr;
 	AbstractClass* pOriginalTarget = nullptr;
 }
-
 
 // Adjust target coordinates for laser drawing.
 DEFINE_HOOK(0x6FD38D, TechnoClass_LaserZap_Obstacles, 0x7)
@@ -233,9 +234,7 @@ DEFINE_HOOK(0x70CA64, TechnoClass_Railgun_Obstacles, 0x5)
 
 	REF_STACK(CoordStruct const, coords, STACK_OFFSET(0xC0, -0x80));
 
-	auto pCell = MapClass::Instance->GetCellAt(coords);
-
-	if (pCell == FireAtTemp::pObstacleCell)
+	if (MapClass::Instance->GetCellAt(coords) == FireAtTemp::pObstacleCell)
 		return Stop;
 
 	return Continue;
@@ -256,7 +255,8 @@ DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_Additional, 0x6)
 
 	if (FireAtTemp::pObstacleCell)
 	{
-		auto coords = FireAtTemp::pObstacleCell->GetCoordsWithBridge();
+		const auto coords = FireAtTemp::pObstacleCell->GetCoordsWithBridge();
+
 		pTargetCoords->X = coords.X;
 		pTargetCoords->Y = coords.Y;
 		pTargetCoords->Z = coords.Z;
@@ -273,6 +273,7 @@ DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_Additional, 0x6)
 		{
 			if (pThis->InOpenToppedTransport && !fbWeapon->FireInTransport)
 				return 0;
+
 			WeaponTypeExtData::DetonateAt(fbWeapon, pThis, pThis , true , nullptr);
 		}
 	}
@@ -343,14 +344,12 @@ DEFINE_OVERRIDE_HOOK(0x6FF656, TechnoClass_FireAt_Additionals, 0xA)
 
 DEFINE_HOOK(0x70C862, TechnoClass_Railgun_AmbientDamageIgnoreTarget1, 0x5)
 {
-	enum { IgnoreTarget = 0x70CA59 };
+	enum { IgnoreTarget = 0x70CA59 , Continue = 0x0};
 
 	GET_BASE(WeaponTypeClass*, pWeapon, 0x14);
 
-	if (WeaponTypeExtContainer::Instance.Find(pWeapon)->AmbientDamage_IgnoreTarget)
-		return IgnoreTarget;
-
-	return 0;
+	return WeaponTypeExtContainer::Instance.Find(pWeapon)->AmbientDamage_IgnoreTarget ? 
+		IgnoreTarget : Continue;
 }
 
 DEFINE_HOOK(0x70CA8B, TechnoClass_Railgun_AmbientDamageIgnoreTarget2, 0x6)
@@ -368,11 +367,11 @@ DEFINE_HOOK(0x70CA8B, TechnoClass_Railgun_AmbientDamageIgnoreTarget2, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x70CBE0, TechnoClass_Railgun_AmbientDamageWarhead, 0x5)
+DEFINE_HOOK(0x70CBDA, TechnoClass_Railgun_AmbientDamageWarhead, 0x6)
 {
 	GET(WeaponTypeClass*, pWeapon, EDI);
 	R->EDX(WeaponTypeExtContainer::Instance.Find(pWeapon)->AmbientDamage_Warhead.Get(pWeapon->Warhead));
-	return 0;
+	return 0x70CBE0;
 }
 
 #endif

@@ -13,15 +13,12 @@ DEFINE_HOOK(0x4B5BCD, DroppodLoco_Process_Speed, 0x6)
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis->Owner);
 
-	//auto nLinked = pThis->Owner ? pThis->Owner->get_ID() : "None";
-	//Debug::Log(__FUNCTION__"DroppodLoco [%x] Owner [%s] \n",pThis, nLinked);
-	R->EAX(pExt->LinkedSW ?
+	R->EAX(pExt->LinkedSW && (int)pExt->LinkedSW->Type->Type == (int)AresNewSuperType::DropPod ?
 		SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->Droppod_Speed : pRules->DropPodSpeed);
 
 	return 0x4B5BD3;
 }
 
-// Angle ,4B5BEC , EDX ,4B5BF2
 DEFINE_HOOK(0x4B5BEC, DroppodLoco_Process_Angle1, 0x6)
 {
 	GET(DropPodLocomotionClass*, pThis, EDI);
@@ -29,13 +26,12 @@ DEFINE_HOOK(0x4B5BEC, DroppodLoco_Process_Angle1, 0x6)
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis->Owner);
 
-	R->EDX(pExt->LinkedSW ?
+	R->EDX(pExt->LinkedSW && (int)pExt->LinkedSW->Type->Type == (int)AresNewSuperType::DropPod ?
 		SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->Droppod_Angle : pRules->DropPodAngle);
 
 	return 0x4B5BF2;
 }
 
-// Angle , 4B5C14,ECX ,4B5C1A
 DEFINE_HOOK(0x4B5C14, DroppodLoco_Process_Angle2, 0x6)
 {
 	GET(DropPodLocomotionClass*, pThis, EDI);
@@ -43,13 +39,12 @@ DEFINE_HOOK(0x4B5C14, DroppodLoco_Process_Angle2, 0x6)
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis->Owner);
 
-	R->ECX(pExt->LinkedSW ?
+	R->ECX(pExt->LinkedSW && (int)pExt->LinkedSW->Type->Type == (int)AresNewSuperType::DropPod ?
 		SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->Droppod_Angle : pRules->DropPodAngle);
 
 	return 0x4B5C1A;
 }
 
-// Angle , 4B5C50, EAX ,4B5C56
 DEFINE_HOOK(0x4B5C50, DroppodLoco_Process_Angle3, 0x6)
 {
 	GET(DropPodLocomotionClass*, pThis, EDI);
@@ -57,7 +52,7 @@ DEFINE_HOOK(0x4B5C50, DroppodLoco_Process_Angle3, 0x6)
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis->Owner);
 
-	R->EAX(pExt->LinkedSW ?
+	R->EAX(pExt->LinkedSW && (int)pExt->LinkedSW->Type->Type == (int)AresNewSuperType::DropPod ?
 		SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->Droppod_Angle : pRules->DropPodAngle);
 
 	return 0x4B5C56;
@@ -69,7 +64,7 @@ DEFINE_HOOK(0x519168, InfantryClass_DrawIt_DroppodLinked, 0x5)
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if(pExt->LinkedSW) {
+	if(pExt->LinkedSW && (int)pExt->LinkedSW->Type->Type == (int)AresNewSuperType::DropPod) {
 		R->EAX(SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->Droppod_PodImage_Infantry.Get());
 		return 0x519172;
 	}
@@ -84,7 +79,7 @@ DEFINE_HOOK(0x4B641D, DroppodLocomotionClass_IPiggy_EndPiggyback, 7)
 
 	if (pLoco->Owner) {
 		const auto pExt = TechnoExtContainer::Instance.Find(pLoco->Owner);
-		if (pExt->LinkedSW && (AresNewSuperType)pExt->LinkedSW->Type->Type == AresNewSuperType::DropPod)
+		if (pExt->LinkedSW && (int)pExt->LinkedSW->Type->Type == (int)AresNewSuperType::DropPod)
 			pExt->LinkedSW = nullptr;
 	}
 
@@ -102,7 +97,8 @@ DEFINE_OVERRIDE_HOOK(0x4B5EB0, DropPodLocomotionClass_ILocomotion_Process_Smoke,
 	// create trailer even without weapon, but only if it is set
 	if (!(Unsorted::CurrentFrame % 6))
 	{
-		if (AnimTypeClass* pType = pExt->LinkedSW ? SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->Droppod_Trailer :  RulesExtData::Instance()->DropPodTrailer)
+		if (AnimTypeClass* pType = pExt->LinkedSW && (int)pExt->LinkedSW->Type->Type == (int)AresNewSuperType::DropPod
+			? SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->Droppod_Trailer :  RulesExtData::Instance()->DropPodTrailer)
 		{
 			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pCoords , 0 ,1,(AnimFlag)0x600, 0 , false),
 				pFoot->Owner,
@@ -120,8 +116,8 @@ DEFINE_OVERRIDE_HOOK(0x4B5EB0, DropPodLocomotionClass_ILocomotion_Process_Smoke,
 			// Please dont ask , see the binary yourself ,.. (-Otamaa)
 			CoordStruct nDest = *reinterpret_cast<CoordStruct*>(((uintptr_t)(pDroppod)) + 0x1C);
 
-			auto pCell = MapClass::Instance->GetCellAt(nDest);
-			auto pCellTechno = pCell->FindTechnoNearestTo(Point2D::Empty, false, nullptr);
+			const auto pCell = MapClass::Instance->GetCellAt(nDest);
+			const auto pCellTechno = pCell->FindTechnoNearestTo(Point2D::Empty, false, nullptr);
 
 			if(!pCellTechno || !pFoot->Owner->IsAlliedWith(pCellTechno))
 			{
@@ -164,8 +160,9 @@ DEFINE_HOOK(0x4B5CF1, DropPodLocomotionClass_Process_DroppodPuff, 0x5)
 		return 0x4B5D0A;
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pFoot);
+	const auto IsLinkedSWEligible = pExt->LinkedSW && (int)pExt->LinkedSW->Type->Type == (int)AresNewSuperType::DropPod;
 
-	if (auto pAnimType = pExt->LinkedSW ? SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->Droppod_Puff : RulesClass::Instance->DropPodPuff)
+	if (auto pAnimType = IsLinkedSWEligible ? SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->Droppod_Puff : RulesClass::Instance->DropPodPuff)
 	{
 		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pCoord, 0, 1, AnimFlag(0x600), 0, 0),
 			pFoot->Owner,
@@ -175,7 +172,7 @@ DEFINE_HOOK(0x4B5CF1, DropPodLocomotionClass_Process_DroppodPuff, 0x5)
 		);
 	}
 
-	const auto nDroppod = pExt->LinkedSW ?
+	const auto nDroppod = IsLinkedSWEligible ?
 		make_iterator((SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->Droppod_GroundPodAnim)) : make_iterator(RulesClass::Instance->DropPod);
 
 	if (!nDroppod)
@@ -192,26 +189,6 @@ DEFINE_HOOK(0x4B5CF1, DropPodLocomotionClass_Process_DroppodPuff, 0x5)
 		);
 	}
 
-	//original game code
-	//using static_cast adding some unnessesary check !
-	/*pLoco + 0x18*/
-	//if (reinterpret_cast<void*>((DWORD)pLoco + 0x18)) {
-	//
-	//	if(RulesClass::Instance->DropPod.Count == 1)
-	//		return 0x4B5E4C;
-	//
-	//	if (auto pAnimType = RulesClass::Instance->DropPod[1]) {
-	//		if (auto pAnim = GameCreate<AnimClass>(pAnimType, pCoord, 0, 1, AnimFlag(0x600), 0, 0))
-	//			AnimExtData::SetAnimOwnerHouseKind(pAnim, pFoot->Owner, nullptr, pFoot, false);
-	//	}
-	//} else {
-	//
-	//	if (auto pAnimType = RulesClass::Instance->DropPod[0]) {
-	//		if (auto pAnim = GameCreate<AnimClass>(pAnimType, pCoord, 0, 1, AnimFlag(0x600), 0, 0))
-	//			AnimExtData::SetAnimOwnerHouseKind(pAnim, pFoot->Owner, nullptr, pFoot, false);
-	//	}
-	//}
-
 	return 0x4B5E4C;
 }
 
@@ -222,7 +199,8 @@ DEFINE_HOOK(0x4B619F, DropPodLocomotionClass_MoveTo_AtmosphereEntry, 0x5)
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pLoco->Owner);
 
-	if (auto pAnimType = pExt->LinkedSW ? SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->Droppod_AtmosphereEntry : RulesClass::Instance->AtmosphereEntry)
+	if (auto pAnimType = pExt->LinkedSW && (int)pExt->LinkedSW->Type->Type == (int)AresNewSuperType::DropPod 
+		? SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->Droppod_AtmosphereEntry : RulesClass::Instance->AtmosphereEntry)
 	{
 		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pCoord, 0, 1, AnimFlag(0x600), 0, 0),
 			pLoco->Owner->Owner,
@@ -233,10 +211,3 @@ DEFINE_HOOK(0x4B619F, DropPodLocomotionClass_MoveTo_AtmosphereEntry, 0x5)
 
 	return 0x4B61D6;
 }
-
-//DEFINE_HOOK(0x4B5F7E, DropPodLocomotionClass_ILocomotion_Process_Report, 0x6)
-//{
-//	// do not divide by zero
-//	GET(int const, count, EBP);
-//	return count ? 0 : 0x4B5FAD;
-//}

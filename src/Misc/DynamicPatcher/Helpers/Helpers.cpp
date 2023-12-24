@@ -1026,7 +1026,7 @@ void Helpers_DP::PlayReportSound(WeaponTypeClass* pWeapon, CoordStruct& sourcePo
 	{
 		const int nResult = pTechno ? pTechno->weapon_sound_randomnumber_3C8 % pWeapon->Report.Count
 			: Random2Class::Global->RandomFromMax(pWeapon->Report.Count - 1);
-		VocClass::PlayIndexAtPos(pWeapon->Report.GetItem(nResult), sourcePos, nullptr);
+		VocClass::PlayIndexAtPos(pWeapon->Report.Items[nResult], sourcePos, nullptr);
 	}
 }
 
@@ -1100,7 +1100,7 @@ void Helpers_DP::DrawWeaponAnim(WeaponTypeClass* pWeapon, CoordStruct& sourcePos
 			}
 		}
 
-		if (auto pAnimType = pWeapon->Anim.GetItem(index))
+		if (auto pAnimType = pWeapon->Anim.GetItemOrDefault(index))
 		{
 			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, sourcePos),
 				pOwner ? pOwner->GetOwningHouse() : nullptr,

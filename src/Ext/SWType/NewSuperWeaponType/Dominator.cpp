@@ -33,7 +33,7 @@ bool SW_PsychicDominator::Activate(SuperClass* pThis, const CellStruct& Coords, 
 bool SW_PsychicDominator::AbortFire(SuperClass* pSW, bool IsPlayer)
 {
 	// be one with Yuri! and only one.
-	if (PsyDom::Active())
+	if (PsyDom::IsActive())
 	{
 		if (IsPlayer)
 		{

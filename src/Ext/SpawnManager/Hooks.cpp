@@ -35,47 +35,47 @@
 // 	return 0;
 // }
 
-DEFINE_HOOK(0x6B743E, SpawnManagerClass_AI_SpawnOffsets, 0x6)
-{
-	GET(TechnoClass*, pOwner, ECX);
-	//yes , i include the buffer just in case it used somewhere !
-	LEA_STACK(CoordStruct*, pBuffer, STACK_OFFS(0x68, 0x18));
-	LEA_STACK(CoordStruct*, pBuffer2, STACK_OFFS(0x68, 0xC));
-
-	auto const pExt = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType());
-
-	if (pExt->Spawner_SpawnOffsets.isset())
-	{
-		if (pExt->Spawner_SpawnOffsets_OverrideWeaponFLH)
-		{
-			auto const pRet = pExt->Spawner_SpawnOffsets.GetEx();
-			pBuffer = pRet;
-			pBuffer2 = pRet;
-			R->EAX(pRet);
-		}
-		else
-		{
-			CoordStruct FLH = pExt->Spawner_SpawnOffsets.Get();
-			if (pOwner->CurrentBurstIndex)
-			{
-				auto const pRet = pOwner->GetFLH(pBuffer, R->EBP<int>(), pExt->Get()->SecondSpawnOffset);
-				pRet->X += FLH.X;
-				pRet->Y += FLH.Y;
-				pRet->Z += FLH.Z;
-				R->EAX(pRet);
-			}
-			else
-			{
-				auto const pRet = pOwner->GetFLH(pBuffer2, R->EBP<int>(), CoordStruct::Empty);
-				pRet->X += FLH.X;
-				pRet->Y += FLH.Y;
-				pRet->Z += FLH.Z;
-				R->EAX(pRet);
-			}
-		}
-
-		return 0x6B7498;
-	}
-
-	return 0x0;
-}
+//DEFINE_HOOK(0x6B743E, SpawnManagerClass_AI_SpawnOffsets, 0x6)
+//{
+//	GET(TechnoClass*, pOwner, ECX);
+//	//yes , i include the buffer just in case it used somewhere !
+//	LEA_STACK(CoordStruct*, pBuffer, STACK_OFFS(0x68, 0x18));
+//	LEA_STACK(CoordStruct*, pBuffer2, STACK_OFFS(0x68, 0xC));
+//
+//	auto const pExt = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType());
+//
+//	if (pExt->Spawner_SpawnOffsets.isset())
+//	{
+//		if (pExt->Spawner_SpawnOffsets_OverrideWeaponFLH)
+//		{
+//			auto const pRet = pExt->Spawner_SpawnOffsets.GetEx();
+//			pBuffer = pRet;
+//			pBuffer2 = pRet;
+//			R->EAX(pRet);
+//		}
+//		else
+//		{
+//			CoordStruct FLH = pExt->Spawner_SpawnOffsets.Get();
+//			if (pOwner->CurrentBurstIndex)
+//			{
+//				auto const pRet = pOwner->GetFLH(pBuffer, R->EBP<int>(), pExt->Get()->SecondSpawnOffset);
+//				pRet->X += FLH.X;
+//				pRet->Y += FLH.Y;
+//				pRet->Z += FLH.Z;
+//				R->EAX(pRet);
+//			}
+//			else
+//			{
+//				auto const pRet = pOwner->GetFLH(pBuffer2, R->EBP<int>(), CoordStruct::Empty);
+//				pRet->X += FLH.X;
+//				pRet->Y += FLH.Y;
+//				pRet->Z += FLH.Z;
+//				R->EAX(pRet);
+//			}
+//		}
+//
+//		return 0x6B7498;
+//	}
+//
+//	return 0x0;
+//}

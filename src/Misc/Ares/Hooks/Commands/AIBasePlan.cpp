@@ -36,7 +36,7 @@ void AIBasePlanCommandClass::Execute(WWKey dwUnk) const
 	Debug::Log("AI Base Plans:\n");
 	for (int i = 0; i < HouseClass::Array->Count; ++i)
 	{
-		auto H = HouseClass::Array->GetItem(i);
+		auto H = HouseClass::Array->Items[i];
 		if (!H->IsControlledByHuman())
 		{
 			Debug::Log("#%02d: country %25s:\n", i, H->Type->ID);
@@ -47,7 +47,7 @@ void AIBasePlanCommandClass::Execute(WWKey dwUnk) const
 				auto idx = n.BuildingTypeIndex;
 				if (idx >= 0)
 				{
-					auto lbl = BuildingTypeClass::Array->GetItem(idx)->ID;
+					auto lbl = BuildingTypeClass::Array->Items[idx]->ID;
 					Debug::Log("\tNode #%03d: %s @ (%05d, %05d), Attempts so far: %d, Placed: %d\n"
 						, j, lbl, n.MapCoords.X, n.MapCoords.Y, n.Attempts, n.Placed);
 				}

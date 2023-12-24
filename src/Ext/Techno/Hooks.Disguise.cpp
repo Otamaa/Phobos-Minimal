@@ -3,28 +3,14 @@
 
 #include <Utilities/Cast.h>
 
-DEFINE_HOOK(0x522790, InfantryClass_SetDisguise_PermaDisguise_DefaultDisguise, 0x6) // InfantryClass_SetDisguise_DefaultDisguise
-{
-	GET(InfantryTypeClass*, pType, EAX);
-	GET(InfantryClass*, pThis, ECX);
-
-	if (const auto pDisguiseType = TechnoExtData::SetInfDefaultDisguise(pThis, pType)) {
-		pThis->Disguise = pDisguiseType;
-		return 0x5227BF;// EC / D7 / E4
-	}
-
-	return 0x0;
-}
-
 DEFINE_HOOK(0x6F421C, TechnoClass_Init_PermaDisguise_DefaultDisguise, 0x6)
 {
 	GET(TechnoTypeClass*, pType, EAX);
 	GET(TechnoClass*, pThis, ESI);
 
 	const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
-	const auto what = pThis->WhatAmI();
 
-	if (what == UnitClass::AbsID && pExt->TankDisguiseAsTank.Get())
+	if (pThis->WhatAmI() == UnitClass::AbsID && pExt->TankDisguiseAsTank.Get())
 	{
 		pThis->Disguised = false;
 		pThis->DisguisedAsHouse = nullptr;
@@ -32,25 +18,41 @@ DEFINE_HOOK(0x6F421C, TechnoClass_Init_PermaDisguise_DefaultDisguise, 0x6)
 		return 0x6F424B;
 	}
 
-	if (what == InfantryClass::AbsID) {
-		if (const auto pDisguiseType = TechnoExtData::SetInfDefaultDisguise(pThis, pType)) {
-
-			pThis->Disguise = pDisguiseType;
-			return 0x6F424B;
-		}
-	}
-
 	return 0;
 }
 
-#ifndef ENABLE_OBESERVER_THRUDISGUISE
-DEFINE_HOOK(0x7467CA , UnitClass_CantTarget_Disguise, 0x5)
+DEFINE_HOOK(0x7466D8, UnitClass_DesguiseAs_AsAnotherUnit, 0xA)
 {
-	return HouseClass::IsCurrentPlayerObserver() ?
-	 0x7467FE : 0x0;
+	GET(AbstractClass*, pTarget, ESI);
+	GET(UnitClass*, pThis, EDI);
+
+	auto const pObjectT = generic_cast<ObjectClass*>(pTarget);
+
+	if (!pObjectT || pObjectT->IsDisguised())
+		return 0x0;
+
+	if (pObjectT->WhatAmI() != UnitClass::AbsID || !TechnoTypeExtContainer::Instance.Find(pThis->Type)
+		->TankDisguiseAsTank.Get())
+		return 0x0;
+
+	pThis->Disguise = static_cast<UnitClass*>(pTarget)->Type;
+	pThis->DisguisedAsHouse = pTarget->GetOwningHouse();
+
+	return 0x746712;
 }
 
-bool NOINLINE CanBlinkDisguise(TechnoClass* pTechno , HouseClass* pCurPlayer)
+#ifdef ENABLE_OBESERVER_THRUDISGUISE
+DEFINE_HOOK(0x746750, UnitClass_CantTarget_Disguise, 0x5)
+{
+	if (HouseClass::IsCurrentPlayerObserver()) {
+		R->AL(true);
+		return 0x7467FB
+	}
+
+	return  0x0;
+}
+
+bool CanBlinkDisguise(TechnoClass* pTechno , HouseClass* pCurPlayer)
 {
 	if(pCurPlayer && !pCurPlayer->IsObserver()) {
 		return  EnumFunctions::CanTargetHouse(
@@ -97,9 +99,9 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 
 	if(pOwner) {
 		if (pType->Palette && pType->Palette->Count > 0)
-			pConvert = pType->Palette->GetItem(pOwner->ColorSchemeIndex)->LightConvert;
+			pConvert = pType->Palette->Items[pOwner->ColorSchemeIndex]->LightConvert;
 		else
-			pConvert = ColorScheme::Array->GetItem(pOwner->ColorSchemeIndex)->LightConvert;
+			pConvert = ColorScheme::Array->Items[pOwner->ColorSchemeIndex]->LightConvert;
 	}
 
 	R->EBX(pConvert);
@@ -168,27 +170,7 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 // 	return 0x746A6C;
 // }
 
-DEFINE_HOOK(0x7466D8, UnitClass_DesguiseAs_AsAnotherUnit, 0xA)
-{
-	GET(AbstractClass*, pTarget, ESI);
-	GET(UnitClass*, pThis, EDI);
-
-	auto const pObjectT = generic_cast<ObjectClass*>(pTarget);
-
-	if (!pObjectT || pObjectT->IsDisguised())
-		return 0x0;
-
-	if (pObjectT->WhatAmI() != UnitClass::AbsID || !TechnoTypeExtContainer::Instance.Find(pThis->Type)
-		->TankDisguiseAsTank.Get())
-		return 0x0;
-
-	pThis->Disguise = static_cast<UnitClass*>(pTarget)->Type;
-	pThis->DisguisedAsHouse = pTarget->GetOwningHouse();
-
-	return 0x746712;
-}
-
-#ifdef aaa
+#ifdef sss
 DEFINE_HOOK(0x746670, UnitClass_DisguiseAs_Override, 0x5)
 {
 	GET(UnitClass*, pThis, ECX);

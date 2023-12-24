@@ -1122,11 +1122,9 @@ ConvertClass* ConvertClass::CreateFromFile(const char* pal_filename) {
 
 	CCFileClass file{ pal_filename };
 
-	if (!file.Exists()) {
+	if (!file.Exists() || !file.Open(FileAccessMode::Read)) {
 		return nullptr;
 	}
-
-	file.Open(FileAccessMode::Read);
 
 	if (void* data = CCFileClass::Load_Alloc_Data(file)) {
 		BytePalette loaded_pal { };
@@ -1151,7 +1149,7 @@ void Game::Unselect_All_Except(AbstractType rtti)
 		}
 
 		int count_before = ObjectClass::CurrentObjects->Count;
-		ObjectClass::CurrentObjects->GetItem(index)->Deselect();
+		ObjectClass::CurrentObjects->Items[index]->Deselect();
 
 		if (count_before <= ObjectClass::CurrentObjects->Count)
 		{

@@ -58,10 +58,10 @@ DEFINE_HOOK(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x6)
 
 	if (pType && pType->HideIfNoOre)
 	{
-		int nThreshold = abs(AnimTypeExtContainer::Instance.Find(pType)->HideIfNoOre_Threshold.Get());
 		auto const pCell = pThis->GetCell();
 
-		pThis->Invisible = !pCell || pCell->GetContainedTiberiumValue() <= nThreshold;
+		pThis->Invisible = !pCell || pCell->GetContainedTiberiumValue()
+			<= abs(AnimTypeExtContainer::Instance.Find(pType)->HideIfNoOre_Threshold.Get());
 
 		return 0x423BBF;
 	}
@@ -130,6 +130,9 @@ DEFINE_HOOK(0x424CB0, AnimClass_InWhichLayer_AttachedObjectLayer, 0x6)
 	enum { ReturnValue = 0x424CBF };
 
 	GET(AnimClass*, pThis, ECX);
+
+	if(!pThis->Type)
+		return 0x0;
 
 	auto pExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 

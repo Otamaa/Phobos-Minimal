@@ -20,7 +20,7 @@ namespace DamageFireAnims
 			return;
 
 		for (auto& nFires : pExt->DamageFireAnims) {
-			if (nFires) {
+			if (nFires && nFires->Type) {
  				//GameDelete<true,false>(nFires);
 				nFires->TimeToDie = true;
 				nFires->UnInit();

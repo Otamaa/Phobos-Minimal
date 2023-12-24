@@ -716,7 +716,7 @@ void ParticleSystemExtData::InitializeConstant()
 		if (!ParticleSystemTypeExtContainer::Instance.Find(pType)->ApplyOptimization || (size_t)pType->HoldsWhat >= ParticleTypeClass::Array->size())
 			return ;
 
-		this->HeldType = ParticleTypeClass::Array->GetItem(pType->HoldsWhat);
+		this->HeldType = ParticleTypeClass::Array->Items[pType->HoldsWhat];
 
 		if (!this->HeldType->UseLineTrail && !this->HeldType->AlphaImage) {
 

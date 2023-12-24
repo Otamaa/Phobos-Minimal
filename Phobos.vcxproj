@@ -29,6 +29,7 @@
     <ClCompile Include="src\Commands\ToggleRadialIndicatorDrawMode.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.Otamaa.cpp" />
+    <ClCompile Include="src\Ext\AITriggerType\Hooks.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.AnimCreateUnit.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.Drawings.cpp" />
@@ -186,7 +187,6 @@
     <ClCompile Include="src\Ext\WarheadType\Hooks.cpp" />
     <ClCompile Include="src\Ext\WarheadType\Transact.cpp" />
     <ClCompile Include="src\Ext\Wave\Body.cpp" />
-    <ClCompile Include="src\Ext\WeaponType\Hook.EBolt.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.DiskLaserRadius.cpp" />
     <ClCompile Include="src\Misc\Ares\Audio.cpp" />
@@ -205,6 +205,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Commands\MapSnapshot.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Commands\TogglePower.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Header.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hook.EBolt.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hook.Init.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hook.Prism.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hook.RadBeam.cpp" />
@@ -224,6 +225,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.CustomMissile.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.DamageArea.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Deactivated.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Exception.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Firewall.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Foot.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Foundation.cpp" />
@@ -256,7 +258,6 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.VXLArtData.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Wave.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Weapons.cpp" />
-    <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\Hooks.PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\ExtHooks\TechnoExt.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\FighterGuardArea\FighterAreaGuard.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\TurretAngle\Status.cpp" />
@@ -372,6 +373,7 @@
     <ClCompile Include="src\Utilities\TechnoTypeConvertData.cpp" />
     <ClCompile Include="src\Utilities\Template.cpp" />
     <ClCompile Include="src\Utilities\VersesData.cpp" />
+    <ClCompile Include="YRpp\DebugLog.cpp" />
     <ClCompile Include="YRpp\StaticInits.cpp" />
     <ClCompile Include="src\Utilities\Patch.cpp" />
     <ClCompile Include="YRpp\Syringe.cpp" />

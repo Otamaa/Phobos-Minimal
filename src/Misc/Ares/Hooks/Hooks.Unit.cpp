@@ -1158,125 +1158,6 @@ DEFINE_OVERRIDE_HOOK(0x73C5FC, UnitClass_DrawSHP_WaterType, 6)
 	return 0x73CE00;
 }
 
-DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
-{
-	GET(FootClass*, pThis, ESI);
-	GET_STACK(Point2D, pos, STACK_OFFSET(0x18, 0x28));
-	GET_STACK(Surface*, pSurface, STACK_OFFSET(0x18, 0x24));
-	GET_STACK(bool, a9, STACK_OFFSET(0x18, 0x20)); // unknown usage
-	GET_STACK(Matrix3D*, pMatrix, STACK_OFFSET(0x18, 0x1C));
-	GET_STACK(Point2D*, a4, STACK_OFFSET(0x18, 0x14)); // unknown usage
-	GET_STACK(Point2D, a3, STACK_OFFSET(0x18, -0x10)); // unknown usage
-	GET_STACK(int*, a5, STACK_OFFSET(0x18, 0x10)); // unknown usage
-	GET_STACK(int, angle, STACK_OFFSET(0x18, 0xC));
-	GET_STACK(int, idx, STACK_OFFSET(0x18, 0x8));
-	GET_STACK(VoxelStruct*, pVXL, STACK_OFFSET(0x18, 0x4));
-
-	if (!pThis->IsAlive)
-		return 0x0;
-
-	auto pType = TechnoExt_ExtData::GetImage(pThis);
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	const auto tur = pType->Gunner || pType->IsChargeTurret
-		? TechnoTypeExtData::GetTurretsVoxel(pType, pThis->CurrentTurretNumber)
-		: &pType->TurretVoxel;
-
-	if (pTypeExt->TurretShadow.Get(RulesExtData::Instance()->DrawTurretShadow) && tur->VXL && tur->HVA)
-	{
-		Matrix3D mtx;
-		pThis->Locomotor->Shadow_Matrix(&mtx, nullptr);
-
-		if(pType->Turret)
-			mtx.RotateZ((float)(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>()));
-
-		const auto pTurOffset = pTypeExt->TurretOffset.GetEx();
-		float x = (float)(pTurOffset->X / 8);
-		float y = (float)(pTurOffset->Y / 8);
-		float z = -tur->VXL->TailerData->MinBounds.Z;
-		mtx.Translate(x, y, z);
-		Matrix3D::MatrixMultiply(&mtx, &Game::VoxelDefaultMatrix(), &mtx);
-
-		pThis->DrawVoxelShadow(tur, 0, angle, 0, a4, &a3, &mtx, a9, pSurface, pos);
-
-		const auto bar = pType->ChargerBarrels ?
-			TechnoTypeExtData::GetBarrelsVoxel(pType, pThis->CurrentTurretNumber)
-			: &pType->BarrelVoxel;
-
-		if (bar->VXL && bar->HVA)
-			pThis->DrawVoxelShadow(bar, 0, angle, 0, a4, &a3, &mtx, a9, pSurface, pos);
-	}
-
-	if (pTypeExt->ShadowIndices.empty())
-	{
-		pThis->DrawVoxelShadow(pVXL, idx, angle, a5, a4, &a3, pMatrix, a9, pSurface, pos);
-	}
-	else
-	{
-		for (const auto& index : pTypeExt->ShadowIndices)
-		{
-			//Matrix3D copy_ = *pMatrix;
-			//copy_.TranslateZ(-pVXL->HVA->Matrixes[index].GetZVal());
-			//Matrix3D::MatrixMultiply(&copy_, &Game::VoxelDefaultMatrix(), &copy_);
-			pThis->DrawVoxelShadow(pVXL, index, angle, a5, a4, &a3, pMatrix, a9, pSurface, pos);
-		}
-	}
-
-	return 0x4DB195;
-}
-
-DEFINE_OVERRIDE_HOOK(0x73B4A0, UnitClass_DrawVXL_WaterType, 9)
-{
-	R->ESI(0);
-	GET(UnitClass*, U, EBP);
-
-	ObjectTypeClass* Image = U->Type;
-
-	if (UnitTypeClass* const pCustomType = TechnoExt_ExtData::GetUnitTypeImage(U)) {
-		Image = pCustomType;
-	}
-
-	if (U->Deployed && U->Type->UnloadingClass) {
-		Image = U->Type->UnloadingClass;
-	}
-
-	if (!U->IsClearlyVisibleTo(HouseClass::CurrentPlayer)) {
-		Image = U->GetDisguise(true);
-	}
-
-	R->EBX<ObjectTypeClass*>(Image);
-	return 0x73B4DA;
-}
-
-DEFINE_OVERRIDE_HOOK(0x715320, TechnoTypeClass_LoadFromINI_EarlyReader, 6)
-{
-	GET(CCINIClass*, pINI, EDI);
-	GET(TechnoTypeClass*, pType, EBP);
-
-	INI_EX exINI(pINI);
-	TechnoTypeExtContainer::Instance.Find(pType)->WaterImage.Read(exINI, pType->ID, "WaterImage");
-
-	return 0;
-}
-
-DEFINE_OVERRIDE_HOOK(0x73C485, UnitClass_DrawVXL_NoSpawnAlt_SkipShadow, 8)
-{
-	enum { DoNotDrawShadow = 0x73C5C9, ShadowAlreadyDrawn = 0x0 };
-
-	GET(UnitClass*, pThis, EBP);
-	auto const pSpawnManager = pThis->SpawnManager;
-
-	if (pThis->Type->NoSpawnAlt
-		&& pSpawnManager
-		&& pSpawnManager->CountDockedSpawns() < pSpawnManager->SpawnCount
-		)
-	{
-		if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->NoShadowSpawnAlt.Get())
-			return DoNotDrawShadow;
-	}
-
-	return ShadowAlreadyDrawn;
-}
-
 static bool ShadowAlreadyDrawn;
 
 DEFINE_OVERRIDE_HOOK(0x73C725, UnitClass_DrawSHP_DrawShadowEarlier, 6)
@@ -1728,7 +1609,7 @@ DEFINE_OVERRIDE_HOOK(0x7090A8, TechnoClass_SelectFiringVoice, 5)
 	if (idxVoice < 0 && pType->VoiceAttack.Count)
 	{
 		unsigned int idxRandom = Random2Class::Global->Random();
-		idxVoice = pType->VoiceAttack.GetItem(idxRandom % pType->VoiceAttack.Count);
+		idxVoice = pType->VoiceAttack.Items[idxRandom % pType->VoiceAttack.Count];
 	}
 
 	// play voice

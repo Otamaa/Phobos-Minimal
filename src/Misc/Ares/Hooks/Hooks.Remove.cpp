@@ -49,6 +49,7 @@ DEFINE_DISABLE_HOOK(0x47C8AB, CellClass_CanThisExistHere_GateOnWall_ares)
 
 DEFINE_DISABLE_HOOK(0x52CA37, InitGame_Delay_ares)
 
+#ifndef aaa
 DEFINE_DISABLE_HOOK(0x42784B, AnimTypeClass_CTOR_ares)
 DEFINE_DISABLE_HOOK(0x428EA8, AnimTypeClass_SDDTOR_ares)
 DEFINE_DISABLE_HOOK(0x428970, AnimTypeClass_SaveLoad_Prefix_ares)
@@ -68,6 +69,7 @@ DEFINE_DISABLE_HOOK(0x72212C, TiberiumClass_Save_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x721CDC, TiberiumClass_LoadFromINI_ares)
 DEFINE_DISABLE_HOOK(0x721CE9, TiberiumClass_LoadFromINI_ares)
 DEFINE_DISABLE_HOOK(0x721C7B, TiberiumClass_LoadFromINI_ares)
+#endif
 
 DEFINE_DISABLE_HOOK(0x5F4FF9, ObjectClass_Put_IsFlammable_ares)
 
@@ -75,8 +77,11 @@ DEFINE_DISABLE_HOOK(0x6F407D, TechnoClass_Init_1_ares);
 DEFINE_DISABLE_HOOK(0x6F4103, TechnoClass_Init_2_ares);
 DEFINE_DISABLE_HOOK(0x65B5FB, RadSiteClass_Radiate_UnhardcodeSnow_ares)
 
+#ifndef aaa
 DEFINE_DISABLE_HOOK(0x55afb3, LogicClass_Update_ares)
+#endif
 
+#ifndef aaa
 DEFINE_DISABLE_HOOK(0x771ee9, WeaponTypeClass_CTOR_ares)
 DEFINE_DISABLE_HOOK(0x7729b0, WeaponTypeClass_LoadFromINI_ares)
 DEFINE_DISABLE_HOOK(0x7729c7, WeaponTypeClass_LoadFromINI_ares)
@@ -86,7 +91,9 @@ DEFINE_DISABLE_HOOK(0x772ea6, WeaponTypeClass_Load_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x772eb0, WeaponTypeClass_SaveLoad_Prefix_ares)
 DEFINE_DISABLE_HOOK(0x772f8c, WeaponTypeClass_Save_ares)
 DEFINE_DISABLE_HOOK(0x77311d, WeaponTypeClass_SDDTOR_ares)
+#endif
 
+#ifndef aaa
 DEFINE_DISABLE_HOOK(0x75d1a9, WarheadTypeClass_CTOR_ares)
 DEFINE_DISABLE_HOOK(0x75dea0, WarheadTypeClass_LoadFromINI_ares)
 DEFINE_DISABLE_HOOK(0x75deaf, WarheadTypeClass_LoadFromINI_ares)
@@ -95,3 +102,4 @@ DEFINE_DISABLE_HOOK(0x75e2ae, WarheadTypeClass_Load_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x75e2c0, WarheadTypeClass_SaveLoad_Prefix_ares)
 DEFINE_DISABLE_HOOK(0x75e39c, WarheadTypeClass_Save_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x75E5C8, WarheadTypeClass_SDDTOR_ares)
+#endif

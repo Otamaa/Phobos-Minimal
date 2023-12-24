@@ -10,13 +10,13 @@ DEFINE_HOOK(0x457C90, BuildingClass_IronCuratin, 0x6)
 {
 	GET(BuildingClass*, pThis, ECX);
 	GET_STACK(HouseClass*, pSource, 0x8);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (pTypeExt->IronCurtain_Affect.isset())
 	{
 		if (pTypeExt->IronCurtain_Affect == IronCurtainAffects::Kill)
 		{
-			R->EAX(pThis->ReceiveDamage(&pThis->GetType()->Strength, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, pSource));
+			R->EAX(pThis->ReceiveDamage(&pThis->Type->Strength, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, pSource));
 			return 0x457CDB;
 		}
 		else if (pTypeExt->IronCurtain_Affect == IronCurtainAffects::NoAffect)

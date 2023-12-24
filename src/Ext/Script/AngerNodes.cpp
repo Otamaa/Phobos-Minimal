@@ -723,22 +723,22 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 			{
 				// Select House with LESS threat
 				if ((enemyThreatValue[i] < value || value == -1)
-					&& !HouseClass::Array->GetItem(i)->Defeated
-					&& !HouseClass::Array->GetItem(i)->IsObserver())
+					&& !HouseClass::Array->Items[i]->Defeated
+					&& !HouseClass::Array->Items[i]->IsObserver())
 				{
 					value = enemyThreatValue[i];
-					enemyHouse = HouseClass::Array->GetItem(i);
+					enemyHouse = HouseClass::Array->Items[i];
 				}
 			}
 			else
 			{
 				// Select House with MORE threat
 				if ((enemyThreatValue[i] > value || value == -1)
-					&& !HouseClass::Array->GetItem(i)->Defeated
-					&& !HouseClass::Array->GetItem(i)->IsObserver())
+					&& !HouseClass::Array->Items[i]->Defeated
+					&& !HouseClass::Array->Items[i]->IsObserver())
 				{
 					value = enemyThreatValue[i];
-					enemyHouse = HouseClass::Array->GetItem(i);
+					enemyHouse = HouseClass::Array->Items[i];
 				}
 			}
 		}

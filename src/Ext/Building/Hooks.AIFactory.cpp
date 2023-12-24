@@ -207,7 +207,7 @@ void HouseExtData::UpdateVehicleProduction()
 	}
 }
 
-DEFINE_HOOK(0x4401BB, Factory_AI_PickWithFreeDocks, 0x6) //was C
+DEFINE_HOOK(0x4401BB, BuildingClass_AI_PickWithFreeDocks, 0x6) //was C
 {
 	GET(BuildingClass*, pBuilding, ESI);
 
@@ -216,10 +216,7 @@ DEFINE_HOOK(0x4401BB, Factory_AI_PickWithFreeDocks, 0x6) //was C
 	if (!pRules->ForbidParallelAIQueues_Aircraft.Get(!pRules->AllowParallelAIQueues))
 		return 0;
 
-	if (!pBuilding || !pBuilding->Owner)
-		return 0;
-
-	if (pBuilding->Owner->IsControlledByHuman() || pBuilding->Owner->IsNeutral())
+	if (!pBuilding->Owner || pBuilding->Owner->IsNeutral() || pBuilding->Owner->IsControlledByHuman())
 		return 0;
 
 	if (pBuilding->Type->Factory == AbstractType::AircraftType)
@@ -355,7 +352,7 @@ DEFINE_OVERRIDE_HOOK(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
 
 	retfunc_fixed<DWORD> ret(R, 0x4FEEDA, 15);
 
-#ifdef aaa
+#ifdef sss
 	if (pThis->ProducingUnitTypeIndex != -1)
 	{
 		return ret();

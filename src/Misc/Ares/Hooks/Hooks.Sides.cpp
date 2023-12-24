@@ -1,6 +1,7 @@
 #include <Ext/HouseType/Body.h>
 #include <Ext/Side/Body.h>
 
+#ifndef aaa
 DEFINE_DISABLE_HOOK(0x6a4609, SideClass_CTOR_ares)
 DEFINE_DISABLE_HOOK(0x6a4780, SideClass_SaveLoad_Prefix_ares)
 DEFINE_DISABLE_HOOK(0x6a488b, SideClass_Load_Suffix_ares)
@@ -8,6 +9,7 @@ DEFINE_DISABLE_HOOK(0x6a48a0, SideClass_SaveLoad_Prefix_ares)
 DEFINE_DISABLE_HOOK(0x6a48fc, SideClass_Save_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x6a499f, SideClass_SDDTOR_ares)
 DEFINE_DISABLE_HOOK(0x679a10, SideClass_LoadAllFromINI_ares)
+#endif
 
 DEFINE_OVERRIDE_HOOK(0x534FB1, Sides_MixFileIndex, 5)
 {
@@ -15,7 +17,7 @@ DEFINE_OVERRIDE_HOOK(0x534FB1, Sides_MixFileIndex, 5)
 
 	int MixIdx = n;
 	if (n >= 0)
-		MixIdx = SideExtContainer::Instance.Find(SideClass::Array->GetItem(n))->SidebarMixFileIndex - 1;
+		MixIdx = SideExtContainer::Instance.Find(SideClass::Array->Items[n])->SidebarMixFileIndex - 1;
 
 	R->EBX(MixIdx);
 	R->ESI(MixIdx);

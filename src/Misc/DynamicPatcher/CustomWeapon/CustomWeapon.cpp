@@ -172,14 +172,12 @@ TechnoClass* CustomWeaponManager::WhoIsShooter(TechnoClass* pAttacker) const
 
 void  CustomWeaponManager::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
-	for (size_t i = 0; i < simulateBurstQueue.size(); ++i)
-	{
-		auto& nQueue = simulateBurstQueue[i];
-		if (nQueue.Target == ptr || nQueue.Shooter == ptr)
-		{
-			simulateBurstQueue.erase(simulateBurstQueue.begin() + i); //because it queue , we need to remove it instead
-		}
-	}
+	auto iter_sibulateBursts = std::remove_if(this->simulateBurstQueue.begin(), this->simulateBurstQueue.end(), [ptr, bRemoved](const auto& queue) {
+		return (queue.Target == ptr || queue.Shooter == ptr) && bRemoved;
+	});
+
+	if (iter_sibulateBursts != this->simulateBurstQueue.end())
+		this->simulateBurstQueue.erase(iter_sibulateBursts, this->simulateBurstQueue.end());
 }
 
 void FireWeaponManager::Clear()
@@ -211,14 +209,12 @@ bool FireWeaponManager::FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAt
 
 void FireWeaponManager::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
-	for (size_t i = 0; i < DelayFires.size(); ++i)
-	{
-		auto& nQueue = DelayFires[i];
-		if (nQueue.Target == ptr)
-		{
-			DelayFires.erase(DelayFires.begin() + i); //because it queue , we need to remove it instead
-		}
-	}
+	auto iter_delayfires = std::remove_if(this->DelayFires.begin(), this->DelayFires.end(), [ptr , bRemoved](const auto& queue) {
+		return queue.Target == ptr && bRemoved;
+	});
+
+	if (iter_delayfires != this->DelayFires.end())
+		this->DelayFires.erase(iter_delayfires, this->DelayFires.end());
 
 	CWeaponManager.InvalidatePointer(ptr, bRemoved);
 }

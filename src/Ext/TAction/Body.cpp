@@ -87,7 +87,7 @@ bool TActionExt::UndeployToWaypoint(TActionClass* pThis, HouseClass* pHouse, Obj
 		pBldType = BuildingTypeClass::Find(pThis->Text);
 		if (!pBldType)
 		{
-			pBldType = BuildingTypeClass::Array()->GetItem(atoi(pThis->Text));
+			pBldType = BuildingTypeClass::Array()->Items[atoi(pThis->Text)];
 		}
 	}
 
@@ -184,7 +184,7 @@ bool TActionExt::MessageForSpecifiedHouse(TActionClass* pThis, HouseClass* pHous
 
 	for (int i = 0; i < HouseClass::Array->Count; i++)
 	{
-		auto pTmpHouse = HouseClass::Array->GetItem(i);
+		auto pTmpHouse = HouseClass::Array->Items[i];
 		if (pTmpHouse->IsControlledByHuman() && pTmpHouse == pTargetHouse)
 		{
 			MessageListClass::Instance->PrintMessage(StringTable::LoadStringA(pThis->Text), RulesClass::Instance->MessageDelay, pTmpHouse->ColorSchemeIndex);
@@ -1166,6 +1166,11 @@ bool TActionExt::DumpVariables(TActionClass* pThis, HouseClass* pHouse, ObjectCl
 		if(!file.CreateFileA()) {
 			return false;
 		}
+	}
+
+	if(!file.Open(FileAccessMode::ReadWrite)) {
+		Debug::Log(" %s Failed to Open file %s for\n" , __FUNCTION__ , fileName);
+		return false;
 	}
 
 	CCINIClass ini {};

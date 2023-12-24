@@ -53,31 +53,3 @@ DEFINE_HOOK(0x6FCB34, TechnoClass_CanFire_CanCapture, 0x6)
 	return CaptureExt::CanCapture(pThis->CaptureManager, pTarget) ?
 	 0x6FCB53  : 0x6FCB44 ;
 }
-
-DEFINE_HOOK(0x4DBF23, FootClass_ChangeOwner_IAmNowHuman, 0x6)
-{
-	GET(FootClass* const, pThis, ESI);
-	// This is not limited to mind control, could possibly affect many map triggers
-	// This is still not even correct, but let's see how far this can help us
-
-	pThis->ShouldScanForTarget = false;
-	pThis->ShouldEnterAbsorber = false;
-	pThis->ShouldEnterOccupiable = false;
-	pThis->ShouldGarrisonStructure = false;
-	pThis->CurrentTargets.Clear();
-
-	if (pThis->HasAnyLink() || pThis->GetTechnoType()->ResourceGatherer) // Don't want miners to stop
-		return 0;
-
-	switch (pThis->GetCurrentMission())
-	{
-	case Mission::Harvest:
-	case Mission::Sleep:
-	case Mission::Harmless:
-	case Mission::Repair:
-		return 0;
-	}
-
-	pThis->Override_Mission(pThis->GetTechnoType()->DefaultToGuardArea ? Mission::Area_Guard : Mission::Guard, nullptr, nullptr); // I don't even know what this is, just clear the target and destination for me
-	return 0;
-}

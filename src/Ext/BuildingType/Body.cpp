@@ -290,7 +290,7 @@ void BuildingTypeExtData::DisplayPlacementPreview()
 	{
 		if (pTypeExt->PlacementPreview_Palette && pTypeExt->PlacementPreview_Palette->ColorschemeDataVector)
 		{
-			pDecidedPal = pTypeExt->PlacementPreview_Palette->ColorschemeDataVector->GetItem(pBuilding->Owner->ColorSchemeIndex)->LightConvert;
+			pDecidedPal = pTypeExt->PlacementPreview_Palette->ColorschemeDataVector->Items[pBuilding->Owner->ColorSchemeIndex]->LightConvert;
 		}
 		else
 		{
@@ -365,51 +365,51 @@ int BuildingTypeExtData::GetSuperWeaponIndex(const int index) const
 
 int BuildingTypeExtData::GetBuildingAnimTypeIndex(BuildingClass* pThis, const BuildingAnimSlot& nSlot, const char* pDefault)
 {
-	//pthis check is just in  case
-	if (pThis
-		&& pThis->IsAlive
-		&& (pThis->Occupants.Count > 0)
-		&& pThis->Occupants[0]->Owner
-		&& pThis->Occupants[0]->Owner->Type
-		)
-	{
-		const auto pBuildingExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
+	 //pthis check is just in  case
+	 if (pThis
+	 	&& pThis->IsAlive
+	 	&& (pThis->Occupants.Count > 0)
+	 	&& pThis->Occupants[0]->Owner
+	 	&& pThis->Occupants[0]->Owner->Type
+	 	)
+	 {
+	 	const auto pBuildingExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 
-		{
-			const auto nIndex = pThis->Occupants[0]->Owner->Type->ArrayIndex;
-			if (nIndex != -1)
-			{
+	 	{
+	 		const auto nIndex = pThis->Occupants[0]->Owner->Type->ArrayIndex;
+	 		if (nIndex != -1)
+	 		{
 
-				AnimTypeClass* pDecidedAnim = nullptr;
+	 			AnimTypeClass* pDecidedAnim = nullptr;
 
-				switch (nSlot)
-				{
-				case BuildingAnimSlot::Active:
-					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveOne[nIndex];
-					break;
-				case BuildingAnimSlot::ActiveTwo:
-					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveTwo[nIndex];
-					break;
-				case BuildingAnimSlot::ActiveThree:
-					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveThree[nIndex];
-					break;
-				case BuildingAnimSlot::ActiveFour:
-					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveFour[nIndex];
-					break;
-				case BuildingAnimSlot::Idle:
-					pDecidedAnim = pBuildingExt->GarrisonAnim_idle[nIndex];
-					break;
-				default:
-					break;
-				}
+	 			switch (nSlot)
+	 			{
+	 			case BuildingAnimSlot::Active:
+	 				pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveOne[nIndex];
+	 				break;
+	 			case BuildingAnimSlot::ActiveTwo:
+	 				pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveTwo[nIndex];
+	 				break;
+	 			case BuildingAnimSlot::ActiveThree:
+	 				pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveThree[nIndex];
+	 				break;
+	 			case BuildingAnimSlot::ActiveFour:
+	 				pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveFour[nIndex];
+	 				break;
+	 			case BuildingAnimSlot::Idle:
+	 				pDecidedAnim = pBuildingExt->GarrisonAnim_idle[nIndex];
+	 				break;
+	 			default:
+	 				break;
+	 			}
 
-				if (pDecidedAnim)
-				{
-					return pDecidedAnim->ArrayIndex;
-				}
-			}
-		}
-	}
+	 			if (pDecidedAnim)
+	 			{
+	 				return pDecidedAnim->ArrayIndex;
+	 			}
+	 		}
+	 	}
+	 }
 
 	return AnimTypeClass::FindIndexById(pDefault);
 

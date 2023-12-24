@@ -62,26 +62,20 @@ DEFINE_HOOK(0x7194D0, TeleportLocomotionClass_ILocomotion_Process_ChronoTrigger,
 {
 	GET_LOCO(ESI);
 	GET(RulesClass*, pRules, EBX);
+	GET(int, val, EDX);
+	enum { SetTimer = 0x7194E9, CheckTheTimer = 0x7194FD };
 
-	R->AL(pExt->ChronoTrigger.GetOrDefault(pOwner, pRules->ChronoTrigger));
+	if (pExt->ChronoTrigger.GetOrDefault(pOwner, pRules->ChronoTrigger)) {
 
-	return 0x7194D6;
-}
+		R->ECX(Unsorted::CurrentFrame());
 
-DEFINE_HOOK(0x7194E3, TeleportLocomotionClass_ILocomotion_Process_ChronoDistanceFactor, 0x6)
-{
-	GET_LOCO(ESI);
-	GET(RulesClass*, pRules, EBX);
-	GET(int, val, EAX);
+		const auto nDecided = pExt->ChronoDistanceFactor.GetOrDefault(pOwner, pRules->ChronoDistanceFactor);
+		// fix factor 0 crash by force it to 1 (Vanilla bug)
+		R->EAX(val / MaxImpl(nDecided, 1));
+		return SetTimer;
+	}
 
-	const auto nDecided = pExt->ChronoDistanceFactor.GetOrDefault(pOwner, pRules->ChronoDistanceFactor);
-	const auto factor = MaxImpl(nDecided, 1);// fix factor 0 crash by force it to 1 (Vanilla bug)
-
-	//IDIV
-	R->EAX(val / factor);
-	R->EDX(val % factor);
-
-	return 0x7194E9;
+	return CheckTheTimer;
 }
 
 DEFINE_HOOK(0x719519, TeleportLocomotionClass_ILocomotion_Process_ChronoMinimumDelay, 0x6)
@@ -94,25 +88,24 @@ DEFINE_HOOK(0x719519, TeleportLocomotionClass_ILocomotion_Process_ChronoMinimumD
 	return 0x71951F;
 }
 
-DEFINE_HOOK(0x719562, TeleportLocomotionClass_ILocomotion_Process_ChronoMinimumDelay2, 0x6)
-{
-	GET_LOCO(ESI);
-	GET(RulesClass*, pRules, ECX);
-
-	R->ECX(pExt->ChronoMinimumDelay.GetOrDefault(pOwner, pRules->ChronoMinimumDelay));
-
-	return 0x719568;
-}
-
 DEFINE_HOOK(0x719555, TeleportLocomotionClass_ILocomotion_Process_ChronoRangeMinimum, 0x6)
 {
+	enum { SetTimer = 0x719568, SetWarpingOut = 0x719576 };
+
 	GET_LOCO(ESI);
 	GET(RulesClass*, pRules, ECX);
 	GET(int, comparator, EDX);
 
 	TechnoExtContainer::Instance.Find(pOwner)->LastWarpDistance = comparator;
 	const auto factor = pExt->ChronoRangeMinimum.GetOrDefault(pOwner, pRules->ChronoRangeMinimum);
-	return comparator < factor ? 0x71955D : 0x719576;
+
+	if(comparator < factor) {
+		R->EAX(Unsorted::CurrentFrame());
+		R->ECX(pExt->ChronoMinimumDelay.GetOrDefault(pOwner, pRules->ChronoMinimumDelay));
+		return SetTimer;
+	}
+
+	return SetWarpingOut;
 }
 
 DEFINE_HOOK(0x71997B, TeleportLocomotionClass_ILocomotion_Process_ChronoDelay, 0x6)

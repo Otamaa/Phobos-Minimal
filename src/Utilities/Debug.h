@@ -31,6 +31,8 @@ public:
 		SLFail = 114514
 	};
 
+	static void DumpStack(REGISTERS* R, size_t len, int startAt = 0);
+
 	static std::wstring FullDump();
 	static std::wstring FullDump(std::wstring destinationFolder);
 

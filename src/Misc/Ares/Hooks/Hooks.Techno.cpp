@@ -11,6 +11,7 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 
+#include <Ext/Anim/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/TechnoType/Body.h>
@@ -23,13 +24,16 @@
 
 #include <Conversions.h>
 
+#ifndef DISABLEARESTECHNOEXT
 DEFINE_DISABLE_HOOK(0x6f3260, TechnoClass_CTOR_ares)
 DEFINE_DISABLE_HOOK(0x6f4500, TechnoClass_DTOR_ares)
 DEFINE_DISABLE_HOOK(0x70bf50, TechnoClass_SaveLoad_Prefix_ares)
 DEFINE_DISABLE_HOOK(0x70c249, TechnoClass_Load_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x70c250, TechnoClass_SaveLoad_Prefix_ares)
 DEFINE_DISABLE_HOOK(0x70c264, TechnoClass_Save_Suffix_ares)
+#endif
 
+#ifndef DISABLEARESTECHNOTYPEEXT
 DEFINE_DISABLE_HOOK(0x711835, TechnoTypeClass_CTOR_ares)
 DEFINE_DISABLE_HOOK(0x711ae0, TechnoTypeClass_DTOR_ares)
 DEFINE_DISABLE_HOOK(0x716123, TechnoTypeClass_LoadFromINI_ares)
@@ -38,6 +42,7 @@ DEFINE_DISABLE_HOOK(0x7162f0, TechnoTypeClass_SaveLoad_Prefix_ares)
 DEFINE_DISABLE_HOOK(0x716dac, TechnoTypeClass_Load_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x716dc0, TechnoTypeClass_SaveLoad_Prefix_ares)
 DEFINE_DISABLE_HOOK(0x717094, TechnoTypeClass_Save_Suffix_ares)
+#endif
 
 DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 {
@@ -254,7 +259,8 @@ DEFINE_OVERRIDE_HOOK(0x6FAD49, TechnoClass_Update_SparkParticles, 8) // breaks t
 DEFINE_OVERRIDE_HOOK(0x7036EB, TechnoClass_Uncloak_CloakingStages, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
-	R->ECX(TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->CloakStages.Get(RulesClass::Instance->CloakingStages));
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	R->ECX(pTypeExt->CloakStages.Get(RulesClass::Instance->CloakingStages));
 	return 0x7036F1;
 }
 
@@ -286,8 +292,16 @@ DEFINE_OVERRIDE_HOOK(0x6FACD9, TechnoClass_Update_DamageSparks, 6)
 DEFINE_OVERRIDE_HOOK(0x70380A, TechnoClass_Cloak_CloakSound, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
-	auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 	R->ECX(pExt->CloakSound.Get(RulesClass::Instance->CloakSound));
+
+	if (const auto pAnimType = pExt->CloakAnim.Get(RulesExtData::Instance()->CloakAnim)) {
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pThis->GetCoords()),
+			pThis->Owner,
+			nullptr,
+			false
+		);
+	}
 	return 0x703810;
 }
 
@@ -296,7 +310,18 @@ DEFINE_OVERRIDE_HOOK(0x70375B, TechnoClass_Uncloak_DecloakSound, 6)
 	GET(int, ptr, ESI);
 	const TechnoClass* pThis = reinterpret_cast<TechnoClass*>(ptr - 0x9C);
 	const int nDefault = RulesExtData::Instance()->DecloakSound.Get(RulesClass::Instance->CloakSound);
-	R->ECX(TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->DecloakSound.Get(nDefault));
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	R->ECX(pTypeExt->DecloakSound.Get(nDefault));
+
+	if (const auto pAnimType = pTypeExt->DecloakAnim.Get(RulesExtData::Instance()->DecloakAnim)) {
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pThis->GetCoords()),
+			pThis->Owner,
+			nullptr,
+			false
+		);
+	}
+
 	return 0x703761;
 }
 
@@ -387,18 +412,13 @@ DEFINE_OVERRIDE_HOOK(0x707B19, TechnoClass_PointerGotInvalid_SpawnCloakOwner, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(AbstractClass*, ptr, EBP);
-	REF_STACK(bool, remove, STACK_OFFS(0x20, -0x8));
+	GET_STACK(bool, remove, 0x28);
 
-	if (const auto pSM = pThis->SpawnManager)
-	{
-		// ignore disappearing owner
-		if (remove || pSM->Owner != ptr)
-		{
-			pSM->UnlinkPointer(ptr);
-		}
-	}
+	if(!pThis->SpawnManager || !remove &&  pThis->Owner == ptr)
+		return 0x707B29;
 
-	return 0x707B29;
+	R->ECX(pThis->SpawnManager);
+	return 0x707B23;
 }
 
 DEFINE_OVERRIDE_HOOK(0x70DA95, TechnoClass_RadarTrackingUpdate_AnnounceDetected, 6)
@@ -481,7 +501,7 @@ DEFINE_OVERRIDE_HOOK(0x6FB306, TechnoClass_CreateGap_Optimize, 6)
 	}
 	++pCell->GapsCoveringThisCell;
 	if (nCounter_b >= 1)
-		pCell->AltFlags &= ((AltCellFlags)0xFFFFFFE7);
+		pCell->UINTAltFlags &= 0xFFFFFFE7;
 
 	return 0x6FB3BD;
 }
@@ -682,11 +702,15 @@ DEFINE_OVERRIDE_HOOK(0x6FD438, TechnoClass_FireLaser, 6)
 	GET(LaserDrawClass*, pBeam, EAX);
 
 	auto const pData = WeaponTypeExtContainer::Instance.Find(pWeapon);
+	if (!pBeam->IsHouseColor && WeaponTypeExtContainer::Instance.Find(pWeapon)->Laser_IsSingleColor)
+		pBeam->IsHouseColor = true;
 
-	if (pData->Laser_Thickness > 1)
-	{
+	// Fixes drawing thick lasers for non-PrismSupport building-fired lasers.
+	if (pData->Laser_Thickness > 1) {
 		pBeam->Thickness = pData->Laser_Thickness;
 	}
+
+	pBeam->IsSupported = pBeam->Thickness > 3;
 
 	return 0;
 }
@@ -1202,7 +1226,7 @@ DEFINE_OVERRIDE_HOOK(0x6F661D, TechnoClass_DrawHealthBar_DestroyedBuilding_RedPi
 
 // issues 1002020, 896263, 895954: clear stale mind control pointer to prevent
 // crashes when accessing properties of the destroyed controllers.
-DEFINE_OVERRIDE_HOOK(0x707b09, TechnoClass_PointerGotInvalid_ResetMindControl, 0x6)
+DEFINE_OVERRIDE_HOOK(0x707B09, TechnoClass_PointerGotInvalid_ResetMindControl, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(void*, ptr, EBP);

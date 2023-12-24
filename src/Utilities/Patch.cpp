@@ -202,7 +202,7 @@ void Patch::PrintAllModuleAndBaseAddr()
 
 					Patch::ModuleDatas[moduleName] = { moduleName , hModules[i], (uintptr_t)info.lpBaseOfDll };
 					// Print the module's name and base address using Debug::Log
-					Debug::LogDeferred("Found Module [(%d) %s: Base address = %p]\n",i, moduleName, info.lpBaseOfDll);
+					//Debug::LogDeferred("Found Module [(%d) %s: Base address = %p]\n",i, moduleName, info.lpBaseOfDll);
 				}
 			}
 		}

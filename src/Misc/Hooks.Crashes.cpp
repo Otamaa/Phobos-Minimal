@@ -86,7 +86,7 @@ DEFINE_HOOK(0x70CE90, TechnoClass_Coef_checkForTechno, 0x6)
 //}
 
 //DEFINE_SKIP_HOOK(0x5F5896, TechnoClass_Mark_RemoveUnused, 0x5, 5F58E1);
-DEFINE_JUMP(LJMP, 0x5F5896, 0x5F58E1);
+//DEFINE_JUMP(LJMP, 0x5F5896, 0x5F58E1);
 
 // //uhh , unit without ownership should not allowed to deploy to prevent this kind of stupid crashes ,..
 // DEFINE_HOOK(0x739698, UnitClass_TryToDeploy_Verify, 0x5)
@@ -129,9 +129,19 @@ DEFINE_JUMP(LJMP, 0x5F5896, 0x5F58E1);
 //	return 0x6F497E;
 //}
 
-DEFINE_HOOK(0x70CD29, TechnoClass_Coef_CheckTarget, 0x6)
+//DEFINE_HOOK(0x4104C0, AbstractClass_Center_nullptrbuffer, 0xA)
+//{
+//	GET_STACK(CoordStruct*, pCoord, 0x4);
+//
+//	if (!pCoord)
+//		Debug::FatalError("%s , Function Called with nullptr biffer from[%x]\n", __FUNCTION__, R->Stack<DWORD>(0x0));
+//
+//	return 0x0;
+//}
+
+DEFINE_HOOK(0x70CD1C, TechnoClass_Coef_CheckTarget, 0xA)
 {
-	GET(ObjectClass*, pTarget, ESI);
+	GET_BASE(ObjectClass*, pTarget, 0x8);
 	return pTarget ? 0x0 : 0x70CD39;
 }
 
@@ -148,7 +158,7 @@ DEFINE_HOOK(0x5D6BF1, MultiplayerGameMode_SetBaseSpawnCell_CheckAvail, 0x5)
 
 	for (int i = 0; i < HouseClass::Array->Count; ++i)
 	{
-		auto pHouse = HouseClass::Array->GetItem(i);
+		auto pHouse = HouseClass::Array->Items[i];
 
 		if (!pHouse->Type->MultiplayPassive)
 		{

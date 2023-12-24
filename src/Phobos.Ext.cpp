@@ -309,7 +309,11 @@ FORCEINLINE void Process_InvalidatePtr(AbstractClass* pInvalid, bool const remov
 	}
 }
 
+#ifndef aaa
 DEFINE_OVERRIDE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
+#else
+DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
+#endif
 {
 	GET(AbstractClass* const, pInvalid, ECX);
 	GET(bool const, removed, EDX);
@@ -363,6 +367,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	SuperWeaponSidebar::Clear();
 	GenericPrerequisite::Clear();
 	CrateTypeClass::Clear();
+	StaticVars::Clear();
 
 	return 0;
 }
@@ -542,7 +547,8 @@ DEFINE_OVERRIDE_HOOK(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 		Process_Load<PhobosGlobal>(pStm) &&
 		Process_Load<GenericPrerequisite>(pStm) &&
 		Process_Load<CrateTypeClass>(pStm) &&
-		Process_Load<NewSWType>(pStm)
+		Process_Load<NewSWType>(pStm) && 
+		Process_Load<StaticVars>(pStm)
 		;
 
 	if (!ret)
@@ -591,7 +597,8 @@ DEFINE_OVERRIDE_HOOK(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 			Process_Save<PhobosGlobal>(pStm) &&
 			Process_Save<GenericPrerequisite>(pStm) &&
 			Process_Save<CrateTypeClass>(pStm) &&
-			Process_Save<NewSWType>(pStm)
+			Process_Save<NewSWType>(pStm) &&
+			Process_Save<StaticVars>(pStm)
 			;
 
 		if (!ret)

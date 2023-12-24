@@ -267,7 +267,7 @@ void FoggedObject::RenderAsBuilding(const RectangleStruct& viewRect) const
 	if (pType->InvisibleInGame)
 		return;
 
-	auto pScheme = ColorScheme::Array->GetItem(BuildingData.Owner->ColorSchemeIndex);
+	auto pScheme = ColorScheme::Array->Items[BuildingData.Owner->ColorSchemeIndex];
 	auto pSHP = pType->GetImage();
 	CoordStruct coord = { Location.X - 128,Location.Y - 128,Location.Z };
 	Point2D point;
@@ -286,7 +286,7 @@ void FoggedObject::RenderAsBuilding(const RectangleStruct& viewRect) const
 		pConvert = pCell->LightConvert;
 	}
 	if (pType->Palette)
-		pConvert = pType->Palette->GetItem(BuildingData.Owner->ColorSchemeIndex)->LightConvert;
+		pConvert = pType->Palette->Items[BuildingData.Owner->ColorSchemeIndex]->LightConvert;
 
 	if (pSHP)
 	{
@@ -447,7 +447,7 @@ void FoggedObject::RenderAsBuilding(const RectangleStruct& viewRect) const
 
 void FoggedObject::RenderAsSmudge(const RectangleStruct& viewRect) const
 {
-	auto const pSmudge = SmudgeTypeClass::Array->GetItem(SmudgeData.Smudge);
+	auto const pSmudge = SmudgeTypeClass::Array->Items[SmudgeData.Smudge];
 	Point2D position
 	{
 			this->Bound.X - TacticalClass::Instance->TacticalPos.X - viewRect.X + DSurface::ViewBounds->X + 30,

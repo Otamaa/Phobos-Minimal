@@ -64,8 +64,7 @@ DEFINE_OVERRIDE_HOOK(0x424B23, AnimClass_Update_FailedToUnlimboInfantry, 0x6)
 	GET(AnimClass*, pThis, ESI);
 	GET(InfantryClass*, pInf, EDI);
 
-	GameDelete<true,false>(pInf);
-	//pInf->UnInit();
+	pInf->UnInit();
 	pThis->TimeToDie = 1;
 	pThis->UnInit();
 
@@ -113,7 +112,7 @@ DEFINE_OVERRIDE_HOOK(0x4242CA, AnimClass_Update_FixIE_TrailerSeperation, 0x6)
 	enum
 	{
 		PlayTrail = 0x4242D5,
-		SkopTrail = 0x424322,
+		StopTrail = 0x424322,
 	};
 
 	GET(AnimTypeClass*, AT, EAX);
@@ -122,7 +121,7 @@ DEFINE_OVERRIDE_HOOK(0x4242CA, AnimClass_Update_FixIE_TrailerSeperation, 0x6)
 	R->ECX(trailSep);
 
 	return trailSep >= 1
-		? PlayTrail : SkopTrail;
+		? PlayTrail : StopTrail;
 }
 
 DEFINE_OVERRIDE_HOOK_AGAIN(0x42511B, AnimClass_Expired_ScorchFlamer, 0x7)

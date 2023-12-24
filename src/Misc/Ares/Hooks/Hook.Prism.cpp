@@ -283,7 +283,7 @@ DEFINE_OVERRIDE_HOOK(0x44ABD0, BuildingClass_FireLaser, 5)
 		if (supportWeapon->Report.Count > 0)
 		{
 			auto const ReportIndex = ScenarioClass::Instance->Random.RandomFromMax(supportWeapon->Report.Count - 1);
-			auto const SoundArrayIndex = supportWeapon->Report.GetItem(ReportIndex);
+			auto const SoundArrayIndex = supportWeapon->Report.Items[ReportIndex];
 			if (SoundArrayIndex != -1)
 			{
 				VocClass::PlayAt(SoundArrayIndex, sourceXYZ, nullptr);

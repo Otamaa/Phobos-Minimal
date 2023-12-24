@@ -205,7 +205,7 @@ DEFINE_HOOK(0x43FB29, BuildingClass_AI_Radiation, 0x8)
 	GET(BuildingClass* const, pBuilding, ECX);
 
 	if (!pBuilding->IsAlive)
-		return Continue;
+		return Dead;
 
 	const auto pExt = BuildingExtContainer::Instance.Find(pBuilding);
 

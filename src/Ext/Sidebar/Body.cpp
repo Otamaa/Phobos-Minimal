@@ -26,7 +26,7 @@ void SidebarExtData::DrawProducingProgress()
 		return;
 
 	if (Phobos::UI::ShowProducingProgress) {
-		const auto pSideExt = SideExtContainer::Instance.Find(SideClass::Array->GetItem(pPlayer->SideIndex));
+		const auto pSideExt = SideExtContainer::Instance.Find(SideClass::Array->Items[pPlayer->SideIndex]);
 
 		if (!pSideExt)
 			return;

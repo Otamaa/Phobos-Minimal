@@ -48,12 +48,12 @@ DEFINE_HOOK(0x641EE0, PreviewClass_ReadPreview, 0x6)
 	GET(PreviewClass*, pThis, ECX);
 	GET_STACK(const char*, lpMapFile, 0x4);
 
-	CCFileClass file(lpMapFile);
+	CCFileClass file { lpMapFile };
 	bool bResult = false;
 
 	if (file.Exists() && file.Open(FileAccessMode::Read))
 	{
-		CCINIClass ini;
+		CCINIClass ini {};
 		ini.ReadCCFile(&file, true);
 		ini.CurrentSection = nullptr;
 		ini.CurrentSectionName = nullptr;
@@ -245,7 +245,6 @@ DEFINE_HOOK(0x683E41, ScenarioClass_Start_ShowBriefing, 0x6)
 DEFINE_HOOK(0x48CE85, MainGame_ShowBriefing, 0x5)
 {
 	enum { SkipGameCode = 0x48CE8A };
-
 	// Restore overridden instructions.
 	SessionClass::Instance->Resume();
 

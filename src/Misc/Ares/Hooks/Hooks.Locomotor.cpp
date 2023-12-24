@@ -238,6 +238,7 @@ DEFINE_OVERRIDE_HOOK(0x4CCB84, FlyLocomotionClass_ILocomotion_Process_HunterSeek
 	return 0;
 }
 
+#ifndef aaa
 DEFINE_OVERRIDE_HOOK(0x4CFE80, FlyLocomotionClass_ILocomotion_AcquireHunterSeekerTarget, 5)
 {
 	GET_STACK(ILocomotion* const, pThis, 0x4);
@@ -249,6 +250,8 @@ DEFINE_OVERRIDE_HOOK(0x4CFE80, FlyLocomotionClass_ILocomotion_AcquireHunterSeeke
 
 	return 0x4D016F;
 }
+#else
+#endif
 
 DEFINE_OVERRIDE_HOOK(0x4B99A2, DropshipLoadout_WriteUnit, 0xA)
 {

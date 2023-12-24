@@ -352,13 +352,13 @@ bool SWTypeExtData::IsTargetConstraintsEligible(SuperClass* pThis, bool IsPlayer
 
 	if (!IsPlayer)
 	{
-		if (((nFlag & TargetingConstraints::LighningStormInactive) != TargetingConstraints::None) && LightningStorm::Active())
+		if (((nFlag & TargetingConstraints::LighningStormInactive) != TargetingConstraints::None) && LightningStorm::IsActive())
 			return false;
 
-		if (((nFlag & TargetingConstraints::DominatorInactive) != TargetingConstraints::None) && PsyDom::Active())
+		if (((nFlag & TargetingConstraints::DominatorInactive) != TargetingConstraints::None) && PsyDom::IsActive())
 			return false;
 
-		if (((nFlag & TargetingConstraints::Attacked) != TargetingConstraints::None) && (pOwner->LATime && (pOwner->LATime + 75) < Unsorted::CurrentFrame))
+		if (((nFlag & TargetingConstraints::Attacked) != TargetingConstraints::None) && (pOwner->LATime && ((pOwner->LATime + 75) < Unsorted::CurrentFrame)))
 			return false;
 
 		if (((nFlag & TargetingConstraints::LowPower) != TargetingConstraints::None) && pOwner->HasFullPower())
@@ -383,17 +383,17 @@ bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 
 			if (Flag == SWTargetFlags::AllowEmpty)
 			{
-				if(pThis->Owner->IsControlledByHuman() && !pExt->SW_AutoFire && pExt->SW_ManualFire) {
-					Unsorted::CurrentBuilding = nullptr;
-					Unsorted::CurrentBuildingType = nullptr;
-					Unsorted::unknown_11AC = static_cast<DWORD>(-1);
-					DisplayClass::Instance->SetRepairMode(0);
-					DisplayClass::Instance->SetSellMode(0);
-					Unsorted::PowerToggleMode = false;
-					Unsorted::PlanningMode = false;
-					Unsorted::PlaceBeaconMode = false;
-					MapClass::UnselectAll();
-				}
+				 if(pThis->Owner->IsControlledByHuman() && !pExt->SW_AutoFire && pExt->SW_ManualFire) {
+				 	Unsorted::CurrentBuilding = nullptr;
+				 	Unsorted::CurrentBuildingType = nullptr;
+				 	Unsorted::unknown_11AC = static_cast<DWORD>(-1);
+				 	DisplayClass::Instance->SetRepairMode(0);
+				 	DisplayClass::Instance->SetSellMode(0);
+				 	Unsorted::PowerToggleMode = false;
+				 	Unsorted::PlanningMode = false;
+				 	Unsorted::PlaceBeaconMode = false;
+				 	MapClass::UnselectAll();
+				 }
 
 				return pThis->Owner->Fire_SW(pThis->Type->ArrayIndex, Cell);
 			}
@@ -1304,7 +1304,7 @@ bool SWTypeExtData::Activate(SuperClass* pSuper, CellStruct const cell, bool con
 
 	for (int i = 0; i < pOwner->RelatedTags.Count; ++i)
 	{
-		if (auto pTag = pOwner->RelatedTags.GetItem(i))
+		if (auto pTag = pOwner->RelatedTags.Items[i])
 		{
 			pTag->RaiseEvent(TriggerEvent(AresTriggerEvents::SuperNearWaypoint), nullptr, CellStruct::Empty, false, &nPass);
 		}
@@ -1313,7 +1313,7 @@ bool SWTypeExtData::Activate(SuperClass* pSuper, CellStruct const cell, bool con
 	//Debug::Log(__FUNCTION__" for [%s] - Owner[%s] After SuperNearWaypoint  \n", pExt->get_ID(), pOwner->get_ID());
 	for (int a = 0; a < pOwner->RelatedTags.Count; ++a)
 	{
-		if (auto pTag = pOwner->RelatedTags.GetItem(a))
+		if (auto pTag = pOwner->RelatedTags.Items[a])
 			pTag->RaiseEvent(TriggerEvent(AresTriggerEvents::SuperActivated), nullptr, CellStruct::Empty, false, pSuper);
 	}
 
@@ -1939,7 +1939,7 @@ LightingColor SWTypeExtData::GetLightingColor(SuperWeaponTypeClass* pCustom)
 			pType = pSuper;
 		}
 	}
-	else if (LightningStorm::Active)
+	else if (LightningStorm::IsActive)
 	{
 		// lightning storm
 		ret.Ambient = scen->IonAmbient;

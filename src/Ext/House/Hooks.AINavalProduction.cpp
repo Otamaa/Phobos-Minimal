@@ -89,7 +89,7 @@ DEFINE_HOOK(0x450319, BuildingClass_AI_Factory_NavalProductionFix, 0x6)
 		index = pHouse->ProducingAircraftTypeIndex;
 
 		if (index >= 0)
-			pTechnoType = AircraftTypeClass::Array->GetItem(index);
+			pTechnoType = AircraftTypeClass::Array->Items[index];
 
 		break;
 
@@ -98,7 +98,7 @@ DEFINE_HOOK(0x450319, BuildingClass_AI_Factory_NavalProductionFix, 0x6)
 		index = pHouse->ProducingBuildingTypeIndex;
 
 		if (index >= 0)
-			pTechnoType = BuildingTypeClass::Array->GetItem(index);
+			pTechnoType = BuildingTypeClass::Array->Items[index];
 
 		break;
 
@@ -107,7 +107,7 @@ DEFINE_HOOK(0x450319, BuildingClass_AI_Factory_NavalProductionFix, 0x6)
 		index = pHouse->ProducingInfantryTypeIndex;
 
 		if (index >= 0)
-			pTechnoType = InfantryTypeClass::Array->GetItem(index);
+			pTechnoType = InfantryTypeClass::Array->Items[index];
 
 		break;
 
@@ -116,7 +116,7 @@ DEFINE_HOOK(0x450319, BuildingClass_AI_Factory_NavalProductionFix, 0x6)
 		index = !pThis->Type->Naval ? pHouse->ProducingUnitTypeIndex : HouseExtContainer::Instance.Find(pHouse)->ProducingNavalUnitTypeIndex;
 
 		if (index >= 0)
-			pTechnoType = UnitTypeClass::Array->GetItem(index);
+			pTechnoType = UnitTypeClass::Array->Items[index];
 
 		break;
 	}
@@ -152,19 +152,19 @@ DEFINE_HOOK(0x4F91A4, HouseClass_AI_BuildingProductionCheck, 0x6)
 		pThis->ProducingAircraftTypeIndex == -1 && pExt->ProducingNavalUnitTypeIndex == -1;
 
 	if (pExt->ProducingNavalUnitTypeIndex != -1
-		&& !UnitTypeClass::Array->GetItem(pExt->ProducingNavalUnitTypeIndex)->FindFactory(true, true, true, pThis))
+		&& !UnitTypeClass::Array->Items[pExt->ProducingNavalUnitTypeIndex]->FindFactory(true, true, true, pThis))
 		cantBuild = true;
 
 	if (pThis->ProducingUnitTypeIndex != -1
-		&& !UnitTypeClass::Array->GetItem(pThis->ProducingUnitTypeIndex)->FindFactory(true, true, true, pThis))
+		&& !UnitTypeClass::Array->Items[pThis->ProducingUnitTypeIndex]->FindFactory(true, true, true, pThis))
 		cantBuild = true;
 
 	if (pThis->ProducingInfantryTypeIndex != -1
-		&& !InfantryTypeClass::Array->GetItem(pThis->ProducingInfantryTypeIndex)->FindFactory(true, true, true, pThis))
+		&& !InfantryTypeClass::Array->Items[pThis->ProducingInfantryTypeIndex]->FindFactory(true, true, true, pThis))
 		cantBuild = true;
 
 	if ((pThis->ProducingAircraftTypeIndex != -1
-		&& !AircraftTypeClass::Array->GetItem(pThis->ProducingAircraftTypeIndex)->FindFactory(true, true, true, pThis)) || cantBuild)
+		&& !AircraftTypeClass::Array->Items[pThis->ProducingAircraftTypeIndex]->FindFactory(true, true, true, pThis)) || cantBuild)
 		return CheckBuildingProduction;
 
 	return SkipGameCode;

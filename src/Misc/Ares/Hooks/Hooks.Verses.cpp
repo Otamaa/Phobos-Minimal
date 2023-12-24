@@ -111,6 +111,7 @@ DEFINE_HOOK(0x489180, MapClass_GetTotalDamage, 0x6)
 
 DEFINE_DISABLE_HOOK(0x489235, GetTotalDamage_Verses_ares)
 
+#ifndef aaa
 DEFINE_OVERRIDE_HOOK(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
 {
 	enum { ReturnFalse = 0x6F894F, ContinueCheck = 0x6F7D55, };
@@ -288,3 +289,4 @@ DEFINE_OVERRIDE_HOOK(0x4753F0, ArmorType_FindIndex, 0xA)
 
 	return 0x475430;
 }
+#endif

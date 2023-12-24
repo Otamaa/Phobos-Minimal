@@ -55,6 +55,29 @@
 #include "Classes/AresPoweredUnit.h"
 #include "Classes/AresJammer.h"
 
+PhobosMap<ObjectClass*, AlphaShapeClass*> StaticVars::ObjectLinkedAlphas {};
+std::vector<unsigned char> StaticVars::ShpCompression1Buffer {};
+
+bool StaticVars::SaveGlobals(PhobosStreamWriter& stm)
+{
+	return stm
+		.Process(ObjectLinkedAlphas)
+		.Success();
+}
+
+bool StaticVars::LoadGlobals(PhobosStreamReader& stm)
+{
+	return stm
+		.Process(ObjectLinkedAlphas)
+		.Success();
+}
+
+void StaticVars::Clear()
+{
+	ObjectLinkedAlphas.clear();
+	ShpCompression1Buffer.clear();
+}
+
 static constexpr std::array<std::pair<const char*, const char*>, 17u> const SubName =
 { {
 	{"NormalTurretWeapon" , "NormalTurretIndex"},
@@ -1122,10 +1145,8 @@ Action TechnoExt_ExtData::GetEngineerEnterEnemyBuildingAction(BuildingClass* con
 	// engineer behavior.
 	auto const gameMode = SessionClass::Instance->GameMode;
 
-	if ((gameMode == GameMode::Skirmish
-		&& GameModeOptionsClass::Instance->MultiEngineer)
-		|| gameMode == GameMode::Campaign)
-	{
+	if (gameMode == GameMode::Skirmish && !GameModeOptionsClass::Instance->MultiEngineer
+		|| gameMode == GameMode::Campaign) {
 		// single player missions are currently hardcoded to "don't do damage".
 		return Action::Capture; // TODO: replace this by a new rules tag.
 	}
@@ -1213,6 +1234,9 @@ void TechnoExt_ExtData::KickOutClones(BuildingClass* pFactory, TechnoClass* cons
 		ProductionTypeAs = ProductionTypeData->AI_ClonedAs;
 	else if (ProductionTypeData->ClonedAs.isset())
 		ProductionTypeAs = ProductionTypeData->ClonedAs;
+
+	if(!ProductionTypeAs || !ProductionTypeAs->Strength) // ,....
+		return;
 
 	auto const FactoryOwner = pFactory->Owner;
 	auto const& CloningSources = ProductionTypeData->ClonedAt;
@@ -1527,7 +1551,7 @@ bool TechnoExt_ExtData::Warpable(TechnoClass* pTarget)
 
 void TechnoExt_ExtData::DepositTiberium(TechnoClass* pThis, HouseClass* pHouse, float const amount, float const bonus, int const idxType)
 {
-	auto pTiberium = TiberiumClass::Array->GetItem(idxType);
+	auto pTiberium = TiberiumClass::Array->Items[idxType];
 	auto value = 0;
 
 	// always put the purified money on the bank account. otherwise ore purifiers
@@ -1552,7 +1576,7 @@ void TechnoExt_ExtData::DepositTiberium(TechnoClass* pThis, HouseClass* pHouse, 
 			float decidedAmount = amount;
 			if (pThis->WhatAmI() == BuildingClass::AbsID && RulesExtData::Instance()->Storage_TiberiumIndex >= 0)
 			{
-				pTiberium = TiberiumClass::Array->GetItem(RulesExtData::Instance()->Storage_TiberiumIndex);
+				pTiberium = TiberiumClass::Array->Items[RulesExtData::Instance()->Storage_TiberiumIndex];
 				decidedIndex = RulesExtData::Instance()->Storage_TiberiumIndex;
 				decidedAmount = (amount * pTiberium->Value) / pTiberium->Value;
 			}
@@ -1875,16 +1899,8 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 	if (!pSource || !pSource->IsAlive)
 		return;
 
-	const auto vtable = VTable::Get(pSource);
-
-	if (vtable != AnimClass::vtable
-		&& vtable != UnitClass::vtable
-		&& vtable != InfantryClass::vtable
-		&& vtable != BuildingClass::vtable
-		&& vtable != AircraftClass::vtable)
-		return;
-
 	ObjectTypeClass* pSourceType = pSource->GetType();
+
 	if (!pSourceType)
 	{
 		return;
@@ -1941,7 +1957,7 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 			)
 	)
 	{
-		if (auto pAlpha = PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pSource)) {
+		if (auto pAlpha = StaticVars::ObjectLinkedAlphas.get_or_default(pSource)) {
 			GameDelete<true, false>(pAlpha);
 		}
 	}
@@ -2261,7 +2277,7 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 	// Did you mean for not launching for real or not, Morton?
 	auto launchTheSWHere = [EnteredBuilding](int const idx, HouseClass* const pHouse, bool realLaunch = false)
 		{
-			if (const auto pSuper = pHouse->Supers.GetItem(idx))
+			if (const auto pSuper = pHouse->Supers.GetItemOrDefault(idx))
 			{
 				if (!realLaunch || (pSuper->Granted && pSuper->IsCharged && !pSuper->IsOnHold))
 				{
@@ -2278,7 +2294,7 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 
 	auto justGrantTheSW = [](int const idx, HouseClass* const pHouse)
 		{
-			if (const auto pSuper = pHouse->Supers.GetItem(idx))
+			if (const auto pSuper = pHouse->Supers.GetItemOrDefault(idx))
 			{
 				if (pSuper->Granted)
 					pSuper->SetCharge(100);
@@ -2324,7 +2340,7 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 	if (auto pSuperType = pTypeExt->SpyEffect_SuperWeapon)
 	{
 		const auto nIdx = pSuperType->ArrayIndex;
-		const auto pSuper = Enterer->Supers.GetItem(nIdx);
+		const auto pSuper = Enterer->Supers.Items[nIdx];
 		const bool Onetime = !pTypeExt->SpyEffect_SuperWeaponPermanent;
 		bool CanLauch = true;
 
@@ -5663,7 +5679,7 @@ bool AresTActionExt::LightstormStrike(TActionClass* pAction, HouseClass* pHouse,
 	{
 		// select the anim
 		auto const& itClouds = RulesClass::Instance->WeatherConClouds;
-		auto const pAnimType = itClouds.GetItem(ScenarioClass::Instance->Random.RandomFromMax(itClouds.Count - 1));
+		auto const pAnimType = itClouds.Items[ScenarioClass::Instance->Random.RandomFromMax(itClouds.Count - 1)];
 
 		if (pAnimType)
 		{
@@ -5982,73 +5998,46 @@ bool AresTEventExt::FindTechnoType(TEventClass* pThis, int args, HouseClass* pWh
 	else
 	{
 		int i = args;
+		TechnoClass** arrayItems = nullptr;
+		int arrayCount = 0;
+
 		switch (pType->WhatAmI())
 		{
 		case AbstractType::AircraftType:
 		{
-			for (auto pTechno : *AircraftClass::Array)
-			{
-				if (pWho && pWho != pTechno->Owner)
-					continue;
-
-				if (pTechno->Type == pType)
-				{
-					i--;
-
-					if (i <= 0)
-					{
-						return true;
-					}
-				}
-			}
+			arrayItems = (TechnoClass**)AircraftClass::Array->Items;
+			arrayCount = AircraftClass::Array->Count;
 			break;
 		}
 		case AbstractType::UnitType:
 		{
-			for (auto pTechno : *UnitClass::Array)
-			{
-				if (pWho && pWho != pTechno->Owner)
-					continue;
-
-				if (pTechno->GetTechnoType() == pType)
-				{
-					i--;
-
-					if (i <= 0)
-					{
-						return true;
-					}
-				}
-			}
+			arrayItems = (TechnoClass**)UnitClass::Array->Items;
+			arrayCount = UnitClass::Array->Count;
 			break;
 		}
 		case AbstractType::InfantryType:
 		{
-			for (auto pTechno : *InfantryClass::Array)
-			{
-				if (pWho && pWho != pTechno->Owner)
-					continue;
-
-				if (pTechno->GetTechnoType() == pType)
-				{
-					i--;
-
-					if (i <= 0)
-					{
-						return true;
-					}
-				}
-			}
+			arrayItems = (TechnoClass**)InfantryClass::Array->Items;
+			arrayCount = InfantryClass::Array->Count;
 			break;
 		}
 		case AbstractType::BuildingType:
 		{
-			for (auto pTechno : *BuildingClass::Array)
-			{
-				if (pWho && pWho != pTechno->Owner)
+			arrayItems = (TechnoClass**)BuildingClass::Array->Items;
+			arrayCount = BuildingClass::Array->Count;
+			break;
+		}
+		default:
+			break;
+		}
+
+		if (arrayCount > 0 && arrayItems) {
+			const auto arrayItemsEnd = arrayItems + count;
+			for (auto walk = arrayItems; walk != arrayItemsEnd; ++walk) {
+				if (pWho && pWho != (*walk)->Owner)
 					continue;
 
-				if (pTechno->GetTechnoType() == pType)
+				if ((*walk)->GetTechnoType() == pType)
 				{
 					i--;
 
@@ -6058,8 +6047,6 @@ bool AresTEventExt::FindTechnoType(TEventClass* pThis, int args, HouseClass* pWh
 					}
 				}
 			}
-			break;
-		}
 		}
 	}
 

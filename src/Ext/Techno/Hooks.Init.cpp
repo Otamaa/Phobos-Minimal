@@ -67,7 +67,7 @@ DEFINE_HOOK(0x7355BA, UnitClass_Init_InitialStrength, 0x6)
 
 DEFINE_HOOK(0x414051, AircraftClass_Init_InitialStrength, 0x6)
 {
-	GET(UnitClass*, pThis, ESI);
+	GET(AircraftClass*, pThis, ESI);
 	GET(AircraftTypeClass*, pType, EAX);
 
 	if (TechnoTypeExtContainer::Instance.Find(pType)->Initial_DriverKilled)

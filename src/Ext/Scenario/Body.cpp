@@ -15,11 +15,18 @@ void ScenarioExtData::SaveVariablesToFile(bool isGlobal)
 		}
 	}
 
+	if(!file.Open(FileAccessMode::ReadWrite)) {
+		Debug::Log(" %s Failed to Open file %s for\n" , __FUNCTION__ , fileName);
+		return;
+	}
+
 	CCINIClass ini {};
 	ini.ReadCCFile(&file);
 
-	for (const auto& variable : *ScenarioExtData::GetVariables(isGlobal))
+	const auto variables = ScenarioExtData::GetVariables(isGlobal);
+	std::for_each(variables->begin(), variables->end(), [&](const auto& variable) {
 		ini.WriteInteger(ScenarioClass::Instance()->FileName, variable.second.Name, variable.second.Value, false);
+	});
 
 	ini.WriteCCFile(&file);
 }

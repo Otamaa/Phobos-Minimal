@@ -71,9 +71,11 @@ DEFINE_HOOK(0x4D7431, FootClass_ReceiveDamage_DyingFix, 0x5)
 	GET(FootClass* const, pThis, ESI);
 	GET(DamageState const, result, EAX);
 
-	if (result != DamageState::PostMortem)
-		if ((pThis->IsSinking || (!pThis->IsAttackedByLocomotor && pThis->IsCrashing)))
+	if (result != DamageState::PostMortem) { 
+		if ((pThis->IsSinking || (!pThis->IsAttackedByLocomotor && pThis->IsCrashing))) {
 			R->EAX(DamageState::PostMortem);
+		}
+	}
 
 	return 0;
 }
@@ -90,27 +92,28 @@ DEFINE_HOOK(0x737D57, UnitClass_ReceiveDamage_DyingFix, 0x7)
 		if (pThis->IsAttackedByLocomotor && pThis->GetTechnoType()->Crashable)
 			pThis->IsAttackedByLocomotor = false;
 
-		if (!pThis->Type->Voxel)
-		{
-			if (pThis->Type->MaxDeathCounter > 0
-				&& !pThis->InLimbo
-				&& !pThis->IsCrashing
-				&& !pThis->IsSinking
-				&& !pThis->TemporalTargetingMe
-				&& !pThis->IsInAir()
-				&& pThis->DeathFrameCounter <= 0
-				)
-			{
-
-				pThis->Stun();
-				const auto loco = pThis->Locomotor.GetInterfacePtr();
-
-				if (loco->Is_Moving_Now())
-					loco->Stop_Moving();
-
-				pThis->DeathFrameCounter = 1;
-			}
-		}
+		//this cause desync ?
+		//if (!pThis->Type->Voxel)
+		//{
+		//	if (pThis->Type->MaxDeathCounter > 0
+		//		&& !pThis->InLimbo
+		//		&& !pThis->IsCrashing
+		//		&& !pThis->IsSinking
+		//		&& !pThis->TemporalTargetingMe
+		//		&& !pThis->IsInAir()
+		//		&& pThis->DeathFrameCounter <= 0
+		//		)
+		//	{
+		//
+		//		pThis->Stun();
+		//		const auto loco = pThis->Locomotor.GetInterfacePtr();
+		//
+		//		if (loco->Is_Moving_Now())
+		//			loco->Stop_Moving();
+		//
+		//		pThis->DeathFrameCounter = 1;
+		//	}
+		//}
 	}
 
 	if (result != DamageState::PostMortem && pThis->DeathFrameCounter > 0)
@@ -121,14 +124,15 @@ DEFINE_HOOK(0x737D57, UnitClass_ReceiveDamage_DyingFix, 0x7)
 	return 0;
 }
 
-#ifndef COMPILE_PORTED_DP_FEATURES
 DEFINE_HOOK(0x5F452E, TechnoClass_Selectable_DeathCounter, 0x6) // 8
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	if (auto pUnit = specific_cast<UnitClass*>(pThis))
-		if (pUnit->DeathFrameCounter > 0)
+	if (auto pUnit = specific_cast<UnitClass*>(pThis)) {
+		if (pUnit->DeathFrameCounter > 0) {
 			return 0x5F454E;
+		}
+	}
 
 	return 0x0;
 }
@@ -137,13 +141,14 @@ DEFINE_HOOK(0x737CBB, UnitClass_ReceiveDamage_DeathCounter, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
 
-	if (auto pUnit = specific_cast<UnitClass*>(pThis))
-		if (pUnit->DeathFrameCounter > 0)
+	if (auto pUnit = specific_cast<UnitClass*>(pThis)) { 
+		if (pUnit->DeathFrameCounter > 0) {
 			return 0x737D26;
+		}
+	}
 
 	return 0x0;
 }
-#endif
 
 // Restore DebrisMaximums logic (issue #109)
 // Author: Otamaa
@@ -152,14 +157,6 @@ DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
 	GET(TechnoClass* const, pThis, ESI);
 
 	const auto pType = pThis->GetTechnoType();
-
-	// If DebrisMaximums has one value, then legacy behavior is used
-	//if (pType->DebrisMaximums.Count == 1 &&
-	//	pType->DebrisMaximums.GetItem(0) > 0 &&
-	//	pType->DebrisTypes.Count > 0)
-	//{
-	//	return 0;
-	//}
 	auto totalSpawnAmount = ScenarioClass::Instance->Random.RandomRanged(pType->MinDebris, pType->MaxDebris);
 
 	if (totalSpawnAmount && pType->DebrisTypes.Count > 0 && pType->DebrisMaximums.Count > 0)
@@ -171,7 +168,7 @@ DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
 			if (currentIndex >= pType->DebrisMaximums.Count)
 				break;
 
-			if (!pType->DebrisMaximums[currentIndex])
+			if (!pType->DebrisMaximums[currentIndex] || !pType->DebrisTypes.Items[currentIndex])
 				continue;
 
 			//this never goes to 0
@@ -179,14 +176,12 @@ DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
 			amountToSpawn = LessOrEqualTo(amountToSpawn, totalSpawnAmount);
 			totalSpawnAmount -= amountToSpawn;
 
-			for (; amountToSpawn > 0; --amountToSpawn)
-			{
-				if(auto pVoxelType = pType->DebrisTypes.GetItem(currentIndex)){
-					auto pVoxAnim = GameCreate<VoxelAnimClass>(pVoxelType,
-						&nCoords, pThis->Owner);
+			for (; amountToSpawn > 0; --amountToSpawn) {
 
-					VoxelAnimExtContainer::Instance.Find(pVoxAnim)->Invoker = pThis;
-				}
+				auto pVoxAnim = GameCreate<VoxelAnimClass>(pType->DebrisTypes.Items[currentIndex],
+				&nCoords, pThis->Owner);
+
+				VoxelAnimExtContainer::Instance.Find(pVoxAnim)->Invoker = pThis;
 			}
 
 			if (totalSpawnAmount <= 0)
@@ -265,7 +260,7 @@ bool NOINLINE IsTemporalptrValid(TemporalClass* pThis)
 	return VTable::Get(pThis) == TemporalClass::vtable;
 }
 
-void NOINLINE IsTechnoShouldBeAliveAfterTemporal(TechnoClass* pThis) {
+void IsTechnoShouldBeAliveAfterTemporal(TechnoClass* pThis) {
 	if (pThis->TemporalTargetingMe)
 	{
 		// Also check for vftable here to guarantee the TemporalClass not being destoryed already.
@@ -316,7 +311,7 @@ DEFINE_HOOK(0x41EB43, AITriggerTypeClass_Condition_SupportPowersup, 0x7)		//AITr
 	GET(int const, idxBld, EBP);
 
 	const auto pType = BuildingTypeClass::Array->Items[idxBld];
-	int count =BuildingTypeExtData::GetUpgradesAmount(pType, pHouse);
+	int count = BuildingTypeExtData::GetUpgradesAmount(pType, pHouse);
 
 	if (count == -1)
 		count = pHouse->ActiveBuildingTypes.GetItemCount(idxBld);
@@ -332,14 +327,14 @@ DEFINE_HOOK(0x441053, BuildingClass_Unlimbo_EWGate, 0x6)
 {
 	GET(BuildingTypeClass* const, pThis, ECX);
 
-	return RulesClass::Instance->EWGates.FindItemIndex(pThis) == -1 ? 0 : 0x441065;
+	return !RulesClass::Instance->EWGates.Contains(pThis) ? 0 : 0x441065;
 }
 
 DEFINE_HOOK(0x4410E1, BuildingClass_Unlimbo_NSGate, 0x6)
 {
 	GET(BuildingTypeClass* const, pThis, ECX);
 
-	return RulesClass::Instance->NSGates.FindItemIndex(pThis) == -1 ? 0 : 0x4410F3;
+	return !RulesClass::Instance->NSGates.Contains(pThis) ? 0 : 0x4410F3;
 }
 
 DEFINE_HOOK(0x480552, CellClass_AttachesToNeighbourOverlay_Gate, 0x7)
@@ -348,7 +343,7 @@ DEFINE_HOOK(0x480552, CellClass_AttachesToNeighbourOverlay_Gate, 0x7)
 	GET(int const, idxOverlay, EBX);
 	GET_STACK(int const, state, STACK_OFFS(0x10, -0x8));
 
-	const bool isWall = idxOverlay != -1 && OverlayTypeClass::Array->GetItem(idxOverlay)->Wall;
+	const bool isWall = idxOverlay != -1 && OverlayTypeClass::Array->Items[idxOverlay]->Wall;
 	enum { Attachable = 0x480549 };
 
 	if (isWall)
@@ -361,9 +356,9 @@ DEFINE_HOOK(0x480552, CellClass_AttachesToNeighbourOverlay_Gate, 0x7)
 				{
 					const auto pBType = pBuilding->Type;
 
-					if ((RulesClass::Instance->EWGates.FindItemIndex(pBType) != -1) && (state == 2 || state == 6))
+					if ((RulesClass::Instance->EWGates.Contains(pBType)) && (state == 2 || state == 6))
 						return Attachable;
-					else if ((RulesClass::Instance->NSGates.FindItemIndex(pBType) != -1) && (state == 0 || state == 4))
+					else if ((RulesClass::Instance->NSGates.Contains(pBType)) && (state == 0 || state == 4))
 						return Attachable;
 					else if (RulesExtData::Instance()->WallTowers.Contains(pBType))
 						return Attachable;
@@ -455,22 +450,6 @@ DEFINE_HOOK(0x67E6E5, LoadGame_RecalcLighting, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x6FA781, TechnoClass_AI_SelfHealing_BuildingGraphics, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-
-	if (auto pBuilding = specific_cast<BuildingClass*>(pThis))
-	{
-		if (pBuilding->IsThisBreathing())
-		{
-			pBuilding->UpdatePlacement(PlacementType::Redraw);
-			pBuilding->ToggleDamagedAnims(false);
-		}
-	}
-
-	return 0;
-}
-
 DEFINE_HOOK(0x4CDA6F, FlyLocomotionClass_MovementAI_SpeedModifiers, 0x9)
 {
 	GET(FlyLocomotionClass* const, pThis, ESI);
@@ -547,7 +526,6 @@ DEFINE_HOOK(0x73EFD8, UnitClass_Mission_Hunt_DeploysInto, 0x6)
 
 	GET(UnitClass*, pThis, ESI);
 
-	// Skip MCV-specific & player control checks if coming from deploy script action.
 	switch (pThis->MissionStatus)
 	{
 	case 1:
@@ -562,7 +540,7 @@ DEFINE_HOOK(0x73EFD8, UnitClass_Mission_Hunt_DeploysInto, 0x6)
 	case 2:
 	{
 
-
+		// Skip MCV-specific & player control checks if coming from deploy script action.
 		if (pThis->Type->Category == Category::Support && !pThis->IsOwnedByCurrentPlayer)
 		{
 			pThis->QueueMission(Mission::Guard, false);
@@ -575,6 +553,7 @@ DEFINE_HOOK(0x73EFD8, UnitClass_Mission_Hunt_DeploysInto, 0x6)
 		return SkipToDeploy;
 	}
 	}
+
 	return 0;
 }
 
@@ -718,8 +697,7 @@ DEFINE_HOOK(0x44FBBF, CreateBuildingFromINIFile_AfterCTOR_BeforeUnlimbo, 0x8)
 {
 	GET(BuildingClass* const, pBld, ESI);
 
-	if (auto pExt = BuildingExtContainer::Instance.Find(pBld))
-		pExt->IsCreatedFromMapFile = true;
+	BuildingExtContainer::Instance.Find(pBld)->IsCreatedFromMapFile = true;
 
 	return 0;
 }
@@ -738,13 +716,12 @@ DEFINE_HOOK(0x56BD8B, MapClass_PlaceRandomCrate_Sampling, 0x5)
 	cell = { (short)((XP + YP) / 2),(short)((YP - XP) / 2) };
 
 	const auto pCell = MapClass::Instance->TryGetCellAt(cell);
-	if (!pCell)
-		return SkipSpawn;
 
-	if (!MapClass::Instance->IsWithinUsableArea(pCell, true))
+	if (!MapClass::Instance->IsWithinUsableArea(pCell, true) || !pCell)
 		return SkipSpawn;
 
 	const bool isWater = pCell->LandType == LandType::Water;
+
 	if (isWater && RulesExtData::Instance()->Crate_LandOnly.Get())
 		return SkipSpawn;
 
@@ -756,7 +733,6 @@ DEFINE_HOOK(0x56BD8B, MapClass_PlaceRandomCrate_Sampling, 0x5)
 
 	return SpawnCrate;
 }
-
 
 DEFINE_HOOK_AGAIN(0x4FD463, HouseClass_RecalcCenter_LimboDelivery, 0x6)
 DEFINE_HOOK(0x4FD1CD, HouseClass_RecalcCenter_LimboDelivery, 0x6)
@@ -915,39 +891,6 @@ DEFINE_JUMP(LJMP, 0x447709, 0x447727);
 //		RetFireIllegal : Continue;
 //}
 
-// Do not display SuperAnimThree for buildings with superweapons if the recharge timer hasn't actually started at any point yet.
-DEFINE_HOOK(0x44643E, BuildingClass_Place_SuperAnim, 0x6)
-{
-	enum { UseSuperAnimOne = 0x4464F6 };
-
-	GET(BuildingClass*, pThis, EBP);
-	GET(SuperClass*, pSuper, EAX);
-
-	if (pSuper->RechargeTimer.StartTime == 0 &&
-		pSuper->RechargeTimer.TimeLeft == 0 &&
-		!SWTypeExtContainer::Instance.Find(pSuper->Type)->SW_InitialReady)
-	{
-		R->ECX(pThis);
-		return UseSuperAnimOne;
-	}
-
-	return 0;
-}
-
-// Do not advance SuperAnim for buildings with superweapons if the recharge timer hasn't actually started at any point yet.
-DEFINE_HOOK(0x451033, BuildingClass_AnimationAI_SuperAnim, 0x6)
-{
-	enum { SkipSuperAnimCode = 0x451048 };
-
-	GET(SuperClass*, pSuper, EAX);
-
-	if (pSuper->RechargeTimer.StartTime == 0
-		&& pSuper->RechargeTimer.TimeLeft == 0
-		&& !SWTypeExtContainer::Instance.Find(pSuper->Type)->SW_InitialReady)
-		return SkipSuperAnimCode;
-
-	return 0;
-}
 
 // Updates layers of all animations attached to the given techno.
 void UpdateAttachedAnimLayers(TechnoClass* pThis)
@@ -990,9 +933,8 @@ void UpdateAttachedAnimLayers(TechnoClass* pThis)
 void __fastcall DisplayClass_Submit_Wrapper(DisplayClass* pThis, void* _, ObjectClass* pObject)
 {
 	pThis->SubmitObject(pObject);
-
-	if (auto const pTechno = abstract_cast<TechnoClass*>(pObject))
-		UpdateAttachedAnimLayers(pTechno);
+	//Known to be techno already , dont need to cast
+	UpdateAttachedAnimLayers((TechnoClass*)pObject);
 }
 
 DEFINE_JUMP(CALL, 0x54B18E, GET_OFFSET(DisplayClass_Submit_Wrapper));  // JumpjetLocomotionClass_Process
@@ -1135,12 +1077,13 @@ DEFINE_JUMP(CALL, 0x53AD92, GET_OFFSET(NumberOfSchemes_Wrapper));
 //// Set ShadeCount to 53 to initialize the palette fully shaded - this is required to make it not draw over shroud for some reason.
 DEFINE_HOOK(0x68C4C4, GenerateColorSpread_ShadeCountSet, 0x5)
 {
-	if (!Phobos::Config::ApplyShadeCountFix)
-		return 0x0;
-
-	//shade count
-	if (R->EDX<int>() == 1)
-		R->EDX(53);
+	// some mod dont like the result of this fix 
+	// so toggle is added
+	if (Phobos::Config::ApplyShadeCountFix) {
+		//shade count
+		if (R->EDX<int>() == 1)
+			R->EDX(53);
+	}
 
 	return 0;
 }
@@ -1176,7 +1119,7 @@ bool CanDeployIntoBuilding(UnitClass* pThis, bool noDeploysIntoDefaultValue)
 	if (!pDeployType->CanCreateHere(mapCoords, pThis->Owner))
 		canDeploy = false;
 
-	pThis->Locomotor->Mark_All_Occupation_Bits((int)PlacementType::Put);
+	pThis->Locomotor.GetInterfacePtr()->Mark_All_Occupation_Bits((int)PlacementType::Put);
 	pThis->UpdatePlacement(PlacementType::Put);
 
 	return canDeploy;
@@ -1200,40 +1143,15 @@ DEFINE_HOOK(0x741050, UnitClass_CanFire_DeployToFire, 0x6)
 
 	GET(UnitClass*, pThis, ESI);
 
-	if (pThis->Type->DeployToFire && pThis->CanDeployNow() && !CanDeployIntoBuilding(pThis, true))
+	if (pThis->Type->DeployToFire
+		&& pThis->CanDeployNow()
+		&& !CanDeployIntoBuilding(pThis, true)
+		) {
 		return MustDeploy;
+	}
 
 	return SkipGameCode;
 }
-
-// skip call DrawInfoTipAndSpiedSelection
-// Note that Ares have the TacticalClass_DrawUnits_ParticleSystems hook at 0x6D9427
-DEFINE_JUMP(LJMP, 0x6D9430, 0x6D95A1); // Tactical_RenderLayers
-
-// Fixed position and layer of info tip and reveal production cameo on selected building
-// Author: Belonit
-#pragma region DrawInfoTipAndSpiedSelection
-// Call DrawInfoTipAndSpiedSelection in new location
-DEFINE_HOOK(0x6D9781, Tactical_RenderLayers_DrawInfoTipAndSpiedSelection, 0x5)
-{
-	GET(TechnoClass*, pThis, EBX);
-	GET(Point2D*, pLocation, EAX);
-
-	const auto pBuilding = specific_cast<BuildingClass*>(pThis);
-
-	if (pBuilding && pBuilding->IsSelected && pBuilding->IsOnMap && BuildingExtContainer::Instance.Find(pBuilding)->LimboID <= -1)
-	{
-		const int foundationHeight = pBuilding->Type->GetFoundationHeight(0);
-		const int typeHeight = pBuilding->Type->Height;
-		const int yOffest = (Unsorted::CellHeightInPixels * (foundationHeight + typeHeight)) >> 2;
-
-		Point2D centeredPoint = { pLocation->X, pLocation->Y - yOffest };
-		pBuilding->DrawInfoTipAndSpiedSelection(&centeredPoint, &DSurface::ViewBounds);
-	}
-
-	return 0;
-}
-#pragma endregion DrawInfoTipAndSpiedSelection
 
 #include <VeinholeMonsterClass.h>
 
@@ -1242,4 +1160,23 @@ DEFINE_HOOK(0x5349A5, Map_ClearVectors_Veinhole, 0x5)
 	VeinholeMonsterClass::DeleteAll();
 	VeinholeMonsterClass::DeleteVeinholeGrowthData();
 	return 0;
+}
+
+// Fixes a literal edge-case in passability checks to cover cells with bridges that are not accessible when moving on the bridge and
+// normally not even attempted to enter but things like MapClass::NearByLocation() can still end up trying to pick.
+DEFINE_HOOK(0x4834E5, CellClass_IsClearToMove_BridgeEdges, 0x5)
+{
+	enum { IsNotClear = 0x48351E , Continue = 0x0 };
+
+	GET(CellClass*, pThis, ESI);
+	GET(int, level, EAX);
+	GET(bool, isBridge, EBX);
+
+	if (isBridge && pThis->ContainsBridge()
+		&& (level == -1 || level == (pThis->Level + Unsorted::BridgeLevels))
+		&& !(pThis->Flags & CellFlags::Unknown_200)) {
+		return IsNotClear;
+	}
+
+	return Continue;
 }

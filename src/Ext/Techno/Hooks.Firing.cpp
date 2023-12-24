@@ -136,8 +136,6 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 	// AAOnly doesn't need to be checked if LandTargeting=1.
 	if ((!pTargetTechno
 		|| pTargetTechno->GetTechnoType()->LandTargeting != LandTargetingType::Land_not_okay)
-		&& pWeapon->Projectile->AA
-		&& pTarget && !pTarget->IsInAir()
 		) {
 		if (BulletTypeExtContainer::Instance.Find(pWeapon->Projectile)->AAOnly)
 			return FireIllegal;

@@ -60,7 +60,7 @@ DEFINE_HOOK(0x7002E9, TechnoClass_WhatAction_PassableTerrain, 0x5)
 	GET(ObjectClass*, pTarget, EDI);
 	GET_STACK(bool, isForceFire, STACK_OFFS(0x1C, -0x8));
 
-	if (!pThis->Owner->ControlledByCurrentPlayer() || !pThis->IsControllable())
+	if (!pThis->Owner->IsControlledByHuman() || !pThis->IsControllable())
 		return 0;
 
 	if (auto const pTerrain = specific_cast<TerrainClass*>(pTarget))

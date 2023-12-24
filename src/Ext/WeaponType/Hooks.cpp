@@ -9,22 +9,29 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/WarheadType/Body.h>
 
-DEFINE_HOOK(0x772A0A, WeaponTypeClass_SetSpeed_ApplyGravity, 0x6)
+DEFINE_HOOK(0x7729F0, WeaponTypeClass_SetSpeed_ApplyGravity, 0x6)
 {
-	GET(BulletTypeClass* const, pType, EAX);
+	GET(WeaponTypeClass*, pWeapon, ECX);
 
-	auto const nGravity = BulletTypeExtData::GetAdjustedGravity(pType);
-	__asm { fld nGravity };
+	const auto pBullet = pWeapon->Projectile;
+	if (pBullet && !pBullet->ROT) {
+		const auto gravity = BulletTypeExtData::GetAdjustedGravity(pBullet);
+		pWeapon->Speed = Game::AdjustRangeWithGravity(pWeapon->Range, gravity);
+	}
 
-	return 0x772A29;
+	return 0x772A4C;
 }
 
-DEFINE_HOOK(0x773087, WeaponTypeClass_GetSpeed_ApplyGravity, 0x6)
+DEFINE_HOOK(0x773070, WeaponTypeClass_GetSpeed_ApplyGravity, 0x6)
 {
-	GET(BulletTypeClass* const, pType, EAX);
+	GET(WeaponTypeClass*, pWeapon, ECX);
 
-	auto const nGravity = BulletTypeExtData::GetAdjustedGravity(pType);
-	__asm { fld nGravity };
+	if (!pWeapon->Projectile || pWeapon->Projectile->ROT) {
+		R->EAX(pWeapon->Speed);
+		return 0x7730C9;
+	}
 
-	return 0x7730A3;
+	const auto  gravity = BulletTypeExtData::GetAdjustedGravity(pWeapon->Projectile);
+	R->EAX(Game::AdjustRangeWithGravity(pWeapon->Range, gravity));
+	return 0x7730C9;
 }

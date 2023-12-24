@@ -59,7 +59,7 @@ void AresNetEvent::FirewallToggle::Raise(HouseClass* Source)
 
 void AresNetEvent::FirewallToggle::Respond(EventClass* Event)
 {
-	if (HouseClass* pSourceHouse = HouseClass::Array->GetItem(Event->HouseIndex))
+	if (HouseClass* pSourceHouse = HouseClass::Array->GetItemOrDefault(Event->HouseIndex))
 	{
 		AresHouseExt::SetFirestormState(pSourceHouse, !pSourceHouse->FirestormActive);
 	}

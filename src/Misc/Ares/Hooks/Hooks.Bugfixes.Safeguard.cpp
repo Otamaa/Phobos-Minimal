@@ -52,7 +52,7 @@ DEFINE_OVERRIDE_HOOK(0x7272B5, TriggerTypeClass_LoadFromINI_House, 6)
 		Debug::FatalError("TriggerType '%s' refers to a house named '%s', which does not exist. In case no house is needed, use '<none>' explicitly.", pTrig->ID, pHouse);
 		R->EDX<HouseTypeClass*>(nullptr);
 	} else {
-		R->EDX<HouseTypeClass*>(HouseTypeClass::Array->GetItem(index));
+		R->EDX<HouseTypeClass*>(HouseTypeClass::Array->Items[index]);
 	}
 
 	return 0x7272C1;

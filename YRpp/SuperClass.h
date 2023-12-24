@@ -161,7 +161,7 @@ public:
 	static constexpr reference<int, 0xA9FAB8u> const Deferment{};
 	static constexpr reference<int, 0x827FC4u> const Duration{};
 	static constexpr reference<int, 0x827FC0u> const StartTime{};
-	static constexpr reference<bool, 0xA9FAB4u> const Active{};
+	static constexpr reference<bool, 0xA9FAB4u> const IsActive{};
 	static constexpr reference<bool, 0xA9FAD0u> const TimeToEnd{};
 
 	static constexpr reference<DynamicVectorClass<AnimClass*>, 0xA9F9D0u> const CloudsPresent{};
@@ -215,7 +215,7 @@ public:
 	static void PrintMessage()
 		{ CALL(0x53B410); }
 
-	static bool Active()
+	static bool IsActive()
 		{ CALL(0x53B400); }
 };
 

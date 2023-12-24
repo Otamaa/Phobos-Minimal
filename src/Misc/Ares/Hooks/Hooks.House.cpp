@@ -23,6 +23,7 @@
 
 #include "Header.h"
 
+#ifndef aaa
 DEFINE_DISABLE_HOOK(0x4f6532, HouseClass_CTOR_ares)
 DEFINE_DISABLE_HOOK(0x4f7371, HouseClass_DTOR_ares)
 DEFINE_DISABLE_HOOK(0x50114d, HouseClass_InitFromINI_ares)
@@ -40,6 +41,7 @@ DEFINE_DISABLE_HOOK(0x51246d, HouseTypeClass_Load_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x512480, HouseTypeClass_SaveLoad_Prefix_ares)
 DEFINE_DISABLE_HOOK(0x51255c, HouseTypeClass_Save_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x5127cf, HouseTypeClass_DTOR_ares)
+#endif
 
 static constexpr int ObserverBackgroundWidth = 121;
 static constexpr int ObserverBackgroundHeight = 96;
@@ -445,19 +447,27 @@ DEFINE_OVERRIDE_HOOK(0x5227A3, Sides_Disguise, 6) // InfantryClass_SetDefaultDis
 		pThis = R->ECX<InfantryClass*>();
 		dwReturnAddress = 0x5227EC;
 	}
-	else
+	else if(R->Origin() == 0x6F422F)
 	{
-		pThis = R->ESI<InfantryClass*>();
+		GET(TechnoClass* , pTech , ESI);
+
+		if(pTech->WhatAmI() != InfantryClass::AbsID) {
+			return 0x0;
+		}
+
+		pThis = (InfantryClass*)pTech;
 		dwReturnAddress = 0x6F4277;
 	}
 
 	if (auto pDisguise = HouseExtData::GetDisguise(pHouse)) {
 		pThis->Disguise = pDisguise;
 		return dwReturnAddress;
-
-	} else {
-		return 0;
+	} else if (const auto pDefaultDisguiseType = TechnoTypeExtContainer::Instance.Find(pThis->Type)->DefaultDisguise.Get(nullptr)){
+		pThis->Disguise = pDefaultDisguiseType;
+		return dwReturnAddress;
 	}
+
+	return 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x4F8B08, HouseClass_Update_DamageDelay, 6)
@@ -1122,7 +1132,7 @@ DEFINE_OVERRIDE_HOOK(0x4F9610, HouseClass_GiveTiberium_Storage, 0xA)
 
 		//no free space , just give the money ,..
 		if(amount > 0.0) {
-			auto const pTib = TiberiumClass::Array->GetItem(idxType);
+			auto const pTib = TiberiumClass::Array->Items[idxType];
 			pThis->Balance += int(amount * pTib->Value * pThis->Type->IncomeMult);
 		}
 		// redraw silos
@@ -1131,7 +1141,7 @@ DEFINE_OVERRIDE_HOOK(0x4F9610, HouseClass_GiveTiberium_Storage, 0xA)
 	else
 	{
 		// just add the money. this is the only original YR logic
-		auto const pTib = TiberiumClass::Array->GetItem(idxType);
+		auto const pTib = TiberiumClass::Array->Items[idxType];
 		pThis->Balance += int(amount * pTib->Value * pThis->Type->IncomeMult);
 	}
 
@@ -1221,18 +1231,17 @@ DEFINE_OVERRIDE_HOOK(0x508C7F, HouseClass_UpdatePower_Auxiliary, 6)
 {
 	GET(HouseClass*, pThis, ESI);
 
-	auto curAux = HouseExtContainer::Instance.Find(pThis)->AuxPower;
+	const auto curAux = HouseExtContainer::Instance.Find(pThis)->AuxPower;
 
-	int nAux_ = 0;
+	int AuxPowerOutput = 0;
 	if (curAux >= 0)
-		nAux_ = curAux;
-	pThis->PowerOutput = nAux_;
+		AuxPowerOutput = curAux;
+	pThis->PowerOutput = AuxPowerOutput;
 
-	int nAux__ = 0;
-	if (curAux <= 0)
-		nAux__ = -curAux;
-
-	pThis->PowerDrain = nAux__;
+	int AuxPowerDrain = 0;
+	if (AuxPowerDrain <= 0)
+		AuxPowerDrain = -curAux;
+	pThis->PowerDrain = AuxPowerDrain;
 
 	return 0x508C8B;
 }
@@ -1359,38 +1368,24 @@ DEFINE_OVERRIDE_HOOK(0x4F8C97, HouseClass_Update_BuildConst, 6)
 	return Skip;
 }
 
-bool Timer_Something(CDTimerClass& timer)
-{
-	if (timer.StartTime != -1) {
-		if (timer.CurrentTime - timer.StartTime >= timer.TimeLeft) {
-			return true;
-		}
-	}
-
-	return false;
-}
-DWORD NOINLINE Speak(HouseClass* pHouse)
-{
-	pHouse->Buildings.for_each([pHouse](BuildingClass* pBld) {
-		if(pBld->Type->Radar && pHouse->SpeakMaxedDelayTimer.Expired()){
-			if (!BuildingExtContainer::Instance.Find(pBld)->RegisteredJammers.empty()) {
-				VoxClass::Play("EVA_RadarJammed");
-				const int time = GameOptionsClass::Instance->GetAnimSpeed(
-						int(RulesClass::Instance->SpeakDelay * 900.0));
-				pHouse->SpeakMaxedDelayTimer.Start(time);
-			}
-		}
-	});
-
-	return 0x0;
-}
-
 // there is actually an SpeakDelay 
 // dunno atm 
-DEFINE_HOOK(0x4F8B3C, HouseClass_Update_Annouces, 0x6) {
-	GET(HouseClass* const, pThis, ESI);
-	return Speak(pThis);
-}
+//DEFINE_HOOK(0x4F8B3C, HouseClass_Update_Annouces, 0x6) {
+//	GET(HouseClass* const, pThis, ESI);
+//
+//		pThis->Buildings.for_each([pThis](BuildingClass* pBld) {
+//		if(pBld->Type->Radar && pThis->SpeakMaxedDelayTimer.Expired()){
+//			if (!BuildingExtContainer::Instance.Find(pBld)->RegisteredJammers.empty()) {
+//				VoxClass::Play("EVA_RadarJammed");
+//				const int time = GameOptionsClass::Instance->GetAnimSpeed(
+//						int(RulesClass::Instance->SpeakDelay * 900.0));
+//				pThis->SpeakMaxedDelayTimer.Start(time);
+//			}
+//		}
+//	});
+//
+//	return 0x0;
+//}
 
 // play this annoying message every now and then
 DEFINE_OVERRIDE_HOOK(0x4F8C23, HouseClass_Update_SilosNeededEVA, 5)

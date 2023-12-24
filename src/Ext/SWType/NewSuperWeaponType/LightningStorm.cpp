@@ -53,7 +53,7 @@ bool SW_LightningStorm::AbortFire(SuperClass* pSW, bool IsPlayer)
 
 	if(!pData->Weather_UseSeparateState) {
 		// only one Lightning Storm allowed
-		if (LightningStorm::Active || LightningStorm::HasDeferment())
+		if (LightningStorm::IsActive || LightningStorm::HasDeferment())
 		{
 			if (IsPlayer)
 			{
@@ -180,25 +180,28 @@ bool CloneableLighningStormStateMachine::Save(PhobosStreamWriter& Stm) const
 void CloneableLighningStormStateMachine::Update()
 {
 	// remove all bolts from the list that are halfway done
-	for (int i = int(BoltsPresent.size()) - 1; i >= 0; --i)
-	{
-		if (auto const pAnim = BoltsPresent[i]) {
-			if (pAnim->Animation.Value >= pAnim->Type->GetImage()->Frames / 2) {
-				BoltsPresent.erase(BoltsPresent.begin() + i);
-			}
-		}
-	}
+	auto iter_bolt_present = std::remove_if(this->BoltsPresent.begin() , this->BoltsPresent.end(), [](AnimClass* pAnim){
+		return !pAnim || pAnim->Animation.Value >= pAnim->Type->GetImage()->Frames / 2;
+	});
+
+	if(iter_bolt_present != this->BoltsPresent.end())
+		this->BoltsPresent.erase(iter_bolt_present ,this->BoltsPresent.end());
 
 	// find the clouds that should strike right now
-	for (int i = int(CloudsManifest.size()) - 1; i >= 0; --i) {
-		if (auto const pAnim = CloudsManifest[i]) {
-			if (pAnim->Animation.Value >= pAnim->Type->GetImage()->Frames / 2) {
-				auto const crdStrike = pAnim->GetCoords();
-				this->Strike2(crdStrike);
-				CloudsManifest.erase(CloudsManifest.begin() + i);
-			}
+	auto iter_cloud_manifest = std::remove_if(this->CloudsManifest.begin() , this->CloudsManifest.end(), [&](AnimClass* pAnim){
+		if (!pAnim)
+			return true;
+
+		if(pAnim->Animation.Value >= pAnim->Type->GetImage()->Frames / 2) {
+			auto const crdStrike = pAnim->GetCoords();
+			this->Strike2(crdStrike);
 		}
-	}
+
+		return false;
+	});
+
+	if(iter_cloud_manifest != this->CloudsManifest.end())
+		this->CloudsManifest.erase(iter_cloud_manifest ,this->CloudsManifest.end());
 
 	// all currently present clouds have to disappear first
 	if (CloudsPresent.empty())
@@ -216,17 +219,13 @@ void CloneableLighningStormStateMachine::Update()
 	}
 	else
 	{
-		for (int i = int(CloudsPresent.size()) - 1; i >= 0; --i)
-		{
-			if (auto const pAnim = CloudsPresent[i])
-			{
-				auto pAnimImage = pAnim->Type->GetImage();
-				if (pAnim->Animation.Value >= pAnimImage->Frames - 1)
-				{
-					CloudsPresent.erase(CloudsPresent.begin() + i);
-				}
-			}
-		}
+		auto iter_cloud_present = std::remove_if(this->CloudsPresent.begin() , this->CloudsPresent.end(), [&](AnimClass* pAnim){
+			return !pAnim || pAnim->Animation.Value >= pAnim->Type->GetImage()->Frames - 1;
+		});
+
+		if(iter_cloud_present != this->CloudsPresent.end())
+			this->CloudsPresent.erase(iter_cloud_present ,this->CloudsPresent.end());
+
 	}
 
 	auto const pExt = this->GetTypeExtData();

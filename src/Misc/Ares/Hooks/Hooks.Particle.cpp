@@ -4,6 +4,7 @@
 #include <Ext/ParticleSystemType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/Anim/Body.h>
+#include <Ext/Building/Body.h>
 
 #include "Header.h"
 
@@ -382,7 +383,35 @@ DEFINE_OVERRIDE_HOOK(0x6D9427, TacticalClass_DrawUnits_ParticleSystems, 9)
 	if (layer == Layer::Air)
 		ParticleSystemExtData::UpdateInAir();
 
-	return layer == Layer::Ground ? 0x6D9430 : 0x6D95A1;
+
+	//return layer == Layer::Ground ? 0x6D9430 : 0x6D95A1;
+	// Fixed position and layer of info tip and reveal production cameo on selected building
+	// Part1
+	// Author: Belonit
+	return 0x6D95A1;
+}
+
+// Fixed position and layer of info tip and reveal production cameo on selected building
+// Author: Belonit
+// Call DrawInfoTipAndSpiedSelection in new location
+DEFINE_HOOK(0x6D9781, Tactical_RenderLayers_DrawInfoTipAndSpiedSelection, 0x5)
+{
+	GET(TechnoClass*, pThis, EBX);
+	GET(Point2D*, pLocation, EAX);
+
+	const auto pBuilding = specific_cast<BuildingClass*>(pThis);
+
+	if (pBuilding && pBuilding->IsSelected && pBuilding->IsOnMap && BuildingExtContainer::Instance.Find(pBuilding)->LimboID <= -1)
+	{
+		const int foundationHeight = pBuilding->Type->GetFoundationHeight(0);
+		const int typeHeight = pBuilding->Type->Height;
+		const int yOffest = (Unsorted::CellHeightInPixels * (foundationHeight + typeHeight)) >> 2;
+
+		Point2D centeredPoint = { pLocation->X, pLocation->Y - yOffest };
+		pBuilding->DrawInfoTipAndSpiedSelection(&centeredPoint, &DSurface::ViewBounds);
+	}
+
+	return 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x62E380, ParticleSystemClass_SpawnParticle, 0xA)

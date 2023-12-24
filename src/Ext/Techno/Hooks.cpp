@@ -25,38 +25,6 @@
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
 
-DEFINE_HOOK(0x518FBC, InfantryClass_DrawIt_DontRenderSHP, 0x6)
-{
-	enum { SkipDrawCode = 0x5192B5 };
-
-	GET(InfantryClass*, pThis, EBP);
-
-	if (TechnoExtContainer::Instance.Find(pThis)->IsWebbed && pThis->ParalysisTimer.GetTimeLeft() > 0)
-		return SkipDrawCode;
-
-	return 0;
-}
-
-DEFINE_HOOK(0x51AA49, InfantryClass_Assign_Destination_DisallowMoving, 0x6)
-{
-	GET(InfantryClass*, pThis, ECX);
-
-	auto pExt = TechnoExtContainer::Instance.Find(pThis);
-
-	if (pExt->IsWebbed && pThis->ParalysisTimer.HasTimeLeft()) {
-		if (pThis->Target) {
-			pThis->SetTarget(nullptr);
-			pThis->SetDestination(nullptr, false);
-			pThis->QueueMission(Mission::Sleep, false);
-		}
-
-		return 0x51B1D7;
-	}
-
-
-	return 0;
-}
-
 DEFINE_HOOK(0x4483C0, BuildingClass_SetOwningHouse_MuteSound, 0x6)
 {
 	GET(BuildingClass* const, pThis, ESI);
@@ -167,46 +135,11 @@ DEFINE_HOOK(0x6F6CFE, TechnoClass_Unlimbo_LaserTrails, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x4DBF13, FootClass_SetOwningHouse, 0x6)
-{
-	GET(FootClass* const, pThis, ESI);
-
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-
-	if(!pExt->LaserTrails.empty()) {
-		for (auto& trail : pExt->LaserTrails) {
-			if (trail.Type->IsHouseColor)
-				trail.CurrentColor = (pThis->Owner ?
-				pThis->Owner : HouseExtData::FindCivilianSide())
-				->LaserColor;
-		}
-	}
-
-	//if (pThis->Owner->IsHumanPlayer)
-	//	TechnoExtData::ChangeOwnerMissionFix(pThis);
-
-	return 0;
-}
-
 DEFINE_HOOK(0x6FB086, TechnoClass_Reload_ReloadAmount_UpdateSharedAmmo, 0x8)
 {
 	GET(TechnoClass* const, pThis, ECX);
 
 	TechnoExtData::UpdateSharedAmmo(pThis);
-
-	return 0;
-}
-
-DEFINE_HOOK(0x6FD446, TechnoClass_LaserZap_IsSingleColor, 0x7)
-{
-	GET(WeaponTypeClass* const, pWeapon, ECX);
-	GET(LaserDrawClass* const, pLaser, EAX);
-
-	if (!pLaser->IsHouseColor && WeaponTypeExtContainer::Instance.Find(pWeapon)->Laser_IsSingleColor)
-		pLaser->IsHouseColor = true;
-
-	// Fixes drawing thick lasers for non-PrismSupport building-fired lasers.
-	pLaser->IsSupported = pLaser->Thickness > 3;
 
 	return 0;
 }
@@ -262,7 +195,7 @@ DEFINE_HOOK(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x6) //0x8
 	GET(TechnoClass*, pKiller, EBX);
 	GET_STACK(HouseClass*, pDefaultRetHouse, STACK_OFFS(0x24, 0x14));
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pSlave->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pSlave->Type);
 	{
 		if (pTypeExt->Death_WithMaster.Get() || pTypeExt->Slaved_ReturnTo == SlaveReturnTo::Suicide)
 		{
@@ -280,19 +213,6 @@ DEFINE_HOOK(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x6) //0x8
 }
 
 #include <Misc/Ares/Hooks/Header.h>
-
-// DEFINE_HOOK(0x443C81, BuildingClass_ExitObject_InitialClonedHealth, 0x7)
-// {
-// 	GET(BuildingClass*, pBuilding, ESI);
-// 	GET(TechnoClass*, pTechno, EDI);
-//
-// 	if (pBuilding && pBuilding->Type->Cloning && pTechno)
-// 	{
-//
-// 	}
-//
-// 	return 0;
-// }
 
 DEFINE_HOOK(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 {
@@ -437,38 +357,6 @@ DEFINE_HOOK(0x701DFF, TechnoClass_ReceiveDamage_AfterObjectClassCall, 0x7)
 	if(damageState != DamageState::PostMortem && !pThis->IsAlive) {
 		R->EAX(DamageState::NowDead);
 		return 0x702688;
-	}
-
-	return 0;
-}
-
-DEFINE_HOOK(0x7037F7, TechnoClass_Cloak_CloakAnim, 0x5)
-{
-	GET(TechnoClass* const, pThis, ESI);
-
-	if (const auto pAnimType = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->CloakAnim.Get(RulesExtData::Instance()->CloakAnim))
-	{
-		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pThis->GetCoords()),
-			pThis->Owner,
-			nullptr,
-			false
-		);
-	}
-
-	return 0;
-}
-
-DEFINE_HOOK(0x70374F, TechnoClass_Uncloak_DecloakAnim, 0x5)
-{
-	TechnoClass* const pThis = reinterpret_cast<TechnoClass*>(R->ESI<int>() - 0x9C);
-
-	if (const auto pAnimType = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->DecloakAnim.Get(RulesExtData::Instance()->DecloakAnim))
-	{
-		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pThis->GetCoords()),
-			pThis->Owner,
-			nullptr,
-			false
-		);
 	}
 
 	return 0;

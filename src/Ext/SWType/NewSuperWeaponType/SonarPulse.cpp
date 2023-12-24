@@ -37,10 +37,8 @@ bool SW_SonarPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 
 		auto& nTime = TechnoExtContainer::Instance.Find(pTechno)->CloakSkipTimer;
 
-		auto const delay = MaxImpl(
-			nTime.GetTimeLeft(), pData->Sonar_Delay.Get());
-
-		nTime.Start(delay);
+		nTime.Start(MaxImpl(
+			nTime.GetTimeLeft(), pData->Sonar_Delay.Get()));
 
 		// actually detect this
 		if (pTechno->CloakState != CloakState::Uncloaked)

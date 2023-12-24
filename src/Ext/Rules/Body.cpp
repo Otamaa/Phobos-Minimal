@@ -146,7 +146,11 @@ static bool NOINLINE IsVanillaDummy(const char* ID) {
 	return false;
 }
 
+#ifndef aaa
 DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
+#else
+DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
+#endif
 {	// create an array of crew for faster lookup
 	std::vector<InfantryTypeClass*> Crews(SideClass::Array->Count, nullptr);
 	for (int i = 0; i < SideClass::Array->Count; ++i)
@@ -1294,7 +1298,7 @@ DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 		Debug::Log("Player Name: %s IsCurrentPlayer: %u; ColorScheme: %s; ID: %d; HouseType: %s; Edge: %d; StartingAllies: %d; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d\n",
 		it->PlainName ? it->PlainName : NONE_STR,
 		it->IsHumanPlayer,
-		ColorScheme::Array->GetItem(it->ColorSchemeIndex)->ID,
+		ColorScheme::Array->Items[it->ColorSchemeIndex]->ID,
 		it->ArrayIndex,
 		pType ? pType->Name : NONE_STR,
 		it->Edge,

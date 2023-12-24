@@ -24,7 +24,7 @@ void AttackBeaconFunctional::AI(TechnoExtData* pExt , TechnoTypeExtData* pTypeEx
 
 	for (int i = TechnoArr->Count - 1; i > 0; i--)
 	{ 
-		auto const pTarget = TechnoArr->GetItem((int)i);
+		auto const pTarget = TechnoArr->Items[(int)i];
 		if (Helpers_DP::IsDeadOrInvisible(pTarget)
 			|| !pTarget->Owner
 			|| (pTarget->Owner == pHouse ? !BeaconTypeData.AffectsOwner :

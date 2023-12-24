@@ -77,7 +77,7 @@ void TheaterTypeClass::LoadAllTheatersToArray()
 	const auto filename = "Theaters.ini";
 	CCFileClass file { filename };
 
-	if (file.Exists()) {
+	if (file.Exists() && file.Open(FileAccessMode::Read)) {
 		CCINIClass ini {};
 		ini.ReadCCFile(&file);
 		const char* pSection = TheaterTypeClass::GetMainSection();
@@ -96,7 +96,7 @@ void TheaterTypeClass::LoadAllTheatersToArray()
 			}
 		}
 	} else {
-		Debug::Log("%s not found!\n", filename);
+		Debug::Log("Theaters.ini not found!\n");
 	}
 }
 

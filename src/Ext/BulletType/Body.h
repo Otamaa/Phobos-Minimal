@@ -106,9 +106,13 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-	bool HasSplitBehavior();
+	bool FORCEINLINE HasSplitBehavior() const
+	{
+		// behavior in FS: Splits defaults to Airburst.
+		return this->AttachedToObject->Airburst || this->Splits;
+	}
 
-	double inline GetMissileROTVar(const RulesClass* const pRules) const
+	double FORCEINLINE GetMissileROTVar(const RulesClass* const pRules) const
 	{
 		if (MissileROTVar.isset())
 			return MissileROTVar.Get();
@@ -116,7 +120,7 @@ public:
 		return pRules->MissileROTVar;
 	}
 
-	double inline GetMissileSaveAltitude(const RulesClass* const pRules) const
+	double FORCEINLINE GetMissileSaveAltitude(const RulesClass* const pRules) const
 	{
 		if (MissileSafetyAltitude.isset())
 			return MissileSafetyAltitude.Get();
@@ -128,15 +132,16 @@ public:
 	BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, WeaponTypeClass* pWeapon) const;
 	BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, int damage, WarheadTypeClass* pWarhead, int speed, int range, bool bright, bool addDamage) const;
 
-	double inline GetAdjustedGravity() const
+	double FORCEINLINE GetAdjustedGravity() const
 	{
-		auto const nGravity = this->Gravity.Get(RulesClass::Instance->Gravity);
+		const auto nGravity = this->Gravity.Get(RulesClass::Instance->Gravity);
 		return this->AttachedToObject->Floater ? nGravity * 0.5 : nGravity;
 	}
 
 	const ConvertClass* GetBulletConvert();
 
-	static double GetAdjustedGravity(BulletTypeClass* pType);
+	static FORCEINLINE double GetAdjustedGravity(BulletTypeClass* pType);
+
 	static BulletTypeClass* GetDefaultBulletType(const char* pBullet = nullptr);
 	static CoordStruct CalculateInaccurate(BulletTypeClass* pBulletType);
 
@@ -173,3 +178,8 @@ private:
 	BulletTypeExtContainer(BulletTypeExtContainer&&) = delete;
 	BulletTypeExtContainer& operator=(const BulletTypeExtContainer& other) = delete;
 };
+
+double BulletTypeExtData::GetAdjustedGravity(BulletTypeClass* pType)
+{
+	return BulletTypeExtContainer::Instance.Find(pType)->GetAdjustedGravity();
+}

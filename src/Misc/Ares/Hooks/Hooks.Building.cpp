@@ -227,8 +227,8 @@ DEFINE_OVERRIDE_HOOK(0x442D1B, BuildingClass_Init_Academy, 6)
 DEFINE_OVERRIDE_HOOK(0x43FE8E, BuildingClass_Update_Reload, 6)
 {
 	GET(BuildingClass*, B, ESI);
-	BuildingTypeClass* BType = B->Type;
-	if (!BType->Hospital && !BType->Armory)
+
+	if (!B->Type->Hospital && !B->Type->Armory)
 	{ // TODO: rethink this
 		B->Reload();
 	}
@@ -1509,7 +1509,7 @@ DEFINE_OVERRIDE_HOOK(0x440709, BuildingClass_Unlimbo_RemoveHarcodedWall, 0x6)
 {
 	GET(CellClass* const, Cell, EDI);
 	const int idxOverlay = Cell->OverlayTypeIndex;
-	return idxOverlay != -1 && OverlayTypeClass::Array->GetItem(idxOverlay)->Wall ? 0x44071A : 0x440725;
+	return idxOverlay != -1 && OverlayTypeClass::Array->Items[idxOverlay]->Wall ? 0x44071A : 0x440725;
 }
 
 DEFINE_OVERRIDE_HOOK(0x45E416, BuildingTypeClass_CTOR_Initialize, 0x6)
@@ -1665,11 +1665,7 @@ DEFINE_OVERRIDE_HOOK(0x73A1BC, UnitClass_UpdatePosition_EnteredGrinder, 0x7)
 	// #368: refund hijackers
 	if (Vehicle->HijackerInfantryType != -1)
 	{
-		if (InfantryTypeClass* Hijacker =
-			InfantryTypeClass::Array->GetItem(Vehicle->HijackerInfantryType))
-		{
-			Grinder->Owner->TransactMoney(Hijacker->GetRefund(Vehicle->Owner, 0));
-		}
+		Grinder->Owner->TransactMoney(InfantryTypeClass::Array->Items[Vehicle->HijackerInfantryType]->GetRefund(Vehicle->Owner, 0));
 	}
 
 	return 0;
@@ -2391,44 +2387,38 @@ DEFINE_OVERRIDE_HOOK(0x459C03, BuildingClass_CanBeSelectedNow_MassSelectable, 6)
 	return 0x459C12;
 }
 
-/* 	#218 - specific occupiers
-	#665 - raidable buildings */
 DEFINE_OVERRIDE_HOOK(0x457D58, BuildingClass_CanBeOccupied_SpecificOccupiers, 6)
 {
+	enum { AllowOccupy = 0x457DD5, DisallowOccupy = 0x457DA3 };
+
 	GET(BuildingClass*, pThis, ESI);
 	GET(InfantryClass*, pInf, EDI);
-
-	if (!pInf->Type->Occupier)
-		return 0x457DA3;
-
 	BuildingTypeExtData* pBuildTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
+	bool can_occupy = false;
+
 	if (!pBuildTypeExt->CanBeOccupiedBy(pInf))
-		return 0x457DA3;
+		return DisallowOccupy;
 
-	const auto count = pThis->GetOccupantCount();
-	const bool isFull = (count == pThis->Type->MaxNumberOccupants);
-	const bool isIneligible = ((pThis->Type->TechLevel == -1 && pThis->IsRedHP()) || pInf->IsMindControlled());
+	const int occupantCount = pThis->GetOccupantCount();
 
-	if(!isFull && !isIneligible && (count
-		|| pThis->Owner == pInf->Owner
-		|| SessionClass::Instance->GameMode == GameMode::Campaign && pThis->Owner->ControlledByCurrentPlayer() && pInf->Owner->ControlledByCurrentPlayer()
-		|| pBuildTypeExt->BunkerRaidable
-		|| pThis->Owner->IsNeutral())){
-			return 0x457DD5;
-		}
+	if (occupantCount == pThis->Type->MaxNumberOccupants)
+		return DisallowOccupy;
 
-	return 0x457DA3;
+	if (((pThis->Type->TechLevel == -1) && pThis->IsRedHP()) || pInf->IsMindControlled())
+		return DisallowOccupy;
+
+	const bool isNeutral = pThis->Owner->IsNeutral();
+	const bool sameOwner = (pThis->Owner == pInf->Owner);
+	const bool isRaidable = pBuildTypeExt->BunkerRaidable && occupantCount == 0;
+	const bool controlledByCurrentPlayer = SessionClass::Instance->GameMode == GameMode::Campaign && pThis->Owner->ControlledByCurrentPlayer() && pInf->Owner->ControlledByCurrentPlayer();
+
+	if (sameOwner || controlledByCurrentPlayer || isNeutral || isRaidable) {
+		return AllowOccupy;
+	}
+
+	return DisallowOccupy;
 }
 
-/* Requested in issue #695
-	Instructions from D:
-	Flow:
-	Occupier is Remove()'d from the map,
-	added to the Occupants list,
-	<-- hook happens here
-	ThreatToCell is updated,
-	"EVA_StructureGarrisoned" is played if applicable.
-*/
 DEFINE_OVERRIDE_HOOK(0x52297F, InfantryClass_GarrisonBuilding_OccupierEntered, 5)
 {
 	GET(InfantryClass*, pInf, ESI);

@@ -117,7 +117,6 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Early, 0x6)
 		//}
 	}
 
-	applyRemoveParasite(pThis, &args);
 	return 0;
 }
 

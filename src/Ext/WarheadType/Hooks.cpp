@@ -92,14 +92,9 @@ DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 
 		auto const pDecidedOwner = !pHouse && pOwner ? pOwner->Owner : pHouse;
 
-		if (!pWHExt->Launchs.empty())
-		{
-			for (const auto& Lauch : pWHExt->Launchs)
-			{
-				if (Lauch.LaunchWhat)
-				{
-					Helpers::Otamaa::LauchSW(Lauch, pDecidedOwner, *pCoords, pOwner);
-				}
+		for (const auto& Lauch : pWHExt->Launchs) {
+			if (Lauch.LaunchWhat) {
+				Helpers::Otamaa::LauchSW(Lauch, pDecidedOwner, *pCoords, pOwner);
 			}
 		}
 
@@ -134,8 +129,7 @@ DEFINE_HOOK(0x48A551, WarheadTypeClass_AnimList_SplashList, 0x6)
 DEFINE_HOOK(0x48A5BD, WarheadTypeClass_AnimList_PickRandom, 0x6)
 {
 	GET(WarheadTypeClass* const, pThis, ESI);
-	const auto& random = WarheadTypeExtContainer::Instance.Find(pThis)->AnimList_PickRandom;
-	return random.Get(pThis->EMEffect)
+	return WarheadTypeExtContainer::Instance.Find(pThis)->AnimList_PickRandom.Get(pThis->EMEffect)
 		? 0x48A5C7 : 0x48A5EB;
 }
 

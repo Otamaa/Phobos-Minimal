@@ -32,18 +32,11 @@ RequirementStatus HouseExtData::RequirementsMet(
 {
 
 	const auto pData = TechnoTypeExtContainer::Instance.Find(pItem);
-	auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
+	const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
+	const bool IsHuman = pHouse->IsControlledByHuman();
 
-	if (pItem->Unbuildable) {
+	if (pItem->Unbuildable || pData->HumanUnbuildable) {
 		return RequirementStatus::Forbidden;
-	}
-
-	bool IsHuman = false;
-
-	if (pHouse->IsControlledByHuman()) {
-		IsHuman = true;
-		if(pData->HumanUnbuildable || pItem->TechLevel == -1)
-			return RequirementStatus::Forbidden;
 	}
 
 	if (!(pData->Prerequisite_RequiredTheaters & (1 << static_cast<int>(ScenarioClass::Instance->Theater)))) {
@@ -70,6 +63,10 @@ RequirementStatus HouseExtData::RequirementsMet(
 
 	if (pHouse->HasFromSecretLab(pItem)) {
 		return RequirementStatus::Overridden;
+	}
+
+	if(IsHuman && pItem->TechLevel == -1) {
+		 return RequirementStatus::Incomplete;
 	}
 
 	if (!pHouse->HasAllStolenTech(pItem)) {
@@ -194,8 +191,9 @@ CanBuildResult HouseExtData::PrereqValidate(
 	HouseClass* pHouse, TechnoTypeClass* pItem,
 	bool buildLimitOnly, bool includeQueued)
 {
-	auto canBuiltresult = CanBuildResult::Unbuildable;
-	bool resultRetrieved = false;
+
+//	auto canBuiltresult = CanBuildResult::Unbuildable;
+//	bool resultRetrieved = false;
 //	std::string TemporarilyResult {};
 
 	const bool IsHuman = pHouse->IsControlledByHuman();
@@ -220,77 +218,34 @@ CanBuildResult HouseExtData::PrereqValidate(
 			//	}
 			//}
 
-			canBuiltresult =  CanBuildResult::Unbuildable;
-			resultRetrieved = true;
+			return CanBuildResult::Unbuildable;
 		}
 
-		if(!resultRetrieved){
-			if (IsHuman && ReqsMet == RequirementStatus::Complete) {
-				if (!HouseExtData::PrerequisitesMet(pHouse, pItem)) {
-					canBuiltresult = CanBuildResult::Unbuildable;
-					resultRetrieved = true;
-				}
+		if (IsHuman && ReqsMet == RequirementStatus::Complete) {
+			if (!HouseExtData::PrerequisitesMet(pHouse, pItem)) {
+					return CanBuildResult::Unbuildable;
 			}
 		}
 
-		if (!resultRetrieved)
-		{
-			switch (HouseExtData::HasFactory(pHouse, pItem, true, true, false, true).first)
-			{
-			case NewFactoryState::NotFound:
-			{
-				canBuiltresult = CanBuildResult::Unbuildable;
-				resultRetrieved = true;
-				break;
-			}
-			case NewFactoryState::Unpowered:
-			{
-//				TemporarilyResult = "Unpowered";
-				canBuiltresult = CanBuildResult::TemporarilyUnbuildable;
-				resultRetrieved = true;
-				break;
-			}
-			default:
-				break;
-			}
-		}
+		const auto factoryresult = HouseExtData::HasFactory(pHouse, pItem, true, true, false, true).first;
+		if(factoryresult <= NewFactoryState::NotFound)
+			return CanBuildResult::Unbuildable;
+
+		if (factoryresult <= NewFactoryState::Unpowered)
+			return CanBuildResult::TemporarilyUnbuildable;
 	}
 
-	if(!resultRetrieved){
-		if (!IsHuman && RulesExtData::Instance()->AllowBypassBuildLimit[pHouse->GetAIDifficultyIndex()]) {
-			canBuiltresult = CanBuildResult::Buildable;
-			resultRetrieved = true;
-		}
+	if (!IsHuman && RulesExtData::Instance()->AllowBypassBuildLimit[pHouse->GetAIDifficultyIndex()]) {
+		return CanBuildResult::Buildable;
 	}
 
-	if (!resultRetrieved)
-	{
-		if (pItem->WhatAmI() == BuildingTypeClass::AbsID && !BuildingTypeExtContainer::Instance.Find((BuildingTypeClass*)pItem)->PowersUp_Buildings.empty()) {
-			canBuiltresult = static_cast<CanBuildResult>(BuildingTypeExtData::CheckBuildLimit(pHouse, (BuildingTypeClass*)pItem, includeQueued));
-			resultRetrieved = true;
-//			TemporarilyResult = "WTF ??? Building Limit !!";
-		}
+	const auto builtLimitResult = static_cast<CanBuildResult>(HouseExtData::CheckBuildLimit(pHouse, pItem, includeQueued));
+
+	if (builtLimitResult == CanBuildResult::Buildable && pItem->WhatAmI() == BuildingTypeClass::AbsID && !BuildingTypeExtContainer::Instance.Find((BuildingTypeClass*)pItem)->PowersUp_Buildings.empty()) {
+		return static_cast<CanBuildResult>(BuildingTypeExtData::CheckBuildLimit(pHouse, (BuildingTypeClass*)pItem, includeQueued));
 	}
 
-	if (!resultRetrieved)
-	{
-		canBuiltresult = static_cast<CanBuildResult>(HouseExtData::CheckBuildLimit(pHouse, pItem, includeQueued));
-	//	TemporarilyResult = "Build Limit Reached";
-		resultRetrieved = true;
-	}
-
-//	static constexpr const char* LookUps[3] = { "INIT" , "E2" , "E1" };
-//
-//	if (resultRetrieved && !pHouse->IsNeutral()) {
-//		for(auto& toLook : LookUps){
-//			if (IS_SAME_STR_(toLook , pItem->ID) && canBuiltresult == CanBuildResult::TemporarilyUnbuildable){
-//				Debug::FatalError("%s for [%s - %x] return TemporarilyUnbuildable reason %s\n", toLook , pHouse->Type->ID , pHouse, TemporarilyResult.c_str());
-//				break;
-//			}
-//		}
-//	}
-
-	return canBuiltresult;
+	return builtLimitResult;
 }
 
 bool HouseExtData::CheckFactoryOwners(HouseClass* pHouse, TechnoTypeClass* pItem)
@@ -866,8 +821,8 @@ HouseClass* HouseExtData::GetHouseKind(OwnerHouseKind const& kind, bool const al
 		if (allowRandom)
 		{
 			auto& Random = ScenarioClass::Instance->Random;
-			return HouseClass::Array->GetItem(
-				Random.RandomFromMax(HouseClass::Array->Count - 1));
+			return HouseClass::Array->Items[
+				Random.RandomFromMax(HouseClass::Array->Count - 1)];
 		}
 		else
 		{
@@ -895,8 +850,8 @@ HouseClass* HouseExtData::GetSlaveHouse(SlaveReturnTo const& kind, HouseClass* c
 		return HouseExtData::FindNeutral();
 	case SlaveReturnTo::Random:
 		auto& Random = ScenarioClass::Instance->Random;
-		return HouseClass::Array->GetItem(
-			Random.RandomFromMax(HouseClass::Array->Count - 1));
+		return HouseClass::Array->Items[
+			Random.RandomFromMax(HouseClass::Array->Count - 1)];
 	}
 
 	return pKiller;

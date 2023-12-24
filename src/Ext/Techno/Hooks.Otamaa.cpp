@@ -62,7 +62,7 @@ DEFINE_HOOK(0x709C84, TechnoClass_DrawPip_Occupants, 0x6)
 
 	if (nOccupantIdx < nPipDataStruct.nMaxOccupants)
 	{
-		if (auto const pInfantry = pThis->Occupants.GetItem(nOccupantIdx))
+		if (auto const pInfantry = pThis->Occupants.Items[nOccupantIdx])
 		{
 			const auto pExt = TechnoTypeExtContainer::Instance.Find(pInfantry->Type);
 

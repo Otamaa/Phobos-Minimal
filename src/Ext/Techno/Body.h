@@ -295,8 +295,6 @@ public:
 	static bool AllowedTargetByZone(TechnoClass* pThis, ObjectClass* pTarget, const TargetZoneScanType& zoneScanType, WeaponTypeClass* pWeapon = nullptr, std::optional<std::reference_wrapper<const ZoneType>> zone = std::nullopt);
 
 	static void UpdateMCOverloadDamage(TechnoClass* pOwner);
-	static ObjectTypeClass* SetInfDefaultDisguise(TechnoClass* const pThis, TechnoTypeClass* const pType);
-
 	static bool IsCritImmune(TechnoClass* pThis);
 	static bool IsPsionicsImmune(TechnoClass* pThis);
 	static bool IsCullingImmune(TechnoClass* pThis);

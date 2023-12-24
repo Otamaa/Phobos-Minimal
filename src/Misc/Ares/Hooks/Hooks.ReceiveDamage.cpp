@@ -499,7 +499,7 @@ DEFINE_HOOK(0x41660C, AircraftClass_ReceiveDamage_destroyed, 0x5)
 	}
 
 	// bugfix #297: Crewed=yes AircraftTypes spawn parachuting infantry on death
-	const bool bSelected = pThis->IsSelected && pThis->Owner && pThis->Owner->ControlledByCurrentPlayer();
+	const bool bSelected = pThis->IsSelected && pThis->Owner->ControlledByCurrentPlayer();
 	TechnoExt_ExtData::SpawnSurvivors(pThis,
 		args.Attacker,
 		bSelected,

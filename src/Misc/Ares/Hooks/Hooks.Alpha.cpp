@@ -38,7 +38,7 @@ DEFINE_OVERRIDE_HOOK(0x421798, AlphaShapeClass_SDDTOR_Anims, 0x6)
 DEFINE_OVERRIDE_HOOK(0x421730, AlphaShapeClass_SDDTOR, 8)
 {
 	GET(AlphaShapeClass*, pAlpha, ECX);
-	PhobosGlobal::Instance()->ObjectLinkedAlphas.erase(pAlpha->AttachedTo);
+	StaticVars::ObjectLinkedAlphas.erase(pAlpha->AttachedTo);
 	return 0;
 }
 
@@ -47,12 +47,15 @@ DEFINE_OVERRIDE_HOOK(0x420960, AlphaShapeClass_CTOR, 5)
 	GET_STACK(ObjectClass*, pSource, 0x4);
 	GET(AlphaShapeClass*, pThis, ECX);
 
-	if (auto pOldAlpha = PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pSource))
-	{
-		GameDelete<true, false>(pOldAlpha);
-	}
+	auto iter = StaticVars::ObjectLinkedAlphas.get_key_iterator(pSource);
 
-	PhobosGlobal::Instance()->ObjectLinkedAlphas[pSource] = pThis;
+	if(iter != StaticVars::ObjectLinkedAlphas.end()) {
+		if (auto pOldAlpha = std::exchange(iter->second , pThis)) {
+			GameDelete<true, false>(pOldAlpha);
+		}
+	} else {
+		StaticVars::ObjectLinkedAlphas.empalace_unchecked(pSource, pThis);
+	}
 
 	return 0;
 }
@@ -61,7 +64,7 @@ DEFINE_OVERRIDE_HOOK(0x5F3D65, ObjectClass_DTOR, 6)
 {
 	GET(ObjectClass*, pThis, ESI);
 
-	if (auto pAlpha = PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pThis)) {
+	if (auto pAlpha = StaticVars::ObjectLinkedAlphas.get_or_default(pThis)) {
 		GameDelete<true, false>(pAlpha);
 		// pThis is erased from map
 	}

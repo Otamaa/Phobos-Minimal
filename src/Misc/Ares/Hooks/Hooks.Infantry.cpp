@@ -122,16 +122,12 @@ DEFINE_OVERRIDE_HOOK(0x51DF38, InfantryClass_Remove, 0xA)
 {
 	GET(InfantryClass*, pThis, ESI);
 
-	if (auto pGarrison = TechnoExtContainer::Instance.Find(pThis)->GarrisonedIn)
-	{
-		if (!pGarrison->Occupants.Remove(pThis))
-		{
+	if (auto pGarrison = std::exchange(TechnoExtContainer::Instance.Find(pThis)->GarrisonedIn , nullptr)) {
+		if (!pGarrison->Occupants.Remove(pThis)) {
 			Debug::Log("Infantry %s was garrisoned in building %s, but building didn't find it. WTF?",
 				pThis->Type->ID, pGarrison->Type->ID);
 		}
 	}
-
-	TechnoExtContainer::Instance.Find(pThis)->GarrisonedIn = nullptr;
 
 	return 0;
 }

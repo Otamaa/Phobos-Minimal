@@ -81,8 +81,7 @@ DEFINE_HOOK(0x449E2E, BuildingClass_Mi_Selling_CreateUnit, 0x6)
 
 	// Remember MC ring animation.
 	if (pStructure->IsMindControlled()) {
-		auto const pTechnoExt = TechnoExtContainer::Instance.Find(pStructure);
-		pTechnoExt->UpdateMindControlAnim();
+		TechnoExtContainer::Instance.Find(pStructure)->UpdateMindControlAnim();
 	}
 
 	return 0x449E34;

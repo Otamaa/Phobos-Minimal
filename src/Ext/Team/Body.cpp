@@ -136,7 +136,7 @@ bool TeamExtData::NeutralOwns(AITriggerTypeClass* pThis, const Iterator<TechnoTy
 
 	for (auto pHouse : *HouseClass::Array)
 	{
-		if (IS_SAME_STR_(SideClass::Array->GetItem(pHouse->Type->SideIndex)->Name, GameStrings::Civilian()))
+		if (IS_SAME_STR_(SideClass::Array->Items[pHouse->Type->SideIndex]->Name, GameStrings::Civilian()))
 			continue;
 
 		// Count all objects of the list, like an OR operator
@@ -315,7 +315,7 @@ bool TeamExtData::NeutralOwnsAll(AITriggerTypeClass* pThis, const Iterator<Techn
 
 		bool foundAll = true;
 
-		if (IS_SAME_STR_(SideClass::Array->GetItem(pHouse->Type->SideIndex)->Name, GameStrings::Civilian()))
+		if (IS_SAME_STR_(SideClass::Array->Items[pHouse->Type->SideIndex]->Name, GameStrings::Civilian()))
 			continue;
 
 		// Count all objects of the list, like an AND operator

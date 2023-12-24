@@ -179,12 +179,8 @@ bool ArtilleryTrajectory::OnAI()
 	if (closeEnough < 100)
 	{
 		auto pBulletExt = BulletExtContainer::Instance.Find(pBullet);
-
-		if (!pBulletExt->LaserTrails.empty())
-			pBulletExt->LaserTrails.clear();
-
-		if (!pBulletExt->Trails.empty())
-			pBulletExt->Trails.clear();
+		pBulletExt->LaserTrails.clear();
+		pBulletExt->Trails.clear();
 
 		return true;
 	}

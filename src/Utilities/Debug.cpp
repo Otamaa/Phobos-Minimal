@@ -19,6 +19,7 @@
 char Debug::DeferredStringBuffer[0x1000];
 char Debug::LogMessageBuffer[0x1000];
 std::vector<std::string> Debug::DeferredLogData;
+
 bool Debug::LogEnabled = false;
 FILE* Debug::LogFile = nullptr;
 std::wstring Debug::LogFileName;
@@ -26,6 +27,22 @@ std::wstring Debug::LogFileTempName;
 
 // push    0x860A0000; vs 0x02CA0000
 //DEFINE_RAW_PATCH(0x777CC0, CreateMainWindow , 0x68, 0x00, 0x00, 0x0A, 0x86)
+
+void Debug::DumpStack(REGISTERS* R, size_t len, int startAt)
+{
+	if (!Debug::LogFileActive()) {
+		return;
+	}
+
+	Debug::LogUnflushed("Dumping %X bytes of stack\n", len);
+	auto const end = len / 4;
+	auto const* const mem = R->lea_Stack<DWORD*>(startAt);
+	for (auto i = 0u; i < end; ++i) {
+		Debug::LogUnflushed("esp+%04X = %08X\n", i * 4, mem[i]);
+	}
+
+	Debug::Log("====================Done.\n"); // flushes
+}
 
 //This log is not immedietely printed , but buffered until time it need to be finalize(printed)
 void Debug::LogDeferred(const char* pFormat, ...)
@@ -39,8 +56,9 @@ void Debug::LogDeferred(const char* pFormat, ...)
 
 void Debug::LogDeferredFinalize()
 {
-	for(auto const& Logs : DeferredLogData) {
-		if(!Logs.empty())
+	for (auto const& Logs : DeferredLogData)
+	{
+		if (!Logs.empty())
 			GameDebugLog::Log("%s", Logs);
 	}
 
@@ -193,7 +211,7 @@ void Debug::FreeMouse()
 
 void Debug::FatalError(bool Dump)
 {
-	wchar_t Message[0x400];
+	static wchar_t Message[0x400];
 	wsprintfW(Message,
 		L"An internal error has been encountered and the game is unable to continue normally. "
 		L"Please notify the mod's creators about this issue, or Contact Otamaa at "

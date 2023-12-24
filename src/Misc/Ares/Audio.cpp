@@ -362,6 +362,8 @@ bool NOINLINE PlayWavWrapper(int HouseTypeIdx , size_t SampleIdx)
 	return pAudioStream->PlayWAV(buffer.c_str(), false);
 }
 
+#ifndef aaa
+
 DEFINE_OVERRIDE_HOOK(0x752b70 , PlayTaunt , 5)
 {
 	GET(TauntDataStruct, data , ECX);
@@ -386,8 +388,6 @@ DEFINE_OVERRIDE_HOOK(0x48da3b , sub_48D1E0_PlayTaunt , 5)
 }
 
 #include <ThemeClass.h>
-
-#ifndef DISABLE_AUDIO_OVERRIDE
 
 //DEFINE_HOOK(0x406B10, Audio_InitPhobosAudio, 0x6) {
 //	LooseAudioCache::Allocate();

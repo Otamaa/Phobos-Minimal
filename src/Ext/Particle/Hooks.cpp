@@ -106,7 +106,7 @@ DEFINE_HOOK(0x62C361, ParticleClass_ProcessGasBehaviour_DisOnWater, 6)
 	return 0x62C394;
 }
 
-DEFINE_HOOK(0x62BE30, ParticleClass_Gas_AI_DriftSpeed, 0x5)
+DEFINE_HOOK(0x62BE30, ParticleClass_Gas_AI_DriftSpeed, 0x8)
 {
 	enum { ContinueAI = 0x62BE60 };
 

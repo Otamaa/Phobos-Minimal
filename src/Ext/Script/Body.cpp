@@ -1148,7 +1148,7 @@ void ScriptExtData::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown
 		}
 
 		// The leader should stay calm & be the group's center
-		if (pLeaderUnit->Locomotor->Is_Moving_Now())
+		if (pLeaderUnit->Locomotor.GetInterfacePtr()->Is_Moving_Now())
 			pLeaderUnit->SetDestination(nullptr, false);
 
 		pLeaderUnit->QueueMission(Mission::Guard, false);
@@ -1261,15 +1261,15 @@ void ScriptExtData::ModifyCurrentTriggerWeight(TeamClass* pTeam, bool forceJumpL
 
 	for (int i = 0; i < AITriggerTypeClass::Array->Count && !found; i++)
 	{
-		auto pTriggerTeam1Type = AITriggerTypeClass::Array->GetItem(i)->Team1;
-		auto pTriggerTeam2Type = AITriggerTypeClass::Array->GetItem(i)->Team2;
+		auto pTriggerTeam1Type = AITriggerTypeClass::Array->Items[i]->Team1;
+		auto pTriggerTeam2Type = AITriggerTypeClass::Array->Items[i]->Team2;
 
 		if (pTeamType
 			&& ((pTriggerTeam1Type && pTriggerTeam1Type == pTeamType)
 				|| (pTriggerTeam2Type && pTriggerTeam2Type == pTeamType)))
 		{
 			found = true;
-			pTriggerType = AITriggerTypeClass::Array->GetItem(i);
+			pTriggerType = AITriggerTypeClass::Array->Items[i];
 		}
 	}
 
@@ -1906,7 +1906,7 @@ void ScriptExtData::ChronoshiftToEnemyBase(TeamClass* pTeam, int extraDistance)
 	}
 
 	int houseIndex = pLeader->Owner->EnemyHouseIndex;
-	HouseClass* pEnemy = houseIndex != -1 ? HouseClass::Array->GetItem(houseIndex) : nullptr;
+	HouseClass* pEnemy = houseIndex != -1 ? HouseClass::Array->Items[houseIndex] : nullptr;
 
 	if (!pEnemy)
 	{

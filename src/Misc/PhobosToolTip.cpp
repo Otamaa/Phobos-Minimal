@@ -102,7 +102,7 @@ inline const wchar_t* PhobosToolTip::GetBuffer() const
 void PhobosToolTip::HelpText(const BuildType& cameo)
 {
 	if (cameo.ItemType == AbstractType::Special)
-		this->HelpText(SuperWeaponTypeClass::Array->GetItem(cameo.ItemIndex));
+		this->HelpText(SuperWeaponTypeClass::Array->Items[cameo.ItemIndex]);
 	else
 		this->HelpText(ObjectTypeClass::FetchTechnoType(cameo.ItemType, cameo.ItemIndex));
 }
@@ -237,6 +237,8 @@ void PhobosToolTip::HelpText(SuperWeaponTypeClass* pType)
 
 	this->TextBuffer = oss.str();
 }
+
+#ifndef aaa
 
 // Hooks
 DEFINE_HOOK(0x6A9316, SidebarClass_StripClass_HelpText, 0x6)
@@ -448,3 +450,4 @@ DEFINE_HOOK(0x478FDC, CCToolTip_Draw2_FillRect, 0x5)
 
 	return 0;
 }
+#endif

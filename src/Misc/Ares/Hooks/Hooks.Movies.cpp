@@ -10,6 +10,24 @@ class MoviesList
 		std::string DescriptionBuffer;
 		bool Unlockable = true;
 		bool Unlocked = false;
+
+		// then read all items
+		void ReadFromINI(CCINIClass* const pINI)
+		{
+			char buffer[0x20];
+			auto const pID = this->FilenameBuffer.c_str();
+			if (int len = pINI->ReadString(pID, "Description", Phobos::readDefval, buffer)) {
+				this->DescriptionBuffer.assign(buffer, buffer + len);
+			}
+
+			this->DiskRequired = pINI->ReadInteger(pID, "DiskRequired", this->DiskRequired);
+			this->Unlockable = pINI->ReadBool(pID, "Unlockable", this->Unlockable);
+
+			// update the pointers (required because of small string optimization
+			// and vector reallocation)
+			this->Filename = this->FilenameBuffer.c_str();
+			this->Description = this->DescriptionBuffer.c_str();
+		}
 	};
 
 public:
@@ -70,6 +88,7 @@ void MoviesList::LoadListFromINI()
 		{
 			char buffer[0x20];
 			auto const pKey = ini.GetKeyName("Movies", i);
+			bool read = true;
 			if (int len = ini.ReadString("Movies", pKey, Phobos::readDefval, buffer)) {
 				if (!this->FindMovie(buffer)) {
 					this->Array.emplace_back().FilenameBuffer.assign(buffer, buffer + len);
@@ -77,34 +96,14 @@ void MoviesList::LoadListFromINI()
 			}
 		}
 
-		// then read all items
-		for (auto& item : this->Array)
-		{
-			char buffer[0x20];
-			auto const pID = item.FilenameBuffer.c_str();
-			if (int len = ini.ReadString(pID, "Description", Phobos::readDefval, buffer))
-			{
-				item.DescriptionBuffer.assign(buffer, buffer + len);
-			}
-
-			item.DiskRequired = ini.ReadInteger(pID, "DiskRequired", item.DiskRequired);
-			item.Unlockable = ini.ReadBool(pID, "Unlockable", item.Unlockable);
-
-			// update the pointers (required because of small string optimization
-			// and vector reallocation)
-			item.Filename = item.FilenameBuffer.c_str();
-			item.Description = item.DescriptionBuffer.c_str();
+		for (auto& item : this->Array) {
+			item.ReadFromINI(&ini);
 		}
 	}
 
 	// load unlocked state
-	if (auto const pRA2MD = &CCINIClass::INI_RA2MD())
-	{
-		for (auto& item : this->Array)
-		{
-			auto& value = item.Unlocked;
-			value = pRA2MD->ReadBool("UnlockedMovies", item.Filename, value);
-		}
+	for (auto& item : this->Array) {
+		item.Unlocked = CCINIClass::INI_RA2MD().ReadBool("UnlockedMovies", item.Filename, item.Unlocked);
 	}
 }
 

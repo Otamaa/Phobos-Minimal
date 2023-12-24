@@ -43,7 +43,7 @@ void NOINLINE GrupDumped()
 	{
 		for (auto pTechn : *TechnoClass::Array)
 		{
-			if (pTechn->Owner == HouseClass::Array->GetItem(i))
+			if (pTechn->Owner == HouseClass::Array->Items[i])
 			{
 				DumpedTechno[i].push_back(pTechn);
 			}
@@ -55,7 +55,7 @@ void NOINLINE DumpDumped()
 {
 	for (size_t i = 0; i < DumpedTechno.size(); ++i)
 	{
-		Debug::Log("Dumping Techno  For[%s]\n", HouseClass::Array->GetItem(i)->Type->ID);
+		Debug::Log("Dumping Techno  For[%s]\n", HouseClass::Array->Items[i]->Type->ID);
 		for (auto const& data : DumpedTechno[i])
 		{
 			Debug::Log("Techno [%s]\n", data->get_ID());

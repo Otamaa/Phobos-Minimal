@@ -1547,20 +1547,6 @@ bool TechnoExtData::TargetFootAllowFiring(TechnoClass* pThis, TechnoClass* pTarg
 	return true;
 }
 
-ObjectTypeClass* TechnoExtData::SetInfDefaultDisguise(TechnoClass* const pThis, TechnoTypeClass* const pType)
-{
-	auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	if (auto pDisguise = pExt->DefaultDisguise.Get(nullptr))
-	{
-		pThis->Disguised = true;
-		pThis->DisguisedAsHouse = pThis->Owner;
-		return pDisguise;
-	}
-
-	return nullptr;
-}
-
 void TechnoExtData::UpdateMCOverloadDamage(TechnoClass* pOwner)
 {
 	auto pThis = pOwner->CaptureManager;
@@ -3867,7 +3853,7 @@ void TechnoExtData::UpdateMobileRefinery()
 
 		if (const int tValue = pCell->GetContainedTiberiumValue())
 		{
-			const int tibValue = TiberiumClass::Array->GetItem(pCell->GetContainedTiberiumIndex())->Value;
+			const int tibValue = TiberiumClass::Array->Items[pCell->GetContainedTiberiumIndex()]->Value;
 			const int tAmount = static_cast<int>(tValue * 1.0 / tibValue);
 			const int amount = pTypeExt->MobileRefinery_AmountPerCell ? MinImpl(tAmount, pTypeExt->MobileRefinery_AmountPerCell.Get()) : tAmount;
 			pCell->ReduceTiberium(amount);
@@ -4512,6 +4498,7 @@ bool TechnoExtData::InvalidateIgnorable(AbstractClass* ptr)
 	case InfantryClass::AbsID:
 	case TemporalClass::AbsID:
 	case SuperClass::AbsID:
+	case BuildingLightClass::AbsID:
 		return false;
 	}
 
@@ -4520,9 +4507,6 @@ bool TechnoExtData::InvalidateIgnorable(AbstractClass* ptr)
 
 void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
-	if (auto& pShield = this->Shield)
-		pShield->InvalidatePointer(ptr, bRemoved);
-
 	MyWeaponManager.InvalidatePointer(ptr, bRemoved);
 
 	AnnounceInvalidPointer(LinkedSW, ptr);
@@ -4607,18 +4591,21 @@ DEFINE_HOOK(0x70C250, TechnoClass_Save_Suffix_Prefix, 0x8)
 	return 0x70C266;
 }
 
-DEFINE_HOOK(0x70783B, TechnoClass_Detach, 0x6)
+DEFINE_HOOK(0x7077C0, TechnoClass_Detach, 0x7)
 {
-	GET(TechnoClass*, pThis, ESI);
-	GET(AbstractClass*, target, EBP);
-	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+	GET(TechnoClass*, pThis, ECX);
+	GET_STACK(AbstractClass*, target, 0x4);
+	GET_STACK(bool, all, 0x8);
 
 	TechnoExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
 
-	return pThis->BeingManipulatedBy == target ? 0x707843 : 0x707849;
+	return 0x0;
 }
-
+#ifndef aaa
 DEFINE_OVERRIDE_HOOK(0x710415, TechnoClass_AnimPointerExpired_add, 6)
+#else
+DEFINE_HOOK(0x710415, TechnoClass_AnimPointerExpired_add, 6)
+#endif
 {
 	GET(AnimClass*, pAnim, EAX);
 	GET(TechnoClass*, pThis, ECX);
@@ -4631,7 +4618,7 @@ DEFINE_OVERRIDE_HOOK(0x710415, TechnoClass_AnimPointerExpired_add, 6)
 		if (auto& pShield = pExt->Shield)
 			pShield->InvalidatePointer(pAnim, false);
 
-		if (pExt->WebbedAnim == pAnim)
+		if (pExt->WebbedAnim.get() == pAnim)
 			pExt->WebbedAnim.release();
 
 		pExt->AeData.InvalidatePointer(pAnim, pThis);

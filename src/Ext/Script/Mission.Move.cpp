@@ -289,7 +289,7 @@ TechnoClass* ScriptExtData::FindBestObject(TechnoClass* pTechno, int method, Dis
 			pFoot->Team->Type->OnlyTargetHouseEnemy : pHouseExt->m_ForceOnlyTargetHouseEnemy ;
 
 			if (onlyTargetHouseEnemy && enemyHouseIndex >= 0)
-				enemyHouse = HouseClass::Array->GetItem(enemyHouseIndex);
+				enemyHouse = HouseClass::Array->Items[enemyHouseIndex];
 		}
 	}
 
@@ -352,7 +352,7 @@ TechnoClass* ScriptExtData::FindBestObject(TechnoClass* pTechno, int method, Dis
 						}
 
 						// Is Defender house targeting Attacker House? if "yes" then more Threat
-						if (pTechno->Owner == HouseClass::Array->GetItem(pObj->Owner->EnemyHouseIndex))
+						if (pTechno->Owner == HouseClass::Array->Items[pObj->Owner->EnemyHouseIndex])
 						{
 							double const& EnemyHouseThreatBonus = RulesClass::Instance->EnemyHouseThreatBonus;
 							objectThreatValue += EnemyHouseThreatBonus;
@@ -442,10 +442,12 @@ void ScriptExtData::Mission_Move_List(TeamClass* pTeam, DistanceMode calcThreatM
 		Arr.size());
 }
 
+static std::vector<int> Mission_Move_List1Random_validIndexes;
+
 void ScriptExtData::Mission_Move_List1Random(TeamClass* pTeam, DistanceMode calcThreatMode, bool pickAllies, int attackAITargetType, int idxAITargetTypeItem = -1)
 {
 	auto pScript = pTeam->CurrentScript;
-	std::vector<int> validIndexes;
+	Mission_Move_List1Random_validIndexes.clear();
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	const auto& [curAct, curArg] = pScript->GetCurrentAction();
 
@@ -482,15 +484,15 @@ void ScriptExtData::Mission_Move_List1Random(TeamClass* pTeam, DistanceMode calc
 							|| (!pickAllies
 								&& !pTeam->FirstUnit->Owner->IsAlliedWith(pTechno))))
 					{
-						validIndexes.push_back(j);
+						Mission_Move_List1Random_validIndexes.push_back(j);
 						found = true;
 					}
 				}
 			});
 
-			if (!validIndexes.empty())
+			if (!Mission_Move_List1Random_validIndexes.empty())
 			{
-				const int idxsel = validIndexes[ScenarioClass::Instance->Random.RandomFromMax(validIndexes.size() - 1)];
+				const int idxsel = Mission_Move_List1Random_validIndexes[ScenarioClass::Instance->Random.RandomFromMax(Mission_Move_List1Random_validIndexes.size() - 1)];
 				pTeamData->IdxSelectedObjectFromAIList = idxsel;
 				ScriptExtData::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Picked a random Techno from the list index [AITargetTypes][%d][%d] = %s\n",
 					pTeam->Type->ID,
@@ -517,5 +519,5 @@ void ScriptExtData::Mission_Move_List1Random(TeamClass* pTeam, DistanceMode calc
 		curAct,
 		curArg,
 		attackAITargetType,
-		validIndexes.size());
+		Mission_Move_List1Random_validIndexes.size());
 }

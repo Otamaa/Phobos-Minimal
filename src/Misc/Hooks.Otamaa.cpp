@@ -85,9 +85,11 @@ DEFINE_HOOK(0x6FA2CF, TechnoClass_AI_DrawBehindAnim, 0x9) //was 4
 	GET(Point2D*, pPoint, ECX);
 	GET(RectangleStruct*, pBound, EAX);
 
-	if (const auto pBld = specific_cast<BuildingClass*>(pThis))
-		if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
+	if (const auto pBld = specific_cast<BuildingClass*>(pThis)) {
+		if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1) {
 			return 0x6FA30C;
+		}
+	}
 
 	if(pThis->InOpenToppedTransport)
 		return 0x6FA30C;
@@ -293,7 +295,7 @@ DEFINE_HOOK(0x47C89C, CellClass_CanThisExistHere_SomethingOnWall, 0x6)
 
 	if (PlacingObject)
 	{
-		const bool ContainsWall = idxOverlay != -1 && OverlayTypeClass::Array->GetItem(idxOverlay)->Wall;
+		const bool ContainsWall = idxOverlay != -1 && OverlayTypeClass::Array->Items[idxOverlay]->Wall;
 
 		if (ContainsWall && (PlacingObject->Gate || Nvec.Contains(PlacingObject)))
 		{
@@ -489,7 +491,7 @@ DEFINE_HOOK(0x4419A9, BuildingClass_Destroy_ExplodeAnim, 0x5)
 	GET(int, zAdd, EDI);
 
 	CoordStruct nLoc { X , Y , Z + zAdd };
-	if (auto const pType = pThis->Type->Explosion.GetItem(ScenarioClass::Instance->Random.RandomFromMax(pThis->Type->Explosion.Count - 1))) {
+	if (auto const pType = pThis->Type->Explosion.Items[ScenarioClass::Instance->Random.RandomFromMax(pThis->Type->Explosion.Count - 1)]) {
 		const auto nDelay = ScenarioClass::Instance->Random.RandomFromMax(3);
 		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, nLoc, nDelay, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false),
 			pThis->GetOwningHouse(),
@@ -956,39 +958,79 @@ DEFINE_HOOK(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 		 Continue;
 }
 
-DEFINE_HOOK(0x6F09C4, TeamTypeClass_CreateOneOf_RemoveLog, 0x5)
+DEFINE_HOOK(0x6F09C0 , TeamTypeClass_CreateOneOf_Handled , 0x9)
 {
-	GET_STACK(HouseClass* const, pHouse, STACK_OFFS(0x8, -0x4));
-	R->EDI(pHouse);
-	return 0x6F09D5;
+	GET(TeamTypeClass* , pThis , ECX);
+	GET_STACK(DWORD , caller , 0x0);
+	GET_STACK(HouseClass* , pHouse , 0x4);
+
+	if(!pHouse) {
+		pHouse = pThis->Owner;
+		if(!pHouse) {
+			if(HouseClass::Index_IsMP(pThis->idxHouse)){
+				pHouse = HouseClass::FindByPlayerAt(pThis->idxHouse);
+			}
+		}
+	}
+
+	if(!pHouse) {
+		R->EAX<TeamClass*>(nullptr);
+		return 0x6F0A2C;
+	}
+
+	if(!Unsorted::ScenarioInit) {
+		if(pThis->Max >= 0) {
+			if(SessionClass::Instance->GameMode == GameMode::Campaign) {
+				if(pHouse->GetTeamCount(pThis) >= pThis->Max) {
+					R->EAX<TeamClass*>(nullptr);
+					return 0x6F0A2C;
+				}
+			} else if(pThis->cntInstances >= pThis->Max) {
+				R->EAX<TeamClass*>(nullptr);
+				return 0x6F0A2C;
+			}
+		}
+	}
+
+	const auto pTeam = GameCreate<TeamClass>(pThis ,pHouse , false);
+	GameDebugLog::Log("[%s - %x] Creating a new team named [%s - %x] caller [%x].\n", pHouse->get_ID() , pHouse, pThis->ID, pTeam , caller);
+	R->EAX(pTeam);
+	return 0x6F0A2C;
 }
 
-DEFINE_HOOK(0x6F0A3F, TeamTypeClass_CreateOneOf_CreateLog, 0x9)
-{
-	GET(TeamTypeClass* const, pThis, ESI);
-	GET(HouseClass* const, pHouse, EDI);
-	const void* ptr = YRMemory::Allocate(sizeof(TeamClass));
-	Debug::Log("[%s - %x] Creating a new team named [%s - %x].\n", pHouse ? pHouse->get_ID() : NONE_STR2 ,pHouse, pThis->ID, ptr);
-	R->EAX(ptr);
-	return 0x6F0A5A;
-}
+// DEFINE_HOOK(0x6F09C4, TeamTypeClass_CreateOneOf_RemoveLog, 0x5)
+// {
+// 	GET_STACK(HouseClass* const, pHouse, STACK_OFFS(0x8, -0x4));
+// 	R->EDI(pHouse);
+// 	return 0x6F09D5;
+// }
+//
+// DEFINE_HOOK(0x6F0A3F, TeamTypeClass_CreateOneOf_CreateLog, 0x9)
+// {
+// 	GET(TeamTypeClass* const, pThis, ESI);
+// 	GET(HouseClass* const, pHouse, EDI);
+// 	const void* ptr = YRMemory::Allocate(sizeof(TeamClass));
+// 	GameDebugLog::Log("[%s - %x] Creating a new team named [%s - %x].\n", pHouse ? pHouse->get_ID() : NONE_STR2 ,pHouse, pThis->ID, ptr);
+// 	R->EAX(ptr);
+// 	return 0x6F0A5A;
+// }
 
 DEFINE_JUMP(LJMP, 0x44DE2F, 0x44DE3C);
 //DEFINE_HOOK(0x44DE2F, BuildingClass_MissionUnload_DisableBibLog, 0x5) { return 0x44DE3C; }
 
-DEFINE_HOOK(0x4CA00D, FactoryClass_AbandonProduction_Log, 0x9)
-{
-	GET(FactoryClass* const, pThis, ESI);
-	GET(TechnoTypeClass* const, pType, EAX);
-	//Debug::Log("[%x] Factory with Owner '%s' Abandoning production of '%s' \n", pThis, pThis->Owner ? pThis->Owner->get_ID() : NONE_STR2, pType->ID);
-	R->ECX(pThis->Object);
-	return 0x4CA021;
-}
+//DEFINE_HOOK(0x4CA00D, FactoryClass_AbandonProduction_Log, 0x9)
+//{
+//	GET(FactoryClass* const, pThis, ESI);
+//	GET(TechnoTypeClass* const, pType, EAX);
+//	//GameDebugLog::Log("[%x] Factory with Owner '%s' Abandoning production of '%s' \n", pThis, pThis->Owner ? pThis->Owner->get_ID() : NONE_STR2, pType->ID);
+//	R->ECX(pThis->Object);
+//	return 0x4CA021;
+//}
 
 DEFINE_HOOK(0x6E93BE, TeamClass_AI_TransportTargetLog, 0x5)
 {
 	GET(FootClass* const, pThis, EDI);
-	Debug::Log("[%x][%s] Transport just recieved orders to go home after unloading \n", pThis, pThis->get_ID());
+	GameDebugLog::Log("[%x][%s] Transport just recieved orders to go home after unloading \n", pThis, pThis->get_ID());
 	return 0x6E93D6;
 }
 
@@ -999,7 +1041,7 @@ DEFINE_HOOK(0x6EF9BD, TeamMissionClass_GatherAtEnemyCell_Log, 0x5)
 	GET(TeamClass* const, pThis, ESI);
 	GET(TechnoClass* const, pTechno, EDI);
 	GET(TeamTypeClass* const, pTeamType, ECX);
-	Debug::Log("[%x][%s] Team with Owner '%s' has chosen ( %d , %d ) for its GatherAtEnemy cell.\n", pThis, pTeamType->ID, pTechno->Owner ? pTechno->Owner->get_ID() : NONE_STR2, nCellX, nCellY);
+	GameDebugLog::Log("[%x][%s] Team with Owner '%s' has chosen ( %d , %d ) for its GatherAtEnemy cell.\n", pThis, pTeamType->ID, pTechno->Owner ? pTechno->Owner->get_ID() : NONE_STR2, nCellX, nCellY);
 	return 0x6EF9D0;
 }
 
@@ -1461,12 +1503,8 @@ DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7)
 
 	enum { SkipWholeFunction = 0x5192BC, Continue = 0x0 };
 
-	if (!pThis)
-		return Continue;
-
-	const auto pTypeExt = InfantryTypeExtContainer::Instance.Find(pThis->Type);
-	return pTypeExt->HideWhenDeployAnimPresent.Get() && pThis->DeployAnim
-		? SkipWholeFunction : Continue;
+	return InfantryTypeExtContainer::Instance.Find(pThis->Type)->HideWhenDeployAnimPresent.Get() 
+			&& pThis->DeployAnim ? SkipWholeFunction : Continue;
 }
 
 CoordStruct* __fastcall UnitClass_GetFLH(UnitClass* pThis, DWORD, CoordStruct* buffer, int wepon, CoordStruct base)
@@ -1564,11 +1602,7 @@ DEFINE_HOOK(0x702721, TechnoClass_ReceiveDamage_DamagedSound, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(TechnoTypeClass*, pThisType, EAX);
-
-	if (pThisType->DamageSound != -1) {
-		VoxClass::PlayAtPos(pThisType->DamageSound, &pThis->Location);
-	}
-
+	VoxClass::PlayAtPos(pThisType->DamageSound, &pThis->Location);
 	return 0x7027AE;
 }
 
@@ -1944,7 +1978,7 @@ DEFINE_HOOK(0x422A59, AnimClass_DTOR_DoNotClearType, 0x6)
 DEFINE_HOOK(0x4251AB, AnimClass_Detach_LogTypeDetached, 0x6)
 {
 	GET(AnimClass* const, pThis, ESI);
-	Debug::Log("Anim[0x%x] detaching Type Pointer ! \n", pThis);
+	GameDebugLog::Log("Anim[0x%x] detaching Type Pointer ! \n", pThis);
 	return 0x0;
 }
 
@@ -2021,8 +2055,45 @@ DEFINE_HOOK(0x4DBF05, FootClass_SetOwningHouse_FixArgs, 0x5)
 	GET(HouseClass* const, pNewOwner, EAX);
 	GET_STACK(bool const, bAnnounce, STACK_OFFSET(0xC, 0x8));
 
-	R->AL(pThis->TechnoClass::SetOwningHouse(pNewOwner, bAnnounce));
-	return 0x4DBF0F;
+	if(pThis->TechnoClass::SetOwningHouse(pNewOwner, bAnnounce)) {
+
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+		if(!pExt->LaserTrails.empty()) {
+			for (auto& trail : pExt->LaserTrails) {
+				if (trail.Type->IsHouseColor)
+					trail.CurrentColor = (pThis->Owner ?
+					pThis->Owner : HouseExtData::FindCivilianSide())
+					->LaserColor;
+			}
+		}
+
+		// This is not limited to mind control, could possibly affect many map triggers
+		// This is still not even correct, but let's see how far this can help us
+
+		pThis->ShouldScanForTarget = false;
+		pThis->ShouldEnterAbsorber = false;
+		pThis->ShouldEnterOccupiable = false;
+		pThis->ShouldGarrisonStructure = false;
+		pThis->CurrentTargets.Clear();
+
+		if (pThis->HasAnyLink() || pThis->GetTechnoType()->ResourceGatherer) // Don't want miners to stop
+			return 0x4DBF13;
+
+		switch (pThis->GetCurrentMission())
+		{
+		case Mission::Harvest:
+		case Mission::Sleep:
+		case Mission::Harmless:
+		case Mission::Repair:
+			return 0x4DBF13;
+		}
+
+		pThis->Override_Mission(pThis->GetTechnoType()->DefaultToGuardArea ? Mission::Area_Guard : Mission::Guard, nullptr, nullptr); // I don't even know what this is, just clear the target and destination for me
+		return 0x4DBF13;
+	}
+
+	return 0x4DBF8F;
 }
 
 DEFINE_HOOK(0x448BE3, BuildingClass_SetOwningHouse_FixArgs, 0x5)
@@ -2045,7 +2116,7 @@ DEFINE_HOOK(0x7225F3, TiberiumClass_Spread_nullptrheap, 0x7)
 
 BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 {
-	const bool IsCurrentPlayer = pThis->ControlledByCurrentPlayer();//inline version
+	const bool IsCurrentPlayer = pThis->ControlledByCurrentPlayer();
 
 	//===============reset all
 	pThis->CostDefensesMult = 1.0;
@@ -2552,7 +2623,7 @@ DEFINE_HOOK(0x489671, MapClass_DamageArea_Veinhole, 0x6)
 					false,
 					pSource && !pHouse ? pSource->Owner : pHouse
 				) == DamageState::NowDead)
-					Debug::Log("Veinhole at Destroyed!\n");
+					GameDebugLog::Log("Veinhole at Destroyed!\n");
 
 		}
 
@@ -2645,7 +2716,7 @@ DEFINE_HOOK(0x458291, BuildingClass_GarrisonAI_AbandonedSound, 0x6)
 	const auto pExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 	const auto nVal = pExt->AbandonedSound.Get(RulesClass::Instance->BuildingAbandonedSound);
 	if (nVal >= 0) {
-		VocClass::PlayIndexAtPos(nVal, pThis->Location ,nullptr);
+		VocClass::PlayGlobal(nVal, Panning::Center, 1.0, 0);
 	}
 
 	return 0x4582AE;
@@ -2721,7 +2792,7 @@ DEFINE_HOOK(0x4686FA, BulletClass_Unlimbo_MissingTargetPointer, 0x6)
 	GET_BASE(CoordStruct*, pUnlimboCoords, 0x8);
 
 	if (!pThis->Target) {
-		Debug::Log("Bullet [%s - %x] Missing Target Pointer when Unlimbo! , Fallback To CreationCoord to Prevent Crash\n",
+		GameDebugLog::Log("Bullet [%s - %x] Missing Target Pointer when Unlimbo! , Fallback To CreationCoord to Prevent Crash\n",
 			pThis->get_ID(), pThis);
 
 		pThis->Target = MapClass::Instance->GetCellAt(pUnlimboCoords);
@@ -2739,7 +2810,7 @@ DEFINE_HOOK(0x65DD4E, TeamClass_CreateGroub_MissingOwner, 0x7)
 
 	const auto pHouse = pType->GetHouse();
 	if (!pHouse) {
-		Debug::Log("Creating Team[%s] groub without proper Ownership may cause crash , Please check !\n" , pType->ID);
+		GameDebugLog::Log("Creating Team[%s] groub without proper Ownership may cause crash , Please check !\n" , pType->ID);
 	}
 
 	R->EAX(pHouse);
@@ -2858,7 +2929,7 @@ DEFINE_HOOK(0x6F91EC, TechnoClass_GreatestThreat_DeadTechnoInsideTracker, 0x6)
 	GET(TechnoClass*, pTrackerTechno, EBP);
 
 	if (!pTrackerTechno->IsAlive){
-		Debug::Log("Found DeadTechno[%x - %s] on AircraftTracker!\n", pTrackerTechno, pTrackerTechno->get_ID());
+		GameDebugLog::Log("Found DeadTechno[%x - %s] on AircraftTracker!\n", pTrackerTechno, pTrackerTechno->get_ID());
 		return 0x6F9377; // next
 	}
 
@@ -3044,7 +3115,7 @@ public:
 			if (pType->HasRadialIndicator && pTypeExt->AlwayDrawRadialIndicator.Get(!pTechno->Deactivated))
 			{
 				if (HouseClass::IsCurrentPlayerObserver()
-					|| (pTechno->Owner && pTechno->Owner->ControlledByCurrentPlayer()))
+					|| pTechno->Owner->ControlledByCurrentPlayer())
 				{
 					int nRadius = 0;
 
@@ -3190,7 +3261,10 @@ DEFINE_HOOK(0x40A5B3, AudioDriverStart_AnnoyingBufferLogDisable_A, 0x6)
 {
 	GET(AudioDriverChannelTag*, pAudioChannelTag, EBX);
 	pAudioChannelTag->dwBufferBytes = R->EAX<int>();
-	//Debug::Log("Sound frame size = %d bytes\n", pAudioChannelTag->dwBufferBytes);
+
+	if(Phobos::Otamaa::OutputAudioLogs)
+		GameDebugLog::Log("Sound frame size = %d bytes\n", pAudioChannelTag->dwBufferBytes);
+	
 	return 0x40A5C4;
 }
 
@@ -3199,7 +3273,10 @@ DEFINE_HOOK(0x40A554, AudioDriverStart_AnnoyingBufferLogDisable_B, 0x6)
 	GET(AudioDriverChannelTag*, pAudioChannelTag, EBX);
 	LEA_STACK(DWORD*, ptr, STACK_OFFS(0x40, 0x28));
 	pAudioChannelTag->soundframesize1 = R->EAX();
-	//Debug::Log("Sound frame size = %d bytes\n", pAudioChannelTag->soundframesize1);
+
+	if (Phobos::Otamaa::OutputAudioLogs)
+		GameDebugLog::Log("Sound frame size = %d bytes\n", pAudioChannelTag->soundframesize1);
+	
 	R->EDX(R->EAX());
 	R->EAX(ptr);
 	return 0x40A56C;
@@ -3251,10 +3328,10 @@ DEFINE_HOOK(0x6DBE35, TacticalClass_DrawLinesOrCircles, 0x9)
 
 DEFINE_JUMP(LJMP, 0x50BF60, 0x50C04A)// Disable CalcCost mult
 
-bool ColorInitEd = false;
-ColorScheme* MainColor = nullptr;
-ColorScheme* BackColor = nullptr;
-
+//bool ColorInitEd = false;
+//ColorScheme* MainColor = nullptr;
+//ColorScheme* BackColor = nullptr;
+//
 //void InitColorDraw()
 //{
 //	if (!ColorInitEd)
@@ -3439,10 +3516,10 @@ DEFINE_HOOK(0x4DB1A0, FootClass_GetMovementSpeed_FixSpeedMultStuck, 0x6)
 	auto thisMult = pThis->SpeedMultiplier;
 
 	//prevent unit in warfactory stuck
-	if (thisMult < 0.0001 && TechnoExtData::IsInWarfactory(pThis, false)) {
-		Debug::Log("Foot[%s] with negative or zero speed mult inside warfactory ,restoring speedmult\n", pType->ID);
-		thisMult = 1.0;
-	}
+	// if (thisMult < 0.0001 && TechnoExtData::IsInWarfactory(pThis, false)) {
+	// 	GameDebugLog::Log("Foot[%s] with negative or zero speed mult inside warfactory ,restoring speedmult\n", pType->ID);
+	// 	thisMult = 1.0;
+	// }
 
 	double result = maxSpeed * houseSpeed * thisMult;
 
@@ -3712,7 +3789,7 @@ DEFINE_HOOK(0x6D4764, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x7)
 
 // Gives player houses names based on their spawning spot
 
-int NOINLINE GetPlayerPosByName(const char* pName)
+int GetPlayerPosByName(const char* pName)
 {
 	if (pName[0] != '<' || strlen(pName) != 12)
 		return -1;
@@ -3760,7 +3837,7 @@ DEFINE_HOOK(0x44F8A6, TechnoClass_FromINI_CreateForHouse, 0x7)
 		;
 
 	if (idx == -1) { 
-		Debug::Log("Failed To fetch house index by name of [%s]\n", pHouseName);
+		GameDebugLog::Log("Failed To fetch house index by name of [%s]\n", pHouseName);
 		Debug::RegisterParserError();
 	}
 
@@ -3819,40 +3896,40 @@ DEFINE_HOOK(0x5FF93F, SpotlightClass_Draw_OutOfboundSurfaceArrayFix, 0x7)
 	GET(int, idx, ECX);
 
 	if (idx > 64){
-		Debug::Log("[0x%x]SpotlightClass with OutOfBoundSurfaceArrayIndex[%d] Fixing!\n", pThis ,idx);
+		GameDebugLog::Log("[0x%x]SpotlightClass with OutOfBoundSurfaceArrayIndex[%d] Fixing!\n", pThis ,idx);
 		idx = 64;
 	}
 
 	return 0x0;
 }
 
-DEFINE_HOOK(0x73B0B0, UnitClass_DrawIfVisible, 0xA)
-{
-	GET(UnitClass*, pThis, ECX);
-	GET_STACK(RectangleStruct*, pBounds, 0x4);
-	GET_STACK(bool, ignorecloaked, 0x8);
-
-	bool result = !pThis->IsTethered;
-	if (TechnoClass* pContact = pThis->GetNthLink())
-	{
-		result |= pContact->WhatAmI() != AbstractType::Building;
-		result |= pContact->GetCurrentMission() != Mission::Unload && pContact->QueuedMission != Mission::Unload;
-		result |= !pContact->UnloadTimer.IsOpening()
-			&& !pContact->UnloadTimer.IsClosing()
-			&& !pContact->UnloadTimer.IsOpen()
-			&& !pContact->UnloadTimer.IsClosed();
-	}
-
-	result &= pThis->ObjectClass::DrawIfVisible(pBounds, ignorecloaked, 0);
-
-	R->EAX(result);
-
-	return 0x73B139;
-}
+// DEFINE_HOOK(0x73B0B0, UnitClass_DrawIfVisible, 0xA)
+// {
+// 	GET(UnitClass*, pThis, ECX);
+// 	GET_STACK(RectangleStruct*, pBounds, 0x4);
+// 	GET_STACK(bool, ignorecloaked, 0x8);
+//
+// 	bool result = !pThis->IsTethered;
+// 	if (TechnoClass* pContact = pThis->GetNthLink())
+// 	{
+// 		result |= pContact->WhatAmI() != AbstractType::Building;
+// 		result |= pContact->GetCurrentMission() != Mission::Unload && pContact->QueuedMission != Mission::Unload;
+// 		result |= !pContact->UnloadTimer.IsOpening()
+// 			&& !pContact->UnloadTimer.IsClosing()
+// 			&& !pContact->UnloadTimer.IsOpen()
+// 			&& !pContact->UnloadTimer.IsClosed();
+// 	}
+//
+// 	result &= pThis->ObjectClass::DrawIfVisible(pBounds, ignorecloaked, 0);
+//
+// 	R->EAX(result);
+//
+// 	return 0x73B139;
+// }
 
 DEFINE_HOOK(0x6FFD25, TechnoClass_PlayerAssignMission_Capture_InfantryToBld, 0xA)
 {
-	GET_STACK(ObjectClass*, pTarget, 0x98 + 0xC);
+	GET_STACK(ObjectClass*, pTarget, 0x98 + 0x8);
 	GET(TechnoClass*, pThis, ESI);
 
 	if (pThis->WhatAmI() == InfantryClass::AbsID && pTarget && pTarget->WhatAmI() == BuildingClass::AbsID)
@@ -3918,7 +3995,7 @@ DEFINE_HOOK(0x6FDD0A, TechnoClass_AdjustDamage_Armor, 0x6)
 DEFINE_HOOK(0x52D36F, RulesClass_init_AIMD, 0x5)
 {
 	GET(CCFileClass*, pFile, EAX);
-	Debug::Log("Init %s file\n", pFile->GetFileName());
+	GameDebugLog::Log("Init %s file\n", pFile->GetFileName());
 	return 0x0;
 }
 
@@ -3950,7 +4027,7 @@ DEFINE_HOOK(0x41F783, AITriggerTypeClass_ParseConditionType, 0x5)
 		result = BuildingTypeClass::Find(pBuffer);
 
 	//if (result)
-	//	Debug::Log("Found Condition Object[%s - %s] for [%s]\n", pBuffer , result->GetThisClassName(), pThis->ID);
+	//	GameDebugLog::Log("Found Condition Object[%s - %s] for [%s]\n", pBuffer , result->GetThisClassName(), pThis->ID);
 
 	R->ESI(result);
 	return 0x41F7DE;
@@ -3965,7 +4042,7 @@ DEFINE_HOOK(0x47243F , CaptureManageClass_DecideUnitFate_Neutral , 0x6)
 
 	//Neutral techno should not do anything after get freed/captured
 	if(pTarget->Owner->IsNeutral()) {
-		pTarget->Override_Mission(Mission::Guard);
+		pTarget->Override_Mission(Mission::Sleep);
 		return 0x472604;
 	}
 
@@ -4001,13 +4078,24 @@ DEFINE_HOOK(0x4FAB4D, HouseClass_AbandonProduction_GetObjectType, 0x8)
 
 DEFINE_HOOK(0x4CA007, FactoryClass_AbandonProduction_GetObjectType, 0x6)
 {
+	GET(FactoryClass*, pThis, ESI);
 	GET(TechnoClass*, pObject, ECX);
 
 	// use cached type instead of `->GetTechnoType()` the pointer was changed !
 	const auto pType = TechnoExtContainer::Instance.Find(pObject)->Type;
-	GameDebugLog::Log(reinterpret_cast<const char*>(0x8222AC), pType->Name);
+	GameDebugLog::Log("[%x]Factory with owner [%s - %x] abandoning production of [%s(%s) - %x]\n",
+		pThis , 
+		pThis->Owner->get_ID() , pThis->Owner ,
+		pType->Name , pType->ID , pObject);
+
 	R->EAX(pType);
 	return 0x4CA029;
+}
+
+DEFINE_HOOK(0x43D290, BuildingClass_Draw_LimboDelivered, 0x5)
+{
+	GET(BuildingClass* const, pBuilding, ECX);
+	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ? 0x43D9D5 : 0x0;
 }
 
 // Enable This when needed
@@ -4015,13 +4103,13 @@ DEFINE_HOOK(0x4CA007, FactoryClass_AbandonProduction_GetObjectType, 0x6)
 
 DEFINE_HOOK(0x50B730, HouseClass_IsControlledByHuman_LogCaller, 0x5)
 {
-	GameDebugLog::Log(__FUNCTION__"Caller [%x]", R->Stack<DWORD>(0x0));
+	GameDebugLog::Log(__FUNCTION__"Caller [%x]\n", R->Stack<DWORD>(0x0));
 	return 0x0;
 }
 
 DEFINE_HOOK(0x50B6F0, HouseClass_ControlledByCurrentPlayer_LogCaller, 0x5)
 {
-	GameDebugLog::Log(__FUNCTION__"Caller [%x]", R->Stack<DWORD>(0x0));
+	GameDebugLog::Log(__FUNCTION__"Caller [%x]\n", R->Stack<DWORD>(0x0));
 	return 0x0;
 }
 #endif 

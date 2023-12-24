@@ -26,17 +26,17 @@ DEFINE_HOOK(0x460285, BuildingTypeClass_LoadFromINI_Muzzle, 0x6)
 		? Skip : Read;
 }
 
-DEFINE_HOOK(0x44043D, BuildingClass_AI_Temporaled_Chronosparkle_MuzzleFix, 0x8)
-{
-	GET(BuildingClass*, pThis, ESI);
-
-	if (pThis->Type->MaxNumberOccupants > 10) {
-		GET(int, nFiringIndex, EBX);
-		R->EAX(BuildingTypeExtData::GetOccupyMuzzleFlash(pThis,nFiringIndex));
-	}
-
-	return 0;
-}
+//DEFINE_HOOK(0x44043D, BuildingClass_AI_Temporaled_Chronosparkle_MuzzleFix, 0x8)
+//{
+//	GET(BuildingClass*, pThis, ESI);
+//
+//	if (pThis->Type->MaxNumberOccupants > 10) {
+//		GET(int, nFiringIndex, EBX);
+//		R->EAX(BuildingTypeExtData::GetOccupyMuzzleFlash(pThis,nFiringIndex));
+//	}
+//
+//	return 0;
+//}
 
 DEFINE_HOOK(0x45387A, BuildingClass_FireOffset_Replace_MuzzleFix, 0x6) // A
 {

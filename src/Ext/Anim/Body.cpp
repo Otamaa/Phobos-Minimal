@@ -260,9 +260,8 @@ bool AnimExtData::OnMiddle(AnimClass* pThis)
 
 		if (pType->SpawnsParticle != -1)
 		{
-			const auto pParticleType = ParticleTypeClass::Array.get()->GetItem(pType->SpawnsParticle);
 
-			if (pType->NumParticles > 0 && pParticleType)
+			if (const auto pParticleType = ParticleTypeClass::Array->Items[pType->SpawnsParticle])
 			{
 				for (int i = 0; i < pType->NumParticles; ++i)
 				{
@@ -277,11 +276,9 @@ bool AnimExtData::OnMiddle(AnimClass* pThis)
 			}
 		}
 
-		if (!pTypeExt->Launchs.empty()) {
-			for (const auto& nLauch : pTypeExt->Launchs) {
-				if (nLauch.LaunchWhat) {
-					Helpers::Otamaa::LauchSW(nLauch , pHouse, nCoord , pObject);
-				}
+		for (const auto& nLauch : pTypeExt->Launchs) {
+			if (nLauch.LaunchWhat) {
+				Helpers::Otamaa::LauchSW(nLauch , pHouse, nCoord , pObject);
 			}
 		}
 	}
@@ -519,17 +516,17 @@ DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 	if (pItem)
 	{
 		if (pItem->Fetch_ID() == -2 && pItem->Type) {
-			Debug::Log("Anim[%s - %x] With some weird ID\n", pItem->Type->ID , pItem);
+			Debug::Log("Anim[%s - %x] with some weird ID\n", pItem->Type->ID , pItem);
 		}
 
 		if(!pItem->Type) {
-			Debug::Log("Anim[%x] With no Type pointer\n", pItem);
+			Debug::Log("Anim[%x] with no Type pointer\n", pItem);
 			return 0x0;
 		}
-	}
 
-	if (auto pExt = AnimExtContainer::Instance.Allocate(pItem)) {
-		pExt->CreateAttachedSystem();
+		if (auto pExt = AnimExtContainer::Instance.Allocate(pItem)) {
+			pExt->CreateAttachedSystem();
+		}
 	}
 
 	return 0;

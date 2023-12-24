@@ -1,4 +1,4 @@
-#include "Body.h"
+#include <Ext/WeaponType/Body.h>
 #include <EBolt.h>
 #include <map>
 
@@ -101,7 +101,7 @@ DEFINE_HOOK(0x4C24E4, Ebolt_DrawFist_Disable, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x4C20BC, EBolt_DrawArcs, 0xB)
+DEFINE_HOOK(0x4C20BC, EBolt_DrawArcs, 0x5)
 {
 	enum { DoLoop = 0x4C20C7, Break = 0x4C2400 };
 
@@ -125,7 +125,7 @@ DEFINE_HOOK(0x4C25FD, Ebolt_DrawSecond_Disable, 0xA)
 	return 0;
 }
 
-DEFINE_HOOK(0x4C26EE, Ebolt_DrawThird_Disable, 0x8)
+DEFINE_HOOK(0x4C26EE, Ebolt_DrawThird_Disable, 0x6)
 {
 	if (BoltTemp::pType && BoltTemp::pType->Bolt_Disable3) {
 		return 0x4C2710;

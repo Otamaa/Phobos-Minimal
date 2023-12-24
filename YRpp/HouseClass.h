@@ -26,7 +26,7 @@ class SuperClass;
 class TagClass;
 class WaypointPathClass;
 class WaypointClass;
-
+class TeamTypeClass;
 class UnitTrackerClass
 {
 public:
@@ -269,6 +269,10 @@ public:
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
 	virtual int	Size() const override R0;
 	//virtual void Update() override JMP_THIS(0x4F8440);
+
+	int GetTeamCount(TeamTypeClass* pType) const {
+		JMP_THIS(0x5095D0);
+	}
 
 	bool IsAlliedWith_(int idxHouse) const
 	{
@@ -769,7 +773,7 @@ public:
 	int AI_VehicleConstructionUpdate()
 		{ JMP_THIS(0x4FEA60); }
 
-	void AI_TryFireSW()
+	void AI_TryFireSW() const
 		{ JMP_THIS(0x5098F0); }
 
 	bool Fire_SW(int idx, const CellStruct &coords)

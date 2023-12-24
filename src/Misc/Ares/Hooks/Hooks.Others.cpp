@@ -62,10 +62,27 @@
 
 #include <Ares_TechnoExt.h>
 
+#ifndef aaa
+DEFINE_DISABLE_HOOK(0x6873ab, INIClass_ReadScenario_EarlyLoadRules_ares)
 DEFINE_DISABLE_HOOK(0x6d4684, TacticalClass_Draw_FlyingStrings_ares)
 DEFINE_DISABLE_HOOK(0x7258d0, AnnounceInvalidPointer_ares)
+#endif
+
+#ifndef aaa
 DEFINE_DISABLE_HOOK(0x533058, CommandClassCallback_Register_ares)
+#endif
+
+#ifndef DISABLEARESRULESEXT
 DEFINE_DISABLE_HOOK(0x679CAF, RulesData_LoadAfterTypeData_ares)
+DEFINE_DISABLE_HOOK(0x667a1d, RulesClass_CTOR_ares)
+DEFINE_DISABLE_HOOK(0x667a30, RulesClass_DTOR_ares)
+DEFINE_DISABLE_HOOK(0x668bf0, RulesClass_Addition_ares)
+DEFINE_DISABLE_HOOK(0x674730, RulesClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x675205, RulesClass_Save_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x675210, RulesClass_SaveLoad_Prefix_ares)
+DEFINE_DISABLE_HOOK(0x678841, RulesClass_Load_Suffix_ares)
+DEFINE_DISABLE_HOOK(0x679a15, RulesData_LoadBeforeTypeData_ares)
+#endif
 
 DEFINE_OVERRIDE_HOOK(0x52C5E0 , Ares_NOLOGO , 0x7)
 {
@@ -171,9 +188,9 @@ DEFINE_OVERRIDE_HOOK(0x437CCC, BSurface_DrawSHPFrame1_Buffer, 0x8)
 		static_cast<short>(bounds.Width), 0, std::numeric_limits<short>::max()));
 
 	// buffer overrun is now not as forgiving as it was before
-	auto& Buffer = PhobosGlobal::Instance()->ShpCompression1Buffer;
-	if (Buffer.size() < width)
-	{
+	auto& Buffer = StaticVars::ShpCompression1Buffer;
+
+	if (Buffer.size() < width) {
 		Buffer.insert(Buffer.end(), width - Buffer.size(), 0u);
 	}
 
@@ -334,6 +351,16 @@ DEFINE_OVERRIDE_HOOK(0x551A30, LayerClass_YSortReorder, 0x5)
 	return 0x551A84;
 }
 
+//DEFINE_HOOK(0x5F65F0, ObjectClass_UnUnit_nullptr, 0x6)
+//{
+//	GET(ObjectClass*, pThis, ECX);
+//
+//	if (!pThis)
+//		Debug::FatalError("ObjectClass UnInit called from %x\n",R->Stack<DWORD>(0x0));
+//
+//	return 0x0;
+//}
+
 DEFINE_OVERRIDE_HOOK(0x5F6612, ObjectClass_UnInit_SkipInvalidation, 0x9)
 {
 	GET(ObjectClass*, pThis, ESI);
@@ -492,7 +519,7 @@ DEFINE_HOOK(0x65EA43, SendReinforcement_Opentopped, 0x6)
 //
 //	if (idx >= 0)
 //	{
-//		R->EDX(HouseClass::Array->GetItem(idx));
+//		R->EDX(HouseClass::Array->Items[idx));
 //		return 0x47F9AA;
 //	}
 //
@@ -1208,7 +1235,7 @@ DEFINE_OVERRIDE_HOOK(0x52E9AA, Frontend_WndProc_Checksum, 5)
 DEFINE_OVERRIDE_HOOK(0x480534, CellClass_AttachesToNeighbourOverlay, 5)
 {
 	GET(int, idxOverlay, EAX);
-	const bool Wall = idxOverlay != -1 && OverlayTypeClass::Array->GetItem(idxOverlay)->Wall;
+	const bool Wall = idxOverlay != -1 && OverlayTypeClass::Array->Items[idxOverlay]->Wall;
 	return Wall ? 0x480549 : 0x480552;
 }
 
@@ -1644,8 +1671,6 @@ DEFINE_OVERRIDE_HOOK(0x537BC0, Game_MakeScreenshot, 6)
 	return 0x537DC9;
 }
 
-DEFINE_DISABLE_HOOK(0x679a15 , RulesData_LoadBeforeTypeData_ares)
-
 DEFINE_OVERRIDE_HOOK(0x5d7163, MPGameMode_SpawnStartingUnits_Types, 8)
 {
 	LEA_STACK(DynamicVectorClass<TechnoTypeClass*>*, pInfVec, 0x18);
@@ -1831,8 +1856,10 @@ DEFINE_OVERRIDE_HOOK(0x532017, DlgProc_MainMenu_Version, 5)
 void LoadGlobalConfig()
 {
 	CCFileClass IniFile { "Ares.ini" };
-	if (!IniFile.Exists())
+	if (!IniFile.Exists() || !IniFile.Open(FileAccessMode::Read)) {
+		Debug::Log("Failed to Open file Ares.ini \n");
 		return;
+	}
 
 	CCINIClass Ini {};
 	Ini.ReadCCFile(&IniFile);
@@ -1888,130 +1915,135 @@ void ReadRA2MD()
 
 	CCFileClass IniFile { GameStrings::UIMD_INI() };
 
-	if (!IniFile.Exists())
-		return;
+	if (IniFile.Exists() && IniFile.Open(FileAccessMode::Read)) {
 
-	CCINIClass Ini {};
-	Ini.ReadCCFile(&IniFile);
+		CCINIClass Ini {};
+		Ini.ReadCCFile(&IniFile);
 
-	auto const section2 = GameStrings::Colors();
-	colorCount = std::clamp(Ini.ReadInteger(section2, "Count", colorCount), 8, 16);
+		auto const section2 = GameStrings::Colors();
+		colorCount = std::clamp(Ini.ReadInteger(section2, "Count", colorCount), 8, 16);
 
-	auto const ParseColorInt = [&Ini](const char* section, const char* key, int defColor) -> int {
-			ColorStruct ndefault(defColor & 0xFF, (defColor >> 8) & 0xFF, (defColor >> 16) & 0xFF);
-			auto const color = Ini.ReadColor(section, key, ndefault);
-			return color.R | color.G << 8 | color.B << 16;
-	};
+		auto const ParseColorInt = [&Ini](const char* section, const char* key, int defColor) -> int {
+				ColorStruct ndefault(defColor & 0xFF, (defColor >> 8) & 0xFF, (defColor >> 16) & 0xFF);
+				auto const color = Ini.ReadColor(section, key, ndefault);
+				return color.R | color.G << 8 | color.B << 16;
+		};
 
-	auto const section = "UISettings";
+		auto const section = "UISettings";
 
-	auto const ReadColor = [&Ini, section2, ParseColorInt]
-	(	
-		const char* name,
-		ColorData& value,
-		int colorRGB,
-		const char* defTooltip,
-		const char* defColorScheme
-	)
-	{
-			// load the tooltip string
-			char buffer[0x20];
-			IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.Tooltip", name);
-			if (Ini.ReadString(section2, buffer, defTooltip, Phobos::readBuffer))
-			{
-				value.sttToolTipSublineText = StringTable::LoadString(Phobos::readBuffer);
-			}
+		auto const ReadColor = [&Ini, section2, ParseColorInt]
+		(
+			const char* name,
+			ColorData& value,
+			int colorRGB,
+			const char* defTooltip,
+			const char* defColorScheme
+		)
+		{
+				// load the tooltip string
+				char buffer[0x20];
+				IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.Tooltip", name);
+				if (Ini.ReadString(section2, buffer, defTooltip, Phobos::readBuffer))
+				{
+					value.sttToolTipSublineText = StringTable::LoadString(Phobos::readBuffer);
+				}
 
-			IMPL_SNPRNINTF(buffer, 0x20, "%s.ColorScheme", name);
-			if (Ini.ReadString(section2, buffer, defColorScheme, Phobos::readBuffer))
-			{
-				PhobosCRT::strCopy(value.colorScheme, Phobos::readBuffer);
-			}
+				IMPL_SNPRNINTF(buffer, 0x20, "%s.ColorScheme", name);
+				if (Ini.ReadString(section2, buffer, defColorScheme, Phobos::readBuffer))
+				{
+					PhobosCRT::strCopy(value.colorScheme, Phobos::readBuffer);
+				}
 
-			IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.DisplayColor", name);
-			value.colorRGB = ParseColorInt(section2, buffer, colorRGB);
+				IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.DisplayColor", name);
+				value.colorRGB = ParseColorInt(section2, buffer, colorRGB);
 
-			value.colorSchemeIndex = -1;
-			value.selectedIndex = -1;
-	};
+				value.colorSchemeIndex = -1;
+				value.selectedIndex = -1;
+		};
 
-	// menu colors. the color of labels, button texts, list items, stuff and others
-	uiColorText = ParseColorInt(section, "Color.Text", 0xFFFF);
+		// menu colors. the color of labels, button texts, list items, stuff and others
+		uiColorText = ParseColorInt(section, "Color.Text", 0xFFFF);
 
-	// original color schemes
-	auto const defColors = reinterpret_cast<int const*>(0x8316A8);
-	ReadColor("Observer", Colors[0], defColors[8], "STT:PlayerColorObserver", "LightGrey");
-	ReadColor("Slot1", Colors[1], defColors[0], "STT:PlayerColorGold", "Gold");
-	ReadColor("Slot2", Colors[2], defColors[1], "STT:PlayerColorRed", "DarkRed");
-	ReadColor("Slot3", Colors[3], defColors[2], "STT:PlayerColorBlue", "DarkBlue");
-	ReadColor("Slot4", Colors[4], defColors[3], "STT:PlayerColorGreen", "DarkGreen");
-	ReadColor("Slot5", Colors[5], defColors[4], "STT:PlayerColorOrange", "Orange");
-	ReadColor("Slot6", Colors[6], defColors[5], "STT:PlayerColorSkyBlue", "DarkSky");
-	ReadColor("Slot7", Colors[7], defColors[6], "STT:PlayerColorPurple", "Purple");
-	ReadColor("Slot8", Colors[8], defColors[7], "STT:PlayerColorPink", "Magenta");
+		// original color schemes
+		auto const defColors = reinterpret_cast<int const*>(0x8316A8);
+		ReadColor("Observer", Colors[0], defColors[8], "STT:PlayerColorObserver", "LightGrey");
+		ReadColor("Slot1", Colors[1], defColors[0], "STT:PlayerColorGold", "Gold");
+		ReadColor("Slot2", Colors[2], defColors[1], "STT:PlayerColorRed", "DarkRed");
+		ReadColor("Slot3", Colors[3], defColors[2], "STT:PlayerColorBlue", "DarkBlue");
+		ReadColor("Slot4", Colors[4], defColors[3], "STT:PlayerColorGreen", "DarkGreen");
+		ReadColor("Slot5", Colors[5], defColors[4], "STT:PlayerColorOrange", "Orange");
+		ReadColor("Slot6", Colors[6], defColors[5], "STT:PlayerColorSkyBlue", "DarkSky");
+		ReadColor("Slot7", Colors[7], defColors[6], "STT:PlayerColorPurple", "Purple");
+		ReadColor("Slot8", Colors[8], defColors[7], "STT:PlayerColorPink", "Magenta");
 
-	// additional color schemes so just increasing Count will produce nice colors
-	ReadColor("Slot9", Colors[9], 0xEF5D94, "STT:PlayerColorLilac", "NeonBlue");
-	ReadColor("Slot10", Colors[10], 0xE7FF73, "STT:PlayerColorLightBlue", "LightBlue");
-	ReadColor("Slot11", Colors[11], 0x63EFFF, "STT:PlayerColorLime", "Yellow");
-	ReadColor("Slot12", Colors[12], 0x5AC308, "STT:PlayerColorTeal", "Green");
-	ReadColor("Slot13", Colors[13], 0x0055BD, "STT:PlayerColorBrown", "Red");
-	ReadColor("Slot14", Colors[14], 0x808080, "STT:PlayerColorCharcoal", "Grey");
+		// additional color schemes so just increasing Count will produce nice colors
+		ReadColor("Slot9", Colors[9], 0xEF5D94, "STT:PlayerColorLilac", "NeonBlue");
+		ReadColor("Slot10", Colors[10], 0xE7FF73, "STT:PlayerColorLightBlue", "LightBlue");
+		ReadColor("Slot11", Colors[11], 0x63EFFF, "STT:PlayerColorLime", "Yellow");
+		ReadColor("Slot12", Colors[12], 0x5AC308, "STT:PlayerColorTeal", "Green");
+		ReadColor("Slot13", Colors[13], 0x0055BD, "STT:PlayerColorBrown", "Red");
+		ReadColor("Slot14", Colors[14], 0x808080, "STT:PlayerColorCharcoal", "Grey");
 
-	// blunt stuff
-	char key[0x10];
-	for (auto i = 15; i <= colorCount; ++i)
-	{
-		sprintf_s(key, 0x10, "Slot%d", i);
-		ReadColor(key, Colors[i], 0xFFFFFF, "NOSTR:", "LightGrey");
+		// blunt stuff
+		char key[0x10];
+		for (auto i = 15; i <= colorCount; ++i)
+		{
+			sprintf_s(key, 0x10, "Slot%d", i);
+			ReadColor(key, Colors[i], 0xFFFFFF, "NOSTR:", "LightGrey");
+		}
+
+		uiColorTextButton = ParseColorInt(section, "Color.Button.Text", uiColorText);
+		uiColorTextRadio = ParseColorInt(section, "Color.Radio.Text", uiColorText);
+		uiColorTextCheckbox = ParseColorInt(section, "Color.Checkbox.Text", uiColorText);
+		uiColorTextLabel = ParseColorInt(section, "Color.Label.Text", uiColorText);
+		uiColorTextList = ParseColorInt(section, "Color.List.Text", uiColorText);
+		uiColorTextCombobox = ParseColorInt(section, "Color.Combobox.Text", uiColorText);
+		uiColorTextGroupbox = ParseColorInt(section, "Color.Groupbox.Text", uiColorText);
+		uiColorTextSlider = ParseColorInt(section, "Color.Slider.Text", uiColorText);
+		uiColorTextEdit = ParseColorInt(section, "Color.Edit.Text", uiColorText);
+		uiColorTextObserver = ParseColorInt(section, "Color.Observer.Text", 0xEEEEEE);
+		uiColorCaret = ParseColorInt(section, "Color.Caret", 0xFFFF);
+		uiColorSelection = ParseColorInt(section, "Color.Selection", 0xFF);
+		uiColorSelectionCombobox = ParseColorInt(section, "Color.Combobox.Selection", uiColorSelection);
+		uiColorSelectionList = ParseColorInt(section, "Color.List.Selection", uiColorSelection);
+		uiColorSelectionObserver = ParseColorInt(section, "Color.Observer.Selection", 0x626262);
+		uiColorBorder1 = ParseColorInt(section, "Color.Border1", 0xC5BEA7);
+		uiColorBorder2 = ParseColorInt(section, "Color.Border2", 0x807A68);
+		uiColorDisabled = ParseColorInt(section, "Color.Disabled", 0x9F);
+		uiColorDisabledLabel = ParseColorInt(section, "Color.Label.Disabled", uiColorDisabled);
+		uiColorDisabledCombobox = ParseColorInt(section, "Color.Combobox.Disabled", uiColorDisabled);
+		uiColorDisabledSlider = ParseColorInt(section, "Color.Slider.Disabled", uiColorDisabled);
+		uiColorDisabledButton = ParseColorInt(section, "Color.Button.Disabled", 0xA7);
+		uiColorDisabledCheckbox = ParseColorInt(section, "Color.Checkbox.Disabled", uiColorDisabled);
+		uiColorDisabledList = ParseColorInt(section, "Color.List.Disabled", uiColorDisabled);
+		uiColorDisabledObserver = ParseColorInt(section, "Color.Observer.Disabled", 0x8F8F8F);
+
+		// read the mod's version info
+		if (Ini.ReadString("VersionInfo", "Name", Phobos::readDefval, Phobos::readBuffer, std::size(ModName))) {
+			PhobosCRT::strCopy(ModName, Phobos::readBuffer);
+		}
+
+		if (Ini.ReadString("VersionInfo", "Version", Phobos::readDefval, Phobos::readBuffer, std::size(ModVersion))) {
+			PhobosCRT::strCopy(ModVersion, Phobos::readBuffer);
+		}
+
+		AresSafeChecksummer crc;
+		crc.Add(ModName , strlen(ModName));
+		crc.Commit();
+		crc.Add(ModVersion, strlen(ModVersion));
+		ModIdentifier = Ini.ReadInteger("VersionInfo", "Identifier", static_cast<int>(crc.GetValue()));
+
+		Debug::Log("Color count is %d\n", colorCount);
+		Debug::Log("Mod is %s (%s) with %X\n",
+			ModName,
+			ModVersion,
+			ModIdentifier
+		);
+	} else {
+		Debug::Log(FAILEDTOLOADUIMD_MSG);
 	}
 
-	uiColorTextButton = ParseColorInt(section, "Color.Button.Text", uiColorText);
-	uiColorTextRadio = ParseColorInt(section, "Color.Radio.Text", uiColorText);
-	uiColorTextCheckbox = ParseColorInt(section, "Color.Checkbox.Text", uiColorText);
-	uiColorTextLabel = ParseColorInt(section, "Color.Label.Text", uiColorText);
-	uiColorTextList = ParseColorInt(section, "Color.List.Text", uiColorText);
-	uiColorTextCombobox = ParseColorInt(section, "Color.Combobox.Text", uiColorText);
-	uiColorTextGroupbox = ParseColorInt(section, "Color.Groupbox.Text", uiColorText);
-	uiColorTextSlider = ParseColorInt(section, "Color.Slider.Text", uiColorText);
-	uiColorTextEdit = ParseColorInt(section, "Color.Edit.Text", uiColorText);
-	uiColorTextObserver = ParseColorInt(section, "Color.Observer.Text", 0xEEEEEE);
-	uiColorCaret = ParseColorInt(section, "Color.Caret", 0xFFFF);
-	uiColorSelection = ParseColorInt(section, "Color.Selection", 0xFF);
-	uiColorSelectionCombobox = ParseColorInt(section, "Color.Combobox.Selection", uiColorSelection);
-	uiColorSelectionList = ParseColorInt(section, "Color.List.Selection", uiColorSelection);
-	uiColorSelectionObserver = ParseColorInt(section, "Color.Observer.Selection", 0x626262);
-	uiColorBorder1 = ParseColorInt(section, "Color.Border1", 0xC5BEA7);
-	uiColorBorder2 = ParseColorInt(section, "Color.Border2", 0x807A68);
-	uiColorDisabled = ParseColorInt(section, "Color.Disabled", 0x9F);
-	uiColorDisabledLabel = ParseColorInt(section, "Color.Label.Disabled", uiColorDisabled);
-	uiColorDisabledCombobox = ParseColorInt(section, "Color.Combobox.Disabled", uiColorDisabled);
-	uiColorDisabledSlider = ParseColorInt(section, "Color.Slider.Disabled", uiColorDisabled);
-	uiColorDisabledButton = ParseColorInt(section, "Color.Button.Disabled", 0xA7);
-	uiColorDisabledCheckbox = ParseColorInt(section, "Color.Checkbox.Disabled", uiColorDisabled);
-	uiColorDisabledList = ParseColorInt(section, "Color.List.Disabled", uiColorDisabled);
-	uiColorDisabledObserver = ParseColorInt(section, "Color.Observer.Disabled", 0x8F8F8F);
-
-	// read the mod's version info
-	if (Ini.ReadString("VersionInfo", "Name", Phobos::readDefval, Phobos::readBuffer, std::size(ModName))) {
-		PhobosCRT::strCopy(ModName, Phobos::readBuffer);
-	}
-
-	if (Ini.ReadString("VersionInfo", "Version", Phobos::readDefval, Phobos::readBuffer, std::size(ModVersion))) {
-		PhobosCRT::strCopy(ModVersion, Phobos::readBuffer);
-	}
-
-	AresSafeChecksummer crc;
-	crc.Add(ModName , strlen(ModName));
-	crc.Commit();
-	crc.Add(ModVersion, strlen(ModVersion));
-	ModIdentifier = Ini.ReadInteger("VersionInfo", "Identifier", static_cast<int>(crc.GetValue()));
-
-	Debug::Log("Mod is %s (%s) with %X\n",
-		ModName,
-		ModVersion,
-		ModIdentifier
-	);
+	Debug::Log("-------------------Complete ----------------------\n");
 }
 
 DEFINE_OVERRIDE_HOOK(0x5facdf, Options_LoadFromINI, 5)
@@ -2386,13 +2418,6 @@ DEFINE_OVERRIDE_HOOK(0x4E4D67, hWnd_UpdatePlayerColors_B, 7)
 }
 
 DEFINE_DISABLE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme_ares)
-DEFINE_DISABLE_HOOK(0x667a1d , RulesClass_CTOR_ares)
-DEFINE_DISABLE_HOOK(0x667a30 , RulesClass_DTOR_ares)
-DEFINE_DISABLE_HOOK(0x668bf0 , RulesClass_Addition_ares)
-DEFINE_DISABLE_HOOK(0x674730 , RulesClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x675205 , RulesClass_Save_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x675210 , RulesClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x678841 , RulesClass_Load_Suffix_ares)
 
 DEFINE_OVERRIDE_HOOK(0x67D04E, Game_Save_SavegameInformation, 7)
 {
@@ -2430,7 +2455,7 @@ DEFINE_OVERRIDE_HOOK(0x67CEFE, Game_Save_FixLog, 7)
 
 DEFINE_DISABLE_HOOK(0x685659, Scenario_ClearClasses_ares)
 
-CSFText ModNote;
+static CSFText ModNote {};
 
 DEFINE_OVERRIDE_HOOK(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
 {
@@ -2451,6 +2476,7 @@ DEFINE_OVERRIDE_HOOK(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
 			offset += wanted.Height;
 		};
 
+	//TODO : debug this , not showing properly
 	if (!ModNote.Label)
 	{
 		ModNote = "TXT_RELEASE_NOTE";
@@ -2472,7 +2498,7 @@ DEFINE_OVERRIDE_HOOK(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x7C89D4, DDRAW_Create, 6)
+DEFINE_STRONG_OVERRIDE_HOOK(0x7C89D4, DDRAW_Create, 6)
 {
 	R->Stack<DWORD>(0x4, GFX_DX_Force);
 	return 0;
@@ -2492,12 +2518,12 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x4068E0, Debug_Log, 1)
 
 #pragma region ErrorHandlings
 
-DEFINE_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
+DEFINE_STRONG_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 {
 	// mimic an increment because decrement happens in the middle of function cleanup and can't be erased nicely
 	++Unsorted::SystemResponseMessages;
 
-	Debug::Log("Reconnection error detected!");
+	Debug::Log("Reconnection error detected!\n");
 	if (MessageBoxW(Game::hWnd, L"Yuri's Revenge has detected a desynchronization!\n"
 		L"Would you like to create a full error report for the developers?\n"
 		L"Be advised that reports from at least two players are needed.", L"Reconnection Error!", MB_YESNO | MB_ICONERROR) == IDYES)
@@ -2505,6 +2531,8 @@ DEFINE_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 		HCURSOR loadCursor = LoadCursor(nullptr, IDC_WAIT);
 		SetClassLong(Game::hWnd, GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
 		SetCursor(loadCursor);
+
+		Debug::DumpStack(R, 8084);
 
 		std::wstring path = Dialogs::PrepareSnapshotDirectory();
 
@@ -2544,8 +2572,6 @@ DEFINE_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 	Debug::Log("Exception handler fired!\n");
 	Debug::Log("Exception %X at %p\n", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
 	SetWindowTextW(Game::hWnd, L"Fatal Error - Yuri's Revenge");
-
-	//	if (IsDebuggerAttached()) return EXCEPTION_CONTINUE_SEARCH;
 
 	switch (pExs->ExceptionRecord->ExceptionCode)
 	{
@@ -2590,6 +2616,14 @@ DEFINE_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			fprintf(except, "\n");
 			fprintf(except, pDelim);
 
+			fprintf(except, "\n");
+
+			int i = 0;
+			for (auto const& [str, data] : Patch::ModuleDatas) {
+				fprintf(except, "Module [(%d) %s: Base address = %p]\n", i++, str.c_str(), data.BaseAddr);
+			}
+
+			fprintf(except, "\n");
 			switch (pExs->ExceptionRecord->ExceptionCode)
 			{
 			case EXCEPTION_STACK_OVERFLOW:
@@ -2912,11 +2946,32 @@ void WriteLog(const HouseClass* it, int idx, DWORD checksum, FILE* F)
 {
 	WriteLog<void>(it, idx, checksum, F);
 
-	fprintf(F, "; CurrentPlayer: %u; ColorScheme: %s; ID: %d; HouseType: %s; Edge: %d; StartingAllies: %u; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d",
-		it->IsHumanPlayer, ColorScheme::Array->GetItem(it->ColorSchemeIndex)->ID,
-		it->ArrayIndex, HouseTypeClass::Array->GetItem(it->Type->ArrayIndex)->Name,
+	fprintf(F, "; Player Name : %s (%d - %s); IsHumanPlayer: %u; ColorScheme: %s (%d); Edge: %d; StartingAllies: %u; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d",
+		it->PlainName ? it->PlainName : NONE_STR,
+		it->ArrayIndex, HouseTypeClass::Array->Items[it->Type->ArrayIndex]->Name,
+		it->IsHumanPlayer, ColorScheme::Array->Items[it->ColorSchemeIndex]->ID, it->ColorSchemeIndex,
 		(int)it->Edge, it->StartingAllies.data, it->StartingCell.X, it->StartingCell.Y, it->Visionary,
 		it->MapIsClear, it->Available_Money());
+
+	if (!it->IsNeutral() && !it->IsControlledByHuman()) {
+		fprintf(F, "\nLogging AI BaseNodes : \n");
+
+		const auto& b = it->Base.BaseNodes;
+		for (int j = 0; j < b.Count; ++j) {
+			const auto& n = b[j];
+			auto idx = n.BuildingTypeIndex;
+			if (idx >= 0) {
+				auto lbl = BuildingTypeClass::Array->Items[idx]->ID;
+				fprintf(F, "\tNode #%03d: %s @ (%05d, %05d), Attempts so far: %d, Placed: %d\n"
+					, j, lbl, n.MapCoords.X, n.MapCoords.Y, n.Attempts, n.Placed);
+			} else {
+				fprintf(F, "\tNode #%03d: Special %d @ (%05d, %05d), Attempts so far: %d, Placed: %d\n"
+					, j, idx, n.MapCoords.X, n.MapCoords.Y, n.Attempts, n.Placed);
+			}
+		}
+		fprintf(F, "\n");
+	}
+
 }
 
 // calls WriteLog and appends a newline
@@ -2968,7 +3023,7 @@ void HouseLogger(const DynamicVectorClass<T>* Array, FILE* F, const char* Label 
 	{
 		for (auto j = 0; j < HouseClass::Array->Count; ++j)
 		{
-			auto pHouse = HouseClass::Array->GetItem(j);
+			auto pHouse = HouseClass::Array->Items[j];
 			fprintf(F, "-------------------- %s (%d) %s -------------------\n", pHouse->Type->Name, j, Label ? Label : "");
 
 			for (auto i = 0; i < Array->Count; ++i)

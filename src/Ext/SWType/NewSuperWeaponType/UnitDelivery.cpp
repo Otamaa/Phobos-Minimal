@@ -86,7 +86,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 
 	// get the house the units will belong to
 	const auto pOwner = HouseExtData::GetHouseKind(pData->SW_OwnerHouse, false, this->Super->Owner);
-	const bool IsPlayerControlled = pOwner->IsControlledByHuman();
+	const bool IsHumanControlled = pOwner->IsControlledByHuman();
 	const bool bBaseNormal = pData->SW_BaseNormal;
 	const bool bDeliverBuildup = pData->SW_DeliverBuildups;
 	const size_t facingsize = pData->SW_Deliverables_Facing.size();
@@ -170,7 +170,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 			}
 			else
 			{
-				const auto mission = IsPlayerControlled ? Mission::Guard : Mission::Hunt;
+				const auto mission = IsHumanControlled ? Mission::Guard : Mission::Hunt;
 				//Debug::Log("PlaceUnits for [%s] - Owner[%s] SwtMission[%s - %s] \n", pData->get_ID(), pOwner->get_ID(), pType->ID , MissionClass::MissionToString(mission));
 
 				// only computer units can hunt
@@ -204,7 +204,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 					if (pData->SW_DeliverableScatter.Get(pType->BalloonHover || pType->JumpJet))
 						Item->Scatter(CoordStruct::Empty, true, false);
 
-					if (Item->CurrentMission == Mission::Area_Guard && !IsPlayerControlled)
+					if (Item->CurrentMission == Mission::Area_Guard && !IsHumanControlled)
 						Item->QueueMission(Mission::Hunt, true);
 				}
 

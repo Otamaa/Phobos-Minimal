@@ -142,8 +142,10 @@ public:
 };
 static_assert(sizeof(ExtSelection) == sizeof(TacticalClass), "MustBe Same!");
 
+#ifndef aaa
 // Replace single call
 DEFINE_JUMP(CALL,0x4ABCEB, GET_OFFSET(ExtSelection::Tactical_MakeFilteredSelection));
 
 // Replace vanilla function. For in case another module tries to call the vanilla function at offset
 DEFINE_JUMP(LJMP, 0x6D9FF0, GET_OFFSET(ExtSelection::Tactical_MakeFilteredSelection));
+#endif

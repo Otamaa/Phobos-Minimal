@@ -82,11 +82,10 @@ DEFINE_HOOK(0x51F0AF, InfantryClass_WhatAction_Grinding, 0x5)
 
 	if (auto pBuilding = specific_cast<BuildingClass*>(pTarget))
 	{
-		if (pBuilding->Type->Grinding
-			&& pThis->Owner->ControlledByCurrentPlayer()
-			&& !pBuilding->IsBeingWarpedOut()
-			&& (pThis->Owner->IsAlliedWith(pTarget) && pBuilding->Owner != pThis->Owner)
-			&& (BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->Grinding_AllowAllies || action == Action::Select))
+		if (action == Action::Select 
+			&& pBuilding->Type->Grinding
+			&& pThis->Owner->IsControlledByHuman()
+			&& !pBuilding->IsBeingWarpedOut() )
 		{
 			action = BuildingExtData::CanGrindTechno(pBuilding, pThis) ? Action::Repair : Action::NoEnter;
 			R->EBP(action);
@@ -139,15 +138,14 @@ DEFINE_HOOK(0x740134, UnitClass_WhatAction_Grinding, 0x9) //0
 
 	if (auto pBuilding = specific_cast<BuildingClass*>(pTarget))
 	{
-		if (pThis->Owner->ControlledByCurrentPlayer()
-			&& !pBuilding->IsBeingWarpedOut()
-			&& pThis->Owner->IsAlliedWith(pTarget)
-			&& (pBuilding->Type->Grinding || action == Action::Select))
+		if (action == Action::Select 
+			&& pThis->Owner->IsControlledByHuman()
+			&& !pBuilding->IsBeingWarpedOut())
 		{
 			if (pThis->SendCommand(RadioCommand::QueryCanEnter, pTarget) == RadioCommand::AnswerPositive)
 			{
-				bool isFlying = pThis->GetTechnoType()->MovementZone == MovementZone::Fly;
-				bool canBeGrinded = BuildingExtData::CanGrindTechno(pBuilding, pThis);
+				const bool isFlying = pThis->GetTechnoType()->MovementZone == MovementZone::Fly;
+				const bool canBeGrinded = BuildingExtData::CanGrindTechno(pBuilding, pThis);
 				action = pBuilding->Type->Grinding ? canBeGrinded && !isFlying ? Action::Repair : Action::NoEnter : !isFlying ? Action::Enter : Action::NoEnter;
 				R->EBX(action);
 			}
@@ -216,7 +214,6 @@ DEFINE_HOOK(0x73A1C3, UnitClass_PerCellProcess_Grinding, 0x5)
 	const int totalRefund = pBuilding->Owner->Available_Money() - HouseExtData::LastGrindingBlanceUnit;
 
 	return BuildingExtData::DoGrindingExtras(pBuilding, pThis, totalRefund) ? PlayAnim : Continue;
-
 }
 
 DEFINE_HOOK(0x519790, InfantryClass_UpdatePosition_Grinding_SkipDiesound, 0xA)

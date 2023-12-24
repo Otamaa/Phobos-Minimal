@@ -232,7 +232,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 		pHouseExt->m_ForceOnlyTargetHouseEnemy : pTeam->Type->OnlyTargetHouseEnemy;
 
 		if (onlyTargetHouseEnemy && pTeamData->TeamLeader->Owner->EnemyHouseIndex >= 0)
-			enemyHouse = HouseClass::Array->GetItem(pTeamData->TeamLeader->Owner->EnemyHouseIndex);
+			enemyHouse = HouseClass::Array->Items[pTeamData->TeamLeader->Owner->EnemyHouseIndex];
 
 		int targetMask = scriptArgument;
 		auto selectedTarget = ScriptExtData::GreatestThreat(pTeamData->TeamLeader, targetMask, calcThreatMode, enemyHouse, attackAITargetType, idxAITargetTypeItem, agentMode);
@@ -492,7 +492,7 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 	// Generic method for targeting
 	for (int i = 0; i < TechnoClass::Array->Count; i++)
 	{
-		auto object = TechnoClass::Array->GetItem(i);
+		auto object = TechnoClass::Array->Items[i];
 		if (!ScriptExtData::IsUnitAvailable(object, true) || object == pTechno)
 			continue;
 
@@ -586,7 +586,7 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 					}
 
 					// Is Defender house targeting Attacker House? if "yes" then more Threat
-					if (object->Owner->EnemyHouseIndex >= 0 && pTechno->Owner == HouseClass::Array->GetItem(object->Owner->EnemyHouseIndex))
+					if (object->Owner->EnemyHouseIndex >= 0 && pTechno->Owner == HouseClass::Array->Items[object->Owner->EnemyHouseIndex])
 					{
 						double const& EnemyHouseThreatBonus = RulesClass::Instance->EnemyHouseThreatBonus;
 						objectThreatValue += EnemyHouseThreatBonus;
@@ -800,7 +800,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 				// The possible Target is aiming against me? Revenge!
 				if (pTarget != pTeamLeader)
 					return pTarget->Target == pTeamLeader
-					|| pTarget->Owner && HouseClass::Array->GetItem(pTarget->Owner->EnemyHouseIndex) == pTeamLeader->Owner;
+					|| pTarget->Owner && HouseClass::Array->Items[pTarget->Owner->EnemyHouseIndex] == pTeamLeader->Owner;
 			}
 
 			auto const curtargetiter = make_iterator(pTechno->CurrentTargets);
@@ -1346,11 +1346,13 @@ void ScriptExtData::Mission_Attack_List(TeamClass* pTeam, bool repeatAction, Dis
 		targetList.size());
 }
 
+static std::vector<int> Mission_Attack_List1Random_validIndexes;
+
 void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, DistanceMode calcThreatMode, int attackAITargetType)
 {
 
 	auto pScript = pTeam->CurrentScript;
-	std::vector<int> validIndexes;
+	Mission_Attack_List1Random_validIndexes.clear();
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	const auto& [curAct, curArgs] = pTeam->CurrentScript->GetCurrentAction();
 
@@ -1386,16 +1388,16 @@ void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatActi
 						if (pTechnoType == RulesExtData::Instance()->AITargetTypesLists[attackAITargetType][j] && (!pFirstUnit->Owner->IsAlliedWith(pTechno)
 								|| ScriptExtData::IsUnitMindControlledFriendly(pFirstUnit->Owner, pTechno)))
 						{
-							validIndexes.push_back(j);
+							Mission_Attack_List1Random_validIndexes.push_back(j);
 							found = true;
 						}
 					}
 				}
 			});
 
-			if (!validIndexes.empty())
+			if (!Mission_Attack_List1Random_validIndexes.empty())
 			{
-				const int idxSelectedObject = validIndexes[ScenarioClass::Instance->Random.RandomFromMax(validIndexes.size() - 1)];
+				const int idxSelectedObject = Mission_Attack_List1Random_validIndexes[ScenarioClass::Instance->Random.RandomFromMax(Mission_Attack_List1Random_validIndexes.size() - 1)];
 				pTeamData->IdxSelectedObjectFromAIList = idxSelectedObject;
 
 				ScriptExtData::Log("AI Scripts - AttackListRandom: [%s] [%s] (line: %d = %d,%d) Picked a random Techno from the list index [AITargetTypes][%d][%d] = %s\n",
@@ -1423,7 +1425,7 @@ void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatActi
 		curAct,
 		curArgs,
 		attackAITargetType,
-		validIndexes.size()
+		Mission_Attack_List1Random_validIndexes.size()
 	);
 }
 

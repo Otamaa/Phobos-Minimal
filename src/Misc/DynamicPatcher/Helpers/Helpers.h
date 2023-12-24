@@ -163,9 +163,9 @@ public:
 
 	static TechnoClass* CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* pHouse, CoordStruct& location, CellClass* pCell = nullptr , bool bPathfinding = false);
 
-	static ValueableVector<BulletClass*> GetCellSpreadBullets(CoordStruct& location, double spread)
+	static std::vector<BulletClass*> GetCellSpreadBullets(CoordStruct& location, double spread)
 	{
-		ValueableVector<BulletClass*> pBulletSet { };
+		std::vector<BulletClass*> pBulletSet { };
 
 		double dist = (spread <= 0 ? 1 : std::ceil(spread)) * 256;
 
@@ -173,11 +173,9 @@ public:
 
 		for (int i = bullets->Count - 1; i >= 0; i--)
 		{
-			if (auto const pBullet = bullets->GetItem(i))
-			{
-				if (pBullet->GetCoords().DistanceFrom(location) <= dist) {
-						pBulletSet.PushbackUnique(pBullet);
-				}
+			auto const pBullet = bullets->Items[i];
+			if (pBullet->GetCoords().DistanceFrom(location) <= dist) {
+				pBulletSet.push_back(pBullet);
 			}
 		}
 

@@ -53,7 +53,7 @@ void EVAVoices::RegisterType(const char* type)
 	}
 }
 
-#ifndef disable_eva_hooks
+#ifndef aaa
 // replace the complete ini loading function
 DEFINE_OVERRIDE_HOOK(0x753000, VoxClass_CreateFromINIList, 6)
 {

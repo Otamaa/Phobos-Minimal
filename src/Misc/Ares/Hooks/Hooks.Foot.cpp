@@ -297,7 +297,7 @@ DEFINE_OVERRIDE_HOOK(0x518744, InfantryClass_ReceiveDamage_ElectricDeath, 6)
 	AnimTypeClass* El = RulesExtData::Instance()->ElectricDeath;
 
 	if (!El) {
-		El = AnimTypeClass::Array->GetItem(0);
+		El = AnimTypeClass::Array->Items[0];
 	}
 
 	R->EDX(El);

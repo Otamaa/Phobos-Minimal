@@ -82,7 +82,11 @@ void UpdateWebbed(FootClass* pThis)
 
 #include <Misc/Ares/Hooks/Header.h>
 
+#ifndef aaa
 DEFINE_OVERRIDE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
+#else
+DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
+#endif
 {
 	enum { retDead = 0x6FB004 , Continue = 0x0};
 
@@ -91,7 +95,9 @@ DEFINE_OVERRIDE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	if (!pThis || !pThis->IsAlive)
 		return retDead;
 
+#ifndef aaa
 	TechnoExt_ExtData::Ares_technoUpdate(pThis);
+#endif
 
 	//type may already change ,..
 	auto const pType = pThis->GetTechnoType();
@@ -103,9 +109,7 @@ DEFINE_OVERRIDE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 		IsInLimboDelivered = BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis))->LimboID >= 0;
 	}
 
-	const auto nFootMapCoords = pThis->InlineMapCoords();
-
-	if (pThis->Location == CoordStruct::Empty || nFootMapCoords == CellStruct::Empty) {
+	if (pThis->Location == CoordStruct::Empty || pThis->InlineMapCoords() == CellStruct::Empty) {
 		if (!pType->Spawned && !IsInLimboDelivered && !pThis->InLimbo) {
 			Debug::Log("Techno[%x : %s] With Invalid Location ! , Removing ! \n", pThis, pThis->get_ID());
 			TechnoExtData::HandleRemove(pThis, nullptr, false, false);
@@ -226,7 +230,7 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	 DriveDataFunctional::AI(pExt);
-	 UpdateWebbed(pThis);
+	 //UpdateWebbed(pThis);
 
 	if (IsMovingNow)
 	{

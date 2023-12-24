@@ -210,11 +210,13 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		}
 	}
 
+#ifndef aaa
 	if (Debug::LogEnabled) {
 		Debug::LogFileOpen();
 		Debug::Log("Initialized Phobos %s .\n" , PRODUCT_VERSION);
 		Debug::Log("args %s\n", args.c_str());
 	}
+#endif
 
 	CheckProcessorFeatures();
 
@@ -323,11 +325,11 @@ void Phobos::Config::Read()
 
 	CCFileClass UIMD_ini { UIMD_FILENAME };
 
-	if(UIMD_ini.Exists())
+	if(UIMD_ini.Exists() && UIMD_ini.Open(FileAccessMode::Read))
 	{
 		CCINIClass INI_UIMD { };
 		INI_UIMD.ReadCCFile(&UIMD_ini);
-
+		Debug::Log("Loading early %s file\n", UIMD_FILENAME);
 		// LoadingScreen
 		{
 			Phobos::UI::DisableEmptySpawnPositions =
@@ -401,7 +403,7 @@ void Phobos::Config::Read()
 	}
 
 	CCFileClass RULESMD_ini { GameStrings::RULESMD_INI() };
-	if (RULESMD_ini.Exists())
+	if (RULESMD_ini.Exists() && RULESMD_ini.Open(FileAccessMode::Read))
 	{
 		CCINIClass INI_RulesMD { };
 		INI_RulesMD.ReadCCFile(&RULESMD_ini);
@@ -898,7 +900,11 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 #pragma region hooks
 
 //DEFINE_JUMP(LJMP, 0x7CD8EA, GET_OFFSET(_ExeTerminate));
+#ifndef aaa
 DEFINE_OVERRIDE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
+#else
+DEFINE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
+#endif
 {
 	Phobos::ExeTerminate();
 	CRT::exit_noreturn(0);
@@ -914,7 +920,11 @@ DEFINE_OVERRIDE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
 //	return 0x7C8B47;
 //}
 
+#ifndef aaa
 DEFINE_OVERRIDE_HOOK(0x7CD810, Game_ExeRun, 0x9)
+#else
+DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
+#endif
 {
 	//Imports::ReadFile = ReadFIle_;
 	//Imports::CreateFileA = CreatefileA_;
@@ -942,8 +952,11 @@ DEFINE_OVERRIDE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 //Disable MousePresent check
 //DEFINE_JUMP(LJMP, 0x6BD8A4, 0x6BD8C2);
 
+#ifndef aaa
 DEFINE_OVERRIDE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
-//DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
+#else
+DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
+#endif
 {
 	GET(char**, ppArgs, ESI);
 	GET(int, nNumArgs, EDI);
