@@ -2714,7 +2714,7 @@ int TechnoExtData::GetEatPassangersTotalTime(TechnoTypeClass* pTransporterData, 
 {
 	auto const pData = TechnoTypeExtContainer::Instance.Find(pTransporterData);
 	auto const pThis = this->AttachedToObject;
-	auto const& pDelType = pData->PassengerDeletionType;
+	auto const pDelType = &pData->PassengerDeletionType;
 
 	int nRate = 0;
 
@@ -2754,14 +2754,11 @@ void TechnoExtData::UpdateEatPassengers()
 {
 	auto const pThis = this->AttachedToObject;
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
+	auto const pDelType = &pTypeExt->PassengerDeletionType;
 
-	if (!pTypeExt->PassengerDeletionType || !TechnoExtData::IsActive(pThis))
+	if (!pDelType->Enabled || !TechnoExtData::IsActive(pThis))
 		return;
 
-	auto const& pDelType = pTypeExt->PassengerDeletionType;
-
-	if ((pDelType->Rate > 0 || pDelType->UseCostAsRate))
-	{
 		if (pThis->Passengers.NumPassengers > 0)
 		{
 			// Passengers / CargoClass is essentially a stack, last in, first out (LIFO) kind of data structure
@@ -2899,7 +2896,6 @@ void TechnoExtData::UpdateEatPassengers()
 				this->PassengerDeletionTimer.Stop();
 			}
 		}
-	}
 }
 
 bool NOINLINE TechnoExtData::CanFireNoAmmoWeapon(TechnoClass* pThis, int weaponIndex)
@@ -3725,8 +3721,7 @@ void TechnoExtData::UpdateType(TechnoTypeClass* currentType)
 
 	// Reset PassengerDeletion Timer - TODO : unchecked
 	if (this->PassengerDeletionTimer.IsTicking()
-		&& (!pTypeExtData->PassengerDeletionType
-			|| pTypeExtData->PassengerDeletionType->Rate <= 0))
+		&& !pTypeExtData->PassengerDeletionType.Enabled)
 		this->PassengerDeletionTimer.Stop();
 
 	TrailsManager::Construct(static_cast<TechnoClass*>(pThis), true);

@@ -386,19 +386,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->NotHuman_RandomDeathSequence.Read(exINI, pSection, "NotHuman.RandomDeathSequence");
 
-		auto const& [canParse, resetValue] = PassengerDeletionTypeClass::CanParse(exINI, pSection);
-
-		if (canParse)
-		{
-			if (!this->PassengerDeletionType)
-				this->PassengerDeletionType = std::make_unique<PassengerDeletionTypeClass>(this->AttachedToObject);
-
-			this->PassengerDeletionType->LoadFromINI(pINI, pSection);
-		}
-		else if (resetValue)
-		{
-			this->PassengerDeletionType.reset();
-		}
+		this->PassengerDeletionType.LoadFromINI(pINI, pSection);
 
 		this->DefaultDisguise.Read(exINI, pSection, "DefaultDisguise");
 

@@ -140,7 +140,7 @@ public:
 	Valueable<bool> NoManualMove { false };
 	Nullable<int> InitialStrength {};
 
-	std::unique_ptr<PassengerDeletionTypeClass> PassengerDeletionType {};
+	PassengerDeletionTypeClass PassengerDeletionType {};
 
 	Valueable<bool> Death_NoAmmo { false };
 	Valueable<int> Death_Countdown { 0 };

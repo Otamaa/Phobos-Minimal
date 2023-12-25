@@ -23,6 +23,7 @@ public:
 
 	TechnoTypeClass* OwnerType;
 
+	bool Enabled;
 	Valueable<int> Rate;
 	Valueable<bool> Rate_SizeMultiply;
 	Valueable<bool> Rate_AffectedByVeterancy;

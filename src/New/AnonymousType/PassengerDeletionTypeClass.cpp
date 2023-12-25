@@ -16,6 +16,7 @@ std::pair<bool, bool> PassengerDeletionTypeClass::CanParse(INI_EX exINI, const c
 
 PassengerDeletionTypeClass::PassengerDeletionTypeClass(TechnoTypeClass* pOwnerType)
 	: OwnerType(pOwnerType)
+	, Enabled { false }
 	, Rate { 0 }
 	, Rate_SizeMultiply { true }
 	, Rate_AffectedByVeterancy { false }
@@ -40,9 +41,16 @@ void PassengerDeletionTypeClass::LoadFromINI(CCINIClass* pINI, const char* pSect
 	INI_EX exINI(pINI);
 
 	this->Rate.Read(exINI, pSection, "PassengerDeletion.Rate");
+	this->UseCostAsRate.Read(exINI, pSection, "PassengerDeletion.UseCostAsRate");
+
+	this->Enabled = this->Rate > 0 || this->UseCostAsRate;
+
+	if (!this->Enabled)
+		return;
+
 	this->Rate_SizeMultiply.Read(exINI, pSection, "PassengerDeletion.Rate.SizeMultiply");
 	this->Rate_AffectedByVeterancy.Read(exINI, pSection, "PassengerDeletion.Rate.AffectedByVeterancy");
-	this->UseCostAsRate.Read(exINI, pSection, "PassengerDeletion.UseCostAsRate");
+
 	this->CostMultiplier.Read(exINI, pSection, "PassengerDeletion.CostMultiplier");
 	this->CostRateCap.Read(exINI, pSection, "PassengerDeletion.CostRateCap");
 	this->AllowedHouses.Read(exINI, pSection, "PassengerDeletion.AllowedHouses");
@@ -64,6 +72,7 @@ bool PassengerDeletionTypeClass::Serialize(T& stm)
 {
 	return stm
 		.Process(this->OwnerType)
+		.Process(this->Enabled)
 		.Process(this->Rate)
 		.Process(this->Rate_SizeMultiply)
 		.Process(this->Rate_AffectedByVeterancy)
