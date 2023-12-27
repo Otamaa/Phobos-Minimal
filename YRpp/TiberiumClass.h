@@ -13,7 +13,7 @@ struct MapSurfaceData
 	static int __fastcall SurfaceDataCount() JMP_STD(0x42B1F0);
 	static int __fastcall ToSurfaceIndex(const CellStruct& mapCoord) JMP_STD(0x42B1C0);
 
-	int ToSurfaceIndex()
+	int ToSurfaceIndex() const
 	{
 		return ToSurfaceIndex(MapCoord);
 	}
@@ -119,7 +119,7 @@ public:
 	void sub_722F00() JMP_THIS(0x722F00);
 	//static
 	static int InitArray() JMP_STD(0x721676);
-	static void __cdecl UninitArray() JMP_STD(0x721680);
+	//static inline NAKED void __cdecl UninitArray(){ JMP(0x721680); }
 	static bool __fastcall sub_721D10(CCINIClass* pINI) JMP_STD(0x721D10);
 	static void __stdcall UpdateTiberium() JMP_STD(0x7221B0);
 	static void __stdcall sub_0x722240() JMP_STD(0x722240);

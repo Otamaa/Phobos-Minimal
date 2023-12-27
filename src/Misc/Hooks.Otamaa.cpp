@@ -3445,7 +3445,7 @@ DEFINE_HOOK(0x6D4669, TacticalClass_Render_Addition, 0x5)
 
 DEFINE_HOOK(0x55B4E1, LogicClass_Update_Veinhole, 0x5)
 {
-	VeinholeMonsterClass::UpdateAllVeinholes();
+	UpdateAllVeinholes();
 	return 0;
 }
 

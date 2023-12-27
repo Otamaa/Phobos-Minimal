@@ -6,27 +6,27 @@
 #include <Base/Always.h>
 
 #define MATH_FUNC(name, address)\
-	inline NAKED double __cdecl name(double value)\
+	inline NAKED float __cdecl name(double value)\
 	{\
 		JMP(address);\
 	}
 
 #define MATH_FUNC_TWOVAL(name, address)\
-	inline NAKED double __cdecl name(double valuea , double valueb)\
+	inline NAKED float __cdecl name(double valuea , double valueb)\
 	{\
 		JMP(address);\
 	}
 
 #define MATH_FUNC_FLOAT(name, address)\
-	inline NAKED float __stdcall name(float value)\
+	inline NAKED double __stdcall name(float value)\
 	{\
-		JMP(address);\
+		JMP_STD(address);\
 	}
 
 #define MATH_FUNC_TWOVAL_FLOAT(name, address)\
-	inline NAKED float __stdcall name(float valuea , float valueb)\
+	inline NAKED double __stdcall name(float valuea , float valueb)\
 	{\
-		JMP(address);\
+		JMP_STD(address);\
 	}
 
 #define WWMATH_PI 3.14159265358979323846f // Holds the value for PI. Only up to 16 significant figures.

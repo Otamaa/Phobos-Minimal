@@ -154,9 +154,6 @@ public:
 	static void __fastcall LoadVeinholeArt(int idxTheatre)
 	{ JMP_STD(0x74D450); }
 
-	static void __cdecl UpdateAllVeinholes()
-	{ JMP_STD(0x74CDF0); }
-
 	VeinholeMonsterClass(CellStruct* pWhere) noexcept
 		: VeinholeMonsterClass(noinit_t())
 	{ JMP_THIS(0x74C5B0); }
@@ -182,4 +179,6 @@ public:
 	int VeinCount;
 };
 
+inline NAKED void __cdecl UpdateAllVeinholes()
+{ JMP(0x74CDF0); }
 static_assert(sizeof(VeinholeMonsterClass) == 0x108, "Invalid size."); //264

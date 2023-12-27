@@ -28,6 +28,12 @@ struct DirtyAreaStruct
 };
 
 class Blitter;
+/** Message is a vswprintf format specifier, ... is for any arguments needed */
+inline NAKED Point2D* __cdecl PrintUnicode(Point2D* Position1, wchar_t* Message, Surface* a3, RectangleStruct* Rect, Point2D* Position2,
+		ColorScheme* a6, int a7, int a8, ...) {
+	JMP(0x4A61C0);
+};
+
 struct Drawing
 {
 	constexpr static reference<DynamicVectorClass<DirtyAreaStruct>, 0xB0CE78> DirtyAreas {};
@@ -43,27 +49,11 @@ struct Drawing
 	static constexpr reference<int, 0x8A0DDC> const BlueShiftRight {};
 
 	static bool __fastcall DrawSurfaces(Surface* surface1, ConvertClass* convert, Surface* surface2, RectangleStruct* a2, Point2D* point, RectangleStruct* a6, int drawerval, Blitter* a7, int z_val, int somearrayindex, int alpha_val, int Blit_Move_2_arg, int wrap_value)
-	{
-		JMP_STD(0x4AF2A0);
-	}
+	{ JMP_STD(0x4AF2A0); }
 
 	//TextBox dimensions for tooltip-style boxes
-	static RectangleStruct GetTextBox(const wchar_t* pText, int nX, int nY, DWORD flags, int nMarginX, int nMarginY)
-		{
-			RectangleStruct box;
-			RectangleStruct* p_box=&box;
-
-			PUSH_VAR32(nMarginY);		//X Margin
-			PUSH_VAR32(nMarginX);		//Y Margin - should add 2, because X margin adds to 2 internally!
-			PUSH_VAR32(flags);
-			PUSH_VAR32(nY);
-			PUSH_VAR32(nX);
-			SET_REG32(edx,pText);
-			SET_REG32(ecx,p_box);
-			CALL(0x4A59E0);
-
-			return box;
-		}
+	static RectangleStruct __fastcall GetTextBox(const wchar_t* pText, int nX, int nY, DWORD flags, int nMarginX, int nMarginY)
+	{ JMP_STD(0x4A59E0); }
 
 	static RectangleStruct* __fastcall GetTextDimensions(
 		RectangleStruct* pOutBuffer, wchar_t const* pText, Point2D location,
@@ -110,20 +100,8 @@ struct Drawing
 	}
 
 	// Rectangles
-	static RectangleStruct Intersect(RectangleStruct* rect1, RectangleStruct* rect2, int* delta_left, int* delta_top)
-	{
-		RectangleStruct box;
-		RectangleStruct* p_box = &box;
-
-		PUSH_VAR32(delta_top);
-		PUSH_VAR32(delta_left);
-		PUSH_VAR32(rect2);
-		SET_REG32(edx, rect1);
-		SET_REG32(ecx, p_box);
-		CALL(0x421B60);
-
-		return box;
-	}
+	static RectangleStruct __fastcall Intersect(RectangleStruct* rect1, RectangleStruct* rect2, int* delta_left, int* delta_top)
+		{ JMP_STD(0x421B60); }
 
 	static RectangleStruct* __fastcall Intersect(
 		RectangleStruct* pOutBuffer, RectangleStruct const& rect1,
@@ -220,17 +198,12 @@ struct Drawing
 
 	// Converts a 16bit color to an RGB color.
 	static ColorStruct WordColor(WORD bits) {
-		ColorStruct color;
-		color.R = static_cast<BYTE>(((bits & 0xF800) >> 11) << 3);
-		color.G = static_cast<BYTE>(((bits & 0x07E0) >> 5) << 2);
-		color.B = static_cast<BYTE>((bits & 0x001F) << 3);
-		return color;
+		return { 
+			static_cast<BYTE>(((bits & 0xF800) >> 11) << 3),
+			static_cast<BYTE>(((bits & 0x07E0) >> 5) << 2),
+			static_cast<BYTE>((bits & 0x001F) << 3)
+		};
 	}
-
-	/** Message is a vswprintf format specifier, ... is for any arguments needed */
-	static Point2D * __cdecl PrintUnicode(Point2D *Position1, wchar_t *Message, Surface *a3, RectangleStruct *Rect, Point2D *Position2,
-			ColorScheme *a6, int a7, int a8, ...)
-		{ JMP_STD(0x4A61C0); };
 
 	static ColorStruct RGB888_HEX(const char* pHEX)
 	{

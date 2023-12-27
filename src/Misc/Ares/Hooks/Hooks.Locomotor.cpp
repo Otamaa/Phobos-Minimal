@@ -306,16 +306,16 @@ DEFINE_OVERRIDE_HOOK(0x4B99A2, DropshipLoadout_WriteUnit, 0xA)
 	Coords.X += 450;
 	Coords.Y += 300;
 
-	Drawing::PrintUnicode(AltCoords, pName, pSurface, &pSurfaceRect, &Coords, Color, 0, 70);
+	PrintUnicode(AltCoords, pName, pSurface, &pSurfaceRect, &Coords, Color, 0, 70);
 
 	Coords.Y += 15;
-	Drawing::PrintUnicode(AltCoords, pArmament, pSurface, &pSurfaceRect, &Coords, Color, 0, 70);
+	PrintUnicode(AltCoords, pArmament, pSurface, &pSurfaceRect, &Coords, Color, 0, 70);
 
 	Coords.Y += 15;
-	Drawing::PrintUnicode(AltCoords, pArmor, pSurface, &pSurfaceRect, &Coords, Color, 0, 70);
+	PrintUnicode(AltCoords, pArmor, pSurface, &pSurfaceRect, &Coords, Color, 0, 70);
 
 	Coords.Y += 15;
-	Drawing::PrintUnicode(AltCoords, pCost, pSurface, &pSurfaceRect, &Coords, Color, 0, 70);
+	PrintUnicode(AltCoords, pCost, pSurface, &pSurfaceRect, &Coords, Color, 0, 70);
 
 	return 0x4B9BBF;
 }

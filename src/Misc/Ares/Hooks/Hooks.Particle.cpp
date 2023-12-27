@@ -348,7 +348,7 @@ DEFINE_HOOK(0x62CCB8, ParticleClass_Update_Fire, 7)
 
 		if (pOccupy && pOccupy->IsAlive && pOccupy->Health > 0 && !pOccupy->InLimbo)
 		{
-			if (pThis->ParticleSystem && pAttacker == pThis->ParticleSystem->Owner)
+			if (pThis->ParticleSystem && pOccupy == pThis->ParticleSystem->Owner)
 				continue;
 
 			if (auto pTechno = generic_cast<TechnoClass*>(pOccupy))

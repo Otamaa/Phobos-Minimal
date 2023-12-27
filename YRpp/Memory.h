@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Base/Always.h>
+
 #include <ASMMacros.h>
 
 #include <stdlib.h>
@@ -49,21 +51,21 @@ namespace YRMemory {
 	// multiple definitions are allowed.
 
 	// the game's operator new
-	inline __declspec(naked) void* __cdecl Allocate(size_t sz) {
+	inline NAKED void* __cdecl Allocate(size_t sz) {
 		JMP(0x7C8E17);
 	}
 
 	// C Alloc
-	inline __declspec(naked) void* __cdecl MAllocate(size_t sz) {
+	inline NAKED void* __cdecl MAllocate(size_t sz) {
 		JMP(0x7C9430);
 	}
 
 	// the game's operator delete
-	inline __declspec(naked) void __cdecl Deallocate(const void* mem) {
+	inline NAKED void __cdecl Deallocate(const void* mem) {
 		JMP(0x7C8B3D);
 	}
 
-	inline __declspec(noinline) void* AllocateChecked(size_t sz) {
+	inline NOINLINE void* AllocateChecked(size_t sz) {
 		if(auto const ptr = YRMemory::Allocate(sz)) {
 			return ptr;
 		}

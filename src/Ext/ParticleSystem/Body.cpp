@@ -238,29 +238,29 @@ void ParticleSystemExtData::UpdateRailgun()
 	{
 		pOwnerObj->TimeToDie = true;
 		auto nDifferenct = (pOwnerObj->Location - pOwnerObj->TargetCoords);
-		auto nMagSquared = nDifferenct.Length();
-		auto nMaxXY = CoordStruct { nDifferenct.X , nDifferenct.Y , 0 }.Length();
+		auto nMagSquared = (int)nDifferenct.Length();
+		auto nMaxXY = (int)(CoordStruct { nDifferenct.X , nDifferenct.Y , 0 }.Length());
 		auto nMagNeg = -nMagSquared;
-		auto nMagCopy = nMagSquared >= ((double)nDifferenct.Z) ?
-			((double)nDifferenct.Z) : nMagSquared;
+		auto nMagCopy = nMagSquared >= nDifferenct.Z ?
+			nDifferenct.Z : nMagSquared;
 
 		if (nMagCopy < nMagNeg)
 			nMagCopy = nMagNeg;
 
-		auto const nMaxXYNeg = -nMaxXY;
+		auto const nMaxXYNeg = -(double)nMaxXY;
 
-		auto nMaxXYCopy = nMaxXY >= ((double)nDifferenct.X) ?
-			((double)nDifferenct.X) : nMagSquared;
+		auto nMaxXYCopy = (double)nMaxXY >= ((double)nDifferenct.X) ?
+			((double)nDifferenct.X) : (double)nMagSquared;
 
 		if (nMaxXYCopy < nMaxXYNeg)
 			nMaxXYCopy = nMaxXYNeg;
 
-		auto nSin = (float)Math::sin(nMagCopy / nMagSquared);
-		auto nCos = (float)Math::cos(nMaxXYCopy / nMaxXY) * ((((nDifferenct.Y - nDifferenct.Y) >> 0x1F) & 0xFFFFFFFE) + 1);
+		auto nASin = (float)Math::asin(double(nMagCopy / nMagSquared));
+		auto nACos = (float)Math::acos(nMaxXYCopy / nMaxXY) * (((nDifferenct.Y >> 0x1F) & 0xFFFFFFFE) + 1);
 		Matrix3D mtx {};
 		mtx.MakeIdentity();
-		mtx.RotateZ(nCos);
-		mtx.RotateX(nSin);
+		mtx.RotateZ(nACos);
+		mtx.RotateX(nASin);
 
 		auto pHeldType = this->HeldType;
 		auto nSpinDelta = pOwnerObjType->SpiralDeltaPerCoord;
@@ -274,21 +274,22 @@ void ParticleSystemExtData::UpdateRailgun()
 
 		if (nDecidedsize > 0)
 		{
+			auto nMovementPerturbationCoefficientneg = -nMovementPerturbationCoefficient;
 			double nVal = 0.0;
+
 			for (size_t i = 0; i < nDecidedsize; ++i)
 			{
-				auto nMovementPerturbationCoefficientneg = -nMovementPerturbationCoefficient;
-
-				auto v91 = i / nDecidedsize;
-				auto radians = v91 * nMagSquared * nSpinDelta;
+				const auto v91 = i / nDecidedsize;
+				const auto radians = v91 * nMagSquared * nSpinDelta;
 
 				Vector3D<float> nDummy {
 					0.0f,
-					Math::cos((float)radians) ,
-					nDummy.Z = Math::sin((float)radians)
+					Math::cos(radians) ,
+					Math::sin(radians)
 				};
 
-				auto nResult = Matrix3D::MatrixMultiply(mtx, nDummy);
+				Vector3D<float> nResult;
+				Matrix3D::MatrixMultiply(&nResult , &mtx, &nDummy);
 
 				Vector3D<float> nDummy_d {
 				float((pOwnerObj->TargetCoords.X * (1.0 - v91))
@@ -311,7 +312,7 @@ void ParticleSystemExtData::UpdateRailgun()
 				};
 
 				const auto nMag = nMovementDummy.Length();
-				Vector3D<float> nVelsC {};
+				Vector3D<float> nVelsC { (float)nMovementDummy.X , (float)nMovementDummy.Y , (float)nMovementDummy.Z };
 
 				if (nMag != 0.0)
 				{
@@ -326,8 +327,11 @@ void ParticleSystemExtData::UpdateRailgun()
 				auto nVelocityPerturbationCoefficient_copy = nVelocityPerturbationCoefficient;
 
 				nVal = 0.5 * (nRand_Double7 + nVal) * nVelocityPerturbationCoefficient;
-				if (nVal < nVelocityPerturbationCoefficient)
+
+				if (nVal <= nVelocityPerturbationCoefficient)
 					nVelocityPerturbationCoefficient_copy = 0.5 * nRand_Double7;
+				else
+					nVal = nVelocityPerturbationCoefficient_copy;
 
 				if (nMovementPerturbationCoefficientneg > nVelocityPerturbationCoefficient_copy)
 					nVal = nMovementPerturbationCoefficientneg;
@@ -350,20 +354,33 @@ void ParticleSystemExtData::UpdateRailgun()
 					}
 				}
 			}
-
-			if (pOwnerObjType->Laser)
-			{
-				GameCreate<LaserDrawClass>(
-					pOwnerObj->Location,
-					pOwnerObj->TargetCoords,
-					0, 1u,
-					pOwnerObjType->LaserColor,
-					ColorStruct::Empty,
-					ColorStruct::Empty,
-					10, false, true, 0.5f, 0.1f);
-			}
 		}
+
+		//if (pOwnerObjType->Laser)
+		//{
+		//	GameCreate<LaserDrawClass>(
+		//		pOwnerObj->Location,
+		//		pOwnerObj->TargetCoords,
+		//		0, 1u,
+		//		pOwnerObjType->LaserColor,
+		//		ColorStruct::Empty,
+		//		ColorStruct::Empty,
+		//		10, false, true, 0.5f, 0.1f);
+		//}
 	}
+
+	for (auto& movement : this->OtherParticleData) {
+		const auto state = movement.A;
+		movement.A = float(ScenarioClass::Instance->Random.RandomDouble() + state);
+		const bool IsECdone = --movement.RemainingEC <= 0;
+		Vector3D<float> vel { movement.velB.X * state,state * movement.velB.Y , state *  movement.velB.Z };
+		movement.vel += vel;
+		if (IsECdone)
+			movement.Empty = true;
+	}
+
+	this->UpdateState();
+	this->UpdateColor();
 }
 
 void ParticleSystemExtData::UpdateWindDirection()
@@ -626,15 +643,16 @@ void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 
 						if ((uint16_t)buff >= 127u)
 						{
-							DSurface::Temp->Put_Pixel(outClient, DSurface::RGBA_To_Pixel(emp.R, emp.G, emp.B));
+							const auto put_Color = DSurface::RGBA_To_Pixel(emp.R, emp.G, emp.B);
+							DSurface::Temp->Put_Pixel(outClient, put_Color);
 						}
 						else
 						{
-							uint16_t buff__ = (uint16_t)buff;
-							auto data_r = buff__ * uintptr_t(emp.R >> 7);
-							auto data_g = buff__ * uintptr_t(emp.G >> 7);
-							auto data_b = buff__ * uintptr_t(emp.B >> 7);
-							DSurface::Temp->Put_Pixel(outClient, DSurface::RGBA_To_Pixel(data_r, data_g, data_b));
+							uintptr_t data_r = (buff * emp.R) >> 7;
+							uintptr_t data_g = (buff * emp.G) >> 7;
+							uintptr_t data_b = (buff * emp.B) >> 7;
+							const auto put_Color = DSurface::RGBA_To_Pixel(data_r, data_g, data_b);
+							DSurface::Temp->Put_Pixel(outClient, put_Color);
 						}
 					}
 				}

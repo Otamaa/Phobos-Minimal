@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Base/Always.h>
+
 //Syringe interaction header - also includes <windows.h>
 #include <Syringe.h>
 
@@ -38,48 +40,7 @@ union{\
 	private:\
 		type name; \
 	public:
-/*
-Operation: The Cleansing
 
-These two replace a function's implementation.
-
-R0 is used for functions which return a numeric value or a pointer.
-RX is for functions without a return type.
-Functions that return struct instances will have to be written manually.
-
-I chose short names to keep things clean.
-
-Example usage:
-virtual int foo(int bar) R0;
-virtual void alla(double malla) RX;
-*/
-
-#define R1 {return 1;}
-#define R0 {return 0;}
-#define RX {}
-#define RT(type) {return type();}
-
-#define NOVTABLE __declspec(novtable)
-#define NOINLINE __declspec(noinline)
-#define UNUSED __pragma(warning(suppress : 4100 4101))
-#define NORETURN __declspec(noreturn)
-#define NOTHROW __declspec(nothrow)
-#define SELECTANY __declspec(selectany)
-#define NAKED __declspec(naked)
-#define NAKEDNOINLINE __declspec(noinline) __declspec(naked)
-#define ALIGN(val) __declspec(align(val))
-
-#define SAFE_RELEASE(ptr) {if(ptr) delete[] ptr;}
-
-#define STRING2(x) #x
-#define STRING(x) STRING2(x)
-
-#define DEFINE_CLSID(_addrs) __declspec(uuid(_addrs))
-
-#define COMPILE_TIME_SIZEOF(t) \
-template<int s> struct SIZEOF_ ## t ## _IS; \
-struct foo { int a,b; }; \
-SIZEOF_ ## t ## _IS<sizeof(t)> SIZEOF_ ## t ## _IS;
 
 struct noinit_t final {};
 struct noprapere_tag final { };

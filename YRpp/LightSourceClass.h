@@ -43,8 +43,8 @@ public:
 	static int Init_Unknown_0xABCA40()
 		{ JMP_STD(0x5546C0); }
 
-	static void __cdecl Uninit_Unknown_0xABCA40()
-		{ JMP_STD(0xABCA40); }
+	//static inline NAKED void __cdecl Uninit_Unknown_0xABCA40()
+	//	{ JMP(0xABCA40); }
 
 	void Activate(DWORD dwZero = 0)	//Start lighting
 		{ JMP_THIS(0x554A60); }

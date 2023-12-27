@@ -27,6 +27,11 @@ struct BasePlanningCell {
 };
 
 // this crap is used in several Base planning routines
+
+	// for qsort
+inline NAKED int __cdecl BasePlanningCellContainer_Comparator(const void*, const void*) 
+	{ JMP(0x5108F0); }
+
 struct BasePlanningCellContainer {
 	BasePlanningCell * Items;
 	int Count;
@@ -36,10 +41,6 @@ struct BasePlanningCellContainer {
 
 	bool AddCapacity(int AdditionalCapacity)
 		{ JMP_THIS(0x510860); }
-
-	// for qsort
-	static int __cdecl Comparator(const void *, const void *)
-		{ JMP_STD(0x5108F0); }
 };
 
 // combines number and a string

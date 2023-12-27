@@ -129,3 +129,30 @@ typedef union {
 #define PRAGMA_DISABLEWARNING()      PRAGMA(warning(push))
 #define PRAGMA_DISABLEWARNING_S(x)   PRAGMA(warning(disable : x))
 #define PRAGMA_DISABLEWARNING_POP()	 PRAGMA(warning(pop))
+
+#define R1 {return 1;}
+#define R0 {return 0;}
+#define RX {}
+#define RT(type) {return type();}
+
+#define NOVTABLE __declspec(novtable)
+#define NOINLINE __declspec(noinline)
+#define UNUSED __pragma(warning(suppress : 4100 4101))
+#define NORETURN __declspec(noreturn)
+#define NOTHROW __declspec(nothrow)
+#define SELECTANY __declspec(selectany)
+#define NAKED __declspec(naked)
+#define NAKEDNOINLINE __declspec(noinline) __declspec(naked)
+#define ALIGN(val) __declspec(align(val))
+
+#define SAFE_RELEASE(ptr) {if(ptr) delete[] ptr;}
+
+#define STRING2(x) #x
+#define STRING(x) STRING2(x)
+
+#define DEFINE_CLSID(_addrs) __declspec(uuid(_addrs))
+
+#define COMPILE_TIME_SIZEOF(t) \
+template<int s> struct SIZEOF_ ## t ## _IS; \
+struct foo { int a,b; }; \
+SIZEOF_ ## t ## _IS<sizeof(t)> SIZEOF_ ## t ## _IS;
