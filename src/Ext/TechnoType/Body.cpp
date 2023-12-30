@@ -1244,6 +1244,7 @@ void TechnoTypeExtData::LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI)
 void TechnoTypeExtData::InitializeConstant()
 {
 	this->AttachedEffect.Owner = this->AttachedToObject;
+	this->PassengerDeletionType.OwnerType = this->AttachedToObject;
 }
 
 ImageStatusses ImageStatusses::ReadVoxel(const char* const nKey, bool a4)
