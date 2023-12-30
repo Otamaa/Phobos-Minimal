@@ -7,6 +7,7 @@
 #include <ObjectClass.h>
 #include <ParticleSystemTypeClass.h>
 #include <ParticleClass.h>
+#include <CoordStruct.h>
 
 class HouseClass;
 class DECLSPEC_UUID("0E272DC8-9C0F-11D1-B709-00A024DDAFD1")
@@ -51,6 +52,12 @@ public:
 
 	ParticleClass* SpawnHeldParticleRandom(CoordStruct* pcoord_a, CoordStruct* pcoord_b ,int nArgs)
 		{JMP_THIS(0x62E4C0);}
+
+	void Railgun_AI() const { JMP_THIS(0x62F230); }
+	void Spark_AI() const { JMP_THIS(0x62E840); }
+	void Fire_AI() const { JMP_THIS(0x62F9A0); }
+	void Gas_AI() const { JMP_THIS(0x62E6D0); }
+	void Smoke_AI() const { JMP_THIS(0x62ED40); }
 
 	//Constructor
 	ParticleSystemClass(

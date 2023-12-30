@@ -37,21 +37,19 @@ MSVC++
 	_asm{mov esp, ebp} \
 	_asm{pop ebp}
 
-#define JMP_THIS(address) \
-	{ EPILOG_THISCALL; \
-	JMP(address); }
-
-#define JMP_REG_THIS_(athis,address) \
-	{ EPILOG_THISCALL; \
-	JMP_REG_THIS(athis,eax,address); }
-
 #define EPILOG_STDCALL \
 	_asm{mov esp, ebp} \
 	_asm{pop ebp}
 
-#define JMP_STD(address) \
-	{ EPILOG_STDCALL; \
-	JMP(address); }
+#define EPILOG_FASTCALL \
+	_asm{pop ecx} \
+	_asm{pop edx} \
+	_asm{mov esp, ebp} \
+	_asm{pop ebp}
+
+#define JMP_THIS(address) { EPILOG_THISCALL JMP(address); }
+#define JMP_STD(address) { EPILOG_STDCALL JMP(address); }
+#define JMP_FAST(address) { EPILOG_STDCALL JMP(address); }
 
 //Get/set register to a variable
 #define GET_REG32(dst,reg) _asm{mov dst, reg}

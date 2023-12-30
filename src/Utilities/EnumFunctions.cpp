@@ -453,7 +453,8 @@ std::array<const char*, (size_t)DisplayInfoType::count> EnumFunctions::DisplayIn
 	{ "gattlingstage" },
 	{ "ironcurtain" } ,
 	{ "disableweapon" },
-	{ "cloakdisable" }
+	{ "cloakdisable" } ,
+	{ "gattlingcount" }
 }
 };
 

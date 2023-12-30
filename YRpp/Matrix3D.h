@@ -708,7 +708,10 @@ public:
 
 	}
 
-	static Vector3D<float>* __fastcall MatrixMultiply(Vector3D<float>* ret, const Matrix3D* mat, const Vector3D<float>* vec) { JMP_STD(0x5AFB80); }
+	static Vector3D<float>* __fastcall MatrixMultiply(Vector3D<float>* vecret, const Matrix3D* mat, const Vector3D<float>* vec) { 
+		JMP_FAST(0x5AFB80);
+	}
+
 	static Vector3D<float> MatrixMultiply(const Matrix3D& mat, const Vector3D<float>& vect)
 	{ 
 		Vector3D<float> buffer;

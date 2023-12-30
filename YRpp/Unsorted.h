@@ -263,9 +263,6 @@ struct Game
 	//static int __fastcall ZDepthAdjust(int nZ)
 	//{ JMP_STD(0x6D20E0); }
 
-	static DirStruct* GetDirOver(DirStruct* nBuff, CoordStruct* coord1, CoordStruct* coord2)
-	{ JMP_REG_THIS_(nBuff, 0x4265B0); }
-
 	static bool __fastcall Clip_Line(Point2D* point1, Point2D* point2, const RectangleStruct* rect)
 	{ JMP_STD(0x7BC2B0) }
 

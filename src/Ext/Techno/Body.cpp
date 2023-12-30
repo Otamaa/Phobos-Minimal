@@ -266,7 +266,7 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 	}
 	case DisplayInfoType::Shield:
 	{
-		if (pExt->Shield == nullptr || pExt->Shield->IsBrokenAndNonRespawning())
+		if (!pExt->Shield || pExt->Shield->IsBrokenAndNonRespawning())
 			return;
 
 		value = pExt->Shield->GetHP();
@@ -284,7 +284,7 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 	}
 	case DisplayInfoType::MindControl:
 	{
-		if (pThis->CaptureManager == nullptr)
+		if (!pThis->CaptureManager)
 			return;
 
 		value = pThis->CaptureManager->ControlNodes.Count;
@@ -293,7 +293,7 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 	}
 	case DisplayInfoType::Spawns:
 	{
-		if (pThis->SpawnManager == nullptr || pType->Spawns == nullptr || pType->SpawnsNumber <= 0)
+		if (!pThis->SpawnManager || !pType->Spawns || pType->SpawnsNumber <= 0)
 			return;
 
 		value = pThis->SpawnManager->CountAliveSpawns();
@@ -305,7 +305,7 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 		if (pType->Passengers <= 0)
 			return;
 
-		value = pThis->Passengers.NumPassengers;
+		value = TechnoTypeExtContainer::Instance.Find(pType)->Passengers_BySize ? pThis->Passengers.NumPassengers : pThis->Passengers.GetTotalSize();
 		maxValue = pType->Passengers;
 		break;
 	}
@@ -320,8 +320,11 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 	}
 	case DisplayInfoType::Experience:
 	{
-		value = static_cast<int>(pThis->Veterancy.Veterancy * RulesClass::Instance->VeteranRatio * pType->GetCost());
-		maxValue = static_cast<int>(2.0 * RulesClass::Instance->VeteranRatio * pType->GetCost());
+		if (!pType->Trainable)
+			return;
+
+		value = static_cast<int>(pThis->Veterancy.Veterancy * RulesClass::Instance->VeteranRatio * pType->GetActualCost(pThis->Owner));
+		maxValue = static_cast<int>(2.0 * RulesClass::Instance->VeteranRatio * pType->GetActualCost(pThis->Owner));
 		break;
 	}
 	case DisplayInfoType::Occupants:
@@ -375,6 +378,15 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 
 		value = nTimer.GetTimeLeft();
 		maxValue = nTimer.TimeLeft;
+		break;
+	}
+	case DisplayInfoType::GattlingCount:
+	{
+		if (!pType->IsGattling)
+			return;
+
+		value = pThis->GattlingValue;
+		maxValue = (pThis->Veterancy.IsElite() ? pType->EliteStage : pType->WeaponStage)[pThis->CurrentGattlingStage];
 		break;
 	}
 	default:

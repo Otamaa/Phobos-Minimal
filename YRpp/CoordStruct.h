@@ -2,7 +2,7 @@
 
 
 #include <YRMath.h>
-#include <GeneralStructures.h>
+#include <CellStruct.h>
 /*
 		Otamaa : 18/09/2021
 
@@ -51,9 +51,6 @@ struct CoordStruct
 		X(nPoint.X * 256), Y(nPoint.Y * 256), Z(nZ)
 	{}
 	*/
-private:
-	CellStruct* ToCellStruct(const CellStruct& ret)
-	{ JMP_THIS(0x413A30); }
 public:
 
 	//auto operator()()

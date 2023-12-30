@@ -229,6 +229,7 @@ void ParticleSystemExtData::UpdateSpark()
 	this->UpdateColor();
 }
 
+#ifdef azadasd
 void ParticleSystemExtData::UpdateRailgun()
 {
 	auto pOwnerObj = this->AttachedToObject;
@@ -236,13 +237,16 @@ void ParticleSystemExtData::UpdateRailgun()
 
 	if (!pOwnerObj->TimeToDie && this->OtherParticleData.empty())
 	{
+		const auto nParticleLoc = pOwnerObj->Location;
+		const auto nTargetLoc = pOwnerObj->TargetCoords;
+		const auto nDifferenct = (nParticleLoc - nTargetLoc);
+
 		pOwnerObj->TimeToDie = true;
-		auto nDifferenct = (pOwnerObj->Location - pOwnerObj->TargetCoords);
-		auto nMagSquared = (int)nDifferenct.Length();
-		auto nMaxXY = (int)(CoordStruct { nDifferenct.X , nDifferenct.Y , 0 }.Length());
-		auto nMagNeg = -nMagSquared;
-		auto nMagCopy = nMagSquared >= nDifferenct.Z ?
-			nDifferenct.Z : nMagSquared;
+		auto nDifferenceLength = (int)nDifferenct.Length();
+		auto nMaxXY = (int)(Point2D { nDifferenct.X , nDifferenct.Y }.Length());
+		auto nMagNeg = -nDifferenceLength;
+		auto nMagCopy = nDifferenceLength >= nDifferenct.Z ?
+			nDifferenct.Z : nDifferenceLength;
 
 		if (nMagCopy < nMagNeg)
 			nMagCopy = nMagNeg;
@@ -250,16 +254,16 @@ void ParticleSystemExtData::UpdateRailgun()
 		auto const nMaxXYNeg = -(double)nMaxXY;
 
 		auto nMaxXYCopy = (double)nMaxXY >= ((double)nDifferenct.X) ?
-			((double)nDifferenct.X) : (double)nMagSquared;
+			((double)nDifferenct.X) : (double)nDifferenceLength;
 
 		if (nMaxXYCopy < nMaxXYNeg)
 			nMaxXYCopy = nMaxXYNeg;
 
-		auto nASin = (float)Math::asin(double(nMagCopy / nMagSquared));
-		auto nACos = (float)Math::acos(nMaxXYCopy / nMaxXY) * (((nDifferenct.Y >> 0x1F) & 0xFFFFFFFE) + 1);
+		auto nASin = Math::asin(double(nMagCopy / nDifferenceLength));
+		auto nACos = Math::acos(nMaxXYCopy / nMaxXY);
 		Matrix3D mtx {};
 		mtx.MakeIdentity();
-		mtx.RotateZ(nACos);
+		mtx.RotateZ(nDifferenct.Y > 0 ? nACos : -nACos);
 		mtx.RotateX(nASin);
 
 		auto pHeldType = this->HeldType;
@@ -269,116 +273,271 @@ void ParticleSystemExtData::UpdateRailgun()
 		auto nPositionPerturbationCoefficient = pOwnerObjType->PositionPerturbationCoefficient;
 		auto nMovementPerturbationCoefficient = pOwnerObjType->MovementPerturbationCoefficient;
 		auto nVelocityPerturbationCoefficient = pOwnerObjType->VelocityPerturbationCoefficient;
-		size_t nDecidedsize = (size_t)(pOwnerObjType->ParticlesPerCoord * nMagSquared);
+		int nDecidedsize = (int)(pOwnerObjType->ParticlesPerCoord * nDifferenceLength);
 		this->OtherParticleData.resize(nDecidedsize);
 
-		if (nDecidedsize > 0)
+		auto nMovementPerturbationCoefficientneg = -nMovementPerturbationCoefficient;
+		double nVal = 0.0;
+
+		for (int i = 0; i < nDecidedsize; ++i)
 		{
-			auto nMovementPerturbationCoefficientneg = -nMovementPerturbationCoefficient;
-			double nVal = 0.0;
+			const double v91 = double((float)i / (double)nDecidedsize);
+			const auto radians = v91 * nDifferenceLength * nSpinDelta;
 
-			for (size_t i = 0; i < nDecidedsize; ++i)
+			Vector3D<float> nDummy {
+				0.0f,
+				Math::cos(radians) ,
+				Math::sin(radians)
+			};
+
+			Vector3D<float> nResult = Matrix3D::MatrixMultiply(mtx, nDummy);
+
+			//============== LerpCoords
+			const auto  val__ = 1.0 - v91;
+
+			CoordStruct nDummy_d {
+			int((nTargetLoc.X * val__)
+				+ (nParticleLoc.X * v91)
+				+ (ScenarioClass::Instance->Random.RandomDouble_Closest() * nPositionPerturbationCoefficient + nResult.X * nSpiralRadius))
+			,
+			int((val__ * nTargetLoc.Y)
+				+ (v91 * nParticleLoc.Y)
+				+ (nSpiralRadius * nResult.Y + nPositionPerturbationCoefficient * ScenarioClass::Instance->Random.RandomDouble_Closest()))
+			,
+			int((nParticleLoc.Z * v91)
+				+ (nTargetLoc.Z * val__)
+				+ (ScenarioClass::Instance->Random.RandomDouble_Closest() * nPositionPerturbationCoefficient + nResult.Z * nSpiralRadius))
+			};
+			//=====================
+
+			//============= MovementPerturbationCoeff
+			Vector3D<float> nMovementDummy {
+				float((ScenarioClass::Instance->Random.RandomDouble_Closest() * nMovementPerturbationCoefficient) + nResult.X),
+				float((ScenarioClass::Instance->Random.RandomDouble_Closest() * nMovementPerturbationCoefficient) + nResult.Y),
+				float((ScenarioClass::Instance->Random.RandomDouble_Closest() * nMovementPerturbationCoefficient) + nResult.Z)
+			};
+			//=============
+
+			const auto nMag = nMovementDummy.Length();
+
+			if (nMag != 0.0)
 			{
-				const auto v91 = i / nDecidedsize;
-				const auto radians = v91 * nMagSquared * nSpinDelta;
+				const auto idkHere = (float)(1.0 / nMag);
+				nMovementDummy.X = nMovementDummy.X * idkHere;
+				nMovementDummy.Y = nMovementDummy.Y * idkHere;
+				nMovementDummy.Z = idkHere * nMovementDummy.Z;
+			}
 
-				Vector3D<float> nDummy {
-					0.0f,
-					Math::cos(radians) ,
-					Math::sin(radians)
-				};
+			const auto nRand_Double7 = ScenarioClass::Instance->Random.RandomDouble_Closest() + nVal;
 
-				Vector3D<float> nResult;
-				Matrix3D::MatrixMultiply(&nResult , &mtx, &nDummy);
+			auto nVelocityPerturbationCoefficient_copy = nVelocityPerturbationCoefficient;
 
-				Vector3D<float> nDummy_d {
-				float((pOwnerObj->TargetCoords.X * (1.0 - v91))
-					+ (pOwnerObj->Location.X * v91)
-					+ (ScenarioClass::Instance->Random.RandomDouble() * nPositionPerturbationCoefficient + nResult.X * nSpiralRadius))
-				,
-				float(((1.0 - v91) * pOwnerObj->TargetCoords.Y)
-					+ float(v91 * pOwnerObj->Location.Y)
-					+ (nSpiralRadius * nResult.Y + nPositionPerturbationCoefficient * ScenarioClass::Instance->Random.RandomDouble()))
-				,
-				float((pOwnerObj->Location.Z * v91)
-					+ float(pOwnerObj->TargetCoords.Z * (1.0 - v91))
-					+ (ScenarioClass::Instance->Random.RandomDouble() * nPositionPerturbationCoefficient + nResult.Z * nSpiralRadius))
-				};
+			nVal = 0.5 * (nRand_Double7 * nVelocityPerturbationCoefficient);
 
-				CoordStruct nMovementDummy {
-					int((ScenarioClass::Instance->Random.RandomDouble() * nMovementPerturbationCoefficient) + nResult.X),
-					int((ScenarioClass::Instance->Random.RandomDouble() * nMovementPerturbationCoefficient) + nResult.Y),
-					int((ScenarioClass::Instance->Random.RandomDouble() * nMovementPerturbationCoefficient) + nResult.Z)
-				};
+			if (nVal <= nVelocityPerturbationCoefficient)
+				nVelocityPerturbationCoefficient_copy = 0.5 * nRand_Double7;
+			else
+				nVal = nVelocityPerturbationCoefficient_copy;
 
-				const auto nMag = nMovementDummy.Length();
-				Vector3D<float> nVelsC { (float)nMovementDummy.X , (float)nMovementDummy.Y , (float)nMovementDummy.Z };
+			if (nMovementPerturbationCoefficientneg > nVelocityPerturbationCoefficient_copy)
+				nVal = nMovementPerturbationCoefficientneg;
 
-				if (nMag != 0.0)
+			auto Data = &this->OtherParticleData[i]; // .emplace_back();
+
+			Data->velB = nMovementDummy; // storing MovementPerturbationCoeff vector
+
+			// this one use for coordinate storage that already lerp with the cur pos and target pos 
+			Data->vel.X = nDummy_d.X;
+			Data->vel.Y = nDummy_d.Y;
+			Data->vel.Z = nDummy_d.Z;
+			//
+
+			Data->A = float(nVel + nVal); // velocity multiplier
+			// particle life times
+			Data->RemainingEC = LOWORD(pHeldType->MaxEC) + ScenarioClass::Instance->Random.RandomFromMax(9);
+
+			if (pHeldType->ColorList.Count)
+			{
+				if (pHeldType->StartColor1 && pHeldType->StartColor2)
 				{
-					const auto idkHere = (float)(1.0 / nMag);
-					nVelsC.X = nMovementDummy.X * idkHere;
-					nVelsC.Y = nMovementDummy.Y * idkHere;
-					nVelsC.Z = idkHere * nMovementDummy.Z;
+					Data->Colors.Interpolate(pHeldType->StartColor1, pHeldType->StartColor2, ScenarioClass::Instance->Random.RandomDouble());
 				}
-
-				const auto nRand_Double7 = ScenarioClass::Instance->Random.RandomDouble();
-
-				auto nVelocityPerturbationCoefficient_copy = nVelocityPerturbationCoefficient;
-
-				nVal = 0.5 * (nRand_Double7 + nVal) * nVelocityPerturbationCoefficient;
-
-				if (nVal <= nVelocityPerturbationCoefficient)
-					nVelocityPerturbationCoefficient_copy = 0.5 * nRand_Double7;
 				else
-					nVal = nVelocityPerturbationCoefficient_copy;
-
-				if (nMovementPerturbationCoefficientneg > nVelocityPerturbationCoefficient_copy)
-					nVal = nMovementPerturbationCoefficientneg;
-
-				auto Data = &this->OtherParticleData.emplace_back();
-				Data->velB = nVelsC;
-				Data->vel = nDummy_d;
-				Data->A = float(nVel + nVal);
-				Data->RemainingEC = LOWORD(pHeldType->MaxEC) + ScenarioClass::Instance->Random.RandomFromMax(9);
-
-				if (pHeldType->ColorList.Count)
 				{
-					if (pHeldType->StartColor1 && pHeldType->StartColor2)
-					{
-						Data->Colors.Interpolate(pHeldType->StartColor1, pHeldType->StartColor2, ScenarioClass::Instance->Random.RandomDouble());
-					}
-					else
-					{
-						Data->Colors = *pHeldType->ColorList.Items;
-					}
+					Data->Colors = *pHeldType->ColorList.Items;
 				}
 			}
 		}
 
-		//if (pOwnerObjType->Laser)
-		//{
-		//	GameCreate<LaserDrawClass>(
-		//		pOwnerObj->Location,
-		//		pOwnerObj->TargetCoords,
-		//		0, 1u,
-		//		pOwnerObjType->LaserColor,
-		//		ColorStruct::Empty,
-		//		ColorStruct::Empty,
-		//		10, false, true, 0.5f, 0.1f);
-		//}
+		if (pOwnerObjType->Laser)
+		{
+			GameCreate<LaserDrawClass>(
+				pOwnerObj->Location,
+				pOwnerObj->TargetCoords,
+				0, 1u,
+				pOwnerObjType->LaserColor,
+				ColorStruct::Empty,
+				ColorStruct::Empty,
+				10, false, true, 0.5f, 0.1f);
+		}
 	}
 
-	for (auto& movement : this->OtherParticleData) {
+}
+#endif
+
+void  ParticleSystemExtData::UpdateRailgun()
+{
+	auto pThis = this->AttachedToObject;
+
+	if (!pThis->TimeToDie && !this->OtherParticleData.size())
+	{
+		CoordStruct targetCoords = pThis->TargetCoords;
+		CoordStruct currentCoords = pThis->Location;
+
+		CoordStruct DifferenceCoords = targetCoords - currentCoords;
+		int differeceCoordsLXYZLength = (int)std::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y) + (DifferenceCoords.Z * DifferenceCoords.Z)));
+		int differeceCoordsLXYLength = (int)std::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y)));
+		int Difference_Z = DifferenceCoords.Z;
+		int Difference_X = DifferenceCoords.X;
+
+		if (Difference_Z >= differeceCoordsLXYZLength) {
+			Difference_Z = differeceCoordsLXYZLength;
+		}
+
+		if (Difference_Z <= -differeceCoordsLXYZLength) {
+			Difference_Z = -differeceCoordsLXYZLength;
+		}
+
+		if (Difference_X >= differeceCoordsLXYLength) {
+			Difference_X = differeceCoordsLXYLength;
+		}
+
+		if (Difference_X <= -differeceCoordsLXYLength) {
+			Difference_X = -differeceCoordsLXYLength;
+		}
+
+		const auto ParticlePerCoords = differeceCoordsLXYZLength * pThis->Type->ParticlesPerCoord;
+		Matrix3D mtx {};
+		mtx.MakeIdentity();
+		const auto acos = Math::acos((double)Difference_X / (double)differeceCoordsLXYLength);
+		mtx.PreRotateZ(acos < 0 ? -acos : acos);
+		const auto theta = Math::asin((double)Difference_Z / (double)differeceCoordsLXYLength);
+		mtx.PreRotateX(theta);
+
+		auto pHeldType = this->HeldType;
+
+		this->OtherParticleData.resize((int)ParticlePerCoords);
+
+		double var = 0.0;
+
+		for (int i = 0; i < (int)ParticlePerCoords; ++i) {
+			const float curVal = float((double)i / (float)ParticlePerCoords);
+			const double radians = curVal * differeceCoordsLXYZLength * pThis->Type->SpiralDeltaPerCoord;
+
+			Vector3D<float> first_ {
+				0 , Math::cos(radians) ,Math::sin(radians)
+			};
+
+			Vector3D<float> mtx_mult = Matrix3D::MatrixMultiply(&mtx, first_);
+
+			const Vector3D<float> PositionPerturbation_ {
+				float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->PositionPerturbationCoefficient
+				+ (first_.X * pThis->Type->SpiralRadius))
+
+				,float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->PositionPerturbationCoefficient
+				+ (first_.Y * pThis->Type->SpiralRadius))
+
+				,float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->PositionPerturbationCoefficient
+				+ (first_.Z * pThis->Type->SpiralRadius))
+			};
+
+			auto CoordSturct_Lerp = [](const CoordStruct* CurrentCoord, const CoordStruct* TargetCoord, float factor) {
+				auto t_neg = 1.0 - factor;
+				return CoordStruct {
+					(int)((double)TargetCoord->X * factor + (double)CurrentCoord->X * t_neg)
+					,(int)((double)TargetCoord->Y * factor + (double)CurrentCoord->Y * t_neg)
+					,(int)((double)TargetCoord->Z * factor + (double)CurrentCoord->Z * t_neg)
+				};
+			};
+
+			//lerp result stored as Vel
+			CoordStruct lerp = CoordSturct_Lerp(&pThis->Location, &pThis->TargetCoords, curVal);
+			lerp += CoordStruct { (int)PositionPerturbation_.X , (int)PositionPerturbation_.Y , (int)PositionPerturbation_.Z };
+
+			auto Data = &this->OtherParticleData[i]; // .emplace_back();
+			Vector3D<float> MovementPerturbation {
+				float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->MovementPerturbationCoefficient)
+				, float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->MovementPerturbationCoefficient)
+				, float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->MovementPerturbationCoefficient)
+			};
+
+			mtx_mult += MovementPerturbation;
+
+			const auto sparkVelLength = std::sqrt(double((mtx_mult.X * mtx_mult.X) + (mtx_mult.Y * mtx_mult.Y) + (mtx_mult.Z * mtx_mult.Z)));
+
+			if (sparkVelLength != 0.0) {
+
+				const auto float_sparkVelLength = (float)sparkVelLength;
+				mtx_mult.X = mtx_mult.X / float_sparkVelLength;
+				mtx_mult.Y = mtx_mult.Y / float_sparkVelLength;
+				mtx_mult.Z = mtx_mult.Z / float_sparkVelLength;
+			}
+
+			Data->velB = mtx_mult;
+
+			Data->vel.X = (float)lerp.X;
+			Data->vel.Y = (float)lerp.Y;
+			Data->vel.Z = (float)lerp.Z;
+
+			auto rand = (ScenarioClass::Instance->Random.RandomDouble() + var - 0.5) * pThis->Type->VelocityPerturbationCoefficient;
+			if (pThis->Type->VelocityPerturbationCoefficient <= rand) {
+				rand = pThis->Type->VelocityPerturbationCoefficient;
+			}
+
+			if (rand <= -pThis->Type->MovementPerturbationCoefficient) {
+				rand = -pThis->Type->MovementPerturbationCoefficient;
+			}
+
+			var = rand;
+			Data->A = float(var + pHeldType->Velocity);
+			Data->RemainingEC = LOWORD(pHeldType->MaxEC) + ScenarioClass::Instance->Random.RandomFromMax(9);
+		}
+
+		if (pThis->Type->Laser)
+		{
+			GameCreate<LaserDrawClass>(
+				pThis->Location,
+				pThis->TargetCoords,
+				0, 1u,
+				pThis->Type->LaserColor,
+				ColorStruct::Empty,
+				ColorStruct::Empty,
+				10, false, true, 0.5f, 0.1f);
+		}
+
+		pThis->TimeToDie = true;
+	}
+
+	// this one updating the pisitional value on each particle 
+	// this was executed by `ParticleClass_AI` on vanilla 
+	for (auto& movement : this->OtherParticleData)
+	{
 		const auto state = movement.A;
-		movement.A = float(ScenarioClass::Instance->Random.RandomDouble() + state);
+		movement.A = float(ScenarioClass::Instance->Random.RandomDouble_Closest() * 0.1 + state);
 		const bool IsECdone = --movement.RemainingEC <= 0;
-		Vector3D<float> vel { movement.velB.X * state,state * movement.velB.Y , state *  movement.velB.Z };
-		movement.vel += vel;
+		const auto copy_velB = movement.velB;
+		const auto copy_vel = movement.vel;
+
+		movement.vel.X = copy_velB.X * state + copy_vel.X;
+		movement.vel.Y = copy_velB.Y * state + copy_vel.Y;
+		movement.vel.Z = copy_velB.Z * state + copy_vel.Z;
+
 		if (IsECdone)
 			movement.Empty = true;
 	}
 
+	// the game use reverse of this 
+	// update both pisition and the color then finally do the state updates
 	this->UpdateState();
 	this->UpdateColor();
 }
@@ -561,6 +720,140 @@ void ParticleSystemExtData::UpdateSmoke()
 		pOwnerObj->TimeToDie = true;
 }
 
+#ifdef zaawdawd
+void Railgun_AI_Vanilla_Test(ParticleSystemClass* pThis){
+	
+	if (!pThis->TimeToDie && !pThis->Particles.Count)
+	{
+		CoordStruct targetCoords = pThis->TargetCoords;
+		CoordStruct currentCoords = pThis->Location;
+
+		CoordStruct DifferenceCoords = targetCoords - currentCoords;
+		int differeceCoordsLXYZLength = (int)std::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y) + (DifferenceCoords.Z * DifferenceCoords.Z)));
+		int differeceCoordsLXYLength = (int)std::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y)));
+		int Difference_Z = DifferenceCoords.Z;
+		int Difference_X = DifferenceCoords.X;
+
+		if (Difference_Z >= differeceCoordsLXYZLength) {
+			Difference_Z = differeceCoordsLXYZLength;
+		}
+
+		if (Difference_Z <= -differeceCoordsLXYZLength) {
+			Difference_Z = -differeceCoordsLXYZLength;
+		}
+
+		if (Difference_X >= differeceCoordsLXYLength) {
+			Difference_X = differeceCoordsLXYLength;
+		}
+
+		if (Difference_X <= -differeceCoordsLXYLength) {
+			Difference_X = -differeceCoordsLXYLength;
+		}
+
+		const auto ParticlePerCoords = differeceCoordsLXYZLength * pThis->Type->ParticlesPerCoord;
+		Matrix3D mtx {};
+		mtx.MakeIdentity();
+		const auto acos = Math::acos((double)Difference_X / (double)differeceCoordsLXYLength);
+		mtx.PreRotateZ(acos < 0 ? -acos : acos);
+		const auto theta = Math::asin((double)Difference_Z / (double)differeceCoordsLXYLength);
+		mtx.PreRotateX(theta);
+
+		double var = 0.0;
+		for (int i = 0; i < (int)ParticlePerCoords; ++i) {
+			float curVal = float((double)i / (float)ParticlePerCoords);
+
+			Vector3D<float> first_ {
+				0 , Math::cos((double)curVal) ,Math::sin((double)curVal)
+			};
+
+			Vector3D<float> mtx_mult = Matrix3D::MatrixMultiply(&mtx, first_);
+
+			const Vector3D<float> PositionPerturbation_ {
+				float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->PositionPerturbationCoefficient
+				+ (first_.X * pThis->Type->SpiralRadius))
+
+				,float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->PositionPerturbationCoefficient
+				+ (first_.Y * pThis->Type->SpiralRadius))
+
+				,float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->PositionPerturbationCoefficient
+				+ (first_.Z * pThis->Type->SpiralRadius))
+			};
+
+			auto CoordSturct_Lerp = [](const CoordStruct* CurrentCoord , const CoordStruct* TargetCoord ,float factor)
+			{
+					auto t_neg = 1.0 - factor;
+					return CoordStruct {
+						(int)((double)TargetCoord->X * factor + (double)CurrentCoord->X * t_neg)
+						,(int)((double)TargetCoord->Y * factor + (double)CurrentCoord->Y * t_neg)
+						,(int)((double)TargetCoord->Z * factor + (double)CurrentCoord->Z * t_neg)
+					};
+			};
+
+			//lerp result stored as Vel
+			CoordStruct lerp = CoordSturct_Lerp(&pThis->Location, &pThis->TargetCoords, curVal);
+			lerp += CoordStruct { (int)PositionPerturbation_.X , (int)PositionPerturbation_.Y , (int)PositionPerturbation_.Z };
+
+			pThis->Particles.AddItem(GameCreate<ParticleClass>(ParticleTypeClass::Array->Items[pThis->Type->HoldsWhat], &lerp, &lerp, pThis));
+			auto partilce = *pThis->Particles.back();
+			Vector3D<float>* vel = &partilce->Spark10C;
+			partilce->Spark10C = mtx_mult;
+			Vector3D<float> MovementPerturbation {
+				float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->MovementPerturbationCoefficient)
+				, float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->MovementPerturbationCoefficient)
+				, float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->MovementPerturbationCoefficient)
+			};
+			partilce->Spark10C += MovementPerturbation;
+
+			const auto sparkVelLength = std::sqrt(double((partilce->Spark10C.X * partilce->Spark10C.X) + (partilce->Spark10C.Y * partilce->Spark10C.Y) + (partilce->Spark10C.Z * partilce->Spark10C.Z)));
+			
+			Vector3D<float> last = partilce->Spark10C;
+			if (sparkVelLength != 0.0) {
+				last.X = vel->X / sparkVelLength;
+				last.Y = vel->Y / sparkVelLength;
+				last.Z = vel->Z / sparkVelLength;
+			}
+			partilce->Spark10C = last; //stored as VelB
+
+			auto rand = (ScenarioClass::Instance->Random.RandomDouble() + var - 0.5) * pThis->Type->VelocityPerturbationCoefficient;
+			if (pThis->Type->VelocityPerturbationCoefficient <= rand) {
+				rand = pThis->Type->VelocityPerturbationCoefficient;
+			}
+
+			if (rand <= -pThis->Type->MovementPerturbationCoefficient) {
+				rand = -pThis->Type->MovementPerturbationCoefficient;
+			}
+
+			var = rand;
+			//storead as A
+			partilce->Velocity = float(var + partilce->Type->Velocity);
+		}
+
+		if (pThis->Type->Laser)
+		{
+			GameCreate<LaserDrawClass>(
+				pThis->Location,
+				pThis->TargetCoords,
+				0, 1u,
+				pThis->Type->LaserColor,
+				ColorStruct::Empty,
+				ColorStruct::Empty,
+				10, false, true, 0.5f, 0.1f);
+		}
+
+		pThis->TimeToDie = true;
+	}
+
+	for (int i = 0; i < pThis->Particles.Count; ++i) {
+		pThis->Particles[i]->BehaviourUpdate();
+	}
+
+	for (int a = pThis->Particles.Count - 1; a >= 0; --a) {
+		if (pThis->Particles[a]->hasremaining)
+			pThis->Particles[a]->UnInit();
+	}
+}
+#endif
+
 bool ParticleSystemExtData::UpdateHandled()
 {
 	switch (this->What)
@@ -633,13 +926,13 @@ void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 						int idx = 0;
 						ColorStruct* selected = &movement.Colors;
 
-						if (movement.C)
-						{
+						if (movement.C) {
 							idx = movement.C;
 							selected = &color[movement.C];
 						}
 
 						ColorStruct emp = ColorStruct::Interpolate(&(color[idx + 1]), selected, (double)movement.ColorFactor);
+						//ColorStruct emp { 255 , 0 , 0 };
 
 						if ((uint16_t)buff >= 127u)
 						{
@@ -732,11 +1025,12 @@ void ParticleSystemExtData::InitializeConstant()
 	if (auto pType = this->AttachedToObject->Type)
 	{
 		if (!ParticleSystemTypeExtContainer::Instance.Find(pType)->ApplyOptimization || (size_t)pType->HoldsWhat >= ParticleTypeClass::Array->size())
-			return ;
+			return;
 
 		this->HeldType = ParticleTypeClass::Array->Items[pType->HoldsWhat];
 
-		if (!this->HeldType->UseLineTrail && !this->HeldType->AlphaImage) {
+		if (!this->HeldType->UseLineTrail && !this->HeldType->AlphaImage)
+		{
 
 			auto bIsZero = (int)this->HeldType->BehavesLike;
 			auto nBehave = (int)pType->BehavesLike;
@@ -744,21 +1038,25 @@ void ParticleSystemExtData::InitializeConstant()
 			if (bIsZero <= 1)
 				bIsZero = bIsZero == 0;
 
-			if (nBehave == bIsZero) {
+			if (nBehave == bIsZero)
+			{
 
-				if (nBehave == 0) {
+				if (nBehave == 0)
+				{
 					this->What = Behave::Smoke;
 					return;
 				}
 
 				auto v11 = nBehave - 3;
 
-				if (!v11) {
+				if (!v11)
+				{
 					this->What = Behave::Spark;
 					return;
 				}
 
-				if (v11 == 1) {
+				if (v11 == 1)
+				{
 					this->What = Behave::Railgun;
 					return;
 				}

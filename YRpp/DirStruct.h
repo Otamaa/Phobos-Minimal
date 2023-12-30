@@ -5,6 +5,7 @@
 #include <bit>
 #include <Fixed.h>
 #include <YRMath.h>
+#include <CoordStruct.h>
 
 enum class FacingType : char
 {
@@ -131,6 +132,9 @@ public:
 	}
 
 	bool CompareToTwoDir(DirStruct& pBaseDir, DirStruct& pDirFrom) { return std::abs(pDirFrom.Raw) >= std::abs(this->Raw - pBaseDir.Raw); }
+
+	DirStruct* GetDirOver(CoordStruct* coord1, CoordStruct* coord2)
+	{ JMP_THIS(0x4265B0); }
 
 	void Func_5B29C0(DirStruct& pDir2, DirStruct& pDir3) {
 

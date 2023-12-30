@@ -1180,3 +1180,16 @@ DEFINE_HOOK(0x4834E5, CellClass_IsClearToMove_BridgeEdges, 0x5)
 
 	return Continue;
 }
+
+// Fix a glitch related to incorrect target setting for missiles
+// Author: Belonit
+DEFINE_HOOK(0x6B75AC, SpawnManagerClass_AI_SetDestinationForMissiles, 0x5)
+{
+	GET(SpawnManagerClass*, pSpawnManager, ESI);
+	GET(TechnoClass*, pSpawnTechno, EDI);
+
+	CoordStruct coord = pSpawnManager->Target->GetCenterCoords();
+	pSpawnTechno->SetDestination(MapClass::Instance->TryGetCellAt(coord), true);
+
+	return 0x6B75BC;
+}

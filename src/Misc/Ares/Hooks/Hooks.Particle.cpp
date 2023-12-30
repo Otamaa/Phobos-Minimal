@@ -383,7 +383,6 @@ DEFINE_OVERRIDE_HOOK(0x6D9427, TacticalClass_DrawUnits_ParticleSystems, 9)
 	if (layer == Layer::Air)
 		ParticleSystemExtData::UpdateInAir();
 
-
 	//return layer == Layer::Ground ? 0x6D9430 : 0x6D95A1;
 	// Fixed position and layer of info tip and reveal production cameo on selected building
 	// Part1

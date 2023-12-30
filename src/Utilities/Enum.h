@@ -477,6 +477,7 @@ enum class DisplayInfoType : BYTE
 	IronCurtain = 10,
 	DisableWeapon = 11,
 	CloakDisable = 12,
+	GattlingCount = 13,
 	count
 };
 
