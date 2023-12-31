@@ -79,7 +79,7 @@ public:
 		MagnitudeSquared = pow
 	*/
 	inline double pow() const {
-		return (double)std::pow(X,2) + (double)std::pow(Y,2);
+		return double(X * X) + double(Y * Y);
 	}
 
 	inline double Length() const {

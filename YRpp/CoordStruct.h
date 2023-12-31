@@ -176,7 +176,7 @@ public:
 
 //=============================Special cases=========================================
 	inline double powXY() const {
-		return (double)std::pow(X,2) + (double)std::pow(Y,2);
+		return double(X * X) + double(Y * Y);
 	}
 
 	inline double LengthXY() const {

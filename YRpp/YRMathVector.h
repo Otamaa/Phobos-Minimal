@@ -94,7 +94,7 @@ public:
 		MagnitudeSquared = pow
 	*/
 	inline double pow() const {
-		return (double)std::pow(X,2) + (double)std::pow(Y,2);
+		return (double)(X * X) + (double)(Y * Y);
 	}
 
 	inline double Length() const {
@@ -213,7 +213,7 @@ public:
 	inline bool IsValid() const { return *this != (Vector3D<T>::Empty); }
 //=============================Special cases=========================================
 	inline double powXY() const {
-		return (double)std::pow(X,2) + (double)std::pow(Y,2);
+		return double(X * X) + double(Y * Y);
 	}
 
 	inline double LengthXY() const {
@@ -233,7 +233,7 @@ public:
 		MagnitudeSquared = pow
 	*/
 	inline double pow() const {
-		return (double)std::pow(X,2) + (double)std::pow(Y,2) + (double)std::pow(Z,2);
+		return double(X * X) + double(Y * Y) + double(Z * Z);
 	}
 
 	inline double Length() const {
@@ -360,7 +360,7 @@ public:
 		MagnitudeSquared = pow
 	*/
 	inline double pow() const {
-		return (double)std::pow(X,2) + (double)std::pow(Y,2) + (double)std::pow(Z,2) + (double)std::pow(W,2);
+		return double(X * X) + double(Y * Y) + double(Z * Z) + double(W * W);
 	}
 
 	inline double Length() const {
