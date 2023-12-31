@@ -1146,6 +1146,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		char HitCoord_tempBuffer[0x20];
 		char alternateFLHbuffer[0x40];
 
+		this->LaserTrailData.clear();
+
 		for (size_t i = 0; ; ++i)
 		{
 			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.Type", i);
@@ -1166,6 +1168,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			detail::read(data->IsOnTurret , exArtINI, pArtSection, tempBuffer );
 		}
 
+		this->AlternateFLHs.clear();
+
 		for (size_t i = 5; ; ++i)
 		{
 			Nullable<CoordStruct> alternateFLH;
@@ -1177,6 +1181,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 			this->AlternateFLHs.push_back(alternateFLH.Get());
 		}
+
+		this->HitCoordOffset.clear();
 
 		for (size_t i = 0; ; ++i)
 		{
