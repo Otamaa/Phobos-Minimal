@@ -25,17 +25,28 @@
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
 
-DEFINE_HOOK(0x4483C0, BuildingClass_SetOwningHouse_MuteSound, 0x6)
-{
-	GET(BuildingClass* const, pThis, ESI);
-	REF_STACK(bool, announce, STACK_OFFSET(0x60, 0x8));
+// DEFINE_HOOK(0x448277 , BuildingClass_SetOwningHouse_Additionals , 5)
+// {
+// 	GET(BuildingClass* const, pThis, ESI);
+// 	REF_STACK(bool, announce, STACK_OFFSET(0x58, 0x8));
+//
+// 	pThis->NextMission();
+//
+// 	announce = announce && !pThis->Type->IsVehicle();
+//
+// 	if(announce && (pThis->Type->Powered || pThis->Type->PoweredSpecial))
+// 		pThis->UpdatePowerDown();
+//
+// 	return 0x0;
+// }
 
-	pThis->NextMission();
-
-	announce = announce && !pThis->Type->IsVehicle();
-
-	return 0;
-}
+//DEFINE_HOOK(0x4483C0, BuildingClass_SetOwningHouse_MuteSound, 0x6)
+//{
+//	GET(BuildingClass* const, pThis, ESI);
+//	REF_STACK(bool, announce, STACK_OFFSET(0x60, 0x8));
+//
+//	return announce ? 0 : 0x44848F; //early bailout
+//}
 
 DEFINE_HOOK(0x702E4E, TechnoClass_RegisterDestruction_SaveKillerInfo, 0x6)
 {

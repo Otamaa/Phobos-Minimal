@@ -52,8 +52,11 @@ struct Drawing
 	{ JMP_STD(0x4AF2A0); }
 
 	//TextBox dimensions for tooltip-style boxes
-	static RectangleStruct __fastcall GetTextBox(const wchar_t* pText, int nX, int nY, DWORD flags, int nMarginX, int nMarginY)
-	{ JMP_STD(0x4A59E0); }
+	static RectangleStruct* __fastcall GetTextBox(
+		RectangleStruct* pOutBuffer, const wchar_t* pText, 
+		int nX, int nY, DWORD flags, int nMarginX, int nMarginY) {
+		JMP_STD(0x4A59E0);
+	}
 
 	static RectangleStruct* __fastcall GetTextDimensions(
 		RectangleStruct* pOutBuffer, wchar_t const* pText, Point2D location,
@@ -65,8 +68,11 @@ struct Drawing
 		TextPrintType flags, int marginX = 0, int marginY = 0)
 		{ JMP_STD(0x4A59E0); }
 
-	static RectangleStruct GetTextBox(const wchar_t* pText, int nX, int nY, int nMargin)
-		{ return GetTextBox(pText, nX, nY, 0, nMargin + 2, nMargin); }
+	static RectangleStruct GetTextBox(const wchar_t* pText, int nX, int nY, int nMargin) {
+		RectangleStruct buffer;
+		GetTextBox(&buffer, pText, nX, nY, 0, nMargin + 2, nMargin);
+		return buffer;
+	}
 
 	static RectangleStruct GetTextBox(const wchar_t* pText, int nX, int nY)
 		{ return GetTextBox(pText, nX, nY, 2); }
@@ -79,18 +85,18 @@ struct Drawing
 
 	//TextDimensions for text aligning
 	static RectangleStruct GetTextDimensions(const wchar_t* pText)
-		{
-			RectangleStruct dim=GetTextBox(pText,0,0,0);
+	{
+		RectangleStruct dim = GetTextBox(pText,0,0,0);
 
-			dim.X=0;
-			dim.Y=0;
-			dim.Width-=4;
-			dim.Height-=2;
+		dim.X=0;
+		dim.Y=0;
+		dim.Width-=4;
+		dim.Height-=2;
 
-			return dim;
-		}
+		return dim;
+	}
 
-	static RectangleStruct __fastcall GetTextDimensions(
+	static RectangleStruct GetTextDimensions(
 		wchar_t const* pText, Point2D location, WORD flags, int marginX = 0,
 		int marginY = 0)
 	{
@@ -100,21 +106,15 @@ struct Drawing
 	}
 
 	// Rectangles
-	static RectangleStruct __fastcall Intersect(RectangleStruct* rect1, RectangleStruct* rect2, int* delta_left, int* delta_top)
-		{ JMP_STD(0x421B60); }
+	static RectangleStruct* __fastcall Intersect(RectangleStruct* pOutBuffer, RectangleStruct* rect1, RectangleStruct* rect2, int* delta_left, int* delta_top)
+	{ JMP_STD(0x421B60); }
 
-	static RectangleStruct* __fastcall Intersect(
-		RectangleStruct* pOutBuffer, RectangleStruct const& rect1,
-		RectangleStruct const& rect2, int* delta_left = nullptr,
-		int* delta_top = nullptr)
-			{ JMP_STD(0x421B60); }
-
-	static RectangleStruct __fastcall Intersect(
+	static RectangleStruct Intersect(
 		RectangleStruct const& rect1, RectangleStruct const& rect2,
 		int* delta_left = nullptr, int* delta_top = nullptr)
 	{
 		RectangleStruct buffer;
-		Intersect(&buffer, rect1, rect2, delta_left, delta_top);
+		Intersect(&buffer, const_cast<RectangleStruct*>(&rect1), const_cast<RectangleStruct*>(&rect2), delta_left, delta_top);
 		return buffer;
 	}
 
@@ -126,7 +126,7 @@ struct Drawing
 			{ JMP_STD(0x487F40); }
 
 	// Rect1 will be changed, notice that - secsome
-	static RectangleStruct __fastcall Union(
+	static RectangleStruct Union(
 		const RectangleStruct& rect1,
 		const RectangleStruct& rect2)
 	{

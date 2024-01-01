@@ -423,15 +423,25 @@ DEFINE_OVERRIDE_HOOK(0x447113, BuildingClass_Sell_PrismForward, 6)
 DEFINE_OVERRIDE_HOOK(0x448277, BuildingClass_ChangeOwner_PrismForwardAndLeaveBomb, 5)
 {
 	GET(BuildingClass* const, pThis, ESI);
-	GET_STACK(HouseClass* const, newOwner, 0x5C);
+	GET_STACK(HouseClass* const, newOwner, 0x58 + 0x4);
+	REF_STACK(bool, announce, 0x58 + 0x8);
 
 	enum { LeaveBomb = 0x448293 };
+	pThis->NextMission();
+
+	announce = announce && !pThis->Type->IsVehicle();
+
+	if(announce && (pThis->Type->Powered || pThis->Type->PoweredSpecial))
+		pThis->UpdatePowerDown();
 
 	// #754 - evict Hospital/Armory contents
 	TechnoExt_ExtData::KickOutHospitalArmory(pThis);
 
 	auto pData = BuildingExtContainer::Instance.Find(pThis);
 	auto const pTypeData = BuildingTypeExtContainer::Instance.Find(pThis->Type);
+
+	// #305: remove all jammers. will be restored with the next update.
+	pData->RegisteredJammers.clear();//
 
 	// the first and the last tower have to be allied to this
 	if (pTypeData->PrismForwarding.ToAllies)
@@ -466,9 +476,6 @@ DEFINE_OVERRIDE_HOOK(0x448277, BuildingClass_ChangeOwner_PrismForwardAndLeaveBom
 	// if we reach this point then the alliance checks have failed. use false
 	// because animation should continue / slave is busy but won't now fire
 	pData->PrismForwarding.RemoveFromNetwork(false);
-
-	// #305: remove all jammers. will be restored with the next update.
-	pData->RegisteredJammers.clear();//
 
 	return LeaveBomb;
 }

@@ -38,7 +38,13 @@ void Debug::DumpStack(REGISTERS* R, size_t len, int startAt)
 	auto const end = len / 4;
 	auto const* const mem = R->lea_Stack<DWORD*>(startAt);
 	for (auto i = 0u; i < end; ++i) {
-		Debug::LogUnflushed("esp+%04X = %08X\n", i * 4, mem[i]);
+
+		const char* suffix = "";
+		const uintptr_t ptr = mem[i];
+		if (ptr >= 0x401000 && ptr <= 0xB79BE4)
+			suffix = "GameMemory!";
+
+		Debug::LogUnflushed("esp+%04X = %08X %s\n", i * 4, mem[i] , suffix);
 	}
 
 	Debug::Log("====================Done.\n"); // flushes

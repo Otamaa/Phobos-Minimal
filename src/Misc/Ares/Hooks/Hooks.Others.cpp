@@ -2757,7 +2757,11 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			DWORD* ptr = reinterpret_cast<DWORD*>(pCtxt->Esp);
 			for (int i = 0; i < EXCEPTION_STACK_DEPTH_MAX; ++i)
 			{
-				fprintf(except, "%08p: %08X\n", ptr, *ptr);
+				const char* suffix = "";
+				if (*ptr >= 0x401000 && *ptr <= 0xB79BE4)
+					suffix = "GameMemory!";
+
+				fprintf(except, "%08p: %08X %s\n", ptr, *ptr , suffix);
 				++ptr;
 			}
 

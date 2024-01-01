@@ -1863,20 +1863,20 @@ double TechnoExtData::GetDamageMult(TechnoClass* pSouce, bool ForceDisable)
 
 const BurstFLHBundle* TechnoExtData::PickFLHs(TechnoClass* pThis, int weaponidx)
 {
-	//auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-	//std::vector<BurstFLHBundle>* res  = &pExt->WeaponBurstFLHs;
+	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	std::vector<BurstFLHBundle>* res  = &pExt->WeaponBurstFLHs;
 
-	//if (pThis->WhatAmI() == InfantryClass::AbsID) {
-	//	if (((InfantryClass*)pThis)->IsDeployed() && !pExt->DeployedWeaponBurstFLHs.empty())
-	//		res = &pExt->DeployedWeaponBurstFLHs;
-	//	else if (((InfantryClass*)pThis)->Crawling && !pExt->CrouchedWeaponBurstFLHs.empty())
-	//		res = &pExt->CrouchedWeaponBurstFLHs;
-	//}
+	if (pThis->WhatAmI() == InfantryClass::AbsID) {
+		if (((InfantryClass*)pThis)->IsDeployed() && !pExt->DeployedWeaponBurstFLHs.empty())
+			res = &pExt->DeployedWeaponBurstFLHs;
+		else if (((InfantryClass*)pThis)->Crawling && !pExt->CrouchedWeaponBurstFLHs.empty())
+			res = &pExt->CrouchedWeaponBurstFLHs;
+	}
 
-	//if (res->empty() || res->size() <= (size_t)weaponidx)
+	if (res->empty() || res->size() <= (size_t)weaponidx)
 		return nullptr;
 
-	//return &(*res)[weaponidx];
+	return &(*res)[weaponidx];
 }
 
 std::pair<bool, CoordStruct> TechnoExtData::GetBurstFLH(TechnoClass* pThis, int weaponIndex)
@@ -3260,7 +3260,7 @@ void TechnoExtData::ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged)
 			}
 		}
 
-		if (wasDamaged && (pThis->GetHealthPercentage() > RulesClass::Instance->ConditionYellow
+		if ((wasDamaged || pThis->DamageParticleSystem) && (pThis->GetHealthPercentage() > RulesClass::Instance->ConditionYellow
 			|| pThis->GetHeight() < -10))
 		{
 			bool Rubbled = false;

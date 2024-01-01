@@ -906,10 +906,11 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		if (exINI.ReadString(pSection, "Operator") > 0)
 		{ // try to read the flag
 			this->Operators.clear();
-			this->Operator_Any = (IS_SAME_STR_N(exINI.value(), "_ANY_")); // set whether this type accepts all operators
+			// set whether this type accepts all operators
+			this->Operator_Any = (IS_SAME_STR_N(exINI.value(), "_ANY_"));
 			if (!this->Operator_Any)
 			{ // if not, find the specific operator it allows
-				detail::parse_values(this->Operators, exINI, pSection, "Operator");
+				detail::parse_values<TechnoTypeClass*, false>(this->Operators, exINI, pSection, "Operator");
 			}
 		}
 

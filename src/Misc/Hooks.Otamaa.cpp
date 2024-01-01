@@ -2736,6 +2736,15 @@ DEFINE_HOOK(0x6F6BD6, TechnoClass_Limbo_UpdateAfterHouseCounter, 0xA)
 	return 0x0;
 }
 
+DEFINE_HOOK(0x6E08DE, TActionClass_SellBack_LimboDelivered, 0x5)
+{
+	enum { forbidden = 0x6E0907, allow = 0x0 };
+
+	GET(BuildingClass*, pBld, ESI);
+	return BuildingExtContainer::Instance.Find(pBld)->LimboID != -1 ?
+		forbidden : allow;
+}
+
 DEFINE_HOOK(0x6EA192, TeamClass_Regroup_LimboDelivered, 0x6)
 {
 	enum { advance = 0x6EA38C , ret =0x0};

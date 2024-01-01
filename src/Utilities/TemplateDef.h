@@ -1418,10 +1418,12 @@ namespace detail
 	}
 
 	//WARNING : this not checking for read first , make sure before using it !
-	template <typename T>
+	template <typename T , bool clearvec = true>
 	inline void parse_values(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
 	{
-		vector.clear();
+		if constexpr (clearvec)
+			vector.clear();
+
 		char* context = nullptr;
 		for (auto pCur = strtok_s(parser.value(), Phobos::readDelims, &context);
 				pCur;
