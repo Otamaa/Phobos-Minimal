@@ -4125,31 +4125,19 @@ DEFINE_HOOK(0x447110, BuildingClass_Sell_Handled, 0x9)
 	TechnoExt_ExtData::KickOutHospitalArmory(pThis);
 	BuildingExtContainer::Instance.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);
 
-	auto PlayGenericClickAndReturn = [pThis]() {
-
-		if (!BuildingExtContainer::Instance.Find(pThis)->Silent) {
-			if (pThis->Owner->ControlledByCurrentPlayer()) {
-					VocClass::PlayGlobal(RulesClass::Instance->GenericClick, Panning::Center, 1.0, 0);
-			}
-		}
-
-		return 0x04471C2;
-	};
-
 	if (pThis->HasBuildup) {
 
 		switch (control)
 		{
 		case -1:
 		{
-			if (pThis->GetCurrentMission() == Mission::Selling)
-			{
-				return PlayGenericClickAndReturn();
+			if (pThis->GetCurrentMission() != Mission::Selling) {
+
+				pThis->QueueMission(Mission::Selling, false);
+				pThis->NextMission();
 			}
 
-			pThis->QueueMission(Mission::Selling, false);
-			pThis->NextMission();
-			return PlayGenericClickAndReturn();
+			break;
 		}
 		case 0:
 		{
@@ -4157,22 +4145,28 @@ DEFINE_HOOK(0x447110, BuildingClass_Sell_Handled, 0x9)
 				return 0x04471C2;
 			}
 
-			return PlayGenericClickAndReturn();
+			break;
 		}
 		case 1:
 		{
-			if (pThis->GetCurrentMission() != Mission::Selling && !pThis->IsGoingToBlow)
-			{
+			if (pThis->GetCurrentMission() != Mission::Selling && !pThis->IsGoingToBlow) {
 				pThis->QueueMission(Mission::Selling, false);
 				pThis->NextMission();
-				return PlayGenericClickAndReturn();
 			}
 
 			break;
 		}
 		default:
-			return PlayGenericClickAndReturn();
+			break;
 		}
+
+		if (!BuildingExtContainer::Instance.Find(pThis)->Silent) {
+			if (pThis->Owner->IsControlledByHuman()) {
+				VocClass::PlayGlobal(RulesClass::Instance->GenericClick, Panning::Center, 1.0, 0);
+			}
+		}
+
+		return 0x04471C2;
 	}
 	else
 	{
