@@ -2,25 +2,25 @@
 #include <Utilities/Macro.h>
 
 // Rewrite 0x449BC0
-bool MCVCanUndeploy(BuildingClass* pThis)
+bool BuildingCanUnload(BuildingClass* pThis)
 {
-	const auto pType = pThis->Type;
+	auto pType = pThis->Type;
 
-	// Just sell if no UndeploysInto
-	if (!pType->UndeploysInto || !pThis->Owner)
+	if (!pType->UndeploysInto)
 		return false;
 
-	if (pThis->Focus && !pThis->MindControlledBy && pThis->Owner->IsControlledByHuman())
+	if (pType->ConstructionYard)
 	{
-		// Canyards can't undeploy if MCVRedeploy=no
-		if (pType->ConstructionYard && !GameModeOptionsClass::Instance->MCVRedeploy)
+		// Conyards can't undeploy if MCVRedeploy=no
+		if (!GameModeOptionsClass::Instance->MCVRedeploy)
 			return false;
 
-		// Can undeploy even if Unsellable=no
-		return true;
+		// or MindControlledBy YURIX (why? for balance?)
+		if (pThis->MindControlledBy || !pThis->Owner->IsControlledByHuman())
+			return false;
 	}
 
-	return false;
+	return pThis->Focus;
 }
 
 // Skip SessionClass::IsCampaign() checks
@@ -38,33 +38,33 @@ DEFINE_HOOK(0x449CC1, BuildingClass_Mission_Destruction_EVASoldAndUndeploysInto,
 		VoxClass::PlayIndex(TechnoTypeExtContainer::Instance.Find(pThis->Type)->EVA_Sold.Get());
 	}
 
-	return MCVCanUndeploy(pThis) ? CreateUnit : SkipTheEntireShit;
+	//return BuildingCanUnload(pThis) ? CreateUnit : SkipTheEntireShit;
+	return 0x449CEA;
 }
 
-DEFINE_HOOK(0x44A7CF, BuildingClass_Mi_Selling_PlaySellSound, 0x6)
+DEFINE_HOOK(0x44A827, BuildingClass_Mi_Selling_PlaySellSound, 0x6)
 {
 	GET(BuildingClass*, pThis, EBP);
-	enum { FinishPlaying = 0x44A85B };
 
-	if (!MCVCanUndeploy(pThis)) {
+	//if (!BuildingCanUnload(pThis)) {
 		VocClass::PlayIndexAtPos(TechnoTypeExtContainer::Instance.Find(pThis->Type)->SellSound.Get(), pThis->Location);
-	}
+	//}
 
-	return FinishPlaying;
+	return 0x44A85B;
 }
 
-DEFINE_HOOK(0x44A8E5, BuildingClass_Mi_Selling_SetTarget, 0x6)
-{
-	GET(BuildingClass*, pThis, EBP);
-	enum { ResetTarget = 0x44A937, SkipShit = 0x44A95E };
-	return MCVCanUndeploy(pThis) ? ResetTarget : SkipShit;
-}
+//DEFINE_HOOK(0x44A8E5, BuildingClass_Mi_Selling_SetTarget, 0x6)
+//{
+//	GET(BuildingClass*, pThis, EBP);
+//	enum { ResetTarget = 0x44A937, SkipShit = 0x44A95E };
+//	return BuildingCanUnload(pThis) ? ResetTarget : SkipShit;
+//}
 
-DEFINE_HOOK(0x44A964, BuildingClass_Mi_Selling_VoiceDeploy, 0x6)
-{
-	GET(BuildingClass*, pThis, EBP);
-	enum { CanDeploySound = 0x44A9CA, SkipShit = 0x44AA3D };
-	return MCVCanUndeploy(pThis) ? CanDeploySound : SkipShit;
-}
+//DEFINE_HOOK(0x44A964, BuildingClass_Mi_Selling_VoiceDeploy, 0x6)
+//{
+//	GET(BuildingClass*, pThis, EBP);
+//	enum { CanDeploySound = 0x44A9CA, SkipShit = 0x44AA3D };
+//	return BuildingCanUnload(pThis) ? CanDeploySound : SkipShit;
+//}
 
 DEFINE_JUMP(LJMP, 0x44AB22 ,0x44AB3B) // Structure Sold EVA played twice

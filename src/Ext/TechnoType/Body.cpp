@@ -929,8 +929,13 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Bounty_IgnoreEnablers.Read(exINI, pSection, "Bounty.IgnoreEnablers");
 
 		// victim tags
-		this->Bounty_Value.Read(exINI, pSection, "Bounty.%sValue");
 		this->Bounty_Value_Option.Read(exINI, pSection, "Bounty.RewardOption");
+
+		if(	this->Bounty_Value_Option ==  BountyValueOption::ValuePercentOfConst || this->Bounty_Value_Option == BountyValueOption::ValuePercentOfSoylent)
+			this->Bounty_Value_PercentOf.Read(exINI, pSection, "Bounty.%sValue");
+		else
+			this->Bounty_Value.Read(exINI, pSection, "Bounty.%sValue");
+
 		this->Bounty_Value_mult.Read(exINI, pSection, "Bounty.%sValueMult");
 
 		this->Bounty_ReceiveSound.Read(exINI, pSection, "Bounty.ReceiveSound");
@@ -1930,6 +1935,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 
 		.Process(this->Bounty_Display)
 		.Process(this->Bounty_Value)
+		.Process(this->Bounty_Value_PercentOf)
 		.Process(this->Bounty_ReceiveSound)
 		.Process(this->Bounty_Value_Option)
 		.Process(this->Bounty_Value_mult)

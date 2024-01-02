@@ -72,7 +72,7 @@ enum class AresScripts : int
 
 enum class BountyValueOption : int
 {
-	Value , Cost , Soylent ,count
+	Value , ValuePercentOfConst , ValuePercentOfSoylent , Cost , Soylent ,count
 };
 
 enum class ShowTimerType : int

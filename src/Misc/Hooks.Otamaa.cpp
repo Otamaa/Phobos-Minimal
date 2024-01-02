@@ -2000,11 +2000,11 @@ DEFINE_HOOK(0x71AA13, TemporalClass_AI_BunkerLinked_Check, 0x7)
 	return pBld ? 0x0 : 0x71AA1A;
 }
 
-DEFINE_HOOK(0x447195, BuildingClass_SellBack_Silent, 0x6)
-{
-	GET(BuildingClass* const, pThis, ESI);
-	return BuildingExtContainer::Instance.Find(pThis)->Silent ? 0x447203 : 0x0;
-}
+// DEFINE_HOOK(0x447195, BuildingClass_SellBack_Silent, 0x6)
+// {
+// 	GET(BuildingClass* const, pThis, ESI);
+// 	return BuildingExtContainer::Instance.Find(pThis)->Silent ? 0x447203 : 0x0;
+// }
 
 DEFINE_HOOK(0x51F885, InfantryClass_WhatAction_TubeStuffs_FixGetCellAtCallTwice, 0x7)
 {
@@ -4107,6 +4107,110 @@ DEFINE_HOOK(0x43D290, BuildingClass_Draw_LimboDelivered, 0x5)
 	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ? 0x43D9D5 : 0x0;
 }
 
+DEFINE_HOOK(0x442CCF, BuildingClass_Init_Sellable, 0x7)
+{
+	GET(BuildingClass*, pThis, ESI);
+	pThis->IsAllowedToSell = !pThis->Type->Unsellable;
+	return 0x0;
+}
+
+#include <Ext/Bomb/Body.h>
+
+DEFINE_HOOK(0x447110, BuildingClass_Sell_Handled, 0x9)
+{
+	GET(BuildingClass*, pThis, ECX);
+	GET_STACK(int, control, 0x4);
+
+	// #754 - evict Hospital/Armory contents
+	TechnoExt_ExtData::KickOutHospitalArmory(pThis);
+	BuildingExtContainer::Instance.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);
+
+	auto PlayGenericClickAndReturn = [pThis]() {
+
+		if (!BuildingExtContainer::Instance.Find(pThis)->Silent) {
+			if (pThis->Owner->ControlledByCurrentPlayer()) {
+					VocClass::PlayGlobal(RulesClass::Instance->GenericClick, Panning::Center, 1.0, 0);
+			}
+		}
+
+		return 0x04471C2;
+	};
+
+	if (pThis->HasBuildup) {
+
+		switch (control)
+		{
+		case -1:
+		{
+			if (pThis->GetCurrentMission() == Mission::Selling)
+			{
+				return PlayGenericClickAndReturn();
+			}
+
+			pThis->QueueMission(Mission::Selling, false);
+			pThis->NextMission();
+			return PlayGenericClickAndReturn();
+		}
+		case 0:
+		{
+			if (pThis->GetCurrentMission() != Mission::Selling) {
+				return 0x04471C2;
+			}
+
+			return PlayGenericClickAndReturn();
+		}
+		case 1:
+		{
+			if (pThis->GetCurrentMission() != Mission::Selling && !pThis->IsGoingToBlow)
+			{
+				pThis->QueueMission(Mission::Selling, false);
+				pThis->NextMission();
+				return PlayGenericClickAndReturn();
+			}
+
+			break;
+		}
+		default:
+			return PlayGenericClickAndReturn();
+		}
+	}
+	else
+	{
+		if (pThis->Type->FirestormWall || BuildingTypeExtContainer::Instance.Find(pThis->Type)->Firestorm_Wall) {
+			//if(const auto pBomb = pThis->AttachedBomb) {
+			//	if (BombExtContainer::Instance.Find(pBomb)->Weapon->Ivan_DetonateOnSell.Get()){
+			//		pBomb->Detonate();// Otamaa : detonate may kill the techno before this function
+			//		// so this can possibly causing some weird crashes if that happening
+			//	}
+			//}
+
+			pThis->Limbo();
+			pThis->UnInit();
+		}
+	}
+
+	return 0x04471C2;
+}
+
+//DEFINE_HOOK(0x44A332, BuildingClass_MI_Deconstruct_ReasonToSpawnCrews, 0x7)
+//{ 
+//	GET(BuildingClass*, pThis, EBP);
+//
+//	if (pThis && IS_SAME_STR_(pThis->get_ID(), "DBEHIM")) {
+//		Debug::FatalError("DBEHIM has Undeploys to but still endup here , WTF! HasNoFocuse %s \n", pThis->Focus ? "Yes" : "No");
+//	}
+//
+//	return 0x0;
+//}
+//DEFINE_HOOK(0x449C30, BuildingClass_MI_Deconstruct_FatalIt, 0x6)
+//{
+//	GET(BuildingClass*, pThis, ECX);
+//
+//	if (pThis && IS_SAME_STR_(pThis->get_ID(), "DBEHIM"))
+//		GameDebugLog::Log(__FUNCTION__"Caller [%x]\n", R->Stack<DWORD>(0x0));
+//
+//	return 0x0;
+//}
 // Enable This when needed
 #ifdef DEBUG_STUPID_HUMAN_CHECKS
 

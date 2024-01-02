@@ -334,6 +334,7 @@ DEFINE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_IvanBombsA, 5)
 	return 0x0;
 }
 
+#ifdef SellFunctionHandled
 DEFINE_OVERRIDE_HOOK(0x4471D5, BuildingClass_Sell_DetonateNoBuildup, 6)
 {
 	GET(BuildingClass* const, pStructure, ESI);
@@ -346,6 +347,9 @@ DEFINE_OVERRIDE_HOOK(0x4471D5, BuildingClass_Sell_DetonateNoBuildup, 6)
 
 	return 0;
 }
+#else
+DEFINE_DISABLE_HOOK(0x4471D5, BuildingClass_Sell_DetonateNoBuildup_ares)
+#endif
 
 DEFINE_OVERRIDE_HOOK(0x44A1FF, BuildingClass_Mi_Selling_DetonatePostBuildup, 6)
 {

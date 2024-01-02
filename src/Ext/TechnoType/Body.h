@@ -754,6 +754,7 @@ public:
 
 	Nullable<bool> Bounty_Display { };
 	Promotable<int> Bounty_Value { 0 };
+	Promotable<float> Bounty_Value_PercentOf { 100.0 };
 	ValueableIdx<VocClass> Bounty_ReceiveSound {};
 
 	ValueableVector<TechnoTypeClass*> BountyAllow {};
