@@ -771,10 +771,10 @@ int TechnoExt_ExtData::GetVictimBountyValue(TechnoClass* pVictim, TechnoClass* p
 		Value = pVictim->GetRefund();
 		break;
 	case BountyValueOption::ValuePercentOfConst:
-		Value = pVictimTypeExt->AttachedToObject->GetCost() * pVictimTypeExt->Bounty_Value_PercentOf.Get(pVictim);
+		Value = int(pVictimTypeExt->AttachedToObject->GetCost() * pVictimTypeExt->Bounty_Value_PercentOf.Get(pVictim));
 		break;
 	case BountyValueOption::ValuePercentOfSoylent:
-		Value = pVictim->GetRefund() * pVictimTypeExt->Bounty_Value_PercentOf.Get(pVictim);
+		Value = int(pVictim->GetRefund() * pVictimTypeExt->Bounty_Value_PercentOf.Get(pVictim));
 		break;
 	default:
 		Value = pVictimTypeExt->Bounty_Value.Get(pVictim);

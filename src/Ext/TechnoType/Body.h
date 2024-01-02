@@ -688,7 +688,7 @@ public:
 
 	// spotlights
 	Valueable<bool> HasSpotlight { false };
-	Valueable<int> Spot_Height { 200 };
+	Valueable<int> Spot_Height { 430 };
 	Valueable<int> Spot_Distance { 1024 };
 	Valueable<SpotlightAttachment> Spot_AttachedTo { SpotlightAttachment::Body };
 	Valueable<bool> Spot_DisableR { false };

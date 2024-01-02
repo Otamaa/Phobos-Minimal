@@ -13,25 +13,17 @@ DEFINE_OVERRIDE_HOOK(0x436459, BuildingLightClass_Update, 6)
 
 	TechnoClass* Owner = pThis->OwnerObject;
 
-	if (Owner && Owner->WhatAmI() != AbstractType::Building)
+	if (Owner && (Owner->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None)
 	{
 		TechnoTypeExtData* pTypeData = TechnoTypeExtContainer::Instance.Find(Owner->GetTechnoType());
 		CoordStruct Loc = Owner->Location;
-		DirStruct Facing;
-		switch (pTypeData->Spot_AttachedTo)
-		{
-		case SpotlightAttachment::Turret:
-			Facing = Owner->SecondaryFacing.Current();
-			break;
-		case SpotlightAttachment::Body:
-		default:
-			Facing = Owner->PrimaryFacing.Current();
-		}
-
-		static const double Facing2Rad = (2 * 3.14) / 0xFFFF;
-		double Angle = Facing2Rad * static_cast<unsigned short>(Facing.GetValue());
-		Loc.Y -= static_cast<int>(pTypeData->Spot_Distance * Math::cos(Angle));
-		Loc.X += static_cast<int>(pTypeData->Spot_Distance * Math::sin(Angle));
+		const FacingClass* Facing = pTypeData->Spot_AttachedTo == SpotlightAttachment::Turret ?
+			&Owner->SecondaryFacing : &Owner->PrimaryFacing;
+	
+		const double angle = double((int16_t)Facing->Current().Raw - 0x3FFF) * -0.00009587526218325454;
+		const double distance = pTypeData->Spot_Distance;
+		Loc.Y = Loc.Y - (static_cast<int>(Math::sin(angle) * distance));
+		Loc.X = static_cast<int>(Math::cos(angle) * distance) + Loc.X;
 
 		pThis->field_B8 = Loc;
 		pThis->field_C4 = Loc;
@@ -98,12 +90,6 @@ DEFINE_OVERRIDE_HOOK(0x4360FF, BuildingLightClass_Draw_250, 6)
 	return 0x436105;
 }
 
-DEFINE_OVERRIDE_HOOK(0x436A2D, BuildingLightClass_PointerGotInvalid_OwnerCloak, 6)
-{
-	GET_STACK(bool, bRemoved, 0x10);
-	return bRemoved ? 0x0 : 0x436A33;
-}
-
 DEFINE_OVERRIDE_HOOK(0x435bfa, BuildingLightClass_Draw_Start, 6)
 {
 	GET(BuildingLightClass*, pThis, ESI);
@@ -123,6 +109,12 @@ DEFINE_OVERRIDE_HOOK(0x435bfa, BuildingLightClass_Draw_Start, 6)
 
 	Height = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType())->Spot_Height;
 	return 0x435C52;
+}
+
+DEFINE_OVERRIDE_HOOK(0x436A2D, BuildingLightClass_PointerGotInvalid_OwnerCloak, 6)
+{
+	GET_STACK(bool, bRemoved, 0x10);
+	return bRemoved ? 0x0 : 0x436A33;
 }
 
 DEFINE_OVERRIDE_HOOK(0x435cd3, BuildingLightClass_Draw_Spotlight, 6)

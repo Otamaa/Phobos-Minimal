@@ -97,6 +97,23 @@ public:
 		return ret;
 	}
 
+	static DirStruct FORCEINLINE Current(FacingClass* facing, int offset) {
+		DirStruct ret = facing->DesiredFacing;
+		if (facing->Is_Rotating())
+		{
+			short diff = facing->Difference_Raw();
+			short num_steps = short(facing->NumSteps());
+
+			if (num_steps > 0)
+			{
+				int steps_left = facing->RotationTimer.GetTimeLeft() - offset;
+				ret.Raw = unsigned short(((short)ret.Raw - steps_left * diff / num_steps));
+			}
+		}
+
+		return ret;
+	}
+
 	DirStruct Next()
 	{ return Current(1); }
 
