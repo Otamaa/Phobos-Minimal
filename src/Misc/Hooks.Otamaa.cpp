@@ -4161,7 +4161,7 @@ DEFINE_HOOK(0x447110, BuildingClass_Sell_Handled, 0x9)
 		}
 
 		if (!BuildingExtContainer::Instance.Find(pThis)->Silent) {
-			if (pThis->Owner->IsControlledByHuman()) {
+			if (pThis->Owner->ControlledByCurrentPlayer()) {
 				VocClass::PlayGlobal(RulesClass::Instance->GenericClick, Panning::Center, 1.0, 0);
 			}
 		}

@@ -1,4 +1,7 @@
 #include "Body.h"
+
+#include <Ext/TechnoType/Body.h>
+
 #include <Utilities/Macro.h>
 
 // Rewrite 0x449BC0
