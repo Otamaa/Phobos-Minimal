@@ -1260,10 +1260,9 @@ DEFINE_OVERRIDE_HOOK(0x44BB1B, BuildingClass_Mi_Repair_Promote, 0x6)
 }
 
 // remember that this building ejected its survivors already
-DEFINE_OVERRIDE_HOOK(0x44A8A2, BuildingClass_Mi_Selling_Crew, 0xA)
-{
+DEFINE_OVERRIDE_HOOK(0x44A8A2, BuildingClass_Mi_Selling_Crew, 0xA) {
 	GET(BuildingClass*, pThis, EBP);
-	pThis->NoCrew = true;
+	pThis->NoCrew = BuildingTypeExtContainer::Instance.Find(pThis->Type)->SpawnCrewOnlyOnce;
 	return 0;
 }
 

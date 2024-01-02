@@ -280,6 +280,8 @@ public:
 	Valueable<Point2D> DisplayIncome_Offset {};
 	Valueable<unsigned int> FreeUnit_Count { 1 };
 
+	Valueable<bool> SpawnCrewOnlyOnce { true };
+
 	BuildingTypeExtData() noexcept = default;
 	~BuildingTypeExtData() noexcept = default;
 

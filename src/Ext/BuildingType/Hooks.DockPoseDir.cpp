@@ -109,3 +109,30 @@ DEFINE_HOOK(0x443FD8, BuildingClass_ExitObject_PoseDir_NotAirportBound, 0x8)
 
 	return RetCreationFail;
 }
+
+#include <AircraftTrackerClass.h>
+
+DEFINE_HOOK(0x687AF4, CCINIClass_InitializeStuffOnMap_AdjustAircrafts, 0x5)
+{
+	AircraftClass::Array->for_each([](AircraftClass* const pThis) {
+		if (pThis && pThis->Type->AirportBound) {
+			if (auto pCell = pThis->GetCell()) {
+				if (auto pBuilding = pCell->GetBuilding()) {	
+					if (pBuilding->Type->Helipad && pThis->Type->Dock.Contains(pBuilding->Type)) {
+						pBuilding->SendCommand(RadioCommand::RequestLink, pThis);
+						pBuilding->SendCommand(RadioCommand::RequestTether, pThis);
+						pThis->SetLocation(pBuilding->GetDockCoords(pThis));
+						pThis->DockedTo = pBuilding;
+						const DirStruct dir { ((int)GetPoseDir(pThis, pBuilding) << 13) };
+						pThis->SecondaryFacing.Set_Current(dir);
+
+						if (pThis->GetHeight() > 0)
+							AircraftTrackerClass::Instance->Add(pThis);
+					}
+				}
+			}
+		}
+	});
+
+	return 0x0;
+}

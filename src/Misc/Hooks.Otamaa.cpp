@@ -50,35 +50,6 @@
 
 DEFINE_JUMP(LJMP, 0x546C8B, 0x546CBF);
 
-DEFINE_HOOK(0x687AF4, CCINIClass_InitializeStuffOnMap_AdjustAircrafts, 0x5)
-{
-	AircraftClass::Array->for_each([](AircraftClass* const pThis)
-	{
-		 if (pThis && pThis->Type->AirportBound)
-		 {
-			if (auto pCell = pThis->GetCell())
-			{
-				if (auto pBuilding = pCell->GetBuilding())
-				{
-				 if (pBuilding->Type->Helipad)
-				 {
-						pBuilding->SendCommand(RadioCommand::RequestLink, pThis);
-						 pBuilding->SendCommand(RadioCommand::RequestTether, pThis);
-						pThis->SetLocation(pBuilding->GetDockCoords(pThis));
-						 pThis->DockedTo = pBuilding;
-						 pThis->SecondaryFacing.Set_Current(pBuilding->PrimaryFacing.Current());
-
-						if (pThis->GetHeight() > 0)
-							 AircraftTrackerClass::Instance->Add(pThis);
-					}
-					}
-				}
-			}
-	});
-
-	return 0x0;
-}
-
 DEFINE_HOOK(0x6FA2CF, TechnoClass_AI_DrawBehindAnim, 0x9) //was 4
 {
 	GET(TechnoClass*, pThis, ESI);

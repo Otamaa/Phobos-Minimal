@@ -947,6 +947,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->FactoryPlant_RequirePower.Read(exINI, pSection, "FactoryPlant.RequirePower");
 		this->SpySat_RequirePower.Read(exINI, pSection, "SpySat.RequirePower");
 		this->Cloning_RequirePower.Read(exINI, pSection, "Cloning.RequirePower");
+		this->SpawnCrewOnlyOnce.Read(exINI, pSection, "SpawnCrewOnlyOnce");
 		this->PrismForwarding.LoadFromINIFile(pThis, pINI);
 	}
 #pragma endregion
@@ -1331,6 +1332,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->DisplayIncome_Houses)
 		.Process(this->DisplayIncome_Offset)
 		.Process(this->FreeUnit_Count)
+		.Process(this->SpawnCrewOnlyOnce)
 		;
 }
 
