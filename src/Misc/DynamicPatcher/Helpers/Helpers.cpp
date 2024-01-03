@@ -537,19 +537,8 @@ Vector3D<float> Helpers_DP::ToVector3D(DirStruct& dir)
 
 Vector3D<float> Helpers_DP::GetForwardVector(TechnoClass* pTechno, bool getTurret)
 {
-	if (getTurret)
-	{
-		FacingClass facing { pTechno->SecondaryFacing };
-		auto nDir = facing.Current();
-		return ToVector3D(nDir);
-
-	}
-	else
-	{
-		FacingClass facing { pTechno->PrimaryFacing };
-		auto nDir = facing.Current();
-		return ToVector3D(nDir);
-	}
+	const auto facing = getTurret ? &pTechno->SecondaryFacing : &pTechno->PrimaryFacing;
+	return ToVector3D(facing->Current());
 }
 
 CoordStruct Helpers_DP::GetFLH(CoordStruct& source, CoordStruct& flh, DirStruct& dir, bool flip)
@@ -558,18 +547,19 @@ CoordStruct Helpers_DP::GetFLH(CoordStruct& source, CoordStruct& flh, DirStruct&
 	{
 		double radians = dir.GetRadian();
 
-		double rF = flh.X;
-		double xF = rF * Math::cos(-radians);
-		double yF = rF * Math::sin(-radians);
-		CoordStruct offsetF = { static_cast<int>(xF),static_cast<int>(yF), 0 };
+		double xF = flh.X * Math::cos(-radians);
+		double yF = flh.X * Math::sin(-radians);
 
-		double rL = flip ? flh.Y : -flh.Y;
-		double xL = rL * Math::sin(radians);
-		double yL = rL * Math::cos(radians);
-		CoordStruct offsetL = { static_cast<int>(xL), static_cast<int>(yL), 0 };
 
-		CoordStruct nZFLHBuff { 0, 0, flh.Z };
-		return source + offsetF + offsetL + nZFLHBuff;
+		double xL = flip ? flh.Y : -flh.Y * Math::sin(radians);
+		double yL = flip ? flh.Y : -flh.Y * Math::cos(radians);
+
+		CoordStruct nZFLHBuff { 
+			static_cast<int>(xF) + static_cast<int>(xL) ,
+			static_cast<int>(yF) + static_cast<int>(yL) ,
+			flh.Z
+		};
+		return source + nZFLHBuff;
 	}
 
 	return source;

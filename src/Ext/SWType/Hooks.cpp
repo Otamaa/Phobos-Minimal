@@ -2547,9 +2547,7 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 		// capture
 		if (pData->Dominator_Capture)
 		{
-			std::vector<FootClass*> Minions;
-
-			auto Dominate = [pData, pFirer, &Minions](TechnoClass* pTechno) -> bool
+			auto Dominate = [pData, pFirer](TechnoClass* pTechno) -> bool
 			{
 				TechnoTypeClass* pType = pTechno->GetTechnoType();
 
@@ -2642,8 +2640,12 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 
 				// add to the other newly captured minions.
 				if (FootClass* pFoot = generic_cast<FootClass*>(pTechno))
-				{
-					Minions.push_back(pFoot);
+				{			
+					// the AI sends all new minions to hunt
+					const auto nMission = pFoot->GetTechnoType()->ResourceGatherer ? Mission::Harvest :
+						!PsyDom::Owner->IsControlledByHuman() ? Mission::Hunt : Mission::Guard;
+
+					pFoot->QueueMission(nMission, false);
 				}
 
 				return true;
@@ -2654,15 +2656,6 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 			Helpers::Alex::DistinctCollector<TechnoClass*> items;
 			Helpers::Alex::for_each_in_rect_or_spread<TechnoClass>(cell, widthORange, Height, items);
 			items.apply_function_for_each(Dominate);
-
-			// the AI sends all new minions to hunt
-			for (auto const& pFoot : Minions)
-			{
-				const auto nMission = pFoot->GetTechnoType()->ResourceGatherer ? Mission::Harvest :
-					!PsyDom::Owner->IsControlledByHuman() ? Mission::Hunt : Mission::Guard;
-
-				pFoot->QueueMission(nMission, false);
-			}
 		}
 
 		// skip everything
