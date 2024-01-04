@@ -32,11 +32,12 @@ DEFINE_OVERRIDE_HOOK(0x420F75, AlphaLightClass_UpdateScreen_ShouldDraw, 5)
 
 	bool shouldDraw = !pAlpha->IsObjectGone;
 
-	if(shouldDraw) {
-		if(auto pTechno = abstract_cast<TechnoClass*>(pAlpha->AttachedTo)) {
+	if(shouldDraw && pAlpha->AttachedTo) {
+		const auto table = VTable::Get(pAlpha->AttachedTo);
+		if (table == InfantryClass::vtable || table == UnitClass::vtable || table == AircraftClass::vtable || table == BuildingClass::vtable) {
 			shouldDraw =
-			pTechno->VisualCharacter(VARIANT_TRUE, pTechno->Owner) == VisualType::Normal
-			&& !pTechno->Disguised;
+				((TechnoClass*)pAlpha->AttachedTo)->VisualCharacter(VARIANT_TRUE, ((TechnoClass*)pAlpha->AttachedTo)->Owner) == VisualType::Normal
+			&& !((TechnoClass*)pAlpha->AttachedTo)->Disguised;
 		}
 	}
 
@@ -129,11 +130,19 @@ DEFINE_OVERRIDE_HOOK(0x421371, TacticalClass_UpdateAlphasInRectangle_ShouldDraw,
 
 	bool shouldDraw = !pAlpha->IsObjectGone;
 
-	if (shouldDraw) {
-		if (const auto pTechno = abstract_cast<TechnoClass*>(pAlpha->AttachedTo)) {
-			shouldDraw = pTechno->IsAlive && pTechno->VisualCharacter(VARIANT_TRUE, pTechno->Owner) == VisualType::Normal &&
-				!pTechno->Disguised;
+	if (shouldDraw && pAlpha->AttachedTo) {
+		const auto table = VTable::Get(pAlpha->AttachedTo);
+		if (table == InfantryClass::vtable || table == UnitClass::vtable || table == AircraftClass::vtable || table == BuildingClass::vtable ) {
+			shouldDraw = ((TechnoClass*)pAlpha->AttachedTo)->IsAlive && ((TechnoClass*)pAlpha->AttachedTo)->VisualCharacter(VARIANT_TRUE, ((TechnoClass*)pAlpha->AttachedTo)->Owner) == VisualType::Normal &&
+				!((TechnoClass*)pAlpha->AttachedTo)->Disguised;
 		}
+		//else if (table == AnimClass::vtable || table == ParticleClass::vtable || table == VoxelAnimClass::vtable) {
+		//	Debug::Log("Alpha[%x - %d] Attached to [%s - %s] with state [%s]\n", pAlpha, AlphaLightIndex, 
+		//		pAlpha->AttachedTo->GetType()->ID,
+		//		pAlpha->AttachedTo->GetThisClassName()
+		//	, !pAlpha->AttachedTo->IsAlive ? "Dead" : "Alive"
+		//	);
+		//}
 	}
 
 	return shouldDraw ? 0 : 0x421694;

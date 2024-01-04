@@ -1963,14 +1963,13 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 			)
 	)
 	{
-		if (auto pAlpha = StaticVars::ObjectLinkedAlphas.get_or_default(pSource)) {
+		if (auto pAlpha = StaticVars::ObjectLinkedAlphas.get_or_default(pSource))
 			GameDelete<true, false>(pAlpha);
-		}
 	}
-	else
-	{
-		if (Unsorted::CurrentFrame % 2)
-		{ // lag reduction - don't draw a new alpha every frame
+
+	if (Unsorted::CurrentFrame % 2) { // lag reduction - don't draw a new alpha every frame
+		//if(!StaticVars::ObjectLinkedAlphas.get_or_default(pSource)) 
+		{
 			RectangleStruct ScreenArea = TacticalClass::Instance->VisibleArea();
 			++Unsorted::ScenarioInit;
 			GameCreate<AlphaShapeClass>(pSource,

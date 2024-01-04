@@ -106,6 +106,7 @@ DEFINE_OVERRIDE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
 		}
 
 		pThis->StepCompleted = true;
+		return ReturnFunc;
 	}
 	else
 	{

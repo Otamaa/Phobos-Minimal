@@ -85,6 +85,8 @@ void ParticleTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Palette.Read(exINI, pID, "CustomPalette");
 	this->DamageRange.Read(exINI, pID, "DamageRange");
 
+	///if (IS_SAME_STR_(pID, "SuperNapalmCloudPart"))
+	//	Debug::Log("AlphaImageNAme [%s] \n", this->AttachedToObject->AlphaImageFile);
 }
 
 // =============================

@@ -366,6 +366,10 @@ public:
 		return def;
 	}
 
+	void erase(container_t::iterator iter) {
+		this->values.erase(iter, this->values.end());
+	}
+
 	bool erase(const TKey& key) {
 		auto it = this->get_key_iterator(key);
 		if (it != this->values.end()) {

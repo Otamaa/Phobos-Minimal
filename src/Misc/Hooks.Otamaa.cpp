@@ -2740,6 +2740,13 @@ DEFINE_HOOK(0x6EE8D9, TeamClass_Scout_LimboDelivered, 0x9)
 		advance : ret;
 }
 
+//DEFINE_HOOK(0x6E9832, TeamClass_AI_IsThisExecuted, 0x8)
+//{
+//	Debug::Log(__FUNCTION__" Called \n");
+//
+//	return 0x0;
+//}
+
 DEFINE_HOOK(0x6EEEF2, TeamClass_6EEEA0_LimboDelivered, 0xA)
 {
 	enum { advance = 0x6EF0D7, ret = 0x0 };
@@ -4155,6 +4162,13 @@ DEFINE_HOOK(0x447110, BuildingClass_Sell_Handled, 0x9)
 	}
 
 	return 0x04471C2;
+}
+
+DEFINE_HOOK(0x5F9652, ObjectTypeClass_GetAplha, 0x6)
+{
+	GET(ObjectTypeClass*, pThis, EBX);
+	R->CL(pThis->AlphaImageFile[0] && strlen(pThis->AlphaImageFile));
+	return 0x5F9658;
 }
 
 //DEFINE_HOOK(0x44A332, BuildingClass_MI_Deconstruct_ReasonToSpawnCrews, 0x7)

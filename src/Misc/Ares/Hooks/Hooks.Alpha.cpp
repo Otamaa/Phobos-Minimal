@@ -35,28 +35,50 @@ DEFINE_OVERRIDE_HOOK(0x421798, AlphaShapeClass_SDDTOR_Anims, 0x6)
 	return 0;
 }
 
+DEFINE_HOOK(0x420E70, AlphaLightClass_Detach_ClearPointer, 0x7)
+{
+	GET(AlphaShapeClass*, pThis, ECX);
+	GET_STACK(AbstractClass*, pObject, 0x4);
+	GET_STACK(bool, removed, 0x8);
+
+	if(pThis->AttachedTo == pObject){
+		pThis->IsObjectGone = true;
+	}
+
+	return 0x420E7F;
+}
+
+#ifndef ALPHA_DRAWING
+// This part is inevitable 
+// the `AlphaShapeClass` dtor is executed first before objects 
 DEFINE_OVERRIDE_HOOK(0x421730, AlphaShapeClass_SDDTOR, 8)
 {
-	GET(AlphaShapeClass*, pAlpha, ECX);
-	StaticVars::ObjectLinkedAlphas.erase(pAlpha->AttachedTo);
+	GET(AlphaShapeClass* const, pAlpha, ECX);
+
+	if (auto pOldAlpha = StaticVars::ObjectLinkedAlphas.erase(pAlpha->AttachedTo)) {
+		pAlpha->IsObjectGone = true;
+		pAlpha->AttachedTo = nullptr;
+	}
+
 	return 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x420960, AlphaShapeClass_CTOR, 5)
 {
-	GET_STACK(ObjectClass*, pSource, 0x4);
+	GET_STACK(ObjectClass* const, pSource, 0x4);
 	GET(AlphaShapeClass*, pThis, ECX);
 
-	auto iter = StaticVars::ObjectLinkedAlphas.get_key_iterator(pSource);
+	const auto it = StaticVars::ObjectLinkedAlphas.get_key_iterator(pSource);
 
-	if(iter != StaticVars::ObjectLinkedAlphas.end()) {
-		if (auto pOldAlpha = std::exchange(iter->second , pThis)) {
-			GameDelete<true, false>(pOldAlpha);
+	if (it != StaticVars::ObjectLinkedAlphas.end()) {
+		if (it->second) {
+			//sddtor delete the pKey
+			GameDelete<true, false>(it->second);
 		}
-	} else {
-		StaticVars::ObjectLinkedAlphas.empalace_unchecked(pSource, pThis);
 	}
 
+	//insert new key ,..
+	StaticVars::ObjectLinkedAlphas.empalace_unchecked(pSource, pThis);
 	return 0;
 }
 
@@ -64,9 +86,8 @@ DEFINE_OVERRIDE_HOOK(0x5F3D65, ObjectClass_DTOR, 6)
 {
 	GET(ObjectClass*, pThis, ESI);
 
-	if (auto pAlpha = StaticVars::ObjectLinkedAlphas.get_or_default(pThis)) {
-		GameDelete<true, false>(pAlpha);
-		// pThis is erased from map
+	if (auto pOldAlpha = StaticVars::ObjectLinkedAlphas.get_or_default(pThis)) {
+		GameDelete<true, false>(pOldAlpha);
 	}
 
 	return 0;
@@ -90,3 +111,4 @@ DEFINE_OVERRIDE_HOOK(0x423B0B, AnimClass_Update_AlphaLight, 6)
 
 	return 0;
 }
+#endif
