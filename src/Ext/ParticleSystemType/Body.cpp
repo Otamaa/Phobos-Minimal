@@ -32,7 +32,8 @@ void ParticleSystemTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFail
 	break;
 	case ParticleSystemTypeBehavesLike::Spark:
 		if (pThis->ParticleCap < 2){
-			Debug::FatalErrorAndExit("ParticleSystem[%s] BehavesLike=Spark ParticleCap need to be more than 1\n", pID);
+			Debug::Log("ParticleSystem[%s] BehavesLike=Spark ParticleCap need to be more than 1 , fixing\n", pID);
+			pThis->ParticleCap = 2;
 		}
 		break;
 	default:

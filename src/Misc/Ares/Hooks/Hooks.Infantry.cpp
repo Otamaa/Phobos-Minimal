@@ -348,21 +348,28 @@ DEFINE_OVERRIDE_HOOK(0x5200C1, InfantryClass_UpdatePanic_Doggie, 0x6)
 
 	const auto pType = pThis->Type;
 
-	if (pType->Doggie) {
+	if(!pType->Doggie) {
+		return 0;
+	}
+
+
 		// if panicking badly, lay down on tiberium
-		if (pThis->PanicDurationLeft >= RulesExtData::Instance()->DoggiePanicMax) {
-			if (!pThis->Destination && !pThis->Locomotor.GetInterfacePtr()->Is_Moving())		{
-				if (pThis->GetCell()->LandType == LandType::Tiberium) {
-					// is on tiberium. just lay down
+	if (pThis->PanicDurationLeft >= RulesExtData::Instance()->DoggiePanicMax) {
+		if (!pThis->Destination && !pThis->Locomotor.GetInterfacePtr()->Is_Moving())		{
+			if (pThis->GetCell()->LandType == LandType::Tiberium) {
+				// is on tiberium. just lay down
+				//if(!pType->Fraidycat)
 					pThis->PlayAnim(DoType::Down);
-				} else if (!pThis->InLimbo) {
+				//else {
+					//return 0x5201EC;
+				//}
+			} else if (!pThis->InLimbo) {
 					// search tiberium and abort current mission
 					pThis->MoveToTiberium(16, false);
-					if (pThis->Destination) {
-						pThis->SetTarget(nullptr);
-						pThis->QueueMission(Mission::Move, false);
-						pThis->NextMission();
-					}
+				if (pThis->Destination) {
+					pThis->SetTarget(nullptr);
+					pThis->QueueMission(Mission::Move, false);
+					pThis->NextMission();
 				}
 			}
 		}
@@ -521,8 +528,8 @@ DEFINE_OVERRIDE_HOOK(0x51E3B0, InfantryClass_GetActionOnObject_EMP, 0x7)
 	return 0;
 }
 
-DEFINE_DISABLE_HOOK(0x5200D7, InfantryClass_UpdatePanic_DontReload_ares)//, 0x6, 52010B)
-DEFINE_JUMP(LJMP, 0x5200D7, 0x52010B);
+DEFINE_OVERRIDE_SKIP_HOOK(0x5200D7, InfantryClass_UpdatePanic_DontReload ,0x6, 52010B)
+//DEFINE_JUMP(LJMP, 0x5200D7, 0x52010B);
 
 DEFINE_OVERRIDE_HOOK(0x51CE9A, InfantryClass_RandomAnim_IsCow, 5)
 {

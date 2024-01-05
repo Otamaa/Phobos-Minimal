@@ -193,14 +193,14 @@ DEFINE_OVERRIDE_HOOK(0x702CFE, TechnoClass_ReceiveDamage_PreventScatter_Deep, 6)
 }
 
 //these hook were really early checks
-DEFINE_HOOK_AGAIN(0x702BFE, TechnoClass_ReceiveDamage_PreventScatter, 0x8)
-DEFINE_HOOK(0x702B47, TechnoClass_ReceiveDamage_PreventScatter, 0x8)
-{
-	//GET(FootClass*, pThis, ESI);
-	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0xC4, -0xC));
-
-	return WarheadTypeExtContainer::Instance.Find(pWarhead)->PreventScatter ? 0x702D11 : 0x0;
-}
+// DEFINE_HOOK_AGAIN(0x702BFE, TechnoClass_ReceiveDamage_PreventScatter, 0x8)
+// DEFINE_HOOK(0x702B47, TechnoClass_ReceiveDamage_PreventScatter, 0x8)
+// {
+// 	//GET(FootClass*, pThis, ESI);
+// 	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0xC4, -0xC));
+//
+// 	return WarheadTypeExtContainer::Instance.Find(pWarhead)->PreventScatter ? 0x702D11 : 0x0;
+// }
 
 // #1283653: fix for jammed buildings and attackers in open topped transports
 DEFINE_OVERRIDE_HOOK(0x702A38, TechnoClass_ReceiveDamage_OpenTopped, 0x7)

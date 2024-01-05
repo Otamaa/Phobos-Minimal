@@ -4171,6 +4171,9 @@ DEFINE_HOOK(0x5F9652, ObjectTypeClass_GetAplha, 0x6)
 	return 0x5F9658;
 }
 
+//#ifndef REMOVE_SOURCE_REUqUIREMENT_FROM_FEAR_CHECK
+//DEFINE_JUMP(LJMP, 0x518C45, 0x518C49);
+//#endif
 //DEFINE_HOOK(0x44A332, BuildingClass_MI_Deconstruct_ReasonToSpawnCrews, 0x7)
 //{ 
 //	GET(BuildingClass*, pThis, EBP);

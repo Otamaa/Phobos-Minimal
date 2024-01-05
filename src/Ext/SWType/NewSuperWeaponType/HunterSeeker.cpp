@@ -25,6 +25,13 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 		return false;
 	}
 
+	//testing
+	// TODO : Re-enable this 
+	// somwhat HS Causing desync on ROTE ? 
+	// need to investigate further
+	//if (IS_SAME_STR_(pType->ID, "SOVSCRAP"))
+	//	return true;
+
 	// the maximum number of buildings to fire. negative means all.
 	const auto Count = (pExt->SW_MaxCount >= 0)
 		? static_cast<size_t>(pExt->SW_MaxCount)

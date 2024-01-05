@@ -84,7 +84,7 @@ DEFINE_DISABLE_HOOK(0x678841, RulesClass_Load_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x679a15, RulesData_LoadBeforeTypeData_ares)
 #endif
 
-DEFINE_OVERRIDE_HOOK(0x52C5E0 , Ares_NOLOGO , 0x7)
+DEFINE_OVERRIDE_HOOK(0x52C5E0, Ares_NOLOGO, 0x7)
 {
 	return Phobos::Otamaa::NoLogo ? 0x52C5F3 : 0x0;
 }
@@ -190,7 +190,8 @@ DEFINE_OVERRIDE_HOOK(0x437CCC, BSurface_DrawSHPFrame1_Buffer, 0x8)
 	// buffer overrun is now not as forgiving as it was before
 	auto& Buffer = StaticVars::ShpCompression1Buffer;
 
-	if (Buffer.size() < width) {
+	if (Buffer.size() < width)
+	{
 		Buffer.insert(Buffer.end(), width - Buffer.size(), 0u);
 	}
 
@@ -289,7 +290,8 @@ DEFINE_OVERRIDE_HOOK(0x4C6DDB, Networking_RespondToEvent_Selling, 0x8)
 	GET(TechnoClass* const, pTechno, EDI);
 	GET(AbstractClass* const, pFocus, EAX);
 
-	if (pTechno->CurrentMission != Mission::Selling || pTechno->Focus) {
+	if (pTechno->CurrentMission != Mission::Selling || pTechno->Focus)
+	{
 		pTechno->SetFocus(pFocus);
 	}
 
@@ -414,16 +416,19 @@ DEFINE_OVERRIDE_HOOK(0x62A2F8, ParasiteClass_PointerGotInvalid, 0x6)
 
 	if (allowed)
 	{
-		if(Owner->GetHeight() > 200){
+		if (Owner->GetHeight() > 200)
+		{
 			*XYZ = Owner->Location;
 			Owner->IsFallingDown = Owner->IsABomb = true;
-		}else if (Owner->GetHeight() < 0) //inside ground
+		}
+		else if (Owner->GetHeight() < 0) //inside ground
 			*XYZ = CoordStruct::Empty;
 	}
 
 	CoordStruct result = *XYZ;
 
-	if (result == CoordStruct::Empty || CellClass::Coord2Cell(result) == CellStruct::Empty) {
+	if (result == CoordStruct::Empty || CellClass::Coord2Cell(result) == CellStruct::Empty)
+	{
 		Debug::Log("Parasite[%x : %s] With Invalid Location ! , Removing ! \n", Parasite, Parasite->Owner->get_ID());
 		TechnoExtData::HandleRemove(Parasite->Owner, nullptr, false, false);
 		Parasite->Victim = nullptr;
@@ -668,9 +673,11 @@ DEFINE_OVERRIDE_HOOK(0x489270, CellChainReact, 5)
 		auto pExt = TiberiumExtExtContainer::Instance.Find(pTib);
 		CoordStruct crd = pCell->GetCoords();
 
-		if(auto pWarhead = pExt->GetExplosionWarhead()) {
+		if (auto pWarhead = pExt->GetExplosionWarhead())
+		{
 			// create an explosion
-			if (auto pType = MapClass::SelectDamageAnimation(4 * damage, pWarhead, pCell->LandType, crd)) {
+			if (auto pType = MapClass::SelectDamageAnimation(4 * damage, pWarhead, pCell->LandType, crd))
+			{
 				GameCreate<AnimClass>(pType, crd, 0, 1, 0x600, 0);
 			}
 
@@ -1094,7 +1101,7 @@ DEFINE_OVERRIDE_HOOK(0x71A84E, TemporalClass_UpdateA, 5)
 	if (auto const pTarget = pThis->Target)
 	{
 		TechnoExtContainer::Instance.Find(pTarget)->RadarJammer.reset(nullptr);
-		AresAE::UpdateTempoal(&TechnoExtContainer::Instance.Find(pTarget)->AeData , pTarget);
+		AresAE::UpdateTempoal(&TechnoExtContainer::Instance.Find(pTarget)->AeData, pTarget);
 	}
 
 	pThis->WarpRemaining -= pThis->GetWarpPerStep(0);
@@ -1251,7 +1258,8 @@ DEFINE_OVERRIDE_HOOK(0x4A76ED, DiskLaserClass_Update_Anim, 7)
 		auto const pType = MapClass::SelectDamageAnimation(
 			pThis->Damage, pWarhead, LandType::Clear, coords);
 
-		if (pType) {
+		if (pType)
+		{
 			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, coords),
 				pThis->Owner ? pThis->Owner->Owner : nullptr,
 				pThis->Target ? pThis->Target->Owner : nullptr,
@@ -1288,14 +1296,15 @@ DEFINE_OVERRIDE_HOOK(0x5D6F61, MPGameModeClass_CreateStartingUnits_BaseCenter, 8
 	*AmountToSpend = R->EBP<int>();
 	CellStruct nBase = pHouse->BaseSpawnCell;
 
-	if(!pMode->SpawnBaseUnits(pHouse, AmountToSpend))
+	if (!pMode->SpawnBaseUnits(pHouse, AmountToSpend))
 		return 0x5D701B;
 
-	pHouse->ConYards.for_each([](BuildingClass* pConyards) {
-		pConyards->QueueMission(Mission::Construction, true);
-		++Unsorted::ScenarioInit();
-		pConyards->EnterIdleMode(false, 1);
-		--Unsorted::ScenarioInit();
+	pHouse->ConYards.for_each([](BuildingClass* pConyards)
+ {
+	 pConyards->QueueMission(Mission::Construction, true);
+	 ++Unsorted::ScenarioInit();
+	 pConyards->EnterIdleMode(false, 1);
+	 --Unsorted::ScenarioInit();
 	});
 
 	if (!nBase.IsValid())
@@ -1336,14 +1345,15 @@ DEFINE_OVERRIDE_HOOK(0x5D705E, MPGameMode_SpawnBaseUnit_BaseUnit, 6)
 	GET(UnitTypeClass*, pBaseUnit, EAX);
 	R->ESI(pBaseUnit);
 
-	if(pBaseUnit)
+	if (pBaseUnit)
 		return hasBaseUnit;
 
 	Debug::Log(__FUNCTION__" House of country [%s] cannot build anything from [General]BaseUnit=.\n", pHouse->Type->ID);
 	return hasNoBaseUnit;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4C850B, Exception_Dialog, 5) {
+DEFINE_OVERRIDE_HOOK(0x4C850B, Exception_Dialog, 5)
+{
 	Debug::FreeMouse();
 	return 0;
 }
@@ -1379,7 +1389,8 @@ DEFINE_OVERRIDE_HOOK(0x5d7048, MPGameMode_SpawnBaseUnit_BuildConst, 5)
 		0
 	);
 
-	if (!v7) {
+	if (!v7)
+	{
 		Debug::Log(__FUNCTION__" House of country [%s] cannot build anything from [General]BuildConst=.\n", pHouse->Type->ID);
 		return 0x5D70DB;
 	}
@@ -1423,9 +1434,9 @@ DEFINE_STRONG_HOOK(0x6BD7D5, Expand_MIX_Reorg, 7)
 
 
 DEFINE_DISABLE_HOOK(0x52bb64, Expand_MIX_Deorg_ares)
-DEFINE_JUMP(LJMP , 0x52BB64 , 0x52BB95) //Expand_MIX_Deorg
+DEFINE_JUMP(LJMP, 0x52BB64, 0x52BB95) //Expand_MIX_Deorg
 
-DEFINE_OVERRIDE_HOOK(0x5FDDA4 , IsOverlayIdxTiberium_Log, 6)
+DEFINE_OVERRIDE_HOOK(0x5FDDA4, IsOverlayIdxTiberium_Log, 6)
 {
 	GET(OverlayTypeClass*, pThis, EAX);
 	Debug::Log(*reinterpret_cast<const char**>(0x833490), pThis->ID);
@@ -1503,15 +1514,18 @@ DEFINE_OVERRIDE_HOOK(0x732d47, TacticalClass_CollectSelectedIDs, 5)
 {
 	auto pNames = R->EBX<DynamicVectorClass<const char*>*>();
 
-	auto Add = [pNames](TechnoTypeClass* pType) {
-		const char* id = TechnoTypeExtContainer::Instance.Find(pType)->GetSelectionGroupID();
+	auto Add = [pNames](TechnoTypeClass* pType)
+		{
+			const char* id = TechnoTypeExtContainer::Instance.Find(pType)->GetSelectionGroupID();
 
-		if (pNames->none_of([id](const char* pID) {
-				return !CRT::strcmpi(pID, id);
-			})) {
-			pNames->AddItem(id);
-		}
-	};
+			if (pNames->none_of([id](const char* pID)
+				{
+					return !CRT::strcmpi(pID, id);
+				}))
+			{
+				pNames->AddItem(id);
+			}
+		};
 
 	bool useDeploy = RulesExtData::Instance()->TypeSelectUseDeploy;
 
@@ -1675,7 +1689,7 @@ DEFINE_OVERRIDE_HOOK(0x5d7163, MPGameMode_SpawnStartingUnits_Types, 8)
 {
 	LEA_STACK(DynamicVectorClass<TechnoTypeClass*>*, pInfVec, 0x18);
 	LEA_STACK(DynamicVectorClass<TechnoTypeClass*>*, pUnitVec, 0x30);
-	GET_STACK(HouseClass* , pHouse , 0x4C);
+	GET_STACK(HouseClass*, pHouse, 0x4C);
 
 	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
 
@@ -1725,13 +1739,18 @@ std::vector<TechnoTypeClass*> GetTypeList()
 	std::vector<TechnoTypeClass*> types;
 	types.reserve(InfantryTypeClass::Array->Count + UnitTypeClass::Array->Count);
 
-	for (auto pHouse : *HouseClass::Array) {
-		if (!pHouse->Type->MultiplayPassive) {
+	for (auto pHouse : *HouseClass::Array)
+	{
+		if (!pHouse->Type->MultiplayPassive)
+		{
 
 			const auto& data = HouseTypeExtContainer::Instance.Find(pHouse->Type)->StartInMultiplayer_Types;
-			if (data.HasValue()) {
+			if (data.HasValue())
+			{
 				types.insert(types.end(), data.begin(), data.end());
-			} else {
+			}
+			else
+			{
 				avaibleHouses |= 1 << pHouse->Type->ArrayIndex;
 			}
 		}
@@ -1742,14 +1761,17 @@ std::vector<TechnoTypeClass*> GetTypeList()
 
 	//remove any `BaseUnit` included 
 	//base unit given for free then ?
-	auto Iter = std::remove_if(types.begin() , types.end(), [](TechnoTypeClass* pItem) {
-		for (int i = 0; i < RulesClass::Instance->BaseUnit.Count; ++i) {
-			if (pItem == (RulesClass::Instance->BaseUnit.Items[i])) {
-				return true;
-			}
-		}
+	auto Iter = std::remove_if(types.begin(), types.end(), [](TechnoTypeClass* pItem)
+ {
+	 for (int i = 0; i < RulesClass::Instance->BaseUnit.Count; ++i)
+	 {
+		 if (pItem == (RulesClass::Instance->BaseUnit.Items[i]))
+		 {
+			 return true;
+		 }
+	 }
 
-		return false;
+	 return false;
 	});
 
 	//idk these part 
@@ -1770,14 +1792,18 @@ int GetTotalCost(const Nullable<int>& fixed)
 		return 0;
 
 	int totalCost = 0;
-	if (fixed.isset()) {
+	if (fixed.isset())
+	{
 		totalCost = fixed;
-	}else{
+	}
+	else
+	{
 
 		auto types = GetTypeList();
 		int total_ = 0;
 
-		for (auto& tech : types) {
+		for (auto& tech : types)
+		{
 			total_ += tech->GetCost();
 		}
 
@@ -1789,7 +1815,8 @@ int GetTotalCost(const Nullable<int>& fixed)
 	return totalCost * GameModeOptionsClass::Instance->UnitCount;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5d6d9a, MPGameModeClass_CreateStartingUnits_UnitCost, 6) {
+DEFINE_OVERRIDE_HOOK(0x5d6d9a, MPGameModeClass_CreateStartingUnits_UnitCost, 6)
+{
 	R->EBP(GetTotalCost(RulesExtData::Instance()->StartInMultiplayerUnitCost));
 	return 0x5D6ED6;
 }
@@ -1856,7 +1883,8 @@ DEFINE_OVERRIDE_HOOK(0x532017, DlgProc_MainMenu_Version, 5)
 void LoadGlobalConfig()
 {
 	CCFileClass IniFile { "Ares.ini" };
-	if (!IniFile.Exists() || !IniFile.Open(FileAccessMode::Read)) {
+	if (!IniFile.Exists() || !IniFile.Open(FileAccessMode::Read))
+	{
 		Debug::Log("Failed to Open file Ares.ini \n");
 		return;
 	}
@@ -1864,7 +1892,8 @@ void LoadGlobalConfig()
 	CCINIClass Ini {};
 	Ini.ReadCCFile(&IniFile);
 
-	if (Ini.ReadString("Graphics.Advanced", "DirectX.Force", Phobos::readDefval, Phobos::readBuffer)) {
+	if (Ini.ReadString("Graphics.Advanced", "DirectX.Force", Phobos::readDefval, Phobos::readBuffer))
+	{
 		if (IS_SAME_STR_(Phobos::readBuffer, "hardware"))
 		{
 			GFX_DX_Force = 0x01l; //HW
@@ -1915,7 +1944,8 @@ void ReadRA2MD()
 
 	CCFileClass IniFile { GameStrings::UIMD_INI() };
 
-	if (IniFile.Exists() && IniFile.Open(FileAccessMode::Read)) {
+	if (IniFile.Exists() && IniFile.Open(FileAccessMode::Read))
+	{
 
 		CCINIClass Ini {};
 		Ini.ReadCCFile(&IniFile);
@@ -1923,11 +1953,12 @@ void ReadRA2MD()
 		auto const section2 = GameStrings::Colors();
 		colorCount = std::clamp(Ini.ReadInteger(section2, "Count", colorCount), 8, 16);
 
-		auto const ParseColorInt = [&Ini](const char* section, const char* key, int defColor) -> int {
+		auto const ParseColorInt = [&Ini](const char* section, const char* key, int defColor) -> int
+			{
 				ColorStruct ndefault(defColor & 0xFF, (defColor >> 8) & 0xFF, (defColor >> 16) & 0xFF);
 				auto const color = Ini.ReadColor(section, key, ndefault);
 				return color.R | color.G << 8 | color.B << 16;
-		};
+			};
 
 		auto const section = "UISettings";
 
@@ -1939,7 +1970,7 @@ void ReadRA2MD()
 			const char* defTooltip,
 			const char* defColorScheme
 		)
-		{
+			{
 				// load the tooltip string
 				char buffer[0x20];
 				IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.Tooltip", name);
@@ -1959,7 +1990,7 @@ void ReadRA2MD()
 
 				value.colorSchemeIndex = -1;
 				value.selectedIndex = -1;
-		};
+			};
 
 		// menu colors. the color of labels, button texts, list items, stuff and others
 		uiColorText = ParseColorInt(section, "Color.Text", 0xFFFF);
@@ -2019,16 +2050,18 @@ void ReadRA2MD()
 		uiColorDisabledObserver = ParseColorInt(section, "Color.Observer.Disabled", 0x8F8F8F);
 
 		// read the mod's version info
-		if (Ini.ReadString("VersionInfo", "Name", Phobos::readDefval, Phobos::readBuffer, std::size(ModName))) {
+		if (Ini.ReadString("VersionInfo", "Name", Phobos::readDefval, Phobos::readBuffer, std::size(ModName)))
+		{
 			PhobosCRT::strCopy(ModName, Phobos::readBuffer);
 		}
 
-		if (Ini.ReadString("VersionInfo", "Version", Phobos::readDefval, Phobos::readBuffer, std::size(ModVersion))) {
+		if (Ini.ReadString("VersionInfo", "Version", Phobos::readDefval, Phobos::readBuffer, std::size(ModVersion)))
+		{
 			PhobosCRT::strCopy(ModVersion, Phobos::readBuffer);
 		}
 
 		AresSafeChecksummer crc;
-		crc.Add(ModName , strlen(ModName));
+		crc.Add(ModName, strlen(ModName));
 		crc.Commit();
 		crc.Add(ModVersion, strlen(ModVersion));
 		ModIdentifier = Ini.ReadInteger("VersionInfo", "Identifier", static_cast<int>(crc.GetValue()));
@@ -2039,7 +2072,9 @@ void ReadRA2MD()
 			ModVersion,
 			ModIdentifier
 		);
-	} else {
+	}
+	else
+	{
 		Debug::Log(FAILEDTOLOADUIMD_MSG);
 	}
 
@@ -2238,7 +2273,8 @@ DEFINE_OVERRIDE_HOOK(0x614FF2, Handle_NewEdit_Messages_Color, 6)
 DEFINE_OVERRIDE_HOOK(0x4E43C0, Game_InitDropdownColors, 5)
 {
 	// mark all colors as unused (+1 for the  observer)
-	for (auto i = 0; i < colorCount + 1; ++i) {
+	for (auto i = 0; i < colorCount + 1; ++i)
+	{
 		Colors[i].selectedIndex = -1;
 	}
 
@@ -2291,10 +2327,12 @@ DEFINE_OVERRIDE_HOOK(0x4E42A0, GameSetup_GetColorTooltip, 5)
 {
 	GET(int const, idxColor, ECX);
 
-	if (idxColor == -2) {
+	if (idxColor == -2)
+	{
 		return 0x4E42A5;// random
 	}
-	else if (idxColor > colorCount) {
+	else if (idxColor > colorCount)
+	{
 		return 0x4E43B7;
 	}
 
@@ -2536,7 +2574,8 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 
 		std::wstring path = Dialogs::PrepareSnapshotDirectory();
 
-		if (Debug::LogEnabled) {
+		if (Debug::LogEnabled)
+		{
 			Debug::Log("Copying debug log\n");
 			std::wstring logCopy = path + L"\\debug.log";
 			CopyFileW(Debug::LogFileTempName.c_str(), logCopy.c_str(), FALSE);
@@ -2612,14 +2651,15 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			constexpr auto const pDelim = "------------------------------------------------------------------------------------\n";
 			fprintf(except, "Internal Error encountered!\n");
 			fprintf(except, pDelim);
-			fprintf(except, "Ares version: 21.352.1218 With Phobos %s" ,PRODUCT_VERSION); //TODO
+			fprintf(except, "Ares version: 21.352.1218 With Phobos %s", PRODUCT_VERSION); //TODO
 			fprintf(except, "\n");
 			fprintf(except, pDelim);
 
 			fprintf(except, "\n");
 
 			int i = 0;
-			for (auto const& [str, data] : Patch::ModuleDatas) {
+			for (auto const& [str, data] : Patch::ModuleDatas)
+			{
 				fprintf(except, "Module [(%d) %s: Base address = %p]\n", i++, str.c_str(), data.BaseAddr);
 			}
 
@@ -2628,7 +2668,7 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			{
 			case EXCEPTION_STACK_OVERFLOW:
 				fprintf(except, "Exception is stack overflow! (0x%08X) at %08p\n", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
-			break;
+				break;
 			case EXCEPTION_ACCESS_VIOLATION:
 			{
 				std::string VioType;
@@ -2652,15 +2692,15 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 				};
 				std::string type = "Exception is access violation (0x%08X) at %08p ";
 				type += VioType;
-				fprintf(except, type.c_str(), pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress , pExs->ExceptionRecord->ExceptionInformation[1]);
+				fprintf(except, type.c_str(), pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress, pExs->ExceptionRecord->ExceptionInformation[1]);
 			}
 			break;
 			case EXCEPTION_IN_PAGE_ERROR:
 				fprintf(except, "Exception is page fault (0x%08X) at %08p\n", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
 				break;
 			default:
-				fprintf(except, "Exception code is 0x%08X at %08p\n", pExs->ExceptionRecord->ExceptionCode , pExs->ExceptionRecord->ExceptionAddress);
-			break;
+				fprintf(except, "Exception code is 0x%08X at %08p\n", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
+				break;
 			};
 
 			PCONTEXT pCtxt = pExs->ContextRecord;
@@ -2684,8 +2724,8 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			fprintf(except, "EIP: %08X\tESP: %08X\tEBP: %08X\t\n", pCtxt->Eip, pCtxt->Esp, pCtxt->Ebp);
 			fprintf(except, "EAX: %08X\tEBX: %08X\tECX: %08X\n", pCtxt->Eax, pCtxt->Ebx, pCtxt->Ecx);
 			fprintf(except, "EDX: %08X\tESI: %08X\tEDI: %08X\n", pCtxt->Edx, pCtxt->Esi, pCtxt->Edi);
-			fprintf(except, "CS:  %04x\tSS:  %04x\tDS:  %04x\n", pCtxt->SegCs,pCtxt->SegSs,pCtxt->SegDs);
-			fprintf(except, "ES:  %04x\tFS:  %04x\tGS:  %04x\n", pCtxt->SegEs,pCtxt->SegFs,pCtxt->SegGs);
+			fprintf(except, "CS:  %04x\tSS:  %04x\tDS:  %04x\n", pCtxt->SegCs, pCtxt->SegSs, pCtxt->SegDs);
+			fprintf(except, "ES:  %04x\tFS:  %04x\tGS:  %04x\n", pCtxt->SegEs, pCtxt->SegFs, pCtxt->SegGs);
 			fprintf(except, "\n");
 
 			fprintf(except, "EFlags: %08X\n", pCtxt->EFlags);
@@ -2723,16 +2763,16 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 				fprintf(except, "\n");
 				fprintf(except, "MMX Registers:\n");
 
-				fprintf(except, "MMX0:	%016llX\tMMX1:	%016llX\tMMX2:	%016llX\tMMX3:	%016llX\n", 
+				fprintf(except, "MMX0:	%016llX\tMMX1:	%016llX\tMMX2:	%016llX\tMMX3:	%016llX\n",
 					pCtxt->ExtendedRegisters[0],
-					pCtxt->ExtendedRegisters[1], 
-					pCtxt->ExtendedRegisters[2], 
+					pCtxt->ExtendedRegisters[1],
+					pCtxt->ExtendedRegisters[2],
 					pCtxt->ExtendedRegisters[3]
 				);
 
 				fprintf(except, "MMX4:	%016llX\tMMX5:	%016llX\tMMX6:	%016llX\tMMX7:	%016llX\n",
 					pCtxt->ExtendedRegisters[4],
-					pCtxt->ExtendedRegisters[5], 
+					pCtxt->ExtendedRegisters[5],
 					pCtxt->ExtendedRegisters[6],
 					pCtxt->ExtendedRegisters[7]
 				);
@@ -2741,19 +2781,19 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			fprintf(except, "\n");
 
 			fprintf(except, "Debug Registers:\n");
-			fprintf(except, "Dr0: %016llX\tDr1: %016llX\tDr2: %016llX\tDr3: %016llX\n", 
-				pCtxt->Dr0, 
-				pCtxt->Dr1, 
+			fprintf(except, "Dr0: %016llX\tDr1: %016llX\tDr2: %016llX\tDr3: %016llX\n",
+				pCtxt->Dr0,
+				pCtxt->Dr1,
 				pCtxt->Dr2,
 				pCtxt->Dr3
 			);
 
-			fprintf(except, "Dr4: OBSOLETE\tDr5: OBSOLETE\tDr6: %08X\tDr7: %08X\n", 
-				pCtxt->Dr6, 
+			fprintf(except, "Dr4: OBSOLETE\tDr5: OBSOLETE\tDr6: %08X\tDr7: %08X\n",
+				pCtxt->Dr6,
 				pCtxt->Dr7
 			);
 
-			fprintf(except, "\nStack dump (depth : %d):\n" , EXCEPTION_STACK_DEPTH_MAX);
+			fprintf(except, "\nStack dump (depth : %d):\n", EXCEPTION_STACK_DEPTH_MAX);
 			DWORD* ptr = reinterpret_cast<DWORD*>(pCtxt->Esp);
 			for (int i = 0; i < EXCEPTION_STACK_DEPTH_MAX; ++i)
 			{
@@ -2761,7 +2801,7 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 				if (*ptr >= 0x401000 && *ptr <= 0xB79BE4)
 					suffix = "GameMemory!";
 
-				fprintf(except, "%08p: %08X %s\n", ptr, *ptr , suffix);
+				fprintf(except, "%08p: %08X %s\n", ptr, *ptr, suffix);
 				++ptr;
 			}
 
@@ -2815,8 +2855,9 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x4C8FE0, Exception_Handler, 9)
 {
 	//GET(int, code, ECX);
 	GET(LPEXCEPTION_POINTERS, pExs, EDX);
-	if(!Phobos::Otamaa::ExeTerminated){ //dont fire exception twices ,..
-		//i dont know how handle recursive exception
+	if (!Phobos::Otamaa::ExeTerminated)
+	{ //dont fire exception twices ,..
+//i dont know how handle recursive exception
 		ExceptionHandler(pExs);
 		__debugbreak();
 	}
@@ -2863,7 +2904,7 @@ void WriteLog(const MissionClass* it, int idx, DWORD checksum, FILE* F)
 	WriteLog<ObjectClass>(it, idx, checksum, F);
 	const auto Cur = it->GetCurrentMission();
 	fprintf(F, "; Mission: %s (%d); StartTime: %d",
-		MissionClass::MissionToString(Cur) , Cur, it->CurrentMissionStartTime);
+		MissionClass::MissionToString(Cur), Cur, it->CurrentMissionStartTime);
 }
 
 template<>
@@ -2900,7 +2941,7 @@ void WriteLog(const FootClass* it, int idx, DWORD checksum, FILE* F)
 		destCrd = pDest->GetCoords();
 	}
 
-	fprintf(F, "; Destination: %s (%d; %d,%d); SpeedPercentage %d ; Height %d", 
+	fprintf(F, "; Destination: %s (%d; %d,%d); SpeedPercentage %d ; Height %d",
 		destID, destIndex, destCrd.X, destCrd.Y
 		, Game::F2I(it->SpeedPercentage * 256)
 		, it->GetHeight()
@@ -2921,7 +2962,7 @@ void WriteLog(const UnitClass* it, int idx, DWORD checksum, FILE* F)
 }
 
 template<>
-void WriteLog(const InfantryClass * it, int idx, DWORD checksum, FILE* F)
+void WriteLog(const InfantryClass* it, int idx, DWORD checksum, FILE* F)
 {
 	WriteLog<FootClass>(it, idx, checksum, F);
 }
@@ -2932,10 +2973,374 @@ void WriteLog(const AircraftClass* it, int idx, DWORD checksum, FILE* F)
 	WriteLog<FootClass>(it, idx, checksum, F);
 }
 
+void PrintBld(const BuildingClass* pThis, const char* who, FILE* stream)
+{
+
+	if (IS_SAME_STR_(pThis->Type->ID, who))
+	{
+		auto printTimer = [=](const CDTimerClass& timer){
+			fprintf(stream, "%d %d\n", timer.TimeLeft, timer.StartTime);
+		};
+
+		//ObjectClass]
+		fprintf(stream, "\n");
+		fprintf(stream, "%d\n", pThis->unknown_24);
+		fprintf(stream, "%d\n", pThis->unknown_28);
+		fprintf(stream, "%d\n", pThis->FallRate);
+		fprintf(stream, "%p\n", pThis->NextObject);
+		//AmbientSoundController
+		//CustomSoundController
+		fprintf(stream, "%d\n", pThis->CustomSound);
+		fprintf(stream, "%d\n", pThis->BombVisible);
+		fprintf(stream, "%d\n", pThis->Health);
+		fprintf(stream, "%d\n", pThis->EstimatedHealth);
+		fprintf(stream, "%d\n", pThis->IsOnMap);
+		fprintf(stream, "%d\n", pThis->NeedsRedraw);
+		fprintf(stream, "%d\n", pThis->InLimbo);
+		fprintf(stream, "%d\n", pThis->InOpenToppedTransport);
+		fprintf(stream, "%d\n", pThis->IsSelected);
+
+		fprintf(stream, "%p\n", pThis->Parachute);
+		fprintf(stream, "%d\n", pThis->OnBridge);
+		fprintf(stream, "%d\n", pThis->IsFallingDown);
+		fprintf(stream, "%d\n", pThis->WasFallingDown);
+		fprintf(stream, "%d\n", pThis->IsABomb);
+		fprintf(stream, "%d\n", pThis->IsAlive);
+		fprintf(stream, "%d\n", (int)pThis->LastLayer);
+		fprintf(stream, "%d\n", pThis->IsInLogic);
+		fprintf(stream, "%d\n", pThis->IsVisible);
+		fprintf(stream, "%d %d %d\n", pThis->Location.X, pThis->Location.Y, pThis->Location.Z);
+		fprintf(stream, "%p\n", pThis->LineTrailer);
+		fprintf(stream, "%d\n", pThis->IsSelected);
+
+
+		//MissionClass
+		fprintf(stream, "%d\n", pThis->CurrentMission);
+		fprintf(stream, "%d\n", pThis->SuspendedMission);
+		fprintf(stream, "%d\n", pThis->QueuedMission);
+		fprintf(stream, "%d\n", pThis->unknown_bool_B8);
+		fprintf(stream, "%d\n", pThis->MissionStatus);
+		fprintf(stream, "%d\n", pThis->CurrentMissionStartTime);
+		fprintf(stream, "%d\n", pThis->unknown_C4);
+		printTimer(pThis->UpdateTimer);
+
+
+		//RadioClass
+		fprintf(stream, "%d %d %d\n", (int)pThis->LastCommands[0], (int)pThis->LastCommands[1], (int)pThis->LastCommands[2]);
+		fprintf(stream, "%d %d %d\n", pThis->RadioLinks.Capacity, pThis->RadioLinks.IsInitialized, pThis->RadioLinks.IsAllocated);
+
+		fprintf(stream, "%d %d\n", pThis->Flashing.DurationRemaining, pThis->Flashing.FlashingNow);
+		fprintf(stream, "%d %d %d\n", pThis->Animation.Step, pThis->Animation.Value, pThis->Animation.Timer.Duration); // how the unit animates
+		fprintf(stream, "%d\n", pThis->Passengers.NumPassengers);
+		fprintf(stream, "%p\n", pThis->Transporter); // unit carrying me
+		fprintf(stream, "%d\n", pThis->__LastGuardAreaTargetingFrame_120);
+		fprintf(stream, "%d\n", pThis->CurrentTurretNumber); // for IFV/gattling/charge turrets
+		fprintf(stream, "%d\n", pThis->__TurretWeapon2_128);
+		fprintf(stream, "%p\n", pThis->BehindAnim);
+		fprintf(stream, "%p\n", pThis->DeployAnim);
+		fprintf(stream, "%d\n", pThis->InAir);
+		fprintf(stream, "%d\n", pThis->CurrentWeaponNumber); // for IFV/gattling 138
+		fprintf(stream, "%d\n", pThis->CurrentRanking); // only used for promotion detection
+		fprintf(stream, "%d\n", pThis->CurrentGattlingStage);
+		fprintf(stream, "%d\n", pThis->GattlingValue); // sum of RateUps and RateDowns
+		fprintf(stream, "%d\n", pThis->TurretAnimFrame);
+		fprintf(stream, "%p\n", pThis->InitialOwner); // only set in ctor
+		fprintf(stream, "%fl\n", pThis->Veterancy.Veterancy);
+		fprintf(stream, "%d\n", pThis->align_154);
+		fprintf(stream, "%fl\n", pThis->ArmorMultiplier);
+		fprintf(stream, "%fl\n", pThis->FirepowerMultiplier);
+		printTimer(pThis->IdleActionTimer); // MOO
+		printTimer(pThis->RadarFlashTimer);
+		printTimer(pThis->TargetingTimer); //Duration = 45 on init!
+		printTimer(pThis->IronCurtainTimer);
+		printTimer(pThis->IronTintTimer); // how often to alternate the effect color
+		fprintf(stream, "%d\n", pThis->IronTintStage); // ^
+		printTimer(pThis->AirstrikeTimer);
+		printTimer(pThis->AirstrikeTintTimer); // tracks alternation of the effect color
+		fprintf(stream, "%d\n", pThis->AirstrikeTintStage); //  ^
+		fprintf(stream, "%d\n", pThis->ProtectType);	//0 or 1, NOT a bool - is this under ForceShield as opposed to IC?
+		fprintf(stream, "%d\n", pThis->Deactivated); //Robot Tanks without power for instance
+		fprintf(stream, "%p\n", pThis->DrainTarget); // eg Disk -> PowerPlant, this points to PowerPlant
+		fprintf(stream, "%p\n", pThis->DrainingMe);  // eg Disk -> PowerPlant, this points to Disk
+		fprintf(stream, "%p\n", pThis->DrainAnim);
+		fprintf(stream, "%d\n", pThis->Disguised);
+		fprintf(stream, "%d\n", pThis->DisguiseCreationFrame);
+		printTimer(pThis->InfantryBlinkTimer); // Rules->InfantryBlinkDisguiseTime , detects mirage firing per description
+		printTimer(pThis->DisguiseBlinkTimer); // disguise disruption timer
+		fprintf(stream, "%d\n", pThis->UnlimboingInfantry); //1F8
+		printTimer(pThis->ReloadTimer);
+		fprintf(stream, "%d\n", pThis->unknown_208);
+		fprintf(stream, "%d\n", pThis->unknown_20C);
+
+		// WARNING! this is actually an index of HouseTypeClass es, but it's being changed to fix typical WW bugs.
+		//DECLARE_PROPERTY(IndexBitfield<HouseClass*>, DisplayProductionTo); // each bit corresponds to one player on the map, telling us whether that player has (1) or hasn't (0) spied this building, and the game should display what's being produced inside it to that player. The bits are arranged by player ID, i.e. bit 0 refers to house #0 in HouseClass::Array, 1 to 1, etc.; query like ((1 << somePlayer->ArrayIndex) & someFactory->DisplayProductionToHouses) != 0
+
+		fprintf(stream, "%d\n", pThis->Group);
+		fprintf(stream, "%p\n", pThis->Focus);
+		fprintf(stream, "%p\n", pThis->Owner);
+		fprintf(stream, "%d\n", pThis->CloakState);
+		//DECLARE_PROPERTY(StageClass, CloakProgress); // phase from [opaque] -> [fading] -> [transparent] , [General]CloakingStages= long
+		printTimer(pThis->CloakDelayTimer); // delay before cloaking again
+		fprintf(stream, "%fl\n", pThis->WarpFactor); // don't ask! set to 0 in CTOR, never modified, only used as ((this->Fetch_ID) + this->WarpFactor) % 400 for something in cloak ripple
+		fprintf(stream, "%d\n", pThis->unknown_bool_250);
+		//CoordStruct      LastSightCoords;
+		fprintf(stream, "%d\n", pThis->LastSightRange);
+		fprintf(stream, "%d\n", pThis->LastSightHeight);
+		fprintf(stream, "%d\n", pThis->GapSuperCharged); // GapGenerator, when SuperGapRadiusInCells != GapRadiusInCells, you can deploy the gap to boost radius
+		fprintf(stream, "%d\n", pThis->GeneratingGap); // is currently generating gap
+		fprintf(stream, "%d\n", pThis->GapRadius);
+		fprintf(stream, "%d\n", pThis->BeingWarpedOut); // is being warped by CLEG used , for 70C5B0
+		fprintf(stream, "%d\n", pThis->WarpingOut); // phasing in after chrono-jump used , for 70C5C0
+		fprintf(stream, "%d\n", pThis->unknown_bool_272);
+		fprintf(stream, "%d\n", pThis->unused_273);
+		fprintf(stream, "%p\n", pThis->TemporalImUsing); // CLEG attacking Power Plant : CLEG's this
+		fprintf(stream, "%p\n", pThis->TemporalTargetingMe); 	// CLEG attacking Power Plant : PowerPlant's this
+		fprintf(stream, "%d\n", pThis->IsImmobilized); // by chrono aftereffects ,27C
+		fprintf(stream, "%d\n", pThis->unknown_280);
+		fprintf(stream, "%d\n", pThis->ChronoLockRemaining); // 284 countdown after chronosphere warps things around
+		//CoordStruct      ChronoDestCoords; // teleport loco and chsphere set this
+		fprintf(stream, "%p\n", pThis->Airstrike); //Boris
+		fprintf(stream, "%d\n", pThis->Berzerk);
+		fprintf(stream, "%d\n", pThis->BerzerkDurationLeft);
+		fprintf(stream, "%d\n", pThis->SprayOffsetIndex); // hardcoded array of xyz offsets for sprayattack, 0 - 7, see 6FE0AD
+		fprintf(stream, "%d\n", pThis->Uncrushable); // DeployedCrushable fiddles this, otherwise all 0
+		fprintf(stream, "%p\n", pThis->DirectRockerLinkedUnit);
+		fprintf(stream, "%p\n", pThis->LocomotorTarget); // mag->LocoTarget = victim
+		fprintf(stream, "%p\n", pThis->LocomotorSource); // victim->LocoSource = mag
+		fprintf(stream, "%p\n", pThis->Target); //if attacking ,tarcom
+		fprintf(stream, "%p\n", pThis->LastTarget); //suspendedtarcom
+		fprintf(stream, "%p\n", pThis->CaptureManager); //for Yuris
+		fprintf(stream, "%p\n", pThis->MindControlledBy);
+		fprintf(stream, "%d\n", pThis->MindControlledByAUnit);
+		fprintf(stream, "%p\n", pThis->MindControlRingAnim);
+		fprintf(stream, "%p\n", pThis->MindControlledByHouse); //used for a TAction
+		fprintf(stream, "%p\n", pThis->SpawnManager);
+		fprintf(stream, "%p\n", pThis->SpawnOwner); // on DMISL , points to DRED and such
+		fprintf(stream, "%p\n", pThis->SlaveManager);
+		fprintf(stream, "%p\n", pThis->SlaveOwner); // on SLAV, points to YAREFN
+		fprintf(stream, "%p\n", pThis->OriginallyOwnedByHouse); //used for mind control
+
+		//units point to the Building bunkering them, building points to Foot contained within
+		fprintf(stream, "%p\n", pThis->BunkerLinkedItem);
+
+		fprintf(stream, "%fl\n", pThis->PitchAngle); // not exactly, and it doesn't affect the drawing, only internal state of a dropship
+		printTimer(pThis->DiskLaserTimer);
+		fprintf(stream, "%d\n", pThis->ROF);
+		fprintf(stream, "%d\n", pThis->Ammo);
+		fprintf(stream, "%d\n", pThis->Value); //,PurchasePrice set to actual cost when this gets queued in factory, updated only in building's 42C
+
+
+		fprintf(stream, "%p\n", pThis->FireParticleSystem);
+		fprintf(stream, "%p\n", pThis->SparkParticleSystem);
+		fprintf(stream, "%p\n", pThis->NaturalParticleSystem);
+		fprintf(stream, "%p\n", pThis->DamageParticleSystem);
+		fprintf(stream, "%p\n", pThis->RailgunParticleSystem);
+		fprintf(stream, "%p\n", pThis->unk1ParticleSystem);
+		fprintf(stream, "%p\n", pThis->unk2ParticleSystem);
+		fprintf(stream, "%p\n", pThis->FiringParticleSystem);
+
+		fprintf(stream, "%p\n", pThis->Wave); //Beams
+
+
+		// rocking effect
+		fprintf(stream, "%fl\n", pThis->AngleRotatedSideways); // in this frame, in radians - if abs() exceeds pi/2, it dies
+		fprintf(stream, "%fl\n", pThis->AngleRotatedForwards); // same
+
+		// set these and leave the previous two alone!
+		// if these are set, the unit will roll up to pi/4, by this step each frame, and balance back
+		fprintf(stream, "%fl\n", pThis->RockingSidewaysPerFrame); // left to right - positive pushes left side up
+		fprintf(stream, "%fl\n", pThis->RockingForwardsPerFrame); // back to front - positive pushes ass up
+
+		fprintf(stream, "%d\n", pThis->HijackerInfantryType); // mutant hijacker
+
+		//DECLARE_PROPERTY(StorageClass, Tiberium);
+		fprintf(stream, "%d\n", pThis->unknown_34C);
+
+		//DECLARE_PROPERTY(DoorClass, UnloadTimer); // times the deploy, unload, etc. cycles ,DoorClass
+
+		//DECLARE_PROPERTY(FacingClass, BarrelFacing);
+		//DECLARE_PROPERTY(FacingClass, PrimaryFacing); //Facing
+		//DECLARE_PROPERTY(FacingClass, SecondaryFacing); // TurretFacing
+		fprintf(stream, "%d\n", pThis->CurrentBurstIndex);
+		printTimer(pThis->TargetLaserTimer);
+		fprintf(stream, "%d\n", pThis->weapon_sound_randomnumber_3C8);
+		fprintf(stream, "%d\n", pThis->__shipsink_3CA);
+		fprintf(stream, "%d\n", pThis->CountedAsOwned); // is this techno contained in OwningPlayer->Owned... counts?
+		fprintf(stream, "%d\n", pThis->IsSinking);
+		fprintf(stream, "%d\n", pThis->WasSinkingAlready); // if(IsSinking && !WasSinkingAlready) { play SinkingSound; WasSinkingAlready = 1; }
+		fprintf(stream, "%d\n", pThis->__ProtectMe_3CF);
+		fprintf(stream, "%d\n", pThis->IsUseless); //3D0
+		fprintf(stream, "%d\n", pThis->IsTickedOff); //HasBeenAttacked //3D1
+		fprintf(stream, "%d\n", pThis->Cloakable); //3D2
+		fprintf(stream, "%d\n", pThis->IsPrimaryFactory); //3D3 IsLoaner
+		//BYTE			 IsALoaner; // 3D4
+		//BYTE			 IsLocked; // 3D5
+		fprintf(stream, "%d\n", pThis->Spawned); // 3D6
+		fprintf(stream, "%d\n", pThis->IsInPlayfield); // 3D7
+		//DECLARE_PROPERTY(RecoilData, TurretRecoil);
+		//DECLARE_PROPERTY(RecoilData, BarrelRecoil);
+		fprintf(stream, "%d\n", pThis->IsTethered); //418
+		fprintf(stream, "%d\n", pThis->RADIO_26_27_419);
+		fprintf(stream, "%d\n", pThis->IsOwnedByCurrentPlayer);
+		fprintf(stream, "%d\n", pThis->DiscoveredByCurrentPlayer);
+		fprintf(stream, "%d\n", pThis->DiscoveredByComputer);
+		fprintf(stream, "%d\n", pThis->unknown_bool_41D);
+		fprintf(stream, "%d\n", pThis->unknown_bool_41E);
+		fprintf(stream, "%d\n", pThis->unknown_bool_41F);
+		fprintf(stream, "%d\n", pThis->SightIncrease); // used for LeptonsPerSightIncrease
+		fprintf(stream, "%d\n", pThis->RecruitableA); // these two are like Lenny and Carl, weird purpose and never seen separate
+		fprintf(stream, "%d\n", pThis->RecruitableB); // they're usually set on preplaced objects in maps
+		fprintf(stream, "%d\n", pThis->IsRadarTracked);
+		fprintf(stream, "%d\n", pThis->IsOnCarryall);
+		fprintf(stream, "%d\n", pThis->IsCrashing);
+		fprintf(stream, "%d\n", pThis->WasCrashingAlready);
+		fprintf(stream, "%d\n", pThis->IsBeingManipulated);
+		fprintf(stream, "%p\n", pThis->BeingManipulatedBy); // set when something is being molested by a locomotor such as magnetron
+		// the pointee will be marked as the killer of whatever the victim falls onto
+		fprintf(stream, "%p\n", pThis->ChronoWarpedByHouse);
+		fprintf(stream, "%d\n", pThis->_Mission_Patrol_430);
+		fprintf(stream, "%d\n", pThis->IsMouseHovering);
+		fprintf(stream, "%d\n", pThis->parasitecontrol_byte432);
+		//	BYTE			 byte_433;
+		fprintf(stream, "%p\n", pThis->OldTeam);
+		fprintf(stream, "%d\n", pThis->CountedAsOwnedSpecial); // for absorbers, infantry uses this to manually control OwnedInfantry count
+		fprintf(stream, "%d\n", pThis->Absorbed); // in UnitAbsorb/InfantryAbsorb or smth, lousy memory
+		fprintf(stream, "%d\n", pThis->forceattackforcemovefirendlytarget_bool_43A);
+		fprintf(stream, "%d\n", pThis->__RadialFireCounter_43C);
+		//DECLARE_PROPERTY(DynamicVectorClass<int>, CurrentTargetThreatValues);
+		//DECLARE_PROPERTY(DynamicVectorClass<AbstractClass*>, CurrentTargets);
+
+		// if DistributedFire=yes, this is used to determine which possible targets should be ignored in the latest threat scan
+		//DECLARE_PROPERTY(DynamicVectorClass<AbstractClass*>, AttackedTargets);
+
+		//DECLARE_PROPERTY(AudioController, Audio3);
+
+		fprintf(stream, "%d\n", pThis->__IsTurretTurning_49C); // Turret is moving?
+		fprintf(stream, "%d\n", pThis->TurretIsRotating);
+
+		//DECLARE_PROPERTY(AudioController, Audio4);
+
+		fprintf(stream, "%d\n", pThis->GattlingAudioPlayed); //4B8
+		fprintf(stream, "%d\n", pThis->unknown_4BC);
+
+		//DECLARE_PROPERTY(AudioController, Audio5);
+
+		fprintf(stream, "%d\n", pThis->gattlingsound_4D4);
+		fprintf(stream, "%d\n", pThis->unknown_4D8);
+
+		//DECLARE_PROPERTY(AudioController, Audio6);
+
+		fprintf(stream, "%d\n", pThis->QueuedVoiceIndex);
+		fprintf(stream, "%d\n", pThis->__LastVoicePlayed); //4F4
+		fprintf(stream, "%d\n", pThis->deploy_bool_4F8);
+		fprintf(stream, "%d\n", pThis->__creationframe_4FC);	//gets initialized with the current Frame, but this is NOT a CDTimerClass!
+		fprintf(stream, "%p\n", pThis->LinkedBuilding); // 500 BuildingClass*
+		fprintf(stream, "%d\n", pThis->EMPLockRemaining);
+		fprintf(stream, "%d\n", pThis->ThreatPosed); // calculated to include cargo etc
+		fprintf(stream, "%d\n", pThis->ShouldLoseTargetNow); //the rest is padded for sure
+		fprintf(stream, "%p\n", pThis->FiringRadBeam);
+		fprintf(stream, "%p\n", pThis->PlanningToken);
+		fprintf(stream, "%p\n", pThis->Disguise);
+		fprintf(stream, "%p\n", pThis->DisguisedAsHouse);
+
+
+		//BuildingClass
+		fprintf(stream, "%p\n", pThis->Type);
+		fprintf(stream, "%p\n", pThis->Factory);
+		printTimer(pThis->GoingToBlowTimer);  // used for warhead DelayKill and also C4
+		fprintf(stream, "%d\n", pThis->BState);
+		fprintf(stream, "%d\n", pThis->QueueBState);
+		fprintf(stream, "%d\n", pThis->OwnerCountryIndex);
+		fprintf(stream, "%p\n", pThis->C4AppliedBy);
+		fprintf(stream, "%d\n", pThis->LastStrength); //544
+		fprintf(stream, "%p\n", pThis->FirestormAnim); //pointer
+		fprintf(stream, "%p\n", pThis->PsiWarnAnim); //pointer
+		printTimer(pThis->PlacementDelay); //550
+
+		//AnimClass* Anims[0x15];
+		//bool AnimStates[0x15]; // one flag for each of the above anims (whether the anim was enabled when power went offline?)
+
+		//PROTECTED_PROPERTY(BYTE, align_5C5[3]);
+
+		//DWORD DamageFireAnims1; //0x5C8
+		//AnimClass* DamageFireAnims[0x8];
+		fprintf(stream, "%d\n", pThis->RequiresDamageFires); // if set, ::Update spawns damage fire anims and zeroes it
+
+		//5E8 - 5F8 ????????
+		//BuildingTypeClass* Upgrades[0x3];
+
+		fprintf(stream, "%d\n", pThis->FiringSWType); // type # of sw being launched
+		fprintf(stream, "%d\n", pThis->upgrade_5FC);
+		fprintf(stream, "%p\n", pThis->Spotlight);
+		//RateTimer GateTimer;
+		fprintf(stream, "%p\n", pThis->LightSource); // tiled light , LightIntensity > 0
+		fprintf(stream, "%d\n", pThis->LaserFenceFrame); // 0-7 for active directionals, 8/12 for offline ones, check ntfnce.shp or whatever
+		fprintf(stream, "%d\n", pThis->FirestormWallFrame); // anim data for firestorm active animations
+		//StageClass RepairProgress; // for hospital, armory, unitrepair etc
+		fprintf(stream, "%d %d %d %d\n", pThis->unknown_rect_63C.X, pThis->unknown_rect_63C.Y, pThis->unknown_rect_63C.Width, pThis->unknown_rect_63C.Height);
+		fprintf(stream, "%d %d %d\n", pThis->unknown_coord_64C.X, pThis->unknown_coord_64C.Y, pThis->unknown_coord_64C.Z);
+		fprintf(stream, "%d\n", pThis->unknown_int_658);
+		fprintf(stream, "%d\n", pThis->unknown_65C);
+		fprintf(stream, "%d\n", pThis->HasPower);
+		fprintf(stream, "%d\n", pThis->IsOverpowered);
+
+		// each powered unit controller building gets this set on power activation and unset on power outage
+		fprintf(stream, "%d\n", pThis->RegisteredAsPoweredUnitSource);
+
+		fprintf(stream, "%d\n", pThis->SupportingPrisms);
+		fprintf(stream, "%d\n", pThis->HasExtraPowerBonus);
+		fprintf(stream, "%d\n", pThis->HasExtraPowerDrain);
+		//DynamicVectorClass<InfantryClass*> Overpowerers;
+		//DynamicVectorClass<InfantryClass*> Occupants;
+		fprintf(stream, "%d\n", pThis->FiringOccupantIndex); // which occupant should get XP, which weapon should be fired (see 6FF074)
+
+		//AudioController Audio7;
+		//AudioController Audio8;
+
+		fprintf(stream, "%d\n", pThis->WasOnline); // the the last state when Update()ing. if this changed since the last Update(), UpdatePowered is called.
+		fprintf(stream, "%d\n", pThis->ShowRealName); // is also NOMINAL under [Structures]
+		fprintf(stream, "%d\n", pThis->BeingProduced); // is also AI_REBUILDABLE under [Structures]
+		fprintf(stream, "%d\n", pThis->ShouldRebuild);// is also AI_REPAIRABLE under [Structures]
+		fprintf(stream, "%d\n", pThis->HasEngineer); // used to pass the NeedsEngineer check
+		printTimer(pThis->CashProductionTimer);
+		fprintf(stream, "%d\n", pThis->IsAllowedToSell); //6DC bool AI_Sellable; AI_SELLABLE under [Structures]
+		fprintf(stream, "%d\n", pThis->IsReadyToCommence); //6DD
+		fprintf(stream, "%d\n", pThis->NeedsRepairs); // AI handholder for repair logic,
+		fprintf(stream, "%d\n", pThis->IsGoingToBlow); // used for warhead DelayKill and also C4
+		fprintf(stream, "%d\n", pThis->NoCrew);
+		fprintf(stream, "%d\n", pThis->IsCharging); //6E1
+		fprintf(stream, "%d\n", pThis->IsCharged);	//6E2
+		fprintf(stream, "%d\n", pThis->HasBeenCaptured); // has this building changed ownership at least once? affects crew and repair.
+		fprintf(stream, "%d\n", pThis->ActuallyPlacedOnMap);
+		fprintf(stream, "%d\n", pThis->unknown_bool_6E5);
+		fprintf(stream, "%d\n", pThis->IsDamaged); // AI handholder for repair logic,
+		fprintf(stream, "%d\n", pThis->IsFogged);
+		fprintf(stream, "%d\n", pThis->IsBeingRepaired); // show animooted repair wrench
+		fprintf(stream, "%d\n", pThis->HasBuildup);
+		fprintf(stream, "%d\n", pThis->StuffEnabled); // status set by EnableStuff() and DisableStuff()
+		fprintf(stream, "%d\n", pThis->HasCloakingData); // some fugly buffers
+		fprintf(stream, "%d\n", pThis->CloakRadius); // from Type->CloakRadiusInCells
+		fprintf(stream, "%d\n", pThis->Translucency);
+		fprintf(stream, "%d\n", pThis->StorageFilledSlots); // the old "silo needed" logic
+		fprintf(stream, "%p\n", pThis->SecretProduction); // randomly assigned secret lab bonus, used if SecretInfantry, SecretUnit, and SecretBuilding are null
+		fprintf(stream, "%d %d %d\n", pThis->ColorAdd.R, pThis->ColorAdd.G, pThis->ColorAdd.B);
+		fprintf(stream, "%d\n", pThis->IsAirstrikeTargetingMe); //6FC
+		fprintf(stream, "%d\n", pThis->unknown_short_700);
+		fprintf(stream, "%d\n", pThis->UpgradeLevel); // as defined by Type->UpgradesToLevel=
+		fprintf(stream, "%d\n", pThis->GateStage);
+		fprintf(stream, "%d\n", pThis->PrismStage);
+		fprintf(stream, "%d %d %d\n", pThis->PrismTargetCoords.X, pThis->PrismTargetCoords.Y, pThis->PrismTargetCoords.Z);
+		fprintf(stream, "%d\n", pThis->DelayBeforeFiring); //714
+
+		fprintf(stream, "%d\n", pThis->BunkerState); // used in UpdateBunker and friends 0x718
+	}
+}
+
 template<>
 void WriteLog(const BuildingClass* it, int idx, DWORD checksum, FILE* F)
 {
 	WriteLog<TechnoClass>(it, idx, checksum, F);
+	PrintBld(it, "GACNST", F);
 }
 
 template<>
@@ -2957,18 +3362,23 @@ void WriteLog(const HouseClass* it, int idx, DWORD checksum, FILE* F)
 		(int)it->Edge, it->StartingAllies.data, it->StartingCell.X, it->StartingCell.Y, it->Visionary,
 		it->MapIsClear, it->Available_Money());
 
-	if (!it->IsNeutral() && !it->IsControlledByHuman()) {
+	if (!it->IsNeutral() && !it->IsControlledByHuman())
+	{
 		fprintf(F, "\nLogging AI BaseNodes : \n");
 
 		const auto& b = it->Base.BaseNodes;
-		for (int j = 0; j < b.Count; ++j) {
+		for (int j = 0; j < b.Count; ++j)
+		{
 			const auto& n = b[j];
 			auto idx = n.BuildingTypeIndex;
-			if (idx >= 0) {
+			if (idx >= 0)
+			{
 				auto lbl = BuildingTypeClass::Array->Items[idx]->ID;
 				fprintf(F, "\tNode #%03d: %s @ (%05d, %05d), Attempts so far: %d, Placed: %d\n"
 					, j, lbl, n.MapCoords.X, n.MapCoords.Y, n.Attempts, n.Placed);
-			} else {
+			}
+			else
+			{
 				fprintf(F, "\tNode #%03d: Special %d @ (%05d, %05d), Attempts so far: %d, Placed: %d\n"
 					, j, idx, n.MapCoords.X, n.MapCoords.Y, n.Attempts, n.Placed);
 			}
@@ -3060,7 +3470,8 @@ bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 		fprintf(LogFile, "YR synchronization log\n");
 		fprintf(LogFile, "With Ares [21.352.1218] and Phobos %s\n", PRODUCT_VERSION);
 
-		for (size_t ixF = 0; ixF < EventClass::LatestFramesCRC.c_size(); ++ixF) {
+		for (size_t ixF = 0; ixF < EventClass::LatestFramesCRC.c_size(); ++ixF)
+		{
 			fprintf(LogFile, "LastFrame CRC[%02d] = %08X\n", ixF, EventClass::LatestFramesCRC[ixF]);
 		}
 
@@ -3071,9 +3482,9 @@ bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 		fprintf(LogFile, "Latency setting: %d\n", Game::Network::LatencyFudge());
 		fprintf(LogFile, "Game speed setting: %d\n", GameOptionsClass::Instance->GameSpeed);
 		fprintf(LogFile, "FrameSendRate: %d\n", Game::Network::FrameSendRate());
-		fprintf(LogFile, "Mod is %s (%s) with %X\n", ModName , ModVersion , ModIdentifier);
+		fprintf(LogFile, "Mod is %s (%s) with %X\n", ModName, ModVersion, ModIdentifier);
 
-		if(HouseClass::CurrentPlayer())
+		if (HouseClass::CurrentPlayer())
 			fprintf(LogFile, "Player Name: %s\n", HouseClass::CurrentPlayer->PlainName);
 
 		const auto nHashes = HashData::GetINIChecksums();
@@ -3088,7 +3499,7 @@ bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 			fprintf(LogFile, "Type:         %X\n", OffendingEvent->Type);
 			fprintf(LogFile, "Frame:        %X\n", OffendingEvent->Frame);
 			fprintf(LogFile, "ID:           %X\n", OffendingEvent->HouseIndex);
-			fprintf(LogFile, "CRC:          %X(%d)\n", OffendingEvent->Data.FrameInfo.CRC ,OffendingEvent->Data.FrameInfo.CRC);
+			fprintf(LogFile, "CRC:          %X(%d)\n", OffendingEvent->Data.FrameInfo.CRC, OffendingEvent->Data.FrameInfo.CRC);
 			fprintf(LogFile, "CommandCount: %hu\n", OffendingEvent->Data.FrameInfo.CommandCount);
 			fprintf(LogFile, "Delay:        %hhu\n", OffendingEvent->Data.FrameInfo.Delay);
 			fprintf(LogFile, "\n\n");
@@ -3112,7 +3523,8 @@ bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 		VectorLogger(&LogicClass::Instance(), LogFile, "Logics");
 
 		fprintf(LogFile, "\n**Checksums for Map Layers**\n");
-		for (size_t ixL = 0; ixL < MapClass::ObjectsInLayers.c_size(); ++ixL) {
+		for (size_t ixL = 0; ixL < MapClass::ObjectsInLayers.c_size(); ++ixL)
+		{
 			fprintf(LogFile, "Checksums for Layer %d\n", ixL);
 			VectorLogger(&(MapClass::ObjectsInLayers[ixL]), LogFile);
 		}

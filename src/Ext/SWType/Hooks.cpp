@@ -316,11 +316,12 @@ DEFINE_HOOK(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 	{
 		const auto pCurrentTechnoType = pCurrentTechno->GetTechnoType();
 		const auto pOwner = pCurrentTechno->Owner;
+		const auto IsCurrentPlayer = pOwner->IsCurrentPlayer();
 
 		if (!pCurrentTechno->IsAlive
 			|| pCurrentTechno->InLimbo
-			|| (pOwner != HouseClass::CurrentPlayer && pOwner->IsAlliedWith(HouseClass::CurrentPlayer))                  // Ally objects are never designators or inhibitors
-			|| (pOwner == HouseClass::CurrentPlayer && !pExt->SW_Designators.Contains(pCurrentTechnoType))               // Only owned objects can be designators
+			|| (!IsCurrentPlayer && pOwner->IsAlliedWith(HouseClass::CurrentPlayer))                  // Ally objects are never designators or inhibitors
+			|| (IsCurrentPlayer && !pExt->SW_Designators.Contains(pCurrentTechnoType))               // Only owned objects can be designators
 			|| (!pOwner->IsAlliedWith(HouseClass::CurrentPlayer) && !pExt->SW_Inhibitors.Contains(pCurrentTechnoType)))  // Only enemy objects can be inhibitors
 		{
 			continue;
@@ -328,7 +329,7 @@ DEFINE_HOOK(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 
 		const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pCurrentTechnoType);
 
-		const float radius = float((pOwner == HouseClass::CurrentPlayer
+		const float radius = float((IsCurrentPlayer
 			? pTechnoTypeExt->DesignatorRange
 			: pTechnoTypeExt->InhibitorRange).Get(pCurrentTechnoType->Sight));
 
