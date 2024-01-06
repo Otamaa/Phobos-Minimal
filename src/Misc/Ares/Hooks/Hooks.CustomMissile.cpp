@@ -274,18 +274,17 @@ DEFINE_OVERRIDE_HOOK(0x6B78F8, SpawnManagerClass_Update_CustomMissile, 6)
 
 DEFINE_OVERRIDE_HOOK(0x6B7A72, SpawnManagerClass_Update_CustomMissile2, 6)
 {
-	//GET(SpawnManagerClass*, pSpawnManager, ESI);
-	//GET(int, idxSpawn, EDI);
+	GET(SpawnManagerClass*, pSpawnManager, ESI);
+	GET(int, idxSpawn, EDI);
 	GET(TechnoTypeClass* const, pSpawnType, EDX);
 
 	const auto pExt = TechnoTypeExtContainer::Instance.Find(pSpawnType);
 
 	if (pExt->IsCustomMissile) {
-		R->EDX(Unsorted::CurrentFrame());
-		//pSpawnManager->SpawnedNodes.Items[idxSpawn]->SpawnTimer.Start();
-		R->ECX(pExt->CustomMissileData->PauseFrames + pExt->CustomMissileData->TiltFrames);
-		//return 0x6B7B03;
-		return 0x6B7AB1;
+		auto node = &pSpawnManager->SpawnedNodes.Items[idxSpawn]->NodeSpawnTimer;
+		node->StartTime = Unsorted::CurrentFrame();
+		node->TimeLeft = pExt->CustomMissileData->PauseFrames + pExt->CustomMissileData->TiltFrames;
+		return 0x6B7B03;
 	}
 
 	return 0;

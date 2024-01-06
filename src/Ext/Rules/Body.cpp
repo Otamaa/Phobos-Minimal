@@ -183,6 +183,13 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			}
 		}
 
+		if (pItem->Sight < 0) {
+			Debug::Log("TechnoType[%s - %s] , registered with less than 0 Sight , Fixing.\n",
+			pItem->ID, myClassName);
+			Debug::RegisterParserError();
+			pItem->Sight = 0;
+		}
+
 		// if (pExt->AIIonCannonValue.HasValue() && pExt->AIIonCannonValue.size() < 3) {
 		// 	for(size_t i = 0; i < (3 - pExt->AIIonCannonValue.size()); ++i)
 		// 		pExt->AIIonCannonValue.push_back(0);

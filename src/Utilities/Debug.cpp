@@ -225,8 +225,7 @@ void Debug::FatalError(bool Dump)
 		L"%hs",
 		Phobos::readBuffer);
 
-	Debug::Log("\nFatal Error:\n");
-	Debug::Log("%s\n", Phobos::readBuffer);
+	Debug::Log("\nFatal Error: \n%s\n" , Phobos::readBuffer);
 	Debug::FreeMouse();
 	MessageBoxW(Game::hWnd, Message, L"Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
 
