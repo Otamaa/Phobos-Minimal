@@ -543,13 +543,13 @@ DEFINE_HOOK(0x702484, TechnoClass_ReceiveDamage_AnimDebris, 0x6)
 //ObjectClass TakeDamage , 5F559C
 //UnitClass TakeDamage , 737F0E
 
-DEFINE_HOOK(0x703819, TechnoClass_Cloak_Deselect, 0x6)
-{
-	enum { Skip = 0x70383C, CheckIsSelected = 0x703828 };
-
-	return R->ESI<TechnoClass*>()->Owner->IsControlledByHuman()
-		? CheckIsSelected : Skip;
-}
+// DEFINE_HOOK(0x703819, TechnoClass_Cloak_Deselect, 0x6)
+// {
+// 	enum { Skip = 0x70383C, CheckIsSelected = 0x703828 };
+//
+// 	return R->ESI<TechnoClass*>()->Owner->IsControlledByHuman()
+// 		? CheckIsSelected : Skip;
+// }
 
 DEFINE_HOOK(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
 {
@@ -964,7 +964,7 @@ DEFINE_HOOK(0x6F09C0 , TeamTypeClass_CreateOneOf_Handled , 0x9)
 	}
 
 	const auto pTeam = GameCreate<TeamClass>(pThis ,pHouse , false);
-	GameDebugLog::Log("[%s - %x] Creating a new team named [%s - %x] caller [%x].\n", pHouse->get_ID() , pHouse, pThis->ID, pTeam , caller);
+	Debug::Log("[%s - %x] Creating a new team named [%s - %x] caller [%x].\n", pHouse->get_ID() , pHouse, pThis->ID, pTeam , caller);
 	R->EAX(pTeam);
 	return 0x6F0A2C;
 }
@@ -981,7 +981,7 @@ DEFINE_HOOK(0x6F09C0 , TeamTypeClass_CreateOneOf_Handled , 0x9)
 // 	GET(TeamTypeClass* const, pThis, ESI);
 // 	GET(HouseClass* const, pHouse, EDI);
 // 	const void* ptr = YRMemory::Allocate(sizeof(TeamClass));
-// 	GameDebugLog::Log("[%s - %x] Creating a new team named [%s - %x].\n", pHouse ? pHouse->get_ID() : NONE_STR2 ,pHouse, pThis->ID, ptr);
+// 	Debug::Log("[%s - %x] Creating a new team named [%s - %x].\n", pHouse ? pHouse->get_ID() : NONE_STR2 ,pHouse, pThis->ID, ptr);
 // 	R->EAX(ptr);
 // 	return 0x6F0A5A;
 // }
@@ -993,7 +993,7 @@ DEFINE_JUMP(LJMP, 0x44DE2F, 0x44DE3C);
 //{
 //	GET(FactoryClass* const, pThis, ESI);
 //	GET(TechnoTypeClass* const, pType, EAX);
-//	//GameDebugLog::Log("[%x] Factory with Owner '%s' Abandoning production of '%s' \n", pThis, pThis->Owner ? pThis->Owner->get_ID() : NONE_STR2, pType->ID);
+//	//Debug::Log("[%x] Factory with Owner '%s' Abandoning production of '%s' \n", pThis, pThis->Owner ? pThis->Owner->get_ID() : NONE_STR2, pType->ID);
 //	R->ECX(pThis->Object);
 //	return 0x4CA021;
 //}
@@ -1001,7 +1001,7 @@ DEFINE_JUMP(LJMP, 0x44DE2F, 0x44DE3C);
 DEFINE_HOOK(0x6E93BE, TeamClass_AI_TransportTargetLog, 0x5)
 {
 	GET(FootClass* const, pThis, EDI);
-	GameDebugLog::Log("[%x][%s] Transport just recieved orders to go home after unloading \n", pThis, pThis->get_ID());
+	Debug::Log("[%x][%s] Transport just recieved orders to go home after unloading \n", pThis, pThis->get_ID());
 	return 0x6E93D6;
 }
 
@@ -1012,7 +1012,7 @@ DEFINE_HOOK(0x6EF9BD, TeamMissionClass_GatherAtEnemyCell_Log, 0x5)
 	GET(TeamClass* const, pThis, ESI);
 	GET(TechnoClass* const, pTechno, EDI);
 	GET(TeamTypeClass* const, pTeamType, ECX);
-	GameDebugLog::Log("[%x][%s] Team with Owner '%s' has chosen ( %d , %d ) for its GatherAtEnemy cell.\n", pThis, pTeamType->ID, pTechno->Owner ? pTechno->Owner->get_ID() : NONE_STR2, nCellX, nCellY);
+	Debug::Log("[%x][%s] Team with Owner '%s' has chosen ( %d , %d ) for its GatherAtEnemy cell.\n", pThis, pTeamType->ID, pTechno->Owner ? pTechno->Owner->get_ID() : NONE_STR2, nCellX, nCellY);
 	return 0x6EF9D0;
 }
 
@@ -1324,27 +1324,27 @@ enum class NewVHPScan : int
 	None = 0,
 	Normal = 1,
 	Strong = 2,
-	Threat = 3,
-	Health = 4,
-	Damage = 5,
-	Value = 6,
-	Locked = 7,
-	Non_Infantry = 8,
+	//Threat = 3,
+	//Health = 4,
+	//Damage = 5,
+	//Value = 6,
+	//Locked = 7,
+	//Non_Infantry = 8,
 
 	count
 };
 
 constexpr std::array<const char*, (size_t)NewVHPScan::count> NewVHPScanToString
 { {
-	{ "None" },
-	{ "Normal" },
-	{ "Strong" },
-	{ "Threat" },
-	{ "Health" },
-	{ "Damage" },
-	{ "Value" },
-	{ "Locked" },
-	{ "Non_Infantry" }
+	{ "None" }
+	,{ "Normal" }
+	,{ "Strong" }
+	//,{ "Threat" }
+	//,{ "Health" }
+	//,{ "Damage" }
+	//,{ "Value" }
+	//,{ "Locked" }
+	//,{ "Non_Infantry" }
 	} };
 
 DEFINE_HOOK(0x477590, CCINIClass_ReadVHPScan_Replace, 0x6)
@@ -1373,100 +1373,100 @@ DEFINE_HOOK(0x477590, CCINIClass_ReadVHPScan_Replace, 0x6)
 	return 0x477613;
 }
 
-DEFINE_HOOK(0x6F8721, TechnoClass_EvalObject_VHPScan, 0x7)
-{
-	GET(TechnoClass* const, pThis, EDI);
-	GET(ObjectClass* const, pTarget, ESI);
-	GET(int*, pRiskValue, EBP);
-
-	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-	const auto pTechnoTarget = generic_cast<TechnoClass* const>(pTarget);
-
-	int nValue = pExt->VHPscan_Value;
-	if (nValue <= 0)
-		nValue = 2;
-
-	switch (NewVHPScan(pExt->AttachedToObject->VHPScan))
-	{
-	case NewVHPScan::Normal:
-	{
-		if (pTarget->EstimatedHealth <= 0)
-		{
-			*pRiskValue /= nValue;
-			break;
-		}
-
-		if (pTarget->EstimatedHealth > (pTarget->GetType()->Strength / 2))
-			break;
-
-		*pRiskValue *= nValue;
-	}
-	break;
-	case NewVHPScan::Threat:
-	{
-		*pRiskValue *= (*pRiskValue / nValue);
-		break;
-	}
-	break;
-	case NewVHPScan::Health:
-	{
-		int nRes = *pRiskValue;
-		if (pTarget->EstimatedHealth > pTarget->GetType()->Strength / 2)
-			nRes = nValue * nRes;
-		else
-			nRes = nRes / nValue;
-
-		*pRiskValue = nRes;
-	}
-	break;
-	case NewVHPScan::Damage:
-	{
-		if (!pTechnoTarget)
-		{
-			*pRiskValue = 0;
-			break;
-		}
-
-		*pRiskValue = pTechnoTarget->CombatDamage(-1) / nValue * (*pRiskValue);
-	}
-	break;
-	case NewVHPScan::Value:
-	{
-		if (!pTechnoTarget)
-		{
-			*pRiskValue = 0;
-			break;
-		}
-
-		const int nSelectedWeapon = pTechnoTarget->SelectWeapon(pThis);
-		const auto nFireError = pTechnoTarget->GetFireError(pThis, nSelectedWeapon, 0);
-		if (nFireError == FireError::NONE ||
-			nFireError == FireError::FACING ||
-			nFireError == FireError::REARM ||
-			nFireError == FireError::ROTATING
-			)
-		{
-			*pRiskValue *= nValue;
-			break;
-		}
-
-		*pRiskValue /= nValue;
-	}
-	break;
-	case NewVHPScan::Non_Infantry:
-	{
-		if (!pTechnoTarget || pTechnoTarget->WhatAmI() == InfantryClass::AbsID)
-		{
-			*pRiskValue = 0;
-		}
-	}
-	break;
-	default:
-		break;
-	}
-
-	return 0x6F875F;
-}
+//DEFINE_HOOK(0x6F8721, TechnoClass_EvalObject_VHPScan, 0x7)
+//{
+//	GET(TechnoClass* const, pThis, EDI);
+//	GET(ObjectClass* const, pTarget, ESI);
+//	GET(int*, pRiskValue, EBP);
+//
+//	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+//	const auto pTechnoTarget = generic_cast<TechnoClass* const>(pTarget);
+//
+//	int nValue = pExt->VHPscan_Value;
+//	if (nValue <= 0)
+//		nValue = 2;
+//
+//	switch (NewVHPScan(pExt->AttachedToObject->VHPScan))
+//	{
+//	case NewVHPScan::Normal:
+//	{
+//		if (pTarget->EstimatedHealth <= 0)
+//		{
+//			*pRiskValue /= nValue;
+//			break;
+//		}
+//
+//		if (pTarget->EstimatedHealth > (pTarget->GetType()->Strength / 2))
+//			break;
+//
+//		*pRiskValue *= nValue;
+//	}
+//	break;
+//	case NewVHPScan::Threat:
+//	{
+//		*pRiskValue *= (*pRiskValue / nValue);
+//		break;
+//	}
+//	break;
+//	case NewVHPScan::Health:
+//	{
+//		int nRes = *pRiskValue;
+//		if (pTarget->EstimatedHealth > pTarget->GetType()->Strength / 2)
+//			nRes = nValue * nRes;
+//		else
+//			nRes = nRes / nValue;
+//
+//		*pRiskValue = nRes;
+//	}
+//	break;
+//	case NewVHPScan::Damage:
+//	{
+//		if (!pTechnoTarget)
+//		{
+//			*pRiskValue = 0;
+//			break;
+//		}
+//
+//		*pRiskValue = pTechnoTarget->CombatDamage(-1) / nValue * (*pRiskValue);
+//	}
+//	break;
+//	case NewVHPScan::Value:
+//	{
+//		if (!pTechnoTarget)
+//		{
+//			*pRiskValue = 0;
+//			break;
+//		}
+//
+//		const int nSelectedWeapon = pTechnoTarget->SelectWeapon(pThis);
+//		const auto nFireError = pTechnoTarget->GetFireError(pThis, nSelectedWeapon, 0);
+//		if (nFireError == FireError::NONE ||
+//			nFireError == FireError::FACING ||
+//			nFireError == FireError::REARM ||
+//			nFireError == FireError::ROTATING
+//			)
+//		{
+//			*pRiskValue *= nValue;
+//			break;
+//		}
+//
+//		*pRiskValue /= nValue;
+//	}
+//	break;
+//	case NewVHPScan::Non_Infantry:
+//	{
+//		if (!pTechnoTarget || pTechnoTarget->WhatAmI() == InfantryClass::AbsID)
+//		{
+//			*pRiskValue = 0;
+//		}
+//	}
+//	break;
+//	default:
+//		break;
+//	}
+//
+//	return 0x6F875F;
+//}
 
 DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7)
 {
@@ -1949,7 +1949,7 @@ DEFINE_HOOK(0x422A59, AnimClass_DTOR_DoNotClearType, 0x6)
 DEFINE_HOOK(0x4251AB, AnimClass_Detach_LogTypeDetached, 0x6)
 {
 	GET(AnimClass* const, pThis, ESI);
-	GameDebugLog::Log("Anim[0x%x] detaching Type Pointer ! \n", pThis);
+	Debug::Log("Anim[0x%x] detaching Type Pointer ! \n", pThis);
 	return 0x0;
 }
 
@@ -2078,12 +2078,12 @@ DEFINE_HOOK(0x448BE3, BuildingClass_SetOwningHouse_FixArgs, 0x5)
 	return 0x448BED;
 }
 
-DEFINE_HOOK(0x7225F3, TiberiumClass_Spread_nullptrheap, 0x7)
-{
-	GET(MapSurfaceData*, ptr, EBP);
-
-	return ptr ? 0x0 : 0x722604;
-}
+//DEFINE_HOOK(0x7225F3, TiberiumClass_Spread_nullptrheap, 0x7)
+//{
+//	GET(MapSurfaceData*, ptr, EBP);
+//
+//	return ptr ? 0x0 : 0x722604;
+//}
 
 BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 {
@@ -2594,7 +2594,7 @@ DEFINE_HOOK(0x489671, MapClass_DamageArea_Veinhole, 0x6)
 					false,
 					pSource && !pHouse ? pSource->Owner : pHouse
 				) == DamageState::NowDead)
-					GameDebugLog::Log("Veinhole at Destroyed!\n");
+					Debug::Log("Veinhole at Destroyed!\n");
 
 		}
 
@@ -2716,44 +2716,12 @@ DEFINE_HOOK(0x6E08DE, TActionClass_SellBack_LimboDelivered, 0x5)
 		forbidden : allow;
 }
 
-DEFINE_HOOK(0x6EA192, TeamClass_Regroup_LimboDelivered, 0x6)
-{
-	enum { advance = 0x6EA38C , ret =0x0};
-	GET(BuildingClass*, pBuilding, ESI);
-	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ?
-		advance : ret;
-}
-
-DEFINE_HOOK(0x6EEC6D, TeamClass_FindTargetBuilding_LimboDelivered, 0x6)
-{
-	enum { advance = 0x6EEE45, ret = 0x0 };
-	GET(BuildingClass*, pBuilding, ESI);
-	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ?
-		advance : ret;
-}
-
-DEFINE_HOOK(0x6EE8D9, TeamClass_Scout_LimboDelivered, 0x9)
-{
-	enum { advance = 0x6EE928, ret = 0x0 };
-	GET(BuildingClass**, pBuilding, ESI);
-	return BuildingExtContainer::Instance.Find(*pBuilding)->LimboID != -1 ?
-		advance : ret;
-}
-
 //DEFINE_HOOK(0x6E9832, TeamClass_AI_IsThisExecuted, 0x8)
 //{
 //	Debug::Log(__FUNCTION__" Called \n");
 //
 //	return 0x0;
 //}
-
-DEFINE_HOOK(0x6EEEF2, TeamClass_6EEEA0_LimboDelivered, 0xA)
-{
-	enum { advance = 0x6EF0D7, ret = 0x0 };
-	GET(BuildingClass*, pBuilding, ESI);
-	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ?
-		advance : ret;
-}
 
 DEFINE_HOOK(0x6E9696, TeamClass_ChangeHouse_nullptrresult, 0x9)
 {
@@ -2779,7 +2747,7 @@ DEFINE_HOOK(0x4686FA, BulletClass_Unlimbo_MissingTargetPointer, 0x6)
 	GET_BASE(CoordStruct*, pUnlimboCoords, 0x8);
 
 	if (!pThis->Target) {
-		GameDebugLog::Log("Bullet [%s - %x] Missing Target Pointer when Unlimbo! , Fallback To CreationCoord to Prevent Crash\n",
+		Debug::Log("Bullet [%s - %x] Missing Target Pointer when Unlimbo! , Fallback To CreationCoord to Prevent Crash\n",
 			pThis->get_ID(), pThis);
 
 		pThis->Target = MapClass::Instance->GetCellAt(pUnlimboCoords);
@@ -2797,7 +2765,7 @@ DEFINE_HOOK(0x65DD4E, TeamClass_CreateGroub_MissingOwner, 0x7)
 
 	const auto pHouse = pType->GetHouse();
 	if (!pHouse) {
-		GameDebugLog::Log("Creating Team[%s] groub without proper Ownership may cause crash , Please check !\n" , pType->ID);
+		Debug::Log("Creating Team[%s] groub without proper Ownership may cause crash , Please check !\n" , pType->ID);
 	}
 
 	R->EAX(pHouse);
@@ -2839,16 +2807,16 @@ DEFINE_HOOK(0x415302, AircraftClass_MissionUnload_IsDropship, 0x8)
 	return 0x41530C;
 }
 
- DEFINE_HOOK(0x456376 , BuildingClass_RemoveSpacingAroundArea, 0x6)
- {
- 	GET(BuildingTypeClass*, pThisType, EAX);
-	GET(BuildingClass*, pThis, ESI);
-
-	if (!pThisType->UndeploysInto || (!pThisType->ResourceGatherer && !pThis->IsStrange()))
- 		return 0x456398;
-
- 	return pThisType->Adjacent == 0 ? 0x4563A1 : 0x45638A;
- }
+ //DEFINE_HOOK(0x456376 , BuildingClass_RemoveSpacingAroundArea, 0x6)
+ //{
+ //	GET(BuildingTypeClass*, pThisType, EAX);
+	//GET(BuildingClass*, pThis, ESI);
+//
+	//if (!pThisType->UndeploysInto || (!pThisType->ResourceGatherer && !pThis->IsStrange()))
+ //		return 0x456398;
+//
+ //	return pThisType->Adjacent == 0 ? 0x4563A1 : 0x45638A;
+ //}
 
 DEFINE_HOOK(0x518607, InfantryClass_TakeDamage_FixOnDestroyedSource, 0xA)
 {
@@ -2916,7 +2884,7 @@ DEFINE_HOOK(0x6F91EC, TechnoClass_GreatestThreat_DeadTechnoInsideTracker, 0x6)
 	GET(TechnoClass*, pTrackerTechno, EBP);
 
 	if (!pTrackerTechno->IsAlive){
-		GameDebugLog::Log("Found DeadTechno[%x - %s] on AircraftTracker!\n", pTrackerTechno, pTrackerTechno->get_ID());
+		Debug::Log("Found DeadTechno[%x - %s] on AircraftTracker!\n", pTrackerTechno, pTrackerTechno->get_ID());
 		return 0x6F9377; // next
 	}
 
@@ -3250,7 +3218,7 @@ DEFINE_HOOK(0x40A5B3, AudioDriverStart_AnnoyingBufferLogDisable_A, 0x6)
 	pAudioChannelTag->dwBufferBytes = R->EAX<int>();
 
 	if(Phobos::Otamaa::OutputAudioLogs)
-		GameDebugLog::Log("Sound frame size = %d bytes\n", pAudioChannelTag->dwBufferBytes);
+		Debug::Log("Sound frame size = %d bytes\n", pAudioChannelTag->dwBufferBytes);
 	
 	return 0x40A5C4;
 }
@@ -3262,7 +3230,7 @@ DEFINE_HOOK(0x40A554, AudioDriverStart_AnnoyingBufferLogDisable_B, 0x6)
 	pAudioChannelTag->soundframesize1 = R->EAX();
 
 	if (Phobos::Otamaa::OutputAudioLogs)
-		GameDebugLog::Log("Sound frame size = %d bytes\n", pAudioChannelTag->soundframesize1);
+		Debug::Log("Sound frame size = %d bytes\n", pAudioChannelTag->soundframesize1);
 	
 	R->EDX(R->EAX());
 	R->EAX(ptr);
@@ -3448,51 +3416,7 @@ DEFINE_HOOK(0x711F60, TechnoTypeClass_GetSoylent_Disable, 0x8)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x4FAD64, HouseClass_SpecialWeapon_Update, 0x7)
-{
-	GET(HouseClass*, pThis, EDI);
-	GET(BuildingClass*, pThat, ESI);
-
-	return pThis->IsAlliedWith(pThat->Owner) ? 0x4FADD9 : 0x4FAD9E;
-}
-
-DEFINE_HOOK(0x50A23A, HouseClass_Target_Dominator, 0x6)
-{
-	GET(HouseClass*, pThis, EDI);
-	GET(TechnoClass*, pThat, ESI);
-
-	return pThis->IsAlliedWith(pThat->Owner) ? 0x50A292 : 0x50A278;
-}
-
-DEFINE_HOOK(0x50A04B, HouseClass_Target_GenericMutator, 0x7)
-{
-	GET(HouseClass*, pThis, EBX);
-	GET(TechnoClass*, pThat, ESI);
-
-	return pThis->IsAlliedWith(pThat->Owner) ? 0x50A096 : 0x50A087;
-}
-
-DEFINE_HOOK(0x5094F9, HouseClass_AdjustThreats, 0x6)
-{
-	return R->EBX<HouseClass*>()->IsAlliedWith(R->ESI<HouseClass*>()) ? 0x5095B6 : 0x509532;
-}
-
-DEFINE_HOOK(0x4F9432, HouseClass_Attacked, 0x6)
-{
-	return R->EDI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x4F9474 : 0x4F9478;
-}
-
-DEFINE_HOOK(0x4FBD1C, HouseClass_DoesEnemyBuildingExist, 0x6)
-{
-	return R->ESI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x4FBD57 : 0x4FBD47;
-}
-
-DEFINE_HOOK(0x5003BA, HouseClass_FindJuicyTarget, 0x6)
-{
-	return R->EDI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x5003F7 : 0x5004B1;
-}
-
-DEFINE_HOOK(0x4DB1A0, FootClass_GetMovementSpeed_FixSpeedMultStuck, 0x6)
+DEFINE_HOOK(0x4DB1A0, FootClass_GetMovementSpeed_SpeedMult, 0x6)
 {
 	GET(FootClass*, pThis, ECX);
 
@@ -3504,7 +3428,7 @@ DEFINE_HOOK(0x4DB1A0, FootClass_GetMovementSpeed_FixSpeedMultStuck, 0x6)
 
 	//prevent unit in warfactory stuck
 	// if (thisMult < 0.0001 && TechnoExtData::IsInWarfactory(pThis, false)) {
-	// 	GameDebugLog::Log("Foot[%s] with negative or zero speed mult inside warfactory ,restoring speedmult\n", pType->ID);
+	// 	Debug::Log("Foot[%s] with negative or zero speed mult inside warfactory ,restoring speedmult\n", pType->ID);
 	// 	thisMult = 1.0;
 	// }
 
@@ -3524,49 +3448,6 @@ DEFINE_HOOK(0x4DB1A0, FootClass_GetMovementSpeed_FixSpeedMultStuck, 0x6)
 	return 0x4DB23D;
 }
 
-DEFINE_HOOK(0x6EBB86, TeamClass_MoveToFocus_IsInStray, 0x6)
-{
-	GET(FootClass*, pFoot, ESI);
-	GET(TeamClass*, pThis, EBP);
-
-	if (pFoot->GetHeight() > 0 && pFoot->WhatAmI() == UnitClass::AbsID && pThis->Target) {
-		auto nCoord = pFoot->GetCoords();
-		auto nCoord_target = pThis->Target->GetCoords();
-		R->EAX((int)nCoord_target.DistanceFrom(nCoord));
-	}
-	else
-		R->EAX(pFoot->DistanceFrom(pThis->SpawnCell));
-
-	return 0x6EBB91;
-}
-
-DEFINE_HOOK(0x6EBE69, TeamClass_MoveToFocus_SetDestination, 0xA)
-{
-	GET(FootClass*, pFoot, ESI);
-
-	auto const pType = pFoot->GetTechnoType();
-
-	return (pType->BalloonHover
-		|| (pType->WhatAmI() == UnitTypeClass::AbsID
-			&& static_cast<UnitTypeClass*>(pType)->JumpJet
-			&& static_cast<UnitTypeClass*>(pType)->IsSimpleDeployer)) ?
-		0x6EBE9C : 0x6EBE82;
-}
-
-DEFINE_HOOK(0x6EBEDB, TeamClass_MoveToFocus_BalloonHover, 0xA)
-{
-	GET(FootClass*, pFoot, ESI);
-
-	auto const pType = pFoot->GetTechnoType();
-
-	return (pType->BalloonHover
-		|| (pType->WhatAmI() == UnitTypeClass::AbsID
-			&& static_cast<UnitTypeClass*>(pType)->JumpJet
-			&& static_cast<UnitTypeClass*>(pType)->IsSimpleDeployer)) ?
-
-		0x6EBEEF : 0x6EBEFF;
-}
-
 DEFINE_HOOK(0x71F1A2, TEventClass_HasOccured_DestroyedAll, 6)
 {
 	GET(HouseClass*, pHouse, ESI);
@@ -3581,7 +3462,7 @@ DEFINE_HOOK(0x71F1A2, TEventClass_HasOccured_DestroyedAll, 6)
 	return 0x71F1B1;
 }
 
-DEFINE_HOOK(0x6DEA37 , TAction_Execute_Win, 6)
+DEFINE_HOOK(0x6DEA37, TAction_Execute_Win, 6)
 {
 	GET(TActionClass*, pThis, ESI);
 
@@ -3639,66 +3520,22 @@ DEFINE_HOOK(0x6DEA37 , TAction_Execute_Win, 6)
 // 	return 0x0;
 // }
 
-DEFINE_HOOK(0x4CD747, FlyLocomotionClass_UpdateMoving_OutOfMap, 6)
-{
-	GET(DisplayClass*, pDisplay, ECX);
-	GET(FlyLocomotionClass*, pLoco, ESI);
-	GET_STACK(int, height, 0x58);
-	GET(CellStruct*, pCell, EAX);
-
-	if(pDisplay->CoordinatesLegal(pCell))
-		return 0x4CD751;
-
-	pDisplay->RemoveObject(pLoco->Owner);
-	pLoco->Owner->SetHeight(height);
-	pDisplay->SubmitObject(pLoco->Owner);
-
-	return 0x4CD797;
-}
-
-DEFINE_HOOK(0x6F7D90, TechnoClass_Threat_Forbidden, 0x6)
-{
-	GET(ObjectClass*, pTarget, ESI);
-
-	if (pTarget->InLimbo || !pTarget->IsAlive)
-		return 0x6F894F;
-
-	if(const auto pTechno = generic_cast<TechnoClass*>(pTarget)) {
-
-		if(pTechno->IsCrashing || pTechno->IsSinking)
-			return 0x6F894F;
-
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
-
-		if(pTypeExt->IsDummy)
-			return 0x6F894F;
-
-		switch (pTechno->WhatAmI())
-		{
-		case AbstractType::Building:{
-			const auto pBld = (BuildingClass*)pTarget;
-
-			if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
-				return 0x6F894F;
-
-			break;
-		}
-		case AbstractType::Unit:{
-
-			const auto pUnit = (UnitClass*)pTarget;
-
-			if (pUnit->DeathFrameCounter > 0)
-				return 0x6F894F;
-
-			break;
-		}
-		default:
-			break;
-		}
-	}
-
-	return 0x6F7D9E;
-}
+//DEFINE_HOOK(0x4CD747, FlyLocomotionClass_UpdateMoving_OutOfMap, 6)
+//{
+//	GET(DisplayClass*, pDisplay, ECX);
+//	GET(FlyLocomotionClass*, pLoco, ESI);
+//	GET_STACK(int, height, 0x58);
+//	GET(CellStruct*, pCell, EAX);
+//
+//	if(pDisplay->CoordinatesLegal(pCell))
+//		return 0x4CD751;
+//
+//	pDisplay->RemoveObject(pLoco->Owner);
+//	pLoco->Owner->SetHeight(height);
+//	pDisplay->SubmitObject(pLoco->Owner);
+//
+//	return 0x4CD797;
+//}
 
 DEFINE_HOOK(0x73730E, UnitClass_Visceroid_HealthCheckRestore, 0x6)
 {
@@ -3824,7 +3661,7 @@ DEFINE_HOOK(0x44F8A6, TechnoClass_FromINI_CreateForHouse, 0x7)
 		;
 
 	if (idx == -1) { 
-		GameDebugLog::Log("Failed To fetch house index by name of [%s]\n", pHouseName);
+		Debug::Log("Failed To fetch house index by name of [%s]\n", pHouseName);
 		Debug::RegisterParserError();
 	}
 
@@ -3883,7 +3720,7 @@ DEFINE_HOOK(0x5FF93F, SpotlightClass_Draw_OutOfboundSurfaceArrayFix, 0x7)
 	GET(int, idx, ECX);
 
 	if (idx > 64){
-		GameDebugLog::Log("[0x%x]SpotlightClass with OutOfBoundSurfaceArrayIndex[%d] Fixing!\n", pThis ,idx);
+		Debug::Log("[0x%x]SpotlightClass with OutOfBoundSurfaceArrayIndex[%d] Fixing!\n", pThis ,idx);
 		idx = 64;
 	}
 
@@ -3982,7 +3819,7 @@ DEFINE_HOOK(0x6FDD0A, TechnoClass_AdjustDamage_Armor, 0x6)
 DEFINE_HOOK(0x52D36F, RulesClass_init_AIMD, 0x5)
 {
 	GET(CCFileClass*, pFile, EAX);
-	GameDebugLog::Log("Init %s file\n", pFile->GetFileName());
+	Debug::Log("Init %s file\n", pFile->GetFileName());
 	return 0x0;
 }
 
@@ -4014,7 +3851,7 @@ DEFINE_HOOK(0x41F783, AITriggerTypeClass_ParseConditionType, 0x5)
 		result = BuildingTypeClass::Find(pBuffer);
 
 	//if (result)
-	//	GameDebugLog::Log("Found Condition Object[%s - %s] for [%s]\n", pBuffer , result->GetThisClassName(), pThis->ID);
+	//	Debug::Log("Found Condition Object[%s - %s] for [%s]\n", pBuffer , result->GetThisClassName(), pThis->ID);
 
 	R->ESI(result);
 	return 0x41F7DE;
@@ -4022,7 +3859,7 @@ DEFINE_HOOK(0x41F783, AITriggerTypeClass_ParseConditionType, 0x5)
 
 // this already known to be not human controlled
 // there is no way we know if its captured or freed
-DEFINE_HOOK(0x47243F , CaptureManageClass_DecideUnitFate_Neutral , 0x6)
+DEFINE_HOOK(0x47243F, CaptureManageClass_DecideUnitFate_Neutral , 0x6)
 {
 	GET(TechnoClass* , pTarget , EBX);
 	//GET_STACK(bool , houseChanged , 0x24);
@@ -4070,7 +3907,7 @@ DEFINE_HOOK(0x4CA007, FactoryClass_AbandonProduction_GetObjectType, 0x6)
 
 	// use cached type instead of `->GetTechnoType()` the pointer was changed !
 	const auto pType = TechnoExtContainer::Instance.Find(pObject)->Type;
-	GameDebugLog::Log("[%x]Factory with owner [%s - %x] abandoning production of [%s(%s) - %x]\n",
+	Debug::Log("[%x]Factory with owner [%s - %x] abandoning production of [%s(%s) - %x]\n",
 		pThis , 
 		pThis->Owner->get_ID() , pThis->Owner ,
 		pType->Name , pType->ID , pObject);
@@ -4189,7 +4026,7 @@ DEFINE_HOOK(0x5F9652, ObjectTypeClass_GetAplha, 0x6)
 //	GET(BuildingClass*, pThis, ECX);
 //
 //	if (pThis && IS_SAME_STR_(pThis->get_ID(), "DBEHIM"))
-//		GameDebugLog::Log(__FUNCTION__"Caller [%x]\n", R->Stack<DWORD>(0x0));
+//		Debug::Log(__FUNCTION__"Caller [%x]\n", R->Stack<DWORD>(0x0));
 //
 //	return 0x0;
 //}
@@ -4198,13 +4035,13 @@ DEFINE_HOOK(0x5F9652, ObjectTypeClass_GetAplha, 0x6)
 
 DEFINE_HOOK(0x50B730, HouseClass_IsControlledByHuman_LogCaller, 0x5)
 {
-	GameDebugLog::Log(__FUNCTION__"Caller [%x]\n", R->Stack<DWORD>(0x0));
+	Debug::Log(__FUNCTION__"Caller [%x]\n", R->Stack<DWORD>(0x0));
 	return 0x0;
 }
 
 DEFINE_HOOK(0x50B6F0, HouseClass_ControlledByCurrentPlayer_LogCaller, 0x5)
 {
-	GameDebugLog::Log(__FUNCTION__"Caller [%x]\n", R->Stack<DWORD>(0x0));
+	Debug::Log(__FUNCTION__"Caller [%x]\n", R->Stack<DWORD>(0x0));
 	return 0x0;
 }
 #endif 

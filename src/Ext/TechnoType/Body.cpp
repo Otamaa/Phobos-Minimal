@@ -2122,7 +2122,6 @@ DEFINE_HOOK(0x711835, TechnoTypeClass_CTOR, 0x5)
 {
 	GET(TechnoTypeClass* , pItem, ESI);
 
-	constexpr size_t test = sizeof(TechnoExtData);
 	auto Iter = TechnoTypeExtContainer::Instance.Map.find(pItem);
 
 	if (Iter == TechnoTypeExtContainer::Instance.Map.end()) {
@@ -2130,7 +2129,6 @@ DEFINE_HOOK(0x711835, TechnoTypeClass_CTOR, 0x5)
 		Iter = TechnoTypeExtContainer::Instance.Map.emplace(pItem, ptr).first;
 	}
 
-	TechnoTypeExtContainer::Instance.ClearExtAttribute(pItem);
 	TechnoTypeExtContainer::Instance.SetExtAttribute(pItem, Iter->second);
 
 	return 0;

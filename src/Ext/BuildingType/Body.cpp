@@ -1391,7 +1391,6 @@ DEFINE_HOOK(0x45E50C, BuildingTypeClass_CTOR, 0x6)
 		Iter = BuildingTypeExtContainer::Instance.Map.emplace(pItem, ptr).first;
 	}
 
-	BuildingTypeExtContainer::Instance.ClearExtAttribute(pItem);
 	BuildingTypeExtContainer::Instance.SetExtAttribute(pItem, Iter->second);
 
 	return 0;

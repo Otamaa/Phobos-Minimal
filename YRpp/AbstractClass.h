@@ -267,7 +267,7 @@ public:
 		JMP_STD(0x410320);
 	}
 
-	void Compute_CRC_Impl(CRCEngine&) const {
+	void Compute_CRC_Impl(CRCEngine*) const {
 		JMP_THIS(0x410410);
 	}
 

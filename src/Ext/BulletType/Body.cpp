@@ -337,7 +337,6 @@ DEFINE_HOOK(0x46BDD9, BulletTypeClass_CTOR, 0x5)
 		Iter = BulletTypeExtContainer::Instance.Map.emplace(pItem, ptr).first;
 	}
 
-	BulletTypeExtContainer::Instance.ClearExtAttribute(pItem);
 	BulletTypeExtContainer::Instance.SetExtAttribute(pItem, Iter->second);
 	return 0;
 }

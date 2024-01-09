@@ -398,12 +398,13 @@ public:
 	AudioController Audio7;
 	AudioController Audio8;
 
-	bool WasOnline; // the the last state when Update()ing. if this changed since the last Update(), UpdatePowered is called.
-	bool ShowRealName; // is also NOMINAL under [Structures]
-	bool BeingProduced; // is also AI_REBUILDABLE under [Structures]
-	bool ShouldRebuild;// is also AI_REPAIRABLE under [Structures]
-	bool HasEngineer; // used to pass the NeedsEngineer check
-	CDTimerClass CashProductionTimer;
+	bool WasOnline; //6C8 the the last state when Update()ing. if this changed since the last Update(), UpdatePowered is called.
+	bool ShowRealName; //6C9 is also NOMINAL under [Structures]
+	bool BeingProduced; //6CA is also AI_REBUILDABLE under [Structures]
+	bool ShouldRebuild;//6CB is also AI_REPAIRABLE under [Structures]
+	bool HasEngineer; //6CC used to pass the NeedsEngineer check
+	BYTE padding_6CD[3];
+	CDTimerClass CashProductionTimer; //6D0
 	bool IsAllowedToSell; //6DC bool AI_Sellable; AI_SELLABLE under [Structures]
 	bool IsReadyToCommence; //6DD
 	bool NeedsRepairs; // AI handholder for repair logic,
@@ -411,8 +412,8 @@ public:
 	bool NoCrew;
 	bool IsCharging; //6E1
 	bool IsCharged;	//6E2
-	bool HasBeenCaptured; // has this building changed ownership at least once? affects crew and repair.
-	bool ActuallyPlacedOnMap;
+	bool HasBeenCaptured; //6E3 has this building changed ownership at least once? affects crew and repair.
+	bool ActuallyPlacedOnMap; //6E4
 	bool unknown_bool_6E5;
 	bool IsDamaged; // AI handholder for repair logic,
 	bool IsFogged;
@@ -434,6 +435,7 @@ public:
 	DWORD DelayBeforeFiring; //714
 
 	int BunkerState; // used in UpdateBunker and friends 0x718
+	DWORD unused_71C;
 };
 
 static_assert(sizeof(BuildingClass) == 0x720 , "Invalid Size");

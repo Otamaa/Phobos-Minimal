@@ -207,6 +207,7 @@ public:
 	DWORD           ___CandidateTarget_5CC;
 	BYTE            unknown_5D0;	//unused?
 	bool            newtargetassigned_5D1;
+	BYTE			padding_5D2[2];
 	TeamClass*      Team;
 	FootClass*      NextTeamMember;        //next unit in team
 	DWORD           unknown_5DC;
@@ -249,7 +250,8 @@ public:
 	bool              FrozenStill; // frozen in first frame of the proper facing - when magnetron'd or warping
 	bool              IsPathBlocked; //6B7
 	bool              removed;//6B8
-	PROTECTED_PROPERTY(DWORD,   unused_6BC);	//???
+	BYTE			  padding_6B9[7];	//???
 };
 
+static_assert(offsetof(FootClass, padding_6B9) == 0x6B9, "ClassMember Shifted !");
 static_assert(sizeof(FootClass) == 0x6C0 , "Invalid Size !");

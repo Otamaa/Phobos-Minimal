@@ -126,8 +126,10 @@ public:
 	bool Deployed;
 	bool Deploying;
 	bool Undeploying;
+	BYTE padding_6E3;
 	int NonPassengerCount; // Set when unloading passengers. Units with TurretCount>0 will not unload the gunner.
 
 	wchar_t ToolTipText[0x100];
 };
+static_assert(offsetof(UnitClass, padding_6E3) == 0x6E3, "ClassMember Shifted !");
 static_assert(sizeof(UnitClass) == 0x8E8,"Invalid size.");

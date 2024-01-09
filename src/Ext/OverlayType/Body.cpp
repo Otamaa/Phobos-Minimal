@@ -78,7 +78,6 @@ DEFINE_HOOK(0x5FE3A2, OverlayTypeClass_CTOR, 0x5)
 		Iter = OverlayTypeExtContainer::Instance.Map.emplace(pItem, ptr).first;
 	}
 
-	OverlayTypeExtContainer::Instance.ClearExtAttribute(pItem);
 	OverlayTypeExtContainer::Instance.SetExtAttribute(pItem, Iter->second);
 
 	return 0;

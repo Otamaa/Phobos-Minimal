@@ -16,7 +16,9 @@ public:
 	using base_type = TiberiumClass;
 
 	//Dont forget to remove this if ares one re-enabled
-	//static constexpr size_t ExtOffset = 0xAC;
+#ifndef aaa
+	static constexpr size_t ExtOffset = 0xAC;
+#endif
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };

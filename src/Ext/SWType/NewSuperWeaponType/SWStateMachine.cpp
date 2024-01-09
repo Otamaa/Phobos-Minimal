@@ -17,6 +17,8 @@ void SWStateMachine::UpdateAll()
 
 			if (pMachine->Finished())
 				SWStateMachine::Array.erase(SWStateMachine::Array.begin() + i);
+		} else {
+			SWStateMachine::Array.erase(SWStateMachine::Array.begin() + i);
 		}
 	}
 }

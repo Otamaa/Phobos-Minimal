@@ -332,7 +332,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	virtual void Destroyed(ObjectClass *Killer) PURE;
 	virtual FireError GetFireErrorWithoutRange(AbstractClass *pTarget, int nWeaponIndex) const RT(FireError);
 	virtual FireError GetFireError(AbstractClass *pTarget, int nWeaponIndex, bool ignoreRange) const JMP_THIS(0x6FC0B0); //CanFire
-	virtual CellClass* SelectAutoTarget(TargetFlags TargetFlags, int CurrentThreat, bool OnlyTargetHouseEnemy) R0; //Greatest_Threat
+	virtual AbstractClass* SelectAutoTarget(TargetFlags TargetFlags, int CurrentThreat, bool OnlyTargetHouseEnemy) R0; //Greatest_Threat
 	virtual void SetTarget(AbstractClass *pTarget) RX;
 	virtual BulletClass* Fire(AbstractClass* pTarget, int nWeaponIndex) JMP_THIS(0x6FDD50);
 	virtual void Guard() RX; // clears target and destination and puts in guard mission
@@ -413,7 +413,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	bool sub_70D8F0() JMP_THIS(0x70D8F0);
 	bool sub_70DCE0() const { return this->CurrentTurretNumber != -1; }
 
-	bool IsDrainSomething()
+	bool IsDrainSomething() const
 		{ return this->DrainTarget != nullptr; }
 
 	int GetCurrentTurretNumber() const
@@ -549,7 +549,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	{ JMP_THIS(0x70BCB0); }
 
 	// Returns target's coordinates if on attack mission & have target, otherwise own coordinates.
-	CoordStruct GetAttackCoords()
+	CoordStruct GetAttackCoords() const
 	{
 		CoordStruct pBuffer;
 		this->GetAttackCoords(&pBuffer);
@@ -629,7 +629,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	void GattlingAI() const
 	{ JMP_THIS(0x70DE70); }
 	//
-	void DrawExtraInfo(Point2D const& location, Point2D const* originalLocation, RectangleStruct const* bounds)
+	void DrawExtraInfo(Point2D const& location, Point2D const* originalLocation, RectangleStruct const* bounds) const
 	{ DrawExtraInfo(location,*originalLocation,*bounds); }
 
 	void Techno_70E280(AbstractClass* pTarget) const
@@ -645,7 +645,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	//	return *reinterpret_cast<bool*>(reinterpret_cast<DWORD>(this) + 0x3D5);
 	//}
 
-	bool CanThisCloakByDefault() {
+	bool CanThisCloakByDefault() const {
 		return (GetTechnoType()) && (GetTechnoType()->Cloakable || HasAbility(AbilityType::Cloak));
 	}
 
@@ -982,8 +982,8 @@ public:
 static_assert(offsetof(TechnoClass, GeneratingGap) == 0x269, "ClassMember Shifted !");
 static_assert(offsetof(TechnoClass, GapSuperCharged) == 0x268, "ClassMember Shifted !");
 static_assert(offsetof(TechnoClass, unknown_34C) == 0x34C, "ClassMember Shifted !");
-//static_assert(offsetof(TechnoClass, IsALoaner) == 0x3D4, "ClassMember Shifted !");
-//static_assert(offsetof(TechnoClass, IsLocked) == 0x3D5, "ClassMember Shifted !");
+static_assert(offsetof(TechnoClass, Spawned) == 0x3D4, "ClassMember Shifted !");
+static_assert(offsetof(TechnoClass, IsInPlayfield) == 0x3D5, "ClassMember Shifted !");
 //static_assert(offsetof(TechnoClass, byte_433) == 0x433, "ClassMember Shifted !");
 static_assert(offsetof(TechnoClass, OldTeam) == 0x434, "ClassMember Shifted !");
 static_assert(offsetof(TechnoClass, CountedAsOwnedSpecial) == 0x438, "ClassMember Shifted !");

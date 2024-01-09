@@ -43,22 +43,14 @@ DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
 
 	if (const auto pWeaponStr = pThis->GetWeapon(pThis->SelectWeapon(pThis->Target))) {
 		if (pWeaponStr->WeaponType) {
-			if (pExt->StrafeFireCunt > 0)
-				pThis->MissionStatus = (int)AirAttackStatus::FireAtTarget3_Strafe;
+			int fireCount = pThis->MissionStatus - 4;
 
-			if(pExt->StrafeFireCunt < 0 && pThis->MissionStatus == (int)AirAttackStatus::FireAtTarget2_Strafe)
-				pExt->StrafeFireCunt = 0;
-
-			if (pExt->StrafeFireCunt >= WeaponTypeExtContainer::Instance.Find(pWeaponStr->WeaponType)->Strafing_Shots.Get(5))
-			{
+			if (fireCount > 1 && WeaponTypeExtContainer::Instance.Find(pWeaponStr->WeaponType)->Strafing_Shots < fireCount) {
 				if (!pThis->Ammo)
 					pThis->__DoingOverfly = false;
 
-				pExt->StrafeFireCunt = -1;
 				pThis->MissionStatus = (int)AirAttackStatus::ReturnToBase;
 			}
-
-			++pExt->StrafeFireCunt;
 		}
 	}
 

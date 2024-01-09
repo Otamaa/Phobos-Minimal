@@ -25,7 +25,10 @@ class WarheadTypeExtData final
 public:
 	static constexpr size_t Canary = 0x22242222;
 	using base_type = WarheadTypeClass;
-	//static constexpr size_t ExtOffset = 0x1CC; //ares
+
+#ifndef aaa
+	static constexpr size_t ExtOffset = 0x1CC; //ares
+#endif
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };

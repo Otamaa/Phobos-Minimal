@@ -92,8 +92,8 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 
 	GET(TechnoClass*, pThis, ECX);
 
-	if (!pThis || !pThis->IsAlive)
-		return retDead;
+	//if (!pThis || !pThis->IsAlive)
+	//	return retDead;
 
 #ifndef aaa
 	TechnoExt_ExtData::Ares_technoUpdate(pThis);
@@ -102,6 +102,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	//type may already change ,..
 	auto const pType = pThis->GetTechnoType();
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+
 	const auto IsBuilding = pThis->WhatAmI() == BuildingClass::AbsID;
 	bool IsInLimboDelivered = false;
 
@@ -109,7 +110,8 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 		IsInLimboDelivered = BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis))->LimboID >= 0;
 	}
 
-	if (pThis->Location == CoordStruct::Empty || pThis->InlineMapCoords() == CellStruct::Empty) {
+
+	if (pThis->IsAlive && pThis->Location == CoordStruct::Empty || pThis->InlineMapCoords() == CellStruct::Empty) {
 		if (!pType->Spawned && !IsInLimboDelivered && !pThis->InLimbo) {
 			Debug::Log("Techno[%x : %s] With Invalid Location ! , Removing ! \n", pThis, pThis->get_ID());
 			TechnoExtData::HandleRemove(pThis, nullptr, false, false);
@@ -135,6 +137,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	pExt->UpdateBuildingLightning();
 	pExt->UpdateShield();
 	pExt->UpdateInterceptor();
+
 	//pExt->UpdateFireSelf();
 	//pExt->UpdateMobileRefinery();
 	pExt->UpdateMCRangeLimit();
@@ -239,7 +242,6 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 		pExt->UpdateLaserTrails();
 
 		TrailsManager::AI(static_cast<TechnoClass*>(pThis));
-
 		return 0x4DA6A0;
 	}
 

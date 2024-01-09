@@ -68,38 +68,73 @@ public:
 	{
 		return (*this)((const void*)&data, static_cast<int>(sizeof(data)));
 	}
-	
+
+	unsigned int Compute_uchar(unsigned char datum)
+	{
+		JMP_THIS(0x4A1C10);
+	}
+
+	unsigned int Compute_bool(bool datum)
+	{
+		JMP_THIS(0x4A1CA0);
+	}
+
+	unsigned int Compute_short(short datum)
+	{
+		JMP_THIS(0x4A1D30);
+	}
+
+	unsigned int Compute_int(int datum)
+	{
+		JMP_THIS(0x4A1D50);
+	}
+
+	unsigned int Compute_dword(DWORD datum)
+	{
+		JMP_THIS(0x4A1D50);
+	}
+
+	unsigned int Compute_float(float datum)
+	{
+		JMP_THIS(0x4A1D70);
+	}
+
+	unsigned int Compute_double(double datum)
+	{
+		JMP_THIS(0x4A1D90);
+	}
+
 	operator int() const
 	{
 		return Value();
 	}
 
-	void operator()(char datum)
+	unsigned int operator()(char datum)
 	{
 		JMP_THIS(0x4A1C10);
 	}
 
-	void operator()(bool datum)
+	unsigned int operator()(bool datum)
 	{
 		JMP_THIS(0x4A1CA0);
 	}
 
-	void operator()(short datum)
+	unsigned int operator()(short datum)
 	{
 		JMP_THIS(0x4A1D30);
 	}
 
-	void operator()(int datum)
+	unsigned int operator()(int datum)
 	{
 		JMP_THIS(0x4A1D50);
 	}
 
-	void operator()(float datum)
+	unsigned int operator()(float datum)
 	{
 		JMP_THIS(0x4A1D70);
 	}
 
-	void operator()(double datum)
+	unsigned int operator()(double datum)
 	{
 		JMP_THIS(0x4A1D90);
 	}

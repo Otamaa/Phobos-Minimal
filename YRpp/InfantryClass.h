@@ -79,10 +79,12 @@ public:
 	bool           Crawling;
 	bool           IsZoneCheat; //0x6DC
 	bool           _WasSelected; //0x6DD
+	BYTE			padding_6DE[2];
 	DWORD          unknown_6E0;
 	bool           ShouldDeploy;
 	LandType            _OnLand; //6E8
 	PROTECTED_PROPERTY(DWORD, unused_6EC); //??
 };
-
+static_assert(offsetof(InfantryClass, padding_6DE) == 0x6DE, "ClassMember Shifted !");
+static_assert(offsetof(InfantryClass, unknown_6E0) == 0x6E0, "ClassMember Shifted !");
 static_assert(sizeof(InfantryClass) == 0x6F0, "Invalid Size !");
