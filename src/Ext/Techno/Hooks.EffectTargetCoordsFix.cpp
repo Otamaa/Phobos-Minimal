@@ -315,6 +315,9 @@ DEFINE_HOOK(0x70CA8B, TechnoClass_Railgun_AmbientDamageIgnoreTarget2, 0x6)
 DEFINE_HOOK(0x70CBDA, TechnoClass_Railgun_AmbientDamageWarhead, 0x6)
 {
 	GET(WeaponTypeClass*, pWeapon, EDI);
+	GET(TechnoClass*, pSource, EDX);
+
+	R->Stack<HouseClass*>(0xC, pSource->Owner);
 	R->EDX(WeaponTypeExtContainer::Instance.Find(pWeapon)->AmbientDamage_Warhead.Get(pWeapon->Warhead));
 	return 0x70CBE0;
 }

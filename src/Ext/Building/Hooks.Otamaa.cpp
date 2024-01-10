@@ -75,25 +75,25 @@ DEFINE_HOOK(0x47EF52, BuildingClass_PlaceCementGrid_Shape, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x441EFC, BuildingClass_Destroy_PreventRubble, 0xB)
-{
-	GET(BuildingClass*, pThis, ESI);
-	//GET_STACK(TechnoClass*, pKiller, STACK_OFFS(0x64, -0x8));
-	//GET_STACK(void*, pPointer, STACK_OFFS(0x64, 0x14));
+// DEFINE_HOOK(0x441EFC, BuildingClass_Destroy_PreventRubble, 0xB)
+// {
+// 	GET(BuildingClass*, pThis, ESI);
+// 	//GET_STACK(TechnoClass*, pKiller, STACK_OFFS(0x64, -0x8));
+// 	//GET_STACK(void*, pPointer, STACK_OFFS(0x64, 0x14));
+//
+// 	if (pThis->GetCurrentMission() == Mission::Selling)
+// 	{
+// 		pThis->Health = 0;
+// 		if (R->AL()) {
+// 			pThis->NoCrew = true;
+// 		}
+//
+// 		pThis->DestroyExtrasFunctions(pThis->C4AppliedBy);
+// 		return 0x441F20;
+// 	}
 
-	if (pThis->GetCurrentMission() == Mission::Selling)
-	{
-		pThis->Health = 0;
-		if (R->AL()) {
-			pThis->NoCrew = true;
-		}
-
-		pThis->DestroyExtrasFunctions(pThis->C4AppliedBy);
-		return 0x441F20;
-	}
-
-	return 0x0;
-}
+// 	return 0x0;
+// }
 
 DEFINE_JUMP(VTABLE, 0x7E4140, GET_OFFSET(BuildingTypeExtData::IsFactory));
 

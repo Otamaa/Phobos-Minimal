@@ -547,12 +547,17 @@ DEFINE_OVERRIDE_HOOK(0x47243F, CaptureManagerClass_DecideUnitFate_BuildingFate, 
 {
 	GET(TechnoClass*, pVictim, EBX);
 
-	if (pVictim->WhatAmI() == BuildingClass::AbsID)
-	{
-		// 1. add to team and other fates don't really make sense for buildings
-		// 2. BuildingClass::Mission_Hunt() implementation is to do nothing!
-		pVictim->QueueMission(Mission::Guard, 0);
+	//Neutral techno should not do anything after get freed/captured
+	if(pVictim->Owner->IsNeutral()) {
+		pVictim->Override_Mission(Mission::Sleep);
 		return 0x472604;
+	} else {
+		if (pVictim->WhatAmI() == BuildingClass::AbsID) {
+			// 1. add to team and other fates don't really make sense for buildings
+			// 2. BuildingClass::Mission_Hunt() implementation is to do nothing!
+			pVictim->QueueMission(Mission::Guard, 0);
+			return 0x472604;
+		}
 	}
 
 	return 0;
@@ -2083,6 +2088,7 @@ void ReadRA2MD()
 
 DEFINE_OVERRIDE_HOOK(0x5facdf, Options_LoadFromINI, 5)
 {
+	Phobos::Config::Read();
 	ReadRA2MD();
 	return 0x0;
 }

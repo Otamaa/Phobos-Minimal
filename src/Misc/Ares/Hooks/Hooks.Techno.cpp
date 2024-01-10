@@ -1481,13 +1481,6 @@ DEFINE_HOOK(0x6F534E, TechnoClass_DrawExtras_Insignia, 0x5)
 // 	return 0x70CBEE;
 // }
 
-DEFINE_OVERRIDE_HOOK(0x70CBDA, TechnoClass_DealParticleDamage, 6)
-{
-	GET(TechnoClass*, pSource, EDX);
-	R->Stack<HouseClass*>(0xC, pSource->Owner);
-	return 0;
-}
-
 // this code somewhat broke targeting
 // it created identically like ares but not working as expected , duh
 DEFINE_OVERRIDE_HOOK(0x6FA361, TechnoClass_Update_LoseTarget, 5)

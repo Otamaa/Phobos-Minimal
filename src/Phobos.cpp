@@ -967,12 +967,6 @@ DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x5FACDF, OptionsClass_LoadSettings_LoadPhobosSettings, 0x5)
-{
-	Phobos::Config::Read();
-	return 0;
-}
-
 #ifdef ENABLE_TLS
 DEFINE_HOOK(0x52BA78, _YR_GameInit_Pre, 0x5)
 {

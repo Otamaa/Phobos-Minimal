@@ -3857,22 +3857,6 @@ DEFINE_HOOK(0x41F783, AITriggerTypeClass_ParseConditionType, 0x5)
 	return 0x41F7DE;
 }
 
-// this already known to be not human controlled
-// there is no way we know if its captured or freed
-DEFINE_HOOK(0x47243F, CaptureManageClass_DecideUnitFate_Neutral , 0x6)
-{
-	GET(TechnoClass* , pTarget , EBX);
-	//GET_STACK(bool , houseChanged , 0x24);
-
-	//Neutral techno should not do anything after get freed/captured
-	if(pTarget->Owner->IsNeutral()) {
-		pTarget->Override_Mission(Mission::Sleep);
-		return 0x472604;
-	}
-
-	return 0x0;
-}
-
 DEFINE_HOOK(0x4CA682, FactoryClass_Total_Techno_Queued_CompareType, 0x8)
 {
 	GET(TechnoClass*, pObject, ECX);

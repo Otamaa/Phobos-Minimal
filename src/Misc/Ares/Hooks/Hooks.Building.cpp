@@ -504,6 +504,9 @@ DEFINE_OVERRIDE_HOOK(0x441F12, BuildingClass_Destroy_RubbleYell, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
+	if(pThis->GetCurrentMission() == Mission::Selling)
+		return 0x0;
+
 	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 
 	// If this object has a rubble building set, turn
