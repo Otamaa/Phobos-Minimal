@@ -17,7 +17,7 @@
 
 #include <Misc/Ares/Hooks/Header.h>
 
-#ifndef PARTONE
+#ifdef PARTONE
 // Contains hooks that fix weapon graphical effects like lasers, railguns, electric bolts, beams and waves not interacting
 // correctly with obstacles between firer and target, as well as railgun / railgun particles being cut off by elevation.
 
@@ -284,6 +284,7 @@ DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_Additional, 0x6)
 	return 0;
 }
 
+#ifdef ENABLE_THESE_THINGS
 #include <Ext/WeaponType/Body.h>
 
 DEFINE_HOOK(0x70C862, TechnoClass_Railgun_AmbientDamageIgnoreTarget1, 0x5)
@@ -321,7 +322,9 @@ DEFINE_HOOK(0x70CBDA, TechnoClass_Railgun_AmbientDamageWarhead, 0x6)
 	R->EDX(WeaponTypeExtContainer::Instance.Find(pWeapon)->AmbientDamage_Warhead.Get(pWeapon->Warhead));
 	return 0x70CBE0;
 }
+#endif
 
+#ifndef aaa
 DEFINE_OVERRIDE_HOOK(0x6FF656, TechnoClass_FireAt_Additionals, 0xA)
 {
 	GET(TechnoClass* const, pThis, ESI);
@@ -387,3 +390,4 @@ DEFINE_OVERRIDE_HOOK(0x6FF656, TechnoClass_FireAt_Additionals, 0xA)
 
 	return 0x6FF660;
 }
+#endif

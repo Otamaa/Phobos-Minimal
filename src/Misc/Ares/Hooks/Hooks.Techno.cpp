@@ -24,7 +24,7 @@
 
 #include <Conversions.h>
 
-#ifndef DISABLEARESTECHNOEXT
+#ifndef aaa
 DEFINE_DISABLE_HOOK(0x6f3260, TechnoClass_CTOR_ares)
 DEFINE_DISABLE_HOOK(0x6f4500, TechnoClass_DTOR_ares)
 DEFINE_DISABLE_HOOK(0x70bf50, TechnoClass_SaveLoad_Prefix_ares)
@@ -33,7 +33,7 @@ DEFINE_DISABLE_HOOK(0x70c250, TechnoClass_SaveLoad_Prefix_ares)
 DEFINE_DISABLE_HOOK(0x70c264, TechnoClass_Save_Suffix_ares)
 #endif
 
-#ifndef DISABLEARESTECHNOTYPEEXT
+#ifndef aaa
 DEFINE_DISABLE_HOOK(0x711835, TechnoTypeClass_CTOR_ares)
 DEFINE_DISABLE_HOOK(0x711ae0, TechnoTypeClass_DTOR_ares)
 DEFINE_DISABLE_HOOK(0x716123, TechnoTypeClass_LoadFromINI_ares)

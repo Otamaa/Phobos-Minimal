@@ -513,7 +513,7 @@ void InitAdminDebugMode()
 		DWORD dwSize = MAX_COMPUTERNAME_LENGTH + 1;
 		GetComputerName(Phobos::Otamaa::PCName, &dwSize);
 
-		if (IS_SAME_STR_(Phobos::Otamaa::PCName, ADMIN_STR))
+		if (IS_SAME_STR_(Phobos::Otamaa::PCName, "WIN-55BCCCCDAST"))
 		{
 			Phobos::Otamaa::IsAdmin = true;
 

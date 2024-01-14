@@ -217,6 +217,73 @@ DEFINE_OVERRIDE_HOOK(0x71EE79, EventClass_HasOccured_PlayerAtX3, 9)
 	return (pHouse->ArrayIndex == param) ? 0x71EE82u : 0x71F163u;
 }
 
+static std::array<const char* , (size_t)TriggerEvent::count> TriggerEventsName {
+{
+	"None",
+	"EnteredBy" ,
+	"SpiedBy" ,
+	"ThievedBy" ,
+	"DiscoveredByPlayer",
+	"HouseDiscovered" ,
+	"AttackedByAnybody" ,
+	"DestroyedByAnybody" ,
+	"AnyEvent" ,
+	"DestroyedUnitsAll" ,
+	"DestroyedBuildingsAll" ,
+	"DestroyedAll",
+	"CreditsExceed" ,
+	"ElapsedTime" ,
+	"MissionTimerExpired",
+	"DestroyedBuildingsNum" ,
+	"DestroyedUnitsNum" ,
+	"NoFactoriesLeft" ,
+	"CiviliansEvacuated" ,
+	"BuildBuildingType" ,
+	"BuildUnitType",
+	"BuildInfantryType" ,
+	"BuildAircraftType",
+	"TeamLeavesMap",
+	"ZoneEntryBy",
+	"CrossesHorizontalLine",
+	"CrossesVerticalLine",
+	"GlobalSet",
+	"GlobalCleared",
+	"DestroyedFakesAll",
+	"LowPower",
+	"AllBridgesDestroyed",
+	"BuildingExists",
+	"SelectedByPlayer",
+	"ComesNearWaypoint",
+	"EnemyInSpotlight",
+	"LocalSet",
+	"LocalCleared",
+	"FirstDamaged_combatonly",
+	"HalfHealth_combatonly",
+	"QuarterHealth_combatonly",
+	"FirstDamaged_anysource",
+	"HalfHealth_anysource",
+	"QuarterHealth_anysource",
+	"AttackedByHouse",
+	"AmbientLightBelow",
+	"AmbientLightAbove",
+	"ElapsedScenarioTime",
+	"DestroyedByAnything",
+	"PickupCrate",
+	"PickupCrate_any",
+	"RandomDelay",
+	"CreditsBelow",
+	"SpyAsHouse",
+	"SpyAsInfantry",
+	"DestroyedUnitsNaval",
+	"DestroyedUnitsLand",
+	"BuildingDoesNotExist",
+	"PowerFull",
+	"EnteredOrOverflownBy"
+	"TechTypeExists",
+	"TechTypeDoesntExist" ,
+}
+};
+
 DEFINE_OVERRIDE_HOOK(0x71E949, TEventClass_HasOccured_Ares, 7)
 {
 
@@ -224,9 +291,15 @@ DEFINE_OVERRIDE_HOOK(0x71E949, TEventClass_HasOccured_Ares, 7)
 	GET_STACK(EventArgs const, args, (0x2C + 0x4));
 	enum { return_true = 0x71F1B1, return_false = 0x71F163 };
 
+	//const char* name = "Unknown";
+	//if(args.EventType < TriggerEvent::count)
+	//	name =TriggerEventsName[(int)args.EventType];
+
 	bool result = false;
+	//Debug::Log("Event [%d - %s] IsOccured \n" , (int)args.EventType , name);
 	if (AresTEventExt::HasOccured(pThis, args, result))
 	{
+		//Debug::Log("Event [%d - %s] Has Occured \n" , (int)args.EventType , name);
 		return result ? return_true : return_false;
 	}
 

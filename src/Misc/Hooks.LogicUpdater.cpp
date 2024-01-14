@@ -30,6 +30,8 @@
 
 #include <Locomotor/TunnelLocomotionClass.h>
 
+#define ENABLE_THESE
+
 DEFINE_HOOK(0x728F74, TunnelLocomotionClass_Process_KillAnims, 0x5)
 {
 	GET(ILocomotion*, pThis, ESI);
@@ -110,7 +112,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 		IsInLimboDelivered = BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis))->LimboID >= 0;
 	}
 
-
+#ifdef ENABLE_THESE
 	if (pThis->IsAlive && pThis->Location == CoordStruct::Empty || pThis->InlineMapCoords() == CellStruct::Empty) {
 		if (!pType->Spawned && !IsInLimboDelivered && !pThis->InLimbo) {
 			Debug::Log("Techno[%x : %s] With Invalid Location ! , Removing ! \n", pThis, pThis->get_ID());
@@ -118,14 +120,14 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 			return retDead;
 		}
 	}
-
+#endif
 	// Set only if unset or type is changed
 	// Notice that Ares may handle type conversion in the same hook here, which is executed right before this one thankfully
 	if (!pExt->Type || pExt->Type != pType)
 		pExt->UpdateType(pType);
 
 	pExt->IsInTunnel = false; // TechnoClass::AI is only called when not in tunnel.
-
+#ifdef ENABLE_THESE
 	if (pExt->UpdateKillSelf_Slave()) {
 		return retDead;
 	}
@@ -156,6 +158,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	}
 
 	pExt->DepletedAmmoActions();
+#endif
 
 	return Continue;
 }
@@ -187,6 +190,7 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
 
+#ifdef ENABLE_THESE
 	PassengersFunctional::AI(pThis);
 	//SpawnSupportFunctional::AI(pThis);
 
@@ -204,7 +208,7 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 			pDSState->TechnoClass_Update_DamageSelf(pThis);
 		}
 	}
-
+#endif
 	return pThis->IsAlive ? 0x6F9EBB : 0x6FAFFD;
 	//return 0x6F9EBB;
 }
@@ -215,12 +219,12 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
 
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
-
+#ifdef ENABLE_THESE
 	pExt->UpdateAircraftOpentopped();
 	AircraftPutDataFunctional::AI(pExt, pTypeExt);
 	AircraftDiveFunctional::AI(pExt, pTypeExt);
 	FighterAreaGuardFunctional::AI(pExt, pTypeExt);
-
+#endif
 	pThis->FootClass::Update();
 	return 0x414DA8;
 }
@@ -229,19 +233,21 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 {
 	GET(FootClass*, pThis, ESI);
 	GET8(bool, IsMovingNow, AL);
-
+#ifdef ENABLE_THESE
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	 DriveDataFunctional::AI(pExt);
 	 //UpdateWebbed(pThis);
-
+#endif
 	if (IsMovingNow)
 	{
+#ifdef ENABLE_THESE
 		// LaserTrails update routine is in TechnoClass::AI hook because TechnoClass::Draw
 		// doesn't run when the object is off-screen which leads to visual bugs - Kerbiter
 		pExt->UpdateLaserTrails();
 
 		TrailsManager::AI(static_cast<TechnoClass*>(pThis));
+#endif
 		return 0x4DA6A0;
 	}
 

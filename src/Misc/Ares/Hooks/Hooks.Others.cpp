@@ -72,7 +72,7 @@ DEFINE_DISABLE_HOOK(0x7258d0, AnnounceInvalidPointer_ares)
 DEFINE_DISABLE_HOOK(0x533058, CommandClassCallback_Register_ares)
 #endif
 
-#ifndef DISABLEARESRULESEXT
+#ifndef aaa
 DEFINE_DISABLE_HOOK(0x679CAF, RulesData_LoadAfterTypeData_ares)
 DEFINE_DISABLE_HOOK(0x667a1d, RulesClass_CTOR_ares)
 DEFINE_DISABLE_HOOK(0x667a30, RulesClass_DTOR_ares)
@@ -2989,6 +2989,7 @@ static std::map <const BuildingClass*, std::vector<unsigned int>> CRCRecords {};
 
 void PrintBld(const BuildingClass* pThis, FILE* stream)
 {
+	/*
 	const auto iter = CRCRecords.find(pThis);
 
 	if (iter == CRCRecords.end())
@@ -2997,7 +2998,7 @@ void PrintBld(const BuildingClass* pThis, FILE* stream)
 	for (int i = 0; i < (int)iter->second.size(); ++i) {
 		fprintf(stream, "LasrRecorded CRCs [%d] [%08X]\n",i , iter->second.data() + i);
 	}
-	/*
+	
 	for (auto const& who : whos)
 	{
 		if (IS_SAME_STR_(pThis->Type->ID, who.c_str()))
@@ -3496,6 +3497,15 @@ bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 
 		fprintf(LogFile, "YR synchronization log\n");
 		fprintf(LogFile, "With Ares [21.352.1218] and Phobos %s\n", PRODUCT_VERSION);
+
+		fprintf(LogFile, "\n");
+
+		int i = 0;
+		for (auto const& [str, data] : Patch::ModuleDatas) {
+			fprintf(LogFile,"Module [(%d) %s: Base address = %08X]\n", i++, str.c_str(), data.BaseAddr);
+		}
+
+		fprintf(LogFile, "\n");
 
 		for (size_t ixF = 0; ixF < EventClass::LatestFramesCRC.c_size(); ++ixF)
 		{

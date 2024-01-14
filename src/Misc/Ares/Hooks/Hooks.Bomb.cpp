@@ -370,6 +370,10 @@ DEFINE_OVERRIDE_HOOK(0x4D9F7B, FootClass_Sell_Detonate, 6)
 {
 	GET(FootClass* const, pThis, ESI);
 
+	const auto loc = pThis->Location;
+	int money = pThis->GetRefund();
+	pThis->Owner->GiveMoney(money);
+
 	if (const auto pBomb = pThis->AttachedBomb) {
 		if (BombExtContainer::Instance.Find(pBomb)->Weapon->Ivan_DetonateOnSell.Get())
 			pBomb->Detonate(); // Otamaa : detonate may kill the techno before this function
@@ -382,15 +386,13 @@ DEFINE_OVERRIDE_HOOK(0x4D9F7B, FootClass_Sell_Detonate, 6)
 
 		VoxClass::PlayIndex(pTypeExt->EVA_Sold);
 		//WW used VocClass::PlayGlobal to play the SellSound, why did they do that?
-		VocClass::PlayAt(pTypeExt->SellSound, pThis->Location);
+		VocClass::PlayAt(pTypeExt->SellSound, loc);
 	}
 
-	int money = pThis->GetRefund();
-	pThis->Owner->GiveMoney(money);
+	FlyingStrings::AddMoneyString(RulesExtData::Instance()->DisplayIncome  , money, pThis->Owner, RulesExtData::Instance()->DisplayIncome_Houses, loc);
 
-	FlyingStrings::AddMoneyString(RulesExtData::Instance()->DisplayIncome  , money, pThis->Owner, RulesExtData::Instance()->DisplayIncome_Houses, pThis->Location);
-
-	return 0x4D9FCB;
+	//this thing may already death , just
+	return pThis->IsAlive  ? 0x4D9FCB : 0x4D9FE9;
 }
 
 // custom ivan bomb attachment

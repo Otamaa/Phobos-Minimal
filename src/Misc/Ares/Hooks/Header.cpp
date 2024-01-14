@@ -2898,51 +2898,35 @@ void TechnoExt_ExtData::ApplyKillDriver(TechnoClass* pTarget, TechnoClass* pKill
 
 }
 
-std::pair<TechnoTypeClass* , AbstractType> NOINLINE GetOriginalType(TechnoClass* pThis ,TechnoTypeClass* pToType) {
+std::pair<TechnoTypeClass**, AbstractType> NOINLINE GetOriginalType(TechnoClass* pThis ,TechnoTypeClass* pToType) {
 	switch (pThis->WhatAmI())
 	{
 	case AbstractType::Infantry:
-		return { ((InfantryClass*)pThis)->Type , AbstractType::InfantryType };
+		return { (TechnoTypeClass**)(&((InfantryClass*)pThis)->Type) , AbstractType::InfantryType };
 	case AbstractType::Unit:
-		return { ((UnitClass*)pThis)->Type, AbstractType::UnitType };
+		return { (TechnoTypeClass**)(&((UnitClass*)pThis)->Type), AbstractType::UnitType };
 	case AbstractType::Aircraft:
-		return { ((AircraftClass*)pThis)->Type, AbstractType::AircraftType };
+		return { (TechnoTypeClass**)(&((AircraftClass*)pThis)->Type), AbstractType::AircraftType };
 	default:
-		Debug::Log("%s is not FootClass, conversion not allowed\n", pToType->ID);
+		Debug::FatalErrorAndExit("%s is not FootClass, conversion not allowed\n", pToType->ID);
 		return { nullptr, AbstractType::None };
 	}
 }
 
-void NOINLINE SetType(TechnoClass* pThis, TechnoTypeClass* pToType)
+void NOINLINE SetType(TechnoClass* pThis,AbstractType rtti,  TechnoTypeClass* pToType, TechnoTypeClass** CurType)
 {
-	switch (pThis->WhatAmI())
-	{
-	case AbstractType::Infantry:
-		((InfantryClass*)pThis)->Type = (InfantryTypeClass*)pToType;
-		break;
-	case AbstractType::Unit:
-		((UnitClass*)pThis)->Type = (UnitTypeClass*)pToType;
-		break;
-	case AbstractType::Aircraft:
-		((AircraftClass*)pThis)->Type = (AircraftTypeClass*)pToType;
-		break;
-	default:
-		break;
-	}
+	*CurType = pToType;
 }
 
 bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* pToType, bool AdjustHealth)
 {
 	const auto& [prevType, rtti] = GetOriginalType(pThis, pToType);
-
-	if (!prevType)
-		return false;
-
-	Debug::Log("Attempt to convert TechnoType[%s] to [%s]\n", prevType->ID, pToType->ID);
+	const auto pOldType = (*prevType);
+	Debug::Log("Attempt to convert TechnoType[%s] to [%s]\n", pOldType->ID, pToType->ID);
 
 	if (pToType->WhatAmI() != rtti)
 	{
-		Debug::Log("Incompatible types between %s and %s\n", prevType->ID, pToType->ID);
+		Debug::Log("Incompatible types between %s and %s\n", pOldType->ID, pToType->ID);
 		return false;
 	}
 
@@ -2960,11 +2944,11 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 
 	const int oldHealth = pThis->Health;
 
-	SetType(pThis, pToType);
+	SetType(pThis, rtti , pToType , prevType);
 
 	if(AdjustHealth){
 		// Readjust health according to percentage
-		pThis->SetHealthPercentage((double)(oldHealth) / (double)prevType->Strength);
+		pThis->SetHealthPercentage((double)(oldHealth) / (double)pOldType->Strength);
 		pThis->EstimatedHealth = pThis->Health;
 	} else {
 		pThis->Health = pToType->Strength;
@@ -2979,7 +2963,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	pOwner->RecheckTechTree = true;
 	TechnoExtContainer::Instance.Find(pThis)->Is_Operated = false;
 
-	AresAE::RemoveSpecific(&TechnoExtContainer::Instance.Find(pThis)->AeData, pThis, prevType);
+	AresAE::RemoveSpecific(&TechnoExtContainer::Instance.Find(pThis)->AeData, pThis, pOldType);
 
 	// remove previous line trail
 	GameDelete<true, true>(pThis->LineTrailer);
@@ -3009,7 +2993,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 		// since it not using the type data spawner
 		// it using the custom made
 		// make sure it wont cause any problem here ,..
-		if (prevType->Spawns)
+		if (pOldType->Spawns)
 		{
 			if(pSpawnManager->SpawnType != pToType->Spawns)
 				pSpawnManager->SpawnType = pToType->Spawns;
@@ -3025,7 +3009,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 		}
 	}
 
-	if (pThis->IsDisguised() && prevType->DisguiseWhenStill != pToType->DisguiseWhenStill)
+	if (pThis->IsDisguised() && pOldType->DisguiseWhenStill != pToType->DisguiseWhenStill)
 		pThis->ClearDisguise();
 
 	// Adjust ammo
@@ -3047,13 +3031,13 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	SetRotRaw(&pThis->PrimaryFacing ,pToType->ROT);
 	SetRotRaw(&pThis->SecondaryFacing, TechnoTypeExtContainer::Instance.Find(pToType)->TurretRot.Get(pToType->ROT));
 
-	// because we are throwing away the locomotor in a split second, piggybacking
-	// has to be stopped. otherwise the object might remain in a weird state.
-	// throw the piggybacked loco
-	while (LocomotionClass::End_Piggyback(((FootClass*)pThis)->Locomotor));
+	// // because we are throwing away the locomotor in a split second, piggybacking
+	// // has to be stopped. otherwise the object might remain in a weird state.
+	// // throw the piggybacked loco
+	// while (LocomotionClass::End_Piggyback(((FootClass*)pThis)->Locomotor));
 
 	// replace the original locomotor to new one
-	if (prevType->Locomotor != pToType->Locomotor) {
+	if (pOldType->Locomotor != pToType->Locomotor) {
 
 		// throw away the current locomotor and instantiate
 		// a new one of the default type for this unit.
@@ -3064,7 +3048,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 		}
 	}
 
-	if (pToType->BalloonHover && pToType->DeployToLand && prevType->Locomotor != CLSIDs::Jumpjet() && pToType->Locomotor == CLSIDs::Jumpjet())
+	if (pToType->BalloonHover && pToType->DeployToLand && pOldType->Locomotor != CLSIDs::Jumpjet() && pToType->Locomotor == CLSIDs::Jumpjet())
 		((FootClass*)pThis)->Locomotor.GetInterfacePtr()->Move_To(pThis->Location);
 
 	return true;
@@ -5837,8 +5821,11 @@ bool AresTActionExt::Execute(TActionClass* pAction, HouseClass* pHouse, ObjectCl
 
 #pragma region AresTEventExt
 
-HouseClass* AresTEventExt::ResolveHouseParam(int const param, HouseClass* const pOwnerHouse)
+NOINLINE HouseClass* AresTEventExt::ResolveHouseParam(int const param, HouseClass* const pOwnerHouse)
 {
+	if (param == -1)
+		return nullptr;
+
 	if (param == 8997)
 	{
 		return pOwnerHouse;
@@ -6037,7 +6024,7 @@ bool AresTEventExt::FindTechnoType(TEventClass* pThis, int args, HouseClass* pWh
 		}
 
 		if (arrayCount > 0 && arrayItems) {
-			const auto arrayItemsEnd = arrayItems + count;
+			const auto arrayItemsEnd = arrayItems + arrayCount;
 			for (auto walk = arrayItems; walk != arrayItemsEnd; ++walk) {
 				if (pWho && pWho != (*walk)->Owner)
 					continue;
