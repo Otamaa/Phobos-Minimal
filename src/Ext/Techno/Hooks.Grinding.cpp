@@ -111,7 +111,7 @@ DEFINE_HOOK(0x51E63A, InfantryClass_WhatAction_Grinding_Engineer, 0x6)
 		if(ret == Action::NoGRepair &&
 			(pBuilding->Type->InfantryAbsorb
 			|| BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->TunnelType != -1
-			|| pBuilding->Type->Hospital && pThis->GetHealthStatus() != HealthState::Green
+			|| pBuilding->Type->Hospital && pThis->GetHealthPercentage() < RulesClass::Instance->ConditionGreen
 			|| pBuilding->Type->Armory && pThis->Type->Trainable
 		  )){
 			ret = pThis->SendCommand(RadioCommand::QueryCanEnter, pTarget) == RadioCommand::AnswerPositive ?
