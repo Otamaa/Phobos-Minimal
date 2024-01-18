@@ -28,7 +28,7 @@ public:
 	Nullable<RadTypeClass*> RadType {};
 	Valueable<bool> Rad_NoOwner { true };
 
-	Nullable<int> Strafing_Shots { };
+	Valueable<int> Strafing_Shots {  5  };
 	Valueable<bool> Strafing_SimulateBurst { false };
 	Valueable<AffectedTarget> CanTarget { AffectedTarget::All };
 	Valueable<AffectedHouse> CanTargetHouses { AffectedHouse::All };

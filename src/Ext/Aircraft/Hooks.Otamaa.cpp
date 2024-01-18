@@ -211,43 +211,43 @@ DEFINE_HOOK(0x418782, AircraftClass_CurleyShuffle_D, 0x6)
 	return 0x418788;
 }
 
-DEFINE_HOOK(0x41B7F0, AircraftClass_IFlyControl_Is_Strafe, 0x6)
-{ 
-	GET_STACK(IFlyControl*, ptr, 0x4);
-
-	AircraftClass* pAircraft = static_cast<AircraftClass*>(ptr);
-	bool result = false;
-
-	if (pAircraft->CurrentMission == Mission::Attack && pAircraft->Target)
-	{
-		const WeaponStruct* pWeapon = pAircraft->GetWeapon(pAircraft->SelectWeapon(pAircraft->Target));
-
-		if (pWeapon && pWeapon->WeaponType)
-		{
-			WeaponTypeClass* pWeaponType = pWeapon->WeaponType;
-			auto pWeaponTypeExt = WeaponTypeExtContainer::Instance.Find(pWeaponType);
-
-			if (pWeaponType->Projectile->ROT <= 1 && !pWeaponType->Projectile->Inviso
-				|| pWeaponTypeExt->Strafing_Shots.isset())
-			{
-				result = true;
-			}
-		}
-
-		R->EAX(result);
-		return 0x41B83B;
-	}
-
-	WeaponStruct* pPrimary = pAircraft->GetWeapon(0);
-
-	if (pPrimary && pPrimary->WeaponType)
-	{
-		R->EAX(pPrimary->WeaponType->Projectile->ROT <= 1
-			&& !pPrimary->WeaponType->Projectile->Inviso);
-	}
-
-	return 0x41B83B;
-}
+//DEFINE_HOOK(0x41B7F0, AircraftClass_IFlyControl_Is_Strafe, 0x6)
+//{ 
+//	GET_STACK(IFlyControl*, ptr, 0x4);
+//
+//	AircraftClass* pAircraft = static_cast<AircraftClass*>(ptr);
+//	bool result = false;
+//
+//	if (pAircraft->CurrentMission == Mission::Attack && pAircraft->Target)
+//	{
+//		const WeaponStruct* pWeapon = pAircraft->GetWeapon(pAircraft->SelectWeapon(pAircraft->Target));
+//
+//		if (pWeapon && pWeapon->WeaponType)
+//		{
+//			WeaponTypeClass* pWeaponType = pWeapon->WeaponType;
+//			auto pWeaponTypeExt = WeaponTypeExtContainer::Instance.Find(pWeaponType);
+//
+//			if (pWeaponType->Projectile->ROT <= 1 && !pWeaponType->Projectile->Inviso
+//				|| pWeaponTypeExt->Strafing_Shots.isset())
+//			{
+//				result = true;
+//			}
+//		}
+//
+//		R->EAX(result);
+//		return 0x41B83B;
+//	}
+//
+//	WeaponStruct* pPrimary = pAircraft->GetWeapon(0);
+//
+//	if (pPrimary && pPrimary->WeaponType)
+//	{
+//		R->EAX(pPrimary->WeaponType->Projectile->ROT <= 1
+//			&& !pPrimary->WeaponType->Projectile->Inviso);
+//	}
+//
+//	return 0x41B83B;
+//}
 
 #ifdef TEST_CODE
 DEFINE_HOOK(0x4197FC, AircraftClass_MI_Attack_GoodFireLoc_Range, 0x6)

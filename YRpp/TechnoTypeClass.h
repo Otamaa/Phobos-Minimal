@@ -85,6 +85,7 @@ public:
 	static const AbstractBaseType AbsTypeBase = AbstractBaseType::TechnoType;
 	static inline constexpr auto MaxWeapons = 18;
 
+	static constexpr reference<NamedValue<Foundation> , 0x81B9D8u , (size_t)Foundation::count> const BuildingFoundationName {};
 	static constexpr reference<NamedValue<int>, 0x81B958u, 11u> const PipsTypeName {};
 	static constexpr reference<NamedValue<int>, 0x81B9B0u, 4u> const PipScaleTypeName {};
 	static constexpr reference<const char*, 0x81BA88, 13u> const MovementZonesToString {};

@@ -4029,3 +4029,26 @@ DEFINE_HOOK(0x50B6F0, HouseClass_ControlledByCurrentPlayer_LogCaller, 0x5)
 	return 0x0;
 }
 #endif 
+
+DEFINE_HOOK(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
+{
+	GET(BuildingTypeClass*, pThis, EBP);
+
+	Nullable<Foundation> foundation {};
+	const char* pSection = pThis->ID;
+	INI_EX exINi(&CCINIClass::INI_Art.get());
+	foundation.Read(exINi, pSection,"Foundation");
+
+	if (!foundation.isset())
+	{
+		const char* pArtSection = (!pThis->ImageFile || !pThis->ImageFile[0]) ? pSection : pThis->ImageFile;
+
+		pThis->Foundation = CCINIClass::INI_Art->ReadFoundation(pArtSection, "Foundation", pThis->Foundation);
+	}
+	else
+	{
+		pThis->Foundation = foundation;
+	}
+
+	return 0x46125D;
+}

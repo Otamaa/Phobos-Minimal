@@ -974,7 +974,9 @@ enum class Foundation : int
 	_4x4 = 18,
 	_3x4 = 19,
 	_6x4 = 20,
-	_0x0 = 21
+	_0x0 = 21,
+
+	count = 22
 };
 
 enum class GameMode : unsigned int {

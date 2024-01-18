@@ -7,12 +7,31 @@
 namespace detail
 {
 	template<>
+	inline bool read<Foundation>(Foundation& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			for (size_t i = 0; i < TechnoTypeClass::BuildingFoundationName.size(); ++i) {
+				if (IS_SAME_STR_(TechnoTypeClass::BuildingFoundationName[i].Name, parser.c_str())) {
+					value = TechnoTypeClass::BuildingFoundationName[i].Value;
+					return true;
+				}
+			}
+
+			if(IS_SAME_STR_(parser.c_str() , "Custom"))
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected valid Foundation value");
+		}
+
+		return false;
+	}
+
+	template<>
 	inline bool read<DoTypeFacing>(DoTypeFacing& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
 			for (size_t i = 0; i < EnumFunctions::FacingType_to_strings.size(); ++i) {
-				if (!_strcmpi(EnumFunctions::FacingType_to_strings[i], parser.c_str())) {
+				if (IS_SAME_STR_(EnumFunctions::FacingType_to_strings[i], parser.c_str())) {
 					value = DoTypeFacing(i);
 					return true;
 				}

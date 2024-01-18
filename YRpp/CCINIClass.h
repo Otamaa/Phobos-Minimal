@@ -275,7 +275,7 @@ public:
 	INI_READ(ColorString, 0x474A90);
 
 	// Foundation= to idx
-	INI_READ(Foundation, 0x474DA0);
+	INI_READ_DETERMINED(Foundation, 0x474DA0);
 
 	// MovementZone= to idx
 	INI_READ_DETERMINED(MovementZone, 0x474E40);
