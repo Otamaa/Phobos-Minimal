@@ -2103,6 +2103,10 @@ DEFINE_OVERRIDE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme, 7)
 	GET_STACK(int const, idx, 0x4);
 	auto ret = 0;
 
+	// Game_GetLinkedColor converts vanilla dropdown color index into color scheme index ([Colors] from rules)
+	// What we want to do is to restore vanilla from Ares hook, and immediately return arg
+	// So if spawner feeds us a number, it will be used to look up color scheme directly	
+	// Original Author : Morton
 	if (Phobos::UI::UnlimitedColor)
 	{
 		ret = idx << 1;
