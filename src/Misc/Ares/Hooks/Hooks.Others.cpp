@@ -2101,6 +2101,8 @@ DEFINE_OVERRIDE_HOOK(0x4E43C0, Game_InitDropdownColors, 5)
 DEFINE_OVERRIDE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme, 7)
 {
 	GET_STACK(int const, idx, 0x4);
+	GET_STACK(DWORD, caller, 0x0);
+
 	auto ret = 0;
 
 	// Game_GetLinkedColor converts vanilla dropdown color index into color scheme index ([Colors] from rules)
@@ -2143,7 +2145,13 @@ DEFINE_OVERRIDE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme, 7)
 			ret = slot->colorSchemeIndex;
 		}
 	}
-	R->EAX(ret + 1);
+
+	ret += 1;
+
+	if (ret >= ColorScheme::Array->Count)
+		Debug::FatalErrorAndExit("Address[%x] Trying To get Player Color[%d(%d)] that more than ColorScheme Array Count [%d]!\n", caller, ret, ret - 1, ColorScheme::Array->Count);
+
+	R->EAX(ret);
 	return 0x69A334;
 }
 
