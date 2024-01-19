@@ -207,7 +207,7 @@ DEFINE_HOOK(0x54D208, JumpjetLocomotionClass_MovementAI_Wobbles, 0x5)
 	GET(JumpjetLocomotionClass* const, pThis, ESI);
 
 	//prevent float zero division error
-	if (std::abs(pThis->Wobbles) < 0.001f || isnan(pThis->Wobbles)) {
+	if (pThis->LinkedTo->IsUnderEMP() || std::abs(pThis->Wobbles) < 0.001f || isnan(pThis->Wobbles)) {
 		return NoWobble;
 	}
 
