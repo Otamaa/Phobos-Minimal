@@ -1448,55 +1448,9 @@ DEFINE_OVERRIDE_HOOK(0x5FDDA4, IsOverlayIdxTiberium_Log, 6)
 	return 0x5FDDC1;
 }
 
-constexpr DWORD InternalVersion = 0x1414D121;
-char ModName[0x40] = "Yuri's Revenge";
-char ModVersion[0x40] = "1.001";
-int ModIdentifier = 0;
-byte GFX_DX_Force = 0;
-int colorCount = 8;
-int version = ModIdentifier + SAVEGAME_ID;
-
-int uiColorText;
-int uiColorTextButton = 0xFFFF; // #1644: needed for CD prompt
-int uiColorTextCheckbox;
-int uiColorTextRadio;
-int uiColorTextLabel = 0xFFFF; // #1644: needed for CD prompt
-int uiColorTextList;
-int uiColorTextCombobox;
-int uiColorTextGroupbox;
-int uiColorTextEdit;
-int uiColorTextSlider;
-int uiColorTextObserver;
-int uiColorCaret;
-int uiColorSelection;
-int uiColorSelectionCombobox;
-int uiColorSelectionList;
-int uiColorSelectionObserver;
-int uiColorBorder1;
-int uiColorBorder2;
-int uiColorDisabled;
-int uiColorDisabledLabel;
-int uiColorDisabledButton;
-int uiColorDisabledCombobox;
-int uiColorDisabledCheckbox;
-int uiColorDisabledList;
-int uiColorDisabledSlider;
-int uiColorDisabledObserver;
-
-struct ColorData
-{
-	int colorRGB;
-	int selectedIndex;
-	int colorSchemeIndex;
-	char colorScheme[0x20];
-	const wchar_t* sttToolTipSublineText;
-};
-
-static ColorData Colors[16 + 1];
-
 DEFINE_OVERRIDE_HOOK(0x7cd819, ExeRun, 5)
 {
-	Game::Savegame_Magic = InternalVersion;
+	Game::Savegame_Magic = AresGlobalData::InternalVersion;
 	Game::bVideoBackBuffer = false;
 	Game::bAllowVRAMSidebar = false;
 
@@ -1901,17 +1855,17 @@ void LoadGlobalConfig()
 	{
 		if (IS_SAME_STR_(Phobos::readBuffer, "hardware"))
 		{
-			GFX_DX_Force = 0x01l; //HW
+			AresGlobalData::GFX_DX_Force = 0x01l; //HW
 		}
 		else if (IS_SAME_STR_(Phobos::readBuffer, "emulation"))
 		{
-			GFX_DX_Force = 0x02l; //EM
+			AresGlobalData::GFX_DX_Force = 0x02l; //EM
 		}
 	}
 
 	if (IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_VISTA), LOBYTE(_WIN32_WINNT_VISTA), 0))
 	{
-		GFX_DX_Force = 0;
+		AresGlobalData::GFX_DX_Force = 0;
 	}
 }
 
@@ -1943,153 +1897,10 @@ void DoSomethingWithThe64Char(AresSafeChecksummer& crc, const char* str, int str
 	AresSafeChecksummer::Process(crc.Bytes, strsize, crc.Value);
 }
 
-void ReadRA2MD()
-{
-	Debug::Log("--------- Loading Ares global settings -----------\n");
-
-	CCFileClass IniFile { GameStrings::UIMD_INI() };
-
-	if (IniFile.Exists() && IniFile.Open(FileAccessMode::Read))
-	{
-
-		CCINIClass Ini {};
-		Ini.ReadCCFile(&IniFile);
-
-		auto const section2 = GameStrings::Colors();
-		colorCount = std::clamp(Ini.ReadInteger(section2, "Count", colorCount), 8, 16);
-
-		auto const ParseColorInt = [&Ini](const char* section, const char* key, int defColor) -> int
-			{
-				ColorStruct ndefault(defColor & 0xFF, (defColor >> 8) & 0xFF, (defColor >> 16) & 0xFF);
-				auto const color = Ini.ReadColor(section, key, ndefault);
-				return color.R | color.G << 8 | color.B << 16;
-			};
-
-		auto const section = "UISettings";
-
-		auto const ReadColor = [&Ini, section2, ParseColorInt]
-		(
-			const char* name,
-			ColorData& value,
-			int colorRGB,
-			const char* defTooltip,
-			const char* defColorScheme
-		)
-			{
-				// load the tooltip string
-				char buffer[0x20];
-				IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.Tooltip", name);
-				if (Ini.ReadString(section2, buffer, defTooltip, Phobos::readBuffer))
-				{
-					value.sttToolTipSublineText = StringTable::LoadString(Phobos::readBuffer);
-				}
-
-				IMPL_SNPRNINTF(buffer, 0x20, "%s.ColorScheme", name);
-				if (Ini.ReadString(section2, buffer, defColorScheme, Phobos::readBuffer))
-				{
-					PhobosCRT::strCopy(value.colorScheme, Phobos::readBuffer);
-				}
-
-				IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.DisplayColor", name);
-				value.colorRGB = ParseColorInt(section2, buffer, colorRGB);
-
-				value.colorSchemeIndex = -1;
-				value.selectedIndex = -1;
-			};
-
-		// menu colors. the color of labels, button texts, list items, stuff and others
-		uiColorText = ParseColorInt(section, "Color.Text", 0xFFFF);
-
-		// original color schemes
-		auto const defColors = reinterpret_cast<int const*>(0x8316A8);
-		ReadColor("Observer", Colors[0], defColors[8], "STT:PlayerColorObserver", "LightGrey");
-		ReadColor("Slot1", Colors[1], defColors[0], "STT:PlayerColorGold", "Gold");
-		ReadColor("Slot2", Colors[2], defColors[1], "STT:PlayerColorRed", "DarkRed");
-		ReadColor("Slot3", Colors[3], defColors[2], "STT:PlayerColorBlue", "DarkBlue");
-		ReadColor("Slot4", Colors[4], defColors[3], "STT:PlayerColorGreen", "DarkGreen");
-		ReadColor("Slot5", Colors[5], defColors[4], "STT:PlayerColorOrange", "Orange");
-		ReadColor("Slot6", Colors[6], defColors[5], "STT:PlayerColorSkyBlue", "DarkSky");
-		ReadColor("Slot7", Colors[7], defColors[6], "STT:PlayerColorPurple", "Purple");
-		ReadColor("Slot8", Colors[8], defColors[7], "STT:PlayerColorPink", "Magenta");
-
-		// additional color schemes so just increasing Count will produce nice colors
-		ReadColor("Slot9", Colors[9], 0xEF5D94, "STT:PlayerColorLilac", "NeonBlue");
-		ReadColor("Slot10", Colors[10], 0xE7FF73, "STT:PlayerColorLightBlue", "LightBlue");
-		ReadColor("Slot11", Colors[11], 0x63EFFF, "STT:PlayerColorLime", "Yellow");
-		ReadColor("Slot12", Colors[12], 0x5AC308, "STT:PlayerColorTeal", "Green");
-		ReadColor("Slot13", Colors[13], 0x0055BD, "STT:PlayerColorBrown", "Red");
-		ReadColor("Slot14", Colors[14], 0x808080, "STT:PlayerColorCharcoal", "Grey");
-
-		// blunt stuff
-		char key[0x10];
-		for (auto i = 15; i <= colorCount; ++i)
-		{
-			sprintf_s(key, 0x10, "Slot%d", i);
-			ReadColor(key, Colors[i], 0xFFFFFF, "NOSTR:", "LightGrey");
-		}
-
-		uiColorTextButton = ParseColorInt(section, "Color.Button.Text", uiColorText);
-		uiColorTextRadio = ParseColorInt(section, "Color.Radio.Text", uiColorText);
-		uiColorTextCheckbox = ParseColorInt(section, "Color.Checkbox.Text", uiColorText);
-		uiColorTextLabel = ParseColorInt(section, "Color.Label.Text", uiColorText);
-		uiColorTextList = ParseColorInt(section, "Color.List.Text", uiColorText);
-		uiColorTextCombobox = ParseColorInt(section, "Color.Combobox.Text", uiColorText);
-		uiColorTextGroupbox = ParseColorInt(section, "Color.Groupbox.Text", uiColorText);
-		uiColorTextSlider = ParseColorInt(section, "Color.Slider.Text", uiColorText);
-		uiColorTextEdit = ParseColorInt(section, "Color.Edit.Text", uiColorText);
-		uiColorTextObserver = ParseColorInt(section, "Color.Observer.Text", 0xEEEEEE);
-		uiColorCaret = ParseColorInt(section, "Color.Caret", 0xFFFF);
-		uiColorSelection = ParseColorInt(section, "Color.Selection", 0xFF);
-		uiColorSelectionCombobox = ParseColorInt(section, "Color.Combobox.Selection", uiColorSelection);
-		uiColorSelectionList = ParseColorInt(section, "Color.List.Selection", uiColorSelection);
-		uiColorSelectionObserver = ParseColorInt(section, "Color.Observer.Selection", 0x626262);
-		uiColorBorder1 = ParseColorInt(section, "Color.Border1", 0xC5BEA7);
-		uiColorBorder2 = ParseColorInt(section, "Color.Border2", 0x807A68);
-		uiColorDisabled = ParseColorInt(section, "Color.Disabled", 0x9F);
-		uiColorDisabledLabel = ParseColorInt(section, "Color.Label.Disabled", uiColorDisabled);
-		uiColorDisabledCombobox = ParseColorInt(section, "Color.Combobox.Disabled", uiColorDisabled);
-		uiColorDisabledSlider = ParseColorInt(section, "Color.Slider.Disabled", uiColorDisabled);
-		uiColorDisabledButton = ParseColorInt(section, "Color.Button.Disabled", 0xA7);
-		uiColorDisabledCheckbox = ParseColorInt(section, "Color.Checkbox.Disabled", uiColorDisabled);
-		uiColorDisabledList = ParseColorInt(section, "Color.List.Disabled", uiColorDisabled);
-		uiColorDisabledObserver = ParseColorInt(section, "Color.Observer.Disabled", 0x8F8F8F);
-
-		// read the mod's version info
-		if (Ini.ReadString("VersionInfo", "Name", Phobos::readDefval, Phobos::readBuffer, std::size(ModName)))
-		{
-			PhobosCRT::strCopy(ModName, Phobos::readBuffer);
-		}
-
-		if (Ini.ReadString("VersionInfo", "Version", Phobos::readDefval, Phobos::readBuffer, std::size(ModVersion)))
-		{
-			PhobosCRT::strCopy(ModVersion, Phobos::readBuffer);
-		}
-
-		AresSafeChecksummer crc;
-		crc.Add(ModName, strlen(ModName));
-		crc.Commit();
-		crc.Add(ModVersion, strlen(ModVersion));
-		ModIdentifier = Ini.ReadInteger("VersionInfo", "Identifier", static_cast<int>(crc.GetValue()));
-
-		Debug::Log("Color count is %d\n", colorCount);
-		Debug::Log("Mod is %s (%s) with %X\n",
-			ModName,
-			ModVersion,
-			ModIdentifier
-		);
-	}
-	else
-	{
-		Debug::Log(FAILEDTOLOADUIMD_MSG);
-	}
-
-	Debug::Log("-------------------Complete ----------------------\n");
-}
 
 DEFINE_OVERRIDE_HOOK(0x5facdf, Options_LoadFromINI, 5)
 {
 	Phobos::Config::Read();
-	ReadRA2MD();
 	return 0x0;
 }
 
@@ -2104,32 +1915,32 @@ DEFINE_OVERRIDE_HOOK(0x69B97D, Game_ProcessRandomPlayers_ObserverColor, 7)
 	GET(NodeNameType* const, pStartingSpot, ESI);
 
 	// observer uses last color, beyond the actual colors
-	pStartingSpot->Color = colorCount;
+	pStartingSpot->Color = AresGlobalData::colorCount;
 
 	return 0x69B984;
 }
 
 DEFINE_OVERRIDE_HOOK(0x69B949, Game_ProcessRandomPlayers_ColorsA, 6)
 {
-	R->EAX(ScenarioClass::Instance->Random.RandomRanged(0, colorCount - 1));
+	R->EAX(ScenarioClass::Instance->Random.RandomRanged(0, AresGlobalData::colorCount - 1));
 	return 0x69B95E;
 }
 
 DEFINE_OVERRIDE_HOOK(0x69BA13, Game_ProcessRandomPlayers_ColorsB, 6)
 {
-	R->EAX(ScenarioClass::Instance->Random.RandomRanged(0, colorCount - 1));
+	R->EAX(ScenarioClass::Instance->Random.RandomRanged(0, AresGlobalData::colorCount - 1));
 	return 0x69BA28;
 }
 
 DEFINE_OVERRIDE_HOOK(0x69B69B, GameModeClass_PickRandomColor_Unlimited, 6)
 {
-	R->EAX(ScenarioClass::Instance->Random.RandomRanged(0, colorCount - 1));
+	R->EAX(ScenarioClass::Instance->Random.RandomRanged(0, AresGlobalData::colorCount - 1));
 	return 0x69B6AF;
 }
 
 DEFINE_OVERRIDE_HOOK(0x69B7FF, Session_SetColor_Unlimited, 6)
 {
-	R->EAX(ScenarioClass::Instance->Random.RandomRanged(0, colorCount - 1));
+	R->EAX(ScenarioClass::Instance->Random.RandomRanged(0, AresGlobalData::colorCount - 1));
 	return 0x69B813;
 }
 
@@ -2139,15 +1950,15 @@ DEFINE_OVERRIDE_HOOK(0x60FAD7, Ownerdraw_PostProcessColors, 0xA)
 	*reinterpret_cast<int*>(0xAC1B90) = 0x443716;
 
 	// update colors
-	*reinterpret_cast<int*>(0xAC18A4) = uiColorText;
-	*reinterpret_cast<int*>(0xAC184C) = uiColorCaret;
-	*reinterpret_cast<int*>(0xAC4604) = uiColorSelection;
-	*reinterpret_cast<int*>(0xAC1B98) = uiColorBorder1;
-	*reinterpret_cast<int*>(0xAC1B94) = uiColorBorder2;
-	*reinterpret_cast<int*>(0xAC1AF8) = uiColorDisabledObserver;
-	*reinterpret_cast<int*>(0xAC1CB0) = uiColorTextObserver;
-	*reinterpret_cast<int*>(0xAC4880) = uiColorSelectionObserver;
-	*reinterpret_cast<int*>(0xAC1CB4) = uiColorDisabled;
+	*reinterpret_cast<int*>(0xAC18A4) = AresGlobalData::uiColorText;
+	*reinterpret_cast<int*>(0xAC184C) = AresGlobalData::uiColorCaret;
+	*reinterpret_cast<int*>(0xAC4604) = AresGlobalData::uiColorSelection;
+	*reinterpret_cast<int*>(0xAC1B98) = AresGlobalData::uiColorBorder1;
+	*reinterpret_cast<int*>(0xAC1B94) = AresGlobalData::uiColorBorder2;
+	*reinterpret_cast<int*>(0xAC1AF8) = AresGlobalData::uiColorDisabledObserver;
+	*reinterpret_cast<int*>(0xAC1CB0) = AresGlobalData::uiColorTextObserver;
+	*reinterpret_cast<int*>(0xAC4880) = AresGlobalData::uiColorSelectionObserver;
+	*reinterpret_cast<int*>(0xAC1CB4) = AresGlobalData::uiColorDisabled;
 
 	// skip initialization
 	//CommonDialogStuff_Color_Shifts_Set_PCXes_Loaded
@@ -2157,121 +1968,121 @@ DEFINE_OVERRIDE_HOOK(0x60FAD7, Ownerdraw_PostProcessColors, 0xA)
 
 DEFINE_OVERRIDE_HOOK(0x612DA9, Handle_Button_Messages_Color, 6)
 {
-	R->EDI(uiColorTextButton);
+	R->EDI(AresGlobalData::uiColorTextButton);
 	return 0x612DAF;
 }
 
 DEFINE_OVERRIDE_HOOK(0x613072, Handle_Button_Messages_DisabledColor, 7)
 {
-	R->EDI(uiColorDisabledButton);
+	R->EDI(AresGlobalData::uiColorDisabledButton);
 	return 0x613138;
 }
 
 DEFINE_OVERRIDE_HOOK(0x61664C, Handle_Checkbox_Messages_Color, 5)
 {
-	R->EAX(uiColorTextCheckbox);
+	R->EAX(AresGlobalData::uiColorTextCheckbox);
 	return 0x616651;
 }
 
 DEFINE_OVERRIDE_HOOK(0x616655, Handle_Checkbox_Messages_Disabled, 5)
 {
-	R->EAX(uiColorDisabledCheckbox);
+	R->EAX(AresGlobalData::uiColorDisabledCheckbox);
 	return 0x61665A;
 }
 
 DEFINE_OVERRIDE_HOOK(0x616AF0, Handle_RadioButton_Messages_Color, 6)
 {
-	R->ECX(uiColorTextRadio);
+	R->ECX(AresGlobalData::uiColorTextRadio);
 	return 0x616AF6;
 }
 
 DEFINE_OVERRIDE_HOOK(0x615DF7, Handle_Static_Messages_Color, 6)
 {
-	R->ECX(uiColorTextLabel);
+	R->ECX(AresGlobalData::uiColorTextLabel);
 	return 0x615DFD;
 }
 
 DEFINE_OVERRIDE_HOOK(0x615AB7, Handle_Static_Messages_Disabled, 6)
 {
-	R->ECX(uiColorDisabledLabel);
+	R->ECX(AresGlobalData::uiColorDisabledLabel);
 	return 0x615ABD;
 }
 
 DEFINE_OVERRIDE_HOOK(0x619A4F, Handle_Listbox_Messages_Color, 6)
 {
-	R->ESI(uiColorTextList);
+	R->ESI(AresGlobalData::uiColorTextList);
 	return 0x619A55;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6198D3, Handle_Listbox_Messages_DisabledA, 6)
 {
-	R->EBX(uiColorDisabledList);
+	R->EBX(AresGlobalData::uiColorDisabledList);
 	return 0x6198D9;
 }
 
 DEFINE_OVERRIDE_HOOK(0x619A5F, Handle_Listbox_Messages_DisabledB, 6)
 {
-	R->ESI(uiColorDisabledList);
+	R->ESI(AresGlobalData::uiColorDisabledList);
 	return 0x619A65;
 }
 
 DEFINE_OVERRIDE_HOOK(0x619270, Handle_Listbox_Messages_SelectionA, 5)
 {
-	R->EAX(uiColorSelectionList);
+	R->EAX(AresGlobalData::uiColorSelectionList);
 	return 0x619275;
 }
 
 DEFINE_OVERRIDE_HOOK(0x619288, Handle_Listbox_Messages_SelectionB, 6)
 {
-	R->DL(BYTE(uiColorSelectionList >> 16));
+	R->DL(BYTE(AresGlobalData::uiColorSelectionList >> 16));
 	return 0x61928E;
 }
 
 DEFINE_OVERRIDE_HOOK(0x617A2B, Handle_Combobox_Messages_Color, 6)
 {
-	R->EBX(uiColorTextCombobox);
+	R->EBX(AresGlobalData::uiColorTextCombobox);
 	return 0x617A31;
 }
 
 DEFINE_OVERRIDE_HOOK(0x617A57, Handle_Combobox_Messages_Disabled, 6)
 {
-	R->EBX(uiColorDisabledCombobox);
+	R->EBX(AresGlobalData::uiColorDisabledCombobox);
 	return 0x617A5D;
 }
 
 DEFINE_OVERRIDE_HOOK(0x60DDA6, Handle_Combobox_Dropdown_Messages_SelectionA, 5)
 {
-	R->EAX(uiColorSelectionCombobox);
+	R->EAX(AresGlobalData::uiColorSelectionCombobox);
 	return 0x60DDAB;
 }
 
 DEFINE_OVERRIDE_HOOK(0x60DDB6, Handle_Combobox_Dropdown_Messages_SelectionB, 6)
 {
-	R->DL(BYTE(uiColorSelectionCombobox >> 16));
+	R->DL(BYTE(AresGlobalData::uiColorSelectionCombobox >> 16));
 	return 0x60DDBC;
 }
 
 DEFINE_OVERRIDE_HOOK(0x61E2A5, Handle_Slider_Messages_Color, 5)
 {
-	R->EAX(uiColorTextSlider);
+	R->EAX(AresGlobalData::uiColorTextSlider);
 	return 0x61E2AA;
 }
 
 DEFINE_OVERRIDE_HOOK(0x61E2B1, Handle_Slider_Messages_Disabled, 5)
 {
-	R->EAX(uiColorDisabledSlider);
+	R->EAX(AresGlobalData::uiColorDisabledSlider);
 	return 0x61E2B6;
 }
 
 DEFINE_OVERRIDE_HOOK(0x61E8A0, Handle_GroupBox_Messages_Color, 6)
 {
-	R->ECX(uiColorTextGroupbox);
+	R->ECX(AresGlobalData::uiColorTextGroupbox);
 	return 0x61E8A6;
 }
 
 DEFINE_OVERRIDE_HOOK(0x614FF2, Handle_NewEdit_Messages_Color, 6)
 {
-	R->EDX(uiColorTextEdit);
+	R->EDX(AresGlobalData::uiColorTextEdit);
 	return 0x614FF8;
 }
 
@@ -2279,9 +2090,9 @@ DEFINE_OVERRIDE_HOOK(0x614FF2, Handle_NewEdit_Messages_Color, 6)
 DEFINE_OVERRIDE_HOOK(0x4E43C0, Game_InitDropdownColors, 5)
 {
 	// mark all colors as unused (+1 for the  observer)
-	for (auto i = 0; i < colorCount + 1; ++i)
+	for (auto i = 0; i < AresGlobalData::colorCount + 1; ++i)
 	{
-		Colors[i].selectedIndex = -1;
+		AresGlobalData::Colors[i].selectedIndex = -1;
 	}
 
 	return 0;
@@ -2289,41 +2100,45 @@ DEFINE_OVERRIDE_HOOK(0x4E43C0, Game_InitDropdownColors, 5)
 
 DEFINE_OVERRIDE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme, 7)
 {
-	if (Phobos::UI::UnlimitedColor)
-		return 0x0;
-
 	GET_STACK(int const, idx, 0x4);
-
-	// get the slot
-	ColorData* slot = nullptr;
-	if (idx == -2 || idx == colorCount)
-	{
-		// observer color
-		slot = &Colors[0];
-	}
-	else if (idx < colorCount)
-	{
-		// house color
-		slot = &Colors[idx + 1];
-	}
-
-	// retrieve the color scheme index
 	auto ret = 0;
-	if (slot)
+
+	if (Phobos::UI::UnlimitedColor)
 	{
-		if (slot->colorSchemeIndex == -1)
+		ret = idx << 1;
+
+	}else{
+
+		// get the slot
+		AresGlobalData::ColorData* slot = nullptr;
+		if (idx == -2 || idx == AresGlobalData::colorCount)
 		{
-			auto const pScheme = slot->colorScheme;
-			slot->colorSchemeIndex = ColorScheme::FindIndex(pScheme);
+			// observer color
+			slot = &AresGlobalData::Colors[0];
+		}
+		else if (idx < AresGlobalData::colorCount)
+		{
+			// house color
+			slot = &AresGlobalData::Colors[idx + 1];
+		}
+
+		// retrieve the color scheme index
+
+		if (slot)
+		{
 			if (slot->colorSchemeIndex == -1)
 			{
-				Debug::Log("Color scheme \"%s\" not found.\n", pScheme);
-				slot->colorSchemeIndex = 4;
+				auto const pScheme = slot->colorScheme;
+				slot->colorSchemeIndex = ColorScheme::FindIndex(pScheme);
+				if (slot->colorSchemeIndex == -1)
+				{
+					Debug::Log("Color scheme \"%s\" not found.\n", pScheme);
+					slot->colorSchemeIndex = 4;
+				}
 			}
+			ret = slot->colorSchemeIndex;
 		}
-		ret = slot->colorSchemeIndex;
 	}
-
 	R->EAX(ret + 1);
 	return 0x69A334;
 }
@@ -2337,12 +2152,12 @@ DEFINE_OVERRIDE_HOOK(0x4E42A0, GameSetup_GetColorTooltip, 5)
 	{
 		return 0x4E42A5;// random
 	}
-	else if (idxColor > colorCount)
+	else if (idxColor > AresGlobalData::colorCount)
 	{
 		return 0x4E43B7;
 	}
 
-	R->EAX(Colors[(idxColor + 1) % (colorCount + 1)].sttToolTipSublineText);
+	R->EAX(AresGlobalData::Colors[(idxColor + 1) % (AresGlobalData::colorCount + 1)].sttToolTipSublineText);
 	return 0x4E43B9;
 }
 
@@ -2354,9 +2169,9 @@ DEFINE_OVERRIDE_HOOK(0x4E46BB, hWnd_PopulateWithColors, 7)
 
 	// add all colors
 	auto curSel = 0;
-	for (auto i = 0; i < colorCount; ++i)
+	for (auto i = 0; i < AresGlobalData::colorCount; ++i)
 	{
-		auto const& Color = Colors[i + 1];
+		auto const& Color = AresGlobalData::Colors[i + 1];
 		auto const isCurrent = Color.selectedIndex == idxPlayer;
 
 		if (isCurrent || Color.selectedIndex == -1)
@@ -2383,9 +2198,9 @@ DEFINE_OVERRIDE_HOOK(0x4E4A41, hWnd_SetPlayerColor_A, 7)
 {
 	GET(int const, idxPlayer, EAX);
 
-	for (auto i = 0; i < colorCount; ++i)
+	for (auto i = 0; i < AresGlobalData::colorCount; ++i)
 	{
-		auto& Color = Colors[i + 1];
+		auto& Color = AresGlobalData::Colors[i + 1];
 		if (Color.selectedIndex == idxPlayer)
 		{
 			Color.selectedIndex = -1;
@@ -2401,7 +2216,7 @@ DEFINE_OVERRIDE_HOOK(0x4E4B47, hWnd_SetPlayerColor_B, 7)
 	GET(int const, idxColor, EBP);
 	GET(int const, idxPlayer, ESI);
 
-	Colors[idxColor + 1].selectedIndex = idxPlayer;
+	AresGlobalData::Colors[idxColor + 1].selectedIndex = idxPlayer;
 
 	return 0x4E4B4E;
 }
@@ -2411,9 +2226,9 @@ DEFINE_OVERRIDE_HOOK(0x4E4556, hWnd_GetSlotColorIndex, 7)
 	GET(int const, idxPlayer, ECX);
 
 	auto ret = -1;
-	for (auto i = 0; i < colorCount; ++i)
+	for (auto i = 0; i < AresGlobalData::colorCount; ++i)
 	{
-		auto const& Color = Colors[i + 1];
+		auto const& Color = AresGlobalData::Colors[i + 1];
 		if (Color.selectedIndex == idxPlayer)
 		{
 			ret = i + 1;
@@ -2428,7 +2243,7 @@ DEFINE_OVERRIDE_HOOK(0x4E4556, hWnd_GetSlotColorIndex, 7)
 DEFINE_OVERRIDE_HOOK(0x4E4580, hWnd_IsAvailableColor, 5)
 {
 	GET(int const, idxColor, ECX);
-	R->AL(Colors[idxColor + 1].selectedIndex == -1);
+	R->AL(AresGlobalData::Colors[idxColor + 1].selectedIndex == -1);
 	return 0x4E4592;
 }
 
@@ -2437,9 +2252,9 @@ DEFINE_OVERRIDE_HOOK(0x4E4C9D, hWnd_UpdatePlayerColors_A, 7)
 	GET(int const, idxPlayer, EAX);
 
 	// check players and reset used color for this player
-	for (auto i = 0; i < colorCount; ++i)
+	for (auto i = 0; i < AresGlobalData::colorCount; ++i)
 	{
-		auto& Color = Colors[i + 1];
+		auto& Color = AresGlobalData::Colors[i + 1];
 		if (Color.selectedIndex == idxPlayer)
 		{
 			Color.selectedIndex = -1;
@@ -2456,7 +2271,7 @@ DEFINE_OVERRIDE_HOOK(0x4E4D67, hWnd_UpdatePlayerColors_B, 7)
 	GET(int const, idxPlayer, ESI);
 
 	// reserve the color for a player. skip the observer
-	Colors[idxColor + 1].selectedIndex = idxPlayer;
+	AresGlobalData::Colors[idxColor + 1].selectedIndex = idxPlayer;
 
 	return 0x4E4D6E;
 }
@@ -2468,8 +2283,8 @@ DEFINE_OVERRIDE_HOOK(0x67D04E, Game_Save_SavegameInformation, 7)
 	REF_STACK(SavegameInformation, Info, STACK_OFFS(0x4A4, 0x3F4));
 
 	// remember the Ares version and a mod id
-	Info.Version = version;
-	Info.InternalVersion = InternalVersion;
+	Info.Version = AresGlobalData::version;
+	Info.InternalVersion = AresGlobalData::InternalVersion;
 	sprintf_s(Info.ExecutableName.data(), "GAMEMD.EXE + %s", "Ares/3.0p1");
 
 	return 0;
@@ -2480,8 +2295,8 @@ DEFINE_OVERRIDE_HOOK(0x559F31, LoadOptionsClass_GetFileInfo, 9)
 	REF_STACK(SavegameInformation, Info, STACK_OFFS(0x400, 0x3F4));
 
 	// compare equal if same mod and same Ares version (or compatible)
-	auto same = (Info.Version == (version)
-		&& Info.InternalVersion == InternalVersion);
+	auto same = (Info.Version == (AresGlobalData::version)
+		&& Info.InternalVersion == AresGlobalData::InternalVersion);
 
 	R->ECX(&Info);
 	return same ? 0x559F60u : 0x559F48u;
@@ -2498,8 +2313,6 @@ DEFINE_OVERRIDE_HOOK(0x67CEFE, Game_Save_FixLog, 7)
 }
 
 DEFINE_DISABLE_HOOK(0x685659, Scenario_ClearClasses_ares)
-
-static CSFText ModNote {};
 
 DEFINE_OVERRIDE_HOOK(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
 {
@@ -2521,14 +2334,14 @@ DEFINE_OVERRIDE_HOOK(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
 		};
 
 	//TODO : debug this , not showing properly
-	if (!ModNote.Label)
+	if (!AresGlobalData::ModNote.Label)
 	{
-		ModNote = "TXT_RELEASE_NOTE";
+		AresGlobalData::ModNote = "TXT_RELEASE_NOTE";
 	}
 
-	if (!ModNote.empty())
+	if (!AresGlobalData::ModNote.empty())
 	{
-		DrawText_Helper(ModNote, offset, COLOR_RED);
+		DrawText_Helper(AresGlobalData::ModNote, offset, COLOR_RED);
 	}
 
 	if (RulesExtData::Instance()->FPSCounter)
@@ -2544,7 +2357,7 @@ DEFINE_OVERRIDE_HOOK(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
 
 DEFINE_STRONG_OVERRIDE_HOOK(0x7C89D4, DDRAW_Create, 6)
 {
-	R->Stack<DWORD>(0x4, GFX_DX_Force);
+	R->Stack<DWORD>(0x4, AresGlobalData::GFX_DX_Force);
 	return 0;
 }
 
@@ -3519,7 +3332,7 @@ bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 		fprintf(LogFile, "Latency setting: %d\n", Game::Network::LatencyFudge());
 		fprintf(LogFile, "Game speed setting: %d\n", GameOptionsClass::Instance->GameSpeed);
 		fprintf(LogFile, "FrameSendRate: %d\n", Game::Network::FrameSendRate());
-		fprintf(LogFile, "Mod is %s (%s) with %X\n", ModName, ModVersion, ModIdentifier);
+		fprintf(LogFile, "Mod is %s (%s) with %X\n", AresGlobalData::ModName, AresGlobalData::ModVersion, AresGlobalData::ModIdentifier);
 
 		if (HouseClass::CurrentPlayer())
 			fprintf(LogFile, "Player Name: %s\n", HouseClass::CurrentPlayer->PlainName);

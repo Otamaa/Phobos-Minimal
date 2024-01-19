@@ -18,6 +18,8 @@
 
 #include <Misc/PhobosGlobal.h>
 
+#include <Misc/Ares/Hooks/Header.h>
+
 #include <Dbghelp.h>
 #include <tlhelp32.h>
 #include <winternl.h>
@@ -330,6 +332,9 @@ void Phobos::Config::Read()
 		CCINIClass INI_UIMD { };
 		INI_UIMD.ReadCCFile(&UIMD_ini);
 		Debug::Log("Loading early %s file\n", UIMD_FILENAME);
+
+		AresGlobalData::ReadAresRA2MD(&INI_UIMD);
+
 		// LoadingScreen
 		{
 			Phobos::UI::DisableEmptySpawnPositions =

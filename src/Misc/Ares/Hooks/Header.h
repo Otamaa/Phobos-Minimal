@@ -74,6 +74,59 @@ struct args_ReceiveDamage;
 struct WeaponStruct;
 class AlphaShapeClass;
 
+struct AresGlobalData {
+
+	static DWORD InternalVersion;
+	static char ModName[0x40];
+	static char ModVersion[0x40];
+	static int ModIdentifier;
+	static CSFText ModNote;
+	static byte GFX_DX_Force;
+	static int colorCount;
+	static int version;
+
+	static int uiColorText;
+	static int uiColorTextButton; // #1644: needed for CD prompt
+	static int uiColorTextCheckbox;
+	static int uiColorTextRadio;
+	static int uiColorTextLabel; // #1644: needed for CD prompt
+	static int uiColorTextList;
+	static int uiColorTextCombobox;
+	static int uiColorTextGroupbox;
+	static int uiColorTextEdit;
+	static int uiColorTextSlider;
+	static int uiColorTextObserver;
+	static int uiColorCaret;
+	static int uiColorSelection;
+	static int uiColorSelectionCombobox;
+	static int uiColorSelectionList;
+	static int uiColorSelectionObserver;
+	static int uiColorBorder1;
+	static int uiColorBorder2;
+	static int uiColorDisabled;
+	static int uiColorDisabledLabel;
+	static int uiColorDisabledButton;
+	static int uiColorDisabledCombobox;
+	static int uiColorDisabledCheckbox;
+	static int uiColorDisabledList;
+	static int uiColorDisabledSlider;
+	static int uiColorDisabledObserver;
+
+	struct ColorData
+	{
+		int colorRGB;
+		int selectedIndex;
+		int colorSchemeIndex;
+		char colorScheme[0x20];
+		const wchar_t* sttToolTipSublineText;
+	};
+
+	static ColorData Colors[16 + 1];
+
+	static void ReadAresRA2MD(CCINIClass* Ini);
+	static void ReadAresRA2MD();
+};
+
 struct StaticVars {
 	static PhobosMap<ObjectClass*, AlphaShapeClass*> ObjectLinkedAlphas;
 	static std::vector<unsigned char> ShpCompression1Buffer;
@@ -82,6 +135,7 @@ struct StaticVars {
 	static bool LoadGlobals(PhobosStreamReader& stm);
 
 	static void Clear();
+
 };
 
 struct TechnoExt_ExtData
