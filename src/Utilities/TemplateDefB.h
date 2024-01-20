@@ -18,8 +18,12 @@ namespace detail
 				}
 			}
 
-			if(IS_SAME_STR_(parser.c_str() , "Custom"))
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected valid Foundation value");
+			if (IS_SAME_STR_(parser.c_str(), "Custom")) {
+				value = (Foundation)127;
+				return true;
+			}
+
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected valid Foundation value");
 		}
 
 		return false;

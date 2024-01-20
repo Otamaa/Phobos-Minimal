@@ -4034,11 +4034,139 @@ DEFINE_HOOK(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 {
 	GET(BuildingTypeClass*, pThis, EBP);
 
-	const char* pSection = pThis->ID;
 	INI_EX exINi(&CCINIClass::INI_Art.get());
+	auto pBldext = BuildingTypeExtContainer::Instance.Find(pThis);
 
-	if (!detail::read<Foundation>(pThis->Foundation, exINi, pSection , "Foundation") && (pThis->ImageFile && pThis->ImageFile[0])) {
-		detail::read<Foundation>(pThis->Foundation, exINi, pThis->ImageFile, "Foundation");
+	if (pBldext->IsCustom)
+	{
+		//Reset
+		pThis->Foundation = BuildingTypeExtData::CustomFoundation;
+		pThis->FoundationData = pBldext->CustomData.data();
+		pThis->FoundationOutside = pBldext->OutlineData.data();
+	}
+
+	bool IsOnImage = false;
+
+	if (!detail::read(pThis->Foundation, exINi, pThis->ID, GameStrings::Foundation()) && (pThis->ImageFile && pThis->ImageFile[0])) {
+		if (detail::read(pThis->Foundation, exINi, pThis->ImageFile, GameStrings::Foundation()))
+			IsOnImage = true;
+	}
+
+	const auto pSection = IsOnImage ? pThis->ImageFile : pThis->ID;
+	char strbuff[0x80];
+
+	if (pThis->Foundation == BuildingTypeExtData::CustomFoundation)
+	{
+		//Custom Foundation!
+		pBldext->IsCustom = true;
+
+		//Load Width and Height
+		detail::read(pBldext->CustomWidth, exINi, pSection, "Foundation.X");
+		detail::read(pBldext->CustomHeight, exINi, pSection, "Foundation.Y");
+
+		int outlineLength = exINi->ReadInteger(pSection, "FoundationOutline.Length", 0);
+
+		// at len < 10, things will end very badly for weapons factories
+		if (outlineLength < 10)
+		{
+			outlineLength = 10;
+		}
+
+		//Allocate CellStruct array
+		const int dimension = pBldext->CustomWidth * pBldext->CustomHeight;
+
+		pBldext->CustomData.assign(dimension + 1, CellStruct::Empty);
+		pBldext->OutlineData.assign(outlineLength + 1, CellStruct::Empty);
+
+		using Iter = std::vector<CellStruct>::iterator;
+
+		auto ParsePoint = [](Iter& cell, const char* str) -> void
+			{
+				int x = 0, y = 0;
+				switch (sscanf_s(str, "%d,%d", &x, &y))
+				{
+				case 0:
+					x = 0;
+					[[fallthrough]];
+				case 1:
+					y = 0;
+				}
+				*cell++ = CellStruct { static_cast<short>(x), static_cast<short>(y) };
+			};
+
+		//Load FoundationData
+		auto itData = pBldext->CustomData.begin();
+		char key[0x20];
+
+		for (int i = 0; i < dimension; ++i)
+		{
+			IMPL_SNPRNINTF(key, sizeof(key), "Foundation.%d", i);
+			if (exINi->ReadString(pSection, key, Phobos::readDefval, strbuff))
+			{
+				ParsePoint(itData, strbuff);
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		//Sort, remove dupes, add end marker
+		std::sort(pBldext->CustomData.begin(), itData,
+		[](const CellStruct& lhs, const CellStruct& rhs)
+		{
+		if (lhs.Y != rhs.Y)
+		{
+			return lhs.Y < rhs.Y;
+		}
+		return lhs.X < lhs.X;
+		});
+
+		itData = std::unique(pBldext->CustomData.begin(), itData);
+		*itData = BuildingTypeExtData::FoundationEndMarker;
+		pBldext->CustomData.erase(itData + 1, pBldext->CustomData.end());
+
+		auto itOutline = pBldext->OutlineData.begin();
+		for (int i = 0; i < outlineLength; ++i)
+		{
+			IMPL_SNPRNINTF(key, sizeof(key), "FoundationOutline.%d", i);
+			if (exINi->ReadString(pSection, key, "", strbuff))
+			{
+				ParsePoint(itOutline, strbuff);
+			}
+			else
+			{
+				//Set end vector
+				// can't break, some stupid functions access fixed offsets without checking if that offset is within the valid range
+				*itOutline++ = BuildingTypeExtData::FoundationEndMarker;
+			}
+		}
+
+		//Set end vector
+		*itOutline = BuildingTypeExtData::FoundationEndMarker;
+
+		if (pBldext->CustomData.begin() == pBldext->CustomData.end())
+		{
+			Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. This breaks AI base building.\n", pSection);
+		}
+		else
+		{
+			auto iter = pBldext->CustomData.begin();
+			while (iter->X || iter->Y)
+			{
+				if (++iter == pBldext->CustomData.end())
+					Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. This breaks AI base building.\n", pSection);
+
+			}
+		}
+	}
+
+	if (pBldext->IsCustom)
+	{
+		//Reset
+		pThis->Foundation = BuildingTypeExtData::CustomFoundation;
+		pThis->FoundationData = pBldext->CustomData.data();
+		pThis->FoundationOutside = pBldext->OutlineData.data();
 	}
 
 	return 0x46125D;

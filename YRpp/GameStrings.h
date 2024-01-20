@@ -255,6 +255,7 @@ struct GameStrings
 	GAMEMD_STR(MindControl , 0x81BBC8);
 
 	GAMEMD_STR(SpeedType, 0x844504);
+	GAMEMD_STR(Foundation, 0x81A734);
 	//..
 
 	// EVA entry names
