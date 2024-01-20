@@ -2103,7 +2103,7 @@ DEFINE_OVERRIDE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme, 7)
 	GET_STACK(int const, idx, 0x4);
 	GET_STACK(DWORD, caller, 0x0);
 
-	auto ret = 0;
+	int ret = 0;
 
 	// Game_GetLinkedColor converts vanilla dropdown color index into color scheme index ([Colors] from rules)
 	// What we want to do is to restore vanilla from Ares hook, and immediately return arg
@@ -2132,16 +2132,16 @@ DEFINE_OVERRIDE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme, 7)
 
 		if (slot)
 		{
-			if (slot->colorSchemeIndex == -1)
-			{
-				auto const pScheme = slot->colorScheme;
-				slot->colorSchemeIndex = ColorScheme::FindIndex(pScheme);
-				if (slot->colorSchemeIndex == -1)
-				{
-					Debug::Log("Color scheme \"%s\" not found.\n", pScheme);
+			if (slot->colorSchemeIndex == -1) {
+
+				slot->colorSchemeIndex = ColorScheme::FindIndex(slot->colorScheme);
+
+				if (slot->colorSchemeIndex == -1) {
+					Debug::Log("Color scheme \"%s\" not found.\n", slot->colorScheme);
 					slot->colorSchemeIndex = 4;
 				}
 			}
+
 			ret = slot->colorSchemeIndex;
 		}
 	}
@@ -2333,19 +2333,18 @@ DEFINE_OVERRIDE_HOOK(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
 	int offset = AdvCommBarHeight;
 
 	auto DrawText_Helper = [](const wchar_t* string, int& offset, int color)
-		{
-			auto wanted = Drawing::GetTextDimensions(string);
+	{
+		auto wanted = Drawing::GetTextDimensions(string);
 
-			auto h = DSurface::Composite->Get_Height();
-			RectangleStruct rect = { 0, h - wanted.Height - offset, wanted.Width, wanted.Height };
+		auto h = DSurface::Composite->Get_Height();
+		RectangleStruct rect = { 0, h - wanted.Height - offset, wanted.Width, wanted.Height };
 
-			DSurface::Composite->Fill_Rect(rect, COLOR_BLACK);
-			DSurface::Composite->DrawText_Old(string, 0, rect.Y, color);
+		DSurface::Composite->Fill_Rect(rect, COLOR_BLACK);
+		DSurface::Composite->DrawText_Old(string, 0, rect.Y, color);
 
 			offset += wanted.Height;
-		};
+	};
 
-	//TODO : debug this , not showing properly
 	if (!AresGlobalData::ModNote.Label)
 	{
 		AresGlobalData::ModNote = "TXT_RELEASE_NOTE";
@@ -2804,13 +2803,13 @@ void WriteLog(const AircraftClass* it, int idx, DWORD checksum, FILE* F)
 	WriteLog<FootClass>(it, idx, checksum, F);
 }
 
-static std::array<std::string, 3> whos{
-	{
-		"GACNST" , "NACNST" , "YACNST"
-	}
-};
-
-static std::map <const BuildingClass*, std::vector<unsigned int>> CRCRecords {};
+//static std::array<std::string, 3> whos{
+//	{
+//		"GACNST" , "NACNST" , "YACNST"
+//	}
+//};
+//
+//static std::map <const BuildingClass*, std::vector<unsigned int>> CRCRecords {};
 
 void PrintBld(const BuildingClass* pThis, FILE* stream)
 {
@@ -3573,7 +3572,7 @@ void NOINLINE BuildingClass_CalculateCRC(const BuildingClass* pThis, CRCEngine* 
 	pEngine->Compute_int((int)pThis->unknown_short_700);		record.push_back((unsigned int)pEngine->CRC);
 	pEngine->Compute_uchar(pThis->UpgradeLevel);		record.push_back((unsigned int)pEngine->CRC);
 
-	CRCRecords[pThis] = std::move(record);
+	//CRCRecords[pThis] = std::move(record);
 }
 
 //DEFINE_HOOK(0x454260, BuildingClass_CalculateCRC_Handle, 0x6)
