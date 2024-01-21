@@ -589,6 +589,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->DisplayIncome_Houses.Read(exINI, GameStrings::AudioVisual, "DisplayIncome.Houses");
 	this->DisplayIncome_AllowAI.Read(exINI, GameStrings::AudioVisual, "DisplayIncome.AllowAI");
 
+	this->DrawInsigniaOnlyOnSelected.Read(exINI, GameStrings::AudioVisual, "DrawInsigniaOnlyOnSelected");
+
 #pragma region Otamaa
 	this->DisplayCreditsDelay.Read(exINI, AUDIOVISUAL_SECTION, "DisplayCreditsDelay");
 	this->TypeSelectUseDeploy.Read(exINI, GENERAL_SECTION, "TypeSelectUseDeploy");
@@ -1070,6 +1072,8 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->TypeSelectUseDeploy)
 		.Process(this->StartInMultiplayerUnitCost)
 		.Process(this->FPSCounter)
+
+		.Process(this->DrawInsigniaOnlyOnSelected)
 		;
 
 	MyPutData.Serialize(Stm);

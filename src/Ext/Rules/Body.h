@@ -280,6 +280,7 @@ public:
 	Nullable<int> StartInMultiplayerUnitCost { };
 
 	bool FPSCounter { false };
+	Valueable<bool> DrawInsigniaOnlyOnSelected {};
 
 	AircraftPutDataRules MyPutData { };
 
