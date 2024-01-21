@@ -2220,10 +2220,7 @@ void TechnoExtData::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, Rectang
 	if (!pTypeExt->DrawInsignia)
 		return;
 
-	bool IsAlly = false;
-	if(pOwner) {
-		IsAlly = pOwner->IsAlliedWith(HouseClass::CurrentPlayer);
-	}
+	const bool IsAlly = pOwner && pOwner->IsAlliedWith(HouseClass::CurrentPlayer);
 
 	const bool isVisibleToPlayer = IsAlly
 		|| IsObserverPlayer

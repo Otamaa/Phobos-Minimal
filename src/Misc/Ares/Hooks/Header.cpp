@@ -2926,7 +2926,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	const auto pOldType = (*prevType);
 	Debug::Log("Attempt to convert TechnoType[%s] to [%s]\n", pOldType->ID, pToType->ID);
 
-	if (pToType->WhatAmI() != rtti)
+	if (pToType->WhatAmI() != rtti || pOldType->Spawned != pToType->Spawned || pOldType->MissileSpawn != pToType->MissileSpawn)
 	{
 		Debug::Log("Incompatible types between %s and %s\n", pOldType->ID, pToType->ID);
 		return false;
