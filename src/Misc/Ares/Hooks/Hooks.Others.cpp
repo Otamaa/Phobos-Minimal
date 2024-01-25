@@ -2111,9 +2111,14 @@ DEFINE_OVERRIDE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme, 7)
 	// Original Author : Morton
 	if (Phobos::UI::UnlimitedColor)
 	{
-		ret = idx << 1;
+		if (idx != -2) {
+			ret = idx << 1;
+		} else {
+			R->EAX(0);
+			return 0x69A334;
+		}
 
-	}else{
+	} else {
 
 		// get the slot
 		AresGlobalData::ColorData* slot = nullptr;
@@ -2148,8 +2153,8 @@ DEFINE_OVERRIDE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme, 7)
 
 	ret += 1;
 
-	if (ret >= ColorScheme::Array->Count)
-		Debug::FatalErrorAndExit("Address[%x] Trying To get Player Color[%d(%d)] that more than ColorScheme Array Count [%d]!\n", caller, ret, ret - 1, ColorScheme::Array->Count);
+	if ((size_t)ret >= (size_t)ColorScheme::Array->Count)
+		Debug::FatalErrorAndExit("Address[%x] Trying To get Player Color[idx %d , %d(%d)] that more than ColorScheme Array Count [%d]!\n", caller, idx , ret, ret - 1, ColorScheme::Array->Count);
 
 	R->EAX(ret);
 	return 0x69A334;
