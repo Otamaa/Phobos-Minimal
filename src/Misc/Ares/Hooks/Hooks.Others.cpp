@@ -2109,14 +2109,8 @@ DEFINE_OVERRIDE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme, 7)
 	// What we want to do is to restore vanilla from Ares hook, and immediately return arg
 	// So if spawner feeds us a number, it will be used to look up color scheme directly	
 	// Original Author : Morton
-	if (Phobos::UI::UnlimitedColor)
-	{
-		if (idx != -2) {
-			ret = idx << 1;
-		} else {
-			R->EAX(0);
-			return 0x69A334;
-		}
+	if (Phobos::UI::UnlimitedColor && idx != -2) {
+		ret = idx << 1;
 
 	} else {
 
