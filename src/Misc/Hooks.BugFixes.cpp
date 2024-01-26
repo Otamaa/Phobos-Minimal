@@ -991,7 +991,7 @@ DEFINE_HOOK(0x44E9FA, BuildingClass_Detach_RestoreAnims, 0x6)
 
 	GET(BuildingClass*, pThis, ESI);
 
-	if (pThis->InLimbo)
+	if (pThis->InLimbo || !pThis->IsAlive)
 		return R->Origin() == 0x44E997 ? SkipAnimOne : SkipAnimTwo;
 
 	return 0;

@@ -57,7 +57,7 @@ protected:
 
 public:
 
-	DropPodDirType DroppodDir;
+	BYTE OutOfMap;
 	BYTE pad[3];
 	CoordStruct CoordDest;
 	void* Piggybackee;

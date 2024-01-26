@@ -33,7 +33,7 @@ public:
 	static std::array<const char*, (size_t)NewMouseCursorType::count> NewMouseCursorTypeToStrings;
 	static std::array<const MouseCursor, (size_t)NewMouseCursorType::count> NewMouseCursorTypeData;
 
-	static void AllocateWithDefault(const char* Title , MouseCursor cursor) {
+	static inline constexpr void AllocateWithDefault(const char* Title , MouseCursor cursor) {
 		Array.emplace_back(std::make_unique<CursorTypeClass>(Title , cursor));
 	}
 

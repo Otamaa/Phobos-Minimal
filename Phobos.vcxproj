@@ -356,6 +356,7 @@
     <ClCompile Include="src\Ext\VoxelAnim\Body.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Body.cpp" />
     <ClCompile Include="src\Commands\ObjectInfo.cpp" />
+    <ClCompile Include="src\Phobos.COM.cpp" />
     <ClCompile Include="src\Phobos.Ext.cpp" />
     <ClCompile Include="src\Utilities\Anchor.cpp" />
     <ClCompile Include="src\Utilities\Cast.cpp" />
@@ -709,7 +710,7 @@
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>
       <BuildStlModules>false</BuildStlModules>

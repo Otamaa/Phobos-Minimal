@@ -46,20 +46,19 @@ public:
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	virtual bool Save(PhobosStreamWriter& Stm) const;
 
-	int TimePassed()
-	{
+	inline int TimePassed() const {
 		return Unsorted::CurrentFrame - Clock.StartTime;
 	}
 
 	// static methods
-	static void Register(std::unique_ptr<SWStateMachine> Machine)
+	static inline constexpr void Register(std::unique_ptr<SWStateMachine> Machine)
 	{
 		if (Machine) {
 			Array.push_back(std::move(Machine));
 		}
 	}
 
-	SWTypeExtData * GetTypeExtData() {
+	inline SWTypeExtData * GetTypeExtData() const {
 		return SWTypeExtContainer::Instance.Find(Super->Type);
 	}
 

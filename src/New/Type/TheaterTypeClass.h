@@ -95,16 +95,16 @@ public:
 	static void AddDefaults();
 	static void LoadAllTheatersToArray();
 	static TheaterTypeClass* FindFromTheaterType(TheaterType nType);
-	static TheaterTypeClass* FindFromTheaterType_NoCheck(TheaterType nType) {
+	static inline constexpr TheaterTypeClass* FindFromTheaterType_NoCheck(TheaterType nType) {
 		return Array[(int)nType].get();
 	}
 
-	static void AllocateWithDefault(const char* Title, const Theater& theater, bool IsArtic, bool AllowMapGen) {
+	static inline constexpr void AllocateWithDefault(const char* Title, const Theater& theater, bool IsArtic, bool AllowMapGen) {
 		Array.emplace_back(std::make_unique<TheaterTypeClass>(Title, theater , IsArtic , AllowMapGen));
 	}
 
 	// no !
-	static void Clear() {}
+	static inline constexpr void Clear() {}
 
 private:
 

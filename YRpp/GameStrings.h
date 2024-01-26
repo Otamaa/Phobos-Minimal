@@ -405,6 +405,17 @@ struct GameStrings
 
 	GAMEMD_STR(GUI_Debug            , 0x827AF8);
 	GAMEMD_STR(GUI_CursorCheat      , 0x827AE8);
+
+	GAMEMD_STR(STT_PlayerColorObserver, 0x8229FCu);
+	GAMEMD_STR(STT_PlayerColorBlue, 0x822A88u);
+	GAMEMD_STR(STT_PlayerColorGold, 0x822AB0u);
+	GAMEMD_STR(STT_PlayerColorGreen, 0x822A70u);
+	GAMEMD_STR(STT_PlayerColorOrange, 0x822A58u);
+	GAMEMD_STR(STT_PlayerColorPink, 0x822A14u);
+	GAMEMD_STR(STT_PlayerColorPurple, 0x822A28u);
+	GAMEMD_STR(STT_PlayerColorRandom, 0x822AC4u);
+	GAMEMD_STR(STT_PlayerColorRed, 0x822A9Cu);
+	GAMEMD_STR(STT_PlayerColorSkyBlue, 0x822A40u);
 	//..
 
 	// Colors
@@ -414,6 +425,7 @@ struct GameStrings
 	GAMEMD_STR(Yellow, 0x820524u);
 	GAMEMD_STR(Grey, 0x822728u);
 	GAMEMD_STR(LightGrey, 0x836ECCu);
+	GAMEMD_STR(LightGold, 0x820840u);
 	// ..
 
 	// RTTI

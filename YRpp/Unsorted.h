@@ -3,6 +3,9 @@
 #include <CRT.h>
 #include <ArrayClasses.h>
 #include <GeneralDefinitions.h>
+
+#include <Timers.h>
+
 #include <Helpers/CompileTime.h>
 #include <unknwn.h>
 

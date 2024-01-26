@@ -16,8 +16,6 @@
 
 std::vector<FlyingStrings::Item> FlyingStrings::Data;
 
-void FlyingStrings::Clear() { Data.clear(); }
-
 bool FlyingStrings::DrawAllowed(CoordStruct const& nCoords, Point2D& outPoint)
 {
 	if (!nCoords.IsValid())

@@ -42,9 +42,9 @@ DEFINE_HOOK(0x5535D0, LoadProgressMgr_Draw_PCXLoadingScreen, 0x6)
 		if (pcx)
 		{
 			GET_BASE(DSurface*, pSurf, 0x60);
-			RectangleStruct pSurfBounds = { 0, 0, pSurf->Width, pSurf->Height };
-			RectangleStruct pcxBounds = { 0, 0, pcx->Width, pcx->Height };
-			RectangleStruct destClip = { (pSurf->Width - pcx->Width) / 2, (pSurf->Height - pcx->Height) / 2, pcx->Width, pcx->Height };
+			RectangleStruct pSurfBounds { 0, 0, pSurf->Width, pSurf->Height };
+			RectangleStruct pcxBounds { 0, 0, pcx->Width, pcx->Height };
+			RectangleStruct destClip { (pSurf->Width - pcx->Width) / 2, (pSurf->Height - pcx->Height) / 2, pcx->Width, pcx->Height };
 
 			pSurf->Copy_From(pSurfBounds, destClip, pcx, pcxBounds, pcxBounds, true, true);
 		}

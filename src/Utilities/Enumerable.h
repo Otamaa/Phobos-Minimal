@@ -59,7 +59,7 @@ public:
 		return Array[nResult].get();
 	}
 
-	static int FindIndexFromType(T* pType)
+	static inline constexpr int FindIndexFromType(T* pType)
 	{
 		if (pType) {
 			for (size_t i = 0; i < Array.size(); ++i) {
@@ -72,29 +72,29 @@ public:
 	}
 
 	// Warning : no Idx validation !
-	static T* FindFromIndex(int Idx)
+	static inline constexpr T* FindFromIndex(int Idx)
 	{
 		return Array[static_cast<size_t>(Idx)].get();
 	}
 
 	// With Idx validation ,return to the first item if Idx is invalid
-	static T* FindFromIndexFix(int Idx)
+	static inline constexpr T* FindFromIndexFix(int Idx)
 	{
 		return Array[size_t(Idx) > Array.size() ? 0 : Idx].get();
 	}
 
-	static T* Allocate(const char* Title)
+	static inline constexpr T* Allocate(const char* Title)
 	{
 		AllocateNoCheck(Title);
 		return Array.back().get();
 	}
 
-	static void AllocateNoCheck(const char* Title)
+	static inline constexpr void AllocateNoCheck(const char* Title)
 	{
 		Array.emplace_back(std::make_unique<T>(Title));
 	}
 
-	static T* FindOrAllocate(const char* Title)
+	static inline constexpr T* FindOrAllocate(const char* Title)
 	{
 		if (T* find = Find(Title))
 			return find;
@@ -102,7 +102,7 @@ public:
 		return Allocate(Title);
 	}
 
-	static void Clear()
+	static inline constexpr void Clear()
 	{
 		Array.clear();
 	}

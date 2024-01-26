@@ -86,7 +86,7 @@ struct Phobos final
 	//variables
 	static HANDLE hInstance;
 
-	static const size_t readLength = 2048;
+	static constexpr size_t readLength = 2048;
 	static char readBuffer[readLength];
 	static wchar_t wideBuffer[readLength];
 	static const char readDelims[4];

@@ -59,23 +59,23 @@ public:
 		: IniFile { &iniFile }
 	{ }
 
-	const char* c_str() const {
+	inline const char* c_str() const {
 		return Phobos::readBuffer;
 	}
 
-	char* value() const {
+	inline char* value() const {
 		return Phobos::readBuffer;
 	}
 
-	size_t max_size() const {
+	inline constexpr size_t max_size() const {
 		return Phobos::readLength;
 	}
 
-	bool empty() const {
+	inline bool empty() const {
 		return !Phobos::readBuffer[0];
 	}
 
-	CCINIClass* GetINI() const {
+	inline CCINIClass* GetINI() const {
 		return IniFile;
 	}
 

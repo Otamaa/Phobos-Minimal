@@ -2514,7 +2514,7 @@ void TechnoExtData::UpdateInterceptor()
 	{
 		const auto distance = pBullet->Location.DistanceFrom(pThis->Location);
 
-		if (distance > guardRange || distance < minguardRange || pBullet->InLimbo)
+		if (distance > guardRange || distance < minguardRange || pBullet->InLimbo || !pBullet->IsAlive)
 			continue;
 
 		const int weaponIndex = pThis->SelectWeapon(pBullet);
