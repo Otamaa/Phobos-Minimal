@@ -7394,7 +7394,7 @@ int AresGlobalData::ModIdentifier = 0;
 CSFText AresGlobalData::ModNote = {};
 byte AresGlobalData::GFX_DX_Force = 0;
 int AresGlobalData::colorCount = 8;
-int AresGlobalData::version = AresGlobalData::ModIdentifier + SAVEGAME_ID;
+int AresGlobalData::version = AresGlobalData::ModIdentifier;
 
 int AresGlobalData::uiColorText;
 int AresGlobalData::uiColorTextButton = 0xFFFF; // #1644: needed for CD prompt

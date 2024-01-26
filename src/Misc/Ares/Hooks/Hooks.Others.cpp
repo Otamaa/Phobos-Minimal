@@ -2295,8 +2295,8 @@ DEFINE_OVERRIDE_HOOK(0x67D04E, Game_Save_SavegameInformation, 7)
 
 	// remember the Ares version and a mod id
 	Info.Version = AresGlobalData::version;
-	Info.InternalVersion = AresGlobalData::InternalVersion;
-	sprintf_s(Info.ExecutableName.data(), "GAMEMD.EXE + %s", "Ares/3.0p1");
+	Info.InternalVersion = AresGlobalData::InternalVersion + PHOBOSSAVEGAME_ID;
+	CRT::sprintf(Info.ExecutableName.data(), "GAMEMD.EXE + Ares/3.0p1");
 
 	return 0;
 }
@@ -2307,7 +2307,7 @@ DEFINE_OVERRIDE_HOOK(0x559F31, LoadOptionsClass_GetFileInfo, 9)
 
 	// compare equal if same mod and same Ares version (or compatible)
 	auto same = (Info.Version == (AresGlobalData::version)
-		&& Info.InternalVersion == AresGlobalData::InternalVersion);
+		&& (Info.InternalVersion - PHOBOSSAVEGAME_ID ) == AresGlobalData::InternalVersion);
 
 	R->ECX(&Info);
 	return same ? 0x559F60u : 0x559F48u;

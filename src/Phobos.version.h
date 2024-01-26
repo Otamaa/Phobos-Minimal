@@ -25,7 +25,7 @@
 // Build number. Incremented on each released build.
 #define BUILD_NUMBER 28
 
-#define SAVEGAME_ID ((BUILD_NUMBER << 24) | (BUILD_NUMBER << 12) | (BUILD_NUMBER))
+#define PHOBOSSAVEGAME_ID ((BUILD_NUMBER << 24) | (BUILD_NUMBER << 12) | (BUILD_NUMBER))
 #define FILE_DESCRIPTION "Unofficial Development build of Phobos - Minimal engine extension"
 #define FILE_VERSION_STR "Unofficial Build #" _STR(BUILD_NUMBER)
 #define FILE_VERSION 0,0,0,BUILD_NUMBER
