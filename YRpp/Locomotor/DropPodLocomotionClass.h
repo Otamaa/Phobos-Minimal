@@ -24,6 +24,24 @@ public:
 	virtual ULONG __stdcall AddRef() override R0;
 	virtual ULONG __stdcall Release() override R0;
 
+	//IPiggyback
+	virtual HRESULT __stdcall Begin_Piggyback(ILocomotion* pointer) R0;
+	virtual HRESULT __stdcall End_Piggyback(ILocomotion** pointer) R0;
+	virtual bool __stdcall Is_Ok_To_End() R0;
+	virtual HRESULT __stdcall Piggyback_CLSID(GUID* classid) R0;
+	virtual bool __stdcall Is_Piggybacking() R0;
+
+	//ILocomotion
+	virtual bool __stdcall Is_Moving() R0;
+	virtual CoordStruct* __stdcall Destination(CoordStruct* pcoord) R0;
+	virtual bool __stdcall Process() R0;
+	virtual void __stdcall Move_To(CoordStruct to) RX;
+	virtual void __stdcall Stop_Moving() RX;
+	virtual void __stdcall Do_Turn(DirStruct coord) RX;
+	virtual Layer __stdcall In_Which_Layer() RT(Layer);
+	virtual void __stdcall Mark_All_Occupation_Bits(int mark) RX;
+	virtual void __stdcall Limbo() RX;
+
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
 
