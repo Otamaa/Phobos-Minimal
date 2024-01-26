@@ -9,5 +9,4 @@ struct GameDebugLog
 
 	static __declspec(noinline) void HookLogEnd(DWORD addr, const char* pFormat, size_t size, long long time);
 	static __declspec(noinline) void HookLogStart(DWORD addr, const char* pFormat, size_t size);
-	static void HookLogFinalize();
 };

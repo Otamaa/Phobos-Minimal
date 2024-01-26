@@ -4045,14 +4045,10 @@ DEFINE_HOOK(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 		pThis->FoundationOutside = pBldext->OutlineData.data();
 	}
 
-	bool IsOnImage = false;
+	const auto pSection = pThis->ImageFile && pThis->ImageFile[0] && strlen(pThis->ImageFile) ? pThis->ImageFile : pThis->ID;
 
-	if (!detail::read(pThis->Foundation, exINi, pThis->ID, GameStrings::Foundation()) && (pThis->ImageFile && pThis->ImageFile[0])) {
-		if (detail::read(pThis->Foundation, exINi, pThis->ImageFile, GameStrings::Foundation()))
-			IsOnImage = true;
-	}
+	detail::read(pThis->Foundation, exINi, pSection, GameStrings::Foundation());
 
-	const auto pSection = IsOnImage ? pThis->ImageFile : pThis->ID;
 	char strbuff[0x80];
 
 	if (pThis->Foundation == BuildingTypeExtData::CustomFoundation)

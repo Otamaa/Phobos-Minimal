@@ -153,8 +153,14 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 #endif
 {	// create an array of crew for faster lookup
 	std::vector<InfantryTypeClass*> Crews(SideClass::Array->Count, nullptr);
-	for (int i = 0; i < SideClass::Array->Count; ++i)
-		Crews[i] = SideExtContainer::Instance.Find(SideClass::Array->Items[i])->GetCrew();
+	for (int i = 0; i < SideClass::Array->Count; ++i){
+		auto pExt = SideExtContainer::Instance.Find(SideClass::Array->Items[i]);
+
+		Crews[i] = pExt->GetCrew();
+		// remove all types that cannot paradrop
+		if(pExt->ParaDropTypes.HasValue() && !pExt->ParaDropTypes.empty())
+			 Helpers::Alex::remove_non_paradroppables(pExt->ParaDropTypes, SideClass::Array->Items[i]->ID, "ParaDrop.Types");
+	}
 
 	auto pINI = CCINIClass::INI_Rules();
 	INI_EX iniEX(pINI);
@@ -436,8 +442,9 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		Debug::RegisterParserError();
 	}
 
-	for (auto const pWH : *WarheadTypeClass::Array) {
-		if (auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH)) {
+	for (auto pWH : *WarheadTypeClass::Array) {
+		auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
+		{
 			const size_t versesSize = pWHExt->Verses.size();
 
 			if (versesSize < ArmorTypeClass::Array.size())
@@ -458,9 +465,9 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	}
 
 	for (auto pBullet : *BulletTypeClass::Array) {
-		if (auto pExt = BulletTypeExtContainer::Instance.Find(pBullet)) {
-			if (pExt->AttachedSystem && pExt->AttachedSystem->BehavesLike != ParticleSystemTypeBehavesLike::Smoke)
-			{
+		auto pExt = BulletTypeExtContainer::Instance.Find(pBullet);
+		{
+			if (pExt->AttachedSystem && pExt->AttachedSystem->BehavesLike != ParticleSystemTypeBehavesLike::Smoke) {
 				Debug::Log("Bullet[%s] With AttachedSystem[%s] is not BehavesLike=Smoke!\n", pBullet->ID, pExt->AttachedSystem->ID);
 				Debug::RegisterParserError();
 			}
@@ -468,7 +475,9 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	}
 
 	for (auto pHouse : *HouseTypeClass::Array) {
-		if(auto pExt = HouseTypeExtContainer::Instance.Find(pHouse)) {
+		auto pExt = HouseTypeExtContainer::Instance.Find(pHouse);
+
+		{
 			// remove all types that cannot paradrop
 
 			if(!pExt->ParaDropTypes.empty())
@@ -480,12 +489,10 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	}
 
 	for (auto pSuper : *SuperWeaponTypeClass::Array) {
-		if (const auto pSuperExt = SWTypeExtContainer::Instance.Find(pSuper)) {
-
-			if (!pSuperExt->Aux_Techno.empty()) {
-				for (auto& pTech : pSuperExt->Aux_Techno) {
+		const auto pSuperExt = SWTypeExtContainer::Instance.Find(pSuper);
+		{
+			for (auto& pTech : pSuperExt->Aux_Techno) {
 					TechnoTypeExtContainer::Instance.Find(pTech)->Linked_SW.push_back(pSuper);
-				}
 			}
 
 			if(!pSuperExt->DropPod_Types.empty())
@@ -500,19 +507,8 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		}
 	}
 
-	for (auto pSide : *SideClass::Array) {
-		if (auto pExt = SideExtContainer::Instance.Find(pSide)) {
-			// remove all types that cannot paradrop
-
-			if(pExt->ParaDropTypes.HasValue() && !pExt->ParaDropTypes.empty())
-				 Helpers::Alex::remove_non_paradroppables(pExt->ParaDropTypes, pSide->ID, "ParaDrop.Types");
-		}
-	}
-	
 	for (auto pAnim : *AnimTypeClass::Array) {
-		if (auto pExt = AnimTypeExtContainer::Instance.Find(pAnim)) { 
-			pExt->ValidateData();
-		}
+		AnimTypeExtContainer::Instance.Find(pAnim)->ValidateData();
 	}
 
 	if (Phobos::Otamaa::StrictParser && Phobos::Otamaa::ParserErrorDetected) {

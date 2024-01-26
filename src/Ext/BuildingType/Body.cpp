@@ -955,6 +955,14 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	{
 		INI_EX exArtINI(pArtINI);
 
+		if (this->IsCustom)
+		{
+			//Reset
+			pThis->Foundation = BuildingTypeExtData::CustomFoundation;
+			pThis->FoundationData = this->CustomData.data();
+			pThis->FoundationOutside = this->OutlineData.data();
+		}
+
 		if (pThis->MaxNumberOccupants > 10)
 		{
 			char tempMuzzleBuffer[32];
