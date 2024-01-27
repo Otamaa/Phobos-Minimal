@@ -561,7 +561,8 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 		ret = TActionExt::MessageForSpecifiedHouse(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
 	case PhobosTriggerAction::UndeployToWaypoint:
-		return TActionExt::UndeployToWaypoint(pThis, pHouse, pObject, pTrigger, args.plocation);
+		ret = TActionExt::UndeployToWaypoint(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	default:
 		return false;
 	}
