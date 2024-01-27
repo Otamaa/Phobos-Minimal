@@ -2014,64 +2014,69 @@ DEFINE_HOOK(0x7463DC, UnitClass_SetOwningHouse_FixArgs, 0x5)
 {
 	GET(UnitClass* const, pThis, EDI);
 	GET(HouseClass* const, pNewOwner, EBX);
-	GET_STACK(bool const, bAnnounce, STACK_OFFSET(0xC, 0x8));
+	GET_BASE(bool const, bAnnounce, 0x8);
 
 	R->EAX(pThis->FootClass::SetOwningHouse(pNewOwner, bAnnounce));
 	return 0x7463E6;
 }
 
-DEFINE_HOOK(0x4DBF05, FootClass_SetOwningHouse_FixArgs, 0x5)
+DEFINE_HOOK(0x4DBF01, FootClass_SetOwningHouse_FixArgs, 0x6)
 {
 	GET(FootClass* const, pThis, ESI);
-	GET(HouseClass* const, pNewOwner, EAX);
-	GET_STACK(bool const, bAnnounce, STACK_OFFSET(0xC, 0x8));
+	GET_STACK(HouseClass* const, pNewOwner, 0xC + 0x4);
+	GET_STACK(bool const, bAnnounce, 0xC + 0x8);
 
-	if(pThis->TechnoClass::SetOwningHouse(pNewOwner, bAnnounce)) {
+	//Debug::Log("SetOwningHouse for [%s] announce [%s - %d]\n", pNewOwner->get_ID(), bAnnounce ? "True" : "False" , bAnnounce);
+	bool result = false;
+	if (pThis->TechnoClass::SetOwningHouse(pNewOwner, bAnnounce))
+	{
+		const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-
-		if(!pExt->LaserTrails.empty()) {
-			for (auto& trail : pExt->LaserTrails) {
-				if (trail.Type->IsHouseColor)
-					trail.CurrentColor = (pThis->Owner ?
-					pThis->Owner : HouseExtData::FindCivilianSide())
-					->LaserColor;
+		for (auto& trail : pExt->LaserTrails) {
+			if (trail.Type->IsHouseColor) { 
+				trail.CurrentColor = pThis->Owner->LaserColor;
 			}
 		}
 
-		// This is not limited to mind control, could possibly affect many map triggers
-		// This is still not even correct, but let's see how far this can help us
+		//if (pThis->Owner->IsHumanPlayer)
+		//{
+		//	// This is not limited to mind control, could possibly affect many map triggers
+		//	// This is still not even correct, but let's see how far this can help us
+		//
+		//	pThis->ShouldScanForTarget = false;
+		//	pThis->ShouldEnterAbsorber = false;
+		//	pThis->ShouldEnterOccupiable = false;
+		//	pThis->ShouldLoseTargetNow = false;
+		//	pThis->ShouldGarrisonStructure = false;
+		//	pThis->CurrentTargets.Clear();
+		//
+		//	if (pThis->HasAnyLink() || pThis->GetTechnoType()->ResourceGatherer) // Don't want miners to stop
+		//		return 0x4DBF13;
+		//
+		//	switch (pThis->GetCurrentMission())
+		//	{
+		//	case Mission::Harvest:
+		//	case Mission::Sleep:
+		//	case Mission::Harmless:
+		//	case Mission::Repair:
+		//		return 0x4DBF13;
+		//	}
+		//
+		//	pThis->Override_Mission(pThis->GetTechnoType()->DefaultToGuardArea ? Mission::Area_Guard : Mission::Guard, nullptr, nullptr); // I don't even know what this is, just clear the target and destination for me
+		//}
 
-		pThis->ShouldScanForTarget = false;
-		pThis->ShouldEnterAbsorber = false;
-		pThis->ShouldEnterOccupiable = false;
-		pThis->ShouldGarrisonStructure = false;
-		pThis->CurrentTargets.Clear();
-
-		if (pThis->HasAnyLink() || pThis->GetTechnoType()->ResourceGatherer) // Don't want miners to stop
-			return 0x4DBF13;
-
-		switch (pThis->GetCurrentMission())
-		{
-		case Mission::Harvest:
-		case Mission::Sleep:
-		case Mission::Harmless:
-		case Mission::Repair:
-			return 0x4DBF13;
-		}
-
-		pThis->Override_Mission(pThis->GetTechnoType()->DefaultToGuardArea ? Mission::Area_Guard : Mission::Guard, nullptr, nullptr); // I don't even know what this is, just clear the target and destination for me
-		return 0x4DBF13;
+		result = true;
 	}
 
-	return 0x4DBF8F;
+	R->AL(result);
+	return 0x4DBF0F;
 }
 
 DEFINE_HOOK(0x448BE3, BuildingClass_SetOwningHouse_FixArgs, 0x5)
 {
 	GET(FootClass* const, pThis, ESI);
 	GET(HouseClass* const, pNewOwner, EDI);
-	GET_STACK(bool const, bAnnounce, STACK_OFFSET(0x58, 0x8));
+	GET_STACK(bool const, bAnnounce, 0x58 + 0x8);
 
 	//discarded
 	pThis->TechnoClass::SetOwningHouse(pNewOwner, bAnnounce);

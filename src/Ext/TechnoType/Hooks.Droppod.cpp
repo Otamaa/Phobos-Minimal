@@ -112,9 +112,9 @@ struct DroppodProperties
 			pLinked->SetLocation(coords);
 			if (auto dWpn = DroppodProperties::GetWeapon(tType, pLinked, RulesClass::Instance->DropPodWeapon, condition))
 			{
-				if (Unsorted::CurrentFrame % 6 == 0)
+				if (AnimTypeClass* pType = DroppodProperties::GetTrailer(tType, pLinked, RulesExtData::Instance()->DropPodTrailer, condition))
 				{
-					if (AnimTypeClass* pType = DroppodProperties::GetTrailer(tType, pLinked, RulesExtData::Instance()->DropPodTrailer, condition))
+					if (Unsorted::CurrentFrame % 6 == 0)
 					{
 						AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, coords, 0, 1, (AnimFlag)0x600, 0, false),
 							pLinked->Owner,
@@ -425,20 +425,20 @@ DEFINE_HOOK(0x519168, InfantryClass_DrawIt_DroppodLinked, 0x5)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x4B641D, DroppodLocomotionClass_IPiggy_EndPiggyback, 7)
-{
-	GET(ILocomotion*, pIloco, EAX);
-	const auto pLoco = static_cast<LocomotionClass*>(pIloco);
-
-	if (pLoco->Owner)
-	{
-		const auto pExt = TechnoExtContainer::Instance.Find(pLoco->Owner);
-		if (pExt->LinkedSW && (int)pExt->LinkedSW->Type->Type == (int)AresNewSuperType::DropPod)
-			pExt->LinkedSW = nullptr;
-	}
-
-	return 0x0;
-}
+//DEFINE_HOOK(0x4B641D, DroppodLocomotionClass_IPiggy_EndPiggyback, 7)
+//{
+//	GET(ILocomotion*, pIloco, EAX);
+//	const auto pLoco = static_cast<LocomotionClass*>(pIloco);
+//
+//	if (pLoco->Owner)
+//	{
+//		const auto pExt = TechnoExtContainer::Instance.Find(pLoco->Owner);
+//		if (pExt->LinkedSW && (int)pExt->LinkedSW->Type->Type == (int)AresNewSuperType::DropPod)
+//			pExt->LinkedSW = nullptr;
+//	}
+//
+//	return 0x0;
+//}
 
 //DEFINE_HOOK(0x4B619F, DropPodLocomotionClass_MoveTo_AtmosphereEntry, 0x5)
 //{

@@ -21,10 +21,11 @@ DEFINE_HOOK(0x6DD8B0, TActionClass_Execute, 0x6)
 {
 	GET(TActionClass*, pThis, ECX);
 	REF_STACK(ActionArgs const, args, 0x4);
-	enum { return_value = 0x6DD910 , continue_func = 0x0 };
+	enum { return_value = 0x6DD910, continue_func = 0x0 };
 
 	bool handled;
-	if (TActionExt::Occured(pThis, args, handled)) {
+	if (TActionExt::Occured(pThis, args, handled))
+	{
 		R->AL(handled);
 		return return_value;
 	}
@@ -41,7 +42,8 @@ DEFINE_HOOK(0x6E427D, TActionClass_CreateBuildingAt, 0x9)
 	GET(HouseClass*, pHouse, EDI);
 	REF_STACK(CoordStruct, coord, STACK_OFFS(0x24, 0x18));
 
-	if (pThis->Param5) {
+	if (pThis->Param5)
+	{
 		if (HouseClass::Index_IsMP(pThis->Param6))
 			pHouse = HouseClass::FindByIndex(pThis->Param6);
 		else
@@ -66,17 +68,17 @@ DEFINE_HOOK(0x6E427D, TActionClass_CreateBuildingAt, 0x9)
 
 		if (!pBld->ForceCreate(coord))
 		{
-			GameDelete<true,false>(pBld);
+			GameDelete<true, false>(pBld);
 			//pBld->UnInit();
 		}
 		else
 		{
-			if(!bPlayBuildUp)
+			if (!bPlayBuildUp)
 				pBld->Place(false);
 
 			pBld->IsReadyToCommence = true;
 
-			if (pThis->Param3 > 1 && 
+			if (pThis->Param3 > 1 &&
 				SessionClass::Instance->GameMode == GameMode::Campaign &&
 				!pHouse->ControlledByCurrentPlayer())
 				pBld->ShouldRebuild = true;
@@ -153,104 +155,113 @@ DEFINE_HOOK(0x6D4455, Tactical_Render_UpdateLightSources, 0x8)
 #pragma endregion
 #include <Misc/Ares/Hooks/Header.h>
 
- DEFINE_HOOK(0x6E0AA0, TActionClass_ChangeHouse_IncludePassengers, 0x7)
- {
- 	GET(TActionClass*, pThis, ECX);
- 	REF_STACK(ActionArgs const, args, 0x4);
+DEFINE_HOOK(0x6E0AA0, TActionClass_ChangeHouse_IncludePassengers, 0x7)
+{
+	GET(TActionClass*, pThis, ECX);
+	REF_STACK(ActionArgs const, args, 0x4);
 
- 	bool changed = false;
- 	if (args.pTrigger) {
- 		if (HouseClass* NewOwnerPtr = AresTEventExt::ResolveHouseParam(pThis->Value))
- 		{
- 			TechnoClass::Array->for_each([&](TechnoClass* pItem) {
- 				if (!pItem->IsAlive || pItem->Health <= 0 || !pItem->IsOnMap || pItem->InLimbo)
- 					return;
+	bool changed = false;
+	if (args.pTrigger)
+	{
+		if (HouseClass* NewOwnerPtr = AresTEventExt::ResolveHouseParam(pThis->Value, args.pTrigger->GetHouse()))
+		{
+			for (auto pItem : *TechnoClass::Array)
+			{
+				if (!pItem->IsAlive || pItem->Health <= 0 || pItem->InLimbo)
+					continue;
 
- 				if (pItem->AttachedTag && pItem->AttachedTag->ContainsTrigger(args.pTrigger)) {
- 					pItem->SetOwningHouse(NewOwnerPtr, false);
+				if (pItem->AttachedTag && pItem->AttachedTag->ContainsTrigger(args.pTrigger))
+				{
+					pItem->SetOwningHouse(NewOwnerPtr, false);
 
- 					if (pThis->Param3 != 0 && pItem->Passengers.FirstPassenger)
- 					{
- 						FootClass* pPassenger = pItem->Passengers.FirstPassenger;
+					if (pThis->Param3 != 0 && pItem->Passengers.FirstPassenger)
+					{
+						FootClass* pPassenger = pItem->Passengers.FirstPassenger;
 
- 						do
- 						{
- 							pPassenger->SetOwningHouse(NewOwnerPtr, false);
- 							pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
- 						}
- 						while (pPassenger != nullptr && pPassenger->Transporter == pItem);
- 					}
+						do
+						{
+							pPassenger->SetOwningHouse(NewOwnerPtr, false);
+							pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
+						}
+						while (pPassenger != nullptr && pPassenger->Transporter == pItem);
+					}
 
- 					changed = true;
- 				}
- 			});
- 		}
- 	}
+					changed = true;
+				}
+			}
+		}
+	}
 
- 	R->EAX(changed);
- 	return 0x6E0AE7;
- }
+	R->AL(changed);
+	return 0x6E0AE7;
+}
 
- DEFINE_HOOK(0x6E0B60, TActionClass_SwitchAllObjectsToHouse, 0x9)
- {
- 	GET(TActionClass*, pThis, ECX);
- 	REF_STACK(ActionArgs const, args, 0x4);
+DEFINE_HOOK(0x6E0B60, TActionClass_SwitchAllObjectsToHouse, 0x9)
+{
+	GET(TActionClass*, pThis, ECX);
+	REF_STACK(ActionArgs const, args, 0x4);
 
- 	bool changed = false;
+	bool changed = false;
 
- 	if (args.pTrigger) {
- 		if (HouseClass* NewOwnerPtr = AresTEventExt::ResolveHouseParam(pThis->Value)) {
+	if (args.pTrigger)
+	{
+		if (HouseClass* NewOwnerPtr = AresTEventExt::ResolveHouseParam(pThis->Value, args.pTrigger->GetHouse()))
+		{
+			for (auto pItem : *TechnoClass::Array)
+			{
+				if (!pItem->IsAlive || pItem->Health <= 0 || pItem->Owner != args.pHouse)
+					continue;
 
- 			TechnoClass::Array->for_each([&](TechnoClass* pItem) {
- 				if (!pItem->IsAlive || pItem->Health <= 0 || pItem->Owner != args.pHouse || pItem->Owner == NewOwnerPtr)
- 					 return;
+				if (pThis->Param3 && pItem->Passengers.FirstPassenger != nullptr)
+				{
+					FootClass* pPassenger = pItem->Passengers.FirstPassenger;
 
- 				if (pThis->Param3 && pItem->Passengers.FirstPassenger != nullptr)
- 				{
- 					FootClass* pPassenger = pItem->Passengers.FirstPassenger;
+					do
+					{
+						pPassenger->SetOwningHouse(NewOwnerPtr, false);
+						pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
+					}
+					while (pPassenger != nullptr && pPassenger->Transporter == pItem);
+				}
 
- 					do
- 					{
- 						pPassenger->SetOwningHouse(NewOwnerPtr, false);
- 						pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
- 					}
- 					while (pPassenger != nullptr && pPassenger->Transporter == pItem);
- 				}
+				pItem->SetOwningHouse(NewOwnerPtr, false);
 
- 				pItem->SetOwningHouse(NewOwnerPtr, false);
+				if (BuildingClass* pBuilding = specific_cast<BuildingClass*>(pItem))
+				{
+					if (pBuilding->Type->Powered || pBuilding->Type->PoweredSpecial)
+					{
+						pBuilding->UpdatePowerDown();
+					}
+				}
 
- 				if (BuildingClass* pBuilding = specific_cast<BuildingClass*>(pItem)) {
- 					if (pBuilding->Type->Powered || pBuilding->Type->PoweredSpecial) {
- 						pBuilding->UpdatePowerDown();
- 					}
- 				}
+				changed = true;
+			}
+		}
+	}
 
- 				changed = true;
- 			});
- 		}
- 	}
+	R->EAX(changed);
+	return 0x6E0C91;
+}
 
- 	R->EAX(changed);
- 	return 0x6E0C91;
- }
+DEFINE_HOOK(0x6DD614, TActionClass_LoadFromINI_GetActionIndex_ParamAsName, 0x6)
+{
+	GET(TActionClass*, pThis, EBP);
 
- DEFINE_HOOK(0x6DD614, TActionClass_LoadFromINI_GetActionIndex_ParamAsName, 0x6)
- {
- 	GET(TActionClass*, pThis, EBP);
+	if (pThis->ActionKind == TriggerAction::PlayAnimAt)
+	{
+		GET(char*, pName, ESI);
 
- 	if (pThis->ActionKind == TriggerAction::PlayAnimAt) {
- 		GET(char*, pName, ESI);
+		if (GeneralUtils::IsValidString(pName) && (pName[0] < '0' || pName[0] > '9'))
+		{
+			const int idx = AnimTypeClass::FindIndexById(pName);
 
- 		if (GeneralUtils::IsValidString(pName) && (pName[0] < '0' || pName[0] > '9')) {
- 			const int idx = AnimTypeClass::FindIndexById(pName);
+			if (idx >= 0)
+				R->EDX(idx);
+		}
+	}
 
- 			if (idx >= 0)
- 				R->EDX(idx);
- 		}
- 	}
-
- 	return 0;
- }
+	return 0;
+}
 
 // Bugfix, #issue 429: Retint map script disables RGB settings on light source
 // Author: secsome

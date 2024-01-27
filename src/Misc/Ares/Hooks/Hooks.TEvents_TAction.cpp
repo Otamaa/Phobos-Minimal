@@ -122,6 +122,8 @@ DEFINE_OVERRIDE_HOOK(0x6DD8D7, TActionClass_Execute_Ares, 0xA)
 
 	enum { Handled = 0x6DFDDD, Default = 0x6DD8E7u };
 
+	//Debug::Log("TAction[%x] triggering [%d]\n" , pAction , (int)pAction->ActionKind);
+
 	// check for actions handled in Ares.
 	auto ret = false;
 	if (AresTActionExt::Execute(
