@@ -348,9 +348,8 @@ DEFINE_OVERRIDE_HOOK(0x6FF656, TechnoClass_FireAt_Additionals, 0xA)
 	*pTargetCoords = std::exchange(FireAtTemp::originalTargetCoords, CoordStruct::Empty);
 	std::exchange(FireAtTemp::pOriginalTarget, nullptr);
 	std::exchange(FireAtTemp::pObstacleCell, nullptr);
-#endif
-
 	R->EDI(pTarget);
+#endif
 
 	//TechnoClass_FireAt_ToggleLaserWeaponIndex
 	if (pThis->WhatAmI() == BuildingClass::AbsID && pWeaponType->IsLaser)
