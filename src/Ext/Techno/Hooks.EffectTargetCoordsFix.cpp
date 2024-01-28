@@ -278,6 +278,12 @@ DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_Additional, 0x6)
 				return 0;
 
 			WeaponTypeExtData::DetonateAt(fbWeapon, pThis, pThis, true, nullptr);
+
+			//pThis techno was die after after getting affect of FeedbackWeapon
+			//if the function not bail out , it will crash the game because the vtable is already invalid
+			if(!pThis->IsAlive) {
+				return 0x6FF92F;
+			}
 		}
 	}
 
