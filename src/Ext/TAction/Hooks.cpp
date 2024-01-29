@@ -167,8 +167,10 @@ DEFINE_HOOK(0x6E0AA0, TActionClass_ChangeHouse_IncludePassengers, 0x7)
 		{
 			for (auto pItem : *TechnoClass::Array)
 			{
-				if (!pItem->IsAlive || pItem->Health <= 0 || pItem->InLimbo)
+				if (!pItem->IsAlive || pItem->Health <= 0 || pItem->InLimbo || !pItem->IsOnMap)
 					continue;
+
+				//Debug::Log("ChangeOwner for [%s] from [%x] with param3 [%d] [ %s(%x) -> %s(%x) ]\n", pItem->get_ID(), pThis, pThis->Param3 , pItem->Owner->get_ID() , pItem->Owner, NewOwnerPtr->get_ID() , NewOwnerPtr);
 
 				if (pItem->AttachedTag && pItem->AttachedTag->ContainsTrigger(args.pTrigger))
 				{
@@ -193,7 +195,7 @@ DEFINE_HOOK(0x6E0AA0, TActionClass_ChangeHouse_IncludePassengers, 0x7)
 	}
 
 	R->AL(changed);
-	return 0x6E0AE7;
+	return 0x6E0B50;
 }
 
 DEFINE_HOOK(0x6E0B60, TActionClass_SwitchAllObjectsToHouse, 0x9)
@@ -211,6 +213,8 @@ DEFINE_HOOK(0x6E0B60, TActionClass_SwitchAllObjectsToHouse, 0x9)
 			{
 				if (!pItem->IsAlive || pItem->Health <= 0 || pItem->Owner != args.pHouse)
 					continue;
+
+				Debug::Log("SwitchAllObjectsToHouse for [%s] from [%x] with param3 [%d] [ %s -> %s ]\n", pItem->get_ID(), pThis, pThis->Param3, pItem->Owner->get_ID(), NewOwnerPtr->get_ID());
 
 				if (pThis->Param3 && pItem->Passengers.FirstPassenger != nullptr)
 				{
