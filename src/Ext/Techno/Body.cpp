@@ -2596,9 +2596,6 @@ void TechnoExtData::UpdateSpawnLimitRange()
 
 bool TechnoExtData::IsHarvesting(TechnoClass* pThis)
 {
-	if (!TechnoExtData::IsActive(pThis, true, true))
-		return false;
-
 	const auto slave = pThis->SlaveManager;
 	if (slave && slave->State != SlaveManagerStatus::Ready)
 		return true;

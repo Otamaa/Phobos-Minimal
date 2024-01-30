@@ -129,13 +129,14 @@ DEFINE_OVERRIDE_HOOK(0x6DD8D7, TActionClass_Execute_Ares, 0xA)
 	if (AresTActionExt::Execute(
 		pAction, pHouse, pObject, pTrigger, *pLocation, ret))
 	{
+		//Debug::Log("TAction[%x] triggering Ares [%d]\n" , pAction , (int)pAction->ActionKind);
 		// returns true or false
 		R->AL(ret);
 		return Handled;
 	}
-
+		//Debug::Log("TAction[%x] triggering vanilla [%d]\n" , pAction , (int)pAction->ActionKind);
 	// replicate the original instructions, using underflow
-	auto const value = static_cast<unsigned int>(pAction->ActionKind) - 1;
+	uint32_t const value = static_cast<uint32_t>(pAction->ActionKind) - 1;
 	R->EDX(value);
 	return (value > 144u) ? Handled : Default;
 }
@@ -179,18 +180,18 @@ DEFINE_OVERRIDE_HOOK(0x71f683, TEventClass_GetFlags_Ares, 5)
 }
 
 // the general events requiring a house
-DEFINE_OVERRIDE_HOOK(0x71F06C, EventClass_HasOccured_PlayerAtX1, 5)
-{
-	GET(int const, param, ECX);
+ DEFINE_OVERRIDE_HOOK(0x71F06C, EventClass_HasOccured_PlayerAtX1, 5)
+ {
+ 	GET(int const, param, ECX);
 
-	auto const pHouse = AresTEventExt::ResolveHouseParam(param);
-	R->EAX(pHouse);
+ 	auto const pHouse = AresTEventExt::ResolveHouseParam(param);
+ 	R->EAX(pHouse);
 
-	// continue normally if a house was found or this isn't Player@X logic,
-	// otherwise return false directly so events don't fire for non-existing
-	// players.
-	return (pHouse || !HouseClass::Index_IsMP(param)) ? 0x71F071u : 0x71F0D5u;
-}
+ 	// continue normally if a house was found or this isn't Player@X logic,
+ 	// otherwise return false directly so events don't fire for non-existing
+ 	// players.
+ 	return (pHouse || !HouseClass::Index_IsMP(param)) ? 0x71F071u : 0x71F0D5u;
+ }
 
 // validation for Spy as House, the Entered/Overflown Bys and the Crossed V/H Lines
 DEFINE_OVERRIDE_HOOK_AGAIN(0x71ED33, EventClass_HasOccured_PlayerAtX2, 5)
@@ -286,24 +287,26 @@ static std::array<const char* , (size_t)TriggerEvent::count> TriggerEventsName {
 }
 };
 
-DEFINE_OVERRIDE_HOOK(0x71E949, TEventClass_HasOccured_Ares, 7)
-{
+//DEFINE_DISABLE_HOOK(0x71E949, TEventClass_HasOccured_Ares)
 
-	GET(TEventClass*, pThis, EBP);
-	GET_STACK(EventArgs const, args, (0x2C + 0x4));
-	enum { return_true = 0x71F1B1, return_false = 0x71F163 };
+ DEFINE_OVERRIDE_HOOK(0x71E949, TEventClass_HasOccured_Ares, 7)
+ {
 
-	//const char* name = "Unknown";
-	//if(args.EventType < TriggerEvent::count)
-	//	name =TriggerEventsName[(int)args.EventType];
+ 	GET(TEventClass*, pThis, EBP);
+ 	REF_STACK(EventArgs, args, (0x2C + 0x4));
+ 	enum { return_true = 0x71F1B1, return_false = 0x71F163 };
 
-	bool result = false;
-	//Debug::Log("Event [%d - %s] IsOccured \n" , (int)args.EventType , name);
-	if (AresTEventExt::HasOccured(pThis, args, result))
-	{
-		//Debug::Log("Event [%d - %s] Has Occured \n" , (int)args.EventType , name);
-		return result ? return_true : return_false;
-	}
+ 	//const char* name = "Unknown";
+ 	//if(args.EventType < TriggerEvent::count)
+ 	//	name =TriggerEventsName[(int)args.EventType];
 
-	return 0;
-}
+ 	bool result = false;
+ 	//Debug::Log("Event [%d - %s] IsOccured \n" , (int)args.EventType , name);
+ 	if (AresTEventExt::HasOccured(pThis, args, result)) {
+ 		//Debug::Log("Event [%d - %s] AresEventHas Occured \n" , (int)args.EventType , name);
+ 		return result ? return_true : return_false;
+ 	}
+ 	//Debug::Log("Event [%d - %s] AresEventNot Occured \n" , (int)args.EventType , name);
+
+ 	return 0;
+ }

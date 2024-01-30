@@ -520,11 +520,8 @@ void InitAdminDebugMode()
 
 		if (IS_SAME_STR_(Phobos::Otamaa::PCName, "WIN-55BCCCCDAST"))
 		{
-			Phobos::Otamaa::IsAdmin = true;
-
-#ifndef COMPILE_PORTED_DP_FEATURES
+			Phobos::Otamaa::IsAdmin = true;	
 			Phobos::EnableConsole = true;
-#endif
 
 #ifdef DETACH_DEBUGGER
 			// this thing can cause game to lockup when loading data

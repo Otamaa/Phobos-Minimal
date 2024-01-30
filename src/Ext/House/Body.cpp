@@ -704,11 +704,13 @@ int HouseExtData::ActiveHarvesterCount(HouseClass* pThis)
 	std::count_if(TechnoClass::Array->begin(), TechnoClass::Array->end(),
 	[pThis](TechnoClass* techno)
 	{
-		if (TechnoTypeExtContainer::Instance.Find(techno->GetTechnoType())->IsCountedAsHarvester()
-			&& techno->Owner == pThis)
-			return TechnoExtData::IsHarvesting(techno);
+		if(!techno->IsAlive || techno->Health <= 0 || techno->IsCrashing || techno->IsSinking || techno->Owner != pThis)
+			return false;
 
-		return false;
+		if (techno->WhatAmI() == UnitClass::AbsID && (static_cast<UnitClass*>(techno)->DeathFrameCounter > 0) )
+			return false;
+
+		return TechnoTypeExtContainer::Instance.Find(techno->GetTechnoType())->IsCountedAsHarvester() && TechnoExtData::IsHarvesting(techno);
 	});
 
 	return result;

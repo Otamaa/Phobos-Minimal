@@ -19,13 +19,23 @@ void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, 
 	}
 
 	auto const& [act, scriptArgument] = pScript->GetCurrentAction();// This is the target type
+	auto const& [nextAct, nextArg] = pScript->GetNextAction();
+	//ScriptExtData::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Executing)\n",
+	//	pTeam->Type->ID,
+	//	pScript->Type->ID,
+	//	pScript->CurrentMission,
+	//	act,
+	//	scriptArgument,
+	//	pScript->CurrentMission + 1,
+	//	nextAct,
+	//	nextArg);
 
 	// This team has no units!
 	if (!pTeam)
 	{
 		// This action finished
 		pTeam->StepCompleted = true;
-		auto const& [nextAct, nextArg] = pScript->GetNextAction();
+
 		ScriptExtData::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No team members alive)\n",
 			pTeam->Type->ID,
 			pScript->Type->ID,

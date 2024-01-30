@@ -456,7 +456,7 @@ struct AresTEventExt
 
 	// the function return is deciding if the case is handled or not
 	// the bool result pointer is for the result of the Event itself
-	static bool HasOccured(TEventClass* pThis, EventArgs const Args, bool& result);
+	static bool HasOccured(TEventClass* pThis, EventArgs& Args, bool& result);
 };
 
 struct TunnelFuncs

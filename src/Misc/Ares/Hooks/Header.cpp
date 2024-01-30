@@ -5010,7 +5010,7 @@ void AresJammer::Jam(BuildingClass* TargetBuilding)
 }
 
 //! \param TargetBuilding The building to unjam.
-void AresJammer::Unjam(BuildingClass* TargetBuilding)
+void AresJammer::Unjam(BuildingClass* TargetBuilding) const
 {
 	//keep item unique
 	auto& jammMap = BuildingExtContainer::Instance.Find(TargetBuilding)->RegisteredJammers;
@@ -5036,8 +5036,26 @@ void AresJammer::UnjamAll()
 
 #pragma region AresScriptExt
 
+static std::array<const char* , 4> Move_to_own_building_SearchType { {
+	"least threat" , "highest threat" , "least nearest" , "least farthest"
+}};
+
 bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bThirdArd)
 {
+
+	//if(pTeamMission->Action == TeamMissionType::Move_to_own_building) {
+	//	uint16 hi = (pTeamMission->Argument >> 0x10) & 0xFFFF;
+	//	uint16 lo = pTeamMission->Argument & 0xFFFF;
+	//	const char* FindType = "Dunno";
+	//	if(hi < Move_to_own_building_SearchType.size())
+	//		FindType = Move_to_own_building_SearchType[hi];
+	//
+	//	Debug::Log("Team[%x - %s] Executing MoveToOwnBuilding (%d)[hi %d(%s) , Lo %d(BldTypeMax %d)] \n" ,
+	//		pTeam , pTeam->get_ID() ,pTeamMission->Argument, hi , FindType , lo , BuildingTypeClass::Array->Count );
+	//
+	//}else
+	//	Debug::Log("Team[%x - %s] Executing [(Action)%d - (Argument)%d] \n" , pTeam , pTeam->get_ID() , pTeamMission->Action , pTeamMission->Argument);
+
 	switch (pTeamMission->Action)
 	{
 	case TeamMissionType::Garrison_building:
@@ -5067,6 +5085,8 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 		pTeam->StepCompleted = true;
 		return true;
 	}
+	default:
+		break;
 	}
 
 	if (pTeamMission->Action >= TeamMissionType::count)
@@ -5208,6 +5228,8 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 			pTeam->StepCompleted = true;
 			return true;
 		}
+		default:
+			break;
 		}
 	}
 
@@ -5786,6 +5808,8 @@ bool AresTActionExt::Execute(TActionClass* pAction, HouseClass* pHouse, ObjectCl
 	case TriggerAction::ChemMissileStrike:
 		ret = LauchhChemMissile(pAction, pHouse, pObject, pTrigger, location);
 		return true;
+	default:
+		break;
 	}
 
 	if ((AresNewTriggerAction)pAction->ActionKind < AresNewTriggerAction::AuxiliaryPower)
@@ -6049,7 +6073,7 @@ bool AresTEventExt::FindTechnoType(TEventClass* pThis, int args, HouseClass* pWh
 
 // the function return is deciding if the case is handled or not
 // the bool result pointer is for the result of the Event itself
-bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs const Args, bool& result)
+bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result)
 {
 	if (pThis->EventKind < TriggerEvent::count)
 	{
@@ -6067,6 +6091,8 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs const Args, bool& r
 			result = !FindTechnoType(pThis, 1, nullptr);
 			return true;
 		}
+		default:
+			break;
 		}
 	}
 	else
@@ -6308,6 +6334,8 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs const Args, bool& r
 			result = pHouse && HouseExtContainer::Instance.Find(pHouse)->KeepAliveBuildingCount <= 0;
 			break;
 		}
+		default:
+			break;
 		}
 
 		return true;

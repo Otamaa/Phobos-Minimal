@@ -12,21 +12,21 @@
 
 // we hook on the very first call
 // ares doing it before the switch statement call
-DEFINE_HOOK(0x71E940, TEventClass_Execute, 0x5)
-{
-	GET(TEventClass*, pThis, ECX);
-	REF_STACK(EventArgs const, args, 0x4);
-	enum { return_value = 0x71EA2D , continue_check = 0x0 };
+ DEFINE_HOOK(0x71E940, TEventClass_Execute, 0x5)
+ {
+ 	GET(TEventClass*, pThis, ECX);
+ 	REF_STACK(EventArgs const, args, 0x4);
+ 	enum { return_value = 0x71EA2D , continue_check = 0x0 };
 
-	bool result = false;
-	if (TEventExtData::Occured(pThis, args, result))
-	{
-		R->AL(result);
-		return return_value;
-	}
+ 	bool result = false;
+ 	if (TEventExtData::Occured(pThis, args, result))
+ 	{
+ 		R->AL(result);
+ 		return return_value;
+ 	}
 
-	return continue_check; // will continue ares and vanilla checks
-}
+ 	return continue_check; // will continue ares and vanilla checks
+ }
 
 DEFINE_HOOK(0x7271F9, TEventClass_GetFlags, 0x5)
 {

@@ -149,7 +149,7 @@ DEFINE_HOOK(0x6F6D85, TechnoClass_Unlimbo_RemoveTracking, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x7015C9, TechnoClass_Captured_UpdateTracking, 0x6)
+DEFINE_HOOK(0x7015C9, TechnoClass_ChangeOwnership_UpdateTracking, 0x6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET(HouseClass* const, pNewOwner, EBP);

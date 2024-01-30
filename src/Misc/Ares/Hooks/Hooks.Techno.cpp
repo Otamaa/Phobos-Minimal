@@ -948,6 +948,7 @@ DEFINE_OVERRIDE_HOOK(0x6FB1B5, TechnoClass_CreateGap_LargeGap, 7)
 DEFINE_OVERRIDE_HOOK(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);
+	//Debug::Log("ChangeOwnershipFor [%s]\n" , pThis->get_ID());
 
 	if (auto& pJammer = TechnoExtContainer::Instance.Find(pThis)->RadarJammer)
 	{

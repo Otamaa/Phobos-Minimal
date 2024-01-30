@@ -46,6 +46,7 @@ DEFINE_OVERRIDE_HOOK(0x65DBB3, TeamTypeClass_CreateInstance_Plane, 5)
 #include <Ext/Team/Body.h>
 #include <Ext/Script/Body.h>
 
+//DEFINE_DISABLE_HOOK(0x6E9443, TeamClass_AI_HandleAres)
 DEFINE_OVERRIDE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
 {
 	enum { ReturnFunc = 0x6E95AB, Continue = 0x0 };

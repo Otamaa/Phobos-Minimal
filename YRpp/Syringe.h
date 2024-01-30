@@ -146,7 +146,7 @@ private:
 	ExtendedRegister _EAX;
 
 public:
-	DWORD Origin()
+	DWORD Origin() const
 	{
 		return this->origin;
 	}
@@ -157,7 +157,7 @@ public:
 		return this->origin;
 	}
 
-	DWORD EFLAGS()
+	DWORD EFLAGS() const
 	{
 		return this->flags;
 	}

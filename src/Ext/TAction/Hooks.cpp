@@ -17,21 +17,24 @@
 
 // we hook at the beggining of the function
 // ares hooking at the beggining of switch call
-DEFINE_HOOK(0x6DD8B0, TActionClass_Execute, 0x6)
-{
-	GET(TActionClass*, pThis, ECX);
-	REF_STACK(ActionArgs const, args, 0x4);
-	enum { return_value = 0x6DD910, continue_func = 0x0 };
+ DEFINE_HOOK(0x6DD8B0, TActionClass_Execute, 0x6)
+ {
+ 	GET(TActionClass*, pThis, ECX);
+ 	REF_STACK(ActionArgs const, args, 0x4);
+ 	enum { return_value = 0x6DD910, continue_func = 0x0 };
+ 	//Debug::Log("TAction[%x] triggering [%d]\n" , pThis , (int)pThis->ActionKind);
+ 	bool handled;
+ 	if (TActionExt::Occured(pThis, args, handled))
+ 	{
+ 		//Debug::Log("TAction[%x] triggering Phobos [%d]\n" , pThis , (int)pThis->ActionKind);
+ 		R->AL(handled);
+ 		return return_value;
+ 	}
 
-	bool handled;
-	if (TActionExt::Occured(pThis, args, handled))
-	{
-		R->AL(handled);
-		return return_value;
-	}
+ 	//Debug::Log("TAction[%x] triggering vanilla [%d]\n" , pThis , (int)pThis->ActionKind);
 
-	return continue_func;
-}
+ 	return continue_func;
+ }
 
 // Bugfix: TAction 125 Build At do not display the buildups
 // Author: secsome
@@ -214,7 +217,7 @@ DEFINE_HOOK(0x6E0B60, TActionClass_SwitchAllObjectsToHouse, 0x9)
 				if (!pItem->IsAlive || pItem->Health <= 0 || pItem->Owner != args.pHouse)
 					continue;
 
-				Debug::Log("SwitchAllObjectsToHouse for [%s] from [%x] with param3 [%d] [ %s -> %s ]\n", pItem->get_ID(), pThis, pThis->Param3, pItem->Owner->get_ID(), NewOwnerPtr->get_ID());
+				//Debug::Log("SwitchAllObjectsToHouse for [%s] from [%x] with param3 [%d] [ %s -> %s ]\n", pItem->get_ID(), pThis, pThis->Param3, pItem->Owner->get_ID(), NewOwnerPtr->get_ID());
 
 				if (pThis->Param3 && pItem->Passengers.FirstPassenger != nullptr)
 				{

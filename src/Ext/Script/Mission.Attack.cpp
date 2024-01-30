@@ -14,6 +14,14 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 	// This is the target type
 	const auto& [curAct, scriptArgument] = pScript->GetCurrentAction();
 	const auto& [nextAct, nextArg] = pScript->GetNextAction();
+	//ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Executing)\n",
+	//	pTeam->Type->ID, pScript->Type->ID,
+	//	pScript->CurrentMission,
+	//	curAct,
+	//	scriptArgument,
+	//	pScript->CurrentMission + 1,
+	//	nextAct,
+	//	nextArg);
 
 	if (!pScript){
 		pTeam->StepCompleted = true;

@@ -2014,7 +2014,7 @@ DEFINE_HOOK(0x7463DC, UnitClass_SetOwningHouse_FixArgs, 0x5)
 {
 	GET(UnitClass* const, pThis, EDI);
 	GET(HouseClass* const, pNewOwner, EBX);
-	GET_BASE(bool const, bAnnounce, 0x8);
+	GET_STACK(bool const, bAnnounce, 0xC + 0x8);
 
 	R->EAX(pThis->FootClass::SetOwningHouse(pNewOwner, bAnnounce));
 	return 0x7463E6;
@@ -2072,14 +2072,23 @@ DEFINE_HOOK(0x4DBF01, FootClass_SetOwningHouse_FixArgs, 0x6)
 	return 0x4DBF0F;
 }
 
+bool Bld_ChangeOwnerAnnounce;
+DEFINE_HOOK(0x448260, BuildingClass_SetOwningHouse_ContextSet, 0x8)
+{
+	GET_STACK(bool, announce, 0x8);
+	Bld_ChangeOwnerAnnounce = announce;
+	return 0x0;
+}
+
 DEFINE_HOOK(0x448BE3, BuildingClass_SetOwningHouse_FixArgs, 0x5)
 {
 	GET(FootClass* const, pThis, ESI);
 	GET(HouseClass* const, pNewOwner, EDI);
-	GET_STACK(bool const, bAnnounce, 0x58 + 0x8);
+	//GET_STACK(bool const, bAnnounce, 0x58 + 0x8); // this thing already used
 
 	//discarded
-	pThis->TechnoClass::SetOwningHouse(pNewOwner, bAnnounce);
+	pThis->TechnoClass::SetOwningHouse(pNewOwner, Bld_ChangeOwnerAnnounce);
+	Bld_ChangeOwnerAnnounce = false;
 	return 0x448BED;
 }
 
@@ -3583,38 +3592,38 @@ DEFINE_HOOK(0x73666A, UnitClass_AI_Viscerid_ZeroStrength, 0x6)
 }
 
 //this thing checking shit backwards ,..
-DEFINE_HOOK(0x6D4764, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x7)
-{
-	GET(TechnoClass*, pThis, ESI);
+ DEFINE_HOOK(0x6D4764, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x7)
+ {
+ 	GET(TechnoClass*, pThis, ESI);
 
-	if(pThis) {
+ 	if(pThis) {
 
-		const auto vtable = VTable::Get(pThis);
-		if(vtable != UnitClass::vtable
-			&& vtable != InfantryClass::vtable
-			&& vtable != AircraftClass::vtable) {
-			return 0x6D4793;
-		}
+ 		const auto vtable = VTable::Get(pThis);
+ 		if(vtable != UnitClass::vtable
+ 			&& vtable != InfantryClass::vtable
+ 			&& vtable != AircraftClass::vtable) {
+ 			return 0x6D4793;
+ 		}
 
-		if(!pThis->IsAlive
-		|| pThis->InLimbo
-		|| pThis->IsCrashing
-		|| pThis->IsSinking
-		|| (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->DeathFrameCounter > 0)) {
-			return 0x6D4793;
-		}
+ 		if(!pThis->IsAlive
+ 		|| pThis->InLimbo
+ 		|| pThis->IsCrashing
+ 		|| pThis->IsSinking
+ 		|| (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->DeathFrameCounter > 0)) {
+ 			return 0x6D4793;
+ 		}
 
-		if(TechnoExtData::IsUntrackable(pThis)) {
-			return 0x6D4793;
-		}
+ 		if(TechnoExtData::IsUntrackable(pThis)) {
+ 			return 0x6D4793;
+ 		}
 
-		if(pThis->CurrentlyOnSensor()) {
-			return 0x6D478C; //draw dashed line
-		}
-	}
+ 		if(pThis->CurrentlyOnSensor()) {
+ 			return 0x6D478C; //draw dashed line
+ 		}
+ 	}
 
-	return 0x6D4793;
-}
+ 	return 0x6D4793;
+ }
 
 // Gives player houses names based on their spawning spot
 
@@ -4172,3 +4181,27 @@ DEFINE_HOOK(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 
 	return 0x46125D;
 }
+
+//DEFINE_HOOK(0x448260, Debug_ChangeOwnership_Building, 0x8)
+//{
+//	GET(TechnoClass*, pThis, ECX);
+//	GET_STACK(DWORD, caller, 0x0);
+//	Debug::Log("%s ChangeOwnership For[%s] Caller[%x]\n", __FUNCTION__, pThis->get_ID() , caller);
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x4DBED0 , Debug_ChangeOwnership_Foot , 0x5)
+//{
+//	GET(TechnoClass*, pThis, ECX);
+//	GET_STACK(DWORD, caller, 0x0);
+//	Debug::Log("%s ChangeOwnership For[%s] Caller[%x]\n", __FUNCTION__, pThis->get_ID(), caller);
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x7463A0, Debug_ChangeOwnership_Unit, 0x5)
+//{
+//	GET(TechnoClass*, pThis, ECX);
+//	GET_STACK(DWORD, caller, 0x0);
+//	Debug::Log("%s ChangeOwnership For[%s] Caller[%x]\n", __FUNCTION__, pThis->get_ID(), caller);
+//	return 0x0;
+//}

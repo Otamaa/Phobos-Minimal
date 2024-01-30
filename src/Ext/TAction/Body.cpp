@@ -464,6 +464,9 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 	HouseClass* pHouse = args.pHouse;
 	ObjectClass* pObject = args.pObject;
 	TriggerClass* pTrigger = args.pTrigger;
+	if ( pObject && !pObject->IsAlive) {
+        pObject = nullptr;
+    }
 
 	// Vanilla overriden
 	switch (pThis->ActionKind)
@@ -472,13 +475,10 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 	{
 		ret = TActionExt::PlayAudioAtRandomWP(pThis, pHouse, pObject, pTrigger, args.plocation);
 		return true;
+	default:
+		break;
 	}
 	};
-
-	//quick way out
-	if ((PhobosTriggerAction)pThis->ActionKind < PhobosTriggerAction::count ||
-		(AresNewTriggerAction)pThis->ActionKind < AresNewTriggerAction::count)
-		return false;
 
 	// Phobos
 	switch ((PhobosTriggerAction)pThis->ActionKind)
