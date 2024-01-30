@@ -125,6 +125,7 @@ DEFINE_JUMP(CALL, 0x5FA636, GET_OFFSET(__SUNINI_TORA2MD));
 void Debug::LogWithVArgsUnflushed(
 	const char* const pFormat, va_list const args)
 {
+	Console::WriteWithVArgs(pFormat, args);
 	vfprintf(Debug::LogFile, pFormat, args);
 }
 

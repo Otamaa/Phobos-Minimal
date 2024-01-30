@@ -56,10 +56,9 @@ void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 	;
 	auto AddToOptions = [OwnerBits , pOwner, &Options](const Iterator<TechnoTypeClass*>& items)
 		{
-
 			for (const auto& Option : items)
 			{
-				auto pExt = TechnoTypeExtContainer::Instance.Find(Option);
+				const auto pExt = TechnoTypeExtContainer::Instance.Find(Option);
 
 				if ((pExt->Secret_RequiredHouses & OwnerBits) && !(pExt->Secret_ForbiddenHouses & OwnerBits))
 				{
@@ -67,7 +66,7 @@ void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 					{
 					case RequirementStatus::Forbidden:
 					case RequirementStatus::Incomplete:
-						Options.push_back(Option);
+						Options.emplace_back(Option);
 						break;
 					default:
 						break;
