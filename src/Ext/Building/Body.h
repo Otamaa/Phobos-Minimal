@@ -71,10 +71,10 @@ public:
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	bool HasSuperWeapon(int index, bool withUpgrades) const;
-	bool RubbleYell(bool beingRepaired);
+	bool RubbleYell(bool beingRepaired) const;
 
 	void DisplayIncomeString();
-	void UpdatePoweredKillSpawns();
+	void UpdatePoweredKillSpawns() const;
 	void UpdateAutoSellTimer();
 
 	static void StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType);

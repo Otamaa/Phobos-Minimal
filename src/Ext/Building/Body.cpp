@@ -204,7 +204,7 @@ void BuildingExtData::DisplayIncomeString()
 	}
 }
 
-void BuildingExtData::UpdatePoweredKillSpawns()
+void BuildingExtData::UpdatePoweredKillSpawns() const
 {
 	auto const pThis = this->AttachedToObject;
 
@@ -269,7 +269,7 @@ void BuildingExtData::UpdateAutoSellTimer()
 	}
 }
 
-bool BuildingExtData::RubbleYell(bool beingRepaired)
+bool BuildingExtData::RubbleYell(bool beingRepaired) const
 {
 	auto CreateBuilding = [](BuildingClass* pBuilding, bool remove,
 		BuildingTypeClass* pNewType, OwnerHouseKind owner, int strength,
