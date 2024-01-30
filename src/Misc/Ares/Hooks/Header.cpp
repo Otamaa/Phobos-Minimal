@@ -5042,7 +5042,6 @@ static std::array<const char* , 4> Move_to_own_building_SearchType { {
 
 bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bThirdArd)
 {
-
 	//if(pTeamMission->Action == TeamMissionType::Move_to_own_building) {
 	//	uint16 hi = (pTeamMission->Argument >> 0x10) & 0xFFFF;
 	//	uint16 lo = pTeamMission->Argument & 0xFFFF;
@@ -5085,6 +5084,18 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 		pTeam->StepCompleted = true;
 		return true;
 	}
+
+	case TeamMissionType::Move_to_own_building:
+	case TeamMissionType::Attack_enemy_building:
+	case TeamMissionType::Chrono_prep_for_abwp: {
+		const uint16 lo = pTeamMission->Argument & 0xFFFF;
+
+		if (lo > BuildingTypeClass::Array->Count)
+		{
+			Debug::FatalError("Team[%x - %s] Executing %d but the BuildingType Index is too big(%d of %d) !\n",
+				pTeam, pTeam->get_ID(), pTeamMission->Action, lo, BuildingTypeClass::Array->Count);
+		}
+	}break;
 	default:
 		break;
 	}
