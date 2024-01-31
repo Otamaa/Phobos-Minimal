@@ -14,15 +14,32 @@
 #include <Ext/Scenario/Body.h>
 
 #include <Utilities/Macro.h>
+#include <Misc/Ares/Hooks/Header.h>
 
 // we hook at the beggining of the function
 // ares hooking at the beggining of switch call
+int lastAction;
+
  DEFINE_HOOK(0x6DD8B0, TActionClass_Execute, 0x6)
  {
  	GET(TActionClass*, pThis, ECX);
  	REF_STACK(ActionArgs const, args, 0x4);
+	GET_STACK(DWORD , caller , 0x0);
+
  	enum { return_value = 0x6DD910, continue_func = 0x0 };
- 	//Debug::Log("TAction[%x] triggering [%d]\n" , pThis , (int)pThis->ActionKind);
+
+	if (lastAction == (int)pThis->ActionKind)
+		++StaticVars::TriggerCounts[pThis];
+	else
+		StaticVars::TriggerCounts[pThis] = 0;
+
+ 	//Debug::Log("TAction[%x] triggering [%d] caller[%x]\n" , pThis , (int)pThis->ActionKind , caller);
+
+	if (((int)pThis->ActionKind == 14 || (int)pThis->ActionKind == 32) && StaticVars::TriggerCounts[pThis] > 1000)
+		Debug::FatalErrorAndExit("Possible Deadlock Detected From TAction[%x] with Kind[%d] !\n", pThis, (int)pThis->ActionKind);
+
+	lastAction = (int)pThis->ActionKind;
+
  	bool handled;
  	if (TActionExt::Occured(pThis, args, handled))
  	{
@@ -157,6 +174,7 @@ DEFINE_HOOK(0x6D4455, Tactical_Render_UpdateLightSources, 0x8)
 
 #pragma endregion
 #include <Misc/Ares/Hooks/Header.h>
+#include <TriggerTypeClass.h>
 
 DEFINE_HOOK(0x6E0AA0, TActionClass_ChangeHouse_IncludePassengers, 0x7)
 {
@@ -194,6 +212,10 @@ DEFINE_HOOK(0x6E0AA0, TActionClass_ChangeHouse_IncludePassengers, 0x7)
 					changed = true;
 				}
 			}
+
+			//if (!changed) {
+			//	Debug::FatalError("TAction[%x] WithTrigger[%x - %s(%s)] Cannot Find designated techno , this will cause game to deadlock , please fix !\n", pThis , args.pTrigger, args.pTrigger->Type->ID, args.pTrigger->Type->Name);
+			//}
 		}
 	}
 

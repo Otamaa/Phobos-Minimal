@@ -74,7 +74,9 @@ public:
 	void GetVariableStateByID(const bool IsGlobal, int nIndex, char* pOut);
 	void ReadVariables(const bool IsGlobal, CCINIClass* pINI);
 
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+	void ReadMissionMDINI();
 
 	void LoadBasicFromINIFile(CCINIClass* pINI);
 	void FetchVariables(ScenarioClass* pScen);

@@ -4182,6 +4182,20 @@ DEFINE_HOOK(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 	return 0x46125D;
 }
 
+DEFINE_HOOK(0x6E20AC, TActionClass_DetroyAttachedTechno, 0x8)
+{
+	GET(TechnoClass*, pTarget, ESI);
+
+	if (auto pBld = specific_cast<BuildingClass*>(pTarget)) {
+		if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1) {
+			BuildingExtData::LimboKill(pBld);
+			return 0x6E20D8;
+		}
+	}
+
+	return 0x0;
+}
+
 //DEFINE_HOOK(0x448260, Debug_ChangeOwnership_Building, 0x8)
 //{
 //	GET(TechnoClass*, pThis, ECX);

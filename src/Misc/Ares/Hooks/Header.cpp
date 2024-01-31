@@ -59,6 +59,7 @@
 
 PhobosMap<ObjectClass*, AlphaShapeClass*> StaticVars::ObjectLinkedAlphas {};
 std::vector<unsigned char> StaticVars::ShpCompression1Buffer {};
+std::map<const TActionClass*, int>  StaticVars::TriggerCounts {};
 
 bool StaticVars::SaveGlobals(PhobosStreamWriter& stm)
 {
@@ -78,6 +79,7 @@ void StaticVars::Clear()
 {
 	ObjectLinkedAlphas.clear();
 	ShpCompression1Buffer.clear();
+	TriggerCounts.clear();
 }
 
 static constexpr std::array<std::pair<const char*, const char*>, 17u> const SubName =

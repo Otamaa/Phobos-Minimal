@@ -73,6 +73,7 @@ class AnimTypeClass;
 struct args_ReceiveDamage;
 struct WeaponStruct;
 class AlphaShapeClass;
+class TActionClass;
 
 struct AresGlobalData {
 
@@ -130,6 +131,7 @@ struct AresGlobalData {
 struct StaticVars {
 	static PhobosMap<ObjectClass*, AlphaShapeClass*> ObjectLinkedAlphas;
 	static std::vector<unsigned char> ShpCompression1Buffer;
+	static std::map<const TActionClass*, int> TriggerCounts;
 
 	static bool SaveGlobals(PhobosStreamWriter& stm);
 	static bool LoadGlobals(PhobosStreamReader& stm);
