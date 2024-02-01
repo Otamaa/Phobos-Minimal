@@ -388,6 +388,12 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SelfHealing_CombatDelay.Read(exINI, pSection, "VictimSelfHealing.%sCombatDelay");
 	this->ApplyModifiersOnNegativeDamage.Read(exINI, pSection, "ApplyModifiersOnNegativeDamage");
 
+	this->KillDriver.Read(exINI, pSection, "KillDriver");
+	this->KillDriver_KillBelowPercent.Read(exINI, pSection, "KillDriver.KillBelowPercent");
+	this->KillDriver_Owner.Read(exINI, pSection, "KillDriver.Owner");
+	this->KillDriver_ResetVeterancy.Read(exINI, pSection, "KillDriver.RemoveVeterancy");
+	this->KillDriver_Chance.Read(exINI, pSection, "KillDriver.Chance");
+
 	ValueableVector<InfantryTypeClass*> InfDeathAnims_List {};
 
 	InfDeathAnims_List.Read(exINI, pSection, "InfDeathAnim.LinkedList");
