@@ -110,23 +110,20 @@ struct DroppodProperties
 		if (pLinked->GetHeight() > 0)
 		{
 			pLinked->SetLocation(coords);
-			if (auto dWpn = DroppodProperties::GetWeapon(tType, pLinked, RulesClass::Instance->DropPodWeapon, condition))
-			{
-				if (AnimTypeClass* pType = DroppodProperties::GetTrailer(tType, pLinked, RulesExtData::Instance()->DropPodTrailer, condition))
-				{
-					if (Unsorted::CurrentFrame % 6 == 0)
-					{
-						AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, coords, 0, 1, (AnimFlag)0x600, 0, false),
-							pLinked->Owner,
-							nullptr,
-							pLinked,
-							false
-						);
-					}
-				}
 
-				if (Unsorted::CurrentFrame % 3 == 0)
-				{
+			if (AnimTypeClass* pType = DroppodProperties::GetTrailer(tType, pLinked, RulesExtData::Instance()->DropPodTrailer, condition)) {
+				if (Unsorted::CurrentFrame % 6 == 0) {
+					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, coords, 0, 1, (AnimFlag)0x600, 0, false),
+						pLinked->Owner,
+						nullptr,
+						pLinked,
+						false
+					);
+				}
+			}
+
+			if (auto dWpn = DroppodProperties::GetWeapon(tType, pLinked, RulesClass::Instance->DropPodWeapon, condition)) {
+				if (Unsorted::CurrentFrame % MaxImpl(dWpn->ROF, 3) == 0) {
 					auto cell = MapClass::Instance->GetCellAt(pLoco->CoordDest);
 					auto techno = cell->FindTechnoNearestTo({ 0,0 }, false);
 					if (!pLinked->Owner->IsAlliedWith(techno))

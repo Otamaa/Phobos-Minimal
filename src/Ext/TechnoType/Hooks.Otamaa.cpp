@@ -32,8 +32,16 @@ DEFINE_HOOK(0x6B0C2C, SlaveManagerClass_FreeSlaves_Sound, 0x5) // C
 DEFINE_HOOK(0x443C0D, BuildingClass_AssignTarget_Jugger, 0x6) //8
 {
 	GET(BuildingTypeClass*, pThis, EAX);
-	return (pThis->TickTank || BuildingTypeExtContainer::Instance.Find(pThis)->IsJuggernaut || pThis->Artillary)
-		? 0x443C21 : 0x443BB3;
+
+	if(pThis->TickTank || BuildingTypeExtContainer::Instance.Find(pThis)->IsJuggernaut || pThis->Artillary) {
+
+		if(!pThis->UndeploysInto)
+			return 0x443BB3;
+
+		return 0x443C21;
+	}
+
+	return 0x443BB3;
 }
 
 DEFINE_HOOK(0x44A93D, BuildingClass_MI_DC_Jugger, 0x6) //8
