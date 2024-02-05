@@ -243,7 +243,7 @@ bool TechnoTypeExt_ExtData::CameoIsElite(TechnoTypeClass* pType, HouseClass* pHo
 			return true;
 		}
 
-		return pCountry->VeteranInfantry.FindItemIndex(static_cast<InfantryTypeClass*>(pType)) != -1;
+		return pCountry->VeteranInfantry.Contains(static_cast<InfantryTypeClass*>(pType));
 
 	}
 	case AbstractType::UnitType:
