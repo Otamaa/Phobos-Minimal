@@ -461,6 +461,11 @@ public:
 	Valueable<bool> UseWeeds_StorageTimer { false };
 	Valueable<int> UseWeeds_ReadinessAnimationPercentage { 90 };
 
+	ValueableIdxVector<SuperWeaponTypeClass> SW_GrantOneTime {};
+	Nullable<bool> SW_GrantOneTime_InitialReady {};
+	Valueable<CSFText> Message_GrantOneTimeLaunched {};
+	NullableIdx<VoxClass> EVA_GrantOneTimeLaunched {};
+
 	SWTypeExtData() noexcept = default;
 	~SWTypeExtData() noexcept;
 
@@ -515,6 +520,8 @@ public:
 	bool IsTypeRedirected() const;
 	bool IsOriginalType() const;
 	NewSWType* GetNewSWType() const;
+
+	void GrantOneTimeFromList(SuperClass* pSW);
 
 	//statics
 	static bool Deactivate(SuperClass* pSuper, CellStruct const cell, bool const isPlayer);

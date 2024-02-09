@@ -1553,6 +1553,11 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->UseWeeds_StorageTimer.Read(exINI, pSection, "UseWeeds.StorageTimer");
 	this->UseWeeds_ReadinessAnimationPercentage.Read(exINI, pSection, "UseWeeds.ReadinessAnimationPercentage");
 
+	this->SW_GrantOneTime.Read(exINI, pSection, "SW.GrantOneTime");
+	this->SW_GrantOneTime_InitialReady.Read(exINI, pSection, "SW.GrantOneTime.InitialReady");
+	this->Message_GrantOneTimeLaunched.Read(exINI, pSection, "Message.GrantOneTimeLaunched");
+	this->EVA_GrantOneTimeLaunched.Read(exINI, pSection, "EVA.GrantOneTimeLaunched");
+
 	// initialize the NewSWType that handles this SWType.
 	if (auto pNewSWType = NewSWType::GetNewSWType(this))
 	{
@@ -1756,6 +1761,9 @@ void SWTypeExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const C
 
 	if (!this->SW_Next.empty())
 		this->ApplySWNext(pSW, *pCell , IsCurrentPlayer);
+
+	if (this->SW_GrantOneTime.size() > 0)
+		this->GrantOneTimeFromList(pSW);
 
 	if (this->Converts)
 	{
@@ -2360,6 +2368,11 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->UseWeeds_Amount)
 		.Process(this->UseWeeds_StorageTimer)
 		.Process(this->UseWeeds_ReadinessAnimationPercentage)
+
+		.Process(this->SW_GrantOneTime)
+		.Process(this->SW_GrantOneTime_InitialReady)
+		.Process(this->Message_GrantOneTimeLaunched)
+		.Process(this->EVA_GrantOneTimeLaunched)
 		;
 
 }
@@ -2694,6 +2707,63 @@ void SuperWeaponSidebar::DrawBordeBar(BarPos pos, Point2D* pLoc)
 	}
 }
 
+void SWTypeExtData::GrantOneTimeFromList(SuperClass* pSW)
+{
+	// SW.GrantOneTime proper SW granting mechanic
+	HouseClass* pHouse = pSW->Owner;
+	bool notObserver = !pHouse->IsObserver() || !pHouse->IsCurrentPlayerObserver();
+
+	auto grantTheSW = [=](const int swIdxToAdd) -> bool
+		{
+			if (const auto pSuper = pHouse->Supers.GetItem(swIdxToAdd))
+			{
+				bool granted = pSuper->Grant(true, false, false);
+
+				if (granted)
+				{
+					auto const pTypeExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
+					bool needsReset = this->SW_GrantOneTime_InitialReady.isset() && this->SW_GrantOneTime_InitialReady.Get() ? true : false;
+					needsReset = !this->SW_GrantOneTime_InitialReady.isset() && pTypeExt->SW_InitialReady ? true : needsReset;
+
+					if (needsReset)
+					{
+						pSuper->Reset();
+					}
+					else
+					{
+						pSuper->RechargeTimer.TimeLeft = 0;
+						pSuper->SetReadiness(true);
+					}
+
+					if (notObserver && pHouse->IsCurrentPlayer())
+					{
+						if (MouseClass::Instance->AddCameo(AbstractType::Special, swIdxToAdd))
+							MouseClass::Instance->RepaintSidebar(1);
+					}
+				}
+
+				return granted;
+			}
+
+			return false;
+		};
+
+	bool grantedAnySW = false;
+
+	for (const auto swType : this->SW_GrantOneTime)
+	{
+		if (grantTheSW(swType))
+			grantedAnySW = true;
+	}
+
+	if (notObserver && pHouse->IsCurrentPlayer())
+	{
+		if (this->EVA_GrantOneTimeLaunched.isset())
+			VoxClass::PlayIndex(this->EVA_GrantOneTimeLaunched.Get(), -1, -1);
+
+		MessageListClass::Instance->PrintMessage(this->Message_GrantOneTimeLaunched.Get(), RulesClass::Instance->MessageDelay, HouseClass::CurrentPlayer->ColorSchemeIndex, true);
+	}
+}
 // =============================
 // container
 
