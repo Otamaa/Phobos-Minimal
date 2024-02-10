@@ -597,10 +597,11 @@ void Phobos::ExeRun()
 	Patch::PrintAllModuleAndBaseAddr();
 	Patch::InitRelatedModule();
 
-	//for (auto& tmodule : Patch::ModuleDatas) {
-	//	if (IS_SAME_STR_(tmodule.first.c_str(), "Ares.dll"))
-	//		Debug::FatalErrorAndExit("No Ares\n");
-	//}
+	for (auto& tmodule : Patch::ModuleDatas) {
+		if (IS_SAME_STR_(tmodule.first.c_str(), "cncnet5.dll")) {
+			Debug::FatalErrorAndExit("This dll already include cncnet5.dll code , please remove first\n");
+		}
+	}
 
 	PhobosGlobal::Init();
 
@@ -921,6 +922,7 @@ DEFINE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
 //	CRT::free(ptr);
 //	return 0x7C8B47;
 //}
+#include <Misc/Spawner/Main.h>
 
 #ifndef aaa
 DEFINE_OVERRIDE_HOOK(0x7CD810, Game_ExeRun, 0x9)
@@ -939,13 +941,14 @@ DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 	/**
 	*  Set the FPU mode to match the game (rounding towards zero [chop mode]).
 	*/
-	_set_controlfp(_RC_CHOP, _MCW_RC);
+	//_set_controlfp(_RC_CHOP, _MCW_RC);
 
 	/**
 	 *  And this is required for the std c++ lib.
 	 */
-	fesetround(FE_TOWARDZERO);
+	//fesetround(FE_TOWARDZERO);
 
+	SpawnerMain::ExeRun();
 	Phobos::ExeRun();
 
 	return 0;
@@ -963,7 +966,9 @@ DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 	GET(char**, ppArgs, ESI);
 	GET(int, nNumArgs, EDI);
 
+	SpawnerMain::CmdLineParse(ppArgs , nNumArgs);
 	Phobos::CmdLineParse(ppArgs, nNumArgs);
+	SpawnerMain::PrintInitializeLog();
 	Debug::LogDeferredFinalize();
 
 	return 0;

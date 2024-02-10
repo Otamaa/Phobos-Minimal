@@ -141,7 +141,7 @@ public:
 	static int sub_685DC0(int a1) JMP_STD(0x685DC0);
 	static int sub_6863E0() JMP_STD(0x6863E0);
 	static int sub_686570() JMP_STD(0x686570);
-	static bool __fastcall sub_686730(const char* pFilename) JMP_STD(0x686730);
+	static bool __fastcall ReadScenarioINI(CCINIClass* pFilename) JMP_STD(0x686730);
 	static bool __fastcall sub_686B20(CCINIClass* INI, char a2) JMP_STD(0x686B20);
 	static int __fastcall sub_687CE0(const char* pFilename, bool bUnk) JMP_STD(0x687CE0);
 	static void __fastcall sub_688380(DWORD dwUnk) JMP_STD(0x688380);

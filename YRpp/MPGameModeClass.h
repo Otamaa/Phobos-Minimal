@@ -62,6 +62,9 @@ public:
 	static DynamicVectorClass<MPGameModeClass*>* GameModes;
 	static constexpr reference<MPGameModeClass*, 0xA8B23C> const Instance{};
 
+	static MPGameModeClass* __fastcall Get(int index)
+		{ JMP_STD(0x5D5F30); }
+
 	static bool Set(int index)
 	{
 		THISCALL_EX(index, 0x5D5F30);

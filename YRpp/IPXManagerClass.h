@@ -16,6 +16,9 @@ public:
 	ConnectionClass* SetTiming(int retrydelta, int maxretries, int timeout, bool a5)
 	{ JMP_THIS(0x7B30B0) }
 
+	int ResponseTime()
+		{ JMP_THIS(0x542450) }
+
 	// Properties
 private:
 	void* vtable;

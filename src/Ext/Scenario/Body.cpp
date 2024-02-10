@@ -15,7 +15,7 @@ void ScenarioExtData::SaveVariablesToFile(bool isGlobal)
 		}
 	}
 
-	if(!file.Open(FileAccessMode::ReadWrite)) {
+	if(!file.Open(FileAccessMode::Write)) {
 		Debug::Log(" %s Failed to Open file %s for\n" , __FUNCTION__ , fileName);
 		return;
 	}
@@ -311,15 +311,15 @@ DEFINE_HOOK(0x68AD2F, ScenarioClass_LoadFromINI_AfterPlayerDataInit, 0x5)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x689E90, ScenarioClass_LoadFromINI_Early, 0x6)
-{
-	GET(ScenarioClass*, pItem, ECX);
-	GET_STACK(CCINIClass*, pINI, 0x8);
-
-	//init the Ext
-	ScenarioExtData::s_LoadFromINIFile(pItem, pINI);
-	return 0;
-}
+//DEFINE_HOOK(0x689EA8, ScenarioClass_LoadFromINI_Early, 0x8)
+//{
+//	GET(ScenarioClass*, pItem, ECX);
+//	GET(CCINIClass*, pINI, EDI);
+//
+//	//init the Ext
+//	//ScenarioExtData::s_LoadFromINIFile(pItem, pINI);
+//	return 0;
+//}
 
 DEFINE_HOOK(0x68AD62, ScenarioClass_LoadFromINI, 0x6)
 {

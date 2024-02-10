@@ -320,6 +320,11 @@ public:
 	bool IsAlliedWith(AbstractClass const* pAbstract) const
 		{ JMP_THIS(0x4F9AF0); }
 
+	bool IsMutualAllie(HouseClass const* pHouse) const {
+		return pHouse == this
+			|| (this->Allies.Contains(pHouse->ArrayIndex) && pHouse->Allies.Contains(this->ArrayIndex));
+	}
+
 	void MakeAlly(int iHouse, bool bAnnounce)
 		{ JMP_THIS(0x4F9B50); }
 
@@ -524,7 +529,7 @@ public:
 		return nullptr;
 	}
 
-	int GetSpawnPosition();
+	int GetSpawnPosition() const;
 
 	// gets the first house of a type with this name
 	static HouseClass* FindBySideName(const char* name) {
@@ -993,6 +998,20 @@ public:
 
 	AbandonProductionResult AbandonProduction(AbstractType rtti ,int index ,bool naval ,bool AbandonAll) const {
 		JMP_THIS(0x4FAA10);
+	}
+
+	bool MakeObserver() const
+	{
+		if (HouseClass::CurrentPlayer != this)
+			return false;
+
+		HouseClass::Observer = const_cast<HouseClass*>(this);
+		return true;
+	}
+
+	bool inline IsInitiallyObserver() const
+	{
+		return this->IsHumanPlayer && (this->GetSpawnPosition() == -1);
 	}
 
 	//Constructor

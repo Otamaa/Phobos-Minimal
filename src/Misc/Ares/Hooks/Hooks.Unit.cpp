@@ -369,7 +369,8 @@ DEFINE_OVERRIDE_HOOK(0x6F6A58, TechnoClass_DrawHealthBar_HidePips_KillDriver, 6)
 {
 	// prevent player from seeing pips on transports with killed drivers.
 	GET(TechnoClass*, pThis, ESI);
-	return TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x6F6AB6u : 0u;
+	return HouseClass::IsCurrentPlayerObserver() ||
+	TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x6F6AB6u : 0u;
 }
 
 DEFINE_OVERRIDE_HOOK(0x7087EB, TechnoClass_ShouldRetaliate_KillDriver, 6)

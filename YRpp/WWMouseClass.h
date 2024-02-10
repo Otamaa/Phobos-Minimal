@@ -116,6 +116,22 @@ public:
 	void Process() const
 	{ JMP_THIS(0x7BA090); }
 
+	static void PrepareScreen()
+	{
+		WWMouseClass::Instance->HideCursor();
+
+		DSurface::Hidden->Fill(0);
+		GScreenClass::DoBlit(true, DSurface::Hidden);
+		DSurface::Temp = DSurface::Hidden;
+
+		WWMouseClass::Instance->ShowCursor();
+
+		MouseClass::Instance->SetCursor(MouseCursorType::NoMove, false);
+		MouseClass::Instance->RestoreCursor();
+
+		TabClass::Instance->Activate();
+		MouseClass::Instance->RedrawSidebar(0);
+	}
 
 public:
 

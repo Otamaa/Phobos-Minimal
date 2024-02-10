@@ -48,6 +48,7 @@ public:
 
 static_assert(sizeof(MixCache) == 0x10);
 
+class MemoryBuffer;
 class MixFileClass : public Node<MixFileClass>
 {
 	struct GenericMixFiles

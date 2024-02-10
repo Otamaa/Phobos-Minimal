@@ -119,6 +119,8 @@ struct Game
 	static constexpr reference<wchar_t, 0xB73318u, 257u> const IMECompositionString {};
 
 	static constexpr reference<bool, 0xA8F7ACu> const DontSetExceptionHandler{};
+	static constexpr reference<bool, 0xA8B8B4u> const EnableMPDebug{};
+	static constexpr reference<bool, 0xA8B8B5u> const DrawMPDebugStats{};
 	static constexpr reference<bool, 0xB04880u> const EnableMPSyncDebug{};
 
 	static struct Network
@@ -131,8 +133,10 @@ struct Game
 		static constexpr reference<int, 0xB73814u> const GameStockKeepingUnit {};
 		static constexpr reference<int, 0xA8B24Cu> const ProtocolVersion {};
 		static constexpr reference<int, 0xA8B554u> const FrameSendRate {};
+		static constexpr reference<int, 0xA8B570u> const PreCalcFrameRate{};
 		static constexpr reference<int, 0x83737Cu> const ReconnectTimeout {};
 		static constexpr reference<int, 0xA8B550u> const MaxAhead {};
+		static constexpr reference<int, 0xA8B56Cu> const PreCalcMaxAhead{};
 		static constexpr reference<int, 0xA8B568u> const MaxMaxAhead {};
 		static constexpr reference<int, 0xA8DB9Cu> const LatencyFudge {};
 		static constexpr reference<int, 0xA8B558u> const RequestedFPS {};
@@ -170,9 +174,6 @@ struct Game
 	{
 		JMP_STD(0x6851F0);
 	}
-
-	static bool __fastcall ReadScenarioINI(CCINIClass* pINI)
-	{ JMP_STD(0x686730); }
 
 	// actually is SessionClass::Callback
 	static void SetProgress(int progress)
@@ -239,6 +240,18 @@ struct Game
 			/* LoadPCXFiles() */      CALL(0x61F210);
 			PCXInitialized = true;
 		}
+	}
+
+	static void __fastcall PlayMovie(
+		const char* movieName,
+		int queue_theme = -1,
+		char use_hidden_surface1 = -1,
+		char stretch_movie = -1,
+		char use_hidden_surface2 = -1,
+		char set_state_1 = -1
+	)
+	{
+		JMP_STD(0x5BED40);
 	}
 
 	static AbstractType __fastcall WhichTab(AbstractType Type, int heapId, int a3 = 0)

@@ -11,24 +11,9 @@ public:
 	enum class Events : uint8_t {
 		TrenchRedirectClick = 0x60,
 		FirewallToggle = 0x61,
-		RespondTime2 = 0x62,
 
 		First = TrenchRedirectClick,
-		Last = RespondTime2
-	};
-
-	struct ResponseTime2 {
-
-		static inline constexpr size_t size() { return sizeof(ResponseTime2); }
-		static inline constexpr EventType AsEventType() {
-			return (EventType)Events::RespondTime2;
-		}
-
-		static void Raise();
-		static void Respond(EventClass* Event);
-
-		char MaxAhead;
-		uint8_t LatencyLevel;
+		Last = FirewallToggle
 	};
 
 	struct TrenchRedirectClick

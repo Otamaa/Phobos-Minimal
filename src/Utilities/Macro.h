@@ -135,12 +135,15 @@ struct _VTABLE
 		Patch patch = {offset, size, (BYTE*)data};                \
 	}
 
-#define DEFINE_PATCH(offset, ...)                                 \
+#define DEFINE_PATCH_TYPED(type, offset, ...)                     \
 	namespace STATIC_PATCH##offset                                \
 	{                                                             \
-		const BYTE data[] = {__VA_ARGS__};                        \
+		const type data[] = {__VA_ARGS__};                        \
 	}                                                             \
 	_ALLOCATE_STATIC_PATCH(offset, sizeof(data), data);
+
+#define DEFINE_PATCH(offset, ...)                                 \
+	DEFINE_PATCH_TYPED(byte, offset, __VA_ARGS__);
 
 /*
 	Be aware that LJMP is only recomended to use on 5 bytes address

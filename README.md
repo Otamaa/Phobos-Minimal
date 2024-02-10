@@ -2,6 +2,7 @@
 
 # Phobos - Minimal
 Is an fork of a community engine extension [project](https://github.com/Phobos-developers/Phobos) providing a set of new features and fixes for Yuri's Revenge based on [modified YRpp](https://github.com/Metadorius/YRpp) and [Syringe](https://github.com/Ares-Developers/Syringe) to allow injecting code. It's meant to take over some part of [Ares](https://github.com/Ares-Developers/Ares) mainly version 3.0p1.
+This Phobos version also include edited version of [yrpp-spawner](https://github.com/CnCNet/yrpp-spawner/) 
 
 # Compatibility 
 Compatibility is not guaranteed ouside Ares 3.0p1 because it is take time and effort to fill the gap for other version of Ares and or other dll outside of Ares.

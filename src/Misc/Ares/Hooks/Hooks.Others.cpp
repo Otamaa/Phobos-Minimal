@@ -1904,9 +1904,14 @@ DEFINE_OVERRIDE_HOOK(0x5facdf, Options_LoadFromINI, 5)
 	return 0x0;
 }
 
+#include <Misc/Spawner/Main.h>
+
 DEFINE_OVERRIDE_HOOK(0x6BC0CD, _LoadRA2MD, 5)
 {
 	LoadGlobalConfig();
+	SpawnerMain::LoadConfigurations();
+	SpawnerMain::ApplyStaticOptions();
+
 	return 0;
 }
 

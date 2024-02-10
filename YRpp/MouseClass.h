@@ -152,7 +152,7 @@ public:
 	CreditClass TabData;
 	CDTimerClass unknown_timer_552C;
 	CDTimerClass InsufficientFundsBlinkTimer;
-	BYTE unknown_byte_5544;
+	bool ThumbActive; //unknown_byte_5544
 	bool MissionTimerPinged;
 	BYTE unknown_byte_5546;
 	PROTECTED_PROPERTY(BYTE, padding_5547);

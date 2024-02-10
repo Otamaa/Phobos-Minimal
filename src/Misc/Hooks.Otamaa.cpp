@@ -2847,46 +2847,6 @@ DEFINE_HOOK(0x450B48, BuildingClass_Anim_AI_UnitAbsorb, 0x6)
 	return 0x450B4E;
 }
 
-/*
-; Extend IsoMapPack5 decoding size limit
-; (Large map support)
-
-; When big sized maps with high details cross about 9750 + few lines in
-; IsoMapPack5 section, game doesn't decode those and fills those (typically
-; bottom-left corner of the map) with height level 0 clear tiles.
-; This patch raises the buffer usage limit to about 3 times the original.
-; From 640 (0x280), 400 (0x190) and value of 512000 (= 640 * 400 * 2)
-; To 1024 (0x400), 768 (0x300) and 1572864 (= 1024 * 768 * 2).
-
-; Credits: E1 Elite
-*/
-
-class CopyMemoryBuffer
-{
-public:
-	CopyMemoryBuffer(void* pBuffer, int size) noexcept
-	{
-		JMP_THIS(0x43AD00);
-	}
-
-public:
-	void* Buffer { nullptr };
-	int Size { 0 };
-	bool Allocated { false };
-};
-
-DEFINE_STRONG_HOOK(0x4AD33E, DisplayClass_ReadINI_IsoMapPack5_Limit, 0x5)
-{
-	LEA_STACK(XSurface*, pSurface, 0x134 - 0x124);
-	Game::CallBack();
-	pSurface->XSurface::XSurface(0x00000300, 0x00000400);
-	pSurface->BytesPerPixel = 2;
-	CopyMemoryBuffer* buffer = reinterpret_cast<CopyMemoryBuffer*>(&reinterpret_cast<BSurface*>(pSurface)->BufferPtr);
-	static_assert(sizeof(CopyMemoryBuffer) == sizeof(MemoryBuffer), "Must Be same !");
-	buffer->CopyMemoryBuffer::CopyMemoryBuffer(nullptr, 0x00180000);
-	return 0x4AD379;
-}
-
 DEFINE_HOOK(0x73B0C5 , UnitClass_Render_nullptrradio , 0x6)
 {
 	GET(TechnoClass* , pContact , EAX);
