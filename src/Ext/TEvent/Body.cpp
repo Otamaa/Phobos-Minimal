@@ -80,8 +80,8 @@ bool TEventExtData::Occured(TEventClass* pThis, EventArgs const& args, bool& res
 	//bool* isPersitant = args.isRepeating;
 	//AbstractClass* pSource = args.Source;
 
-	if ((PhobosTriggerEvent)pThis->EventKind < PhobosTriggerEvent::LocalVariableGreaterThan)
-		return false;
+	//if ((PhobosTriggerEvent)pThis->EventKind < PhobosTriggerEvent::LocalVariableGreaterThan)
+	//	return false;
 
 	switch ((PhobosTriggerEvent)pThis->EventKind)
 	{

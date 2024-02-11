@@ -375,7 +375,7 @@ void ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 	auto const& [action, argument] = pTeam->CurrentScript->GetCurrentAction();
 
 	//only find stuffs on the range , reducing the load
-	if ((AresScripts)action >= AresScripts::count)
+	//if ((AresScripts)action >= AresScripts::count)
 	{
 		//Debug::Log("[%s - %x] Executing[%s - %x] [%d (%s) - %d]\n",
 		//	pTeam->Owner->get_ID(),
@@ -899,7 +899,8 @@ void ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 			return;
 		}
 #pragma endregion
-
+		default :
+			break;
 		}
 
 		// Do nothing because or it is a wrong Action number or it is an Ares/YR action...

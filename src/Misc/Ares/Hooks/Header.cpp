@@ -5798,36 +5798,6 @@ bool AresTActionExt::PlayAnimAt(TActionClass* pAction, HouseClass* pHouse, Objec
 
 bool AresTActionExt::Execute(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location, bool& ret)
 {
-	switch (pAction->ActionKind)
-	{
-	case TriggerAction::PlayAnimAt:
-		ret = PlayAnimAt(pAction, pHouse, pObject, pTrigger, location);
-		return true;
-	case TriggerAction::MeteorShower:
-		ret = MeteorStrike(pAction, pHouse, pObject, pTrigger, location);
-		return true;
-	case TriggerAction::LightningStrike:
-		ret = LightstormStrike(pAction, pHouse, pObject, pTrigger, location);
-		return true;
-	case TriggerAction::ActivateFirestorm:
-		ret = ActivateFirestorm(pAction, pHouse, pObject, pTrigger, location);
-		return true;
-	case TriggerAction::DeactivateFirestorm:
-		ret = DeactivateFirestorm(pAction, pHouse, pObject, pTrigger, location);
-		return true;
-	case TriggerAction::NukeStrike:
-		ret = LauchhNuke(pAction, pHouse, pObject, pTrigger, location);
-		return true;
-	case TriggerAction::ChemMissileStrike:
-		ret = LauchhChemMissile(pAction, pHouse, pObject, pTrigger, location);
-		return true;
-	default:
-		break;
-	}
-
-	if ((AresNewTriggerAction)pAction->ActionKind < AresNewTriggerAction::AuxiliaryPower)
-		return false;
-
 	switch ((AresNewTriggerAction)pAction->ActionKind)
 	{
 	case AresNewTriggerAction::AuxiliaryPower:
@@ -5851,7 +5821,37 @@ bool AresTActionExt::Execute(TActionClass* pAction, HouseClass* pHouse, ObjectCl
 		break;
 	}
 	default:
+	{
+
+		switch (pAction->ActionKind)
+		{
+		case TriggerAction::PlayAnimAt:
+			ret = PlayAnimAt(pAction, pHouse, pObject, pTrigger, location);
+			return true;
+		case TriggerAction::MeteorShower:
+			ret = MeteorStrike(pAction, pHouse, pObject, pTrigger, location);
+			return true;
+		case TriggerAction::LightningStrike:
+			ret = LightstormStrike(pAction, pHouse, pObject, pTrigger, location);
+			return true;
+		case TriggerAction::ActivateFirestorm:
+			ret = ActivateFirestorm(pAction, pHouse, pObject, pTrigger, location);
+			return true;
+		case TriggerAction::DeactivateFirestorm:
+			ret = DeactivateFirestorm(pAction, pHouse, pObject, pTrigger, location);
+			return true;
+		case TriggerAction::NukeStrike:
+			ret = LauchhNuke(pAction, pHouse, pObject, pTrigger, location);
+			return true;
+		case TriggerAction::ChemMissileStrike:
+			ret = LauchhChemMissile(pAction, pHouse, pObject, pTrigger, location);
+			return true;
+		default:
+			break;
+		}
+
 		return false;
+	}
 	}
 
 	return true;
@@ -6088,27 +6088,6 @@ bool AresTEventExt::FindTechnoType(TEventClass* pThis, int args, HouseClass* pWh
 // the bool result pointer is for the result of the Event itself
 bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result)
 {
-	if (pThis->EventKind < TriggerEvent::count)
-	{
-		switch (pThis->EventKind)
-		{
-		case TriggerEvent::TechTypeExists:
-		{
-			//TechnoTypeExist
-			result = FindTechnoType(pThis, pThis->Value, nullptr);
-			return true;
-		}
-		case TriggerEvent::TechTypeDoesntExist:
-		{
-			//TechnoTypeDoesntExist
-			result = !FindTechnoType(pThis, 1, nullptr);
-			return true;
-		}
-		default:
-			break;
-		}
-	}
-	else
 	{
 		switch ((AresTriggerEvents)pThis->EventKind)
 		{
@@ -6348,6 +6327,23 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 			break;
 		}
 		default:
+
+			switch (pThis->EventKind)
+			{
+			case TriggerEvent::TechTypeExists:
+			{
+				//TechnoTypeExist
+				result = FindTechnoType(pThis, pThis->Value, nullptr);
+			}
+			case TriggerEvent::TechTypeDoesntExist:
+			{
+				//TechnoTypeDoesntExist
+				result = !FindTechnoType(pThis, 1, nullptr);
+			}
+			default:
+				break;
+			}
+
 			break;
 		}
 

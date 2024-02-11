@@ -28,6 +28,20 @@ enum class PhobosTriggerAction : unsigned int
 	//#1164
 	UndeployToWaypoint = 511,
 
+	//ES
+	SetTriggerTechnoVeterancy = 700,
+	TransactMoneyFor = 701,
+	SetAIMode = 703,
+	DrawAnimWithin = 704,
+	SetAllOwnedFootDestinationTo = 705,
+	FlashTechnoFor = 713,
+	UnInitTechno = 716,
+	GameDeleteTechno = 717,
+	LightningStormStrikeAtObject = 720,
+
+	//#620
+	MessageForSpecifiedHouse = 9931,
+
 	//#658
 	RandomTriggerPut = 12000,
 	RandomTriggerRemove = 12001,
@@ -35,20 +49,6 @@ enum class PhobosTriggerAction : unsigned int
 	ScoreCampaignText = 19000,
 	ScoreCampaignTheme = 19001,
 	SetNextMission = 19002 ,
-
-	//#620
-	MessageForSpecifiedHouse = 9931,
-
-	//ES
-	SetTriggerTechnoVeterancy = 700,
-	TransactMoneyFor = 701,
-	SetAIMode = 703,
-	DrawAnimWithin = 704,
-	SetAllOwnedFootDestinationTo = 705 ,
-	FlashTechnoFor = 713 ,
-	UnInitTechno = 716 ,
-	GameDeleteTechno = 717,
-	LightningStormStrikeAtObject  = 720 ,
 
 	//DrawLaserBetweenWeaypoints = 9940,
 	//AdjustLighting = 505,

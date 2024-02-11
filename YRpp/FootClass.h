@@ -162,6 +162,8 @@ public:
 
 	bool IsTryingToEnterSomething() const { JMP_THIS(0x4E0080); }
 
+	bool TiberiumCheckAt(CellStruct* cell) const { JMP_THIS(0x4DCE80); }
+
 	//Constructor
 	FootClass(HouseClass* pOwner) noexcept : FootClass(noinit_t())
 		{ JMP_THIS(0x4D31E0); }

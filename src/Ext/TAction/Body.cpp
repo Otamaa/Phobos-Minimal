@@ -468,18 +468,6 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
         pObject = nullptr;
     }
 
-	// Vanilla overriden
-	switch (pThis->ActionKind)
-	{
-	case TriggerAction::PlaySoundEffectRandom:
-	{
-		ret = TActionExt::PlayAudioAtRandomWP(pThis, pHouse, pObject, pTrigger, args.plocation);
-		return true;
-	default:
-		break;
-	}
-	};
-
 	// Phobos
 	switch ((PhobosTriggerAction)pThis->ActionKind)
 	{
@@ -564,7 +552,22 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 		ret = TActionExt::UndeployToWaypoint(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
 	default:
+	{
+
+		// Vanilla overriden
+		switch (pThis->ActionKind)
+		{
+		case TriggerAction::PlaySoundEffectRandom:
+		{
+			ret = TActionExt::PlayAudioAtRandomWP(pThis, pHouse, pObject, pTrigger, args.plocation);
+			return true;
+		default:
+			break;
+		}
+		};
+
 		return false;
+	}
 	}
 
 	return true;
