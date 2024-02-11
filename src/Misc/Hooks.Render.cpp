@@ -17,6 +17,12 @@
 #include <Commands/ShowTechnoNames.h>
 #include <Commands/ShowAnimNames.h>
 
+DEFINE_HOOK(0x4F4583, GScreenClass_Render, 0x6)
+{
+	Phobos::DrawVersionWarning();
+	return 0;
+}
+
 DEFINE_HOOK(0x6D4684, TacticalClass_Draw_Addition, 6)
 {
 	ShowTechnoNameCommandClass::AI();

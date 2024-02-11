@@ -209,7 +209,7 @@ DEFINE_HOOK(0x48CE8A, MainGame_MainLoop, 0)
 DEFINE_HOOK(0x4F4480, GScreenClass_Render_Disable, 8)
 {
 	if (!Multithreading::IsInMultithreadMode) {
-		Phobos::DrawVersionWarning();
+		//Phobos::DrawVersionWarning();
 		return 0x0;
 	}
 
