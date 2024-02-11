@@ -237,11 +237,11 @@
 //	return 0;
 //}
 
-DEFINE_HOOK(0x4F4583, GScreenClass_DrawOnTop_TheDarkSideOfTheMoon, 0x6)
-{
-
-	if (auto pSuperBar = SuperWeaponSidebar::Instance())
-		pSuperBar->Draws();
-
-	return 0x0;
-}
+// DEFINE_HOOK(0x4F4583, GScreenClass_DrawOnTop_TheDarkSideOfTheMoon, 0x6)
+// {
+//
+// 	if (auto pSuperBar = SuperWeaponSidebar::Instance())
+// 		pSuperBar->Draws();
+//
+// 	return 0x0;
+// }

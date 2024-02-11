@@ -155,6 +155,8 @@ struct Phobos final
 		static bool ApplyShadeCountFix;
 
 		static bool SaveVariablesOnScenarioEnd;
+
+		static bool MultiThreadSinglePlayer;
 	};
 
 	struct Misc

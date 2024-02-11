@@ -72,6 +72,8 @@ bool Phobos::Config::RealTimeTimers = false;
 bool Phobos::Config::RealTimeTimers_Adaptive = false;
 int Phobos::Config::CampaignDefaultGameSpeed = 2;
 
+bool Phobos::Config::MultiThreadSinglePlayer = false;
+
 bool Phobos::Misc::CustomGS = false;
 int Phobos::Misc::CustomGS_ChangeInterval[7] = { -1, -1, -1, -1, -1, -1, -1 };
 int Phobos::Misc::CustomGS_ChangeDelay[7] = { 0, 1, 2, 3, 4, 5, 6 };
@@ -480,6 +482,8 @@ void Phobos::Config::Read()
 			BlittersFix::Apply();
 		}
 
+		Phobos::Config::MultiThreadSinglePlayer = INI_RulesMD.ReadBool(GameStrings::General, "MultiThreadSinglePlayer", false);
+
 		Phobos::Config::SaveVariablesOnScenarioEnd = INI_RulesMD.ReadBool(GENERAL_SECTION, "SaveVariablesOnScenarioEnd", Phobos::Config::SaveVariablesOnScenarioEnd);
 		Phobos::Config::ApplyShadeCountFix = INI_RulesMD.ReadBool(AUDIOVISUAL_SECTION, "ApplyShadeCountFix", Phobos::Config::ApplyShadeCountFix);
 
@@ -522,6 +526,7 @@ void InitAdminDebugMode()
 		{
 			Phobos::Otamaa::IsAdmin = true;	
 			Phobos::EnableConsole = true;
+			Phobos::Config::MultiThreadSinglePlayer = true;
 
 #ifdef DETACH_DEBUGGER
 			// this thing can cause game to lockup when loading data
