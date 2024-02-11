@@ -159,6 +159,7 @@ void CheckProcessorFeatures()
 void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 {
 	DWORD_PTR processAffinityMask = 1; // limit to first processor
+	bool consoleEnabled = false;
 
 	// > 1 because the exe path itself counts as an argument, too!
 	std::string args;
@@ -175,6 +176,10 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		else if (IS_SAME_STR_(pArg, "-LOG"))
 		{
 			Debug::LogEnabled = true;
+		}
+		else if (IS_SAME_STR_(pArg, "-CONSOLE"))
+		{
+			consoleEnabled = true;
 		}
 		else if (IS_SAME_STR_(pArg, "-AI-CONTROL"))
 		{
@@ -219,6 +224,9 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		Debug::LogFileOpen();
 		Debug::Log("Initialized Phobos %s .\n" , PRODUCT_VERSION);
 		Debug::Log("args %s\n", args.c_str());
+
+		if (consoleEnabled)
+			Phobos::EnableConsole = true;
 	}
 #endif
 
@@ -321,10 +329,10 @@ void Phobos::Config::Read()
 	{
 		BYTE defaultspeed = (BYTE)Phobos::Config::CampaignDefaultGameSpeed;
 		// We overwrite the instructions that force GameSpeed to 2 (GS4)
-		//Patch::Apply_RAW(0x55D77A, sizeof(defaultspeed), &defaultspeed);
+		Patch::Apply_RAW(0x55D77A, sizeof(defaultspeed), &defaultspeed);
 
 		// when speed control is off. Doesn't need a hook.
-		//Patch::Apply_RAW(0x55D78D , sizeof(defaultspeed), &defaultspeed);
+		Patch::Apply_RAW(0x55D78D , sizeof(defaultspeed), &defaultspeed);
 	}
 
 	CCFileClass UIMD_ini { UIMD_FILENAME };
