@@ -1844,7 +1844,7 @@ void LoadGlobalConfig()
 	CCFileClass IniFile { "Ares.ini" };
 	if (!IniFile.Exists() || !IniFile.Open(FileAccessMode::Read))
 	{
-		Debug::Log("Failed to Open file Ares.ini \n");
+		Debug::Log("Failed to Open file %s \n" , IniFile.FileName);
 		return;
 	}
 
