@@ -788,6 +788,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->TimerBlinkColorScheme.Read(exINI, GameStrings::AudioVisual, "TimerBlinkColorScheme");
 
 	this->CloakHeight.Read(exINI, GENERAL_SECTION, "CloakHeight");
+
+	this->SelectFlashTimer.Read(exINI, GameStrings::AudioVisual, "SelectFlashTimer");
 }
 
 void RulesExtData::LoadEarlyOptios(RulesClass* pThis, CCINIClass* pINI)
@@ -1070,6 +1072,8 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->FPSCounter)
 
 		.Process(this->DrawInsigniaOnlyOnSelected)
+
+		.Process(this->SelectFlashTimer)
 		;
 
 	MyPutData.Serialize(Stm);

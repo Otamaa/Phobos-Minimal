@@ -282,6 +282,8 @@ public:
 	bool FPSCounter { false };
 	Valueable<bool> DrawInsigniaOnlyOnSelected {};
 
+	Valueable<int> SelectFlashTimer { 0 };
+
 	AircraftPutDataRules MyPutData { };
 
 	RulesExtData() noexcept = default;

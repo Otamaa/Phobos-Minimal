@@ -3080,6 +3080,22 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, 
 	}
 }
 
+// Otamaa : preparation
+// not sure when it gonna finish
+enum class DeathConditions : char {
+	CountDown = 0 ,
+	NoAmmo,
+	ListOfIfExist,
+	ListOfIfNoExist,
+	SlaveOwnerDie,
+	NeutralTechno,
+	CivilianTechno,
+	AIControlled, //https://github.com/Phobos-developers/Phobos/discussions/1198
+	PreWeaponFiring,
+	AfterWeaponFiring,
+	ChangeOwner
+};
+
 // Feature: Kill Object Automatically
 bool TechnoExtData::CheckDeathConditions()
 {

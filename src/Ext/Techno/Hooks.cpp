@@ -505,3 +505,14 @@ DEFINE_HOOK(0x70A36E, TechnoClass_DrawPips_Ammo, 0x6)
 
 	return SkipGameDrawing;
 }
+
+DEFINE_HOOK_AGAIN(0x5F4718, ObjectClass_Select, 0x7)
+DEFINE_HOOK(0x5F46AE, ObjectClass_Select, 0x7)
+{
+	GET(ObjectClass*, pThis, ESI);
+
+	if (RulesExtData::Instance()->SelectFlashTimer > 0 && pThis->GetOwningHouse() && pThis->GetOwningHouse()->ControlledByCurrentPlayer())
+		pThis->Flash(RulesExtData::Instance()->SelectFlashTimer);
+
+	return 0x0;
+}
