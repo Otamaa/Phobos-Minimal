@@ -599,6 +599,8 @@ void __stdcall BuildingExtContainer_LoadGlobal(void**)
 	Debug::Log(__FUNCTION__" Executed!\n");
 }
 
+bool HasCNCnet = false;
+
 void Phobos::ExeRun()
 {
 	Phobos::Otamaa::ExeTerminated = false;
@@ -608,11 +610,10 @@ void Phobos::ExeRun()
 
 	InitAdminDebugMode();
 	Patch::PrintAllModuleAndBaseAddr();
-	Patch::InitRelatedModule();
 
-	for (auto& tmodule : Patch::ModuleDatas) {
-		if (IS_SAME_STR_(tmodule.first.c_str(), "cncnet5.dll")) {
-			Debug::FatalErrorAndExit("This dll already include cncnet5.dll code , please remove first\n");
+	for (auto&dlls : Patch::ModuleDatas) {
+		if (IS_SAME_STR_(dlls.ModuleName.c_str(), "cncnet5.dll")) {
+			HasCNCnet = true;
 		}
 	}
 
@@ -964,6 +965,10 @@ DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 	SpawnerMain::ExeRun();
 	Phobos::ExeRun();
 
+	if (HasCNCnet) {
+		Debug::FatalErrorAndExit("This dll already include cncnet5.dll code , please remove first\n");
+	}
+
 	return 0;
 }
 
@@ -983,6 +988,14 @@ DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 	Phobos::CmdLineParse(ppArgs, nNumArgs);
 	SpawnerMain::PrintInitializeLog();
 	Debug::LogDeferredFinalize();
+
+	if(Phobos::Otamaa::IsAdmin) {
+		for (const auto& data : Patch::ModuleDatas) {
+			for (auto const& patches : data.Patches) {
+				Debug::Log("Dll %s Patch %s\n", data.ModuleName.c_str() , patches.c_str());
+			}
+		}
+	}
 
 	return 0;
 }

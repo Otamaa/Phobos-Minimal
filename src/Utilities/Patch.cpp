@@ -7,20 +7,18 @@
 #include <tlhelp32.h>
 #include <Psapi.h>
 
-std::unordered_map<std::string, dllData> Patch::ModuleDatas;
+std::vector<dllData> Patch::ModuleDatas;
 
-int GetSection(const char* sectionName, void** pVirtualAddress)
+int Patch::GetSection(HANDLE hInstance, const char* sectionName, void** pVirtualAddress)
 {
 	char buf[MAX_PATH + 1] = { 0 };
 	GetModuleFileNameA(NULL, buf, sizeof(buf));
 
-	auto hInstance = Phobos::hInstance;
-
-	auto pHeader = reinterpret_cast<PIMAGE_NT_HEADERS>(((PIMAGE_DOS_HEADER)hInstance)->e_lfanew + (long)hInstance);
+	const auto pHeader = reinterpret_cast<PIMAGE_NT_HEADERS>(((PIMAGE_DOS_HEADER)hInstance)->e_lfanew + (long)hInstance);
 
 	for (int i = 0; i < pHeader->FileHeader.NumberOfSections; i++)
 	{
-		auto sct_hdr = IMAGE_FIRST_SECTION(pHeader) + i;
+		const auto sct_hdr = IMAGE_FIRST_SECTION(pHeader) + i;
 
 		if (strncmp(sectionName, (char*)sct_hdr->Name, 8) == 0)
 		{
@@ -34,7 +32,7 @@ int GetSection(const char* sectionName, void** pVirtualAddress)
 void Patch::ApplyStatic()
 {
 	void* buffer;
-	const int len = GetSection(PATCH_SECTION_NAME, &buffer);
+	const int len = GetSection(Phobos::hInstance , PATCH_SECTION_NAME, &buffer);
 
 	for (int offset = 0; offset < len; offset += sizeof(Patch))
 	{
@@ -200,68 +198,132 @@ void Patch::PrintAllModuleAndBaseAddr()
 					_strlwr_s(moduleName);
 					moduleName[0] &= ~0x20; // LOL HACK to uppercase a letter
 
-					Patch::ModuleDatas[moduleName] = { moduleName , hModules[i], (uintptr_t)info.lpBaseOfDll };
-					// Print the module's name and base address using Debug::Log
-					//Debug::LogDeferred("Found Module [(%d) %s: Base address = %p]\n",i, moduleName, info.lpBaseOfDll);
+					dllData& data = Patch::ModuleDatas.emplace_back(moduleName, hModules[i], (uintptr_t)info.lpBaseOfDll);
+
+					DWORD_PTR image_base = (DWORD_PTR)data.Handle;
+					PIMAGE_DOS_HEADER dosHeaders = (PIMAGE_DOS_HEADER)image_base;
+					PIMAGE_NT_HEADERS ntHeaders = (PIMAGE_NT_HEADERS)(image_base + dosHeaders->e_lfanew);
+					void* image_base_void = (void*)image_base;
+
+					if (ntHeaders->Signature != IMAGE_NT_SIGNATURE)
+						return; // The handle does not point to a valid module
+
+					if (ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].Size != 0)
+					{
+						const IMAGE_EXPORT_DIRECTORY* export_dir = (const IMAGE_EXPORT_DIRECTORY*)(image_base +
+							ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
+						const WORD export_base = (WORD)export_dir->Base;
+
+						if (export_dir->NumberOfFunctions != 0)
+						{
+							data.Exports.reserve(export_dir->NumberOfNames);
+
+							for (size_t i = 0; i < (size_t)export_dir->NumberOfNames; i++)
+							{
+								module_export& symbol = data.Exports.emplace_back();
+								symbol.ordinal = export_base +
+									reinterpret_cast<const  WORD*>(image_base + export_dir->AddressOfNameOrdinals)[i];
+								symbol.name = reinterpret_cast<const char*>(image_base +
+								reinterpret_cast<const DWORD*>(image_base + export_dir->AddressOfNames)[i]);
+								symbol.address = const_cast<void*>(
+									reinterpret_cast<const void*>(image_base +
+										reinterpret_cast<const DWORD*>(image_base + export_dir->AddressOfFunctions)[symbol.ordinal - export_base]));
+							}
+						}
+					}
+
+					IMAGE_DATA_DIRECTORY importsDirectory = ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+
+					if (importsDirectory.Size != 0)
+					{
+						PIMAGE_IMPORT_DESCRIPTOR importDescriptor = (PIMAGE_IMPORT_DESCRIPTOR)(importsDirectory.VirtualAddress + image_base);
+
+						PIMAGE_THUNK_DATA originalFirstThunk = (PIMAGE_THUNK_DATA)(image_base + importDescriptor->OriginalFirstThunk);
+						PIMAGE_THUNK_DATA firstThunk = (PIMAGE_THUNK_DATA)(image_base + importDescriptor->FirstThunk);
+
+						while (originalFirstThunk->u1.AddressOfData != NULL)
+						{
+							module_Import& symbol = data.Impors.emplace_back();
+							auto data = (PIMAGE_IMPORT_BY_NAME)(image_base + originalFirstThunk->u1.AddressOfData);
+							symbol.name = data->Name;
+							symbol.address = (void*)firstThunk->u1.Function;
+							++originalFirstThunk;
+							++firstThunk;
+						}
+					}
+
+					char patchbuffer[MAX_PATH] = { 0 };
+					void* buffer = nullptr;
+					int len = 0;
+
+					for (int i = 0; i < ntHeaders->FileHeader.NumberOfSections; i++)
+					{
+						const auto sct_hdr = IMAGE_FIRST_SECTION(ntHeaders) + i;
+
+						if (strncmp(PATCH_SECTION_NAME, (char*)sct_hdr->Name, 8) == 0)
+						{
+							buffer = (void*)((DWORD)data.Handle + sct_hdr->VirtualAddress);
+							len = sct_hdr->Misc.VirtualSize;
+							break;
+						}
+					}
+
+					if (len > 0 && buffer)
+					{
+						for (int offset = 0; offset < len;)
+						{
+							const auto pPatch = (Patch*)((DWORD)buffer + offset);
+
+							if (pPatch->offset == 0)
+								return;
+
+							const char* DataType = "unknown";
+#pragma pack(push, 1)
+#pragma warning(push)
+#pragma warning( disable : 4324)
+							struct DataTypeStruct
+							{
+								BYTE command;
+								DWORD pointer;
+							};
+#pragma warning(pop)
+#pragma pack(pop)
+							const auto dataptr = (DataTypeStruct*)((DWORD)pPatch + pPatch->size + 0x3);
+
+							switch (pPatch->size)
+							{
+							case 5:
+							{
+								switch (dataptr->command)
+								{
+								case CALL_LETTER:
+									DataType = "CALLJMP";
+									break;
+								case LJMP_LETTER:
+									DataType = "LJMP";
+									break;
+								default:
+									break;
+								}
+
+								break;
+							}
+							case 4:
+								DataType = "VTABLEJMP";
+								break;
+							case 6:
+								DataType = "CALL6";
+								break;
+							default:
+								break;
+							}
+
+							_snprintf(patchbuffer, sizeof(patchbuffer), "Patch[%s] Offs [%d - %x(%d)]", DataType, offset, pPatch->offset, pPatch->size);
+							data.Patches.emplace_back(patchbuffer);
+							offset += 0x5 + 0x3 + pPatch->size;
+						}
+					}
 				}
-			}
-		}
-	}
-}
-
-void  Patch::InitRelatedModule()
-{
-	for (auto& [name, data] : Patch::ModuleDatas)
-	{
-		auto image_base = (DWORD_PTR)data.Handle;
-		PIMAGE_DOS_HEADER dosHeaders = (PIMAGE_DOS_HEADER)image_base;
-		PIMAGE_NT_HEADERS ntHeaders = (PIMAGE_NT_HEADERS)(image_base + dosHeaders->e_lfanew);
-		auto image_base_void = (void*)image_base;
-
-		if (ntHeaders->Signature != IMAGE_NT_SIGNATURE)
-			continue; // The handle does not point to a valid module
-
-		if (ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].Size != 0)
-		{
-			const auto export_dir = (const IMAGE_EXPORT_DIRECTORY*)(image_base +
-				ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
-			const auto export_base = (WORD)export_dir->Base;
-
-			if (export_dir->NumberOfFunctions != 0)
-			{
-				data.Exports.reserve(export_dir->NumberOfNames);
-
-				for (size_t i = 0; i < (size_t)export_dir->NumberOfNames; i++)
-				{
-					module_export& symbol = data.Exports.emplace_back();
-					symbol.ordinal = export_base +
-						reinterpret_cast<const  WORD*>(image_base + export_dir->AddressOfNameOrdinals)[i];
-					symbol.name = reinterpret_cast<const char*>(image_base +
-					reinterpret_cast<const DWORD*>(image_base + export_dir->AddressOfNames)[i]);
-					symbol.address = const_cast<void*>(
-						reinterpret_cast<const void*>(image_base +
-							reinterpret_cast<const DWORD*>(image_base + export_dir->AddressOfFunctions)[symbol.ordinal - export_base]));
-				}
-			}
-		}
-
-		IMAGE_DATA_DIRECTORY importsDirectory = ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
-
-		if (importsDirectory.Size != 0)
-		{
-			PIMAGE_IMPORT_DESCRIPTOR importDescriptor = (PIMAGE_IMPORT_DESCRIPTOR)(importsDirectory.VirtualAddress + image_base);
-
-			PIMAGE_THUNK_DATA originalFirstThunk = (PIMAGE_THUNK_DATA)(image_base + importDescriptor->OriginalFirstThunk);
-			PIMAGE_THUNK_DATA firstThunk = (PIMAGE_THUNK_DATA)(image_base + importDescriptor->FirstThunk);
-
-			while (originalFirstThunk->u1.AddressOfData != NULL)
-			{
-				module_Import& symbol = data.Impors.emplace_back();
-				auto data = (PIMAGE_IMPORT_BY_NAME)(image_base + originalFirstThunk->u1.AddressOfData);
-				symbol.name = data->Name;
-				symbol.address = (void*)firstThunk->u1.Function;
-				++originalFirstThunk;
-				++firstThunk;
 			}
 		}
 	}
@@ -269,16 +331,13 @@ void  Patch::InitRelatedModule()
 
 uintptr_t Patch::GetEATAddress(const char* moduleName, const char* funcName)
 {
-	if (!ModuleDatas.contains(moduleName) || ModuleDatas[moduleName].Exports.empty())
-	{
-		return -1;
-	}
-
-	for (auto const& exportdata : ModuleDatas[moduleName].Exports)
-	{
-		if (strcmp(exportdata.name, funcName) == 0)
-		{
-			return (uintptr_t)exportdata.address;
+	for (auto const& modules : ModuleDatas) {
+		if (strcmp(moduleName, modules.ModuleName.c_str()) == 0 && !modules.Exports.empty()) {
+			for (auto const& exportData : modules.Exports) {
+				if (strcmp(exportData.name, funcName) == 0) {
+					return (uintptr_t)exportData.address;
+				}
+			}
 		}
 	}
 
@@ -287,16 +346,13 @@ uintptr_t Patch::GetEATAddress(const char* moduleName, const char* funcName)
 
 uintptr_t Patch::GetIATAddress(const char* moduleName, const char* funcName)
 {
-	if (!ModuleDatas.contains(moduleName) || ModuleDatas[moduleName].Impors.empty())
-	{
-		return -1;
-	}
-
-	for (auto const& exportdata : ModuleDatas[moduleName].Impors)
-	{
-		if (strcmp(exportdata.name, funcName) == 0)
-		{
-			return (uintptr_t)exportdata.address;
+	for (auto const& modules : ModuleDatas) {
+		if (strcmp(moduleName, modules.ModuleName.c_str()) == 0 && !modules.Impors.empty()) {
+			for (auto const& importData : modules.Impors) {
+				if (strcmp(importData.name, funcName) == 0) {
+					return (uintptr_t)importData.address;
+				}
+			}
 		}
 	}
 

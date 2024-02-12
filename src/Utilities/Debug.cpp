@@ -193,9 +193,25 @@ void Debug::LogFileRemove()
 void Debug::FreeMouse()
 {
 	Game::StreamerThreadFlush();
+	const auto pMouse = MouseClass::Instance();
 
-	MouseClass::Instance->UpdateCursor(MouseCursorType::Default, false);
-	WWMouseClass::Instance->ReleaseMouse();
+	if (pMouse) {
+		const auto pMouseVtable = VTable::Get(pMouse);
+
+		if (pMouseVtable == 0x7E1964) {
+			pMouse->UpdateCursor(MouseCursorType::Default, false);
+		}
+	}
+
+	const auto pWWMouse = WWMouseClass::Instance();
+
+	if (pWWMouse) {
+		const auto pWWMouseVtable = VTable::Get(pWWMouse);
+
+		if (pWWMouseVtable == 0x7F7B2C) {
+			pWWMouse->ReleaseMouse();
+		}
+	} 
 
 	ShowCursor(TRUE);
 

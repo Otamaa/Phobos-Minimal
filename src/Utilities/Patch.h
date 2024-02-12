@@ -24,7 +24,8 @@ struct dllData
 	HMODULE Handle;
 	uintptr_t BaseAddr;
 	std::vector<module_Import> Impors;
-	std::vector< module_export> Exports;
+	std::vector<module_export> Exports;
+	std::vector<std::string> Patches;
 
 	dllData() = default;
 
@@ -33,6 +34,7 @@ struct dllData
 		, BaseAddr { baseaddr }
 		, Impors {}
 		, Exports {}
+		, Patches {}
 	{
 	}
 
@@ -57,7 +59,7 @@ struct __declspec(novtable)
 	static void ApplyStatic();
 	void Apply();
 
-	static std::unordered_map<std::string, dllData> ModuleDatas;
+	static std::vector<dllData> ModuleDatas;
 
 	template<typename TFrom, typename To>
 	static inline void Apply(uintptr_t addrFrom, To toImpl, DWORD& protect_flag, DWORD ReadFlag = PAGE_READWRITE, size_t size = 4u)
@@ -150,8 +152,7 @@ struct __declspec(novtable)
 	static uintptr_t GetModuleBaseAddress(const char* modName);
 	static DWORD GetDebuggerProcessId(DWORD dwSelfProcessId);
 	static void PrintAllModuleAndBaseAddr();
-
-	static void InitRelatedModule();
+	static int GetSection(HANDLE hInstance, const char* sectionName, void** pVirtualAddress);
 	static uintptr_t GetEATAddress(const char* moduleName, const char* funcName);
 	static uintptr_t GetIATAddress(const char* moduleName, const char* funcName);
 };

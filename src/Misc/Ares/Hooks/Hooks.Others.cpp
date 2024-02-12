@@ -2496,9 +2496,9 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			fprintf(except, "\n");
 
 			int i = 0;
-			for (auto const& [str, data] : Patch::ModuleDatas)
+			for (auto const&data : Patch::ModuleDatas)
 			{
-				fprintf(except, "Module [(%d) %s: Base address = %p]\n", i++, str.c_str(), data.BaseAddr);
+				fprintf(except, "Module [(%d) %s: Base address = %p]\n", i++, data.ModuleName.c_str(), data.BaseAddr);
 			}
 
 			fprintf(except, "\n");
@@ -3333,8 +3333,8 @@ bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 		fprintf(LogFile, "\n");
 
 		int i = 0;
-		for (auto const& [str, data] : Patch::ModuleDatas) {
-			fprintf(LogFile,"Module [(%d) %s: Base address = %08X]\n", i++, str.c_str(), data.BaseAddr);
+		for (auto const& data: Patch::ModuleDatas) {
+			fprintf(LogFile,"Module [(%d) %s: Base address = %08X]\n", i++, data.ModuleName.c_str(), data.BaseAddr);
 		}
 
 		fprintf(LogFile, "\n");
