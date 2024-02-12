@@ -910,7 +910,8 @@ void ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 			return;
 		}
 
-		if(action > TeamMissionType::count) {
+		//dont prematurely finish the `Script` ,...
+		if(action > TeamMissionType::count && (AresScripts)action > AresScripts::count) {
 			// Unknown action. This action finished
 			pTeam->StepCompleted = true;
 			auto const pAction = pTeam->CurrentScript->GetCurrentAction();
