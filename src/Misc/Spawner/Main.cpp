@@ -24,7 +24,7 @@ bool SpawnerMain::Configs::MPDebug = false;
 bool SpawnerMain::Configs::SingleProcAffinity = true;
 
 bool SpawnerMain::Configs::DisableEdgeScrolling = false;
-bool SpawnerMain::Configs::QuickExit = false;
+bool SpawnerMain::Configs::QuickExit = true;
 bool SpawnerMain::Configs::SkipScoreScreen = false;
 bool SpawnerMain::Configs::DDrawHandlesClose = false;
 bool SpawnerMain::Configs::SpeedControl = false;
@@ -96,24 +96,21 @@ void SpawnerMain::PrintInitializeLog() {
 void SpawnerMain::LoadConfigurations()
 {
 	if (auto pINI = &CCINIClass::INI_RA2MD) {
-		const char* pOptionsSection = "Options";
 
-		if (pINI->GetSection(pOptionsSection)) {
-			SpawnerMain::Configs::MPDebug = pINI->ReadBool(pOptionsSection, "MPDEBUG", SpawnerMain::Configs::MPDebug);
-			SpawnerMain::Configs::SingleProcAffinity = pINI->ReadBool(pOptionsSection, "SingleProcAffinity", SpawnerMain::Configs::SingleProcAffinity);
-			SpawnerMain::Configs::DisableEdgeScrolling = pINI->ReadBool(pOptionsSection, "DisableEdgeScrolling", SpawnerMain::Configs::DisableEdgeScrolling);
-			SpawnerMain::Configs::QuickExit = pINI->ReadBool(pOptionsSection, "QuickExit", SpawnerMain::Configs::QuickExit);
-			SpawnerMain::Configs::SkipScoreScreen = pINI->ReadBool(pOptionsSection, "SkipScoreScreen", SpawnerMain::Configs::SkipScoreScreen);
-			SpawnerMain::Configs::DDrawHandlesClose = pINI->ReadBool(pOptionsSection, "DDrawHandlesClose", SpawnerMain::Configs::DDrawHandlesClose);
-			SpawnerMain::Configs::SpeedControl = pINI->ReadBool(pOptionsSection, "SpeedControl", SpawnerMain::Configs::SpeedControl);
+		if (pINI->GetSection(GameStrings::Options())) {
+			SpawnerMain::Configs::MPDebug = pINI->ReadBool(GameStrings::Options(), "MPDEBUG", SpawnerMain::Configs::MPDebug);
+			SpawnerMain::Configs::SingleProcAffinity = pINI->ReadBool(GameStrings::Options(), "SingleProcAffinity", SpawnerMain::Configs::SingleProcAffinity);
+			SpawnerMain::Configs::DisableEdgeScrolling = pINI->ReadBool(GameStrings::Options(), "DisableEdgeScrolling", SpawnerMain::Configs::DisableEdgeScrolling);
+			SpawnerMain::Configs::QuickExit = pINI->ReadBool(GameStrings::Options(), "QuickExit", SpawnerMain::Configs::QuickExit);
+			SpawnerMain::Configs::SkipScoreScreen = pINI->ReadBool(GameStrings::Options(), "SkipScoreScreen", SpawnerMain::Configs::SkipScoreScreen);
+			SpawnerMain::Configs::DDrawHandlesClose = pINI->ReadBool(GameStrings::Options(), "DDrawHandlesClose", SpawnerMain::Configs::DDrawHandlesClose);
+			SpawnerMain::Configs::SpeedControl = pINI->ReadBool(GameStrings::Options(), "SpeedControl", SpawnerMain::Configs::SpeedControl);
 		}
 
-		const char* pVideoSection = "Video";
-
-		if (pINI->GetSection(pVideoSection)) {
-			SpawnerMain::Configs::WindowedMode = pINI->ReadBool(pVideoSection, "Video.Windowed", SpawnerMain::Configs::WindowedMode);
-			SpawnerMain::Configs::NoWindowFrame = pINI->ReadBool(pVideoSection, "NoWindowFrame", SpawnerMain::Configs::NoWindowFrame);
-			SpawnerMain::Configs::DDrawTargetFPS = pINI->ReadInteger(pVideoSection, "DDrawTargetFPS", SpawnerMain::Configs::DDrawTargetFPS);
+		if (pINI->GetSection(GameStrings::Video())) {
+			SpawnerMain::Configs::WindowedMode = pINI->ReadBool(GameStrings::Video(), "Video.Windowed", SpawnerMain::Configs::WindowedMode);
+			SpawnerMain::Configs::NoWindowFrame = pINI->ReadBool(GameStrings::Video(), "NoWindowFrame", SpawnerMain::Configs::NoWindowFrame);
+			SpawnerMain::Configs::DDrawTargetFPS = pINI->ReadInteger(GameStrings::Video(), "DDrawTargetFPS", SpawnerMain::Configs::DDrawTargetFPS);
 		}
 	}
 }
@@ -239,69 +236,67 @@ static_assert(sizeof(CCINIClassDummy) == sizeof(CCINIClass), "Invalid Size !");
 
 void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 {
-	const char* pSettingsSection = "Settings";
-	if (!pINI || !pINI->GetSection(pSettingsSection))
+	if (!pINI || !pINI->GetSection(GameStrings::Settings()))
 		return;
 
 	{ // Game Mode Options
-		MPModeIndex = pINI->ReadInteger(pSettingsSection, "GameMode", MPModeIndex);
-		Bases = pINI->ReadBool(pSettingsSection, "Bases", Bases);
-		Credits = pINI->ReadInteger(pSettingsSection, "Credits", Credits);
-		BridgeDestroy = pINI->ReadBool(pSettingsSection, "BridgeDestroy", BridgeDestroy);
-		Crates = pINI->ReadBool(pSettingsSection, "Crates", Crates);
-		ShortGame = pINI->ReadBool(pSettingsSection, "ShortGame", ShortGame);
-		SuperWeapons = pINI->ReadBool(pSettingsSection, "Superweapons", SuperWeapons);
-		BuildOffAlly = pINI->ReadBool(pSettingsSection, "BuildOffAlly", BuildOffAlly);
-		GameSpeed = pINI->ReadInteger(pSettingsSection, "GameSpeed", GameSpeed);
-		MultiEngineer = pINI->ReadBool(pSettingsSection, "MultiEngineer", MultiEngineer);
-		UnitCount = pINI->ReadInteger(pSettingsSection, "UnitCount", UnitCount);
-		AIPlayers = pINI->ReadInteger(pSettingsSection, "AIPlayers", AIPlayers);
-		AIDifficulty = pINI->ReadInteger(pSettingsSection, "AIDifficulty", AIDifficulty);
-		AlliesAllowed = pINI->ReadBool(pSettingsSection, "AlliesAllowed", AlliesAllowed);
-		HarvesterTruce = pINI->ReadBool(pSettingsSection, "HarvesterTruce", HarvesterTruce);
-		FogOfWar = pINI->ReadBool(pSettingsSection, "FogOfWar", FogOfWar);
-		MCVRedeploy = pINI->ReadBool(pSettingsSection, "MCVRedeploy", MCVRedeploy);
+		MPModeIndex = pINI->ReadInteger(GameStrings::Settings(), "GameMode", MPModeIndex);
+		Bases = pINI->ReadBool(GameStrings::Settings(), "Bases", Bases);
+		Credits = pINI->ReadInteger(GameStrings::Settings(), "Credits", Credits);
+		BridgeDestroy = pINI->ReadBool(GameStrings::Settings(), "BridgeDestroy", BridgeDestroy);
+		Crates = pINI->ReadBool(GameStrings::Settings(), "Crates", Crates);
+		ShortGame = pINI->ReadBool(GameStrings::Settings(), "ShortGame", ShortGame);
+		SuperWeapons = pINI->ReadBool(GameStrings::Settings(), "Superweapons", SuperWeapons);
+		BuildOffAlly = pINI->ReadBool(GameStrings::Settings(), "BuildOffAlly", BuildOffAlly);
+		GameSpeed = pINI->ReadInteger(GameStrings::Settings(), "GameSpeed", GameSpeed);
+		MultiEngineer = pINI->ReadBool(GameStrings::Settings(), "MultiEngineer", MultiEngineer);
+		UnitCount = pINI->ReadInteger(GameStrings::Settings(), "UnitCount", UnitCount);
+		AIPlayers = pINI->ReadInteger(GameStrings::Settings(), "AIPlayers", AIPlayers);
+		AIDifficulty = pINI->ReadInteger(GameStrings::Settings(), "AIDifficulty", AIDifficulty);
+		AlliesAllowed = pINI->ReadBool(GameStrings::Settings(), "AlliesAllowed", AlliesAllowed);
+		HarvesterTruce = pINI->ReadBool(GameStrings::Settings(), "HarvesterTruce", HarvesterTruce);
+		FogOfWar = pINI->ReadBool(GameStrings::Settings(), "FogOfWar", FogOfWar);
+		MCVRedeploy = pINI->ReadBool(GameStrings::Settings(), "MCVRedeploy", MCVRedeploy);
 
-		if (((CCINIClassDummy*)pINI)->ReadString_WithoutAresHook(pSettingsSection, "UIGameMode", "", Phobos::readBuffer, Phobos::readLength) > 0)
+		if (((CCINIClassDummy*)pINI)->ReadString_WithoutAresHook(GameStrings::Settings(), "UIGameMode", "", Phobos::readBuffer, Phobos::readLength) > 0)
 			MultiByteToWideChar(CP_UTF8, 0, Phobos::readBuffer, strlen(Phobos::readBuffer), UIGameMode, std::size(UIGameMode));
 	}
 
 	// SaveGame Options
-	LoadSaveGame = pINI->ReadBool(pSettingsSection, "LoadSaveGame", LoadSaveGame);
-	/* SaveGameName */ pINI->ReadString(pSettingsSection, "SaveGameName", SaveGameName, SaveGameName, sizeof(SaveGameName));
+	LoadSaveGame = pINI->ReadBool(GameStrings::Settings(), "LoadSaveGame", LoadSaveGame);
+	/* SaveGameName  pINI->ReadString(GameStrings::Settings(), "SaveGameName", SaveGameName, SaveGameName, sizeof(SaveGameName));*/
 
 	{ // Scenario Options
-		Seed = pINI->ReadInteger(pSettingsSection, "Seed", Seed);
-		TechLevel = pINI->ReadInteger(pSettingsSection, "TechLevel", TechLevel);
-		IsCampaign = pINI->ReadBool(pSettingsSection, "IsSinglePlayer", IsCampaign);
-		Tournament = pINI->ReadInteger(pSettingsSection, "Tournament", Tournament);
-		WOLGameID = pINI->ReadInteger(pSettingsSection, "GameID", WOLGameID);
-		/* ScenarioName */ pINI->ReadString(pSettingsSection, "Scenario", ScenarioName, ScenarioName, sizeof(ScenarioName));
-		/* MapHash      */ pINI->ReadString(pSettingsSection, "MapHash", MapHash, MapHash, sizeof(MapHash));
+		Seed = pINI->ReadInteger(GameStrings::Settings(), "Seed", Seed);
+		TechLevel = pINI->ReadInteger(GameStrings::Settings(), "TechLevel", TechLevel);
+		IsCampaign = pINI->ReadBool(GameStrings::Settings(), "IsSinglePlayer", IsCampaign);
+		Tournament = pINI->ReadInteger(GameStrings::Settings(), "Tournament", Tournament);
+		WOLGameID = pINI->ReadInteger(GameStrings::Settings(), "GameID", WOLGameID);
+		/* ScenarioName  pINI->ReadString(pSettingsSection, "Scenario", ScenarioName, ScenarioName, sizeof(ScenarioName));*/
+		/* MapHash       pINI->ReadString(pSettingsSection, "MapHash", MapHash, MapHash, sizeof(MapHash));*/
 
-		if (((CCINIClassDummy*)pINI)->ReadString_WithoutAresHook(pSettingsSection, "UIMapName", "", Phobos::readBuffer, Phobos::readLength) > 0)
+		if (((CCINIClassDummy*)pINI)->ReadString_WithoutAresHook(GameStrings::Settings(), "UIMapName", "", Phobos::readBuffer, Phobos::readLength) > 0)
 			MultiByteToWideChar(CP_UTF8, 0, Phobos::readBuffer, strlen(Phobos::readBuffer), UIMapName, std::size(UIMapName));
 	}
 
 	{ // Network Options
-		Protocol = pINI->ReadInteger(pSettingsSection, "Protocol", Protocol);
-		FrameSendRate = pINI->ReadInteger(pSettingsSection, "FrameSendRate", FrameSendRate);
-		ReconnectTimeout = pINI->ReadInteger(pSettingsSection, "ReconnectTimeout", ReconnectTimeout);
-		ConnTimeout = pINI->ReadInteger(pSettingsSection, "ConnTimeout", ConnTimeout);
-		MaxAhead = pINI->ReadInteger(pSettingsSection, "MaxAhead", MaxAhead);
-		PreCalcMaxAhead = pINI->ReadInteger(pSettingsSection, "PreCalcMaxAhead", PreCalcMaxAhead);
-		MaxLatencyLevel = (byte)pINI->ReadInteger(pSettingsSection, "MaxLatencyLevel", (int)MaxLatencyLevel);
+		Protocol = pINI->ReadInteger(GameStrings::Settings(), "Protocol", Protocol);
+		FrameSendRate = pINI->ReadInteger(GameStrings::Settings(), "FrameSendRate", FrameSendRate);
+		ReconnectTimeout = pINI->ReadInteger(GameStrings::Settings(), "ReconnectTimeout", ReconnectTimeout);
+		ConnTimeout = pINI->ReadInteger(GameStrings::Settings(), "ConnTimeout", ConnTimeout);
+		MaxAhead = pINI->ReadInteger(GameStrings::Settings(), "MaxAhead", MaxAhead);
+		PreCalcMaxAhead = pINI->ReadInteger(GameStrings::Settings(), "PreCalcMaxAhead", PreCalcMaxAhead);
+		MaxLatencyLevel = (byte)pINI->ReadInteger(GameStrings::Settings(), "MaxLatencyLevel", (int)MaxLatencyLevel);
 	}
 
 	{ // Tunnel Options
-		TunnelId = pINI->ReadInteger(pSettingsSection, "Port", TunnelId);
-		ListenPort = pINI->ReadInteger(pSettingsSection, "Port", ListenPort);
+		// Otama : ?????????
+		TunnelId = pINI->ReadInteger(GameStrings::Settings(), "Port", TunnelId);
+		ListenPort = pINI->ReadInteger(GameStrings::Settings(), "Port", ListenPort);
 
-		const char* pTunnelSection = "Tunnel";
-		if (pINI->GetSection(pTunnelSection))
-		{
-			pINI->ReadString(pTunnelSection, "Ip", TunnelIp, TunnelIp, sizeof(TunnelIp));
-			TunnelPort = pINI->ReadInteger(pTunnelSection, "Port", TunnelPort);
+		if (pINI->GetSection(GameStrings::Tunnel())) {
+			pINI->ReadString(GameStrings::Tunnel(), "Ip", TunnelIp, TunnelIp, sizeof(TunnelIp));
+			TunnelPort = pINI->ReadInteger(GameStrings::Tunnel(), "Port", TunnelPort);
 		}
 	}
 
@@ -313,14 +308,14 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 	}
 
 	// Extended Options
-	Ra2Mode = pINI->ReadBool(pSettingsSection, "Ra2Mode", Ra2Mode);
-	QuickMatch = pINI->ReadBool(pSettingsSection, "QuickMatch", QuickMatch);
-	SkipScoreScreen = pINI->ReadBool(pSettingsSection, "SkipScoreScreen", SkipScoreScreen);
-	WriteStatistics = pINI->ReadBool(pSettingsSection, "WriteStatistics", WriteStatistics);
-	AINamesByDifficulty = pINI->ReadBool(pSettingsSection, "AINamesByDifficulty", AINamesByDifficulty);
-	ContinueWithoutHumans = pINI->ReadBool(pSettingsSection, "ContinueWithoutHumans", ContinueWithoutHumans);
-	DefeatedBecomesObserver = pINI->ReadBool(pSettingsSection, "DefeatedBecomesObserver", DefeatedBecomesObserver);
-	Observer_ShowAIOnSidebar = pINI->ReadBool(pSettingsSection, "Observer.ShowAIOnSidebar", Observer_ShowAIOnSidebar);
+	Ra2Mode = pINI->ReadBool(GameStrings::Settings(), "Ra2Mode", Ra2Mode);
+	QuickMatch = pINI->ReadBool(GameStrings::Settings(), "QuickMatch", QuickMatch);
+	SkipScoreScreen = pINI->ReadBool(GameStrings::Settings(), "SkipScoreScreen", SkipScoreScreen);
+	WriteStatistics = pINI->ReadBool(GameStrings::Settings(), "WriteStatistics", WriteStatistics);
+	AINamesByDifficulty = pINI->ReadBool(GameStrings::Settings(), "AINamesByDifficulty", AINamesByDifficulty);
+	ContinueWithoutHumans = pINI->ReadBool(GameStrings::Settings(), "ContinueWithoutHumans", ContinueWithoutHumans);
+	DefeatedBecomesObserver = pINI->ReadBool(GameStrings::Settings(), "DefeatedBecomesObserver", DefeatedBecomesObserver);
+	Observer_ShowAIOnSidebar = pINI->ReadBool(GameStrings::Settings(), "Observer.ShowAIOnSidebar", Observer_ShowAIOnSidebar);
 }
 
 void SpawnerMain::GameConfigs::PlayerConfig::LoadFromINIFile(CCINIClass* pINI, int index)
@@ -336,10 +331,10 @@ void SpawnerMain::GameConfigs::PlayerConfig::LoadFromINIFile(CCINIClass* pINI, i
 		this->IsHuman = true;
 		this->Difficulty = -1;
 
-		if (((CCINIClassDummy*)pINI)->ReadString_WithoutAresHook(pSection, "Name", "", Phobos::readBuffer, Phobos::readLength))
+		if (((CCINIClassDummy*)pINI)->ReadString_WithoutAresHook(pSection, "Name", Phobos::readDefval, Phobos::readBuffer, Phobos::readLength))
 			MultiByteToWideChar(CP_UTF8, 0, Phobos::readBuffer, -1, this->Name, std::size(this->Name));
 
-		this->Color = pINI->ReadInteger(pSection, "Color", this->Color);
+		this->Color = pINI->ReadInteger(pSection, GameStrings::Color(), this->Color);
 		this->Country = pINI->ReadInteger(pSection, "Side", this->Country);
 		this->IsObserver = pINI->ReadBool(pSection, "IsSpectator", this->IsObserver);
 
@@ -414,7 +409,6 @@ void SpawnerMain::GameConfigs::Init() {
 
 	{ // Skip Intro, EA_WWLOGO and LoadScreen
 		Patch::Apply_LJMP(0x52CB50, 0x52CB6E); // InitIntro_Skip
-		Patch::Apply_LJMP(0x52C5E0, 0x52C5F8); // InitGame_SkipLogoAndLoadScreen
 	}
 
 	{ // Cooperative
@@ -751,7 +745,10 @@ void SpawnerMain::GameConfigs::InitNetwork() {
 	{
 		Game::Network::FrameSendRate = SpawnerMain::GameConfigs::GetGameConfigs()->FrameSendRate;
 	}
-	SpawnerMain::GameConfigs::GetGameConfigs()->MaxAhead;
+
+	Game::Network::MaxAhead = SpawnerMain::GameConfigs::GetGameConfigs()->MaxAhead == -1
+		? Game::Network::FrameSendRate * 6
+		: SpawnerMain::GameConfigs::GetGameConfigs()->MaxAhead;
 
 	Game::Network::MaxMaxAhead = 0;
 	Game::Network::ProtocolVersion = 2;
@@ -792,7 +789,7 @@ DEFINE_HOOK(0x55EDD2, MessageInput_UnicodePlayerName, 0x5) {
 
 // Display UIGameMode if is set
 // Otherwise use mode name from MPModesMD.ini
-DEFINE_HOOK(0x65812E, RadarClass__DiplomacyDialog_UIGameMode, 0x6) {
+DEFINE_HOOK(0x65812E, RadarClass_DiplomacyDialog_UIGameMode, 0x6) {
 	enum { Show = 0x65813E, DontShow = 0x65814D };
 
 	if (SpawnerMain::Configs::Enabled && SpawnerMain::GameConfigs::GetGameConfigs()->UIGameMode[0])
@@ -822,7 +819,7 @@ namespace MPlayerDefeated
 	HouseClass* pThis = nullptr;
 }
 
-DEFINE_HOOK(0x4FC0B6, HouseClass__MPlayerDefeated_SaveArgument, 0x5) {
+DEFINE_HOOK(0x4FC0B6, HouseClass_MPlayerDefeated_SaveArgument, 0x5) {
 	MPlayerDefeated::pThis = (SpawnerMain::Configs::Enabled && !SessionClass::IsCampaign())
 		? R->ECX<HouseClass*>()
 		: nullptr;
@@ -831,7 +828,7 @@ DEFINE_HOOK(0x4FC0B6, HouseClass__MPlayerDefeated_SaveArgument, 0x5) {
 }
 
 // Skip match-end logic if MPlayerDefeated called for observer
-DEFINE_HOOK_AGAIN(0x4FC332, HouseClass__MPlayerDefeated_SkipObserver, 0x5)
+DEFINE_HOOK_AGAIN(0x4FC332, HouseClass_MPlayerDefeated_SkipObserver, 0x5)
 DEFINE_HOOK(0x4FC262, HouseClass__MPlayerDefeated_SkipObserver, 0x6) {
 	enum { ProcEpilogue = 0x4FC6BC };
 
@@ -843,7 +840,7 @@ DEFINE_HOOK(0x4FC262, HouseClass__MPlayerDefeated_SkipObserver, 0x6) {
 		: 0;
 }
 
-DEFINE_HOOK(0x4FC551, HouseClass__MPlayerDefeated_NoEnemies, 0x5) {
+DEFINE_HOOK(0x4FC551, HouseClass_MPlayerDefeated_NoEnemies, 0x5) {
 	enum { ProcEpilogue = 0x4FC6BC };
 
 	if (!MPlayerDefeated::pThis)
@@ -867,7 +864,7 @@ DEFINE_HOOK(0x4FC551, HouseClass__MPlayerDefeated_NoEnemies, 0x5) {
 	return 0;
 }
 
-DEFINE_HOOK(0x4FC57C, HouseClass__MPlayerDefeated_CheckAliveAndHumans, 0x7) {
+DEFINE_HOOK(0x4FC57C, HouseClass_MPlayerDefeated_CheckAliveAndHumans, 0x7) {
 	enum { ProcEpilogue = 0x4FC6BC, FinishMatch = 0x4FC591 };
 
 	if (!MPlayerDefeated::pThis)

@@ -84,8 +84,13 @@ DEFINE_DISABLE_HOOK(0x678841, RulesClass_Load_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x679a15, RulesData_LoadBeforeTypeData_ares)
 #endif
 
+#include <Misc/Spawner/Main.h>
+
 DEFINE_OVERRIDE_HOOK(0x52C5E0, Ares_NOLOGO, 0x7)
 {
+	if(SpawnerMain::Configs::Enabled)
+		return 0x52C5F8; //skip showing looading screen
+
 	return Phobos::Otamaa::NoLogo ? 0x52C5F3 : 0x0;
 }
 

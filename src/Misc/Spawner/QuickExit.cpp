@@ -18,8 +18,10 @@
 */
 
 #include "Main.h"
+#include <Phobos.h>
 #include <Helpers/Macro.h>
 #include <HouseClass.h>
+#include <Exit.h>
 
 bool RageQuit = false;
 
@@ -35,6 +37,7 @@ DEFINE_HOOK(0x77786B, MainWindowProc_HandleRageQuit, 0x5)
 		}
 		else
 		{
+			Phobos::ExeTerminate();
 			ExitProcess(0);
 		}
 	}

@@ -95,7 +95,6 @@ DEFINE_HOOK(0x649851, WaitForPlayers_OnlineOptimizations, 0x5)
 	return 0x6488B0;
 }
 
-
 //TODO : RECHECK
 
 // Fix crash at 6F9DB6

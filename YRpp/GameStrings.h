@@ -93,6 +93,11 @@ struct GameStrings
 	GAMEMD_STR(Colors, 0x839E5Cu);
 	GAMEMD_STR(Waypoints, 0x82DB0Cu);
 	GAMEMD_STR(VariableNames, 0x83D824u);
+	GAMEMD_STR(Video, 0x833160u);
+	GAMEMD_STR(Options, 0x8254DCu);
+	GAMEMD_STR(Settings, 0x82CE70u);
+	GAMEMD_STR(Tunnel, 0x81DBE4);
+	GAMEMD_STR(Color, 0x81B138);
 
 	GAMEMD_STR(ShakeYhi, 0x847C84);
 	GAMEMD_STR(ShakeYlo, 0x847C90);
