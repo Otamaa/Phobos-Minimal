@@ -910,20 +910,22 @@ void ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 			return;
 		}
 
-		// Unknown new action. This action finished
-		pTeam->StepCompleted = true;
-		auto const pAction = pTeam->CurrentScript->GetCurrentAction();
-		Debug::Log("AI Scripts : [%x] Team [%s][%s]  ( %x CurrentScript %s / %s line %d): Unknown Script Action: %d\n",
-			pTeam,
-			pTeam->Type->ID,
-			pTeam->Type->Name,
+		if(action > TeamMissionType::count) {
+			// Unknown action. This action finished
+			pTeam->StepCompleted = true;
+			auto const pAction = pTeam->CurrentScript->GetCurrentAction();
+			Debug::Log("AI Scripts : [%x] Team [%s][%s]  ( %x CurrentScript %s / %s line %d): Unknown Script Action: %d\n",
+				pTeam,
+				pTeam->Type->ID,
+				pTeam->Type->Name,
 
-			pTeam->CurrentScript,
-			pTeam->CurrentScript->Type->ID,
-			pTeam->CurrentScript->Type->Name,
-			pTeam->CurrentScript->CurrentMission,
+				pTeam->CurrentScript,
+				pTeam->CurrentScript->Type->ID,
+				pTeam->CurrentScript->Type->Name,
+				pTeam->CurrentScript->CurrentMission,
 
-			pAction.Action);
+				pAction.Action);
+		}
 	}
 }
 
