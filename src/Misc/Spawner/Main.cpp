@@ -161,15 +161,28 @@ void SpawnerMain::ApplyStaticOptions()
 	}
 
 	// Set 3rd party ddraw.dll options
-	if (HMODULE hDDraw = LoadLibraryA("ddraw.dll")) {
+	for (auto& dllData : Patch::ModuleDatas) {
+		if (IS_SAME_STR_(dllData.ModuleName.c_str(), "ddraw.dll")) {
+			if (bool* gameHandlesClose = (bool*)GetProcAddress(dllData.Handle, "GameHandlesClose"))
+				*gameHandlesClose = !SpawnerMain::Configs::DDrawHandlesClose;
 
-		if (bool* gameHandlesClose = (bool*)GetProcAddress(hDDraw, "GameHandlesClose"))
-			*gameHandlesClose = !SpawnerMain::Configs::DDrawHandlesClose;
+			LPDWORD TargetFPS = (LPDWORD)GetProcAddress(dllData.Handle, "TargetFPS");
+			if (TargetFPS && SpawnerMain::Configs::DDrawTargetFPS != -1)
+				*TargetFPS = SpawnerMain::Configs::DDrawTargetFPS;
 
-		LPDWORD TargetFPS = (LPDWORD)GetProcAddress(hDDraw, "TargetFPS");
-		if (TargetFPS && SpawnerMain::Configs::DDrawTargetFPS != -1)
-			*TargetFPS = SpawnerMain::Configs::DDrawTargetFPS;
+			break;
+		}
 	}
+	
+	//if (HMODULE hDDraw = LoadLibraryA("ddraw.dll")) {
+	//
+	//	if (bool* gameHandlesClose = (bool*)GetProcAddress(hDDraw, "GameHandlesClose"))
+	//		*gameHandlesClose = !SpawnerMain::Configs::DDrawHandlesClose;
+	//
+	//	LPDWORD TargetFPS = (LPDWORD)GetProcAddress(hDDraw, "TargetFPS");
+	//	if (TargetFPS && SpawnerMain::Configs::DDrawTargetFPS != -1)
+	//		*TargetFPS = SpawnerMain::Configs::DDrawTargetFPS;
+	//}
 }
 
 
