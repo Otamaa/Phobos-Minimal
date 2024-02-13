@@ -17,7 +17,7 @@
 
 #include <Misc/Ares/Hooks/Header.h>
 
-#ifdef PARTONE
+#ifndef PARTONE
 // Contains hooks that fix weapon graphical effects like lasers, railguns, electric bolts, beams and waves not interacting
 // correctly with obstacles between firer and target, as well as railgun / railgun particles being cut off by elevation.
 

@@ -1557,6 +1557,32 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_GrantOneTime_InitialReady.Read(exINI, pSection, "SW.GrantOneTime.InitialReady");
 	this->Message_GrantOneTimeLaunched.Read(exINI, pSection, "Message.GrantOneTimeLaunched");
 	this->EVA_GrantOneTimeLaunched.Read(exINI, pSection, "EVA.GrantOneTimeLaunched");
+	this->SW_GrantOneTime_RollChances.Read(exINI, pSection, "SW.GrantOneTime.RollChances");
+
+	// SW.GrantOneTime.RandomWeights
+	this->SW_GrantOneTime_RandomWeightsData.clear();
+
+	for (size_t i = 0; ; ++i)
+	{
+		ValueableVector<int> weights3;
+		_snprintf_s(tempBuffer, sizeof(tempBuffer), "SW.GrantOneTime.RandomWeights%d", i);
+		weights3.Read(exINI, pSection, tempBuffer);
+
+		if (weights3.empty())
+			break;
+
+		this->SW_GrantOneTime_RandomWeightsData.push_back(std::move(weights3));
+	}
+
+	ValueableVector<int> weights3;
+	weights3.Read(exINI, pSection, "SW.GrantOneTime.RandomWeights");
+	if (!weights3.empty())
+	{
+		if (this->SW_GrantOneTime_RandomWeightsData.size())
+			this->SW_GrantOneTime_RandomWeightsData[0] = std::move(weights3);
+		else
+			this->SW_GrantOneTime_RandomWeightsData.push_back(std::move(weights3));
+	}
 
 	// initialize the NewSWType that handles this SWType.
 	if (auto pNewSWType = NewSWType::GetNewSWType(this))
@@ -2079,6 +2105,7 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->SW_Next_IgnoreDesignators)
 		.Process(this->SW_Next_RollChances)
 		.Process(this->SW_Next_RandomWeightsData)
+		.Process(this->SW_GrantOneTime_RandomWeightsData)
 
 		.Process(this->SW_Inhibitors)
 		.Process(this->SW_AnyInhibitor)
@@ -2373,6 +2400,7 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->SW_GrantOneTime_InitialReady)
 		.Process(this->Message_GrantOneTimeLaunched)
 		.Process(this->EVA_GrantOneTimeLaunched)
+		.Process(this->SW_GrantOneTime_RollChances)
 		;
 
 }
@@ -2722,17 +2750,17 @@ void SWTypeExtData::GrantOneTimeFromList(SuperClass* pSW)
 				if (granted)
 				{
 					auto const pTypeExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
-					bool needsReset = this->SW_GrantOneTime_InitialReady.isset() && this->SW_GrantOneTime_InitialReady.Get() ? true : false;
-					needsReset = !this->SW_GrantOneTime_InitialReady.isset() && pTypeExt->SW_InitialReady ? true : needsReset;
+					bool isReady = this->SW_GrantOneTime_InitialReady.isset() && this->SW_GrantOneTime_InitialReady.Get() ? true : false;
+					isReady = !this->SW_GrantOneTime_InitialReady.isset() && pTypeExt->SW_InitialReady ? true : isReady;
 
-					if (needsReset)
-					{
-						pSuper->Reset();
-					}
-					else
+					if (isReady)
 					{
 						pSuper->RechargeTimer.TimeLeft = 0;
 						pSuper->SetReadiness(true);
+					}
+					else
+					{
+						pSuper->Reset();
 					}
 
 					if (notObserver && pHouse->IsCurrentPlayer())
@@ -2750,10 +2778,24 @@ void SWTypeExtData::GrantOneTimeFromList(SuperClass* pSW)
 
 	bool grantedAnySW = false;
 
-	for (const auto swType : this->SW_GrantOneTime)
+	// random mode
+	if (this->SW_GrantOneTime_RandomWeightsData.size())
 	{
-		if (grantTheSW(swType))
-			grantedAnySW = true;
+		auto results = this->WeightedRollsHandler(&this->SW_GrantOneTime_RollChances, &this->SW_GrantOneTime_RandomWeightsData, this->SW_GrantOneTime.size());
+		for (int result : results)
+		{
+			if (grantTheSW(this->SW_GrantOneTime[result]))
+				grantedAnySW = true;
+		}
+	}
+	// no randomness mode
+	else
+	{
+		for (const auto swType : this->SW_GrantOneTime)
+		{
+			if (grantTheSW(swType))
+				grantedAnySW = true;
+		}
 	}
 
 	if (notObserver && pHouse->IsCurrentPlayer())

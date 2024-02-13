@@ -44,6 +44,8 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
+	static bool CanMoveHere(TechnoClass* pThis, TerrainClass* pTerrain);
+
 	void InitializeLightSource();
 	void InitializeAnim();
 

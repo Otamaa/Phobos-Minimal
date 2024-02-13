@@ -73,6 +73,7 @@ bool Phobos::Config::RealTimeTimers_Adaptive = false;
 int Phobos::Config::CampaignDefaultGameSpeed = 2;
 
 bool Phobos::Config::MultiThreadSinglePlayer = false;
+bool Phobos::Config::UseImprovedPathfindingBlockageHandling = false;
 
 bool Phobos::Misc::CustomGS = false;
 int Phobos::Misc::CustomGS_ChangeInterval[7] = { -1, -1, -1, -1, -1, -1, -1 };
@@ -491,7 +492,7 @@ void Phobos::Config::Read()
 		}
 
 		Phobos::Config::MultiThreadSinglePlayer = INI_RulesMD.ReadBool(GameStrings::General, "MultiThreadSinglePlayer", false);
-
+		Phobos::Config::UseImprovedPathfindingBlockageHandling = INI_RulesMD.ReadBool(GameStrings::General, "UseImprovedPathfindingBlockageHandling", false);
 		Phobos::Config::SaveVariablesOnScenarioEnd = INI_RulesMD.ReadBool(GENERAL_SECTION, "SaveVariablesOnScenarioEnd", Phobos::Config::SaveVariablesOnScenarioEnd);
 		Phobos::Config::ApplyShadeCountFix = INI_RulesMD.ReadBool(AUDIOVISUAL_SECTION, "ApplyShadeCountFix", Phobos::Config::ApplyShadeCountFix);
 

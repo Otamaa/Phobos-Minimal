@@ -141,6 +141,7 @@ public:
 	Valueable<bool> SW_Next_IgnoreDesignators { true };
 	ValueableVector<float> SW_Next_RollChances {};
 	std::vector<std::vector<int>> SW_Next_RandomWeightsData {};
+	std::vector<std::vector<int>> SW_GrantOneTime_RandomWeightsData {};
 #pragma endregion
 
 	ValueableVector<TechnoTypeClass*> SW_Inhibitors {};
@@ -463,6 +464,7 @@ public:
 
 	ValueableIdxVector<SuperWeaponTypeClass> SW_GrantOneTime {};
 	Nullable<bool> SW_GrantOneTime_InitialReady {};
+	ValueableVector<float> SW_GrantOneTime_RollChances {};
 	Valueable<CSFText> Message_GrantOneTimeLaunched {};
 	NullableIdx<VoxClass> EVA_GrantOneTimeLaunched {};
 

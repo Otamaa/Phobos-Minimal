@@ -157,6 +157,7 @@ struct Phobos final
 		static bool SaveVariablesOnScenarioEnd;
 
 		static bool MultiThreadSinglePlayer;
+		static bool UseImprovedPathfindingBlockageHandling;
 	};
 
 	struct Misc

@@ -352,6 +352,7 @@ public:
 	static bool TargetFootAllowFiring(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
 	static std::pair<TechnoClass*, CellClass*> GetTargets(ObjectClass* pObjTarget, AbstractClass* pTarget);
 	static int GetDeployFireWeapon(UnitClass* pThis);
+	static int GetWeaponIndexAgainstWall(TechnoClass* pThis, OverlayTypeClass* pWallOverlayType, bool checkDamage = false);
 
 	static void SetMissionAfterBerzerk(TechnoClass* pThis, bool Immediete = false);
 

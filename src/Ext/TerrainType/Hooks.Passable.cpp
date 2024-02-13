@@ -4,6 +4,7 @@
 #include <TerrainClass.h>
 
 #include <Utilities/GeneralUtils.h>
+#include <Ext/Terrain/Body.h>
 
 #define IS_CELL_OCCUPIED(pCell)\
 pCell->OccupationFlags & 0x20 || pCell->OccupationFlags & 0x40 || pCell->OccupationFlags & 0x80 || pCell->GetInfantry(false) \
@@ -30,27 +31,6 @@ DEFINE_HOOK(0x71C110, TerrainClass_SetOccupyBit_PassableTerrain, 0x5)
 	return (TerrainTypeExtContainer::Instance.Find(pThis->Type)->IsPassable) ? Skip : 0;
 }
 
-#include <Ext/TechnoType/Body.h>
-
-bool CanMoveHere(TechnoClass* pThis, TerrainClass* pTerrain)
-{
-
-	const auto pExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
-
-	if (pExt->IsPassable)
-		return true;
-
-	if(pThis->WhatAmI() == UnitClass::AbsID) {
-		if(pTerrain->Type->Crushable) {
-			if (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->CrushLevel.Get(pThis) > pExt->CrushableLevel) {
-				return true;
-			}
-		}
-	}
-
-	return false ;
-}
-
 // Passable TerrainTypes Hook #2 - Do not display attack cursor unless force-firing.
 DEFINE_HOOK(0x7002E9, TechnoClass_WhatAction_PassableTerrain, 0x5)
 {
@@ -65,7 +45,7 @@ DEFINE_HOOK(0x7002E9, TechnoClass_WhatAction_PassableTerrain, 0x5)
 
 	if (auto const pTerrain = specific_cast<TerrainClass*>(pTarget))
 	{
-		if (CanMoveHere(pThis , pTerrain) && !isForceFire)
+		if (TerrainExtData::CanMoveHere(pThis , pTerrain) && !isForceFire)
 		{
 			R->EBP(Action::Move);
 			return ReturnAction;
@@ -96,22 +76,19 @@ DEFINE_HOOK(0x483D87, CellClass_CheckPassability_PassableTerrain, 0x5)
 }
 
 // Passable TerrainTypes Hook #4 - Make passable for vehicles.
-DEFINE_HOOK(0x73FB71, UnitClass_CanEnterCell_PassableTerrain, 0x6)
+DEFINE_HOOK(0x73FBA7, UnitClass_CanEnterCell_PassableTerrain, 0x5)
 {
 	enum { ReturnPassable = 0x73FD37, SkipTerrainChecks = 0x73FA7C };
 
 	GET(UnitClass*, pThis, EBX);
-	GET(AbstractClass*, pTarget, ESI);
+	GET(TerrainClass*, pTerrain, ESI);
 
-	if(auto pTerrain = specific_cast<TerrainClass*>(pTarget)) {
-		if (CanMoveHere(pThis, pTerrain)) {
+	if (TerrainExtData::CanMoveHere(pThis, pTerrain)) {
+		if (IS_CELL_OCCUPIED(pTerrain->GetCell()))
+			return SkipTerrainChecks;
 
-			if (IS_CELL_OCCUPIED(pTerrain->GetCell()))
-				return SkipTerrainChecks;
-
-			R->EBP(0);
-			return ReturnPassable;
-		}
+		R->EBP(0);
+		return ReturnPassable;
 	}
 
 	return 0;

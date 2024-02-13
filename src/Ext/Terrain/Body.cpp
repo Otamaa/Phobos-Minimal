@@ -2,6 +2,7 @@
 
 #include <Ext/TerrainType/Body.h>
 #include <Ext/Cell/Body.h>
+#include <Ext/TechnoType/Body.h>
 
 void TerrainExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
@@ -12,6 +13,26 @@ void TerrainExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	if (this->AttachedAnim == ptr) {
 		this->AttachedAnim.release();
 	}
+}
+
+bool TerrainExtData::CanMoveHere(TechnoClass* pThis, TerrainClass* pTerrain) {
+	const auto pExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
+
+	if (pExt->IsPassable)
+		return true;
+
+	if (pThis->WhatAmI() == UnitClass::AbsID)
+	{
+		if (pTerrain->Type->Crushable)
+		{
+			if (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->CrushLevel.Get(pThis) > pExt->CrushableLevel)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 void TerrainExtData::InitializeLightSource()

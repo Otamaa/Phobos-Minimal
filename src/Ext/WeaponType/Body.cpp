@@ -197,6 +197,8 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->AmbientDamage_Warhead.Read(exINI, pSection, "AmbientDamage.Warhead");
 	this->AmbientDamage_IgnoreTarget.Read(exINI, pSection, "AmbientDamage.IgnoreTarget");
+
+	this->BlockageTargetingBypassDamageOverride.Read(exINI, pSection, "BlockageTargetingBypassDamageOverride");
 }
 
 ColorStruct WeaponTypeExtData::GetBeamColor() const
@@ -317,6 +319,8 @@ void WeaponTypeExtData::Serialize(T& Stm)
 
 		.Process(this->AmbientDamage_Warhead)
 		.Process(this->AmbientDamage_IgnoreTarget)
+
+		.Process(this->BlockageTargetingBypassDamageOverride)
 		;
 
 	MyAttachFireDatas.Serialize(Stm);

@@ -54,17 +54,13 @@ DEFINE_HOOK(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
 
 		if (pWeaponSecondary && !EnumFunctions::IsCellEligible(pCell, pPrimaryExt->CanTarget, true, true))
 		{
-			return Secondary;
+			R->EAX(1);
+			return UseWeaponIndex;
 		}
 		else if (pCell->OverlayTypeIndex != -1)
 		{
-			auto const pOverlayType = OverlayTypeClass::Array()->GetItem(pCell->OverlayTypeIndex);
-
-			if (pOverlayType->Wall && pCell->OverlayData >> 4 != pOverlayType->DamageLevels && !pWeaponPrimary->Warhead->Wall &&
-				pWeaponSecondary && pWeaponSecondary->Warhead->Wall && !TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->NoSecondaryWeaponFallback)
-			{
-				return Secondary;
-			}
+			R->EAX(TechnoExtData::GetWeaponIndexAgainstWall(pThis, OverlayTypeClass::Array()->GetItem(pCell->OverlayTypeIndex)));
+			return UseWeaponIndex;
 		}
 	}
 

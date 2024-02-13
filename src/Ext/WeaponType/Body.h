@@ -144,6 +144,8 @@ public:
 	Nullable<WarheadTypeClass*> AmbientDamage_Warhead {};
 	Valueable<bool> AmbientDamage_IgnoreTarget { false };
 
+	Nullable<bool> BlockageTargetingBypassDamageOverride {};
+
 	WeaponTypeExtData() noexcept = default;
 	~WeaponTypeExtData() noexcept = default;
 
