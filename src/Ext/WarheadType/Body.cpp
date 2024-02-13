@@ -394,6 +394,10 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->KillDriver_ResetVeterancy.Read(exINI, pSection, "KillDriver.RemoveVeterancy");
 	this->KillDriver_Chance.Read(exINI, pSection, "KillDriver.Chance");
 
+	this->CombatLightDetailLevel.Read(exINI, pSection, "CombatLightDetailLevel");
+	this->CombatLightChance.Read(exINI, pSection, "CombatLightChance");
+	this->Particle_AlphaImageIsLightFlash.Read(exINI, pSection, "Particle.AlphaImageIsLightFlash");
+
 	ValueableVector<InfantryTypeClass*> InfDeathAnims_List {};
 
 	InfDeathAnims_List.Read(exINI, pSection, "InfDeathAnim.LinkedList");
@@ -1324,6 +1328,10 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->KillDriver_ResetVeterancy)
 		.Process(this->KillDriver_Chance)
 		.Process(this->ApplyModifiersOnNegativeDamage)
+
+		.Process(this->CombatLightDetailLevel)
+		.Process(this->CombatLightChance)
+		.Process(this->Particle_AlphaImageIsLightFlash)
 		;
 
 	PaintBallData.Serialize(Stm);

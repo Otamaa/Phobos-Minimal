@@ -284,6 +284,10 @@ public:
 
 	Valueable<int> SelectFlashTimer { 0 };
 
+	Valueable<bool> WarheadParticleAlphaImageIsLightFlash { false };
+	Valueable<int> CombatLightDetailLevel { 0 };
+	Valueable<int> LightFlashAlphaImageDetailLevel { 0 };
+
 	AircraftPutDataRules MyPutData { };
 
 	RulesExtData() noexcept = default;

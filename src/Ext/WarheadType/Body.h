@@ -344,6 +344,9 @@ public:
 
 	Valueable<bool> ApplyModifiersOnNegativeDamage { false };
 
+	Nullable<int> CombatLightDetailLevel {};
+	Nullable<double> CombatLightChance {};
+	Nullable<bool> Particle_AlphaImageIsLightFlash {};
 public:
 
 	WarheadTypeExtData() noexcept = default;

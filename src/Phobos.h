@@ -158,6 +158,7 @@ struct Phobos final
 
 		static bool MultiThreadSinglePlayer;
 		static bool UseImprovedPathfindingBlockageHandling;
+		static bool HideLightFlashEffects;
 	};
 
 	struct Misc

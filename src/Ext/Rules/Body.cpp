@@ -790,6 +790,10 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->CloakHeight.Read(exINI, GENERAL_SECTION, "CloakHeight");
 
 	this->SelectFlashTimer.Read(exINI, GameStrings::AudioVisual, "SelectFlashTimer");
+	this->WarheadParticleAlphaImageIsLightFlash.Read(exINI, GameStrings::AudioVisual, "WarheadParticleAlphaImageIsLightFlash");
+	this->CombatLightDetailLevel.Read(exINI, GameStrings::AudioVisual, "CombatLightDetailLevel");
+	this->LightFlashAlphaImageDetailLevel.Read(exINI, GameStrings::AudioVisual, "LightFlashAlphaImageDetailLevel");
+
 }
 
 void RulesExtData::LoadEarlyOptios(RulesClass* pThis, CCINIClass* pINI)
@@ -1074,6 +1078,9 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->DrawInsigniaOnlyOnSelected)
 
 		.Process(this->SelectFlashTimer)
+		.Process(this->WarheadParticleAlphaImageIsLightFlash)
+		.Process(this->CombatLightDetailLevel)
+		.Process(this->LightFlashAlphaImageDetailLevel)
 		;
 
 	MyPutData.Serialize(Stm);
