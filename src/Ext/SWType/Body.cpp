@@ -2046,9 +2046,10 @@ bool SWTypeExtData::ChangeLighting(SuperWeaponTypeClass* pCustom)
 		auto scen = ScenarioClass::Instance();
 		scen->AmbientTarget = lighting.Ambient;
 		scen->RecalcLighting(lighting.Red, lighting.Green, lighting.Blue, 1);
+		return true;
 	}
 
-	return lighting.HasValue;
+	return false;
 }
 
 void SWTypeExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID)

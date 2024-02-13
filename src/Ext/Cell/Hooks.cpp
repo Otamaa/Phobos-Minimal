@@ -232,3 +232,32 @@ DEFINE_HOOK(0x47FADB, CellClass_DrawOverlay_Rubble, 0x5)
 //
 //	return 0x0;
 //}
+
+//UniqueGamePtrB<LightConvertClass> SpawnTiberiumTreeConvert {};
+//
+//DEFINE_HOOK(0x52C046, InitGame_CreateTiberiumDrawer, 0x5)
+//{
+//	LEA_STACK(BytePalette*, pUnitSnoPal, 0x2F40 - 0x2BC8);
+//
+//	SpawnTiberiumTreeConvert.reset(GameCreate<LightConvertClass>(
+//		pUnitSnoPal, &FileSystem::TEMPERAT_PAL,
+//		DSurface::Primary,1000, 1000, 1000,false , nullptr , 53));
+//
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x53AD00, ScenarioClass_RecalcLighting_TintTiberiumDrawer, 5)
+//{
+//	GET(int, red, ECX);
+//	GET(int, green, EDX);
+//	GET_STACK(int, blue, STACK_OFFSET(0x0, 0x4));
+//	GET_STACK(bool, tint, STACK_OFFSET(0x0, 0x8));
+//	SpawnTiberiumTreeConvert->UpdateColors(red, green, blue, tint);
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x71C294, TerrainClass_DrawIt_TiberiumSpawn_Palette, 0x6)
+//{
+//	R->EDX(SpawnTiberiumTreeConvert.get());
+//	return 0x71C29A;
+//}

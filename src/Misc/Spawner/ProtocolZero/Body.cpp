@@ -175,9 +175,7 @@ LatencyLevelEnum LatencyLevel::FromResponseTime(unsigned char rspTime)
 	return LatencyLevelEnum::LATENCY_LEVEL_MAX;
 }
 
-// Otamaa : was 0x55DDA0 , but this conflict with Multithread stuffs
-// so moved bit lowe , hopefully nothing bad happen here
-DEFINE_HOOK(0x55DDAA, MainLoop_AfterRender_ProtocolZero, 0x5)
+DEFINE_HOOK(0x55DDA0, MainLoop_AfterRender_ProtocolZero, 0x5)
 {
 	if (ProtocolZero::Enable)
 		ProtocolZero::SendResponseTime2();

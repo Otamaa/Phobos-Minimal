@@ -63,8 +63,8 @@ namespace Multithreading
 		0x8B, 0x0D, 0xF8, 0xD5, 0xA8, 0x00);
 	DEFINE_DYNAMIC_PATCH(Disable_MainLoop_StartLock_2, 0x55DBC3,
 		0xB9, 0x90, 0x03, 0x8A, 0x00);
-	DEFINE_DYNAMIC_PATCH(Disable_MainLoop_StopLock, 0x55DDA0,
-		0xB9, 0x60, 0xBC, 0xA8, 0x00);
+	DEFINE_DYNAMIC_PATCH(Disable_MainLoop_StopLock, 0x55DDAA,
+		0xA1, 0x38, 0xB2, 0xAB, 0x00);
 	DEFINE_DYNAMIC_PATCH(Disable_MainLoop_StopLock_2, 0x55D903,
 		0xC6, 0x05, 0x9D, 0xED, 0xA8, 0x00, 0x00);
 	DEFINE_DYNAMIC_PATCH(Disable_PauseGame_SetPause, 0x683EB6,
@@ -239,7 +239,7 @@ DEFINE_HOOK(0x55D878, MainLoop_StartLock, 6)
 
 // See above.
 DEFINE_HOOK_AGAIN(0x55D903, MainLoop_StopLock, 7)
-DEFINE_HOOK(0x55DDA0, MainLoop_StopLock, 5)
+DEFINE_HOOK(0x55DDAA, MainLoop_StopLock, 5)
 {
 	if (!Multithreading::IsInMultithreadMode)
 		return 0;

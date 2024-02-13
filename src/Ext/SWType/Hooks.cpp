@@ -2670,18 +2670,17 @@ DEFINE_OVERRIDE_HOOK(0x53C280, ScenarioClass_UpdateLighting, 5)
 {
 	const auto lighting = SWTypeExtData::GetLightingColor();
 
-	auto scen = ScenarioClass::Instance();
 	if (lighting.HasValue)
 	{
 		// something changed the lighting
-		scen->AmbientTarget = lighting.Ambient;
-		scen->RecalcLighting(lighting.Red, lighting.Green, lighting.Blue, 1);
+		ScenarioClass::Instance->AmbientTarget = lighting.Ambient;
+		ScenarioClass::Instance->RecalcLighting(lighting.Red, lighting.Green, lighting.Blue, true);
 	}
 	else
 	{
 		// default lighting
-		scen->AmbientTarget = scen->AmbientOriginal;
-		scen->RecalcLighting(-1, -1, -1, 0);
+		ScenarioClass::Instance->AmbientTarget = ScenarioClass::Instance->AmbientOriginal;
+		ScenarioClass::Instance->RecalcLighting(-1, -1, -1, false);
 	}
 
 	return 0x53C441;
