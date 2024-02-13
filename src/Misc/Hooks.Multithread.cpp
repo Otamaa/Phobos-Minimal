@@ -175,7 +175,7 @@ void Multithreading::DrawingLoop()
 // Disable the hooks if we're in multiplayer modes or if multithreading was disabled in rules.
 DEFINE_HOOK(0x48CE7E, MainGame_BeforeMainLoop, 7)
 {
-	if (Phobos::Config::MultiThreadSinglePlayer && SessionClass::Instance->IsSingleplayer())
+	if (Phobos::Config::MultiThreadSinglePlayer && !SessionClass::Instance->IsSingleplayer())
 		return 0;
 
 	Multithreading::Disable_MainGame_MainLoop->Apply();

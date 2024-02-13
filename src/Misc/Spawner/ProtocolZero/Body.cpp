@@ -176,7 +176,7 @@ LatencyLevelEnum LatencyLevel::FromResponseTime(unsigned char rspTime)
 }
 
 
-DEFINE_HOOK(0x55DDA0, MainLoop_AfterRender__ProtocolZero, 0x5)
+DEFINE_HOOK(0x55DDA0, MainLoop_AfterRender_ProtocolZero, 0x5)
 {
 	if (ProtocolZero::Enable)
 		ProtocolZero::SendResponseTime2();
@@ -184,7 +184,7 @@ DEFINE_HOOK(0x55DDA0, MainLoop_AfterRender__ProtocolZero, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x647BEB, QueueAIMultiplayer__ProtocolZero1, 0x9)
+DEFINE_HOOK(0x647BEB, QueueAIMultiplayer_ProtocolZero1, 0x9)
 {
 	if (ProtocolZero::Enable)
 		return 0x647BF4;
@@ -194,7 +194,7 @@ DEFINE_HOOK(0x647BEB, QueueAIMultiplayer__ProtocolZero1, 0x9)
 		: 0x647F36;
 }
 
-DEFINE_HOOK(0x647EB4, QueueAIMultiplayer__ProtocolZero2, 0x8)
+DEFINE_HOOK(0x647EB4, QueueAIMultiplayer_ProtocolZero2, 0x8)
 {
 	if (ProtocolZero::Enable)
 	{
@@ -207,7 +207,7 @@ DEFINE_HOOK(0x647EB4, QueueAIMultiplayer__ProtocolZero2, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x647DF2, QueueAIMultiplayer__ProtocolZero3, 0x5)
+DEFINE_HOOK(0x647DF2, QueueAIMultiplayer_ProtocolZero3, 0x5)
 {
 	if (ProtocolZero::Enable)
 	{
@@ -219,7 +219,7 @@ DEFINE_HOOK(0x647DF2, QueueAIMultiplayer__ProtocolZero3, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x4C8011, EventClassExecute__ProtocolZero, 0x8)
+DEFINE_HOOK(0x4C8011, EventClassExecute_ProtocolZero, 0x8)
 {
 	if (ProtocolZero::Enable)
 		return 0x4C8024;
@@ -227,7 +227,7 @@ DEFINE_HOOK(0x4C8011, EventClassExecute__ProtocolZero, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x64C598, ExecuteDoList__ProtocolZero, 0x6)
+DEFINE_HOOK(0x64C598, ExecuteDoList_ProtocolZero, 0x6)
 {
 	if (ProtocolZero::Enable)
 	{
@@ -246,8 +246,8 @@ DEFINE_HOOK(0x64C598, ExecuteDoList__ProtocolZero, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x64771D, QueueAIMultiplayer__ProtocolZero_SetTiming, 0x5)
-DEFINE_HOOK(0x647E6B, QueueAIMultiplayer__ProtocolZero_SetTiming, 0x5)
+DEFINE_HOOK_AGAIN(0x64771D, QueueAIMultiplayer_ProtocolZero_SetTiming, 0x5)
+DEFINE_HOOK(0x647E6B, QueueAIMultiplayer_ProtocolZero_SetTiming, 0x5)
 {
 	if (ProtocolZero::Enable)
 	{
@@ -265,8 +265,8 @@ DEFINE_HOOK(0x647E6B, QueueAIMultiplayer__ProtocolZero_SetTiming, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x6476CB, QueueAIMultiplayer__ProtocolZero_ResponseTime, 0x5)
-DEFINE_HOOK(0x647CC5, QueueAIMultiplayer__ProtocolZero_ResponseTime, 0x5)
+DEFINE_HOOK_AGAIN(0x6476CB, QueueAIMultiplayer_ProtocolZero_ResponseTime, 0x5)
+DEFINE_HOOK(0x647CC5, QueueAIMultiplayer_ProtocolZero_ResponseTime, 0x5)
 {
 	if (ProtocolZero::Enable)
 	{

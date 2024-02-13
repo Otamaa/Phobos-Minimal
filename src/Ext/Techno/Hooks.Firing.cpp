@@ -354,38 +354,39 @@ DEFINE_HOOK(0x6FC815, TechnoClass_CanFire_CellTargeting, 0x7)
 
 #pragma region WallWeaponStuff
 
-NOINLINE WeaponStruct* TechnoClass_GetWeaponAgainstWallWrapper(TechnoClass* pThis) {
-	auto const weaponPrimary = pThis->GetWeapon(0);
+// NOINLINE WeaponStruct* TechnoClass_GetWeaponAgainstWallWrapper(TechnoClass* pThis) {
+// 	auto const weaponPrimary = pThis->GetWeapon(0);
+//
+// 	if (!weaponPrimary->WeaponType->Warhead->Wall) {
+// 		auto const weaponSecondary = pThis->GetWeapon(1);
+//
+// 		if (weaponSecondary
+// 			&& weaponSecondary->WeaponType
+// 			&& weaponSecondary->WeaponType->Warhead->Wall
+// 			 && !TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->NoSecondaryWeaponFallback) {
+// 			return weaponSecondary;
+// 		}
+// 	}
+//
+// 	return weaponPrimary;
+// }
 
-	if (!weaponPrimary->WeaponType->Warhead->Wall) {
-		auto const weaponSecondary = pThis->GetWeapon(1);
+// DEFINE_HOOK(0x51C1F1, InfantryClass_CanEnterCell_GetWeapon_WallWeapon, 0x5) {
+// 	GET(TechnoClass*, pThis, EBP);
+// 	R->EAX(TechnoClass_GetWeaponAgainstWallWrapper(pThis));
+// 	return 0x51C1FE;
+// }
 
-		if (weaponSecondary
-			&& weaponSecondary->WeaponType
-			&& weaponSecondary->WeaponType->Warhead->Wall
-			 && !TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->NoSecondaryWeaponFallback) {
-			return weaponSecondary;
-		}
-	}
+// DEFINE_HOOK(0x73F495 , UnitClass_CanEnterCell_GetWeapon_WallWeapon, 0x6) {
+// 	GET(TechnoClass*, pThis, EBX);
+// 	R->EAX(TechnoClass_GetWeaponAgainstWallWrapper(pThis));
+// 	return 0x73F4A1;
+// }
 
-	return weaponPrimary;
-}
-
-DEFINE_HOOK(0x51C1F1, InfantryClass_CanEnterCell_GetWeapon_WallWeapon, 0x5) {
-	GET(TechnoClass*, pThis, EBP);
-	R->EAX(TechnoClass_GetWeaponAgainstWallWrapper(pThis));
-	return 0x51C1FE;
-}
-
-DEFINE_HOOK(0x73F495 , UnitClass_CanEnterCell_GetWeapon_WallWeapon, 0x6) {
-	GET(TechnoClass*, pThis, EBX);
-	R->EAX(TechnoClass_GetWeaponAgainstWallWrapper(pThis));
-	return 0x73F4A1;
-}
-
-DEFINE_HOOK(0x70095A, TechnoClass_WhatAction_GetWeapon_WallWeapon, 0x6) {
+DEFINE_HOOK(0x70095A, TechnoClass_WhatAction_WallWeapon, 0x6) {
+	GET_STACK(OverlayTypeClass*, pOverlayTypeClass, STACK_OFFSET(0x2C, -0x18));
 	GET(TechnoClass*, pThis, ESI);
-	R->EAX(TechnoClass_GetWeaponAgainstWallWrapper(pThis));
+	R->EAX(pThis->GetWeapon(TechnoExtData::GetWeaponIndexAgainstWall(pThis, pOverlayTypeClass)));
 	return 0;
 }
 
