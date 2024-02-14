@@ -4185,7 +4185,7 @@ DEFINE_HOOK(0x6E20AC, TActionClass_DetroyAttachedTechno, 0x8)
 // https://bugs.launchpad.net/ares/+bug/895893
 DEFINE_HOOK(0x4DB37C, FootClass_Limbo_ClearCellJumpjet, 0x6)
 {
-	GET(FootClass*, pThis, ESI);
+	GET(FootClass*, pThis, EDI);
 
 	if(pThis->GetTechnoType()->JumpJet){
 		const auto pCell = pThis->GetCell();
@@ -4194,5 +4194,6 @@ DEFINE_HOOK(0x4DB37C, FootClass_Limbo_ClearCellJumpjet, 0x6)
 		}
 	}
 
-	return 0x0;
+	//FootClass_Remove_Airspace_ares
+	return 0x4DB3A4;
 }
