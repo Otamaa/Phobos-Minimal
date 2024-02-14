@@ -3420,7 +3420,7 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x64DEA0, Multiplay_LogToSYNC_NOMPDEBUG, 6)
 	GET(EventClass*, OffendingEvent, ECX);
 
 	char LogFilename[0x40];
-	IMPL_SNPRNINTF(LogFilename, sizeof(LogFilename), "SYNC%01d.TXT", HouseClass::CurrentPlayer->ArrayIndex);
+	IMPL_SNPRNINTF(LogFilename, sizeof(LogFilename), GameStrings::SYNCNAME_TXT(), HouseClass::CurrentPlayer->ArrayIndex);
 
 	LogFrame(LogFilename, OffendingEvent);
 
@@ -3433,7 +3433,7 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x6516F0, Multiplay_LogToSync_MPDEBUG, 6)
 	GET(EventClass*, OffendingEvent, EDX);
 
 	char LogFilename[0x40];
-	IMPL_SNPRNINTF(LogFilename, sizeof(LogFilename), "SYNC%01d_%03d.TXT", HouseClass::CurrentPlayer->ArrayIndex, SlotNumber);
+	IMPL_SNPRNINTF(LogFilename, sizeof(LogFilename), GameStrings::SYNCNAME2_TXT(), HouseClass::CurrentPlayer->ArrayIndex, SlotNumber);
 
 	LogFrame(LogFilename, OffendingEvent);
 

@@ -528,8 +528,8 @@ DEFINE_OVERRIDE_HOOK(0x51E3B0, InfantryClass_GetActionOnObject_EMP, 0x7)
 	return 0;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x5200D7, InfantryClass_UpdatePanic_DontReload ,0x6, 52010B)
-//DEFINE_JUMP(LJMP, 0x5200D7, 0x52010B);
+//DEFINE_OVERRIDE_SKIP_HOOK(0x5200D7, InfantryClass_UpdatePanic_DontReload ,0x6, 52010B)
+DEFINE_JUMP(LJMP, 0x5200D7, 0x52010B);
 
 DEFINE_OVERRIDE_HOOK(0x51CE9A, InfantryClass_RandomAnim_IsCow, 5)
 {

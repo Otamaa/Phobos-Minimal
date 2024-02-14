@@ -537,7 +537,6 @@ void InitAdminDebugMode()
 		{
 			Phobos::Otamaa::IsAdmin = true;	
 			Phobos::EnableConsole = true;
-			Phobos::Config::MultiThreadSinglePlayer = true;
 
 #ifdef DETACH_DEBUGGER
 			// this thing can cause game to lockup when loading data

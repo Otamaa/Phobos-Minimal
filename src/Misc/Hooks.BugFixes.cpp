@@ -1202,8 +1202,8 @@ DEFINE_JUMP(LJMP, 0x6E0C1D, 0x6E0C8B);//Simplify TAction 36
 DEFINE_HOOK(0x689EB0, ScenarioClass_ReadMap_SkipHeaderInCampaign, 0x6)
 {
 	GET(ScenarioClass*, pItem, ESI);
-
 	GET(CCINIClass*, pINI, EDI);
+
 	ScenarioExtData::s_LoadFromINIFile(pItem, pINI);
 
 	if (SessionClass::IsCampaign()) {
