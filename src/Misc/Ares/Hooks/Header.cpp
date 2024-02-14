@@ -991,9 +991,12 @@ bool TechnoExt_ExtData::PerformActionHijack(TechnoClass* pFrom, TechnoClass* con
 
 		// prepare for a smooth transition. free the destination from
 		// any mind control. #762
-		if (pTarget->MindControlledBy)
-		{
+		if (pTarget->MindControlledBy) {
 			pTarget->MindControlledBy->CaptureManager->FreeUnit(pTarget);
+		}
+
+		if(pTarget->CaptureManager) {
+			pTarget->CaptureManager->FreeAll();
 		}
 
 		pTarget->MindControlledByAUnit = false;
