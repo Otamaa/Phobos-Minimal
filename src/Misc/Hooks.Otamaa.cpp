@@ -4181,3 +4181,18 @@ DEFINE_HOOK(0x6E20AC, TActionClass_DetroyAttachedTechno, 0x8)
 //}
 
 // 53AD00 ,5
+
+// https://bugs.launchpad.net/ares/+bug/895893
+DEFINE_HOOK(0x4DB37C, FootClass_Limbo_ClearCellJumpjet, 0x6)
+{
+	GET(FootClass*, pThis, ESI);
+
+	if(pThis->GetTechnoType()->JumpJet){
+		const auto pCell = pThis->GetCell();
+		if (pCell->Jumpjet == pThis)	{
+			pCell->TryAssignJumpjet(nullptr);
+		}
+	}
+
+	return 0x0;
+}
