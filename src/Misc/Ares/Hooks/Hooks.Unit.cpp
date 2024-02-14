@@ -1009,12 +1009,13 @@ std::pair<bool, int> HealActionProhibited(TechnoClass* pTarget, WeaponTypeClass*
 	{
 		const auto pShieldType = pThatShield->GetType();
 
-		if (pWHExt->GetVerses(pShieldType->Armor).Verses <= 0.0)
-		{
+		if (pWHExt->GetVerses(pShieldType->Armor).Verses <= 0.0) {
 			return { true , -1 };
 		}
 
-		if (!pThatShield->CanBePenetrated(pWeapon->Warhead))
+		const auto pFoot = abstract_cast<FootClass*>(pTarget);
+
+		if (!pThatShield->CanBePenetrated(pWeapon->Warhead)|| ((pFoot && pFoot->ParasiteEatingMe)))
 		{
 			if (pShieldType->CanBeHealed)
 			{

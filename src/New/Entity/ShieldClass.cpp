@@ -161,13 +161,22 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(args->WH);
 
-	if (!pWHExt || !this->HP || this->Temporal || *args->Damage == 0 ||
-		this->Techno->IsIronCurtained())
+	if (!pWHExt || !this->HP || this->Temporal || *args->Damage == 0)
 	{
 		return;
 	}
 
-	if(CanBePenetrated(args->WH) || TechnoExtData::IsTypeImmune(this->Techno, args->Attacker))
+	if (*args->Damage < 0) {
+		if (auto const pFoot = abstract_cast<FootClass*>(this->Techno)) {
+			if (auto const pParasite = pFoot->ParasiteEatingMe) {
+					// Remove parasite.
+					pParasite->ParasiteImUsing->SuppressionTimer.Start(50);
+					pParasite->ParasiteImUsing->ExitUnit();
+			}
+		}
+	}
+
+	if(this->Techno->IsIronCurtained() || CanBePenetrated(args->WH) || TechnoExtData::IsTypeImmune(this->Techno, args->Attacker))
 		return;
 
 	const auto pSource = args->Attacker ? args->Attacker->Owner : args->SourceHouse;
