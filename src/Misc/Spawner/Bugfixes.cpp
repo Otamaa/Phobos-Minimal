@@ -104,30 +104,21 @@ DEFINE_JUMP(LJMP, 0x5F58CB, 0x5F58D2); // ObjectClass::Mark
 DEFINE_HOOK(0x727B44, TriggerTypeClass_ComputeCRC_FixCrash, 0x6)
 {
 	GET(HouseTypeClass*, pHouseType, EAX);
-	if (!pHouseType)
-		return 0x727B55;
-
-	return 0;
+	return pHouseType ? 0 : 0x727B55;
 }
 
 // Fix crash at 6F49DE
 DEFINE_HOOK(0x6F49D8, TechnoClass_Revealed_FixCrash, 0x6)
 {
 	GET(HouseClass*, pHouse, EAX);
-	if (!pHouse)
-		return 0x6F4A31;
-
-	return 0;
+	return pHouse ? 0 : 0x6F4A31;
 }
 
 // Fix crash at 70AF6C
 DEFINE_HOOK(0x70AF6C, TechnoClass_70AF50_FixCrash, 0x9)
 {
 	GET(TechnoClass*, pTechno, EAX);
-	if (!pTechno)
-		return 0x70B1C7;
-
-	return 0;
+	return pTechno ? 0 : 0x70B1C7;
 }
 
 // Fix crash at 4C2C19

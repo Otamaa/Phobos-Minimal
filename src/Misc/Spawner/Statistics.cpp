@@ -28,7 +28,7 @@
 #include <Utilities/Debug.h>
 #include <Utilities/Macro.h>
 
-bool __forceinline IsStatisticsEnabled()
+bool FORCEINLINE IsStatisticsEnabled()
 {
 	return SpawnerMain::Configs::Active
 		&& SpawnerMain::GameConfigs::GetGameConfigs()->WriteStatistics

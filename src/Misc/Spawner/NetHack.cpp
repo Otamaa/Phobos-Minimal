@@ -30,7 +30,6 @@ u_short Tunnel::Id = 0;
 u_long  Tunnel::Ip = 0;
 u_short Tunnel::Port = 0;
 
-
 int WINAPI NetHack::SendTo(
 	int sockfd,
 	char* buf,
