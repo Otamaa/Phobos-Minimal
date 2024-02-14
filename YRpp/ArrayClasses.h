@@ -567,9 +567,9 @@ public:
 		return this->RemoveAt(this->FindItemIndex(item));
 	}
 
-	void Swap(DynamicVectorClass<T>& other) noexcept
+	void Swap(DynamicVectorClass<T, Allocator>& other) noexcept
 	{
-		VectorClass<T>::Swap(other);
+		VectorClass<T, Allocator>::Swap(other);
 		using std::swap;
 		swap(this->Count, other.Count);
 		swap(this->CapacityIncrement, other.CapacityIncrement);
@@ -658,17 +658,18 @@ class TypeList : public DynamicVectorClass<T , Allocator>
 public:
 	constexpr TypeList<T, Allocator>() noexcept = default;
 	static const ArrayType Type = ArrayType::TypeList;
+	using VectType = DynamicVectorClass<T, Allocator>;
 
 	explicit TypeList<T, Allocator>(int capacity, T* pMem = nullptr)
-		: DynamicVectorClass<T, Allocator>(capacity, pMem)
+		: VectType(capacity, pMem)
 	{ }
 
 	TypeList<T, Allocator>(const TypeList<T, Allocator>& other)
-		: DynamicVectorClass<T, Allocator>(other), unknown_18(other.unknown_18)
+		: VectType(other), unknown_18(other.unknown_18)
 	{ }
 
 	TypeList<T, Allocator>(TypeList<T, Allocator>&& other) noexcept
-		: DynamicVectorClass<T, Allocator>(std::move(other)), unknown_18(other.unknown_18)
+		: VectType(std::move(other)), unknown_18(other.unknown_18)
 	{ }
 
 	virtual ~TypeList<T, Allocator>() = default;
@@ -687,7 +688,7 @@ public:
 
 	void Swap(TypeList<T, Allocator>& other) noexcept
 	{
-		DynamicVectorClass<T, Allocator>::Swap(other);
+		VectType::Swap(other);
 		using std::swap;
 		swap(this->unknown_18, other.unknown_18);
 	}
@@ -704,14 +705,14 @@ class CounterClass : public VectorClass<int , Allocator>
 public:
 	constexpr CounterClass<Allocator>() noexcept = default;
 	static const ArrayType Type = ArrayType::Counter;
-	using VecInt_type = VectorClass<int, Allocator>;
+	using VectType = VectorClass<int, Allocator>;
 
 	CounterClass<Allocator>(const CounterClass<Allocator>& other)
-		: VecInt_type(other), Total(other.Total)
+		: VectType(other), Total(other.Total)
 	{ }
 
 	CounterClass<Allocator>(CounterClass<Allocator>&& other) noexcept
-		: VecInt_type(std::move(other)), Total(other.Total)
+		: VectType(std::move(other)), Total(other.Total)
 	{ }
 
 	CounterClass<Allocator>& operator = (const CounterClass<Allocator>& other)
