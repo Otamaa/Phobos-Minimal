@@ -555,7 +555,7 @@ DEFINE_OVERRIDE_HOOK(0x519FAF, InfantryClass_UpdatePosition_EngineerRepairsFrien
 				pThis->Select();
 			}
 
-			return 0x51A65D;
+			return TargetTypeExtData->RubbleIntactConsumeEngineer ? 0x51A010 : 0x51A65D;
 		}
 		else
 		{

@@ -142,6 +142,7 @@ public:
 	Valueable<int> RubbleIntactStrength { -1 };
 	Valueable<bool> RubbleDestroyedRemove { false };
 	Valueable<bool> RubbleIntactRemove { false };
+	Valueable<bool> RubbleIntactConsumeEngineer { false };
 
 	ValueableVector<Point2D> DamageFire_Offs {};
 

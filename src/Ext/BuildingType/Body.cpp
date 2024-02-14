@@ -862,6 +862,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->RubbleIntactStrength.Read(exINI, pSection, "Rubble.Intact.Strength");
 		this->RubbleDestroyedRemove.Read(exINI, pSection, "Rubble.Destroyed.Remove");
 		this->RubbleIntactRemove.Read(exINI, pSection, "Rubble.Intact.Remove");
+		this->RubbleIntactConsumeEngineer.Read(exINI, pSection, "Rubble.Intact.ConsumeEngineer");
 
 		this->TunnelType.Read(exINI, pSection, "Tunnel");
 
@@ -1072,6 +1073,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->RubbleIntactStrength)
 		.Process(this->RubbleDestroyedRemove)
 		.Process(this->RubbleIntactRemove)
+		.Process(this->RubbleIntactConsumeEngineer)
 		.Process(this->DamageFire_Offs)
 
 		.Process(this->RepairRate)
