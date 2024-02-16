@@ -149,8 +149,7 @@ void CheckProcessorFeatures()
 			"Phobos - CPU Requirements", MB_ICONERROR);
 
 		Debug::Log("Game will now exit.\n");
-		Phobos::ExeTerminate();
-		ExitProcess(533);
+		Debug::ExitGame(533u);
 	}
 #endif
 }

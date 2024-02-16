@@ -19,23 +19,23 @@
 
 #include "Main.h"
 #include <Phobos.h>
+
 #include <Helpers/Macro.h>
 #include <HouseClass.h>
-#include <Exit.h>
+
+#include <Utilities/Debug.h>
 
 bool RageQuit = false;
 
 DEFINE_HOOK(0x77786B, MainWindowProc_HandleRageQuit, 0x5)
 {
-	if (SpawnerMain::Configs::QuickExit) {	
+	if (SpawnerMain::Configs::QuickExit) {
 
-		if (Game::IsActive && HouseClass::CurrentPlayer && !Game::ScoreStuffLoad)
-		{
+		if (Game::IsActive && HouseClass::CurrentPlayer && !Game::ScoreStuffLoad) {
 			RageQuit = true;
 			CALL(0x6471A0);
 		} else {
-			Phobos::ExeTerminate();
-			ExitProcess(0);
+			Debug::ExitGame(0u);
 		}
 	}
 

@@ -264,10 +264,10 @@ void Debug::FatalError(const char* Message, ...)
 	Debug::FatalError(false);
 }
 
-void Debug::ExitGame()
+void Debug::ExitGame(unsigned int code)
 {
 	Phobos::ExeTerminate();
-	ExitProcess(1u);
+	ExitProcess(code);
 }
 
 void Debug::Flush()

@@ -2680,8 +2680,7 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 	}
 
 	Debug::Log("Exiting...\n");
-	Phobos::ExeTerminate();
-	ExitProcess(pExs->ExceptionRecord->ExceptionCode);
+	Debug::ExitGame(pExs->ExceptionRecord->ExceptionCode);
 };
 
 DEFINE_STRONG_OVERRIDE_HOOK(0x4C8FE0, Exception_Handler, 9)

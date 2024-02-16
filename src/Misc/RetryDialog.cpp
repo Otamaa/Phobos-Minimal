@@ -39,8 +39,7 @@ DEFINE_HOOK(0x686092, DoLose_RetryDialogForCampaigns, 0x7)
 		case WWMessageBox::Result::Button3:
 		{
 			Game::IsActive = false;
-			Phobos::ExeTerminate();
-			ExitProcess(0u);
+			Debug::ExitGame(0u);
 		}
 
 		case WWMessageBox::Result::Button2:
