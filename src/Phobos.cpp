@@ -75,7 +75,7 @@ int Phobos::Config::CampaignDefaultGameSpeed = 2;
 
 bool Phobos::Config::MultiThreadSinglePlayer = false;
 bool Phobos::Config::UseImprovedPathfindingBlockageHandling = false;
-bool Phobos::Config::HideLightFlashEffects = true;
+bool Phobos::Config::HideLightFlashEffects = false;
 
 bool Phobos::Misc::CustomGS = false;
 int Phobos::Misc::CustomGS_ChangeInterval[7] = { -1, -1, -1, -1, -1, -1, -1 };
@@ -542,7 +542,7 @@ void InitAdminDebugMode()
 			Phobos::Otamaa::IsAdmin = true;	
 			Phobos::EnableConsole = true;
 
-#ifdef DETACH_DEBUGGER
+#ifndef DETACH_DEBUGGER
 			// this thing can cause game to lockup when loading data
 			//better disable it for release
 

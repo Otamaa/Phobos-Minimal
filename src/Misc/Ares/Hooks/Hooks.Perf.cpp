@@ -11,11 +11,12 @@
  * particles don't render, spotlights aren't created, ...
  ***/
 
-DEFINE_OVERRIDE_HOOK(0x48A634, FlashbangWarheadAt_Details, 5)
-{
-	const auto details = RulesExtData::DetailsCurrentlyEnabled();
-	return details ? 0x48A64Au : 0x48A641u;
-}
+DEFINE_DISABLE_HOOK(0x48A634, FlashbangWarheadAt_Details_ares)
+// DEFINE_OVERRIDE_HOOK(0x48A634, FlashbangWarheadAt_Details, 5)
+// {
+// 	const auto details = RulesExtData::DetailsCurrentlyEnabled();
+// 	return details ? 0x48A64Au : 0x48A641u;
+// }
 
 DEFINE_OVERRIDE_HOOK(0x5FF86E, SpotlightClass_Draw_Details, 5)
 {

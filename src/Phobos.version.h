@@ -9,16 +9,16 @@
 #pragma region Release build version numbering
 
 // Indicates project maturity and completeness
-#define VERSION_MAJOR 0
+#define VERSION_MAJOR 1
 
 // Indicates major changes and significant additions, like new logics
-#define VERSION_MINOR 100
+#define VERSION_MINOR 200
 
 // Indicates minor changes, like vanilla bugfixes, unhardcodings or hacks
-#define VERSION_REVISION 50
+#define VERSION_REVISION 150
 
 // Indicates Phobos-related bugfixes only
-#define VERSION_PATCH 150
+#define VERSION_PATCH 250
 
 #pragma endregion
 
