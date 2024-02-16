@@ -31,7 +31,7 @@
 bool FORCEINLINE IsStatisticsEnabled()
 {
 	return SpawnerMain::Configs::Active
-		&& SpawnerMain::GameConfigs::GetGameConfigs()->WriteStatistics
+		&& SpawnerMain::GetGameConfigs()->WriteStatistics
 		&& !SessionClass::IsCampaign();
 }
 
@@ -94,8 +94,8 @@ DEFINE_HOOK(0x6C735E, SendStatisticsPacket_AddField_HASH, 0x5)
 	if (IsStatisticsEnabled())
 	{
 		LEA_STACK(PacketClass*, pPacket, STACK_OFFSET(0x83A4, -0x8394));
-		pPacket->AddField<wchar_t*>("SCEN", SpawnerMain::GameConfigs::GetGameConfigs()->UIMapName, sizeof(SpawnerMain::GameConfigs::GetGameConfigs()->UIMapName));
-		pPacket->AddField<char*>("HASH", SpawnerMain::GameConfigs::GetGameConfigs()->MapHash);
+		pPacket->AddField<wchar_t*>("SCEN", SpawnerMain::GetGameConfigs()->UIMapName, sizeof(SpawnerMain::GetGameConfigs()->UIMapName));
+		pPacket->AddField<char*>("HASH", SpawnerMain::GetGameConfigs()->MapHash);
 		return 0x6C737D;
 	}
 

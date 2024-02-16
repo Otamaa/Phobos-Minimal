@@ -83,7 +83,7 @@ DEFINE_HOOK(0x5997AB, MapGeneratorClass_Init_RandomMap, 0x9)
 DEFINE_HOOK(0x597B76, MapSeedClass_LoadMap_RandomMap, 0x6)
 {
 	if (SpawnerMain::Configs::Enabled)
-		R->EAX(SpawnerMain::GameConfigs::GetGameConfigs()->Seed);
+		R->EAX(SpawnerMain::GetGameConfigs()->Seed);
 
 	return 0;
 }

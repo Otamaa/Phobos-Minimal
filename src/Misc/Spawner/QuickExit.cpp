@@ -29,7 +29,7 @@ bool RageQuit = false;
 
 DEFINE_HOOK(0x77786B, MainWindowProc_HandleRageQuit, 0x5)
 {
-	if (SpawnerMain::Configs::QuickExit) {
+	if (SpawnerMain::GetMainConfigs()->QuickExit) {
 
 		if (Game::IsActive && HouseClass::CurrentPlayer && !Game::ScoreStuffLoad) {
 			RageQuit = true;

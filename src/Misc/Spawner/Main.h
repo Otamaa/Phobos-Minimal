@@ -30,20 +30,26 @@ struct SpawnerMain
 		static bool Enabled; // false
 		static bool Active; //false
 
-		static bool DumpTypes; // false
+	public:
 
-		static bool MPDebug; // false
-		static bool SingleProcAffinity;  // true
+		bool DumpTypes {false}; // false
+		bool MPDebug { false }; // false
+		bool SingleProcAffinity { true };  // true
 
-		static bool DisableEdgeScrolling;  // false
-		static bool QuickExit;  // false
-		static bool SkipScoreScreen;  // false
-		static bool DDrawHandlesClose;  // false
-		static bool SpeedControl;  // false
+		bool DisableEdgeScrolling { false };  // false
+		bool QuickExit { false };  // false
+		bool SkipScoreScreen { false };  // false
+		bool DDrawHandlesClose { false };  // false
+		bool SpeedControl { false };  // false
 
-		static bool WindowedMode;  // false
-		static bool NoWindowFrame;  // false
-		static int DDrawTargetFPS;  // -1
+		bool WindowedMode { false };  // false
+		bool NoWindowFrame { false };  // false
+		int DDrawTargetFPS { -1 };  // -1
+		bool Taunts { true };
+
+	public:
+
+		static std::unique_ptr<Configs> m_Ptr;
 	};
 
 	struct GameConfigs {
@@ -51,8 +57,8 @@ struct SpawnerMain
 		static bool StartGame();
 		static void AssignHouses();
 
-	private:
-		static std::unique_ptr<GameConfigs> Config;
+	public:
+		static std::unique_ptr<GameConfigs> m_Ptr;
 
 	private:
 		static bool StartNewScenario(const char* scenarioName);
@@ -62,10 +68,6 @@ struct SpawnerMain
 		static void LoadSidesStuff();
 
 	public:
-
-		static GameConfigs* GetGameConfigs() {
-			return Config.get();
-		}
 
 		// Used to create NodeNameType
 		// The order of entries may differ from HouseConfig
@@ -258,7 +260,7 @@ struct SpawnerMain
 			// Extended Options
 			, Ra2Mode { false }
 			, QuickMatch { false }
-			, SkipScoreScreen { Configs::SkipScoreScreen }
+			, SkipScoreScreen { Configs::m_Ptr->SkipScoreScreen }
 			, WriteStatistics { false }
 			, AINamesByDifficulty { false }
 			, ContinueWithoutHumans { false }
@@ -279,4 +281,11 @@ struct SpawnerMain
 	static void LoadConfigurations(); // Early load settings from ra2md
 	static void ApplyStaticOptions(); // Apply all the settings
 
+	static Configs* GetMainConfigs() {
+		return Configs::m_Ptr.get();
+	}
+
+	static GameConfigs* GetGameConfigs() {
+		return GameConfigs::m_Ptr.get();
+	}
 };

@@ -23,12 +23,12 @@
 DEFINE_HOOK(0x5C9720, MPScore_Present_SkipScoreScreen, 0x8)
 {
 	const auto pSpawnerConfig = SpawnerMain::Configs::Enabled
-		? SpawnerMain::GameConfigs::GetGameConfigs()
+		? SpawnerMain::GetGameConfigs()
 		: nullptr;
 
 	const bool bSkipScoreScreen = pSpawnerConfig
 		? pSpawnerConfig->SkipScoreScreen
-		: SpawnerMain::GameConfigs::GetGameConfigs()->SkipScoreScreen;
+		: SpawnerMain::GetMainConfigs()->SkipScoreScreen;
 
 	return bSkipScoreScreen
 		? 0x5C97AC

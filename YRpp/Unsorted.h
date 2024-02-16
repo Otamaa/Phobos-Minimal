@@ -54,6 +54,8 @@ struct Game
 
 	static constexpr reference<bool, 0xB0FBB8u> const ScoreStuffLoad {};
 
+	static constexpr reference<bool, 0xA8D110u> const LANTaunts {};
+
 #define GAMEMD_CLSID(_addrs ,_name) \
 	static constexpr reference<CLSID const, _addrs> const _name {};
 

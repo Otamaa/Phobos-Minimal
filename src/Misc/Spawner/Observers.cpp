@@ -152,7 +152,7 @@ bool inline ShowHouseOnObserverSidebar(HouseClass* pHouse)
 	if (pHouse->Type->MultiplayPassive)
 		return false;
 
-	const bool bShowAI = (SpawnerMain::Configs::Enabled && SpawnerMain::GameConfigs::GetGameConfigs()->Observer_ShowAIOnSidebar);
+	const bool bShowAI = (SpawnerMain::Configs::Enabled && SpawnerMain::GetGameConfigs()->Observer_ShowAIOnSidebar);
 	if (!bShowAI && !pHouse->IsHumanPlayer)
 		return false;
 
