@@ -73,22 +73,17 @@ void SpawnerMain::ExeRun() {
 
 #define SPAWNER_FILE_DESCRIPTION "CnCNet5: Spawner"
 
-void SpawnerMain::CmdLineParse(char** ppArgs, int nNumArgs)
+void SpawnerMain::CmdLineParse(char* pArg)
 {
-	// > 1 because the exe path itself counts as an argument, too!
-	for (int i = 1; i < nNumArgs; ++i)
-	{
-		const char* pArg = ppArgs[i];
 
-		if (0 == _stricmp(pArg, "-SPAWN"))
-		{
-			Phobos::Otamaa::NoCD = true;
-			SpawnerMain::Configs::Enabled = true;
-		}
-		else if (0 == _stricmp(pArg, "-DumpTypes"))
-		{
-			SpawnerMain::Configs::DumpTypes = true;
-		}
+	if (0 == _stricmp(pArg, "-SPAWN"))
+	{
+		Phobos::Otamaa::NoCD = true;
+		SpawnerMain::Configs::Enabled = true;
+	}
+	else if (0 == _stricmp(pArg, "-DumpTypes"))
+	{
+		SpawnerMain::Configs::DumpTypes = true;
 	}
 }
 

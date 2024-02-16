@@ -19,6 +19,7 @@
 #include <Misc/PhobosGlobal.h>
 
 #include <Misc/Ares/Hooks/Header.h>
+#include <Misc/Spawner/Main.h>
 
 #include <Dbghelp.h>
 #include <tlhelp32.h>
@@ -218,6 +219,8 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 
 			processAffinityMask = nData;
 		}
+
+		SpawnerMain::CmdLineParse(pArg);
 	}
 
 #ifndef aaa
@@ -228,6 +231,8 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 
 		if (consoleEnabled)
 			Phobos::EnableConsole = true;
+
+		SpawnerMain::PrintInitializeLog();
 	}
 #endif
 
@@ -609,8 +614,9 @@ void Phobos::ExeRun()
 	Game::bVideoBackBuffer = false;
 	Game::bAllowVRAMSidebar = false;
 
-	InitAdminDebugMode();
 	Patch::PrintAllModuleAndBaseAddr();
+	InitAdminDebugMode();
+
 
 	for (auto&dlls : Patch::ModuleDatas) {
 		if (IS_SAME_STR_(dlls.ModuleName.c_str(), "cncnet5.dll")) {
@@ -637,52 +643,51 @@ void Phobos::ExeTerminate()
 #pragma warning (disable : 4245)
 bool Phobos::DetachFromDebugger()
 {
-	HMODULE hModule = LoadLibraryA("ntdll.dll");
 	DWORD ret = false;
 
-	if (hModule != NULL)
-	{
+	for (auto& module : Patch::ModuleDatas) {
 
-		auto const NtRemoveProcessDebug =
-			(NTSTATUS(__stdcall*)(HANDLE, HANDLE))GetProcAddress(hModule, "NtRemoveProcessDebug");
-		auto const NtSetInformationDebugObject =
-			(NTSTATUS(__stdcall*)(HANDLE, ULONG, PVOID, ULONG, PULONG))GetProcAddress(hModule, "NtSetInformationDebugObject");
-		auto const NtQueryInformationProcess =
-			(NTSTATUS(__stdcall*)(HANDLE, ULONG, PVOID, ULONG, PULONG))GetProcAddress(hModule, "NtQueryInformationProcess");
-		auto const NtClose =
-			(NTSTATUS(__stdcall*)(HANDLE))GetProcAddress(hModule, "NtClose");
+		if (IS_SAME_STR_(module.ModuleName.c_str(), "ntdll.dll") && module.Handle != NULL) {
 
-		HANDLE hDebug {};
-		HANDLE hCurrentProcess = GetCurrentProcess();
-		NTSTATUS status = NtQueryInformationProcess(hCurrentProcess, 30, &hDebug, sizeof(HANDLE), 0);
-		if (0 <= status)
-		{
-			ULONG killProcessOnExit = FALSE;
-			status = NtSetInformationDebugObject(
-				hDebug, 1, &killProcessOnExit, sizeof(ULONG), NULL);
+			auto const NtRemoveProcessDebug =
+				(NTSTATUS(__stdcall*)(HANDLE, HANDLE))GetProcAddress(module.Handle, "NtRemoveProcessDebug");
+			auto const NtSetInformationDebugObject =
+				(NTSTATUS(__stdcall*)(HANDLE, ULONG, PVOID, ULONG, PULONG))GetProcAddress(module.Handle, "NtSetInformationDebugObject");
+			auto const NtQueryInformationProcess =
+				(NTSTATUS(__stdcall*)(HANDLE, ULONG, PVOID, ULONG, PULONG))GetProcAddress(module.Handle, "NtQueryInformationProcess");
+			auto const NtClose =
+				(NTSTATUS(__stdcall*)(HANDLE))GetProcAddress(module.Handle, "NtClose");
 
+			HANDLE hDebug {};
+			HANDLE hCurrentProcess = GetCurrentProcess();
+			NTSTATUS status = NtQueryInformationProcess(hCurrentProcess, 30, &hDebug, sizeof(HANDLE), 0);
 			if (0 <= status)
 			{
-				const auto pid = Patch::GetDebuggerProcessId(GetProcessId(hCurrentProcess));
-				status = NtRemoveProcessDebug(hCurrentProcess, hDebug);
+				ULONG killProcessOnExit = FALSE;
+				status = NtSetInformationDebugObject(
+					hDebug, 1, &killProcessOnExit, sizeof(ULONG), NULL);
+
 				if (0 <= status)
 				{
-					HANDLE hDbgProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
-					if (hDbgProcess != NULL)
+					const auto pid = Patch::GetDebuggerProcessId(GetProcessId(hCurrentProcess));
+					status = NtRemoveProcessDebug(hCurrentProcess, hDebug);
+					if (0 <= status)
 					{
-						ret = TerminateProcess(hDbgProcess, EXIT_SUCCESS);
-						CloseHandle(hDbgProcess);
+						HANDLE hDbgProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
+						if (hDbgProcess != NULL)
+						{
+							ret = TerminateProcess(hDbgProcess, EXIT_SUCCESS);
+							CloseHandle(hDbgProcess);
+						}
 					}
 				}
+
+				NtClose(hDebug);
 			}
 
-			NtClose(hDebug);
+			if (hCurrentProcess != NULL)
+				CloseHandle(hCurrentProcess);
 		}
-
-		if (hCurrentProcess != NULL)
-			CloseHandle(hCurrentProcess);
-
-		FreeLibrary(hModule);
 	}
 
 	return ret;
@@ -937,8 +942,6 @@ DEFINE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
 //	CRT::free(ptr);
 //	return 0x7C8B47;
 //}
-#include <Misc/Spawner/Main.h>
-
 #ifndef aaa
 DEFINE_OVERRIDE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 #else
@@ -963,7 +966,6 @@ DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 	 */
 	//fesetround(FE_TOWARDZERO);
 
-	SpawnerMain::ExeRun();
 	Phobos::ExeRun();
 
 	if (HasCNCnet) {
@@ -985,9 +987,7 @@ DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 	GET(char**, ppArgs, ESI);
 	GET(int, nNumArgs, EDI);
 
-	SpawnerMain::CmdLineParse(ppArgs , nNumArgs);
 	Phobos::CmdLineParse(ppArgs, nNumArgs);
-	SpawnerMain::PrintInitializeLog();
 	Debug::LogDeferredFinalize();
 
 	if(Phobos::Otamaa::IsAdmin) {

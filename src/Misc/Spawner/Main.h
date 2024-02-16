@@ -273,7 +273,7 @@ struct SpawnerMain
 	static UniqueGamePtrB<MixFileClass> MixFile;
 
 	static void ExeRun();
-	static void CmdLineParse(char**, int);
+	static void CmdLineParse(char*);
 	static void PrintInitializeLog();
 
 	static void LoadConfigurations(); // Early load settings from ra2md
