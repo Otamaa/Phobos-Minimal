@@ -63,24 +63,22 @@ DEFINE_HOOK(0x48A62E, DoFlash_CombatLightOptions, 0x6)
 	
 	const DWORD bit = R->BL();
 
-	if (!pWH) //check first requirements
-		return SkipFlash;
-
-	int detailLevel = RulesExtData::Instance()->CombatLightDetailLevel;
-
-	if(!forceshow && !pWH->Bright) //check second requirements
+	if (!pWH || (!forceshow && !pWH->Bright)) //check first requirements
 		return SkipFlash;
 
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
-	detailLevel = pWHExt->CombatLightDetailLevel.Get(detailLevel);
+	int detailLevel = pWHExt->CombatLightDetailLevel.Get(RulesExtData::Instance()->CombatLightDetailLevel);
 
-	if(detailLevel > currentDetailLevel || !RulesExtData::DetailsCurrentlyEnabled() || (bit == 0)) //check detail level , FPS level  , and Bit
-		return SkipFlash;
+	if ((detailLevel <= currentDetailLevel && RulesExtData::DetailsCurrentlyEnabled()) 
+		|| (bit != 0)) //check detail level , FPS level  , and Bit
+	{
+		//check chance if set
+		if (pWHExt->CombatLightChance.isset() && pWHExt->CombatLightChance < Random2Class::Global->RandomDouble())
+			return SkipFlash;
 
-	//check chance if set
-	if (pWHExt->CombatLightChance.isset() && pWHExt->CombatLightChance < Random2Class::Global->RandomDouble())
-		return SkipFlash;
+		return Continue;
+	}
 
-	return Continue;
+	return SkipFlash;
 }
