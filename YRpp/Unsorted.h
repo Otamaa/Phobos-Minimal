@@ -45,6 +45,15 @@ struct Game
 	static constexpr reference<int, 0x8A00A8u> const ScreenHeight {};
 	static constexpr reference<int, 0x8A00A4u> const ScreenWidth {};
 
+	static constexpr reference<bool, 0xA8EDDCu> const SpeedControl {};
+
+	static constexpr reference<unsigned short, 0x841F30u> const PlanetWestwoodPortNumber {};
+
+	static constexpr reference<int, 0xB0BD90u> const SendStatistic_PacketSize {};
+	static constexpr reference<bool, 0xA8F900u> const SendStatistic_Sended {};
+
+	static constexpr reference<bool, 0xB0FBB8u> const ScoreStuffLoad {};
+
 #define GAMEMD_CLSID(_addrs ,_name) \
 	static constexpr reference<CLSID const, _addrs> const _name {};
 

@@ -41,17 +41,15 @@ DEFINE_HOOK(0x6C856C, SendStatisticsPacket_WriteStatisticsDump, 0x5)
 	if (IsStatisticsEnabled())
 	{
 		GET(void*, buf, EAX);
-		int lengthOfPacket = *reinterpret_cast<int*>(0xB0BD90);
 
 		CCFileClass statsFile { "stats.dmp" };
 		if (statsFile.Open(FileAccessMode::Write))
 		{
-			statsFile.WriteBytes(buf, lengthOfPacket);
+			statsFile.WriteBytes(buf, Game::SendStatistic_PacketSize());
 			statsFile.Close();
 		}
 
-		bool& bStatisticsPacketSent = *reinterpret_cast<bool*>(0xA8F900);
-		bStatisticsPacketSent = true;
+		Game::SendStatistic_Sended = true;
 
 		return 0x6C87B8;
 	}

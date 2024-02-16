@@ -27,16 +27,13 @@ bool RageQuit = false;
 
 DEFINE_HOOK(0x77786B, MainWindowProc_HandleRageQuit, 0x5)
 {
-	if (SpawnerMain::Configs::QuickExit)
-	{
-		constexpr reference<bool, 0xB0FBB8u> const ScoreStuffLoad {};
-		if (Game::IsActive && HouseClass::CurrentPlayer && !ScoreStuffLoad)
+	if (SpawnerMain::Configs::QuickExit) {	
+
+		if (Game::IsActive && HouseClass::CurrentPlayer && !Game::ScoreStuffLoad)
 		{
 			RageQuit = true;
 			CALL(0x6471A0);
-		}
-		else
-		{
+		} else {
 			Phobos::ExeTerminate();
 			ExitProcess(0);
 		}

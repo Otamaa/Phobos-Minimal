@@ -159,8 +159,7 @@ void SpawnerMain::ApplyStaticOptions()
 
 	if (SpawnerMain::Configs::SpeedControl)
 	{
-		auto& speedControl = *reinterpret_cast<bool*>(0xA8EDDCu);
-		speedControl = true;
+		Game::SpeedControl = true;
 	}
 
 	// Set 3rd party ddraw.dll options
@@ -256,23 +255,25 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 		return;
 
 	{ // Game Mode Options
-		MPModeIndex = pINI->ReadInteger(GameStrings::Settings(), "GameMode", MPModeIndex);
-		Bases = pINI->ReadBool(GameStrings::Settings(), "Bases", Bases);
-		Credits = pINI->ReadInteger(GameStrings::Settings(), "Credits", Credits);
+		MPModeIndex = pINI->ReadInteger(GameStrings::Settings(), GameStrings::GameMode, MPModeIndex);
+		Bases = pINI->ReadBool(GameStrings::Settings(), GameStrings::Bases, Bases);
+		Credits = pINI->ReadInteger(GameStrings::Settings(), GameStrings::Credits, Credits);
 		BridgeDestroy = pINI->ReadBool(GameStrings::Settings(), "BridgeDestroy", BridgeDestroy);
-		Crates = pINI->ReadBool(GameStrings::Settings(), "Crates", Crates);
-		ShortGame = pINI->ReadBool(GameStrings::Settings(), "ShortGame", ShortGame);
-		SuperWeapons = pINI->ReadBool(GameStrings::Settings(), "Superweapons", SuperWeapons);
-		BuildOffAlly = pINI->ReadBool(GameStrings::Settings(), "BuildOffAlly", BuildOffAlly);
-		GameSpeed = pINI->ReadInteger(GameStrings::Settings(), "GameSpeed", GameSpeed);
-		MultiEngineer = pINI->ReadBool(GameStrings::Settings(), "MultiEngineer", MultiEngineer);
-		UnitCount = pINI->ReadInteger(GameStrings::Settings(), "UnitCount", UnitCount);
-		AIPlayers = pINI->ReadInteger(GameStrings::Settings(), "AIPlayers", AIPlayers);
-		AIDifficulty = pINI->ReadInteger(GameStrings::Settings(), "AIDifficulty", AIDifficulty);
-		AlliesAllowed = pINI->ReadBool(GameStrings::Settings(), "AlliesAllowed", AlliesAllowed);
-		HarvesterTruce = pINI->ReadBool(GameStrings::Settings(), "HarvesterTruce", HarvesterTruce);
-		FogOfWar = pINI->ReadBool(GameStrings::Settings(), "FogOfWar", FogOfWar);
-		MCVRedeploy = pINI->ReadBool(GameStrings::Settings(), "MCVRedeploy", MCVRedeploy);
+		Crates = pINI->ReadBool(GameStrings::Settings(), GameStrings::Crates, Crates);
+		ShortGame = pINI->ReadBool(GameStrings::Settings(), GameStrings::ShortGame, ShortGame);
+		// cncnet/spawner using `Superweapons` is this typo or intention ? , idk 
+		// please report if there is a problem @Otamaa
+		SuperWeapons = pINI->ReadBool(GameStrings::Settings(), GameStrings::SuperWeapons, SuperWeapons);
+		BuildOffAlly = pINI->ReadBool(GameStrings::Settings(), GameStrings::BuildOffAlly, BuildOffAlly);
+		GameSpeed = pINI->ReadInteger(GameStrings::Settings(), GameStrings::GameSpeed, GameSpeed);
+		MultiEngineer = pINI->ReadBool(GameStrings::Settings(), GameStrings::MultiEngineer, MultiEngineer);
+		UnitCount = pINI->ReadInteger(GameStrings::Settings(), GameStrings::UnitCount, UnitCount);
+		AIPlayers = pINI->ReadInteger(GameStrings::Settings(), GameStrings::AIPlayers, AIPlayers);
+		AIDifficulty = pINI->ReadInteger(GameStrings::Settings(), GameStrings::AIDifficulty, AIDifficulty);
+		AlliesAllowed = pINI->ReadBool(GameStrings::Settings(), GameStrings::AlliesAllowed, AlliesAllowed);
+		HarvesterTruce = pINI->ReadBool(GameStrings::Settings(), GameStrings::HarvesterTruce, HarvesterTruce);
+		FogOfWar = pINI->ReadBool(GameStrings::Settings(), GameStrings::FogOfWar, FogOfWar);
+		MCVRedeploy = pINI->ReadBool(GameStrings::Settings(), GameStrings::MCVRedeploy, MCVRedeploy);
 
 		if (((CCINIClassDummy*)pINI)->ReadString_WithoutAresHook(GameStrings::Settings(), "UIGameMode", "", Phobos::readBuffer, Phobos::readLength) > 0)
 			MultiByteToWideChar(CP_UTF8, 0, Phobos::readBuffer, strlen(Phobos::readBuffer), UIGameMode, std::size(UIGameMode));
@@ -284,7 +285,7 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 
 	{ // Scenario Options
 		Seed = pINI->ReadInteger(GameStrings::Settings(), "Seed", Seed);
-		TechLevel = pINI->ReadInteger(GameStrings::Settings(), "TechLevel", TechLevel);
+		TechLevel = pINI->ReadInteger(GameStrings::Settings(), GameStrings::TechLevel, TechLevel);
 		IsCampaign = pINI->ReadBool(GameStrings::Settings(), "IsSinglePlayer", IsCampaign);
 		Tournament = pINI->ReadInteger(GameStrings::Settings(), "Tournament", Tournament);
 		WOLGameID = pINI->ReadInteger(GameStrings::Settings(), "GameID", WOLGameID);
@@ -731,8 +732,7 @@ void SpawnerMain::GameConfigs::InitNetwork() {
 	Tunnel::Ip = inet_addr(SpawnerMain::GameConfigs::GetGameConfigs()->TunnelIp);
 	Tunnel::Port = htons((u_short)SpawnerMain::GameConfigs::GetGameConfigs()->TunnelPort);
 
-	auto& ListenPort = *reinterpret_cast<u_short*>(0x841F30u);
-	ListenPort = Tunnel::Port ? 0 : (u_short)SpawnerMain::GameConfigs::GetGameConfigs()->ListenPort;
+	Game::PlanetWestwoodPortNumber = Tunnel::Port ? 0 : (u_short)SpawnerMain::GameConfigs::GetGameConfigs()->ListenPort;
 
 	UDPInterfaceClass::Instance = GameCreate<UDPInterfaceClass>();
 	UDPInterfaceClass::Instance->Init();
@@ -903,10 +903,3 @@ DEFINE_HOOK(0x4FC57C, HouseClass_MPlayerDefeated_CheckAliveAndHumans, 0x7) {
 }
 
 #pragma endregion MPlayerDefeated
-
-DEFINE_HOOK(0x6BD7DC, InitBootstrapMixFiles_CustomMixes, 0x5)
-{
-	StaticVars::aresMIX.reset(GameCreate<MixFileClass>("ares.mix"));
-	SpawnerMain::MixFile.reset(GameCreate<MixFileClass>("cncnet.mix"));
-	return 0;
-}

@@ -1437,6 +1437,8 @@ DEFINE_OVERRIDE_HOOK(0x5d7048, MPGameMode_SpawnBaseUnit_BuildConst, 5)
 DEFINE_DISABLE_HOOK(0x6BD7E3, Expand_MIX_Reorg_ares)
 DEFINE_STRONG_HOOK(0x6BD7D5, Expand_MIX_Reorg, 7)
 {
+	StaticVars::aresMIX.reset(GameCreate<MixFileClass>("ares.mix"));
+	SpawnerMain::MixFile.reset(GameCreate<MixFileClass>("cncnet.mix"));
 	MixFileClass::Bootstrap();
 	R->EAX(YRMemory::Allocate(sizeof(MixFileClass)));
 	return 0x6BD7DF;
