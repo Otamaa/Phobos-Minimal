@@ -127,7 +127,7 @@ uintptr_t Patch::GetModuleBaseAddress(const char* modName)
 	HANDLE hCurrentProcess = GetCurrentProcess();
 	uintptr_t modBaseAddr = 0;
 	HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, GetProcessId(hCurrentProcess));
-	if (hSnap != INVALID_HANDLE_VALUE)
+	if (hSnap != NULL && hSnap != INVALID_HANDLE_VALUE)
 	{
 		MODULEENTRY32 modEntry { };
 		modEntry.dwSize = sizeof(modEntry);
@@ -143,8 +143,10 @@ uintptr_t Patch::GetModuleBaseAddress(const char* modName)
 			}
 			while (Module32Next(hSnap, &modEntry));
 		}
+
+		CloseHandle(hSnap);
 	}
-	CloseHandle(hSnap);
+
 	return modBaseAddr;
 }
 
@@ -154,7 +156,8 @@ DWORD Patch::GetDebuggerProcessId(DWORD dwSelfProcessId)
 {
 	DWORD dwParentProcessId = NULL;
 	HANDLE hSnapshot = CreateToolhelp32Snapshot(2, 0);
-	if (hSnapshot != INVALID_HANDLE_VALUE)
+
+	if (hSnapshot != NULL && hSnapshot != INVALID_HANDLE_VALUE)
 	{
 		PROCESSENTRY32 pe32 { };
 		pe32.dwSize = sizeof(PROCESSENTRY32);
@@ -170,8 +173,10 @@ DWORD Patch::GetDebuggerProcessId(DWORD dwSelfProcessId)
 			}
 			while (Process32Next(hSnapshot, &pe32));
 		}
+
+		CloseHandle(hSnapshot);
 	}
-	CloseHandle(hSnapshot);
+
 	return dwParentProcessId;
 }
 
