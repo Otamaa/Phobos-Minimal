@@ -19,6 +19,9 @@
 *  along with this program.If not, see <http://www.gnu.org/licenses/>.
 */
 #include <Memory.h>
+#include<Utilities/GameUniquePointers.h>
+
+#include <MixFileClass.h>
 
 class CCINIClass;
 struct SpawnerMain
@@ -267,6 +270,8 @@ struct SpawnerMain
 		void LoadFromINIFile(CCINIClass* pINI);
 	};
 
+	static UniqueGamePtrB<MixFileClass> MixFile;
+
 	static void ExeRun();
 	static void CmdLineParse(char**, int);
 	static void PrintInitializeLog();
@@ -274,5 +279,4 @@ struct SpawnerMain
 	static void LoadConfigurations(); // Early load settings from ra2md
 	static void ApplyStaticOptions(); // Apply all the settings
 
-	static void InitMixes();
 };

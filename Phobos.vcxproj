@@ -287,7 +287,6 @@
     <ClCompile Include="src\Misc\Spawner\DisableEdgeScrolling.cpp" />
     <ClCompile Include="src\Misc\Spawner\DumpTypeDataArrayToFile.cpp" />
     <ClCompile Include="src\Misc\Spawner\Main.cpp" />
-    <ClCompile Include="src\Misc\Spawner\CustomMixes.cpp" />
     <ClCompile Include="src\Misc\Spawner\NetHack.cpp" />
     <ClCompile Include="src\Misc\Spawner\Observers.cpp" />
     <ClCompile Include="src\Misc\Spawner\Observers.Visibility.cpp" />

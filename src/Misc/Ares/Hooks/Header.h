@@ -4,10 +4,11 @@
 #include <CoordStruct.h>
 #include <RectangleStruct.h>
 #include <EventArgs.h>
-
+#include <MixFileClass.h>
 #include <DirStruct.h>
 
 #include <Utilities/Enum.h>
+#include <Utilities/GameUniquePointers.h>
 
 #include <vector>
 #include <New/AnonymousType/AresAttachEffectTypeClass.h>
@@ -132,6 +133,7 @@ struct StaticVars {
 	static PhobosMap<ObjectClass*, AlphaShapeClass*> ObjectLinkedAlphas;
 	static std::vector<unsigned char> ShpCompression1Buffer;
 	static std::map<const TActionClass*, int> TriggerCounts;
+	static UniqueGamePtrB<MixFileClass> aresMIX;
 
 	static bool SaveGlobals(PhobosStreamWriter& stm);
 	static bool LoadGlobals(PhobosStreamReader& stm);

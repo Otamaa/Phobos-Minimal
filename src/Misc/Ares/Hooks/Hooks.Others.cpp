@@ -1785,17 +1785,10 @@ DEFINE_OVERRIDE_HOOK(0x5d6d9a, MPGameModeClass_CreateStartingUnits_UnitCost, 6)
 	return 0x5D6ED6;
 }
 
-UniqueGamePtrB<MixFileClass> aresMIX;
-
-DEFINE_OVERRIDE_HOOK(0x53029e, Load_Bootstrap_AresMIX, 5)
-{
-	aresMIX.reset(GameCreate<MixFileClass>("ares.mix"));
-	return 0;
-}
-
 DEFINE_OVERRIDE_HOOK(0x6BE9BD, Game_ProgramEnd_ClearResource, 6)
 {
-	aresMIX.reset(nullptr);
+	StaticVars::aresMIX.reset(nullptr);
+	SpawnerMain::MixFile.reset(nullptr);
 	return 0;
 }
 

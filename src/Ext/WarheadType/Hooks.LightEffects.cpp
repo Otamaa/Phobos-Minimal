@@ -49,7 +49,7 @@ DEFINE_HOOK(0x5F5053, ObjectClass_Unlimbo_AlphaImage, 0x6)
 
 DEFINE_HOOK(0x48A62E, DoFlash_CombatLightOptions, 0x6)
 {
-	enum { Continue = 0x48A64A, SkipFlash = 0x48A6FA };
+	enum { Continue = 0x48A641, SkipFlash = 0x48A6FA };
 
 	if (Phobos::Config::HideLightFlashEffects)
 		return SkipFlash;
@@ -57,19 +57,18 @@ DEFINE_HOOK(0x48A62E, DoFlash_CombatLightOptions, 0x6)
 	GET(int, currentDetailLevel, EAX);
 	GET(WarheadTypeClass*, pWH, EDI);
 
+	R->ESI(R->ECX());
 	int detailLevel = RulesExtData::Instance()->CombatLightDetailLevel;
 
-	if (pWH)
-	{
-		auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
+	if (pWH) {
+		
+		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
+
 		detailLevel = pWHExt->CombatLightDetailLevel.Get(detailLevel);
 
 		if (pWHExt->CombatLightChance.isset() && pWHExt->CombatLightChance < Random2Class::Global->RandomDouble())
 			return SkipFlash;
 	}
 
-	if (detailLevel <= currentDetailLevel)
-		return Continue;
-
-	return SkipFlash;
+	return detailLevel <= currentDetailLevel ? Continue : SkipFlash;
 }

@@ -60,6 +60,7 @@
 PhobosMap<ObjectClass*, AlphaShapeClass*> StaticVars::ObjectLinkedAlphas {};
 std::vector<unsigned char> StaticVars::ShpCompression1Buffer {};
 std::map<const TActionClass*, int>  StaticVars::TriggerCounts {};
+ UniqueGamePtrB<MixFileClass> StaticVars::aresMIX {};
 
 bool StaticVars::SaveGlobals(PhobosStreamWriter& stm)
 {

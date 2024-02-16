@@ -9,11 +9,14 @@
 #include <UDPInterfaceClass.h>
 #include <IPXManagerClass.h>
 
+#include <Misc/Ares/Hooks/Header.h>
+
 #include "DumpTypeDataArrayToFile.h"
 #include "NetHack.h"
 #include "ProtocolZero/Body.h"
 
 std::unique_ptr<SpawnerMain::GameConfigs> SpawnerMain::GameConfigs::Config = nullptr;
+UniqueGamePtrB<MixFileClass> SpawnerMain::MixFile {};
 
 bool SpawnerMain::Configs::Enabled = false;
 bool SpawnerMain::Configs::Active = false;
@@ -321,7 +324,6 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 	}
 
 	// Extended Options
-	Ra2Mode = pINI->ReadBool(GameStrings::Settings(), "Ra2Mode", Ra2Mode);
 	QuickMatch = pINI->ReadBool(GameStrings::Settings(), "QuickMatch", QuickMatch);
 	SkipScoreScreen = pINI->ReadBool(GameStrings::Settings(), "SkipScoreScreen", SkipScoreScreen);
 	WriteStatistics = pINI->ReadBool(GameStrings::Settings(), "WriteStatistics", WriteStatistics);
@@ -901,3 +903,10 @@ DEFINE_HOOK(0x4FC57C, HouseClass_MPlayerDefeated_CheckAliveAndHumans, 0x7) {
 }
 
 #pragma endregion MPlayerDefeated
+
+DEFINE_HOOK(0x6BD7DC, InitBootstrapMixFiles_CustomMixes, 0x5)
+{
+	StaticVars::aresMIX.reset(GameCreate<MixFileClass>("ares.mix"));
+	SpawnerMain::MixFile.reset(GameCreate<MixFileClass>("cncnet.mix"));
+	return 0;
+}
