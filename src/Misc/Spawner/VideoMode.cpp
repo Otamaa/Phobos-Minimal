@@ -94,7 +94,7 @@ DEFINE_HOOK(0x6A518E, SidebarClass_InitGUI_capheight, 0x5)
 
 // This will force the game to always use ddraw's blit function rather than WW blit
 // We're avoiding ww blit functions because they are not thread safe
-DEFINE_PATCH(0x4BB1FE, 0);    // DSurface::Blit_Clip
+DEFINE_PATCH(0x4BB1FE, 00);    // DSurface::Blit_Clip
 
 // Disables drawing the menu bg which pops up on loading
 #pragma region SkipsMenuBackground

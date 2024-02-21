@@ -95,10 +95,12 @@ DEFINE_HOOK(0x649851, WaitForPlayers_OnlineOptimizations, 0x5)
 	return 0x6488B0;
 }
 
-//TODO : RECHECK
-
+// Otamaa : these block of code seems not really nessesary
+//			all the function output were abandoned anyway
 // Fix crash at 6F9DB6
-DEFINE_JUMP(LJMP, 0x5F58CB, 0x5F58D2); // ObjectClass::Mark
+DEFINE_HOOK(0x5F5893, ObjectClass_Mark_Unessesarycalls, 0x5) {
+	return R->EBX<int>() == 1 ? 0x5F58EC : 0x5F58E7;
+}
 
 // Fix crash at 727B48
 DEFINE_HOOK(0x727B44, TriggerTypeClass_ComputeCRC_FixCrash, 0x6)

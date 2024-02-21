@@ -71,6 +71,16 @@ struct __declspec(novtable)
 		}
 	}
 
+	template<typename To>
+	static inline void Apply_withmemcpy(uintptr_t addrFrom, To toImpl, DWORD& protect_flag, DWORD ReadFlag = PAGE_READWRITE, size_t size = 4u)
+	{
+		if (VirtualProtect((LPVOID)addrFrom, size, ReadFlag, &protect_flag) == TRUE)
+		{
+			std::memcpy((void*)addrFrom, toImpl, size);
+			VirtualProtect((LPVOID)addrFrom, size, protect_flag, NULL);
+		}
+	}
+
 	/**
 	 *  Get the memory address of a function.
 	 */

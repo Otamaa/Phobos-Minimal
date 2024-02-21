@@ -27,6 +27,97 @@
 #include <cfenv>
 #include <WinBase.h>
 
+#include "Lib/Lua542/lua.hpp"
+
+struct luadeleter {
+	void operator ()(lua_State* l) noexcept {
+		if (l) {
+			lua_close(l);
+		}
+	}
+};
+
+using unique_luaptr = std::unique_ptr<lua_State, luadeleter>;
+#define make_unique_lua(to) to.reset(luaL_newstate())
+
+// TODO : encryption support
+static std::string filename = "renameinternal.lua";
+static unique_luaptr global_luaptr { };
+struct addrResult {
+	uintptr_t addr;
+	std::string to;
+	int MaxLen;
+};
+
+static std::vector<addrResult> vec_replaceAddrTo {};
+static std::string MainWindowStr {};
+
+void NOINLINE ExecuteLua()
+{
+	make_unique_lua(global_luaptr);
+	auto L = global_luaptr.get();
+
+	if (luaL_dofile(L, filename.c_str()) == LUA_OK) {
+
+		lua_getglobal(L, "Replaces"); // T ==> -1
+
+		// get the first table
+		if (lua_istable(L, -1)) { // is T table ?
+			const int replace_size = (int)lua_rawlen(L, -1);
+			vec_replaceAddrTo.resize(replace_size);
+
+			for (int i = 0; i < replace_size; i++)
+			{
+				lua_pushinteger(L, i + 1);
+				lua_gettable(L, -2);
+
+				if (lua_istable(L, -2))
+				{
+					addrResult res {};
+
+					lua_pushstring(L, "Addr");
+					lua_gettable(L, -2);
+					const auto addr = (uintptr_t)lua_tointeger(L, -1);
+					vec_replaceAddrTo[i].addr = addr;
+					vec_replaceAddrTo[i].MaxLen = strlen((const char*)addr);
+					lua_pop(L, 1);
+
+					lua_pushstring(L, "To");
+					lua_gettable(L, -2);
+					vec_replaceAddrTo[i].to = lua_tostring(L, -1);
+					lua_pop(L, 1);
+					DWORD protectFlag;
+
+					if(Phobos::Otamaa::IsAdmin)
+						Debug::Log("Patching string [%d] [%x - %s (%d) - max %d]\n", i, vec_replaceAddrTo[i].addr, vec_replaceAddrTo[i].to.c_str() , vec_replaceAddrTo[i].to.size(), vec_replaceAddrTo[i].MaxLen);
+
+					// do not exceed maximum length of the string , otherwise it will broke the .exe file
+					if (VirtualProtect((LPVOID)vec_replaceAddrTo[i].addr, (size_t)vec_replaceAddrTo[i].MaxLen, PAGE_READWRITE, &protectFlag) == TRUE) {
+						std::memcpy((void*)vec_replaceAddrTo[i].addr, vec_replaceAddrTo[i].to.c_str(), (size_t)vec_replaceAddrTo[i].MaxLen);
+						VirtualProtect((LPVOID)vec_replaceAddrTo[i].addr, (size_t)vec_replaceAddrTo[i].MaxLen, protectFlag, NULL);
+					}
+				}
+
+				lua_pop(L, 1);
+			}
+		}
+
+
+		lua_getglobal(L, "MainWindowString");
+		if (lua_isnil(L , -1) == 0 && lua_isstring(L, -1) == 1) {
+			MainWindowStr = lua_tostring(L, -1);
+			Patch::Apply_OFFSET(0x777CC6, (uintptr_t)MainWindowStr.c_str());
+			Patch::Apply_OFFSET(0x777CCB, (uintptr_t)MainWindowStr.c_str());
+			Patch::Apply_OFFSET(0x777D6D, (uintptr_t)MainWindowStr.c_str());
+			Patch::Apply_OFFSET(0x777D72, (uintptr_t)MainWindowStr.c_str());
+			Patch::Apply_OFFSET(0x777CA1, (uintptr_t)MainWindowStr.c_str());
+		}
+	}
+	else {
+		Debug::Log("Cannot find %s file\n", filename.c_str());
+	}
+}
+
 #pragma region DEFINES
 #ifndef IS_RELEASE_VER
 bool Phobos::Config::HideWarning = false;
@@ -539,7 +630,7 @@ void InitAdminDebugMode()
 
 		if (IS_SAME_STR_(Phobos::Otamaa::PCName, "WIN-55BCCCCDAST"))
 		{
-			Phobos::Otamaa::IsAdmin = true;	
+			Phobos::Otamaa::IsAdmin = true;
 			Phobos::EnableConsole = true;
 			Phobos::Config::MultiThreadSinglePlayer = true;
 
@@ -554,7 +645,7 @@ void InitAdminDebugMode()
 			{
 				MessageBoxW(NULL,
 				L"You can now attach a debugger.\n\n"
-			
+
 				L"Press OK to continue YR execution.",
 				L"Debugger Notice", MB_OK);
 			}
@@ -562,12 +653,12 @@ void InitAdminDebugMode()
 			{
 				MessageBoxW(NULL,
 				L"You can now attach a debugger.\n\n"
-			
+
 				L"To attach a debugger find the YR process in Process Hacker "
 				L"/ Visual Studio processes window and detach debuggers from it, "
 				L"then you can attach your own debugger. After this you should "
 				L"terminate Syringe.exe because it won't automatically exit when YR is closed.\n\n"
-			
+
 				L"Press OK to continue YR execution.",
 				L"Debugger Notice", MB_OK);
 			}
@@ -979,6 +1070,7 @@ DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 //DEFINE_JUMP(LJMP, 0x6BD8A4, 0x6BD8C2);
 
 #ifndef aaa
+//6BDB0C
 DEFINE_OVERRIDE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 #else
 DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
@@ -997,6 +1089,8 @@ DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 			}
 		}
 	}
+
+	ExecuteLua();
 
 	return 0;
 }
