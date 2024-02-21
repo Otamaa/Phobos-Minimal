@@ -73,16 +73,16 @@ DEFINE_OVERRIDE_HOOK(0x420960, AlphaShapeClass_CTOR, 5)
 	if (it != StaticVars::ObjectLinkedAlphas.end()) {
 		if (it->second) {
 			//sddtor delete the pKey
-			GameDelete<true, false>(std::exchange(it->second , pThis));
+			GameDelete<true, false>(std::exchange(it->second , nullptr));
 		} else {
 			it->second = pThis;
+			return 0;
 		}
-
-	} else {
-		//insert new key ,..
-		StaticVars::ObjectLinkedAlphas.empalace_unchecked(pSource, pThis);
 	}
 
+
+	//insert new key ,..
+	StaticVars::ObjectLinkedAlphas.empalace_unchecked(pSource, pThis);
 	return 0;
 }
 
