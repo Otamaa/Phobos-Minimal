@@ -1090,7 +1090,7 @@ DEFINE_HOOK(0x447E90, BuildingClass_GetDestinationCoord_Helipad, 0x6)
 	return 0x447F06;
 }
 
-DEFINE_HOOK(0x73AED4, UnitClass_PCP_DamageSelf_C4WarheadAnimCheck, 0x8)
+DEFINE_HOOK(0x73AED4, UnitClass_PCP_DamageSelf_C4WarheadAnimCheck, 0x7)
 {
 	GET(UnitClass* const, pThis, EBP);
 	GET(AnimClass*, pAllocatedMem, ESI);
@@ -2721,7 +2721,7 @@ DEFINE_HOOK(0x6F6BD6, TechnoClass_Limbo_UpdateAfterHouseCounter, 0xA)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6E08DE, TActionClass_SellBack_LimboDelivered, 0x5)
+DEFINE_HOOK(0x6E08DE, TActionClass_SellBack_LimboDelivered, 0x6)
 {
 	enum { forbidden = 0x6E0907, allow = 0x0 };
 
@@ -2737,7 +2737,7 @@ DEFINE_HOOK(0x6E08DE, TActionClass_SellBack_LimboDelivered, 0x5)
 //	return 0x0;
 //}
 
-DEFINE_HOOK(0x6E9696, TeamClass_ChangeHouse_nullptrresult, 0x9)
+DEFINE_HOOK(0x6E9690, TeamClass_ChangeHouse_nullptrresult, 0x6)
 {
 	GET(TeamClass*, pThis, ESI);
 	GET(int, args, ECX);
@@ -2752,6 +2752,7 @@ DEFINE_HOOK(0x6E9696, TeamClass_ChangeHouse_nullptrresult, 0x9)
 	}
 
 	pCurMember->SetOwningHouse(pHouse);
+	R->EBP(pCurMember->NextTeamMember);
 	return 0x6E96A8;
 }
 
@@ -2786,7 +2787,7 @@ DEFINE_HOOK(0x65DD4E, TeamClass_CreateGroub_MissingOwner, 0x7)
 	return 0x65DD55;
 }
 
-DEFINE_HOOK(0x415302, AircraftClass_MissionUnload_IsDropship, 0x8)
+DEFINE_HOOK(0x415302, AircraftClass_MissionUnload_IsDropship, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
 
@@ -2835,7 +2836,7 @@ DEFINE_HOOK(0x415302, AircraftClass_MissionUnload_IsDropship, 0x8)
 DEFINE_HOOK(0x518607, InfantryClass_TakeDamage_FixOnDestroyedSource, 0xA)
 {
 	GET(InfantryClass*, pThis, ESI);
-	GET_STACK(TechnoClass*, pSource, STACK_OFFSET(0xD0, 0x10));
+	GET_STACK(TechnoClass*, pSource, 0xD0 + 0x10);
 	R->AL(pThis->Crash(pSource));
 	return 0x518611;
 }
@@ -3082,14 +3083,16 @@ DEFINE_JUMP(VTABLE, 0x7EB188, GET_OFFSET(ObjectClassExt::_DrawFootRadialIndicato
 //Patches TechnoClass::Kill_Cargo/KillPassengers (push ESI -> push EBP)
 //Fixes recursive passenger kills not being accredited
 //to proper techno but to their transports
-DEFINE_HOOK(0x707CF2, TechnoClass_KillCargo_FixKiller, 0x8)
-{
-	GET(TechnoClass*, pKiller, EBP);
-	GET(TechnoClass*, pCargo, ESI);
+//DEFINE_HOOK(0x707CF2, TechnoClass_KillCargo_FixKiller, 0x8)
+//{
+//	GET(TechnoClass*, pKiller, EBP);
+//	GET(TechnoClass*, pCargo, ESI);
+//
+//	pCargo->KillCargo(pKiller);
+//	return 0x707CFA;
+//}
 
-	pCargo->KillCargo(pKiller);
-	return 0x707CFA;
-}
+DEFINE_PATCH(0x707CF2, 0x55);
 
 DEFINE_HOOK(0x6D47A6, TacticalClass_Render_Techno, 0x6)
 {

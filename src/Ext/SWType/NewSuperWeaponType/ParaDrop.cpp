@@ -36,14 +36,13 @@ void SW_ParaDrop::Initialize(SWTypeExtData* pData)
 		// the American paradrop will be the same for every country,
 		// thus we use the SW's default here.
 		auto& nData = pData->ParaDropDatas[pData->AttachedToObject];
-		nData.push_back(std::move(std::make_unique<ParadropData>()));
-		auto& pPlane = nData.back();
+ 		auto& pPlane = nData.emplace_back();
 
 		auto const& Inf = RulesClass::Instance->AmerParaDropInf;
-		pPlane->Types.insert(pPlane->Types.end(), Inf.begin(), Inf.end());
+		pPlane.Types.insert(pPlane.Types.end(), Inf.begin(), Inf.end());
 
 		auto const& Num = RulesClass::Instance->AmerParaDropNum;
-		pPlane->Num.insert(pPlane->Num.end(), Num.begin(), Num.end());
+		pPlane.Num.insert(pPlane.Num.end(), Num.begin(), Num.end());
 	}
 
 	pData->SW_RadarEvent = false;
@@ -72,10 +71,8 @@ void SW_ParaDrop::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 		}
 	};
 
-	auto ParseParaDrop = [section, &exINI](char* pID, int Plane) -> std::unique_ptr<ParadropData>
+	auto ParseParaDrop = [section, &exINI](char* pID, int Plane , ParadropData& out)
 	{
-		auto pPlane = std::make_unique<ParadropData>();
-
 		// create the plane part of this request. this will be
 		// an empty string for the first plane for this is the default.
 		char plane[0x10] = "";
@@ -91,23 +88,22 @@ void SW_ParaDrop::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 		// parse the plane contents
 		char key[0x40];
 		IMPL_SNPRNINTF(key, _TRUNCATE, "%s.Aircraft", base);
-		pPlane->Aircraft.Read(exINI, section, key);
+		out.Aircraft.Read(exINI, section, key);
 
 		// a list of UnitTypes and InfantryTypes
 		IMPL_SNPRNINTF(key, _TRUNCATE, "%s.Types", base);
-		pPlane->Types.Read(exINI, section, key);
+		out.Types.Read(exINI, section, key);
 
 		// don't parse nums if there are no types
-		if (!pPlane->Aircraft && pPlane->Types.empty())
-		{
-			return nullptr;
+		if (!out.Aircraft && out.Types.empty()) {
+			return;
 		}
 
 		// the number how many times each item is created
 		IMPL_SNPRNINTF(key, _TRUNCATE, "%s.Num", base);
-		pPlane->Num.Read(exINI, section, key);
+		out.Num.Read(exINI, section, key);
 
-		return pPlane;
+		return;
 	};
 
 	auto GetParadropPlane = [=, &base](char const* pID, size_t defaultCount, AbstractTypeClass* pKey)
@@ -123,12 +119,8 @@ void SW_ParaDrop::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 
 		// parse every plane
 		ParaDrop.resize(static_cast<size_t>(count));
-		for (int i = 0; i < count; ++i)
-		{
-			if (auto pPlane = ParseParaDrop(base, i))
-			{
-				ParaDrop[i] = std::move(pPlane);
-			}
+		for (int i = 0; i < count; ++i) {
+			ParseParaDrop(base, i , ParaDrop[i]);
 		}
 	};
 
@@ -190,7 +182,7 @@ bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 	pFallbackPlane = HouseExtData::GetParadropPlane(pHouse);
 
 	// use paradrop lists from house, side and default
-	const std::vector<std::unique_ptr<ParadropData>>* drops[3] {
+	const std::vector<ParadropData>* drops[3] {
 		pData->ParaDropDatas.tryfind(pHouse->Type),
 		pData->ParaDropDatas.tryfind(SideClass::Array->Items[pHouse->Type->SideIndex]),
 		pData->ParaDropDatas.tryfind(pType)
@@ -199,7 +191,7 @@ bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 	// how many planes shall we launch?
 	int count = 1;
 	for (auto const& planes : drops) {
-		if (planes) {
+		if (!planes->empty()) {
 			count = planes->size();
 			break;
 		}
@@ -235,8 +227,10 @@ bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 						continue;
 					}
 
+					auto const pPlane = &(*planes)[index];
+
 					// get the plane at specified index
-					if (auto const& pPlane = (*planes)[index])
+					if(!pPlane->Num.empty())
 					{
 
 						// get the contents, if not already set
@@ -315,7 +309,7 @@ void SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, AircraftTy
 
 	if (!bSpawned)
 	{
-		GameDelete(pPlane);
+		GameDelete<true , false>(pPlane);
 		return;
 	}
 

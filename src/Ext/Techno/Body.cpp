@@ -1510,7 +1510,7 @@ void TechnoExtData::SendPlane(AircraftTypeClass* Aircraft, size_t Amount, HouseC
 		bool UnLimboSucceeded = AircraftExt::PlaceReinforcementAircraft(pPlane , nCell);
 
 		if (!UnLimboSucceeded)  {
-			GameDelete(pPlane);
+			GameDelete<true, false>(pPlane);
 		}
 		else
 		{

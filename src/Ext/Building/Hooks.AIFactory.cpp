@@ -50,6 +50,49 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 	return { currFactory  , block ,AbsType };
 }
 
+//#include <ostream>
+
+static std::map<void*, std::string> MappedCaller {};
+//
+//DEFINE_HOOK(0x7353C0, UnitClass_CTOR_RecordCaller , 0x7) {
+//
+//	GET(UnitClass*, pThis, ECX);
+//	GET_STACK(UnitTypeClass*, pType, 0x4);
+//	GET_STACK(DWORD, caller, 0x0);
+//	MappedCaller[pThis] = std::make_pair(pType , std::to_string(caller));
+//	return 0x0;
+//}
+
+//DEFINE_HOOK(0x7C8E17, Game_OperatorNew_Map, 0x6)
+//{
+//	GET_STACK(int, size, 0x4);
+//	GET_STACK(DWORD, caller, 0x0);
+//
+//	const auto pTr = YRMemory::__mh_malloc(size , 1);
+//	MappedCaller[pTr] = std::to_string(caller);
+//	R->EAX(pTr);
+//	return 0x7C8E24;
+//}
+//
+//DEFINE_HOOK(0x7C9430, Game_MAlloc_Map, 0x6)
+//{
+//	GET_STACK(int, size, 0x4);
+//	GET_STACK(DWORD, caller, 0x0);
+//
+//	const auto pTr = YRMemory::__mh_malloc(size, CRT::AllocatorMode());
+//	MappedCaller[pTr] = std::to_string(caller);
+//	R->EAX(pTr);
+//	return 0x7C9441;
+//}
+//
+//DEFINE_HOOK(0x7C8B3D, Game_OperatorDelete_UnMap, 0x9)
+//{
+//	GET_STACK(void*, ptr, 0x4);
+//	MappedCaller.erase(ptr);
+//	YRMemory::__free(ptr);
+//	return 0x7C8B47;
+//}
+
 void HouseExtData::UpdateVehicleProduction()
 {
 	auto pThis = this->AttachedToObject;
@@ -116,13 +159,32 @@ void HouseExtData::UpdateVehicleProduction()
 //		Debug::Log("House [%s] Have [%d] Teams %s.\n", pThis->get_ID(), i, Teams[i]->get_ID());
 //	}
 
-	for (auto unit : *UnitClass::Array)
-	{
-		const auto index = static_cast<unsigned int>(unit->Type->GetArrayIndex());
+	//std::vector<int> Toremove {};
+	for (int i = 0; i < UnitClass::Array->Count; ++i) {
+		const auto pUnit = UnitClass::Array->Items[i];
 
-		if (values[index] > 0 && unit->CanBeRecruited(pThis))
+		//if (VTable::Get(pUnit) != UnitClass::vtable){
+
+		//	const char* Caller = "unk";
+		//	//const char* Type = "unk";
+		//	if (MappedCaller.contains(pUnit)) {
+		//		Caller = MappedCaller[pUnit].c_str();
+		//	}
+
+		//	Debug::Log("UpdateVehicleProduction for [%s] UnitClass Array(%d) at [%d] contains broken pointer[%x allocated from %s] WTF ???\n", pThis->get_ID() , UnitClass::Array->Count , i, pUnit , Caller);
+		//	Toremove.push_back(i);
+		//	continue;
+		//}
+
+		const auto index = static_cast<unsigned int>(pUnit->Type->GetArrayIndex());
+
+		if (values[index] > 0 && pUnit->CanBeRecruited(pThis))
 			--values[index];
 	}
+
+	//for (auto ToRemoveIdx : Toremove) { 
+	//	UnitClass::Array->RemoveAt(ToRemoveIdx);
+	//}
 
 	bestChoices.clear();
 	bestChoicesNaval.clear();
@@ -205,6 +267,28 @@ void HouseExtData::UpdateVehicleProduction()
 		this->ProducingNavalUnitTypeIndex = result;
 	}
 }
+
+//DEFINE_OVERRIDE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal_Mapped, 0x6)
+//{
+//	GET(AbstractClass* const, pInvalid, ECX);
+//	GET(bool const, removed, EDX);
+//
+//	if (Phobos::Otamaa::ExeTerminated)
+//		return 0;
+//
+//	if (removed && MappedCaller.contains((UnitClass*)pInvalid)) {
+//		MappedCaller.erase((UnitClass*)pInvalid);
+//	}
+//
+//	return 0;
+//}
+//
+//// Clear static data from respective classes
+//DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal_Mapped, 0xA)
+//{ 
+//	MappedCaller.clear();
+//	return 0x0;
+//}
 
 DEFINE_HOOK(0x4401BB, BuildingClass_AI_PickWithFreeDocks, 0x6) //was C
 {
@@ -459,6 +543,9 @@ DEFINE_OVERRIDE_HOOK(0x4FEEE0, HouseClass_AI_InfantryProduction, 6)
 
 		for (auto T : *InfantryClass::Array)
 		{
+			//if (VTable::Get(T) != InfantryClass::vtable)
+			//	Debug::FatalErrorAndExit("InfantryClass Array contains broken pointer WTF ???\n");
+
 			auto const Idx = static_cast<unsigned int>(T->Type->GetArrayIndex());
 			if (Values[Idx] > 0 && T->CanBeRecruited(pThis))
 			{
@@ -567,6 +654,9 @@ DEFINE_OVERRIDE_HOOK(0x4FF210, HouseClass_AI_AircraftProduction, 6)
 
 		for (auto T : *AircraftClass::Array)
 		{
+			//if (VTable::Get(T) != AircraftClass::vtable)
+			//	Debug::FatalErrorAndExit("AircraftClass Array contains broken pointer WTF ???\n");
+
 			auto const Idx = static_cast<unsigned int>(T->Type->GetArrayIndex());
 			if (Values[Idx] > 0 && T->CanBeRecruited(pThis))
 			{

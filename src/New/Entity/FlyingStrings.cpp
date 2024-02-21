@@ -153,10 +153,8 @@ void FlyingStrings::AddNumberString(int amount, HouseClass* owner, AffectedHouse
 
 void FlyingStrings::UpdateAll()
 {
-	if (Data.empty())
-		return;
 
-	for (int i = static_cast<int>(Data.size() - 1); i >= 0; --i)
+	for (int i = static_cast<int>(Data.size()) - 1; i >= 0; --i)
 	{
 		auto& dataItem = Data[i];
 

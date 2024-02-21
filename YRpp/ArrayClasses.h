@@ -63,7 +63,7 @@ public:
 			}
 			else
 			{
-				Allocator alloc;
+				Allocator alloc {};
 				this->Items = Memory::CreateArray<T>(alloc, static_cast<size_t>(capacity));
 				this->IsAllocated = true;
 			}
@@ -74,7 +74,7 @@ public:
 	{
 		if (other.Capacity > 0)
 		{
-			Allocator alloc;
+			Allocator alloc {};
 			this->Items = Memory::CreateArray<T>(alloc, static_cast<size_t>(other.Capacity));
 			this->IsAllocated = true;
 			this->Capacity = other.Capacity;
@@ -97,7 +97,7 @@ public:
 	{
 		if (this->IsAllocated)
 		{
-			Allocator alloc;
+			Allocator alloc {};
 			Memory::DeleteArray(alloc, this->Items, static_cast<size_t>(this->Capacity));
 		}
 	}
@@ -147,7 +147,7 @@ public:
 			bool bMustAllocate = (pMem == nullptr);
 			if (!pMem)
 			{
-				Allocator alloc;		
+				Allocator alloc {};
 				pMem = Memory::CreateArray<T>(alloc, (size_t)capacity);
 			}
 
@@ -168,7 +168,7 @@ public:
 
 				if (this->IsAllocated)
 				{
-					Allocator alloc;
+					Allocator alloc {};
 					Memory::DeleteArray(alloc, this->Items,(size_t)this->Capacity);
 					this->Items = nullptr;
 				}
@@ -291,7 +291,7 @@ public:
 	{
 		if (other.Capacity > 0)
 		{
-			Allocator alloc;
+			Allocator alloc {};
 			this->Items = Memory::CreateArray<T>(alloc, static_cast<size_t>(other.Capacity));
 			this->IsAllocated = true;
 			this->Capacity = other.Capacity;
@@ -485,7 +485,7 @@ public:
 			if (index < this->Count)
 			{
 				T* nSource = this->Items + index;
-				T* nDest = std::next(nSource);
+				T* nDest = std::next(nSource);			
 				std::memmove(nDest, nSource, (this->begin() - nSource) * sizeof(T));
 			}
 
@@ -505,25 +505,8 @@ public:
 
 	bool AddUnique(const T& item)
 	{
-		int count = this->Count;
-		bool AllowAdd = false;
-
-		if (count > 0) {
-			auto begin = (&this->Items[0]);
-			auto end = (&this->Items[count]);
-			T* found;
-			if constexpr (direct_comparable<T>) {
-				found = std::find_if(begin , end , [item](const auto item_here) { return item_here == item; });
-			} else {
-				found = std::find(begin, end, item);
-			}
-
-			AllowAdd = found == end;
-		} else {
-			AllowAdd = true;
-		}
-
-		return AllowAdd ? this->AddItem(item) : false;
+		const int count = this->Count;
+		return count <= 0 || this->Find(item) == this->end() ? this->AddItem(item) : false;
 	}
 
 	bool RemoveAt(int index)
@@ -563,7 +546,7 @@ public:
 		return false;
 	}
 
-	bool FindAndRemove(const T& item) {
+	bool FORCEINLINE FindAndRemove(const T& item) {
 		return this->RemoveAt(this->FindItemIndex(item));
 	}
 
@@ -575,7 +558,7 @@ public:
 		swap(this->CapacityIncrement, other.CapacityIncrement);
 	}
 
-	T* Find(const T& item) const {
+	FORCEINLINE T* Find(const T& item) const {
 		if constexpr (direct_comparable<T>) {
 			return this->find_if([item](const auto item_here) { return item_here == item; });
 		} else {
@@ -586,47 +569,47 @@ public:
 
 #pragma region WrappedSTD
 	template <typename Func>
-	auto find_if(Func&& act) const {
+	auto FORCEINLINE find_if(Func&& act) const {
 		return std::find_if(this->begin(), this->end(), std::forward<Func>(act));
 	}
 
 	template <typename Func>
-	auto find_if(Func&& act) {
+	auto FORCEINLINE find_if(Func&& act) {
 		return std::find_if(this->begin(), this->end(), std::forward<Func>(act));
 	}
 
 	template <typename Func>
-	void for_each(Func&& act) const {
+	void FORCEINLINE for_each(Func&& act) const {
 		std::for_each(this->begin(), this->end(), std::forward<Func>(act));
 	}
 
 	template <typename Func>
-	void for_each(Func&& act) {
+	void FORCEINLINE for_each(Func&& act) {
 		std::for_each(this->begin(), this->end(), std::forward<Func>(act));
 	}
 
 	template<typename func>
-	bool none_of(func&& fn) const {
+	bool FORCEINLINE none_of(func&& fn) const {
 		return std::none_of(this->begin(), this->end(), std::forward<func>(fn));
 	}
 
 	template<typename func>
-	bool none_of(func&& fn) {
+	bool FORCEINLINE none_of(func&& fn) {
 		return std::none_of(this->begin(), this->end(), std::forward<func>(fn));
 	}
 
 	template<typename func>
-	bool any_of(func&& fn) const {
+	bool FORCEINLINE any_of(func&& fn) const {
 		return std::any_of(this->begin(), this->end(), std::forward<func>(fn));
 	}
 
 	template<typename func>
-	bool any_of(func&& fn) {
+	bool FORCEINLINE any_of(func&& fn) {
 		return std::any_of(this->begin(), this->end(), std::forward<func>(fn));
 	}
 #pragma endregion
 
-	bool IsValidArray()
+	bool FORCEINLINE IsValidArray()
 	{
 		if (this->Count >= this->Capacity)
 		{

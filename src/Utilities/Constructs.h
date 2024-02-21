@@ -190,8 +190,7 @@ public:
 	}
 
 	~TheaterSpecificSHP() {
-		GameDelete<true, true>(value);
-		value = nullptr;
+		GameDelete<true, true>(std::exchange(value , nullptr));
 	}
 
 private:

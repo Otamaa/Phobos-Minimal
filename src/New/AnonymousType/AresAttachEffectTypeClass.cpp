@@ -47,8 +47,9 @@ bool AresAttachEffectTypeClass::Save(PhobosStreamWriter& Stm) const
 
 void AresAttachEffectTypeClass::Read(INI_EX& exINI)
 {
-	if (!this->Owner)
-		Debug::FatalError("AttahedAffectType Is Missing OwnerPointer!\n");
+	if (!this->Owner){
+		Debug::FatalErrorAndExit("AttahedAffectType Is Missing OwnerPointer!\n");
+	}
 
 	auto const pSection = this->Owner->ID;
 	this->Duration.Read(exINI, pSection, "AttachEffect.Duration");

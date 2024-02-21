@@ -51,8 +51,8 @@ public:
 	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
 
 private:
-	int GetVelocityZ();
-	int GetFirerZPosition();
-	CoordStruct GetTargetPosition();
-	bool ElevationDetonationCheck();
+	int GetVelocityZ() const;
+	int GetFirerZPosition() const;
+	CoordStruct GetTargetPosition() const;
+	bool ElevationDetonationCheck() const;
 };

@@ -405,10 +405,10 @@ DEFINE_HOOK(0x41F180, AITriggerClass_Chrono, 0x5)
 	auto v8 = pSuper->RechargeTimer.StartTime;
 	auto v9 = pSuper->RechargeTimer.TimeLeft;
 	const auto rechargePercent = (1.0 - RulesClass::Instance->AIMinorSuperReadyPercent);
-	const auto rechargeTime = pSuper->GetRechargeTime();
+	const auto rechargeTime = (double)pSuper->GetRechargeTime();
 
 	if (v8 == -1) {
-		const auto result1 = rechargePercent >= v9 - (Unsorted::CurrentFrame - v8) / rechargeTime;
+		const auto result1 = rechargePercent >= (v9 - (Unsorted::CurrentFrame - v8) / rechargeTime);
 		R->EAX(result1);
 		return 0x41F1BA;
 	}
@@ -416,12 +416,12 @@ DEFINE_HOOK(0x41F180, AITriggerClass_Chrono, 0x5)
 	const auto chargeTime = Unsorted::CurrentFrame - v8;
 	if (chargeTime < v9) {
 		v9 = (v9 - chargeTime);
-		const auto result2 = rechargePercent >= v9 / rechargeTime;
+		const auto result2 = rechargePercent >= (v9 / rechargeTime);
 		R->EAX(result2);
 		return 0x41F1BA;
 	}
 
-	const auto result3 = rechargePercent >= 0 / rechargeTime;
+	const auto result3 = rechargePercent >= (0 / rechargeTime);
 	R->EAX(result3);
 	return 0x41F1BA;
 }
@@ -1272,13 +1272,13 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x6CBCDE, SuperClass_Update_Animation, 5)
 {
 	enum { HideAnim = 0x6CBCE3 , Continue = 0x6CBCFE };
 
-	GET(SuperWeaponType , curSW , EAX);
+	GET(int , curSW , EAX);
 
-	if (curSW < SuperWeaponType::Nuke)
+	if (((size_t)curSW) >= (size_t)SuperWeaponTypeClass::Array->Count)
 		return HideAnim;
 
 	return SuperWeaponTypeClass::Array->
-	Items[(int)curSW]->Type == SuperWeaponType::ChronoWarp ?
+	Items[curSW]->Type == SuperWeaponType::ChronoWarp ?
 	Continue : HideAnim;
 }
 

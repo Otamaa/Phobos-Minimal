@@ -226,8 +226,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 			if (pBld->LightSource)
 			{
 				pBld->LightSource->Deactivate();
-				GameDelete<true, false>(pBld->LightSource);
-				pBld->LightSource = nullptr;
+				GameDelete<true, false>(std::exchange(pBld->LightSource , nullptr));
 			}
 
 			// shut down cloak generation

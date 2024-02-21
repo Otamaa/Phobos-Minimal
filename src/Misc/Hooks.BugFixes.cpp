@@ -28,13 +28,13 @@
 #include <Locomotor/Cast.h>
 
 //Replace: checking of HasExtras = > checking of (HasExtras && Shadow)
-DEFINE_HOOK(0x423365, AnimClass_SHPShadowCheck, 0x8)
-{
-	GET(AnimClass* const, pAnim, ESI);
-	return (pAnim->Type->Shadow && pAnim->HasExtras) ?
-		0x42336D :
-		0x4233EE;
-}
+// DEFINE_HOOK(0x423365, AnimClass_SHPShadowCheck, 0x8)
+// {
+// 	GET(AnimClass* const, pAnim, ESI);
+// 	return (pAnim->Type->Shadow && pAnim->HasExtras) ?
+// 		0x42336D :
+// 		0x4233EE;
+// }
 
 /*
 	Allow usage of TileSet of 255 and above without making NE-SW broken bridges unrepairable
@@ -385,9 +385,7 @@ DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
 	GET(TechnoClass* const, pThis, ESI);
 	REF_STACK(int, nTintColor, STACK_OFFS(0x54, -0x2C));
 
-	BuildingClass* pBld = nullptr;
-	if(pThis->WhatAmI() == BuildingClass::AbsID )
-		pBld = (BuildingClass*)pThis;
+	BuildingClass* pBld = specific_cast<BuildingClass*>(pThis);
 
 	if (pBld) {
 		if ((pBld->CurrentMission == Mission::Construction)

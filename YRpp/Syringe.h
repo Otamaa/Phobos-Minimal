@@ -315,9 +315,9 @@ __declspec(align(16)) struct hostdecl
 #pragma pack(pop)
 
 #pragma section(".syhks00", read, write)
-#pragma section(".syhks01", read, write)
-#pragma section(".syhks02", read, write)
-#pragma section(".syexe00", read, write)
+//#pragma section(".syhks01", read, write)
+//#pragma section(".syhks02", read, write)
+//#pragma section(".syexe00", read, write)
 namespace SyringeData
 {
 	namespace Hooks
@@ -330,12 +330,12 @@ namespace SyringeData
 	};
 };
 
-#define declhost(exename, checksum) \
-namespace SyringeData { \
-namespace Hosts { \
-__declspec(allocate(".syexe00")) \
-hostdecl _hst__ ## exename = { checksum, #exename }; \
-}; };
+//#define declhost(exename, checksum) \
+//namespace SyringeData { \
+//namespace Hosts { \
+//__declspec(allocate(".syexe00")) \
+//hostdecl _hst__ ## exename = { checksum, #exename }; \
+//}; };
 
 #define declhook(hook, funcname, size) \
 namespace SyringeData { \
@@ -344,12 +344,12 @@ __declspec(allocate(".syhks00"))\
 hookdecl _hk__ ## hook ## funcname = { ## hook, ## size, #funcname }; \
 }; };
 
-#define decl_override_hook(hook, funcname, size) \
-namespace SyringeData { \
-namespace Hooks { \
-__declspec(allocate(".syhks01"))\
-overridehookdecl _hk__ ## hook ## funcname = { ## hook, ## size, #funcname , "Ares.dll" }; \
-}; };
+//#define decl_override_hook(hook, funcname, size) \
+//namespace SyringeData { \
+//namespace Hooks { \
+//__declspec(allocate(".syhks01"))\
+//overridehookdecl _hk__ ## hook ## funcname = { ## hook, ## size, #funcname , "Ares.dll" }; \
+//}; };
 
 #endif // SYR_VER == 2
 
@@ -424,12 +424,12 @@ declhook(hook, funcname##_DEBUG_HOOK__LOG_, size)
 
 #pragma region DONOTLOG
 #define DEFINE_STRONG_OVERRIDE_HOOK(hook,funcname,size) \
-decl_override_hook(hook, funcname, size) \
-EXPORT_FUNC(funcname)\
+declhook(hook, funcname, size) \
+EXPORT_FUNC(funcname)
 
 //decl_override_hook(hook, funcname, size)
 #define DEFINE_STRONG_OVERRIDE_HOOK_AGAIN(hook, funcname, size) \
-decl_override_hook(hook, funcname, size)
+declhook(hook, funcname, size)
 
 #define DEFINE_STRONG_HOOK(hook,funcname,size) \
 declhook(hook, funcname, size) \
@@ -443,14 +443,15 @@ declhook(hook, funcname, size)
 #pragma endregion
 
 #ifndef DEBUG_HOOK
-//
+//decl_override_hook(hook, funcname, size) 
+//EXPORT_FUNC(funcname)
 #define DEFINE_OVERRIDE_HOOK(hook,funcname,size) \
-decl_override_hook(hook, funcname, size) \
+declhook(hook, funcname, size) \
 EXPORT_FUNC(funcname)\
 
 //decl_override_hook(hook, funcname, size)
 #define DEFINE_OVERRIDE_HOOK_AGAIN(hook, funcname, size) \
-decl_override_hook(hook, funcname, size)
+declhook(hook, funcname, size)
 
 #else
 
@@ -471,15 +472,16 @@ decl_override_hook(hook, funcname##_DEBUG_HOOK__LOG_, size)
 
 #endif
 
-#define DEFINE_DISABLE_HOOK(hook,funcname)\
-PRAGMA_DISABLEWARNING()\
-PRAGMA_DISABLEWARNING_S(4245)\
-PRAGMA_DISABLEWARNING_S(4838)\
-decl_override_hook(hook, funcname, -1) \
-PRAGMA_DISABLEWARNING_POP()
+#define DEFINE_DISABLE_HOOK(hook,funcname)
+//PRAGMA_DISABLEWARNING()
+//PRAGMA_DISABLEWARNING_S(4245)
+//PRAGMA_DISABLEWARNING_S(4838)
+//decl_override_hook(hook, funcname, -1) 
+//PRAGMA_DISABLEWARNING_POP()
 
 #define DEFINE_OVERRIDE_SKIP_HOOK(hook,funcname,size,ret)\
-DEFINE_OVERRIDE_HOOK(hook,funcname,size){ return 0x ##ret## ;}
+DEFINE_HOOK(hook,funcname,size){ return 0x ##ret## ;}
+//DEFINE_OVERRIDE_HOOK(hook,funcname,size){ return 0x ##ret## ;}
 
 #define DEFINE_SKIP_HOOK(hook,funcname,size,ret)\
 DEFINE_HOOK(hook,funcname,size){ return 0x ##ret## ;}

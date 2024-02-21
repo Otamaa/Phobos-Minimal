@@ -49,6 +49,13 @@ namespace YRMemory {
 
 	// naked does not support inlining. the inline modifier here means that
 	// multiple definitions are allowed.
+	inline NAKED void* __cdecl __mh_malloc(size_t size, int flag) {
+		JMP(0x7C9442);
+	}
+
+	inline NAKED void __cdecl __free(void* mem) {
+		JMP(0x7C93E8);
+	}
 
 	// the game's operator new
 	inline NAKED void* __cdecl Allocate(size_t sz) {
@@ -237,7 +244,7 @@ static inline T* GameCreateUnchecked(TArgs&&... args)
 {
 	static_assert(std::is_constructible<T, TArgs...>::value, "Cannot construct T from TArgs.");
 
-	GameAllocator<T> alloc;
+	GameAllocator<T> alloc {};
 	return Memory::Create<T>(alloc, std::forward<TArgs>(args)...);
 }
 
@@ -245,7 +252,7 @@ template <typename T, typename... TArgs>
 static inline T* GameCreate(TArgs&&... args) {
 	static_assert(std::is_constructible<T, TArgs...>::value, "Cannot construct T from TArgs.");
 
-	GameAllocator<T> alloc;
+	GameAllocator<T> alloc {};
 	return Memory::Create<T>(alloc, std::forward<TArgs>(args)...);
 }
 
@@ -258,19 +265,19 @@ static inline void GameConstruct(T* AllocatedSpace , TArgs&&... args)
 	static_assert(std::is_constructible<T, TArgs...>::value, "Cannot construct T from TArgs.");
 
 	//AllocatedSpace->T::template T(std::forward<TArgs>(args)...);
-	GameAllocator<T> alloc;
+	GameAllocator<T> alloc {};
 	Memory::ConstructAt<T>(alloc, AllocatedSpace, std::forward<TArgs>(args)...);
 }
 
 template<bool calldtor = false,bool check = true, typename T>
 static inline void GameDelete(T* ptr) {
-	GameAllocator<T> alloc;
+	GameAllocator<T> alloc {};
 	Memory::Delete<calldtor>(std::bool_constant<check>::type(), alloc, ptr);
 }
 
 template<bool check = true , typename T>
 static inline void CallDTOR(T* ptr) {
-	GameAllocator<T> alloc;
+	GameAllocator<T> alloc {};
 	Memory::Delete<true>(std::bool_constant<check>::type(), alloc, ptr);
 }
 
@@ -278,7 +285,7 @@ template <typename T, typename... TArgs>
 static inline T* GameCreateArray(size_t capacity, TArgs&&... args) {
 	static_assert(std::is_constructible<T, TArgs...>::value, "Cannot construct T from TArgs.");
 
-	GameAllocator<T> alloc;
+	GameAllocator<T> alloc {};
 	return Memory::CreateArray<T>(alloc, capacity, std::forward<TArgs>(args)...);
 }
 
@@ -287,13 +294,13 @@ static inline T* GameConstructArray(T* AllocatedSpace, size_t capacity, TArgs&&.
 {
 	static_assert(std::is_constructible<T>::value, "Cannot construct T from TArgs.");
 
-	GameAllocator<T> alloc;
+	GameAllocator<T> alloc {};
 	return Memory::CreateArrayAt<T>(alloc, AllocatedSpace , capacity, std::forward<TArgs>(args)...);
 }
 
 template<typename T>
 static inline void GameDeleteArray(T* ptr, size_t capacity) {
-	GameAllocator<T> alloc;
+	GameAllocator<T> alloc {};
 	Memory::DeleteArray(alloc, ptr, capacity);
 }
 
@@ -301,7 +308,7 @@ template <typename T, typename... TArgs>
 static inline T* DLLCreate(TArgs&&... args) {
 	static_assert(std::is_constructible<T, TArgs...>::value, "Cannot construct T from TArgs.");
 
-	DllAllocator<T> alloc;
+	DllAllocator<T> alloc {};
 	return Memory::Create<T>(alloc, std::forward<TArgs>(args)...);
 }
 
@@ -311,27 +318,27 @@ static inline T* DLLCreateArray(size_t capacity, TArgs&&... args)
 {
 	static_assert(std::is_constructible<T, TArgs...>::value, "Cannot construct T from TArgs.");
 
-	DllAllocator<T> alloc;
+	DllAllocator<T> alloc {};
 	return Memory::CreateArray<T>(alloc, capacity, std::forward<TArgs>(args));
 }
 
 template<typename T>
 static inline void DLLDeleteArray(T* ptr, size_t capacity)
 {
-	DllAllocator<T> alloc;
+	DllAllocator<T> alloc {};
 	Memory::DeleteArray(alloc, ptr, capacity);
 }
 
 template<bool check = true , typename T>
 static inline void DLLDelete(T* ptr) {
-	DllAllocator<T> alloc;
+	DllAllocator<T> alloc {};
 	Memory::Delete(std::bool_constant<check>::type(), alloc, ptr);
 }
 
 template<bool check = true, typename T>
 static inline void DLLCallDTOR(T* ptr)
 {
-	DllAllocator<T> alloc;
+	DllAllocator<T> alloc {};
 	Memory::Delete<true>(std::bool_constant<check>::type(), alloc, ptr);
 }
 

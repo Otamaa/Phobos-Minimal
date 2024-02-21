@@ -49,8 +49,8 @@ DEFINE_HOOK(0x420E70, AlphaLightClass_Detach_ClearPointer, 0x7)
 }
 
 #ifndef ALPHA_DRAWING
-// This part is inevitable 
-// the `AlphaShapeClass` dtor is executed first before objects 
+// This part is inevitable
+// the `AlphaShapeClass` dtor is executed first before objects
 DEFINE_OVERRIDE_HOOK(0x421730, AlphaShapeClass_SDDTOR, 8)
 {
 	GET(AlphaShapeClass* const, pAlpha, ECX);
@@ -73,12 +73,14 @@ DEFINE_OVERRIDE_HOOK(0x420960, AlphaShapeClass_CTOR, 5)
 	if (it != StaticVars::ObjectLinkedAlphas.end()) {
 		if (it->second) {
 			//sddtor delete the pKey
-			GameDelete<true, false>(it->second);
+			GameDelete<true, false>(std::exchange(it->second , pThis));
 		}
+
+	} else {
+		//insert new key ,..
+		StaticVars::ObjectLinkedAlphas.empalace_unchecked(pSource, pThis);
 	}
 
-	//insert new key ,..
-	StaticVars::ObjectLinkedAlphas.empalace_unchecked(pSource, pThis);
 	return 0;
 }
 
@@ -87,7 +89,7 @@ DEFINE_OVERRIDE_HOOK(0x5F3D65, ObjectClass_DTOR, 6)
 	GET(ObjectClass*, pThis, ESI);
 
 	if (auto pOldAlpha = StaticVars::ObjectLinkedAlphas.get_or_default(pThis)) {
-		GameDelete<true, false>(pOldAlpha);
+		GameDelete<true, false>(std::exchange(pOldAlpha , nullptr));
 	}
 
 	return 0;

@@ -350,7 +350,7 @@ public:
 #pragma endregion
 
 #pragma region  Generic Paradrop
-	PhobosMap<AbstractTypeClass*, std::vector<std::unique_ptr<ParadropData>>> ParaDropDatas {};
+	PhobosMap<AbstractTypeClass*, std::vector<ParadropData>> ParaDropDatas {};
 #pragma endregion
 
 #pragma region Generic Protection

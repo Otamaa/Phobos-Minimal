@@ -88,6 +88,7 @@ public:
 	//AnimSpawnerDatas SpawnerDatas;
 
 	Valueable<bool> AltPalette_ApplyLighting { false };
+	Valueable<bool> ExtraShadow { true };
 
 	AnimTypeExtData() noexcept = default;
 	~AnimTypeExtData() noexcept = default;

@@ -286,6 +286,7 @@
     <ClCompile Include="src\Misc\Spawner\Bugfixes.cpp" />
     <ClCompile Include="src\Misc\Spawner\DisableEdgeScrolling.cpp" />
     <ClCompile Include="src\Misc\Spawner\DumpTypeDataArrayToFile.cpp" />
+    <ClCompile Include="src\Misc\Spawner\InGameChat.cpp" />
     <ClCompile Include="src\Misc\Spawner\Main.cpp" />
     <ClCompile Include="src\Misc\Spawner\NetHack.cpp" />
     <ClCompile Include="src\Misc\Spawner\Observers.cpp" />
@@ -696,8 +697,8 @@
     <IntDir>$(Configuration)\IntDir\</IntDir>
     <TargetName>Phobos</TargetName>
     <LibraryPath>$(SolutionDir)src\Lib;$(LibraryPath)</LibraryPath>
-    <RunCodeAnalysis>false</RunCodeAnalysis>
-    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <EnableMicrosoftCodeAnalysis>true</EnableMicrosoftCodeAnalysis>
     <EnableClangTidyCodeAnalysis>false</EnableClangTidyCodeAnalysis>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">

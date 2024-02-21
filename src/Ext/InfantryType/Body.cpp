@@ -4,7 +4,7 @@
 
 void Phobos_DoControls::ReadSequence(std::vector<DoInfoStruct>& Desig, InfantryTypeClass* pInf, CCINIClass* pINI)
 {
-	INI_EX IniEX(pINI);
+	/*INI_EX IniEX(pINI);
 
 	char section[0x100];
 	if (pINI->GetString(pInf->ImageFile, "Sequence", section) > 0) {
@@ -62,7 +62,7 @@ void Phobos_DoControls::ReadSequence(std::vector<DoInfoStruct>& Desig, InfantryT
 				}
 			}
 		}
-	}
+	}*/
 }
 
 void InfantryTypeExtData::Initialize()

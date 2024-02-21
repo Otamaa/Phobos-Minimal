@@ -459,13 +459,15 @@ DEFINE_OVERRIDE_HOOK(0x5227A3, Sides_Disguise, 6) // InfantryClass_SetDefaultDis
 		dwReturnAddress = 0x6F4277;
 	}
 
-	if (auto pDisguise = HouseExtData::GetDisguise(pHouse)) {
-		pThis->Disguise = pDisguise;
-		return dwReturnAddress;
-	} else if (const auto pDefaultDisguiseType = TechnoTypeExtContainer::Instance.Find(pThis->Type)->DefaultDisguise.Get(nullptr)){
-		pThis->Disguise = pDefaultDisguiseType;
-		return dwReturnAddress;
-	}
+	if (pThis) {
+		if (auto pDisguise = HouseExtData::GetDisguise(pHouse)) {
+			pThis->Disguise = pDisguise;
+			return dwReturnAddress;
+		} else if (const auto pDefaultDisguiseType = TechnoTypeExtContainer::Instance.Find(pThis->Type)->DefaultDisguise.Get(nullptr)){
+			pThis->Disguise = pDefaultDisguiseType;
+			return dwReturnAddress;
+		}
+		}
 
 	return 0;
 }

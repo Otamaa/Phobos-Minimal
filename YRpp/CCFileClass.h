@@ -183,7 +183,7 @@ public:
 	void Bias(off_t start, int length = -1)
 	{ JMP_THIS(0x65D2B0); }
 
-	HANDLE Get_File_Handle() { return Handle; }
+	HANDLE Get_File_Handle() const { return Handle; }
 	int Transfer_Block_Size() { return (int)((unsigned)UINT_MAX) - 16L; }
 	const char* Get_Safe_File_Name() const { return (FileName != nullptr && FileName[0] != '\0') ? FileName : "<unknown>"; }
 
@@ -406,7 +406,7 @@ public:
 			if(file.Read(ptr, size))
 				return ptr;
 			else
-				delete ptr;
+				delete[] ptr;
 		}
 
 		return nullptr;

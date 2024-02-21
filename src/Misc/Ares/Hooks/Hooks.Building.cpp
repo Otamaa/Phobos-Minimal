@@ -1404,8 +1404,7 @@ void SpawnFreeUnits(BuildingClass* pBuilding , int count) {
 
 			// weeee
 			for(int i = 0 ; i < 2; ++i) {
-				const auto pBldLoc_ = pBuilding->Location;
-				const auto pBldLoc_Cell = CellClass::Coord2Cell(pBldLoc_);
+				const auto pBldLoc_Cell = CellClass::Coord2Cell(pBuilding->Location);
 				int zone = MapClass::Instance->GetMapZone(pBldLoc_Cell, pUnit->Type->MovementZone, false);
 				auto nearbyLoc = MapClass::Instance->NearByLocation(pBldLoc_Cell ,
 				pUnit->Type->SpeedType,
@@ -1423,7 +1422,7 @@ void SpawnFreeUnits(BuildingClass* pBuilding , int count) {
 			}
 
 			if(!place){
-				GameDelete<true>(pUnit);
+				GameDelete<true , false>(pUnit);
 				pBuilding->Owner->TransactMoney(pBuilding->Type->FreeUnit->GetRefund(pBuilding->Owner, true));
 			}
 		}

@@ -370,7 +370,7 @@ DEFINE_OVERRIDE_HOOK(0x4D9F7B, FootClass_Sell_Detonate, 6)
 {
 	GET(FootClass* const, pThis, ESI);
 
-	const auto loc = pThis->Location;
+	const auto& loc = pThis->Location;
 	int money = pThis->GetRefund();
 	pThis->Owner->GiveMoney(money);
 

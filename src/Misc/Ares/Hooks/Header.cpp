@@ -60,7 +60,7 @@
 PhobosMap<ObjectClass*, AlphaShapeClass*> StaticVars::ObjectLinkedAlphas {};
 std::vector<unsigned char> StaticVars::ShpCompression1Buffer {};
 std::map<const TActionClass*, int>  StaticVars::TriggerCounts {};
- UniqueGamePtrB<MixFileClass> StaticVars::aresMIX {};
+UniqueGamePtrB<MixFileClass> StaticVars::aresMIX {};
 
 bool StaticVars::SaveGlobals(PhobosStreamWriter& stm)
 {
@@ -1979,7 +1979,7 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 	)
 	{
 		if (auto pAlpha = StaticVars::ObjectLinkedAlphas.get_or_default(pSource))
-			GameDelete<true, false>(pAlpha);
+			GameDelete<true, false>(std::exchange(pAlpha , nullptr));
 	}
 
 	if (Unsorted::CurrentFrame % 2) { // lag reduction - don't draw a new alpha every frame
@@ -6151,14 +6151,14 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 		case AresTriggerEvents::EnemyInSpotlightNow:
 		{
 			result = true;
-			break;
+			return true;
 		}
 		case AresTriggerEvents::DriverKiller:
 		{
 			result = generic_cast<FootClass*>(Args.Object)
 				&& pThis->EventKind == Args.EventType;
 
-			break;
+			return true;
 		}
 		case AresTriggerEvents::DriverKilled_ByHouse:
 		{
@@ -6167,14 +6167,14 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 				&& Args.Source
 				&& ((TechnoClass*)Args.Source)->Owner->ArrayIndex == pThis->Value;
 
-			break;
+			return true;
 		}
 		case AresTriggerEvents::VehicleTaken:
 		{
 			result = generic_cast<FootClass*>(Args.Object)
 				&& pThis->EventKind == Args.EventType;
 
-			break;
+			return true;
 		}
 		case AresTriggerEvents::VehicleTaken_ByHouse:
 		{
@@ -6183,7 +6183,7 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 				&& Args.Source
 				&& ((TechnoClass*)Args.Source)->Owner->ArrayIndex == pThis->Value;
 
-			break;
+			return true;
 		}
 		case AresTriggerEvents::Abducted:
 		case AresTriggerEvents::AbductSomething:
@@ -6226,7 +6226,7 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 			}
 
 			result = false;
-			break;
+			return true;
 		}
 		case AresTriggerEvents::SuperActivated:
 		case AresTriggerEvents::SuperDeactivated:
@@ -6236,7 +6236,7 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 				&& Args.Source->WhatAmI() == AbstractType::Super
 				&& ((SuperClass*)Args.Source)->Type->ArrayIndex == pThis->Value;
 
-			break;
+			return true;
 		}
 		case AresTriggerEvents::SuperNearWaypoint:
 		{
@@ -6253,12 +6253,12 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 				if (nDesired.pow() <= 5.0)
 				{
 					result = true;
-					break;
+					return true;
 				}
 			}
 
 			result = false;
-			break;
+			return true;
 		}
 		case AresTriggerEvents::ReverseEngineered:
 		{
@@ -6271,32 +6271,33 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 					return pTech == TEventExtContainer::Instance.Find(pThis)->GetTechnoType();
 				});
 			}
-			break;
+
+			return true;
 		}
 		case AresTriggerEvents::ReverseEngineerAnything:
 		{
 			result = (pThis->EventKind == Args.EventType);
-			break;
+			return true;
 		}
 		case AresTriggerEvents::ReverseEngineerType:
 		{
 			result = ((TechnoClass*)Args.Source)->GetTechnoType() == TEventExtContainer::Instance.Find(pThis)->GetTechnoType();
-			break;
+			return true;
 		}
 		case AresTriggerEvents::HouseOwnTechnoType:
 		{
 			result = FindTechnoType(pThis, pThis->Value, Args.Owner);
-			break;
+			return true;
 		}
 		case AresTriggerEvents::HouseDoesntOwnTechnoType:
 		{
 			result = !FindTechnoType(pThis, pThis->Value + 1, Args.Owner);
-			break;
+			return true;
 		}
 		case AresTriggerEvents::AttackedOrDestroyedByAnybody:
 		{
 			result = (pThis->EventKind == Args.EventType);
-			break;
+			return true;
 		}
 		case AresTriggerEvents::AttackedOrDestroyedByHouse:
 		{
@@ -6304,7 +6305,7 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 				&& Args.Source
 				&& ((TechnoClass*)Args.Source)->Owner->ArrayIndex == pThis->Value;
 
-			break;
+			return true;
 		}
 		case AresTriggerEvents::DestroyedByHouse:
 		{
@@ -6312,12 +6313,12 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 				&& Args.Source
 				&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
 
-			break;
+			return true;
 		}
 		case AresTriggerEvents::TechnoTypeDoesntExistMoreThan:
 		{
 			result = FindTechnoType(pThis, pThis->Value + 1, nullptr);
-			break;
+			return true;
 		}
 		case AresTriggerEvents::AllKeepAlivesDestroyed:
 		{
@@ -6326,7 +6327,7 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 				HouseClass::FindByIndex(pThis->Value) : HouseClass::FindByCountryIndex(pThis->Value);
 
 			result = pHouse && HouseExtContainer::Instance.Find(pHouse)->KeepAliveCount <= 0;
-			break;
+			return true;
 		}
 		case AresTriggerEvents::AllKeppAlivesBuildingDestroyed:
 		{
@@ -6335,7 +6336,7 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 				HouseClass::FindByIndex(pThis->Value) : HouseClass::FindByCountryIndex(pThis->Value);
 
 			result = pHouse && HouseExtContainer::Instance.Find(pHouse)->KeepAliveBuildingCount <= 0;
-			break;
+			return true;
 		}
 		default:
 
@@ -6345,11 +6346,13 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 			{
 				//TechnoTypeExist
 				result = FindTechnoType(pThis, pThis->Value, nullptr);
+				return true;
 			}
 			case TriggerEvent::TechTypeDoesntExist:
 			{
 				//TechnoTypeDoesntExist
 				result = !FindTechnoType(pThis, 1, nullptr);
+				return true;
 			}
 			default:
 				break;
@@ -6357,8 +6360,6 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 
 			break;
 		}
-
-		return true;
 	}
 
 	return false;

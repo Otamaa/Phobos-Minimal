@@ -456,10 +456,8 @@ public:
 
 	static void UnloadINIFile(CCINIClass*& pINI)
 	{
-		if (pINI)
-		{
-			GameDelete<true,false>(pINI);
-			pINI = nullptr;
+		if (pINI) {
+			GameDelete<true,false>(std::exchange(pINI , nullptr));
 		}
 	}
 

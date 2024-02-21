@@ -40,6 +40,7 @@ DEFINE_HOOK(0x686092, DoLose_RetryDialogForCampaigns, 0x7)
 		{
 			Game::IsActive = false;
 			Debug::ExitGame(0u);
+			break;
 		}
 
 		case WWMessageBox::Result::Button2:
@@ -54,7 +55,7 @@ DEFINE_HOOK(0x686092, DoLose_RetryDialogForCampaigns, 0x7)
 
 			ThemeClass::Instance->Stop();
 		}
-			break;
+		break;
 		}
 
 		break;

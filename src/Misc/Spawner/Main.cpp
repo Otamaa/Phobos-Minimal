@@ -49,7 +49,10 @@ public:
 	DECLARE_PROPERTY(DynamicVectorClass<FileEntryClass*>, FileEntries);
 };
 
-void SpawnerMain::ExeRun() {
+void SpawnerMain::ExeRun(bool HasCNCnet) {
+	if (HasCNCnet) {
+		Debug::FatalErrorAndExit("This dll already include cncnet5.dll code , please remove first\n");
+	}
 }
 #ifdef IS_ANTICHEAT_VER
 #define SPAWNER_PRODUCT_NAME "YR-Spawner (AntiCheat)"
@@ -61,13 +64,12 @@ void SpawnerMain::ExeRun() {
 
 void SpawnerMain::CmdLineParse(char* pArg)
 {
-
-	if (0 == _stricmp(pArg, "-SPAWN"))
+	if (0 == strcasecmp(pArg, "-SPAWN"))
 	{
 		Phobos::Otamaa::NoCD = true;
 		SpawnerMain::Configs::Enabled = true;
 	}
-	else if (0 == _stricmp(pArg, "-DumpTypes"))
+	else if (0 == strcasecmp(pArg, "-DumpTypes"))
 	{
 		SpawnerMain::Configs::m_Ptr->DumpTypes = true;
 	}
@@ -90,7 +92,8 @@ void SpawnerMain::LoadConfigurations()
 			pMainConfigs->SkipScoreScreen = pINI->ReadBool(GameStrings::Options(), "SkipScoreScreen", pMainConfigs->SkipScoreScreen);
 			pMainConfigs->DDrawHandlesClose = pINI->ReadBool(GameStrings::Options(), "DDrawHandlesClose", pMainConfigs->DDrawHandlesClose);
 			pMainConfigs->SpeedControl = pINI->ReadBool(GameStrings::Options(), "SpeedControl", pMainConfigs->SpeedControl);
-			pMainConfigs->Taunts = pINI->ReadBool(GameStrings::Options(), "Taunts", pMainConfigs->Taunts);
+			pMainConfigs->AllowTaunts = pINI->ReadBool(GameStrings::Options(), "AllowTaunts", pMainConfigs->AllowTaunts);
+			pMainConfigs->AllowChat = pINI->ReadBool(GameStrings::Options(), "AllowChat", pMainConfigs->AllowChat);
 
 		}
 
@@ -149,7 +152,7 @@ void SpawnerMain::ApplyStaticOptions()
 		Game::SpeedControl = true;
 	}
 
-	Game::LANTaunts = pMainConfigs->Taunts;
+	Game::LANTaunts = pMainConfigs->AllowTaunts;
 
 	// Set 3rd party ddraw.dll options
 	for (auto& dllData : Patch::ModuleDatas) {
@@ -270,7 +273,10 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 
 	// SaveGame Options
 	LoadSaveGame = pINI->ReadBool(GameStrings::Settings(), "LoadSaveGame", LoadSaveGame);
-	/* SaveGameName  pINI->ReadString(GameStrings::Settings(), "SaveGameName", SaveGameName, SaveGameName, sizeof(SaveGameName));*/
+	/* SavedGameDir */ 
+	pINI->ReadString(GameStrings::Settings(), "SavedGameDir", SavedGameDir, SavedGameDir, sizeof(SavedGameDir));
+	/* SaveGameName */
+	pINI->ReadString(GameStrings::Settings(), "SaveGameName", SaveGameName, SaveGameName, sizeof(SaveGameName));
 
 	{ // Scenario Options
 		Seed = pINI->ReadInteger(GameStrings::Settings(), "Seed", Seed);
@@ -424,11 +430,6 @@ void SpawnerMain::GameConfigs::Init() {
 	// Set ConnTimeout
 	Patch::Apply_TYPED<int>(0x6843C7, { SpawnerMain::GameConfigs::m_Ptr->ConnTimeout }); //  Scenario_Load_Wait
 
-	{ // Add support unicode player name in ingame chat
-		Patch::Apply_RAW(0x48D930, { 0x8B, 0xC1, 0x90, 0x90, 0x90 }); // mov eax, ecx
-		Patch::Apply_RAW(0x55F0AD, { 0x8B, 0xC1, 0x90, 0x90, 0x90 }); // mov eax, ecx
-	}
-
 	// Show GameMode in DiplomacyDialog in Skirmish
 	Patch::Apply_LJMP(0x658117, 0x658126); // RadarClass_DiplomacyDialog
 
@@ -448,22 +449,20 @@ bool SpawnerMain::GameConfigs::StartGame() {
 
 	char* pScenarioName = m_Ptr->ScenarioName;
 
-	if (m_Ptr->IsCampaign)
+	if (strstr(pScenarioName, "RA2->"))
+		pScenarioName += sizeof("RA2->") - 1;
+
+	if (strstr(pScenarioName, "PlayMovies->"))
 	{
-		if (strstr(pScenarioName, "RA2->"))
-			pScenarioName += sizeof("RA2->") - 1;
+		pScenarioName += sizeof("PlayMovies->") - 1;
+		char* context = nullptr;
+		char* movieName = strtok_s(pScenarioName, Phobos::readDelims, &context);
+		for (; movieName; movieName = strtok_s(nullptr, Phobos::readDelims, &context))
+			Game::PlayMovie(movieName);
 
-		if (strstr(pScenarioName, "PlayMovies->"))
-		{
-			pScenarioName += sizeof("PlayMovies->") - 1;
-			char* context = nullptr;
-			char* movieName = strtok_s(pScenarioName, Phobos::readDelims, &context);
-			for (; movieName; movieName = strtok_s(nullptr, Phobos::readDelims, &context))
-				Game::PlayMovie(movieName);
-
-			return false;
-		}
+		return false;
 	}
+
 
 	SpawnerMain::GameConfigs::LoadSidesStuff();
 
@@ -690,11 +689,25 @@ bool SpawnerMain::GameConfigs::StartNewScenario(const char* pScenarioName) {
 	else
 	{
 		SpawnerMain::GameConfigs::InitNetwork();
+
 		if (!ScenarioClass::StartScenario(pScenarioName, 0, -1))
 			return false;
 
 		pSession->GameMode = GameMode::LAN;
 		pSession->CreateConnections();
+
+		if (SpawnerMain::GetMainConfigs()->AllowChat)
+		{
+			Game::ChatMask[0] = false;
+			Game::ChatMask[1] = false;
+			Game::ChatMask[2] = false;
+			Game::ChatMask[3] = false;
+			Game::ChatMask[4] = false;
+			Game::ChatMask[5] = false;
+			Game::ChatMask[6] = false;
+			Game::ChatMask[7] = false;
+		}
+
 		return true;
 	}
 }
@@ -762,6 +775,13 @@ void SpawnerMain::GameConfigs::InitNetwork() {
 	Game::Network::WOLGameID = SpawnerMain::GameConfigs::m_Ptr->WOLGameID;
 	Game::Network::ReconnectTimeout = SpawnerMain::GameConfigs::m_Ptr->ReconnectTimeout;
 
+	if (SpawnerMain::GameConfigs::m_Ptr->QuickMatch)
+	{
+		Game::EnableMPDebug     = false;
+		Game::DrawMPDebugStats  = false;
+		Game::EnableMPSyncDebug = false;
+	}
+
 	Game::Network::Init();
 }
 
@@ -780,15 +800,6 @@ void SpawnerMain::GameConfigs::LoadSidesStuff()
 DEFINE_HOOK(0x6BD7CB, WinMain_SpawnerInit, 0x5) { 
 	SpawnerMain::GameConfigs::Init();
 	return 0x0;
-}
-
-// Add support unicode player name in ingame chat
-DEFINE_HOOK(0x55EDD2, MessageInput_UnicodePlayerName, 0x5) {
-	if (!SpawnerMain::Configs::Enabled)
-		return 0;
-
-	wcscpy(reinterpret_cast<wchar_t*>(0xA8D63C), NodeNameType::Array->GetItem(0)->Name);
-	return 0x55EE00;
 }
 
 // Display UIGameMode if is set
@@ -833,7 +844,7 @@ DEFINE_HOOK(0x4FC0B6, HouseClass_MPlayerDefeated_SaveArgument, 0x5) {
 
 // Skip match-end logic if MPlayerDefeated called for observer
 DEFINE_HOOK_AGAIN(0x4FC332, HouseClass_MPlayerDefeated_SkipObserver, 0x5)
-DEFINE_HOOK(0x4FC262, HouseClass__MPlayerDefeated_SkipObserver, 0x6) {
+DEFINE_HOOK(0x4FC262, HouseClass_MPlayerDefeated_SkipObserver, 0x6) {
 	enum { ProcEpilogue = 0x4FC6BC };
 
 	if (!MPlayerDefeated::pThis)

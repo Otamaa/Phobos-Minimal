@@ -214,3 +214,15 @@ DEFINE_HOOK(0x424AEC, AnimClass_AI_SetMission, 0x6)
 //replace the vtable call
 void __fastcall Dummy(DWORD t, DWORD , Mission m, bool e){ }
 DEFINE_JUMP(CALL6, 0x424B04, GET_OFFSET(Dummy));
+
+DEFINE_HOOK(0x423365, AnimClass_DrawIt_ExtraShadow, 0x8)
+{
+	enum { DrawExtraShadow = 0x42336D, SkipExtraShadow = 0x4233EE };
+
+	GET(AnimClass*, pThis, ESI);
+
+	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+
+	return pThis->HasExtras && pTypeExt->ExtraShadow ? 
+		DrawExtraShadow : SkipExtraShadow;
+}

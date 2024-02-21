@@ -29,7 +29,7 @@ bool StraightTrajectoryType::Save(PhobosStreamWriter& Stm) const
 
 }
 
-int StraightTrajectory::GetVelocityZ()
+int StraightTrajectory::GetVelocityZ() const
 {
 	auto const pBullet = this->AttachedTo;
 
@@ -44,9 +44,9 @@ int StraightTrajectory::GetVelocityZ()
 	return velocity;
 }
 
-int StraightTrajectory::GetFirerZPosition()
+int StraightTrajectory::GetFirerZPosition() const
 {
-	auto coords = AttachedTo->SourceCoords;
+	CoordStruct coords = AttachedTo->SourceCoords;
 
 	if (AttachedTo->Owner) {
 		if (auto const pCell = AttachedTo->Owner->GetCell())
@@ -56,9 +56,9 @@ int StraightTrajectory::GetFirerZPosition()
 	return coords.Z;
 }
 
-CoordStruct StraightTrajectory::GetTargetPosition()
+CoordStruct StraightTrajectory::GetTargetPosition() const
 {
-	auto coords = AttachedTo->TargetCoords;
+	CoordStruct coords = AttachedTo->TargetCoords;
 
 	if (auto pTarget = AttachedTo->Target) {
 		if (auto const pCell = MapClass::Instance()->TryGetCellAt(pTarget->GetCoords()))
@@ -69,10 +69,10 @@ CoordStruct StraightTrajectory::GetTargetPosition()
 }
 
 // Should bullet detonate based on elevation conditions.
-bool StraightTrajectory::ElevationDetonationCheck()
+bool StraightTrajectory::ElevationDetonationCheck() const
 {
-	auto const location = AttachedTo->Location;
-	auto const target = AttachedTo->TargetCoords;
+	//auto const location = &AttachedTo->Location;
+	//auto const target = &AttachedTo->TargetCoords;
 
 	// Special case - detonate if it is on same cell as target and lower or at same level as it and beneath the cell floor.
 	if (AttachedTo->GetCell() == MapClass::Instance->TryGetCellAt(AttachedTo->TargetCoords)

@@ -91,7 +91,7 @@ DEFINE_HOOK(0x51C1F1, InfantryClass_CanEnterCell_BlockageOverlay, 0x5)
 	return Continue;
 }
 
-DEFINE_HOOK(0x51C540, InfantryClass_CanEnterCell_BlockageGate, 0x9)
+DEFINE_HOOK(0x51C52D, InfantryClass_CanEnterCell_BlockageGate, 0x5)
 {
 	enum { IsBlockage = 0x51C7D0, Continue = 0x51C549, SkipToNext = 0x51C70F };
 
@@ -138,7 +138,7 @@ DEFINE_HOOK(0x51C5C8, InfantryClass_CanEnterCell_BlockageGeneral1, 0x6)
 	return Continue;
 }
 
-DEFINE_HOOK(0x51C84A, InfantryClass_CanEnterCell_BlockageGeneral2, 0x7)
+DEFINE_HOOK(0x51C841, InfantryClass_CanEnterCell_BlockageGeneral2, 0x9)
 {
 	enum { IsBlockage = 0x51C7D0, Continue = 0x51C853, Skip = 0x51C864 };
 

@@ -32,21 +32,22 @@ struct SpawnerMain
 
 	public:
 
-		bool DumpTypes {false}; // false
-		bool MPDebug { false }; // false
-		bool SingleProcAffinity { true };  // true
+		bool DumpTypes {false};
+		bool MPDebug { false };
+		bool SingleProcAffinity { true };
 
-		bool DisableEdgeScrolling { false };  // false
-		bool QuickExit { false };  // false
-		bool SkipScoreScreen { false };  // false
-		bool DDrawHandlesClose { false };  // false
-		bool SpeedControl { false };  // false
+		bool DisableEdgeScrolling { false };
+		bool QuickExit { true };
+		bool SkipScoreScreen { false };
+		bool DDrawHandlesClose { false };
+		bool SpeedControl { false };
 
-		bool WindowedMode { false };  // false
-		bool NoWindowFrame { false };  // false
-		int DDrawTargetFPS { -1 };  // -1
-		bool Taunts { true };
+		bool WindowedMode { false };
+		bool NoWindowFrame { false };
+		int DDrawTargetFPS { -1 }; 
 
+		bool AllowTaunts { true };
+		bool AllowChat { true };
 	public:
 
 		static std::unique_ptr<Configs> m_Ptr;
@@ -138,6 +139,7 @@ struct SpawnerMain
 
 		// SaveGame Options
 		bool LoadSaveGame;
+		char SavedGameDir[MAX_PATH]; // Nested paths are also supported, e.g. "Saved Games\\Yuri's Revenge"
 		char SaveGameName[60];
 
 		// Scenario Options
@@ -204,6 +206,7 @@ struct SpawnerMain
 
 			// SaveGame
 			, LoadSaveGame { false }
+			, SavedGameDir { "Saved Games" }
 			, SaveGameName { "" }
 
 			// Scenario Options
@@ -274,7 +277,7 @@ struct SpawnerMain
 
 	static UniqueGamePtrB<MixFileClass> MixFile;
 
-	static void ExeRun();
+	static void ExeRun(bool HasCNCnet);
 	static void CmdLineParse(char*);
 	static void PrintInitializeLog();
 

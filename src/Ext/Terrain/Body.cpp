@@ -204,7 +204,7 @@ DEFINE_HOOK(0x71CF44, TerrainClass_Save_Suffix, 0x5)
 //
 //	pThis->ObjectClass::PointerExpired(pObj, bRemoved);
 //	TerrainExtContainer::Instance.InvalidatePointerFor(pThis, pObj, bRemoved);
-//	 
+//
 //	if (pThis->Type == pObj)
 //		pThis->Type = nullptr;
 //

@@ -50,7 +50,7 @@ public:
 
 	static RectangleStruct GetLoadingBound()
 	{
-		LoadRectangle ret;
+		LoadRectangle ret {};
 		return *ret.GetLoadingBound();
 	}
 

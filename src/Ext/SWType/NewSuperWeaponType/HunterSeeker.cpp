@@ -66,7 +66,7 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 				}
 				else
 				{
-					GameDelete(pHunter);
+					GameDelete<true, false>(pHunter);
 				}
 			}
 		});

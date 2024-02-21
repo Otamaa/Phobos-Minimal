@@ -105,12 +105,11 @@ DEFINE_OVERRIDE_HOOK(0x753000, VoxClass_CreateFromINIList, 6)
 // need to destroy manually because of non-virtual destructor
 DEFINE_OVERRIDE_HOOK(0x7531CF, VoxClass_DeleteAll, 5)
 {
-	auto& Array = *VoxClass::Array;
-
-	while(Array.Count) {
-		// destroy backwards instead of forwards
-		auto const pVox = static_cast<VoxClass2*>(Array[Array.Count - 1]);
-		GameDelete<true, false>(pVox);
+	for(int i = VoxClass::Array->Count - 1; i >= 0; --i) {
+		if (auto pItem = static_cast<VoxClass2*>(VoxClass::Array->Items[i])) {
+			// destroy backwards instead of forwards
+			GameDelete<true, false>(std::exchange(pItem, nullptr));
+		}
 	}
 
 	return 0x753240;

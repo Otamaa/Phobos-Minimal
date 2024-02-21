@@ -138,6 +138,7 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	}
 
 	this->RemapAnim.Read(exINI, pID, "RemapAnim");
+	this->ExtraShadow.Read(exINI, pID, "ExtraShadow");
 #pragma endregion
 }
 
@@ -456,6 +457,7 @@ void AnimTypeExtData::Serialize(T& Stm)
 		//.Process(SpawnerDatas)
 
 		.Process(this->AltPalette_ApplyLighting)
+		.Process(this->ExtraShadow)
 		;
 }
 

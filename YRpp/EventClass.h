@@ -195,6 +195,11 @@ public:
 		memset(this, 0, sizeof(*this));
 	}
 
+	explicit EventClass(int houseIndex, EventType eventType)
+	{
+		JMP_THIS(0x4C66C0);
+	}
+
 	// Special
 	explicit EventClass(int houseIndex, int id)
 	{

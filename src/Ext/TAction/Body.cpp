@@ -981,10 +981,8 @@ void TActionExt::RecreateLightSources()
 		 auto intensity = pRadSite->LightSource->LightIntensity;
 		 auto visibility = pRadSite->LightSource->LightVisibility;
 
-		 GameDelete<true>(pRadSite->LightSource);
-
-		 pRadSite->LightSource = GameCreate<LightSourceClass>(coord,
-			 visibility, intensity, color);
+		 GameDelete<true , false>(std::exchange(pRadSite->LightSource ,
+		 	GameCreate<LightSourceClass>(coord, visibility, intensity, color)));
 
 		 if (activated)
 			 pRadSite->LightSource->Activate();

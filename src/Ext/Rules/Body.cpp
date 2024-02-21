@@ -180,7 +180,7 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			if ((!IsVanillaDummy(pItem->ID) || !pExt->IsDummy) && !IsUpgradeBld)
 			{
 				Debug::Log("TechnoType[%s - %s] , registered with 0 strength"
-					", this mostlikely because this technotype has no rules entry"
+					", this most likely because this technotype has no rules entry"
 					" or it is suppose to be an dummy\n", pItem->ID, myClassName);
 
 				Debug::RegisterParserError();
@@ -500,8 +500,8 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 			for (auto& para : pSuperExt->ParaDropDatas) {
 				for (auto& pVec : para.second) {
-					if(pVec && !pVec->Types.empty())
-						Helpers::Alex::remove_non_paradroppables(pVec->Types, pSuper->ID, "ParaDrop.Types");
+					if(!pVec.Types.empty())
+						Helpers::Alex::remove_non_paradroppables(pVec.Types, pSuper->ID, "ParaDrop.Types");
 				}
 			}
 		}
@@ -1357,7 +1357,7 @@ DEFINE_HOOK(0x669193, RulesClass_Process_SpecialWeapon_RemoveWHReadingDuplicate,
 
 // Ensure entry not fail because of late instantiation
 // add more if needed , it will double the error log at some point
-// but it will take care some of missing stuffs that previousely loaded late
+// but it will take care some of missing stuffs that previously loaded late
 DEFINE_HOOK(0x679C92, RulesClass_ReadObject_ReReadStuffs, 7)
 {
 	GET_STACK(CCINIClass*, pINI, 0xC + 0x4);

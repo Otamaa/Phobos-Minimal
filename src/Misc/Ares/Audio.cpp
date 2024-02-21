@@ -80,8 +80,7 @@ public:
 		}
 		else
 		{
-			GameDelete(pFile);
-			pFile = nullptr;
+			GameDelete<true , false>(std::exchange(pFile , nullptr));
 		}
 
 		return { iter->Data.Size, iter->Data.Offset, pFile, true };
@@ -97,7 +96,7 @@ public:
 			{
 				auto file = GetFileStructFromIndex(idx);
 				if (file.File && file.Allocated) {
-					GameDelete(file.File);
+					GameDelete<true , false>(std::exchange(file.File , nullptr));
 				}
 			}
 

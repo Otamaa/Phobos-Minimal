@@ -263,7 +263,7 @@ DEFINE_OVERRIDE_HOOK(0x5F77F0, ObjectTypeClass_UnloadPipsSHP, 0x5)
 	{
 		if (TechnoTypeClass::ShapesIsAllocated[i] && FileSystem::ShapesAllocated[i])
 		{
-			GameDelete<true, false>(FileSystem::ShapesAllocated[i]);
+			GameDelete<true, false>(std::exchange(FileSystem::ShapesAllocated[i] , nullptr));
 			TechnoTypeClass::ShapesIsAllocated[i] = false;
 		}
 	}
@@ -851,20 +851,16 @@ DEFINE_OVERRIDE_HOOK(0x535E76, SetDefenseTabCommandClass_Execute_Power, 6)
 DEFINE_OVERRIDE_HOOK(0x4B93BD, ScenarioClass_GenerateDropshipLoadout_FreeAnims, 7)
 {
 	GET_STACK(SHPStruct*, pBackground, 0xAC);
-	if (pBackground)
-	{
-		GameDelete<true, false>(pBackground);
-		pBackground = nullptr;
+
+	if (pBackground) {
+		GameDelete<true, false>(std::exchange(pBackground , nullptr));
 	}
 
 	LEA_STACK(SHPStruct**, pSwipeAnims, 0x290);
 
-	for (auto i = 0; i < 4; ++i)
-	{
-		if (auto pAnim = pSwipeAnims[i])
-		{
-			GameDelete<true, false>(pAnim);
-			pSwipeAnims[i] = nullptr;
+	for (auto i = 0; i < 4; ++i) {
+		if (auto pAnim = pSwipeAnims[i]) {
+			GameDelete<true, false>(std::exchange(pAnim , nullptr));
 		}
 	}
 
@@ -1197,7 +1193,7 @@ DEFINE_JUMP(LJMP, 0x71B09C, 0x71B0E7);
 
 DEFINE_OVERRIDE_HOOK(0x6BED08, Game_Terminate_Mouse, 7)
 {
-	GameDelete<false, false>(R->ECX<void*>());
+	GameDelete<true, false>(R->ECX<SHPStruct*>());
 	return 0x6BED34;
 }
 
@@ -1601,7 +1597,7 @@ DEFINE_OVERRIDE_HOOK(0x537BC0, Game_MakeScreenshot, 6)
 					DWORD R; //
 					DWORD G; //
 					DWORD B; //
-				} h;
+				} h {};
 #pragma pack(pop)
 
 				h.magic[0] = 'B';
@@ -1801,10 +1797,7 @@ DEFINE_OVERRIDE_HOOK(0x531413, Game_Start, 5)
 	DSurface::Hidden->DrawText_Old(L"Ares is active.", 10, topActive, COLOR_GREEN);
 	DSurface::Hidden->DrawText_Old(L"Ares is © The Ares Contributors 2007 - 2021.", 10, 520, COLOR_GREEN);
 
-	wchar_t wVersion[256];
-	wsprintfW(wVersion, L"%hs", L"Ares version: 3.0p1");
-
-	DSurface::Hidden->DrawText_Old(wVersion, 10, 540, COLOR_RED | COLOR_GREEN);
+	DSurface::Hidden->DrawText_Old(L"Ares version: 3.0p1 Backport", 10, 540, COLOR_RED | COLOR_GREEN);
 	return 0;
 }
 
@@ -2493,7 +2486,7 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			int i = 0;
 			for (auto const&data : Patch::ModuleDatas)
 			{
-				fprintf(except, "Module [(%d) %s: Base address = %p]\n", i++, data.ModuleName.c_str(), data.BaseAddr);
+				fprintf(except, "Module [(%d) %s: Base address = %x]\n", i++, data.ModuleName.c_str(), data.BaseAddr);
 			}
 
 			fprintf(except, "\n");
@@ -2649,7 +2642,7 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			SetCursor(loadCursor);
 			Debug::Log("Making a memory dump\n");
 
-			MINIDUMP_EXCEPTION_INFORMATION expParam;
+			MINIDUMP_EXCEPTION_INFORMATION expParam {};
 			expParam.ThreadId = GetCurrentThreadId();
 			expParam.ExceptionPointers = pExs;
 			expParam.ClientPointers = FALSE;
