@@ -18,13 +18,16 @@
 
 DEFINE_HOOK(0x777C41, UI_ApplyAppIcon, 0x9)
 {
+	GET(HINSTANCE , instance , ESI);
+
 	if (!Phobos::AppIconPath.empty()) {
 		Debug::Log("Applying AppIcon from \"%s\"\n", Phobos::AppIconPath.c_str());
-		R->EAX(LoadImageA(NULL, Phobos::AppIconPath.c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE));
-		return 0x777C4A;
+		R->EAX(LoadImageA(instance, Phobos::AppIconPath.c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE));
+	}else{
+		R->EAX(LoadIconA(instance, (LPCSTR)93));
 	}
 
-	return 0;
+	return 0x777C4A;
 }
 
 DEFINE_HOOK(0x640B8D, LoadingScreen_DisableEmptySpawnPositions, 0x6)
