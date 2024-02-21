@@ -74,6 +74,8 @@ DEFINE_OVERRIDE_HOOK(0x420960, AlphaShapeClass_CTOR, 5)
 		if (it->second) {
 			//sddtor delete the pKey
 			GameDelete<true, false>(std::exchange(it->second , pThis));
+		} else {
+			it->second = pThis;
 		}
 
 	} else {
