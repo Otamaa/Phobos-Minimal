@@ -541,6 +541,7 @@ void InitAdminDebugMode()
 		{
 			Phobos::Otamaa::IsAdmin = true;	
 			Phobos::EnableConsole = true;
+			Phobos::Config::MultiThreadSinglePlayer = true;
 
 #ifndef DETACH_DEBUGGER
 			// this thing can cause game to lockup when loading data
@@ -616,7 +617,6 @@ void Phobos::ExeRun()
 
 	Patch::PrintAllModuleAndBaseAddr();
 	InitAdminDebugMode();
-
 
 	for (auto&dlls : Patch::ModuleDatas) {
 		if (IS_SAME_STR_(dlls.ModuleName.c_str(), "cncnet5.dll")) {
