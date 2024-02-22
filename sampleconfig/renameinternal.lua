@@ -36,7 +36,7 @@ Replaces = {
 	{Addr = 0x00826748, To = "MOVMD*.MIX"                                           }, --28
 	{Addr = 0x00830A18, To = "MPMODESMD.INI"                                        }, --29
 	{Addr = 0x0081F3C0, To = "COOPCAMPMD.INI"                                       }, --30
-	{Addr = 0x008332F4, To = "--------- Loading RA2MD.INI settings -------------\n" }, --32
+	{Addr = 0x008332F4, To = "----------- Loading RA2MD.INI settings -----------\n" }, --32
 	{Addr = 0x00825DA0, To = "Reading THEMEMD.INI\n"	                            }, --33
 	{Addr = 0x00825DB8, To = "Failed to load EVAMD.INI\n"                           }, --34
 	{Addr = 0x00825DD4, To = "Failed to find EVAMD.INI\n"                           }, --35
