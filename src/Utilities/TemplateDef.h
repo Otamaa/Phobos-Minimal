@@ -77,6 +77,7 @@ namespace detail
 #pragma region getresult
 	template <typename T>
 	inline bool getresult(T& value, const std::string& parser, const char* pSection, const char* pKey, bool allocate = false) {
+		static_assert(true, "Not Implemented!");
 		return true;
 	}
 
@@ -1677,7 +1678,13 @@ void NOINLINE Nullable<T>::Read(INI_EX& parser, const char* pSection, const char
 {
 	if (detail::read(this->Value, parser, pSection, pKey, Allocate))
 	{
-		this->HasValue = true;
+		const char* val = parser.value();
+
+		if (IS_SAME_STR_(val, DEFAULT_STR2)) {
+			this->Reset();
+		} else {
+			this->HasValue = true;
+		}
 	}
 }
 
