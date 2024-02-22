@@ -38,12 +38,13 @@ struct luadeleter {
 };
 
 using unique_luaptr = std::unique_ptr<lua_State, luadeleter>;
-#define make_unique_lua(to) to.reset(luaL_newstate())
+#define make_unique_lua(to) unique_luaptr to {}; to.reset(luaL_newstate())
 #define close_unique_lua(to) to.reset(nullptr)
 
 // TODO : encryption support
-static std::string filename = "renameinternal.lua";
-static unique_luaptr global_luaptr { };
+// Otamaa : change this variable if you want to load desired name lua file
+static const char* filename = "renameinternal.lua";
+
 struct addrResult {
 	uintptr_t addr;
 	std::string to;
@@ -55,10 +56,10 @@ static std::string MainWindowStr {};
 
 void NOINLINE ExecuteLua()
 {
-	make_unique_lua(global_luaptr);
-	auto L = global_luaptr.get();
+	make_unique_lua(unique_lua);
+	auto L = unique_lua.get();
 
-	if (luaL_dofile(L, filename.c_str()) == LUA_OK) {
+	if (luaL_dofile(L, filename) == LUA_OK) {
 
 		lua_getglobal(L, "Replaces"); // T ==> -1
 
@@ -108,7 +109,7 @@ void NOINLINE ExecuteLua()
 
 
 		lua_getglobal(L, "MainWindowString");
-		if (lua_isnil(L , -1) == 0 && lua_isstring(L, -1) == 1) {
+		if (lua_isnil(L , -1) == 0 && lua_isinteger(L, -1) != 1 && lua_isstring(L, -1) == 1) {
 			MainWindowStr = lua_tostring(L, -1);
 			Patch::Apply_OFFSET(0x777CC6, (uintptr_t)MainWindowStr.c_str());
 			Patch::Apply_OFFSET(0x777CCB, (uintptr_t)MainWindowStr.c_str());
@@ -118,16 +119,12 @@ void NOINLINE ExecuteLua()
 		}
 
 		lua_getglobal(L, "MovieMDINI");
-		if (lua_isnil(L, -1) == 0 && lua_isstring(L, -1) == 1) {
+		if (lua_isnil(L, -1) == 0 && lua_isinteger(L, -1) != 1 && lua_isstring(L, -1) == 1) {
 			StaticVars::MovieMDINI = lua_tostring(L, -1);
 		}
-
-		//close the lua virtual machine , since it not used anymore after this
-		close_unique_lua(global_luaptr);
-
 	}
 	else {
-		Debug::Log("Cannot find %s file\n", filename.c_str());
+		Debug::Log("Cannot find %s file\n", filename);
 	}
 }
 
