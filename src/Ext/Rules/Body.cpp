@@ -30,7 +30,6 @@
 
 #include <Misc/DynamicPatcher/Trails/TrailType.h>
 
-
 std::unique_ptr<RulesExtData>  RulesExtData::Data = nullptr;
 IStream* RulesExtData::g_pStm = nullptr;
 
@@ -203,7 +202,7 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 		if (pExt->Promote_Vet_Type && pExt->Promote_Vet_Type->Strength <= 0)
 		{
-			Debug::Log("TechnoType[%s - %s] , registered PromoteVet[%s] with 0 strength , Fixing.\n", 
+			Debug::Log("TechnoType[%s - %s] , registered PromoteVet[%s] with 0 strength , Fixing.\n",
 				pItem->ID, myClassName , pExt->Promote_Vet_Type->ID);
 
 			pExt->Promote_Vet_Type = nullptr;
@@ -417,7 +416,7 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 		const auto pExt = WeaponTypeExtContainer::Instance.Find(pItem);
 
-		if ((pItem->IsRailgun || pExt->IsDetachedRailgun || pItem->UseSparkParticles || pItem->UseFireParticles) 
+		if ((pItem->IsRailgun || pExt->IsDetachedRailgun || pItem->UseSparkParticles || pItem->UseFireParticles)
 				&& !pItem->AttachedParticleSystem) {
 
 			Debug::Log("Weapon[%s] is an Railgun/Detached Railgun/UseSparkParticles/UseFireParticles but it missing AttachedParticleSystem", pItem->ID);
@@ -1114,7 +1113,7 @@ DEFINE_HOOK(0x675210, RulesClass_SaveLoad_Prefix, 0x5)
 	GET(RulesClass*, pItem, ECX);
 	GET_STACK(IStream*, pStm, 0x4);
 
-	if (R->Origin() == 0x675210){ 
+	if (R->Origin() == 0x675210){
 		pItem->BarrelDebris.Clear();
 		pItem->DeadBodies.Clear();
 		pItem->DropPod.Clear();

@@ -45,13 +45,7 @@ using unique_luastate = std::unique_ptr<lua_State, luastatedeleter>;
 // Otamaa : change this variable if you want to load desired name lua file
 static const char* filename = "renameinternal.lua";
 
-struct addrResult {
-	uintptr_t addr;
-	std::string to;
-	int MaxLen;
-};
-
-static std::vector<addrResult> vec_replaceAddrTo {};
+static std::unordered_map<uintptr_t, std::string> map_replaceAddrTo {};
 static std::string MainWindowStr {};
 
 void NOINLINE ExecuteLua()
@@ -66,7 +60,6 @@ void NOINLINE ExecuteLua()
 		// get the first table
 		if (lua_istable(L, -1)) { // is T table ?
 			const int replace_size = (int)lua_rawlen(L, -1);
-			vec_replaceAddrTo.resize(replace_size);
 
 			for (int i = 0; i < replace_size; i++)
 			{
@@ -75,38 +68,31 @@ void NOINLINE ExecuteLua()
 
 				if (lua_istable(L, -2))
 				{
-					addrResult res {};
-
 					lua_pushstring(L, "Addr");
 					lua_gettable(L, -2);
 					const auto addr = (uintptr_t)lua_tointeger(L, -1);
-					vec_replaceAddrTo[i].addr = addr;
-					vec_replaceAddrTo[i].MaxLen = strlen((const char*)addr);
+					auto& result = map_replaceAddrTo[addr];
+					const auto maxlen = strlen((const char*)addr);
 					lua_pop(L, 1);
 
 					lua_pushstring(L, "To");
 					lua_gettable(L, -2);
-					vec_replaceAddrTo[i].to = lua_tostring(L, -1);
+					result = lua_tostring(L, -1);
 					lua_pop(L, 1);
 					DWORD protectFlag;
 
-					if (Phobos::Otamaa::IsAdmin)
-					{
-						std::string copy = trim(vec_replaceAddrTo[i].to.c_str());
-						Debug::Log("Patching string [%d] [%x - %s (%d) - max %d]\n", i, vec_replaceAddrTo[i].addr, copy.c_str(), vec_replaceAddrTo[i].to.size(), vec_replaceAddrTo[i].MaxLen);
+					if (Phobos::Otamaa::IsAdmin) {
+						std::string copy = trim(result.c_str());
+						Debug::Log("Patching string [%d] [0x%x - %s (%d) - max %d]\n", i, addr, copy.c_str(), result.size(), maxlen);
 					}
 
 					// do not exceed maximum length of the string , otherwise it will broke the .exe file
-					if (VirtualProtect((LPVOID)vec_replaceAddrTo[i].addr, (size_t)vec_replaceAddrTo[i].MaxLen, PAGE_READWRITE, &protectFlag) == TRUE) {
-						std::memcpy((void*)vec_replaceAddrTo[i].addr, vec_replaceAddrTo[i].to.c_str(), (size_t)vec_replaceAddrTo[i].MaxLen);
-						VirtualProtect((LPVOID)vec_replaceAddrTo[i].addr, (size_t)vec_replaceAddrTo[i].MaxLen, protectFlag, NULL);
-					}
+					Patch::Apply_withmemcpy(addr, result.c_str(), protectFlag, PAGE_READWRITE, (size_t)maxlen);
 				}
 
 				lua_pop(L, 1);
 			}
 		}
-
 
 		lua_getglobal(L, "MainWindowString");
 		if (lua_isnil(L , -1) == 0 && lua_isinteger(L, -1) != 1 && lua_isstring(L, -1) == 1) {

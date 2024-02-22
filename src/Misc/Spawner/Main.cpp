@@ -167,7 +167,7 @@ void SpawnerMain::ApplyStaticOptions()
 			break;
 		}
 	}
-	
+
 	//if (HMODULE hDDraw = LoadLibraryA("ddraw.dll")) {
 	//
 	//	if (bool* gameHandlesClose = (bool*)GetProcAddress(hDDraw, "GameHandlesClose"))
@@ -253,7 +253,7 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 		BridgeDestroy = pINI->ReadBool(GameStrings::Settings(), "BridgeDestroy", BridgeDestroy);
 		Crates = pINI->ReadBool(GameStrings::Settings(), GameStrings::Crates, Crates);
 		ShortGame = pINI->ReadBool(GameStrings::Settings(), GameStrings::ShortGame, ShortGame);
-		// cncnet/spawner using `Superweapons` is this typo or intention ? , idk 
+		// cncnet/spawner using `Superweapons` is this typo or intention ? , idk
 		// please report if there is a problem @Otamaa
 		SuperWeapons = pINI->ReadBool(GameStrings::Settings(), GameStrings::SuperWeapons, SuperWeapons);
 		BuildOffAlly = pINI->ReadBool(GameStrings::Settings(), GameStrings::BuildOffAlly, BuildOffAlly);
@@ -273,7 +273,7 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 
 	// SaveGame Options
 	LoadSaveGame = pINI->ReadBool(GameStrings::Settings(), "LoadSaveGame", LoadSaveGame);
-	/* SavedGameDir */ 
+	/* SavedGameDir */
 	pINI->ReadString(GameStrings::Settings(), "SavedGameDir", SavedGameDir, SavedGameDir, sizeof(SavedGameDir));
 	/* SaveGameName */
 	pINI->ReadString(GameStrings::Settings(), "SaveGameName", SaveGameName, SaveGameName, sizeof(SaveGameName));
@@ -796,7 +796,7 @@ void SpawnerMain::GameConfigs::LoadSidesStuff()
 		pItem->LoadFromINI(pINI);
 }
 
-DEFINE_HOOK(0x6BD7CB, WinMain_SpawnerInit, 0x5) { 
+DEFINE_HOOK(0x6BD7CB, WinMain_SpawnerInit, 0x5) {
 	SpawnerMain::GameConfigs::Init();
 	return 0x0;
 }
