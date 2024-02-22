@@ -39,9 +39,6 @@
 //	return 0x0;
 //}
 
-DEFINE_DISABLE_HOOK(0x4B5F9E, DropPodLocomotionClass_ILocomotion_Process_Report_ares)
-DEFINE_DISABLE_HOOK(0x4B619F, DropPodLocomotionClass_ILocomotion_MoveTo_AtmosphereEntry_ares)
-
 DEFINE_OVERRIDE_HOOK(0x718275 ,TeleportLocomotionClass_MakeRoom, 9)
 {
 	LEA_STACK(CoordStruct*, pCoord, 0x3C);
@@ -134,8 +131,6 @@ DEFINE_OVERRIDE_HOOK(0x514DFE, HoverLocomotionClass_ILocomotion_MoveTo_DeployToL
 
 	return 0;
 }
-
-DEFINE_DISABLE_HOOK(0x513EAA, HoverLocomotionClass_UpdateHover_DeployToLand_ares)
 
 DEFINE_OVERRIDE_HOOK(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_UpdateTarget, 0x6)
 {

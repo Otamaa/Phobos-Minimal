@@ -300,7 +300,7 @@ DEFINE_OVERRIDE_HOOK(0x523932, InfantryTypeClass_CTOR_Initialize, 8)
 //
 // skip old logic's way to determine the cursor
 // Was 7
-DEFINE_DISABLE_HOOK(0x51E5BB, InfantryClass_GetActionOnObject_MultiEngineerA_ares)//, 0x5, 51E5D9)
+//InfantryClass_GetActionOnObject_MultiEngineerA
 DEFINE_JUMP(LJMP, 0x51E5BB, 0x51E5D9);
 
 DEFINE_OVERRIDE_HOOK(0x51F628, InfantryClass_Guard_Doggie, 0x5)
@@ -449,7 +449,7 @@ DEFINE_OVERRIDE_HOOK(0x520731, InfantryClass_UpdateFiringState_Heal, 0x5)
 
 // actual game code: if(auto B = specific_cast<BuildingClass *>(T)) { if(T->currentAmmo > 1) { return 1; } }
 // if the object being queried doesn't have a weapon (Armory/Hospital), it'll return 1 anyway
-DEFINE_DISABLE_HOOK(0x6FCFA4, TechnoClass_GetROF_BuildingHack_ares)//, 0x5, 6FCFC1)
+//echnoClass_GetROF_BuildingHack
 DEFINE_JUMP(LJMP, 0x6FCFA4, 0x6FCFC1);
 
 DEFINE_OVERRIDE_HOOK(0x51BCB2, InfantryClass_Update_Reload, 0x6)
@@ -464,7 +464,7 @@ DEFINE_OVERRIDE_HOOK(0x51BCB2, InfantryClass_Update_Reload, 0x6)
 	return 0x51BCC0;
 }
 
-DEFINE_DISABLE_HOOK(0x51F1D8, InfantryClass_ActionOnObject_IvanBombs_ares)//, 0x6, 51F1EA)
+//InfantryClass_ActionOnObject_IvanBombs
 DEFINE_JUMP(LJMP, 0x51F1D8, 0x51F1EA);
 
 DEFINE_OVERRIDE_HOOK(0x52070F, InfantryClass_UpdateFiringState_Uncloak, 0x5)

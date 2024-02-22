@@ -25,12 +25,7 @@
 #include <Notifications.h>
 #include <algorithm>
 
-DEFINE_DISABLE_HOOK(0x763226, WaveClass_DTOR_ares)
-
-namespace AresCreateWave
-{
-	WaveColorData TempColor;
-}
+#include "Header.h"
 
 DEFINE_OVERRIDE_HOOK(0x6FF449, TechnoClass_Fire_SonicWave, 5)
 {
@@ -74,7 +69,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF5F5, TechnoClass_Fire_OtherWaves, 6)
 DEFINE_OVERRIDE_HOOK(0x75FA29, WaveClass_Draw_Colors, 0x6)
 {
 	GET(WaveClass*, pThis, ESI);
-	AresCreateWave::TempColor = WaveExtData::GetWaveColor(pThis);
+	StaticVars::TempColor = WaveExtData::GetWaveColor(pThis);
 	return 0x0;
 }
 
@@ -136,7 +131,7 @@ DEFINE_OVERRIDE_HOOK(0x760BC2, WaveClass_Draw2, 0x9)
 	GET(WaveClass*, Wave, EBX);
 	GET(WORD*, dest, EBP);
 
-	return (WaveExtData::ModifyWaveColor(*dest, *dest, Wave->LaserIntensity, Wave, &AresCreateWave::TempColor))
+	return (WaveExtData::ModifyWaveColor(*dest, *dest, Wave->LaserIntensity, Wave, &StaticVars::TempColor))
 		? 0x760CAFu
 		: 0u
 		;
@@ -147,7 +142,7 @@ DEFINE_OVERRIDE_HOOK(0x760DE2, WaveClass_Draw3, 0x9)
 	GET(WaveClass*, Wave, EBX);
 	GET(WORD*, dest, EDI);
 
-	return (WaveExtData::ModifyWaveColor(*dest, *dest, Wave->LaserIntensity, Wave, &AresCreateWave::TempColor))
+	return (WaveExtData::ModifyWaveColor(*dest, *dest, Wave->LaserIntensity, Wave, &StaticVars::TempColor))
 		? 0x760ECBu
 		: 0u
 		;
@@ -159,7 +154,7 @@ DEFINE_OVERRIDE_HOOK(0x75EE57, WaveClass_Draw_Sonic, 0x7)
 	GET(WORD*, src, EDI);
 	GET(DWORD, offset, ECX);
 
-	return (WaveExtData::ModifyWaveColor(src[offset], *src, R->ESI(), Wave, &AresCreateWave::TempColor))
+	return (WaveExtData::ModifyWaveColor(src[offset], *src, R->ESI(), Wave, &StaticVars::TempColor))
 		? 0x75EF1Cu
 		: 0u
 		;
@@ -171,7 +166,7 @@ DEFINE_OVERRIDE_HOOK(0x7601FB, WaveClass_Draw_Magnetron2, 0xB)
 	GET(WORD*, src, EBX);
 	GET(DWORD, offset, ECX);
 
-	return (WaveExtData::ModifyWaveColor(src[offset], *src, R->EBP(), Wave, &AresCreateWave::TempColor))
+	return (WaveExtData::ModifyWaveColor(src[offset], *src, R->EBP(), Wave, &StaticVars::TempColor))
 		? 0x760285u
 		: 0u
 		;
@@ -309,7 +304,7 @@ DEFINE_OVERRIDE_HOOK(0x7609E3, WaveClass_Draw_NodLaser_Details, 0x5)
 	return 0x7609E8;
 }
 
-DEFINE_DISABLE_HOOK(0x760286, WaveClass_Draw_Magnetron3_ares)//, 0x5, 7602D3)
+//WaveClass_Draw_Magnetron3
 DEFINE_JUMP(LJMP, 0x760286, 0x7602D3);
 
 DEFINE_OVERRIDE_HOOK(0x76110B, WaveClass_RecalculateAffectedCells_Clear, 0x5)

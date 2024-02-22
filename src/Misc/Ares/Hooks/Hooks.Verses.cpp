@@ -78,10 +78,10 @@ DEFINE_HOOK(0x489180, MapClass_GetTotalDamage, 0x6)
 
 		const float Atmax = float(dDamage * pWH->PercentAtMax);
 		const auto vsData = &pExt->Verses[armorIdx];
-		//Debug::Log("[%s]ResultDamage before for armor[%s] %d atmax %fl spread %fl fDamage %fl Caller [%x]\n", 
-		//	pWH->ID, 
-		//	ArmorTypeClass::Array[armorIdx]->Name.data(), 
-		//	damage, 
+		//Debug::Log("[%s]ResultDamage before for armor[%s] %d atmax %fl spread %fl fDamage %fl Caller [%x]\n",
+		//	pWH->ID,
+		//	ArmorTypeClass::Array[armorIdx]->Name.data(),
+		//	damage,
 		//	Atmax,
 		//	(float)dCellSpreadRadius,
 		//	fDamage,
@@ -108,9 +108,6 @@ DEFINE_HOOK(0x489180, MapClass_GetTotalDamage, 0x6)
 	R->EAX(res);
 	return 0x48926A;
 }
-
-#ifndef aaa
-DEFINE_DISABLE_HOOK(0x489235, GetTotalDamage_Verses_ares)
 
 DEFINE_OVERRIDE_HOOK(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
 {
@@ -289,4 +286,3 @@ DEFINE_OVERRIDE_HOOK(0x4753F0, ArmorType_FindIndex, 0xA)
 
 	return 0x475430;
 }
-#endif

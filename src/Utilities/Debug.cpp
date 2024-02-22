@@ -117,10 +117,10 @@ void Debug::INIParseFailed(const char* section, const char* flag, const char* va
 	Debug::ExitGame();
 }
 
-void __SUNINI_TORA2MD(const char* pFormat, ...) {
-	GameDebugLog::Log("-------- Loading RA2MD.INI settings --------\n");
-}
-DEFINE_JUMP(CALL, 0x5FA636, GET_OFFSET(__SUNINI_TORA2MD));
+// void __SUNINI_TORA2MD(const char* pFormat, ...) {
+// 	GameDebugLog::Log("-------- Loading RA2MD.INI settings --------\n");
+// }
+// DEFINE_JUMP(CALL, 0x5FA636, GET_OFFSET(__SUNINI_TORA2MD));
 
 void Debug::LogWithVArgsUnflushed(
 	const char* const pFormat, va_list const args)

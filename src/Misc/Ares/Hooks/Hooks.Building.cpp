@@ -25,8 +25,6 @@
 
 #include <Misc/PhobosGlobal.h>
 
-DEFINE_DISABLE_HOOK(0x679caf, RulesClass_LoadAfterTypeData_CompleteInitialization_ares)
-
 DEFINE_OVERRIDE_HOOK(0x446EE2, BuildingClass_Place_InitialPayload, 6)
 {
 	GET(BuildingClass* const, pThis, EBP);
@@ -1142,7 +1140,7 @@ DEFINE_OVERRIDE_HOOK(0x4566F9, BuildingClass_GetRangeOfRadial_SensorArray, 0x6)
 // }
 
 // bugfix #231: DestroyAnims don't remap and cause reconnection errors
-DEFINE_DISABLE_HOOK(0x441D25, BuildingClass_Destroy_ares)//, 0xA, 441D37);
+//BuildingClass_Destroy
 DEFINE_JUMP(LJMP, 0x441D25, 0x441D37);
 
 DEFINE_OVERRIDE_HOOK(0x451E40, BuildingClass_DestroyNthAnim_Destroy, 0x7)
@@ -1224,7 +1222,7 @@ DEFINE_OVERRIDE_HOOK(0x444D26, BuildingClass_KickOutUnit_ArmoryExitBug, 0x6)
 	return 0x444D2C;
 }
 
-DEFINE_DISABLE_HOOK(0x4449DF, BuildingClass_KickOutUnit_PreventClone_ares)//, 0x6, 444A53)
+// BuildingClass_KickOutUnit_PreventClone
 DEFINE_JUMP(LJMP, 0x4449DF, 0x444A53);
 
 DEFINE_OVERRIDE_HOOK(0x44266B, BuildingClass_ReceiveDamage_Destroyed, 0x6)
@@ -1436,36 +1434,6 @@ DEFINE_HOOK(0x446B16 , BuildingClass_Place_FreeUnits , 0x7)
 	return 0x446EE2;
 }
 
-// Added more conditions , especially for AI better to set is as Hunt
-DEFINE_DISABLE_HOOK(0x446E9F, BuildingClass_Place_FreeUnit_Mission_ares);
-// DEFINE_OVERRIDE_HOOK(0x446E9F, BuildingClass_Place_FreeUnit_Mission, 0x6)
-// {
-// 	GET(UnitClass* const, pFreeUnit, EDI);
-// 	Mission nMissions;
-
-// 	if (!pFreeUnit->Owner)
-// 	{
-// 		nMissions = Mission::Sleep;
-// 	}
-// 	else
-// 	{
-// 		if (pFreeUnit->Type->Harvester ||
-// 			pFreeUnit->Type->Weeder ||
-// 			pFreeUnit->Type->ResourceGatherer)
-// 		{
-// 			nMissions = Mission::Harvest;
-// 		}
-// 		else
-// 		{
-// 			nMissions = !pFreeUnit->Owner->IsControlledByHuman()
-// 				? Mission::Hunt : Mission::Area_Guard;
-// 		}
-// 	}
-// 	pFreeUnit->QueueMission(nMissions, false);
-
-// 	return 0x446EAD;
-// }
-
 // also consider NeedsEngineer when activating animations
 // if the status changes, animations might start to play that aren't
 // supposed to play because the building requires an Engineer which
@@ -1491,11 +1459,11 @@ DEFINE_OVERRIDE_HOOK(0x451A54, BuildingClass_PlayAnim_NeedsEngineer, 0x6)
 	return 0x451A5A;
 }
 
-DEFINE_DISABLE_HOOK(0x441163, BuildingClass_Put_DontSpawnSpotlight_ares)//, 0x6, 441196)
+//BuildingClass_Put_DontSpawnSpotlight
 DEFINE_JUMP(LJMP, 0x441163, 0x441196);
-DEFINE_DISABLE_HOOK(0x451132, BuildingClass_ProcessAnims_SuperWeaponsB_ares)//, 0x6, 451145)
+//BuildingClass_ProcessAnims_SuperWeaponsB
 DEFINE_JUMP(LJMP, 0x451132, 0x451145);
-DEFINE_DISABLE_HOOK(0x44656D, BuildingClass_Place_SuperWeaponAnimsB_ares)//, 0x6, 446580)
+//BuildingClass_Place_SuperWeaponAnimsB
 DEFINE_JUMP(LJMP, 0x44656D, 0x446580);
 
 // EMP'd power plants don't produce power
@@ -1602,37 +1570,6 @@ DEFINE_OVERRIDE_HOOK(0x4456E5, BuildingClass_UpdateConstructionOptions_ExcludeDi
 //	return true;
 //}
 
-//https://bugs.launchpad.net/ares/+bug/1925359
-void AddPassengers(BuildingClass* const Grinder, TechnoClass* Vic)
-{
-	for (auto nPass = Vic->Passengers.GetFirstPassenger();
-		nPass;
-		nPass = (FootClass*)nPass->NextObject)
-	{
-		const auto pType = nPass->GetTechnoType();
-
-		if (BuildingExtData::ReverseEngineer(Grinder, Vic))
-		{
-			if (nPass->Owner && nPass->Owner->ControlledByCurrentPlayer())
-			{
-				VoxClass::Play(nPass->WhatAmI() == InfantryClass::AbsID ? "EVA_ReverseEngineeredInfantry" : "EVA_ReverseEngineeredVehicle");
-				VoxClass::Play(GameStrings::EVA_NewTechAcquired());
-			}
-		}
-
-		if (const auto FirstTag = Grinder->AttachedTag)
-		{
-			FirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerType, Grinder, CellStruct::Empty, false, nPass);
-
-			if (auto pSecondTag = Grinder->AttachedTag)
-			{
-				pSecondTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerAnything, Grinder, CellStruct::Empty, false, nullptr);
-			}
-		}
-
-		AddPassengers(Grinder, nPass);
-	}
-}
 
 DEFINE_OVERRIDE_HOOK(0x73A1BC, UnitClass_UpdatePosition_EnteredGrinder, 0x7)
 {
@@ -1661,7 +1598,7 @@ DEFINE_OVERRIDE_HOOK(0x73A1BC, UnitClass_UpdatePosition_EnteredGrinder, 0x7)
 	}
 
 	// https://bugs.launchpad.net/ares/+bug/1925359
-	AddPassengers(Grinder, Vehicle);
+	TechnoExt_ExtData::AddPassengers(Grinder, Vehicle);
 
 	// #368: refund hijackers
 	if (Vehicle->HijackerInfantryType != -1)
@@ -1702,42 +1639,6 @@ DEFINE_OVERRIDE_HOOK(0x5198AD, InfantryClass_UpdatePosition_EnteredGrinder, 0x6)
 	return 0;
 }
 
-bool NOINLINE IsSabotagable(BuildingClass const* const pThis)
-{
-	const auto pType = pThis->Type;
-	const auto pExt = BuildingTypeExtContainer::Instance.Find(pType);
-	const auto civ_occupiable = pType->CanBeOccupied && pType->TechLevel == -1;
-	const auto default_sabotabable = pType->CanC4 && !civ_occupiable;
-
-	return pExt->ImmuneToSaboteurs.isset() ? !pExt->ImmuneToSaboteurs : default_sabotabable;
-}
-
-Action NOINLINE GetiInfiltrateActionResult(InfantryClass* pInf, BuildingClass* pBuilding)
-{
-	auto const pInfType = pInf->Type;
-	auto const pBldType = pBuilding->Type;
-
-	if ((pInfType->C4 || pInf->HasAbility(AbilityType::C4)) && pBldType->CanC4)
-		return Action::Self_Deploy;
-
-	const bool IsAgent = pInfType->Agent;
-	if (IsAgent && pBldType->Spyable)
-	{
-		auto pBldOwner = pBuilding->GetOwningHouse();
-		auto pInfOwner = pInf->GetOwningHouse();
-
-		if (!pBldOwner || (pBldOwner != pInfOwner && !pBldOwner->IsAlliedWith(pInfOwner)))
-			return Action::Move;
-	}
-
-	auto const bIsSaboteur = TechnoTypeExtContainer::Instance.Find(pInfType)->Saboteur.Get();
-
-	if (bIsSaboteur && IsSabotagable(pBuilding))
-		return Action::NoMove;
-
-	return IsAgent || bIsSaboteur || !pBldType->Capturable ? Action::None : Action::Enter;
-}
-
 DEFINE_OVERRIDE_HOOK(0x7004AD, TechnoClass_GetActionOnObject_Saboteur, 0x6)
 {
 	// this is known to be InfantryClass, and Infiltrate is yes
@@ -1747,7 +1648,7 @@ DEFINE_OVERRIDE_HOOK(0x7004AD, TechnoClass_GetActionOnObject_Saboteur, 0x6)
 	bool infiltratable = false;
 	if (const auto pBldObject = specific_cast<BuildingClass*>(pObject))
 	{
-		infiltratable = GetiInfiltrateActionResult(pThis, pBldObject) != Action::None;
+		infiltratable = TechnoExt_ExtData::GetiInfiltrateActionResult(pThis, pBldObject) != Action::None;
 	}
 
 	return infiltratable ? 0x700531u : 0x700536u;
@@ -1768,7 +1669,7 @@ DEFINE_OVERRIDE_HOOK(0x51EE6B, InfantryClass_GetActionOnObject_Saboteur, 6)
 		{
 			const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBldObject->Type);
 
-			switch (GetiInfiltrateActionResult(pThis, pBldObject))
+			switch (TechnoExt_ExtData::GetiInfiltrateActionResult(pThis, pBldObject))
 			{
 			case Action::Move:
 				MouseCursorFuncs::SetMouseCursorAction(pTypeExt->Cursor_Spy, Action::Capture, 0);
@@ -1833,84 +1734,13 @@ DEFINE_OVERRIDE_HOOK(0x51B2CB, InfantryClass_SetTarget_Saboteur, 0x6)
 	GET(ObjectClass* const, pTarget, EDI);
 
 	if (const auto pBldObject = specific_cast<BuildingClass*>(pTarget)) {
-		const auto nResult = GetiInfiltrateActionResult(pThis, pBldObject);
+		const auto nResult = TechnoExt_ExtData::GetiInfiltrateActionResult(pThis, pBldObject);
 
 		if (nResult == Action::Move || nResult == Action::NoMove || nResult == Action::Enter)
 			pThis->SetDestination(pTarget, true);
 	}
 
 	return 0x51B33F;
-}
-
-bool ApplyC4ToBuilding(InfantryClass* const pThis, BuildingClass* const pBuilding, const bool IsSaboteur)
-{
-	const auto pInfext = InfantryTypeExtContainer::Instance.Find(pThis->Type);
-
-	if (pBuilding->IsIronCurtained() || pBuilding->IsBeingWarpedOut()
-		|| pBuilding->GetCurrentMission() == Mission::Selling
-		|| BuildingExtContainer::Instance.Find(pBuilding)->AboutToChronoshift
-		)
-	{
-		pThis->AbortMotion();
-		pThis->Uncloak(false);
-		const int Rof = pInfext->C4ROF.Get(pThis->GetROF(1));
-		pThis->ReloadTimer.Start(Rof);
-		if (!IsSaboteur)
-		{
-			pThis->Scatter(pBuilding->GetCoords(), true, true);
-		}
-		return false;
-	}
-	else
-		if (pBuilding->IsGoingToBlow)
-		{
-			const int Rof = pInfext->C4ROF.Get(pThis->GetROF(1));
-			pThis->ReloadTimer.Start(Rof);
-			if (!IsSaboteur)
-			{
-				pThis->AbortMotion();
-				//need to set target ?
-				pThis->SetDestination(nullptr, true);
-				pThis->Scatter(pBuilding->GetCoords(), true, true);
-			}
-			return false;
-		}
-
-	// sabotage
-	pBuilding->IsGoingToBlow = true;
-	pBuilding->C4AppliedBy = pThis;
-
-	const auto pData = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
-	const auto delay = pInfext->C4Delay.Get(RulesClass::Instance->C4Delay);
-
-	auto duration = (int)(delay * 900.0);
-
-	// modify good durations only
-	if (duration > 0)
-	{
-		duration = (int)(duration * pData->C4_Modifier);
-		if (duration <= 0)
-			duration = 1;
-	}
-
-	//auto pBldExt = BuildingExtContainer::Instance.Find(pBuilding);
-	//if (pInfext->C4Damage.isset())
-	//{
-	//	pBldExt->C4Damage = pInfext->C4Damage;
-	//}
-	//
-	//pBldExt->C4Warhead = pInfext->C4Warhead.Get(RulesClass::Instance->C4Warhead);
-	//pBldExt->C4Owner = pThis->GetOwningHouse();
-	pBuilding->Flash(duration / 2);
-	pBuilding->GoingToBlowTimer.Start(duration);
-
-	if (!IsSaboteur)
-	{
-		pThis->SetDestination(nullptr, true);
-		pThis->Scatter(pBuilding->GetCoords(), true, true);
-	}
-
-	return true;
 }
 
 DEFINE_HOOK(0x51A521, InfantryClass_UpdatePosition_ApplyC4, 0xA)
@@ -1920,7 +1750,7 @@ DEFINE_HOOK(0x51A521, InfantryClass_UpdatePosition_ApplyC4, 0xA)
 	GET(InfantryClass* const, pThis, ESI);
 	GET(BuildingClass* const, pBuilding, EDI);
 
-	if (!ApplyC4ToBuilding(pThis, pBuilding, false))
+	if (!TechnoExt_ExtData::ApplyC4ToBuilding(pThis, pBuilding, false))
 		return RetFail;
 
 	return RetSucceeded;
@@ -1951,7 +1781,7 @@ DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
 	GET(InfantryClass* const, pThis, ESI);
 	GET(BuildingClass* const, pBuilding, EDI);
 
-	const auto nResult = GetiInfiltrateActionResult(pThis, pBuilding);
+	const auto nResult = TechnoExt_ExtData::GetiInfiltrateActionResult(pThis, pBuilding);
 
 	if (nResult == Action::Move) // this one will Infiltrate instead
 	{
@@ -1965,7 +1795,7 @@ DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
 	else
 		if (nResult == Action::NoMove)
 		{
-			if (!ApplyC4ToBuilding(pThis, pBuilding, true))
+			if (!TechnoExt_ExtData::ApplyC4ToBuilding(pThis, pBuilding, true))
 				return SkipInfiltrate;
 
 			if (auto const pTag = pBuilding->AttachedTag)

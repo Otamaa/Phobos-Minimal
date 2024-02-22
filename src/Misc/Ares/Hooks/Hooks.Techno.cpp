@@ -24,26 +24,6 @@
 
 #include <Conversions.h>
 
-#ifndef aaa
-DEFINE_DISABLE_HOOK(0x6f3260, TechnoClass_CTOR_ares)
-DEFINE_DISABLE_HOOK(0x6f4500, TechnoClass_DTOR_ares)
-DEFINE_DISABLE_HOOK(0x70bf50, TechnoClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x70c249, TechnoClass_Load_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x70c250, TechnoClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x70c264, TechnoClass_Save_Suffix_ares)
-#endif
-
-#ifndef aaa
-DEFINE_DISABLE_HOOK(0x711835, TechnoTypeClass_CTOR_ares)
-DEFINE_DISABLE_HOOK(0x711ae0, TechnoTypeClass_DTOR_ares)
-DEFINE_DISABLE_HOOK(0x716123, TechnoTypeClass_LoadFromINI_ares)
-DEFINE_DISABLE_HOOK(0x716132, TechnoTypeClass_LoadFromINI_ares)
-DEFINE_DISABLE_HOOK(0x7162f0, TechnoTypeClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x716dac, TechnoTypeClass_Load_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x716dc0, TechnoTypeClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x717094, TechnoTypeClass_Save_Suffix_ares)
-#endif
-
 DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 {
 	GET(TechnoClass*, pThis, ECX);
@@ -114,7 +94,7 @@ DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 	return 0x6F4955;
 }
 
-//The stack is messed up here , idk 
+//The stack is messed up here , idk
 // i cant properly catch them , it is just return garbages
 //DEFINE_OVERRIDE_HOOK(0x6FF1FB, TechnoClass_Fire_DetachedRailgun, 0x6)
 //{
@@ -1181,7 +1161,7 @@ DEFINE_OVERRIDE_HOOK(0x707A47, TechnoClass_PointerGotInvalid_LastTarget, 0xA)
 	return 0;
 }
 
-DEFINE_DISABLE_HOOK(0x6FCF53, TechnoClass_SetTarget_Burst_ares)//, 0x6, 6FCF61)
+//TechnoClass_SetTarget_Burst
 DEFINE_JUMP(LJMP, 0x6FCF53, 0x6FCF61);
 
 DEFINE_OVERRIDE_HOOK_AGAIN(0x717855, TechnoTypeClass_UpdatePalette_Reset, 0x6)
@@ -1240,10 +1220,7 @@ DEFINE_OVERRIDE_HOOK(0x707B09, TechnoClass_PointerGotInvalid_ResetMindControl, 0
 	return 0;
 }
 
-// #1415844: units in open-topped transports show behind anim
-DEFINE_DISABLE_HOOK(0x6FA2C7, TechnoClass_Update_DrawHidden_ares) //, 0x8)
-
-DEFINE_DISABLE_HOOK(0x6FFF9E, TechnoClass_GetActionOnObject_IvanBombsB_ares)//, 0x5, 700006)
+//TechnoClass_GetActionOnObject_IvanBombsB
 DEFINE_JUMP(LJMP, 0x6FFF9E, 0x700006);
 
 DEFINE_OVERRIDE_HOOK(0x6FF2D1, TechnoClass_FireAt_Facings, 0x6)

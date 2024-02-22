@@ -246,8 +246,6 @@ DEFINE_HOOK(0x546833, IsometricTileTypeClass_FallbackTheater, 0x5)
 #include <SmudgeTypeClass.h>
 #include <TerrainTypeClass.h>
 
-DEFINE_DISABLE_HOOK(0x534a4d, Theater_Init_ResetLogStatus_ares)
-
 DEFINE_OVERRIDE_HOOK(0x5F9634, ObjectTypeClass_LoadFromINI, 6)
 {
 	GET(ObjectTypeClass*, pType, EBX);

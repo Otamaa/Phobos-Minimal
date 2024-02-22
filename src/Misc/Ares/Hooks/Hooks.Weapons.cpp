@@ -2,7 +2,7 @@
 
 #include "Header.h"
 
-DEFINE_DISABLE_HOOK(0x715B1F, TechnoTypeClass_LoadFromINI_Weapons2_ares) //, 6
+//TechnoTypeClass_LoadFromINI_Weapons2
 DEFINE_JUMP(LJMP, 0x715B1F, 0x715F9E);
 
 DEFINE_OVERRIDE_HOOK(0x7128C0, TechnoTypeClass_LoadFromINI_Weapons1, 6)

@@ -19,7 +19,7 @@ DEFINE_OVERRIDE_HOOK(0x436459, BuildingLightClass_Update, 6)
 		CoordStruct Loc = Owner->Location;
 		const FacingClass* Facing = pTypeData->Spot_AttachedTo == SpotlightAttachment::Turret ?
 			&Owner->SecondaryFacing : &Owner->PrimaryFacing;
-	
+
 		const double angle = double((int16_t)Facing->Current().Raw - 0x3FFF) * -0.00009587526218325454;
 		const double distance = pTypeData->Spot_Distance;
 		Loc.Y = Loc.Y - (static_cast<int>(Math::sin(angle) * distance));

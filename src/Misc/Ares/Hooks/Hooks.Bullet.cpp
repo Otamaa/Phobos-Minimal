@@ -19,27 +19,6 @@
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/BuildingType/Body.h>
 
-DEFINE_DISABLE_HOOK(0x46A5B2, BulletClass_Shrapnel_WeaponType1_ares)
-DEFINE_DISABLE_HOOK(0x46AA27, BulletClass_Shrapnel_WeaponType2_ares)
-
-#ifndef aaa
-DEFINE_DISABLE_HOOK(0x4664ba, BulletClass_CTOR_ares)
-DEFINE_DISABLE_HOOK(0x4665e9, BulletClass_DTOR_ares)
-DEFINE_DISABLE_HOOK(0x46ae70, BulletClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x46af97, BulletClass_Load_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x46af9e, BulletClass_Load_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x46afb0, BulletClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x46afc4, BulletClass_Save_Suffix_ares)
-
-DEFINE_DISABLE_HOOK(0x46BDD9, BulletTypeClass_CTOR_ares)
-DEFINE_DISABLE_HOOK(0x46C8B6, BulletTypeClass_SDDTOR_ares)
-DEFINE_DISABLE_HOOK(0x46C730, BulletTypeClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x46C6A0, BulletTypeClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x46C722, BulletTypeClass_Load_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x46C74A, BulletTypeClass_Save_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x46C429, BulletTypeClass_LoadFromINI_ares)
-DEFINE_DISABLE_HOOK(0x46C41C, BulletTypeClass_LoadFromINI_ares)
-#endif
 
 DEFINE_OVERRIDE_HOOK(0x5f4fe7, ObjectClass_Put, 8)
 {

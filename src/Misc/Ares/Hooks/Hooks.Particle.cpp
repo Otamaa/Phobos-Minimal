@@ -178,27 +178,6 @@ DEFINE_HOOK(0x62FCF0, ParticleSytemClass_FireDirectioon_AI_DirMult, 0x7)
 }
 
 #ifndef PARTICLESTUFFSOVERRIDE
-
-//;\Ext\ParticleSystem\Body.cpp
-DEFINE_DISABLE_HOOK(0x62DF05, ParticleSystemClass_CTOR_ares)
-DEFINE_DISABLE_HOOK(0x62E26B, ParticleSystemClass_DTOR_ares)
-DEFINE_DISABLE_HOOK(0x630090, ParticleSystemClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x62FF20, ParticleSystemClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x630088, ParticleSystemClass_Load_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x6300F3, ParticleSystemClass_Save_Suffix_ares)
-
-//;\Ext\ParticleType\Body.cpp
-DEFINE_DISABLE_HOOK(0x644DBB, ParticleTypeClass_CTOR_ares)
-DEFINE_DISABLE_HOOK(0x645A3B, ParticleTypeClass_SDDTOR_ares)
-DEFINE_DISABLE_HOOK(0x6457A0, ParticleTypeClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x645660, ParticleTypeClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x64578C, ParticleTypeClass_Load_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x64580A, ParticleTypeClass_Save_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x645405, ParticleTypeClass_LoadFromINI_ares)
-
-DEFINE_DISABLE_HOOK(0x62CDE8, ParticleClass_Update_Fire_ares) //, 5)
-DEFINE_DISABLE_HOOK(0x62C2ED, ParticleClass_Update_Gas_ares) //, 6)
-
 DEFINE_OVERRIDE_HOOK(0x72590E, AnnounceInvalidPointer_Particle, 0x9)
 {
 	GET(AbstractType, nWhat, EBX);
@@ -332,8 +311,6 @@ DEFINE_OVERRIDE_HOOK(0x62D015, ParticleClass_Draw_Palette, 6)
 	R->EDX(pConvert);
 	return 0x62D01B;
 }
-
-DEFINE_DISABLE_HOOK(0x62CDB6, ParticleClass_Update_Fire_ares)
 
 DEFINE_HOOK(0x62CCB8, ParticleClass_Update_Fire, 7)
 {

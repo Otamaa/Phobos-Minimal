@@ -218,7 +218,6 @@
     <ClCompile Include="src\Lib\Lua542\ltable.c" />
     <ClCompile Include="src\Lib\Lua542\ltablib.c" />
     <ClCompile Include="src\Lib\Lua542\ltm.c" />
-    <ClCompile Include="src\Lib\Lua542\luac.c" />
     <ClCompile Include="src\Lib\Lua542\lundump.c" />
     <ClCompile Include="src\Lib\Lua542\lutf8lib.c" />
     <ClCompile Include="src\Lib\Lua542\lvm.c" />
@@ -239,10 +238,11 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Commands\MapSnapshot.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Commands\TogglePower.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Header.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hook.EBolt.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.EBolt.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hook.GameScreenshot.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hook.Init.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hook.Prism.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hook.RadBeam.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Prism.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.RadBeam.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Aircraft.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Alpha.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Ammo.cpp" />
@@ -255,10 +255,12 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.BuildngFoundation.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bullet.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Checksummer.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Colors.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.CopyProtection.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.CustomMissile.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.DamageArea.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Deactivated.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.DebugLog.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Exception.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Firewall.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Foot.cpp" />
@@ -276,7 +278,10 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Perf.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.ReceiveDamage.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Remove.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.SaveGame.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Selection.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Sides.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.StartingUnits.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Strips.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.SwizzleManager.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Tactical.cpp" />

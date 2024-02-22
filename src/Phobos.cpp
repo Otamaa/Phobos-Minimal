@@ -39,6 +39,7 @@ struct luadeleter {
 
 using unique_luaptr = std::unique_ptr<lua_State, luadeleter>;
 #define make_unique_lua(to) to.reset(luaL_newstate())
+#define close_unique_lua(to) to.reset(nullptr)
 
 // TODO : encryption support
 static std::string filename = "renameinternal.lua";
@@ -88,8 +89,11 @@ void NOINLINE ExecuteLua()
 					lua_pop(L, 1);
 					DWORD protectFlag;
 
-					if(Phobos::Otamaa::IsAdmin)
-						Debug::Log("Patching string [%d] [%x - %s (%d) - max %d]\n", i, vec_replaceAddrTo[i].addr, vec_replaceAddrTo[i].to.c_str() , vec_replaceAddrTo[i].to.size(), vec_replaceAddrTo[i].MaxLen);
+					if (Phobos::Otamaa::IsAdmin)
+					{
+						std::string copy = trim(vec_replaceAddrTo[i].to.c_str());
+						Debug::Log("Patching string [%d] [%x - %s (%d) - max %d]\n", i, vec_replaceAddrTo[i].addr, copy.c_str(), vec_replaceAddrTo[i].to.size(), vec_replaceAddrTo[i].MaxLen);
+					}
 
 					// do not exceed maximum length of the string , otherwise it will broke the .exe file
 					if (VirtualProtect((LPVOID)vec_replaceAddrTo[i].addr, (size_t)vec_replaceAddrTo[i].MaxLen, PAGE_READWRITE, &protectFlag) == TRUE) {
@@ -112,6 +116,15 @@ void NOINLINE ExecuteLua()
 			Patch::Apply_OFFSET(0x777D72, (uintptr_t)MainWindowStr.c_str());
 			Patch::Apply_OFFSET(0x777CA1, (uintptr_t)MainWindowStr.c_str());
 		}
+
+		lua_getglobal(L, "MovieMDINI");
+		if (lua_isnil(L, -1) == 0 && lua_isstring(L, -1) == 1) {
+			StaticVars::MovieMDINI = lua_tostring(L, -1);
+		}
+
+		//close the lua virtual machine , since it not used anymore after this
+		close_unique_lua(global_luaptr);
+
 	}
 	else {
 		Debug::Log("Cannot find %s file\n", filename.c_str());
@@ -713,7 +726,7 @@ void Phobos::ExeRun()
 		if (IS_SAME_STR_(dlls.ModuleName.c_str(), "cncnet5.dll")) {
 			HasCNCnet = true;
 		}
-		else if (IS_SAME_STR_(dlls.ModuleName.c_str(), "Ares.dll")) {
+		else if (IS_SAME_STR_(dlls.ModuleName.c_str(), ARES_DLL_S)) {
 			Debug::FatalErrorAndExit("This dll dont need Ares.dll to run! \n");
 		}
 	}

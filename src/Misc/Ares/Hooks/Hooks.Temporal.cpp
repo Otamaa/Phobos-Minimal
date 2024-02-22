@@ -176,7 +176,7 @@ DEFINE_OVERRIDE_HOOK(0x71AB10, TemporalClass_GetWarpPerStep, 6)
 // bugfix #874 A: Temporal warheads affect Warpable=no units
 // skip freeing captured and destroying spawned units,
 // as it is not clear here if this is warpable at all.
-DEFINE_DISABLE_HOOK(0x71AF2B, TemporalClass_Fire_UnwarpableA_ares)//, 0xA, 71AF4D)
+//TemporalClass_Fire_UnwarpableA
 DEFINE_JUMP(LJMP, 0x71AF2B, 0x71AF4D);
 
 DEFINE_HOOK(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)

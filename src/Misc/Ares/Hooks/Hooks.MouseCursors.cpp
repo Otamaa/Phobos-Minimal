@@ -19,20 +19,6 @@
 
 #include <New/Type/CursorTypeClass.h>
 
-#ifndef Dum
-//DEFINE_DISABLE_HOOK(0x653CA6, RadarClass_GetMouseAction_AllowMinimap_ares) //, 5)
-DEFINE_DISABLE_HOOK(0x5BDDC0, MouseClass_Update_Reset_ares) //, 5)
-DEFINE_DISABLE_HOOK(0x4AB35A, DisplayClass_SetAction_CustomCursor_ares) //, 6)
-DEFINE_DISABLE_HOOK(0x5BDC8C, MouseClass_UpdateCursor_ares) //, 7
-DEFINE_DISABLE_HOOK(0x5BDADF, MouseClass_UpdateCursorMinimapState_UseCursor_ares) //, 0
-DEFINE_DISABLE_HOOK(0x5BDDC8, MouseClass_Update_AnimateCursor_ares) //, 6
-DEFINE_DISABLE_HOOK(0x5BDE64, MouseClass_Update_AnimateCursor2_ares) //, 6
-DEFINE_DISABLE_HOOK(0x5BDB90, MouseClass_GetCursorFirstFrame_Minimap_ares) //, B
-DEFINE_DISABLE_HOOK(0x5BE974, MouseClass_GetCursorFirstFrame_ares) //, 7
-DEFINE_DISABLE_HOOK(0x5BE994, MouseClass_GetCursorFrameCount_ares) //, 7
-DEFINE_DISABLE_HOOK(0x5BDBC4, MouseClass_GetCursorCurrentFrame_ares) //, 7
-DEFINE_DISABLE_HOOK(0x5BDC1B, MouseClass_GetCursorHotSpot_ares) //, 7
-
 DEFINE_OVERRIDE_HOOK(0x653CA6, RadarClass_GetMouseAction_AllowMinimap, 5)
 {
 	GET(int, nAction, EAX);
@@ -154,7 +140,6 @@ DEFINE_OVERRIDE_HOOK(0x4AB35A, DisplayClass_SetAction_CustomCursor, 0x6)
 	pThis->SetCursor(MouseClassExt::ValidateCursorType(nAction), bMini);
 	return 0x4AB78F;
 }
-#endif
 
 
 //void DrawMouseShape(WWMouseClass* pMouse, Surface* pSurface, Point2D offs)

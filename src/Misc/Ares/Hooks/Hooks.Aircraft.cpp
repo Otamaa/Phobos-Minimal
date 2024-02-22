@@ -17,7 +17,7 @@
 
 #include "Header.h"
 
-DEFINE_DISABLE_HOOK(0x414D36, AircraftClass_Update_DontloseTargetInAir_ares)//, 0x5 , 414D4D)
+//AircraftClass_Update_DontloseTargetInAir
 DEFINE_JUMP(LJMP,0x414D36 ,0x414D4D);
 
 DEFINE_OVERRIDE_HOOK(0x415085, AircraftClass_Update_DamageSmoke, 7)

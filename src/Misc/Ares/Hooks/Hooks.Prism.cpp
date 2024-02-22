@@ -410,20 +410,6 @@ DEFINE_OVERRIDE_HOOK(0x4424EF, BuildingClass_ReceiveDamage_PrismForward, 6)
 	return 0;
 }
 
-#ifdef SellFunctionHandled
-DEFINE_OVERRIDE_HOOK(0x447113, BuildingClass_Sell_PrismForward, 6)
-{
-	GET(BuildingClass* const, pThis, ESI);
-
-	// #754 - evict Hospital/Armory contents
-	TechnoExt_ExtData::KickOutHospitalArmory(pThis);
-	BuildingExtContainer::Instance.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);
-	return 0;
-}
-#else
-DEFINE_DISABLE_HOOK(0x447113, BuildingClass_Sell_PrismForward_ares)
-#endif
-
 DEFINE_OVERRIDE_HOOK(0x448277, BuildingClass_ChangeOwner_PrismForwardAndLeaveBomb, 5)
 {
 	GET(BuildingClass* const, pThis, ESI);

@@ -24,13 +24,6 @@
 
 #include "Header.h"
 
-DEFINE_DISABLE_HOOK(0x701A5C, TechnoClass_ReceiveDamage_IronCurtainFlash_ares)
-DEFINE_DISABLE_HOOK(0x71B99E, TerrainClass_ReceiveDamage_ForestFire_ares)
-DEFINE_DISABLE_HOOK(0x5185C8, InfantryClass_ReceiveDamage_InfDeath_ares)
-DEFINE_DISABLE_HOOK(0x5f53e5, ObjectClass_ReceiveDamage_Relative_ares)
-DEFINE_DISABLE_HOOK(0x5f5456, ObjectClass_ReceiveDamage_Culling_ares)
-DEFINE_DISABLE_HOOK(0x41668B, AircraftClass_ReceiveDamage_Survivours_ares)
-
 //DEFINE_HOOK(0x489280, Dmage_Area_Caller, 0x6)
 //{
 //	GET_STACK(DWORD, caller, 0x0);

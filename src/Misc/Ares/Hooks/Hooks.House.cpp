@@ -23,26 +23,6 @@
 
 #include "Header.h"
 
-#ifndef aaa
-DEFINE_DISABLE_HOOK(0x4f6532, HouseClass_CTOR_ares)
-DEFINE_DISABLE_HOOK(0x4f7371, HouseClass_DTOR_ares)
-DEFINE_DISABLE_HOOK(0x50114d, HouseClass_InitFromINI_ares)
-DEFINE_DISABLE_HOOK(0x503040, HouseClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x504069, HouseClass_Load_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x504080, HouseClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x5046de, HouseClass_Save_Suffix_ares)
-
-DEFINE_DISABLE_HOOK(0x511635, HouseTypeClass_CTOR_1_ares)
-DEFINE_DISABLE_HOOK(0x511643, HouseTypeClass_CTOR_2_ares)
-DEFINE_DISABLE_HOOK(0x51214f, HouseTypeClass_LoadFromINI_ares)
-DEFINE_DISABLE_HOOK(0x51215a, HouseTypeClass_LoadFromINI_ares)
-DEFINE_DISABLE_HOOK(0x512290, HouseTypeClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x51246d, HouseTypeClass_Load_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x512480, HouseTypeClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x51255c, HouseTypeClass_Save_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x5127cf, HouseTypeClass_DTOR_ares)
-#endif
-
 static constexpr int ObserverBackgroundWidth = 121;
 static constexpr int ObserverBackgroundHeight = 96;
 
@@ -135,8 +115,6 @@ DEFINE_OVERRIDE_HOOK(0x4e3562, Game_GetFlagSurface, 5)
 
 	return 0x4E3579; // handle check
 }
-
-DEFINE_DISABLE_HOOK(0x4E38D8, LoadPlayerCountryString_ares)
 
 DEFINE_HOOK(0x4E38A0, LoadPlayerCountryString, 5)
 {
@@ -530,18 +508,6 @@ DEFINE_OVERRIDE_HOOK(0x508EBC, HouseClass_Radar_Update_CheckEligible, 6)
 		;
 }
 
-DEFINE_DISABLE_HOOK(0x508F91, HouseClass_SpySat_Update_CheckEligible_ares) //, 6)
-//{
-//	enum { Eligible = 0, Jammed = 0x508FF6 };
-//	GET(BuildingClass*, SpySat, ECX);
-//
-//	return (!RegisteredJammers(SpySat).empty()
-//					|| (SpySat->EMPLockRemaining > 0))
-//		? Jammed
-//		: Eligible
-//		;
-//}
-
 static std::vector<BuildingTypeClass*> Eligible;
 
 DEFINE_OVERRIDE_HOOK(0x4FE782, HouseClass_AI_BaseConstructionUpdate_PickPowerplant, 6)
@@ -553,7 +519,7 @@ DEFINE_OVERRIDE_HOOK(0x4FE782, HouseClass_AI_BaseConstructionUpdate_PickPowerpla
 	const auto it = pExt->GetPowerplants();
 
 	for (auto const& pPower : it) {
-		if (HouseExtData::PrereqValidate(pThis, pPower, false, true) == CanBuildResult::Buildable 
+		if (HouseExtData::PrereqValidate(pThis, pPower, false, true) == CanBuildResult::Buildable
 			&& HouseExtData::PrerequisitesMet(pThis, pPower)
 		) {
 			Eligible.push_back(pPower);
@@ -923,7 +889,7 @@ DEFINE_OVERRIDE_HOOK(0x50B370, HouseClass_ShouldDisableCameo, 5)
 	return 0x50B669;
 }
 
-DEFINE_DISABLE_HOOK(0x50928C, HouseClass_Update_Factories_Queues_SkipBrokenDTOR_ares)//, 0x5, 5092A3)
+// HouseClass_Update_Factories_Queues_SkipBrokenDTOR
 DEFINE_JUMP(LJMP, 0x50928C, 0x5092A3);
 
 // reject negative indexes. if the index is the result of the function above, this
@@ -1370,8 +1336,8 @@ DEFINE_OVERRIDE_HOOK(0x4F8C97, HouseClass_Update_BuildConst, 6)
 	return Skip;
 }
 
-// there is actually an SpeakDelay 
-// dunno atm 
+// there is actually an SpeakDelay
+// dunno atm
 //DEFINE_HOOK(0x4F8B3C, HouseClass_Update_Annouces, 0x6) {
 //	GET(HouseClass* const, pThis, ESI);
 //

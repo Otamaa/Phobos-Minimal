@@ -115,7 +115,7 @@ DEFINE_OVERRIDE_HOOK(0x6A9348, StripClass_GetTip_FixLength, 9)
 	return 0x6A93B2;
 }
 
-DEFINE_DISABLE_HOOK(0x75DAE6, WarheadTypeClass_LoadFromINI_SkipLists_ares)//, 9, 75DDCC)
+//WarheadTypeClass_LoadFromINI_SkipLists
 DEFINE_JUMP(LJMP, 0x75DAE6, 0x75DDCC);
 
 DEFINE_OVERRIDE_HOOK(0x713171, TechnoTypeClass_LoadFromINI_SkipLists1, 9)
@@ -265,11 +265,9 @@ DEFINE_OVERRIDE_HOOK(0x66D55E, Buf_General, 6)
 	return 0;
 }
 
-DEFINE_DISABLE_HOOK(0x67062F, Buf_AnimToInf_Paradrop_ares)//, 6, 6707FE)
-DEFINE_JUMP(LJMP, 0x67062F, 0x6707FE);
-DEFINE_DISABLE_HOOK(0x66FA13, Buf_SecretBoons_ares)//, 6, 66FAD6)
+//Buf_SecretBoons
 DEFINE_JUMP(LJMP, 0x66FA13, 0x66FAD6);
-DEFINE_DISABLE_HOOK(0x66f589, Buf_Shipyard_ares)//, 6, 66F68C)
+//Buf_Shipyard
 DEFINE_JUMP(LJMP, 0x66f589, 0x66F68C);
 
 DEFINE_OVERRIDE_HOOK(0x66F7C0, Buf_PPA, 9)
@@ -287,9 +285,9 @@ DEFINE_OVERRIDE_HOOK(0x66F34B, Buf_RepairBay, 5)
 	return 0x66F450;
 }
 
-DEFINE_DISABLE_HOOK(0x66DD13, Buf_WeatherArt_ares)//, 6, 66DF19)
+// Buf_WeatherArt
 DEFINE_JUMP(LJMP, 0x66DD13, 0x66DF19);
-DEFINE_DISABLE_HOOK(0x66DB93, Buf_BridgeExplosions_ares)//, 6, 66DC96)
+//Buf_BridgeExplosions
 DEFINE_JUMP(LJMP, 0x66DB93, 0x66DC96);
 
 DEFINE_OVERRIDE_HOOK(0x511D16, HouseTypeClass_LoadFromINI_Buffer_CountryVeteran, 9)
@@ -304,3 +302,24 @@ DEFINE_OVERRIDE_HOOK(0x511D16, HouseTypeClass_LoadFromINI_Buffer_CountryVeteran,
 
 	return 0x51208C;
 }
+
+// HTExt_Unlimit1
+DEFINE_JUMP(LJMP, 0x4E3792, 0x4E37AD);
+
+//HTExt_Unlimit2
+DEFINE_JUMP(LJMP, 0x4E3A9C, 0x4E3AA1);
+
+//HTExt_Unlimit3
+DEFINE_JUMP(LJMP, 0x4E3F31, 0x4E3F4C);
+
+//HTExt_Unlimit4
+DEFINE_JUMP(LJMP, 0x4E412C, 0x4E4147);
+
+//HTExt_Unlimit5
+DEFINE_JUMP(LJMP, 0x4E41A7, 0x4E41C3);
+
+//OptionsDlg_WndProc_RemoveResLimit
+DEFINE_JUMP(LJMP, 0x56017A, 0x560183);
+
+//OptionsDlg_WndProc_RemoveHiResCheck
+DEFINE_JUMP(LJMP, 0x5601E3, 0x5601FC);

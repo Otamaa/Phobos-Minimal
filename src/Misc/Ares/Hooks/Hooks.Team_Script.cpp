@@ -35,6 +35,9 @@
 
 #include "Header.h"
 
+#include <Ext/Team/Body.h>
+#include <Ext/Script/Body.h>
+
 DEFINE_OVERRIDE_HOOK(0x65DBB3, TeamTypeClass_CreateInstance_Plane, 5)
 {
 	GET(FootClass*, pFoot, EBP);
@@ -43,10 +46,6 @@ DEFINE_OVERRIDE_HOOK(0x65DBB3, TeamTypeClass_CreateInstance_Plane, 5)
 	return 0x65DBD0;
 }
 
-#include <Ext/Team/Body.h>
-#include <Ext/Script/Body.h>
-
-DEFINE_DISABLE_HOOK(0x6E9443, TeamClass_AI_HandleAres)
 DEFINE_OVERRIDE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
 {
 	enum { ReturnFunc = 0x6E95AB, Continue = 0x0 };
@@ -139,7 +138,7 @@ DEFINE_OVERRIDE_HOOK(0x6EFB69, TeamClass_GatherAtFriendlyBase_Distance, 0x6)
 	//	Debug::Log("Team %s with script %s, GatherAt friendlyBase.\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID);
 	//	int i = 0;
 	//	for (auto pCur = pTeam->FirstUnit; pCur; pCur = pCur->NextTeamMember) {
-	//		Debug::Log("	Team %s with script %s, GatherAt friendlyBase CurMember[%d - %s].\n", 
+	//		Debug::Log("	Team %s with script %s, GatherAt friendlyBase CurMember[%d - %s].\n",
 	//			pTeam->Type->ID,
 	//			pTeam->CurrentScript->Type->ID,
 	//		i++,

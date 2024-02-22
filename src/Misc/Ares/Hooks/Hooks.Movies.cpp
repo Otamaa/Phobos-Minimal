@@ -1,6 +1,7 @@
 #include <Phobos.h>
 
 #include <Utilities/Constructs.h>
+#include "Header.h"
 
 class MoviesList
 {
@@ -71,9 +72,9 @@ void MoviesList::Unlock(char const* const pFilename)
 
 void MoviesList::LoadListFromINI()
 {
-	Debug::Log("Reading MOVIEMD.INI\n");
+	Debug::Log("Reading %s\n" , StaticVars::MovieMDINI.c_str());
 
-	CCFileClass file { "MOVIEMD.INI" };
+	CCFileClass file { StaticVars::MovieMDINI.c_str() };
 
 	if (file.Exists())
 	{
@@ -81,15 +82,15 @@ void MoviesList::LoadListFromINI()
 		ini.ReadCCFile(&file);
 
 		// create a list of all movies first
-		auto const count = ini.GetKeyCount("Movies");
+		auto const count = ini.GetKeyCount(GameStrings::Movies());
 		this->Array.reserve(static_cast<size_t>(count));
 
 		for (int i = 0; i < count; ++i)
 		{
 			char buffer[0x20];
-			auto const pKey = ini.GetKeyName("Movies", i);
+			auto const pKey = ini.GetKeyName(GameStrings::Movies(), i);
 			bool read = true;
-			if (int len = ini.ReadString("Movies", pKey, Phobos::readDefval, buffer)) {
+			if (int len = ini.ReadString(GameStrings::Movies(), pKey, Phobos::readDefval, buffer)) {
 				if (!this->FindMovie(buffer)) {
 					this->Array.emplace_back().FilenameBuffer.assign(buffer, buffer + len);
 				}

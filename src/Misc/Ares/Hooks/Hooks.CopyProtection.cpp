@@ -3,9 +3,7 @@
 
 // this douchebag blows your base up when it thinks you're cheating
 // this already handled below , the validation will aways return true , this prevent  this to even happen
-//DEFINE_DISABLE_HOOK(0x55CFDF, CopyProtection_DontBlowMeUp_ares);
 DEFINE_OVERRIDE_SKIP_HOOK(0x55CFDF, CopyProtection_DontBlowMeUp,0, 55D059);
-//DEFINE_JUMP(LJMP, 0x55CFDF, 0x55D059);
 
 // Allows run game without the launcher
 DEFINE_PATCH(0x49F5C0,    // CopyProtect_IsLauncherRunning
@@ -19,10 +17,6 @@ DEFINE_PATCH(0x49F620,    // CopyProtect_NotifyLauncher
 DEFINE_PATCH(0x49F7A0,    // CopyProtect_Validate
 	0xB0, 0x01,           // mov    al, 1
 	0xC3);                // retn
-
-DEFINE_DISABLE_HOOK(0x49F5C0, CopyProtection_IsLauncherRunning_ares)
-DEFINE_DISABLE_HOOK(0x49F620, CopyProtection_NotifyLauncher_ares)
-DEFINE_DISABLE_HOOK(0x49F7A0, CopyProtection_CheckProtectedData_ares)
 
 DEFINE_STRONG_OVERRIDE_HOOK(0x47AE36, _YR_CDFileClass_SetFileName, 8)
 {

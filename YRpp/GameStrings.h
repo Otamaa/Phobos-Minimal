@@ -285,6 +285,7 @@ struct GameStrings
 	GAMEMD_STR(MCVRedeploy, 0x83CF68);
 	GAMEMD_STR(TechLevel, 0x824E40);
 
+	GAMEMD_STR(Movies, 0x839D50);
 	//..
 
 	// EVA entry names

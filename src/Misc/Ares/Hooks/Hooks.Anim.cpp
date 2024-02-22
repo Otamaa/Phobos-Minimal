@@ -26,8 +26,6 @@
 
 #include "Header.h"
 
-DEFINE_DISABLE_HOOK(0x425002, AnimClass_Expired_SpawnsParticle_ares)
-
 DEFINE_OVERRIDE_HOOK(0x424538, AnimClass_AI_DamageDelay, 0x6)
 {
 	enum { SkipDamageDelay = 0x42465D, CheckIsAlive = 0x42464C };

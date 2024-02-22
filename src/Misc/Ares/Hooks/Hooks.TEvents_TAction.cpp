@@ -29,22 +29,6 @@
 
 #include "Header.h"
 
-DEFINE_DISABLE_HOOK(0x6E232E, ActionClass_PlayAnimAt_ares)
-
-DEFINE_DISABLE_HOOK(0x6DD176, TActionClass_CTOR_ares)
-DEFINE_DISABLE_HOOK(0x6E4761, TActionClass_SDDTOR_ares)
-DEFINE_DISABLE_HOOK(0x6E3E30, TActionClass_Save_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x6E3DB0, TActionClass_Load_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x6E3E29, TActionClass_Load_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x6E3E4A, TActionClass_Save_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x71e7f8, TEventClass_CTOR_ares)
-DEFINE_DISABLE_HOOK(0x71f8c0, TEventClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x71f92b, TEventClass_Load_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x71f930, TEventClass_SaveLoad_Prefix_ares)
-DEFINE_DISABLE_HOOK(0x71f94a, TEventClass_Save_Suffix_ares)
-DEFINE_DISABLE_HOOK(0x71faa6, TEventClass_SDDTOR_ares)
-DEFINE_DISABLE_HOOK(0x6e1780, TActionClass_PlayAudioAtRandomWP_ares)
-
 DEFINE_OVERRIDE_HOOK(0x6E20D8, TActionClass_DestroyAttached_Loop, 0x5)
 {
 	GET(int, nLoopVal, EAX);
@@ -286,8 +270,6 @@ static std::array<const char* , (size_t)TriggerEvent::count> TriggerEventsName {
 	"TechTypeDoesntExist" ,
 }
 };
-
-//DEFINE_DISABLE_HOOK(0x71E949, TEventClass_HasOccured_Ares)
 
  DEFINE_OVERRIDE_HOOK(0x71E949, TEventClass_HasOccured_Ares, 7)
  {

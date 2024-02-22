@@ -72,3 +72,33 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x4A1DE0, Checksummer_Add_Buffer, 6)
 	R->EAX(pThis->GetValue());
 	return 0x4A1FA6;
 }
+
+#ifdef AAA
+DWORD ProcessCRCStrings(const char* str, int strsize, DWORD initial = -1)
+{
+	auto bytes = reinterpret_cast<const BYTE*>(str);
+	auto ret = ~initial;
+
+	for (int i = strsize; i > 0; --i)
+	{
+		ret = Checksummer::Table[*bytes++ ^ static_cast<BYTE>(ret)] ^ (ret >> 8);
+	}
+
+	return ~ret;
+}
+
+void DoSomethingWithThe64Char(AresSafeChecksummer& crc, const char* str, int strsize)
+{
+	crc.Value = ProcessCRCStrings(str, strsize);
+	int remain = 64 - strsize;
+
+	if (remain != 0)
+	{
+		*crc.Bytes = 0;
+		std::memcpy(crc.Bytes, &str[strsize], remain);
+		crc.ByteIndex = remain;
+	}
+
+	AresSafeChecksummer::Process(crc.Bytes, strsize, crc.Value);
+}
+#endif

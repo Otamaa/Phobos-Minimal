@@ -231,8 +231,6 @@ DEFINE_OVERRIDE_HOOK(0x44A37F, BuildingClass_Mi_Selling_Tunnel_TryToPlacePasseng
 	return 0x0;
 }
 
-DEFINE_DISABLE_HOOK(0x44D8A7, BuildingClass_Mi_Unload_Tunnel_ares)
-
 DEFINE_HOOK(0x44D880, BuildingClass_Mi_Unload_Tunnel, 5)
 {
 	GET(BuildingClass*, pThis, ECX);

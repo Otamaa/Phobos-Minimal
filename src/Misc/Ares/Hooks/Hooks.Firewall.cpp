@@ -202,8 +202,6 @@ DEFINE_OVERRIDE_HOOK(0x51C4C8, InfantryClass_IsCellOccupied, 6)
 	return NoDecision;
 }
 
-DEFINE_DISABLE_HOOK(0x6F64CB, TechnoClass_DrawHealthBar_FirestormWall_ares) //, 6)
-
 DEFINE_OVERRIDE_HOOK(0x73F7B0, UnitClass_IsCellOccupied, 6)
 {
 	GET(UnitClass* const , pThis , EBX);

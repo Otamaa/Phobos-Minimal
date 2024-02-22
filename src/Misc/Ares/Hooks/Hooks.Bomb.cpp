@@ -28,13 +28,9 @@
 
 #include "Header.h"
 
-DEFINE_DISABLE_HOOK(0x4393F2, BombClass_SDDTOR_removeUnused1_ares)
-DEFINE_DISABLE_HOOK(0x438843, BombClass_Detonate_removeUnused2_ares)
-DEFINE_DISABLE_HOOK(0x438799, BombClass_Detonate_removeUnused3_ares)
-DEFINE_DISABLE_HOOK(0x6FCBAD, TechnoClass_GetObjectActivityState_IvanBomb_ares)
-DEFINE_DISABLE_HOOK(0x438e86, BombListClass_Plant_AllTechnos_ares)
+#include <New/Entity/FlyingStrings.h>
 
-DEFINE_DISABLE_HOOK(0x438FD7 , BombListClass_Plant_AttachSound_ares)//, 7 , 439022);
+//BombListClass_Plant_AttachSound
 DEFINE_JUMP(LJMP, 0x438FD7, 0x439022);
 
 // #896027: do not announce pointers as expired to bombs
@@ -215,7 +211,7 @@ DEFINE_OVERRIDE_HOOK(0x46934D, IvanBombs_Spread, 6)
 		{
 			// cell spread
 			CoordStruct tgtCoords = pBullet->GetTargetCoords();
-			Helpers::Alex::ApplyFuncToCellSpreadItems(tgtCoords, pBullet->WH->CellSpread, [=](TechnoClass* pTarget) { 
+			Helpers::Alex::ApplyFuncToCellSpreadItems(tgtCoords, pBullet->WH->CellSpread, [=](TechnoClass* pTarget) {
 				TechnoExt_ExtData::PlantBomb(pBullet->Owner, pTarget, pWeapon);
 			}, false, false);
 		}
@@ -294,8 +290,6 @@ DEFINE_OVERRIDE_HOOK(0x417CCB, AircraftClass_GetActionOnObject_Deactivated, 5)
 	return 0;
 }
 
-DEFINE_DISABLE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_ares)
-
 DEFINE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_IvanBombsA, 5)
 {
 	GET(TechnoClass* const, pThis, ECX);
@@ -334,23 +328,6 @@ DEFINE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_IvanBombsA, 5)
 	return 0x0;
 }
 
-#ifdef SellFunctionHandled
-DEFINE_OVERRIDE_HOOK(0x4471D5, BuildingClass_Sell_DetonateNoBuildup, 6)
-{
-	GET(BuildingClass* const, pStructure, ESI);
-
-	if(const auto pBomb = pStructure->AttachedBomb){
-		if (BombExtContainer::Instance.Find(pBomb)->Weapon->Ivan_DetonateOnSell.Get())
-			pBomb->Detonate();// Otamaa : detonate may kill the techno before this function
-			// so this can possibly causing some weird crashes if that happening
-	}
-
-	return 0;
-}
-#else
-DEFINE_DISABLE_HOOK(0x4471D5, BuildingClass_Sell_DetonateNoBuildup_ares)
-#endif
-
 DEFINE_OVERRIDE_HOOK(0x44A1FF, BuildingClass_Mi_Selling_DetonatePostBuildup, 6)
 {
 	GET(BuildingClass* const, pStructure, EBP);
@@ -364,7 +341,6 @@ DEFINE_OVERRIDE_HOOK(0x44A1FF, BuildingClass_Mi_Selling_DetonatePostBuildup, 6)
 	return 0;
 }
 
-#include <New/Entity/FlyingStrings.h>
 
 DEFINE_OVERRIDE_HOOK(0x4D9F7B, FootClass_Sell_Detonate, 6)
 {

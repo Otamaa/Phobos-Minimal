@@ -23,6 +23,8 @@
 #include <Conversions.h>
 #include <Locomotor/TunnelLocomotionClass.h>
 
+#include <New/Entity/FlyingStrings.h>
+
 #include "Header.h"
 
 DEFINE_OVERRIDE_HOOK(0x73D219, UnitClass_Draw_OreGatherAnim, 0x6)
@@ -54,7 +56,7 @@ DEFINE_OVERRIDE_HOOK(0x73F7DD, UnitClass_IsCellOccupied_Bib, 0x8)
 // #1171643: keep the last passenger if this is a gunner, not just
 // when it has multiple turrets. gattling and charge turret is no
 // longer affected by this.
-DEFINE_DISABLE_HOOK(0x73D81E, UnitClass_Mi_Unload_LastPassenger_ares);
+
 DEFINE_HOOK(0x73D81C, UnitClass_Mi_Unload_LastPassenger, 0x7)
 {
 	GET(UnitClass*, pThis, ESI);
@@ -62,10 +64,10 @@ DEFINE_HOOK(0x73D81C, UnitClass_Mi_Unload_LastPassenger, 0x7)
 	return 0x73D823;
 }
 
-DEFINE_DISABLE_HOOK(0x7388EB, UnitClass_ActionOnObject_IvanBombs_ares)//, 0x6, 7388FD)
+//UnitClass_ActionOnObject_IvanBombs
 DEFINE_JUMP(LJMP, 0x7388EB, 0x7388FD);
 
-DEFINE_DISABLE_HOOK(0x73C733, UnitClass_DrawSHP_SkipTurretedShadow_ares)//, 7, 73C7AC)
+//UnitClass_DrawSHP_SkipTurretedShadow
 DEFINE_JUMP(LJMP, 0x73C733, 0x73C7AC);
 
 DEFINE_OVERRIDE_HOOK(0x741206, UnitClass_CanFire, 0x6)
@@ -200,7 +202,6 @@ DEFINE_OVERRIDE_HOOK(0x74642C, UnitClass_ReceiveGunner, 6)
 	return 0;
 }
 
-//DEFINE_DISABLE_HOOK(0x74653C, UnitClass_RemoveGunner_ares)
 DEFINE_OVERRIDE_HOOK(0x74653C, UnitClass_RemoveGunner, 0xA)
 {
 	GET(UnitClass*, Unit, EDI);
@@ -515,26 +516,6 @@ DEFINE_HOOK(0x73E46D , UnitClass_Mi_Unload_replace , 0x6)
 	return 0x73E539;
 }
 
-DEFINE_DISABLE_HOOK(0x73E4A2, UnitClass_Mi_Unload_Storage_ares) //, 0x6)
-//{
-	// because a value gets pushed to the stack in an inconvenient
-	// location, we do our stuff and then mess with the stack so
-	// the original functions do nothing any more.
-	// GET(BuildingClass* const, pBld, EDI);
-	// GET(int, idxTiberium, EBP);
-	// REF_STACK(float, amountRaw, 0x1C);
-	// REF_STACK(float, amountPurified, 0x34);
-//
-	// TechnoExt_ExtData::DepositTiberium(pBld,
-	//  amountRaw,
-	//  BuildingTypeExtData::GetPurifierBonusses(pBld->Owner) * amountRaw,
-	//  idxTiberium
-	//  );
-	//
-	//
-	//return 0x0;
-//}
-
 // sanitize the power output
 DEFINE_OVERRIDE_HOOK(0x508D4A, HouseClass_UpdatePower_LocalDrain2, 6)
 {
@@ -544,8 +525,6 @@ DEFINE_OVERRIDE_HOOK(0x508D4A, HouseClass_UpdatePower_LocalDrain2, 6)
 	}
 	return 0;
 }
-
-#include <New/Entity/FlyingStrings.h>
 
 DEFINE_HOOK(0x522D50, InfantryClass_StorageAI_Handle, 0x5)
 {
@@ -609,8 +588,6 @@ DEFINE_HOOK(0x522D50, InfantryClass_StorageAI_Handle, 0x5)
 
 	return 0x522E61;
 }
-
-DEFINE_DISABLE_HOOK(0x522D75, InfantryClass_Slave_UnloadAt_Storage_ares)
 
 DEFINE_OVERRIDE_HOOK(0x73DE90, UnitClass_Mi_Unload_SimpleDeployer, 0x6)
 {
@@ -683,7 +660,7 @@ DEFINE_OVERRIDE_HOOK(0x73DBF9, UnitClass_Mi_Unload_Decactivated, 5)
 	return 0;
 }
 
-DEFINE_DISABLE_HOOK(0x73E66D, UnitClass_Mi_Harvest_SkipDock_ares)//, 6, 73E6CF);
+//UnitClass_Mi_Harvest_SkipDock
 DEFINE_JUMP(LJMP, 0x73E66D, 0x73E6CF);
 
 DEFINE_OVERRIDE_HOOK(0x6AF748, SlaveManagerClass_UpdateSlaves_SlaveScan, 6)
@@ -931,7 +908,7 @@ DEFINE_OVERRIDE_HOOK(0x74031A, UnitClass_GetActionOnObject_NoManualEnter, 6)
 	return enterable ? 0x740324u : 0x74037Au;
 }
 
-DEFINE_DISABLE_HOOK(0x6F7FC5, TechnoClass_CanAutoTargetObject_Heal_ares) //, 7, 6F7FDF)
+//TechnoClass_CanAutoTargetObject_Heal
 DEFINE_JUMP(LJMP, 0x6F7FC5, 0x6F7FDF);
 
 DEFINE_OVERRIDE_HOOK_AGAIN(0x6F8F1F, TechnoClass_FindTargetType_Heal, 6)
@@ -1736,7 +1713,6 @@ DEFINE_OVERRIDE_HOOK(0x739F21, UnitClass_UpdatePosition_Visceroid, 6)
 	return 0;
 }
 
-DEFINE_DISABLE_HOOK(0x73C143, UnitClass_DrawVXL_Deactivated_ares)
 DEFINE_HOOK(0x73C141, UnitClass_DrawVXL_Deactivated, 7)
 {
 	GET(UnitClass*, pThis, EBP);

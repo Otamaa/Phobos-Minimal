@@ -11,7 +11,6 @@
  * particles don't render, spotlights aren't created, ...
  ***/
 
-DEFINE_DISABLE_HOOK(0x48A634, FlashbangWarheadAt_Details_ares)
 // DEFINE_OVERRIDE_HOOK(0x48A634, FlashbangWarheadAt_Details, 5)
 // {
 // 	const auto details = RulesExtData::DetailsCurrentlyEnabled();

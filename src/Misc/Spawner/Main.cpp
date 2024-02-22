@@ -389,7 +389,6 @@ void SpawnerMain::GameConfigs::Init() {
 
 	if (!file.Exists()) {
 		Debug::Log(" %s Failed to Open file %s for\n", __FUNCTION__, file.FileName);
-		
 	} else {
 
 		if (!file.Open(FileAccessMode::ReadWrite)) {

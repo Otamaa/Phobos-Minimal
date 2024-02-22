@@ -134,9 +134,12 @@ struct StaticVars {
 	static std::vector<unsigned char> ShpCompression1Buffer;
 	static std::map<const TActionClass*, int> TriggerCounts;
 	static UniqueGamePtrB<MixFileClass> aresMIX;
+	static std::string MovieMDINI;
+	static WaveColorData TempColor;
 
 	static bool SaveGlobals(PhobosStreamWriter& stm);
 	static bool LoadGlobals(PhobosStreamReader& stm);
+	static void LoadGlobalsConfig();
 
 	static void Clear();
 
@@ -144,6 +147,12 @@ struct StaticVars {
 
 struct TechnoExt_ExtData
 {
+	static void AddPassengers(BuildingClass* const Grinder, TechnoClass* Vic);
+
+	static bool IsSabotagable(BuildingClass const* const pThis);
+	static Action GetiInfiltrateActionResult(InfantryClass* pInf, BuildingClass* pBuilding);
+	static bool ApplyC4ToBuilding(InfantryClass* const pThis, BuildingClass* const pBuilding, const bool IsSaboteur);
+
 	static bool IsOperated(TechnoClass* pThis);
 	static bool IsOperatedB(TechnoClass* pThis);
 	static bool IsPowered(TechnoClass* pThis);
@@ -482,6 +491,9 @@ struct AresHouseExt
 	static void UpdateTogglePower(HouseClass* pThis);
 	static bool UpdateAnyFirestormActive(bool const lastChange);
 	static void SetFirestormState(HouseClass* pHouse, bool const active);
+	static void FormulateTypeList(std::vector<TechnoTypeClass*>& types, TechnoTypeClass** items, int count, int houseidx);
+	static std::vector<TechnoTypeClass*> GetTypeList();
+	static int GetTotalCost(const Nullable<int>& fixed);
 };
 
 struct CustomFoundation

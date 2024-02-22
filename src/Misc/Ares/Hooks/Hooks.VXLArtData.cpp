@@ -63,7 +63,7 @@ DEFINE_OVERRIDE_HOOK(0x5F8277, ObjectTypeClass_Load3DArt_NoSpawnAlt1, 7)
 	return 0x5F8287;
 }
 
-DEFINE_DISABLE_HOOK(0x5F848C, ObjectTypeClass_Load3DArt_NoSpawnAlt2_ares)//, 6, 5F8844)
+//ObjectTypeClass_Load3DArt_NoSpawnAlt2
 DEFINE_JUMP(LJMP, 0x5F848C, 0x5F8844);
 
 DEFINE_OVERRIDE_HOOK(0x5F887B, ObjectTypeClass_Load3DArt_Barrels, 6)

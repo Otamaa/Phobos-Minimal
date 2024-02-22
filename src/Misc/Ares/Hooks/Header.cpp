@@ -57,10 +57,14 @@
 
 #include "AresChecksummer.h"
 
+#include <versionhelpers.h>
+
 PhobosMap<ObjectClass*, AlphaShapeClass*> StaticVars::ObjectLinkedAlphas {};
 std::vector<unsigned char> StaticVars::ShpCompression1Buffer {};
 std::map<const TActionClass*, int>  StaticVars::TriggerCounts {};
 UniqueGamePtrB<MixFileClass> StaticVars::aresMIX {};
+std::string StaticVars::MovieMDINI { "MOVIEMD.INI" };
+WaveColorData StaticVars::TempColor{};
 
 bool StaticVars::SaveGlobals(PhobosStreamWriter& stm)
 {
@@ -81,6 +85,35 @@ void StaticVars::Clear()
 	ObjectLinkedAlphas.clear();
 	ShpCompression1Buffer.clear();
 	TriggerCounts.clear();
+}
+
+void StaticVars::LoadGlobalsConfig() {
+	CCFileClass IniFile{ "Ares.ini" };
+	if (!IniFile.Exists() || !IniFile.Open(FileAccessMode::Read))
+	{
+		Debug::Log("Failed to Open file %s \n", IniFile.FileName);
+		return;
+	}
+
+	CCINIClass Ini{};
+	Ini.ReadCCFile(&IniFile);
+
+	if (Ini.ReadString("Graphics.Advanced", "DirectX.Force", Phobos::readDefval, Phobos::readBuffer))
+	{
+		if (IS_SAME_STR_(Phobos::readBuffer, "hardware"))
+		{
+			AresGlobalData::GFX_DX_Force = 0x01l; //HW
+		}
+		else if (IS_SAME_STR_(Phobos::readBuffer, "emulation"))
+		{
+			AresGlobalData::GFX_DX_Force = 0x02l; //EM
+		}
+	}
+
+	if (IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_VISTA), LOBYTE(_WIN32_WINNT_VISTA), 0))
+	{
+		AresGlobalData::GFX_DX_Force = 0;
+	}
 }
 
 static constexpr std::array<std::pair<const char*, const char*>, 17u> const SubName =
@@ -461,6 +494,143 @@ void TechnoTypeExt_ExtData::ReadWeaponStructDatas(TechnoTypeClass* pType, CCINIC
 #pragma endregion
 
 #pragma region TechnoExt_ExtData
+
+//https://bugs.launchpad.net/ares/+bug/1925359
+void TechnoExt_ExtData::AddPassengers(BuildingClass* const Grinder, TechnoClass* Vic) {
+	for (auto nPass = Vic->Passengers.GetFirstPassenger();
+		nPass;
+		nPass = (FootClass*)nPass->NextObject)
+	{
+		const auto pType = nPass->GetTechnoType();
+
+		if (BuildingExtData::ReverseEngineer(Grinder, Vic))
+		{
+			if (nPass->Owner && nPass->Owner->ControlledByCurrentPlayer())
+			{
+				VoxClass::Play(nPass->WhatAmI() == InfantryClass::AbsID ? "EVA_ReverseEngineeredInfantry" : "EVA_ReverseEngineeredVehicle");
+				VoxClass::Play(GameStrings::EVA_NewTechAcquired());
+			}
+		}
+
+		if (const auto FirstTag = Grinder->AttachedTag)
+		{
+			FirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerType, Grinder, CellStruct::Empty, false, nPass);
+
+			if (auto pSecondTag = Grinder->AttachedTag)
+			{
+				pSecondTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerAnything, Grinder, CellStruct::Empty, false, nullptr);
+			}
+		}
+
+		AddPassengers(Grinder, nPass);
+	}
+}
+
+bool TechnoExt_ExtData::IsSabotagable(BuildingClass const* const pThis)
+{
+	const auto pType = pThis->Type;
+	const auto pExt = BuildingTypeExtContainer::Instance.Find(pType);
+	const auto civ_occupiable = pType->CanBeOccupied && pType->TechLevel == -1;
+	const auto default_sabotabable = pType->CanC4 && !civ_occupiable;
+
+	return pExt->ImmuneToSaboteurs.isset() ? !pExt->ImmuneToSaboteurs : default_sabotabable;
+}
+
+bool TechnoExt_ExtData::ApplyC4ToBuilding(InfantryClass* const pThis, BuildingClass* const pBuilding, const bool IsSaboteur) {
+	const auto pInfext = InfantryTypeExtContainer::Instance.Find(pThis->Type);
+
+	if (pBuilding->IsIronCurtained() || pBuilding->IsBeingWarpedOut()
+		|| pBuilding->GetCurrentMission() == Mission::Selling
+		|| BuildingExtContainer::Instance.Find(pBuilding)->AboutToChronoshift
+		)
+	{
+		pThis->AbortMotion();
+		pThis->Uncloak(false);
+		const int Rof = pInfext->C4ROF.Get(pThis->GetROF(1));
+		pThis->ReloadTimer.Start(Rof);
+		if (!IsSaboteur)
+		{
+			pThis->Scatter(pBuilding->GetCoords(), true, true);
+		}
+		return false;
+	}
+	else
+		if (pBuilding->IsGoingToBlow)
+		{
+			const int Rof = pInfext->C4ROF.Get(pThis->GetROF(1));
+			pThis->ReloadTimer.Start(Rof);
+			if (!IsSaboteur)
+			{
+				pThis->AbortMotion();
+				//need to set target ?
+				pThis->SetDestination(nullptr, true);
+				pThis->Scatter(pBuilding->GetCoords(), true, true);
+			}
+			return false;
+		}
+
+	// sabotage
+	pBuilding->IsGoingToBlow = true;
+	pBuilding->C4AppliedBy = pThis;
+
+	const auto pData = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+	const auto delay = pInfext->C4Delay.Get(RulesClass::Instance->C4Delay);
+
+	auto duration = (int)(delay * 900.0);
+
+	// modify good durations only
+	if (duration > 0)
+	{
+		duration = (int)(duration * pData->C4_Modifier);
+		if (duration <= 0)
+			duration = 1;
+	}
+
+	//auto pBldExt = BuildingExtContainer::Instance.Find(pBuilding);
+	//if (pInfext->C4Damage.isset())
+	//{
+	//	pBldExt->C4Damage = pInfext->C4Damage;
+	//}
+	//
+	//pBldExt->C4Warhead = pInfext->C4Warhead.Get(RulesClass::Instance->C4Warhead);
+	//pBldExt->C4Owner = pThis->GetOwningHouse();
+	pBuilding->Flash(duration / 2);
+	pBuilding->GoingToBlowTimer.Start(duration);
+
+	if (!IsSaboteur)
+	{
+		pThis->SetDestination(nullptr, true);
+		pThis->Scatter(pBuilding->GetCoords(), true, true);
+	}
+
+	return true;
+}
+
+Action TechnoExt_ExtData::GetiInfiltrateActionResult(InfantryClass* pInf, BuildingClass* pBuilding)
+{
+	auto const pInfType = pInf->Type;
+	auto const pBldType = pBuilding->Type;
+
+	if ((pInfType->C4 || pInf->HasAbility(AbilityType::C4)) && pBldType->CanC4)
+		return Action::Self_Deploy;
+
+	const bool IsAgent = pInfType->Agent;
+	if (IsAgent && pBldType->Spyable)
+	{
+		auto pBldOwner = pBuilding->GetOwningHouse();
+		auto pInfOwner = pInf->GetOwningHouse();
+
+		if (!pBldOwner || (pBldOwner != pInfOwner && !pBldOwner->IsAlliedWith(pInfOwner)))
+			return Action::Move;
+	}
+
+	auto const bIsSaboteur = TechnoTypeExtContainer::Instance.Find(pInfType)->Saboteur.Get();
+
+	if (bIsSaboteur && IsSabotagable(pBuilding))
+		return Action::NoMove;
+
+	return IsAgent || bIsSaboteur || !pBldType->Capturable ? Action::None : Action::Enter;
+}
 
 bool TechnoExt_ExtData::IsOperated(TechnoClass* pThis)
 {
@@ -1983,7 +2153,7 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 	}
 
 	if (Unsorted::CurrentFrame % 2) { // lag reduction - don't draw a new alpha every frame
-		//if(!StaticVars::ObjectLinkedAlphas.get_or_default(pSource)) 
+		//if(!StaticVars::ObjectLinkedAlphas.get_or_default(pSource))
 		{
 			RectangleStruct ScreenArea = TacticalClass::Instance->VisibleArea();
 			++Unsorted::ScenarioInit;
@@ -4885,7 +5055,7 @@ bool AresPoweredUnit::PowerDown()
 	{
 		// destroy if EMP.Threshold would crash this unit when in air
 		if (AresEMPulse::EnableEMPEffect2(pTechno)
-			|| (TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType())->EMP_Threshold 
+			|| (TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType())->EMP_Threshold
 				&& pTechno->IsInAir()))
 		{
 			return false;
@@ -5694,7 +5864,7 @@ bool AresTActionExt::LauchhChemMissile(TActionClass* pAction, HouseClass* pHouse
 		auto nCell = MapClass::Instance->Localsize_586AC0(&nLoc, false);
 
 		pBullet->MoveTo(
-			{ nCell.X + 128 , nCell.Y + 128 , 0 },		
+			{ nCell.X + 128 , nCell.Y + 128 , 0 },
 			{ nCos * nCos * 100.0  , nCos * nSin * 100.0  , nSin * 100.0 }
 		);
 		return true;
@@ -6265,7 +6435,7 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 			if (!Args.Owner)
 				result = false;
 			else
-			{		
+			{
 				result = HouseExtContainer::Instance.Find(Args.Owner)->Reversed.any_of
 				([&](TechnoTypeClass* pTech) {
 					return pTech == TEventExtContainer::Instance.Find(pThis)->GetTechnoType();
@@ -6930,6 +7100,102 @@ void AresHouseExt::SetFirestormState(HouseClass* pHouse , bool const active)
 
 	MapClass::Instance->Update_Pathfinding_1();
 	MapClass::Instance->Update_Pathfinding_2(AffectedCoords);
+}
+
+void AresHouseExt::FormulateTypeList(std::vector<TechnoTypeClass*>& types, TechnoTypeClass** items, int count, int houseidx) {
+	if (!count)
+		return;
+
+	const auto end = items + count;
+	for (auto find = items; find != end; ++find)
+	{
+		if ((*find)->AllowedToStartInMultiplayer)
+		{
+			if ((*find)->InOwners(houseidx) && ((*find))->TechLevel <= Game::TechLevel())
+			{
+				types.push_back(*find);
+			}
+		}
+	}
+}
+
+std::vector<TechnoTypeClass*> AresHouseExt::GetTypeList() {
+	DWORD avaibleHouses = 0u;
+	std::vector<TechnoTypeClass*> types;
+	types.reserve(InfantryTypeClass::Array->Count + UnitTypeClass::Array->Count);
+
+	for (auto pHouse : *HouseClass::Array)
+	{
+		if (!pHouse->Type->MultiplayPassive)
+		{
+
+			const auto& data = HouseTypeExtContainer::Instance.Find(pHouse->Type)->StartInMultiplayer_Types;
+			if (data.HasValue())
+			{
+				types.insert(types.end(), data.begin(), data.end());
+			}
+			else
+			{
+				avaibleHouses |= 1 << pHouse->Type->ArrayIndex;
+			}
+		}
+	}
+
+	FormulateTypeList(types, (TechnoTypeClass**)UnitTypeClass::Array->Items, UnitTypeClass::Array->Count, avaibleHouses);
+	FormulateTypeList(types, (TechnoTypeClass**)InfantryTypeClass::Array->Items, InfantryTypeClass::Array->Count, avaibleHouses);
+
+	//remove any `BaseUnit` included
+	//base unit given for free then ?
+	auto Iter = std::remove_if(types.begin(), types.end(), [](TechnoTypeClass* pItem) {
+		for (int i = 0; i < RulesClass::Instance->BaseUnit.Count; ++i)
+		{
+			if (pItem == (RulesClass::Instance->BaseUnit.Items[i]))
+			{
+				return true;
+			}
+		}
+
+		return false;
+		});
+
+	//idk these part
+	//but lets put it here
+	//need someone to test this to make sure if the calculation were correct :s
+	//-Otamaa
+	if (Iter != types.end())
+		types.erase(Iter, types.end());
+
+	std::sort(types.begin(), types.end());
+	types.erase(std::unique(types.begin(), types.end()), types.end());
+	return types;
+}
+
+int AresHouseExt::GetTotalCost(const Nullable<int>& fixed) {
+	if (GameModeOptionsClass::Instance->UnitCount <= 0)
+		return 0;
+
+	int totalCost = 0;
+	if (fixed.isset())
+	{
+		totalCost = fixed;
+	}
+	else
+	{
+
+		auto types = GetTypeList();
+		int total_ = 0;
+
+		for (auto& tech : types)
+		{
+			total_ += tech->GetCost();
+		}
+
+		const int what = !types.size() ? 1 : types.size();
+		totalCost = (total_ + (what >> 1)) / what;
+		Debug::Log("Unit cost of %d derived from %u units totalling %d credits.\n", totalCost, what, total_);
+	}
+
+	return totalCost * GameModeOptionsClass::Instance->UnitCount;
 }
 
 #pragma endregion
