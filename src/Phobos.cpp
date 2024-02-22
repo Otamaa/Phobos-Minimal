@@ -29,7 +29,7 @@
 
 #include "Lib/Lua542/lua.hpp"
 
-struct luadeleter {
+struct luastatedeleter {
 	void operator ()(lua_State* l) noexcept {
 		if (l) {
 			lua_close(l);
@@ -37,9 +37,9 @@ struct luadeleter {
 	}
 };
 
-using unique_luaptr = std::unique_ptr<lua_State, luadeleter>;
-#define make_unique_lua(to) unique_luaptr to {}; to.reset(luaL_newstate())
-#define close_unique_lua(to) to.reset(nullptr)
+using unique_luastate = std::unique_ptr<lua_State, luastatedeleter>;
+#define make_unique_luastate(to) unique_luastate to {}; to.reset(luaL_newstate())
+#define close_unique_luastate(to) to.reset(nullptr)
 
 // TODO : encryption support
 // Otamaa : change this variable if you want to load desired name lua file
@@ -56,7 +56,7 @@ static std::string MainWindowStr {};
 
 void NOINLINE ExecuteLua()
 {
-	make_unique_lua(unique_lua);
+	make_unique_luastate(unique_lua);
 	auto L = unique_lua.get();
 
 	if (luaL_dofile(L, filename) == LUA_OK) {
