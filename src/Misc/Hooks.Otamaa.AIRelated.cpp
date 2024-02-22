@@ -52,12 +52,24 @@ DEFINE_HOOK(0x6EBEDB, TeamClass_MoveToFocus_BalloonHover, 0xA)
 		0x6EBEEF : 0x6EBEFF;
 }
 
+/*
+DEFINE_PATCH_TYPED(BYTE, 0x4FAD64
+	, 0x88, 0x16
+	, 0x8B, 0xCE
+	, 0xFF, 0x52, 0x3C
+	, 0x50
+	, 0x8B, 0xCF
+	, 0xE8
+
+);
+*/
+
 DEFINE_HOOK(0x4FAD64, HouseClass_SpecialWeapon_Update, 0x7)
 {
 	GET(HouseClass*, pThis, EDI);
 	GET(BuildingClass*, pThat, ESI);
 
-	return pThis->IsAlliedWith(pThat->Owner) ? 0x4FADD9 : 0x4FAD9E;
+	return pThis->IsAlliedWith(pThat->GetOwningHouse()) ? 0x4FADD9 : 0x4FAD9E;
 }
 
 DEFINE_HOOK(0x50A23A, HouseClass_Target_Dominator, 0x6)
