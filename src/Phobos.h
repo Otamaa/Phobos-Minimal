@@ -37,6 +37,7 @@ constexpr const char* ADMIN_STR = "WIN-56N2RLUDAST";
 
 constexpr const char* GLOBALCONTROLS_SECTION = "GlobalControls";
 constexpr const char* SIDEBAR_SECTION_T = "Sidebar";
+constexpr auto UISETTINGS_SECTION = "UISettings";
 
 constexpr const wchar_t* ARES_DLL =  L"Ares.dll";
 constexpr const char* ARES_DLL_S = "Ares.dll";
@@ -127,6 +128,9 @@ struct Phobos final
 		static const wchar_t* PercentLabel;
 
 		static const wchar_t* BuidingRadarJammedLabel;
+
+		static const wchar_t* ShowBriefingResumeButtonLabel;
+		static char ShowBriefingResumeButtonStatusLabel[0x20];
 	};
 
 	struct Config

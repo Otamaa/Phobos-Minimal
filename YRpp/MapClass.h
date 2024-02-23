@@ -461,6 +461,18 @@ public:
 	CellClass* MapClass_findnearbyshroud_580BC0(int arg0) const
 		{ JMP_THIS(0x580BC0); }
 
+	// Called on wall state updates etc. when the wall hasn't been removed.
+	void RecalculateZones(CellStruct const& cell) const
+		{ JMP_THIS(0x56D5A0); }
+
+	// Called on wall state updates etc. when the wall HAS been removed.
+	void ResetZones(CellStruct const& cell) const
+		{ JMP_THIS(0x56D460); }
+
+	// Called on wall state updates etc
+	void RecalculateSubZones(CellStruct const& cell) const
+		{ JMP_THIS(0x584550); }
+
 // ====================================
 //         FIRESTORM RELATED
 // ====================================

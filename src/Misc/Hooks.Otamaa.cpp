@@ -582,7 +582,7 @@ DEFINE_HOOK(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	const auto owner = pThis->Owner;
 
-	if (pTypeExt->PassiveAcquire_AI.isset()) { 
+	if (pTypeExt->PassiveAcquire_AI.isset()) {
 		if(owner
 			&& !owner->Type->MultiplayPassive
 			&& !owner->IsControlledByHuman()
@@ -1474,7 +1474,7 @@ DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7)
 
 	enum { SkipWholeFunction = 0x5192BC, Continue = 0x0 };
 
-	return InfantryTypeExtContainer::Instance.Find(pThis->Type)->HideWhenDeployAnimPresent.Get() 
+	return InfantryTypeExtContainer::Instance.Find(pThis->Type)->HideWhenDeployAnimPresent.Get()
 			&& pThis->DeployAnim ? SkipWholeFunction : Continue;
 }
 
@@ -2033,7 +2033,7 @@ DEFINE_HOOK(0x4DBF01, FootClass_SetOwningHouse_FixArgs, 0x6)
 		const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 		for (auto& trail : pExt->LaserTrails) {
-			if (trail.Type->IsHouseColor) { 
+			if (trail.Type->IsHouseColor) {
 				trail.CurrentColor = pThis->Owner->LaserColor;
 			}
 		}
@@ -2960,7 +2960,7 @@ static void Tactical_Draw_Radial(
 
 		if (sweep_rate.Expired())
 		{
-			sweep_rate = _rate;
+			sweep_rate.Start(_rate);
 			++_offset;
 		}
 
@@ -3196,7 +3196,7 @@ DEFINE_HOOK(0x40A5B3, AudioDriverStart_AnnoyingBufferLogDisable_A, 0x6)
 
 	if(Phobos::Otamaa::OutputAudioLogs)
 		Debug::Log("Sound frame size = %d bytes\n", pAudioChannelTag->dwBufferBytes);
-	
+
 	return 0x40A5C4;
 }
 
@@ -3208,7 +3208,7 @@ DEFINE_HOOK(0x40A554, AudioDriverStart_AnnoyingBufferLogDisable_B, 0x6)
 
 	if (Phobos::Otamaa::OutputAudioLogs)
 		Debug::Log("Sound frame size = %d bytes\n", pAudioChannelTag->soundframesize1);
-	
+
 	R->EDX(R->EAX());
 	R->EAX(ptr);
 	return 0x40A56C;
@@ -3226,7 +3226,7 @@ DEFINE_HOOK(0x442A08, BuildingClass_ReceiveDamage_ReturnFire, 0x5)
 	GET(TechnoClass*, pAttacker, EBP);
 	GET(BuildingClass*, pThis, ESI);
 
-	//Was pThis->Owner->ControlledByCurrentPlayer(), got desync ed with that 
+	//Was pThis->Owner->ControlledByCurrentPlayer(), got desync ed with that
 	const bool def = BuildingTypeExtContainer::Instance.Find(pThis->Type)->PlayerReturnFire.Get(
 		pAttacker->WhatAmI() == AircraftClass::AbsID ||
 		(pThis->Owner->IsControlledByHuman() && !RulesClass::Instance->PlayerReturnFire)
@@ -3239,7 +3239,7 @@ DEFINE_HOOK(0x6DBE35, TacticalClass_DrawLinesOrCircles, 0x9)
 {
 	ObjectClass** items = !ToggleRadialIndicatorDrawModeClass::ShowForAll ? ObjectClass::CurrentObjects->Items : (ObjectClass**)TechnoClass::Array->Items;
 	const int count = !ToggleRadialIndicatorDrawModeClass::ShowForAll ? ObjectClass::CurrentObjects->Count : TechnoClass::Array->Count;
-	
+
 	if(count <= 0)
 		return 0x6DBE74;
 
@@ -3630,14 +3630,14 @@ DEFINE_HOOK(0x44F8A6, TechnoClass_FromINI_CreateForHouse, 0x7)
 	GET(const char*, pHouseName, EAX);
 
 	const int startingPoints = GetPlayerPosByName(pHouseName);
-	const int idx = startingPoints != -1 
+	const int idx = startingPoints != -1
 		?
 		//Hopefully the HouseIndices is fine
 		ScenarioClass::Instance->HouseIndices[startingPoints] :
 		HouseClass::FindIndexByName(pHouseName)
 		;
 
-	if (idx == -1) { 
+	if (idx == -1) {
 		Debug::Log("Failed To fetch house index by name of [%s]\n", pHouseName);
 		Debug::RegisterParserError();
 	}
@@ -3869,7 +3869,7 @@ DEFINE_HOOK(0x4CA007, FactoryClass_AbandonProduction_GetObjectType, 0x6)
 	// use cached type instead of `->GetTechnoType()` the pointer was changed !
 	const auto pType = TechnoExtContainer::Instance.Find(pObject)->Type;
 	Debug::Log("[%x]Factory with owner [%s - %x] abandoning production of [%s(%s) - %x]\n",
-		pThis , 
+		pThis ,
 		pThis->Owner->get_ID() , pThis->Owner ,
 		pType->Name , pType->ID , pObject);
 
@@ -3973,7 +3973,7 @@ DEFINE_HOOK(0x5F9652, ObjectTypeClass_GetAplha, 0x6)
 //DEFINE_JUMP(LJMP, 0x518C45, 0x518C49);
 //#endif
 //DEFINE_HOOK(0x44A332, BuildingClass_MI_Deconstruct_ReasonToSpawnCrews, 0x7)
-//{ 
+//{
 //	GET(BuildingClass*, pThis, EBP);
 //
 //	if (pThis && IS_SAME_STR_(pThis->get_ID(), "DBEHIM")) {
@@ -4005,7 +4005,7 @@ DEFINE_HOOK(0x50B6F0, HouseClass_ControlledByCurrentPlayer_LogCaller, 0x5)
 	Debug::Log(__FUNCTION__"Caller [%x]\n", R->Stack<DWORD>(0x0));
 	return 0x0;
 }
-#endif 
+#endif
 
 DEFINE_HOOK(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 {

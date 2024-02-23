@@ -1,6 +1,7 @@
 #include <Ext/Rules/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/BuildingType/Body.h>
+#include <Ext/Building/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/Tiberium/Body.h>
 #include <Ext/SWType/NewSuperWeaponType/Firewall.h>
@@ -135,7 +136,7 @@ DEFINE_OVERRIDE_HOOK(0x4423E7, BuildingClass_ReceiveDamage_FSW, 5)
 template <bool remove = false>
 static void RecalculateCells(BuildingClass* pThis)
 {
-	auto const cells = BuildingExt::GetFoundationCells(pThis, pThis->GetMapCoords());
+	auto const cells = BuildingExtData::GetFoundationCells(pThis, pThis->GetMapCoords());
 
 	auto& map = MapClass::Instance;
 

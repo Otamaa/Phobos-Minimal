@@ -268,7 +268,7 @@ struct SpawnerMain
 			, AINamesByDifficulty { false }
 			, ContinueWithoutHumans { false }
 			, DefeatedBecomesObserver { false }
-			, Observer_ShowAIOnSidebar { false }
+			, Observer_ShowAIOnSidebar { true }
 		{
 		}
 

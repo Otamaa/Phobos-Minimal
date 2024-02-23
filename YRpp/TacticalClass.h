@@ -6,6 +6,7 @@
 #include <ColorScheme.h>
 #include <Helpers/CompileTime.h>
 #include <RectangleStruct.h>
+#include <Unsorted.h>
 
 class ObjectClass;
 struct TacticalSelectableStruct

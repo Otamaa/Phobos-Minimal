@@ -141,6 +141,8 @@ const wchar_t* Phobos::UI::TimeLabel;
 const wchar_t* Phobos::UI::HarvesterLabel;
 const wchar_t* Phobos::UI::PercentLabel;
 const wchar_t* Phobos::UI::BuidingRadarJammedLabel;
+const wchar_t* Phobos::UI::ShowBriefingResumeButtonLabel = L"";
+char Phobos::UI::ShowBriefingResumeButtonStatusLabel[32];
 
 bool Phobos::UI::ShowPowerDelta = false;
 double Phobos::UI::PowerDelta_ConditionYellow = 0.75;
@@ -442,6 +444,15 @@ void Phobos::Config::Read()
 		{
 			Phobos::UI::DisableEmptySpawnPositions =
 				INI_UIMD.ReadBool("LoadingScreen", "DisableEmptySpawnPositions", false);
+		}
+
+		// UISettings
+		{
+			INI_UIMD.ReadString(UISETTINGS_SECTION, "ShowBriefingResumeButtonLabel", "GUI:Resume", Phobos::readBuffer);
+			Phobos::UI::ShowBriefingResumeButtonLabel = GeneralUtils::LoadStringOrDefault(Phobos::readBuffer, L"");
+
+			INI_UIMD.ReadString(UISETTINGS_SECTION, "ShowBriefingResumeButtonStatusLabel", "STT:BriefingButtonReturn", Phobos::readBuffer);
+			strcpy_s(Phobos::UI::ShowBriefingResumeButtonStatusLabel, Phobos::readBuffer);
 		}
 
 		// ToolTips

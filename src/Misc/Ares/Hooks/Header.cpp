@@ -4012,7 +4012,7 @@ void FirewallFunctions::UpdateFirewall(BuildingClass* pThis, bool const changedS
 		if (pThis->FirestormWallFrame != idxFrame)
 		{
 			pThis->FirestormWallFrame = idxFrame;
-			pThis->GetCell()->Setup(0xFFFFFFFF);
+			pThis->GetCell()->RecalcAttributes(0xFFFFFFFF);
 			pThis->UpdatePlacement(PlacementType::Redraw);
 		}
 
