@@ -132,11 +132,40 @@ DEFINE_OVERRIDE_HOOK(0x4423E7, BuildingClass_ReceiveDamage_FSW, 5)
 	return 0x4423F2;
 }
 
+template <bool remove = false>
+static void RecalculateCells(BuildingClass* pThis)
+{
+	auto const cells = BuildingExt::GetFoundationCells(pThis, pThis->GetMapCoords());
+
+	auto& map = MapClass::Instance;
+
+	for (auto const& cell : cells)
+	{
+		if (auto pCell = map->TryGetCellAt(cell))
+		{
+			pCell->RecalcAttributes(DWORD(-1));
+
+			if constexpr (remove)
+				map->ResetZones(cell);
+			else
+				map->RecalculateZones(cell);
+
+			map->RecalculateSubZones(cell);
+
+		}
+	}
+}
+
 DEFINE_OVERRIDE_HOOK(0x440d01, BuildingClass_Put_FirestormWall, 6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	//GET(CellStruct const*, pMapCoords, EBP);
 	FirewallFunctions::UpdateFirewallLinks(pThis);
+	auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
+
+	if (pTypeExt->IsDestroyableObstacle)
+		RecalculateCells(pThis);
+
 	return 0;
 }
 
@@ -144,6 +173,11 @@ DEFINE_OVERRIDE_HOOK(0x445DF4, BuildingClass_Remove_FirestormWall, 6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	FirewallFunctions::UpdateFirewallLinks(pThis);
+	auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
+
+	if (pTypeExt->IsDestroyableObstacle)
+		RecalculateCells<true>(pThis);
+
 	return 0;
 }
 

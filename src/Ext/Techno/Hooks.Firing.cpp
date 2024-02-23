@@ -371,17 +371,29 @@ DEFINE_HOOK(0x6FC815, TechnoClass_CanFire_CellTargeting, 0x7)
 // 	return weaponPrimary;
 // }
 
-// DEFINE_HOOK(0x51C1F1, InfantryClass_CanEnterCell_GetWeapon_WallWeapon, 0x5) {
-// 	GET(TechnoClass*, pThis, EBP);
-// 	R->EAX(TechnoClass_GetWeaponAgainstWallWrapper(pThis));
-// 	return 0x51C1FE;
-// }
+DEFINE_HOOK(0x51C1F1, InfantryClass_CanEnterCell_WallWeapon, 0x5)
+{
+	enum { SkipGameCode = 0x51C1FE };
 
-// DEFINE_HOOK(0x73F495 , UnitClass_CanEnterCell_GetWeapon_WallWeapon, 0x6) {
-// 	GET(TechnoClass*, pThis, EBX);
-// 	R->EAX(TechnoClass_GetWeaponAgainstWallWrapper(pThis));
-// 	return 0x73F4A1;
-// }
+	GET(InfantryClass*, pThis, EBP);
+	GET(OverlayTypeClass*, pOverlayTypeClass, ESI);
+
+	R->EAX(pThis->GetWeapon(TechnoExtData::GetWeaponIndexAgainstWall(pThis, pOverlayTypeClass)));
+
+	return SkipGameCode;
+}
+
+DEFINE_HOOK(0x73F495, UnitClass_CanEnterCell_WallWeapon, 0x6)
+{
+	enum { SkipGameCode = 0x73F4A1 };
+
+	GET(UnitClass*, pThis, EBX);
+	GET(OverlayTypeClass*, pOverlayTypeClass, ESI);
+
+	R->EAX(pThis->GetWeapon(TechnoExtData::GetWeaponIndexAgainstWall(pThis, pOverlayTypeClass)));
+
+	return SkipGameCode;
+}
 
 DEFINE_HOOK(0x70095A, TechnoClass_WhatAction_WallWeapon, 0x6) {
 	GET_STACK(OverlayTypeClass*, pOverlayTypeClass, STACK_OFFSET(0x2C, -0x18));

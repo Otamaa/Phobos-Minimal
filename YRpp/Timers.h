@@ -36,12 +36,13 @@ template<TimerType Clock>
 class TimerClass
 {
 public:
-	int StartTime { -1 };
-	Clock CurrentTime {}; // timer
-	int TimeLeft { 0 };
+	int StartTime;
+	Clock CurrentTime; // timer
+	int TimeLeft;
 
-	constexpr TimerClass() = default;
-	TimerClass(int duration) { this->Start(duration); }
+	constexpr TimerClass() : StartTime { -1 }, TimeLeft { 0 } { };
+	explicit TimerClass(int duration) { this->Start(duration); }
+	TimerClass(noinit_t()){ }
 	~TimerClass() = default;
 
 	TimerClass(const TimerClass& other) {

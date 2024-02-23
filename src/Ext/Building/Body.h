@@ -94,6 +94,8 @@ public:
 	static void UpdateSecretLab(BuildingClass* pThis);
 	static bool ReverseEngineer(BuildingClass* pBuilding, TechnoClass* Victim);
 
+	static const std::vector<CellStruct> GetFoundationCells(BuildingClass* pThis, CellStruct baseCoords, bool includeOccupyHeight = false);
+
 private:
 	template <typename T>
 	void Serialize(T& Stm);

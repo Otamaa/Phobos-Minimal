@@ -32,6 +32,7 @@ public:
 
 	static constexpr reference<TacticalClass*, 0x887324u> const Instance{};
 	static constexpr reference<BuildingClass*, 0x88098Cu> const DisplayPendingObject{};
+	static	constexpr reference<RectangleStruct, 0xB0CE28u> const view_bound { };
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x6DBCE0);
@@ -72,6 +73,14 @@ public:
         return Buffer;
     }
 
+	std::pair<Point2D, bool> CoordsToClient(const CoordStruct& coords) const
+	{
+		Point2D point = CoordsToScreen(coords) - this->TacticalPos;
+		bool visible = point.X >= -360 && point.X <= view_bound->Width + 360
+			&& point.Y >= -180 && point.Y <= view_bound->Height + 180;
+		return { point, visible };
+	}
+
 	Point2D* CoordsToScreen(Point2D* pDest, CoordStruct* pSource)
 		{ JMP_THIS(0x6D1F10); }
 
@@ -80,6 +89,12 @@ public:
 		Point2D Buffer;
 		this->CoordsToScreen(&Buffer, nSource);
 		return Buffer;
+	}
+
+	static Point2D CoordsToScreen(const CoordStruct& coord)
+	{
+		auto [x, y] = AdjustForZShapeMove(coord.X, coord.Y);
+		return { x, y - Game::AdjustHeight(coord.Z) };
 	}
 
 	CoordStruct* ClientToCoords(CoordStruct* pOutBuffer, Point2D const& client) const
@@ -97,9 +112,13 @@ public:
 	Point2D * AdjustForZShapeMove(Point2D* pDest, Point2D* pClient)
 		{ JMP_THIS(0x6D1FE0); }
 
-	// convert xyz height to xy height?
-	//static int __fastcall AdjustForZ(int Height)
-	//{ JMP_STD(0x6D20E0); }
+	static Point2D AdjustForZShapeMove(int x, int y)
+	{
+		return {
+			(-Unsorted::CellWidthInPixels * y / 2 + Unsorted::CellWidthInPixels * x / 2) / Unsorted::LeptonsPerCell,
+			(Unsorted::CellHeightInPixels * y / 2 + Unsorted::CellHeightInPixels * x / 2) / Unsorted::LeptonsPerCell
+		};
+	}
 
 	static void __fastcall PrintTimer(int arg1, ColorScheme* scheme, int interval, const wchar_t* string, LARGE_INTEGER* pBlinkTimer, bool* pBlinkState)
 		{ JMP_STD(0x6D4B50); }

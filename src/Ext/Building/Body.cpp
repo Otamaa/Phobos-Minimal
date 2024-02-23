@@ -25,6 +25,50 @@ void BuildingExtData::InitializeConstant()
 	this->StartupCashDelivered.resize(HouseClass::Array->Count);
 }
 
+const std::vector<CellStruct> BuildingExtData::GetFoundationCells(BuildingClass* const pThis, CellStruct const baseCoords, bool includeOccupyHeight)
+{
+	const CellStruct foundationEnd = { 0x7FFF, 0x7FFF };
+	auto const pFoundation = pThis->GetFoundationData(false);
+
+	int occupyHeight = includeOccupyHeight ? pThis->Type->OccupyHeight : 1;
+
+	if (occupyHeight <= 0)
+		occupyHeight = 1;
+
+	auto pCellIterator = pFoundation;
+
+	while ((*pCellIterator).DifferTo(foundationEnd))
+		++pCellIterator;
+
+	std::vector<CellStruct> foundationCells;
+	foundationCells.reserve(static_cast<int>(std::distance(pFoundation, pCellIterator + 1)) * occupyHeight);
+	pCellIterator = pFoundation;
+
+	while ((*pCellIterator).DifferTo(foundationEnd))
+	{
+		auto actualCell = baseCoords + *pCellIterator;
+
+		for (auto i = occupyHeight; i > 0; --i)
+		{
+			foundationCells.push_back(actualCell);
+			--actualCell.X;
+			--actualCell.Y;
+		}
+		++pCellIterator;
+	}
+
+	std::sort(foundationCells.begin(), foundationCells.end(),
+		[](const CellStruct& lhs, const CellStruct& rhs) -> bool
+	{
+		return lhs.X > rhs.X || lhs.X == rhs.X && lhs.Y > rhs.Y;
+	});
+
+	auto const it = std::unique(foundationCells.begin(), foundationCells.end());
+	foundationCells.erase(it, foundationCells.end());
+
+	return foundationCells;
+}
+
 // Assigns a secret production option to the building.
 void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 {

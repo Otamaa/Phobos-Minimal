@@ -1843,7 +1843,6 @@ void ScriptExtData::Set_ForceJump_Countdown(TeamClass* pTeam, bool repeatLine = 
 	{
 		pTeamData->ForceJump_InitialCountdown = -1;
 		pTeamData->ForceJump_Countdown.Stop();
-		pTeamData->ForceJump_Countdown = -1;
 		pTeamData->ForceJump_RepeatMode = false;
 	}
 
@@ -1866,7 +1865,6 @@ void ScriptExtData::Stop_ForceJump_Countdown(TeamClass* pTeam)
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	pTeamData->ForceJump_InitialCountdown = -1;
 	pTeamData->ForceJump_Countdown.Stop();
-	pTeamData->ForceJump_Countdown = -1;
 	pTeamData->ForceJump_RepeatMode = false;
 
 	auto pScript = pTeam->CurrentScript;

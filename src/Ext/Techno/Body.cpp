@@ -429,7 +429,7 @@ Armor TechnoExtData::GetArmor(ObjectClass* pThis) {
 			res = (Armor)pTypeExt->VeteranArmor.Get();
 		else if (((TechnoClass*)pThis)->Veterancy.IsElite() && pTypeExt->EliteArmor.isset())
 			res = (Armor)pTypeExt->EliteArmor.Get();
-		
+
 		return res;
 	}
 
@@ -1228,30 +1228,29 @@ int TechnoExtData::GetDeployFireWeapon(UnitClass* pThis)
 }
 
 // Gets weapon index for a weapon to use against wall overlay.
-int TechnoExtData::GetWeaponIndexAgainstWall(TechnoClass* pThis, OverlayTypeClass* pWallOverlayType, bool isBlockageCheck)
+int TechnoExtData::GetWeaponIndexAgainstWall(TechnoClass * pThis, OverlayTypeClass * pWallOverlayType)
 {
 	auto const pTechnoType = pThis->GetTechnoType();
 	int weaponIndex = -1;
-	auto pWeapon = TechnoExtData::GetCurrentWeapon(pThis ,weaponIndex);
+	auto pWeapon = TechnoExtData::GetCurrentWeapon(pThis, weaponIndex);
 
 	if ((pTechnoType->TurretCount > 0 && !pTechnoType->IsGattling) || !pWallOverlayType)
 		return weaponIndex;
 	else if (weaponIndex == -1)
 		return 0;
 
-	if (!pWeapon || (!pWeapon->Warhead->Wall && (!pWeapon->Warhead->Wood || pWallOverlayType->Armor != Armor::Wood)
-		&& (!isBlockageCheck || (!pWeapon->NeverUse && pWeapon->Damage > 0) || !WeaponTypeExtContainer::Instance.Find(pWeapon)->BlockageTargetingBypassDamageOverride.Get(false))))
+	if (!pWeapon || (!pWeapon->Warhead->Wall && (!pWeapon->Warhead->Wood || pWallOverlayType->Armor != Armor::Wood)))
 	{
-		pWeapon = TechnoExtData::GetCurrentWeapon(pThis ,weaponIndex , true);
+		int weaponIndexSec = -1;
+		pWeapon = TechnoExtData::GetCurrentWeapon(pThis, weaponIndexSec, true);
 
 		if (pWeapon && (pWeapon->Warhead->Wall || (pWeapon->Warhead->Wood && pWallOverlayType->Armor == Armor::Wood)
-			&& !TechnoTypeExtContainer::Instance.Find(pTechnoType)->NoSecondaryWeaponFallback
-			&& (!isBlockageCheck || (!pWeapon->NeverUse && pWeapon->Damage > 0) || WeaponTypeExtContainer::Instance.Find(pWeapon)->BlockageTargetingBypassDamageOverride.Get(false))))
+			&& !TechnoTypeExtContainer::Instance.Find(pTechnoType)->NoSecondaryWeaponFallback))
 		{
-			return 1;
+			return weaponIndexSec;
 		}
 
-		return isBlockageCheck ? -1 : weaponIndex;
+		return weaponIndex;
 	}
 
 	return weaponIndex;
@@ -1569,7 +1568,7 @@ bool TechnoExtData::TargetFootAllowFiring(TechnoClass* pThis, TechnoClass* pTarg
 		const auto pFoot = static_cast<FootClass*>(pTarget);
 		const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
-		if (pWeaponExt->Abductor 
+		if (pWeaponExt->Abductor
 			&& pWeaponExt->Abductor_CheckAbductableWhenTargeting
 			&& !TechnoExtData::IsAbductable(pThis, pWeapon, pFoot
 			))
@@ -4602,7 +4601,7 @@ DEFINE_HOOK(0x70BF6C, TechnoClass_Load_Suffix, 0x6)
 	//if (loader.ReadBlockFromStream(TechnoExtContainer::Instance.GetStream()))
 	//{
 	//	PhobosStreamReader reader { loader };
-	//	if (reader.Expect(TechnoExtData::Canary) 
+	//	if (reader.Expect(TechnoExtData::Canary)
 	//		&& reader.RegisterChange(buffer))
 	//	{
 	//		buffer->LoadFromStream(reader);

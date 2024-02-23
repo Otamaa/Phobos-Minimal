@@ -9,6 +9,19 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/House/Body.h>
 
+DEFINE_HOOK(0x483D8E, CellClass_CheckPassability_DestroyableObstacle, 0x6)
+{
+	enum { IsBlockage = 0x483CD4 };
+
+	GET(BuildingClass*, pBuilding, ESI);
+
+	auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+
+	if (pTypeExt->IsDestroyableObstacle)
+		return IsBlockage;
+
+	return 0;
+}
 
 DEFINE_HOOK(0x43D6E5, BuildingClass_Draw_ZShapePointMove, 0x5)
 {

@@ -286,6 +286,8 @@ public:
 
 	Valueable<bool> SpawnCrewOnlyOnce { true };
 
+	Valueable<bool> IsDestroyableObstacle { false };
+
 	BuildingTypeExtData() noexcept = default;
 	~BuildingTypeExtData() noexcept = default;
 

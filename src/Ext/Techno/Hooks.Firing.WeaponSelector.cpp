@@ -59,8 +59,13 @@ DEFINE_HOOK(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
 		}
 		else if (pCell->OverlayTypeIndex != -1)
 		{
-			R->EAX(TechnoExtData::GetWeaponIndexAgainstWall(pThis, OverlayTypeClass::Array()->GetItem(pCell->OverlayTypeIndex)));
-			return UseWeaponIndex;
+			auto const pOverlayType = OverlayTypeClass::Array()->Items[pCell->OverlayTypeIndex];
+
+			if (pCell->OverlayData >> 4 != pOverlayType->DamageLevels)
+			{
+				R->EAX(TechnoExtData::GetWeaponIndexAgainstWall(pThis, pOverlayType));
+				return UseWeaponIndex;
+			}
 		}
 	}
 

@@ -75,10 +75,9 @@ protected:
 
 public:
 
-	BYTE OutOfMap;
-	BYTE pad[3];
+	bool OutOfMap;
 	CoordStruct CoordDest;
-	void* Piggybackee;
+	ILocomotionPtr Piggybackee;
 };
 
 static_assert(sizeof(DropPodLocomotionClass) == 0x30, "Invalid size.");

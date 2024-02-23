@@ -63,7 +63,7 @@ public:
 
 // Hooks
 
-DEFINE_HOOK(0x51C1F1, InfantryClass_CanEnterCell_BlockageOverlay, 0x5)
+DEFINE_HOOK(0x51C1F1, InfantryClass_CanEnterCell_WallWeapon, 0x5)
 {
 	enum { IsBlockage = 0x51C7D0, Continue = 0x51C20D };
 
@@ -162,7 +162,7 @@ DEFINE_HOOK(0x51C841, InfantryClass_CanEnterCell_BlockageGeneral2, 0x9)
 	return Skip;
 }
 
-DEFINE_HOOK(0x73F495, UnitClass_CanEnterCell_BlockageOverlay, 0x6)
+DEFINE_HOOK(0x73F495, UnitClass_CanEnterCell_WallWeapon, 0x6)
 {
 	enum { IsBlockage = 0x73FCD0, Continue = 0x73F4D8 };
 
