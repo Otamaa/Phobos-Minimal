@@ -52,6 +52,9 @@ DEFINE_HOOK(0x6EBEDB, TeamClass_MoveToFocus_BalloonHover, 0xA)
 		0x6EBEEF : 0x6EBEFF;
 }
 
+//?TODO : replace these with patches
+#pragma region HouseCheckReplace
+
 //DEFINE_PATCH_TYPED(BYTE, 0x4FAD6B
 //	, 0x50 // push eax
 //	, 0x8B, 0xCF // mov ecx edi
@@ -102,6 +105,27 @@ DEFINE_HOOK(0x50A04B, HouseClass_Target_GenericMutator, 0x7)
 	return pThis->IsAlliedWith(pThat->Owner) ? 0x50A096 : 0x50A087;
 }
 
+DEFINE_HOOK(0x5094F9, HouseClass_AdjustThreats, 0x6)
+{
+	return R->EBX<HouseClass*>()->IsAlliedWith(R->ESI<HouseClass*>()) ? 0x5095B6 : 0x509532;
+}
+
+DEFINE_HOOK(0x4F9432, HouseClass_Attacked, 0x6)
+{
+	return R->EDI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x4F9474 : 0x4F9478;
+}
+
+DEFINE_HOOK(0x4FBD1C, HouseClass_DoesEnemyBuildingExist, 0x6)
+{
+	return R->ESI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x4FBD57 : 0x4FBD47;
+}
+
+DEFINE_HOOK(0x5003BA, HouseClass_FindJuicyTarget, 0x6)
+{
+	return R->EDI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x5003F7 : 0x5004B1;
+}
+#pragma endregion
+
 DEFINE_HOOK(0x6EA192, TeamClass_Regroup_LimboDelivered, 0x6)
 {
 	enum { advance = 0x6EA38C, ret = 0x0 };
@@ -125,32 +149,13 @@ DEFINE_HOOK(0x6EE8D9, TeamClass_Scout_LimboDelivered, 0x9)
 	return BuildingExtContainer::Instance.Find(*pBuilding)->LimboID != -1 ?
 		advance : ret;
 }
+
 DEFINE_HOOK(0x6EEEF2, TeamClass_6EEEA0_LimboDelivered, 0xA)
 {
 	enum { advance = 0x6EF0D7, ret = 0x0 };
 	GET(BuildingClass*, pBuilding, ESI);
 	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ?
 		advance : ret;
-}
-
-DEFINE_HOOK(0x5094F9, HouseClass_AdjustThreats, 0x6)
-{
-	return R->EBX<HouseClass*>()->IsAlliedWith(R->ESI<HouseClass*>()) ? 0x5095B6 : 0x509532;
-}
-
-DEFINE_HOOK(0x4F9432, HouseClass_Attacked, 0x6)
-{
-	return R->EDI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x4F9474 : 0x4F9478;
-}
-
-DEFINE_HOOK(0x4FBD1C, HouseClass_DoesEnemyBuildingExist, 0x6)
-{
-	return R->ESI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x4FBD57 : 0x4FBD47;
-}
-
-DEFINE_HOOK(0x5003BA, HouseClass_FindJuicyTarget, 0x6)
-{
-	return R->EDI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x5003F7 : 0x5004B1;
 }
 
 DEFINE_HOOK(0x6F7D90, TechnoClass_Threat_Forbidden, 0x6)

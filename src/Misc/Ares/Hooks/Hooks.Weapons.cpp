@@ -84,7 +84,7 @@ DEFINE_OVERRIDE_HOOK(0x746B89, UnitClass_GetUIName, 8)
 
 	const wchar_t* Text =
 		(size_t)nCurWp < pTypeExt->WeaponUINameX.size()
-		? pTypeExt->WeaponUINameX[nCurWp].Text : nullptr;
+		? pTypeExt->WeaponUINameX[nCurWp].Text : L"Error Invalid Name";
 
 	R->EAX(Text);
 

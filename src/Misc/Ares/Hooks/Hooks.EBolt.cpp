@@ -152,6 +152,12 @@ DEFINE_OVERRIDE_HOOK(0x4C26CF, EBolt_Draw_Color3, 5)
 	return 0x4C26EE;
 }
 
+void NAKED _EBolt_Fire_Particles_RET()
+{
+	POP_REG(esi); // We need to handle origin two push here...
+	JMP(0x4C2B35);
+}
+
 DEFINE_OVERRIDE_HOOK(0x4C2AFF, EBolt_Fire_Particles, 5)
 {
 	GET(EBolt*, pThis, ESI);
@@ -162,10 +168,7 @@ DEFINE_OVERRIDE_HOOK(0x4C2AFF, EBolt_Fire_Particles, 5)
 	{
 		if (!pData->Bolt_ParticleSys_Enabled)
 		{
-			// because ESI got pop-ed early , and this weirdass assembly code
-			// this nessesary
-			R->EAX(0);
-			return 0x4C2B0C;
+			return DWORD(_EBolt_Fire_Particles_RET);
 		}
 
 		if (pData->Bolt_ParticleSys.isset())
@@ -175,8 +178,5 @@ DEFINE_OVERRIDE_HOOK(0x4C2AFF, EBolt_Fire_Particles, 5)
 	if (pParticleSys)
 		GameCreate<ParticleSystemClass>(pParticleSys, pThis->Point2, nullptr, pThis->Owner, CoordStruct::Empty, pThis->Owner ? pThis->Owner->GetOwningHouse() : nullptr);
 
-	// because ESI got pop-ed early , and this weirdass assembly code
-	// this nessesary
-	R->EAX(0);
-	return 0x4C2B0C;
+	return DWORD(_EBolt_Fire_Particles_RET);
 }

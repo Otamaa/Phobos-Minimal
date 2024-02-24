@@ -1346,14 +1346,14 @@ DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 //DEFINE_SKIP_HOOK(0x668F2B, RulesClass_Process_RemoveThese, 0x8, 668F63);
 DEFINE_JUMP(LJMP, 0x668F2B ,0x668F63); // move all these reading before type reading
 
-void NAKED RulesClass_Process_SpecialWeapon_RemoveWHReadingDuplicate_RET() {
-	POP_REG(ebx);
-	JMP(0x6691B7);
-}
-
-DEFINE_HOOK(0x669193, RulesClass_Process_SpecialWeapon_RemoveWHReadingDuplicate, 0x9) {
-	return (int)RulesClass_Process_SpecialWeapon_RemoveWHReadingDuplicate_RET;
-}
+ // remove reading warhead from `SpecialWeapon`
+DEFINE_PATCH_TYPED(BYTE, 0x669193
+	, 0x5B //pop EBX
+	, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90
+	, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90
+	, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90
+	, 0x90, 0x90, 0x90, 0x90, 0x90
+);
 
 // Ensure entry not fail because of late instantiation
 // add more if needed , it will double the error log at some point
@@ -1380,5 +1380,3 @@ DEFINE_HOOK(0x679C92, RulesClass_ReadObject_ReReadStuffs, 7)
 
 	return 0x0;
 }
-
-DEFINE_JUMP(LJMP, 0x66919B, 0x6691B7); // remove reading warhead from `SpecialWeapon`

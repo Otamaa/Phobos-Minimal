@@ -213,7 +213,7 @@ namespace BriefingTemp
 {
 	bool ShowBriefing = false;
 }
-__forceinline void ShowBriefing()
+FORCEINLINE void ShowBriefing()
 {
 	if (BriefingTemp::ShowBriefing)
 	{
@@ -235,8 +235,6 @@ __forceinline void ShowBriefing()
 // Check if briefing dialog should be played before starting scenario.
 DEFINE_HOOK(0x683E41, ScenarioClass_Start_ShowBriefing, 0x6)
 {
-	enum { SkipGameCode = 0x683E6B };
-
 	GET_STACK(bool, showBriefing, STACK_OFFSET(0xFC, -0xE9));
 
 	// Don't show briefing dialog for non-campaign games or on restarts etc.
@@ -259,36 +257,26 @@ DEFINE_HOOK(0x683E41, ScenarioClass_Start_ShowBriefing, 0x6)
 		ThemeClass::Instance->Queue(theme);
 
 	// Skip over playing scenario theme.
-	return SkipGameCode;
+	return 0x683E6B;
 }
 
 // Skip redrawing the screen if we're gonna show the briefing screen immediately after loading screen finishes on initially launched mission.
-DEFINE_HOOK(0x683F66, PauseGame_ShowBriefing, 0x5)
-{
-	enum { SkipGameCode = 0x683FAA };
-	return BriefingTemp::ShowBriefing ? SkipGameCode : 0;
+DEFINE_HOOK(0x683F66, PauseGame_ShowBriefing, 0x5) {
+	return BriefingTemp::ShowBriefing ? 0x683FAA : 0;
 }
 
 // Show the briefing dialog on starting a new scenario after clearing another.
 DEFINE_HOOK(0x55D14F, AuxLoop_ShowBriefing, 0x5)
 {
-	enum { SkipGameCode = 0x55D159 };
-
 	// Restore overridden instructions.
 	SessionClass::Instance->Resume();
 	ShowBriefing();
-	return SkipGameCode;
+	return 0x55D159;
 }
 
 // Skip redrawing the screen if we're gonna show the briefing screen immediately after loading screen finishes on succeeding missions.
-DEFINE_HOOK(0x685D95, DoWin_ShowBriefing, 0x5)
-{
-	enum { SkipGameCode = 0x685D9F };
-
-	if (BriefingTemp::ShowBriefing)
-		return SkipGameCode;
-
-	return 0;
+DEFINE_HOOK(0x685D95, DoWin_ShowBriefing, 0x5) {
+	return BriefingTemp::ShowBriefing ? 0x685D9F : 0;
 }
 
 // Set briefing dialog resume button text.
@@ -308,9 +296,8 @@ DEFINE_HOOK(0x65F764, BriefingDialog_ShowBriefing, 0x5)
 DEFINE_HOOK(0x604985, GetDialogUIStatusLabels_ShowBriefing, 0x5)
 {
 	if (BriefingTemp::ShowBriefing) {
-		enum { SkipGameCode = 0x60498A };
 		R->EAX(Phobos::UI::ShowBriefingResumeButtonStatusLabel);
-		return SkipGameCode;
+		return 0x60498A;
 	}
 
 	return 0;

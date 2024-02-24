@@ -39,8 +39,7 @@ DEFINE_OVERRIDE_HOOK(0x5F8277, ObjectTypeClass_Load3DArt_NoSpawnAlt1, 7)
 		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		char Buffer[0x40];
-		auto pKey = "%sWO";
-		IMPL_SNPRNINTF(Buffer, sizeof(Buffer), pKey, pThis->ImageFile);
+		IMPL_SNPRNINTF(Buffer, sizeof(Buffer), GameStrings::_s_WO(), pThis->ImageFile);
 		ImageStatusses nPairStatus = ImageStatusses::ReadVoxel(Buffer, 1);
 
 		if (pTypeExt->SpawnAltData.VXL != nPairStatus.Images.VXL)
@@ -86,7 +85,7 @@ DEFINE_OVERRIDE_HOOK(0x5F887B, ObjectTypeClass_Load3DArt_Barrels, 6)
 		if (i >= pThis->TurretCount)
 			return 0x5F8A60;
 
-		const auto pKey = !i ? "%sBARL" : "%sBARL%d";
+		const auto pKey = !i ? GameStrings::_s_BARL() : GameStrings::_s_BARL_d_();
 		IMPL_SNPRNINTF(Buffer, sizeof(Buffer), pKey, pThis->ImageFile, i);
 
 		//if (i > (pTypeExt->TurretImageData.size() + TechnoTypeClass::MaxWeapons)) {
@@ -140,7 +139,7 @@ DEFINE_OVERRIDE_HOOK(0x5F865F, ObjectTypeClass_Load3DArt_Turrets, 6)
 		if (i >= pThis->TurretCount)
 			return 0x5F8844;
 
-		const auto pKey = !i ? "%sTUR" : "%sTUR%d";
+		const auto pKey = !i ? GameStrings::_s_TUR() : GameStrings::_s_TUR_d_();
 		IMPL_SNPRNINTF(Buffer, sizeof(Buffer), pKey, pThis->ImageFile, i);
 
 		//if (i > (pTypeExt->TurretImageData.size() + TechnoTypeClass::MaxWeapons)) {

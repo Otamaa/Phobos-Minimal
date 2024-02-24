@@ -1444,7 +1444,6 @@ DEFINE_OVERRIDE_HOOK(0x7292CF, TunnelLocomotionClass_sub_7291F0_Dig, 8)
 	pTimer->Start(nTimeLeft);
 	TechnoExt_ExtData::HandleTunnelLocoStuffs(pThis->LinkedTo, true, true);
 	return 0x729365;
-
 }
 
 DEFINE_OVERRIDE_HOOK(0x7293DA, TunnelLocomotionClass_sub_729370_Dig, 6)

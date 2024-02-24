@@ -26,7 +26,7 @@ struct LooseAudioFile
 class LooseAudioCache
 {
 public:
-	static std::vector<std::unique_ptr<LooseAudioCache>> Array;
+	static std::vector<LooseAudioCache> Array;
 
 	static int FindOrAllocateIndex(const char* Title)
 	{
@@ -46,7 +46,7 @@ public:
 		for (auto pos = Array.begin();
 			pos != Array.end();
 			++pos) {
-			if (IS_SAME_STR_((*pos)->Name.data(), Title)) {
+			if (IS_SAME_STR_((*pos).Name.data(), Title)) {
 				return std::distance(Array.begin(), pos);
 			}
 		}
@@ -56,12 +56,12 @@ public:
 
 	static void AllocateNoCheck(const char* Title)
 	{
-		Array.emplace_back(std::make_unique<LooseAudioCache>(Title));
+		Array.emplace_back(Title);
 	}
 
 	static inline LooseAudioCache* Find(int idx)
 	{
-		return Array[idx].get();
+		return &Array[idx];
 	}
 
 	static 	FileStruct GetFileStructFromIndex(int idx)
@@ -117,12 +117,12 @@ private:
 	std::string WavName;
 	LooseAudioFile Data;
 
-	LooseAudioCache(const LooseAudioCache&) = default;
-	LooseAudioCache(LooseAudioCache&&) = default;
-	LooseAudioCache& operator=(const LooseAudioCache& other) = default;
+	//LooseAudioCache(const LooseAudioCache&) = default;
+	//LooseAudioCache(LooseAudioCache&&) = default;
+	//LooseAudioCache& operator=(const LooseAudioCache& other) = default;
 };
 
-std::vector<std::unique_ptr<LooseAudioCache>> LooseAudioCache::Array;
+std::vector<LooseAudioCache> LooseAudioCache::Array;
 
 class AudioLuggage
 {
@@ -234,11 +234,11 @@ public:
 						auto& [idx, file , bagFileName] = node.mapped();
 
 						if(Phobos::Otamaa::OutputAudioLogs) {
-							Debug::Log("Replacing audio `%s` from : [%d - (%s - %s)] to : [%d - (%s - %s)].\n", 
+							Debug::Log("Replacing audio `%s` from : [%d - (%s - %s)] to : [%d - (%s - %s)].\n",
 								ent.Name,
-								idx, 
+								idx,
 								file->FileName ,
-								bagFileName.c_str(), 
+								bagFileName.c_str(),
 								i,
 								this->Bags[i].Bag->FileName,
 								this->Bags[i].BagFile.c_str()

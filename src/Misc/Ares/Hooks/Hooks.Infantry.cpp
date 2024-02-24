@@ -22,7 +22,6 @@
 
 #include "Header.h"
 
-
 DEFINE_OVERRIDE_HOOK(0x51E5E1, InfantryClass_GetActionOnObject_MultiEngineerB, 7)
 {
 	GET(BuildingClass*, pBld, ECX);
@@ -352,8 +351,7 @@ DEFINE_OVERRIDE_HOOK(0x5200C1, InfantryClass_UpdatePanic_Doggie, 0x6)
 		return 0;
 	}
 
-
-		// if panicking badly, lay down on tiberium
+	// if panicking badly, lay down on tiberium
 	if (pThis->PanicDurationLeft >= RulesExtData::Instance()->DoggiePanicMax) {
 		if (!pThis->Destination && !pThis->Locomotor.GetInterfacePtr()->Is_Moving())		{
 			if (pThis->GetCell()->LandType == LandType::Tiberium) {

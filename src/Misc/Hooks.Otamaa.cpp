@@ -1940,11 +1940,7 @@ DEFINE_HOOK(0x740015, UnitClass_WhatAction_NoManualEject, 0x6)
 // 	return 0x711F46;
 // }
 
-DEFINE_HOOK(0x422A59, AnimClass_DTOR_DoNotClearType, 0x6)
-{
-	return R->Origin() + 0x6;
-	// clearing type pointer will cause animclass AI to crash when it still executed
-}
+DEFINE_JUMP(LJMP, 0x422A59, 0x422A5F);
 
 DEFINE_HOOK(0x4251AB, AnimClass_Detach_LogTypeDetached, 0x6)
 {
@@ -3677,10 +3673,8 @@ DEFINE_HOOK(0x6E23AD, TActionClass_DoExplosionAt_InvalidCell, 0x8)
 {
 	GET(CellStruct*, pLoc, EAX);
 
-	if (!pLoc->IsValid())
-		return 0x6E2510;//prevent crash
-
-	return 0x0;
+	//prevent crash
+	return !pLoc->IsValid() ? 0x6E2510 : 0x0;
 }
 
 DEFINE_STRONG_HOOK(0x4A267D, CreditClass_AI_MissingCurPlayerPtr, 0x6)
@@ -3756,6 +3750,7 @@ DEFINE_HOOK(0x6FFD25, TechnoClass_PlayerAssignMission_Capture_InfantryToBld, 0xA
 
 static_assert(offsetof(TechnoClass, Airstrike) == 0x294, "ClassMember Shifted !");
 
+#ifdef CHECK_PTR_VALID
 DEFINE_STRONG_HOOK_AGAIN(0x4F9A10, HouseClass_IsAlliedWith, 0x6)
 DEFINE_STRONG_HOOK_AGAIN(0x4F9A50, HouseClass_IsAlliedWith, 0x6)
 DEFINE_STRONG_HOOK_AGAIN(0x4F9AF0, HouseClass_IsAlliedWith, 0x7)
@@ -3770,6 +3765,7 @@ DEFINE_STRONG_HOOK(0x4F9A90, HouseClass_IsAlliedWith, 0x7)
 
 	return 0;
 }
+#endif
 
 DEFINE_HOOK(0x737BFB, UnitClass_Unlimbo_SmallVisceroid_DontMergeImmedietely, 0x6)
 {

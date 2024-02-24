@@ -31,11 +31,11 @@ struct GlobalPacket_NetMessage
 
 	int Command;
 	wchar_t PlayerName[21];
-	byte HouseIndex;
-	byte ChatID;
+	BYTE HouseIndex;
+	BYTE ChatID;
 	wchar_t Message[112];
-	byte Color;
-	byte CRC;
+	BYTE Color;
+	BYTE CRC;
 };
 #pragma pack(pop)
 
@@ -50,7 +50,7 @@ DEFINE_HOOK(0x48D92B, NetworkCallBack_NetMessage_Print, 0x5)
 
 	if (houseIndex < 8 && Game::ChatMask[houseIndex]) {
 		if (HouseClass* pHouse = HouseClass::Array->GetItemOrDefault(houseIndex)) {
-			GlobalPacket_NetMessage::Instance->Color = (byte)pHouse->ColorSchemeIndex;
+			GlobalPacket_NetMessage::Instance->Color = (BYTE)pHouse->ColorSchemeIndex;
 			R->ESI(pHouse->UIName);
 			return PrintMessage;
 		}
@@ -75,7 +75,7 @@ DEFINE_HOOK(0x55EDD2, MessageInput_Write, 0x5)
 
 	HouseClass* pHouse = HouseClass::CurrentPlayer;
 	wcscpy_s(GlobalPacket_NetMessage::Instance->PlayerName, pHouse->UIName);
-	GlobalPacket_NetMessage::Instance->HouseIndex = (byte)pHouse->ArrayIndex;
+	GlobalPacket_NetMessage::Instance->HouseIndex = (BYTE)pHouse->ArrayIndex;
 
 	return 0x55EE00;
 }

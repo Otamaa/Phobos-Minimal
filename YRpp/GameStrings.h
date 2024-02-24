@@ -297,6 +297,13 @@ struct GameStrings
 	GAMEMD_STR(FinalMovie, 0x81B1C8);
 	GAMEMD_STR(CD, 0x81B1D4);
 	GAMEMD_STR(Battles, 0x81B1D8);
+	GAMEMD_STR(RandomMap, 0x82BB24);
+
+	GAMEMD_STR(_s_BARL, 0x832AD0);
+	GAMEMD_STR(_s_BARL_d_, 0x832AC4);
+	GAMEMD_STR(_s_TUR, 0x832ABC);
+	GAMEMD_STR(_s_TUR_d_, 0x832AB4);
+	GAMEMD_STR(_s_WO, 0x832AD8);
 	//..
 
 	// EVA entry names

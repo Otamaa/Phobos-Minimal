@@ -298,6 +298,7 @@ DEFINE_OVERRIDE_HOOK(0x7601C7, WaveClass_Draw_Magnetron, 0x8)
 	return 0;
 }
 
+//DEFINE_PATCH_TYPED(BYTE, 0x7609E3, 0xA1, 0x02, 0x90, 0x90, 0x90);
 DEFINE_OVERRIDE_HOOK(0x7609E3, WaveClass_Draw_NodLaser_Details, 0x5)
 {
 	R->EAX(2);
