@@ -533,7 +533,7 @@ void Phobos::Config::Read()
 		//if (!Phobos::Otamaa::IsAdmin)
 		//{
 		//	std::string ModNameTemp;
-		//	pINI->ReadString(GENERAL_SECTION, "Name", "", Phobos::readBuffer);
+		//	pINI->ReadString(GENERAL_SECTION, GameStrings::Name, "", Phobos::readBuffer);
 		//	ModNameTemp = Phobos::readBuffer;
 		//
 		//	if (!ModNameTemp.empty())

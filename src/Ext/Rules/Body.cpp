@@ -24,6 +24,7 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/HouseType/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/Scenario/Body.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/Helpers.h>
@@ -1308,7 +1309,7 @@ DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9
 
 DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 {
-	Debug::Log("Scenario Name [%s] , Map Name [%s] \n", ScenarioClass::Instance->FileName, SessionClass::Instance->ScenarioFilename);
+	Debug::Log("Scenario Name [%s] , Map Name [%s] \n", SessionClass::Instance->ScenarioFilename, ScenarioExtData::Instance()->OriginalFilename->c_str());
 
 	HouseClass::Array->for_each([](HouseClass* it) {
 		const auto pType = HouseTypeClass::Array->GetItemOrDefault(it->Type->ArrayIndex);

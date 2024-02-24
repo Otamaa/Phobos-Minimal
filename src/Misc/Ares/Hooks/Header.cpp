@@ -7845,7 +7845,7 @@ void AresGlobalData::ReadAresRA2MD(CCINIClass* Ini)
 		uiColorDisabledObserver = ParseColorInt(section, "Color.Observer.Disabled", 0x8F8F8F);
 
 		// read the mod's version info
-		if (Ini->ReadString("VersionInfo", "Name", Phobos::readDefval, Phobos::readBuffer, std::size(ModName)))
+		if (Ini->ReadString("VersionInfo", GameStrings::Name, Phobos::readDefval, Phobos::readBuffer, std::size(ModName)))
 		{
 			PhobosCRT::strCopy(ModName, Phobos::readBuffer);
 		}

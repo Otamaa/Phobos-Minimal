@@ -156,6 +156,8 @@ void ScenarioExtData::ReadMissionMDINI()
 	auto pThis = this->AttachedToObject;
 	auto const scenarioName = pThis->FileName;
 
+	INI_EX exINI(&ini);
+
 	// Override rankings
 	pThis->ParTimeEasy = ini.ReadTime(scenarioName, "Ranking.ParTimeEasy", pThis->ParTimeEasy);
 	pThis->ParTimeMedium = ini.ReadTime(scenarioName, "Ranking.ParTimeMedium", pThis->ParTimeMedium);
@@ -166,7 +168,7 @@ void ScenarioExtData::ReadMissionMDINI()
 	ini.ReadString(scenarioName, "Ranking.OverParTitle", pThis->OverParTitle, pThis->OverParTitle);
 	ini.ReadString(scenarioName, "Ranking.OverParMessage", pThis->OverParMessage, pThis->OverParMessage);
 
-	this->ShowBriefing = ini.ReadBool(scenarioName, "ShowBriefing", this->ShowBriefing);
+	this->ShowBriefing.Read(exINI, scenarioName, "ShowBriefing");
 	this->BriefingTheme = ini.ReadTheme(scenarioName, "BriefingTheme", this->BriefingTheme);
 
 }
@@ -175,12 +177,12 @@ void ScenarioExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	//auto pThis = this->AttachedToObject;
 
-	 //INI_EX exINI(pINI);
+	 INI_EX exINI(pINI);
 
-	this->ShowBriefing = pINI->ReadBool(GameStrings::Basic, "ShowBriefing", this->ShowBriefing);
+	this->ShowBriefing.Read(exINI, GameStrings::Basic, "ShowBriefing");
 	this->BriefingTheme = pINI->ReadTheme(GameStrings::Basic, "BriefingTheme", this->BriefingTheme);
-
-	 this->ReadMissionMDINI();
+	this->OriginalFilename.Read(exINI, GameStrings::Basic, "OriginalFilename");
+	this->ReadMissionMDINI();
 
 }
 
@@ -195,6 +197,7 @@ void ScenarioExtData::Serialize(T& Stm)
 
 		.Process(SessionClass::Instance->Config)
 		.Process(this->Initialized)
+		.Process(this->OriginalFilename)
 		.Process(this->Waypoints)
 		.Process(this->Local_Variables)
 		.Process(this->Global_Variables)

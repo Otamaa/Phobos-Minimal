@@ -256,6 +256,7 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 		// cncnet/spawner using `Superweapons` is this typo or intention ? , idk
 		// please report if there is a problem @Otamaa
 		SuperWeapons = pINI->ReadBool(GameStrings::Settings(), GameStrings::SuperWeapons, SuperWeapons);
+		SuperWeapons = pINI->ReadBool(GameStrings::Settings(), "Superweapons", SuperWeapons);
 		BuildOffAlly = pINI->ReadBool(GameStrings::Settings(), GameStrings::BuildOffAlly, BuildOffAlly);
 		GameSpeed = pINI->ReadInteger(GameStrings::Settings(), GameStrings::GameSpeed, GameSpeed);
 		MultiEngineer = pINI->ReadBool(GameStrings::Settings(), GameStrings::MultiEngineer, MultiEngineer);
@@ -284,8 +285,10 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 		IsCampaign = pINI->ReadBool(GameStrings::Settings(), "IsSinglePlayer", IsCampaign);
 		Tournament = pINI->ReadInteger(GameStrings::Settings(), "Tournament", Tournament);
 		WOLGameID = pINI->ReadInteger(GameStrings::Settings(), "GameID", WOLGameID);
-		/* ScenarioName  pINI->ReadString(pSettingsSection, "Scenario", ScenarioName, ScenarioName, sizeof(ScenarioName));*/
-		/* MapHash       pINI->ReadString(pSettingsSection, "MapHash", MapHash, MapHash, sizeof(MapHash));*/
+		/* ScenarioName*/
+		pINI->ReadString(GameStrings::Settings(), GameStrings::Scenario, ScenarioName, ScenarioName, sizeof(ScenarioName));
+		/* MapHash*/
+		pINI->ReadString(GameStrings::Settings(), "MapHash", MapHash, MapHash, sizeof(MapHash));
 
 		if (((CCINIClassDummy*)pINI)->ReadString_WithoutAresHook(GameStrings::Settings(), "UIMapName", "", Phobos::readBuffer, Phobos::readLength) > 0)
 			MultiByteToWideChar(CP_UTF8, 0, Phobos::readBuffer, strlen(Phobos::readBuffer), UIMapName, std::size(UIMapName));

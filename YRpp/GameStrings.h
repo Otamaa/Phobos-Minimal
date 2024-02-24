@@ -50,8 +50,8 @@ struct GameStrings
 	//<human player>
 	GAMEMD_STR(human_player, 0x83DC8C);
 	// none
-	GAMEMD_STR(Computer_, 0x824FD8);
 	GAMEMD_STR(NoneStrb, 0x817694u);
+	GAMEMD_STR(Computer_, 0x824FD8);
 	GAMEMD_STR(RandomStr, 0x81C008u);
 	GAMEMD_STR(NAMStr, 0x841F43u);
 	GAMEMD_STR(OVERLAY, 0x833450u);
@@ -286,6 +286,17 @@ struct GameStrings
 	GAMEMD_STR(TechLevel, 0x824E40);
 
 	GAMEMD_STR(Movies, 0x839D50);
+
+	GAMEMD_STR(UIName, 0x81784C);
+	GAMEMD_STR(Name, 0x817854);
+
+	GAMEMD_STR(Air, 0x81758C);
+	GAMEMD_STR(Scenario, 0x81B1BC);
+	GAMEMD_STR(DebugOnly, 0x81B1B0);
+	GAMEMD_STR(Description, 0x81B1A4);
+	GAMEMD_STR(FinalMovie, 0x81B1C8);
+	GAMEMD_STR(CD, 0x81B1D4);
+	GAMEMD_STR(Battles, 0x81B1D8);
 	//..
 
 	// EVA entry names

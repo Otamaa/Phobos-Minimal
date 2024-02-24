@@ -68,6 +68,8 @@ public:
 	static constexpr reference<ScenarioClass*, 0xA8B230u> const Instance{};
 	static constexpr reference<int, 0xA8ED7Cu> const NewINIFormat{};
 	static constexpr reference<TheaterType, 0x822CF8> const LastTheater {};
+	static constexpr reference<char, 0xA83E48, 128u> const CampaignScenarioName {};
+	static constexpr reference<bool, 0xA8ED5D> const ScenarioIsCampaign {};
 
 	static void __fastcall UpdateCellLighting()
 		{ JMP_STD(0x4AE4C0); }
@@ -171,7 +173,7 @@ public:
 	void SetWaypoint(int index, int value) JMP_THIS(0x68BF50);
 
 	int GetHouseIndices(int index) JMP_THIS(0x68C030)
-		
+
 	CellClass* GetWaypointCell(int idx) JMP_THIS(0x68BCE0);
 
 	int IncrementUniqueID() { JMP_THIS(0x68BCB0); }

@@ -45,6 +45,7 @@ public:
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
 public:
+	Valueable<std::string> OriginalFilename {};
 	PhobosMap<int, CellStruct> Waypoints { };
 	PhobosMap<int, ExtendedVariable> Local_Variables { }; // 0 for local, 1 for global
 	PhobosMap<int, ExtendedVariable> Global_Variables { };
@@ -64,7 +65,7 @@ public:
 	//TintStruct CurrentTint_Hashes { -1,-1,-1 };
 	bool AdjustLightingFix { false };
 
-	bool ShowBriefing { false };
+	Valueable<bool> ShowBriefing { false };
 	int BriefingTheme { -1 };
 
 	ScenarioExtData() noexcept = default;
