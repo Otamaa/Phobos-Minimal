@@ -99,6 +99,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->AnimList_ShowOnZeroDamage.Read(exINI, pSection, "AnimList.ShowOnZeroDamage");
 	this->DecloakDamagedTargets.Read(exINI, pSection, "DecloakDamagedTargets");
 	this->ShakeIsLocal.Read(exINI, pSection, "ShakeIsLocal");
+	this->Shake_UseAlternativeCalculation.Read(exINI, pSection, "Shake.UseAlternativeCalculation");
 
 	// Crits
 	this->Crit_Chance.Read(exINI, pSection, "Crit.Chance");
@@ -1083,7 +1084,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->AnimList_ShowOnZeroDamage)
 		.Process(this->DecloakDamagedTargets)
 		.Process(this->ShakeIsLocal)
-
+		.Process(this->Shake_UseAlternativeCalculation)
 		.Process(this->Crit_Chance)
 		.Process(this->Crit_ApplyChancePerTarget)
 		.Process(this->Crit_ExtraDamage)

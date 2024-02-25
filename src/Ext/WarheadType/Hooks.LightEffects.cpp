@@ -57,10 +57,10 @@ DEFINE_HOOK(0x48A62E, DoFlash_CombatLightOptions, 0x6)
 	GET(int, currentDetailLevel, EAX);
 	GET(WarheadTypeClass*, pWH, EDI);
 	GET_STACK(bool, forceshow, 0xC + 0x10);
-	GET(DWORD, bitMask, EBX);
+	//GET(DWORD, bitMask, EBX);
 
 	R->ESI(R->ECX());
-	
+
 	const DWORD bit = R->BL();
 
 	if (!pWH || (!forceshow && !pWH->Bright)) //check first requirements
@@ -70,8 +70,8 @@ DEFINE_HOOK(0x48A62E, DoFlash_CombatLightOptions, 0x6)
 
 	int detailLevel = pWHExt->CombatLightDetailLevel.Get(RulesExtData::Instance()->CombatLightDetailLevel);
 
-	if ((detailLevel <= currentDetailLevel && RulesExtData::DetailsCurrentlyEnabled()) 
-		|| (bit != 0)) //check detail level , FPS level  , and Bit
+	if ((detailLevel <= currentDetailLevel && RulesExtData::DetailsCurrentlyEnabled())
+		|| (bit == 0xF)) //check detail level , FPS level  , and Bit
 	{
 		//check chance if set
 		if (pWHExt->CombatLightChance.isset() && pWHExt->CombatLightChance < Random2Class::Global->RandomDouble())

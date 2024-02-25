@@ -124,8 +124,13 @@ public:
 		return result;
 	}
 
-	static void CalculateShakeVal(int& pShakeVal, int nInput)
+	static void CalculateShakeVal(int& pShakeVal, int nInput , bool Alternate = true)
 	{
+		if (!Alternate) {
+			pShakeVal = nInput;
+			return;
+		}
+
 		int v4 = nInput;
 		if (pShakeVal < 0)
 		{

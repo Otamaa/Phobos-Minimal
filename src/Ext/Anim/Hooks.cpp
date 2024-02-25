@@ -217,12 +217,15 @@ DEFINE_JUMP(CALL6, 0x424B04, GET_OFFSET(Dummy));
 
 DEFINE_HOOK(0x423365, AnimClass_DrawIt_ExtraShadow, 0x8)
 {
-	enum { DrawExtraShadow = 0x42336D, SkipExtraShadow = 0x4233EE };
+	enum { DrawShadow = 0x42336D, SkipDrawShadow = 0x4233EE };
 
 	GET(AnimClass*, pThis, ESI);
 
+	if (!pThis->Type->Shadow)
+		return SkipDrawShadow;
+
 	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 
-	return pThis->HasExtras && pTypeExt->ExtraShadow ? 
-		DrawExtraShadow : SkipExtraShadow;
+	return pThis->HasExtras && pTypeExt->ExtraShadow ?
+		DrawShadow : SkipDrawShadow;
 }

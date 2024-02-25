@@ -79,15 +79,13 @@ DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 		GET_BASE(HouseClass*, pHouse, 0x14);
 
 		Point2D screenCoords {};
-		bool const ShakeAllow = pWHExt->ShakeIsLocal ? TacticalClass::Instance->CoordsToClient(pCoords, &screenCoords) : true;
-
-		if (ShakeAllow)
+		if (!pWHExt->ShakeIsLocal || TacticalClass::Instance->CoordsToClient(pCoords, &screenCoords))
 		{
 			if (pWH->ShakeXhi || pWH->ShakeXlo)
-				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeXhi, pWH->ShakeXlo));
+				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeXhi, pWH->ShakeXlo) , pWHExt->Shake_UseAlternativeCalculation);
 
 			if (pWH->ShakeYhi || pWH->ShakeYlo)
-				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeYhi, pWH->ShakeYlo));
+				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeYhi, pWH->ShakeYlo) , pWHExt->Shake_UseAlternativeCalculation);
 		}
 
 		auto const pDecidedOwner = !pHouse && pOwner ? pOwner->Owner : pHouse;

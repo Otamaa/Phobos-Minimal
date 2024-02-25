@@ -65,6 +65,7 @@ public:
 	Valueable<bool> AnimList_ShowOnZeroDamage { false };
 	Valueable<bool> DecloakDamagedTargets { true };
 	Valueable<bool> ShakeIsLocal { false };
+	Valueable<bool> Shake_UseAlternativeCalculation { false };
 
 	Valueable<double> Crit_Chance { 0.0 };
 	Valueable<bool> Crit_ApplyChancePerTarget { false };
