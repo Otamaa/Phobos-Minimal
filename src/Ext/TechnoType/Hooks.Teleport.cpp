@@ -118,4 +118,25 @@ DEFINE_HOOK(0x71997B, TeleportLocomotionClass_ILocomotion_Process_ChronoDelay, 0
 	return 0x719981;
 }
 
+// Author : chaserli
+Matrix3D* __stdcall TeleportLocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* ret, VoxelIndexKey* pIndex)
+{
+	auto loco = static_cast<TeleportLocomotionClass*>(pThis);
+	auto slope_idx = MapClass::Instance->GetCellAt(loco->LinkedTo->Location)->SlopeIndex;
+
+	if (pIndex && pIndex->Is_Valid_Key())
+		*(int*)(pIndex) = slope_idx + (*(int*)(pIndex) << 6);
+
+	if (slope_idx){
+		Matrix3D ret_ {};
+		loco->LocomotionClass::Draw_Matrix(&ret_ ,pIndex);
+		Matrix3D::MatrixMultiply(ret , &Game::VoxelRampMatrix[slope_idx] , &ret_);
+	} else {
+		loco->LocomotionClass::Draw_Matrix(ret ,pIndex);
+	}
+
+	return ret;
+}
+DEFINE_JUMP(VTABLE, 0x7F5024, GET_OFFSET(TeleportLocomotionClass_Draw_Matrix));
+
 #undef GET_LOCO
