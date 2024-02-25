@@ -81,7 +81,6 @@ bool AnimExtData::OnMiddle_SpawnParticle(AnimClass* pThis, CellClass* pCell, Poi
 	return true;
 }
 
-#pragma optimize("", off )
 bool AnimExtData::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight)
 {
 	if (!pThis->Type)
@@ -92,8 +91,6 @@ bool AnimExtData::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHei
 	{
 		TechnoClass* const pTechOwner = AnimExtData::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker);
 		auto const pOwner = !pThis->Owner && pTechOwner ? pTechOwner->Owner : pThis->Owner;
-		if (IS_SAME_STR_("SHSMED1H", pThis->Type->ID))
-			Debug::Log("Test\n");
 
 		if (!LandIsWater || EligibleHeight)
 		{
@@ -144,7 +141,6 @@ bool AnimExtData::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHei
 
 	return true;
 }
-#pragma optimize("", on )
 
 DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
 {
