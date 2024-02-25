@@ -596,7 +596,7 @@ void Phobos::Config::Read()
 
 		Phobos::Config::MultiThreadSinglePlayer = INI_RulesMD.ReadBool(GameStrings::General, "MultiThreadSinglePlayer", false);
 		//Phobos::Config::UseImprovedPathfindingBlockageHandling = INI_RulesMD.ReadBool(GameStrings::General, "UseImprovedPathfindingBlockageHandling", false);
-		Phobos::Config::HideLightFlashEffects = CCINIClass::INI_RA2MD->ReadBool("Phobos", "HideLightFlashEffects", false);
+		Phobos::Config::HideLightFlashEffects = CCINIClass::INI_RA2MD->ReadBool(PHOBOS_STR, "HideLightFlashEffects", false);
 		Phobos::Config::SaveVariablesOnScenarioEnd = INI_RulesMD.ReadBool(GENERAL_SECTION, "SaveVariablesOnScenarioEnd", Phobos::Config::SaveVariablesOnScenarioEnd);
 		Phobos::Config::ApplyShadeCountFix = INI_RulesMD.ReadBool(AUDIOVISUAL_SECTION, "ApplyShadeCountFix", Phobos::Config::ApplyShadeCountFix);
 
