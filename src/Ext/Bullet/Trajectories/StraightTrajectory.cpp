@@ -9,7 +9,6 @@ bool StraightTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChang
 	Stm
 		.Process(this->SnapOnTarget, false)
 		.Process(this->SnapThreshold, false)
-		.Process(this->SDetonationDistance, false)
 		.Process(TargetSnapDistance, false)
 		.Process(this->PassThrough, false)
 		;
@@ -22,7 +21,6 @@ bool StraightTrajectoryType::Save(PhobosStreamWriter& Stm) const
 	Stm
 		.Process(this->SnapOnTarget, false)
 		.Process(this->SnapThreshold, false)
-		.Process(this->SDetonationDistance,false)
 		.Process(TargetSnapDistance , false)
 		.Process(this->PassThrough, false)
 		;
@@ -105,7 +103,7 @@ bool StraightTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 
 	this->SnapOnTarget.Read(exINI, pSection, "Trajectory.Straight.SnapOnTarget");
 	this->SnapThreshold.Read(exINI, pSection, "Trajectory.Straight.SnapThreshold");
-	this->SDetonationDistance.Read(exINI, pSection, "Trajectory.Straight.DetonationDistance");
+	this->DetonationDistance.Read(exINI, pSection, "Trajectory.Straight.DetonationDistance");
 	this->TargetSnapDistance.Read(exINI, pSection, "Trajectory.Straight.TargetSnapDistance");
 	this->PassThrough.Read(exINI, pSection, "Trajectory.Straight.PassThrough");
 	return true;
@@ -133,14 +131,15 @@ void StraightTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity
 {
 	auto const type = this->GetTrajectoryType();
 	auto const pBullet = this->AttachedTo;
-	this->DetonationDistance = type->DetonationDistance.Get(type->SDetonationDistance.Get());
+	this->DetonationDistance = type->DetonationDistance.Get(Leptons(102));
+
 	this->FirerZPosition = this->GetFirerZPosition();
 	this->TargetZPosition = this->GetTargetPosition().Z;
 
 	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
 	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
 	pBullet->Velocity.Z = this->GetVelocityZ();
-	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Length();
+	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->TargetCoords.DistanceFrom(pBullet->SourceCoords);
 }
 
 bool StraightTrajectory::OnAI()

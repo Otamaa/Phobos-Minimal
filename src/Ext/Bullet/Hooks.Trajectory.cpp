@@ -17,8 +17,19 @@ DEFINE_HOOK(0x4666F7, BulletClass_AI_Trajectories, 0x6)
 			return pTraj->OnAI() ? Detonate : 0x0;
 	}
 
+	if (!pThis->IsAlive) {
+        return 0x467FEE;
+    }
+
 	return 0;
 }
+
+//DEFINE_HOOK_AGAIN(0x467FEE , BulletClass_AI_Late_Trajectories , 0x6)
+//DEFINE_HOOK(0x466781 , BulletClass_AI_Late_Trajectories , 0x6)
+//{
+//	GET(BulletClass* , pThis , EBP);
+//	return 0x0;
+//}
 
 DEFINE_HOOK(0x467E53, BulletClass_AI_PreDetonation_Trajectories, 0x6)
 {

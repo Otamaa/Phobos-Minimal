@@ -156,6 +156,55 @@ CoordStruct Helpers_DP::GetForwardCoords(Vector3D<int> const& sourceV, Vector3D<
 	return { (int)x, (int)y, (int)z };
 }
 
+CoordStruct Helpers_DP::GetForwardCoords(Vector3D<float> const& sourceV, Vector3D<float> const& targetV, double speed, double dist)
+{
+	if (dist <= 0)
+	{
+		dist = targetV.DistanceFrom(sourceV);
+	}
+
+	// 计算下一个坐标
+	double d = speed / dist;
+	double absX = std::abs(sourceV.X - targetV.X) * d;
+	double x = sourceV.X;
+
+	if (sourceV.X < targetV.X)
+	{
+		// Xa < Xb => Xa < Xc
+		// Xc - Xa = absX
+		x = absX + sourceV.X;
+	}
+	else if (sourceV.X > targetV.X)
+	{
+		// Xa > Xb => Xa > Xc
+		// Xa - Xc = absX
+		x = sourceV.X - absX;
+	}
+
+	double absY = std::abs(sourceV.Y - targetV.Y) * d;
+	double y = sourceV.Y;
+	if (sourceV.Y < targetV.Y)
+	{
+		y = absY + sourceV.Y;
+	}
+	else if (sourceV.Y > targetV.Y)
+	{
+		y = sourceV.Y - absY;
+	}
+	double absZ = std::abs(sourceV.Z - targetV.Z) * d;
+	double z = sourceV.Z;
+	if (sourceV.Z < targetV.Z)
+	{
+		z = absZ + sourceV.Z;
+	}
+	else if (sourceV.Z > targetV.Z)
+	{
+		z = sourceV.Z - absZ;
+	}
+
+	return { (int)x, (int)y, (int)z };
+}
+
 CoordStruct Helpers_DP::GetForwardCoords(CoordStruct sourcePos, CoordStruct targetPos, double speed, double dist)
 {
 	Vector3D<int> source { sourcePos.X  ,sourcePos.Y , sourcePos.Z };
@@ -554,7 +603,7 @@ CoordStruct Helpers_DP::GetFLH(CoordStruct& source, CoordStruct& flh, DirStruct&
 		double xL = flip ? flh.Y : -flh.Y * Math::sin(radians);
 		double yL = flip ? flh.Y : -flh.Y * Math::cos(radians);
 
-		CoordStruct nZFLHBuff { 
+		CoordStruct nZFLHBuff {
 			static_cast<int>(xF) + static_cast<int>(xL) ,
 			static_cast<int>(yF) + static_cast<int>(yL) ,
 			flh.Z

@@ -3735,7 +3735,7 @@ void TechnoExperienceData::PromoteImmedietely(TechnoClass* pExpReceiver, bool bS
 				eva = pTypeExt->Promote_Vet_Eva;
 				pNewType = pTypeExt->Promote_Vet_Type;
 				promoteExp = pTypeExt->Promote_Vet_Exp;
-				Promoted_PlayAnim = pTypeExt->Promote_Vet_Anim;
+				Promoted_PlayAnim = pTypeExt->Promote_Vet_Anim.Get(RulesExtData::Instance()->Promote_Vet_Anim);
 			}
 			else if (newRank == Rank::Elite)
 			{
@@ -3744,7 +3744,7 @@ void TechnoExperienceData::PromoteImmedietely(TechnoClass* pExpReceiver, bool bS
 				eva = pTypeExt->Promote_Elite_Eva;
 				pNewType = pTypeExt->Promote_Elite_Type;
 				promoteExp = pTypeExt->Promote_Elite_Exp;
-				Promoted_PlayAnim = pTypeExt->Promote_Elite_Anim;
+				Promoted_PlayAnim = pTypeExt->Promote_Elite_Anim.Get(RulesExtData::Instance()->Promote_Elite_Anim);
 			}
 
 			if (pNewType && TechnoExt_ExtData::ConvertToType(pExpReceiver, pNewType) && promoteExp != 0.0)

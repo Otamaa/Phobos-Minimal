@@ -128,7 +128,7 @@ public:
 	static CoordStruct GetFLH(CoordStruct& source, CoordStruct& flh, DirStruct& dir, bool flip = false);
 	static Vector3D<float> GetForwardVector(TechnoClass* pTechno, bool getTurret = false);
 	static Vector3D<float> ToVector3D(DirStruct& dir);
-	static Matrix3D GetMatrix3D(TechnoClass* pTechno);	
+	static Matrix3D GetMatrix3D(TechnoClass* pTechno);
 	static VelocityClass GetBulletVelocity(CoordStruct sourcePos, CoordStruct targetPos);
 	static void RotateMatrix3D(Matrix3D& matrix3D, TechnoClass* pTechno, bool isOnTurret, bool nextFrame);
 	static Vector3D<float> GetFLHOffset(Matrix3D& matrix3D, CoordStruct& flh);
@@ -274,8 +274,9 @@ public:
 	static DirStruct GetDirectionRelative(TechnoClass* pMaster, int dir, bool isOnTurret);
 	static std::optional<DirStruct> GetRelativeDir(ObjectClass* pOwner, int dir = 0, bool isOnTurret = false, bool isOnWorld = false);
 	static LocationMark GetRelativeLocation(ObjectClass* pOwner, OffsetData data, CoordStruct offset = CoordStruct::Empty);
-	static CoordStruct GetForwardCoords(Vector3D<int> const& sourceV, Vector3D<int> const& targetV, double speed, double dist = 0);
-	static CoordStruct GetForwardCoords(CoordStruct sourcePos, CoordStruct targetPos, double speed, double dist = 0);
+	static CoordStruct GetForwardCoords(Vector3D<int> const& sourceV, Vector3D<int> const& targetV, double speed, double dist = 0.0);
+	static CoordStruct GetForwardCoords(Vector3D<float> const& sourceV, Vector3D<float> const& targetV, double speed, double dist = 0.0);
+	static CoordStruct GetForwardCoords(CoordStruct sourcePos, CoordStruct targetPos, double speed, double dist = 0.0);
 	static VelocityClass GetVelocity(BulletClass* pBullet);
 	static VelocityClass GetVelocity(CoordStruct const& sourcePos, CoordStruct const& targetPos, int speed);
 	static VelocityClass RecalculateVelocityClass(BulletClass* pBullet);

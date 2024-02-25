@@ -125,6 +125,9 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	pData->WallTowers.Read(iniEX , GENERAL_SECTION , "WallTowers");
 
+	pData->Promote_Vet_Anim.Read(iniEX, AUDIOVISUAL_SECTION, "Promote.VeteranAnim");
+	pData->Promote_Elite_Anim.Read(iniEX, AUDIOVISUAL_SECTION, "Promote.EliteAnim");
+
 	for(int i = 0; i < WeaponTypeClass::Array->Count; ++i) {
 		WeaponTypeClass::Array->Items[i]->LoadFromINI(pINI);
 	}
@@ -1081,6 +1084,9 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->WarheadParticleAlphaImageIsLightFlash)
 		.Process(this->CombatLightDetailLevel)
 		.Process(this->LightFlashAlphaImageDetailLevel)
+
+		.Process(this->Promote_Vet_Anim)
+		.Process(this->Promote_Elite_Anim)
 		;
 
 	MyPutData.Serialize(Stm);

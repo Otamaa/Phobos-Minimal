@@ -190,16 +190,23 @@ void PhobosTrajectoryType::ProcessFromStream(PhobosStreamWriter& Stm, std::uniqu
 
 double PhobosTrajectory::GetTrajectorySpeed() const
 {
-	double nResult = 100.0;
 	auto const pBullet = this->AttachedTo;
 
-	if (!pBullet->WeaponType)
-		return nResult;
+	if (pBullet->WeaponType) {
+		const auto result = WeaponTypeExtContainer::Instance.Find(pBullet->WeaponType)->Trajectory_Speed.Get(BulletTypeExtContainer::Instance.Find(pBullet->Type)->Trajectory_Speed.Get(pBullet->Speed));
 
-	auto const nWeaponnResult = WeaponTypeExtContainer::Instance.Find(pBullet->WeaponType)->Trajectory_Speed.Get();
+		if (result != 0.0)
+			return result;
+	}
+	else
+	{
+		const auto result = BulletTypeExtContainer::Instance.Find(pBullet->Type)->Trajectory_Speed.Get(pBullet->Speed);
 
-	return BulletTypeExtContainer::Instance.Find(pBullet->Type)->Trajectory_Speed.
-			Get(nWeaponnResult == 0.0 ? nResult : nWeaponnResult);
+		if (result != 0.0)
+			return result;
+	}
+
+	return 100.0;
 }
 
 bool PhobosTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)

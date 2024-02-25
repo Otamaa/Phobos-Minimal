@@ -486,8 +486,8 @@ public:
 	Valueable<TechnoTypeClass*> Promote_Vet_Type { nullptr };
 	Valueable<TechnoTypeClass*> Promote_Elite_Type { nullptr };
 
-	Valueable<AnimTypeClass*> Promote_Vet_Anim { nullptr };
-	Valueable<AnimTypeClass*> Promote_Elite_Anim { nullptr };
+	Nullable<AnimTypeClass*> Promote_Vet_Anim { };
+	Nullable<AnimTypeClass*> Promote_Elite_Anim { };
 
 	Valueable<double> Promote_Vet_Exp { 0.0 };
 	Valueable<double> Promote_Elite_Exp { 0.0 };

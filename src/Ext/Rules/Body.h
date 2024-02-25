@@ -288,6 +288,9 @@ public:
 	Valueable<int> CombatLightDetailLevel { 0 };
 	Valueable<int> LightFlashAlphaImageDetailLevel { 0 };
 
+	Valueable<AnimTypeClass*> Promote_Vet_Anim { nullptr };
+	Valueable<AnimTypeClass*> Promote_Elite_Anim { nullptr };
+
 	AircraftPutDataRules MyPutData { };
 
 	RulesExtData() noexcept = default;

@@ -36,7 +36,7 @@ public:
 	Valueable<AreaFireTarget> AreaFire_Target { AreaFireTarget::Base };
 	Nullable<WeaponTypeClass*> FeedbackWeapon {};
 	Valueable<bool> Laser_IsSingleColor { false };
-	Valueable<double> Trajectory_Speed { 100.0 };
+	Nullable<double> Trajectory_Speed {};
 
 	Valueable<bool> Abductor { false };
 	Valueable<AnimTypeClass*> Abductor_AnimType { nullptr };
