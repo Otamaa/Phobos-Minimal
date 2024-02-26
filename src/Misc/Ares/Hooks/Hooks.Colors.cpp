@@ -200,16 +200,8 @@ DEFINE_OVERRIDE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme, 7)
 	// if spawner feeds us a number, it will be used to look up color scheme directly
 	// Original Author : Morton
 
-	if (SpawnerMain::Configs::Enabled && Phobos::UI::UnlimitedColor) {
-		switch (idx)
-		{
-		case -2:
-			ret = 5 << 1; //internal game index
-			break;
-		default:
-			ret = abs(idx) << 1;
-			break;
-		}
+	if (SpawnerMain::Configs::Enabled && Phobos::UI::UnlimitedColor && idx != -2) {
+		ret = abs(idx) << 1;
 	} else {
 
 		{

@@ -10,6 +10,9 @@ Global
 		Build|Any CPU = Build|Any CPU
 		Build|x64 = Build|x64
 		Build|x86 = Build|x86
+		DisableDPFeatures|Any CPU = DisableDPFeatures|Any CPU
+		DisableDPFeatures|x64 = DisableDPFeatures|x64
+		DisableDPFeatures|x86 = DisableDPFeatures|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{3FAF7126-F38C-4D1E-9973-C21A37870F60}.Build|Any CPU.ActiveCfg = Build|Win32
@@ -18,6 +21,12 @@ Global
 		{3FAF7126-F38C-4D1E-9973-C21A37870F60}.Build|x64.Build.0 = Build|Win32
 		{3FAF7126-F38C-4D1E-9973-C21A37870F60}.Build|x86.ActiveCfg = Build|Win32
 		{3FAF7126-F38C-4D1E-9973-C21A37870F60}.Build|x86.Build.0 = Build|Win32
+		{3FAF7126-F38C-4D1E-9973-C21A37870F60}.DisableDPFeatures|Any CPU.ActiveCfg = DisableDPFeatures|Win32
+		{3FAF7126-F38C-4D1E-9973-C21A37870F60}.DisableDPFeatures|Any CPU.Build.0 = DisableDPFeatures|Win32
+		{3FAF7126-F38C-4D1E-9973-C21A37870F60}.DisableDPFeatures|x64.ActiveCfg = DisableDPFeatures|Win32
+		{3FAF7126-F38C-4D1E-9973-C21A37870F60}.DisableDPFeatures|x64.Build.0 = DisableDPFeatures|Win32
+		{3FAF7126-F38C-4D1E-9973-C21A37870F60}.DisableDPFeatures|x86.ActiveCfg = DisableDPFeatures|Win32
+		{3FAF7126-F38C-4D1E-9973-C21A37870F60}.DisableDPFeatures|x86.Build.0 = DisableDPFeatures|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

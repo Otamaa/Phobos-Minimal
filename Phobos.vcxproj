@@ -8,6 +8,10 @@
       <Configuration>Build</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="DisableDPFeatures|Win32">
+      <Configuration>DisableDPFeatures</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Commands\PlaceVeinholeMonster.cpp" />
@@ -328,7 +332,7 @@
     <ClCompile Include="src\Misc\Spawner\NetHack.cpp" />
     <ClCompile Include="src\Misc\Spawner\Observers.cpp" />
     <ClCompile Include="src\Misc\Spawner\Observers.Visibility.cpp" />
-    <ClCompile Include="src\Misc\Spawner\ProtocolZero\Body.cpp" />
+    <ClCompile Include="src\Misc\Spawner\ProtocolZero.cpp" />
     <ClCompile Include="src\Misc\Spawner\QuickExit.cpp" />
     <ClCompile Include="src\Misc\Spawner\QuickMatch.cpp" />
     <ClCompile Include="src\Misc\Spawner\RandomMap.cpp" />
@@ -628,7 +632,7 @@
     <ClInclude Include="src\Misc\Spawner\DumpTypeDataArrayToFile.h" />
     <ClInclude Include="src\Misc\Spawner\Main.h" />
     <ClInclude Include="src\Misc\Spawner\NetHack.h" />
-    <ClInclude Include="src\Misc\Spawner\ProtocolZero\Body.h" />
+    <ClInclude Include="src\Misc\Spawner\ProtocolZero.h" />
     <ClInclude Include="src\New\AnonymousType\AresAttachEffectTypeClass.h" />
     <ClInclude Include="src\New\AnonymousType\BuildSpeedBonus.h" />
     <ClInclude Include="src\New\AnonymousType\PassengerDeletionTypeClass.h" />
@@ -740,6 +744,13 @@
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='DisableDPFeatures|Win32'">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+    <XPDeprecationWarning>false</XPDeprecationWarning>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
@@ -840,6 +851,16 @@
     <ResourceCompile>
       <AdditionalOptions>/DGIT_BRANCH="$(GitBranch)" %(AdditionalOptions)</AdditionalOptions>
     </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DisableDPFeatures|Win32'">
+    <ClCompile>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DisableDPFeatures|Win32'">
+    <ClCompile>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+    </ClCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

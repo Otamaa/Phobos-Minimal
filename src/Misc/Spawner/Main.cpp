@@ -13,7 +13,7 @@
 
 #include "DumpTypeDataArrayToFile.h"
 #include "NetHack.h"
-#include "ProtocolZero/Body.h"
+#include "ProtocolZero.h"
 
 std::unique_ptr<SpawnerMain::GameConfigs> SpawnerMain::GameConfigs::m_Ptr = nullptr;
 UniqueGamePtrB<MixFileClass> SpawnerMain::MixFile {};
