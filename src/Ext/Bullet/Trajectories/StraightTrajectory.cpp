@@ -27,16 +27,16 @@ bool StraightTrajectoryType::Save(PhobosStreamWriter& Stm) const
 
 }
 
-int StraightTrajectory::GetVelocityZ() const
+int StraightTrajectory::GetVelocityZ(CoordStruct& source) const
 {
 	auto const pBullet = this->AttachedTo;
 
-	int velocity = pBullet->TargetCoords.Z - pBullet->SourceCoords.Z;
+	int velocity = pBullet->TargetCoords.Z - source.Z;
 
 	if (!this->GetTrajectoryType()->PassThrough)
 		return velocity;
 
-	if (pBullet->Owner && pBullet->Owner->Location.Z == pBullet->TargetCoords.Z)
+	if (this->FirerZPosition == this->TargetZPosition)
 		return 0;
 
 	return velocity;
@@ -135,11 +135,10 @@ void StraightTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity
 
 	this->FirerZPosition = this->GetFirerZPosition();
 	this->TargetZPosition = this->GetTargetPosition().Z;
-	const CoordStruct source = pBullet->GetCell()->GetCoordsWithBridge();
 
-	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - source.X);
-	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - source.Y);
-	pBullet->Velocity.Z = this->GetVelocityZ();
+	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
+	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
+	pBullet->Velocity.Z = pBullet->Owner && pBullet->Owner->IsInAir() ?  0 : this->GetVelocityZ(pBullet->SourceCoords);
 	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Length();
 }
 
