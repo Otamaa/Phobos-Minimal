@@ -1089,13 +1089,13 @@ DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 	Phobos::CmdLineParse(ppArgs, nNumArgs);
 	Debug::LogDeferredFinalize();
 
-	if(Phobos::Otamaa::IsAdmin) {
-		for (const auto& data : Patch::ModuleDatas) {
-			for (auto const& patches : data.Patches) {
-				Debug::Log("Dll %s Patch %s\n", data.ModuleName.c_str() , patches.c_str());
-			}
-		}
-	}
+	//if(Phobos::Otamaa::IsAdmin) {
+	//	for (const auto& data : Patch::ModuleDatas) {
+	//		for (auto const& patches : data.Patches) {
+	//			Debug::Log("Dll %s Patch %s\n", data.ModuleName.c_str() , patches.c_str());
+	//		}
+	//	}
+	//}
 
 	ExecuteLua();
 

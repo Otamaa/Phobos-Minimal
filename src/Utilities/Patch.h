@@ -25,7 +25,7 @@ struct dllData
 	uintptr_t BaseAddr;
 	std::vector<module_Import> Impors;
 	std::vector<module_export> Exports;
-	std::vector<std::string> Patches;
+	//std::vector<std::string> Patches;
 
 	dllData() = default;
 
@@ -34,7 +34,7 @@ struct dllData
 		, BaseAddr { baseaddr }
 		, Impors {}
 		, Exports {}
-		, Patches {}
+	//	, Patches {}
 	{
 	}
 

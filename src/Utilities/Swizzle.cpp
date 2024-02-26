@@ -32,23 +32,27 @@ HRESULT PhobosSwizzle::RegisterForChange_Hook(void** p)
 	return E_POINTER;
 }
 
-HRESULT PhobosSwizzle::RegisterChange_Hook(void* was, void* is)
+HRESULT PhobosSwizzle::RegisterChange_Hook(DWORD caller , void* was, void* is)
 {
 	auto exist = this->Changes.find(was);
+	//the requested `was` not found
 	if (exist == this->Changes.end())
 	{
+		Debug::Log("PhobosSwizze[0x%x] :: Pointer [%p] request change to both [%p] AND [%p]!\n", caller, was, exist->second, is);
+
 		this->Changes[was] = is;
 	}
+	//the requested `was` found
 	else if (exist->second != is)
 	{
-		Debug::Log("PhobosSwizze :: Pointer [%p] declared change to both [%p] AND [%p]!\n", was, exist->second, is);
+		Debug::Log("PhobosSwizze[0x%x] :: Pointer [%p] declared change to both [%p] AND [%p]!\n",caller, was, exist->second, is);
 	}
 	return S_OK;
 }
 
 void PhobosSwizzle::ConvertNodes() const
 {
-	//Debug::Log("PhobosSwizze :: Converting %u nodes.\n", this->Nodes.size());
+	Debug::Log("PhobosSwizze :: Converting %u nodes.\n", this->Nodes.size());
 	void* lastFind(nullptr);
 	void* lastRes(nullptr);
 	for (auto it = this->Nodes.begin(); it != this->Nodes.end(); ++it)

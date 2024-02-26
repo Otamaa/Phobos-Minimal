@@ -51,12 +51,25 @@ void Append(T& buffer, const char* pFormat, ...)
 	strcat_s(buffer, Phobos::readBuffer);
 }
 
+static bool WhiteColorSearched = false;
+int ColorIdx = 5;
+
 template<typename T>
 void Display(T& buffer)
 {
 	memset(Phobos::wideBuffer, 0, sizeof Phobos::wideBuffer);
 	mbstowcs(Phobos::wideBuffer, buffer, strlen(buffer));
-	MessageListClass::Instance->PrintMessage(Phobos::wideBuffer, 600, 5, true);
+	if (!WhiteColorSearched) {
+		const auto WhiteIndex = ColorScheme::FindIndexById("White");
+
+		if (WhiteIndex != -1) {
+			ColorIdx = WhiteIndex;
+		}
+
+		WhiteColorSearched = true;
+	}
+
+	MessageListClass::Instance->PrintMessage(Phobos::wideBuffer, 600, ColorIdx, true);
 	Debug::Log("%s\n", buffer);
 	buffer[0] = 0;
 }

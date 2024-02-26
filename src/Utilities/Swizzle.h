@@ -38,7 +38,7 @@ public:
 	*/
 	HRESULT RegisterChange(void* was, void* is);
 
-	HRESULT RegisterChange_Hook(void* was, void* is);
+	HRESULT RegisterChange_Hook(DWORD caller , void* was, void* is);
 	/**
 	* this function will rewrite all registered nodes' values
 	*/

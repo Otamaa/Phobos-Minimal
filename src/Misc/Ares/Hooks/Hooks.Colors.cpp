@@ -187,6 +187,7 @@ DEFINE_OVERRIDE_HOOK(0x4E43C0, Game_InitDropdownColors, 5)
 
 	return 0;
 }
+#include <Misc/Spawner/Main.h>
 
 DEFINE_OVERRIDE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme, 7)
 {
@@ -196,47 +197,54 @@ DEFINE_OVERRIDE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme, 7)
 	int ret = 0;
 
 	// Game_GetLinkedColor converts vanilla dropdown color index into color scheme index ([Colors] from rules)
-	// What we want to do is to restore vanilla from Ares hook, and immediately return arg
-	// So if spawner feeds us a number, it will be used to look up color scheme directly
+	// if spawner feeds us a number, it will be used to look up color scheme directly
 	// Original Author : Morton
-	if (Phobos::UI::UnlimitedColor && idx != -2)
-	{
-		ret = idx << 1;
 
-	}
-	else
-	{
-
-		// get the slot
-		AresGlobalData::ColorData* slot = nullptr;
-		if (idx == -2 || idx == AresGlobalData::colorCount)
+	if (SpawnerMain::Configs::Enabled && Phobos::UI::UnlimitedColor) {
+		switch (idx)
 		{
-			// observer color
-			slot = &AresGlobalData::Colors[0];
+		case -2:
+			ret = 5 << 1; //internal game index
+			break;
+		default:
+			ret = abs(idx) << 1;
+			break;
 		}
-		else if (idx < AresGlobalData::colorCount)
-		{
-			// house color
-			slot = &AresGlobalData::Colors[idx + 1];
-		}
+	} else {
 
-		// retrieve the color scheme index
-
-		if (slot)
 		{
-			if (slot->colorSchemeIndex == -1)
+
+			// get the slot
+			AresGlobalData::ColorData* slot = nullptr;
+			if (idx == -2 || idx == AresGlobalData::colorCount)
 			{
-
-				slot->colorSchemeIndex = ColorScheme::FindIndex(slot->colorScheme);
-
-				if (slot->colorSchemeIndex == -1)
-				{
-					Debug::Log("Color scheme \"%s\" not found.\n", slot->colorScheme);
-					slot->colorSchemeIndex = 4;
-				}
+				// observer color
+				slot = &AresGlobalData::Colors[0];
+			}
+			else if (idx < AresGlobalData::colorCount)
+			{
+				// house color
+				slot = &AresGlobalData::Colors[idx + 1];
 			}
 
-			ret = slot->colorSchemeIndex;
+			// retrieve the color scheme index
+
+			if (slot)
+			{
+				if (slot->colorSchemeIndex == -1)
+				{
+
+					slot->colorSchemeIndex = ColorScheme::FindIndex(slot->colorScheme);
+
+					if (slot->colorSchemeIndex == -1)
+					{
+						Debug::Log("Color scheme \"%s\" not found.\n", slot->colorScheme);
+						slot->colorSchemeIndex = 4;
+					}
+				}
+
+				ret = slot->colorSchemeIndex;
+			}
 		}
 	}
 

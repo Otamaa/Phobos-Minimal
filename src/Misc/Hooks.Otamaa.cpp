@@ -4196,3 +4196,25 @@ DEFINE_HOOK(0x4DB37C, FootClass_Limbo_ClearCellJumpjet, 0x6)
 	//FootClass_Remove_Airspace_ares
 	return 0x4DB3A4;
 }
+
+int __fastcall charToID(char*){
+	JMP_STD(0x412610);
+}
+
+DEFINE_HOOK(0x6E5FA3, TagTypeClass_SwizzleTheID, 0x8) {
+	GET(char*, ID, EDI);
+	GET(TagTypeClass*, pCreated, ESI);
+
+	Debug::Log("TagType[%s] Allocated as [%p]!\n", ID, pCreated);
+
+	return 0x6E5FB6;
+}
+
+DEFINE_HOOK(0x6E8300, TaskForceClass_SwizzleTheID, 0x5) {
+	LEA_STACK(char*, ID, 0x2C - 0x18);
+	GET(TaskForceClass*, pCreated, ESI);
+
+	Debug::Log("TaskForce[%s] Allocated as [%p]\n" , ID , pCreated);
+
+	return 0x6E8315;
+}

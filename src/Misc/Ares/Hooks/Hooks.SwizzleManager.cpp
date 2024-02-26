@@ -16,7 +16,8 @@ DEFINE_OVERRIDE_HOOK(0x6CF2C0, SwizzleManagerClass_Here_I_Am, 5)
 {
 	GET_STACK(void*, oldP, 0x8);
 	GET_STACK(void*, newP, 0xC);
-	R->EAX<HRESULT>(PhobosSwizzle::Instance.RegisterChange_Hook(oldP, newP));
+	GET_STACK(DWORD, caller, 0x0);
+	R->EAX<HRESULT>(PhobosSwizzle::Instance.RegisterChange_Hook(caller , oldP, newP));
 	return 0x6CF316;
 }
 

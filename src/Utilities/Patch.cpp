@@ -257,6 +257,7 @@ void Patch::PrintAllModuleAndBaseAddr()
 						}
 					}
 
+					/*
 					char patchbuffer[MAX_PATH] = { 0 };
 					void* buffer = nullptr;
 					int len = 0;
@@ -278,6 +279,9 @@ void Patch::PrintAllModuleAndBaseAddr()
 						for (int offset = 0; offset < len;)
 						{
 							const auto pPatch = (Patch*)((DWORD)buffer + offset);
+
+							if (!pPatch)
+								break;
 
 							if (pPatch->offset == 0)
 								return;
@@ -328,6 +332,7 @@ void Patch::PrintAllModuleAndBaseAddr()
 							offset += 0x5 + 0x3 + pPatch->size;
 						}
 					}
+					*/
 				}
 			}
 		}
