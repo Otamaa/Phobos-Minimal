@@ -106,7 +106,6 @@ DEFINE_OVERRIDE_HOOK(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
 
 DEFINE_JUMP(LJMP, 0x565215, 0x56522D);
 
-
 DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 8)
 {
 	GET(AbstractClass*, pThis, ECX);

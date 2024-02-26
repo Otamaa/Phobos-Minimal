@@ -463,11 +463,16 @@ std::array<const char*, (size_t)NewCrateType::count> EnumFunctions::NewCrateType
 	{ "Money" }, { "Super" }, { "Weapon" }, { "Units" }
  }};
 
-std::array<const char*, 6u> EnumFunctions::DamageState_to_srings
+std::array<const char*, 6u> EnumFunctions::DamageState_to_strings
 {
 {
 	"Unaffected", "Unchanged", "NowYellow", "NowRed", "NowDead", "PostMortem"
 }
+};
+
+std::array<const char*, (size_t)TrajectoryCheckReturnType::count>  EnumFunctions::TrajectoryCheckReturnType_to_strings
+{
+	"ExecuteGameCheck" , "SkipGameCheck" , "SatisfyGameCheck" , "Detonate"
 };
 
 std::array<const char*, 8u> EnumFunctions::FacingType_to_strings

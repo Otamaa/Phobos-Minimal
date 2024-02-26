@@ -18,9 +18,11 @@ DEFINE_HOOK(0x467CCA, BulletClass_AI_TargetSnapChecks, 0x6) //was C
 	{
 		auto const pExt = BulletExtContainer::Instance.Find(pThis);
 
-		if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight)
+		if (pExt->Trajectory
+			&& pExt->Trajectory->Flag == TrajectoryFlag::Straight
+			&& !pExt->SnappedToTarget)
 		{
-			return !pExt->SnappedToTarget ? nRet() : SkipSnapFunc;
+			return nRet();
 		}
 	}
 
@@ -48,9 +50,11 @@ DEFINE_HOOK(0x468E61, BulletClass_Explode_TargetSnapChecks1, 0x6) //was C
 	{
 		auto const pExt = BulletExtContainer::Instance.Find(pThis);
 
-		if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight)
-		{
-			return !pExt->SnappedToTarget ? nRet() : SkipCoordFunc;
+		if (pExt->Trajectory
+			&& pExt->Trajectory->Flag == TrajectoryFlag::Straight
+			&& !pExt->SnappedToTarget
+		) {
+			return nRet();
 		}
 	}
 
@@ -77,10 +81,11 @@ DEFINE_HOOK(0x468E9F, BulletClass_Explode_TargetSnapChecks2, 0x6) //was C
 	// Do not force Trajectory=Straight projectiles to detonate at target coordinates under certain circumstances.
 	// Fixes issues with walls etc.
 	auto const pExt = BulletExtContainer::Instance.Find(pThis);
-	if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight && !pExt->SnappedToTarget)
+	if (pExt->Trajectory
+		&& pExt->Trajectory->Flag == TrajectoryFlag::Straight
+		&& !pExt->SnappedToTarget)
 	{
 		return SkipSetCoordinate;
-		//return !pExt->SnappedToTarget ? SkipInitialChecks : SkipSetCoordinate;
 	}
 
 	return 0;

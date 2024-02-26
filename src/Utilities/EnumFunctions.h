@@ -113,8 +113,10 @@ public:
 	static std::array<const char*, (size_t)DisplayInfoType::count> DisplayInfoType_ToStrings;
 	static std::array<const char*, (size_t)NewCrateType::count> NewCrateType_ToStrings;
 
-	static std::array<const char*, 6u> DamageState_to_srings;
+	static std::array<const char*, 6u> DamageState_to_strings;
 	static std::array<const char*, 8u> FacingType_to_strings;
+
+	static std::array<const char*, (size_t)TrajectoryCheckReturnType::count> TrajectoryCheckReturnType_to_strings;
 
 	static bool CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse);
 	static bool IsCellEligible(CellClass* const pCell, AffectedTarget const&  allowed, bool explicitEmptyCells = false, bool considerBridgesLand = false);

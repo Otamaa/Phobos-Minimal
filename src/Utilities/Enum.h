@@ -39,6 +39,16 @@ enum class NewCrateType : int {
 	, count
 };
 
+enum class TrajectoryCheckReturnType : int
+{
+	ExecuteGameCheck = 0,
+	SkipGameCheck = 1,
+	SatisfyGameCheck = 2,
+	Detonate = 3,
+
+	count
+};
+
 enum class NewFactoryState : int
 {
 	NoFactory = 0, // there is no factory building for this

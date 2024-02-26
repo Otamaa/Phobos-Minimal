@@ -63,6 +63,27 @@ DEFINE_HOOK(0x46A290, BulletClass_Logics_Return, 0x5)
 		}
 	}
 
+		// Return to sender
+	if (pThis->Type && pThis->Owner)
+	{
+		auto const pTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
+
+		if (pTypeExt->ReturnWeapon)
+		{
+			auto const pWeapon = pTypeExt->ReturnWeapon.Get();
+
+			if (BulletClass* pBullet = pWeapon->Projectile->CreateBullet(pThis->Owner, pThis->Owner,
+				pWeapon->Damage, pWeapon->Warhead, pWeapon->Speed, pWeapon->Bright))
+			{
+				pBullet->WeaponType = pWeapon;
+				auto const pBulletExt = BulletExtContainer::Instance.Find(pBullet);
+				pBulletExt->Owner = BulletExtContainer::Instance.Find(pThis)->Owner;
+
+				pBullet->MoveTo(pThis->Location, {});
+			}
+		}
+	}
+
 	return 0;
 }
 

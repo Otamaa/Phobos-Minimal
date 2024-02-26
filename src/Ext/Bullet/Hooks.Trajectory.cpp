@@ -97,52 +97,20 @@ DEFINE_HOOK(0x46745C, BulletClass_AI_Position_Trajectories, 0x7)
 
 DEFINE_HOOK(0x4677D3, BulletClass_AI_TargetCoordCheck_Trajectories, 0x5)
 {
-	enum { SkipCheck = 0x4678F8, ContinueAfterCheck = 0x467879, Detonate = 0x467E53 };
 
 	GET(BulletClass*, pThis, EBP);
 	REF_STACK(CoordStruct, coords, STACK_OFFS(0x1A8, 0x184));
 
-	if (auto& pTraj = BulletExtContainer::Instance.Find(pThis)->Trajectory)
-	{
-		switch (pTraj->OnAITargetCoordCheck(coords))
-		{
-		case TrajectoryCheckReturnType::SkipGameCheck:
-			return SkipCheck;
-		case TrajectoryCheckReturnType::SatisfyGameCheck:
-			return ContinueAfterCheck;
-		case TrajectoryCheckReturnType::Detonate:
-			return Detonate;
-		default:
-			break;
-		}
-	}
-
-	return 0;
+	return PhobosTrajectory::OnAITargetCoordCheck(pThis, coords);
 }
 
 DEFINE_HOOK(0x467927, BulletClass_AI_TechnoCheck_Trajectories, 0x5)
 {
-	enum { SkipCheck = 0x467A2B, ContinueAfterCheck = 0x4679EB, Detonate = 0x467E53 };
 
 	GET(BulletClass*, pThis, EBP);
 	GET(TechnoClass*, pTechno, ESI);
 
-	if (auto& pTraj = BulletExtContainer::Instance.Find(pThis)->Trajectory)
-	{
-		switch (pTraj->OnAITechnoCheck(pTechno))
-		{
-		case TrajectoryCheckReturnType::SkipGameCheck:
-			return SkipCheck;
-		case TrajectoryCheckReturnType::SatisfyGameCheck:
-			return ContinueAfterCheck;
-		case TrajectoryCheckReturnType::Detonate:
-			return Detonate;
-		default:
-			break;
-		}
-	}
-
-	return 0;
+	return PhobosTrajectory::OnAITechnoCheck(pThis, pTechno);
 }
 
 DEFINE_HOOK(0x468B72, BulletClass_Unlimbo_Trajectories, 0x5)

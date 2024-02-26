@@ -1,7 +1,5 @@
 #pragma once
 
-//#include <Ext/Bullet/Body.h>
-
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 
@@ -19,14 +17,6 @@ enum class TrajectoryFlag : int
 	Arcing = 8,
 
 	Count
-};
-
-enum class TrajectoryCheckReturnType : int
-{
-	ExecuteGameCheck = 0,
-	SkipGameCheck = 1,
-	SatisfyGameCheck = 2,
-	Detonate = 3
 };
 
 class VelocityClass;
@@ -101,6 +91,8 @@ public:
 	static void ProcessFromStream(PhobosStreamReader& Stm, std::unique_ptr<PhobosTrajectory>& pTraj);
 	static void ProcessFromStream(PhobosStreamWriter& Stm, std::unique_ptr<PhobosTrajectory>& pTraj);
 
+	static DWORD OnAITargetCoordCheck(BulletClass* pBullet , CoordStruct& coords);
+	static DWORD OnAITechnoCheck(BulletClass* pBullet, TechnoClass* pTechno);
 protected:
 	static bool UpdateType(BulletClass* pBullet , std::unique_ptr<PhobosTrajectory>& pTraj , PhobosTrajectoryType*  pType);
 };

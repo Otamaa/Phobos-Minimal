@@ -135,11 +135,12 @@ void StraightTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity
 
 	this->FirerZPosition = this->GetFirerZPosition();
 	this->TargetZPosition = this->GetTargetPosition().Z;
+	const CoordStruct source = pBullet->GetCell()->GetCoordsWithBridge();
 
-	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
-	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
+	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - source.X);
+	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - source.Y);
 	pBullet->Velocity.Z = this->GetVelocityZ();
-	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->TargetCoords.DistanceFrom(pBullet->SourceCoords);
+	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Length();
 }
 
 bool StraightTrajectory::OnAI()
@@ -156,7 +157,7 @@ bool StraightTrajectory::OnAI()
 			return true;
 	}
 
-	return (pBullet->TargetCoords.DistanceFrom(pBullet->Location) < this->DetonationDistance.ToDouble());
+	return (pBullet->TargetCoords.DistanceFrom(pBullet->Location) < (double)this->DetonationDistance.value);
 
 }
 
@@ -169,18 +170,18 @@ void StraightTrajectory::OnAIPreDetonate()
 		return;
 
 	const auto pTarget = abstract_cast<ObjectClass*>(pBullet->Target);
-	const auto pCoords = pTarget ? pTarget->GetCoords() : pBullet->Data.Location;
+	const auto pCoords = &(pTarget ? pTarget->GetCoords() : pBullet->Data.Location);
 
-	if (pCoords.DistanceFrom(pBullet->Location) <= type->SnapThreshold.Get(type->TargetSnapDistance.Get()))
+	if (pCoords->DistanceFrom(pBullet->Location) <= type->SnapThreshold.Get(type->TargetSnapDistance.Get()))
 	{
 		BulletExtContainer::Instance.Find(pBullet)->SnappedToTarget = true;
-		pBullet->SetLocation(pCoords);
+		pBullet->SetLocation(*pCoords);
 	}
 }
 
 void StraightTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition)
 {
-	pSpeed->Z += BulletTypeExtContainer::Instance.Find(this->AttachedTo->Type)->GetAdjustedGravity(); // We don't want to take the gravity into account
+	//pSpeed->Z += BulletTypeExtContainer::Instance.Find(this->AttachedTo->Type)->GetAdjustedGravity(); // We don't want to take the gravity into account
 }
 
 TrajectoryCheckReturnType StraightTrajectory::OnAITargetCoordCheck(CoordStruct& coords)

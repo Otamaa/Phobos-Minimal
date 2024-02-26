@@ -385,7 +385,6 @@ DEFINE_OVERRIDE_HOOK(0x6FF656, TechnoClass_FireAt_Additionals, 0xA)
 
 	if (pWeaponExt->ShakeLocal.Get() && pThis->IsOnMyView())
 	{
-
 		if (pWeaponExt->Xhi || pWeaponExt->Xlo)
 			GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, ScenarioClass::Instance->Random(pWeaponExt->Xlo, pWeaponExt->Xhi));
 

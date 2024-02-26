@@ -96,24 +96,24 @@ bool PhobosTrajectoryType::UpdateType(std::unique_ptr<PhobosTrajectoryType>& pTy
 	return true;
 }
 
+static constexpr std::array<const char*, (size_t)TrajectoryFlag::Count> TrajectoryTypeToSrings
+{ {
+	{"Straight"} ,
+	{"Bombard"} ,
+	{"Artillery"} ,
+	{"Bounce"} ,
+	{"Vertical"} ,
+	{"Meteor"} ,
+	{"Spiral"} ,
+	{"Wave"} ,
+	{"Arcing" },
+ }
+};
+
 void PhobosTrajectoryType::CreateType(std::unique_ptr<PhobosTrajectoryType>& pType, CCINIClass* const pINI, const char* pSection, const char* pKey)
 {
 	if (!pINI->GetKey(pSection, pKey))
 		return;
-
-	static constexpr std::array<const char*, (size_t)TrajectoryFlag::Count> TrajectoryTypeToSrings
-	{ {
-		{"Straight"} ,
-		{"Bombard"} ,
-		{"Artillery"} ,
-		{"Bounce"} ,
-		{"Vertical"} ,
-		{"Meteor"} ,
-		{"Spiral"} ,
-		{"Wave"} ,
-		{"Arcing" },
-	 }
-	};
 
 	TrajectoryFlag nFlag = TrajectoryFlag::Invalid;
 
@@ -356,6 +356,64 @@ void PhobosTrajectory::ProcessFromStream(PhobosStreamWriter& Stm, std::unique_pt
 		Stm.Process(pTraj->Flag);
 		pTraj->Save(Stm);
 	}
+}
+
+
+DWORD PhobosTrajectory::OnAITargetCoordCheck(BulletClass* pBullet, CoordStruct& coords)
+{
+	enum { SkipCheck = 0x4678F8, ContinueAfterCheck = 0x467879, Detonate = 0x467E53 };
+
+	if (auto& pTraj = BulletExtContainer::Instance.Find(pBullet)->Trajectory)
+	{
+#ifndef Debug_Traj
+		switch (pTraj->OnAITargetCoordCheck(coords))
+#else
+		const auto result = pTraj->OnAITargetCoordCheck(coords);
+		Debug::Log(__FUNCTION__" Bullet[%s - %p] with Trajectory[%d] result [%s]\n", pBullet->get_ID(), pBullet, TrajectoryTypeToSrings[(int)pTraj->Flag], EnumFunctions::TrajectoryCheckReturnType_to_strings[(int)result]);
+		switch(result)
+#endif
+		{
+		case TrajectoryCheckReturnType::SkipGameCheck:
+			return SkipCheck;
+		case TrajectoryCheckReturnType::SatisfyGameCheck:
+			return ContinueAfterCheck;
+		case TrajectoryCheckReturnType::Detonate:
+			return Detonate;
+		default:
+			break;
+		}
+	}
+
+	return 0;
+
+}
+
+DWORD PhobosTrajectory::OnAITechnoCheck(BulletClass* pBullet, TechnoClass* pTechno)
+{
+	enum { SkipCheck = 0x467A2B, ContinueAfterCheck = 0x4679EB, Detonate = 0x467E53 };
+
+	if (auto& pTraj = BulletExtContainer::Instance.Find(pBullet)->Trajectory)
+	{
+#ifndef Debug_Traj
+		switch (pTraj->OnAITechnoCheck(pTechno))
+#else
+		const auto result = pTraj->OnAITechnoCheck(pTechno);
+		Debug::Log(__FUNCTION__" Bullet[%s - %p] with Trajectory[%d] result [%s]\n", pBullet->get_ID(), pBullet, TrajectoryTypeToSrings[(int)pTraj->Flag], EnumFunctions::TrajectoryCheckReturnType_to_strings[(int)result]);
+		switch (result)
+#endif
+		{
+		case TrajectoryCheckReturnType::SkipGameCheck:
+			return SkipCheck;
+		case TrajectoryCheckReturnType::SatisfyGameCheck:
+			return ContinueAfterCheck;
+		case TrajectoryCheckReturnType::Detonate:
+			return Detonate;
+		default:
+			break;
+		}
+	}
+
+	return 0;
 }
 
 void PhobosTrajectory::SetInaccurate() const

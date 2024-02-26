@@ -97,6 +97,8 @@ public:
 	Valueable<bool> Arcing_AllowElevationInaccuracy { true };
 
 	Valueable<ParticleSystemTypeClass*> AttachedSystem { nullptr };
+	Valueable<WeaponTypeClass*> ReturnWeapon { nullptr };
+
 	TrailsReader Trails { };
 
 	std::unique_ptr<PhobosTrajectoryType> TrajectoryType { };
