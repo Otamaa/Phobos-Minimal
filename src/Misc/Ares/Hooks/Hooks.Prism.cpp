@@ -39,7 +39,7 @@ void WeaponTypeExtData::FireEbolt(TechnoClass* pFirer, WeaponTypeClass* pWeapon,
 
 }
 
-DEFINE_OVERRIDE_HOOK(0x44B2FE, BuildingClass_Mi_Attack_IsPrism, 6)
+DEFINE_HOOK(0x44B2FE, BuildingClass_Mi_Attack_IsPrism, 6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	//GET(int, idxWeapon, EBP); //which weapon was chosen to attack the target with
@@ -109,7 +109,7 @@ DEFINE_OVERRIDE_HOOK(0x44B2FE, BuildingClass_Mi_Attack_IsPrism, 6)
 	return IsNotPrism;
 }
 
-DEFINE_OVERRIDE_HOOK(0x447FAE, BuildingClass_GetFireError_PrismForward, 6)
+DEFINE_HOOK(0x447FAE, BuildingClass_GetFireError_PrismForward, 6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	enum { BusyCharging = 0x447FB8, NotBusyCharging = 0x447FC3 };
@@ -133,7 +133,7 @@ DEFINE_OVERRIDE_HOOK(0x447FAE, BuildingClass_GetFireError_PrismForward, 6)
 }
 
 //NB: PrismTargetCoords is not just a coord struct, it's a union whose first dword is the used weapon index and two others are undefined...
-DEFINE_OVERRIDE_HOOK(0x4503F0, BuildingClass_Update_Prism, 9)
+DEFINE_HOOK(0x4503F0, BuildingClass_Update_Prism, 9)
 {
 	GET(BuildingClass* const, pThis, ECX);
 	auto const pType = pThis->Type;
@@ -206,7 +206,7 @@ DEFINE_OVERRIDE_HOOK(0x4503F0, BuildingClass_Update_Prism, 9)
 	return 0x4504E2;
 }
 
-DEFINE_OVERRIDE_HOOK(0x44ABD0, BuildingClass_FireLaser, 5)
+DEFINE_HOOK(0x44ABD0, BuildingClass_FireLaser, 5)
 {
 	GET(BuildingClass* const, pThis, ECX);
 	REF_STACK(CoordStruct const, targetXYZ, 0x4);
@@ -335,7 +335,7 @@ DEFINE_OVERRIDE_HOOK(0x44ABD0, BuildingClass_FireLaser, 5)
 	return 0x44ACE2;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FF4DE, TechnoClass_Fire_IsLaser, 6)
+DEFINE_HOOK(0x6FF4DE, TechnoClass_Fire_IsLaser, 6)
 {
 	GET(TechnoClass* const, pThis, ECX);
 	GET(TechnoClass* const, pTarget, EDI);
@@ -403,14 +403,14 @@ DEFINE_OVERRIDE_HOOK(0x6FF4DE, TechnoClass_Fire_IsLaser, 6)
 
 //these are all for cleaning up when a prism tower becomes unavailable
 
-DEFINE_OVERRIDE_HOOK(0x4424EF, BuildingClass_ReceiveDamage_PrismForward, 6)
+DEFINE_HOOK(0x4424EF, BuildingClass_ReceiveDamage_PrismForward, 6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	BuildingExtContainer::Instance.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x448277, BuildingClass_ChangeOwner_PrismForwardAndLeaveBomb, 5)
+DEFINE_HOOK(0x448277, BuildingClass_ChangeOwner_PrismForwardAndLeaveBomb, 5)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	GET_STACK(HouseClass* const, newOwner, 0x58 + 0x4);
@@ -470,7 +470,7 @@ DEFINE_OVERRIDE_HOOK(0x448277, BuildingClass_ChangeOwner_PrismForwardAndLeaveBom
 	return LeaveBomb;
 }
 
-DEFINE_OVERRIDE_HOOK(0x71AF76, TemporalClass_Fire_PrismForwardAndWarpable, 9)
+DEFINE_HOOK(0x71AF76, TemporalClass_Fire_PrismForwardAndWarpable, 9)
 {
 	GET(TechnoClass* const, pThis, EDI);
 
@@ -492,7 +492,7 @@ DEFINE_OVERRIDE_HOOK(0x71AF76, TemporalClass_Fire_PrismForwardAndWarpable, 9)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x70FD9A, TechnoClass_Drain_PrismForward, 6)
+DEFINE_HOOK(0x70FD9A, TechnoClass_Drain_PrismForward, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET(TechnoClass* const, pDrainee, EDI);
@@ -506,7 +506,7 @@ DEFINE_OVERRIDE_HOOK(0x70FD9A, TechnoClass_Drain_PrismForward, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x454B3D, BuildingClass_UpdatePowered_PrismForward, 6)
+DEFINE_HOOK(0x454B3D, BuildingClass_UpdatePowered_PrismForward, 6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	// this building just realised it needs to go offline
@@ -515,7 +515,7 @@ DEFINE_OVERRIDE_HOOK(0x454B3D, BuildingClass_UpdatePowered_PrismForward, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x44EBF0, BuildingClass_Disappear_PrismForward, 5)
+DEFINE_HOOK(0x44EBF0, BuildingClass_Disappear_PrismForward, 5)
 {
 	GET(BuildingClass* const, pThis, ECX);
 	BuildingExtContainer::Instance.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);

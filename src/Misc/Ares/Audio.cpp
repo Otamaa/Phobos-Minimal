@@ -363,14 +363,14 @@ bool NOINLINE PlayWavWrapper(int HouseTypeIdx , size_t SampleIdx)
 
 #ifndef aaa
 
-DEFINE_OVERRIDE_HOOK(0x752b70 , PlayTaunt , 5)
+DEFINE_HOOK(0x752b70 , PlayTaunt , 5)
 {
 	GET(TauntDataStruct, data , ECX);
 	R->EAX(PlayWavWrapper(data.countryIdx, data.tauntIdx));
 	return 0x752C68;
 }
 
-DEFINE_OVERRIDE_HOOK(0x536438 , TauntCommandClass_Execute , 5)
+DEFINE_HOOK(0x536438 , TauntCommandClass_Execute , 5)
 {
    GET(TauntDataStruct, data , ECX);
   const auto house =  NodeNameType::Array->Items[0]->Country;
@@ -379,7 +379,7 @@ DEFINE_OVERRIDE_HOOK(0x536438 , TauntCommandClass_Execute , 5)
   return 0x53643D;
 }
 
-DEFINE_OVERRIDE_HOOK(0x48da3b , sub_48D1E0_PlayTaunt , 5)
+DEFINE_HOOK(0x48da3b , sub_48D1E0_PlayTaunt , 5)
 {
 	GET(TauntDataStruct, data , ECX);
 	PlayWavWrapper(GlobalPacketType::Instance->Command, data.tauntIdx);
@@ -425,7 +425,7 @@ DEFINE_HOOK(0x720A58, ThemeClass_AI_DisableLog, 0x6)
 
 // load more than one audio bag and index.
 // this replaces the entire old parser.
-DEFINE_OVERRIDE_HOOK(0x4011C0, Audio_Load, 6)
+DEFINE_HOOK(0x4011C0, Audio_Load, 6)
 {
 	auto& instance = AudioLuggage::Instance;
 	// audio.bag and ares.bag
@@ -444,7 +444,7 @@ DEFINE_OVERRIDE_HOOK(0x4011C0, Audio_Load, 6)
 	return 0x401578;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4016F0, IDXContainer_LoadSample, 6)
+DEFINE_HOOK(0x4016F0, IDXContainer_LoadSample, 6)
 {
 	GET(AudioIDXData*, pThis, ECX);
 	GET(int const, index, EDX);
@@ -468,7 +468,7 @@ DEFINE_OVERRIDE_HOOK(0x4016F0, IDXContainer_LoadSample, 6)
 }
 
 // add saple is assemble an idex then put it onto some list
-DEFINE_OVERRIDE_HOOK(0x4064A0, VocClassData_AddSample, 6) // Complete rewrite of VocClass::AddSample
+DEFINE_HOOK(0x4064A0, VocClassData_AddSample, 6) // Complete rewrite of VocClass::AddSample
 {
 	GET(AudioEventClassTag*, pVoc, ECX);
 	GET(const char*, pSampleName, EDX);
@@ -509,7 +509,7 @@ DEFINE_OVERRIDE_HOOK(0x4064A0, VocClassData_AddSample, 6) // Complete rewrite of
 }
 
 
-DEFINE_OVERRIDE_HOOK(0x401640, AudioIndex_GetSampleInformation, 5)
+DEFINE_HOOK(0x401640, AudioIndex_GetSampleInformation, 5)
 {
 	GET(const int, idxSample, EDX);
 	GET_STACK(AudioSampleData*, pAudioSample, 0x4);

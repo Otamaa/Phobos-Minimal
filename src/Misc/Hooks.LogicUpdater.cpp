@@ -85,7 +85,7 @@ void UpdateWebbed(FootClass* pThis)
 #include <Misc/Ares/Hooks/Header.h>
 
 #ifndef aaa
-DEFINE_OVERRIDE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
+DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 #else
 DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 #endif

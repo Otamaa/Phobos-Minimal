@@ -1,6 +1,6 @@
 #include <Ext/Techno/Body.h>
 
-DEFINE_OVERRIDE_HOOK(0x417F83, AircraftClass_GetActionOnCell_Deactivated, 0x6)
+DEFINE_HOOK(0x417F83, AircraftClass_GetActionOnCell_Deactivated, 0x6)
 {
 	GET(AircraftClass* const, pThis, ESI);
 
@@ -12,7 +12,7 @@ DEFINE_OVERRIDE_HOOK(0x417F83, AircraftClass_GetActionOnCell_Deactivated, 0x6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4D7D58, FootClass_ActionOnCell_Deactivated, 0x6)
+DEFINE_HOOK(0x4D7D58, FootClass_ActionOnCell_Deactivated, 0x6)
 {
 	GET(FootClass* const, pThis, ESI);
 	return (pThis->Deactivated)
@@ -21,14 +21,14 @@ DEFINE_OVERRIDE_HOOK(0x4D7D58, FootClass_ActionOnCell_Deactivated, 0x6)
 		;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4436F7, BuildingClass_ActionOnCell_Deactivated, 0x5)
+DEFINE_HOOK(0x4436F7, BuildingClass_ActionOnCell_Deactivated, 0x5)
 {
 	GET(BuildingClass* const, pThis, ECX);
 	return (pThis->Deactivated)
 		? 0x443729 : 0 ;
 }
 
-DEFINE_OVERRIDE_HOOK(0x447548, BuildingClass_GetActionOnCell_Deactivated, 0x6)
+DEFINE_HOOK(0x447548, BuildingClass_GetActionOnCell_Deactivated, 0x6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 
@@ -40,7 +40,7 @@ DEFINE_OVERRIDE_HOOK(0x447548, BuildingClass_GetActionOnCell_Deactivated, 0x6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4D74EC, FootClass_ActionOnObject_Deactivated, 0x6)
+DEFINE_HOOK(0x4D74EC, FootClass_ActionOnObject_Deactivated, 0x6)
 {
 	GET(FootClass* const, pThis, ESI);
 	GET_STACK(Action const, nAction, 0x10C);
@@ -51,7 +51,7 @@ DEFINE_OVERRIDE_HOOK(0x4D74EC, FootClass_ActionOnObject_Deactivated, 0x6)
 		;
 }
 
-DEFINE_OVERRIDE_HOOK(0x51F808, InfantryClass_GetActionOnCell_Deactivated, 0x6)
+DEFINE_HOOK(0x51F808, InfantryClass_GetActionOnCell_Deactivated, 0x6)
 {
 	GET(InfantryClass* const, pThis, EDI);
 	if (pThis->Deactivated)
@@ -62,7 +62,7 @@ DEFINE_OVERRIDE_HOOK(0x51F808, InfantryClass_GetActionOnCell_Deactivated, 0x6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x51D0DD, InfantryClass_Scatter_Deactivated, 0x6)
+DEFINE_HOOK(0x51D0DD, InfantryClass_Scatter_Deactivated, 0x6)
 {
 	GET(InfantryClass* const, pThis, ESI);
 	return (pThis->Deactivated)
@@ -71,7 +71,7 @@ DEFINE_OVERRIDE_HOOK(0x51D0DD, InfantryClass_Scatter_Deactivated, 0x6)
 		;
 }
 
-DEFINE_OVERRIDE_HOOK(0x7404B9, UnitClass_GetCursorOverCell_Deactivated, 6)
+DEFINE_HOOK(0x7404B9, UnitClass_GetCursorOverCell_Deactivated, 6)
 {
 	GET(UnitClass* const, pThis, ESI);
 	if (pThis->Deactivated) {
@@ -81,7 +81,7 @@ DEFINE_OVERRIDE_HOOK(0x7404B9, UnitClass_GetCursorOverCell_Deactivated, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5200B3, InfantryClass_UpdatePanic_Deactivated, 6)
+DEFINE_HOOK(0x5200B3, InfantryClass_UpdatePanic_Deactivated, 6)
 {
 	GET(InfantryClass* const, pThis, ESI);
 	if (pThis->Deactivated) {

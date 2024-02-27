@@ -34,7 +34,7 @@
 #include <Ares_TechnoExt.h>
 #include <Misc/PhobosGlobal.h>
 
-DEFINE_OVERRIDE_HOOK(0x46920B, BulletClass_Detonate, 6)
+DEFINE_HOOK(0x46920B, BulletClass_Detonate, 6)
 {
 	enum { CheckIvanBomb = 0x469343, ConituneMindControlCheck = 0x46921F, SkipEverything = 0x469AA4, Continue = 0x0 };
 
@@ -100,7 +100,7 @@ DEFINE_OVERRIDE_HOOK(0x46920B, BulletClass_Detonate, 6)
 	return BulletExtData::ApplyMCAlternative(pThis) ? 0x469AA4u  : 0u;
 }
 
-DEFINE_OVERRIDE_HOOK(0x71AAAC, TemporalClass_Update_Abductor, 6)
+DEFINE_HOOK(0x71AAAC, TemporalClass_Update_Abductor, 6)
 {
 	GET(TemporalClass*, pThis, ESI);
 
@@ -114,7 +114,7 @@ DEFINE_OVERRIDE_HOOK(0x71AAAC, TemporalClass_Update_Abductor, 6)
 }
 
 // issue #1437: crash when warping out buildings infantry wants to garrison
-DEFINE_OVERRIDE_HOOK(0x71AA52, TemporalClass_Update_AnnounceInvalidPointer, 0x8)
+DEFINE_HOOK(0x71AA52, TemporalClass_Update_AnnounceInvalidPointer, 0x8)
 {
 	GET(TechnoClass*, pVictim, ECX);
 	pVictim->IsAlive = false;
@@ -147,7 +147,7 @@ DEFINE_HOOK(0x71A8BD, TemporalClass_Update_WarpAway, 5)
 // bugfix #379: Temporal friendly kills give veterancy
 // bugfix #1266: Temporal kills gain double experience
 // TODO :add DP stuffs here
-DEFINE_OVERRIDE_HOOK(0x71A917, TemporalClass_Update_Erase, 5)
+DEFINE_HOOK(0x71A917, TemporalClass_Update_Erase, 5)
 {
 	GET(TemporalClass*, pThis, ESI);
 
@@ -165,7 +165,7 @@ DEFINE_OVERRIDE_HOOK(0x71A917, TemporalClass_Update_Erase, 5)
 	return 0x71A97D;
 }
 
-DEFINE_OVERRIDE_HOOK(0x71AB10, TemporalClass_GetWarpPerStep, 6)
+DEFINE_HOOK(0x71AB10, TemporalClass_GetWarpPerStep, 6)
 {
 	GET_STACK(int, nStep, 0x4);
 	GET(TemporalClass*, pThis, ECX);
@@ -229,7 +229,7 @@ DEFINE_HOOK(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)
 	return 0x71AC5D;
 }
 
-DEFINE_OVERRIDE_HOOK(0x71AFB2, TemporalClass_Fire_HealthFactor, 5)
+DEFINE_HOOK(0x71AFB2, TemporalClass_Fire_HealthFactor, 5)
 {
 	GET(TechnoClass*, pTarget, ECX);
 	GET(TemporalClass*, pThis, ESI);
@@ -245,14 +245,14 @@ DEFINE_OVERRIDE_HOOK(0x71AFB2, TemporalClass_Fire_HealthFactor, 5)
 	return 0x71AFB7;
 }
 
-DEFINE_OVERRIDE_HOOK(0x71AE50, TemporalClass_CanWarpTarget, 8)
+DEFINE_HOOK(0x71AE50, TemporalClass_CanWarpTarget, 8)
 {
 	GET_STACK(TechnoClass*, pTarget, 0x4);
 	R->EAX(TechnoExt_ExtData::Warpable(pTarget));
 	return 0x71AF19;
 }
 
-DEFINE_OVERRIDE_HOOK(0x71944E, TeleportLocomotionClass_ILocomotion_Process, 6)
+DEFINE_HOOK(0x71944E, TeleportLocomotionClass_ILocomotion_Process, 6)
 {
 	GET(FootClass*, pObject, ECX);
 	GET(CoordStruct*, XYZ, EDX);

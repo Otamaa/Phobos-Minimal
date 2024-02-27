@@ -61,7 +61,7 @@ DEFINE_HOOK(0x55AFB3, LogicClass_Update_Early, 0x6)
 }
 
 #ifndef aaa
-DEFINE_OVERRIDE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
+DEFINE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 #else
 DEFINE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 #endif
@@ -334,7 +334,7 @@ DEFINE_HOOK(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x41F0F1, AITriggerClass_IC_Ready, 0xA)
+DEFINE_HOOK(0x41F0F1, AITriggerClass_IC_Ready, 0xA)
 {
 	enum { advance = 0x41F0FD, breakloop = 0x41F10D };
 	GET(SuperClass*, pSuper, EDI);
@@ -414,7 +414,7 @@ DEFINE_HOOK(0x41F180, AITriggerClass_Chrono, 0x5)
 
 #include <Ext/Team/Body.h>
 
-DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
+DEFINE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 {
 	GET(TeamClass*, pThis, ECX);
 	GET_STACK(ScriptActionNode*, pTeamMission, 0x4);
@@ -499,7 +499,7 @@ DEFINE_OVERRIDE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 	}
 }
 
-DEFINE_OVERRIDE_HOOK(0x6CEF84, SuperWeaponTypeClass_GetAction, 7)
+DEFINE_HOOK(0x6CEF84, SuperWeaponTypeClass_GetAction, 7)
 {
 	GET_STACK(CellStruct*, pMapCoords, 0x0C);
 	GET(SuperWeaponTypeClass*, pType, ECX);
@@ -517,7 +517,7 @@ DEFINE_OVERRIDE_HOOK(0x6CEF84, SuperWeaponTypeClass_GetAction, 7)
 }
 
 // 6CEE96, 5
-DEFINE_OVERRIDE_HOOK(0x6CEE96, SuperWeaponTypeClass_GetTypeIndex, 5)
+DEFINE_HOOK(0x6CEE96, SuperWeaponTypeClass_GetTypeIndex, 5)
 {
 	GET(const char*, TypeStr, EDI);
 	auto customType = NewSWType::FindFromTypeID(TypeStr);
@@ -529,7 +529,7 @@ DEFINE_OVERRIDE_HOOK(0x6CEE96, SuperWeaponTypeClass_GetTypeIndex, 5)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
+DEFINE_HOOK(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
 {
 	enum
 	{
@@ -593,14 +593,14 @@ DEFINE_OVERRIDE_HOOK(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
 }
 
 // play a customizable target selection EVA message
-DEFINE_OVERRIDE_HOOK(0x6AAF9D, SidebarClass_ProcessCameoClick_SelectTarget, 5)
+DEFINE_HOOK(0x6AAF9D, SidebarClass_ProcessCameoClick_SelectTarget, 5)
 {
 	GET(int, index, ESI);
 	VoxClass::PlayIndex(SWTypeExtContainer::Instance.Find(HouseClass::CurrentPlayer->Supers.Items[index]->Type)->EVA_SelectTarget);
 	return 0x6AB95A;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A932B, StripClass_GetTip_MoneySW, 6)
+DEFINE_HOOK(0x6A932B, StripClass_GetTip_MoneySW, 6)
 {
 	GET(SuperWeaponTypeClass*, pSW, EAX);
 
@@ -643,7 +643,7 @@ DEFINE_OVERRIDE_HOOK(0x6A932B, StripClass_GetTip_MoneySW, 6)
 
 // 4AC20C, 7
 // translates SW click to type
-DEFINE_OVERRIDE_HOOK(0x4AC20C, DisplayClass_LeftMouseButtonUp, 7)
+DEFINE_HOOK(0x4AC20C, DisplayClass_LeftMouseButtonUp, 7)
 {
 	GET_STACK(Action, nAction, 0x9C);
 
@@ -674,7 +674,7 @@ DEFINE_OVERRIDE_HOOK(0x4AC20C, DisplayClass_LeftMouseButtonUp, 7)
 	return 0x4AC21C;
 }
 
-DEFINE_OVERRIDE_HOOK(0x653B3A, RadarClass_GetMouseAction_CustomSWAction, 7)
+DEFINE_HOOK(0x653B3A, RadarClass_GetMouseAction_CustomSWAction, 7)
 {
 	GET_STACK(CellStruct, MapCoords, STACK_OFFS(0x54, 0x3C));
 	REF_STACK(MouseEvent, flag, 0x58);
@@ -703,7 +703,7 @@ DEFINE_OVERRIDE_HOOK(0x653B3A, RadarClass_GetMouseAction_CustomSWAction, 7)
 }
 
 // decoupling sw anims from types
-DEFINE_OVERRIDE_HOOK(0x4463F0, BuildingClass_Place_SuperWeaponAnimsA, 6)
+DEFINE_HOOK(0x4463F0, BuildingClass_Place_SuperWeaponAnimsA, 6)
 {
 	GET(BuildingClass*, pThis, EBP);
 
@@ -734,7 +734,7 @@ DEFINE_OVERRIDE_HOOK(0x4463F0, BuildingClass_Place_SuperWeaponAnimsA, 6)
 	return 0x446580;
 }
 
-DEFINE_OVERRIDE_HOOK(0x450F9E, BuildingClass_ProcessAnims_SuperWeaponsA, 6)
+DEFINE_HOOK(0x450F9E, BuildingClass_ProcessAnims_SuperWeaponsA, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	const auto pSuper = BuildingExtData::GetFirstSuperWeapon(pThis);
@@ -758,7 +758,7 @@ DEFINE_OVERRIDE_HOOK(0x450F9E, BuildingClass_ProcessAnims_SuperWeaponsA, 6)
 }
 
 // EVA_Detected
-DEFINE_OVERRIDE_HOOK(0x4468F4, BuildingClass_Place_AnnounceSW, 6)
+DEFINE_HOOK(0x4468F4, BuildingClass_Place_AnnounceSW, 6)
 {
 	GET(BuildingClass*, pThis, EBP);
 
@@ -785,7 +785,7 @@ DEFINE_OVERRIDE_HOOK(0x4468F4, BuildingClass_Place_AnnounceSW, 6)
 
 // EVA_Ready
 // 6CBDD7, 6
-DEFINE_OVERRIDE_HOOK(0x6CBDD7, SuperClass_AI_AnnounceReady, 6)
+DEFINE_HOOK(0x6CBDD7, SuperClass_AI_AnnounceReady, 6)
 {
 	GET(SuperWeaponTypeClass*, pThis, EAX);
 	const auto pData = SWTypeExtContainer::Instance.Find(pThis);
@@ -802,7 +802,7 @@ DEFINE_OVERRIDE_HOOK(0x6CBDD7, SuperClass_AI_AnnounceReady, 6)
 }
 
 // 6CC0EA, 9
-DEFINE_OVERRIDE_HOOK(0x6CC0EA, SuperClass_ForceCharged_AnnounceQuantity, 9)
+DEFINE_HOOK(0x6CC0EA, SuperClass_ForceCharged_AnnounceQuantity, 9)
 {
 	GET(SuperClass*, pThis, ESI);
 	const auto pData = SWTypeExtContainer::Instance.Find(pThis->Type);
@@ -833,7 +833,7 @@ DEFINE_OVERRIDE_HOOK(0x6CC0EA, SuperClass_ForceCharged_AnnounceQuantity, 9)
 //}
 
 // AI SW targeting submarines
-DEFINE_OVERRIDE_HOOK(0x50CFAA, HouseClass_PickOffensiveSWTarget, 0xA)
+DEFINE_HOOK(0x50CFAA, HouseClass_PickOffensiveSWTarget, 0xA)
 {
 	// reset weight
 	R->ESI(0);
@@ -844,7 +844,7 @@ DEFINE_OVERRIDE_HOOK(0x50CFAA, HouseClass_PickOffensiveSWTarget, 0xA)
 	return 0x50CFC9;
 }
 
-DEFINE_OVERRIDE_HOOK(0x457630, BuildingClass_SWAvailable, 9)
+DEFINE_HOOK(0x457630, BuildingClass_SWAvailable, 9)
 {
 	GET(BuildingClass*, pThis, ECX);
 
@@ -856,7 +856,7 @@ DEFINE_OVERRIDE_HOOK(0x457630, BuildingClass_SWAvailable, 9)
 	return 0x457688;
 }
 
-DEFINE_OVERRIDE_HOOK(0x457690, BuildingClass_SW2Available, 9)
+DEFINE_HOOK(0x457690, BuildingClass_SW2Available, 9)
 {
 	GET(BuildingClass*, pThis, ECX);
 
@@ -868,7 +868,7 @@ DEFINE_OVERRIDE_HOOK(0x457690, BuildingClass_SW2Available, 9)
 	return 0x4576E8;
 }
 
-DEFINE_OVERRIDE_HOOK(0x43BE50, BuildingClass_DTOR_HasAnySW, 6)
+DEFINE_HOOK(0x43BE50, BuildingClass_DTOR_HasAnySW, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -876,13 +876,13 @@ DEFINE_OVERRIDE_HOOK(0x43BE50, BuildingClass_DTOR_HasAnySW, 6)
 		? 0x43BEEAu : 0x43BEF5u;
 }
 
-DEFINE_OVERRIDE_HOOK(0x449716, BuildingClass_Mi_Guard_HasFirstSW, 6)
+DEFINE_HOOK(0x449716, BuildingClass_Mi_Guard_HasFirstSW, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	return pThis->FirstActiveSWIdx() != -1 ? 0x4497AFu : 0x449762u;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4FAE72, HouseClass_SWFire_PreDependent, 6)
+DEFINE_HOOK(0x4FAE72, HouseClass_SWFire_PreDependent, 6)
 {
 	GET(HouseClass*, pThis, EBX);
 
@@ -893,7 +893,7 @@ DEFINE_OVERRIDE_HOOK(0x4FAE72, HouseClass_SWFire_PreDependent, 6)
 	return 0x4FAE7B;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6CC2B0, SuperClass_NameReadiness, 5)
+DEFINE_HOOK(0x6CC2B0, SuperClass_NameReadiness, 5)
 {
 	GET(SuperClass*, pThis, ECX);
 	const auto pData = SWTypeExtContainer::Instance.Find(pThis->Type);
@@ -942,7 +942,7 @@ DEFINE_OVERRIDE_HOOK(0x6CC2B0, SuperClass_NameReadiness, 5)
 }
 
 // #896002: darken SW cameo if player can't afford it
-DEFINE_OVERRIDE_HOOK(0x6A99B7, StripClass_Draw_SuperDarken, 5)
+DEFINE_HOOK(0x6A99B7, StripClass_Draw_SuperDarken, 5)
 {
 	GET(int, idxSW, EDI);
 
@@ -960,7 +960,7 @@ DEFINE_OVERRIDE_HOOK(0x6A99B7, StripClass_Draw_SuperDarken, 5)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4F9004,HouseClass_Update_TrySWFire, 7)
+DEFINE_HOOK(0x4F9004,HouseClass_Update_TrySWFire, 7)
 {
 	enum { UpdateAIExpert = 0x4F9015 , Continue = 0x4F9038};
 
@@ -974,7 +974,7 @@ DEFINE_OVERRIDE_HOOK(0x4F9004,HouseClass_Update_TrySWFire, 7)
 	return pThis->Type->MultiplayPassive ? Continue : UpdateAIExpert;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6CBF5B, SuperClass_GetCameoChargeStage_ChargeDrainRatio, 9)
+DEFINE_HOOK(0x6CBF5B, SuperClass_GetCameoChargeStage_ChargeDrainRatio, 9)
 {
 	GET_STACK(int, rechargeTime1, 0x10);
 	GET_STACK(int, rechargeTime2, 0x14);
@@ -991,14 +991,14 @@ DEFINE_OVERRIDE_HOOK(0x6CBF5B, SuperClass_GetCameoChargeStage_ChargeDrainRatio, 
 	return 0x6CC053;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6CC053, SuperClass_GetCameoChargeStage_FixFullyCharged, 5)
+DEFINE_HOOK(0x6CC053, SuperClass_GetCameoChargeStage_FixFullyCharged, 5)
 {
 	R->EAX<int>(R->EAX<int>() > 54 ? 54 : R->EAX<int>());
 	return 0x6CC066;
 }
 
 // a ChargeDrain SW expired - fire it to trigger status update
-DEFINE_OVERRIDE_HOOK(0x6CBD86, SuperClass_Progress_Charged, 7)
+DEFINE_HOOK(0x6CBD86, SuperClass_Progress_Charged, 7)
 {
 	GET(SuperClass* const, pThis, ESI);
 	SWTypeExtData::Deactivate(pThis, CellStruct::Empty, true);
@@ -1006,7 +1006,7 @@ DEFINE_OVERRIDE_HOOK(0x6CBD86, SuperClass_Progress_Charged, 7)
 }
 
 // SW was lost (source went away)
-DEFINE_OVERRIDE_HOOK(0x6CB7B0, SuperClass_Lose, 6)
+DEFINE_HOOK(0x6CB7B0, SuperClass_Lose, 6)
 {
 	GET(SuperClass* const, pThis, ECX);
 	auto ret = false;
@@ -1042,7 +1042,7 @@ DEFINE_OVERRIDE_HOOK(0x6CB7B0, SuperClass_Lose, 6)
 
 // activate or deactivate the SW
 // ForceCharged on IDB
-DEFINE_OVERRIDE_HOOK(0x6CB920, SuperClass_ClickFire, 5)
+DEFINE_HOOK(0x6CB920, SuperClass_ClickFire, 5)
 {
 	GET(SuperClass* const, pThis, ECX);
 	GET_STACK(bool const, isPlayer, 0x4);
@@ -1148,7 +1148,7 @@ DEFINE_OVERRIDE_HOOK(0x6CB920, SuperClass_ClickFire, 5)
 }
 
 // rewriting OnHold to support ChargeDrain
-DEFINE_OVERRIDE_HOOK(0x6CB4D0, SuperClass_SetOnHold, 6)
+DEFINE_HOOK(0x6CB4D0, SuperClass_SetOnHold, 6)
 {
 	GET(SuperClass*, pThis, ECX);
 	GET_STACK(bool const, onHold, 0x4);
@@ -1214,7 +1214,7 @@ DEFINE_OVERRIDE_HOOK(0x6CB4D0, SuperClass_SetOnHold, 6)
 	return 0x6CB555;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6CBD6B, SuperClass_Update_DrainMoney, 8)
+DEFINE_HOOK(0x6CBD6B, SuperClass_Update_DrainMoney, 8)
 {
 	// draining weapon active. take or give money. stop,
 	// if player has insufficient funds.
@@ -1254,7 +1254,7 @@ DEFINE_OVERRIDE_HOOK(0x6CBD6B, SuperClass_Update_DrainMoney, 8)
 }
 
 // clear the chrono placement animation if not ChronoWarp
-DEFINE_STRONG_OVERRIDE_HOOK(0x6CBCDE, SuperClass_Update_Animation, 5)
+DEFINE_STRONG_HOOK(0x6CBCDE, SuperClass_Update_Animation, 5)
 {
 	enum { HideAnim = 0x6CBCE3 , Continue = 0x6CBCFE };
 
@@ -1269,7 +1269,7 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x6CBCDE, SuperClass_Update_Animation, 5)
 }
 
 // used only to find the nuke for ICBM crates. only supports nukes fully.
-DEFINE_OVERRIDE_HOOK(0x6CEEB0, SuperWeaponTypeClass_FindFirstOfAction, 8)
+DEFINE_HOOK(0x6CEEB0, SuperWeaponTypeClass_FindFirstOfAction, 8)
 {
 	GET(Action, action, ECX);
 
@@ -1309,7 +1309,7 @@ DEFINE_OVERRIDE_HOOK(0x6CEEB0, SuperWeaponTypeClass_FindFirstOfAction, 8)
 	return 0x6CEEE5;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6D49D1, TacticalClass_Draw_TimerVisibility, 5)
+DEFINE_HOOK(0x6D49D1, TacticalClass_Draw_TimerVisibility, 5)
 {
 	enum
 	{
@@ -1328,7 +1328,7 @@ DEFINE_OVERRIDE_HOOK(0x6D49D1, TacticalClass_Draw_TimerVisibility, 5)
 	return pThis->IsOnHold ? DrawSuspended : DrawNormal;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6CB70C, SuperClass_Grant_InitialReady, 0xA)
+DEFINE_HOOK(0x6CB70C, SuperClass_Grant_InitialReady, 0xA)
 {
 	GET(SuperClass*, pSuper, ESI);
 
@@ -1378,7 +1378,7 @@ DEFINE_OVERRIDE_HOOK(0x6CB70C, SuperClass_Grant_InitialReady, 0xA)
 	return 0x6CB750;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
+DEFINE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
 {
 	GET(HouseClass*, pThis, ECX);
 
@@ -1404,7 +1404,7 @@ DEFINE_OVERRIDE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
 
 #include <EventClass.h>
 
-DEFINE_OVERRIDE_HOOK(0x4C78D6, Networking_RespondToEvent_SpecialPlace, 8)
+DEFINE_HOOK(0x4C78D6, Networking_RespondToEvent_SpecialPlace, 8)
 {
 	//GET(CellStruct*, pCell, EDX);
 	//GET(int, Checksum, EAX);
@@ -1437,7 +1437,7 @@ DEFINE_OVERRIDE_HOOK(0x4C78D6, Networking_RespondToEvent_SpecialPlace, 8)
 	return 0x4C78F8;
 }
 
-DEFINE_OVERRIDE_HOOK(0x50AF10, HouseClass_UpdateSuperWeaponsOwned, 5)
+DEFINE_HOOK(0x50AF10, HouseClass_UpdateSuperWeaponsOwned, 5)
 {
 	GET(HouseClass*, pThis, ECX);
 
@@ -1505,7 +1505,7 @@ DEFINE_OVERRIDE_HOOK(0x50AF10, HouseClass_UpdateSuperWeaponsOwned, 5)
 	return 0x50B1CA;
 }
 
-DEFINE_OVERRIDE_HOOK(0x50B1D0, HouseClass_UpdateSuperWeaponsUnavailable, 6)
+DEFINE_HOOK(0x50B1D0, HouseClass_UpdateSuperWeaponsUnavailable, 6)
 {
 	GET(HouseClass*, pThis, ECX);
 
@@ -1617,7 +1617,7 @@ DEFINE_HOOK(0x46B423, BulletClass_NukeMaker_PropagateSW, 6)
 }
 
 // deferred explosion. create a nuke ball anim and, when that is over, go boom.
-DEFINE_OVERRIDE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
+DEFINE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
 {
 	// changed the hardcoded way to just do this if the warhead is called NUKE
 		// to a more universal approach. every warhead can get this behavior.
@@ -1757,7 +1757,7 @@ DEFINE_HOOK(0x44D455, BuildingClass_Mi_Missile_EMPPulseBulletWeapon, 0x8)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x44CE46, BuildingClass_Mi_Missile_EMPulse_Pulsball, 5)
+DEFINE_HOOK(0x44CE46, BuildingClass_Mi_Missile_EMPulse_Pulsball, 5)
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -1781,7 +1781,7 @@ DEFINE_OVERRIDE_HOOK(0x44CE46, BuildingClass_Mi_Missile_EMPulse_Pulsball, 5)
 
 // this one setting the building target
 // either it is non EMPulse or EMPulse
-DEFINE_OVERRIDE_HOOK(0x44CCE7, BuildingClass_Mi_Missile_GenericSW, 6)
+DEFINE_HOOK(0x44CCE7, BuildingClass_Mi_Missile_GenericSW, 6)
 {
 	enum { ProcessEMPulse = 0x44CD18, ReturnFromFunc = 0x44D599 };
 	GET(BuildingClass* const, pThis, ESI);
@@ -1910,7 +1910,7 @@ DEFINE_HOOK(0x44CA97, BuildingClass_MI_Missile_CreateBullet, 0x6)
 }
 
 
-DEFINE_OVERRIDE_HOOK(0x48A59A, MapClass_SelectDamageAnimation_LightningWarhead, 5)
+DEFINE_HOOK(0x48A59A, MapClass_SelectDamageAnimation_LightningWarhead, 5)
 {
 	// override the lightning bolt explosion
 	GET(WarheadTypeClass* const, pWarhead, ESI);
@@ -1931,7 +1931,7 @@ DEFINE_OVERRIDE_HOOK(0x48A59A, MapClass_SelectDamageAnimation_LightningWarhead, 
 }
 
 // this is a complete rewrite of LightningStorm::Start.
-DEFINE_OVERRIDE_HOOK(0x539EB0, LightningStorm_Start, 5)
+DEFINE_HOOK(0x539EB0, LightningStorm_Start, 5)
 {
 	const auto pSuper = SW_LightningStorm::CurrentLightningStorm;
 
@@ -2043,7 +2043,7 @@ DEFINE_OVERRIDE_HOOK(0x539EB0, LightningStorm_Start, 5)
 }
 
 // this is a complete rewrite of LightningStorm::Update.
-DEFINE_OVERRIDE_HOOK(0x53A6CF, LightningStorm_Update, 7)
+DEFINE_HOOK(0x53A6CF, LightningStorm_Update, 7)
 {
 	enum { Legacy = 0x53A8FFu, Handled = 0x53AB45u };
 
@@ -2310,7 +2310,7 @@ DEFINE_OVERRIDE_HOOK(0x53A6CF, LightningStorm_Update, 7)
 }
 
 // create a cloud.
-DEFINE_OVERRIDE_HOOK(0x53A140, LightningStorm_Strike, 7)
+DEFINE_HOOK(0x53A140, LightningStorm_Strike, 7)
 {
 	if (auto const pSuper = SW_LightningStorm::CurrentLightningStorm)
 	{
@@ -2359,7 +2359,7 @@ DEFINE_OVERRIDE_HOOK(0x53A140, LightningStorm_Strike, 7)
 }
 
 // create bolt and damage area.
-DEFINE_OVERRIDE_HOOK(0x53A300, LightningStorm_Strike2, 5)
+DEFINE_HOOK(0x53A300, LightningStorm_Strike2, 5)
 {
 	auto const pSuper = SW_LightningStorm::CurrentLightningStorm;
 
@@ -2485,7 +2485,7 @@ DEFINE_OVERRIDE_HOOK(0x53A300, LightningStorm_Strike2, 5)
 }
 
 // completely replace the PsyDom::Fire() method.
-DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
+DEFINE_HOOK(0x53B080, PsyDom_Fire, 5)
 {
 	if (SuperClass* pSuper = SW_PsychicDominator::CurrentPsyDom)
 	{
@@ -2652,7 +2652,7 @@ DEFINE_OVERRIDE_HOOK(0x53B080, PsyDom_Fire, 5)
 }
 
 // replace entire function
-DEFINE_OVERRIDE_HOOK(0x53C280, ScenarioClass_UpdateLighting, 5)
+DEFINE_HOOK(0x53C280, ScenarioClass_UpdateLighting, 5)
 {
 	const auto lighting = SWTypeExtData::GetLightingColor();
 
@@ -2672,7 +2672,7 @@ DEFINE_OVERRIDE_HOOK(0x53C280, ScenarioClass_UpdateLighting, 5)
 	return 0x53C441;
 }
 
-DEFINE_OVERRIDE_HOOK(0x555E50, LightConvertClass_CTOR_Lighting, 5)
+DEFINE_HOOK(0x555E50, LightConvertClass_CTOR_Lighting, 5)
 {
 	GET(LightConvertClass*, pThis, ESI);
 
@@ -2699,7 +2699,7 @@ DEFINE_OVERRIDE_HOOK(0x555E50, LightConvertClass_CTOR_Lighting, 5)
 	return 0x55606C;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4555D5, BuildingClass_IsPowerOnline_KeepOnline, 5)
+DEFINE_HOOK(0x4555D5, BuildingClass_IsPowerOnline_KeepOnline, 5)
 {
 	GET(BuildingClass*, pThis, ESI);
 	bool Contains = false;
@@ -2720,14 +2720,14 @@ DEFINE_OVERRIDE_HOOK(0x4555D5, BuildingClass_IsPowerOnline_KeepOnline, 5)
 	return  Contains ? 0x4555DA : 0x0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x508E66, HouseClass_UpdateRadar_Battery, 8)
+DEFINE_HOOK(0x508E66, HouseClass_UpdateRadar_Battery, 8)
 {
 	GET(HouseClass*, pThis, ECX);
 	return !HouseExtContainer::Instance.Find(pThis)->Batteries.empty()
 		? 0x508E87 : 0x508F2F;
 }
 
-DEFINE_OVERRIDE_HOOK(0x44019D, BuildingClass_Update_Battery, 6)
+DEFINE_HOOK(0x44019D, BuildingClass_Update_Battery, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -2749,7 +2749,7 @@ DEFINE_OVERRIDE_HOOK(0x44019D, BuildingClass_Update_Battery, 6)
 ConvertClass* SWConvert = nullptr;
 BSurface* CameoPCXSurface = nullptr;
 
-DEFINE_OVERRIDE_HOOK(0x6A9948, StripClass_Draw_SuperWeapon, 6)
+DEFINE_HOOK(0x6A9948, StripClass_Draw_SuperWeapon, 6)
 {
 	GET(SuperWeaponTypeClass*, pSuper, EAX);
 
@@ -2759,7 +2759,7 @@ DEFINE_OVERRIDE_HOOK(0x6A9948, StripClass_Draw_SuperWeapon, 6)
 	return 0x0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A9A2A, StripClass_Draw_Main, 6)
+DEFINE_HOOK(0x6A9A2A, StripClass_Draw_Main, 6)
 {
 	GET_STACK(TechnoTypeClass*, pTechno, 0x6C);
 
@@ -2776,14 +2776,14 @@ DEFINE_OVERRIDE_HOOK(0x6A9A2A, StripClass_Draw_Main, 6)
 	return 0x6A9A30;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A9952, StripClass_Draw_SuperWeapon_PCX, 6)
+DEFINE_HOOK(0x6A9952, StripClass_Draw_SuperWeapon_PCX, 6)
 {
 	GET(SuperWeaponTypeClass*, pSuper, EAX);
 	CameoPCXSurface = SWTypeExtContainer::Instance.Find(pSuper)->SidebarPCX.GetSurface();
 	return 0x0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A980A, StripClass_Draw_TechnoType_PCX, 8)
+DEFINE_HOOK(0x6A980A, StripClass_Draw_TechnoType_PCX, 8)
 {
 	GET(TechnoTypeClass*, pType, EBX);
 
@@ -2792,7 +2792,7 @@ DEFINE_OVERRIDE_HOOK(0x6A980A, StripClass_Draw_TechnoType_PCX, 8)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A99F3, StripClass_Draw_SkipSHPForPCX, 6)
+DEFINE_HOOK(0x6A99F3, StripClass_Draw_SkipSHPForPCX, 6)
 {
 	if(CameoPCXSurface)
 		return 0x6A9A43;
@@ -2830,7 +2830,7 @@ DEFINE_OVERRIDE_HOOK(0x6A99F3, StripClass_Draw_SkipSHPForPCX, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A9A43, StripClass_Draw_DrawPCX, 6)
+DEFINE_HOOK(0x6A9A43, StripClass_Draw_DrawPCX, 6)
 {
 	if (CameoPCXSurface)
 	{
@@ -2845,7 +2845,7 @@ DEFINE_OVERRIDE_HOOK(0x6A9A43, StripClass_Draw_DrawPCX, 6)
 }
 
 // bugfix #277 revisited: VeteranInfantry and friends don't show promoted cameos
-DEFINE_OVERRIDE_HOOK(0x712045, TechnoTypeClass_GetCameo, 5)
+DEFINE_HOOK(0x712045, TechnoTypeClass_GetCameo, 5)
 {
 	GET(TechnoTypeClass*, pThis, ECX);
 

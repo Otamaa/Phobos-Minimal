@@ -26,7 +26,7 @@
 
 #include "Header.h"
 
-DEFINE_OVERRIDE_HOOK(0x709D38, TechnoClass_DrawPipscale_Passengers, 7)
+DEFINE_HOOK(0x709D38, TechnoClass_DrawPipscale_Passengers, 7)
 {
 	GET(TechnoClass* const, pThis, EBP);
 	GET(TechnoTypeClass*, pType, EAX);
@@ -85,7 +85,7 @@ DEFINE_OVERRIDE_HOOK(0x709D38, TechnoClass_DrawPipscale_Passengers, 7)
 	return 0x70A4EC;
 }
 
-DEFINE_OVERRIDE_HOOK(0x442DF2, BuildingClass_Demolish_Tunnel, 6)
+DEFINE_HOOK(0x442DF2, BuildingClass_Demolish_Tunnel, 6)
 {
 	GET_STACK(AbstractClass*, pKiller, 0x90);
 	GET(BuildingClass*, pTarget, EDI);
@@ -96,7 +96,7 @@ DEFINE_OVERRIDE_HOOK(0x442DF2, BuildingClass_Demolish_Tunnel, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x71A995, TemporalClass_Update_Tunnel, 5)
+DEFINE_HOOK(0x71A995, TemporalClass_Update_Tunnel, 5)
 {
 	GET(TemporalClass*, pThis, ESI);
 	GET(BuildingClass*, pTarget, EBP);
@@ -107,7 +107,7 @@ DEFINE_OVERRIDE_HOOK(0x71A995, TemporalClass_Update_Tunnel, 5)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x73A23F, UnitClass_UpdatePosition_Tunnel, 0x6)
+DEFINE_HOOK(0x73A23F, UnitClass_UpdatePosition_Tunnel, 0x6)
 {
 	enum { Entered = 0x73A315, FailedToEnter = 0x73A796, Nothing = 0x0 };
 
@@ -128,7 +128,7 @@ DEFINE_OVERRIDE_HOOK(0x73A23F, UnitClass_UpdatePosition_Tunnel, 0x6)
 		Entered : FailedToEnter;
 }
 
-DEFINE_OVERRIDE_HOOK(0x73F606, UnitClass_IsCellOccupied_Tunnel, 0x6)
+DEFINE_HOOK(0x73F606, UnitClass_IsCellOccupied_Tunnel, 0x6)
 {
 	GET(BuildingClass*, pBuilding, ESI);
 
@@ -141,7 +141,7 @@ DEFINE_OVERRIDE_HOOK(0x73F606, UnitClass_IsCellOccupied_Tunnel, 0x6)
 	return canbeDestination ? 0x73F616 : 0x73F628;
 }
 
-DEFINE_OVERRIDE_HOOK(0x741CE5, UnitClass_SetDestination_Tunnel, 0x6)
+DEFINE_HOOK(0x741CE5, UnitClass_SetDestination_Tunnel, 0x6)
 {
 	GET(BuildingClass*, pBuilding, ESI);
 
@@ -154,7 +154,7 @@ DEFINE_OVERRIDE_HOOK(0x741CE5, UnitClass_SetDestination_Tunnel, 0x6)
 	return canbeDestination ? 0x741CF5 : 0x741D12;
 }
 
-DEFINE_OVERRIDE_HOOK(0x43C716, BuildingClass_ReceivedRadioCommand_RequestCompleteEnter_Tunnel, 6)
+DEFINE_HOOK(0x43C716, BuildingClass_ReceivedRadioCommand_RequestCompleteEnter_Tunnel, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	enum
@@ -167,7 +167,7 @@ DEFINE_OVERRIDE_HOOK(0x43C716, BuildingClass_ReceivedRadioCommand_RequestComplet
 		? ProcessTechnoClassRadio : DoNothing;
 }
 
-DEFINE_OVERRIDE_HOOK(0x44731C, BuildingClass_GetActionOnObject_Tunnel, 6)
+DEFINE_HOOK(0x44731C, BuildingClass_GetActionOnObject_Tunnel, 6)
 {
 	enum { RetActionSelf = 0x4472E7, Nothing = 0x0 };
 	GET(BuildingClass*, pThis, ESI);
@@ -201,7 +201,7 @@ DEFINE_HOOK(0x7014B9, TechnoClass_SetOwningHouse_Tunnel, 0x6)
 	return 0x0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x44A37F, BuildingClass_Mi_Selling_Tunnel_TryToPlacePassengers, 6)
+DEFINE_HOOK(0x44A37F, BuildingClass_Mi_Selling_Tunnel_TryToPlacePassengers, 6)
 {
 	GET(BuildingClass*, pThis, EBP);
 	GET(CellStruct*, CellArr, EDI);
@@ -264,7 +264,7 @@ DEFINE_HOOK(0x44D880, BuildingClass_Mi_Unload_Tunnel, 5)
 }
 
 // Phobos hook on higher part of this for grinding
-DEFINE_OVERRIDE_HOOK(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_Tunnel, 0xA)
+DEFINE_HOOK(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_Tunnel, 0xA)
 {
 	enum
 	{
@@ -351,7 +351,7 @@ DEFINE_OVERRIDE_HOOK(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_
 	return ContineCheck;
 }
 
-DEFINE_OVERRIDE_HOOK(0x51ED8E, InfantryClass_GetActionOnObject_Tunnel, 6)
+DEFINE_HOOK(0x51ED8E, InfantryClass_GetActionOnObject_Tunnel, 6)
 {
 	enum
 	{
@@ -376,7 +376,7 @@ DEFINE_OVERRIDE_HOOK(0x51ED8E, InfantryClass_GetActionOnObject_Tunnel, 6)
 		CannotEnter;
 }
 
-DEFINE_OVERRIDE_HOOK(0x51A2AD, InfantryClass_UpdatePosition_Tunnel, 9)
+DEFINE_HOOK(0x51A2AD, InfantryClass_UpdatePosition_Tunnel, 9)
 {
 	enum { CanEnter = 0x51A396, CannotEnter = 0x51A488, Nothing = 0x0 };
 
@@ -391,7 +391,7 @@ DEFINE_OVERRIDE_HOOK(0x51A2AD, InfantryClass_UpdatePosition_Tunnel, 9)
 	return Nothing;
 }
 
-DEFINE_OVERRIDE_HOOK(0x44351A, BuildingClass_ActionOnObject_Tunnel, 6)
+DEFINE_HOOK(0x44351A, BuildingClass_ActionOnObject_Tunnel, 6)
 {
 	enum
 	{

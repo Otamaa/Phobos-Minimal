@@ -39,7 +39,7 @@
 //	return 0x0;
 //}
 
-DEFINE_OVERRIDE_HOOK(0x718275 ,TeleportLocomotionClass_MakeRoom, 9)
+DEFINE_HOOK(0x718275 ,TeleportLocomotionClass_MakeRoom, 9)
 {
 	LEA_STACK(CoordStruct*, pCoord, 0x3C);
 	GET(TeleportLocomotionClass*, pLoco, EBP);
@@ -94,8 +94,8 @@ DEFINE_OVERRIDE_HOOK(0x718275 ,TeleportLocomotionClass_MakeRoom, 9)
 	return 0x7184CE;
 }
 
-DEFINE_OVERRIDE_HOOK_AGAIN(0x514F60, HoverLocomotionClass_ILocomotion_MoveTo, 0x7)
-DEFINE_OVERRIDE_HOOK(0x514E97, HoverLocomotionClass_ILocomotion_MoveTo, 0x7)
+DEFINE_HOOK_AGAIN(0x514F60, HoverLocomotionClass_ILocomotion_MoveTo, 0x7)
+DEFINE_HOOK(0x514E97, HoverLocomotionClass_ILocomotion_MoveTo, 0x7)
 {
 	GET(HoverLocomotionClass const* const, hLoco, ESI);
 
@@ -107,7 +107,7 @@ DEFINE_OVERRIDE_HOOK(0x514E97, HoverLocomotionClass_ILocomotion_MoveTo, 0x7)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x516305, HoverLocomotionClass_sub_515ED0, 0x9)
+DEFINE_HOOK(0x516305, HoverLocomotionClass_sub_515ED0, 0x9)
 {
 	GET(HoverLocomotionClass const* const, hLoco, ESI);
 
@@ -121,7 +121,7 @@ DEFINE_OVERRIDE_HOOK(0x516305, HoverLocomotionClass_sub_515ED0, 0x9)
 	return 0x51630E;
 }
 
-DEFINE_OVERRIDE_HOOK(0x514DFE, HoverLocomotionClass_ILocomotion_MoveTo_DeployToLand, 0x7)
+DEFINE_HOOK(0x514DFE, HoverLocomotionClass_ILocomotion_MoveTo_DeployToLand, 0x7)
 {
 	GET(HoverLocomotionClass const* const, pLoco, ESI);
 	const auto pFoot = !pLoco->Owner ? pLoco->LinkedTo : pLoco->Owner;
@@ -132,7 +132,7 @@ DEFINE_OVERRIDE_HOOK(0x514DFE, HoverLocomotionClass_ILocomotion_MoveTo_DeployToL
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_UpdateTarget, 0x6)
+DEFINE_HOOK(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_UpdateTarget, 0x6)
 {
 	GET(FlyLocomotionClass*, pThis, ESI);
 	const auto pObject = pThis->LinkedTo;
@@ -177,7 +177,7 @@ DEFINE_OVERRIDE_HOOK(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_Update
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4CE85A, FlyLocomotionClass_UpdateLanding, 0x8)
+DEFINE_HOOK(0x4CE85A, FlyLocomotionClass_UpdateLanding, 0x8)
 {
 	GET(FlyLocomotionClass*, pThis, ESI);
 	const auto pObject = pThis->LinkedTo;
@@ -206,7 +206,7 @@ DEFINE_OVERRIDE_HOOK(0x4CE85A, FlyLocomotionClass_UpdateLanding, 0x8)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4CCB84, FlyLocomotionClass_ILocomotion_Process_HunterSeeker, 0x6)
+DEFINE_HOOK(0x4CCB84, FlyLocomotionClass_ILocomotion_Process_HunterSeeker, 0x6)
 {
 	GET(ILocomotion* const, pThis, ESI);
 	auto const pLoco = static_cast<FlyLocomotionClass*>(pThis);
@@ -234,7 +234,7 @@ DEFINE_OVERRIDE_HOOK(0x4CCB84, FlyLocomotionClass_ILocomotion_Process_HunterSeek
 }
 
 #ifndef aaa
-DEFINE_OVERRIDE_HOOK(0x4CFE80, FlyLocomotionClass_ILocomotion_AcquireHunterSeekerTarget, 5)
+DEFINE_HOOK(0x4CFE80, FlyLocomotionClass_ILocomotion_AcquireHunterSeekerTarget, 5)
 {
 	GET_STACK(ILocomotion* const, pThis, 0x4);
 
@@ -248,7 +248,7 @@ DEFINE_OVERRIDE_HOOK(0x4CFE80, FlyLocomotionClass_ILocomotion_AcquireHunterSeeke
 #else
 #endif
 
-DEFINE_OVERRIDE_HOOK(0x4B99A2, DropshipLoadout_WriteUnit, 0xA)
+DEFINE_HOOK(0x4B99A2, DropshipLoadout_WriteUnit, 0xA)
 {
 	GET(TechnoTypeClass*, pType, ESI);
 
@@ -315,13 +315,13 @@ DEFINE_OVERRIDE_HOOK(0x4B99A2, DropshipLoadout_WriteUnit, 0xA)
 	return 0x4B9BBF;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4B9A52, DropshipLoadout_PrintArmor, 5)
+DEFINE_HOOK(0x4B9A52, DropshipLoadout_PrintArmor, 5)
 {
 	R->Stack(0x4, ArmorTypeClass::Array[R->EDX()].get());
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4CF3D0, FlyLocomotionClass_sub_4CEFB0_HunterSeeker, 7)
+DEFINE_HOOK(0x4CF3D0, FlyLocomotionClass_sub_4CEFB0_HunterSeeker, 7)
 {
 	GET_STACK(FlyLocomotionClass* const, pThis, 0x20);
 	auto const pObject = pThis->LinkedTo;
@@ -455,7 +455,7 @@ DEFINE_OVERRIDE_HOOK(0x4CF3D0, FlyLocomotionClass_sub_4CEFB0_HunterSeeker, 7)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4CDE64, FlyLocomotionClass_sub_4CD600_HunterSeeker_Ascent, 6)
+DEFINE_HOOK(0x4CDE64, FlyLocomotionClass_sub_4CD600_HunterSeeker_Ascent, 6)
 {
 	GET(FlyLocomotionClass* const, pThis, ESI);
 	GET(int const, unk, EDI);
@@ -497,7 +497,7 @@ DEFINE_OVERRIDE_HOOK(0x4CDE64, FlyLocomotionClass_sub_4CD600_HunterSeeker_Ascent
 	return 0x4CDE8F;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4CDF54, FlyLocomotionClass_sub_4CD600_HunterSeeker_Descent, 5)
+DEFINE_HOOK(0x4CDF54, FlyLocomotionClass_sub_4CD600_HunterSeeker_Descent, 5)
 {
 	GET(FlyLocomotionClass* const, pThis, ESI);
 	GET(int const, max, EDI);
@@ -518,7 +518,7 @@ DEFINE_OVERRIDE_HOOK(0x4CDF54, FlyLocomotionClass_sub_4CD600_HunterSeeker_Descen
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x514A21, HoverLocomotionClass_ILocomotion_Process_DeployToLand, 9)
+DEFINE_HOOK(0x514A21, HoverLocomotionClass_ILocomotion_Process_DeployToLand, 9)
 {
 	GET(ILocomotion*, ILoco, ESI);
 
@@ -567,7 +567,7 @@ DEFINE_OVERRIDE_HOOK(0x514A21, HoverLocomotionClass_ILocomotion_Process_DeployTo
 	return 0x514A2A;
 }
 
-DEFINE_OVERRIDE_HOOK(0x54C767, JumpjetLocomotionClass_State4_54C550_DeployDir, 6)
+DEFINE_HOOK(0x54C767, JumpjetLocomotionClass_State4_54C550_DeployDir, 6)
 {
 	GET(JumpjetLocomotionClass*, pLoco, ESI);
 	auto const pOwner = pLoco->LinkedTo;

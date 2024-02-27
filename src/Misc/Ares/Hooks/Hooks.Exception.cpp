@@ -8,7 +8,7 @@
 #include <EventClass.h>
 #include <FPSCounter.h>
 
-DEFINE_STRONG_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
+DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 {
 	// mimic an increment because decrement happens in the middle of function cleanup and can't be erased nicely
 	++Unsorted::SystemResponseMessages;
@@ -302,7 +302,7 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 	Debug::ExitGame(pExs->ExceptionRecord->ExceptionCode);
 };
 
-DEFINE_STRONG_OVERRIDE_HOOK(0x4C8FE0, Exception_Handler, 9)
+DEFINE_STRONG_HOOK(0x4C8FE0, Exception_Handler, 9)
 {
 	//GET(int, code, ECX);
 	GET(LPEXCEPTION_POINTERS, pExs, EDX);
@@ -643,7 +643,7 @@ bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 	}
 }
 
-DEFINE_STRONG_OVERRIDE_HOOK(0x64DEA0, Multiplay_LogToSYNC_NOMPDEBUG, 6)
+DEFINE_STRONG_HOOK(0x64DEA0, Multiplay_LogToSYNC_NOMPDEBUG, 6)
 {
 	GET(EventClass*, OffendingEvent, ECX);
 
@@ -655,7 +655,7 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x64DEA0, Multiplay_LogToSYNC_NOMPDEBUG, 6)
 	return 0x64DF3D;
 }
 
-DEFINE_STRONG_OVERRIDE_HOOK(0x6516F0, Multiplay_LogToSync_MPDEBUG, 6)
+DEFINE_STRONG_HOOK(0x6516F0, Multiplay_LogToSync_MPDEBUG, 6)
 {
 	GET(int, SlotNumber, ECX);
 	GET(EventClass*, OffendingEvent, EDX);

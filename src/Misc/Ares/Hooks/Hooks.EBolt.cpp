@@ -2,7 +2,7 @@
 #include <EBolt.h>
 #include <map>
 
-DEFINE_OVERRIDE_HOOK(0x6FD469, TechnoClass_FireEBolt, 9)
+DEFINE_HOOK(0x6FD469, TechnoClass_FireEBolt, 9)
 {
 	//GET(TechnoClass*, pThis, EDI);
 	GET_STACK(WeaponTypeClass*, pWeapon, STACK_OFFS(0x30, -0x8));
@@ -47,7 +47,7 @@ int boltColor1;
 int boltColor2;
 int boltColor3;
 
-DEFINE_OVERRIDE_HOOK(0x4C1F33, EBolt_Draw_Colors, 7)
+DEFINE_HOOK(0x4C1F33, EBolt_Draw_Colors, 7)
 {
 	GET(EBolt*, pThis, ECX);
 	GET_BASE(int, nColorIdx, 0x20);
@@ -81,7 +81,7 @@ DEFINE_OVERRIDE_HOOK(0x4C1F33, EBolt_Draw_Colors, 7)
 	return 0x4C1F66;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4C2951, EBolt_DTOR, 0x5)
+DEFINE_HOOK(0x4C2951, EBolt_DTOR, 0x5)
 {
 	GET(EBolt* const, pBolt, ECX);
 
@@ -134,19 +134,19 @@ DEFINE_HOOK(0x4C26EE, Ebolt_DrawThird_Disable, 0x6)
 	return  0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4C24BE, EBolt_Draw_Color1, 5)
+DEFINE_HOOK(0x4C24BE, EBolt_Draw_Color1, 5)
 {
 	R->EAX(boltColor1);
 	return 0x4C24E4;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4C25CB, EBolt_Draw_Color2, 5)
+DEFINE_HOOK(0x4C25CB, EBolt_Draw_Color2, 5)
 {
 	R->Stack<int>(0x18, boltColor2);
 	return 0x4C25FD;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4C26CF, EBolt_Draw_Color3, 5)
+DEFINE_HOOK(0x4C26CF, EBolt_Draw_Color3, 5)
 {
 	R->EAX(boltColor3);
 	return 0x4C26EE;
@@ -158,7 +158,7 @@ void NAKED _EBolt_Fire_Particles_RET()
 	JMP(0x4C2B35);
 }
 
-DEFINE_OVERRIDE_HOOK(0x4C2AFF, EBolt_Fire_Particles, 5)
+DEFINE_HOOK(0x4C2AFF, EBolt_Fire_Particles, 5)
 {
 	GET(EBolt*, pThis, ESI);
 

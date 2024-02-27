@@ -178,7 +178,7 @@ DEFINE_HOOK(0x62FCF0, ParticleSytemClass_FireDirectioon_AI_DirMult, 0x7)
 }
 
 #ifndef PARTICLESTUFFSOVERRIDE
-DEFINE_OVERRIDE_HOOK(0x72590E, AnnounceInvalidPointer_Particle, 0x9)
+DEFINE_HOOK(0x72590E, AnnounceInvalidPointer_Particle, 0x9)
 {
 	GET(AbstractType, nWhat, EBX);
 
@@ -210,7 +210,7 @@ DEFINE_OVERRIDE_HOOK(0x72590E, AnnounceInvalidPointer_Particle, 0x9)
 //	return 0x62EE48;
 //}
 
-//DEFINE_OVERRIDE_HOOK(0x62C2C2, ParticleClass_Update_Gas_Damage, 6)
+//DEFINE_HOOK(0x62C2C2, ParticleClass_Update_Gas_Damage, 6)
 //{
 // 	GET(ParticleClass*, pParticle, EBP);
 // 	GET(ObjectClass*, pTarget, ESI);
@@ -250,7 +250,7 @@ void ParticleClass_Gas_Transmography(ObjectClass* pItem, TechnoClass* pAttacker 
 	}
 }
 
-DEFINE_OVERRIDE_HOOK(0x62C23D, ParticleClass_Update_Gas_DamageRange, 6)
+DEFINE_HOOK(0x62C23D, ParticleClass_Update_Gas_DamageRange, 6)
 {
 	GET(ParticleClass*, pThis, EBP);
 	auto pTypeExt = ParticleTypeExtContainer::Instance.Find(pThis->Type);
@@ -297,7 +297,7 @@ DEFINE_OVERRIDE_HOOK(0x62C23D, ParticleClass_Update_Gas_DamageRange, 6)
 	return 0x62C313;
 }
 
-DEFINE_OVERRIDE_HOOK(0x62D015, ParticleClass_Draw_Palette, 6)
+DEFINE_HOOK(0x62D015, ParticleClass_Draw_Palette, 6)
 {
 	GET(ParticleClass*, pThis, EDI);
 
@@ -353,7 +353,7 @@ DEFINE_HOOK(0x62CCB8, ParticleClass_Update_Fire, 7)
 	return 0x62CE14;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6D9427, TacticalClass_DrawUnits_ParticleSystems, 9)
+DEFINE_HOOK(0x6D9427, TacticalClass_DrawUnits_ParticleSystems, 9)
 {
 	GET(Layer, layer, EAX);
 
@@ -390,7 +390,7 @@ DEFINE_HOOK(0x6D9781, Tactical_RenderLayers_DrawInfoTipAndSpiedSelection, 0x5)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x62E380, ParticleSystemClass_SpawnParticle, 0xA)
+DEFINE_HOOK(0x62E380, ParticleSystemClass_SpawnParticle, 0xA)
 {
 	GET(ParticleSystemClass*, pThis, ECX);
 
@@ -398,7 +398,7 @@ DEFINE_OVERRIDE_HOOK(0x62E380, ParticleSystemClass_SpawnParticle, 0xA)
 		? 0x62E428 : 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x62E2AD, ParticleSystemClass_Draw, 6)
+DEFINE_HOOK(0x62E2AD, ParticleSystemClass_Draw, 6)
 {
 	GET(ParticleSystemClass*, pThis, EDI);
 	GET(ParticleSystemTypeClass*, pThisType, EAX);
@@ -427,7 +427,7 @@ DEFINE_OVERRIDE_HOOK(0x62E2AD, ParticleSystemClass_Draw, 6)
 //	return 0x0;
 //}
 
-DEFINE_OVERRIDE_HOOK(0x62FD60, ParticleSystemClass_Update, 0x9)
+DEFINE_HOOK(0x62FD60, ParticleSystemClass_Update, 0x9)
 {
 	GET(ParticleSystemClass*, pThis, ECX);
 

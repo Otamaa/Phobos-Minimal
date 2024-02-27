@@ -4,7 +4,7 @@
 #include <Ext/HouseType/Body.h>
 #include <Ext/House/Body.h>
 
-DEFINE_OVERRIDE_HOOK(0x5d7048, MPGameMode_SpawnBaseUnit_BuildConst, 5)
+DEFINE_HOOK(0x5d7048, MPGameMode_SpawnBaseUnit_BuildConst, 5)
 {
 	GET_STACK(HouseClass*, pHouse, 0x18);
 
@@ -55,12 +55,12 @@ DEFINE_OVERRIDE_HOOK(0x5d7048, MPGameMode_SpawnBaseUnit_BuildConst, 5)
 	return 0x5D707E;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5d7337, MPGameMode_SpawnStartingUnits_NoInfantry, 5)
+DEFINE_HOOK(0x5d7337, MPGameMode_SpawnStartingUnits_NoInfantry, 5)
 {
 	return R->Stack<int>(0x28) ? 0x0 : 0x5D734F;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5D705E, MPGameMode_SpawnBaseUnit_BaseUnit, 6)
+DEFINE_HOOK(0x5D705E, MPGameMode_SpawnBaseUnit_BaseUnit, 6)
 {
 	enum { hasBaseUnit = 0x5D7064, hasNoBaseUnit = 0x5D70DB };
 
@@ -75,7 +75,7 @@ DEFINE_OVERRIDE_HOOK(0x5D705E, MPGameMode_SpawnBaseUnit_BaseUnit, 6)
 	return hasNoBaseUnit;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5D6F61, MPGameModeClass_CreateStartingUnits_BaseCenter, 8)
+DEFINE_HOOK(0x5D6F61, MPGameModeClass_CreateStartingUnits_BaseCenter, 8)
 {
 	GET(MPGameModeClass*, pMode, ECX);
 	GET(HouseClass*, pHouse, ESI);
@@ -101,7 +101,7 @@ DEFINE_OVERRIDE_HOOK(0x5D6F61, MPGameModeClass_CreateStartingUnits_BaseCenter, 8
 	return 0x5D6F77;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5d7163, MPGameMode_SpawnStartingUnits_Types, 8)
+DEFINE_HOOK(0x5d7163, MPGameMode_SpawnStartingUnits_Types, 8)
 {
 	LEA_STACK(DynamicVectorClass<TechnoTypeClass*>*, pInfVec, 0x18);
 	LEA_STACK(DynamicVectorClass<TechnoTypeClass*>*, pUnitVec, 0x30);
@@ -128,7 +128,7 @@ DEFINE_OVERRIDE_HOOK(0x5d7163, MPGameMode_SpawnStartingUnits_Types, 8)
 	return 0x5D72AB;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5d6d9a, MPGameModeClass_CreateStartingUnits_UnitCost, 6)
+DEFINE_HOOK(0x5d6d9a, MPGameModeClass_CreateStartingUnits_UnitCost, 6)
 {
 	R->EBP(AresHouseExt::GetTotalCost(RulesExtData::Instance()->StartInMultiplayerUnitCost));
 	return 0x5D6ED6;

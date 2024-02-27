@@ -140,7 +140,7 @@ DEFINE_HOOK(0x701A3B, TechnoClass_ReceiveDamage_Flash, 0xA)
 	return ContinueChecks;
 }
 
-DEFINE_OVERRIDE_HOOK(0x7021F5, TechnoClass_ReceiveDamage_OverrideDieSound, 0x6)
+DEFINE_HOOK(0x7021F5, TechnoClass_ReceiveDamage_OverrideDieSound, 0x6)
 {
 	GET_STACK(WarheadTypeClass*, pWh, 0xD0);
 	GET(TechnoClass*, pThis, ESI);
@@ -155,7 +155,7 @@ DEFINE_OVERRIDE_HOOK(0x7021F5, TechnoClass_ReceiveDamage_OverrideDieSound, 0x6)
 	return 0x0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x702185, TechnoClass_ReceiveDamage_OverrideVoiceDie, 0x6)
+DEFINE_HOOK(0x702185, TechnoClass_ReceiveDamage_OverrideVoiceDie, 0x6)
 {
 	GET_STACK(WarheadTypeClass*, pWh, 0xD0);
 	GET(TechnoClass*, pThis, ESI);
@@ -171,7 +171,7 @@ DEFINE_OVERRIDE_HOOK(0x702185, TechnoClass_ReceiveDamage_OverrideVoiceDie, 0x6)
 }
 
 //original hooks , jut in case the stuffs fail
-DEFINE_OVERRIDE_HOOK(0x702CFE, TechnoClass_ReceiveDamage_PreventScatter_Deep, 6)
+DEFINE_HOOK(0x702CFE, TechnoClass_ReceiveDamage_PreventScatter_Deep, 6)
 {
 	GET(FootClass*, pThis, ESI);
 	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0xC4, -0xC));
@@ -196,7 +196,7 @@ DEFINE_OVERRIDE_HOOK(0x702CFE, TechnoClass_ReceiveDamage_PreventScatter_Deep, 6)
 // }
 
 // #1283653: fix for jammed buildings and attackers in open topped transports
-DEFINE_OVERRIDE_HOOK(0x702A38, TechnoClass_ReceiveDamage_OpenTopped, 0x7)
+DEFINE_HOOK(0x702A38, TechnoClass_ReceiveDamage_OpenTopped, 0x7)
 {
 	REF_STACK(TechnoClass*, pAttacker, STACK_OFFS(0xC4, -0x10));
 
@@ -210,7 +210,7 @@ DEFINE_OVERRIDE_HOOK(0x702A38, TechnoClass_ReceiveDamage_OpenTopped, 0x7)
 	return 0x702A3F;
 }
 
-DEFINE_OVERRIDE_HOOK(0x702669, TechnoClass_ReceiveDamage_SuppressDeathWeapon, 0x9)
+DEFINE_HOOK(0x702669, TechnoClass_ReceiveDamage_SuppressDeathWeapon, 0x9)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET_STACK(WarheadTypeClass* const, pWarhead, STACK_OFFS(0xC4, -0xC));
@@ -223,7 +223,7 @@ DEFINE_OVERRIDE_HOOK(0x702669, TechnoClass_ReceiveDamage_SuppressDeathWeapon, 0x
 	return 0x702672;
 }
 
-DEFINE_OVERRIDE_HOOK(0x517FC1, InfantryClass_ReceiveDamage_DeployedDamage, 0x6)
+DEFINE_HOOK(0x517FC1, InfantryClass_ReceiveDamage_DeployedDamage, 0x6)
 {
 
 	GET(InfantryClass*, I, ESI);
@@ -250,7 +250,7 @@ DEFINE_OVERRIDE_HOOK(0x517FC1, InfantryClass_ReceiveDamage_DeployedDamage, 0x6)
 
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
 
-DEFINE_OVERRIDE_HOOK(0x702050, TechnoClass_ReceiveDamage_ResultDestroyed, 6)
+DEFINE_HOOK(0x702050, TechnoClass_ReceiveDamage_ResultDestroyed, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(WarheadTypeClass*, pWarhead, 0xD0);
@@ -269,14 +269,14 @@ DEFINE_OVERRIDE_HOOK(0x702050, TechnoClass_ReceiveDamage_ResultDestroyed, 6)
 }
 
 //bool IsDamaging;
-DEFINE_OVERRIDE_HOOK(0x701914, TechnoClass_ReceiveDamage_Damaging, 0x7)
+DEFINE_HOOK(0x701914, TechnoClass_ReceiveDamage_Damaging, 0x7)
 {
 	R->Stack(0xE, R->EAX() > 0);
 	//IsDamaging = R->EAX() > 0;
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
+DEFINE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET_STACK(WarheadTypeClass* const, pWarhead, 0xD0);
@@ -376,7 +376,7 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 	return 0x702823;
 }
 
-DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
+DEFINE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 {
 	enum
 	{
@@ -452,7 +452,7 @@ DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 	return RetObjectClassRcvDamage;
 }
 
-DEFINE_OVERRIDE_HOOK(0x737F97, UnitClass_ReceiveDamage_Survivours, 0xA)
+DEFINE_HOOK(0x737F97, UnitClass_ReceiveDamage_Survivours, 0xA)
 {
 	//GET(UnitTypeClass*, pType, EAX);
 	GET(UnitClass*, pThis, ESI);
@@ -508,7 +508,7 @@ DEFINE_HOOK(0x41660C, AircraftClass_ReceiveDamage_destroyed, 0x5)
 
 // spawn tiberium when a unit dies. this is a minor part of the
 // tiberium heal feature. the actual healing happens in FootClass_Update.
-DEFINE_OVERRIDE_HOOK(0x702216, TechnoClass_ReceiveDamage_TiberiumHeal_SpillTiberium, 6)
+DEFINE_HOOK(0x702216, TechnoClass_ReceiveDamage_TiberiumHeal_SpillTiberium, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	TechnoTypeClass* pType = pThis->GetTechnoType();
@@ -532,7 +532,7 @@ DEFINE_OVERRIDE_HOOK(0x702216, TechnoClass_ReceiveDamage_TiberiumHeal_SpillTiber
 }
 
 // smoke particle systems created when a techno is damaged
-DEFINE_OVERRIDE_HOOK(0x702894, TechnoClass_ReceiveDamage_SmokeParticles, 6)
+DEFINE_HOOK(0x702894, TechnoClass_ReceiveDamage_SmokeParticles, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	REF_STACK(DynamicVectorClass<ParticleSystemTypeClass const*>, Systems, 0x30);
@@ -555,7 +555,7 @@ DEFINE_OVERRIDE_HOOK(0x702894, TechnoClass_ReceiveDamage_SmokeParticles, 6)
 }
 
 // spill the stored tiberium on destruction
-DEFINE_OVERRIDE_HOOK(0x702200, TechnoClass_ReceiveDamage_SpillTiberium, 6)
+DEFINE_HOOK(0x702200, TechnoClass_ReceiveDamage_SpillTiberium, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
@@ -602,14 +602,14 @@ DEFINE_OVERRIDE_HOOK(0x702200, TechnoClass_ReceiveDamage_SpillTiberium, 6)
 // #895584: ships not taking damage when repaired in a shipyard. bug
 // was that the logic that prevented units from being damaged when
 // exiting a war factory applied here, too. added the Naval check.
-DEFINE_OVERRIDE_HOOK(0x737CE4, UnitClass_ReceiveDamage_ShipyardRepair, 6)
+DEFINE_HOOK(0x737CE4, UnitClass_ReceiveDamage_ShipyardRepair, 6)
 {
 	GET(BuildingTypeClass*, pType, ECX);
 	return (pType->WeaponsFactory && !pType->Naval)
 		? 0x737CEE : 0x737D31;
 }
 
-DEFINE_OVERRIDE_HOOK(0x51849A, InfantryClass_ReceiveDamage_DeathAnim, 5)
+DEFINE_HOOK(0x51849A, InfantryClass_ReceiveDamage_DeathAnim, 5)
 {
 	GET(InfantryClass*, I, ESI);
 	LEA_STACK(args_ReceiveDamage*, Arguments, 0xD4);
@@ -631,8 +631,8 @@ DEFINE_OVERRIDE_HOOK(0x51849A, InfantryClass_ReceiveDamage_DeathAnim, 5)
 	return 0x5184F2;
 }
 
-DEFINE_OVERRIDE_HOOK_AGAIN(0x518575, InfantryClass_ReceiveDamage_InfantryVirus1, 6)
-DEFINE_OVERRIDE_HOOK(0x5183DE, InfantryClass_ReceiveDamage_InfantryVirus1, 6)
+DEFINE_HOOK_AGAIN(0x518575, InfantryClass_ReceiveDamage_InfantryVirus1, 6)
+DEFINE_HOOK(0x5183DE, InfantryClass_ReceiveDamage_InfantryVirus1, 6)
 {
 	GET(InfantryClass*, pThis, ESI);
 	GET(AnimClass*, pAnim, EDI);
@@ -656,12 +656,12 @@ DEFINE_OVERRIDE_HOOK(0x5183DE, InfantryClass_ReceiveDamage_InfantryVirus1, 6)
 	return (R->Origin() == 0x5183DE) ? 0x518422 : 0x5185B9;
 }
 
-DEFINE_OVERRIDE_HOOK_AGAIN(0x518B93, InfantryClass_ReceiveDamage_Anims, 5) // InfantryBrute
-DEFINE_OVERRIDE_HOOK_AGAIN(0x518821, InfantryClass_ReceiveDamage_Anims, 5) // InfantryNuked
-DEFINE_OVERRIDE_HOOK_AGAIN(0x5187BB, InfantryClass_ReceiveDamage_Anims, 5) // InfantryHeadPop
-DEFINE_OVERRIDE_HOOK_AGAIN(0x518755, InfantryClass_ReceiveDamage_Anims, 5) // InfantryElectrocuted
-DEFINE_OVERRIDE_HOOK_AGAIN(0x5186F2, InfantryClass_ReceiveDamage_Anims, 5) // FlamingInfantry
-DEFINE_OVERRIDE_HOOK(0x518698, InfantryClass_ReceiveDamage_Anims, 5) // InfantryExplode
+DEFINE_HOOK_AGAIN(0x518B93, InfantryClass_ReceiveDamage_Anims, 5) // InfantryBrute
+DEFINE_HOOK_AGAIN(0x518821, InfantryClass_ReceiveDamage_Anims, 5) // InfantryNuked
+DEFINE_HOOK_AGAIN(0x5187BB, InfantryClass_ReceiveDamage_Anims, 5) // InfantryHeadPop
+DEFINE_HOOK_AGAIN(0x518755, InfantryClass_ReceiveDamage_Anims, 5) // InfantryElectrocuted
+DEFINE_HOOK_AGAIN(0x5186F2, InfantryClass_ReceiveDamage_Anims, 5) // FlamingInfantry
+DEFINE_HOOK(0x518698, InfantryClass_ReceiveDamage_Anims, 5) // InfantryExplode
 {
 	GET(InfantryClass*, pThis, ESI);
 	GET(AnimClass*, pAnim, EAX);
@@ -677,7 +677,7 @@ DEFINE_OVERRIDE_HOOK(0x518698, InfantryClass_ReceiveDamage_Anims, 5) // Infantry
 	return 0x5185F1;
 }
 
-DEFINE_OVERRIDE_HOOK(0x51887B, InfantryClass_ReceiveDamage_InfantryVirus2, 0xA)
+DEFINE_HOOK(0x51887B, InfantryClass_ReceiveDamage_InfantryVirus2, 0xA)
 {
 	GET(InfantryClass*, pThis, ESI);
 	GET(AnimClass*, pAnim, EAX);
@@ -700,7 +700,7 @@ DEFINE_OVERRIDE_HOOK(0x51887B, InfantryClass_ReceiveDamage_InfantryVirus2, 0xA)
 	return 0x5185F1;
 }
 
-DEFINE_OVERRIDE_HOOK(0x518A96, InfantryClass_ReceiveDamage_InfantryMutate, 7)
+DEFINE_HOOK(0x518A96, InfantryClass_ReceiveDamage_InfantryMutate, 7)
 {
 	GET(InfantryClass*, pThis, ESI);
 	GET(AnimClass*, pAnim, EDI);
@@ -716,7 +716,7 @@ DEFINE_OVERRIDE_HOOK(0x518A96, InfantryClass_ReceiveDamage_InfantryMutate, 7)
 	return 0x518AFF;
 }
 
-DEFINE_OVERRIDE_HOOK(0x518CB3, InfantryClass_ReceiveDamage_Doggie, 0x6)
+DEFINE_HOOK(0x518CB3, InfantryClass_ReceiveDamage_Doggie, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
 
@@ -729,7 +729,7 @@ DEFINE_OVERRIDE_HOOK(0x518CB3, InfantryClass_ReceiveDamage_Doggie, 0x6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5F57B5, ObjectClass_ReceiveDamage_Trigger, 0x6)
+DEFINE_HOOK(0x5F57B5, ObjectClass_ReceiveDamage_Trigger, 0x6)
 {
 	GET(ObjectClass*, pObject, ESI);
 	GET(ObjectClass*, pAttacker, EDI);
@@ -792,7 +792,7 @@ DEFINE_OVERRIDE_HOOK(0x5F57B5, ObjectClass_ReceiveDamage_Trigger, 0x6)
 	return 0x5F580C;
 }
 
-DEFINE_OVERRIDE_HOOK(0x744745, UnitClass_RegisterDestruction_Trigger, 0x5)
+DEFINE_HOOK(0x744745, UnitClass_RegisterDestruction_Trigger, 0x5)
 {
 	GET(UnitClass*, pThis, ESI);
 	GET(TechnoClass*, pAttacker, EDI);
@@ -808,7 +808,7 @@ DEFINE_OVERRIDE_HOOK(0x744745, UnitClass_RegisterDestruction_Trigger, 0x5)
 	return 0x0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x702DD6, TechnoClass_RegisterDestruction_Trigger, 0x6)
+DEFINE_HOOK(0x702DD6, TechnoClass_RegisterDestruction_Trigger, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(TechnoClass*, pAttacker, EDI);
@@ -825,7 +825,7 @@ DEFINE_OVERRIDE_HOOK(0x702DD6, TechnoClass_RegisterDestruction_Trigger, 0x6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x7032B0, TechnoClass_RegisterLoss_Trigger, 0x6)
+DEFINE_HOOK(0x7032B0, TechnoClass_RegisterLoss_Trigger, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(HouseClass*, pAttacker, EDI);

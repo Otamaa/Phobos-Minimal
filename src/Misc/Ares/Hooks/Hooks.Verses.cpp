@@ -23,7 +23,7 @@
 
 #include <Notifications.h>
 
-DEFINE_OVERRIDE_HOOK(0x75DDCC, WarheadTypeClass_GetVerses_Skipvanilla, 0x7)
+DEFINE_HOOK(0x75DDCC, WarheadTypeClass_GetVerses_Skipvanilla, 0x7)
 {
 	// should really be doing something smarter due to westwood's weirdass code, but cannot be bothered atm
 	// will fix if it is reported to actually break things
@@ -109,7 +109,7 @@ DEFINE_HOOK(0x489180, MapClass_GetTotalDamage, 0x6)
 	return 0x48926A;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
+DEFINE_HOOK(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
 {
 	enum { ReturnFalse = 0x6F894F, ContinueCheck = 0x6F7D55, };
 
@@ -130,7 +130,7 @@ DEFINE_OVERRIDE_HOOK(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
 		;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FCB6A, TechnoClass_CanFire_Verses, 0x7)
+DEFINE_HOOK(0x6FCB6A, TechnoClass_CanFire_Verses, 0x7)
 {
 	enum { FireIllegal = 0x6FCB7E, ContinueCheck = 0x6FCBCD, };
 
@@ -164,7 +164,7 @@ DEFINE_OVERRIDE_HOOK(0x6FCB6A, TechnoClass_CanFire_Verses, 0x7)
 	return FireIllegal;
 }
 
-DEFINE_OVERRIDE_HOOK(0x70CEA0, TechnoClass_EvalThreatRating_TargetWeaponWarhead_Verses, 0x6)
+DEFINE_HOOK(0x70CEA0, TechnoClass_EvalThreatRating_TargetWeaponWarhead_Verses, 0x6)
 {
 	GET(TechnoClass*, pThis, EDI);
 	GET(TechnoClass*, pTarget, ESI);
@@ -190,7 +190,7 @@ DEFINE_OVERRIDE_HOOK(0x70CEA0, TechnoClass_EvalThreatRating_TargetWeaponWarhead_
 	return 0x70CED2;
 }
 
-DEFINE_OVERRIDE_HOOK(0x70CF45, TechnoClass_EvalThreatRating_ThisWeaponWarhead_Verses, 0xB)
+DEFINE_HOOK(0x70CF45, TechnoClass_EvalThreatRating_ThisWeaponWarhead_Verses, 0xB)
 {
 	GET(ObjectClass*, pTarget, ESI);
 	//GET(WeaponTypeClass*, pWeapon, EBX);
@@ -210,7 +210,7 @@ DEFINE_OVERRIDE_HOOK(0x70CF45, TechnoClass_EvalThreatRating_ThisWeaponWarhead_Ve
 	return 0x70CF58;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6F36E3, TechnoClass_SelectWeapon_Verses, 0x5)
+DEFINE_HOOK(0x6F36E3, TechnoClass_SelectWeapon_Verses, 0x5)
 {
 	enum
 	{
@@ -237,7 +237,7 @@ DEFINE_OVERRIDE_HOOK(0x6F36E3, TechnoClass_SelectWeapon_Verses, 0x5)
 	return vsData_Primary->Verses != 0.0 ? ContinueCheck : UseSecondary;
 }
 
-DEFINE_OVERRIDE_HOOK(0x708AF7, TechnoClass_ShouldRetaliate_Verses, 0x7)
+DEFINE_HOOK(0x708AF7, TechnoClass_ShouldRetaliate_Verses, 0x7)
 {
 	enum { Retaliate = 0x708B0B, DoNotRetaliate = 0x708B17 };
 
@@ -258,7 +258,7 @@ DEFINE_OVERRIDE_HOOK(0x708AF7, TechnoClass_ShouldRetaliate_Verses, 0x7)
 		;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4753F0, ArmorType_FindIndex, 0xA)
+DEFINE_HOOK(0x4753F0, ArmorType_FindIndex, 0xA)
 {
 	GET(CCINIClass*, pINI, ECX);
 

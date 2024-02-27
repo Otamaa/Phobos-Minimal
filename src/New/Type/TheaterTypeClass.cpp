@@ -246,7 +246,7 @@ DEFINE_HOOK(0x546833, IsometricTileTypeClass_FallbackTheater, 0x5)
 #include <SmudgeTypeClass.h>
 #include <TerrainTypeClass.h>
 
-DEFINE_OVERRIDE_HOOK(0x5F9634, ObjectTypeClass_LoadFromINI, 6)
+DEFINE_HOOK(0x5F9634, ObjectTypeClass_LoadFromINI, 6)
 {
 	GET(ObjectTypeClass*, pType, EBX);
 	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0x1B0, -4));
@@ -261,7 +261,7 @@ DEFINE_OVERRIDE_HOOK(0x5F9634, ObjectTypeClass_LoadFromINI, 6)
 }
 
 // SHP file loading
-DEFINE_OVERRIDE_HOOK(0x5F9070, ObjectTypeClass_Load2DArt, 6)
+DEFINE_HOOK(0x5F9070, ObjectTypeClass_Load2DArt, 6)
 {
 	GET(ObjectTypeClass* const, pType, ECX);
 
@@ -361,7 +361,7 @@ DEFINE_OVERRIDE_HOOK(0x5F9070, ObjectTypeClass_Load2DArt, 6)
 	return 0x5F92C3;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5F96B0, ObjectTypeClass_TheaterSpecificID, 6)
+DEFINE_HOOK(0x5F96B0, ObjectTypeClass_TheaterSpecificID, 6)
 {
 	GET(char*, basename, ECX);
 	GET(TheaterType, Theater, EDX);

@@ -3,14 +3,14 @@
 #include <Utilities/Helpers.h>
 
 // hook up the area damage delivery with chain reactions
-DEFINE_OVERRIDE_HOOK(0x48964F, DamageArea_CellChainReaction, 5)
+DEFINE_HOOK(0x48964F, DamageArea_CellChainReaction, 5)
 {
 	GET(CellClass*, pCell, EBX);
 	pCell->ChainReaction();
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4892BE, DamageArea_NullDamage, 0x6)
+DEFINE_HOOK(0x4892BE, DamageArea_NullDamage, 0x6)
 {
 	enum
 	{
@@ -31,7 +31,7 @@ DEFINE_OVERRIDE_HOOK(0x4892BE, DamageArea_NullDamage, 0x6)
 }
 
 // create enumerator
-DEFINE_OVERRIDE_HOOK(0x4895B8, DamageArea_CellSpread1, 0x6)
+DEFINE_HOOK(0x4895B8, DamageArea_CellSpread1, 0x6)
 {
 	REF_STACK(CellSpreadEnumerator*, pIter, STACK_OFFS(0xE0, 0xB4));
 	GET(int, spread, EAX);
@@ -49,7 +49,7 @@ DEFINE_OVERRIDE_HOOK(0x4895B8, DamageArea_CellSpread1, 0x6)
 }
 
 // apply the current value
-DEFINE_OVERRIDE_HOOK(0x4895C7, DamageArea_CellSpread2, 0x8)
+DEFINE_HOOK(0x4895C7, DamageArea_CellSpread2, 0x8)
 {
 	GET_STACK(CellSpreadEnumerator*, pIter, STACK_OFFS(0xE0, 0xB4));
 
@@ -61,7 +61,7 @@ DEFINE_OVERRIDE_HOOK(0x4895C7, DamageArea_CellSpread2, 0x8)
 }
 
 // advance and delete if done
-DEFINE_OVERRIDE_HOOK(0x4899BE, DamageArea_CellSpread3, 0x8)
+DEFINE_HOOK(0x4899BE, DamageArea_CellSpread3, 0x8)
 {
 	REF_STACK(CellSpreadEnumerator*, pIter, STACK_OFFS(0xE0, 0xB4));
 	REF_STACK(int, index, STACK_OFFS(0xE0, 0xD0));
@@ -80,7 +80,7 @@ DEFINE_OVERRIDE_HOOK(0x4899BE, DamageArea_CellSpread3, 0x8)
 	return 0x4899DA;
 }
 
-DEFINE_OVERRIDE_HOOK(0x48A2D9, DamageArea_ExplodesThreshold, 6)
+DEFINE_HOOK(0x48A2D9, DamageArea_ExplodesThreshold, 6)
 {
 	GET(OverlayTypeClass*, pOverlay, EAX);
 	GET_STACK(int, damage, 0x24);
@@ -89,7 +89,7 @@ DEFINE_OVERRIDE_HOOK(0x48A2D9, DamageArea_ExplodesThreshold, 6)
 		? 0x48A2E7 : 0x48A433;
 }
 
-DEFINE_OVERRIDE_HOOK(0x489E9F, DamageArea_BridgeAbsoluteDestroyer, 5)
+DEFINE_HOOK(0x489E9F, DamageArea_BridgeAbsoluteDestroyer, 5)
 {
 	GET(WarheadTypeClass*, pWH, EBX);
 	GET(WarheadTypeClass*, pIonCannonWH, EDI);
@@ -97,27 +97,27 @@ DEFINE_OVERRIDE_HOOK(0x489E9F, DamageArea_BridgeAbsoluteDestroyer, 5)
 	return 0x489EA4;
 }
 
-DEFINE_OVERRIDE_HOOK(0x489FD8, DamageArea_BridgeAbsoluteDestroyer2, 6)
+DEFINE_HOOK(0x489FD8, DamageArea_BridgeAbsoluteDestroyer2, 6)
 {
 	return R->Stack<bool>(0xF) ? 0x48A004 : 0x489FE0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x48A15D, DamageArea_BridgeAbsoluteDestroyer3, 6)
+DEFINE_HOOK(0x48A15D, DamageArea_BridgeAbsoluteDestroyer3, 6)
 {
 	return R->Stack<bool>(0xF) ? 0x48A188 : 0x48A165;
 }
 
-DEFINE_OVERRIDE_HOOK(0x48A229, DamageArea_BridgeAbsoluteDestroyer4, 6)
+DEFINE_HOOK(0x48A229, DamageArea_BridgeAbsoluteDestroyer4, 6)
 {
 	return  R->Stack<bool>(0xF) ? 0x48A250 : 0x48A231;
 }
 
-DEFINE_OVERRIDE_HOOK(0x48A283, DamageArea_BridgeAbsoluteDestroyer5, 6)
+DEFINE_HOOK(0x48A283, DamageArea_BridgeAbsoluteDestroyer5, 6)
 {
 	return R->Stack<bool>(0xF) ? 0x48A2AA : 0x48A28B;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4893BA, DamageArea_DamageAir, 9)
+DEFINE_HOOK(0x4893BA, DamageArea_DamageAir, 9)
 {
 	GET(const CoordStruct* const, pCoords, EDI);
 	GET(WarheadTypeClass*, pWarhead, ESI);
@@ -148,7 +148,7 @@ DEFINE_OVERRIDE_HOOK(0x4893BA, DamageArea_DamageAir, 9)
 static DynamicVectorClass<ObjectClass*, DllAllocator<ObjectClass*>> Targets {};
 static DynamicVectorClass<DamageGroup* , DllAllocator<DamageGroup*>> Handled {};
 
-DEFINE_OVERRIDE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
+DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 {
 	REF_STACK(DamageGroup**, items, 0x3C);
 	REF_STACK(int, count, 0x48);
@@ -212,7 +212,7 @@ DEFINE_OVERRIDE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
  	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x489562, DamageArea_DestroyCliff, 9)
+DEFINE_HOOK(0x489562, DamageArea_DestroyCliff, 9)
 {
 	GET(CellClass* const, pCell, EAX);
 

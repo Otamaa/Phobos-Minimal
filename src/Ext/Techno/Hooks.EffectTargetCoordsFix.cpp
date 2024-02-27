@@ -331,7 +331,7 @@ DEFINE_HOOK(0x70CBDA, TechnoClass_Railgun_AmbientDamageWarhead, 0x6)
 #endif
 
 #ifndef aaa
-DEFINE_OVERRIDE_HOOK(0x6FF656, TechnoClass_FireAt_Additionals, 0xA)
+DEFINE_HOOK(0x6FF656, TechnoClass_FireAt_Additionals, 0xA)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET_BASE(AbstractClass* const, pTarget, 0x8);

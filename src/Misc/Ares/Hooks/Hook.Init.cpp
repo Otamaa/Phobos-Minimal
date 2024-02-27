@@ -4,7 +4,7 @@
 #include <ParticleClass.h>
 
 #ifndef aaa
-DEFINE_OVERRIDE_HOOK(0x52BA78, _YR_GameInit_Pre, 5)
+DEFINE_HOOK(0x52BA78, _YR_GameInit_Pre, 5)
 #else
 DEFINE_HOOK(0x52BA78, _YR_GameInit_Pre, 5)
 #endif

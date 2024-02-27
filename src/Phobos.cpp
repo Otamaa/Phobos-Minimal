@@ -1025,7 +1025,7 @@ SYRINGE_HANDSHAKE(pInfo)
 
 //DEFINE_JUMP(LJMP, 0x7CD8EA, GET_OFFSET(_ExeTerminate));
 #ifndef aaa
-DEFINE_OVERRIDE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
+DEFINE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
 #else
 DEFINE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
 #endif
@@ -1044,7 +1044,7 @@ DEFINE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
 //	return 0x7C8B47;
 //}
 #ifndef aaa
-DEFINE_OVERRIDE_HOOK(0x7CD810, Game_ExeRun, 0x9)
+DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 #else
 DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 #endif
@@ -1078,7 +1078,7 @@ DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 
 #ifndef aaa
 //6BDB0C
-DEFINE_OVERRIDE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
+DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 #else
 DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 #endif

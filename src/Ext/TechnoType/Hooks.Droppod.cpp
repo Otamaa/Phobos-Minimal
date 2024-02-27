@@ -287,7 +287,7 @@ DEFINE_HOOK(0x4B5C50, DroppodLoco_Process_Angle3, 0x6)
 	return 0x4B5C56;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4B5EB0, DropPodLocomotionClass_ILocomotion_Process_Smoke, 6)
+DEFINE_HOOK(0x4B5EB0, DropPodLocomotionClass_ILocomotion_Process_Smoke, 6)
 {
 	GET(DropPodLocomotionClass*, pDroppod, EDI);
 	GET(FootClass*, pFoot, ESI);

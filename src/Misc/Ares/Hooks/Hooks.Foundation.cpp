@@ -29,7 +29,7 @@ DEFINE_HOOK(0x465201, BuildingTypeClass_LoadFromStream_Foundation, 0x6)
 	return 0x465239;
 }
 
-DEFINE_STRONG_OVERRIDE_HOOK(0x45eca0, BuildingTypeClass_GetFoundationHeight, 6)
+DEFINE_STRONG_HOOK(0x45eca0, BuildingTypeClass_GetFoundationHeight, 6)
 {
 	GET(BuildingTypeClass*, pThis, ECX);
 
@@ -42,7 +42,7 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x45eca0, BuildingTypeClass_GetFoundationHeight, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x656584, RadarClass_GetFoundationShape, 6)
+DEFINE_HOOK(0x656584, RadarClass_GetFoundationShape, 6)
 {
 	GET(RadarClass*, pThis, ECX);
 	GET(BuildingTypeClass*, pType, EAX);
@@ -63,7 +63,7 @@ DEFINE_OVERRIDE_HOOK(0x656584, RadarClass_GetFoundationShape, 6)
 	return 0x656595;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6563B0, RadarClass_UpdateFoundationShapes_Custom, 5)
+DEFINE_HOOK(0x6563B0, RadarClass_UpdateFoundationShapes_Custom, 5)
 {
 	// update each building type foundation
 	for (auto pType : *BuildingTypeClass::Array)
@@ -74,7 +74,7 @@ DEFINE_OVERRIDE_HOOK(0x6563B0, RadarClass_UpdateFoundationShapes_Custom, 5)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x568565, MapClass_AddContentAt_Foundation_OccupyHeight, 5)
+DEFINE_HOOK(0x568565, MapClass_AddContentAt_Foundation_OccupyHeight, 5)
 {
 	GET(BuildingClass*, pThis, EDI);
 	GET(int, ShadowHeight, EBP);
@@ -92,21 +92,21 @@ DEFINE_OVERRIDE_HOOK(0x568565, MapClass_AddContentAt_Foundation_OccupyHeight, 5)
 	return 0x568697;
 }
 
-DEFINE_OVERRIDE_HOOK(0x568411, MapClass_AddContentAt_Foundation_P1, 6)
+DEFINE_HOOK(0x568411, MapClass_AddContentAt_Foundation_P1, 6)
 {
 	GET(BuildingClass*, pThis, EDI);
 	R->EBP(pThis->GetFoundationData(false));
 	return 0x568432;
 }
 
-DEFINE_OVERRIDE_HOOK(0x568841, MapClass_RemoveContentAt_Foundation_P1, 6)
+DEFINE_HOOK(0x568841, MapClass_RemoveContentAt_Foundation_P1, 6)
 {
 	GET(BuildingClass*, pThis, EDI);
 	R->EBP(pThis->GetFoundationData(false));
 	return 0x568862;
 }
 
-DEFINE_OVERRIDE_HOOK(0x568997, MapClass_RemoveContentAt_Foundation_OccupyHeight, 5)
+DEFINE_HOOK(0x568997, MapClass_RemoveContentAt_Foundation_OccupyHeight, 5)
 {
 	GET(BuildingClass*, pThis, EDX);
 	GET(int, ShadowHeight, EBP);
@@ -125,7 +125,7 @@ DEFINE_OVERRIDE_HOOK(0x568997, MapClass_RemoveContentAt_Foundation_OccupyHeight,
 	return 0x568ADC;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4A8C77, DisplayClass_ProcessFoundation1_UnlimitBuffer, 5)
+DEFINE_HOOK(0x4A8C77, DisplayClass_ProcessFoundation1_UnlimitBuffer, 5)
 {
 	GET_STACK(CellStruct const*, Foundation, 0x18);
 	GET(DisplayClass*, Display, EBX);
@@ -145,7 +145,7 @@ DEFINE_OVERRIDE_HOOK(0x4A8C77, DisplayClass_ProcessFoundation1_UnlimitBuffer, 5)
 	return 0x4A8C9E;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4A8DD7, DisplayClass_ProcessFoundation2_UnlimitBuffer, 5)
+DEFINE_HOOK(0x4A8DD7, DisplayClass_ProcessFoundation2_UnlimitBuffer, 5)
 {
 	GET_STACK(CellStruct const*, Foundation, 0x18);
 	GET(DisplayClass*, Display, EBX);
@@ -165,7 +165,7 @@ DEFINE_OVERRIDE_HOOK(0x4A8DD7, DisplayClass_ProcessFoundation2_UnlimitBuffer, 5)
 	return 0x4A8DFE;
 }
 
-DEFINE_STRONG_OVERRIDE_HOOK(0x45ec90, BuildingTypeClass_GetFoundationWidth, 6)
+DEFINE_STRONG_HOOK(0x45ec90, BuildingTypeClass_GetFoundationWidth, 6)
 {
 	GET(BuildingTypeClass*, pThis, ECX);
 
@@ -178,7 +178,7 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x45ec90, BuildingTypeClass_GetFoundationWidth, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x45ECE0, BuildingTypeClass_GetMaxPips, 6)
+DEFINE_HOOK(0x45ECE0, BuildingTypeClass_GetMaxPips, 6)
 {
 	GET(BuildingTypeClass*, pThis, ECX);
 
@@ -191,7 +191,7 @@ DEFINE_OVERRIDE_HOOK(0x45ECE0, BuildingTypeClass_GetMaxPips, 6)
 	return 0;
 }
 
-DEFINE_STRONG_OVERRIDE_HOOK(0x465550, BuildingTypeClass_GetFoundationOutline, 6)
+DEFINE_STRONG_HOOK(0x465550, BuildingTypeClass_GetFoundationOutline, 6)
 {
 	GET(BuildingTypeClass*, pThis, ECX);
 
@@ -204,7 +204,7 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x465550, BuildingTypeClass_GetFoundationOutline, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x464AF0, BuildingTypeClass_GetSizeInLeptons, 6)
+DEFINE_HOOK(0x464AF0, BuildingTypeClass_GetSizeInLeptons, 6)
 {
 	GET(BuildingTypeClass*, pThis, ECX);
 	if (pThis->Foundation == BuildingTypeExtData::CustomFoundation)
@@ -222,7 +222,7 @@ DEFINE_OVERRIDE_HOOK(0x464AF0, BuildingTypeClass_GetSizeInLeptons, 6)
 
 }
 
-DEFINE_OVERRIDE_HOOK(0x474DEE, INIClass_GetFoundation, 7)
+DEFINE_HOOK(0x474DEE, INIClass_GetFoundation, 7)
 {
 	GET_STACK(const char*, Section, 0x2C);
 	GET_STACK(const char*, Key, 0x30);

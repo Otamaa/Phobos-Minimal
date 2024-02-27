@@ -24,7 +24,7 @@
 #include <WWKeyboardClass.h>
 #include <Conversions.h>
 
-DEFINE_OVERRIDE_HOOK(0x5F8277, ObjectTypeClass_Load3DArt_NoSpawnAlt1, 7)
+DEFINE_HOOK(0x5F8277, ObjectTypeClass_Load3DArt_NoSpawnAlt1, 7)
 {
 	REF_STACK(bool, bLoadFailed, 0x13);
 	GET(ObjectTypeClass*, pThis, ESI);
@@ -65,7 +65,7 @@ DEFINE_OVERRIDE_HOOK(0x5F8277, ObjectTypeClass_Load3DArt_NoSpawnAlt1, 7)
 //ObjectTypeClass_Load3DArt_NoSpawnAlt2
 DEFINE_JUMP(LJMP, 0x5F848C, 0x5F8844);
 
-DEFINE_OVERRIDE_HOOK(0x5F887B, ObjectTypeClass_Load3DArt_Barrels, 6)
+DEFINE_HOOK(0x5F887B, ObjectTypeClass_Load3DArt_Barrels, 6)
 {
 	GET(TechnoTypeClass*, pThis, ESI);
 
@@ -119,7 +119,7 @@ DEFINE_OVERRIDE_HOOK(0x5F887B, ObjectTypeClass_Load3DArt_Barrels, 6)
 	return 0x5F8A6A;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5F865F, ObjectTypeClass_Load3DArt_Turrets, 6)
+DEFINE_HOOK(0x5F865F, ObjectTypeClass_Load3DArt_Turrets, 6)
 {
 	GET(TechnoTypeClass*, pThis, ESI);
 
@@ -175,7 +175,7 @@ DEFINE_OVERRIDE_HOOK(0x5F865F, ObjectTypeClass_Load3DArt_Turrets, 6)
 	return 0x5F868C;
 }
 
-DEFINE_OVERRIDE_HOOK(0x73B90E, UnitClass_DrawVXL_Barrels1, 7)
+DEFINE_HOOK(0x73B90E, UnitClass_DrawVXL_Barrels1, 7)
 {
 	GET(UnitTypeClass*, pUnit, EBX);
 	GET(int, nIdx, EAX);
@@ -185,7 +185,7 @@ DEFINE_OVERRIDE_HOOK(0x73B90E, UnitClass_DrawVXL_Barrels1, 7)
 	return (!pData->VXL || !pData->HVA) ? 0x73B94A : 0x73B928;
 }
 
-DEFINE_OVERRIDE_HOOK(0x73BCCD, UnitClass_DrawVXL_Barrels2, 7)
+DEFINE_HOOK(0x73BCCD, UnitClass_DrawVXL_Barrels2, 7)
 {
 	GET(UnitTypeClass*, pUnit, EBX);
 	GET(int, nIdx, ECX);
@@ -193,7 +193,7 @@ DEFINE_OVERRIDE_HOOK(0x73BCCD, UnitClass_DrawVXL_Barrels2, 7)
 	return 0x73BCD4;
 }
 
-DEFINE_OVERRIDE_HOOK(0x73BD6A, UnitClass_DrawVXL_Barrels3, 7)
+DEFINE_HOOK(0x73BD6A, UnitClass_DrawVXL_Barrels3, 7)
 {
 	GET(UnitTypeClass*, pUnit, EBX);
 	GET(int, nIdx, ESI);
@@ -201,7 +201,7 @@ DEFINE_OVERRIDE_HOOK(0x73BD6A, UnitClass_DrawVXL_Barrels3, 7)
 	return 0x73BD71;
 }
 
-DEFINE_OVERRIDE_HOOK(0x73BD15, UnitClass_DrawVXL_Turrets, 7)
+DEFINE_HOOK(0x73BD15, UnitClass_DrawVXL_Turrets, 7)
 {
 	GET(UnitTypeClass*, pUnit, EBX);
 	GET(int, nIdx, ESI);
@@ -209,7 +209,7 @@ DEFINE_OVERRIDE_HOOK(0x73BD15, UnitClass_DrawVXL_Turrets, 7)
 	return 0x73BD1C;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5F8084, ObjectTypeClass_UnloadTurretArt, 6)
+DEFINE_HOOK(0x5F8084, ObjectTypeClass_UnloadTurretArt, 6)
 {
 	GET(ObjectTypeClass*, pThis, ECX);
 
@@ -231,7 +231,7 @@ DEFINE_OVERRIDE_HOOK(0x5F8084, ObjectTypeClass_UnloadTurretArt, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x73B6E3, UnitClass_DrawVXL_NoSpawnAlt, 6)
+DEFINE_HOOK(0x73B6E3, UnitClass_DrawVXL_NoSpawnAlt, 6)
 {
 	GET(UnitTypeClass*, pType, EBX);
 	R->EDX(&TechnoTypeExtContainer::Instance.Find(pType)->SpawnAltData);
@@ -302,7 +302,7 @@ DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 	return 0x4DB195;
 }
 
-DEFINE_OVERRIDE_HOOK(0x73B4A0, UnitClass_DrawVXL_WaterType, 9)
+DEFINE_HOOK(0x73B4A0, UnitClass_DrawVXL_WaterType, 9)
 {
 	R->ESI(0);
 	GET(UnitClass*, U, EBP);
@@ -328,7 +328,7 @@ DEFINE_OVERRIDE_HOOK(0x73B4A0, UnitClass_DrawVXL_WaterType, 9)
 	return 0x73B4DA;
 }
 
-DEFINE_OVERRIDE_HOOK(0x715320, TechnoTypeClass_LoadFromINI_EarlyReader, 6)
+DEFINE_HOOK(0x715320, TechnoTypeClass_LoadFromINI_EarlyReader, 6)
 {
 	GET(CCINIClass*, pINI, EDI);
 	GET(TechnoTypeClass*, pType, EBP);
@@ -339,7 +339,7 @@ DEFINE_OVERRIDE_HOOK(0x715320, TechnoTypeClass_LoadFromINI_EarlyReader, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x73C485, UnitClass_DrawVXL_NoSpawnAlt_SkipShadow, 8)
+DEFINE_HOOK(0x73C485, UnitClass_DrawVXL_NoSpawnAlt_SkipShadow, 8)
 {
 	enum { DoNotDrawShadow = 0x73C5C9, ShadowAlreadyDrawn = 0x0 };
 

@@ -67,7 +67,7 @@
 
 #include <Misc/Spawner/Main.h>
 
-DEFINE_OVERRIDE_HOOK(0x52C5E0, Ares_NOLOGO, 0x7)
+DEFINE_HOOK(0x52C5E0, Ares_NOLOGO, 0x7)
 {
 	if(SpawnerMain::Configs::Enabled)
 		return 0x52C5F8; //skip showing looading screen
@@ -75,21 +75,21 @@ DEFINE_OVERRIDE_HOOK(0x52C5E0, Ares_NOLOGO, 0x7)
 	return Phobos::Otamaa::NoLogo ? 0x52C5F3 : 0x0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x62A020, ParasiteClass_Update, 0xA)
+DEFINE_HOOK(0x62A020, ParasiteClass_Update, 0xA)
 {
 	GET(TechnoClass*, pOwner, ECX);
 	R->EAX(pOwner->GetWeapon(TechnoExtContainer::Instance.Find(pOwner)->idxSlot_Parasite));
 	return 0x62A02A;
 }
 
-DEFINE_OVERRIDE_HOOK(0x62A7B1, Parasite_ExitUnit, 9)
+DEFINE_HOOK(0x62A7B1, Parasite_ExitUnit, 9)
 {
 	GET(TechnoClass*, pOwner, ECX);
 	R->EAX(pOwner->GetWeapon(TechnoExtContainer::Instance.Find(pOwner)->idxSlot_Parasite));
 	return 0x62A7BA;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
+DEFINE_HOOK(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
 {
 	GET(FactoryClass*, pThis, ESI);
 
@@ -123,7 +123,7 @@ DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 8)
 	return 0x5F655D;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
+DEFINE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
 {
 	GET(AbstractClass*, pThis, ECX);
 	auto const nThisCoord = pThis->GetCoords();
@@ -161,7 +161,7 @@ DEFINE_OVERRIDE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
 
 DEFINE_JUMP(LJMP, 0x6AD0ED, 0x6AD16C);
 
-DEFINE_OVERRIDE_HOOK(0x437CCC, BSurface_DrawSHPFrame1_Buffer, 0x8)
+DEFINE_HOOK(0x437CCC, BSurface_DrawSHPFrame1_Buffer, 0x8)
 {
 	REF_STACK(RectangleStruct const, bounds, STACK_OFFS(0x7C, 0x10));
 	//0x89C568
@@ -198,7 +198,7 @@ namespace ShakeScreenHandle
 }
 
 //handle everything ourself
-DEFINE_OVERRIDE_HOOK(0x441C21, BuildingClass_Destroyed_Shake, 0x6)
+DEFINE_HOOK(0x441C21, BuildingClass_Destroyed_Shake, 0x6)
 {
 	GET(BuildingClass* const, pBld, ESI);
 
@@ -216,7 +216,7 @@ DEFINE_OVERRIDE_HOOK(0x441C21, BuildingClass_Destroyed_Shake, 0x6)
 	return 0x441C39; //return 0 causing crash
 }
 
-DEFINE_OVERRIDE_HOOK(0x7387D1, UnitClass_Destroyed_Shake, 0x6)
+DEFINE_HOOK(0x7387D1, UnitClass_Destroyed_Shake, 0x6)
 {
 	GET(UnitClass* const, pUnit, ESI); //forEXT
 
@@ -235,7 +235,7 @@ DEFINE_OVERRIDE_HOOK(0x7387D1, UnitClass_Destroyed_Shake, 0x6)
 // replaced entire function. error was using delete[] instead of delete.
 // it potentially crashed when any of the files were present in the
 // game directory.
-DEFINE_OVERRIDE_HOOK(0x5F77F0, ObjectTypeClass_UnloadPipsSHP, 0x5)
+DEFINE_HOOK(0x5F77F0, ObjectTypeClass_UnloadPipsSHP, 0x5)
 {
 	for (int i = 0; i < (int)TechnoTypeClass::ShapesIsAllocated.size(); ++i)
 	{
@@ -253,7 +253,7 @@ DEFINE_OVERRIDE_HOOK(0x5F77F0, ObjectTypeClass_UnloadPipsSHP, 0x5)
 // the entire function, and the function consuming the indexes. it is not yet known
 // whether the out of bounds read causes desync errors. this function appears to
 // have been inlined prominently in 585F40
-DEFINE_OVERRIDE_HOOK(0x56BC54, ThreatPosedEstimates_GetIndex, 0x5)
+DEFINE_HOOK(0x56BC54, ThreatPosedEstimates_GetIndex, 0x5)
 {
 	GET(const CellStruct*, pCell, ECX);
 
@@ -268,7 +268,7 @@ DEFINE_OVERRIDE_HOOK(0x56BC54, ThreatPosedEstimates_GetIndex, 0x5)
 }
 
 // don't set the focus when selling (true selling, thus no focus set atm)
-DEFINE_OVERRIDE_HOOK(0x4C6DDB, Networking_RespondToEvent_Selling, 0x8)
+DEFINE_HOOK(0x4C6DDB, Networking_RespondToEvent_Selling, 0x8)
 {
 	GET(TechnoClass* const, pTechno, EDI);
 	GET(AbstractClass* const, pFocus, EAX);
@@ -284,7 +284,7 @@ DEFINE_OVERRIDE_HOOK(0x4C6DDB, Networking_RespondToEvent_Selling, 0x8)
 // #895374: skip the code that removes the crates (size 7)
 DEFINE_JUMP(LJMP, 0x483BF1, 0x483BFE);
 
-DEFINE_OVERRIDE_HOOK(0x699C1C, Game_ParsePKTs_ClearFile, 0x7)
+DEFINE_HOOK(0x699C1C, Game_ParsePKTs_ClearFile, 0x7)
 {
 	LEA_STACK(CCINIClass*, pINI, 0x24);
 	pINI->Clear(nullptr, nullptr);
@@ -292,7 +292,7 @@ DEFINE_OVERRIDE_HOOK(0x699C1C, Game_ParsePKTs_ClearFile, 0x7)
 }
 
 // Guard command failure
-DEFINE_OVERRIDE_HOOK(0x730DB0, GuardCommandClass_Execute, 0xA)
+DEFINE_HOOK(0x730DB0, GuardCommandClass_Execute, 0xA)
 {
 	GET(TechnoClass*, T, ESI);
 	return (T->Owner != HouseClass::CurrentPlayer() || !T->IsControllable())
@@ -302,7 +302,7 @@ DEFINE_OVERRIDE_HOOK(0x730DB0, GuardCommandClass_Execute, 0xA)
 }
 
 /* #367 - do we need to draw a link to this victim */
-DEFINE_OVERRIDE_HOOK(0x472198, CaptureManagerClass_DrawLinks, 0x6)
+DEFINE_HOOK(0x472198, CaptureManagerClass_DrawLinks, 0x6)
 {
 	enum { Draw_Maybe = 0, Draw_Yes = 0x4721E6, Draw_No = 0x472287 };
 
@@ -320,7 +320,7 @@ DEFINE_OVERRIDE_HOOK(0x472198, CaptureManagerClass_DrawLinks, 0x6)
 	return Draw_Maybe;
 }
 
-DEFINE_OVERRIDE_HOOK(0x551A30, LayerClass_YSortReorder, 0x5)
+DEFINE_HOOK(0x551A30, LayerClass_YSortReorder, 0x5)
 {
 	GET(LayerClass*, pThis, ECX);
 
@@ -345,7 +345,7 @@ DEFINE_OVERRIDE_HOOK(0x551A30, LayerClass_YSortReorder, 0x5)
 //	return 0x0;
 //}
 
-DEFINE_OVERRIDE_HOOK(0x5F6612, ObjectClass_UnInit_SkipInvalidation, 0x9)
+DEFINE_HOOK(0x5F6612, ObjectClass_UnInit_SkipInvalidation, 0x9)
 {
 	GET(ObjectClass*, pThis, ESI);
 
@@ -356,7 +356,7 @@ DEFINE_OVERRIDE_HOOK(0x5F6612, ObjectClass_UnInit_SkipInvalidation, 0x9)
 }
 
 //speeds up preview drawing by insane amounts
-DEFINE_OVERRIDE_HOOK(0x5FED00, OverlayTypeClass_GetRadarColor, 0x6)
+DEFINE_HOOK(0x5FED00, OverlayTypeClass_GetRadarColor, 0x6)
 {
 	GET(OverlayTypeClass*, ovType, ECX);
 	GET_STACK(ColorStruct*, color, 0x04);
@@ -367,7 +367,7 @@ DEFINE_OVERRIDE_HOOK(0x5FED00, OverlayTypeClass_GetRadarColor, 0x6)
 
 // only eject the parasite if the unit leaves the battlefield,
 // not just when it goes out of sight.
-DEFINE_OVERRIDE_HOOK(0x62A283, ParasiteClass_PointerGotInvalid_Cloak, 0x9)
+DEFINE_HOOK(0x62A283, ParasiteClass_PointerGotInvalid_Cloak, 0x9)
 {
 	GET(ParasiteClass*, pThis, ESI);
 	GET(void*, ptr, EAX);
@@ -378,7 +378,7 @@ DEFINE_OVERRIDE_HOOK(0x62A283, ParasiteClass_PointerGotInvalid_Cloak, 0x9)
 }
 
 /* #746 - don't set parasite eject point to cell center, but set it to fall and explode like a bomb */
-DEFINE_OVERRIDE_HOOK(0x62A2F8, ParasiteClass_PointerGotInvalid, 0x6)
+DEFINE_HOOK(0x62A2F8, ParasiteClass_PointerGotInvalid, 0x6)
 {
 	GET(ParasiteClass*, Parasite, ESI);
 	GET(CoordStruct*, XYZ, EAX);
@@ -435,7 +435,7 @@ DEFINE_JUMP(LJMP, 0x78997B, 0x789A58);
 //DSurface_CTOR_SkipVRAM
 DEFINE_JUMP(LJMP, 0x4BA61B, 0x4BA623);
 
-DEFINE_OVERRIDE_HOOK(0x74A884, VoxelAnimClass_UpdateBounce_Damage, 0x6)
+DEFINE_HOOK(0x74A884, VoxelAnimClass_UpdateBounce_Damage, 0x6)
 {
 	GET(VoxelAnimClass*, pThis, EBX);
 
@@ -468,7 +468,7 @@ DEFINE_OVERRIDE_HOOK(0x74A884, VoxelAnimClass_UpdateBounce_Damage, 0x6)
 	return 0x74A934;
 }
 
-DEFINE_OVERRIDE_HOOK(0x545904, IsometricTileTypeClass_CreateFromINIList_MediansFix, 0x7)
+DEFINE_HOOK(0x545904, IsometricTileTypeClass_CreateFromINIList_MediansFix, 0x7)
 {
 	if (R->EAX() == -1)
 	{
@@ -498,7 +498,7 @@ DEFINE_HOOK(0x65EA43, SendReinforcement_Opentopped, 0x6)
 
 // TODO : remove this
 // issue #1282: remap wall using its owner's colors
-//DEFINE_OVERRIDE_HOOK(0x47F9A4, CellClass_DrawOverlay_WallRemap, 0x6)
+//DEFINE_HOOK(0x47F9A4, CellClass_DrawOverlay_WallRemap, 0x6)
 //{
 //	GET(CellClass*, pCell, ESI);
 //
@@ -514,7 +514,7 @@ DEFINE_HOOK(0x65EA43, SendReinforcement_Opentopped, 0x6)
 //}
 
 // issue 1520: logging stupid shit crashes the game
-DEFINE_STRONG_OVERRIDE_HOOK(0x4CA437, FactoryClass_GetCRC, 0x8)
+DEFINE_STRONG_HOOK(0x4CA437, FactoryClass_GetCRC, 0x8)
 {
 	GET(FactoryClass*, pThis, ECX);
 	GET_STACK(DWORD, pCRC, 0xC);
@@ -525,7 +525,7 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x4CA437, FactoryClass_GetCRC, 0x8)
 	return 0x4CA501;
 }
 
-DEFINE_OVERRIDE_HOOK(0x47243F, CaptureManagerClass_DecideUnitFate_BuildingFate, 0x6)
+DEFINE_HOOK(0x47243F, CaptureManagerClass_DecideUnitFate_BuildingFate, 0x6)
 {
 	GET(TechnoClass*, pVictim, EBX);
 
@@ -546,7 +546,7 @@ DEFINE_OVERRIDE_HOOK(0x47243F, CaptureManagerClass_DecideUnitFate_BuildingFate, 
 }
 
 // PrismSupportModifier repair
-DEFINE_OVERRIDE_HOOK(0x671152, RulesClass_Addition_General_PrismSupportModifier, 0x6)
+DEFINE_HOOK(0x671152, RulesClass_Addition_General_PrismSupportModifier, 0x6)
 {
 	GET(RulesClass*, pThis, ESI);
 	REF_STACK(double, param, 0x0);
@@ -554,7 +554,7 @@ DEFINE_OVERRIDE_HOOK(0x671152, RulesClass_Addition_General_PrismSupportModifier,
 	return 0x67115B;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6B72F9, SpawnManagerClass_Update_Buildings, 0x5)
+DEFINE_HOOK(0x6B72F9, SpawnManagerClass_Update_Buildings, 0x5)
 {
 	GET(SpawnManagerClass*, pThis, ESI);
 	GET(SpawnNode, nNode, EAX);
@@ -566,7 +566,7 @@ DEFINE_OVERRIDE_HOOK(0x6B72F9, SpawnManagerClass_Update_Buildings, 0x5)
 		? 0x6B735C : 0x6B72FE;
 }
 
-DEFINE_OVERRIDE_HOOK(0x725A1F, AnnounceInvalidPointer_SkipBehind, 0x5)
+DEFINE_HOOK(0x725A1F, AnnounceInvalidPointer_SkipBehind, 0x5)
 {
 	GET(AnimClass*, pAnim, ESI);
 	return pAnim->Type == RulesClass::Instance->Behind ?
@@ -574,7 +574,7 @@ DEFINE_OVERRIDE_HOOK(0x725A1F, AnnounceInvalidPointer_SkipBehind, 0x5)
 }
 
 //sub_731D90_FakeOf
-DEFINE_OVERRIDE_HOOK(0x731E08, Select_By_Units_Text_FakeOf, 0x6)
+DEFINE_HOOK(0x731E08, Select_By_Units_Text_FakeOf, 0x6)
 {
 	int nCost = 0;
 
@@ -596,26 +596,26 @@ DEFINE_OVERRIDE_HOOK(0x731E08, Select_By_Units_Text_FakeOf, 0x6)
 	return 0x731E4D;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6DA665, sub_6DA5C0_GroupAs, 0xA)
+DEFINE_HOOK(0x6DA665, sub_6DA5C0_GroupAs, 0xA)
 {
 	GET(ObjectClass*, pThis, ESI);
 	R->EAX(TechnoTypeExtData::GetSelectionGroupID(pThis->GetType()));
 	return R->Origin() + 13;
 }
 
-DEFINE_OVERRIDE_HOOK(0x7BB445, XSurface_20, 0x6)
+DEFINE_HOOK(0x7BB445, XSurface_20, 0x6)
 {
 	return R->EAX<void*>() ? 0x0 : 0x7BB90C;
 }
 
-// DEFINE_OVERRIDE_HOOK(0x5FDDA4, OverlayClass_GetTiberiumType_NotReallyTiberiumLog, 0x6)
+// DEFINE_HOOK(0x5FDDA4, OverlayClass_GetTiberiumType_NotReallyTiberiumLog, 0x6)
 // {
 // 	GET(OverlayTypeClass*, pThis, EAX);
 // 	Debug::Log("Overlay %s not really tiberium\n", pThis->ID);
 // 	return 0x5FDDC1;
 // }
 
-DEFINE_OVERRIDE_HOOK(0x716D98, TechnoTypeClass_Load_Palette, 0x5)
+DEFINE_HOOK(0x716D98, TechnoTypeClass_Load_Palette, 0x5)
 {
 	GET(TechnoTypeClass*, pThis, EDI);
 
@@ -625,7 +625,7 @@ DEFINE_OVERRIDE_HOOK(0x716D98, TechnoTypeClass_Load_Palette, 0x5)
 
 // this was only a leftover stub from TS. reimplemented
 // using the same mechanism.
-DEFINE_OVERRIDE_HOOK(0x489270, CellChainReact, 5)
+DEFINE_HOOK(0x489270, CellChainReact, 5)
 {
 	GET(CellStruct*, cell, ECX);
 
@@ -701,7 +701,7 @@ DEFINE_OVERRIDE_HOOK(0x489270, CellChainReact, 5)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x424DD3, AnimClass_ReInit_TiberiumChainReaction_Chance, 6)
+DEFINE_HOOK(0x424DD3, AnimClass_ReInit_TiberiumChainReaction_Chance, 6)
 {
 	GET(TiberiumClass*, pTib, EDI);
 
@@ -709,7 +709,7 @@ DEFINE_OVERRIDE_HOOK(0x424DD3, AnimClass_ReInit_TiberiumChainReaction_Chance, 6)
 		? 0x424DF9 : 0x424E9B;
 }
 
-DEFINE_OVERRIDE_HOOK(0x424EC5, AnimClass_ReInit_TiberiumChainReaction_Damage, 6)
+DEFINE_HOOK(0x424EC5, AnimClass_ReInit_TiberiumChainReaction_Damage, 6)
 {
 	GET(TiberiumClass*, pTib, EDI);
 	auto pExt = TiberiumExtExtContainer::Instance.Find(pTib);
@@ -720,7 +720,7 @@ DEFINE_OVERRIDE_HOOK(0x424EC5, AnimClass_ReInit_TiberiumChainReaction_Damage, 6)
 	return 0x424ECB;
 }
 
-DEFINE_OVERRIDE_HOOK(0x71C7C2, TerrainClass_Update_ForestFire, 6)
+DEFINE_HOOK(0x71C7C2, TerrainClass_Update_ForestFire, 6)
 {
 	GET(TerrainClass*, pThis, ESI);
 
@@ -751,7 +751,7 @@ DEFINE_OVERRIDE_HOOK(0x71C7C2, TerrainClass_Update_ForestFire, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x71C5D2, TerrainClass_Ignite_IsFlammable, 6)
+DEFINE_HOOK(0x71C5D2, TerrainClass_Ignite_IsFlammable, 6)
 {
 	GET(TerrainClass*, pThis, EDI);
 
@@ -762,7 +762,7 @@ DEFINE_OVERRIDE_HOOK(0x71C5D2, TerrainClass_Ignite_IsFlammable, 6)
 		? CantBurn : Ignite;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AB8BB, SelectClass_ProcessInput_BuildTime, 6)
+DEFINE_HOOK(0x6AB8BB, SelectClass_ProcessInput_BuildTime, 6)
 {
 	GET(BuildingTypeClass* const, pBuildingProduct, ESI);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pBuildingProduct);
@@ -775,10 +775,10 @@ DEFINE_OVERRIDE_HOOK(0x6AB8BB, SelectClass_ProcessInput_BuildTime, 6)
 	return 0x6AB8C1;
 }
 
-//DEFINE_OVERRIDE_SKIP_HOOK(0x715857, TechnoTypeClass_LoadFromINI_LimitPalettes, 5, 715876)
+//DEFINE_SKIP_HOOK(0x715857, TechnoTypeClass_LoadFromINI_LimitPalettes, 5, 715876)
 DEFINE_JUMP(LJMP, 0x715857, 0x715876);
 
-DEFINE_OVERRIDE_HOOK(0x711EE0, TechnoTypeClass_GetBuildSpeed, 6)
+DEFINE_HOOK(0x711EE0, TechnoTypeClass_GetBuildSpeed, 6)
 {
 	GET(TechnoTypeClass* const, pThis, ECX);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis);
@@ -803,28 +803,28 @@ DEFINE_JUMP(LJMP, 0x531726, 0x53173A);
 DEFINE_JUMP(LJMP, 0x53173F, 0x531749);
 
 //this hook taking a lot of time , i guess because of UnitTypeClass::InitOneTimeData thing
-// DEFINE_OVERRIDE_HOOK(0x531726, Game_BulkDataInit_MultipleDataInitFix, 5)
+// DEFINE_HOOK(0x531726, Game_BulkDataInit_MultipleDataInitFix, 5)
 // {
 // 	BuildingTypeClass::InitOneTimeData();
 // 	UnitTypeClass::InitOneTimeData();
 // 	return 0x531749;
 // }
 
-DEFINE_OVERRIDE_HOOK(0x535DB6, SetStructureTabCommandClass_Execute_Power, 6)
+DEFINE_HOOK(0x535DB6, SetStructureTabCommandClass_Execute_Power, 6)
 {
 	GET(BuildingClass*, pBuild, EAX);
 	R->EAX(pBuild->FindFactory(false, true));
 	return 0x535DC2;
 }
 
-DEFINE_OVERRIDE_HOOK(0x535E76, SetDefenseTabCommandClass_Execute_Power, 6)
+DEFINE_HOOK(0x535E76, SetDefenseTabCommandClass_Execute_Power, 6)
 {
 	GET(BuildingClass*, pBuild, EAX);
 	R->EAX(pBuild->FindFactory(false, true));
 	return 0x535E82;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4B93BD, ScenarioClass_GenerateDropshipLoadout_FreeAnims, 7)
+DEFINE_HOOK(0x4B93BD, ScenarioClass_GenerateDropshipLoadout_FreeAnims, 7)
 {
 	GET_STACK(SHPStruct*, pBackground, 0xAC);
 
@@ -843,7 +843,7 @@ DEFINE_OVERRIDE_HOOK(0x4B93BD, ScenarioClass_GenerateDropshipLoadout_FreeAnims, 
 	return 0x4B9445;
 }
 
-DEFINE_OVERRIDE_HOOK(0x67E74A, LoadGame_EarlyLoadSides, 5)
+DEFINE_HOOK(0x67E74A, LoadGame_EarlyLoadSides, 5)
 {
 	GET(LPSTREAM, pStm, ESI);
 
@@ -868,7 +868,7 @@ DEFINE_OVERRIDE_HOOK(0x67E74A, LoadGame_EarlyLoadSides, 5)
 DEFINE_JUMP(LJMP, 0x67F281, 0x67F2BF);
 
 // fix for ultra-fast processors overrunning the performance evaluator function
-DEFINE_OVERRIDE_HOOK(0x5CB0B1, Game_QueryPerformance, 5)
+DEFINE_HOOK(0x5CB0B1, Game_QueryPerformance, 5)
 {
 	if (!R->EAX())
 	{
@@ -879,30 +879,30 @@ DEFINE_OVERRIDE_HOOK(0x5CB0B1, Game_QueryPerformance, 5)
 }
 
 // TiberiumTransmogrify is never initialized explitly, thus do that here
-DEFINE_OVERRIDE_HOOK(0x66748A, RulesClass_CTOR_TiberiumTransmogrify, 6)
+DEFINE_HOOK(0x66748A, RulesClass_CTOR_TiberiumTransmogrify, 6)
 {
 	GET(RulesClass*, pThis, ESI);
 	pThis->TiberiumTransmogrify = 0;
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK_AGAIN(0x657CF2, MapClass_MinimapChanged_Lock, 6)
-DEFINE_OVERRIDE_HOOK(0x657D3D, MapClass_MinimapChanged_Lock, 6)
+DEFINE_HOOK_AGAIN(0x657CF2, MapClass_MinimapChanged_Lock, 6)
+DEFINE_HOOK(0x657D3D, MapClass_MinimapChanged_Lock, 6)
 {
 	RadarClass::RadarEvenSurface->Lock();
 	RadarClass::RadarEvenSurface_B->Lock();
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK_AGAIN(0x657D35, MapClass_MinimapChanged_Unlock, 7)
-DEFINE_OVERRIDE_HOOK(0x657D8A, MapClass_MinimapChanged_Unlock, 7)
+DEFINE_HOOK_AGAIN(0x657D35, MapClass_MinimapChanged_Unlock, 7)
+DEFINE_HOOK(0x657D8A, MapClass_MinimapChanged_Unlock, 7)
 {
 	RadarClass::RadarEvenSurface->Unlock();
 	RadarClass::RadarEvenSurface_B->Unlock();
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x65731F, RadarClass_UpdateMinimap_Lock, 6)
+DEFINE_HOOK(0x65731F, RadarClass_UpdateMinimap_Lock, 6)
 {
 	GET(RadarClass*, pRadar, ESI);
 	pRadar->unknown_121C->Lock();
@@ -910,7 +910,7 @@ DEFINE_OVERRIDE_HOOK(0x65731F, RadarClass_UpdateMinimap_Lock, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x65757C, RadarClass_UpdateMinimap_Unlock, 8)
+DEFINE_HOOK(0x65757C, RadarClass_UpdateMinimap_Unlock, 8)
 {
 	GET(RadarClass*, pRadar, ESI);
 	pRadar->unknown_1220->Unlock();
@@ -919,14 +919,14 @@ DEFINE_OVERRIDE_HOOK(0x65757C, RadarClass_UpdateMinimap_Unlock, 8)
 	return R->EAX() ? 0x657584 : 0x6576A5;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4B769B, ScenarioClass_GenerateDropshipLoadout, 5)
+DEFINE_HOOK(0x4B769B, ScenarioClass_GenerateDropshipLoadout, 5)
 {
 	WWKeyboardClass::Instance->Clear();
 	WWMouseClass::Instance->ShowCursor();
 	return 0x4B76A0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x48248D, CellClass_CrateBeingCollected_MoneyRandom, 6)
+DEFINE_HOOK(0x48248D, CellClass_CrateBeingCollected_MoneyRandom, 6)
 {
 	GET(int, nCur, EAX);
 
@@ -939,7 +939,7 @@ DEFINE_OVERRIDE_HOOK(0x48248D, CellClass_CrateBeingCollected_MoneyRandom, 6)
 	return 0x4824A7;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
+DEFINE_HOOK(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 {
 	GET(ObjectClass*, pThis, ESI);
 
@@ -966,25 +966,25 @@ DEFINE_OVERRIDE_HOOK(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 	return 0x5F3FFD;
 }
 
-DEFINE_OVERRIDE_HOOK(0x481C6C, CellClass_CrateBeingCollected_Armor1, 6)
+DEFINE_HOOK(0x481C6C, CellClass_CrateBeingCollected_Armor1, 6)
 {
 	GET(TechnoClass*, Unit, EDI);
 	return (TechnoExtContainer::Instance.Find(Unit)->AE_ArmorMult == 1.0) ? 0x481D52 : 0x481C86;
 }
 
-DEFINE_OVERRIDE_HOOK(0x481CE1, CellClass_CrateBeingCollected_Speed1, 6)
+DEFINE_HOOK(0x481CE1, CellClass_CrateBeingCollected_Speed1, 6)
 {
 	GET(FootClass*, Unit, EDI);
 	return (TechnoExtContainer::Instance.Find(Unit)->AE_SpeedMult == 1.0) ? 0x481D52 : 0x481C86;
 }
 
-DEFINE_OVERRIDE_HOOK(0x481D0E, CellClass_CrateBeingCollected_Firepower1, 6)
+DEFINE_HOOK(0x481D0E, CellClass_CrateBeingCollected_Firepower1, 6)
 {
 	GET(TechnoClass*, Unit, EDI);
 	return (TechnoExtContainer::Instance.Find(Unit)->AE_FirePowerMult == 1.0) ? 0x481D52 : 0x481C86;
 }
 
-DEFINE_OVERRIDE_HOOK(0x481D3D, CellClass_CrateBeingCollected_Cloak1, 6)
+DEFINE_HOOK(0x481D3D, CellClass_CrateBeingCollected_Cloak1, 6)
 {
 	GET(TechnoClass*, Unit, EDI);
 
@@ -999,7 +999,7 @@ DEFINE_OVERRIDE_HOOK(0x481D3D, CellClass_CrateBeingCollected_Cloak1, 6)
 }
 
 //overrides on actual crate effect applications
-DEFINE_OVERRIDE_HOOK(0x48294F, CellClass_CrateBeingCollected_Cloak2, 7)
+DEFINE_HOOK(0x48294F, CellClass_CrateBeingCollected_Cloak2, 7)
 {
 	GET(TechnoClass*, Unit, EDX);
 	TechnoExtContainer::Instance.Find(Unit)->AE_Cloak = true;
@@ -1007,7 +1007,7 @@ DEFINE_OVERRIDE_HOOK(0x48294F, CellClass_CrateBeingCollected_Cloak2, 7)
 	return 0x482956;
 }
 
-DEFINE_OVERRIDE_HOOK(0x482E57, CellClass_CrateBeingCollected_Armor2, 6)
+DEFINE_HOOK(0x482E57, CellClass_CrateBeingCollected_Armor2, 6)
 {
 	GET(TechnoClass*, Unit, ECX);
 	GET_STACK(double, Pow_ArmorMultiplier, 0x20);
@@ -1022,7 +1022,7 @@ DEFINE_OVERRIDE_HOOK(0x482E57, CellClass_CrateBeingCollected_Armor2, 6)
 	return 0x482E92;
 }
 
-DEFINE_OVERRIDE_HOOK(0x48303A, CellClass_CrateBeingCollected_Speed2, 6)
+DEFINE_HOOK(0x48303A, CellClass_CrateBeingCollected_Speed2, 6)
 {
 	GET(FootClass*, Unit, EDI);
 	GET_STACK(double, Pow_SpeedMultiplier, 0x20);
@@ -1040,7 +1040,7 @@ DEFINE_OVERRIDE_HOOK(0x48303A, CellClass_CrateBeingCollected_Speed2, 6)
 	return 0x483081;
 }
 
-DEFINE_OVERRIDE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
+DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 {
 	GET(TechnoClass*, Unit, ECX);
 	GET_STACK(double, Pow_FirepowerMultiplier, 0x20);
@@ -1056,7 +1056,7 @@ DEFINE_OVERRIDE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 }
 
 // temporal per-slot
-DEFINE_OVERRIDE_HOOK(0x71A84E, TemporalClass_UpdateA, 5)
+DEFINE_HOOK(0x71A84E, TemporalClass_UpdateA, 5)
 {
 	GET(TemporalClass* const, pThis, ESI);
 
@@ -1073,7 +1073,7 @@ DEFINE_OVERRIDE_HOOK(0x71A84E, TemporalClass_UpdateA, 5)
 	return 0x71A88D;
 }
 
-DEFINE_OVERRIDE_HOOK(0x413FD2, AircraftClass_Init_Academy, 6)
+DEFINE_HOOK(0x413FD2, AircraftClass_Init_Academy, 6)
 {
 	GET(AircraftClass*, pThis, ESI);
 
@@ -1089,7 +1089,7 @@ DEFINE_OVERRIDE_HOOK(0x413FD2, AircraftClass_Init_Academy, 6)
 }
 
 // issue #279: per unit AirstrikeAttackVoice and AirstrikeAbortSound
-DEFINE_OVERRIDE_HOOK(0x41D940, AirstrikeClass_Fire_AirstrikeAttackVoice, 5)
+DEFINE_HOOK(0x41D940, AirstrikeClass_Fire_AirstrikeAttackVoice, 5)
 {
 	GET(AirstrikeClass*, pAirstrike, EDI);
 
@@ -1114,7 +1114,7 @@ DEFINE_OVERRIDE_HOOK(0x41D940, AirstrikeClass_Fire_AirstrikeAttackVoice, 5)
 	return 0x41D970;
 }
 
-DEFINE_OVERRIDE_HOOK(0x41D5AE, AirstrikeClass_PointerGotInvalid_AirstrikeAbortSound, 9)
+DEFINE_HOOK(0x41D5AE, AirstrikeClass_PointerGotInvalid_AirstrikeAbortSound, 9)
 {
 	GET(AirstrikeClass*, pAirstrike, ESI);
 
@@ -1138,7 +1138,7 @@ DEFINE_OVERRIDE_HOOK(0x41D5AE, AirstrikeClass_PointerGotInvalid_AirstrikeAbortSo
 	return 0x41D5E0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4A8FF5, MapClass_CanBuildingTypeBePlacedHere_Ignore, 5)
+DEFINE_HOOK(0x4A8FF5, MapClass_CanBuildingTypeBePlacedHere_Ignore, 5)
 {
 	GET(BuildingClass*, pBuilding, ESI);
 	return BuildingExtContainer::Instance.Find(pBuilding)->IsFromSW ? 0x4A8FFA : 0x0;
@@ -1147,13 +1147,13 @@ DEFINE_OVERRIDE_HOOK(0x4A8FF5, MapClass_CanBuildingTypeBePlacedHere_Ignore, 5)
 //DEFINE_SKIP_HOOK(0x71B09C, TemporalClass_Logic_BuildingUnderAttack_NullptrShit, 0x5, 71B0E7);
 DEFINE_JUMP(LJMP, 0x71B09C, 0x71B0E7);
 
-DEFINE_OVERRIDE_HOOK(0x6BED08, Game_Terminate_Mouse, 7)
+DEFINE_HOOK(0x6BED08, Game_Terminate_Mouse, 7)
 {
 	GameDelete<true, false>(R->ECX<SHPStruct*>());
 	return 0x6BED34;
 }
 
-DEFINE_OVERRIDE_HOOK(0x621B80, DSurface_FillRecWithColor, 5)
+DEFINE_HOOK(0x621B80, DSurface_FillRecWithColor, 5)
 {
 	GET(RectangleStruct*, rect, ECX);
 	GET(Surface*, surface, EDX);
@@ -1173,7 +1173,7 @@ DEFINE_OVERRIDE_HOOK(0x621B80, DSurface_FillRecWithColor, 5)
 		return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4ABFBE, DisplayClass_LeftMouseButtonUp_ExecPowerToggle, 7)
+DEFINE_HOOK(0x4ABFBE, DisplayClass_LeftMouseButtonUp_ExecPowerToggle, 7)
 {
 	GET(TechnoClass*, Target, ESI);
 	return (Target && Target->Owner->IsControlledByHuman() && Target->WhatAmI() == AbstractType::Building)
@@ -1182,14 +1182,14 @@ DEFINE_OVERRIDE_HOOK(0x4ABFBE, DisplayClass_LeftMouseButtonUp_ExecPowerToggle, 7
 		;
 }
 
-DEFINE_OVERRIDE_HOOK(0x480534, CellClass_AttachesToNeighbourOverlay, 5)
+DEFINE_HOOK(0x480534, CellClass_AttachesToNeighbourOverlay, 5)
 {
 	GET(int, idxOverlay, EAX);
 	const bool Wall = idxOverlay != -1 && OverlayTypeClass::Array->Items[idxOverlay]->Wall;
 	return Wall ? 0x480549 : 0x480552;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4A76ED, DiskLaserClass_Update_Anim, 7)
+DEFINE_HOOK(0x4A76ED, DiskLaserClass_Update_Anim, 7)
 {
 	GET(DiskLaserClass* const, pThis, ESI);
 	REF_STACK(CoordStruct, coords, STACK_OFFS(0x54, 0x1C));
@@ -1217,7 +1217,7 @@ DEFINE_OVERRIDE_HOOK(0x4A76ED, DiskLaserClass_Update_Anim, 7)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x48a4f9, SelectDamageAnimation_FixNegatives, 6)
+DEFINE_HOOK(0x48a4f9, SelectDamageAnimation_FixNegatives, 6)
 {
 	GET(int, Damage, EDI);
 	Damage = abs(Damage);
@@ -1228,7 +1228,7 @@ DEFINE_OVERRIDE_HOOK(0x48a4f9, SelectDamageAnimation_FixNegatives, 6)
 //InitGame_Delay
 DEFINE_JUMP(LJMP, 0x52CA37, 0x52CA65)
 
-DEFINE_OVERRIDE_HOOK(0x5f5add, ObjectClass_SpawnParachuted_Animation, 6)
+DEFINE_HOOK(0x5f5add, ObjectClass_SpawnParachuted_Animation, 6)
 {
 	GET(ObjectClass*, pThis, ESI);
 
@@ -1258,7 +1258,7 @@ DEFINE_STRONG_HOOK(0x6BD7D5, Expand_MIX_Reorg, 7)
 
 DEFINE_JUMP(LJMP, 0x52BB64, 0x52BB95) //Expand_MIX_Deorg
 
-DEFINE_OVERRIDE_HOOK(0x7cd819, ExeRun, 5)
+DEFINE_HOOK(0x7cd819, ExeRun, 5)
 {
 	Game::Savegame_Magic = AresGlobalData::InternalVersion;
 	Game::bVideoBackBuffer = false;
@@ -1267,14 +1267,14 @@ DEFINE_OVERRIDE_HOOK(0x7cd819, ExeRun, 5)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6BE9BD, Game_ProgramEnd_ClearResource, 6)
+DEFINE_HOOK(0x6BE9BD, Game_ProgramEnd_ClearResource, 6)
 {
 	StaticVars::aresMIX.reset(nullptr);
 	SpawnerMain::MixFile.reset(nullptr);
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x531413, Game_Start, 5)
+DEFINE_HOOK(0x531413, Game_Start, 5)
 {
 	int topActive = 500;
 
@@ -1285,7 +1285,7 @@ DEFINE_OVERRIDE_HOOK(0x531413, Game_Start, 5)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x532017, DlgProc_MainMenu_Version, 5)
+DEFINE_HOOK(0x532017, DlgProc_MainMenu_Version, 5)
 {
 	GET(HWND, hWnd, ESI);
 
@@ -1316,13 +1316,13 @@ DEFINE_OVERRIDE_HOOK(0x532017, DlgProc_MainMenu_Version, 5)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5facdf, Options_LoadFromINI, 5)
+DEFINE_HOOK(0x5facdf, Options_LoadFromINI, 5)
 {
 	Phobos::Config::Read();
 	return 0x0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6BC0CD, _LoadRA2MD, 5)
+DEFINE_HOOK(0x6BC0CD, _LoadRA2MD, 5)
 {
 	StaticVars::LoadGlobalsConfig();
 	SpawnerMain::LoadConfigurations();
@@ -1331,7 +1331,7 @@ DEFINE_OVERRIDE_HOOK(0x6BC0CD, _LoadRA2MD, 5)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
+DEFINE_HOOK(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
 {
 	const int AdvCommBarHeight = 32;
 
@@ -1371,7 +1371,7 @@ DEFINE_OVERRIDE_HOOK(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
 	return 0;
 }
 
-DEFINE_STRONG_OVERRIDE_HOOK(0x7C89D4, DDRAW_Create, 6)
+DEFINE_STRONG_HOOK(0x7C89D4, DDRAW_Create, 6)
 {
 	R->Stack<DWORD>(0x4, AresGlobalData::GFX_DX_Force);
 	return 0;

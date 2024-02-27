@@ -12,7 +12,7 @@
 #include "Header.h"
 #include "AresTrajectoryHelper.h"
 
-DEFINE_OVERRIDE_HOOK(0x4FB257, HouseClass_UnitFromFactory_Firewall, 6)
+DEFINE_HOOK(0x4FB257, HouseClass_UnitFromFactory_Firewall, 6)
 {
 	GET(BuildingClass*, B, ESI);
 	GET(HouseClass*, H, EBP);
@@ -23,7 +23,7 @@ DEFINE_OVERRIDE_HOOK(0x4FB257, HouseClass_UnitFromFactory_Firewall, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x445355, BuildingClass_KickOutUnit_Firewall, 6)
+DEFINE_HOOK(0x445355, BuildingClass_KickOutUnit_Firewall, 6)
 {
 	GET(BuildingClass*, Factory, ESI);
 	GET(BuildingClass*, B, EDI);
@@ -34,14 +34,14 @@ DEFINE_OVERRIDE_HOOK(0x445355, BuildingClass_KickOutUnit_Firewall, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6D5455, TacticalClass_DrawPlacement_IsLInkable, 6)
+DEFINE_HOOK(0x6D5455, TacticalClass_DrawPlacement_IsLInkable, 6)
 {
 	GET(BuildingTypeClass* const, pType, EAX);
 	return BuildingTypeExtData::IsLinkable(pType) ?
 		0x6D545Fu : 0x6D54A9u;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6D5A5C, TacticalClass_DrawPlacement_FireWall_IsLInkable, 6)
+DEFINE_HOOK(0x6D5A5C, TacticalClass_DrawPlacement_FireWall_IsLInkable, 6)
 {
 	GET(BuildingTypeClass* const, pType, EDX);
 	return BuildingTypeExtData::IsLinkable(pType) ?
@@ -49,7 +49,7 @@ DEFINE_OVERRIDE_HOOK(0x6D5A5C, TacticalClass_DrawPlacement_FireWall_IsLInkable, 
 }
 
 // frame to draw
-DEFINE_OVERRIDE_HOOK(0x43EFB3, BuildingClass_GetStaticImageFrame, 6)
+DEFINE_HOOK(0x43EFB3, BuildingClass_GetStaticImageFrame, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -66,7 +66,7 @@ DEFINE_OVERRIDE_HOOK(0x43EFB3, BuildingClass_GetStaticImageFrame, 6)
 	return 0x43EFC3;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5880A0, MapClass_FindFirstFirestorm, 6)
+DEFINE_HOOK(0x5880A0, MapClass_FindFirstFirestorm, 6)
 {
 	//GET(MapClass* const, pThis, ECX);
 	GET_STACK(CoordStruct* const, pOutBuffer, STACK_OFFS(0x0, -0x4));
@@ -99,13 +99,13 @@ DEFINE_OVERRIDE_HOOK(0x5880A0, MapClass_FindFirstFirestorm, 6)
 	return 0x58855E;
 }
 
-DEFINE_OVERRIDE_HOOK(0x483D94, CellClass_UpdatePassability, 6)
+DEFINE_HOOK(0x483D94, CellClass_UpdatePassability, 6)
 {
 	GET(BuildingClass* const, pBuilding, ESI);
 	return BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->Firestorm_Wall ? 0x483D9E : 0x483DB0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4423E7, BuildingClass_ReceiveDamage_FSW, 5)
+DEFINE_HOOK(0x4423E7, BuildingClass_ReceiveDamage_FSW, 5)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	GET_STACK(int* const, pDamage, 0xA0);
@@ -157,7 +157,7 @@ static void RecalculateCells(BuildingClass* pThis)
 	}
 }
 
-DEFINE_OVERRIDE_HOOK(0x440d01, BuildingClass_Put_FirestormWall, 6)
+DEFINE_HOOK(0x440d01, BuildingClass_Put_FirestormWall, 6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	//GET(CellStruct const*, pMapCoords, EBP);
@@ -170,7 +170,7 @@ DEFINE_OVERRIDE_HOOK(0x440d01, BuildingClass_Put_FirestormWall, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x445DF4, BuildingClass_Remove_FirestormWall, 6)
+DEFINE_HOOK(0x445DF4, BuildingClass_Remove_FirestormWall, 6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	FirewallFunctions::UpdateFirewallLinks(pThis);
@@ -182,7 +182,7 @@ DEFINE_OVERRIDE_HOOK(0x445DF4, BuildingClass_Remove_FirestormWall, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x440378, BuildingClass_Update_FirestormWall, 6)
+DEFINE_HOOK(0x440378, BuildingClass_Update_FirestormWall, 6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 
@@ -192,7 +192,7 @@ DEFINE_OVERRIDE_HOOK(0x440378, BuildingClass_Update_FirestormWall, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x51BD4C, InfantryClass_Update_BuildingBelow, 6)
+DEFINE_HOOK(0x51BD4C, InfantryClass_Update_BuildingBelow, 6)
 {
 	GET(InfantryClass*, pThis, EDI);
 	GET(BuildingClass*, pBld, EDI);
@@ -213,7 +213,7 @@ DEFINE_OVERRIDE_HOOK(0x51BD4C, InfantryClass_Update_BuildingBelow, 6)
 	return cannotPass;
 }
 
-DEFINE_OVERRIDE_HOOK(0x51C4C8, InfantryClass_IsCellOccupied, 6)
+DEFINE_HOOK(0x51C4C8, InfantryClass_IsCellOccupied, 6)
 {
 	GET(InfantryClass* const, pThis , EBP);
 	GET(BuildingClass* const, pBld, ESI);
@@ -237,7 +237,7 @@ DEFINE_OVERRIDE_HOOK(0x51C4C8, InfantryClass_IsCellOccupied, 6)
 	return NoDecision;
 }
 
-DEFINE_OVERRIDE_HOOK(0x73F7B0, UnitClass_IsCellOccupied, 6)
+DEFINE_HOOK(0x73F7B0, UnitClass_IsCellOccupied, 6)
 {
 	GET(UnitClass* const , pThis , EBX);
 	GET(BuildingClass* const, pBld, ESI);
@@ -261,7 +261,7 @@ DEFINE_OVERRIDE_HOOK(0x73F7B0, UnitClass_IsCellOccupied, 6)
 	return NoDecision;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4DA53E, FootClass_Update_AresAddition, 6)
+DEFINE_HOOK(0x4DA53E, FootClass_Update_AresAddition, 6)
 {
 	GET(FootClass* const, pThis, ESI);
 
@@ -331,7 +331,7 @@ DEFINE_OVERRIDE_HOOK(0x4DA53E, FootClass_Update_AresAddition, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x467B94, BulletClass_Update_Ranged, 7)
+DEFINE_HOOK(0x467B94, BulletClass_Update_Ranged, 7)
 {
 	GET(BulletClass*, pThis, EBP);
 	REF_STACK(bool, Destroy, 0x18);
@@ -375,7 +375,7 @@ DEFINE_OVERRIDE_HOOK(0x467B94, BulletClass_Update_Ranged, 7)
 	return 0x467BA4;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4688BD, BulletClass_SetMovement_Obstacle, 6)
+DEFINE_HOOK(0x4688BD, BulletClass_SetMovement_Obstacle, 6)
 {
 	GET(BulletClass* const, pThis, EBX);
 	GET(CoordStruct const* const, pLocation, EDI);
@@ -413,8 +413,8 @@ DEFINE_OVERRIDE_HOOK(0x4688BD, BulletClass_SetMovement_Obstacle, 6)
 	return 0x468A3F;
 }
 
-DEFINE_OVERRIDE_HOOK_AGAIN(0x6FF860, TechnoClass_Fire_FSW, 8)
-DEFINE_OVERRIDE_HOOK(0x6FF008, TechnoClass_Fire_FSW, 8)
+DEFINE_HOOK_AGAIN(0x6FF860, TechnoClass_Fire_FSW, 8)
+DEFINE_HOOK(0x6FF008, TechnoClass_Fire_FSW, 8)
 {
 	REF_STACK(CoordStruct const, src, 0x44);
 	REF_STACK(CoordStruct const, tgt, 0x88);

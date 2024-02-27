@@ -20,7 +20,7 @@
 #include <Ext/BuildingType/Body.h>
 
 
-DEFINE_OVERRIDE_HOOK(0x5f4fe7, ObjectClass_Put, 8)
+DEFINE_HOOK(0x5f4fe7, ObjectClass_Put, 8)
 {
 	GET(ObjectClass*, pThis, ESI);
 	GET(ObjectTypeClass*, pType, EBX);
@@ -36,7 +36,7 @@ DEFINE_OVERRIDE_HOOK(0x5f4fe7, ObjectClass_Put, 8)
 	return 0x5F5210;
 }
 
-DEFINE_OVERRIDE_HOOK(0x469467, BulletClass_DetonateAt_CanTemporalTarget, 0x5)
+DEFINE_HOOK(0x469467, BulletClass_DetonateAt_CanTemporalTarget, 0x5)
 {
 	GET(TechnoClass* const, Target, ECX);
 
@@ -53,14 +53,14 @@ DEFINE_OVERRIDE_HOOK(0x469467, BulletClass_DetonateAt_CanTemporalTarget, 0x5)
 
 // #1708: this mofo was raising an event without checking whether
 // there is a valid tag. this is the only faulty call of this kind.
-DEFINE_OVERRIDE_HOOK(0x4692A2, BulletClass_DetonateAt_RaiseAttackedByHouse, 0x6)
+DEFINE_HOOK(0x4692A2, BulletClass_DetonateAt_RaiseAttackedByHouse, 0x6)
 {
 	GET(ObjectClass* const, pVictim, EDI);
 	return pVictim->AttachedTag ? 0 : 0x4692BD;
 }
 
 // Overpowerer no longer just infantry
-DEFINE_OVERRIDE_HOOK(0x4693B0, BulletClass_DetonateAt_Overpower, 0x6)
+DEFINE_HOOK(0x4693B0, BulletClass_DetonateAt_Overpower, 0x6)
 {
 	GET(TechnoClass* const, pT, ECX);
 	switch (pT->WhatAmI())
@@ -74,7 +74,7 @@ DEFINE_OVERRIDE_HOOK(0x4693B0, BulletClass_DetonateAt_Overpower, 0x6)
 	}
 }
 
-DEFINE_OVERRIDE_HOOK(0x4664FB, BulletClass_Initialize_Ranged, 0x6)
+DEFINE_HOOK(0x4664FB, BulletClass_Initialize_Ranged, 0x6)
 {
 	GET(BulletClass*, pThis, ECX);
 	// conservative approach for legacy-initialized bullets
@@ -101,7 +101,7 @@ DEFINE_HOOK(0x46837F, BulletClass_DrawSHP_SetAnimPalette, 6)
 
 #include <Ext/Techno/Body.h>
 
-DEFINE_OVERRIDE_HOOK(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
+DEFINE_HOOK(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
 {
 	enum { Continue = 0x469D06, NukeWarheadExtras = 0x469CAF };
 
@@ -175,7 +175,7 @@ DEFINE_OVERRIDE_HOOK(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
 	return (!createdAnim && pWarheadExt->IsNukeWarhead.Get()) ? NukeWarheadExtras : Continue;
 }
 
-DEFINE_OVERRIDE_HOOK(0x46670F, BulletClass_Update_PreImpactAnim, 6)
+DEFINE_HOOK(0x46670F, BulletClass_Update_PreImpactAnim, 6)
 {
 	GET(BulletClass*, pThis, EBP);
 
@@ -194,7 +194,7 @@ DEFINE_OVERRIDE_HOOK(0x46670F, BulletClass_Update_PreImpactAnim, 6)
 	return 0x467FEE;
 }
 
-DEFINE_OVERRIDE_HOOK(0x46867F, BulletClass_SetMovement_Parachute, 5)
+DEFINE_HOOK(0x46867F, BulletClass_SetMovement_Parachute, 5)
 {
 	GET(CoordStruct*, XYZ, EAX);
 	GET(BulletClass*, Bullet, ECX);
@@ -219,7 +219,7 @@ DEFINE_OVERRIDE_HOOK(0x46867F, BulletClass_SetMovement_Parachute, 5)
 	return 0x468689;
 }
 
-DEFINE_OVERRIDE_HOOK(0x468EB9, BulletClass_Fire_SplitsA, 6)
+DEFINE_HOOK(0x468EB9, BulletClass_Fire_SplitsA, 6)
 {
 	//GET(BulletClass*, pThis, ESI);
 	GET(BulletTypeClass* const, pType, EAX);
@@ -227,21 +227,21 @@ DEFINE_OVERRIDE_HOOK(0x468EB9, BulletClass_Fire_SplitsA, 6)
 		? 0x468EC7u : 0x468FF4u;
 }
 
-DEFINE_OVERRIDE_HOOK(0x468FFA, BulletClass_Fire_SplitsB, 6)
+DEFINE_HOOK(0x468FFA, BulletClass_Fire_SplitsB, 6)
 {
 	GET(BulletTypeClass* const, pType, EAX);
 	return BulletTypeExtContainer::Instance.Find(pType)->HasSplitBehavior()
 		? 0x46909Au : 0x469008u;
 }
 
-DEFINE_OVERRIDE_HOOK(0x469EBA, BulletClass_DetonateAt_Splits, 6)
+DEFINE_HOOK(0x469EBA, BulletClass_DetonateAt_Splits, 6)
 {
 	GET(BulletClass*, pThis, ESI);
 	BulletExtData::ApplyAirburst(pThis);
 	return 0x46A290;
 }
 
-DEFINE_OVERRIDE_HOOK(0x468000, BulletClass_GetAnimFrame, 6)
+DEFINE_HOOK(0x468000, BulletClass_GetAnimFrame, 6)
 {
 	GET(BulletClass*, pThis, ECX);
 

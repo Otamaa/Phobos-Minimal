@@ -16,19 +16,19 @@ static constexpr reference<int, 0xB0B500> const SidebarObject_Height {};
 static constexpr reference<int, 0xB0B4FC> const SidebarObject_Width {};
 #ifndef CAMEOS_
 
-DEFINE_OVERRIDE_HOOK(0x6A4EA5, SidebarClass_CTOR_InitCameosList, 6)
+DEFINE_HOOK(0x6A4EA5, SidebarClass_CTOR_InitCameosList, 6)
 {
 	MouseClassExt::ClearCameos();
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A4FD8, SidebarClass_Load_InitCameosList, 6)
+DEFINE_HOOK(0x6A4FD8, SidebarClass_Load_InitCameosList, 6)
 {
 	MouseClassExt::ClearCameos();
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A61B1, SidebarClass_SetFactoryForObject, 5)
+DEFINE_HOOK(0x6A61B1, SidebarClass_SetFactoryForObject, 5)
 {
 	enum { Found = 0x6A6210, NotFound = 0x6A61E6 };
 
@@ -52,7 +52,7 @@ DEFINE_OVERRIDE_HOOK(0x6A61B1, SidebarClass_SetFactoryForObject, 5)
 }
 
 // don't check for 75 cameos in active tab
-DEFINE_OVERRIDE_HOOK(0x6A63B7, SidebarClass_AddCameo_SkipSizeCheck, 5)
+DEFINE_HOOK(0x6A63B7, SidebarClass_AddCameo_SkipSizeCheck, 5)
 {
 	enum { AlreadyExists = 0x6A65FF, NewlyAdded = 0x6A63FD };
 
@@ -94,7 +94,7 @@ static NOINLINE BuildType* lower_bound(BuildType* first, int size , const BuildT
 	return first;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A8710, StripClass_AddCameo_ReplaceItAll, 6)
+DEFINE_HOOK(0x6A8710, StripClass_AddCameo_ReplaceItAll, 6)
 {
 	GET(StripClass*, pTab, ECX);
 	GET_STACK(AbstractType, ItemType, 0x4);
@@ -123,7 +123,7 @@ DEFINE_OVERRIDE_HOOK(0x6A8710, StripClass_AddCameo_ReplaceItAll, 6)
 }
 
 // pointer #1
-DEFINE_OVERRIDE_HOOK(0x6A8D1C, StripClass_MouseMove_GetCameos1, 7)
+DEFINE_HOOK(0x6A8D1C, StripClass_MouseMove_GetCameos1, 7)
 {
 	GET(int, CameoCount, EAX);
 
@@ -138,7 +138,7 @@ DEFINE_OVERRIDE_HOOK(0x6A8D1C, StripClass_MouseMove_GetCameos1, 7)
 }
 
 // pointer #2
-DEFINE_OVERRIDE_HOOK(0x6A8DB5, StripClass_MouseMove_GetCameos2, 8)
+DEFINE_HOOK(0x6A8DB5, StripClass_MouseMove_GetCameos2, 8)
 {
 	GET(int, CameoCount, EAX);
 	GET(StripClass*, pTab, EBX);
@@ -155,7 +155,7 @@ DEFINE_OVERRIDE_HOOK(0x6A8DB5, StripClass_MouseMove_GetCameos2, 8)
 }
 
 // pointer #3
-DEFINE_OVERRIDE_HOOK(0x6A8F6C, StripClass_MouseMove_GetCameos3, 9)
+DEFINE_HOOK(0x6A8F6C, StripClass_MouseMove_GetCameos3, 9)
 {
 	GET(StripClass*, pTab, ESI);
 
@@ -172,7 +172,7 @@ DEFINE_OVERRIDE_HOOK(0x6A8F6C, StripClass_MouseMove_GetCameos3, 9)
 }
 
 // don't check for <= 75, pointer
-DEFINE_OVERRIDE_HOOK(0x6A9304, StripClass_GetTip_NoLimit, 9)
+DEFINE_HOOK(0x6A9304, StripClass_GetTip_NoLimit, 9)
 {
 	GET(int, CameoIndex, EAX);
 
@@ -183,7 +183,7 @@ DEFINE_OVERRIDE_HOOK(0x6A9304, StripClass_GetTip_NoLimit, 9)
 	return 0x6A9316;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A9747, StripClass_Draw_GetCameo, 6)
+DEFINE_HOOK(0x6A9747, StripClass_Draw_GetCameo, 6)
 {
 	GET(int, CameoIndex, ECX);
 
@@ -202,7 +202,7 @@ DEFINE_OVERRIDE_HOOK(0x6A9747, StripClass_Draw_GetCameo, 6)
 		;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A95C8, StripClass_Draw_Status, 8)
+DEFINE_HOOK(0x6A95C8, StripClass_Draw_Status, 8)
 {
 	GET(int, CameoIndex, EAX);
 
@@ -214,7 +214,7 @@ DEFINE_OVERRIDE_HOOK(0x6A95C8, StripClass_Draw_Status, 8)
 	return 0x6A95D3;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A9866, StripClass_Draw_Status_1, 8)
+DEFINE_HOOK(0x6A9866, StripClass_Draw_Status_1, 8)
 {
 	GET(int, CameoIndex, ECX);
 
@@ -226,7 +226,7 @@ DEFINE_OVERRIDE_HOOK(0x6A9866, StripClass_Draw_Status_1, 8)
 		;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A9886, StripClass_Draw_Status_2, 8)
+DEFINE_HOOK(0x6A9886, StripClass_Draw_Status_2, 8)
 {
 	GET(int, CameoIndex, EAX);
 
@@ -245,7 +245,7 @@ DEFINE_OVERRIDE_HOOK(0x6A9886, StripClass_Draw_Status_2, 8)
 	return 0x6A9893;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A9EBA, StripClass_Draw_Status_3, 8)
+DEFINE_HOOK(0x6A9EBA, StripClass_Draw_Status_3, 8)
 {
 	GET(int, CameoIndex, EAX);
 
@@ -258,13 +258,13 @@ DEFINE_OVERRIDE_HOOK(0x6A9EBA, StripClass_Draw_Status_3, 8)
 		;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A99BE, StripClass_Draw_BreakDrawLoop, 5)
+DEFINE_HOOK(0x6A99BE, StripClass_Draw_BreakDrawLoop, 5)
 {
 	R->Stack8(0x12, 0);
 	return 0x6AA01C;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
+DEFINE_HOOK(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
 {
 	GET(int, CameoIndex, EAX);
 
@@ -277,7 +277,7 @@ DEFINE_OVERRIDE_HOOK(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
 		;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AAD2F, SelectClass_ProcessInput_LoadCameo1, 7)
+DEFINE_HOOK(0x6AAD2F, SelectClass_ProcessInput_LoadCameo1, 7)
 {
 	GET(int, CameoIndex, ESI);
 
@@ -304,7 +304,7 @@ DEFINE_OVERRIDE_HOOK(0x6AAD2F, SelectClass_ProcessInput_LoadCameo1, 7)
 	return 0x6AAD66;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AB0B0, SelectClass_ProcessInput_LoadCameo2, 8)
+DEFINE_HOOK(0x6AB0B0, SelectClass_ProcessInput_LoadCameo2, 8)
 {
 	GET(int, CameoIndex, ESI);
 
@@ -316,21 +316,21 @@ DEFINE_OVERRIDE_HOOK(0x6AB0B0, SelectClass_ProcessInput_LoadCameo2, 8)
 	return 0x6AB0BE;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AB49D, SelectClass_ProcessInput_FixOffset1, 7)
+DEFINE_HOOK(0x6AB49D, SelectClass_ProcessInput_FixOffset1, 7)
 {
 	R->EDI<void*>(nullptr);
 	R->ECX<void*>(nullptr);
 	return 0x6AB4A4;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AB4E8, SelectClass_ProcessInput_FixOffset2, 7)
+DEFINE_HOOK(0x6AB4E8, SelectClass_ProcessInput_FixOffset2, 7)
 {
 	R->ECX<int>(R->Stack<int>(0x14));
 	R->EDX<void*>(nullptr);
 	return 0x6AB4EF;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AB577, SelectClass_ProcessInput_FixOffset3, 7)
+DEFINE_HOOK(0x6AB577, SelectClass_ProcessInput_FixOffset3, 7)
 {
 	GET(int, CameoIndex, ESI);
 	GET_STACK(FactoryClass*, SavedFactory, 0x18);
@@ -347,7 +347,7 @@ DEFINE_OVERRIDE_HOOK(0x6AB577, SelectClass_ProcessInput_FixOffset3, 7)
 	R->EAX<int>(Progress);
 	R->EBP<void*>(nullptr);
 
-	if (Item.unknown_10 == 1) { 
+	if (Item.unknown_10 == 1) {
 		if (Item.Progress.Value > Progress) {
 			Progress = (Item.Progress.Value + Progress) / 2;
 		}
@@ -360,26 +360,26 @@ DEFINE_OVERRIDE_HOOK(0x6AB577, SelectClass_ProcessInput_FixOffset3, 7)
 	return 0x6AB5C6;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AB620, SelectClass_ProcessInput_FixOffset4, 7)
+DEFINE_HOOK(0x6AB620, SelectClass_ProcessInput_FixOffset4, 7)
 {
 	R->ECX<void*>(nullptr);
 	return 0x6AB627;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AB741, SelectClass_ProcessInput_FixOffset5, 7)
+DEFINE_HOOK(0x6AB741, SelectClass_ProcessInput_FixOffset5, 7)
 {
 	R->EDX<void*>(nullptr);
 	return 0x6AB748;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AB802, SelectClass_ProcessInput_FixOffset6, 8)
+DEFINE_HOOK(0x6AB802, SelectClass_ProcessInput_FixOffset6, 8)
 {
 	GET(int, CameoIndex, EAX);
 	MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex][CameoIndex].unknown_10 = 1;
 	return 0x6AB814;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AB825, SelectClass_ProcessInput_FixOffset7, 5)
+DEFINE_HOOK(0x6AB825, SelectClass_ProcessInput_FixOffset7, 5)
 {
 	R->ECX<int>(R->EBP<int>());
 	R->EDX<void*>(nullptr);
@@ -387,19 +387,19 @@ DEFINE_OVERRIDE_HOOK(0x6AB825, SelectClass_ProcessInput_FixOffset7, 5)
 	return 0x6AB82A;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AB920, SelectClass_ProcessInput_FixOffset8, 7)
+DEFINE_HOOK(0x6AB920, SelectClass_ProcessInput_FixOffset8, 7)
 {
 	R->ECX<void*>(nullptr);
 	return 0x6AB927;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AB92F, SelectClass_ProcessInput_FixOffset9, 7)
+DEFINE_HOOK(0x6AB92F, SelectClass_ProcessInput_FixOffset9, 7)
 {
 	R->EBX<byte*>(R->EBX<byte*>() + 0x6C);
 	return 0x6AB936;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6ABBCB, StripClass_AbandonCameosFromFactory_GetPointer1, 7)
+DEFINE_HOOK(0x6ABBCB, StripClass_AbandonCameosFromFactory_GetPointer1, 7)
 {
 	GET(int, CameoCount, EAX);
 	GET(StripClass*, pTab, ESI);
@@ -416,7 +416,7 @@ DEFINE_OVERRIDE_HOOK(0x6ABBCB, StripClass_AbandonCameosFromFactory_GetPointer1, 
 }
 
 // don't limit to 75
-DEFINE_OVERRIDE_HOOK(0x6AC6D9, SidebarClass_FlashCameo, 5)
+DEFINE_HOOK(0x6AC6D9, SidebarClass_FlashCameo, 5)
 {
 	GET(unsigned int, TabIndex, EAX);
 	GET(int, ItemIndex, ESI);
@@ -592,7 +592,7 @@ bool NOINLINE RemoveCameo(BuildType* item)
 	return true;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6aa600, StripClass_RecheckCameos, 5)
+DEFINE_HOOK(0x6aa600, StripClass_RecheckCameos, 5)
 {
 	GET(StripClass*, pThis, ECX);
 
@@ -672,13 +672,13 @@ int __fastcall SidebarClass_6AC430(SidebarClass*)
 {
 	JMP_THIS(0x6AC430)
 }
-//B0B500 SidebarClass::ObjectHeight int 
+//B0B500 SidebarClass::ObjectHeight int
 //B0B4FC SidebarClass::ObjectWidth_ int
 
-//the compiled result offseting the array begin too much 
+//the compiled result offseting the array begin too much
 //not sure what happen , altho there is similar code exist
 //just this one generating too far offsetted array begin pointer
-//DEFINE_OVERRIDE_HOOK(0x6A8220, StripClass_Initialize, 7)
+//DEFINE_HOOK(0x6A8220, StripClass_Initialize, 7)
 //{
 //	GET(StripClass*, pThis, ECX);
 //	GET_STACK(int, nIdx, 0x4);
@@ -689,7 +689,7 @@ int __fastcall SidebarClass_6AC430(SidebarClass*)
 //	int const nXIdx = SidebarClass::Instance->Func_6AC430();
 //	int a = 0;
 //
-//	for (auto i = ButtonsPtr(); i != (&ButtonsPtr[nIdx]); ++i) { 
+//	for (auto i = ButtonsPtr(); i != (&ButtonsPtr[nIdx]); ++i) {
 //		(*i).Index = a;
 //		(*i).ID = 202;
 //		(*i).Strip = pThis;
@@ -713,11 +713,11 @@ int __fastcall SidebarClass_6AC430(SidebarClass*)
 //	return 0x6A8329;
 //}
 
-// yeah , fuck it 
-// i cant reproduce the exact code 
+// yeah , fuck it
+// i cant reproduce the exact code
 // so lets just dump the assembly code instead , lmao
 // -otamaa
-decl_override_hook(0x6A8220, StripClass_Initialize, 0x7)
+declhook(0x6A8220, StripClass_Initialize, 0x7)
 extern "C" __declspec(naked, dllexport) DWORD __cdecl StripClass_Initialize(REGISTERS * R) {
 	__asm
 	{
@@ -782,7 +782,7 @@ extern "C" __declspec(naked, dllexport) DWORD __cdecl StripClass_Initialize(REGI
 	}
 }
 
-DEFINE_OVERRIDE_HOOK(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
+DEFINE_HOOK(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
 {
 	enum
 	{
@@ -798,8 +798,8 @@ DEFINE_OVERRIDE_HOOK(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
 		ContinueLoop : BreakLoop;
 }
 
-//duuunno 
-DEFINE_OVERRIDE_HOOK(0x6a96d9, StripClass_Draw_Strip, 7)
+//duuunno
+DEFINE_HOOK(0x6a96d9, StripClass_Draw_Strip, 7)
 {
 	GET(FactoryClass*, pFact, EDI);
 	GET(int, idx_first, ECX);
@@ -808,7 +808,7 @@ DEFINE_OVERRIDE_HOOK(0x6a96d9, StripClass_Draw_Strip, 7)
 	return  *reinterpret_cast<bool*>((((BYTE*)pFact) + 36u + 27u)) != 0 ? 0x6A9703 : 0x6A9714;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AC02F, sub_6ABD30_Strip3, 0x8)
+DEFINE_HOOK(0x6AC02F, sub_6ABD30_Strip3, 0x8)
 {
 	GET_STACK(size_t, nCurIdx, 0x14);
 	int Offset = 0x3E8;
@@ -829,7 +829,7 @@ DEFINE_OVERRIDE_HOOK(0x6AC02F, sub_6ABD30_Strip3, 0x8)
 	return 0x6AC0A7;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6a9822, StripClass_Draw_Power, 5)
+DEFINE_HOOK(0x6a9822, StripClass_Draw_Power, 5)
 {
 	GET(FactoryClass*, pFactory, ECX);
 
@@ -845,7 +845,7 @@ DEFINE_OVERRIDE_HOOK(0x6a9822, StripClass_Draw_Power, 5)
 	return 0x6A9827;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A83E0, StripClass_DisableInput, 6)
+DEFINE_HOOK(0x6A83E0, StripClass_DisableInput, 6)
 {
 	for (auto begin = ButtonsPtr(); begin != Buttons_endPtr(); ++begin)
 		GScreenClass::Instance->RemoveButton(begin);
@@ -853,7 +853,7 @@ DEFINE_OVERRIDE_HOOK(0x6A83E0, StripClass_DisableInput, 6)
 	return 0x6A8415;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A8330, StripClass_EnableInput, 5)
+DEFINE_HOOK(0x6A8330, StripClass_EnableInput, 5)
 {
 	GET(StripClass*, pThis, ECX);
 
@@ -870,27 +870,27 @@ DEFINE_OVERRIDE_HOOK(0x6A8330, StripClass_EnableInput, 5)
 	return 0x6A83DA;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6ABF44, sub_6ABD30_Strip1, 0x5)
+DEFINE_HOOK(0x6ABF44, sub_6ABD30_Strip1, 0x5)
 {
 	R->ESI<DWORD>(ButtonsPtr.getAddrs());
 	return 0x6ABF49;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A7EEE, sub_6A7D70_Strip1, 0x6)
+DEFINE_HOOK(0x6A7EEE, sub_6A7D70_Strip1, 0x6)
 {
 	GET(SidebarClass*, pThis, ESI);
 	pThis->Tabs[pThis->ActiveTabIndex].Func_6A93F0_GScreenAddButton();
 	return 0x6A7F9F;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A801C, sub_6A7D70_Strip2, 0x6)
+DEFINE_HOOK(0x6A801C, sub_6A7D70_Strip2, 0x6)
 {
 	GET(SidebarClass*, pThis, ESI);
 	pThis->Tabs[pThis->ActiveTabIndex].Deactivate();
 	return 0x6A8061;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A64C9, SidebarClass_AddCameo_Strip, 6)
+DEFINE_HOOK(0x6A64C9, SidebarClass_AddCameo_Strip, 6)
 {
 	GET(SidebarClass*, pThis, EBX);
 	GET(int, nStrip, EDI);
@@ -898,35 +898,35 @@ DEFINE_OVERRIDE_HOOK(0x6A64C9, SidebarClass_AddCameo_Strip, 6)
 	return 0x6A65D6;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A75B9, SidebarClass_SetActiveTab_Strip1, 6)
+DEFINE_HOOK(0x6A75B9, SidebarClass_SetActiveTab_Strip1, 6)
 {
 	GET(SidebarClass*, pThis, EBP);
 	pThis->Tabs[pThis->ActiveTabIndex].Func_6A94B0_GScreenRemoveButton();
 	return 0x6A7602;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A7619, SidebarClass_SetActiveTab_Strip2, 6)
+DEFINE_HOOK(0x6A7619, SidebarClass_SetActiveTab_Strip2, 6)
 {
 	GET(SidebarClass*, pThis, EBP);
 	pThis->Tabs[pThis->ActiveTabIndex].Func_6A93F0_GScreenAddButton();
 	return 0x6A76CA;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A793F, SidebarClass_Update_Strip1, 6)
+DEFINE_HOOK(0x6A793F, SidebarClass_Update_Strip1, 6)
 {
 	GET(SidebarClass*, pThis, ESI);
 	pThis->Tabs[pThis->ActiveTabIndex].Func_6A94B0_GScreenRemoveButton();
 	return 0x6A7988;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A79A0, SidebarClass_Update_Strip2, 6)
+DEFINE_HOOK(0x6A79A0, SidebarClass_Update_Strip2, 6)
 {
 	GET(SidebarClass*, pThis, ESI);
 	pThis->Tabs[pThis->ActiveTabIndex].Func_6A93F0_GScreenAddButton();
 	return 0x6A7A51;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A93F0, StripClass_Activate, 6)
+DEFINE_HOOK(0x6A93F0, StripClass_Activate, 6)
 {
 	GET(StripClass*, pThis, ECX);
 	pThis->AllowedToDraw = true;
@@ -934,7 +934,7 @@ DEFINE_OVERRIDE_HOOK(0x6A93F0, StripClass_Activate, 6)
 	return 0x6A94A0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A94B0, StripClass_Deactivate, 6)
+DEFINE_HOOK(0x6A94B0, StripClass_Deactivate, 6)
 {
 	GET(StripClass*, pThis, ECX);
 	pThis->AllowedToDraw = false;

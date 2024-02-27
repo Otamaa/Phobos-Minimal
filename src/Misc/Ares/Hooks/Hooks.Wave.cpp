@@ -27,7 +27,7 @@
 
 #include "Header.h"
 
-DEFINE_OVERRIDE_HOOK(0x6FF449, TechnoClass_Fire_SonicWave, 5)
+DEFINE_HOOK(0x6FF449, TechnoClass_Fire_SonicWave, 5)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const, pSource, EBX);
@@ -41,7 +41,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF449, TechnoClass_Fire_SonicWave, 5)
 	return 0x6FF48A;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FF5F5, TechnoClass_Fire_OtherWaves, 6)
+DEFINE_HOOK(0x6FF5F5, TechnoClass_Fire_OtherWaves, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const, pSource, EBX);
@@ -66,14 +66,14 @@ DEFINE_OVERRIDE_HOOK(0x6FF5F5, TechnoClass_Fire_OtherWaves, 6)
 	return 0x6FF656;
 }
 
-DEFINE_OVERRIDE_HOOK(0x75FA29, WaveClass_Draw_Colors, 0x6)
+DEFINE_HOOK(0x75FA29, WaveClass_Draw_Colors, 0x6)
 {
 	GET(WaveClass*, pThis, ESI);
 	StaticVars::TempColor = WaveExtData::GetWaveColor(pThis);
 	return 0x0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x760F50, WaveClass_Update, 0x6)
+DEFINE_HOOK(0x760F50, WaveClass_Update, 0x6)
 {
 	GET(WaveClass*, pThis, ECX);
 
@@ -126,7 +126,7 @@ DEFINE_OVERRIDE_HOOK(0x760F50, WaveClass_Update, 0x6)
 	return 0x76101A;
 }
 
-DEFINE_OVERRIDE_HOOK(0x760BC2, WaveClass_Draw2, 0x9)
+DEFINE_HOOK(0x760BC2, WaveClass_Draw2, 0x9)
 {
 	GET(WaveClass*, Wave, EBX);
 	GET(WORD*, dest, EBP);
@@ -137,7 +137,7 @@ DEFINE_OVERRIDE_HOOK(0x760BC2, WaveClass_Draw2, 0x9)
 		;
 }
 
-DEFINE_OVERRIDE_HOOK(0x760DE2, WaveClass_Draw3, 0x9)
+DEFINE_HOOK(0x760DE2, WaveClass_Draw3, 0x9)
 {
 	GET(WaveClass*, Wave, EBX);
 	GET(WORD*, dest, EDI);
@@ -148,7 +148,7 @@ DEFINE_OVERRIDE_HOOK(0x760DE2, WaveClass_Draw3, 0x9)
 		;
 }
 
-DEFINE_OVERRIDE_HOOK(0x75EE57, WaveClass_Draw_Sonic, 0x7)
+DEFINE_HOOK(0x75EE57, WaveClass_Draw_Sonic, 0x7)
 {
 	GET_STACK(WaveClass*, Wave, 0x4);
 	GET(WORD*, src, EDI);
@@ -160,7 +160,7 @@ DEFINE_OVERRIDE_HOOK(0x75EE57, WaveClass_Draw_Sonic, 0x7)
 		;
 }
 
-DEFINE_OVERRIDE_HOOK(0x7601FB, WaveClass_Draw_Magnetron2, 0xB)
+DEFINE_HOOK(0x7601FB, WaveClass_Draw_Magnetron2, 0xB)
 {
 	GET_STACK(WaveClass*, Wave, 0x8);
 	GET(WORD*, src, EBX);
@@ -172,13 +172,13 @@ DEFINE_OVERRIDE_HOOK(0x7601FB, WaveClass_Draw_Magnetron2, 0xB)
 		;
 }
 
-DEFINE_OVERRIDE_HOOK(0x75F46E, WaveClass_DamageCell_Wall, 6)
+DEFINE_HOOK(0x75F46E, WaveClass_DamageCell_Wall, 6)
 {
 	GET(WeaponTypeClass*, pWeapon, EBX);
 	return pWeapon->Warhead->Wall ? 0x0 : 0x75F47C;
 }
 
-DEFINE_OVERRIDE_HOOK(0x75F38F, WaveClass_DamageCell_SelectWeapon, 0x6)
+DEFINE_HOOK(0x75F38F, WaveClass_DamageCell_SelectWeapon, 0x6)
 {
 	GET(WaveClass*, pWave, EBP);
 	R->EDI(R->EAX());
@@ -202,7 +202,7 @@ DEFINE_HOOK(0x75EBC5, WaveClass_CTOR_AllowWaveUpdate, 0x7)
 	that mean some Ext variable not yer executed , and when i try to use the data it wont work
 	need to move those to separate function after data set done ,..
 */
-DEFINE_OVERRIDE_HOOK(0x762B62, WaveClass_WaveAI , 0x6)
+DEFINE_HOOK(0x762B62, WaveClass_WaveAI , 0x6)
 {
 	GET(WaveClass*, Wave, ESI);
 
@@ -276,7 +276,7 @@ DEFINE_OVERRIDE_HOOK(0x762B62, WaveClass_WaveAI , 0x6)
 	return 0x762D57;
 }
 
-DEFINE_OVERRIDE_HOOK(0x75EE2E, WaveClass_Draw_Green, 0x8)
+DEFINE_HOOK(0x75EE2E, WaveClass_Draw_Green, 0x8)
 {
 	GET(int, Q, EDX);
 	if (Q > 0x15F8F)
@@ -287,7 +287,7 @@ DEFINE_OVERRIDE_HOOK(0x75EE2E, WaveClass_Draw_Green, 0x8)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x7601C7, WaveClass_Draw_Magnetron, 0x8)
+DEFINE_HOOK(0x7601C7, WaveClass_Draw_Magnetron, 0x8)
 {
 	GET(int, Q, EDX);
 	if (Q > 0x15F8F)
@@ -299,7 +299,7 @@ DEFINE_OVERRIDE_HOOK(0x7601C7, WaveClass_Draw_Magnetron, 0x8)
 }
 
 //DEFINE_PATCH_TYPED(BYTE, 0x7609E3, 0xA1, 0x02, 0x90, 0x90, 0x90);
-DEFINE_OVERRIDE_HOOK(0x7609E3, WaveClass_Draw_NodLaser_Details, 0x5)
+DEFINE_HOOK(0x7609E3, WaveClass_Draw_NodLaser_Details, 0x5)
 {
 	R->EAX(2);
 	return 0x7609E8;
@@ -308,7 +308,7 @@ DEFINE_OVERRIDE_HOOK(0x7609E3, WaveClass_Draw_NodLaser_Details, 0x5)
 //WaveClass_Draw_Magnetron3
 DEFINE_JUMP(LJMP, 0x760286, 0x7602D3);
 
-DEFINE_OVERRIDE_HOOK(0x76110B, WaveClass_RecalculateAffectedCells_Clear, 0x5)
+DEFINE_HOOK(0x76110B, WaveClass_RecalculateAffectedCells_Clear, 0x5)
 {
 	GET(DynamicVectorClass<CellClass*>*, pVec, EBP);
 	pVec->Reset();

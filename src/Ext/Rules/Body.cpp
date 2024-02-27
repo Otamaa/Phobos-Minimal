@@ -150,7 +150,7 @@ static bool NOINLINE IsVanillaDummy(const char* ID) {
 }
 
 #ifndef aaa
-DEFINE_OVERRIDE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
+DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 #else
 DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 #endif

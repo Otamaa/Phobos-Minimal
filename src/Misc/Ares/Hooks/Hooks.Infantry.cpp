@@ -22,7 +22,7 @@
 
 #include "Header.h"
 
-DEFINE_OVERRIDE_HOOK(0x51E5E1, InfantryClass_GetActionOnObject_MultiEngineerB, 7)
+DEFINE_HOOK(0x51E5E1, InfantryClass_GetActionOnObject_MultiEngineerB, 7)
 {
 	GET(BuildingClass*, pBld, ECX);
 	Action ret = TechnoExt_ExtData::GetEngineerEnterEnemyBuildingAction(pBld);
@@ -38,7 +38,7 @@ DEFINE_OVERRIDE_HOOK(0x51E5E1, InfantryClass_GetActionOnObject_MultiEngineerB, 7
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x519D9C, InfantryClass_UpdatePosition_MultiEngineer, 5)
+DEFINE_HOOK(0x519D9C, InfantryClass_UpdatePosition_MultiEngineer, 5)
 {
 	GET(InfantryClass*, pEngi, ESI);
 	GET(BuildingClass*, pBld, EDI);
@@ -56,7 +56,7 @@ DEFINE_OVERRIDE_HOOK(0x519D9C, InfantryClass_UpdatePosition_MultiEngineer, 5)
 	return 0x519EAA;
 }
 
-DEFINE_OVERRIDE_HOOK(0x471C96, CaptureManagerClass_CanCapture, 0xA)
+DEFINE_HOOK(0x471C96, CaptureManagerClass_CanCapture, 0xA)
 {
 	// this is a complete rewrite, because it might be easier to change
 	// this in a central place than spread all over the source code.
@@ -117,7 +117,7 @@ DEFINE_OVERRIDE_HOOK(0x471C96, CaptureManagerClass_CanCapture, 0xA)
 	return Allowed;
 }
 
-DEFINE_OVERRIDE_HOOK(0x51DF38, InfantryClass_Remove, 0xA)
+DEFINE_HOOK(0x51DF38, InfantryClass_Remove, 0xA)
 {
 	GET(InfantryClass*, pThis, ESI);
 
@@ -131,14 +131,14 @@ DEFINE_OVERRIDE_HOOK(0x51DF38, InfantryClass_Remove, 0xA)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x51DFFD, InfantryClass_Put, 5)
+DEFINE_HOOK(0x51DFFD, InfantryClass_Put, 5)
 {
 	GET(InfantryClass*, pThis, EDI);
 	TechnoExtContainer::Instance.Find(pThis)->GarrisonedIn = nullptr;
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x518434, InfantryClass_ReceiveDamage_SkipDeathAnim, 7)
+DEFINE_HOOK(0x518434, InfantryClass_ReceiveDamage_SkipDeathAnim, 7)
 {
 	GET(InfantryClass*, pThis, ESI);
 	//GET_STACK(ObjectClass *, pAttacker, 0xE0);
@@ -150,7 +150,7 @@ DEFINE_OVERRIDE_HOOK(0x518434, InfantryClass_ReceiveDamage_SkipDeathAnim, 7)
 	return TechnoExtContainer::Instance.Find(pThis)->GarrisonedIn ? 0x5185F1 : 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x517D51, InfantryClass_Init_Academy, 6)
+DEFINE_HOOK(0x517D51, InfantryClass_Init_Academy, 6)
 {
 	GET(InfantryClass*, pThis, ESI);
 
@@ -162,7 +162,7 @@ DEFINE_OVERRIDE_HOOK(0x517D51, InfantryClass_Init_Academy, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x51E7BF, InfantryClass_GetActionOnObject_CanCapture, 6)
+DEFINE_HOOK(0x51E7BF, InfantryClass_GetActionOnObject_CanCapture, 6)
 {
 	enum
 	{
@@ -201,7 +201,7 @@ DEFINE_OVERRIDE_HOOK(0x51E7BF, InfantryClass_GetActionOnObject_CanCapture, 6)
 }
 
 // the hijacker is close to the target. capture.
-DEFINE_OVERRIDE_HOOK(0x5203F7, InfantryClass_UpdateVehicleThief_Hijack, 5)
+DEFINE_HOOK(0x5203F7, InfantryClass_UpdateVehicleThief_Hijack, 5)
 {
 	enum { GoOn = 0x5206A1, Stop = 0x520473 };
 
@@ -221,7 +221,7 @@ DEFINE_OVERRIDE_HOOK(0x5203F7, InfantryClass_UpdateVehicleThief_Hijack, 5)
 
 // change all the special things infantry do, like vehicle thief, infiltration,
 // bridge repair, enter transports or bio reactors, ...
-DEFINE_OVERRIDE_HOOK(0x519675, InfantryClass_UpdatePosition_BeforeInfantrySpecific, 0xA)
+DEFINE_HOOK(0x519675, InfantryClass_UpdatePosition_BeforeInfantrySpecific, 0xA)
 {
 	// called after FootClass:UpdatePosition has been called and before
 	// all specific infantry handling takes place.
@@ -272,7 +272,7 @@ DEFINE_OVERRIDE_HOOK(0x519675, InfantryClass_UpdatePosition_BeforeInfantrySpecif
 
 // update the vehicle thief's destination. needed to follow a
 // target without the requirement to also enable Thief=yes.
-DEFINE_OVERRIDE_HOOK(0x5202F9, InfantryClass_UpdateVehicleThief_Check, 6)
+DEFINE_HOOK(0x5202F9, InfantryClass_UpdateVehicleThief_Check, 6)
 {
 	GET(InfantryClass*, pThis, ESI);
 
@@ -289,7 +289,7 @@ DEFINE_OVERRIDE_HOOK(0x5202F9, InfantryClass_UpdateVehicleThief_Check, 6)
 	return 0x52030D;
 }
 
-DEFINE_OVERRIDE_HOOK(0x523932, InfantryTypeClass_CTOR_Initialize, 8)
+DEFINE_HOOK(0x523932, InfantryTypeClass_CTOR_Initialize, 8)
 {
 	GET(InfantryTypeClass*, pItem, ESI)
 	pItem->Sequence->Initialize();
@@ -302,7 +302,7 @@ DEFINE_OVERRIDE_HOOK(0x523932, InfantryTypeClass_CTOR_Initialize, 8)
 //InfantryClass_GetActionOnObject_MultiEngineerA
 DEFINE_JUMP(LJMP, 0x51E5BB, 0x51E5D9);
 
-DEFINE_OVERRIDE_HOOK(0x51F628, InfantryClass_Guard_Doggie, 0x5)
+DEFINE_HOOK(0x51F628, InfantryClass_Guard_Doggie, 0x5)
 {
 	GET(InfantryClass*, pThis, ESI);
 	GET(int, res, EAX);
@@ -330,7 +330,7 @@ DEFINE_OVERRIDE_HOOK(0x51F628, InfantryClass_Guard_Doggie, 0x5)
 	return 0x51F62D;
 }
 
-DEFINE_OVERRIDE_HOOK(0x51ABD7, InfantryClass_SetDestination_Doggie, 0x6)
+DEFINE_HOOK(0x51ABD7, InfantryClass_SetDestination_Doggie, 0x6)
 {
 	GET(InfantryClass* const, pThis, EBP);
 	GET(AbstractClass* const, pTarget, EBX);
@@ -341,7 +341,7 @@ DEFINE_OVERRIDE_HOOK(0x51ABD7, InfantryClass_SetDestination_Doggie, 0x6)
 	return doggieStandUp ? 0x51AC16 : 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5200C1, InfantryClass_UpdatePanic_Doggie, 0x6)
+DEFINE_HOOK(0x5200C1, InfantryClass_UpdatePanic_Doggie, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
 
@@ -381,7 +381,7 @@ DEFINE_OVERRIDE_HOOK(0x5200C1, InfantryClass_UpdatePanic_Doggie, 0x6)
 }
 
 // #1008047: the C4 did not work correctly in YR, because some ability checks were missing
-DEFINE_OVERRIDE_HOOK(0x51C325, InfantryClass_IsCellOccupied_C4Ability, 0x6)
+DEFINE_HOOK(0x51C325, InfantryClass_IsCellOccupied_C4Ability, 0x6)
 {
 	GET(InfantryClass* const, pThis, EBP);
 
@@ -389,7 +389,7 @@ DEFINE_OVERRIDE_HOOK(0x51C325, InfantryClass_IsCellOccupied_C4Ability, 0x6)
 		0x51C37D : 0x51C335;
 }
 
-DEFINE_OVERRIDE_HOOK(0x51A4D2, InfantryClass_UpdatePosition_C4Ability, 0x6)
+DEFINE_HOOK(0x51A4D2, InfantryClass_UpdatePosition_C4Ability, 0x6)
 {
 	GET(InfantryClass* const, pThis, ESI);
 
@@ -398,7 +398,7 @@ DEFINE_OVERRIDE_HOOK(0x51A4D2, InfantryClass_UpdatePosition_C4Ability, 0x6)
 }
 
 // do not prone in water
-DEFINE_OVERRIDE_HOOK(0x5201CC, InfantryClass_UpdatePanic_ProneWater, 0x6)
+DEFINE_HOOK(0x5201CC, InfantryClass_UpdatePanic_ProneWater, 0x6)
 {
 	GET(InfantryClass* const, pThis, ESI);
 	const auto pCell = pThis->GetCell();
@@ -406,7 +406,7 @@ DEFINE_OVERRIDE_HOOK(0x5201CC, InfantryClass_UpdatePanic_ProneWater, 0x6)
 		!pCell->ContainsBridge() ? 0x5201DC : 0x0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x51F716, InfantryClass_Mi_Unload_Undeploy, 0x5)
+DEFINE_HOOK(0x51F716, InfantryClass_Mi_Unload_Undeploy, 0x5)
 {
 	GET(InfantryTypeClass* const, pThisType, ECX);
 	GET(InfantryClass* const, pThis, ESI);
@@ -419,7 +419,7 @@ DEFINE_OVERRIDE_HOOK(0x51F716, InfantryClass_Mi_Unload_Undeploy, 0x5)
 }
 
 // should correct issue #743
-DEFINE_OVERRIDE_HOOK(0x51D799, InfantryClass_PlayAnim_WaterSound, 0x7)
+DEFINE_HOOK(0x51D799, InfantryClass_PlayAnim_WaterSound, 0x7)
 {
 	enum
 	{
@@ -433,7 +433,7 @@ DEFINE_OVERRIDE_HOOK(0x51D799, InfantryClass_PlayAnim_WaterSound, 0x7)
 		? SkipPlay : Play ;
 }
 
-DEFINE_OVERRIDE_HOOK(0x520731, InfantryClass_UpdateFiringState_Heal, 0x5)
+DEFINE_HOOK(0x520731, InfantryClass_UpdateFiringState_Heal, 0x5)
 {
 	GET(InfantryClass* const, pThis, EBP);
 
@@ -450,7 +450,7 @@ DEFINE_OVERRIDE_HOOK(0x520731, InfantryClass_UpdateFiringState_Heal, 0x5)
 //echnoClass_GetROF_BuildingHack
 DEFINE_JUMP(LJMP, 0x6FCFA4, 0x6FCFC1);
 
-DEFINE_OVERRIDE_HOOK(0x51BCB2, InfantryClass_Update_Reload, 0x6)
+DEFINE_HOOK(0x51BCB2, InfantryClass_Update_Reload, 0x6)
 {
 	GET(InfantryClass* const, I, ESI);
 
@@ -465,7 +465,7 @@ DEFINE_OVERRIDE_HOOK(0x51BCB2, InfantryClass_Update_Reload, 0x6)
 //InfantryClass_ActionOnObject_IvanBombs
 DEFINE_JUMP(LJMP, 0x51F1D8, 0x51F1EA);
 
-DEFINE_OVERRIDE_HOOK(0x52070F, InfantryClass_UpdateFiringState_Uncloak, 0x5)
+DEFINE_HOOK(0x52070F, InfantryClass_UpdateFiringState_Uncloak, 0x5)
 {
 	GET(InfantryClass* const, pThis, EBP);
 	GET_STACK(int, idxWeapon, STACK_OFFS(0x34, 0x24));
@@ -487,7 +487,7 @@ DEFINE_OVERRIDE_HOOK(0x52070F, InfantryClass_UpdateFiringState_Uncloak, 0x5)
 // ones the unit was added to after putting it back on the map. that left the
 // actual cell blocked. this fix resets the last coords, so the actual position
 // is unmarked.
-DEFINE_OVERRIDE_HOOK(0x51DF27, InfantryClass_Remove_Teleport, 0x6)
+DEFINE_HOOK(0x51DF27, InfantryClass_Remove_Teleport, 0x6)
 {
 	GET(InfantryClass* const, pThis, ECX);
 
@@ -512,7 +512,7 @@ DEFINE_HOOK(0x5243E3, InfantryTypeClass_AllowDamageSparks, 0xB)
 	return 0x5243EE;
 }
 
-DEFINE_OVERRIDE_HOOK(0x51E3B0, InfantryClass_GetActionOnObject_EMP, 0x7)
+DEFINE_HOOK(0x51E3B0, InfantryClass_GetActionOnObject_EMP, 0x7)
 {
 	GET(InfantryClass* const, pInfantry, ECX);
 	GET_STACK(TechnoClass* const, pTarget, 0x4);
@@ -526,10 +526,10 @@ DEFINE_OVERRIDE_HOOK(0x51E3B0, InfantryClass_GetActionOnObject_EMP, 0x7)
 	return 0;
 }
 
-//DEFINE_OVERRIDE_SKIP_HOOK(0x5200D7, InfantryClass_UpdatePanic_DontReload ,0x6, 52010B)
+//DEFINE_SKIP_HOOK(0x5200D7, InfantryClass_UpdatePanic_DontReload ,0x6, 52010B)
 DEFINE_JUMP(LJMP, 0x5200D7, 0x52010B);
 
-DEFINE_OVERRIDE_HOOK(0x51CE9A, InfantryClass_RandomAnim_IsCow, 5)
+DEFINE_HOOK(0x51CE9A, InfantryClass_RandomAnim_IsCow, 5)
 {
 	GET(InfantryClass*, I, ESI);
 	const auto pData = InfantryTypeExtContainer::Instance.Find(I->Type);
@@ -546,25 +546,25 @@ DEFINE_OVERRIDE_HOOK(0x51CE9A, InfantryClass_RandomAnim_IsCow, 5)
 	return pData->Is_Cow ? 0x51CEAEu : 0x51CECDu;
 }
 
-DEFINE_OVERRIDE_HOOK(0x51F76D, InfantryClass_Unload, 5)
+DEFINE_HOOK(0x51F76D, InfantryClass_Unload, 5)
 {
 	GET(InfantryClass*, I, ESI);
 	return InfantryTypeExtContainer::Instance.Find(I->Type)->Is_Deso ? 0x51F77Du : 0x51F792u;
 }
 
-DEFINE_OVERRIDE_HOOK(0x52138c, InfantryClass_UpdateDeployment_Deso2, 6)
+DEFINE_HOOK(0x52138c, InfantryClass_UpdateDeployment_Deso2, 6)
 {
 	GET(InfantryClass*, I, ESI);
 	return InfantryTypeExtContainer::Instance.Find(I->Type)->Is_Deso ? 0x52139A : 0x5214B9;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5215f9, InfantryClass_UpdateDeployment_Deso1, 6)
+DEFINE_HOOK(0x5215f9, InfantryClass_UpdateDeployment_Deso1, 6)
 {
 	GET(InfantryClass*, I, ESI);
 	return InfantryTypeExtContainer::Instance.Find(I->Type)->Is_Deso ? 0x5216B6 : 0x52160D;
 }
 
-DEFINE_OVERRIDE_HOOK(0x629804, ParasiteClass_UpdateSquiddy, 9)
+DEFINE_HOOK(0x629804, ParasiteClass_UpdateSquiddy, 9)
 {
 	GET(ParasiteClass*, pThis, ESI);
 	R->EAX(pThis->Owner->GetWeapon(TechnoExtContainer::Instance.Find(pThis->Owner)->idxSlot_Parasite));
@@ -574,7 +574,7 @@ DEFINE_OVERRIDE_HOOK(0x629804, ParasiteClass_UpdateSquiddy, 9)
 // #1283638: ivans cannot enter grinders; they get an attack cursor. if the
 // grinder is rigged with a bomb, ivans can enter. this fix lets ivans enter
 // allied grinders. pressing the force fire key brings back the old behavior.
-DEFINE_OVERRIDE_HOOK(0x51EB48, InfantryClass_GetActionOnObject_IvanGrinder, 0xA)
+DEFINE_HOOK(0x51EB48, InfantryClass_GetActionOnObject_IvanGrinder, 0xA)
 {
 	GET(InfantryClass*, pThis, EDI);
 	GET(ObjectClass*, pTarget, ESI);

@@ -542,7 +542,7 @@ void PrintBld(const BuildingClass* pThis, FILE* stream)
 
 
 //#ifdef SellFunctionHandled
-//DEFINE_OVERRIDE_HOOK(0x4471D5, BuildingClass_Sell_DetonateNoBuildup, 6)
+//DEFINE_HOOK(0x4471D5, BuildingClass_Sell_DetonateNoBuildup, 6)
 //{
 //	GET(BuildingClass* const, pStructure, ESI);
 //

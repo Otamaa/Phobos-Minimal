@@ -38,7 +38,7 @@
 #include <Ext/Team/Body.h>
 #include <Ext/Script/Body.h>
 
-DEFINE_OVERRIDE_HOOK(0x65DBB3, TeamTypeClass_CreateInstance_Plane, 5)
+DEFINE_HOOK(0x65DBB3, TeamTypeClass_CreateInstance_Plane, 5)
 {
 	GET(FootClass*, pFoot, EBP);
 	R->ECX(HouseExtData::GetParadropPlane(pFoot->Owner));
@@ -46,7 +46,7 @@ DEFINE_OVERRIDE_HOOK(0x65DBB3, TeamTypeClass_CreateInstance_Plane, 5)
 	return 0x65DBD0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
+DEFINE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
 {
 	enum { ReturnFunc = 0x6E95AB, Continue = 0x0 };
 	GET(TeamClass*, pThis, ESI);
@@ -116,7 +116,7 @@ DEFINE_OVERRIDE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
 	return Continue;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6EF8A1, TeamClass_GatherAtEnemyBase_Distance, 0x6)
+DEFINE_HOOK(0x6EF8A1, TeamClass_GatherAtEnemyBase_Distance, 0x6)
 {
 	//GET_STACK(TeamClass*, pTeam, STACK_OFFS(0x5C, 0x34));
 	GET_BASE(ScriptActionNode*, pTeamM, 0x8);
@@ -129,7 +129,7 @@ DEFINE_OVERRIDE_HOOK(0x6EF8A1, TeamClass_GatherAtEnemyBase_Distance, 0x6)
 	return 0x6EF8A7;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6EFB69, TeamClass_GatherAtFriendlyBase_Distance, 0x6)
+DEFINE_HOOK(0x6EFB69, TeamClass_GatherAtFriendlyBase_Distance, 0x6)
 {
 	//GET_STACK(TeamClass*, pTeam, 0x48 - 0x2C);
 	GET_BASE(ScriptActionNode*, pTeamM, 0x8);
@@ -182,7 +182,7 @@ DEFINE_OVERRIDE_HOOK(0x6EFB69, TeamClass_GatherAtFriendlyBase_Distance, 0x6)
 
 // #895225: make the AI smarter. this code was missing from YR.
 // it clears the targets and assigns the attacker the team's current focus.
-DEFINE_OVERRIDE_HOOK(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
+DEFINE_HOOK(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
 {
 	GET(TeamClass*, pThis, ESI);
 	GET(AbstractClass*, pAttacker, EBP);
@@ -237,8 +237,8 @@ DEFINE_OVERRIDE_HOOK(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
 
 // #1260: reinforcements via actions 7 and 80, and chrono reinforcements
 // via action 107 cause crash if house doesn't exist
-DEFINE_OVERRIDE_HOOK_AGAIN(0x65EC4A, TeamTypeClass_ValidateHouse, 6)
-DEFINE_OVERRIDE_HOOK(0x65D8FB, TeamTypeClass_ValidateHouse, 6)
+DEFINE_HOOK_AGAIN(0x65EC4A, TeamTypeClass_ValidateHouse, 6)
+DEFINE_HOOK(0x65D8FB, TeamTypeClass_ValidateHouse, 6)
 {
 	GET(TeamTypeClass*, pThis, ECX);
 	HouseClass* pHouse = pThis->GetHouse();

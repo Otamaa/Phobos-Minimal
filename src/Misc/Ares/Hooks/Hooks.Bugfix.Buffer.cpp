@@ -11,60 +11,60 @@
 #include <SmudgeTypeClass.h>
 
 
-DEFINE_OVERRIDE_HOOK(0x7274AF, TriggerTypeClass_LoadFromINI_Read_Events, 5)
+DEFINE_HOOK(0x7274AF, TriggerTypeClass_LoadFromINI_Read_Events, 5)
 {
 	R->Stack(0x0, Phobos::readBuffer);
 	R->Stack(0x4, Phobos::readLength);
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x7274C8, TriggerTypeClass_LoadFromINI_Strtok_Events, 5)
+DEFINE_HOOK(0x7274C8, TriggerTypeClass_LoadFromINI_Strtok_Events, 5)
 {
 	R->ECX(Phobos::readBuffer);
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x727529, TriggerTypeClass_LoadFromINI_Read_Actions, 5)
+DEFINE_HOOK(0x727529, TriggerTypeClass_LoadFromINI_Read_Actions, 5)
 {
 	R->Stack(0x0, Phobos::readBuffer);
 	R->Stack(0x4, Phobos::readLength);
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x727544, TriggerTypeClass_LoadFromINI_Strtok_Actions, 5)
+DEFINE_HOOK(0x727544, TriggerTypeClass_LoadFromINI_Strtok_Actions, 5)
 {
 	R->EDX(Phobos::readBuffer);
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4750EC, INIClass_ReadHouseTypesList, 7)
+DEFINE_HOOK(0x4750EC, INIClass_ReadHouseTypesList, 7)
 {
 	R->Stack(0x0, Phobos::readBuffer);
 	R->Stack(0x4, Phobos::readLength);
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x475107, INIClass_ReadHouseTypesList_Strtok, 5)
+DEFINE_HOOK(0x475107, INIClass_ReadHouseTypesList_Strtok, 5)
 {
 	R->ECX(Phobos::readBuffer);
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x47527C, INIClass_GetAlliesBitfield, 7)
+DEFINE_HOOK(0x47527C, INIClass_GetAlliesBitfield, 7)
 {
 	R->Stack(0x0, Phobos::readBuffer);
 	R->Stack(0x4, Phobos::readLength);
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x475297, INIClass_GetAlliesBitfield_Strtok, 5)
+DEFINE_HOOK(0x475297, INIClass_GetAlliesBitfield_Strtok, 5)
 {
 	R->ECX(Phobos::readBuffer);
 	return 0;
 }
 
 // == WeaponType ==
-DEFINE_OVERRIDE_HOOK(0x772462, WeaponTypeClass_LoadFromINI_ListLength, 0x9)
+DEFINE_HOOK(0x772462, WeaponTypeClass_LoadFromINI_ListLength, 0x9)
 {
 	GET(WeaponTypeClass*, pThis, ESI);
 	GET(const char*, pSection, EBX);
@@ -77,7 +77,7 @@ DEFINE_OVERRIDE_HOOK(0x772462, WeaponTypeClass_LoadFromINI_ListLength, 0x9)
 }
 
 // == WarheadType ==
-DEFINE_OVERRIDE_HOOK(0x75D660, WarheadTypeClass_LoadFromINI_ListLength, 9)
+DEFINE_HOOK(0x75D660, WarheadTypeClass_LoadFromINI_ListLength, 9)
 {
 	GET(WarheadTypeClass*, pThis, ESI);
 	GET(const char*, pSection, EBP);
@@ -91,7 +91,7 @@ DEFINE_OVERRIDE_HOOK(0x75D660, WarheadTypeClass_LoadFromINI_ListLength, 9)
 	return 0x75D75D;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A9348, StripClass_GetTip_FixLength, 9)
+DEFINE_HOOK(0x6A9348, StripClass_GetTip_FixLength, 9)
 {
 	DWORD HideObjectName = R->AL();
 
@@ -118,7 +118,7 @@ DEFINE_OVERRIDE_HOOK(0x6A9348, StripClass_GetTip_FixLength, 9)
 //WarheadTypeClass_LoadFromINI_SkipLists
 DEFINE_JUMP(LJMP, 0x75DAE6, 0x75DDCC);
 
-DEFINE_OVERRIDE_HOOK(0x713171, TechnoTypeClass_LoadFromINI_SkipLists1, 9)
+DEFINE_HOOK(0x713171, TechnoTypeClass_LoadFromINI_SkipLists1, 9)
 {
 	GET(TechnoTypeClass*, pThis, EBP);
 	GET(Category, category, EAX);
@@ -126,7 +126,7 @@ DEFINE_OVERRIDE_HOOK(0x713171, TechnoTypeClass_LoadFromINI_SkipLists1, 9)
 	return 0x713264;
 }
 
-DEFINE_OVERRIDE_HOOK(0x713C10, TechnoTypeClass_LoadFromINI_SkipLists2, 7)
+DEFINE_HOOK(0x713C10, TechnoTypeClass_LoadFromINI_SkipLists2, 7)
 {
 	GET(TechnoTypeClass*, pThis, EBP);
 	GET(const CoordStruct*, pResult, EAX);
@@ -135,7 +135,7 @@ DEFINE_OVERRIDE_HOOK(0x713C10, TechnoTypeClass_LoadFromINI_SkipLists2, 7)
 }
 
 // == TechnoType ==
-DEFINE_OVERRIDE_HOOK(0x7125DF, TechnoTypeClass_LoadFromINI_ListLength, 7)
+DEFINE_HOOK(0x7125DF, TechnoTypeClass_LoadFromINI_ListLength, 7)
 {
 	GET(TechnoTypeClass*, pThis, EBP);
 	GET(const char*, pSection, EBX);
@@ -157,7 +157,7 @@ DEFINE_OVERRIDE_HOOK(0x7125DF, TechnoTypeClass_LoadFromINI_ListLength, 7)
 
 // ============= [AI] =============
 
-DEFINE_OVERRIDE_HOOK(0x672B0E, Buf_AI, 6)
+DEFINE_HOOK(0x672B0E, Buf_AI, 6)
 {
 	GET(RulesClass*, pRules, ESI);
 	GET(CCINIClass*, pINI, EDI);
@@ -191,7 +191,7 @@ DEFINE_OVERRIDE_HOOK(0x672B0E, Buf_AI, 6)
 }
 
 // ============= [CombatDamage] =============
-DEFINE_OVERRIDE_HOOK(0x66BC71, Buf_CombatDamage, 9)
+DEFINE_HOOK(0x66BC71, Buf_CombatDamage, 9)
 {
 	GET(RulesClass*, pRules, ESI);
 	GET(CCINIClass*, pINI, EDI);
@@ -210,7 +210,7 @@ DEFINE_OVERRIDE_HOOK(0x66BC71, Buf_CombatDamage, 9)
 }
 
 // ============= [General] =============
-DEFINE_OVERRIDE_HOOK(0x66D55E, Buf_General, 6)
+DEFINE_HOOK(0x66D55E, Buf_General, 6)
 {
 	GET(RulesClass*, pRules, ESI);
 	GET(CCINIClass*, pINI, EDI);
@@ -270,7 +270,7 @@ DEFINE_JUMP(LJMP, 0x66FA13, 0x66FAD6);
 //Buf_Shipyard
 DEFINE_JUMP(LJMP, 0x66f589, 0x66F68C);
 
-DEFINE_OVERRIDE_HOOK(0x66F7C0, Buf_PPA, 9)
+DEFINE_HOOK(0x66F7C0, Buf_PPA, 9)
 {
 	GET(RulesClass*, Rules, ESI);
 	GET(UnitTypeClass*, Pt, EAX); // recreating overwritten bits
@@ -278,7 +278,7 @@ DEFINE_OVERRIDE_HOOK(0x66F7C0, Buf_PPA, 9)
 	return 0x66F9FA;
 }
 
-DEFINE_OVERRIDE_HOOK(0x66F34B, Buf_RepairBay, 5)
+DEFINE_HOOK(0x66F34B, Buf_RepairBay, 5)
 {
 	GET(RulesClass*, Rules, ESI);
 	Rules->NoParachuteMaxFallRate = R->EAX<int>();
@@ -290,7 +290,7 @@ DEFINE_JUMP(LJMP, 0x66DD13, 0x66DF19);
 //Buf_BridgeExplosions
 DEFINE_JUMP(LJMP, 0x66DB93, 0x66DC96);
 
-DEFINE_OVERRIDE_HOOK(0x511D16, HouseTypeClass_LoadFromINI_Buffer_CountryVeteran, 9)
+DEFINE_HOOK(0x511D16, HouseTypeClass_LoadFromINI_Buffer_CountryVeteran, 9)
 {
 	GET(HouseTypeClass*, pHouseType, EBX);
 	GET(CCINIClass*, pINI, ESI);

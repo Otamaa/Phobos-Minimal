@@ -1827,7 +1827,7 @@ DEFINE_HOOK(0x73D909, UnitClass_Mi_Unload_LastPassengerOut, 8)
 }
 
 //TechnoClass_GetWeaponState
-DEFINE_OVERRIDE_HOOK(0x6FCA30, TechnoClass_GetFireError_DecloakToFire, 6)
+DEFINE_HOOK(0x6FCA30, TechnoClass_GetFireError_DecloakToFire, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const, pWeapon, EBX);

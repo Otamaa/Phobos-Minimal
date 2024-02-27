@@ -281,7 +281,6 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Particle.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Perf.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.ReceiveDamage.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Remove.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.SaveGame.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Selection.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Sides.cpp" />

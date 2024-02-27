@@ -1,7 +1,7 @@
 #include "Header.h"
 
 //this is still 0.A code , need check the new one ,..
-DEFINE_OVERRIDE_HOOK(0x537BC0, Game_MakeScreenshot, 6)
+DEFINE_HOOK(0x537BC0, Game_MakeScreenshot, 6)
 {
 	RECT Viewport = {};
 	if (Imports::GetWindowRect.get()(Game::hWnd, &Viewport))

@@ -363,9 +363,9 @@ hookdecl _hk__ ## hook ## funcname = { ## hook, ## size, #funcname }; \
 #define declhook(hook, funcname, size)
 #endif // declhook
 
-#ifndef decl_override_hook
-#define decl_override_hook(hook, funcname, size)
-#endif // declhook
+//#ifndef decl_override_hook
+//#define decl_override_hook(hook, funcname, size)
+//#endif // declhook
 
 //#define DEFINE_RAW_PATCH(hook,funcname ,...)								 \
 //	namespace patch##funcname													 \
@@ -423,13 +423,13 @@ declhook(hook, funcname##_DEBUG_HOOK__LOG_, size)
 #endif
 
 #pragma region DONOTLOG
-#define DEFINE_STRONG_OVERRIDE_HOOK(hook,funcname,size) \
-declhook(hook, funcname, size) \
-EXPORT_FUNC(funcname)
+//#define DEFINE_STRONG_OVERRIDE_HOOK(hook,funcname,size) \
+//declhook(hook, funcname, size) \
+//EXPORT_FUNC(funcname)
 
 //decl_override_hook(hook, funcname, size)
-#define DEFINE_STRONG_OVERRIDE_HOOK_AGAIN(hook, funcname, size) \
-declhook(hook, funcname, size)
+//#define DEFINE_STRONG_OVERRIDE_HOOK_AGAIN(hook, funcname, size) \
+//declhook(hook, funcname, size)
 
 #define DEFINE_STRONG_HOOK(hook,funcname,size) \
 declhook(hook, funcname, size) \
@@ -442,45 +442,45 @@ declhook(hook, funcname, size)
 
 #pragma endregion
 
-#ifndef DEBUG_HOOK
-//decl_override_hook(hook, funcname, size) 
-//EXPORT_FUNC(funcname)
-#define DEFINE_OVERRIDE_HOOK(hook,funcname,size) \
-declhook(hook, funcname, size) \
-EXPORT_FUNC(funcname)\
-
+//#ifndef DEBUG_HOOK
 //decl_override_hook(hook, funcname, size)
-#define DEFINE_OVERRIDE_HOOK_AGAIN(hook, funcname, size) \
-declhook(hook, funcname, size)
+//EXPORT_FUNC(funcname)
+//#define DEFINE_OVERRIDE_HOOK(hook,funcname,size) \
+//declhook(hook, funcname, size) \
+//EXPORT_FUNC(funcname)\
+//
+//decl_override_hook(hook, funcname, size)
+//#define DEFINE_OVERRIDE_HOOK_AGAIN(hook, funcname, size) \
+//declhook(hook, funcname, size)
+//
+//#else
+//
+//#define DEFINE_OVERRIDE_HOOK(hook, funcname, size) \
+//decl_override_hook(hook, funcname##_DEBUG_HOOK__LOG_, size) \
+//EXPORT_DEBUG_DECLARE(funcname##_DEBUG_) \
+//EXPORT_FUNC(funcname##_DEBUG_HOOK__LOG_) \
+//{\
+//DebugData::StartO(R->Origin(), #funcname , size);\
+//DWORD ret=funcname##_DEBUG_(R);\
+//DebugData::EndO(R->Origin(), #funcname, size);\
+//return ret;\
+//}\
+//EXPORT_DEBUG(funcname##_DEBUG_)
+//
+//#define DEFINE_OVERRIDE_HOOK_AGAIN(hook, funcname, size) \
+//decl_override_hook(hook, funcname##_DEBUG_HOOK__LOG_, size)
+//
+//#endif
 
-#else
-
-#define DEFINE_OVERRIDE_HOOK(hook, funcname, size) \
-decl_override_hook(hook, funcname##_DEBUG_HOOK__LOG_, size) \
-EXPORT_DEBUG_DECLARE(funcname##_DEBUG_) \
-EXPORT_FUNC(funcname##_DEBUG_HOOK__LOG_) \
-{\
-DebugData::StartO(R->Origin(), #funcname , size);\
-DWORD ret=funcname##_DEBUG_(R);\
-DebugData::EndO(R->Origin(), #funcname, size);\
-return ret;\
-}\
-EXPORT_DEBUG(funcname##_DEBUG_)
-
-#define DEFINE_OVERRIDE_HOOK_AGAIN(hook, funcname, size) \
-decl_override_hook(hook, funcname##_DEBUG_HOOK__LOG_, size)
-
-#endif
-
-#define DEFINE_DISABLE_HOOK(hook,funcname)
+//#define DEFINE_DISABLE_HOOK(hook,funcname)
 //PRAGMA_DISABLEWARNING()
 //PRAGMA_DISABLEWARNING_S(4245)
 //PRAGMA_DISABLEWARNING_S(4838)
-//decl_override_hook(hook, funcname, -1) 
+//decl_override_hook(hook, funcname, -1)
 //PRAGMA_DISABLEWARNING_POP()
 
-#define DEFINE_OVERRIDE_SKIP_HOOK(hook,funcname,size,ret)\
-DEFINE_HOOK(hook,funcname,size){ return 0x ##ret## ;}
+//#define DEFINE_OVERRIDE_SKIP_HOOK(hook,funcname,size,ret)\
+//DEFINE_HOOK(hook,funcname,size){ return 0x ##ret## ;}
 //DEFINE_OVERRIDE_HOOK(hook,funcname,size){ return 0x ##ret## ;}
 
 #define DEFINE_SKIP_HOOK(hook,funcname,size,ret)\

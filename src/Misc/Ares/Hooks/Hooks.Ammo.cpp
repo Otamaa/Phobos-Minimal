@@ -22,7 +22,7 @@
 #include "Header.h"
 
 //weapons can take more than one round of ammo
-DEFINE_OVERRIDE_HOOK(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
+DEFINE_HOOK(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
 {
 	enum { FireErrAmmo = 0x6FCA17u, Continue = 0x6FCA26u };
 	GET(TechnoClass* const, pThis, ESI);
@@ -47,7 +47,7 @@ DEFINE_OVERRIDE_HOOK(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
 	return (!IsDisabled || !nAmmo) ? FireErrAmmo : Continue;*/
 }
 
-DEFINE_OVERRIDE_HOOK(0x7413FF, UnitClass_Fire_Ammo, 7)
+DEFINE_HOOK(0x7413FF, UnitClass_Fire_Ammo, 7)
 {
 	GET(UnitClass*, pThis, ESI);
 	GET_STACK(WeaponTypeClass*, pWeapon, STACK_OFFSET(0x20, 0x8));
@@ -59,7 +59,7 @@ DEFINE_OVERRIDE_HOOK(0x7413FF, UnitClass_Fire_Ammo, 7)
 	return 0x741406;
 }
 
-DEFINE_OVERRIDE_HOOK(0x51DF8C, InfantryClass_Fire_Ammo, 6)
+DEFINE_HOOK(0x51DF8C, InfantryClass_Fire_Ammo, 6)
 {
 	GET(InfantryClass*, pThis, ESI);
 	GET_STACK(int, nWeaponIdx, 0x10);
@@ -80,7 +80,7 @@ DEFINE_OVERRIDE_HOOK(0x51DF8C, InfantryClass_Fire_Ammo, 6)
 }
 
 // variable amounts of rounds to reload
-DEFINE_OVERRIDE_HOOK(0x6FB05B, TechnoClass_Reload_ReloadAmount, 6)
+DEFINE_HOOK(0x6FB05B, TechnoClass_Reload_ReloadAmount, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	const auto pType = pThis->GetTechnoType();
@@ -98,7 +98,7 @@ DEFINE_OVERRIDE_HOOK(0x6FB05B, TechnoClass_Reload_ReloadAmount, 6)
 	return 0x6FB061;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6F3410, TechnoClass_SelectWeapon_NoAmmoWeapon, 5)
+DEFINE_HOOK(0x6F3410, TechnoClass_SelectWeapon_NoAmmoWeapon, 5)
 {
 	GET(TechnoClass*, pThis, ESI);
 	const auto pType = pThis->GetTechnoType();

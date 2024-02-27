@@ -1,7 +1,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
 
-DEFINE_OVERRIDE_HOOK(0x6FD64A, TechnoClass_FireRadBeam1, 6)
+DEFINE_HOOK(0x6FD64A, TechnoClass_FireRadBeam1, 6)
 {
 	BYTE idxWeapon = *reinterpret_cast<BYTE*>(R->Stack32(0x18) + 0xC); // hack! 0x18 fetches the caller's EBP, which gives us access to its locals, including idxWeapon
 	GET_STACK(TechnoClass*, Techno, 0x14);
@@ -25,7 +25,7 @@ DEFINE_OVERRIDE_HOOK(0x6FD64A, TechnoClass_FireRadBeam1, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FD79C, TechnoClass_FireRadBeam2, 6)
+DEFINE_HOOK(0x6FD79C, TechnoClass_FireRadBeam2, 6)
 {
 	GET(RadBeam*, Rad, ESI);
 	GET_STACK(WeaponTypeClass*, pSource, 0xC);

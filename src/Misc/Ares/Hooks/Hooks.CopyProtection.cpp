@@ -3,7 +3,7 @@
 
 // this douchebag blows your base up when it thinks you're cheating
 // this already handled below , the validation will aways return true , this prevent  this to even happen
-DEFINE_OVERRIDE_SKIP_HOOK(0x55CFDF, CopyProtection_DontBlowMeUp,0, 55D059);
+DEFINE_SKIP_HOOK(0x55CFDF, CopyProtection_DontBlowMeUp,0, 55D059);
 
 // Allows run game without the launcher
 DEFINE_PATCH(0x49F5C0,    // CopyProtect_IsLauncherRunning
@@ -18,7 +18,7 @@ DEFINE_PATCH(0x49F7A0,    // CopyProtect_Validate
 	0xB0, 0x01,           // mov    al, 1
 	0xC3);                // retn
 
-DEFINE_STRONG_OVERRIDE_HOOK(0x47AE36, _YR_CDFileClass_SetFileName, 8)
+DEFINE_STRONG_HOOK(0x47AE36, _YR_CDFileClass_SetFileName, 8)
 {
 	GET(void*, CDControl, EAX);
 
@@ -29,7 +29,7 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x47AE36, _YR_CDFileClass_SetFileName, 8)
 	return 0x47AE3E;
 }
 
-DEFINE_STRONG_OVERRIDE_HOOK(0x47B026, _YR_FileFindOpen, 8)
+DEFINE_STRONG_HOOK(0x47B026, _YR_FileFindOpen, 8)
 {
 	GET(void*, CDControl, EBX);
 
@@ -40,7 +40,7 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x47B026, _YR_FileFindOpen, 8)
 	return 0x47B02E;
 }
 
-DEFINE_STRONG_OVERRIDE_HOOK(0x4A80D0, CD_AlwaysFindYR, 6)
+DEFINE_STRONG_HOOK(0x4A80D0, CD_AlwaysFindYR, 6)
 {
 	if (Phobos::Otamaa::NoCD)
 	{
@@ -50,7 +50,7 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x4A80D0, CD_AlwaysFindYR, 6)
 	return 0;
 }
 
-DEFINE_STRONG_OVERRIDE_HOOK(0x4790E0, CD_AlwaysAvailable, 7)
+DEFINE_STRONG_HOOK(0x4790E0, CD_AlwaysAvailable, 7)
 {
 	if (Phobos::Otamaa::NoCD)
 	{
@@ -60,7 +60,7 @@ DEFINE_STRONG_OVERRIDE_HOOK(0x4790E0, CD_AlwaysAvailable, 7)
 	return 0;
 }
 
-DEFINE_STRONG_OVERRIDE_HOOK(0x479110, CD_NeverAsk, 5)
+DEFINE_STRONG_HOOK(0x479110, CD_NeverAsk, 5)
 {
 	if (Phobos::Otamaa::NoCD)
 	{

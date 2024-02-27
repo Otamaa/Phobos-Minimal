@@ -16,7 +16,7 @@
 
 #include "Header.h"
 
-DEFINE_OVERRIDE_HOOK(0x420A71, AlphaShapeClass_CTOR_Anims, 0x5)
+DEFINE_HOOK(0x420A71, AlphaShapeClass_CTOR_Anims, 0x5)
 {
 	GET(AlphaShapeClass*, pThis, ESI);
 
@@ -28,7 +28,7 @@ DEFINE_OVERRIDE_HOOK(0x420A71, AlphaShapeClass_CTOR_Anims, 0x5)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x421798, AlphaShapeClass_SDDTOR_Anims, 0x6)
+DEFINE_HOOK(0x421798, AlphaShapeClass_SDDTOR_Anims, 0x6)
 {
 	GET(AlphaShapeClass*, pThis, ESI);
 	PointerExpiredNotification::NotifyInvalidAnim->Remove(pThis);
@@ -51,7 +51,7 @@ DEFINE_HOOK(0x420E70, AlphaLightClass_Detach_ClearPointer, 0x7)
 #ifndef ALPHA_DRAWING
 // This part is inevitable
 // the `AlphaShapeClass` dtor is executed first before objects
-DEFINE_OVERRIDE_HOOK(0x421730, AlphaShapeClass_SDDTOR, 8)
+DEFINE_HOOK(0x421730, AlphaShapeClass_SDDTOR, 8)
 {
 	GET(AlphaShapeClass* const, pAlpha, ECX);
 
@@ -63,7 +63,7 @@ DEFINE_OVERRIDE_HOOK(0x421730, AlphaShapeClass_SDDTOR, 8)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x420960, AlphaShapeClass_CTOR, 5)
+DEFINE_HOOK(0x420960, AlphaShapeClass_CTOR, 5)
 {
 	GET_STACK(ObjectClass* const, pSource, 0x4);
 	GET(AlphaShapeClass*, pThis, ECX);
@@ -86,7 +86,7 @@ DEFINE_OVERRIDE_HOOK(0x420960, AlphaShapeClass_CTOR, 5)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5F3D65, ObjectClass_DTOR, 6)
+DEFINE_HOOK(0x5F3D65, ObjectClass_DTOR, 6)
 {
 	GET(ObjectClass*, pThis, ESI);
 
@@ -97,14 +97,14 @@ DEFINE_OVERRIDE_HOOK(0x5F3D65, ObjectClass_DTOR, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5F3E70, ObjectClass_Update_AlphaLight, 5)
+DEFINE_HOOK(0x5F3E70, ObjectClass_Update_AlphaLight, 5)
 {
 	GET(ObjectClass*, pThis, ECX);
 	TechnoExt_ExtData::UpdateAlphaShape(pThis);
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x423B0B, AnimClass_Update_AlphaLight, 6)
+DEFINE_HOOK(0x423B0B, AnimClass_Update_AlphaLight, 6)
 {
 	GET(AnimClass*, pThis, ESI);
 	// flaming guys do the update via base class

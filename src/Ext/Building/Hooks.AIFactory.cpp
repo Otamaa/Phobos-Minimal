@@ -268,7 +268,7 @@ void HouseExtData::UpdateVehicleProduction()
 	}
 }
 
-//DEFINE_OVERRIDE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal_Mapped, 0x6)
+//DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal_Mapped, 0x6)
 //{
 //	GET(AbstractClass* const, pInvalid, ECX);
 //	GET(bool const, removed, EDX);
@@ -327,28 +327,28 @@ DEFINE_HOOK(0x4401BB, BuildingClass_AI_PickWithFreeDocks, 0x6) //was C
 //	return 0x0;
 //}
 
-DEFINE_OVERRIDE_HOOK(0x443CCA, BuildingClass_KickOutUnit_AircraftType_Phobos, 0xA)
+DEFINE_HOOK(0x443CCA, BuildingClass_KickOutUnit_AircraftType_Phobos, 0xA)
 {
 	GET(HouseClass*, pHouse, EDX);
 	HouseExtContainer::Instance.Find(pHouse)->Factory_AircraftType = nullptr;
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x44531F, BuildingClass_KickOutUnit_BuildingType_Phobos, 0xA)
+DEFINE_HOOK(0x44531F, BuildingClass_KickOutUnit_BuildingType_Phobos, 0xA)
 {
 	GET(HouseClass*, pHouse, EAX);
 	HouseExtContainer::Instance.Find(pHouse)->Factory_BuildingType = nullptr;
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x444131, BuildingClass_KickOutUnit_InfantryType_Phobos, 0x6)
+DEFINE_HOOK(0x444131, BuildingClass_KickOutUnit_InfantryType_Phobos, 0x6)
 {
 	GET(HouseClass*, pHouse, EAX);
 	HouseExtContainer::Instance.Find(pHouse)->Factory_InfantryType = nullptr;
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x444119, BuildingClass_KickOutUnit_UnitType_Phobos, 0x6)
+DEFINE_HOOK(0x444119, BuildingClass_KickOutUnit_UnitType_Phobos, 0x6)
 {
 	GET(UnitClass*, pUnit, EDI);
 	GET(BuildingClass*, pFactory, ESI);
@@ -363,7 +363,7 @@ DEFINE_OVERRIDE_HOOK(0x444119, BuildingClass_KickOutUnit_UnitType_Phobos, 0x6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
+DEFINE_HOOK(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 {
 	GET(FactoryClass*, pFactory, ESI);
 
@@ -395,7 +395,7 @@ DEFINE_OVERRIDE_HOOK(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4502F4, BuildingClass_Update_Factory, 0x6)
+DEFINE_HOOK(0x4502F4, BuildingClass_Update_Factory, 0x6)
 {
 	enum { Skip = 0x4503CA };
 
@@ -429,7 +429,7 @@ DEFINE_OVERRIDE_HOOK(0x4502F4, BuildingClass_Update_Factory, 0x6)
 	return 0x0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
+DEFINE_HOOK(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
 {
 	GET(HouseClass* const, pThis, ECX);
 
@@ -495,7 +495,7 @@ DEFINE_OVERRIDE_HOOK(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
 	return ret();
 }
 
-DEFINE_OVERRIDE_HOOK(0x4FEEE0, HouseClass_AI_InfantryProduction, 6)
+DEFINE_HOOK(0x4FEEE0, HouseClass_AI_InfantryProduction, 6)
 {
 	GET(HouseClass*, pThis, ECX);
 
@@ -606,7 +606,7 @@ DEFINE_OVERRIDE_HOOK(0x4FEEE0, HouseClass_AI_InfantryProduction, 6)
 	return 0x4FF204;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4FF210, HouseClass_AI_AircraftProduction, 6)
+DEFINE_HOOK(0x4FF210, HouseClass_AI_AircraftProduction, 6)
 {
 	GET(HouseClass*, pThis, ECX);
 

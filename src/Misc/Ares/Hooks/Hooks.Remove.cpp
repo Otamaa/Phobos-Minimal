@@ -429,7 +429,7 @@ DEFINE_DISABLE_HOOK(0x720A61, skip_Theme_AI_ares)
 
 
 #ifdef SellFunctionHandled
-DEFINE_OVERRIDE_HOOK(0x447113, BuildingClass_Sell_PrismForward, 6)
+DEFINE_HOOK(0x447113, BuildingClass_Sell_PrismForward, 6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 

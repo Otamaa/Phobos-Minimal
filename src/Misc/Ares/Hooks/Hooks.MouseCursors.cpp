@@ -19,7 +19,7 @@
 
 #include <New/Type/CursorTypeClass.h>
 
-DEFINE_OVERRIDE_HOOK(0x653CA6, RadarClass_GetMouseAction_AllowMinimap, 5)
+DEFINE_HOOK(0x653CA6, RadarClass_GetMouseAction_AllowMinimap, 5)
 {
 	GET(int, nAction, EAX);
 	enum { AllowMini = 0x653CC0  , DisAllowMini = 0x653CBA , ReConsiderAllowMini = 0x653CAB };
@@ -109,7 +109,7 @@ DEFINE_HOOK(0x5BE990, MouseClass_Get_Mouse_Frame_Count_Replace, 0xB)
 	return 0x5BE9A4;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4AB35A, DisplayClass_SetAction_CustomCursor, 0x6)
+DEFINE_HOOK(0x4AB35A, DisplayClass_SetAction_CustomCursor, 0x6)
 {
 	GET(DisplayClass*, pThis, ESI);
 	GET(Action, nAction, EAX);
@@ -157,7 +157,7 @@ DEFINE_OVERRIDE_HOOK(0x4AB35A, DisplayClass_SetAction_CustomCursor, 0x6)
 //	}
 //}
 
-DEFINE_OVERRIDE_HOOK(0x6929FC, DisplayClass_ChooseAction_CanSell, 7)
+DEFINE_HOOK(0x6929FC, DisplayClass_ChooseAction_CanSell, 7)
 {
 	GET(TechnoClass*, Target, ESI);
 	switch (Target->WhatAmI())
@@ -175,7 +175,7 @@ DEFINE_OVERRIDE_HOOK(0x6929FC, DisplayClass_ChooseAction_CanSell, 7)
 }
 
 // WeaponCursor
-DEFINE_OVERRIDE_HOOK(0x70055D, TechnoClass_GetActionOnObject_AttackCursor, 8)
+DEFINE_HOOK(0x70055D, TechnoClass_GetActionOnObject_AttackCursor, 8)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(int, nWeapon, STACK_OFFS(0x1C, 0x8));
@@ -186,7 +186,7 @@ DEFINE_OVERRIDE_HOOK(0x70055D, TechnoClass_GetActionOnObject_AttackCursor, 8)
 }
 
  //WeaponCursor
-DEFINE_OVERRIDE_HOOK(0x700AA8, TechnoClass_GetActionOnCell_AttackCursor, 8)
+DEFINE_HOOK(0x700AA8, TechnoClass_GetActionOnCell_AttackCursor, 8)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(int, nWeapon, EBP);
@@ -195,7 +195,7 @@ DEFINE_OVERRIDE_HOOK(0x700AA8, TechnoClass_GetActionOnCell_AttackCursor, 8)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x700600, TechnoClass_GetActionOnCell_Cursors, 5)
+DEFINE_HOOK(0x700600, TechnoClass_GetActionOnCell_Cursors, 5)
 {
 	GET(TechnoClass*, pThis, ECX);
 	const auto pType = pThis->GetTechnoType();
@@ -209,7 +209,7 @@ DEFINE_OVERRIDE_HOOK(0x700600, TechnoClass_GetActionOnCell_Cursors, 5)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x7000CD, TechnoClass_GetActionOnObject_SelfDeployCursor, 6)
+DEFINE_HOOK(0x7000CD, TechnoClass_GetActionOnObject_SelfDeployCursor, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	const auto pType = pThis->GetTechnoType();
@@ -225,7 +225,7 @@ DEFINE_OVERRIDE_HOOK(0x7000CD, TechnoClass_GetActionOnObject_SelfDeployCursor, 6
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x7400F0, UnitClass_GetActionOnObject_SelfDeployCursor_Bunker, 6)
+DEFINE_HOOK(0x7400F0, UnitClass_GetActionOnObject_SelfDeployCursor_Bunker, 6)
 {
 	GET(UnitClass*, pThis, ESI);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);

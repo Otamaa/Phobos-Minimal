@@ -5,7 +5,7 @@
 
 #include "AresTrajectoryHelper.h"
 
-DEFINE_OVERRIDE_HOOK(0x468BE2, BulletClass_ShouldDetonate_Obstacle, 6)
+DEFINE_HOOK(0x468BE2, BulletClass_ShouldDetonate_Obstacle, 6)
 {
 	GET(BulletClass* const, pThis, ESI);
 	GET(CoordStruct* const, pOutCoords, EDI);
@@ -32,8 +32,8 @@ DEFINE_OVERRIDE_HOOK(0x468BE2, BulletClass_ShouldDetonate_Obstacle, 6)
 	return 0x468C86;
 }
 
-DEFINE_OVERRIDE_HOOK_AGAIN(0x6F7631, TechnoClass_IsCloseEnoughToTarget_Obstacle, 6)
-DEFINE_OVERRIDE_HOOK(0x6F7511, TechnoClass_IsCloseEnoughToTarget_Obstacle, 6)
+DEFINE_HOOK_AGAIN(0x6F7631, TechnoClass_IsCloseEnoughToTarget_Obstacle, 6)
+DEFINE_HOOK(0x6F7511, TechnoClass_IsCloseEnoughToTarget_Obstacle, 6)
 {
 	GET_BASE(WeaponTypeClass* const, pWeapon, 0x10);
 	GET_BASE(AbstractClass* const, pTarget, 0xC);
@@ -50,7 +50,7 @@ DEFINE_OVERRIDE_HOOK(0x6F7511, TechnoClass_IsCloseEnoughToTarget_Obstacle, 6)
 	return 0x6F7647;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4CC360, TrajectoryHelper_GetObstacle, 5)
+DEFINE_HOOK(0x4CC360, TrajectoryHelper_GetObstacle, 5)
 {
 	GET(CellClass* const, pCellSource, ECX);
 	GET(CellClass* const, pCellTarget, EDX);
@@ -69,7 +69,7 @@ DEFINE_OVERRIDE_HOOK(0x4CC360, TrajectoryHelper_GetObstacle, 5)
 	return 0x4CC671;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4CC100, TrajectoryHelper_FindFirstObstacle, 7)
+DEFINE_HOOK(0x4CC100, TrajectoryHelper_FindFirstObstacle, 7)
 {
 	GET(CoordStruct const* const, pSource, ECX);
 	GET(CoordStruct const* const, pTarget, EDX);
@@ -85,7 +85,7 @@ DEFINE_OVERRIDE_HOOK(0x4CC100, TrajectoryHelper_FindFirstObstacle, 7)
 	return 0x4CC30B;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4CC310, TrajectoryHelper_FindFirstImpenetrableObstacle, 5)
+DEFINE_HOOK(0x4CC310, TrajectoryHelper_FindFirstImpenetrableObstacle, 5)
 {
 	GET(CoordStruct const* const, pSource, ECX);
 	GET(CoordStruct const* const, pTarget, EDX);

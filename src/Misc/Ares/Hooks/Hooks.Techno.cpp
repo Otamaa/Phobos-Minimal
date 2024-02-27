@@ -24,7 +24,7 @@
 
 #include <Conversions.h>
 
-DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
+DEFINE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 {
 	GET(TechnoClass*, pThis, ECX);
 
@@ -96,7 +96,7 @@ DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 
 //The stack is messed up here , idk
 // i cant properly catch them , it is just return garbages
-//DEFINE_OVERRIDE_HOOK(0x6FF1FB, TechnoClass_Fire_DetachedRailgun, 0x6)
+//DEFINE_HOOK(0x6FF1FB, TechnoClass_Fire_DetachedRailgun, 0x6)
 //{
 //	GET(TechnoClass*, pThis, ESI);
 //	GET(WeaponTypeClass*, pWeapon, EBX);
@@ -131,7 +131,7 @@ DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 //
 //DEFINE_DISABLE_HOOK(0x6FF26E, TechnoClass_Fire_DetachedRailgun2_ares)
 
-DEFINE_OVERRIDE_HOOK(0x6FF1FB, TechnoClass_Fire_DetachedRailgun, 0x6)
+DEFINE_HOOK(0x6FF1FB, TechnoClass_Fire_DetachedRailgun, 0x6)
 {
 	//GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBX);
@@ -149,7 +149,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF1FB, TechnoClass_Fire_DetachedRailgun, 0x6)
 		? 0x6FF20F : 0x0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FF26E, TechnoClass_Fire_DetachedRailgun2, 0x6)
+DEFINE_HOOK(0x6FF26E, TechnoClass_Fire_DetachedRailgun2, 0x6)
 {
 	GET(WeaponTypeClass*, pWeapon, EBX);
 
@@ -157,13 +157,13 @@ DEFINE_OVERRIDE_HOOK(0x6FF26E, TechnoClass_Fire_DetachedRailgun2, 0x6)
 		? 0x6FF274 : 0x0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FA4C6, TechnoClass_Update_ZeroOutTarget, 5)
+DEFINE_HOOK(0x6FA4C6, TechnoClass_Update_ZeroOutTarget, 5)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	return (pThis->WhatAmI() == AbstractType::Aircraft) ? 0x6FA4D1 : 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x70BE80, TechnoClass_ShouldSelfHealOneStep, 5)
+DEFINE_HOOK(0x70BE80, TechnoClass_ShouldSelfHealOneStep, 5)
 {
 	GET(TechnoClass* const, pThis, ECX);
 	auto const nAmount = TechnoExt_ExtData::GetSelfHealAmount(pThis);
@@ -171,7 +171,7 @@ DEFINE_OVERRIDE_HOOK(0x70BE80, TechnoClass_ShouldSelfHealOneStep, 5)
 	return 0x70BF46;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FA743, TechnoClass_Update_SelfHeal, 0xA)
+DEFINE_HOOK(0x6FA743, TechnoClass_Update_SelfHeal, 0xA)
 {
 	enum
 	{
@@ -211,7 +211,7 @@ DEFINE_OVERRIDE_HOOK(0x6FA743, TechnoClass_Update_SelfHeal, 0xA)
 }
 
 // spark particle systems created at random intervals
-DEFINE_OVERRIDE_HOOK(0x6FAD49, TechnoClass_Update_SparkParticles, 8) // breaks the loop
+DEFINE_HOOK(0x6FAD49, TechnoClass_Update_SparkParticles, 8) // breaks the loop
 {
 	GET(TechnoClass*, pThis, ESI);
 	REF_STACK(DynamicVectorClass<ParticleSystemTypeClass const*>, Systems, 0x60);
@@ -236,7 +236,7 @@ DEFINE_OVERRIDE_HOOK(0x6FAD49, TechnoClass_Update_SparkParticles, 8) // breaks t
 }
 
 // customizable cloaking stages
-DEFINE_OVERRIDE_HOOK(0x7036EB, TechnoClass_Uncloak_CloakingStages, 6)
+DEFINE_HOOK(0x7036EB, TechnoClass_Uncloak_CloakingStages, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
@@ -244,7 +244,7 @@ DEFINE_OVERRIDE_HOOK(0x7036EB, TechnoClass_Uncloak_CloakingStages, 6)
 	return 0x7036F1;
 }
 
-DEFINE_OVERRIDE_HOOK(0x703A79, TechnoClass_VisualCharacter_CloakingStages, 0xA)
+DEFINE_HOOK(0x703A79, TechnoClass_VisualCharacter_CloakingStages, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);
 	int stages = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->CloakStages.Get(RulesClass::Instance->CloakingStages);
@@ -253,7 +253,7 @@ DEFINE_OVERRIDE_HOOK(0x703A79, TechnoClass_VisualCharacter_CloakingStages, 0xA)
 }
 
 // make damage sparks customizable, using game setting as default.
-DEFINE_OVERRIDE_HOOK(0x6FACD9, TechnoClass_Update_DamageSparks, 6)
+DEFINE_HOOK(0x6FACD9, TechnoClass_Update_DamageSparks, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
@@ -269,7 +269,7 @@ DEFINE_OVERRIDE_HOOK(0x6FACD9, TechnoClass_Update_DamageSparks, 6)
 		0x6FAD17 : 0x6FAF01;
 }
 
-DEFINE_OVERRIDE_HOOK(0x70380A, TechnoClass_Cloak_CloakSound, 6)
+DEFINE_HOOK(0x70380A, TechnoClass_Cloak_CloakSound, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
@@ -285,7 +285,7 @@ DEFINE_OVERRIDE_HOOK(0x70380A, TechnoClass_Cloak_CloakSound, 6)
 	return 0x703810;
 }
 
-DEFINE_OVERRIDE_HOOK(0x70375B, TechnoClass_Uncloak_DecloakSound, 6)
+DEFINE_HOOK(0x70375B, TechnoClass_Uncloak_DecloakSound, 6)
 {
 	GET(int, ptr, ESI);
 	const TechnoClass* pThis = reinterpret_cast<TechnoClass*>(ptr - 0x9C);
@@ -306,7 +306,7 @@ DEFINE_OVERRIDE_HOOK(0x70375B, TechnoClass_Uncloak_DecloakSound, 6)
 }
 
 // linking units for type selection
-DEFINE_OVERRIDE_HOOK(0x732C30, TechnoClass_IDMatches, 5)
+DEFINE_HOOK(0x732C30, TechnoClass_IDMatches, 5)
 {
 	GET(TechnoClass*, pThis, ECX);
 	GET(DynamicVectorClass<const char*>*, pNames, EDX);
@@ -341,7 +341,7 @@ DEFINE_OVERRIDE_HOOK(0x732C30, TechnoClass_IDMatches, 5)
 	return 0x732C97;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6F3950, TechnoClass_GetCrewCount, 8)
+DEFINE_HOOK(0x6F3950, TechnoClass_GetCrewCount, 8)
 {
 	GET(TechnoClass*, pThis, ECX);
 	auto pType = pThis->GetTechnoType();
@@ -359,7 +359,7 @@ DEFINE_OVERRIDE_HOOK(0x6F3950, TechnoClass_GetCrewCount, 8)
 }
 
 // Support per unit modification of Iron Curtain effect duration
-DEFINE_OVERRIDE_HOOK(0x70E2B0, TechnoClass_IronCurtain, 5)
+DEFINE_HOOK(0x70E2B0, TechnoClass_IronCurtain, 5)
 {
 	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(int, duration, STACK_OFFS(0x0, -0x4));
@@ -378,7 +378,7 @@ DEFINE_OVERRIDE_HOOK(0x70E2B0, TechnoClass_IronCurtain, 5)
 	return 0x70E2FD;
 }
 
-DEFINE_OVERRIDE_HOOK(0x7327AA, TechnoClass_PlayerOwnedAliveAndNamed_GroupAs, 8)
+DEFINE_HOOK(0x7327AA, TechnoClass_PlayerOwnedAliveAndNamed_GroupAs, 8)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(const char*, pID, EDI);
@@ -388,7 +388,7 @@ DEFINE_OVERRIDE_HOOK(0x7327AA, TechnoClass_PlayerOwnedAliveAndNamed_GroupAs, 8)
 }
 
 // #912875: respect the remove flag for invalidating SpawnManager owners
-DEFINE_OVERRIDE_HOOK(0x707B19, TechnoClass_PointerGotInvalid_SpawnCloakOwner, 6)
+DEFINE_HOOK(0x707B19, TechnoClass_PointerGotInvalid_SpawnCloakOwner, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(AbstractClass*, ptr, EBP);
@@ -401,7 +401,7 @@ DEFINE_OVERRIDE_HOOK(0x707B19, TechnoClass_PointerGotInvalid_SpawnCloakOwner, 6)
 	return 0x707B23;
 }
 
-DEFINE_OVERRIDE_HOOK(0x70DA95, TechnoClass_RadarTrackingUpdate_AnnounceDetected, 6)
+DEFINE_HOOK(0x70DA95, TechnoClass_RadarTrackingUpdate_AnnounceDetected, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(int, detect, 0x10);
@@ -437,7 +437,7 @@ DEFINE_OVERRIDE_HOOK(0x70DA95, TechnoClass_RadarTrackingUpdate_AnnounceDetected,
 	return 0x70DADC;
 }
 
-DEFINE_OVERRIDE_HOOK(0x70CBB0, TechnoClass_DealParticleDamage_AmbientDamage, 6)
+DEFINE_HOOK(0x70CBB0, TechnoClass_DealParticleDamage_AmbientDamage, 6)
 {
 	GET_BASE(WeaponTypeClass*, pWeapon, 0x14);
 
@@ -450,7 +450,7 @@ DEFINE_OVERRIDE_HOOK(0x70CBB0, TechnoClass_DealParticleDamage_AmbientDamage, 6)
 }
 
 // the fuck , game calling `MapClass[]` multiple times , fixed it
-DEFINE_OVERRIDE_HOOK(0x6FB5F0, TechnoClass_DeleteGap_Optimize, 6)
+DEFINE_HOOK(0x6FB5F0, TechnoClass_DeleteGap_Optimize, 6)
 {
 	GET(CellClass*, pCell, EAX);
 
@@ -468,7 +468,7 @@ DEFINE_OVERRIDE_HOOK(0x6FB5F0, TechnoClass_DeleteGap_Optimize, 6)
 	return 0x6FB69E;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FB306, TechnoClass_CreateGap_Optimize, 6)
+DEFINE_HOOK(0x6FB306, TechnoClass_CreateGap_Optimize, 6)
 {
 	GET(CellClass*, pCell, EAX);
 
@@ -486,13 +486,13 @@ DEFINE_OVERRIDE_HOOK(0x6FB306, TechnoClass_CreateGap_Optimize, 6)
 	return 0x6FB3BD;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FB757, TechnoClass_UpdateCloak, 8)
+DEFINE_HOOK(0x6FB757, TechnoClass_UpdateCloak, 8)
 {
 	GET(TechnoClass*, pThis, ESI);
 	return !TechnoExt_ExtData::CloakDisallowed(pThis, false) ? 0x6FB7FD : 0x6FB75F;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FBC90, TechnoClass_ShouldNotBeCloaked, 5)
+DEFINE_HOOK(0x6FBC90, TechnoClass_ShouldNotBeCloaked, 5)
 {
 	GET(TechnoClass*, pThis, ECX);
 	// the original code would not disallow cloaking as long as
@@ -502,14 +502,14 @@ DEFINE_OVERRIDE_HOOK(0x6FBC90, TechnoClass_ShouldNotBeCloaked, 5)
 	return 0x6FBDBC;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FBDC0, TechnoClass_ShouldBeCloaked, 5)
+DEFINE_HOOK(0x6FBDC0, TechnoClass_ShouldBeCloaked, 5)
 {
 	GET(TechnoClass*, pThis, ECX);
 	R->EAX(TechnoExt_ExtData::CloakAllowed(pThis));
 	return 0x6FBF93;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6F6AC9, TechnoClass_Remove_Early, 6)
+DEFINE_HOOK(0x6F6AC9, TechnoClass_Remove_Early, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
@@ -529,8 +529,8 @@ DEFINE_OVERRIDE_HOOK(0x6F6AC9, TechnoClass_Remove_Early, 6)
 	return pThis->InLimbo ? 0x6F6C93u : 0x6F6AD5u;
 }
 
-DEFINE_OVERRIDE_HOOK_AGAIN(0x6F6D0E, TechnoClass_Put_BuildingLight, 7)
-DEFINE_OVERRIDE_HOOK(0x6F6F20, TechnoClass_Put_BuildingLight, 6)
+DEFINE_HOOK_AGAIN(0x6F6D0E, TechnoClass_Put_BuildingLight, 7)
+DEFINE_HOOK(0x6F6F20, TechnoClass_Put_BuildingLight, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
@@ -549,7 +549,7 @@ DEFINE_OVERRIDE_HOOK(0x6F6F20, TechnoClass_Put_BuildingLight, 6)
 	return 0x0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FD0BF, TechnoClass_GetROF_AttachEffect, 6)
+DEFINE_HOOK(0x6FD0BF, TechnoClass_GetROF_AttachEffect, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
@@ -558,7 +558,7 @@ DEFINE_OVERRIDE_HOOK(0x6FD0BF, TechnoClass_GetROF_AttachEffect, 6)
 	return 0x0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x707D20, TechnoClass_GetCrew, 5)
+DEFINE_HOOK(0x707D20, TechnoClass_GetCrew, 5)
 {
 	GET(TechnoClass*, pThis, ECX);
 	auto pType = pThis->GetTechnoType();
@@ -615,7 +615,7 @@ DEFINE_OVERRIDE_HOOK(0x707D20, TechnoClass_GetCrew, 5)
 }
 
 // complete replacement
-DEFINE_OVERRIDE_HOOK(0x70FBE0, TechnoClass_Activate_AresReplace, 6)
+DEFINE_HOOK(0x70FBE0, TechnoClass_Activate_AresReplace, 6)
 {
 	GET(TechnoClass* const, pThis, ECX);
 
@@ -676,7 +676,7 @@ DEFINE_OVERRIDE_HOOK(0x70FBE0, TechnoClass_Activate_AresReplace, 6)
 }
 
 
-DEFINE_OVERRIDE_HOOK(0x6FD438, TechnoClass_FireLaser, 6)
+DEFINE_HOOK(0x6FD438, TechnoClass_FireLaser, 6)
 {
 	GET(WeaponTypeClass*, pWeapon, ECX);
 	GET(LaserDrawClass*, pBeam, EAX);
@@ -695,7 +695,7 @@ DEFINE_OVERRIDE_HOOK(0x6FD438, TechnoClass_FireLaser, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
+DEFINE_HOOK(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 {
 	GET(TechnoClass*, pTechno, EBP);
 	GET_STACK(RectangleStruct*, pRect, 0xA0);
@@ -777,7 +777,7 @@ DEFINE_OVERRIDE_HOOK(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 	return 0x6F5347;
 }
 
-DEFINE_OVERRIDE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
+DEFINE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 {
 	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(Point2D*, pPoint, 0x4);
@@ -857,7 +857,7 @@ DEFINE_OVERRIDE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 }
 
 // complete replacement
-DEFINE_OVERRIDE_HOOK(0x70FC90, TechnoClass_Deactivate_AresReplace, 6)
+DEFINE_HOOK(0x70FC90, TechnoClass_Deactivate_AresReplace, 6)
 {
 	GET(TechnoClass* const, pThis, ECX);
 
@@ -914,8 +914,8 @@ DEFINE_OVERRIDE_HOOK(0x70FC90, TechnoClass_Deactivate_AresReplace, 6)
 	return 0x70FD6E;
 }
 
-DEFINE_OVERRIDE_HOOK_AGAIN(0x6FB4A3, TechnoClass_CreateGap_LargeGap, 7)
-DEFINE_OVERRIDE_HOOK(0x6FB1B5, TechnoClass_CreateGap_LargeGap, 7)
+DEFINE_HOOK_AGAIN(0x6FB4A3, TechnoClass_CreateGap_LargeGap, 7)
+DEFINE_HOOK(0x6FB1B5, TechnoClass_CreateGap_LargeGap, 7)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(TechnoTypeClass*, pType, EAX);
@@ -925,7 +925,7 @@ DEFINE_OVERRIDE_HOOK(0x6FB1B5, TechnoClass_CreateGap_LargeGap, 7)
 }
 
 // Radar Jammers (#305) unjam all on owner change
-DEFINE_OVERRIDE_HOOK(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
+DEFINE_HOOK(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	//Debug::Log("ChangeOwnershipFor [%s]\n" , pThis->get_ID());
@@ -941,7 +941,7 @@ DEFINE_OVERRIDE_HOOK(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x702E64, TechnoClass_RegisterDestruction_Bounty, 6)
+DEFINE_HOOK(0x702E64, TechnoClass_RegisterDestruction_Bounty, 6)
 {
 	GET(TechnoClass*, pVictim, ESI);
 	GET(TechnoClass*, pKiller, EDI);
@@ -951,7 +951,7 @@ DEFINE_OVERRIDE_HOOK(0x702E64, TechnoClass_RegisterDestruction_Bounty, 6)
 	return 0x0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FAF0D, TechnoClass_Update_EMPLock, 6)
+DEFINE_HOOK(0x6FAF0D, TechnoClass_Update_EMPLock, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
@@ -1058,7 +1058,7 @@ DEFINE_HOOK(0x6F3F88, TechnoClass_Init_1, 5)
 // westwood does firingUnit->WhatAmI() == abs_AircraftType
 // which naturally never works
 // let's see what this change does
-DEFINE_OVERRIDE_HOOK(0x6F7561, TechnoClass_Targeting_Arcing_Aircraft, 0x5)
+DEFINE_HOOK(0x6F7561, TechnoClass_Targeting_Arcing_Aircraft, 0x5)
 {
 	GET(AbstractType, pTarget, EAX);
 	GET(CoordStruct*, pCoord, ESI);
@@ -1067,7 +1067,7 @@ DEFINE_OVERRIDE_HOOK(0x6F7561, TechnoClass_Targeting_Arcing_Aircraft, 0x5)
 }
 
 // No data found on .inj for this
-//DEFINE_OVERRIDE_HOOK(0x5F7933, TechnoTypeClass_FindFactory_ExcludeDisabled, 0x6)
+//DEFINE_HOOK(0x5F7933, TechnoTypeClass_FindFactory_ExcludeDisabled, 0x6)
 //{
 //	GET(BuildingClass*, pBld, ESI);
 //
@@ -1076,7 +1076,7 @@ DEFINE_OVERRIDE_HOOK(0x6F7561, TechnoClass_Targeting_Arcing_Aircraft, 0x5)
 //		0x5F7A57 : 0x5F7941;
 //}
 
-DEFINE_OVERRIDE_HOOK(0x6F90F8, TechnoClass_SelectAutoTarget_Demacroize, 0x6)
+DEFINE_HOOK(0x6F90F8, TechnoClass_SelectAutoTarget_Demacroize, 0x6)
 {
 	GET(int, nVal1, EDI);
 	GET(int, nVal2, EAX);
@@ -1085,7 +1085,7 @@ DEFINE_OVERRIDE_HOOK(0x6F90F8, TechnoClass_SelectAutoTarget_Demacroize, 0x6)
 	return 0x6F9116;
 }
 
-DEFINE_OVERRIDE_HOOK(0x70133E, TechnoClass_GetWeaponRange_Demacroize, 0x5)
+DEFINE_HOOK(0x70133E, TechnoClass_GetWeaponRange_Demacroize, 0x5)
 {
 	GET(int, nVal1, EDI);
 	GET(int, nVal2, EBX);
@@ -1094,7 +1094,7 @@ DEFINE_OVERRIDE_HOOK(0x70133E, TechnoClass_GetWeaponRange_Demacroize, 0x5)
 	return 0x701388;
 }
 
-DEFINE_OVERRIDE_HOOK(0x707EEA, TechnoClass_GetGuardRange_Demacroize, 0x6)
+DEFINE_HOOK(0x707EEA, TechnoClass_GetGuardRange_Demacroize, 0x6)
 {
 	GET(int, nVal1, EBX);
 	GET(int, nVal2, EAX);
@@ -1104,7 +1104,7 @@ DEFINE_OVERRIDE_HOOK(0x707EEA, TechnoClass_GetGuardRange_Demacroize, 0x6)
 }
 
 // customizable berserk fire rate modification
-DEFINE_OVERRIDE_HOOK(0x6FF28F, TechnoClass_Fire_BerserkROFMultiplier, 6)
+DEFINE_HOOK(0x6FF28F, TechnoClass_Fire_BerserkROFMultiplier, 6)
 {
 	enum { SkipROF = 0x6FF2BE , SetROF = 0x6FF29E };
 	GET(TechnoClass*, pThis, ESI);
@@ -1120,7 +1120,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF28F, TechnoClass_Fire_BerserkROFMultiplier, 6)
 	return SetROF;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FE709, TechnoClass_Fire_BallisticScatter1, 6)
+DEFINE_HOOK(0x6FE709, TechnoClass_Fire_BallisticScatter1, 6)
 {
 	GET_STACK(BulletTypeClass*, pProjectile, 0x68);
 	auto pExt = BulletTypeExtContainer::Instance.Find(pProjectile);
@@ -1135,7 +1135,7 @@ DEFINE_OVERRIDE_HOOK(0x6FE709, TechnoClass_Fire_BallisticScatter1, 6)
 	return 0x6FE71C;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FE7FE, TechnoClass_Fire_BallisticScatter2, 5)
+DEFINE_HOOK(0x6FE7FE, TechnoClass_Fire_BallisticScatter2, 5)
 {
 	GET_STACK(BulletTypeClass*, pProjectile, 0x68);
 	auto pExt = BulletTypeExtContainer::Instance.Find(pProjectile);
@@ -1150,7 +1150,7 @@ DEFINE_OVERRIDE_HOOK(0x6FE7FE, TechnoClass_Fire_BallisticScatter2, 5)
 	return 0x6FE821;
 }
 
-DEFINE_OVERRIDE_HOOK(0x707A47, TechnoClass_PointerGotInvalid_LastTarget, 0xA)
+DEFINE_HOOK(0x707A47, TechnoClass_PointerGotInvalid_LastTarget, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(void*, ptr, EBP);
@@ -1164,8 +1164,8 @@ DEFINE_OVERRIDE_HOOK(0x707A47, TechnoClass_PointerGotInvalid_LastTarget, 0xA)
 //TechnoClass_SetTarget_Burst
 DEFINE_JUMP(LJMP, 0x6FCF53, 0x6FCF61);
 
-DEFINE_OVERRIDE_HOOK_AGAIN(0x717855, TechnoTypeClass_UpdatePalette_Reset, 0x6)
-DEFINE_OVERRIDE_HOOK(0x717823, TechnoTypeClass_UpdatePalette_Reset, 0x6)
+DEFINE_HOOK_AGAIN(0x717855, TechnoTypeClass_UpdatePalette_Reset, 0x6)
+DEFINE_HOOK(0x717823, TechnoTypeClass_UpdatePalette_Reset, 0x6)
 {
 	GET(TechnoTypeClass*, pThis, ESI);
 
@@ -1174,7 +1174,7 @@ DEFINE_OVERRIDE_HOOK(0x717823, TechnoTypeClass_UpdatePalette_Reset, 0x6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x71136F, TechnoTypeClass_CTOR_Initialize, 0x6)
+DEFINE_HOOK(0x71136F, TechnoTypeClass_CTOR_Initialize, 0x6)
 {
 	GET(TechnoTypeClass*, pThis, ESI);
 
@@ -1187,7 +1187,7 @@ DEFINE_OVERRIDE_HOOK(0x71136F, TechnoTypeClass_CTOR_Initialize, 0x6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x7119D5, TechnoTypeClass_CTOR_NoInit_Particles, 0x6)
+DEFINE_HOOK(0x7119D5, TechnoTypeClass_CTOR_NoInit_Particles, 0x6)
 {
 	GET(TechnoTypeClass*, pThis, ESI)
 
@@ -1199,7 +1199,7 @@ DEFINE_OVERRIDE_HOOK(0x7119D5, TechnoTypeClass_CTOR_NoInit_Particles, 0x6)
 
 // destroying a building (no health left) resulted in a single green pip shown
 // in the health bar for a split second. this makes the last pip red.
-DEFINE_OVERRIDE_HOOK(0x6F661D, TechnoClass_DrawHealthBar_DestroyedBuilding_RedPip, 0x7)
+DEFINE_HOOK(0x6F661D, TechnoClass_DrawHealthBar_DestroyedBuilding_RedPip, 0x7)
 {
 	GET(BuildingClass*, pBld, ESI);
 	return (pBld->Health <= 0 || pBld->IsRedHP()) ? 0x6F6628 : 0x6F6630;
@@ -1207,7 +1207,7 @@ DEFINE_OVERRIDE_HOOK(0x6F661D, TechnoClass_DrawHealthBar_DestroyedBuilding_RedPi
 
 // issues 1002020, 896263, 895954: clear stale mind control pointer to prevent
 // crashes when accessing properties of the destroyed controllers.
-DEFINE_OVERRIDE_HOOK(0x707B09, TechnoClass_PointerGotInvalid_ResetMindControl, 0x6)
+DEFINE_HOOK(0x707B09, TechnoClass_PointerGotInvalid_ResetMindControl, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(void*, ptr, EBP);
@@ -1223,7 +1223,7 @@ DEFINE_OVERRIDE_HOOK(0x707B09, TechnoClass_PointerGotInvalid_ResetMindControl, 0
 //TechnoClass_GetActionOnObject_IvanBombsB
 DEFINE_JUMP(LJMP, 0x6FFF9E, 0x700006);
 
-DEFINE_OVERRIDE_HOOK(0x6FF2D1, TechnoClass_FireAt_Facings, 0x6)
+DEFINE_HOOK(0x6FF2D1, TechnoClass_FireAt_Facings, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBX);
@@ -1243,7 +1243,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF2D1, TechnoClass_FireAt_Facings, 0x6)
 	return 0x6FF31B;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FE53F, TechnoClass_FireAt_CreateBullet, 0x6)
+DEFINE_HOOK(0x6FE53F, TechnoClass_FireAt_CreateBullet, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBX);
@@ -1266,7 +1266,7 @@ DEFINE_OVERRIDE_HOOK(0x6FE53F, TechnoClass_FireAt_CreateBullet, 0x6)
 	return 0x6FE562;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6F826E, TechnoClass_CanAutoTargetObject_CivilianEnemy, 0x5)
+DEFINE_HOOK(0x6F826E, TechnoClass_CanAutoTargetObject_CivilianEnemy, 0x5)
 {
 	GET(TechnoClass*, pThis, EDI);
 	GET(TechnoClass*, pTarget, ESI);
@@ -1302,7 +1302,7 @@ DEFINE_OVERRIDE_HOOK(0x6F826E, TechnoClass_CanAutoTargetObject_CivilianEnemy, 0x
 	return Undecided;
 }
 
-DEFINE_OVERRIDE_HOOK(0x7162B0, TechnoTypeClass_GetPipMax_MindControl, 0x6)
+DEFINE_HOOK(0x7162B0, TechnoTypeClass_GetPipMax_MindControl, 0x6)
 {
 	GET(TechnoTypeClass* const, pThis, ECX);
 
@@ -1402,7 +1402,7 @@ DEFINE_HOOK(0x744210, UnitClass_UnmarkOccupationBits, 0x5)
 	return 0x744260;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FE31C, TechnoClass_Fire_AllowDamage, 8)
+DEFINE_HOOK(0x6FE31C, TechnoClass_Fire_AllowDamage, 8)
 {
 	//GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBX);
@@ -1461,7 +1461,7 @@ DEFINE_HOOK(0x6F534E, TechnoClass_DrawExtras_Insignia, 0x5)
 
 // this code somewhat broke targeting
 // it created identically like ares but not working as expected , duh
-DEFINE_OVERRIDE_HOOK(0x6FA361, TechnoClass_Update_LoseTarget, 5)
+DEFINE_HOOK(0x6FA361, TechnoClass_Update_LoseTarget, 5)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET(HouseClass* const, pHouse, EDI);

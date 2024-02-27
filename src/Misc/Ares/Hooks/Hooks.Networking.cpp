@@ -13,7 +13,7 @@
 
 #include <EventClass.h>
 
-DEFINE_OVERRIDE_HOOK(0x6ab773, SelectClass_ProcessInput_ProduceUnsuspended, 0xA)
+DEFINE_HOOK(0x6ab773, SelectClass_ProcessInput_ProduceUnsuspended, 0xA)
 {
 	GET(EventClass*, pEvent, EAX);
 	GET_STACK(DWORD, flag, 0xB8);
@@ -25,7 +25,7 @@ DEFINE_OVERRIDE_HOOK(0x6ab773, SelectClass_ProcessInput_ProduceUnsuspended, 0xA)
 	return 0x6AB7CC;
 }
 
-DEFINE_OVERRIDE_HOOK(0x64C314, sub_64BDD0_PayloadSize2, 0x8)
+DEFINE_HOOK(0x64C314, sub_64BDD0_PayloadSize2, 0x8)
 {
 	GET(EventType, eventType, ESI);
 
@@ -37,7 +37,7 @@ DEFINE_OVERRIDE_HOOK(0x64C314, sub_64BDD0_PayloadSize2, 0x8)
 	return 0x64C321;
 }
 
-DEFINE_OVERRIDE_HOOK(0x64BE83, sub_64BDD0_PayloadSize1, 0x8)
+DEFINE_HOOK(0x64BE83, sub_64BDD0_PayloadSize1, 0x8)
 {
 	GET(EventType, eventType, EDI);
 
@@ -50,7 +50,7 @@ DEFINE_OVERRIDE_HOOK(0x64BE83, sub_64BDD0_PayloadSize1, 0x8)
 	return (EventType::MEGAMISSION == eventType) ? 0x64BF1A : 0x64BE97;
 }
 
-DEFINE_OVERRIDE_HOOK(0x64B704, sub_64B660_PayloadSize, 0x8)
+DEFINE_HOOK(0x64B704, sub_64B660_PayloadSize, 0x8)
 {
 	GET(EventType, eventType, EDI);
 
@@ -63,7 +63,7 @@ DEFINE_OVERRIDE_HOOK(0x64B704, sub_64B660_PayloadSize, 0x8)
 }
 
 // #666: Trench Traversal - check if traversal is possible & cursor display
-DEFINE_OVERRIDE_HOOK(0x44725F, BuildingClass_GetActionOnObject_TargetABuilding, 5)
+DEFINE_HOOK(0x44725F, BuildingClass_GetActionOnObject_TargetABuilding, 5)
 {
 	GET(BuildingClass *, pThis, ESI);
 	GET(TechnoClass *, T, EBP);
@@ -80,7 +80,7 @@ DEFINE_OVERRIDE_HOOK(0x44725F, BuildingClass_GetActionOnObject_TargetABuilding, 
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x443414, BuildingClass_ActionOnObject, 6)
+DEFINE_HOOK(0x443414, BuildingClass_ActionOnObject, 6)
 {
 	GET(Action, action, EAX);
 	GET(BuildingClass *, pThis, ECX);
@@ -108,7 +108,7 @@ DEFINE_OVERRIDE_HOOK(0x443414, BuildingClass_ActionOnObject, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4C6CCD, Networking_RespondToEvent, 0xA)
+DEFINE_HOOK(0x4C6CCD, Networking_RespondToEvent, 0xA)
 {
 	GET(int, EventKind, EAX);
 	GET(EventClass *, Event, ESI);

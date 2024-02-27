@@ -3,7 +3,7 @@
 #include <Ext/Rules/Body.h>
 #include <Ext/TechnoType/Body.h>
 
-DEFINE_OVERRIDE_HOOK(0x732d47, TacticalClass_CollectSelectedIDs, 5)
+DEFINE_HOOK(0x732d47, TacticalClass_CollectSelectedIDs, 5)
 {
 	auto pNames = R->EBX<DynamicVectorClass<const char*>*>();
 
@@ -48,9 +48,9 @@ DEFINE_OVERRIDE_HOOK(0x732d47, TacticalClass_CollectSelectedIDs, 5)
 	return 0x732FD9;
 }
 
-DEFINE_OVERRIDE_HOOK_AGAIN(0x4ABD9D, DisplayClass_LeftMouseButtonUp_GroupAs, 0xA)
-DEFINE_OVERRIDE_HOOK_AGAIN(0x4ABE58, DisplayClass_LeftMouseButtonUp_GroupAs, 0xA)
-DEFINE_OVERRIDE_HOOK(0x4ABD6C, DisplayClass_LeftMouseButtonUp_GroupAs, 0xA)
+DEFINE_HOOK_AGAIN(0x4ABD9D, DisplayClass_LeftMouseButtonUp_GroupAs, 0xA)
+DEFINE_HOOK_AGAIN(0x4ABE58, DisplayClass_LeftMouseButtonUp_GroupAs, 0xA)
+DEFINE_HOOK(0x4ABD6C, DisplayClass_LeftMouseButtonUp_GroupAs, 0xA)
 {
 	GET(ObjectClass*, pThis, ESI);
 	R->EAX(TechnoTypeExtData::GetSelectionGroupID(pThis->GetType()));
