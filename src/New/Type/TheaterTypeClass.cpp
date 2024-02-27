@@ -693,7 +693,7 @@ DEFINE_HOOK(0x627699, TheaterTypeClass_ProcessOtherPalettes_Process, 0x6)
 	const auto pFile = MixFileClass::Retrieve(pNameProcessed, false);
 	//const auto nRest = !pFile ? "Failed to" : "Successfully";
 
-	if (!pFile)
+	if (!pFile && Phobos::Otamaa::IsAdmin)
 		Debug::Log("Failed to load [%s] as [%s] !\n", pOriginalName, pNameProcessed);
 
 	// cant use PaletteManager atm , because this will be modified after load done
