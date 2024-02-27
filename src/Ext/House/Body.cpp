@@ -1231,7 +1231,7 @@ void HouseExtData::UpdateTransportReloaders()
 		if(pTech->IsAlive
 			&& pTech->WhatAmI() != AircraftClass::AbsID
 			&& pTech->WhatAmI() != BuildingClass::AbsID
-			&& pTech->Transporter) {
+			&& pTech->Transporter && pTech->Transporter->IsInLogic) {
 				const auto pType = pTech->GetTechnoType();
 			if (pType->Ammo > 0 && TechnoTypeExtContainer::Instance.Find(pTech->GetTechnoType())->ReloadInTransport) {
 				pTech->Reload();
