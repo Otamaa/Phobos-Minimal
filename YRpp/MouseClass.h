@@ -55,6 +55,25 @@ public:
 		return nResult;
 	}
 
+	FORCEINLINE Point2D GetMouseHotSpot(const SHPStruct* pShape) const
+	{
+		Point2D nResult { 0 , 0 };
+
+		if (X == MouseHotSpotX::Center)
+			nResult.X = pShape->Width / 2;
+
+		if (X == MouseHotSpotX::Right)
+			nResult.X = pShape->Width;
+
+		if (Y == MouseHotSpotY::Middle)
+			nResult.Y = pShape->Height / 2;
+
+		if (Y == MouseHotSpotY::Bottom)
+			nResult.Y = pShape->Height;
+
+		return nResult;
+	}
+
 	MouseCursor() = default;
 
 	MouseCursor(
@@ -201,7 +220,7 @@ public:
 	//Static
 	static constexpr constant_ptr<MouseClass, 0x87F7E8u> const Instance{};
 	static constexpr constant_ptr<MouseClass, 0x87F7E8u> const Global{};
-	static constexpr reference<ShapeFileStruct*, 0xABF294u> const ShapeData{};
+	static constexpr reference<SHPStruct*, 0xABF294u> const ShapeData{};
 	static constexpr reference<bool, 0xABF2DDu> const ShapeOverride{};
 	static constexpr reference<SystemTimerClass, 0xABF2A0u> const Timer {};
 

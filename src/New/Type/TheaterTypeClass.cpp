@@ -697,7 +697,7 @@ DEFINE_HOOK(0x627699, TheaterTypeClass_ProcessOtherPalettes_Process, 0x6)
 		Debug::Log("Failed to load [%s] as [%s] !\n", pOriginalName, pNameProcessed);
 
 	// cant use PaletteManager atm , because this will be modified after load done
-	// so if PaletteManager used , that mean the color enries will get modified
+	// so if PaletteManager used , that mean the color entries will get modified
 	// for second time !
 	R->EAX(pFile);
 	return 0x6276A4;

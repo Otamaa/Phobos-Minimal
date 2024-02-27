@@ -371,6 +371,7 @@ void SideExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->ScoreMultiplayThemeLose.Read(pINI, pSection, "MultiplayerScore.LoseTheme");
 
 	this->SidebarMixFileIndex.Read(exINI, pSection, "Sidebar.MixFileIndex");
+	this->MouseShape.Read(exINI, pSection, "MouseShape");
 }
 
 void SideExtData::UpdateGlobalFiles()
@@ -521,6 +522,7 @@ void SideExtData::Serialize(T& Stm)
 		.Process(this->ScoreMultiplayThemeLose)
 
 		.Process(this->SidebarMixFileIndex)
+		.Process(this->MouseShape)
 		;
 }
 

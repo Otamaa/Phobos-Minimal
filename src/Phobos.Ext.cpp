@@ -272,6 +272,13 @@ void Phobos::LoadGameDataAfter(IStream* pStm)
 {
 	//clear the loadgame flag
 	Phobos::Otamaa::DoingLoadGame = false;
+
+	if (auto pPlayerSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex)) {
+		if (auto pSideMouse = SideExtContainer::Instance.Find(pPlayerSide)->MouseShape) {
+			GameDelete<true, true>(std::exchange(MouseClass::ShapeData(), pSideMouse));
+		}
+	}
+
 	Debug::Log("[Phobos] Finished loading the game\n");
 }
 
@@ -530,7 +537,7 @@ DEFINE_OVERRIDE_HOOK(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 		Process_Load<PhobosGlobal>(pStm) &&
 		Process_Load<GenericPrerequisite>(pStm) &&
 		Process_Load<CrateTypeClass>(pStm) &&
-		Process_Load<NewSWType>(pStm) && 
+		Process_Load<NewSWType>(pStm) &&
 		Process_Load<StaticVars>(pStm)
 		;
 
@@ -541,7 +548,7 @@ DEFINE_OVERRIDE_HOOK(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 	if(SessionClass::Instance->GameMode == GameMode::Campaign)
 	{
 		Unsorted::MuteSWLaunches = false; // this will also make radar unusable
-		// this variable need to be reset , especially after you play as an observer on skirmish 
+		// this variable need to be reset , especially after you play as an observer on skirmish
 		// then load an save game of campaign mode , it will shutoff the radar and EVA's
 	}
 

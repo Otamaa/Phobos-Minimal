@@ -19,6 +19,17 @@
 //	return 0;
 //}
 
+// Deferred creation of attached particle systems for debris anims.
+DEFINE_HOOK(0x423939, AnimClass_BounceAI_AttachedSystem, 0x6)
+{
+	GET(AnimClass*, pThis, EBP);
+
+	AnimExtContainer::Instance.Find(pThis)->CreateAttachedSystem();
+
+	return 0;
+}
+
+
 DEFINE_HOOK(0x4232E2, AnimClass_DrawIt_AltPalette, 0x6)
 {
 	enum { SkipGameCode = 0x4232EA  , SetAltPaletteLightConvert = 0x4232F0 };

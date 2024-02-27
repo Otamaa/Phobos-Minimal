@@ -95,6 +95,7 @@ public:
 
 	Valueable<int> SidebarMixFileIndex { -1 };
 
+	Valueable<SHPStruct*> MouseShape { nullptr };
 	SideExtData() noexcept = default;
 	~SideExtData() noexcept = default;
 

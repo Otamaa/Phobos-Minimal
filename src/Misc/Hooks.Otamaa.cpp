@@ -1192,12 +1192,11 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 
 	static constexpr std::array<int, maximumStorage> defOrder { {0, 2, 3, 1} };
 	const auto displayOrders = RulesExtData::Instance()->Pips_Tiberiums_DisplayOrder.GetElements(make_iterator(&defOrder[0], maximumStorage));
-
 	const auto GetFrames = [&](
 		const Iterator<int> orders ,
 		const ValueableVector<int>& frames)
 	{
-		int frame = isWeeder ? pTypeExt->Weeder_PipEmptyIndex.Get(0) : frames.empty() ? 0 : frames[0];
+		int frame = isWeeder ? pTypeExt->Weeder_PipEmptyIndex.Get(0) : (frames.empty() ? 0 : frames[0]);
 
 		for (size_t i = 0; i < maximumStorage; i++)
 		{
@@ -1208,9 +1207,13 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 			if (Amounts[index].first > 0) {
 				--Amounts[index].first;
 				frame = isWeeder || frames.empty() || index >= (frames.size() - 1) ?
-					(Amounts[index].second) : (frames[index + 1]);
+					Amounts[index].second : frames[index + 1];
 
 				break;
+			}
+			else
+			{
+				nPal = FileSystem::THEATER_PAL();;
 			}
 		}
 

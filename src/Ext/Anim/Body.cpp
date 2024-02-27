@@ -525,7 +525,9 @@ DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 		}
 
 		if (auto pExt = AnimExtContainer::Instance.Allocate(pItem)) {
-			pExt->CreateAttachedSystem();
+			// Something about creating this in constructor messes with debris anims, so it has to be done for them later.
+			if (!pItem->HasExtras)
+				pExt->CreateAttachedSystem();
 		}
 	}
 

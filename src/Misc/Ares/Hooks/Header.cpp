@@ -7405,7 +7405,7 @@ void MouseClassExt::_Update(const int* keyCode, const Point2D* mouseCoords)
 		MouseClass::Timer->Start(nFrameRate);
 		const int baseframe = pCursorData->GetMouseFrame(this->MouseCursorIsMini) + this->MouseCursorCurrentFrame;
 		const auto pShape = MouseClass::ShapeData();
-		WWMouseClass::Instance->DrawSHPFrame(pCursorData->GetMouseHotSpot(pShape), pShape, baseframe);
+		WWMouseClass::Instance->Draw(pCursorData->GetMouseHotSpot(pShape), pShape, baseframe);
 	}
 
 	this->ScrollClass::Update_(keyCode, mouseCoords);
@@ -7429,7 +7429,7 @@ bool MouseClassExt::_Override_Mouse_Shape(MouseCursorType mouse, bool wsmall)
 		this->MouseCursorCurrentFrame = 0;
 		const int nFrame = pCursorData->GetMouseFrame(wsmall);
 		const auto pShape = MouseClass::ShapeData();
-		WWMouseClass::Instance->DrawSHPFrame(pCursorData->GetMouseHotSpot(pShape), pShape, nFrame);
+		WWMouseClass::Instance->Draw(pCursorData->GetMouseHotSpot(pShape), pShape, nFrame);
 		this->MouseCursorIndex = mouse;
 		this->MouseCursorIsMini = wsmall;
 		return true;
@@ -7446,7 +7446,7 @@ void MouseClassExt::_Mouse_Small(bool wsmall)
 		this->MouseCursorIsMini = wsmall;
 		const int baseframe = pCursorData->GetMouseFrame(wsmall) + this->MouseCursorCurrentFrame;
 		const auto pShape = MouseClass::ShapeData();
-		WWMouseClass::Instance->DrawSHPFrame(pCursorData->GetMouseHotSpot(pShape), pShape, baseframe);
+		WWMouseClass::Instance->Draw(pCursorData->GetMouseHotSpot(pShape), pShape, baseframe);
 	}
 }
 
