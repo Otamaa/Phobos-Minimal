@@ -293,6 +293,10 @@ public:
 
 	Valueable<ParticleSystemTypeClass*> DefaultGlobalParticleInstance { nullptr };
 
+	double Shield_ConditionGreen {};
+	double Shield_ConditionYellow {};
+	double Shield_ConditionRed {};
+
 	AircraftPutDataRules MyPutData { };
 
 	RulesExtData() noexcept = default;
@@ -324,6 +328,7 @@ public:
 	static void LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI);
 	static void LoadEarlyOptios(RulesClass* pThis, CCINIClass* pINI);
 	static void LoadVeryEarlyBeforeAnyData(RulesClass* pRules, CCINIClass* pINI);
+	static void LoadEndOfAudioVisual(RulesClass* pRules, CCINIClass* pINI);
 
 	static RulesExtData* Instance()
 	{

@@ -118,17 +118,17 @@ public:
 
 	bool IsGreenSP()
 	{
-		return (RulesClass::Instance->ConditionYellow * Type->Strength.Get()) < HP;
+		return (RulesExtData::Instance()->Shield_ConditionYellow * Type->Strength.Get()) < HP;
 	}
 
 	bool IsYellowSP()
 	{
-		return (RulesClass::Instance->ConditionRed * Type->Strength.Get()) < HP && HP <= (RulesClass::Instance->ConditionYellow * Type->Strength.Get());
+		return (RulesExtData::Instance()->Shield_ConditionRed * Type->Strength.Get()) < HP && HP <= (RulesExtData::Instance()->Shield_ConditionYellow * Type->Strength.Get());
 	}
 
 	bool IsRedSP()
 	{
-		return HP <= (RulesClass::Instance->ConditionRed * Type->Strength.Get());
+		return HP <= (RulesExtData::Instance()->Shield_ConditionRed * Type->Strength.Get());
 	}
 
 	void InvalidatePointer(AbstractClass* ptr, bool bDetach);

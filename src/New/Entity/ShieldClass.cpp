@@ -204,7 +204,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 
 	int nDamageResult = 0;
 	bool IsShielRequreFeeback = true;
-	DamageToShieldAfterMinMax = std::clamp(DamageToShield, 
+	DamageToShieldAfterMinMax = std::clamp(DamageToShield,
 		pWHExt->Shield_ReceivedDamage_Minimum.Get(this->Type->ReceivedDamage_Minimum),
 		pWHExt->Shield_ReceivedDamage_Maximum.Get(this->Type->ReceivedDamage_Maximum));
 
@@ -613,7 +613,7 @@ bool ShieldClass::ConvertCheck()
 	// Update shield properties.
 	if (pNewType->Strength && this->Available)
 	{
-		bool isDamaged = this->Techno->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
+		bool isDamaged = this->Techno->GetHealthPercentage() <= RulesExtData::Instance()->Shield_ConditionYellow;
 		double healthRatio = this->GetHealthRatio();
 
 		if (pOldType->GetIdleAnimType(isDamaged, healthRatio) != pNewType->GetIdleAnimType(isDamaged, healthRatio))
@@ -850,7 +850,7 @@ AnimTypeClass* ShieldClass::GetIdleAnimType() const
 	if (!this->Type || !this->Techno)
 		return nullptr;
 
-	bool isDamaged = this->Techno->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
+	bool isDamaged = this->Techno->GetHealthPercentage() <= RulesExtData::Instance()->Shield_ConditionYellow;
 
 	return this->Type->GetIdleAnimType(isDamaged, this->GetHealthRatio());
 }
@@ -959,9 +959,9 @@ int ShieldClass::DrawShieldBar_Pip(const bool isBuilding)
 	const auto& pips_Global = isBuilding ? RulesExtData::Instance()->Pips_Shield_Building : RulesExtData::Instance()->Pips_Shield;
 	const auto& shieldPip = pips_Shield->X != -1 ? pips_Shield : pips_Global;
 
-	if (this->HP > RulesClass::Instance->ConditionYellow * strength && shieldPip->X != -1)
+	if (this->HP > RulesExtData::Instance()->Shield_ConditionYellow * strength && shieldPip->X != -1)
 		return shieldPip->X;
-	else if (this->HP > RulesClass::Instance->ConditionRed * strength && (shieldPip->Y != -1 || shieldPip->X != -1))
+	else if (this->HP > RulesExtData::Instance()->Shield_ConditionRed * strength && (shieldPip->Y != -1 || shieldPip->X != -1))
 		return shieldPip->Y == -1 ? shieldPip->X : shieldPip->Y;
 	else if (shieldPip->Z != -1 || shieldPip->X != -1)
 		return shieldPip->Z == -1 ? shieldPip->X : shieldPip->Z;
