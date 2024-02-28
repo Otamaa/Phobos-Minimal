@@ -678,11 +678,11 @@ public:
 		return &this->Get(ratio);
 	}
 
-	const T& Get(double ratio) const noexcept
+	const T& Get(double ratio, double conditionYellow , double conditionRed) const noexcept
 	{
-		if (this->ConditionRed.isset() && ratio <= RulesClass::Instance->ConditionRed)
+		if (this->ConditionRed.isset() && ratio <= conditionRed)
 			return this->ConditionRed;
-		else if (this->ConditionYellow.isset() && ratio <= RulesClass::Instance->ConditionYellow)
+		else if (this->ConditionYellow.isset() && ratio <= conditionYellow)
 			return this->ConditionYellow;
 
 		return this->BaseValue;

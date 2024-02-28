@@ -13,6 +13,10 @@ class ShieldTypeClass final : public Enumerable<ShieldTypeClass>
 public:
 	Valueable<int> Strength;
 	Nullable<int> InitialStrength;
+
+	Nullable<double> ConditionYellow;
+	Nullable<double> ConditionRed;
+
 	Valueable<Armor> Armor;
 	Valueable<bool> Powered;
 	Valueable<double> Respawn;
@@ -75,6 +79,9 @@ public:
 	}
 
 	AnimTypeClass* GetIdleAnimType(bool isDamaged, double healthRatio);
+
+	double GetConditionYellow();
+	double GetConditionRed();
 
 private:
 	template <typename T>

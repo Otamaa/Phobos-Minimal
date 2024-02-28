@@ -5,6 +5,8 @@ Enumerable<ShieldTypeClass>::container_t Enumerable<ShieldTypeClass>::Array;
 ShieldTypeClass::ShieldTypeClass(const char* const pTitle) : Enumerable<ShieldTypeClass> { pTitle }
 , Strength { 0 }
 , InitialStrength {}
+, ConditionYellow {}
+, ConditionRed {}
 , Armor { Armor::None }
 , Powered { false }
 , Respawn { 0.0 }
@@ -50,12 +52,15 @@ const char* Enumerable<ShieldTypeClass>::GetMainSection()
 
 AnimTypeClass* ShieldTypeClass::GetIdleAnimType(bool isDamaged, double healthRatio)
 {
-	auto damagedAnim = this->IdleAnimDamaged.Get(healthRatio);
+	const double condYellow = this->GetConditionYellow();
+	const double condRed = this->GetConditionRed();
+
+	auto damagedAnim = this->IdleAnimDamaged.Get(healthRatio, condYellow , condRed);
 
 	if (isDamaged && damagedAnim)
 		return damagedAnim;
 	else
-		return this->IdleAnim.Get(healthRatio);
+		return this->IdleAnim.Get(healthRatio, condYellow, condRed);
 }
 
 void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
@@ -68,6 +73,8 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 
 	this->Strength.Read(exINI, pSection, "Strength");
 	this->InitialStrength.Read(exINI, pSection, "InitialStrength");
+	this->ConditionYellow.Read(exINI, pSection, "ConditionYellow");
+	this->ConditionRed.Read(exINI, pSection, "ConditionRed");
 	this->Armor.Read(exINI, pSection, "Armor");
 	this->Powered.Read(exINI, pSection, "Powered");
 
@@ -128,12 +135,23 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->HitBright.Read(exINI, pSection, "HitBright");
 }
 
+double ShieldTypeClass::GetConditionYellow()
+{
+	return this->ConditionYellow.Get(RulesExtData::Instance()->Shield_ConditionYellow);
+}
+double ShieldTypeClass::GetConditionRed()
+{
+	return this->ConditionRed.Get(RulesExtData::Instance()->Shield_ConditionRed);
+}
+
 template <typename T>
 void ShieldTypeClass::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Strength)
 		.Process(this->InitialStrength)
+		.Process(this->ConditionYellow)
+		.Process(this->ConditionRed)
 		.Process(this->Armor)
 		.Process(this->Powered)
 		.Process(this->Respawn)

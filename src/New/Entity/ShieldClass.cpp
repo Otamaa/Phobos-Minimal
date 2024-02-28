@@ -613,7 +613,7 @@ bool ShieldClass::ConvertCheck()
 	// Update shield properties.
 	if (pNewType->Strength && this->Available)
 	{
-		bool isDamaged = this->Techno->GetHealthPercentage() <= RulesExtData::Instance()->Shield_ConditionYellow;
+		bool isDamaged = this->Techno->GetHealthPercentage() <= this->Type->GetConditionYellow();
 		double healthRatio = this->GetHealthRatio();
 
 		if (pOldType->GetIdleAnimType(isDamaged, healthRatio) != pNewType->GetIdleAnimType(isDamaged, healthRatio))
@@ -850,7 +850,7 @@ AnimTypeClass* ShieldClass::GetIdleAnimType() const
 	if (!this->Type || !this->Techno)
 		return nullptr;
 
-	bool isDamaged = this->Techno->GetHealthPercentage() <= RulesExtData::Instance()->Shield_ConditionYellow;
+	bool isDamaged = this->Techno->GetHealthPercentage() <= this->Type->GetConditionYellow();
 
 	return this->Type->GetIdleAnimType(isDamaged, this->GetHealthRatio());
 }
@@ -955,13 +955,16 @@ void ShieldClass::DrawShieldBar_Other(int iLength, Point2D* pLocation, Rectangle
 int ShieldClass::DrawShieldBar_Pip(const bool isBuilding)
 {
 	const auto strength = this->Type->Strength;
+	const double condYellow = this->Type->GetConditionYellow();
+	const double condRed = this->Type->GetConditionRed();
+
 	const auto& pips_Shield = isBuilding ? this->Type->Pips_Building : this->Type->Pips;
 	const auto& pips_Global = isBuilding ? RulesExtData::Instance()->Pips_Shield_Building : RulesExtData::Instance()->Pips_Shield;
 	const auto& shieldPip = pips_Shield->X != -1 ? pips_Shield : pips_Global;
 
-	if (this->HP > RulesExtData::Instance()->Shield_ConditionYellow * strength && shieldPip->X != -1)
+	if (this->HP > condYellow * strength && shieldPip->X != -1)
 		return shieldPip->X;
-	else if (this->HP > RulesExtData::Instance()->Shield_ConditionRed * strength && (shieldPip->Y != -1 || shieldPip->X != -1))
+	else if (this->HP > condRed * strength && (shieldPip->Y != -1 || shieldPip->X != -1))
 		return shieldPip->Y == -1 ? shieldPip->X : shieldPip->Y;
 	else if (shieldPip->Z != -1 || shieldPip->X != -1)
 		return shieldPip->Z == -1 ? shieldPip->X : shieldPip->Z;

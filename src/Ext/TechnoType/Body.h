@@ -508,6 +508,7 @@ public:
 	Valueable<TechnoTypeClass*> Convert_Deploy { nullptr };
 	Valueable<int> Convert_Deploy_Delay { -1 };
 	Valueable<TechnoTypeClass*> Convert_Script { nullptr };
+	ValueableVector<int> Convert_Scipt_Prereq {};
 	Valueable<TechnoTypeClass*> Convert_Water { nullptr };
 	Valueable<TechnoTypeClass*> Convert_Land { nullptr };
 

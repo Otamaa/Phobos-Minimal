@@ -2050,7 +2050,7 @@ void ScriptExtData::JumpBackToPreviousScript(TeamClass* pTeam)
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	if (pTeamData->PreviousScript)
 	{
-		GameDelete<false, true>(pTeam->CurrentScript);
+		pTeam->CurrentScript->AnnounceExpiredPointer(true);
 		pTeam->CurrentScript = std::exchange(pTeamData->PreviousScript , nullptr);
 		pTeam->StepCompleted = true;
 		return;

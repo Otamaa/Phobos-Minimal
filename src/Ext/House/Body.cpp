@@ -393,13 +393,20 @@ void HouseExtData::UpdateFactoryPlans(BuildingClass* pBld)
 
 bool HouseExtData::PrerequisitesMet(HouseClass* const pThis, TechnoTypeClass* const pItem)
 {
-	for (auto& prereq : TechnoTypeExtContainer::Instance.Find(pItem)->Prerequisites) {
-		if (Prereqs::HouseOwnsAll(pThis , prereq.data() , prereq.size())) {
+	for (auto& prereq : TechnoTypeExtContainer::Instance.Find(pItem)->Prerequisites)
+	{
+		if (Prereqs::HouseOwnsAll(pThis, prereq.data(), prereq.size()))
+		{
 			return true;
 		}
 	}
 
 	return false;
+}
+
+bool HouseExtData::PrerequisitesMet(HouseClass* pThis, int* items, int size)
+{
+	return Prereqs::HouseOwnsAll(pThis, items, size);
 }
 
 void HouseExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)

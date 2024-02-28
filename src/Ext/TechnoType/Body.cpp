@@ -675,7 +675,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		GenericPrerequisite::Parse(pINI, pSection, "Prerequisite.Negative", this->Prerequisite_Negative);
 		GenericPrerequisite::Parse(pINI, pSection, "Prerequisite.Display", this->Prerequisite_Display);
 		GenericPrerequisite::Parse(pINI, pSection, "PrerequisiteOverride", pThis->PrerequisiteOverride);
-
+		GenericPrerequisite::Parse(pINI, pSection, "Convert.Script.Prerequisite", this->Convert_Scipt_Prereq);
 #pragma endregion Prereq
 
 
@@ -2070,6 +2070,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->VeteranArmor)
 		.Process(this->Cloakable_IgnoreArmTimer)
 		.Process(this->Untrackable)
+		.Process(this->Convert_Scipt_Prereq)
 		;
 }
 
