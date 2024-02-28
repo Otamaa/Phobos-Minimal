@@ -49,7 +49,7 @@ public:
 	static DWORD DealDamageDelay(AnimClass* pThis);
 	static bool OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight);
 	static bool OnMiddle(AnimClass* pThis);
-	static bool OnMiddle_SpawnParticle(AnimClass* pThis, CellClass* pCell, Point2D nOffs);
+	static bool OnMiddle_SpawnSmudge(AnimClass* pThis, CellClass* pCell, Point2D nOffs);
 	static void OnInit(AnimClass* pThis, CoordStruct* pCoord);
 
 	static Layer __fastcall GetLayer_patch(AnimClass* pThis, void* _);

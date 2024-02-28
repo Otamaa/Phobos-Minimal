@@ -120,7 +120,7 @@ DEFINE_HOOK(0x42504D, AnimClass_Middle_SpawnCreater, 0xA) //was 4
 	GET(int, nX, EBP);
 	GET_STACK(int, nY, STACK_OFFS(0x30, 0x20));
 
-	return AnimExtData::OnMiddle_SpawnParticle(pThis, pCell, { nX ,nY }) ?
+	return AnimExtData::OnMiddle_SpawnSmudge(pThis, pCell, { nX ,nY }) ?
 		0x42513F : 0x0 ;
 }
 

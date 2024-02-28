@@ -44,7 +44,7 @@ void AnimExtData::OnInit(AnimClass* pThis, CoordStruct* pCoord)
 	//}
 }
 
-bool AnimExtData::OnMiddle_SpawnParticle(AnimClass* pThis, CellClass* pCell, Point2D nOffs)
+bool AnimExtData::OnMiddle_SpawnSmudge(AnimClass* pThis, CellClass* pCell, Point2D nOffs)
 {
 	const auto pType = pThis->Type;
 	if (!pType)
@@ -260,7 +260,6 @@ bool AnimExtData::OnMiddle(AnimClass* pThis)
 
 		if (pType->SpawnsParticle != -1)
 		{
-
 			if (const auto pParticleType = ParticleTypeClass::Array->Items[pType->SpawnsParticle])
 			{
 				for (int i = 0; i < pType->NumParticles; ++i)

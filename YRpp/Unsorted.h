@@ -24,6 +24,8 @@ class CellClass;
 // things that I can't put into nice meaningful classes
 struct Game
 {
+	static constexpr reference<CoordStruct, 0xB05488u> const CoordStruct_Empty {};
+
 	// the magic checksum for version validation - linked in StaticInits
 	static constexpr reference<DWORD, 0x83D560u> const Savegame_Magic {};
 	static constexpr reference<double, 0xB0CD48u> const GameMagicValue_ {};

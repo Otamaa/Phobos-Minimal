@@ -103,7 +103,7 @@ void Debug::INIParseFailed(const char* section, const char* flag, const char* va
 	va_start(args, pFormat);
 	vsprintf_s(Phobos::readBuffer, pFormat, args);
 	va_end(args);
-	Debug::FatalError(false);
+	Debug::FatalError(Phobos::Config::DebugFatalerrorGenerateDump);
 	Debug::ExitGame();
 }
 
@@ -113,7 +113,7 @@ void Debug::INIParseFailed(const char* section, const char* flag, const char* va
 	va_start(args, pFormat);
 	vsprintf_s(Phobos::readBuffer, pFormat, args);
 	va_end(args);
-	Debug::FatalError(false);
+	Debug::FatalError(Phobos::Config::DebugFatalerrorGenerateDump);
 	Debug::ExitGame();
 }
 
@@ -211,7 +211,7 @@ void Debug::FreeMouse()
 		if (pWWMouseVtable == 0x7F7B2C) {
 			pWWMouse->ReleaseMouse();
 		}
-	} 
+	}
 
 	ShowCursor(TRUE);
 

@@ -552,6 +552,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 		this->ElectricDeath = AnimTypeClass::FindOrAllocate("ELECTRO");
 		this->DefaultParaPlane = AircraftTypeClass::FindOrAllocate(GameStrings::PDPLANE());
 		this->DefaultVeinParticle = ParticleTypeClass::FindOrAllocate(GameStrings::GASCLUDM1());
+		this->DefaultGlobalParticleInstance = ParticleSystemTypeClass::FindOrAllocate(GameStrings::GasCloudSys());
 		this->DefaultSquidAnim = AnimTypeClass::FindOrAllocate(GameStrings::SQDG());
 		this->CarryAll_LandAnim = AnimTypeClass::FindOrAllocate(GameStrings::CARYLAND());
 		this->DropShip_LandAnim = AnimTypeClass::FindOrAllocate(GameStrings::DROPLAND());
@@ -1087,6 +1088,8 @@ void RulesExtData::Serialize(T& Stm)
 
 		.Process(this->Promote_Vet_Anim)
 		.Process(this->Promote_Elite_Anim)
+
+		.Process(this->DefaultGlobalParticleInstance)
 		;
 
 	MyPutData.Serialize(Stm);
@@ -1391,4 +1394,22 @@ DEFINE_HOOK(0x679C92, RulesClass_ReadObject_ReReadStuffs, 7)
 	}
 
 	return 0x0;
+}
+
+DEFINE_HOOK(0x685005, Game_InitData_GlobalParticleSystem, 0x5) {
+
+	GET(ParticleSystemClass*, pMem, ESI);
+
+	const auto pGlobalType = RulesExtData::Instance()->DefaultGlobalParticleInstance;
+
+	if (!pGlobalType)
+		Debug::FatalErrorAndExit("Cannot Find DefaultGlobalParticleInstance it will crash the game !\n");
+
+	if (pGlobalType->Lifetime != -1)
+		Debug::FatalErrorAndExit("DefaultGlobalParticleInstance[%s] Lifetime must be -1 , otherwise it will crash the game !\n", pGlobalType->ID);
+
+	constexpr CoordStruct dummycoord { 2688  , 2688  , 0 };
+	pMem->ParticleSystemClass::ParticleSystemClass(pGlobalType.Get(), dummycoord, nullptr, nullptr, CoordStruct::Empty, nullptr);
+	R->EAX(pMem);
+	return 0x685040;
 }

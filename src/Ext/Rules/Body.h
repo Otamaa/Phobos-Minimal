@@ -291,6 +291,8 @@ public:
 	Valueable<AnimTypeClass*> Promote_Vet_Anim { nullptr };
 	Valueable<AnimTypeClass*> Promote_Elite_Anim { nullptr };
 
+	Valueable<ParticleSystemTypeClass*> DefaultGlobalParticleInstance { nullptr };
+
 	AircraftPutDataRules MyPutData { };
 
 	RulesExtData() noexcept = default;

@@ -166,6 +166,8 @@ bool Phobos::Config::MultiThreadSinglePlayer = false;
 //bool Phobos::Config::UseImprovedPathfindingBlockageHandling = false;
 bool Phobos::Config::HideLightFlashEffects = false;
 
+bool Phobos::Config::DebugFatalerrorGenerateDump = false;
+
 bool Phobos::Misc::CustomGS = false;
 int Phobos::Misc::CustomGS_ChangeInterval[7] = { -1, -1, -1, -1, -1, -1, -1 };
 int Phobos::Misc::CustomGS_ChangeDelay[7] = { 0, 1, 2, 3, 4, 5, 6 };
@@ -640,7 +642,7 @@ void InitAdminDebugMode()
 			Phobos::Otamaa::IsAdmin = true;
 			Phobos::EnableConsole = true;
 			Phobos::Config::MultiThreadSinglePlayer = true;
-
+			Phobos::Config::DebugFatalerrorGenerateDump = true;
 #ifndef DETACH_DEBUGGER
 			// this thing can cause game to lockup when loading data
 			//better disable it for release
