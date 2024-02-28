@@ -58,28 +58,17 @@ void RulesExtData::LoadEndOfAudioVisual(RulesClass* pRules, CCINIClass* pINI)
 	INI_EX iniEX(pINI);
 	auto pData = RulesExtData::Instance();
 
-	Nullable<double> Shield_ConditionGreen_d {};
-	Nullable<double> Shield_ConditionYellow_d {};
-	Nullable<double> Shield_ConditionRed_d {};
+	Nullable<double> Shield_ConditionGreen_d;
+	Nullable<double> Shield_ConditionYellow_d;
+	Nullable<double> Shield_ConditionRed_d;
 
 	Shield_ConditionGreen_d.Read(iniEX, AUDIOVISUAL_SECTION, "Shield.ConditionGreen");// somewhat never used , man
 	Shield_ConditionYellow_d.Read(iniEX, AUDIOVISUAL_SECTION, "Shield.ConditionYellow");
 	Shield_ConditionRed_d.Read(iniEX, AUDIOVISUAL_SECTION, "Shield.ConditionRed");
 
-	if (!Shield_ConditionGreen_d.isset())
-		pData->Shield_ConditionGreen = pRules->ConditionGreen;
-	else
-		pData->Shield_ConditionGreen = Shield_ConditionGreen_d.Get();
-
-	if (!Shield_ConditionYellow_d.isset())
-		pData->Shield_ConditionYellow = pRules->ConditionYellow;
-	else
-		pData->Shield_ConditionYellow = Shield_ConditionYellow_d.Get();
-
-	if (!Shield_ConditionRed_d.isset())
-		pData->Shield_ConditionRed = pRules->ConditionRed;
-	else
-		pData->Shield_ConditionRed = Shield_ConditionRed_d.Get();
+	pData->Shield_ConditionGreen = Shield_ConditionGreen_d.Get(pRules->ConditionGreen);
+	pData->Shield_ConditionYellow = Shield_ConditionYellow_d.Get(pRules->ConditionYellow);
+	pData->Shield_ConditionRed = Shield_ConditionRed_d.Get(pRules->ConditionRed);
 }
 
 DEFINE_HOOK(0x66B8E2, RulesClass_ReadAudioVisual_End, 0x5){
