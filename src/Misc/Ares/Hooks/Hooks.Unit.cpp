@@ -1675,29 +1675,38 @@ DEFINE_HOOK(0x739F21, UnitClass_UpdatePosition_Visceroid, 6)
 {
 	GET(UnitClass*, pThis, EBP);
 
-	if (TechnoExtContainer::Instance.Find(pThis)->MergePreventionTimer.InProgress()
-		|| !pThis->Destination
-		|| pThis->Destination->WhatAmI() != UnitClass::AbsID
-		|| !RulesClass::Instance->LargeVisceroid
-		|| RulesClass::Instance->LargeVisceroid->Strength <= 0
+	if (!pThis->Type->SmallVisceroid 
+		 || TechnoExtContainer::Instance.Find(pThis)->MergePreventionTimer.InProgress()
+		 || !pThis->Destination
+		 ||  pThis->Destination->WhatAmI() != UnitClass::AbsID)
+		return 0x0;
+
+	const auto pThis_Large = TechnoTypeExtContainer::Instance.Find(pThis->Type)->LargeVisceroid.Get(RulesClass::Instance->LargeVisceroid);
+
+	if(!pThis_Large
+		|| pThis_Large->Strength <= 0
 		|| !TechnoExt_ExtData::IsUnitAlive(pThis))
 		return 0x0;
 
 	UnitClass* pDest = static_cast<UnitClass*>(pThis->Destination);
-	if(TechnoExtContainer::Instance.Find(pDest)->MergePreventionTimer.InProgress())
+	if(!pDest->Type->SmallVisceroid || TechnoExtContainer::Instance.Find(pDest)->MergePreventionTimer.InProgress())
 		return 0x0;
 
 	if(pThis->Owner != pDest->Owner)
 		return 0x0;
 
+	const auto pDest_Large = TechnoTypeExtContainer::Instance.Find(pDest->Type)->LargeVisceroid.Get(RulesClass::Instance->LargeVisceroid);
+	if(pDest_Large != pThis_Large)
+		return 0x0;
+
 	// fleshbag erotic
-	if (pThis->Type->SmallVisceroid && pDest->Type->SmallVisceroid && TechnoExt_ExtData::IsUnitAlive(pDest))
+	if (TechnoExt_ExtData::IsUnitAlive(pDest))
 	{
 		// nice to meat you!
 		if (CellClass::Coord2Cell(pThis->GetCoords()) == CellClass::Coord2Cell(pDest->GetCoords()))
 		{
 			// two become one
-			TechnoExt_ExtData::ConvertToType(pDest , RulesClass::Instance->LargeVisceroid , false);
+			TechnoExt_ExtData::ConvertToType(pDest , pThis_Large , false);
 			pDest->IsSelected = pThis->IsSelected;
 			pDest->Override_Mission(pThis->IsArmed() ? Mission::Hunt : Mission::Area_Guard);
 			pThis->Limbo();

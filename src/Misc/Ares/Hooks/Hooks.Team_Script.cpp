@@ -53,9 +53,7 @@ DEFINE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
 	GET(ScriptActionNode*, pTeamMission, EAX);
 	GET_STACK(bool, bThirdArg, 0x10);
 
-	if(AresScriptExt::Handle(pThis, pTeamMission, bThirdArg))
-		return ReturnFunc;
-
+	const bool handled = AresScriptExt::Handle(pThis, pTeamMission, bThirdArg);
 	auto pTeamData = TeamExtContainer::Instance.Find(pThis);
 
 	// Force a line jump. This should support vanilla YR Actions
@@ -113,7 +111,7 @@ DEFINE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
 		ScriptExtData::ProcessScriptActions(pThis);
 	}
 
-	return Continue;
+	return handled ? ReturnFunc : Continue;
 }
 
 DEFINE_HOOK(0x6EF8A1, TeamClass_GatherAtEnemyBase_Distance, 0x6)

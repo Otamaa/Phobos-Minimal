@@ -873,6 +873,8 @@ public:
 
 	Valueable<bool> Untrackable { false };
 
+	Nullable<UnitTypeClass*> LargeVisceroid { };
+
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;
 
