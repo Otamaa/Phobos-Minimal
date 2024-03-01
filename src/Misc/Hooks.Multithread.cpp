@@ -192,7 +192,7 @@ DEFINE_HOOK(0x48CE7E, MainGame_BeforeMainLoop, 7)
 
 // Run the MainLoop (sadly not enough space to hook after it),
 // then decide if we should exit multithread mode.
-DEFINE_HOOK(0x48CE8A, MainGame_MainLoop, 0)
+DEFINE_HOOK(0x48CE8A, MainGame_MainLoop, 5)
 {
 	Multithreading::EnterMultithreadMode();
 

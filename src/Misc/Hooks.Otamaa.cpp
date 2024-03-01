@@ -4222,6 +4222,18 @@ DEFINE_HOOK(0x6E8300, TaskForceClass_SwizzleTheID, 0x5) {
 	return 0x6E8315;
 }
 
+DEFINE_HOOK(0x5657A0, MapClass_OpBracket_CellStructPtr, 0x5)
+{
+	GET_STACK(CellStruct*, pCell, 0x4);
+	GET_STACK(DWORD, callr, 0x0);
+
+	if (!pCell) {
+		Debug::FatalErrorAndExit("addr [0x%x] calling MapClass_OpBracket_CellStruct with nullptr cell!\n", callr);
+	}
+
+	return 0x0;
+}
+
 //DEFINE_PATCH(0x6443E2, 0xBA, 0x01, 0x00, 0x00, 0x00, 0x90);
 //
 //DEFINE_HOOK(0x62E430, ParticleSystemClass_AddTovector_nullptrParticle, 0x9)
