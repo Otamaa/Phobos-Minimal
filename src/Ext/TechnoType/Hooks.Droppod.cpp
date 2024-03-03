@@ -6,92 +6,112 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/SWType/NewSuperWeaponType/NewSWType.h>
 
-struct DroppodProperties
+struct DroppodProperties_
 {
-
-	static int GetSpeed(TechnoTypeClass* pType, FootClass* pFoot, int rulesValue, bool condition)
+	static int GetTrailerDelay(TechnoTypeClass* pType, FootClass* pFoot, bool condition)
 	{
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 		const auto pExt = TechnoExtContainer::Instance.Find(pFoot);
-		const auto defaultVal = !condition ?
-			rulesValue : SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->Droppod_Speed;
+		const auto defaultres =  condition ? SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->DroppodProp.Droppod_Trailer_SpawnDelay : RulesExtData::Instance()->DroppodTrailerSpawnDelay;
 
-		return defaultVal;
+		return pTypeExt->DropPodProp.Droppod_Trailer_SpawnDelay.Get(defaultres);
 	}
 
-	static int GetHeight(TechnoTypeClass* pType, FootClass* pFoot, int rulesValue, bool condition)
+	static bool GetIsTrailerAttached(TechnoTypeClass* pType, FootClass* pFoot, bool condition)
 	{
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 		const auto pExt = TechnoExtContainer::Instance.Find(pFoot);
-		const auto defaultVal = !condition ?
-			rulesValue : SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->Droppod_Height;
+		const auto defaultres = condition ? SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->DroppodProp.Droppod_Trailer_Attached : false;
 
-		return defaultVal;
+		return pTypeExt->DropPodProp.Droppod_Trailer_Attached.Get(defaultres);
 	}
 
-	static double GetAngle(TechnoTypeClass* pType, FootClass* pFoot, double rulesValue, bool condition)
+	static int GetSpeed(TechnoTypeClass* pType, FootClass* pFoot,bool condition)
 	{
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 		const auto pExt = TechnoExtContainer::Instance.Find(pFoot);
-		const auto defaultVal = !condition ?
-			rulesValue : SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->Droppod_Angle;
+		const auto defaultres = condition ? SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->DroppodProp.Droppod_Speed : RulesClass::Instance->DropPodSpeed;
 
-		return defaultVal;
+		return pTypeExt->DropPodProp.Droppod_Speed.Get(defaultres);
+	}
+
+	static int GetHeight(TechnoTypeClass* pType, FootClass* pFoot,bool condition)
+	{
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+		const auto pExt = TechnoExtContainer::Instance.Find(pFoot);
+		const auto defaultres = condition ? SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->DroppodProp.Droppod_Height : RulesClass::Instance->DropPodHeight;
+
+		return pTypeExt->DropPodProp.Droppod_Height.Get(defaultres);
+	}
+
+	static double GetAngle(TechnoTypeClass* pType, FootClass* pFoot, bool condition)
+	{
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+		const auto pExt = TechnoExtContainer::Instance.Find(pFoot);
+		const auto defaultres = condition ? SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->DroppodProp.Droppod_Angle : RulesClass::Instance->DropPodAngle;
+
+		return pTypeExt->DropPodProp.Droppod_Angle.Get(defaultres);
 	}
 
 	static SHPStruct* GetPodImage(FootClass* pFoot)
 	{
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pFoot->GetTechnoType());
 		const auto pExt = TechnoExtContainer::Instance.Find(pFoot);
-		const auto defaultVal = !pExt->LinkedSW || (int)pExt->LinkedSW->Type->Type != (int)AresNewSuperType::DropPod ?
-			nullptr : SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->Droppod_PodImage_Infantry.Get();
+		SHPStruct* result = pTypeExt->DropPodProp.Droppod_PodImage_Infantry.Get(RulesExtData::Instance()->Droppod_ImageInfantry);
 
-		return defaultVal;
+		if (TechnoExtContainer::Instance.Find(pFoot)->LinkedSW && SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->DroppodProp.Droppod_PodImage_Infantry)
+			result = SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->DroppodProp.Droppod_PodImage_Infantry;
+
+		return result;
 	}
 
-	static AnimTypeClass* GetTrailer(TechnoTypeClass* pType, FootClass* pFoot, AnimTypeClass* rulesValue, bool condition)
+	static AnimTypeClass* GetTrailer(TechnoTypeClass* pType, FootClass* pFoot, bool condition)
 	{
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 		const auto pExt = TechnoExtContainer::Instance.Find(pFoot);
-		const auto defaultVal = !condition ?
-			rulesValue : SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->Droppod_Trailer.Get();
+		const auto defaultres = condition ? SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->DroppodProp.Droppod_Trailer : RulesExtData::Instance()->DropPodTrailer;
 
-		return defaultVal;
+		return pTypeExt->DropPodProp.Droppod_Trailer.Get(defaultres);
 	}
 
-	static WeaponTypeClass* GetWeapon(TechnoTypeClass* pType, FootClass* pFoot, WeaponTypeClass* rulesValue, bool condition)
+	static WeaponTypeClass* GetWeapon(TechnoTypeClass* pType, FootClass* pFoot, bool condition)
 	{
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 		const auto pExt = TechnoExtContainer::Instance.Find(pFoot);
-		const auto defaultVal = !condition ?
-			rulesValue : SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->Droppod_Weapon.Get();
+		const auto defaultres = condition ? SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->DroppodProp.Droppod_Weapon : RulesClass::Instance->DropPodWeapon;
 
-		return defaultVal;
+		return pTypeExt->DropPodProp.Droppod_Weapon.Get(defaultres);
 	}
 
-	static AnimTypeClass* GetPuff(TechnoTypeClass* pType, FootClass* pFoot, AnimTypeClass* rulesValue, bool condition)
+	static AnimTypeClass* GetPuff(TechnoTypeClass* pType, FootClass* pFoot, bool condition)
 	{
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 		const auto pExt = TechnoExtContainer::Instance.Find(pFoot);
-		const auto defaultVal = !condition ?
-			rulesValue : SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->Droppod_Puff.Get();
+		const auto defaultres = condition ? SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->DroppodProp.Droppod_Puff : RulesClass::Instance->DropPodPuff;
 
-		return defaultVal;
+		return pTypeExt->DropPodProp.Droppod_Puff.Get(defaultres);
 	}
 
-	static AnimTypeClass* GetGroundAnim(TechnoTypeClass* pType, FootClass* pFoot, TypeList<AnimTypeClass*>& rulesvalue, int State, bool condition)
+	static AnimTypeClass* GetGroundAnim(TechnoTypeClass* pType, FootClass* pFoot,int State, bool condition)
 	{
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 		const auto pExt = TechnoExtContainer::Instance.Find(pFoot);
-		const auto defaultVal = !condition ?
-			make_iterator(rulesvalue) : SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->Droppod_GroundPodAnim.GetElements();
-
-		return !defaultVal || defaultVal.size() < 2 ? nullptr : defaultVal[State];
+		const auto defaultres = condition ? make_iterator(SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->DroppodProp.Droppod_GroundPodAnim) : make_iterator(RulesClass::Instance->DropPod);
+		const auto result = pTypeExt->DropPodProp.Droppod_GroundPodAnim.GetElements(defaultres);
+		return result.empty() || result.size() < 2 ? nullptr : result[State == 0 && result.size() > 2 ? ScenarioClass::Instance->Random.RandomFromMax(result.size()-1) : State];
 	}
 
-	static AnimTypeClass* GetAtmosphereEntry(TechnoTypeClass* pType, FootClass* pFoot, AnimTypeClass* rulesValue, bool condition)
+	static AnimTypeClass* GetAtmosphereEntry(TechnoTypeClass* pType, FootClass* pFoot, bool condition)
 	{
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 		const auto pExt = TechnoExtContainer::Instance.Find(pFoot);
-		const auto defaultVal = !condition ?
-			rulesValue : SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->Droppod_AtmosphereEntry.Get();
+		const auto defaultres = condition ? SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->DroppodProp.Droppod_AtmosphereEntry : RulesClass::Instance->AtmosphereEntry;
 
-		return defaultVal;
+		return pTypeExt->DropPodProp.Droppod_AtmosphereEntry.Get(defaultres);
 	}
 
 	// function below originated from PR #1196 by : chaserli
-	// i just do some adjustment so my own code can go in 
+	// i just do some adjustment so my own code can go in
 	static bool Process_(DropPodLocomotionClass* pLoco)
 	{
 		auto pLinked = pLoco->LinkedTo;
@@ -99,8 +119,8 @@ struct DroppodProperties
 		CoordStruct oldLoc = pLinked->Location;
 		const auto pLinkedSW = TechnoExtContainer::Instance.Find(pLinked)->LinkedSW;
 		const bool condition = pLinkedSW && (int)pLinkedSW->Type->Type == (int)AresNewSuperType::DropPod;
-		const double angle = DroppodProperties::GetAngle(tType, pLinked, RulesClass::Instance->DropPodAngle, condition);
-		const auto maxspeed = DroppodProperties::GetSpeed(tType, pLinked, RulesClass::Instance->DropPodSpeed, condition);
+		const double angle = DroppodProperties_::GetAngle(tType, pLinked, condition);
+		const auto maxspeed = DroppodProperties_::GetSpeed(tType, pLinked, condition);
 		const int speed = std::max(maxspeed, pLinked->GetHeight() / 10 + 2);
 
 		CoordStruct coords = pLinked->Location;
@@ -111,18 +131,22 @@ struct DroppodProperties
 		{
 			pLinked->SetLocation(coords);
 
-			if (AnimTypeClass* pType = DroppodProperties::GetTrailer(tType, pLinked, RulesExtData::Instance()->DropPodTrailer, condition)) {
-				if (Unsorted::CurrentFrame % 6 == 0) {
-					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, coords, 0, 1, (AnimFlag)0x600, 0, false),
+			if (AnimTypeClass* pType = DroppodProperties_::GetTrailer(tType, pLinked, condition)) {
+				if (Unsorted::CurrentFrame % DroppodProperties_::GetTrailerDelay(tType, pLinked, condition) == 1) {
+					auto pTrail = GameCreate<AnimClass>(pType, coords, 0, 1, (AnimFlag)0x600, 0, false);
+					AnimExtData::SetAnimOwnerHouseKind(pTrail,
 						pLinked->Owner,
 						nullptr,
 						pLinked,
 						false
 					);
+
+					if (DroppodProperties_::GetIsTrailerAttached(tType, pLinked, condition))
+						pTrail->SetOwnerObject(pLinked);
 				}
 			}
 
-			if (auto dWpn = DroppodProperties::GetWeapon(tType, pLinked, RulesClass::Instance->DropPodWeapon, condition)) {
+			if (auto dWpn = DroppodProperties_::GetWeapon(tType, pLinked, condition)) {
 				if (Unsorted::CurrentFrame % MaxImpl(dWpn->ROF, 3) == 0) {
 					auto cell = MapClass::Instance->GetCellAt(pLoco->CoordDest);
 					auto techno = cell->FindTechnoNearestTo({ 0,0 }, false);
@@ -157,7 +181,7 @@ struct DroppodProperties
 
 			if (pLinked->Unlimbo(coords, DirType::North))
 			{
-				if (auto pAnimType = DroppodProperties::GetPuff(tType, pLinked, RulesClass::Instance->DropPodPuff, condition))
+				if (auto pAnimType = DroppodProperties_::GetPuff(tType, pLinked, condition))
 				{
 					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coords, 0, 1, AnimFlag(0x600), 0, 0),
 						pLinked->Owner,
@@ -167,7 +191,7 @@ struct DroppodProperties
 					);
 				}
 
-				if (const auto nDroppod = DroppodProperties::GetGroundAnim(tType, pLinked, RulesClass::Instance->DropPod, pLoco->OutOfMap, condition))
+				if (const auto nDroppod = DroppodProperties_::GetGroundAnim(tType, pLinked, pLoco->OutOfMap, condition))
 				{
 					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(nDroppod, coords, 0, 1, AnimFlag(0x600), 0, 0),
 						pLinked->Owner,
@@ -204,7 +228,7 @@ struct DroppodProperties
 	}
 
 	// function below originated from PR #1196 by : chaserli
-	// i just do some adjustment so my own code can go in 
+	// i just do some adjustment so my own code can go in
 	static void MoveTo_(DropPodLocomotionClass* pLoco, CoordStruct* pCoord)
 	{
 		if (pLoco->CoordDest.IsValid())
@@ -215,8 +239,8 @@ struct DroppodProperties
 		auto tType = pLoco->LinkedTo->GetTechnoType();
 		const auto pLinkedSW = TechnoExtContainer::Instance.Find(pLoco->LinkedTo)->LinkedSW;
 		const bool condition = pLinkedSW && (int)pLinkedSW->Type->Type == (int)AresNewSuperType::DropPod;
-		const int height = DroppodProperties::GetHeight(tType, pLoco->LinkedTo, RulesClass::Instance->DropPodHeight, condition);
-		const double angle = DroppodProperties::GetAngle(tType, pLoco->LinkedTo, RulesClass::Instance->DropPodAngle, condition);
+		const int height = DroppodProperties_::GetHeight(tType, pLoco->LinkedTo, condition);
+		const double angle = DroppodProperties_::GetAngle(tType, pLoco->LinkedTo, condition);
 
 		CoordStruct coord = *pCoord;
 		coord.Z += height;
@@ -234,7 +258,7 @@ struct DroppodProperties
 		{
 			pLoco->LinkedTo->PrimaryFacing.Set_Current(DirStruct { DirType::South });
 
-			if (auto pAnimType = DroppodProperties::GetAtmosphereEntry(tType, pLoco->LinkedTo, RulesClass::Instance->AtmosphereEntry, condition))
+			if (auto pAnimType = DroppodProperties_::GetAtmosphereEntry(tType, pLoco->LinkedTo, condition))
 			{
 				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coord, 0, 1, AnimFlag(0x600), 0, 0),
 					pLoco->Owner->Owner,
@@ -389,21 +413,21 @@ DEFINE_HOOK(0x4B5CF1, DropPodLocomotionClass_Process_DroppodPuff, 0x5)
 */
 
 // function below originated from PR #1196 by : chaserli
-// i just do some adjustment so my own code can go in 
+// i just do some adjustment so my own code can go in
 DEFINE_HOOK(0x4B5B70, DroppodLoco_ILoco_Process, 0x5)
 {
 	GET_STACK(ILocomotion*, iloco, 0x4);
-	R->AL(DroppodProperties::Process_(static_cast<DropPodLocomotionClass*>(iloco)));
+	R->AL(DroppodProperties_::Process_(static_cast<DropPodLocomotionClass*>(iloco)));
 	return 0x4B6036;
 }
 
 // function below originated from PR #1196 by : chaserli
-// i just do some adjustment so my own code can go in 
+// i just do some adjustment so my own code can go in
 DEFINE_HOOK(0x4B6040, DroppodLoco_ILoco_MoveTo, 0x9)
 {
 	GET_STACK(ILocomotion*, iloco, 0x4);
 	REF_STACK(CoordStruct, to, 0x8);
-	DroppodProperties::MoveTo_(static_cast<DropPodLocomotionClass*>(iloco), &to);
+	DroppodProperties_::MoveTo_(static_cast<DropPodLocomotionClass*>(iloco), &to);
 	return 0x4B61F5;
 }
 
@@ -413,7 +437,7 @@ DEFINE_HOOK(0x519168, InfantryClass_DrawIt_DroppodLinked, 0x5)
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (auto pPod = DroppodProperties::GetPodImage(pThis))
+	if (auto pPod = DroppodProperties_::GetPodImage(pThis))
 	{
 		R->EAX(pPod);
 		return 0x519172;

@@ -6,6 +6,7 @@
 #include <Utilities/TemplateDefB.h>
 
 #include <New/Type/CursorTypeClass.h>
+#include <New/Type/DroppodProperties.h>
 
 #include <BitFont.h>
 
@@ -288,16 +289,7 @@ public:
 	ValueableVector<TechnoTypeClass*> DropPod_Types {};
 	Valueable<int> Droppod_RetryCount { 3 };
 
-	Valueable<SHPStruct*> Droppod_PodImage_Infantry {};
-	Valueable<AnimTypeClass*> Droppod_Puff {};
-	Valueable<double> Droppod_Angle {};
-	Valueable<int> Droppod_Speed {};
-	Valueable<int> Droppod_Height {};
-	Valueable<WeaponTypeClass*> Droppod_Weapon {};
-	ValueableVector<AnimTypeClass*> Droppod_GroundPodAnim {};
-
-	Valueable<AnimTypeClass*> Droppod_Trailer {};
-	Valueable<AnimTypeClass*> Droppod_AtmosphereEntry {};
+	DroppodProperties DroppodProp {};
 #pragma endregion
 
 #pragma region EMPField

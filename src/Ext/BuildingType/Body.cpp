@@ -474,14 +474,11 @@ float BuildingTypeExtData::GetPurifierBonusses(HouseClass* pHouse)
 
 	auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 
-	if (pHouseExt->Building_OrePurifiersCounter.empty())
-		return 0.00f;
-
 	// AI VirtualPurifiers only applicable outside campaign
 	// the bonus is using default rules value
-	const bool Eligible = !pHouse->IsHumanPlayer && SessionClass::Instance->GameMode == GameMode::Campaign;
-	const int bonusCount = !Eligible ? 0 : RulesClass::Instance->AIVirtualPurifiers[pHouse->GetAIDifficultyIndex()];
 	//virtual purifier using rules value
+	const bool Eligible = !pHouse->IsHumanPlayer && SessionClass::Instance->GameMode != GameMode::Campaign;
+	const int bonusCount = !Eligible ? 0 : RulesClass::Instance->AIVirtualPurifiers[pHouse->GetAIDifficultyIndex()];
 	const float bonusAI = RulesClass::Instance->PurifierBonus * bonusCount;
 
 	for (const auto& [pBldType, nCount] : pHouseExt->Building_OrePurifiersCounter)
@@ -495,7 +492,7 @@ float BuildingTypeExtData::GetPurifierBonusses(HouseClass* pHouse)
 		}
 	}
 
-	return (fFactor > 0.00f) ? fFactor + bonusAI : 0.00f;
+	return (fFactor > 0.00f) ? fFactor + bonusAI : bonusAI;
 }
 
 double BuildingTypeExtData::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseClass* pOwner)

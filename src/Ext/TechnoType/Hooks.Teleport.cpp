@@ -118,8 +118,6 @@ DEFINE_HOOK(0x71997B, TeleportLocomotionClass_ILocomotion_Process_ChronoDelay, 0
 	return 0x719981;
 }
 
-#ifdef ENABLE_TILTINGCODE
-
 FORCEINLINE std::pair<Matrix3D, Matrix3D> SimplifiedTiltingConsideration(float arf, float ars, TechnoTypeClass* linkedType)
 {
 	double scalex = linkedType->VoxelScaleX;
@@ -163,10 +161,17 @@ Matrix3D* __stdcall TeleportLocomotionClass_Draw_Matrix(ILocomotion* pThis, Matr
 		if (pIndex)
 			*(int*)pIndex = -1;
 
-		auto [a2, v26] = SimplifiedTiltingConsideration(arf, ars, loco->LinkedTo->GetTechnoType());
-		Matrix3D ret_ {};
-		loco->LocomotionClass::Draw_Matrix(&ret_, pIndex);
-		*ret = a2 * ret_ * v26;
+		double scalex = loco->LinkedTo->GetTechnoType()->VoxelScaleX;
+		double scaley = loco->LinkedTo->GetTechnoType()->VoxelScaleY;
+
+		Matrix3D pre = Matrix3D::GetIdentity();
+		pre.TranslateZ(float(std::abs(Math::sin(ars)) * scalex + std::abs(Math::sin(arf)) * scaley));
+		ret->TranslateX(float(Math::signum(arf) * (scaley * (1 - Math::cos(arf)))));
+		ret->TranslateY(float(Math::signum(-ars) * (scalex * (1 - Math::cos(ars)))));
+		ret->RotateX(ars);
+		ret->RotateY(arf);
+
+		*ret = pre * *ret;
 		return ret;
 	}
 
@@ -178,28 +183,11 @@ DEFINE_JUMP(VTABLE, 0x7F5028, 0x5142A0);//TeleportLocomotionClass_Shaow_Matrix :
 DEFINE_HOOK(0x729B5D, TunnelLocomotionClass_DrawMatrix_Tilt, 0x8)
 {
 	GET(ILocomotion*, iloco, ESI);
-	auto pLoco = static_cast<LocomotionClass*>(iloco);
 	GET_BASE(VoxelIndexKey*, pIndex, 0x10);
 	GET_BASE(Matrix3D*, ret, 0xC);
-	auto linked = pLoco->LinkedTo;
-
-	float arf = linked->AngleRotatedForwards;
-	float ars = linked->AngleRotatedSideways;
-	if (std::abs(ars) >= 0.005 || std::abs(arf) >= 0.005)
-	{
-		//no one actually cares
-		if (pIndex)
-			*(int*)pIndex = -1;
-		auto [a2, v26] = SimplifiedTiltingConsideration(arf, ars, linked->GetTechnoType());
-		Matrix3D ret_ {};
-		pLoco->LocomotionClass::Draw_Matrix(&ret_, pIndex);
-		*ret = a2 * ret_ * v26;
-		R->EAX(ret);
-		return 0x729C09;
-	}
-
-	return 0;
+	R->EAX(TeleportLocomotionClass_Draw_Matrix(iloco, ret, pIndex));
+	return 0x729C09;
 }
 DEFINE_JUMP(VTABLE, 0x7F5A4C, 0x5142A0);//TunnelLocomotionClass_Shaow_Matrix : just use hover's to save my ass
-#endif
+
 #undef GET_LOCO

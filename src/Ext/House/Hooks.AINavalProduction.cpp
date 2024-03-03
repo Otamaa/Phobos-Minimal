@@ -48,29 +48,27 @@ DEFINE_HOOK(0x444113, BuildingClass_ExitObject_NavalProductionFix1, 0x6)
 	GET(BuildingClass* const, pThis, ESI);
 	GET(FootClass* const, pObject, EDI);
 
-	auto const pHouse = pThis->Owner;
-
-	if (pObject->WhatAmI() == UnitClass::AbsID && pObject->GetTechnoType()->Naval)
-	{
-		HouseExtContainer::Instance.Find(pHouse)->ProducingNavalUnitTypeIndex = -1;
-		ExitObjectTemp::ProducingUnitIndex = pHouse->ProducingUnitTypeIndex;
+	if (pObject->GetTechnoType()->Naval) {
+		HouseExtContainer::Instance.Find(pThis->Owner)->ProducingNavalUnitTypeIndex = -1;
+	} else {
+		pThis->Owner->ProducingUnitTypeIndex = -1;
 	}
 
-	return 0;
+	return 0x44411F;
 }
 
-DEFINE_HOOK(0x444137, BuildingClass_ExitObject_NavalProductionFix2, 0x6)
-{
-	GET(BuildingClass* const, pThis, ESI);
-	GET(FootClass* const, pObject, EDI);
-
-	auto const pHouse = pThis->Owner;
-
-	if (pObject->WhatAmI() == UnitClass::AbsID && pObject->GetTechnoType()->Naval)
-		pHouse->ProducingUnitTypeIndex = ExitObjectTemp::ProducingUnitIndex;
-
-	return 0;
-}
+//DEFINE_HOOK(0x444137, BuildingClass_ExitObject_NavalProductionFix2, 0x6)
+//{
+//	GET(BuildingClass* const, pThis, ESI);
+//	GET(FootClass* const, pObject, EDI);
+//
+//	auto const pHouse = pThis->Owner;
+//
+//	if (pObject->WhatAmI() == UnitClass::AbsID && pObject->GetTechnoType()->Naval)
+//		pHouse->ProducingUnitTypeIndex = ExitObjectTemp::ProducingUnitIndex;
+//
+//	return 0;
+//}
 
 DEFINE_HOOK(0x450319, BuildingClass_AI_Factory_NavalProductionFix, 0x6)
 {
@@ -125,19 +123,19 @@ DEFINE_HOOK(0x450319, BuildingClass_AI_Factory_NavalProductionFix, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x4CA0A1, FactoryClass_Abandon_NavalProductionFix, 0x5)
+DEFINE_HOOK(0x4CA0B1, FactoryClass_Abandon_NavalProductionFix, 0x6)
 {
 	enum { SkipUnitTypeCheck = 0x4CA0B7 };
 
 	GET(FactoryClass* const, pThis, ESI);
 
-	if (pThis->Object->WhatAmI() == UnitClass::AbsID && pThis->Object->GetTechnoType()->Naval)
-	{
+	if (pThis->Object->GetTechnoType()->Naval) {
 		HouseExtContainer::Instance.Find(pThis->Owner)->ProducingNavalUnitTypeIndex = -1;
-		return SkipUnitTypeCheck;
+	} else {
+		pThis->Owner->ProducingUnitTypeIndex = -1;
 	}
 
-	return 0;
+	return 0x4CA0B7;
 }
 
 DEFINE_HOOK(0x4F91A4, HouseClass_AI_BuildingProductionCheck, 0x6)
@@ -163,20 +161,17 @@ DEFINE_HOOK(0x4F91A4, HouseClass_AI_BuildingProductionCheck, 0x6)
 		&& !InfantryTypeClass::Array->Items[pThis->ProducingInfantryTypeIndex]->FindFactory(true, true, true, pThis))
 		cantBuild = true;
 
-	if ((pThis->ProducingAircraftTypeIndex != -1
-		&& !AircraftTypeClass::Array->Items[pThis->ProducingAircraftTypeIndex]->FindFactory(true, true, true, pThis)) || cantBuild)
-		return CheckBuildingProduction;
+	if (pThis->ProducingAircraftTypeIndex != -1
+		&& !AircraftTypeClass::Array->Items[pThis->ProducingAircraftTypeIndex]->FindFactory(true, true, true, pThis))
+		cantBuild = true;
 
-	return SkipGameCode;
+	return cantBuild ?  CheckBuildingProduction : SkipGameCode;
 }
 
 DEFINE_HOOK(0x4FE0A3, HouseClass_AI_RaiseMoney_NavalProductionFix, 0x6)
 {
 	GET(HouseClass* const, pThis, ESI);
-
-	if (auto const pExt = HouseExtContainer::Instance.Find(pThis))
-		pExt->ProducingNavalUnitTypeIndex = -1;
-
+	HouseExtContainer::Instance.Find(pThis)->ProducingNavalUnitTypeIndex = -1;
 	return 0;
 }
 #endif

@@ -99,6 +99,10 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 
 	auto const pObjectT = generic_cast<ObjectClass*>(pTarget);
 
+	if (auto pTerrain = specific_cast<TerrainClass*>(pTarget))
+		if (pTerrain->Type->Immune)
+			return FireIllegal;
+
 	if (pWeapon->Warhead->MakesDisguise && pObjectT) {
 		if (!DisguiseAllowed(TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType()), pObjectT->GetDisguise(true)))
 			return FireIllegal;

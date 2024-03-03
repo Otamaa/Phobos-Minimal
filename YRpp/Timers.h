@@ -40,8 +40,11 @@ public:
 	Clock CurrentTime; // timer
 	int TimeLeft;
 
-	constexpr TimerClass() : StartTime { -1 }, TimeLeft { 0 } { };
-	explicit TimerClass(int duration) { this->Start(duration); }
+	constexpr TimerClass() : StartTime { -1 }, TimeLeft { 0 } { }
+	explicit TimerClass(int duration) : StartTime { -1 }, TimeLeft { duration } {
+		this->StartTime = this->CurrentTime;
+	}
+
 	TimerClass(noinit_t()){ }
 	~TimerClass() = default;
 
@@ -92,10 +95,11 @@ public:
 			return this->TimeLeft;
 		}
 
-		auto passed = this->CurrentTime - this->StartTime;
-		auto left = this->TimeLeft - passed;
-
-		return (left <= 0) ? 0 : left;
+		const int passed = this->CurrentTime - this->StartTime;
+		const int left = this->TimeLeft - passed;
+		const int remaining = (left <= 0) ? 0 : left;
+		//this->TimeLeft = remaining;
+		return remaining;
 	}
 
 	// returns whether a ticking timer has finished counting down.

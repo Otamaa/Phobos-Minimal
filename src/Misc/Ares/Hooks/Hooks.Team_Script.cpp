@@ -87,6 +87,7 @@ DEFINE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
 			const auto& [nextAct, nextArgs] = pScript->GetNextAction();
 
 			pTeamData->ForceJump_InitialCountdown = -1;
+			pTeamData->ForceJump_Countdown.Stop();
 			Debug::Log("DEBUG: [%s] [%s](line: %d = %d,%d): Jump to line: %d = %d,%d -> (Reason: Timed Jump)\n",
 				pThis->Type->ID,
 				pScript->Type->ID,
@@ -104,10 +105,7 @@ DEFINE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
 		}
 
 		pThis->StepCompleted = true;
-		return ReturnFunc;
-	}
-	else
-	{
+	} else {
 		ScriptExtData::ProcessScriptActions(pThis);
 	}
 

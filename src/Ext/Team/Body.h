@@ -24,8 +24,8 @@ public:
 	int Countdown_RegroupAtLeader { -1 };
 	int MoveMissionEndMode { 0 };
 	int WaitNoTargetCounter { 0 };
-	CDTimerClass WaitNoTargetTimer { 0 };
-	CDTimerClass ForceJump_Countdown { 0 };
+	CDTimerClass WaitNoTargetTimer { };
+	CDTimerClass ForceJump_Countdown { };
 	int ForceJump_InitialCountdown { -1 };
 	bool ForceJump_RepeatMode { false };
 	FootClass* TeamLeader { nullptr };

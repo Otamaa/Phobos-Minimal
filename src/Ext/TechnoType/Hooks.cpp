@@ -65,7 +65,7 @@ DEFINE_HOOK(0x6F64A0, TechnoClass_DrawHealthBar_Hide, 0x5)
 	return Draw;
 }
 
-DEFINE_HOOK(0x6F3C56, TechnoClass_Transform_6F3AD0_TurretMultiOffset, 0x5) //0
+DEFINE_HOOK(0x6F3C56, TechnoClass_GetFLH_TurretMultiOffset, 0x5) //0
 {
 	GET(TechnoTypeClass*, pType, EDX);
 	LEA_STACK(Matrix3D*, mtx, STACK_OFFS(0xD8, 0x90));
@@ -108,17 +108,18 @@ DEFINE_HOOK(0x73B780, UnitClass_DrawVXL_TurretMultiOffset, 0x6) //0
 		0x73B78A : 0x73B790;
 }
 
+constexpr reference<double, 0xB1D008> const Pixel_Per_Lepton {};
+
 DEFINE_HOOK(0x73BA4C, UnitClass_DrawVXL_TurretMultiOffset1, 0x6) //0
 {
 	GET(TechnoTypeClass*, pType, EBX);
 	LEA_STACK(Matrix3D*, mtx, STACK_OFFS(0x1D0, 0x13C));
 
 	const auto& nOffs = TechnoTypeExtContainer::Instance.Find(pType)->TurretOffset;
-	const double& factor = *reinterpret_cast<double*>(0xB1D008);
 
-	float x = static_cast<float>(nOffs->X * factor);
-	float y = static_cast<float>(nOffs->Y * factor);
-	float z = static_cast<float>(nOffs->Z * factor);
+	float x = static_cast<float>(nOffs->X * Pixel_Per_Lepton);
+	float y = static_cast<float>(nOffs->Y * Pixel_Per_Lepton);
+	float z = static_cast<float>(nOffs->Z * Pixel_Per_Lepton);
 
 	mtx->Translate(x, y, z);
 
@@ -177,7 +178,7 @@ DEFINE_HOOK(0x73CCE1, UnitClass_DrawSHP_TurretOffest, 0x6)
 	double bodyRad = pThis->PrimaryFacing.Current().GetRadian<32>();
 	float angle = (float)(turretRad - bodyRad);
 	mtx.RotateZ(angle);
-	auto res = Matrix3D::MatrixMultiply(mtx, Vector3D<float>::Empty);
+	auto res = mtx.GetTranslation();
 	auto location = CoordStruct { static_cast<int>(res.X), static_cast<int>(-res.Y), static_cast<int>(res.Z) };
 	Point2D temp;
 	pos += *TacticalClass::Instance()->CoordsToScreen(&temp, &location);

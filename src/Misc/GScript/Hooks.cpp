@@ -66,7 +66,7 @@ DEFINE_HOOK(0x4179f7, AircraftClass_AssumeTaskComplete_DontCrash, 0x6)
 }
 
 static std::vector<BuildingClass*> some_bldType_Arr_ {};
-
+DEFINE_HOOK_AGAIN(0x417b72, AircraftClass_AssumeTaskComplete_SkipAutoDocking2, 6)
 DEFINE_HOOK(0x417996, AircraftClass_AssumeTaskComplete_SkipAutoDocking1,9)
 {
 	GET(AircraftClass*, pThis, ESI);
@@ -97,7 +97,6 @@ DEFINE_HOOK(0x417996, AircraftClass_AssumeTaskComplete_SkipAutoDocking1,9)
 		}
 	}
 
-
 	BuildingClass* Closest = nullptr;
 	for (auto pBldGet : some_bldType_Arr_) {
 		if (Closest) {
@@ -116,7 +115,6 @@ DEFINE_HOOK(0x417996, AircraftClass_AssumeTaskComplete_SkipAutoDocking1,9)
 	return 0x417B69;
 }
 
-DEFINE_HOOK(0x417b72, AircraftClass_AssumeTaskComplete_SkipAutoDocking2,6)
-{ }
 DEFINE_HOOK(0x417ad4, AircraftClass_AssumeTaskComplete_SkipAutoDocking3,6)
-{ }
+{
+}

@@ -1129,9 +1129,14 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->EliteArmor.Read(exINI, pSection, "EliteArmor");
 		this->VeteranArmor.Read(exINI, pSection, "VeteranArmor");
 		this->Cloakable_IgnoreArmTimer.Read(exINI, pSection, "Cloakable.IgnoreROFTimer");
-		this->Untrackable.Read(exINI, pSection, "Untrackable");
 
-		this->LargeVisceroid.Read(exINI, pSection, "Visceroid.Large");
+
+		if (this->AttachtoType != AbstractType::BuildingType)
+		{
+			this->Untrackable.Read(exINI, pSection, "Untrackable");
+			this->LargeVisceroid.Read(exINI, pSection, "Visceroid.Large");
+			this->DropPodProp.Read(exINI, pSection);
+		}
 	}
 
 	// Art tags
@@ -2074,6 +2079,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->Untrackable)
 		.Process(this->Convert_Scipt_Prereq)
 		.Process(this->LargeVisceroid)
+		.Process(this->DropPodProp)
 		;
 }
 

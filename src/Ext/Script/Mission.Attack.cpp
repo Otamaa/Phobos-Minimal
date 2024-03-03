@@ -54,40 +54,13 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 	}
 
 	// When the new target wasn't found it sleeps some few frames before the new attempt. This can save cycles and cycles of unnecessary executed lines.
-	if (pTeamData->WaitNoTargetCounter > 0)
-	{
-		if (pTeamData->WaitNoTargetTimer.InProgress())
-			return;
-
-		pTeamData->WaitNoTargetTimer.Stop();
-		noWaitLoop = true;
-		pTeamData->WaitNoTargetCounter = 0;
-
-		if (pTeamData->WaitNoTargetAttempts > 0)
-			pTeamData->WaitNoTargetAttempts--;
-	}
-
-	// This team has no units!
-	if (!pTeam)
-	{
-		if (pTeamData->CloseEnough > 0)
-			pTeamData->CloseEnough = -1;
-
-		// This action finished
-		pTeam->StepCompleted = true;
-		ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No team members alive)\n",
-			pTeam->Type->ID,
-			pScript->Type->ID,
-			pScript->CurrentMission,
-			curAct,
-			scriptArgument,
-			pScript->CurrentMission + 1,
-			nextAct,
-			nextArg
-		);
-
+	if (pTeamData->WaitNoTargetTimer.InProgress())
 		return;
-	}
+
+	pTeamData->WaitNoTargetTimer.Stop();
+
+	if (pTeamData->WaitNoTargetAttempts > 0)
+		pTeamData->WaitNoTargetAttempts--;
 
 	auto pFocus = abstract_cast<TechnoClass*>(pTeam->Focus);
 
@@ -187,12 +160,8 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 	if (!pTeamData->TeamLeader  || bAircraftsWithoutAmmo || (pacifistTeam && !agentMode))
 	{
 		pTeamData->IdxSelectedObjectFromAIList = -1;
-		if (pTeamData->WaitNoTargetAttempts != 0)
-		{
-			pTeamData->WaitNoTargetTimer.Stop();
-			pTeamData->WaitNoTargetCounter = 0;
-			pTeamData->WaitNoTargetAttempts = 0;
-		}
+		pTeamData->WaitNoTargetTimer.Stop();
+		pTeamData->WaitNoTargetAttempts = 0;
 
 		// This action finished
 		pTeam->StepCompleted = true;
@@ -261,7 +230,6 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 			pFocus = selectedTarget;
 			pTeamData->WaitNoTargetAttempts = 0; // Disable Script Waits if there are any because a new target was selected
 			pTeamData->WaitNoTargetTimer.Stop();
-			pTeamData->WaitNoTargetCounter = 0; // Disable Script Waits if there are any because a new target was selected
 
 			for (auto pFoot = pTeam->FirstUnit; pFoot; pFoot = pFoot->NextTeamMember)
 			{
@@ -324,23 +292,13 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 		else
 		{
 			// No target was found with the specific criteria.
-			if (!noWaitLoop && pTeamData->WaitNoTargetTimer.Completed())
+			if (pTeamData->WaitNoTargetAttempts > 0 && pTeamData->WaitNoTargetTimer.Completed())
 			{
-				pTeamData->WaitNoTargetCounter = 30;
 				pTeamData->WaitNoTargetTimer.Start(30);
-			}
-
-			if (pTeamData->IdxSelectedObjectFromAIList >= 0)
-				pTeamData->IdxSelectedObjectFromAIList = -1;
-
-			if (pTeamData->WaitNoTargetAttempts != 0 && pTeamData->WaitNoTargetTimer.Completed())
-			{
-				// No target? let's wait some frames
-				pTeamData->WaitNoTargetCounter = 30;
-				pTeamData->WaitNoTargetTimer.Start(30);
-
 				return;
 			}
+
+			pTeamData->IdxSelectedObjectFromAIList = -1;
 
 			// This action finished
 			pTeam->StepCompleted = true;

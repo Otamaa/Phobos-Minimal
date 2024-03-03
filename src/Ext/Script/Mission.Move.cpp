@@ -9,7 +9,6 @@
 void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, bool pickAllies = false, int attackAITargetType = -1, int idxAITargetTypeItem = -1)
 {
 	auto pScript = pTeam->CurrentScript;
-	bool noWaitLoop = false;
 	bool bAircraftsWithoutAmmo = false;
 
 	if (!pScript)
@@ -20,35 +19,6 @@ void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, 
 
 	auto const& [act, scriptArgument] = pScript->GetCurrentAction();// This is the target type
 	auto const& [nextAct, nextArg] = pScript->GetNextAction();
-	//ScriptExtData::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Executing)\n",
-	//	pTeam->Type->ID,
-	//	pScript->Type->ID,
-	//	pScript->CurrentMission,
-	//	act,
-	//	scriptArgument,
-	//	pScript->CurrentMission + 1,
-	//	nextAct,
-	//	nextArg);
-
-	// This team has no units!
-	if (!pTeam)
-	{
-		// This action finished
-		pTeam->StepCompleted = true;
-
-		ScriptExtData::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No team members alive)\n",
-			pTeam->Type->ID,
-			pScript->Type->ID,
-			pScript->CurrentMission,
-			act,
-			scriptArgument,
-			pScript->CurrentMission + 1,
-			nextAct,
-			nextArg);
-
-		return;
-	}
-
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 
 	if (!pTeamData)
@@ -69,19 +39,13 @@ void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, 
 	}
 
 	// When the new target wasn't found it sleeps some few frames before the new attempt. This can save cycles and cycles of unnecessary executed lines.
-	if (pTeamData->WaitNoTargetCounter > 0)
-	{
-		if (pTeamData->WaitNoTargetTimer.InProgress())
-			return;
+	if (pTeamData->WaitNoTargetTimer.InProgress())
+		return;
 
-		pTeamData->WaitNoTargetTimer.Stop();
-		noWaitLoop = true;
-		pTeamData->WaitNoTargetCounter = 0;
+	pTeamData->WaitNoTargetTimer.Stop();
 
-		if (pTeamData->WaitNoTargetAttempts > 0)
-			pTeamData->WaitNoTargetAttempts--;
-	}
-
+	if (pTeamData->WaitNoTargetAttempts > 0)
+		pTeamData->WaitNoTargetAttempts--;
 
 	for (auto pFoot = pTeam->FirstUnit; pFoot; pFoot = pFoot->NextTeamMember)
 	{
@@ -106,18 +70,11 @@ void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, 
 
 	if (!pTeamData->TeamLeader || bAircraftsWithoutAmmo)
 	{
-
 		pTeamData->IdxSelectedObjectFromAIList = -1;
+		pTeamData->CloseEnough = -1;
 
-		if (pTeamData->CloseEnough > 0)
-			pTeamData->CloseEnough = -1;
-
-		if (pTeamData->WaitNoTargetAttempts != 0)
-		{
-			pTeamData->WaitNoTargetTimer.Stop();
-			pTeamData->WaitNoTargetCounter = 0;
-			pTeamData->WaitNoTargetAttempts = 0;
-		}
+		pTeamData->WaitNoTargetTimer.Stop();
+		pTeamData->WaitNoTargetAttempts = 0;
 
 		// This action finished
 		pTeam->StepCompleted = true;
@@ -167,13 +124,10 @@ void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, 
 			pTeam->Focus = selectedTarget;
 			pTeamData->WaitNoTargetAttempts = 0; // Disable Script Waits if there are any because a new target was selected
 			pTeamData->WaitNoTargetTimer.Stop();
-			pTeamData->WaitNoTargetCounter = 0; // Disable Script Waits if there are any because a new target was selected
 
 			for (auto pFoot = pTeam->FirstUnit; pFoot; pFoot = pFoot->NextTeamMember)
 			{
-				if (ScriptExtData::IsUnitAvailable(pFoot, false)
-					&& ScriptExtData::IsUnitAvailable(selectedTarget, false)
-					)
+				if (ScriptExtData::IsUnitAvailable(pFoot, false))
 				{
 					auto const pTechnoType = pFoot->GetTechnoType();
 
@@ -210,25 +164,13 @@ void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, 
 		{
 			// No target was found with the specific criteria.
 
-			if (!noWaitLoop && pTeamData->WaitNoTargetTimer.Completed())
-			{
-				pTeamData->WaitNoTargetCounter = 30;
-				pTeamData->WaitNoTargetTimer.Start(30);
-			}
-
-			if (pTeamData->IdxSelectedObjectFromAIList >= 0)
-				pTeamData->IdxSelectedObjectFromAIList = -1;
-
-			if (pTeamData->WaitNoTargetAttempts != 0 && pTeamData->WaitNoTargetTimer.Completed())
-			{
-				pTeamData->WaitNoTargetCounter = 30;
+			if (pTeamData->WaitNoTargetAttempts > 0) {
 				pTeamData->WaitNoTargetTimer.Start(30); // No target? let's wait some frames
-
 				return;
 			}
 
-			if (pTeamData->CloseEnough >= 0)
-				pTeamData->CloseEnough = -1;
+			pTeamData->IdxSelectedObjectFromAIList = -1;
+			pTeamData->CloseEnough = -1;
 
 			// This action finished
 			pTeam->StepCompleted = true;
@@ -250,18 +192,11 @@ void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, 
 	{
 
 		// This part of the code is used for updating the "Move" mission in each team unit
-		int moveDestinationMode = 0;
-		moveDestinationMode = pTeamData->MoveMissionEndMode;
-		bool bForceNextAction = ScriptExtData::MoveMissionEndStatus(pTeam, pFocus, pTeamData->TeamLeader, moveDestinationMode);
-
-
-		if (bForceNextAction)
+		if (ScriptExtData::MoveMissionEndStatus(pTeam, pFocus, pTeamData->TeamLeader, pTeamData->MoveMissionEndMode))
 		{
 			pTeamData->MoveMissionEndMode = 0;
 			pTeamData->IdxSelectedObjectFromAIList = -1;
-
-			if (pTeamData->CloseEnough >= 0)
-				pTeamData->CloseEnough = -1;
+			pTeamData->CloseEnough = -1;
 
 			// This action finished
 			pTeam->StepCompleted = true;

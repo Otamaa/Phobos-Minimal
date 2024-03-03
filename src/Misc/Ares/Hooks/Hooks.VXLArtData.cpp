@@ -240,17 +240,18 @@ DEFINE_HOOK(0x73B6E3, UnitClass_DrawVXL_NoSpawnAlt, 6)
 
 DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 {
+	using VoxelShadowIdx = IndexClass<ShadowVoxelIndexKey, VoxelCacheStruct*>;
 	GET(FootClass*, pThis, ESI);
 	GET_STACK(Point2D, pos, STACK_OFFSET(0x18, 0x28));
 	GET_STACK(Surface*, pSurface, STACK_OFFSET(0x18, 0x24));
-	GET_STACK(bool, a9, STACK_OFFSET(0x18, 0x20)); // unknown usage
+	GET_STACK(bool, a9, STACK_OFFSET(0x18, 0x20));
 	GET_STACK(Matrix3D*, pMatrix, STACK_OFFSET(0x18, 0x1C));
-	GET_STACK(Point2D*, a4, STACK_OFFSET(0x18, 0x14)); // unknown usage
-	GET_STACK(Point2D, a3, STACK_OFFSET(0x18, -0x10)); // unknown usage
-	GET_STACK(int*, a5, STACK_OFFSET(0x18, 0x10)); // unknown usage
-	GET_STACK(int, angle, STACK_OFFSET(0x18, 0xC));
-	GET_STACK(int, idx, STACK_OFFSET(0x18, 0x8));
-	GET_STACK(VoxelStruct*, pVXL, STACK_OFFSET(0x18, 0x4));
+	GET_STACK(RectangleStruct*, bound, STACK_OFFSET(0x18, 0x14));
+	GET_STACK(Point2D, a3, STACK_OFFSET(0x18, -0x10));
+	GET_STACK(VoxelShadowIdx*, shadow_cache, STACK_OFFSET(0x18, 0x10));
+	GET_STACK(VoxelIndexKey, index_key, STACK_OFFSET(0x18, 0xC));
+	GET_STACK(int, shadow_index, STACK_OFFSET(0x18, 0x8));
+	GET_STACK(VoxelStruct*, main_vxl, STACK_OFFSET(0x18, 0x4));
 
 	if (!pThis->IsAlive)
 		return 0x0;
@@ -261,32 +262,28 @@ DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 		? TechnoTypeExtData::GetTurretsVoxel(pType, pThis->CurrentTurretNumber)
 		: &pType->TurretVoxel;
 
-	if (pTypeExt->TurretShadow.Get(RulesExtData::Instance()->DrawTurretShadow) && tur->VXL && tur->HVA)
+	if (tur && pTypeExt->TurretShadow.Get(RulesExtData::Instance()->DrawTurretShadow) && tur->VXL && tur->HVA)
 	{
 		Matrix3D mtx {};
 		pThis->Locomotor.GetInterfacePtr()->Shadow_Matrix(&mtx, nullptr);
 		pTypeExt->ApplyTurretOffset(&mtx, *reinterpret_cast<double*>(0xB1D008));
-		mtx.TranslateZ(-tur->HVA->Matrixes[0].GetZVal());
+		float zTrans = static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>());
+		mtx.TranslateZ(zTrans);
+		Matrix3D::MatrixMultiply(&mtx, pMatrix, &mtx);
 
-		if (pType->Turret) {
-			mtx.RotateZ((float)(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>()));
-		}
-
-		Matrix3D::MatrixMultiply(&mtx, &Game::VoxelDefaultMatrix(), &mtx);
-
-		pThis->DrawVoxelShadow(tur, 0, angle, 0, a4, &a3, &mtx, a9, pSurface, pos);
+		pThis->DrawVoxelShadow(tur, 0, index_key, nullptr, bound, &a3, &mtx, a9, pSurface, pos);
 
 		const auto bar = pType->ChargerBarrels ?
 			TechnoTypeExtData::GetBarrelsVoxel(pType, pThis->CurrentTurretNumber)
 			: &pType->BarrelVoxel;
 
-		if (bar->VXL && bar->HVA)
-			pThis->DrawVoxelShadow(bar, 0, angle, 0, a4, &a3, &mtx, a9, pSurface, pos);
+		if (bar && bar->VXL && bar->HVA)
+			pThis->DrawVoxelShadow(bar, 0, index_key, nullptr, bound, &a3, &mtx, a9, pSurface, pos);
 	}
 
 	if (pTypeExt->ShadowIndices.empty())
 	{
-		pThis->DrawVoxelShadow(pVXL, idx, angle, a5, a4, &a3, pMatrix, a9, pSurface, pos);
+		pThis->DrawVoxelShadow(main_vxl, shadow_index, index_key, shadow_cache, bound, &a3, pMatrix, a9, pSurface, pos);
 	}
 	else
 	{
@@ -295,7 +292,7 @@ DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 			//Matrix3D copy_ = *pMatrix;
 			//copy_.TranslateZ(-pVXL->HVA->Matrixes[index].GetZVal());
 			//Matrix3D::MatrixMultiply(&copy_, &Game::VoxelDefaultMatrix(), &copy_);
-			pThis->DrawVoxelShadow(pVXL, index, angle, a5, a4, &a3, pMatrix, a9, pSurface, pos);
+			pThis->DrawVoxelShadow(main_vxl, index, index_key, shadow_cache, bound, &a3, pMatrix, a9, pSurface, pos);
 		}
 	}
 

@@ -930,25 +930,31 @@ void ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 	}
 }
 
-void ScriptExtData::ExecuteTimedAreaGuardAction(TeamClass* pTeam)
+void NOINLINE ScriptExtData::ExecuteTimedAreaGuardAction(TeamClass* pTeam)
 {
 	auto const pScript = pTeam->CurrentScript;
 	auto const pScriptType = pScript->Type;
 
-	if (pTeam->GuardAreaTimer.TimeLeft == 0 && !pTeam->GuardAreaTimer.InProgress())
-	{
-		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember){
+	if (pScriptType->ScriptActions[pScript->CurrentMission].Argument <= 0) {
+		pTeam->StepCompleted = true;
+		return;
+	}
+
+	const auto Isticking = pTeam->GuardAreaTimer.IsTicking();
+	const auto TimeLeft = pTeam->GuardAreaTimer.GetTimeLeft();
+
+	if (!Isticking && !TimeLeft) {
+
+		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember) {
 			if (TechnoExtData::IsInWarfactory(pUnit))
-				return; // held back Timed area guard if one of the member still in warfactory
+				continue; // held back Timed area guard if one of the member still in warfactory
 
 			pUnit->QueueMission(Mission::Area_Guard, true);
 		}
 
 		pTeam->GuardAreaTimer.Start(15 * pScriptType->ScriptActions[pScript->CurrentMission].Argument);
-	}
 
-	if (pTeam->GuardAreaTimer.Completed())
-	{
+	} else if (Isticking && !TimeLeft) {
 		pTeam->GuardAreaTimer.Stop(); // Needed
 		pTeam->StepCompleted = true;
 	}
@@ -1143,8 +1149,8 @@ void ScriptExtData::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown
 		// Leader's area radius where the Team members are considered "near" to the Leader
 		if (pExt->CloseEnough > 0)
 		{
-			closeEnough = pExt->CloseEnough;
-			pExt->CloseEnough = -1; // This a one-time-use value
+			// This a one-time-use value
+			closeEnough = std::exchange(pExt->CloseEnough , -1);
 		}
 		else
 		{
@@ -1300,13 +1306,7 @@ void ScriptExtData::WaitIfNoTarget(TeamClass* pTeam, int attempts = 0)
 	if (attempts < 0)
 		attempts = pTeam->CurrentScript->GetCurrentAction().Argument;
 
-	if (auto pTeamData = TeamExtContainer::Instance.Find(pTeam))
-	{
-		if (attempts <= 0)
-			pTeamData->WaitNoTargetAttempts = -1; // Infinite waits if no target
-		else
-			pTeamData->WaitNoTargetAttempts = attempts;
-	}
+	TeamExtContainer::Instance.Find(pTeam)->WaitNoTargetAttempts = abs(attempts);
 
 	// This action finished
 	pTeam->StepCompleted = true;
@@ -1443,15 +1443,14 @@ bool ScriptExtData::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, 
 		return false;
 	}
 
-	double closeEnough = RulesClass::Instance->CloseEnough.ToCell();
+	double closeEnough = 0.0;
 
 	if (pTeamData->CloseEnough > 0)
 		closeEnough = pTeamData->CloseEnough;
+	else
+		closeEnough = RulesClass::Instance->CloseEnough.ToCell();
 
-	bool bForceNextAction = false;
-
-	if (mode == 2)
-		bForceNextAction = true;
+	bool bForceNextAction = mode == 2;
 
 	// Team already have a focused target
 	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
@@ -2349,13 +2348,14 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 
 	if (!otherTeamMembers.empty())
 	{
-		double closeEnough = RulesClass::Instance->CloseEnough; // Note: this value is in leptons (*256)
+		double closeEnough = 0.0; // Note: this value is in leptons (*256)
+		if (pTeamData->CloseEnough > 0)
+				closeEnough = pTeamData->CloseEnough * 256.0;
+			else
+				closeEnough = RulesClass::Instance->CloseEnough.value;
 
 		for (auto pFoot : otherTeamMembers)
 		{
-			if (pTeamData && pTeamData->CloseEnough > 0)
-				closeEnough = pTeamData->CloseEnough * 256.0;
-
 			if (!pFoot->Destination
 				|| (selectedTarget->DistanceFrom(pFoot->Destination) > closeEnough))
 			{

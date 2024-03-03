@@ -21,11 +21,7 @@
 
 ShieldClass::ShieldClass() : Techno { nullptr }
 , HP { 0 }
-, Timers_SelfHealing_CombatRestart { }
-, Timers_SelfHealing { }
-, Timers_SelfHealing_Warhead { }
-, Timers_Respawn { }
-, Timers_Respawn_Warhead { }
+, Timers { }
 , AreAnimsHidden { false }
 {
 }
@@ -33,11 +29,7 @@ ShieldClass::ShieldClass() : Techno { nullptr }
 ShieldClass::ShieldClass(TechnoClass* pTechno, bool isAttached) : Techno { pTechno }
 , CurTechnoType { nullptr }
 , HP { 0 }
-, Timers_SelfHealing_CombatRestart { }
-, Timers_SelfHealing { }
-, Timers_SelfHealing_Warhead { }
-, Timers_Respawn { }
-, Timers_Respawn_Warhead { }
+, Timers { }
 , IdleAnim { }
 , Cloak { false }
 , Online { true }
@@ -69,11 +61,7 @@ bool ShieldClass::Serialize(T& Stm)
 		.Process(this->Techno)
 		.Process(this->CurTechnoType)
 		.Process(this->HP)
-		.Process(this->Timers_SelfHealing_CombatRestart)
-		.Process(this->Timers_SelfHealing)
-		.Process(this->Timers_SelfHealing_Warhead)
-		.Process(this->Timers_Respawn)
-		.Process(this->Timers_Respawn_Warhead)
+		.Process(this->Timers)
 		.Process(this->IdleAnim)
 		.Process(this->Cloak)
 		.Process(this->Online)
@@ -218,7 +206,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	}
 	else if (DamageToShieldAfterMinMax > 0)
 	{
-		bool whModifiersApplied = this->Timers_SelfHealing_Warhead.InProgress();
+		bool whModifiersApplied = this->Timers.SelfHealing_Warhead.InProgress();
 		bool restart = whModifiersApplied ? this->SelfHealing_RestartInCombat_Warhead : this->Type->SelfHealing_RestartInCombat;
 
 		if (restart)
@@ -227,13 +215,13 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 
 			if (delay > 0)
 			{
-				this->Timers_SelfHealing_CombatRestart.Start(this->Type->SelfHealing_RestartInCombatDelay);
-				this->Timers_SelfHealing.Stop();
+				this->Timers.SelfHealing_CombatRestart.Start(this->Type->SelfHealing_RestartInCombatDelay);
+				this->Timers.SelfHealing.Stop();
 			}
 			else
 			{
 				const int rate = whModifiersApplied ? this->SelfHealing_Rate_Warhead : this->Type->SelfHealing_Rate;
-				this->Timers_SelfHealing.Start(rate); // when attacked, restart the timer
+				this->Timers.SelfHealing.Start(rate); // when attacked, restart the timer
 			}
 		}
 		this->ResponseAttack();
@@ -394,7 +382,7 @@ void ShieldClass::OnTemporalUpdate(TemporalClass* pTemporal)
 	{
 		this->Temporal = true;
 
-		const auto timer = (this->HP <= 0) ? &this->Timers_Respawn : &this->Timers_SelfHealing;
+		const auto timer = (this->HP <= 0) ? &this->Timers.Respawn : &this->Timers.SelfHealing;
 		timer->Pause();
 
 		this->CloakCheck();
@@ -466,7 +454,7 @@ void ShieldClass::OnUpdate()
 	this->OnlineCheck();
 
 	const auto selfHealingCheck = this->SelfHealEnabledByCheck();
-	auto timer = (this->HP <= 0) ? &this->Timers_Respawn : &this->Timers_SelfHealing;
+	auto timer = (this->HP <= 0) ? &this->Timers.Respawn : &this->Timers.SelfHealing;
 
 	if (selfHealingCheck == SelfHealingStatus::Offline) {
 		timer->Pause();
@@ -487,11 +475,11 @@ void ShieldClass::OnUpdate()
 			this->CreateAnim();
 	}
 
-	if (this->Timers_Respawn_Warhead.Completed())
-		this->Timers_Respawn_Warhead.Stop();
+	if (this->Timers.Respawn_Warhead.Completed())
+		this->Timers.Respawn_Warhead.Stop();
 
-	if (this->Timers_SelfHealing_Warhead.Completed())
-		this->Timers_SelfHealing_Warhead.Stop();
+	if (this->Timers.SelfHealing_Warhead.Completed())
+		this->Timers.SelfHealing_Warhead.Stop();
 
 	this->LastTechnoHealthRatio = ratio;
 }
@@ -512,7 +500,7 @@ void ShieldClass::OnlineCheck()
 	if (!this->Type->Powered)
 		return;
 
-	const auto timer = (this->HP <= 0) ? &this->Timers_Respawn : &this->Timers_SelfHealing;
+	const auto timer = (this->HP <= 0) ? &this->Timers.Respawn : &this->Timers.SelfHealing;
 
 	auto pTechno = this->Techno;
 	bool isActive = !(pTechno->Deactivated || pTechno->IsUnderEMP());
@@ -571,7 +559,7 @@ void ShieldClass::TemporalCheck()
 
 	this->Temporal = false;
 
-	const auto timer = (this->HP <= 0) ? &this->Timers_Respawn : &this->Timers_SelfHealing;
+	const auto timer = (this->HP <= 0) ? &this->Timers.Respawn : &this->Timers.SelfHealing;
 	timer->Resume();
 
 	if (this->IdleAnim)
@@ -627,7 +615,7 @@ bool ShieldClass::ConvertCheck()
 	}
 	else
 	{
-		const auto timer = (this->HP <= 0) ? &this->Timers_Respawn : &this->Timers_SelfHealing;
+		const auto timer = (this->HP <= 0) ? &this->Timers.Respawn : &this->Timers.SelfHealing;
 		if (pNewType->Strength && !this->Available)
 		{ // Resume this shield when became Available
 			timer->Resume();
@@ -666,9 +654,9 @@ SelfHealingStatus ShieldClass::SelfHealEnabledByCheck()
 void ShieldClass::SelfHealing()
 {
 	const auto pType = this->Type;
-	auto timer = &this->Timers_SelfHealing;
-	auto timerWHModifier = &this->Timers_SelfHealing_Warhead;
-	auto timerSelfHealCombat = &this->Timers_SelfHealing_CombatRestart;
+	auto timer = &this->Timers.SelfHealing;
+	auto timerWHModifier = &this->Timers.SelfHealing_Warhead;
+	auto timerSelfHealCombat = &this->Timers.SelfHealing_CombatRestart;
 
 	if (timerSelfHealCombat->InProgress()) {
 		return;
@@ -726,9 +714,9 @@ void ShieldClass::BreakShield(AnimTypeClass* pBreakAnim, WeaponTypeClass* pBreak
 	this->HP = 0;
 
 	if (this->Type->Respawn)
-		this->Timers_Respawn.Start(Timers_Respawn_Warhead.InProgress() ? Respawn_Rate_Warhead : this->Type->Respawn_Rate);
+		this->Timers.Respawn.Start(this->Timers.Respawn_Warhead.InProgress() ? Respawn_Rate_Warhead : this->Type->Respawn_Rate);
 
-	this->Timers_SelfHealing.Stop();
+	this->Timers.SelfHealing.Stop();
 
 	this->KillAnim();
 
@@ -755,8 +743,8 @@ void ShieldClass::BreakShield(AnimTypeClass* pBreakAnim, WeaponTypeClass* pBreak
 
 void ShieldClass::RespawnShield()
 {
-	auto timer = &this->Timers_Respawn;
-	auto timerWH = &this->Timers_Respawn_Warhead;
+	auto timer = &this->Timers.Respawn;
+	auto timerWH = &this->Timers.Respawn_Warhead;
 
 	if (this->HP <= 0 && timer->Completed())
 	{
@@ -773,8 +761,8 @@ void ShieldClass::RespawnShield()
 
 void ShieldClass::SetRespawn(int duration, double amount, int rate, bool resetTimer)
 {
-	auto timer = &this->Timers_Respawn;
-	auto timerWH = &this->Timers_Respawn_Warhead;
+	auto timer = &this->Timers.Respawn;
+	auto timerWH = &this->Timers.Respawn_Warhead;
 	const bool modifierTimerInProgress = timerWH->InProgress();
 
 	this->Respawn_Warhead = amount > 0 ? amount : Type->Respawn;
@@ -795,8 +783,8 @@ void ShieldClass::SetRespawn(int duration, double amount, int rate, bool resetTi
 
 void ShieldClass::SetSelfHealing(int duration, double amount, int rate, bool restartInCombat, int restartInCombatDelay, bool resetTimer)
 {
-	auto timer = &this->Timers_SelfHealing;
-	auto timerWH = &this->Timers_SelfHealing_Warhead;
+	auto timer = &this->Timers.SelfHealing;
+	auto timerWH = &this->Timers.SelfHealing_Warhead;
 	const bool modifierTimerInProgress = timerWH->InProgress();
 
 	this->SelfHealing_Warhead = amount;

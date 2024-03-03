@@ -34,18 +34,7 @@ void SW_DropPod::Initialize(SWTypeExtData* pData)
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::DropPod;
 	pData->CursorType = (int)MouseCursorType::ParaDrop;
 
-	pData->Droppod_PodImage_Infantry = FileSystem::LoadSHPFile(GameStrings::POD_SHP);
-	pData->Droppod_Puff = RulesClass::Instance->DropPodPuff;
-	pData->Droppod_Angle = RulesClass::Instance->DropPodAngle;
-	pData->Droppod_Speed = RulesClass::Instance->DropPodSpeed;
-	pData->Droppod_Height = RulesClass::Instance->DropPodHeight;
-	pData->Droppod_Weapon = RulesClass::Instance->DropPodWeapon;
-
-	for (auto const Pod : RulesClass::Instance->DropPod)
-		pData->Droppod_GroundPodAnim.push_back(Pod);
-
-	pData->Droppod_Trailer = RulesExtData::Instance()->DropPodTrailer;
-	pData->Droppod_AtmosphereEntry = RulesClass::Instance->AtmosphereEntry;
+	pData->DroppodProp.Initialize();
 }
 
 void SW_DropPod::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
@@ -60,24 +49,7 @@ void SW_DropPod::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 
 	pData->Droppod_RetryCount.Read(exINI, section, "DropPod.RetryCount");
 
-	pData->Droppod_PodImage_Infantry.Read(exINI, section, "DropPod.PodImageInfantry");
-	pData->Droppod_Puff.Read(exINI, section, "DropPod.Puff");
-	pData->Droppod_Angle.Read(exINI, section, "DropPod.Angle");
-
-	if (pData->Droppod_Angle >= 1.178097245096172) {
-		pData->Droppod_Angle = 1.178097245096172;
-	}
-
-	if (pData->Droppod_Angle <= 0.3926990816987241) {
-		pData->Droppod_Angle = 0.3926990816987241;
-	}
-	pData->Droppod_Speed.Read(exINI, section, "DropPod.Speed");
-	pData->Droppod_Height.Read(exINI, section, "DropPod.Height");
-	pData->Droppod_Weapon.Read(exINI, section, "DropPod.Weapon");
-	pData->Droppod_GroundPodAnim.Read(exINI, section, "DropPod.Pods");
-
-	pData->Droppod_Trailer.Read(exINI, section, "DropPod.Trailer");
-	pData->Droppod_AtmosphereEntry.Read(exINI, section, "DropPod.AtmosphereEntry");
+	pData->DroppodProp.Read(exINI, section);
 }
 
 bool SW_DropPod::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const

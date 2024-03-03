@@ -372,9 +372,6 @@ bool TeamExtData::NeutralOwnsAll(AITriggerTypeClass* pThis, const Iterator<Techn
 
 bool TeamExtData::GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat)
 {
-	if (pThis == pThat) //default comparison result
-		return true;
-
 	const auto pThatTechExt = TechnoTypeExtContainer::Instance.TryFind(pThat);
 	const auto pThisTechExt = TechnoTypeExtContainer::Instance.TryFind(pThis);
 
@@ -402,7 +399,6 @@ void TeamExtData::Serialize(T& Stm)
 		.Process(this->CloseEnough)
 		.Process(this->Countdown_RegroupAtLeader)
 		.Process(this->MoveMissionEndMode)
-		.Process(this->WaitNoTargetCounter)
 		.Process(this->WaitNoTargetTimer)
 		.Process(this->ForceJump_Countdown)
 		.Process(this->ForceJump_InitialCountdown)

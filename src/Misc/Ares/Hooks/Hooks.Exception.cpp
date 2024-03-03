@@ -8,6 +8,8 @@
 #include <EventClass.h>
 #include <FPSCounter.h>
 
+#include <stdnoreturn.h>
+
 DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 {
 	// mimic an increment because decrement happens in the middle of function cleanup and can't be erased nicely
@@ -294,12 +296,13 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 	default:
 		Debug::Log("Massive failure: reason unknown, have fun figuring it out\n");
 		Debug::DumpObj(reinterpret_cast<byte*>(pExs->ExceptionRecord), sizeof(*(pExs->ExceptionRecord)));
-		//			return EXCEPTION_CONTINUE_SEARCH;
+		//return EXCEPTION_CONTINUE_SEARCH;
 		break;
 	}
 
 	Debug::Log("Exiting...\n");
 	Debug::ExitGame(pExs->ExceptionRecord->ExceptionCode);
+	return 0u;
 };
 
 DEFINE_STRONG_HOOK(0x4C8FE0, Exception_Handler, 9)
@@ -307,8 +310,9 @@ DEFINE_STRONG_HOOK(0x4C8FE0, Exception_Handler, 9)
 	//GET(int, code, ECX);
 	GET(LPEXCEPTION_POINTERS, pExs, EDX);
 	if (!Phobos::Otamaa::ExeTerminated)
-	{ //dont fire exception twices ,..
-//i dont know how handle recursive exception
+	{
+		//dont fire exception twices ,..
+	   //i dont know how handle recursive exception
 		ExceptionHandler(pExs);
 		__debugbreak();
 	}

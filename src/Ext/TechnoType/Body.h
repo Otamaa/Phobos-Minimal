@@ -14,6 +14,7 @@
 #include <New/Type/CursorTypeClass.h>
 #include <New/Type/ImmunityTypeClass.h>
 #include <New/Type/TheaterTypeClass.h>
+#include <New/Type/DroppodProperties.h>
 
 #include <New/AnonymousType/PassengerDeletionTypeClass.h>
 
@@ -874,6 +875,7 @@ public:
 	Valueable<bool> Untrackable { false };
 
 	Nullable<UnitTypeClass*> LargeVisceroid { };
+	NullableDroppodProperties DropPodProp {};
 
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;

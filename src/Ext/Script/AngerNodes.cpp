@@ -6,7 +6,8 @@
 
 void ScriptExtData::ResetAngerAgainstHouses(TeamClass* pTeam)
 {
-	for (auto& angerNode : pTeam->Owner->AngerNodes) {
+	for (auto& angerNode : pTeam->Owner->AngerNodes)
+	{
 		angerNode.AngerLevel = 0;
 	}
 
@@ -49,7 +50,7 @@ void ScriptExtData::ModifyHateHouses_List(TeamClass* pTeam, int idxHousesList = 
 
 	if ((size_t)idxHousesList < houseLists.size())
 	{
-		if(const auto houselist = Iterator(houseLists[idxHousesList]))
+		if (const auto houselist = Iterator(houseLists[idxHousesList]))
 		{
 			for (const auto pHouseType : houselist)
 			{
@@ -105,7 +106,7 @@ void ScriptExtData::ModifyHateHouses_List1Random(TeamClass* pTeam, int idxHouses
 
 	if ((size_t)idxHousesList < houseLists.size())
 	{
-		if(auto const objectsList = Iterator(houseLists[idxHousesList]))
+		if (auto const objectsList = Iterator(houseLists[idxHousesList]))
 		{
 			int IdxSelectedObject = ScenarioClass::Instance->Random.RandomFromMax(objectsList.size() - 1);
 
@@ -269,7 +270,8 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 
 	FootClass* pLeaderUnit = pTeamData->TeamLeader;
 
-	if (!pLeaderUnit) {
+	if (!pLeaderUnit)
+	{
 		pTeamData->TeamLeader = ScriptExtData::FindTheTeamLeader(pTeam);
 	}
 
@@ -285,7 +287,9 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 	int enemyStructures = -1;
 	int enemyNavalUnits = -1;
 
-	if (mask == -2)
+	switch (mask)
+	{
+	case -2:
 	{
 		// Based on House economy
 		for (const auto& pHouse : *HouseClass::Array)
@@ -329,11 +333,9 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 			enemyHouse->Type->ID,
 			enemyHouse->ArrayIndex
 			);
-
-		return enemyHouse;
 	}
-
-	if (mask == -3)
+	break;
+	case -3:
 	{
 		// Based on Human Controlled check
 		for (const auto& pHouse : *HouseClass::Array)
@@ -384,13 +386,13 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 			enemyHouse->Type->ID,
 			enemyHouse->ArrayIndex
 			);
-
-		return enemyHouse;
 	}
-
-	if (mask == -4 || mask == -5 || mask == -6)
+	break;
+	case -4:
+	case -5:
+	case -6:
 	{
-		int checkedHousePower;
+		int checkedHousePower = 0;
 
 		// House power check
 		for (const auto& pHouse : *HouseClass::Array)
@@ -406,12 +408,12 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 
 			if (mask == -4)
 				checkedHousePower = pHouse->Power_Drain();
-
-			if (mask == -5)
-				checkedHousePower = pHouse->PowerOutput;
-
-			if (mask == -6)
-				checkedHousePower = pHouse->PowerOutput - pHouse->Power_Drain();
+			else
+				if (mask == -5)
+					checkedHousePower = pHouse->PowerOutput;
+				else
+					if (mask == -6)
+						checkedHousePower = pHouse->PowerOutput - pHouse->Power_Drain();
 
 			if (mode == 0)
 			{
@@ -443,11 +445,9 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 			enemyHouse->Type->ID,
 			enemyHouse->ArrayIndex
 			);
-
-		return enemyHouse;
 	}
-
-	if (mask == -7)
+	break;
+	case -7:
 	{
 		// Based on House kills
 		for (const auto& pHouse : *HouseClass::Array)
@@ -493,11 +493,9 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 			enemyHouse->Type->ID,
 			enemyHouse->ArrayIndex
 			);
-
-		return enemyHouse;
 	}
-
-	if (mask == -8)
+	break;
+	case -8:
 	{
 		// Based on number of House naval units
 		for (const auto& pHouse : *HouseClass::Array)
@@ -555,11 +553,9 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 			curArgs,
 			enemyHouse->Type->ID,
 			enemyHouse->ArrayIndex);
-
-		return enemyHouse;
 	}
-
-	if (mask == -9)
+	break;
+	case -9:
 	{
 		// Based on number of House aircraft docks
 		for (const auto& pHouse : *HouseClass::Array)
@@ -604,12 +600,11 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 			curArgs,
 			enemyHouse->Type->ID,
 			enemyHouse->ArrayIndex
-		);
+			);
 
-		return enemyHouse;
 	}
-
-	if (mask == -10)
+	break;
+	case -10:
 	{
 		// Based on number of House factories (except aircraft factories)
 		for (const auto& pHouse : *HouseClass::Array)
@@ -655,67 +650,64 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 			enemyHouse->Type->ID,
 			enemyHouse->ArrayIndex
 			);
-
-		return enemyHouse;
 	}
-
-	// Depending the mode check what house will be selected as the most hated
-	for (auto pTechno : *TechnoClass::Array)
+	break;
+	default:
 	{
-		if (!ScriptExtData::IsUnitAvailable(pTechno , true))
-			continue;
-
-		if (!pTechno->Owner->Defeated
-			&& pTechno->Owner != pTeam->Owner
-			&& !pTechno->Owner->IsAlliedWith(pTeam->Owner)
-			&& !pTechno->Owner->Type->MultiplayPassive)
+		double value = -1;
+		// Depending the mode check what house will be selected as the most hated
+		for (auto pTechno : *TechnoClass::Array)
 		{
-			if (mask < 0)
-			{
-				if (mask == -1)
-				{
-					// mask -1: Based on object distances
-					objectDistance = pLeaderUnit->DistanceFrom(pTechno); // Note: distance is in leptons (*256)
+			if (!ScriptExtData::IsUnitAvailable(pTechno, true))
+				continue;
 
-					if (mode == 0)
+			if (!pTechno->Owner->Defeated
+				&& pTechno->Owner != pTeam->Owner
+				&& !pTechno->Owner->IsAlliedWith(pTeam->Owner)
+				&& !pTechno->Owner->Type->MultiplayPassive)
+			{
+				if (mask < 0)
+				{
+					if (mask == -1)
 					{
-						// mode 0: Based in NEAREST enemy unit
-						if (objectDistance < enemyDistance || enemyDistance == -1)
+						// mask -1: Based on object distances
+						objectDistance = pLeaderUnit->DistanceFrom(pTechno); // Note: distance is in leptons (*256)
+
+						if (mode == 0)
 						{
-							enemyDistance = objectDistance;
-							enemyHouse = pTechno->Owner;
+							// mode 0: Based in NEAREST enemy unit
+							if (objectDistance < enemyDistance || enemyDistance == -1)
+							{
+								enemyDistance = objectDistance;
+								enemyHouse = pTechno->Owner;
+							}
 						}
-					}
-					else
-					{
-						// mode 1: Based in FARTHEST enemy unit
-						if (objectDistance > enemyDistance || enemyDistance == -1)
+						else
 						{
-							enemyDistance = objectDistance;
-							enemyHouse = pTechno->Owner;
+							// mode 1: Based in FARTHEST enemy unit
+							if (objectDistance > enemyDistance || enemyDistance == -1)
+							{
+								enemyDistance = objectDistance;
+								enemyHouse = pTechno->Owner;
+							}
 						}
 					}
 				}
-			}
-			else
-			{
-				// mask > 0 : Threat based on the new types in the new attack actions
-				if (ScriptExtData::EvaluateObjectWithMask(pTechno, mask, -1, -1, pLeaderUnit))
+				else
 				{
-					auto pTechnoType = pTechno->GetTechnoType();
+					// mask > 0 : Threat based on the new types in the new attack actions
+					if (ScriptExtData::EvaluateObjectWithMask(pTechno, mask, -1, -1, pLeaderUnit))
+					{
+						auto pTechnoType = pTechno->GetTechnoType();
 
-					enemyThreatValue[pTechno->Owner->ArrayIndex] += pTechnoType->ThreatPosed;
+						enemyThreatValue[pTechno->Owner->ArrayIndex] += pTechnoType->ThreatPosed;
 
-					if (pTechnoType->SpecialThreatValue > 0)
-						enemyThreatValue[pTechno->Owner->ArrayIndex] += pTechnoType->SpecialThreatValue * TargetSpecialThreatCoefficientDefault;
+						if (pTechnoType->SpecialThreatValue > 0)
+							enemyThreatValue[pTechno->Owner->ArrayIndex] += pTechnoType->SpecialThreatValue * TargetSpecialThreatCoefficientDefault;
+					}
 				}
 			}
 		}
-	}
-
-	if (mask > 0)
-	{
-		double value = -1;
 
 		for (int i = 0; i < 8; i++)
 		{
@@ -742,18 +734,21 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 				}
 			}
 		}
-	}
 
-	if (enemyHouse)
-		Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n",
-		pTeam->Type->ID,
-		pTeam->CurrentScript->Type->ID,
-		pTeam->CurrentScript->CurrentMission,
-		curAct,
-		curArgs,
-		enemyHouse->Type->ID,
-		enemyHouse->ArrayIndex
-		);
+		if (enemyHouse)
+			Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n",
+			pTeam->Type->ID,
+			pTeam->CurrentScript->Type->ID,
+			pTeam->CurrentScript->CurrentMission,
+			curAct,
+			curArgs,
+			enemyHouse->Type->ID,
+			enemyHouse->ArrayIndex
+			);
+
+	}
+	break;
+	}
 
 	return enemyHouse;
 }

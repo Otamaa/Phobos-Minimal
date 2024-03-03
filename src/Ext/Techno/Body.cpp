@@ -4011,7 +4011,7 @@ void TechnoExtData::DepletedAmmoActions()
 
 void TechnoExtData::UpdateLaserTrails()
 {
-	auto const pThis = this->AttachedToObject;
+	auto const pThis = (FootClass*)this->AttachedToObject;
 
 	if (LaserTrails.empty())
 		return;
@@ -4019,6 +4019,9 @@ void TechnoExtData::UpdateLaserTrails()
 	for (auto& trail : LaserTrails)
 	{
 		if (pThis->CloakState == CloakState::Cloaked && !trail.Type->CloakVisible)
+			continue;
+
+		if (VTable::Get(pThis->Locomotor.GetInterfacePtr()) != DropPodLocomotionClass::vtable && trail.Type->DroppodOnly)
 			continue;
 
 		if (!IsInTunnel)

@@ -52,7 +52,7 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 
 //#include <ostream>
 
-static std::map<void*, std::string> MappedCaller {};
+//static std::map<void*, std::string> MappedCaller {};
 //
 //DEFINE_HOOK(0x7353C0, UnitClass_CTOR_RecordCaller , 0x7) {
 //
@@ -143,7 +143,7 @@ void HouseExtData::UpdateVehicleProduction()
 				(skipNaval && currentMember->Naval))
 				continue;
 
-			const auto index = static_cast<size_t>(currentMember->GetArrayIndex());
+			const auto index = static_cast<size_t>(((UnitTypeClass*)currentMember)->ArrayIndex);
 			++values[index];
 
 //			if (IS_SAME_STR_(currentTeam->Type->ID, "0100003I-G")) {
@@ -176,13 +176,11 @@ void HouseExtData::UpdateVehicleProduction()
 		//	continue;
 		//}
 
-		const auto index = static_cast<unsigned int>(pUnit->Type->GetArrayIndex());
-
-		if (values[index] > 0 && pUnit->CanBeRecruited(pThis))
-			--values[index];
+		if (values[pUnit->Type->ArrayIndex] > 0 && pUnit->CanBeRecruited(pThis))
+			--values[pUnit->Type->ArrayIndex];
 	}
 
-	//for (auto ToRemoveIdx : Toremove) { 
+	//for (auto ToRemoveIdx : Toremove) {
 	//	UnitClass::Array->RemoveAt(ToRemoveIdx);
 	//}
 
@@ -234,37 +232,31 @@ void HouseExtData::UpdateVehicleProduction()
 		}
 	}
 
-	const double earliestOdds = 0.01 * RulesClass::Instance->FillEarliestTeamProbability[AIDifficulty];
-
 	if (!skipGround)
 	{
-		auto result = -1;
-		if (earliestOdds <= ScenarioClass::Instance->Random.RandomDouble())
-		{
-			result = earliestTypenameIndex;
-		}
-		else if (const auto size = int(bestChoices.size()))
-		{
-			result = bestChoices[static_cast<size_t>(ScenarioClass::Instance->Random.RandomFromMax(size - 1))];
+		int result_ground = earliestTypenameIndex;
+		if (ScenarioClass::Instance->Random.RandomFromMax(99) >= RulesClass::Instance->FillEarliestTeamProbability[AIDifficulty]) {
+			if (!bestChoices.empty())
+				result_ground = bestChoices[ScenarioClass::Instance->Random.RandomFromMax(int(bestChoices.size() - 1))];
+			else
+				result_ground = -1;
 		}
 
-		pThis->ProducingUnitTypeIndex = result;
+		pThis->ProducingUnitTypeIndex = result_ground;
 	}
 
 	if (!skipNaval)
 	{
-		auto result = -1;
-		if (earliestOdds <= ScenarioClass::Instance->Random.RandomDouble())
+		int result_naval = earliestTypenameIndexNaval;
+		if (ScenarioClass::Instance->Random.RandomFromMax(99) >= RulesClass::Instance->FillEarliestTeamProbability[AIDifficulty])
 		{
-			result = earliestTypenameIndexNaval;
-		}
-		else if (const auto size = int(bestChoicesNaval.size()))
-		{
-			result = bestChoicesNaval[static_cast<size_t>(ScenarioClass::Instance->Random.RandomFromMax(size - 1))];
+			if (!bestChoicesNaval.empty())
+				result_naval = bestChoicesNaval[ScenarioClass::Instance->Random.RandomFromMax(int(bestChoicesNaval.size() - 1))];
+			else
+				result_naval = -1;
 		}
 
-
-		this->ProducingNavalUnitTypeIndex = result;
+		this->ProducingNavalUnitTypeIndex = result_naval;
 	}
 }
 
@@ -283,9 +275,10 @@ void HouseExtData::UpdateVehicleProduction()
 //	return 0;
 //}
 //
+
 //// Clear static data from respective classes
 //DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal_Mapped, 0xA)
-//{ 
+//{
 //	MappedCaller.clear();
 //	return 0x0;
 //}
@@ -495,44 +488,45 @@ DEFINE_HOOK(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
 	return ret();
 }
 
-DEFINE_HOOK(0x4FEEE0, HouseClass_AI_InfantryProduction, 6)
-{
-	GET(HouseClass*, pThis, ECX);
+#include <Ext/Team/Body.h>
 
-	if (pThis->ProducingInfantryTypeIndex == -1)
+#pragma optimize("", off )
+
+template <class T, class Ttype >
+int NOINLINE GetTypeToProduceNew(HouseClass* pHouse) {
+
+	auto& CreationFrames = HouseExtData::AIProduction_CreationFrames;
+	auto& Values = HouseExtData::AIProduction_Values;
+	auto& BestChoices = HouseExtData::AIProduction_BestChoices;
+
+	auto const count = static_cast<unsigned int>(Ttype::Array->Count);
+	CreationFrames.assign(count, 0x7FFFFFFF);
+	Values.assign(count, 0);
+	BestChoices.clear();
+
+	//Debug::Log(__FUNCTION__" Executing with Current TeamArrayCount[%d] for[%s][House %s - %x] \n", TeamClass::Array->Count, AbstractClass::GetAbstractClassName(Ttype::AbsID), pHouse->get_ID() , pHouse);
+	for (auto CurrentTeam : *TeamClass::Array)
 	{
-		auto& CreationFrames = HouseExtData::AIProduction_CreationFrames;
-		auto& Values = HouseExtData::AIProduction_Values;
-		auto& BestChoices = HouseExtData::AIProduction_BestChoices;
-
-		auto const count = static_cast<unsigned int>(InfantryTypeClass::Array->Count);
-		CreationFrames.assign(count, 0x7FFFFFFF);
-		Values.assign(count, 0);
-
-		for (auto CurrentTeam : *TeamClass::Array)
+		if (!CurrentTeam || CurrentTeam->Owner != pHouse)
 		{
-			if (!CurrentTeam || CurrentTeam->Owner != pThis)
-			{
-				continue;
-			}
+			continue;
+		}
 
-			int TeamCreationFrame = CurrentTeam->CreationFrame;
+		int TeamCreationFrame = CurrentTeam->CreationFrame;
 
-			if ((!CurrentTeam->Type->Reinforce || CurrentTeam->IsFullStrength)
-			  && (CurrentTeam->IsForcedActive || CurrentTeam->IsHasBeen))
-			{
-				continue;
-			}
+		if (CurrentTeam->Type->Reinforce && !CurrentTeam->IsFullStrength || !CurrentTeam->IsForcedActive && !CurrentTeam->IsHasBeen) {
+			DynamicVectorClass<TechnoTypeClass*> arr;
+			CurrentTeam->GetTaskForceMissingMemberTypes(arr);
 
-			DynamicVectorClass<TechnoTypeClass*> TaskForceMembers;
-			CurrentTeam->GetTaskForceMissingMemberTypes(TaskForceMembers);
-			for (auto CurrentMember : TaskForceMembers)
-			{
-				if (CurrentMember->WhatAmI() != InfantryTypeClass::AbsID)
+			for (auto pMember : arr) {
+
+				if (pMember->WhatAmI() != Ttype::AbsID)
 				{
 					continue;
 				}
-				auto const Idx = static_cast<unsigned int>(CurrentMember->GetArrayIndex());
+
+				auto const Idx = static_cast<unsigned int>(((Ttype*)pMember)->ArrayIndex);
+
 				++Values[Idx];
 				if (TeamCreationFrame < CreationFrames[Idx])
 				{
@@ -540,66 +534,102 @@ DEFINE_HOOK(0x4FEEE0, HouseClass_AI_InfantryProduction, 6)
 				}
 			}
 		}
+	}
 
-		for (auto T : *InfantryClass::Array)
+	for (auto classPos = T::Array->begin(); classPos != T::Array->end(); ++classPos) {
+		auto const Idx = static_cast<unsigned int>((*classPos)->Type->ArrayIndex);
+		if (Values[Idx] > 0 && (*classPos)->CanBeRecruited(pHouse)) {
+			--Values[Idx];
+		}
+	}
+
+	int BestValue = -1;
+	int EarliestTypenameIndex = -1;
+	int EarliestFrame = 0x7FFFFFFF;
+
+	for (auto i = 0u; i < count; ++i)
+	{
+		auto const TT = Ttype::Array->Items[static_cast<int>(i)];
+
+		int CurrentValue = Values[i];
+
+		if (CurrentValue <= 0)
+			continue;
+
+		const auto buildableResult = pHouse->CanBuild(TT, false, false);
+
+		if (buildableResult == CanBuildResult::Unbuildable
+			|| TT->GetActualCost(pHouse) > pHouse->Available_Money())
 		{
-			//if (VTable::Get(T) != InfantryClass::vtable)
-			//	Debug::FatalErrorAndExit("InfantryClass Array contains broken pointer WTF ???\n");
-
-			auto const Idx = static_cast<unsigned int>(T->Type->GetArrayIndex());
-			if (Values[Idx] > 0 && T->CanBeRecruited(pThis))
-			{
-				--Values[Idx];
-			}
+			continue;
 		}
 
-		BestChoices.clear();
-
-		int BestValue = -1;
-		int EarliestTypenameIndex = -1;
-		int EarliestFrame = 0x7FFFFFFF;
-
-		for (auto i = 0u; i < count; ++i)
+		if (BestValue < CurrentValue || BestValue == -1)
 		{
-			auto const TT = InfantryTypeClass::Array->Items[static_cast<int>(i)];
-			int CurrentValue = Values[i];
-			if (CurrentValue <= 0)
-				continue;
-
-			const auto buildableResult = pThis->CanBuild(TT, false, false);
-
-			if (buildableResult == CanBuildResult::Unbuildable
-				|| TT->GetActualCost(pThis) > pThis->Available_Money())
-			{
-				continue;
-			}
-
-			if (BestValue < CurrentValue || BestValue == -1)
-			{
-				BestValue = CurrentValue;
-				BestChoices.clear();
-			}
-			BestChoices.push_back(static_cast<int>(i));
-			if (EarliestFrame > CreationFrames[i] || EarliestTypenameIndex == -1)
-			{
-				EarliestTypenameIndex = static_cast<int>(i);
-				EarliestFrame = CreationFrames[i];
-			}
+			BestValue = CurrentValue;
+			BestChoices.clear();
 		}
-
-		auto const AIDiff = static_cast<int>(pThis->GetAIDifficultyIndex());
-		auto EarliestOdds = 0.01 * RulesClass::Instance->FillEarliestTeamProbability[AIDiff];
-		if (EarliestOdds <= ScenarioClass::Instance->Random.RandomDouble())
+		BestChoices.push_back(static_cast<int>(i));
+		if (EarliestFrame > CreationFrames[i] || EarliestTypenameIndex < 0)
 		{
-			pThis->ProducingInfantryTypeIndex = EarliestTypenameIndex;
+			EarliestTypenameIndex = static_cast<int>(i);
+			EarliestFrame = CreationFrames[i];
 		}
-		else if (auto const size = int(BestChoices.size()))
-		{
-			int RandomChoice = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
-			pThis->ProducingInfantryTypeIndex = BestChoices[static_cast<unsigned int>(RandomChoice)];
-		}
+	}
+
+	const auto AIDiff = static_cast<int>(pHouse->GetAIDifficultyIndex());
+
+	if (ScenarioClass::Instance->Random.RandomFromMax(99) >= RulesClass::Instance->FillEarliestTeamProbability[AIDiff]) {
+
+		if (!BestChoices.empty())
+			EarliestTypenameIndex = BestChoices[ScenarioClass::Instance->Random.RandomFromMax(int(BestChoices.size() - 1))];
 		else
-			pThis->ProducingInfantryTypeIndex = -1;
+			EarliestTypenameIndex = -1;
+	}
+
+	return EarliestTypenameIndex;
+}
+#pragma optimize("", on )
+
+DEFINE_HOOK(0x6EF4D0, TeamClass_GetRemainingTaskForceMembers, 0x8)
+{
+	GET(TeamClass*, pThis, ECX);
+	GET_STACK(DynamicVectorClass<TechnoTypeClass*>*, pVec, 0x4);
+
+	const auto pType = pThis->Type;
+	const auto pTaskForce = pType->TaskForce;
+
+	for (int a = 0; a < pTaskForce->CountEntries; ++a) {
+		for (int i = 0; i < pTaskForce->Entries[a].Amount; ++i) {
+			pVec->AddItem(pTaskForce->Entries[a].Type);
+		}
+	}
+
+	for (auto pMember = pThis->FirstUnit; pMember; pMember = pMember->NextTeamMember) {
+		for (auto pMemberNeeded : *pVec) {
+			if ((pMemberNeeded == pMember->GetTechnoType()
+				|| TechnoExtContainer::Instance.Find(pMember)->Type == pMemberNeeded
+				|| TeamExtData::GroupAllowed(pMemberNeeded, pMember->GetTechnoType())
+				|| TeamExtData::GroupAllowed(pMemberNeeded, TechnoExtContainer::Instance.Find(pMember)->Type)
+
+				)) {
+				pVec->Remove(pMemberNeeded);
+			}
+		}
+	}
+
+	return 0x6EF5B2;
+}
+
+DEFINE_HOOK(0x4FEEE0, HouseClass_AI_InfantryProduction, 6)
+{
+	GET(HouseClass*, pThis, ECX);
+
+	if (pThis->ProducingInfantryTypeIndex < 0) {
+
+		const int result = GetTypeToProduceNew<InfantryClass , InfantryTypeClass>(pThis);
+		if (result >= 0)
+			pThis->ProducingInfantryTypeIndex = result;
 	}
 
 	R->EAX(15);
@@ -610,139 +640,12 @@ DEFINE_HOOK(0x4FF210, HouseClass_AI_AircraftProduction, 6)
 {
 	GET(HouseClass*, pThis, ECX);
 
-	if (pThis->ProducingAircraftTypeIndex == -1)
+	if (pThis->ProducingAircraftTypeIndex < 0)
 	{
-		auto& CreationFrames = HouseExtData::AIProduction_CreationFrames;
-		auto& Values = HouseExtData::AIProduction_Values;
-		auto& BestChoices = HouseExtData::AIProduction_BestChoices;
 
-		auto const count = static_cast<unsigned int>(AircraftTypeClass::Array->Count);
-		CreationFrames.assign(count, 0x7FFFFFFF);
-		Values.assign(count, 0);
-
-		for (auto CurrentTeam : *TeamClass::Array)
-		{
-			if (!CurrentTeam || CurrentTeam->Owner != pThis)
-			{
-				continue;
-			}
-
-			int TeamCreationFrame = CurrentTeam->CreationFrame;
-
-			if ((!CurrentTeam->Type->Reinforce || CurrentTeam->IsFullStrength)
-			  && (CurrentTeam->IsForcedActive || CurrentTeam->IsHasBeen))
-			{
-				continue;
-			}
-
-			DynamicVectorClass<TechnoTypeClass*> TaskForceMembers;
-			CurrentTeam->GetTaskForceMissingMemberTypes(TaskForceMembers);
-			for (auto CurrentMember : TaskForceMembers)
-			{
-				if (CurrentMember->WhatAmI() != AircraftTypeClass::AbsID)
-				{
-					continue;
-				}
-				auto const Idx = static_cast<unsigned int>(CurrentMember->GetArrayIndex());
-				++Values[Idx];
-				if (TeamCreationFrame < CreationFrames[Idx])
-				{
-					CreationFrames[Idx] = TeamCreationFrame;
-				}
-			}
-		}
-
-		for (auto T : *AircraftClass::Array)
-		{
-			//if (VTable::Get(T) != AircraftClass::vtable)
-			//	Debug::FatalErrorAndExit("AircraftClass Array contains broken pointer WTF ???\n");
-
-			auto const Idx = static_cast<unsigned int>(T->Type->GetArrayIndex());
-			if (Values[Idx] > 0 && T->CanBeRecruited(pThis))
-			{
-				--Values[Idx];
-			}
-		}
-
-		BestChoices.clear();
-
-		int BestValue = -1;
-		int EarliestTypenameIndex = -1;
-		int EarliestFrame = 0x7FFFFFFF;
-
-		for (auto i = 0u; i < count; ++i)
-		{
-			auto const TT = AircraftTypeClass::Array->Items[static_cast<int>(i)];
-			int CurrentValue = Values[i];
-
-			if (CurrentValue <= 0)
-				continue;
-
-			const auto buildableResult = pThis->CanBuild(TT, false, false);
-
-			if(buildableResult == CanBuildResult::Unbuildable
-				||TT->GetActualCost(pThis) > pThis->Available_Money())
-			{
-				continue;
-			}
-
-			if (BestValue < CurrentValue || BestValue == -1)
-			{
-				BestValue = CurrentValue;
-				BestChoices.clear();
-			}
-			BestChoices.push_back(static_cast<int>(i));
-			if (EarliestFrame > CreationFrames[i] || EarliestTypenameIndex == -1)
-			{
-				EarliestTypenameIndex = static_cast<int>(i);
-				EarliestFrame = CreationFrames[i];
-			}
-		}
-
-		const int Dockercount = std::count_if(pThis->Buildings.begin(), pThis->Buildings.end(), [](BuildingClass* pBld)
-		{
-			const auto pExt = BuildingExtContainer::Instance.Find(pBld);
-			if (pExt->AboutToChronoshift || pExt->LimboID >= 0)
-				return false;
-
-			const bool forbidden = (!pBld->IsAlive
-				|| pBld->GetCurrentMission() == Mission::Selling
-				|| pBld->QueuedMission == Mission::Selling
-				|| pBld->Health <= 0
-				|| pBld->InLimbo
-				);
-
-			if (forbidden)
-				return false;
-
-			if (pBld->Type->Factory == AircraftTypeClass::AbsID) {
-				if (BuildingExtData::HasFreeDocks(pBld))
-					return true;
-			}
-
-			return false;
-		});
-
-		if (!Dockercount) {
-			pThis->ProducingAircraftTypeIndex = -1;
-			R->EAX(15);
-			return 0x4FF534;
-		}
-
-		auto const AIDiff = static_cast<int>(pThis->GetAIDifficultyIndex());
-		auto EarliestOdds = 0.01 * RulesClass::Instance->FillEarliestTeamProbability[AIDiff];
-		if (EarliestOdds <= ScenarioClass::Instance->Random.RandomDouble())
-		{
-			pThis->ProducingAircraftTypeIndex = EarliestTypenameIndex;
-		}
-		else if (auto const size = int(BestChoices.size()))
-		{
-			int RandomChoice = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
-			pThis->ProducingAircraftTypeIndex = BestChoices[static_cast<unsigned int>(RandomChoice)];
-		}
-		else
-			pThis->ProducingAircraftTypeIndex = -1;
-
+		const int result = GetTypeToProduceNew<AircraftClass, AircraftTypeClass>(pThis);
+		if (result >= 0)
+			pThis->ProducingAircraftTypeIndex = result;
 	}
 
 	R->EAX(15);

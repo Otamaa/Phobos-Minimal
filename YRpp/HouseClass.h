@@ -835,7 +835,7 @@ public:
 		this->BaseSpawnCell = place;
 	}
 
-	unsigned int GetAIDifficultyIndex() const {
+	unsigned int FORCEINLINE GetAIDifficultyIndex() const {
 		return static_cast<unsigned int>(this->AIDifficulty);
 	}
 

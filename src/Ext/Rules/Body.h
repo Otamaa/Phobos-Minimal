@@ -139,6 +139,9 @@ public:
 	Valueable<ChronoSparkleDisplayPosition> ChronoSparkleBuildingDisplayPositions { ChronoSparkleDisplayPosition::OccupantSlots };
 	Valueable<bool> RepairStopOnInsufficientFunds { false };
 	Valueable<AnimTypeClass*> DropPodTrailer { nullptr };
+	Valueable<int> DroppodTrailerSpawnDelay { 6 };
+	Valueable<SHPStruct*> Droppod_ImageInfantry {};
+
 	Valueable<AnimTypeClass*> ElectricDeath { nullptr };
 
 	// hunter seeker

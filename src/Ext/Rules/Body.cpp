@@ -584,6 +584,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 		this->CarryAll_LandAnim = AnimTypeClass::FindOrAllocate(GameStrings::CARYLAND());
 		this->DropShip_LandAnim = AnimTypeClass::FindOrAllocate(GameStrings::DROPLAND());
 		this->DropPodTrailer = AnimTypeClass::FindOrAllocate(GameStrings::SMOKEY());
+		this->Droppod_ImageInfantry = FileSystem::LoadSHPFile(GameStrings::POD_SHP);
 		this->FirestormActiveAnim = AnimTypeClass::FindOrAllocate("GAFSDF_A");
 		this->FirestormIdleAnim = AnimTypeClass::FindOrAllocate("FSIDLE");
 		this->FirestormGroundAnim = AnimTypeClass::FindOrAllocate("FSGRND");
@@ -615,7 +616,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->DisplayIncome.Read(exINI, GameStrings::AudioVisual, "DisplayIncome");
 	this->DisplayIncome_Houses.Read(exINI, GameStrings::AudioVisual, "DisplayIncome.Houses");
 	this->DisplayIncome_AllowAI.Read(exINI, GameStrings::AudioVisual, "DisplayIncome.AllowAI");
-
+	this->Droppod_ImageInfantry.Read(exINI, GameStrings::AudioVisual, "DropPod.InfantryPodImage");
 	this->DrawInsigniaOnlyOnSelected.Read(exINI, GameStrings::AudioVisual, "DrawInsigniaOnlyOnSelected");
 
 #pragma region Otamaa
@@ -654,6 +655,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	this->DropPodTrailer.Read(exINI, GENERAL_SECTION, "DropPodTrailer", true);
 	this->ElectricDeath.Read(exINI, AUDIOVISUAL_SECTION, "InfantryElectrocuted");
+	this->DroppodTrailerSpawnDelay.Read(exINI, GENERAL_SECTION, "DropPodTrailerSpawnDelay");
 
 	this->DropPodTypes.Read(exINI, GENERAL_SECTION, "DropPodTypes");
 	this->DropPodMinimum.Read(exINI, GENERAL_SECTION, "DropPodMinimum");
@@ -1006,6 +1008,8 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->ChronoSparkleBuildingDisplayPositions)
 		.Process(this->RepairStopOnInsufficientFunds)
 		.Process(this->DropPodTrailer)
+		.Process(this->DroppodTrailerSpawnDelay)
+		.Process(this->Droppod_ImageInfantry)
 		.Process(this->ElectricDeath)
 		.Process(this->HunterSeekerBuildings)
 		.Process(this->HunterSeekerDetonateProximity)

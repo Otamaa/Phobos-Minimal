@@ -188,11 +188,37 @@ private:
 	TechnoTypeClass* CurTechnoType;
 	int HP;
 
-	CDTimerClass Timers_SelfHealing_CombatRestart;
-	CDTimerClass Timers_SelfHealing;
-	CDTimerClass Timers_SelfHealing_Warhead;
-	CDTimerClass Timers_Respawn;
-	CDTimerClass Timers_Respawn_Warhead;
+	struct Timers {
+
+		bool Load(PhobosStreamReader& Stm, bool RegisterForChange) {
+
+			return Stm
+				.Process(this->SelfHealing_CombatRestart)
+				.Process(this->SelfHealing)
+				.Process(this->SelfHealing_Warhead)
+				.Process(this->Respawn)
+				.Process(this->Respawn_Warhead)
+				.Success();
+		}
+
+		bool Save(PhobosStreamWriter& Stm) const {
+
+			return Stm
+				.Process(this->SelfHealing_CombatRestart)
+				.Process(this->SelfHealing)
+				.Process(this->SelfHealing_Warhead)
+				.Process(this->Respawn)
+				.Process(this->Respawn_Warhead)
+				.Success();
+		}
+
+		CDTimerClass SelfHealing_CombatRestart;
+		CDTimerClass SelfHealing;
+		CDTimerClass SelfHealing_Warhead;
+		CDTimerClass Respawn;
+		CDTimerClass Respawn_Warhead;
+
+	} Timers;
 
 	Handle<AnimClass* , UninitAnim> IdleAnim;
 	bool Cloak;
