@@ -2916,9 +2916,17 @@ void TechnoExt_ExtData::Destroy(TechnoClass* pTechno, TechnoClass* pKiller, Hous
 
 	int health = pTechno->Health;
 
-	if (pTechno->IsAlive && health > 0 && !pTechno->IsSinking && !pTechno->IsCrashing && !pTechno->TemporalTargetingMe) {
-		pTechno->ReceiveDamage(&health, 0, pWarhead, pKiller, true, false, pKillerHouse);
+	if (pTechno->IsAlive && health > 0 && !pTechno->IsSinking && !pTechno->IsCrashing)
+		return;
+
+	if (pTechno->TemporalTargetingMe) {
+		pTechno->Limbo();
+		pTechno->Destroyed(pTechno->TemporalImUsing->Owner);
+		TechnoExtData::HandleRemove(pTechno, pKiller, false, false);
+		return;
 	}
+
+	pTechno->ReceiveDamage(&health, 0, pWarhead, pKiller, true, false, pKillerHouse);
 }
 
 bool TechnoExt_ExtData::IsDriverKillable(TechnoClass* pThis, double KillBelowPercent)
