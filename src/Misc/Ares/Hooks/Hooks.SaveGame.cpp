@@ -10,7 +10,7 @@ DEFINE_HOOK(0x67D04E, Game_Save_SavegameInformation, 7)
 	// remember the Ares version and a mod id
 	Info.Version = AresGlobalData::version;
 	Info.InternalVersion = AresGlobalData::InternalVersion + PHOBOSSAVEGAME_ID;
-	CRT::sprintf(Info.ExecutableName.data(), "GAMEMD.EXE + Ares/3.0p1");
+	sprintf_s(Info.ExecutableName.data(), "GAMEMD.EXE + Phobos Minimal %d ", BUILD_NUMBER);
 
 	return 0;
 }
