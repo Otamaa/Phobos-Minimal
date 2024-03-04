@@ -2910,13 +2910,15 @@ void TechnoExt_ExtData::Destroy(TechnoClass* pTechno, TechnoClass* pKiller, Hous
 		pKillerHouse = pKiller->Owner;
 	}
 
-	if (!pWarhead)
-	{
+	if (!pWarhead) {
 		pWarhead = RulesClass::Instance->C4Warhead;
 	}
 
 	int health = pTechno->Health;
-	pTechno->ReceiveDamage(&health, 0, pWarhead, pKiller, true, false, pKillerHouse);
+
+	if (pTechno->IsAlive && health > 0 && !pTechno->IsSinking && !pTechno->IsCrashing && !pTechno->TemporalTargetingMe) {
+		pTechno->ReceiveDamage(&health, 0, pWarhead, pKiller, true, false, pKillerHouse);
+	}
 }
 
 bool TechnoExt_ExtData::IsDriverKillable(TechnoClass* pThis, double KillBelowPercent)
