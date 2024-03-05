@@ -118,25 +118,25 @@ DEFINE_HOOK(0x71997B, TeleportLocomotionClass_ILocomotion_Process_ChronoDelay, 0
 	return 0x719981;
 }
 
-FORCEINLINE std::pair<Matrix3D, Matrix3D> SimplifiedTiltingConsideration(float arf, float ars, TechnoTypeClass* linkedType)
-{
-	double scalex = linkedType->VoxelScaleX;
-	double scaley = linkedType->VoxelScaleY;
-
-	Matrix3D pre = Matrix3D::GetIdentity();
-	pre.TranslateZ(float(std::abs(Math::sin(ars)) * scalex + std::abs(Math::sin(arf)) * scaley));
-
-	Matrix3D post = Matrix3D::GetIdentity();
-	post.TranslateX(float(Math::signum(arf) * (scaley * (1 - Math::cos(arf)))));
-	post.TranslateY(float(Math::signum(-ars) * (scalex * (1 - Math::cos(ars)))));
-	post.RotateX(ars);
-	post.RotateY(arf);
-
-	return { pre,post };
-}
+//FORCEINLINE std::pair<Matrix3D, Matrix3D> SimplifiedTiltingConsideration(float arf, float ars, TechnoTypeClass* linkedType)
+//{
+//	double scalex = linkedType->VoxelScaleX;
+//	double scaley = linkedType->VoxelScaleY;
+//
+//	Matrix3D pre = Matrix3D::GetIdentity();
+//	pre.TranslateZ(float(std::abs(Math::sin(ars)) * scalex + std::abs(Math::sin(arf)) * scaley));
+//
+//	Matrix3D post = Matrix3D::GetIdentity();
+//	post.TranslateX(float(Math::signum(arf) * (scaley * (1 - Math::cos(arf)))));
+//	post.TranslateY(float(Math::signum(-ars) * (scalex * (1 - Math::cos(ars)))));
+//	post.RotateX(ars);
+//	post.RotateY(arf);
+//
+//	return { pre,post };
+//}
 
 // Author : chaserli
-Matrix3D* __stdcall TeleportLocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* ret, VoxelIndexKey* pIndex)
+Matrix3D* __stdcall LocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* ret, VoxelIndexKey* pIndex)
 {
 	auto loco = static_cast<TeleportLocomotionClass*>(pThis);
 	auto slope_idx = MapClass::Instance->GetCellAt(loco->LinkedTo->Location)->SlopeIndex;
@@ -147,7 +147,7 @@ Matrix3D* __stdcall TeleportLocomotionClass_Draw_Matrix(ILocomotion* pThis, Matr
 	if (slope_idx && pIndex && pIndex->Is_Valid_Key()){
 		Matrix3D ret_ {};
 		loco->LocomotionClass::Draw_Matrix(&ret_ ,pIndex);
-		Matrix3D::MatrixMultiply(ret , &Game::VoxelRampMatrix[slope_idx] , &ret_);
+		*ret = Game::VoxelRampMatrix[slope_idx] * ret_;
 	} else {
 		loco->LocomotionClass::Draw_Matrix(ret ,pIndex);
 	}
@@ -177,7 +177,7 @@ Matrix3D* __stdcall TeleportLocomotionClass_Draw_Matrix(ILocomotion* pThis, Matr
 
 	return ret;
 }
-DEFINE_JUMP(VTABLE, 0x7F5024, GET_OFFSET(TeleportLocomotionClass_Draw_Matrix));
+DEFINE_JUMP(VTABLE, 0x7F5024, GET_OFFSET(LocomotionClass_Draw_Matrix));
 DEFINE_JUMP(VTABLE, 0x7F5028, 0x5142A0);//TeleportLocomotionClass_Shaow_Matrix : just use hover's to save my ass
 
 DEFINE_HOOK(0x729B5D, TunnelLocomotionClass_DrawMatrix_Tilt, 0x8)
@@ -185,7 +185,7 @@ DEFINE_HOOK(0x729B5D, TunnelLocomotionClass_DrawMatrix_Tilt, 0x8)
 	GET(ILocomotion*, iloco, ESI);
 	GET_BASE(VoxelIndexKey*, pIndex, 0x10);
 	GET_BASE(Matrix3D*, ret, 0xC);
-	R->EAX(TeleportLocomotionClass_Draw_Matrix(iloco, ret, pIndex));
+	R->EAX(LocomotionClass_Draw_Matrix(iloco, ret, pIndex));
 	return 0x729C09;
 }
 DEFINE_JUMP(VTABLE, 0x7F5A4C, 0x5142A0);//TunnelLocomotionClass_Shaow_Matrix : just use hover's to save my ass

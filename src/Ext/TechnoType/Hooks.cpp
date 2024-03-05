@@ -108,8 +108,6 @@ DEFINE_HOOK(0x73B780, UnitClass_DrawVXL_TurretMultiOffset, 0x6) //0
 		0x73B78A : 0x73B790;
 }
 
-constexpr reference<double, 0xB1D008> const Pixel_Per_Lepton {};
-
 DEFINE_HOOK(0x73BA4C, UnitClass_DrawVXL_TurretMultiOffset1, 0x6) //0
 {
 	GET(TechnoTypeClass*, pType, EBX);
@@ -117,9 +115,9 @@ DEFINE_HOOK(0x73BA4C, UnitClass_DrawVXL_TurretMultiOffset1, 0x6) //0
 
 	const auto& nOffs = TechnoTypeExtContainer::Instance.Find(pType)->TurretOffset;
 
-	float x = static_cast<float>(nOffs->X * Pixel_Per_Lepton);
-	float y = static_cast<float>(nOffs->Y * Pixel_Per_Lepton);
-	float z = static_cast<float>(nOffs->Z * Pixel_Per_Lepton);
+	float x = static_cast<float>(nOffs->X * Game::Pixel_Per_Lepton());
+	float y = static_cast<float>(nOffs->Y * Game::Pixel_Per_Lepton());
+	float z = static_cast<float>(nOffs->Z * Game::Pixel_Per_Lepton());
 
 	mtx->Translate(x, y, z);
 

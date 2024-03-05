@@ -82,6 +82,7 @@ struct Game
 #undef GAMEMD_CLSID
 	static constexpr reference<Matrix3D, 0xB44318> VoxelDefaultMatrix {};
 	static constexpr reference<Matrix3D, 0xB45188, 21> VoxelRampMatrix {};
+	static constexpr reference<double, 0xB1D008> const Pixel_Per_Lepton {};
 
 	static constexpr reference<bool, 0x887418u> const bVPLRead {};
 	static constexpr reference<bool, 0x840A6Cu> const bVideoBackBuffer {};

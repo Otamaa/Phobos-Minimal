@@ -4246,3 +4246,15 @@ DEFINE_HOOK(0x5657A0, MapClass_OpBracket_CellStructPtr, 0x5)
 //
 //	return 0x0;
 //}
+
+//DEFINE_HOOK(0x5AE610, Matrix_OPMultiply, 0x5)
+//{
+//	GET(Matrix3D*, pThis, ECX);
+//	GET_STACK(Matrix3D*, pThat, 0x4);
+//	GET_STACK(DWORD, caller, 0x0);
+//
+//	if (!pThis || !pThat)
+//		Debug::FatalErrorAndExit(__FUNCTION__" Called from(0x%x) with Invalid args ptr!\n", caller);
+//
+//	return 0x0;
+//}

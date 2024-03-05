@@ -46,9 +46,9 @@ DEFINE_HOOK(0x71F003, TEventClass_Execute_NavalProductionFix, 0x6)
 DEFINE_HOOK(0x444113, BuildingClass_ExitObject_NavalProductionFix1, 0x6)
 {
 	GET(BuildingClass* const, pThis, ESI);
-	GET(FootClass* const, pObject, EDI);
+	GET(UnitClass* const, pObject, EDI);
 
-	if (pObject->GetTechnoType()->Naval) {
+	if (pObject->Type->Naval) {
 		HouseExtContainer::Instance.Find(pThis->Owner)->ProducingNavalUnitTypeIndex = -1;
 	} else {
 		pThis->Owner->ProducingUnitTypeIndex = -1;
@@ -70,6 +70,7 @@ DEFINE_HOOK(0x444113, BuildingClass_ExitObject_NavalProductionFix1, 0x6)
 //	return 0;
 //}
 
+//skipping call of 0x4FBD80
 DEFINE_HOOK(0x450319, BuildingClass_AI_Factory_NavalProductionFix, 0x6)
 {
 	enum { SkipGameCode = 0x450332 };
@@ -84,33 +85,37 @@ DEFINE_HOOK(0x450319, BuildingClass_AI_Factory_NavalProductionFix, 0x6)
 	{
 	case AbstractType::Aircraft:
 	case AbstractType::AircraftType:
+	{
 		index = pHouse->ProducingAircraftTypeIndex;
 
 		if (index >= 0)
 			pTechnoType = AircraftTypeClass::Array->Items[index];
 
 		break;
-
+	}
 	case AbstractType::Building:
 	case AbstractType::BuildingType:
+	{
 		index = pHouse->ProducingBuildingTypeIndex;
 
 		if (index >= 0)
 			pTechnoType = BuildingTypeClass::Array->Items[index];
 
 		break;
-
+	}
 	case AbstractType::Infantry:
 	case AbstractType::InfantryType:
+	{
 		index = pHouse->ProducingInfantryTypeIndex;
 
 		if (index >= 0)
 			pTechnoType = InfantryTypeClass::Array->Items[index];
 
 		break;
-
+	}
 	case AbstractType::Unit:
 	case AbstractType::UnitType:
+	{
 		index = !pThis->Type->Naval ? pHouse->ProducingUnitTypeIndex : HouseExtContainer::Instance.Find(pHouse)->ProducingNavalUnitTypeIndex;
 
 		if (index >= 0)
@@ -118,6 +123,10 @@ DEFINE_HOOK(0x450319, BuildingClass_AI_Factory_NavalProductionFix, 0x6)
 
 		break;
 	}
+	default:
+		break;
+	}
+
 
 	R->EAX(pTechnoType);
 	return SkipGameCode;
@@ -128,8 +137,9 @@ DEFINE_HOOK(0x4CA0B1, FactoryClass_Abandon_NavalProductionFix, 0x6)
 	enum { SkipUnitTypeCheck = 0x4CA0B7 };
 
 	GET(FactoryClass* const, pThis, ESI);
+	GET(UnitClass*, pObject, ECX);
 
-	if (pThis->Object->GetTechnoType()->Naval) {
+	if (pObject->Type->Naval) {
 		HouseExtContainer::Instance.Find(pThis->Owner)->ProducingNavalUnitTypeIndex = -1;
 	} else {
 		pThis->Owner->ProducingUnitTypeIndex = -1;

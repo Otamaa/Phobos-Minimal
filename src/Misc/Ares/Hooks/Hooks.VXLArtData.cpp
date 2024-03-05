@@ -258,27 +258,31 @@ DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 
 	auto pType = TechnoExt_ExtData::GetImage(pThis);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	const auto tur = pType->Gunner || pType->IsChargeTurret
+
+	if(pTypeExt->TurretShadow.Get(RulesExtData::Instance()->DrawTurretShadow))
+	{
+
+		const auto tur = pType->Gunner || pType->IsChargeTurret
 		? TechnoTypeExtData::GetTurretsVoxel(pType, pThis->CurrentTurretNumber)
 		: &pType->TurretVoxel;
 
-	if (tur && pTypeExt->TurretShadow.Get(RulesExtData::Instance()->DrawTurretShadow) && tur->VXL && tur->HVA)
-	{
-		Matrix3D mtx {};
-		pThis->Locomotor.GetInterfacePtr()->Shadow_Matrix(&mtx, nullptr);
-		pTypeExt->ApplyTurretOffset(&mtx, *reinterpret_cast<double*>(0xB1D008));
-		float zTrans = static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>());
-		mtx.TranslateZ(zTrans);
-		Matrix3D::MatrixMultiply(&mtx, pMatrix, &mtx);
+		if (tur&& tur->VXL && tur->HVA)
+		{
+			Matrix3D mtx = Matrix3D::GetIdentity();
+			pThis->Locomotor.GetInterfacePtr()->Shadow_Matrix(&mtx, nullptr);
+			pTypeExt->ApplyTurretOffset(&mtx, Game::Pixel_Per_Lepton());
+			mtx.TranslateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>()));
+			mtx *= *pMatrix;
 
-		pThis->DrawVoxelShadow(tur, 0, index_key, nullptr, bound, &a3, &mtx, a9, pSurface, pos);
+			pThis->DrawVoxelShadow(tur, 0, index_key, nullptr, bound, &a3, &mtx, a9, pSurface, pos);
 
-		const auto bar = pType->ChargerBarrels ?
-			TechnoTypeExtData::GetBarrelsVoxel(pType, pThis->CurrentTurretNumber)
-			: &pType->BarrelVoxel;
+			const auto bar = pType->ChargerBarrels ?
+				TechnoTypeExtData::GetBarrelsVoxel(pType, pThis->CurrentTurretNumber)
+				: &pType->BarrelVoxel;
 
-		if (bar && bar->VXL && bar->HVA)
-			pThis->DrawVoxelShadow(bar, 0, index_key, nullptr, bound, &a3, &mtx, a9, pSurface, pos);
+			if (bar && bar->VXL && bar->HVA)
+				pThis->DrawVoxelShadow(bar, 0, index_key, nullptr, bound, &a3, &mtx, a9, pSurface, pos);
+		}
 	}
 
 	if (pTypeExt->ShadowIndices.empty())

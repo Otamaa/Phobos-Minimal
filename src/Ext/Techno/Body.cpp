@@ -2690,17 +2690,14 @@ bool TechnoExtData::FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeapo
 
 Matrix3D TechnoExtData::GetTransform(TechnoClass* pThis, VoxelIndexKey* pKey)
 {
-	Matrix3D Mtx { };
+	Matrix3D Mtx = Matrix3D::GetIdentity();
 	// Step 1: get body transform matrix
-	if (pThis && (pThis->AbstractFlags & AbstractFlags::Foot) && ((FootClass*)pThis)->Locomotor)
-	{
+	if (pThis && (pThis->AbstractFlags & AbstractFlags::Foot) && ((FootClass*)pThis)->Locomotor) {
 		((FootClass*)pThis)->Locomotor.GetInterfacePtr()->Draw_Matrix(&Mtx, pKey);
 		return Mtx;
 	}
 
 	// no locomotor means no rotation or transform of any kind (f.ex. buildings) - Kerbiter
-
-	Mtx.MakeIdentity();
 	return 	Mtx;
 }
 

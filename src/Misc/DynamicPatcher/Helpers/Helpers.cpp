@@ -264,8 +264,7 @@ Vector3D<float> Helpers_DP::GetFLHAbsoluteOffset(CoordStruct& flh, DirStruct& di
 {
 	if (flh.IsValid())
 	{
-		Matrix3D matrix3D {  };
-		matrix3D.MakeIdentity();
+		Matrix3D matrix3D = Matrix3D::GetIdentity();
 		matrix3D.Translate(static_cast<float>(turretOffset.X), static_cast<float>(turretOffset.Y), static_cast<float>(turretOffset.Z));
 		matrix3D.RotateZ(static_cast<float>(dir.GetRadian()));
 		return Helpers_DP::GetFLHOffset(matrix3D, flh);
@@ -563,7 +562,7 @@ void Helpers_DP::RotateMatrix3D(Matrix3D& matrix3D, TechnoClass* pTechno, bool i
 Matrix3D Helpers_DP::GetMatrix3D(TechnoClass* pTechno)
 {
 	// Step 1: get body transform matrix
-	Matrix3D matrix3D { };
+	Matrix3D matrix3D = Matrix3D::GetIdentity();
 
 	if (auto const pFoot = abstract_cast<FootClass*>(pTechno))
 	{

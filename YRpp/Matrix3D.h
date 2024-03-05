@@ -151,9 +151,8 @@ public:
 		this->row[2][2] = static_cast<float>((1.0 - v14) * c + v14);*/
 	}
 
-	static Matrix3D GetIdentity()
-	{
-		Matrix3D mtx { };
+	static FORCEINLINE Matrix3D GetIdentity() {
+		Matrix3D mtx {};
 		mtx.MakeIdentity();
 		return mtx;
 	}
@@ -179,13 +178,27 @@ public:
 	Matrix3D operator*(const Matrix3D& nAnother) const
 	{
 		Matrix3D ret;
-		MatrixMultiply(&ret, this, &nAnother);
+		for (int i = 0; i < 3; ++i)
+		{
+			for (int j = 0; j < 3; ++j)
+				ret.row[i][j] =
+				this->row[i][0] * nAnother.row[0][j] +
+				this->row[i][1] * nAnother.row[1][j] +
+				this->row[i][2] * nAnother.row[2][j];
+
+			ret.row[i][3] =
+				this->row[i][0] * nAnother.row[0][3] +
+				this->row[i][1] * nAnother.row[1][3] +
+				this->row[i][2] * nAnother.row[2][3] +
+				this->row[i][3];
+		}
+
 		return ret;
 	}
 
 	void operator*=(const Matrix3D& nAnother)
 	{
-		MatrixMultiply(this, this, &nAnother);
+		*this = *this * nAnother;
 	}
 
 	Vector3D<float> operator*(const Vector3D<float>& point) const
@@ -283,20 +296,12 @@ public:
 	float GetYTranslation() const { return Row[1][3]; }
 	float GetZTranslation() const { return Row[2][3]; }
 
-	void MakeIdentity() {
-
-		this->row[0][0] = 1.0;
-		this->row[0][1] = 0.0;
-		this->row[0][2] = 0.0;
-		this->row[0][3] = 0.0;
-		this->row[1][0] = 0.0;
-		this->row[1][1] = 1.0;
-		this->row[1][2] = 0.0;
-		this->row[1][3] = 0.0;
-		this->row[2][0] = 0.0;
-		this->row[2][1] = 0.0;
-		this->row[2][2] = 1.0;
-		this->row[2][3] = 0.0;
+	void FORCEINLINE MakeIdentity() {
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 4; j++) {
+				row[i][j] = i == j ? 1.f : 0.f;
+			}
+		}
 	} // 1-matrix
 
 	void Translate(float x, float y, float z) const { JMP_THIS(0x5AE890); }
@@ -340,81 +345,54 @@ public:
 	//	this->row[2][3] = static_cast<float>(v7 * this->row[2][2] + v6);
 	//}
 
-	void TranslateX(float x) const { JMP_THIS(0x5AE980); }
-	//void TranslateX(float x)
-	//{
-	//	this->row[0][3] = x * this->row[0][0] + this->Row[0].W;
-	//	this->row[1][3] = x * this->Row[1].X + this->Row[1].W;
-	//	this->row[2][3] = x * this->Row[2].X + this->Row[2].W;
-	//}
+	void TranslateX(float x) //{ JMP_THIS(0x5AE980); }
+	{
+		for (int i = 0; i < 3; i++)
+			row[i][3] += x * row[i][0];
+	}
 
-	void TranslateY(float y) const { JMP_THIS(0x5AE9B0); }
-	//void TranslateY(float y)
-	//{
-	//	this->row[0][3] = y * this->row[0][1] + this->Row[0].W;
-	//	this->row[1][3] = y * this->row[1][1] + this->Row[1].W;
-	//	this->row[2][3] = y * this->row[2][1] + this->Row[2].W;
-	//}
+	void TranslateY(float y) //{ JMP_THIS(0x5AE9B0); }
+	{
+		for (int i = 0; i < 3; i++)
+			row[i][3] += y * row[i][1];
+	}
 
-	void TranslateZ(float z) const { JMP_THIS(0x5AE9E0); }
-	//void TranslateZ(float z)
-	//{
-	//	this->row[0][3] = z * this->row[0][2] + this->row[0][3];
-	//	this->row[1][3] = z * this->row[1][2] + this->row[1][3];
-	//	this->row[2][3] = z * this->row[2][2] + this->row[2][3];
-	//}
+	void TranslateZ(float z) //{ JMP_THIS(0x5AE9E0); }
+	{
+		for (int i = 0; i < 3; i++)
+			row[i][3] += z * row[i][2];
+	}
 
-	void Scale(float factor) const { JMP_THIS(0x5AEA10); }
-	//void Scale(float factor)
-	//{
-	//	this->row[0][0] = factor * this->row[0][0];
-	//	this->row[1][0] = factor * this->row[1][0];
-	//	this->row[2][0] = factor * this->row[2][0];
-	//	this->row[0][1] = factor * this->row[0][1];
-	//	this->row[1][1] = factor * this->row[1][1];
-	//	this->row[2][1] = factor * this->row[2][1];
-	//	this->row[0][2] = factor * this->row[0][2];
-	//	this->row[1][2] = factor * this->row[1][2];
-	//	this->row[2][2] = factor * this->row[2][2];
-	//}
+	void Scale(float factor) //{ JMP_THIS(0x5AEA10); }
+	{
+		for (float& i : Data)
+			i *= factor;
+	}
 
-	void Scale(float x, float y, float z) const { JMP_THIS(0x5AEA70); }
-	//void Scale(float x, float y, float z)
-	//{
-	//	this->row[0][0] = x * this->row[0][0];
-	//	this->row[1][0] = x * this->Row[1].X;
-	//	this->row[2][0] = x * this->row[2][0];
-	//	this->row[0][1] = y * this->row[0][1];
-	//	this->row[1][1] = y * this->row[1][1];
-	//	this->row[2][1] = y * this->row[2][1];
-	//	this->row[0][2] = z * this->row[0][2];
-	//	this->row[1][2] = z * this->row[1][2];
-	//	this->row[2][2] = z * this->row[2][2];
-	//}
+	void Scale(float x, float y, float z) //{ JMP_THIS(0x5AEA70); }
+	{
+		ScaleX(x);
+		ScaleY(y);
+		ScaleZ(z);
+	}
 
-	void ScaleX(float factor) const { JMP_THIS(0x5AEAD0); }
-	//void ScaleX(float factor)
-	//{
-	//	this->row[0][0] = factor * this->row[0][0];
-	//	this->row[1][0] = factor * this->row[1][0];
-	//	this->row[2][0] = factor * this->row[2][0];
-	//}
+	void ScaleX(float factor) //{ JMP_THIS(0x5AEAD0); }
+	{
+		for (int i = 0; i < 3; i++)
+			row[i][0] *= factor;
+	}
 
-	void ScaleY(float factor) const { JMP_THIS(0x5AEAF0); }
-	//void ScaleY(float factor)
-	//{
-	//	this->row[0][1] = factor * this->row[0][1];
-	//	this->row[1][1] = factor * this->row[1][1];
-	//	this->row[2][1] = factor * this->row[2][1];
-	//}
+	void ScaleY(float factor) //{ JMP_THIS(0x5AEAF0); }
+	{
+		for (int i = 0; i < 3; i++)
+			row[i][1] *= factor;
+	}
 
-	void ScaleZ(float factor) const { JMP_THIS(0x5AEB20); }
-	//void ScaleZ(float factor)
-	//{
-	//	this->row[0][2] = factor * this->Row[0].Z;
-	//	this->row[1][2] = factor * this->Row[1].Z;
-	//	this->row[2][2] = factor * this->Row[2].Z;
-	//}
+	void ScaleZ(float factor) //{ JMP_THIS(0x5AEB20); }
+	{
+		for (int i = 0; i < 3; i++)
+			row[i][2] *= factor;
+	}
 
 	void ShearYZ(float y, float z) const { JMP_THIS(0x5AEB50); }
 	//void ShearYZ(float y, float z)
@@ -644,24 +622,21 @@ public:
 	//	this->row[2][1] = static_cast<float>(tmp2 * c - tmp1 * s);
 	//}
 
-	//float GetXVal() const { JMP_THIS(0x5AF2C0); }
-	float GetXVal() {
-		Vector3D<float> ret_ = MatrixMultiply(this, Vector3D<float>::Empty);
-		return ret_.X;
+	float GetXVal() const //{ JMP_THIS(0x5AF2C0); }
+	{
+		return row[0][3];
 	}
 
 	//float GetYVal() const  { JMP_THIS(0x5AF310); }
 	float GetYVal()
 	{
-		Vector3D<float> ret_ = MatrixMultiply(this, Vector3D<float>::Empty);
-		return ret_.Y;
+		return row[1][3];
 	}
 
 	//float GetZVal() const { JMP_THIS(0x5AF360); }
 	float GetZVal()
 	{
-		Vector3D<float> ret_ = MatrixMultiply(this, Vector3D<float>::Empty);
-		return ret_.Z;
+		return row[2][3];
 	}
 
 	float GetXRotation() const  { JMP_THIS(0x5AF3B0); }
@@ -683,37 +658,33 @@ public:
 	//	return (float)Math::atan2((double)ret_.Y, (double)ret_.X);
 	//}
 
-	Vector3D<float>* RotateVector(Vector3D<float>* ret, Vector3D<float>* rotate) const { JMP_THIS(0x5AF4D0); }
+	Vector3D<float>* __RotateVector(Vector3D<float>* ret, Vector3D<float>* rotate) const { JMP_THIS(0x5AF4D0); }
 	Vector3D<float> RotateVector(Vector3D<float>& rotate) {
-		Vector3D<float> buffer;
-		RotateVector(&buffer, &rotate);
-		return buffer;
+		return {
+				row[0][0] * rotate.X + row[0][1] * rotate.Y + row[0][2] * rotate.Z,
+				row[1][0] * rotate.X + row[1][1] * rotate.Y + row[1][2] * rotate.Z,
+				row[2][0] * rotate.X + row[2][1] * rotate.Y + row[2][2] * rotate.Z,
+		};
 	}
 
-	void LookAt1(Vector3D<float>* p, Vector3D<float>* t, float roll) const { JMP_THIS(0x5AF550) };
-	void LookAt1(const Vector3D<float>& p, const Vector3D<float>& t, float roll) {
-		JMP_THIS(0x5AF550);
-	}
+	void LookAt1(Vector3D<float>& p, Vector3D<float>& t, float roll) { JMP_THIS(0x5AF550); }
+	void LookAt2(Vector3D<float>& p, Vector3D<float>& t, float roll) { JMP_THIS(0x5AF710); }
 
-	void LookAt2(Vector3D<float>* p, Vector3D<float>* t, float roll) const { JMP_THIS(0x5AF710); }
-	void LookAt2(const Vector3D<float>& p, const Vector3D<float>& t, float roll)
-	{ JMP_THIS(0x5AF710); }
-
-	static Matrix3D* __fastcall MatrixMultiply(Matrix3D* ret, const Matrix3D* A, const Matrix3D* B) { JMP_STD(0x5AF980); }
-	static Matrix3D MatrixMultiply(const Matrix3D& A, const Matrix3D& B)
+	static Matrix3D* __fastcall MatrixMultiply__(Matrix3D* ret, const Matrix3D* A, const Matrix3D* B) { JMP_STD(0x5AF980); }
+	static Matrix3D MatrixMultiply__(const Matrix3D& A, const Matrix3D& B)
 	{
 		Matrix3D buffer;
-		MatrixMultiply(&buffer, &A, &B);
+		MatrixMultiply__(&buffer, &A, &B);
 		return buffer;
 
 	}
 
-	static Vector3D<float>* __fastcall MatrixMultiply(Vector3D<float>* vecret, const Matrix3D* mat, const Vector3D<float>* vec) { 
+	static Vector3D<float>* __fastcall MatrixMultiply(Vector3D<float>* vecret, const Matrix3D* mat, const Vector3D<float>* vec) {
 		JMP_FAST(0x5AFB80);
 	}
 
 	static Vector3D<float> MatrixMultiply(const Matrix3D& mat, const Vector3D<float>& vect)
-	{ 
+	{
 		Vector3D<float> buffer;
 		MatrixMultiply(&buffer, &mat, &vect);
 		return buffer;
@@ -759,77 +730,13 @@ public:
 		return buffer;
 	}
 
-	/*void RotateX90()
-	{
-		row[0][0] = 1.0; row[0][1] = 0.0; row[0][2] = 0.0; row[0][3] = 0.0;
-		row[1][0] = 0.0; row[1][1] = 0.0; row[1][2] = -1.0; row[1][3] = 0.0;
-		row[2][0] = 0.0; row[2][1] = 1.0; row[2][2] = 0.0; row[2][3] = 0.0;
-	}
-
-	void RotateX180()
-	{
-		row[0][0] = 1.0; row[0][1] = 0.0; row[0][2] = 0.0; row[0][3] = 0.0;
-		row[1][0] = 0.0; row[1][1] = -1.0; row[1][2] = 0.0; row[1][3] = 0.0;
-		row[2][0] = 0.0; row[2][1] = 0.0; row[2][2] = -1.0; row[2][3] = 0.0;
-	};
-
-	void RotateX270()
-	{
-		row[0][0] = 1.0; row[0][1] = 0.0; row[0][2] = 0.0; row[0][3] = 0.0;
-		row[1][0] = 0.0; row[1][1] = 0.0; row[1][2] = 1.0; row[1][3] = 0.0;
-		row[2][0] = 0.0; row[2][1] = -1.0; row[2][2] = 0.0; row[2][3] = 0.0;
-	};
-
-	void RotateY90()
-	{
-		row[0][0] = 0.0; row[0][1] = 0.0; row[0][2] = 1.0; row[0][3] = 0.0;
-		row[1][0] = 0.0; row[1][1] = 1.0; row[1][2] = 0.0; row[1][3] = 0.0;
-		row[2][0] = -1.0; row[2][1] = 0.0; row[2][2] = 0.0; row[2][3] = 0.0;
-	};
-
-	void RotateY180()
-	{
-		row[0][0] = -1.0; row[0][1] = 0.0; row[0][2] = 0.0; row[0][3] = 0.0;
-		row[1][0] = 0.0; row[1][1] = 1.0; row[1][2] = 0.0; row[1][3] = 0.0;
-		row[2][0] = 0.0; row[2][1] = 0.0; row[2][2] = -1.0; row[2][3] = 0.0;
-	};
-
-	void RotateY270()
-	{
-		row[0][0] = 0.0; row[0][1] = 0.0; row[0][2] = -1.0; row[0][3] = 0.0;
-		row[1][0] = 0.0; row[1][1] = 1.0; row[1][2] = 0.0; row[1][3] = 0.0;
-		row[2][0] = 1.0; row[2][1] = 0.0; row[2][2] = 0.0; row[2][3] = 0.0;
-	};
-
-	void RotateZ90()
-	{
-		row[0][0] = 0.0; row[0][1] = -1.0; row[0][2] = 0.0; row[0][3] = 0.0;
-		row[1][0] = 1.0; row[1][1] = 0.0; row[1][2] = 0.0; row[1][3] = 0.0;
-		row[2][0] = 0.0; row[2][1] = 0.0; row[2][2] = 1.0; row[2][3] = 0.0;
-	};
-
-	void RotateZ180()
-	{
-		row[0][0] = -1.0; row[0][1] = 0.0; row[0][2] = 0.0; row[0][3] = 0.0;
-		row[1][0] = 0.0; row[1][1] = -1.0; row[1][2] = 0.0; row[1][3] = 0.0;
-		row[2][0] = 0.0; row[2][1] = 0.0; row[2][2] = 1.0; row[2][3] = 0.0;
-	};
-
-	void RotateZ270()
-	{
-		row[0][0] = 0.0; row[0][1] = 1.0; row[0][2] = 0.0; row[0][3] = 0.0;
-		row[1][0] = -1.0; row[1][1] = 0.0; row[1][2] = 0.0; row[1][3] = 0.0;
-		row[2][0] = 0.0; row[2][1] = 0.0; row[2][2] = 1.0; row[2][3] = 0.0;
-	};
-	*/
-
 //Properties
 public:
 	union
 	{
 		Vector4D<float> Row[3];
 		float row[3][4];
-		float Data[12];
+		float Data[12] = {};
 	};
 };
 

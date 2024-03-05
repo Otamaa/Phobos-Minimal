@@ -417,8 +417,7 @@ void  ParticleSystemExtData::UpdateRailgun()
 		}
 
 		const auto ParticlePerCoords = differeceCoordsLXYZLength * pThis->Type->ParticlesPerCoord;
-		Matrix3D mtx {};
-		mtx.MakeIdentity();
+		Matrix3D mtx =Matrix3D::GetIdentity();
 		const auto acos = Math::acos((double)Difference_X / (double)differeceCoordsLXYLength);
 		mtx.PreRotateZ(acos < 0 ? -acos : acos);
 		const auto theta = Math::asin((double)Difference_Z / (double)differeceCoordsLXYLength);
