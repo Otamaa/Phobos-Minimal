@@ -1217,3 +1217,28 @@ DEFINE_JUMP(LJMP, 0x719CBC, 0x719CD8);//Teleport, notorious CLEG frozen state re
 DEFINE_JUMP(LJMP, 0x72A16A, 0x72A186);//Tunnel, not a big deal
 DEFINE_JUMP(LJMP, 0x663428, 0x663445);//Rocket, not a big deal
 DEFINE_JUMP(LJMP, 0x5170CE, 0x5170E0);//Hover, not a big deal
+
+DEFINE_HOOK(0x4D4B43, FootClass_Mission_Capture_ForbidUnintended, 0x6)
+{
+	GET(InfantryClass*, pThis, EDI);
+
+	if (!pThis)
+		return 0x0;
+
+	const auto pBld = specific_cast<BuildingClass*>(pThis->Destination);
+
+	if (!pBld || pThis->Target)//try less agressive first, only when no target, see if it doesn't fix something
+		return 0;
+
+	if (!(pBld->Type->Capturable && pThis->Type->Engineer)   // can't capture
+	&& !(pBld->Type->Spyable && pThis->Type->Infiltrate)     // can't infiltrate
+	&& !(pBld->Type->CanBeOccupied && (pThis->Type->Occupier || TechnoExtData::IsAssaulter(pThis))) // can't occupy
+	&& !(pThis->Type->C4 || pThis->HasAbility(AbilityType::C4)) // can't C4, what else?
+	)// If you can't do any of these why are you here?
+	{
+		pThis->SetDestination(nullptr, false);
+		return 0x4D4BD1;
+	}
+
+	return 0;
+}

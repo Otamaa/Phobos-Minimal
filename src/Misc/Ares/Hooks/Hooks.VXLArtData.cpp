@@ -238,9 +238,11 @@ DEFINE_HOOK(0x73B6E3, UnitClass_DrawVXL_NoSpawnAlt, 6)
 	return 0x73B6E9;
 }
 
+#ifdef FUCKEDUP
 DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 {
 	using VoxelShadowIdx = IndexClass<ShadowVoxelIndexKey, VoxelCacheStruct*>;
+
 	GET(FootClass*, pThis, ESI);
 	GET_STACK(Point2D, pos, STACK_OFFSET(0x18, 0x28));
 	GET_STACK(Surface*, pSurface, STACK_OFFSET(0x18, 0x24));
@@ -266,13 +268,13 @@ DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 		? TechnoTypeExtData::GetTurretsVoxel(pType, pThis->CurrentTurretNumber)
 		: &pType->TurretVoxel;
 
-		if (tur&& tur->VXL && tur->HVA)
+		if (tur && tur->VXL && tur->HVA)
 		{
 			Matrix3D mtx = Matrix3D::GetIdentity();
-			pThis->Locomotor.GetInterfacePtr()->Shadow_Matrix(&mtx, nullptr);
 			pTypeExt->ApplyTurretOffset(&mtx, Game::Pixel_Per_Lepton());
-			mtx.TranslateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>()));
-			mtx *= *pMatrix;
+			mtx.TranslateZ(-tur->HVA->Matrixes[0].GetZVal());
+			mtx.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>()));			mtx = (*pMatrix) * mtx;
+			mtx = *pMatrix * mtx;
 
 			pThis->DrawVoxelShadow(tur, 0, index_key, nullptr, bound, &a3, &mtx, a9, pSurface, pos);
 
@@ -302,6 +304,7 @@ DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 
 	return 0x4DB195;
 }
+#endif
 
 DEFINE_HOOK(0x73B4A0, UnitClass_DrawVXL_WaterType, 9)
 {
