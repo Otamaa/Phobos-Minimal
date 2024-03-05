@@ -951,7 +951,7 @@ DEFINE_HOOK(0x6F09C0 , TeamTypeClass_CreateOneOf_Handled , 0x9)
 
 	if(!Unsorted::ScenarioInit) {
 		if(pThis->Max >= 0) {
-			if(SessionClass::Instance->GameMode == GameMode::Campaign) {
+			if(SessionClass::Instance->GameMode != GameMode::Campaign) {
 				if(pHouse->GetTeamCount(pThis) >= pThis->Max) {
 					R->EAX<TeamClass*>(nullptr);
 					return 0x6F0A2C;

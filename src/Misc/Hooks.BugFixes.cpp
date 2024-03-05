@@ -1213,10 +1213,10 @@ DEFINE_HOOK(0x689EB0, ScenarioClass_ReadMap_SkipHeaderInCampaign, 0x6)
 }
 
 // Skip incorrect load ctor call in various LocomotionClass_Load
-DEFINE_JUMP(LJMP, 0x719CBC, 0x719CD8);//Teleport, notorious CLEG frozen state removal on loading game
-DEFINE_JUMP(LJMP, 0x72A16A, 0x72A186);//Tunnel, not a big deal
-DEFINE_JUMP(LJMP, 0x663428, 0x663445);//Rocket, not a big deal
-DEFINE_JUMP(LJMP, 0x5170CE, 0x5170E0);//Hover, not a big deal
+//DEFINE_JUMP(LJMP, 0x719CBC, 0x719CD8);//Teleport, notorious CLEG frozen state removal on loading game
+//DEFINE_JUMP(LJMP, 0x72A16A, 0x72A186);//Tunnel, not a big deal
+//DEFINE_JUMP(LJMP, 0x663428, 0x663445);//Rocket, not a big deal
+//DEFINE_JUMP(LJMP, 0x5170CE, 0x5170E0);//Hover, not a big deal
 
 DEFINE_HOOK(0x4D4B43, FootClass_Mission_Capture_ForbidUnintended, 0x6)
 {

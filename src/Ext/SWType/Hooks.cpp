@@ -86,7 +86,7 @@ DEFINE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 	//Debug::Log("Lauch [%x][%s] %s failed \n", pSuper, pSuper->Owner->get_ID(), pSuper->Type->ID);
 #ifndef aaa
 	return 0x6CDE40;
-#else 
+#else
 	return 0x0;
 #endif
 }
@@ -377,7 +377,7 @@ DEFINE_HOOK(0x41F180, AITriggerClass_Chrono, 0x5)
 		return 0x41F1BA;
 	}
 
-	Debug::Log("AITrigger[%s] With Owner[%s] Enemy[%s].\n", pThis->ID, pOwner->get_ID(), pEnemy->get_ID());
+	//Debug::Log("AITrigger[%s] With Owner[%s] Enemy[%s].\n", pThis->ID, pOwner->get_ID(), pEnemy->get_ID());
 	auto iter = pOwner->Supers.find_if([pOwner](SuperClass* pItem) {
 		return (pItem->Type->Type == SuperWeaponType::ChronoSphere
 			&& SWTypeExtContainer::Instance.Find(pItem->Type)->IsAvailable(pOwner));
@@ -2329,7 +2329,7 @@ DEFINE_HOOK(0x53A140, LightningStorm_Strike, 7)
 			// select the anim
 			auto const itClouds = pExt->Weather_Clouds.GetElements(
 				RulesClass::Instance->WeatherConClouds);
-			
+
 			// infer the height this thing will be drawn at.
 			if (pExt->Weather_CloudHeight < 0)
 			{
@@ -2627,7 +2627,7 @@ DEFINE_HOOK(0x53B080, PsyDom_Fire, 5)
 
 				// add to the other newly captured minions.
 				if (FootClass* pFoot = generic_cast<FootClass*>(pTechno))
-				{			
+				{
 					// the AI sends all new minions to hunt
 					const auto nMission = pFoot->GetTechnoType()->ResourceGatherer ? Mission::Harvest :
 						!PsyDom::Owner->IsControlledByHuman() ? Mission::Hunt : Mission::Guard;
