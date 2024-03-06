@@ -44,6 +44,7 @@
 #include <Ext/Bomb/Body.h>
 
 #include <New/Type/ArmorTypeClass.h>
+#include <New/Type/GenericPrerequisite.h>
 
 #include <Misc/PhobosGlobal.h>
 
@@ -5375,10 +5376,14 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 					if (pTypeExt->Convert_Script)
 					{
 						const auto& pConvertReq = pTypeExt->Convert_Scipt_Prereq;
-						if (!pConvertReq.empty() && !HouseExtData::PrerequisitesMet(pTeam->Owner, (int*)pConvertReq.data(), (int)pConvertReq.size()))
-							continue;
+						if (!pConvertReq.empty() && !Prereqs::HouseOwnsAll(pTeam->Owner, (int*)pConvertReq.data(), (int)pConvertReq.size())) {
+							pCur = pNext;
 
-						TechnoExt_ExtData::ConvertToType(pFirst, pTypeExt->Convert_Script);
+							if (pNext)
+								pNext = pNext->NextTeamMember;
+						} else {
+							TechnoExt_ExtData::ConvertToType(pFirst, pTypeExt->Convert_Script);
+						}
 					}
 
 					pCur = pNext;
