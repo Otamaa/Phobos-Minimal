@@ -44,7 +44,7 @@ struct SpawnerMain
 
 		bool WindowedMode { false };
 		bool NoWindowFrame { false };
-		int DDrawTargetFPS { -1 }; 
+		int DDrawTargetFPS { -1 };
 
 		bool AllowTaunts { true };
 		bool AllowChat { true };
@@ -142,6 +142,8 @@ struct SpawnerMain
 		char SavedGameDir[MAX_PATH]; // Nested paths are also supported, e.g. "Saved Games\\Yuri's Revenge"
 		char SaveGameName[60];
 
+		uint64_t CampaignID;
+
 		// Scenario Options
 		int  Seed;
 		int  TechLevel;
@@ -209,6 +211,7 @@ struct SpawnerMain
 			, SavedGameDir { "Saved Games" }
 			, SaveGameName { "" }
 
+			, CampaignID { 0 }
 			// Scenario Options
 			, Seed { 0 }
 			, TechLevel { 10 }

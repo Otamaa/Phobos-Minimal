@@ -241,6 +241,8 @@ public:
 };
 static_assert(sizeof(CCINIClassDummy) == sizeof(CCINIClass), "Invalid Size !");
 
+#include <string>
+
 void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 {
 	if (!pINI || !pINI->GetSection(GameStrings::Settings()))
@@ -278,6 +280,12 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 	pINI->ReadString(GameStrings::Settings(), "SavedGameDir", SavedGameDir, SavedGameDir, sizeof(SavedGameDir));
 	/* SaveGameName */
 	pINI->ReadString(GameStrings::Settings(), "SaveGameName", SaveGameName, SaveGameName, sizeof(SaveGameName));
+
+	char bufferCampaignID[22u];
+	if (pINI->ReadString(GameStrings::Settings(), "CampaignID", bufferCampaignID, bufferCampaignID, sizeof(bufferCampaignID)) > 0) {
+		std::string::size_type sz = 0;
+		CampaignID = std::stoull((std::string)bufferCampaignID, &sz, 0);
+	}
 
 	{ // Scenario Options
 		Seed = pINI->ReadInteger(GameStrings::Settings(), "Seed", Seed);

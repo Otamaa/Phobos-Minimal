@@ -25,6 +25,96 @@
 
 namespace SavedGames
 {
+		//issue #18
+	struct CampaignID
+	{
+		uint64_t Number;
+
+		explicit CampaignID() :
+			Number { SessionClass::IsCampaign() ? SpawnerMain::GetGameConfigs()->CampaignID : 0 }
+		{
+		}
+
+		operator uint64_t() const
+		{
+			return Number;
+		}
+
+		CampaignID(noinit_t()) { }
+	};
+
+		// More fun
+	struct ExtraMetaInfo
+	{
+		int CurrentFrame;
+		int PlayerCount;
+		int TechnoCount;
+		int AnimCount;
+
+		explicit ExtraMetaInfo()
+			:CurrentFrame { Unsorted::CurrentFrame }
+			, PlayerCount { HouseClass::Array->Count }
+			, TechnoCount { TechnoClass::Array->Count }
+			, AnimCount { AnimClass::Array->Count }
+		{
+		}
+
+		ExtraMetaInfo(noinit_t()) { }
+	};
+
+	template<typename T>
+	bool AppendToStorage(IStorage* pStorage, const OLECHAR* name)
+	{
+		IStream* pStream = nullptr;
+		bool ret = false;
+		HRESULT hr = pStorage->CreateStream(
+			name,
+			STGM_WRITE | STGM_CREATE | STGM_SHARE_EXCLUSIVE,
+			0,
+			0,
+			&pStream
+		);
+
+		if (SUCCEEDED(hr) && pStream != nullptr)
+		{
+			T info {};
+			ULONG written = 0;
+			hr = pStream->Write(&info, sizeof(info), &written);
+			ret = SUCCEEDED(hr) && written == sizeof(info);
+			pStream->Release();
+		}
+
+		return ret;
+	}
+
+
+	template<typename T>
+	std::optional<T> ReadFromStorage(IStorage* pStorage, const OLECHAR* name)
+	{
+		IStream* pStream = nullptr;
+		bool hasValue = false;
+		HRESULT hr = pStorage->OpenStream(
+			name,
+			NULL,
+			STGM_READ | STGM_SHARE_EXCLUSIVE,
+			0,
+			&pStream
+		);
+
+		T info;
+
+		if (SUCCEEDED(hr) && pStream != nullptr)
+		{
+			ULONG read = 0;
+			hr = pStream->Read(&info, sizeof(info), &read);
+			hasValue = SUCCEEDED(hr) && read == sizeof(info);
+
+			pStream->Release();
+		}
+
+		return hasValue ? std::make_optional(info) : std::nullopt;
+	}
+
 	inline bool CreateSubdir()
 	{
 		if (!std::filesystem::exists(SpawnerMain::GetGameConfigs()->SavedGameDir))
@@ -45,6 +135,60 @@ namespace SavedGames
 		sprintf(buffer, "%s\\%s", SpawnerMain::GetGameConfigs()->SavedGameDir, pFileName);
 	}
 }
+
+#ifdef incomplete
+DEFINE_HOOK(0x67D2E3, GameSave_AdditionalInfoForClient, 0x6)
+{
+	GET_STACK(IStorage*, pStorage, STACK_OFFSET(0x4A0, -0x490));
+
+	if (!SpawnerMain::Configs::Enabled)
+		return 0x0;
+
+	if (pStorage
+		&& SavedGames::AppendToStorage<SavedGames::CampaignID>(pStorage, L"Campaign ID")
+		&& SavedGames::AppendToStorage<SavedGames::ExtraMetaInfo>(pStorage, L"Spawner extra info")
+		)
+		Debug::Log("[Spawner] Extra meta info appended on sav file\n");
+	else
+		Debug::Log("[Spawner] Cannot write extra meta info to sav file\n");
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x67E4DC, LoadGame_AdditionalInfoForClient, 0x7)
+{
+	if (!SpawnerMain::Configs::Enabled)
+		return 0x0;
+
+	LEA_STACK(const wchar_t*, filename, STACK_OFFSET(0x518, -0x4F4));
+	IStorage* pStorage = nullptr;
+
+	if (SUCCEEDED(StgOpenStorage(filename, NULL,
+		STGM_READWRITE | STGM_SHARE_EXCLUSIVE,
+		0, 0, &pStorage)
+	))
+	{
+		if (auto id = SavedGames::ReadFromStorage<SavedGames::CampaignID>(pStorage, L"Campaign ID"))
+		{
+			uint64_t num = id.value().Number;
+			Debug::Log("[Spawner] sav file CampaignID = %d\n", num);
+			SpawnerMain::GetGameConfigs()->CampaignID = num;
+		}
+		if (auto info = SavedGames::ReadFromStorage<SavedGames::ExtraMetaInfo>(pStorage, L"Spawner extra info"))
+		{
+			Debug::Log("[Spawner] CurrentFrame = %d, TechnoCount = %d, AnimCount = %d \n"
+				, info.value().CurrentFrame
+				, info.value().TechnoCount
+				, info.value().AnimCount
+			);
+		}
+	}
+	if (pStorage)
+		pStorage->Release();
+
+	return 0;
+}
+#endif
 
 DEFINE_HOOK(0x67E475, LoadGame_SGInSubdir, 0x5)
 {
