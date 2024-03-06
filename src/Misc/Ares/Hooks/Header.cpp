@@ -5376,12 +5376,9 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 					if (pTypeExt->Convert_Script)
 					{
 						const auto& pConvertReq = pTypeExt->Convert_Scipt_Prereq;
-						if (!pConvertReq.empty() && !Prereqs::HouseOwnsAll(pTeam->Owner, (int*)pConvertReq.data(), (int)pConvertReq.size())) {
-							pCur = pNext;
+						const bool AllowToConvert = pConvertReq.empty() || !Prereqs::HouseOwnsAll(pTeam->Owner, (int*)pConvertReq.data(), (int)pConvertReq.size());
 
-							if (pNext)
-								pNext = pNext->NextTeamMember;
-						} else {
+						if (AllowToConvert) {
 							TechnoExt_ExtData::ConvertToType(pFirst, pTypeExt->Convert_Script);
 						}
 					}
