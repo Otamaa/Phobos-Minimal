@@ -304,6 +304,72 @@ DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 
 	return 0x4DB195;
 }
+#else
+DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
+{
+	using VoxelShadowIdx = IndexClass<ShadowVoxelIndexKey, VoxelCacheStruct*>;
+	GET(FootClass*, pThis, ESI);
+	GET_STACK(Point2D, pos, STACK_OFFSET(0x18, 0x28));
+	GET_STACK(Surface*, pSurface, STACK_OFFSET(0x18, 0x24));
+	GET_STACK(bool, a9, STACK_OFFSET(0x18, 0x20));
+	GET_STACK(Matrix3D*, pMatrix, STACK_OFFSET(0x18, 0x1C));
+	GET_STACK(RectangleStruct*, bound, STACK_OFFSET(0x18, 0x14));
+	GET_STACK(Point2D, a3, STACK_OFFSET(0x18, -0x10));
+	GET_STACK(VoxelShadowIdx*, shadow_cache, STACK_OFFSET(0x18, 0x10));
+	GET_STACK(VoxelIndexKey, index_key, STACK_OFFSET(0x18, 0xC));
+	GET_STACK(int, shadow_index, STACK_OFFSET(0x18, 0x8));
+	GET_STACK(VoxelStruct*, main_vxl, STACK_OFFSET(0x18, 0x4));
+
+	if (!pThis->IsAlive)
+		return 0x0;
+
+	auto pType = TechnoExt_ExtData::GetImage(pThis);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	const auto tur = pType->Gunner || pType->IsChargeTurret
+		? TechnoTypeExtData::GetTurretsVoxel(pType, pThis->CurrentTurretNumber)
+		: &pType->TurretVoxel;
+
+	if (pTypeExt->TurretShadow.Get(RulesExtData::Instance()->DrawTurretShadow) && tur->VXL && tur->HVA)
+	{
+		Matrix3D mtx {};
+		pThis->Locomotor.GetInterfacePtr()->Shadow_Matrix(&mtx, nullptr);
+		pTypeExt->ApplyTurretOffset(&mtx, *reinterpret_cast<double*>(0xB1D008));
+		mtx.TranslateZ(-tur->HVA->Matrixes[0].GetZVal());
+
+		if (pType->Turret)
+		{
+			mtx.RotateZ((float)(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>()));
+		}
+
+		mtx = Game::VoxelDefaultMatrix() * mtx;
+
+		pThis->DrawVoxelShadow(tur, 0, index_key, 0, bound, &a3, &mtx, a9, pSurface, pos);
+
+		const auto bar = pType->ChargerBarrels ?
+			TechnoTypeExtData::GetBarrelsVoxel(pType, pThis->CurrentTurretNumber)
+			: &pType->BarrelVoxel;
+
+		if (bar->VXL && bar->HVA)
+			pThis->DrawVoxelShadow(bar, 0, index_key, 0, bound, &a3, &mtx, a9, pSurface, pos);
+	}
+
+	if (pTypeExt->ShadowIndices.empty())
+	{
+		pThis->DrawVoxelShadow(main_vxl, shadow_index, index_key, shadow_cache, bound, &a3, pMatrix, a9, pSurface, pos);
+	}
+	else
+	{
+		for (const auto& index : pTypeExt->ShadowIndices)
+		{
+			//Matrix3D copy_ = *pMatrix;
+			//copy_.TranslateZ(-pVXL->HVA->Matrixes[index].GetZVal());
+			//Matrix3D::MatrixMultiply(&copy_, &Game::VoxelDefaultMatrix(), &copy_);
+			pThis->DrawVoxelShadow(main_vxl, index, index_key, shadow_cache, bound, &a3, pMatrix, a9, pSurface, pos);
+		}
+	}
+
+	return 0x4DB195;
+}
 #endif
 
 DEFINE_HOOK(0x73B4A0, UnitClass_DrawVXL_WaterType, 9)
