@@ -120,4 +120,14 @@ DEFINE_HOOK(0x736BA3, UnitClass_UpdateRotation_TurretFacing_Jumpjet, 0x6)
 //	return 0;
 //}
 
+// Man, what can I say
+DEFINE_HOOK(0x54D67B, JumpjetLocomotionClass_ProcessMove_NotJumpjetTurn, 0x5)
+{
+	GET(JumpjetLocomotionClass*, pThis, ESI);
+
+	pThis->LinkedTo->PrimaryFacing.Set_Desired(pThis->Facing.Desired());
+
+	return 0x54D697;
+}
+
 #pragma endregion
