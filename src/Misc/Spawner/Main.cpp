@@ -281,11 +281,11 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 	/* SaveGameName */
 	pINI->ReadString(GameStrings::Settings(), "SaveGameName", SaveGameName, SaveGameName, sizeof(SaveGameName));
 
-	char bufferCampaignID[22u];
+/*	char bufferCampaignID[22u];
 	if (pINI->ReadString(GameStrings::Settings(), "CampaignID", bufferCampaignID, bufferCampaignID, sizeof(bufferCampaignID)) > 0) {
 		std::string::size_type sz = 0;
 		CampaignID = std::stoull((std::string)bufferCampaignID, &sz, 0);
-	}
+	}*/
 
 	{ // Scenario Options
 		Seed = pINI->ReadInteger(GameStrings::Settings(), "Seed", Seed);
