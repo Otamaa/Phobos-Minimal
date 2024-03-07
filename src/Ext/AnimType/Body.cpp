@@ -67,7 +67,7 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->MakeInfantryOwner.Read(exINI, pID, "MakeInfantryOwner");
 	this->MakeInfantry_Mission.Read(exINI, pID, "MakeInfantry.Mission");
-
+	this->DetachedReport.Read(exINI, pID, "DetachedReport");
 #pragma region Otamaa
 
 	this->ParticleRangeMin.Read(exINI, pID, "SpawnsParticle.RangeMinimum");
@@ -458,6 +458,7 @@ void AnimTypeExtData::Serialize(T& Stm)
 
 		.Process(this->AltPalette_ApplyLighting)
 		.Process(this->ExtraShadow)
+		.Process(this->DetachedReport)
 		;
 }
 

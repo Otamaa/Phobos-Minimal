@@ -89,6 +89,7 @@ public:
 
 	Valueable<bool> AltPalette_ApplyLighting { false };
 	Valueable<bool> ExtraShadow { true };
+	NullableIdx<VocClass> DetachedReport {};
 
 	AnimTypeExtData() noexcept = default;
 	~AnimTypeExtData() noexcept = default;

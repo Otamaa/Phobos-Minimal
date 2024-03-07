@@ -19,6 +19,18 @@
 //	return 0;
 //}
 
+DEFINE_HOOK(0x424CF1, AnimClass_Start_DetachedReport, 0x6)
+{
+	GET(AnimClass*, pThis, ESI);
+
+	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+
+	if (pTypeExt->DetachedReport.isset())
+		VocClass::PlayAt(pTypeExt->DetachedReport.Get(), pThis->GetCoords());
+
+	return 0;
+}
+
 // Deferred creation of attached particle systems for debris anims.
 DEFINE_HOOK(0x423939, AnimClass_BounceAI_AttachedSystem, 0x6)
 {

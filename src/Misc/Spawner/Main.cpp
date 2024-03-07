@@ -270,7 +270,7 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 		FogOfWar = pINI->ReadBool(GameStrings::Settings(), GameStrings::FogOfWar, FogOfWar);
 		MCVRedeploy = pINI->ReadBool(GameStrings::Settings(), GameStrings::MCVRedeploy, MCVRedeploy);
 
-		if (((CCINIClassDummy*)pINI)->ReadString_WithoutAresHook(GameStrings::Settings(), "UIGameMode", "", Phobos::readBuffer, Phobos::readLength) > 0)
+		if (((CCINIClassDummy*)pINI)->ReadString_WithoutAresHook(GameStrings::Settings(), "UIGameMode", Phobos::readDefval, Phobos::readBuffer, Phobos::readLength) > 0)
 			MultiByteToWideChar(CP_UTF8, 0, Phobos::readBuffer, strlen(Phobos::readBuffer), UIGameMode, std::size(UIGameMode));
 	}
 
@@ -281,11 +281,12 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 	/* SaveGameName */
 	pINI->ReadString(GameStrings::Settings(), "SaveGameName", SaveGameName, SaveGameName, sizeof(SaveGameName));
 
-/*	char bufferCampaignID[22u];
-	if (pINI->ReadString(GameStrings::Settings(), "CampaignID", bufferCampaignID, bufferCampaignID, sizeof(bufferCampaignID)) > 0) {
+	char bufferCampaignID[22u];
+	if (pINI->ReadString(GameStrings::Settings(), "CampaignID", Phobos::readDefval, bufferCampaignID, sizeof(bufferCampaignID)) > 0) {
 		std::string::size_type sz = 0;
-		CampaignID = std::stoull((std::string)bufferCampaignID, &sz, 0);
-	}*/
+		std::string buffer_str = bufferCampaignID;
+		CampaignID = std::stoull(buffer_str, &sz, 0);
+	}
 
 	{ // Scenario Options
 		Seed = pINI->ReadInteger(GameStrings::Settings(), "Seed", Seed);
