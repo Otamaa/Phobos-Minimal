@@ -922,7 +922,6 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 	{
 		Phobos::hInstance = hInstance;
 		Debug::LogFileRemove();
-		Patch::ApplyStatic();
 	}
 	break;
 	case DLL_PROCESS_DETACH:
@@ -1054,6 +1053,8 @@ DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 	//Imports::ReadFile = ReadFIle_;
 	//Imports::CreateFileA = CreatefileA_;
 	//Imports::CloseHandle = CloseHandle_;
+
+	Patch::ApplyStatic();
 
 #ifdef ENABLE_ENCRYPTION_HOOKS
 	Imports::OleLoadFromStream = OleLoadFromStream_;
