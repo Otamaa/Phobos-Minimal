@@ -145,6 +145,7 @@ public:
 	Valueable<bool> AmbientDamage_IgnoreTarget { false };
 
 	//Nullable<bool> BlockageTargetingBypassDamageOverride {};
+	Nullable<double> RecoilForce {};
 
 	WeaponTypeExtData() noexcept = default;
 	~WeaponTypeExtData() noexcept = default;

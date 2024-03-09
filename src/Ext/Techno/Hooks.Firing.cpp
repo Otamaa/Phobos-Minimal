@@ -24,6 +24,34 @@ bool DisguiseAllowed(const TechnoTypeExtData* pThis, ObjectTypeClass* pThat)
 	return true;
 }
 
+// An example for quick tilting test
+DEFINE_HOOK(0x7413DD, UnitClass_Fire_RecoilForce, 0x6)
+{
+	GET(UnitClass* const, pThis, ESI);
+
+	if (!pThis->IsVoxel())
+		return 0;
+
+	GET(BulletClass* const, pTraj, EDI);
+
+	const auto& force = WeaponTypeExtContainer::Instance.Find(pTraj->WeaponType)->RecoilForce;
+
+	if (!force.isset() || std::abs(force) < 0.005)
+		return 0x0;
+
+	double force_result = force / MaxImpl(pThis->Type->Weight, 1.);
+
+	if (std::abs(force) < 0.002)
+		return 0;
+
+	const double theta = pThis->GetRealFacing().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>();
+
+	pThis->RockingForwardsPerFrame = (float)(-force_result * Math::cos(theta));
+	pThis->RockingSidewaysPerFrame = (float)(force_result * Math::sin(theta) * std::pow(pThis->Type->VoxelScaleX / pThis->Type->VoxelScaleY, 2));
+
+	return 0;
+}
+
 //https://github.com/Phobos-developers/Phobos/pull/1073/
 DEFINE_HOOK(0x6FE562, TechnoClass_FireAt_BurstRandomTarget, 0x6)
 {
