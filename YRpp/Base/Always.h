@@ -125,7 +125,7 @@ typedef union {
 #define LessOrEqualTo(a, b) (a <= b) ? (a) : (b);
 #define MoreOrEqualTo(a, b) (a >= b) ? (a) : (b);
 
-#define PRAGMA(X)					 _Pragma(#X)
+#define PRAGMA(X)					 __pragma(#X)
 #define PRAGMA_DISABLEWARNING()      PRAGMA(warning(push))
 #define PRAGMA_DISABLEWARNING_S(x)   PRAGMA(warning(disable : x))
 #define PRAGMA_DISABLEWARNING_POP()	 PRAGMA(warning(pop))
@@ -137,7 +137,7 @@ typedef union {
 
 #define NOVTABLE __declspec(novtable)
 #define NOINLINE __declspec(noinline)
-#define UNUSED __pragma(warning(suppress : 4100 4101))
+#define UNUSED  PRAGMA(warning(suppress : 4100 4101))
 #define NORETURN __declspec(noreturn)
 #define NOTHROW __declspec(nothrow)
 #define SELECTANY __declspec(selectany)
