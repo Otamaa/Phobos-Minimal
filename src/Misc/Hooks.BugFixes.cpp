@@ -1233,7 +1233,7 @@ DEFINE_HOOK(0x4D4B43, FootClass_Mission_Capture_ForbidUnintended, 0x6)
 	if (!(pBld->Type->Capturable && pThis->Type->Engineer)   // can't capture
 	&& !(pBld->Type->Spyable && pThis->Type->Infiltrate)     // can't infiltrate
 	&& !(pBld->Type->CanBeOccupied && (pThis->Type->Occupier || TechnoExtData::IsAssaulter(pThis))) // can't occupy
-	&& !(pThis->Type->C4 || pThis->HasAbility(AbilityType::C4)) // can't C4, what else?
+	&& !(TechnoExtData::ISC4Holder(pThis)) // can't C4, what else?
 	)// If you can't do any of these why are you here?
 	{
 		pThis->SetDestination(nullptr, false);

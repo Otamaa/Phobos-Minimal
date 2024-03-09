@@ -315,6 +315,7 @@ public:
 	static bool IsWebImmune(TechnoClass* pThis);
 	static bool IsDriverKillProtected(TechnoClass* pThis);
 	static bool IsUntrackable(TechnoClass* pThis);
+	static bool ISC4Holder(InfantryClass* pThis);
 
 	static bool HasAbility(TechnoClass* pThis, PhobosAbilityType nType);
 	static bool HasImmunity(TechnoClass* pThis, int nType);

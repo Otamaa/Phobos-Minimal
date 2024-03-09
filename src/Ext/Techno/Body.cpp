@@ -664,6 +664,14 @@ bool TechnoExtData::IsUntrackable(TechnoClass* pThis)
 	return HasAbility(pThis, PhobosAbilityType::Untrackable);
 }
 
+bool TechnoExtData::ISC4Holder(InfantryClass* pThis) {
+
+	if (pThis->Type->C4)
+		return true;
+
+	return pThis->HasAbility(AbilityType::C4);
+}
+
 bool TechnoExtData::IsInterceptor()
 {
 	auto const pThis = this->AttachedToObject;
