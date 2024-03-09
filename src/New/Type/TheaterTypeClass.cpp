@@ -173,7 +173,7 @@ DEFINE_STRONG_HOOK(0x54547F, IsometricTileTypeClass_ReadINI_SetPaletteISO, 0x6)
 
 	if(!Exist)
 		GameDebugLog::Log("Failed to load IsometricTileTypeClass Palette %s For [%s]\n", outBuffs,pTheater->Name.data());
-	else{ 
+	else{
 		if(file_c->Read(FileSystem::ISOx_PAL(), sizeof(BytePalette))){
 			GameDebugLog::Log("Loaded IsometricTileTypeClass Palette %s For [%s]\n", outBuffs, pTheater->Name.data());
 
@@ -710,7 +710,7 @@ DEFINE_HOOK(0x74D450, TheaterTypeClass_ProcessVeinhole, 0x7)
 {
 	GET(TheaterType, index, ECX);
 	char buffer[32];
-	CRT::sprintf(buffer ,"VEINHOLE.%s" ,TheaterTypeClass::FindFromTheaterType_NoCheck(index)->Extension.c_str());
+	CRT::sprintf(buffer ,GameStrings::VEINHOLE_(), TheaterTypeClass::FindFromTheaterType_NoCheck(index)->Extension.c_str());
 	VeinholeMonsterClass::VeinSHPData = (SHPFrame*)MixFileClass::Retrieve(buffer);
 	return 0x74D48A;
 }
