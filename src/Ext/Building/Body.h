@@ -56,7 +56,7 @@ public:
 	bool SecretLab_Placed { false };
 	bool AboutToChronoshift { false };
 	bool IsFromSW { false };
-	bool BeignMCEd { true }; //this tag only use to fix 
+	bool BeignMCEd { true }; //this tag only use to fix
 	//https://github.com/Phobos-developers/Phobos/issues/1146
 
 	HelperedVector<TechnoClass*> RegisteredJammers { };
@@ -107,4 +107,7 @@ public:
 	static BuildingExtContainer Instance;
 
 	CONSTEXPR_NOCOPY_CLASSB(BuildingExtContainer , BuildingExtData, "BuildingClass");
+
+	virtual bool Save(BuildingClass* key, IStream* pStm) override;
+	virtual bool Load(BuildingClass* key, IStream* pStm) override;
 };
