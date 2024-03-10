@@ -4,7 +4,8 @@
 
 #include <TagClass.h>
 
-DEFINE_HOOK(0x685670, DoWin_SaveVariables, 0x5)
+DEFINE_HOOK_AGAIN(0x6857EA, PhobosSaveVariables, 0x5)//Win
+DEFINE_HOOK(0x685EB1, PhobosSaveVariables, 0x5)//Lose
 {
 	if (Phobos::Config::SaveVariablesOnScenarioEnd)
 	{
@@ -13,17 +14,7 @@ DEFINE_HOOK(0x685670, DoWin_SaveVariables, 0x5)
 	}
 
 	return 0;
-}
 
-DEFINE_HOOK(0x685DC0, DoLose_SaveVariables, 0x5)
-{
-	if (Phobos::Config::SaveVariablesOnScenarioEnd)
-	{
-		ScenarioExtData::SaveVariablesToFile(false);
-		ScenarioExtData::SaveVariablesToFile(true);
-	}
-
-	return 0;
 }
 
 DEFINE_HOOK(0x689910, ScenarioClass_SetLocalToByID, 0x5)

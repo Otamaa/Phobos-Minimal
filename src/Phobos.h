@@ -165,6 +165,7 @@ struct Phobos final
 		static bool HideLightFlashEffects;
 
 		static bool DebugFatalerrorGenerateDump;
+		static bool SaveGameOnScenarioStart;
 	};
 
 	struct Misc
