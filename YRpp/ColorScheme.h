@@ -7,6 +7,7 @@
 #include <ArrayClasses.h>
 #include <GeneralStructures.h>
 #include <GameStrings.h>
+#include <HashTable.h>
 
 class LightConvertClass;
 
@@ -28,6 +29,11 @@ public:
 
 	//global array
 	static constexpr constant_ptr<DynamicVectorClass<ColorScheme*>, 0xB054D0u> const Array{};
+
+	// Game uses a hash table to store color scheme vectors for extra palettes, this table can be iterated by calling this function.
+	static DynamicVectorClass<ColorScheme*>* __fastcall GetPaletteSchemesFromIterator(HashIterator* it)
+	{ JMP_STD(0x626690); }
+
 /*
  * trap! most schemes are duplicated - ShadeCount 1 and ShadeCount 53
 */
