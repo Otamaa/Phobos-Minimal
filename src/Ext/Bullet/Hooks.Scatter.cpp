@@ -37,9 +37,9 @@ int GetScatterResult(BulletClass* pThis
 	)
 {
 	const auto pTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
-	int min = pTypeExt->BallisticScatter_Min.Get(static_cast<Leptons>(0));
+	int min = pTypeExt->BallisticScatterMin.Get(static_cast<Leptons>(0));
 	const auto nMaxDef = Leptons(2 * RulesClass::Instance->BallisticScatter);
-	int max = pTypeExt->BallisticScatter_Max.Get(nMaxDef);
+	int max = pTypeExt->BallisticScatterMax.Get(nMaxDef);
 
 	if(ScenarioClass::Instance->Random.RandomFromMax(99) < SecondaryScatter_Proportion)
 	{
@@ -62,8 +62,8 @@ DEFINE_HOOK(0x46874E, BulletClass_Unlimbo_FlakScatter, 0x5)
 
 	const auto nDistance = pDest->DistanceFrom(pThis->TargetCoords);
 	const auto pTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
-	const int min = pTypeExt->BallisticScatter_Min.isset() ? pTypeExt->BallisticScatter_Min : static_cast<Leptons>(0);
-	const int max = pTypeExt->BallisticScatter_Max.Get(Leptons(RulesClass::Instance->BallisticScatter));
+	const int min = pTypeExt->BallisticScatterMin.isset() ? pTypeExt->BallisticScatterMin : static_cast<Leptons>(0);
+	const int max = pTypeExt->BallisticScatterMax.Get(Leptons(RulesClass::Instance->BallisticScatter));
 	const auto range = pThis->WeaponType ? pThis->WeaponType->Range : pThis->Range;
 
 	R->EAX(int((nDistance * ScenarioClass::Instance->Random.RandomRanged(2 * min, 2 * max)))

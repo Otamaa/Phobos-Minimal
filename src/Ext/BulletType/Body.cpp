@@ -30,15 +30,12 @@ BulletTypeClass* BulletTypeExtData::GetDefaultBulletType(const char* pBullet)
 CoordStruct BulletTypeExtData::CalculateInaccurate(BulletTypeClass* pBulletType) {
 	if (pBulletType->Inaccurate)
 	{
-		auto const pTypeExt = BulletTypeExtContainer::Instance.Find(pBulletType);
+		const auto pTypeExt = BulletTypeExtContainer::Instance.Find(pBulletType);
+		const int scatterMax = pTypeExt->BallisticScatterMax.isset() ? (int)(pTypeExt->BallisticScatterMax.Get()) : RulesClass::Instance()->BallisticScatter;
+		const int scatterMin = pTypeExt->BallisticScatterMin.isset() ? (int)(pTypeExt->BallisticScatterMin.Get()) : (scatterMax / 2);
 
-		int ballisticScatter = RulesClass::Instance()->BallisticScatter;
-
-		int scatterMax = pTypeExt->BallisticScatter_Max.isset() ? (int)(pTypeExt->BallisticScatter_Max.Get()) : ballisticScatter;
-		int scatterMin = pTypeExt->BallisticScatter_Min.isset() ? (int)(pTypeExt->BallisticScatter_Min.Get()) : (scatterMax / 2);
-
-		double random = ScenarioClass::Instance()->Random.RandomRanged(scatterMin, scatterMax);
-		double theta = ScenarioClass::Instance()->Random.RandomDouble() * Math::TwoPi;
+		const double random = ScenarioClass::Instance()->Random.RandomRanged(scatterMin, scatterMax);
+		const double theta = ScenarioClass::Instance()->Random.RandomDouble() * Math::TwoPi;
 
 		CoordStruct offset
 		{
@@ -169,10 +166,6 @@ void BulletTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Cluster_Scatter_Min.Read(exINI, pSection, "ClusterScatter.Min");
 		this->Cluster_Scatter_Max.Read(exINI, pSection, "ClusterScatter.Max");
 
-		// Ares 0.7
-		this->BallisticScatter_Min.Read(exINI, pSection, "BallisticScatter.Min");
-		this->BallisticScatter_Max.Read(exINI, pSection, "BallisticScatter.Max");
-
 		this->Interceptable_DeleteOnIntercept.Read(exINI, pSection, "Interceptable.DeleteOnIntercept");
 		this->Interceptable_WeaponOverride.Read(exINI, pSection, "Interceptable.WeaponOverride" , true);
 
@@ -238,8 +231,6 @@ void BulletTypeExtData::Serialize(T& Stm)
 
 		.Process(this->Cluster_Scatter_Min)
 		.Process(this->Cluster_Scatter_Max)
-		.Process(this->BallisticScatter_Min)
-		.Process(this->BallisticScatter_Max)
 		.Process(this->Interceptable_DeleteOnIntercept)
 		.Process(this->Interceptable_WeaponOverride)
 

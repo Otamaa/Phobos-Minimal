@@ -35,8 +35,6 @@ public:
 	Nullable<Leptons> Cluster_Scatter_Max { };
 
 	// Ares 0.7
-	Nullable<Leptons> BallisticScatter_Min { };
-	Nullable<Leptons> BallisticScatter_Max { };
 	Valueable<bool> Interceptable_DeleteOnIntercept { false };
 	Nullable<WeaponTypeClass*> Interceptable_WeaponOverride { };
 

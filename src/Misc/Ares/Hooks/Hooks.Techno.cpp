@@ -1126,9 +1126,8 @@ DEFINE_HOOK(0x6FE709, TechnoClass_Fire_BallisticScatter1, 6)
 	auto pExt = BulletTypeExtContainer::Instance.Find(pProjectile);
 
 	// defaults for FlakScatter && !Inviso
-	int ndefault = RulesClass::Instance->BallisticScatter;
 	int min = pExt->BallisticScatterMin.Get(Leptons(0));
-	int max = pExt->BallisticScatterMax.Get(Leptons(ndefault));
+	int max = pExt->BallisticScatterMax.Get(Leptons(RulesClass::Instance->BallisticScatter));
 	int scatter = ScenarioClass::Instance->Random.RandomRanged(min, max);
 
 	R->EAX(scatter);
@@ -1141,9 +1140,8 @@ DEFINE_HOOK(0x6FE7FE, TechnoClass_Fire_BallisticScatter2, 5)
 	auto pExt = BulletTypeExtContainer::Instance.Find(pProjectile);
 
 	// defaults for !FlakScatter || Inviso
-	int ndefault = RulesClass::Instance->BallisticScatter;
-	int min = pExt->BallisticScatterMin.Get(Leptons(ndefault / 2));
-	int max = pExt->BallisticScatterMax.Get(Leptons(ndefault));
+	int min = pExt->BallisticScatterMin.Get(Leptons(RulesClass::Instance->BallisticScatter / 2));
+	int max = pExt->BallisticScatterMax.Get(Leptons(RulesClass::Instance->BallisticScatter));
 	int scatter = ScenarioClass::Instance->Random.RandomRanged(min, max);
 
 	R->EAX(scatter);

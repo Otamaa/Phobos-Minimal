@@ -7170,16 +7170,14 @@ std::vector<TechnoTypeClass*> AresHouseExt::GetTypeList() {
 		}
 
 		return false;
-		});
+	});
 
 	//idk these part
 	//but lets put it here
 	//need someone to test this to make sure if the calculation were correct :s
 	//-Otamaa
-	if (Iter != types.end())
-		types.erase(Iter, types.end());
 
-	std::sort(types.begin(), types.end());
+	types.erase(Iter, types.end());
 	types.erase(std::unique(types.begin(), types.end()), types.end());
 	return types;
 }

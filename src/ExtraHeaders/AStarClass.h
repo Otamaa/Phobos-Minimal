@@ -84,8 +84,9 @@ public:
 	AStarClass__Optimize_Final_Path        0042B7F0
 	AStarClass__Adjacent_Cell_Regular        0042BCA0
 	AStarClass__Plot_Straight_Line_Regular        0042BE20
-	AStarClass__Clear_Pointers        0042C1C0
-	AStarClass__AStar_Find_Path_Hierarchical        0042C290
+	*/
+	void AStarClass__Clear_Pointers()     JMP_THIS(0x42C1C0)
+	/*AStarClass__AStar_Find_Path_Hierarchical        0042C290
 	AStarClass__Find_Path        0042C900
 	AStarClass__Init_Cell_Index_Sets        0042CCD0
 	AStarClass__Is_Cell_Index_Set_Registered        0042CEB0

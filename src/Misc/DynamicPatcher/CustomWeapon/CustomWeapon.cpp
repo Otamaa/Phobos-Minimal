@@ -176,8 +176,7 @@ void  CustomWeaponManager::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 		return (queue.Target == ptr || queue.Shooter == ptr) && bRemoved;
 	});
 
-	if (iter_sibulateBursts != this->simulateBurstQueue.end())
-		this->simulateBurstQueue.erase(iter_sibulateBursts, this->simulateBurstQueue.end());
+	this->simulateBurstQueue.erase(iter_sibulateBursts, this->simulateBurstQueue.end());
 }
 
 void FireWeaponManager::Clear()
@@ -213,8 +212,7 @@ void FireWeaponManager::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 		return queue.Target == ptr && bRemoved;
 	});
 
-	if (iter_delayfires != this->DelayFires.end())
-		this->DelayFires.erase(iter_delayfires, this->DelayFires.end());
+	this->DelayFires.erase(iter_delayfires, this->DelayFires.end());
 
 	CWeaponManager.InvalidatePointer(ptr, bRemoved);
 }

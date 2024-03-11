@@ -262,14 +262,46 @@ bool AnimExtData::OnMiddle(AnimClass* pThis)
 		{
 			if (const auto pParticleType = ParticleTypeClass::Array->Items[pType->SpawnsParticle])
 			{
-				for (int i = 0; i < pType->NumParticles; ++i)
-				{
-					CoordStruct nDestCoord = CoordStruct::Empty;
-					if (pAnimTypeExt->ParticleChance.isset() ?
-						(ScenarioClass::Instance->Random.RandomFromMax(99) < abs(pAnimTypeExt->ParticleChance.Get())) : true)
+				CoordStruct InitialCoord = nCoord;
+				InitialCoord.Z -= MapClass::Instance->GetCellFloorHeight(nCoord);
+
+				if(!pAnimTypeExt->SpawnParticleModeUseAresCode) {
+					for (int i = 0; i < pType->NumParticles; ++i)
 					{
-						nDestCoord = Helper::Otamaa::GetRandomCoordsInsideLoops(pAnimTypeExt->ParticleRangeMin.Get(), pAnimTypeExt->ParticleRangeMax.Get(), nCoord, i);
-						ParticleSystemClass::Instance->SpawnParticle(pParticleType, &nDestCoord);
+						CoordStruct nDestCoord = CoordStruct::Empty;
+						if (pAnimTypeExt->ParticleChance.isset() ?
+							(ScenarioClass::Instance->Random.RandomFromMax(99) < abs(pAnimTypeExt->ParticleChance.Get())) : true)
+						{
+							nDestCoord = Helper::Otamaa::GetRandomCoordsInsideLoops(pAnimTypeExt->ParticleRangeMin.Get(), pAnimTypeExt->ParticleRangeMax.Get(), InitialCoord, i);
+							ParticleSystemClass::Instance->SpawnParticle(pParticleType, &nDestCoord);
+						}
+					}
+				}else
+				{
+					int numParticle = pType->NumParticles;
+					const auto nMin = pAnimTypeExt->ParticleRangeMin.Get();
+					const auto nMax = pAnimTypeExt->ParticleRangeMax.Get();
+
+					if(nMin || nMax) {
+						double rad = 6.283185307179586 / numParticle;
+						double start_distance = 0.0;
+
+						if(numParticle > 0) {
+							do {
+								int rand = std::abs(ScenarioClass::Instance->Random.RandomRanged((int)nMin, (int)nMax));
+								double randDouble = ScenarioClass::Instance->Random.RandomDouble() * rad + start_distance;
+								CoordStruct dest {
+									InitialCoord.X + int(rand * Math::cos(randDouble)),
+									InitialCoord.Y - int(Math::sin(randDouble) * rand),
+									nCoord.Z
+								};
+
+								dest.Z = InitialCoord.Z + MapClass::Instance->GetCellFloorHeight(dest);
+								ParticleSystemClass::Instance->SpawnParticle(pParticleType, &dest);
+								start_distance += rad;
+								--numParticle;
+							} while(numParticle);
+						}
 					}
 				}
 			}

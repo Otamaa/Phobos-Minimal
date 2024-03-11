@@ -1253,6 +1253,45 @@ DEFINE_HOOK(0x4D4B43, FootClass_Mission_Capture_ForbidUnintended, 0x6)
 	return 0;
 }
 
+
+void SetSkirmishHouseName(HouseClass* pHouse , bool IsHuman)
+{
+	int spawn_position = pHouse->GetSpawnPosition();
+
+	// Default behaviour if something went wrong
+	if (spawn_position < 0 || spawn_position > 7)
+	{
+		if (IsHuman || pHouse->IsHumanPlayer) {
+			strncpy_s(pHouse->PlainName, GameStrings::human_player(), 14u);
+		} else {
+			strncpy_s(pHouse->PlainName, GameStrings::Computer_(), 8u);
+		}
+	}
+	else
+	{
+		strncpy_s(pHouse->PlainName, GameStrings::PlayerAt[7u - spawn_position] , 12u);
+	}
+
+	Debug::Log("%s, %ls, position %d\n", pHouse->PlainName, pHouse->UIName, spawn_position);
+}
+
+DEFINE_HOOK(0x68804A, AssignHouses_PlayerHouses, 0x5)
+{
+	GET(HouseClass*, pPlayerHouse, EBP);
+
+	SetSkirmishHouseName(pPlayerHouse , true);
+
+	return 0x68808E;
+}
+
+DEFINE_HOOK(0x688210, AssignHouses_ComputerHouses, 0x5)
+{
+	GET(HouseClass*, pAiHouse, EBP);
+
+	SetSkirmishHouseName(pAiHouse , false);
+
+	return 0x688252;
+}
 #ifdef aaaaa___
 #pragma region BlitterFix_
 #include <Helpers/Macro.h>

@@ -184,8 +184,7 @@ void CloneableLighningStormStateMachine::Update()
 		return !pAnim || pAnim->Animation.Value >= pAnim->Type->GetImage()->Frames / 2;
 	});
 
-	if(iter_bolt_present != this->BoltsPresent.end())
-		this->BoltsPresent.erase(iter_bolt_present ,this->BoltsPresent.end());
+	this->BoltsPresent.erase(iter_bolt_present , this->BoltsPresent.end());
 
 	// find the clouds that should strike right now
 	auto iter_cloud_manifest = std::remove_if(this->CloudsManifest.begin() , this->CloudsManifest.end(), [&](AnimClass* pAnim){
@@ -200,8 +199,7 @@ void CloneableLighningStormStateMachine::Update()
 		return false;
 	});
 
-	if(iter_cloud_manifest != this->CloudsManifest.end())
-		this->CloudsManifest.erase(iter_cloud_manifest ,this->CloudsManifest.end());
+	this->CloudsManifest.erase(iter_cloud_manifest , this->CloudsManifest.end());
 
 	// all currently present clouds have to disappear first
 	if (CloudsPresent.empty())
@@ -223,8 +221,7 @@ void CloneableLighningStormStateMachine::Update()
 			return !pAnim || pAnim->Animation.Value >= pAnim->Type->GetImage()->Frames - 1;
 		});
 
-		if(iter_cloud_present != this->CloudsPresent.end())
-			this->CloudsPresent.erase(iter_cloud_present ,this->CloudsPresent.end());
+		this->CloudsPresent.erase(iter_cloud_present, this->CloudsPresent.end());
 
 	}
 
@@ -455,7 +452,7 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 
 			WarheadTypeExtData::DetonateAt(pWarhead, MapClass::Instance->GetCellAt(coords), coords, Invoker, damage ,Super->Owner);
 
-			if(auto pBoltExt = pData->Weather_BoltExplosion.Get(RulesClass::Instance->WeatherConBoltExplosion)){ 
+			if(auto pBoltExt = pData->Weather_BoltExplosion.Get(RulesClass::Instance->WeatherConBoltExplosion)){
 				auto pAnim = GameCreate<AnimClass>(pBoltExt, coords);
 				pAnim->SetHouse(Super->Owner);
 			}

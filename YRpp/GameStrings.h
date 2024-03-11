@@ -515,6 +515,9 @@ struct GameStrings
 	//12 char long
 	GAMEMD_STR(PlayerAt_H, 0x825000);
 
+	// it suppose to be only 13 , but there is 3 bytes padding each
+	// so
+	static constexpr reference<char[16],0x825000 ,8u> const PlayerAt {};
 	static bool IsBlank(const char* pValue);
 };
 

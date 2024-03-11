@@ -109,7 +109,7 @@ namespace Helper
 					MaxImpl(Increment, 1)),
 					ScenarioClass::Instance->Random.RandomBool());
 
-				nRandomCoords.Z = MapClass::Instance->GetCellFloorHeight(nRandomCoords);;
+				nRandomCoords.Z = nPos.Z + MapClass::Instance->GetCellFloorHeight(nRandomCoords);
 				return nRandomCoords;
 			}
 

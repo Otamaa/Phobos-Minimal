@@ -73,6 +73,7 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->ParticleRangeMin.Read(exINI, pID, "SpawnsParticle.RangeMinimum");
 	this->ParticleRangeMax.Read(exINI, pID, "SpawnsParticle.RangeMaximum");
 	this->ParticleChance.Read(exINI, pID, "SpawnsParticle.Chance");
+	this->SpawnParticleModeUseAresCode.Read(exINI, pID, "SpawnsParticle.UseAresCode");
 
 	this->SplashList.Read(exINI, pID, "SplashAnims");
 	this->SplashIndexRandom.Read(exINI, pID, "SplashAnims.PickRandom");
@@ -437,7 +438,7 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->ParticleRangeMin)
 		.Process(this->ParticleRangeMax)
 		.Process(this->ParticleChance)
-
+		.Process(this->SpawnParticleModeUseAresCode)
 		.Process(this->Launchs)
 
 		.Process(this->CraterDecreaseTiberiumAmount)

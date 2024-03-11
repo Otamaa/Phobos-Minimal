@@ -135,7 +135,7 @@ DEFINE_HOOK(0x71997B, TeleportLocomotionClass_ILocomotion_Process_ChronoDelay, 0
 //	return { pre,post };
 //}
 
-#ifdef FUCKTHESE
+#ifndef FUCKTHESE
 // Author : chaserli
 Matrix3D* __stdcall LocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* ret, VoxelIndexKey* pIndex)
 {
@@ -146,9 +146,8 @@ Matrix3D* __stdcall LocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* re
 		*(int*)(pIndex) = slope_idx + (*(int*)(pIndex) << 6);
 
 	if (slope_idx && pIndex && pIndex->Is_Valid_Key()){
-		Matrix3D ret_ {};
-		loco->LocomotionClass::Draw_Matrix(&ret_ ,pIndex);
-		*ret = Game::VoxelRampMatrix[slope_idx] * ret_;
+		loco->LocomotionClass::Draw_Matrix(ret,pIndex);
+		*ret = Game::VoxelRampMatrix[slope_idx] * (*ret);
 	} else {
 		loco->LocomotionClass::Draw_Matrix(ret ,pIndex);
 	}

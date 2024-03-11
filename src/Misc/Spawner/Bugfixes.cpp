@@ -53,10 +53,10 @@ LONG __fastcall TopLevelExceptionFilter(int exception_id, _EXCEPTION_POINTERS* E
 		*eip = 0x535DCE;
 		ExceptionInfo->ContextRecord->Esp += 12;
 		return EXCEPTION_CONTINUE_EXECUTION;
-	case 0x42C53E:
+	//case 0x42C53E:
 		//AstarClass , broken ptr
-		*eip = 0x42C8E2; // just fucking bail , really
-		return EXCEPTION_CONTINUE_EXECUTION;
+	//	*eip = 0x42C8E2; // just fucking bail , really
+	//	return EXCEPTION_CONTINUE_EXECUTION;
 	case 0x000000:
 		if (ExceptionInfo->ContextRecord->Esp && *(DWORD*)ExceptionInfo->ContextRecord->Esp == 0x55E018)
 		{

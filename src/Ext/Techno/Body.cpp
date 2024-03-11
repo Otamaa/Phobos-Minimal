@@ -3954,12 +3954,11 @@ void TechnoExtData::UpdateMobileRefinery()
 
 void TechnoExtData::UpdateRevengeWeapons()
 {
-	auto iter = std::find_if(this->RevengeWeapons.begin(), this->RevengeWeapons.end() , [](TimedWarheadValue<WeaponTypeClass*>& item){
+	auto iter = std::remove_if(this->RevengeWeapons.begin(), this->RevengeWeapons.end() , [](TimedWarheadValue<WeaponTypeClass*>& item){
 		return item.Timer.Expired();
 	});
 
-	if(iter != this->RevengeWeapons.end())
-		this->RevengeWeapons.erase(iter);
+	this->RevengeWeapons.erase(iter , this->RevengeWeapons.end());
 }
 
 void TechnoExtData::UpdateAircraftOpentopped()

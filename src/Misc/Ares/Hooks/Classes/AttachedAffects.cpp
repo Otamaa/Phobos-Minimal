@@ -248,12 +248,11 @@ bool AresAE::Attach(AresAttachEffectTypeClass* pType, TechnoClass* pTargetTechno
 
 		if (it != pData->Data.end())
 		{
-			auto& Item = *it;
 
-			Item.Duration = Item.Type->Duration;
+			it->Duration =it->Type->Duration;
 
 			if (pType->AnimType && pType->AnimResetOnReapply) {
-				Item.CreateAnim(pTargetTechno);
+				it->CreateAnim(pTargetTechno);
 			}
 
 			if (pType->ForceDecloak)

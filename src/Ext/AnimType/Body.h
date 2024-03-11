@@ -64,6 +64,7 @@ public:
 	Valueable<double> ParticleRangeMin { 0.0 };
 	Valueable<double> ParticleRangeMax { 0.0 };
 	Nullable<int> ParticleChance {};
+	Valueable<bool> SpawnParticleModeUseAresCode { true };
 
 	std::vector<LauchSWData> Launchs {};
 

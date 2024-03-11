@@ -3594,29 +3594,10 @@ int GetPlayerPosByName(const char* pName)
 	if (pName[0] != '<' || strlen(pName) != 12)
 		return -1;
 
-	if (IS_SAME_STR_(GameStrings::PlayerAt_A(), pName))
-		return 0;
-
-	if (IS_SAME_STR_(GameStrings::PlayerAt_B(), pName))
-		return 1;
-
-	if (IS_SAME_STR_(GameStrings::PlayerAt_C(), pName))
-		return 2;
-
-	if (IS_SAME_STR_(GameStrings::PlayerAt_D(), pName))
-		return 3;
-
-	if (IS_SAME_STR_(GameStrings::PlayerAt_E(), pName))
-		return 4;
-
-	if (IS_SAME_STR_(GameStrings::PlayerAt_F(), pName))
-		return 5;
-
-	if (IS_SAME_STR_(GameStrings::PlayerAt_G(), pName))
-		return 6;
-
-	if (IS_SAME_STR_(GameStrings::PlayerAt_H(), pName))
-		return 7;
+	for(size_t i = 0; i < GameStrings::PlayerAt.size(); ++i){
+		if(IS_SAME_STR_(GameStrings::PlayerAt[7u - i], pName))
+			return i;
+	}
 
 	return -1;
 }
@@ -3629,12 +3610,15 @@ DEFINE_HOOK(0x44F8A6, TechnoClass_FromINI_CreateForHouse, 0x7)
 	GET(const char*, pHouseName, EAX);
 
 	const int startingPoints = GetPlayerPosByName(pHouseName);
+
 	const int idx = startingPoints != -1
 		?
 		//Hopefully the HouseIndices is fine
 		ScenarioClass::Instance->HouseIndices[startingPoints] :
 		HouseClass::FindIndexByName(pHouseName)
 		;
+
+	Debug::Log("%s , at Position [%d]\n", pHouseName, idx);
 
 	if (idx == -1) {
 		Debug::Log("Failed To fetch house index by name of [%s]\n", pHouseName);
@@ -3753,7 +3737,7 @@ DEFINE_HOOK(0x6FFD25, TechnoClass_PlayerAssignMission_Capture_InfantryToBld, 0xA
 
 static_assert(offsetof(TechnoClass, Airstrike) == 0x294, "ClassMember Shifted !");
 
-#ifdef CHECK_PTR_VALID
+#ifndef CHECK_PTR_VALID
 DEFINE_STRONG_HOOK_AGAIN(0x4F9A10, HouseClass_IsAlliedWith, 0x6)
 DEFINE_STRONG_HOOK_AGAIN(0x4F9A50, HouseClass_IsAlliedWith, 0x6)
 DEFINE_STRONG_HOOK_AGAIN(0x4F9AF0, HouseClass_IsAlliedWith, 0x7)
