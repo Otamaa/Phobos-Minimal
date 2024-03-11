@@ -60,7 +60,7 @@ void Display(T& buffer)
 	memset(Phobos::wideBuffer, 0, sizeof Phobos::wideBuffer);
 	mbstowcs(Phobos::wideBuffer, buffer, strlen(buffer));
 	if (!WhiteColorSearched) {
-		const auto WhiteIndex = ColorScheme::FindIndexById("White");
+		const auto WhiteIndex = ColorScheme::FindIndex("White",53);
 
 		if (WhiteIndex != -1) {
 			ColorIdx = WhiteIndex;
