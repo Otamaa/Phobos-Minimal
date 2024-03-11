@@ -1011,7 +1011,7 @@ void WarheadTypeExtData::DetonateAt(
 	}
 
 	if (!pOwner) {
-		Debug::Log("WarheadTypeExtData::DetonateAt[%s] delivering damage from unknown source [%x] !", pThis->get_ID(), pOwner);
+		Debug::Log("WarheadTypeExtData::DetonateAt[%s] delivering damage from unknown source [%x] !\n", pThis->get_ID(), pOwner);
 	}
 
 	if (BulletClass* pBullet = BulletTypeExtContainer::Instance.Find(pType)->CreateBullet(pTarget, pOwner,

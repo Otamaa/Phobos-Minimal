@@ -4258,3 +4258,39 @@ DEFINE_HOOK(0x5657A0, MapClass_OpBracket_CellStructPtr, 0x5)
 //
 //	return 0x0;
 //}
+
+static FootClass* LastAccessThisFunc;
+
+DEFINE_HOOK(0x42C2BF, AstarClass_FindPath_SaveArgs, 0x6)
+{
+	GET(FootClass*, pFoot, ESI);
+	LastAccessThisFunc = pFoot;
+	return 0x0;
+}
+
+//static constexpr constant_ptr<DynamicVectorClass<SubzoneTrackingStruct>, 0x87F874> const SubzoneTrackingStructVector {};
+//#include <ExtraHeaders/AStarClass.h>
+//
+//#pragma optimize("", off )
+DEFINE_HOOK(0x42C511, AstarClass_FindPath_nullptr, 0x8)
+{
+	GET(int, SubZone_Count, ECX);
+	GET(SubzoneConnectionStruct*, SubZobneConnectionPtr, EDX);
+
+	R->EDX(SubZobneConnectionPtr);
+	R->ECX(SubZone_Count);
+
+	//this keep the thing clean
+	// not sure if `SubZobneConnectionPtr` will contain broken pointer at some point tho ,....
+	if (SubZone_Count > 0 && SubZobneConnectionPtr)
+	{
+		//if(!SubZobneConnectionPtr)
+			//Debug::FatalErrorAndExit("AStarClass will crash because SubZone is nullptr , last access is from [%s(0x%x) - Owner : (%s) \n", LastAccessThisFunc->get_ID(), LastAccessThisFunc, LastAccessThisFunc->Owner->get_ID());
+
+		return 0x42C519;
+	}
+
+	return 0x42C740;
+
+}
+//#pragma optimize("", on )

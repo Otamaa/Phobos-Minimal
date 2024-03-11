@@ -53,7 +53,10 @@ LONG __fastcall TopLevelExceptionFilter(int exception_id, _EXCEPTION_POINTERS* E
 		*eip = 0x535DCE;
 		ExceptionInfo->ContextRecord->Esp += 12;
 		return EXCEPTION_CONTINUE_EXECUTION;
-
+	case 0x42C53E:
+		//AstarClass , broken ptr
+		*eip = 0x42C8E2; // just fucking bail , really
+		return EXCEPTION_CONTINUE_EXECUTION;
 	case 0x000000:
 		if (ExceptionInfo->ContextRecord->Esp && *(DWORD*)ExceptionInfo->ContextRecord->Esp == 0x55E018)
 		{
@@ -66,7 +69,6 @@ LONG __fastcall TopLevelExceptionFilter(int exception_id, _EXCEPTION_POINTERS* E
 	default:
 		return PrintException(exception_id, ExceptionInfo);
 	}
-	return 0;
 }
 
 
@@ -167,3 +169,12 @@ DEFINE_JUMP(LJMP, 0x4C2BD0, GET_OFFSET(EBolt_SetOwnerAndWeapon_FixCrash)); // Fo
 DEFINE_PATCH_TYPED(DWORD, 0x4AD344, 0x300); // 0x190
 DEFINE_PATCH_TYPED(DWORD, 0x4AD349, 0x400); // 0x280
 DEFINE_PATCH_TYPED(DWORD, 0x4AD357, (0x300 * 0x400 * 2));
+
+DEFINE_HOOK(0x454174, BuildingClass_Load_SwizzleLighsource, 0xA)
+{
+	GET(BuildingClass*, pThis, EDI);
+
+	SwizzleManagerClass::Instance->Swizzle((void**)&pThis->LightSource);
+
+	return 0x45417E;
+}

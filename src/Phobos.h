@@ -200,4 +200,59 @@ struct Phobos final
 		static inline constexpr ColorStruct ShieldNegativeDamageColor = ColorStruct { 0, 255, 230 };
 
 	};
+
+	static FORCEINLINE unsigned Round_Up(unsigned number, int a)
+	{
+		return (number + (a - 1)) & (~(a - 1));
+	}
+
+	static void* __cdecl _allocate(unsigned int size)
+	{
+		return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, Round_Up(size, 4));
+	}
+
+	static unsigned int __cdecl _msize(void* ptr)
+	{
+		return HeapSize(GetProcessHeap(), 0, ptr);
+	}
+
+	static char* __cdecl _strdup(const char* string)
+	{
+		char* str;
+		char* p;
+		int len = 0;
+
+		while (string[len])
+		{
+			len++;
+		}
+		str = (char*)_allocate(len + 1);
+		p = str;
+		while (*string)
+		{
+			*p++ = *string++;
+		}
+		*p = '\0';
+		return str;
+	}
+
+	static void* __cdecl _count_allocate(unsigned int count, unsigned int size)
+	{
+		return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, Round_Up(size, 4) * count);
+	}
+
+	static void* __cdecl _reallocate(void* ptr, unsigned int size)
+	{
+		return HeapReAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, ptr, Round_Up(size, 4));
+	}
+
+	static void __cdecl _free(void* ptr)
+	{
+		HeapFree(GetProcessHeap(), HEAP_ZERO_MEMORY, ptr);
+	}
+
+	static void __cdecl _dump_memory_leaks()
+	{
+		_CrtDumpMemoryLeaks();
+	}
 };

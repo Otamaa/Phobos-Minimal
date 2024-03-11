@@ -3954,10 +3954,12 @@ void TechnoExtData::UpdateMobileRefinery()
 
 void TechnoExtData::UpdateRevengeWeapons()
 {
-	for (size_t i = 0; i < this->RevengeWeapons.size(); i++) {
-		if (this->RevengeWeapons[i].Timer.Expired())
-			this->RevengeWeapons.erase(this->RevengeWeapons.begin() + i);
-	}
+	auto iter = std::find_if(this->RevengeWeapons.begin(), this->RevengeWeapons.end() , [](TimedWarheadValue<WeaponTypeClass*>& item){
+		return item.Timer.Expired();
+	});
+
+	if(iter != this->RevengeWeapons.end())
+		this->RevengeWeapons.erase(iter);
 }
 
 void TechnoExtData::UpdateAircraftOpentopped()

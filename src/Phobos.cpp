@@ -843,76 +843,90 @@ HRESULT __stdcall OleLoadFromStream_(LPSTREAM pStm, REFIID iidInterface, LPVOID*
 //}
 #pragma endregion
 
-void NOINLINE encrypt_func(std::string& data, std::string key)
+//void NOINLINE encrypt_func(std::string& data, std::string key)
+//{
+//	for (size_t i = 0; i < data.size(); i++)
+//		data[i] ^= key[i % key.size()];
+//}
+//
+//std::string Key_ =
+//{
+//	{"72951454391147260483756494947213627281"}
+//};
+//
+//void NOINLINE decrypt_func(char* data, DWORD size, std::string& key)
+//{
+//	for (unsigned i = 0; i < size; i++)
+//		data[i] ^= key[i % key.size()];
+//}
+//
+//static bool IsDone = false;
+//std::unordered_map<HANDLE, std::string> Data;
+//
+//HANDLE __stdcall CreatefileA_(LPCSTR a1,
+//	DWORD dwDesiredAccess,
+//	DWORD dwShareMode,
+//	LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+//	DWORD dwCreationDisposition,
+//	DWORD dwFlagsAndAttributes,
+//	HANDLE hTemplateFile)
+//{
+//	auto result = CreateFileA(
+//			a1,
+//			dwDesiredAccess,
+//			dwShareMode,
+//			lpSecurityAttributes,
+//			dwCreationDisposition,
+//			dwFlagsAndAttributes,
+//			hTemplateFile);
+//
+//	if (result != INVALID_HANDLE_VALUE)
+//	{
+//		if (!Data.contains(result))
+//		{
+//			if (strstr(a1, ".MIX")) //recursive ? , mapping handle is not good idea ?
+//			{
+//				Data[result] = a1;
+//			}
+//		}
+//	}
+//
+//	return result;
+//}
+//
+//BOOL __stdcall CloseHandle_(HANDLE hObject)
+//{
+//	if (Data.contains(hObject))
+//		Data.erase(hObject);
+//
+//	return CloseHandle(hObject);
+//}
+//
+//BOOL __stdcall ReadFIle_(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped)
+//{
+//	const auto nRes = SetFilePointer(hFile,0u, nullptr ,1u);
+//	auto result = ReadFile(hFile, lpBuffer, nNumberOfBytesToRead, lpNumberOfBytesRead, lpOverlapped);
+//
+//	if (Data.contains(hFile) && nRes >= 4) {
+//		//decrypt_func(((char*)lpBuffer), nNumberOfBytesToRead, Key_);
+//		Debug::Log("%s Mapped !!\n" , Data[hFile].c_str());
+//	}
+//
+//	return result;
+//}
+
+DEFINE_HOOK(0x6BBFCE, WinMain_SetFPU_SyncDLL , 0x5)
 {
-	for (size_t i = 0; i < data.size(); i++)
-		data[i] ^= key[i % key.size()];
-}
+	/**
+	*  Set the FPU mode to match the game (rounding towards zero [chop mode]).
+	*/
+	_set_controlfp(_RC_CHOP, _MCW_RC);
 
-std::string Key_ =
-{
-	{"72951454391147260483756494947213627281"}
-};
-
-void NOINLINE decrypt_func(char* data, DWORD size, std::string& key)
-{
-	for (unsigned i = 0; i < size; i++)
-		data[i] ^= key[i % key.size()];
-}
-
-static bool IsDone = false;
-std::unordered_map<HANDLE, std::string> Data;
-
-HANDLE __stdcall CreatefileA_(LPCSTR a1,
-	DWORD dwDesiredAccess,
-	DWORD dwShareMode,
-	LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-	DWORD dwCreationDisposition,
-	DWORD dwFlagsAndAttributes,
-	HANDLE hTemplateFile)
-{
-	auto result = CreateFileA(
-			a1,
-			dwDesiredAccess,
-			dwShareMode,
-			lpSecurityAttributes,
-			dwCreationDisposition,
-			dwFlagsAndAttributes,
-			hTemplateFile);
-
-	if (result != INVALID_HANDLE_VALUE)
-	{
-		if (!Data.contains(result))
-		{
-			if (strstr(a1, ".MIX")) //recursive ? , mapping handle is not good idea ?
-			{
-				Data[result] = a1;
-			}
-		}
-	}
-
-	return result;
-}
-
-BOOL __stdcall CloseHandle_(HANDLE hObject)
-{
-	if (Data.contains(hObject))
-		Data.erase(hObject);
-
-	return CloseHandle(hObject);
-}
-
-BOOL __stdcall ReadFIle_(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped)
-{
-	const auto nRes = SetFilePointer(hFile,0u, nullptr ,1u);
-	auto result = ReadFile(hFile, lpBuffer, nNumberOfBytesToRead, lpNumberOfBytesRead, lpOverlapped);
-
-	if (Data.contains(hFile) && nRes >= 4) {
-		//decrypt_func(((char*)lpBuffer), nNumberOfBytesToRead, Key_);
-		Debug::Log("%s Mapped !!\n" , Data[hFile].c_str());
-	}
-
-	return result;
+	/**
+	 *  And this is required for the std c++ lib.
+	 */
+	fesetround(FE_TOWARDZERO);
+	return 0x0;
 }
 
 BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
@@ -921,8 +935,22 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 	{
 	case DLL_PROCESS_ATTACH:
 	{
+		_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+		_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
+		_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
+		std::atexit(Phobos::_dump_memory_leaks);
+
 		Phobos::hInstance = hInstance;
 		Debug::LogFileRemove();
+		Patch::Apply_LJMP(0x7D107D, &Phobos::_msize);
+		Patch::Apply_LJMP(0x7D5408, &Phobos::_strdup);
+		Patch::Apply_LJMP(0x7C8E17, &Phobos::_allocate);
+		Patch::Apply_LJMP(0x7C9430, &Phobos::_allocate);
+		Patch::Apply_LJMP(0x7D3374, &Phobos::_count_allocate);
+		Patch::Apply_LJMP(0x7D0F45, &Phobos::_reallocate);
+		Patch::Apply_LJMP(0x7C8B3D, &Phobos::_free);
+		Patch::Apply_LJMP(0x7C93E8, &Phobos::_free);
+		Patch::Apply_LJMP(0x7C9CC2, &std::strtok);
 	}
 	break;
 	case DLL_PROCESS_DETACH:
@@ -933,95 +961,95 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 }
 
 // =============================
-#pragma region SyringeHandshake
-SYRINGE_HANDSHAKE(pInfo)
-{
-	//const DWORD YR_SIZE_1000 = 0x496110;
-	const DWORD YR_SIZE_1001 = 0x497110;
-	const DWORD YR_SIZE_1001_UC = 0x497FE0;
-	const DWORD YR_SIZE_NPATCH = 0x5AB000;
-
-	const DWORD YR_TIME_1000 = 0x3B846665;
-	const DWORD YR_TIME_1001 = 0x3BDF544E;
-
-	//const DWORD YR_CRC_1000 = 0xB701D792;
-	const DWORD YR_CRC_1001_CD = 0x098465B3;
-	const DWORD YR_CRC_1001_TFD = 0xEB903080;
-	const DWORD YR_CRC_1001_UC = 0x1B499086;
-
-	if (pInfo)
-	{
-		constexpr const char* AcceptMsg = "Found Yuri's Revenge %s. Applying Phobos " FILE_VERSION_STR ".";
-		constexpr const char* PatchDetectedMessage = "Found %s. Phobos " FILE_VERSION_STR" is not compatible with Exe patched Gamemd.";
-
-		const char* desc = nullptr;
-		const char* msg = nullptr;
-		bool allowed = false;
-
-		// accept tfd and cd version 1.001
-		if (pInfo->exeTimestamp == YR_TIME_1001)
-		{
-			// don't accept expanded exes
-			switch (pInfo->exeFilesize)
-			{
-			case YR_SIZE_1001:
-			case YR_SIZE_1001_UC:
-
-				// all versions allowed
-				switch (pInfo->exeCRC)
-				{
-				case YR_CRC_1001_CD:
-					desc = "1.001 (CD)";
-					break;
-				case YR_CRC_1001_TFD:
-					desc = "1.001 (TFD)";
-					break;
-				case YR_CRC_1001_UC:
-					desc = "1.001 (UC)";
-					break;
-				default:
-					// no-cd, network port or other changes
-					desc = "1.001 (modified)";
-				}
-				msg = AcceptMsg;
-				allowed = true;
-				break;
-
-			case YR_SIZE_NPATCH:
-				// known patch size
-				desc = "RockPatch or an NPatch-derived patch";
-				msg = PatchDetectedMessage;
-				break;
-			default:
-				// expanded exe, unknown make
-				desc = "an unknown game patch";
-				msg = PatchDetectedMessage;
-			}
-		}
-		else if (pInfo->exeTimestamp == YR_TIME_1000)
-		{
-			// upgrade advice for version 1.000
-			desc = "1.000";
-			msg = "Found Yuri's Revenge 1.000 but Phobos " FILE_VERSION_STR " requires version 1.001. Please update your copy of Yuri's Revenge first.";
-		}
-		else
-		{
-			// does not even compute...
-			msg = "Unknown executable. Phobos " FILE_VERSION_STR " requires Command & Conquer Yuri's Revenge version 1.001 (gamemd.exe).";
-		}
-
-		// generate the output message
-		if (pInfo->Message)
-		{
-			sprintf_s(pInfo->Message, pInfo->cchMessage, msg, desc);
-		}
-
-		return allowed ? S_OK : S_FALSE;
-	}
-
-	return E_POINTER;
-}
-#pragma endregion
+//#pragma region SyringeHandshake
+//SYRINGE_HANDSHAKE(pInfo)
+//{
+//	const DWORD YR_SIZE_1000 = 0x496110;
+//	const DWORD YR_SIZE_1001 = 0x497110;
+//	const DWORD YR_SIZE_1001_UC = 0x497FE0;
+//	const DWORD YR_SIZE_NPATCH = 0x5AB000;
+//
+//	const DWORD YR_TIME_1000 = 0x3B846665;
+//	const DWORD YR_TIME_1001 = 0x3BDF544E;
+//
+//	const DWORD YR_CRC_1000 = 0xB701D792;
+//	const DWORD YR_CRC_1001_CD = 0x098465B3;
+//	const DWORD YR_CRC_1001_TFD = 0xEB903080;
+//	const DWORD YR_CRC_1001_UC = 0x1B499086;
+//
+//	if (pInfo)
+//	{
+//		constexpr const char* AcceptMsg = "Found Yuri's Revenge %s. Applying Phobos " FILE_VERSION_STR ".";
+//		constexpr const char* PatchDetectedMessage = "Found %s. Phobos " FILE_VERSION_STR" is not compatible with Exe patched Gamemd.";
+//
+//		const char* desc = nullptr;
+//		const char* msg = nullptr;
+//		bool allowed = false;
+//
+//		 accept tfd and cd version 1.001
+//		if (pInfo->exeTimestamp == YR_TIME_1001)
+//		{
+//			 don't accept expanded exes
+//			switch (pInfo->exeFilesize)
+//			{
+//			case YR_SIZE_1001:
+//			case YR_SIZE_1001_UC:
+//
+//				 all versions allowed
+//				switch (pInfo->exeCRC)
+//				{
+//				case YR_CRC_1001_CD:
+//					desc = "1.001 (CD)";
+//					break;
+//				case YR_CRC_1001_TFD:
+//					desc = "1.001 (TFD)";
+//					break;
+//				case YR_CRC_1001_UC:
+//					desc = "1.001 (UC)";
+//					break;
+//				default:
+//					 no-cd, network port or other changes
+//					desc = "1.001 (modified)";
+//				}
+//				msg = AcceptMsg;
+//				allowed = true;
+//				break;
+//
+//			case YR_SIZE_NPATCH:
+//				 known patch size
+//				desc = "RockPatch or an NPatch-derived patch";
+//				msg = PatchDetectedMessage;
+//				break;
+//			default:
+//				 expanded exe, unknown make
+//				desc = "an unknown game patch";
+//				msg = PatchDetectedMessage;
+//			}
+//		}
+//		else if (pInfo->exeTimestamp == YR_TIME_1000)
+//		{
+//			 upgrade advice for version 1.000
+//			desc = "1.000";
+//			msg = "Found Yuri's Revenge 1.000 but Phobos " FILE_VERSION_STR " requires version 1.001. Please update your copy of Yuri's Revenge first.";
+//		}
+//		else
+//		{
+//			 does not even compute...
+//			msg = "Unknown executable. Phobos " FILE_VERSION_STR " requires Command & Conquer Yuri's Revenge version 1.001 (gamemd.exe).";
+//		}
+//
+//		 generate the output message
+//		if (pInfo->Message)
+//		{
+//			sprintf_s(pInfo->Message, pInfo->cchMessage, msg, desc);
+//		}
+//
+//		return allowed ? S_OK : S_FALSE;
+//	}
+//
+//	return E_POINTER;
+//}
+//#pragma endregion
 
 #pragma region hooks
 
@@ -1060,16 +1088,6 @@ DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 #ifdef ENABLE_ENCRYPTION_HOOKS
 	Imports::OleLoadFromStream = OleLoadFromStream_;
 #endif
-
-	/**
-	*  Set the FPU mode to match the game (rounding towards zero [chop mode]).
-	*/
-	//_set_controlfp(_RC_CHOP, _MCW_RC);
-
-	/**
-	 *  And this is required for the std c++ lib.
-	 */
-	//fesetround(FE_TOWARDZERO);
 
 	Phobos::ExeRun();
 	SpawnerMain::ExeRun(HasCNCnet);

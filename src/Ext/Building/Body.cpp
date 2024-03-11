@@ -863,8 +863,7 @@ bool BuildingExtContainer::Save(BuildingClass* key, IStream* pStm)
 		// write the current pointer, the size of the block, and the canary
 		// it suppose negative 4 for the AttachedToObjectPointer , it doesnot get S/L
 		// but we added the OwnerObject item to save game file:
-		// - LightSource
-		PhobosByteStream saver { sizeof(BuildingExtData) };
+		PhobosByteStream saver { sizeof(BuildingExtData) - 4 };
 		PhobosStreamWriter writer { saver };
 
 		writer.Save(BuildingExtData::Canary);
@@ -928,7 +927,6 @@ void BuildingExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
-		.Process(this->AttachedToObject->LightSource)
 		.Process(this->Type)
 		.Process(this->TechnoExt)
 		.Process(this->PrismForwarding)
