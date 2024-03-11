@@ -120,6 +120,13 @@ public:
 		return OwnerHouseKind::Invoker;
 	}
 
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(AnimTypeExtData) -
+			(4u //AttachedToObject
+			 );
+	}
+
 	static void ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller = nullptr , WarheadTypeClass* pWH = nullptr);
 	static void CreateUnit_MarkCell(AnimClass* pThis);
 	static void CreateUnit_Spawn(AnimClass* pThis);

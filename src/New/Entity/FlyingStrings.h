@@ -42,4 +42,6 @@ public:
 	static void AddNumberString(int amount, HouseClass* owner, AffectedHouse const&  displayToHouses, ColorStruct const& color,
 		CoordStruct const& coords, Point2D pixelOffset = Point2D::Empty, bool sign = true, const wchar_t* prefix = Phobos::UI::CostLabel);
 	static void UpdateAll();
+
+	static void DisplayDamageNumberString(int damage, DamageDisplayType type, const CoordStruct coords, int& offset);
 };

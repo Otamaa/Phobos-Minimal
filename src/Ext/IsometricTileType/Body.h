@@ -19,7 +19,7 @@ public:
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
 
-public : 
+public :
 	Valueable<int> Tileset { -1 };
 	Valueable<PaletteManager*> Palette {};
 
@@ -30,6 +30,12 @@ public :
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(IsometricTileTypeExtData) -
+			(4u //AttachedToObject
+			 );
+	}
 	static LightConvertClass* GetLightConvert(IsometricTileTypeClass* pOvrl , int r, int g, int b);
 
 private:

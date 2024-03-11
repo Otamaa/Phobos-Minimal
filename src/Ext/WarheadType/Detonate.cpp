@@ -465,7 +465,7 @@ void WarheadTypeExtData::InterceptBullets(TechnoClass* pOwner, WeaponTypeClass* 
 		if (auto const pBullet = specific_cast<BulletClass*>(pOwner->Target))
 		{
 			// 1/8th of a cell as a margin of error.
-			if (BulletTypeExtContainer::Instance.Find(pBullet->Type)->Interceptable && pBullet->Location.DistanceFrom(coords) <= Unsorted::LeptonsPerCell / 8.0)
+			if (BulletTypeExtContainer::Instance.Find(pBullet->Type)->Interceptable && (pWeapon->Projectile->Inviso || pBullet->Location.DistanceFrom(coords) <= Unsorted::LeptonsPerCell / 8.0))
 				BulletExtData::InterceptBullet(pBullet, pOwner, pWeapon);
 		}
 	}

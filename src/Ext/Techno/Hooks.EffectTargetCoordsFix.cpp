@@ -374,10 +374,10 @@ DEFINE_HOOK(0x6FF656, TechnoClass_FireAt_Additionals, 0xA)
 			BulletExtContainer::Instance.Find(pTargetObject)->InterceptedStatus = InterceptedStatus::Targeted;
 
 			// If using Inviso projectile, can intercept bullets right after firing.
-			if (pTargetObject->IsAlive && pWeaponType->Projectile->Inviso)
-			{
-				WarheadTypeExtContainer::Instance.Find(pWeaponType->Warhead)->InterceptBullets(pThis, pWeaponType, pTargetObject->Location);
-			}
+			// if (pTargetObject->IsAlive && pWeaponType->Projectile->Inviso)
+			// {
+			// 	WarheadTypeExtContainer::Instance.Find(pWeaponType->Warhead)->InterceptBullets(pThis, pWeaponType, pTargetObject->Location);
+			// }
 		}
 	}
 

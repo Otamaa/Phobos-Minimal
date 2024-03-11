@@ -41,6 +41,7 @@ public:
 	std::vector<UniversalTrail> Trails {};
 	std::unique_ptr<PhobosTrajectory> Trajectory {};
 	Handle<ParticleSystemClass*, UninitAttachedSystem> AttachedSystem {};
+	int DamageNumberOffset { INT32_MIN };
 
 	BulletExtData() noexcept = default;
 	~BulletExtData() noexcept = default;
@@ -55,6 +56,13 @@ public:
 	void InitializeLaserTrails();
 
 	void CreateAttachedSystem();
+
+	constexpr FORCEINLINE static size_t size_Of(){
+		return sizeof(BulletExtData) -
+		( 4u //AttachedToObject
+		 	+ 4u //DamageNumberOffset
+		 );
+	}
 
 	static void InterceptBullet(BulletClass* pThis, TechnoClass* pSource, WeaponTypeClass* pWeapon);
 	static void DetonateAt(BulletClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, CoordStruct nCoord = CoordStruct::Empty, HouseClass* pBulletOwner = nullptr);

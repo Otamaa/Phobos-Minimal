@@ -898,6 +898,12 @@ public:
 
 	void ApplyTurretOffset(Matrix3D* mtx, double factor);
 
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(TechnoTypeExtData) -
+			(4u //AttachedToObject
+			 );
+	}
 private:
 	template <typename T>
 	void Serialize(T& Stm);

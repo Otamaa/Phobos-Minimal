@@ -77,6 +77,13 @@ public:
 	void UpdatePoweredKillSpawns() const;
 	void UpdateAutoSellTimer();
 
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(BuildingExtData) -
+			(4u //AttachedToObject
+			 );
+	}
+
 	static void StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType);
 	static void UpdatePrimaryFactoryAI(BuildingClass* pThis);
 	static int CountOccupiedDocks(BuildingClass* pBuilding);
@@ -107,7 +114,4 @@ public:
 	static BuildingExtContainer Instance;
 
 	CONSTEXPR_NOCOPY_CLASSB(BuildingExtContainer , BuildingExtData, "BuildingClass");
-
-	virtual bool Save(BuildingClass* key, IStream* pStm) override;
-	virtual bool Load(BuildingClass* key, IStream* pStm) override;
 };

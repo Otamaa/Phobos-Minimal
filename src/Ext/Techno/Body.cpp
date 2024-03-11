@@ -2361,7 +2361,7 @@ void TechnoExtData::DisplayDamageNumberString(TechnoClass* pThis, int damage, bo
 	int width = 0, height = 0;
 	BitFont::Instance->GetTextDimension(damageStr.c_str(), &width, &height, 120);
 
-	if (pExt->DamageNumberOffset >= maxOffset || pExt->DamageNumberOffset.empty())
+	if (pExt->DamageNumberOffset >= maxOffset || pExt->DamageNumberOffset == INT32_MIN)
 		pExt->DamageNumberOffset = -maxOffset;
 
 	if (auto pBuilding = specific_cast<BuildingClass*>(pThis))

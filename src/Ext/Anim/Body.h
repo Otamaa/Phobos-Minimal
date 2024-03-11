@@ -41,6 +41,13 @@ public:
 
 	void CreateAttachedSystem();
 
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(AnimExtData) -
+			(4u //AttachedToObject
+			 );
+	}
+
 	static const std::pair<bool, OwnerHouseKind> SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner = true);
 	static const std::pair<bool, OwnerHouseKind> SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, TechnoClass* pTechnoInvoker, bool defaultToVictimOwner = true);
 	static TechnoClass* GetTechnoInvoker(AnimClass* pThis, bool DealthByOwner);

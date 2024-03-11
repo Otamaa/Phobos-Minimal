@@ -24,6 +24,7 @@
 
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
+#include <New/Entity/FlyingStrings.h>
 
 // DEFINE_HOOK(0x448277 , BuildingClass_SetOwningHouse_Additionals , 5)
 // {
@@ -359,7 +360,7 @@ DEFINE_HOOK(0x701DFF, TechnoClass_ReceiveDamage_AfterObjectClassCall, 0x7)
 	const bool Show = Phobos::Otamaa::IsAdmin || *pDamage;
 
 	if (Phobos::Debug_DisplayDamageNumbers && Show)
-		TechnoExtData::DisplayDamageNumberString(pThis, *pDamage, false , pWH);
+		FlyingStrings::DisplayDamageNumberString(*pDamage, DamageDisplayType::Regular, pThis->GetRenderCoords(), TechnoExtContainer::Instance.Find(pThis)->DamageNumberOffset);
 
 	GET(DamageState, damageState, EDI);
 

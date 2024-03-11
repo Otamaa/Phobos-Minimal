@@ -135,7 +135,13 @@ public:
 	void UpdateInAir_Main(bool allowDraw);
 
 	static void UpdateInAir();
-	
+
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(ParticleSystemExtData) -
+			(4u //AttachedToObject
+			 );
+	}
 
 private:
 	template <typename T>

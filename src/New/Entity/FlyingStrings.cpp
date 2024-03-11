@@ -112,17 +112,14 @@ void FlyingStrings::AddString(const std::wstring& text, bool Display, TechnoClas
 		if (owner->VisualCharacter(0, HouseClass::CurrentPlayer()) == VisualType::Hidden)
 			return;
 
-		wchar_t moneyStr[0x20];
 		ColorStruct color = nOverrideColor;
 
 		if (color == ColorStruct::Empty) {
 			color = Drawing::DefaultColors[(int)DefaultColorList::Red];
 		}
 
-		swprintf_s(moneyStr, L"%ls", text.c_str());
-
 		Dimensions nDim {};
-		BitFont::Instance->GetTextDimension(moneyStr, &nDim.Width, &nDim.Height, 120);
+		BitFont::Instance->GetTextDimension(text.c_str(), &nDim.Width, &nDim.Height, 120);
 		pixelOffset.X -= (nDim.Width / 2);
 
 		if (const auto pBuilding = specific_cast<BuildingClass*>(owner))
@@ -130,7 +127,7 @@ void FlyingStrings::AddString(const std::wstring& text, bool Display, TechnoClas
 		else
 			coords.Z += 256;
 
-		FlyingStrings::Add(moneyStr, coords, color, pixelOffset);
+		FlyingStrings::Add(text.c_str(), coords, color, pixelOffset);
 	}
 }
 
@@ -149,6 +146,50 @@ void FlyingStrings::AddNumberString(int amount, HouseClass* owner, AffectedHouse
 		pixelOffset.X -= (nDim.Width / 2);
 		FlyingStrings::Add(displayStr, coords, color, pixelOffset);
 	}
+}
+
+static constexpr ColorStruct ShieldDamagedNumber[2] {
+	{ 0, 160, 255 } , { 0, 255, 230 }
+};
+
+static constexpr ColorStruct InterceptDamageNumber[2] {
+	{ 255, 128, 128 } , { 128, 255, 128 }
+};
+
+void FlyingStrings::DisplayDamageNumberString(int damage, DamageDisplayType type, CoordStruct coords, int& offset)
+{
+	if (damage == 0)
+		return;
+
+	ColorStruct color  = Drawing::DefaultColors[(int)DefaultColorList::White];
+
+	switch (type)
+	{
+	case DamageDisplayType::Regular:
+		color = damage > 0 ? Drawing::DefaultColors[(int)DefaultColorList::Red] : Drawing::DefaultColors[(int)DefaultColorList::Green];
+		break;
+	case DamageDisplayType::Shield:
+		color = damage > 0 ? ShieldDamagedNumber[0] : ShieldDamagedNumber[1];
+		break;
+	case DamageDisplayType::Intercept:
+		color = damage > 0 ? InterceptDamageNumber[0] : InterceptDamageNumber[1];
+		break;
+	default:
+		break;
+	}
+
+	int maxOffset = Unsorted::CellWidthInPixels / 2;
+	int width = 0, height = 0;
+	const std::wstring damagestr(std::to_wstring(damage));
+
+	BitFont::Instance->GetTextDimension(damagestr.c_str(), &width, &height, 120);
+
+	if (offset >= maxOffset || offset == INT32_MIN)
+		offset = -maxOffset;
+
+	FlyingStrings::Add(damagestr.c_str(), coords, color, Point2D { offset - (width / 2), 0 });
+
+	offset = offset + width;
 }
 
 void FlyingStrings::UpdateAll()

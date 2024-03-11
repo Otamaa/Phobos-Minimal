@@ -79,6 +79,12 @@ public:
 	// support
 	TechnoTypeClass* GetTechnoType();
 
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(TEventExtData) -
+			(4u //AttachedToObject
+			 );
+	}
 private:
 
 	template <typename T>

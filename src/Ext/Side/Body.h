@@ -148,6 +148,13 @@ public:
 	static SHPStruct* GetGraphicalTextImage();
 	static ConvertClass* GetGraphicalTextConvert();
 
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(SideExtData) -
+			(4u //AttachedToObject
+			 );
+	}
+
 	const char* GetMultiplayerScoreBarFilename(unsigned int index) const;
 private:
 	template <typename T>

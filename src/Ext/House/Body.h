@@ -144,6 +144,13 @@ public:
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(HouseExtData) -
+			(4u //AttachedToObject
+			 );
+	}
+
 	static bool InvalidateIgnorable(AbstractClass* ptr);
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

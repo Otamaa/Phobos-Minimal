@@ -299,7 +299,12 @@ public:
 	static void JumpBackToPreviousScript(TeamClass* pTeam);
 	static void RepairDestroyedBridge(TeamClass* pTeam, int mode);
 	static std::pair<WeaponTypeClass*, WeaponTypeClass*> GetWeapon(TechnoClass* pTechno);
-
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(ScriptExtData) -
+			(4u //AttachedToObject
+			 );
+	}
 private:
 	static void ModifyCurrentTriggerWeight(TeamClass* pTeam, bool forceJumpLine, double modifier);
 	static bool MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, FootClass* pLeader, int mode);

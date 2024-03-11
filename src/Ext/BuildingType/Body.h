@@ -315,6 +315,13 @@ public:
 
 	void UpdateFoundationRadarShape();
 
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(BuildingTypeExtData) -
+			(4u //AttachedToObject
+			 );
+	}
+
 	static bool IsFoundationEqual(BuildingTypeClass* pType1, BuildingTypeClass* pType2);
 	// Short check: Is the building of a linkable kind at all?
 	static bool IsLinkable(BuildingTypeClass* pThis);

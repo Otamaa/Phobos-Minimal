@@ -72,6 +72,12 @@ public:
 	static bool NeutralOwnsAll(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list);
 	static bool NOINLINE GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat);
 
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(TeamExtData) -
+			(4u //AttachedToObject
+			 );
+	}
 private:
 	template <typename T>
 	void Serialize(T& Stm);

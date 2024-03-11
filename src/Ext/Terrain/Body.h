@@ -49,6 +49,12 @@ public:
 	void InitializeLightSource();
 	void InitializeAnim();
 
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(TerrainExtData) -
+			(4u //AttachedToObject
+			 );
+	}
 private:
 	template <typename T>
 	void Serialize(T& Stm);

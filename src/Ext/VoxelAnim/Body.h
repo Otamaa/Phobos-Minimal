@@ -53,7 +53,12 @@ public:
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	void InitializeLaserTrails(VoxelAnimTypeExtData* pTypeExt);
-
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(VoxelAnimExtData) -
+			(4u //AttachedToObject
+			 );
+	}
 private:
 	template <typename T>
 	void Serialize(T& Stm);

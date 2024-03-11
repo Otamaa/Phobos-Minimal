@@ -526,6 +526,12 @@ public:
 	static bool IsTargetConstraintsEligible(SuperClass* pThis, bool IsPlayer);
 	static TargetResult PickSuperWeaponTarget(NewSWType* pNewType, const TargetingData* pTargeting, const SuperClass* pSuper);
 
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(SWTypeExtData) -
+			(4u //AttachedToObject
+			 );
+	}
 private:
 
 	std::vector<int> WeightedRollsHandler(std::vector<float>* chances, std::vector<std::vector<int>>* weights, size_t size);

@@ -17,6 +17,8 @@
 #include <Utilities/Macro.h>
 #include <Lib/gcem/gcem.hpp>
 
+#include <New/Entity/FlyingStrings.h>
+
 void BulletExtData::ApplyAirburst(BulletClass* pThis)
 {
 	const auto pType = pThis->Type;
@@ -685,7 +687,10 @@ void BulletExtData::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, We
 		if (((std::abs(versus) >= 0.001)))
 		{
 			canAffect = true;
-			pExt->CurrentStrength -= static_cast<int>(pWeapon->Damage * versus * TechnoExtData::GetDamageMult(pSource));
+			const int damage = static_cast<int>(pWeapon->Damage * versus * TechnoExtData::GetDamageMult(pSource));
+			pExt->CurrentStrength -= damage;
+
+			FlyingStrings::DisplayDamageNumberString(damage, DamageDisplayType::Intercept, pThis->GetRenderCoords(), pExt->DamageNumberOffset);
 
 			if (pExt->CurrentStrength <= 0)
 				isIntercepted = true;

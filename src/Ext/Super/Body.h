@@ -83,6 +83,12 @@ public:
 
 	static void UpdateSuperWeaponStatuses(HouseClass* pHouse);
 
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(SuperExtData) -
+			(4u //AttachedToObject
+			 );
+	}
 private:
 	template <typename T>
 	void Serialize(T& Stm);

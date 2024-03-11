@@ -431,8 +431,7 @@ protected:
 			}
 
 			// write the current pointer, the size of the block, and the canary
-			// negative 4 for the AttachedToObjectPointer , it doesnot get S/L
-			PhobosByteStream saver { sizeof(T) - 4u };
+			PhobosByteStream saver { extension_type::size_Of() };
 			PhobosStreamWriter writer { saver };
 
 			writer.Save(T::Canary);

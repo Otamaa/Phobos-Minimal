@@ -23,6 +23,13 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(BombExtData) -
+			(4u //AttachedToObject
+			 );
+	}
+
 	static HouseClass* __fastcall GetOwningHouse(BombClass* pThis, void*);
 	static void __fastcall InvalidatePointer(BombClass* pThis, void*, void* const ptr, bool removed);
 

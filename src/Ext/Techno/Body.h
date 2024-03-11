@@ -95,7 +95,7 @@ public:
 	int LastWarpDistance {};
 	CDTimerClass Death_Countdown {};
 	AnimTypeClass* MindControlRingAnimType { nullptr };
-	OptionalStruct<int, false> DamageNumberOffset {};
+	int DamageNumberOffset { INT32_MIN };
 	OptionalStruct<int, true> CurrentLaserWeaponIndex {};
 
 	// Used for Passengers.SyncOwner.RevertOnExit instead of TechnoClass::InitialOwner / OriginallyOwnedByHouse,
@@ -214,6 +214,14 @@ public:
 
 	bool IsInterceptor();
 	void CreateInitialPayload(bool forced = false);
+
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(TechnoExtData) -
+			(4u //AttachedToObject
+			+ 4u //DamageNumberOffset
+			 );
+	}
 
 private:
 	template <typename T>

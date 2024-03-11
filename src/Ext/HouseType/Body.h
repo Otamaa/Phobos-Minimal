@@ -87,6 +87,13 @@ public:
 	Iterator<BuildingTypeClass*> GetPowerplants() const;
 	Iterator<BuildingTypeClass*> GetDefaultPowerplants() const;
 
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(HouseTypeExtData) -
+			(4u //AttachedToObject
+			 );
+	}
+
 	static int PickRandomCountry();
 private:
 	template <typename T>

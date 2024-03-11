@@ -427,6 +427,13 @@ public:
 
 	AnimTypeClass* GetArmorHitAnim(int Armor);
 
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(WarheadTypeExtData) -
+			(4u //AttachedToObject
+			 );
+	}
+
 private:
 	template <typename T>
 	void Serialize(T& Stm);

@@ -33,6 +33,13 @@
 #pragma once
 
 #include <GeneralDefinitions.h>
+
+enum class DamageDisplayType {
+	Regular = 0,
+	Shield = 1,
+	Intercept = 2
+};
+
 enum class NewCrateType : int {
 	Money, Super, Weapon, Units
 

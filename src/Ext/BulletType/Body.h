@@ -143,6 +143,13 @@ public:
 
 	const ConvertClass* GetBulletConvert();
 
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(BulletTypeExtData) -
+			(4u //AttachedToObject
+			 );
+	}
+
 	static FORCEINLINE double GetAdjustedGravity(BulletTypeClass* pType);
 
 	static BulletTypeClass* GetDefaultBulletType(const char* pBullet = nullptr);

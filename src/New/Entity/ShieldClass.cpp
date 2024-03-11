@@ -12,6 +12,7 @@
 #include <Utilities/GeneralUtils.h>
 
 #include <Misc/Ares/Hooks/Header.h>
+#include <New/Entity/FlyingStrings.h>
 
 #include <AnimClass.h>
 #include <HouseClass.h>
@@ -200,7 +201,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	{
 		auto nPassableDamageAnountCopy = PassableDamageAnount;
 		if (Phobos::Debug_DisplayDamageNumbers && (nPassableDamageAnountCopy) != 0)
-			TechnoExtData::DisplayDamageNumberString(this->Techno, (nPassableDamageAnountCopy), true, args->WH);
+			FlyingStrings::DisplayDamageNumberString(nPassableDamageAnountCopy, DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset);
 
 		nDamageResult = PassableDamageAnount;
 	}
@@ -242,7 +243,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 			); //only absord percentage damage
 
 			if (Phobos::Debug_DisplayDamageNumbers && (nHPCopy) != 0)
-				TechnoExtData::DisplayDamageNumberString(this->Techno, (nHPCopy), true, args->WH);
+				FlyingStrings::DisplayDamageNumberString(nHPCopy, DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset);
 
 			this->BreakShield(pWHExt->Shield_BreakAnim.Get(nullptr), pWHExt->Shield_BreakWeapon.Get(nullptr));
 
@@ -253,7 +254,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 			// that mean the damage can be sustained with the sield
 		{
 			if (Phobos::Debug_DisplayDamageNumbers && (-DamageToShield)  != 0)
-				TechnoExtData::DisplayDamageNumberString(this->Techno, (-DamageToShield), true, args->WH);
+				FlyingStrings::DisplayDamageNumberString((-DamageToShield), DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset);
 
 			this->WeaponNullifyAnim(pWHExt->Shield_HitAnim.Get(nullptr));
 			this->HP -= DamageToShield; //set the HP remaining after get hit
@@ -278,7 +279,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 				auto nDamageCopy = DamageToShieldAfterMinMax;
 
 				if (Phobos::Debug_DisplayDamageNumbers && DamageToShieldAfterMinMax != 0)
-					TechnoExtData::DisplayDamageNumberString(this->Techno, DamageToShieldAfterMinMax, true, args->WH);
+					FlyingStrings::DisplayDamageNumberString(DamageToShieldAfterMinMax, DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset);
 
 				this->HP = std::clamp(this->HP + (-nDamageCopy), 0, this->Type->Strength.Get());
 				this->UpdateIdleAnim();

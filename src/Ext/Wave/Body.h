@@ -265,6 +265,12 @@ public:
 	void InitWeaponData();
 	void SetWeaponType(WeaponTypeClass* pWeapon, int nIdx);
 
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(WaveExtData) -
+			(4u //AttachedToObject
+			 );
+	}
 private:
 
 	template <typename T>

@@ -21,6 +21,13 @@ public:
 	CellExtData() noexcept = default;
 	~CellExtData() noexcept = default;
 
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(CellExtData) -
+			(4u //AttachedToObject
+			 );
+	}
+
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 

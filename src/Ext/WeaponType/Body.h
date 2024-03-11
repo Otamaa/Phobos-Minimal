@@ -168,6 +168,12 @@ public:
 
 	ColorStruct GetBeamColor() const;
 
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(WeaponTypeExtData) -
+			(4u //AttachedToObject
+			 );
+	}
 private:
 	template <typename T>
 	void Serialize(T& Stm);

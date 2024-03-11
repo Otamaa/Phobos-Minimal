@@ -73,6 +73,12 @@ public:
 		};
 	}
 
+	constexpr FORCEINLINE static size_t size_Of()
+	{
+		return sizeof(TerrainTypeExtData) -
+			(4u //AttachedToObject
+			 );
+	}
 private:
 	template <typename T>
 	void Serialize(T& Stm);
