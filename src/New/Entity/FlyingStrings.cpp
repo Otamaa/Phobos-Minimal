@@ -165,7 +165,7 @@ void FlyingStrings::DisplayDamageNumberString(int damage, DamageDisplayType type
 		color = damage > 0 ? Phobos::Defines::ShieldPositiveDamageColor : Phobos::Defines::ShieldNegativeDamageColor;
 		break;
 	case DamageDisplayType::Intercept:
-		color = damage > 0 ? Phobos::Defines::InterceptedNegativeDamageColor : Phobos::Defines::InterceptedPositiveDamageColor;
+		color = damage < 0 ? Phobos::Defines::InterceptedNegativeDamageColor : Phobos::Defines::InterceptedPositiveDamageColor;
 		break;
 	default:
 		break;
