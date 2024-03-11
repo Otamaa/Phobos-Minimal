@@ -6,7 +6,7 @@
 template<typename T>
 struct HelperedVector : public std::vector<T>
 {
-	bool __forceinline remove_at(int index) {
+	bool FORCEINLINE remove_at(int index) {
 		if (this->valid_index(index)) {
 			this->erase(this->begin() + index);
 			return true;
@@ -15,7 +15,7 @@ struct HelperedVector : public std::vector<T>
 		return false;
 	}
 
-	bool __forceinline remove(const T& item) {
+	bool FORCEINLINE remove(const T& item) {
 		const auto iter = std::remove(this->begin() , this->end() , item);
 
 		if (iter != this->end()) {
@@ -27,7 +27,7 @@ struct HelperedVector : public std::vector<T>
 	}
 
 	template <typename Func>
-	bool __forceinline remove_if(Func&& act) {
+	bool FORCEINLINE remove_if(Func&& act) {
 		const auto iter = std::remove_if(this->begin(), this->end(), std::forward<Func>(act));
 
 		if (iter != this->end()) {
@@ -39,7 +39,7 @@ struct HelperedVector : public std::vector<T>
 	}
 
 	template <typename Func>
-	bool __forceinline remove_all_if(Func&& act)
+	bool FORCEINLINE remove_all_if(Func&& act)
 	{
 		const auto iter = std::remove_if(this->begin(), this->end(), std::forward<Func>(act));
 
@@ -51,7 +51,7 @@ struct HelperedVector : public std::vector<T>
 		return false;
 	}
 
-	auto __forceinline find(const T& item) const {
+	auto FORCEINLINE find(const T& item) const {
 		if constexpr (direct_comparable<T>) {
 			return std::find_if(this->begin(), this->end(), [item](const auto item_here) { return item_here == item; });
 		} else {
@@ -59,7 +59,7 @@ struct HelperedVector : public std::vector<T>
 		}
 	}
 
-	auto __forceinline find(const T& item) {
+	auto FORCEINLINE find(const T& item) {
 		if constexpr (direct_comparable<T>) {
 			return std::find_if(this->begin(), this->end(), [item](const auto item_here) { return item_here == item; });
 		} else {
@@ -67,61 +67,61 @@ struct HelperedVector : public std::vector<T>
 		}
 	}
 
-	bool __forceinline contains(const T& other) const {
+	bool FORCEINLINE contains(const T& other) const {
 		return this->find(other) != this->end();
 	}
 
-	void __forceinline push_back_unique(const T& other) {
+	void FORCEINLINE push_back_unique(const T& other) {
 		if (!this->contains(other))
 			this->push_back(other);
 	}
 
-	int __forceinline index_of(const T& other) const {
+	int FORCEINLINE index_of(const T& other) const {
 		auto iter = this->find(other);
 		return iter != this->end() ? std::distance(this->begin(), iter) : -1;
 	}
 
-	bool __forceinline valid_index(int index) const {
+	bool FORCEINLINE valid_index(int index) const {
 		return static_cast<size_t>(index) < this->size();
 	}
 
 	template <typename Func>
-	void __forceinline for_each(Func&& act) const {
+	void FORCEINLINE for_each(Func&& act) const {
 		std::for_each(this->begin(), this->end(), std::forward<Func>(act));
 	}
 
 	template <typename Func>
-	void __forceinline for_each(Func&& act) {
+	void FORCEINLINE for_each(Func&& act) {
 		std::for_each(this->begin(), this->end(), std::forward<Func>(act));
 	}
 
 	template<typename func>
-	bool __forceinline none_of(func&& fn) const {
+	bool FORCEINLINE none_of(func&& fn) const {
 		return std::none_of(this->begin(), this->end(), std::forward<func>(fn));
 	}
 
 	template<typename func>
-	bool __forceinline none_of(func&& fn) {
+	bool FORCEINLINE none_of(func&& fn) {
 		return std::none_of(this->begin(), this->end(), std::forward<func>(fn));
 	}
 
 	template<typename func>
-	bool __forceinline any_of(func&& fn) const {
+	bool FORCEINLINE any_of(func&& fn) const {
 		return std::any_of(this->begin(), this->end(), std::forward<func>(fn));
 	}
 
 	template<typename func>
-	bool __forceinline any_of(func&& fn) {
+	bool FORCEINLINE any_of(func&& fn) {
 		return std::any_of(this->begin(), this->end(), std::forward<func>(fn));
 	}
 
 	template<typename func>
-	bool __forceinline all_of(func&& fn) const {
+	bool FORCEINLINE all_of(func&& fn) const {
 		return std::all_of(this->begin(), this->end(), std::forward<func>(fn));
 	}
 
 	template<typename func>
-	bool __forceinline all_of(func&& fn) {
+	bool FORCEINLINE all_of(func&& fn) {
 		return std::all_of(this->begin(), this->end(), std::forward<func>(fn));
 	}
 };

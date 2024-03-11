@@ -74,6 +74,8 @@ private:
 	template <typename TSwizzle>
 	void swizzle(TSwizzle& object, std::false_type)
 	{
-		//Debug::Log("%s Is Not Swizzeable ! \n", typeid(TSwizzle).name());
+#ifdef _DEBUG
+		Debug::Log("%s Is Not Swizzeable ! \n", typeid(TSwizzle).name());
+#endif
 	}
 };

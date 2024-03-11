@@ -40,12 +40,12 @@ public:
 		return *this;
 	}
 
-	operator BlitterFlags()
+	constexpr operator BlitterFlags()
 	{
 		return this->value;
 	}
 
-	BlitterFlags GetBlitterFlags()
+	constexpr BlitterFlags GetBlitterFlags()
 	{
 		return *this;
 	}

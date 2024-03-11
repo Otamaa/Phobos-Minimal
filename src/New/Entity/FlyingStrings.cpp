@@ -148,13 +148,6 @@ void FlyingStrings::AddNumberString(int amount, HouseClass* owner, AffectedHouse
 	}
 }
 
-static constexpr ColorStruct ShieldDamagedNumber[2] {
-	{ 0, 160, 255 } , { 0, 255, 230 }
-};
-
-static constexpr ColorStruct InterceptDamageNumber[2] {
-	{ 255, 128, 128 } , { 128, 255, 128 }
-};
 
 void FlyingStrings::DisplayDamageNumberString(int damage, DamageDisplayType type, CoordStruct coords, int& offset)
 {
@@ -169,10 +162,10 @@ void FlyingStrings::DisplayDamageNumberString(int damage, DamageDisplayType type
 		color = damage > 0 ? Drawing::DefaultColors[(int)DefaultColorList::Red] : Drawing::DefaultColors[(int)DefaultColorList::Green];
 		break;
 	case DamageDisplayType::Shield:
-		color = damage > 0 ? ShieldDamagedNumber[0] : ShieldDamagedNumber[1];
+		color = damage > 0 ? Phobos::Defines::ShieldPositiveDamageColor : Phobos::Defines::ShieldNegativeDamageColor;
 		break;
 	case DamageDisplayType::Intercept:
-		color = damage > 0 ? InterceptDamageNumber[0] : InterceptDamageNumber[1];
+		color = damage > 0 ? Phobos::Defines::InterceptedNegativeDamageColor : Phobos::Defines::InterceptedPositiveDamageColor;
 		break;
 	default:
 		break;

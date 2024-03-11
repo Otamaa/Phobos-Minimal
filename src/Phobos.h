@@ -77,13 +77,14 @@ struct Phobos final
 {
 	static void CmdLineParse(char**, int);
 
-	static CCINIClass* OpenConfig(const char*);
-	static void CloseConfig(CCINIClass*&);
-
 	static void ExeRun();
 	static void ExeTerminate();
 	static void DrawVersionWarning();
-
+	static void ExecuteLua();
+	static void CheckProcessorFeatures();
+	static void InitAdminDebugMode();
+	static void ThrowUsageWarning(CCINIClass* pINI);
+	static void InitConsole();
 	//variables
 	static HANDLE hInstance;
 
@@ -179,7 +180,6 @@ struct Phobos final
 	struct Otamaa
 	{
 		static bool DisableCustomRadSite;
-		static TCHAR PCName[MAX_COMPUTERNAME_LENGTH + 1];
 		static bool IsAdmin;
 		static bool ShowHealthPercentEnabled;
 		static bool ExeTerminated;
@@ -198,7 +198,8 @@ struct Phobos final
 	{
 		static inline constexpr ColorStruct ShieldPositiveDamageColor = ColorStruct { 0, 160, 255 };
 		static inline constexpr ColorStruct ShieldNegativeDamageColor = ColorStruct { 0, 255, 230 };
-
+		static inline constexpr ColorStruct InterceptedPositiveDamageColor = ColorStruct { 255, 128, 128 };
+		static inline constexpr ColorStruct InterceptedNegativeDamageColor = ColorStruct { 128, 255, 128 };
 	};
 
 	static FORCEINLINE unsigned Round_Up(unsigned number, int a)
@@ -253,6 +254,7 @@ struct Phobos final
 
 	static void __cdecl _dump_memory_leaks()
 	{
+		//need _DEBUG
 		_CrtDumpMemoryLeaks();
 	}
 };

@@ -4,7 +4,6 @@
 
 struct MapPathCellElement
 {
-
 	int Distance { -1 };
 	int X { -1 };
 	int Y { -1 };

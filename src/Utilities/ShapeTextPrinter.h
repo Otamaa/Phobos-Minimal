@@ -6,11 +6,11 @@ class ShapeTextPrintData
 {
 public:
 	// Shape
-	SHPStruct* Shape;
-	ConvertClass* Palette;
-	int BaseNumberFrame;	// frame index of 0
-	int BaseExtraFrame;		// as sequence ShapeTextPrinter::SignSequence
-	Point2D Spacing;
+	SHPStruct* Shape { nullptr };
+	ConvertClass* Palette { nullptr };
+	int BaseNumberFrame { 0 };	// frame index of 0
+	int BaseExtraFrame { 0 };		// as sequence ShapeTextPrinter::SignSequence
+	Point2D Spacing {};
 
 	ShapeTextPrintData(SHPStruct* shape, ConvertClass* palette, int iBaseNumberFrame, int baseExtraFrame, const Point2D& spacing)
 		: Shape { shape }
@@ -21,6 +21,7 @@ public:
 	{ }
 
 	~ShapeTextPrintData() = default;
+	ShapeTextPrintData() = default;
 	ShapeTextPrintData(const ShapeTextPrintData&) = default;
 	ShapeTextPrintData(ShapeTextPrintData&&) = default;
 	ShapeTextPrintData& operator=(const ShapeTextPrintData& other) = default;

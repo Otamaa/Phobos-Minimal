@@ -341,10 +341,7 @@
     <ClCompile Include="src\Misc\Spawner\VideoMode.cpp" />
     <ClCompile Include="src\Misc\TextInput.cpp" />
     <ClCompile Include="src\New\AnonymousType\BuildSpeedBonus.cpp" />
-    <ClCompile Include="src\New\Entity\FoggedObject.cpp" />
     <ClCompile Include="src\New\AnonymousType\MultipleFactoryCaps.cpp" />
-    <ClCompile Include="src\New\InsigniaData.cpp" />
-    <ClCompile Include="src\New\LaserTrailDataEntry.cpp" />
     <ClCompile Include="src\New\Type\CrateTypeClass.cpp" />
     <ClCompile Include="src\New\Type\DigitalDisplayTypeClass.cpp" />
     <ClCompile Include="src\New\Type\DroppodProperties.cpp" />
@@ -433,7 +430,6 @@
     <ClCompile Include="src\Utilities\EnumFunctions.cpp" />
     <ClCompile Include="src\Utilities\GeneralUtils.cpp" />
     <ClCompile Include="src\Utilities\TechnoTypeConvertData.cpp" />
-    <ClCompile Include="src\Utilities\Template.cpp" />
     <ClCompile Include="src\Utilities\VersesData.cpp" />
     <ClCompile Include="YRpp\DebugLog.cpp" />
     <ClCompile Include="YRpp\StaticInits.cpp" />
@@ -636,10 +632,8 @@
     <ClInclude Include="src\New\AnonymousType\AresAttachEffectTypeClass.h" />
     <ClInclude Include="src\New\AnonymousType\BuildSpeedBonus.h" />
     <ClInclude Include="src\New\AnonymousType\PassengerDeletionTypeClass.h" />
-    <ClInclude Include="src\New\Entity\DelayFireAnimClass.h" />
     <ClInclude Include="src\New\Entity\ElectricBoltClass.h" />
     <ClInclude Include="src\New\Entity\FlyingStrings.h" />
-    <ClInclude Include="src\New\Entity\FoggedObject.h" />
     <ClInclude Include="src\New\Entity\LauchSWData.h" />
     <ClInclude Include="src\New\AnonymousType\MultipleFactoryCaps.h" />
     <ClInclude Include="src\New\Entity\ShieldClass.h" />
@@ -698,7 +692,6 @@
     <ClInclude Include="src\Utilities\SavegameDef.h" />
     <ClInclude Include="src\Utilities\ShapeTextPrinter.h" />
     <ClInclude Include="src\Utilities\Stream.h" />
-    <ClInclude Include="src\Utilities\StreamB.h" />
     <ClInclude Include="src\Utilities\Swizzle.h" />
     <ClInclude Include="src\Phobos.CRT.h" />
     <ClInclude Include="src\Phobos.version.h" />

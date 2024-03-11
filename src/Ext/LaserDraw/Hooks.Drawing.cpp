@@ -7,10 +7,12 @@
 #include <Utilities/GeneralUtils.h>
 #include <Misc/PhobosGlobal.h>
 
+ColorStruct maxColor;
+
 DEFINE_HOOK(0x550D1F, LaserDrawClass_DrawInHouseColor_Context_Set, 0x6)
 {
 	LEA_STACK(ColorStruct*, pColor, 0x14);
-	PhobosGlobal::Instance()->maxColor = *pColor;
+	maxColor = *pColor;
 	return 0;
 }
 
@@ -31,10 +33,9 @@ DEFINE_HOOK(0x550F47, LaserDrawClass_DrawInHouseColor_BetterDrawing, 0x5) //0
 		mult = (1.0 - falloffStep * currentThickness) * falloffMult;
 	}
 
-	const auto& nColor = PhobosGlobal::Instance()->maxColor;
-	R->EAX((unsigned int)(mult * nColor.R));
-	R->ECX((unsigned int)(mult * nColor.G));
-	R->EDX((unsigned int)(mult * nColor.B));
+	R->EAX((unsigned int)(mult * maxColor.R));
+	R->ECX((unsigned int)(mult * maxColor.G));
+	R->EDX((unsigned int)(mult * maxColor.B));
 
 	return 0x550F9D;
 }

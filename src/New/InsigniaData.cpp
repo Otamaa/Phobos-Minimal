@@ -1,1 +1,0 @@
-#include "InsigniaData.h"

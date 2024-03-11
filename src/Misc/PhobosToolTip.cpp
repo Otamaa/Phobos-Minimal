@@ -55,33 +55,34 @@ inline int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType) const
 	// TechnoTypeClass only has 4 final classes :
 	// BuildingTypeClass, AircraftTypeClass, InfantryTypeClass and UnitTypeClass
 	// It has to be these four classes, otherwise pType will just be
+	static char BuildTimeDatas[sizeof(BuildingClass)] = {};
 
 	switch (pType->WhatAmI())
 	{
 	case BuildingTypeClass::AbsID:
-		*reinterpret_cast<int*>(PhobosGlobal::Instance()->BuildTimeDatas) = BuildingClass::vtable;
-		reinterpret_cast<BuildingClass*>(PhobosGlobal::Instance()->BuildTimeDatas)->Type = (BuildingTypeClass*)pType;
+		*reinterpret_cast<int*>(BuildTimeDatas) = BuildingClass::vtable;
+		reinterpret_cast<BuildingClass*>(BuildTimeDatas)->Type = (BuildingTypeClass*)pType;
 		break;
 	case AircraftTypeClass::AbsID:
-		*reinterpret_cast<int*>(PhobosGlobal::Instance()->BuildTimeDatas) = AircraftClass::vtable;
-		reinterpret_cast<AircraftClass*>(PhobosGlobal::Instance()->BuildTimeDatas)->Type = (AircraftTypeClass*)pType;
+		*reinterpret_cast<int*>(BuildTimeDatas) = AircraftClass::vtable;
+		reinterpret_cast<AircraftClass*>(BuildTimeDatas)->Type = (AircraftTypeClass*)pType;
 		break;
 	case InfantryTypeClass::AbsID:
-		*reinterpret_cast<int*>(PhobosGlobal::Instance()->BuildTimeDatas) = InfantryClass::vtable;
-		reinterpret_cast<InfantryClass*>(PhobosGlobal::Instance()->BuildTimeDatas)->Type = (InfantryTypeClass*)pType;
+		*reinterpret_cast<int*>(BuildTimeDatas) = InfantryClass::vtable;
+		reinterpret_cast<InfantryClass*>(BuildTimeDatas)->Type = (InfantryTypeClass*)pType;
 		break;
 	case UnitTypeClass::AbsID:
-		*reinterpret_cast<int*>(PhobosGlobal::Instance()->BuildTimeDatas) = UnitClass::vtable;
-		reinterpret_cast<UnitClass*>(PhobosGlobal::Instance()->BuildTimeDatas)->Type = (UnitTypeClass*)pType;
+		*reinterpret_cast<int*>(BuildTimeDatas) = UnitClass::vtable;
+		reinterpret_cast<UnitClass*>(BuildTimeDatas)->Type = (UnitTypeClass*)pType;
 		break;
 	default:
 			return 54;
 	}
 
-	const auto pTrick = reinterpret_cast<TechnoClass*>(PhobosGlobal::Instance()->BuildTimeDatas);
+	const auto pTrick = reinterpret_cast<TechnoClass*>(BuildTimeDatas);
 	pTrick->Owner = HouseClass::CurrentPlayer();
 
-	int nTimeToBuild = pTrick->TimeToBuild();
+	const int nTimeToBuild = pTrick->TimeToBuild();
 	// 54 frames at least
 	return nTimeToBuild < 54 ? 54 : nTimeToBuild;
 }

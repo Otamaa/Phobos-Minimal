@@ -11,9 +11,6 @@ void PhobosGlobal::Clear()
 	if (!pInstance)
 		return;
 
-	pInstance->maxColor = ColorStruct::Empty;
-	// Just big enough to hold all types
-	std::memset(pInstance->BuildTimeDatas, 0, sizeof(pInstance->BuildTimeDatas));
 	pInstance->DetonateDamageArea = true;
 
 	pInstance->TempFoundationData1.clear();

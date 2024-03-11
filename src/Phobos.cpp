@@ -26,9 +26,12 @@
 #include <winternl.h>
 #include <cfenv>
 #include <WinBase.h>
+#include <CD.h>
+#include <aclapi.h>
 
 #include "Lib/Lua542/lua.hpp"
 
+#pragma region DEFINES
 struct luastatedeleter {
 	void operator ()(lua_State* l) noexcept {
 		if (l) {
@@ -36,6 +39,9 @@ struct luastatedeleter {
 		}
 	}
 };
+#ifndef IS_RELEASE_VER
+bool Phobos::Config::HideWarning = false;
+#endif
 
 using unique_luastate = std::unique_ptr<lua_State, luastatedeleter>;
 #define make_unique_luastate(to) unique_luastate to {}; to.reset(luaL_newstate())
@@ -47,77 +53,6 @@ static const char* filename = "renameinternal.lua";
 
 static std::unordered_map<uintptr_t, std::string> map_replaceAddrTo {};
 static std::string MainWindowStr {};
-
-void NOINLINE ExecuteLua()
-{
-	make_unique_luastate(unique_lua);
-	auto L = unique_lua.get();
-
-	if (luaL_dofile(L, filename) == LUA_OK) {
-
-		lua_getglobal(L, "Replaces"); // T ==> -1
-
-		// get the first table
-		if (lua_istable(L, -1)) { // is T table ?
-			const int replace_size = (int)lua_rawlen(L, -1);
-
-			for (int i = 0; i < replace_size; i++)
-			{
-				lua_pushinteger(L, i + 1);
-				lua_gettable(L, -2);
-
-				if (lua_istable(L, -2))
-				{
-					lua_pushstring(L, "Addr");
-					lua_gettable(L, -2);
-					const auto addr = (uintptr_t)lua_tointeger(L, -1);
-					auto& result = map_replaceAddrTo[addr];
-					const auto maxlen = strlen((const char*)addr);
-					lua_pop(L, 1);
-
-					lua_pushstring(L, "To");
-					lua_gettable(L, -2);
-					result = lua_tostring(L, -1);
-					lua_pop(L, 1);
-					DWORD protectFlag;
-
-					if (Phobos::Otamaa::IsAdmin) {
-						std::string copy = trim(result.c_str());
-						Debug::Log("Patching string [%d] [0x%x - %s (%d) - max %d]\n", i, addr, copy.c_str(), result.size(), maxlen);
-					}
-
-					// do not exceed maximum length of the string , otherwise it will broke the .exe file
-					Patch::Apply_withmemcpy(addr, result.c_str(), protectFlag, PAGE_READWRITE, (size_t)maxlen);
-				}
-
-				lua_pop(L, 1);
-			}
-		}
-
-		lua_getglobal(L, "MainWindowString");
-		if (lua_isnil(L , -1) == 0 && lua_isinteger(L, -1) != 1 && lua_isstring(L, -1) == 1) {
-			MainWindowStr = lua_tostring(L, -1);
-			Patch::Apply_OFFSET(0x777CC6, (uintptr_t)MainWindowStr.c_str());
-			Patch::Apply_OFFSET(0x777CCB, (uintptr_t)MainWindowStr.c_str());
-			Patch::Apply_OFFSET(0x777D6D, (uintptr_t)MainWindowStr.c_str());
-			Patch::Apply_OFFSET(0x777D72, (uintptr_t)MainWindowStr.c_str());
-			Patch::Apply_OFFSET(0x777CA1, (uintptr_t)MainWindowStr.c_str());
-		}
-
-		lua_getglobal(L, "MovieMDINI");
-		if (lua_isnil(L, -1) == 0 && lua_isinteger(L, -1) != 1 && lua_isstring(L, -1) == 1) {
-			StaticVars::MovieMDINI = lua_tostring(L, -1);
-		}
-	}
-	else {
-		Debug::Log("Cannot find %s file\n", filename);
-	}
-}
-
-#pragma region DEFINES
-#ifndef IS_RELEASE_VER
-bool Phobos::Config::HideWarning = false;
-#endif
 
 HANDLE Phobos::hInstance = NULL;
 char Phobos::readBuffer[Phobos::readLength];
@@ -163,7 +98,6 @@ bool Phobos::Config::RealTimeTimers_Adaptive = false;
 int Phobos::Config::CampaignDefaultGameSpeed = 2;
 
 bool Phobos::Config::MultiThreadSinglePlayer = false;
-//bool Phobos::Config::UseImprovedPathfindingBlockageHandling = false;
 bool Phobos::Config::HideLightFlashEffects = false;
 
 bool Phobos::Config::DebugFatalerrorGenerateDump = false;
@@ -190,7 +124,6 @@ char Phobos::AppName[0x40] = "";
 bool Phobos::Debug_DisplayDamageNumbers = false;
 
 bool Phobos::Otamaa::DisableCustomRadSite = false;
-TCHAR Phobos::Otamaa::PCName[MAX_COMPUTERNAME_LENGTH + 1];
 bool Phobos::Otamaa::IsAdmin = false;
 bool Phobos::Otamaa::ShowHealthPercentEnabled = false;
 bool Phobos::Otamaa::ExeTerminated = true;
@@ -214,7 +147,7 @@ DWORD TLS_Thread::dwTlsIndex_SHPDRaw_2;
 #pragma endregion
 
 #pragma region PhobosFunctions
-void CheckProcessorFeatures()
+void Phobos::CheckProcessorFeatures()
 {
 	BOOL supported = FALSE;
 #if _M_IX86_FP == 0 // IA32
@@ -247,8 +180,99 @@ void CheckProcessorFeatures()
 #endif
 }
 
-#include "CD.h"
-#include "aclapi.h"
+void Phobos::ExecuteLua()
+{
+	make_unique_luastate(unique_lua);
+	auto L = unique_lua.get();
+
+	if (luaL_dofile(L, filename) == LUA_OK)
+	{
+		lua_getglobal(L, "Replaces"); // T ==> -1
+
+		// get the first table
+		if (lua_istable(L, -1))
+		{ // is T table ?
+			const int replace_size = (int)lua_rawlen(L, -1);
+
+			for (int i = 0; i < replace_size; i++)
+			{
+				lua_pushinteger(L, i + 1);
+				lua_gettable(L, -2);
+
+				if (lua_istable(L, -2))
+				{
+					lua_pushstring(L, "Addr");
+					lua_gettable(L, -2);
+					const auto addr = (uintptr_t)lua_tointeger(L, -1);
+					auto& result = map_replaceAddrTo[addr];
+					const auto maxlen = strlen((const char*)addr);
+					lua_pop(L, 1);
+
+					lua_pushstring(L, "To");
+					lua_gettable(L, -2);
+					result = lua_tostring(L, -1);
+					lua_pop(L, 1);
+					DWORD protectFlag;
+
+					if (Phobos::Otamaa::IsAdmin)
+					{
+						std::string copy = trim(result.c_str());
+						Debug::Log("Patching string [%d] [0x%x - %s (%d) - max %d]\n", i, addr, copy.c_str(), result.size(), maxlen);
+					}
+
+					// do not exceed maximum length of the string , otherwise it will broke the .exe file
+					Patch::Apply_withmemcpy(addr, result.c_str(), protectFlag, PAGE_READWRITE, (size_t)maxlen);
+				}
+
+				lua_pop(L, 1);
+			}
+		}
+
+		lua_getglobal(L, "MainWindowString");
+		if (lua_isnil(L, -1) == 0 && lua_isinteger(L, -1) != 1 && lua_isstring(L, -1) == 1)
+		{
+			MainWindowStr = lua_tostring(L, -1);
+			Patch::Apply_OFFSET(0x777CC6, (uintptr_t)MainWindowStr.c_str());
+			Patch::Apply_OFFSET(0x777CCB, (uintptr_t)MainWindowStr.c_str());
+			Patch::Apply_OFFSET(0x777D6D, (uintptr_t)MainWindowStr.c_str());
+			Patch::Apply_OFFSET(0x777D72, (uintptr_t)MainWindowStr.c_str());
+			Patch::Apply_OFFSET(0x777CA1, (uintptr_t)MainWindowStr.c_str());
+		}
+
+		lua_getglobal(L, "MovieMDINI");
+		if (lua_isnil(L, -1) == 0 && lua_isinteger(L, -1) != 1 && lua_isstring(L, -1) == 1)
+		{
+			StaticVars::MovieMDINI = lua_tostring(L, -1);
+		}
+	}
+	else
+	{
+		Debug::Log("Cannot find %s file\n", filename);
+	}
+
+	if (luaL_dofile(L, "adminmode.lua") == LUA_OK)
+	{
+		lua_getglobal(L, "AdminMode");
+
+		if (lua_isstring(L, -1) == 1)
+		{
+			std::string adminName = lua_tostring(L, -1);
+			if(adminName.size() <= MAX_COMPUTERNAME_LENGTH + 1) {
+				DWORD dwSize = MAX_COMPUTERNAME_LENGTH + 1;
+				TCHAR PCName[MAX_COMPUTERNAME_LENGTH + 1];
+				GetComputerName(PCName, &dwSize);
+
+				if (IS_SAME_STR_(PCName, adminName.c_str()))
+				{
+					Phobos::EnableConsole = true;
+					Phobos::Config::MultiThreadSinglePlayer = true;
+					Phobos::Config::DebugFatalerrorGenerateDump = true;
+					Phobos::Otamaa::IsAdmin = true;
+				}
+			}
+		}
+	}
+}
 
 void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 {
@@ -328,39 +352,7 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 	}
 #endif
 
-	CheckProcessorFeatures();
-
-	//auto v9 = GetCurrentProcess();
-	//PSID_IDENTIFIER_AUTHORITY auth;
-	//PSID pSID;
-	//if (AllocateAndInitializeSid(auth, 1u, 0, 0, 0, 0, 0, 0, 0, 0, &pSID))
-	//{
-	//	PHANDLE TokenHandle;
-	//	if (OpenProcessToken(v9, 8u, TokenHandle))
-	//	{
-	//		PDWORD ReturnLength;
-	//		GetTokenInformation(TokenHandle, TokenUser, 0, 0, ReturnLength);
-	//		if (ReturnLength <= 0x400)
-	//		{
-	//			auto v10 = LocalAlloc(0x40u, 0x400u);
-	//			if (GetTokenInformation(TokenHandle, TokenUser, v10, 0x400u, ReturnLength))
-	//			{
-	//				PACL pAcl;
-	//				if (InitializeAcl(pAcl, 0x400u, 2u)
-	//				  && AddAccessDeniedAce(pAcl, 2u, 0xFAu, pSID)
-	//				  && AddAccessAllowedAce(pAcl, 2u, 0x100701u, v10))
-	//				{
-	//					SetSecurityInfo(v9, SE_KERNEL_OBJECT, 0x80000004, 0, 0, pAcl, 0);
-	//				}
-	//			}
-	//		}
-	//	}
-	//}
-	//
-	//if (v9)
-	//	CloseHandle(v9);
-	//if (pSID)
-	//	FreeSid(pSID);
+	Phobos::CheckProcessorFeatures();
 
 	if (processAffinityMask)
 	{
@@ -378,7 +370,7 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 	if (Phobos::Otamaa::NoCD)
 	{
 		Debug::Log("Optimizing list of CD drives for NoCD mode.\n");
-		memset(CDDriveManagerClass::Instance->CDDriveNames, -1, 26);
+		std::memset(CDDriveManagerClass::Instance->CDDriveNames, -1, 26);
 
 		char drv[] = "a:\\";
 		for (int i = 0; i < 26; ++i)
@@ -392,16 +384,6 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 			}
 		}
 	}
-}
-
-CCINIClass* Phobos::OpenConfig(const char* file)
-{
-	return CCINIClass::LoadINIFile(file);
-}
-
-void Phobos::CloseConfig(CCINIClass*& pINI)
-{
-	CCINIClass::UnloadINIFile(pINI);
 }
 
 void Phobos::Config::Read()
@@ -531,36 +513,7 @@ void Phobos::Config::Read()
 		INI_RulesMD.ReadCCFile(&RULESMD_ini);
 
 		Debug::Log("Loading early %s file\n", GameStrings::RULESMD_INI());
-		// there is only few mod(s) that using this
-		// just add your mod name or remove these code if you dont like it
-		//if (!Phobos::Otamaa::IsAdmin)
-		//{
-		//	std::string ModNameTemp;
-		//	pINI->ReadString(GENERAL_SECTION, GameStrings::Name, "", Phobos::readBuffer);
-		//	ModNameTemp = Phobos::readBuffer;
-		//
-		//	if (!ModNameTemp.empty())
-		//	{
-		//		std::size_t nFInd = ModNameTemp.find("Rise of the East");
-		//
-		//		if (nFInd == std::string::npos)
-		//			nFInd = ModNameTemp.find("Ion Shock");
-		//
-		//		if (nFInd == std::string::npos)
-		//			nFInd = ModNameTemp.find("New War");
-		//
-		//		if (nFInd == std::string::npos)
-		//			nFInd = ModNameTemp.find("NewWar");
-		//
-		//		if (nFInd == std::string::npos)
-		//		{
-		//			MessageBoxW(NULL,
-		//				L"This is not Official Phobos Build.\n\n"
-		//				L"Please contact original Mod Author for Assistance !.",
-		//				L"Warning !", MB_OK);
-		//		}
-		//	}
-		//}
+
 
 		if (!Phobos::Otamaa::IsAdmin)
 			Phobos::Config::DevelopmentCommands = INI_RulesMD.ReadBool(GLOBALCONTROLS_SECTION, "DebugKeysEnabled", Phobos::Config::DevelopmentCommands);
@@ -592,13 +545,11 @@ void Phobos::Config::Read()
 			}
 		}
 
-		if (INI_RulesMD.ReadBool(GENERAL_SECTION, "FixTransparencyBlitters", false))
-		{
+		if (INI_RulesMD.ReadBool(GENERAL_SECTION, "FixTransparencyBlitters", false)) {
 			BlittersFix::Apply();
 		}
 
 		Phobos::Config::MultiThreadSinglePlayer = INI_RulesMD.ReadBool(GameStrings::General, "MultiThreadSinglePlayer", false);
-		//Phobos::Config::UseImprovedPathfindingBlockageHandling = INI_RulesMD.ReadBool(GameStrings::General, "UseImprovedPathfindingBlockageHandling", false);
 		Phobos::Config::HideLightFlashEffects = CCINIClass::INI_RA2MD->ReadBool(PHOBOS_STR, "HideLightFlashEffects", false);
 		Phobos::Config::SaveVariablesOnScenarioEnd = INI_RulesMD.ReadBool(GENERAL_SECTION, "SaveVariablesOnScenarioEnd", Phobos::Config::SaveVariablesOnScenarioEnd);
 		Phobos::Config::ApplyShadeCountFix = INI_RulesMD.ReadBool(AUDIOVISUAL_SECTION, "ApplyShadeCountFix", Phobos::Config::ApplyShadeCountFix);
@@ -607,12 +558,46 @@ void Phobos::Config::Read()
 	}
 }
 
+void Phobos::ThrowUsageWarning(CCINIClass* pINI)
+{
+	//there is only few mod(s) that using this
+	//just add your mod name or remove these code if you dont like it
+	if (!Phobos::Otamaa::IsAdmin)
+	{
+		if(pINI->ReadString(GENERAL_SECTION, GameStrings::Name, "", Phobos::readBuffer) <= 0)
+			return;
+
+		const std::string ModNameTemp = Phobos::readBuffer;
+
+		if (!ModNameTemp.empty())
+		{
+			std::size_t nFInd = ModNameTemp.find("Rise of the East");
+			if (nFInd == std::string::npos)
+				nFInd = ModNameTemp.find("Ion Shock");
+
+			if (nFInd == std::string::npos)
+				nFInd = ModNameTemp.find("New War");
+
+			if (nFInd == std::string::npos)
+				nFInd = ModNameTemp.find("NewWar");
+
+			if (nFInd == std::string::npos)
+			{
+				MessageBoxW(NULL,
+					L"This is not Official Phobos Build.\n\n"
+					L"Please contact original Mod Author for Assistance !.",
+					L"Warning !", MB_OK);
+			}
+		}
+	}
+}
+
 void Phobos::DrawVersionWarning()
 {
 	if (!Phobos::Config::HideWarning)
 	{
 		const auto pSurface = DSurface::Composite();
-		if (!pSurface)
+		if (!pSurface || VTable::Get(pSurface) != DSurface::vtable)
 			return;
 
 		const auto wanted = Drawing::GetTextDimensions(Phobos::VersionDescription, { 0,0 }, 0, 2, 0);
@@ -631,54 +616,39 @@ void Phobos::DrawVersionWarning()
 	}
 }
 
-void InitAdminDebugMode()
+void Phobos::InitAdminDebugMode()
 {
-	if (!Phobos::Config::HideWarning)
-	{
-		DWORD dwSize = MAX_COMPUTERNAME_LENGTH + 1;
-		GetComputerName(Phobos::Otamaa::PCName, &dwSize);
-
-		if (IS_SAME_STR_(Phobos::Otamaa::PCName, "WIN-55BCCCCDAST"))
-		{
-			Phobos::Otamaa::IsAdmin = true;
-			Phobos::EnableConsole = true;
-			Phobos::Config::MultiThreadSinglePlayer = true;
-			Phobos::Config::DebugFatalerrorGenerateDump = true;
 #ifndef DETACH_DEBUGGER
-			// this thing can cause game to lockup when loading data
-			//better disable it for release
+	// this thing can cause game to lockup when loading data
+	//better disable it for release
+	const bool Detached =
+		Phobos::DetachFromDebugger();
 
-			const bool Detached =
-				Phobos::DetachFromDebugger();
+	if (Detached)
+	{
+		MessageBoxW(NULL,
+		L"You can now attach a debugger.\n\n"
 
-			if (Detached)
-			{
-				MessageBoxW(NULL,
-				L"You can now attach a debugger.\n\n"
-
-				L"Press OK to continue YR execution.",
-				L"Debugger Notice", MB_OK);
-			}
-			else
-			{
-				MessageBoxW(NULL,
-				L"You can now attach a debugger.\n\n"
-
-				L"To attach a debugger find the YR process in Process Hacker "
-				L"/ Visual Studio processes window and detach debuggers from it, "
-				L"then you can attach your own debugger. After this you should "
-				L"terminate Syringe.exe because it won't automatically exit when YR is closed.\n\n"
-
-				L"Press OK to continue YR execution.",
-				L"Debugger Notice", MB_OK);
-			}
-#endif
-		}
+		L"Press OK to continue YR execution.",
+		L"Debugger Notice", MB_OK);
 	}
+	else
+	{
+		MessageBoxW(NULL,
+		L"You can now attach a debugger.\n\n"
 
+		L"To attach a debugger find the YR process in Process Hacker "
+		L"/ Visual Studio processes window and detach debuggers from it, "
+		L"then you can attach your own debugger. After this you should "
+		L"terminate Syringe.exe because it won't automatically exit when YR is closed.\n\n"
+
+		L"Press OK to continue YR execution.",
+		L"Debugger Notice", MB_OK);
+	}
+#endif
 }
 
-void InitConsole()
+void Phobos::InitConsole()
 {
 	if (Phobos::EnableConsole)
 	{
@@ -691,22 +661,6 @@ void InitConsole()
 	}
 }
 
-bool __fastcall CustomPalette_Read_Static(CustomPalette* pThis, DWORD, INI_EX* pEx, const char* pSection, const char* pKey, const char* pDefault)
-{
-	return pThis->Read(pEx->GetINI(), pSection, pKey, pDefault);
-}
-
-//dummy
-void __stdcall SideExt_UpdateGlobalFiles()
-{
-	Debug::Log(__FUNCTION__" Executed!\n");
-}
-
-void __stdcall BuildingExtContainer_LoadGlobal(void**)
-{
-	Debug::Log(__FUNCTION__" Executed!\n");
-}
-
 bool HasCNCnet = false;
 
 void Phobos::ExeRun()
@@ -717,7 +671,7 @@ void Phobos::ExeRun()
 	Game::bAllowVRAMSidebar = false;
 
 	Patch::PrintAllModuleAndBaseAddr();
-	InitAdminDebugMode();
+	Phobos::InitAdminDebugMode();
 
 	for (auto&dlls : Patch::ModuleDatas) {
 		if (IS_SAME_STR_(dlls.ModuleName.c_str(), "cncnet5.dll")) {
@@ -729,11 +683,7 @@ void Phobos::ExeRun()
 	}
 
 	PhobosGlobal::Init();
-
-	InitConsole();
 }
-
-#include <New/Type/TheaterTypeClass.h>
 
 void Phobos::ExeTerminate()
 {
@@ -798,136 +748,7 @@ bool Phobos::DetachFromDebugger()
 }
 #pragma warning( pop )
 
-#ifdef ENABLE_ENCRYPTION_HOOKS
-//ToDo: Decrypt ?
-BOOL __stdcall ReadFIle_(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped)
-{
-	return ReadFile(hFile, lpBuffer, nNumberOfBytesToRead, lpNumberOfBytesRead, lpOverlapped);
-}
-
-//ToDo: EncryptHere ?
-BOOL __stdcall CloseHandle_(HANDLE hFile)
-{
-	return CloseHandle(hFile);
-}
-
-//ToDo: EncryptHere ?
-HANDLE __stdcall CreateFileA_(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
-{
-	return CreateFileA(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
-}
-
-//ToDo: Decrypt ?
-HRESULT __stdcall OleLoadFromStream_(LPSTREAM pStm, REFIID iidInterface, LPVOID* ppvObj)
-{
-	return OleLoadFromStream(pStm, iidInterface, ppvObj);
-}
-#endif
-
 #pragma endregion
-
-#pragma region Unsorted
-//void NAKED _ExeTerminate()
-//{
-//	// Call WinMain
-//	SET_REG32(EAX, 0x6BB9A0);
-//	CALL(EAX);
-//	PUSH_REG(EAX);
-//
-//	Phobos::ExeTerminate();
-//
-//	// Jump back
-//	POP_REG(EAX);
-//	SET_REG32(EBX, 0x7CD8EF);
-//	__asm {jmp ebx};
-//}
-#pragma endregion
-
-//void NOINLINE encrypt_func(std::string& data, std::string key)
-//{
-//	for (size_t i = 0; i < data.size(); i++)
-//		data[i] ^= key[i % key.size()];
-//}
-//
-//std::string Key_ =
-//{
-//	{"72951454391147260483756494947213627281"}
-//};
-//
-//void NOINLINE decrypt_func(char* data, DWORD size, std::string& key)
-//{
-//	for (unsigned i = 0; i < size; i++)
-//		data[i] ^= key[i % key.size()];
-//}
-//
-//static bool IsDone = false;
-//std::unordered_map<HANDLE, std::string> Data;
-//
-//HANDLE __stdcall CreatefileA_(LPCSTR a1,
-//	DWORD dwDesiredAccess,
-//	DWORD dwShareMode,
-//	LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-//	DWORD dwCreationDisposition,
-//	DWORD dwFlagsAndAttributes,
-//	HANDLE hTemplateFile)
-//{
-//	auto result = CreateFileA(
-//			a1,
-//			dwDesiredAccess,
-//			dwShareMode,
-//			lpSecurityAttributes,
-//			dwCreationDisposition,
-//			dwFlagsAndAttributes,
-//			hTemplateFile);
-//
-//	if (result != INVALID_HANDLE_VALUE)
-//	{
-//		if (!Data.contains(result))
-//		{
-//			if (strstr(a1, ".MIX")) //recursive ? , mapping handle is not good idea ?
-//			{
-//				Data[result] = a1;
-//			}
-//		}
-//	}
-//
-//	return result;
-//}
-//
-//BOOL __stdcall CloseHandle_(HANDLE hObject)
-//{
-//	if (Data.contains(hObject))
-//		Data.erase(hObject);
-//
-//	return CloseHandle(hObject);
-//}
-//
-//BOOL __stdcall ReadFIle_(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped)
-//{
-//	const auto nRes = SetFilePointer(hFile,0u, nullptr ,1u);
-//	auto result = ReadFile(hFile, lpBuffer, nNumberOfBytesToRead, lpNumberOfBytesRead, lpOverlapped);
-//
-//	if (Data.contains(hFile) && nRes >= 4) {
-//		//decrypt_func(((char*)lpBuffer), nNumberOfBytesToRead, Key_);
-//		Debug::Log("%s Mapped !!\n" , Data[hFile].c_str());
-//	}
-//
-//	return result;
-//}
-
-DEFINE_HOOK(0x6BBFCE, WinMain_SetFPU_SyncDLL , 0x5)
-{
-	/**
-	*  Set the FPU mode to match the game (rounding towards zero [chop mode]).
-	*/
-	_set_controlfp(_RC_CHOP, _MCW_RC);
-
-	/**
-	 *  And this is required for the std c++ lib.
-	 */
-	fesetround(FE_TOWARDZERO);
-	return 0x0;
-}
 
 BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
@@ -1053,6 +874,14 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 #pragma region hooks
 
+DEFINE_HOOK(0x6BBFCE, WinMain_SetFPU_SyncDLL, 0x5)
+{
+	_set_controlfp(_RC_CHOP, _MCW_RC);
+
+	fesetround(FE_TOWARDZERO);
+	return 0x0;
+}
+
 //DEFINE_JUMP(LJMP, 0x7CD8EA, GET_OFFSET(_ExeTerminate));
 #ifndef aaa
 DEFINE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
@@ -1095,9 +924,6 @@ DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 	return 0;
 }
 
-//Disable MousePresent check
-//DEFINE_JUMP(LJMP, 0x6BD8A4, 0x6BD8C2);
-
 #ifndef aaa
 //6BDB0C
 DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
@@ -1110,44 +936,8 @@ DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 
 	Phobos::CmdLineParse(ppArgs, nNumArgs);
 	Debug::LogDeferredFinalize();
-
-	//if(Phobos::Otamaa::IsAdmin) {
-	//	for (const auto& data : Patch::ModuleDatas) {
-	//		for (auto const& patches : data.Patches) {
-	//			Debug::Log("Dll %s Patch %s\n", data.ModuleName.c_str() , patches.c_str());
-	//		}
-	//	}
-	//}
-
-	ExecuteLua();
-
+	Phobos::ExecuteLua();
+	Phobos::InitConsole();
 	return 0;
 }
-
-#ifdef ENABLE_TLS
-DEFINE_HOOK(0x52BA78, _YR_GameInit_Pre, 0x5)
-{
-	if ((TLS_Thread::dwTlsIndex_SHPDRaw_1 = TlsAlloc()) == TLS_OUT_OF_INDEXES)
-		Debug::FatalErrorAndExit("TlsAlloc 1 error ! \n");
-
-	if ((TLS_Thread::dwTlsIndex_SHPDRaw_2 = TlsAlloc()) == TLS_OUT_OF_INDEXES)
-		Debug::FatalErrorAndExit("TlsAlloc 2 error ! \n");
-
-	return 0;
-}
-
-static DWORD FC DeInt_72AC40()
-{ JMP_STD(0x72AC40); }
-
-static DWORD Phobos_EndProgHandle_add()
-{
-	Debug::Log("Cleaning up phobos ! \n");
-	TlsFree(TLS_Thread::dwTlsIndex_SHPDRaw_1);
-	TlsFree(TLS_Thread::dwTlsIndex_SHPDRaw_2);
-	return DeInt_72AC40();
-}
-
-DEFINE_JUMP(CALL, 0x6BE118, GET_OFFSET(Phobos_EndProgHandle_add));
-#endif
-
 #pragma endregion

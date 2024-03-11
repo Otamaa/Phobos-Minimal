@@ -10,10 +10,7 @@ class PhobosGlobal
 {
 	static std::unique_ptr<PhobosGlobal> GlobalObject;
 public:
-	ColorStruct maxColor { };
-	char BuildTimeDatas[0x720] { };
 	bool DetonateDamageArea { true };
-	int SpotHeight { 0 };
 
 	std::vector<CellStruct> TempFoundationData1 { };
 	std::vector<CellStruct> TempFoundationData2 { };
@@ -41,7 +38,6 @@ public:
 	{
 		return stm
 			.Process(this->DetonateDamageArea)
-			.Process(this->SpotHeight)
 			.Process(this->TempFoundationData1)
 			.Process(this->TempFoundationData2)
 			.Process(this->TempCoveredCellsData)

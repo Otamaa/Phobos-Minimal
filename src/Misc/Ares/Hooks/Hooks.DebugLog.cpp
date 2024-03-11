@@ -1,8 +1,10 @@
 #include <Utilities/Debug.h>
+
 #include "Header.h"
 
-DEFINE_STRONG_HOOK_AGAIN(0x4A4AC0, Debug_Log, 1)
-DEFINE_STRONG_HOOK(0x4068E0, Debug_Log, 1)
+//use the padding ,...
+DEFINE_STRONG_HOOK_AGAIN(0x4A4AC0, Debug_Log, 5)
+DEFINE_STRONG_HOOK(0x4068E0, Debug_Log, 5)
 {
 	LEA_STACK(va_list const, args, 0x8);
 	GET_STACK(const char* const, pFormat, 0x4);

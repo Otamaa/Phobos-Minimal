@@ -85,8 +85,6 @@ DEFINE_HOOK(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 
 	const auto pSideExt = SideExtContainer::Instance.Find(pSide);
 
-	wchar_t counter[0x20];
-
 	 if (Phobos::UI::ShowHarvesterCounter)
 	 {
 	 	const auto nActive = HouseExtData::ActiveHarvesterCount(pPlayer);
@@ -97,7 +95,7 @@ DEFINE_HOOK(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 	 		? Drawing::TooltipColor() : nPercentage > Phobos::UI::HarvesterCounter_ConditionRed
 	 		? pSideExt->Sidebar_HarvesterCounter_Yellow : pSideExt->Sidebar_HarvesterCounter_Red;
 
-	 	swprintf_s(counter, L"%ls%d/%d", Phobos::UI::HarvesterLabel, nActive, nTotal);
+		std::wstring Harv = std::format(L"{}{}/{}", Phobos::UI::HarvesterLabel, nActive, nTotal);
 
 	 	Point2D vPos {
 	 		DSurface::Sidebar->Get_Width() / 2 + 50 + pSideExt->Sidebar_HarvesterCounter_Offset.Get().X,
@@ -105,18 +103,19 @@ DEFINE_HOOK(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 	 	};
 
 	 	RectangleStruct vRect = DSurface::Sidebar->Get_Rect();
-	 	DSurface::Sidebar->DSurfaceDrawText(counter, &vRect, &vPos, Drawing::RGB2DWORD(clrToolTip), 0,
+	 	DSurface::Sidebar->DSurfaceDrawText(Harv.c_str(), &vRect, &vPos, Drawing::ColorStructToWord(clrToolTip), 0,
 	 		TextPrintType::UseGradPal | TextPrintType::Center | TextPrintType::Metal12);
 	 }
 
 	if (Phobos::UI::ShowPowerDelta)
 	{
 		ColorStruct clrToolTip { };
+		std::wstring ShowPower;
 
 		if (pPlayer->PowerBlackoutTimer.InProgress())
 		{
 			clrToolTip = pSideExt->Sidebar_PowerDelta_Grey.Get();
-			swprintf_s(counter, L"%ls", Phobos::UI::PowerBlackoutLabel);
+			ShowPower = Phobos::UI::PowerBlackoutLabel;
 		}
 		else
 		{
@@ -129,7 +128,7 @@ DEFINE_HOOK(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 				? pSideExt->Sidebar_PowerDelta_Green.Get() : LESS_EQUAL(percent, Phobos::UI::PowerDelta_ConditionRed)
 				? pSideExt->Sidebar_PowerDelta_Yellow.Get() : pSideExt->Sidebar_PowerDelta_Red;
 
-			swprintf_s(counter, L"%ls%+d", Phobos::UI::PowerLabel, delta);
+			ShowPower = std::format(L"{}{}", Phobos::UI::PowerLabel, delta);
 		}
 
 		const auto TextFlags = static_cast<TextPrintType>(static_cast<int>(TextPrintType::UseGradPal | TextPrintType::Metal12)
@@ -141,7 +140,7 @@ DEFINE_HOOK(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 		};
 
 		RectangleStruct vRect = DSurface::Sidebar->Get_Rect();
-		DSurface::Sidebar->DSurfaceDrawText(counter, &vRect, &vPos, Drawing::RGB2DWORD(clrToolTip), 0, TextFlags);
+		DSurface::Sidebar->DSurfaceDrawText(ShowPower.c_str(), &vRect, &vPos, Drawing::ColorStructToWord(clrToolTip), 0, TextFlags);
 	}
 
 	return 0;
@@ -283,10 +282,7 @@ DEFINE_HOOK(0x685D95, DoWin_ShowBriefing, 0x5) {
 DEFINE_HOOK(0x65F764, BriefingDialog_ShowBriefing, 0x5)
 {
 	if (BriefingTemp::ShowBriefing) {
-		GET(HWND, hDlg, ESI);
-
-		auto const hResumeBtn = GetDlgItem(hDlg, 1059);
-		SendMessageA(hResumeBtn, 1202, 0, reinterpret_cast<LPARAM>(Phobos::UI::ShowBriefingResumeButtonLabel));
+		SendMessageA(GetDlgItem(R->ESI<HWND>(), 1059), 1202, 0, reinterpret_cast<LPARAM>(Phobos::UI::ShowBriefingResumeButtonLabel));
 	}
 
 	return 0;

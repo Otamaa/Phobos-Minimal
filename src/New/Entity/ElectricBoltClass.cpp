@@ -159,7 +159,6 @@ void ElectricBoltClass::Plot_Bolt(CoordStruct& start, CoordStruct& end)
 
 		while (true)
 		{
-
 			while (distance > (Unsorted::LeptonsPerCell / 4) && plot_index < static_cast<int>(ebolt_plots.size()))
 			{
 
@@ -303,12 +302,13 @@ void ElectricBoltManager::Draw_All()
 	if (ElectricBoltArray.empty())
 		return;
 
-	for (size_t i = 0; i < ElectricBoltArray.size(); ++i) {
-		auto& pBolt = ElectricBoltArray[i];
-		if (pBolt.Lifetime <= 0) {
-			ElectricBoltArray.erase(ElectricBoltArray.begin() + i);
-		} else {
-			pBolt.Draw_It();
-		}
-	}
+	auto iter = std::remove_if(ElectricBoltArray.begin(), ElectricBoltArray.end(), [](ElectricBoltClass& bolt) {
+
+		if (bolt.Lifetime > 0)
+			bolt.Draw_It();
+
+		return bolt.Lifetime <= 0;
+	});
+
+	ElectricBoltArray.erase(iter, ElectricBoltArray.end());
 }
