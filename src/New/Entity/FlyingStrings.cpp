@@ -30,7 +30,7 @@ bool FlyingStrings::DrawAllowed(CoordStruct const& nCoords, Point2D& outPoint)
 
 void FlyingStrings::Add(const wchar_t* text, CoordStruct const& coords, ColorStruct const& color, Point2D const& pixelOffset)
 {
-	Item item { coords, pixelOffset, Unsorted::CurrentFrame, Drawing::RGB2DWORD(color), TextPrintType::Center | TextPrintType::NoShadow, L"" };
+	Item item { coords, pixelOffset, Unsorted::CurrentFrame, Drawing::ColorStructToWordRGB(color), TextPrintType::Center | TextPrintType::NoShadow, L""};
 	PhobosCRT::wstrCopy(item.Text, text, 0x20);
 	Data.push_back(item);
 }
@@ -178,6 +178,9 @@ void FlyingStrings::DisplayDamageNumberString(int damage, DamageDisplayType type
 		break;
 	}
 
+	if(damage < 0)
+		damage = -damage;
+
 	int maxOffset = Unsorted::CellWidthInPixels / 2;
 	int width = 0, height = 0;
 	const std::wstring damagestr(std::to_wstring(damage));
@@ -194,38 +197,37 @@ void FlyingStrings::DisplayDamageNumberString(int damage, DamageDisplayType type
 
 void FlyingStrings::UpdateAll()
 {
-
-	for (int i = static_cast<int>(Data.size()) - 1; i >= 0; --i)
-	{
-		auto& dataItem = Data[i];
-
-		if (dataItem.Text[0])
-		{
+	auto iter = std::remove_if(Data.begin(), Data.end(), [](FlyingStrings::Item& item) {
+		if (item.Text[0]) {
 			Point2D pos {};
 			Point2D tmp {};
 
-			if (FlyingStrings::DrawAllowed(dataItem.Location, pos))
+			if (FlyingStrings::DrawAllowed(item.Location, pos))
 			{
-				pos += dataItem.PixelOffset;
+				pos += item.PixelOffset;
 				auto bound = DSurface::Temp->Get_Rect_WithoutBottomBar();
 
 				if (!(pos.X < 0 || pos.Y < 0 || pos.X > bound.Width || pos.Y > bound.Height))
 				{
-					if (Unsorted::CurrentFrame > dataItem.CreationFrame + Duration - 70)
+					if (Unsorted::CurrentFrame > item.CreationFrame + Duration - 70)
 					{
-						pos.Y -= (Unsorted::CurrentFrame - dataItem.CreationFrame);
-						Fancy_Text_Print_Wide_REF(&tmp, dataItem.Text, DSurface::Temp(), &bound, &pos, dataItem.Color, 0, dataItem.TextPrintType, 1);
+						pos.Y -= (Unsorted::CurrentFrame - item.CreationFrame);
+						Fancy_Text_Print_Wide_REF(&tmp, item.Text, DSurface::Temp(), &bound, &pos, item.Color, 0, item.TextPrintType, 1);
 					}
 					else
 					{
-						Fancy_Text_Print_Wide_REF(&tmp, dataItem.Text, DSurface::Temp(), &bound, &pos, dataItem.Color, 0, dataItem.TextPrintType, 1);
+						Fancy_Text_Print_Wide_REF(&tmp, item.Text, DSurface::Temp(), &bound, &pos, item.Color, 0, item.TextPrintType, 1);
 					}
 				}
 			}
 		}
 
-		if (Unsorted::CurrentFrame > dataItem.CreationFrame + Duration || Unsorted::CurrentFrame < dataItem.CreationFrame){
-			Data.erase(Data.begin() + i);
+		if (Unsorted::CurrentFrame > item.CreationFrame + Duration || Unsorted::CurrentFrame < item.CreationFrame) {
+			return true;
 		}
-	}
+
+		return false;
+	});
+
+	Data.erase(iter, Data.end());
 }
