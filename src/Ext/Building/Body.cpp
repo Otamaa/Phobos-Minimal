@@ -695,8 +695,17 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		//if (!pOwner->IsControlledByHuman())
 		//	pBuilding->DiscoveredBy(pOwner);
 
+		// For reasons beyond my comprehension, the discovery logic is checked for certain logics like power drain/output in campaign only.
+		// Normally on unlimbo the buildings are revealed to current player if unshrouded or if game is a campaign and to non-player houses always.
+		// Because of the unique nature of LimboDelivered buildings, this has been adjusted to always reveal to the current player in singleplayer
+		// and to the owner of the building regardless, removing the shroud check from the equation since they don't physically exist - Starkku
+		if (SessionClass::IsCampaign())
+			pBuilding->DiscoveredBy(HouseClass::CurrentPlayer);
+
+		pBuilding->DiscoveredBy(pOwner);
+
 		pOwnerExt->LimboTechno.push_back(pBuilding);
-		pOwner->AddTracking(pBuilding);
+		//pOwner->AddTracking(pBuilding);
 		pOwner->RegisterGain(pBuilding, false);
 		pOwner->UpdatePower();
 		pOwner->RecheckTechTree = true;
@@ -721,14 +730,14 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		//if (pType->OrePurifier)
 		//	pOwner->NumOrePurifiers++;
 
-		if (!pOwner->Type->MultiplayPassive)
-		{
-			if (auto const pInfantrySelfHeal = pType->InfantryGainSelfHeal)
-				pOwner->InfantrySelfHeal += pInfantrySelfHeal;
-
-			if (auto const pUnitSelfHeal = pType->UnitsGainSelfHeal)
-				pOwner->UnitsSelfHeal += pUnitSelfHeal;
-		}
+		//if (!pOwner->Type->MultiplayPassive)
+		//{
+		//	if (auto const pInfantrySelfHeal = pType->InfantryGainSelfHeal)
+		//		pOwner->InfantrySelfHeal += pInfantrySelfHeal;
+		//
+		//	if (auto const pUnitSelfHeal = pType->UnitsGainSelfHeal)
+		//		pOwner->UnitsSelfHeal += pUnitSelfHeal;
+		//}
 
 		pOwner->UpdateSuperWeaponsUnavailable();
 
@@ -775,66 +784,9 @@ void BuildingExtData::LimboKill(BuildingClass* pBuilding)
 
 	Debug::Log("BuildingExtData::LimboKill -  Killing Building[%x - %s] ! \n", pBuilding, pBuilding->get_ID());
 
-	auto const pType = pBuilding->Type;
-	auto const pTargetHouse = pBuilding->Owner;
-
-	// Mandatory
-	pBuilding->InLimbo = true;
-	//pBuilding->IsAlive = false;
-	pBuilding->IsOnMap = false;
-	pTargetHouse->UpdatePower();
-
-	if (!pTargetHouse->RecheckTechTree)
-		pTargetHouse->RecheckTechTree = true;
-
-	auto pOwnerExt = HouseExtContainer::Instance.Find(pTargetHouse);
-
-	if(BuildingTypeExtContainer::Instance.Find(pType)->Academy)
-		pOwnerExt->UpdateAcademy(pBuilding, false);
-
-	pTargetHouse->RecheckPower = true;
-	pTargetHouse->RecheckRadar = true;
-	pTargetHouse->Buildings.Remove(pBuilding);
-	static_assert(offsetof(HouseClass, Buildings) == 0x68, "ClassMember Shifted !");
-	pOwnerExt->LimboTechno.remove(pBuilding);
-	pTargetHouse->RegisterLoss(pBuilding, false);
-	//pTargetHouse->RemoveTracking(pBuilding);
-
-	pTargetHouse->ActiveBuildingTypes.Decrement(pBuilding->Type->ArrayIndex);
-
-	// Building logics
-	if (pType->ConstructionYard)
-		pTargetHouse->ConYards.Remove(pBuilding);
-
-	if (pType->SecretLab)
-		pTargetHouse->SecretLabs.Remove(pBuilding);
-
-	//if (pType->FactoryPlant)
-	//{
-	//
-	//	pTargetHouse->FactoryPlants.Remove(pBuilding);
-	//	pTargetHouse->CalculateCostMultipliers();
-	//}
-
-	//if (pType->OrePurifier)
-	//	pTargetHouse->NumOrePurifiers--;
-
-	if (auto const pInfantrySelfHeal = pType->InfantryGainSelfHeal)
-	{
-		pTargetHouse->InfantrySelfHeal -= pInfantrySelfHeal;
-		if (pTargetHouse->InfantrySelfHeal < 0)
-			pTargetHouse->InfantrySelfHeal = 0;
-	}
-
-	if (auto const pUnitSelfHeal = pType->UnitsGainSelfHeal)
-	{
-		pTargetHouse->UnitsSelfHeal -= pUnitSelfHeal;
-		if (pTargetHouse->UnitsSelfHeal < 0)
-			pTargetHouse->UnitsSelfHeal = 0;
-	}
-
-	pTargetHouse->UpdateSuperWeaponsUnavailable();
-
+	pBuilding->Stun();
+	pBuilding->Limbo();
+	pBuilding->RegisterDestruction(nullptr);
 	// Remove completely
 	Debug::Log(__FUNCTION__" Called \n");
 	TechnoExtData::HandleRemove(pBuilding, nullptr, true, false);
