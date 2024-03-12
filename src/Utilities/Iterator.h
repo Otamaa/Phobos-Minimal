@@ -108,14 +108,31 @@ public:
 		return !this->valid() || !this->count;
 	}
 
-	bool contains(const T& other) const {
+	bool FORCEINLINE contains(const T& other) const {
 		if constexpr (direct_comparable<T>) {
-			return std::any_of(this->begin(), this->end(), [&](const auto item)
-			{
-				return item == other;
-			});
+			for (auto i = this->begin(); i != this->end(); ++i) {
+				if (*i == other) {
+					return true;
+				}
+			}
+
+			return false;
 		}
 		else { return std::find(this->begin(), this->end(), other) != this->end(); }
+	}
+
+	template <typename Func>
+	void FORCEINLINE for_each(Func&& act) const {
+		for (auto i = this->begin(); i != this->end(); ++i) {
+        	act(*i);
+    	}
+	}
+
+	template <typename Func>
+	void FORCEINLINE for_each(Func&& act) {
+		for (auto i = this->begin(); i != this->end(); ++i) {
+        	act(*i);
+    	}
 	}
 
 	operator bool() const {

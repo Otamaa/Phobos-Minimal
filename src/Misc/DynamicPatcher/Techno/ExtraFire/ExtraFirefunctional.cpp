@@ -114,7 +114,7 @@ void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, 
 		}
 	}
 
-	std::for_each(nSelectedWeapon.begin() , nSelectedWeapon.end() ,[&](WeaponTypeClass* pWeapon){
+	nSelectedWeapon.for_each([&](WeaponTypeClass* pWeapon){
 		bool bFire = true;
 		int nRof = 0;
 		if (auto const pWeaponTypeExt = WeaponTypeExtContainer::Instance.Find(pWeapon))

@@ -502,6 +502,20 @@ namespace Helpers {
 			return false;
 		}
 
+
+		template <typename InIt, typename Pred>
+		inline auto find_if(InIt first, InIt last, Pred pred)
+		{
+			auto i = first;
+			for (; i != last; ++i) {
+				if (pred(*i)) {
+					break;
+				}
+			}
+
+			return i;
+		}
+
 		template <typename Value, typename Option>
 		inline bool is_any_of(Value&& value, Option&& option) {
 			return value == option;
@@ -545,12 +559,12 @@ namespace Helpers {
 		*/
 		template <typename InIt, typename Pred, typename Fn>
 		inline void for_each_if(InIt first, InIt last, Pred pred, Fn func) {
-			first = std::find_if(first, last, pred);
+			first = find_if(first, last, pred);
 
 			while (first != last) {
 				func(*first++);
 
-				first = std::find_if(first, last, pred);
+				first = find_if(first, last, pred);
 			}
 		}
 
@@ -571,12 +585,12 @@ namespace Helpers {
 		template <typename InIt, typename Pred, typename Fn>
 		inline void for_each_if_n(InIt first, InIt last, size_t count, Pred pred, Fn func) {
 			if (count) {
-				first = std::find_if(first, last, pred);
+				first = find_if(first, last, pred);
 
 				while (count-- && first != last) {
 					func(*first++);
 
-					first = std::find_if(first, last, pred);
+					first = find_if(first, last, pred);
 				}
 			}
 		}
