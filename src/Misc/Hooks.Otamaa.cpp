@@ -3746,8 +3746,8 @@ DEFINE_STRONG_HOOK(0x4F9A90, HouseClass_IsAlliedWith, 0x7)
 	GET(HouseClass*, pThis, ECX);
 	GET_STACK(DWORD, called, 0x0);
 
-	if (!pThis) {
-		Debug::FatalError("HouseClass - IsAlliedWith , Called from[%x] with `nullptr` pointer !\n", called);
+	if (!pThis || VTable::Get(pThis) != HouseClass::vtable) {
+		Debug::FatalError("HouseClass - IsAlliedWith[%x] , Called from[%x] with `nullptr` pointer !\n",R->Origin(), called);
 	}
 
 	return 0;

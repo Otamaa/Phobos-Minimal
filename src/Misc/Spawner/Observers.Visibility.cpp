@@ -26,7 +26,7 @@ DEFINE_HOOK(0x700594, TechnoClass_WhatAction_AllowAllies, 0x5)
 	GET(TechnoClass*, pThis, ESI);
 	GET(ObjectClass*, pObject, EDI);
 
-	return pObject->GetOwningHouse()->IsAlliedWith(pThis->Owner) ? 0x70059D : 0x7005E6;
+	return pThis->Owner->IsAlliedWith(pObject->GetOwningHouse()) ? 0x70059D : 0x7005E6;
 }
 
 DEFINE_HOOK(0x703A09, TechnoClass_VisualCharacter_CloakVisibility, 0x7)
