@@ -485,7 +485,7 @@ public:
 			if (index < this->Count)
 			{
 				T* nSource = this->Items + index;
-				T* nDest = std::next(nSource);			
+				T* nDest = std::next(nSource);
 				std::memmove(nDest, nSource, (this->begin() - nSource) * sizeof(T));
 			}
 
@@ -570,42 +570,86 @@ public:
 #pragma region WrappedSTD
 	template <typename Func>
 	auto FORCEINLINE find_if(Func&& act) const {
-		return std::find_if(this->begin(), this->end(), std::forward<Func>(act));
+		auto i = this->begin();
+
+	    for (; i != this->end(); ++i) {
+			if (act(*i)) {
+				break;
+			}
+   		}
+
+		return i;
 	}
 
 	template <typename Func>
 	auto FORCEINLINE find_if(Func&& act) {
-		return std::find_if(this->begin(), this->end(), std::forward<Func>(act));
+		auto i = this->begin();
+
+		for (; i != this->end(); ++i) {
+			if (act(*i)) {
+				break;
+			}
+   		}
+
+		return i;
 	}
 
 	template <typename Func>
 	void FORCEINLINE for_each(Func&& act) const {
-		std::for_each(this->begin(), this->end(), std::forward<Func>(act));
+		for (auto i = this->begin(); i != this->end(); ++i) {
+        	act(*i);
+    	}
 	}
 
 	template <typename Func>
 	void FORCEINLINE for_each(Func&& act) {
-		std::for_each(this->begin(), this->end(), std::forward<Func>(act));
+		for (auto i = this->begin(); i != this->end(); ++i) {
+        	act(*i);
+    	}
 	}
 
 	template<typename func>
 	bool FORCEINLINE none_of(func&& fn) const {
-		return std::none_of(this->begin(), this->end(), std::forward<func>(fn));
+		for (auto i = this->begin(); i != this->end(); ++i) {
+       	 	if (fn(*i)) {
+           	 	return false;
+        	}
+    	}
+
+    	return true;
 	}
 
 	template<typename func>
 	bool FORCEINLINE none_of(func&& fn) {
-		return std::none_of(this->begin(), this->end(), std::forward<func>(fn));
+		for (auto i = this->begin(); i != this->end(); ++i) {
+       	 	if (fn(*i)) {
+           	 	return false;
+        	}
+    	}
+
+    	return true;
 	}
 
 	template<typename func>
 	bool FORCEINLINE any_of(func&& fn) const {
-		return std::any_of(this->begin(), this->end(), std::forward<func>(fn));
+		for (auto i = this->begin(); i != this->end(); ++i) {
+       		if (fn(*i)) {
+            	return true;
+			}
+        }
+
+		return false;
 	}
 
 	template<typename func>
 	bool FORCEINLINE any_of(func&& fn) {
-		return std::any_of(this->begin(), this->end(), std::forward<func>(fn));
+		for (auto i = this->begin(); i != this->end(); ++i) {
+       		if (fn(*i)) {
+            	return true;
+			}
+        }
+
+		return false;
 	}
 #pragma endregion
 

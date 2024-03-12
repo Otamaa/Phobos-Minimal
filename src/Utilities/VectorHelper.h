@@ -53,7 +53,15 @@ struct HelperedVector : public std::vector<T>
 
 	auto FORCEINLINE find(const T& item) const {
 		if constexpr (direct_comparable<T>) {
-			return std::find_if(this->begin(), this->end(), [item](const auto item_here) { return item_here == item; });
+			auto i = this->begin();
+
+			for (; i != this->end(); ++i) {
+				if (*i == item) {
+					break;
+				}
+			}
+
+			return i;
 		} else {
 			return std::find(this->begin(), this->end(), item);
 		}
@@ -61,7 +69,15 @@ struct HelperedVector : public std::vector<T>
 
 	auto FORCEINLINE find(const T& item) {
 		if constexpr (direct_comparable<T>) {
-			return std::find_if(this->begin(), this->end(), [item](const auto item_here) { return item_here == item; });
+			auto i = this->begin();
+
+			for (; i != this->end(); ++i) {
+				if (*i == item) {
+					break;
+				}
+			}
+
+			return i;
 		} else {
 			return std::find(this->begin(), this->end(), item);
 		}
@@ -87,41 +103,81 @@ struct HelperedVector : public std::vector<T>
 
 	template <typename Func>
 	void FORCEINLINE for_each(Func&& act) const {
-		std::for_each(this->begin(), this->end(), std::forward<Func>(act));
+		for (auto i = this->begin(); i != this->end(); ++i) {
+        	act(*i);
+    	}
 	}
 
 	template <typename Func>
 	void FORCEINLINE for_each(Func&& act) {
-		std::for_each(this->begin(), this->end(), std::forward<Func>(act));
+		for (auto i = this->begin(); i != this->end(); ++i) {
+        	act(*i);
+    	}
 	}
 
 	template<typename func>
 	bool FORCEINLINE none_of(func&& fn) const {
-		return std::none_of(this->begin(), this->end(), std::forward<func>(fn));
+		for (auto i = this->begin(); i != this->end(); ++i) {
+       	 	if (fn(*i)) {
+           	 	return false;
+        	}
+    	}
+
+    	return true;
 	}
 
 	template<typename func>
 	bool FORCEINLINE none_of(func&& fn) {
-		return std::none_of(this->begin(), this->end(), std::forward<func>(fn));
+		for (auto i = this->begin(); i != this->end(); ++i) {
+       	 	if (fn(*i)) {
+           	 	return false;
+        	}
+    	}
+
+    	return true;
 	}
 
 	template<typename func>
 	bool FORCEINLINE any_of(func&& fn) const {
-		return std::any_of(this->begin(), this->end(), std::forward<func>(fn));
+		for (auto i = this->begin(); i != this->end(); ++i) {
+       		if (fn(*i)) {
+            	return true;
+			}
+        }
+
+		return false;
 	}
 
 	template<typename func>
 	bool FORCEINLINE any_of(func&& fn) {
-		return std::any_of(this->begin(), this->end(), std::forward<func>(fn));
+		for (auto i = this->begin(); i != this->end(); ++i) {
+       		if (fn(*i)) {
+            	return true;
+			}
+        }
+
+		return false;
 	}
 
 	template<typename func>
 	bool FORCEINLINE all_of(func&& fn) const {
-		return std::all_of(this->begin(), this->end(), std::forward<func>(fn));
+		for (auto i = this->begin(); i != this->end(); ++i) {
+			if (!fn(*i)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	template<typename func>
 	bool FORCEINLINE all_of(func&& fn) {
-		return std::all_of(this->begin(), this->end(), std::forward<func>(fn));
+		for (auto i = this->begin(); i != this->end(); ++i) {
+			if (!fn(*i)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 };
