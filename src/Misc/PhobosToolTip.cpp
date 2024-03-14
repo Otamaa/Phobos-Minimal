@@ -291,7 +291,7 @@ DEFINE_HOOK(0x478E10, CCToolTip_Draw1, 0x6) //0
 
 DEFINE_HOOK(0x478E4A, CCToolTip_Draw2_SetSurface, 0x6)
 {
-	if (PhobosToolTip::Instance.SlaveDraw)
+	if (PhobosToolTip::Instance.SlaveDraw || RulesExtData::Instance()->ToolTip_ExcludeSidebar)
 	{
 		R->ESI(DSurface::Composite());
 		return 0x478ED3;
@@ -314,7 +314,7 @@ DEFINE_HOOK(0x478EF8, CCToolTip_Draw2_SetMaxWidth, 0x5)
 
 DEFINE_HOOK(0x478F52, CCToolTip_Draw2_SetX, 0x8)
 {
-	if (PhobosToolTip::Instance.SlaveDraw)
+	if (PhobosToolTip::Instance.SlaveDraw && !RulesExtData::Instance()->ToolTip_ExcludeSidebar)
 		R->EAX(R->EAX() + DSurface::Sidebar->Get_Width());
 
 	return 0;

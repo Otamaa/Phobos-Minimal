@@ -682,7 +682,7 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 
 		// All of these are mandatory
 		pBuilding->InLimbo = false;
-		//pBuilding->IsAlive = true;
+		pBuilding->IsAlive = true;
 		pBuilding->IsOnMap = true;
 
 		//const auto pCell = MapClass::Instance->TryGetCellAt(pBuilding->Location);

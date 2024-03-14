@@ -517,10 +517,10 @@ public:
 
 		T* find = this->Items + index;
 		T* end = this->Items + this->Count;
-		T* next = std::next(find);
 
-		if (find != this->end()) {
+		if (find != end) {
 
+			T* next = std::next(find);
 			// move all the items from next to current pos
 			std::memmove(find, next, (end - next) * sizeof(T));
 			--this->Count;//decrease the count

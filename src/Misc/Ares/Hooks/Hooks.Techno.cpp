@@ -698,6 +698,10 @@ DEFINE_HOOK(0x6FD438, TechnoClass_FireLaser, 6)
 DEFINE_HOOK(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 {
 	GET(TechnoClass*, pTechno, EBP);
+
+	if(!pTechno->IsAlive)
+		return 0x6F5347;
+
 	GET_STACK(RectangleStruct*, pRect, 0xA0);
 
 	if (auto pBld = specific_cast<BuildingClass*>(pTechno))

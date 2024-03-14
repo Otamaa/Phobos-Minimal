@@ -762,6 +762,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->ToolTip_Background_Color.Read(exINI, AUDIOVISUAL_SECTION, "ToolTip.Background.Color");
 	this->ToolTip_Background_Opacity.Read(exINI, AUDIOVISUAL_SECTION, "ToolTip.Background.Opacity");
 	this->ToolTip_Background_BlurSize.Read(exINI, AUDIOVISUAL_SECTION, "ToolTip.Background.BlurSize");
+	this->ToolTip_ExcludeSidebar.Read(exINI, AUDIOVISUAL_SECTION, "ToolTip.ExcludeSidebar");
 
 	this->Crate_LandOnly.Read(exINI, GameStrings::CrateRules(), "Crate.LandOnly");
 
@@ -950,7 +951,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->ToolTip_Background_Color)
 		.Process(this->ToolTip_Background_Opacity)
 		.Process(this->ToolTip_Background_BlurSize)
-
+		.Process(this->ToolTip_ExcludeSidebar)
 		.Process(this->Crate_LandOnly)
 
 		.Process(this->NewTeamsSelector)

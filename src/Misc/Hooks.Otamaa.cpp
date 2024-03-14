@@ -3737,7 +3737,7 @@ DEFINE_HOOK(0x6FFD25, TechnoClass_PlayerAssignMission_Capture_InfantryToBld, 0xA
 
 static_assert(offsetof(TechnoClass, Airstrike) == 0x294, "ClassMember Shifted !");
 
-#ifndef CHECK_PTR_VALID
+#ifdef CHECK_PTR_VALID
 DEFINE_STRONG_HOOK_AGAIN(0x4F9A10, HouseClass_IsAlliedWith, 0x6)
 DEFINE_STRONG_HOOK_AGAIN(0x4F9A50, HouseClass_IsAlliedWith, 0x6)
 DEFINE_STRONG_HOOK_AGAIN(0x4F9AF0, HouseClass_IsAlliedWith, 0x7)
@@ -4206,17 +4206,17 @@ DEFINE_HOOK(0x6E8300, TaskForceClass_SwizzleTheID, 0x5) {
 	return 0x6E8315;
 }
 
-DEFINE_HOOK(0x5657A0, MapClass_OpBracket_CellStructPtr, 0x5)
-{
-	GET_STACK(CellStruct*, pCell, 0x4);
-	GET_STACK(DWORD, callr, 0x0);
-
-	if (!pCell) {
-		Debug::FatalErrorAndExit("addr [0x%x] calling MapClass_OpBracket_CellStruct with nullptr cell!\n", callr);
-	}
-
-	return 0x0;
-}
+// DEFINE_HOOK(0x5657A0, MapClass_OpBracket_CellStructPtr, 0x5)
+// {
+// 	GET_STACK(CellStruct*, pCell, 0x4);
+// 	GET_STACK(DWORD, callr, 0x0);
+//
+// 	if (!pCell) {
+// 		Debug::FatalErrorAndExit("addr [0x%x] calling MapClass_OpBracket_CellStruct with nullptr cell!\n", callr);
+// 	}
+//
+// 	return 0x0;
+// }
 
 //DEFINE_PATCH(0x6443E2, 0xBA, 0x01, 0x00, 0x00, 0x00, 0x90);
 //
@@ -4254,7 +4254,7 @@ DEFINE_HOOK(0x42C2BF, AstarClass_FindPath_SaveArgs, 0x6)
 
 //static constexpr constant_ptr<DynamicVectorClass<SubzoneTrackingStruct>, 0x87F874> const SubzoneTrackingStructVector {};
 //#include <ExtraHeaders/AStarClass.h>
-//
+
 //#pragma optimize("", off )
 DEFINE_HOOK(0x42C511, AstarClass_FindPath_nullptr, 0x8)
 {
@@ -4265,7 +4265,7 @@ DEFINE_HOOK(0x42C511, AstarClass_FindPath_nullptr, 0x8)
 	R->ECX(SubZone_Count);
 
 	//this keep the thing clean
-	// not sure if `SubZobneConnectionPtr` will contain broken pointer at some point tho ,....
+	//`SubZobneConnectionPtr` will contain broken pointer at some point tho ,....
 	if (SubZone_Count > 0 && SubZobneConnectionPtr)
 	{
 		//if(!SubZobneConnectionPtr)

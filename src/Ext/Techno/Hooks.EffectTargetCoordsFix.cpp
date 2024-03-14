@@ -17,7 +17,7 @@
 
 #include <Misc/Ares/Hooks/Header.h>
 
-#ifdef PARTONE
+#ifndef PARTONE
 // Contains hooks that fix weapon graphical effects like lasers, railguns, electric bolts, beams and waves not interacting
 // correctly with obstacles between firer and target, as well as railgun / railgun particles being cut off by elevation.
 
@@ -165,6 +165,8 @@ DEFINE_HOOK(0x62D685, ParticleSystemClass_FireAt_Coords, 0x5)
 	return SkipGameCode;
 }
 #endif
+
+#ifdef PERFORMANCE_HEAVY
 namespace FireAtTemp
 {
 	CoordStruct originalTargetCoords;
@@ -172,7 +174,6 @@ namespace FireAtTemp
 	AbstractClass* pOriginalTarget = nullptr;
 }
 
-#ifdef PERFORMANCE_HEAVY
 // https://github.com/Phobos-developers/Phobos/pull/825
 // Todo :  Otamaa : massive FPS drops !
 // Contains hooks that fix weapon graphical effects like lasers, railguns, electric bolts, beams and waves not interacting
@@ -383,7 +384,7 @@ DEFINE_HOOK(0x6FF656, TechnoClass_FireAt_Additionals, 0xA)
 
 	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeaponType);
 
-	if (pWeaponExt->ShakeLocal.Get() && pThis->IsOnMyView())
+	if (!pWeaponExt->ShakeLocal.Get() || pThis->IsOnMyView())
 	{
 		if (pWeaponExt->Xhi || pWeaponExt->Xlo)
 			GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, ScenarioClass::Instance->Random(pWeaponExt->Xlo, pWeaponExt->Xhi));

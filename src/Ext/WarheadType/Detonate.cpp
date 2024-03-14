@@ -524,13 +524,13 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 		GameCreate<ParticleSystemClass>(pSys, coords, nullptr, nullptr, CoordStruct::Empty, pHouse);
 	}
 
-	if (!pBullet)
-	{
-		for (auto const& pWeapon : this->DetonatesWeapons)
-		{
-			WeaponTypeExtData::DetonateAt(pWeapon, coords, pOwner, true , pHouse);
-		}
-	}
+	 if (!pBullet)
+	 {
+	 	for (auto const& pWeapon : this->DetonatesWeapons)
+	 	{
+	 		WeaponTypeExtData::DetonateAt(pWeapon, coords, pOwner, true , pHouse);
+	 	}
+	 }
 
 	if (pOwner && pBullet)
 	{

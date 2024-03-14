@@ -820,65 +820,64 @@ struct ColorPacker
 
 namespace Unsorted
 {
-	static constexpr reference<const char* const, 0x7E5210u, 11u> const ArmorNameArray {};
+	constexpr reference<const char* const, 0x7E5210u, 11u> const ArmorNameArray {};
 
-	static constexpr reference<int, 0xA8ED84u> const CurrentFrame {};
-	static constexpr reference<long, 0xA8ED84u> const l_CurrentFrame {};
-	static constexpr reference<int, 0xA8B568u> const MaxAhead {};
-	static constexpr reference<int, 0xA8DB9Cu> const NetworkFudge {};
-	static constexpr reference<int, 0xA8B554u> const FrameSendRate {};
+	constexpr reference<int, 0xA8ED84u> const CurrentFrame {};
+	constexpr reference<long, 0xA8ED84u> const l_CurrentFrame {};
+	constexpr reference<int, 0xA8B568u> const MaxAhead {};
+	constexpr reference<int, 0xA8DB9Cu> const NetworkFudge {};
+	constexpr reference<int, 0xA8B554u> const FrameSendRate {};
 
 	// if != 0, EVA_SWxxxActivated is skipped
-	static constexpr reference<int, 0xA8B538> MuteSWLaunches {};
+	constexpr reference<int, 0xA8B538> const MuteSWLaunches {};
 
 	// skip unit selection and move command voices?
-	static constexpr reference<bool, 0x822CF2> MoveFeedback {};
+	constexpr reference<bool, 0x822CF2> const MoveFeedback {};
 
-	static constexpr reference<bool, 0xA8ED6B> ArmageddonMode {};
-	static constexpr reference<bool, 0xA8E9A0> WTFMode {};
-	static constexpr constant_ptr<DynamicVectorClass<ObjectClass*>, 0x8A0360> ObjectsInLayers {};
+	constexpr reference<bool, 0xA8ED6B> const ArmageddonMode {};
+	constexpr reference<bool, 0xA8E9A0> const WTFMode {};
+	constexpr constant_ptr<DynamicVectorClass<ObjectClass*>, 0x8A0360> const ObjectsInLayers {};
 
 	// checkbox states, afaik
-	static constexpr reference<bool, 0xA8B258> Bases {};
-	static constexpr reference<bool, 0xA8B260> BridgeDestruction {};
-	static constexpr reference<bool, 0xA8B261> Crates {};
-	static constexpr reference<bool, 0xA8B262> ShortGame {};
-	static constexpr reference<bool, 0xA8B263> SWAllowed {};
-	static constexpr reference<bool, 0xA8B26C> MultiEngineer {};
-	static constexpr reference<bool, 0xA8B31C> AlliesAllowed {};
-	static constexpr reference<bool, 0xA8B31D> HarvesterTruce {};
-	static constexpr reference<bool, 0xA8B31E> CTF {};
-	static constexpr reference<bool, 0xA8B31F> FOW {};
-	static constexpr reference<bool, 0xA8B320> MCVRedeploy {};
+	constexpr reference<bool, 0xA8B258> const Bases {};
+	constexpr reference<bool, 0xA8B260> const BridgeDestruction {};
+	constexpr reference<bool, 0xA8B261> const Crates {};
+	constexpr reference<bool, 0xA8B262> const ShortGame {};
+	constexpr reference<bool, 0xA8B263> const SWAllowed {};
+	constexpr reference<bool, 0xA8B26C> const MultiEngineer {};
+	constexpr reference<bool, 0xA8B31C> const AlliesAllowed {};
+	constexpr reference<bool, 0xA8B31D> const HarvesterTruce {};
+	constexpr reference<bool, 0xA8B31E> const CTF {};
+	constexpr reference<bool, 0xA8B31F> const FOW {};
+	constexpr reference<bool, 0xA8B320> const MCVRedeploy {};
 
-	static constexpr reference<TacticalSelectableStruct, 0xB0CEC8, 500> TacticalSelectables {};
-	static constexpr reference<bool, 0xB0FE65> TypeSelecting {};
-	static constexpr constant_ptr<HWND, 0xB73550u> const Game_hWnd_ptr {};
+	constexpr reference<TacticalSelectableStruct, 0xB0CEC8, 500> TacticalSelectables {};
+	constexpr reference<bool, 0xB0FE65> const TypeSelecting {};
+	constexpr constant_ptr<HWND, 0xB73550u> const Game_hWnd_ptr {};
 
+	constexpr constant_ptr<ColorPacker, 0x8A0DD0> const ColorPackData {};
+	constexpr reference<int, 0x8809A0> const CurrentSWType {};
+	constexpr reference<bool, 0x88099A> const PowerToggleMode {};
+	constexpr reference<bool, 0x88099B> const PlanningMode {};
+	constexpr reference<bool, 0x88099C> const PlaceBeaconMode {};
+	constexpr reference<DWORD , 0x880994> const unknown_11AC {};
+	constexpr reference<void*, 0x880990> const CurrentBuildingType {};
+	constexpr reference<void*, 0x88098C> const CurrentBuilding {};
 
-	static constexpr constant_ptr<ColorPacker, 0x8A0DD0> ColorPackData {};
-	static constexpr reference<int, 0x8809A0> CurrentSWType {};
-    static constexpr reference<bool, 0x88099A> PowerToggleMode {};
-    static constexpr reference<bool, 0x88099B> PlanningMode {};
-    static constexpr reference<bool, 0x88099C> PlaceBeaconMode {};
-	static constexpr reference<DWORD , 0x880994> unknown_11AC {};
-	static constexpr reference<void*, 0x880990> CurrentBuildingType {};
-	static constexpr reference<void*, 0x88098C> CurrentBuilding {};
-
-	static constexpr const int except_txt_length = 0xFFFF;
-	static constexpr constant_ptr<char, 0x8A3A08> except_txt_content {};
+	constexpr const int except_txt_length = 0xFFFF;
+	constexpr constant_ptr<char, 0x8A3A08> const except_txt_content {};
 
 	// Note: SomeMutex has been renamed to this because it reflects the usage better
-	static constexpr reference<int, 0xA8E7AC> ScenarioInit {}; // h2ik
-	static constexpr reference<int , 0xB1D480> ScenarioInit_Audio {};
-	static constexpr reference<int, 0xA8DAB4> SystemResponseMessages {};
+	reference<int, 0xA8E7AC> const ScenarioInit {}; // h2ik
+	constexpr reference<int , 0xB1D480> const ScenarioInit_Audio {};
+	constexpr reference<int, 0xA8DAB4> const SystemResponseMessages {};
 
-	static constexpr reference<CellStruct*, 0x880964u> CursorSize {};
-	static constexpr reference<CellStruct*, 0x880974u> CursorSizeSecond {};
-	static constexpr reference<CellStruct, 0x88095Cu> Display_ZoneCell {};
-	static constexpr reference<CellStruct, 0x88096Au> Display_ZoneCell2 {};
-	static constexpr reference<CellStruct, 0x880960u> Display_ZoneOffset {};
-	static constexpr reference<CellStruct, 0x88096Eu> Display_ZoneOffset2 {};
+	constexpr reference<CellStruct*, 0x880964u> const CursorSize {};
+	constexpr reference<CellStruct*, 0x880974u> const CursorSizeSecond {};
+	constexpr reference<CellStruct, 0x88095Cu> const Display_ZoneCell {};
+	constexpr reference<CellStruct, 0x88096Au> const Display_ZoneCell2 {};
+	constexpr reference<CellStruct, 0x880960u> const Display_ZoneOffset {};
+	constexpr reference<CellStruct, 0x88096Eu> const Display_ZoneOffset2 {};
 };
 
 struct CheatData

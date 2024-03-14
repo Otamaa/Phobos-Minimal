@@ -105,7 +105,7 @@ DEFINE_HOOK(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
 	//Cursor.Read(exINI, pSection, "Cursor");
 	//NoCursor.Read(exINI, pSection, "NoCursor");
 
-	if (exINI.ReadString(pSection, "Action") > 0)
+	if (exINI.ReadString(pSection, GameStrings::Action) > 0)
 	{
 		bool found = false;
 
@@ -1909,7 +1909,6 @@ DEFINE_HOOK(0x44CA97, BuildingClass_MI_Missile_CreateBullet, 0x6)
 
 }
 
-
 DEFINE_HOOK(0x48A59A, MapClass_SelectDamageAnimation_LightningWarhead, 5)
 {
 	// override the lightning bolt explosion
@@ -2046,7 +2045,6 @@ DEFINE_HOOK(0x539EB0, LightningStorm_Start, 5)
 DEFINE_HOOK(0x53A6CF, LightningStorm_Update, 7)
 {
 	enum { Legacy = 0x53A8FFu, Handled = 0x53AB45u };
-
 
 #pragma region NukeUpdate
 	// switch lightning for nuke
@@ -2397,13 +2395,13 @@ DEFINE_HOOK(0x53A300, LightningStorm_Strike2, 5)
 		if (auto const it = pData->Weather_Sounds.GetElements(
 			RulesClass::Instance->LightningSounds))
 		{
-			VocClass::PlayAt(it.at(ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1)), coords, nullptr);
+			VocClass::PlayIndexAtPos(it.at(ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1)), coords, nullptr);
 		}
 
 		auto debris = false;
 		auto const pBld = pCell->GetBuilding();
 
-		auto const& empty = Point2D::Empty;
+		auto const empty = Point2D::Empty;
 		auto const pObj = pCell->FindTechnoNearestTo(empty, false, nullptr);
 		auto const isInfantry = specific_cast<InfantryClass*>(pObj) != nullptr;
 

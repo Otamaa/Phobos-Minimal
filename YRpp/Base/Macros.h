@@ -41,7 +41,7 @@
 #define __nothrow __declspec(nothrow)
 #define __selectany __declspec(selectany)
 #define __novtable __declspec(novtable)
-
+#define extern_selectany extern __selectany const
 /**
  *  Returns the count of items in a built-in C array. This is a common technique
  *  which is often used to help properly calculate the number of items in an

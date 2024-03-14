@@ -490,8 +490,6 @@ DEFINE_HOOK(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
 
 #include <Ext/Team/Body.h>
 
-#pragma optimize("", off )
-
 template <class T, class Ttype >
 int NOINLINE GetTypeToProduceNew(HouseClass* pHouse) {
 
@@ -589,7 +587,6 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse) {
 
 	return EarliestTypenameIndex;
 }
-#pragma optimize("", on )
 
 DEFINE_HOOK(0x6EF4D0, TeamClass_GetRemainingTaskForceMembers, 0x8)
 {

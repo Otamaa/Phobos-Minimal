@@ -117,7 +117,7 @@ DEFINE_HOOK(0x48A283, DamageArea_BridgeAbsoluteDestroyer5, 6)
 	return R->Stack<bool>(0xF) ? 0x48A2AA : 0x48A28B;
 }
 
-DEFINE_HOOK(0x4893BA, DamageArea_DamageAir, 9)
+DEFINE_HOOK(0x4893BA, DamageArea_DamageAir, 0x9)
 {
 	GET(const CoordStruct* const, pCoords, EDI);
 	GET(WarheadTypeClass*, pWarhead, ESI);
@@ -136,9 +136,8 @@ DEFINE_HOOK(0x4893BA, DamageArea_DamageAir, 9)
 
 	// damage units in air if detonation is above a threshold
 	auto const pExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
-	auto const damageAir = heightAboveGround > pExt->DamageAirThreshold;
 
-	return damageAir ? 0x4893C3u : 0x48955Eu;
+	return heightAboveGround > pExt->DamageAirThreshold ? 0x4893C3u : 0x48955Eu;
 }
 
 // #895990: limit the number of times a warhead with

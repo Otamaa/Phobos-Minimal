@@ -70,7 +70,7 @@ struct LineDrawDataStruct
 	bool operator!=(const LineDrawDataStruct& that) const { return std::memcmp(this, &that, sizeof(LineDrawDataStruct)) != 0; }
 };
 
-static constexpr ColorStruct DefaultColor[EBOLT_DEFAULT_SEGMENT_LINES] {
+constexpr ColorStruct DefaultColor[EBOLT_DEFAULT_SEGMENT_LINES] {
 	{ 255,255,255 } , { 82,81,255 } , { 82,81,255 }
 
 };

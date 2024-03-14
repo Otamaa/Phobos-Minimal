@@ -2958,7 +2958,14 @@ void TechnoExtData::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool 
 
 	const auto pThisType = pThis->GetTechnoType();
 	const auto nWhat = pThis->WhatAmI();
-	Debug::Log(__FUNCTION__" Called For[%s - %x][%s - %x]\n", pThisType->ID, pThis, pThis->Owner ? pThis->Owner->get_ID() : GameStrings::NoneStr(), pThis->Owner);
+	Debug::Log(__FUNCTION__" Called For[(%s)%s - %x][%s - %x](Method :%s)\n",
+		AbstractClass::GetAbstractClassName(nWhat),
+		pThisType->ID,
+		pThis,
+		pThis->Owner ? pThis->Owner->get_ID() : GameStrings::NoneStr(),
+		pThis->Owner,
+		Delete ? "Delete" :  "UnInit"
+	);
 
 	if (nWhat == BuildingClass::AbsID)
 	{
@@ -3005,7 +3012,7 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, bool isPeaceful)
 			pThis->Limbo();
 		}
 
-		Debug::Log(__FUNCTION__" Called \n");
+		Debug::Log(__FUNCTION__" (2args) Called \n");
 		TechnoExtData::HandleRemove(pThis, nullptr, SkipRemoveTracking, false);
 	}
 	else

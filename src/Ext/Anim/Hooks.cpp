@@ -248,7 +248,8 @@ DEFINE_HOOK(0x423365, AnimClass_DrawIt_ExtraShadow, 0x8)
 		return SkipDrawShadow;
 
 	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+	bool hasExtra = R->AL();
 
-	return pThis->HasExtras && pTypeExt->ExtraShadow ?
+	return hasExtra && pTypeExt->ExtraShadow ?
 		DrawShadow : SkipDrawShadow;
 }

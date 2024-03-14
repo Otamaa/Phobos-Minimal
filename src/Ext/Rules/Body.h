@@ -106,7 +106,7 @@ public:
 	Valueable<ColorStruct> ToolTip_Background_Color { {0, 0, 0} };
 	Valueable<int> ToolTip_Background_Opacity { 100 };
 	Valueable<float> ToolTip_Background_BlurSize { 0.f };
-
+	Valueable<bool> ToolTip_ExcludeSidebar { false };
 	Valueable<bool> Crate_LandOnly { false };
 
 	Valueable<bool> NewTeamsSelector { false };

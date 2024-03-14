@@ -22,9 +22,9 @@ void GameDebugLog::HookLogEnd(DWORD addr , const char* pFormat, size_t size , lo
 
 void GameDebugLog::HookLogStart(DWORD addr, const char* pFormat, size_t size)
 {
-	//if (!Debug::LogFileActive())
-	//	return;
-	//
-	//fprintf(Debug::LogFile, "[%x] %s [%d] , Start\n", addr, pFormat, size);
-	//Debug::Flush();
+	if (!Debug::LogFileActive())
+		return;
+
+	fprintf(Debug::LogFile, "[%x] %s [%d] , Start\n", addr, pFormat, size);
+	Debug::Flush();
 }
