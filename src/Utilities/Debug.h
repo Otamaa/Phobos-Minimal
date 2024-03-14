@@ -77,8 +77,9 @@ public:
 	static void LogFileRemove();
 
 	static void FreeMouse();
+	static void WriteTimestamp();
 
-	static void ExitGame(unsigned int code = 1u);
+	[[noreturn]] static void ExitGame(unsigned int code = 1u);
 
 	static void FatalError(bool Dump = false); /* takes formatted message from Ares::readBuffer */
 	static void FatalError(const char* Message, ...);

@@ -137,22 +137,11 @@ DEFINE_HOOK(0x71997B, TeleportLocomotionClass_ILocomotion_Process_ChronoDelay, 0
 
 #ifndef FUCKTHESE
 
-struct LocomotionClass_Clone : public LocomotionClass {
-	static Matrix3D* __stdcall __Draw_Matrix_(LocomotionClass* pLoco , Matrix3D* ret, VoxelIndexKey* pIndex) {
-		JMP_STD(0x55A730);
-	}
-};
-static_assert(sizeof(LocomotionClass_Clone) == sizeof(LocomotionClass), "Invalid size!");
-
 // Author : chaserli
 Matrix3D* __stdcall LocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* ret, VoxelIndexKey* pIndex)
 {
 	auto loco = static_cast<LocomotionClass*>(pThis);
 	auto slope_idx = MapClass::Instance->GetCellAt(loco->LinkedTo->Location)->SlopeIndex;
-
-	//if (!pIndex) {
-	//	return LocomotionClass_Clone::__Draw_Matrix_(loco , ret, pIndex);
-	//}
 
 	if (pIndex && pIndex->Is_Valid_Key())
 		*(int*)(pIndex) = slope_idx + (*(int*)(pIndex) << 6);
@@ -189,8 +178,17 @@ Matrix3D* __stdcall LocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* re
 
 	return ret;
 }
-DEFINE_JUMP(VTABLE, 0x7F5024, GET_OFFSET(LocomotionClass_Draw_Matrix));
+
 DEFINE_JUMP(VTABLE, 0x7F5028, 0x5142A0);//TeleportLocomotionClass_Shadow_Matrix : just use hover's to save my ass
+
+DEFINE_HOOK(0x55A730, TeleportLocomotionClass_DrawMatrix_Tilt, 0x9)
+{
+	GET_STACK(ILocomotion*, iloco, 0x4);
+	GET_BASE(VoxelIndexKey*, pIndex, 0xC);
+	GET_BASE(Matrix3D*, ret, 0x8);
+	R->EAX(LocomotionClass_Draw_Matrix(iloco, ret, pIndex));
+	return 0x55A7CC;
+}
 
 DEFINE_HOOK(0x729B5D, TunnelLocomotionClass_DrawMatrix_Tilt, 0x8)
 {

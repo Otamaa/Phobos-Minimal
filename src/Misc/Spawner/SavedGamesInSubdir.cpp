@@ -22,40 +22,49 @@
 #include <Utilities/Macro.h>
 
 #include <filesystem>
+#include <HouseClass.h>
+#include <LoadOptionsClass.h>
+#include <optional>
 
+#define SET_SAVENAME(name) static constexpr wchar_t* SaveName = L ##name
 namespace SavedGames
 {
-		//issue #18
-	struct CampaignID
-	{
-		uint64_t Number;
+	int HowManyTimesISavedForThisScenario = 0;
 
-		explicit CampaignID() :
-			Number { SessionClass::IsCampaign() ? SpawnerMain::GetGameConfigs()->CampaignID : 0 }
+		//issue #18
+	struct CustomMissionID
+	{
+		SET_SAVENAME("CustomMissionID");
+		int Number;
+
+		explicit CustomMissionID() :
+			Number {
+				SessionClass::IsCampaign() ?
+				SpawnerMain::GetGameConfigs()->CustomMissionID : 0 }
 		{
 		}
 
-		operator uint64_t() const
+		operator int() const
 		{
 			return Number;
 		}
 
-		CampaignID(noinit_t()) { }
+		CustomMissionID(noinit_t()) { }
 	};
 
 		// More fun
 	struct ExtraMetaInfo
 	{
 		int CurrentFrame;
-		int PlayerCount;
+		int SavedCount;
 		int TechnoCount;
-		int AnimCount;
+
+		SET_SAVENAME("Spawner Extra Info");
 
 		explicit ExtraMetaInfo()
 			:CurrentFrame { Unsorted::CurrentFrame }
-			, PlayerCount { HouseClass::Array->Count }
+			, SavedCount { HowManyTimesISavedForThisScenario }
 			, TechnoCount { TechnoClass::Array->Count }
-			, AnimCount { AnimClass::Array->Count }
 		{
 		}
 
@@ -63,12 +72,12 @@ namespace SavedGames
 	};
 
 	template<typename T>
-	bool AppendToStorage(IStorage* pStorage, const OLECHAR* name)
+	bool AppendToStorage(IStorage* pStorage)
 	{
 		IStream* pStream = nullptr;
 		bool ret = false;
 		HRESULT hr = pStorage->CreateStream(
-			name,
+			T::SaveName,
 			STGM_WRITE | STGM_CREATE | STGM_SHARE_EXCLUSIVE,
 			0,
 			0,
@@ -87,14 +96,13 @@ namespace SavedGames
 		return ret;
 	}
 
-
 	template<typename T>
-	std::optional<T> ReadFromStorage(IStorage* pStorage, const OLECHAR* name)
+	std::optional<T> ReadFromStorage(IStorage* pStorage)
 	{
 		IStream* pStream = nullptr;
 		bool hasValue = false;
 		HRESULT hr = pStorage->OpenStream(
-			name,
+			T::SaveName,
 			NULL,
 			STGM_READ | STGM_SHARE_EXCLUSIVE,
 			0,
@@ -136,30 +144,72 @@ namespace SavedGames
 	}
 }
 
-#ifdef incomplete
-DEFINE_HOOK(0x67D2E3, GameSave_AdditionalInfoForClient, 0x6)
+#ifdef incomplete_ExtraSavedGamesData
+
+DEFINE_HOOK(0x559921, LoadOptionsClass_FillList_FilterFiles, 0x6)
+{
+	GET(FileEntryClass*, pEntry, EBP);
+	enum { NullThisEntry = 0x559959 };
+
+	// there was a qsort later and filters out these but we could have just removed them right here
+	if (pEntry->IsWrongVersion || !pEntry->IsValid)
+	{
+		GameDelete(pEntry);
+		return NullThisEntry;
+	};
+
+	static OLECHAR wNameBuffer[0x100] {};
+	SavedGames::FormatPath(Phobos::readBuffer, pEntry->Filename.data());
+	MultiByteToWideChar(CP_UTF8, 0, Phobos::readBuffer, -1, wNameBuffer, std::size(wNameBuffer));
+	IStorage* pStorage = nullptr;
+	bool shouldDelete = false;
+	if (SUCCEEDED(StgOpenStorage(wNameBuffer, NULL,
+		STGM_READWRITE | STGM_SHARE_EXCLUSIVE,
+		0, 0, &pStorage)
+	))
+	{
+		auto id = SavedGames::ReadFromStorage<SavedGames::CustomMissionID>(pStorage);
+
+		if (SpawnerMain::GetGameConfigs()->CustomMissionID != id.value_or(0))
+			shouldDelete = true;
+	}
+
+	if (pStorage)
+		pStorage->Release();
+
+	if (shouldDelete)
+	{
+		GameDelete(pEntry);
+		return NullThisEntry;
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x683AFE, StartNewScenario_ClearCounter, 0x6)
+{
+	SavedGames::HowManyTimesISavedForThisScenario = 0;
+	return 0;
+}
+
+DEFINE_HOOK(0x67D2E3, SaveGame_AdditionalInfoForClient, 0x6)
 {
 	GET_STACK(IStorage*, pStorage, STACK_OFFSET(0x4A0, -0x490));
+	SavedGames::HowManyTimesISavedForThisScenario++;
 
-	if (!SpawnerMain::Configs::Enabled)
-		return 0x0;
+	if (pStorage)
+	{
+		if (SessionClass::IsCampaign() && SpawnerMain::GetGameConfigs()->CustomMissionID)
+			SavedGames::AppendToStorage<SavedGames::CustomMissionID>(pStorage);
+		if (SavedGames::AppendToStorage<SavedGames::ExtraMetaInfo>(pStorage))
+			Debug::Log("[Spawner] Extra meta info appended on sav file\n");
+	}
 
-	if (pStorage
-		&& SavedGames::AppendToStorage<SavedGames::CampaignID>(pStorage, L"Campaign ID")
-		&& SavedGames::AppendToStorage<SavedGames::ExtraMetaInfo>(pStorage, L"Spawner extra info")
-		)
-		Debug::Log("[Spawner] Extra meta info appended on sav file\n");
-	else
-		Debug::Log("[Spawner] Cannot write extra meta info to sav file\n");
-
-	return 0x0;
+	return 0;
 }
 
 DEFINE_HOOK(0x67E4DC, LoadGame_AdditionalInfoForClient, 0x7)
 {
-	if (!SpawnerMain::Configs::Enabled)
-		return 0x0;
-
 	LEA_STACK(const wchar_t*, filename, STACK_OFFSET(0x518, -0x4F4));
 	IStorage* pStorage = nullptr;
 
@@ -168,19 +218,27 @@ DEFINE_HOOK(0x67E4DC, LoadGame_AdditionalInfoForClient, 0x7)
 		0, 0, &pStorage)
 	))
 	{
-		if (auto id = SavedGames::ReadFromStorage<SavedGames::CampaignID>(pStorage, L"Campaign ID"))
+		if (auto id = SavedGames::ReadFromStorage<SavedGames::CustomMissionID>(pStorage))
 		{
-			uint64_t num = id.value().Number;
-			Debug::Log("[Spawner] sav file CampaignID = %d\n", num);
-			SpawnerMain::GetGameConfigs()->CampaignID = num;
+			int num = id->Number;
+			Debug::Log("[Spawner] sav file CustomMissionID = %d\n", num);
+			SpawnerMain::GetGameConfigs()->CustomMissionID = num;
+			ScenarioClass::Instance->EndOfGame = true;
 		}
-		if (auto info = SavedGames::ReadFromStorage<SavedGames::ExtraMetaInfo>(pStorage, L"Spawner extra info"))
+		else
 		{
-			Debug::Log("[Spawner] CurrentFrame = %d, TechnoCount = %d, AnimCount = %d \n"
-				, info.value().CurrentFrame
-				, info.value().TechnoCount
-				, info.value().AnimCount
+			SpawnerMain::GetGameConfigs()->CustomMissionID = 0;
+		}
+
+		if (auto info = SavedGames::ReadFromStorage<SavedGames::ExtraMetaInfo>(pStorage))
+		{
+			Debug::Log("[Spawner] CurrentFrame = %d, TechnoCount = %d, HowManyTimesSaved = %d \n"
+				, info->CurrentFrame
+				, info->TechnoCount
+				, info->SavedCount
 			);
+
+			SavedGames::HowManyTimesISavedForThisScenario = info->SavedCount;
 		}
 	}
 	if (pStorage)
@@ -304,3 +362,5 @@ DEFINE_HOOK(0x67FD26, LoadOptionsClass_ReadSaveInfo_SGInSubdir, 0x5)
 
 	return 0;
 }
+
+#undef SET_SAVENAME

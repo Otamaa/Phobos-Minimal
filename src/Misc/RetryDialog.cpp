@@ -38,7 +38,8 @@ DEFINE_HOOK(0x686092, DoLose_RetryDialogForCampaigns, 0x7)
 		default:
 		case WWMessageBox::Result::Button3:
 		{
-			Game::IsActive = false;
+			//Doesnot get inlined using reference<>
+			Game::IsActive.get() = false;
 			Debug::ExitGame(0u);
 			break;
 		}

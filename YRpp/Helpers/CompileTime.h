@@ -21,19 +21,19 @@ public:
 		return Address;
 	}
 
-	value_type get() const noexcept {
+	FORCEINLINE value_type get() const noexcept {
 		return reinterpret_cast<value_type>(Address);
 	}
 
-	operator value_type() const noexcept {
+	FORCEINLINE operator value_type() const noexcept {
 		return get();
 	}
 
-	value_type operator()() const noexcept {
+	FORCEINLINE value_type operator()() const noexcept {
 		return get();
 	}
 
-	value_type operator->() const noexcept {
+	FORCEINLINE value_type operator->() const noexcept {
 		return get();
 	}
 
@@ -161,20 +161,20 @@ private:
 	constexpr reference(noinit_t) noexcept {}
 public:
 
-	constexpr DWORD getAddrs() const noexcept {
+	FORCEINLINE constexpr DWORD getAddrs() const noexcept {
 		return Address;
 	}
 
-	value_type& get() const noexcept {
+	FORCEINLINE value_type& get() const noexcept {
 		return *reinterpret_cast<value_type*>(Address);
 	}
 
 	template <typename T2, typename = std::enable_if_t<std::is_assignable<T&, T2>::value>>
-	T& operator=(T2&& rhs) const {
+	FORCEINLINE value_type& operator=(T2&& rhs) const {
 		return get() = std::forward<T2>(rhs);
 	}
 
-	operator T&() const noexcept {
+	operator value_type&() const noexcept {
 		return get();
 	}
 
@@ -186,7 +186,7 @@ public:
 		return &get();
 	}
 
-	decltype(auto) operator->() const noexcept {
+	FORCEINLINE decltype(auto) operator->() const noexcept {
 		if constexpr (std::is_pointer<T>::type())
 			return get();
 		else

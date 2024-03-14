@@ -16,7 +16,23 @@
 #include "ProtocolZero.h"
 
 std::unique_ptr<SpawnerMain::GameConfigs> SpawnerMain::GameConfigs::m_Ptr = nullptr;
-UniqueGamePtrB<MixFileClass> SpawnerMain::MixFile {};
+std::list<std::unique_ptr<MixFileClass>> SpawnerMain::LoadedMixFiles {};
+
+FORCEINLINE void ReadListFromSection(CCINIClass* pINI, const char* pSection, std::list<std::string>& strings)
+{
+	if (!pINI->GetSection(pSection))
+		return;
+
+	for (int i = 0; i < pINI->GetKeyCount(pSection); ++i)
+	{
+		char buffer[0x80];
+
+		if (pINI->ReadString(pSection, pINI->GetKeyName(pSection, i), Phobos::readDefval, buffer) > 0) {
+			strings.emplace_back(buffer);
+		}
+	}
+}
+
 std::unique_ptr<SpawnerMain::Configs> SpawnerMain::Configs::m_Ptr = std::make_unique<SpawnerMain::Configs>();
 
 bool SpawnerMain::Configs::Enabled = false;
@@ -281,12 +297,7 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 	/* SaveGameName */
 	pINI->ReadString(GameStrings::Settings(), "SaveGameName", SaveGameName, SaveGameName, sizeof(SaveGameName));
 
-	char bufferCampaignID[22u];
-	if (pINI->ReadString(GameStrings::Settings(), "CampaignID", Phobos::readDefval, bufferCampaignID, sizeof(bufferCampaignID)) > 0) {
-		std::string::size_type sz = 0;
-		std::string buffer_str = bufferCampaignID;
-		CampaignID = std::stoull(buffer_str, &sz, 0);
-	}
+	CustomMissionID = pINI->ReadInteger(GameStrings::Settings(), "CampaignID", CustomMissionID);
 
 	{ // Scenario Options
 		Seed = pINI->ReadInteger(GameStrings::Settings(), "Seed", Seed);
@@ -339,6 +350,10 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 	ContinueWithoutHumans = pINI->ReadBool(GameStrings::Settings(), "ContinueWithoutHumans", ContinueWithoutHumans);
 	DefeatedBecomesObserver = pINI->ReadBool(GameStrings::Settings(), "DefeatedBecomesObserver", DefeatedBecomesObserver);
 	Observer_ShowAIOnSidebar = pINI->ReadBool(GameStrings::Settings(), "Observer.ShowAIOnSidebar", Observer_ShowAIOnSidebar);
+
+	// Custom Mixes
+	ReadListFromSection(pINI, "PreloadMixes", PreloadMixes);
+	ReadListFromSection(pINI, "PostloadMixes", PostloadMixes);
 }
 
 void SpawnerMain::GameConfigs::PlayerConfig::LoadFromINIFile(CCINIClass* pINI, int index)
@@ -454,7 +469,7 @@ bool SpawnerMain::GameConfigs::StartGame() {
 		return 0;
 
 	SpawnerMain::Configs::Active = true;
-	Game::IsActive = true;
+	Game::IsActive() = true;
 
 	Game::InitUIStuff();
 
@@ -691,7 +706,25 @@ bool SpawnerMain::GameConfigs::StartNewScenario(const char* pScenarioName) {
 	if (SessionClass::IsCampaign())
 	{
 		pGameModeOptions->Crates = true;
+
+#ifdef incomplete_ExtraSavedGamesData
+		// Rename MISSIONMD.INI to this
+		// because Ares has LoadScreenText.Color and Phobos has Starkku's PR #1145
+		if (SpawnerMain::GetGameConfigs()->CustomMissionID) // before parsing
+		{
+			Patch::Apply_RAW(0x839724, "Spawn.ini");
+			Patch::Apply_RAW(0x839734, { 00, 00, 00 }); //pad it bruh
+		}
+
+		bool result = ScenarioClass::StartScenario(pScenarioName, 1, 0);
+
+		if (SpawnerMain::GetGameConfigs()->CustomMissionID) // after parsing
+			ScenarioClass::Instance->EndOfGame = true;
+
+		return result;
+#else
 		return ScenarioClass::StartScenario(pScenarioName, 1, 0);
+#endif
 	}
 	else if (SessionClass::IsSkirmish())
 	{

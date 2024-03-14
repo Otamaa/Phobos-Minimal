@@ -25,8 +25,19 @@ FILE* Debug::LogFile = nullptr;
 std::wstring Debug::LogFileName;
 std::wstring Debug::LogFileTempName;
 
-// push    0x860A0000; vs 0x02CA0000
-//DEFINE_RAW_PATCH(0x777CC0, CreateMainWindow , 0x68, 0x00, 0x00, 0x0A, 0x86)
+void Debug::WriteTimestamp()
+{
+	if (LogFile)
+	{
+		time_t raw;
+		time(&raw);
+
+		tm t;
+		localtime_s(&t, &raw);
+
+		fprintf(LogFile, "[%02d:%02d:%02d] ", t.tm_hour, t.tm_min, t.tm_sec);
+	}
+}
 
 void Debug::DumpStack(REGISTERS* R, size_t len, int startAt)
 {
@@ -139,7 +150,7 @@ void Debug::LogFileOpen()
 	if (!LogFile) {
 		wchar_t msg[100] = L"\0";
 		wsprintfW(msg, L"Log file failed to open. Error code = %X", errno);
-		MessageBoxW(Game::hWnd, Debug::LogFileTempName.c_str(), msg, MB_OK | MB_ICONEXCLAMATION);
+		MessageBoxW(Game::hWnd.get(), Debug::LogFileTempName.c_str(), msg, MB_OK | MB_ICONEXCLAMATION);
 		Phobos::Otamaa::ExeTerminated = true;
 		ExitProcess(1);
 	}
@@ -264,7 +275,7 @@ void Debug::FatalError(const char* Message, ...)
 	Debug::FatalError(false);
 }
 
-void Debug::ExitGame(unsigned int code)
+[[noreturn]] void Debug::ExitGame(unsigned int code)
 {
 	Phobos::ExeTerminate();
 	ExitProcess(code);

@@ -168,7 +168,8 @@ void Phobos::CheckProcessorFeatures()
 
 	if (!supported)
 	{
-		MessageBoxA(Game::hWnd,
+		//doesnot get inlined when using reference<>
+		MessageBoxA(Game::hWnd.get(),
 			"This version of Phobos requires a CPU with " INSTRUCTION_SET_NAME
 			" support.\n\nYour CPU does not support " INSTRUCTION_SET_NAME ". "
 			"Game will now exit.",

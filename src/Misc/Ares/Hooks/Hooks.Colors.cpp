@@ -241,9 +241,10 @@ DEFINE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme, 7)
 	}
 
 	ret += 1;
+	const int ColorShemeArrayCount = ColorScheme::Array->Count;
 
-	if ((size_t)ret >= (size_t)ColorScheme::Array->Count)
-		Debug::FatalErrorAndExit("Address[%x] Trying To get Player Color[idx %d , %d(%d)] that more than ColorScheme Array Count [%d]!\n", caller, idx, ret, ret - 1, ColorScheme::Array->Count);
+	if ((size_t)ret >= (size_t)ColorShemeArrayCount)
+		Debug::FatalErrorAndExit("Address[%x] Trying To get Player Color[idx %d , %d(%d)] that more than ColorScheme Array Count [%d]!\n", caller, idx, ret, ret - 1, ColorShemeArrayCount);
 
 	R->EAX(ret);
 	return 0x69A334;

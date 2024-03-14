@@ -112,7 +112,7 @@ struct __declspec(novtable)
 	template <size_t Size>
 	static inline void Apply_RAW(uintptr_t offset, const char(&str)[Size])
 	{
-		PatchWrapper dummy { offset, Size, str };
+		PatchWrapper dummy { offset, Size, reinterpret_cast<BYTE*>(const_cast<char*>(str)) };
 	};
 
 	template <typename T>

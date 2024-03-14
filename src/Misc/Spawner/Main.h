@@ -19,9 +19,13 @@
 *  along with this program.If not, see <http://www.gnu.org/licenses/>.
 */
 #include <Memory.h>
-#include<Utilities/GameUniquePointers.h>
+#include <Utilities/GameUniquePointers.h>
 
 #include <MixFileClass.h>
+
+#include <list>
+#include <vector>
+#include <string>
 
 class CCINIClass;
 struct SpawnerMain
@@ -142,7 +146,7 @@ struct SpawnerMain
 		char SavedGameDir[MAX_PATH]; // Nested paths are also supported, e.g. "Saved Games\\Yuri's Revenge"
 		char SaveGameName[60];
 
-		uint64_t CampaignID;
+		int CustomMissionID;
 
 		// Scenario Options
 		int  Seed;
@@ -185,6 +189,12 @@ struct SpawnerMain
 		bool DefeatedBecomesObserver;
 		bool Observer_ShowAIOnSidebar;
 
+		// Custom mixes
+		// Note: std::list and std::string will be realised followed to RAII concept. It is pretty save instead of const char*.
+
+		std::list<std::string> PreloadMixes;
+		std::list<std::string> PostloadMixes;
+
 		GameConfigs() // default values
 			// Game Mode Options
 			: MPModeIndex { 1 }
@@ -211,7 +221,7 @@ struct SpawnerMain
 			, SavedGameDir { "Saved Games" }
 			, SaveGameName { "" }
 
-			, CampaignID { 0 }
+			, CustomMissionID { 0 }
 			// Scenario Options
 			, Seed { 0 }
 			, TechLevel { 10 }
@@ -272,13 +282,17 @@ struct SpawnerMain
 			, ContinueWithoutHumans { false }
 			, DefeatedBecomesObserver { false }
 			, Observer_ShowAIOnSidebar { true }
+
+			// Custom Mixes
+			, PreloadMixes {}
+			, PostloadMixes {}
 		{
 		}
 
 		void LoadFromINIFile(CCINIClass* pINI);
 	};
 
-	static UniqueGamePtrB<MixFileClass> MixFile;
+	static std::list<std::unique_ptr<MixFileClass>> LoadedMixFiles;
 
 	static void ExeRun(bool HasCNCnet);
 	static void CmdLineParse(char*);

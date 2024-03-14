@@ -2451,9 +2451,15 @@ void TechnoExtData::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 		if (auto const pFootKiller = generic_cast<FootClass*>(pObjectKiller)) {
 			auto pKillerExt = TechnoExtContainer::Instance.Find(pObjectKiller);
 
-			if(auto const pFocus = generic_cast<TechnoClass*>(pFootKiller->Team->Focus))
-				pKillerExt->LastKillWasTeamTarget = TeamExtData::GroupAllowed(pFocus->GetTechnoType(), pVictim->GetTechnoType())
-			 	//pFocus->GetTechnoType() == pVictim->GetTechnoType()
+			if (auto const pFocus = generic_cast<TechnoClass*>(pFootKiller->Team->Focus))
+				pKillerExt->LastKillWasTeamTarget =
+				pFocus->GetTechnoType() == pVictim->GetTechnoType()
+				|| TechnoExtContainer::Instance.Find(pFocus)->Type == pVictim->GetTechnoType()
+				|| TechnoExtContainer::Instance.Find(pFocus)->Type == TechnoExtContainer::Instance.Find(pVictim)->Type
+				|| TeamExtData::GroupAllowed(pFocus->GetTechnoType(), pVictim->GetTechnoType())
+				|| TeamExtData::GroupAllowed(TechnoExtContainer::Instance.Find(pFocus)->Type, TechnoExtContainer::Instance.Find(pVictim)->Type)
+				|| TeamExtData::GroupAllowed(TechnoExtContainer::Instance.Find(pFocus)->Type,  pVictim->GetTechnoType())
+
 				;
 
 			auto pKillerTeamExt = TeamExtContainer::Instance.Find(pFootKiller->Team);
