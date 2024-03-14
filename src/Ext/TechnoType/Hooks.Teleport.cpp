@@ -181,14 +181,7 @@ Matrix3D* __stdcall LocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* re
 
 DEFINE_JUMP(VTABLE, 0x7F5028, 0x5142A0);//TeleportLocomotionClass_Shadow_Matrix : just use hover's to save my ass
 
-DEFINE_HOOK(0x55A730, TeleportLocomotionClass_DrawMatrix_Tilt, 0x9)
-{
-	GET_STACK(ILocomotion*, iloco, 0x4);
-	GET_BASE(VoxelIndexKey*, pIndex, 0xC);
-	GET_BASE(Matrix3D*, ret, 0x8);
-	R->EAX(LocomotionClass_Draw_Matrix(iloco, ret, pIndex));
-	return 0x55A7CC;
-}
+DEFINE_JUMP(VTABLE , 0x7F5024, GET_OFFSET(LocomotionClass_Draw_Matrix))
 
 DEFINE_HOOK(0x729B5D, TunnelLocomotionClass_DrawMatrix_Tilt, 0x8)
 {

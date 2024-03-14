@@ -292,7 +292,7 @@ struct SpawnerMain
 		void LoadFromINIFile(CCINIClass* pINI);
 	};
 
-	static std::list<std::unique_ptr<MixFileClass>> LoadedMixFiles;
+	static std::list<MixFileClass*> LoadedMixFiles;
 
 	static void ExeRun(bool HasCNCnet);
 	static void CmdLineParse(char*);

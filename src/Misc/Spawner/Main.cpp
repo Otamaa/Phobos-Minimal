@@ -16,7 +16,7 @@
 #include "ProtocolZero.h"
 
 std::unique_ptr<SpawnerMain::GameConfigs> SpawnerMain::GameConfigs::m_Ptr = nullptr;
-std::list<std::unique_ptr<MixFileClass>> SpawnerMain::LoadedMixFiles {};
+std::list<MixFileClass*> SpawnerMain::LoadedMixFiles {};
 
 FORCEINLINE void ReadListFromSection(CCINIClass* pINI, const char* pSection, std::list<std::string>& strings)
 {

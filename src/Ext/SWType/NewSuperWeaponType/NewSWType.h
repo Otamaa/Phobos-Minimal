@@ -99,7 +99,11 @@ class NewSWType
 {
 	static std::array<std::unique_ptr<NewSWType>, (size_t)AresNewSuperType::count> Array;
 
-	static inline constexpr void Register(std::unique_ptr<NewSWType> pType, AresNewSuperType nType)
+	static inline
+#if _HAS_CXX23 == 1
+		constexpr
+#endif
+		void Register(std::unique_ptr<NewSWType> pType, AresNewSuperType nType)
 	{
 		pType->TypeIndex = nType;
 		Array[size_t(nType)] = (std::move(pType));

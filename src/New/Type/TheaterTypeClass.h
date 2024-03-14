@@ -95,7 +95,11 @@ public:
 	static void AddDefaults();
 	static void LoadAllTheatersToArray();
 	static TheaterTypeClass* FindFromTheaterType(TheaterType nType);
-	static inline constexpr TheaterTypeClass* FindFromTheaterType_NoCheck(TheaterType nType) {
+	static inline
+#if _HAS_CXX23 == 1
+		constexpr
+#endif
+		TheaterTypeClass* FindFromTheaterType_NoCheck(TheaterType nType) {
 		return Array[(int)nType].get();
 	}
 

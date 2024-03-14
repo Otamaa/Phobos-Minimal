@@ -51,7 +51,11 @@ public:
 	}
 
 	// static methods
-	static inline constexpr void Register(std::unique_ptr<SWStateMachine> Machine)
+	static inline
+#if _HAS_CXX23 == 1
+		constexpr
+#endif
+		void Register(std::unique_ptr<SWStateMachine> Machine)
 	{
 		if (Machine) {
 			Array.push_back(std::move(Machine));
