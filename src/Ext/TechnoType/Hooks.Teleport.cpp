@@ -147,21 +147,21 @@ static_assert(sizeof(LocomotionClass_Clone) == sizeof(LocomotionClass), "Invalid
 // Author : chaserli
 Matrix3D* __stdcall LocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* ret, VoxelIndexKey* pIndex)
 {
-	auto loco = static_cast<LocomotionClass_Clone*>(pThis);
+	auto loco = static_cast<LocomotionClass*>(pThis);
 	auto slope_idx = MapClass::Instance->GetCellAt(loco->LinkedTo->Location)->SlopeIndex;
 
-	if (!pIndex) {
-		return LocomotionClass_Clone::__Draw_Matrix_(loco , ret, pIndex);
-	}
+	//if (!pIndex) {
+	//	return LocomotionClass_Clone::__Draw_Matrix_(loco , ret, pIndex);
+	//}
 
-	if (pIndex->Is_Valid_Key())
+	if (pIndex && pIndex->Is_Valid_Key())
 		*(int*)(pIndex) = slope_idx + (*(int*)(pIndex) << 6);
 
-	if (slope_idx && pIndex->Is_Valid_Key()){
+	if (slope_idx && pIndex && pIndex->Is_Valid_Key()){
 		loco->LocomotionClass::Draw_Matrix(ret,pIndex);
 		*ret = Game::VoxelRampMatrix[slope_idx] * (*ret);
 	} else {
-		loco->LocomotionClass::Draw_Matrix(ret ,pIndex);
+		loco->LocomotionClass::Draw_Matrix(ret,pIndex);
 	}
 
 	float arf = loco->LinkedTo->AngleRotatedForwards;
