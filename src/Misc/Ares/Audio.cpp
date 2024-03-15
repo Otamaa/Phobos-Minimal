@@ -46,7 +46,8 @@ public:
 		for (auto pos = Array.begin();
 			pos != Array.end();
 			++pos) {
-			if (IS_SAME_STR_((*pos).Name.data(), Title)) {
+			if (IS_SAME_STR_((*pos).Name.data(), Title))
+			{
 				return std::distance(Array.begin(), pos);
 			}
 		}
@@ -61,6 +62,8 @@ public:
 
 	static inline LooseAudioCache* Find(int idx)
 	{
+		if ((size_t)idx > Array.size())
+			Debug::FatalErrorAndExit("Trying To Get LoseAudioCache with Index [%d] but the array size is only [%d]\n", idx , Array.size());
 		return &Array[idx];
 	}
 
@@ -342,23 +345,12 @@ bool NOINLINE PlayWavWrapper(int HouseTypeIdx , size_t SampleIdx)
 		HouseTypeClass::Array->Items[HouseTypeIdx]
 	);
 
-	std::string buffer = pExt->TauntFile;
-	const auto nPos = buffer.find("~~");
-
-	if (nPos != std::string::npos) {
-		//only set the 2 characters without the terminator string
-		std::string number = "0";
-		number += std::to_string(SampleIdx);
-		buffer.replace(nPos, 2, number);
-
-		//Debug::Log("Country [%s] with Taunt Name at idx [%d - %s]\n",
-		//	pExt->OwnerObject()->ID, SampleIdx , buffer.c_str());
-	} else {
+	if (pExt->TauntFile.empty() || pExt->TauntFile[SampleIdx - 1].empty()) {
 		Debug::FatalErrorAndExit("Country [%s] Have Invalid Taunt Name Format [%s]\n",
-		pExt->AttachedToObject->ID, pExt->TauntFile.c_str());
+		pExt->AttachedToObject->ID, pExt->TauntFile[SampleIdx - 1].c_str());
 	}
 
-	return pAudioStream->PlayWAV(buffer.c_str(), false);
+	return pAudioStream->PlayWAV(pExt->TauntFile[SampleIdx - 1].c_str(), false);
 }
 
 #ifndef aaa

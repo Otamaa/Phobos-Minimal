@@ -141,7 +141,7 @@ DEFINE_HOOK(0x71997B, TeleportLocomotionClass_ILocomotion_Process_ChronoDelay, 0
 Matrix3D* __stdcall LocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* ret, VoxelIndexKey* pIndex)
 {
 	auto loco = static_cast<LocomotionClass*>(pThis);
-	auto slope_idx = MapClass::Instance->GetCellAt(loco->LinkedTo->Location)->SlopeIndex;
+	auto slope_idx = MapClass::Instance->GetCellAt(loco->Owner->Location)->SlopeIndex;
 
 	if (pIndex && pIndex->Is_Valid_Key())
 		*(int*)(pIndex) = slope_idx + (*(int*)(pIndex) << 6);
@@ -153,8 +153,8 @@ Matrix3D* __stdcall LocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* re
 		loco->LocomotionClass::Draw_Matrix(ret,pIndex);
 	}
 
-	float arf = loco->LinkedTo->AngleRotatedForwards;
-	float ars = loco->LinkedTo->AngleRotatedSideways;
+	float arf = loco->Owner->AngleRotatedForwards;
+	float ars = loco->Owner->AngleRotatedSideways;
 
 	if (std::abs(ars) >= 0.005 || std::abs(arf) >= 0.005)
 	{
@@ -162,8 +162,8 @@ Matrix3D* __stdcall LocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* re
 		if (pIndex)
 			*(int*)pIndex = -1;
 
-		double scalex = loco->LinkedTo->GetTechnoType()->VoxelScaleX;
-		double scaley = loco->LinkedTo->GetTechnoType()->VoxelScaleY;
+		double scalex = loco->Owner->GetTechnoType()->VoxelScaleX;
+		double scaley = loco->Owner->GetTechnoType()->VoxelScaleY;
 
 		Matrix3D pre = Matrix3D::GetIdentity();
 		pre.TranslateZ(float(std::abs(Math::sin(ars)) * scalex + std::abs(Math::sin(arf)) * scaley));

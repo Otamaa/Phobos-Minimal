@@ -45,7 +45,8 @@ public:
 	ValueableVector<BuildingTypeClass*> Powerplants {};
 
 	ValueableVector<BuildingTypeClass*> VeteranBuildings {};
-	PhobosFixedString<0x20> TauntFile {}; //Taunt filename format (should contain %d !!!)
+	ValueableVector<std::string> TauntFile {}; //Taunt filename format (should contain %d !!!)
+	Valueable<std::string> TauntFileName {};
 
 	Nullable<bool> Degrades {};
 	Nullable<InfantryTypeClass*> Disguise {};

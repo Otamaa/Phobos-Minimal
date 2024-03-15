@@ -784,9 +784,72 @@ void BuildingExtData::LimboKill(BuildingClass* pBuilding)
 
 	Debug::Log("BuildingExtData::LimboKill -  Killing Building[%x - %s] ! \n", pBuilding, pBuilding->get_ID());
 
+#ifndef SIMPLIFY_CAUSECRASH
 	pBuilding->Stun();
 	pBuilding->Limbo();
 	pBuilding->RegisterDestruction(nullptr);
+#else
+	auto const pType = pBuilding->Type;
+	auto const pTargetHouse = pBuilding->Owner;
+
+	// Mandatory
+	pBuilding->InLimbo = true;
+	//pBuilding->IsAlive = false;
+	pBuilding->IsOnMap = false;
+	pTargetHouse->UpdatePower();
+
+	if (!pTargetHouse->RecheckTechTree)
+		pTargetHouse->RecheckTechTree = true;
+
+	auto pOwnerExt = HouseExtContainer::Instance.Find(pTargetHouse);
+
+	if (BuildingTypeExtContainer::Instance.Find(pType)->Academy)
+		pOwnerExt->UpdateAcademy(pBuilding, false);
+
+	pTargetHouse->RecheckPower = true;
+	pTargetHouse->RecheckRadar = true;
+	pTargetHouse->Buildings.Remove(pBuilding);
+	static_assert(offsetof(HouseClass, Buildings) == 0x68, "ClassMember Shifted !");
+	pOwnerExt->LimboTechno.remove(pBuilding);
+	pTargetHouse->RegisterLoss(pBuilding, false);
+	//pTargetHouse->RemoveTracking(pBuilding);
+
+	pTargetHouse->ActiveBuildingTypes.Decrement(pBuilding->Type->ArrayIndex);
+
+	// Building logics
+	if (pType->ConstructionYard)
+		pTargetHouse->ConYards.Remove(pBuilding);
+
+	if (pType->SecretLab)
+		pTargetHouse->SecretLabs.Remove(pBuilding);
+
+	//if (pType->FactoryPlant)
+	//{
+	//
+	//	pTargetHouse->FactoryPlants.Remove(pBuilding);
+	//	pTargetHouse->CalculateCostMultipliers();
+	//}
+
+	//if (pType->OrePurifier)
+	//	pTargetHouse->NumOrePurifiers--;
+
+	if (auto const pInfantrySelfHeal = pType->InfantryGainSelfHeal)
+	{
+		pTargetHouse->InfantrySelfHeal -= pInfantrySelfHeal;
+		if (pTargetHouse->InfantrySelfHeal < 0)
+			pTargetHouse->InfantrySelfHeal = 0;
+	}
+
+	if (auto const pUnitSelfHeal = pType->UnitsGainSelfHeal)
+	{
+		pTargetHouse->UnitsSelfHeal -= pUnitSelfHeal;
+		if (pTargetHouse->UnitsSelfHeal < 0)
+			pTargetHouse->UnitsSelfHeal = 0;
+	}
+
+	pTargetHouse->UpdateSuperWeaponsUnavailable();
+#endif
+
 	// Remove completely
 	Debug::Log(__FUNCTION__" Called \n");
 	TechnoExtData::HandleRemove(pBuilding, nullptr, true, false);

@@ -96,15 +96,27 @@ DEFINE_HOOK(0x6AA164, StripClass_Draw_DrawObserverFlag, 6)
 	return DontDraw;
 }
 
-DEFINE_HOOK(0x4e3562, Game_GetFlagSurface, 5)
+DEFINE_HOOK(0x4E3560, Game_GetFlagSurface, 5)
 {
 	GET(int, n, ECX);
+	//GET_STACK(DWORD, caller, 0x0);
+
+	//if (Phobos::Otamaa::IsAdmin)
+	//	Debug::Log(__FUNCTION__" Called From [0x%x] with idx [%d]\n", caller, n);
 
 	if (n == -2)
-		return 0x4E3567; // special index
+	{
+		//rani.pcx
+		R->EAX(PCX::Instance->GetSurface(reinterpret_cast<const char*>(0x844AE8))); // special index
+		return 0x4E3686;
+	}
 
 	if (n == -3)
-		return 0x4E365A; // special index
+	{
+		//obsi.pcx
+		R->EAX(PCX::Instance->GetSurface(reinterpret_cast<const char*>(0x844AEC))); // special index
+		return 0x4E3686;
+	}
 
 	if (auto pHouse = HouseTypeClass::Array->GetItemOrDefault(n)) {
 		if (auto pSurface = HouseTypeExtContainer::Instance.Find(pHouse)->FlagFile.GetSurface()) {
@@ -113,7 +125,7 @@ DEFINE_HOOK(0x4e3562, Game_GetFlagSurface, 5)
 		}
 	}
 
-	return 0x4E3579; // handle check
+	return 0x0; // handle check
 }
 
 DEFINE_HOOK(0x4E38A0, LoadPlayerCountryString, 5)

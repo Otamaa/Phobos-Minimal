@@ -279,7 +279,7 @@ DEFINE_HOOK(0x5C9B75, Global_DrawScoreScreen_ScoreTheme, 5)
 	return 0;
 }
 
-DWORD LoadTextColor(REGISTERS* R, DWORD dwReturnAddress)
+DWORD FORCEINLINE LoadTextColor(REGISTERS* R, DWORD dwReturnAddress)
 {
 	// if there is a cached LoadTextColor, use that.
 	if (auto pCS = ColorScheme::Array->GetItemOrDefault(SideExtData::CurrentLoadTextColor)) {

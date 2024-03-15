@@ -265,7 +265,9 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			Debug::Log("Exception data has been saved to file:\n%ls\n", except_file.c_str());
 		}
 
-		if (MessageBoxW(Game::hWnd, L"Yuri's Revenge has encountered a fatal error!\nWould you like to create a full crash report for the developers?", L"Fatal Error!", MB_YESNO | MB_ICONERROR) == IDYES)
+		//the value of `reference<HWND> Game::hWnd` is stored on the stack instead of inlined as memory value, using `.get()` doesnot seems fixed it
+		//so using these oogly
+		if (MessageBoxW(*reinterpret_cast<HWND*>(0xB73550), L"Yuri's Revenge has encountered a fatal error!\nWould you like to create a full crash report for the developers?", L"Fatal Error!", MB_YESNO | MB_ICONERROR) == IDYES)
 		{
 			HCURSOR loadCursor = LoadCursor(nullptr, IDC_WAIT);
 			//the value of `reference<HWND> Game::hWnd` is stored on the stack instead of inlined as memory value, using `.get()` doesnot seems fixed it
@@ -282,7 +284,9 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			Dialogs::FullDump(std::move(path), &expParam);
 
 			loadCursor = LoadCursor(nullptr, IDC_ARROW);
-			SetClassLong(Game::hWnd, GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
+			//the value of `reference<HWND> Game::hWnd` is stored on the stack instead of inlined as memory value, using `.get()` doesnot seems fixed it
+			//so using these oogly
+			SetClassLong(*reinterpret_cast<HWND*>(0xB73550), GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
 			SetCursor(loadCursor);
 			Debug::FatalError("The cause of this error could not be determined.\r\n"
 				"%s"

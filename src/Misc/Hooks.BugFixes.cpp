@@ -1061,12 +1061,9 @@ DEFINE_HOOK(0x53AD85, IonStormClass_AdjustLighting_ColorSchemes, 0x5)
 
 	int paletteCount = 0;
 
-	for (auto pSchemes = ColorScheme::GetPaletteSchemesFromIterator(it); pSchemes; pSchemes = ColorScheme::GetPaletteSchemesFromIterator(it))
-	{
-		for (int i = 1; i < pSchemes->Count; i += 2)
-		{
-			auto pScheme = pSchemes->GetItem(i);
-			pScheme->LightConvert->UpdateColors(red, green, blue, tint);
+	for (auto pSchemes = ColorScheme::GetPaletteSchemesFromIterator(it); pSchemes; pSchemes = ColorScheme::GetPaletteSchemesFromIterator(it)) {
+		for (int i = 1; i < pSchemes->Count; i += 2) {
+			pSchemes->Items[i]->LightConvert->UpdateColors(red, green, blue, tint);
 		}
 
 		paletteCount++;

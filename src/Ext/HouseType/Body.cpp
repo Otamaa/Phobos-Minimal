@@ -25,11 +25,12 @@ void HouseTypeExtData::Initialize()
 		[=](const char* pCountry) { return IS_SAME_STR_(pID, pCountry); });
 
 	const size_t index = it != std::end(countries) ? std::distance(std::begin(countries), it) : -1;
+	this->TauntFileName.GetEx()->resize(19);
 
 	switch ((Countries)index)
 	{
 	case Countries::Americans: // USA
-		this->TauntFile =  "taunts\\tauam~~.wav";
+		std::memcpy(this->TauntFileName.GetEx()->data() , "taunts\\tauam~~.wav" , 19u);
 		this->LoadScreenPalette = "mplsu.pal";
 		this->LoadScreenBackground = "ls%sustates.shp";
 
@@ -43,7 +44,7 @@ void HouseTypeExtData::Initialize()
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("usai.shp");
 		break;
 	case Countries::Alliance: //Korea
-		this->TauntFile = "taunts\\tauko~~.wav";
+		std::memcpy(this->TauntFileName.GetEx()->data(), "taunts\\tauko~~.wav", 19u);
 		this->LoadScreenPalette = "mplsk.pal";
 		this->LoadScreenBackground = "ls%skorea.shp";
 
@@ -57,7 +58,7 @@ void HouseTypeExtData::Initialize()
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("japi.shp");
 		break;
 	case Countries::French: //France
-		this->TauntFile = "taunts\\taufr~~.wav";
+		std::memcpy(this->TauntFileName.GetEx()->data(), "taunts\\taufr~~.wav", 19u);
 		this->LoadScreenPalette = "mplsf.pal";
 		this->LoadScreenBackground = "ls%sfrance.shp";
 
@@ -71,7 +72,7 @@ void HouseTypeExtData::Initialize()
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("frai.shp");
 		break;
 	case Countries::Germans: //Germany
-		this->TauntFile = "taunts\\tauge~~.wav";
+		std::memcpy(this->TauntFileName.GetEx()->data(), "taunts\\tauge~~.wav", 19u);
 		this->LoadScreenPalette = "mplsg.pal";
 		this->LoadScreenBackground = "ls%sgermany.shp";
 
@@ -85,7 +86,7 @@ void HouseTypeExtData::Initialize()
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("geri.shp");
 		break;
 	case Countries::British: //United Kingdom
-		this->TauntFile = "taunts\\taubr~~.wav";
+		std::memcpy(this->TauntFileName.GetEx()->data(), "taunts\\taubr~~.wav", 19u);
 		this->LoadScreenPalette = "mplsuk.pal";
 		this->LoadScreenBackground = "ls%sukingdom.shp";
 
@@ -99,7 +100,7 @@ void HouseTypeExtData::Initialize()
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("gbri.shp");
 		break;
 	case Countries::Africans: //Libya
-		this->TauntFile = "taunts\\tauli~~.wav";
+		std::memcpy(this->TauntFileName.GetEx()->data(), "taunts\\tauli~~.wav", 19u);
 		this->LoadScreenPalette = "mplsl.pal";
 		this->LoadScreenBackground = "ls%slibya.shp";
 
@@ -113,7 +114,7 @@ void HouseTypeExtData::Initialize()
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("djbi.shp");
 		break;
 	case Countries::Arabs: //Iraq
-		this->TauntFile = "taunts\\tauir~~.wav";
+		std::memcpy(this->TauntFileName.GetEx()->data(), "taunts\\tauir~~.wav", 19u);
 		this->LoadScreenPalette = "mplsi.pal";
 		this->LoadScreenBackground = "ls%siraq.shp";
 
@@ -127,7 +128,7 @@ void HouseTypeExtData::Initialize()
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("arbi.shp");
 		break;
 	case Countries::Confederation: //Cuba
-		this->TauntFile = "taunts\\taucu~~.wav";
+		std::memcpy(this->TauntFileName.GetEx()->data(), "taunts\\taucu~~.wav", 19u);
 		this->LoadScreenPalette = "mplsc.pal";
 		this->LoadScreenBackground = "ls%scuba.shp";
 
@@ -141,7 +142,7 @@ void HouseTypeExtData::Initialize()
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("lati.shp");
 		break;
 	case Countries::Russians: //Russia
-		this->TauntFile = "taunts\\tauru~~.wav";
+		std::memcpy(this->TauntFileName.GetEx()->data(), "taunts\\tauru~~.wav", 19u);
 		this->LoadScreenPalette = "mplsr.pal";
 		this->LoadScreenBackground = "ls%srussia.shp";
 
@@ -155,7 +156,7 @@ void HouseTypeExtData::Initialize()
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("rusi.shp");
 		break;
 	case Countries::YuriCountry: //Yuri
-		this->TauntFile = "taunts\\tauyu~~.wav";
+		std::memcpy(this->TauntFileName.GetEx()->data(), "taunts\\tauyu~~.wav", 19u);
 		this->LoadScreenPalette = "mpyls.pal";
 		this->LoadScreenBackground = "ls%syuri.shp";
 
@@ -170,7 +171,7 @@ void HouseTypeExtData::Initialize()
 		this->ObserverFlagYuriPAL = true;
 		break;
 	default: //Unknown
-		this->TauntFile = "taunts\\tauam~~.wav";
+		std::memcpy(this->TauntFileName.GetEx()->data(), "taunts\\tauam~~.wav",19u);
 		this->LoadScreenPalette = "mplsobs.pal";
 		this->LoadScreenBackground = "ls%sobs.shp";
 
@@ -222,6 +223,7 @@ void HouseTypeExtData::InheritSettings(HouseTypeClass* pThis)
 			this->StartInMultiplayer_WithConst = ParentData->StartInMultiplayer_WithConst;
 			this->Powerplants = ParentData->Powerplants;
 			this->VeteranBuildings = ParentData->VeteranBuildings;
+			this->TauntFileName = ParentData->TauntFileName;
 			this->TauntFile = ParentData->TauntFile;
 			this->Degrades = ParentData->Degrades;
 			this->StartInMultiplayer_Types = ParentData->StartInMultiplayer_Types;
@@ -364,7 +366,27 @@ void HouseTypeExtData::LoadFromRulesFile(CCINIClass* pINI) {
 
 	this->ObserverFlagYuriPAL.Read(exINI, pSection, "File.ObserverFlagAltPalette");
 
-	this->TauntFile.Read(pINI, pSection, "File.Taunt");
+	this->TauntFileName.Read(exINI, pSection, "File.Taunt");
+	constexpr char digits[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+
+	if(!this->TauntFileName->empty()) {
+
+		const auto nPos = this->TauntFileName->find("~~");
+		this->TauntFile.clear();
+
+		if (nPos != std::string::npos) {
+			this->TauntFile.resize((sizeof(digits) - 1), this->TauntFileName.Get());
+
+			for (size_t i = 0; i < this->TauntFile.size(); ++i) {
+				this->TauntFile[i][nPos] = digits[0];
+				this->TauntFile[i][nPos + 1] = digits[i + 1];
+
+				if (Phobos::Otamaa::IsAdmin)
+					Debug::Log("Reading taunt File[%d] for[%s] = %s\n", i, pSection, this->TauntFile[i].c_str());
+			}
+		}
+	}
+
 	this->LoadScreenBackground.Read(pINI, pSection, "File.LoadScreen");
 	this->LoadScreenPalette.Read(pINI, pSection, "File.LoadScreenPAL");
 
@@ -451,6 +473,7 @@ void  HouseTypeExtData::Serialize(T& Stm)
 		.Process(this->Powerplants)
 		.Process(this->VeteranBuildings)
 		.Process(this->TauntFile)
+		.Process(this->TauntFileName)
 		.Process(this->Degrades)
 		.Process(this->Disguise)
 		.Process(this->StartInMultiplayer_Types)

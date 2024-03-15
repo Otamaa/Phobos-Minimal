@@ -757,10 +757,10 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 	{
 	case DLL_PROCESS_ATTACH:
 	{
-		_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-		_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
-		_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
-		std::atexit(Phobos::_dump_memory_leaks);
+		//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+		//_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
+		//_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
+		//std::atexit(Phobos::_dump_memory_leaks);
 
 		Phobos::hInstance = hInstance;
 		Debug::LogFileRemove();
@@ -875,13 +875,13 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 #pragma region hooks
 
-DEFINE_HOOK(0x6BBFCE, WinMain_SetFPU_SyncDLL, 0x5)
-{
-	_set_controlfp(_RC_CHOP, _MCW_RC);
-
-	fesetround(FE_TOWARDZERO);
-	return 0x0;
-}
+//DEFINE_HOOK(0x6BBFCE, WinMain_SetFPU_SyncDLL, 0x5)
+//{
+//	_set_controlfp(_RC_CHOP, _MCW_RC);
+//
+//	fesetround(FE_TOWARDZERO);
+//	return 0x0;
+//}
 
 //DEFINE_JUMP(LJMP, 0x7CD8EA, GET_OFFSET(_ExeTerminate));
 #ifndef aaa
