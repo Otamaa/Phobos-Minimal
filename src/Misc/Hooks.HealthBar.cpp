@@ -157,12 +157,11 @@ namespace DrawHeathData
 			return nFrameResult;
 		};
 
-		char nBuffer[0x100];
-
-		if (!pTypeExt->HealthNumber_Percent.Get())
-			IMPL_SNPRNINTF(nBuffer, sizeof(nBuffer), "%d/%d", pThis->Health, pThis->GetTechnoType()->Strength);
-		else
-			IMPL_SNPRNINTF(nBuffer, sizeof(nBuffer), "%d%s", (int)(pThis->GetHealthPercentage() * 100.0), "%");
+		//char nBuffer[0x100];
+		std::string _buffer = !pTypeExt->HealthNumber_Percent.Get() ? 
+			std::format("{}/{}",pThis->Health, pThis->GetTechnoType()->Strength )
+		:
+			std::format("{}%" , (int)(pThis->GetHealthPercentage() * 100.0));
 
 		auto const bIsBuilding = pThis->WhatAmI() == BuildingClass::AbsID;
 
@@ -191,7 +190,7 @@ namespace DrawHeathData
 
 		Point2D nDistanceFactor = pTypeExt->Healnumber_Decrement.Get(bIsBuilding ? Point2D { 10,-5 } : Point2D { 5 ,0 });
 
-		for (auto const& nCurrentData : nBuffer)
+		for (auto const& nCurrentData : _buffer)
 		{
 			if (nCurrentData == *"\0")
 				break;

@@ -6,12 +6,12 @@ void ParticleTypeExtData::Initialize() {
 
 void ReadWinDirMult(std::array<Point2D, (size_t)FacingType::Count>& arr, INI_EX& exINI, const char* pID, const int* beginX , const int* beginY) {
 
-	char buff_wind[0x25];
+	//char buff_wind[0x25];
 
 	for (size_t i = 0; i < arr.size(); ++i) {
-		IMPL_SNPRNINTF(buff_wind, sizeof(buff_wind) - 1, "WindDirectionMult%d", i);
+		//IMPL_SNPRNINTF(buff_wind, sizeof(buff_wind) - 1, "WindDirectionMult%d", i);
 
-		if(!detail::read(arr[i], exINI, pID, buff_wind)) {
+		if(!detail::read(arr[i], exINI, pID, std::format("WindDirectionMult{}", i).c_str())) {
 			arr[i].X = *(beginX + i);
 			arr[i].Y = *(beginY + i);
 		}

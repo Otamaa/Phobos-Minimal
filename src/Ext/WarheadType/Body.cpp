@@ -238,7 +238,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	for (auto const& ArmorType : ArmorTypeClass::Array)
 	{
 		AnimTypeClass* pAnimReaded;
-		if(detail::read(pAnimReaded , exINI , pSection , ArmorType->HitAnim_Tag.data(), true) && pAnimReaded)
+		if(detail::read(pAnimReaded , exINI , pSection , ArmorType->HitAnim_Tag.c_str(), true) && pAnimReaded)
 			ArmorHitAnim[ArmorType.get()] = pAnimReaded;
 
 	}

@@ -35,10 +35,9 @@ public:
 		SYSTEMTIME time;
 		GetLocalTime(&time);
 
-		wchar_t subpath[64];
-		swprintf(subpath, 64, L"\\snapshot-%04u%02u%02u-%02u%02u%02u", time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond);
+		buffer += std::format(L"\\snapshot-{:04}{:02}{:02}-{:02}{:02}{:02}",
+				time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond);
 
-		buffer += subpath;
 		CreateDirectoryW(buffer.c_str(), nullptr);
 
 		return buffer;

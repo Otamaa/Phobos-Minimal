@@ -135,7 +135,7 @@ DEFINE_HOOK(0x71997B, TeleportLocomotionClass_ILocomotion_Process_ChronoDelay, 0
 //	return { pre,post };
 //}
 
-#ifndef FUCKTHESE
+#ifdef FUCKTHESE
 
 // Author : chaserli
 Matrix3D* __stdcall LocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* ret, VoxelIndexKey* pIndex)

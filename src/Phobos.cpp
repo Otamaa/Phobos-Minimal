@@ -526,21 +526,24 @@ void Phobos::Config::Read()
 		{
 			Phobos::Misc::CustomGS = true;
 
-			char tempBuffer[0x20];
+			//char tempBuffer[0x20];
 			for (size_t i = 0; i <= 6; ++i)
 			{
-				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "CustomGS%d.ChangeDelay", 6 - i);
-				int temp = INI_RulesMD.ReadInteger(GENERAL_SECTION, tempBuffer, -1);
+				std::string _buffer= std::format("CustomGS{}.ChangeDelay", 6 - i);
+				//IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "CustomGS%d.ChangeDelay", 6 - i);
+				int temp = INI_RulesMD.ReadInteger(GENERAL_SECTION, _buffer.c_str(), -1);
 				if (temp >= 0 && temp <= 6)
 					Phobos::Misc::CustomGS_ChangeDelay[i] = 6 - temp;
 
-				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "CustomGS%d.DefaultDelay", 6 - i);
-				temp = INI_RulesMD.ReadInteger(GENERAL_SECTION, tempBuffer, -1);
+				_buffer= std::format("CustomGS{}.DefaultDelay", 6 - i);
+				//IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "CustomGS%d.DefaultDelay", 6 - i);
+				temp = INI_RulesMD.ReadInteger(GENERAL_SECTION, _buffer.c_str(), -1);
 				if (temp >= 1)
 					Phobos::Misc::CustomGS_DefaultDelay[i] = 6 - temp;
 
-				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "CustomGS%d.ChangeInterval", 6 - i);
-				temp = INI_RulesMD.ReadInteger(GENERAL_SECTION, tempBuffer, -1);
+				_buffer= std::format("CustomGS{}.ChangeInterval", 6 - i);
+				//IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "CustomGS%d.ChangeInterval", 6 - i);
+				temp = INI_RulesMD.ReadInteger(GENERAL_SECTION, _buffer.c_str(), -1);
 				if (temp >= 1)
 					Phobos::Misc::CustomGS_ChangeInterval[i] = temp;
 			}

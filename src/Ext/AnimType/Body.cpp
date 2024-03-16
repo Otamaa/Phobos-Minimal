@@ -128,11 +128,11 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Launchs.clear();
 	for (size_t i = 0; ; ++i)
 	{
-		char nBuff[0x30];
+		//char nBuff[0x30];
 		SuperWeaponTypeClass* LaunchWhat_Dummy;
-		IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.Type", i);
+		//IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.Type", i);
 
-		if (!detail::read(LaunchWhat_Dummy, exINI, pID, nBuff, true) || !LaunchWhat_Dummy)
+		if (!detail::read(LaunchWhat_Dummy, exINI, pID, std::format("LaunchSW{}.Type", i).c_str(), true) || !LaunchWhat_Dummy)
 			break;
 
 		this->Launchs.emplace_back().Read(exINI, pID, i, LaunchWhat_Dummy);

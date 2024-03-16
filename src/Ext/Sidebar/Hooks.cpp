@@ -8,12 +8,12 @@
 
 DEFINE_HOOK(0x6A593E, SidebarClass_InitForHouse_AdditionalFiles, 0x5)
 {
-	char filename[0x20];
+	//char filename[0x20];
 
 	for (int i = 0; i < (int)SidebarExtData::TabProducingProgress.size(); i++) {
 		if(!SidebarExtData::TabProducingProgress[i]) {
-			IMPL_SNPRNINTF(filename,sizeof(filename), "tab%02dpp%s", i , GameStrings::dot_SHP());
-			SidebarExtData::TabProducingProgress[i] = GameCreate<SHPReference>(filename);
+			//IMPL_SNPRNINTF(filename,sizeof(filename), "tab%02dpp%s", i , GameStrings::dot_SHP());
+			SidebarExtData::TabProducingProgress[i] = GameCreate<SHPReference>(std::format("tab{:02}pp.SHP", i).c_str());
 		}
 	}
 

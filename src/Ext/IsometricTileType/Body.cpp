@@ -79,11 +79,11 @@ void IsometricTileTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 {
 	this->Tileset = IsometricTileTypeExtContainer::CurrentTileset;
 
-	char pSection[16];
-	IMPL_SNPRNINTF(pSection, sizeof(pSection), "TileSet%04d", IsometricTileTypeExtContainer::CurrentTileset);
+	//char pSection[16];
+	//IMPL_SNPRNINTF(pSection, sizeof(pSection), "TileSet%04d", IsometricTileTypeExtContainer::CurrentTileset);
 	INI_EX exINI(pINI);
 
-	this->Palette.Read(exINI, pSection, "CustomPalette");
+	this->Palette.Read(exINI, std::format("Tileset{:04}" ,IsometricTileTypeExtContainer::CurrentTileset).c_str(), "CustomPalette");
 }
 
 template <typename T>

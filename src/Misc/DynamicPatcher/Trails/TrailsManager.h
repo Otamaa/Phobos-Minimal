@@ -89,12 +89,13 @@ struct TrailsReader
 		if (TrailType::Array.empty())
 			return;
 
-		char tempBuffer[0x50];
+		//char tempBuffer[0x50];
 		for (size_t i = 0; ; ++i)
 		{
 			NullableIdx <TrailType> trail;
-			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.Type", i);
-			trail.Read(nParser, pSection, tempBuffer);
+			std::string _buffer = std::format("Trail{}.Type" , i);
+			//IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.Type", i);
+			trail.Read(nParser, pSection, _buffer.c_str());
 
 			if (!trail.isset() || trail == -1)
 				break;
@@ -102,19 +103,23 @@ struct TrailsReader
 			auto& Back = CurrentData.emplace_back();
 			Back.CurrentType = trail;
 
-			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.FLH", i);
-			detail::read(Back.FLHs, nParser, pSection, tempBuffer);
+			_buffer = std::format("Trail{}.FLH" , i);
+			//IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.FLH", i);
+			detail::read(Back.FLHs, nParser, pSection, _buffer.c_str());
 
 			if (IsForTechno) {
-				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.IsOnTurret", i);
-				detail::read(Back.Onturrents, nParser, pSection, tempBuffer);
+				_buffer = std::format("Trail{}.IsOnTurret" , i);
+				//IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.IsOnTurret", i);
+				detail::read(Back.Onturrents, nParser, pSection, _buffer.c_str());
 			}
 
-			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.OnLands", i);
-			detail::ReadVectors(Back.OnLand, nParser, pSection, tempBuffer);
+			_buffer = std::format("Trail{}.OnLands" , i);
+			//IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.OnLands", i);
+			detail::ReadVectors(Back.OnLand, nParser, pSection, _buffer.c_str());
 
-			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.OnTiles", i);
-			detail::ReadVectors(Back.OnTileTypes, nParser, pSection, tempBuffer);
+			_buffer = std::format("Trail{}.OnTiles" , i);
+			//IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.OnTiles", i);
+			detail::ReadVectors(Back.OnTileTypes, nParser, pSection, _buffer.c_str());
 		}
 	}
 

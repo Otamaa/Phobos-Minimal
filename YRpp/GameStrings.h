@@ -105,6 +105,9 @@ struct GameStrings
 	GAMEMD_STR(Tunnel, 0x81DBE4);
 	GAMEMD_STR(Color, 0x81B138);
 
+	GAMEMD_STR(ParaDrop, 0x81BE1C);
+	GAMEMD_STR(Paradrop, 0x8256D8);
+
 	GAMEMD_STR(ShakeYhi, 0x847C84);
 	GAMEMD_STR(ShakeYlo, 0x847C90);
 	GAMEMD_STR(ShakeXhi, 0x847C9C);
@@ -357,7 +360,8 @@ struct GameStrings
 	GAMEMD_STR(EVA_LightningStormCreated, 0x828080);
 	GAMEMD_STR(EVA_CannotDeployHere, 0x82012C);
 	GAMEMD_STR(EVA_TechBuildingLost, 0x818FC4);
-
+	GAMEMD_STR(EVA_BuildingOffLine, 0x819108);
+	GAMEMD_STR(EVA_BuildingOnLine, 0x8190C8);
 	//...
 
 	// Messages

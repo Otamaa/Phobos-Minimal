@@ -12,7 +12,7 @@ std::vector<std::string> BuildingTypeExtData::trenchKinds;
 const DirStruct  BuildingTypeExtData::DefaultJuggerFacing = DirStruct { 0x7FFF };
 const CellStruct BuildingTypeExtData::FoundationEndMarker = { 0x7FFF, 0x7FFF };
 
-bool  BuildingTypeExtData::IsAcademy() const
+bool BuildingTypeExtData::IsAcademy() const
 {
 	if (this->Academy.empty())
 	{
@@ -182,6 +182,8 @@ void BuildingTypeExtData::Initialize()
 	this->Type = TechnoTypeExtContainer::Instance.Find(this->AttachedToObject);
 	this->LostEvaEvent = VoxClass::FindIndexById(GameStrings::EVA_TechBuildingLost());
 	this->PrismForwarding.Initialize(this->AttachedToObject);
+	this->EVA_Online = VoxClass::FindIndexById(GameStrings::EVA_BuildingOnLine());
+	this->EVA_Offline = VoxClass::FindIndexById(GameStrings::EVA_BuildingOffLine());
 }
 
 bool BuildingTypeExtData::CanBeOccupiedBy(InfantryClass* whom) const
@@ -731,13 +733,13 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			std::vector<AnimTypeClass*>& nVec, const char* pBaseFlag, bool bAllocate = true, bool bParseDebug = false)
 			{
 				nVec.resize(HouseTypeClass::Array()->Count);
-				char tempBuffer[0x55];
+				//char tempBuffer[0x55];
 				for (int i = 0; i < HouseTypeClass::Array()->Count; ++i)
 				{
 					AnimTypeClass* nBuffer;
-					IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "%s%d", pBaseFlag, i);
+					//IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "%s%d", pBaseFlag, i);
 
-					if (!detail::read(nBuffer, exINI, pSection, tempBuffer, bAllocate) || !nBuffer)
+					if (!detail::read(nBuffer, exINI, pSection, std::format("{}{}", pBaseFlag, i ).c_str(), bAllocate) || !nBuffer)
 						continue;
 
 					nVec[i] = nBuffer;
@@ -948,6 +950,9 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->SpawnCrewOnlyOnce.Read(exINI, pSection, "SpawnCrewOnlyOnce");
 		this->IsDestroyableObstacle.Read(exINI, pSection, "IsDestroyableObstacle");
 
+		this->EVA_Online.Read(exINI, pSection, "EVA.Online");
+		this->EVA_Offline.Read(exINI, pSection, "EVA.Offline");
+
 		this->PrismForwarding.LoadFromINIFile(pThis, pINI);
 	}
 #pragma endregion
@@ -965,14 +970,14 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		if (pThis->MaxNumberOccupants > 10)
 		{
-			char tempMuzzleBuffer[32];
+			//char tempMuzzleBuffer[32];
 			this->OccupierMuzzleFlashes.clear();
 			this->OccupierMuzzleFlashes.resize(pThis->MaxNumberOccupants);
 
 			for (int i = 0; i < pThis->MaxNumberOccupants; ++i)
 			{
-				IMPL_SNPRNINTF(tempMuzzleBuffer, sizeof(tempMuzzleBuffer), "%s%d", GameStrings::MuzzleFlash(), i);
-				detail::read(this->OccupierMuzzleFlashes[i], exArtINI, pArtSection, tempMuzzleBuffer);
+				//IMPL_SNPRNINTF(tempMuzzleBuffer, sizeof(tempMuzzleBuffer), "%s%d", GameStrings::MuzzleFlash(), i);
+				detail::read(this->OccupierMuzzleFlashes[i], exArtINI, pArtSection, std::format("{}{}", GameStrings::MuzzleFlash(), i).c_str());
 			}
 		}
 
@@ -983,12 +988,12 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->DamageFire_Offs.clear();
 		this->DamageFire_Offs.reserve(8u);
 
-		char tempFire_OffsBuffer[0x25];
+		//char tempFire_OffsBuffer[0x25];
 		for (int i = 0;; ++i)
 		{
 			Point2D nFire_offs;
-			IMPL_SNPRNINTF(tempFire_OffsBuffer, sizeof(tempFire_OffsBuffer), "%s%d", GameStrings::DamageFireOffset(), i);
-			if (!detail::read(nFire_offs, exArtINI, pArtSection, tempFire_OffsBuffer))
+			//IMPL_SNPRNINTF(tempFire_OffsBuffer, sizeof(tempFire_OffsBuffer), "%s%d", GameStrings::DamageFireOffset(), i);
+			if (!detail::read(nFire_offs, exArtINI, pArtSection, std::format("{}{}", GameStrings::DamageFireOffset(), i).c_str()))
 				break;
 
 			this->DamageFire_Offs.push_back(nFire_offs);
@@ -999,14 +1004,14 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		if (pThis->Helipad)
 		{
-			char keyDock[0x40];
+			//char keyDock[0x40];
 			this->DockPoseDir.clear();
 			this->DockPoseDir.resize(pThis->NumberOfDocks);
 
 			for (int i = 0; i < pThis->NumberOfDocks; ++i)
 			{
-				IMPL_SNPRNINTF(keyDock, sizeof(keyDock), "DockingPoseDir%d", i);
-				detail::read(this->DockPoseDir[i], exArtINI, pArtSection, keyDock, false);
+				//IMPL_SNPRNINTF(keyDock, sizeof(keyDock), "DockingPoseDir%d", i);
+				detail::read(this->DockPoseDir[i], exArtINI, pArtSection, std::format("DockingPoseDir{}",i).c_str(), false);
 			}
 		}
 #pragma endregion
@@ -1221,6 +1226,8 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->FreeUnit_Count)
 		.Process(this->SpawnCrewOnlyOnce)
 		.Process(this->IsDestroyableObstacle)
+		.Process(this->EVA_Online)
+		.Process(this->EVA_Offline)
 		;
 }
 

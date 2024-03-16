@@ -278,28 +278,29 @@ DEFINE_HOOK(0x5F9070, ObjectTypeClass_Load2DArt, 6)
 		pTypeData = TechnoTypeExtContainer::Instance.Find(pThisTechno);
 	}
 
-	char basename[MAX_PATH];
-
 	// extension object is not present if not techno type
 	if (pTypeData && pTypeData->AlternateTheaterArt)
 	{
 		if (!pType->ArcticArtInUse)
 		{ // this flag is not used anywhere outside this function, so I'll just hijack it
 			pType->ArcticArtInUse = true;
-			IMPL_SNPRNINTF(basename, sizeof(basename), "%s%s", pType->ImageFile, TheaterData->Letter.data());
-			if (!CCINIClass::INI_Art->GetSection(basename))
+			std::string _baseName = std::format("{}{}", pType->ImageFile, TheaterData->Letter.data());
+			//IMPL_SNPRNINTF(basename, sizeof(basename), "%s%s", pType->ImageFile, TheaterData->Letter.data());
+			if (!CCINIClass::INI_Art->GetSection(_baseName.c_str()))
 			{
 				pType->ArcticArtInUse = false;
-				IMPL_SNPRNINTF(basename, sizeof(basename), "%s", pType->ImageFile);
+				_baseName = pType->ImageFile;
+				//IMPL_SNPRNINTF(basename, sizeof(basename), "%s", pType->ImageFile);
 			}
 
-			PhobosCRT::strCopy(pType->ImageFile, basename);
+			PhobosCRT::strCopy(pType->ImageFile, _baseName.c_str());
 		}
 	}
 	else if (pType->AlternateArcticArt && TheaterData->IsArctic && !pType->ImageAllocated)
 	{
 		if (!pType->ArcticArtInUse)
 		{
+			char basename[MAX_PATH];
 			IMPL_SNPRNINTF(basename, sizeof(basename), GameStrings::STRFORMAT_A(), pType->ImageFile);
 			PhobosCRT::strCopy(pType->ImageFile, basename);
 			pType->ArcticArtInUse = true;
@@ -310,18 +311,18 @@ DEFINE_HOOK(0x5F9070, ObjectTypeClass_Load2DArt, 6)
 		pType->ArcticArtInUse = false;
 	}
 
-	auto const pExt = (pType->Theater ? TheaterData->Extension.c_str() : "SHP");
-	IMPL_SNPRNINTF(basename, sizeof(basename), "%s.%s", pType->ImageFile, pExt);
+	std::string _ext = std::format("{}.{}" , pType->ImageFile, pType->Theater ? TheaterData->Extension.c_str() : "SHP");
+	//IMPL_SNPRNINTF(basename, sizeof(basename), "%s.%s", pType->ImageFile, pExt);
 
 	if (!pType->Theater && pType->NewTheater && scenarioTheater != TheaterType::None)
 	{
-		if (isalpha(static_cast<unsigned char>(basename[0])))
+		if (isalpha(static_cast<unsigned char>(_ext[0])))
 		{
 			// evil hack to uppercase
-			auto const c1 = static_cast<unsigned char>(basename[1]) & ~0x20;
+			auto const c1 = static_cast<unsigned char>(_ext[1]) & ~0x20;
 			if (c1 == 'A' || c1 == 'T')
 			{
-				basename[1] = TheaterData->Letter.data()[0];
+				_ext[1] = TheaterData->Letter.data()[0];
 			}
 		}
 	}
@@ -342,11 +343,11 @@ DEFINE_HOOK(0x5F9070, ObjectTypeClass_Load2DArt, 6)
 	{
 		const auto forceShp = what == OverlayTypeClass::AbsID || what == AnimTypeClass::AbsID;
 
-		auto pImage = FileSystem::LoadFile(basename, forceShp);
+		auto pImage = FileSystem::LoadFile(_ext.c_str(), forceShp);
 		if (!pImage)
 		{
-			basename[1] = 'G';
-			pImage = FileSystem::LoadFile(basename, forceShp);
+			_ext[1] = 'G';
+			pImage = FileSystem::LoadFile(_ext.c_str(), forceShp);
 		}
 
 		pType->Image = static_cast<SHPStruct*>(pImage);

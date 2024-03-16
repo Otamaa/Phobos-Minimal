@@ -14,28 +14,28 @@ ArmorTypeClass::ArmorTypeClass(const char* const pTitle) : Enumerable<ArmorTypeC
 , DefaultString { }
 , DefaultVersesValue { }
 , IsVanillaArmor { false }
-, BaseTag {}
-, FF_Tag {}
-, RT_Tag {}
-, PA_Tag {}
-, HitAnim_Tag {}
+, BaseTag { std::format("Versus.{}" , pTitle) }
+, FF_Tag { std::format("Versus.{}.ForceFire" , pTitle) }
+, RT_Tag { std::format("Versus.{}.Retaliate" , pTitle) }
+, PA_Tag { std::format("Versus.{}.PassiveAcquire" , pTitle) }
+, HitAnim_Tag { std::format("HitAnim.{}" , pTitle) }
 {
 	//generate related tag when allocated to avoid using SNPRINTF , it lagging the game when huge amount of armor readed
-	char buffer[0x100];
-	IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s", pTitle);
-	BaseTag = buffer;
+	//char buffer[0x100];
+	//IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s", pTitle);
+	//BaseTag = ;
 
-	IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s.ForceFire", pTitle);
-	FF_Tag = buffer;
+	//IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s.ForceFire", pTitle);
+	//FF_Tag = ;
 
-	IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s.Retaliate", pTitle);
-	RT_Tag = buffer;
+	//IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s.Retaliate", pTitle);
+	//RT_Tag = ;
 
-	IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s.PassiveAcquire", pTitle);
-	PA_Tag = buffer;
+	//IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s.PassiveAcquire", pTitle);
+	//PA_Tag = ;
 
-	IMPL_SNPRNINTF(buffer, sizeof(buffer), "HitAnim.%s", pTitle);
-	HitAnim_Tag = buffer;
+	//IMPL_SNPRNINTF(buffer, sizeof(buffer), "HitAnim.%s", pTitle);
+	//HitAnim_Tag = ;
 }
 
 const char* Enumerable<ArmorTypeClass>::GetMainSection()
@@ -87,12 +87,12 @@ void ArmorTypeClass::EvaluateDefault()
 	for (size_t i = 0; i < Array.size(); ++i) {
 		auto& pArmor = Array[i];
 
-		if (IsDefault(pArmor->Name.data()) || !pArmor->DefaultString || !strlen(pArmor->DefaultString.data()))
+		if (IsDefault(pArmor->Name.data()) || pArmor->DefaultString.empty() || !strlen(pArmor->DefaultString.c_str()))
 			continue;
 
 		if (pArmor->DefaultTo == -1)
 		{
-			const auto nDefault = FindIndexById(pArmor->DefaultString.data());
+			const auto nDefault = FindIndexById(pArmor->DefaultString.c_str());
 			const auto pDefault = Array[nDefault].get();
 
 			if ((int)i < nDefault)
@@ -156,7 +156,7 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 	{
 		const auto& pArmor = ArmorTypeClass::Array[i];
 
-		if (exINI.ReadString(section, pArmor->BaseTag.data()) > 0)
+		if (exINI.ReadString(section, pArmor->BaseTag.c_str()) > 0)
 		{
 			pWHExt->Verses[i].Parse_NoCheck(exINI.value());
 		}
@@ -168,7 +168,7 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 				if ((int)i < nDefault)
 				{
 					const auto pDefault = ArmorTypeClass::Array[nDefault].get();
-					if (exINI.ReadString(section, pDefault->BaseTag.data()) > 0)
+					if (exINI.ReadString(section, pDefault->BaseTag.c_str()) > 0)
 					{
 						pWHExt->Verses[nDefault].Parse_NoCheck(exINI.value());
 					}
@@ -178,9 +178,9 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 			}
 		}
 
-		pWHExt->Verses[i].Flags.ForceFire = pINI->ReadBool(section, pArmor->FF_Tag.data(), pWHExt->Verses[i].Flags.ForceFire);
-		pWHExt->Verses[i].Flags.Retaliate = pINI->ReadBool(section, pArmor->RT_Tag.data(), pWHExt->Verses[i].Flags.Retaliate);
-		pWHExt->Verses[i].Flags.PassiveAcquire = pINI->ReadBool(section, pArmor->PA_Tag.data(), pWHExt->Verses[i].Flags.PassiveAcquire);
+		pWHExt->Verses[i].Flags.ForceFire = pINI->ReadBool(section, pArmor->FF_Tag.c_str(), pWHExt->Verses[i].Flags.ForceFire);
+		pWHExt->Verses[i].Flags.Retaliate = pINI->ReadBool(section, pArmor->RT_Tag.c_str(), pWHExt->Verses[i].Flags.Retaliate);
+		pWHExt->Verses[i].Flags.PassiveAcquire = pINI->ReadBool(section, pArmor->PA_Tag.c_str(), pWHExt->Verses[i].Flags.PassiveAcquire);
 	}
 }
 

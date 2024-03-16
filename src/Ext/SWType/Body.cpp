@@ -1387,12 +1387,12 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->LimboDelivery_IDs.Read(exINI, pSection, "LimboDelivery.IDs");
 	this->LimboDelivery_RollChances.Read(exINI, pSection, "LimboDelivery.RollChances");
 
-	char tempBuffer[0x30];
+	//char tempBuffer[0x30];
 	for (size_t i = 0; ; ++i)
 	{
 		ValueableVector<int> weights {};
-		IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LimboDelivery.RandomWeights%d", i);
-		weights.Read(exINI, pSection, tempBuffer);
+		//IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LimboDelivery.RandomWeights%d", i);
+		weights.Read(exINI, pSection, std::format("LimboDelivery.RandomWeights{}" , i).c_str());
 
 		if (weights.empty())
 			break;
@@ -1565,8 +1565,8 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	for (size_t i = 0; ; ++i)
 	{
 		ValueableVector<int> weights3;
-		_snprintf_s(tempBuffer, sizeof(tempBuffer), "SW.GrantOneTime.RandomWeights%d", i);
-		weights3.Read(exINI, pSection, tempBuffer);
+		//_snprintf_s(tempBuffer, sizeof(tempBuffer), "SW.GrantOneTime.RandomWeights%d", i);
+		weights3.Read(exINI, pSection, std::format("SW.GrantOneTime.RandomWeights{}" , i).c_str());
 
 		if (weights3.empty())
 			break;
@@ -1607,7 +1607,7 @@ void SWTypeExtData::WeightedRollsHandler(std::vector<int>& nResult, Valueable<do
 	size_t rollsSize = rolls.size();
 	size_t weightsSize = weights.size();
 	int index = 0;
-	std::vector<int> indices;
+	//std::vector<int> indices;
 
 	// if no RollChances are supplied, do only one roll
 	if (rollsSize == 0)

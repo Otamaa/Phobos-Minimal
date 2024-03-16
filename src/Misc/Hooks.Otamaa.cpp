@@ -4052,12 +4052,12 @@ DEFINE_HOOK(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 
 		//Load FoundationData
 		auto itData = pBldext->CustomData.begin();
-		char key[0x20];
+		//char key[0x20];
 
 		for (int i = 0; i < dimension; ++i)
 		{
-			IMPL_SNPRNINTF(key, sizeof(key), "Foundation.%d", i);
-			if (exINi->ReadString(pSection, key, Phobos::readDefval, strbuff))
+			//IMPL_SNPRNINTF(key, sizeof(key), "Foundation.%d", i);
+			if (exINi->ReadString(pSection, std::format("Foundation.{}",i).c_str(), Phobos::readDefval, strbuff))
 			{
 				ParsePoint(itData, strbuff);
 			}
@@ -4085,8 +4085,8 @@ DEFINE_HOOK(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 		auto itOutline = pBldext->OutlineData.begin();
 		for (int i = 0; i < outlineLength; ++i)
 		{
-			IMPL_SNPRNINTF(key, sizeof(key), "FoundationOutline.%d", i);
-			if (exINi->ReadString(pSection, key, "", strbuff))
+			//IMPL_SNPRNINTF(key, sizeof(key), "FoundationOutline.%d", i);
+			if (exINi->ReadString(pSection, std::format("FoundationOutline.{}",i).c_str(), "", strbuff))
 			{
 				ParsePoint(itOutline, strbuff);
 			}

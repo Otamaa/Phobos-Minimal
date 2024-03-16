@@ -29,17 +29,20 @@ void MapSnapshotCommandClass::Execute(WWKey dwUnk) const
 		return;
 	}
 
-	char fName[0x80];
+	//char fName[0x80];
 
 	SYSTEMTIME time;
 	GetLocalTime(&time);
 
-	IMPL_SNPRNINTF(fName, 0x7F, "Map.%04u%02u%02u-%02u%02u%02u-%05u.yrm",
+	//IMPL_SNPRNINTF(fName, 0x7F, "Map.%04u%02u%02u-%02u%02u%02u-%05u.yrm",
+	//	time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
+
+	std::string fName = std::format("Map.{:04}{:02}{:02}-{:02}{:02}{:02}-{:05}.yrm",
 		time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
 
-	Game::WriteMapFiles(fName);
+	Game::WriteMapFiles(fName.c_str());
 	wchar_t msg[0xA0] = L"\0";
-	wsprintfW(msg, L"Map Snapshot saved as '%hs'.", fName);
+	wsprintfW(msg, L"Map Snapshot saved as '%hs'.", fName.c_str());
 
 	MessageListClass::Instance->PrintMessage(msg);
 }

@@ -288,6 +288,9 @@ public:
 
 	Valueable<bool> IsDestroyableObstacle { false };
 
+	ValueableIdx<VoxClass> EVA_Online { -1 };
+	ValueableIdx<VoxClass> EVA_Offline { -1 };
+
 	BuildingTypeExtData() noexcept = default;
 	~BuildingTypeExtData() noexcept = default;
 

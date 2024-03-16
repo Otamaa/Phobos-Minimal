@@ -92,14 +92,12 @@ DEFINE_HOOK(0x68BE90, ScenarioClass_Write_Waypoints, 0x5) //was 5 and crash ?
 {
 	GET_STACK(INIClass*, pINI, 0x4);
 	pINI->Clear(GameStrings::Waypoints(), nullptr);
-	char buffer[32];
 	for (const auto& [nidx,nCell] : ScenarioExtData::Instance()->Waypoints)
 	{
 		if (!nCell.IsValid())
 			continue;
 
-		IMPL_SNPRNINTF(buffer, sizeof(buffer), "%d", nidx);
-		pINI->WriteInteger(GameStrings::Waypoints(), buffer, nCell.X + 1000 * nCell.Y, false);
+		pINI->WriteInteger(GameStrings::Waypoints(), std::to_string(nidx).c_str(), nCell.X + 1000 * nCell.Y, false);
 	}
 
 	return 0x68BF1F;

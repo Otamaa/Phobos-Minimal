@@ -32,16 +32,19 @@ DEFINE_HOOK(0x537BC0, Game_MakeScreenshot, 6)
 
 			if (WORD* buffer = reinterpret_cast<WORD*>(Surface->Lock(0, 0)))
 			{
-				char fName[0x80];
+				//char fName[0x80];
 
 				SYSTEMTIME time;
 				GetLocalTime(&time);
 
-				IMPL_SNPRNINTF(fName, sizeof(fName), "SCRN.%04u%02u%02u-%02u%02u%02u-%05u.BMP",
+				std::string fName = std::format("SCRN.{:04}{:02}{:02}-{:02}{:02}{:02}-{:05}.BMP",
 					time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
 
-				CCFileClass ScreenShot { "\0" };
-				ScreenShot.OpenEx(fName, FileAccessMode::Write);
+				//IMPL_SNPRNINTF(fName, sizeof(fName), "SCRN.%04u%02u%02u-%02u%02u%02u-%05u.BMP",
+				//	time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
+
+				CCFileClass ScreenShot { fName.c_str()};
+				ScreenShot.Open(FileAccessMode::Write);
 
 #pragma pack(push, 1)
 				struct bmpfile_full_header

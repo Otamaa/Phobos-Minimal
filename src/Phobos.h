@@ -9,6 +9,8 @@
 #include <string>
 #include <Wstring.h>
 
+#include <format>
+
 #ifndef NANOPRINTF_IMPLEMENTATION
 #define IMPL_SNPRNINTF _snprintf_s
 #else

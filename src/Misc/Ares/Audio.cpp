@@ -154,15 +154,14 @@ public:
 	private:
 		void Open(const char* fileBase)
 		{
-			char filename[0x100];
-			IMPL_SNPRNINTF(filename, sizeof(filename), "%s.idx", fileBase);
+			std::string filename = std::format("{}.idx",fileBase);
 
-			CCFileClass pIndex { filename };
+			CCFileClass pIndex { filename.c_str() };
 
 			if (pIndex.Exists() && pIndex.Open(FileAccessMode::Read))
 			{
-				IMPL_SNPRNINTF(filename, sizeof(filename), "%s.bag", fileBase);
-				auto pBag = UniqueGamePtrB<CCFileClass>(GameCreateUnchecked<CCFileClass>(filename));
+				filename = std::format("{}.bag", fileBase);
+				auto pBag = UniqueGamePtrB<CCFileClass>(GameCreateUnchecked<CCFileClass>(filename.c_str()));
 
 				if (pBag->Exists()
 					&& pBag->Open(FileAccessMode::Read))
@@ -171,7 +170,7 @@ public:
 					if(pIndex.ReadBytes(&headerIndex, sizeof(AudioIDXHeader)) == sizeof(AudioIDXHeader))
 					{
 						if (Phobos::Otamaa::OutputAudioLogs) {
-							Debug::Log("Reading [%s from %s] file with [%d] samples!.\n", filename, pIndex.GetFileName(), headerIndex.numSamples);
+							Debug::Log("Reading [%s from %s] file with [%d] samples!.\n", filename.c_str(), pIndex.GetFileName(), headerIndex.numSamples);
 						}
 
 						if (headerIndex.numSamples > 0)
@@ -205,7 +204,7 @@ public:
 					}
 
 					this->Bag = std::move(pBag);
-					this->BagFile = filename;
+					this->BagFile = std::move(filename);
 				}
 			}
 		}
@@ -425,10 +424,10 @@ DEFINE_HOOK(0x4011C0, Audio_Load, 6)
 	instance.Append("ares");
 
 	// audio01.bag to audio99.bag
-	char buffer[0x100];
+	//char buffer[0x100];
 	for(auto i = 1; i < 100; ++i) {
-		IMPL_SNPRNINTF(buffer, sizeof(buffer), "audio%02d", i);
-		instance.Append(buffer);
+		//IMPL_SNPRNINTF(buffer, sizeof(buffer), "audio%02d", i);
+		instance.Append(std::format("audio{:02}", i).c_str());
 	}
 
 	// cram all luggage datas onto single AudioIdxData pointer

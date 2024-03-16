@@ -335,7 +335,7 @@ void TechnoTypeExt_ExtData::LoadTurrets(TechnoTypeClass* pType, CCINIClass* pINI
 	pExt->WeaponUINameX.resize(weaponCount);
 	pExt->Insignia_Weapon.resize(weaponCount);
 
-	char buffer[0x100u];
+	//char buffer[0x100u];
 	//read default
 	for (size_t i = 0; i < SubName.size(); ++i)
 	{
@@ -368,13 +368,15 @@ void TechnoTypeExt_ExtData::LoadTurrets(TechnoTypeClass* pType, CCINIClass* pINI
 		++Data_
 	)
 	{
-		IMPL_SNPRNINTF(buffer, sizeof(buffer), "WeaponTurretIndex%u", i + 1);
+		std::string _buffer = std::format("WeaponTurretIndex{}", i + 1);
+
+		//IMPL_SNPRNINTF(buffer, sizeof(buffer), "WeaponTurretIndex%u", i + 1);
 		int read_buff;
 		int* result = i < 18 ?
 			pType->TurretWeapon + i :
 			pExt->AdditionalTurrentWeapon.data() + (i - TechnoTypeClass::MaxWeapons);
 
-		if (detail::read(read_buff , iniEx, pSection, buffer) && read_buff >= 0) {
+		if (detail::read(read_buff , iniEx, pSection, _buffer.c_str()) && read_buff >= 0) {
 			*result = read_buff;
 		}
 
@@ -384,18 +386,22 @@ void TechnoTypeExt_ExtData::LoadTurrets(TechnoTypeClass* pType, CCINIClass* pINI
 			//*result = 0; //avoid crash
 		}
 
-		IMPL_SNPRNINTF(buffer, sizeof(buffer), "WeaponUIName%u", i + 1);
-		if (iniEx.ReadString(pSection, buffer) > 0)
+		_buffer = std::format("WeaponUIName{}", i + 1);
+		//IMPL_SNPRNINTF(buffer, sizeof(buffer), "WeaponUIName%u", i + 1);
+		if (iniEx.ReadString(pSection, _buffer.c_str()) > 0)
 			*CSF_ = iniEx.c_str();
 
-		IMPL_SNPRNINTF(buffer, sizeof(buffer), "Insignia.Weapon%u.%s", i + 1, "%s");
-		(*Data_).Shapes.Read(iniEx, pSection, buffer);
+		_buffer = std::format("Insignia.Weapon{}.%s", i + 1);
+		//IMPL_SNPRNINTF(buffer, sizeof(buffer), "Insignia.Weapon%u.%s", i + 1, "%s");
+		(*Data_).Shapes.Read(iniEx, pSection, _buffer.c_str());
 
-		IMPL_SNPRNINTF(buffer, sizeof(buffer), "InsigniaFrame.Weapon%u.%s", i + 1, "%s");
-		(*Data_).Frame.Read(iniEx, pSection, buffer);
+		_buffer = std::format("InsigniaFrame.Weapon{}.%s", i + 1);
+		//IMPL_SNPRNINTF(buffer, sizeof(buffer), "InsigniaFrame.Weapon%u.%s", i + 1, "%s");
+		(*Data_).Frame.Read(iniEx, pSection, _buffer.c_str());
 
-		IMPL_SNPRNINTF(buffer, sizeof(buffer), "InsigniaFrames.Weapon%u", i + 1);
-		(*Data_).Frames.Read(iniEx, pSection, buffer);
+		_buffer = std::format("InsigniaFrames.Weapon{}", i + 1);
+		//IMPL_SNPRNINTF(buffer, sizeof(buffer), "InsigniaFrames.Weapon%u", i + 1);
+		(*Data_).Frames.Read(iniEx, pSection, _buffer.c_str());
 	}
 }
 
@@ -453,41 +459,46 @@ void TechnoTypeExt_ExtData::ReadWeaponStructDatas(TechnoTypeClass* pType, CCINIC
 		const int NextIdx = i < TechnoTypeClass::MaxWeapons ? i : i - TechnoTypeClass::MaxWeapons;
 		//Debug::Log("Next Weapon Idx for [%s] [%d]\n", pSection, NextIdx);
 
-		char buffer[0x40];
-		char bufferWeapon[0x40];
+		//char buffer[0x40];
+		//char bufferWeapon[0x40];
 
 		auto data = (i < TechnoTypeClass::MaxWeapons ? pType->Weapon : pExt->AdditionalWeaponDatas.data()) + NextIdx;
 		auto data_e = (i < TechnoTypeClass::MaxWeapons ? pType->EliteWeapon : pExt->AdditionalEliteWeaponDatas.data()) + NextIdx;
 
-		IMPL_SNPRNINTF(bufferWeapon, sizeof(bufferWeapon), "EliteWeapon%u", i + 1);
+		std::string _bufferWeapon = std::format("EliteWeapon{}", i + 1);
+		//IMPL_SNPRNINTF(bufferWeapon, sizeof(bufferWeapon), "EliteWeapon%u", i + 1);
 
-		detail::read(data->WeaponType, iniEx, pSection, bufferWeapon + 5, true);
+		detail::read(data->WeaponType, iniEx, pSection, _bufferWeapon.c_str() + 5, true);
 
-		if (!detail::read(data_e->WeaponType, iniEx, pSection, bufferWeapon, true))
+		if (!detail::read(data_e->WeaponType, iniEx, pSection, _bufferWeapon.c_str(), true))
 			data_e->WeaponType = data->WeaponType;
 
-		IMPL_SNPRNINTF(buffer, sizeof(buffer), "%sFLH", bufferWeapon);
-		detail::read(data->FLH, iniEX_art, pSection_art, buffer + 5, false);
+		std::string _buffer = std::format("{}FLH", _bufferWeapon);
+		//IMPL_SNPRNINTF(buffer, sizeof(buffer), "%sFLH", bufferWeapon);
+		detail::read(data->FLH, iniEX_art, pSection_art, _buffer.data() + 5, false);
 
-		if (!detail::read(data_e->FLH, iniEX_art, pSection_art, buffer, false))
+		if (!detail::read(data_e->FLH, iniEX_art, pSection_art, _buffer.c_str(), false))
 			data_e->FLH = data->FLH;
 
-		IMPL_SNPRNINTF(buffer, sizeof(buffer), "%sBarrelLength", bufferWeapon);
-		detail::read(data->BarrelLength, iniEX_art, pSection_art, buffer + 5, false);
+		_buffer = std::format("{}BarrelLength", _bufferWeapon);
+		//IMPL_SNPRNINTF(buffer, sizeof(buffer), "%sBarrelLength", bufferWeapon);
+		detail::read(data->BarrelLength, iniEX_art, pSection_art, _buffer.data() + 5, false);
 
-		if(!detail::read(data_e->BarrelLength, iniEX_art, pSection_art, buffer))
+		if(!detail::read(data_e->BarrelLength, iniEX_art, pSection_art, _buffer.c_str()))
 			data_e->BarrelLength = data->BarrelLength;
 
-		IMPL_SNPRNINTF(buffer, sizeof(buffer), "%sBarrelThickness", bufferWeapon);
-		detail::read(data->BarrelThickness, iniEX_art, pSection_art, buffer + 5, false);
+		_buffer = std::format("{}BarrelThickness", _bufferWeapon);
+		//IMPL_SNPRNINTF(buffer, sizeof(buffer), "%sBarrelThickness", bufferWeapon);
+		detail::read(data->BarrelThickness, iniEX_art, pSection_art, _buffer.data() + 5, false);
 
-		if(!detail::read(data_e->BarrelThickness, iniEX_art, pSection_art, buffer))
+		if(!detail::read(data_e->BarrelThickness, iniEX_art, pSection_art, _buffer.c_str()))
 			data_e->BarrelThickness = data->BarrelThickness;
 
-		IMPL_SNPRNINTF(buffer, sizeof(buffer), "%sTurretLocked", bufferWeapon);
-		detail::read(data->TurretLocked, iniEX_art, pSection_art, buffer + 5, false);
+		_buffer = std::format("{}TurretLocked", _bufferWeapon);
+		//IMPL_SNPRNINTF(buffer, sizeof(buffer), "%sTurretLocked", bufferWeapon);
+		detail::read(data->TurretLocked, iniEX_art, pSection_art, _buffer.data() + 5, false);
 
-		if(!detail::read(data_e->TurretLocked, iniEX_art, pSection_art, buffer))
+		if(!detail::read(data_e->TurretLocked, iniEX_art, pSection_art, _buffer.c_str()))
 			data_e->TurretLocked = data->TurretLocked;
 	}
 }

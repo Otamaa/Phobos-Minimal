@@ -15,6 +15,20 @@ DEFINE_HOOK(0x4518CF, BuildingClass_AnimLogic_check, 0x9)
 	return 0x4518D8;
 }
 
+DEFINE_HOOK(0x45234B, BuildingClass_TurnOn_EVA, 0x5)
+{
+	GET(BuildingClass*, pThis, ESI);
+	VoxClass::PlayIndex(BuildingTypeExtContainer::Instance.Find(pThis->Type)->EVA_Online);
+	return 0x45235A;
+}
+
+DEFINE_HOOK(0x4523D4, BuildingClass_TurnOff_EVA, 0x5)
+{
+	GET(BuildingClass*, pThis, ESI);
+	VoxClass::PlayIndex(BuildingTypeExtContainer::Instance.Find(pThis->Type)->EVA_Offline);
+	return 0x4523E3;
+}
+
 /*
 DEFINE_HOOK(0x442243, BuildingClass_ReceiveDamage_AddEarly, 0xA)
 {

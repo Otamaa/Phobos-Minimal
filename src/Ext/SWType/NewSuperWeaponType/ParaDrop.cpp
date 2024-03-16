@@ -58,41 +58,49 @@ void SW_ParaDrop::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 	const char* section = pData->get_ID();
 
 	INI_EX exINI(pINI);
-	char base[0x40];
+	//char base[0x40];
+	std::string _base;
 
-	auto CreateParaDropBase = [](char* pID, auto& Buffer)
+	auto CreateParaDropBase = [](char* pID, std::string& base)
 	{
 		// put a string like "Paradrop.Americans" into the buffer
 		if (pID && strlen(pID)) {
-			IMPL_SNPRNINTF(Buffer, _TRUNCATE, "ParaDrop.%s", pID);
+			base = std::format("ParaDrop.{}" , pID);
+			//IMPL_SNPRNINTF(Buffer, _TRUNCATE, "ParaDrop.%s", pID);
 		}
 		else {
-			PhobosCRT::strCopy(Buffer, "ParaDrop");
+			base = GameStrings::ParaDrop();
+			//PhobosCRT::strCopy(Buffer, "ParaDrop");
 		}
 	};
 
-	auto ParseParaDrop = [section, &exINI](char* pID, int Plane , ParadropData& out)
+	auto ParseParaDrop = [section, &exINI](const char* pID, int Plane , ParadropData& out)
 	{
 		// create the plane part of this request. this will be
 		// an empty string for the first plane for this is the default.
-		char plane[0x10] = "";
+		//char plane[0x10] = "";
+		std::string _plane("");
 		if (Plane)
 		{
-			IMPL_SNPRNINTF(plane, _TRUNCATE, ".Plane%d", Plane + 1);
+			//IMPL_SNPRNINTF(plane, _TRUNCATE, ".Plane%d", Plane + 1);
+			_plane = std::format(".Plane{}" , Plane + 1 );
 		}
 
 		// construct the full tag name base
-		char base[0x40];
-		IMPL_SNPRNINTF(base, _TRUNCATE, "%s%s", pID, plane);
+		//char base[0x40];
+		std::string base = std::format("{}{}" , pID , _plane);
+		//IMPL_SNPRNINTF(base, _TRUNCATE, "%s%s", pID, plane);
 
 		// parse the plane contents
-		char key[0x40];
-		IMPL_SNPRNINTF(key, _TRUNCATE, "%s.Aircraft", base);
-		out.Aircraft.Read(exINI, section, key);
+		//char key[0x40];
+		//IMPL_SNPRNINTF(key, _TRUNCATE, "%s.Aircraft", base);
+		std:: string key = std::format("{}.Aircraft" , base);
+		out.Aircraft.Read(exINI, section, key.c_str());
 
 		// a list of UnitTypes and InfantryTypes
-		IMPL_SNPRNINTF(key, _TRUNCATE, "%s.Types", base);
-		out.Types.Read(exINI, section, key);
+		key = std::format("{}.Types" , base);
+		//IMPL_SNPRNINTF(key, _TRUNCATE, "%s.Types", base);
+		out.Types.Read(exINI, section, key.c_str());
 
 		// don't parse nums if there are no types
 		if (!out.Aircraft && out.Types.empty()) {
@@ -100,27 +108,29 @@ void SW_ParaDrop::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 		}
 
 		// the number how many times each item is created
-		IMPL_SNPRNINTF(key, _TRUNCATE, "%s.Num", base);
-		out.Num.Read(exINI, section, key);
+		key = std::format("{}.Num" , base);
+		//IMPL_SNPRNINTF(key, _TRUNCATE, "%s.Num", base);
+		out.Num.Read(exINI, section, key.c_str());
 
 		return;
 	};
 
-	auto GetParadropPlane = [=, &base](char const* pID, size_t defaultCount, AbstractTypeClass* pKey)
+	auto GetParadropPlane = [=, &_base](char const* pID, size_t defaultCount, AbstractTypeClass* pKey)
 	{
 
 		auto& ParaDrop = pData->ParaDropDatas[pKey];
 		auto const lastCount = ParaDrop.size() ? ParaDrop.size() : defaultCount;
 
 		// get the number of planes for this house or side
-		char key[0x40];
-		IMPL_SNPRNINTF(key, _TRUNCATE, "%s.Count", pID);
-		auto const count = pINI->ReadInteger(section, key, lastCount);
+		//char key[0x40];
+		//IMPL_SNPRNINTF(key, _TRUNCATE, "%s.Count", pID);
+		std::string key = std::format("{}.Count", pID);
+		auto const count = pINI->ReadInteger(section, key.c_str(), lastCount);
 
 		// parse every plane
 		ParaDrop.resize(static_cast<size_t>(count));
 		for (int i = 0; i < count; ++i) {
-			ParseParaDrop(base, i , ParaDrop[i]);
+			ParseParaDrop(_base.c_str(), i , ParaDrop[i]);
 		}
 	};
 
@@ -130,21 +140,21 @@ void SW_ParaDrop::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 	// n+1 to n+m+1: m countries
 
 	// default
-	CreateParaDropBase(nullptr, base);
-	GetParadropPlane(base, 1, pData->AttachedToObject);
+	CreateParaDropBase(nullptr, _base);
+	GetParadropPlane(_base.c_str(), 1, pData->AttachedToObject);
 
 	// put all sides into the hash table
-	for (auto const& pSide : *SideClass::Array)
+	for (auto const pSide : *SideClass::Array)
 	{
-		CreateParaDropBase(pSide->ID, base);
-		GetParadropPlane(base, pData->ParaDropDatas[pData->AttachedToObject].size(), pSide);
+		CreateParaDropBase(pSide->ID, _base);
+		GetParadropPlane(_base.c_str(), pData->ParaDropDatas[pData->AttachedToObject].size(), pSide);
 	}
 
 	// put all countries into the hash table
-	for (auto const& pTHouse : *HouseTypeClass::Array)
+	for (auto const pTHouse : *HouseTypeClass::Array)
 	{
-		CreateParaDropBase(pTHouse->ID, base);
-		GetParadropPlane(base, pData->ParaDropDatas[SideClass::Array->Items[pTHouse->SideIndex]].size(), pTHouse);
+		CreateParaDropBase(pTHouse->ID, _base);
+		GetParadropPlane(_base.c_str(), pData->ParaDropDatas[SideClass::Array->Items[pTHouse->SideIndex]].size(), pTHouse);
 	}
 }
 

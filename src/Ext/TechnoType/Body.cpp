@@ -170,7 +170,7 @@ void TechnoTypeExtData::GetBurstFLHs(TechnoTypeClass* pThis,
 	ColletiveCoordStructVectorData& nEFlh,
 	const char** pPrefixTag)
 {
-	char tempBuffer[0x40];
+	/*char tempBuffer[0x40];
 	char tempBufferFLH[0x40];
 
 	bool parseMultiWeapons = pThis->TurretCount > 0 && pThis->WeaponCount > 0;
@@ -207,7 +207,7 @@ void TechnoTypeExtData::GetBurstFLHs(TechnoTypeClass* pThis,
 				}
 			}
 		}
-	}
+	}*/
 }
 
 void TechnoTypeExtData::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection,

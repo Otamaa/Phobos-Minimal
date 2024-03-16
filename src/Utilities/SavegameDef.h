@@ -588,11 +588,11 @@ namespace Savegame
 
 			if (Stm.Load(size))
 			{
+				Value.resize(size);
 				std::vector<char> buffer(size);
 
-				if (!size ||Stm.Read(reinterpret_cast<byte*>(&buffer[0]), size))
-				{
-					Value.assign(buffer.begin(), buffer.end());
+				if (!size ||Stm.Read(reinterpret_cast<BYTE*>(&buffer[0]), size)) {
+					std::memcpy(Value.data(), buffer.data(), size);
 					return true;
 				}
 			}
@@ -602,7 +602,7 @@ namespace Savegame
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::string& Value) const
 		{
 			Stm.Save(Value.size());
-			Stm.Write(reinterpret_cast<const byte*>(Value.c_str()), Value.size());
+			Stm.Write(reinterpret_cast<const BYTE*>(Value.c_str()), Value.size());
 
 			return true;
 		}
