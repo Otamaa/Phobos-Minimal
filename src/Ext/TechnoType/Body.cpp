@@ -647,6 +647,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->ConsideredVehicle.Read(exINI, pSection, "ConsideredVehicle");
 
 		this->LaserTargetColor.Read(exINI, pSection, "LaserTargetColor");
+		this->VoicePickup.Read(exINI, pSection, "VoicePickup");
 
 #pragma region Prereq
 
@@ -2094,6 +2095,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->LargeVisceroid)
 		.Process(this->DropPodProp)
 		.Process(this->LaserTargetColor)
+		.Process(this->VoicePickup)
 		;
 }
 

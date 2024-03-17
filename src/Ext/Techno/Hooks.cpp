@@ -59,6 +59,32 @@ DEFINE_HOOK(0x702E4E, TechnoClass_RegisterDestruction_SaveKillerInfo, 0x6)
 	return 0;
 }
 
+
+DEFINE_HOOK(0x708FC0, TechnoClass_ResponseMove_Pickup, 0x5)
+{
+	enum { SkipResponse = 0x709015 };
+
+	GET(TechnoClass*, pThis, ECX);
+
+	if (auto const pAircraft = abstract_cast<AircraftClass*>(pThis)) {
+		if (pAircraft->Type->Carryall && pAircraft->HasAnyLink() &&
+			pAircraft->Destination && (pAircraft->Destination->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None) {
+
+			auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pAircraft->Type);
+
+			if (!pTypeExt->VoicePickup.empty()) {
+
+				pThis->QueueVoice(pTypeExt->VoicePickup[Random2Class::NonCriticalRandomNumber->Random() & pTypeExt->VoicePickup.size()]);
+
+				R->EAX(1);
+				return SkipResponse;
+			}
+		}
+	}
+
+	return 0;
+}
+
 DEFINE_HOOK(0x6FD05E, TechnoClass_RearmDelay_BurstDelays, 0x7)
 {
 	GET(TechnoClass*, pThis, ESI);

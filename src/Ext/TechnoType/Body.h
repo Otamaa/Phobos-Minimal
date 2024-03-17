@@ -890,6 +890,8 @@ public:
 
 	Nullable<int> LaserTargetColor {};
 
+	ValueableIdxVector<VocClass> VoicePickup {};
+
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;
 
