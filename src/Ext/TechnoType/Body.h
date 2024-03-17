@@ -877,6 +877,8 @@ public:
 	Nullable<UnitTypeClass*> LargeVisceroid { };
 	NullableDroppodProperties DropPodProp {};
 
+	Nullable<int> LaserTargetColor {};
+
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;
 

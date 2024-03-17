@@ -640,6 +640,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->ConsideredNaval.Read(exINI, pSection, "ConsideredNaval");
 		this->ConsideredVehicle.Read(exINI, pSection, "ConsideredVehicle");
 
+		this->LaserTargetColor.Read(exINI, pSection, "LaserTargetColor");
 #pragma region Prereq
 
 	if(pINI->ReadString(pSection, "Prerequisite.RequiredTheaters", "", Phobos::readBuffer) > 0) {
@@ -2080,6 +2081,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->Convert_Scipt_Prereq)
 		.Process(this->LargeVisceroid)
 		.Process(this->DropPodProp)
+		.Process(this->LaserTargetColor)
 		;
 }
 

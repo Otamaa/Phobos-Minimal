@@ -223,6 +223,8 @@ DEFINE_HOOK(0x6FF2BE, TechnoClass_FireAt_BurstOffsetFix_1, 0x6)
 	return 0x6FF2D1;
 }
 
+bool IsUndeploy = false;
+
 // issue #290: Undeploy building into a unit plays EVA_NewRallyPointEstablished
 // Author: secsome
 DEFINE_HOOK(0x44377E, BuildingClass_ActiveClickWith, 0x6)
@@ -231,11 +233,28 @@ DEFINE_HOOK(0x44377E, BuildingClass_ActiveClickWith, 0x6)
 	GET_STACK(CellStruct*, pCell, STACK_OFFS(0x84, -0x8));
 
 	if (pThis->GetTechnoType()->UndeploysInto)
+	{
+		IsUndeploy = true;
 		pThis->SetRallypoint(pCell, false);
+		IsUndeploy = false;
+	}
 	else if (pThis->IsUnitFactory())
 		pThis->SetRallypoint(pCell, true);
 
 	return 0x4437AD;
+}
+
+DEFINE_HOOK(0x443892, BuildingClass_SetRallyPoint_Naval_UndeploysInto, 0x6)
+{
+	if (!IsUndeploy)
+		return 0;
+
+	GET(BuildingTypeClass*, pType, EAX);
+	const auto pUnitType = pType->UndeploysInto;
+
+	R->Stack(STACK_OFFSET(0xA4, -0x84), pUnitType->SpeedType);
+	R->ESI(pUnitType->MovementZone);
+	return 0;
 }
 
 // issue #232: Naval=yes overrides WaterBound=no and prevents move orders onto Land cells
@@ -418,7 +437,7 @@ DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
 	// Boris
 	if (pThis->Airstrike && pThis->Airstrike->Target == pThis)
 	{
-		nTintColor |= GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->LaserTargetColor);
+		nTintColor |= GeneralUtils::GetColorFromColorAdd(TechnoTypeExtContainer::Instance.Find(pThis->Airstrike->Owner->GetTechnoType())->LaserTargetColor.Get(RulesClass::Instance->LaserTargetColor));
 		NeedUpdate = true;
 	}
 	// EMP

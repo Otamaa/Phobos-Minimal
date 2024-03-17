@@ -27,15 +27,13 @@ DEFINE_HOOK(0x71B98B, TerrainClass_ReceiveDamage_Add, 0x7)
 	R->Stack(0x10, nState);
 
 	// ignite this terrain object
-	auto nDamage = args.Damage;
-	if (!pThis->IsBurning && *nDamage > 0 && args.WH->Sparky)
-	{
-		auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(args.WH);
-		const bool spawn = pWarheadExt->Flammability.isset() ?
-			(ScenarioClass::Instance->Random.PercentChance(
-				abs(pWarheadExt->Flammability.Get()))) : true;
 
-		if (spawn)
+	if (!pThis->IsBurning && *args.Damage > 0 && args.WH->Sparky)
+	{
+		const auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(args.WH);
+
+		if (!pWarheadExt->Flammability.isset() || ScenarioClass::Instance->Random.PercentChance
+		   (abs(pWarheadExt->Flammability.Get())))
 			pThis->Ignite();
 	}
 

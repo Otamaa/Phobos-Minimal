@@ -85,14 +85,17 @@ void UpdateWebbed(FootClass* pThis)
 #include <Misc/Ares/Hooks/Header.h>
 
 #ifndef aaa
-DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
+DEFINE_HOOK(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 #else
 DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 #endif
 {
-	enum { retDead = 0x6FB004 , Continue = 0x0};
+	enum { retDead = 0x6FAFFD, Continue = 0x6F9E6C };
 
-	GET(TechnoClass*, pThis, ECX);
+	GET(TechnoClass*, pThis, ESI);
+
+	if (pThis->IsMouseHovering)
+		pThis->IsMouseHovering = false;
 
 	//if (!pThis || !pThis->IsAlive)
 	//	return retDead;

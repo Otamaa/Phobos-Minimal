@@ -223,6 +223,11 @@ DEFINE_HOOK(0x54D208, JumpjetLocomotionClass_MovementAI_Wobbles, 0x5)
 	return SetWobble;
 }
 
+DEFINE_HOOK(0x54D326, JumpjetLocomotionClass_MovementAI_CrashSpeedFix, 0x6)
+{
+	GET(JumpjetLocomotionClass*, pThis, ESI);
+	return pThis->LinkedTo->IsCrashing ? 0x54D350 : 0;
+}
 
 // Bugfix: Jumpjet turn to target when attacking
 // Even though it's still not the best place to do this, given that 0x54BF5B has done the similar action, I'll do it here too

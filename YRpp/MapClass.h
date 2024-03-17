@@ -48,12 +48,16 @@ struct CellLevelPassabilityStruct
 	unsigned short ZoneArrayIndex;
 };
 
-struct LevelAndPassabilityStruct2
+struct GlobalPassabilityData
 {
-	__int16 word_0[4];
-	char CellLevel;
-	char field_9;
+	WORD data[4];
+	bool byte1;
+	bool byte2;
 };
+static_assert(sizeof(GlobalPassabilityData) == 0xA);
+
+static constexpr constant_ptr<GlobalPassabilityData, 0x87F858u> const GlobalPassabilityDatas {};
+
 
 //ZoneConnectionClass - Holding zone connection info from tubes or bridges (probably used for pathfinding)
 struct ZoneConnectionClass
@@ -88,7 +92,8 @@ static_assert(sizeof(SubzoneConnectionStruct) == 0x8, "Invalid Size !");
 
 struct SubzoneTrackingStruct
 {
-public:
+	static constexpr reference<DynamicVectorClass<SubzoneTrackingStruct>, 0x87F874 ,3u> const Array {};
+
 	DynamicVectorClass<SubzoneConnectionStruct> SubzoneConnections;
 	WORD unknown_word_18;
 	DWORD unknown_dword_1C;
@@ -670,6 +675,11 @@ public:
 		this->Localsize_586AC0(&nBuffer, from, dec);
 		return nBuffer;
 	}
+
+	int MapClass_zone_56D3F0(CellStruct* cell) const {
+		JMP_THIS(0x56D3F0);
+	}
+
 	//find_type 0 - 3 ,range and threadposed related
 	static BuildingClass* __fastcall FindEnemyBuilding(BuildingTypeClass* type, HouseClass* house, TechnoClass* attacker, int find_type, bool OnlyTargetHouseEnemy)
 		{ JMP_STD(0x6EEBD0); }
@@ -693,7 +703,7 @@ public:
 	DynamicVectorClass<ZoneConnectionClass> ZoneConnections;
 	CellLevelPassabilityStruct* LevelAndPassability;
 	int ValidMapCellCount;
-	LevelAndPassabilityStruct2* LevelAndPassabilityStruct2pointer_70;
+	GlobalPassabilityData* LevelAndPassabilityStruct2pointer_70;
 	DWORD unknown_74;
 	DWORD unknown_78;
 	DWORD unknown_7C;

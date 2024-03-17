@@ -97,11 +97,11 @@ DEFINE_HOOK(0x5F3D65, ObjectClass_DTOR, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x5F3E70, ObjectClass_Update_AlphaLight, 5)
+DEFINE_HOOK(0x5F3E78, ObjectClass_Update_AlphaLight, 6)
 {
-	GET(ObjectClass*, pThis, ECX);
+	GET(ObjectClass*, pThis, ESI);
 	TechnoExt_ExtData::UpdateAlphaShape(pThis);
-	return 0;
+	return pThis->InLimbo ? 0x5F3F11 : 0x5F3E86;
 }
 
 DEFINE_HOOK(0x423B0B, AnimClass_Update_AlphaLight, 6)

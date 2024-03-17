@@ -2430,8 +2430,8 @@ DEFINE_HOOK(0x4D423A, FootClass_MissionMove_SubterraneanResourceGatherer, 0x6)
 		if(pType->IsSubterranean || VTable::Get(((UnitClass*)pThis)->Locomotor.GetInterfacePtr()) == HoverLocomotionClass::vtable)
 			pThis->QueueMission(Mission::Harvest, false);
 	}
-
-	return 0x0;
+	pThis->EnterIdleMode(false,true);
+	return 0x4D4248;
 }
 
 DEFINE_HOOK(0x4249EC, AnimClass_CreateMakeInf_WeirdAssCode, 0x6)
@@ -4206,6 +4206,27 @@ DEFINE_HOOK(0x6E8300, TaskForceClass_SwizzleTheID, 0x5) {
 	return 0x6E8315;
 }
 
+DEFINE_HOOK(0x73ED40, UnitClass_Mi_Harvest_PathfindingFix, 0x7)
+{
+	GET(UnitClass*, pThis, EBP);
+	LEA_STACK(CellStruct*, closeTo, STACK_OFFSET(0x64, -0x4C));
+	LEA_STACK(CellStruct*, cell, STACK_OFFSET(0x64, -0x54));
+	LEA_STACK(CellStruct*, outBuffer, STACK_OFFSET(0x64, -0x3C));
+
+	R->EAX(MapClass::Instance->NearByLocation(*outBuffer, *cell, pThis->Type->SpeedType, -1, pThis->Type->MovementZone, false, 1, 1, false, false, false, true, *closeTo, false, false));
+
+	return 0x73ED7A;
+}
+
+DEFINE_HOOK(0x449462, BuildingClass_IsCellOccupied_UndeploysInto, 0x6)
+{
+	GET(BuildingTypeClass*, pType, EAX);
+	LEA_STACK(CellStruct*, pDest, 0x4);
+	R->AL(MapClass::Instance->GetCellAt(pDest)
+		->IsClearToMove(pType->UndeploysInto->SpeedType, 0, 0, -1, MovementZone::Normal, -1, 1)
+	);
+	return 0x449487;
+}
 // DEFINE_HOOK(0x5657A0, MapClass_OpBracket_CellStructPtr, 0x5)
 // {
 // 	GET_STACK(CellStruct*, pCell, 0x4);
@@ -4255,26 +4276,54 @@ DEFINE_HOOK(0x6E8300, TaskForceClass_SwizzleTheID, 0x5) {
 //static constexpr constant_ptr<DynamicVectorClass<SubzoneTrackingStruct>, 0x87F874> const SubzoneTrackingStructVector {};
 //#include <ExtraHeaders/AStarClass.h>
 
-//#pragma optimize("", off )
-//DEFINE_HOOK(0x42C511, AstarClass_FindPath_nullptr, 0x8)
-//{
-//	GET(int, SubZone_Count, ECX);
-//	GET(SubzoneConnectionStruct*, SubZobneConnectionPtr, EDX);
-//
-//	R->EDX(SubZobneConnectionPtr);
-//	R->ECX(SubZone_Count);
-//
-//	//this keep the thing clean
-//	//`SubZobneConnectionPtr` will contain broken pointer at some point tho ,....
-//	if (SubZone_Count > 0 && SubZobneConnectionPtr)
-//	{
-//		//if(!SubZobneConnectionPtr)
-//			//Debug::FatalErrorAndExit("AStarClass will crash because SubZone is nullptr , last access is from [%s(0x%x) - Owner : (%s) \n", LastAccessThisFunc->get_ID(), LastAccessThisFunc, LastAccessThisFunc->Owner->get_ID());
-//
-//		return 0x42C519;
-//	}
-//
-//	return 0x42C740;
-//
-//}
-//#pragma optimize("", on )
+#ifdef _PATHFIND
+#pragma optimize("", off )
+DEFINE_HOOK(0x42C4FE, AstarClass_FindPath_nullptr, 0x9)
+{
+	GET(int, SubZoneTracking_Idx, EDX);
+	GET(int, SubZoneConnection_Idx, ECX);
+	GET(int, PassabilityData_To, EBX);
+	GET_BASE(CellStruct*, pFrom, 0x8);
+	GET_BASE(CellStruct*, pTo, 0xC);
+	GET_BASE(MovementZone, movementZone, 0x10);
+	GET_BASE(FootClass*, pFoot, 0x14);
+
+	Debug::Log("FindingPath for [%s(0x%x) - Owner[%s(0x%x)] from[%d , %d] to [%d , %d] MovementZone [%s(%d)] DriverKilled[%s] \n",
+		pFoot->get_ID(), pFoot,
+		pFoot->Owner->get_ID(), pFoot->Owner,
+		pFrom->X , pFrom->Y,
+		pTo->X , pTo->Y,
+		TechnoTypeClass::MovementZonesToString[int(movementZone)] , int(movementZone),
+		TechnoExtContainer::Instance.Find(pFoot)->Is_DriverKilled ? "Yes" : "No"
+	);
+
+	return 0x0;
+	/*
+	const auto SubZoneTrackingArray = &SubzoneTrackingStruct::Array[0];
+	const auto SubZobneConnectionPtr = SubZoneTrackingArray->Items + SubZoneTracking_Idx;
+	const auto SubZobneConnectionPtr_offsetted = SubZobneConnectionPtr + SubZoneConnection_Idx;
+	if (SubZoneTrackingArray->Count <= SubZoneConnection_Idx)
+		Debug::FatalErrorAndExit("AstarClass_FindPath trying to offset SubzoneConnection array pointer to [%d] but the array only has[%d]!\n" , SubZoneConnection_Idx, SubZoneTrackingArray->Count);
+
+	const auto ptr = SubZobneConnectionPtr_offsetted->SubzoneConnections.Items;
+	const auto array_count = SubZobneConnectionPtr_offsetted->SubzoneConnections.Count;
+
+	R->EDX(ptr);
+	R->ECX(array_count);
+
+	//this keep the thing clean
+	//`SubZobneConnectionPtr` will contain broken pointer at some point tho ,....
+	if (array_count > 0 && ptr)
+	{
+		//if(!SubZobneConnectionPtr)
+			//Debug::FatalErrorAndExit("AStarClass will crash because SubZone is nullptr , last access is from [%s(0x%x) - Owner : (%s) \n", LastAccessThisFunc->get_ID(), LastAccessThisFunc, LastAccessThisFunc->Owner->get_ID());
+
+		return 0x42C519;
+	}
+
+	return 0x42C740;
+	*/
+
+}
+#pragma optimize("", on )
+#endif
