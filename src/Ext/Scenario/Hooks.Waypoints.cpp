@@ -126,7 +126,7 @@ DEFINE_HOOK(0x68BF74, ScenarioClass_Get_Waypoint_Cell, 0x7)
 
 DEFINE_HOOK(0x763610, Waypoint_To_String, 0x5)
 {
-	static char buffer[8] { '\0' };
+	char buffer[8] { '\0' };
 	GET(int, nWaypoint, ECX);
 
 	if (nWaypoint < 0)
