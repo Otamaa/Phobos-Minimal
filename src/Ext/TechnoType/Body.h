@@ -42,6 +42,17 @@ struct ImageStatusses
 
 	static ImageStatusses ReadVoxel(const char* const nKey, bool a4);
 
+	void swap(VoxelStruct& from) {
+
+		if (from.VXL != this->Images.VXL) {
+			std::swap(from.VXL, this->Images.VXL);
+		}
+
+		if (from.HVA != this->Images.HVA) {
+			std::swap(from.HVA, this->Images.HVA);
+		}
+	}
+
 };
 
 struct BurstFLHBundle

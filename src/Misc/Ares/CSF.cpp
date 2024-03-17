@@ -170,18 +170,21 @@ DEFINE_HOOK(0x734A97, CSF_SetIndex, 6)
 
 DEFINE_HOOK(0x6BD886, CSF_LoadExtraFiles, 5)
 {
-	CSFLoader::LoadAdditionalCSF("ares.csf", true);
+	std::string _ares = "ares";
+
+	CSFLoader::LoadAdditionalCSF((_ares + ".csf").c_str(), true);
 
 	std::string res = "us";
 	if (const auto language = StringTable::GetLanguage(StringTable::Language()))
 		res = language->Letter;
 
-	//char fname[32];
-	//IMPL_SNPRNINTF(fname, sizeof(fname), "ares_%s.csf", res);
-	CSFLoader::LoadAdditionalCSF(std::format("ares_{}.csf", res).c_str());
+	_ares += "_";
+	_ares += res;
+	_ares += ".csf";
+
+	CSFLoader::LoadAdditionalCSF(_ares.c_str());
 
 	for (int idx = 0; idx < 100; ++idx) {
-		//IMPL_SNPRNINTF(fname, sizeof(fname), "stringtable%02d.csf", idx);
 		CSFLoader::LoadAdditionalCSF(std::format("stringtable{:02}.csf", idx).c_str());
 	}
 

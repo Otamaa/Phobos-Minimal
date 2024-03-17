@@ -78,12 +78,12 @@ std::array<const char* const, (size_t)DamageDelayTargetFlag::count> EnumFunction
 std::array<const char* const, 6u> EnumFunctions::MouseCursorData_ToStrings
 {
 {
-	{ "%s.Frame" } ,
-	{ "%s.Count" } ,
-	{ "%s.Interval" } ,
-	{ "%s.MiniFrame" } ,
-	{ "%s.MiniCount" } ,
-	{ "%s.MiniInterval" }
+	{ ".Frame" } ,
+	{ ".Count" } ,
+	{ ".Interval" } ,
+	{ ".MiniFrame" } ,
+	{ ".MiniCount" } ,
+	{ ".MiniInterval" }
 }
 };
 

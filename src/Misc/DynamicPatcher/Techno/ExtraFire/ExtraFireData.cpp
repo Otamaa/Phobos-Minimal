@@ -15,9 +15,7 @@ void ExtraFireData::ReadRules(INI_EX& parserRules, const char* pSection_rules)
 
 	for (int a = 0; a < INT_MAX; a++)
 	{
-		IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "ExtraFire.Weapon%d", a + 1);
-
-		if (!parserRules.ReadString(pSection_rules, nBuff))
+		if (!parserRules.ReadString(pSection_rules, (std::string("ExtraFire.Weapon") + std::to_string(a + 1)).c_str()))
 			break;
 
 		++nSize;
@@ -30,14 +28,15 @@ void ExtraFireData::ReadRules(INI_EX& parserRules, const char* pSection_rules)
 
 		for (int b = 0; b < nSize; b++)
 		{
-			IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "ExtraFire.EliteWeapon%d", b + 1);
+			std::string _buffer("ExtraFire.EliteWeapon");
+			_buffer += std::to_string(b + 1);
 
-			if (!parserRules.ReadString(pSection_rules, nBuff)) {
+			if (!parserRules.ReadString(pSection_rules, _buffer.c_str())) {
 				AttachedWeapon.EliteWeaponX[b] = AttachedWeapon.WeaponX[b];
 				continue;
 			}
 
-			detail::parse_Alloc_values<WeaponTypeClass*>(AttachedWeapon.EliteWeaponX[b], parserRules, pSection_rules, nBuff, true);
+			detail::parse_Alloc_values<WeaponTypeClass*>(AttachedWeapon.EliteWeaponX[b], parserRules, pSection_rules, _buffer.c_str(), true);
 		}
 	}
 
@@ -60,15 +59,15 @@ void ExtraFireData::ReadArt(INI_EX& parserArt, const char* pSection_Art)
 	if (!AttachedFLH.EliteSecondaryWeaponFLH.isset())
 		AttachedFLH.EliteSecondaryWeaponFLH = AttachedFLH.SecondaryWeaponFLH;
 
-	char nBuffArt[0x40];
 	int nSize = 0;
 
 	for (int i = 0; i < INT_MAX; i++)
 	{
 		Nullable<CoordStruct> nBuffRead_;
+		std::string _base("ExtraFire.Weapon");
+		_base += std::to_string(i + 1);
 
-		IMPL_SNPRNINTF(nBuffArt, sizeof(nBuffArt), "ExtraFire.Weapon%dFLH", i + 1);
-		nBuffRead_.Read(parserArt, pSection_Art, nBuffArt);
+		nBuffRead_.Read(parserArt, pSection_Art, (_base + "FLH").c_str());
 
 		if (!nBuffRead_.isset())
 			break;
@@ -84,8 +83,10 @@ void ExtraFireData::ReadArt(INI_EX& parserArt, const char* pSection_Art)
 		for (int i = 0; i < nSize; i++)
 		{
 			Nullable<CoordStruct> nBuffReadE_;
-			IMPL_SNPRNINTF(nBuffArt, sizeof(nBuffArt), "ExtraFire.EliteWeapon%dFLH", i + 1);
-			nBuffReadE_.Read(parserArt, pSection_Art, nBuffArt);
+			std::string _base("ExtraFire.EliteWeapon");
+			_base += std::to_string(i + 1);
+
+			nBuffReadE_.Read(parserArt, pSection_Art, (_base + "FLH").c_str());
 			AttachedFLH.EliteWeaponXFLH[i] = nBuffReadE_.Get(AttachedFLH.WeaponXFLH[i]);
 		}
 	}

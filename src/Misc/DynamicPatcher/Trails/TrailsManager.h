@@ -93,9 +93,10 @@ struct TrailsReader
 		for (size_t i = 0; ; ++i)
 		{
 			NullableIdx <TrailType> trail;
-			std::string _buffer = std::format("Trail{}.Type" , i);
-			//IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.Type", i);
-			trail.Read(nParser, pSection, _buffer.c_str());
+			std::string _base  = "Trail";
+			_base += std::to_string(i);
+
+			trail.Read(nParser, pSection, (_base + ".Type").c_str());
 
 			if (!trail.isset() || trail == -1)
 				break;
@@ -103,23 +104,14 @@ struct TrailsReader
 			auto& Back = CurrentData.emplace_back();
 			Back.CurrentType = trail;
 
-			_buffer = std::format("Trail{}.FLH" , i);
-			//IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.FLH", i);
-			detail::read(Back.FLHs, nParser, pSection, _buffer.c_str());
+			detail::read(Back.FLHs, nParser, pSection, (_base + ".FLH").c_str());
 
 			if (IsForTechno) {
-				_buffer = std::format("Trail{}.IsOnTurret" , i);
-				//IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.IsOnTurret", i);
-				detail::read(Back.Onturrents, nParser, pSection, _buffer.c_str());
+				detail::read(Back.Onturrents, nParser, pSection, (_base + ".IsOnTurret").c_str());
 			}
 
-			_buffer = std::format("Trail{}.OnLands" , i);
-			//IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.OnLands", i);
-			detail::ReadVectors(Back.OnLand, nParser, pSection, _buffer.c_str());
-
-			_buffer = std::format("Trail{}.OnTiles" , i);
-			//IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.OnTiles", i);
-			detail::ReadVectors(Back.OnTileTypes, nParser, pSection, _buffer.c_str());
+			detail::ReadVectors(Back.OnLand, nParser, pSection, (_base + ".OnLands").c_str());
+			detail::ReadVectors(Back.OnTileTypes, nParser, pSection, (_base + ".OnTiles").c_str());
 		}
 	}
 

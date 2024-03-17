@@ -284,13 +284,13 @@ DEFINE_HOOK(0x5F9070, ObjectTypeClass_Load2DArt, 6)
 		if (!pType->ArcticArtInUse)
 		{ // this flag is not used anywhere outside this function, so I'll just hijack it
 			pType->ArcticArtInUse = true;
-			std::string _baseName = std::format("{}{}", pType->ImageFile, TheaterData->Letter.data());
-			//IMPL_SNPRNINTF(basename, sizeof(basename), "%s%s", pType->ImageFile, TheaterData->Letter.data());
+			std::string _baseName = pType->ImageFile;
+			_baseName += TheaterData->Letter.data();
+
 			if (!CCINIClass::INI_Art->GetSection(_baseName.c_str()))
 			{
 				pType->ArcticArtInUse = false;
 				_baseName = pType->ImageFile;
-				//IMPL_SNPRNINTF(basename, sizeof(basename), "%s", pType->ImageFile);
 			}
 
 			PhobosCRT::strCopy(pType->ImageFile, _baseName.c_str());
@@ -311,8 +311,9 @@ DEFINE_HOOK(0x5F9070, ObjectTypeClass_Load2DArt, 6)
 		pType->ArcticArtInUse = false;
 	}
 
-	std::string _ext = std::format("{}.{}" , pType->ImageFile, pType->Theater ? TheaterData->Extension.c_str() : "SHP");
-	//IMPL_SNPRNINTF(basename, sizeof(basename), "%s.%s", pType->ImageFile, pExt);
+	std::string _ext = pType->ImageFile;
+	_ext += ".";
+	_ext += pType->Theater ? TheaterData->Extension.c_str() : "SHP";
 
 	if (!pType->Theater && pType->NewTheater && scenarioTheater != TheaterType::None)
 	{

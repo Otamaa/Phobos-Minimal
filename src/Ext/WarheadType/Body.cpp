@@ -328,13 +328,13 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->PreImpact_Moves.Read(exINI, pSection, "PreImpactAnim.Moves");
 	this->Launchs.clear();
 
-	char nBuff[0x80];
 	for (size_t i = 0; ; ++i)
 	{
 		SuperWeaponTypeClass* LaunchWhat_Dummy;
-		IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.Type", i);
+		std::string _base_key("LaunchSW");
+		_base_key += std::to_string(i);
 
-		if (!detail::read(LaunchWhat_Dummy, exINI, pSection, nBuff, true) || !LaunchWhat_Dummy)
+		if (!detail::read(LaunchWhat_Dummy, exINI, pSection, (_base_key + ".Type").c_str(), true) || !LaunchWhat_Dummy)
 			break;
 
 		this->Launchs.emplace_back().Read(exINI, pSection, i, LaunchWhat_Dummy);
@@ -403,12 +403,10 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	InfDeathAnims_List.Read(exINI, pSection, "InfDeathAnim.LinkedList");
 
-	char buffersp[0x100];
 	if (!InfDeathAnims_List.empty()) {
 		this->InfDeathAnims.reserve(InfDeathAnims_List.size());
 		for (size_t i = 0; i < InfDeathAnims_List.size(); ++i) {
-			IMPL_SNPRNINTF(buffersp, sizeof(buffersp), "InfDeathAnim%d", i);
-			detail::read(this->InfDeathAnims[InfDeathAnims_List[i]], exINI, pSection, buffersp);
+			detail::read(this->InfDeathAnims[InfDeathAnims_List[i]], exINI, pSection, (std::string("InfDeathAnim") + std::to_string(i)).c_str());
 		}
 	}
 

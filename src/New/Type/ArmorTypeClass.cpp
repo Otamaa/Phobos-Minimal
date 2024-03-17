@@ -14,28 +14,18 @@ ArmorTypeClass::ArmorTypeClass(const char* const pTitle) : Enumerable<ArmorTypeC
 , DefaultString { }
 , DefaultVersesValue { }
 , IsVanillaArmor { false }
-, BaseTag { std::format("Versus.{}" , pTitle) }
-, FF_Tag { std::format("Versus.{}.ForceFire" , pTitle) }
-, RT_Tag { std::format("Versus.{}.Retaliate" , pTitle) }
-, PA_Tag { std::format("Versus.{}.PassiveAcquire" , pTitle) }
-, HitAnim_Tag { std::format("HitAnim.{}" , pTitle) }
+, BaseTag { "Versus." }
+, FF_Tag {}
+, RT_Tag {}
+, PA_Tag {}
+, HitAnim_Tag { "HitAnim" }
 {
-	//generate related tag when allocated to avoid using SNPRINTF , it lagging the game when huge amount of armor readed
-	//char buffer[0x100];
-	//IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s", pTitle);
-	//BaseTag = ;
+	BaseTag += pTitle;
+	FF_Tag = BaseTag + ".ForceFire";
+	RT_Tag = BaseTag + ".Retaliate";
+	PA_Tag = BaseTag + ".PassiveAcquire";
+	HitAnim_Tag += pTitle;
 
-	//IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s.ForceFire", pTitle);
-	//FF_Tag = ;
-
-	//IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s.Retaliate", pTitle);
-	//RT_Tag = ;
-
-	//IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s.PassiveAcquire", pTitle);
-	//PA_Tag = ;
-
-	//IMPL_SNPRNINTF(buffer, sizeof(buffer), "HitAnim.%s", pTitle);
-	//HitAnim_Tag = ;
 }
 
 const char* Enumerable<ArmorTypeClass>::GetMainSection()
@@ -73,7 +63,7 @@ void ArmorTypeClass::LoadFromINI(CCINIClass* pINI)
 		INI_EX exINI(pINI);
 
 		char buffer[0x64];
-		pINI->ReadString(Enumerable<ArmorTypeClass>::GetMainSection(), pName, "", buffer);
+		pINI->ReadString(Enumerable<ArmorTypeClass>::GetMainSection(), pName, Phobos::readDefval, buffer);
 
 		if (!this->DefaultVersesValue.Parse(buffer))
 		{

@@ -37,16 +37,13 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		BoltData data { Bolt_Count };
 
 		auto disabled = data.Disabled.begin();
-		char buffer_bolt[0x30];
 		for (int i = 0; i < Bolt_Count; ++i)
 		{
 			bool temp {};
-			IMPL_SNPRNINTF(buffer_bolt, sizeof(buffer_bolt), "Bolt.Disable%d", i + 1);
-			detail::read<bool>(temp, exINI, pSection, buffer_bolt);
+			std::string _number = std::to_string(i + 1);
+			detail::read<bool>(temp, exINI, pSection, (std::string("Bolt.Disable") + _number).c_str());
 			data.Disabled[i] = temp;
-
-			IMPL_SNPRNINTF(buffer_bolt, sizeof(buffer_bolt), "Bolt.Color%d", i + 1);
-			detail::read(data.ColorData[i], exINI, pSection, buffer_bolt);
+			detail::read(data.ColorData[i], exINI, pSection, (std::string("Bolt.Color") + _number).c_str());
 		}
 
 		this->WeaponBolt_Data = data;

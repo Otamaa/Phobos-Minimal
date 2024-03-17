@@ -38,23 +38,14 @@ DEFINE_HOOK(0x5F8277, ObjectTypeClass_Load3DArt_NoSpawnAlt1, 7)
 	{
 		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-		char Buffer[0x40];
-		IMPL_SNPRNINTF(Buffer, sizeof(Buffer), GameStrings::_s_WO(), pThis->ImageFile);
-		ImageStatusses nPairStatus = ImageStatusses::ReadVoxel(Buffer, 1);
-
-		if (pTypeExt->SpawnAltData.VXL != nPairStatus.Images.VXL)
-		{
-			std::swap(pTypeExt->SpawnAltData.VXL, nPairStatus.Images.VXL);
-		}
-
-		if (pTypeExt->SpawnAltData.HVA != nPairStatus.Images.HVA)
-		{
-			std::swap(pTypeExt->SpawnAltData.HVA, nPairStatus.Images.HVA);
-		}
+		std::string _buffer = pThis->ImageFile;
+		_buffer += "WO";
+		ImageStatusses nPairStatus = ImageStatusses::ReadVoxel(_buffer.c_str(), 1);
+		nPairStatus.swap(pTypeExt->SpawnAltData);
 
 		if (!nPairStatus.Loaded)
 		{
-			Debug::Log("%s Techno NoSpawnAlt Image[%s] cannot be loaded ,returning load failed ! \n", pThis->ID, Buffer);
+			Debug::Log("%s Techno NoSpawnAlt Image[%s] cannot be loaded ,returning load failed ! \n", pThis->ID, _buffer.c_str());
 			bLoadFailed = true;
 		}
 	}
@@ -79,14 +70,13 @@ DEFINE_HOOK(0x5F887B, ObjectTypeClass_Load3DArt_Barrels, 6)
 	if (pThis->TurretCount <= 0)
 		return 0x5F8A60;
 
-	char Buffer[0x40];
 	for (int i = 0; ; ++i)
 	{
 		if (i >= pThis->TurretCount)
 			return 0x5F8A60;
 
-		const auto pKey = !i ? GameStrings::_s_BARL() : GameStrings::_s_BARL_d_();
-		IMPL_SNPRNINTF(Buffer, sizeof(Buffer), pKey, pThis->ImageFile, i);
+		std::string _buffer = pThis->ImageFile;
+		_buffer += !i ? "BARL" : (std::string("BARL") + std::to_string(i));
 
 		//if (i > (pTypeExt->TurretImageData.size() + TechnoTypeClass::MaxWeapons)) {
 		//	Debug::Log("Reading Barrel [%d] for [%s] Which is More than array size ! \n", i, pThis->ImageFile);
@@ -97,21 +87,12 @@ DEFINE_HOOK(0x5F887B, ObjectTypeClass_Load3DArt_Barrels, 6)
 			pThis->ChargerBarrels[i] :
 			pTypeExt->BarrelImageData[i - TechnoTypeClass::MaxWeapons];
 
-		ImageStatusses nPairStatus = ImageStatusses::ReadVoxel(Buffer, 1);
-
-		if (nArr.VXL != nPairStatus.Images.VXL)
-		{
-			std::swap(nArr.VXL, nPairStatus.Images.VXL);
-		}
-
-		if (nArr.HVA != nPairStatus.Images.HVA)
-		{
-			std::swap(nArr.HVA, nPairStatus.Images.HVA);
-		}
+		ImageStatusses nPairStatus = ImageStatusses::ReadVoxel(_buffer.c_str(), 1);
+		nPairStatus.swap(nArr);
 
 		if (!nPairStatus.Loaded)
 		{
-			Debug::Log("%s Techno Barrel [%s] at[%d] cannot be loaded , breaking the loop ! \n", pThis->ID, Buffer, i);
+			Debug::Log("%s Techno Barrel [%s] at[%d] cannot be loaded , breaking the loop ! \n", pThis->ID, _buffer.c_str(), i);
 			break;
 		}
 	}
@@ -133,14 +114,13 @@ DEFINE_HOOK(0x5F865F, ObjectTypeClass_Load3DArt_Turrets, 6)
 	if (pThis->TurretCount <= 0)
 		return 0x5F8844;
 
-	char Buffer[0x40];
 	for (int i = 0; ; ++i)
 	{
 		if (i >= pThis->TurretCount)
 			return 0x5F8844;
 
-		const auto pKey = !i ? GameStrings::_s_TUR() : GameStrings::_s_TUR_d_();
-		IMPL_SNPRNINTF(Buffer, sizeof(Buffer), pKey, pThis->ImageFile, i);
+		std::string _buffer = pThis->ImageFile;
+		_buffer += !i ? "TUR" : (std::string("TUR") + std::to_string(i));
 
 		//if (i > (pTypeExt->TurretImageData.size() + TechnoTypeClass::MaxWeapons)) {
 		//	Debug::Log("Reading Turrent [%d] for [%s] Which is More than array size ! \n", i, pThis->ImageFile);
@@ -152,21 +132,12 @@ DEFINE_HOOK(0x5F865F, ObjectTypeClass_Load3DArt_Turrets, 6)
 			pTypeExt->TurretImageData[i - TechnoTypeClass::MaxWeapons];
 			;
 
-		ImageStatusses nPairStatus = ImageStatusses::ReadVoxel(Buffer, 1);
-
-		if (nArr.VXL != nPairStatus.Images.VXL)
-		{
-			std::swap(nArr.VXL, nPairStatus.Images.VXL);
-		}
-
-		if (nArr.HVA != nPairStatus.Images.HVA)
-		{
-			std::swap(nArr.HVA, nPairStatus.Images.HVA);
-		}
+		ImageStatusses nPairStatus = ImageStatusses::ReadVoxel(_buffer.c_str(), 1);
+		nPairStatus.swap(nArr);
 
 		if (!nPairStatus.Loaded)
 		{
-			Debug::Log("%s Techno Turret [%s] at[%d] cannot be loaded , breaking the loop ! \n", pThis->ID, Buffer, i);
+			Debug::Log("%s Techno Turret [%s] at[%d] cannot be loaded , breaking the loop ! \n", pThis->ID, _buffer.c_str(), i);
 			break;
 		}
 

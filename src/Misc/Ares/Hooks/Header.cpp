@@ -339,7 +339,6 @@ void TechnoTypeExt_ExtData::LoadTurrets(TechnoTypeClass* pType, CCINIClass* pINI
 	//read default
 	for (size_t i = 0; i < SubName.size(); ++i)
 	{
-
 		Valueable<int> read_buff { -1 };
 		read_buff.Read(iniEx, pSection, SubName[i].first);
 
@@ -368,15 +367,13 @@ void TechnoTypeExt_ExtData::LoadTurrets(TechnoTypeClass* pType, CCINIClass* pINI
 		++Data_
 	)
 	{
-		std::string _buffer = std::format("WeaponTurretIndex{}", i + 1);
-
-		//IMPL_SNPRNINTF(buffer, sizeof(buffer), "WeaponTurretIndex%u", i + 1);
+		std::string _number = std::to_string(i + 1);
 		int read_buff;
 		int* result = i < 18 ?
 			pType->TurretWeapon + i :
 			pExt->AdditionalTurrentWeapon.data() + (i - TechnoTypeClass::MaxWeapons);
 
-		if (detail::read(read_buff , iniEx, pSection, _buffer.c_str()) && read_buff >= 0) {
+		if (detail::read(read_buff , iniEx, pSection, (std::string("WeaponTurretIndex") + _number).c_str()) && read_buff >= 0) {
 			*result = read_buff;
 		}
 
@@ -386,22 +383,11 @@ void TechnoTypeExt_ExtData::LoadTurrets(TechnoTypeClass* pType, CCINIClass* pINI
 			//*result = 0; //avoid crash
 		}
 
-		_buffer = std::format("WeaponUIName{}", i + 1);
-		//IMPL_SNPRNINTF(buffer, sizeof(buffer), "WeaponUIName%u", i + 1);
-		if (iniEx.ReadString(pSection, _buffer.c_str()) > 0)
-			*CSF_ = iniEx.c_str();
-
-		_buffer = std::format("Insignia.Weapon{}.%s", i + 1);
-		//IMPL_SNPRNINTF(buffer, sizeof(buffer), "Insignia.Weapon%u.%s", i + 1, "%s");
-		(*Data_).Shapes.Read(iniEx, pSection, _buffer.c_str());
-
-		_buffer = std::format("InsigniaFrame.Weapon{}.%s", i + 1);
-		//IMPL_SNPRNINTF(buffer, sizeof(buffer), "InsigniaFrame.Weapon%u.%s", i + 1, "%s");
-		(*Data_).Frame.Read(iniEx, pSection, _buffer.c_str());
-
-		_buffer = std::format("InsigniaFrames.Weapon{}", i + 1);
-		//IMPL_SNPRNINTF(buffer, sizeof(buffer), "InsigniaFrames.Weapon%u", i + 1);
-		(*Data_).Frames.Read(iniEx, pSection, _buffer.c_str());
+		if (iniEx.ReadString(pSection, (std::string("WeaponUIName") + _number).c_str()) > 0)
+		*CSF_ = iniEx.c_str();
+		(*Data_).Shapes.Read(iniEx, pSection, (std::string("Insignia.Weapon") + _number + ".%s").c_str());
+		(*Data_).Frame.Read(iniEx, pSection, (std::string("InsigniaFrame.Weapon") + _number + ".%s").c_str());
+		(*Data_).Frames.Read(iniEx, pSection, (std::string("InsigniaFrames.Weapon") + _number).c_str());
 	}
 }
 
@@ -465,40 +451,30 @@ void TechnoTypeExt_ExtData::ReadWeaponStructDatas(TechnoTypeClass* pType, CCINIC
 		auto data = (i < TechnoTypeClass::MaxWeapons ? pType->Weapon : pExt->AdditionalWeaponDatas.data()) + NextIdx;
 		auto data_e = (i < TechnoTypeClass::MaxWeapons ? pType->EliteWeapon : pExt->AdditionalEliteWeaponDatas.data()) + NextIdx;
 
-		std::string _bufferWeapon = std::format("EliteWeapon{}", i + 1);
-		//IMPL_SNPRNINTF(bufferWeapon, sizeof(bufferWeapon), "EliteWeapon%u", i + 1);
-
+		std::string _bufferWeapon = std::string("EliteWeapon") + std::to_string(i + 1);
 		detail::read(data->WeaponType, iniEx, pSection, _bufferWeapon.c_str() + 5, true);
 
 		if (!detail::read(data_e->WeaponType, iniEx, pSection, _bufferWeapon.c_str(), true))
 			data_e->WeaponType = data->WeaponType;
 
-		std::string _buffer = std::format("{}FLH", _bufferWeapon);
-		//IMPL_SNPRNINTF(buffer, sizeof(buffer), "%sFLH", bufferWeapon);
-		detail::read(data->FLH, iniEX_art, pSection_art, _buffer.data() + 5, false);
+		detail::read(data->FLH, iniEX_art, pSection_art, (_bufferWeapon + "FLH").data() + 5, false);
 
-		if (!detail::read(data_e->FLH, iniEX_art, pSection_art, _buffer.c_str(), false))
+		if (!detail::read(data_e->FLH, iniEX_art, pSection_art, (_bufferWeapon + "FLH").c_str(), false))
 			data_e->FLH = data->FLH;
 
-		_buffer = std::format("{}BarrelLength", _bufferWeapon);
-		//IMPL_SNPRNINTF(buffer, sizeof(buffer), "%sBarrelLength", bufferWeapon);
-		detail::read(data->BarrelLength, iniEX_art, pSection_art, _buffer.data() + 5, false);
+		detail::read(data->BarrelLength, iniEX_art, pSection_art, (_bufferWeapon + "BarrelLength").data() + 5, false);
 
-		if(!detail::read(data_e->BarrelLength, iniEX_art, pSection_art, _buffer.c_str()))
+		if(!detail::read(data_e->BarrelLength, iniEX_art, pSection_art, (_bufferWeapon + "BarrelLength").c_str()))
 			data_e->BarrelLength = data->BarrelLength;
 
-		_buffer = std::format("{}BarrelThickness", _bufferWeapon);
-		//IMPL_SNPRNINTF(buffer, sizeof(buffer), "%sBarrelThickness", bufferWeapon);
-		detail::read(data->BarrelThickness, iniEX_art, pSection_art, _buffer.data() + 5, false);
+		detail::read(data->BarrelThickness, iniEX_art, pSection_art, (_bufferWeapon + "BarrelThickness").data() + 5, false);
 
-		if(!detail::read(data_e->BarrelThickness, iniEX_art, pSection_art, _buffer.c_str()))
+		if(!detail::read(data_e->BarrelThickness, iniEX_art, pSection_art, (_bufferWeapon + "BarrelThickness").c_str()))
 			data_e->BarrelThickness = data->BarrelThickness;
 
-		_buffer = std::format("{}TurretLocked", _bufferWeapon);
-		//IMPL_SNPRNINTF(buffer, sizeof(buffer), "%sTurretLocked", bufferWeapon);
-		detail::read(data->TurretLocked, iniEX_art, pSection_art, _buffer.data() + 5, false);
+		detail::read(data->TurretLocked, iniEX_art, pSection_art, (_bufferWeapon + "TurretLocked").data() + 5, false);
 
-		if(!detail::read(data_e->TurretLocked, iniEX_art, pSection_art, _buffer.c_str()))
+		if(!detail::read(data_e->TurretLocked, iniEX_art, pSection_art, (_bufferWeapon + "TurretLocked").c_str()))
 			data_e->TurretLocked = data->TurretLocked;
 	}
 }
@@ -7772,11 +7748,11 @@ void AresGlobalData::ReadAresRA2MD(CCINIClass* Ini)
 		colorCount = std::clamp(Ini->ReadInteger(section2, "Count", colorCount), 8, 16);
 
 		auto const ParseColorInt = [&Ini](const char* section, const char* key, int defColor) -> int
-			{
-				ColorStruct ndefault(defColor & 0xFF, (defColor >> 8) & 0xFF, (defColor >> 16) & 0xFF);
-				auto const color = Ini->ReadColor(section, key, ndefault);
-				return color.R | color.G << 8 | color.B << 16;
-			};
+		{
+			ColorStruct ndefault(defColor & 0xFF, (defColor >> 8) & 0xFF, (defColor >> 16) & 0xFF);
+			auto const color = Ini->ReadColor(section, key, ndefault);
+			return color.R | color.G << 8 | color.B << 16;
+		};
 
 		auto const section = "UISettings";
 
@@ -7787,28 +7763,20 @@ void AresGlobalData::ReadAresRA2MD(CCINIClass* Ini)
 			int colorRGB,
 			const char* defTooltip,
 			const char* defColorScheme
-		)
-			{
-				// load the tooltip string
-				char buffer[0x20];
-				IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.Tooltip", name);
-				if (Ini->ReadString(section2, buffer, defTooltip, Phobos::readBuffer))
-				{
-					value.sttToolTipSublineText = StringTable::LoadString(Phobos::readBuffer);
-				}
+		) {
+			std::string _name = name;
+			// load the tooltip string
 
-				IMPL_SNPRNINTF(buffer, 0x20, "%s.ColorScheme", name);
-				if (Ini->ReadString(section2, buffer, defColorScheme, Phobos::readBuffer))
-				{
-					PhobosCRT::strCopy(value.colorScheme, Phobos::readBuffer);
-				}
+			if (Ini->ReadString(section2, (_name + ".Tooltip").c_str(), defTooltip, Phobos::readBuffer))
+				value.sttToolTipSublineText = StringTable::LoadString(Phobos::readBuffer);
 
-				IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.DisplayColor", name);
-				value.colorRGB = ParseColorInt(section2, buffer, colorRGB);
+			if (Ini->ReadString(section2, (_name + ".ColorScheme").c_str(), defColorScheme, Phobos::readBuffer))
+				PhobosCRT::strCopy(value.colorScheme, Phobos::readBuffer);
 
-				value.colorSchemeIndex = -1;
-				value.selectedIndex = -1;
-			};
+			value.colorRGB = ParseColorInt(section2, (_name + ".DisplayColor").c_str(), colorRGB);
+			value.colorSchemeIndex = -1;
+			value.selectedIndex = -1;
+		};
 
 		// menu colors. the color of labels, button texts, list items, stuff and others
 		uiColorText = ParseColorInt(section, "Color.Text", 0xFFFF);

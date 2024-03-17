@@ -40,9 +40,6 @@ DEFINE_HOOK(0x537BC0, Game_MakeScreenshot, 6)
 				std::string fName = std::format("SCRN.{:04}{:02}{:02}-{:02}{:02}{:02}-{:05}.BMP",
 					time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
 
-				//IMPL_SNPRNINTF(fName, sizeof(fName), "SCRN.%04u%02u%02u-%02u%02u%02u-%05u.BMP",
-				//	time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
-
 				CCFileClass ScreenShot { fName.c_str()};
 				ScreenShot.Open(FileAccessMode::Write);
 

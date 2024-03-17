@@ -58,19 +58,17 @@ void SW_ParaDrop::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 	const char* section = pData->get_ID();
 
 	INI_EX exINI(pINI);
-	//char base[0x40];
 	std::string _base;
 
 	auto CreateParaDropBase = [](char* pID, std::string& base)
 	{
 		// put a string like "Paradrop.Americans" into the buffer
 		if (pID && strlen(pID)) {
-			base = std::format("ParaDrop.{}" , pID);
-			//IMPL_SNPRNINTF(Buffer, _TRUNCATE, "ParaDrop.%s", pID);
+			base = "ParaDrop.";
+			base += pID;
 		}
 		else {
 			base = GameStrings::ParaDrop();
-			//PhobosCRT::strCopy(Buffer, "ParaDrop");
 		}
 	};
 
@@ -79,28 +77,19 @@ void SW_ParaDrop::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 		// create the plane part of this request. this will be
 		// an empty string for the first plane for this is the default.
 		//char plane[0x10] = "";
-		std::string _plane("");
-		if (Plane)
-		{
-			//IMPL_SNPRNINTF(plane, _TRUNCATE, ".Plane%d", Plane + 1);
-			_plane = std::format(".Plane{}" , Plane + 1 );
+		std::string _plane(".Plane");
+		if (Plane) {
+			_plane += std::to_string(Plane + 1);
 		}
 
 		// construct the full tag name base
-		//char base[0x40];
-		std::string base = std::format("{}{}" , pID , _plane);
-		//IMPL_SNPRNINTF(base, _TRUNCATE, "%s%s", pID, plane);
-
+		std::string _ID = pID;
 		// parse the plane contents
-		//char key[0x40];
-		//IMPL_SNPRNINTF(key, _TRUNCATE, "%s.Aircraft", base);
-		std:: string key = std::format("{}.Aircraft" , base);
-		out.Aircraft.Read(exINI, section, key.c_str());
+		out.Aircraft.Read(exINI, section, (_ID + _plane + ".Aircraft").c_str());
 
 		// a list of UnitTypes and InfantryTypes
-		key = std::format("{}.Types" , base);
-		//IMPL_SNPRNINTF(key, _TRUNCATE, "%s.Types", base);
-		out.Types.Read(exINI, section, key.c_str());
+
+		out.Types.Read(exINI, section, (_ID + _plane + ".Types").c_str());
 
 		// don't parse nums if there are no types
 		if (!out.Aircraft && out.Types.empty()) {
@@ -108,9 +97,7 @@ void SW_ParaDrop::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 		}
 
 		// the number how many times each item is created
-		key = std::format("{}.Num" , base);
-		//IMPL_SNPRNINTF(key, _TRUNCATE, "%s.Num", base);
-		out.Num.Read(exINI, section, key.c_str());
+		out.Num.Read(exINI, section, (_ID + _plane + ".Num").c_str());
 
 		return;
 	};
@@ -122,10 +109,8 @@ void SW_ParaDrop::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 		auto const lastCount = ParaDrop.size() ? ParaDrop.size() : defaultCount;
 
 		// get the number of planes for this house or side
-		//char key[0x40];
-		//IMPL_SNPRNINTF(key, _TRUNCATE, "%s.Count", pID);
-		std::string key = std::format("{}.Count", pID);
-		auto const count = pINI->ReadInteger(section, key.c_str(), lastCount);
+		std::string _key = pID;
+		auto const count = pINI->ReadInteger(section, (_key + ".Count").c_str(), lastCount);
 
 		// parse every plane
 		ParaDrop.resize(static_cast<size_t>(count));

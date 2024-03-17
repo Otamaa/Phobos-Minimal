@@ -195,7 +195,7 @@ void Phobos::ExecuteLua()
 		{ // is T table ?
 			const int replace_size = (int)lua_rawlen(L, -1);
 
-			for (int i = 0; i < replace_size; i++)
+			for (size_t i = 0; i < replace_size; i++)
 			{
 				lua_pushinteger(L, i + 1);
 				lua_gettable(L, -2);
@@ -422,7 +422,7 @@ void Phobos::Config::Read()
 	{
 		CCINIClass INI_UIMD { };
 		INI_UIMD.ReadCCFile(&UIMD_ini);
-		Debug::Log("Loading early %s file\n", UIMD_FILENAME);
+		Debug::Log("Loading early %s file\n", UIMD_ini.FileName);
 
 		AresGlobalData::ReadAresRA2MD(&INI_UIMD);
 
@@ -513,7 +513,7 @@ void Phobos::Config::Read()
 		CCINIClass INI_RulesMD { };
 		INI_RulesMD.ReadCCFile(&RULESMD_ini);
 
-		Debug::Log("Loading early %s file\n", GameStrings::RULESMD_INI());
+		Debug::Log("Loading early %s file\n", RULESMD_ini.FileName);
 
 
 		if (!Phobos::Otamaa::IsAdmin)
@@ -529,21 +529,18 @@ void Phobos::Config::Read()
 			//char tempBuffer[0x20];
 			for (size_t i = 0; i <= 6; ++i)
 			{
-				std::string _buffer= std::format("CustomGS{}.ChangeDelay", 6 - i);
-				//IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "CustomGS%d.ChangeDelay", 6 - i);
-				int temp = INI_RulesMD.ReadInteger(GENERAL_SECTION, _buffer.c_str(), -1);
+				std::string _buffer = "CustomGS";
+				_buffer += std::to_string(6 - i);
+
+				int temp = INI_RulesMD.ReadInteger(GENERAL_SECTION, (_buffer + ".ChangeDelay").c_str(), -1);
 				if (temp >= 0 && temp <= 6)
 					Phobos::Misc::CustomGS_ChangeDelay[i] = 6 - temp;
 
-				_buffer= std::format("CustomGS{}.DefaultDelay", 6 - i);
-				//IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "CustomGS%d.DefaultDelay", 6 - i);
-				temp = INI_RulesMD.ReadInteger(GENERAL_SECTION, _buffer.c_str(), -1);
+				temp = INI_RulesMD.ReadInteger(GENERAL_SECTION, (_buffer + ".DefaultDelay").c_str(), -1);
 				if (temp >= 1)
 					Phobos::Misc::CustomGS_DefaultDelay[i] = 6 - temp;
 
-				_buffer= std::format("CustomGS{}.ChangeInterval", 6 - i);
-				//IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "CustomGS%d.ChangeInterval", 6 - i);
-				temp = INI_RulesMD.ReadInteger(GENERAL_SECTION, _buffer.c_str(), -1);
+				temp = INI_RulesMD.ReadInteger(GENERAL_SECTION, (_buffer + ".ChangeInterval").c_str(), -1);
 				if (temp >= 1)
 					Phobos::Misc::CustomGS_ChangeInterval[i] = temp;
 			}
@@ -553,7 +550,7 @@ void Phobos::Config::Read()
 			BlittersFix::Apply();
 		}
 
-		Phobos::Config::MultiThreadSinglePlayer = INI_RulesMD.ReadBool(GameStrings::General, "MultiThreadSinglePlayer", false);
+		Phobos::Config::MultiThreadSinglePlayer = INI_RulesMD.ReadBool(GENERAL_SECTION, "MultiThreadSinglePlayer", false);
 		Phobos::Config::HideLightFlashEffects = CCINIClass::INI_RA2MD->ReadBool(PHOBOS_STR, "HideLightFlashEffects", false);
 		Phobos::Config::SaveVariablesOnScenarioEnd = INI_RulesMD.ReadBool(GENERAL_SECTION, "SaveVariablesOnScenarioEnd", Phobos::Config::SaveVariablesOnScenarioEnd);
 		Phobos::Config::ApplyShadeCountFix = INI_RulesMD.ReadBool(AUDIOVISUAL_SECTION, "ApplyShadeCountFix", Phobos::Config::ApplyShadeCountFix);

@@ -643,8 +643,8 @@ public:
 	CellStruct SubZone_5835D0(CellStruct* a1, CellStruct* a2, int a4) const
 		{ JMP_THIS(0x5835D0); }
 
-	int Index(CellClass* ptr) { return Cells.FindItemIndex(ptr); }
-	int Index(CellClass& ptr) { return Cells.FindItemIndex(&ptr); }
+	int Index(CellClass* ptr) const { return Cells.FindItemIndex(ptr); }
+	int Index(CellClass& ptr) const { return Cells.FindItemIndex(&ptr); }
 
 	bool IsValidCell(CellStruct* cell) { JMP_THIS(0x5657E0); }
 	bool IsValidCell(CellStruct const& nCoord) { JMP_THIS(0x5657E0); }

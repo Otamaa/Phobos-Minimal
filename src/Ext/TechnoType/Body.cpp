@@ -245,11 +245,11 @@ void TechnoTypeExtData::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, c
 
 void TechnoTypeExtData::GetFLH(INI_EX& exArtINI, const char* pArtSection, Nullable<CoordStruct>& nFlh, Nullable<CoordStruct>& nEFlh, const char* pFlag)
 {
-	char tempBuffer[0x40];
-	IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "%sFLH", pFlag);
-	nFlh.Read(exArtINI, pArtSection, tempBuffer);
-	IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Elite%sFLH", pFlag);
-	nEFlh.Read(exArtINI, pArtSection, tempBuffer);
+	std::string _key = "Elite";
+	_key += pFlag;
+	_key += "FLH";
+	nFlh.Read(exArtINI, pArtSection, _key.data() + 5);
+	nEFlh.Read(exArtINI, pArtSection, _key.c_str());
 
 	if (!nEFlh.isset() && nFlh.isset())
 		nEFlh = nFlh;
@@ -286,7 +286,6 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->HumanUnbuildable.Read(exINI, pSection, "HumanUnbuildable");
 		this->NoIdleSound.Read(exINI, pSection, "NoIdleSound");
 		this->Soylent_Zero.Read(exINI, pSection, "Soylent.Zero");
-		this->Prerequisite_Power.Read(exINI, pSection, "Prerequisite.Power");
 
 		this->Interceptor.Read(exINI, pSection, "Interceptor");
 		this->Interceptor_CanTargetHouses.Read(exINI, pSection, "Interceptor.CanTargetHouses");
@@ -375,12 +374,19 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		ValueableVector<WarheadTypeClass*> DestroyAnimSpecificList {};
 		DestroyAnimSpecificList.Read(exINI, pSection, "DestroyAnims.LinkedWarhead");
 
-		char buffersp[0x100];
 		if(!DestroyAnimSpecificList.empty()) {
 			this->DestroyAnimSpecific.reserve(DestroyAnimSpecificList.size());
 			for (size_t i = 0; i < DestroyAnimSpecificList.size(); ++i) {
-				IMPL_SNPRNINTF(buffersp, sizeof(buffersp), "DestroyAnims%d.Types", i);
-				detail::ReadVectors(this->DestroyAnimSpecific[DestroyAnimSpecificList[i]], exINI, pSection, buffersp);
+				std::string _key = "DestroyAnims";
+				_key += std::to_string(i);
+				_key += ".Types";
+
+				detail::ReadVectors(
+					this->DestroyAnimSpecific[DestroyAnimSpecificList[i]],
+					exINI,
+					pSection,
+					_key.c_str()
+				);
 			}
 		}
 
@@ -641,9 +647,13 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->ConsideredVehicle.Read(exINI, pSection, "ConsideredVehicle");
 
 		this->LaserTargetColor.Read(exINI, pSection, "LaserTargetColor");
+
 #pragma region Prereq
 
-	if(pINI->ReadString(pSection, "Prerequisite.RequiredTheaters", "", Phobos::readBuffer) > 0) {
+	std::string _Prerequisite_key = "Prerequisite";
+	std::string _Prerequisite_ReqTheater_key = (_Prerequisite_key + ".RequiredTheaters");
+
+	if(pINI->ReadString(pSection, _Prerequisite_ReqTheater_key.c_str(), "", Phobos::readBuffer) > 0) {
 		this->Prerequisite_RequiredTheaters = 0;
 
 		char* context = nullptr;
@@ -655,30 +665,55 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			if(idx != -1) {
 				this->Prerequisite_RequiredTheaters |= (1 << idx);
 			} else if (!GameStrings::IsBlank(cur)) {
-				Debug::INIParseFailed(pSection, "Prerequisite.RequiredTheaters", cur);
+				Debug::INIParseFailed(pSection, _Prerequisite_ReqTheater_key.c_str(), cur);
 			}
 		}
 	}
 
-		// subtract the default list, get tag (not less than 0), add one back
-		const auto nRead = pINI->ReadInteger(pSection, "Prerequisite.Lists", static_cast<int>(this->Prerequisites.size()) - 1);
+	// subtract the default list, get tag (not less than 0), add one back
+	const auto nRead = pINI->ReadInteger(pSection, (_Prerequisite_key + ".Lists").c_str(), static_cast<int>(this->Prerequisites.size()) - 1);
+	this->Prerequisites.resize(static_cast<size_t>(MaxImpl(nRead, 0) + 1));
+	GenericPrerequisite::Parse(pINI, pSection, _Prerequisite_key.c_str(), this->Prerequisites[0]);
 
-		this->Prerequisites.resize(static_cast<size_t>(MaxImpl(nRead, 0) + 1));
-		GenericPrerequisite::Parse(pINI, pSection, "Prerequisite", this->Prerequisites[0]);
-
-		char flag[256];
-		for (size_t i = 0u; i < this->Prerequisites.size(); ++i) {
-			IMPL_SNPRNINTF(flag, sizeof(flag), "Prerequisite.List%u", i);
-			GenericPrerequisite::Parse(pINI, pSection, flag, this->Prerequisites[i]);
-		}
+	for (size_t i = 0u; i < this->Prerequisites.size(); ++i) {
+		GenericPrerequisite::Parse(pINI,
+		pSection,
+		(_Prerequisite_key + std::string(".List") + std::to_string(i)).c_str(),
+		this->Prerequisites[i]
+		);
+	}
 
 		// Prerequisite.Negative with Generic Prerequistes support
-		GenericPrerequisite::Parse(pINI, pSection, "Prerequisite.Negative", this->Prerequisite_Negative);
-		GenericPrerequisite::Parse(pINI, pSection, "Prerequisite.Display", this->Prerequisite_Display);
-		GenericPrerequisite::Parse(pINI, pSection, "PrerequisiteOverride", pThis->PrerequisiteOverride);
-		GenericPrerequisite::Parse(pINI, pSection, "Convert.Script.Prerequisite", this->Convert_Scipt_Prereq);
-#pragma endregion Prereq
+		GenericPrerequisite::Parse(pINI, pSection, (_Prerequisite_key + ".Negative").c_str(), this->Prerequisite_Negative);
+		GenericPrerequisite::Parse(pINI, pSection, (_Prerequisite_key + ".Display").c_str(), this->Prerequisite_Display);
+		GenericPrerequisite::Parse(pINI, pSection, (_Prerequisite_key + "Override").c_str(), pThis->PrerequisiteOverride);
+		GenericPrerequisite::Parse(pINI, pSection, (std::string("Convert.Script.") + _Prerequisite_key).c_str(), this->Convert_Scipt_Prereq);
 
+		this->Prerequisite_Power.Read(exINI, pSection, (_Prerequisite_key + ".Power").c_str());
+		std::string _Prerequisite_StolenTechs_key = _Prerequisite_key+ ".StolenTechs";
+
+		if (pINI->ReadString(pSection, _Prerequisite_StolenTechs_key.c_str(), Phobos::readDefval, Phobos::readBuffer) > 0)
+		{
+			this->RequiredStolenTech.reset();
+
+			char* context = nullptr;
+			for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
+				cur;
+				cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
+				signed int idx = std::atoi(cur);
+				if (idx > -1 && idx < 32)
+				{
+					this->RequiredStolenTech.set(idx);
+				}
+				else if (idx != -1)
+				{
+					Debug::INIParseFailed(pSection, _Prerequisite_StolenTechs_key.c_str(), cur, "Expected a number between 0 and 31 inclusive");
+				}
+			}
+		}
+
+#pragma endregion Prereq
 
 		this->AttachedEffect.Read(exINI);
 		this->NoAmmoEffectAnim.Read(exINI, pSection, "NoAmmoEffectAnim", true);
@@ -1003,10 +1038,12 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->PoweredBy.Read(exINI, pSection, "PoweredBy");
 
-		char Survivor_buffer[256];
 		for (int i = 0; i < SideClass::Array->Count; ++i) {
-			IMPL_SNPRNINTF(Survivor_buffer,sizeof(Survivor_buffer), "Survivor.Side%d", i);
-			detail::read(this->Survivors_Pilots[i], exINI, pSection, Survivor_buffer);
+			detail::read(this->Survivors_Pilots[i],
+			exINI,
+			pSection,
+			(std::string("Survivor.Side") + std::to_string(i)).c_str()
+			);
 		}
 
 		this->Ammo_AddOnDeploy.Read(exINI, pSection, "Ammo.AddOnDeploy");
@@ -1026,27 +1063,6 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->Secret_ForbiddenHouses
 			= pINI->ReadHouseTypesList(pSection, "SecretLab.ForbiddenHouses", this->Secret_ForbiddenHouses);
-
-		if (pINI->ReadString(pSection, "Prerequisite.StolenTechs", Phobos::readDefval, Phobos::readBuffer) > 0)
-		{
-			this->RequiredStolenTech.reset();
-
-			char* context = nullptr;
-			for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
-				cur;
-				cur = strtok_s(nullptr, Phobos::readDelims, &context))
-			{
-				signed int idx = std::atoi(cur);
-				if (idx > -1 && idx < 32)
-				{
-					this->RequiredStolenTech.set(idx);
-				}
-				else if (idx != -1)
-				{
-					Debug::INIParseFailed(pSection, "Prerequisite.StolenTechs", cur, "Expected a number between 0 and 31 inclusive");
-				}
-			}
-		}
 
 		this->ReloadInTransport.Read(exINI, pSection, "ReloadInTransport");
 		this->Weeder_TriggerPreProductionBuildingAnim.Read(exINI, pSection, "Weeder.TriggerPreProductionBuildingAnim");
@@ -1156,16 +1172,14 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->TurretShadow.Read(exArtINI, pArtSection, "TurretShadow");
 		this->ShadowIndices.Read(exArtINI, pArtSection, "ShadowIndices");
 
-		char tempBuffer[0x40];
-		char HitCoord_tempBuffer[0x20];
-		char alternateFLHbuffer[0x40];
-
 		this->LaserTrailData.clear();
 
 		for (size_t i = 0; ; ++i)
 		{
-			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.Type", i);
-			if (exArtINI->ReadString(pArtSection, tempBuffer, Phobos::readDefval, Phobos::readBuffer) <= 0)
+			std::string _base_key = "LaserTrail";
+			_base_key += std::to_string(i);
+
+			if (exArtINI->ReadString(pArtSection, (_base_key + ".Type").c_str(), Phobos::readDefval, Phobos::readBuffer) <= 0)
 				break;
 
 			int def;
@@ -1175,11 +1189,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			auto data = &this->LaserTrailData.emplace_back();
 			data->idxType = def;
 
-			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.FLH", i);
-			detail::read(data->FLH , exArtINI, pArtSection, tempBuffer );
-
-			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.IsOnTurret", i);
-			detail::read(data->IsOnTurret , exArtINI, pArtSection, tempBuffer );
+			detail::read(data->FLH , exArtINI, pArtSection,  (_base_key + ".FLH").c_str());
+			detail::read(data->IsOnTurret , exArtINI, pArtSection,  (_base_key + ".IsOnTurret").c_str());
 		}
 
 		this->AlternateFLHs.clear();
@@ -1187,8 +1198,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		for (size_t i = 5; ; ++i)
 		{
 			Nullable<CoordStruct> alternateFLH;
-			IMPL_SNPRNINTF(alternateFLHbuffer, sizeof(alternateFLHbuffer), "AlternateFLH%u", i);
-			alternateFLH.Read(exArtINI, pArtSection, alternateFLHbuffer);
+			alternateFLH.Read(exArtINI, pArtSection, (std::string("AlternateFLH") + std::to_string(i)).c_str());
 
 			if (!alternateFLH.isset())
 				break;
@@ -1201,8 +1211,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		for (size_t i = 0; ; ++i)
 		{
 			Nullable<CoordStruct> nHitBuff;
-			IMPL_SNPRNINTF(HitCoord_tempBuffer, sizeof(HitCoord_tempBuffer), "HitCoordOffset%d", i);
-			nHitBuff.Read(exArtINI, pArtSection, HitCoord_tempBuffer);
+			nHitBuff.Read(exArtINI, pArtSection, (std::string("HitCoordOffset") + std::to_string(i)).c_str());
 
 			if (!nHitBuff.isset())
 				break;
@@ -1269,16 +1278,19 @@ void TechnoTypeExtData::InitializeConstant()
 
 ImageStatusses ImageStatusses::ReadVoxel(const char* const nKey, bool a4)
 {
-	char buffer[0x60];
-	IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.VXL", nKey);
-	CCFileClass CCFileV { buffer };
+	std::string _buffer = nKey;
+	const size_t key_len = _buffer.size();
+	_buffer += ".VXL";
+	CCFileClass CCFileV { _buffer.c_str() };
 
 	if (CCFileV.Exists())
 	{
 		MotLib* pLoadedHVA = nullptr;
 		VoxLib* pLoadedVXL = GameCreate<VoxLib>(&CCFileV, false);
-		IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.HVA", nKey);
-		CCFileClass  CCFileH { buffer };
+		_buffer[key_len + 1] = 'H';
+		_buffer[key_len + 2] = 'V';
+		_buffer[key_len + 3] = 'A';
+		CCFileClass  CCFileH { _buffer.c_str() };
 
 		if (CCFileH.Open(FileAccessMode::Read)) {
 			pLoadedHVA = GameCreate<MotLib>(&CCFileH);

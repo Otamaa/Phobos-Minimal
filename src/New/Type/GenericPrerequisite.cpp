@@ -91,13 +91,12 @@ void GenericPrerequisite::LoadFromINI(CCINIClass* pINI)
 	_strlwr_s(name);
 	name[0] &= ~0x20; // LOL HACK to uppercase a letter
 
-	//IMPL_SNPRNINTF(generalbuf, sizeof(generalbuf), "Prerequisite%s", name);
-	GenericPrerequisite::Parse(pINI, GameStrings::General(), std::format("Prerequisite{}" , name).c_str(), this->Prereqs);
-
+	std::string _buffer("Prerequisite");
+	_buffer += name;
+	GenericPrerequisite::Parse(pINI, GameStrings::General(), _buffer.c_str(), this->Prereqs);
 	GenericPrerequisite::Parse(pINI, section, this->Name, this->Prereqs);
-
-	//IMPL_SNPRNINTF(generalbuf, sizeof(generalbuf), "Prerequisite%sAlternate", name);
-	this->Alternates.Read(iniEx, GameStrings::General(), std::format("Prerequisite{}Alternate" , name).c_str());
+	_buffer += "Alternate";
+	this->Alternates.Read(iniEx, GameStrings::General(), _buffer.c_str());
 }
 
 void GenericPrerequisite::LoadFromStream(PhobosStreamReader& Stm)

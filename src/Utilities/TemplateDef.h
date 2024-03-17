@@ -727,52 +727,29 @@ namespace detail
 	inline bool read<RocketStruct>(RocketStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		auto ret = false;
+		std::string _buffer = pKey;
 
-		char pFlagName[0x40];
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.PauseFrames", pKey);
-		ret |= read(value.PauseFrames, parser, pSection, pFlagName);
-
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.TiltFrames", pKey);
-		ret |= read(value.TiltFrames, parser, pSection, pFlagName);
-
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.PitchInitial", pKey);
-		ret |= read(value.PitchInitial, parser, pSection, pFlagName);
-
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.PitchFinal", pKey);
-		ret |= read(value.PitchFinal, parser, pSection, pFlagName);
-
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.TurnRate", pKey);
-		ret |= read(value.TurnRate, parser, pSection, pFlagName);
+		ret |= read(value.PauseFrames, parser, pSection, (_buffer + ".PauseFrames").c_str());
+		ret |= read(value.TiltFrames, parser, pSection, (_buffer + ".TiltFrames").c_str());
+		ret |= read(value.PitchInitial, parser, pSection, (_buffer + ".PitchInitial").c_str());
+		ret |= read(value.PitchFinal, parser, pSection, (_buffer + ".PitchFinal").c_str());
+		ret |= read(value.TurnRate, parser, pSection, (_buffer + ".TurnRate").c_str());
 
 		// sic! integer read like a float.
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.RaiseRate", pKey);
 		float buffer = 0.0f;
-		if (read(buffer, parser, pSection, pFlagName))
+		if (read(buffer, parser, pSection, (_buffer + ".RaiseRate").c_str()))
 		{
 			value.RaiseRate = int(buffer);
 			ret = true;
 		}
 
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.Acceleration", pKey);
-		ret |= read(value.Acceleration, parser, pSection, pFlagName);
-
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.Altitude", pKey);
-		ret |= read(value.Altitude, parser, pSection, pFlagName);
-
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.Damage", pKey);
-		ret |= read(value.Damage, parser, pSection, pFlagName);
-
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.EliteDamage", pKey);
-		ret |= read(value.EliteDamage, parser, pSection, pFlagName);
-
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.BodyLength", pKey);
-		ret |= read(value.BodyLength, parser, pSection, pFlagName);
-
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.LazyCurve", pKey);
-		ret |= read(value.LazyCurve, parser, pSection, pFlagName);
-
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.Type", pKey);
-		ret |= read(value.Type, parser, pSection, pFlagName);
+		ret |= read(value.Acceleration, parser, pSection, (_buffer + ".Acceleration").c_str());
+		ret |= read(value.Altitude, parser, pSection, (_buffer + ".Altitude").c_str());
+		ret |= read(value.Damage, parser, pSection, (_buffer + ".Damage").c_str());
+		ret |= read(value.EliteDamage, parser, pSection, (_buffer + ".EliteDamage").c_str());
+		ret |= read(value.BodyLength, parser, pSection, (_buffer + ".BodyLength").c_str());
+		ret |= read(value.LazyCurve, parser, pSection, (_buffer + ".LazyCurve").c_str());
+		ret |= read(value.Type, parser, pSection, (_buffer + ".Type").c_str());
 
 		return ret;
 	}

@@ -737,9 +737,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 				for (int i = 0; i < HouseTypeClass::Array()->Count; ++i)
 				{
 					AnimTypeClass* nBuffer;
-					//IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "%s%d", pBaseFlag, i);
-
-					if (!detail::read(nBuffer, exINI, pSection, std::format("{}{}", pBaseFlag, i ).c_str(), bAllocate) || !nBuffer)
+					if (!detail::read(nBuffer, exINI, pSection, (std::string(pBaseFlag) + std::to_string(i)).c_str(), bAllocate) || !nBuffer)
 						continue;
 
 					nVec[i] = nBuffer;
@@ -976,8 +974,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 			for (int i = 0; i < pThis->MaxNumberOccupants; ++i)
 			{
-				//IMPL_SNPRNINTF(tempMuzzleBuffer, sizeof(tempMuzzleBuffer), "%s%d", GameStrings::MuzzleFlash(), i);
-				detail::read(this->OccupierMuzzleFlashes[i], exArtINI, pArtSection, std::format("{}{}", GameStrings::MuzzleFlash(), i).c_str());
+				detail::read(this->OccupierMuzzleFlashes[i], exArtINI, pArtSection, (std::string(GameStrings::MuzzleFlash()) + std::to_string(i)).c_str());
 			}
 		}
 
@@ -989,11 +986,10 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->DamageFire_Offs.reserve(8u);
 
 		//char tempFire_OffsBuffer[0x25];
-		for (int i = 0;; ++i)
+		for (size_t i = 0;; ++i)
 		{
 			Point2D nFire_offs;
-			//IMPL_SNPRNINTF(tempFire_OffsBuffer, sizeof(tempFire_OffsBuffer), "%s%d", GameStrings::DamageFireOffset(), i);
-			if (!detail::read(nFire_offs, exArtINI, pArtSection, std::format("{}{}", GameStrings::DamageFireOffset(), i).c_str()))
+			if (!detail::read(nFire_offs, exArtINI, pArtSection, (std::string(GameStrings::DamageFireOffset()) + std::to_string(i)).c_str()))
 				break;
 
 			this->DamageFire_Offs.push_back(nFire_offs);
@@ -1010,8 +1006,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 			for (int i = 0; i < pThis->NumberOfDocks; ++i)
 			{
-				//IMPL_SNPRNINTF(keyDock, sizeof(keyDock), "DockingPoseDir%d", i);
-				detail::read(this->DockPoseDir[i], exArtINI, pArtSection, std::format("DockingPoseDir{}",i).c_str(), false);
+				detail::read(this->DockPoseDir[i], exArtINI, pArtSection, (std::string("DockingPoseDir") + std::to_string(i)).c_str(), false);
 			}
 		}
 #pragma endregion

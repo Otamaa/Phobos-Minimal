@@ -154,13 +154,16 @@ public:
 	private:
 		void Open(const char* fileBase)
 		{
-			std::string filename = std::format("{}.idx",fileBase);
-
+			std::string filename = fileBase;
+			const size_t filebase_len = filename.size();
+			filename += ".idx";
 			CCFileClass pIndex { filename.c_str() };
 
 			if (pIndex.Exists() && pIndex.Open(FileAccessMode::Read))
 			{
-				filename = std::format("{}.bag", fileBase);
+				filename[filebase_len + 1] = 'b';
+				filename[filebase_len + 2] = 'a';
+				filename[filebase_len + 3] = 'g';
 				auto pBag = UniqueGamePtrB<CCFileClass>(GameCreateUnchecked<CCFileClass>(filename.c_str()));
 
 				if (pBag->Exists()
@@ -426,7 +429,6 @@ DEFINE_HOOK(0x4011C0, Audio_Load, 6)
 	// audio01.bag to audio99.bag
 	//char buffer[0x100];
 	for(auto i = 1; i < 100; ++i) {
-		//IMPL_SNPRNINTF(buffer, sizeof(buffer), "audio%02d", i);
 		instance.Append(std::format("audio{:02}", i).c_str());
 	}
 

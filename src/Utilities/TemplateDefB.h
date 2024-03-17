@@ -272,19 +272,16 @@ namespace detail
 	inline bool read<MouseCursorDataStruct>(MouseCursorDataStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		auto ret = false;
+		std::string _key(pKey);
 
-		char pFlagName[0x40];
-		for (size_t i = 0; i < EnumFunctions::MouseCursorData_ToStrings.size(); ++i)
-		{
-			IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), EnumFunctions::MouseCursorData_ToStrings[i], pKey);
-			ret |= read(value.OriginalData.StartFrame, parser, pSection, pFlagName);
+		for (size_t i = 0; i < EnumFunctions::MouseCursorData_ToStrings.size(); ++i) {
+			ret |= read(value.OriginalData.StartFrame, parser, pSection, (_key + EnumFunctions::MouseCursorData_ToStrings[i]).c_str());
 		}
 
 		if (value.SmallFrameRate == -1)
 			value.SmallFrameRate = value.OriginalData.FrameRate;
 
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.HotSpot", pKey);
-		if (parser.ReadString(pSection, pFlagName))
+		if (parser.ReadString(pSection, (_key + ".HotSpot").c_str()))
 		{
 			auto const pValue = parser.value();
 			char* context = nullptr;
