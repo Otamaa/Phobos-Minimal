@@ -693,6 +693,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Grinding_Sound.Read(exINI, pSection, "Grinding.Sound");
 		this->Grinding_Weapon.Read(exINI, pSection, "Grinding.Weapon", true);
 		this->Grinding_PlayDieSound.Read(exINI, pSection, "Grinding.PlayDieSound");
+		this->Grinding_Weapon_RequiredCredits.Read(exINI, pSection, "Grinding.Weapon.RequiredCredits");
 
 		this->DisplayIncome.Read(exINI, pSection, "DisplayIncome");
 		this->DisplayIncome_Houses.Read(exINI, pSection, "DisplayIncome.Houses");
@@ -1047,7 +1048,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->Grinding_Sound)
 		.Process(this->Grinding_Weapon)
 		.Process(this->Grinding_PlayDieSound)
-
+		.Process(this->Grinding_Weapon_RequiredCredits)
 
 		.Process(this->PlacementPreview_Remap)
 		.Process(this->PlacementPreview_Palette)

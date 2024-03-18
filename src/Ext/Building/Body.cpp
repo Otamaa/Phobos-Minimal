@@ -642,12 +642,15 @@ bool BuildingExtData::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pT
 			return false;
 
 		pExt->AccumulatedIncome += nRefundAmounts;
+		pExt->GrindingWeapon_AccumulatedCredits += nRefundAmounts;
 
 		if (pTypeExt->Grinding_Weapon.isset()
-			&& Unsorted::CurrentFrame >= pExt->GrindingWeapon_LastFiredFrame + pTypeExt->Grinding_Weapon.Get()->ROF)
+			&& Unsorted::CurrentFrame >= pExt->GrindingWeapon_LastFiredFrame + pTypeExt->Grinding_Weapon.Get()->ROF
+			&& pExt->GrindingWeapon_AccumulatedCredits >= pTypeExt->Grinding_Weapon_RequiredCredits)
 		{
 			TechnoExtData::FireWeaponAtSelf(pBuilding, pTypeExt->Grinding_Weapon.Get());
 			pExt->GrindingWeapon_LastFiredFrame = Unsorted::CurrentFrame;
+			pExt->GrindingWeapon_AccumulatedCredits = 0;
 		}
 
 		if (pTypeExt->Grinding_Sound.isset())
@@ -890,6 +893,7 @@ void BuildingExtData::Serialize(T& Stm)
 		.Process(this->AboutToChronoshift)
 		.Process(this->IsFromSW)
 		.Process(this->RegisteredJammers)
+		.Process(this->GrindingWeapon_AccumulatedCredits)
 		.Process(this->BeignMCEd)
 		;
 }

@@ -60,6 +60,7 @@ public:
 	//https://github.com/Phobos-developers/Phobos/issues/1146
 
 	HelperedVector<TechnoClass*> RegisteredJammers { };
+	int GrindingWeapon_AccumulatedCredits { 0 };
 
 	BuildingExtData() noexcept = default;
 	~BuildingExtData() noexcept = default;

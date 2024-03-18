@@ -66,6 +66,7 @@ public:
 	Nullable<WeaponTypeClass*> Grinding_Weapon {};
 
 	Valueable<bool> Grinding_PlayDieSound { false };
+	Valueable<int> Grinding_Weapon_RequiredCredits { 0 };
 
 	Nullable<bool> PlacementPreview_Show {};
 	Nullable<Theater_SHPStruct*> PlacementPreview_Shape {};
