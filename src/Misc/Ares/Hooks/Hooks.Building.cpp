@@ -269,7 +269,7 @@ DEFINE_HOOK(0x442974, BuildingClass_ReceiveDamage_Malicious, 6)
 	return 0x442980;
 }
 
-DEFINE_HOOK(0x44227E, BuildingClass_ReceiveDamage_Nonprovocative_DonotSetLAT, 0x6){
+DEFINE_HOOK(0x442290, BuildingClass_ReceiveDamage_Nonprovocative_DonotSetLAT, 0x6){
 	GET_STACK(WarheadTypeClass*, pWH, STACK_OFFSET(0x9C, 0xC));
 	return WarheadTypeExtContainer::Instance.Find(pWH)->Nonprovocative ? 0x4422C1 : 0x0;
 }
