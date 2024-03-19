@@ -1618,8 +1618,8 @@ DEFINE_HOOK(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
 
 DEFINE_HOOK(0x7384BD, UnitClass_ReceiveDamage_OreMinerUnderAttack, 6)
 {
-	GET_STACK(WarheadTypeClass*, WH, STACK_OFFS(0x44, -0xC));
-	return WH && !WarheadTypeExtContainer::Instance.Find(WH)->Malicious ? 0x738535u : 0u;
+	GET_STACK(WarheadTypeClass*, pWH, STACK_OFFS(0x44, -0xC));
+	return !WarheadTypeExtContainer::Instance.Find(pWH)->Malicious || WarheadTypeExtContainer::Instance.Find(pWH)->Nonprovocative ? 0x738535u : 0u;
 }
 
 DEFINE_HOOK(0x738749, UnitClass_Destroy_TiberiumExplosive, 6)
@@ -1675,7 +1675,7 @@ DEFINE_HOOK(0x739F21, UnitClass_UpdatePosition_Visceroid, 6)
 {
 	GET(UnitClass*, pThis, EBP);
 
-	if (!pThis->Type->SmallVisceroid 
+	if (!pThis->Type->SmallVisceroid
 		 || TechnoExtContainer::Instance.Find(pThis)->MergePreventionTimer.InProgress()
 		 || !pThis->Destination
 		 ||  pThis->Destination->WhatAmI() != UnitClass::AbsID)

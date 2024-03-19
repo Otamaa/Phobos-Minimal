@@ -399,6 +399,8 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->CombatLightChance.Read(exINI, pSection, "CombatLightChance");
 	this->Particle_AlphaImageIsLightFlash.Read(exINI, pSection, "Particle.AlphaImageIsLightFlash");
 
+	this->Nonprovocative.Read(exINI, pSection, "Nonprovocative");
+
 	ValueableVector<InfantryTypeClass*> InfDeathAnims_List {};
 
 	InfDeathAnims_List.Read(exINI, pSection, "InfDeathAnim.LinkedList");
@@ -412,23 +414,23 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 #pragma endregion
 
-	if (this->InflictLocomotor && pThis->Locomotor == _GUID())
-	{
-		Debug::Log("[Developer warning][%s] InflictLocomotor is specified but Locomotor is not set!", pSection);
-		this->InflictLocomotor = false;
-	}
-
-	if ((this->InflictLocomotor || this->RemoveInflictedLocomotor) && pThis->IsLocomotor)
-	{
-		Debug::Log("[Developer warning][%s] InflictLocomotor=yes/RemoveInflictedLocomotor=yes can't be specified while IsLocomotor is set!", pSection);
-		this->InflictLocomotor = this->RemoveInflictedLocomotor = false;
-	}
-
-	if (this->InflictLocomotor && this->RemoveInflictedLocomotor)
-	{
-		Debug::Log("[Developer warning][%s] InflictLocomotor=yes and RemoveInflictedLocomotor=yes can't be set simultaneously!", pSection);
-		this->InflictLocomotor = this->RemoveInflictedLocomotor = false;
-	}
+	//if (this->InflictLocomotor && pThis->Locomotor == _GUID())
+	//{
+	//	Debug::Log("[Developer warning][%s] InflictLocomotor is specified but Locomotor is not set!", pSection);
+	//	this->InflictLocomotor = false;
+	//}
+	//
+	//if ((this->InflictLocomotor || this->RemoveInflictedLocomotor) && pThis->IsLocomotor)
+	//{
+	//	Debug::Log("[Developer warning][%s] InflictLocomotor=yes/RemoveInflictedLocomotor=yes can't be specified while IsLocomotor is set!", pSection);
+	//	this->InflictLocomotor = this->RemoveInflictedLocomotor = false;
+	//}
+	//
+	//if (this->InflictLocomotor && this->RemoveInflictedLocomotor)
+	//{
+	//	Debug::Log("[Developer warning][%s] InflictLocomotor=yes and RemoveInflictedLocomotor=yes can't be set simultaneously!", pSection);
+	//	this->InflictLocomotor = this->RemoveInflictedLocomotor = false;
+	//}
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
@@ -1331,6 +1333,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->CombatLightDetailLevel)
 		.Process(this->CombatLightChance)
 		.Process(this->Particle_AlphaImageIsLightFlash)
+		.Process(this->Nonprovocative)
 		;
 
 	PaintBallData.Serialize(Stm);

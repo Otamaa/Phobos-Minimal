@@ -348,6 +348,8 @@ public:
 	Nullable<int> CombatLightDetailLevel {};
 	Nullable<double> CombatLightChance {};
 	Nullable<bool> Particle_AlphaImageIsLightFlash {};
+
+	Valueable<bool> Nonprovocative {};
 public:
 
 	WarheadTypeExtData() noexcept = default;

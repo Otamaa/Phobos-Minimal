@@ -734,8 +734,9 @@ DEFINE_HOOK(0x5F57B5, ObjectClass_ReceiveDamage_Trigger, 0x6)
 	GET(ObjectClass*, pObject, ESI);
 	GET(ObjectClass*, pAttacker, EDI);
 	GET(DamageState , state , EBP);
+	GET_STACK(WarheadTypeClass*, pWH, STACK_OFFSET(0x24, 0xC));
 
-	if(state != DamageState::NowDead)
+	if(state != DamageState::NowDead && !WarheadTypeExtContainer::Instance.Find(pWH)->Nonprovocative)
 	{
 		if(pObject->IsAlive)
 		{
@@ -839,6 +840,38 @@ DEFINE_HOOK(0x7032B0, TechnoClass_RegisterLoss_Trigger, 0x6)
 	}
 
 	return 0;
+}
+
+// Do not consider Whiner=true team members hit by weapon as having been attacked e.g provoking response from AI.
+DEFINE_HOOK(0x4D7493, FootClass_ReceiveDamage_Nonprovocative, 0x5)
+{
+	enum { SkipChecks = 0x4D74CD, SkipEvents = 0x4D74A3 };
+
+	GET(TechnoClass*, pSource, EBX);
+	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFSET(0x1C, 0xC));
+
+	if (!pSource)
+		return SkipChecks;
+
+	auto const pTypeExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
+
+	return pTypeExt->Nonprovocative ? SkipEvents : 0;
+}
+
+// Do not consider ToProtect technos hit by weapon as having been attacked e.g provoking response from AI.
+DEFINE_HOOK(0x7027E6, TechnoClass_ReceiveDamage_Nonprovocative, 0x8)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass*, pSource, EAX);
+	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFSET(0xC4, 0xC));
+
+	auto const pTypeExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
+
+	if (!pTypeExt->Nonprovocative) {
+		pThis->BaseIsAttacked(pSource);
+	}
+
+	return 0x7027EE;
 }
 
 //DEFINE_HOOK(0x489A01, MapClass_DamageArea_LoopDamageGroups, 0x6)

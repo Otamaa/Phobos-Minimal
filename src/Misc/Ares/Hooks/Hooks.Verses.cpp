@@ -249,8 +249,13 @@ DEFINE_HOOK(0x708AF7, TechnoClass_ShouldRetaliate_Verses, 0x7)
 	//if ((size_t)nArmor > ArmorTypeClass::Array.size())
 	//	Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
 
+	if(pData->Nonprovocative)
+		return DoNotRetaliate;
+
 	const auto armor = (int)TechnoExtData::GetArmor(pSource);
 	const auto vsData = &pData->Verses[armor];
+
+
 
 	return vsData->Flags.Retaliate //|| !(vsData->Verses <= 0.0099999998)
 		? Retaliate
