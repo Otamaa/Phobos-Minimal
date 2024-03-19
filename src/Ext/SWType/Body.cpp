@@ -1547,6 +1547,10 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_Lauchsites.Read(exINI, pSection, "SW.LaunchSites");
 
 	this->UseWeeds.Read(exINI, pSection, "UseWeeds");
+
+	if (this->UseWeeds)
+		this->AttachedToObject->ShowTimer = false;
+
 	this->UseWeeds_Amount.Read(exINI, pSection, "UseWeeds.Amount");
 	this->UseWeeds_StorageTimer.Read(exINI, pSection, "UseWeeds.StorageTimer");
 	this->UseWeeds_ReadinessAnimationPercentage.Read(exINI, pSection, "UseWeeds.ReadinessAnimationPercentage");

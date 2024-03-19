@@ -31,12 +31,14 @@ void ApplyVeinsDamage(AnimClass* pThis ,int VeinDamage , WarheadTypeClass* VeinW
 			pThis->__ToDelete_197 = true; // wut
 		}
 
-		if (Unsorted::CurrentFrame % 2 == 0 && pFirst)
+		if (Unsorted::CurrentFrame % 2 == 0)
 		{
-			for (auto pFist_ = pFirst; pFist_; pFist_->NextObject)
+			while (pFirst != nullptr)
 			{
-				if (auto pTechno = generic_cast<TechnoClass*>(pFist_))
+				if (auto pTechno = generic_cast<TechnoClass*>(pFirst))
 				{
+					ObjectClass* pNext = pFirst->NextObject;
+
 					if (!pTechno->IsAlive || pTechno->Health <= 0 || pTechno->InLimbo)
 						continue;
 
@@ -51,21 +53,29 @@ void ApplyVeinsDamage(AnimClass* pThis ,int VeinDamage , WarheadTypeClass* VeinW
 						)
 					{
 						int dmg = VeinDamage;
-						pFist_->ReceiveDamage(&dmg, 0, VeinWarhead, nullptr, false, false, nullptr);
+						pFirst->ReceiveDamage(&dmg, 0, VeinWarhead, nullptr, false, false, nullptr);
 						Debug::Log("VeinAnim[%x] Damaging[%s - %x]\n", pThis, pTechno->get_ID(), pTechno);
 					}
+
+					pFirst = pNext;
 				}
 			}
 		}
 	}
 }
 
-//DEFINE_HOOK(0x4243BC, AnimClass_AI_Veins, 0x6)
-//{
-//	GET(AnimClass*, pThis, ESI);
-//	ApplyVeinsDamage(pThis, RulesClass::Instance->VeinDamage, RulesExtData::Instance()->Veinhole_Warhead);
-//	return 0x0;
-//}
+DEFINE_HOOK(0x4243BC, AnimClass_AI_Veins, 0x6)
+{
+	enum {
+		ContinueDrawTiberium = 0x4243CC,
+		ContinueNotTiberium = 0x42442E
+	};
+
+	GET(AnimClass*, pThis, ESI);
+	ApplyVeinsDamage(pThis, RulesClass::Instance->VeinDamage, RulesExtData::Instance()->Veinhole_Warhead);
+	return pThis->Type->IsTiberium ?
+		ContinueDrawTiberium : ContinueNotTiberium;
+}
 
 DEFINE_HOOK(0x685078, Generate_OreTwinkle_Anims, 0x7)
 {

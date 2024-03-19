@@ -142,97 +142,93 @@ DEFINE_HOOK(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
 #include <Commands/ToggleDesignatorRange.h>
 
 //TODO : integrate this better inside ares SW ecosystems
-// DEFINE_HOOK(0x6CBEF4, SuperClass_AnimStage_UseWeeds, 0x6)
-// {
-// 	enum
-// 	{
-// 		Ready = 0x6CBFEC,
-// 		NotReady = 0x6CC064,
-// 		ProgressInEax = 0x6CC066
-// 	};
-//
-// 	GET(SuperClass*, pSuper, ECX);
-// 	GET(SuperWeaponTypeClass*, pSWType, EBX);
-//
-// 	auto pExt = SWTypeExtContainer::Instance.Find(pSWType);
-//
-// 	if (pExt->UseWeeds)
-// 	{
-// 		if (pSuper->IsCharged)
-// 			return Ready;
-//
-// 		if (pExt->UseWeeds_StorageTimer)
-// 		{
-// 			int progress = int(54.0 * pSuper->Owner->OwnedWeed.GetTotalAmount() / (double)pExt->UseWeeds_Amount);
-// 			if (progress > 54)
-// 				progress = 54;
-// 			R->EAX(progress);
-// 			return ProgressInEax;
-// 		}
-// 		else
-// 		{
-// 			return NotReady;
-// 		}
-// 	}
-//
-// 	return 0;
-// }
+DEFINE_HOOK(0x6CBEF4, SuperClass_AnimStage_UseWeeds, 0x6)
+{
+	enum
+	{
+		Ready = 0x6CBFEC,
+		NotReady = 0x6CC064,
+		ProgressInEax = 0x6CC066
+	};
 
-// DEFINE_HOOK(0x6CBD2C, SuperClass_AI_UseWeeds, 0x6)
-// {
-// 	enum
-// 	{
-// 		NothingChanged = 0x6CBE9D,
-// 		SomethingChanged = 0x6CBD48,
-// 		Charged = 0x6CBD73
-// 	};
-//
-// 	GET(SuperClass*, pSuper, ESI);
-//
-// 	const auto pExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
-//
-// 	if (pExt->UseWeeds)
-// 	{
-// 		if (pSuper->Type->ShowTimer)
-// 			pSuper->Type->ShowTimer = false;
-//
-// 		if (pSuper->Owner->OwnedWeed.GetTotalAmount() >= pExt->UseWeeds_Amount)
-// 		{
-// 			pSuper->Owner->OwnedWeed.RemoveAmount(static_cast<float>(pExt->UseWeeds_Amount), 0);
-// 			pSuper->RechargeTimer.Start(0); // The Armageddon is here
-// 			return Charged;
-// 		}
-//
-// 		if (pSuper->Owner->OwnedWeed.GetTotalAmount() >= pExt->UseWeeds_ReadinessAnimationPercentage / (100.0 * pExt->UseWeeds_Amount))
-// 		{
-// 			pSuper->RechargeTimer.Start(15); // The end is nigh!
-// 		}
-// 		else
-// 		{
-// 			pSuper->RechargeTimer.Start(915); // 61 seconds > 60 seconds (animation activation threshold)
-// 		}
-//
-// 		int animStage = pSuper->GetCameoChargeState();
-// 		if (pSuper->CameoChargeState != animStage)
-// 		{
-// 			pSuper->CameoChargeState = animStage;
-// 			return SomethingChanged;
-// 		}
-//
-// 		return NothingChanged;
-// 	}
+	GET(SuperClass*, pSuper, ECX);
+	GET(SuperWeaponTypeClass*, pSWType, EBX);
 
-// 	return 0;
-// }
+	auto pExt = SWTypeExtContainer::Instance.Find(pSWType);
+
+	if (pExt->UseWeeds)
+	{
+		if (pSuper->IsCharged)
+			return Ready;
+
+		if (pExt->UseWeeds_StorageTimer)
+		{
+			int progress = int(54.0 * pSuper->Owner->OwnedWeed.GetTotalAmount() / (double)pExt->UseWeeds_Amount);
+			if (progress > 54)
+				progress = 54;
+			R->EAX(progress);
+			return ProgressInEax;
+		}
+		else
+		{
+			return NotReady;
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x6CBD2C, SuperClass_AI_UseWeeds, 0x6)
+{
+	enum
+	{
+		NothingChanged = 0x6CBE9D,
+		SomethingChanged = 0x6CBD48,
+		Charged = 0x6CBD73
+	};
+
+	GET(SuperClass*, pSuper, ESI);
+
+	const auto pExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
+
+	if (pExt->UseWeeds) {
+
+		if (pSuper->Owner->OwnedWeed.GetTotalAmount() >= pExt->UseWeeds_Amount) {
+			pSuper->Owner->OwnedWeed.RemoveAmount(static_cast<float>(pExt->UseWeeds_Amount), 0);
+			pSuper->RechargeTimer.Start(0); // The Armageddon is here
+			return Charged;
+		}
+
+		const int RechargerValue =
+			pSuper->Owner->OwnedWeed.GetTotalAmount() >= pExt->UseWeeds_ReadinessAnimationPercentage / (100.0 * pExt->UseWeeds_Amount)
+			// The end is nigh!
+			? 15 : 915; // 61 seconds > 60 seconds (animation activation threshold)
+			;
+
+		pSuper->RechargeTimer.Start(RechargerValue);
+
+
+		int animStage = pSuper->GetCameoChargeState();
+		if (pSuper->CameoChargeState != animStage)
+		{
+			pSuper->CameoChargeState = animStage;
+			return SomethingChanged;
+		}
+
+		return NothingChanged;
+	}
+
+	return 0;
+}
 
 // This is pointless for SWs using weeds because their charge is tied to weed storage.
-// DEFINE_HOOK(0x6CC1E6, SuperClass_SetSWCharge_UseWeeds, 0x5)
-// {
-// 	enum { Skip = 0x6CC251 };
-//
-// 	GET(SuperClass*, pSuper, EDI);
-// 	return SWTypeExtContainer::Instance.Find(pSuper->Type)->UseWeeds ? Skip : 0;
-// }
+DEFINE_HOOK(0x6CC1E6, SuperClass_SetSWCharge_UseWeeds, 0x5)
+{
+	enum { Skip = 0x6CC251 };
+
+	GET(SuperClass*, pSuper, EDI);
+	return SWTypeExtContainer::Instance.Find(pSuper->Type)->UseWeeds ? Skip : 0;
+}
 
 #ifndef aaa
 
