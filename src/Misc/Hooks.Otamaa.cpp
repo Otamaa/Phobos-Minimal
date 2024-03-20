@@ -4431,612 +4431,616 @@ DEFINE_HOOK(0x42C4FE, AstarClass_FindPath_nullptr, 0x9)
 // what is the boolean return for , heh
 bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 {
-	if (!pCollector || pCell->OverlayTypeIndex <= -1)
-		return true; /// ????
-
-	const auto pOverlay = OverlayTypeClass::Array->Items[pCell->OverlayTypeIndex];
-
-	if (!pOverlay->Crate)
-		return true; /// ????
-
-	const auto pCollectorOwner = pCollector->Owner;
-	bool BaseGiven = false;
-	int soloCrateMoney = 0;
-
-	if (SessionClass::Instance->GameMode == GameMode::Campaign || !pCollectorOwner->Type->MultiplayPassive)
+	if (pCollector && pCell->OverlayTypeIndex > -1)
 	{
-		if (pOverlay->CrateTrigger)
+		const auto pOverlay = OverlayTypeClass::Array->Items[pCell->OverlayTypeIndex];
+
+		if (pOverlay->Crate)
 		{
-			Debug::Log("Springing trigger on crate at %d,%d\n", pCell->MapCoords.X, pCell->MapCoords.Y);
-			pCollector->AttachedTag->SpringEvent(TriggerEvent::PickupCrate, pCollector, CellStruct::Empty);
-			if (!pCollector->IsAlive)
-				return false;
+			const auto pCollectorOwner = pCollector->Owner;
+			bool force_mcv = false;
+			int soloCrateMoney = 0;
 
-			ScenarioClass::Instance->PickedUpAnyCrate = true;
-		}
-
-		Powerup data = Powerup::Money;
-
-		if (pCell->OverlayData < 19u)
-			data = (Powerup)pCell->OverlayData;
-		else
-		{
-			int totalshares = 0;
-			for (auto wheight : Powerups::Weights)
+			if (SessionClass::Instance->GameMode == GameMode::Campaign || !pCollectorOwner->Type->MultiplayPassive)
 			{
-				totalshares += wheight;
-			}
-
-			int random = ScenarioClass::Instance->Random.RandomRanged(1, totalshares);
-			int sharecount = 0;
-			unsigned int ovelaydata = 0u;
-
-			for (auto wheight : Powerups::Weights)
-			{
-				sharecount += wheight;
-				if (random <= sharecount)
-					break;
-
-				++ovelaydata;
-			}
-
-			data = (Powerup)ovelaydata;
-		}
-
-		if (SessionClass::Instance->GameMode != GameMode::Campaign)
-		{
-			auto pBase = pCollectorOwner->PickUnitFromTypeList(RulesClass::Instance->BaseUnit);
-
-			if (!pCollectorOwner->OwnedBuildings
-				&& pCollectorOwner->Available_Money() > 1500
-				&& !pCollectorOwner->OwnedUnitTypes.GetItemCount(pBase->ArrayIndex)
-				&& GameModeOptionsClass::Instance->Bases
-				)
-			{
-				data = Powerup::Unit;
-				BaseGiven = true;
-			}
-			const auto landType = pCell->LandType;
-#pragma region EVALUATE_FIST_TIME
-			switch ((Powerup)data)
-			{
-			case Powerup::Unit:
-			{
-				if (pCollectorOwner->OwnedUnits >= 50
-					|| landType == LandType::Water
-					|| landType == LandType::Beach)
+				if (pOverlay->CrateTrigger)
 				{
-					data = Powerup::Money;
+					Debug::Log("Springing trigger on crate at %d,%d\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					pCollector->AttachedTag->SpringEvent(TriggerEvent::PickupCrate, pCollector, CellStruct::Empty);
+					if (!pCollector->IsAlive)
+						return false;
+
+					ScenarioClass::Instance->PickedUpAnyCrate = true;
 				}
 
-				break;
-			}
-			case Powerup::Cloak:
-			{
+				Powerup data = Powerup::Money;
 
-				if (pCollector->Cloakable)
-					data = Powerup::Money;
-
-				break;
-			}
-			case Powerup::Squad:
-			{
-				if (pCollectorOwner->OwnedInfantry > 100
-					|| landType == LandType::Water
-					|| landType == LandType::Beach)
+				if (pCell->OverlayData < 19u)
+					data = (Powerup)pCell->OverlayData;
+				else
 				{
-					data = Powerup::Money;
-				}
-
-				break;
-			}
-			case Powerup::Armor:
-			{
-				if (pCollector->ArmorMultiplier != 1.0)
-				{
-					data = Powerup::Money;
-				}
-
-				break;
-			}
-			case Powerup::Speed:
-			{
-				if (pCollector->SpeedMultiplier != 1.0 || pCollector->WhatAmI() == AbstractType::Aircraft)
-				{
-					data = Powerup::Money;
-				}
-
-				break;
-			}
-			case Powerup::Firepower:
-			{
-				if (pCollector->FirepowerMultiplier != 1.0 || !pCollector->IsArmed())
-				{
-					data = Powerup::Money;
-				}
-
-				break;
-			}
-			case Powerup::Veteran:
-			{
-				if (!pCollector->GetTechnoType()->Trainable || pCollector->Veterancy.IsElite())
-				{
-					data = Powerup::Money;
-				}
-
-				break;
-			}
-			default:
-				break;
-			}
-#pragma endregion
-
-			if (landType == LandType::Water && !Powerups::Naval[(int)data])
-			{
-				data = Powerup::Unit;
-			}
-
-			if (SessionClass::Instance->GameMode == GameMode::Internet)
-			{
-				pCollectorOwner->CollectedCrates.IncrementUnitCount((int)data);
-			}
-		}
-		else if (!pCell->OverlayData)
-		{
-			soloCrateMoney = RulesClass::Instance->SoloCrateMoney;
-
-			if (pOverlay == RulesClass::Instance->CrateImg)
-			{
-				pCell->OverlayData = (unsigned char)RulesClass::Instance->SilverCrate;
-			}
-
-			if (pOverlay == RulesClass::Instance->WoodCrateImg)
-			{
-				pCell->OverlayData = (unsigned char)RulesClass::Instance->WoodCrate;
-			}
-
-			if (pOverlay == RulesClass::Instance->WaterCrateImg)
-			{
-				pCell->OverlayData = (unsigned char)RulesClass::Instance->WaterCrate;
-			}
-
-			data = (Powerup)pCell->OverlayData;
-		}
-
-		MapClass::Instance->Remove_Crate(&pCell->MapCoords);
-
-		if (SessionClass::Instance->GameMode != GameMode::Campaign && GameModeOptionsClass::Instance->Crates)
-		{
-			MapClass::Instance->Place_Random_Crate();
-		}
-
-		if (data == Powerup::Squad)
-		{
-			data = Powerup::Money;
-		}
-
-#pragma region MainAffect
-		const auto something = Powerups::Arguments[(int)data];
-		//not always get used same way ?
-
-		auto PlayAnimAffect = [pCell, data, pCollector, pCollectorOwner]()
-			{
-				if (Powerups::Anims[(int)data] != -1)
-				{
-					auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) + 200);
-					GameCreate<AnimClass>(AnimTypeClass::Array->Items[Powerups::Anims[(int)data]], loc, 0, 1, 0x600, 0, 0);
-				}
-			};
-
-		auto PlaySoundAffect = [pCell, pCollector, pCollectorOwner](int SoundIdx)
-			{
-				if (pCollectorOwner->ControlledByCurrentPlayer())
-				{
-					auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
-					VocClass::PlayIndexAtPos(SoundIdx, loc, nullptr);
-				}
-			};
-
-		auto GeiveMoney = [&]()
-			{
-
-				Debug::Log("Crate at %d,%d contains money\n", pCell->MapCoords.X, pCell->MapCoords.Y);
-
-				if (!soloCrateMoney)
-				{
-					soloCrateMoney = ScenarioClass::Instance->Random.RandomRanged((int)something, (int)something + 900);
-				}
-
-				const auto pHouseDest = pCollectorOwner->ControlledByCurrentPlayer() || SessionClass::Instance->GameMode != GameMode::Campaign
-					? pCollectorOwner : HouseClass::CurrentPlayer();
-
-				pHouseDest->TransactMoney(soloCrateMoney);
-				PlaySoundAffect(RulesClass::Instance->CrateMoneySound);
-				PlayAnimAffect();
-
-				return true;
-			};
-
-		switch (data)
-		{
-		case Powerup::Money:
-		{
-			return GeiveMoney();
-		}
-		//TODO :
-		// this thing confusing !
-		case Powerup::Unit:
-		{
-			Debug::Log("Crate at %d,%d contains a unit\n", pCell->MapCoords.X, pCell->MapCoords.Y);
-			UnitTypeClass* Given = nullptr;
-			if (BaseGiven)
-			{
-				Given = pCollectorOwner->PickUnitFromTypeList(RulesClass::Instance->BaseUnit);
-
-				if (Given)
-				{
-					if (auto pUnitRules = RulesClass::Instance->UnitCrateType)
+					int totalshares = 0;
+					for (auto wheight : Powerups::Weights)
 					{
-						Given = pUnitRules;
+						totalshares += wheight;
 					}
 
-					if (auto pCreatedUnit = Given->CreateObject(pCollectorOwner))
+					int random = ScenarioClass::Instance->Random.RandomRanged(1, totalshares);
+					int sharecount = 0;
+					unsigned int ovelaydata = 0u;
+
+					for (auto wheight : Powerups::Weights)
 					{
-						auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
-						if (pCreatedUnit->Unlimbo(loc, DirType::Min))
+						sharecount += wheight;
+						if (random <= sharecount)
+							break;
+
+						++ovelaydata;
+					}
+
+					data = (Powerup)ovelaydata;
+				}
+
+				if (SessionClass::Instance->GameMode != GameMode::Campaign)
+				{
+					auto pBase = pCollectorOwner->PickUnitFromTypeList(RulesClass::Instance->BaseUnit);
+
+					if (!pCollectorOwner->OwnedBuildings
+						&& pCollectorOwner->Available_Money() > 1500
+						&& !pCollectorOwner->OwnedUnitTypes.GetItemCount(pBase->ArrayIndex)
+						&& GameModeOptionsClass::Instance->Bases
+						)
+					{
+						data = Powerup::Unit;
+						force_mcv = true;
+					}
+					const auto landType = pCell->LandType;
+#pragma region EVALUATE_FIST_TIME
+					switch ((Powerup)data)
+					{
+					case Powerup::Unit:
+					{
+						if (pCollectorOwner->OwnedUnits >= 50
+							|| landType == LandType::Water
+							|| landType == LandType::Beach)
 						{
-							PlaySoundAffect(RulesClass::Instance->CrateUnitSound);
-							return false;
+							data = Powerup::Money;
 						}
 
-						auto alternative_loc = MapClass::Instance->NearByLocation(pCell->MapCoords, Given->SpeedType, -1, Given->MovementZone, 0, 1, 1, 0, 0, 0, 1, CellStruct::Empty, false, false);
+						break;
+					}
+					case Powerup::Cloak:
+					{
 
-						if (alternative_loc.IsValid())
+						if (pCollector->Cloakable)
+							data = Powerup::Money;
+
+						break;
+					}
+					case Powerup::Squad:
+					{
+						if (pCollectorOwner->OwnedInfantry > 100
+							|| landType == LandType::Water
+							|| landType == LandType::Beach)
 						{
-							if (pCreatedUnit->Unlimbo(CellClass::Cell2Coord(alternative_loc), DirType::Min))
+							data = Powerup::Money;
+						}
+
+						break;
+					}
+					case Powerup::Armor:
+					{
+						if (pCollector->ArmorMultiplier != 1.0)
+						{
+							data = Powerup::Money;
+						}
+
+						break;
+					}
+					case Powerup::Speed:
+					{
+						if (pCollector->SpeedMultiplier != 1.0 || pCollector->WhatAmI() == AbstractType::Aircraft)
+						{
+							data = Powerup::Money;
+						}
+
+						break;
+					}
+					case Powerup::Firepower:
+					{
+						if (pCollector->FirepowerMultiplier != 1.0 || !pCollector->IsArmed())
+						{
+							data = Powerup::Money;
+						}
+
+						break;
+					}
+					case Powerup::Veteran:
+					{
+						if (!pCollector->GetTechnoType()->Trainable || pCollector->Veterancy.IsElite())
+						{
+							data = Powerup::Money;
+						}
+
+						break;
+					}
+					default:
+						break;
+					}
+#pragma endregion
+
+					if (landType == LandType::Water && !Powerups::Naval[(int)data])
+					{
+						data = Powerup::Unit;
+					}
+
+					if (SessionClass::Instance->GameMode == GameMode::Internet)
+					{
+						pCollectorOwner->CollectedCrates.IncrementUnitCount((int)data);
+					}
+				}
+				else if (!pCell->OverlayData)
+				{
+					soloCrateMoney = RulesClass::Instance->SoloCrateMoney;
+
+					if (pOverlay == RulesClass::Instance->CrateImg)
+					{
+						pCell->OverlayData = (unsigned char)RulesClass::Instance->SilverCrate;
+					}
+
+					if (pOverlay == RulesClass::Instance->WoodCrateImg)
+					{
+						pCell->OverlayData = (unsigned char)RulesClass::Instance->WoodCrate;
+					}
+
+					if (pOverlay == RulesClass::Instance->WaterCrateImg)
+					{
+						pCell->OverlayData = (unsigned char)RulesClass::Instance->WaterCrate;
+					}
+
+					data = (Powerup)pCell->OverlayData;
+				}
+
+				MapClass::Instance->Remove_Crate(&pCell->MapCoords);
+
+				if (SessionClass::Instance->GameMode != GameMode::Campaign && GameModeOptionsClass::Instance->Crates)
+				{
+					MapClass::Instance->Place_Random_Crate();
+				}
+
+				if (data == Powerup::Squad)
+				{
+					data = Powerup::Money;
+				}
+
+#pragma region MainAffect
+				const auto something = Powerups::Arguments[(int)data];
+				//not always get used same way ?
+
+				auto PlayAnimAffect = [pCell, data, pCollector, pCollectorOwner]()
+					{
+						if (Powerups::Anims[(int)data] != -1)
+						{
+							auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) + 200);
+							GameCreate<AnimClass>(AnimTypeClass::Array->Items[Powerups::Anims[(int)data]], loc, 0, 1, 0x600, 0, 0);
+						}
+					};
+
+				auto PlaySoundAffect = [pCell, pCollector, pCollectorOwner](int SoundIdx)
+					{
+						if (pCollectorOwner->ControlledByCurrentPlayer())
+						{
+							auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
+							VocClass::PlayIndexAtPos(SoundIdx, loc, nullptr);
+						}
+					};
+
+				auto GeiveMoney = [&]()
+					{
+
+						Debug::Log("Crate at %d,%d contains money\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+
+						if (!soloCrateMoney)
+						{
+							soloCrateMoney = ScenarioClass::Instance->Random.RandomRanged((int)something, (int)something + 900);
+						}
+
+						const auto pHouseDest = pCollectorOwner->ControlledByCurrentPlayer() || SessionClass::Instance->GameMode != GameMode::Campaign
+							? pCollectorOwner : HouseClass::CurrentPlayer();
+
+						pHouseDest->TransactMoney(soloCrateMoney);
+						PlaySoundAffect(RulesClass::Instance->CrateMoneySound);
+						PlayAnimAffect();
+
+						return true;
+					};
+
+				switch (data)
+				{
+				case Powerup::Money:
+				{
+					return GeiveMoney();
+				}
+				//TODO :
+				// this thing confusing !
+				case Powerup::Unit:
+				{
+					Debug::Log("Crate at %d,%d contains a unit\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					UnitTypeClass* Given = nullptr;
+					if (force_mcv)
+					{
+						Given = pCollectorOwner->PickUnitFromTypeList(RulesClass::Instance->BaseUnit);
+					}
+
+					if (!Given)
+					{
+						if (pCollectorOwner->OwnedBuildingTypes.GetItemCount(RulesClass::Instance->BuildRefinery[0]->ArrayIndex) > 0
+						 || pCollectorOwner->OwnedBuildingTypes.GetItemCount(RulesClass::Instance->BuildRefinery[1]->ArrayIndex) > 0
+						&& !pCollectorOwner->OwnedUnitTypes.GetItemCount(RulesClass::Instance->HarvesterUnit[0]->ArrayIndex)
+						&& !pCollectorOwner->OwnedUnitTypes.GetItemCount(RulesClass::Instance->HarvesterUnit[1]->ArrayIndex)
+						)
+						{
+							Given = pCollectorOwner->PickUnitFromTypeList(RulesClass::Instance->HarvesterUnit);
+						}
+					}
+
+					if (RulesClass::Instance->UnitCrateType)
+					{
+						Given = RulesClass::Instance->UnitCrateType;
+					}
+
+					bool finish = false;
+					bool currentPlayer = false;
+					if (!Given)
+					{
+						while (true)
+						{
+							do
+							{
+								Given = UnitTypeClass::Array->Items[ScenarioClass::Instance->Random.RandomFromMax(UnitTypeClass::Array->Count - 1)];
+								int count = 0;
+
+								if (RulesClass::Instance->BaseUnit.Count > 0)
+								{
+									auto begin = RulesClass::Instance->BaseUnit.begin();
+									while (*begin != Given)
+									{
+										++begin;
+										++count;
+										if (count >= RulesClass::Instance->BaseUnit.Count)
+										{
+											finish = false;
+											break;
+										}
+									}
+
+									finish = true;
+								}
+
+								currentPlayer = pCollectorOwner->ControlledByCurrentPlayer();
+							}
+							while (!Given->CrateGoodie);
+
+							if (GameModeOptionsClass::Instance->Bases)
+								break;
+
+							if (!finish)
+								break;
+						}(finish && !currentPlayer && !force_mcv);
+					}
+
+					if (Given)
+					{
+						if (auto pCreatedUnit = Given->CreateObject(pCollectorOwner))
+						{
+							auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
+							if (pCreatedUnit->Unlimbo(loc, DirType::Min))
 							{
 								PlaySoundAffect(RulesClass::Instance->CrateUnitSound);
 								return false;
 							}
-						}
 
-						GameDelete<false>(pCreatedUnit);
-						return GeiveMoney();
-					}
-					else
-					{
-						PlayAnimAffect();
-						return true;
-					}
+							auto alternative_loc = MapClass::Instance->NearByLocation(pCell->MapCoords, Given->SpeedType, -1, Given->MovementZone, 0, 1, 1, 0, 0, 0, 1, CellStruct::Empty, false, false);
 
-				}
-			}
-
-			if (pCollectorOwner->OwnedBuildingTypes.GetItemCount(RulesClass::Instance->BuildRefinery[0]->ArrayIndex) > 0
-			 || pCollectorOwner->OwnedBuildingTypes.GetItemCount(RulesClass::Instance->BuildRefinery[1]->ArrayIndex) > 0
-			&& !pCollectorOwner->OwnedUnitTypes.GetItemCount(RulesClass::Instance->HarvesterUnit[0]->ArrayIndex)
-			&& !pCollectorOwner->OwnedUnitTypes.GetItemCount(RulesClass::Instance->HarvesterUnit[1]->ArrayIndex)
-			)
-			{
-				Given = pCollectorOwner->PickUnitFromTypeList(RulesClass::Instance->HarvesterUnit);
-			}
-
-			if (auto pUnitRules = RulesClass::Instance->UnitCrateType)
-			{
-				Given = pUnitRules;
-			}
-
-			bool finish = false;
-			bool currentPlayer = false;
-			if (!Given)
-			{
-				while (true)
-				{
-					do
-					{
-						Given = UnitTypeClass::Array->Items[ScenarioClass::Instance->Random.RandomFromMax(UnitTypeClass::Array->Count - 1)];
-						int count = 0;
-
-						if (RulesClass::Instance->BaseUnit.Count > 0)
-						{
-							auto begin = RulesClass::Instance->BaseUnit.begin();
-							while (*begin != Given)
+							if (alternative_loc.IsValid())
 							{
-								++begin;
-								++count;
-								if (count >= RulesClass::Instance->BaseUnit.Count)
+								if (pCreatedUnit->Unlimbo(CellClass::Cell2Coord(alternative_loc), DirType::Min))
 								{
-									finish = false;
-									break;
+									PlaySoundAffect(RulesClass::Instance->CrateUnitSound);
+									return false;
 								}
 							}
 
-							finish = true;
+							GameDelete<false>(pCreatedUnit);
+							return GeiveMoney();
 						}
-
-						currentPlayer = pCollectorOwner->ControlledByCurrentPlayer();
-					}
-					while (!Given->CrateGoodie);
-
-					if (GameModeOptionsClass::Instance->Bases)
-						break;
-
-					if (!finish)
-						break;
-				}(finish && !currentPlayer && !BaseGiven);
-			}
-
-			if (Given)
-			{
-				if (auto pCreatedUnit = Given->CreateObject(pCollectorOwner))
-				{
-					auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
-					if (pCreatedUnit->Unlimbo(loc, DirType::Min))
-					{
-						PlaySoundAffect(RulesClass::Instance->CrateUnitSound);
-						return false;
-					}
-
-					auto alternative_loc = MapClass::Instance->NearByLocation(pCell->MapCoords, Given->SpeedType, -1, Given->MovementZone, 0, 1, 1, 0, 0, 0, 1, CellStruct::Empty, false, false);
-
-					if (alternative_loc.IsValid())
-					{
-						if (pCreatedUnit->Unlimbo(CellClass::Cell2Coord(alternative_loc), DirType::Min))
+						else
 						{
-							PlaySoundAffect(RulesClass::Instance->CrateUnitSound);
-							return false;
+							PlayAnimAffect();
+							return true;
 						}
 					}
-
-					GameDelete<false>(pCreatedUnit);
-					return GeiveMoney();
 				}
-				else
+				case Powerup::HealBase:
 				{
+					Debug::Log("Crate at %d,%d contains base healing\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					PlaySoundAffect(RulesClass::Instance->HealCrateSound);
+					for (int i = 0; i < LogicClass::Instance->Count; ++i)
+					{
+						if (auto pTechno = abstract_cast<TechnoClass*>(LogicClass::Instance->Items[i]))
+						{
+							if (pTechno->IsAlive && pTechno->GetOwningHouse() == pCollectorOwner)
+							{
+								int heal = pTechno->Health - pTechno->GetTechnoType()->Strength;
+								pTechno->ReceiveDamage(&heal, 0, RulesClass::Instance->C4Warhead, 0, 1, 1, nullptr);
+							}
+						}
+					}
 					PlayAnimAffect();
 					return true;
 				}
-			}
-		}
-		case Powerup::HealBase:
-		{
-			Debug::Log("Crate at %d,%d contains base healing\n", pCell->MapCoords.X, pCell->MapCoords.Y);
-			PlaySoundAffect(RulesClass::Instance->HealCrateSound);
-			for (int i = 0; i < LogicClass::Instance->Count; ++i) {
-				if (auto pTechno = abstract_cast<TechnoClass*>(LogicClass::Instance->Items[i])) {
-					if (pTechno->IsAlive && pTechno->GetOwningHouse() == pCollectorOwner) {
-						int heal = pTechno->Health - pTechno->GetTechnoType()->Strength;
-						pTechno->ReceiveDamage(&heal, 0, RulesClass::Instance->C4Warhead, 0, 1, 1, nullptr);
-					}
-				}
-			}
-			PlayAnimAffect();
-			return true;
-		}
-		case Powerup::Explosion:
-		{
-			Debug::Log("Crate at %d,%d contains explosives\n", pCell->MapCoords.X, pCell->MapCoords.Y);
-			int damage = (int)something;
-			pCollector->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, 0, 1, 0, 0);
-			for (int i = 5; i > 0; --i) {
-				int scatterDistance = ScenarioClass::Instance->Random.RandomFromMax(512);
-				auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
-				auto randomCoords = MapClass::GetRandomCoordsNear(loc, scatterDistance ,false);
-				MapClass::DamageArea(randomCoords, damage, nullptr, RulesClass::Instance->C4Warhead, true, nullptr);
-				if (auto pAnim = MapClass::SelectDamageAnimation(damage, RulesClass::Instance->C4Warhead, LandType::Clear, randomCoords)) {
-					GameCreate<AnimClass>(pAnim, randomCoords, 0, 1, 0x2600, -15, false);
-				}
-				MapClass::FlashbangWarheadAt(damage, RulesClass::Instance->C4Warhead, randomCoords);
-			}
-			PlayAnimAffect();
-			return true;
-		}
-		case Powerup::Napalm:
-		{
-			Debug::Log("Crate at %d,%d contains napalm\n", pCell->MapCoords.X, pCell->MapCoords.Y);
-			auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
-			auto Collector_loc = (pCollector->GetCoords() + loc) / 2;
-
-			GameCreate<AnimClass>(AnimTypeClass::Array->Items[0], Collector_loc, 0, 1, 0x600, 0, 0);
-			int damage = (int)something;
-			pCollector->ReceiveDamage(&damage, 0, RulesClass::Instance->FlameDamage, nullptr, 1, false, 0);
-			MapClass::DamageArea(Collector_loc, damage, nullptr, RulesClass::Instance->FlameDamage, true, false);
-
-			PlayAnimAffect();
-			return true;
-		}
-		case Powerup::Darkness:
-		{
-			Debug::Log("Crate at %d,%d contains 'shroud'\n", pCell->MapCoords.X, pCell->MapCoords.Y);
-			MapClass::Instance->Reshroud(pCollectorOwner);
-			PlayAnimAffect();
-			return true;
-		}
-		case Powerup::Reveal:
-		{
-			Debug::Log("Crate at %d,%d contains 'reveal'\n", pCell->MapCoords.X, pCell->MapCoords.Y);
-			MapClass::Instance->Reveal(pCollectorOwner);
-			PlaySoundAffect(RulesClass::Instance->CrateRevealSound);
-			PlayAnimAffect();
-			return true;
-		}
-		case Powerup::Armor:
-		{
-			Debug::Log("Crate at %d,%d contains armor\n", pCell->MapCoords.X, pCell->MapCoords.Y);
-			bool IsPlayer = false;
-			for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i) {
-				if (auto pTechno = generic_cast<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i])) {
-					if (pTechno->IsAlive)
-					{
-						auto LayersCoords = pTechno->GetCoords();
-						if ((int)LayersCoords.DistanceFrom(CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) - LayersCoords.Z)) < RulesClass::Instance->CrateRadius
-							&& pTechno->ArmorMultiplier < 1.0 ) {
-							pTechno->ArmorMultiplier *= something;
-
-							if (pTechno->Owner->ControlledByCurrentPlayer()) {
-								VoxClass::Play(GameStrings::EVA_UnitArmorUpgraded());
-							}
-						}
-					}
-				}
-			}
-
-			PlaySoundAffect(RulesClass::Instance->CrateArmourSound);
-			PlayAnimAffect();
-			return true;
-		}
-		case Powerup::Speed:
-		{
-			Debug::Log("Crate at %d,%d contains speed\n", pCell->MapCoords.X, pCell->MapCoords.Y);
-			bool IsPlayer = false;
-			for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
-			{
-				if (auto pTechno = generic_cast<FootClass*>(MapClass::ObjectsInLayers[2].Items[i]))
+				case Powerup::Explosion:
 				{
-					if (pTechno->IsAlive && pTechno->WhatAmI() != AbstractType::Aircraft)
+					Debug::Log("Crate at %d,%d contains explosives\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					int damage = (int)something;
+					pCollector->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, 0, 1, 0, 0);
+					for (int i = 5; i > 0; --i)
 					{
-						auto LayersCoords = pTechno->GetCoords();
-						if ((int)LayersCoords.DistanceFrom(CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) - LayersCoords.Z)) < RulesClass::Instance->CrateRadius
-							&& pTechno->SpeedMultiplier < 1.0)
+						int scatterDistance = ScenarioClass::Instance->Random.RandomFromMax(512);
+						auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
+						auto randomCoords = MapClass::GetRandomCoordsNear(loc, scatterDistance, false);
+						MapClass::DamageArea(randomCoords, damage, nullptr, RulesClass::Instance->C4Warhead, true, nullptr);
+						if (auto pAnim = MapClass::SelectDamageAnimation(damage, RulesClass::Instance->C4Warhead, LandType::Clear, randomCoords))
 						{
-							pTechno->SpeedMultiplier *= something;
+							GameCreate<AnimClass>(pAnim, randomCoords, 0, 1, 0x2600, -15, false);
+						}
+						MapClass::FlashbangWarheadAt(damage, RulesClass::Instance->C4Warhead, randomCoords);
+					}
+					PlayAnimAffect();
+					return true;
+				}
+				case Powerup::Napalm:
+				{
+					Debug::Log("Crate at %d,%d contains napalm\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
+					auto Collector_loc = (pCollector->GetCoords() + loc) / 2;
 
-							if (pTechno->Owner->ControlledByCurrentPlayer())
+					GameCreate<AnimClass>(AnimTypeClass::Array->Items[0], Collector_loc, 0, 1, 0x600, 0, 0);
+					int damage = (int)something;
+					pCollector->ReceiveDamage(&damage, 0, RulesClass::Instance->FlameDamage, nullptr, 1, false, 0);
+					MapClass::DamageArea(Collector_loc, damage, nullptr, RulesClass::Instance->FlameDamage, true, false);
+
+					PlayAnimAffect();
+					return true;
+				}
+				case Powerup::Darkness:
+				{
+					Debug::Log("Crate at %d,%d contains 'shroud'\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					MapClass::Instance->Reshroud(pCollectorOwner);
+					PlayAnimAffect();
+					return true;
+				}
+				case Powerup::Reveal:
+				{
+					Debug::Log("Crate at %d,%d contains 'reveal'\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					MapClass::Instance->Reveal(pCollectorOwner);
+					PlaySoundAffect(RulesClass::Instance->CrateRevealSound);
+					PlayAnimAffect();
+					return true;
+				}
+				case Powerup::Armor:
+				{
+					Debug::Log("Crate at %d,%d contains armor\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					bool IsPlayer = false;
+					for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
+					{
+						if (auto pTechno = generic_cast<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]))
+						{
+							if (pTechno->IsAlive)
 							{
-								VoxClass::Play(GameStrings::EVA_UnitArmorUpgraded());
+								auto LayersCoords = pTechno->GetCoords();
+								if ((int)LayersCoords.DistanceFrom(CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) - LayersCoords.Z)) < RulesClass::Instance->CrateRadius
+									&& pTechno->ArmorMultiplier == 1.0)
+								{
+									pTechno->ArmorMultiplier *= something;
+
+									if (pTechno->Owner->ControlledByCurrentPlayer())
+									{
+										VoxClass::Play(GameStrings::EVA_UnitArmorUpgraded());
+									}
+								}
 							}
 						}
 					}
+
+					PlaySoundAffect(RulesClass::Instance->CrateArmourSound);
+					PlayAnimAffect();
+					return true;
 				}
-			}
-
-			PlaySoundAffect(RulesClass::Instance->CrateSpeedSound);
-			PlayAnimAffect();
-			return true;
-		}
-		case Powerup::Firepower:
-		{
-			Debug::Log("Crate at %d,%d contains firepower\n", pCell->MapCoords.X, pCell->MapCoords.Y);
-			bool IsPlayer = false;
-			for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
-			{
-				if (auto pTechno = generic_cast<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]))
+				case Powerup::Speed:
 				{
-					if (pTechno->IsAlive)
+					Debug::Log("Crate at %d,%d contains speed\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					bool IsPlayer = false;
+					for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
 					{
-						auto LayersCoords = pTechno->GetCoords();
-						if ((int)LayersCoords.DistanceFrom(CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) - LayersCoords.Z)) < RulesClass::Instance->CrateRadius
-							&& pTechno->FirepowerMultiplier < 1.0)
+						if (auto pTechno = generic_cast<FootClass*>(MapClass::ObjectsInLayers[2].Items[i]))
 						{
-							pTechno->FirepowerMultiplier *= something;
-
-							if (pTechno->Owner->ControlledByCurrentPlayer())
+							if (pTechno->IsAlive && pTechno->WhatAmI() != AbstractType::Aircraft)
 							{
-								VoxClass::Play(GameStrings::EVA_UnitFirePowerUpgraded());
+								auto LayersCoords = pTechno->GetCoords();
+								if ((int)LayersCoords.DistanceFrom(CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) - LayersCoords.Z)) < RulesClass::Instance->CrateRadius
+									&& pTechno->SpeedMultiplier == 1.0)
+								{
+									pTechno->SpeedMultiplier *= something;
+
+									if (pTechno->Owner->ControlledByCurrentPlayer())
+									{
+										VoxClass::Play(GameStrings::EVA_UnitArmorUpgraded());
+									}
+								}
 							}
 						}
 					}
+
+					PlaySoundAffect(RulesClass::Instance->CrateSpeedSound);
+					PlayAnimAffect();
+					return true;
 				}
-			}
-
-			PlaySoundAffect(RulesClass::Instance->CrateFireSound);
-			PlayAnimAffect();
-			return true;
-		}
-		case Powerup::ICBM:
-		{
-			Debug::Log("Crate at %d,%d contains ICBM\n", pCell->MapCoords.X, pCell->MapCoords.Y);
-
-			auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper) {
-				return pSuper->Type->Type == SuperWeaponType::Nuke;
-			});
-
-			if (iter != pCollectorOwner->Supers.end()) {
-				if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer) {
-					SidebarClass::Instance->AddCameo(AbstractType::Special, (*iter)->Type->ArrayIndex);
-				}
-			}
-
-			PlayAnimAffect();
-			return true;
-		}
-		case Powerup::Veteran:
-		{
-			Debug::Log("Crate at %d,%d contains veterancy(TM)\n", pCell->MapCoords.X, pCell->MapCoords.Y);
-			bool IsPlayer = false;
-			for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
-			{
-				if (auto pTechno = generic_cast<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]))
+				case Powerup::Firepower:
 				{
-					if (pTechno->IsAlive && pTechno->IsOnMap && pTechno->GetTechnoType()->Trainable)
+					Debug::Log("Crate at %d,%d contains firepower\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					bool IsPlayer = false;
+					for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
 					{
-						auto LayersCoords = pTechno->GetCoords();
-						if ((int)LayersCoords.DistanceFrom(CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) - LayersCoords.Z)) < RulesClass::Instance->CrateRadius
-							&& something > 0.0)
+						if (auto pTechno = generic_cast<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]))
 						{
-							if (pTechno->Veterancy.IsVeteran())
-								pTechno->Veterancy.SetElite();
+							if (pTechno->IsAlive)
+							{
+								auto LayersCoords = pTechno->GetCoords();
+								if ((int)LayersCoords.DistanceFrom(CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) - LayersCoords.Z)) < RulesClass::Instance->CrateRadius
+									&& pTechno->FirepowerMultiplier == 1.0)
+								{
+									pTechno->FirepowerMultiplier *= something;
 
-							if (pTechno->Veterancy.IsRookie())
-								pTechno->Veterancy.SetVeteran();
-
-							if (pTechno->Veterancy.IsNegative())
-								pTechno->Veterancy.SetRookie();
+									if (pTechno->Owner->ControlledByCurrentPlayer())
+									{
+										VoxClass::Play(GameStrings::EVA_UnitFirePowerUpgraded());
+									}
+								}
+							}
 						}
 					}
+
+					PlaySoundAffect(RulesClass::Instance->CrateFireSound);
+					PlayAnimAffect();
+					return true;
 				}
-			}
+				case Powerup::Cloak:
+				{
+					Debug::Log("Crate at %d,%d contains cloaking device\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					bool IsPlayer = false;
+					for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
+					{
+						if (auto pTechno = generic_cast<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]))
+						{
+							if (pTechno->IsAlive && pTechno->IsOnMap)
+							{
+								auto LayersCoords = pTechno->GetCoords();
+								if ((int)LayersCoords.DistanceFrom(CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) - LayersCoords.Z)) < RulesClass::Instance->CrateRadius)
+								{
+									pTechno->Cloakable = true;
+								}
+							}
+						}
+					}
 
-			PlaySoundAffect(RulesClass::Instance->CratePromoteSound);
-			PlayAnimAffect();
-			return true;
-		}
-		case Powerup::Gas:
-		{
-			Debug::Log("Crate at %d,%d contains poison gas\n", pCell->MapCoords.X, pCell->MapCoords.Y);
-
-			auto WH = WarheadTypeClass::Array->Items[WarheadTypeClass::FindIndexById("GAS")];
-			bool randomizeCoord = true;
-			auto collector_loc = pCollector->GetCoords();
-			MapClass::DamageArea(collector_loc, (int)something, nullptr, WH, true, nullptr);
-
-			for (int i = 0; i  < 8;) {
-				CellClass* pDestCell = pCell;
-				if (randomizeCoord) {
-					CellStruct dest {};
-					MapClass::GetAdjacentCell(&dest, &pCell->MapCoords, (DirType)i);
-					pDestCell = MapClass::Instance->GetCellAt(dest);
+					PlayAnimAffect();
+					return true;
 				}
+				case Powerup::ICBM:
+				{
+					Debug::Log("Crate at %d,%d contains ICBM\n", pCell->MapCoords.X, pCell->MapCoords.Y);
 
-				MapClass::DamageArea(pDestCell->GetCoords(), (int)something, nullptr, WH, true, nullptr);
-				randomizeCoord = ++i < 8;
-			}
+					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
+		 {
+			 return pSuper->Type->Type == SuperWeaponType::Nuke;
+					});
 
-			PlayAnimAffect();
-			return true;
-		}
-		case Powerup::Tiberium:
-		{
-			Debug::Log("Crate at %d,%d contains tiberium\n", pCell->MapCoords.X, pCell->MapCoords.Y);
-			int tibToSpawn = ScenarioClass::Instance->Random.RandomFromMax(TiberiumClass::Array->Count - 1);
-			if (tibToSpawn == 1)
-				tibToSpawn = 0;
+					if (iter != pCollectorOwner->Supers.end())
+					{
+						if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer)
+						{
+							SidebarClass::Instance->AddCameo(AbstractType::Special, (*iter)->Type->ArrayIndex);
+						}
+					}
 
-			pCell->IncreaseTiberium(tibToSpawn, 1);
+					PlayAnimAffect();
+					return true;
+				}
+				case Powerup::Veteran:
+				{
+					Debug::Log("Crate at %d,%d contains veterancy(TM)\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					bool IsPlayer = false;
+					for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
+					{
+						if (auto pTechno = generic_cast<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]))
+						{
+							if (pTechno->IsAlive && pTechno->IsOnMap && pTechno->GetTechnoType()->Trainable)
+							{
+								auto LayersCoords = pTechno->GetCoords();
+								if ((int)LayersCoords.DistanceFrom(CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) - LayersCoords.Z)) < RulesClass::Instance->CrateRadius
+									&& something > 0.0)
+								{
+									if (pTechno->Veterancy.IsVeteran())
+										pTechno->Veterancy.SetElite();
 
-			for (int i = ScenarioClass::Instance->Random.RandomRanged(10, 20); i > 0; --i) {
-				int distance = ScenarioClass::Instance->Random.RandomFromMax(300);
-				auto center = pCell->GetCoords();
-				auto destLoc = MapClass::GetRandomCoordsNear(center, distance, true);
-				MapClass::Instance->GetCellAt(destLoc)->IncreaseTiberium(tibToSpawn, 1);
-			}
+									if (pTechno->Veterancy.IsRookie())
+										pTechno->Veterancy.SetVeteran();
 
-			PlayAnimAffect();
-			return true;
-		}
-		default:
-			return true;
-		}
+									if (pTechno->Veterancy.IsNegative())
+										pTechno->Veterancy.SetRookie();
+								}
+							}
+						}
+					}
+
+					PlaySoundAffect(RulesClass::Instance->CratePromoteSound);
+					PlayAnimAffect();
+					return true;
+				}
+				case Powerup::Gas:
+				{
+					Debug::Log("Crate at %d,%d contains poison gas\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+
+					auto WH = WarheadTypeClass::Array->Items[WarheadTypeClass::FindIndexById("GAS")];
+					bool randomizeCoord = true;
+					auto collector_loc = pCollector->GetCoords();
+					MapClass::DamageArea(collector_loc, (int)something, nullptr, WH, true, nullptr);
+
+					for (int i = 0; i < 8;)
+					{
+						CellClass* pDestCell = pCell;
+						if (randomizeCoord)
+						{
+							CellStruct dest {};
+							MapClass::GetAdjacentCell(&dest, &pCell->MapCoords, (DirType)i);
+							pDestCell = MapClass::Instance->GetCellAt(dest);
+						}
+
+						MapClass::DamageArea(pDestCell->GetCoords(), (int)something, nullptr, WH, true, nullptr);
+						randomizeCoord = ++i < 8;
+					}
+
+					PlayAnimAffect();
+					return true;
+				}
+				case Powerup::Tiberium:
+				{
+					Debug::Log("Crate at %d,%d contains tiberium\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					int tibToSpawn = ScenarioClass::Instance->Random.RandomFromMax(TiberiumClass::Array->Count - 1);
+					if (tibToSpawn == 1)
+						tibToSpawn = 0;
+
+					pCell->IncreaseTiberium(tibToSpawn, 1);
+
+					for (int i = ScenarioClass::Instance->Random.RandomRanged(10, 20); i > 0; --i)
+					{
+						int distance = ScenarioClass::Instance->Random.RandomFromMax(300);
+						auto center = pCell->GetCoords();
+						auto destLoc = MapClass::GetRandomCoordsNear(center, distance, true);
+						MapClass::Instance->GetCellAt(destLoc)->IncreaseTiberium(tibToSpawn, 1);
+					}
+
+					PlayAnimAffect();
+					return true;
+				}
+				default:
+					break;
+				}
 #pragma endregion
+			}
+		}
 	}
+
+	return true;
 }
