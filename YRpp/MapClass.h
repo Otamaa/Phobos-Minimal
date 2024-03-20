@@ -325,6 +325,10 @@ public:
 	static void __fastcall UnselectAll()
 		{ JMP_STD(0x48DC90); }
 
+	static CellStruct* GetAdjacentCell(CellStruct* ret, CellStruct* from, DirType dir) {
+		JMP_STD(0x487EA0);
+	}
+
 	void CenterMap()
 		{ JMP_THIS(0x4AE290); }
 
