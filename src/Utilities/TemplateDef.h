@@ -72,6 +72,46 @@ std::string __forceinline trim(const char* source)
 	return s;
 }
 
+template<typename T>
+struct IndexFinder
+{
+	static inline bool getindex(int& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			const char* val = parser.value();
+
+			if (GameStrings::IsBlank(val))
+			{
+				value = -1;
+				return true;
+			}
+
+			int idx = value;
+
+			if constexpr (std::is_pointer<T>::value)
+			{
+				using base_type = std::remove_pointer_t<T>;
+				idx = base_type::FindIndexById(val);
+			}
+			else
+			{
+				idx = T::FindIndexById(val);
+			}
+
+			if (idx != -1)
+			{
+				value = idx;
+				return true;
+			}
+
+			Debug::INIParseFailed(pSection, pKey, val);
+		}
+
+		return false;
+	}
+};
+
 namespace detail
 {
 #pragma region getresult
@@ -727,7 +767,7 @@ namespace detail
 	inline bool read<RocketStruct>(RocketStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		auto ret = false;
-		std::string _buffer = pKey;
+		std::string _buffer(pKey);
 
 		ret |= read(value.PauseFrames, parser, pSection, (_buffer + ".PauseFrames").c_str());
 		ret |= read(value.TiltFrames, parser, pSection, (_buffer + ".TiltFrames").c_str());
@@ -758,16 +798,10 @@ namespace detail
 	inline bool read<Leptons>(Leptons& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		double buffer;
-		if (parser.ReadDouble(pSection, pKey, &buffer))
-		{
-			if (buffer == -1.0) { //vanilla
-				return false;
-			} else {
-				value = Leptons(buffer);
-				return true;
-			}
-
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid floating point number");
+		//vanilla : return false if -1.0
+		if (read(buffer,parser ,pSection ,pKey ,allocate ) && buffer != -1.0) {
+			value = Leptons(buffer);
+			return true;
 		}
 
 		return false;
@@ -1598,6 +1632,10 @@ namespace detail
 
 #pragma endregion
 
+	template <typename T>
+	inline bool getindex(int& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false) {
+		return IndexFinder<T>::getindex(value , parser , pSection , pKey , allocate);
+	}
 }
 
 // Valueable
@@ -1623,30 +1661,7 @@ bool Valueable<T>::Save(PhobosStreamWriter& Stm) const
 template <typename Lookuper>
 void NOINLINE ValueableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
-	if (parser.ReadString(pSection, pKey))
-	{
-		const char* val = parser.value();
-
-		if(GameStrings::IsBlank(val)) {
-			this->Value = -1;
-			return;
-		}
-
-		int idx = this->Value;
-
-		if constexpr (std::is_pointer<Lookuper>::value) {
-			using base_type = std::remove_pointer_t<Lookuper>;
-			idx = base_type::FindIndexById(val);
-
-		} else { idx = Lookuper::FindIndexById(val); }
-
-		if (idx != -1) {
-			this->Value = idx;
-			return;
-		}
-
-		Debug::INIParseFailed(pSection, pKey, val);
-	}
+	detail::getindex<Lookuper>(this->Value, parser, pSection, pKey);
 }
 
 // Nullable
@@ -1692,34 +1707,8 @@ bool Nullable<T>::Save(PhobosStreamWriter& Stm) const
 template <typename Lookuper>
 void NOINLINE NullableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
-	if (parser.ReadString(pSection, pKey))
-	{
-		const char* val = parser.value();
-
-		//if it is blank , count as read , but return -1
-		if(GameStrings::IsBlank(val))
-		{
-			this->Value = -1;
-			this->HasValue = true;
-			return;
-		}
-
-		int idx = -1;
-
-		if constexpr (std::is_pointer<Lookuper>::value) {
-			using base_type = std::remove_pointer_t<Lookuper>;
-			idx = base_type::FindIndexById(val);
-
-		} else { idx = Lookuper::FindIndexById(val); }
-
-		if (idx != -1) {
-			this->Value = idx;
-			this->HasValue = true;
-			return;
-		}
-
-		Debug::INIParseFailed(pSection, pKey, val);
-	}
+	if(detail::getindex<Lookuper>(this->Value , parser , pSection , pKey))
+		this->HasValue = true;
 }
 
 // Promotable

@@ -1503,9 +1503,7 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->SW_MaxCount.Read(exINI, pSection, "SW.MaxCount");
 
-	ValueableIdx<VoxClass> EVA_Impatient { -1 };
-	EVA_Impatient.Read(exINI, pSection, "EVA.Impatient");
-	pThis->ImpatientVoice = EVA_Impatient.Get();
+	IndexFinder<VoxClass>::getindex(pThis->ImpatientVoice , exINI, pSection, "EVA.Impatient");
 	this->EVA_InsufficientFunds.Read(exINI, pSection, "EVA.InsufficientFunds");
 	this->EVA_SelectTarget.Read(exINI, pSection, "EVA.SelectTarget");
 
@@ -1670,6 +1668,9 @@ std::vector<int> SWTypeExtData::WeightedRollsHandler(std::vector<float>* rolls, 
 
 void SWTypeExtData::ApplyLimboDelivery(HouseClass* pHouse)
 {
+	if (!pHouse || pHouse->Type->MultiplayPassive)
+		return;
+
 	// random mode
 	if (!this->LimboDelivery_RandomWeightsData.empty())
 	{
