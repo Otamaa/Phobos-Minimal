@@ -186,6 +186,30 @@ void Phobos::ExecuteLua()
 	make_unique_luastate(unique_lua);
 	auto L = unique_lua.get();
 
+	if (luaL_dofile(L, "adminmode.lua") == LUA_OK)
+	{
+		lua_getglobal(L, "AdminMode");
+
+		if (lua_isstring(L, -1) == 1)
+		{
+			std::string adminName = lua_tostring(L, -1);
+			if (adminName.size() <= MAX_COMPUTERNAME_LENGTH + 1)
+			{
+				DWORD dwSize = MAX_COMPUTERNAME_LENGTH + 1;
+				TCHAR PCName[MAX_COMPUTERNAME_LENGTH + 1];
+				GetComputerName(PCName, &dwSize);
+
+				if (IS_SAME_STR_(PCName, adminName.c_str()))
+				{
+					Phobos::EnableConsole = true;
+					Phobos::Config::MultiThreadSinglePlayer = true;
+					Phobos::Config::DebugFatalerrorGenerateDump = true;
+					Phobos::Otamaa::IsAdmin = true;
+				}
+			}
+		}
+	}
+
 	if (luaL_dofile(L, filename) == LUA_OK)
 	{
 		lua_getglobal(L, "Replaces"); // T ==> -1
@@ -249,29 +273,6 @@ void Phobos::ExecuteLua()
 	else
 	{
 		Debug::Log("Cannot find %s file\n", filename);
-	}
-
-	if (luaL_dofile(L, "adminmode.lua") == LUA_OK)
-	{
-		lua_getglobal(L, "AdminMode");
-
-		if (lua_isstring(L, -1) == 1)
-		{
-			std::string adminName = lua_tostring(L, -1);
-			if(adminName.size() <= MAX_COMPUTERNAME_LENGTH + 1) {
-				DWORD dwSize = MAX_COMPUTERNAME_LENGTH + 1;
-				TCHAR PCName[MAX_COMPUTERNAME_LENGTH + 1];
-				GetComputerName(PCName, &dwSize);
-
-				if (IS_SAME_STR_(PCName, adminName.c_str()))
-				{
-					Phobos::EnableConsole = true;
-					Phobos::Config::MultiThreadSinglePlayer = true;
-					Phobos::Config::DebugFatalerrorGenerateDump = true;
-					Phobos::Otamaa::IsAdmin = true;
-				}
-			}
-		}
 	}
 }
 
