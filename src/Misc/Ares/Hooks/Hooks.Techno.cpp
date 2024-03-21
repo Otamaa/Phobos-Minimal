@@ -1223,7 +1223,8 @@ DEFINE_HOOK(0x707B09, TechnoClass_PointerGotInvalid_ResetMindControl, 0x6)
 }
 
 //TechnoClass_GetActionOnObject_IvanBombsB
-DEFINE_JUMP(LJMP, 0x6FFF9E, 0x700006);
+//was 6FFF9E but why not just skip the check too , since it got no use
+DEFINE_JUMP(LJMP, 0x6FFF8D, 0x700006);
 
 DEFINE_HOOK(0x6FF2D1, TechnoClass_FireAt_Facings, 0x6)
 {
