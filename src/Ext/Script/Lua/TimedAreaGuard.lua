@@ -1,13 +1,13 @@
 function OnExecute()
-	local _t = getTeam();
-	local _args = t::GetCurrentScriptArg();
+	local _t = GetTeam()
+	local _args = t::GetCurrentScriptArg()
 
 	if _args <= 0 then
 		_t::SetStepComplete()
 	else
 
-		local _IsTicking = _t::IsGuardAreaTimerTicking();
-		local _Timeleft = _t::GetAreaGuardTimerTimeLeft();
+		local _IsTicking = _t::IsGuardAreaTimerTicking()
+		local _Timeleft = _t::GetAreaGuardTimerTimeLeft()
 
 		if _IsTicking == 0 and _Timeleft == 0 then
 			for _Unit = _t::GetFirstUnit() do
