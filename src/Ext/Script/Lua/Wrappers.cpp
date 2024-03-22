@@ -6,13 +6,20 @@
 
 #include <TeamClass.h>
 
-class TeamClassWrapper
+class TeamClassWrapper 
 {
 
 	static int SetStepCompleted(lua_State* L)
 	{
 		return 0;
 	}
+
+   static int GetCurrentScriptArg(lua_state* L)
+   {  
+	  Teamlass* pTeam = (TeamClass*)lua_gettop(L);
+	  lua_pushnumber(L, pTeam->)
+      return 1;
+   }
 private:
 	TeamClass* Team;
 };
@@ -35,6 +42,11 @@ struct LuaScript
 
 		if (luaL_dofile(State.get() , Lua_Name.c_str()) != LUA_OK)
 			State.reset(nullptr);
+
+		if(State){
+			lua_register(State.get(), "_TeamClass_GetCurrentScriptArg", TeamClassWrapper::GetCurrentScriptArg);
+
+		}
         // todo : move to the loop
 		// take Team as argument
 		// maybe return bool value to say it handled
