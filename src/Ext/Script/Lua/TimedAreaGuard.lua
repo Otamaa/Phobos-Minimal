@@ -1,28 +1,29 @@
-function OnExecute(int team)
-	local _args = _t::GetCurrentScriptArg()
+function OnExecute (team)
+	 _args = _TeamClass_GetCurrentScriptArg(team)
+	
+		 if _args <= 0 then
+			 _TeamClass_SetStepCompleted(team)
+		 else
 
-	if _args <= 0 then
-		_t::SetStepComplete()
-	else
+			 _IsTicking = _TeamClass_IsGuardAreaTimerTicking(team)
+			 _Timeleft = _TeamClass_GetAreaGuardTimerTimeLeft(team)
 
-		local _IsTicking = _t::IsGuardAreaTimerTicking()
-		local _Timeleft = _t::GetAreaGuardTimerTimeLeft()
+			if not _IsTicking and _Timeleft == 0 then
+				_Unit = _TeamClass_GetFirstUnit(team)
 
-		if _IsTicking == 0 and _Timeleft == 0 then
-			for _Unit = _t::GetFirstUnit() do
-				if _Unit == 0 then break end
+				while _Unit > 0 do
+					if not _TechnoExtData_IsInWarfactory(_Unit) then
+						_MissionClass_QueueMission(_Unit, Mission_Area_Guard,true)
+					end
 
-				if TechnoExtData::IsInWarfactory(_Unit) == 0 then
-					_Unit::QueueMission(Mission_Area_Guard,true)
+					_Unit = _Unit_GetNextTeamMember()
 				end
 
-				_Unit = _Unit::GetNextTeamMember()
+				_TeamClass_StartGuardAreaTimer(team , 15 * _args)
+			else  if _IsTicking and _Timeleft == 0 then
+				_TeamClass_StopGuardAreaTimer(team)
+				_TeamClass_SetStepCompleted(team)
 			end
-
-			_t::StartGuardAreaTimer(15 * _args)
-		else if _IsTicking == 1 and _Timeleft == 0 then
-			_t::StopGuardAreaTimer()
-			_t::SetStepComplete()
 		end
 	end
 end

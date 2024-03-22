@@ -370,9 +370,15 @@ NOINLINE const char* ToStrings(PhobosScripts from)
 	}
 }
 
+#include "Lua/Wrapper.h"
+
 void ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 {
+	if (LuaBridge::OnCalled(pTeam))
+		return;
+
 	auto const& [action, argument] = pTeam->CurrentScript->GetCurrentAction();
+
 
 	//only find stuffs on the range , reducing the load
 	//if ((AresScripts)action >= AresScripts::count)

@@ -170,6 +170,8 @@ void Phobos::CheckProcessorFeatures()
 #endif
 }
 
+#include <Ext/Script/Lua/Wrapper.h>
+
 void Phobos::ExecuteLua()
 {
 	make_unique_luastate(unique_lua);
@@ -263,6 +265,8 @@ void Phobos::ExecuteLua()
 	{
 		Debug::Log("Cannot find %s file\n", filename);
 	}
+
+	LuaBridge::InitScriptLuaList();
 }
 
 void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
@@ -609,7 +613,7 @@ void Phobos::DrawVersionWarning()
 
 void Phobos::InitAdminDebugMode()
 {
-#ifdef DETACH_DEBUGGER
+#ifndef DETACH_DEBUGGER
 	// this thing can cause game to lockup when loading data
 	//better disable it for release
 	const bool Detached =
