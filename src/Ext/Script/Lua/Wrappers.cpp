@@ -65,9 +65,9 @@ struct LuaBridge
 					luascript.State.reset(nullptr);
 				    return false;
 		        }
-                lua_pushnumber(L, pTeam);
+                lua_pushnumber(luascript.State.get(), pTeam);
 
-				if (lua_pcall(L, 1, 1, 0) != LUA_OK)
+				if (lua_pcall(luascript.State.get(), 1, 1, 0) != LUA_OK)
 				{
                     luascript.State.reset(nullptr);
 					return false;
