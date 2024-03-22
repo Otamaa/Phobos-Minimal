@@ -16,7 +16,7 @@ function OnExecute (team)
 						_MissionClass_QueueMission(_Unit, Mission_Area_Guard,true)
 					end
 
-					_Unit = _Unit_GetNextTeamMember()
+					_Unit = _Unit_GetNextTeamMember(_Unit)
 				end
 
 				_TeamClass_StartGuardAreaTimer(team , 15 * _args)
