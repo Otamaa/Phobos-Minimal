@@ -35,8 +35,10 @@ struct LuaScript
 
 		if (luaL_dofile(State.get() , Lua_Name.c_str()) != LUA_OK)
 			State.reset(nullptr);
-
-		if (State && lua_isfunction(State.get(), -1) != 1) {
+        // todo : move to the loop
+		// take Team as argument
+		// maybe return bool value to say it handled
+		if (State && (lua_getglobal(State.get(), "OnExecute") != LUA_OK || lua_isfunction(State.get(), -1) != 1) {
 			State.reset(nullptr);
 		}
 	}
@@ -66,7 +68,7 @@ struct LuaBridge
 
 		if (luaL_dofile(L, filename) == LUA_OK)
 		{
-			lua_getglobal(L, "Replaces"); // T ==> -1
+			lua_getglobal(L, "Scripts"); // T ==> -1
 
 			// get the first table
 			if (lua_istable(L, -1))
@@ -81,12 +83,12 @@ struct LuaBridge
 
 					if (lua_istable(L, -2))
 					{
-						lua_pushstring(L, "Addr");
+						lua_pushstring(L, "Number");
 						lua_gettable(L, -2);
 						const auto number = (int)lua_tointeger(L, -1);
 						lua_pop(L, 1);
 
-						lua_pushstring(L, "To");
+						lua_pushstring(L, "Name");
 						lua_gettable(L, -2);
 						auto name = lua_tostring(L, -1);
 						lua_pop(L, 1);
