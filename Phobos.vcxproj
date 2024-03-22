@@ -765,7 +765,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <GenerateManifest>false</GenerateManifest>
-    <IncludePath>$(SolutionDir)src\;$(SolutionDir)src\ExtraHeaders;$(SolutionDir)yrpp;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)src\Lib;$(SolutionDir)src\;$(SolutionDir)src\ExtraHeaders;$(SolutionDir)yrpp;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(Configuration)\</OutDir>
     <IntDir>$(Configuration)\IntDir\</IntDir>

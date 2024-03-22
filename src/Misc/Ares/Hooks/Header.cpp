@@ -7745,7 +7745,7 @@ void AresGlobalData::ReadAresRA2MD(CCINIClass* Ini)
 	if (Ini)
 	{
 		auto const section2 = GameStrings::Colors();
-		colorCount = std::clamp(Ini->ReadInteger(section2, "Count", colorCount), 8, 16);
+		colorCount = std::clamp(Ini->ReadInteger(section2, "Count", colorCount), 8, 17);
 
 		auto const ParseColorInt = [&Ini](const char* section, const char* key, int defColor) -> int
 		{
@@ -7758,22 +7758,21 @@ void AresGlobalData::ReadAresRA2MD(CCINIClass* Ini)
 
 		auto const ReadColor = [&Ini, section2, ParseColorInt]
 		(
-			const char* name,
+			const std::string& name,
 			ColorData& value,
 			int colorRGB,
 			const char* defTooltip,
 			const char* defColorScheme
 		) {
-			std::string _name = name;
 			// load the tooltip string
 
-			if (Ini->ReadString(section2, (_name + ".Tooltip").c_str(), defTooltip, Phobos::readBuffer))
+			if (Ini->ReadString(section2, (name + ".Tooltip").c_str(), defTooltip, Phobos::readBuffer))
 				value.sttToolTipSublineText = StringTable::LoadString(Phobos::readBuffer);
 
-			if (Ini->ReadString(section2, (_name + ".ColorScheme").c_str(), defColorScheme, Phobos::readBuffer))
+			if (Ini->ReadString(section2, (name + ".ColorScheme").c_str(), defColorScheme, Phobos::readBuffer))
 				PhobosCRT::strCopy(value.colorScheme, Phobos::readBuffer);
 
-			value.colorRGB = ParseColorInt(section2, (_name + ".DisplayColor").c_str(), colorRGB);
+			value.colorRGB = ParseColorInt(section2, (name + ".DisplayColor").c_str(), colorRGB);
 			value.colorSchemeIndex = -1;
 			value.selectedIndex = -1;
 		};
@@ -7782,32 +7781,35 @@ void AresGlobalData::ReadAresRA2MD(CCINIClass* Ini)
 		uiColorText = ParseColorInt(section, "Color.Text", 0xFFFF);
 
 		// original color schemes
-		auto const defColors = reinterpret_cast<int const*>(0x8316A8);
-		ReadColor("Observer", Colors[0], defColors[8], GameStrings::STT_PlayerColorObserver, GameStrings::LightGrey);
-		ReadColor("Slot1", Colors[1], defColors[0], GameStrings::STT_PlayerColorGold, GameStrings::LightGold);
-		ReadColor("Slot2", Colors[2], defColors[1],  GameStrings::STT_PlayerColorRed, GameStrings::DarkRed);
-		ReadColor("Slot3", Colors[3], defColors[2],  GameStrings::STT_PlayerColorBlue, "DarkBlue");
-		ReadColor("Slot4", Colors[4], defColors[3],  GameStrings::STT_PlayerColorGreen, "DarkGreen");
-		ReadColor("Slot5", Colors[5], defColors[4],  GameStrings::STT_PlayerColorOrange,"Orange");
-		ReadColor("Slot6", Colors[6], defColors[5],  GameStrings::STT_PlayerColorSkyBlue, "DarkSky");
-		ReadColor("Slot7", Colors[7], defColors[6],  GameStrings::STT_PlayerColorPurple, "Purple");
-		ReadColor("Slot8", Colors[8], defColors[7],  GameStrings::STT_PlayerColorPink, "Magenta");
+		static constexpr reference<int , 0x8316A8, 0x9> const DefaultColors {};
+		constexpr std::string Slot_tags[] = {
+			"Slot1", "Slot2", "Slot3", "Slot4",
+			"Slot5", "Slot6", "Slot7", "Slot8",
+			"Slot9", "Slot10", "Slot11", "Slot12",
+			"Slot13", "Slot14", "Slot15", "Slot16"
+		};
+
+		ReadColor("Observer", Colors[0], DefaultColors[8], GameStrings::STT_PlayerColorObserver, GameStrings::LightGrey);
+		ReadColor(Slot_tags[0], Colors[1], DefaultColors[0], GameStrings::STT_PlayerColorGold, GameStrings::LightGold);
+		ReadColor(Slot_tags[1], Colors[2], DefaultColors[1],  GameStrings::STT_PlayerColorRed, GameStrings::DarkRed);
+		ReadColor(Slot_tags[2], Colors[3], DefaultColors[2],  GameStrings::STT_PlayerColorBlue, "DarkBlue");
+		ReadColor(Slot_tags[3], Colors[4], DefaultColors[3],  GameStrings::STT_PlayerColorGreen, "DarkGreen");
+		ReadColor(Slot_tags[4], Colors[5], DefaultColors[4],  GameStrings::STT_PlayerColorOrange,"Orange");
+		ReadColor(Slot_tags[5], Colors[6], DefaultColors[5],  GameStrings::STT_PlayerColorSkyBlue, "DarkSky");
+		ReadColor(Slot_tags[6], Colors[7], DefaultColors[6],  GameStrings::STT_PlayerColorPurple, "Purple");
+		ReadColor(Slot_tags[7], Colors[8], DefaultColors[7],  GameStrings::STT_PlayerColorPink, "Magenta");
 
 		// additional color schemes so just increasing Count will produce nice colors
-		ReadColor("Slot9", Colors[9], 0xEF5D94, "STT:PlayerColorLilac", "NeonBlue");
-		ReadColor("Slot10", Colors[10], 0xE7FF73, "STT:PlayerColorLightBlue", "LightBlue");
-		ReadColor("Slot11", Colors[11], 0x63EFFF, "STT:PlayerColorLime", GameStrings::Yellow);
-		ReadColor("Slot12", Colors[12], 0x5AC308, "STT:PlayerColorTeal", GameStrings::Green);
-		ReadColor("Slot13", Colors[13], 0x0055BD, "STT:PlayerColorBrown", GameStrings::Red);
-		ReadColor("Slot14", Colors[14], 0x808080, "STT:PlayerColorCharcoal", GameStrings::Grey);
+		ReadColor(Slot_tags[8], Colors[9], 0xEF5D94, "STT:PlayerColorLilac", "NeonBlue");
+		ReadColor(Slot_tags[9], Colors[10], 0xE7FF73, "STT:PlayerColorLightBlue", "LightBlue");
+		ReadColor(Slot_tags[10], Colors[11], 0x63EFFF, "STT:PlayerColorLime", GameStrings::Yellow);
+		ReadColor(Slot_tags[11], Colors[12], 0x5AC308, "STT:PlayerColorTeal", GameStrings::Green);
+		ReadColor(Slot_tags[12], Colors[13], 0x0055BD, "STT:PlayerColorBrown", GameStrings::Red);
+		ReadColor(Slot_tags[13], Colors[14], 0x808080, "STT:PlayerColorCharcoal", GameStrings::Grey);
 
 		// blunt stuff
-		char key[0x10];
-		for (auto i = 15; i <= colorCount; ++i)
-		{
-			sprintf_s(key, 0x10, "Slot%d", i);
-			ReadColor(key, Colors[i], 0xFFFFFF, "NOSTR:",  GameStrings::LightGrey);
-		}
+		ReadColor(Slot_tags[14], Colors[15], DefaultColors[8], "NOSTR:LightGrey", GameStrings::LightGrey);
+		ReadColor(Slot_tags[15], Colors[16], DefaultColors[8], "NOSTR:LightGrey", GameStrings::LightGrey);
 
 		uiColorTextButton = ParseColorInt(section, "Color.Button.Text", uiColorText);
 		uiColorTextRadio = ParseColorInt(section, "Color.Radio.Text", uiColorText);

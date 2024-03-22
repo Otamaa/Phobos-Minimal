@@ -423,7 +423,7 @@ void Phobos::Config::Read()
 	{
 		CCINIClass INI_UIMD { };
 		INI_UIMD.ReadCCFile(&UIMD_ini);
-		Debug::Log("Loading early %s file\n", UIMD_ini.FileName);
+		Debug::Log("Loading early %s file\n", UIMD_FILENAME);
 
 		AresGlobalData::ReadAresRA2MD(&INI_UIMD);
 
@@ -514,7 +514,7 @@ void Phobos::Config::Read()
 		CCINIClass INI_RulesMD { };
 		INI_RulesMD.ReadCCFile(&RULESMD_ini);
 
-		Debug::Log("Loading early %s file\n", RULESMD_ini.FileName);
+		Debug::Log("Loading early %s file\n", GameStrings::RULESMD_INI());
 
 
 		if (!Phobos::Otamaa::IsAdmin)
