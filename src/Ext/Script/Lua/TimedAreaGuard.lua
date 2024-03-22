@@ -1,6 +1,6 @@
 function OnExecute()
 	local _t = GetTeam()
-	local _args = t::GetCurrentScriptArg()
+	local _args = _t::GetCurrentScriptArg()
 
 	if _args <= 0 then
 		_t::SetStepComplete()
@@ -13,7 +13,7 @@ function OnExecute()
 			for _Unit = _t::GetFirstUnit() do
 				if _Unit == 0 then break end
 
-				if TechnoExtData::IsInWarfactory(_Unit) then
+				if TechnoExtData::IsInWarfactory(_Unit) == 0 then
 					_Unit::QueueMission(Mission_Area_Guard,true)
 				end
 
