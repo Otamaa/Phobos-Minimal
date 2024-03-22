@@ -29,23 +29,12 @@
 #include <CD.h>
 #include <aclapi.h>
 
-#include "Lib/Lua542/lua.hpp"
-
+#include <Phobos.Lua.h>
 #pragma region DEFINES
-struct luastatedeleter {
-	void operator ()(lua_State* l) noexcept {
-		if (l) {
-			lua_close(l);
-		}
-	}
-};
+
 #ifndef IS_RELEASE_VER
 bool Phobos::Config::HideWarning = false;
 #endif
-
-using unique_luastate = std::unique_ptr<lua_State, luastatedeleter>;
-#define make_unique_luastate(to) unique_luastate to {}; to.reset(luaL_newstate())
-#define close_unique_luastate(to) to.reset(nullptr)
 
 // TODO : encryption support
 // Otamaa : change this variable if you want to load desired name lua file
@@ -217,7 +206,7 @@ void Phobos::ExecuteLua()
 		// get the first table
 		if (lua_istable(L, -1))
 		{ // is T table ?
-			const int replace_size = (int)lua_rawlen(L, -1);
+			const size_t replace_size = (size_t)lua_rawlen(L, -1);
 
 			for (size_t i = 0; i < replace_size; i++)
 			{

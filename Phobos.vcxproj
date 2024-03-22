@@ -97,6 +97,7 @@
     <ClCompile Include="src\Ext\ScriptType\Body.cpp" />
     <ClCompile Include="src\Ext\Script\AngerNodes.cpp" />
     <ClCompile Include="src\Ext\Script\ConditionalJump.cpp" />
+    <ClCompile Include="src\Ext\Script\Lua\Wrappers.cpp" />
     <ClCompile Include="src\Ext\Script\ManagingTriggers.cpp" />
     <ClCompile Include="src\Ext\Script\Mission.Attack.cpp" />
     <ClCompile Include="src\Ext\Script\Mission.Move.cpp" />
@@ -438,6 +439,7 @@
     <ClCompile Include="YRpp\Syringe.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Phobos.Lua.h" />
     <ClInclude Include="src\Commands\PlaceVeinholeMonster.h" />
     <ClInclude Include="src\Commands\SaveVariablesToFile.h" />
     <ClInclude Include="src\Commands\ShowAnimNames.h" />
