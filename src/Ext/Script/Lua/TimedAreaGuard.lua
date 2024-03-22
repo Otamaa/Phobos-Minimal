@@ -1,5 +1,4 @@
-function OnExecute()
-	local _t = GetTeam()
+function OnExecute(int team)
 	local _args = _t::GetCurrentScriptArg()
 
 	if _args <= 0 then

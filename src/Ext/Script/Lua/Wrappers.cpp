@@ -44,14 +44,8 @@ struct LuaScript
 			State.reset(nullptr);
 
 		if(State){
+			luaL_openlibs(State.get());
 			lua_register(State.get(), "_TeamClass_GetCurrentScriptArg", TeamClassWrapper::GetCurrentScriptArg);
-
-		}
-        // todo : move to the loop
-		// take Team as argument
-		// maybe return bool value to say it handled
-		if (State && (lua_getglobal(State.get(), "OnExecute") != LUA_OK || lua_isfunction(State.get(), -1) != 1) {
-			State.reset(nullptr);
 		}
 	}
 
@@ -61,15 +55,29 @@ static std::vector<LuaScript> LuaScripts {};
 
 struct LuaBridge
 {
-	static void OnCalled(TeamClass* pTeam)
+	static bool OnCalled(TeamClass* pTeam)
 	{
 		auto const& [action, argument] = pTeam->CurrentScript->GetCurrentAction();
 
 		for (auto& luascript : LuaScripts) {
 			if (luascript.State && (TeamMissionType)luascript.Number == action) {
+		        if (lua_getglobal(luascript.State.get(), "OnExecute") != LUA_OK || lua_isfunction(luascript.State.get(), -1) != 1) {
+					luascript.State.reset(nullptr);
+				    return false;
+		        }
+                lua_pushnumber(L, pTeam);
 
+				if (lua_pcall(L, 1, 1, 0) != LUA_OK)
+				{
+                    luascript.State.reset(nullptr);
+					return false;
+				}
+
+				return lua_toboolean(luascript.State.get(), -1);				
 			}
 		}
+
+		return false;
 	}
 
 	static void InitScriptLuaList()
