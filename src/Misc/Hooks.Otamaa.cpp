@@ -4542,7 +4542,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 		if (pOverlay->Crate)
 		{
 			const auto pCollectorOwner = pCollector->Owner;
-			bool force_mcv = true;
+			bool force_mcv = false;
 			int soloCrateMoney = 0;
 
 			if (SessionClass::Instance->GameMode == GameMode::Campaign || !pCollectorOwner->Type->MultiplayPassive)
@@ -4716,10 +4716,10 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					MapClass::Instance->Place_Random_Crate();
 				}
 
-				if (data == Powerup::Squad)
-				{
-					data = Powerup::Money;
-				}
+				//if (data == Powerup::Squad)
+				//{
+				//	data = Powerup::Money;
+				//}
 
 #pragma region MainAffect
 				const auto something = Powerups::Arguments[(int)data];
@@ -5147,6 +5147,27 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 						auto center = pCell->GetCoords();
 						auto destLoc = MapClass::GetRandomCoordsNear(center, distance, true);
 						MapClass::Instance->GetCellAt(destLoc)->IncreaseTiberium(tibToSpawn, 1);
+					}
+
+					PlayAnimAffect();
+					return true;
+				}
+				case Powerup::Squad:
+				{
+					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper) {
+						return pSuper->Type->Type == SuperWeaponType::AmerParaDrop && !pSuper->Granted;
+					});
+
+					if (iter != pCollectorOwner->Supers.end())
+					{
+						if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer)
+						{
+							SidebarClass::Instance->AddCameo(AbstractType::Special, (*iter)->Type->ArrayIndex);
+						}
+					}
+					else
+					{
+						return GeiveMoney();
 					}
 
 					PlayAnimAffect();
