@@ -4532,6 +4532,8 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 }
 #endif
 
+#include <Ext/SWType/Body.h>
+
 // what is the boolean return for , heh
 bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 {
@@ -4716,6 +4718,9 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					MapClass::Instance->Place_Random_Crate();
 				}
 
+				//ensure the index wont go beyond the array size
+				if((size_t)data > 18u)
+					data = Powerup::Money;
 				//if (data == Powerup::Squad)
 				//{
 				//	data = Powerup::Money;
@@ -5060,8 +5065,8 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					Debug::Log("Crate at %d,%d contains ICBM\n", pCell->MapCoords.X, pCell->MapCoords.Y);
 
 					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
-		 {
-			 return pSuper->Type->Type == SuperWeaponType::Nuke;
+					{
+						return pSuper->Type->Type == SuperWeaponType::Nuke && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
 					});
 
 					if (iter != pCollectorOwner->Supers.end())
@@ -5155,7 +5160,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 				case Powerup::Squad:
 				{
 					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper) {
-						return pSuper->Type->Type == SuperWeaponType::AmerParaDrop && !pSuper->Granted;
+						return pSuper->Type->Type == SuperWeaponType::AmerParaDrop && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
 					});
 
 					if (iter != pCollectorOwner->Supers.end())
@@ -5173,8 +5178,61 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					PlayAnimAffect();
 					return true;
 				}
+				case Powerup::Invulnerability:
+				{
+					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
+					{
+						return pSuper->Type->Type == SuperWeaponType::IronCurtain && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
+					});
+
+					if (iter != pCollectorOwner->Supers.end())
+					{
+						if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer)
+						{
+							SidebarClass::Instance->AddCameo(AbstractType::Special, (*iter)->Type->ArrayIndex);
+						}
+					}
+
+					PlayAnimAffect();
+					return true;
+				}
+				case Powerup::IonStorm:
+				{
+					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
+					{
+						return pSuper->Type->Type == SuperWeaponType::LightningStorm && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
+					});
+
+					if (iter != pCollectorOwner->Supers.end())
+					{
+						if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer)
+						{
+							SidebarClass::Instance->AddCameo(AbstractType::Special, (*iter)->Type->ArrayIndex);
+						}
+					}
+
+					PlayAnimAffect();
+					return true;
+				}
+				case Powerup::Pod:
+				{
+					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper) {
+						return (AresNewSuperType)pSuper->Type->Type == AresNewSuperType::DropPod && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
+					});
+
+					if (iter != pCollectorOwner->Supers.end())
+					{
+						if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer)
+						{
+							SidebarClass::Instance->AddCameo(AbstractType::Special, (*iter)->Type->ArrayIndex);
+						}
+					}
+
+					PlayAnimAffect();
+					return true;
+				}
 				default:
-					break;
+					return true;
 				}
 #pragma endregion
 			}

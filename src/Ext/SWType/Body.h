@@ -460,6 +460,7 @@ public:
 	Valueable<CSFText> Message_GrantOneTimeLaunched {};
 	NullableIdx<VoxClass> EVA_GrantOneTimeLaunched {};
 
+	Valueable<bool> CrateGoodies { false };
 	SWTypeExtData() noexcept = default;
 	~SWTypeExtData() noexcept;
 

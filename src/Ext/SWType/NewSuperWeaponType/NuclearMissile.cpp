@@ -102,6 +102,8 @@ void SW_NuclearMissile::Initialize(SWTypeExtData* pData)
 
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::Nuke;
 	pData->CursorType = (int)MouseCursorType::Nuke;
+
+	pData->CrateGoodies = true;
 }
 
 void SW_NuclearMissile::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)

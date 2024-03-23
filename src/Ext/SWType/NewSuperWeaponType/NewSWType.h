@@ -6,33 +6,6 @@
 #include <array>
 #include <Utilities/VectorHelper.h>
 
-enum class AresNewSuperType : int
-{
-	SonarPulse = 0,
-	UnitDelivery = 1,
-	GenericWarhead = 2,
-	Firestorm = 3,
-	Protect = 4,
-	Reveal = 5,
-	ParaDrop = 6,
-	SpyPlane = 7,
-	ChronoSphere = 8,
-	ChronoWarp = 9,
-	GeneticMutator = 10,
-	PsychicDominator = 11,
-	LightningStorm = 12,
-	NuclearMissile = 13,
-	HunterSeeker = 14,
-	DropPod = 15,
-	EMPulse = 16,
-	Battery = 17,
-	EMPField = 18,
-	IonCannon = 19,
-	MeteorShower = 20,
-	LaserStrike = 21 ,
-	count
-};
-
 enum class AresNewActionType :int
 {
 	SuperWeaponDisallowed = 126,

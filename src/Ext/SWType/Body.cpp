@@ -1559,6 +1559,8 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->EVA_GrantOneTimeLaunched.Read(exINI, pSection, "EVA.GrantOneTimeLaunched");
 	this->SW_GrantOneTime_RollChances.Read(exINI, pSection, "SW.GrantOneTime.RollChances");
 
+	this->CrateGoodies.Read(exINI, pSection, "CrateGoodies");
+
 	// SW.GrantOneTime.RandomWeights
 	this->SW_GrantOneTime_RandomWeightsData.clear();
 
@@ -2395,6 +2397,8 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->Message_GrantOneTimeLaunched)
 		.Process(this->EVA_GrantOneTimeLaunched)
 		.Process(this->SW_GrantOneTime_RollChances)
+
+		.Process(this->CrateGoodies)
 		;
 
 }
