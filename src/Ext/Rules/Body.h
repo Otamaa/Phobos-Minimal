@@ -107,7 +107,10 @@ public:
 	Valueable<int> ToolTip_Background_Opacity { 100 };
 	Valueable<float> ToolTip_Background_BlurSize { 0.f };
 	Valueable<bool> ToolTip_ExcludeSidebar { false };
+
 	Valueable<bool> Crate_LandOnly { false };
+	Valueable<int> UnitCrateVehicleCap { 50 };
+	Valueable<int> FreeMCV_CreditsThreshold { 1500 };
 
 	Valueable<bool> NewTeamsSelector { false };
 	Valueable<bool> NewTeamsSelector_SplitTriggersByCategory { true };

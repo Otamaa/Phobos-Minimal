@@ -765,6 +765,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->ToolTip_ExcludeSidebar.Read(exINI, AUDIOVISUAL_SECTION, "ToolTip.ExcludeSidebar");
 
 	this->Crate_LandOnly.Read(exINI, GameStrings::CrateRules(), "Crate.LandOnly");
+	this->UnitCrateVehicleCap.Read(exINI, GameStrings::CrateRules, "UnitCrateVehicleCap");
+	this->FreeMCV_CreditsThreshold.Read(exINI, GameStrings::CrateRules, "FreeMCV.CreditsThreshold");
 
 	this->InfantryGainSelfHealCap.Read(exINI, GENERAL_SECTION, "InfantryGainSelfHealCap");
 	this->UnitsGainSelfHealCap.Read(exINI, GENERAL_SECTION, "UnitsGainSelfHealCap");
@@ -1126,6 +1128,9 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->Shield_ConditionGreen)
 		.Process(this->Shield_ConditionYellow)
 		.Process(this->Shield_ConditionRed)
+
+		.Process(this->UnitCrateVehicleCap)
+		.Process(this->FreeMCV_CreditsThreshold)
 		;
 
 	MyPutData.Serialize(Stm);

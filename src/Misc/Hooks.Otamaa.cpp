@@ -4428,6 +4428,110 @@ DEFINE_HOOK(0x42C4FE, AstarClass_FindPath_nullptr, 0x9)
 
 #include <VoxClass.h>
 
+#ifdef OLD_
+DEFINE_HOOK(0x48248D, CellClass_CrateBeingCollected_MoneyRandom, 6)
+{
+	GET(int, nCur, EAX);
+
+	const auto nAdd = RulesExtData::Instance()->RandomCrateMoney;
+
+	if (nAdd > 0)
+		nCur += ScenarioClass::Instance->Random.RandomFromMax(nAdd);
+
+	R->EDI(nCur);
+	return 0x4824A7;
+}
+
+DEFINE_HOOK(0x481C6C, CellClass_CrateBeingCollected_Armor1, 6)
+{
+	GET(TechnoClass*, Unit, EDI);
+	return (TechnoExtContainer::Instance.Find(Unit)->AE_ArmorMult == 1.0) ? 0x481D52 : 0x481C86;
+}
+
+DEFINE_HOOK(0x481CE1, CellClass_CrateBeingCollected_Speed1, 6)
+{
+	GET(FootClass*, Unit, EDI);
+	return (TechnoExtContainer::Instance.Find(Unit)->AE_SpeedMult == 1.0) ? 0x481D52 : 0x481C86;
+}
+
+DEFINE_HOOK(0x481D0E, CellClass_CrateBeingCollected_Firepower1, 6)
+{
+	GET(TechnoClass*, Unit, EDI);
+	return (TechnoExtContainer::Instance.Find(Unit)->AE_FirePowerMult == 1.0) ? 0x481D52 : 0x481C86;
+}
+
+DEFINE_HOOK(0x481D3D, CellClass_CrateBeingCollected_Cloak1, 6)
+{
+	GET(TechnoClass*, Unit, EDI);
+
+	if (Unit->CanICloakByDefault() || TechnoExtContainer::Instance.Find(Unit)->AE_Cloak)
+	{
+		return 0x481C86;
+	}
+
+	// cloaking forbidden for type
+	return  (!TechnoTypeExtContainer::Instance.Find(Unit->GetTechnoType())->CloakAllowed)
+		? 0x481C86 : 0x481D52;
+}
+
+//overrides on actual crate effect applications
+DEFINE_HOOK(0x48294F, CellClass_CrateBeingCollected_Cloak2, 7)
+{
+	GET(TechnoClass*, Unit, EDX);
+	TechnoExtContainer::Instance.Find(Unit)->AE_Cloak = true;
+	TechnoExt_ExtData::RecalculateStat(Unit);
+	return 0x482956;
+}
+
+DEFINE_HOOK(0x482E57, CellClass_CrateBeingCollected_Armor2, 6)
+{
+	GET(TechnoClass*, Unit, ECX);
+	GET_STACK(double, Pow_ArmorMultiplier, 0x20);
+
+	if (TechnoExtContainer::Instance.Find(Unit)->AE_ArmorMult == 1.0)
+	{
+		TechnoExtContainer::Instance.Find(Unit)->AE_ArmorMult = Pow_ArmorMultiplier;
+		TechnoExt_ExtData::RecalculateStat(Unit);
+		R->AL(Unit->GetOwningHouse()->IsInPlayerControl);
+		return 0x482E89;
+	}
+	return 0x482E92;
+}
+
+DEFINE_HOOK(0x48303A, CellClass_CrateBeingCollected_Speed2, 6)
+{
+	GET(FootClass*, Unit, EDI);
+	GET_STACK(double, Pow_SpeedMultiplier, 0x20);
+
+	// removed aircraft check
+	// these originally not allow those to gain speed mult
+
+	if (TechnoExtContainer::Instance.Find(Unit)->AE_SpeedMult == 1.0)
+	{
+		TechnoExtContainer::Instance.Find(Unit)->AE_SpeedMult = Pow_SpeedMultiplier;
+		TechnoExt_ExtData::RecalculateStat(Unit);
+		R->CL(Unit->GetOwningHouse()->IsInPlayerControl);
+		return 0x483078;
+	}
+	return 0x483081;
+}
+
+DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
+{
+	GET(TechnoClass*, Unit, ECX);
+	GET_STACK(double, Pow_FirepowerMultiplier, 0x20);
+
+	if (TechnoExtContainer::Instance.Find(Unit)->AE_FirePowerMult == 1.0)
+	{
+		TechnoExtContainer::Instance.Find(Unit)->AE_FirePowerMult = Pow_FirepowerMultiplier;
+		TechnoExt_ExtData::RecalculateStat(Unit);
+		R->AL(Unit->GetOwningHouse()->IsInPlayerControl);
+		return 0x483258;
+	}
+	return 0x483261;
+}
+#endif
+
 // what is the boolean return for , heh
 bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 {
@@ -4438,7 +4542,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 		if (pOverlay->Crate)
 		{
 			const auto pCollectorOwner = pCollector->Owner;
-			bool force_mcv = false;
+			bool force_mcv = true;
 			int soloCrateMoney = 0;
 
 			if (SessionClass::Instance->GameMode == GameMode::Campaign || !pCollectorOwner->Type->MultiplayPassive)
@@ -4485,22 +4589,26 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 				{
 					auto pBase = pCollectorOwner->PickUnitFromTypeList(RulesClass::Instance->BaseUnit);
 
-					if (!pCollectorOwner->OwnedBuildings
-						&& pCollectorOwner->Available_Money() > 1500
+					if (GameModeOptionsClass::Instance->Bases
+						&& !pCollectorOwner->OwnedBuildings
+						&& pCollectorOwner->Available_Money() > RulesExtData::Instance()->FreeMCV_CreditsThreshold
 						&& !pCollectorOwner->OwnedUnitTypes.GetItemCount(pBase->ArrayIndex)
-						&& GameModeOptionsClass::Instance->Bases
 						)
 					{
 						data = Powerup::Unit;
 						force_mcv = true;
 					}
 					const auto landType = pCell->LandType;
+
 #pragma region EVALUATE_FIST_TIME
 					switch ((Powerup)data)
 					{
 					case Powerup::Unit:
 					{
-						if (pCollectorOwner->OwnedUnits >= 50
+						if (RulesExtData::Instance()->UnitCrateVehicleCap < 0)
+							break;
+
+						if (pCollectorOwner->OwnedUnits >= RulesExtData::Instance()->UnitCrateVehicleCap
 							|| landType == LandType::Water
 							|| landType == LandType::Beach)
 						{
@@ -4512,7 +4620,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					case Powerup::Cloak:
 					{
 
-						if (pCollector->Cloakable)
+						if (TechnoTypeExtContainer::Instance.Find(pCollector->GetTechnoType())->CloakAllowed || pCollector->CanICloakByDefault() || TechnoExtContainer::Instance.Find(pCollector)->AE_Cloak)
 							data = Powerup::Money;
 
 						break;
@@ -4530,7 +4638,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 					case Powerup::Armor:
 					{
-						if (pCollector->ArmorMultiplier != 1.0)
+						if (TechnoExtContainer::Instance.Find(pCollector)->AE_ArmorMult != 1.0)
 						{
 							data = Powerup::Money;
 						}
@@ -4539,7 +4647,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 					case Powerup::Speed:
 					{
-						if (pCollector->SpeedMultiplier != 1.0 || pCollector->WhatAmI() == AbstractType::Aircraft)
+						if (TechnoExtContainer::Instance.Find(pCollector)->AE_SpeedMult != 1.0 || pCollector->WhatAmI() == AbstractType::Aircraft)
 						{
 							data = Powerup::Money;
 						}
@@ -4548,7 +4656,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 					case Powerup::Firepower:
 					{
-						if (pCollector->FirepowerMultiplier != 1.0 || !pCollector->IsArmed())
+						if (TechnoExtContainer::Instance.Find(pCollector)->AE_FirePowerMult != 1.0 || !pCollector->IsArmed())
 						{
 							data = Powerup::Money;
 						}
@@ -4642,7 +4750,13 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 						if (!soloCrateMoney)
 						{
-							soloCrateMoney = ScenarioClass::Instance->Random.RandomRanged((int)something, (int)something + 900);
+							const auto nAdd = RulesExtData::Instance()->RandomCrateMoney;
+							int crateMax = 900;
+
+							if (nAdd > 0)
+								crateMax += ScenarioClass::Instance->Random.RandomFromMax(nAdd);
+
+							soloCrateMoney = ScenarioClass::Instance->Random.RandomRanged((int)something, (int)something + crateMax);
 						}
 
 						const auto pHouseDest = pCollectorOwner->ControlledByCurrentPlayer() || SessionClass::Instance->GameMode != GameMode::Campaign
@@ -4719,7 +4833,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 								currentPlayer = pCollectorOwner->ControlledByCurrentPlayer();
 							}
-							while (!Given->CrateGoodie);
+							while (!Given->CrateGoodie || TechnoTypeExtContainer::Instance.Find(Given)->CrateGoodie_RerollChance > 0.0 && TechnoTypeExtContainer::Instance.Find(Given)->CrateGoodie_RerollChance < ScenarioClass::Instance->Random.RandomDouble());
 
 							if (GameModeOptionsClass::Instance->Bases)
 								break;
@@ -4840,9 +4954,10 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 							{
 								auto LayersCoords = pTechno->GetCoords();
 								if ((int)LayersCoords.DistanceFrom(CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) - LayersCoords.Z)) < RulesClass::Instance->CrateRadius
-									&& pTechno->ArmorMultiplier == 1.0)
+									&& TechnoExtContainer::Instance.Find(pCollector)->AE_ArmorMult == 1.0)
 								{
-									pTechno->ArmorMultiplier *= something;
+									TechnoExtContainer::Instance.Find(pCollector)->AE_ArmorMult *= something;
+									TechnoExt_ExtData::RecalculateStat(pCollector);
 
 									if (pTechno->Owner->ControlledByCurrentPlayer())
 									{
@@ -4869,9 +4984,10 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 							{
 								auto LayersCoords = pTechno->GetCoords();
 								if ((int)LayersCoords.DistanceFrom(CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) - LayersCoords.Z)) < RulesClass::Instance->CrateRadius
-									&& pTechno->SpeedMultiplier == 1.0)
+									&& TechnoExtContainer::Instance.Find(pCollector)->AE_SpeedMult == 1.0)
 								{
-									pTechno->SpeedMultiplier *= something;
+									TechnoExtContainer::Instance.Find(pCollector)->AE_SpeedMult	*= something;
+									TechnoExt_ExtData::RecalculateStat(pCollector);
 
 									if (pTechno->Owner->ControlledByCurrentPlayer())
 									{
@@ -4898,9 +5014,10 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 							{
 								auto LayersCoords = pTechno->GetCoords();
 								if ((int)LayersCoords.DistanceFrom(CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) - LayersCoords.Z)) < RulesClass::Instance->CrateRadius
-									&& pTechno->FirepowerMultiplier == 1.0)
+									&& TechnoExtContainer::Instance.Find(pCollector)->AE_FirePowerMult == 1.0)
 								{
-									pTechno->FirepowerMultiplier *= something;
+									TechnoExtContainer::Instance.Find(pCollector)->AE_FirePowerMult *= something;
+									TechnoExt_ExtData::RecalculateStat(pCollector);
 
 									if (pTechno->Owner->ControlledByCurrentPlayer())
 									{
@@ -4928,7 +5045,8 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 								auto LayersCoords = pTechno->GetCoords();
 								if ((int)LayersCoords.DistanceFrom(CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) - LayersCoords.Z)) < RulesClass::Instance->CrateRadius)
 								{
-									pTechno->Cloakable = true;
+									TechnoExtContainer::Instance.Find(pCollector)->AE_Cloak = true;
+									TechnoExt_ExtData::RecalculateStat(pCollector);
 								}
 							}
 						}
@@ -5043,4 +5161,12 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 	}
 
 	return true;
+}
+
+DEFINE_HOOK(0x481A00, CellClass_CollectCrate_Handle, 0x6)
+{
+	GET(CellClass*, pThis, ECX);
+	GET_STACK(FootClass*, pCollector , 0x4);
+	R->EAX(CollecCrate(pThis , pCollector));
+	return 0x483391;
 }

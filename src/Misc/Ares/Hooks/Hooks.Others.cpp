@@ -926,19 +926,6 @@ DEFINE_HOOK(0x4B769B, ScenarioClass_GenerateDropshipLoadout, 5)
 	return 0x4B76A0;
 }
 
-DEFINE_HOOK(0x48248D, CellClass_CrateBeingCollected_MoneyRandom, 6)
-{
-	GET(int, nCur, EAX);
-
-	const auto nAdd = RulesExtData::Instance()->RandomCrateMoney;
-
-	if (nAdd > 0)
-		nCur += ScenarioClass::Instance->Random.RandomFromMax(nAdd);
-
-	R->EDI(nCur);
-	return 0x4824A7;
-}
-
 DEFINE_HOOK(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 {
 	GET(ObjectClass*, pThis, ESI);
@@ -964,95 +951,6 @@ DEFINE_HOOK(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 
 	pThis->FallRate = nMaxFallRate;
 	return 0x5F3FFD;
-}
-
-DEFINE_HOOK(0x481C6C, CellClass_CrateBeingCollected_Armor1, 6)
-{
-	GET(TechnoClass*, Unit, EDI);
-	return (TechnoExtContainer::Instance.Find(Unit)->AE_ArmorMult == 1.0) ? 0x481D52 : 0x481C86;
-}
-
-DEFINE_HOOK(0x481CE1, CellClass_CrateBeingCollected_Speed1, 6)
-{
-	GET(FootClass*, Unit, EDI);
-	return (TechnoExtContainer::Instance.Find(Unit)->AE_SpeedMult == 1.0) ? 0x481D52 : 0x481C86;
-}
-
-DEFINE_HOOK(0x481D0E, CellClass_CrateBeingCollected_Firepower1, 6)
-{
-	GET(TechnoClass*, Unit, EDI);
-	return (TechnoExtContainer::Instance.Find(Unit)->AE_FirePowerMult == 1.0) ? 0x481D52 : 0x481C86;
-}
-
-DEFINE_HOOK(0x481D3D, CellClass_CrateBeingCollected_Cloak1, 6)
-{
-	GET(TechnoClass*, Unit, EDI);
-
-	if (Unit->CanICloakByDefault() || TechnoExtContainer::Instance.Find(Unit)->AE_Cloak)
-	{
-		return 0x481C86;
-	}
-
-	// cloaking forbidden for type
-	return  (!TechnoTypeExtContainer::Instance.Find(Unit->GetTechnoType())->CloakAllowed)
-		? 0x481C86 : 0x481D52;
-}
-
-//overrides on actual crate effect applications
-DEFINE_HOOK(0x48294F, CellClass_CrateBeingCollected_Cloak2, 7)
-{
-	GET(TechnoClass*, Unit, EDX);
-	TechnoExtContainer::Instance.Find(Unit)->AE_Cloak = true;
-	TechnoExt_ExtData::RecalculateStat(Unit);
-	return 0x482956;
-}
-
-DEFINE_HOOK(0x482E57, CellClass_CrateBeingCollected_Armor2, 6)
-{
-	GET(TechnoClass*, Unit, ECX);
-	GET_STACK(double, Pow_ArmorMultiplier, 0x20);
-
-	if (TechnoExtContainer::Instance.Find(Unit)->AE_ArmorMult == 1.0)
-	{
-		TechnoExtContainer::Instance.Find(Unit)->AE_ArmorMult = Pow_ArmorMultiplier;
-		TechnoExt_ExtData::RecalculateStat(Unit);
-		R->AL(Unit->GetOwningHouse()->IsInPlayerControl);
-		return 0x482E89;
-	}
-	return 0x482E92;
-}
-
-DEFINE_HOOK(0x48303A, CellClass_CrateBeingCollected_Speed2, 6)
-{
-	GET(FootClass*, Unit, EDI);
-	GET_STACK(double, Pow_SpeedMultiplier, 0x20);
-
-	// removed aircraft check
-	// these originally not allow those to gain speed mult
-
-	if (TechnoExtContainer::Instance.Find(Unit)->AE_SpeedMult == 1.0)
-	{
-		TechnoExtContainer::Instance.Find(Unit)->AE_SpeedMult = Pow_SpeedMultiplier;
-		TechnoExt_ExtData::RecalculateStat(Unit);
-		R->CL(Unit->GetOwningHouse()->IsInPlayerControl);
-		return 0x483078;
-	}
-	return 0x483081;
-}
-
-DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
-{
-	GET(TechnoClass*, Unit, ECX);
-	GET_STACK(double, Pow_FirepowerMultiplier, 0x20);
-
-	if (TechnoExtContainer::Instance.Find(Unit)->AE_FirePowerMult == 1.0)
-	{
-		TechnoExtContainer::Instance.Find(Unit)->AE_FirePowerMult = Pow_FirepowerMultiplier;
-		TechnoExt_ExtData::RecalculateStat(Unit);
-		R->AL(Unit->GetOwningHouse()->IsInPlayerControl);
-		return 0x483258;
-	}
-	return 0x483261;
 }
 
 // temporal per-slot

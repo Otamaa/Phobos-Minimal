@@ -649,6 +649,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->LaserTargetColor.Read(exINI, pSection, "LaserTargetColor");
 		this->VoicePickup.Read(exINI, pSection, "VoicePickup");
 
+		this->CrateGoodie_RerollChance.Read(exINI, pSection, "CrateGoodie.RerollChance");
+
 #pragma region Prereq
 
 	std::string _Prerequisite_key = "Prerequisite";
@@ -2096,6 +2098,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->DropPodProp)
 		.Process(this->LaserTargetColor)
 		.Process(this->VoicePickup)
+		.Process(this->CrateGoodie_RerollChance)
 		;
 }
 
