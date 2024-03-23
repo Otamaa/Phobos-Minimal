@@ -153,6 +153,7 @@ static std::vector<LuaScript> LuaScripts {};
 
 bool LuaBridge::OnCalled(TeamClass* pTeam)
 {
+#ifdef EXPERIMENTAL
 	auto const& [action, argument] = pTeam->CurrentScript->GetCurrentAction();
 
 	for (auto& luascript : LuaScripts)
@@ -178,12 +179,13 @@ bool LuaBridge::OnCalled(TeamClass* pTeam)
 			return true;
 		}
 	}
-
+#endif
 	return false;
 }
 
 void LuaBridge::InitScriptLuaList()
 {
+#ifdef EXPERIMENTAL
 	static constexpr const char* filename = "ListHolder.lua";
 	make_unique_luastate(unique_lua);
 	auto L = unique_lua.get();
@@ -222,4 +224,5 @@ void LuaBridge::InitScriptLuaList()
 			}
 		}
 	}
+#endif
 }
