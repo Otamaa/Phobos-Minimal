@@ -171,44 +171,20 @@ DEFINE_HOOK(0x70BE80, TechnoClass_ShouldSelfHealOneStep, 5)
 	return 0x70BF46;
 }
 
-DEFINE_HOOK(0x6FA743, TechnoClass_Update_SelfHeal, 0xA)
-{
-	enum
-	{
-		ContineCheckUpdateSelfHeal = 0x6FA75A,
-		SkipAnySelfHeal = 0x6FA941,
-	};
+// DEFINE_HOOK(0x6FA743, TechnoClass_Update_SelfHeal, 0xA)
+// {
+// 	enum
+// 	{
+// 		ContineCheckUpdateSelfHeal = 0x6FA75A,
+// 		SkipAnySelfHeal = 0x6FA941,
+// 	};
 
-	GET(TechnoClass* const, pThis, ESI);
+// 	GET(TechnoClass* const, pThis, ESI);
 
-	// prevent crashing and sinking technos from self-healing
-	if (pThis->InLimbo || pThis->IsCrashing || pThis->IsSinking || TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled) {
-		return SkipAnySelfHeal;
-	}
 
-	const auto nUnit = specific_cast<UnitClass*>(pThis);
-	if (nUnit && nUnit->DeathFrameCounter > 0) {
-		return SkipAnySelfHeal;
-	}
-
-	//if(!GetAresTechnoExt(pThis)) {
-	//	return SkipAnySelfHeal;
-	//}
-
-	// this replaces the call to pThis->ShouldSelfHealOneStep()
-	const auto nAmount = TechnoExt_ExtData::GetSelfHealAmount(pThis);
-	bool wasDamaged = pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
-	if (nAmount > 0 || nAmount != 0) {
-		pThis->Health += nAmount;
-	}
-
-	//this one take care of the visual stuffs
-	//if the techno health back to normal
-	TechnoExtData::ApplyGainedSelfHeal(pThis, wasDamaged);
-
-	//handle everything
-	return SkipAnySelfHeal;
-}
+// 	//handle everything
+// 	return SkipAnySelfHeal;
+// }
 
 // spark particle systems created at random intervals
 DEFINE_HOOK(0x6FAD49, TechnoClass_Update_SparkParticles, 8) // breaks the loop
