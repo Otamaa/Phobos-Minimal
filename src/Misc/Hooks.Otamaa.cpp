@@ -4533,6 +4533,7 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 #endif
 
 #include <Ext/SWType/Body.h>
+#include <New/Type/CrateTypeClass.h>
 
 // what is the boolean return for , heh
 bool CollecCrate(CellClass* pCell, FootClass* pCollector)
@@ -4561,23 +4562,24 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 				Powerup data = Powerup::Money;
 
-				if (pCell->OverlayData < 19u)
+#pragma region DetermineTheRewardType
+				if (pCell->OverlayData < CrateTypeClass::Array.size())
 					data = (Powerup)pCell->OverlayData;
 				else
 				{
 					int totalshares = 0;
-					for (auto wheight : Powerups::Weights)
+					for (auto& pCrate : CrateTypeClass::Array)
 					{
-						totalshares += wheight;
+						totalshares += pCrate->Weight;
 					}
 
 					int random = ScenarioClass::Instance->Random.RandomRanged(1, totalshares);
 					int sharecount = 0;
 					unsigned int ovelaydata = 0u;
 
-					for (auto wheight : Powerups::Weights)
+					for ( auto& pCrate : CrateTypeClass::Array)
 					{
-						sharecount += wheight;
+						sharecount += pCrate->Weight;
 						if (random <= sharecount)
 							break;
 
@@ -4586,6 +4588,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 					data = (Powerup)ovelaydata;
 				}
+#pragma endregion
 
 				if (SessionClass::Instance->GameMode != GameMode::Campaign)
 				{
@@ -4679,12 +4682,12 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 #pragma endregion
 
-					if (landType == LandType::Water && !Powerups::Naval[(int)data])
+					if (landType == LandType::Water && !CrateTypeClass::Array[(int)data]->Naval)
 					{
 						data = Powerup::Unit;
 					}
 
-					if (SessionClass::Instance->GameMode == GameMode::Internet)
+					if (SessionClass::Instance->GameMode == GameMode::Internet && (int)data < 19u)
 					{
 						pCollectorOwner->CollectedCrates.IncrementUnitCount((int)data);
 					}
@@ -4719,7 +4722,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 
 				//ensure the index wont go beyond the array size
-				if((size_t)data > 18u)
+				if((size_t)data >= CrateTypeClass::Array.size())
 					data = Powerup::Money;
 				//if (data == Powerup::Squad)
 				//{
@@ -4727,17 +4730,14 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 				//}
 
 #pragma region MainAffect
-				const auto something = Powerups::Arguments[(int)data];
+				const auto something = CrateTypeClass::Array[(int)data]->Argument;
 				//not always get used same way ?
 
 				auto PlayAnimAffect = [pCell, pCollector, pCollectorOwner](Powerup idx)
 					{
-						const int AnimIdx = Powerups::Anims[(int)idx];
-
-						if (AnimIdx != -1)
+						if (const auto pAnimType = CrateTypeClass::Array[(int)idx]->Anim)
 						{
 							auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) + 200);
-							const auto pAnimType = AnimTypeClass::Array->Items[AnimIdx];
 
 							GameCreate<AnimClass>(pAnimType, loc, 0, 1, 0x600, 0, 0);
 						}
@@ -5161,6 +5161,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 						}
 					}
 
+					PlaySoundAffect(RulesClass::Instance->CratePromoteSound);
 					PlayAnimAffect(Powerup::Gas);
 					return true;
 				}

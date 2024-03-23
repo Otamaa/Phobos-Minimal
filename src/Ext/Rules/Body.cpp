@@ -119,6 +119,8 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	LaserTrailTypeClass::LoadFromINIList(&CCINIClass::INI_Art.get());
 	DigitalDisplayTypeClass::LoadFromINIList(pINI);
+	//initialize default crates
+	CrateTypeClass::InitializeDefault();
 	CrateTypeClass::LoadFromINIList(pINI);
 
 	Data->LoadBeforeTypeData(pThis, pINI);

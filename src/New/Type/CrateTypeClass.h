@@ -15,21 +15,21 @@ class CrateTypeClass final : public Enumerable<CrateTypeClass>
 {
 public:
 
-	Valueable<SuperWeaponTypeClass*> Super { nullptr };
-	Valueable<WeaponTypeClass*> WeaponType { nullptr };
-	Valueable<bool> SuperGrant { false };
-	Valueable<int> Chance { 0 };
+	Valueable<int> Weight { 0 };
 	Valueable<AnimTypeClass*> Anim { nullptr };
-	Valueable<NewCrateType> Type { NewCrateType::Money };
-	Valueable<bool> AllowWater { false };
-	ValueableIdx<VocClass> Sound { -1 };
-    ValueableIdx<VoxClass> Eva { -1 };
-	ValueableVector<UnitTypeClass*> Unit { };
-    Valueable<int> MoneyMin { 0 };
-    Valueable<int> MoneyMax { 0 };
+	Valueable<double> Argument { 0.0 };
+	Valueable<bool> Naval { false };
+	NullableIdx<VocClass> Sound { };
 
     CrateTypeClass(const char* const pTitle): Enumerable<CrateTypeClass>(pTitle)
-    { }
+		, Weight { }
+		, Anim { nullptr }
+		, Argument { 0.0 }
+		, Naval { false }
+		, Sound {}
+	{ }
+
+	static void InitializeDefault();
 
 	virtual ~CrateTypeClass() override = default;
 	virtual void LoadFromINI(CCINIClass *pINI) override;
