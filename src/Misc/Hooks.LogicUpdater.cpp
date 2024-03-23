@@ -129,7 +129,15 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	if (!pExt->Type || pExt->Type != pType)
 		pExt->UpdateType(pType);
 
-	pExt->IsInTunnel = false; // TechnoClass::AI is only called when not in tunnel.
+	// Update tunnel state on exit, TechnoClass::AI is only called when not in tunnel.
+	if (pExt->IsInTunnel)
+	{
+		pExt->IsInTunnel = false;
+
+		if (const auto pShieldData = pExt->Shield.get())
+			pShieldData->SetAnimationVisibility(true);
+	}
+
 #ifdef ENABLE_THESE
 	if (pExt->UpdateKillSelf_Slave()) {
 		return retDead;
