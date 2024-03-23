@@ -4175,7 +4175,7 @@ DEFINE_HOOK(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 		pBldext->CustomData.erase(itData + 1, pBldext->CustomData.end());
 
 		auto itOutline = pBldext->OutlineData.begin();
-		for (size_t i = 0; i < outlineLength; ++i)
+		for (size_t i = 0; i < (size_t)outlineLength; ++i)
 		{
 			if (exINi->ReadString(pSection, (std::string("FoundationOutline.") + std::to_string(i)).c_str(), "", strbuff))
 			{
@@ -4549,7 +4549,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 			if (SessionClass::Instance->GameMode == GameMode::Campaign || !pCollectorOwner->Type->MultiplayPassive)
 			{
-				if (pOverlay->CrateTrigger)
+				if (pOverlay->CrateTrigger && pCollector->AttachedTag)
 				{
 					Debug::Log("Springing trigger on crate at %d,%d\n", pCell->MapCoords.X, pCell->MapCoords.Y);
 					pCollector->AttachedTag->SpringEvent(TriggerEvent::PickupCrate, pCollector, CellStruct::Empty);
@@ -4730,12 +4730,16 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 				const auto something = Powerups::Arguments[(int)data];
 				//not always get used same way ?
 
-				auto PlayAnimAffect = [pCell, data, pCollector, pCollectorOwner]()
+				auto PlayAnimAffect = [pCell, pCollector, pCollectorOwner](Powerup idx)
 					{
-						if (Powerups::Anims[(int)data] != -1)
+						const int AnimIdx = Powerups::Anims[(int)idx];
+
+						if (AnimIdx != -1)
 						{
 							auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) + 200);
-							GameCreate<AnimClass>(AnimTypeClass::Array->Items[Powerups::Anims[(int)data]], loc, 0, 1, 0x600, 0, 0);
+							const auto pAnimType = AnimTypeClass::Array->Items[AnimIdx];
+
+							GameCreate<AnimClass>(pAnimType, loc, 0, 1, 0x600, 0, 0);
 						}
 					};
 
@@ -4769,7 +4773,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 						pHouseDest->TransactMoney(soloCrateMoney);
 						PlaySoundAffect(RulesClass::Instance->CrateMoneySound);
-						PlayAnimAffect();
+						PlayAnimAffect(Powerup::Money);
 
 						return true;
 					};
@@ -4875,7 +4879,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 						}
 						else
 						{
-							PlayAnimAffect();
+							PlayAnimAffect(Powerup::Unit);
 							return true;
 						}
 					}
@@ -4895,7 +4899,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 							}
 						}
 					}
-					PlayAnimAffect();
+					PlayAnimAffect(Powerup::HealBase);
 					return true;
 				}
 				case Powerup::Explosion:
@@ -4915,7 +4919,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 						}
 						MapClass::FlashbangWarheadAt(damage, RulesClass::Instance->C4Warhead, randomCoords);
 					}
-					PlayAnimAffect();
+					PlayAnimAffect(Powerup::Explosion);
 					return true;
 				}
 				case Powerup::Napalm:
@@ -4929,14 +4933,14 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					pCollector->ReceiveDamage(&damage, 0, RulesClass::Instance->FlameDamage, nullptr, 1, false, 0);
 					MapClass::DamageArea(Collector_loc, damage, nullptr, RulesClass::Instance->FlameDamage, true, false);
 
-					PlayAnimAffect();
+					PlayAnimAffect(Powerup::Napalm);
 					return true;
 				}
 				case Powerup::Darkness:
 				{
 					Debug::Log("Crate at %d,%d contains 'shroud'\n", pCell->MapCoords.X, pCell->MapCoords.Y);
 					MapClass::Instance->Reshroud(pCollectorOwner);
-					PlayAnimAffect();
+					PlayAnimAffect(Powerup::Darkness);
 					return true;
 				}
 				case Powerup::Reveal:
@@ -4944,7 +4948,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					Debug::Log("Crate at %d,%d contains 'reveal'\n", pCell->MapCoords.X, pCell->MapCoords.Y);
 					MapClass::Instance->Reveal(pCollectorOwner);
 					PlaySoundAffect(RulesClass::Instance->CrateRevealSound);
-					PlayAnimAffect();
+					PlayAnimAffect(Powerup::Reveal);
 					return true;
 				}
 				case Powerup::Armor:
@@ -4958,8 +4962,9 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 							if (pTechno->IsAlive)
 							{
 								auto LayersCoords = pTechno->GetCoords();
-								if ((int)LayersCoords.DistanceFrom(CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) - LayersCoords.Z)) < RulesClass::Instance->CrateRadius
-									&& TechnoExtContainer::Instance.Find(pCollector)->AE_ArmorMult == 1.0)
+								auto cellLoc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
+								auto place = cellLoc - LayersCoords;
+								if ((int)place.Length() < RulesClass::Instance->CrateRadius && TechnoExtContainer::Instance.Find(pCollector)->AE_ArmorMult == 1.0)
 								{
 									TechnoExtContainer::Instance.Find(pCollector)->AE_ArmorMult *= something;
 									TechnoExt_ExtData::RecalculateStat(pCollector);
@@ -4974,7 +4979,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 
 					PlaySoundAffect(RulesClass::Instance->CrateArmourSound);
-					PlayAnimAffect();
+					PlayAnimAffect(Powerup::Armor);
 					return true;
 				}
 				case Powerup::Speed:
@@ -4988,8 +4993,9 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 							if (pTechno->IsAlive && pTechno->WhatAmI() != AbstractType::Aircraft)
 							{
 								auto LayersCoords = pTechno->GetCoords();
-								if ((int)LayersCoords.DistanceFrom(CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) - LayersCoords.Z)) < RulesClass::Instance->CrateRadius
-									&& TechnoExtContainer::Instance.Find(pCollector)->AE_SpeedMult == 1.0)
+								auto cellLoc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
+								auto place = cellLoc - LayersCoords;
+								if ((int)place.Length() < RulesClass::Instance->CrateRadius && TechnoExtContainer::Instance.Find(pCollector)->AE_SpeedMult == 1.0)
 								{
 									TechnoExtContainer::Instance.Find(pCollector)->AE_SpeedMult	*= something;
 									TechnoExt_ExtData::RecalculateStat(pCollector);
@@ -5004,7 +5010,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 
 					PlaySoundAffect(RulesClass::Instance->CrateSpeedSound);
-					PlayAnimAffect();
+					PlayAnimAffect(Powerup::Speed);
 					return true;
 				}
 				case Powerup::Firepower:
@@ -5018,7 +5024,9 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 							if (pTechno->IsAlive)
 							{
 								auto LayersCoords = pTechno->GetCoords();
-								if ((int)LayersCoords.DistanceFrom(CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) - LayersCoords.Z)) < RulesClass::Instance->CrateRadius
+								auto cellLoc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
+								auto place = cellLoc - LayersCoords;
+								if ((int)place.Length() < RulesClass::Instance->CrateRadius
 									&& TechnoExtContainer::Instance.Find(pCollector)->AE_FirePowerMult == 1.0)
 								{
 									TechnoExtContainer::Instance.Find(pCollector)->AE_FirePowerMult *= something;
@@ -5034,7 +5042,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 
 					PlaySoundAffect(RulesClass::Instance->CrateFireSound);
-					PlayAnimAffect();
+					PlayAnimAffect(Powerup::Firepower);
 					return true;
 				}
 				case Powerup::Cloak:
@@ -5048,7 +5056,10 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 							if (pTechno->IsAlive && pTechno->IsOnMap)
 							{
 								auto LayersCoords = pTechno->GetCoords();
-								if ((int)LayersCoords.DistanceFrom(CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) - LayersCoords.Z)) < RulesClass::Instance->CrateRadius)
+								auto cellLoc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
+								auto place = cellLoc - LayersCoords;
+
+								if ((int)place.Length() < RulesClass::Instance->CrateRadius)
 								{
 									TechnoExtContainer::Instance.Find(pCollector)->AE_Cloak = true;
 									TechnoExt_ExtData::RecalculateStat(pCollector);
@@ -5057,7 +5068,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 						}
 					}
 
-					PlayAnimAffect();
+					PlayAnimAffect(Powerup::Cloak);
 					return true;
 				}
 				case Powerup::ICBM:
@@ -5077,64 +5088,80 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 						}
 					}
 
-					PlayAnimAffect();
+					PlayAnimAffect(Powerup::ICBM);
 					return true;
 				}
 				case Powerup::Veteran:
 				{
 					Debug::Log("Crate at %d,%d contains veterancy(TM)\n", pCell->MapCoords.X, pCell->MapCoords.Y);
-					bool IsPlayer = false;
-					for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
-					{
-						if (auto pTechno = generic_cast<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]))
+					const int MaxPromotedCount = (int)something;
+
+					if(MaxPromotedCount > 0) {
+						bool IsPlayer = false;
+						int PromotedCount = 0;
+
+						for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
 						{
-							if (pTechno->IsAlive && pTechno->IsOnMap && pTechno->GetTechnoType()->Trainable)
+							if (PromotedCount >= MaxPromotedCount)
+								break;
+
+							if (auto pTechno = generic_cast<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]))
 							{
-								auto LayersCoords = pTechno->GetCoords();
-								if ((int)LayersCoords.DistanceFrom(CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) - LayersCoords.Z)) < RulesClass::Instance->CrateRadius
-									&& something > 0.0)
+								if (pTechno->IsAlive && pTechno->IsOnMap && pTechno->GetTechnoType()->Trainable)
 								{
-									if (pTechno->Veterancy.IsVeteran())
-										pTechno->Veterancy.SetElite();
+									auto LayersCoords = pTechno->GetCoords();
+									auto cellLoc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
+									auto place = cellLoc - LayersCoords;
 
-									if (pTechno->Veterancy.IsRookie())
-										pTechno->Veterancy.SetVeteran();
+									if ((int)place.Length() < RulesClass::Instance->CrateRadius) {
 
-									if (pTechno->Veterancy.IsNegative())
-										pTechno->Veterancy.SetRookie();
+										if (pTechno->Veterancy.IsVeteran())
+											pTechno->Veterancy.SetElite();
+
+										if (pTechno->Veterancy.IsRookie())
+											pTechno->Veterancy.SetVeteran();
+
+										if (pTechno->Veterancy.IsNegative())
+											pTechno->Veterancy.SetRookie();
+
+										++PromotedCount;
+									}
 								}
 							}
 						}
 					}
 
 					PlaySoundAffect(RulesClass::Instance->CratePromoteSound);
-					PlayAnimAffect();
+					PlayAnimAffect(Powerup::Veteran);
 					return true;
 				}
 				case Powerup::Gas:
 				{
 					Debug::Log("Crate at %d,%d contains poison gas\n", pCell->MapCoords.X, pCell->MapCoords.Y);
 
-					auto WH = WarheadTypeClass::Array->Items[WarheadTypeClass::FindIndexById("GAS")];
-					bool randomizeCoord = true;
-					auto collector_loc = pCollector->GetCoords();
-					MapClass::DamageArea(collector_loc, (int)something, nullptr, WH, true, nullptr);
+					if(auto WH = WarheadTypeClass::Array->GetItemOrDefault(WarheadTypeClass::FindIndexById("GAS"))) {
 
-					for (int i = 0; i < 8;)
-					{
-						CellClass* pDestCell = pCell;
-						if (randomizeCoord)
+						bool randomizeCoord = true;
+						auto collector_loc = pCell->GetCoords();
+
+						MapClass::DamageArea(collector_loc, (int)something, nullptr, WH, true, nullptr);
+
+						for (int i = 0; i < 8;)
 						{
-							CellStruct dest {};
-							MapClass::GetAdjacentCell(&dest, &pCell->MapCoords, (DirType)i);
-							pDestCell = MapClass::Instance->GetCellAt(dest);
-						}
+							CellClass* pDestCell = pCell;
+							if (randomizeCoord)
+							{
+								CellStruct dest {};
+								MapClass::GetAdjacentCell(&dest, &pCell->MapCoords, (DirType)i);
+								pDestCell = MapClass::Instance->GetCellAt(dest);
+							}
 
-						MapClass::DamageArea(pDestCell->GetCoords(), (int)something, nullptr, WH, true, nullptr);
-						randomizeCoord = ++i < 8;
+							MapClass::DamageArea(pDestCell->GetCoords(), (int)something, nullptr, WH, true, nullptr);
+							randomizeCoord = ++i < 8;
+						}
 					}
 
-					PlayAnimAffect();
+					PlayAnimAffect(Powerup::Gas);
 					return true;
 				}
 				case Powerup::Tiberium:
@@ -5154,7 +5181,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 						MapClass::Instance->GetCellAt(destLoc)->IncreaseTiberium(tibToSpawn, 1);
 					}
 
-					PlayAnimAffect();
+					PlayAnimAffect(Powerup::Tiberium);
 					return true;
 				}
 				case Powerup::Squad:
@@ -5175,7 +5202,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 						return GeiveMoney();
 					}
 
-					PlayAnimAffect();
+					PlayAnimAffect(Powerup::Squad);
 					return true;
 				}
 				case Powerup::Invulnerability:
@@ -5193,7 +5220,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 						}
 					}
 
-					PlayAnimAffect();
+					PlayAnimAffect(Powerup::Invulnerability);
 					return true;
 				}
 				case Powerup::IonStorm:
@@ -5211,7 +5238,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 						}
 					}
 
-					PlayAnimAffect();
+					PlayAnimAffect(Powerup::IonStorm);
 					return true;
 				}
 				case Powerup::Pod:
@@ -5228,7 +5255,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 						}
 					}
 
-					PlayAnimAffect();
+					PlayAnimAffect(Powerup::Pod);
 					return true;
 				}
 				default:
