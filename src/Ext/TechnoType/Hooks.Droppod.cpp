@@ -435,8 +435,6 @@ DEFINE_HOOK(0x519168, InfantryClass_DrawIt_DroppodLinked, 0x5)
 {
 	GET(InfantryClass*, pThis, EBP);
 
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-
 	if (auto pPod = DroppodProperties_::GetPodImage(pThis))
 	{
 		R->EAX(pPod);

@@ -212,7 +212,7 @@ void Phobos::ExecuteLua()
 
 			for (size_t i = 0; i < replace_size; i++)
 			{
-				lua_pushinteger(L, i + 1);
+				lua_pushinteger(L, lua_Integer(i + 1));
 				lua_gettable(L, -2);
 
 				if (lua_istable(L, -2))
