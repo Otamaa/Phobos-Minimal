@@ -15,7 +15,7 @@ void TechnoTypeConvertData::ApplyConvert(const std::vector<TechnoTypeConvertData
 		if (!pFrom || !pTo || pFrom == pTo)
 			continue;
 
-		if (!EnumFunctions::CanTargetHouse(nAffect, pHouse, pTarget->Owner))
+		if (pHouse && !EnumFunctions::CanTargetHouse(nAffect, pHouse, pTarget->Owner))
 			continue;
 
 		if (pFrom == pCurType)
