@@ -85,16 +85,13 @@ const char* SideExtData::GetMultiplayerScoreBarFilename(unsigned int index) cons
 	static char filename[decltype(this->ScoreMultiplayBars)::Size];
 	auto const& data = this->ScoreMultiplayBars.data();
 
-	std::transform(std::begin(data), std::end(data), filename, [](const char& ch) {
-		return static_cast<char>(tolower(static_cast<unsigned char>(ch)));
-	});
+	GeneralUtils::lowercase(filename, data);
 
 	if (auto const pMarker = strstr(filename, "~~"))
 	{
-		char number[3];
-		sprintf_s(number, "%02u", index + 1);
-		pMarker[0] = number[0];
-		pMarker[1] = number[1];
+		std::string number_ = std::format("{:02}" ,index + 1);
+		pMarker[0] = number_[0];
+		pMarker[1] = number_[1];
 	}
 
 	return filename;
