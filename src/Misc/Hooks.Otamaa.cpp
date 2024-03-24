@@ -4625,7 +4625,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					case Powerup::Cloak:
 					{
 
-						if (TechnoTypeExtContainer::Instance.Find(pCollector->GetTechnoType())->CloakAllowed || pCollector->CanICloakByDefault() || TechnoExtContainer::Instance.Find(pCollector)->AE_Cloak)
+						if (!TechnoTypeExtContainer::Instance.Find(pCollector->GetTechnoType())->CloakAllowed || pCollector->CanICloakByDefault() || TechnoExtContainer::Instance.Find(pCollector)->AE_Cloak)
 							data = Powerup::Money;
 
 						break;
