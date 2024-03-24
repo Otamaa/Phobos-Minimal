@@ -4954,7 +4954,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 				case Powerup::Armor:
 				{
 					Debug::Log("Crate at %d,%d contains armor\n", pCell->MapCoords.X, pCell->MapCoords.Y);
-					bool IsPlayer = false;
+
 					for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
 					{
 						if (auto pTechno = generic_cast<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]))
@@ -4985,7 +4985,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 				case Powerup::Speed:
 				{
 					Debug::Log("Crate at %d,%d contains speed\n", pCell->MapCoords.X, pCell->MapCoords.Y);
-					bool IsPlayer = false;
+
 					for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
 					{
 						if (auto pTechno = generic_cast<FootClass*>(MapClass::ObjectsInLayers[2].Items[i]))
@@ -5016,7 +5016,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 				case Powerup::Firepower:
 				{
 					Debug::Log("Crate at %d,%d contains firepower\n", pCell->MapCoords.X, pCell->MapCoords.Y);
-					bool IsPlayer = false;
+
 					for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
 					{
 						if (auto pTechno = generic_cast<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]))
@@ -5048,7 +5048,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 				case Powerup::Cloak:
 				{
 					Debug::Log("Crate at %d,%d contains cloaking device\n", pCell->MapCoords.X, pCell->MapCoords.Y);
-					bool IsPlayer = false;
+
 					for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
 					{
 						if (auto pTechno = generic_cast<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]))
@@ -5097,7 +5097,6 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					const int MaxPromotedCount = (int)something;
 
 					if(MaxPromotedCount > 0) {
-						bool IsPlayer = false;
 						int PromotedCount = 0;
 
 						for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
