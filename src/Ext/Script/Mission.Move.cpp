@@ -47,24 +47,40 @@ void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, 
 	if (pTeamData->WaitNoTargetAttempts > 0)
 		pTeamData->WaitNoTargetAttempts--;
 
-	for (auto pFoot = pTeam->FirstUnit; pFoot; pFoot = pFoot->NextTeamMember)
-	{
-		if (ScriptExtData::IsUnitAvailable(pFoot,false))
-		{
-			auto const pTechnoType = pFoot->GetTechnoType();
+	FootClass* pCur = nullptr;
+	if (auto pFirst = pTeam->FirstUnit) {
+		auto pNext = pFirst->NextTeamMember;
 
-			if (pFoot->WhatAmI() == AbstractType::Aircraft
-				&& !pFoot->IsInAir()
-				&& static_cast<AircraftTypeClass*>(pTechnoType)->AirportBound
-				&& pFoot->Ammo < pTechnoType->Ammo)
+		do {
+
+			if (!ScriptExtData::IsUnitAvailable(pFirst, false))
+				pTeam->RemoveMember(pFirst, -1, 1);
+			else
 			{
-				bAircraftsWithoutAmmo = true;
+				auto const pTechnoType = pFirst->GetTechnoType();
+
+				if (pFirst->WhatAmI() == AbstractType::Aircraft
+					&& !pFirst->IsInAir()
+					&& static_cast<AircraftTypeClass*>(pTechnoType)->AirportBound
+					&& pFirst->Ammo < pTechnoType->Ammo)
+				{
+					bAircraftsWithoutAmmo = true;
+				}
 			}
+
+			pCur = pNext;
+
+			if (pNext)
+				pNext = pNext->NextTeamMember;
+
+			pFirst = pCur;
+
 		}
+		while (pCur);
 	}
 
 	// Find the Leader
-	if (!ScriptExtData::IsUnitAvailable(pTeamData->TeamLeader, true)) {
+	if (!pTeamData->TeamLeader) {
 		pTeamData->TeamLeader = ScriptExtData::FindTheTeamLeader(pTeam);
 	}
 

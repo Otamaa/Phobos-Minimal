@@ -244,6 +244,16 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 {
 	GET(FootClass*, pThis, ESI);
 	GET8(bool, IsMovingNow, AL);
+
+	//if (auto pTeam = pThis->Team) {
+	//	if (pTeam->CurrentScript->CurrentMission == -1) {
+	//		pTeam->RemoveMember(pThis);
+	//
+	//		if (!pTeam->FirstUnit)
+	//			pTeam->StepCompleted = true;
+	//	}
+	//}
+
 #ifdef ENABLE_THESE
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 

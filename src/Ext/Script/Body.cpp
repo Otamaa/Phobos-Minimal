@@ -374,11 +374,15 @@ NOINLINE const char* ToStrings(PhobosScripts from)
 
 void ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 {
-	if (LuaBridge::OnCalled(pTeam))
-		return;
-
 	auto const& [action, argument] = pTeam->CurrentScript->GetCurrentAction();
 
+	//Debug::Log("[%s - %x] Executing[%s - %x] [%d - %d]\n",
+	//pTeam->Owner->get_ID(),
+	//pTeam->Owner,
+	//pTeam->get_ID(),
+	//pTeam, action ,
+	//argument
+	//);
 
 	//only find stuffs on the range , reducing the load
 	//if ((AresScripts)action >= AresScripts::count)
@@ -917,7 +921,9 @@ void ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 		}
 
 		//dont prematurely finish the `Script` ,...
-		if(action >= TeamMissionType::count && (AresScripts)action >= AresScripts::count) {
+		//bailout the script if the `Action` already -1
+		//this will free the Member and allow them to be recuited
+		if(action == TeamMissionType::none || action >= TeamMissionType::count && (AresScripts)action >= AresScripts::count) {
 			// Unknown action. This action finished
 			pTeam->StepCompleted = true;
 			auto const pAction = pTeam->CurrentScript->GetCurrentAction();

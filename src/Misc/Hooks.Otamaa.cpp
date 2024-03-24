@@ -4677,6 +4677,15 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 						break;
 					}
+					//both of these are useless for AI , really
+					case Powerup::Darkness:
+					case Powerup::Reveal:
+					{
+						if (!pCollectorOwner->IsControlledByHuman())
+							data = Powerup::Money;
+
+						break;
+					}
 					default:
 						break;
 					}

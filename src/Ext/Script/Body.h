@@ -16,7 +16,7 @@ enum class MoveMissionEndModes : int
 
 class HouseClass;
 class TeamClass;
-enum class PhobosScripts : unsigned int
+enum class PhobosScripts : int
 {
 	TimedAreaGuard = 71,
 	LoadIntoTransports = 72,

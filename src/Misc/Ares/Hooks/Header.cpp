@@ -3222,12 +3222,17 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	// replace the original locomotor to new one
 	if (pOldType->Locomotor != pToType->Locomotor) {
 
+		AbstractClass* pTarget = pThis->Target;
+		AbstractClass* pDest = pThis->Focus;
+		Mission prevMission = pThis->GetCurrentMission();
+
 		// throw away the current locomotor and instantiate
 		// a new one of the default type for this unit.
 		if (auto newLoco = LocomotionClass::CreateInstance(pToType->Locomotor))
 		{
 			newLoco->Link_To_Object(pThis);
 			((FootClass*)pThis)->Locomotor = std::move(newLoco);
+			pThis->Override_Mission(prevMission, pTarget, pDest);
 		}
 	}
 

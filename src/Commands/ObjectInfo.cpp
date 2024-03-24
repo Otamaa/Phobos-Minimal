@@ -118,9 +118,9 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 		Display(buffer);
 
 		if (pTeam->CurrentScript->CurrentMission >= 0)
-			Append(buffer, "Current Script [Line = Action, Argument]: %d = %d,%d", pTeam->CurrentScript->CurrentMission, pTeam->CurrentScript->GetCurrentAction().Action, pTeam->CurrentScript->GetCurrentAction().Argument);
+			Append(buffer, "Current Script ([Line - %d] = [Action : %d - Argument : %d])", pTeam->CurrentScript->CurrentMission, pTeam->CurrentScript->GetCurrentAction().Action, pTeam->CurrentScript->GetCurrentAction().Argument);
 		else
-			Append(buffer, "Current Script [Line = Action, Argument]: %d", pTeam->CurrentScript->CurrentMission);
+			Append(buffer, "Current Script ([Line - %d])", pTeam->CurrentScript->CurrentMission);
 
 		Display(buffer);
 	}
