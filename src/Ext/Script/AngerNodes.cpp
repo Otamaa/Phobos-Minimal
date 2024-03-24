@@ -56,7 +56,7 @@ void ScriptExtData::ModifyHateHouses_List(TeamClass* pTeam, int idxHousesList = 
 			{
 				for (auto& angerNode : pTeam->Owner->AngerNodes)
 				{
-					if (angerNode.House->IsObserver())
+					if (angerNode.House->IsObserver() || angerNode.House->Defeated)
 						continue;
 
 					if (angerNode.House->Type == pHouseType)

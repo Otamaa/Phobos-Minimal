@@ -70,85 +70,95 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 		pFocus = nullptr;
 	}
 
-	for (auto pFoot = pTeam->FirstUnit; pFoot; pFoot = pFoot->NextTeamMember)
+	FootClass* pCur = nullptr;
+	if (auto pFirst = pTeam->FirstUnit)
 	{
-		auto pKillerTechnoData = TechnoExtContainer::Instance.Find(pFoot);
+		bool LastKillTechnoWasTeamtarget = false;
 
-		if (pKillerTechnoData->LastKillWasTeamTarget)
+		auto pNext = pFirst->NextTeamMember;
+
+		do
 		{
-			// Time for Team award check! (if set any)
-			if (pTeamData->NextSuccessWeightAward > 0)
-			{
-				ScriptExtData::IncreaseCurrentTriggerWeight(pTeam, false, pTeamData->NextSuccessWeightAward);
-				pTeamData->NextSuccessWeightAward = 0;
-			}
+			auto pKillerTechnoData = TechnoExtContainer::Instance.Find(pFirst);
 
-			// Let's clean the Killer mess
-			pKillerTechnoData->LastKillWasTeamTarget = false;
-			pTeam->Focus = nullptr;
-			pFocus = nullptr;
-
-			if (!repeatAction)
+			if (pKillerTechnoData->LastKillWasTeamTarget)
 			{
-				// If the previous Team's Target was killed by this Team Member and the script was a 1-time-use then this script action must be finished.
-				for (auto pFootTeam = pTeam->FirstUnit; pFootTeam; pFootTeam = pFootTeam->NextTeamMember)
+				// Time for Team award check! (if set any)
+				if (pTeamData->NextSuccessWeightAward > 0)
 				{
-					// Let's reset all Team Members objective
-					auto pKillerTeamUnitData = TechnoExtContainer::Instance.Find(pFootTeam);
-					pKillerTeamUnitData->LastKillWasTeamTarget = false;
-
-					if (pFootTeam->WhatAmI() == AbstractType::Aircraft)
-					{
-						pFootTeam->SetTarget(nullptr);
-						pFootTeam->LastTarget = nullptr;
-						pFootTeam->QueueMission(Mission::Guard, true);
-					}
+					ScriptExtData::IncreaseCurrentTriggerWeight(pTeam, false, pTeamData->NextSuccessWeightAward);
+					pTeamData->NextSuccessWeightAward = 0;
 				}
 
-				pTeamData->IdxSelectedObjectFromAIList = -1;
+				// Let's clean the Killer mess
+				pKillerTechnoData->LastKillWasTeamTarget = false;
+				pTeam->Focus = nullptr;
+				pFocus = nullptr;
+				LastKillTechnoWasTeamtarget = true;
 
-				// This action finished
-				pTeam->StepCompleted = true;
-				ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Force the jump to next line: %d = %d,%d (This action wont repeat)\n",
-					pTeam->Type->ID,
-					pScript->Type->ID,
-					pScript->CurrentMission,
-					curAct,
-					scriptArgument,
-					pScript->CurrentMission + 1,
-					nextAct,
-					nextArg);
-
-				return;
+				if (!repeatAction)
+				{
+					if (pFirst->WhatAmI() == AbstractType::Aircraft)
+					{
+						pFirst->SetTarget(nullptr);
+						pFirst->LastTarget = nullptr;
+						pFirst->QueueMission(Mission::Guard, true);
+					}
+				}
 			}
+
+			if (ScriptExtData::IsUnitAvailable(pFirst, true)) {
+
+				auto const pTechnoType = pFirst->GetTechnoType();
+
+				if (pFirst->WhatAmI() == AbstractType::Aircraft
+					&& !pFirst->IsInAir()
+					&& static_cast<const AircraftTypeClass*>(pTechnoType)->AirportBound
+					&& pFirst->Ammo < pTechnoType->Ammo)
+				{
+					bAircraftsWithoutAmmo = true;
+				}
+
+				pacifistTeam &= !ScriptExtData::IsUnitArmed(pFirst);
+
+				if (pFirst->WhatAmI() == AbstractType::Infantry)
+				{
+					auto const pTypeInf = static_cast<const InfantryTypeClass*>(pTechnoType);
+
+					// Any Team member (infantry) is a special agent? If yes ignore some checks based on Weapons.
+					if ((pTypeInf->Agent && pTypeInf->Infiltrate) || pTypeInf->Engineer)
+						agentMode = true;
+				}
+			}
+
+			pCur = pNext;
+
+			if (pNext)
+				pNext = pNext->NextTeamMember;
+
+			pFirst = pCur;
+
 		}
+		while (pCur);
 	}
 
-	for (auto pFoot = pTeam->FirstUnit; pFoot; pFoot = pFoot->NextTeamMember)
+	if (!repeatAction)
 	{
-		if (ScriptExtData::IsUnitAvailable(pFoot, true))
-		{
-			auto const pTechnoType = pFoot->GetTechnoType();
+		pTeamData->IdxSelectedObjectFromAIList = -1;
 
-			if (pFoot->WhatAmI() == AbstractType::Aircraft
-				&& !pFoot->IsInAir()
-				&& static_cast<const AircraftTypeClass*>(pTechnoType)->AirportBound
-				&& pFoot->Ammo < pTechnoType->Ammo)
-			{
-				bAircraftsWithoutAmmo = true;
-			}
+		// This action finished
+		pTeam->StepCompleted = true;
+		ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Force the jump to next line: %d = %d,%d (This action wont repeat)\n",
+			pTeam->Type->ID,
+			pScript->Type->ID,
+			pScript->CurrentMission,
+			curAct,
+			scriptArgument,
+			pScript->CurrentMission + 1,
+			nextAct,
+			nextArg);
 
-			pacifistTeam &= !ScriptExtData::IsUnitArmed(pFoot);
-
-			if (pFoot->WhatAmI() == AbstractType::Infantry)
-			{
-				auto const pTypeInf = static_cast<const InfantryTypeClass*>(pTechnoType);
-
-				// Any Team member (infantry) is a special agent? If yes ignore some checks based on Weapons.
-				if ((pTypeInf->Agent && pTypeInf->Infiltrate) || pTypeInf->Engineer)
-					agentMode = true;
-			}
-		}
+		return;
 	}
 
 	// Find the Leader

@@ -257,6 +257,19 @@ void PrintBuilding(T& buffer, BuildingClass* pBuilding)
 		Append(buffer, "\n");
 	}
 
+	if (pBuilding->Type->Upgrades)
+	{
+		Append(buffer, "Upgrades (%d/%d): ", pBuilding->UpgradeLevel, pBuilding->Type->Upgrades);
+		for (int i = 0; i < 3; i++)
+		{
+			if (i != 0)
+				Append(buffer, ", ");
+
+			Append(buffer, "Slot %d = %s", i + 1, pBuilding->Upgrades[i] ? pBuilding->Upgrades[i]->get_ID() : "<none>");
+		}
+		Append(buffer, "\n");
+	}
+
 	if (pBuilding->Type->Ammo > 0)
 		Append(buffer, "Ammo = (%d / %d)\n", pBuilding->Ammo, pBuilding->Type->Ammo);
 

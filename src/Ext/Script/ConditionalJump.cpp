@@ -187,7 +187,7 @@ void ScriptExtData::ConditionalJump_SetCounter(TeamClass* pTeam, int value = -10
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	auto pScript = pTeam->CurrentScript;
 	const auto&[curAct , curArgs] = pScript->GetCurrentAction();
-	
+
 	if (value == -100000000)
 		value = curArgs;
 
@@ -214,8 +214,6 @@ void ScriptExtData::ConditionalJump_ResetVariables(TeamClass* pTeam)
 
 void ScriptExtData::ConditionalJump_ManageResetIfJump(TeamClass* pTeam, int enable = -1)
 {
-	
-
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	auto pScript = pTeam->CurrentScript;
 	const auto&[curAct , curArgs] = pScript->GetCurrentAction();
@@ -305,8 +303,6 @@ void ScriptExtData::ConditionalJump_CheckCount(TeamClass* pTeam, int modifier = 
 
 bool ScriptExtData::ConditionalJump_MakeEvaluation(int comparatorMode, int studiedValue, int comparatorValue)
 {
-	
-
 	int result = false;
 
 	// Comparators are like in [AITriggerTypes] from aimd.ini
@@ -351,8 +347,6 @@ bool ScriptExtData::ConditionalJump_MakeEvaluation(int comparatorMode, int studi
 
 void ScriptExtData::ConditionalJump_CheckHumanIsMostHated(TeamClass* pTeam)
 {
-	
-
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	HouseClass* pEnemyHouse = nullptr;
 	auto pHouse = pTeam->Owner;
@@ -384,8 +378,6 @@ void ScriptExtData::ConditionalJump_CheckHumanIsMostHated(TeamClass* pTeam)
 
 void ScriptExtData::ConditionalJump_CheckAliveHumans(TeamClass* pTeam, int mode = 0)
 {
-	
-
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	const auto&[curAct , curArgs] = pTeam->CurrentScript->GetCurrentAction();
 
